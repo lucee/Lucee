@@ -6101,8 +6101,8 @@ public final class ConfigAdmin {
 			for (int key: keys) {
 				Struct sct = Caster.toStruct(children.get(key, null), null);
 				if (sct == null) continue;
-				id = Caster.toString(sct.get(KeyConstants._id));
-				v = Caster.toString(sct.get(KeyConstants._version));
+				id = Caster.toString(sct.get(KeyConstants._id, null), null);
+				v = Caster.toString(sct.get(KeyConstants._version, null), null);
 				if (!RHExtension.isInstalled(config, id, v)) continue;
 
 				if (ed.equals(new ExtensionDefintion(id, v))) return new RHExtension(config, id, v, null, false);

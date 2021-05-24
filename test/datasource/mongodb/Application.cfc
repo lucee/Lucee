@@ -34,7 +34,7 @@
 	this.clientStorage = "perAppCacheMongo";
 
 	private struct function getCredentials() {
-		// getting the credetials from the enviroment variables
+		// getting the credentials from the environment variables
 		var mongoDB = server.getDatasource("mongoDB");
 		if ( structCount(mongoDB) ){
 			mongoDB.user=mongoDB.username;

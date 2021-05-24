@@ -8,13 +8,13 @@
 	}
 
 	private string function defineDatasource(){
-		var mySQL=getCredencials();
+		var mySQL=getCredentials();
 		if(mySQL.count()==0) return false;
 		application action="update" datasource="#mysql#";
 		return true;
 	}
 
-	private struct function getCredencials() {
+	private struct function getCredentials() {
 		return server.getDatasource("mysql");
 	}
 

@@ -48,7 +48,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		var ds['h2'] = server.getDatasource("h2", "#getDirectoryFromPath(getCurrentTemplatePath())#/datasource/dbh2" );
 		
 		// MySQL
-		var mySQL=getCredencials();
+		var mySQL=getCredentials();
 		var has=false;
 		if(mySQL.count()>0) {
 			var ds['mysql']=mySQL;
@@ -60,7 +60,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		return has;
 	}
 
-	private struct function getCredencials() {
+	private struct function getCredentials() {
 		return server.getDatasource("mysql");
 	}
 } 

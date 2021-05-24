@@ -21,8 +21,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 	//public function setUp(){}
 
-	public void function testMySql()  skip="notHasMySQLCredencials"{
-		//if(!hasMySQLCredencials()) return;
+	public void function testMySql()  skip="notHasMySQLCredentials"{
+		//if(!hasMySQLCredentials()) return;
 		local.uri=createURI("Jira2049/index.cfm");
 		local.result=_InternalRequest(uri);
 		assertEquals(200,result.status);
@@ -56,7 +56,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		return baseURI&""&calledName;
 	}
 
-	public boolean function notHasMySQLCredencials() {
+	public boolean function notHasMySQLCredentials() {
 		return (structCount(server.getDatasource("mysql")) eq 0);	
 	}
 	

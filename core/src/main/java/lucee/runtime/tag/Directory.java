@@ -24,6 +24,9 @@ import static lucee.runtime.tag.util.FileUtil.NAMECONFLICT_UNDEFINED;
 import java.io.File;
 import java.io.IOException;
 import java.util.Date;
+import java.nio.file.Files;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.attribute.FileTime;
 
 import lucee.commons.io.ModeUtil;
 import lucee.commons.io.res.Resource;
@@ -61,6 +64,8 @@ import lucee.runtime.type.QueryImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.UDF;
 import lucee.runtime.type.util.KeyConstants;
+import lucee.runtime.type.StructImpl;
+import lucee.runtime.type.dt.DateTimeImpl;
 
 /**
  * Handles interactions with directories.
@@ -387,6 +392,10 @@ public final class Directory extends TagImpl {
 			}
 			actionCopy(pageContext, directory, destination, serverPassword, createPath, acl, storage, filter, recurse, nameconflict);
 		}
+		else if (action.equals("info")) {
+			Object res = getInfo(pageContext, directory, null);
+			if (!StringUtil.isEmpty(name) && res != null) pageContext.setVariable(name, res);
+		}
 		else throw new ApplicationException("invalid action [" + action + "] for the tag directory");
 
 		return SKIP_BODY;
@@ -425,7 +434,7 @@ public final class Directory extends TagImpl {
 		}
 
 		boolean typeArray = (listInfo == LIST_INFO_ARRAY_NAME) || (listInfo == LIST_INFO_ARRAY_PATH);
-		boolean namesOnly = (listInfo == LIST_INFO_ARRAY_NAME) || (listInfo == LIST_INFO_QUERY_NAME);
+		boolean namesOnly = (listInfo == LIST_INFO_ARRAY_NAME) || (listInfo == LIST_INFO_QUERY_NAME) || (listInfo == LIST_INFO_ARRAY_PATH);
 		Array array = null;
 		Object rtn;
 
@@ -440,15 +449,15 @@ public final class Directory extends TagImpl {
 
 		if (!directory.exists()) {
 			if (directory instanceof FileResource) return rtn;
-			throw new ApplicationException("directory [" + directory.toString() + "] doesn't exist");
+			throw new ApplicationException("Directory [" + directory.toString() + "] doesn't exist");
 		}
 		if (!directory.isDirectory()) {
 			if (directory instanceof FileResource) return rtn;
-			throw new ApplicationException("file [" + directory.toString() + "] exists, but isn't a directory");
+			throw new ApplicationException("File [" + directory.toString() + "] exists, but isn't a directory");
 		}
 		if (!directory.isReadable()) {
 			if (directory instanceof FileResource) return rtn;
-			throw new ApplicationException("no access to read directory [" + directory.toString() + "]");
+			throw new ApplicationException("No access to read directory [" + directory.toString() + "]");
 		}
 
 		long startNS = System.nanoTime();
@@ -457,7 +466,7 @@ public final class Directory extends TagImpl {
 
 			if (namesOnly) {
 				if (typeArray) {
-					_fillArrayPathOrName(array, directory, filter, 0, recurse, namesOnly);
+					_fillArrayPathOrName(array, directory, filter, 0, recurse, (listInfo == LIST_INFO_ARRAY_NAME));
 					return array;
 				}
 
@@ -508,6 +517,35 @@ public final class Directory extends TagImpl {
 		return rtn;
 	}
 
+	public static Struct getInfo(PageContext pc, Resource directory, String serverPassword) throws PageException {
+			
+		SecurityManager securityManager = pc.getConfig().getSecurityManager();
+		securityManager.checkFileLocation(pc.getConfig(), directory, serverPassword);
+
+			
+		if (!directory.exists()) throw new ApplicationException("directory [" + directory.toString() + "] doesn't exist");
+		if (!directory.isDirectory()) throw new ApplicationException("[" + directory.toString() + "] isn't a directory");
+		if (!directory.canRead()) throw new ApplicationException("no access to read directory [" + directory.toString() + "]");
+
+		securityManager.checkFileLocation(pc.getConfig(), directory, serverPassword);
+		Struct sct = new StructImpl();
+		sct.setEL("directoryName", directory.getName());
+		sct.setEL(KeyConstants._size, Long.valueOf(directory.length()));
+		sct.setEL("isReadable", directory.isReadable());
+		sct.setEL(KeyConstants._path, directory.getAbsolutePath());
+		sct.setEL("dateLastModified", new DateTimeImpl(pc.getConfig()));
+		File file = new File(Caster.toString(directory));
+		BasicFileAttributes attr;
+		try {
+			attr = Files.readAttributes(file.toPath(), BasicFileAttributes.class);
+			sct.setEL("directoryCreated", new DateTimeImpl(pc, attr.creationTime().toMillis(), false));
+		}
+		catch (Exception e) {
+		}
+
+		return sct;
+	}
+
 	private static int _fillQueryAll(Query query, Resource directory, ResourceFilter filter, int count, boolean hasMeta, boolean recurse) throws PageException, IOException {
 		Resource[] list = directory.listResources();
 
@@ -516,19 +554,21 @@ public final class Directory extends TagImpl {
 		// fill data to query
 		// query.addRow(list.length);
 		boolean isDir;
+		boolean modeSupported = directory.getResourceProvider().isModeSupported();
 		for (int i = 0; i < list.length; i++) {
+			isDir = list[i].isDirectory();
 			if (filter == null || filter.accept(list[i])) {
 				query.addRow(1);
 				count++;
 				query.setAt(KeyConstants._name, count, list[i].getName());
-				isDir = list[i].isDirectory();
 				query.setAt(KeyConstants._size, count, new Double(isDir ? 0 : list[i].length()));
 				query.setAt(KeyConstants._type, count, isDir ? "Dir" : "File");
-				if (directory.getResourceProvider().isModeSupported()) {
-
+				if (modeSupported) {
 					query.setAt(MODE, count, new ModeObjectWrap(list[i]));
 				}
 				query.setAt(DATE_LAST_MODIFIED, count, new Date(list[i].lastModified()));
+				// TODO File Attributes are Windows only...
+				// this is slow as it fetches each the attributes one at a time
 				query.setAt(ATTRIBUTES, count, getFileAttribute(list[i], true));
 
 				if (hasMeta) {
@@ -537,7 +577,7 @@ public final class Directory extends TagImpl {
 
 				query.setAt(DIRECTORY, count, dir);
 			}
-			if (recurse && list[i].isDirectory()) count = _fillQueryAll(query, list[i], filter, count, hasMeta, recurse);
+			if (recurse && isDir) count = _fillQueryAll(query, list[i], filter, count, hasMeta, recurse);
 		}
 		return count;
 	}
@@ -590,7 +630,7 @@ public final class Directory extends TagImpl {
 		if (list == null || list.length == 0) return count;
 		for (int i = 0; i < list.length; i++) {
 			if (filter == null || filter.accept(list[i])) {
-				arr.appendEL(onlyName ? list[i].getName() : list[i].getAbsolutePath());
+				arr.appendEL(onlyName ? list[i].getName() : list[i].getAbsolutePath() );
 				count++;
 
 			}
@@ -849,6 +889,8 @@ public final class Directory extends TagImpl {
 	}
 
 	private static String getFileAttribute(Resource file, boolean exists) {
+		// TODO this is slow as it fetches attributes one at a time
+		// also Windows only!
 		return exists && !file.isWriteable() ? "R".concat(file.isHidden() ? "H" : "") : file.isHidden() ? "H" : "";
 	}
 
@@ -866,7 +908,7 @@ public final class Directory extends TagImpl {
 		else if ("dir".equals(strType)) return TYPE_DIR;
 		else if ("directory".equals(strType)) return TYPE_DIR;
 		else if ("file".equals(strType)) return TYPE_FILE;
-		else throw new ApplicationException("invalid type [" + strType + "], valid types are [all,directory,file]");
+		else throw new ApplicationException("Invalid type [" + strType + "], valid types are [all, directory, file]");
 	}
 
 }

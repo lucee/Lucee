@@ -108,7 +108,43 @@ END;
 		
 	}
 
+	// LDEV-2543
+	public void function testStoredProcXmlType() localmode=true skip=true {
+		if(!variables.has) return;
 
+		```
+		<cfquery name="qry">
+			CREATE OR REPLACE PROCEDURE SP_XMLTEST_BUG(
+				cur_XMLOut OUT sys_refcursor
+			) AS
+				BEGIN
+				OPEN cur_XMLOut FOR
+					SELECT XMLSerialize(DOCUMENT XMLELEMENT("SystemDate",to_char(sysdate,'YYYYMMDD'))) AS xml
+					FROM DUAL;
+				END;
+		</cfquery>
+		```
+		storedproc procedure="SP_XMLTEST_BUG" {
+			procresult name="qTest";
+		}
+		expect ( qTest.xml ).toInclude( "<SystemDate>" ); // works due to XMLSerialize
+		
+		```
+		<cfquery name="qry">
+			CREATE OR REPLACE PROCEDURE SP_XMLTEST_BUG( cur_XMLOut OUT sys_refcursor) AS
+				BEGIN
+				  OPEN cur_XMLOut FOR
+					SELECT XMLELEMENT("SystemDate",to_char(sysdate,'YYYYMMDD')) AS xml
+					FROM DUAL;
+				END;
+		</cfquery>
+		```
+		storedproc procedure="SP_XMLTEST_BUG" {
+			procresult name="qTest";
+		}
+		//systemOutput( "-----222-----[" & qTest.toString() & "]", true );
+		expect ( qTest ).toInclude( "<SystemDate>" ); // fails, an empty string is returned
+	}
 
 	public void function testConnection(){
 		if(!variables.has) return;
@@ -124,7 +160,64 @@ END;
 		
 	}
 
+	private function cleanupInsertTable() localmode=true{
+
+		query name="exists" params={id: "INSERT_TEST"}{
+			echo("SELECT table_name FROM user_tables WHERE table_name = :id");
+		}
+		//systemoutput(exists, true);
+		if ( exists.recordcount eq 1 ){
+			//systemoutput("dropping insert_test", true);
+			query {
+				echo( "DROP TABLE insert_test" );
+			}
+		}
+
+		query name="exists" params={id: "INSERT_SEQ" } {
+			echo( "SELECT sequence_name FROM user_sequences WHERE sequence_name = :id" );
+		}
+		//systemoutput(exists, true);
+		if ( exists.recordcount eq 1 ){
+			//systemoutput("dropping insert_seq", true);
+			query {
+				echo ( "DROP SEQUENCE insert_seq" );
+			}
+		}
+	}
+
+	public void function testInsertTable() localmode=true{
+		if ( !variables.has ) return;
+
+		//systemOutput("", true); // just a new line
+		cleanupInsertTable();
+		query {
+			echo ( "CREATE TABLE insert_test ( id number(10) )" );
+		}
+		query {
+			echo ( "CREATE SEQUENCE insert_seq START WITH 3" ); // start with 3, so the test is a little more testing!
+		}
 	
+		query result="result" {
+			echo("INSERT INTO insert_test ( id ) VALUES ( insert_seq.nextval )");
+		}; // TODO this needs to have a column list passed so it returns the ID value
+
+		query name="q" {
+			echo( "SELECT id FROM insert_test" );
+		};
+		//systemOutput( q, true );
+		//systemOutput( result, true );
+
+		query name="seq" {
+			echo ( "SELECT insert_seq.currval AS id FROM dual" );
+		}
+		expect( seq.id ).toBe( 3 );
+		expect( seq.id ).toBe( q.id );
+		// expect( result.generatedKey ).toBe( seq.id );  // TODO returns oracle.sql.ROWID instead
+
+		// systemOutput( seq, true );
+
+		cleanupInsertTable();
+	}
 
 } 
 </cfscript>

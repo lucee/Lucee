@@ -29,3 +29,4 @@ WEB-INF
 
 /.vscode
 /.idea
+loader/env.json

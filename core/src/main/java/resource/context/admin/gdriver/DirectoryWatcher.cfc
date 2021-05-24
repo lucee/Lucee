@@ -6,7 +6,7 @@
 		, field("Watch subdirectories", "recurse", "true", true, "Watch the directory and all subdirectories too", "checkbox")
 		, field("Use Java WatchService", "useNIOWatcher","true",true,"Use the Java WatchService (only works with local filesystem)", "checkbox")
 		, field("Verbose logging", "verboseLogging", "true",true,"Enable verbose logging for debugging", "checkbox")
-		, field("Interval (ms)", "interval", "60000",true,"The interval between checks, in miliseconds", "text")
+		, field("Interval (ms)", "interval", "60000",true,"The interval between checks, in milliseconds", "text")
 		, field("File filter","extensions","*",true,"The comma separated list of file filters to match (* = all files). Examples: *user*,*.gif,2010*,myfilename.txt","text")
 
 		, group("CFC Listener Function Definition", "Definition for the CFC Listener Functions, when empty no listener is called", 3)

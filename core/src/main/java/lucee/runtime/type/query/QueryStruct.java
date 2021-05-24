@@ -173,7 +173,7 @@ public class QueryStruct extends StructImpl implements QueryResult {
 
 		Struct tmp;
 		for (int r = 1; r <= rows; r++) {
-			tmp = new StructImpl();
+			tmp = new StructImpl(Struct.TYPE_LINKED);
 			qs.set(Caster.toKey(q.getAt(columnName, r)), tmp);
 			for (Key c: columns) {
 				tmp.setEL(c, q.getAt(c, r, null));

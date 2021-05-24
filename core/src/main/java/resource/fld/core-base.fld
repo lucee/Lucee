@@ -3888,6 +3888,23 @@ type of the result returned:
 		</return>
 	</function>
 	
+	<!-- DirectoryInfo -->
+	<function>
+		<name>DirectoryInfo</name>
+		<class>lucee.runtime.functions.file.DirectoryInfo</class>
+		<description>returns detailed info about the given directory.</description>
+		<argument>
+			<name>source</name>
+			<alias>Directory</alias>
+			<type>string</type>
+			<required>Yes</required>
+			<description>directory path</description>
+		</argument>
+		<return>
+			<type>struct</type>
+		</return>
+	</function>
+	
 	<!-- encrypt -->
 	<function>
 		<name>encrypt</name>
@@ -6741,6 +6758,7 @@ Default list delimiter: comma character.</description>
 	<function>
 		<name>hash</name>
 		<class>lucee.runtime.functions.string.Hash</class>
+		<member-name>hash</member-name>
 		<description>Converts a variable-length string to a 32-byte, hexadecimal
         string, using the MD5 algorithm. (It is not possible to convert
         the hash result back to the source string.)
@@ -12036,6 +12054,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<name>structDelete</name>
 		<class>lucee.runtime.functions.struct.StructDelete</class>
 		<member-name>delete</member-name>
+		<member-chaining>true</member-chaining>
 		<keywords>struct</keywords>
 		<description>Removes an element from a structure.</description>
 		<argument>
@@ -13392,6 +13411,7 @@ _- asc (default): ascending (a to z) sort order
 	<function>
 		<name>toBase64</name>
 		<class>lucee.runtime.functions.string.ToBase64</class>
+		<member-name>toBase64</member-name>
 		<description>Calculates the Base64 representation of a string or binary
         object. The Base64 format uses printable characters, allowing
         binary data to be sent in forms and e-mail, and stored in a
@@ -14151,14 +14171,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<name>hash</name>
 			<type>string</type>
 			<required>Yes</required>
-			<description>Degrees of parallelism, a number between 1 and 10.</description>
-    	</argument>
-    	<argument>
-			<name>variant</name>
-			<type>string</type>
-			<required>No</required>
-			<default>argon2i</default>
-			<description>Either Argon2i, Argon2d or Argon2id</description>
+			<description>The hash of input.</description>
     	</argument>
     	<return>
     		<type>boolean</type>

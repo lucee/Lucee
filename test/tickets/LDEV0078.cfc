@@ -20,21 +20,21 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 
 	public void function test1(){
-		if(!hasCredencials()) return;
+		if(!hasCredentials()) return;
 		local.uri=createURI("LDEV0078/test1.cfm");
 		local.result=_InternalRequest(uri);
 		assertEquals("true",trim(result.filecontent));
 	}
 
 	public void function test2(){
-		if(!hasCredencials()) return;
+		if(!hasCredentials()) return;
 		local.uri=createURI("LDEV0078/test2.cfm");
 		local.result=_InternalRequest(uri);
 		assertEquals("true",trim(result.filecontent));
 	}
 
 	public void function test3(){
-		if(!hasCredencials()) return;
+		if(!hasCredentials()) return;
 		local.uri=createURI("LDEV0078/test3.cfm");
 		local.result=_InternalRequest(uri);
 		assertEquals("true",trim(result.filecontent));
@@ -45,7 +45,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		return baseURI&""&calledName;
 	}
 
-	private boolean function hasCredencials() {
+	private boolean function hasCredentials() {
 		return structCount(server.getDatasource("mysql"));
 	}
 	

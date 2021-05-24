@@ -19,7 +19,17 @@
  ---><cfscript>
 component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	
-	//public function afterTests(){}
+
+	public function beforeTests(){
+		// stash system timezone
+		variables.timezone = getApplicationSettings().timezone;
+	}
+	
+	public function afterTests(){
+		// pop system timezone
+		application action="update" timezone="#variables.timezone#";
+		setTimeZone(variables.timezone);
+	}
 	
 	public function setUp(){
 		variables.has=defineDatasource();
@@ -222,6 +232,16 @@ END
 			echo("show tables");
 		}
 		
+	}
+
+	function testExceptionOnAccessDenied(){
+		// test mysql user cannot access or drop other databases
+		if(!variables.has) return;
+		expect(function(){
+			query  {
+				echo( "DROP DATABASE IF EXISTS `database_doesnt_exist` ");
+			}
+		}).toThrow();
 	}
 
 

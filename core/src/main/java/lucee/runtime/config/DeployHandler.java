@@ -110,7 +110,7 @@ public class DeployHandler {
 						boolean sucess = DeployHandler.deployExtensions(config, extensions.toArray(new ExtensionDefintion[extensions.size()]), log);
 						if (sucess && configDir != null) ConfigFactory.updateRequiredExtension(engine, configDir, log);
 						LogUtil.log(config, Log.LEVEL_INFO, "deploy", "controller",
-								(sucess ? "Successfully installed" : "Failed to install") + " extensions: [" + ListUtil.listToList(extensions, ", ") +"]"); 
+								(sucess ? "Successfully installed" : "Failed to install") + " extensions: [" + ListUtil.listToList(extensions, ", ") + "]");
 					}
 					catch (Exception e) {
 						Log log = config.getLog("deploy");
@@ -414,7 +414,8 @@ public class DeployHandler {
 					return res;
 				}
 			}
-			catch (Exception e) {}
+			catch (Exception e) {
+			}
 		}
 		// remote
 		return downloadExtension(config, ed, log);
