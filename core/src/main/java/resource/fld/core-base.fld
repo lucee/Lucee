@@ -14192,4 +14192,29 @@ You can find a list of all available timezones in the Lucee administrator (Setti
     		<type>string</type>
     	</return>
     </function>
+
+    <function>
+    		<name>StringMap</name>
+    		<member-name>map</member-name>
+    		<class>lucee.runtime.functions.string.StringMap</class>
+    		<description>Iterates over every entry of the string and calls the closure function to work on the element of the string. </description>
+        	<argument>
+    			<name>string</name>
+    			<type>string</type>
+    			<required>Yes</required>
+    			<alias>inputString,object</alias>
+    			<description>Input string.</description>
+        	</argument>
+        	<argument>
+    			<name>closure</name>
+    			<type>any</type>
+    			<alias>function,callback,udf</alias>
+    			<required>no</required>
+    			<alias>callback</alias>
+    			<description> Closure or a function reference that will be called for each of the iteration.</description>
+    		</argument>
+        	<return>
+        		<type>string</type>
+        	</return>
+        </function>
 </func-lib>
