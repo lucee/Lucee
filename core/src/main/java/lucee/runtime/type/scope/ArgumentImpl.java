@@ -117,7 +117,8 @@ public final class ArgumentImpl extends ScopeSupport implements Argument, ArrayP
 		Object o = super.g(key, Null.NULL);
 		if (o != Null.NULL) return o;
 
-		o = get(Caster.toIntValue(key.getString(), -1), Null.NULL);
+		// this would only need to be called when scoped, as numbers aren't supported in cfml as variable names or functions
+		// o = get(Caster.toIntValue(key.getString(), -1), Null.NULL);
 		if (o != Null.NULL) return o;
 		return defaultValue;
 	}
