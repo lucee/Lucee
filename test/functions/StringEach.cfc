@@ -15,17 +15,17 @@
  * You should have received a copy of the GNU Lesser General Public 
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  * 
- ---><cfscript>
+ --->
+<cfscript>
 component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	
-
 	public void function testStringEach(){
-        myString="Random" 
-        callback=function(s){ 
-            WriteOutput(s & "TEST") 
-        }           
+            myString="Random"; 
+            callback=function(s){ 
+		return s & "TEST"; 
+            }           
      
-        assertEquals("RandomTEST", StringEach(myCities, callback));
+        assertEquals("RandomTEST", StringEach(myString, callback));
 	}
 } 
 </cfscript>
