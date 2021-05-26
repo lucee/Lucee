@@ -25,7 +25,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		return s & "TEST"; 
             }           
      
-        assertEquals("RandomTEST", StringEach(myString, callback));
+        assertEquals("RTESTaTESTnTESTdTESToTESTmTEST", StringEach(myString, callback));
 	}
 } 
 </cfscript>
