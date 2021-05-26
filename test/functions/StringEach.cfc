@@ -16,16 +16,15 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  * 
  --->
-<cfscript>
-component extends="org.lucee.cfml.test.LuceeTestCase"	{
-	
-	public void function testStringEach(){
-            myString="Random"; 
-            callback=function(s){ 
-		return s & "TEST"; 
-            }           
-     
-        assertEquals("RTESTaTESTnTESTdTESToTESTmTEST", StringEach(myString, callback));
+ <cfscript>
+component extends="org.lucee.cfml.test.LuceeTestCase" {
+
+	public void function testStringEach() {
+		local.testString = "MEANINGLESS_VALUE";
+		callback = function( c ) {
+			return c & "TEST"; 
+    	}
+    	assertEquals(StringEach( local.testString, callback ), local.testString.stringEach( callback ));
 	}
 } 
 </cfscript>
