@@ -766,7 +766,7 @@ public final class TagLibTag {
 		Iterator<String> it = attributes.keySet().iterator();
 		StringBuffer sb = new StringBuffer();
 		while (it.hasNext()) {
-			if (sb.length() > 0) sb.append(",");
+			if (sb.length() > 0) sb.append(", ");
 			sb.append(it.next());
 		}
 		return sb.toString();

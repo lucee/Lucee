@@ -2595,7 +2595,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 					String names = tag.getAttributeNames();
 					if (StringUtil.isEmpty(names)) throw new TemplateException(cfml, "Attribute [" + idOC + "] is not allowed for tag [" + tag.getFullName() + "]");
 
-					throw new TemplateException(cfml, "Attribute [" + idOC + "] is not allowed for statement [" + tag.getName() + "]", "valid attribute names are [" + names + "]");
+					throw new TemplateException(cfml, "Attribute [" + idOC + "] is not allowed for statement [" + tag.getName() + "]", "Valid Attribute names are [" + names + "]");
 				}
 				dynamic.setValue(true);
 
