@@ -20,17 +20,17 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	
 
 	public void function testStringFilter(){
-		myStr="diamonds" 
+		local.myStr = "diamonds";
         callback=function(chr){ 
             return chr>"d"; 
         } 
-    	assertEquals('imons', StringFilter(myStr, callback));
+    	assertEquals('imons', StringFilter( local.myStr, callback ));
 
-    	myStr="123456789" 
+    	local.myStr = "123456789";
         callback=function(chr){ 
             return chr>53; 
         }
-    	assertEquals('6789', StringFilter(myStr, callback));
+    	assertEquals('6789', local.myStr.filter(callback));
 	}
 } 
 </cfscript>
