@@ -24,7 +24,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 		callback = function( c ) {
 			return c & "TEST"; 
     	}
-    	assertEquals(StringEach( local.testString, callback ), local.testString.stringEach( callback ));
+    	assertEquals(StringEach( local.testString, callback ), local.testString.each( callback ));
 	}
 } 
 </cfscript>
