@@ -722,10 +722,10 @@ public final class Caster {
 	 * @return casted int value
 	 */
 	public static int toIntValue(Object o, int defaultValue) {
-		if (o == null) return defaultValue;
-		else if (o instanceof Number) return ((Number) o).intValue();
+		if (o instanceof Number) return ((Number) o).intValue();
 		else if (o instanceof Boolean) return ((Boolean) o).booleanValue() ? 1 : 0;
 		else if (o instanceof CharSequence) return toIntValue(o.toString().trim(), defaultValue);
+		else if (o == null) return defaultValue;
 		// else if(o instanceof Clob) return toIntValue(toString(o));
 		else if (o instanceof Character) return (((Character) o).charValue());
 		else if (o instanceof Castable) {
