@@ -13,7 +13,7 @@ component {
 			var clean  = ListChangeDelims( mid( arguments.el, rootPathLen ), ".", "/\" ); // strip off dir prefix
 			arguments.arr[ arguments.idx ] = mid( clean, 1, len( clean ) - 4 ); // strip off .cfc
 		});
-		ArraySort( bundles, "text", "asc" );
+		ArraySort( bundles, "textnocase", "asc" );
 		return bundles;
 	}
 
