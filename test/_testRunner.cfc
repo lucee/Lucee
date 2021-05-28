@@ -3,72 +3,79 @@ component {
 		return this;
 	}
 
-	public function getTestFilter () {
-		var dir = {
-			mapping : "/test"
-		   ,recurse : true
-		   ,filter  : function(path) localmode=true {
-			   var isValidTestCase = function ( string path ){
-				   // get parent
-				   var testDir = getDirectoryFromPath( arguments.path );
-				   testDir = listCompact(left( testDir, testDir.len() - 1 ), "\/" );
-				   if ( left( arguments.path, 1 ) eq "/")
-					   testDir = "/" & testDir; // avoid issues with non windows paths
-				   var name = listLast( arguments.path, "\/" );
+	// testbox doesn't always sort the order of tests, so we do it manually LDEV-3541
+	public array function getBundles(){
+		var bundles = directoryList( path="/test", recurse=true, listInfo="path", filter="*.cfc" )
+			.filter( filter=testFilter, parallel=true ); // directoryList doesn't allow parallel filters
+		
+		var rootPathLen = ExpandPath( "/test" ).len() - 4;
+		ArrayEach( bundles, function( el, idx, arr ){
+			var clean  = ListChangeDelims( mid( arguments.el, rootPathLen ), ".", "/\" ); // strip off dir prefix
+			arguments.arr[ arguments.idx ] = mid( clean, 1, len( clean ) - 4 ); // strip off .cfc
+		});
+		ArraySort( bundles, "text", "asc" );
+		return bundles;
+	}
 
-				   switch ( true ){
-					   case ( left (name, 1 ) == "_" ):
-						   return "test has _ prefix (#name#)";
-					   case ( checkTestFilter( arguments.path ) ):
-						   return "excluded by testFilter";
-					   case ( FindNoCase( request.testFolder, testDir ) neq 1 ):
-						   return "not under test dir (#request.testFolder#, #testDir#)";
-					   case fileExists( testDir & "/Application.cfc" ):
-						   return "test in directory with Application.cfc";
-					   default:
-						   break;
-				   };
-				   var extends = checkExtendsTestCase( arguments.path );
-				   if ( extends neq "org.lucee.cfml.test.LuceeTestCase" )
-					   return "test doesn't extend Lucee Test Case (#extends#)";
-				   else
-					   return "";
-			   };
+	public boolean function testFilter ( string path ) localmode=true {
+		var isValidTestCase = function ( string path ){
+			// get parent
+			var testDir = getDirectoryFromPath( arguments.path );
+			testDir = listCompact(left( testDir, testDir.len() - 1 ), "\/" );
+			if ( left( arguments.path, 1 ) eq "/")
+				testDir = "/" & testDir; // avoid issues with non windows paths
+			var name = listLast( arguments.path, "\/" );
 
-			   var checkTestFilter = function ( string path ){
-				   if ( Arraylen( request.testFilter ) eq 0 )
-					   return false;
-				   loop array="#request.testFilter#" item="local.f" {
-					   if ( FindNoCase( f, arguments.path ) gt 0 )
-						   return false;
-				   }
-				   return true;
-			   };
+			switch ( true ){
+				case ( left (name, 1 ) == "_" ):
+					return "test has _ prefix (#name#)";
+				case ( checkTestFilter( arguments.path ) ):
+					return "excluded by testFilter";
+				case ( FindNoCase( request.testFolder, testDir ) neq 1 ):
+					return "not under test dir (#request.testFolder#, #testDir#)";
+				case fileExists( testDir & "/Application.cfc" ):
+					return "test in directory with Application.cfc";
+				default:
+					break;
+			};
+			var extends = checkExtendsTestCase( arguments.path );
+			if ( extends neq "org.lucee.cfml.test.LuceeTestCase" )
+				return "test doesn't extend Lucee Test Case (#extends#)";
+			else
+				return "";
+		};
 
-			   var checkExtendsTestCase = function (string path){
-				   // finally only allow files which extend "org.lucee.cfml.test.LuceeTestCase"
-				   var cfcPath = ListChangeDelims( "/test" & Mid( arguments.path, len( request.testFolder ) + 1 ), ".", "/\" );
-				   cfcPath = mid( cfcPath, 1, len( cfcPath ) - 4 );
-				   try {
-					   // triggers a compile, which make the initial filter slower, but it would be compiled later anyway
-					   var meta = GetComponentMetaData( cfcPath );
-				   } catch ( e ){
-					   return cfcatch.message;
-				   }
-				   return meta.extends.fullname ?: "";
-			   };
+		var checkTestFilter = function ( string path ){
+			if ( Arraylen( request.testFilter ) eq 0 )
+				return false;
+			loop array="#request.testFilter#" item="local.f" {
+				if ( FindNoCase( f, arguments.path ) gt 0 )
+					return false;
+			}
+			return true;
+		};
 
-			   allowed = isValidTestCase( arguments.path );
-			   //SystemOutput( arguments.path & " :: " & allowed, true );
-			   if ( allowed != "" ){
-				   //SystemOutput( arguments.path & " :: " & allowed, true );
-				   return false;
-			   } else {
-				   return true;
-			   }
-		   }
-	   };
-	   return dir;
+		var checkExtendsTestCase = function (string path){
+			// finally only allow files which extend "org.lucee.cfml.test.LuceeTestCase"
+			var cfcPath = ListChangeDelims( "/test" & Mid( arguments.path, len( request.testFolder ) + 1 ), ".", "/\" );
+			cfcPath = mid( cfcPath, 1, len( cfcPath ) - 4 );
+			try {
+				// triggers a compile, which make the initial filter slower, but it would be compiled later anyway
+				var meta = GetComponentMetaData( cfcPath );
+			} catch ( e ){
+				return cfcatch.message;
+			}
+			return meta.extends.fullname ?: "";
+		};
+
+		allowed = isValidTestCase( arguments.path );
+		//SystemOutput( arguments.path & " :: " & allowed, true );
+		if ( allowed != "" ){
+			//SystemOutput( arguments.path & " :: " & allowed, true );
+			return false;
+		} else {
+			return true;
+		}
 	}
 
 	public struct function runTests() localmode=true {
@@ -100,7 +107,7 @@ component {
 		try {
 
 			var filterTimer = getTickCount();
-			var tb = new testbox.system.TestBox( directory=getTestFilter(), reporter="console" );
+			var tb = new testbox.system.TestBox( bundles=getBundles(), reporter="console" );
 
 			SystemOutput( "Found #tb.getBundles().len()# tests to run, filter took #getTickCount()-filterTimer#ms", true );
 			if (false and Arraylen( request.testFilter )){
