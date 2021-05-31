@@ -2,20 +2,20 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
     function run( testResults, testBox ){
         describe( "testcase for stringSort", function(){
             it(title="Check with stringSort()", body=function( currentSpec ){
-                assertEquals("eginrssttt", stringSort("teststring"));
-                assertEquals("ABEFcdgh", stringSort("ABcdEFgh"));
-                assertEquals("123GINRSTestt", stringSort("testSTRING123"));
-                assertEquals("!$%?@SSginorrtt{}", stringSort("StringSort!@$%{}?"));
-                assertEquals("..eginorrssstttt", stringSort("test.string.sort"));
-                assertEquals("..///:acddeeghllnoooprsttuw", stringSort("https://download.lucee.org/"));
+                assertEquals(stringSort("teststring"), "eginrssttt");
+                assertEquals(stringSort("ABcdEFgh"), "ABEFcdgh");
+                assertEquals(stringSort("testSTRING123"), "123GINRSTestt");
+                assertEquals(stringSort("StringSort!@$%{}?"), "!$%?@SSginorrtt{}");
+                assertEquals(stringSort("test.string.sort"), "..eginorrssstttt");
+                assertEquals(stringSort("https://download.lucee.org/"), "..///:acddeeghllnoooprsttuw");
             });
             it(title="Check with stringSort() member functions", body=function( currentSpec ){
-                assertEquals("eginrssttt", "teststring".Sort());
-                assertEquals("ABEFcdgh", "ABcdEFgh".Sort());
-                assertEquals("123GINRSTestt", "testSTRING123".Sort());
-                assertEquals("!$%?@SSginorrtt{}", "StringSort!@$%{}?".Sort());
-                assertEquals("..eginorrssstttt", "test.string.sort".Sort());
-                assertEquals("..///:acddeeghllnoooprsttuw", "https://download.lucee.org/".Sort());
+                assertEquals("teststring".Sort(), "eginrssttt");
+                assertEquals("ABcdEFgh".Sort(), "ABEFcdgh");
+                assertEquals("testSTRING123".Sort(), "123GINRSTestt");
+                assertEquals("StringSort!@$%{}?".Sort(), "!$%?@SSginorrtt{}");
+                assertEquals("test.string.sort".Sort(), "..eginorrssstttt");
+                assertEquals("https://download.lucee.org/".Sort(), "..///:acddeeghllnoooprsttuw");
             })
         });
     }
