@@ -87,11 +87,6 @@ public interface ScheduleTask {
 	public abstract ProxyData getProxyData();
 
 	/**
-	 * @return Returns the userAgent.
-	 */	
-	public abstract String getUserAgent();
-
-	/**
 	 * @return Returns the resolveURL.
 	 */
 	public abstract boolean isResolveURL();

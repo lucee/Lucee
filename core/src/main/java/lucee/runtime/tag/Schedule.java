@@ -38,6 +38,7 @@ import lucee.runtime.schedule.ScheduleTask;
 import lucee.runtime.schedule.ScheduleTaskImpl;
 import lucee.runtime.schedule.Scheduler;
 import lucee.runtime.schedule.SchedulerImpl;
+import lucee.runtime.schedule.ScheduleTaskPro;
 import lucee.runtime.type.QueryImpl;
 import lucee.runtime.type.dt.Date;
 import lucee.runtime.type.dt.DateImpl;
@@ -262,7 +263,7 @@ public final class Schedule extends TagImpl {
 	 * 
 	 * @param userAgent value to set
 	 **/
-	public void setUserAgent(String userAgent) {
+	public void setUseragent(String userAgent) {
 		this.userAgent = userAgent;
 	}
 
@@ -562,7 +563,7 @@ public final class Schedule extends TagImpl {
 						query.setAt("proxypassword", row, pd.getPassword());
 					}
 				}
-				query.setAt("useragent", row, Caster.toString(task.getUserAgent()));
+				query.setAt("useragent", row, Caster.toString(((ScheduleTaskPro) task).getUserAgent()));
 				query.setAt("resolveurl", row, Caster.toString(task.isResolveURL()));
 
 				query.setAt("paused", row, Caster.toBoolean(task.isPaused()));

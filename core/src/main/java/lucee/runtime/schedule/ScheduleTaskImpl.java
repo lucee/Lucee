@@ -34,11 +34,12 @@ import lucee.runtime.net.proxy.ProxyData;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.dt.Date;
 import lucee.runtime.type.dt.Time;
+import lucee.runtime.schedule.ScheduleTaskPro;
 
 /**
  * Define a single schedule Task
  */
-public final class ScheduleTaskImpl implements ScheduleTask {
+public final class ScheduleTaskImpl implements ScheduleTaskPro {
 
 	public static final int INTERVAL_EVEREY = -1;
 	public static final int INTERVAL_YEAR = 4;

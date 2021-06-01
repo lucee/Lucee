@@ -42,6 +42,7 @@ import lucee.runtime.functions.other.CreateUUID;
 import lucee.runtime.net.proxy.ProxyData;
 import lucee.runtime.net.proxy.ProxyDataImpl;
 import lucee.runtime.util.URLResolver;
+import lucee.runtime.schedule.ScheduleTaskPro;
 
 class ExecutionThread extends Thread {
 
@@ -83,7 +84,7 @@ class ExecutionThread extends Thread {
 
 		// HttpMethod method = new GetMethod(url);
 		// HostConfiguration hostConfiguration = client.getHostConfiguration();
-		String userAgent = task.getUserAgent();
+		String userAgent = ((ScheduleTaskPro) task).getUserAgent();
 		if (StringUtil.isEmpty(userAgent))
 			userAgent = Constants.NAME + " Scheduler";
 			//userAgent = "CFSCHEDULE"; this old userAgent string is on block listslists
