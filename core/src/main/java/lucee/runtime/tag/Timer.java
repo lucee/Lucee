@@ -26,6 +26,7 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.tag.BodyTagImpl;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.op.Caster;
+//import lucee.runtime.debug.DebuggerPro;
 
 public final class Timer extends BodyTagImpl {
 
@@ -170,7 +171,9 @@ public final class Timer extends BodyTagImpl {
 			if (pageContext.getConfig().debug()) {
 				PageSource curr = pageContext.getCurrentTemplatePageSource();
 				// TODO need to include unitDesc?
+				//((DebuggerPro) pageContext.getDebugger()).addTimer(label, exe, curr == null ? "unknown template" : curr.getDisplayPath());
 				pageContext.getDebugger().addTimer(label, exe, curr == null ? "unknown template" : curr.getDisplayPath());
+				// TODO pass in line number , curr == null ? 0 : curr.getLine()
 			}
 		}
 	}

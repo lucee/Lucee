@@ -18,18 +18,22 @@
  **/
 package lucee.runtime.debug;
 
-public final class DebugTimerImpl implements DebugTimer {
+import lucee.runtime.debug.DebugTimerPro;
+
+public final class DebugTimerImpl implements DebugTimerPro {
 
 	private static final long serialVersionUID = -4552972253450654830L;
 
 	private String label;
 	private long time;
 	private String template;
+	private int line;
 
-	public DebugTimerImpl(String label, long time, String template) {
+	public DebugTimerImpl(String label, long time, String template, int line) {
 		this.label = label;
 		this.time = time;
 		this.template = template;
+		this.line = line;
 	}
 
 	/**
@@ -54,5 +58,12 @@ public final class DebugTimerImpl implements DebugTimer {
 	@Override
 	public long getTime() {
 		return time;
+	}
+
+	/**
+	 * @return the line number
+	*/	
+	public int getLine() {
+		return line;
 	}
 }

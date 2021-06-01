@@ -71,6 +71,7 @@ import lucee.runtime.type.dt.DateTimeImpl;
 import lucee.runtime.type.query.QueryResult;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.ListUtil;
+// import lucee.runtime.debug.DebuggerPro;
 
 /**
  * Class to debug the application
@@ -125,7 +126,7 @@ public final class DebuggerImpl implements Debugger {
 			KeyConstants._count, KeyConstants._datasource, KeyConstants._usage, CACHE_TYPE };
 	private static final String[] QUERY_COLUMN_TYPES = new String[] { "VARCHAR", "DOUBLE", "VARCHAR", "VARCHAR", "DOUBLE", "DOUBLE", "VARCHAR", "ANY", "VARCHAR" };
 	private static final Key[] GEN_DATA_COLUMNS = new Collection.Key[] { KeyConstants._category, KeyConstants._name, KeyConstants._value };
-	private static final Key[] TIMER_COLUMNS = new Collection.Key[] { KeyConstants._label, KeyConstants._time, KeyConstants._template };
+	private static final Key[] TIMER_COLUMNS = new Collection.Key[] { KeyConstants._label, KeyConstants._time, KeyConstants._template, KeyConstants._line };
 	private static final Key[] DUMP_COLUMNS = new Collection.Key[] { KeyConstants._output, KeyConstants._template, KeyConstants._line };
 
 	private static final Key[] PAGE_PART_COLUMNS = new Collection.Key[] { KeyConstants._id, KeyConstants._count, KeyConstants._min, KeyConstants._max, KeyConstants._avg,
@@ -628,7 +629,7 @@ public final class DebuggerImpl implements Debugger {
 			if (len > 0) {
 				try {
 					Iterator<DebugTimerImpl> it = timers.iterator();
-					DebugTimer timer;
+					DebugTimerPro timer;
 					int row = 0;
 					while (it.hasNext()) {
 						timer = it.next();
@@ -636,6 +637,7 @@ public final class DebuggerImpl implements Debugger {
 						qryTimers.setAt(KeyConstants._label, row, timer.getLabel());
 						qryTimers.setAt(KeyConstants._template, row, timer.getTemplate());
 						qryTimers.setAt(KeyConstants._time, row, Caster.toDouble(timer.getTime()));
+						qryTimers.setAt(KeyConstants._line, row, timer.getLine());
 					}
 				}
 				catch (PageException dbe) {
@@ -807,7 +809,7 @@ public final class DebuggerImpl implements Debugger {
 	@Override
 	public DebugTimer addTimer(String label, long time, String template) {
 		DebugTimerImpl t;
-		timers.add(t = new DebugTimerImpl(label, time, template));
+		timers.add(t = new DebugTimerImpl(label, time, template, SystemUtil.getCurrentContext(null).line));
 		return t;
 	}
 
