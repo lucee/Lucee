@@ -108,6 +108,7 @@ ACTIONS --->
 				requesttimeout="#form.timeout#"
 				username="#nullIfEmpty(form.username)#"
 				schedulePassword="#nullIfEmpty(form.password)#"
+				userAgent="#nullIfEmpty(form.userAgent)#"
 				proxyserver="#nullIfEmpty(form.proxyserver)#"
 				proxyport="#form.proxyport#"
 				proxyuser="#nullIfEmpty(form.proxyuser)#"
@@ -225,6 +226,13 @@ Error Output--->
 
 						<cfinputClassic type="password" name="password" value="#task.password#" class="medium" required="no">
 						<div class="comment">#stText.Schedule.PasswordDescription#</div>
+					</td>
+				</tr>
+				<tr>
+					<th scope="row">#stText.Schedule.UserAgent#</th>
+					<td>
+						<cfinputClassic type="text" name="useragent" value="#task.useragent#" class="large" required="no">
+						<div class="comment">#stText.Schedule.UserAgentDescription#</div>
 					</td>
 				</tr>
 			</tbody>

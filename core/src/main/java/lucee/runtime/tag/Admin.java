@@ -400,6 +400,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			schedule.setStartdate(getObject("startDate", null));
 			schedule.setStarttime(getObject("startTime", null));
 			schedule.setUrl(getString("url", null));
+			schedule.setUseragent(getString("userAgent", null));
 			schedule.setPublish(getBoolV("publish", false));
 			schedule.setEnddate(getObject("endDate", null));
 			schedule.setEndtime(getObject("endTime", null));
