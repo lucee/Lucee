@@ -726,6 +726,8 @@ public final class FileTag extends BodyTagImpl {
 			else if (nameconflict == NAMECONFLICT_SKIP) return;
 			// OVERWRITE
 			else if (nameconflict == NAMECONFLICT_OVERWRITE) file.delete();
+			// MAKEUNIQUE
+			else if (nameconflict == NAMECONFLICT_MAKEUNIQUE) file = makeUnique(file);
 		}
 
 		setACL(pageContext, file, acl);
