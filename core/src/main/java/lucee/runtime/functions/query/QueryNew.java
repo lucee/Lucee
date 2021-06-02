@@ -114,7 +114,7 @@ public final class QueryNew extends BIF {
 			if (qry.getColumn(e.getKey(), null) != null) {
 				v = e.getValue();
 				arr = Caster.toArray(v, null);
-				if (arr == null) arr = new ArrayImpl(new Object[] { v });
+				arr = new ArrayImpl(new Object[] { v });
 				populateColumn(qry, e.getKey(), arr, rows);
 			}
 		}
