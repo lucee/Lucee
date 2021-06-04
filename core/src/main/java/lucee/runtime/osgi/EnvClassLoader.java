@@ -147,6 +147,11 @@ public class EnvClassLoader extends URLClassLoader {
 				}
 			}
 
+			// PATCH for env that defines the following abstract class as an instance
+			if (type == CLASS && (name + "").equals("javax.xml.transform.TransformerFactory")) {
+				return XMLUtil.getTransformerFactory().getClass();
+			}
+
 			// PATCH for com.sun
 			if ((name + "").startsWith("com.sun.")) {
 				Object obj;
