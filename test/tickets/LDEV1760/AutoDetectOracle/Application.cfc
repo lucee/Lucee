@@ -1,13 +1,13 @@
 component {
-	this.name = "App1";
+	this.name = "AutoDetectOracle";
     request.baseURL="http://#cgi.HTTP_HOST##GetDirectoryFromPath(cgi.SCRIPT_NAME)#";
 	request.currentPath=GetDirectoryFromPath(getCurrentTemplatePath());
 
 	variables.suffix = "entity";
 
-	mySQL = getCredentials();
-	if(mySQL.count()!=0){
-		this.datasource=mySQL;
+	oracle = getCredentials();
+	if (oracle.count()!=0){
+		this.datasource=oracle;
 	}
 
 	this.ormEnabled = true;
@@ -17,6 +17,6 @@ component {
 	};
 
 	private struct function getCredentials() {
-		return server.getDatasource("mysql");
+		return server.getDatasource("oracle");
 	}
 }

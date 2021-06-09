@@ -1,22 +1,22 @@
 component {
-	this.name = "App2";
+	this.name = "AutoDetectPostgres";
     request.baseURL="http://#cgi.HTTP_HOST##GetDirectoryFromPath(cgi.SCRIPT_NAME)#";
 	request.currentPath=GetDirectoryFromPath(getCurrentTemplatePath());
 
 	variables.suffix = "entity";
 
-	mySQL = getCredentials();
-	if(mySQL.count()!=0){
-		this.datasource=mySQL;
+	postgres = getCredentials();
+	if(postgres.count()!=0){
+		this.datasource=postgres;
 	}
 
 	this.ormEnabled = true;
 	this.ormSettings = {
-		dialect="MySQLwithInnoDB"
+		// dialect="MySQLwithInnoDB"
 		//dialect="MicrosoftSQLServer"
 	};
 
 	private struct function getCredentials() {
-		return server.getDatasource("mysql");
+		return server.getDatasource("postgres");
 	}
 }
