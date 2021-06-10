@@ -277,7 +277,7 @@ Redirtect to entry --->
 		</table>
 	</cfformClassic>
 
-	<div class="box" style="padding-bottom: 10px">#stText.debug.list.Templates#</div>
+	<h2>#stText.debug.list.Templates#</h2>
 	<cfset error.message="">
 	<cfset error.detail="">
 	<cfparam name="url.action1" default="list">
@@ -450,7 +450,7 @@ Redirtect to entry --->
 						<tbody>
 							<tr>
 								<th scope="row">#stText.debug.label#</th>
-								<td><cfinputClassic type="text" name="label" value="" class="large" required="yes" 
+								<td><cfinputClassic type="text" name="label" value="default" class="large" required="yes" 
 									message="#stText.debug.labelMissing#"></td>
 							</tr>
 							<tr>

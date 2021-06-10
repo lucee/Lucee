@@ -77,6 +77,24 @@ $("#clickCancel").click(function() {
 	$(".enablebutton").attr({disabled:true,style:"opacity:0.5"});
 });
 
+$(function () {
+	$(".custom_ip").hide();
+	$('#ip_range input.radio').bind('click change', sp_clicked);
+	sp_clicked();
+});
+
+function sp_clicked() {
+	var iscustom = $('#ip_range_custom')[0].checked;
+	if (!iscustom) {
+		$("input[name=iprange]").val("*");
+		$(".custom_ip").hide();
+	}
+	if (iscustom) {
+		$('.ip_range').prop('checked', false);
+		$(".custom_ip").show();
+	}
+}
+
 function initMenu2() {
 	$('#menu ul').hide();
 	$('#menu ul:first').show();
