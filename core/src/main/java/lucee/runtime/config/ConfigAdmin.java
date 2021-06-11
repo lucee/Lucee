@@ -51,7 +51,6 @@ import org.w3c.dom.DOMException;
 
 import com.allaire.cfx.CustomTag;
 
-import lucee.print;
 import lucee.commons.digest.MD5;
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.FileUtil;
@@ -4350,7 +4349,6 @@ public final class ConfigAdmin {
 		Log logger = ci.getLog("deploy");
 		String type = ci instanceof ConfigWeb ? "web" : "server";
 		// load already installed previous version and uninstall the parts no longer needed
-
 		RHExtension existingRH = getRHExtension(ci, rhext.getId(), null);
 		if (existingRH != null) {
 			// same version
@@ -5203,7 +5201,6 @@ public final class ConfigAdmin {
 
 	public void removeFLDs(Log logger, String[] names) throws IOException {
 		if (ArrayUtil.isEmpty(names)) return;
-		print.ds();
 		Resource file = config.getFldFile();
 		for (int i = 0; i < names.length; i++) {
 			logger.log(Log.LEVEL_INFO, "extension", "Remove FLD file [" + names[i] + "]");
@@ -6053,7 +6050,7 @@ public final class ConfigAdmin {
 		return list.toArray(new BundleDefinition[list.size()]);
 	}
 
-	private RHExtension getRHExtension(ConfigPro config, String id, RHExtension defaultValue) {
+	private RHExtension getRHExtension(final ConfigPro config, final String id, final RHExtension defaultValue) {
 		Array children = ConfigWebUtil.getAsArray("extensions", root);
 
 		if (children != null) {
@@ -6063,7 +6060,7 @@ public final class ConfigAdmin {
 				Struct tmp = Caster.toStruct(children.get(i, null), null);
 				if (tmp == null) continue;
 
-				String _id = id = Caster.toString(tmp.get(KeyConstants._id, null), null);
+				String _id = Caster.toString(tmp.get(KeyConstants._id, null), null);
 				if (!id.equals(_id)) continue;
 
 				try {
