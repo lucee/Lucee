@@ -15,6 +15,19 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
                 QOQDate = queryExecute( "SELECT CAST('2222222' AS DATE) AS valueDate FROM datas", {}, { dbtype="query" } );
                 expect( isDate(QOQDate.valueDate) ).toBe(true);
             });
+            it( title="QOQ convert function, convert to INT", body=function( currentSpec ){
+                QOQConvInt = queryExecute( "SELECT Convert(datas.value, INT) AS valueint FROM datas",  {}, { dbtype="query" } );
+                expect( QOQConvInt.valueint ).toBe( 19 );
+            });
+            it( title="QOQ convert function, convert to BIT", body=function( currentSpec ){
+                QOQConvBit = queryExecute( "SELECT CONVERT(datas.id, BIT) AS valueBit, CONVERT(datas.value,  BIT) AS valueBit1 FROM datas", {}, { dbtype="query" } );
+                expect( QOQConvBit.valueBit ).toBeTypeOf( "integer" );
+                expect( QOQConvBit.valueBit1 ).toBeTypeOf( "integer" ); 
+            });
+            it( title="QOQ convert function, convert to DATE", body=function( currentSpec ){
+                QOQConvDate = queryExecute( "SELECT CONVERT('2017-08-29', DATE) AS valueDate FROM datas", {}, { dbtype="query" } );
+                expect(isDate(QOQConvDate.valueDate)).toBe(true);
+            });
         });
     }
 }
