@@ -51,6 +51,7 @@ import org.w3c.dom.DOMException;
 
 import com.allaire.cfx.CustomTag;
 
+import lucee.print;
 import lucee.commons.digest.MD5;
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.FileUtil;
@@ -5202,7 +5203,7 @@ public final class ConfigAdmin {
 
 	public void removeFLDs(Log logger, String[] names) throws IOException {
 		if (ArrayUtil.isEmpty(names)) return;
-
+		print.ds();
 		Resource file = config.getFldFile();
 		for (int i = 0; i < names.length; i++) {
 			logger.log(Log.LEVEL_INFO, "extension", "Remove FLD file [" + names[i] + "]");

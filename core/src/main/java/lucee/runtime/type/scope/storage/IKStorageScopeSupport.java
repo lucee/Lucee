@@ -168,7 +168,7 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 		else if (Scope.SCOPE_CLIENT == scope) sv = handler.loadData(pc, appName, name, "client", Scope.SCOPE_CLIENT, log);
 
 		if (sv != null) {
-			long time = sv.lastModified();
+			long time = sv.getLastModified();
 
 			if (existing instanceof IKStorageScopeSupport) {
 				IKStorageScopeSupport tmp = ((IKStorageScopeSupport) existing);
@@ -673,7 +673,7 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 		// cached data changed in meantime
 		if (oStorage instanceof IKStorageValue) {
 			IKStorageValue storage = (IKStorageValue) oStorage;
-			if (storage.lastModified() > lastModified) {
+			if (storage.getLastModified() > lastModified) {
 				Map<Key, IKStorageScopeItem> trg = storage.getValue();
 				IKStorageScopeSupport.merge(local, trg);
 				return trg;
@@ -687,7 +687,11 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 			byte[][] barrr = (byte[][]) oStorage;
 			if (IKStorageValue.toLong(barrr[1]) > lastModified) {
 				if (barrr[0] == null || barrr[0].length == 0) return local;
-				Map<Key, IKStorageScopeItem> trg = IKStorageValue.deserialize(barrr[0]);
+
+				Map<Key, IKStorageScopeItem> trg;
+				if (barrr.length == 4) trg = IKStorageValue.deserialize(barrr[0], IKStorageValue.toLong(barrr[2]), IKStorageValue.toLong(barrr[3]));
+				else trg = IKStorageValue.deserialize(barrr[0], 0, 0);
+
 				IKStorageScopeSupport.merge(local, trg);
 				return trg;
 			}
