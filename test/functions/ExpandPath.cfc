@@ -46,10 +46,12 @@ component extends="org.lucee.cfml.test.LuceeTestCase"   {
     }
 
     public void function testSlashJM(){
-        assertEquals("#server.coldfusion.rootdir##SEP#jm",ExpandPath("/jm"));
+        //assertEquals("#server.coldfusion.rootdir##SEP#jm",ExpandPath("/jm"));
+        assertEquals("#expandPath("/")##SEP#jm",ExpandPath("/jm"));
     }
     public void function testBackSlashJM(){
-        assertEquals("#server.coldfusion.rootdir##SEP#jm",ExpandPath("\jm"));
+        //assertEquals("#server.coldfusion.rootdir##SEP#jm",ExpandPath("\jm"));
+        assertEquals("#expandPath("/")##SEP#jm",ExpandPath("\jm"));
     }
 
     public void function testMapping(){
