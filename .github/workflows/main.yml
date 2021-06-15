@@ -14,7 +14,7 @@ jobs:
         env:
           MSSQL_PID: Express
           ACCEPT_EULA: Y
-          SA_PASSWORD: Lucee!1433 # password must be complex or it won't start
+          SA_PASSWORD: Lucee!1433 # password must be complex or the service won't start
         ports:
           - 1433:1433
         options: --health-cmd="/opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P ${SA_PASSWORD} -Q 'SELECT 1' || exit 1"  --health-interval 10s --health-timeout 5s --health-retries 5
