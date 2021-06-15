@@ -7,6 +7,16 @@ jobs:
 
     runs-on: ubuntu-latest
 
+    services:
+      sql-server:
+        image: mcr.microsoft.com/mssql/server:2019-latest
+        env:
+          MSSQL_PID: Express
+          ACCEPT_EULA: Y
+          SA_PASSWORD: Lucee!1433 # password must be complex or it won't start
+        ports:
+          - 1433:1433
+        options: --health-cmd="/opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P ${SA_PASSWORD} -Q 'SELECT 1' || exit 1"  --health-interval 10s --health-timeout 5s --health-retries 5
     steps:
     - uses: szenius/set-timezone@v1.0
       with:
@@ -62,6 +72,11 @@ jobs:
         MONGODB_PORT: 27017
         MONGODB_DB: lucee
         MONGODB_DATABASE: lucee
+        MSSQL_SERVER: localhost
+        MSSQL_USERNAME: sa
+        MSSQL_PASSWORD: Lucee!1433
+        MSSQL_PORT: 1433
+        MSSQL_DATABASE: master
         S3_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_ID_TEST }}
         S3_SECRET_KEY: ${{ secrets.S3_SECRET_KEY_TEST }}
         DO_DEPLOY: false
@@ -73,7 +88,7 @@ jobs:
         CI_DEPLOY_PASSWORD: ${{ secrets.CI_DEPLOY_PASSWORD }}
         CI_DEPLOY_PASSPHRASE: ${{ secrets.CI_DEPLOY_PASSPHRASE }}
       #run: ant -noinput -buildfile loader/build.xml
-      run: mvn -e -f loader/pom.xml clean install
+      run: mvn -e -f loader/pom.xml clean install #-DtestFilter="2586"
     - name: Update Provider
       run: |
         curl "https://update.lucee.org/rest/update/provider/buildLatest"
