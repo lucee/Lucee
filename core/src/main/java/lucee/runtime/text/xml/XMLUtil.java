@@ -207,7 +207,7 @@ public final class XMLUtil {
 			if (c == '<') sb.append("&lt;");
 			else if (c == '>') sb.append("&gt;");
 			else if (c == '&') sb.append("&amp;");
-			// else if(c=='\'') sb.append("&amp;");
+			else if (c=='\'') sb.append("&apos;");
 			else if (c == '"') sb.append("&quot;");
 			// else if(c>127) sb.append("&#"+((int)c)+";");
 			else sb.append(c);
