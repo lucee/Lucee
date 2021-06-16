@@ -381,18 +381,21 @@ component {
 					smtp = server._getSystemPropOrEnvVars( "SERVER, PORT_SECURE, PORT_INSECURE", "SMTP_" );
 					return smtp;
 				}
+				break;
 			case "imap":
 				mail = server._getSystemPropOrEnvVars( "USERNAME, PASSWORD", "MAIL_" );
 				if ( mail.count() gt 0 ){
 					imap = server._getSystemPropOrEnvVars( "SERVER, PORT_SECURE, PORT_INSECURE", "IMAP_" );
 					return imap;
 				}
+				break;
 			case "pop":
 				mail = server._getSystemPropOrEnvVars( "USERNAME, PASSWORD", "MAIL_" );
 				if ( mail.count() gt 0 ){
 					pop = server._getSystemPropOrEnvVars( "SERVER, PORT_SECURE, PORT_INSECURE", "POP_" );
 					return pop;
 				}
+				break;
 			case "s3":
 				s3 = server._getSystemPropOrEnvVars( "ACCESS_KEY_ID, SECRET_KEY", "S3_" );
 				return s3;
