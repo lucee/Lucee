@@ -577,20 +577,24 @@ private function assertEqualPaths(string path1, string path2) {
 		}
 	}
 
-
-
 	public void function testS3() localmode=true{
-		var s3=getCredentials();
-		if(!isNull(s3.ACCESS_KEY_ID)) {
-			application action="update" s3=s3; 
+		var s3 = getCredentials();
+		if( !isNull( s3.ACCESS_KEY_ID ) ) {
+			application action="update" s3={
+				accessKeyId: s3.ACCESS_KEY_ID,
+				awsSecretKey: s3.SECRET_KEY
+			}; 
 			test("s3","s3:///");
 		}
 	}
 
 	public void function testS3AsMapping() localmode=true{
-		var s3=getCredentials();
-		if(!isNull(s3.ACCESS_KEY_ID)) {
-			application action="update" s3=s3; 
+		var s3 = getCredentials();
+		if( !isNull( s3.ACCESS_KEY_ID ) ) {
+			application action="update" s3={
+				accessKeyId: s3.ACCESS_KEY_ID,
+				awsSecretKey: s3.SECRET_KEY
+			}; 
 			addMapping("/testress3","s3:///");
 			test("s3","/testress3/");
 		}

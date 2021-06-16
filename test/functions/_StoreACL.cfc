@@ -32,7 +32,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	public function setUp(){
 		var s3=getCredentials();
 		if(!isNull(s3.ACCESS_KEY_ID)) {
-			application action="update" s3=s3; 
+			application action="update" s3={
+				accessKeyId: s3.ACCESS_KEY_ID,
+				awsSecretKey: s3.SECRET_KEY
+			}; 
 			variables.s3Supported=true;
 		}
 		else 
