@@ -205,7 +205,7 @@
 			<div class="whitePanel">
 				<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
 					<input type="hidden" name="installedVer" id="installedVersion" value="#server.lucee.version#">
-					<select name="UPDATE" id="upt_version"  class="large">
+					<select name="UPDATE" id="upt_version"  class="large" onchange="alertWarning()">
 						<!--- <option value="">--- select the version ---</option> --->
 						<cfloop list="#listVrs#" index="key">
 							<cfif len(versionsStr[key].upgrade) gt 0|| len(versionsStr[key].downgrade) gt 0>
@@ -215,7 +215,7 @@
 									</cfloop>
 
 									<cfloop array="#versionsStr[key].downgrade#" index="i">
-										<option class="td_#UcFirst(Lcase(key))#" value="#i#" onclick="alertWarning(this)">#stText.services.update.downgradeTo# #i#</option>
+										<option class="td_#UcFirst(Lcase(key))#" value="#i#" >#stText.services.update.downgradeTo# #i#</option>
 									</cfloop>
 								</optgroup>
 							<cfelseif len(versionsStr[key].upgrade) eq 0>
@@ -232,7 +232,6 @@
 						id="disableButton"
 						value="#stText.services.update.downUpBtn#">
 						<span class="msg"></span>
-					<span class="alert"></span>
 					<div class="comment">
 						<cfloop list="#listVrs#" index="key">
 							<div class="itemintro"><b>#stText.services.update.short[key]# :</b> #stText.services.update[key&"Desc"]#</div>
@@ -359,20 +358,23 @@
 						$("##btn_"+v).addClass('btn');
 					}
 				}
+				alertWarning();
 			}
 
-			function alertWarning(frm) {
+			function alertWarning() {
 				var insVer = $("##installedVersion").val();
-				if(insVer.split(".")[0] == 6 && frm.value.split(".")[0] == 5) {
-					$(".alert").text("");
-					$( ".alert" ).append( "<div class='error'>Please be aware when you update to Lucee 5, you will loose all configuration changes made since updating to Lucee 6.</p>" );
-				} 
+				var chngVer = $(".large").val();
+				if(insVer.split(".")[0] == 6 && chngVer.split(".")[0] == 5) {
+					$( ".msg" ).empty().append( "<div class='error'>#stText.services.update.downgradeCheck.alertWarning#</p>" );
+				}
+				else {
+					$( ".msg" ).empty();
+				}
 			}
 				
 			function changeVersion(field, frm) {
 				if(frm.value == "") {
-					$(".msg").text("");
-					$( ".msg" ).append( "<div class='error'>Please Choose any version</p>" );
+					$( ".msg" ).empty().append( "<div class='error'>Please Choose any version</p>" );
 					disableBlockUI=true;
 					return false;
 				}

@@ -69,6 +69,7 @@
 	<data key="services.update.downgradeVersion">To downgrade your version below {minVersion} you need to replace your lucee.jar with an older version one you can download {url}. This is because the lucee.jars always bundles a version itself and it will always use at least that version.</data>
 	<data key="services.update.installExtns">All of the extensions are installed / Unable to reach the Server for list the Uninstalled Extensions. Please check your Internet Connection.</data>
 	<data key="services.update.chkInternet">Unable to reach the server for list the "Uninstalled Extensions". Please check your Internet Connection</data>
+	<data key="services.update.downgradeCheck.alertWarning">Lucee 6 uses a different configuration storage mechanism (.json) than Lucee 5 (.xml). If you downgrade to Lucee 5.x, any configuration changes you have made in Lucee 6 will not be available. Lucee will revert back to the configuration before you upgraded to Lucee 6.</data>
 
 	<data key="services.certificate.desc">List SSL Certificates for a specific Host or install them.</data>
 	<data key="services.certificate.host">Host</data>
