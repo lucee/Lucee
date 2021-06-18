@@ -1,5 +1,4 @@
 component {
-// ZAC here is simply took the version from 6, correct?
 	/*
 
 	rather than using env vars, you can define servers for testing here, just set a password etc
@@ -52,7 +51,6 @@ component {
 				}
 			}
 		}
-		// ZAC in 5.3 we have a code fragment here starting with the following comment  "hack! manually set up the variables, 6.0 handles this differently"
 	}
 
 	public function loadCustomEnvStubs(){
