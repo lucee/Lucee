@@ -18,6 +18,18 @@ jobs:
         ports:
           - 1433:1433
         options: --health-cmd="/opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P ${SA_PASSWORD} -Q 'SELECT 1' || exit 1"  --health-interval 10s --health-timeout 5s --health-retries 5
+      redis:
+        # Docker Hub image
+        image: redis
+        # Set health checks to wait until redis has started
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          # Maps port 6379 on service container to the host
+          - 6379:6379
     steps:
     - uses: szenius/set-timezone@v1.0
       with:
@@ -59,6 +71,8 @@ jobs:
       with:
         mongodb-version: 4.4
         mongodb-port: 27017
+    - name: Setup Memcached (docker)
+      uses: niden/actions-memcached@v7
     - name: Build Lucee with Maven
       env:
         MYSQL_SERVER: localhost
