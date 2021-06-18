@@ -2,6 +2,7 @@ package lucee.runtime.type.scope.storage;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.cache.Cache;
@@ -20,6 +21,12 @@ import lucee.runtime.type.scope.ScopeContext;
 public class IKHandlerCache implements IKHandler {
 
 	protected boolean storeEmpty = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.store.empty", null), true);
+
+	private static Map<String, Boolean> supportsSerialisation = new ConcurrentHashMap<>();
+	static {
+		supportsSerialisation.put("org.lucee.extension.cache.eh.EHCache", Boolean.TRUE);
+		supportsSerialisation.put(RamCache.class.getName(), Boolean.TRUE);
+	}
 
 	@Override
 	public IKStorageValue loadData(PageContext pc, String appName, String name, String strType, int type, Log log) throws PageException {
@@ -69,12 +76,22 @@ public class IKHandlerCache implements IKHandler {
 		}
 	}
 
-	private boolean deserializeIKStorageValueSupported(Cache cache) {
+	private static boolean deserializeIKStorageValueSupported(Cache cache) {
 		// FUTURE extend Cache interface to make sure it can handle serilasation
 		if (cache == null) return false;
-		if (cache instanceof RamCache) return true;
-		if (cache.getClass().getName().equals("org.lucee.extension.cache.eh.EHCache")) return true;
-		return false;
+		Class<? extends Cache> clazz = cache.getClass();
+		String name = clazz.getName();
+		Boolean supported = supportsSerialisation.get(name);
+		if (supported == null) {
+			try {
+				supported = Caster.toBoolean(clazz.getDeclaredMethod("isObjectSerialisationSupported", new Class[] {}).invoke(cache, new Object[] {}));
+			}
+			catch (Exception e) {
+				supported = Boolean.FALSE;
+			}
+			supportsSerialisation.put(name, supported);
+		}
+		return supported.booleanValue();
 	}
 
 	@Override
