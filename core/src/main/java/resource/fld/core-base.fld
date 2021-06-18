@@ -13251,6 +13251,14 @@ You can find a list of all available timezones in the Lucee administrator (Setti
   the type "synchronized" is no longer supported and get ignored, because since version 4.1 all struct/scopes are "thread safe"
 			</description>
 		</argument>
+		<argument>
+			<name>onMissingKey</name>
+			<type>function</type>
+			<required>No</required>
+			<description>
+			listener function that get invoked in case a request key does not exist.
+			</description>
+		</argument>
 		<return>
 			<type>struct</type>
 		</return>

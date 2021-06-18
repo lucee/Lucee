@@ -18,7 +18,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					include "javaSettings/test.cfm";
 				}
     			expect(c).toBe("1");
-				//sleep(1500); // some os 
+				sleep(2500); // some os have a not very percise time stamp
 				InspectTemplates();
 				writeFile("javaSettings/test.cfm","10");
 				savecontent variable="local.d" {
@@ -32,7 +32,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				writeFile("javaSettings/ATest.cfc","component {function test(){return '1';}}");
 				var c=new javaSettings.ATest();
 				expect(c.test()).toBe(1);
-    			//sleep(1500);
+    			sleep(2500);
 				InspectTemplates();
 
 				writeFile("javaSettings/ATest.cfc","component {function test(){return '10';}}");
