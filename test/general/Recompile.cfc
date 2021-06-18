@@ -17,35 +17,29 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				savecontent variable="local.c" {
 					include "javaSettings/test.cfm";
 				}
-				expect(c).toBe("1");
-				sleep(1111);
-				pagePoolClear();
-
-				
-				writeFile("javaSettings/test.cfm","2");
-				savecontent variable="local.c" {
+    			expect(c).toBe("1");
+				//sleep(1500); // some os 
+				InspectTemplates();
+				writeFile("javaSettings/test.cfm","10");
+				savecontent variable="local.d" {
 					include "javaSettings/test.cfm";
 				}
-				expect(c).toBe("2");
-				pagePoolClear();
-
+    			expect(d).toBe("10");
 			});
 
 			it(title="rewrite CFC template", body=function() {
 				
-				writeFile("javaSettings/Test.cfc","component {function test(){return 1;}}");
-				var c=new javaSettings.Test();
+				writeFile("javaSettings/ATest.cfc","component {function test(){return '1';}}");
+				var c=new javaSettings.ATest();
 				expect(c.test()).toBe(1);
-				sleep(1111);
-				pagePoolClear();
+    			//sleep(1500);
+				InspectTemplates();
 
-				writeFile("javaSettings/Test.cfc","component {function test(){return 2;}}");
-				var c=new javaSettings.Test();
-				expect(c.test()).toBe(2);
-				pagePoolClear();
+				writeFile("javaSettings/ATest.cfc","component {function test(){return '10';}}");
+				var d=new javaSettings.ATest();
+				expect(d.test()).toBe(10);
+    		});
 
-
-			});
 
 
 		});

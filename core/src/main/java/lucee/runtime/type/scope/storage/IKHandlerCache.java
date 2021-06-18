@@ -56,7 +56,7 @@ public class IKHandlerCache implements IKHandler {
 	public void store(IKStorageScopeSupport storageScope, PageContext pc, String appName, String name, Map<Collection.Key, IKStorageScopeItem> data, Log log) {
 		try {
 			Cache cache = getCache(ThreadLocalPageContext.get(pc), name);
-			String key = StorageScopeCache.getKey(pc.getCFID(), appName, storageScope.getTypeAsString());
+			String key = getKey(pc.getCFID(), appName, storageScope.getTypeAsString());
 
 			synchronized (getToken(key)) {
 				Object existingVal = cache.getValue(key, null);
@@ -99,7 +99,7 @@ public class IKHandlerCache implements IKHandler {
 	public void unstore(IKStorageScopeSupport storageScope, PageContext pc, String appName, String name, Log log) {
 		try {
 			Cache cache = getCache(pc, name);
-			String key = StorageScopeCache.getKey(pc.getCFID(), appName, storageScope.getTypeAsString());
+			String key = getKey(pc.getCFID(), appName, storageScope.getTypeAsString());
 
 			synchronized (getToken(key)) {
 				cache.remove(key);
