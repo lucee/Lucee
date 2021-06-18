@@ -18,7 +18,7 @@ jobs:
         ports:
           - 1433:1433
         options: --health-cmd="/opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P ${SA_PASSWORD} -Q 'SELECT 1' || exit 1"  --health-interval 10s --health-timeout 5s --health-retries 5
-       redis:
+      redis:
         # Docker Hub image
         image: redis
         # Set health checks to wait until redis has started
