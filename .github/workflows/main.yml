@@ -59,6 +59,8 @@ jobs:
       with:
         mongodb-version: 4.4
         mongodb-port: 27017
+    - name: Setup Memcached (docker)
+      uses: niden/actions-memcached@v7
     - name: Build Lucee with Maven
       env:
         MYSQL_SERVER: localhost
