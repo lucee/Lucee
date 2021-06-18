@@ -3,6 +3,7 @@
 		// skip closure
 		function isNotSupported() {
 			variables.s3Details=getCredentials();
+			if(structIsEmpty(s3Details)) return true;
 			if(!isNull(variables.s3Details.ACCESS_KEY_ID) && !isNull(variables.s3Details.SECRET_KEY)) {
 				variables.supported = true;
 			}
@@ -89,7 +90,7 @@
 		}
 
 		private function removeFullControl(acl) {
-			index=0;
+			local.index=0;
 			loop array=acl index="local.i" item="local.el" {
 				if(el.permission=="FULL_CONTROL")
 					local.index=i;

@@ -102,7 +102,7 @@
 					</cfscript>
 					<div class="extensionthumb">
 						<a <cfif _type=="web">href="#link#"<cfelse>style="border-color: ##E0E0E0;"</cfif> title="#_extensions.name#
-#arrayToList(cat)# 
+Categories:<cfif isArray(cat)>#arrayToList(cat)#<cfelse>#cat#</cfif>
 Installed version: #_extensions.version#<cfif hasUpdates>
 Latest version: #latest.v#</cfif>"><cfif hasUpdates>
        <div class="ribbon-wrapper" <cfif _type=="server">style="border-color:##bf4f36"</cfif>><div class="ribbon" <cfif _type=="server">style="background-color:##bf4f36"</cfif>>UPDATE ME!</div></div>

@@ -60,7 +60,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		assertTrue(directoryExists(sub));
 		assertFalse(fileExists(sub));
 
-		children = directoryList(sub, true,'query');
+		var children = directoryList(sub, true,'query');
 		assertEquals(1,children.recordcount);
 		}
 		finally {
@@ -77,7 +77,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	private struct function getCredentials() {
 		return server.getTestService("s3");
 	}
-
 
 } 
 </cfscript>

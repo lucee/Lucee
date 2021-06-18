@@ -23,7 +23,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 			});
 		});
 
-
+		afterTests();
 	}
 	// private Function//
 	private string function createURI(string calledName){

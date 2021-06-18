@@ -31,7 +31,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 		query name="test" datasource=ds {
 			echo( "
 				create table `TestDsnTBL`(id varchar(10),Personname varchar(10))"
-				);
+			);
 		}
 	}
 
@@ -54,12 +54,14 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 	private function getDatasource() {
 		var cred=getCredentials();
 		if(structCount(cred)>0){
+			cred.storage = true; // ZAC is that line needed? was only in banch 5.3
 			return cred;
 		}
 		return {};
 	}
 
 	private struct function getCredentials() {
+		// getting the credentials from the enviroment variables
 		return server.getDatasource("mysql");
 	}
 }

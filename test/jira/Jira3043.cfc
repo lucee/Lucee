@@ -20,8 +20,17 @@
 component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	
 	
-	//public function afterTests(){}
-	
+	public function beforeTests(){
+		// stash system timezone
+		variables.timezone = getApplicationSettings().timezone;
+	}
+
+	public function afterTests(){
+		// pop system timezone
+		application action="update" timezone="#variables.timezone#";
+		setTimeZone(variables.timezone);
+	}
+
 	public function setUp(){
 		variables.has=defineDatasource();
 	}

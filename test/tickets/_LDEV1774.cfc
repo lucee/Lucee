@@ -3,6 +3,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 	// skip closure
 	function isNotSupported() {
 		variables.s3Details=getCredentials();
+		if(structIsEmpty(s3Details)) return true;
+
 		if(!isNull(variables.s3Details.ACCESS_KEY_ID) && !isNull(variables.s3Details.SECRET_KEY)) {
 			variables.supported = true;
 		}
@@ -16,7 +18,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 		if(isNotSupported()) return;
 		s3Details = getCredentials();
 		variables.mitrahsoftBucketName = "LDEV1774";
-		variables.baseWithBucketName = "s3://#s3Details.ACCESS_KEY_ID#:#s3Details.SECRET_KEY#@/#variables.mitrahsoftBucketName#";
+		variables.baseWithBucketName = "s3://#s3Details.ACCESS_KEY_ID#:#s3Details.SECRET_KEY#@/#variables.mitrahsoftBucketName#";	
 		variables.URI = createURI("LDEV1774");
 	}
 

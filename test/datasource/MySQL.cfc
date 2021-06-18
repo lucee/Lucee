@@ -244,7 +244,6 @@ END
 		}).toThrow();
 	}
 
-
 	private boolean function defineDatasource(){
 		var sct=getDatasource();
 		if(sct.count()==0) return false;
