@@ -1,37 +1,13 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<project default="run" basedir="." name="Lucee">
-
-<macrodef name="echots">
-	<attribute name="message"/>
-	<sequential>
-	  <local name="timestamp" />
-	  <tstamp>
-		<format property="timestamp" pattern="yyyy-MM-dd HH:mm:ss" />
-	  </tstamp>
-	  <echo message="---------- ${timestamp} - @{message} ----------" />
-	</sequential>
-  </macrodef>
-
-<target name="run">
-
-<echo><![CDATA[
-  _____         _   ____
- |_   _|__  ___| |_| __ )  _____  __
-   | |/ _ \/ __| __|  _ \ / _ \ \/ /
-   | |  __/\__ \ |_| |_) | (_) >  <
-   |_|\___||___/\__|____/ \___/_/\_\
-
-]]></echo>
-<echots message="start TestBox testcases"/>
-
-<!-- TODO this is hard to debug, any errors, it just fails with zero feedback -->
-<script language="CFML">
-<![CDATA[
-	encodeForHTML("abc"); // test if ESAPI extension exist right away
+<cfscript>
+    encodeForHTML("abc"); // test if ESAPI extension exist right away
 	systemOutput("---------- #DateTimeFormat(now(),'yyyy-mm-dd HH:nn:ss')# - Lucee Started ----------", true);
 
 	// doing the bare minimum here, all the action happends in /test/run-tests.cfm
-	// this code is also in /test/bootstrap-tests.cfm
+    // this duplicates the boostrap code in run-testcases.xml
+
+    param name="test" default="";
+    if (len(test) eq 0)
+        test = GetDirectoryFromPath(GetCurrentTemplatePath());
 
 	request.WEBADMINPASSWORD = "webweb";
 	request.SERVERADMINPASSWORD = "webweb";
@@ -69,9 +45,5 @@
 		primary="physical"
 		trusted="no";
 
-	 include template="/test/run-tests.cfm";
-]]>
-  </script>
-
-</target>
-</project>
+	 include template="run-tests.cfm";
+</cfscript>
