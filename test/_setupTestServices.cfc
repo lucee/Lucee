@@ -404,7 +404,6 @@ component {
 				}
 				break;
 			case "s3":
-				SystemOutput("------------------get s3 creds--------------", true);
 				s3 = server._getSystemPropOrEnvVars( "ACCESS_KEY_ID, SECRET_KEY", "S3_" );
 				return s3;
 			default:
