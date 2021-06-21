@@ -26,7 +26,6 @@ component {
 				testDir = "/" & testDir; // avoid issues with non windows paths
 			var name = listLast( arguments.path, "\/" );
 			var testPath = Mid(arguments.path, len(request.testFolder) + 1); // otherwise "image" would match extension-image on CI
-			systemOutput(testPath, true);
 			switch ( true ){
 				case ( left (name, 1 ) == "_" ):
 					return "test has _ prefix (#name#)";
