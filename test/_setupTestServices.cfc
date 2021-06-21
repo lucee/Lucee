@@ -289,12 +289,12 @@ component {
 
 		switch ( arguments.service ){
 			case "mssql":
-				mssql = server._getSystemPropOrEnvVars( "SERVER, USERNAME, PASSWORD, PORT, DATABASE", "MSSQL_");
+				mssql = server._getSystemPropOrEnvVars( "SERVER, USERNAME, PASSWORD, PORT, DATABASE", "MSSQL_" );
 				if ( structCount( msSql ) gt 0){
 					return {
 						class: 'com.microsoft.sqlserver.jdbc.SQLServerDriver'
 						, bundleName: 'org.lucee.mssql'
-						, bundleVersion: server.getDefaultBundleVersion('org.lucee.mssql', '4.0.2206.100')
+						, bundleVersion: server.getDefaultBundleVersion( 'org.lucee.mssql', '4.0.2206.100' )
 						, connectionString: 'jdbc:sqlserver://#msSQL.SERVER#:#msSQL.PORT#;DATABASENAME=#msSQL.DATABASE#;sendStringParametersAsUnicode=true;SelectMethod=direct'
 						, username: msSQL.username
 						, password: msSQL.password
@@ -302,12 +302,12 @@ component {
 				}
 				break;
 			case "mysql":
-				mysql = server._getSystemPropOrEnvVars( "SERVER, USERNAME, PASSWORD, PORT, DATABASE", "MYSQL_");	
+				mysql = server._getSystemPropOrEnvVars( "SERVER, USERNAME, PASSWORD, PORT, DATABASE", "MYSQL_" );	
 				if ( structCount( mySql ) gt 0 ){
 					return {
 						class: 'com.mysql.cj.jdbc.Driver'
 						, bundleName: 'com.mysql.cj'
-						, bundleVersion: server.getDefaultBundleVersion('com.mysql.cj', '8.0.19')
+						, bundleVersion: server.getDefaultBundleVersion( 'com.mysql.cj', '8.0.19' )
 						, connectionString: 'jdbc:mysql://#mySQL.server#:#mySQL.port#/#mySQL.database#?useUnicode=true&characterEncoding=UTF-8&useLegacyDatetimeCode=true&useSSL=false'
 						, username: mySQL.username
 						, password: mySQL.password
@@ -315,12 +315,12 @@ component {
 				}
 				break;
 			case "postgres":
-				pgsql = server._getSystemPropOrEnvVars( "SERVER, USERNAME, PASSWORD, PORT, DATABASE", "POSTGRES_");	
+				pgsql = server._getSystemPropOrEnvVars( "SERVER, USERNAME, PASSWORD, PORT, DATABASE", "POSTGRES_" );	
 				if ( structCount( pgsql ) gt 0 ){
 					return {
 						class: 'org.postgresql.Driver'
 						, bundleName: 'org.postgresql.jdbc42'
-						, bundleVersion: server.getDefaultBundleVersion('org.postgresql.jdbc42', '9.4.1212')
+						, bundleVersion: server.getDefaultBundleVersion( 'org.postgresql.jdbc42', '9.4.1212' )
 						, connectionString: 'jdbc:postgresql://#pgsql.server#:#pgsql.port#/#pgsql.database#'
 						, username: pgsql.username
 						, password: pgsql.password
@@ -338,14 +338,14 @@ component {
 					return {
 						class: 'org.h2.Driver'
 						, bundleName: 'org.h2'
-						, bundleVersion: server.getDefaultBundleVersion('org.h2', '1.3.172')
+						, bundleVersion: server.getDefaultBundleVersion( 'org.h2', '1.3.172' )
 						, connectionString: 'jdbc:h2:#arguments.dbFile#/datasource/db;MODE=MySQL'
 					};
 				}
 				break;
 			case "mongoDB":
-				mongoDB = server._getSystemPropOrEnvVars( "SERVER, PORT, DB", "MONGODB_");
-				mongoDBcreds = server._getSystemPropOrEnvVars( "USERNAME, PASSWORD", "MONGODB_");
+				mongoDB = server._getSystemPropOrEnvVars( "SERVER, PORT, DB", "MONGODB_" );
+				mongoDBcreds = server._getSystemPropOrEnvVars( "USERNAME, PASSWORD", "MONGODB_" );
 				if ( structCount( mongoDb ) gt 0 ){
 					if (structCount( mongoDBcreds ) eq 2 ){
 						StructAppend(mongoDB, mongoDBcreds)
@@ -358,12 +358,12 @@ component {
 				}
 				break;
 			case "oracle":
-				oracle = server._getSystemPropOrEnvVars( "SERVER, USERNAME, PASSWORD, PORT, DATABASE", "ORACLE_");	
+				oracle = server._getSystemPropOrEnvVars( "SERVER, USERNAME, PASSWORD, PORT, DATABASE", "ORACLE_" );	
 				if ( structCount( oracle ) gt 0 ){
 					return {
 						class: 'oracle.jdbc.OracleDriver'
 						, bundleName: 'ojdbc7'
-						, bundleVersion: server.getDefaultBundleVersion('ojdbc7', '11.2.0.4')
+						, bundleVersion: server.getDefaultBundleVersion( 'ojdbc7', '11.2.0.4' )
 						, connectionString: 'jdbc:oracle:thin:@#oracle.server#:#oracle.port#/#oracle.database#'
 						, username: oracle.username
 						, password: oracle.password
@@ -417,7 +417,7 @@ component {
 			//systemOutput(arguments.bundleName & " " & bundles[arguments.bundleName], true)
 			return bundles[ arguments.bundleName ];
 		} else {
-			systemOutput( "getDefaultBundleVersion: [" & arguments.bundleName & "] FALLLING BACK TO DEFAULT [" & arguments.fallbackVersion & "]", true)
+			systemOutput( "getDefaultBundleVersion: [" & arguments.bundleName & "] FALLLING BACK TO DEFAULT [" & arguments.fallbackVersion & "]", true );
 			return arguments.fallbackVersion ;
 		}
 	}		
@@ -431,8 +431,8 @@ component {
 		var bundles = {};
 		loop query=q_bundles {
 			var _bundle = {};
-			_bundle.append(q_bundles.headers); // force to cfml struct
-			bundles[_bundle['Bundle-SymbolicName']] = _bundle['Bundle-Version'];
+			_bundle.append( q_bundles.headers );
+			bundles[ _bundle[ 'Bundle-SymbolicName' ] ] = _bundle[ 'Bundle-Version' ];
 		}
 		return bundles;
 	}
