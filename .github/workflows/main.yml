@@ -38,7 +38,9 @@ jobs:
       with:
         path: ~/.m2
         key: ${{ runner.os }}-m2-${{ hashFiles('loader/pom.xml','core/pom.xml') }}
-        restore-keys: ${{ runner.os }}-m2
+        restore-keys: |
+        	${{ runner.os }}-m2
+			maven-cache
     - name: Set up MySQL (local)
       run: |
         sudo /etc/init.d/mysql start
@@ -56,6 +58,8 @@ jobs:
       with:
         mongodb-version: 4.4
         mongodb-port: 27017
+    - name: Setup Memcached (docker)
+      uses: niden/actions-memcached@v7
     - name: Build Lucee with Maven
       env:
         MYSQL_SERVER: localhost
