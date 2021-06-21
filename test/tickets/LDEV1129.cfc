@@ -1,4 +1,4 @@
-<cfcomponent extends="org.lucee.cfml.test.LuceeTestCase">
+<cfcomponent extends="org.lucee.cfml.test.LuceeTestCase" labels="s3">
 	<cfscript>
 		// skip closure
 		function isNotSupported() {

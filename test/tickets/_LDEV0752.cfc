@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase"{
+component extends="org.lucee.cfml.test.LuceeTestCase"  labels="mysql,orm" {
 	function run( testResults , testBox ) {
 		if(hasCredentials()) {
 			describe( "Testing ORMReload with multiple foreign key props to point single column", function() {

@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase"{
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="mysql" {
 	function isNotSupported() {
 		variables.mySql = getCredentials();
 		if(!isNull(variables.mySql)){

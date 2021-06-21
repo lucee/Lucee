@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase"{
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="oracle,postgres,mssql,mysql,orm"{
 	// skip closure
 	function isNotSupported(db) {
 		if (db eq "oracle" or db eq "mssql" ) 			return true; // currently broken
