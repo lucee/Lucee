@@ -240,13 +240,15 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		else if ((child = returnStatement(data)) != null) parent.addStatement(child);
 		else if ((child = switchStatement(data)) != null) parent.addStatement(child);
 		else if ((child = tryStatement(data)) != null) parent.addStatement(child);
-		else if (islandStatement(data, parent)) {}
+		else if (islandStatement(data, parent)) {
+		}
 		// else if(staticStatement(data,parent)) ; // do nothing, happen already inside the method
 		else if ((child = staticStatement(data, parent)) != null) parent.addStatement(child);
 		else if ((child = componentStatement(data, parent)) != null) parent.addStatement(child);
 		else if ((child = tagStatement(data, parent)) != null) parent.addStatement(child);
 		else if ((child = cftagStatement(data, parent)) != null) parent.addStatement(child);
-		else if (block(data, parent)) {}
+		else if (block(data, parent)) {
+		}
 
 		else parent.addStatement(expressionStatement(data, parent));
 		data.docComment = null;
@@ -480,20 +482,30 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		comments(data);
 
 		// do we have a starting component?
-		if (!data.srcCode.isCurrent(getComponentName(data.srcCode.getDialect()))
+		if (!data.srcCode.isCurrent(getComponentName(data.srcCode.getDialect(), false))
 				&& (data.srcCode.getDialect() == CFMLEngine.DIALECT_CFML || !data.srcCode.isCurrent(Constants.CFML_COMPONENT_TAG_NAME))) {
 			data.srcCode.setPos(pos);
 			return null;
 		}
 
+		Position line = data.srcCode.getPosition();
+
+		return componentPart(parent, data, id, mod, line, false);
+	}
+
+	@Override
+	protected TagComponent componentPart(Statement parent, Data data, String id, int modifier, Position line, boolean inline) throws TemplateException {
+
 		// parse the component
-		TagLibTag tlt = CFMLTransformer.getTLT(data.srcCode, getComponentName(data.srcCode.getDialect()), data.config.getIdentification());
-		TagComponent comp = (TagComponent) _multiAttrStatement(parent, data, tlt);
-		if (mod != Component.MODIFIER_NONE) comp.addAttribute(new Attribute(false, "modifier", data.factory.createLitString(id), "string"));
+		TagLibTag tlt = CFMLTransformer.getTLT(data.srcCode, getComponentName(data.srcCode.getDialect(), inline), data.config.getIdentification());
+		TagComponent comp = (TagComponent) _multiAttrStatement(data.getParent(), data, tlt);
+		comp.setInline(inline);
+		if (inline) comp.addAttribute(new Attribute(false, "name", data.factory.createLitString(id), "string"));
+		else if (modifier != Component.MODIFIER_NONE) comp.addAttribute(new Attribute(false, "modifier", data.factory.createLitString(id), "string"));
 		return comp;
 	}
 
-	private String getComponentName(int dialect) {
+	private String getComponentName(int dialect, boolean inline) {
 		return dialect == CFMLEngine.DIALECT_LUCEE ? Constants.LUCEE_COMPONENT_TAG_NAME : Constants.CFML_COMPONENT_TAG_NAME;
 	}
 

@@ -44,6 +44,7 @@ public abstract class TagCIObject extends TagBase {
 
 	private boolean main;
 	private String name;
+	private boolean inline;
 
 	@Override
 	public void _writeOut(BytecodeContext bc) throws TransformerException {
@@ -129,6 +130,14 @@ public abstract class TagCIObject extends TagBase {
 			}
 		}
 		return list;
+	}
+
+	public void setInline(boolean inline) {
+		this.inline = inline;
+	}
+
+	public boolean isInline() {
+		return inline;
 	}
 
 }

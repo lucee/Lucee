@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import lucee.print;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.Component;
 import lucee.runtime.exp.CasterException;
@@ -35,8 +36,10 @@ import lucee.runtime.type.util.UDFUtil;
 import lucee.transformer.Factory;
 import lucee.transformer.Position;
 import lucee.transformer.TransformerException;
+import lucee.transformer.bytecode.Statement;
 import lucee.transformer.bytecode.expression.ExpressionInvoker;
 import lucee.transformer.bytecode.expression.FunctionAsExpression;
+import lucee.transformer.bytecode.expression.TagComponentAsExpression;
 import lucee.transformer.bytecode.expression.var.Argument;
 import lucee.transformer.bytecode.expression.var.Assign;
 import lucee.transformer.bytecode.expression.var.BIF;
@@ -50,6 +53,7 @@ import lucee.transformer.bytecode.literal.Identifier;
 import lucee.transformer.bytecode.literal.Null;
 import lucee.transformer.bytecode.literal.NullConstant;
 import lucee.transformer.bytecode.op.OpVariable;
+import lucee.transformer.bytecode.statement.tag.TagComponent;
 import lucee.transformer.bytecode.statement.udf.Function;
 import lucee.transformer.bytecode.util.ASMUtil;
 import lucee.transformer.cfml.Data;
@@ -985,6 +989,11 @@ public abstract class AbstrCFMLExprTransformer {
 			data.mode = DYNAMIC;
 			return expr;
 		}
+		// component
+		if ((expr = component(data)) != null) {
+			data.mode = DYNAMIC;
+			return expr;
+		}
 
 		// Dynamic
 		if ((expr = dynamic(data)) != null) {
@@ -1338,6 +1347,19 @@ public abstract class AbstrCFMLExprTransformer {
 	}
 
 	protected abstract Function closurePart(Data data, String id, int access, int modifier, String rtnType, Position line, boolean closure) throws TemplateException;
+
+	private Expression component(final Data data) throws TemplateException {
+
+		int pos = data.srcCode.getPos();
+		if (!data.srcCode.forwardIfCurrent("component", '{')) return null;
+		print.ds("->" + data.context);
+		data.srcCode.setPos(pos);
+		TagComponent cfc = componentPart(data.getParent(), data, "component_" + CreateUniqueId.invoke(), Component.MODIFIER_NONE, data.srcCode.getPosition(), true);
+		cfc.setParent(data.getParent());
+		return new TagComponentAsExpression(cfc);
+	}
+
+	protected abstract TagComponent componentPart(Statement parent, Data data, String id, int modifier, Position line, boolean inline) throws TemplateException;
 
 	private Expression lambda(Data data) throws TemplateException {
 		int pos = data.srcCode.getPos();

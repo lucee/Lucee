@@ -22,6 +22,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import lucee.print;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.PageSource;
@@ -100,15 +101,17 @@ public class Component extends EvaluatorSupport {
 		}
 
 		// Page page=(Page) pPage;
-		Boolean insideCITemplate = isInsideCITemplate(page);
-		boolean main = isMainComponent(page, tc);
+		boolean main = false;
+		if (!tc.isInline()) {
+			Boolean insideCITemplate = isInsideCITemplate(page);
+			main = isMainComponent(page, tc);
 
-		// is a full grown component or an inline component
-		if (insideCITemplate == Boolean.FALSE) {
-			throw new EvaluatorException("Wrong Context, [" + tlt.getFullName() + "] tag must be inside a file with the extension [" + Constants.getCFMLComponentExtension()
-					+ "] or [" + Constants.getLuceeComponentExtension() + "]");
+			// is a full grown component or an inline component
+			if (insideCITemplate == Boolean.FALSE) {
+				throw new EvaluatorException("Wrong Context, [" + tlt.getFullName() + "] tag must be inside a file with the extension [" + Constants.getCFMLComponentExtension()
+						+ "] or [" + Constants.getLuceeComponentExtension() + "]");
+			}
 		}
-
 		boolean isComponent = tlt.getTagClassDefinition().isClassNameEqualTo("lucee.runtime.tag.Component");
 		/*
 		 * boolean isInterface="lucee.runtime.tag.Interface".equals(tlt.getTagClassName()); if(main) {
@@ -136,7 +139,10 @@ public class Component extends EvaluatorSupport {
 					if (!(expr instanceof LitString)) throw new EvaluatorException("Name of the component [" + tlt.getFullName() + "], must be a literal string value");
 					name = ((LitString) expr).getString();
 				}
-				else throw new EvaluatorException("Missing name of the component [" + tlt.getFullName() + "]");
+				else {
+					print.e("name:" + tc.getName());
+					throw new EvaluatorException("Missing name of the component [" + tlt.getFullName() + "]");
+				}
 			}
 			tc.setName(name);
 		}
