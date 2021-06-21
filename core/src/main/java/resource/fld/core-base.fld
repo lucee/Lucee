@@ -9631,6 +9631,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<class>lucee.runtime.functions.query.QueryAddColumn</class>
 		<keywords>query</keywords>
 		<member-name>addColumn</member-name>
+		<member-chaining>true</member-chaining>
 		<description>Adds a column to a query and populates its rows with the
         contents of a one-dimensional array. Pads query columns,
         if necessary, to ensure that all columns have the same number
@@ -9670,6 +9671,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<name>queryAddRow</name>
 		<class>lucee.runtime.functions.query.QueryAddRow</class>
 		<member-name>addRow</member-name>
+		<member-chaining>true</member-chaining>
 		<keywords>query</keywords>
 		<description>Adds a specified number of empty rows to a query.</description>
 		<argument>
@@ -10144,6 +10146,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<name>QueryDeleteColumn</name>
 		<class>lucee.runtime.functions.query.QueryDeleteColumn</class>
 		<member-name>deleteColumn</member-name>
+		<member-chaining>true</member-chaining>
 		<keywords>query</keywords>
 		<description>
 		removes a row from a query and return removed row as array
@@ -10169,6 +10172,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<name>QueryDeleteRow</name>
 		<class>lucee.runtime.functions.query.QueryDeleteRow</class>
 		<member-name>deleteRow</member-name>
+		<member-chaining>true</member-chaining>
 		<keywords>query</keywords>
 		<description>Deletes the row within a query object. Modifies the original query object</description>
 		<argument>
