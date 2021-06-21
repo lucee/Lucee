@@ -32,8 +32,8 @@ try{
 
 
 	// no S3 credentials?
-	if(isNull(server.system.environment.S3_ACCESS_ID) 
-		|| isNull(server.system.environment.S3_SECRET_KEY)) {
+	if(isNull(server.system.environment.S3_ACCESS_ID_DOWNLOAD) 
+		|| isNull(server.system.environment.S3_SECRET_KEY_DOWNLOAD)) {
 		SystemOutput("no S3 credentials defined to upload to S3",1,1);
 		return;
 		//throw "no S3 credentials defined to upload to S3";
