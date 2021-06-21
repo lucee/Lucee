@@ -273,6 +273,9 @@ component {
 		// use this rather than all the boilerplate
 		server.getDatasource = getTestService;
 		server.getTestService = getTestService;
+		// TODO hmmmf closures and this scope!
+		server.getDefaultBundleVersion = getDefaultBundleVersion;  
+		server.getBundleVersions = getBundleVersions;
 	}
 	public struct function getTestService( required string service, string dbFile="", boolean verify=false ) localmode=true {
 		if ( StructKeyExists( server.test_services, arguments.service ) ){
@@ -290,8 +293,8 @@ component {
 				if ( structCount( msSql ) gt 0){
 					return {
 						class: 'com.microsoft.sqlserver.jdbc.SQLServerDriver'
-						, bundleName: 'mssqljdbc4'
-					, bundleVersion: '4.0.2206.100'
+						, bundleName: 'org.lucee.mssql'
+						, bundleVersion: server.getDefaultBundleVersion('org.lucee.mssql', '4.0.2206.100')
 						, connectionString: 'jdbc:sqlserver://#msSQL.SERVER#:#msSQL.PORT#;DATABASENAME=#msSQL.DATABASE#;sendStringParametersAsUnicode=true;SelectMethod=direct'
 						, username: msSQL.username
 						, password: msSQL.password
@@ -304,7 +307,7 @@ component {
 					return {
 						class: 'com.mysql.cj.jdbc.Driver'
 						, bundleName: 'com.mysql.cj'
-						, bundleVersion: '8.0.19'
+						, bundleVersion: server.getDefaultBundleVersion('com.mysql.cj', '8.0.19')
 						, connectionString: 'jdbc:mysql://#mySQL.server#:#mySQL.port#/#mySQL.database#?useUnicode=true&characterEncoding=UTF-8&useLegacyDatetimeCode=true&useSSL=false'
 						, username: mySQL.username
 						, password: mySQL.password
@@ -317,7 +320,7 @@ component {
 					return {
 						class: 'org.postgresql.Driver'
 						, bundleName: 'org.postgresql.jdbc42'
-						, bundleVersion: '9.4.1212'
+						, bundleVersion: server.getDefaultBundleVersion('org.postgresql.jdbc42', '9.4.1212')
 						, connectionString: 'jdbc:postgresql://#pgsql.server#:#pgsql.port#/#pgsql.database#'
 						, username: pgsql.username
 						, password: pgsql.password
@@ -335,6 +338,7 @@ component {
 					return {
 						class: 'org.h2.Driver'
 						, bundleName: 'org.h2'
+						, bundleVersion: server.getDefaultBundleVersion('org.h2', '1.3.172')
 						, connectionString: 'jdbc:h2:#arguments.dbFile#/datasource/db;MODE=MySQL'
 					};
 				}
@@ -358,8 +362,8 @@ component {
 				if ( structCount( oracle ) gt 0 ){
 					return {
 						class: 'oracle.jdbc.OracleDriver'
-						, bundleName: 'ojdbc6'
-						, bundleVersion: '11.2.0.4'
+						, bundleName: 'ojdbc7'
+						, bundleVersion: server.getDefaultBundleVersion('ojdbc7', '11.2.0.4')
 						, connectionString: 'jdbc:oracle:thin:@#oracle.server#:#oracle.port#/#oracle.database#'
 						, username: oracle.username
 						, password: oracle.password
@@ -406,7 +410,31 @@ component {
 		SystemOutput( "Warning test service: [ #arguments.service# ] is not configured", true );
 		return {};
 	}
-	
-}
 
+	function getDefaultBundleVersion( bundleName, fallbackVersion ) cachedWithin="request" {
+		var bundles = server.getBundleVersions();
+		if ( structKeyExists( bundles, arguments.bundleName ) ){
+			//systemOutput(arguments.bundleName & " " & bundles[arguments.bundleName], true)
+			return bundles[ arguments.bundleName ];
+		} else {
+			systemOutput( "getDefaultBundleVersion: [" & arguments.bundleName & "] FALLLING BACK TO DEFAULT [" & arguments.fallbackVersion & "]", true)
+			return arguments.fallbackVersion ;
+		}
+	}		
+
+	function getBundleVersions() cachedWithin="#createTimeSpan( 1, 0, 0, 0 )#"{
+		admin 
+			type="server"
+			password="#server.SERVERADMINPASSWORD#" 
+			action="getBundles" 
+			returnvariable="q_bundles"
+		var bundles = {};
+		loop query=q_bundles {
+			var _bundle = {};
+			_bundle.append(q_bundles.headers); // force to cfml struct
+			bundles[_bundle['Bundle-SymbolicName']] = _bundle['Bundle-Version'];
+		}
+		return bundles;
+	}
+}
 
