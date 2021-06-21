@@ -25,11 +25,12 @@ component {
 			if ( left( arguments.path, 1 ) eq "/")
 				testDir = "/" & testDir; // avoid issues with non windows paths
 			var name = listLast( arguments.path, "\/" );
-
+			var testPath = Mid(arguments.path, len(request.testFolder) + 1); // otherwise "image" would match extension-image on CI
+			systemOutput(testPath, true);
 			switch ( true ){
 				case ( left (name, 1 ) == "_" ):
 					return "test has _ prefix (#name#)";
-				case ( checkTestFilter( arguments.path ) ):
+				case ( checkTestFilter( testPath ) ):
 					return "excluded by testFilter";
 				case ( FindNoCase( request.testFolder, testDir ) neq 1 ):
 					return "not under test dir (#request.testFolder#, #testDir#)";
