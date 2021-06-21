@@ -29,7 +29,8 @@ try{
 	src.coreName=listLast(src.core,"\/");
 	src.version=mid(src.coreName,1,len(src.coreName)-4);
 	
-
+	SystemOutput(src.jar & " " & FileExists(src.jar), true);
+	SystemOutput(src.core & " " & FileExists(src.core), true);
 
 	// no S3 credentials?
 	if(isNull(server.system.environment.S3_ACCESS_ID_DOWNLOAD) 
