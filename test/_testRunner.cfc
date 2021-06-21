@@ -38,11 +38,15 @@ component {
 				default:
 					break;
 			};
-			var extends = checkExtendsTestCase( arguments.path );
+			var meta = getTestMeta( arguments.path );
+			if ( !isStruct( meta ) )
+				return meta;
+
+			var extends = checkExtendsTestCase( meta, arguments.path );
 			if ( extends neq "org.lucee.cfml.test.LuceeTestCase" )
 				return "test doesn't extend Lucee Test Case (#extends#)";
-			else
-				return "";
+			
+			return checkTestLabels( meta, arguments.path );
 		};
 
 		var checkTestFilter = function ( string path ){
@@ -55,17 +59,36 @@ component {
 			return true;
 		};
 
-		var checkExtendsTestCase = function (string path){
+		var getTestMeta = function (string path){
 			// finally only allow files which extend "org.lucee.cfml.test.LuceeTestCase"
 			var cfcPath = ListChangeDelims( "/test" & Mid( arguments.path, len( request.testFolder ) + 1 ), ".", "/\" );
 			cfcPath = mid( cfcPath, 1, len( cfcPath ) - 4 );
 			try {
 				// triggers a compile, which make the initial filter slower, but it would be compiled later anyway
-				var meta = GetComponentMetaData( cfcPath );
+				// GetComponentMetaData leaks output https://luceeserver.atlassian.net/browse/LDEV-3582
+				silent {
+					var meta = GetComponentMetaData( cfcPath );
+				}
 			} catch ( e ){
 				return cfcatch.message;
 			}
+			return meta;
+		};
+
+		var checkExtendsTestCase = function (any meta, string path){
 			return meta.extends.fullname ?: "";
+		};
+
+		/* testbox mixes label and skip, which is confusing, skip false should always mean skip, so we check it manually */
+		var checkTestLabels = function (any meta, string path ){
+			if ( arrayLen (request.testLabels) eq 0 )
+				return "";
+			var labels = meta.labels ?: "";
+			loop array="#request.testLabels#" item="local.f" {
+				if ( FindNoCase( f, labels ) gt 0 )
+					return "";
+			}
+			return "no matching labels";
 		};
 
 		allowed = isValidTestCase( arguments.path );
@@ -105,7 +128,6 @@ component {
 		};
 
 		try {
-
 			var filterTimer = getTickCount();
 			var tb = new testbox.system.TestBox( bundles=getBundles(), reporter="console" );
 

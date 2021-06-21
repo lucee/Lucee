@@ -64,6 +64,7 @@
     <property name="ant" location="${rootDir}/ant"/>
     <property name="test" location="${rootDir}/test"/>
     <property name="testFilter" value=""/>
+    <property name="testLabels" value=""/>
     <property name="temp" location="${rootDir}/temp"/>
     <property name="loader" location="${temp}/loader"/>
     <property name="core" location="${temp}/core"/>
@@ -470,8 +471,7 @@
       <jvmarg value="-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5000"/>
       -->
     </java>
-    <echo>${exc}</echo>
-
+    <outputTrimmedString str="${exc}"/>
 </target>
 
 <target name="__extract_testbox" if="testcases">
@@ -501,6 +501,7 @@
 
       <jvmarg value="-Dtest=${test}"/>
       <jvmarg value="-DtestFilter=${testFilter}"/>
+      <jvmarg value="-DtestLabels=${testLabels}"/>
       <jvmarg value="-Dtemp=${temp}"/>
       <jvmarg value="-Dbasedir=${baseDir}"/>
       <jvmarg value="-Dsrcall=${srcAll}"/>
@@ -530,8 +531,7 @@
     -->
 
     </java>
-    <echo>${exc2}</echo>
-
+    <outputTrimmedString str="${exc2}"/>
 </target>
 
 <target name="upload_to_s3">
@@ -567,7 +567,7 @@
       <jvmarg value="-DtrgLoader=${trgLoader}"/>
 
     </java>
-    <echo>${exc3}</echo>
+    <outputTrimmedString str="${exc3}"/>
 
 </target>
 
