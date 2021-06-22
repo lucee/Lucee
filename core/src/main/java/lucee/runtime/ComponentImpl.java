@@ -1507,6 +1507,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 		sct.set(KeyConstants._accessors, comp.properties.accessors);
 		sct.set(KeyConstants._synchronized, comp.properties._synchronized);
 		if (comp.properties.output != null) sct.set(KeyConstants._output, comp.properties.output);
+		if (comp.properties.modifier == MODIFIER_ABSTRACT) sct.set(KeyConstants._abstract, true);
 
 		// extends
 		Struct ex = null;
