@@ -39,8 +39,8 @@ jobs:
         path: ~/.m2
         key: ${{ runner.os }}-m2-${{ hashFiles('loader/pom.xml','core/pom.xml') }}
         restore-keys: |
-        	${{ runner.os }}-m2
-			maven-cache
+          ${{ runner.os }}-m2
+          maven-cache
     - name: Set up MySQL (local)
       run: |
         sudo /etc/init.d/mysql start
