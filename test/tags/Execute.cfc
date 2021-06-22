@@ -28,10 +28,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	
 	public function testTimeout() {
 		try {
-			cfexecute(name="curl", timeout="0.01", arguments="https://update.lucee.org/rest/update/provider/echoGet" ,variable="variables.x");
-		}
-		catch(e) {
-			assertTrue(find('expired',e.message)>0);
+			cfexecute(name="curl", timeout="0.02", arguments="https://update.lucee.org/rest/update/provider/echoGet" ,variable="variables.x");
+		} catch(e) {
+			expect(e.message).toInclude('expired', e.message); // this fails sometimes on CI
 		}
 	}
 
