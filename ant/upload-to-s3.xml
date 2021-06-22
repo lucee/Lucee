@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project default="run" basedir="." name="Lucee">
+<project default="run" basedir="." name="LuceeUploadToS3">
 
 <macrodef name="echots">
     <attribute name="message"/>
@@ -18,124 +18,132 @@
 <script language="CFML">
 <![CDATA[
 try{
-	NL="
+	NL = "
 ";
-	SystemOutput("inside upload-to-s3.xml",1,1);
+	SystemOutput( "inside upload-to-s3.xml", 1, 1 );
 
-	src.jar=server.system.properties.luceejar;
-	src.core=server.system.properties.luceeCore;
-	src.dir=getDirectoryFromPath(src.jar);
-	src.jarName=listLast(src.jar,"\/");
-	src.coreName=listLast(src.core,"\/");
-	src.version=mid(src.coreName,1,len(src.coreName)-4);
-	
+	src.jar = server.system.properties.luceejar;
+	src.core = server.system.properties.luceeCore;
+	src.dir = getDirectoryFromPath( src.jar );
+	src.jarName = listLast( src.jar,"\/" );
+	src.coreName = listLast( src.core,"\/" );
+	src.version = mid( src.coreName,1,len( src.coreName )-4 );
 
+	if ( ! FileExists( src.jar ) || ! FileExists( src.core ) ){
+		SystemOutput( src.jar & " exists: " & FileExists( src.jar ), true );
+		SystemOutput( src.core & " exists: " & FileExists( src.core ), true );
+		throw "missing jar or .lco file";
+	}
 
 	// no S3 credentials?
-	if(isNull(server.system.environment.S3_ACCESS_ID_DOWNLOAD) 
-		|| isNull(server.system.environment.S3_SECRET_KEY_DOWNLOAD)) {
-		SystemOutput("no S3 credentials defined to upload to S3",1,1);
+	if ( server.system.environment.DO_DEPLOY eq false ){
+		SystemOutput( "skip, DO_DEPLOY  =  =  false", 1 ,1 );
+		return;
+	} else if ( isNull( server.system.environment.S3_ACCESS_ID_DOWNLOAD )
+			|| isNull( server.system.environment.S3_SECRET_KEY_DOWNLOAD ) ) {
+		SystemOutput( "no S3 credentials defined to upload to S3", 1, 1 );
 		return;
 		//throw "no S3 credentials defined to upload to S3";
-		//trg.dir="";
+		//trg.dir = "";
 	}
 	else {
-		trg.dir="s3://#server.system.environment.S3_ACCESS_ID_DOWNLOAD#:#server.system.environment.S3_SECRET_KEY_DOWNLOAD#@/lucee-downloads/";
+		trg.dir = "s3://#server.system.environment.S3_ACCESS_ID_DOWNLOAD#:#server.system.environment.S3_SECRET_KEY_DOWNLOAD#@/lucee-downloads/";
 	}
-	trg.jar=trg.dir&src.jarName;
-	trg.core=trg.dir&src.coreName;
+	trg.jar = trg.dir & src.jarName;
+	trg.core = trg.dir & src.coreName;
 
 	// copy jar
-	SystemOutput("upload #src.jarName# to S3",1,1);
-	if(fileExists(trg.jar)) fileDelete(trg.jar);
-	fileCopy(src.jar,trg.jar);
+	SystemOutput( "upload #src.jarName# to S3",1,1 );
+	if ( fileExists( trg.jar ) ) 
+		fileDelete( trg.jar );
+	fileCopy( src.jar, trg.jar );
 
 	// copy core
-	SystemOutput("upload #src.coreName# to S3",1,1);
-	if(fileExists(trg.core)) fileDelete(trg.core);
-	fileCopy(src.core,trg.core);
+	SystemOutput( "upload #src.coreName# to S3",1,1 );
+	if ( fileExists( trg.core ) ) 
+		fileDelete( trg.core );
+	fileCopy( src.core,trg.core );
 
 	// create war
-	src.warName="lucee-"&src.version&".war";
-	src.war=src.dir&src.warName;
-	trg.war=trg.dir&src.warName;
+	src.warName = "lucee-" & src.version & ".war";
+	src.war = src.dir & src.warName;
+	trg.war = trg.dir & src.warName;
 	
 	/*
-	SystemOutput("upload #src.warName# to S3",1,1);
-	zip action="zip" file=src.war overwrite=true {
+	SystemOutput( "upload #src.warName# to S3",1,1 );
+	zip action = "zip" file = src.war overwrite = true {
 
 		// loader
-		zipparam source=src.jar entrypath="WEB-INF/lib/lucee.jar";
-       
-		// common files
-		// zipparam source=commonDir;
-					
-		// website files
-		// zipparam source=webDir;
-					
-		// war files
-		// zipparam source=warDir;
+		zipparam source = src.jar entrypath = "WEB-INF/lib/lucee.jar";
 
+		// common files
+		// zipparam source = commonDir;
+
+		// website files
+		// zipparam source = webDir;
+
+		// war files
+		// zipparam source = warDir;
 	}
-	fileCopy(src.war,trg.war);*/
+	fileCopy( src.war,trg.war );*/
 
 	// light
-	/*src.lightName="lucee-light-"&src.version&".jar";
-	src.light=src.dir&src.lightName;
-	trg.light=trg.dir&src.lightName;
-	createLight(src.jar,src.light,src.version);
-	fileCopy(src.light,trg.light);*/
+	/*src.lightName = "lucee-light-" & src.version & ".jar";
+	src.light = src.dir & src.lightName;
+	trg.light = trg.dir & src.lightName;
+	createLight( src.jar,src.light,src.version );
+	fileCopy( src.light,trg.light );*/
 
 	// forgebox
 	// express
 
-		
-
 }
-catch(e){
-	SystemOutput(serialize(e),1,1);
+catch( e ){
+	SystemOutput( serialize( e ),1,1 );
 	rethrow;
 }
 
 
-    private function createLight(string loader, string trg,version) {
-        var sep=server.separator.file;
-        
-        
-    	var tmpDir=getDirectoryFromPath(loader);
+    private function createLight( string loader, string trg, version ) {
+        var sep = server.separator.file;
+    	var tmpDir = getDirectoryFromPath( loader );
 
-        local.tmpLoader=tmpDir&"lucee-loader-"&createUniqueId(); // the jar
-        if(directoryExists(tmpLoader)) directoryDelete(tmpLoader,true);
-        directoryCreate(tmpLoader);
+        local.tmpLoader = tmpDir & "lucee-loader-" & createUniqueId(  ); // the jar
+        if ( directoryExists( tmpLoader ) ) 
+			directoryDelete( tmpLoader,true );
+        directoryCreate( tmpLoader );
 
         // unzip
-        zip action="unzip" file=loader destination=tmpLoader;
+        zip action = "unzip" file = loader destination = tmpLoader;
 
         // remove extensions
-        var extDir=tmpLoader&sep&"extensions";
-        if(directoryExists(extDir))directoryDelete(extDir,true); // deletes directory with all files inside
-        directoryCreate(extDir); // create empty dir again (maybe Lucee expect this directory to exist)
+        var extDir = tmpLoader&sep&"extensions";
+        if ( directoryExists( extDir ) )
+			directoryDelete( extDir, true ); // deletes directory with all files inside
+        directoryCreate( extDir ); // create empty dir again ( maybe Lucee expect this directory to exist )
 
         // unzip core
-        var lcoFile=tmpLoader&sep&"core"&sep&"core.lco";
-        local.tmpCore=tmpDir&"lucee-core-"&createUniqueId(); // the jar
-        directoryCreate(tmpCore);
-        zip action="unzip" file=lcoFile destination=tmpCore;
+        var lcoFile = tmpLoader & sep & "core" & sep & "core.lco";
+        local.tmpCore = tmpDir & "lucee-core-" & createUniqueId(  ); // the jar
+        directoryCreate( tmpCore );
+        zip action = "unzip" file = lcoFile destination = tmpCore;
 
         // rewrite manifest
-        var manifest=tmpCore&sep&"META-INF"&sep&"MANIFEST.MF";
-        var content=fileRead(manifest);
-        var index=find('Require-Extension',content);
-        if(index>0) content=mid(content,1,index-1)&variables.NL;
-        fileWrite(manifest,content);
+        var manifest = tmpCore & sep & "META-INF" & sep & "MANIFEST.MF";
+        var content = fileRead( manifest );
+        var index = find( 'Require-Extension',content );
+        if ( index > 0 ) 
+			content = mid( content, 1, index - 1 ) & variables.NL;
+        fileWrite( manifest,content );
         
         // zip core
-        fileDelete(lcoFile);
-        zip action="zip" source=tmpCore file=lcoFile;
+        fileDelete( lcoFile );
+        zip action = "zip" source = tmpCore file = lcoFile;
         
         // zip loader
-        if(fileExists(trg)) fileDelete(trg);
-        zip action="zip" source=tmpLoader file=trg;
+        if ( fileExists( trg ) ) 
+			fileDelete( trg );
+        zip action = "zip" source = tmpLoader file = trg;
         
     }
 
