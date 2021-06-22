@@ -37,7 +37,7 @@ try{
 
 	// no S3 credentials?
 	if ( server.system.environment.DO_DEPLOY eq false ){
-		SystemOutput( "skip, DO_DEPLOY  =  =  false", 1 ,1 );
+		SystemOutput( "skip, DO_DEPLOY is false", 1 ,1 );
 		return;
 	} else if ( isNull( server.system.environment.S3_ACCESS_ID_DOWNLOAD )
 			|| isNull( server.system.environment.S3_SECRET_KEY_DOWNLOAD ) ) {
@@ -45,10 +45,15 @@ try{
 		return;
 		//throw "no S3 credentials defined to upload to S3";
 		//trg.dir = "";
+	} else {
+		s3_bucket = "lucee-downloads";
+		trg.dir = "s3://#server.system.environment.S3_ACCESS_ID_DOWNLOAD#:#server.system.environment.S3_SECRET_KEY_DOWNLOAD#@/#s3_bucket#/";
 	}
-	else {
-		trg.dir = "s3://#server.system.environment.S3_ACCESS_ID_DOWNLOAD#:#server.system.environment.S3_SECRET_KEY_DOWNLOAD#@/lucee-downloads/";
-	}
+
+	// test s3 access
+	if (! DirectoryExists( trg.dir ) )
+		throw "DirectoryExists failed for s3 bucket [#s3_bucket#]";
+
 	trg.jar = trg.dir & src.jarName;
 	trg.core = trg.dir & src.coreName;
 
@@ -62,7 +67,7 @@ try{
 	SystemOutput( "upload #src.coreName# to S3",1,1 );
 	if ( fileExists( trg.core ) ) 
 		fileDelete( trg.core );
-	fileCopy( src.core,trg.core );
+	fileCopy( src.core, trg.core );
 
 	// create war
 	src.warName = "lucee-" & src.version & ".war";
@@ -85,14 +90,16 @@ try{
 		// war files
 		// zipparam source = warDir;
 	}
-	fileCopy( src.war,trg.war );*/
+	fileCopy( src.war,trg.war );
+	*/
 
 	// light
 	/*src.lightName = "lucee-light-" & src.version & ".jar";
 	src.light = src.dir & src.lightName;
 	trg.light = trg.dir & src.lightName;
 	createLight( src.jar,src.light,src.version );
-	fileCopy( src.light,trg.light );*/
+	fileCopy( src.light,trg.light );
+	*/
 
 	// forgebox
 	// express
