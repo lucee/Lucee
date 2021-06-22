@@ -96,7 +96,7 @@ jobs:
         MSSQL_DATABASE: master
         S3_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_ID_TEST }}
         S3_SECRET_KEY: ${{ secrets.S3_SECRET_KEY_TEST }}
-        DO_DEPLOY: false
+        DO_DEPLOY: ${{ github.event_name == 'push'}}
         # for uploading successful builds
         S3_ACCESS_ID_DOWNLOAD: ${{ secrets.S3_ACCESS_ID_DOWNLOAD }}
         S3_SECRET_KEY_DOWNLOAD: ${{ secrets.S3_SECRET_KEY_DOWNLOAD }}
@@ -107,11 +107,13 @@ jobs:
       #run: ant -noinput -buildfile loader/build.xml
       run: mvn -B -e -f loader/pom.xml clean install #-DtestFilter="2586"
     - name: Update Provider
+      if: ${{ github.event_name == 'push'}}
       run: |
         curl "https://update.lucee.org/rest/update/provider/buildLatest"
         curl "https://extension.lucee.org/rest/extension/provider/reset"
         curl "https://download.lucee.org/?type=snapshots&reset=force"
     - name: Trigger Docker Build
+      if: ${{ github.event_name == 'push'}}
       env:
         TRAVIS_JOB_ID: ${{ github.run_id }}
         TRAVIS_TOKEN: ${{ secrets.DOCKER_AUTH_TOKEN }} # not set up yet
