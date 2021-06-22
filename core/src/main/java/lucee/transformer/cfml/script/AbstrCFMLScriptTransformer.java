@@ -500,8 +500,8 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		TagLibTag tlt = CFMLTransformer.getTLT(data.srcCode, getComponentName(data.srcCode.getDialect(), inline), data.config.getIdentification());
 		TagComponent comp = (TagComponent) _multiAttrStatement(data.getParent(), data, tlt);
 		comp.setInline(inline);
-		if (inline) comp.addAttribute(new Attribute(false, "name", data.factory.createLitString(id), "string"));
-		else if (modifier != Component.MODIFIER_NONE) comp.addAttribute(new Attribute(false, "modifier", data.factory.createLitString(id), "string"));
+		if (inline) comp.addAttribute(new Attribute(false, "name", data.factory.createLitString("IC_" + comp.getStart().pos + "_" + comp.getEnd().pos), "string"));
+		if (modifier != Component.MODIFIER_NONE) comp.addAttribute(new Attribute(false, "modifier", data.factory.createLitString(id), "string"));
 		return comp;
 	}
 

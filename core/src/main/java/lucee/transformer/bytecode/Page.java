@@ -38,6 +38,7 @@ import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.GeneratorAdapter;
 import org.objectweb.asm.commons.Method;
 
+import lucee.print;
 import lucee.commons.digest.HashUtil;
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.IOUtil;
@@ -323,9 +324,14 @@ public final class Page extends BodyBase implements Root {
 			if (optionalPS == null) throw new IllegalArgumentException("when Page object has no PageSource, a className is necessary");
 			className = optionalPS.getClassName();
 		}
-		if (comp != null) className = createSubClass(className, comp.getName(), sourceCode.getDialect());
+		print.e("1->" + className);
+		if (comp != null) {
+			print.e("c->" + comp.getName());
+			className = createSubClass(className, comp.getName(), sourceCode.getDialect());
+		}
 		className = className.replace('.', '/');
 		this.className = className;
+		print.e("2->" + className);
 
 		// parent
 		String parent = PageImpl.class.getName();// "lucee/runtime/Page";
@@ -480,11 +486,13 @@ public final class Page extends BodyBase implements Root {
 		ConditionVisitor cv;
 		DecisionIntVisitor div;
 		// less/equal than 10 functions
-		if (isInterface()) {}
+		if (isInterface()) {
+		}
 		else if (functions.length <= 10) {
 			adapter = new GeneratorAdapter(Opcodes.ACC_PUBLIC + Opcodes.ACC_FINAL, UDF_CALL, null, new Type[] { Types.THROWABLE }, cw);
 			BytecodeContext bc = new BytecodeContext(optionalPS, constr, this, keys, cw, className, adapter, UDF_CALL, writeLog(), suppressWSbeforeArg, output, returnValue);
-			if (functions.length == 0) {}
+			if (functions.length == 0) {
+			}
 			else if (functions.length == 1) {
 				ExpressionUtil.visitLine(bc, functions[0].getStart());
 				functions[0].getBody().writeOut(bc);
@@ -555,7 +563,8 @@ public final class Page extends BodyBase implements Root {
 
 		// udfDefaultValue
 		// less/equal than 10 functions
-		if (isInterface()) {}
+		if (isInterface()) {
+		}
 		else if (functions.length <= 10) {
 			adapter = new GeneratorAdapter(Opcodes.ACC_PUBLIC + Opcodes.ACC_FINAL, UDF_DEFAULT_VALUE, null, new Type[] { Types.PAGE_EXCEPTION }, cw);
 			if (functions.length > 0) writeUdfDefaultValueInner(
@@ -670,7 +679,7 @@ public final class Page extends BodyBase implements Root {
 				TagCIObject tc;
 				while (_it.hasNext()) {
 					tc = _it.next();
-					tc.writeOut(this);
+					tc.writeOut(null, this);// MUST do not pass null
 				}
 				writeGetSubPages(cw, className, subs, sourceCode.getDialect());
 			}

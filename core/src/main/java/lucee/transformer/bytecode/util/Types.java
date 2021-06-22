@@ -47,6 +47,7 @@ import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageImpl;
 import lucee.runtime.PageSource;
+import lucee.runtime.component.ComponentLoader;
 import lucee.runtime.component.ImportDefintion;
 import lucee.runtime.component.ImportDefintionImpl;
 import lucee.runtime.component.Member;
@@ -157,6 +158,7 @@ public final class Types {
 
 	public static final Type COMPONENT_IMPL = Type.getType(lucee.runtime.ComponentImpl.class);
 	public static final Type INTERFACE_IMPL = Type.getType(lucee.runtime.InterfaceImpl.class);
+	public static final Type COMPONENT_LOADER = Type.getType(ComponentLoader.class);
 
 	public static final Type DATE_TIME = Type.getType(lucee.runtime.type.dt.DateTime.class);
 

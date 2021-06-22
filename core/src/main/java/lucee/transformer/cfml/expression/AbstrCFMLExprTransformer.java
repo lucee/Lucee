@@ -1354,7 +1354,8 @@ public abstract class AbstrCFMLExprTransformer {
 		if (!data.srcCode.forwardIfCurrent("component", '{')) return null;
 		print.ds("->" + data.context);
 		data.srcCode.setPos(pos);
-		TagComponent cfc = componentPart(data.getParent(), data, "component_" + CreateUniqueId.invoke(), Component.MODIFIER_NONE, data.srcCode.getPosition(), true);
+		TagComponent cfc = componentPart(data.getParent(), data, "inline_component_" + CreateUniqueId.invoke(), Component.MODIFIER_NONE, data.srcCode.getPosition(), true);
+		cfc.setStart(data.srcCode.getPosition(pos));
 		cfc.setParent(data.getParent());
 		return new TagComponentAsExpression(cfc);
 	}
