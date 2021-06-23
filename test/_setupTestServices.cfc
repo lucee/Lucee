@@ -159,7 +159,7 @@ component {
 				try {
 					switch ( service ){
 						case "s3":
-							s3 = verifyS3(cfg);
+							verify = verifyS3(cfg);
 							break;
 						case "imap":
 							break;

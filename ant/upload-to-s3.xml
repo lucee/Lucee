@@ -21,6 +21,7 @@ try{
 	NL = "
 ";
 	SystemOutput( "inside upload-to-s3.xml", 1, 1 );
+	SystemOutput( "Using S3 Extension: #extensionList().filter( function(row){ return row.name contains "s3" }).version#", true);
 
 	src.jar = server.system.properties.luceejar;
 	src.core = server.system.properties.luceeCore;
