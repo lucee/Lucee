@@ -27,3 +27,4 @@ WEB-INF
 *.iws
 
 .idea/
+buildVersionNumber.txt
