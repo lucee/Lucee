@@ -465,6 +465,8 @@
     </echo>
 
     <echo message="${version}"/>
+    <!-- used for docker build -->
+    <echo file="${rootDir}/buildVersionNumber.txt" message="${version}" append="false"/>
     <!-- <echo message="${name}"/>
     <echo message="${name.explanation}"/> -->
     <echo message="Root: ${rootDir}"/>
