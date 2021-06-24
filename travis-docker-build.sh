@@ -25,7 +25,7 @@ EOF
 REQUEST_BODY=$(build_request)
 
 # trigger the lucee-dockerfiles travis job for this lucee version
-curl -m 30 -s -X POST \
+curl --no-progress-meter -S -m 30 -X POST \
   -H "Content-Type: application/json" \
   -H "Accept: application/json" \
   -H "Travis-API-Version: 3" \
