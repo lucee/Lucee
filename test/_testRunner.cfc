@@ -265,6 +265,18 @@ component {
 			}
 			//systemOutput(serializeJson(bundle.suiteStats));
 		}
+		// report out any slow test specs, because for Lucee, slow performance is a bug (tm)
+		if ( !isNull( bundle.suiteStats ) ) {
+			loop array=bundle.suiteStats item="local.suiteStat" {
+				if ( !isNull( suiteStat.specStats ) ) {
+					loop array=suiteStat.specStats item="local.specStat" {
+						if ( specStat.totalDuration gt 5000 )
+							systemOutput( TAB & TAB & specStat.name & " took #numberFormat( specStat.totalDuration )#ms", true );
+					}
+				}
+			}
+		}
+		
 	// exceptions
 	if ( !isSimpleValue( bundle.globalException ) ) {
 		systemOutput( "Global Bundle Exception
