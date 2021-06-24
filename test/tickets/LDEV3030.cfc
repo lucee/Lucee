@@ -47,6 +47,11 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" labels="mssql" {
 	}
 
 	function isMSSQLNotSupported() {
+		var enabled = server._getSystemPropOrEnvVars( "lucee.datasource.mssql.modern", "", false);
+		if (! ( structCount( enabled ) eq 1 && enabled["lucee.datasource.mssql.modern"] eq "true") ){
+			//systemOutput("lucee.datasource.mssql.modern not enabled", true);
+			return true;
+		}
 		return structIsEmpty(server.getDatasource("mssql"));
 	}
 }
