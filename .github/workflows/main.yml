@@ -116,5 +116,6 @@ jobs:
         TRAVIS_JOB_ID: ${{ github.run_id }}
         TRAVIS_TOKEN: ${{ secrets.DOCKER_AUTH_TOKEN }} # not set up yet
       run: |
+        echo "Trigger Docker Build on Travis https://travis-ci.com/github/lucee/lucee-dockerfiles"
         chmod +x travis-docker-build.sh
         ./travis-docker-build.sh
