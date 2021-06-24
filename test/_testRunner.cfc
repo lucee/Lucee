@@ -39,8 +39,10 @@ component {
 					break;
 			};
 			var meta = getTestMeta( arguments.path );
-			if ( !isStruct( meta ) )
+			if ( !isStruct( meta ) ){
+				SystemOutput( "ERROR: [" & arguments.path & "] threw " & meta, true );
 				return meta;
+			}
 
 			var extends = checkExtendsTestCase( meta, arguments.path );
 			if ( extends neq "org.lucee.cfml.test.LuceeTestCase" )
