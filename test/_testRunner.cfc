@@ -40,7 +40,8 @@ component {
 			};
 			var meta = getTestMeta( arguments.path );
 			if ( !isStruct( meta ) ){
-				SystemOutput( "ERROR: [" & arguments.path & "] threw " & meta, true );
+				// TODO bad cfc tickets get ignored
+				// SystemOutput( "ERROR: [" & arguments.path & "] threw " & meta, true );
 				return meta;
 			}
 
