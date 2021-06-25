@@ -28,10 +28,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	
 	public function testTimeout() {
 		try {
-			cfexecute(name="curl", timeout="0.01", arguments="https://update.lucee.org/rest/update/provider/echoGet" ,variable="variables.x");
+			cfexecute(name="curl", timeout="0.1", arguments="https://update.lucee.org/rest/update/provider/echoGet" ,variable="variables.x");
 		}
 		catch(e) {
-			expect(e.message).toInclude('expired', e.message);
+			expect(e.message).toInclude('expired', e.message); // this fails sometimes on CI
 		}
 	}
 

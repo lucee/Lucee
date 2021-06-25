@@ -37,7 +37,7 @@ try{
 	}
 
 	// no S3 credentials?
-	if ( server.system.environment.DO_DEPLOY eq false ){
+	if ( (server.system.environment.DO_DEPLOY?:false) eq false ){
 		SystemOutput( "skip, DO_DEPLOY is false", 1 ,1 );
 		return;
 	} else if ( isNull( server.system.environment.S3_ACCESS_ID_DOWNLOAD )

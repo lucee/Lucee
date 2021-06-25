@@ -411,6 +411,7 @@ component {
 		return {};
 	}
 
+
 	function getDefaultBundleVersion( bundleName, fallbackVersion ) cachedWithin="request" {
 		var bundles = server.getBundleVersions();
 		if ( structKeyExists( bundles, arguments.bundleName ) ){

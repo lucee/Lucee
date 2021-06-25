@@ -58,6 +58,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import lucee.commons.db.DBUtil;
 import lucee.commons.io.IOUtil;
+import lucee.commons.io.SystemUtil;
 import lucee.commons.io.SystemUtil.TemplateLine;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
@@ -124,6 +125,8 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	public static final Collection.Key GENERATED_KEYS = KeyImpl.getInstance("GENERATED_KEYS");
 	public static final Collection.Key GENERATEDKEYS = KeyImpl.getInstance("GENERATEDKEYS");
 
+	private static boolean useMSSQLModern;
+
 	private boolean populating;
 
 	private QueryColumnImpl[] columns;
@@ -141,7 +144,10 @@ public class QueryImpl implements Query, Objects, QueryResult {
 
 	private Collection.Key indexName;
 	private Map<Collection.Key, Integer> indexes;// = new
-	// ConcurrentHashMap<Collection.Key,Integer>();
+
+	static {
+		useMSSQLModern = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.datasource.mssql.modern", null), false);
+	}
 
 	@Override
 	public String getTemplate() {
@@ -247,7 +253,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 			boolean allowToCachePreperadeStatement, QueryImpl qry, QueryResult qr, Collection.Key keyName) throws PageException {
 
 		// MSSQL is handled separatly
-		if (DataSourceUtil.isMSSQLDriver(dc)) {
+		if (useMSSQLModern && DataSourceUtil.isMSSQLDriver(dc)) {
 			executeMSSQL(pc, dc, sql, maxrow, fetchsize, timeout, createUpdateData, allowToCachePreperadeStatement, qry, qr, keyName);
 			return;
 		}

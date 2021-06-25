@@ -30,4 +30,5 @@ WEB-INF
 /.vscode
 /.idea
 loader/env.json
+.idea/
 buildVersionNumber.txt
