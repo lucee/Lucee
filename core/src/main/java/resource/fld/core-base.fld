@@ -3180,6 +3180,12 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<name>ExtensionList</name>
 		<class>lucee.runtime.functions.system.ExtensionList</class>
 		<description>Checks if a certain extension exists or not.</description>
+		<argument>
+			<name>imageObject</name>
+			<type>boolean</type>
+			<required>false</required>
+			<description>If set to true means extension image shows as imageObject instead of base64 string.</description>
+		</argument>
 		<return>
 			<type>query</type>
 		</return>
