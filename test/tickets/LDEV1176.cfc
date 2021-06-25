@@ -14,7 +14,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="s3"{
 	function beforeAll() skip="isNotSupported"{
 		if(isNotSupported()) return;
 		var s3Details = getCredentials();
-		variables.bucketName = lcase("lucee-ldev1176-#CreateGUID()#");
+		variables.bucketName = lcase("lucee-ldev1176-#hash(CreateGUID())#");
 		variables.base = "s3://#s3Details.ACCESS_KEY_ID#:#s3Details.SECRET_KEY#@";
 		variables.baseWithBucketName = "s3://#s3Details.ACCESS_KEY_ID#:#s3Details.SECRET_KEY#@/#variables.bucketName#";
 		// for skipping rest of the cases, if error occurred.
