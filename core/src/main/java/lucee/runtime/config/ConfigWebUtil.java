@@ -648,6 +648,8 @@ public final class ConfigWebUtil {
 		getAllMappings(list, pc.getConfig().getCustomTagMappings());
 		getAllMappings(list, pc.getConfig().getComponentMappings());
 		getAllMappings(list, pc.getApplicationContext().getMappings());
+		// MUST show all application contexts | also get component and custom tags mappings from application
+		// context
 		return list.toArray(new Mapping[list.size()]);
 	}
 
