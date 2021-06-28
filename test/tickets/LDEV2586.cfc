@@ -1,4 +1,4 @@
-component extends = "org.lucee.cfml.test.LuceeTestCase"{
+component extends = "org.lucee.cfml.test.LuceeTestCase" labels="mssql"{
 // ZAC is that merge correct? i simply took the version from 6.0
 	function beforeAll() {
 		variables.msSQL = server.getDatasource("mssql");

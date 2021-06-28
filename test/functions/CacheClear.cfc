@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" {
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="mongodb" {
 	
 	variables.cacheName="Test"&ListFirst(ListLast(getCurrentTemplatePath(),"\/"),".");
 

@@ -16,7 +16,7 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  * 
  ---><cfscript>
-component extends="org.lucee.cfml.test.LuceeTestCase"	{
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="oracle"	{
 	// ZAC is that version correct? i simply took what comes from 6.0
 	
 	//public function afterTests(){}
@@ -227,6 +227,7 @@ END;
 		expect( seq.id ).toBe( 3 );
 		expect( seq.id ).toBe( q.id );
 		// expect( result.generatedKey ).toBe( seq.id );  // TODO returns oracle.sql.ROWID instead
+		// expect( result.generatedKey ).toInclude( "oracle.sql.ROWID" ); // 11 returns a oracle.sql.ROWID object, 12 returns actial rowid value 
 
 		// systemOutput( seq, true );
 

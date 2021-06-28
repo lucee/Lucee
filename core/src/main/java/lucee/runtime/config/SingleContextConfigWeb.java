@@ -1762,20 +1762,30 @@ public class SingleContextConfigWeb extends ConfigBase implements ConfigWebPro {
 	}
 
 	public void reload() {
-		this.mappings = null;
+		synchronized (this) {
+			createMapping();
+		}
 	}
 
 	private void createMapping() {
+
+		Map<String, Mapping> existing = getExistingMappings();
+
 		// Mapping
 		Map<String, Mapping> mappings = MapFactory.<String, Mapping>getConcurrentMap();
 		Mapping tmp;
 		boolean finished = false;
+		Mapping ex;
 		Mapping[] sm = cs.getMappings();
 		if (sm != null) {
 			for (int i = 0; i < sm.length; i++) {
 				if (!sm[i].isHidden()) {
 					if ("/".equals(sm[i].getVirtual())) finished = true;
-					if (sm[i] instanceof MappingImpl) {
+					ex = existing.get(sm[i].getVirtualLowerCase());
+					if (ex != null && ex.equals(sm[i])) {
+						mappings.put(ex.getVirtualLowerCase(), ex);
+					}
+					else if (sm[i] instanceof MappingImpl) {
 						tmp = ((MappingImpl) sm[i]).cloneReadOnly(this);
 						mappings.put(tmp.getVirtualLowerCase(), tmp);
 
@@ -1788,14 +1798,31 @@ public class SingleContextConfigWeb extends ConfigBase implements ConfigWebPro {
 			}
 		}
 		if (!finished) {
+			Mapping m;
 			if (ResourceUtil.isUNCPath(getRootDirectory().getPath())) {
-				mappings.put("/", new MappingImpl(this, "/", getRootDirectory().getPath(), null, ConfigPro.INSPECT_UNDEFINED, true, true, true, true, false, false, null, -1, -1));
+				m = new MappingImpl(this, "/", getRootDirectory().getPath(), null, ConfigPro.INSPECT_UNDEFINED, true, true, true, true, false, false, null, -1, -1);
 			}
 			else {
-				mappings.put("/", new MappingImpl(this, "/", "/", null, ConfigPro.INSPECT_UNDEFINED, true, true, true, true, false, false, null, -1, -1, true, true));
+				m = new MappingImpl(this, "/", "/", null, ConfigPro.INSPECT_UNDEFINED, true, true, true, true, false, false, null, -1, -1, true, true);
 			}
+			ex = existing.get("/");
+			if (ex != null && ex.equals(m)) {
+				m = ex;
+			}
+			mappings.put("/", m);
 		}
 		this.mappings = ConfigWebUtil.sort(mappings.values().toArray(new Mapping[mappings.size()]));
+	}
+
+	private Map<String, Mapping> getExistingMappings() {
+		Map<String, Mapping> mappings = MapFactory.<String, Mapping>getConcurrentMap();
+
+		if (this.mappings != null) {
+			for (Mapping m: this.mappings) {
+				mappings.put(m.getVirtualLowerCase(), m);
+			}
+		}
+		return mappings;
 	}
 
 	@Override

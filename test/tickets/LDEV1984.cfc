@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase"{
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm"{
 	function run( testResults , testBox ) {
 		describe( title="Test suite for LDEV-1984", body=function() {
 			it( title='checking ORMEvictEntity() without secondary Cache ',body=function( currentSpec ) {

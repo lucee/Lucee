@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase"{
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="s3"{
 	// skip closure
 	function isNotSupported() {
 		variables.s3Details=getCredentials();

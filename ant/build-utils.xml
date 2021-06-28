@@ -104,6 +104,18 @@
       project.setProperty(attributes.get("property"), new Date().getTime());
      ]]>
   </scriptdef>
+
+  <scriptdef name="outputTrimmedString" language="javascript" loaderRef="sharedbuild-loaderRef">
+     <attribute name="str" />
+     <![CDATA[
+        var trimmed = String( attributes.get( "str" ) ).trim();
+        if ( trimmed.length > 0 ){
+          var echo = project.createTask( "echo" );
+          echo.setMessage( trimmed );
+          echo.perform();
+        }
+     ]]>
+  </scriptdef>
   
   <scriptdef name="deployLco" language="javascript" loaderRef="sharedbuild-loaderRef">
      <attribute name="srcdir" />

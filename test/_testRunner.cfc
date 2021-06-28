@@ -25,11 +25,11 @@ component {
 			if ( left( arguments.path, 1 ) eq "/")
 				testDir = "/" & testDir; // avoid issues with non windows paths
 			var name = listLast( arguments.path, "\/" );
-
+			var testPath = Mid(arguments.path, len(request.testFolder) + 1); // otherwise "image" would match extension-image on CI
 			switch ( true ){
 				case ( left (name, 1 ) == "_" ):
 					return "test has _ prefix (#name#)";
-				case ( checkTestFilter( arguments.path ) ):
+				case ( checkTestFilter( testPath ) ):
 					return "excluded by testFilter";
 				case ( FindNoCase( request.testFolder, testDir ) neq 1 ):
 					return "not under test dir (#request.testFolder#, #testDir#)";
@@ -38,11 +38,18 @@ component {
 				default:
 					break;
 			};
-			var extends = checkExtendsTestCase( arguments.path );
+			var meta = getTestMeta( arguments.path );
+			if ( !isStruct( meta ) ){
+				// TODO bad cfc tickets get ignored
+				// SystemOutput( "ERROR: [" & arguments.path & "] threw " & meta, true );
+				return meta;
+			}
+
+			var extends = checkExtendsTestCase( meta, arguments.path );
 			if ( extends neq "org.lucee.cfml.test.LuceeTestCase" )
 				return "test doesn't extend Lucee Test Case (#extends#)";
-			else
-				return "";
+			
+			return checkTestLabels( meta, arguments.path );
 		};
 
 		var checkTestFilter = function ( string path ){
@@ -55,17 +62,36 @@ component {
 			return true;
 		};
 
-		var checkExtendsTestCase = function (string path){
+		var getTestMeta = function (string path){
 			// finally only allow files which extend "org.lucee.cfml.test.LuceeTestCase"
 			var cfcPath = ListChangeDelims( "/test" & Mid( arguments.path, len( request.testFolder ) + 1 ), ".", "/\" );
 			cfcPath = mid( cfcPath, 1, len( cfcPath ) - 4 );
 			try {
 				// triggers a compile, which make the initial filter slower, but it would be compiled later anyway
-				var meta = GetComponentMetaData( cfcPath );
+				// GetComponentMetaData leaks output https://luceeserver.atlassian.net/browse/LDEV-3582
+				silent {
+					var meta = GetComponentMetaData( cfcPath );
+				}
 			} catch ( e ){
 				return cfcatch.message;
 			}
+			return meta;
+		};
+
+		var checkExtendsTestCase = function (any meta, string path){
 			return meta.extends.fullname ?: "";
+		};
+
+		/* testbox mixes label and skip, which is confusing, skip false should always mean skip, so we check it manually */
+		var checkTestLabels = function (any meta, string path ){
+			if ( arrayLen (request.testLabels) eq 0 )
+				return "";
+			var labels = meta.labels ?: "";
+			loop array="#request.testLabels#" item="local.f" {
+				if ( FindNoCase( f, labels ) gt 0 )
+					return "";
+			}
+			return "no matching labels";
 		};
 
 		allowed = isValidTestCase( arguments.path );
@@ -105,7 +131,6 @@ component {
 		};
 
 		try {
-
 			var filterTimer = getTickCount();
 			var tb = new testbox.system.TestBox( bundles=getBundles(), reporter="console" );
 
@@ -240,6 +265,18 @@ component {
 			}
 			//systemOutput(serializeJson(bundle.suiteStats));
 		}
+		// report out any slow test specs, because for Lucee, slow performance is a bug (tm)
+		if ( !isNull( bundle.suiteStats ) ) {
+			loop array=bundle.suiteStats item="local.suiteStat" {
+				if ( !isNull( suiteStat.specStats ) ) {
+					loop array=suiteStat.specStats item="local.specStat" {
+						if ( specStat.totalDuration gt 5000 )
+							systemOutput( TAB & TAB & specStat.name & " took #numberFormat( specStat.totalDuration )#ms", true );
+					}
+				}
+			}
+		}
+		
 	// exceptions
 	if ( !isSimpleValue( bundle.globalException ) ) {
 		systemOutput( "Global Bundle Exception
