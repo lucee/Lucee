@@ -135,9 +135,9 @@ public class ComponentLoader {
 
 		boolean doCache = config.useComponentPathCache();
 		String sub = null;
-		if (returnType != RETURN_TYPE_PAGE && rawPath.indexOf(':') != -1) {
-			int d = rawPath.indexOf(':');
-			int s = rawPath.indexOf('.');
+		if (returnType != RETURN_TYPE_PAGE && rawPath.indexOf('$') != -1) {
+			int d = rawPath.lastIndexOf('$');
+			int s = rawPath.lastIndexOf('.');
 			if (d > s) {
 				sub = rawPath.substring(d + 1);
 				rawPath = rawPath.substring(0, d);
@@ -418,13 +418,14 @@ public class ComponentLoader {
 
 	private static CIPage loadSub(CIPage page, String sub) throws ApplicationException {
 		String subClassName = lucee.transformer.bytecode.Page.createSubClass(page.getClass().getName(), sub, page.getPageSource().getDialect());
-
+		print.e("subClassName:" + subClassName);
 		CIPage[] subs = page.getSubPages();
 		for (int i = 0; i < subs.length; i++) {
+			print.e("- " + subs[i].getClass().getName());
+
 			if (subs[i].getClass().getName().equals(subClassName)) return subs[i];
 		}
 		throw new ApplicationException("There is no Sub component [" + sub + "] in [" + page.getPageSource().getDisplayPath() + "]");
-
 	}
 
 	public static Page loadPage(PageContext pc, PageSource ps, boolean forceReload) throws PageException {
@@ -591,7 +592,6 @@ public class ComponentLoader {
 
 		c.setInitalized(true);
 		return c;
-
 	}
 
 	private static CIPage toCIPage(Page p, String callPath) throws PageException {
