@@ -111,7 +111,7 @@ jobs:
         CI_DEPLOY_PASSPHRASE: ${{ secrets.CI_DEPLOY_PASSPHRASE }}
       #run: ant -noinput -buildfile loader/build.xml
       run: |
-        if [ "${ DO_DEPLOY }" == "true" ]; then        
+        if [ "${DO_DEPLOY}" == "true" ]; then        
           echo "------- Maven Deploy on ${{ github.event_name }} -------";
           mvn -B -e -f loader/pom.xml clean deploy --settings travis-settings.xml;
         else
