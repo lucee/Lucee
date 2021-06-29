@@ -38,6 +38,7 @@ import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.GeneratorAdapter;
 import org.objectweb.asm.commons.Method;
 
+import lucee.print;
 import lucee.commons.digest.HashUtil;
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.IOUtil;
@@ -298,7 +299,7 @@ public final class Page extends BodyBase implements Root {
 	/**
 	 * convert the Page Object to java bytecode
 	 * 
-	 * @param className name of the genrated class (only necessary when Page object has no PageSource
+	 * @param cn name of the genrated class (only necessary when Page object has no PageSource
 	 *            reference)
 	 * @return
 	 * @throws TransformerException
@@ -318,14 +319,15 @@ public final class Page extends BodyBase implements Root {
 		// look for component if necessary
 		TagCIObject comp = getTagCFObject(null);
 
-		// in case we have a sub component
-		if (className == null) {
-			if (optionalPS == null) throw new IllegalArgumentException("when Page object has no PageSource, a className is necessary");
-			className = optionalPS.getClassName();
+		// get class name
+
+		if (!StringUtil.isEmpty(className)) {
+			className = className.replace('.', '/');
+			this.className = className;
 		}
-		if (comp != null) className = createSubClass(className, comp.getName(), sourceCode.getDialect());
-		className = className.replace('.', '/');
-		this.className = className;
+		else {
+			className = getClassName();
+		}
 
 		// parent
 		String parent = PageImpl.class.getName();// "lucee/runtime/Page";
@@ -456,35 +458,44 @@ public final class Page extends BodyBase implements Root {
 			writeOutStaticConstructor(constr, keys, cw, comp, className);
 		}
 
+		List<IFunction> funcs;
 		// newInstance/initComponent/call
 		if (isComponent()) {
 			writeOutGetStaticStruct(constr, keys, cw, comp, className);
 			writeOutNewComponent(constr, keys, cw, comp, className);
-			writeOutInitComponent(constr, keys, cw, comp, className);
+			funcs = writeOutInitComponent(constr, keys, cw, comp, className);
 
 		}
 		else if (isInterface()) {
 			writeOutGetStaticStruct(constr, keys, cw, comp, className);
 			writeOutNewInterface(constr, keys, cw, comp, className);
-			writeOutInitInterface(constr, keys, cw, comp, className);
+			funcs = writeOutInitInterface(constr, keys, cw, comp, className);
 		}
 		else {
-			writeOutCall(constr, keys, cw, className);
+			funcs = writeOutCall(constr, keys, cw, className);
 		}
 
 		// write UDFProperties to constructor
 		// writeUDFProperties(bc,funcs,pageType);
 
 		// udfCall
-		Function[] functions = getFunctions();
+		Function[] functions = getFunctions();// toArray(funcs);
+
+		print.e("---------------- " + className + " ----------------");
+		for (Function f: functions) {
+			print.e("-" + f);
+		}
+
 		ConditionVisitor cv;
 		DecisionIntVisitor div;
 		// less/equal than 10 functions
-		if (isInterface()) {}
+		if (isInterface()) {
+		}
 		else if (functions.length <= 10) {
 			adapter = new GeneratorAdapter(Opcodes.ACC_PUBLIC + Opcodes.ACC_FINAL, UDF_CALL, null, new Type[] { Types.THROWABLE }, cw);
 			BytecodeContext bc = new BytecodeContext(optionalPS, constr, this, keys, cw, className, adapter, UDF_CALL, writeLog(), suppressWSbeforeArg, output, returnValue);
-			if (functions.length == 0) {}
+			if (functions.length == 0) {
+			}
 			else if (functions.length == 1) {
 				ExpressionUtil.visitLine(bc, functions[0].getStart());
 				functions[0].getBody().writeOut(bc);
@@ -555,7 +566,8 @@ public final class Page extends BodyBase implements Root {
 
 		// udfDefaultValue
 		// less/equal than 10 functions
-		if (isInterface()) {}
+		if (isInterface()) {
+		}
 		else if (functions.length <= 10) {
 			adapter = new GeneratorAdapter(Opcodes.ACC_PUBLIC + Opcodes.ACC_FINAL, UDF_DEFAULT_VALUE, null, new Type[] { Types.PAGE_EXCEPTION }, cw);
 			if (functions.length > 0) writeUdfDefaultValueInner(
@@ -624,6 +636,9 @@ public final class Page extends BodyBase implements Root {
 
 		String udfpropsClassName = Types.UDF_PROPERTIES_ARRAY.toString();
 
+		print.e("+++++++++++++ " + className + " ++++++++++++++");
+		print.e("udfProperties.size():" + udfProperties.size());
+
 		// new UDFProperties Array
 		constrAdapter.visitVarInsn(Opcodes.ALOAD, 0);
 		constrAdapter.push(udfProperties.size());
@@ -632,11 +647,13 @@ public final class Page extends BodyBase implements Root {
 
 		// set item
 		Data data;
+		int index = 0;
 		while (it.hasNext()) {
 			data = it.next();
+			print.e("data:" + data.arrayIndex + ":" + data.valueIndex);
 			constrAdapter.visitVarInsn(Opcodes.ALOAD, 0);
 			constrAdapter.visitFieldInsn(Opcodes.GETFIELD, constr.getClassName(), "udfs", Types.UDF_PROPERTIES_ARRAY.toString());
-			constrAdapter.push(data.arrayIndex);
+			constrAdapter.push(index++);
 			data.function.createUDFProperties(constr, data.valueIndex, data.type);
 			constrAdapter.visitInsn(Opcodes.AASTORE);
 		}
@@ -675,11 +692,11 @@ public final class Page extends BodyBase implements Root {
 				writeGetSubPages(cw, className, subs, sourceCode.getDialect());
 			}
 		}
-
 		return cw.toByteArray();
 	}
 
 	public static String createSubClass(String name, String subName, int dialect) {
+		// TODO handle special characters
 		if (!StringUtil.isEmpty(subName)) {
 			String suffix = (dialect == CFMLEngine.DIALECT_CFML ? Constants.CFML_CLASS_SUFFIX : Constants.LUCEE_CLASS_SUFFIX);
 			subName = subName.toLowerCase();
@@ -687,6 +704,12 @@ public final class Page extends BodyBase implements Root {
 			else name += "$" + subName;
 		}
 		return name;
+	}
+
+	public static void main(String[] args) {
+		print.e(createSubClass("sub.test_cfc$cf", "Sub1", CFMLEngine.DIALECT_CFML));
+		// sub.test_cfc$cf$1$sub1
+		// - sub.test_cfc$sub1$cf
 	}
 
 	private void writeGetSubPages(ClassWriter cw, String name, List<TagCIObject> subs, int dialect) {
@@ -733,6 +756,27 @@ public final class Page extends BodyBase implements Root {
 	}
 
 	public String getClassName() {
+		if (className == null) {
+			// only main components have a pageSource
+			PageSource optionalPS = sourceCode instanceof PageSourceCode ? ((PageSourceCode) sourceCode).getPageSource() : null;
+			if (optionalPS != null) className = optionalPS.getClassName();
+			else {
+				TagCIObject comp = getTagCFObject(null);
+				if (comp != null) {
+					className = createSubClass(className, comp.getName(), sourceCode.getDialect());
+				}
+			}
+			if (className != null) className = className.replace('.', '/');
+			else {
+				print.e("xxx+++++++++++++++++++++++");
+				print.e(sourceCode.toString());
+				print.e("xxx+++++++++++++++++++++++");
+
+				throw new IllegalArgumentException("For Sub component a name is required!");
+			}
+			// in case we have a sub component
+
+		}
 		return className;
 	}
 
@@ -743,9 +787,9 @@ public final class Page extends BodyBase implements Root {
 	 * @throws TransformerException
 	 */
 	private TagCIObject getTagCFObject(TagCIObject defaultValue) {
-		if (_comp != null) return _comp;
+		if (_comp != null) return _comp; // return sub component
 
-		// first look for main
+		// look for main
 		Iterator<Statement> it = getStatements().iterator();
 		Statement s;
 		TagCIObject t, sub = null;
@@ -755,10 +799,10 @@ public final class Page extends BodyBase implements Root {
 			if (s instanceof TagCIObject) {
 				t = (TagCIObject) s;
 				if (t.isMain()) return _comp = t;
-				else if (sub == null) sub = t;
+				// else if (sub == null) sub = t;
 			}
 		}
-		if (sub != null) return _comp = sub;
+		// if (sub != null) return _comp = sub;
 		return defaultValue;
 	}
 
@@ -1009,7 +1053,7 @@ public final class Page extends BodyBase implements Root {
 		}
 	}
 
-	private void writeOutInitComponent(ConstrBytecodeContext constr, List<LitString> keys, ClassWriter cw, Tag component, String name) throws TransformerException {
+	private List<IFunction> writeOutInitComponent(ConstrBytecodeContext constr, List<LitString> keys, ClassWriter cw, Tag component, String name) throws TransformerException {
 		final GeneratorAdapter adapter = new GeneratorAdapter(Opcodes.ACC_PUBLIC + Opcodes.ACC_FINAL, INIT_COMPONENT3, null, new Type[] { Types.PAGE_EXCEPTION }, cw);
 		BytecodeContext bc = new BytecodeContext(null, constr, this, keys, cw, name, adapter, INIT_COMPONENT3, writeLog(), suppressWSbeforeArg, output, returnValue);
 		Label methodBegin = new Label();
@@ -1096,7 +1140,7 @@ public final class Page extends BodyBase implements Root {
 		adapter.storeLocal(oldData);
 		ExpressionUtil.visitLine(bc, component.getStart());
 
-		writeOutCallBody(bc, component.getBody(), IFunction.PAGE_TYPE_COMPONENT);
+		List<IFunction> funcs = writeOutCallBody(bc, component.getBody(), IFunction.PAGE_TYPE_COMPONENT);
 
 		ExpressionUtil.visitLine(bc, component.getEnd());
 		int t = tcf.visitTryEndCatchBeging(bc);
@@ -1119,10 +1163,10 @@ public final class Page extends BodyBase implements Root {
 		adapter.visitLabel(methodEnd);
 
 		adapter.endMethod();
-
+		return funcs;
 	}
 
-	private void writeOutInitInterface(ConstrBytecodeContext constr, List<LitString> keys, ClassWriter cw, Tag interf, String name) throws TransformerException {
+	private List<IFunction> writeOutInitInterface(ConstrBytecodeContext constr, List<LitString> keys, ClassWriter cw, Tag interf, String name) throws TransformerException {
 		GeneratorAdapter adapter = new GeneratorAdapter(Opcodes.ACC_PUBLIC + Opcodes.ACC_FINAL, INIT_INTERFACE, null, new Type[] { Types.PAGE_EXCEPTION }, cw);
 		BytecodeContext bc = new BytecodeContext(null, constr, this, keys, cw, name, adapter, INIT_INTERFACE, writeLog(), suppressWSbeforeArg, output, returnValue);
 		Label methodBegin = new Label();
@@ -1132,14 +1176,14 @@ public final class Page extends BodyBase implements Root {
 		adapter.visitLabel(methodBegin);
 
 		ExpressionUtil.visitLine(bc, interf.getStart());
-		writeOutCallBody(bc, interf.getBody(), IFunction.PAGE_TYPE_INTERFACE);
+		List<IFunction> funcs = writeOutCallBody(bc, interf.getBody(), IFunction.PAGE_TYPE_INTERFACE);
 		ExpressionUtil.visitLine(bc, interf.getEnd());
 
 		adapter.returnValue();
 		adapter.visitLabel(methodEnd);
 
 		adapter.endMethod();
-
+		return funcs;
 	}
 
 	private void writeOutFunctionDefaultValueInnerInner(BytecodeContext bc, Function function) throws TransformerException {
@@ -1460,7 +1504,7 @@ public final class Page extends BodyBase implements Root {
 		}
 	}
 
-	private void writeOutCall(ConstrBytecodeContext constr, List<LitString> keys, ClassWriter cw, String name) throws TransformerException {
+	private List<IFunction> writeOutCall(ConstrBytecodeContext constr, List<LitString> keys, ClassWriter cw, String name) throws TransformerException {
 		// GeneratorAdapter adapter = bc.getAdapter();
 		GeneratorAdapter adapter = new GeneratorAdapter(Opcodes.ACC_PUBLIC + Opcodes.ACC_FINAL, CALL1, null, new Type[] { Types.THROWABLE }, cw);
 		Label methodBegin = new Label();
@@ -1469,15 +1513,16 @@ public final class Page extends BodyBase implements Root {
 		adapter.visitLocalVariable("this", "L" + name + ";", null, methodBegin, methodEnd, 0);
 		adapter.visitLabel(methodBegin);
 
-		writeOutCallBody(new BytecodeContext(null, constr, this, keys, cw, name, adapter, CALL1, writeLog(), suppressWSbeforeArg, output, returnValue), this,
-				IFunction.PAGE_TYPE_REGULAR);
+		List<IFunction> funcs = writeOutCallBody(new BytecodeContext(null, constr, this, keys, cw, name, adapter, CALL1, writeLog(), suppressWSbeforeArg, output, returnValue),
+				this, IFunction.PAGE_TYPE_REGULAR);
 
 		adapter.visitLabel(methodEnd);
 		adapter.returnValue();
 		adapter.endMethod();
+		return funcs;
 	}
 
-	private void writeOutCallBody(BytecodeContext bc, Body body, int pageType) throws TransformerException {
+	private List<IFunction> writeOutCallBody(BytecodeContext bc, Body body, int pageType) throws TransformerException {
 		List<IFunction> funcs = new ArrayList<IFunction>();
 		extractFunctions(bc, body, funcs, pageType);
 		writeUDFProperties(bc, funcs, pageType);
@@ -1507,6 +1552,7 @@ public final class Page extends BodyBase implements Root {
 			adapter.visitVarInsn(Opcodes.ALOAD, 0);
 			adapter.invokeVirtual(Types.COMPONENT_IMPL, CHECK_INTERFACE);
 		}
+		return funcs;
 	}
 
 	private void writeUDFProperties(BytecodeContext bc, List<IFunction> funcs, int pageType) throws TransformerException {
@@ -1567,12 +1613,18 @@ public final class Page extends BodyBase implements Root {
 			// IFunction
 			if (stat instanceof IFunction) {
 				funcs.add((IFunction) stat);
+
+				print.e("+>" + ((IFunction) stat).getClass().getName());
 				stats.remove(i);
 				len--;
 				i--;
 			}
-			else if (stat instanceof HasBody) extractFunctions(bc, ((HasBody) stat).getBody(), funcs, pageType);
+			else if (stat instanceof HasBody) {
+				print.e("=>" + stat.getClass().getName());
+				extractFunctions(bc, ((HasBody) stat).getBody(), funcs, pageType);
+			}
 			else if (stat instanceof HasBodies) {
+				print.e("->" + stat.getClass().getName());
 				Body[] bodies = ((HasBodies) stat).getBodies();
 				for (int y = 0; y < bodies.length; y++) {
 					extractFunctions(bc, bodies[y], funcs, pageType);
@@ -1654,6 +1706,7 @@ public final class Page extends BodyBase implements Root {
 
 	@Override
 	public int[] addFunction(IFunction function) {
+		print.ds("--- " + getClassName() + " ---");
 		int[] indexes = new int[2];
 		Iterator<IFunction> it = functions.iterator();
 		while (it.hasNext()) {
@@ -1769,6 +1822,14 @@ public final class Page extends BodyBase implements Root {
 		return javaFunctions;
 	}
 
+	private static Function[] toArray(List<IFunction> funcs) {
+		Function[] arr = new Function[funcs.size()];
+		int index = 0;
+		for (IFunction f: funcs) {
+			arr[index++] = (Function) f;
+		}
+		return arr;
+	}
 }
 
 class SourceLastModifiedClassAdapter extends ClassVisitor {

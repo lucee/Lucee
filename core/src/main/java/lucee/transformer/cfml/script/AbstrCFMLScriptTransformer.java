@@ -240,13 +240,15 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		else if ((child = returnStatement(data)) != null) parent.addStatement(child);
 		else if ((child = switchStatement(data)) != null) parent.addStatement(child);
 		else if ((child = tryStatement(data)) != null) parent.addStatement(child);
-		else if (islandStatement(data, parent)) {}
+		else if (islandStatement(data, parent)) {
+		}
 		// else if(staticStatement(data,parent)) ; // do nothing, happen already inside the method
 		else if ((child = staticStatement(data, parent)) != null) parent.addStatement(child);
 		else if ((child = componentStatement(data, parent)) != null) parent.addStatement(child);
 		else if ((child = tagStatement(data, parent)) != null) parent.addStatement(child);
 		else if ((child = cftagStatement(data, parent)) != null) parent.addStatement(child);
-		else if (block(data, parent)) {}
+		else if (block(data, parent)) {
+		}
 
 		else parent.addStatement(expressionStatement(data, parent));
 		data.docComment = null;
@@ -1070,8 +1072,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 	@Override
 	protected final Function closurePart(Data data, String id, int access, int modifier, String rtnType, Position line, boolean closure) throws TemplateException {
 		Body body = new FunctionBody(data.factory);
-		Function func = closure ? new Closure(data.root, id, access, modifier, rtnType, body, line, null)
-				: new FunctionImpl(data.root, id, access, modifier, rtnType, body, line, null);
+		Function func = closure ? new Closure(id, access, modifier, rtnType, body, line, null) : new FunctionImpl(id, access, modifier, rtnType, body, line, null);
 
 		comments(data);
 		if (!data.srcCode.forwardIfCurrent('(')) throw new TemplateException(data.srcCode, "invalid syntax in function head, missing begin [(]");
@@ -1220,7 +1221,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 						verifyClient, localMode));
 			}
 			else {
-				func.register();
+				// func.register();
 				statement(data, body, CTX_FUNCTION);
 			}
 			data.setParent(prior);
@@ -1363,7 +1364,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 	protected final Function lambdaPart(Data data, String id, int access, int modifier, String rtnType, Position line, ArrayList<Argument> args) throws TemplateException {
 		Body body = new FunctionBody(data.factory);
 		Function func = new Lambda(data.root, id, access, modifier, rtnType, body, line, null);
-		func.register();// TODO may add support for java functions
+		// func.register();// TODO may add support for java functions
 		comments(data);
 
 		// add arguments
@@ -1481,7 +1482,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		}
 		else return null;
 
-		Position line = data.srcCode.getPosition();
+		Position line = data.srcCode.getPosition(pos);
 
 		TagLibTagScript script = tlt.getScript();
 		// TagLibTag tlt = CFMLTransformer.getTLT(data.srcCode,type);

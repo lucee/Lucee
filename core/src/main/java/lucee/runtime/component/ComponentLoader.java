@@ -20,6 +20,7 @@ package lucee.runtime.component;
 
 import javax.servlet.jsp.tagext.BodyContent;
 
+import lucee.print;
 import lucee.commons.io.res.filter.DirectoryResourceFilter;
 import lucee.commons.io.res.filter.ExtensionResourceFilter;
 import lucee.commons.io.res.filter.OrResourceFilter;
@@ -134,9 +135,9 @@ public class ComponentLoader {
 
 		boolean doCache = config.useComponentPathCache();
 		String sub = null;
-		if (returnType != RETURN_TYPE_PAGE && rawPath.indexOf(':') != -1) {
-			int d = rawPath.indexOf(':');
-			int s = rawPath.indexOf('.');
+		if (returnType != RETURN_TYPE_PAGE && rawPath.indexOf('$') != -1) {
+			int d = rawPath.lastIndexOf('$');
+			int s = rawPath.lastIndexOf('.');
 			if (d > s) {
 				sub = rawPath.substring(d + 1);
 				rawPath = rawPath.substring(0, d);
@@ -416,10 +417,17 @@ public class ComponentLoader {
 	}
 
 	private static CIPage loadSub(CIPage page, String sub) throws ApplicationException {
+		print.e("class:" + page.getClass().getName());
+		print.e("sub:" + sub);
 		String subClassName = lucee.transformer.bytecode.Page.createSubClass(page.getClass().getName(), sub, page.getPageSource().getDialect());
-
+		print.e("subClassName:" + subClassName);
 		CIPage[] subs = page.getSubPages();
 		for (int i = 0; i < subs.length; i++) {
+			print.e("- " + subs[i].getClass().getName());
+
+			// subClassName:sub.test_cfc$cf$1$sub1
+			// - sub.test_cfc$sub1$cf
+
 			if (subs[i].getClass().getName().equals(subClassName)) return subs[i];
 		}
 		throw new ApplicationException("There is no Sub component [" + sub + "] in [" + page.getPageSource().getDisplayPath() + "]");
