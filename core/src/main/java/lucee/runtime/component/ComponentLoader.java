@@ -51,7 +51,6 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.listener.ApplicationContext;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.util.ArrayUtil;
-import lucee.runtime.type.util.ListUtil;
 import lucee.runtime.writer.BodyContentUtil;
 
 public class ComponentLoader {
@@ -464,12 +463,24 @@ public class ComponentLoader {
 
 			Class<?> clazz = parent.getPageSource().getMapping().getPhysicalClass(className.replace('/', '.'));
 			print.e("clazz:" + clazz);
-			String name = ListUtil.last(className, '$');
-			print.e("name:" + name);
+			// String name = ListUtil.last(className, '$');
 
-			CIPage page = (CIPage) clazz.getConstructor(new Class[] { PageSource.class }).newInstance(new Object[] { parent.getPageSource() });
+			PageSource parentPS = parent.getPageSource();
+			print.e("parentPS:" + parentPS.getDisplayPath());
 
-			return _loadComponent(pc, page, name, true, false, true);
+			// className:sub/index_cfm$index$qio6hgtvxe3k$cf
+			// sub.index_cfm$index$qio6hgtvxe3k$cf
+
+			PageSource ps = parent.getPageSource().getMapping().getPageSource(className + ".class");
+
+			print.e("ps:" + ps.getDisplayPath());
+			print.e("ps.exists:" + ps.exists());
+
+			CIPage page = (CIPage) clazz.getConstructor(new Class[] { PageSource.class }).newInstance(new Object[] { parentPS });
+
+			// TODO better name
+
+			return _loadComponent(pc, page, "InlineComponent", true, false, true);
 
 			// :sub/indexx_cfm$ic_34_68$cf
 			// indexx_cfm$inline_component_e$cf.class

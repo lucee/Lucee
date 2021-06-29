@@ -712,7 +712,7 @@ public final class Decision {
 	 * @return returns if string represent a variable name
 	 */
 	public static boolean isVariableName(Object obj) {
-		if (obj instanceof String) return isVariableName((String) obj);
+		if (obj instanceof String) return isVariableName(obj);
 		return false;
 	}
 
@@ -740,11 +740,15 @@ public final class Decision {
 		return false;
 	}
 
+	public static boolean isVariableName(String string) {
+		return isVariableName(string, false);
+	}
+
 	/**
 	 * @param string
 	 * @return returns if string represent a variable name
 	 */
-	public static boolean isVariableName(String string) {
+	public static boolean isVariableName(String string, boolean allowDollar) {
 		if (string.length() == 0) return false;
 		int len = string.length();
 		int pos = 0;
@@ -754,7 +758,7 @@ public final class Decision {
 			pos++;
 			for (; pos < len; pos++) {
 				char c = string.charAt(pos);
-				if (!((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || (c == '_'))) break;
+				if (!((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || (c == '_') || (allowDollar && c == '$'))) break;
 			}
 			if (pos == len) return true;
 			if (string.charAt(pos) == '.') pos++;

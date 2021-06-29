@@ -61,7 +61,6 @@ import lucee.runtime.tag.Property;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.UDF;
 import lucee.runtime.type.scope.Undefined;
-import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.ComponentUtil;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.transformer.Factory;
@@ -186,12 +185,13 @@ public final class Page extends BodyBase implements Root {
 	// public boolean setMode(int mode) {
 	private static final Method SET_MODE = new Method("setMode", Types.INT_VALUE, new Type[] { Types.INT_VALUE });
 
-	private static final Method CONSTR_INTERFACE_IMPL8 = new Method("<init>", Types.VOID, new Type[] { Types.PAGE_CONTEXT, Types.INTERFACE_PAGE_IMPL, Types.STRING, // extends
+	private static final Method CONSTR_INTERFACE_IMPL9 = new Method("<init>", Types.VOID, new Type[] { Types.PAGE_CONTEXT, Types.INTERFACE_PAGE_IMPL, Types.STRING, // extends
 			Types.STRING, // hind
 			Types.STRING, // display
 			Types.STRING, // callpath
 			Types.BOOLEAN_VALUE, // realpath
-			Types.MAP // meta
+			Types.MAP, // meta
+			Types.INT_VALUE // index
 	});
 	private static final Method CONSTR_STATIC_STRUCT = new Method("<init>", Types.VOID, new Type[] {});
 
@@ -218,14 +218,15 @@ public final class Page extends BodyBase implements Root {
 	private static final Method AFTER_CALL = new Method("afterConstructor", Types.VOID, new Type[] { Types.PAGE_CONTEXT, Types.VARIABLES });
 
 	private static final Method AFTER_STATIC_CONSTR = new Method("afterStaticConstructor", Types.VOID, new Type[] { Types.PAGE_CONTEXT, Types.VARIABLES });
+	private static final Method GET_INDEX = new Method("getIndex", Types.INT_VALUE, new Type[] {});
 	private static final Method BEFORE_STATIC_CONSTR = new Method("beforeStaticConstructor", Types.VARIABLES, new Type[] { Types.PAGE_CONTEXT });
 
 	private static final org.objectweb.asm.commons.Method CONSTRUCTOR_EMPTY = new org.objectweb.asm.commons.Method("<init>", Types.VOID, new Type[] {});
 
 	// Component Impl(ComponentPage,boolean, String, String, String, String) WS==With Style
-	private static final Method CONSTR_COMPONENT_IMPL15 = new Method("<init>", Types.VOID,
+	private static final Method CONSTR_COMPONENT_IMPL16 = new Method("<init>", Types.VOID,
 			new Type[] { Types.COMPONENT_PAGE_IMPL, Types.BOOLEAN, Types.BOOLEAN_VALUE, Types.STRING, Types.STRING, Types.STRING, Types.STRING, Types.STRING, Types.BOOLEAN_VALUE,
-					Types.STRING, Types.BOOLEAN_VALUE, Types.BOOLEAN_VALUE, Types.INT_VALUE, Types.BOOLEAN_VALUE, Types.STRUCT_IMPL });
+					Types.STRING, Types.BOOLEAN_VALUE, Types.BOOLEAN_VALUE, Types.INT_VALUE, Types.BOOLEAN_VALUE, Types.STRUCT_IMPL, Types.INT_VALUE });
 	private static final Method SET_EL = new Method("setEL", Types.OBJECT, new Type[] { Types.COLLECTION_KEY, Types.OBJECT });
 	public static final Method UNDEFINED_SCOPE = new Method("us", Types.UNDEFINED, new Type[] {});
 	private static final Method FLUSH_AND_POP = new Method("flushAndPop", Types.VOID, new Type[] { Types.PAGE_CONTEXT, Types.BODY_CONTENT });
@@ -317,7 +318,7 @@ public final class Page extends BodyBase implements Root {
 		getImports(imports, this);
 
 		// look for component if necessary
-		TagCIObject comp = getTagCFObject(null);
+		List<TagCIObject> comps = getTagCFObjects();
 
 		// in case we have a sub component
 		if (className == null) {
@@ -325,10 +326,14 @@ public final class Page extends BodyBase implements Root {
 			className = optionalPS.getClassName();
 		}
 		print.e("1->" + className);
-		if (comp != null) {
-			print.e("c->" + comp.getName());
+		TagCIObject comp = null; // MUST remove
+		if (comps != null && comps.size() > 0) {
+			comp = comps.get(0);
+			print.e("cn1->" + className);
+			print.e("cn2->" + comp.getName());
 			className = createSubClass(className, comp.getName(), sourceCode.getDialect());
 		}
+
 		className = className.replace('.', '/');
 		this.className = className;
 		print.e("2->" + className);
@@ -458,21 +463,12 @@ public final class Page extends BodyBase implements Root {
 
 		// static consructor for component/interface
 
-		if (comp != null) {
-			writeOutStaticConstructor(constr, keys, cw, comp, className);
-		}
-
-		// newInstance/initComponent/call
-		if (isComponent()) {
+		if (comps != null && comps.size() > 0) {
+			writeOutStaticConstructor(constr, keys, cw, comps, className);
 			writeOutGetStaticStruct(constr, keys, cw, comp, className);
 			writeOutNewComponent(constr, keys, cw, comp, className);
-			writeOutInitComponent(constr, keys, cw, comp, className);
+			writeOutInitComponent(constr, keys, cw, comps, className);
 
-		}
-		else if (isInterface()) {
-			writeOutGetStaticStruct(constr, keys, cw, comp, className);
-			writeOutNewInterface(constr, keys, cw, comp, className);
-			writeOutInitInterface(constr, keys, cw, comp, className);
 		}
 		else {
 			writeOutCall(constr, keys, cw, className);
@@ -672,20 +668,21 @@ public final class Page extends BodyBase implements Root {
 		fv.visitEnd();
 
 		// create sub components/interfaces
-		if (comp != null && comp.isMain()) {
-			List<TagCIObject> subs = getSubs(null);
-			if (!ArrayUtil.isEmpty(subs)) {
-				Iterator<TagCIObject> _it = subs.iterator();
-				TagCIObject tc;
-				while (_it.hasNext()) {
-					tc = _it.next();
-					tc.writeOut(null, this);// MUST do not pass null
-				}
-				writeGetSubPages(cw, className, subs, sourceCode.getDialect());
-			}
-		}
+		/*
+		 * if (comp != null && comp.getIndex() > 0) { List<TagCIObject> subs = getSubs(null); if
+		 * (!ArrayUtil.isEmpty(subs)) { Iterator<TagCIObject> _it = subs.iterator(); TagCIObject tc; while
+		 * (_it.hasNext()) { tc = _it.next(); tc.writeOut(null, this);// MUST do not pass null }
+		 * writeGetSubPages(cw, className, subs, sourceCode.getDialect()); } }
+		 */
 
 		return cw.toByteArray();
+	}
+
+	public static String createSubClass(String name, int dialect) {
+		String suffix = (dialect == CFMLEngine.DIALECT_CFML ? Constants.CFML_CLASS_SUFFIX : Constants.LUCEE_CLASS_SUFFIX);
+		name = name.toLowerCase();
+		if (name.endsWith(suffix)) return name;
+		return name + suffix;
 	}
 
 	public static String createSubClass(String name, String subName, int dialect) {
@@ -751,24 +748,32 @@ public final class Page extends BodyBase implements Root {
 	 * @return
 	 * @throws TransformerException
 	 */
-	private TagCIObject getTagCFObject(TagCIObject defaultValue) {
-		if (_comp != null) return _comp;
+
+	private TagCIObject getMainTagCFObject(TagCIObject defaultValue) {
+		print.e("-------------- getMainTagCFObject --------------");
+		List<TagCIObject> objs = getTagCFObjects();
+		if (objs != null && objs.size() > 0) return objs.get(0);
+		return defaultValue;
+	}
+
+	private List<TagCIObject> getTagCFObjects() {
+		List<TagCIObject> objects = new ArrayList<>();
+		// if (_comp != null) return _comp;
 
 		// first look for main
 		Iterator<Statement> it = getStatements().iterator();
 		Statement s;
-		TagCIObject t, sub = null;
+		TagCIObject t;
 
 		while (it.hasNext()) {
 			s = it.next();
 			if (s instanceof TagCIObject) {
 				t = (TagCIObject) s;
-				if (t.isMain()) return _comp = t;
-				else if (sub == null) sub = t;
+				if (t.getIndex() > 0) _comp = t;
+				objects.add(t);
 			}
 		}
-		if (sub != null) return _comp = sub;
-		return defaultValue;
+		return objects;
 	}
 
 	private List<TagCIObject> getSubs(TagCIObject[] defaultValue) {
@@ -780,7 +785,7 @@ public final class Page extends BodyBase implements Root {
 			s = it.next();
 			if (s instanceof TagCIObject) {
 				t = (TagCIObject) s;
-				if (!t.isMain()) {
+				if (t.getIndex() <= 0) {
 					if (subs == null) subs = new ArrayList<TagCIObject>();
 					subs.add(t);
 				}
@@ -920,9 +925,9 @@ public final class Page extends BodyBase implements Root {
 
 	}
 
-	private void writeOutStaticConstructor(ConstrBytecodeContext constr, List<LitString> keys, ClassWriter cw, TagCIObject component, String name) throws TransformerException {
+	private void writeOutStaticConstructor(ConstrBytecodeContext constr, List<LitString> keys, ClassWriter cw, List<TagCIObject> components, String name)
+			throws TransformerException {
 
-		// if(true) return;
 		final GeneratorAdapter adapter = new GeneratorAdapter(Opcodes.ACC_PUBLIC + Opcodes.ACC_FINAL, STATIC_COMPONENT_CONSTR, null, new Type[] { Types.PAGE_EXCEPTION }, cw);
 		BytecodeContext bc = new BytecodeContext(null, constr, this, keys, cw, name, adapter, STATIC_COMPONENT_CONSTR, writeLog(), suppressWSbeforeArg, output, returnValue);
 		Label methodBegin = new Label();
@@ -974,11 +979,49 @@ public final class Page extends BodyBase implements Root {
 		adapter.loadArg(0);
 		adapter.invokeVirtual(Types.COMPONENT_IMPL, BEFORE_STATIC_CONSTR);
 		adapter.storeLocal(oldData);
-		// ExpressionUtil.visitLine(bc, component.getStart());
-		List<StaticBody> list = component.getStaticBodies();
-		if (list != null) {
-			writeOutConstrBody(bc, list, IFunction.PAGE_TYPE_COMPONENT);
+
+		if (components.size() == 1) {
+			TagCIObject component = components.get(0);
+			// body before
+			List<StaticBody> list = component.getStaticBodies();
+			if (list != null) {
+				writeOutConstrBody(bc, list, IFunction.PAGE_TYPE_COMPONENT);
+			}
+			// body after
 		}
+		else {
+			ConditionVisitor cv = new ConditionVisitor();
+			DecisionIntVisitor div;
+			cv.visitBefore();
+			TagCIObject component;
+			Iterator<TagCIObject> it = components.iterator();
+			while (it.hasNext()) {
+				component = it.next();
+
+				cv.visitWhenBeforeExpr();
+				div = new DecisionIntVisitor();
+				div.visitBegin();
+				adapter.push(component.getIndex());
+				div.visitEQ();
+				// cfc.getIndex();
+				adapter.loadArg(1);
+				adapter.invokeVirtual(Types.COMPONENT_IMPL, GET_INDEX);
+
+				div.visitEnd(bc);
+				cv.visitWhenAfterExprBeforeBody(bc);
+
+				// body before
+				List<StaticBody> list = component.getStaticBodies();
+				if (list != null) {
+					writeOutConstrBody(bc, list, IFunction.PAGE_TYPE_COMPONENT);
+				}
+				// body after
+
+				cv.visitWhenAfterBody(bc);
+			}
+			cv.visitAfter(bc);
+		}
+
 		// ExpressionUtil.visitLine(bc, component.getEnd());
 		int t = tcf.visitTryEndCatchBeging(bc);
 		// BodyContentUtil.flushAndPop(pc,bc);
@@ -1018,7 +1061,7 @@ public final class Page extends BodyBase implements Root {
 		}
 	}
 
-	private void writeOutInitComponent(ConstrBytecodeContext constr, List<LitString> keys, ClassWriter cw, Tag component, String name) throws TransformerException {
+	private void writeOutInitComponent(ConstrBytecodeContext constr, List<LitString> keys, ClassWriter cw, List<TagCIObject> components, String name) throws TransformerException {
 		final GeneratorAdapter adapter = new GeneratorAdapter(Opcodes.ACC_PUBLIC + Opcodes.ACC_FINAL, INIT_COMPONENT3, null, new Type[] { Types.PAGE_EXCEPTION }, cw);
 		BytecodeContext bc = new BytecodeContext(null, constr, this, keys, cw, name, adapter, INIT_COMPONENT3, writeLog(), suppressWSbeforeArg, output, returnValue);
 		Label methodBegin = new Label();
@@ -1103,11 +1146,47 @@ public final class Page extends BodyBase implements Root {
 		adapter.loadArg(0);
 		adapter.invokeVirtual(Types.COMPONENT_IMPL, BEFORE_CALL);
 		adapter.storeLocal(oldData);
-		ExpressionUtil.visitLine(bc, component.getStart());
 
-		writeOutCallBody(bc, component.getBody(), IFunction.PAGE_TYPE_COMPONENT);
+		if (components.size() == 1 || true) {
+			TagCIObject component = components.get(0);
+			// body before
+			ExpressionUtil.visitLine(bc, component.getStart());
+			writeOutCallBody(bc, component.getBody(), IFunction.PAGE_TYPE_COMPONENT);
+			ExpressionUtil.visitLine(bc, component.getEnd());
+			// body after
+		}
+		else {
+			ConditionVisitor _cv = new ConditionVisitor();
+			DecisionIntVisitor div;
+			_cv.visitBefore();
+			TagCIObject component;
+			Iterator<TagCIObject> it = components.iterator();
+			while (it.hasNext()) {
+				component = it.next();
 
-		ExpressionUtil.visitLine(bc, component.getEnd());
+				_cv.visitWhenBeforeExpr();
+				div = new DecisionIntVisitor();
+				div.visitBegin();
+				adapter.push(component.getIndex());
+				div.visitEQ();
+				// cfc.getIndex();
+				adapter.loadArg(1);
+				adapter.invokeVirtual(Types.COMPONENT_IMPL, GET_INDEX);
+
+				div.visitEnd(bc);
+				_cv.visitWhenAfterExprBeforeBody(bc);
+
+				// body before
+				ExpressionUtil.visitLine(bc, component.getStart());
+				writeOutCallBody(bc, component.getBody(), IFunction.PAGE_TYPE_COMPONENT);
+				ExpressionUtil.visitLine(bc, component.getEnd());
+				// body after
+
+				_cv.visitWhenAfterBody(bc);
+			}
+			_cv.visitAfter(bc);
+		}
+
 		int t = tcf.visitTryEndCatchBeging(bc);
 		// BodyContentUtil.flushAndPop(pc,bc);
 		adapter.loadArg(0);
@@ -1323,8 +1402,13 @@ public final class Page extends BodyBase implements Root {
 		// adapter.visitVarInsn(Opcodes.ALOAD, 4);
 		createMetaDataStruct(bc, component.getAttributes(), component.getMetaData());
 
-		adapter.invokeConstructor(Types.COMPONENT_IMPL, CONSTR_COMPONENT_IMPL15);
+		TagCIObject tc = (TagCIObject) component;
+		adapter.push(tc.getIndex());
 
+		print.e("iiiii:" + tc.getIndex());
+
+		adapter.invokeConstructor(Types.COMPONENT_IMPL, CONSTR_COMPONENT_IMPL16);
+		// INTERFACE_IMPL
 		adapter.storeLocal(comp);
 
 		// Component Impl(ComponentPage componentPage,boolean output, String extend, String hint, String
@@ -1398,7 +1482,11 @@ public final class Page extends BodyBase implements Root {
 
 		createMetaDataStruct(bc, interf.getAttributes(), interf.getMetaData());
 
-		adapter.invokeConstructor(Types.INTERFACE_IMPL, CONSTR_INTERFACE_IMPL8);
+		TagCIObject tc = (TagCIObject) interf;
+
+		adapter.push(tc.getIndex());
+
+		adapter.invokeConstructor(Types.INTERFACE_IMPL, CONSTR_INTERFACE_IMPL9);
 
 		adapter.storeLocal(comp);
 
@@ -1637,7 +1725,7 @@ public final class Page extends BodyBase implements Root {
 	}
 
 	public boolean isComponent(TagCIObject cio) {
-		if (cio == null) cio = getTagCFObject(null);
+		if (cio == null) cio = getMainTagCFObject(null);
 		return cio instanceof TagComponent;
 
 	}
@@ -1646,12 +1734,12 @@ public final class Page extends BodyBase implements Root {
 	 * @return if it is an interface
 	 */
 	public boolean isInterface(TagCIObject cio) {
-		if (cio == null) cio = getTagCFObject(null);
+		if (cio == null) cio = getMainTagCFObject(null);
 		return cio instanceof TagInterface;
 	}
 
 	public boolean isPage() {
-		return getTagCFObject(null) == null;
+		return getMainTagCFObject(null) == null;
 	}
 
 	/**

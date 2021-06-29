@@ -54,7 +54,7 @@ public abstract class TagCIObject extends TagBase {
 	// loadInlineComponent(PageContext pc, Page parent, String className)
 	private static final Method LOAD_INLINE = new Method("loadInlineComponent", Types.COMPONENT, new Type[] { Types.PAGE_CONTEXT, Types.PAGE, Types.STRING });
 
-	private boolean main;
+	private int index;
 	private String name;
 	private boolean inline;
 
@@ -137,16 +137,16 @@ public abstract class TagCIObject extends TagBase {
 		return null;
 	}
 
-	public void setMain(boolean main) {
-		this.main = main;
+	public void setIndex(int index) {
+		this.index = index;
 	}
 
-	public boolean isMain() {
-		return main;
+	public int getIndex() {
+		return index;
 	}
 
 	public void setName(String name) throws EvaluatorException {
-		if (!Decision.isVariableName(name)) throw new EvaluatorException("component name [" + name + "] is invalid");
+		if (!Decision.isVariableName(name, inline)) throw new EvaluatorException("component name [" + name + "] is invalid");
 
 		this.name = name;
 	}

@@ -19,12 +19,14 @@
 
 package lucee.runtime.functions.other;
 
+import lucee.print;
 import lucee.runtime.PageContext;
 import lucee.runtime.ext.function.Function;
 
 public final class CreateUniqueId implements Function {
+	private static final long CREATION_POINT = 1624883489387L;
 
-	private static long counter = 0;
+	private static long counter = System.currentTimeMillis() - CREATION_POINT;
 
 	/**
 	 * method to invoke the function
@@ -40,5 +42,9 @@ public final class CreateUniqueId implements Function {
 		counter++;
 		if (counter < 0) counter = 1;
 		return Long.toString(counter, Character.MAX_RADIX);
+	}
+
+	public static void main(String[] args) {
+		print.e(invoke());
 	}
 }

@@ -74,9 +74,13 @@ public class InterfaceImpl implements Interface {
 	private List<InterfaceImpl> extend;
 
 	private final Map<Collection.Key, UDF> udfs = new HashMap<Collection.Key, UDF>();
+
+	private int index;
+
 	// private Map<Collection.Key,UDF> interfacesUDFs=null;
 
-	public InterfaceImpl(PageContext pc, InterfacePageImpl page, String strExtend, String hint, String dspName, String callPath, boolean realPath, Map meta) throws PageException {
+	public InterfaceImpl(PageContext pc, InterfacePageImpl page, String strExtend, String hint, String dspName, String callPath, boolean realPath, Map meta, int index)
+			throws PageException {
 		// print.ds("Interface::Constructor:"+page.getPageSource().getDisplayPath());
 
 		pc = ThreadLocalPageContext.get(pc);
@@ -87,6 +91,7 @@ public class InterfaceImpl implements Interface {
 		this.callPath = callPath;
 		this.realPath = realPath;
 		this.meta = meta;
+		this.index = index;
 
 		// load extends
 		if (!StringUtil.isEmpty(strExtend, true)) this.extend = loadInterfaces(pc, pageSource, strExtend);
@@ -269,4 +274,7 @@ public class InterfaceImpl implements Interface {
 		return udfs.values().iterator();
 	}
 
+	public int getIndex() {
+		return index;
+	}
 }

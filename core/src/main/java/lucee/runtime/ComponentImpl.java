@@ -193,8 +193,9 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 	 * @throws ApplicationException
 	 */
 	public ComponentImpl(ComponentPageImpl componentPage, Boolean output, boolean _synchronized, String extend, String implement, String hint, String dspName, String callPath,
-			boolean realPath, String style, boolean persistent, boolean accessors, int modifier, boolean isExtended, StructImpl meta) throws ApplicationException {
-		this.properties = new ComponentProperties(dspName, extend.trim(), implement, hint, output, callPath, realPath, _synchronized, null, persistent, accessors, modifier, meta);
+			boolean realPath, String style, boolean persistent, boolean accessors, int modifier, boolean isExtended, StructImpl meta, int index) throws ApplicationException {
+		this.properties = new ComponentProperties(dspName, extend.trim(), implement, hint, output, callPath, realPath, _synchronized, null, persistent, accessors, modifier, meta,
+				index);
 		// this.componentPage=componentPage instanceof
 		// ComponentPageProxy?componentPage:PageProxy.toProxy(componentPage);
 		this.pageSource = componentPage.getPageSource();
@@ -2376,5 +2377,9 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 	@Override
 	public int getType() {
 		return StructUtil.getType(_data);
+	}
+
+	public int getIndex() {
+		return properties.index;
 	}
 }

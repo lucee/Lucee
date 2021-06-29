@@ -44,9 +44,10 @@ public class ComponentProperties implements Serializable {
 	final boolean persistent;
 	final boolean accessors;
 	final int modifier;
+	final int index;
 
 	public ComponentProperties(String dspName, String extend, String implement, String hint, Boolean output, String callPath, boolean realPath, boolean _synchronized,
-			Class javaAccessClass, boolean persistent, boolean accessors, int modifier, Struct meta) {
+			Class javaAccessClass, boolean persistent, boolean accessors, int modifier, Struct meta, int index) {
 		this.dspName = dspName;
 		this.extend = extend;
 		this.implement = implement;
@@ -60,11 +61,12 @@ public class ComponentProperties implements Serializable {
 		this.persistent = persistent;
 		this.accessors = accessors;
 		this.modifier = modifier;
+		this.index = index;
 	}
 
 	public ComponentProperties duplicate() {
 		ComponentProperties cp = new ComponentProperties(dspName, extend, implement, hint, output, callPath, realPath, _synchronized, javaAccessClass, persistent, accessors,
-				modifier, meta);
+				modifier, meta, index);
 		cp.properties = properties;
 		return cp;
 	}

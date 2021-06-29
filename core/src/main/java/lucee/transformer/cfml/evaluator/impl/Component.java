@@ -101,10 +101,10 @@ public class Component extends EvaluatorSupport {
 		}
 
 		// Page page=(Page) pPage;
-		boolean main = false;
+		int index = -1;
 		if (!tc.isInline()) {
 			Boolean insideCITemplate = isInsideCITemplate(page);
-			main = isMainComponent(page, tc);
+			index = getIndex(page, tc);
 
 			// is a full grown component or an inline component
 			if (insideCITemplate == Boolean.FALSE) {
@@ -117,13 +117,14 @@ public class Component extends EvaluatorSupport {
 		 * boolean isInterface="lucee.runtime.tag.Interface".equals(tlt.getTagClassName()); if(main) {
 		 * if(isComponent) page.setIsComponent(true); else if(isInterface) page.setIsInterface(true); }
 		 */
-		tc.setMain(main);
+		print.e("index:" + index);
+		tc.setIndex(index);
 
 		// Attributes
 
-		// Name
+		// get name for sub components
 		String name = null;
-		if (!main) {
+		if (index > 0) { // is sub component
 			Map<String, Attribute> attrs = tag.getAttributes();
 			if (attrs.size() > 0) {
 				Attribute first = attrs.values().iterator().next();
@@ -189,14 +190,18 @@ public class Component extends EvaluatorSupport {
 		}
 	}
 
-	private boolean isMainComponent(Page page, TagCIObject comp) {
-		// first is main
+	private int getIndex(Page page, TagCIObject comp) {
+		int index = -1;
 		Iterator<Statement> it = page.getStatements().iterator();
 		while (it.hasNext()) {
 			Statement s = it.next();
-			if (s instanceof TagCIObject) return s == comp;
+
+			if (s instanceof TagCIObject) {
+				index++;
+				if (s == comp) return index;
+			}
 		}
-		return false;
+		return -1;
 	}
 
 	/**

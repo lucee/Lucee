@@ -1354,7 +1354,22 @@ public abstract class AbstrCFMLExprTransformer {
 		if (!data.srcCode.forwardIfCurrent("component", '{')) return null;
 		print.ds("->" + data.context);
 		data.srcCode.setPos(pos);
-		TagComponent cfc = componentPart(data.getParent(), data, "inline_component_" + CreateUniqueId.invoke(), Component.MODIFIER_NONE, data.srcCode.getPosition(), true);
+		/*
+		 * String id = null;
+		 * 
+		 * if (data.srcCode instanceof PageSourceCode) { PageSourceCode psc = (PageSourceCode) data.srcCode;
+		 * id = ResourceUtil.removeExtension(psc.getPageSource().getFileName(), null); if (id != null) { if
+		 * (Decision.isVariableName(id)) id += "$"; else id = null; }
+		 * 
+		 * } if (id == null) id = "InlineComponent$"; id +=
+		 * HashUtil.create64BitHashAsString(UUID.randomUUID().toString(), Character.MAX_RADIX);
+		 * 
+		 */
+		// String id += HashUtil.create64BitHashAsString(UUID.randomUUID().toString(), Character.MAX_RADIX);
+		String id = "c" + CreateUniqueId.invoke();
+		print.e("classname:" + id);
+
+		TagComponent cfc = componentPart(data.getParent(), data, id, Component.MODIFIER_NONE, data.srcCode.getPosition(), true);
 		cfc.setStart(data.srcCode.getPosition(pos));
 		cfc.setParent(data.getParent());
 		return new TagComponentAsExpression(cfc);
