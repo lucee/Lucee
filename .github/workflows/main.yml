@@ -11,7 +11,7 @@ jobs:
 
     runs-on: ubuntu-latest
     env:
-      DO_DEPLOY: ${{ github.event_name == 'push' && github.ref == "refs/heads/6.0' }}
+      DO_DEPLOY: ${{ github.event_name == 'push' && github.ref == 'refs/heads/6.0' }}
     services:
       sql-server:
         # Docker Hub image
