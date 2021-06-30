@@ -65,7 +65,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="zip" {
 			var qry=directoryList(path:unzip,listInfo:'query',recurse:true,type:'file');
 			queryAddColumn(qry,"relpath");
 			loop query=qry {
-				qry.relpath=mid(replace(qry.directory,unzip,'')&"/"&qry.name,2);
+				qry.relpath = qry.directory & "/" & qry.name;
+				qry.relpath = replace(qry.relpath, "\", "/" , "all"); // normalize paths
+				qry.relpath = mid( qry.relpath , len( unzip ) + 2); // strip out base dir
 			}
 			assertEquals(6,qry.recordcount);
 			assertEquals('1/2.cfm,a.txt,b.txt,b/c/a.txt,n/m/b.txt,n/m/b/c/a.txt',listSort(valueList(qry.relpath),'textnocase'));
@@ -77,7 +79,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="zip" {
 			assertEquals('1/2.cfm,a.txt,b.txt,b/c/a.txt',listSort(valueList(qry.name),'textnocase'));
 			
 			// zip no compression
-			if(fileExists(targetStored)) fileDelete(targetStored);
+			if( fileExists(targetStored)) fileDelete(targetStored);
 			zip action="zip" file=targetStored compressionMethod="store"{
 				zipparam entryPath = "/1/2.cfm" source =variables.file1;
 				zipparam source =variables.file1;
