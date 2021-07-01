@@ -99,7 +99,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="zip" {
 		finally {
 			if ( directoryExists( root ) ) 
 				directoryDelete( root , true );
-			systemOutput( directoryList( path=root ), true);
 		}
 	}
 	
@@ -138,8 +137,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="zip" {
 		var curr = getDirectoryFromPath( getCurrentTemplatePath() );
 		var src = curr & "zip_exe";
 		var dest = curr & "unzip_exe";
-
-		systemOutput( "", true );
 
 		try {
 			if ( directoryExists( src ) ) 
@@ -181,7 +178,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="zip" {
 
 			info = FileInfo( dest & "/test.txt" );
 			expect( info.execute ).toBeTrue();
-			expect( info.mode ).toBe(744);
+			expect( info.mode ).toBe( 744 );
 
 			info = FileInfo( dest & "/test2.txt" );
 			expect( info.execute ).toBeFalse();
