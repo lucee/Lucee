@@ -154,7 +154,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="zip" {
 			fileSetAccessMode( testFile, "744");
 
 			var testFile2 = src & "/test2.txt";
-			FileWrite( testFile, "why don't you want to execute me?");			
+			FileWrite( testFile2, "why don't you want to execute me?");
 
 			var info = FileInfo( testFile );
 			systemOutput( info , true);
@@ -171,6 +171,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="zip" {
 			}
 
 			zip action="list" file="#src#/test.zip" name="local.qry";
+			expect( local.qry.recordcount ).toBe( 2 );
+			expect( local.qry.mode[1] ).toBe( 744 );
+
 			systemOutput( local.qry, true);
 
 			// unzip the created zip
