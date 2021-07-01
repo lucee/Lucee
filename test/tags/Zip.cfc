@@ -159,7 +159,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="zip" {
 			expect( info.mode ).toBe( 744 );
 
 			// systemOutput( info, true );
-			// systemOutput( directoryList( path=src, listinfo="query" ), true );
+			systemOutput( directoryList( path=src, listinfo="query" ), true );
 
 			// create the test zip
 			zip action="zip" file="#src#/test.zip" {
@@ -180,8 +180,11 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="zip" {
 			expect( info.execute ).toBeTrue();
 			expect( info.mode ).toBe( 744 );
 
+			systemOutput( directoryList( path=dest, listinfo="query" ), true );
+
 			info = FileInfo( dest & "/test2.txt" );
 			expect( info.execute ).toBeFalse();
+			expect( info.mode ).toNotBe( 744 );
 		}
 		finally {
 			if ( directoryExists( src ) )
