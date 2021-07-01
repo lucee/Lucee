@@ -65,9 +65,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm" {
 		local.uri=createURI("events/index.cfm");
 		systemOutput( "", true ); 
 		local.result=_InternalRequest(uri);
-		
+		systemOutput( "", true ); 
 		expect( result.status ).toBe( 200 );
-		expect( trim( result.fileContent ) ).toBe( 5 ); // dunno what number this should be yet
+		expect( trim( result.fileContent ) ).toBe( 10 ); // dunno what number this should be yet
 	}
 
 	

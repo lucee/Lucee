@@ -1,5 +1,5 @@
 component  {
-
+	this.name = "global";
 	function init(){
 		return this;
 	}
@@ -47,12 +47,13 @@ component  {
 	private function eventLog(required struct args){
 		var eventName = CallStackGet( "array" )[2].function;
 		
-		systemOutput( "------- #eventName# ----------", true );
+		systemOutput( "------- #eventName# @ #this.name# ----------", true );
 		systemOutput( arguments.args, true );
 
 		//if ( ! structKeyExists( application, "ormEventLog" ) )
 		//    application.ormEventLog = [];
 		application.ormEventLog.append( {
+			"src": this.name,
 			"eventName": eventName,
 			"args": args
 		} );
