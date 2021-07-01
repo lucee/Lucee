@@ -5,42 +5,42 @@ component hint="logs out any orm events"  {
 		return this;
 	}
 
-	function preFlush( required any entity ){
+	function preFlush(  entity ){
 		eventLog( arguments );
 	}
-	function postFlush(required any entity){
-		eventLog( arguments );
-	}
-
-	function preLoad(required any entity){
-		eventLog( arguments );
-	}
-	function postLoad(required any entity){
+	function postFlush( entity ){
 		eventLog( arguments );
 	}
 
-	function preInsert(required any entity){
+	function preLoad( entity ){
 		eventLog( arguments );
 	}
-	function postInsert(required any entity){
-		eventLog( arguments );
-	}
-
-	function preUpdate(required any entity, Struct oldData){
-		eventLog( arguments );
-	}
-	function postUpdate(required any entity){
+	function postLoad( entity ){
 		eventLog( arguments );
 	}
 
-	function preDelete(required any entity){
+	function preInsert( entity ){
+		eventLog( arguments );
+	}
+	function postInsert( entity ){
+		eventLog( arguments );
+	}
+
+	function preUpdate( entity, Struct oldData ){
+		eventLog( arguments );
+	}
+	function postUpdate( entity ){
+		eventLog( arguments );
+	}
+
+	function preDelete( entity ){
 		eventLog( arguments );
 	}	
-	function postDelete(required any entity) {
+	function postDelete( entity ) {
 		eventLog( arguments );
 	}
 
-	private function eventLog(required struct args){
+	private function eventLog( required struct args ){
 		var eventName = CallStackGet( "array" )[2].function;
 		
 		systemOutput( "------- #eventName# @ #this.name# ----------", true );
