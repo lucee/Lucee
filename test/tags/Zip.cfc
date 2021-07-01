@@ -156,19 +156,15 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="zip" {
 			var info = FileInfo( testFile );
 			systemOutput( info , true);
 			expect( info.execute ).toBeTrue();
+			expect( info.mode ).toBe(744);
 
 			systemOutput( info, true);
-			systemOutput( directoryList( path=src ), true);
+			systemOutput( directoryList( path=src, listinfo="query" ), true);
 
 			// create the test zip
 			zip action="zip" file="#src#/test.zip" {
 				zipparam source=testFile;
 			}
-
-			zip action="list" file="#src#/test.zip" name="local.qry";
-
-			systemOutput( local.qry, true);
-			// expect(local.qry.mode[1]).toBe(744);
 
 			// unzip the created zip
 			zip action="unzip" file="#src#/test.zip" destination=dest;
@@ -178,6 +174,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="zip" {
 			systemOutput( info , true );
 
 			expect( info.execute ).toBeTrue();
+			expect( info.mode ).toBe(744);
 		}
 		finally {
 			if ( directoryExists( src ) )
@@ -185,7 +182,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="zip" {
 			if ( directoryExists( dest ) )
 				directoryDelete( dest, true );
 		}
-
 	}
 
 	function isNotSupported() {
