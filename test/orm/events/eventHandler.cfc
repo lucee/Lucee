@@ -1,46 +1,42 @@
-component  {
-	this.name = "global";
+component hint="logs out any orm events"  {
+	this.name = "global"; // used for logging out events
+
 	function init(){
 		return this;
 	}
 
-	function preFlush( entity ){
+	function preFlush( required any entity ){
+		eventLog( arguments );
+	}
+	function postFlush(required any entity){
 		eventLog( arguments );
 	}
 
-	function postFlush( entity ){
+	function preLoad(required any entity){
+		eventLog( arguments );
+	}
+	function postLoad(required any entity){
 		eventLog( arguments );
 	}
 
-	function preLoad( entity ){
+	function preInsert(required any entity){
+		eventLog( arguments );
+	}
+	function postInsert(required any entity){
 		eventLog( arguments );
 	}
 
-	function postLoad( entity ){
+	function preUpdate(required any entity, Struct oldData){
+		eventLog( arguments );
+	}
+	function postUpdate(required any entity){
 		eventLog( arguments );
 	}
 
-	function preInsert( entity ){
+	function preDelete(required any entity){
 		eventLog( arguments );
-	}
-
-	function postInsert( entity ){
-		eventLog( arguments );
-	}
-
-	function preUpdate(entity, Struct oldData){
-		eventLog( arguments );
-	}
-
-	function postUpdate( entity ){
-		eventLog( arguments );
-	}
-
-	function preDelete( entity ){
-		eventLog( arguments );
-	}
-	
-	function postDelete( entity ) {
+	}	
+	function postDelete(required any entity) {
 		eventLog( arguments );
 	}
 
