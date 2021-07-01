@@ -177,12 +177,14 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="zip" {
 			zip action="unzip" file="#src#/test.zip" destination=dest;
 
 			info = FileInfo( dest & "/test.txt" );
+			systemOutput( info, true );
 			expect( info.execute ).toBeTrue();
 			expect( info.mode ).toBe( 744 );
 
 			systemOutput( directoryList( path=dest, listinfo="query" ), true );
 
 			info = FileInfo( dest & "/test2.txt" );
+			systemOutput( info, true );
 			expect( info.execute ).toBeFalse();
 			expect( info.mode ).toNotBe( 744 );
 		}
