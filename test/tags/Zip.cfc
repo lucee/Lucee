@@ -153,6 +153,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="zip" {
 			FileWrite( testFile, "why do you want to execute me?");
 			fileSetAccessMode( testFile, "744");
 
+			var testFile2 = src & "/test2.txt";
+			FileWrite( testFile, "why don't you want to execute me?");			
+
 			var info = FileInfo( testFile );
 			systemOutput( info , true);
 			expect( info.execute ).toBeTrue();
@@ -164,17 +167,21 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="zip" {
 			// create the test zip
 			zip action="zip" file="#src#/test.zip" {
 				zipparam source=testFile;
+				zipparam source=testFile2;
 			}
+
+			zip action="list" file="#src#/test.zip" name="local.qry";
+			systemOutput( local.qry, true);
 
 			// unzip the created zip
 			zip action="unzip" file="#src#/test.zip" destination=dest;
 
-			var destFile = dest & "/test.txt";
-			var info = FileInfo( destFile );
-			systemOutput( info , true );
-
+			info = FileInfo( dest & "/test.txt" );
 			expect( info.execute ).toBeTrue();
 			expect( info.mode ).toBe(744);
+
+			info = FileInfo( dest & "/test2.txt" );
+			expect( info.execute ).toBeFalse();
 		}
 		finally {
 			if ( directoryExists( src ) )
