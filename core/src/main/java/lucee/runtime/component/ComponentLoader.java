@@ -418,8 +418,14 @@ public class ComponentLoader {
 
 	private static CIPage loadSub(CIPage page, String sub) throws ApplicationException {
 		print.e("class:" + page.getClass().getName());
+		print.e("class:" + page.getPageSource().getClassName());
 		print.e("sub:" + sub);
-		String subClassName = lucee.transformer.bytecode.Page.createSubClass(page.getClass().getName(), sub, page.getPageSource().getDialect());
+		// TODO find a better way to create that class name
+		String subClassName = lucee.transformer.bytecode.Page.createSubClass(page.getPageSource().getClassName(), sub, page.getPageSource().getDialect());
+
+		// subClassName:sub.test_cfc$cf$1$sub1
+		// - sub.test_cfc$sub1$cf
+
 		print.e("subClassName:" + subClassName);
 		CIPage[] subs = page.getSubPages();
 		for (int i = 0; i < subs.length; i++) {

@@ -38,7 +38,6 @@ import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.GeneratorAdapter;
 import org.objectweb.asm.commons.Method;
 
-import lucee.print;
 import lucee.commons.digest.HashUtil;
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.IOUtil;
@@ -481,11 +480,6 @@ public final class Page extends BodyBase implements Root {
 		// udfCall
 		Function[] functions = getFunctions();// toArray(funcs);
 
-		print.e("---------------- " + className + " ----------------");
-		for (Function f: functions) {
-			print.e("-" + f);
-		}
-
 		ConditionVisitor cv;
 		DecisionIntVisitor div;
 		// less/equal than 10 functions
@@ -636,9 +630,6 @@ public final class Page extends BodyBase implements Root {
 
 		String udfpropsClassName = Types.UDF_PROPERTIES_ARRAY.toString();
 
-		print.e("+++++++++++++ " + className + " ++++++++++++++");
-		print.e("udfProperties.size():" + udfProperties.size());
-
 		// new UDFProperties Array
 		constrAdapter.visitVarInsn(Opcodes.ALOAD, 0);
 		constrAdapter.push(udfProperties.size());
@@ -650,7 +641,6 @@ public final class Page extends BodyBase implements Root {
 		int index = 0;
 		while (it.hasNext()) {
 			data = it.next();
-			print.e("data:" + data.arrayIndex + ":" + data.valueIndex);
 			constrAdapter.visitVarInsn(Opcodes.ALOAD, 0);
 			constrAdapter.visitFieldInsn(Opcodes.GETFIELD, constr.getClassName(), "udfs", Types.UDF_PROPERTIES_ARRAY.toString());
 			constrAdapter.push(index++);
@@ -704,12 +694,6 @@ public final class Page extends BodyBase implements Root {
 			else name += "$" + subName;
 		}
 		return name;
-	}
-
-	public static void main(String[] args) {
-		print.e(createSubClass("sub.test_cfc$cf", "Sub1", CFMLEngine.DIALECT_CFML));
-		// sub.test_cfc$cf$1$sub1
-		// - sub.test_cfc$sub1$cf
 	}
 
 	private void writeGetSubPages(ClassWriter cw, String name, List<TagCIObject> subs, int dialect) {
@@ -768,11 +752,7 @@ public final class Page extends BodyBase implements Root {
 			}
 			if (className != null) className = className.replace('.', '/');
 			else {
-				print.e("xxx+++++++++++++++++++++++");
-				print.e(sourceCode.toString());
-				print.e("xxx+++++++++++++++++++++++");
-
-				throw new IllegalArgumentException("For Sub component a name is required!");
+				throw new IllegalArgumentException("You always need to defined a name for a sub component");
 			}
 			// in case we have a sub component
 
@@ -1614,17 +1594,14 @@ public final class Page extends BodyBase implements Root {
 			if (stat instanceof IFunction) {
 				funcs.add((IFunction) stat);
 
-				print.e("+>" + ((IFunction) stat).getClass().getName());
 				stats.remove(i);
 				len--;
 				i--;
 			}
 			else if (stat instanceof HasBody) {
-				print.e("=>" + stat.getClass().getName());
 				extractFunctions(bc, ((HasBody) stat).getBody(), funcs, pageType);
 			}
 			else if (stat instanceof HasBodies) {
-				print.e("->" + stat.getClass().getName());
 				Body[] bodies = ((HasBodies) stat).getBodies();
 				for (int y = 0; y < bodies.length; y++) {
 					extractFunctions(bc, bodies[y], funcs, pageType);
@@ -1706,7 +1683,6 @@ public final class Page extends BodyBase implements Root {
 
 	@Override
 	public int[] addFunction(IFunction function) {
-		print.ds("--- " + getClassName() + " ---");
 		int[] indexes = new int[2];
 		Iterator<IFunction> it = functions.iterator();
 		while (it.hasNext()) {
