@@ -28,3 +28,4 @@ WEB-INF
 
 .idea/
 buildVersionNumber.txt
+/test/reports

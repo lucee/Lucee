@@ -296,7 +296,13 @@ Begin Stack Trace
  		} // try
 	} // silent
 
-
+	jUnitReporter = new testbox.system.reports.JUnitReporter();
+	resultPath = ExpandPath( "/test" ) & "/reports/";
+	if ( !DirectoryExists( resultPath ) )
+		DirectoryCreate( resultPath );
+	JUnitReportFile = resultPath & "junit-test-results.xml";
+	FileWrite( JUnitReportFile, jUnitReporter.runReport( results=result, testbox=tb, justReturn=true ) );	
+	
 	echo("=============================================================" & NL);
 	echo("TestBox Version: #tb.getVersion()#" & NL);
 	echo("Lucee Version: #server.lucee.version#" & NL);
@@ -308,6 +314,7 @@ Begin Stack Trace
 	echo("->[Skipped:  #result.getTotalSkipped()#]" & NL);
 	echo("->[Failures: #result.getTotalFail()#]" & NL);
 	echo("->[Errors:   #result.getTotalError()#]" & NL);
+	echo("->[JUnitReport: #JUnitReportFile#]" & NL);
 
 		if (!isEmpty(failedTestCases)){
 
