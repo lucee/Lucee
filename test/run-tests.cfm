@@ -154,6 +154,13 @@ try {
 	failedTestcases = testResults.failedTestcases;
 	tb = testResults.tb;
 
+	jUnitReporter = new testbox.system.reports.JUnitReporter();	
+	resultPath = ExpandPath( "/test") & "/reports/";
+	if ( !DirectoryExists( resultPath ) )
+		DirectoryCreate( resultPath );
+	JUnitReportFile = resultPath & "junit-test-results.xml";
+	FileWrite( JUnitReportFile, jUnitReporter.runReport(results=result, testbox=tb, justReturn=true) );	
+	
 	systemOutput( NL & NL & "=============================================================", true );
 	systemOutput( "TestBox Version: #tb.getVersion()#", true );
 	systemOutput( "Lucee Version: #server.lucee.version#", true );
@@ -169,6 +176,7 @@ try {
 	systemOutput( "-> Skipped:  #result.getTotalSkipped()#", true );
 	systemOutput( "-> Failures: #result.getTotalFail()#", true );
 	systemOutput( "-> Errors:   #result.getTotalError()#", true );
+	SystemOutput( "-> JUnitReport: #JUnitReportFile#", true);
 
 	servicesReport = new test._setupTestServices().reportServiceSkipped();
 	for ( s in servicesReport ){
