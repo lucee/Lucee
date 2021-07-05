@@ -173,4 +173,17 @@ public class ThreadUtil {
 			aprint.e(ExceptionUtil.toString(e.getValue()));
 		}
 	}
+
+	public static boolean isInNativeMethod(Thread thread, boolean defaultValue) {
+		if (thread == null) return defaultValue;
+		StackTraceElement[] stes = thread.getStackTrace();
+		if (stes == null || stes.length == 0) return defaultValue;
+		StackTraceElement ste = stes[0];
+		return ste.isNativeMethod();
+	}
+
+	public static void main(String[] args) {
+
+	}
+
 }
