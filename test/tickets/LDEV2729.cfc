@@ -21,7 +21,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 		});
 
 		describe( "test case for LDEV2729", function() {
-			it( title="ReplaceListNoCase with includeemptyfields in 4th/5th /6th position", body=function( currentSpec ) {
+			it( title="ReplaceListNoCase with includeemptyfields in 4th/5th/6th position", body=function( currentSpec ) {
 				
 				expect(ReplaceListNoCase( "{name}", "{,}", ",", false)).toBe("name");
 				expect(ReplaceListNoCase( "{name}", "{,}", ",", true)).toBe("name");
