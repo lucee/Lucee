@@ -1591,23 +1591,43 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 			getUDFs(pc, comp._udfs.values().iterator(), comp, access, arr);
 		}
 		// property functions
-		Iterator<Entry<Key, UDF>> it = comp._udfs.entrySet().iterator();
-		Entry<Key, UDF> entry;
-		UDF udf;
-		while (it.hasNext()) {
-			entry = it.next();
-			udf = entry.getValue();
-			if (udf.getAccess() > access || !(udf instanceof UDFGSProperty)) continue;
-			if (comp.base != null) {
-				if (udf == comp.base.getMember(access, entry.getKey(), true, true)) continue;
-			}
-			arr.append(udf.getMetaData(pc));
+		{
+			Iterator<Entry<Key, UDF>> it = comp._udfs.entrySet().iterator();
+			Entry<Key, UDF> entry;
+			UDF udf;
+			while (it.hasNext()) {
+				entry = it.next();
+				udf = entry.getValue();
+				if (udf.getAccess() > access || !(udf instanceof UDFGSProperty)) continue;
+				if (comp.base != null) {
+					if (udf == comp.base.getMember(access, entry.getKey(), true, true)) continue;
+				}
+				arr.append(udf.getMetaData(pc));
 
+			}
+			if (arr.size() != 0) {
+				Collections.sort(arr, new ComparatorImpl());
+			}
 		}
-		if (arr.size() != 0) {
-			Collections.sort(arr, new ComparatorImpl());
-		}
+
 		sct.set(KeyConstants._functions, arr);
+
+		// static functions
+		{
+			ArrayImpl arrStatics = new ArrayImpl();
+			StaticScope statics = comp.staticScope();
+			Iterator<Entry<Key, Object>> it = statics.entryIterator();
+			Entry<Key, Object> e;
+			while (it.hasNext()) {
+				e = it.next();
+				if (!(e.getValue() instanceof UDF)) continue;
+				getUDF(pc, (UDF) e.getValue(), comp, access, arrStatics);
+			}
+			if (arrStatics.size() != 0) {
+				Collections.sort(arrStatics, new ComparatorImpl());
+			}
+			sct.set(KeyConstants._staticFunctions, arr);
+		}
 	}
 
 	private static class ComparatorImpl implements Comparator {
@@ -1618,14 +1638,16 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 	}
 
 	private static void getUDFs(PageContext pc, Iterator<UDF> it, ComponentImpl comp, int access, ArrayImpl arr) throws PageException {
-		UDF udf;
 		while (it.hasNext()) {
-			udf = it.next();
-			if (udf instanceof UDFGSProperty) continue;
-			if (udf.getAccess() > access) continue;
-			if (udf.getPageSource() != null && !udf.getPageSource().equals(comp._getPageSource())) continue;
-			if (udf instanceof UDFImpl) arr.append(ComponentUtil.getMetaData(pc, ((UDFImpl) udf).properties));
+			getUDF(pc, it.next(), comp, access, arr);
 		}
+	}
+
+	private static void getUDF(PageContext pc, UDF udf, ComponentImpl comp, int access, ArrayImpl arr) throws PageException {
+		if (udf instanceof UDFGSProperty) return;
+		if (udf.getAccess() > access) return;
+		if (udf.getPageSource() != null && !udf.getPageSource().equals(comp._getPageSource())) return;
+		if (udf instanceof UDFImpl) arr.append(ComponentUtil.getMetaData(pc, ((UDFImpl) udf).properties));
 	}
 
 	public boolean isInitalized() {
