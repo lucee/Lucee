@@ -196,12 +196,24 @@ Latest version: #latest.v#</cfif>"><cfif hasUpdates>
 	};
 
 	loop query=unInstalledExt {
-		if(findNoCase("-ALPHA",unInstalledExt.version) || findNoCase("-BETA",unInstalledExt.version) || findNoCase("-RC",unInstalledExt.version)) 
-			addRow(unInstalledExt,VersionStr.pre_release,unInstalledExt.currentrow);
-		else if(findNoCase("-SNAPSHOT",unInstalledExt.version)) 
-			addRow(unInstalledExt,VersionStr.snapshot,unInstalledExt.currentrow);
+		versions = duplicate(unInstalledExt.otherVersions);
+		ArrayPrepend(versions, unInstalledExt.version);
+		t = { snap: 0, pre: 0, rel: 0 };
+		loop array=versions item="variables.v" {
+			if(findNoCase("-ALPHA", v) || findNoCase("-BETA", v) || findNoCase("-RC", v)) {
+				t.pre++;
+			} else if(findNoCase("-SNAPSHOT", v)) {
+				t.snap++;
+			} else {
+				t.rel++;
+			}
+		}
+		if ( t.rel > 0 )
+			addRow( unInstalledExt, VersionStr.release, unInstalledExt.currentrow );
+		else if ( t.pre > 0 )
+			addRow( unInstalledExt, VersionStr.pre_release, unInstalledExt.currentrow );
 		else
-			addRow(unInstalledExt,VersionStr.release,unInstalledExt.currentrow);
+			addRow( unInstalledExt, VersionStr.snapshot, unInstalledExt.currentrow );
 	}
 
 	function addRow(src,trg,srcRow) {
@@ -211,7 +223,7 @@ Latest version: #latest.v#</cfif>"><cfif hasUpdates>
 		}
 	}
 
-		private function toVersionSortable(required string version) localMode=true {
+	private function toVersionSortable(required string version) localMode=true {
 		version=unwrap(version.trim());
 		arr=listToArray(arguments.version,'.');
 		
