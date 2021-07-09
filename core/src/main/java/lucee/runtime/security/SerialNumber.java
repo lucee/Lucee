@@ -20,7 +20,8 @@ package lucee.runtime.security;
 
 public class SerialNumber {
 
-	public SerialNumber(String serial) {}
+	public SerialNumber(String serial) {
+	}
 
 	public static boolean isValid(String serial) {
 		return false;

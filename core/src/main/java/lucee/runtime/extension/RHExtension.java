@@ -321,10 +321,10 @@ public class RHExtension implements Serializable {
 				else if (!entry.isDirectory() && (startsWith(path, type, "jars") || startsWith(path, type, "jar") || startsWith(path, type, "bundles")
 						|| startsWith(path, type, "bundle") || startsWith(path, type, "lib") || startsWith(path, type, "libs")) && (StringUtil.endsWithIgnoreCase(path, ".jar"))) {
 
-					jars.add(fileName);
-					BundleInfo bi = BundleInfo.getInstance(fileName, zis, false);
-					if (bi.isBundle()) bundles.add(bi);
-				}
+							jars.add(fileName);
+							BundleInfo bi = BundleInfo.getInstance(fileName, zis, false);
+							if (bi.isBundle()) bundles.add(bi);
+						}
 
 				// flds
 				else if (!entry.isDirectory() && startsWith(path, type, "flds") && (StringUtil.endsWithIgnoreCase(path, ".fld") || StringUtil.endsWithIgnoreCase(path, ".fldx")))

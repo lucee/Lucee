@@ -90,7 +90,8 @@ public class ExportImportHandler {
 		Map<String, Object> map = new HashMap<String, Object>();
 
 		// Core
-		if ((types & TYPE_CONFIGURATION) > 0) {}
+		if ((types & TYPE_CONFIGURATION) > 0) {
+		}
 		// Extension
 		if ((types & TYPE_EXTENSION) > 0) {
 			Resource extDir = dir.getRealResource("extensions");

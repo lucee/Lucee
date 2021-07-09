@@ -94,7 +94,8 @@ public class DatasourceAppender extends JDBCAppender implements Appender {
 					getConnection();
 					ignore = false;
 				}
-				catch (Exception e) {}
+				catch (Exception e) {
+				}
 			}
 
 			if (!ignore) super.append(event);

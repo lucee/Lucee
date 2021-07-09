@@ -1141,7 +1141,8 @@ public final class IOUtil {
 		try {
 			if (os != null) os.flush();
 		}
-		catch (Exception e) {}
+		catch (Exception e) {
+		}
 	}
 
 	/**
@@ -1153,7 +1154,8 @@ public final class IOUtil {
 		try {
 			if (w != null) w.flush();
 		}
-		catch (Exception e) {}
+		catch (Exception e) {
+		}
 	}
 
 	/**

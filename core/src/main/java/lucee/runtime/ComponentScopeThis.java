@@ -60,7 +60,8 @@ public final class ComponentScopeThis extends StructSupport implements Component
 	}
 
 	@Override
-	public void release(PageContext pc) {}
+	public void release(PageContext pc) {
+	}
 
 	@Override
 	public int getType() {
@@ -308,7 +309,8 @@ public final class ComponentScopeThis extends StructSupport implements Component
 	}
 
 	@Override
-	public void setBind(boolean bind) {}
+	public void setBind(boolean bind) {
+	}
 
 	@Override
 	public boolean isBind() {

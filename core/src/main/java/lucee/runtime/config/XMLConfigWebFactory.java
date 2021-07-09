@@ -368,7 +368,8 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 				try {
 					doc = XMLConfigWebFactory.loadDocument(config.getConfigFile());
 				}
-				catch (SAXException e) {}
+				catch (SAXException e) {
+				}
 			}
 
 			if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "fixed LFI");
@@ -550,7 +551,8 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		try {
 			doc = XMLConfigWebFactory.loadDocument(config.getConfigFile());
 		}
-		catch (SAXException e) {}
+		catch (SAXException e) {
+		}
 		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "reload xml");
 		return doc;
 	}
@@ -1415,7 +1417,8 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 					hasChanged = true;
 				}
 			}
-			catch (IOException e) {}
+			catch (IOException e) {
+			}
 
 			// change Compile type
 			if (hasChanged) {
@@ -2101,7 +2104,8 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 					String cn = JDBCDriver.extractClassName(bundle);
 					cd = new ClassDefinitionImpl(config.getIdentification(), cn, cd.getName(), cd.getVersion());
 				}
-				catch (Exception e) {}
+				catch (Exception e) {
+				}
 			}
 
 			label = getAttr(driver, "label");
@@ -2237,8 +2241,8 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 					} //
 					else if (cd.getClassName() != null
 							&& (cd.getClassName().endsWith(".extension.io.cache.eh.EHCache") || cd.getClassName().endsWith("lucee.runtime.cache.eh.EHCache"))) {
-						cd = new ClassDefinitionImpl("org.lucee.extension.cache.eh.EHCache");
-					}
+								cd = new ClassDefinitionImpl("org.lucee.extension.cache.eh.EHCache");
+							}
 					cc = new CacheConnectionImpl(config, name, cd, custom, Caster.toBooleanValue(getAttr(eConnection, "read-only"), false),
 							Caster.toBooleanValue(getAttr(eConnection, "storage"), false));
 					if (!StringUtil.isEmpty(name)) {
@@ -2426,7 +2430,8 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 				else if (item.length == 1) sct.setEL(KeyImpl.init(URLDecoder.decode(item[0], true).trim()), "");
 			}
 		}
-		catch (PageException ee) {}
+		catch (PageException ee) {
+		}
 
 		return sct;
 	}
@@ -2506,7 +2511,8 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 						String[] arr = ListUtil.toStringArray(ListUtil.listToArrayRemoveEmpty(strExtensions, ","));
 						config.setCustomTagExtensions(ListUtil.trimItems(arr));
 					}
-					catch (PageException e) {}
+					catch (PageException e) {
+					}
 				}
 				else if (hasCS) {
 					config.setCustomTagExtensions(configServer.getCustomTagExtensions());
@@ -2638,7 +2644,8 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 					try {
 						keys[i] = URLDecoder.decode(keys[i], "UTF-8", true);
 					}
-					catch (UnsupportedEncodingException e) {}
+					catch (UnsupportedEncodingException e) {
+					}
 				}
 
 				csi.setAuthenticationKeys(keys);
@@ -3358,7 +3365,8 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 
 					return (PrintStream) ClassUtil.loadInstance(classname);
 				}
-				catch (Exception e) {}
+				catch (Exception e) {
+				}
 			}
 			// file
 			else if (StringUtil.startsWithIgnoreCase(streamtype, "file:")) {
@@ -3368,7 +3376,8 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 					Resource res = ConfigWebUtil.getFile(config, config.getConfigDir(), strRes, ResourceUtil.TYPE_FILE);
 					if (res != null) return new PrintStream(res.getOutputStream(), true);
 				}
-				catch (Exception e) {}
+				catch (Exception e) {
+				}
 			}
 			else if (StringUtil.startsWithIgnoreCase(streamtype, "log")) {
 				try {
@@ -3381,7 +3390,8 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 					}
 					return new PrintStream(new RetireOutputStream(log, true, 5, null));
 				}
-				catch (Exception e) {}
+				catch (Exception e) {
+				}
 			}
 		}
 		return iserror ? CFMLEngineImpl.CONSOLE_ERR : CFMLEngineImpl.CONSOLE_OUT;
@@ -3905,7 +3915,8 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 							fin.invoke(existing.instance, new Object[0]);
 						}
 					}
-					catch (Exception e) {}
+					catch (Exception e) {
+					}
 				}
 				Class clazz = cd.getClazz();
 
@@ -4169,7 +4180,8 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 					list.put(id, new DebugEntry(id, getAttr(e, "type"), getAttr(e, "iprange"), getAttr(e, "label"), e.getAttribute("path"), getAttr(e, "fullname"),
 							toStruct(getAttr(e, "custom"))));
 				}
-				catch (IOException ioe) {}
+				catch (IOException ioe) {
+				}
 			}
 			config.setDebugEntries(list.values().toArray(new DebugEntry[list.size()]));
 
@@ -4294,7 +4306,8 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 						}
 					}
 				}
-				catch (SecurityException e) {}
+				catch (SecurityException e) {
+				}
 			}
 
 			if (hasAccess) {
@@ -5071,11 +5084,9 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		int s = -1, e = -1, d = -1;
 		int prefixLen, start = -1, end;
 		String _name, _prop;
-		while (
-				(s = v.indexOf("{system:", start)) != -1 | /* don't change */
+		while ((s = v.indexOf("{system:", start)) != -1 | /* don't change */
 				(e = v.indexOf("{env:", start)) != -1 | /* don't change */
-				(d = v.indexOf("${", start)) != -1
-			) {
+				(d = v.indexOf("${", start)) != -1) {
 			boolean isSystem = false, isDollar = false;
 			// system
 			if (s > -1 && (e == -1 || e > s)) {

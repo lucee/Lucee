@@ -267,7 +267,8 @@ public final class PageSourceImpl implements PageSource {
 				try {
 					page = loadPhysical(pc, page);
 				}
-				catch (TemplateException e) {}
+				catch (TemplateException e) {
+				}
 			}
 			if (page != null) return page;
 		}
@@ -321,7 +322,8 @@ public final class PageSourceImpl implements PageSource {
 					try {
 						same = pp.getHash() == PageSourceCode.toString(this, config.getTemplateCharset()).hashCode();
 					}
-					catch (IOException e) {}
+					catch (IOException e) {
+					}
 
 				}
 				if (!same) {

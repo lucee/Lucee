@@ -208,8 +208,10 @@ public class AbsDefaultHostnameVerifier implements HostnameVerifier {
 							return value.toString();
 						}
 					}
-					catch (NoSuchElementException ignore) {}
-					catch (NamingException ignore) {}
+					catch (NoSuchElementException ignore) {
+					}
+					catch (NamingException ignore) {
+					}
 				}
 			}
 			return null;
@@ -224,7 +226,8 @@ public class AbsDefaultHostnameVerifier implements HostnameVerifier {
 		try {
 			c = cert.getSubjectAlternativeNames();
 		}
-		catch (final CertificateParsingException ignore) {}
+		catch (final CertificateParsingException ignore) {
+		}
 		List<String> subjectAltList = null;
 		if (c != null) {
 			for (final List<?> aC: c) {

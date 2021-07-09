@@ -205,7 +205,8 @@ public final class Controler extends Thread {
 			try {
 				RHExtension.correctExtensions(configServer);
 			}
-			catch (Exception e) {}
+			catch (Exception e) {
+			}
 		}
 
 		// every 10 seconds
@@ -262,7 +263,8 @@ public final class Controler extends Thread {
 				try {
 					RHExtension.correctExtensions(config);
 				}
-				catch (Exception e) {}
+				catch (Exception e) {
+				}
 
 				// try{checkStorageScopeFile(config,Session.SCOPE_CLIENT);}catch(Throwable t)
 				// {ExceptionUtil.rethrowIfNecessary(t);}
@@ -359,7 +361,8 @@ public final class Controler extends Thread {
 				try {
 					doClearPagePools(config);
 				}
-				catch (Exception e) {}
+				catch (Exception e) {
+				}
 				// try{checkPermGenSpace((ConfigWebPro) config);}catch(Throwable t)
 				// {ExceptionUtil.rethrowIfNecessary(t);}
 				try {

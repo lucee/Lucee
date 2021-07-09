@@ -101,7 +101,8 @@ public final class HttpServletRequestDummy implements HttpServletRequest, Serial
 			DEFAULT_REMOTE_ADDR = DEFAULT_REMOTE.getHostAddress();
 			DEFAULT_REMOTE_HOST = DEFAULT_REMOTE.getHostName();
 		}
-		catch (UnknownHostException e) {}
+		catch (UnknownHostException e) {
+		}
 	}
 	// private InetAddress remoteq=DEFAULT_REMOTE;
 	private String remoteAddr = DEFAULT_REMOTE_ADDR;
@@ -694,7 +695,8 @@ public final class HttpServletRequestDummy implements HttpServletRequest, Serial
 		try {
 			inputData = IOUtil.toBytes(req.getInputStream(), true, null);
 		}
-		catch (IOException e) {}
+		catch (IOException e) {
+		}
 
 		HttpServletRequestDummy dest = new HttpServletRequestDummy(rootDirectory, req.getServerName(), req.getRequestURI(), req.getQueryString(),
 				HttpUtil.cloneCookies(config, req), HttpUtil.cloneHeaders(req), HttpUtil.cloneParameters(req), HttpUtil.getAttributesAsStruct(req), getSessionEL(req), inputData);

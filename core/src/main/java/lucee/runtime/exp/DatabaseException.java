@@ -119,7 +119,8 @@ public final class DatabaseException extends PageExceptionImpl {
 				if (!"__default__".equals(dc.getDatasource().getName())) setAdditional(KeyConstants._Datasource, dc.getDatasource().getName());
 
 			}
-			catch (SQLException e) {}
+			catch (SQLException e) {
+			}
 		}
 	}
 

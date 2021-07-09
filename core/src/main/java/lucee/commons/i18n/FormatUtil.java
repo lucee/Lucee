@@ -161,26 +161,41 @@ public class FormatUtil {
 		p = sdf.toPattern() + "";
 		// print.e("----- "+p);
 		if (isDate && isTime) {
-			if ((check(results, p, locale, " 'um' ", " "))) {}
-			if ((check(results, p, locale, " 'à' ", " "))) {}
-			if ((check(results, p, locale, " 'at' ", " "))) {}
-			if ((check(results, p, locale, " 'de' ", " "))) {}
+			if ((check(results, p, locale, " 'um' ", " "))) {
+			}
+			if ((check(results, p, locale, " 'à' ", " "))) {
+			}
+			if ((check(results, p, locale, " 'at' ", " "))) {
+			}
+			if ((check(results, p, locale, " 'de' ", " "))) {
+			}
 
 		}
 		if (isTime) {
-			if ((check(results, p, locale, "hh:mm:ss a", "HH:mm:ss"))) {}
-			else if ((check(results, p, locale, "h:mm:ss a", "H:mm:ss"))) {}
-			else if ((check(results, p, locale, "hh:mm a", "HH:mm"))) {}
-			else if ((check(results, p, locale, "h:mm a", "H:mm"))) {}
-			else if ((check(results, p, locale, "hh:mm:ssa", "HH:mm:ss"))) {}
-			else if ((check(results, p, locale, "h:mm:ssa", "H:mm:ss"))) {}
-			else if ((check(results, p, locale, "hh:mma", "HH:mm"))) {}
-			else if ((check(results, p, locale, "h:mma", "H:mm"))) {}
+			if ((check(results, p, locale, "hh:mm:ss a", "HH:mm:ss"))) {
+			}
+			else if ((check(results, p, locale, "h:mm:ss a", "H:mm:ss"))) {
+			}
+			else if ((check(results, p, locale, "hh:mm a", "HH:mm"))) {
+			}
+			else if ((check(results, p, locale, "h:mm a", "H:mm"))) {
+			}
+			else if ((check(results, p, locale, "hh:mm:ssa", "HH:mm:ss"))) {
+			}
+			else if ((check(results, p, locale, "h:mm:ssa", "H:mm:ss"))) {
+			}
+			else if ((check(results, p, locale, "hh:mma", "HH:mm"))) {
+			}
+			else if ((check(results, p, locale, "h:mma", "H:mm"))) {
+			}
 		}
 		if (isDate) {
-			if ((check(results, p, locale, "y,", "y"))) {}
-			if ((check(results, p, locale, "d MMMM ", "d. MMMM "))) {}
-			if ((check(results, p, locale, "d MMM y", "d-MMM-y"))) {}
+			if ((check(results, p, locale, "y,", "y"))) {
+			}
+			if ((check(results, p, locale, "d MMMM ", "d. MMMM "))) {
+			}
+			if ((check(results, p, locale, "d MMM y", "d-MMM-y"))) {
+			}
 		}
 		if (results.size() > 0) {
 			Iterator<SimpleDateFormat> it = results.iterator();

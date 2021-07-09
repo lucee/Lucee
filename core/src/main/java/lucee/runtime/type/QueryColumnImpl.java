@@ -116,7 +116,8 @@ public class QueryColumnImpl implements QueryColumnPro, Objects {
 	/**
 	 * Constructor of the class for internal usage only
 	 */
-	public QueryColumnImpl() {}
+	public QueryColumnImpl() {
+	}
 
 	@Override
 	public int size() {
@@ -760,7 +761,8 @@ public class QueryColumnImpl implements QueryColumnPro, Objects {
 			try {
 				if (Operator.compare(o, data[i]) == 0) return i;
 			}
-			catch (PageException e) {}
+			catch (PageException e) {
+			}
 		}
 		return -1;
 	}
@@ -770,7 +772,8 @@ public class QueryColumnImpl implements QueryColumnPro, Objects {
 			try {
 				if (Operator.compare(o, data[i]) == 0) return i;
 			}
-			catch (PageException e) {}
+			catch (PageException e) {
+			}
 		}
 		return -1;
 	}

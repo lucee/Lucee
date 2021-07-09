@@ -64,7 +64,8 @@ public class ClientDatasource extends StorageScopeDatasource implements Client {
 		try {
 			return getInstance(datasourceName, pc, log);
 		}
-		catch (PageException e) {}
+		catch (PageException e) {
+		}
 		return defaultValue;
 	}
 

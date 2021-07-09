@@ -1,3 +1,4 @@
 package lucee;
 
-public final class print extends aprint {}
+public final class print extends aprint {
+}

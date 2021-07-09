@@ -111,7 +111,8 @@ public final class SchedulerImpl implements Scheduler {
 		try {
 			doc = XMLUtil.createDocument(xml, false);
 		}
-		catch (Exception e) {}
+		catch (Exception e) {
+		}
 		tasks = new ScheduleTaskImpl[0];
 		init();
 	}
@@ -389,7 +390,8 @@ public final class SchedulerImpl implements Scheduler {
 			try {
 				removeScheduleTask(task.getTask(), false);
 			}
-			catch (ScheduleException e) {}
+			catch (ScheduleException e) {
+			}
 		}
 	}
 

@@ -661,7 +661,8 @@ public final class TagLibTag {
 			if (method == null) return false;
 			return method.getReturnType() == void.class;
 		}
-		catch (Exception e) {}
+		catch (Exception e) {
+		}
 		return false;
 	}
 

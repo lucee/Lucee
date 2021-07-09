@@ -179,7 +179,8 @@ public abstract class XMLConfigFactory {
 				int count = 1;
 				Resource bugFile;
 				Resource configDir = configFile.getParentResource();
-				while ((bugFile = configDir.getRealResource("lucee-" + type + "." + (count++) + ".buggy")).exists()) {}
+				while ((bugFile = configDir.getRealResource("lucee-" + type + "." + (count++) + ".buggy")).exists()) {
+				}
 				IOUtil.copy(configFile, bugFile);
 				configFile.delete();
 			}
@@ -281,7 +282,7 @@ public abstract class XMLConfigFactory {
 	 * @throws IOException
 	 */
 	static void createFileFromResource(String resource, Resource file, String password) throws IOException {
-		LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), Log.LEVEL_INFO, XMLConfigFactory.class.getName(), "Write file: [" + file +"]");
+		LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), Log.LEVEL_INFO, XMLConfigFactory.class.getName(), "Write file: [" + file + "]");
 		if (file.exists()) file.delete();
 
 		InputStream is = InfoImpl.class.getResourceAsStream(resource);
@@ -334,7 +335,7 @@ public abstract class XMLConfigFactory {
 	static void delete(Resource dbDir, String name) {
 		Resource f = dbDir.getRealResource(name);
 		if (f.exists()) {
-			LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), Log.LEVEL_INFO, XMLConfigFactory.class.getName(), "Delete file: [" + f +"]");
+			LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), Log.LEVEL_INFO, XMLConfigFactory.class.getName(), "Delete file: [" + f + "]");
 
 			f.delete();
 		}

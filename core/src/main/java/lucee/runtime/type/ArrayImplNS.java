@@ -577,7 +577,8 @@ public final class ArrayImplNS extends ArraySupport implements Array {
 			try {
 				o = getE(i);
 			}
-			catch (Exception e) {}
+			catch (Exception e) {
+			}
 			table.appendRow(1, new SimpleDumpData(i), DumpUtil.toDumpData(o, pageContext, maxlevel, dp));
 		}
 		return table;
@@ -620,7 +621,8 @@ public final class ArrayImplNS extends ArraySupport implements Array {
 				else arr.set(e.getKey(), e.getValue());
 			}
 		}
-		catch (ExpressionException ee) {}
+		catch (ExpressionException ee) {
+		}
 		finally {
 			if (!inside) ThreadLocalDuplication.reset();
 		}

@@ -466,7 +466,8 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 						pc.forceWrite(content);
 						hasContent = true;
 					}
-					catch (IOException e) {}
+					catch (IOException e) {
+					}
 				}
 			}
 
@@ -655,7 +656,8 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 							try {
 								args = new CFMLExpressionInterpreter().interpret(pc, str);
 							}
-							catch (PageException _pe) {}
+							catch (PageException _pe) {
+							}
 						}
 					}
 				}

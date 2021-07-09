@@ -31,7 +31,8 @@ public class ConsoleAppender extends WriterAppender implements AppenderState, Ap
 
 	private Object sync = new SerializableObject();
 
-	public ConsoleAppender() {}
+	public ConsoleAppender() {
+	}
 
 	public ConsoleAppender(Layout layout) {
 		setLayout(layout);

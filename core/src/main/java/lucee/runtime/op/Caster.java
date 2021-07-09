@@ -145,7 +145,8 @@ import lucee.runtime.util.ForEachUtil;
  * This class can cast object of one type to another by CFML rules
  */
 public final class Caster {
-	private Caster() {}
+	private Caster() {
+	}
 	// static Map calendarsMap=new ReferenceMap(ReferenceMap.SOFT,ReferenceMap.SOFT);
 
 	private static final int NUMBERS_MIN = 0;
@@ -3240,7 +3241,8 @@ public final class Caster {
 					}
 					return new TimeSpanImpl(values[0], values[1], values[2], values[3]);
 				}
-				catch (ExpressionException e) {}
+				catch (ExpressionException e) {
+				}
 			}
 		}
 		else if (o instanceof ObjectWrap) {
@@ -3371,7 +3373,8 @@ public final class Caster {
 			try {
 				return toClassName(((ObjectWrap) o).getEmbededObject());
 			}
-			catch (PageException e) {}
+			catch (PageException e) {
+			}
 		}
 		return toClassName(o.getClass());
 	}
@@ -3939,7 +3942,8 @@ public final class Caster {
 					try {
 						val = Caster.castTo(pc, p.getType(), pair.getValue(), false);
 					}
-					catch (PageException e) {}
+					catch (PageException e) {
+					}
 
 					// store in variables and this scope
 					scope.setEL(pair.getName(), val);
@@ -3948,7 +3952,8 @@ public final class Caster {
 				return cfc;
 			}
 		}
-		catch (PageException e) {}
+		catch (PageException e) {
+		}
 		return defaultValue;
 	}
 
@@ -4558,7 +4563,8 @@ public final class Caster {
 				return new ScriptConverter().serialize(value);
 			}
 		}
-		catch (ConverterException e) {}
+		catch (ConverterException e) {
+		}
 		return defaultValue;
 	}
 

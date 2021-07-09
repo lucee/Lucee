@@ -96,7 +96,8 @@ public class ComponentScopeShadow extends StructSupport implements ComponentScop
 	}
 
 	@Override
-	public void initialize(PageContext pc) {}
+	public void initialize(PageContext pc) {
+	}
 
 	@Override
 	public boolean isInitalized() {
@@ -104,7 +105,8 @@ public class ComponentScopeShadow extends StructSupport implements ComponentScop
 	}
 
 	@Override
-	public void release(PageContext pc) {}
+	public void release(PageContext pc) {
+	}
 
 	@Override
 	public void clear() {
@@ -385,7 +387,8 @@ public class ComponentScopeShadow extends StructSupport implements ComponentScop
 	}
 
 	@Override
-	public void setBind(boolean bind) {}
+	public void setBind(boolean bind) {
+	}
 
 	@Override
 	public boolean isBind() {

@@ -64,7 +64,8 @@ public class SessionDatasource extends StorageScopeDatasource implements Session
 		try {
 			return getInstance(datasourceName, pc, log);
 		}
-		catch (PageException e) {}
+		catch (PageException e) {
+		}
 		return defaultValue;
 	}
 

@@ -414,7 +414,8 @@ public class DeployHandler {
 					return res;
 				}
 			}
-			catch (Exception e) {}
+			catch (Exception e) {
+			}
 		}
 		// remote
 		return downloadExtension(config, ed, log);

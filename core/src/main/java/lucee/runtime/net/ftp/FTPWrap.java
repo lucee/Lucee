@@ -83,7 +83,8 @@ public final class FTPWrap {
 		try {
 			if (client != null && client.isConnected()) client.disconnect();
 		}
-		catch (IOException ioe) {}
+		catch (IOException ioe) {
+		}
 		connect();
 	}
 

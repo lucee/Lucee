@@ -156,7 +156,8 @@ public final class DebuggerImpl implements Debugger {
 		queryTime = 0;
 	}
 
-	public DebuggerImpl() {}
+	public DebuggerImpl() {
+	}
 
 	@Override
 	public DebugEntryTemplate getEntry(PageContext pc, PageSource source) {
@@ -340,7 +341,8 @@ public final class DebuggerImpl implements Debugger {
 		try {
 			args.setEL(KeyConstants._debugging, pc.getDebugger().getDebuggingData(pc));
 		}
-		catch (PageException e1) {}
+		catch (PageException e1) {
+		}
 
 		try {
 			String path = debugEntry.getPath();
@@ -452,7 +454,8 @@ public final class DebuggerImpl implements Debugger {
 					else qryExe.setEL(KeyImpl.init(qe.getSrc()), Long.valueOf(((Long) o).longValue() + qe.getExecutionTime()));
 				}
 			}
-			catch (PageException dbe) {}
+			catch (PageException dbe) {
+			}
 		}
 		else {
 			queryTime = this.queryTime;
@@ -490,7 +493,8 @@ public final class DebuggerImpl implements Debugger {
 						qryPage.setAt(KeyConstants._src, row, de.getSrc());
 					}
 				}
-				catch (PageException dbe) {}
+				catch (PageException dbe) {
+				}
 			}
 		}
 		else {
@@ -556,7 +560,8 @@ public final class DebuggerImpl implements Debugger {
 					}
 				}
 			}
-			catch (PageException dbe) {}
+			catch (PageException dbe) {
+			}
 		}
 
 		//////////////////////////////////////////
@@ -627,7 +632,8 @@ public final class DebuggerImpl implements Debugger {
 						qryTimers.setAt(KeyConstants._time, row, Caster.toDouble(timer.getTime()));
 					}
 				}
-				catch (PageException dbe) {}
+				catch (PageException dbe) {
+				}
 			}
 		}
 
@@ -641,7 +647,8 @@ public final class DebuggerImpl implements Debugger {
 			history.addColumn(KeyConstants._id, historyId);
 			history.addColumn(KeyConstants._level, historyLevel);
 		}
-		catch (PageException e) {}
+		catch (PageException e) {
+		}
 
 		//////////////////////////////////////////
 		//////// DUMPS ///////////////////////////
@@ -665,7 +672,8 @@ public final class DebuggerImpl implements Debugger {
 						if (dd.getLine() > 0) qryDumps.setAt(KeyConstants._line, row, new Double(dd.getLine()));
 					}
 				}
-				catch (PageException dbe) {}
+				catch (PageException dbe) {
+				}
 			}
 		}
 
@@ -697,7 +705,8 @@ public final class DebuggerImpl implements Debugger {
 						qryTraces.setAt(KeyConstants._time, row, new Double(trace.getTime()));
 					}
 				}
-				catch (PageException dbe) {}
+				catch (PageException dbe) {
+				}
 			}
 		}
 
@@ -724,7 +733,8 @@ public final class DebuggerImpl implements Debugger {
 
 					}
 				}
-				catch (PageException dbe) {}
+				catch (PageException dbe) {
+				}
 			}
 		}
 
