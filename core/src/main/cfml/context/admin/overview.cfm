@@ -854,8 +854,8 @@ Error Output --->
 								<input type="text" style="width:99%" name="label_#rst.currentrow#" value="#rst.label#"/>
 							</td>
 							<td><cfif len(rst.url)><a target="_blank" href="#rst.url#/lucee/admin/web.cfm">#rst.url#</a></cfif></td>
-							<td><input type="text" class="xlarge" name="path_#rst.currentrow#" value="#rst.path#" readonly="readonly"/></td>
-							<td><input type="text" class="xlarge" style="width:99%" name="cf_#rst.currentrow#" value="#rst.config_file#" readonly="readonly"/></td>
+							<td>#rst.path#</td>
+							<td>#rst.config_file#</td>
 						</tr>
 
 						<cfset filesThreshold = 100000>
