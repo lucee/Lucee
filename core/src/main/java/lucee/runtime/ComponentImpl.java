@@ -1626,7 +1626,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 			if (arrStatics.size() != 0) {
 				Collections.sort(arrStatics, new ComparatorImpl());
 			}
-			sct.set(KeyConstants._staticFunctions, arr);
+			sct.set(KeyConstants._staticFunctions, arrStatics);
 		}
 	}
 
