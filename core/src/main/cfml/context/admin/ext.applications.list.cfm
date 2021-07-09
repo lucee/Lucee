@@ -185,18 +185,30 @@ Latest version: #latest.v#</cfif>"><cfif hasUpdates>
 
 	<cfscript>
 		VersionStr = {
-			'pre_release': QueryNew( availableExt.columnlist ),
-			'snapshot': QueryNew( availableExt.columnlist ),
-			'release': QueryNew( availableExt.columnlist )
+			'pre_release':queryNew(availableExt.columnlist),
+			'snapshot':queryNew(availableExt.columnlist),
+			'release':queryNew(availableExt.columnlist)
 		};
 
 		loop query=availableExt {
-			if(findNoCase("-ALPHA",availableExt.version) || findNoCase("-BETA",availableExt.version) || findNoCase("-RC",availableExt.version)) 
-				addRow(availableExt,VersionStr.pre_release,availableExt.currentrow);
-			else if(findNoCase("-SNAPSHOT",availableExt.version)) 
-				addRow(availableExt,VersionStr.snapshot,availableExt.currentrow);
+			versions = duplicate(availableExt.otherVersions);
+			ArrayPrepend(versions, availableExt.version);
+			t = { snap: 0, pre: 0, rel: 0 };
+			loop array=versions item="variables.v" {
+				if(findNoCase("-ALPHA", v) || findNoCase("-BETA", v) || findNoCase("-RC", v)) {
+					t.pre++;
+				} else if(findNoCase("-SNAPSHOT", v)) {
+					t.snap++;
+				} else {
+					t.rel++;
+				}
+			}
+			if ( t.rel > 0 )
+				addRow( availableExt, VersionStr.release, availableExt.currentrow );
+			else if ( t.pre > 0 )
+				addRow( availableExt, VersionStr.pre_release, availableExt.currentrow );
 			else
-				addRow(availableExt,VersionStr.release,availableExt.currentrow);
+				addRow( availableExt, VersionStr.snapshot, availableExt.currentrow );
 		}
 
 		function addRow( src, trg, srcRow ) {
