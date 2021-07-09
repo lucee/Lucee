@@ -139,7 +139,7 @@ function createEventevent(v, i, events, eventName) {
 	var json = JSON.parse(events.value);
 	for (j = 0; j < json.length; j++) {
 		if (json[j] == i.value) {
-			$(".msg").empty().append("<div class='error'>Can't overwrite <b>" + eventName + "</b>. Already same name is available. </div>");
+			$(".msg").empty().append("<div class='error'>An Event Gateway with the name ["+ eventName +"] already exists</div>");
 			disableBlockUI = true;
 			return false;
 		}
