@@ -149,7 +149,7 @@ component {
 		SystemOut.setOut( out );
 		//SystemOut.setErr(err);
 		//"============================================================="
-		systemOutput( TAB & meta.name, false );
+		systemOutput( TAB & meta.name & " ", false );
 		SystemOut.setOut( nullValue() );
 		//SystemOut.setErr(nullValue());
 	} // onBundleStart = function

@@ -16,7 +16,9 @@ component {
 		"FTP_PASSWORD": "top-secret",
 		"SFTP_PASSWORD": "top-secret",
 		"MAIL_PASSWORD": "top-secret",
-		"S3_SECRET_KEY": "top-secret"
+		"S3_SECRET_KEY": "top-secret",
+		"MONGODB_PORT": 27017,
+		"MEMCACHED_PORT": 11211
 	}
 
 	*/
@@ -76,7 +78,7 @@ component {
 			"MONGODB_SERVER": "localhost",
 			"MONGODB_USERNAME": "",
 			"MONGODB_PASSWORD": "",  // DON'T COMMIT
-			"MONGODB_PORT": 27017,
+			// "MONGODB_PORT": 27017, // DON'T COMMIT
 			"MONGODB_DB": "lucee",
 			/*
 			-- USER SQL
@@ -128,7 +130,12 @@ component {
 
 			"SMTP_SERVER": "localhost",
 			"SMTP_PORT_SECURE": 25,
-			"SMTP_PORT_INSECURE": 587
+			"SMTP_PORT_INSECURE": 587,
+
+			"MEMCACHED_SERVER": "localhost",
+			// "MEMCACHED_PORT": 11211 // DON'T COMMIT
+			
+
 		};
 	}
 
@@ -136,7 +143,7 @@ component {
 		systemOutput( "", true) ;		
 		systemOutput("-------------- Test Services ------------", true );
 
-		services = ListToArray("oracle,MySQL,MSsql,postgres,h2,mongoDb,smtp,pop,imap,s3,ftp,sftp");
+		services = ListToArray("oracle,MySQL,MSsql,postgres,h2,mongoDb,smtp,pop,imap,s3,ftp,sftp,memcached");
 		// take a while, do them in parallel
 		services.each( function( service ) localmode=true {
 			cfg = server.getTestService( service=arguments.service, verify=true );
@@ -168,6 +175,9 @@ component {
 							break;
 						case "mongoDb":
 							verify = verifyMongo(cfg);
+							break;
+						case "memcached":
+							verify = verifyMemcached(cfg);
 							break;
 						default:
 							verify = verifyDatasource(cfg);
@@ -206,10 +216,22 @@ component {
 	public function verifyMongo ( mongo ) localmode=true {
 		conn = MongoDBConnect( arguments.mongo.db, arguments.mongo.server, arguments.mongo.port );
 		/*
+		opts = {
+			"connectTimeoutMS": 2500,
+			"serverSelectionTimeoutMS": 2500
+		}; // default is 30s, which slows down tests when not available
+
+		// neither of these two work
+		conn = MongoDBConnect("#arguments.mongo.server#:#arguments.mongo.port#/#arguments.mongo.db#?#opts#);
+		conn = MongoDBConnect("#arguments.mongo.server#:#arguments.mongo.port#/#arguments.mongo.db#", opts);
+		*/
+
+		/*
 		var q = extensionList().filter(function(row){
 			return row.name contains "mongo";
 		});
 		*/
+		// systemOutput(conn.command("buildInfo"));
 		name = conn.command("buildInfo").version; // & ", " & q.name;
 		//conn.disconnect();
 		return "MongoDB " & name;
@@ -236,7 +258,12 @@ component {
 		DirectoryExists( base );		
 		return "s3 Connection Verified";
 	}
-		
+	public function verifyMemcached ( memcached ) localmode=true{
+		if ( structCount( memcached ) eq 2 ){
+			return "configured (not tested)";
+		}	
+		throw "not configured";
+	}	
 
 	public function addSupportFunctions() {
 		server._getSystemPropOrEnvVars = function ( string props="", string prefix="", boolean stripPrefix=true, boolean allowEmpty=false ) localmode=true{
@@ -346,7 +373,7 @@ component {
 			case "mongoDB":
 				mongoDB = server._getSystemPropOrEnvVars( "SERVER, PORT, DB", "MONGODB_" );
 				mongoDBcreds = server._getSystemPropOrEnvVars( "USERNAME, PASSWORD", "MONGODB_" );
-				if ( structCount( mongoDb ) gt 0 ){
+				if ( structCount( mongoDb ) eq 3 ){
 					if (structCount( mongoDBcreds ) eq 2 ){
 						StructAppend(mongoDB, mongoDBcreds)
 					} else {
@@ -403,6 +430,12 @@ component {
 			case "s3":
 				s3 = server._getSystemPropOrEnvVars( "ACCESS_KEY_ID, SECRET_KEY", "S3_" );
 				return s3;
+			case "memcached":
+				memcached = server._getSystemPropOrEnvVars( "SERVER, PORT", "MEMCACHED_" );
+				if ( memcached.count() eq 2 ){
+					return memcached;
+				}
+				break;
 			default:
 				break;
 		}
