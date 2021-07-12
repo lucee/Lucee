@@ -106,7 +106,7 @@ public final class ScheduleTaskImpl implements ScheduleTask {
 		if (file != null && file.toString().trim().length() > 0) {
 			// is it a file?
 			if (file.exists() && !file.isFile()) {
-				((SchedulerImpl) scheduler).getConfig().getLog("scheduler").error("scheduler", "output file [" + file + "] is not a file");
+				((SchedulerImpl) scheduler).getConfig().getLog("scheduler").error("scheduler", "Output file [" + file + "] is not a file");
 				file = null;
 			}
 			// cgeck parent directory
@@ -120,15 +120,15 @@ public final class ScheduleTaskImpl implements ScheduleTask {
 			}
 			// no parent directory
 			if (parent == null) {
-				((SchedulerImpl) scheduler).getConfig().getLog("scheduler").error("scheduler", "Directory for output file [" + file + "] doesn't exists");
+				((SchedulerImpl) scheduler).getConfig().getLog("scheduler").error("scheduler", "Directory for output file [" + file + "] doesn't exist");
 				file = null;
 			}
 		}
 		if (timeout < 1) {
-			throw new ScheduleException("value timeout must be greater than 0");
+			throw new ScheduleException("Value for [timeout] must be greater than 0");
 		}
-		if (startDate == null) throw new ScheduleException("start date is required");
-		if (startTime == null) throw new ScheduleException("start time is required");
+		if (startDate == null) throw new ScheduleException("Start date is required");
+		if (startTime == null) throw new ScheduleException("Start time is required");
 		// if(endTime==null)endTime=new Time(23,59,59,999);
 
 		this.task = task.trim();
@@ -171,7 +171,7 @@ public final class ScheduleTaskImpl implements ScheduleTask {
 			else if (interval.equals("month")) return INTERVAL_MONTH;
 			else if (interval.equals("weekly")) return INTERVAL_WEEK;
 			else if (interval.equals("week")) return INTERVAL_WEEK;
-			throw new ScheduleException("invalid interval definition [" + interval + "], valid values are [once,daily,monthly,weekly or number]");
+			throw new ScheduleException("invalid interval definition [" + interval + "], valid values are [once, daily, monthly, weekly or number]");
 		}
 		if (i < 10) {
 			throw new ScheduleException("interval must be at least 10");
@@ -364,7 +364,7 @@ public final class ScheduleTaskImpl implements ScheduleTask {
 					return; // existing is still fine, so nothing to start
 				}
 			}
-			((SchedulerImpl) scheduler).getConfig().getLog("scheduler").info("scheduler", "thread needs a restart (" + thread.getState().name() + ")");
+			((SchedulerImpl) scheduler).getConfig().getLog("scheduler").info("scheduler", "Thread needs a restart (" + thread.getState().name() + ")");
 
 		}
 		this.thread = new ScheduledTaskThread(engine, scheduler, this);
