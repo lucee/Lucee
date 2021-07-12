@@ -33,16 +33,11 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="memcached"{
 				cachePut(id:'testQry', value:testQuery, cacheName:variables.cacheName);	
 				var cachedQuery = cacheget(id:'testQry', cacheName:variables.cacheName);
 				var result = "";
-				var result2 = "";
-
 				try{
-					result2=serialize(cachedQuery);
 					result=cachedQuery.name[1];
 				}catch(any e){
 					result=e.message;
 				}
-
-				expect(result2).toBe("excpet an error here");
 				expect(result).toBe("user1");
 			});
 		});
