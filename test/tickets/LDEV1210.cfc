@@ -30,16 +30,19 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="memcached"{
 
 			it( title='Checking to cache query using Memcached extension', skip=isNotSupported(), body=function( currentSpec ) {
 				var testQuery = queryNew("name,age","varchar,numeric",{name:["user1","user2"],age:[15,20]});
-				cachePut(id:'testQry', value:testQuery, cacheName:variables.cacheName);
+				cachePut(id:'testQry', value:testQuery, cacheName:variables.cacheName);	
 				var cachedQuery = cacheget(id:'testQry', cacheName:variables.cacheName);
 				var result = "";
+				var result2 = "";
 
 				try{
+					result2=serialize(cachedQuery);
 					result=cachedQuery.name[1];
 				}catch(any e){
 					result=e.message;
 				}
 
+				expect(result2).toBe("excpet an error here");
 				expect(result).toBe("user1");
 			});
 		});
