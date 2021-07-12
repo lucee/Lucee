@@ -104,9 +104,25 @@ public final class ScheduleTaskImpl implements ScheduleTask {
 		this.md5 = md5;
 
 		if (file != null && file.toString().trim().length() > 0) {
+			// is it a file?
+			if (file.exists() && !file.isFile()) {
+				((SchedulerImpl) scheduler).getConfig().getLog("scheduler").error("scheduler", "output file [" + file + "] is not a file");
+				file = null;
+			}
+			// cgeck parent directory
 			Resource parent = file.getParentResource();
-			if (parent == null || !parent.exists()) throw new IOException("Directory for output file [" + file + "] doesn't exist");
-			if (file.exists() && !file.isFile()) throw new IOException("output file [" + file + "] is not a file");
+			if (parent != null) {
+				if (!parent.exists()) {
+					Resource grandParent = parent.getParentResource();
+					if (grandParent != null && grandParent.exists()) parent.mkdir();
+					else parent = null;
+				}
+			}
+			// no parent directory
+			if (parent == null) {
+				((SchedulerImpl) scheduler).getConfig().getLog("scheduler").error("scheduler", "Directory for output file [" + file + "] doesn't exists");
+				file = null;
+			}
 		}
 		if (timeout < 1) {
 			throw new ScheduleException("value timeout must be greater than 0");
