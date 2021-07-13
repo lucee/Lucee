@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" skip="true"{
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="zip" skip="true"{
 	function beforeAll(){
 		variables.uri = createURI("LDEV2660");
 	}
@@ -8,14 +8,14 @@ component extends="org.lucee.cfml.test.LuceeTestCase" skip="true"{
 			it(title = "Checking overwrite attribute in cfzip action=unzip", body = function( currentSpec ) {
 				local.result = _InternalRequest(
 					template:"#variables.uri#/index.cfm"
-                );
+				);
 				expect(local.result.filecontent.trim()).toBe("true");
 			});
 		});
 	}
 
 	private string function createURI(string calledName){
-		var baseURI="/test/#listLast(getDirectoryFromPath(getCurrenttemplatepath()),"\/")#/";
+		var baseURI="/test/#listLast(getDirectoryFromPath(getCurrentTemplatePath()),"\/")#/";
 		return baseURI&""&calledName;
 	}
 }
