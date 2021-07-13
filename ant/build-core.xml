@@ -65,6 +65,7 @@
     <property name="test" location="${rootDir}/test"/>
     <property name="testFilter" value=""/>
     <property name="testLabels" value=""/>
+    <property name="testExtensions" value=""/>
     <property name="temp" location="${rootDir}/temp"/>
     <property name="loader" location="${temp}/loader"/>
     <property name="core" location="${temp}/core"/>
@@ -489,6 +490,11 @@
 </target>
 
 <target name="__build_testbox" if="testcases">
+    <!-- optionally install test lucee extensions from a directory -->
+    <deployTestExtensions
+      srcdir="${testExtensions}" 
+      deploydir="${temp}/archive/base/lucee-server/deploy/"/>
+
     <listDirectory directory="${test}/lib" delimiter=":" returnvalue="test_jars"/>
     <echots message="execute testcases ${testcases}"/>
     <!-- execute CFML testcases -->
