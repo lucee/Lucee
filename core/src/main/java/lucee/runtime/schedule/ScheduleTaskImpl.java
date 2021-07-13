@@ -109,19 +109,21 @@ public final class ScheduleTaskImpl implements ScheduleTask {
 				((SchedulerImpl) scheduler).getConfig().getLog("scheduler").error("scheduler", "Output file [" + file + "] is not a file");
 				file = null;
 			}
-			// cgeck parent directory
-			Resource parent = file.getParentResource();
-			if (parent != null) {
-				if (!parent.exists()) {
-					Resource grandParent = parent.getParentResource();
-					if (grandParent != null && grandParent.exists()) parent.mkdir();
-					else parent = null;
+			else {
+				// check parent directory
+				Resource parent = file.getParentResource();
+				if (parent != null) {
+					if (!parent.exists()) {
+						Resource grandParent = parent.getParentResource();
+						if (grandParent != null && grandParent.exists()) parent.mkdir();
+						else parent = null;
+					}
 				}
-			}
-			// no parent directory
-			if (parent == null) {
-				((SchedulerImpl) scheduler).getConfig().getLog("scheduler").error("scheduler", "Directory for output file [" + file + "] doesn't exist");
-				file = null;
+				// no parent directory
+				if (parent == null) {
+					((SchedulerImpl) scheduler).getConfig().getLog("scheduler").error("scheduler", "Directory for output file [" + file + "] doesn't exist");
+					file = null;
+				}
 			}
 		}
 		if (timeout < 1) {
