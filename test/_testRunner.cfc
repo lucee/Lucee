@@ -45,6 +45,9 @@ component {
 				return meta;
 			}
 
+			if ( meta.skip ?: false)
+				return "test suite has skip=true";
+
 			var extends = checkExtendsTestCase( meta, arguments.path );
 			if ( extends neq "org.lucee.cfml.test.LuceeTestCase" )
 				return "test doesn't extend Lucee Test Case (#extends#)";
