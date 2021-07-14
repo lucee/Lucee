@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" labels="qoq" {
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="qoq" skip=true {
 
 	function testQoQunion (){
 		var q1 = queryNew(
