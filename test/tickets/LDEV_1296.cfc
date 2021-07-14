@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase"{
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="null" skip=true{
 	function run( testResults , testBox ) {
 		describe("Test suite for LDEV-1296", function() {
 			it(title = "query.reduce member function, With default value on queryReduce", body = function( currentSpec ) {
