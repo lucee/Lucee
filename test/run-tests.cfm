@@ -126,7 +126,7 @@ try {
 				type="web"
 				password="#request.WEBADMINPASSWORD#"
 				virtual="/testAdditional"
-				physical="#testAdditional#"
+				physical="#request.testAdditional#"
 				toplevel="true"
 				archive=""
 				primary="physical"
