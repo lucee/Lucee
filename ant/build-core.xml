@@ -63,9 +63,14 @@
     <property name="srcInst" location="${rootDir}/instrumentation/src/main/java"/> 
     <property name="ant" location="${rootDir}/ant"/>
     <property name="test" location="${rootDir}/test"/>
+    <!-- free text filter, comma delimitered to filter tests based on path -->
     <property name="testFilter" value=""/>
+    <!-- list of labels to filter tests by, comma delimitered -->
     <property name="testLabels" value=""/>
+    <!-- a local directory to install additional extensions -->
     <property name="testExtensions" value=""/>
+    <!-- a local directory to run additional tests  -->
+    <property name="testAdditional" value=""/>
     <property name="temp" location="${rootDir}/temp"/>
     <property name="loader" location="${temp}/loader"/>
     <property name="core" location="${temp}/core"/>
@@ -511,6 +516,7 @@
       <jvmarg value="-Dtest=${test}"/>
       <jvmarg value="-DtestFilter=${testFilter}"/>
       <jvmarg value="-DtestLabels=${testLabels}"/>
+      <jvmarg value="-DtestAdditional=${testAdditional}"/>      
       <jvmarg value="-Dtemp=${temp}"/>
       <jvmarg value="-Dbasedir=${baseDir}"/>
       <jvmarg value="-Dsrcall=${srcAll}"/>
