@@ -30,7 +30,7 @@ try {
 		type="web"
 		password="#request.WEBADMINPASSWORD#"
 		virtual="/test"
-		physical="#test#"
+		physical="#request.testFolder#"
 		toplevel="true"
 		archive=""
 		primary="physical"
@@ -104,6 +104,35 @@ try {
 		SystemOutput( "Filtering tests with the following label(s) #request.testLabels.toJson()#", true );
 	else
 		systemOutput( NL & 'Running all tests, to run a subset of test(s), use the parameter -DtestLabels="s3,oracle"', true );
+
+	param name="testAdditional" default="";	
+	request.testAdditional = testAdditional;
+
+	if ( len( request.testAdditional ) eq 0 ){
+		request.testAdditional = server._getSystemPropOrEnvVars("testAdditional", "", false);
+		if ( structCount( request.testAdditional ) )
+			request.testAdditional = request.testAdditional.testAdditional;
+		else
+			request.testAdditional="";
+	}		
+	if ( len(request.testAdditional) ){
+		SystemOutput( "Adding additional tests from [#request.testAdditional#]", true );
+		if (!DirectoryExists( request.testAdditional )){
+			SystemOutput( "ERROR directory [#request.testAdditional#] doesn't exist!", true );
+			request.testAdditional = "";
+		} else {
+			admin
+				action="updateMapping"
+				type="web"
+				password="#request.WEBADMINPASSWORD#"
+				virtual="/testAdditional"
+				physical="#testAdditional#"
+				toplevel="true"
+				archive=""
+				primary="physical"
+				trusted="no";
+		}
+	}
 
 	// output deploy log
 	pc = getPageContext();
