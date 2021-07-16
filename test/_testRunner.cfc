@@ -30,7 +30,7 @@ component {
 			var name = listLast( arguments.path, "\/" );
 			var testPath = Mid( arguments.path, len( testDirectory ) + 1); // otherwise "image" would match extension-image on CI
 			switch ( true ){
-				case ( left (name, 1 ) == "_" ):
+				case ( left (name, 1 ) == "_" && request.testSkip):
 					return "test has _ prefix (#name#)";
 				case ( checkTestFilter( testPath ) ):
 					return "excluded by testFilter";
@@ -48,7 +48,7 @@ component {
 				return meta;
 			}
 
-			if ( meta.skip ?: false)
+			if (request.testSkip && meta.skip ?: false)
 				return "test suite has skip=true";
 
 			var extends = checkExtendsTestCase( meta, arguments.path );
