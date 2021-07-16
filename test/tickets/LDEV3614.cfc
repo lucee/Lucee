@@ -17,9 +17,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 		expect( all.recordcount ).toBe( 4 );
 		var dir = directoryList( uri, false, "query", "", "", "dir" );
 		expect( dir.recordcount ).toBe( 2 );
-		systemOutput( " ", true );
-		systemOutput( dir, true );
-		systemOutput( all, true );
 	}
 
 	private string function createURI(string calledName){
