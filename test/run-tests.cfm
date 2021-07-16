@@ -105,6 +105,24 @@ try {
 	else
 		systemOutput( NL & 'Running all tests, to run a subset of test(s), use the parameter -DtestLabels="s3,oracle"', true );
 
+	
+	param name="testSkip" default="true";
+	if ( len(testSkip) eq 0)
+		testSkip = true;
+	request.testSkip = testSkip;
+
+	if ( !request.testSkip )
+		SystemOutput( "Force running tests marked skip=true or prefixed with an _", true );
+	
+	param name="testDebug" default="false";
+	if ( len(testDebug) eq 0)
+		testDebug = false;
+	request.testDebug = testDebug;
+
+	if ( request.testDebug )
+		SystemOutput( "Test Debugging enabled", true );
+	
+
 	param name="testAdditional" default="";	
 	request.testAdditional = testAdditional;
 

@@ -71,6 +71,11 @@
     <property name="testExtensions" value=""/>
     <!-- a local directory to run additional tests  -->
     <property name="testAdditional" value=""/>
+    <!-- enable running disabled tests (either via _ prefix or skip=true)  -->
+    <property name="testSkip" value=""/>
+    <!-- enable debug output from tests (i.e tests which crash are normally silently skipped)  -->
+    <property name="testDebug" value=""/>
+    
     <property name="temp" location="${rootDir}/temp"/>
     <property name="loader" location="${temp}/loader"/>
     <property name="core" location="${temp}/core"/>
@@ -516,7 +521,9 @@
       <jvmarg value="-Dtest=${test}"/>
       <jvmarg value="-DtestFilter=${testFilter}"/>
       <jvmarg value="-DtestLabels=${testLabels}"/>
-      <jvmarg value="-DtestAdditional=${testAdditional}"/>      
+      <jvmarg value="-DtestAdditional=${testAdditional}"/>
+      <jvmarg value="-DtestSkip=${testSkip}"/>
+      <jvmarg value="-DtestDebug=${testDebug}"/>
       <jvmarg value="-Dtemp=${temp}"/>
       <jvmarg value="-Dbasedir=${baseDir}"/>
       <jvmarg value="-Dsrcall=${srcAll}"/>
