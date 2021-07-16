@@ -113,6 +113,15 @@ try {
 
 	if ( !request.testSkip )
 		SystemOutput( "Force running tests marked skip=true or prefixed with an _", true );
+	
+	param name="testDebug" default="false";
+	if ( len(testDebug) eq 0)
+		testDebug = false;
+	request.testDebug = testDebug;
+
+	if ( request.testDebug )
+		SystemOutput( "Test Debugging enabled", true );
+	
 
 	param name="testAdditional" default="";	
 	request.testAdditional = testAdditional;

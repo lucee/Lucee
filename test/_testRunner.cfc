@@ -44,11 +44,12 @@ component {
 			var meta = getTestMeta( arguments.path );
 			if ( !isStruct( meta ) ){
 				// TODO bad cfc tickets get ignored
-				// SystemOutput( "ERROR: [" & arguments.path & "] threw " & meta, true );
+				if ( request.testDebug )
+					SystemOutput( "ERROR: [" & arguments.path & "] threw " & meta, true );
 				return meta;
 			}
 
-			if (request.testSkip && meta.skip ?: false)
+			if (request.testSkip && structKeyExists(meta, "skip") && meta.skip ?: false)
 				return "test suite has skip=true";
 
 			var extends = checkExtendsTestCase( meta, arguments.path );
@@ -103,7 +104,8 @@ component {
 		allowed = isValidTestCase( arguments.path );
 		//SystemOutput( arguments.path & " :: " & allowed, true );
 		if ( allowed != "" ){
-			//SystemOutput( arguments.path & " :: " & allowed, true );
+			if ( request.testDebug )
+				SystemOutput( arguments.path & " :: " & allowed, true );
 			return false;
 		} else {
 			return true;
