@@ -113,7 +113,11 @@ component {
 			"SFTP_BASE_PATH": "/",
 			
 			"S3_ACCESS_KEY_ID": "test",
-			"S3_SECRET_KEY": "",
+			"S3_SECRET_KEY": "", // DON'T COMMIT
+
+			"S3_CUSTOM_ACCESS_KEY_ID": "test",
+			"S3_CUSTOM_SECRET_KEY": "", // DON'T COMMIT
+			"S3_CUSTOM_HOST": "localhost:9000",
 
 			"MAIL_USERNAME": "lucee",
 			"MAIL_PASSWORD": "", // DON'T COMMIT
@@ -143,8 +147,8 @@ component {
 		systemOutput( "", true) ;		
 		systemOutput("-------------- Test Services ------------", true );
 
-		services = ListToArray("oracle,MySQL,MSsql,postgres,h2,mongoDb,smtp,pop,imap,s3,ftp,sftp,memcached");
-		// take a while, do them in parallel
+		services = ListToArray("oracle,MySQL,MSsql,postgres,h2,mongoDb,smtp,pop,imap,s3,s3_custom,ftp,sftp,memcached");
+		// can take a while, so we check them them in parallel
 		services.each( function( service ) localmode=true {
 			cfg = server.getTestService( service=arguments.service, verify=true );
 			server.test_services[ arguments.service ]= {
@@ -160,6 +164,9 @@ component {
 					switch ( arguments.service ){
 						case "s3":
 							verify = verifyS3(cfg);
+							break;
+						case "s3_custom":
+							verify = verifyS3Custom(cfg);
 							break;
 						case "imap":
 							break;
@@ -258,6 +265,15 @@ component {
 		DirectoryExists( base );		
 		return "s3 Connection Verified";
 	}
+
+	public function verifyS3Custom ( s3 ) localmode=true{
+		bucketName = "lucee-testsuite";
+		systemOutput(s3);
+		base = "s3://#arguments.s3.CUSTOM_ACCESS_KEY_ID#:#arguments.s3.CUSTOM_SECRET_KEY#@#arguments.s3.CUSTOM_HOST#/#bucketName#";
+		DirectoryExists( base )
+		return "s3 custom Connection Verified";
+	}	
+
 	public function verifyMemcached ( memcached ) localmode=true{
 		if ( structCount( memcached ) eq 2 ){
 			return "configured (not tested)";
@@ -429,6 +445,9 @@ component {
 				break;
 			case "s3":
 				s3 = server._getSystemPropOrEnvVars( "ACCESS_KEY_ID, SECRET_KEY", "S3_" );
+				return s3;
+			case "s3_custom":
+				s3 = server._getSystemPropOrEnvVars( "ACCESS_KEY_ID, SECRET_KEY, HOST", "S3_CUSTOM_" );
 				return s3;
 			case "memcached":
 				memcached = server._getSystemPropOrEnvVars( "SERVER, PORT", "MEMCACHED_" );
