@@ -262,17 +262,17 @@ component {
 	public function verifyS3 ( s3 ) localmode=true{
 		bucketName = "lucee-testsuite";
 		base = "s3://#arguments.s3.ACCESS_KEY_ID#:#arguments.s3.SECRET_KEY#@/#bucketName#";
-		DirectoryExists( base );		
+		DirectoryExists( base );
 		return "s3 Connection Verified";
 	}
 
 	public function verifyS3Custom ( s3 ) localmode=true{
 		bucketName = "lucee-testsuite";
-		systemOutput(s3);
 		base = "s3://#arguments.s3.CUSTOM_ACCESS_KEY_ID#:#arguments.s3.CUSTOM_SECRET_KEY#@#arguments.s3.CUSTOM_HOST#/#bucketName#";
-		DirectoryExists( base )
+		if ( ! DirectoryExists( base ) );
+			DirectoryCreate( base ); // for GHA, the local service starts empty
 		return "s3 custom Connection Verified";
-	}	
+	}
 
 	public function verifyMemcached ( memcached ) localmode=true{
 		if ( structCount( memcached ) eq 2 ){
