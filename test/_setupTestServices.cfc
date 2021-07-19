@@ -147,9 +147,8 @@ component {
 		systemOutput( "", true) ;		
 		systemOutput("-------------- Test Services ------------", true );
 
-		//services = ListToArray("oracle,MySQL,MSsql,postgres,h2,mongoDb,smtp,pop,imap,s3,s3_custom,ftp,sftp,memcached");
-		services = ListToArray("s3_custom");
-		// take a while, do them in parallel
+		services = ListToArray("oracle,MySQL,MSsql,postgres,h2,mongoDb,smtp,pop,imap,s3,s3_custom,ftp,sftp,memcached");
+		// can take a while, so we check them them in parallel
 		services.each( function( service ) localmode=true {
 			cfg = server.getTestService( service=arguments.service, verify=true );
 			server.test_services[ arguments.service ]= {
