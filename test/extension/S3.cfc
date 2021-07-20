@@ -24,6 +24,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="s3"	{
 	public function setUp(){
 		if(isNotSupported()) return;
 		bucketName = "lucee-testsuite";
+		variables.s3ExtVersion = extensionList().filter( function( row ){ return row.name contains "s3" }).version;
+		systemOutput( "", true );
+		systemOutput( "Running S3 Extension: #variables.s3ExtVersion#", true );
 	}
 
 	public void function testS3() skip="isNotSupported"{
@@ -36,6 +39,38 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="s3"	{
 		if(isNotSupportedCustom()) return;
 		var s3Details = getCredentials("s3_custom");
 		runS3Tests("s3://#s3Details.ACCESS_KEY_ID#:#s3Details.SECRET_KEY#@#s3Details.HOST#/#bucketName#");
+	}
+
+	// check s3 creds via this.vfs.s3..
+	public void function testS3application() skip="isNotSupported"{
+		if ( ! checkMinExtVersion( 2 ) )
+			return; // only available in s3 ext v2
+		var uri = createUri( "s3_application" );
+		local.res = _InternalRequest(
+			template: uri & "/index.cfm",
+			urls: {
+				vfs: "s3", 
+				bucketName: "lucee-testsuite"
+			}
+		);
+	}
+	
+	// check s3_custom creds via this.vfs.s3..
+	public void function testS3applicationCustom() skip="isNotSupportedCustom"{
+		if ( ! checkMinExtVersion( 2 ) )
+			return; // only available in s3 ext v2
+		var uri = createUri( "s3_application" );
+		local.res = _InternalRequest(
+			template: uri & "/index.cfm",
+			urls: {
+				vfs: "s3_custom", 
+				bucketName: "lucee-testsuite"
+			}
+		);
+	}
+
+	private boolean function checkMinExtVersion( min ){
+		return ListFirst( variables.s3ExtVersion, "." ) gte arguments.min;
 	}
 
 	private void function runS3Tests(base) {
@@ -88,6 +123,11 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="s3"	{
 
 	private struct function getCredentials(s3_cfg) {
 		return server.getTestService(s3_cfg);
+	}
+
+	private string function createURI(string calledName){
+		var baseURI="/test/#listLast(getDirectoryFromPath(getCurrenttemplatepath()),"\/")#/";
+		return baseURI&""&calledName;
 	}
 
 } 
