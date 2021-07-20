@@ -146,7 +146,6 @@ component {
 	public void function loadServiceConfig() localmode=true {
 		systemOutput( "", true) ;		
 		systemOutput("-------------- Test Services ------------", true );
-
 		services = ListToArray("oracle,MySQL,MSsql,postgres,h2,mongoDb,smtp,pop,imap,s3,s3_custom,ftp,sftp,memcached");
 		// can take a while, so we check them them in parallel
 		services.each( function( service ) localmode=true {
@@ -296,7 +295,7 @@ component {
 					if ( !isNull( props[ k ] ) && Len( Trim( props[ k ] ) ) neq 0 ){
 						kk = k;
 						if ( arguments.stripPrefix )
-							kk = ListRest( k, "_" ); // return DATABASE for MSSQL_DATABASE
+							kk = mid(k, len( arguments.prefix ) + 1 ); // i.e. return DATABASE for MSSQL_DATABASE
 						st[ kk ] = props[ k ];
 					}
 				}

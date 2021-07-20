@@ -35,7 +35,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="s3"	{
 	public void function testS3custom() skip="isNotSupportedCustom"{
 		if(isNotSupportedCustom()) return;
 		var s3Details = getCredentials("s3_custom");
-		runS3Tests("s3://#s3Details.CUSTOM_ACCESS_KEY_ID#:#s3Details.CUSTOM_SECRET_KEY#@#s3Details.CUSTOM_HOST#/#bucketName#");
+		runS3Tests("s3://#s3Details.ACCESS_KEY_ID#:#s3Details.SECRET_KEY#@#s3Details.HOST#/#bucketName#");
 	}
 
 	private void function runS3Tests(base) {
