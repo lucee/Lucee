@@ -15,24 +15,25 @@
  * You should have received a copy of the GNU Lesser General Public 
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  * 
- ---><cfcomponent extends="org.lucee.cfml.test.LuceeTestCase" labels="esapi">
-
-	<cffunction name="testEncodeForCSS" localMode="modern">
-		<cfscript>
-		enc=EncodeForCSS('<script>');
-		assertEquals('\3c script\3e ',enc);
-		</cfscript>
-	</cffunction>
-	<cffunction name="testEncodeForCSSMember" localMode="modern">
-		<cfscript>
-		enc='<script>'.encodeForCSS();
-		assertEquals('\3c script\3e ',enc);
-		</cfscript>
-	</cffunction>
+ ---><cfscript>
+component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	
-	<cffunction access="private" name="valueEquals">
-		<cfargument name="left">
-		<cfargument name="right">
-		<cfset assertEquals(arguments.right,arguments.left)>
-	</cffunction>
-</cfcomponent>
+
+	public void function testCallStackGetArray(){
+		var cs = _callStackGet( "array" );
+		expect( cs[ 1 ].function ).toBeWithCase( "_callStackGet" );
+		expect( cs[ 2 ].function ).toBeWithCase( "testCallStackGetArray" );
+	}
+
+	public void function testCallStackGetJSON(){
+		var cs = DeserializeJson( _callStackGet( "json" ) );
+		expect( cs[ 1 ].function ).toBeWithCase( "_callStackGet" );
+		expect( cs[ 2 ].function ).toBeWithCase( "testCallStackGetJSON" );
+	}
+
+	// using a wrapper here so we aren't dependant on testbox internals
+	private function _callStackGet( type ){
+		return CallStackGet( type );
+	}
+} 
+</cfscript>

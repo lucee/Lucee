@@ -51,12 +51,12 @@
 		
 	<cffunction name="getName" returntype="string" output="no"
 		hint="returns display name of the driver">
-		<cfreturn "Other - JDBC Driver (deprecated)">
+		<cfreturn "Other - JDBC Driver">
 	</cffunction>
 	
 	<cffunction name="getDescription" returntype="string" output="no"
 		hint="returns description for the driver">
-		<cfreturn "Connect with a user supplied JDBC Driver available on the system. This ""driver"" is deprecated, this driver is not using the JDBC driver framework.">
+		<cfreturn "Connect with a user supplied JDBC Driver available on the system.">
 	</cffunction>
 	
 	<cffunction name="getFields" returntype="array" output="no"

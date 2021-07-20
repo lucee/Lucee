@@ -23,14 +23,22 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="s3"	{
 	
 	public function setUp(){
 		if(isNotSupported()) return;
-		s3Details = getCredentials();
 		bucketName = "lucee-testsuite";
-		base = "s3://#s3Details.ACCESS_KEY_ID#:#s3Details.SECRET_KEY#@/#bucketName#";
-
 	}
 
-	public void function test() skip="isNotSupported"{
+	public void function testS3() skip="isNotSupported"{
 		if(isNotSupported()) return;
+		var s3Details = getCredentials("s3");
+		runS3Tests("s3://#s3Details.ACCESS_KEY_ID#:#s3Details.SECRET_KEY#@/#bucketName#");
+	}
+
+	public void function testS3custom() skip="isNotSupportedCustom"{
+		if(isNotSupportedCustom()) return;
+		var s3Details = getCredentials("s3_custom");
+		runS3Tests("s3://#s3Details.CUSTOM_ACCESS_KEY_ID#:#s3Details.CUSTOM_SECRET_KEY#@#s3Details.CUSTOM_HOST#/#bucketName#");
+	}
+
+	private void function runS3Tests(base) {
 		
 		if( directoryExists(base))
 			directoryDelete(base, true);
@@ -71,11 +79,15 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="s3"	{
 
 
 	public boolean function isNotSupported() {
-		return structCount(getCredentials())==0;
+		return structCount(getCredentials("s3"))==0;
 	}
 
-	private struct function getCredentials() {
-		return server.getTestService("s3");
+	public boolean function isNotSupportedCustom() {
+		return structCount(getCredentials("s3_custom"))==0;
+	}
+
+	private struct function getCredentials(s3_cfg) {
+		return server.getTestService(s3_cfg);
 	}
 
 } 

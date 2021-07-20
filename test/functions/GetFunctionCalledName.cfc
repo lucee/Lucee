@@ -1,5 +1,6 @@
 <!--- 
- * Copyright (c) 2015, Lucee Assosication Switzerland. All rights reserved.
+ *
+ * Copyright (c) 2014, the Railo Company LLC. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -14,20 +15,20 @@
  * You should have received a copy of the GNU Lesser General Public 
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  * 
- ---><cfcomponent extends="org.lucee.cfml.test.LuceeTestCase" labels="esapi">
-
-	<cffunction name="testESAPIEncode" localMode="modern">
-		<cfscript>
-			saveContent variable="c" {writeOutput('<script>','html');}
-			assertEquals('&lt;script&gt;',c);
-		</cfscript>
-	</cffunction>
-
-	<cffunction name="test" localMode="modern">
-		<cfscript>
-			saveContent variable="c" {writeOutput('abc');}
-			assertEquals('abc',c);
-		</cfscript>
-	</cffunction>
+ ---><cfscript>
+component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	
-</cfcomponent>
+
+	public void function testGetFunctionCalledName(){
+		var name = GetFunctionCalledName();
+		expect( name ).ToBe("testGetFunctionCalledName");
+		//expect( name ).toBeWithCase("testGetFunctionCalledName");  // fails LDEV-2590, it's returned in UPPERCASE
+
+		var cs1 = CallStackGet()[1];
+		expect( cs1.function ).ToBe("testGetFunctionCalledName");
+		expect( cs1.function ).toBeWithCase("testGetFunctionCalledName");
+
+	}
+
+} 
+</cfscript>

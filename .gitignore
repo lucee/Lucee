@@ -32,3 +32,4 @@ WEB-INF
 loader/env.json
 .idea/
 buildVersionNumber.txt
+/test/reports
