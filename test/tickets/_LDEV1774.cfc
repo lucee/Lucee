@@ -17,7 +17,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="s3"{
 	function beforeAll() skip="isNotSupported"{
 		if(isNotSupported()) return;
 		s3Details = getCredentials();
-		variables.mitrahsoftBucketName = "LDEV1774";
+		variables.mitrahsoftBucketName = lcase("lucee-ldev1774-#hash(CreateGUID())#");
 		variables.baseWithBucketName = "s3://#s3Details.ACCESS_KEY_ID#:#s3Details.SECRET_KEY#@/#variables.mitrahsoftBucketName#";	
 		variables.URI = createURI("LDEV1774");
 	}
