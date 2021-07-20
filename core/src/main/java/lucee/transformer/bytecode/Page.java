@@ -116,16 +116,14 @@ public final class Page extends BodyBase implements Root {
 	public final static Method STATIC_CONSTRUCTOR = Method.getMethod("void <clinit> ()V");
 	// public final static Method CONSTRUCTOR = Method.getMethod("void <init> ()V");
 
-	private static final Method CONSTRUCTOR = new Method("<init>", Types.VOID, new Type[] {}//
-	);
+	private static final Method CONSTRUCTOR = new Method("<init>", Types.VOID, new Type[] {});
 
 	/*
 	 * private static final Method CONSTRUCTOR_STR = new Method( "<init>", Types.VOID, new
 	 * Type[]{Types.STRING}// );
 	 */
 
-	private static final Method CONSTRUCTOR_PS = new Method("<init>", Types.VOID, new Type[] { Types.PAGE_SOURCE }//
-	);
+	private static final Method CONSTRUCTOR_PS = new Method("<init>", Types.VOID, new Type[] { Types.PAGE_SOURCE });
 
 	// public static final Type STRUCT_IMPL = Type.getType(StructImpl.class);
 	public static final Method INIT_STRUCT_IMPL = new Method("<init>", Types.VOID, new Type[] {});
@@ -157,6 +155,7 @@ public final class Page extends BodyBase implements Root {
 	private final static Method HASH = new Method("getHash", Types.INT_VALUE, new Type[] {});
 
 	private final static Method LENGTH = new Method("getSourceLength", Types.LONG_VALUE, new Type[] {});
+	private final static Method GET_SUBNAME = new Method("getSubname", Types.STRING, new Type[] {});
 
 	private static final Type USER_DEFINED_FUNCTION = Type.getType(UDF.class);
 	private static final Method UDF_CALL = new Method("udfCall", Types.OBJECT, new Type[] { Types.PAGE_CONTEXT, USER_DEFINED_FUNCTION, Types.INT_VALUE });
@@ -353,6 +352,8 @@ public final class Page extends BodyBase implements Root {
 		// StaticConstrBytecodeContext statConstr = null;//new
 		// BytecodeContext(null,null,this,externalizer,keys,cw,name,statConstrAdapter,STATIC_CONSTRUCTOR,writeLog(),suppressWSbeforeArg);
 
+		boolean isSub = comp != null && !comp.isMain();
+
 		// constructor
 		GeneratorAdapter constrAdapter = new GeneratorAdapter(Opcodes.ACC_PUBLIC, CONSTRUCTOR_PS, null, null, cw);
 		ConstrBytecodeContext constr = new ConstrBytecodeContext(optionalPS, this, keys, cw, className, constrAdapter, CONSTRUCTOR_PS, writeLog(), suppressWSbeforeArg, output,
@@ -436,6 +437,18 @@ public final class Page extends BodyBase implements Root {
 		// getSourceLength
 		adapter = new GeneratorAdapter(Opcodes.ACC_PUBLIC + Opcodes.ACC_FINAL, LENGTH, null, null, cw);
 		adapter.push(length);
+		adapter.returnValue();
+		adapter.endMethod();
+
+		// getSubname
+		adapter = new GeneratorAdapter(Opcodes.ACC_PUBLIC + Opcodes.ACC_FINAL, GET_SUBNAME, null, null, cw);
+
+		String subName;
+		if (isSub) subName = getName(comp, null);
+		else subName = null;
+
+		if (subName != null) adapter.push(subName);
+		else ASMConstants.NULL(adapter);
 		adapter.returnValue();
 		adapter.endMethod();
 
@@ -677,6 +690,7 @@ public final class Page extends BodyBase implements Root {
 				TagCIObject tc;
 				while (_it.hasNext()) {
 					tc = _it.next();
+
 					tc.writeOut(this);
 				}
 				writeGetSubPages(cw, className, subs, sourceCode.getDialect());
@@ -698,7 +712,6 @@ public final class Page extends BodyBase implements Root {
 
 	private void writeGetSubPages(ClassWriter cw, String name, List<TagCIObject> subs, int dialect) {
 		// pageSource.getFullClassName().replace('.', '/');
-
 		GeneratorAdapter adapter = new GeneratorAdapter(Opcodes.ACC_PUBLIC + Opcodes.ACC_FINAL, GET_SUB_PAGES, null, null, cw);
 		Label endIF = new Label();
 
@@ -737,6 +750,15 @@ public final class Page extends BodyBase implements Root {
 		adapter.returnValue();
 		adapter.endMethod();
 
+	}
+
+	private String getName(TagCIObject ci, String defaultValue) {
+		Attribute attr = ci.getAttribute("name");
+		if (attr == null) return defaultValue;
+		Expression val = attr.getValue();
+		if (!(val instanceof LitString)) return defaultValue;
+
+		return ((LitString) val).getString();
 	}
 
 	public String getClassName() {

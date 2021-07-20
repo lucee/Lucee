@@ -23,7 +23,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import lucee.print;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.ExceptionUtil;
@@ -70,27 +69,15 @@ public abstract class TagCIObject extends TagBase {
 		PageSourceCode psc = (PageSourceCode) parent.getSourceCode();
 
 		SourceCode sc = parent.getSourceCode().subCFMLString(getStart().pos, getEnd().pos - getStart().pos);
-		print.e("+++++++++++++++++++++++");
-		print.e(sc.toString());
-		print.e("+++++++++++++++++++++++");
-
 		Page page = new Page(parent.getFactory(), parent.getConfig(), sc, this, CFMLEngineFactory.getInstance().getInfo().getFullVersionInfo(), parent.getLastModifed(),
 				parent.writeLog(), parent.getSupressWSbeforeArg(), parent.getOutput(), parent.returnValue(), parent.ignoreScopes);
 		// page.setIsComponent(true); // MUST can be an interface as well
 		page.addStatement(this);
 
-		print.e("getName:" + getName());
-
 		String className = Page.createSubClass(parent.getClassName(), getName(), parent.getSourceCode().getDialect());
-		print.e("className:" + className);
-
-		print.e("parent:" + psc.getPageSource().getDisplayPath());
-		print.e("parent-ps-classname:" + psc.getPageSource().getClassName());
-		print.e("parent-classname:" + parent.getClassName());
 		byte[] barr = page.execute(className);
 
 		Resource classFile = psc.getPageSource().getMapping().getClassRootDirectory().getRealResource(page.getClassName() + ".class");
-		print.e("classFile:" + parent.getClassName());
 		try {
 			IOUtil.copy(new ByteArrayInputStream(barr), classFile, true);
 		}

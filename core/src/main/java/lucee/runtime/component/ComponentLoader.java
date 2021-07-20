@@ -20,7 +20,6 @@ package lucee.runtime.component;
 
 import javax.servlet.jsp.tagext.BodyContent;
 
-import lucee.print;
 import lucee.commons.io.res.filter.DirectoryResourceFilter;
 import lucee.commons.io.res.filter.ExtensionResourceFilter;
 import lucee.commons.io.res.filter.OrResourceFilter;
@@ -400,9 +399,9 @@ public class ComponentLoader {
 	private static CIObject load(PageContext pc, Page page, String callPath, String sub, boolean isRealPath, short returnType, final boolean isExtendedComponent,
 			boolean executeConstr) throws PageException {
 		CIPage cip = toCIPage(page, callPath);
+		// String subName = null;
 		if (sub != null) {
 			cip = loadSub(cip, sub);
-			// page=page.loadSub(sub);
 		}
 		if (cip instanceof ComponentPageImpl) {
 			if (returnType != RETURN_TYPE_COMPONENT)
@@ -417,27 +416,19 @@ public class ComponentLoader {
 	}
 
 	private static CIPage loadSub(CIPage page, String sub) throws ApplicationException {
-		print.e("class:" + page.getClass().getName());
-		print.e("class:" + page.getPageSource().getClassName());
-		print.e("sub:" + sub);
 		// TODO find a better way to create that class name
 		String subClassName = lucee.transformer.bytecode.Page.createSubClass(page.getPageSource().getClassName(), sub, page.getPageSource().getDialect());
 
 		// subClassName:sub.test_cfc$cf$1$sub1
 		// - sub.test_cfc$sub1$cf
 
-		print.e("subClassName:" + subClassName);
 		CIPage[] subs = page.getSubPages();
 		for (int i = 0; i < subs.length; i++) {
-			print.e("- " + subs[i].getClass().getName());
-
-			// subClassName:sub.test_cfc$cf$1$sub1
-			// - sub.test_cfc$sub1$cf
-
-			if (subs[i].getClass().getName().equals(subClassName)) return subs[i];
+			if (subs[i].getClass().getName().equals(subClassName)) {
+				return subs[i];
+			}
 		}
 		throw new ApplicationException("There is no Sub component [" + sub + "] in [" + page.getPageSource().getDisplayPath() + "]");
-
 	}
 
 	public static Page loadPage(PageContext pc, PageSource ps, boolean forceReload) throws PageException {
@@ -560,7 +551,6 @@ public class ComponentLoader {
 
 		ComponentPageImpl cp = (ComponentPageImpl) page;
 		ComponentImpl c = cp.newInstance(pc, callPath, isRealPath, isExtendedComponent, executeConstr);
-
 		// abstract/final check
 		if (!isExtendedComponent) {
 			if (c.getModifier() == Component.MODIFIER_ABSTRACT) throw new ApplicationException(

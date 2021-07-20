@@ -59,8 +59,6 @@ import lucee.runtime.component.ComponentLoader;
 import lucee.runtime.component.DataMember;
 import lucee.runtime.component.ImportDefintion;
 import lucee.runtime.component.Member;
-import lucee.runtime.component.MetaDataSoftReference;
-import lucee.runtime.component.MetadataUtil;
 import lucee.runtime.component.Property;
 import lucee.runtime.component.StaticStruct;
 import lucee.runtime.config.Config;
@@ -194,9 +192,11 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 	 */
 	public ComponentImpl(ComponentPageImpl componentPage, Boolean output, boolean _synchronized, String extend, String implement, String hint, String dspName, String callPath,
 			boolean realPath, String style, boolean persistent, boolean accessors, int modifier, boolean isExtended, StructImpl meta) throws ApplicationException {
-		this.properties = new ComponentProperties(dspName, extend.trim(), implement, hint, output, callPath, realPath, _synchronized, null, persistent, accessors, modifier, meta);
-		// this.componentPage=componentPage instanceof
-		// ComponentPageProxy?componentPage:PageProxy.toProxy(componentPage);
+		String sub = componentPage.getSubname();
+		String appendix = StringUtil.isEmpty(sub) ? "" : "$" + sub;
+		this.properties = new ComponentProperties(componentPage.getComponentName(), dspName, extend.trim(), implement, hint, output, callPath + appendix, realPath,
+				componentPage.getSubname(), _synchronized, null, persistent, accessors, modifier, meta);
+
 		this.pageSource = componentPage.getPageSource();
 		this.importDefintions = componentPage.getImportDefintions();
 		// if(modifier!=0)
@@ -993,7 +993,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 	public DumpData toDumpData(PageContext pageContext, int maxlevel, DumpProperties dp, int access) {
 		boolean isCFML = getPageSource().getDialect() == CFMLEngine.DIALECT_CFML;
 		DumpTable table = isCFML ? new DumpTable("component", "#ff4542", "#ff9aad", "#000000") : new DumpTable("component", "#ca6b50", "#e9bcac", "#000000");
-		table.setTitle((isCFML ? "Component" : "Class") + " " + getCallPath() + "" + (" " + StringUtil.escapeHTML(top.properties.dspName)));
+		table.setTitle((isCFML ? "Component" : "Class") + " " + getCallPath() + (" " + StringUtil.escapeHTML(top.properties.dspName)));
 		table.setComment("Only the functions and data members that are accessible from your location are displayed");
 
 		// Extends
@@ -1120,7 +1120,8 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 	protected String getCallPath() {
 		if (StringUtil.isEmpty(top.properties.callPath)) return getName();
 		try {
-			return "(" + ListUtil.arrayToList(ListUtil.listToArrayTrim(top.properties.callPath.replace('/', '.').replace('\\', '.'), "."), ".") + ")";
+			return "(" + ListUtil.arrayToList(ListUtil.listToArrayTrim(top.properties.callPath.replace('/', '.').replace('\\', '.'), "."), ".")
+					+ (top.properties.subName == null ? "" : "$" + top.properties.subName) + ")";
 		}
 		catch (PageException e) {
 			return top.properties.callPath;
@@ -1214,7 +1215,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 		ComponentImpl c = top;
 		do {
 			if (type.equalsIgnoreCase(c.properties.callPath)) return true;
-			if (type.equalsIgnoreCase(c.pageSource.getComponentName())) return true;
+			if (type.equalsIgnoreCase(c.properties.name)) return true;
 			if (type.equalsIgnoreCase(c._getName())) return true;
 
 			// check interfaces
@@ -1484,10 +1485,10 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 
 	protected static Struct getMetaData(int access, PageContext pc, ComponentImpl comp, boolean ignoreCache) throws PageException {
 		// Cache
-		final Page page = MetadataUtil.getPageWhenMetaDataStillValid(pc, comp, ignoreCache);
-		if (page != null && page.metaData != null && page.metaData.get() != null) {
-			return page.metaData.get();
-		}
+		/*
+		 * final Page page = MetadataUtil.getPageWhenMetaDataStillValid(pc, comp, ignoreCache); if (page !=
+		 * null && page.metaData != null && page.metaData.get() != null) { eturn page.metaData.get(); }
+		 */
 		long creationTime = System.currentTimeMillis();
 		final StructImpl sct = new StructImpl();
 
@@ -1506,6 +1507,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 		sct.set(KeyConstants._hashCode, comp.hashCode());
 		sct.set(KeyConstants._accessors, comp.properties.accessors);
 		sct.set(KeyConstants._synchronized, comp.properties._synchronized);
+
 		if (comp.properties.output != null) sct.set(KeyConstants._output, comp.properties.output);
 
 		// extends
@@ -1531,8 +1533,9 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 
 		// PageSource
 		PageSource ps = comp.pageSource;
-		sct.set(KeyConstants._fullname, ps.getComponentName());
-		sct.set(KeyConstants._name, ps.getComponentName());
+		sct.set(KeyConstants._fullname, comp.properties.name);
+		sct.set(KeyConstants._name, comp.properties.name);
+		sct.set(KeyConstants._subname, comp.properties.subName);
 		sct.set(KeyConstants._path, ps.getDisplayPath());
 		sct.set(KeyConstants._type, "component");
 		int dialect = comp.getPageSource().getDialect();
@@ -1542,13 +1545,15 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 		Class<?> skeleton = comp.getJavaAccessClass(pc, new RefBooleanImpl(false), ((ConfigPro) pc.getConfig()).getExecutionLogEnabled(), false, false, supressWSBeforeArg);
 		if (skeleton != null) sct.set(KeyConstants._skeleton, skeleton);
 
-		HttpServletRequest req = pc.getHttpServletRequest();
-		try {
-			String path = ContractPath.call(pc, ps.getDisplayPath()); // MUST better impl !!!
-			sct.set("remoteAddress", "" + new URL(req.getScheme(), req.getServerName(), req.getServerPort(), req.getContextPath() + path + "?wsdl"));
-		}
-		catch (Throwable t) {
-			ExceptionUtil.rethrowIfNecessary(t);
+		if (comp.properties.subName == null) {
+			HttpServletRequest req = pc.getHttpServletRequest();
+			try {
+				String path = ContractPath.call(pc, ps.getDisplayPath()); // MUST better impl !!!
+				sct.set("remoteAddress", "" + new URL(req.getScheme(), req.getServerName(), req.getServerPort(), req.getContextPath() + path + "?wsdl"));
+			}
+			catch (Throwable t) {
+				ExceptionUtil.rethrowIfNecessary(t);
+			}
 		}
 
 		// Properties
@@ -1564,7 +1569,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 			sct.set(KeyConstants._properties, parr);
 		}
 
-		if (page != null) page.metaData = new MetaDataSoftReference<Struct>(sct, creationTime);
+		// if (page != null) page.metaData = new MetaDataSoftReference<Struct>(sct, creationTime);
 		return sct;
 	}
 
