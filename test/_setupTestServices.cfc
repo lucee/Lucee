@@ -193,6 +193,7 @@ component {
 					server.test_services[arguments.service].valid = true;
 				} catch (e) {
 					systemOutput( "ERROR Service [ #arguments.service# ] threw [ #cfcatch.message# ]", true);
+					// systemOutput(cfcatch, true);
 				}
 			}
 		}, true, 4);
@@ -267,7 +268,7 @@ component {
 
 	public function verifyS3Custom ( s3 ) localmode=true{
 		bucketName = "lucee-testsuite";
-		base = "s3://#arguments.s3.CUSTOM_ACCESS_KEY_ID#:#arguments.s3.CUSTOM_SECRET_KEY#@#arguments.s3.CUSTOM_HOST#/#bucketName#";
+		base = "s3://#arguments.s3.ACCESS_KEY_ID#:#arguments.s3.SECRET_KEY#@#arguments.s3.HOST#/#bucketName#";
 		if ( ! DirectoryExists( base ) );
 			DirectoryCreate( base ); // for GHA, the local service starts empty
 		return "s3 custom Connection Verified";
