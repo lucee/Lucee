@@ -29,6 +29,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="s3"	{
 		systemOutput( "Running S3 Extension: #variables.s3ExtVersion#", true );
 	}
 
+
+	// check s3 creds using s3:// resource url
+
 	public void function testS3() skip="isNotSupported"{
 		if(isNotSupported()) return;
 		var s3Details = getCredentials("s3");
@@ -41,29 +44,34 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="s3"	{
 		runS3Tests("s3://#s3Details.ACCESS_KEY_ID#:#s3Details.SECRET_KEY#@#s3Details.HOST#/#bucketName#");
 	}
 
+	public void function testS3google() skip="isNotSupportedGoogle"{
+		if(isNotSupportedGoogle()) return;
+		var s3Details = getCredentials("s3_google");
+		runS3Tests("s3://#s3Details.ACCESS_KEY_ID#:#s3Details.SECRET_KEY#@#s3Details.HOST#/#bucketName#");
+	}
+
 	// check s3 creds via this.vfs.s3..
+	
 	public void function testS3application() skip="isNotSupported"{
-		if ( ! checkMinExtVersion( 2 ) )
-			return; // only available in s3 ext v2
-		var uri = createUri( "s3_application" );
-		local.res = _InternalRequest(
-			template: uri & "/index.cfm",
-			urls: {
-				vfs: "s3", 
-				bucketName: "lucee-testsuite"
-			}
-		);
+		runApplicationTest("s3");
 	}
 	
-	// check s3_custom creds via this.vfs.s3..
 	public void function testS3applicationCustom() skip="isNotSupportedCustom"{
+		runApplicationTest("s3_custom");
+	}
+
+	public void function testS3applicationGoogle() skip="isNotSupportedGoogle"{
+		runApplicationTest("s3_google");
+	}
+
+	private  void function runApplicationTest(service){
 		if ( ! checkMinExtVersion( 2 ) )
 			return; // only available in s3 ext v2
 		var uri = createUri( "s3_application" );
 		local.res = _InternalRequest(
 			template: uri & "/index.cfm",
 			urls: {
-				vfs: "s3_custom", 
+				vfs: arguments.service, 
 				bucketName: "lucee-testsuite"
 			}
 		);
@@ -114,11 +122,15 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="s3"	{
 
 
 	public boolean function isNotSupported() {
-		return structCount(getCredentials("s3"))==0;
+		return structCount( getCredentials("s3") ) == 0;
 	}
 
 	public boolean function isNotSupportedCustom() {
-		return structCount(getCredentials("s3_custom"))==0;
+		return structCount( getCredentials("s3_custom") ) == 0;
+	}
+
+	public boolean function isNotSupportedGoogle() {
+		return structCount( getCredentials("s3_google") ) == 0 ;
 	}
 
 	private struct function getCredentials(s3_cfg) {

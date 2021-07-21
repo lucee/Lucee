@@ -6,6 +6,54 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="s3,zip"	{
 
 	//public function setUp(){}
 
+	
+	public void function testS3() localmode=true {
+		var s3 = getCredentials("s3");
+		if( !isNull( s3.ACCESS_KEY_ID ) ) {
+			application action="update" s3={
+				accessKeyId: s3.ACCESS_KEY_ID,
+				awsSecretKey: s3.SECRET_KEY
+			}; 
+			test("s3","s3:///");
+		}
+	}
+
+	public void function testS3custom() localmode=true {
+		var s3 = getCredentials("s3_custom");
+		if( !isNull( s3.ACCESS_KEY_ID ) ) {
+			application action="update" s3={
+				accessKeyId: s3.ACCESS_KEY_ID,
+				awsSecretKey: s3.SECRET_KEY,
+				host: s3.host
+			}; 
+			test("s3","s3:///");
+		}
+	}
+
+	public void function testS3google() localmode=true {
+		var s3 = getCredentials("s3_google");
+		if( !isNull( s3.ACCESS_KEY_ID ) ) {
+			application action="update" s3={
+				accessKeyId: s3.ACCESS_KEY_ID,
+				awsSecretKey: s3.SECRET_KEY,
+				host: s3.host
+			}; 
+			test("s3","s3:///");
+		}
+	}
+
+	public void function testS3AsMapping() localmode=true {
+		var s3 = getCredentials("s3");
+		if( !isNull( s3.ACCESS_KEY_ID ) ) {
+			application action="update" s3={
+				accessKeyId: s3.ACCESS_KEY_ID,
+				awsSecretKey: s3.SECRET_KEY
+			}; 
+			addMapping("/testress3","s3:///");
+			test("s3 mapping","/testress3/");
+		}
+	}
+
 	private void function directoryCreateDelete(string label,string dir){
 		var sub=arguments.dir&"test1/";
 		var subsub=sub&"test2/";
@@ -526,9 +574,9 @@ private function testResourceProvider(string path) localmode=true {
 
 	}
 
-	private struct function getCredentials() {
+	private struct function getCredentials(service) {
 		// getting the credentials from the environment variables
-		return server.getTestService("s3");
+		return server.getTestService(arguments.service);
 	}
 
 	
@@ -595,28 +643,6 @@ private function testResourceProvider(string path) localmode=true {
 		}
 	}
 
-	public void function testS3() localmode=true{
-		var s3 = getCredentials();
-		if( !isNull( s3.ACCESS_KEY_ID ) ) {
-			application action="update" s3={
-				accessKeyId: s3.ACCESS_KEY_ID,
-				awsSecretKey: s3.SECRET_KEY
-			}; 
-			test("s3","s3:///");
-		}
-	}
-
-	public void function testS3AsMapping() localmode=true{
-		var s3 = getCredentials();
-		if( !isNull( s3.ACCESS_KEY_ID ) ) {
-			application action="update" s3={
-				accessKeyId: s3.ACCESS_KEY_ID,
-				awsSecretKey: s3.SECRET_KEY
-			}; 
-			addMapping("/testress3","s3:///");
-			test("s3 mapping","/testress3/");
-		}
-	}
 } 
 
 

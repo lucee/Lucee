@@ -23,7 +23,7 @@ component {
 
 	private struct function getS3vfs(){
 		var vfs = {};
-		loop list="s3,s3_custom" item="local.s3" {
+		loop list="s3,s3_custom,s3_google" item="local.s3" {
 			var s3Details = server.getTestService(s3);
 			if ( len( s3Details ) gt 0 ){
 				var st = {

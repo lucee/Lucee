@@ -119,6 +119,10 @@ component {
 			"S3_CUSTOM_SECRET_KEY": "", // DON'T COMMIT
 			"S3_CUSTOM_HOST": "localhost:9000",
 
+			"S3_GOOGLE_ACCESS_KEY_ID": "test",
+			"S3_GOOGLE_SECRET_KEY": "", // DON'T COMMIT
+			"S3_GOOGLE_HOST": "storage.googleapis.com",
+
 			"MAIL_USERNAME": "lucee",
 			"MAIL_PASSWORD": "", // DON'T COMMIT
 
@@ -146,7 +150,7 @@ component {
 	public void function loadServiceConfig() localmode=true {
 		systemOutput( "", true) ;		
 		systemOutput("-------------- Test Services ------------", true );
-		services = ListToArray("oracle,MySQL,MSsql,postgres,h2,mongoDb,smtp,pop,imap,s3,s3_custom,ftp,sftp,memcached");
+		services = ListToArray("oracle,MySQL,MSsql,postgres,h2,mongoDb,smtp,pop,imap,s3,s3_custom,s3_google,ftp,sftp,memcached");
 		// can take a while, so we check them them in parallel
 		services.each( function( service ) localmode=true {
 			cfg = server.getTestService( service=arguments.service, verify=true );
@@ -165,6 +169,9 @@ component {
 							verify = verifyS3(cfg);
 							break;
 						case "s3_custom":
+							verify = verifyS3Custom(cfg);
+							break;
+						case "s3_google":
 							verify = verifyS3Custom(cfg);
 							break;
 						case "imap":
@@ -448,6 +455,9 @@ component {
 				return s3;
 			case "s3_custom":
 				s3 = server._getSystemPropOrEnvVars( "ACCESS_KEY_ID, SECRET_KEY, HOST", "S3_CUSTOM_" );
+				return s3;
+			case "s3_google":
+				s3 = server._getSystemPropOrEnvVars( "ACCESS_KEY_ID, SECRET_KEY, HOST", "S3_GOOGLE_" );
 				return s3;
 			case "memcached":
 				memcached = server._getSystemPropOrEnvVars( "SERVER, PORT", "MEMCACHED_" );
