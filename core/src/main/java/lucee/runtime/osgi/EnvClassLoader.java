@@ -63,7 +63,7 @@ public class EnvClassLoader extends URLClassLoader {
 	private static final EnvClassLoader NULL_INSTANCE = new EnvClassLoader(null);
 
 	public static EnvClassLoader getInstance(ConfigPro config) {
-		config = (ConfigPro) ThreadLocalPageContext.get(config);
+		config = (ConfigPro) ThreadLocalPageContext.getConfig(config);
 		if (config != null) return (EnvClassLoader) config.getClassLoaderEnv();
 
 		return NULL_INSTANCE;
