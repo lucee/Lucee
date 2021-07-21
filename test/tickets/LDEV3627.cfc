@@ -1,14 +1,14 @@
 component extends = "org.lucee.cfml.test.LuceeTestCase" skip=true{
 
 	function run ( testResults , testBox ) {
-		describe("This testcase for LDEV-3091",function(){
+		describe("Testcase for LDEV-3627",function(){
 			it(title="Calling CFC using root path in thread", body =function( currentSpec ){
-				path = reReplace(createURI("LDEV3627.test"), "[/\\\\]", ".", "all")
+				path = reReplace(createURI("LDEV3627.test"), "[/\\\\]", ".", "all");
 				res = createObj(path);
 				expect(res).toBe("success");
 			});
 			it(title="Calling CFC using relative path in thread", body =function( currentSpec ){
-                res = createObj("LDEV3627.test");
+                		res = createObj("LDEV3627.test");
 				expect(res).toBe("success");
 			});
 		});
