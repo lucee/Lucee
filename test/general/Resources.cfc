@@ -26,7 +26,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="s3,zip"	{
 				awsSecretKey: s3.SECRET_KEY,
 				host: s3.host
 			}; 
-			test("s3","s3:///");
+			test("s3_custom","s3:///");
 		}
 	}
 
@@ -38,7 +38,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="s3,zip"	{
 				awsSecretKey: s3.SECRET_KEY,
 				host: s3.host
 			}; 
-			test("s3","s3:///");
+			test("s3_google","s3:///");
 		}
 	}
 

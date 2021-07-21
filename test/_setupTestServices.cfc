@@ -112,14 +112,14 @@ component {
 			"SFTP_PORT": 990,
 			"SFTP_BASE_PATH": "/",
 			
-			"S3_ACCESS_KEY_ID": "test",
+			"S3_ACCESS_KEY_ID": "",
 			"S3_SECRET_KEY": "", // DON'T COMMIT
 
-			"S3_CUSTOM_ACCESS_KEY_ID": "test",
+			"S3_CUSTOM_ACCESS_KEY_ID": "",
 			"S3_CUSTOM_SECRET_KEY": "", // DON'T COMMIT
-			"S3_CUSTOM_HOST": "localhost:9000",
+			"S3_CUSTOM_HOST": "http://localhost:9000", // i.e. minio
 
-			"S3_GOOGLE_ACCESS_KEY_ID": "test",
+			"S3_GOOGLE_ACCESS_KEY_ID": "",
 			"S3_GOOGLE_SECRET_KEY": "", // DON'T COMMIT
 			"S3_GOOGLE_HOST": "storage.googleapis.com",
 

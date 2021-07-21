@@ -22,7 +22,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="s3"	{
 	//public function afterTests(){}
 	
 	public function setUp(){
-		if(isNotSupported()) return;
+		if(!(isNotSupported() || isNotSupportedCustom() || isNotSupportedGoogle())) return;
 		bucketName = "lucee-testsuite";
 		variables.s3ExtVersion = extensionList().filter( function( row ){ return row.name contains "s3" }).version;
 		systemOutput( "", true );
@@ -86,33 +86,36 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="s3"	{
 		if( directoryExists(base))
 			directoryDelete(base, true);
 		try{
-		assertFalse(directoryExists(base));
-		assertFalse(fileExists(base));
-		directoryCreate(base);
-		assertTrue(directoryExists(base));
-		assertFalse(fileExists(base));
+			assertFalse(directoryExists(base));
+			assertFalse(fileExists(base));
+			directoryCreate(base);
+			assertTrue(directoryExists(base));
+			assertFalse(fileExists(base));
 
-		// we accept this because S3 accept this, so if ACF does not, that is a bug/limitation in ACF.
-		var sub=base & "/a";
-		if(!fileExists(sub))
-			fileWrite(sub, "");
+			// we accept this because S3 accept this, so if ACF does not, that is a bug/limitation in ACF.
+			// minio doesn't either https://github.com/minio/minio/issues/7335#issuecomment-470683398
+			if ( arguments.base NCT "minio") {
+				var sub=base & "/a";
+				if(!fileExists(sub))
+					fileWrite(sub, "");
+				
+				assertTrue(directoryExists(sub));
+				assertFalse(fileExists(sub));
 
-		assertTrue(directoryExists(sub));
-		assertFalse(fileExists(sub));
+				// because previous file is empty it is accepted as directory
+				var subsub=sub & "/foo.txt";
+				if(!fileExists(subsub))
+					fileWrite(subsub, "hello there");
 
-		// because previous file is empty it is accepted as directory
-		var subsub=sub & "/foo.txt";
-		if(!fileExists(subsub))
-			fileWrite(subsub, "hello there");
+				assertFalse(directoryExists(subsub));
+				assertTrue(fileExists(subsub));
 
-		assertFalse(directoryExists(subsub));
-		assertTrue(fileExists(subsub));
+				assertTrue(directoryExists(sub));
+				assertFalse(fileExists(sub));
 
-		assertTrue(directoryExists(sub));
-		assertFalse(fileExists(sub));
-
-		var children = directoryList(sub, true,'query');
-		assertEquals(1,children.recordcount);
+				var children = directoryList(sub, true,'query');
+				assertEquals(1,children.recordcount);
+			}
 		}
 		finally {
 			if( directoryExists(base))
