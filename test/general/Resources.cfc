@@ -6,6 +6,130 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="s3,zip"	{
 
 	//public function setUp(){}
 
+	private void function test(string label,string root){
+		var start=getTickCount();
+		var dir=arguments.root&"lucee-res-#lcase(hash(CreateGUID()))#/";
+		
+		// make sure there are no data from a previous run 
+		if (directoryExists(dir)) {
+			directory directory="#dir#" action="delete" recurse="yes";
+		}
+		var profile = request.testDebug; // debug, use to profile how long each test takes
+		var profileTests = function(mess){
+			if (profile)
+				systemOutput("#mess#	#numberFormat(getTickCount()-start)#ms", true);	
+		}
+
+		if (profile)
+			systemOutput("", true);
+	
+		profileTests("------- Testing Resource type [#label#] under [#dir#]");
+		profileTests("[#expandPath(dir)#]");
+		directory directory="#dir#" action="create";
+		try{
+			profileTests("createDirectory");
+			assertTrue(DirectoryExists(dir));
+
+			profileTests("directoryCreateDelete");
+			directoryCreateDelete(arguments.label,dir);
+
+			profileTests("dirlist");
+			dirList(arguments.label,dir);
+
+			profileTests("dirRename");
+			dirRename(arguments.label,dir);
+
+			profileTests("fileACopy");
+			fileACopy(arguments.label,dir);
+
+			profileTests("fileAMove");
+			fileAMove(arguments.label,dir);
+
+			profileTests("fileAReadAppend");
+			fileAReadAppend(arguments.label,dir);
+
+			profileTests("fileAReadBinary");
+			fileAReadBinary(arguments.label,dir);
+
+			profileTests("testResourceProvider");
+			testResourceProvider(dir&"testcaseres1");
+		}
+		finally {
+			if(directoryExists(dir)) directory directory="#dir#" action="delete" recurse="yes";
+			profileTests("directoryDeleted");
+		}
+		assertFalse(DirectoryExists(dir));
+		
+
+	}
+
+	private struct function getCredentials(service) {
+		// getting the credentials from the environment variables
+		return server.getTestService(arguments.service);
+	}	
+
+	private void function addMapping(required string virtual, required string path){
+		var mappings=getApplicationSettings().mappings;
+		mappings[virtual]=path;
+		if ( request.testDebug )
+			systemOutput("add mapping [#arguments.virtual#] to [#arguments.path#]", true);
+		application 
+			action="update" 
+			mappings = mappings;
+	}
+
+	public void function testRam(){
+		test("ram","ram://");
+	}
+	public void function testRamAsMapping(){
+		addMapping("/testResRam","ram://");
+		test("ramAsMapping","/testResRam/");
+	}
+
+	public void function testLocalFilesystem(){
+		test("file",getDirectoryFromPath(getCurrentTemplatePath()));
+	}
+	public void function testLocalFilesystemAsMapping(){
+		addMapping("/testResLF",getDirectoryFromPath(getCurrentTemplatePath()));
+		test("fileAsMapping","/testResLF/");
+	}
+
+	public void function testZip(){
+		var file=getDirectoryFromPath(getCurrentTemplatePath())&"zip-"&getTickCount()&".zip";
+		var zipPath="zip://"&file&"!/";
+		try {
+			//first we create a zip we can use then as a filesystem
+			zip action="zip" file=file  {
+				zipparam source=getCurrentTemplatePath();
+			}
+			// now we use that zip
+			test("zip",zipPath);
+		}
+		// now we delete that zip again
+		finally {
+			fileDelete(file);
+		}
+	}
+
+	public void function testZipAsMapping(){
+		var file=getDirectoryFromPath(getCurrentTemplatePath())&"zip-"&getTickCount()&".zip";
+		var zipPath="zip://"&file&"!/";
+		try {
+			//first we create a zip we can use then as a filesystem
+			zip action="zip" file=file  {
+				zipparam source=getCurrentTemplatePath();
+			}
+			
+			addMapping("/testreszip",zipPath);
+			// now we use that zip
+			//throw expandPath("/testResZip/")&":"&file;
+			test("zipAsMapping","/testreszip/");
+		}
+		// now we delete that zip again
+		finally {
+			fileDelete(file);
+		}
+	}
 	
 	public void function testS3() localmode=true {
 		var s3 = getCredentials("s3");
@@ -57,7 +181,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="s3,zip"	{
 	private void function directoryCreateDelete(string label,string dir){
 		var sub=arguments.dir&"test1/";
 		var subsub=sub&"test2/";
-		
+
+		if ( request.testDebug )
+			systemOutput("directoryCreateDelete [#subsub#]", true);
 		// before doing anything it should not exist
 		assertFalse(directoryExists(sub));
 		assertFalse(directoryExists(subsub));
@@ -352,7 +478,7 @@ private function testResourceFileCreateDelete(res) localMode=true {
 
 }
 
-private function testResourceListening(res) localMode=true {
+private function testResourceListing(res) localMode=true {
 	s=res.getRealResource("s/ss.txt");
 	s.createFile(true); 
 	ss=res.getRealResource("ss/");
@@ -482,7 +608,7 @@ private function testResourceProvider(string path) localmode=true {
 	// test listening
 	try {
 		res.createDirectory(true); 
-		testResourceListening(res);
+		testResourceListing(res);
 	}
 	finally {if(res.exists()) res.remove(true);} 
 
@@ -524,125 +650,6 @@ private function testResourceProvider(string path) localmode=true {
 	private function assertEqualPaths(string path1, string path2) {
 		assertEquals(replace(path1, "\", "/", "all"), replace(path2, "\", "/", "all"));
 	}
-
-	private void function test(string label,string root){
-		var start=getTickCount();
-		var dir=arguments.root&"test-#createUniqueId()#-res/";
-		
-		// make sure there are no data from a previous run 
-		if (directoryExists(dir)) {
-			directory directory="#dir#" action="delete" recurse="yes";
-		}
-		var profile = false; // debug, use to profile how long each test takes
-		var profileTests = function(mess){
-			if (profile)
-				systemOutput("#mess# #numberFormat(getTickCount()-start)#ms", true);	
-		}
-
-		if (profile)
-			systemOutput("", true);
-	
-		profileTests("------- Testing Resource type [#label#]");
-		directory directory="#dir#" action="create";
-		try{
-			profileTests("createDirectory");
-			assertTrue(DirectoryExists(dir));
-			directoryCreateDelete(arguments.label,dir);
-			profileTests("directoryCreateDelete");
-			dirList(arguments.label,dir);
-			profileTests("dirlist");
-			dirRename(arguments.label,dir);
-			profileTests("dirRename");
-			fileACopy(arguments.label,dir);
-			profileTests("fileACopy");
-			fileAMove(arguments.label,dir);
-			profileTests("fileAMove");
-			fileAReadAppend(arguments.label,dir);
-			profileTests("fileAReadAppend");
-			fileAReadBinary(arguments.label,dir);
-			profileTests("fileAReadBinary");
-			testResourceProvider(dir&"testcaseres1");
-			profileTests("post testResourceProvider");
-			
-		}
-		finally {
-			if(directoryExists(dir)) directory directory="#dir#" action="delete" recurse="yes";
-			profileTests("directoryDeleted");
-		}   
-		assertFalse(DirectoryExists(dir));
-		
-
-	}
-
-	private struct function getCredentials(service) {
-		// getting the credentials from the environment variables
-		return server.getTestService(arguments.service);
-	}
-
-	
-
-	private void function addMapping(required string virtual, required string path){
-		var mappings=getApplicationSettings().mappings;
-		mappings[virtual]=path;
-		application 
-			action="update" 
-			mappings = mappings;
-	}
-
-	public void function testRam(){
-		test("ram","ram://");
-	}
-	public void function testRamAsMapping(){
-		addMapping("/testResRam","ram://");
-		test("ram","/testResRam/");
-	}
-
-	public void function testLocalFilesystem(){
-		test("file",getDirectoryFromPath(getCurrentTemplatePath()));
-	}
-	public void function testLocalFilesystemAsMapping(){
-
-		addMapping("/testResLF",getDirectoryFromPath(getCurrentTemplatePath()));
-		test("file","/testResLF/");
-	}
-
-	public void function testZip(){
-		var file=getDirectoryFromPath(getCurrentTemplatePath())&"zip-"&getTickCount()&".zip";
-		var zipPath="zip://"&file&"!/";
-		try {
-			//first we create a zip we can use then as a filesystem
-			zip action="zip" file=file  {
-				zipparam source=getCurrentTemplatePath();
-			}
-			// now we use that zip
-			test("zip",zipPath);
-		}
-		// now we delete that zip again
-		finally {
-			fileDelete(file);
-		}
-	}
-
-	public void function testZipAsMapping(){
-		var file=getDirectoryFromPath(getCurrentTemplatePath())&"zip-"&getTickCount()&".zip";
-		var zipPath="zip://"&file&"!/";
-		try {
-			//first we create a zip we can use then as a filesystem
-			zip action="zip" file=file  {
-				zipparam source=getCurrentTemplatePath();
-			}
-			
-			addMapping("/testreszip",zipPath);
-			// now we use that zip
-			//throw expandPath("/testResZip/")&":"&file;
-			test("zip","/testreszip/");
-		}
-		// now we delete that zip again
-		finally {
-			fileDelete(file);
-		}
-	}
-
 } 
 
 
