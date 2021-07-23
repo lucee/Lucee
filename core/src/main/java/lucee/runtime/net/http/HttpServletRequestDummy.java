@@ -699,7 +699,8 @@ public final class HttpServletRequestDummy implements HttpServletRequest, Serial
 		}
 
 		HttpServletRequestDummy dest = new HttpServletRequestDummy(rootDirectory, req.getServerName(), req.getRequestURI(), req.getQueryString(),
-				HttpUtil.cloneCookies(config, req), HttpUtil.cloneHeaders(req), HttpUtil.cloneParameters(req), HttpUtil.getAttributesAsStruct(req), getSessionEL(req), inputData);
+				HttpUtil.cloneCookies(config, req), HttpUtil.cloneHeaders(req), HttpUtil.cloneParameters(req), HttpUtil.getAttributesAsStruct(req), getSessionEL(req, false),
+				inputData);
 
 		try {
 			dest.setCharacterEncoding(req.getCharacterEncoding());
@@ -720,13 +721,13 @@ public final class HttpServletRequestDummy implements HttpServletRequest, Serial
 		dest.setRequestedSessionId(req.getRequestedSessionId());
 		dest.setScheme(req.getScheme());
 		dest.setServerPort(req.getServerPort());
-		dest.setSession(getSessionEL(req));
+		dest.setSession(getSessionEL(req, false));
 		return dest;
 	}
 
-	private static HttpSession getSessionEL(HttpServletRequest req) {
+	private static HttpSession getSessionEL(HttpServletRequest req, boolean createIfNecessary) {
 		try {
-			return req.getSession();
+			return req.getSession(createIfNecessary);
 		}
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
