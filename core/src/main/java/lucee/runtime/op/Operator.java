@@ -451,7 +451,8 @@ public final class Operator {
 				try {
 					return new BigDecimal(left).compareTo(new BigDecimal(Caster.toString(right)));
 				}
-				catch (Exception e) {}
+				catch (Exception e) {
+				}
 			}
 			return compare(Caster.toDoubleValue(left, Double.NaN), right);
 		}
@@ -934,7 +935,8 @@ public final class Operator {
 				((Appendable) left).append(right);
 				return left;
 			}
-			catch (IOException e) {}
+			catch (IOException e) {
+			}
 		}
 		return new StringBuilder(left).append(right);
 	}

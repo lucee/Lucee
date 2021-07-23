@@ -1388,7 +1388,8 @@ public final class Reflector {
 					fields[i].set(obj, convert(value, toReferenceClass(fields[i].getType()), null));
 					return true;
 				}
-				catch (PageException e) {}
+				catch (PageException e) {
+				}
 			}
 		}
 		catch (Exception e) {

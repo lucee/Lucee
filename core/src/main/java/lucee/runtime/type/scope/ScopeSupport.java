@@ -157,7 +157,8 @@ public abstract class ScopeSupport extends StructImpl implements Scope {
 			try {
 				fillDecoded(raw, "iso-8859-1", scriptProteced, sameAsArray);
 			}
-			catch (UnsupportedEncodingException e1) {}
+			catch (UnsupportedEncodingException e1) {
+			}
 		}
 	}
 

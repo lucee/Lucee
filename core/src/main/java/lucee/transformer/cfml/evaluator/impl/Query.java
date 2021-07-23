@@ -103,9 +103,9 @@ public final class Query extends EvaluatorSupport {
 							}
 							else if (bif.getClassDefinition().getClassName().equals(QuotedValueList.class.getName())
 									|| bif.getClassDefinition().getClassName().equals(ValueList.class.getName())) {
-								// printOut.setPreserveSingleQuote(false);
-								continue;
-							}
+										// printOut.setPreserveSingleQuote(false);
+										continue;
+									}
 						}
 
 						// do not preserve UDF return value

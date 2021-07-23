@@ -130,7 +130,8 @@ public final class DoubleStruct extends StructImpl {
 		try {
 			table.setTitle("Double Struct (" + castToString() + ")");
 		}
-		catch (PageException pe) {}
+		catch (PageException pe) {
+		}
 		return table;
 	}
 }

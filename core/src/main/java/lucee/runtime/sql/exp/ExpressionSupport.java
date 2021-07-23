@@ -69,6 +69,7 @@ public abstract class ExpressionSupport implements Expression {
 	}
 
 	@Override
-	public void reset() {}
+	public void reset() {
+	}
 
 }

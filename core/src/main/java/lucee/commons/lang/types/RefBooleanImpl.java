@@ -33,7 +33,8 @@ public final class RefBooleanImpl implements RefBoolean, Castable {// MUST add i
 
 	private boolean value;
 
-	public RefBooleanImpl() {}
+	public RefBooleanImpl() {
+	}
 
 	/**
 	 * @param value

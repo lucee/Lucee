@@ -728,7 +728,8 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 				try {
 					callStat.close();
 				}
-				catch (SQLException e) {}
+				catch (SQLException e) {
+				}
 			}
 			manager.releaseConnection(pageContext, dc);
 		}

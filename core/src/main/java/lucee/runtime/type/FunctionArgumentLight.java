@@ -42,7 +42,8 @@ public final class FunctionArgumentLight implements FunctionArgument, Externaliz
 	/**
 	 * NEVER USE THIS CONSTRUCTOR, this constructor is only for deserialize this object from stream
 	 */
-	public FunctionArgumentLight() {}
+	public FunctionArgumentLight() {
+	}
 
 	public FunctionArgumentLight(Collection.Key name) {
 		this(name, "any", CFTypes.TYPE_ANY);
