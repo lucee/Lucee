@@ -112,12 +112,16 @@ component {
 			"SFTP_PORT": 990,
 			"SFTP_BASE_PATH": "/",
 			
-			"S3_ACCESS_KEY_ID": "test",
+			"S3_ACCESS_KEY_ID": "",
 			"S3_SECRET_KEY": "", // DON'T COMMIT
 
-			"S3_CUSTOM_ACCESS_KEY_ID": "test",
+			"S3_CUSTOM_ACCESS_KEY_ID": "",
 			"S3_CUSTOM_SECRET_KEY": "", // DON'T COMMIT
-			"S3_CUSTOM_HOST": "localhost:9000",
+			"S3_CUSTOM_HOST": "http://localhost:9000", // i.e. minio
+
+			"S3_GOOGLE_ACCESS_KEY_ID": "",
+			"S3_GOOGLE_SECRET_KEY": "", // DON'T COMMIT
+			"S3_GOOGLE_HOST": "storage.googleapis.com",
 
 			"MAIL_USERNAME": "lucee",
 			"MAIL_PASSWORD": "", // DON'T COMMIT
@@ -146,8 +150,7 @@ component {
 	public void function loadServiceConfig() localmode=true {
 		systemOutput( "", true) ;		
 		systemOutput("-------------- Test Services ------------", true );
-
-		services = ListToArray("oracle,MySQL,MSsql,postgres,h2,mongoDb,smtp,pop,imap,s3,s3_custom,ftp,sftp,memcached");
+		services = ListToArray("oracle,MySQL,MSsql,postgres,h2,mongoDb,smtp,pop,imap,s3,s3_custom,s3_google,ftp,sftp,memcached");
 		// can take a while, so we check them them in parallel
 		services.each( function( service ) localmode=true {
 			cfg = server.getTestService( service=arguments.service, verify=true );
@@ -166,6 +169,9 @@ component {
 							verify = verifyS3(cfg);
 							break;
 						case "s3_custom":
+							verify = verifyS3Custom(cfg);
+							break;
+						case "s3_google":
 							verify = verifyS3Custom(cfg);
 							break;
 						case "imap":
@@ -194,6 +200,8 @@ component {
 					server.test_services[arguments.service].valid = true;
 				} catch (e) {
 					systemOutput( "ERROR Service [ #arguments.service# ] threw [ #cfcatch.message# ]", true);
+					if (cfcatch.message contains "NullPointerException")
+						systemOutput(cfcatch, true);
 				}
 			}
 		}, true, 4);
@@ -268,7 +276,7 @@ component {
 
 	public function verifyS3Custom ( s3 ) localmode=true{
 		bucketName = "lucee-testsuite";
-		base = "s3://#arguments.s3.CUSTOM_ACCESS_KEY_ID#:#arguments.s3.CUSTOM_SECRET_KEY#@#arguments.s3.CUSTOM_HOST#/#bucketName#";
+		base = "s3://#arguments.s3.ACCESS_KEY_ID#:#arguments.s3.SECRET_KEY#@#arguments.s3.HOST#/#bucketName#";
 		if ( ! DirectoryExists( base ) );
 			DirectoryCreate( base ); // for GHA, the local service starts empty
 		return "s3 custom Connection Verified";
@@ -296,7 +304,7 @@ component {
 					if ( !isNull( props[ k ] ) && Len( Trim( props[ k ] ) ) neq 0 ){
 						kk = k;
 						if ( arguments.stripPrefix )
-							kk = ListRest( k, "_" ); // return DATABASE for MSSQL_DATABASE
+							kk = mid(k, len( arguments.prefix ) + 1 ); // i.e. return DATABASE for MSSQL_DATABASE
 						st[ kk ] = props[ k ];
 					}
 				}
@@ -448,6 +456,9 @@ component {
 				return s3;
 			case "s3_custom":
 				s3 = server._getSystemPropOrEnvVars( "ACCESS_KEY_ID, SECRET_KEY, HOST", "S3_CUSTOM_" );
+				return s3;
+			case "s3_google":
+				s3 = server._getSystemPropOrEnvVars( "ACCESS_KEY_ID, SECRET_KEY, HOST", "S3_GOOGLE_" );
 				return s3;
 			case "memcached":
 				memcached = server._getSystemPropOrEnvVars( "SERVER, PORT", "MEMCACHED_" );
