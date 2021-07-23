@@ -1,14 +1,14 @@
 component extends="org.lucee.cfml.test.LuceeTestCase"{
 	function beforeAll(){
-
 	}
 
 	function afterAll(){
 	}
 
 	function run( testResults , testBox ) {
+		local.has=structCount(getCredencials());
 		describe( "test suite for S3 VFS", function() {
-
+			if(!has) return;
 			it(title="test this.s3", body=function() {
 				var uri=createURI("s3/default-s3/index.cfm");
 				local.res=_InternalRequest(
