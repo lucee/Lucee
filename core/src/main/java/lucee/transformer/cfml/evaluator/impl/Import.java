@@ -56,7 +56,8 @@ import lucee.transformer.util.SourceCode;
 public final class Import extends EvaluatorSupport {
 
 	@Override
-	public void evaluate(Tag tag, TagLibTag libTag) throws EvaluatorException {}
+	public void evaluate(Tag tag, TagLibTag libTag) throws EvaluatorException {
+	}
 
 	@Override
 	public TagLib execute(Config config, Tag tag, TagLibTag libTag, FunctionLib[] flibs, Data data) throws TemplateException {
@@ -179,7 +180,8 @@ public final class Import extends EvaluatorSupport {
 		try {
 			filename = Md5.getDigestAsString(ResourceUtil.getCanonicalPathEL(jarFile) + jarFile.lastModified());
 		}
-		catch (IOException e) {}
+		catch (IOException e) {
+		}
 
 		Resource tldFile = jspTagLibDir.getRealResource(filename + ".tld");
 		if (tldFile.exists()) return tldFile;
@@ -192,7 +194,8 @@ public final class Import extends EvaluatorSupport {
 		try {
 			IOUtil.copy(new ByteArrayInputStream(barr), tldFile, true);
 		}
-		catch (IOException e) {}
+		catch (IOException e) {
+		}
 		return tldFile;
 	}
 
@@ -220,7 +223,8 @@ public final class Import extends EvaluatorSupport {
 				}
 			}
 		}
-		catch (IOException ioe) {}
+		catch (IOException ioe) {
+		}
 		finally {
 			IOUtil.closeEL(zis);
 		}

@@ -107,7 +107,8 @@ public final class CastFloat extends ExpressionBase implements ExprFloat, Cast {
 				else if (Types.DOUBLE_VALUE.equals(rtn)) {
 					adapter.cast(Types.DOUBLE_VALUE, Types.FLOAT_VALUE);
 				}
-				else if (Types.FLOAT_VALUE.equals(rtn)) {}
+				else if (Types.FLOAT_VALUE.equals(rtn)) {
+				}
 				else if (Types.BOOLEAN_VALUE.equals(rtn)) {
 					adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_FLOAT_VALUE_FROM_BOOLEAN);
 				}

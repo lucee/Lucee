@@ -104,7 +104,8 @@ public final class CustomTagLib extends TagLib {
 	 * @see lucee.transformer.library.tag.TagLib#setTag(lucee.transformer.library.tag.TagLibTag)
 	 */
 	@Override
-	public void setTag(TagLibTag tag) {}
+	public void setTag(TagLibTag tag) {
+	}
 
 	public void append(TagLib other) {
 		if (other instanceof CustomTagLib) textTagLib += File.pathSeparatorChar + ((CustomTagLib) other).textTagLib;

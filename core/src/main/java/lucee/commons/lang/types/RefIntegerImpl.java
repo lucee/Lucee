@@ -40,7 +40,8 @@ public class RefIntegerImpl implements RefInteger, Castable {
 		this.value = value;
 	}
 
-	public RefIntegerImpl() {}
+	public RefIntegerImpl() {
+	}
 
 	/**
 	 * @param value

@@ -55,6 +55,7 @@ public class ComponentProperties implements Serializable {
 		this.output = output;
 		this.callPath = callPath;
 		this.realPath = realPath;
+		this.subName = subName;
 		this._synchronized = _synchronized;
 		this.javaAccessClass = javaAccessClass;
 		this.meta = meta;

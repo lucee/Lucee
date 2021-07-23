@@ -83,7 +83,8 @@ public class ServerCacheConnection implements CacheConnectionPlus {
 		try {
 			return cc.getInstance(null);
 		}
-		catch (Exception e) {}
+		catch (Exception e) {
+		}
 		return null;
 	}
 }

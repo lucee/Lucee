@@ -10,7 +10,8 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
-
+    env:
+      DO_DEPLOY: "${{ github.event_name == 'push' && github.ref == 'refs/heads/6.0' }}"
     services:
       sql-server:
         # Docker Hub image
@@ -98,9 +99,11 @@ jobs:
         MSSQL_PASSWORD: Lucee!1433
         MSSQL_PORT: 1433
         MSSQL_DATABASE: master
+        MEMCACHED_PORT: 11211
+        MEMCACHED_SERVER: localhost
         S3_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_ID_TEST }}
         S3_SECRET_KEY: ${{ secrets.S3_SECRET_KEY_TEST }}
-        DO_DEPLOY: ${{ github.event_name == 'push' }}
+        # DO_DEPLOY: ${{ github.event_name == 'push' }}
         # for uploading successful builds
         S3_ACCESS_ID_DOWNLOAD: ${{ secrets.S3_ACCESS_ID_DOWNLOAD }}
         S3_SECRET_KEY_DOWNLOAD: ${{ secrets.S3_SECRET_KEY_DOWNLOAD }}
@@ -110,21 +113,27 @@ jobs:
         CI_DEPLOY_PASSPHRASE: ${{ secrets.CI_DEPLOY_PASSPHRASE }}
       #run: ant -noinput -buildfile loader/build.xml
       run: |
-        if [ "${{ github.event_name == 'push' }}" == "true" ]; then
+        if [ "${DO_DEPLOY}" == "true" ]; then        
           echo "------- Maven Deploy on ${{ github.event_name }} -------";
           mvn -B -e -f loader/pom.xml clean deploy --settings travis-settings.xml;
         else
           echo "------- Maven Install on ${{ github.event_name }} ---------";
           mvn -B -e -f loader/pom.xml clean install
         fi
+    - name: Publish Test Results
+      uses: EnricoMi/publish-unit-test-result-action@v1
+      if: always()
+      with:
+        files: test/reports/junit-test-results.xml
+        check_name: "Lucee Test Results"
     - name: Update Provider
-      if: ${{ github.event_name == 'push' }}
+      if: ${{ env.DO_DEPLOY == 'true' }}
       run: |
         curl --no-progress-meter -sIXGET "https://update.lucee.org/rest/update/provider/buildLatest"
         curl --no-progress-meter -sIXGET "https://extension.lucee.org/rest/extension/provider/reset"
         curl --no-progress-meter -sIXGET "https://download.lucee.org/?type=snapshots&reset=force"
     - name: Trigger Docker Build
-      if: ${{ github.event_name == 'push' }}
+      if: ${{ env.DO_DEPLOY == 'true' }}
       env:
         TRAVIS_JOB_ID: ${{ github.run_id }}
         TRAVIS_TOKEN: ${{ secrets.DOCKER_AUTH_TOKEN }} # not set up yet

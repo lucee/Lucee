@@ -40,7 +40,8 @@ public final class RefDoubleImpl implements RefDouble, Castable {
 	/**
 	 * Constructor of the class
 	 */
-	public RefDoubleImpl() {}
+	public RefDoubleImpl() {
+	}
 
 	@Override
 	public void setValue(double value) {

@@ -1,4 +1,4 @@
-<cfcomponent extends="org.lucee.cfml.test.LuceeTestCase"  labels="pdf">
+<cfcomponent extends="org.lucee.cfml.test.LuceeTestCase"  labels="pdf,zip">
 	<cfscript>
 		function beforeAll(){
 			uri = createURI("testFolder");

@@ -375,13 +375,16 @@ public final class CookieImpl extends ScopeSupport implements Cookie, ScriptProt
 	}
 
 	@Override
-	public void resetEnv(PageContext pc) {}
+	public void resetEnv(PageContext pc) {
+	}
 
 	@Override
-	public void touchBeforeRequest(PageContext pc) {}
+	public void touchBeforeRequest(PageContext pc) {
+	}
 
 	@Override
-	public void touchAfterRequest(PageContext pc) {}
+	public void touchAfterRequest(PageContext pc) {
+	}
 
 	public static void setHTTPOnly(javax.servlet.http.Cookie cookie) {
 		try {

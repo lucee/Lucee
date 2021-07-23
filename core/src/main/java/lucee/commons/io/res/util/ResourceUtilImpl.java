@@ -37,7 +37,8 @@ import lucee.runtime.functions.system.ContractPath;
 
 public class ResourceUtilImpl implements lucee.runtime.util.ResourceUtil {
 
-	private ResourceUtilImpl() {}
+	private ResourceUtilImpl() {
+	}
 
 	private static ResourceUtilImpl impl = new ResourceUtilImpl();
 

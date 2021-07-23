@@ -400,9 +400,9 @@ public class ComponentLoader {
 	private static CIObject load(PageContext pc, Page page, String callPath, String sub, boolean isRealPath, short returnType, final boolean isExtendedComponent,
 			boolean executeConstr) throws PageException {
 		CIPage cip = toCIPage(page, callPath);
+		// String subName = null;
 		if (sub != null) {
 			cip = loadSub(cip, sub);
-			// page=page.loadSub(sub);
 		}
 		if (cip instanceof ComponentPageImpl) {
 			if (returnType != RETURN_TYPE_COMPONENT)
@@ -582,7 +582,6 @@ public class ComponentLoader {
 
 		ComponentPageImpl cp = (ComponentPageImpl) page;
 		ComponentImpl c = cp.newInstance(pc, callPath, isRealPath, isExtendedComponent, executeConstr);
-
 		// abstract/final check
 		if (!isExtendedComponent) {
 			if (c.getModifier() == Component.MODIFIER_ABSTRACT) throw new ApplicationException(

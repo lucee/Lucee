@@ -453,7 +453,7 @@ public final class FileTag extends BodyTagImpl {
 		case ACTION_UNDEFINED:
 			throw new ApplicationException("Missing attribute action"); // should never happens
 
-			// write and append
+		// write and append
 		default:
 			return EVAL_BODY_BUFFERED;
 		}
