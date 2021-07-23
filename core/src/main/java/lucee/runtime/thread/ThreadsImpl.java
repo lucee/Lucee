@@ -107,7 +107,8 @@ public class ThreadsImpl extends StructSupport implements lucee.runtime.type.sco
 	}
 
 	@Override
-	public void release(PageContext pc) {}
+	public void release(PageContext pc) {
+	}
 
 	@Override
 	public void clear() {

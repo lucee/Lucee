@@ -91,7 +91,8 @@ public final class HTMLUtil {
 					try {
 						urls.add(new URL(url, value.toString()));
 					}
-					catch (MalformedURLException e) {}
+					catch (MalformedURLException e) {
+					}
 					cfml.next();
 				}
 				else {
@@ -140,7 +141,8 @@ public final class HTMLUtil {
 				list.add(new URL(baseURL, value.toString()));
 			}
 		}
-		catch (MalformedURLException mue) {}
+		catch (MalformedURLException mue) {
+		}
 		// print.err(list.get(list.size()-1));
 	}
 

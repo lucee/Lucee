@@ -69,8 +69,8 @@ public final class CallStackGet implements Function {
 		Array arr = (Array) call(pc);
 
 		if (offset > 0 || maxFrames > 0) {
-			int sliceFrom = (int)offset + 1;
-			int sliceTo   = (maxFrames > 0) ? (int)(maxFrames + offset) : 0;
+			int sliceFrom = (int) offset + 1;
+			int sliceTo = (maxFrames > 0) ? (int) (maxFrames + offset) : 0;
 			arr = ArraySlice.get(arr, sliceFrom, sliceTo);
 		}
 

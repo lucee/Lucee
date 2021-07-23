@@ -66,7 +66,8 @@ public final class SMTPVerifier {
 					_verify(host, null, null, 25);
 					throw new SMTPExceptionImpl("Cannot connect to mail server, port definition is invalid");
 				}
-				catch (MessagingException e1) {}
+				catch (MessagingException e1) {
+				}
 			}
 
 			throw new SMTPExceptionImpl("can't connect to mail server");

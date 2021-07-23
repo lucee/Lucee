@@ -276,7 +276,8 @@ public final class HTTPServletRequestWrap implements HttpServletRequest, Seriali
 						return;
 					}
 				}
-				catch (Exception e) {}
+				catch (Exception e) {
+				}
 			}
 			FileOutputStream fos = null;
 			try {
@@ -290,7 +291,8 @@ public final class HTTPServletRequestWrap implements HttpServletRequest, Seriali
 				IOUtil.copy(is, fos, 0xfffff, true, true);
 
 			}
-			catch (Exception e) {}
+			catch (Exception e) {
+			}
 			finally {
 				IOUtil.closeEL(fos);
 			}

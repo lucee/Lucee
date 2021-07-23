@@ -52,7 +52,8 @@ public class ConsoleExecutionLog extends ExecutionLogSupport {
 	}
 
 	@Override
-	protected void _release() {}
+	protected void _release() {
+	}
 
 	private static String positons(int startPos, int endPos) {
 		if (startPos == endPos) return startPos + "";

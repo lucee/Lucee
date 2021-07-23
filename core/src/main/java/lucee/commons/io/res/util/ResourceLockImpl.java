@@ -139,7 +139,8 @@ public final class ResourceLockImpl implements ResourceLock {
 					return;
 				}
 			}
-			catch (InterruptedException e) {}
+			catch (InterruptedException e) {
+			}
 		}
 		while (true);
 	}

@@ -963,7 +963,8 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 			else LogUtil.log(ThreadLocalPageContext.getConfig(config), Log.LEVEL_ERROR, ModernApplicationContext.class.getName(),
 					"method [init(Config,String[],Struct[]):void] for class [" + cd.toString() + "] is not static");
 		}
-		catch (Exception e) {}
+		catch (Exception e) {
+		}
 		initCacheConnections.put(id, cc);
 		return cc;
 

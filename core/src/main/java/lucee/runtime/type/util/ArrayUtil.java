@@ -170,7 +170,8 @@ public final class ArrayUtil {
 			try {
 				if (tmp != null && Operator.compare(object, tmp) == 0) return i;
 			}
-			catch (PageException e) {}
+			catch (PageException e) {
+			}
 		}
 		return 0;
 	}

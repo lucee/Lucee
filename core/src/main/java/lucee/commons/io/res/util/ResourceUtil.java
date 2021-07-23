@@ -910,7 +910,8 @@ public final class ResourceUtil {
 						try {
 							src.remove(false);
 						}
-						catch (IOException e) {}
+						catch (IOException e) {
+						}
 					}
 				}
 			}
@@ -1042,14 +1043,16 @@ public final class ResourceUtil {
 		try {
 			res.createFile(force);
 		}
-		catch (IOException e) {}
+		catch (IOException e) {
+		}
 	}
 
 	public static void createDirectoryEL(Resource res, boolean force) {
 		try {
 			res.createDirectory(force);
 		}
-		catch (IOException e) {}
+		catch (IOException e) {
+		}
 	}
 
 	public static ContentType getContentType(Resource resource) {
@@ -1058,7 +1061,8 @@ public final class ResourceUtil {
 			try {
 				return ((HTTPResource) resource).getContentType();
 			}
-			catch (IOException e) {}
+			catch (IOException e) {
+			}
 		}
 		InputStream is = null;
 		try {
@@ -1078,7 +1082,8 @@ public final class ResourceUtil {
 			try {
 				return ((HTTPResource) resource).getContentType();
 			}
-			catch (IOException e) {}
+			catch (IOException e) {
+			}
 		}
 		InputStream is = null;
 		try {
