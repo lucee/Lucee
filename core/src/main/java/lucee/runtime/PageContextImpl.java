@@ -3457,8 +3457,6 @@ public final class PageContextImpl extends PageContext {
 			if (!create) return null;
 			ormSession = config.getORMEngine(this).createSession(this);
 		}
-		DatasourceManagerImpl manager = (DatasourceManagerImpl) getDataSourceManager();
-		manager.add(this, ormSession);
 
 		return ormSession;
 	}
