@@ -490,6 +490,13 @@ public final class QoQ {
 			}
 		}
 
+		// For a non-grouping query with aggregates where no records matched the where clause
+		// SELECT count(1) FROM qry WHERE 1=0
+		// then we need to add a single empty partition so our final select will have a single row.
+		if (hasAggregateSelect && select.getGroupbys().length == 0 && queryPartitions.getPartitions().size() == 0 ) {
+			queryPartitions.addEmptyPartition( source, target ); 
+		}
+		
 		// Add first row of each group of partitioned data into final result
 		for (Query sourcePartition: queryPartitions.getPartitions().values()) {
 			target.addRow(1);
