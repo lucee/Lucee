@@ -270,7 +270,7 @@ public final class QoQ {
 
 		// For a union all, we just slam all the rows together, keeping any duplicate record
 		if (isUnion && !select.isUnionDistinct()) {
-			return doUnionAll(previous, target);
+			return doUnionAll(previous, target, sql);
 		}
 		// If this is a select following a "union" or "union distinct", then everything gets
 		// distincted. Load up the partitions with all the existing rows in the target thus far
@@ -289,7 +289,7 @@ public final class QoQ {
 	 * @return Combined Query with potential duplicate rows
 	 * @throws PageException
 	 */
-	private Query doUnionAll(Query previous, Query target) throws PageException {
+	private Query doUnionAll(Query previous, Query target, SQL sql) throws PageException {
 		// If this is the first select in a series of unions, just return it directly. It's column
 		// names now get set in stone as the column names the next union(s) will use!
 		if (previous.getRecordcount() == 0) {
@@ -297,6 +297,11 @@ public final class QoQ {
 		}
 		Collection.Key[] previousColKeys = previous.getColumnNames();
 		Collection.Key[] targetColKeys = target.getColumnNames();
+
+		if( previousColKeys.length != targetColKeys.length ) {
+			throw new DatabaseException("Cannot perform union as number of columns in selects do not match.", null, sql, null);
+		}
+
 		// Queries being joined need to have the same number of columns and the data is full
 		// realized, so just copy it over positionally. The column names may not match, but that's
 		// fine.
@@ -327,6 +332,11 @@ public final class QoQ {
 		}
 		Collection.Key[] previousColKeys = previous.getColumnNames();
 		Collection.Key[] targetColKeys = target.getColumnNames();
+		
+		if( previousColKeys.length != targetColKeys.length ) {
+			throw new DatabaseException("Cannot perform union as number of columns in selects do not match.", null, sql, null);
+		}
+		
 		Expression[] selectExpressions = new Expression[previousColKeys.length];
 		// We want the exact columns from the previous query, but not necessarily all the data. Make
 		// a new target and copy the columns
