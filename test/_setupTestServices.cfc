@@ -277,7 +277,7 @@ component {
 	public function verifyS3Custom ( s3 ) localmode=true{
 		bucketName = "lucee-testsuite";
 		base = "s3://#arguments.s3.ACCESS_KEY_ID#:#arguments.s3.SECRET_KEY#@#arguments.s3.HOST#/#bucketName#";
-		if ( ! DirectoryExists( base ) );
+		if ( ! DirectoryExists( base ) )
 			DirectoryCreate( base ); // for GHA, the local service starts empty
 		return "s3 custom Connection Verified";
 	}
