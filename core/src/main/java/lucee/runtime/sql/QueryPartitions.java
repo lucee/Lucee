@@ -142,7 +142,7 @@ public class QueryPartitions {
 			Collection.Key[] sourceColKeys = source.getColumnNames();
 			Collection.Key[] targetColKeys = targetPartition.getColumnNames();
 			for (int col = 0; col < targetColKeys.length; col++) {
-				((QueryImpl) targetPartition).setAt(targetColKeys[col], targetPartition.getRecordcount(), source.getAt(sourceColKeys[col], row), true);
+				((QueryImpl) targetPartition).setAt(targetColKeys[col], targetPartition.getRecordcount(), source.getColumn(sourceColKeys[col]).get(row, null), true);
 			}
 
 		}
@@ -150,17 +150,18 @@ public class QueryPartitions {
 		// be added later, but there's no use filling up the partition with place holders
 		else {
 			for (int cell = 0; cell < columns.length; cell++) {
+				
 				// Literal values get by alias
 				if (columns[cell] instanceof Value) {
 					Value v = (Value) columns[cell];
 
-					((QueryImpl) targetPartition).setAt(columnKeys[cell], targetPartition.getRecordcount(), source.getAt(Caster.toKey(v.getAlias()), row, null), true);
+					((QueryImpl) targetPartition).setAt(columnKeys[cell], targetPartition.getRecordcount(), source.getColumn(Caster.toKey(v.getAlias())).get(row, null), true);
 				}
 				// A column expressions is set by column Key
 				else if (columns[cell] instanceof ColumnExpression) {
 					ColumnExpression ce = (ColumnExpression) columns[cell];
 
-					((QueryImpl) targetPartition).setAt(columnKeys[cell], targetPartition.getRecordcount(), source.getAt(ce.getColumn(), row, null), true);
+					((QueryImpl) targetPartition).setAt(columnKeys[cell], targetPartition.getRecordcount(), ce.getValue(pc, source, row, null), true);
 				}
 
 			}
@@ -168,7 +169,7 @@ public class QueryPartitions {
 			// list above
 			for (Collection.Key col: additionalColumns) {
 				if (source.containsKey(col)) {
-					((QueryImpl) targetPartition).setAt(col, targetPartition.getRecordcount(), source.getAt(col, row, null), true);
+					((QueryImpl) targetPartition).setAt(col, targetPartition.getRecordcount(), source.getColumn(col).get(row, null), true);
 				}
 			}
 		}
