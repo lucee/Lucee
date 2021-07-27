@@ -151,11 +151,10 @@ public class QueryPartitions {
 		else {
 			for (int cell = 0; cell < columns.length; cell++) {
 				
-				// Literal values get by alias
+				// Literal values
 				if (columns[cell] instanceof Value) {
 					Value v = (Value) columns[cell];
-
-					((QueryImpl) targetPartition).setAt(columnKeys[cell], targetPartition.getRecordcount(), source.getColumn(Caster.toKey(v.getAlias())).get(row, null), true);
+					((QueryImpl) targetPartition).setAt(columnKeys[cell], targetPartition.getRecordcount(), v.getValue(), true);
 				}
 				// A column expressions is set by column Key
 				else if (columns[cell] instanceof ColumnExpression) {
