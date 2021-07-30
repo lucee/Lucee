@@ -47,7 +47,7 @@ public class InternalRequest implements Function {
 	private static final Key CONTENT_TYPE = KeyImpl.getInstance("content-type");
 
 	public static Struct call(final PageContext pc, String template, String method, Struct urls, Struct forms, Struct cookies, Struct headers, Object body, String strCharset,
-			boolean addToken) throws PageException {
+			boolean addToken, String queryString) throws PageException {
 
 		// add token
 		if (addToken) {
@@ -98,7 +98,7 @@ public class InternalRequest implements Function {
 			_barr = str.getBytes(cs);
 		}
 
-		PageContextImpl _pc = createPageContext(pc, template, urls, cookies, headers, _barr, reqCharset, baos);
+		PageContextImpl _pc = createPageContext(pc, template, urls, cookies, headers, _barr, reqCharset, baos, queryString);
 		fillForm(_pc, forms);
 		Collection cookie, request, session = null;
 		int status;
@@ -178,7 +178,7 @@ public class InternalRequest implements Function {
 		}
 	}
 
-	private static PageContextImpl createPageContext(PageContext pc, String template, Struct urls, Struct cookies, Struct headers, byte[] body, Charset charset, OutputStream os)
+	private static PageContextImpl createPageContext(PageContext pc, String template, Struct urls, Struct cookies, Struct headers, byte[] body, Charset charset, OutputStream os, String queryString)
 			throws PageException {
 
 		// query string | URL
@@ -193,6 +193,10 @@ public class InternalRequest implements Function {
 				sbQS.append('=');
 				sbQS.append(urlenc(Caster.toString(e.getValue()), charset));
 			}
+		}
+		if (queryString != null) {
+			if (sbQS.length() > 0) sbQS.append('&'); 
+			sbQS.append(queryString);
 		}
 
 		return ThreadUtil.createPageContext(pc.getConfig(), os, pc.getHttpServletRequest().getServerName(), template, sbQS.toString(), CreatePageContext.toCookies(cookies),

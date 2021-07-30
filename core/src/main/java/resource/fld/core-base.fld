@@ -7248,6 +7248,12 @@ The following things are considered to be empty:
 			<required>no</required>
 			<description>if yes add urlToken as cookie</description>
     	</argument>
+		<argument>
+			<name>queryString</name>
+			<type>string</type>
+			<required>no</required>
+			<description>query string passed to request</description>
+    	</argument>
 		<return>
 			<type>struct</type>
 		</return>
