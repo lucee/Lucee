@@ -49,7 +49,8 @@ public final class DatasourceManagerImpl implements DataSourceManager {
 	private ConfigPro config;
 	boolean autoCommit = true;
 	private int isolation = Connection.TRANSACTION_NONE;
-	private Map<DataSource, DatasourceConnection> transConns = new HashMap<DataSource, DatasourceConnection>();
+	private Map<DataSource, DatasourceConnection> transConnsReg = new HashMap<DataSource, DatasourceConnection>();
+	private Map<DataSource, ORMDatasourceConnection> transConnsORM = new HashMap<DataSource, ORMDatasourceConnection>();
 	private boolean inside;
 
 	public DatasourceManagerImpl(ConfigPro c) {
@@ -78,7 +79,7 @@ public final class DatasourceManagerImpl implements DataSourceManager {
 		// DatasourceConnection newDC = _getConnection(pc,ds,user,pass);
 		DatasourceConnectionPro existingDC = null;
 		try {
-			existingDC = (DatasourceConnectionPro) transConns.get(ds);
+			existingDC = (DatasourceConnectionPro) transConnsReg.get(ds);
 
 			// first time that datasource is used within this transaction
 			if (existingDC == null) {
@@ -87,7 +88,7 @@ public final class DatasourceManagerImpl implements DataSourceManager {
 					newDC.setAutoCommit(false);
 					if (isolation != Connection.TRANSACTION_NONE) DBUtil.setTransactionIsolationEL(newDC.getConnection(), isolation);
 				}
-				transConns.put(ds, newDC);
+				transConnsReg.put(ds, newDC);
 				return newDC;
 			}
 
@@ -147,11 +148,11 @@ public final class DatasourceManagerImpl implements DataSourceManager {
 	private void _add(PageContext pc, ORMSession session, DataSource ds) throws PageException {
 		DatasourceConnectionPro existingDC = null;
 		try {
-			existingDC = (DatasourceConnectionPro) transConns.get(ds);
+			existingDC = transConnsORM.get(ds);
 			if (existingDC == null) {
 				if (isolation == Connection.TRANSACTION_NONE) isolation = Connection.TRANSACTION_SERIALIZABLE;
 				ORMDatasourceConnection newDC = new ORMDatasourceConnection(pc, session, ds, isolation);
-				transConns.put(ds, newDC);
+				transConnsORM.put(ds, newDC);
 				return;
 			}
 			if (!DatasourceConnectionImpl.equals(existingDC, ds, null, null)) {
@@ -203,88 +204,124 @@ public final class DatasourceManagerImpl implements DataSourceManager {
 
 	@Override
 	public void rollback() throws DatabaseException {
-		if (autoCommit || transConns.size() == 0) return;
-		Iterator<DatasourceConnection> it = this.transConns.values().iterator();
+		if (autoCommit || _size() == 0) return;
 		DatasourceConnection dc = null;
 		Pair<DatasourceConnection, Exception> pair = null;
-
-		while (it.hasNext()) {
-			dc = it.next();
-			try {
-				dc.getConnection().rollback();
-			}
-			catch (Exception e) {
-				// we only keep the first exception
-				if (pair == null) {
-					pair = new Pair<DatasourceConnection, Exception>(dc, e);
+		// Reg
+		{
+			Iterator<DatasourceConnection> it = this.transConnsReg.values().iterator();
+			while (it.hasNext()) {
+				dc = it.next();
+				try {
+					dc.getConnection().rollback();
+				}
+				catch (Exception e) {
+					// we only keep the first exception
+					if (pair == null) {
+						pair = new Pair<DatasourceConnection, Exception>(dc, e);
+					}
 				}
 			}
 		}
-
-		if (pair != null) {
-			if (pair.getValue() instanceof SQLException) {
-				throw new DatabaseException((SQLException) pair.getValue(), pair.getName());
+		// ORM
+		{
+			Iterator<ORMDatasourceConnection> it = this.transConnsORM.values().iterator();
+			while (it.hasNext()) {
+				dc = it.next();
+				try {
+					dc.getConnection().rollback();
+				}
+				catch (Exception e) {
+					// we only keep the first exception
+					if (pair == null) {
+						pair = new Pair<DatasourceConnection, Exception>(dc, e);
+					}
+				}
 			}
-			throw new PageRuntimeException(pair.getValue());
 		}
+		throwException(pair);
 	}
 
 	@Override
 	public void savepoint() throws DatabaseException {
-		if (autoCommit || transConns.size() == 0) return;
+		if (autoCommit || _size() == 0) return;
 
-		Iterator<DatasourceConnection> it = this.transConns.values().iterator();
-		DatasourceConnection dc = null;
+		DatasourceConnection dc;
 		Pair<DatasourceConnection, Exception> pair = null;
-
-		while (it.hasNext()) {
-			dc = it.next();
-			try {
-				dc.getConnection().setSavepoint();
-			}
-			catch (Exception e) {
-				// we only keep the first exception
-				if (pair == null) {
-					pair = new Pair<DatasourceConnection, Exception>(dc, e);
+		// Reg
+		{
+			Iterator<DatasourceConnection> it = this.transConnsReg.values().iterator();
+			while (it.hasNext()) {
+				dc = it.next();
+				try {
+					dc.getConnection().setSavepoint();
+				}
+				catch (Exception e) {
+					// we only keep the first exception
+					if (pair == null) {
+						pair = new Pair<DatasourceConnection, Exception>(dc, e);
+					}
 				}
 			}
 		}
-
-		if (pair != null) {
-			if (pair.getValue() instanceof SQLException) {
-				throw new DatabaseException((SQLException) pair.getValue(), pair.getName());
+		// ORM
+		{
+			Iterator<ORMDatasourceConnection> it = this.transConnsORM.values().iterator();
+			while (it.hasNext()) {
+				dc = it.next();
+				try {
+					dc.getConnection().setSavepoint();
+				}
+				catch (Exception e) {
+					// we only keep the first exception
+					if (pair == null) {
+						pair = new Pair<DatasourceConnection, Exception>(dc, e);
+					}
+				}
 			}
-			throw new PageRuntimeException(pair.getValue());
 		}
+		throwException(pair);
 	}
 
 	@Override
 	public void commit() throws DatabaseException {
-		if (autoCommit || transConns.size() == 0) return;
+		if (autoCommit || _size() == 0) return;
 
-		Iterator<DatasourceConnection> it = this.transConns.values().iterator();
-		DatasourceConnection dc = null;
 		Pair<DatasourceConnection, Exception> pair = null;
-
-		while (it.hasNext()) {
-			dc = it.next();
-			try {
-				dc.getConnection().commit();
-			}
-			catch (Exception e) {
-				// we only keep the first exception
-				if (pair == null) {
-					pair = new Pair<DatasourceConnection, Exception>(dc, e);
+		DatasourceConnection dc;
+		// Reg
+		{
+			Iterator<DatasourceConnection> it = this.transConnsReg.values().iterator();
+			while (it.hasNext()) {
+				dc = it.next();
+				try {
+					dc.getConnection().commit();
+				}
+				catch (Exception e) {
+					// we only keep the first exception
+					if (pair == null) {
+						pair = new Pair<DatasourceConnection, Exception>(dc, e);
+					}
 				}
 			}
 		}
-
-		if (pair != null) {
-			if (pair.getValue() instanceof SQLException) {
-				throw new DatabaseException((SQLException) pair.getValue(), pair.getName());
+		// ORM
+		{
+			Iterator<ORMDatasourceConnection> it = this.transConnsORM.values().iterator();
+			while (it.hasNext()) {
+				dc = it.next();
+				try {
+					dc.getConnection().commit();
+				}
+				catch (Exception e) {
+					// we only keep the first exception
+					if (pair == null) {
+						pair = new Pair<DatasourceConnection, Exception>(dc, e);
+					}
+				}
 			}
-			throw new PageRuntimeException(pair.getValue());
 		}
+		throwException(pair);
 	}
 
 	@Override
@@ -311,10 +348,11 @@ public final class DatasourceManagerImpl implements DataSourceManager {
 	public void end(boolean onlyORM) {
 		autoCommit = true;
 		Pair<DatasourceConnection, Exception> pair = null;
-		if (transConns.size() > 0) {
+		// Reg
+		if (transConnsReg.size() > 0) {
 			Map<DataSource, DatasourceConnection> tmp = null;
 			if (onlyORM) tmp = new HashMap<DataSource, DatasourceConnection>();
-			Iterator<Entry<DataSource, DatasourceConnection>> it = this.transConns.entrySet().iterator();
+			Iterator<Entry<DataSource, DatasourceConnection>> it = this.transConnsReg.entrySet().iterator();
 			DatasourceConnection dc;
 			Entry<DataSource, DatasourceConnection> entry;
 			while (it.hasNext()) {
@@ -338,8 +376,34 @@ public final class DatasourceManagerImpl implements DataSourceManager {
 				}
 				releaseConnection(null, dc, true);
 			}
-			transConns.clear();
-			if (onlyORM) transConns = tmp;
+			transConnsReg.clear();
+			if (onlyORM) transConnsReg = tmp;
+		}
+
+		// ORM
+		if (transConnsORM.size() > 0) {
+			Map<DataSource, DatasourceConnection> tmp = null;
+			Iterator<Entry<DataSource, ORMDatasourceConnection>> it = this.transConnsORM.entrySet().iterator();
+			DatasourceConnection dc;
+			Entry<DataSource, ORMDatasourceConnection> entry;
+			while (it.hasNext()) {
+				entry = it.next();
+				dc = entry.getValue();
+				try {
+					dc.setAutoCommit(true);
+					DBUtil.setTransactionIsolationEL(dc.getConnection(), ((DatasourceConnectionPro) dc).getDefaultTransactionIsolation());
+
+				}
+				catch (Exception e) {
+					// we only keep the first exception
+					if (pair == null) {
+						pair = new Pair<DatasourceConnection, Exception>(dc, e);
+					}
+					continue;
+				}
+				releaseConnection(null, dc, true);
+			}
+			transConnsORM.clear();
 		}
 		this.isolation = Connection.TRANSACTION_NONE;
 
@@ -359,4 +423,18 @@ public final class DatasourceManagerImpl implements DataSourceManager {
 	public void releaseORM() {
 		end(true);
 	}
+
+	private void throwException(Pair<DatasourceConnection, Exception> pair) throws DatabaseException {
+		if (pair != null) {
+			if (pair.getValue() instanceof SQLException) {
+				throw new DatabaseException((SQLException) pair.getValue(), pair.getName());
+			}
+			throw new PageRuntimeException(pair.getValue());
+		}
+	}
+
+	private int _size() {
+		return transConnsORM.size() + transConnsReg.size();
+	}
+
 }
