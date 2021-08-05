@@ -41,6 +41,8 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import lucee.commons.date.DateTimeUtil;
+import lucee.commons.io.res.Resource;
+import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.i18n.FormatUtil;
 import lucee.commons.lang.CFTypes;
 import lucee.commons.lang.StringUtil;
@@ -1006,6 +1008,7 @@ public final class Decision {
 			if ("email".equals(type)) return isEmail(value);
 			break;
 		case 'f':
+			if ("fileobject".equals(type)) return isFileObject(value);
 			if ("float".equals(type)) return isNumber(value, true);
 			if ("function".equals(type)) return isFunction(value);
 			break;
@@ -1439,5 +1442,13 @@ public final class Decision {
 
 	public static boolean isWrapped(Object o) {
 		return o instanceof JavaObject || o instanceof ObjectWrap;
+	}
+
+	public static boolean isFileObject(Object source) {
+		PageContext pc = ThreadLocalPageContext.get();
+		if (source instanceof String) return false;
+		Resource file = ResourceUtil.toResourceNotExisting(pc, source.toString());
+		if (file.isFile()) return true;
+		return false;
 	}
 }

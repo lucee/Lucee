@@ -14200,4 +14200,21 @@ You can find a list of all available timezones in the Lucee administrator (Setti
     		<type>string</type>
     	</return>
     </function>
+	
+	<!-- isFileObject -->
+	<function>
+		<name>isFileObject</name>
+		<class>lucee.runtime.functions.decision.IsFileObject</class>
+		<keywords>decision</keywords>
+		<description>Determines whether a value is an file object. True, if the value represents a file object.</description>
+		<argument>
+			<name>value</name>
+			<type>any</type>
+			<required>Yes</required>
+			<description>A value, typically the name of a file object variable.</description>
+		</argument>
+		<return>
+			<type>boolean</type>
+		</return>
+	</function>
 </func-lib>
