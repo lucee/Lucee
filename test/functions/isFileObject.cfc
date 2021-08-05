@@ -9,7 +9,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
     }
     
     function afterAll(){
-        if (!directoryExists(uri)) directoryDelete(uri, true);
+        if (directoryExists(uri)) directoryDelete(uri, true);
     }
 
     function run( testResults, testBox ) {
