@@ -27,7 +27,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	}
 	
 	private any function _test(numeric sleepTime) {
-        thread action="run" {// default thread name should be unique
+        thread action="run" sleepTime=sleepTime {// default thread name should be unique
             sleep(sleepTime);
         }
         return true;
