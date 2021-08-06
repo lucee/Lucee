@@ -728,7 +728,6 @@ public class KeyConstants {
 	public static final Key __toQuery = KeyImpl._const("_toQuery");
 	public static final Key _onmissingmethod = KeyImpl._const("onmissingmethod");
 	public static final Key _functions = KeyImpl._const("functions");
-	public static final Key _staticFunctions = KeyImpl._const("staticFunctions");
 	public static final Key _fullname = KeyImpl._const("fullname");
 	public static final Key _skeleton = KeyImpl._const("skeleton");
 	public static final Key _properties = KeyImpl._const("properties");
