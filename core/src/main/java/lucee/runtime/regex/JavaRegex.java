@@ -91,6 +91,7 @@ class JavaRegex implements Regex {
 			while (matcher.find()) {
 				arr.append(toStruct(matcher, strInput));
 			}
+			if (arr.isEmpty()) arr.add(findEmpty());
 			return arr;
 		}
 		catch (Exception e) {
