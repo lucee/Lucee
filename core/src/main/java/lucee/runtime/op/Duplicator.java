@@ -214,6 +214,9 @@ public final class Duplicator {
 		catch (ClassException e) {
 			other = new HashMap();
 		}
+		catch (ClassCastException e) {
+			other = new HashMap();
+		}
 		boolean inside = ThreadLocalDuplication.set(map, other);
 		try {
 			duplicateMap(map, other, deepCopy);
