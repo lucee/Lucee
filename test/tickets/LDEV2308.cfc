@@ -7,9 +7,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="thread" {
 				local.result = _InternalRequest(
 					template : "#uri#\no-session\testThreadCookies.cfm"
 				);
-			 	//cfhttp( method="POST", url="#CGI.server_name##variables.path#/test.cfm", result="local.res");
-				systemOutput("", true);
-				systemOutput(local.result, true);
+			 	//systemOutput(local.result.cookies, true);
 			 	expect( structCount(result.cookies ) ).toBe( 0 );
 				expect( structKeyExists(result.cookies, "CFID" ) ).toBeFalse();
 				expect( structKeyExists(result.cookies, "JsessionId" ) ).toBeFalse();
@@ -20,8 +18,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="thread" {
 				local.result = _InternalRequest(
 					template : "#uri#\no-cookies\testThreadCookies.cfm"
 				);
-			 	//cfhttp( method="POST", url="#CGI.server_name##variables.path#/test.cfm", result="local.res");
-				systemOutput(local.result, true);
+			 	//systemOutput(local.result.cookies, true);
 			 	expect( structCount(result.cookies ) ).toBe( 0 );
 				expect( structKeyExists(result.cookies, "CFID" ) ).toBeFalse();
 				expect( structKeyExists(result.cookies, "JsessionId" ) ).toBeFalse();
@@ -32,9 +29,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="thread" {
 				local.result = _InternalRequest(
 					template : "#uri#\cfml-session\testThreadCookies.cfm"
 				);
-				systemOutput("", true);
-			 	//cfhttp( method="POST", url="#CGI.server_name##variables.path#/test.cfm", result="local.res");
-				systemOutput(local.result, true);
+				//systemOutput(local.result.cookies, true);
 				expect( structCount(result.cookies ) ).toBeGT( 0 );
 				expect( structKeyExists(result.cookies, "CFID" ) ).toBeTrue();
 				expect( structKeyExists(result.cookies, "JsessionId" ) ).toBeFalse();

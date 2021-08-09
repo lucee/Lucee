@@ -7,6 +7,7 @@ component {
 	this.name="thread-session-cfml";
 
 	function onSessionStart() {
+		// this is needed to force cookie creation
 		//echo("session started");
 	}
 }
