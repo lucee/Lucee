@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" labels="thread" {
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="thread,cookie,session" {
 
 	function run( testResults , testBox ) {
 		describe( "Test suite for LDEV2308", function() {
@@ -42,8 +42,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="thread" {
 				);
 				dumpResult(local.result);
 				expect( structCount(result.cookies ) ).toBeGT( 0 );
-				expect( structKeyExists(result.cookies, "CFID" ) ).toBeFalse();
 				expect( structKeyExists(result.cookies, "JsessionId" ) ).toBeTrue();
+				expect( structKeyExists(result.cookies, "CFID" ) ).toBeFalse();
 			});
 		});
 	}
