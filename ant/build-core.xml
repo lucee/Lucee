@@ -852,9 +852,6 @@
       <jvmarg value="-Dlucee.system.out=file:.../out.txt"/>
       <jvmarg value="-Dlucee.system.err=file:.../err.txt"/>
       -->
-      <jvmarg value="-Xdebug"/>
-      <jvmarg value="-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=8000"/>
-      
       <!--
         felix.log.level
         lucee.controller.disabled
