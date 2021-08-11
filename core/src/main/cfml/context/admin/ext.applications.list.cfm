@@ -148,10 +148,7 @@ Latest version: #latest.v#</cfif>"><cfif hasUpdates>
 <cfif external.recordcount eq extensions.recordcount>
 	<cfset app_error.message = #stText.services.update.installExtns#>
 	<cfset printerror(app_error)>
-<cfelseif external.recordcount lt extensions.recordcount>
-	<cfset app_error.message = #stText.services.update.chkInternet#>
-	<cfset printerror(app_error)>
-<cfelseif external.recordcount eq LocalExtensions.recordcount>
+<cfelseif external.recordcount lt extensions.recordcount OR external.recordcount eq LocalExtensions.recordcount>
 	<cfset app_error.message = #stText.services.update.chkInternet#>
 	<cfset printerror(app_error)>
 <cfelse>
