@@ -7901,6 +7901,14 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 			<rtexprvalue>true</rtexprvalue>
 			<description>ODBC lock type.</description>
 		</attribute>
+		<attribute>
+			<type>string</type>
+			<name>savepoint</name>
+			<required>false</required>
+			<status>hidden</status>
+			<rtexprvalue>true</rtexprvalue>
+			<description>optional savepoint name, used with action "setsavepoint" and "rollback".</description>
+		</attribute>
 	</tag>
 
 	<!-- Trace -->

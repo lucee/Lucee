@@ -20,12 +20,15 @@ package lucee.runtime.db;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.sql.Savepoint;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
 
 import lucee.commons.db.DBUtil;
+import lucee.commons.digest.HashUtil;
 import lucee.commons.lang.Pair;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
@@ -52,6 +55,8 @@ public final class DatasourceManagerImpl implements DataSourceManager {
 	private Map<DataSource, DatasourceConnection> transConnsReg = new HashMap<DataSource, DatasourceConnection>();
 	private Map<DataSource, ORMDatasourceConnection> transConnsORM = new HashMap<DataSource, ORMDatasourceConnection>();
 	private boolean inside;
+
+	private Map<String, Savepoint> savepoints = new ConcurrentHashMap<>();
 
 	public DatasourceManagerImpl(ConfigPro c) {
 		this.config = c;
@@ -204,16 +209,30 @@ public final class DatasourceManagerImpl implements DataSourceManager {
 
 	@Override
 	public void rollback() throws DatabaseException {
+		rollback(null);
+	}
+
+	// FUTURE
+	public void rollback(String savePointName) throws DatabaseException {
 		if (autoCommit || _size() == 0) return;
 		DatasourceConnection dc = null;
 		Pair<DatasourceConnection, Exception> pair = null;
+		boolean hasSavePointMatch = false;
+
 		// Reg
 		{
 			Iterator<DatasourceConnection> it = this.transConnsReg.values().iterator();
 			while (it.hasNext()) {
 				dc = it.next();
 				try {
-					dc.getConnection().rollback();
+					if (savePointName == null) dc.getConnection().rollback();
+					else {
+						Savepoint sp = savepoints.get(toKey(dc.getDatasource(), savePointName));
+						if (sp != null) {
+							dc.getConnection().rollback(sp);
+							hasSavePointMatch = true;
+						}
+					}
 				}
 				catch (Exception e) {
 					// we only keep the first exception
@@ -229,7 +248,64 @@ public final class DatasourceManagerImpl implements DataSourceManager {
 			while (it.hasNext()) {
 				dc = it.next();
 				try {
-					dc.getConnection().rollback();
+					if (savePointName == null) dc.getConnection().rollback();
+					else {
+						Savepoint sp = savepoints.get(toKey(dc.getDatasource(), savePointName));
+						if (sp != null) {
+							dc.getConnection().rollback(sp);
+							hasSavePointMatch = true;
+						}
+					}
+				}
+				catch (Exception e) {
+					// we only keep the first exception
+					if (pair == null) {
+						pair = new Pair<DatasourceConnection, Exception>(dc, e);
+					}
+				}
+			}
+		}
+		throwException(pair);
+		if (savePointName != null && !hasSavePointMatch) throw new DatabaseException("There are no savepoint with name [" + savePointName + "] set", null, null, null);
+	}
+
+	@Override
+	public void savepoint() throws DatabaseException {
+		savepoint(null);
+	}
+
+	// FUTURE
+	public void savepoint(String savePointName) throws DatabaseException {
+		if (autoCommit || _size() == 0) return;
+
+		DatasourceConnection dc;
+		Pair<DatasourceConnection, Exception> pair = null;
+		// Reg
+		{
+			Iterator<DatasourceConnection> it = this.transConnsReg.values().iterator();
+			while (it.hasNext()) {
+				dc = it.next();
+				try {
+
+					if (savePointName == null) dc.getConnection().setSavepoint();
+					else savepoints.put(toKey(dc.getDatasource(), savePointName), dc.getConnection().setSavepoint(savePointName));
+				}
+				catch (Exception e) {
+					// we only keep the first exception
+					if (pair == null) {
+						pair = new Pair<DatasourceConnection, Exception>(dc, e);
+					}
+				}
+			}
+		}
+		// ORM
+		{
+			Iterator<ORMDatasourceConnection> it = this.transConnsORM.values().iterator();
+			while (it.hasNext()) {
+				dc = it.next();
+				try {
+					if (savePointName == null) dc.getConnection().setSavepoint();
+					else dc.getConnection().setSavepoint(savePointName);
 				}
 				catch (Exception e) {
 					// we only keep the first exception
@@ -242,45 +318,8 @@ public final class DatasourceManagerImpl implements DataSourceManager {
 		throwException(pair);
 	}
 
-	@Override
-	public void savepoint() throws DatabaseException {
-		if (autoCommit || _size() == 0) return;
-
-		DatasourceConnection dc;
-		Pair<DatasourceConnection, Exception> pair = null;
-		// Reg
-		{
-			Iterator<DatasourceConnection> it = this.transConnsReg.values().iterator();
-			while (it.hasNext()) {
-				dc = it.next();
-				try {
-					dc.getConnection().setSavepoint();
-				}
-				catch (Exception e) {
-					// we only keep the first exception
-					if (pair == null) {
-						pair = new Pair<DatasourceConnection, Exception>(dc, e);
-					}
-				}
-			}
-		}
-		// ORM
-		{
-			Iterator<ORMDatasourceConnection> it = this.transConnsORM.values().iterator();
-			while (it.hasNext()) {
-				dc = it.next();
-				try {
-					dc.getConnection().setSavepoint();
-				}
-				catch (Exception e) {
-					// we only keep the first exception
-					if (pair == null) {
-						pair = new Pair<DatasourceConnection, Exception>(dc, e);
-					}
-				}
-			}
-		}
-		throwException(pair);
+	private String toKey(DataSource ds, String savePointName) {
+		return HashUtil.create64BitHashAsString(savePointName + ":" + ds.id());
 	}
 
 	@Override
@@ -349,6 +388,8 @@ public final class DatasourceManagerImpl implements DataSourceManager {
 		autoCommit = true;
 		Pair<DatasourceConnection, Exception> pair = null;
 		// Reg
+		savepoints.clear();
+
 		if (transConnsReg.size() > 0) {
 			Map<DataSource, DatasourceConnection> tmp = null;
 			if (onlyORM) tmp = new HashMap<DataSource, DatasourceConnection>();
@@ -417,6 +458,7 @@ public final class DatasourceManagerImpl implements DataSourceManager {
 
 	@Override
 	public void release() {
+
 		end(false);
 	}
 
