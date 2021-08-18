@@ -863,8 +863,11 @@ public final class PageContextImpl extends PageContext {
 
 	public PageSource[] getRelativePageSources(String realPath) {
 		if (StringUtil.startsWith(realPath, '/')) return getPageSources(realPath);
-		if (pathList.size() == 0) return null;
-		return new PageSource[] { pathList.getLast().getRealPage(realPath) };
+
+		PageSource ps = getCurrentPageSource(null);
+		if (ps == null) return null;
+
+		return new PageSource[] { ps.getRealPage(realPath) };
 	}
 
 	public PageSource getPageSource(String realPath) {

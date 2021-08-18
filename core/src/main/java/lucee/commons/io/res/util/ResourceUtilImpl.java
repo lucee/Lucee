@@ -186,6 +186,7 @@ public class ResourceUtilImpl implements lucee.runtime.util.ResourceUtil {
 		ResourceUtil.setAttribute(res, attributes);
 	}
 
+	// FUTURE public Resource toResourceExisting(PageContext pc, String path, Resource defaultValue)
 	@Override
 	public Resource toResourceExisting(PageContext pc, String path) throws PageException {
 		return ResourceUtil.toResourceExisting(pc, path);
