@@ -22,10 +22,14 @@
 package lucee.runtime.functions.math;
 
 import lucee.runtime.PageContext;
+import lucee.runtime.op.Decision;
+import lucee.runtime.exp.FunctionException;
 import lucee.runtime.ext.function.Function;
 
 public final class BitXor implements Function {
-	public static double call(PageContext pc, double number, double number2) {
+	public static double call(PageContext pc, double number, double number2) throws FunctionException {
+		if (!Decision.isInteger(number)) throw new FunctionException(pc, "bitXor", 1, "number1", "value [" + number + "] must be between the integer range");
+		if (!Decision.isInteger(number2)) throw new FunctionException(pc, "bitXor", 1, "number2", "value [" + number + "] must be between the integer range");
 		return (int) number ^ (int) number2;
 	}
 }
