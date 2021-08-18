@@ -95,6 +95,5 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		var baseURI="/test/#listLast(getDirectoryFromPath(getCurrenttemplatepath()),"\/")#/";
 		return baseURI&""&calledName;
 	}
-	transSavepoint
 } 
 </cfscript>
