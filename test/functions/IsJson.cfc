@@ -45,6 +45,60 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	function testVariableSet() {
 		assertFalse(isJson('{a:susi=1}'));
 	}
+	
+	function testValueString() {
+		assertTrue(isJson('"This is a \"string\"."'));
+		assertEquals(deserializeJson('"This is a \"string\"."'), "This is a ""string"".");
+	}
 
+	function testValueNumber() {
+		assertTrue(isJson('1234567890'));
+		assertEquals(deserializeJson('1234567890'), 1234567890);
+	}
+
+	function testValueDecimal() {
+		assertTrue(isJson('-123.45'));
+		assertEquals(deserializeJson('-123.45'), -123.45);
+	}
+
+	function testValueScientificNotation() {
+		assertTrue(isJson('10e1'));
+		assertEquals(deserializeJson('10e1'), 100);
+	}
+
+	function testValueTrue() {
+		assertTrue(isJson('true'));
+		assertEquals(deserializeJson('true'), true);
+	}
+
+	function testValueFalse() {
+		assertTrue(isJson('false'));
+		assertEquals(deserializeJson('false'), false);
+	}
+
+	function testValueNull() {
+		assertTrue(isJson('null'));
+		assertEquals(deserializeJson('null'), javacast("null", 0));
+	}
+
+	function testValueEmoji() {
+		assertTrue(isJson('"#chr(128515)#"'));  //unicode smiley
+		assertEquals(deserializeJson('"#chr(128515)#"'), chr(128515));
+	}
+
+	function testArray() {
+		assertTrue(isJson('[1, "2", 10e1]'));
+		assertEquals(deserializeJson('[1, "2", 10e1]'), [1, "2", 100]);
+	}
+
+	function testEmptyArray() {
+		assertTrue(isJson('[]'));
+		assertEquals(deserializeJson('[]'), []);
+	}
+
+	function testEmptyObject() {
+		assertTrue(isJson('{}'));
+		assertEquals(deserializeJson('{}'), {});
+	}
 
 } 
