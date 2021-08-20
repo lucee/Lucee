@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
+import lucee.commons.digest.HashUtil;
 import lucee.commons.db.DBUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.lang.Pair;
