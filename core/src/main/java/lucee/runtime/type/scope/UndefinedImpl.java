@@ -42,6 +42,7 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.functions.system.CFFunction;
 import lucee.runtime.listener.ApplicationContextSupport;
 import lucee.runtime.op.Duplicator;
+import lucee.runtime.type.BIF;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Query;
@@ -787,6 +788,11 @@ public final class UndefinedImpl extends StructSupport implements Undefined {
 		if (udf instanceof UDF) {
 			return udf.call(pc, methodName, args, false);
 		}
+		BIF bif = BIF.getInstance(pc, methodName.getLowerString(), null);
+		if (bif != null) {
+			return bif.call(pc, methodName, args, false);
+		}
+
 		throw new ExpressionException("No matching function [" + methodName + "] found");
 	}
 
@@ -799,6 +805,10 @@ public final class UndefinedImpl extends StructSupport implements Undefined {
 		UDF udf = getUDF(pc, methodName);
 		if (udf instanceof UDF) {
 			return udf.callWithNamedValues(pc, methodName, args, false);
+		}
+		BIF bif = BIF.getInstance(pc, methodName.getLowerString(), null);
+		if (bif != null) {
+			return bif.callWithNamedValues(pc, methodName, args, false);
 		}
 		throw new ExpressionException("No matching function [" + methodName + "] found");
 	}
