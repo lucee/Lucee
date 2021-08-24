@@ -18,7 +18,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	public void function testRollBack(){
 		_test("sp1",1);
 		_test("sp2",2);
-		_test("sp0",0);
 	}
 
 	private void function _test(name,reccount){
@@ -30,8 +29,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		var count=0;
 		transaction { 
 
-			transaction action="SetSavePoint" savepoint="sp0"; 
-	
+			
 			query name="qry" {
 				echo("insert into testTransactionRollBack(id,title,author,submission_date)
 					values(#++count#,'test #getTickCount()#','Michael',#CreateODBCDate(now())#)");
