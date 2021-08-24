@@ -16,9 +16,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 
 	public void function testRollBack(){
-		_test("sp0",0);
 		_test("sp1",1);
 		_test("sp2",2);
+		_test("sp0",0);
 	}
 
 	private void function _test(name,reccount){
