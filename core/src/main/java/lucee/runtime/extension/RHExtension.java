@@ -768,7 +768,7 @@ public class RHExtension implements Serializable {
 			ext = new RHExtension(config, resources[i], false);
 			xmlExt = xmlExtensions.get(ext.getId());
 			if (xmlExt != null && (xmlExt.getVersion() + "").equals(ext.getVersion() + "")) continue;
-			XMLConfigAdmin._updateRHExtension((ConfigPro) config, resources[i], true);
+			XMLConfigAdmin._updateRHExtension((ConfigPro) config, resources[i], true, true);
 		}
 
 	}

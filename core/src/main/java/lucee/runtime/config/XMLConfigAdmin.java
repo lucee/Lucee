@@ -4666,17 +4666,17 @@ public final class XMLConfigAdmin {
 		}
 	}
 
-	public static void _updateRHExtension(ConfigPro config, Resource ext, boolean reload) throws PageException {
+	public static void _updateRHExtension(ConfigPro config, Resource ext, boolean reload, boolean force) throws PageException {
 		try {
 			XMLConfigAdmin admin = new XMLConfigAdmin(config, null);
-			admin.updateRHExtension(config, ext, reload);
+			admin.updateRHExtension(config, ext, reload, force);
 		}
 		catch (Exception e) {
 			throw Caster.toPageException(e);
 		}
 	}
 
-	public void updateRHExtension(Config config, Resource ext, boolean reload) throws PageException {
+	public void updateRHExtension(Config config, Resource ext, boolean reload, boolean force) throws PageException {
 		RHExtension rhext;
 		try {
 			rhext = new RHExtension(config, ext, true);
@@ -4687,10 +4687,20 @@ public final class XMLConfigAdmin {
 			DeployHandler.moveToFailedFolder(ext.getParentResource(), ext);
 			throw Caster.toPageException(t);
 		}
-		updateRHExtension(config, rhext, reload);
+		updateRHExtension(config, rhext, reload, force);
 	}
 
-	public void updateRHExtension(Config config, RHExtension rhext, boolean reload) throws PageException {
+	public void updateRHExtension(Config config, RHExtension rhext, boolean reload, boolean force) throws PageException {
+
+		try {
+			if (!force && XMLConfigAdmin.hasRHExtensions((ConfigPro) config, rhext.toExtensionDefinition()) != null) {
+				throw new ApplicationException("the extension " + rhext.getName() + " (id: " + rhext.getId() + ") in version " + rhext.getVersion() + " is already installed");
+			}
+		}
+		catch (Exception e) {
+			throw Caster.toPageException(e);
+		}
+
 		ConfigPro ci = (ConfigPro) config;
 		Log logger = ci.getLog("deploy");
 		String type = ci instanceof ConfigWeb ? "web" : "server";
@@ -5389,7 +5399,7 @@ public final class XMLConfigAdmin {
 			ExceptionUtil.rethrowIfNecessary(t);
 			// failed to uninstall, so we install it again
 			try {
-				updateRHExtension(config, rhe.getExtensionFile(), true);
+				updateRHExtension(config, rhe.getExtensionFile(), true, true);
 				// RHExtension.install(config, rhe.getExtensionFile());
 			}
 			catch (Throwable t2) {

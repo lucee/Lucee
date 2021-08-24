@@ -218,7 +218,7 @@ public final class Controler extends Thread {
 		if (doMinute) {
 			// deploy extensions, archives ...
 			try {
-				DeployHandler.deploy(configServer);
+				DeployHandler.deploy(configServer, false);
 			}
 			catch (Throwable t) {
 				ExceptionUtil.rethrowIfNecessary(t);
@@ -328,7 +328,7 @@ public final class Controler extends Thread {
 
 				// deploy extensions, archives ...
 				try {
-					DeployHandler.deploy(config);
+					DeployHandler.deploy(config, false);
 				}
 				catch (Throwable t) {
 					ExceptionUtil.rethrowIfNecessary(t);
