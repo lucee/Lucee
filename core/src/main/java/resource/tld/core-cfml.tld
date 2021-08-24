@@ -1190,6 +1190,16 @@ a timespan (created with function CreateTimeSpan): If original content date fall
 
 To use cached data, the function must be called with the exact same arguments.</description>
     </attribute>
+    <attribute>
+			<type>string</type>
+			<name>modifier</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>Use modifier to denote a function as abstract, static or final.
+            - abstract: implementation must be defined in extended component.
+            - final: implementation cannot be extended.
+            - static: does not access instance variables in the component.</description>
+		</attribute>
 	</tag>
 	<!-- Header -->
 	<tag>
