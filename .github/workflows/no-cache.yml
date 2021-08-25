@@ -14,9 +14,4 @@ jobs:
         java-version: '11'
         distribution: 'adopt'
     - name: Build Lucee without using a Maven cache
-      uses: actions/cache@v2
-      with:
-        path: ~/.m2
-        key: ${{ runner.os }}-m2
-    - name: Build Lucee with Maven
       run: ant -noinput -buildfile loader/build.xml quick
