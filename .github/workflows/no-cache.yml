@@ -1,4 +1,4 @@
-name: Slow Build, No Maven Cache
+name: Slow Build 5.3, No Maven Cache
 
 on: [workflow_dispatch]
 
@@ -14,4 +14,4 @@ jobs:
         java-version: '11'
         distribution: 'adopt'
     - name: Build Lucee without using a Maven cache
-      run: ant -noinput -buildfile loader/build.xml quick
+      run: ant -noinput -buildfile loader/build.xml fast
