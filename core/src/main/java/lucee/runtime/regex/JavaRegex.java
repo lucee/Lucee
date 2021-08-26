@@ -42,10 +42,13 @@ class JavaRegex implements Regex {
 	@Override
 	public int indexOf(String strPattern, String strInput, int offset, boolean caseSensitive, boolean multiLine) throws PageException {
 		try {
-			Matcher matcher = toPattern(strPattern, caseSensitive, multiLine).matcher(strInput);
+			int StrLen = strInput.length();
+			if (offset > StrLen) offset = StrLen + 1;
+			String input = offset > 1 ? strInput.substring(offset - 1): strInput;
+			Matcher matcher = toPattern(strPattern, caseSensitive, multiLine).matcher(input);
 			if (!matcher.find()) return 0;
 
-			return matcher.start() + 1;
+			return offset > 1 ? matcher.start() + offset : matcher.start() + 1;
 		}
 		catch (Exception e) {
 			throw Caster.toPageException(e);
@@ -55,12 +58,15 @@ class JavaRegex implements Regex {
 	@Override
 	public Object indexOfAll(String strPattern, String strInput, int offset, boolean caseSensitive, boolean multiLine) throws PageException {
 		try {
-			Matcher matcher = toPattern(strPattern, caseSensitive, multiLine).matcher(strInput);
+			int StrLen = strInput.length();
+			if (offset > StrLen) offset = StrLen + 1;
+			String input = offset > 1 ? strInput.substring(offset - 1): strInput;
+			Matcher matcher = toPattern(strPattern, caseSensitive, multiLine).matcher(input);
 
 			ArrayImpl arr = null;
 			while (matcher.find()) {
 				if (arr == null) arr = new ArrayImpl();
-				arr.append(matcher.start() + 1);
+				arr.append( offset > 1 ? matcher.start() + offset : matcher.start() + 1);
 			}
 			return arr == null ? 0 : arr;
 		}
@@ -72,10 +78,13 @@ class JavaRegex implements Regex {
 	@Override
 	public Struct find(String strPattern, String strInput, int offset, boolean caseSensitive, boolean multiLine) throws PageException {
 		try {
-			Matcher matcher = toPattern(strPattern, caseSensitive, multiLine).matcher(strInput);
+			int StrLen = strInput.length();
+			if (offset > StrLen) offset = StrLen + 1;
+			String input = offset > 1 ? strInput.substring(offset - 1): strInput;
+			Matcher matcher = toPattern(strPattern, caseSensitive, multiLine).matcher(input);
 			if (!matcher.find()) return findEmpty();
 
-			return toStruct(matcher, strInput);
+			return toStruct(matcher, input, offset);
 		}
 		catch (Exception e) {
 			throw Caster.toPageException(e);
@@ -85,11 +94,14 @@ class JavaRegex implements Regex {
 	@Override
 	public Array findAll(String strPattern, String strInput, int offset, boolean caseSensitive, boolean multiLine) throws PageException {
 		try {
-			Matcher matcher = toPattern(strPattern, caseSensitive, multiLine).matcher(strInput);
+			int StrLen = strInput.length();
+			if (offset > StrLen) offset = StrLen + 1;
+			String input = offset > 1 ? strInput.substring(offset - 1): strInput;
+			Matcher matcher = toPattern(strPattern, caseSensitive, multiLine).matcher(input);
 
 			ArrayImpl arr = new ArrayImpl();
 			while (matcher.find()) {
-				arr.append(toStruct(matcher, strInput));
+				arr.append(toStruct(matcher, input, offset));
 			}
 			if (arr.isEmpty()) arr.add(findEmpty());
 			return arr;
@@ -162,26 +174,28 @@ class JavaRegex implements Regex {
 		return sct;
 	}
 
-	private Struct toStruct(Matcher matcher, String input) {
+	private Struct toStruct(Matcher matcher, String input, int offset) {
 		Struct sct = new StructImpl();
-		Array a = new ArrayImpl();
-		a.appendEL(matcher.end() - matcher.start());
-		sct.setEL(LEN, a);
+		Array lenArray = new ArrayImpl();
+		Array posArray = new ArrayImpl();
+		Array matchArray = new ArrayImpl();
 
-		a = new ArrayImpl();
-		a.appendEL(matcher.start() + 1);
-		sct.setEL(POS, a);
+		for(int i=0; i<=matcher.groupCount();i++) {
+			lenArray.appendEL(matcher.end(i) - matcher.start(i));
+			posArray.appendEL(offset > 1 ? matcher.start(i) + offset: matcher.start(i) + 1);
+			matchArray.appendEL(input.substring(matcher.start(i), matcher.end(i)));
+		}
 
-		a = new ArrayImpl();
-		a.appendEL(input.substring(matcher.start(), matcher.end()));
-		sct.setEL(MATCH, a);
+		sct.setEL(POS, posArray);
+		sct.setEL(LEN, lenArray);
+		sct.setEL(MATCH, matchArray);
 		return sct;
 	}
 
 	private Pattern toPattern(String strPattern, boolean caseSensitive, boolean multiLine) {
 		int flags = 0;
-		if (!caseSensitive) flags &= Pattern.CASE_INSENSITIVE;
-		if (multiLine) flags &= Pattern.MULTILINE;
+		if (!caseSensitive) flags += Pattern.CASE_INSENSITIVE;
+		if (multiLine) flags += Pattern.MULTILINE;
 		return Pattern.compile(strPattern, flags);
 	}
 
