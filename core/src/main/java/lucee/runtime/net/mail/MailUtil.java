@@ -194,6 +194,7 @@ public final class MailUtil {
 	 */
 	public static InternetAddress parseEmail(Object value, InternetAddress defaultValue) {
 		String str = Caster.toString(value, "");
+		if (StringUtil.isEmpty(str)) return defaultValue;
 		if (str.indexOf('@') > -1) {
 			try {
 				str = fixIDN(str);
