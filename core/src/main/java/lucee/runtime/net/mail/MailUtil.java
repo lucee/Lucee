@@ -125,7 +125,7 @@ public final class MailUtil {
 
 		while (it.hasNext()) {
 
-			InternetAddress addr = parseEmail(it.next(), null);
+			InternetAddress addr = parseEmail(it.next());
 
 			if (addr != null) al.add(addr);
 		}
@@ -182,7 +182,10 @@ public final class MailUtil {
 	public static InternetAddress parseEmail(Object value) throws MailException {
 		InternetAddress ia = parseEmail(value, null);
 		if (ia != null) return ia;
-		if (value instanceof CharSequence) throw new MailException("[" + value + "] cannot be converted to an email address");
+		if (value instanceof CharSequence) {
+			if (StringUtil.isEmpty(value.toString())) return null;
+			throw new MailException("[" + value + "] cannot be converted to an email address");
+		}
 		throw new MailException("input cannot be converted to an email address");
 	}
 
