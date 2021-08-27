@@ -369,7 +369,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		if (extensions.size() > 0) {
 			boolean sucess;
 			try {
-				sucess = DeployHandler.deployExtensions(cs, extensions.toArray(new ExtensionDefintion[extensions.size()]), log);
+				sucess = DeployHandler.deployExtensions(cs, extensions.toArray(new ExtensionDefintion[extensions.size()]), log, false);
 			}
 			catch (PageException e) {
 				LogUtil.log(cs, "deploy", "controller", e);
@@ -406,7 +406,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 
 		// check deploy folder
 		try {
-			DeployHandler.deploy(cs);
+			DeployHandler.deploy(cs, false);
 		}
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
