@@ -56,7 +56,7 @@ public final class MailUtil {
 
 	public static InternetAddress toInternetAddress(Object emails) throws MailException, UnsupportedEncodingException, PageException {
 		if (emails instanceof String) {
-			return parseEmail(emails);
+			return parseEmail(emails, null);
 		}
 		InternetAddress[] addresses = toInternetAddresses(emails);
 		if (addresses != null && addresses.length > 0) return addresses[0];
@@ -90,7 +90,7 @@ public final class MailUtil {
 			}
 			else {
 
-				InternetAddress addr = parseEmail(Caster.toString(el));
+				InternetAddress addr = parseEmail(Caster.toString(el), null);
 				if (addr != null) pairs.add(addr);
 			}
 		}
@@ -125,7 +125,7 @@ public final class MailUtil {
 
 		while (it.hasNext()) {
 
-			InternetAddress addr = parseEmail(it.next());
+			InternetAddress addr = parseEmail(it.next(), null);
 
 			if (addr != null) al.add(addr);
 		}
