@@ -219,7 +219,7 @@ public final class Controler extends Thread {
 		if (doMinute) {
 			// deploy extensions, archives ...
 			try {
-				DeployHandler.deploy(configServer, false);
+				DeployHandler.deploy(configServer, configServer.getLog("deploy"), false);
 			}
 			catch (Throwable t) {
 				ExceptionUtil.rethrowIfNecessary(t);
@@ -331,7 +331,7 @@ public final class Controler extends Thread {
 
 				// deploy extensions, archives ...
 				try {
-					DeployHandler.deploy(config, false);
+					DeployHandler.deploy(config, config.getLog("deploy"), false);
 				}
 				catch (Throwable t) {
 					ExceptionUtil.rethrowIfNecessary(t);
@@ -408,7 +408,7 @@ public final class Controler extends Thread {
 					config = cfmlFactory.getConfig();
 				}
 
-				LogUtil.log(ThreadLocalPageContext.getConfig(config), Log.LEVEL_TRACE, Controler.class.getName(),"Running background Controller maintenance (every hour).");
+				LogUtil.log(ThreadLocalPageContext.getConfig(config), Log.LEVEL_TRACE, Controler.class.getName(), "Running background Controller maintenance (every hour).");
 
 				ThreadLocalConfig.register(config);
 

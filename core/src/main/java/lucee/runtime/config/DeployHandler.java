@@ -63,7 +63,7 @@ public class DeployHandler {
 	 * 
 	 * @param config
 	 */
-	public static void deploy(Config config, boolean force) {
+	public static void deploy(Config config, Log log, boolean force) {
 		if (!contextIsValid(config)) return;
 
 		synchronized (config) {
@@ -91,8 +91,7 @@ public class DeployHandler {
 					else if (config instanceof ConfigServer && "lco".equalsIgnoreCase(ext)) ConfigAdmin.updateCore((ConfigServerImpl) config, child, true);
 				}
 				catch (Exception e) {
-					Log log = config.getLog("deploy");
-					log.error("Extension", e);
+					log.log(Log.LEVEL_ERROR, "deploy handler", e);
 				}
 			}
 
@@ -106,15 +105,13 @@ public class DeployHandler {
 						engine.setEnvExt(extensionIds);
 						List<ExtensionDefintion> extensions = RHExtension.toExtensionDefinitions(extensionIds);
 						Resource configDir = CFMLEngineImpl.getSeverContextConfigDirectory(engine.getCFMLEngineFactory());
-						Log log = config != null ? config.getLog("deploy") : null;
 						boolean sucess = DeployHandler.deployExtensions(config, extensions.toArray(new ExtensionDefintion[extensions.size()]), log, force);
 						if (sucess && configDir != null) ConfigFactory.updateRequiredExtension(engine, configDir, log);
-						LogUtil.log(config, Log.LEVEL_INFO, "deploy", "controller",
+						log.log(Log.LEVEL_INFO, "deploy handler",
 								(sucess ? "Successfully installed" : "Failed to install") + " extensions: [" + ListUtil.listToList(extensions, ", ") + "]");
 					}
 					catch (Exception e) {
-						Log log = config.getLog("deploy");
-						log.error("Extension", e);
+						log.log(Log.LEVEL_ERROR, "deploy handler", e);
 					}
 				}
 			}
@@ -256,7 +253,7 @@ public class DeployHandler {
 					if (res instanceof File) {
 						if (!IsZipFile.invoke((File) res)) {
 							CFMLEngineImpl engine = CFMLEngineImpl.toCFMLEngineImpl(ConfigWebUtil.getEngine(config));
-							engine.deployBundledExtension(true);
+							engine.deployBundledExtension(log, true);
 							if (IsZipFile.invoke((File) res)) {
 								continue; // we start over that part
 							}
