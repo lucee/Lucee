@@ -7508,6 +7508,17 @@ The following things are considered to be empty:
 			<type>boolean</type>
 		</return>
 	</function>
+	
+	<!-- IsWithinTransaction -->
+	<function>
+		<name>isWithinTransaction</name>
+		<class>lucee.runtime.functions.query.IsWithinTransaction</class>
+		<keywords>decision,query,datasource</keywords>
+		<description>Determines whether the current thread is within a transaction block or not.</description>
+		<return>
+			<type>boolean</type>
+		</return>
+	</function>
 	<!-- IsVideoFile -->
 	<function>
 		<name>IsVideoFile</name>
