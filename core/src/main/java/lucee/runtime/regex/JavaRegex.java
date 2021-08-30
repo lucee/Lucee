@@ -42,13 +42,14 @@ class JavaRegex implements Regex {
 	@Override
 	public int indexOf(String strPattern, String strInput, int offset, boolean caseSensitive, boolean multiLine) throws PageException {
 		try {
-			int StrLen = strInput.length();
-			if (offset > StrLen) offset = StrLen + 1;
-			String input = offset > 1 ? strInput.substring(offset - 1): strInput;
-			Matcher matcher = toPattern(strPattern, caseSensitive, multiLine).matcher(input);
+			int strLen = strInput.length();
+			if (offset > strLen) return 0;
+
+			Matcher matcher = toPattern(strPattern, caseSensitive, multiLine).matcher(strInput);
+			if (offset > 1) matcher.region(offset-1, strLen);
 			if (!matcher.find()) return 0;
 
-			return offset > 1 ? matcher.start() + offset : matcher.start() + 1;
+			return matcher.start() + 1;
 		}
 		catch (Exception e) {
 			throw Caster.toPageException(e);
@@ -58,15 +59,16 @@ class JavaRegex implements Regex {
 	@Override
 	public Object indexOfAll(String strPattern, String strInput, int offset, boolean caseSensitive, boolean multiLine) throws PageException {
 		try {
-			int StrLen = strInput.length();
-			if (offset > StrLen) offset = StrLen + 1;
-			String input = offset > 1 ? strInput.substring(offset - 1): strInput;
-			Matcher matcher = toPattern(strPattern, caseSensitive, multiLine).matcher(input);
+			int strLen = strInput.length();
+			if (offset > strLen) return 0;
+
+			Matcher matcher = toPattern(strPattern, caseSensitive, multiLine).matcher(strInput);
+			if (offset > 1) matcher.region(offset-1, strLen);
 
 			ArrayImpl arr = null;
 			while (matcher.find()) {
 				if (arr == null) arr = new ArrayImpl();
-				arr.append( offset > 1 ? matcher.start() + offset : matcher.start() + 1);
+				arr.append(matcher.start() + 1);
 			}
 			return arr == null ? 0 : arr;
 		}
@@ -78,13 +80,14 @@ class JavaRegex implements Regex {
 	@Override
 	public Struct find(String strPattern, String strInput, int offset, boolean caseSensitive, boolean multiLine) throws PageException {
 		try {
-			int StrLen = strInput.length();
-			if (offset > StrLen) offset = StrLen + 1;
-			String input = offset > 1 ? strInput.substring(offset - 1): strInput;
-			Matcher matcher = toPattern(strPattern, caseSensitive, multiLine).matcher(input);
+			int strLen = strInput.length();
+			if (offset > strLen) return findEmpty();
+
+			Matcher matcher = toPattern(strPattern, caseSensitive, multiLine).matcher(strInput);
+			if (offset > 1) matcher.region(offset-1, strLen);
 			if (!matcher.find()) return findEmpty();
 
-			return toStruct(matcher, input, offset);
+			return toStruct(matcher, strInput);
 		}
 		catch (Exception e) {
 			throw Caster.toPageException(e);
@@ -94,14 +97,19 @@ class JavaRegex implements Regex {
 	@Override
 	public Array findAll(String strPattern, String strInput, int offset, boolean caseSensitive, boolean multiLine) throws PageException {
 		try {
-			int StrLen = strInput.length();
-			if (offset > StrLen) offset = StrLen + 1;
-			String input = offset > 1 ? strInput.substring(offset - 1): strInput;
-			Matcher matcher = toPattern(strPattern, caseSensitive, multiLine).matcher(input);
-
 			ArrayImpl arr = new ArrayImpl();
+			
+			int strLen = strInput.length();
+			if (offset > strLen){
+				arr.add(findEmpty());
+				return arr;	
+			}
+
+			Matcher matcher = toPattern(strPattern, caseSensitive, multiLine).matcher(strInput);
+			if (offset > 1 ) matcher.region(offset-1, strLen);
+			
 			while (matcher.find()) {
-				arr.append(toStruct(matcher, input, offset));
+				arr.append(toStruct(matcher, strInput));
 			}
 			if (arr.isEmpty()) arr.add(findEmpty());
 			return arr;
@@ -174,7 +182,7 @@ class JavaRegex implements Regex {
 		return sct;
 	}
 
-	private Struct toStruct(Matcher matcher, String input, int offset) {
+	private Struct toStruct(Matcher matcher, String input) {
 		Struct sct = new StructImpl();
 		Array lenArray = new ArrayImpl();
 		Array posArray = new ArrayImpl();
@@ -182,7 +190,7 @@ class JavaRegex implements Regex {
 
 		for(int i=0; i<=matcher.groupCount();i++) {
 			lenArray.appendEL(matcher.end(i) - matcher.start(i));
-			posArray.appendEL(offset > 1 ? matcher.start(i) + offset: matcher.start(i) + 1);
+			posArray.appendEL(matcher.start(i) + 1);
 			matchArray.appendEL(input.substring(matcher.start(i), matcher.end(i)));
 		}
 
@@ -203,4 +211,5 @@ class JavaRegex implements Regex {
 	public String getTypeName() {
 		return "java";
 	}
+
 }
