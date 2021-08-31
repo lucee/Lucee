@@ -1032,6 +1032,12 @@ public class KeyConstants {
 	public static final Key _bundleDirectories = KeyImpl._const("bundleDirectories");
 	public static final Key _virtual = KeyImpl._const("virtual");
 	public static final Key _clientMaxAge = KeyImpl._const("clientMaxAge");
+	public static final Key _new = KeyImpl._const("new");
+	public static final Key _NEW = KeyImpl._const("NEW");
+	public static final Key _COLUMNNAMES = KeyImpl._const("COLUMNNAMES");
+	public static final Key _COLUMNTYPES = KeyImpl._const("COLUMNTYPES");
+	public static final Key _columnNames = KeyImpl._const("columnNames");
+	public static final Key _columnTypes = KeyImpl._const("columnTypes");
 
 	private static Map<String, Key> _____keys;
 
