@@ -55,7 +55,8 @@ public final class IsLocalHost implements Function {
 				if (localHosts[i].equals(addr)) return true;
 			}
 		}
-		catch (UnknownHostException e) {}
+		catch (UnknownHostException e) {
+		}
 
 		return false;
 	}

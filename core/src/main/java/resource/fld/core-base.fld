@@ -7622,6 +7622,17 @@ The following things are considered to be empty:
 			<type>boolean</type>
 		</return>
 	</function>
+	
+	<!-- IsWithinTransaction -->
+	<function>
+		<name>isWithinTransaction</name>
+		<class>lucee.runtime.functions.query.IsWithinTransaction</class>
+		<keywords>decision,query,datasource</keywords>
+		<description>Determines whether the current thread is within a transaction block or not.</description>
+		<return>
+			<type>boolean</type>
+		</return>
+	</function>
 	<!-- IsVideoFile -->
 	<function>
 		<name>IsVideoFile</name>
@@ -13249,6 +13260,14 @@ You can find a list of all available timezones in the Lucee administrator (Setti
   - soft: a struct with soft reference values, which are cleared at the discretion of the garbage collector in response to memory demand.
   - linked: a struct with linked keys, maintain their creation order
   the type "synchronized" is no longer supported and get ignored, because since version 4.1 all struct/scopes are "thread safe"
+			</description>
+		</argument>
+		<argument>
+			<name>onMissingKey</name>
+			<type>function</type>
+			<required>No</required>
+			<description>
+			listener function that get invoked in case a request key does not exist.
 			</description>
 		</argument>
 		<return>

@@ -115,17 +115,16 @@ public class StaticScope extends StructSupport implements Variables, Objects {
 	private Member _get(PageContext pc, Key key, Member defaultValue) {
 		// does the current struct has this key
 		StaticStruct ss = cp.getStaticStruct();
-		if (ss.isEmpty()) return null;
-		Member m = ss.get(key);
+		if (!ss.isEmpty()) {
+			Member m = ss.get(key);
 
-		if (m != null) {
-			if (c.isAccessible(pc, m)) return m;
-			return null;
+			if (m != null) {
+				if (c.isAccessible(pc, m)) return m;
+				return null;
+			}
 		}
-
 		// if not the parent
 		if (base != null) return base._get(pc, key, defaultValue);
-
 		return null;
 	}
 

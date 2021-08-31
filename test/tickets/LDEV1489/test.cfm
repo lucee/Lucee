@@ -1,8 +1,8 @@
 <cfscript>
 	s3Details  = getCredentials();
-	mitrahsoftBucketName = "lucee-testsuite-ldev1489";
-	base = "s3://#s3Details.ACCESS_KEY_ID#:#s3Details.S3_SECRET_KEY#@";
-	variables.baseWithBucketName = "s3://#s3Details.ACCESS_KEY_ID#:#s3Details.S3_SECRET_KEY#@/#mitrahsoftBucketName#";
+	base = "s3://#s3Details.ACCESS_KEY_ID#:#s3Details.SECRET_KEY#@";
+	variables.baseWithBucketName = "s3://#s3Details.ACCESS_KEY_ID#:#s3Details.SECRET_KEY#@/#url.bucketName#";	
+	
 	if(!directoryExists(baseWithBucketName)){
 		directoryCreate(baseWithBucketName);
 	}

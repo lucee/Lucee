@@ -559,7 +559,8 @@ public final class Schedule extends TagImpl {
 			}
 			pageContext.setVariable(result, query);
 		}
-		catch (DatabaseException e) {}
+		catch (DatabaseException e) {
+		}
 
 	}
 

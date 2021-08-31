@@ -329,7 +329,8 @@ public abstract class MailClient implements PoolItem {
 		try {
 			qry.setAtEL(DATE, row, Caster.toDate(message.getSentDate(), true, null, null));
 		}
-		catch (MessagingException e) {}
+		catch (MessagingException e) {
+		}
 
 		// subject
 		try {
@@ -343,7 +344,8 @@ public abstract class MailClient implements PoolItem {
 		try {
 			qry.setAtEL(SIZE, row, new Double(message.getSize()));
 		}
-		catch (MessagingException e) {}
+		catch (MessagingException e) {
+		}
 
 		qry.setAtEL(FROM, row, toList(getHeaderEL(message, "from")));
 		qry.setAtEL(MESSAGE_NUMBER, row, new Double(message.getMessageNumber()));
@@ -366,7 +368,8 @@ public abstract class MailClient implements PoolItem {
 				content.append(header.getValue());
 			}
 		}
-		catch (MessagingException e) {}
+		catch (MessagingException e) {
+		}
 		qry.setAtEL(HEADER, row, content.toString());
 
 		if (all) {
@@ -477,13 +480,15 @@ public abstract class MailClient implements PoolItem {
 					try {
 						query.setAtEL(ATTACHMENTS, row, ListUtil.arrayToList(attachments, "\t"));
 					}
-					catch (PageException pageexception) {}
+					catch (PageException pageexception) {
+					}
 				}
 				if (attachmentFiles.size() > 0) {
 					try {
 						query.setAtEL(ATTACHMENT_FILES, row, ListUtil.arrayToList(attachmentFiles, "\t"));
 					}
-					catch (PageException pageexception1) {}
+					catch (PageException pageexception1) {
+					}
 				}
 
 			}
@@ -686,7 +691,8 @@ public abstract class MailClient implements PoolItem {
 		try {
 			if (_store != null) _store.close();
 		}
-		catch (Exception exception) {}
+		catch (Exception exception) {
+		}
 	}
 
 	// IMAP only
@@ -838,7 +844,8 @@ public abstract class MailClient implements PoolItem {
 			try {
 				p = f.getParent();
 			}
-			catch (MessagingException me) {}
+			catch (MessagingException me) {
+			}
 
 			qry.setAt(KeyConstants._NAME, row, f.getName());
 			qry.setAt(FULLNAME, row, f.getFullName());

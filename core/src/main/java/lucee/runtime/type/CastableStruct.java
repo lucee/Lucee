@@ -37,7 +37,8 @@ public final class CastableStruct extends StructImpl {
 
 	private Object value;
 
-	public CastableStruct() {}
+	public CastableStruct() {
+	}
 
 	public CastableStruct(int type) {
 		super(type);

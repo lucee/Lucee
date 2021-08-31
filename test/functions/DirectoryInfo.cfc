@@ -20,7 +20,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 		});
 
 		describe( "test case for cfdirectory action=info", function() {
-			it(title = "Checking with cfdirectory action=info", body = function( currentSpec ) {
+			it(title = "Checking with cfdirectory action=info", skip="true", body = function( currentSpec ) {
 				```
 					<cfdirectory action="info" directory="#uri#" name="local.info">
 				```

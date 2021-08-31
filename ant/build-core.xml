@@ -63,7 +63,19 @@
     <property name="srcInst" location="${rootDir}/instrumentation/src/main/java"/> 
     <property name="ant" location="${rootDir}/ant"/>
     <property name="test" location="${rootDir}/test"/>
+    <!-- free text filter, comma delimitered to filter tests based on path -->
     <property name="testFilter" value=""/>
+    <!-- list of labels to filter tests by, comma delimitered -->
+    <property name="testLabels" value=""/>
+    <!-- a local directory to install additional extensions -->
+    <property name="testExtensions" value=""/>
+    <!-- a local directory to run additional tests  -->
+    <property name="testAdditional" value=""/>
+    <!-- enable running disabled tests (either via _ prefix or skip=true)  -->
+    <property name="testSkip" value=""/>
+    <!-- enable debug output from tests (i.e tests which crash are normally silently skipped)  -->
+    <property name="testDebug" value=""/>
+    
     <property name="temp" location="${rootDir}/temp"/>
     <property name="loader" location="${temp}/loader"/>
     <property name="core" location="${temp}/core"/>
@@ -176,6 +188,8 @@
     </echo>
 
     <echo message="${version}"/>
+    <!-- used for docker build -->
+    <echo file="${rootDir}/buildVersionNumber.txt" message="${version}" append="false"/>
     <!-- <echo message="${name}"/>
     <echo message="${name.explanation}"/> -->
     <echo message="Root: ${rootDir}"/>
@@ -465,13 +479,13 @@
       <jvmarg value="-Dlucee.enable.dialect=true"/>
       <jvmarg value="-Dlucee.extensions.install=true"/>
       <jvmarg value="-Dlucee.full.null.support=false"/>
+      <jvmarg value="-Dlucee.enable.bundle.download=false"/>
       <!--
       <jvmarg value="-Xdebug"/>
       <jvmarg value="-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5000"/>
       -->
     </java>
-    <echo>${exc}</echo>
-
+    <outputTrimmedString str="${exc}"/>
 </target>
 
 <target name="__extract_testbox" if="testcases">
@@ -486,6 +500,11 @@
 </target>
 
 <target name="__build_testbox" if="testcases">
+    <!-- optionally install test lucee extensions from a directory -->
+    <deployTestExtensions
+      srcdir="${testExtensions}" 
+      deploydir="${temp}/archive/base/lucee-server/deploy/"/>
+
     <listDirectory directory="${test}/lib" delimiter=":" returnvalue="test_jars"/>
     <echots message="execute testcases ${testcases}"/>
     <!-- execute CFML testcases -->
@@ -501,6 +520,10 @@
 
       <jvmarg value="-Dtest=${test}"/>
       <jvmarg value="-DtestFilter=${testFilter}"/>
+      <jvmarg value="-DtestLabels=${testLabels}"/>
+      <jvmarg value="-DtestAdditional=${testAdditional}"/>
+      <jvmarg value="-DtestSkip=${testSkip}"/>
+      <jvmarg value="-DtestDebug=${testDebug}"/>
       <jvmarg value="-Dtemp=${temp}"/>
       <jvmarg value="-Dbasedir=${baseDir}"/>
       <jvmarg value="-Dsrcall=${srcAll}"/>
@@ -530,8 +553,7 @@
     -->
 
     </java>
-    <echo>${exc2}</echo>
-
+    <outputTrimmedString str="${exc2}"/>
 </target>
 
 <target name="upload_to_s3">
@@ -567,7 +589,7 @@
       <jvmarg value="-DtrgLoader=${trgLoader}"/>
 
     </java>
-    <echo>${exc3}</echo>
+    <outputTrimmedString str="${exc3}"/>
 
 </target>
 

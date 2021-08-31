@@ -16,8 +16,8 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  * 
  ---><cfscript>
-component extends="org.lucee.cfml.test.LuceeTestCase"	{
-	
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="oracle"	{
+	// ZAC is that version correct? i simply took what comes from 6.0
 	
 	//public function afterTests(){}
 	
@@ -27,6 +27,21 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 	public function setUp(){
 		variables.has=defineDatasource();
+	}
+
+	private boolean function defineDatasource(){
+		var orcl = server.getDatasource("oracle");
+		if(orcl.count()==0) return false;
+
+		// otherwise we get the following on travis ORA-00604: error occurred at recursive SQL level 1 / ORA-01882: timezone region not found
+		var tz=getTimeZone();
+		//var d1=tz.getDefault();
+		tz.setDefault(tz);
+		//throw d1&":"&tz.getDefault();
+
+		application action="update" datasource="#orcl#";
+	
+		return true;
 	}
 
 	private boolean function defineDatasource(){
@@ -161,7 +176,6 @@ END;
 	}
 
 	private function cleanupInsertTable() localmode=true{
-
 		query name="exists" params={id: "INSERT_TEST"}{
 			echo("SELECT table_name FROM user_tables WHERE table_name = :id");
 		}
@@ -213,11 +227,11 @@ END;
 		expect( seq.id ).toBe( 3 );
 		expect( seq.id ).toBe( q.id );
 		// expect( result.generatedKey ).toBe( seq.id );  // TODO returns oracle.sql.ROWID instead
+		// expect( result.generatedKey ).toInclude( "oracle.sql.ROWID" ); // 11 returns a oracle.sql.ROWID object, 12 returns actial rowid value 
 
 		// systemOutput( seq, true );
 
 		cleanupInsertTable();
 	}
-
 } 
 </cfscript>

@@ -290,7 +290,8 @@ public class CacheUtil {
 		try {
 			release(cc);
 		}
-		catch (IOException e) {}
+		catch (IOException e) {
+		}
 	}
 
 	public static void release(CacheConnection cc) throws IOException {

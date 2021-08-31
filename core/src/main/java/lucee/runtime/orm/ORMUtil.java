@@ -385,7 +385,8 @@ public class ORMUtil {
 				return datasourceName.trim();
 			}
 		}
-		catch (PageException e) {}
+		catch (PageException e) {
+		}
 
 		DataSource ds = getDefaultDataSource(pc, null);
 		if (ds != null) return ds.getName();

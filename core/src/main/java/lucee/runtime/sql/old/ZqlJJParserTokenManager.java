@@ -1799,7 +1799,8 @@ public final class ZqlJJParserTokenManager implements ZqlJJParserConstants {
 			}
 			try {
 				input_stream.backup(0);
-				for (; curChar <= ' ' && (0x100002600L & 1L << curChar) != 0L; curChar = input_stream.BeginToken()) {}
+				for (; curChar <= ' ' && (0x100002600L & 1L << curChar) != 0L; curChar = input_stream.BeginToken()) {
+				}
 			}
 			catch (IOException ioexception1) {
 				continue;

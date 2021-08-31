@@ -1,7 +1,7 @@
 component {
 	this.name =	"LDEV1576-" & Hash( GetCurrentTemplatePath() );
 	mySQL = getCredentials();
-	this.datasource = mySQL;
+	this.datasource = server.getDatasource("mysql");
 
 	function onRequestStart(){
 		setting showdebugOutput=false;
