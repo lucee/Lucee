@@ -1221,7 +1221,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 						verifyClient, localMode));
 			}
 			else {
-				// func.register();
+				func.register(data.page);
 				statement(data, body, CTX_FUNCTION);
 			}
 			data.setParent(prior);
@@ -1276,9 +1276,6 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 			throw new TemplateException(data.srcCode, e.getMessage());
 		}
 
-		// print.e("+++++++++++++++++++++++++++++++++++");
-		// print.e(fd);
-
 		PageSourceCode psc = (PageSourceCode) data.srcCode;// TODO get PS in an other way
 		PageSource ps = psc.getPageSource();
 
@@ -1288,7 +1285,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		Position end = sc.getPosition();
 		String javaCode = sc.substring(start.pos, end.pos - start.pos);
 		try {
-			String id = data.root.registerJavaFunctionName(functionName);
+			String id = data.page.registerJavaFunctionName(functionName);
 
 			JavaFunction jf = JavaCCompiler.compile(ps, fd.createSourceCode(ps, javaCode, id, functionName, access, modifier, hint, args, output, bufferOutput, displayName,
 					description, returnFormat, secureJson, verifyClient, localMode));
@@ -1363,7 +1360,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 	@Override
 	protected final Function lambdaPart(Data data, String id, int access, int modifier, String rtnType, Position line, ArrayList<Argument> args) throws TemplateException {
 		Body body = new FunctionBody(data.factory);
-		Function func = new Lambda(data.root, id, access, modifier, rtnType, body, line, null);
+		Function func = new Lambda(data.page, id, access, modifier, rtnType, body, line, null);
 		// func.register();// TODO may add support for java functions
 		comments(data);
 

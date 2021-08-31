@@ -29,8 +29,8 @@ public class CFMLScriptTransformer extends AbstrCFMLScriptTransformer implements
 	@Override
 	public Body transform(Data data, String surroundingTagName) throws TemplateException {
 
-		boolean isCFC = data.root instanceof Page && ((Page) data.root).isComponent();
-		boolean isInterface = data.root instanceof Page && ((Page) data.root).isInterface();
+		boolean isCFC = data.page instanceof Page && data.page.isComponent();
+		boolean isInterface = data.page instanceof Page && data.page.isInterface();
 
 		Data ed = init(data);
 

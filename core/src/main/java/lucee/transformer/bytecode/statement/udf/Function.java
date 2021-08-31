@@ -206,7 +206,7 @@ public abstract class Function extends StatementBaseNoFinal implements Opcodes, 
 
 	@Override
 	public final void writeOut(BytecodeContext bc, int type) throws TransformerException {
-		register(bc.getPage());
+		// register(bc.getPage());
 		ExpressionUtil.visitLine(bc, getStart());
 		_writeOut(bc, type);
 		ExpressionUtil.visitLine(bc, getEnd());
@@ -214,7 +214,7 @@ public abstract class Function extends StatementBaseNoFinal implements Opcodes, 
 
 	@Override
 	public final void _writeOut(BytecodeContext bc) throws TransformerException {
-		register(bc.getPage());
+		// register(bc.getPage());
 		_writeOut(bc, PAGE_TYPE_REGULAR);
 	}
 
