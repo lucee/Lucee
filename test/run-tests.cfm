@@ -38,6 +38,13 @@ try {
 	
 	systemOutput("set /test mapping #dateTimeFormat(now())#", true);
 
+	param name="testDebug" default="false";
+	if ( len( testDebug ) eq 0 )
+		testDebug = false;	
+	request.testDebug = testDebug;
+	if ( request.testDebug )
+		SystemOutput( "Test Debugging enabled", true );
+
 	param name="testServices" default="";
 	request.testServices = testServices;
 	if ( len( request.testServices ) )

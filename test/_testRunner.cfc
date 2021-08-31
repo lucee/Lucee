@@ -80,6 +80,8 @@ component {
 					var meta = GetComponentMetaData( cfcPath );
 				}
 			} catch ( e ){
+				if ( request.testDebug )
+					systemOutput( cfcatch, true );
 				return cfcatch.message;
 			}
 			return meta;
@@ -123,7 +125,7 @@ component {
 		// strips off the stack trace to exclude testbox and back to the first .cfc call in the stack
 		function printStackTrace( st ){
 			local.i = find( "/testbox/", arguments.st );
-			if ( i eq 0 ){ // dump it all out
+			if ( request.testDebug || i eq 0 ){ // dump it all out
 				systemOutput( TAB & arguments.st, true );
 				return;
 			}

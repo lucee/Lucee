@@ -208,7 +208,7 @@ component {
 					server.test_services[arguments.service].valid = true;
 				} catch (e) {
 					systemOutput( "ERROR Service [ #arguments.service# ] threw [ #cfcatch.message# ]", true);
-					if (cfcatch.message contains "NullPointerException")
+					if ( cfcatch.message contains "NullPointerException" || request.testDebug )
 						systemOutput(cfcatch, true);
 				}
 			}
