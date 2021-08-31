@@ -637,9 +637,7 @@ public final class Page extends BodyBase implements Root {
 		}
 
 		// CONSTRUCTOR
-
 		List<Data> udfProperties = constr.getUDFProperties();
-		Iterator<Data> it = udfProperties.iterator();
 
 		String udfpropsClassName = Types.UDF_PROPERTIES_ARRAY.toString();
 
@@ -650,13 +648,10 @@ public final class Page extends BodyBase implements Root {
 		constrAdapter.visitFieldInsn(Opcodes.PUTFIELD, getClassName(), "udfs", udfpropsClassName);
 
 		// set item
-		Data data;
-		int index = 0;
-		while (it.hasNext()) {
-			data = it.next();
+		for (Data data: udfProperties) {
 			constrAdapter.visitVarInsn(Opcodes.ALOAD, 0);
 			constrAdapter.visitFieldInsn(Opcodes.GETFIELD, constr.getClassName(), "udfs", Types.UDF_PROPERTIES_ARRAY.toString());
-			constrAdapter.push(index++);
+			constrAdapter.push(data.arrayIndex);
 			data.function.createUDFProperties(constr, data.valueIndex, data.type);
 			constrAdapter.visitInsn(Opcodes.AASTORE);
 		}
