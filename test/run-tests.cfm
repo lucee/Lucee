@@ -35,11 +35,16 @@ try {
 		archive=""
 		primary="physical"
 		trusted="no";
+	
+	systemOutput("set /test mapping #dateTimeFormat(now())#", true);
+
+	param name="testServices" default="";
+	request.testServices = testServices;
+	if ( len( request.testServices ) )
+		SystemOutput( "Test Services restricted to [#request.testServices#]", true );
 
 	// you can also provide a json file with your environment variables, i.e. just set LUCEE_BUILD_ENV="c:\work\lucee\loader\env.json"
 	setupTestServices = new test._setupTestServices().setup();
-
-	systemOutput("set /test mapping #dateTimeFormat(now())#", true);
 
 	function mem(type) {
 		var qry = getMemoryUsage(type);
@@ -114,15 +119,6 @@ try {
 	if ( !request.testSkip )
 		SystemOutput( "Force running tests marked skip=true or prefixed with an _", true );
 	
-	param name="testDebug" default="false";
-	if ( len(testDebug) eq 0)
-		testDebug = false;
-	request.testDebug = testDebug;
-
-	if ( request.testDebug )
-		SystemOutput( "Test Debugging enabled", true );
-	
-
 	param name="testAdditional" default="";	
 	request.testAdditional = testAdditional;
 

@@ -153,6 +153,14 @@ component {
 		services = ListToArray("oracle,MySQL,MSsql,postgres,h2,mongoDb,smtp,pop,imap,s3,s3_custom,s3_google,ftp,sftp,memcached");
 		// can take a while, so we check them them in parallel
 		services.each( function( service ) localmode=true {
+			if (! isTestServiceAllowed( arguments.service )){
+				systemOutput( "Service [ #arguments.service# ] disabled, not found in testServices", true) ;
+				server.test_services[arguments.service] = {
+					valid: false,
+					missedTests: 0
+				};
+				return;
+			}
 			cfg = server.getTestService( service=arguments.service, verify=true );
 			server.test_services[ arguments.service ]= {
 				valid: false,
@@ -264,7 +272,7 @@ component {
 		
 		//ftp action = "close" connection = "conn";
 		
-		return "Connection Verified";
+		return "Connection Verified"; 
 	}
 
 	public function verifyS3 ( s3 ) localmode=true{
@@ -329,6 +337,7 @@ component {
 		server.getBundleVersions = getBundleVersions;
 	}
 	public struct function getTestService( required string service, string dbFile="", boolean verify=false ) localmode=true {
+
 		if ( StructKeyExists( server.test_services, arguments.service ) ){
 			if ( !server.test_services[ arguments.service ].valid ){
 				//SystemOutput("Warning service: [ #arguments.service# ] is not available", true);
@@ -499,6 +508,16 @@ component {
 			bundles[ _bundle[ 'Bundle-SymbolicName' ] ] = _bundle[ 'Bundle-Version' ];
 		}
 		return bundles;
+	}
+
+	function isTestServiceAllowed( service ){
+		if ( len( request.testServices) eq 0 )
+			return true;
+		loop list=request.testServices item="local.testService" {
+			if ( local.testService eq arguments.service )
+				return true;
+		}
+		return false;
 	}
 }
 
