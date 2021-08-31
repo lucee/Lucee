@@ -1361,7 +1361,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 	protected final Function lambdaPart(Data data, String id, int access, int modifier, String rtnType, Position line, ArrayList<Argument> args) throws TemplateException {
 		Body body = new FunctionBody(data.factory);
 		Function func = new Lambda(data.page, id, access, modifier, rtnType, body, line, null);
-		// func.register();// TODO may add support for java functions
+		func.register(data.page);
 		comments(data);
 
 		// add arguments
