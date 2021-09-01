@@ -155,7 +155,7 @@ Latest version: #latest.v#</cfif>"><cfif hasUpdates>
 			rt = availableExt.releaseType[row];
 			id = availableExt.id[row];
 			// not for this admin type
-			if( !isnull(rt) and !isEmpty(rt) and rt != "all" and rt != request.adminType) {
+			if( !isnull(rt) and !isEmpty(rt) and rt != "all" and rt != request.adminType and rt != "both") {
 				QueryDeleteRow( availableExt , row );
 			}
 			// remove if already installed
