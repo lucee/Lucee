@@ -383,7 +383,7 @@ public class BytecodeFactory extends FactoryBase {
 	}
 
 	@Override
-	public ExprDouble opUnary(Variable var, Expression value, short type, int operation, Position start, Position end) {
+	public ExprNumber opUnary(Variable var, Expression value, short type, int operation, Position start, Position end) {
 		return new OpUnary(var, value, type, operation, start, end);
 	}
 

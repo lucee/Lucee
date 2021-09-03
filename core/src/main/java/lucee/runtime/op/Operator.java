@@ -1088,18 +1088,29 @@ public final class Operator {
 		return rtn;
 	}
 
-	public static double unaryPoPl(PageContext pc, Collection.Key[] keys, double value) throws PageException {
+	public static Number unaryPoPl(PageContext pc, Collection.Key[] keys, double value) throws PageException {
 		VariableReference ref = VariableInterpreter.getVariableReference(pc, keys, true);
+		if (Factory.PERCISE_NUMBERS) {
+			BigDecimal rtn = Caster.toBigDecimal(ref.get(pc));
+			ref.set(rtn.add(new BigDecimal(value)));
+			return rtn;
+		}
 		double rtn = Caster.toDoubleValue(ref.get(pc));
 		ref.set(rtn + value);
 		return rtn;
 	}
 
-	public static double unaryPoPl(PageContext pc, Collection.Key key, double value) throws PageException {
+	public static Number unaryPoPl(PageContext pc, Collection.Key key, double value) throws PageException {
 		return unaryPoPl(pc.undefinedScope(), key, value);
 	}
 
-	public static double unaryPoPl(Collection coll, Collection.Key key, double value) throws PageException {
+	public static Number unaryPoPl(Collection coll, Collection.Key key, double value) throws PageException {
+		if (Factory.PERCISE_NUMBERS) {
+			BigDecimal rtn = Caster.toBigDecimal(coll.get(key));
+			coll.set(key, rtn.add(new BigDecimal(value)));
+			return rtn;
+		}
+
 		double rtn = Caster.toDoubleValue(coll.get(key));
 		coll.set(key, rtn + value);
 		return rtn;
@@ -1119,18 +1130,28 @@ public final class Operator {
 		return rtn;
 	}
 
-	public static double unaryPoMi(PageContext pc, Collection.Key[] keys, double value) throws PageException {
+	public static Number unaryPoMi(PageContext pc, Collection.Key[] keys, double value) throws PageException {
 		VariableReference ref = VariableInterpreter.getVariableReference(pc, keys, true);
+		if (Factory.PERCISE_NUMBERS) {
+			BigDecimal rtn = Caster.toBigDecimal(ref.get(pc));
+			ref.set(rtn.subtract(new BigDecimal(value)));
+			return rtn;
+		}
 		double rtn = Caster.toDoubleValue(ref.get(pc));
 		ref.set(rtn - value);
 		return rtn;
 	}
 
-	public static double unaryPoMi(PageContext pc, Collection.Key key, double value) throws PageException {
+	public static Number unaryPoMi(PageContext pc, Collection.Key key, double value) throws PageException {
 		return unaryPoMi(pc.undefinedScope(), key, value);
 	}
 
-	public static double unaryPoMi(Collection coll, Collection.Key key, double value) throws PageException {
+	public static Number unaryPoMi(Collection coll, Collection.Key key, double value) throws PageException {
+		if (Factory.PERCISE_NUMBERS) {
+			BigDecimal rtn = Caster.toBigDecimal(coll.get(key));
+			coll.set(key, rtn.subtract(new BigDecimal(value)));
+			return rtn;
+		}
 		double rtn = Caster.toDoubleValue(coll.get(key));
 		coll.set(key, rtn - value);
 		return rtn;
@@ -1150,18 +1171,29 @@ public final class Operator {
 		return rtn;
 	}
 
-	public static double unaryPrPl(PageContext pc, Collection.Key[] keys, double value) throws PageException {
+	public static Number unaryPrPl(PageContext pc, Collection.Key[] keys, double value) throws PageException {
 		VariableReference ref = VariableInterpreter.getVariableReference(pc, keys, true);
+		if (Factory.PERCISE_NUMBERS) {
+			BigDecimal rtn = Caster.toBigDecimal(ref.get(pc)).add(new BigDecimal(value));
+			ref.set(rtn);
+			return rtn;
+		}
+
 		double rtn = Caster.toDoubleValue(ref.get(pc)) + value;
 		ref.set(rtn);
 		return rtn;
 	}
 
-	public static double unaryPrPl(PageContext pc, Collection.Key key, double value) throws PageException {
+	public static Number unaryPrPl(PageContext pc, Collection.Key key, double value) throws PageException {
 		return unaryPrPl(pc.undefinedScope(), key, value);
 	}
 
-	public static double unaryPrPl(Collection coll, Collection.Key key, double value) throws PageException {
+	public static Number unaryPrPl(Collection coll, Collection.Key key, double value) throws PageException {
+		if (Factory.PERCISE_NUMBERS) {
+			BigDecimal rtn = Caster.toBigDecimal(coll.get(key)).add(new BigDecimal(value));
+			coll.set(key, rtn);
+			return rtn;
+		}
 		double rtn = Caster.toDoubleValue(coll.get(key)) + value;
 		coll.set(key, rtn);
 		return rtn;
@@ -1181,18 +1213,28 @@ public final class Operator {
 		return rtn;
 	}
 
-	public static double unaryPrMi(PageContext pc, Collection.Key[] keys, double value) throws PageException {
+	public static Number unaryPrMi(PageContext pc, Collection.Key[] keys, double value) throws PageException {
 		VariableReference ref = VariableInterpreter.getVariableReference(pc, keys, true);
+		if (Factory.PERCISE_NUMBERS) {
+			BigDecimal rtn = Caster.toBigDecimal(ref.get(pc)).subtract(new BigDecimal(value));
+			ref.set(rtn);
+			return rtn;
+		}
 		double rtn = Caster.toDoubleValue(ref.get(pc)) - value;
 		ref.set(rtn);
 		return rtn;
 	}
 
-	public static double unaryPrMi(PageContext pc, Collection.Key key, double value) throws PageException {
+	public static Number unaryPrMi(PageContext pc, Collection.Key key, double value) throws PageException {
 		return unaryPrMi(pc.undefinedScope(), key, value);
 	}
 
-	public static double unaryPrMi(Collection coll, Collection.Key key, double value) throws PageException {
+	public static Number unaryPrMi(Collection coll, Collection.Key key, double value) throws PageException {
+		if (Factory.PERCISE_NUMBERS) {
+			BigDecimal rtn = Caster.toBigDecimal(coll.get(key)).subtract(new BigDecimal(value));
+			coll.set(key, rtn);
+			return rtn;
+		}
 		double rtn = Caster.toDoubleValue(coll.get(key)) - value;
 		coll.set(key, rtn);
 		return rtn;
@@ -1212,18 +1254,28 @@ public final class Operator {
 		return rtn;
 	}
 
-	public static double unaryPrMu(PageContext pc, Collection.Key[] keys, double value) throws PageException {
+	public static Number unaryPrMu(PageContext pc, Collection.Key[] keys, double value) throws PageException {
 		VariableReference ref = VariableInterpreter.getVariableReference(pc, keys, true);
+		if (Factory.PERCISE_NUMBERS) {
+			BigDecimal rtn = Caster.toBigDecimal(ref.get(pc)).multiply(new BigDecimal(value));
+			ref.set(rtn);
+			return rtn;
+		}
 		double rtn = Caster.toDoubleValue(ref.get(pc)) * value;
 		ref.set(rtn);
 		return rtn;
 	}
 
-	public static double unaryPrMu(PageContext pc, Collection.Key key, double value) throws PageException {
+	public static Number unaryPrMu(PageContext pc, Collection.Key key, double value) throws PageException {
 		return unaryPrMu(pc.undefinedScope(), key, value);
 	}
 
-	public static double unaryPrMu(Collection coll, Collection.Key key, double value) throws PageException {
+	public static Number unaryPrMu(Collection coll, Collection.Key key, double value) throws PageException {
+		if (Factory.PERCISE_NUMBERS) {
+			BigDecimal rtn = Caster.toBigDecimal(coll.get(key)).multiply(new BigDecimal(value));
+			coll.set(key, rtn);
+			return rtn;
+		}
 		double rtn = Caster.toDoubleValue(coll.get(key)) * value;
 		coll.set(key, rtn);
 		return rtn;
@@ -1243,18 +1295,28 @@ public final class Operator {
 		return rtn;
 	}
 
-	public static double unaryPrDi(PageContext pc, Collection.Key[] keys, double value) throws PageException {
+	public static Number unaryPrDi(PageContext pc, Collection.Key[] keys, double value) throws PageException {
 		VariableReference ref = VariableInterpreter.getVariableReference(pc, keys, true);
+		if (Factory.PERCISE_NUMBERS) {
+			BigDecimal rtn = Caster.toBigDecimal(ref.get(pc)).divide(new BigDecimal(value));
+			ref.set(rtn);
+			return rtn;
+		}
 		double rtn = Caster.toDoubleValue(ref.get(pc)) / value;
 		ref.set(rtn);
 		return rtn;
 	}
 
-	public static double unaryPrDi(PageContext pc, Collection.Key key, double value) throws PageException {
+	public static Number unaryPrDi(PageContext pc, Collection.Key key, double value) throws PageException {
 		return unaryPrDi(pc.undefinedScope(), key, value);
 	}
 
-	public static double unaryPrDi(Collection coll, Collection.Key key, double value) throws PageException {
+	public static Number unaryPrDi(Collection coll, Collection.Key key, double value) throws PageException {
+		if (Factory.PERCISE_NUMBERS) {
+			BigDecimal rtn = Caster.toBigDecimal(coll.get(key)).divide(new BigDecimal(value));
+			coll.set(key, rtn);
+			return rtn;
+		}
 		double rtn = Caster.toDoubleValue(coll.get(key)) / value;
 		coll.set(key, rtn);
 		return rtn;

@@ -31,51 +31,50 @@ import lucee.transformer.Position;
 import lucee.transformer.TransformerException;
 import lucee.transformer.bytecode.BytecodeContext;
 import lucee.transformer.bytecode.expression.ExpressionBase;
-import lucee.transformer.bytecode.util.Methods;
 import lucee.transformer.bytecode.util.Types;
 import lucee.transformer.bytecode.visitor.ArrayVisitor;
-import lucee.transformer.expression.ExprDouble;
+import lucee.transformer.expression.ExprNumber;
 import lucee.transformer.expression.Expression;
 import lucee.transformer.expression.var.DataMember;
 import lucee.transformer.expression.var.Member;
 import lucee.transformer.expression.var.Variable;
 
-public class OpUnary extends ExpressionBase implements ExprDouble {
+public class OpUnary extends ExpressionBase implements ExprNumber {
 
-	final static Method UNARY_POST_PLUS_1 = new Method("unaryPoPl", Types.DOUBLE_VALUE, new Type[] { Types.PAGE_CONTEXT, Types.COLLECTION_KEY, Types.DOUBLE_VALUE });
-	final static Method UNARY_POST_PLUS_N = new Method("unaryPoPl", Types.DOUBLE_VALUE, new Type[] { Types.PAGE_CONTEXT, Types.COLLECTION_KEY_ARRAY, Types.DOUBLE_VALUE });
+	private final static Method UNARY_POST_PLUS_1 = new Method("unaryPoPl", Types.NUMBER, new Type[] { Types.PAGE_CONTEXT, Types.COLLECTION_KEY, Types.DOUBLE_VALUE });
+	private final static Method UNARY_POST_PLUS_N = new Method("unaryPoPl", Types.NUMBER, new Type[] { Types.PAGE_CONTEXT, Types.COLLECTION_KEY_ARRAY, Types.DOUBLE_VALUE });
 
-	final static Method UNARY_POST_MINUS_N = new Method("unaryPoMi", Types.DOUBLE_VALUE, new Type[] { Types.PAGE_CONTEXT, Types.COLLECTION_KEY_ARRAY, Types.DOUBLE_VALUE });
-	final static Method UNARY_POST_MINUS_1 = new Method("unaryPoMi", Types.DOUBLE_VALUE, new Type[] { Types.PAGE_CONTEXT, Types.COLLECTION_KEY, Types.DOUBLE_VALUE });
+	private final static Method UNARY_POST_MINUS_N = new Method("unaryPoMi", Types.NUMBER, new Type[] { Types.PAGE_CONTEXT, Types.COLLECTION_KEY_ARRAY, Types.DOUBLE_VALUE });
+	private final static Method UNARY_POST_MINUS_1 = new Method("unaryPoMi", Types.NUMBER, new Type[] { Types.PAGE_CONTEXT, Types.COLLECTION_KEY, Types.DOUBLE_VALUE });
 
-	final static Method UNARY_PRE_PLUS_N = new Method("unaryPrPl", Types.DOUBLE_VALUE, new Type[] { Types.PAGE_CONTEXT, Types.COLLECTION_KEY_ARRAY, Types.DOUBLE_VALUE });
-	final static Method UNARY_PRE_PLUS_1 = new Method("unaryPrPl", Types.DOUBLE_VALUE, new Type[] { Types.PAGE_CONTEXT, Types.COLLECTION_KEY, Types.DOUBLE_VALUE });
+	private final static Method UNARY_PRE_PLUS_N = new Method("unaryPrPl", Types.NUMBER, new Type[] { Types.PAGE_CONTEXT, Types.COLLECTION_KEY_ARRAY, Types.DOUBLE_VALUE });
+	private final static Method UNARY_PRE_PLUS_1 = new Method("unaryPrPl", Types.NUMBER, new Type[] { Types.PAGE_CONTEXT, Types.COLLECTION_KEY, Types.DOUBLE_VALUE });
 
-	final static Method UNARY_PRE_MINUS_N = new Method("unaryPrMi", Types.DOUBLE_VALUE, new Type[] { Types.PAGE_CONTEXT, Types.COLLECTION_KEY_ARRAY, Types.DOUBLE_VALUE });
-	final static Method UNARY_PRE_MINUS_1 = new Method("unaryPrMi", Types.DOUBLE_VALUE, new Type[] { Types.PAGE_CONTEXT, Types.COLLECTION_KEY, Types.DOUBLE_VALUE });
+	private final static Method UNARY_PRE_MINUS_N = new Method("unaryPrMi", Types.NUMBER, new Type[] { Types.PAGE_CONTEXT, Types.COLLECTION_KEY_ARRAY, Types.DOUBLE_VALUE });
+	private final static Method UNARY_PRE_MINUS_1 = new Method("unaryPrMi", Types.NUMBER, new Type[] { Types.PAGE_CONTEXT, Types.COLLECTION_KEY, Types.DOUBLE_VALUE });
 
-	final static Method UNARY_PRE_MULTIPLY_N = new Method("unaryPrMu", Types.DOUBLE_VALUE, new Type[] { Types.PAGE_CONTEXT, Types.COLLECTION_KEY_ARRAY, Types.DOUBLE_VALUE });
-	final static Method UNARY_PRE_MULTIPLY_1 = new Method("unaryPrMu", Types.DOUBLE_VALUE, new Type[] { Types.PAGE_CONTEXT, Types.COLLECTION_KEY, Types.DOUBLE_VALUE });
+	private final static Method UNARY_PRE_MULTIPLY_N = new Method("unaryPrMu", Types.NUMBER, new Type[] { Types.PAGE_CONTEXT, Types.COLLECTION_KEY_ARRAY, Types.DOUBLE_VALUE });
+	private final static Method UNARY_PRE_MULTIPLY_1 = new Method("unaryPrMu", Types.NUMBER, new Type[] { Types.PAGE_CONTEXT, Types.COLLECTION_KEY, Types.DOUBLE_VALUE });
 
-	final static Method UNARY_PRE_DIVIDE_N = new Method("unaryPrDi", Types.DOUBLE_VALUE, new Type[] { Types.PAGE_CONTEXT, Types.COLLECTION_KEY_ARRAY, Types.DOUBLE_VALUE });
-	final static Method UNARY_PRE_DIVIDE_1 = new Method("unaryPrDi", Types.DOUBLE_VALUE, new Type[] { Types.PAGE_CONTEXT, Types.COLLECTION_KEY, Types.DOUBLE_VALUE });
+	private final static Method UNARY_PRE_DIVIDE_N = new Method("unaryPrDi", Types.NUMBER, new Type[] { Types.PAGE_CONTEXT, Types.COLLECTION_KEY_ARRAY, Types.DOUBLE_VALUE });
+	private final static Method UNARY_PRE_DIVIDE_1 = new Method("unaryPrDi", Types.NUMBER, new Type[] { Types.PAGE_CONTEXT, Types.COLLECTION_KEY, Types.DOUBLE_VALUE });
 
-	final static Method UNARY_PRE_CONCAT_N = new Method("unaryPreConcat", Types.STRING, new Type[] { Types.PAGE_CONTEXT, Types.COLLECTION_KEY_ARRAY, Types.STRING });
-	final static Method UNARY_PRE_CONCAT_1 = new Method("unaryPreConcat", Types.STRING, new Type[] { Types.PAGE_CONTEXT, Types.COLLECTION_KEY, Types.STRING });
+	private final static Method UNARY_PRE_CONCAT_N = new Method("unaryPreConcat", Types.STRING, new Type[] { Types.PAGE_CONTEXT, Types.COLLECTION_KEY_ARRAY, Types.STRING });
+	private final static Method UNARY_PRE_CONCAT_1 = new Method("unaryPreConcat", Types.STRING, new Type[] { Types.PAGE_CONTEXT, Types.COLLECTION_KEY, Types.STRING });
 
-	final static Method UNARY_POST_PLUS2 = new Method("unaryPoPl", Types.DOUBLE_VALUE, new Type[] { Types.COLLECTION, Types.COLLECTION_KEY, Types.DOUBLE_VALUE });
+	private final static Method UNARY_POST_PLUS2 = new Method("unaryPoPl", Types.NUMBER, new Type[] { Types.COLLECTION, Types.COLLECTION_KEY, Types.DOUBLE_VALUE });
 
-	final static Method UNARY_POST_MINUS2 = new Method("unaryPoMi", Types.DOUBLE_VALUE, new Type[] { Types.COLLECTION, Types.COLLECTION_KEY, Types.DOUBLE_VALUE });
+	private final static Method UNARY_POST_MINUS2 = new Method("unaryPoMi", Types.NUMBER, new Type[] { Types.COLLECTION, Types.COLLECTION_KEY, Types.DOUBLE_VALUE });
 
-	final static Method UNARY_PRE_PLUS2 = new Method("unaryPrPl", Types.DOUBLE_VALUE, new Type[] { Types.COLLECTION, Types.COLLECTION_KEY, Types.DOUBLE_VALUE });
+	private final static Method UNARY_PRE_PLUS2 = new Method("unaryPrPl", Types.NUMBER, new Type[] { Types.COLLECTION, Types.COLLECTION_KEY, Types.DOUBLE_VALUE });
 
-	final static Method UNARY_PRE_MINUS2 = new Method("unaryPrMi", Types.DOUBLE_VALUE, new Type[] { Types.COLLECTION, Types.COLLECTION_KEY, Types.DOUBLE_VALUE });
+	private final static Method UNARY_PRE_MINUS2 = new Method("unaryPrMi", Types.NUMBER, new Type[] { Types.COLLECTION, Types.COLLECTION_KEY, Types.DOUBLE_VALUE });
 
-	final static Method UNARY_PRE_MULTIPLY2 = new Method("unaryPrMu", Types.DOUBLE_VALUE, new Type[] { Types.COLLECTION, Types.COLLECTION_KEY, Types.DOUBLE_VALUE });
+	private final static Method UNARY_PRE_MULTIPLY2 = new Method("unaryPrMu", Types.NUMBER, new Type[] { Types.COLLECTION, Types.COLLECTION_KEY, Types.DOUBLE_VALUE });
 
-	final static Method UNARY_PRE_DIVIDE2 = new Method("unaryPrDi", Types.DOUBLE_VALUE, new Type[] { Types.COLLECTION, Types.COLLECTION_KEY, Types.DOUBLE_VALUE });
+	private final static Method UNARY_PRE_DIVIDE2 = new Method("unaryPrDi", Types.NUMBER, new Type[] { Types.COLLECTION, Types.COLLECTION_KEY, Types.DOUBLE_VALUE });
 
-	final static Method UNARY_PRE_CONCAT2 = new Method("unaryPreConcat", Types.STRING, new Type[] { Types.COLLECTION, Types.COLLECTION_KEY, Types.STRING });
+	private final static Method UNARY_PRE_CONCAT2 = new Method("unaryPreConcat", Types.STRING, new Type[] { Types.COLLECTION, Types.COLLECTION_KEY, Types.STRING });
 
 	private final Variable var;
 	private Expression value;
@@ -137,12 +136,12 @@ public class OpUnary extends ExpressionBase implements ExprDouble {
 
 			if (operation == Factory.OP_UNARY_CONCAT) return Types.STRING;
 
-			// convert from Double to double (if necessary)
-			if (mode == MODE_REF) {
-				adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_DOUBLE_FROM_DOUBLE);
-				return Types.DOUBLE;
-			}
-			return Types.DOUBLE_VALUE;
+			/*
+			 * if (mode == MODE_REF) { adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_DOUBLE_FROM_DOUBLE);
+			 * return Types.DOUBLE; }
+			 */
+
+			return Types.NUMBER;
 		}
 
 		/*
@@ -205,10 +204,10 @@ public class OpUnary extends ExpressionBase implements ExprDouble {
 		if (operation == Factory.OP_UNARY_CONCAT) return Types.STRING;
 
 		// convert from double to Double (if necessary)
-		if (mode == MODE_REF) {
-			adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_DOUBLE_FROM_DOUBLE);
-			return Types.DOUBLE;
-		}
-		return Types.DOUBLE_VALUE;
+		/*
+		 * if (mode == MODE_REF) { adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_DOUBLE_FROM_DOUBLE);
+		 * return Types.DOUBLE; }
+		 */
+		return Types.NUMBER;
 	}
 }

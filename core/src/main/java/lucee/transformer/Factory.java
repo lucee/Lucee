@@ -174,7 +174,7 @@ public abstract class Factory {
 
 	public abstract ExprNumber opNumber(Expression left, Expression right, int operation);
 
-	public abstract ExprDouble opUnary(Variable var, Expression value, short type, int operation, Position start, Position end);
+	public abstract ExprNumber opUnary(Variable var, Expression value, short type, int operation, Position start, Position end);
 
 	public abstract Expression opNegate(Expression expr, Position start, Position end);
 
