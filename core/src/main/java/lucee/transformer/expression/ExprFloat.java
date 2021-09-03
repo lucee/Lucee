@@ -17,6 +17,6 @@
  */
 package lucee.transformer.expression;
 
-public interface ExprFloat extends Expression {
+public interface ExprFloat extends ExprNumber {
 
 }

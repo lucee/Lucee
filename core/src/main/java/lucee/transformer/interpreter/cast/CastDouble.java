@@ -31,8 +31,8 @@ public final class CastDouble extends ExpressionBase implements ExprDouble, Cast
 	public static ExprDouble toExprDouble(Expression expr) {
 		if (expr instanceof ExprDouble) return (ExprDouble) expr;
 		if (expr instanceof Literal) {
-			Double dbl = ((Literal) expr).getDouble(null);
-			if (dbl != null) return expr.getFactory().createLitDouble(dbl.doubleValue(), expr.getStart(), expr.getEnd());
+			Number n = ((Literal) expr).getNumber(null);
+			if (n != null) return expr.getFactory().createLitDouble(n.doubleValue(), expr.getStart(), expr.getEnd());
 		}
 		return new CastDouble(expr);
 	}

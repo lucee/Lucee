@@ -53,6 +53,7 @@ import lucee.runtime.type.util.CollectionUtil;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.wrap.ListAsArray;
 import lucee.runtime.type.wrap.MapAsStruct;
+import lucee.transformer.Factory;
 
 /**
  * class to compare objects and primitive value types
@@ -1020,24 +1021,43 @@ public final class Operator {
 	}
 
 	public static Double divRef(Object left, Object right) throws PageException {
+		if (Factory.PERCISE_NUMBERS) {
+			BigDecimal bd = Caster.toBigDecimal(right);
+			if (bd.equals(BigDecimal.ZERO)) throw new ArithmeticException("Division by zero is not possible");
+			return Caster.toBigDecimal(left).divide(bd).doubleValue();
+		}
+
 		double r = Caster.toDoubleValue(right);
 		if (r == 0d) throw new ArithmeticException("Division by zero is not possible");
 		return Caster.toDouble(Caster.toDoubleValue(left) / r);
 	}
 
-	public static Double exponentRef(Object left, Object right) throws PageException {
-		return Caster.toDouble(StrictMath.pow(Caster.toDoubleValue(left), Caster.toDoubleValue(right)));
+	public static Number divideRef(Object left, Object right) throws PageException {
+		return divRef(left, right);
 	}
 
-	public static Double intdivRef(Object left, Object right) throws PageException {
+	public static Number intdivRef(Object left, Object right) throws PageException {
 		return Caster.toDouble(Caster.toIntValue(left) / Caster.toIntValue(right));
 	}
 
+	public static Double exponentRef(Object left, Object right) throws PageException {
+		if (Factory.PERCISE_NUMBERS) {
+			return Caster.toBigDecimal(left).pow(Caster.toIntValue(right)).doubleValue();
+		}
+		return Caster.toDouble(StrictMath.pow(Caster.toDoubleValue(left), Caster.toDoubleValue(right)));
+	}
+
 	public static Double plusRef(Object left, Object right) throws PageException {
+		if (Factory.PERCISE_NUMBERS) {
+			return Caster.toBigDecimal(left).add(Caster.toBigDecimal(right)).doubleValue();
+		}
 		return Caster.toDouble(Caster.toDoubleValue(left) + Caster.toDoubleValue(right));
 	}
 
 	public static Double minusRef(Object left, Object right) throws PageException {
+		if (Factory.PERCISE_NUMBERS) {
+			return Caster.toBigDecimal(left).min(Caster.toBigDecimal(right)).doubleValue();
+		}
 		return Caster.toDouble(Caster.toDoubleValue(left) - Caster.toDoubleValue(right));
 	}
 
@@ -1047,11 +1067,10 @@ public final class Operator {
 		return Caster.toDouble(Caster.toDoubleValue(left) % rightAsDouble);
 	}
 
-	public static Double divideRef(Object left, Object right) throws PageException {
-		return Caster.toDouble(Caster.toDoubleValue(left) / Caster.toDoubleValue(right));
-	}
-
 	public static Double multiplyRef(Object left, Object right) throws PageException {
+		if (Factory.PERCISE_NUMBERS) {
+			return Caster.toBigDecimal(left).multiply(Caster.toBigDecimal(right)).doubleValue();
+		}
 		return Caster.toDouble(Caster.toDoubleValue(left) * Caster.toDoubleValue(right));
 	}
 

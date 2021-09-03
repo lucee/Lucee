@@ -36,12 +36,12 @@ public final class OpDouble extends ExpressionBase implements ExprDouble {
 
 	private static final Method DIV_REF = new Method("divRef", Types.DOUBLE, new Type[] { Types.OBJECT, Types.OBJECT });
 	private static final Method INTDIV_REF = new Method("intdivRef", Types.DOUBLE, new Type[] { Types.OBJECT, Types.OBJECT });
+	private static final Method DIVIDE_REF = new Method("divideRef", Types.DOUBLE, new Type[] { Types.OBJECT, Types.OBJECT });
 	private static final Method EXP_REF = new Method("exponentRef", Types.DOUBLE, new Type[] { Types.OBJECT, Types.OBJECT });
 
 	private static final Method PLUS_REF = new Method("plusRef", Types.DOUBLE, new Type[] { Types.OBJECT, Types.OBJECT });
 	private static final Method MINUS_REF = new Method("minusRef", Types.DOUBLE, new Type[] { Types.OBJECT, Types.OBJECT });
 	private static final Method MODULUS_REF = new Method("modulusRef", Types.DOUBLE, new Type[] { Types.OBJECT, Types.OBJECT });
-	private static final Method DIVIDE_REF = new Method("divideRef", Types.DOUBLE, new Type[] { Types.OBJECT, Types.OBJECT });
 	private static final Method MULTIPLY_REF = new Method("multiplyRef", Types.DOUBLE, new Type[] { Types.OBJECT, Types.OBJECT });
 
 	/*
@@ -133,7 +133,6 @@ public final class OpDouble extends ExpressionBase implements ExprDouble {
 			adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_DOUBLE_VALUE_FROM_DOUBLE);
 			return Types.DOUBLE_VALUE;
 		}
-
 		return Types.DOUBLE;
 	}
 

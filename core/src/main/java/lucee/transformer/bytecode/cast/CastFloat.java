@@ -59,8 +59,8 @@ public final class CastFloat extends ExpressionBase implements ExprFloat, Cast {
 	public static ExprFloat toExprFloat(Expression expr) {
 		if (expr instanceof ExprFloat) return (ExprFloat) expr;
 		if (expr instanceof Literal) {
-			Double dbl = ((Literal) expr).getDouble(null);
-			if (dbl != null) return expr.getFactory().createLitFloat((float) dbl.doubleValue(), expr.getStart(), expr.getEnd());
+			Number n = ((Literal) expr).getNumber(null);
+			if (n != null) return expr.getFactory().createLitFloat((float) n.doubleValue(), expr.getStart(), expr.getEnd());
 		}
 		return new CastFloat(expr);
 	}
@@ -93,6 +93,7 @@ public final class CastFloat extends ExpressionBase implements ExprFloat, Cast {
 			if (mode == MODE_VALUE) adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_FLOAT_VALUE_FROM_DOUBLE);
 			else adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_FLOAT_FROM_DOUBLE);
 		}
+		// TODOX other number types?
 		else if (expr instanceof ExprString) {
 			expr.writeOut(bc, MODE_REF);
 			if (mode == MODE_VALUE) adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_FLOAT_VALUE_FROM_STRING);

@@ -60,11 +60,6 @@ public final class LitFloatImpl extends ExpressionBase implements LitFloat, Expr
 	}
 
 	@Override
-	public Double getDouble(Double defaultValue) {
-		return new Double(getFloatValue());
-	}
-
-	@Override
 	public Boolean getBoolean(Boolean defaultValue) {
 		return getBoolean();
 	}
@@ -77,5 +72,15 @@ public final class LitFloatImpl extends ExpressionBase implements LitFloat, Expr
 	@Override
 	public Float getFloat() {
 		return f;
+	}
+
+	@Override
+	public Number getNumber() {
+		return getFloat();
+	}
+
+	@Override
+	public Number getNumber(Number defaultValue) {
+		return getFloat();
 	}
 }

@@ -1,10 +1,13 @@
 package lucee.transformer.interpreter.op;
 
+import java.math.BigDecimal;
+
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.TemplateException;
 import lucee.transformer.Factory;
 import lucee.transformer.Position;
 import lucee.transformer.expression.ExprDouble;
+import lucee.transformer.expression.ExprNumber;
 import lucee.transformer.expression.Expression;
 import lucee.transformer.expression.literal.Literal;
 import lucee.transformer.interpreter.InterpreterContext;
@@ -28,19 +31,20 @@ public final class OpNegateNumber extends ExpressionBase implements ExprDouble {
 	 * @return String expression
 	 * @throws TemplateException
 	 */
-	public static ExprDouble toExprDouble(Expression expr, Position start, Position end) {
+	public static ExprNumber toExprNumber(Expression expr, Position start, Position end) {
 		if (expr instanceof Literal) {
-			Double d = ((Literal) expr).getDouble(null);
-			if (d != null) {
-				return expr.getFactory().createLitDouble(-d.doubleValue(), start, end);
+			Number n = ((Literal) expr).getNumber(null);
+			if (n != null) {
+				if (n instanceof BigDecimal) return expr.getFactory().createLitNumber(((BigDecimal) n).negate(), start, end);
+				return expr.getFactory().createLitDouble(-n.doubleValue(), start, end);
 			}
 		}
 		return new OpNegateNumber(expr, start, end);
 	}
 
-	public static ExprDouble toExprDouble(Expression expr, int operation, Position start, Position end) {
-		if (operation == Factory.OP_NEG_NBR_MINUS) return toExprDouble(expr, start, end);
-		return expr.getFactory().toExprDouble(expr);
+	public static ExprNumber toExprNumber(Expression expr, int operation, Position start, Position end) {
+		if (operation == Factory.OP_NEG_NBR_MINUS) return toExprNumber(expr, start, end);
+		return expr.getFactory().toExprDouble(expr); // TODOX other types
 	}
 
 	@Override

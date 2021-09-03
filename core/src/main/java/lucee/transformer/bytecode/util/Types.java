@@ -146,6 +146,7 @@ public final class Types {
 
 	public static final Type SHORT = Type.getType(Short.class);
 	public static final Type SHORT_VALUE = Type.getType(short.class);
+	public static final Type NUMBER = Type.getType(Number.class);
 
 	public static final Type COMPONENT = Type.getType(lucee.runtime.Component.class);
 

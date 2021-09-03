@@ -39,8 +39,12 @@ public class LitStringImpl extends ExpressionBase implements LitString, ExprStri
 	}
 
 	@Override
-	public Double getDouble(Double defaultValue) {
-		return Caster.toDouble(getString(), defaultValue);
+	public Number getNumber(Number defaultValue) {
+		Number res;
+		if (Factory.PERCISE_NUMBERS) res = Caster.toBigDecimal(str, null);
+		else res = Caster.toDouble(getString(), null);
+		if (res != null) return res;
+		return defaultValue;
 	}
 
 	@Override

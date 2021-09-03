@@ -17,11 +17,15 @@
  */
 package lucee.transformer;
 
+import java.math.BigDecimal;
+
 import lucee.runtime.config.Config;
+import lucee.runtime.exp.CasterException;
 import lucee.transformer.expression.ExprBoolean;
 import lucee.transformer.expression.ExprDouble;
 import lucee.transformer.expression.ExprFloat;
 import lucee.transformer.expression.ExprInt;
+import lucee.transformer.expression.ExprNumber;
 import lucee.transformer.expression.ExprString;
 import lucee.transformer.expression.Expression;
 import lucee.transformer.expression.literal.LitBoolean;
@@ -29,6 +33,7 @@ import lucee.transformer.expression.literal.LitDouble;
 import lucee.transformer.expression.literal.LitFloat;
 import lucee.transformer.expression.literal.LitInteger;
 import lucee.transformer.expression.literal.LitLong;
+import lucee.transformer.expression.literal.LitNumber;
 import lucee.transformer.expression.literal.LitString;
 import lucee.transformer.expression.literal.Literal;
 import lucee.transformer.expression.var.DataMember;
@@ -73,6 +78,7 @@ public abstract class Factory {
 
 	public static final int OP_NEG_NBR_PLUS = 0;
 	public static final int OP_NEG_NBR_MINUS = 1;
+	public static final boolean PERCISE_NUMBERS = true;
 
 	public abstract LitBoolean TRUE();
 
@@ -98,6 +104,14 @@ public abstract class Factory {
 	public abstract LitDouble createLitDouble(double d);
 
 	public abstract LitDouble createLitDouble(double d, Position start, Position end);
+
+	public abstract LitNumber createLitNumber(String number) throws CasterException;
+
+	public abstract LitNumber createLitNumber(String number, Position start, Position end) throws CasterException;
+
+	public abstract LitNumber createLitNumber(BigDecimal bd);
+
+	public abstract LitNumber createLitNumber(BigDecimal bd, Position start, Position end);
 
 	public abstract LitFloat createLitFloat(float f);
 
@@ -164,7 +178,7 @@ public abstract class Factory {
 
 	public abstract Expression opNegate(Expression expr, Position start, Position end);
 
-	public abstract ExprDouble opNegateNumber(Expression expr, int operation, Position start, Position end);
+	public abstract ExprNumber opNegateNumber(Expression expr, int operation, Position start, Position end);
 
 	public abstract Expression opContional(Expression cont, Expression left, Expression right);
 

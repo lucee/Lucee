@@ -1,7 +1,11 @@
 package lucee.transformer.interpreter;
 
+import java.math.BigDecimal;
+
 import lucee.runtime.config.Config;
 import lucee.runtime.engine.ThreadLocalPageContext;
+import lucee.runtime.exp.CasterException;
+import lucee.runtime.op.Caster;
 import lucee.transformer.Context;
 import lucee.transformer.Factory;
 import lucee.transformer.FactoryBase;
@@ -11,6 +15,7 @@ import lucee.transformer.expression.ExprBoolean;
 import lucee.transformer.expression.ExprDouble;
 import lucee.transformer.expression.ExprFloat;
 import lucee.transformer.expression.ExprInt;
+import lucee.transformer.expression.ExprNumber;
 import lucee.transformer.expression.ExprString;
 import lucee.transformer.expression.Expression;
 import lucee.transformer.expression.literal.LitBoolean;
@@ -18,6 +23,7 @@ import lucee.transformer.expression.literal.LitDouble;
 import lucee.transformer.expression.literal.LitFloat;
 import lucee.transformer.expression.literal.LitInteger;
 import lucee.transformer.expression.literal.LitLong;
+import lucee.transformer.expression.literal.LitNumber;
 import lucee.transformer.expression.literal.LitString;
 import lucee.transformer.expression.var.DataMember;
 import lucee.transformer.expression.var.Variable;
@@ -30,6 +36,7 @@ import lucee.transformer.interpreter.cast.CastString;
 import lucee.transformer.interpreter.expression.var.EmptyArray;
 import lucee.transformer.interpreter.expression.var.EmptyStruct;
 import lucee.transformer.interpreter.literal.Empty;
+import lucee.transformer.interpreter.literal.LitBigDecimalImpl;
 import lucee.transformer.interpreter.literal.LitBooleanImpl;
 import lucee.transformer.interpreter.literal.LitDoubleImpl;
 import lucee.transformer.interpreter.literal.LitFloatImpl;
@@ -132,6 +139,28 @@ public class InterpreterFactory extends FactoryBase {
 	@Override
 	public LitDouble createLitDouble(double d, Position start, Position end) {
 		return new LitDoubleImpl(this, d, start, end);
+	}
+
+	@Override
+	public LitNumber createLitNumber(String number) throws CasterException {
+		return createLitNumber(number, null, null);
+	}
+
+	@Override
+	public LitNumber createLitNumber(String number, Position start, Position end) throws CasterException {
+		if (Factory.PERCISE_NUMBERS) return new LitBigDecimalImpl(this, number, start, end);
+		return new LitDoubleImpl(this, Caster.toDoubleValue(number), start, end);
+	}
+
+	@Override
+	public LitNumber createLitNumber(BigDecimal bd) {
+		return createLitNumber(bd, null, null);
+	}
+
+	@Override
+	public LitNumber createLitNumber(BigDecimal bd, Position start, Position end) {
+		if (Factory.PERCISE_NUMBERS) return new LitBigDecimalImpl(this, bd, start, end);
+		return new LitDoubleImpl(this, bd.doubleValue(), start, end);
 	}
 
 	@Override
@@ -278,8 +307,8 @@ public class InterpreterFactory extends FactoryBase {
 	}
 
 	@Override
-	public ExprDouble opNegateNumber(Expression expr, int operation, Position start, Position end) {
-		return OpNegateNumber.toExprDouble(expr, operation, start, end);
+	public ExprNumber opNegateNumber(Expression expr, int operation, Position start, Position end) {
+		return OpNegateNumber.toExprNumber(expr, operation, start, end);
 	}
 
 	@Override

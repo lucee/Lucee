@@ -2145,6 +2145,7 @@ public final class Caster {
 	}
 
 	public static String toString(Number n) {
+		if (n instanceof BigDecimal) return ((BigDecimal) n).toPlainString();
 		double d = n.doubleValue();
 		long l = (long) d;
 		if (l == d) return toString(l);
@@ -2155,6 +2156,10 @@ public final class Caster {
 		if (n instanceof Double) return toString(n.doubleValue());
 		return n.toString();
 		// return df.format(d);
+	}
+
+	public static String toString(BigDecimal bd) {
+		return bd.toPlainString();
 	}
 
 	/**
@@ -2310,7 +2315,8 @@ public final class Caster {
 					Object tmp = Reflector.componentToClass(ThreadLocalPageContext.get(), (Component) o, List.class);
 					if (tmp instanceof List) return (List) tmp;
 				}
-				catch (PageException e) {}
+				catch (PageException e) {
+				}
 			}
 
 			Struct sct = (Struct) o;
@@ -2629,7 +2635,8 @@ public final class Caster {
 					Object tmp = Reflector.componentToClass(ThreadLocalPageContext.get(), (Component) o, Map.class);
 					if (tmp instanceof Map) return (Map) tmp;
 				}
-				catch (PageException e) {}
+				catch (PageException e) {
+				}
 			}
 			if (duplicate) return (Map) Duplicator.duplicate(o, false);
 			return ((Struct) o);
@@ -4208,7 +4215,8 @@ public final class Caster {
 				Object tmp = Reflector.componentToClass(ThreadLocalPageContext.get(), (Component) o, Collection.class);
 				if (tmp instanceof Collection) return (Collection) tmp;
 			}
-			catch (PageException e) {}
+			catch (PageException e) {
+			}
 		}
 		else if (o instanceof Map) {
 			return MapAsStruct.toStruct((Map) o, true);// StructImpl((Map)o);
@@ -4265,7 +4273,8 @@ public final class Caster {
 				Object tmp = Reflector.componentToClass(ThreadLocalPageContext.get(), (Component) o, Collection.class);
 				if (tmp instanceof Collection) return (Collection) tmp;
 			}
-			catch (PageException e) {}
+			catch (PageException e) {
+			}
 		}
 		else if (o instanceof Map) {
 			return MapAsStruct.toStruct((Map) o, true);
@@ -4790,6 +4799,19 @@ public final class Caster {
 		throw new CasterException(o, "number");
 	}
 
+	public static BigDecimal toBigDecimal(String str) throws CasterException {
+		return new BigDecimal(str);
+	}
+
+	public static BigDecimal toBigDecimal(String str, BigDecimal defaultValue) {
+		try {
+			return new BigDecimal(str);
+		}
+		catch (Exception e) {
+		}
+		return defaultValue;
+	}
+
 	public static BigInteger toBigInteger(Object o) throws PageException {
 		if (o instanceof BigInteger) return (BigInteger) o;
 		if (o instanceof Number) {
@@ -4834,7 +4856,8 @@ public final class Caster {
 				Object tmp = Reflector.componentToClass(ThreadLocalPageContext.get(), (Component) obj, CharSequence.class);
 				if (tmp instanceof CharSequence) return (CharSequence) tmp;
 			}
-			catch (PageException pe) {}
+			catch (PageException pe) {
+			}
 		}
 		return Caster.toString(obj);
 	}
@@ -4846,7 +4869,8 @@ public final class Caster {
 				Object tmp = Reflector.componentToClass(ThreadLocalPageContext.get(), (Component) obj, CharSequence.class);
 				if (tmp instanceof CharSequence) return (CharSequence) tmp;
 			}
-			catch (PageException pe) {}
+			catch (PageException pe) {
+			}
 		}
 
 		String str = Caster.toString(obj, null);

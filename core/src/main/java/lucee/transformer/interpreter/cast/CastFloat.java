@@ -31,8 +31,8 @@ public final class CastFloat extends ExpressionBase implements ExprFloat, Cast {
 	public static ExprFloat toExprFloat(Expression expr) {
 		if (expr instanceof ExprFloat) return (ExprFloat) expr;
 		if (expr instanceof Literal) {
-			Double dbl = ((Literal) expr).getDouble(null);
-			if (dbl != null) return expr.getFactory().createLitFloat((float) dbl.doubleValue(), expr.getStart(), expr.getEnd());
+			Number n = ((Literal) expr).getNumber(null);
+			if (n != null) return expr.getFactory().createLitFloat((float) n.doubleValue(), expr.getStart(), expr.getEnd());
 		}
 		return new CastFloat(expr);
 	}

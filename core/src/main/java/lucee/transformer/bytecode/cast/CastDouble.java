@@ -57,8 +57,8 @@ public final class CastDouble extends ExpressionBase implements ExprDouble, Cast
 	public static ExprDouble toExprDouble(Expression expr) {
 		if (expr instanceof ExprDouble) return (ExprDouble) expr;
 		if (expr instanceof Literal) {
-			Double dbl = ((Literal) expr).getDouble(null);
-			if (dbl != null) return expr.getFactory().createLitDouble(dbl.doubleValue(), expr.getStart(), expr.getEnd());
+			Number n = ((Literal) expr).getNumber(null);
+			if (n != null) return expr.getFactory().createLitDouble(n.doubleValue(), expr.getStart(), expr.getEnd());
 		}
 		return new CastDouble(expr);
 	}
@@ -78,9 +78,8 @@ public final class CastDouble extends ExpressionBase implements ExprDouble, Cast
 		}
 		else if (expr instanceof ExprDouble) {
 			expr.writeOut(bc, mode);
-			// if(mode==MODE_VALUE)adapter.invokeStatic(Types.CASTER,Methods.METHOD_TO_DOUBLE_VALUE_FROM_DOUBLE);
-			// if(mode==MODE_REF) adapter.invokeStatic(Types.CASTER,Methods.METHOD_TO_DOUBLE_FROM_DOUBLE);
 		}
+		// TODOX other number types?
 		else if (expr instanceof ExprString) {
 			expr.writeOut(bc, MODE_REF);
 			if (mode == MODE_VALUE) adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_DOUBLE_VALUE_FROM_STRING);

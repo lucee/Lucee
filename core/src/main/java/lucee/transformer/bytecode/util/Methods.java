@@ -108,4 +108,7 @@ public final class Methods {
 	final public static Method METHOD_TO_DOUBLE_VALUE_FROM_STRING = new Method("toDoubleValue", Types.DOUBLE_VALUE, new Type[] { Types.STRING });
 	final public static Method METHOD_TO_FLOAT_VALUE_FROM_STRING = new Method("toFloatValue", Types.FLOAT_VALUE, new Type[] { Types.STRING });
 	final public static Method METHOD_TO_INT_VALUE_FROM_STRING = new Method("toIntValue", Types.INT_VALUE, new Type[] { Types.STRING });
+
+	final public static Method METHOD_TO_BIG_DECIMAL_STR = new Method("toBigDecimal", Types.BIG_DECIMAL, new Type[] { Types.STRING });
+	final public static Method METHOD_TO_BIG_DECIMAL_OBJ = new Method("toBigDecimal", Types.BIG_DECIMAL, new Type[] { Types.OBJECT });
 }

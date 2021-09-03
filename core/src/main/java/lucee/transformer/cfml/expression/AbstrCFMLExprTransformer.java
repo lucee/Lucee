@@ -28,7 +28,6 @@ import lucee.runtime.exp.CasterException;
 import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.exp.TemplateException;
 import lucee.runtime.functions.other.CreateUniqueId;
-import lucee.runtime.op.Caster;
 import lucee.runtime.type.scope.Scope;
 import lucee.runtime.type.scope.ScopeSupport;
 import lucee.runtime.type.util.UDFUtil;
@@ -60,7 +59,7 @@ import lucee.transformer.expression.ExprDouble;
 import lucee.transformer.expression.ExprString;
 import lucee.transformer.expression.Expression;
 import lucee.transformer.expression.Invoker;
-import lucee.transformer.expression.literal.LitDouble;
+import lucee.transformer.expression.literal.LitNumber;
 import lucee.transformer.expression.literal.LitString;
 import lucee.transformer.expression.literal.Literal;
 import lucee.transformer.expression.var.DataMember;
@@ -1120,7 +1119,7 @@ public abstract class AbstrCFMLExprTransformer {
 	 * @return CFXD Element
 	 * @throws TemplateException
 	 */
-	private LitDouble number(Data data) throws TemplateException {
+	private LitNumber number(Data data) throws TemplateException {
 		// check first character is a number literal representation
 		if (!(data.srcCode.isCurrentBetween('0', '9') || data.srcCode.isCurrent('.'))) return null;
 
@@ -1175,7 +1174,7 @@ public abstract class AbstrCFMLExprTransformer {
 		comments(data);
 
 		try {
-			return data.factory.createLitDouble(Caster.toDoubleValue(rtn.toString()), line, data.srcCode.getPosition());
+			return data.factory.createLitNumber(rtn.toString(), line, data.srcCode.getPosition());
 		}
 		catch (CasterException e) {
 			throw new TemplateException(data.srcCode, e.getMessage());

@@ -957,9 +957,9 @@ public final class ASMUtil {
 			Literal l = (Literal) val;
 
 			// double == days
-			Double d = l.getDouble(null);
-			if (d != null) {
-				return val.getFactory().createLitLong(TimeSpanImpl.fromDays(d.doubleValue()).getMillis(), null, null);
+			Number n = l.getNumber(null);
+			if (n != null) {
+				return val.getFactory().createLitLong(TimeSpanImpl.fromDays(n.doubleValue()).getMillis(), null, null);
 			}
 			return l;
 		}
@@ -995,10 +995,10 @@ public final class ASMUtil {
 
 	private static double toDouble(Expression e) throws EvaluatorException {
 		if (!(e instanceof Literal)) throw new EvaluatorException("Paremeters of the function createTimeSpan have to be literal numeric values in this context");
-		Double d = ((Literal) e).getDouble(null);
-		if (d == null) throw new EvaluatorException("Paremeters of the function createTimeSpan have to be literal numeric values in this context");
+		Number n = ((Literal) e).getNumber(null);
+		if (n == null) throw new EvaluatorException("Paremeters of the function createTimeSpan have to be literal numeric values in this context");
 
-		return d.doubleValue();
+		return n.doubleValue();
 	}
 
 	public static void visitLabel(GeneratorAdapter ga, Label label) {

@@ -56,8 +56,8 @@ public final class CastInt extends ExpressionBase implements ExprInt, Cast {
 	public static ExprInt toExprInt(Expression expr) {
 		if (expr instanceof ExprInt) return (ExprInt) expr;
 		if (expr instanceof Literal) {
-			Double dbl = ((Literal) expr).getDouble(null);
-			if (dbl != null) return expr.getFactory().createLitInteger((int) dbl.doubleValue(), expr.getStart(), expr.getEnd());
+			Number n = ((Literal) expr).getNumber(null);
+			if (n != null) return expr.getFactory().createLitInteger(n.intValue(), expr.getStart(), expr.getEnd());
 		}
 		return new CastInt(expr);
 	}
@@ -106,6 +106,7 @@ public final class CastInt extends ExpressionBase implements ExprInt, Cast {
 				return Types.INT_VALUE;
 
 			}
+			// TODOX other number types?
 			else if (Types.isPrimitiveType(rtn)) {
 				if (Types.DOUBLE_VALUE.equals(rtn)) {
 					adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_INTEGER_FROM_DOUBLE);

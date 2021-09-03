@@ -18,6 +18,8 @@
  **/
 package lucee.runtime.type.ref;
 
+import java.math.BigDecimal;
+
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
@@ -111,6 +113,10 @@ public final class VariableReference implements Reference {
 
 	public void set(double value) throws PageException {
 		coll.set(key, Caster.toDouble(value));
+	}
+
+	public void set(BigDecimal value) throws PageException {
+		coll.set(key, value);
 	}
 
 	@Override

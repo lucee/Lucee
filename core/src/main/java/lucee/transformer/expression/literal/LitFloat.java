@@ -22,7 +22,7 @@ import lucee.transformer.expression.ExprFloat;
 /**
  * Literal Double Value
  */
-public interface LitFloat extends Literal, ExprFloat {
+public interface LitFloat extends LitNumber, Literal, ExprFloat {
 
 	/**
 	 * @return return value as double value

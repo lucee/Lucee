@@ -55,7 +55,17 @@ public final class LitFloatImpl extends ExpressionBase implements LitFloat, Expr
 
 	@Override
 	public Float getFloat() {
-		return new Float(f);
+		return Float.valueOf(f);
+	}
+
+	@Override
+	public Number getNumber() {
+		return getFloat();
+	}
+
+	@Override
+	public Number getNumber(Number defaultValue) {
+		return getFloat();
 	}
 
 	@Override
@@ -86,11 +96,6 @@ public final class LitFloatImpl extends ExpressionBase implements LitFloat, Expr
 			return Types.FLOAT;
 		}
 		return Types.FLOAT_VALUE;
-	}
-
-	@Override
-	public Double getDouble(Double defaultValue) {
-		return new Double(getFloatValue());
 	}
 
 	@Override

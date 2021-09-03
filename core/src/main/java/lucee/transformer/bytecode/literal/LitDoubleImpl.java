@@ -64,7 +64,7 @@ public final class LitDoubleImpl extends ExpressionBase implements LitDouble, Ex
 	 * @return return value as Double Object
 	 */
 	public Double getDouble() {
-		return new Double(d);
+		return Double.valueOf(d);
 	}
 
 	/**
@@ -90,6 +90,21 @@ public final class LitDoubleImpl extends ExpressionBase implements LitDouble, Ex
 	}
 
 	@Override
+	public Number getNumber() {
+		return getDouble();
+	}
+
+	@Override
+	public Number getNumber(Number defaultValue) {
+		return getDouble();
+	}
+
+	@Override
+	public Boolean getBoolean(Boolean defaultValue) {
+		return getBoolean();
+	}
+
+	@Override
 	public Type _writeOut(BytecodeContext bc, int mode) {
 		GeneratorAdapter adapter = bc.getAdapter();
 		if (mode == MODE_REF) {
@@ -108,13 +123,4 @@ public final class LitDoubleImpl extends ExpressionBase implements LitDouble, Ex
 		return Types.DOUBLE_VALUE;
 	}
 
-	@Override
-	public Double getDouble(Double defaultValue) {
-		return getDouble();
-	}
-
-	@Override
-	public Boolean getBoolean(Boolean defaultValue) {
-		return getBoolean();
-	}
 }

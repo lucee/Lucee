@@ -51,7 +51,17 @@ public final class LitDoubleImpl extends ExpressionBase implements LitDouble, Ex
 	 * @return return value as Double Object
 	 */
 	public Double getDouble() {
-		return new Double(d);
+		return Double.valueOf(d);
+	}
+
+	@Override
+	public Number getNumber() {
+		return getDouble();
+	}
+
+	@Override
+	public Number getNumber(Number defaultValue) {
+		return getDouble();
 	}
 
 	/**
@@ -74,11 +84,6 @@ public final class LitDoubleImpl extends ExpressionBase implements LitDouble, Ex
 	 */
 	public boolean getBooleanValue() {
 		return Caster.toBooleanValue(d);
-	}
-
-	@Override
-	public Double getDouble(Double defaultValue) {
-		return getDouble();
 	}
 
 	@Override
