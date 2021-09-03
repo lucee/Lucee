@@ -32,6 +32,7 @@ public final class Methods {
 
 	// String toString (double)
 	final public static Method METHOD_TO_STRING_FROM_DOUBLE = new Method("toString", Types.STRING, new Type[] { Types.DOUBLE_VALUE });
+	final public static Method METHOD_TO_STRING_FROM_NUMBER = new Method("toString", Types.STRING, new Type[] { Types.NUMBER });
 	// String toString (boolean)
 	final public static Method METHOD_TO_STRING_FROM_BOOLEAN = new Method("toString", Types.STRING, new Type[] { Types.BOOLEAN_VALUE });
 
@@ -43,9 +44,11 @@ public final class Methods {
 
 	// Boolean toBoolean (double)
 	final public static Method METHOD_TO_BOOLEAN_FROM_DOUBLE = new Method("toBoolean", Types.BOOLEAN, new Type[] { Types.DOUBLE_VALUE });
+	final public static Method METHOD_TO_BOOLEAN_FROM_NUMBER = new Method("toBoolean", Types.BOOLEAN, new Type[] { Types.NUMBER });
 
 	// boolean toBooleanValue (double)
 	final public static Method METHOD_TO_BOOLEAN_VALUE_FROM_DOUBLE = new Method("toBooleanValue", Types.BOOLEAN_VALUE, new Type[] { Types.DOUBLE_VALUE });
+	final public static Method METHOD_TO_BOOLEAN_VALUE_FROM_NUMBER = new Method("toBooleanValue", Types.BOOLEAN_VALUE, new Type[] { Types.NUMBER });
 
 	// Boolean toBoolean (boolean)
 	final public static Method METHOD_TO_BOOLEAN_FROM_BOOLEAN = new Method("toBoolean", Types.BOOLEAN, new Type[] { Types.BOOLEAN_VALUE });
@@ -76,12 +79,14 @@ public final class Methods {
 	final public static Method METHOD_TO_DOUBLE_FROM_DOUBLE = new Method("toDouble", Types.DOUBLE, new Type[] { Types.DOUBLE_VALUE });
 	final public static Method METHOD_TO_DOUBLE_FROM_FLOAT_VALUE = new Method("toDouble", Types.DOUBLE, new Type[] { Types.FLOAT_VALUE });
 	final public static Method METHOD_TO_FLOAT_FROM_DOUBLE = new Method("toFloat", Types.FLOAT, new Type[] { Types.DOUBLE_VALUE });
+	final public static Method METHOD_TO_FLOAT_FROM_NUMBER = new Method("toFloat", Types.FLOAT, new Type[] { Types.NUMBER });
 
 	final public static Method METHOD_TO_FLOAT_FROM_FLOAT = new Method("toFloat", Types.FLOAT, new Type[] { Types.FLOAT_VALUE });
 	// double toDoubleValue (double)
 	// final public static Method METHOD_TO_DOUBLE_VALUE_FROM_DOUBLE = new
 	// Method("toDoubleValue",Types.DOUBLE_VALUE,new Type[]{Types.DOUBLE_VALUE});
 	final public static Method METHOD_TO_FLOAT_VALUE_FROM_DOUBLE = new Method("toFloatValue", Types.FLOAT_VALUE, new Type[] { Types.DOUBLE_VALUE });
+	final public static Method METHOD_TO_FLOAT_VALUE_FROM_NUMBER = new Method("toFloatValue", Types.FLOAT_VALUE, new Type[] { Types.NUMBER });
 
 	final public static Method METHOD_TO_INT_VALUE_FROM_DOUBLE = new Method("toIntValue", Types.INT_VALUE, new Type[] { Types.DOUBLE_VALUE });
 	final public static Method METHOD_TO_INTEGER_FROM_DOUBLE = new Method("toInteger", Types.INTEGER, new Type[] { Types.DOUBLE_VALUE });

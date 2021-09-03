@@ -57,6 +57,7 @@ import java.util.concurrent.ExecutionException;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import lucee.print;
 import lucee.commons.date.DateTimeUtil;
 import lucee.commons.date.JREDateTimeUtil;
 import lucee.commons.date.TimeZoneUtil;
@@ -232,6 +233,18 @@ public final class Caster {
 	 */
 	public static boolean toBooleanValue(double d) {
 		return d != 0;
+	}
+
+	public static boolean toBooleanValue(Number n) {
+		return n.intValue() != 0;
+	}
+
+	public static void main(String[] args) throws CasterException, PageException {
+		String str = Caster.toString(Operator.minusRef(Caster.toBigDecimal("111111111.999999999999999"), Caster.toBigDecimal("1")));
+		print.e(str);
+		print.e(Operator.minusRef(Caster.toBigDecimal("111111111.999999999999999"), Caster.toBigDecimal("1")));
+		print.e(Caster.toString(111111111.999999999999999 - 1));
+		print.e(Caster.toBigDecimal("111111111.999999999999999").subtract(Caster.toBigDecimal("1")));
 	}
 
 	/**
@@ -945,6 +958,10 @@ public final class Caster {
 		return i != 0 ? Boolean.TRUE : Boolean.FALSE;
 	}
 
+	public static Boolean toBoolean(Number n) {
+		return n.intValue() != 0 ? Boolean.TRUE : Boolean.FALSE;
+	}
+
 	/**
 	 * cast a long value to a Boolean Object(reference type)
 	 * 
@@ -1596,7 +1613,15 @@ public final class Caster {
 	 * @return casted Float Object
 	 */
 	public static Float toFloat(double d) {
-		return new Float(toFloatValue(d));
+		return Float.valueOf(toFloatValue(d));
+	}
+
+	public static Float toFloat(Number n) {
+		return n.floatValue();
+	}
+
+	public static float toFloatValue(Number n) {
+		return Float.valueOf(n.floatValue());
 	}
 
 	/**

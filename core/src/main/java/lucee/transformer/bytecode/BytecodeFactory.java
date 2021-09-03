@@ -56,10 +56,10 @@ import lucee.transformer.bytecode.literal.NullConstant;
 import lucee.transformer.bytecode.op.OpBool;
 import lucee.transformer.bytecode.op.OpContional;
 import lucee.transformer.bytecode.op.OpDecision;
-import lucee.transformer.bytecode.op.OpDouble;
 import lucee.transformer.bytecode.op.OpElvis;
 import lucee.transformer.bytecode.op.OpNegate;
 import lucee.transformer.bytecode.op.OpNegateNumber;
+import lucee.transformer.bytecode.op.OpNumber;
 import lucee.transformer.bytecode.op.OpString;
 import lucee.transformer.bytecode.op.OpUnary;
 import lucee.transformer.bytecode.util.Types;
@@ -310,8 +310,8 @@ public class BytecodeFactory extends FactoryBase {
 	}
 
 	@Override
-	public ExprDouble opDouble(Expression left, Expression right, int operation) {
-		return OpDouble.toExprDouble(left, right, operation);
+	public ExprNumber opNumber(Expression left, Expression right, int operation) {
+		return OpNumber.toExprNumber(left, right, operation);
 	}
 
 	@Override

@@ -1,22 +1,21 @@
 package lucee.transformer.interpreter.op;
 
 import lucee.runtime.exp.PageException;
-import lucee.runtime.exp.TemplateException;
 import lucee.runtime.interpreter.InterpreterException;
 import lucee.runtime.op.Operator;
 import lucee.transformer.Factory;
-import lucee.transformer.expression.ExprDouble;
+import lucee.transformer.expression.ExprNumber;
 import lucee.transformer.expression.Expression;
 import lucee.transformer.interpreter.InterpreterContext;
 import lucee.transformer.interpreter.expression.ExpressionBase;
 
-public final class OpDouble extends ExpressionBase implements ExprDouble {
+public final class OpNumber extends ExpressionBase implements ExprNumber {
 
 	private int op;
 	private Expression left;
 	private Expression right;
 
-	OpDouble(Expression left, Expression right, int operation) {
+	OpNumber(Expression left, Expression right, int operation) {
 		super(left.getFactory(), left.getStart(), right.getEnd());
 		this.left = left;
 		this.right = right;
@@ -35,27 +34,17 @@ public final class OpDouble extends ExpressionBase implements ExprDouble {
 		return op;
 	}
 
-	/**
-	 * Create a String expression from an Expression
-	 * 
-	 * @param left
-	 * @param right
-	 * @param operation
-	 * 
-	 * @return String expression
-	 * @throws TemplateException
-	 */
-	public static ExprDouble toExprDouble(Expression left, Expression right, int operation) {
-		return new OpDouble(left, right, operation);
+	public static ExprNumber toExprNumber(Expression left, Expression right, int operation) {
+		return new OpNumber(left, right, operation);
 	}
 
 	@Override
 	public Class<?> _writeOut(InterpreterContext ic, int mode) throws PageException {
-		return writeOutDouble(ic, mode);
+		return writeOutNumber(ic, mode);
 	}
 
-	public Class<?> writeOutDouble(InterpreterContext ic, int mode) throws PageException {
-
+	public Class<?> writeOutNumber(InterpreterContext ic, int mode) throws PageException {
+		// TODOX all as Number
 		double d;
 		if (op == Factory.OP_DBL_EXP) {
 			d = Operator.exponent(ic.getValueAsDoubleValue(left), ic.getValueAsDoubleValue(right));
@@ -82,12 +71,11 @@ public final class OpDouble extends ExpressionBase implements ExprDouble {
 			d = Operator.multiply(ic.getValueAsDoubleValue(left), ic.getValueAsDoubleValue(right));
 		}
 		else throw new InterpreterException("invalid operation: " + op);
-		if (mode == MODE_VALUE) {
-			ic.stack(d);
-			return double.class;
-		}
+		/*
+		 * if (mode == MODE_VALUE) { ic.stack(d); return double.class; }
+		 */
 		ic.stack(Double.valueOf(d));
-		return Double.class;
+		return Number.class;
 	}
 
 }

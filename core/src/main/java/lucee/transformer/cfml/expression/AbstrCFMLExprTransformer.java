@@ -55,7 +55,7 @@ import lucee.transformer.cfml.Data;
 import lucee.transformer.cfml.script.DocCommentTransformer;
 import lucee.transformer.cfml.tag.CFMLTransformer;
 import lucee.transformer.expression.ExprBoolean;
-import lucee.transformer.expression.ExprDouble;
+import lucee.transformer.expression.ExprNumber;
 import lucee.transformer.expression.ExprString;
 import lucee.transformer.expression.Expression;
 import lucee.transformer.expression.Invoker;
@@ -763,7 +763,7 @@ public abstract class AbstrCFMLExprTransformer {
 
 		else {
 			comments(data);
-			expr = data.factory.opDouble(expr, modOp(data), opr);
+			expr = data.factory.opNumber(expr, modOp(data), opr);
 		}
 		return expr;
 	}
@@ -794,11 +794,11 @@ public abstract class AbstrCFMLExprTransformer {
 			data.srcCode.next();
 			comments(data);
 			Expression right = assignOp(data);
-			ExprDouble res = data.factory.opDouble(expr, right, Factory.OP_DBL_MODULUS);
+			ExprNumber res = data.factory.opNumber(expr, right, Factory.OP_DBL_MODULUS);
 			return new OpVariable((Variable) expr, res, data.srcCode.getPosition());
 		}
 		comments(data);
-		return data.factory.opDouble(expr, expoOp(data), Factory.OP_DBL_MODULUS);
+		return data.factory.opNumber(expr, expoOp(data), Factory.OP_DBL_MODULUS);
 	}
 
 	/**
@@ -854,7 +854,7 @@ public abstract class AbstrCFMLExprTransformer {
 			// return new OpVariable((Variable)expr,res,data.cfml.getPosition());
 		}
 		comments(data);
-		return data.factory.opDouble(expr, expoOp(data), iOp);
+		return data.factory.opNumber(expr, expoOp(data), iOp);
 	}
 
 	/**
@@ -872,7 +872,7 @@ public abstract class AbstrCFMLExprTransformer {
 		// Modulus Operation
 		while (data.srcCode.forwardIfCurrent('^') || data.srcCode.forwardIfCurrentAndNoWordAfter("exp")) {
 			comments(data);
-			expr = data.factory.opDouble(expr, unaryOp(data), Factory.OP_DBL_EXP);
+			expr = data.factory.opNumber(expr, unaryOp(data), Factory.OP_DBL_EXP);
 		}
 		return expr;
 	}

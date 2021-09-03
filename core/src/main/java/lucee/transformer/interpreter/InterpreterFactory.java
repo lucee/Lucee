@@ -48,10 +48,10 @@ import lucee.transformer.interpreter.literal.NullConstant;
 import lucee.transformer.interpreter.op.OpBool;
 import lucee.transformer.interpreter.op.OpContional;
 import lucee.transformer.interpreter.op.OpDecision;
-import lucee.transformer.interpreter.op.OpDouble;
 import lucee.transformer.interpreter.op.OpElvis;
 import lucee.transformer.interpreter.op.OpNegate;
 import lucee.transformer.interpreter.op.OpNegateNumber;
+import lucee.transformer.interpreter.op.OpNumber;
 import lucee.transformer.interpreter.op.OpString;
 
 public class InterpreterFactory extends FactoryBase {
@@ -292,8 +292,8 @@ public class InterpreterFactory extends FactoryBase {
 	}
 
 	@Override
-	public ExprDouble opDouble(Expression left, Expression right, int operation) {
-		return OpDouble.toExprDouble(left, right, operation);
+	public ExprNumber opNumber(Expression left, Expression right, int operation) {
+		return OpNumber.toExprNumber(left, right, operation);
 	}
 
 	@Override

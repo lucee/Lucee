@@ -26,13 +26,14 @@ import lucee.runtime.exp.TemplateException;
 import lucee.transformer.TransformerException;
 import lucee.transformer.bytecode.BytecodeContext;
 import lucee.transformer.bytecode.expression.ExpressionBase;
-import lucee.transformer.bytecode.op.OpDouble;
+import lucee.transformer.bytecode.op.OpNumber;
 import lucee.transformer.bytecode.util.Methods;
 import lucee.transformer.bytecode.util.Types;
 import lucee.transformer.cast.Cast;
 import lucee.transformer.expression.ExprBoolean;
 import lucee.transformer.expression.ExprDouble;
 import lucee.transformer.expression.ExprFloat;
+import lucee.transformer.expression.ExprNumber;
 import lucee.transformer.expression.ExprString;
 import lucee.transformer.expression.Expression;
 import lucee.transformer.expression.literal.Literal;
@@ -74,10 +75,10 @@ public final class CastFloat extends ExpressionBase implements ExprFloat, Cast {
 
 		GeneratorAdapter adapter = bc.getAdapter();
 
-		if (expr instanceof OpDouble) {
-			((OpDouble) expr).writeOutDouble(bc, MODE_VALUE);
-			if (mode == MODE_VALUE) adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_FLOAT_VALUE_FROM_DOUBLE);
-			else adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_FLOAT_FROM_DOUBLE);
+		if (expr instanceof OpNumber) {
+			((OpNumber) expr).writeOutNumber(bc, MODE_REF);
+			if (mode == MODE_VALUE) adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_FLOAT_VALUE_FROM_NUMBER);
+			else adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_FLOAT_FROM_NUMBER);
 		}
 		else if (expr instanceof ExprBoolean) {
 			expr.writeOut(bc, MODE_VALUE);
@@ -92,6 +93,11 @@ public final class CastFloat extends ExpressionBase implements ExprFloat, Cast {
 			expr.writeOut(bc, MODE_VALUE);
 			if (mode == MODE_VALUE) adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_FLOAT_VALUE_FROM_DOUBLE);
 			else adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_FLOAT_FROM_DOUBLE);
+		}
+		else if (expr instanceof ExprNumber) {
+			expr.writeOut(bc, MODE_REF);
+			if (mode == MODE_VALUE) adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_FLOAT_VALUE_FROM_NUMBER);
+			else adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_FLOAT_FROM_NUMBER);
 		}
 		// TODOX other number types?
 		else if (expr instanceof ExprString) {

@@ -1020,11 +1020,11 @@ public final class Operator {
 		return (int) left | (int) right;
 	}
 
-	public static Double divRef(Object left, Object right) throws PageException {
+	public static Number divRef(Object left, Object right) throws PageException {
 		if (Factory.PERCISE_NUMBERS) {
 			BigDecimal bd = Caster.toBigDecimal(right);
 			if (bd.equals(BigDecimal.ZERO)) throw new ArithmeticException("Division by zero is not possible");
-			return Caster.toBigDecimal(left).divide(bd).doubleValue();
+			return Caster.toBigDecimal(left).divide(bd);
 		}
 
 		double r = Caster.toDoubleValue(right);
@@ -1040,36 +1040,36 @@ public final class Operator {
 		return Caster.toDouble(Caster.toIntValue(left) / Caster.toIntValue(right));
 	}
 
-	public static Double exponentRef(Object left, Object right) throws PageException {
+	public static Number exponentRef(Object left, Object right) throws PageException {
 		if (Factory.PERCISE_NUMBERS) {
-			return Caster.toBigDecimal(left).pow(Caster.toIntValue(right)).doubleValue();
+			return Caster.toBigDecimal(left).pow(Caster.toIntValue(right));
 		}
 		return Caster.toDouble(StrictMath.pow(Caster.toDoubleValue(left), Caster.toDoubleValue(right)));
 	}
 
-	public static Double plusRef(Object left, Object right) throws PageException {
+	public static Number plusRef(Object left, Object right) throws PageException {
 		if (Factory.PERCISE_NUMBERS) {
-			return Caster.toBigDecimal(left).add(Caster.toBigDecimal(right)).doubleValue();
+			return Caster.toBigDecimal(left).add(Caster.toBigDecimal(right));
 		}
 		return Caster.toDouble(Caster.toDoubleValue(left) + Caster.toDoubleValue(right));
 	}
 
-	public static Double minusRef(Object left, Object right) throws PageException {
+	public static Number minusRef(Object left, Object right) throws PageException {
 		if (Factory.PERCISE_NUMBERS) {
-			return Caster.toBigDecimal(left).min(Caster.toBigDecimal(right)).doubleValue();
+			return Caster.toBigDecimal(left).subtract(Caster.toBigDecimal(right));
 		}
 		return Caster.toDouble(Caster.toDoubleValue(left) - Caster.toDoubleValue(right));
 	}
 
-	public static Double modulusRef(Object left, Object right) throws PageException {
+	public static Number modulusRef(Object left, Object right) throws PageException {
 		double rightAsDouble = Caster.toDoubleValue(right);
 		if (rightAsDouble == 0d) throw new ArithmeticException("Division by zero is not possible");
 		return Caster.toDouble(Caster.toDoubleValue(left) % rightAsDouble);
 	}
 
-	public static Double multiplyRef(Object left, Object right) throws PageException {
+	public static Number multiplyRef(Object left, Object right) throws PageException {
 		if (Factory.PERCISE_NUMBERS) {
-			return Caster.toBigDecimal(left).multiply(Caster.toBigDecimal(right)).doubleValue();
+			return Caster.toBigDecimal(left).multiply(Caster.toBigDecimal(right));
 		}
 		return Caster.toDouble(Caster.toDoubleValue(left) * Caster.toDoubleValue(right));
 	}

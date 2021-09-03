@@ -172,7 +172,7 @@ public abstract class Factory {
 
 	public abstract ExprBoolean opBool(Expression left, Expression right, int operation);
 
-	public abstract ExprDouble opDouble(Expression left, Expression right, int operation);
+	public abstract ExprNumber opNumber(Expression left, Expression right, int operation);
 
 	public abstract ExprDouble opUnary(Variable var, Expression value, short type, int operation, Position start, Position end);
 
