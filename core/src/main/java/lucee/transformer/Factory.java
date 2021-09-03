@@ -155,6 +155,8 @@ public abstract class Factory {
 	// CASTING
 	public abstract ExprDouble toExprDouble(Expression expr);
 
+	public abstract ExprNumber toExprNumber(Expression expr);
+
 	public abstract ExprString toExprString(Expression expr);
 
 	public abstract ExprBoolean toExprBoolean(Expression expr);

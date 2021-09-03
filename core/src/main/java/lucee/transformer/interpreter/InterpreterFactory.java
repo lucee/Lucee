@@ -31,6 +31,7 @@ import lucee.transformer.interpreter.cast.CastBoolean;
 import lucee.transformer.interpreter.cast.CastDouble;
 import lucee.transformer.interpreter.cast.CastFloat;
 import lucee.transformer.interpreter.cast.CastInt;
+import lucee.transformer.interpreter.cast.CastNumber;
 import lucee.transformer.interpreter.cast.CastOther;
 import lucee.transformer.interpreter.cast.CastString;
 import lucee.transformer.interpreter.expression.var.EmptyArray;
@@ -249,6 +250,11 @@ public class InterpreterFactory extends FactoryBase {
 	@Override
 	public ExprDouble toExprDouble(Expression expr) {
 		return CastDouble.toExprDouble(expr);
+	}
+
+	@Override
+	public ExprNumber toExprNumber(Expression expr) {
+		return CastNumber.toExprNumber(expr);
 	}
 
 	@Override

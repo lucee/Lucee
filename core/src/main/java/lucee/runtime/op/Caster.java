@@ -141,6 +141,7 @@ import lucee.runtime.type.wrap.ListAsArray;
 import lucee.runtime.type.wrap.MapAsStruct;
 import lucee.runtime.type.wrap.StructAsArray;
 import lucee.runtime.util.ForEachUtil;
+import lucee.transformer.Factory;
 
 /**
  * This class can cast object of one type to another by CFML rules
@@ -316,12 +317,12 @@ public final class Caster {
 	 * @throws PageException
 	 */
 	public static Double toDouble(float f) {
-		return new Double(f);
+		return Double.valueOf(f);
 
 	}
 
 	public static Double toDouble(Float f) {
-		return new Double(f.doubleValue());
+		return Double.valueOf(f.doubleValue());
 	}
 
 	/**
@@ -333,7 +334,14 @@ public final class Caster {
 	 */
 	public static Double toDouble(Object o) throws PageException {
 		if (o instanceof Double) return (Double) o;
-		return new Double(toDoubleValue(o));
+		return Double.valueOf(toDoubleValue(o));
+
+	}
+
+	public static Number toNumber(Object o) throws PageException {
+		if (o instanceof Number) return (Number) o;
+		if (Factory.PERCISE_NUMBERS) return toBigDecimal(o);
+		return Double.valueOf(toDoubleValue(o));
 
 	}
 
@@ -5034,5 +5042,10 @@ public final class Caster {
 		c.set(Calendar.MONTH, m);
 		c.set(Calendar.DAY_OF_MONTH, d);
 		return c.getTimeInMillis();
+	}
+
+	public static Number negate(Number n) {
+		if (n instanceof BigDecimal) return ((BigDecimal) n).negate();
+		return Double.valueOf(-n.doubleValue());
 	}
 }

@@ -64,6 +64,7 @@ public final class Methods {
 	// Caster Double
 	// Double toDouble (Object)
 	final public static Method METHOD_TO_DOUBLE = new Method("toDouble", Types.DOUBLE, new Type[] { Types.OBJECT });
+	final public static Method METHOD_TO_NUMBER = new Method("toNumber", Types.NUMBER, new Type[] { Types.OBJECT });
 	final public static Method METHOD_TO_FLOAT = new Method("toFloat", Types.FLOAT, new Type[] { Types.OBJECT });
 	final public static Method METHOD_TO_INTEGER = new Method("toInteger", Types.INTEGER, new Type[] { Types.OBJECT });
 
@@ -106,6 +107,7 @@ public final class Methods {
 
 	// Double toDouble (String)
 	final public static Method METHOD_TO_DOUBLE_FROM_STRING = new Method("toDouble", Types.DOUBLE, new Type[] { Types.STRING });
+	final public static Method METHOD_TO_BIG_DECIMAL_FROM_STRING = new Method("toBigDecimal", Types.BIG_DECIMAL, new Type[] { Types.STRING });
 	final public static Method METHOD_TO_FLOAT_FROM_STRING = new Method("toFloat", Types.FLOAT, new Type[] { Types.STRING });
 	final public static Method METHOD_TO_INTEGER_FROM_STRING = new Method("toInteger", Types.INTEGER, new Type[] { Types.STRING });
 
@@ -116,4 +118,6 @@ public final class Methods {
 
 	final public static Method METHOD_TO_BIG_DECIMAL_STR = new Method("toBigDecimal", Types.BIG_DECIMAL, new Type[] { Types.STRING });
 	final public static Method METHOD_TO_BIG_DECIMAL_OBJ = new Method("toBigDecimal", Types.BIG_DECIMAL, new Type[] { Types.OBJECT });
+	final public static Method METHOD_NEGATE_NUMBER = new Method("negate", Types.NUMBER, new Type[] { Types.NUMBER });
+
 }

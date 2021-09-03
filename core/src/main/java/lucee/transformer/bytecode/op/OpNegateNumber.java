@@ -20,7 +20,6 @@ package lucee.transformer.bytecode.op;
 
 import java.math.BigDecimal;
 
-import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.GeneratorAdapter;
 
@@ -32,21 +31,20 @@ import lucee.transformer.bytecode.BytecodeContext;
 import lucee.transformer.bytecode.expression.ExpressionBase;
 import lucee.transformer.bytecode.util.Methods;
 import lucee.transformer.bytecode.util.Types;
-import lucee.transformer.expression.ExprDouble;
 import lucee.transformer.expression.ExprNumber;
 import lucee.transformer.expression.Expression;
 import lucee.transformer.expression.literal.Literal;
 
 public final class OpNegateNumber extends ExpressionBase implements ExprNumber {
 
-	private ExprDouble expr;
+	private ExprNumber expr;
 
 	// public static final int PLUS = 0;
 	// public static final int MINUS = 1;
 
 	private OpNegateNumber(Expression expr, Position start, Position end) {
 		super(expr.getFactory(), start, end);
-		this.expr = expr.getFactory().toExprDouble(expr);// TODOX allow other types than double
+		this.expr = expr.getFactory().toExprNumber(expr);
 	}
 
 	/**
@@ -71,21 +69,14 @@ public final class OpNegateNumber extends ExpressionBase implements ExprNumber {
 
 	public static ExprNumber toExprNumber(Expression expr, int operation, Position start, Position end) {
 		if (operation == Factory.OP_NEG_NBR_MINUS) return toExprNumber(expr, start, end);
-		return expr.getFactory().toExprDouble(expr); // TODOX other types
+		return expr.getFactory().toExprNumber(expr);
 	}
 
 	@Override
 	public Type _writeOut(BytecodeContext bc, int mode) throws TransformerException {
 		GeneratorAdapter adapter = bc.getAdapter();
-		if (mode == MODE_REF) {
-			_writeOut(bc, MODE_VALUE);
-			adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_DOUBLE_FROM_DOUBLE);
-			return Types.DOUBLE;
-		}
-
-		expr.writeOut(bc, MODE_VALUE);
-		adapter.visitInsn(Opcodes.DNEG);
-
-		return Types.DOUBLE_VALUE;
+		expr.writeOut(bc, MODE_REF);
+		adapter.invokeStatic(Types.CASTER, Methods.METHOD_NEGATE_NUMBER);
+		return Types.NUMBER;
 	}
 }

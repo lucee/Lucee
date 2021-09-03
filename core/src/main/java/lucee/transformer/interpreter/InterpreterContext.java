@@ -139,6 +139,11 @@ public class InterpreterContext implements Context {
 		return Caster.toDouble(stack.pop());
 	}
 
+	public Number getValueAsNumber(Expression expr) throws PageException {
+		expr.writeOut(this, Expression.MODE_REF);
+		return Caster.toNumber(stack.pop());
+	}
+
 	public double getValueAsDoubleValue(Expression expr) throws PageException {
 		expr.writeOut(this, Expression.MODE_VALUE);
 		return Caster.toDoubleValue(stack.pop());

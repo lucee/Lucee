@@ -37,6 +37,7 @@ import lucee.transformer.bytecode.cast.CastBoolean;
 import lucee.transformer.bytecode.cast.CastDouble;
 import lucee.transformer.bytecode.cast.CastFloat;
 import lucee.transformer.bytecode.cast.CastInt;
+import lucee.transformer.bytecode.cast.CastNumber;
 import lucee.transformer.bytecode.cast.CastOther;
 import lucee.transformer.bytecode.cast.CastString;
 import lucee.transformer.bytecode.expression.var.DataMemberImpl;
@@ -257,6 +258,11 @@ public class BytecodeFactory extends FactoryBase {
 	@Override
 	public ExprDouble toExprDouble(Expression expr) {
 		return CastDouble.toExprDouble(expr);
+	}
+
+	@Override
+	public ExprNumber toExprNumber(Expression expr) {
+		return CastNumber.toExprNumber(expr);
 	}
 
 	@Override

@@ -934,7 +934,7 @@ public abstract class AbstrCFMLExprTransformer {
 				return data.factory.opUnary((Variable) expr, data.factory.DOUBLE_ONE(), Factory.OP_UNARY_PRE, Factory.OP_UNARY_PLUS, line, data.srcCode.getPosition());
 			}
 			comments(data);
-			return data.factory.toExprDouble(clip(data));// OpNegateNumber.toExprDouble(clip(),OpNegateNumber.PLUS,line);
+			return data.factory.toExprNumber(clip(data));// OpNegateNumber.toExprDouble(clip(),OpNegateNumber.PLUS,line);
 		}
 		return clip(data);
 	}
