@@ -5,6 +5,7 @@ import java.math.BigDecimal;
 import lucee.runtime.config.Config;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.CasterException;
+import lucee.runtime.listener.AppListenerUtil;
 import lucee.runtime.op.Caster;
 import lucee.transformer.Context;
 import lucee.transformer.Factory;
@@ -149,7 +150,7 @@ public class InterpreterFactory extends FactoryBase {
 
 	@Override
 	public LitNumber createLitNumber(String number, Position start, Position end) throws CasterException {
-		if (Factory.PERCISE_NUMBERS) return new LitBigDecimalImpl(this, number, start, end);
+		if (AppListenerUtil.getPreciseMath(null, getConfig())) return new LitBigDecimalImpl(this, number, start, end);
 		return new LitDoubleImpl(this, Caster.toDoubleValue(number), start, end);
 	}
 
@@ -160,7 +161,7 @@ public class InterpreterFactory extends FactoryBase {
 
 	@Override
 	public LitNumber createLitNumber(BigDecimal bd, Position start, Position end) {
-		if (Factory.PERCISE_NUMBERS) return new LitBigDecimalImpl(this, bd, start, end);
+		if (AppListenerUtil.getPreciseMath(null, getConfig())) return new LitBigDecimalImpl(this, bd, start, end);
 		return new LitDoubleImpl(this, bd.doubleValue(), start, end);
 	}
 

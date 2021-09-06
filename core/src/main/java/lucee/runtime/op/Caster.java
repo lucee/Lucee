@@ -102,6 +102,7 @@ import lucee.runtime.image.ImageUtil;
 import lucee.runtime.interpreter.CFMLExpressionInterpreter;
 import lucee.runtime.interpreter.VariableInterpreter;
 import lucee.runtime.java.JavaObject;
+import lucee.runtime.listener.AppListenerUtil;
 import lucee.runtime.op.date.DateCaster;
 import lucee.runtime.op.validators.ValidateCreditCard;
 import lucee.runtime.reflection.Reflector;
@@ -141,7 +142,6 @@ import lucee.runtime.type.wrap.ListAsArray;
 import lucee.runtime.type.wrap.MapAsStruct;
 import lucee.runtime.type.wrap.StructAsArray;
 import lucee.runtime.util.ForEachUtil;
-import lucee.transformer.Factory;
 
 /**
  * This class can cast object of one type to another by CFML rules
@@ -340,8 +340,14 @@ public final class Caster {
 
 	public static Number toNumber(Object o) throws PageException {
 		if (o instanceof Number) return (Number) o;
-		if (Factory.PERCISE_NUMBERS) return toBigDecimal(o);
+		if (AppListenerUtil.getPreciseMath(null, null)) return toBigDecimal(o);
 		return Double.valueOf(toDoubleValue(o));
+
+	}
+
+	public static Number toNumber(String str) throws PageException {
+		if (AppListenerUtil.getPreciseMath(null, null)) return toBigDecimal(str);
+		return toDouble(str);
 
 	}
 

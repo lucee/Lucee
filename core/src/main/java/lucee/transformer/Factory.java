@@ -78,7 +78,6 @@ public abstract class Factory {
 
 	public static final int OP_NEG_NBR_PLUS = 0;
 	public static final int OP_NEG_NBR_MINUS = 1;
-	public static final boolean PERCISE_NUMBERS = true;
 
 	public abstract LitBoolean TRUE();
 

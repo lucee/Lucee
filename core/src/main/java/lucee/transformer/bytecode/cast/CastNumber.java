@@ -25,7 +25,6 @@ import org.objectweb.asm.commons.GeneratorAdapter;
 import org.objectweb.asm.commons.Method;
 
 import lucee.runtime.exp.TemplateException;
-import lucee.transformer.Factory;
 import lucee.transformer.TransformerException;
 import lucee.transformer.bytecode.BytecodeContext;
 import lucee.transformer.bytecode.expression.ExpressionBase;
@@ -88,8 +87,10 @@ public final class CastNumber extends ExpressionBase implements ExprNumber, Cast
 		}
 		else if (expr instanceof ExprString) {
 			expr.writeOut(bc, MODE_REF);
-			if (Factory.PERCISE_NUMBERS) adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_BIG_DECIMAL_FROM_STRING);
-			else adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_DOUBLE_FROM_STRING);
+			adapter.invokeStatic(Types.CASTER, Methods.METHOD_NUMBER_FROM_STRING);
+			// if (Factory.PERCISENUMBERS) adapter.invokeStatic(Types.CASTER,
+			// Methods.METHOD_TO_BIG_DECIMAL_FROM_STRING);
+			// else adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_DOUBLE_FROM_STRING);
 			return Types.NUMBER;
 		}
 		else {

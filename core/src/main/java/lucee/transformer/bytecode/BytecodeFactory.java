@@ -26,7 +26,6 @@ import org.objectweb.asm.commons.Method;
 import lucee.runtime.config.Config;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.CasterException;
-import lucee.runtime.op.Caster;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.transformer.Context;
 import lucee.transformer.Factory;
@@ -150,8 +149,9 @@ public class BytecodeFactory extends FactoryBase {
 
 	@Override
 	public LitNumber createLitNumber(String number, Position start, Position end) throws CasterException {
-		if (Factory.PERCISE_NUMBERS) return new LitBigDecimalImpl(this, number, start, end);
-		return new LitDoubleImpl(this, Caster.toDoubleValue(number), start, end);
+		return new LitBigDecimalImpl(this, number, start, end);
+		// if (Factory.PERCISENUMBERS) return new LitBigDecimalImpl(this, number, start, end);
+		// return new LitDoubleImpl(this, Caster.toDoubleValue(number), start, end);
 	}
 
 	@Override
@@ -161,8 +161,9 @@ public class BytecodeFactory extends FactoryBase {
 
 	@Override
 	public LitNumber createLitNumber(BigDecimal bd, Position start, Position end) {
-		if (Factory.PERCISE_NUMBERS) return new LitBigDecimalImpl(this, bd, start, end);
-		return new LitDoubleImpl(this, bd.doubleValue(), start, end);
+		return new LitBigDecimalImpl(this, bd, start, end);
+		// if (Factory.PERCISE_NUMBERS) return new LitBigDecimalImpl(this, bd, start, end);
+		// return new LitDoubleImpl(this, bd.doubleValue(), start, end);
 	}
 
 	@Override
