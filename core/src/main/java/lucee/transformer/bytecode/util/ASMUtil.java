@@ -83,7 +83,7 @@ import lucee.transformer.expression.ExprDouble;
 import lucee.transformer.expression.ExprString;
 import lucee.transformer.expression.Expression;
 import lucee.transformer.expression.literal.LitBoolean;
-import lucee.transformer.expression.literal.LitDouble;
+import lucee.transformer.expression.literal.LitNumber;
 import lucee.transformer.expression.literal.LitString;
 import lucee.transformer.expression.literal.Literal;
 import lucee.transformer.expression.var.DataMember;
@@ -822,7 +822,7 @@ public final class ASMUtil {
 				strType = " boolean";
 				break;
 			case TYPE_NUMERIC:
-				if (tag.getFactory().toExprDouble(attr.getValue()) instanceof LitDouble) return true;
+				if (tag.getFactory().toExprNumber(attr.getValue()) instanceof LitNumber) return true;
 				strType = " numeric";
 				break;
 			case TYPE_STRING:
