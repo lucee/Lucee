@@ -33,15 +33,14 @@ import lucee.transformer.expression.Expression;
 
 public final class OpNumber extends ExpressionBase implements ExprNumber {
 
-	private static final Method DIV_REF = new Method("divRef", Types.NUMBER, new Type[] { Types.OBJECT, Types.OBJECT });
-	private static final Method INTDIV_REF = new Method("intdivRef", Types.NUMBER, new Type[] { Types.OBJECT, Types.OBJECT });
-	private static final Method DIVIDE_REF = new Method("divideRef", Types.NUMBER, new Type[] { Types.OBJECT, Types.OBJECT });
-	private static final Method EXP_REF = new Method("exponentRef", Types.NUMBER, new Type[] { Types.OBJECT, Types.OBJECT });
+	private static final Method DIV_REF = new Method("divRef", Types.NUMBER, new Type[] { Types.PAGE_CONTEXT, Types.OBJECT, Types.OBJECT });
+	private static final Method INTDIV_REF = new Method("intdivRef", Types.NUMBER, new Type[] { Types.PAGE_CONTEXT, Types.OBJECT, Types.OBJECT });
+	private static final Method EXP_REF = new Method("exponentRef", Types.NUMBER, new Type[] { Types.PAGE_CONTEXT, Types.OBJECT, Types.OBJECT });
 
-	private static final Method PLUS_REF = new Method("plusRef", Types.NUMBER, new Type[] { Types.OBJECT, Types.OBJECT });
-	private static final Method MINUS_REF = new Method("minusRef", Types.NUMBER, new Type[] { Types.OBJECT, Types.OBJECT });
-	private static final Method MODULUS_REF = new Method("modulusRef", Types.NUMBER, new Type[] { Types.OBJECT, Types.OBJECT });
-	private static final Method MULTIPLY_REF = new Method("multiplyRef", Types.NUMBER, new Type[] { Types.OBJECT, Types.OBJECT });
+	private static final Method PLUS_REF = new Method("plusRef", Types.NUMBER, new Type[] { Types.PAGE_CONTEXT, Types.OBJECT, Types.OBJECT });
+	private static final Method MINUS_REF = new Method("minusRef", Types.NUMBER, new Type[] { Types.PAGE_CONTEXT, Types.OBJECT, Types.OBJECT });
+	private static final Method MODULUS_REF = new Method("modulusRef", Types.NUMBER, new Type[] { Types.PAGE_CONTEXT, Types.OBJECT, Types.OBJECT });
+	private static final Method MULTIPLY_REF = new Method("multiplyRef", Types.NUMBER, new Type[] { Types.PAGE_CONTEXT, Types.OBJECT, Types.OBJECT });
 
 	private int op;
 	private Expression left;
@@ -88,6 +87,7 @@ public final class OpNumber extends ExpressionBase implements ExprNumber {
 	public Type writeOutNumber(BytecodeContext bc, int mode) throws TransformerException {
 		GeneratorAdapter adapter = bc.getAdapter();
 
+		adapter.loadArg(0);
 		left.writeOut(bc, MODE_REF);
 		right.writeOut(bc, MODE_REF);
 
@@ -108,9 +108,6 @@ public final class OpNumber extends ExpressionBase implements ExprNumber {
 		}
 		else if (op == Factory.OP_DBL_MODULUS) {
 			adapter.invokeStatic(Types.OPERATOR, MODULUS_REF);
-		}
-		else if (op == Factory.OP_DBL_DIVIDE) {
-			adapter.invokeStatic(Types.OPERATOR, DIVIDE_REF);
 		}
 		else if (op == Factory.OP_DBL_MULTIPLY) {
 			adapter.invokeStatic(Types.OPERATOR, MULTIPLY_REF);

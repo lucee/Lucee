@@ -86,8 +86,9 @@ public final class CastNumber extends ExpressionBase implements ExprNumber, Cast
 			return Types.NUMBER;
 		}
 		else if (expr instanceof ExprString) {
+			adapter.loadArg(0);
 			expr.writeOut(bc, MODE_REF);
-			adapter.invokeStatic(Types.CASTER, Methods.METHOD_NUMBER_FROM_STRING);
+			adapter.invokeStatic(Types.CASTER, Methods.METHOD_NUMBER_FROM_PC_STRING);
 			// if (Factory.PERCISENUMBERS) adapter.invokeStatic(Types.CASTER,
 			// Methods.METHOD_TO_BIG_DECIMAL_FROM_STRING);
 			// else adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_DOUBLE_FROM_STRING);

@@ -1020,8 +1020,8 @@ public final class Operator {
 		return (int) left | (int) right;
 	}
 
-	public static Number divRef(Object left, Object right) throws PageException {
-		if (AppListenerUtil.getPreciseMath(null, null)) { // TODOX add pc to method
+	public static Number divRef(PageContext pc, Object left, Object right) throws PageException {
+		if (AppListenerUtil.getPreciseMath(pc, null)) {
 			BigDecimal bd = Caster.toBigDecimal(right);
 			if (bd.equals(BigDecimal.ZERO)) throw new ArithmeticException("Division by zero is not possible");
 			return Caster.toBigDecimal(left).divide(bd);
@@ -1032,43 +1032,39 @@ public final class Operator {
 		return Caster.toDouble(Caster.toDoubleValue(left) / r);
 	}
 
-	public static Number divideRef(Object left, Object right) throws PageException {
-		return divRef(left, right);
-	}
-
-	public static Number intdivRef(Object left, Object right) throws PageException {
+	public static Number intdivRef(PageContext pc, Object left, Object right) throws PageException {
 		return Caster.toDouble(Caster.toIntValue(left) / Caster.toIntValue(right));
 	}
 
-	public static Number exponentRef(Object left, Object right) throws PageException {
-		if (AppListenerUtil.getPreciseMath(null, null)) {// TODOX add PC
+	public static Number exponentRef(PageContext pc, Object left, Object right) throws PageException {
+		if (AppListenerUtil.getPreciseMath(pc, null)) {// TODOX add PC
 			return Caster.toBigDecimal(left).pow(Caster.toIntValue(right));
 		}
 		return Caster.toDouble(StrictMath.pow(Caster.toDoubleValue(left), Caster.toDoubleValue(right)));
 	}
 
-	public static Number plusRef(Object left, Object right) throws PageException {
-		if (AppListenerUtil.getPreciseMath(null, null)) { // TODOX add PC
+	public static Number plusRef(PageContext pc, Object left, Object right) throws PageException {
+		if (AppListenerUtil.getPreciseMath(pc, null)) { // TODOX add PC
 			return Caster.toBigDecimal(left).add(Caster.toBigDecimal(right));
 		}
 		return Caster.toDouble(Caster.toDoubleValue(left) + Caster.toDoubleValue(right));
 	}
 
-	public static Number minusRef(Object left, Object right) throws PageException {
-		if (AppListenerUtil.getPreciseMath(null, null)) { // TODOX add pc
+	public static Number minusRef(PageContext pc, Object left, Object right) throws PageException {
+		if (AppListenerUtil.getPreciseMath(pc, null)) { // TODOX add pc
 			return Caster.toBigDecimal(left).subtract(Caster.toBigDecimal(right));
 		}
 		return Caster.toDouble(Caster.toDoubleValue(left) - Caster.toDoubleValue(right));
 	}
 
-	public static Number modulusRef(Object left, Object right) throws PageException {
+	public static Number modulusRef(PageContext pc, Object left, Object right) throws PageException {
 		double rightAsDouble = Caster.toDoubleValue(right);
 		if (rightAsDouble == 0d) throw new ArithmeticException("Division by zero is not possible");
 		return Caster.toDouble(Caster.toDoubleValue(left) % rightAsDouble);
 	}
 
-	public static Number multiplyRef(Object left, Object right) throws PageException {
-		if (AppListenerUtil.getPreciseMath(null, null)) { // TODOX add pc
+	public static Number multiplyRef(PageContext pc, Object left, Object right) throws PageException {
+		if (AppListenerUtil.getPreciseMath(pc, null)) {
 			return Caster.toBigDecimal(left).multiply(Caster.toBigDecimal(right));
 		}
 		return Caster.toDouble(Caster.toDoubleValue(left) * Caster.toDoubleValue(right));
@@ -1090,7 +1086,7 @@ public final class Operator {
 
 	public static Number unaryPoPl(PageContext pc, Collection.Key[] keys, double value) throws PageException {
 		VariableReference ref = VariableInterpreter.getVariableReference(pc, keys, true);
-		if (AppListenerUtil.getPreciseMath(null, null)) {// TODOX add pc tp method
+		if (AppListenerUtil.getPreciseMath(pc, null)) {
 			BigDecimal rtn = Caster.toBigDecimal(ref.get(pc));
 			ref.set(rtn.add(new BigDecimal(value)));
 			return rtn;
@@ -1101,11 +1097,11 @@ public final class Operator {
 	}
 
 	public static Number unaryPoPl(PageContext pc, Collection.Key key, double value) throws PageException {
-		return unaryPoPl(pc.undefinedScope(), key, value);
+		return unaryPoPl(pc, pc.undefinedScope(), key, value);
 	}
 
-	public static Number unaryPoPl(Collection coll, Collection.Key key, double value) throws PageException {
-		if (AppListenerUtil.getPreciseMath(null, null)) {// TODOX add pc tp method
+	public static Number unaryPoPl(PageContext pc, Collection coll, Collection.Key key, double value) throws PageException {
+		if (AppListenerUtil.getPreciseMath(pc, null)) {
 			BigDecimal rtn = Caster.toBigDecimal(coll.get(key));
 			coll.set(key, rtn.add(new BigDecimal(value)));
 			return rtn;
@@ -1132,7 +1128,7 @@ public final class Operator {
 
 	public static Number unaryPoMi(PageContext pc, Collection.Key[] keys, double value) throws PageException {
 		VariableReference ref = VariableInterpreter.getVariableReference(pc, keys, true);
-		if (AppListenerUtil.getPreciseMath(null, null)) {// TODOX add pc tp method
+		if (AppListenerUtil.getPreciseMath(pc, null)) {
 			BigDecimal rtn = Caster.toBigDecimal(ref.get(pc));
 			ref.set(rtn.subtract(new BigDecimal(value)));
 			return rtn;
@@ -1143,11 +1139,11 @@ public final class Operator {
 	}
 
 	public static Number unaryPoMi(PageContext pc, Collection.Key key, double value) throws PageException {
-		return unaryPoMi(pc.undefinedScope(), key, value);
+		return unaryPoMi(pc, pc.undefinedScope(), key, value);
 	}
 
-	public static Number unaryPoMi(Collection coll, Collection.Key key, double value) throws PageException {
-		if (AppListenerUtil.getPreciseMath(null, null)) {// TODOX add pc tp method
+	public static Number unaryPoMi(PageContext pc, Collection coll, Collection.Key key, double value) throws PageException {
+		if (AppListenerUtil.getPreciseMath(pc, null)) {
 			BigDecimal rtn = Caster.toBigDecimal(coll.get(key));
 			coll.set(key, rtn.subtract(new BigDecimal(value)));
 			return rtn;
@@ -1173,7 +1169,7 @@ public final class Operator {
 
 	public static Number unaryPrPl(PageContext pc, Collection.Key[] keys, double value) throws PageException {
 		VariableReference ref = VariableInterpreter.getVariableReference(pc, keys, true);
-		if (AppListenerUtil.getPreciseMath(null, null)) {// TODOX add pc tp method
+		if (AppListenerUtil.getPreciseMath(pc, null)) {
 			BigDecimal rtn = Caster.toBigDecimal(ref.get(pc)).add(new BigDecimal(value));
 			ref.set(rtn);
 			return rtn;
@@ -1185,11 +1181,11 @@ public final class Operator {
 	}
 
 	public static Number unaryPrPl(PageContext pc, Collection.Key key, double value) throws PageException {
-		return unaryPrPl(pc.undefinedScope(), key, value);
+		return unaryPrPl(pc, pc.undefinedScope(), key, value);
 	}
 
-	public static Number unaryPrPl(Collection coll, Collection.Key key, double value) throws PageException {
-		if (AppListenerUtil.getPreciseMath(null, null)) {// TODOX add pc tp method
+	public static Number unaryPrPl(PageContext pc, Collection coll, Collection.Key key, double value) throws PageException {
+		if (AppListenerUtil.getPreciseMath(pc, null)) {// TODOX add pc tp method
 			BigDecimal rtn = Caster.toBigDecimal(coll.get(key)).add(new BigDecimal(value));
 			coll.set(key, rtn);
 			return rtn;
@@ -1215,7 +1211,7 @@ public final class Operator {
 
 	public static Number unaryPrMi(PageContext pc, Collection.Key[] keys, double value) throws PageException {
 		VariableReference ref = VariableInterpreter.getVariableReference(pc, keys, true);
-		if (AppListenerUtil.getPreciseMath(null, null)) {// TODOX add pc tp method
+		if (AppListenerUtil.getPreciseMath(pc, null)) {
 			BigDecimal rtn = Caster.toBigDecimal(ref.get(pc)).subtract(new BigDecimal(value));
 			ref.set(rtn);
 			return rtn;
@@ -1226,11 +1222,11 @@ public final class Operator {
 	}
 
 	public static Number unaryPrMi(PageContext pc, Collection.Key key, double value) throws PageException {
-		return unaryPrMi(pc.undefinedScope(), key, value);
+		return unaryPrMi(pc, pc.undefinedScope(), key, value);
 	}
 
-	public static Number unaryPrMi(Collection coll, Collection.Key key, double value) throws PageException {
-		if (AppListenerUtil.getPreciseMath(null, null)) {// TODOX add pc tp method
+	public static Number unaryPrMi(PageContext pc, Collection coll, Collection.Key key, double value) throws PageException {
+		if (AppListenerUtil.getPreciseMath(pc, null)) {
 			BigDecimal rtn = Caster.toBigDecimal(coll.get(key)).subtract(new BigDecimal(value));
 			coll.set(key, rtn);
 			return rtn;
@@ -1256,7 +1252,7 @@ public final class Operator {
 
 	public static Number unaryPrMu(PageContext pc, Collection.Key[] keys, double value) throws PageException {
 		VariableReference ref = VariableInterpreter.getVariableReference(pc, keys, true);
-		if (AppListenerUtil.getPreciseMath(null, null)) {// TODOX add pc tp method
+		if (AppListenerUtil.getPreciseMath(pc, null)) {
 			BigDecimal rtn = Caster.toBigDecimal(ref.get(pc)).multiply(new BigDecimal(value));
 			ref.set(rtn);
 			return rtn;
@@ -1267,11 +1263,11 @@ public final class Operator {
 	}
 
 	public static Number unaryPrMu(PageContext pc, Collection.Key key, double value) throws PageException {
-		return unaryPrMu(pc.undefinedScope(), key, value);
+		return unaryPrMu(pc, pc.undefinedScope(), key, value);
 	}
 
-	public static Number unaryPrMu(Collection coll, Collection.Key key, double value) throws PageException {
-		if (AppListenerUtil.getPreciseMath(null, null)) {// TODOX add pc tp method
+	public static Number unaryPrMu(PageContext pc, Collection coll, Collection.Key key, double value) throws PageException {
+		if (AppListenerUtil.getPreciseMath(pc, null)) {
 			BigDecimal rtn = Caster.toBigDecimal(coll.get(key)).multiply(new BigDecimal(value));
 			coll.set(key, rtn);
 			return rtn;
@@ -1297,7 +1293,7 @@ public final class Operator {
 
 	public static Number unaryPrDi(PageContext pc, Collection.Key[] keys, double value) throws PageException {
 		VariableReference ref = VariableInterpreter.getVariableReference(pc, keys, true);
-		if (AppListenerUtil.getPreciseMath(null, null)) {// TODOX add pc tp method
+		if (AppListenerUtil.getPreciseMath(pc, null)) {
 			BigDecimal rtn = Caster.toBigDecimal(ref.get(pc)).divide(new BigDecimal(value));
 			ref.set(rtn);
 			return rtn;
@@ -1308,11 +1304,11 @@ public final class Operator {
 	}
 
 	public static Number unaryPrDi(PageContext pc, Collection.Key key, double value) throws PageException {
-		return unaryPrDi(pc.undefinedScope(), key, value);
+		return unaryPrDi(pc, pc.undefinedScope(), key, value);
 	}
 
-	public static Number unaryPrDi(Collection coll, Collection.Key key, double value) throws PageException {
-		if (AppListenerUtil.getPreciseMath(null, null)) {// TODOX add pc tp method
+	public static Number unaryPrDi(PageContext pc, Collection coll, Collection.Key key, double value) throws PageException {
+		if (AppListenerUtil.getPreciseMath(pc, null)) {
 			BigDecimal rtn = Caster.toBigDecimal(coll.get(key)).divide(new BigDecimal(value));
 			coll.set(key, rtn);
 			return rtn;
@@ -1330,7 +1326,7 @@ public final class Operator {
 		return rtn;
 	}
 
-	public static String unaryPreConcat(Collection coll, Collection.Key key, String value) throws PageException {
+	public static String unaryPreConcat(PageContext pc, Collection coll, Collection.Key key, String value) throws PageException {
 		String rtn = Caster.toString(coll.get(key)).concat(value);
 		coll.set(key, rtn);
 		return rtn;
