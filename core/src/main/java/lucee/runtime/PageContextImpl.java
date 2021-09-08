@@ -144,8 +144,8 @@ import lucee.runtime.net.http.ReqRspUtil;
 import lucee.runtime.net.mail.ServerImpl;
 import lucee.runtime.net.proxy.ProxyData;
 import lucee.runtime.op.Caster;
+import lucee.runtime.op.OpUtil;
 import lucee.runtime.op.Decision;
-import lucee.runtime.op.Operator;
 import lucee.runtime.orm.ORMConfiguration;
 import lucee.runtime.orm.ORMEngine;
 import lucee.runtime.orm.ORMSession;
@@ -592,8 +592,7 @@ public final class PageContextImpl extends PageContext {
 
 		if (config.debug()) {
 			boolean skipLogThread = isChild;
-			if (skipLogThread && config.hasDebugOptions(ConfigPro.DEBUG_THREAD))
-				skipLogThread = false;
+			if (skipLogThread && config.hasDebugOptions(ConfigPro.DEBUG_THREAD)) skipLogThread = false;
 			if (!gatewayContext && !skipLogThread) config.getDebuggerPool().store(this, debugger);
 			debugger.reset();
 		}
@@ -2707,7 +2706,12 @@ public final class PageContextImpl extends PageContext {
 	}
 
 	private boolean isValidCfToken(String value) {
-		return Operator.compare(value, "0") == 0;
+		try {
+			return OpUtil.compare(this, value, "0") == 0;
+		}
+		catch (PageException e) {
+			return value.equals("0");
+		}
 	}
 
 	public void resetIdAndToken() {

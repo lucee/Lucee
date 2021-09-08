@@ -119,6 +119,10 @@ public final class VariableReference implements Reference {
 		coll.set(key, value);
 	}
 
+	public void set(Number value) throws PageException {
+		coll.set(key, value);
+	}
+
 	@Override
 	public Object setEL(PageContext pc, Object value) {
 		return coll.setEL(key, value);

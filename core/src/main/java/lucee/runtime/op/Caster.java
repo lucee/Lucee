@@ -329,6 +329,13 @@ public final class Caster {
 
 	}
 
+	public static Number toNumber(PageContext pc, Object o) throws PageException {
+		if (o instanceof Number) return (Number) o;
+		if (AppListenerUtil.getPreciseMath(pc, null)) return toBigDecimal(o);
+		return Double.valueOf(toDoubleValue(o));
+
+	}
+
 	public static Number toNumber(Object o) throws PageException {
 		if (o instanceof Number) return (Number) o;
 		if (AppListenerUtil.getPreciseMath(null, null)) return toBigDecimal(o);
@@ -339,7 +346,11 @@ public final class Caster {
 	public static Number toNumber(String str) throws PageException {
 		if (AppListenerUtil.getPreciseMath(null, null)) return toBigDecimal(str);
 		return toDouble(str);
+	}
 
+	public static Number toNumber(PageContext pc, String str) throws PageException {
+		if (AppListenerUtil.getPreciseMath(pc, null)) return toBigDecimal(str);
+		return toDouble(str);
 	}
 
 	/**
@@ -4818,7 +4829,7 @@ public final class Caster {
 	public static BigDecimal toBigDecimal(Object o) throws PageException {
 		if (o instanceof BigDecimal) return (BigDecimal) o;
 		if (o instanceof Number) {
-			return new BigDecimal(((Number) o).toString());
+			return BigDecimal.valueOf(((Number) o).doubleValue());
 		}
 		else if (o instanceof Boolean) return new BigDecimal(((Boolean) o).booleanValue() ? 1 : 0);
 		else if (o instanceof CharSequence) return new BigDecimal(o.toString());
@@ -4827,6 +4838,11 @@ public final class Caster {
 		else if (o == null) return BigDecimal.ZERO;
 		else if (o instanceof ObjectWrap) return toBigDecimal(((ObjectWrap) o).getEmbededObject());
 		throw new CasterException(o, "number");
+	}
+
+	public static BigDecimal toBigDecimal(Number n) {
+		if (n instanceof BigDecimal) return (BigDecimal) n;
+		return BigDecimal.valueOf(n.doubleValue());
 	}
 
 	public static BigDecimal toBigDecimal(String str) throws CasterException {

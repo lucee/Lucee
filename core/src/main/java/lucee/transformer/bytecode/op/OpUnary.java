@@ -41,44 +41,39 @@ import lucee.transformer.expression.var.Variable;
 
 public class OpUnary extends ExpressionBase implements ExprNumber {
 
-	private final static Method UNARY_POST_PLUS_1 = new Method("unaryPoPl", Types.NUMBER, new Type[] { Types.PAGE_CONTEXT, Types.COLLECTION_KEY, Types.DOUBLE_VALUE });
-	private final static Method UNARY_POST_PLUS_N = new Method("unaryPoPl", Types.NUMBER, new Type[] { Types.PAGE_CONTEXT, Types.COLLECTION_KEY_ARRAY, Types.DOUBLE_VALUE });
+	private final static Method UNARY_POST_PLUS_1 = new Method("unaryPoPl", Types.NUMBER, new Type[] { Types.PAGE_CONTEXT, Types.COLLECTION_KEY, Types.NUMBER });
+	private final static Method UNARY_POST_PLUS_N = new Method("unaryPoPl", Types.NUMBER, new Type[] { Types.PAGE_CONTEXT, Types.COLLECTION_KEY_ARRAY, Types.NUMBER });
 
-	private final static Method UNARY_POST_MINUS_N = new Method("unaryPoMi", Types.NUMBER, new Type[] { Types.PAGE_CONTEXT, Types.COLLECTION_KEY_ARRAY, Types.DOUBLE_VALUE });
-	private final static Method UNARY_POST_MINUS_1 = new Method("unaryPoMi", Types.NUMBER, new Type[] { Types.PAGE_CONTEXT, Types.COLLECTION_KEY, Types.DOUBLE_VALUE });
+	private final static Method UNARY_POST_MINUS_N = new Method("unaryPoMi", Types.NUMBER, new Type[] { Types.PAGE_CONTEXT, Types.COLLECTION_KEY_ARRAY, Types.NUMBER });
+	private final static Method UNARY_POST_MINUS_1 = new Method("unaryPoMi", Types.NUMBER, new Type[] { Types.PAGE_CONTEXT, Types.COLLECTION_KEY, Types.NUMBER });
 
-	private final static Method UNARY_PRE_PLUS_N = new Method("unaryPrPl", Types.NUMBER, new Type[] { Types.PAGE_CONTEXT, Types.COLLECTION_KEY_ARRAY, Types.DOUBLE_VALUE });
-	private final static Method UNARY_PRE_PLUS_1 = new Method("unaryPrPl", Types.NUMBER, new Type[] { Types.PAGE_CONTEXT, Types.COLLECTION_KEY, Types.DOUBLE_VALUE });
+	private final static Method UNARY_PRE_PLUS_N = new Method("unaryPrPl", Types.NUMBER, new Type[] { Types.PAGE_CONTEXT, Types.COLLECTION_KEY_ARRAY, Types.NUMBER });
+	private final static Method UNARY_PRE_PLUS_1 = new Method("unaryPrPl", Types.NUMBER, new Type[] { Types.PAGE_CONTEXT, Types.COLLECTION_KEY, Types.NUMBER });
 
-	private final static Method UNARY_PRE_MINUS_N = new Method("unaryPrMi", Types.NUMBER, new Type[] { Types.PAGE_CONTEXT, Types.COLLECTION_KEY_ARRAY, Types.DOUBLE_VALUE });
-	private final static Method UNARY_PRE_MINUS_1 = new Method("unaryPrMi", Types.NUMBER, new Type[] { Types.PAGE_CONTEXT, Types.COLLECTION_KEY, Types.DOUBLE_VALUE });
+	private final static Method UNARY_PRE_MINUS_N = new Method("unaryPrMi", Types.NUMBER, new Type[] { Types.PAGE_CONTEXT, Types.COLLECTION_KEY_ARRAY, Types.NUMBER });
+	private final static Method UNARY_PRE_MINUS_1 = new Method("unaryPrMi", Types.NUMBER, new Type[] { Types.PAGE_CONTEXT, Types.COLLECTION_KEY, Types.NUMBER });
 
-	private final static Method UNARY_PRE_MULTIPLY_N = new Method("unaryPrMu", Types.NUMBER, new Type[] { Types.PAGE_CONTEXT, Types.COLLECTION_KEY_ARRAY, Types.DOUBLE_VALUE });
-	private final static Method UNARY_PRE_MULTIPLY_1 = new Method("unaryPrMu", Types.NUMBER, new Type[] { Types.PAGE_CONTEXT, Types.COLLECTION_KEY, Types.DOUBLE_VALUE });
+	private final static Method UNARY_PRE_MULTIPLY_N = new Method("unaryPrMu", Types.NUMBER, new Type[] { Types.PAGE_CONTEXT, Types.COLLECTION_KEY_ARRAY, Types.NUMBER });
+	private final static Method UNARY_PRE_MULTIPLY_1 = new Method("unaryPrMu", Types.NUMBER, new Type[] { Types.PAGE_CONTEXT, Types.COLLECTION_KEY, Types.NUMBER });
 
-	private final static Method UNARY_PRE_DIVIDE_N = new Method("unaryPrDi", Types.NUMBER, new Type[] { Types.PAGE_CONTEXT, Types.COLLECTION_KEY_ARRAY, Types.DOUBLE_VALUE });
-	private final static Method UNARY_PRE_DIVIDE_1 = new Method("unaryPrDi", Types.NUMBER, new Type[] { Types.PAGE_CONTEXT, Types.COLLECTION_KEY, Types.DOUBLE_VALUE });
+	private final static Method UNARY_PRE_DIVIDE_N = new Method("unaryPrDi", Types.NUMBER, new Type[] { Types.PAGE_CONTEXT, Types.COLLECTION_KEY_ARRAY, Types.NUMBER });
+	private final static Method UNARY_PRE_DIVIDE_1 = new Method("unaryPrDi", Types.NUMBER, new Type[] { Types.PAGE_CONTEXT, Types.COLLECTION_KEY, Types.NUMBER });
 
 	private final static Method UNARY_PRE_CONCAT_N = new Method("unaryPreConcat", Types.STRING, new Type[] { Types.PAGE_CONTEXT, Types.COLLECTION_KEY_ARRAY, Types.STRING });
 	private final static Method UNARY_PRE_CONCAT_1 = new Method("unaryPreConcat", Types.STRING, new Type[] { Types.PAGE_CONTEXT, Types.COLLECTION_KEY, Types.STRING });
 
-	private final static Method UNARY_POST_PLUS4 = new Method("unaryPoPl", Types.NUMBER,
-			new Type[] { Types.PAGE_CONTEXT, Types.COLLECTION, Types.COLLECTION_KEY, Types.DOUBLE_VALUE });
+	private final static Method UNARY_POST_PLUS4 = new Method("unaryPoPl", Types.NUMBER, new Type[] { Types.PAGE_CONTEXT, Types.COLLECTION, Types.COLLECTION_KEY, Types.NUMBER });
 
-	private final static Method UNARY_POST_MINUS4 = new Method("unaryPoMi", Types.NUMBER,
-			new Type[] { Types.PAGE_CONTEXT, Types.COLLECTION, Types.COLLECTION_KEY, Types.DOUBLE_VALUE });
+	private final static Method UNARY_POST_MINUS4 = new Method("unaryPoMi", Types.NUMBER, new Type[] { Types.PAGE_CONTEXT, Types.COLLECTION, Types.COLLECTION_KEY, Types.NUMBER });
 
-	private final static Method UNARY_PRE_PLUS4 = new Method("unaryPrPl", Types.NUMBER,
-			new Type[] { Types.PAGE_CONTEXT, Types.COLLECTION, Types.COLLECTION_KEY, Types.DOUBLE_VALUE });
+	private final static Method UNARY_PRE_PLUS4 = new Method("unaryPrPl", Types.NUMBER, new Type[] { Types.PAGE_CONTEXT, Types.COLLECTION, Types.COLLECTION_KEY, Types.NUMBER });
 
-	private final static Method UNARY_PRE_MINUS4 = new Method("unaryPrMi", Types.NUMBER,
-			new Type[] { Types.PAGE_CONTEXT, Types.COLLECTION, Types.COLLECTION_KEY, Types.DOUBLE_VALUE });
+	private final static Method UNARY_PRE_MINUS4 = new Method("unaryPrMi", Types.NUMBER, new Type[] { Types.PAGE_CONTEXT, Types.COLLECTION, Types.COLLECTION_KEY, Types.NUMBER });
 
 	private final static Method UNARY_PRE_MULTIPLY4 = new Method("unaryPrMu", Types.NUMBER,
-			new Type[] { Types.PAGE_CONTEXT, Types.COLLECTION, Types.COLLECTION_KEY, Types.DOUBLE_VALUE });
+			new Type[] { Types.PAGE_CONTEXT, Types.COLLECTION, Types.COLLECTION_KEY, Types.NUMBER });
 
-	private final static Method UNARY_PRE_DIVIDE4 = new Method("unaryPrDi", Types.NUMBER,
-			new Type[] { Types.PAGE_CONTEXT, Types.COLLECTION, Types.COLLECTION_KEY, Types.DOUBLE_VALUE });
+	private final static Method UNARY_PRE_DIVIDE4 = new Method("unaryPrDi", Types.NUMBER, new Type[] { Types.PAGE_CONTEXT, Types.COLLECTION, Types.COLLECTION_KEY, Types.NUMBER });
 
 	private final static Method UNARY_PRE_CONCAT4 = new Method("unaryPreConcat", Types.STRING,
 			new Type[] { Types.PAGE_CONTEXT, Types.COLLECTION, Types.COLLECTION_KEY, Types.STRING });
@@ -129,21 +124,21 @@ public class OpUnary extends ExpressionBase implements ExprNumber {
 			getFactory().registerKey(bc, ((DataMember) last).getName(), false);
 
 			// write out value
-			value.writeOut(bc, MODE_VALUE);
+			value.writeOut(bc, MODE_REF);
 
 			if (type == Factory.OP_UNARY_POST) {
 				if (operation != Factory.OP_UNARY_PLUS && operation != Factory.OP_UNARY_MINUS)
 					throw new TransformerException("Post only possible with plus or minus " + operation, value.getStart());
 
-				if (operation == Factory.OP_UNARY_PLUS) adapter.invokeStatic(Types.OPERATOR, UNARY_POST_PLUS4);
-				else if (operation == Factory.OP_UNARY_MINUS) adapter.invokeStatic(Types.OPERATOR, UNARY_POST_MINUS4);
+				if (operation == Factory.OP_UNARY_PLUS) adapter.invokeStatic(Types.OP_UTIL, UNARY_POST_PLUS4);
+				else if (operation == Factory.OP_UNARY_MINUS) adapter.invokeStatic(Types.OP_UTIL, UNARY_POST_MINUS4);
 			}
 			else if (type == Factory.OP_UNARY_PRE) {
-				if (operation == Factory.OP_UNARY_PLUS) adapter.invokeStatic(Types.OPERATOR, UNARY_PRE_PLUS4);
-				else if (operation == Factory.OP_UNARY_MINUS) adapter.invokeStatic(Types.OPERATOR, UNARY_PRE_MINUS4);
-				else if (operation == Factory.OP_UNARY_DIVIDE) adapter.invokeStatic(Types.OPERATOR, UNARY_PRE_DIVIDE4);
-				else if (operation == Factory.OP_UNARY_MULTIPLY) adapter.invokeStatic(Types.OPERATOR, UNARY_PRE_MULTIPLY4);
-				else if (operation == Factory.OP_UNARY_CONCAT) adapter.invokeStatic(Types.OPERATOR, UNARY_PRE_CONCAT4);
+				if (operation == Factory.OP_UNARY_PLUS) adapter.invokeStatic(Types.OP_UTIL, UNARY_PRE_PLUS4);
+				else if (operation == Factory.OP_UNARY_MINUS) adapter.invokeStatic(Types.OP_UTIL, UNARY_PRE_MINUS4);
+				else if (operation == Factory.OP_UNARY_DIVIDE) adapter.invokeStatic(Types.OP_UTIL, UNARY_PRE_DIVIDE4);
+				else if (operation == Factory.OP_UNARY_MULTIPLY) adapter.invokeStatic(Types.OP_UTIL, UNARY_PRE_MULTIPLY4);
+				else if (operation == Factory.OP_UNARY_CONCAT) adapter.invokeStatic(Types.OP_UTIL, UNARY_PRE_CONCAT4);
 			}
 
 			if (operation == Factory.OP_UNARY_CONCAT) return Types.STRING;
@@ -194,20 +189,18 @@ public class OpUnary extends ExpressionBase implements ExprNumber {
 			if (operation != Factory.OP_UNARY_PLUS && operation != Factory.OP_UNARY_MINUS)
 				throw new TransformerException("Post only possible with plus or minus " + operation, value.getStart());
 
-			value.writeOut(bc, MODE_VALUE);
-			if (operation == Factory.OP_UNARY_PLUS) adapter.invokeStatic(Types.OPERATOR, useArray ? UNARY_POST_PLUS_N : UNARY_POST_PLUS_1);
-			else if (operation == Factory.OP_UNARY_MINUS) adapter.invokeStatic(Types.OPERATOR, useArray ? UNARY_POST_MINUS_N : UNARY_POST_MINUS_1);
+			value.writeOut(bc, MODE_REF);
+			if (operation == Factory.OP_UNARY_PLUS) adapter.invokeStatic(Types.OP_UTIL, useArray ? UNARY_POST_PLUS_N : UNARY_POST_PLUS_1);
+			else if (operation == Factory.OP_UNARY_MINUS) adapter.invokeStatic(Types.OP_UTIL, useArray ? UNARY_POST_MINUS_N : UNARY_POST_MINUS_1);
 		}
 		else if (type == Factory.OP_UNARY_PRE) {
-			value.writeOut(bc, MODE_VALUE);
-
-			if (operation == Factory.OP_UNARY_PLUS) adapter.invokeStatic(Types.OPERATOR, useArray ? UNARY_PRE_PLUS_N : UNARY_PRE_PLUS_1);
-			else if (operation == Factory.OP_UNARY_MINUS) adapter.invokeStatic(Types.OPERATOR, useArray ? UNARY_PRE_MINUS_N : UNARY_PRE_MINUS_1);
-			else if (operation == Factory.OP_UNARY_DIVIDE) adapter.invokeStatic(Types.OPERATOR, useArray ? UNARY_PRE_DIVIDE_N : UNARY_PRE_DIVIDE_1);
-			else if (operation == Factory.OP_UNARY_MULTIPLY) adapter.invokeStatic(Types.OPERATOR, useArray ? UNARY_PRE_MULTIPLY_N : UNARY_PRE_MULTIPLY_1);
-			else if (operation == Factory.OP_UNARY_CONCAT) adapter.invokeStatic(Types.OPERATOR, useArray ? UNARY_PRE_CONCAT_N : UNARY_PRE_CONCAT_1);
+			value.writeOut(bc, MODE_REF);
+			if (operation == Factory.OP_UNARY_PLUS) adapter.invokeStatic(Types.OP_UTIL, useArray ? UNARY_PRE_PLUS_N : UNARY_PRE_PLUS_1);
+			else if (operation == Factory.OP_UNARY_MINUS) adapter.invokeStatic(Types.OP_UTIL, useArray ? UNARY_PRE_MINUS_N : UNARY_PRE_MINUS_1);
+			else if (operation == Factory.OP_UNARY_DIVIDE) adapter.invokeStatic(Types.OP_UTIL, useArray ? UNARY_PRE_DIVIDE_N : UNARY_PRE_DIVIDE_1);
+			else if (operation == Factory.OP_UNARY_MULTIPLY) adapter.invokeStatic(Types.OP_UTIL, useArray ? UNARY_PRE_MULTIPLY_N : UNARY_PRE_MULTIPLY_1);
+			else if (operation == Factory.OP_UNARY_CONCAT) adapter.invokeStatic(Types.OP_UTIL, useArray ? UNARY_PRE_CONCAT_N : UNARY_PRE_CONCAT_1);
 		}
-
 		if (operation == Factory.OP_UNARY_CONCAT) return Types.STRING;
 
 		// convert from double to Double (if necessary)

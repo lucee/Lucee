@@ -23,7 +23,7 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.interpreter.InterpreterException;
 import lucee.runtime.interpreter.ref.Ref;
 import lucee.runtime.interpreter.ref.RefSupport;
-import lucee.runtime.op.Operator;
+import lucee.runtime.op.OpUtil;
 
 /**
  * imp operation
@@ -49,7 +49,7 @@ public final class Exp extends RefSupport implements Ref {
 	@Override
 	public Object getValue(PageContext pc) throws PageException {
 		if (limited) throw new InterpreterException("invalid syntax, math operations are not supported in a json string.");
-		return new Double(Operator.exponent(left.getValue(pc), right.getValue(pc)));
+		return OpUtil.exponent(pc, left.getValue(pc), right.getValue(pc));
 	}
 
 	@Override

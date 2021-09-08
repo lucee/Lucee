@@ -21,7 +21,6 @@ package lucee.runtime.db;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -38,8 +37,8 @@ import lucee.runtime.config.NullSupportHelper;
 import lucee.runtime.exp.DatabaseException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
+import lucee.runtime.op.OpUtil;
 import lucee.runtime.op.Decision;
-import lucee.runtime.op.Operator;
 import lucee.runtime.sql.QueryPartitions;
 import lucee.runtime.sql.Select;
 import lucee.runtime.sql.SelectParser;
@@ -186,7 +185,8 @@ public final class QoQ {
 				target.sort(c.getColumn(), col.isDirectionBackward() ? Query.ORDER_DESC : Query.ORDER_ASC);
 			}
 			else {
-				throw new DatabaseException("ORDER BY items must be a column name/alias from the first select list if the statement contains a UNION operator", sql.toString(), sql, null);
+				throw new DatabaseException("ORDER BY items must be a column name/alias from the first select list if the statement contains a UNION operator", sql.toString(), sql,
+						null);
 			}
 		}
 	}
@@ -493,10 +493,10 @@ public final class QoQ {
 		// For a non-grouping query with aggregates where no records matched the where clause
 		// SELECT count(1) FROM qry WHERE 1=0
 		// then we need to add a single empty partition so our final select will have a single row.
-		if (hasAggregateSelect && select.getGroupbys().length == 0 && queryPartitions.getPartitions().size() == 0 ) {
-			queryPartitions.addEmptyPartition( source, target ); 
+		if (hasAggregateSelect && select.getGroupbys().length == 0 && queryPartitions.getPartitions().size() == 0) {
+			queryPartitions.addEmptyPartition(source, target);
 		}
-		
+
 		// Add first row of each group of partitioned data into final result
 		for (Query sourcePartition: queryPartitions.getPartitions().values()) {
 			target.addRow(1);
@@ -827,7 +827,7 @@ public final class QoQ {
 					}
 
 					// text-based sort
-					Comparator comp = ArrayUtil.toComparator(pc, sortType, sortDir, false);
+					java.util.Comparator comp = ArrayUtil.toComparator(pc, sortType, sortDir, false);
 					// Sort the array with proper type and direction
 					colData.sortIt(comp);
 
@@ -877,8 +877,8 @@ public final class QoQ {
 				if (op.equals("atan2")) return new Double(Math.atan2(Caster.toDoubleValue(left), Caster.toDoubleValue(right)));
 				break;
 			case 'b':
-				if (op.equals("bitand")) return new Double(Operator.bitand(Caster.toDoubleValue(left), Caster.toDoubleValue(right)));
-				if (op.equals("bitor")) return new Double(Operator.bitor(Caster.toDoubleValue(left), Caster.toDoubleValue(right)));
+				if (op.equals("bitand")) return OpUtil.bitand(pc, Caster.toDoubleValue(left), Caster.toDoubleValue(right));
+				if (op.equals("bitor")) return OpUtil.bitor(pc, Caster.toDoubleValue(left), Caster.toDoubleValue(right));
 				break;
 			case 'c':
 				if (op.equals("concat")) return Caster.toString(left).concat(Caster.toString(right));
@@ -889,7 +889,7 @@ public final class QoQ {
 				if (op.equals("isnull")) return executeCoalesce(pc, sql, source, operators, row);
 				break;
 			case 'm':
-				if (op.equals("mod")) return new Double(Operator.modulus(Caster.toDoubleValue(left), Caster.toDoubleValue(right)));
+				if (op.equals("mod")) return OpUtil.modulus(pc, Caster.toDoubleValue(left), Caster.toDoubleValue(right));
 				break;
 
 			}
@@ -1128,7 +1128,7 @@ public final class QoQ {
 	 */
 	private int executeCompare(PageContext pc, SQL sql, Query source, Operation2 op, int row) throws PageException {
 		// print.e(op.getLeft().getClass().getName());
-		return Operator.compare(executeExp(pc, sql, source, op.getLeft(), row), executeExp(pc, sql, source, op.getRight(), row));
+		return OpUtil.compare(pc, executeExp(pc, sql, source, op.getLeft(), row), executeExp(pc, sql, source, op.getRight(), row));
 	}
 
 	private Object executeMod(PageContext pc, SQL sql, Query source, Operation2 expression, int row) throws PageException {
@@ -1153,7 +1153,7 @@ public final class QoQ {
 		Object left = executeExp(pc, sql, source, operators[0], row);
 
 		for (int i = 1; i < operators.length; i++) {
-			if (Operator.compare(left, executeExp(pc, sql, source, operators[i], row)) == 0) return isNot ? Boolean.FALSE : Boolean.TRUE;
+			if (OpUtil.compare(pc, left, executeExp(pc, sql, source, operators[i], row)) == 0) return isNot ? Boolean.FALSE : Boolean.TRUE;
 		}
 		return isNot ? Boolean.TRUE : Boolean.FALSE;
 	}
@@ -1263,7 +1263,7 @@ public final class QoQ {
 		// print.out(left+" between "+right1+" and "+right2
 		// +" = "+((Operator.compare(left,right1)>=0)+" && "+(Operator.compare(left,right2)<=0)));
 
-		return ((Operator.compare(left, right1) >= 0) && (Operator.compare(left, right2) <= 0)) ? Boolean.TRUE : Boolean.FALSE;
+		return ((OpUtil.compare(pc, left, right1) >= 0) && (OpUtil.compare(pc, left, right2) <= 0)) ? Boolean.TRUE : Boolean.FALSE;
 	}
 
 	private Object executeLike(PageContext pc, SQL sql, Query source, Operation3 expression, int row) throws PageException {

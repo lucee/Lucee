@@ -64,7 +64,7 @@ import lucee.runtime.functions.FunctionHandlerPool;
 import lucee.runtime.interpreter.VariableInterpreter;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Constants;
-import lucee.runtime.op.Operator;
+import lucee.runtime.op.OpUtil;
 import lucee.runtime.security.SecurityManager;
 import lucee.runtime.tag.TagUtil;
 import lucee.runtime.type.Array;
@@ -101,17 +101,18 @@ public final class Types {
 
 	// TODO muss wohl alle Prim typen sein plus Object
 	public static final int _BOOLEAN = 1;
-	public static final int _DOUBLE = 2;
+	public static final int _NUMBER = 2;
 	private static final int _SHORT = 7;
 
 	public static final int _OBJECT = 0;
 	public static final int _STRING = 3;
 
-	private static final int _CHAR = _DOUBLE;
-	private static final int _FLOAT = _DOUBLE;
-	private static final int _LONG = _DOUBLE;
-	private static final int _INT = _DOUBLE;
-	private static final int _BYTE = _DOUBLE;
+	private static final int _CHAR = _NUMBER;
+	private static final int _FLOAT = _NUMBER;
+	private static final int _LONG = _NUMBER;
+	private static final int _INT = _NUMBER;
+	private static final int _BYTE = _NUMBER;
+	private static final int _DOUBLE = _NUMBER;
 
 	// public static final int SIZE_INT_TYPES=10;
 
@@ -202,8 +203,7 @@ public final class Types {
 	public static final Type STRUCT = Type.getType(lucee.runtime.type.Struct.class);
 	public static final Type STRUCT_IMPL = Type.getType(lucee.runtime.type.StructImpl.class);
 
-	public static final Type OPERATOR = Type.getType(Operator.class);
-
+	public static final Type OP_UTIL = Type.getType(OpUtil.class);
 	public static final Type CONFIG = Type.getType(Config.class);
 	public static final Type CONFIG_WEB = Type.getType(ConfigWeb.class);
 
@@ -436,6 +436,9 @@ public final class Types {
 
 	public static int getType(Type type) {
 		String className = type.getClassName();
+
+		// if (!className.equals("java.lang.Object")) print.e(" ---> " + className);
+
 		if (className.indexOf('.') != -1) {
 			if ("java.lang.String".equalsIgnoreCase(className)) return _STRING;
 			return _OBJECT;

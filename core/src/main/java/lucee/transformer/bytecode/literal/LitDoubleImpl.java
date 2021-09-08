@@ -17,16 +17,17 @@
  */
 package lucee.transformer.bytecode.literal;
 
+import java.math.BigDecimal;
+
 import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.GeneratorAdapter;
 
-import lucee.commons.color.ConstantsDouble;
 import lucee.runtime.op.Caster;
 import lucee.transformer.Factory;
 import lucee.transformer.Position;
+import lucee.transformer.TransformerException;
 import lucee.transformer.bytecode.BytecodeContext;
 import lucee.transformer.bytecode.expression.ExpressionBase;
-import lucee.transformer.bytecode.util.Methods;
 import lucee.transformer.bytecode.util.Types;
 import lucee.transformer.expression.ExprDouble;
 import lucee.transformer.expression.literal.LitDouble;
@@ -105,18 +106,17 @@ public final class LitDoubleImpl extends ExpressionBase implements LitDouble, Ex
 	}
 
 	@Override
-	public Type _writeOut(BytecodeContext bc, int mode) {
+	public Type _writeOut(BytecodeContext bc, int mode) throws TransformerException {
 		GeneratorAdapter adapter = bc.getAdapter();
 		if (mode == MODE_REF) {
-			String str = ConstantsDouble.getFieldName(d);
-			if (str != null) {
-				bc.getAdapter().getStatic(Types.CONSTANTS_DOUBLE, str, Types.DOUBLE);
-			}
-			else {
-				adapter.push(d);
-				adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_DOUBLE_FROM_DOUBLE);
-			}
-			return Types.DOUBLE;
+
+			return new LitBigDecimalImpl(getFactory(), BigDecimal.valueOf(d), getStart(), getEnd())._writeOut(bc, mode);
+
+			/*
+			 * String str = ConstantsDouble.getFieldName(d); if (str != null) {
+			 * bc.getAdapter().getStatic(Types.CONSTANTS_DOUBLE, str, Types.DOUBLE); } else { adapter.push(d);
+			 * adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_DOUBLE_FROM_DOUBLE); } return Types.DOUBLE;
+			 */
 		}
 		adapter.push(d);
 

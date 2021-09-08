@@ -92,25 +92,25 @@ public final class OpNumber extends ExpressionBase implements ExprNumber {
 		right.writeOut(bc, MODE_REF);
 
 		if (op == Factory.OP_DBL_EXP) {
-			adapter.invokeStatic(Types.OPERATOR, EXP_REF);
+			adapter.invokeStatic(Types.OP_UTIL, EXP_REF);
 		}
 		else if (op == Factory.OP_DBL_DIVIDE) {
-			adapter.invokeStatic(Types.OPERATOR, DIV_REF);
+			adapter.invokeStatic(Types.OP_UTIL, DIV_REF);
 		}
 		else if (op == Factory.OP_DBL_INTDIV) {
-			adapter.invokeStatic(Types.OPERATOR, INTDIV_REF);
+			adapter.invokeStatic(Types.OP_UTIL, INTDIV_REF);
 		}
 		else if (op == Factory.OP_DBL_PLUS) {
-			adapter.invokeStatic(Types.OPERATOR, PLUS_REF);
+			adapter.invokeStatic(Types.OP_UTIL, PLUS_REF);
 		}
 		else if (op == Factory.OP_DBL_MINUS) {
-			adapter.invokeStatic(Types.OPERATOR, MINUS_REF);
+			adapter.invokeStatic(Types.OP_UTIL, MINUS_REF);
 		}
 		else if (op == Factory.OP_DBL_MODULUS) {
-			adapter.invokeStatic(Types.OPERATOR, MODULUS_REF);
+			adapter.invokeStatic(Types.OP_UTIL, MODULUS_REF);
 		}
 		else if (op == Factory.OP_DBL_MULTIPLY) {
-			adapter.invokeStatic(Types.OPERATOR, MULTIPLY_REF);
+			adapter.invokeStatic(Types.OP_UTIL, MULTIPLY_REF);
 		}
 
 		/*

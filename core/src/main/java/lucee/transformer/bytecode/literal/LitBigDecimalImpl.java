@@ -76,27 +76,22 @@ public class LitBigDecimalImpl extends ExpressionBase implements LitBigDecimal, 
 	public Type _writeOut(BytecodeContext bc, int mode) throws TransformerException {
 		GeneratorAdapter adapter = bc.getAdapter();
 
+		if (MODE_VALUE == mode) {
+			adapter.push(getBigDecimal().doubleValue());
+			// print.ds();
+			return Types.DOUBLE_VALUE;
+		}
+
 		Long l = justNumberDigits(number) ? Caster.toLong(number, null) : null;
 		if (l != null) {
 			adapter.loadArg(0);
 			adapter.push(l.longValue());
 			adapter.invokeStatic(LITERAL_VALUE, TO_NUMBER_LONG_VALUE);
-
-			/*
-			 * if (l.longValue() == 0L) adapter.getStatic(Types.BIG_DECIMAL, "ZERO", Types.BIG_DECIMAL); else if
-			 * (l.longValue() == 1L) adapter.getStatic(Types.BIG_DECIMAL, "ONE", Types.BIG_DECIMAL); else if
-			 * (l.longValue() == 10L) adapter.getStatic(Types.BIG_DECIMAL, "TEN", Types.BIG_DECIMAL); else {
-			 * adapter.push(l.longValue()); adapter.invokeStatic(Types.BIG_DECIMAL, VALUE_OF); }
-			 */
 		}
 		else {
 			adapter.loadArg(0);
 			adapter.push(number);
 			adapter.invokeStatic(LITERAL_VALUE, TO_NUMBER_STRING);
-			/*
-			 * adapter.newInstance(Types.BIG_DECIMAL); adapter.dup(); adapter.push(number);
-			 * adapter.invokeConstructor(Types.BIG_DECIMAL, CONSTR_STRING);
-			 */
 		}
 
 		// adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_BIG_DECIMAL_STR); // TODOX call constructor

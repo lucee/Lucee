@@ -118,6 +118,7 @@ import lucee.runtime.engine.ExecutionLogFactory;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.DeprecatedException;
+import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageExceptionImpl;
 import lucee.runtime.exp.SecurityException;
@@ -147,9 +148,9 @@ import lucee.runtime.net.mail.ServerImpl;
 import lucee.runtime.net.proxy.ProxyData;
 import lucee.runtime.net.proxy.ProxyDataImpl;
 import lucee.runtime.op.Caster;
+import lucee.runtime.op.OpUtil;
 import lucee.runtime.op.Decision;
 import lucee.runtime.op.Duplicator;
-import lucee.runtime.op.Operator;
 import lucee.runtime.op.date.DateCaster;
 import lucee.runtime.orm.ORMConfiguration;
 import lucee.runtime.orm.ORMConfigurationImpl;
@@ -191,7 +192,6 @@ import lucee.runtime.type.util.ListUtil;
 import lucee.transformer.library.ClassDefinitionImpl;
 import lucee.transformer.library.function.FunctionLib;
 import lucee.transformer.library.tag.TagLib;
-import lucee.runtime.exp.ExpressionException;
 
 /**
  * 
@@ -1428,7 +1428,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		sct.set("timer", Caster.toBoolean(config.hasDebugOptions(ConfigPro.DEBUG_TIMER)));
 		sct.set("implicitAccess", Caster.toBoolean(config.hasDebugOptions(ConfigPro.DEBUG_IMPLICIT_ACCESS)));
 		sct.set("queryUsage", Caster.toBoolean(config.hasDebugOptions(ConfigPro.DEBUG_QUERY_USAGE)));
-		sct.set("thread", Caster.toBoolean(config.hasDebugOptions(ConfigPro.DEBUG_THREAD)));		
+		sct.set("thread", Caster.toBoolean(config.hasDebugOptions(ConfigPro.DEBUG_THREAD)));
 	}
 
 	private void doGetError() throws PageException {
@@ -1497,7 +1497,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			Struct sct;
 			while (it.hasNext()) {
 				sct = (Struct) it.next();
-				if (Operator.equalsEL(id, sct.get(KeyConstants._id, ""), false, true)) {
+				if (OpUtil.equalsEL(ThreadLocalPageContext.get(), id, sct.get(KeyConstants._id, ""), false, true)) {
 					pageContext.setVariable(getString("admin", action, "returnVariable"), sct);
 					return;
 				}
@@ -2630,8 +2630,8 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		}
 
 		Pattern pattern = Pattern.compile("[a-zA-Z0-9_]*");
-     	Matcher matcher = pattern.matcher(getString("admin", action, "newName"));
-		
+		Matcher matcher = pattern.matcher(getString("admin", action, "newName"));
+
 		if (matcher.matches() == false) {
 			throw new ExpressionException("Trying to create a data source with a name that is invalid. Data source Names must match proper variable naming conventions");
 		}
