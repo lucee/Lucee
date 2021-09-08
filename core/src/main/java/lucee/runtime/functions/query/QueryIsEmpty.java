@@ -30,8 +30,6 @@ import lucee.runtime.type.Query;
  */
 public final class QueryIsEmpty extends BIF {
 
-    // private static final long serialVersionUID = -5956390806966915503L;
-
     public static boolean call(PageContext pc, Query qry) {
         return qry.getRowCount() == 0;
     }
