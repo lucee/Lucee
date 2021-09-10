@@ -67,7 +67,7 @@ public class CFConfigImport {
 		PageContext pc = ThreadLocalPageContext.get();
 
 		try {
-			if (pc == null || true) {
+			if (pc == null) {
 				pc = engine.createPageContext((File) SystemUtil.getTempDirectory(), "localhost", "/", "", new Cookie[0], null, null, null,
 						DevNullOutputStream.DEV_NULL_OUTPUT_STREAM, 100000, true);
 				unregister = true;
