@@ -48,6 +48,7 @@ import org.osgi.framework.BundleException;
 import org.osgi.framework.Version;
 
 import lucee.VersionInfo;
+import lucee.print;
 import lucee.commons.collection.MapFactory;
 import lucee.commons.digest.Base64Encoder;
 import lucee.commons.digest.HashUtil;
@@ -269,6 +270,8 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	public int doStartTag() throws PageException {
 		config = (ConfigPro) pageContext.getConfig();
 
+		// print();
+
 		// Action
 		Object objAction = attributes.get(KeyConstants._action);
 		if (objAction == null) throw new ApplicationException("Missing attribute [action] for tag [admin]");
@@ -353,6 +356,27 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		}
 
 		return Tag.SKIP_BODY;
+	}
+
+	private void print() {
+		String action = Caster.toString(attributes.get(KeyConstants._action, ""), "");
+		if (action.toLowerCase().indexOf("update") == -1) return;
+
+		StringBuilder sb = new StringBuilder("set(json, \"");
+		sb.append(action);
+		sb.append('"');
+		Entry<Key, Object> e;
+		Iterator<Entry<Key, Object>> it = attributes.entryIterator();
+		while (it.hasNext()) {
+			e = it.next();
+			if (KeyConstants._password.equals(e.getKey()) || KeyConstants._remoteclients.equals(e.getKey()) || KeyConstants._type.equals(e.getKey())
+					|| KeyConstants._action.equals(e.getKey()))
+				continue;
+			sb.append(", new Item(\"").append(e.getKey()).append("\")");
+		}
+		sb.append(");");
+		print.e(sb);
+
 	}
 
 	private void doAddDump() throws ApplicationException {
