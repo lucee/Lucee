@@ -145,7 +145,7 @@ function mem(type) {
 					pp = left(pp, pp.len() - 1);
 					pp = listTrim(pp, "\/");
 
-					// return (path contains "LDEV1736");
+					return (path contains "LDEV1");
 
 					// only testcases in sub directory of "test" are allowed
 					var _test = listTrim(test,"\/");
