@@ -6,6 +6,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				// TODO ZAC can you find out why this is no longer working on github (works fine locally), i assume that something get set to the server scope that vcann be serialized 
 				//local.res=serialize(server);
 				//evaluate(res);
+				loop collection=server item="local.p" {
+					systemOutput(local.p, true);
+					local.res=serialize( server[local.p] );
+				}
 				local.res=serialize(server.os.macAddress);
 				evaluate(res);
 			});
