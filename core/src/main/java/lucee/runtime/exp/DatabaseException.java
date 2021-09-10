@@ -49,6 +49,7 @@ public final class DatabaseException extends PageExceptionImpl {
 
 		set(sqle);
 		set(dc);
+		initCause( sqle );
 	}
 
 	public DatabaseException(String message, String detail, SQL sql, DatasourceConnection dc) {
