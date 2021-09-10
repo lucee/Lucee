@@ -2376,6 +2376,56 @@ sort direction:
 			<type>struct</type>
 		</return>
 	</function>
+	<!-- ConfigFileImport -->
+	<function>
+		<name>ConfigFileImport</name>
+		<status>hidden</status>
+		<class>lucee.runtime.functions.system.ConfigFileImport</class>
+		<description>Imports a config file in the .CFConfig format.</description>
+		<argument>
+			<name>path</name>
+			<type>string</type>
+			<required>Yes</required>
+			<description>
+			Path to the .CFConfig.json file.
+			</description>
+		</argument>
+		<argument>
+			<name>type</name>
+			<type>string</type>
+			<required>no</required>
+			<default>server</default>
+			<values>server,web</values>
+			<description>
+				Config Context to manipulate, server or web context.
+			</description>
+		</argument>
+		<argument>
+			<name>password</name>
+			<type>string</type>
+			<required>no</required>
+			<description>
+				password to access the configuration, depending on the value set for the attribute type. 
+				If not set Lucee will check in the following places for the password (replace {type} with the actual type choosen for the attribute type).
+				Enviroment variable "LUCEE_{type}_ADMIN_PASSWORD" or system property "lucee.{type}.admin.password".
+			</description>
+		</argument>
+		<argument>
+			<name>charset</name>
+			<type>string</type>
+			<required>no</required>
+			<description>
+				charset to use to read the .CFConfig file, if not defined, Lucee will use the default resource charset.
+			</description>
+		</argument>
+		
+		<return>
+			<type>struct</type>
+		</return>
+	</function>
+	
+	
+	
 	<!-- compress -->
 	<function>
 		<name>compress</name>
