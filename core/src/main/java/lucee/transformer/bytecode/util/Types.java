@@ -434,28 +434,6 @@ public final class Types {
 		return false;
 	}
 
-	public static int getType(Type type) {
-		String className = type.getClassName();
-
-		// if (!className.equals("java.lang.Object")) print.e(" ---> " + className);
-
-		if (className.indexOf('.') != -1) {
-			if ("java.lang.String".equalsIgnoreCase(className)) return _STRING;
-			return _OBJECT;
-		}
-
-		if ("boolean".equals(className)) return _BOOLEAN;
-		if ("short".equals(className)) return _SHORT;
-		if ("float".equals(className)) return _FLOAT;
-		if ("long".equals(className)) return _LONG;
-		if ("double".equals(className)) return _DOUBLE;
-		if ("char".equals(className)) return _CHAR;
-		if ("int".equals(className)) return _INT;
-		if ("byte".equals(className)) return _BYTE;
-
-		return _OBJECT;
-	}
-
 	public static Type toRefType(Type type) {
 		String className = type.getClassName();
 		if (className.indexOf('.') != -1) return type;
