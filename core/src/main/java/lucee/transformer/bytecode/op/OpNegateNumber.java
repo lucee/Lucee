@@ -61,7 +61,7 @@ public final class OpNegateNumber extends ExpressionBase implements ExprNumber {
 			Number n = ((Literal) expr).getNumber(null);
 			if (n != null) {
 				if (n instanceof BigDecimal) return expr.getFactory().createLitNumber(((BigDecimal) n).negate(), start, end);
-				return expr.getFactory().createLitDouble(-n.doubleValue(), start, end);
+				return expr.getFactory().createLitNumber(BigDecimal.valueOf(-n.doubleValue()), start, end);
 			}
 		}
 		return new OpNegateNumber(expr, start, end);

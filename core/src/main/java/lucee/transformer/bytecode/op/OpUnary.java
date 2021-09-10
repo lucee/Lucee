@@ -96,7 +96,7 @@ public class OpUnary extends ExpressionBase implements ExprNumber {
 		GeneratorAdapter adapter = bc.getAdapter();
 		// convert value
 		if (operation == Factory.OP_UNARY_CONCAT) value = var.getFactory().toExprString(value);
-		else value = var.getFactory().toExprDouble(value);
+		else value = var.getFactory().toExprNumber(value);
 
 		List<Member> members = var.getMembers();
 		int size = members.size();
