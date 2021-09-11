@@ -322,7 +322,8 @@ public final class Ftp extends TagImpl {
 		try {
 			files = client.listFiles(p);
 		}
-		catch (IOException e) {}
+		catch (IOException e) {
+		}
 
 		if (files != null) {
 			for (int i = 0; i < files.length; i++) {

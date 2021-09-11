@@ -86,7 +86,8 @@ public final class MemoryClassLoader extends ExtendableClassLoader {
 			try {
 				clazz = loadClass(name);
 			}
-			catch (ClassNotFoundException cnf) {}
+			catch (ClassNotFoundException cnf) {
+			}
 
 			// if class already exists
 			if (clazz != null) {

@@ -1137,8 +1137,8 @@ public class QueryImpl implements Query, Objects, QueryResult {
 			if (key.equals(KeyConstants._CURRENTROW)) return new Double(row);
 			if (key.equals(KeyConstants._COLUMNLIST)) return getColumnlist(getKeyCase(ThreadLocalPageContext.get()));
 		}
-		throw new DatabaseException("Column [" + key + "] not found in query", 
-			"available columns are [" + getColumnlist(getKeyCase(ThreadLocalPageContext.get()),", ") + "]", sql, null);
+		throw new DatabaseException("Column [" + key + "] not found in query", "available columns are [" + getColumnlist(getKeyCase(ThreadLocalPageContext.get()), ", ") + "]", sql,
+				null);
 	}
 
 	@Override
@@ -1176,9 +1176,9 @@ public class QueryImpl implements Query, Objects, QueryResult {
 		if (removed == null) {
 			if (key.equals(KeyConstants._RECORDCOUNT) || key.equals(KeyConstants._CURRENTROW) || key.equals(KeyConstants._COLUMNLIST))
 				throw new DatabaseException("Cannot remove [" + key + "], it is not a column",
-						"available columns are [" + getColumnlist(getKeyCase(ThreadLocalPageContext.get()),", ") + "]", null, null);
+						"available columns are [" + getColumnlist(getKeyCase(ThreadLocalPageContext.get()), ", ") + "]", null, null);
 			throw new DatabaseException("Cannot remove column [" + key + "], it doesn't exist",
-					"available columns are [" + getColumnlist(getKeyCase(ThreadLocalPageContext.get()),", ") + "]", null, null);
+					"available columns are [" + getColumnlist(getKeyCase(ThreadLocalPageContext.get()), ", ") + "]", null, null);
 		}
 		return removed;
 	}
@@ -1253,7 +1253,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 		if (index != -1) {
 			return columns[index].set(row, value, trustType);
 		}
-		throw new DatabaseException("Column [" + key + "] does not exist", "columns are [" + getColumnlist(getKeyCase(ThreadLocalPageContext.get()),", ") + "]", sql, null);
+		throw new DatabaseException("Column [" + key + "] does not exist", "columns are [" + getColumnlist(getKeyCase(ThreadLocalPageContext.get()), ", ") + "]", sql, null);
 	}
 
 	@Override
@@ -1331,7 +1331,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	/*
 	 * public String getColumnlist() { return getColumnlist(true); }
 	 */
-	
+
 	public boolean go(int index) {
 		return go(index, getPid());
 	}
@@ -1530,8 +1530,8 @@ public class QueryImpl implements Query, Objects, QueryResult {
 			if (key.equals(KeyConstants._CURRENTROW)) return new QueryColumnRef(this, key, Types.INTEGER);
 			if (key.equals(KeyConstants._COLUMNLIST)) return new QueryColumnRef(this, key, Types.INTEGER);
 		}
-		throw new DatabaseException("Column [" + key.getString() + "] not found in query, Columns are [" + getColumnlist(getKeyCase(ThreadLocalPageContext.get()), ", ") + "]", null, sql,
-				null);
+		throw new DatabaseException("Column [" + key.getString() + "] not found in query, Columns are [" + getColumnlist(getKeyCase(ThreadLocalPageContext.get()), ", ") + "]",
+				null, sql, null);
 	}
 
 	private void renameEL(Collection.Key src, Collection.Key trg) {

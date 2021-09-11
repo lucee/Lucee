@@ -30,16 +30,28 @@ try {
 		type="web"
 		password="#request.WEBADMINPASSWORD#"
 		virtual="/test"
-		physical="#test#"
+		physical="#request.testFolder#"
 		toplevel="true"
 		archive=""
 		primary="physical"
 		trusted="no";
+	
+	systemOutput("set /test mapping #dateTimeFormat(now())#", true);
+
+	param name="testDebug" default="false";
+	if ( len( testDebug ) eq 0 )
+		testDebug = false;	
+	request.testDebug = testDebug;
+	if ( request.testDebug )
+		SystemOutput( "Test Debugging enabled", true );
+
+	param name="testServices" default="";
+	request.testServices = testServices;
+	if ( len( request.testServices ) )
+		SystemOutput( "Test Services restricted to [#request.testServices#]", true );
 
 	// you can also provide a json file with your environment variables, i.e. just set LUCEE_BUILD_ENV="c:\work\lucee\loader\env.json"
 	setupTestServices = new test._setupTestServices().setup();
-
-	systemOutput("set /test mapping #dateTimeFormat(now())#", true);
 
 	function mem(type) {
 		var qry = getMemoryUsage(type);
@@ -105,6 +117,44 @@ try {
 	else
 		systemOutput( NL & 'Running all tests, to run a subset of test(s), use the parameter -DtestLabels="s3,oracle"', true );
 
+	
+	param name="testSkip" default="true";
+	if ( len(testSkip) eq 0)
+		testSkip = true;
+	request.testSkip = testSkip;
+
+	if ( !request.testSkip )
+		SystemOutput( "Force running tests marked skip=true or prefixed with an _", true );
+	
+	param name="testAdditional" default="";	
+	request.testAdditional = testAdditional;
+
+	if ( len( request.testAdditional ) eq 0 ){
+		request.testAdditional = server._getSystemPropOrEnvVars("testAdditional", "", false);
+		if ( structCount( request.testAdditional ) )
+			request.testAdditional = request.testAdditional.testAdditional;
+		else
+			request.testAdditional="";
+	}		
+	if ( len(request.testAdditional) ){
+		SystemOutput( "Adding additional tests from [#request.testAdditional#]", true );
+		if (!DirectoryExists( request.testAdditional )){
+			SystemOutput( "ERROR directory [#request.testAdditional#] doesn't exist!", true );
+			request.testAdditional = "";
+		} else {
+			admin
+				action="updateMapping"
+				type="web"
+				password="#request.WEBADMINPASSWORD#"
+				virtual="/testAdditional"
+				physical="#request.testAdditional#"
+				toplevel="true"
+				archive=""
+				primary="physical"
+				trusted="no";
+		}
+	}
+
 	// output deploy log
 	pc = getPageContext();
 	config = pc.getConfig();
@@ -154,6 +204,13 @@ try {
 	failedTestcases = testResults.failedTestcases;
 	tb = testResults.tb;
 
+	jUnitReporter = new testbox.system.reports.JUnitReporter();	
+	resultPath = ExpandPath( "/test") & "/reports/";
+	if ( !DirectoryExists( resultPath ) )
+		DirectoryCreate( resultPath );
+	JUnitReportFile = resultPath & "junit-test-results.xml";
+	FileWrite( JUnitReportFile, jUnitReporter.runReport(results=result, testbox=tb, justReturn=true) );	
+	
 	systemOutput( NL & NL & "=============================================================", true );
 	systemOutput( "TestBox Version: #tb.getVersion()#", true );
 	systemOutput( "Lucee Version: #server.lucee.version#", true );
@@ -169,6 +226,7 @@ try {
 	systemOutput( "-> Skipped:  #result.getTotalSkipped()#", true );
 	systemOutput( "-> Failures: #result.getTotalFail()#", true );
 	systemOutput( "-> Errors:   #result.getTotalError()#", true );
+	SystemOutput( "-> JUnitReport: #JUnitReportFile#", true);
 
 	servicesReport = new test._setupTestServices().reportServiceSkipped();
 	for ( s in servicesReport ){

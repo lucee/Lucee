@@ -45,7 +45,8 @@ public final class RefLongImpl implements RefLong, Castable {
 	/**
 	 * Constructor of the class
 	 */
-	public RefLongImpl() {}
+	public RefLongImpl() {
+	}
 
 	@Override
 	public void setValue(long value) {

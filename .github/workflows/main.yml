@@ -99,6 +99,8 @@ jobs:
         MSSQL_PASSWORD: Lucee!1433
         MSSQL_PORT: 1433
         MSSQL_DATABASE: master
+        MEMCACHED_PORT: 11211
+        MEMCACHED_SERVER: localhost
         S3_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_ID_TEST }}
         S3_SECRET_KEY: ${{ secrets.S3_SECRET_KEY_TEST }}
         # DO_DEPLOY: ${{ github.event_name == 'push' }}
@@ -118,6 +120,12 @@ jobs:
           echo "------- Maven Install on ${{ github.event_name }} ---------";
           mvn -B -e -f loader/pom.xml clean install
         fi
+    - name: Publish Test Results
+      uses: EnricoMi/publish-unit-test-result-action@v1
+      if: always()
+      with:
+        files: test/reports/junit-test-results.xml
+        check_name: "Lucee Test Results"
     - name: Update Provider
       if: ${{ env.DO_DEPLOY == 'true' }}
       run: |

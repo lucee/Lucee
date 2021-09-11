@@ -653,7 +653,8 @@ public final class SMTPClient implements Serializable {
 				if (!personal.equals(ia.getPersonal())) ia.setPersonal(personal);
 			}
 		}
-		catch (UnsupportedEncodingException e) {}
+		catch (UnsupportedEncodingException e) {
+		}
 	}
 
 	/**
@@ -725,7 +726,8 @@ public final class SMTPClient implements Serializable {
 			try {
 				fileName = MimeUtility.encodeText(fileName, "UTF-8", null);
 			}
-			catch (UnsupportedEncodingException e) {} // that should never happen!
+			catch (UnsupportedEncodingException e) {
+			} // that should never happen!
 		}
 		mbp.setFileName(fileName);
 		if (!StringUtil.isEmpty(att.getType())) mbp.setHeader("Content-Type", att.getType());

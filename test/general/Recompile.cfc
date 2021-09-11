@@ -5,7 +5,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 
 	function afterAll(){
 		deleteFile("javaSettings/test.cfm");
-		deleteFile("javaSettings/Test.cfc");
+		deleteFile("javaSettings/ATest.cfc");
 	}
 
 	function run( testResults , testBox ) {
@@ -18,7 +18,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					include "javaSettings/test.cfm";
 				}
     			expect(c).toBe("1");
-				sleep(2500); // some os have a not very percise time stamp
+				sleep(2500); // some os have a not very precise time stamp (i.e. Windows)
 				InspectTemplates();
 				writeFile("javaSettings/test.cfm","10");
 				savecontent variable="local.d" {

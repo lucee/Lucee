@@ -453,7 +453,7 @@ public final class FileTag extends BodyTagImpl {
 		case ACTION_UNDEFINED:
 			throw new ApplicationException("Missing attribute action"); // should never happens
 
-			// write and append
+		// write and append
 		default:
 			return EVAL_BODY_BUFFERED;
 		}
@@ -836,6 +836,7 @@ public final class FileTag extends BodyTagImpl {
 		Struct sct = new StructImpl();
 
 		// fill data to query
+		sct.setEL(KeyConstants._path, file.getAbsolutePath());
 		sct.setEL(KeyConstants._name, file.getName());
 		sct.setEL(KeyConstants._size, Long.valueOf(file.length()));
 		sct.setEL(KeyConstants._type, file.isDirectory() ? "Dir" : "File");

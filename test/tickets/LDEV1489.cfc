@@ -16,9 +16,9 @@
 		function beforeAll() skip="isNotSupported"{
 			if(isNotSupported()) return;
 			s3Details = getCredentials();
-			mitrahsoftBucketName = "lucee-testsuite-ldev1489";
+			bucketName = lcase("lucee-ldev1489-#hash(CreateGUID())#");
 			base = "s3://#s3Details.ACCESS_KEY_ID#:#s3Details.SECRET_KEY#@";
-			variables.baseWithBucketName = "s3://#s3Details.ACCESS_KEY_ID#:#s3Details.SECRET_KEY#@/#mitrahsoftBucketName#";
+			variables.baseWithBucketName = "s3://#s3Details.ACCESS_KEY_ID#:#s3Details.SECRET_KEY#@/#bucketName#";
 			// for skipping rest of the cases, if error occurred.
 			hasError = false;
 			// for replacing s3 access keys from error msgs
@@ -43,7 +43,10 @@
 				it(title="checking ACL permission, default set in application.cfc", skip=isNotSupported(), body=function( currentSpec ){
 					uri = createURI('LDEV1489')
 					local.result = _InternalRequest(
-						template:"#uri#/test.cfm"
+						template:"#uri#/test.cfm",
+						url: {
+							bucketName: bucketName
+						}
 					);
 					expect(local.result.filecontent).toBe('WRITE|READ');
 				});
