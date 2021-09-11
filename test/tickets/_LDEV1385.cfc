@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase"{
+component extends="org.lucee.cfml.test.LuceeTestCase"  labels="pdf"{
 	function run( testResults , testBox ) {
 		describe( title="Test suite for LDEV-1385", body=function() {
 			it( title='cfpdf action="addwatermark"', body=function( currentSpec ) {

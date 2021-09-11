@@ -280,7 +280,8 @@ public class QueryParamConverter {
 
 	private static class SQLItems<T extends SQLItem> extends ArrayList<T> {
 
-		public SQLItems() {}
+		public SQLItems() {
+		}
 
 		public SQLItems(T item) {
 			add(item);

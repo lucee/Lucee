@@ -317,7 +317,8 @@ public class aprint {
 			try {
 				ps.println(IOUtil.toString(is.getCharacterStream()));
 			}
-			catch (IOException e) {}
+			catch (IOException e) {
+			}
 			finally {
 				IOUtil.closeEL(r);
 			}

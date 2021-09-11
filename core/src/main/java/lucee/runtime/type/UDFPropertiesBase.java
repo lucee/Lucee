@@ -20,7 +20,8 @@ public abstract class UDFPropertiesBase implements UDFProperties {
 	protected int startLine;
 	protected int endLine;
 
-	public UDFPropertiesBase() {}
+	public UDFPropertiesBase() {
+	}
 
 	public UDFPropertiesBase(Page page, PageSource ps, int startLine, int endLine) {
 		this.page = page;

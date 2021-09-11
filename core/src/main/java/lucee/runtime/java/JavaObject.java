@@ -140,7 +140,8 @@ public class JavaObject implements Objects, ObjectWrap {
 			try {
 				return fields[0].get(null);
 			}
-			catch (Exception e) {}
+			catch (Exception e) {
+			}
 		}
 		// Getter
 		MethodInstance mi = Reflector.getGetterEL(clazz, propertyName);
@@ -149,7 +150,8 @@ public class JavaObject implements Objects, ObjectWrap {
 				try {
 					return mi.invoke(null);
 				}
-				catch (Exception e) {}
+				catch (Exception e) {
+				}
 			}
 		}
 		try {
@@ -219,7 +221,8 @@ public class JavaObject implements Objects, ObjectWrap {
 			try {
 				fields[0].set(null, value);
 			}
-			catch (Exception e) {}
+			catch (Exception e) {
+			}
 			return value;
 		}
 		// Getter
@@ -229,7 +232,8 @@ public class JavaObject implements Objects, ObjectWrap {
 				try {
 					return mi.invoke(null);
 				}
-				catch (Exception e) {}
+				catch (Exception e) {
+				}
 			}
 		}
 

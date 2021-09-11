@@ -7,6 +7,6 @@
 		password="#session["password"&url.adminType]#">
 		<!---remoteClients="#request.getRemoteClients()#"--->
 	<cfcatch>
-		<cfdump var="#cfcatch#">
+		<cfoutput>#cfcatch.stacktrace#</cfoutput>
 	</cfcatch>
 </cftry>

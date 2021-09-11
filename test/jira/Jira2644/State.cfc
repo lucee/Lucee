@@ -16,7 +16,7 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  * 
  **/
-component persistent="true" table="State2644" {
+component persistent="true" table="State_2644" {
 
 	property name="stateCode" length="40" ormtype="string" fieldtype="id" generator="assigned" column="stateCode";
 	property name="countryCode" length="2" ormtype="string" fieldtype="id" generator="assigned" column="countryCode";

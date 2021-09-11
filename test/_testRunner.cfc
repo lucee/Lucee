@@ -4,45 +4,59 @@ component {
 	}
 
 	// testbox doesn't always sort the order of tests, so we do it manually LDEV-3541
-	public array function getBundles(){
-		var bundles = directoryList( path="/test", recurse=true, listInfo="path", filter="*.cfc" )
-			.filter( filter=testFilter, parallel=true ); // directoryList doesn't allow parallel filters
-		
-		var rootPathLen = ExpandPath( "/test" ).len() - 4;
-		ArrayEach( bundles, function( el, idx, arr ){
-			var clean  = ListChangeDelims( mid( arguments.el, rootPathLen ), ".", "/\" ); // strip off dir prefix
-			arguments.arr[ arguments.idx ] = mid( clean, 1, len( clean ) - 4 ); // strip off .cfc
-		});
+	public array function getBundles( testMapping, testDirectory ){
+		var srcBundles = directoryList( path=arguments.testMapping, recurse=true, listInfo="path", filter="*.cfc" );
+		var testDirectoryLen = len( arguments.testDirectory );
+		var mapping = ListChangeDelims( arguments.testMapping, "", "/\" ); 
+		var bundles = [];
+		ArrayEach( array=srcBundles, closure=function( el, idx, arr ){
+			if ( testFilter( arguments.el, testDirectory, testMapping ) ) {
+				var clean  = ListChangeDelims( mid( arguments.el, testDirectoryLen + 1  ), ".", "/\" ); // strip off dir prefix
+				arrayAppend(bundles, mapping & "." & mid( clean, 1, len( clean ) - 4 ) ); // strip off .cfc
+			}
+		}, parallel=true );
 		ArraySort( bundles, "textnocase", "asc" );
 		return bundles;
 	}
 
-	public boolean function testFilter ( string path ) localmode=true {
+	public boolean function testFilter ( string path, string testDirectory, string testMapping ) localmode=true {
+		//systemOutput(arguments, true);
 		var isValidTestCase = function ( string path ){
 			// get parent
 			var testDir = getDirectoryFromPath( arguments.path );
-			testDir = listCompact(left( testDir, testDir.len() - 1 ), "\/" );
+			testDir = listCompact( left( testDir, testDir.len() - 1 ), "\/" );
 			if ( left( arguments.path, 1 ) eq "/")
 				testDir = "/" & testDir; // avoid issues with non windows paths
 			var name = listLast( arguments.path, "\/" );
-
+			var testPath = Mid( arguments.path, len( testDirectory ) + 1); // otherwise "image" would match extension-image on CI
 			switch ( true ){
-				case ( left (name, 1 ) == "_" ):
+				case ( left (name, 1 ) == "_" && request.testSkip):
 					return "test has _ prefix (#name#)";
-				case ( checkTestFilter( arguments.path ) ):
+				case ( checkTestFilter( testPath ) ):
 					return "excluded by testFilter";
-				case ( FindNoCase( request.testFolder, testDir ) neq 1 ):
-					return "not under test dir (#request.testFolder#, #testDir#)";
+				case ( FindNoCase( testDirectory, testDir ) neq 1 ):
+					return "not under test dir (#testDirectory#, #testDir#)";
 				case fileExists( testDir & "/Application.cfc" ):
 					return "test in directory with Application.cfc";
 				default:
 					break;
 			};
-			var extends = checkExtendsTestCase( arguments.path );
+			var meta = getTestMeta( arguments.path );
+			if ( !isStruct( meta ) ){
+				// TODO bad cfc tickets get ignored
+				if ( request.testDebug )
+					SystemOutput( "ERROR: [" & arguments.path & "] threw " & meta, true );
+				return meta;
+			}
+
+			if (request.testSkip && structKeyExists(meta, "skip") && meta.skip ?: false)
+				return "test suite has skip=true";
+
+			var extends = checkExtendsTestCase( meta, arguments.path );
 			if ( extends neq "org.lucee.cfml.test.LuceeTestCase" )
 				return "test doesn't extend Lucee Test Case (#extends#)";
-			else
-				return "";
+			
+			return checkTestLabels( meta, arguments.path );
 		};
 
 		var checkTestFilter = function ( string path ){
@@ -55,23 +69,45 @@ component {
 			return true;
 		};
 
-		var checkExtendsTestCase = function (string path){
+		var getTestMeta = function (string path){
 			// finally only allow files which extend "org.lucee.cfml.test.LuceeTestCase"
-			var cfcPath = ListChangeDelims( "/test" & Mid( arguments.path, len( request.testFolder ) + 1 ), ".", "/\" );
-			cfcPath = mid( cfcPath, 1, len( cfcPath ) - 4 );
+			var cfcPath = ListChangeDelims( testMapping & Mid( arguments.path, len( testDirectory ) + 1 ), ".", "/\" );
+			cfcPath = mid( cfcPath, 1, len( cfcPath ) - 4 ); // strip off ".cfc"
 			try {
 				// triggers a compile, which make the initial filter slower, but it would be compiled later anyway
-				var meta = GetComponentMetaData( cfcPath );
+				// GetComponentMetaData leaks output https://luceeserver.atlassian.net/browse/LDEV-3582
+				silent {
+					var meta = GetComponentMetaData( cfcPath );
+				}
 			} catch ( e ){
+				if ( request.testDebug )
+					systemOutput( cfcatch, true );
 				return cfcatch.message;
 			}
+			return meta;
+		};
+
+		var checkExtendsTestCase = function (any meta, string path){
 			return meta.extends.fullname ?: "";
+		};
+
+		/* testbox mixes label and skip, which is confusing, skip false should always mean skip, so we check it manually */
+		var checkTestLabels = function (any meta, string path ){
+			if ( arrayLen (request.testLabels) eq 0 )
+				return "";
+			var labels = meta.labels ?: "";
+			loop array="#request.testLabels#" item="local.f" {
+				if ( FindNoCase( f, labels ) gt 0 )
+					return "";
+			}
+			return "no matching labels";
 		};
 
 		allowed = isValidTestCase( arguments.path );
 		//SystemOutput( arguments.path & " :: " & allowed, true );
 		if ( allowed != "" ){
-			//SystemOutput( arguments.path & " :: " & allowed, true );
+			if ( request.testDebug )
+				SystemOutput( arguments.path & " :: " & allowed, true );
 			return false;
 		} else {
 			return true;
@@ -89,7 +125,7 @@ component {
 		// strips off the stack trace to exclude testbox and back to the first .cfc call in the stack
 		function printStackTrace( st ){
 			local.i = find( "/testbox/", arguments.st );
-			if ( i eq 0 ){ // dump it all out
+			if ( request.testDebug || i eq 0 ){ // dump it all out
 				systemOutput( TAB & arguments.st, true );
 				return;
 			}
@@ -105,11 +141,21 @@ component {
 		};
 
 		try {
-
 			var filterTimer = getTickCount();
-			var tb = new testbox.system.TestBox( bundles=getBundles(), reporter="console" );
+			var bundles = getBundles( "/test", request.testFolder );
+			//SystemOutput( bundles, true);
+			var additionalBundles = [];
+			if ( len( request.testAdditional ) ){
+				additionalBundles = getBundles( "/testAdditional", request.testAdditional );
+				// SystemOutput( additionalBundles, true );
+				bundles = ArrayMerge( bundles, additionalBundles );
+			}
+			var tb = new testbox.system.TestBox( bundles=bundles, reporter="console" );
 
 			SystemOutput( "Found #tb.getBundles().len()# tests to run, filter took #getTickCount()-filterTimer#ms", true );
+			if ( len( additionalBundles ) ){
+				SystemOutput( "Found #additionalBundles.len()# additional tests to run", true );
+			}
 			if (false and Arraylen( request.testFilter )){
 				// dump matches by testFilter
 				for ( b in tb.getBundles() )
@@ -124,7 +170,7 @@ component {
 		SystemOut.setOut( out );
 		//SystemOut.setErr(err);
 		//"============================================================="
-		systemOutput( TAB & meta.name, false );
+		systemOutput( TAB & meta.name & " ", false );
 		SystemOut.setOut( nullValue() );
 		//SystemOut.setErr(nullValue());
 	} // onBundleStart = function
@@ -240,6 +286,18 @@ component {
 			}
 			//systemOutput(serializeJson(bundle.suiteStats));
 		}
+		// report out any slow test specs, because for Lucee, slow performance is a bug (tm)
+		if ( !isNull( bundle.suiteStats ) ) {
+			loop array=bundle.suiteStats item="local.suiteStat" {
+				if ( !isNull( suiteStat.specStats ) ) {
+					loop array=suiteStat.specStats item="local.specStat" {
+						if ( specStat.totalDuration gt 5000 )
+							systemOutput( TAB & TAB & specStat.name & " took #numberFormat( specStat.totalDuration )#ms", true );
+					}
+				}
+			}
+		}
+		
 	// exceptions
 	if ( !isSimpleValue( bundle.globalException ) ) {
 		systemOutput( "Global Bundle Exception

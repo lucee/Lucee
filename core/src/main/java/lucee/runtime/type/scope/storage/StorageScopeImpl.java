@@ -405,9 +405,11 @@ public abstract class StorageScopeImpl extends StructSupport implements StorageS
 		unstore(ThreadLocalPageContext.get(config));
 	}
 
-	public void store(PageContext pc) {}
+	public void store(PageContext pc) {
+	}
 
-	public void unstore(PageContext pc) {}
+	public void unstore(PageContext pc) {
+	}
 
 	/**
 	 * @return the hasChanges

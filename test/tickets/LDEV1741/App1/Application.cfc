@@ -11,7 +11,7 @@ component {
 
 	// DATASOPURCE CONFIG
 	dbname	= 'testdb8';
-	dbpath	= expandPath("/data/#dbname#");
+	dbpath	= expandPath("#getTempDirectory()#/data/#dbname#");
 
 	this.datasources[dbname] = {
 		  class: 'org.h2.Driver'

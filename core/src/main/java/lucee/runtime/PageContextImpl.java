@@ -863,8 +863,11 @@ public final class PageContextImpl extends PageContext {
 
 	public PageSource[] getRelativePageSources(String realPath) {
 		if (StringUtil.startsWith(realPath, '/')) return getPageSources(realPath);
-		if (pathList.size() == 0) return null;
-		return new PageSource[] { pathList.getLast().getRealPage(realPath) };
+
+		PageSource ps = getCurrentPageSource(null);
+		if (ps == null) return null;
+
+		return new PageSource[] { ps.getRealPage(realPath) };
 	}
 
 	public PageSource getPageSource(String realPath) {
@@ -3128,7 +3131,7 @@ public final class PageContextImpl extends PageContext {
 		// Application
 		application = scopeContext.getApplicationScope(this, false, null);// this is needed that the
 		// application scope is initilized
-		if (application == null) {
+		if (application == null || !application.isInitalized()) {
 			// because we had no lock so far, it could be that we more than one thread here at the same time
 			Lock nameLock = lock.lock(name, getRequestTimeout());
 			try {
@@ -3146,6 +3149,9 @@ public final class PageContextImpl extends PageContext {
 					catch (PageException pe) {
 						scopeContext.removeApplicationScope(this);
 						throw pe;
+					}
+					finally {
+						application.initialize(this);
 					}
 				}
 			}

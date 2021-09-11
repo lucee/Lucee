@@ -92,7 +92,8 @@ public final class CompressUtil {
 	/**
 	 * Constructor of the class
 	 */
-	private CompressUtil() {}
+	private CompressUtil() {
+	}
 
 	/**
 	 * extract a zip file to a directory

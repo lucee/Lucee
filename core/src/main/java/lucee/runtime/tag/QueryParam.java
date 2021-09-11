@@ -270,7 +270,8 @@ public final class QueryParam extends TagImpl {
 		try {
 			pageContext.write(str);
 		}
-		catch (IOException e) {}
+		catch (IOException e) {
+		}
 	}
 
 }

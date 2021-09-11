@@ -673,7 +673,8 @@ public final class ASMUtil {
 					sb.append("type:" + props[i].getASMType() + ";");
 
 				}
-				catch (PageException e) {}
+				catch (PageException e) {
+				}
 			}
 		}
 		try {
@@ -729,7 +730,8 @@ public final class ASMUtil {
 
 	public static void pop(GeneratorAdapter adapter, Type type) {
 		if (type.equals(Types.DOUBLE_VALUE)) adapter.pop2();
-		else if (type.equals(Types.VOID)) {}
+		else if (type.equals(Types.VOID)) {
+		}
 		else adapter.pop();
 	}
 

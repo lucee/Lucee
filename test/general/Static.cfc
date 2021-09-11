@@ -140,6 +140,21 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		assertEquals("2-2",static.StaticConstructorLifeCycle::getCount());
 	}
 
+	public void function testFakeStaticVariable() skip=true {
+		// LDEV-3465
+		// problem with this bug is that static is a scope name, which is writable, but inaccessbile
+		var val = new static.FakeStaticVariableExtend().test();
+		expect( val ).toBe("foo");
+	}
+
+	public void function testExtendedStaticVariable() skip=true {
+		// LDEV-3465 (might need some tweaking?)
+		var child = new static.StaticScopeExtend();
+		// systemOutput (child.getStatic() );
+		expect( child.getStatic() ).toBeTypeOf( "struct" );
+		// systemOutput( child.getStaticVariable( "test" ) );
+		expect( child.getStaticVariable( "test" ) ).toBe( "base" );
+	}
 } 
 
 

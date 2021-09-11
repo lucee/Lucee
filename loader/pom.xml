@@ -3,7 +3,7 @@
 
   <groupId>org.lucee</groupId>
   <artifactId>lucee</artifactId>
-  <version>6.0.0.104-SNAPSHOT</version>
+  <version>6.0.0.113-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>Lucee Loader Build</name>
@@ -298,7 +298,7 @@
   <dependency>
     <groupId>junit</groupId>
     <artifactId>junit</artifactId>
-    <version>4.12</version>
+    <version>4.13.2</version>
     <scope>test</scope>
   </dependency>
 
@@ -330,7 +330,7 @@
   <dependency>
     <groupId>org.apache.ant</groupId>
     <artifactId>ant</artifactId>
-    <version>1.9.5</version>
+    <version>1.10.11</version>
     <scope>compile</scope>
   </dependency>
 
@@ -352,7 +352,7 @@
   <dependency>
     <groupId>org.apache.tika</groupId>
     <artifactId>tika-core</artifactId>
-    <version>1.22</version>
+    <version>1.27</version>
     <scope>provided</scope>
   </dependency>
   <dependency>
@@ -649,6 +649,12 @@
         <artifactId>javax.websocket-api</artifactId>
         <version>1.1</version>
         <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>net.java.dev.jna</groupId>
+      <artifactId>jna</artifactId>
+      <version>5.5.0</version>
+      <scope>provided</scope>
     </dependency>
   <!-- <dependency>
     <groupId>xdb</groupId>

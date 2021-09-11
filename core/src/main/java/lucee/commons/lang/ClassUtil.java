@@ -555,7 +555,8 @@ public final class ClassUtil {
 				if (file.exists()) try {
 					pathes.put(file.getCanonicalPath(), "");
 				}
-				catch (IOException e) {}
+				catch (IOException e) {
+				}
 			}
 		}
 
@@ -588,7 +589,8 @@ public final class ClassUtil {
 			if (file.exists()) try {
 				pathes.put(file.getCanonicalPath(), "");
 			}
-			catch (IOException e) {}
+			catch (IOException e) {
+			}
 		}
 	}
 
@@ -772,7 +774,8 @@ public final class ClassUtil {
 			is = cl.getResourceAsStream(clazz.getName().replace('.', '/') + ".class");
 			return IOUtil.toBytes(is);
 		}
-		catch (Exception e) {}
+		catch (Exception e) {
+		}
 
 		is = null;
 		ZipFile zf = null;
@@ -796,7 +799,8 @@ public final class ClassUtil {
 				if (f.isFile()) return IOUtil.toBytes(f);
 			}
 		}
-		catch (Exception e) {}
+		catch (Exception e) {
+		}
 		finally {
 			IOUtil.closeEL(is);
 			IOUtil.closeELL(zf);

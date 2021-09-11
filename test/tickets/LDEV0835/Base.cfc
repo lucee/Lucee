@@ -5,6 +5,6 @@ component {
 	}
 
 	public static string function getData(){
-		return static.base & " : " & static.all;
+		return static.base & ":" & static.all;
 	}
 }

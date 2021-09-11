@@ -71,7 +71,8 @@ public final class CacheRemove extends BIF {
 				}
 			}
 		}
-		catch (IOException e) {}
+		catch (IOException e) {
+		}
 		if (throwOnError && sb != null) throw new ApplicationException("can not remove the elements with the following id(s) [" + sb + "]");
 		return null;
 	}
