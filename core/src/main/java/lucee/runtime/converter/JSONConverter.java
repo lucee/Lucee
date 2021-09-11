@@ -172,7 +172,8 @@ public final class JSONConverter extends ConverterSupport {
 					sct.setEL(getters[i].getName().substring(3), testRecusrion(test, getters[i].invoke(obj, ArrayUtil.OBJECT_EMPTY)));
 
 				}
-				catch (Exception e) {}
+				catch (Exception e) {
+				}
 			}
 		}
 

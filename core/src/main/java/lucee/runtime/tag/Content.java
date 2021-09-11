@@ -239,7 +239,8 @@ public final class Content extends BodyTagImpl {
 				}
 				if (!(os instanceof GZIPOutputStream)) ReqRspUtil.setContentLength(rsp, contentLength);
 			}
-			catch (IOException ioe) {}
+			catch (IOException ioe) {
+			}
 			finally {
 				IOUtil.flushEL(os);
 				IOUtil.closeEL(is, os);
@@ -275,7 +276,8 @@ public final class Content extends BodyTagImpl {
 	 * 
 	 * @param hasBody
 	 */
-	public void hasBody(boolean hasBody) {}
+	public void hasBody(boolean hasBody) {
+	}
 
 	private Range[] getRanges() {
 		HttpServletRequest req = pageContext.getHttpServletRequest();

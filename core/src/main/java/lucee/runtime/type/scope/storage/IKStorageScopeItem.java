@@ -42,6 +42,7 @@ public class IKStorageScopeItem implements Serializable, ObjectWrap, Castable {
 	}
 
 	// needed for containsValue
+	@Override
 	public boolean equals(Object o) {
 		return value.equals(o);
 	}
@@ -124,5 +125,10 @@ public class IKStorageScopeItem implements Serializable, ObjectWrap, Castable {
 	@Override
 	public int compareTo(DateTime dt) throws PageException {
 		return Operator.compare(getValue(), (Date) dt);
+	}
+
+	@Override
+	public String toString() {
+		return getValue() + "";
 	}
 }

@@ -91,6 +91,7 @@ public class QueryUtil {
 		else if (type == Types.BIT) return Cast.BIT;
 		else if (type == Types.ARRAY) return Cast.ARRAY;
 		else if (type == Types.BIGINT) return Cast.BIGINT;
+		else if (type == Types.SQLXML) return Cast.SQLXML;
 
 		// ORACLE
 		else if (isOracleType(type) && isOracle(result)) {

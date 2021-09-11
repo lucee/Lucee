@@ -119,8 +119,7 @@
 			}
 			echo( "ERROR: Missing Required-Bundles from MANIFEST.MF:" );
 			echo( missingBundles.join("\n") );
-			// TODO once missing bundles are fixed
-			// throw "Missing Required Bundles: " + reqBundle; 
+			throw "Missing Required Bundles: " + missingBundles.join("\n"); 
 		}
 		echo( "" );
 		//project.setProperty( prefix + "version", version );

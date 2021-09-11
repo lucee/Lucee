@@ -52,7 +52,8 @@ public class PrecisionEvaluate implements FunctionEvaluator {
 	}
 
 	@Override
-	public void evaluate(BIF bif, FunctionLibFunction flf) throws EvaluatorException {}
+	public void evaluate(BIF bif, FunctionLibFunction flf) throws EvaluatorException {
+	}
 
 	@Override
 	public FunctionLibFunction pre(BIF bif, FunctionLibFunction flf) throws TemplateException {

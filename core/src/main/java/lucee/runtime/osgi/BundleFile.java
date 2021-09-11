@@ -93,7 +93,7 @@ public class BundleFile extends BundleInfo {
 	 * @param res
 	 * @return
 	 * 
-	 * 		public static BundleFile newInstance(Resource res) {
+	 *         public static BundleFile newInstance(Resource res) {
 	 * 
 	 *         try { BundleFile bf = new BundleFile(res); if (bf.isBundle()) return bf; } catch
 	 *         (Throwable t) { ExceptionUtil.rethrowIfNecessary(t); }

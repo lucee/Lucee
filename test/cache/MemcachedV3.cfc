@@ -16,7 +16,7 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  * 
  ---><cfscript>
-component extends="org.lucee.cfml.test.LuceeTestCase"	{
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="memcached" {
 	
 	variables.cacheName='memcached';
 	
@@ -82,6 +82,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	}
 
 	private string function defineCache(){
+		var memcached = server.getDatasource("memcached");
+		if ( isEmpty( memcached ) )
+			return false;
 		try {
 			application action="update" 
 				caches="#{memcached:{
@@ -90,7 +93,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 						, bundleVersion: '3.0.2.29'
 						, storage: false
 						, custom: {
-							"socket_timeout":"30",
+							"socket_timeout":"3",
 							"initial_connections":"1",
 							"alive_check":"true",
 							"buffer_size":"1",
@@ -103,8 +106,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 							"max_idle_time":"600",
 							"max_busy_time":"30",
 							"nagle_alg":"true",
-							"failover":"true",
-							"servers":"localhost:11211"
+							"failover":"false",
+							"servers":"#memcached.server#:#memcached.port#"
 						}
 						, default: ''
 					}}#";

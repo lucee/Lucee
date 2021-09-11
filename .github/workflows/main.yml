@@ -1,0 +1,143 @@
+name: Java CI
+
+on: [push, pull_request, workflow_dispatch]
+
+concurrency: 
+  group: lucee-build
+  cancel-in-progress: true
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    env:
+      DO_DEPLOY: "${{ github.event_name == 'push' && github.ref == 'refs/heads/6.0' }}"
+    services:
+      sql-server:
+        # Docker Hub image
+        image: mcr.microsoft.com/mssql/server:2019-latest
+        env:
+          MSSQL_PID: Express
+          ACCEPT_EULA: Y
+          SA_PASSWORD: Lucee!1433 # password must be complex or the service won't start
+        ports:
+          - 1433:1433
+        options: --health-cmd="/opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P ${SA_PASSWORD} -Q 'SELECT 1' || exit 1"  --health-interval 10s --health-timeout 5s --health-retries 5
+      redis:
+        # Docker Hub image
+        image: redis
+        # Set health checks to wait until redis has started
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          # Maps port 6379 on service container to the host
+          - 6379:6379
+    steps:
+    - uses: szenius/set-timezone@v1.0
+      with:
+        timezoneLinux: "UTC"
+    - uses: actions/checkout@v2
+    - name: Set up JDK 11
+      uses: actions/setup-java@v2
+      with:
+        java-version: '8'
+        distribution: 'adopt'
+    - name: Cache Lucee extensions
+      uses: actions/cache@v2
+      with:
+        path: ~/work/Lucee/Lucee/cache/
+        key: lucee-extensions
+        restore-keys: lucee-extensions
+    - name: Cache Maven packages
+      uses: actions/cache@v2
+      with:
+        path: ~/.m2
+        key: ${{ runner.os }}-m2-${{ hashFiles('loader/pom.xml','core/pom.xml') }}
+        restore-keys: |
+          ${{ runner.os }}-m2
+          maven-cache
+    - name: Set up MySQL (local)
+      run: |
+        sudo /etc/init.d/mysql start
+        mysql -e 'CREATE DATABASE lucee' -uroot -proot
+        mysql -e 'CREATE USER "lucee"@"localhost" IDENTIFIED WITH mysql_native_password BY "lucee";' -uroot -proot
+        mysql -e 'GRANT ALL PRIVILEGES ON lucee.* TO "lucee"@"localhost"' -uroot -proot
+    - name: Set up Postgres (local)
+      run: |
+        sudo /etc/init.d/postgresql start
+        sudo -u postgres psql -c 'create database lucee;'
+        sudo -u postgres psql -c "create user lucee with encrypted password 'lucee'";
+        sudo -u postgres psql -c 'grant all privileges on database lucee to lucee;'
+    - name: Start MongoDB (docker)
+      uses: supercharge/mongodb-github-action@1.6.0
+      with:
+        mongodb-version: 4.4
+        mongodb-port: 27017
+    - name: Setup Memcached (docker)
+      uses: niden/actions-memcached@v7
+    - name: Build Lucee with Maven
+      env:
+        MYSQL_SERVER: localhost
+        MYSQL_USERNAME: lucee
+        MYSQL_PASSWORD: lucee
+        MYSQL_PORT: 3306
+        MYSQL_DATABASE: lucee
+        POSTGRES_SERVER: localhost
+        POSTGRES_USERNAME: lucee
+        POSTGRES_PASSWORD: lucee
+        POSTGRES_PORT: 5432
+        POSTGRES_DATABASE: lucee
+        MONGODB_SERVER: localhost
+        MONGODB_PORT: 27017
+        MONGODB_DB: lucee
+        MONGODB_DATABASE: lucee
+        MSSQL_SERVER: localhost
+        MSSQL_USERNAME: sa
+        MSSQL_PASSWORD: Lucee!1433
+        MSSQL_PORT: 1433
+        MSSQL_DATABASE: master
+        MEMCACHED_PORT: 11211
+        MEMCACHED_SERVER: localhost
+        S3_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_ID_TEST }}
+        S3_SECRET_KEY: ${{ secrets.S3_SECRET_KEY_TEST }}
+        # DO_DEPLOY: ${{ github.event_name == 'push' }}
+        # for uploading successful builds
+        S3_ACCESS_ID_DOWNLOAD: ${{ secrets.S3_ACCESS_ID_DOWNLOAD }}
+        S3_SECRET_KEY_DOWNLOAD: ${{ secrets.S3_SECRET_KEY_DOWNLOAD }}
+        # used by travis-settings.xml
+        CI_DEPLOY_USERNAME: ${{ secrets.CI_DEPLOY_USERNAME }}
+        CI_DEPLOY_PASSWORD: ${{ secrets.CI_DEPLOY_PASSWORD }}
+        CI_DEPLOY_PASSPHRASE: ${{ secrets.CI_DEPLOY_PASSPHRASE }}
+      #run: ant -noinput -buildfile loader/build.xml
+      run: |
+        if [ "${DO_DEPLOY}" == "true" ]; then        
+          echo "------- Maven Deploy on ${{ github.event_name }} -------";
+          mvn -B -e -f loader/pom.xml clean deploy --settings travis-settings.xml;
+        else
+          echo "------- Maven Install on ${{ github.event_name }} ---------";
+          mvn -B -e -f loader/pom.xml clean install
+        fi
+    - name: Publish Test Results
+      uses: EnricoMi/publish-unit-test-result-action@v1
+      if: always()
+      with:
+        files: test/reports/junit-test-results.xml
+        check_name: "Lucee Test Results"
+    - name: Update Provider
+      if: ${{ env.DO_DEPLOY == 'true' }}
+      run: |
+        curl --no-progress-meter -sIXGET "https://update.lucee.org/rest/update/provider/buildLatest"
+        curl --no-progress-meter -sIXGET "https://extension.lucee.org/rest/extension/provider/reset"
+        curl --no-progress-meter -sIXGET "https://download.lucee.org/?type=snapshots&reset=force"
+    - name: Trigger Docker Build
+      if: ${{ env.DO_DEPLOY == 'true' }}
+      env:
+        TRAVIS_JOB_ID: ${{ github.run_id }}
+        TRAVIS_TOKEN: ${{ secrets.DOCKER_AUTH_TOKEN }} # not set up yet
+      run: |
+        echo "Trigger Docker Build on Travis https://travis-ci.com/github/lucee/lucee-dockerfiles"
+        chmod +x travis-docker-build.sh
+        ./travis-docker-build.sh

@@ -24,13 +24,16 @@ import java.io.Writer;
 public final class DevNullCharBuffer extends CharBuffer {
 
 	@Override
-	public void append(char[] c) {}
+	public void append(char[] c) {
+	}
 
 	@Override
-	public void append(String str) {}
+	public void append(String str) {
+	}
 
 	@Override
-	public void clear() {}
+	public void clear() {
+	}
 
 	@Override
 	public int size() {
@@ -48,5 +51,6 @@ public final class DevNullCharBuffer extends CharBuffer {
 	}
 
 	@Override
-	public void writeOut(Writer writer) throws IOException {}
+	public void writeOut(Writer writer) throws IOException {
+	}
 }

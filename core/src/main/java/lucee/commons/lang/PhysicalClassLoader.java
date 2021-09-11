@@ -54,6 +54,7 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 	private final ClassLoader[] parents;
 
 	private Map<String, String> loadedClasses = new ConcurrentHashMap<String, String>();
+	private Map<String, String> allLoadedClasses = new ConcurrentHashMap<String, String>(); // this includes all renames
 	private Map<String, String> unavaiClasses = new ConcurrentHashMap<String, String>();
 
 	private Map<String, SoftReference<PhysicalClassLoader>> customCLs;
@@ -134,7 +135,8 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 					c = p.loadClass(name);
 					break;
 				}
-				catch (Exception e) {}
+				catch (Exception e) {
+				}
 			}
 			if (c == null) {
 				if (loadFromFS) c = findClass(name);
@@ -175,7 +177,8 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 			try {
 				clazz = loadClass(name, false, false); // we do not load existing class from disk
 			}
-			catch (ClassNotFoundException cnf) {}
+			catch (ClassNotFoundException cnf) {
+			}
 			if (clazz == null) return _loadClass(name, barr, false);
 
 			// first we try to update the class what needs instrumentation object
@@ -198,6 +201,8 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 		Class<?> clazz = defineClass(name, barr, 0, barr.length);
 		if (clazz != null) {
 			if (!rename) loadedClasses.put(name, "");
+			allLoadedClasses.put(name, "");
+
 			resolveClass(clazz);
 		}
 		return clazz;
@@ -208,8 +213,8 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 		return null;
 	}
 
-	public int getSize() {
-		return loadedClasses.size();
+	public int getSize(boolean includeAllRenames) {
+		return includeAllRenames ? allLoadedClasses.size() : loadedClasses.size();
 	}
 
 	@Override
@@ -222,7 +227,8 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 			try {
 				return IOUtil.toBufferedInputStream(f.getInputStream());
 			}
-			catch (IOException e) {}
+			catch (IOException e) {
+			}
 		}
 		return null;
 	}
@@ -285,6 +291,7 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 
 	public void clear() {
 		this.loadedClasses.clear();
+		this.allLoadedClasses.clear();
 		this.unavaiClasses.clear();
 	}
 }

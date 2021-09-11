@@ -11,7 +11,7 @@ component {
 	// any mappings go here, we create one that points to the root called test.
 	this.mappings[ "/tests" ] = getDirectoryFromPath( getCurrentTemplatePath() );
 
-	dbpath = expandPath("/data/testdb");
+	dbpath = expandPath("#getTempDirectory()#/data/testdb");
 
 	this.datasources["testdb"] = {
 		  class: 'org.h2.Driver'

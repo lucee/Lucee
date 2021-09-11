@@ -57,7 +57,8 @@ public final class Silent extends BodyTagTryCatchFinallyImpl {
 			try {
 				bc.flush();
 			}
-			catch (IOException e) {}
+			catch (IOException e) {
+			}
 			pageContext.popBody();
 			bc = null;
 		}

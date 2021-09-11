@@ -3888,6 +3888,23 @@ type of the result returned:
 		</return>
 	</function>
 	
+	<!-- DirectoryInfo -->
+	<function>
+		<name>DirectoryInfo</name>
+		<class>lucee.runtime.functions.file.DirectoryInfo</class>
+		<description>returns detailed info about the given directory.</description>
+		<argument>
+			<name>source</name>
+			<alias>Directory</alias>
+			<type>string</type>
+			<required>Yes</required>
+			<description>directory path</description>
+		</argument>
+		<return>
+			<type>struct</type>
+		</return>
+	</function>
+	
 	<!-- encrypt -->
 	<function>
 		<name>encrypt</name>
@@ -7601,6 +7618,17 @@ The following things are considered to be empty:
 			<required>Yes</required>
 		<description>A WDDX packet</description>
     </argument>
+		<return>
+			<type>boolean</type>
+		</return>
+	</function>
+	
+	<!-- IsWithinTransaction -->
+	<function>
+		<name>isWithinTransaction</name>
+		<class>lucee.runtime.functions.query.IsWithinTransaction</class>
+		<keywords>decision,query,datasource</keywords>
+		<description>Determines whether the current thread is within a transaction block or not.</description>
 		<return>
 			<type>boolean</type>
 		</return>
@@ -12037,6 +12065,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<name>structDelete</name>
 		<class>lucee.runtime.functions.struct.StructDelete</class>
 		<member-name>delete</member-name>
+		<member-chaining>true</member-chaining>
 		<keywords>struct</keywords>
 		<description>Removes an element from a structure.</description>
 		<argument>
@@ -13233,6 +13262,14 @@ You can find a list of all available timezones in the Lucee administrator (Setti
   the type "synchronized" is no longer supported and get ignored, because since version 4.1 all struct/scopes are "thread safe"
 			</description>
 		</argument>
+		<argument>
+			<name>onMissingKey</name>
+			<type>function</type>
+			<required>No</required>
+			<description>
+			listener function that get invoked in case a request key does not exist.
+			</description>
+		</argument>
 		<return>
 			<type>struct</type>
 		</return>
@@ -14153,14 +14190,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<name>hash</name>
 			<type>string</type>
 			<required>Yes</required>
-			<description>Degrees of parallelism, a number between 1 and 10.</description>
-    	</argument>
-    	<argument>
-			<name>variant</name>
-			<type>string</type>
-			<required>No</required>
-			<default>argon2i</default>
-			<description>Either Argon2i, Argon2d or Argon2id</description>
+			<description>The hash of input.</description>
     	</argument>
     	<return>
     		<type>boolean</type>

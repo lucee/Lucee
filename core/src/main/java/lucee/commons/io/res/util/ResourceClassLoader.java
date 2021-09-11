@@ -94,7 +94,8 @@ public final class ResourceClassLoader extends URLClassLoader implements Closeab
 	}
 
 	@Override
-	public void close() {}
+	public void close() {
+	}
 
 	/*
 	 * public synchronized void addResources(Resource[] reses) throws IOException { for(int
