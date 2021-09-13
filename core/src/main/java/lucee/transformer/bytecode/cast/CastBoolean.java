@@ -30,7 +30,6 @@ import lucee.transformer.bytecode.util.Methods;
 import lucee.transformer.bytecode.util.Types;
 import lucee.transformer.cast.Cast;
 import lucee.transformer.expression.ExprBoolean;
-import lucee.transformer.expression.ExprDouble;
 import lucee.transformer.expression.ExprNumber;
 import lucee.transformer.expression.ExprString;
 import lucee.transformer.expression.Expression;
@@ -85,12 +84,7 @@ public final class CastBoolean extends ExpressionBase implements ExprBoolean, Ca
 	@Override
 	public Type _writeOut(BytecodeContext bc, int mode) throws TransformerException {
 		GeneratorAdapter adapter = bc.getAdapter();
-		if (expr instanceof ExprDouble) {
-			expr.writeOut(bc, MODE_VALUE);
-			if (mode == MODE_VALUE) adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_BOOLEAN_VALUE_FROM_DOUBLE_VALUE);
-			else adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_BOOLEAN_FROM_DOUBLE_VALUE);
-		}
-		else if (expr instanceof ExprNumber) {
+		if (expr instanceof ExprNumber) {
 			expr.writeOut(bc, mode);
 			if (mode == MODE_VALUE) adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_BOOLEAN_VALUE_FROM_DOUBLE_VALUE);
 			else adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_BOOLEAN_FROM_NUMBER);

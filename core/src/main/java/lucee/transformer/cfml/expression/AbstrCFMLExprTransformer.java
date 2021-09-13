@@ -710,7 +710,7 @@ public abstract class AbstrCFMLExprTransformer {
 				comments(data);
 				Expression value = assignOp(data);
 
-				expr = data.factory.opUnary((Variable) expr, value, Factory.OP_UNARY_PRE, Factory.OP_UNARY_CONCAT, expr.getStart(), data.srcCode.getPosition());
+				expr = data.factory.opUnaryString((Variable) expr, value, Factory.OP_UNARY_PRE, Factory.OP_UNARY_CONCAT, expr.getStart(), data.srcCode.getPosition());
 
 				// ExprString res = OpString.toExprString(expr, right);
 				// expr=new OpVariable((Variable)expr,res,data.cfml.getPosition());
@@ -754,7 +754,7 @@ public abstract class AbstrCFMLExprTransformer {
 			comments(data);
 			Expression value = assignOp(data);
 
-			expr = data.factory.opUnary((Variable) expr, value, Factory.OP_UNARY_PRE, opr, expr.getStart(), data.srcCode.getPosition());
+			expr = data.factory.opUnaryNumber((Variable) expr, value, Factory.OP_UNARY_PRE, opr, expr.getStart(), data.srcCode.getPosition());
 		}
 
 		else {
@@ -836,7 +836,7 @@ public abstract class AbstrCFMLExprTransformer {
 			comments(data);
 			Expression value = assignOp(data);
 
-			return data.factory.opUnary((Variable) expr, value, Factory.OP_UNARY_PRE, iOp, expr.getStart(), data.srcCode.getPosition());
+			return data.factory.opUnaryNumber((Variable) expr, value, Factory.OP_UNARY_PRE, iOp, expr.getStart(), data.srcCode.getPosition());
 		}
 		comments(data);
 		return data.factory.opNumber(expr, expoOp(data), iOp);
@@ -879,7 +879,9 @@ public abstract class AbstrCFMLExprTransformer {
 			start = leftEnd;
 			end = new Position(leftEnd.line, leftEnd.column + 2, leftEnd.pos + 2);
 		}
-		return data.factory.opUnary((Variable) expr, data.factory.NUMBER_ONE(), Factory.OP_UNARY_POST, op, start, end);
+
+		if (op == Factory.OP_UNARY_CONCAT) return data.factory.opUnaryString((Variable) expr, data.factory.NUMBER_ONE(), Factory.OP_UNARY_POST, op, start, end);
+		return data.factory.opUnaryNumber((Variable) expr, data.factory.NUMBER_ONE(), Factory.OP_UNARY_POST, op, start, end);
 	}
 
 	/**
@@ -896,7 +898,7 @@ public abstract class AbstrCFMLExprTransformer {
 			if (data.srcCode.forwardIfCurrent('-')) {
 				comments(data);
 				Expression expr = clip(data);
-				return data.factory.opUnary((Variable) expr, data.factory.NUMBER_ONE(), Factory.OP_UNARY_PRE, Factory.OP_UNARY_MINUS, line, data.srcCode.getPosition());
+				return data.factory.opUnaryNumber((Variable) expr, data.factory.NUMBER_ONE(), Factory.OP_UNARY_PRE, Factory.OP_UNARY_MINUS, line, data.srcCode.getPosition());
 
 			}
 			comments(data);
@@ -908,7 +910,7 @@ public abstract class AbstrCFMLExprTransformer {
 				comments(data);
 				Expression expr = clip(data);
 
-				return data.factory.opUnary((Variable) expr, data.factory.NUMBER_ONE(), Factory.OP_UNARY_PRE, Factory.OP_UNARY_PLUS, line, data.srcCode.getPosition());
+				return data.factory.opUnaryNumber((Variable) expr, data.factory.NUMBER_ONE(), Factory.OP_UNARY_PRE, Factory.OP_UNARY_PLUS, line, data.srcCode.getPosition());
 			}
 			comments(data);
 			return data.factory.toExprNumber(clip(data));

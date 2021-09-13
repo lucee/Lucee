@@ -5,7 +5,6 @@ import java.math.BigDecimal;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.TemplateException;
 import lucee.transformer.cast.Cast;
-import lucee.transformer.expression.ExprDouble;
 import lucee.transformer.expression.ExprNumber;
 import lucee.transformer.expression.Expression;
 import lucee.transformer.expression.literal.Literal;
@@ -32,7 +31,7 @@ public final class CastNumber extends ExpressionBase implements ExprNumber, Cast
 	 * @throws TemplateException
 	 */
 	public static ExprNumber toExprNumber(Expression expr) {
-		if (expr instanceof ExprDouble) return (ExprDouble) expr;
+		if (expr instanceof ExprNumber) return (ExprNumber) expr;
 		if (expr instanceof Literal) {
 			Number n = ((Literal) expr).getNumber(null);
 			if (n != null) {

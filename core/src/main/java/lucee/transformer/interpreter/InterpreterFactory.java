@@ -12,7 +12,6 @@ import lucee.transformer.FactoryBase;
 import lucee.transformer.Position;
 import lucee.transformer.TransformerException;
 import lucee.transformer.expression.ExprBoolean;
-import lucee.transformer.expression.ExprDouble;
 import lucee.transformer.expression.ExprInt;
 import lucee.transformer.expression.ExprNumber;
 import lucee.transformer.expression.ExprString;
@@ -274,7 +273,12 @@ public class InterpreterFactory extends FactoryBase {
 	}
 
 	@Override
-	public ExprDouble opUnary(Variable var, Expression value, short type, int operation, Position start, Position end) {
+	public ExprNumber opUnaryNumber(Variable var, Expression value, short type, int operation, Position start, Position end) {
+		return null;
+	}
+
+	@Override
+	public ExprString opUnaryString(Variable var, Expression value, short type, int operation, Position start, Position end) {
 		return null;
 	}
 

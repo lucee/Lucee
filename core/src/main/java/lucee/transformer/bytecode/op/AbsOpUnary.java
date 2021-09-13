@@ -31,15 +31,15 @@ import lucee.transformer.Position;
 import lucee.transformer.TransformerException;
 import lucee.transformer.bytecode.BytecodeContext;
 import lucee.transformer.bytecode.expression.ExpressionBase;
+import lucee.transformer.bytecode.util.Methods;
 import lucee.transformer.bytecode.util.Types;
 import lucee.transformer.bytecode.visitor.ArrayVisitor;
-import lucee.transformer.expression.ExprNumber;
 import lucee.transformer.expression.Expression;
 import lucee.transformer.expression.var.DataMember;
 import lucee.transformer.expression.var.Member;
 import lucee.transformer.expression.var.Variable;
 
-public class OpUnary extends ExpressionBase implements ExprNumber {
+public abstract class AbsOpUnary extends ExpressionBase {
 
 	private final static Method UNARY_POST_PLUS_1 = new Method("unaryPoPl", Types.NUMBER, new Type[] { Types.PAGE_CONTEXT, Types.COLLECTION_KEY, Types.NUMBER });
 	private final static Method UNARY_POST_PLUS_N = new Method("unaryPoPl", Types.NUMBER, new Type[] { Types.PAGE_CONTEXT, Types.COLLECTION_KEY_ARRAY, Types.NUMBER });
@@ -83,7 +83,7 @@ public class OpUnary extends ExpressionBase implements ExprNumber {
 	private final short type;
 	private final int operation;
 
-	public OpUnary(Variable var, Expression value, short type, int operation, Position start, Position end) {
+	public AbsOpUnary(Variable var, Expression value, short type, int operation, Position start, Position end) {
 		super(var.getFactory(), start, end);
 		this.var = var;
 		this.value = value;
@@ -143,6 +143,11 @@ public class OpUnary extends ExpressionBase implements ExprNumber {
 
 			if (operation == Factory.OP_UNARY_CONCAT) return Types.STRING;
 
+			// convert from NUmber to double value (if necessary)
+			if (mode == MODE_VALUE) {
+				adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_DOUBLE_VALUE_FROM_NUMBER);
+				return Types.DOUBLE_VALUE;
+			}
 			return Types.NUMBER;
 		}
 
@@ -194,7 +199,7 @@ public class OpUnary extends ExpressionBase implements ExprNumber {
 			else if (operation == Factory.OP_UNARY_MINUS) adapter.invokeStatic(Types.OP_UTIL, useArray ? UNARY_POST_MINUS_N : UNARY_POST_MINUS_1);
 		}
 		else if (type == Factory.OP_UNARY_PRE) {
-			value.writeOut(bc, MODE_REF);
+			value.writeOut(bc, MODE_REF);// TODOX uses a no ref method
 			if (operation == Factory.OP_UNARY_PLUS) adapter.invokeStatic(Types.OP_UTIL, useArray ? UNARY_PRE_PLUS_N : UNARY_PRE_PLUS_1);
 			else if (operation == Factory.OP_UNARY_MINUS) adapter.invokeStatic(Types.OP_UTIL, useArray ? UNARY_PRE_MINUS_N : UNARY_PRE_MINUS_1);
 			else if (operation == Factory.OP_UNARY_DIVIDE) adapter.invokeStatic(Types.OP_UTIL, useArray ? UNARY_PRE_DIVIDE_N : UNARY_PRE_DIVIDE_1);
@@ -203,11 +208,11 @@ public class OpUnary extends ExpressionBase implements ExprNumber {
 		}
 		if (operation == Factory.OP_UNARY_CONCAT) return Types.STRING;
 
-		// convert from double to Double (if necessary)
-		/*
-		 * if (mode == MODE_REF) { adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_DOUBLE_FROM_DOUBLE);
-		 * return Types.DOUBLE; }
-		 */
+		// convert from NUmber to double value (if necessary)
+		if (mode == MODE_VALUE) {
+			adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_DOUBLE_VALUE_FROM_NUMBER);
+			return Types.DOUBLE_VALUE;
+		}
 		return Types.NUMBER;
 	}
 }

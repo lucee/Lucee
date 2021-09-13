@@ -79,7 +79,7 @@ import lucee.transformer.bytecode.util.SourceNameClassVisitor.SourceInfo;
 import lucee.transformer.cast.Cast;
 import lucee.transformer.cfml.Data;
 import lucee.transformer.cfml.evaluator.EvaluatorException;
-import lucee.transformer.expression.ExprDouble;
+import lucee.transformer.expression.ExprNumber;
 import lucee.transformer.expression.ExprString;
 import lucee.transformer.expression.Expression;
 import lucee.transformer.expression.literal.LitBoolean;
@@ -724,7 +724,10 @@ public final class ASMUtil {
 	 * @param mode
 	 */
 	public static void pop(GeneratorAdapter adapter, Expression expr, int mode) {
-		if (mode == Expression.MODE_VALUE && (expr instanceof ExprDouble)) adapter.pop2();
+
+		if (mode == Expression.MODE_VALUE && (expr instanceof ExprNumber)) {
+			adapter.pop2();
+		}
 		else adapter.pop();
 	}
 

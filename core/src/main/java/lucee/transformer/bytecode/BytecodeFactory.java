@@ -57,7 +57,8 @@ import lucee.transformer.bytecode.op.OpNegate;
 import lucee.transformer.bytecode.op.OpNegateNumber;
 import lucee.transformer.bytecode.op.OpNumber;
 import lucee.transformer.bytecode.op.OpString;
-import lucee.transformer.bytecode.op.OpUnary;
+import lucee.transformer.bytecode.op.OpUnaryNumber;
+import lucee.transformer.bytecode.op.OpUnaryString;
 import lucee.transformer.bytecode.util.Types;
 import lucee.transformer.expression.ExprBoolean;
 import lucee.transformer.expression.ExprInt;
@@ -358,8 +359,13 @@ public class BytecodeFactory extends FactoryBase {
 	}
 
 	@Override
-	public ExprNumber opUnary(Variable var, Expression value, short type, int operation, Position start, Position end) {
-		return new OpUnary(var, value, type, operation, start, end);
+	public ExprNumber opUnaryNumber(Variable var, Expression value, short type, int operation, Position start, Position end) {
+		return new OpUnaryNumber(var, value, type, operation, start, end);
+	}
+
+	@Override
+	public ExprString opUnaryString(Variable var, Expression value, short type, int operation, Position start, Position end) {
+		return new OpUnaryString(var, value, type, operation, start, end);
 	}
 
 	@Override

@@ -96,10 +96,6 @@ public abstract class Factory {
 
 	public abstract LitBoolean createLitBoolean(boolean b, Position start, Position end);
 
-	// public abstract LitDouble createLitDouble(double d);
-
-	// public abstract LitDouble createLitDouble(double d, Position start, Position end);
-
 	public abstract LitNumber createLitNumber(String number) throws PageException;
 
 	public abstract LitNumber createLitNumber(String number, Position start, Position end) throws PageException;
@@ -167,7 +163,9 @@ public abstract class Factory {
 
 	public abstract ExprNumber opNumber(Expression left, Expression right, int operation);
 
-	public abstract ExprNumber opUnary(Variable var, Expression value, short type, int operation, Position start, Position end);
+	public abstract ExprNumber opUnaryNumber(Variable var, Expression value, short type, int operation, Position start, Position end);
+
+	public abstract ExprString opUnaryString(Variable var, Expression value, short type, int operation, Position start, Position end);
 
 	public abstract Expression opNegate(Expression expr, Position start, Position end);
 

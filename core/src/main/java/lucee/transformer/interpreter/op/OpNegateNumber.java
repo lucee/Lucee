@@ -6,14 +6,13 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.TemplateException;
 import lucee.transformer.Factory;
 import lucee.transformer.Position;
-import lucee.transformer.expression.ExprDouble;
 import lucee.transformer.expression.ExprNumber;
 import lucee.transformer.expression.Expression;
 import lucee.transformer.expression.literal.Literal;
 import lucee.transformer.interpreter.InterpreterContext;
 import lucee.transformer.interpreter.expression.ExpressionBase;
 
-public final class OpNegateNumber extends ExpressionBase implements ExprDouble {
+public final class OpNegateNumber extends ExpressionBase implements ExprNumber {
 
 	private ExprNumber expr;
 
