@@ -352,7 +352,7 @@ public final class Executer {
 				if (op.equals("like")) return executeLike(pc, sql, qr, expression, row);
 				break;
 			case 'm':
-				if (op.equals("mod")) return OpUtil.modulus(pc, Caster.toDoubleValue(left), Caster.toDoubleValue(right));
+				if (op.equals("mod")) return OpUtil.modulusRef(pc, Caster.toDoubleValue(left), Caster.toDoubleValue(right));
 				break;
 			}
 
@@ -666,7 +666,7 @@ public final class Executer {
 		Object right = executeExp(pc, sql, qr, expression.getOperand(1), row);
 
 		try {
-			return OpUtil.plus(pc, Caster.toNumber(left), Caster.toNumber(right));
+			return OpUtil.plusRef(pc, Caster.toNumber(left), Caster.toNumber(right));
 		}
 		catch (PageException e) {
 			return Caster.toString(left) + Caster.toString(right);

@@ -40,7 +40,7 @@ import lucee.runtime.tag.MissingAttribute;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.transformer.TransformerException;
 import lucee.transformer.bytecode.BytecodeContext;
-import lucee.transformer.bytecode.cast.CastDouble;
+import lucee.transformer.bytecode.cast.CastNumber;
 import lucee.transformer.bytecode.cast.CastOther;
 import lucee.transformer.bytecode.expression.type.LiteralStringArray;
 import lucee.transformer.bytecode.statement.FlowControlFinal;
@@ -52,7 +52,7 @@ import lucee.transformer.bytecode.visitor.ArrayVisitor;
 import lucee.transformer.bytecode.visitor.OnFinally;
 import lucee.transformer.bytecode.visitor.TryCatchFinallyVisitor;
 import lucee.transformer.bytecode.visitor.TryFinallyVisitor;
-import lucee.transformer.expression.ExprDouble;
+import lucee.transformer.expression.ExprNumber;
 import lucee.transformer.expression.Expression;
 import lucee.transformer.library.tag.TagLibTag;
 import lucee.transformer.library.tag.TagLibTagAttr;
@@ -448,8 +448,8 @@ public final class TagHelper {
 	private static void writeNumberAsDouble(BytecodeContext bc, Attribute attr, int i) throws TransformerException {
 		Type type = CastOther.getType(attr.getType());
 		Expression expr = attr.getValue();
-		if (type.equals(Types.DOUBLE_VALUE) && !(attr.getValue() instanceof ExprDouble)) {
-			expr = CastDouble.toExprDouble(attr.getValue());
+		if (type.equals(Types.DOUBLE_VALUE) && !(attr.getValue() instanceof ExprNumber)) {
+			expr = CastNumber.toExprNumber(attr.getValue());
 		}
 		expr.writeOut(bc, Types.isPrimitiveType(type) ? Expression.MODE_VALUE : Expression.MODE_REF);
 

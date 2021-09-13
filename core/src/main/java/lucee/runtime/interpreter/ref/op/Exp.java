@@ -49,7 +49,7 @@ public final class Exp extends RefSupport implements Ref {
 	@Override
 	public Object getValue(PageContext pc) throws PageException {
 		if (limited) throw new InterpreterException("invalid syntax, math operations are not supported in a json string.");
-		return OpUtil.exponent(pc, left.getValue(pc), right.getValue(pc));
+		return OpUtil.exponentRef(pc, left.getValue(pc), right.getValue(pc));
 	}
 
 	@Override

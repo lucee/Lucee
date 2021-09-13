@@ -73,7 +73,9 @@ public final class CastOther extends ExpressionBase implements Cast {
 		case 'i':
 			if ("int".equals(lcType)) return expr.getFactory().toExprInt(expr);
 		case 'n':
-			if ("number".equals(lcType) || "numeric".equals(lcType)) return expr.getFactory().toExprDouble(expr);
+			if ("number".equals(lcType) || "numeric".equals(lcType)) {
+				return expr.getFactory().toExprNumber(expr);
+			}
 			break;
 		case 'o':
 			if ("object".equals(lcType)) {

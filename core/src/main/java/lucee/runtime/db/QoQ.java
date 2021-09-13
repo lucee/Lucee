@@ -37,8 +37,8 @@ import lucee.runtime.config.NullSupportHelper;
 import lucee.runtime.exp.DatabaseException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
-import lucee.runtime.op.OpUtil;
 import lucee.runtime.op.Decision;
+import lucee.runtime.op.OpUtil;
 import lucee.runtime.sql.QueryPartitions;
 import lucee.runtime.sql.Select;
 import lucee.runtime.sql.SelectParser;
@@ -889,7 +889,7 @@ public final class QoQ {
 				if (op.equals("isnull")) return executeCoalesce(pc, sql, source, operators, row);
 				break;
 			case 'm':
-				if (op.equals("mod")) return OpUtil.modulus(pc, Caster.toDoubleValue(left), Caster.toDoubleValue(right));
+				if (op.equals("mod")) return OpUtil.modulusRef(pc, Caster.toDoubleValue(left), Caster.toDoubleValue(right));
 				break;
 
 			}

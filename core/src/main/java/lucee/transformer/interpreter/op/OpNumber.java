@@ -47,28 +47,28 @@ public final class OpNumber extends ExpressionBase implements ExprNumber {
 		// TODOX all as Number
 		Number n;
 		if (op == Factory.OP_DBL_EXP) {
-			n = OpUtil.exponent(ic.getPageContext(), ic.getValueAsDoubleValue(left), ic.getValueAsDoubleValue(right));
+			n = OpUtil.exponentRef(ic.getPageContext(), ic.getValueAsNumber(left), ic.getValueAsNumber(right));
 		}
 		else if (op == Factory.OP_DBL_DIVIDE) {
-			n = OpUtil.div(ic.getPageContext(), ic.getValueAsDoubleValue(left), ic.getValueAsDoubleValue(right));
+			n = OpUtil.divideRef(ic.getPageContext(), ic.getValueAsNumber(left), ic.getValueAsNumber(right));
 		}
 		else if (op == Factory.OP_DBL_INTDIV) {
-			n = OpUtil.intdiv(ic.getPageContext(), ic.getValueAsDoubleValue(left), ic.getValueAsDoubleValue(right));
+			n = OpUtil.intdivRef(ic.getPageContext(), ic.getValueAsNumber(left), ic.getValueAsNumber(right));
 		}
 		else if (op == Factory.OP_DBL_PLUS) {
-			n = OpUtil.plus(ic.getPageContext(), ic.getValueAsDoubleValue(left), ic.getValueAsDoubleValue(right));
+			n = OpUtil.plusRef(ic.getPageContext(), ic.getValueAsNumber(left), ic.getValueAsNumber(right));
 		}
 		else if (op == Factory.OP_DBL_MINUS) {
-			n = OpUtil.minus(ic.getPageContext(), ic.getValueAsDoubleValue(left), ic.getValueAsDoubleValue(right));
+			n = OpUtil.minusRef(ic.getPageContext(), ic.getValueAsNumber(left), ic.getValueAsNumber(right));
 		}
 		else if (op == Factory.OP_DBL_MODULUS) {
-			n = OpUtil.modulus(ic.getPageContext(), ic.getValueAsDoubleValue(left), ic.getValueAsDoubleValue(right));
+			n = OpUtil.modulusRef(ic.getPageContext(), ic.getValueAsNumber(left), ic.getValueAsNumber(right));
 		}
 		else if (op == Factory.OP_DBL_DIVIDE) {
-			n = OpUtil.divide(ic.getPageContext(), ic.getValueAsDoubleValue(left), ic.getValueAsDoubleValue(right));
+			n = OpUtil.divideRef(ic.getPageContext(), ic.getValueAsNumber(left), ic.getValueAsNumber(right));
 		}
 		else if (op == Factory.OP_DBL_MULTIPLY) {
-			n = OpUtil.multiply(ic.getPageContext(), ic.getValueAsDoubleValue(left), ic.getValueAsDoubleValue(right));
+			n = OpUtil.multiplyRef(ic.getPageContext(), ic.getValueAsNumber(left), ic.getValueAsNumber(right));
 		}
 		else throw new InterpreterException("invalid operation: " + op);
 		/*

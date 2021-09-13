@@ -194,7 +194,7 @@ public final class OperationImpl implements Operation {
 
 	@Override
 	public double divide(double left, double right) {
-		return OpUtil.divide(ThreadLocalPageContext.get(), Double.valueOf(left), Double.valueOf(right)).doubleValue();
+		return OpUtil.divide(ThreadLocalPageContext.get(), Double.valueOf(left), Double.valueOf(right));
 	}
 
 	@Override
@@ -209,7 +209,7 @@ public final class OperationImpl implements Operation {
 
 	@Override
 	public double exponent(Object left, Object right) throws PageException {
-		return OpUtil.exponent(ThreadLocalPageContext.get(), left, right).doubleValue();
+		return OpUtil.exponent(ThreadLocalPageContext.get(), left, right);
 	}
 
 	@Override
@@ -219,17 +219,17 @@ public final class OperationImpl implements Operation {
 
 	@Override
 	public double minus(double left, double right) {
-		return OpUtil.minus(ThreadLocalPageContext.get(), Double.valueOf(left), Double.valueOf(right)).doubleValue();
+		return OpUtil.minus(ThreadLocalPageContext.get(), Double.valueOf(left), Double.valueOf(right));
 	}
 
 	@Override
 	public double modulus(double left, double right) {
-		return OpUtil.modulus(ThreadLocalPageContext.get(), Double.valueOf(left), Double.valueOf(right)).doubleValue();
+		return OpUtil.modulus(ThreadLocalPageContext.get(), Double.valueOf(left), Double.valueOf(right));
 	}
 
 	@Override
 	public double multiply(double left, double right) {
-		return OpUtil.multiply(ThreadLocalPageContext.get(), Double.valueOf(left), Double.valueOf(right)).doubleValue();
+		return OpUtil.multiply(ThreadLocalPageContext.get(), Double.valueOf(left), Double.valueOf(right));
 	}
 
 	@Override
@@ -239,7 +239,7 @@ public final class OperationImpl implements Operation {
 
 	@Override
 	public double plus(double left, double right) {
-		return OpUtil.plus(ThreadLocalPageContext.get(), Double.valueOf(left), Double.valueOf(right)).doubleValue();
+		return OpUtil.plus(ThreadLocalPageContext.get(), Double.valueOf(left), Double.valueOf(right));
 	}
 
 	public static Operation getInstance() {

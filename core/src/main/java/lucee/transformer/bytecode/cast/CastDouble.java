@@ -75,8 +75,8 @@ public final class CastDouble extends ExpressionBase implements ExprDouble, Cast
 		GeneratorAdapter adapter = bc.getAdapter();
 		if (expr instanceof ExprBoolean) {
 			expr.writeOut(bc, MODE_VALUE);
-			if (mode == MODE_VALUE) adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_DOUBLE_VALUE_FROM_BOOLEAN);
-			else adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_DOUBLE_FROM_BOOLEAN);
+			if (mode == MODE_VALUE) adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_DOUBLE_VALUE_FROM_BOOLEAN_VALUE);
+			else adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_DOUBLE_FROM_BOOLEAN_VALUE);
 		}
 		else if (expr instanceof ExprDouble) {
 			expr.writeOut(bc, mode);
@@ -88,7 +88,7 @@ public final class CastDouble extends ExpressionBase implements ExprDouble, Cast
 			// Methods.METHOD_TO_DOUBLE_VALUE_FROM_NUMBER);
 			if (mode == MODE_REF) adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_DOUBLE_FROM_NUMBER);
 		}
-		// TODOX other number types?
+
 		else if (expr instanceof ExprString) {
 			expr.writeOut(bc, MODE_REF);
 			if (mode == MODE_VALUE) adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_DOUBLE_VALUE_FROM_STRING);
@@ -105,7 +105,7 @@ public final class CastDouble extends ExpressionBase implements ExprDouble, Cast
 					print.e("do nothing");
 				}
 				else if (Types.BOOLEAN_VALUE.equals(rtn)) {
-					adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_DOUBLE_VALUE_FROM_BOOLEAN);
+					adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_DOUBLE_VALUE_FROM_BOOLEAN_VALUE);
 				}
 				else {
 					adapter.invokeStatic(Types.CASTER, new Method("toRef", Types.toRefType(rtn), new Type[] { rtn }));
@@ -115,10 +115,10 @@ public final class CastDouble extends ExpressionBase implements ExprDouble, Cast
 			}
 			else if (Types.isPrimitiveType(rtn)) {
 				if (Types.DOUBLE_VALUE.equals(rtn)) {
-					adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_DOUBLE_FROM_DOUBLE);
+					adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_DOUBLE_FROM_DOUBLE_VALUE);
 				}
 				else if (Types.BOOLEAN_VALUE.equals(rtn)) {
-					adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_DOUBLE_FROM_BOOLEAN);
+					adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_DOUBLE_FROM_BOOLEAN_VALUE);
 				}
 				else {
 					adapter.invokeStatic(Types.CASTER, new Method("toRef", Types.toRefType(rtn), new Type[] { rtn }));

@@ -83,9 +83,9 @@ public abstract class Factory {
 
 	public abstract LitString EMPTY();
 
-	public abstract LitDouble DOUBLE_ZERO();
+	public abstract LitNumber NUMBER_ZERO();
 
-	public abstract LitDouble DOUBLE_ONE();
+	public abstract LitNumber NUMBER_ONE();
 
 	public abstract LitString NULL();
 

@@ -58,8 +58,8 @@ public class InterpreterFactory extends FactoryBase {
 	private final LitBoolean FALSE;
 	private final LitString EMPTY;
 	private final LitString NULL;
-	private final LitDouble DOUBLE_ZERO;
-	private final LitDouble DOUBLE_ONE;
+	private final LitNumber NUMBER_ZERO;
+	private final LitNumber NUMBER_ONE;
 	private Config config;
 
 	private static InterpreterFactory instance;
@@ -74,8 +74,8 @@ public class InterpreterFactory extends FactoryBase {
 		FALSE = createLitBoolean(false);
 		EMPTY = createLitString("");
 		NULL = createLitString("NULL");
-		DOUBLE_ZERO = createLitDouble(0);
-		DOUBLE_ONE = createLitDouble(1);
+		NUMBER_ZERO = createLitNumber(0);
+		NUMBER_ONE = createLitNumber(1);
 		this.config = config;
 	}
 
@@ -95,13 +95,13 @@ public class InterpreterFactory extends FactoryBase {
 	}
 
 	@Override
-	public LitDouble DOUBLE_ZERO() {
-		return DOUBLE_ZERO;
+	public LitNumber NUMBER_ZERO() {
+		return NUMBER_ZERO;
 	}
 
 	@Override
-	public LitDouble DOUBLE_ONE() {
-		return DOUBLE_ONE;
+	public LitNumber NUMBER_ONE() {
+		return NUMBER_ONE;
 	}
 
 	@Override

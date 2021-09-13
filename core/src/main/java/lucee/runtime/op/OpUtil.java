@@ -817,34 +817,26 @@ public final class OpUtil {
 	 * @return return expoinended value
 	 * @throws PageException
 	 */
-	public static Number exponent(PageContext pc, Object left, Object right) throws PageException {
+	public static double exponent(PageContext pc, Object left, Object right) throws PageException {
 		if (AppListenerUtil.getPreciseMath(pc, null)) {
-			return Caster.toBigDecimal(left).pow(Caster.toIntValue(right));
+			return Caster.toBigDecimal(left).pow(Caster.toIntValue(right)).doubleValue();
 		}
-		return Double.valueOf(StrictMath.pow(Caster.toDoubleValue(left), Caster.toDoubleValue(right)));
+		return StrictMath.pow(Caster.toDoubleValue(left), Caster.toDoubleValue(right));
 	}
 
-	public static Number exponent(PageContext pc, Number left, Number right) throws PageException {
+	public static double exponent(PageContext pc, Number left, Number right) throws PageException {
 		if (AppListenerUtil.getPreciseMath(pc, null)) {
-			return Caster.toBigDecimal(left).pow(right.intValue());
+			return Caster.toBigDecimal(left).pow(right.intValue()).doubleValue();
 		}
-		return Double.valueOf(StrictMath.pow(left.doubleValue(), right.doubleValue()));
+		return StrictMath.pow(left.doubleValue(), right.doubleValue());
 	}
 
-	public static Number intdiv(PageContext pc, Number left, Number right) {
+	public static double intdiv(PageContext pc, Object left, Object right) throws PageException {
+		return Double.valueOf(Caster.toIntValue(left) / Caster.toIntValue(right));
+	}
+
+	public static double intdiv(PageContext pc, Number left, Number right) {
 		return Double.valueOf(left.intValue() / right.intValue());
-	}
-
-	public static Number div(PageContext pc, Number left, Number right) {
-		if (AppListenerUtil.getPreciseMath(pc, null)) {
-			BigDecimal r = Caster.toBigDecimal(right);
-			if (r.equals(BigDecimal.ZERO)) throw new ArithmeticException("Division by zero is not possible");
-			return Caster.toBigDecimal(left).divide(r);
-		}
-
-		double r = right.doubleValue();
-		if (r == 0d) throw new ArithmeticException("Division by zero is not possible");
-		return Double.valueOf(left.doubleValue() / r);
 	}
 
 	public static float exponent(PageContext pc, float left, float right) {
@@ -870,18 +862,18 @@ public final class OpUtil {
 		return new StringBuilder(left).append(right);
 	}
 
-	/**
-	 * plus operation
-	 * 
-	 * @param left
-	 * @param right
-	 * @return result of the opertions
-	 */
-	public final static Number plus(PageContext pc, Number left, Number right) {
+	public final static double plus(PageContext pc, Object left, Object right) throws PageException {
 		if (AppListenerUtil.getPreciseMath(pc, null)) {
-			return Caster.toBigDecimal(left).add(Caster.toBigDecimal(right));
+			return Caster.toBigDecimal(left).add(Caster.toBigDecimal(right)).doubleValue();
 		}
-		return Double.valueOf(left.doubleValue() + right.doubleValue());
+		return Caster.toDoubleValue(left) + Caster.toDoubleValue(right);
+	}
+
+	public final static double plus(PageContext pc, Number left, Number right) {
+		if (AppListenerUtil.getPreciseMath(pc, null)) {
+			return Caster.toBigDecimal(left).add(Caster.toBigDecimal(right)).doubleValue();
+		}
+		return left.doubleValue() + right.doubleValue();
 	}
 
 	/**
@@ -891,23 +883,30 @@ public final class OpUtil {
 	 * @param right
 	 * @return result of the opertions
 	 */
-	public static Number minus(PageContext pc, Number left, Number right) {
+	public static double minus(PageContext pc, Number left, Number right) {
 		if (AppListenerUtil.getPreciseMath(pc, null)) {
-			return Caster.toBigDecimal(left).subtract(Caster.toBigDecimal(right));
+			return Caster.toBigDecimal(left).subtract(Caster.toBigDecimal(right)).doubleValue();
 		}
-		return Double.valueOf(left.doubleValue() - right.doubleValue());
+		return left.doubleValue() - right.doubleValue();
 	}
 
-	/**
-	 * modulus operation
-	 * 
-	 * @param left
-	 * @param right
-	 * @return result of the opertions
-	 */
-	public static Number modulus(PageContext pc, Number left, Number right) {
-		if (right.doubleValue() == 0d) throw new ArithmeticException("Division by zero is not possible");
-		return Double.valueOf(left.doubleValue() % right.doubleValue());
+	public static double minus(PageContext pc, Object left, Object right) throws PageException {
+		if (AppListenerUtil.getPreciseMath(pc, null)) {
+			return Caster.toBigDecimal(left).subtract(Caster.toBigDecimal(right)).doubleValue();
+		}
+		return Caster.toDoubleValue(left) - Caster.toDoubleValue(right);
+	}
+
+	public static double modulus(PageContext pc, Object left, Object right) throws PageException {
+		double r = Caster.toDoubleValue(right);
+		if (r == 0d) throw new ArithmeticException("Division by zero is not possible");
+		return Caster.toDoubleValue(left) % r;
+	}
+
+	public static double modulus(PageContext pc, Number left, Number right) {
+		double r = right.doubleValue();
+		if (r == 0d) throw new ArithmeticException("Division by zero is not possible");
+		return left.doubleValue() % r;
 	}
 
 	/**
@@ -916,26 +915,34 @@ public final class OpUtil {
 	 * @param left
 	 * @param right
 	 * @return result of the opertions
+	 * @throws PageException
 	 */
-	public static Number divide(PageContext pc, Number left, Number right) {
+	public static double divide(PageContext pc, Object left, Object right) throws PageException {
 		if (AppListenerUtil.getPreciseMath(pc, null)) {
-			return Caster.toBigDecimal(left).divide(Caster.toBigDecimal(right));
+			return Caster.toBigDecimal(left).divide(Caster.toBigDecimal(right)).doubleValue();
+		}
+		return Double.valueOf(Caster.toDoubleValue(left) / Caster.toDoubleValue(right));
+	}
+
+	public static double divide(PageContext pc, Number left, Number right) {
+		if (AppListenerUtil.getPreciseMath(pc, null)) {
+			return Caster.toBigDecimal(left).divide(Caster.toBigDecimal(right)).doubleValue();
 		}
 		return Double.valueOf(left.doubleValue() / right.doubleValue());
 	}
 
-	/**
-	 * multiply operation
-	 * 
-	 * @param left
-	 * @param right
-	 * @return result of the opertions
-	 */
-	public static Number multiply(PageContext pc, Number left, Number right) {
+	public static double multiply(PageContext pc, Object left, Object right) throws PageException {
 		if (AppListenerUtil.getPreciseMath(pc, null)) {
-			return Caster.toBigDecimal(left).multiply(Caster.toBigDecimal(right));
+			return Caster.toBigDecimal(left).multiply(Caster.toBigDecimal(right)).doubleValue();
 		}
-		return Double.valueOf(left.doubleValue() * right.doubleValue());
+		return Caster.toDoubleValue(left) * Caster.toDoubleValue(right);
+	}
+
+	public static double multiply(PageContext pc, Number left, Number right) {
+		if (AppListenerUtil.getPreciseMath(pc, null)) {
+			return Caster.toBigDecimal(left).multiply(Caster.toBigDecimal(right)).doubleValue();
+		}
+		return left.doubleValue() * right.doubleValue();
 	}
 
 	/**
@@ -960,7 +967,19 @@ public final class OpUtil {
 		return left.intValue() | right.intValue();
 	}
 
-	public static Number divRef(PageContext pc, Object left, Object right) throws PageException {
+	public static Number divideRef(PageContext pc, Number left, Number right) throws PageException {
+		if (AppListenerUtil.getPreciseMath(pc, null)) {
+			BigDecimal bd = Caster.toBigDecimal(right);
+			if (bd.equals(BigDecimal.ZERO)) throw new ArithmeticException("Division by zero is not possible");
+			return Caster.toBigDecimal(left).divide(bd);
+		}
+
+		double r = Caster.toDoubleValue(right);
+		if (r == 0d) throw new ArithmeticException("Division by zero is not possible");
+		return Caster.toDouble(Caster.toDoubleValue(left) / r);
+	}
+
+	public static Number divideRef(PageContext pc, Object left, Object right) throws PageException {
 		if (AppListenerUtil.getPreciseMath(pc, null)) {
 			BigDecimal bd = Caster.toBigDecimal(right);
 			if (bd.equals(BigDecimal.ZERO)) throw new ArithmeticException("Division by zero is not possible");
@@ -976,28 +995,52 @@ public final class OpUtil {
 		return Caster.toDouble(Caster.toIntValue(left) / Caster.toIntValue(right));
 	}
 
+	public static Number intdivRef(PageContext pc, Number left, Number right) throws PageException {
+		return Caster.toDouble(Caster.toIntValue(left) / Caster.toIntValue(right));
+	}
+
 	public static Number exponentRef(PageContext pc, Object left, Object right) throws PageException {
-		if (AppListenerUtil.getPreciseMath(pc, null)) {// TODOX add PC
+		if (AppListenerUtil.getPreciseMath(pc, null)) {
 			return Caster.toBigDecimal(left).pow(Caster.toIntValue(right));
 		}
 		return Caster.toDouble(StrictMath.pow(Caster.toDoubleValue(left), Caster.toDoubleValue(right)));
 	}
 
 	public static Number plusRef(PageContext pc, Object left, Object right) throws PageException {
-		if (AppListenerUtil.getPreciseMath(pc, null)) { // TODOX add PC
+		if (AppListenerUtil.getPreciseMath(pc, null)) {
+			return Caster.toBigDecimal(left).add(Caster.toBigDecimal(right));
+		}
+		return Caster.toDouble(Caster.toDoubleValue(left) + Caster.toDoubleValue(right));
+	}
+
+	public static Number plusRef(PageContext pc, Number left, Number right) throws PageException {
+		if (AppListenerUtil.getPreciseMath(pc, null)) {
 			return Caster.toBigDecimal(left).add(Caster.toBigDecimal(right));
 		}
 		return Caster.toDouble(Caster.toDoubleValue(left) + Caster.toDoubleValue(right));
 	}
 
 	public static Number minusRef(PageContext pc, Object left, Object right) throws PageException {
-		if (AppListenerUtil.getPreciseMath(pc, null)) { // TODOX add pc
+		if (AppListenerUtil.getPreciseMath(pc, null)) {
+			return Caster.toBigDecimal(left).subtract(Caster.toBigDecimal(right));
+		}
+		return Caster.toDouble(Caster.toDoubleValue(left) - Caster.toDoubleValue(right));
+	}
+
+	public static Number minusRef(PageContext pc, Number left, Number right) throws PageException {
+		if (AppListenerUtil.getPreciseMath(pc, null)) {
 			return Caster.toBigDecimal(left).subtract(Caster.toBigDecimal(right));
 		}
 		return Caster.toDouble(Caster.toDoubleValue(left) - Caster.toDoubleValue(right));
 	}
 
 	public static Number modulusRef(PageContext pc, Object left, Object right) throws PageException {
+		double rightAsDouble = Caster.toDoubleValue(right);
+		if (rightAsDouble == 0d) throw new ArithmeticException("Division by zero is not possible");
+		return Caster.toDouble(Caster.toDoubleValue(left) % rightAsDouble);
+	}
+
+	public static Number modulusRef(PageContext pc, Number left, Number right) throws PageException {
 		double rightAsDouble = Caster.toDoubleValue(right);
 		if (rightAsDouble == 0d) throw new ArithmeticException("Division by zero is not possible");
 		return Caster.toDouble(Caster.toDoubleValue(left) % rightAsDouble);
@@ -1010,24 +1053,31 @@ public final class OpUtil {
 		return Caster.toDouble(Caster.toDoubleValue(left) * Caster.toDoubleValue(right));
 	}
 
+	public static Number multiplyRef(PageContext pc, Number left, Number right) throws PageException {
+		if (AppListenerUtil.getPreciseMath(pc, null)) {
+			return Caster.toBigDecimal(left).multiply(Caster.toBigDecimal(right));
+		}
+		return Caster.toDouble(left.doubleValue() * right.doubleValue());
+	}
+
 	// post plus
 	public static Number unaryPostPlus(PageContext pc, Collection.Key[] keys, Number value) throws PageException {
 		VariableReference ref = VariableInterpreter.getVariableReference(pc, keys, true);
 		Number rtn = Caster.toNumber(pc, ref.get(pc));
-		ref.set(plus(pc, rtn, value));
+		ref.set(plusRef(pc, rtn, value));
 		return rtn;
 	}
 
 	public static Number unaryPostPlus(PageContext pc, Collection coll, Collection.Key key, Number value) throws PageException {
 		Number rtn = Caster.toNumber(pc, coll.get(key));
-		coll.set(key, plus(pc, rtn, value));
+		coll.set(key, plusRef(pc, rtn, value));
 		return rtn;
 	}
 
 	public static Number unaryPoPl(PageContext pc, Collection.Key[] keys, Number value) throws PageException {
 		VariableReference ref = VariableInterpreter.getVariableReference(pc, keys, true);
 		Number rtn = Caster.toNumber(pc, ref.get(pc));
-		ref.set(plus(pc, rtn, value));
+		ref.set(plusRef(pc, rtn, value));
 		return rtn;
 	}
 
@@ -1037,7 +1087,7 @@ public final class OpUtil {
 
 	public static Number unaryPoPl(PageContext pc, Collection coll, Collection.Key key, Number value) throws PageException {
 		Number rtn = Caster.toNumber(pc, coll.get(key));
-		coll.set(key, plus(pc, rtn, value));
+		coll.set(key, plusRef(pc, rtn, value));
 		return rtn;
 	}
 
@@ -1045,20 +1095,20 @@ public final class OpUtil {
 	public static Number unaryPostMinus(PageContext pc, Collection.Key[] keys, Number value) throws PageException {
 		VariableReference ref = VariableInterpreter.getVariableReference(pc, keys, true);
 		Number rtn = Caster.toNumber(pc, ref.get(pc));
-		ref.set(minus(pc, rtn, value));
+		ref.set(minusRef(pc, rtn, value));
 		return rtn;
 	}
 
 	public static Number unaryPostMinus(PageContext pc, Collection coll, Collection.Key key, Number value) throws PageException {
 		Number rtn = Caster.toNumber(pc, coll.get(key));
-		coll.set(key, minus(pc, rtn, value));
+		coll.set(key, minusRef(pc, rtn, value));
 		return rtn;
 	}
 
 	public static Number unaryPoMi(PageContext pc, Collection.Key[] keys, Number value) throws PageException {
 		VariableReference ref = VariableInterpreter.getVariableReference(pc, keys, true);
 		Number rtn = Caster.toNumber(pc, ref.get(pc));
-		ref.set(minus(pc, rtn, value));
+		ref.set(minusRef(pc, rtn, value));
 		return rtn;
 	}
 
@@ -1068,27 +1118,27 @@ public final class OpUtil {
 
 	public static Number unaryPoMi(PageContext pc, Collection coll, Collection.Key key, Number value) throws PageException {
 		Number rtn = Caster.toNumber(pc, coll.get(key));
-		coll.set(key, minus(pc, rtn, value));
+		coll.set(key, minusRef(pc, rtn, value));
 		return rtn;
 	}
 
 	// pre plus
 	public static Number unaryPrePlus(PageContext pc, Collection.Key[] keys, Number value) throws PageException {
 		VariableReference ref = VariableInterpreter.getVariableReference(pc, keys, true);
-		Number rtn = plus(pc, Caster.toNumber(pc, ref.get(pc)), value);
+		Number rtn = plusRef(pc, Caster.toNumber(pc, ref.get(pc)), value);
 		ref.set(rtn);
 		return rtn;
 	}
 
 	public static Number unaryPrePlus(PageContext pc, Collection coll, Collection.Key key, Number value) throws PageException {
-		Number rtn = plus(pc, Caster.toNumber(pc, coll.get(key)), value);
+		Number rtn = plusRef(pc, Caster.toNumber(pc, coll.get(key)), value);
 		coll.set(key, rtn);
 		return rtn;
 	}
 
 	public static Number unaryPrPl(PageContext pc, Collection.Key[] keys, Number value) throws PageException {
 		VariableReference ref = VariableInterpreter.getVariableReference(pc, keys, true);
-		Number rtn = plus(pc, Caster.toNumber(pc, ref.get(pc)), value);
+		Number rtn = plusRef(pc, Caster.toNumber(pc, ref.get(pc)), value);
 		ref.set(rtn);
 		return rtn;
 	}
@@ -1098,7 +1148,7 @@ public final class OpUtil {
 	}
 
 	public static Number unaryPrPl(PageContext pc, Collection coll, Collection.Key key, Number value) throws PageException {
-		Number rtn = plus(pc, Caster.toNumber(pc, coll.get(key)), value);
+		Number rtn = plusRef(pc, Caster.toNumber(pc, coll.get(key)), value);
 		coll.set(key, rtn);
 		return rtn;
 	}
@@ -1106,20 +1156,20 @@ public final class OpUtil {
 	// pre minus
 	public static Number unaryPreMinus(PageContext pc, Collection.Key[] keys, Number value) throws PageException {
 		VariableReference ref = VariableInterpreter.getVariableReference(pc, keys, true);
-		Number rtn = minus(pc, Caster.toNumber(pc, ref.get(pc)), value);
+		Number rtn = minusRef(pc, Caster.toNumber(pc, ref.get(pc)), value);
 		ref.set(rtn);
 		return rtn;
 	}
 
 	public static Number unaryPreMinus(PageContext pc, Collection coll, Collection.Key key, Number value) throws PageException {
-		Number rtn = minus(pc, Caster.toNumber(pc, coll.get(key)), value);
+		Number rtn = minusRef(pc, Caster.toNumber(pc, coll.get(key)), value);
 		coll.set(key, rtn);
 		return rtn;
 	}
 
 	public static Number unaryPrMi(PageContext pc, Collection.Key[] keys, Number value) throws PageException {
 		VariableReference ref = VariableInterpreter.getVariableReference(pc, keys, true);
-		Number rtn = minus(pc, Caster.toNumber(pc, ref.get(pc)), value);
+		Number rtn = minusRef(pc, Caster.toNumber(pc, ref.get(pc)), value);
 		ref.set(rtn);
 		return rtn;
 	}
@@ -1129,7 +1179,7 @@ public final class OpUtil {
 	}
 
 	public static Number unaryPrMi(PageContext pc, Collection coll, Collection.Key key, Number value) throws PageException {
-		Number rtn = minus(pc, Caster.toNumber(pc, coll.get(key)), value);
+		Number rtn = minusRef(pc, Caster.toNumber(pc, coll.get(key)), value);
 		coll.set(key, rtn);
 		return rtn;
 	}
@@ -1137,20 +1187,20 @@ public final class OpUtil {
 	// pre multiply
 	public static Number unaryPreMultiply(PageContext pc, Collection.Key[] keys, Number value) throws PageException {
 		VariableReference ref = VariableInterpreter.getVariableReference(pc, keys, true);
-		Number rtn = multiply(pc, Caster.toNumber(pc, ref.get(pc)), value);
+		Number rtn = multiplyRef(pc, Caster.toNumber(pc, ref.get(pc)), value);
 		ref.set(rtn);
 		return rtn;
 	}
 
 	public static Number unaryPreMultiply(PageContext pc, Collection coll, Collection.Key key, Number value) throws PageException {
-		Number rtn = multiply(pc, Caster.toNumber(pc, coll.get(key)), value);
+		Number rtn = multiplyRef(pc, Caster.toNumber(pc, coll.get(key)), value);
 		coll.set(key, rtn);
 		return rtn;
 	}
 
 	public static Number unaryPrMu(PageContext pc, Collection.Key[] keys, Number value) throws PageException {
 		VariableReference ref = VariableInterpreter.getVariableReference(pc, keys, true);
-		Number rtn = multiply(pc, Caster.toNumber(pc, ref.get(pc)), value);
+		Number rtn = multiplyRef(pc, Caster.toNumber(pc, ref.get(pc)), value);
 		ref.set(rtn);
 		return rtn;
 	}
@@ -1160,7 +1210,7 @@ public final class OpUtil {
 	}
 
 	public static Number unaryPrMu(PageContext pc, Collection coll, Collection.Key key, Number value) throws PageException {
-		Number rtn = multiply(pc, Caster.toNumber(pc, coll.get(key)), value);
+		Number rtn = multiplyRef(pc, Caster.toNumber(pc, coll.get(key)), value);
 		coll.set(key, rtn);
 		return rtn;
 	}
@@ -1168,20 +1218,20 @@ public final class OpUtil {
 	// pre divide
 	public static Number unaryPreDivide(PageContext pc, Collection.Key[] keys, Number value) throws PageException {
 		VariableReference ref = VariableInterpreter.getVariableReference(pc, keys, true);
-		Number rtn = divide(pc, Caster.toNumber(pc, ref.get(pc)), value);
+		Number rtn = divideRef(pc, Caster.toNumber(pc, ref.get(pc)), value);
 		ref.set(rtn);
 		return rtn;
 	}
 
 	public static Number unaryPreDivide(PageContext pc, Collection coll, Collection.Key key, Number value) throws PageException {
-		Number rtn = divide(pc, Caster.toNumber(pc, coll.get(key)), value);
+		Number rtn = divideRef(pc, Caster.toNumber(pc, coll.get(key)), value);
 		coll.set(key, rtn);
 		return rtn;
 	}
 
 	public static Number unaryPrDi(PageContext pc, Collection.Key[] keys, Number value) throws PageException {
 		VariableReference ref = VariableInterpreter.getVariableReference(pc, keys, true);
-		Number rtn = divide(pc, Caster.toNumber(pc, ref.get(pc)), value);
+		Number rtn = divideRef(pc, Caster.toNumber(pc, ref.get(pc)), value);
 		ref.set(rtn);
 		return rtn;
 	}
@@ -1191,7 +1241,7 @@ public final class OpUtil {
 	}
 
 	public static Number unaryPrDi(PageContext pc, Collection coll, Collection.Key key, Number value) throws PageException {
-		Number rtn = divide(pc, Caster.toNumber(pc, coll.get(key)), value);
+		Number rtn = divideRef(pc, Caster.toNumber(pc, coll.get(key)), value);
 		coll.set(key, rtn);
 		return rtn;
 	}

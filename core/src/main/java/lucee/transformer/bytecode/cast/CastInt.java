@@ -82,7 +82,7 @@ public final class CastInt extends ExpressionBase implements ExprInt, Cast {
 					adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_INT_VALUE);
 				}
 				else if (Types.BOOLEAN_VALUE.equals(rtn)) {
-					adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_INT_VALUE_FROM_BOOLEAN);
+					adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_INT_VALUE_FROM_BOOLEAN_VALUE);
 				}
 				else if (Types.SHORT_VALUE.equals(rtn)) {
 					// No Cast needed
@@ -109,10 +109,10 @@ public final class CastInt extends ExpressionBase implements ExprInt, Cast {
 			// TODOX other number types?
 			else if (Types.isPrimitiveType(rtn)) {
 				if (Types.DOUBLE_VALUE.equals(rtn)) {
-					adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_INTEGER_FROM_DOUBLE);
+					adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_INTEGER_FROM_DOUBLE_VALUE);
 				}
 				else if (Types.BOOLEAN_VALUE.equals(rtn)) {
-					adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_INTEGER_FROM_BOOLEAN);
+					adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_INTEGER_FROM_BOOLEAN_VALUE);
 				}
 				else {
 					adapter.invokeStatic(Types.CASTER, new Method("toRef", Types.toRefType(rtn), new Type[] { rtn }));

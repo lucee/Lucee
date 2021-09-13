@@ -343,6 +343,18 @@ public final class Caster {
 
 	}
 
+	public static Number toNumber(boolean b) throws PageException {
+		if (AppListenerUtil.getPreciseMath(null, null)) return b ? BigDecimal.ONE : BigDecimal.ZERO;
+		return Double.valueOf(b ? 1d : 0d);
+
+	}
+
+	public static Number toNumber(double d) throws PageException {
+		if (AppListenerUtil.getPreciseMath(null, null)) return BigDecimal.valueOf(d);
+		return Double.valueOf(d);
+
+	}
+
 	public static Number toNumber(String str) throws PageException {
 		if (AppListenerUtil.getPreciseMath(null, null)) return toBigDecimal(str);
 		return toDouble(str);

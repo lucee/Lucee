@@ -55,7 +55,7 @@ public class IsDefined implements FunctionEvaluator {
 				ArrayUtil.trim(arr);
 
 				// update first arg
-				arg.setValue(bif.getFactory().createLitDouble(scope), "number");
+				arg.setValue(bif.getFactory().createLitNumber(scope), "number");
 
 				// add second argument
 

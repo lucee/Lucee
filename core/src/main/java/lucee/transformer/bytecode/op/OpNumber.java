@@ -27,21 +27,38 @@ import lucee.transformer.Factory;
 import lucee.transformer.TransformerException;
 import lucee.transformer.bytecode.BytecodeContext;
 import lucee.transformer.bytecode.expression.ExpressionBase;
-import lucee.transformer.bytecode.util.Methods;
 import lucee.transformer.bytecode.util.Types;
 import lucee.transformer.expression.ExprNumber;
 import lucee.transformer.expression.Expression;
 
 public final class OpNumber extends ExpressionBase implements ExprNumber {
-
-	private static final Method DIV_REF = new Method("divRef", Types.NUMBER, new Type[] { Types.PAGE_CONTEXT, Types.OBJECT, Types.OBJECT });
-	private static final Method INTDIV_REF = new Method("intdivRef", Types.NUMBER, new Type[] { Types.PAGE_CONTEXT, Types.OBJECT, Types.OBJECT });
+	// exponent
 	private static final Method EXP_REF = new Method("exponentRef", Types.NUMBER, new Type[] { Types.PAGE_CONTEXT, Types.OBJECT, Types.OBJECT });
+	private static final Method EXP = new Method("exponent", Types.DOUBLE_VALUE, new Type[] { Types.PAGE_CONTEXT, Types.OBJECT, Types.OBJECT });
 
+	// divide
+	private static final Method DIV_REF = new Method("divideRef", Types.NUMBER, new Type[] { Types.PAGE_CONTEXT, Types.OBJECT, Types.OBJECT });
+	private static final Method DIV = new Method("divide", Types.DOUBLE_VALUE, new Type[] { Types.PAGE_CONTEXT, Types.OBJECT, Types.OBJECT });
+
+	// divide int
+	private static final Method INTDIV_REF = new Method("intdivRef", Types.NUMBER, new Type[] { Types.PAGE_CONTEXT, Types.OBJECT, Types.OBJECT });
+	private static final Method INTDIV = new Method("intdiv", Types.DOUBLE_VALUE, new Type[] { Types.PAGE_CONTEXT, Types.OBJECT, Types.OBJECT });
+
+	// plus
 	private static final Method PLUS_REF = new Method("plusRef", Types.NUMBER, new Type[] { Types.PAGE_CONTEXT, Types.OBJECT, Types.OBJECT });
+	private static final Method PLUS = new Method("plus", Types.DOUBLE_VALUE, new Type[] { Types.PAGE_CONTEXT, Types.OBJECT, Types.OBJECT });
+
+	// minus
 	private static final Method MINUS_REF = new Method("minusRef", Types.NUMBER, new Type[] { Types.PAGE_CONTEXT, Types.OBJECT, Types.OBJECT });
+	private static final Method MINUS = new Method("minus", Types.DOUBLE_VALUE, new Type[] { Types.PAGE_CONTEXT, Types.OBJECT, Types.OBJECT });
+
+	// modulus
 	private static final Method MODULUS_REF = new Method("modulusRef", Types.NUMBER, new Type[] { Types.PAGE_CONTEXT, Types.OBJECT, Types.OBJECT });
+	private static final Method MODULUS = new Method("modulus", Types.DOUBLE_VALUE, new Type[] { Types.PAGE_CONTEXT, Types.OBJECT, Types.OBJECT });
+
+	// multiply
 	private static final Method MULTIPLY_REF = new Method("multiplyRef", Types.NUMBER, new Type[] { Types.PAGE_CONTEXT, Types.OBJECT, Types.OBJECT });
+	private static final Method MULTIPLY = new Method("multiply", Types.DOUBLE_VALUE, new Type[] { Types.PAGE_CONTEXT, Types.OBJECT, Types.OBJECT });
 
 	private int op;
 	private Expression left;
@@ -93,32 +110,34 @@ public final class OpNumber extends ExpressionBase implements ExprNumber {
 		right.writeOut(bc, MODE_REF);
 
 		if (op == Factory.OP_DBL_EXP) {
-			adapter.invokeStatic(Types.OP_UTIL, EXP_REF);
+			if (mode == MODE_VALUE) adapter.invokeStatic(Types.OP_UTIL, EXP);
+			else adapter.invokeStatic(Types.OP_UTIL, EXP_REF);
 		}
 		else if (op == Factory.OP_DBL_DIVIDE) {
-			adapter.invokeStatic(Types.OP_UTIL, DIV_REF);
+			if (mode == MODE_VALUE) adapter.invokeStatic(Types.OP_UTIL, DIV);
+			else adapter.invokeStatic(Types.OP_UTIL, DIV_REF);
 		}
 		else if (op == Factory.OP_DBL_INTDIV) {
-			adapter.invokeStatic(Types.OP_UTIL, INTDIV_REF);
+			if (mode == MODE_VALUE) adapter.invokeStatic(Types.OP_UTIL, INTDIV);
+			else adapter.invokeStatic(Types.OP_UTIL, INTDIV_REF);
 		}
 		else if (op == Factory.OP_DBL_PLUS) {
-			adapter.invokeStatic(Types.OP_UTIL, PLUS_REF);
+			if (mode == MODE_VALUE) adapter.invokeStatic(Types.OP_UTIL, PLUS);
+			else adapter.invokeStatic(Types.OP_UTIL, PLUS_REF);
 		}
 		else if (op == Factory.OP_DBL_MINUS) {
-			adapter.invokeStatic(Types.OP_UTIL, MINUS_REF);
+			if (mode == MODE_VALUE) adapter.invokeStatic(Types.OP_UTIL, MINUS);
+			else adapter.invokeStatic(Types.OP_UTIL, MINUS_REF);
 		}
 		else if (op == Factory.OP_DBL_MODULUS) {
-			adapter.invokeStatic(Types.OP_UTIL, MODULUS_REF);
+			if (mode == MODE_VALUE) adapter.invokeStatic(Types.OP_UTIL, MODULUS);
+			else adapter.invokeStatic(Types.OP_UTIL, MODULUS_REF);
 		}
 		else if (op == Factory.OP_DBL_MULTIPLY) {
-			adapter.invokeStatic(Types.OP_UTIL, MULTIPLY_REF);
+			if (mode == MODE_VALUE) adapter.invokeStatic(Types.OP_UTIL, MULTIPLY);
+			else adapter.invokeStatic(Types.OP_UTIL, MULTIPLY_REF);
 		}
-		// TODOX call mode_value functions
-		if (mode == MODE_VALUE) {
-			adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_DOUBLE_VALUE_FROM_NUMBER);
-			return Types.DOUBLE_VALUE;
-		}
-
+		if (mode == MODE_VALUE) return Types.DOUBLE_VALUE;
 		return Types.NUMBER;
 	}
 

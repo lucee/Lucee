@@ -78,36 +78,48 @@ public final class CastNumber extends ExpressionBase implements ExprNumber, Cast
 		GeneratorAdapter adapter = bc.getAdapter();
 		if (expr instanceof ExprBoolean) {
 			expr.writeOut(bc, MODE_VALUE);
-			adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_DOUBLE_FROM_BOOLEAN);
-			return Types.NUMBER;
+			if (mode == MODE_VALUE) adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_DOUBLE_VALUE_FROM_BOOLEAN_VALUE);
+			else adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_NUMBER_FROM_BOOLEAN_VALUE);
+			return mode == MODE_VALUE ? Types.DOUBLE_VALUE : Types.NUMBER;
 		}
 		else if (expr instanceof ExprNumber) {
-			expr.writeOut(bc, MODE_REF);
-			return Types.NUMBER;
+			expr.writeOut(bc, mode);
+			return mode == MODE_VALUE ? Types.DOUBLE_VALUE : Types.NUMBER;
 		}
 		else if (expr instanceof ExprString) {
 			adapter.loadArg(0);
 			expr.writeOut(bc, MODE_REF);
-			adapter.invokeStatic(Types.CASTER, Methods.METHOD_NUMBER_FROM_PC_STRING);
-			// if (Factory.PERCISENUMBERS) adapter.invokeStatic(Types.CASTER,
-			// Methods.METHOD_TO_BIG_DECIMAL_FROM_STRING);
-			// else adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_DOUBLE_FROM_STRING);
-			return Types.NUMBER;
+			if (mode == MODE_VALUE) adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_DOUBLE_VALUE_FROM_PC_STRING);
+			else adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_NUMBER_FROM_PC_STRING);
+			return mode == MODE_VALUE ? Types.DOUBLE_VALUE : Types.NUMBER;
 		}
 		else {
 			Type rtn = ((ExpressionBase) expr).writeOutAsType(bc, mode);
 			if (Types.isPrimitiveType(rtn)) {
+				// should never be MODE_REF here, but just to be safe we check anyway
 				if (Types.DOUBLE_VALUE.equals(rtn)) {
-					adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_DOUBLE_FROM_DOUBLE);
+					if (mode == MODE_REF) adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_NUMBER_FROM_DOUBLE_VALUE);
 				}
 				else if (Types.BOOLEAN_VALUE.equals(rtn)) {
-					adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_DOUBLE_FROM_BOOLEAN);
+					if (mode == MODE_VALUE) adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_DOUBLE_VALUE_FROM_BOOLEAN_VALUE);
+					else adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_NUMBER_FROM_BOOLEAN_VALUE);
 				}
 				else {
 					adapter.invokeStatic(Types.CASTER, new Method("toRef", Types.toRefType(rtn), new Type[] { rtn }));
-					adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_DOUBLE);
+
+					if (mode == MODE_VALUE) {
+						adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_DOUBLE_VALUE);
+					}
+					else {
+						adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_NUMBER);
+					}
 				}
-				return Types.NUMBER;
+				return mode == MODE_VALUE ? Types.DOUBLE_VALUE : Types.NUMBER;
+			}
+
+			if (mode == MODE_VALUE) {
+				adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_DOUBLE_VALUE);
+				return Types.DOUBLE_VALUE;
 			}
 
 			if (Types.DOUBLE.equals(rtn)) return Types.NUMBER;
