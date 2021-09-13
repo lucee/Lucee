@@ -34,7 +34,6 @@ import lucee.transformer.Position;
 import lucee.transformer.TransformerException;
 import lucee.transformer.bytecode.cast.CastBoolean;
 import lucee.transformer.bytecode.cast.CastDouble;
-import lucee.transformer.bytecode.cast.CastFloat;
 import lucee.transformer.bytecode.cast.CastInt;
 import lucee.transformer.bytecode.cast.CastNumber;
 import lucee.transformer.bytecode.cast.CastOther;
@@ -47,7 +46,6 @@ import lucee.transformer.bytecode.literal.Empty;
 import lucee.transformer.bytecode.literal.LitBigDecimalImpl;
 import lucee.transformer.bytecode.literal.LitBooleanImpl;
 import lucee.transformer.bytecode.literal.LitDoubleImpl;
-import lucee.transformer.bytecode.literal.LitFloatImpl;
 import lucee.transformer.bytecode.literal.LitIntegerImpl;
 import lucee.transformer.bytecode.literal.LitLongImpl;
 import lucee.transformer.bytecode.literal.LitStringImpl;
@@ -65,14 +63,12 @@ import lucee.transformer.bytecode.op.OpUnary;
 import lucee.transformer.bytecode.util.Types;
 import lucee.transformer.expression.ExprBoolean;
 import lucee.transformer.expression.ExprDouble;
-import lucee.transformer.expression.ExprFloat;
 import lucee.transformer.expression.ExprInt;
 import lucee.transformer.expression.ExprNumber;
 import lucee.transformer.expression.ExprString;
 import lucee.transformer.expression.Expression;
 import lucee.transformer.expression.literal.LitBoolean;
 import lucee.transformer.expression.literal.LitDouble;
-import lucee.transformer.expression.literal.LitFloat;
 import lucee.transformer.expression.literal.LitInteger;
 import lucee.transformer.expression.literal.LitLong;
 import lucee.transformer.expression.literal.LitNumber;
@@ -163,13 +159,13 @@ public class BytecodeFactory extends FactoryBase {
 	}
 
 	@Override
-	public LitFloat createLitFloat(float f) {
-		return new LitFloatImpl(this, f, null, null);
+	public LitNumber createLitNumber(Number n) {
+		return createLitNumber(n, null, null);
 	}
 
 	@Override
-	public LitFloat createLitFloat(float f, Position start, Position end) {
-		return new LitFloatImpl(this, f, start, end);
+	public LitNumber createLitNumber(Number n, Position start, Position end) {
+		return new LitBigDecimalImpl(this, n instanceof BigDecimal ? (BigDecimal) n : BigDecimal.valueOf(n.doubleValue()), start, end);
 	}
 
 	@Override
@@ -275,11 +271,6 @@ public class BytecodeFactory extends FactoryBase {
 	@Override
 	public ExprInt toExprInt(Expression expr) {
 		return CastInt.toExprInt(expr);
-	}
-
-	@Override
-	public ExprFloat toExprFloat(Expression expr) {
-		return CastFloat.toExprFloat(expr);
 	}
 
 	@Override

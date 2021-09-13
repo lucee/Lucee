@@ -31,7 +31,7 @@ public final class Methods {
 	// Type[]{Types.STRING});
 
 	// String toString (double)
-	final public static Method METHOD_TO_STRING_FROM_DOUBLE = new Method("toString", Types.STRING, new Type[] { Types.DOUBLE_VALUE });
+	final public static Method METHOD_TO_STRING_FROM_DOUBLE_VALUE = new Method("toString", Types.STRING, new Type[] { Types.DOUBLE_VALUE });
 	final public static Method METHOD_TO_STRING_FROM_NUMBER = new Method("toString", Types.STRING, new Type[] { Types.NUMBER });
 	// String toString (boolean)
 	final public static Method METHOD_TO_STRING_FROM_BOOLEAN = new Method("toString", Types.STRING, new Type[] { Types.BOOLEAN_VALUE });
@@ -43,11 +43,11 @@ public final class Methods {
 	final public static Method METHOD_TO_BOOLEAN_VALUE = new Method("toBooleanValue", Types.BOOLEAN_VALUE, new Type[] { Types.OBJECT });
 
 	// Boolean toBoolean (double)
-	final public static Method METHOD_TO_BOOLEAN_FROM_DOUBLE = new Method("toBoolean", Types.BOOLEAN, new Type[] { Types.DOUBLE_VALUE });
+	final public static Method METHOD_TO_BOOLEAN_FROM_DOUBLE_VALUE = new Method("toBoolean", Types.BOOLEAN, new Type[] { Types.DOUBLE_VALUE });
 	final public static Method METHOD_TO_BOOLEAN_FROM_NUMBER = new Method("toBoolean", Types.BOOLEAN, new Type[] { Types.NUMBER });
 
 	// boolean toBooleanValue (double)
-	final public static Method METHOD_TO_BOOLEAN_VALUE_FROM_DOUBLE = new Method("toBooleanValue", Types.BOOLEAN_VALUE, new Type[] { Types.DOUBLE_VALUE });
+	final public static Method METHOD_TO_BOOLEAN_VALUE_FROM_DOUBLE_VALUE = new Method("toBooleanValue", Types.BOOLEAN_VALUE, new Type[] { Types.DOUBLE_VALUE });
 	final public static Method METHOD_TO_BOOLEAN_VALUE_FROM_NUMBER = new Method("toBooleanValue", Types.BOOLEAN_VALUE, new Type[] { Types.NUMBER });
 
 	// Boolean toBoolean (boolean)
@@ -104,6 +104,8 @@ public final class Methods {
 	final public static Method METHOD_TO_INTEGER_FROM_BOOLEAN = new Method("toInteger", Types.INTEGER, new Type[] { Types.BOOLEAN_VALUE });
 
 	final public static Method METHOD_TO_DOUBLE_VALUE_FROM_DOUBLE = new Method("toDoubleValue", Types.DOUBLE_VALUE, new Type[] { Types.DOUBLE });
+	final public static Method METHOD_TO_DOUBLE_VALUE_FROM_NUMBER = new Method("toDoubleValue", Types.DOUBLE_VALUE, new Type[] { Types.NUMBER });
+	final public static Method METHOD_TO_DOUBLE_FROM_NUMBER = new Method("toDouble", Types.DOUBLE, new Type[] { Types.NUMBER });
 
 	// Double toDouble (String)
 	final public static Method METHOD_TO_DOUBLE_FROM_STRING = new Method("toDouble", Types.DOUBLE, new Type[] { Types.STRING });

@@ -14,14 +14,12 @@ import lucee.transformer.Position;
 import lucee.transformer.TransformerException;
 import lucee.transformer.expression.ExprBoolean;
 import lucee.transformer.expression.ExprDouble;
-import lucee.transformer.expression.ExprFloat;
 import lucee.transformer.expression.ExprInt;
 import lucee.transformer.expression.ExprNumber;
 import lucee.transformer.expression.ExprString;
 import lucee.transformer.expression.Expression;
 import lucee.transformer.expression.literal.LitBoolean;
 import lucee.transformer.expression.literal.LitDouble;
-import lucee.transformer.expression.literal.LitFloat;
 import lucee.transformer.expression.literal.LitInteger;
 import lucee.transformer.expression.literal.LitLong;
 import lucee.transformer.expression.literal.LitNumber;
@@ -30,7 +28,6 @@ import lucee.transformer.expression.var.DataMember;
 import lucee.transformer.expression.var.Variable;
 import lucee.transformer.interpreter.cast.CastBoolean;
 import lucee.transformer.interpreter.cast.CastDouble;
-import lucee.transformer.interpreter.cast.CastFloat;
 import lucee.transformer.interpreter.cast.CastInt;
 import lucee.transformer.interpreter.cast.CastNumber;
 import lucee.transformer.interpreter.cast.CastOther;
@@ -41,7 +38,6 @@ import lucee.transformer.interpreter.literal.Empty;
 import lucee.transformer.interpreter.literal.LitBigDecimalImpl;
 import lucee.transformer.interpreter.literal.LitBooleanImpl;
 import lucee.transformer.interpreter.literal.LitDoubleImpl;
-import lucee.transformer.interpreter.literal.LitFloatImpl;
 import lucee.transformer.interpreter.literal.LitIntegerImpl;
 import lucee.transformer.interpreter.literal.LitLongImpl;
 import lucee.transformer.interpreter.literal.LitStringImpl;
@@ -166,13 +162,15 @@ public class InterpreterFactory extends FactoryBase {
 	}
 
 	@Override
-	public LitFloat createLitFloat(float f) {
-		return new LitFloatImpl(this, f, null, null);
+	public LitNumber createLitNumber(Number n) {
+		return createLitNumber(n, null, null);
 	}
 
 	@Override
-	public LitFloat createLitFloat(float f, Position start, Position end) {
-		return new LitFloatImpl(this, f, start, end);
+	public LitNumber createLitNumber(Number n, Position start, Position end) {
+		if (AppListenerUtil.getPreciseMath(null, getConfig()))
+			return new LitBigDecimalImpl(this, n instanceof BigDecimal ? (BigDecimal) n : BigDecimal.valueOf(n.doubleValue()), start, end);
+		return new LitDoubleImpl(this, n.doubleValue(), start, end);
 	}
 
 	@Override
@@ -271,11 +269,6 @@ public class InterpreterFactory extends FactoryBase {
 	@Override
 	public ExprInt toExprInt(Expression expr) {
 		return CastInt.toExprInt(expr);
-	}
-
-	@Override
-	public ExprFloat toExprFloat(Expression expr) {
-		return CastFloat.toExprFloat(expr);
 	}
 
 	@Override

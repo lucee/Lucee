@@ -78,7 +78,7 @@ public final class CastString extends ExpressionBase implements ExprString, Cast
 		}
 		else if (expr instanceof ExprDouble) {
 			expr.writeOut(bc, MODE_VALUE);
-			adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_STRING_FROM_DOUBLE);
+			adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_STRING_FROM_DOUBLE_VALUE);
 		}
 		else if (expr instanceof ExprNumber) {
 			expr.writeOut(bc, MODE_REF);

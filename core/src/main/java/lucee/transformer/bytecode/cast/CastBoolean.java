@@ -87,12 +87,12 @@ public final class CastBoolean extends ExpressionBase implements ExprBoolean, Ca
 		GeneratorAdapter adapter = bc.getAdapter();
 		if (expr instanceof ExprDouble) {
 			expr.writeOut(bc, MODE_VALUE);
-			if (mode == MODE_VALUE) adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_BOOLEAN_VALUE_FROM_DOUBLE);
-			else adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_BOOLEAN_FROM_DOUBLE);
+			if (mode == MODE_VALUE) adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_BOOLEAN_VALUE_FROM_DOUBLE_VALUE);
+			else adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_BOOLEAN_FROM_DOUBLE_VALUE);
 		}
-		if (expr instanceof ExprNumber) {
-			expr.writeOut(bc, MODE_VALUE);
-			if (mode == MODE_VALUE) adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_BOOLEAN_VALUE_FROM_NUMBER);
+		else if (expr instanceof ExprNumber) {
+			expr.writeOut(bc, mode);
+			if (mode == MODE_VALUE) adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_BOOLEAN_VALUE_FROM_DOUBLE_VALUE);
 			else adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_BOOLEAN_FROM_NUMBER);
 		}
 		else if (expr instanceof ExprString) {
@@ -110,7 +110,7 @@ public final class CastBoolean extends ExpressionBase implements ExprBoolean, Ca
 				else if (Types.BOOLEAN_VALUE.equals(rtn)) {
 				}
 				else if (Types.DOUBLE_VALUE.equals(rtn)) {
-					adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_BOOLEAN_VALUE_FROM_DOUBLE);
+					adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_BOOLEAN_VALUE_FROM_DOUBLE_VALUE);
 				}
 				else {
 					adapter.invokeStatic(Types.CASTER, new Method("toRef", Types.toRefType(rtn), new Type[] { rtn }));

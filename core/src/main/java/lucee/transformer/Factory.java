@@ -23,14 +23,12 @@ import lucee.runtime.config.Config;
 import lucee.runtime.exp.CasterException;
 import lucee.transformer.expression.ExprBoolean;
 import lucee.transformer.expression.ExprDouble;
-import lucee.transformer.expression.ExprFloat;
 import lucee.transformer.expression.ExprInt;
 import lucee.transformer.expression.ExprNumber;
 import lucee.transformer.expression.ExprString;
 import lucee.transformer.expression.Expression;
 import lucee.transformer.expression.literal.LitBoolean;
 import lucee.transformer.expression.literal.LitDouble;
-import lucee.transformer.expression.literal.LitFloat;
 import lucee.transformer.expression.literal.LitInteger;
 import lucee.transformer.expression.literal.LitLong;
 import lucee.transformer.expression.literal.LitNumber;
@@ -108,13 +106,13 @@ public abstract class Factory {
 
 	public abstract LitNumber createLitNumber(String number, Position start, Position end) throws CasterException;
 
+	public abstract LitNumber createLitNumber(Number n);
+
+	public abstract LitNumber createLitNumber(Number n, Position start, Position end);
+
 	public abstract LitNumber createLitNumber(BigDecimal bd);
 
 	public abstract LitNumber createLitNumber(BigDecimal bd, Position start, Position end);
-
-	public abstract LitFloat createLitFloat(float f);
-
-	public abstract LitFloat createLitFloat(float f, Position start, Position end);
 
 	public abstract LitLong createLitLong(long l);
 
@@ -161,8 +159,6 @@ public abstract class Factory {
 	public abstract ExprBoolean toExprBoolean(Expression expr);
 
 	public abstract ExprInt toExprInt(Expression expr);
-
-	public abstract ExprFloat toExprFloat(Expression expr);
 
 	public abstract Expression toExpression(Expression expr, String type);
 

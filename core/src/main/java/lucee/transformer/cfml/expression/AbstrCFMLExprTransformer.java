@@ -753,12 +753,8 @@ public abstract class AbstrCFMLExprTransformer {
 			data.srcCode.next();
 			comments(data);
 			Expression value = assignOp(data);
-			// if(opr==OpDouble.MINUS) value=OpNegateNumber.toExprDouble(value, null, null);
 
 			expr = data.factory.opUnary((Variable) expr, value, Factory.OP_UNARY_PRE, opr, expr.getStart(), data.srcCode.getPosition());
-
-			// ExprDouble res = OpDouble.toExprDouble(expr, right,opr);
-			// expr=new OpVariable((Variable)expr,res,data.cfml.getPosition());
 		}
 
 		else {
@@ -783,8 +779,6 @@ public abstract class AbstrCFMLExprTransformer {
 		// Modulus Operation
 		while (data.srcCode.forwardIfCurrent('%') || data.srcCode.forwardIfCurrentAndNoWordAfter("mod")) {
 			expr = _modOp(data, expr);
-			// comments(data);
-			// expr=OpDouble.toExprDouble(expr, divMultiOp(), OpDouble.MODULUS);
 		}
 		return expr;
 	}
@@ -817,22 +811,16 @@ public abstract class AbstrCFMLExprTransformer {
 			// Multiply Operation
 			if (data.srcCode.forwardIfCurrent('*')) {
 				expr = _divMultiOp(data, expr, Factory.OP_DBL_MULTIPLY);
-				// comments(data);
-				// expr=OpDouble.toExprDouble(expr, expoOp(), OpDouble.MULTIPLY);
 			}
 			// Divide Operation
 			else if (data.srcCode.isCurrent('/') && (!data.srcCode.isCurrent('/', '>'))) {
 				data.srcCode.next();
 				expr = _divMultiOp(data, expr, Factory.OP_DBL_DIVIDE);
-				// comments(data);
-				// expr=OpDouble.toExprDouble(expr, expoOp(), OpDouble.DIVIDE);
 			}
 			// Divide Operation
 			else if (data.srcCode.isCurrent('\\')) {
 				data.srcCode.next();
 				expr = _divMultiOp(data, expr, Factory.OP_DBL_INTDIV);
-				// comments(data);
-				// expr=OpDouble.toExprDouble(expr, expoOp(), OpDouble.INTDIV);
 			}
 			else {
 				break;
@@ -849,9 +837,6 @@ public abstract class AbstrCFMLExprTransformer {
 			Expression value = assignOp(data);
 
 			return data.factory.opUnary((Variable) expr, value, Factory.OP_UNARY_PRE, iOp, expr.getStart(), data.srcCode.getPosition());
-
-			// ExprDouble res = OpDouble.toExprDouble(expr, right,iOp);
-			// return new OpVariable((Variable)expr,res,data.cfml.getPosition());
 		}
 		comments(data);
 		return data.factory.opNumber(expr, expoOp(data), iOp);
@@ -895,11 +880,6 @@ public abstract class AbstrCFMLExprTransformer {
 			end = new Position(leftEnd.line, leftEnd.column + 2, leftEnd.pos + 2);
 		}
 		return data.factory.opUnary((Variable) expr, data.factory.DOUBLE_ONE(), Factory.OP_UNARY_POST, op, start, end);
-
-		// ExprDouble res = OpDouble.toExprDouble(expr, LitDouble.toExprDouble(1D,start,end),opr);
-		// expr=new OpVariable((Variable)expr,res,data.cfml.getPosition());
-		// return OpDouble.toExprDouble(expr,LitDouble.toExprDouble(1D,start,end),opr==OpDouble.PLUS?
-		// OpDouble.MINUS:OpDouble.PLUS);
 	}
 
 	/**
@@ -918,9 +898,6 @@ public abstract class AbstrCFMLExprTransformer {
 				Expression expr = clip(data);
 				return data.factory.opUnary((Variable) expr, data.factory.DOUBLE_ONE(), Factory.OP_UNARY_PRE, Factory.OP_UNARY_MINUS, line, data.srcCode.getPosition());
 
-				// ExprDouble res = OpDouble.toExprDouble(expr, LitDouble.toExprDouble(1D),OpDouble.MINUS);
-				// return new OpVariable((Variable)expr,res,data.cfml.getPosition());
-
 			}
 			comments(data);
 			return data.factory.opNegateNumber(clip(data), Factory.OP_NEG_NBR_MINUS, line, data.srcCode.getPosition());
@@ -934,7 +911,7 @@ public abstract class AbstrCFMLExprTransformer {
 				return data.factory.opUnary((Variable) expr, data.factory.DOUBLE_ONE(), Factory.OP_UNARY_PRE, Factory.OP_UNARY_PLUS, line, data.srcCode.getPosition());
 			}
 			comments(data);
-			return data.factory.toExprNumber(clip(data));// OpNegateNumber.toExprDouble(clip(),OpNegateNumber.PLUS,line);
+			return data.factory.toExprNumber(clip(data));
 		}
 		return clip(data);
 	}

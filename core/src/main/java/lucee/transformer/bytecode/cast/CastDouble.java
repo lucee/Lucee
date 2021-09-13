@@ -22,6 +22,7 @@ import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.GeneratorAdapter;
 import org.objectweb.asm.commons.Method;
 
+import lucee.print;
 import lucee.runtime.exp.TemplateException;
 import lucee.transformer.TransformerException;
 import lucee.transformer.bytecode.BytecodeContext;
@@ -31,6 +32,7 @@ import lucee.transformer.bytecode.util.Types;
 import lucee.transformer.cast.Cast;
 import lucee.transformer.expression.ExprBoolean;
 import lucee.transformer.expression.ExprDouble;
+import lucee.transformer.expression.ExprNumber;
 import lucee.transformer.expression.ExprString;
 import lucee.transformer.expression.Expression;
 import lucee.transformer.expression.literal.Literal;
@@ -79,6 +81,13 @@ public final class CastDouble extends ExpressionBase implements ExprDouble, Cast
 		else if (expr instanceof ExprDouble) {
 			expr.writeOut(bc, mode);
 		}
+		else if (expr instanceof ExprNumber) {
+			print.e("==>" + expr.getClass().getName());
+			expr.writeOut(bc, mode);
+			// if (mode == MODE_VALUE) adapter.invokeStatic(Types.CASTER,
+			// Methods.METHOD_TO_DOUBLE_VALUE_FROM_NUMBER);
+			if (mode == MODE_REF) adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_DOUBLE_FROM_NUMBER);
+		}
 		// TODOX other number types?
 		else if (expr instanceof ExprString) {
 			expr.writeOut(bc, MODE_REF);
@@ -87,11 +96,13 @@ public final class CastDouble extends ExpressionBase implements ExprDouble, Cast
 		}
 		else {
 			Type rtn = ((ExpressionBase) expr).writeOutAsType(bc, mode);
+			print.e((mode == MODE_VALUE) + "-->" + rtn);
 			if (mode == MODE_VALUE) {
 				if (!Types.isPrimitiveType(rtn)) {
 					adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_DOUBLE_VALUE);
 				}
 				else if (Types.DOUBLE_VALUE.equals(rtn)) {
+					print.e("do nothing");
 				}
 				else if (Types.BOOLEAN_VALUE.equals(rtn)) {
 					adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_DOUBLE_VALUE_FROM_BOOLEAN);
