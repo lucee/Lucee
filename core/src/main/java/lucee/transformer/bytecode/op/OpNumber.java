@@ -27,6 +27,7 @@ import lucee.transformer.Factory;
 import lucee.transformer.TransformerException;
 import lucee.transformer.bytecode.BytecodeContext;
 import lucee.transformer.bytecode.expression.ExpressionBase;
+import lucee.transformer.bytecode.util.Methods;
 import lucee.transformer.bytecode.util.Types;
 import lucee.transformer.expression.ExprNumber;
 import lucee.transformer.expression.Expression;
@@ -112,11 +113,12 @@ public final class OpNumber extends ExpressionBase implements ExprNumber {
 		else if (op == Factory.OP_DBL_MULTIPLY) {
 			adapter.invokeStatic(Types.OP_UTIL, MULTIPLY_REF);
 		}
+		// TODOX call mode_value functions
+		if (mode == MODE_VALUE) {
+			adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_DOUBLE_VALUE_FROM_NUMBER);
+			return Types.DOUBLE_VALUE;
+		}
 
-		/*
-		 * if (mode == MODE_VALUE) { adapter.invokeStatic(Types.CASTER,
-		 * Methods.METHOD_TO_DOUBLE_VALUE_FROM_DOUBLE); return Types.DOUBLE_VALUE; }
-		 */
 		return Types.NUMBER;
 	}
 
