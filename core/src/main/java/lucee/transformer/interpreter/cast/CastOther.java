@@ -54,7 +54,7 @@ public final class CastOther extends ExpressionBase implements Cast {
 			break;
 		case 'd':
 			if ("double".equals(type)) {
-				return expr.getFactory().toExprDouble(expr);
+				return expr.getFactory().toExprNumber(expr);
 			}
 			break;
 		case 'f':
@@ -65,7 +65,7 @@ public final class CastOther extends ExpressionBase implements Cast {
 		case 'n':
 			if ("number".equals(lcType) || "numeric".equals(lcType)) {
 
-				return expr.getFactory().toExprDouble(expr);
+				return expr.getFactory().toExprNumber(expr);
 			}
 			break;
 		case 'o':

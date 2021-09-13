@@ -4,8 +4,7 @@ import java.math.BigDecimal;
 
 import lucee.runtime.config.Config;
 import lucee.runtime.engine.ThreadLocalPageContext;
-import lucee.runtime.exp.CasterException;
-import lucee.runtime.listener.AppListenerUtil;
+import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.transformer.Context;
 import lucee.transformer.Factory;
@@ -19,7 +18,6 @@ import lucee.transformer.expression.ExprNumber;
 import lucee.transformer.expression.ExprString;
 import lucee.transformer.expression.Expression;
 import lucee.transformer.expression.literal.LitBoolean;
-import lucee.transformer.expression.literal.LitDouble;
 import lucee.transformer.expression.literal.LitInteger;
 import lucee.transformer.expression.literal.LitLong;
 import lucee.transformer.expression.literal.LitNumber;
@@ -27,7 +25,6 @@ import lucee.transformer.expression.literal.LitString;
 import lucee.transformer.expression.var.DataMember;
 import lucee.transformer.expression.var.Variable;
 import lucee.transformer.interpreter.cast.CastBoolean;
-import lucee.transformer.interpreter.cast.CastDouble;
 import lucee.transformer.interpreter.cast.CastInt;
 import lucee.transformer.interpreter.cast.CastNumber;
 import lucee.transformer.interpreter.cast.CastOther;
@@ -35,11 +32,10 @@ import lucee.transformer.interpreter.cast.CastString;
 import lucee.transformer.interpreter.expression.var.EmptyArray;
 import lucee.transformer.interpreter.expression.var.EmptyStruct;
 import lucee.transformer.interpreter.literal.Empty;
-import lucee.transformer.interpreter.literal.LitBigDecimalImpl;
 import lucee.transformer.interpreter.literal.LitBooleanImpl;
-import lucee.transformer.interpreter.literal.LitDoubleImpl;
 import lucee.transformer.interpreter.literal.LitIntegerImpl;
 import lucee.transformer.interpreter.literal.LitLongImpl;
+import lucee.transformer.interpreter.literal.LitNumberImpl;
 import lucee.transformer.interpreter.literal.LitStringImpl;
 import lucee.transformer.interpreter.literal.Null;
 import lucee.transformer.interpreter.literal.NullConstant;
@@ -130,24 +126,13 @@ public class InterpreterFactory extends FactoryBase {
 	}
 
 	@Override
-	public LitDouble createLitDouble(double d) {
-		return new LitDoubleImpl(this, d, null, null);
-	}
-
-	@Override
-	public LitDouble createLitDouble(double d, Position start, Position end) {
-		return new LitDoubleImpl(this, d, start, end);
-	}
-
-	@Override
-	public LitNumber createLitNumber(String number) throws CasterException {
+	public LitNumber createLitNumber(String number) throws PageException {
 		return createLitNumber(number, null, null);
 	}
 
 	@Override
-	public LitNumber createLitNumber(String number, Position start, Position end) throws CasterException {
-		if (AppListenerUtil.getPreciseMath(null, getConfig())) return new LitBigDecimalImpl(this, number, start, end);
-		return new LitDoubleImpl(this, Caster.toDoubleValue(number), start, end);
+	public LitNumber createLitNumber(String number, Position start, Position end) throws PageException {
+		return new LitNumberImpl(this, Caster.toBigDecimal(number), start, end);
 	}
 
 	@Override
@@ -157,8 +142,7 @@ public class InterpreterFactory extends FactoryBase {
 
 	@Override
 	public LitNumber createLitNumber(BigDecimal bd, Position start, Position end) {
-		if (AppListenerUtil.getPreciseMath(null, getConfig())) return new LitBigDecimalImpl(this, bd, start, end);
-		return new LitDoubleImpl(this, bd.doubleValue(), start, end);
+		return new LitNumberImpl(this, bd, start, end);
 	}
 
 	@Override
@@ -168,9 +152,7 @@ public class InterpreterFactory extends FactoryBase {
 
 	@Override
 	public LitNumber createLitNumber(Number n, Position start, Position end) {
-		if (AppListenerUtil.getPreciseMath(null, getConfig()))
-			return new LitBigDecimalImpl(this, n instanceof BigDecimal ? (BigDecimal) n : BigDecimal.valueOf(n.doubleValue()), start, end);
-		return new LitDoubleImpl(this, n.doubleValue(), start, end);
+		return new LitNumberImpl(this, n, start, end);
 	}
 
 	@Override
@@ -244,11 +226,6 @@ public class InterpreterFactory extends FactoryBase {
 	@Override
 	public Expression createArray() {
 		return new EmptyArray(this);
-	}
-
-	@Override
-	public ExprDouble toExprDouble(Expression expr) {
-		return CastDouble.toExprDouble(expr);
 	}
 
 	@Override

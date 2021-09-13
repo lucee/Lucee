@@ -15,11 +15,11 @@ import lucee.transformer.interpreter.expression.ExpressionBase;
 
 public final class OpNegateNumber extends ExpressionBase implements ExprDouble {
 
-	private ExprDouble expr;
+	private ExprNumber expr;
 
 	private OpNegateNumber(Expression expr, Position start, Position end) {
 		super(expr.getFactory(), start, end);
-		this.expr = expr.getFactory().toExprDouble(expr);
+		this.expr = expr.getFactory().toExprNumber(expr);
 	}
 
 	/**
@@ -44,7 +44,7 @@ public final class OpNegateNumber extends ExpressionBase implements ExprDouble {
 
 	public static ExprNumber toExprNumber(Expression expr, int operation, Position start, Position end) {
 		if (operation == Factory.OP_NEG_NBR_MINUS) return toExprNumber(expr, start, end);
-		return expr.getFactory().toExprDouble(expr); // TODOX other types
+		return expr.getFactory().toExprNumber(expr);
 	}
 
 	@Override

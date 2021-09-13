@@ -68,7 +68,7 @@ public final class CastOther extends ExpressionBase implements Cast {
 			if ("boolean".equals(type) || "bool".equals(lcType)) return expr.getFactory().toExprBoolean(expr);
 			break;
 		case 'd':
-			if ("double".equals(type)) return expr.getFactory().toExprDouble(expr);
+			if ("double".equals(type)) return expr.getFactory().toExprNumber(expr);
 			break;
 		case 'i':
 			if ("int".equals(lcType)) return expr.getFactory().toExprInt(expr);
@@ -192,7 +192,7 @@ public final class CastOther extends ExpressionBase implements Cast {
 			break;
 		case 'd':
 			if ("double".equals(lcType)) {
-				return ((ExpressionBase) bc.getFactory().toExprDouble(expr)).writeOutAsType(bc, MODE_REF);
+				return ((ExpressionBase) bc.getFactory().toExprNumber(expr)).writeOutAsType(bc, MODE_REF);
 			}
 			if ("date".equals(lcType) || "datetime".equals(lcType)) {
 				// First Arg
@@ -262,7 +262,7 @@ public final class CastOther extends ExpressionBase implements Cast {
 				return ((ExpressionBase) bc.getFactory().toExprBoolean(expr)).writeOutAsType(bc, MODE_REF);
 			}
 			if ("java.lang.double".equals(lcType)) {
-				return ((ExpressionBase) bc.getFactory().toExprDouble(expr)).writeOutAsType(bc, MODE_REF);
+				return ((ExpressionBase) bc.getFactory().toExprNumber(expr)).writeOutAsType(bc, MODE_REF);
 			}
 			if ("java.lang.string".equals(lcType)) {
 				return ((ExpressionBase) bc.getFactory().toExprString(expr)).writeOutAsType(bc, MODE_REF);

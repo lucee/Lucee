@@ -24,7 +24,7 @@ import java.util.List;
 
 import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.Component;
-import lucee.runtime.exp.CasterException;
+import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.exp.TemplateException;
 import lucee.runtime.functions.other.CreateUniqueId;
@@ -1153,8 +1153,8 @@ public abstract class AbstrCFMLExprTransformer {
 		try {
 			return data.factory.createLitNumber(rtn.toString(), line, data.srcCode.getPosition());
 		}
-		catch (CasterException e) {
-			throw new TemplateException(data.srcCode, e.getMessage());
+		catch (PageException e) {
+			throw new TemplateException(data.srcCode, e);
 		}
 
 	}

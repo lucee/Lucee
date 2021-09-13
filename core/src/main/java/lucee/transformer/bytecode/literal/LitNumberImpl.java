@@ -6,7 +6,6 @@ import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.GeneratorAdapter;
 import org.objectweb.asm.commons.Method;
 
-import lucee.print;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.LiteralValue;
 import lucee.transformer.Factory;
@@ -16,12 +15,12 @@ import lucee.transformer.bytecode.BytecodeContext;
 import lucee.transformer.bytecode.expression.ExpressionBase;
 import lucee.transformer.bytecode.util.Types;
 import lucee.transformer.expression.ExprNumber;
-import lucee.transformer.expression.literal.LitBigDecimal;
+import lucee.transformer.expression.literal.LitNumber;
 
 /**
  * A Literal String
  */
-public class LitBigDecimalImpl extends ExpressionBase implements LitBigDecimal, ExprNumber {
+public class LitNumberImpl extends ExpressionBase implements LitNumber, ExprNumber {
 
 	private static final Type LITERAL_VALUE = Type.getType(LiteralValue.class);
 
@@ -33,13 +32,13 @@ public class LitBigDecimalImpl extends ExpressionBase implements LitBigDecimal, 
 	private String number;
 	private BigDecimal bd;
 
-	public LitBigDecimalImpl(Factory f, String number, Position start, Position end) {
+	public LitNumberImpl(Factory f, String number, Position start, Position end) {
 		super(f, start, end);
 		this.number = number;
 
 	}
 
-	public LitBigDecimalImpl(Factory f, BigDecimal bd, Position start, Position end) {
+	public LitNumberImpl(Factory f, BigDecimal bd, Position start, Position end) {
 		super(f, start, end);
 		this.bd = bd;
 		this.number = bd.toPlainString();
@@ -66,7 +65,6 @@ public class LitBigDecimalImpl extends ExpressionBase implements LitBigDecimal, 
 		return getBigDecimal().compareTo(BigDecimal.ZERO) != 0;
 	}
 
-	@Override
 	public BigDecimal getBigDecimal() {
 		if (bd == null) bd = new BigDecimal(number);
 		return bd;
@@ -106,11 +104,6 @@ public class LitBigDecimalImpl extends ExpressionBase implements LitBigDecimal, 
 		}
 
 		return true;
-	}
-
-	public static void main(String[] args) {
-		print.e(justNumberDigits("12344"));
-		print.e(justNumberDigits("1234.4"));
 	}
 
 }

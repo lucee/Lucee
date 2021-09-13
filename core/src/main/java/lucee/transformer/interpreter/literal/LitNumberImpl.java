@@ -3,19 +3,19 @@ package lucee.transformer.interpreter.literal;
 import lucee.runtime.op.Caster;
 import lucee.transformer.Factory;
 import lucee.transformer.Position;
-import lucee.transformer.expression.ExprDouble;
-import lucee.transformer.expression.literal.LitDouble;
+import lucee.transformer.expression.ExprNumber;
+import lucee.transformer.expression.literal.LitNumber;
 import lucee.transformer.interpreter.InterpreterContext;
 import lucee.transformer.interpreter.expression.ExpressionBase;
 
 /**
  * Literal Double Value
  */
-public final class LitDoubleImpl extends ExpressionBase implements LitDouble, ExprDouble {
+public final class LitNumberImpl extends ExpressionBase implements LitNumber, ExprNumber {
 
 	// public static final LitDouble ZERO=new LitDouble(0,null,null);
 
-	private double d;
+	private Number n;
 
 	/**
 	 * constructor of the class
@@ -23,45 +23,29 @@ public final class LitDoubleImpl extends ExpressionBase implements LitDouble, Ex
 	 * @param d
 	 * @param line
 	 */
-	public LitDoubleImpl(Factory f, double d, Position start, Position end) {
+	public LitNumberImpl(Factory f, Number n, Position start, Position end) {
 		super(f, start, end);
-
-		this.d = d;
+		this.n = n;
 	}
 
 	@Override
 	public Class<?> _writeOut(InterpreterContext ic, int mode) {
 		if (mode == MODE_REF) {
-			ic.stack(Double.valueOf(d));
-			return Double.class;
+			ic.stack(n);
+			return Number.class;
 		}
-		ic.stack(d);
+		ic.stack(n);
 		return double.class;
-	}
-
-	/**
-	 * @return return value as double value
-	 */
-	@Override
-	public double getDoubleValue() {
-		return d;
-	}
-
-	/**
-	 * @return return value as Double Object
-	 */
-	public Double getDouble() {
-		return Double.valueOf(d);
 	}
 
 	@Override
 	public Number getNumber() {
-		return getDouble();
+		return n;
 	}
 
 	@Override
 	public Number getNumber(Number defaultValue) {
-		return getDouble();
+		return n;
 	}
 
 	/**
@@ -69,21 +53,21 @@ public final class LitDoubleImpl extends ExpressionBase implements LitDouble, Ex
 	 */
 	@Override
 	public String getString() {
-		return Caster.toString(d);
+		return Caster.toString(n);
 	}
 
 	/**
 	 * @return return value as a Boolean Object
 	 */
 	public Boolean getBoolean() {
-		return Caster.toBoolean(d);
+		return Caster.toBoolean(n);
 	}
 
 	/**
 	 * @return return value as a boolean value
 	 */
 	public boolean getBooleanValue() {
-		return Caster.toBooleanValue(d);
+		return Caster.toBooleanValue(n);
 	}
 
 	@Override

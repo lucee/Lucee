@@ -11,7 +11,6 @@ public abstract class FactoryBase extends Factory {
 		if (obj instanceof Number) {
 			if (obj instanceof Integer) return createLitInteger(((Integer) obj).intValue());
 			else if (obj instanceof Long) return createLitLong(((Long) obj).longValue());
-			// else if (obj instanceof Double) return createLitDouble(((Double) obj).doubleValue());
 			else return createLitNumber((Number) obj);
 		}
 		String str = Caster.toString(obj, null);
