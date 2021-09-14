@@ -108,9 +108,14 @@ public class CFConfigImport {
 			if (NAME == null) NAME = cast.toKey("name");
 			if (DATABASE == null) DATABASE = cast.toKey("database");
 
-			String raw = engine.getIOUtil().toString(file, charset);
-
-			Struct json = data != null ? data : cast.toStruct(new JSONExpressionInterpreter().interpret(null, raw));
+			Struct json;
+			if (data != null) {
+				json = data;
+			}
+			else {
+				String raw = engine.getIOUtil().toString(file, charset);
+				json = cast.toStruct(new JSONExpressionInterpreter().interpret(null, raw));
+			}
 
 			replacePlaceHolder(json, placeHolderData);
 			tag = (Tag) engine.getClassUtil().loadClass("lucee.runtime.tag.Admin").newInstance();
