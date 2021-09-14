@@ -1,9 +1,11 @@
 package lucee.transformer.interpreter.cast;
 
+import java.math.BigDecimal;
+
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.TemplateException;
 import lucee.transformer.cast.Cast;
-import lucee.transformer.expression.ExprDouble;
+import lucee.transformer.expression.ExprNumber;
 import lucee.transformer.expression.Expression;
 import lucee.transformer.expression.literal.Literal;
 import lucee.transformer.interpreter.InterpreterContext;
@@ -12,11 +14,11 @@ import lucee.transformer.interpreter.expression.ExpressionBase;
 /**
  * cast an Expression to a Double
  */
-public final class CastDouble extends ExpressionBase implements ExprDouble, Cast {
+public final class CastNumber extends ExpressionBase implements ExprNumber, Cast {
 
 	private Expression expr;
 
-	private CastDouble(Expression expr) {
+	private CastNumber(Expression expr) {
 		super(expr.getFactory(), expr.getStart(), expr.getEnd());
 		this.expr = expr;
 	}
@@ -28,23 +30,22 @@ public final class CastDouble extends ExpressionBase implements ExprDouble, Cast
 	 * @return String expression
 	 * @throws TemplateException
 	 */
-	public static ExprDouble toExprDouble(Expression expr) {
-		if (expr instanceof ExprDouble) return (ExprDouble) expr;
+	public static ExprNumber toExprNumber(Expression expr) {
+		if (expr instanceof ExprNumber) return (ExprNumber) expr;
 		if (expr instanceof Literal) {
-			Double dbl = ((Literal) expr).getDouble(null);
-			if (dbl != null) return expr.getFactory().createLitDouble(dbl.doubleValue(), expr.getStart(), expr.getEnd());
+			Number n = ((Literal) expr).getNumber(null);
+			if (n != null) {
+				if (n instanceof BigDecimal) return expr.getFactory().createLitNumber(((BigDecimal) n), expr.getStart(), expr.getEnd());
+				return expr.getFactory().createLitNumber(BigDecimal.valueOf(n.doubleValue()), expr.getStart(), expr.getEnd());
+			}
 		}
-		return new CastDouble(expr);
+		return new CastNumber(expr);
 	}
 
 	@Override
 	public Class<?> _writeOut(InterpreterContext ic, int mode) throws PageException {
-		if (mode == MODE_VALUE) {
-			ic.stack(ic.getValueAsDoubleValue(expr));
-			return double.class;
-		}
-		ic.stack(ic.getValueAsDouble(expr));
-		return Double.class;
+		ic.stack(ic.getValueAsNumber(expr));
+		return Number.class;
 	}
 
 	@Override

@@ -786,6 +786,16 @@ Depending on this setting Lucee scans certain scopes to find a variable called f
 		</attribute>
 		<attribute>
 			<type>boolean</type>
+			<name>preciseMath</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>
+			If set to true Lucee increases memory size for arithmetic operations and numbers. 
+			This improves the accuracy of floating point calculations.
+			</description>
+		</attribute>
+		<attribute>
+			<type>boolean</type>
 			<name>psq</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>

@@ -31,7 +31,7 @@ import lucee.runtime.PageContext;
 import lucee.runtime.exp.DatabaseException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
-import lucee.runtime.op.Operator;
+import lucee.runtime.op.OpUtil;
 import lucee.runtime.sql.old.ZConstant;
 import lucee.runtime.sql.old.ZExp;
 import lucee.runtime.sql.old.ZExpression;
@@ -184,7 +184,7 @@ public final class Executer {
 			int i;
 			outer: for (int row = rtn.getRecordcount(); row > 1; row--) {
 				for (i = 0; i < columns.length; i++) {
-					if (!Operator.equals(QueryUtil.getValue(columns[i], row), QueryUtil.getValue(columns[i], row - 1), true)) continue outer;
+					if (!OpUtil.equals(pc, QueryUtil.getValue(columns[i], row), QueryUtil.getValue(columns[i], row - 1), true)) continue outer;
 				}
 				rtn.removeRow(row);
 			}
@@ -342,8 +342,8 @@ public final class Executer {
 				if (op.equals("atan2")) return new Double(Math.atan2(Caster.toDoubleValue(left), Caster.toDoubleValue(right)));
 				break;
 			case 'b':
-				if (op.equals("bitand")) return new Double(Operator.bitand(Caster.toDoubleValue(left), Caster.toDoubleValue(right)));
-				if (op.equals("bitor")) return new Double(Operator.bitor(Caster.toDoubleValue(left), Caster.toDoubleValue(right)));
+				if (op.equals("bitand")) return OpUtil.bitand(pc, Caster.toDoubleValue(left), Caster.toDoubleValue(right));
+				if (op.equals("bitor")) return OpUtil.bitor(pc, Caster.toDoubleValue(left), Caster.toDoubleValue(right));
 				break;
 			case 'c':
 				if (op.equals("concat")) return Caster.toString(left).concat(Caster.toString(right));
@@ -352,7 +352,7 @@ public final class Executer {
 				if (op.equals("like")) return executeLike(pc, sql, qr, expression, row);
 				break;
 			case 'm':
-				if (op.equals("mod")) return new Double(Operator.modulus(Caster.toDoubleValue(left), Caster.toDoubleValue(right)));
+				if (op.equals("mod")) return OpUtil.modulusRef(pc, Caster.toDoubleValue(left), Caster.toDoubleValue(right));
 				break;
 			}
 
@@ -556,7 +556,7 @@ public final class Executer {
 	 * @throws PageException
 	 */
 	private int executeCompare(PageContext pc, SQL sql, Query qr, ZExpression expression, int row) throws PageException {
-		return Operator.compare(executeExp(pc, sql, qr, expression.getOperand(0), row), executeExp(pc, sql, qr, expression.getOperand(1), row));
+		return OpUtil.compare(pc, executeExp(pc, sql, qr, expression.getOperand(0), row), executeExp(pc, sql, qr, expression.getOperand(1), row));
 	}
 
 	private Object executeLike(PageContext pc, SQL sql, Query qr, ZExpression expression, int row) throws PageException {
@@ -584,7 +584,7 @@ public final class Executer {
 		Object left = executeExp(pc, sql, qr, expression.getOperand(0), row);
 
 		for (int i = 1; i < len; i++) {
-			if (Operator.compare(left, executeExp(pc, sql, qr, expression.getOperand(i), row)) == 0) return Boolean.TRUE;
+			if (OpUtil.compare(pc, left, executeExp(pc, sql, qr, expression.getOperand(i), row)) == 0) return Boolean.TRUE;
 		}
 		return Boolean.FALSE;
 	}
@@ -601,8 +601,7 @@ public final class Executer {
 	 * @throws PageException
 	 */
 	private Object executeMinus(PageContext pc, SQL sql, Query qr, ZExpression expression, int row) throws PageException {
-		return new Double(
-				Caster.toDoubleValue(executeExp(pc, sql, qr, expression.getOperand(0), row)) - Caster.toDoubleValue(executeExp(pc, sql, qr, expression.getOperand(1), row)));
+		return Caster.toDouble(executeExp(pc, sql, qr, expression.getOperand(0), row)) - Caster.toDoubleValue(executeExp(pc, sql, qr, expression.getOperand(1), row));
 	}
 
 	/**
@@ -617,8 +616,7 @@ public final class Executer {
 	 * @throws PageException
 	 */
 	private Object executeDivide(PageContext pc, SQL sql, Query qr, ZExpression expression, int row) throws PageException {
-		return new Double(
-				Caster.toDoubleValue(executeExp(pc, sql, qr, expression.getOperand(0), row)) / Caster.toDoubleValue(executeExp(pc, sql, qr, expression.getOperand(1), row)));
+		return Caster.toDouble(executeExp(pc, sql, qr, expression.getOperand(0), row)) / Caster.toDoubleValue(executeExp(pc, sql, qr, expression.getOperand(1), row));
 	}
 
 	/**
@@ -633,8 +631,7 @@ public final class Executer {
 	 * @throws PageException
 	 */
 	private Object executeMultiply(PageContext pc, SQL sql, Query qr, ZExpression expression, int row) throws PageException {
-		return new Double(
-				Caster.toDoubleValue(executeExp(pc, sql, qr, expression.getOperand(0), row)) * Caster.toDoubleValue(executeExp(pc, sql, qr, expression.getOperand(1), row)));
+		return Caster.toDouble(executeExp(pc, sql, qr, expression.getOperand(0), row)) * Caster.toDoubleValue(executeExp(pc, sql, qr, expression.getOperand(1), row));
 	}
 
 	/**
@@ -669,7 +666,7 @@ public final class Executer {
 		Object right = executeExp(pc, sql, qr, expression.getOperand(1), row);
 
 		try {
-			return new Double(Caster.toDoubleValue(left) + Caster.toDoubleValue(right));
+			return OpUtil.plusRef(pc, Caster.toNumber(left), Caster.toNumber(right));
 		}
 		catch (PageException e) {
 			return Caster.toString(left) + Caster.toString(right);
@@ -691,7 +688,7 @@ public final class Executer {
 		Object left = executeExp(pc, sql, qr, expression.getOperand(0), row);
 		Object right1 = executeExp(pc, sql, qr, expression.getOperand(1), row);
 		Object right2 = executeExp(pc, sql, qr, expression.getOperand(2), row);
-		return ((Operator.compare(left, right1) <= 0) && (Operator.compare(left, right2) >= 0)) ? Boolean.TRUE : Boolean.FALSE;
+		return ((OpUtil.compare(pc, left, right1) <= 0) && (OpUtil.compare(pc, left, right2) >= 0)) ? Boolean.TRUE : Boolean.FALSE;
 	}
 
 	/**

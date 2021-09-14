@@ -3,10 +3,11 @@ package lucee.runtime.type.scope.storage;
 import java.io.Serializable;
 import java.util.Date;
 
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Castable;
 import lucee.runtime.op.Caster;
-import lucee.runtime.op.Operator;
+import lucee.runtime.op.OpUtil;
 import lucee.runtime.type.ObjectWrap;
 import lucee.runtime.type.dt.DateTime;
 
@@ -109,22 +110,22 @@ public class IKStorageScopeItem implements Serializable, ObjectWrap, Castable {
 
 	@Override
 	public int compareTo(String str) throws PageException {
-		return Operator.compare(getValue(), str);
+		return OpUtil.compare(ThreadLocalPageContext.get(), getValue(), str);
 	}
 
 	@Override
 	public int compareTo(boolean b) throws PageException {
-		return Operator.compare(getValue(), b);
+		return OpUtil.compare(ThreadLocalPageContext.get(), getValue(), b ? Boolean.TRUE : Boolean.FALSE);
 	}
 
 	@Override
 	public int compareTo(double d) throws PageException {
-		return Operator.compare(getValue(), d);
+		return OpUtil.compare(ThreadLocalPageContext.get(), getValue(), Double.valueOf(d));
 	}
 
 	@Override
 	public int compareTo(DateTime dt) throws PageException {
-		return Operator.compare(getValue(), (Date) dt);
+		return OpUtil.compare(ThreadLocalPageContext.get(), getValue(), (Date) dt);
 	}
 
 	@Override

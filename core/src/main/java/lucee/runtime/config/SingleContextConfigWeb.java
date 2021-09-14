@@ -1834,4 +1834,9 @@ public class SingleContextConfigWeb extends ConfigBase implements ConfigWebPro {
 	public MockPool getDatasourceConnectionPool() {
 		return cs.getDatasourceConnectionPool();
 	}
+
+	@Override
+	public boolean getPreciseMath() {
+		return cs.getPreciseMath();
+	}
 }

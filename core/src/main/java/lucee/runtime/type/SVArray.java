@@ -24,9 +24,10 @@ import lucee.runtime.PageContext;
 import lucee.runtime.dump.DumpData;
 import lucee.runtime.dump.DumpProperties;
 import lucee.runtime.dump.DumpTable;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
-import lucee.runtime.op.Operator;
+import lucee.runtime.op.OpUtil;
 import lucee.runtime.op.date.DateCaster;
 import lucee.runtime.type.dt.DateTime;
 import lucee.runtime.type.ref.Reference;
@@ -177,22 +178,22 @@ public final class SVArray extends ArrayImpl implements Reference {
 
 	@Override
 	public int compareTo(boolean b) throws PageException {
-		return Operator.compare(castToBooleanValue(), b);
+		return OpUtil.compare(ThreadLocalPageContext.get(), castToBooleanValue() ? Boolean.TRUE : Boolean.FALSE, b ? Boolean.TRUE : Boolean.FALSE);
 	}
 
 	@Override
 	public int compareTo(DateTime dt) throws PageException {
-		return Operator.compare((Date) castToDateTime(), (Date) dt);
+		return OpUtil.compare(ThreadLocalPageContext.get(), (Date) castToDateTime(), (Date) dt);
 	}
 
 	@Override
 	public int compareTo(double d) throws PageException {
-		return Operator.compare(castToDoubleValue(), d);
+		return OpUtil.compare(ThreadLocalPageContext.get(), Double.valueOf(castToDoubleValue()), Double.valueOf(d));
 	}
 
 	@Override
 	public int compareTo(String str) throws PageException {
-		return Operator.compare(castToString(), str);
+		return OpUtil.compare(ThreadLocalPageContext.get(), castToString(), str);
 	}
 
 	@Override

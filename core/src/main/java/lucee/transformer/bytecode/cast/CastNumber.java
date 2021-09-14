@@ -18,6 +18,8 @@
  */
 package lucee.transformer.bytecode.cast;
 
+import java.math.BigDecimal;
+
 import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.GeneratorAdapter;
 import org.objectweb.asm.commons.Method;
@@ -30,7 +32,7 @@ import lucee.transformer.bytecode.util.Methods;
 import lucee.transformer.bytecode.util.Types;
 import lucee.transformer.cast.Cast;
 import lucee.transformer.expression.ExprBoolean;
-import lucee.transformer.expression.ExprDouble;
+import lucee.transformer.expression.ExprNumber;
 import lucee.transformer.expression.ExprString;
 import lucee.transformer.expression.Expression;
 import lucee.transformer.expression.literal.Literal;
@@ -38,11 +40,11 @@ import lucee.transformer.expression.literal.Literal;
 /**
  * cast an Expression to a Double
  */
-public final class CastDouble extends ExpressionBase implements ExprDouble, Cast {
+public final class CastNumber extends ExpressionBase implements ExprNumber, Cast {
 
 	private Expression expr;
 
-	private CastDouble(Expression expr) {
+	private CastNumber(Expression expr) {
 		super(expr.getFactory(), expr.getStart(), expr.getEnd());
 		this.expr = expr;
 	}
@@ -54,13 +56,16 @@ public final class CastDouble extends ExpressionBase implements ExprDouble, Cast
 	 * @return String expression
 	 * @throws TemplateException
 	 */
-	public static ExprDouble toExprDouble(Expression expr) {
-		if (expr instanceof ExprDouble) return (ExprDouble) expr;
+	public static ExprNumber toExprNumber(Expression expr) {
+		if (expr instanceof ExprNumber) return (ExprNumber) expr;
 		if (expr instanceof Literal) {
-			Double dbl = ((Literal) expr).getDouble(null);
-			if (dbl != null) return expr.getFactory().createLitDouble(dbl.doubleValue(), expr.getStart(), expr.getEnd());
+			Number n = ((Literal) expr).getNumber(null);
+			if (n != null) {
+				if (n instanceof BigDecimal) return expr.getFactory().createLitNumber((BigDecimal) n, expr.getStart(), expr.getEnd());
+				return expr.getFactory().createLitNumber(BigDecimal.valueOf(n.doubleValue()), expr.getStart(), expr.getEnd());
+			}
 		}
-		return new CastDouble(expr);
+		return new CastNumber(expr);
 	}
 
 	/**
@@ -73,57 +78,60 @@ public final class CastDouble extends ExpressionBase implements ExprDouble, Cast
 		GeneratorAdapter adapter = bc.getAdapter();
 		if (expr instanceof ExprBoolean) {
 			expr.writeOut(bc, MODE_VALUE);
-			if (mode == MODE_VALUE) adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_DOUBLE_VALUE_FROM_BOOLEAN);
-			else adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_DOUBLE_FROM_BOOLEAN);
+			if (mode == MODE_VALUE) adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_DOUBLE_VALUE_FROM_BOOLEAN_VALUE);
+			else adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_NUMBER_FROM_BOOLEAN_VALUE);
+			return mode == MODE_VALUE ? Types.DOUBLE_VALUE : Types.NUMBER;
 		}
-		else if (expr instanceof ExprDouble) {
+		else if (expr instanceof ExprNumber) {
 			expr.writeOut(bc, mode);
-			// if(mode==MODE_VALUE)adapter.invokeStatic(Types.CASTER,Methods.METHOD_TO_DOUBLE_VALUE_FROM_DOUBLE);
-			// if(mode==MODE_REF) adapter.invokeStatic(Types.CASTER,Methods.METHOD_TO_DOUBLE_FROM_DOUBLE);
+			return mode == MODE_VALUE ? Types.DOUBLE_VALUE : Types.NUMBER;
 		}
 		else if (expr instanceof ExprString) {
+			adapter.loadArg(0);
 			expr.writeOut(bc, MODE_REF);
-			if (mode == MODE_VALUE) adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_DOUBLE_VALUE_FROM_STRING);
-			else adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_DOUBLE_FROM_STRING);
+			if (mode == MODE_VALUE) adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_DOUBLE_VALUE_FROM_PC_STRING);
+			else adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_NUMBER_FROM_PC_STRING);
+			return mode == MODE_VALUE ? Types.DOUBLE_VALUE : Types.NUMBER;
 		}
 		else {
 			Type rtn = ((ExpressionBase) expr).writeOutAsType(bc, mode);
-			if (mode == MODE_VALUE) {
-				if (!Types.isPrimitiveType(rtn)) {
-					adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_DOUBLE_VALUE);
-				}
-				else if (Types.DOUBLE_VALUE.equals(rtn)) {
+			if (Types.isPrimitiveType(rtn)) {
+				// should never be MODE_REF here, but just to be safe we check anyway
+				if (Types.DOUBLE_VALUE.equals(rtn)) {
+					if (mode == MODE_REF) adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_NUMBER_FROM_DOUBLE_VALUE);
 				}
 				else if (Types.BOOLEAN_VALUE.equals(rtn)) {
-					adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_DOUBLE_VALUE_FROM_BOOLEAN);
+					if (mode == MODE_VALUE) adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_DOUBLE_VALUE_FROM_BOOLEAN_VALUE);
+					else adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_NUMBER_FROM_BOOLEAN_VALUE);
 				}
 				else {
 					adapter.invokeStatic(Types.CASTER, new Method("toRef", Types.toRefType(rtn), new Type[] { rtn }));
-					adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_DOUBLE_VALUE);
+
+					if (mode == MODE_VALUE) {
+						adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_DOUBLE_VALUE);
+					}
+					else {
+						adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_NUMBER);
+					}
 				}
+				return mode == MODE_VALUE ? Types.DOUBLE_VALUE : Types.NUMBER;
+			}
+
+			if (mode == MODE_VALUE) {
+				adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_DOUBLE_VALUE);
 				return Types.DOUBLE_VALUE;
 			}
-			else if (Types.isPrimitiveType(rtn)) {
-				if (Types.DOUBLE_VALUE.equals(rtn)) {
-					adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_DOUBLE_FROM_DOUBLE);
-				}
-				else if (Types.BOOLEAN_VALUE.equals(rtn)) {
-					adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_DOUBLE_FROM_BOOLEAN);
-				}
-				else {
-					adapter.invokeStatic(Types.CASTER, new Method("toRef", Types.toRefType(rtn), new Type[] { rtn }));
-					adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_DOUBLE);
-				}
-				return Types.DOUBLE;
-			}
-			// else {
-			if (!Types.DOUBLE.equals(rtn)) adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_DOUBLE);
-			return Types.DOUBLE;
-			// }
-		}
 
-		if (mode == MODE_VALUE) return Types.DOUBLE_VALUE;
-		return Types.DOUBLE;
+			if (Types.DOUBLE.equals(rtn)) return Types.NUMBER;
+			if (Types.BIG_DECIMAL.equals(rtn)) return Types.NUMBER;
+			if (Types.FLOAT.equals(rtn)) return Types.NUMBER;
+			if (Types.LONG.equals(rtn)) return Types.NUMBER;
+			if (Types.INTEGER.equals(rtn)) return Types.NUMBER;
+			if (Types.SHORT.equals(rtn)) return Types.NUMBER;
+
+			adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_NUMBER);
+			return Types.NUMBER;
+		}
 	}
 
 	@Override
