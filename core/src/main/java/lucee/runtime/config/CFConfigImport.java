@@ -28,6 +28,7 @@ import lucee.runtime.interpreter.JSONExpressionInterpreter;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
+import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.util.Cast;
 
@@ -50,12 +51,27 @@ public class CFConfigImport {
 	private String type = "server";
 	private CFMLEngine engine;
 	private ConfigPro config;
+	private Struct placeHolderData;
+	private Struct data;
 
-	public CFConfigImport(Config config, Resource file, Charset charset, String password, String type) throws PageException {
+	public CFConfigImport(Config config, Resource file, Charset charset, String password, String type, Struct placeHolderData) throws PageException {
 		this.file = file;
 		this.charset = charset;
 		this.password = password;
 		this.type = type;
+		this.placeHolderData = placeHolderData;
+		this.engine = CFMLEngineFactory.getInstance();
+		if ("web".equalsIgnoreCase(type) && !(config instanceof ConfigWeb))
+			throw engine.getExceptionUtil().createApplicationException("cannot manipulate a web context when you pass in a server config to the constructor!");
+		this.config = (ConfigPro) ("server".equalsIgnoreCase(type) && config instanceof ConfigWeb ? config.getConfigServer(password) : config);
+	}
+
+	public CFConfigImport(Config config, Struct data, Charset charset, String password, String type, Struct placeHolderData) throws PageException {
+		this.data = data;
+		this.charset = charset;
+		this.password = password;
+		this.type = type;
+		this.placeHolderData = placeHolderData;
 		this.engine = CFMLEngineFactory.getInstance();
 		if ("web".equalsIgnoreCase(type) && !(config instanceof ConfigWeb))
 			throw engine.getExceptionUtil().createApplicationException("cannot manipulate a web context when you pass in a server config to the constructor!");
@@ -94,9 +110,9 @@ public class CFConfigImport {
 
 			String raw = engine.getIOUtil().toString(file, charset);
 
-			Struct json = cast.toStruct(new JSONExpressionInterpreter().interpret(null, raw));
+			Struct json = data != null ? data : cast.toStruct(new JSONExpressionInterpreter().interpret(null, raw));
 
-			replacePlaceHolder(json);
+			replacePlaceHolder(json, placeHolderData);
 			tag = (Tag) engine.getClassUtil().loadClass("lucee.runtime.tag.Admin").newInstance();
 			dynAttr = (DynamicAttributes) tag;
 
@@ -209,7 +225,7 @@ public class CFConfigImport {
 		}
 	}
 
-	private static void replacePlaceHolder(Collection coll) {
+	private static void replacePlaceHolder(Collection coll, Struct placeHolderData) {
 		// ${MAILSERVER_HOST:smtp.sendgrid.net}
 		Iterator<Entry<Key, Object>> it = coll.entryIterator();
 		Entry<Key, Object> e;
@@ -217,12 +233,12 @@ public class CFConfigImport {
 		while (it.hasNext()) {
 			e = it.next();
 			obj = e.getValue();
-			if (obj instanceof String) replacePlaceHolder(e);
-			if (obj instanceof Collection) replacePlaceHolder((Collection) obj);
+			if (obj instanceof String) replacePlaceHolder(e, placeHolderData);
+			if (obj instanceof Collection) replacePlaceHolder((Collection) obj, placeHolderData);
 		}
 	}
 
-	private static void replacePlaceHolder(Entry<Key, Object> e) {
+	private static void replacePlaceHolder(Entry<Key, Object> e, Struct placeHolderData) {
 		String str = (String) e.getValue();
 
 		int startIndex = str.indexOf("${");
@@ -239,7 +255,10 @@ public class CFConfigImport {
 			envVarName = content.substring(0, index);
 			defaultValue = content.substring(index + 1);
 		}
-		String val = System.getenv(envVarName);
+
+		Object val = null;
+		if (placeHolderData != null) val = placeHolderData.get(KeyImpl.init(envVarName), null);
+		if (val == null) val = SystemUtil.getSystemPropOrEnvVar(envVarName, null);
 		if (val != null) e.setValue(val);
 		else e.setValue(defaultValue);
 

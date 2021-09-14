@@ -2376,18 +2376,26 @@ sort direction:
 			<type>struct</type>
 		</return>
 	</function>
-	<!-- ConfigFileImport -->
+	<!-- ConfigImport -->
 	<function>
-		<name>ConfigFileImport</name>
-		<status>hidden</status>
-		<class>lucee.runtime.functions.system.ConfigFileImport</class>
-		<description>Imports a config file in the .CFConfig format.</description>
+		<name>ConfigImport</name>
+		<class>lucee.runtime.functions.system.ConfigImport</class>
+		<description>
+			Imports a configuration based on the "CFConfig" format. 
+			This configuration can be provided as a path (String) to a JSON based file or as a Struct.
+			The values inside the provided configuration can use placeholders following this pattern ${key:default}.
+			The function will check for the actual values for this placeholders in 3 places (in this order):
+			- function argument "placeHolderData" (if provided)
+			- system properties
+			- enviroment variables
+		</description>
 		<argument>
 			<name>path</name>
-			<type>string</type>
+			<type>any</type>
+			<alias>path,data</alias>
 			<required>Yes</required>
 			<description>
-			Path to the .CFConfig.json file.
+			Path to the .CFConfig.json file or the data itself as a Struct. 
 			</description>
 		</argument>
 		<argument>
@@ -2408,6 +2416,14 @@ sort direction:
 				password to access the configuration, depending on the value set for the attribute type. 
 				If not set Lucee will check in the following places for the password (replace {type} with the actual type choosen for the attribute type).
 				Enviroment variable "LUCEE_{type}_ADMIN_PASSWORD" or system property "lucee.{type}.admin.password".
+			</description>
+		</argument>
+		<argument>
+			<name>placeHolderData</name>
+			<type>struct</type>
+			<required>no</required>
+			<description>
+				placeholder data to use as actual data for the placeholders inside the configuration, see main description of this function for more details.
 			</description>
 		</argument>
 		<argument>
