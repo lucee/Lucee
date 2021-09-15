@@ -12,7 +12,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase" skip=true{
                         forms = {scene:"#i#"},
                         addToken = true
                     );
-                    writeDump(result);
                     res = listAppend(res, trim(result.fileContent));
                 }
                 expect(trim(res)).toBe("from mixin method,from mixin method");
