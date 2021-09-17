@@ -2130,8 +2130,10 @@ public final class Caster {
 	}
 
 	private static DecimalFormat df = (DecimalFormat) DecimalFormat.getInstance(Locale.US);// ("#.###########");
+	private static DecimalFormat dfp = (DecimalFormat) DecimalFormat.getInstance(Locale.US);// ("#.###########");
 	static {
 		df.applyLocalizedPattern("#.############");
+		dfp.applyLocalizedPattern("#.###############");
 	}
 
 	public static String toString(double d) {
@@ -2151,6 +2153,29 @@ public final class Caster {
 
 		if (d > l && (d - l) < 0.000000000001) return toString(l);
 		if (l > d && (l - d) < 0.000000000001) return toString(l);
+
+		if (n instanceof Double) return toString(n.doubleValue());
+		return n.toString();
+		// return df.format(d);
+	}
+
+	public static String toStringPrecise(double d) {
+		long l = (long) d;
+		if (l == d) return toString(l);
+
+		if (d > l && (d - l) < 0.000000000000001) return toString(l);
+		if (l > d && (l - d) < 0.000000000000001) return toString(l);
+
+		return dfp.format(d);
+	}
+
+	public static String toStringPrecise(Number n) {
+		double d = n.doubleValue();
+		long l = (long) d;
+		if (l == d) return toString(l);
+
+		if (d > l && (d - l) < 0.000000000000001) return toString(l);
+		if (l > d && (l - d) < 0.000000000000001) return toString(l);
 
 		if (n instanceof Double) return toString(n.doubleValue());
 		return n.toString();
