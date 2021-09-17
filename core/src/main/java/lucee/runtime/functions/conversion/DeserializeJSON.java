@@ -50,7 +50,7 @@ public final class DeserializeJSON implements Function {
 	}
 
 	public static Object call(PageContext pc, String JSONVar, boolean strictMapping) throws PageException {
-		if (StringUtil.isEmpty(JSONVar, true)) throw new FunctionException(pc, "DeserializeJSON",1 ,"JSONVar" ,"input value cannot be empty string.", "Must be the valid JSON string");
+		if (StringUtil.isEmpty(JSONVar, true)) throw new FunctionException(pc, "DeserializeJSON", 1,"JSONVar" ,"input value cannot be empty string.", "Must be the valid JSON string");
 		Object result = new JSONExpressionInterpreter().interpret(pc, JSONVar);
 		if (!strictMapping) return toQuery(result);
 		return result;
