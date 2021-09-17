@@ -24,6 +24,7 @@ import java.io.Writer;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.math.BigDecimal;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetEncoder;
 import java.util.Date;
@@ -578,7 +579,8 @@ public final class JSONConverter extends ConverterSupport {
 		// Number
 		if (object instanceof Number) {
 			sb.append(goIn());
-			sb.append(Caster.toString(((Number) object)));
+			if (object instanceof BigDecimal) sb.append(((BigDecimal) object).toPlainString());
+			else sb.append(BigDecimal.valueOf(((Number) object).doubleValue()).toPlainString());
 			return;
 		}
 		// Boolean
