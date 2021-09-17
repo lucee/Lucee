@@ -13,6 +13,7 @@ import lucee.commons.lang.CharSet;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.mimetype.ContentType;
 import lucee.commons.net.HTTPUtil;
+import lucee.commons.net.URLDecoder;
 import lucee.commons.net.URLEncoder;
 import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.CFMLFactoryImpl;
@@ -36,6 +37,7 @@ import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.scope.Form;
 import lucee.runtime.type.util.KeyConstants;
+import lucee.runtime.type.util.ListUtil;
 
 public class InternalRequest implements Function {
 
@@ -46,8 +48,10 @@ public class InternalRequest implements Function {
 
 	private static final Key CONTENT_TYPE = KeyImpl.getInstance("content-type");
 
-	public static Struct call(final PageContext pc, String template, String method, Struct urls, Struct forms, Struct cookies, Struct headers, Object body, String strCharset,
+	public static Struct call(final PageContext pc, String template, String method, Object oUrls, Object oForms, Struct cookies, Struct headers, Object body, String strCharset,
 			boolean addToken) throws PageException {
+		Struct urls = toStruct(oUrls);
+		Struct forms = toStruct(oForms);
 
 		// add token
 		if (addToken) {
@@ -159,6 +163,20 @@ public class InternalRequest implements Function {
 		rst.set(KeyConstants._status, new Double(status));
 		rst.set(STATUS_CODE, new Double(status));
 		return rst;
+	}
+
+	private static Struct toStruct(Object obj) throws PageException {
+		if (Decision.isCastableToStruct(obj)) return Caster.toStruct(obj);
+		String str = Caster.toString(obj);
+		int index;
+		Struct data = new StructImpl(Struct.TYPE_LINKED);
+		for (String el: ListUtil.listToList(str, '&', true)) {
+			index = el.indexOf('=');
+			if (index == -1) data.setEL(URLDecoder.decode(el, true), "");
+			else data.setEL(URLDecoder.decode(el.substring(0, index), true), URLDecoder.decode(el.substring(index + 1), true));
+		}
+
+		return data;
 	}
 
 	private static boolean sessionEnabled(PageContextImpl pc) {

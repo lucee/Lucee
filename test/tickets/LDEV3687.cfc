@@ -7,7 +7,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 			it(title = "Checking 'cc' of mail with trailing spaces", body = function( currentSpec ) {
 				local.result = _InternalRequest(
 					template:"#variables.uri#/LDEV3687.cfm",
-					forms:{Scene=1}
+					forms:"Scene=1"
 					
 				);
 				expect(local.result.filecontent.trim()).toBe('success');

@@ -7156,16 +7156,16 @@ The following things are considered to be empty:
 		<argument>
 			<name>urls</name>
 			<alias>url</alias>
-			<type>struct</type>
+			<type>any</type>
 			<required>no</required>
-			<description>URL scope passed to the request (query string).</description>
+			<description>URL scope passed to the request (query string). This can be a struct or a string following this format [name1=value1&amp;name2=value2].</description>
     	</argument>
 		<argument>
 			<name>forms</name>
 			<alias>form</alias>
-			<type>struct</type>
+			<type>any</type>
 			<required>no</required>
-			<description>FORM scope passed to the request.</description>
+			<description>FORM scope passed to the request.This can be a struct or a string following this format [name1=value1&amp;name2=value2].</description>
     	</argument>
 		<argument>
 			<name>cookies</name>
