@@ -410,7 +410,7 @@ public final class FormImpl extends ScopeSupport implements Form, ScriptProtecte
 		this.raw = nr;
 
 		if (!isInitalized()) return;
-		fillDecodedEL(this.raw, encoding, isScriptProtected(), ac.getSameFieldAsArray(SCOPE_FORM));
+		fillDecodedEL(this.raw, encoding, isScriptProtected(), ac != null ? ac.getSameFieldAsArray(SCOPE_FORM) : false);
 		setFieldNames();
 	}
 
