@@ -16,8 +16,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" skip=true{
 			});
 			it(title = "Variables scope as input to invoke same cfm page method", body=function ( currentSpec ){
 				local.result = _InternalRequest(
-					template : "#uri#\LDEV3714.cfm",
-					forms : { scene = 1 }
+					template : "#uri#\LDEV3714.cfm"
 				);
 				expect(trim(result.filecontent)).toBe("y");
 			});
