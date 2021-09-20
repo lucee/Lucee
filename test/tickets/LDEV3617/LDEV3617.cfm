@@ -1,1 +1,1 @@
-<cfoutput>#serializeJSON(url)#,#serializeJSON(form)#</cfoutput>
+<cfoutput>#serializeJSON(url)#|#serializeJSON(form)#</cfoutput>

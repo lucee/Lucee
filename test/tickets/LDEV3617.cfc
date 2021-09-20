@@ -8,8 +8,8 @@ component extends = "org.lucee.cfml.test.LuceeTestCase"{
                     urls = "a=1&a=2&a=3",
                     forms = "b=1&b=2&b=3"
                 );
-                expect(listFirst(res.filecontent)).toBe('{"a":"1,2,3"}');
-                expect(listlast(res.filecontent)).toBe('{"b":"1,2,3"}');
+                expect(listFirst(res.filecontent,"|")).toBe('{"a":"1,2,3"}');
+                expect(listlast(res.filecontent,"|")).toBe('{"b":"1,2,3","fieldnames":"b"}');
             });
         });
     }
