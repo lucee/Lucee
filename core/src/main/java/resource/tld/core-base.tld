@@ -4777,6 +4777,15 @@ Permits searching collections by title or displaying a separate title from the k
 		information to the URL you specify in the url.</description>
 		</attribute>
 		<attribute>
+			<type>boolean</type>
+			<name>abort</name>
+			<required>false</required>
+			<rtexprvalue>false</rtexprvalue>
+			<description>if set to true then the request will be aborted instead of redirected to allow developers
+		to troubleshoot code that contains redirects</description>
+			<status>hidden</status>
+		</attribute>
+		<attribute>
 			<type>number</type>
 			<name>statuscode</name>
 			<required>false</required>
