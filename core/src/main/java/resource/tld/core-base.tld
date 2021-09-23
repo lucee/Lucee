@@ -4840,6 +4840,14 @@ Permits searching collections by title or displaying a separate title from the k
 		</description>
 		</attribute>
 		<attribute>
+			<type>boolean</type>
+			<name>abort</name>
+			<required>false</required>
+			<rtexprvalue>false</rtexprvalue>
+			<description>if set to true then the request will be aborted instead of redirected to allow developers
+		to troubleshoot code that contains redirects</description>
+		</attribute>
+		<attribute>
 			<type>number</type>
 			<name>statusCode</name>
 			<required>false</required>
