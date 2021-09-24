@@ -4,6 +4,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 			it(title='dateAndTimeFormat() function with arguments', body=function( currentSpec ) {
 				var d = CreateDateTime(2000,1,2,3,4,5,0,"CET");
 				application action="update" timezone="CET";
+				setTimezone("CET");
 				assertEquals("02-Jan-2000 03:04:05", DateTimeFormat(d));
 				assertEquals("2000.01.02 AD at 03:04:05 CET", DateTimeFormat(d, "yyyy.MM.dd G 'at' HH:nn:ss z"));
 				assertEquals("Sun, Jan 2, '00", DateTimeFormat(d, "EEE, MMM d, ''yy"));
