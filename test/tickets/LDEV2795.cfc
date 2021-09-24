@@ -28,9 +28,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				expect(r.b).toBeString();
 				expect(ListLen(r.b)).toBe(2);
 				expect(r.a).toBe(",");
-				expect(result.filecontent.trim()).toBe('{"a":","b":"1,2","fieldnames":"a,b"}');
+				expect(result.filecontent.trim()).toBe('{"a":",","b":"1,2","fieldnames":"a,b"}');
 			});
-
 		});
 	}
 	private string function createURI(string calledName){
