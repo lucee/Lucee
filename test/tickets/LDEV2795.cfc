@@ -8,7 +8,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					template:"#uri#/enabled/index.cfm",
 					form: "a=&b=1&a=&b=2"
 				);
-				expect(result.filecontent.trim()).toBe('{"B":[1,2],"A":["",""]}');
+				var r = DeserializeJosn(result.filecontent.trim());
+				expect(r.a).toBeArray();
+				expect(r.b).toBeArray();
+				expect(ArrayLen(r.a).toBe(2);
+				expect(ArrayLen(r.b).toBe(2);
+				expect(ArrayLen(r.a[1]).toBe("");
+				expect(result.filecontent.trim()).toBe('{"a":["",""],"b":["1","2"],"fieldnames":"a,b"}');				
 			});
 
 			it( title='sameFormFieldsAsArray=false',body=function( currentSpec ) {
@@ -17,7 +23,12 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					template:"#uri#/disabled/index.cfm",
 					form: "a=&b=1&a=&b=2"
 				);
-				expect(result.filecontent.trim()).toBe('{"B":"1,2","A":","}');
+				var r = DeserializeJosn(result.filecontent.trim());
+				expect(r.a).toBeString();
+				expect(r.b).toBeString();
+				expect(ListLen(r.b).toBe(2);
+				expect(a).toBe(",");
+				expect(result.filecontent.trim()).toBe('{"a":",","b":"1,2","fieldnames":"a,b"}');
 			});
 
 		});
