@@ -377,8 +377,7 @@ public final class CookieImpl extends ScopeSupport implements Cookie, ScriptProt
 	}
 
 	public String enc(String str) {
-		if (ReqRspUtil.needEncoding(str, false)) return ReqRspUtil.encode(str, charset);
-		return str;
+		return enc(str, false);
 	}
 
 	@Override
