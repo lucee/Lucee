@@ -82,8 +82,8 @@ public final class Location extends TagImpl {
 	}
 
 	/**
-	 * if set to true then the request will be aborted instead of redirected to allow developers
-	 * to troubleshoot code that contains redirects
+	 * if set to true then the request will be aborted instead of redirected to allow developers to
+	 * troubleshoot code that contains redirects
 	 * 
 	 * @param abort
 	 */
@@ -133,13 +133,13 @@ public final class Location extends TagImpl {
 		}
 
 		Log log = pageContext.getConfig().getLog("trace");
-		String stackTrace = (String)CallStackGet.call(pageContext, "text");
 		if (abort) {
-			log.log(Log.LEVEL_ERROR, "cftrace", "abort redirect to " + url + " at " + stackTrace);
+			if (log != null && log.getLogLevel() <= Log.LEVEL_ERROR)
+				log.log(Log.LEVEL_ERROR, "cftrace", "abort redirect to " + url + " at " + CallStackGet.call(pageContext, "text"));
 			throw new ExpressionException("abort redirect to " + url);
 		}
 		else {
-			log.log(Log.LEVEL_INFO, "cftrace", "redirect to " + url + " at " + stackTrace);
+			if (log != null && log.getLogLevel() <= Log.LEVEL_INFO) log.log(Log.LEVEL_INFO, "cftrace", "redirect to " + url + " at " + CallStackGet.call(pageContext, "text"));
 		}
 
 		rsp.setHeader("Connection", "close"); // IE unter IIS6, Win2K3 und Resin
