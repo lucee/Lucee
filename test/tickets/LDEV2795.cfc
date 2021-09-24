@@ -6,12 +6,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				var uri = createURI("LDEV2795");
 				var result = _InternalRequest(
 					template:"#uri#/enabled/index.cfm",
-					form: {
-						a: "",
-						b: 1,
-						a: "",
-						b: 2
-					}
+					form: "a=&b=1&a=&b=2"
 				);
 				expect(result.filecontent.trim()).toBe('{"B":[1,2],"A":["",""]}');
 			});
@@ -20,12 +15,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				var uri = createURI("LDEV2795");
 				var result = _InternalRequest(
 					template:"#uri#/disabled/index.cfm",
-					form: {
-						a: "",
-						b: 1,
-						a: "",
-						b: 2
-					}
+					form: "a=&b=1&a=&b=2"
 				);
 				expect(result.filecontent.trim()).toBe('{"B":"1,2","A":","}');
 			});
