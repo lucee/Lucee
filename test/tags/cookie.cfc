@@ -5,7 +5,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="cookie"	{
 		var uri = createURI("cookie/encode.cfm")
 		local.res = _InternalRequest(
 			template: uri,
-			url: { encode:true }
+			url: { encode :true }
 		);
 		dumpCookies(local.res);
 
