@@ -13,7 +13,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				expect(r.b).toBeArray();
 				expect(ArrayLen(r.a)).toBe(2);
 				expect(ArrayLen(r.b)).toBe(2);
-				expect(ArrayLen(r.a[1])).toBe("");
+				expect(r.a[1]).toBe("");
 				expect(result.filecontent.trim()).toBe('{"a":["",""],"b":["1","2"],"fieldnames":"a,b"}');				
 			});
 
