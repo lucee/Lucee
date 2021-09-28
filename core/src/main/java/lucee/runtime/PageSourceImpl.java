@@ -545,12 +545,19 @@ public final class PageSourceImpl implements PageSource {
 	}
 
 	/**
+	 * @deprecated typo
+	 * @return file Object
+	 */
+	public Resource getPhyscalFile() {
+		return this.getPhysicalFile();
+	}
+
+	/**
 	 * return file object, based on physical path and realpath
 	 * 
 	 * @return file Object
 	 */
-	@Override
-	public Resource getPhyscalFile() {
+	public Resource getPhysicalFile() {
 		if (physicalSource == null) {
 			if (!mapping.hasPhysical()) {
 				return null;
