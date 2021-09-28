@@ -285,6 +285,51 @@ public final class PageSourceImpl implements PageSource {
 		}
 	}
 
+	private boolean hasPageChanged(Page page) {
+
+		Resource srcFile = getPhysicalFile();
+		long srcLastModified = srcFile.lastModified();
+		if (srcLastModified == 0L) return false;
+
+		if (srcLastModified != page.getSourceLastModified() || (page instanceof PagePro && ((PagePro) page).getSourceLength() != srcFile.length())) {
+			// same size, maybe the content has not changed?
+			boolean same = false;
+			if (page instanceof PagePro && ((PagePro) page).getSourceLength() == srcFile.length()) {
+				PagePro pp = (PagePro) page;
+				try {
+					same = pp.getHash() == PageSourceCode.toString(this, config.getTemplateCharset()).hashCode();
+				}
+				catch (IOException e) {
+				}
+
+			}
+			return same;
+		}
+		return false;
+	}
+
+	private Page loadClass(ConfigWeb config, Resource classFile) {
+		Page page = null;
+		String cn = pcn.className;
+		boolean done = false;
+		if (cn != null) {
+			try {
+				LogUtil.log(config, Log.LEVEL_DEBUG, "compile", "load class from ClassLoader  [" + getDisplayPath() + "]");
+				pcn.set(page = newInstance(mapping.getPhysicalClass(cn)));
+				done = true;
+			}
+			catch (ClassNotFoundException cnfe) {
+				LogUtil.log(config, "compile", cnfe);
+			}
+		}
+		if (!done) {
+			LogUtil.log(config, Log.LEVEL_DEBUG, "compile", "load class from binary  [" + getDisplayPath() + "]");
+			byte[] bytes = IOUtil.toBytes(classFile);
+			if (ClassUtil.isBytecode(bytes)) pcn.set(page = newInstance(mapping.getPhysicalClass(this.getClassName(), bytes)));
+		}
+		return page;
+	}
+
 	/**
 	 * throws only an exception when compilation fails
 	 * 
@@ -298,33 +343,15 @@ public final class PageSourceImpl implements PageSource {
 
 		ConfigWeb config = pc.getConfig();
 		PageContextImpl pci = (PageContextImpl) pc;
-		if ((mapping.getInspectTemplate() == Config.INSPECT_NEVER || pci.isTrusted(page)) && isLoad(LOAD_PHYSICAL)) return page;
-		Resource srcFile = getPhyscalFile();
-
-		long srcLastModified = srcFile.lastModified();
-		if (srcLastModified == 0L) return null;
+		if ((mapping.getInspectTemplate() == Config.INSPECT_NEVER || pci.isTrusted(page)) && this.isLoad(LOAD_PHYSICAL)) return page;
 
 		// Page exists
 		if (page != null) {
-			if (srcLastModified != page.getSourceLastModified() || (page instanceof PagePro && ((PagePro) page).getSourceLength() != srcFile.length())) {
-				// same size, maybe the content has not changed?
-				boolean same = false;
-				if (page instanceof PagePro && ((PagePro) page).getSourceLength() == srcFile.length()) {
-					PagePro pp = (PagePro) page;
-					try {
-						same = pp.getHash() == PageSourceCode.toString(this, config.getTemplateCharset()).hashCode();
-					}
-					catch (IOException e) {
-					}
-
-				}
-				if (!same) {
-					LogUtil.log(config, Log.LEVEL_DEBUG, "compile", "recompile [" + getDisplayPath() + "] because loaded page has changed");
-					pcn.set(page = compile(config, mapping.getClassRootDirectory(), page, false, pc.ignoreScopes()));
-					page.setPageSource(this);
-				}
+			if (this.hasPageChanged(page)) {
+				page = this.compilePhysical(config, mapping.getClassRootDirectory(), page, false, pc.ignoreScopes());
+			} else {
+				page.setLoadType(LOAD_PHYSICAL);
 			}
-			page.setLoadType(LOAD_PHYSICAL);
 		}
 		// page doesn't exist
 		else {
@@ -332,34 +359,17 @@ public final class PageSourceImpl implements PageSource {
 			Resource classFile = classRootDir.getRealResource(getJavaName() + ".class");
 			boolean isNew = false;
 			// new class
-			if (flush || !classFile.exists()) {
+			if (this.flush || !classFile.exists()) {
 				LogUtil.log(config, Log.LEVEL_DEBUG, "compile", "compile [" + getDisplayPath() + "] no previous class file or flush");
 
-				pcn.set(page = compile(config, classRootDir, null, false, pc.ignoreScopes()));
-				flush = false;
+				page = this.compilePhysical(config, classRootDir, null, false, pc.ignoreScopes());
+				this.flush = false;
 				isNew = true;
 			}
 			// load page
 			else {
 				try {
-					String cn = pcn.className;
-					boolean done = false;
-					if (cn != null) {
-						try {
-							LogUtil.log(config, Log.LEVEL_DEBUG, "compile", "load class from ClassLoader  [" + getDisplayPath() + "]");
-							pcn.set(page = newInstance(mapping.getPhysicalClass(cn)));
-							done = true;
-						}
-						catch (ClassNotFoundException cnfe) {
-							LogUtil.log(config, "compile", cnfe);
-						}
-					}
-					if (!done) {
-						LogUtil.log(config, Log.LEVEL_DEBUG, "compile", "load class from binary  [" + getDisplayPath() + "]");
-						byte[] bytes = IOUtil.toBytes(classFile);
-						if (ClassUtil.isBytecode(bytes)) pcn.set(page = newInstance(mapping.getPhysicalClass(this.getClassName(), bytes)));
-					}
-
+					page = this.loadClass();
 				}
 				catch (Exception e) {
 					LogUtil.log(config, "compile", e);
@@ -372,19 +382,17 @@ public final class PageSourceImpl implements PageSource {
 				}
 				if (page == null) {
 					LogUtil.log(config, Log.LEVEL_DEBUG, "compile", "compile  [" + getDisplayPath() + "] in case loading of the class fails");
-					pcn.set(page = compile(config, classRootDir, null, false, pc.ignoreScopes()));
+					page = compilePhysical(config, classRootDir, null, false, pc.ignoreScopes());
 					isNew = true;
 				}
 			}
 
 			// check if version changed or lasMod
 			if (!isNew && (srcLastModified != page.getSourceLastModified() || page.getVersion() != pc.getConfig().getFactory().getEngine().getInfo().getFullVersionInfo())) {
-				isNew = true;
 				LogUtil.log(config, Log.LEVEL_DEBUG, "compile", "recompile [" + getDisplayPath() + "] because unloaded page has changed");
-				pcn.set(page = compile(config, classRootDir, page, false, pc.ignoreScopes()));
+				page = compilePhysical(config, classRootDir, page, false, pc.ignoreScopes());
+				isNew = true;
 			}
-			page.setPageSource(this);
-			page.setLoadType(LOAD_PHYSICAL);
 		}
 		pci.setPageUsed(page);
 		return page;
@@ -398,6 +406,14 @@ public final class PageSourceImpl implements PageSource {
 	private boolean isLoad(byte load) {
 		Page page = pcn.page;
 		return page != null && load == page.getLoadType();
+	}
+
+	private Page compilePhysical(ConfigWeb config, Resource classRootDir, Page existing, boolean returnValue, boolean ignoreScopes) throws TemplateException {
+		Page page = page = compilePhysical(config, mapping.getClassRootDirectory(), page, false, pc.ignoreScopes())
+		page.setPageSource(this);
+		page.setLoadType(LOAD_PHYSICAL);
+		pcn.set(page);
+		return page
 	}
 
 	private Page compile(ConfigWeb config, Resource classRootDir, Page existing, boolean returnValue, boolean ignoreScopes) throws TemplateException {
