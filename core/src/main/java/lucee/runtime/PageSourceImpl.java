@@ -294,8 +294,6 @@ public final class PageSourceImpl implements PageSource {
 	}
 
 	private boolean hasPageChanged(ConfigWeb config,Page page, Resource srcFile, long srcLastModified) {
-		if (srcLastModified == 0L) return false;
-
 		if (srcLastModified != page.getSourceLastModified() || (page instanceof PagePro && ((PagePro) page).getSourceLength() != srcFile.length())) {
 			// same size, maybe the content has not changed?
 			boolean same = false;
@@ -357,6 +355,7 @@ public final class PageSourceImpl implements PageSource {
 
 		Resource srcFile = getPhysicalFile();
 		long srcLastModified = srcFile.lastModified();
+		if (srcLastModified == 0L) return null;
 		// Page exists
 		if (page != null) {
 			if (this.hasPageChanged(config, page, srcFile, srcLastModified)) {
