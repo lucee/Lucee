@@ -315,7 +315,7 @@ public final class PageSourceImpl implements PageSource {
 		if (cn != null) {
 			try {
 				LogUtil.log(config, Log.LEVEL_DEBUG, "compile", "load class from ClassLoader  [" + getDisplayPath() + "]");
-				pcn.set(page = newInstance(mapping.getPhysicalClass(cn)));
+				page = newInstance(mapping.getPhysicalClass(cn));
 				done = true;
 			}
 			catch (ClassNotFoundException cnfe) {
@@ -325,7 +325,12 @@ public final class PageSourceImpl implements PageSource {
 		if (!done) {
 			LogUtil.log(config, Log.LEVEL_DEBUG, "compile", "load class from binary  [" + getDisplayPath() + "]");
 			byte[] bytes = IOUtil.toBytes(classFile);
-			if (ClassUtil.isBytecode(bytes)) pcn.set(page = newInstance(mapping.getPhysicalClass(this.getClassName(), bytes)));
+			if (ClassUtil.isBytecode(bytes)) page = newInstance(mapping.getPhysicalClass(this.getClassName(), bytes));
+		}
+		if (page != null) {
+			page.setPageSource(this);
+			page.setLoadType(LOAD_PHYSICAL);
+			pcn.set(page);
 		}
 		return page;
 	}
