@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.log.Log;
@@ -36,7 +37,6 @@ import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.compiler.JavaFunction;
 import lucee.commons.lang.types.RefBoolean;
 import lucee.commons.lang.types.RefBooleanImpl;
-import lucee.commons.lang.types.RefIntegerSync;
 import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.compiler.CFMLCompilerImpl.Result;
 import lucee.runtime.config.Config;
@@ -84,7 +84,7 @@ public final class PageSourceImpl implements PageSource {
 	private String compName;
 	private PageAndClassName pcn = new PageAndClassName();
 	private long lastAccess;
-	private RefIntegerSync accessCount = new RefIntegerSync();
+	private AtomicInteger accessCount = new AtomicInteger();
 	private boolean flush = false;
 
 	private PageSourceImpl() {
@@ -913,13 +913,13 @@ public final class PageSourceImpl implements PageSource {
 
 	@Override
 	public final void setLastAccessTime() {
-		accessCount.plus(1);
+		accessCount.incrementAndGet(1);
 		this.lastAccess = System.currentTimeMillis();
 	}
 
 	@Override
 	public final int getAccessCount() {
-		return accessCount.toInt();
+		return accessCount.intValue();
 	}
 
 	@Override
