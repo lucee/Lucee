@@ -353,7 +353,7 @@ public final class PageSourceImpl implements PageSource {
 
 		ConfigWeb config = pc.getConfig();
 		PageContextImpl pci = (PageContextImpl) pc;
-		if ((mapping.getInspectTemplate() == Config.INSPECT_NEVER || pci.isTrusted(page)) && page.getLoadType() == LOAD_PHYSICAL) return page;
+		if (page != null && (mapping.getInspectTemplate() == Config.INSPECT_NEVER || pci.isTrusted(page)) && page.getLoadType() == LOAD_PHYSICAL) return page;
 
 		Resource srcFile = getPhysicalFile();
 		long srcLastModified = srcFile.lastModified();
