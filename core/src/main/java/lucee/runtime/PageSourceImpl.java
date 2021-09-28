@@ -64,13 +64,10 @@ import lucee.transformer.util.PageSourceCode;
 public final class PageSourceImpl implements PageSource {
 
 	private static final long serialVersionUID = -7661676586215092539L;
-	// public static final byte LOAD_NONE=1;
 	public static final byte LOAD_ARCHIVE = 2;
 	public static final byte LOAD_PHYSICAL = 3;
 	private static final long MAX = 1024 * 1024 * 100;
 	public static File logAccessDirectory;
-
-	// private byte load=LOAD_NONE;
 
 	private final MappingImpl mapping;
 
@@ -147,9 +144,6 @@ public final class PageSourceImpl implements PageSource {
 	 * @param isOutSide
 	 */
 	PageSourceImpl(MappingImpl mapping, String realPath, boolean isOutSide) {
-		// recompileAlways=mapping.getConfig().getCompileType()==Config.RECOMPILE_ALWAYS;
-		// recompileAfterStartUp=mapping.getConfig().getCompileType()==Config.RECOMPILE_AFTER_STARTUP ||
-		// recompileAlways;
 		this.mapping = mapping;
 		this.isOutSide = isOutSide;
 		if (realPath.indexOf("//") != -1) {
@@ -287,7 +281,6 @@ public final class PageSourceImpl implements PageSource {
 			return page;
 		}
 		catch (Exception e) {
-			// MUST print.e(e); is there a better way?
 			return null;
 		}
 	}
@@ -313,7 +306,6 @@ public final class PageSourceImpl implements PageSource {
 
 		// Page exists
 		if (page != null) {
-			// if(page!=null && !recompileAlways) {
 			if (srcLastModified != page.getSourceLastModified() || (page instanceof PagePro && ((PagePro) page).getSourceLength() != srcFile.length())) {
 				// same size, maybe the content has not changed?
 				boolean same = false;
