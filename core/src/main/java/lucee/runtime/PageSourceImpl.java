@@ -308,9 +308,9 @@ public final class PageSourceImpl implements PageSource {
 				}
 
 			}
-			return same;
+			return !same;
 		}
-		return false;
+		return true;
 	}
 
 	private Page loadClass(ConfigWeb config, Resource classFile) throws ClassFormatError, Exception {
@@ -353,7 +353,7 @@ public final class PageSourceImpl implements PageSource {
 
 		ConfigWeb config = pc.getConfig();
 		PageContextImpl pci = (PageContextImpl) pc;
-		if (page != null && (mapping.getInspectTemplate() == Config.INSPECT_NEVER || pci.isTrusted(page)) && page.getLoadType() == LOAD_PHYSICAL) return page;
+		if ((mapping.getInspectTemplate() == Config.INSPECT_NEVER || pci.isTrusted(page)) && page != null && page.getLoadType() == LOAD_PHYSICAL) return page;
 
 		Resource srcFile = getPhysicalFile();
 		long srcLastModified = srcFile.lastModified();
@@ -420,7 +420,7 @@ public final class PageSourceImpl implements PageSource {
 	}
 
 	private Page compilePhysical(ConfigWeb config, Resource classRootDir, Page existing, boolean returnValue, boolean ignoreScopes) throws TemplateException {
-		Page page = compile(config, classRootDir, existing, false, ignoreScopes);
+		Page page = compile(config, classRootDir, existing, returnValue, ignoreScopes);
 		if (page != null) {
 			page.setPageSource(this);
 			page.setLoadType(LOAD_PHYSICAL);
