@@ -285,10 +285,7 @@ public final class PageSourceImpl implements PageSource {
 		}
 	}
 
-	private boolean hasPageChanged(Page page) {
-
-		Resource srcFile = getPhysicalFile();
-		long srcLastModified = srcFile.lastModified();
+	private boolean hasPageChanged(Page page, Resource srcFile, long srcLastModified) {
 		if (srcLastModified == 0L) return false;
 
 		if (srcLastModified != page.getSourceLastModified() || (page instanceof PagePro && ((PagePro) page).getSourceLength() != srcFile.length())) {
@@ -350,9 +347,11 @@ public final class PageSourceImpl implements PageSource {
 		PageContextImpl pci = (PageContextImpl) pc;
 		if ((mapping.getInspectTemplate() == Config.INSPECT_NEVER || pci.isTrusted(page)) && this.isLoad(LOAD_PHYSICAL)) return page;
 
+		Resource srcFile = getPhysicalFile();
+		long srcLastModified = srcFile.lastModified();
 		// Page exists
 		if (page != null) {
-			if (this.hasPageChanged(page)) {
+			if (this.hasPageChanged(page, srcFile, srcLastModified)) {
 				page = this.compilePhysical(config, mapping.getClassRootDirectory(), page, false, pc.ignoreScopes());
 			} else {
 				page.setLoadType(LOAD_PHYSICAL);
