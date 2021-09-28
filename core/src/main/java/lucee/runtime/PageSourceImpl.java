@@ -94,8 +94,8 @@ public final class PageSourceImpl implements PageSource {
 	}
 
 	private static class PageAndClassName {
-		private AtomicReference<Page> page;
-		private AtomicReference<String> className;
+		private AtomicReference<Page> page = new AtomicReference<Page>();
+		private AtomicReference<String> className = new AtomicReference<String>();;
 
 		public String getClassName() {
 			return this.className.get();
