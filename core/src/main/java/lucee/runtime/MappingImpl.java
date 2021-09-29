@@ -278,10 +278,6 @@ public final class MappingImpl implements Mapping {
 		catch (UnmodifiableClassException e) {
 			throw new IOException(e);
 		}
-
-		// boolean isCFC = className.indexOf("_cfc$")!=-1;//aaaa ResourceUtil.getExtension(ps.getRealpath(),
-		// "").equalsIgnoreCase("cfc");
-		// return touchClassLoader().loadClass(className,code,isCFC);
 	}
 
 	/**
