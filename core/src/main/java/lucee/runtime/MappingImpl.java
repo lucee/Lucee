@@ -244,9 +244,7 @@ public final class MappingImpl implements Mapping {
 		}
 		else if ((forComponent ? pclCFC : pclCFM).getSize(true) > (forComponent ? MAX_SIZE_CFC : MAX_SIZE_CFM)) {
 			PhysicalClassLoader pcl = forComponent ? pclCFC : pclCFM;
-			synchronized (pageSourcePool) {
-				pageSourcePool.clearPages(pcl);
-			}
+			pageSourcePool.clearPages(pcl);
 			pcl.clear();
 			if (forComponent) pclCFC = new PhysicalClassLoader(config, getClassRootDirectory());
 			else pclCFM = new PhysicalClassLoader(config, getClassRootDirectory());
@@ -286,21 +284,15 @@ public final class MappingImpl implements Mapping {
 	 * @param cl
 	 */
 	public void clearPages(ClassLoader cl) {
-		synchronized (pageSourcePool) {
-			pageSourcePool.clearPages(cl);
-		}
+		pageSourcePool.clearPages(cl);
 	}
 
 	public void clearUnused(Config config) {
-		synchronized (pageSourcePool) {
-			pageSourcePool.clearUnused(config);
-		}
+		pageSourcePool.clearUnused(config);
 	}
 
 	public void resetPages(ClassLoader cl) {
-		synchronized (pageSourcePool) {
-			pageSourcePool.resetPages(cl);
-		}
+		pageSourcePool.resetPages(cl);
 	}
 
 	@Override
@@ -391,16 +383,8 @@ public final class MappingImpl implements Mapping {
 	}
 
 	@Override
-	public PageSource getPageSource(String path, boolean isOut) {
-		synchronized (pageSourcePool) {
-			PageSource source = pageSourcePool.getPageSource(path, true);
-			if (source != null) return source;
-
-			PageSourceImpl newSource = new PageSourceImpl(this, path, isOut);
-			pageSourcePool.setPage(path, newSource);
-
-			return newSource;// new PageSource(this,path);
-		}
+	public PageSource getPageSource(final String path, final boolean isOut) {
+		return pageSourcePool.getOrSetPageSource(path, (key)-> new PageSourceImpl(this, path, isOut), true);
 	}
 
 	/**
@@ -411,27 +395,23 @@ public final class MappingImpl implements Mapping {
 	 */
 
 	public Array getDisplayPathes(Array arr) throws PageException {
-		synchronized (pageSourcePool) {
-			String[] keys = pageSourcePool.keys();
-			PageSourceImpl ps;
-			for (int y = 0; y < keys.length; y++) {
-				ps = (PageSourceImpl) pageSourcePool.getPageSource(keys[y], false);
-				if (ps != null && ps.isLoad()) arr.append(ps.getDisplayPath());
-			}
-			return arr;
+		String[] keys = pageSourcePool.keys();
+		PageSourceImpl ps;
+		for (int y = 0; y < keys.length; y++) {
+			ps = (PageSourceImpl) pageSourcePool.getPageSource(keys[y], false);
+			if (ps != null && ps.isLoad()) arr.append(ps.getDisplayPath());
 		}
+		return arr;
 	}
 
 	public List<PageSource> getPageSources(boolean loaded) {
 		List<PageSource> list = new ArrayList<>();
-		synchronized (pageSourcePool) {
-			String[] keys = pageSourcePool.keys();
-			PageSourceImpl ps;
-			for (int y = 0; y < keys.length; y++) {
-				ps = (PageSourceImpl) pageSourcePool.getPageSource(keys[y], false);
-				if (ps != null) {
-					if (!loaded || ps.isLoad()) list.add(ps);
-				}
+		String[] keys = pageSourcePool.keys();
+		PageSourceImpl ps;
+		for (int y = 0; y < keys.length; y++) {
+			ps = (PageSourceImpl) pageSourcePool.getPageSource(keys[y], false);
+			if (ps != null) {
+				if (!loaded || ps.isLoad()) list.add(ps);
 			}
 		}
 		return list;
@@ -585,9 +565,7 @@ public final class MappingImpl implements Mapping {
 	}
 
 	public void flush() {
-		synchronized (pageSourcePool) {
-			pageSourcePool.clear();
-		}
+		pageSourcePool.clear();
 	}
 
 	public SerMapping toSerMapping() {
