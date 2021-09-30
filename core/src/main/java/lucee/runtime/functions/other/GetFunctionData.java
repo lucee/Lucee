@@ -104,7 +104,7 @@ public final class GetFunctionData implements Function {
 		if (function.getIntroduced() != null) sct.set(INTRODUCED, function.getIntroduced().toString());
 		// else if(inside.equals("introduced")) att.setIntroduced(value);
 
-		sct.set(KeyConstants._description, StringUtil.emptyIfNull(function.getDescription()));
+		sct.set(KeyConstants._description, StringUtil.emptyIfNull(function.getDescription()).replaceAll("\\n\\s+", "\n"));
 		if (!ArrayUtil.isEmpty(function.getKeywords())) sct.set("keywords", Caster.toArray(function.getKeywords()));
 
 		sct.set(RETURN_TYPE, StringUtil.emptyIfNull(function.getReturnTypeAsString()));
@@ -138,7 +138,7 @@ public final class GetFunctionData implements Function {
 				if (!StringUtil.isEmpty(arg.getAlias(), true)) _arg.set(KeyConstants._alias, arg.getAlias());
 
 				_arg.set("defaultValue", arg.getDefaultValue());
-				_arg.set(KeyConstants._description, StringUtil.toStringEmptyIfNull(arg.getDescription()));
+				_arg.set(KeyConstants._description, StringUtil.toStringEmptyIfNull(arg.getDescription()).replaceAll("\\n\\s+", "\n"));
 
 				_args.append(_arg);
 			}
@@ -158,7 +158,7 @@ public final class GetFunctionData implements Function {
 
 		sct.set(KeyConstants._name, function.getName());
 		sct.set(ARGUMENT_TYPE, "fixed");
-		sct.set(KeyConstants._description, StringUtil.emptyIfNull(udf.getHint()));
+		sct.set(KeyConstants._description, StringUtil.emptyIfNull(udf.getHint()).replaceAll("\\n\\s+", "\n"));
 		sct.set(RETURN_TYPE, StringUtil.emptyIfNull(udf.getReturnTypeAsString()));
 		sct.set(KeyConstants._type, "cfml");
 		sct.set(SOURCE, udf.getSource());
@@ -178,7 +178,7 @@ public final class GetFunctionData implements Function {
 			_arg.set(KeyConstants._required, fa.isRequired() ? Boolean.TRUE : Boolean.FALSE);
 			_arg.set(KeyConstants._type, StringUtil.emptyIfNull(fa.getTypeAsString()));
 			_arg.set(KeyConstants._name, StringUtil.emptyIfNull(fa.getName()));
-			_arg.set(KeyConstants._description, StringUtil.emptyIfNull(fa.getHint()));
+			_arg.set(KeyConstants._description, StringUtil.emptyIfNull(fa.getHint()).replaceAll("\\n\\s+", "\n"));
 
 			String status;
 			if (meta == null) status = "implemented";
