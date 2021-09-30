@@ -68,7 +68,7 @@ public final class GetTempFile implements Function {
 			// Most FS will fail before reaching 64 chars length, so we might fail faster,
 			// However, if we reach this pooint, we tried 62^60 possible combinations, 
 			// The algorithm can't ensure perfect distribution, but collisions will be quite rare
-			"Unable to create temporary file in " + strDir + " after " + MAX_RETRY + " tries", 
+			"Unable to create temporary file in [" + strDir + "] after " + MAX_RETRY + " tries", 
 			"IOException"
 		);
 	}
