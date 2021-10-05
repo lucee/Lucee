@@ -73,9 +73,9 @@ public final class GetTempFile implements Function {
 		);
 	}
 
-	private static char getRandomChar() {
+	private static String getRandomChar() {
 		String charWhitelist = "abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 		int randomInt = ThreadLocalRandom.current().nextInt(charWhitelist.length());
-		return charWhitelist.charAt(randomInt);
+		return "" + charWhitelist.charAt(randomInt);
 	}
 }
