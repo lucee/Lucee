@@ -36,7 +36,7 @@ public final class ArrayRemoveDuplicates extends BIF {
     public static Array call(PageContext pc, Array arr, boolean ignoreCase) throws PageException {
         Array a = new ArrayImpl();
         int i;
-        for(i=1; i <= arr.size(); i++) {
+        for(i = 1; i <= arr.size(); i++) {
             Object value = arr.getE(i);
             if(ArrayFind.find(a, value, !ignoreCase) == 0) a.appendEL(value);
         }
