@@ -2284,7 +2284,7 @@ public final class Caster {
 
 	private static DecimalFormat df = (DecimalFormat) DecimalFormat.getInstance(Locale.US);// ("#.###########");
 	static {
-		df.applyLocalizedPattern("#.############");
+		df.applyLocalizedPattern("#.########################");
 	}
 
 	public static String toString(double d) {
@@ -2298,7 +2298,7 @@ public final class Caster {
 	}
 
 	public static String toString(Number n) {
-		if (n instanceof BigDecimal) return ((BigDecimal) n).toPlainString();
+		if (n instanceof BigDecimal) return df.format(n);
 		double d = n.doubleValue();
 		long l = (long) d;
 		if (l == d) return toString(l);
@@ -2312,7 +2312,7 @@ public final class Caster {
 	}
 
 	public static String toString(BigDecimal bd) {
-		return bd.toPlainString();
+		return df.format(bd);
 	}
 
 	/**

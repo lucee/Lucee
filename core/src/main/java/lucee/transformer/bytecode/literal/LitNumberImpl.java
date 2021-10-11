@@ -41,7 +41,7 @@ public class LitNumberImpl extends ExpressionBase implements LitNumber, ExprNumb
 	public LitNumberImpl(Factory f, BigDecimal bd, Position start, Position end) {
 		super(f, start, end);
 		this.bd = bd;
-		this.number = bd.toPlainString();
+		this.number = Caster.toString(bd);
 
 	}
 
