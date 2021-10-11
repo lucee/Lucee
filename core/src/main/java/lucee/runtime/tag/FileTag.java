@@ -1151,7 +1151,7 @@ public final class FileTag extends BodyTagImpl {
 	}
 
 	/**
-	 * rreturn fileItem matching to filefiled definition or throw an exception
+	 * return fileItem matching to filefield definition or throw an exception
 	 * 
 	 * @return FileItem
 	 * @throws ApplicationException
