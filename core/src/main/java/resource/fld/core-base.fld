@@ -14215,7 +14215,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 	<function>
 		<name>ArrayRemoveDuplicates</name>
 		<class>lucee.runtime.functions.arrays.ArrayRemoveDuplicates</class>
-		<keywords>list,string</keywords>
+		<keywords>array</keywords>
 		<member-name>removeDuplicates</member-name>
 		<description>Removes duplicate values from array.</description>
 		<argument>
