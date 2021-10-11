@@ -14211,7 +14211,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
     		<type>string</type>
     	</return>
     </function>
-
+	<!-- ArrayRemoveDuplicates -->
 	<function>
 		<name>ArrayRemoveDuplicates</name>
 		<class>lucee.runtime.functions.arrays.ArrayRemoveDuplicates</class>
@@ -14220,16 +14220,16 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<description>Removes duplicate values from array.</description>
 		<argument>
 			<name>array</name>
-				<type>array</type>
-				<required>Yes</required>
-				<description>A array to Removes duplicate</description>
-			</argument>
+			<type>array</type>
+			<required>Yes</required>
+			<description>A array to Removes duplicate</description>
+		</argument>
 		<argument>
 			<name>ignoreCase</name>
-				<type>boolean</type>
-				<required>no</required>
-				<description>if set to true, the duplicate value will not be case sensitive</description>
-			</argument>
+			<type>boolean</type>
+			<required>no</required>
+			<description>if set to true, the duplicate value will not be case sensitive</description>
+		</argument>
 		<return>
 			<type>array</type>
 		</return>
