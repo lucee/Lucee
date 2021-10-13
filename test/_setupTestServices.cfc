@@ -153,7 +153,7 @@ component {
 	public void function loadServiceConfig() localmode=true {
 		systemOutput( "", true) ;		
 		systemOutput("-------------- Test Services ------------", true );
-		services = ListToArray("oracle,MySQL,MSsql,postgres,h2,mongoDb,smtp,pop,imap,s3,s3_custom,s3_google,ftp,sftp,memcached");
+		services = ListToArray("oracle,MySQL,MSsql,postgres,h2,mongoDb,smtp,pop,imap,s3,s3_custom,s3_google,ftp,sftp,memcached,redis");
 		// can take a while, so we check them them in parallel
 		services.each( function( service ) localmode=true {
 			if (! isTestServiceAllowed( arguments.service )){
