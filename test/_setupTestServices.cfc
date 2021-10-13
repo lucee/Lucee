@@ -142,6 +142,9 @@ component {
 
 			"MEMCACHED_SERVER": "localhost",
 			// "MEMCACHED_PORT": 11211 // DON'T COMMIT
+
+			"REDIS_SERVER": "localhost",
+			// "REDIS_PORT": 6379 // DON'T COMMIT
 			
 
 		};
@@ -199,6 +202,9 @@ component {
 							break;
 						case "memcached":
 							verify = verifyMemcached(cfg);
+							break;
+						case "redis":
+							verify = verifyRedis(cfg);
 							break;
 						default:
 							verify = verifyDatasource(cfg);
@@ -292,6 +298,13 @@ component {
 
 	public function verifyMemcached ( memcached ) localmode=true{
 		if ( structCount( memcached ) eq 2 ){
+			return "configured (not tested)";
+		}	
+		throw "not configured";
+	}	
+
+	public function verifyRedis ( redis ) localmode=true{
+		if ( structCount( redis ) eq 2 ){
 			return "configured (not tested)";
 		}	
 		throw "not configured";
@@ -473,6 +486,12 @@ component {
 				memcached = server._getSystemPropOrEnvVars( "SERVER, PORT", "MEMCACHED_" );
 				if ( memcached.count() eq 2 ){
 					return memcached;
+				}
+				break;
+			case "redis":
+				redis = server._getSystemPropOrEnvVars( "SERVER, PORT", "REDIS_" );
+				if ( redis.count() eq 2 ){
+					return redis;
 				}
 				break;
 			default:

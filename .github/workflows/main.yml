@@ -101,6 +101,8 @@ jobs:
         MSSQL_DATABASE: master
         MEMCACHED_PORT: 11211
         MEMCACHED_SERVER: localhost
+        REDIS_PORT: 6379
+        REDIS_SERVER: localhost
         S3_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_ID_TEST }}
         S3_SECRET_KEY: ${{ secrets.S3_SECRET_KEY_TEST }}
         # DO_DEPLOY: ${{ github.event_name == 'push' }}
