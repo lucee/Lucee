@@ -83,7 +83,7 @@ public final class PageSourceImpl implements PageSource {
 	private Resource physicalSource;
 	private Resource archiveSource;
 	private String compName;
-	private PageAndClassName pcn = new PageAndClassName();
+	private Page page;
 	private long lastAccess;
 	private AtomicInteger accessCount = new AtomicInteger();
 	private boolean flush = false;
@@ -91,29 +91,6 @@ public final class PageSourceImpl implements PageSource {
 	private PageSourceImpl() {
 		mapping = null;
 		relPath = null;
-	}
-
-	private static class PageAndClassName {
-		private AtomicReference<Page> page = new AtomicReference<Page>();
-		private AtomicReference<String> className = new AtomicReference<String>();;
-
-		public String getClassName() {
-			return this.className.get();
-		}
-
-		public Page getPage() {
-			return this.page.get();
-		}
-
-		public synchronized void setPage(Page page) {
-			this.page.set(page);
-			if (page != null) this.className.set(page.getClass().getName());
-		}
-
-		public synchronized void reset() {
-			this.className.set(null);
-			this.page.set(null);
-		}
 	}
 
 	/**
@@ -202,7 +179,7 @@ public final class PageSourceImpl implements PageSource {
 	 * @throws PageException
 	 */
 	public Page getPage() {
-		return pcn.getPage();
+		return page;
 	}
 
 	public PageSource getParent() {
@@ -213,9 +190,9 @@ public final class PageSourceImpl implements PageSource {
 
 	@Override
 	public Page loadPage(PageContext pc, boolean forceReload) throws PageException {
-		if (forceReload) pcn.reset();
+		if (forceReload) this.page = null;
 
-		Page page = pcn.getPage();
+		Page page = getPage();
 		if (mapping.isPhysicalFirst()) {
 			page = loadPhysical(pc, page);
 			if (page == null) page = loadArchive(page);
@@ -232,9 +209,9 @@ public final class PageSourceImpl implements PageSource {
 
 	@Override
 	public Page loadPageThrowTemplateException(PageContext pc, boolean forceReload, Page defaultValue) throws TemplateException {
-		if (forceReload) pcn.reset();
+		if (forceReload) this.page = null;
 
-		Page page = pcn.getPage();
+		Page page = getPage();
 		if (mapping.isPhysicalFirst()) {
 			page = loadPhysical(pc, page);
 			if (page == null) page = loadArchive(page);
@@ -250,9 +227,9 @@ public final class PageSourceImpl implements PageSource {
 
 	@Override
 	public Page loadPage(PageContext pc, boolean forceReload, Page defaultValue) {
-		if (forceReload) pcn.reset();
+		if (forceReload) this.page = null;
 
-		Page page = pcn.getPage();
+		Page page = getPage();
 		if (mapping.isPhysicalFirst()) {
 			try {
 				page = loadPhysical(pc, page);
@@ -285,7 +262,7 @@ public final class PageSourceImpl implements PageSource {
 			page = newInstance(clazz);
 			page.setPageSource(this);
 			page.setLoadType(LOAD_ARCHIVE);
-			pcn.setPage(page);
+			this.page = page;
 			return page;
 		}
 		catch (Exception e) {
@@ -313,7 +290,7 @@ public final class PageSourceImpl implements PageSource {
 
 	private Page loadClass(ConfigWeb config, Resource classFile) throws ClassFormatError, Exception {
 		Page page = null;
-		String cn = pcn.getClassName();
+		String cn = getClassName();
 		boolean done = false;
 		if (cn != null) {
 			try {
@@ -333,7 +310,7 @@ public final class PageSourceImpl implements PageSource {
 		if (page != null) {
 			page.setPageSource(this);
 			page.setLoadType(LOAD_PHYSICAL);
-			pcn.setPage(page);
+			this.page = page;
 		}
 		return page;
 	}
@@ -383,12 +360,12 @@ public final class PageSourceImpl implements PageSource {
 				}
 				catch (Exception e) {
 					LogUtil.log(config, "compile", e);
-					pcn.reset();
+					this.page = null;
 				}
 				catch (ClassFormatError cfe) {
 					LogUtil.log(config, Log.LEVEL_ERROR, "compile", "size of the class file:" + classFile.length());
 					LogUtil.log(config, "compile", cfe);
-					pcn.reset();
+					this.page = null;
 				}
 				if (page == null) {
 					LogUtil.log(config, Log.LEVEL_DEBUG, "compile", "compile  [" + getDisplayPath() + "] in case loading of the class fails");
@@ -409,12 +386,12 @@ public final class PageSourceImpl implements PageSource {
 	}
 
 	public void flush() {
-		this.pcn.setPage((Page) null);
+		this.page = null;
 		flush = true;
 	}
 
 	private boolean isLoad(byte load) {
-		Page page = this.pcn.getPage();
+		Page page = getPage();
 		return page != null && load == page.getLoadType();
 	}
 
@@ -423,7 +400,7 @@ public final class PageSourceImpl implements PageSource {
 		if (page != null) {
 			page.setPageSource(this);
 			page.setLoadType(LOAD_PHYSICAL);
-			pcn.setPage(page);
+			this.page = page;
 		}
 		return page;
 	}
@@ -993,7 +970,7 @@ public final class PageSourceImpl implements PageSource {
 	}
 
 	public void clear() {
-		pcn.setPage( (Page) null);
+		this.page = null;
 	}
 
 	/**
@@ -1002,14 +979,14 @@ public final class PageSourceImpl implements PageSource {
 	 * @param cl
 	 */
 	public void clear(ClassLoader cl) {
-		Page page = pcn.getPage();
+		Page page = getPage();
 		if (page != null && page.getClass().getClassLoader().equals(cl)) {
-			pcn.setPage((Page) null);
+			this.page = null;
 		}
 	}
 
 	public boolean isLoad() {
-		return pcn.getPage() != null;
+		return getPage() != null;
 	}
 
 	@Override
@@ -1096,7 +1073,7 @@ public final class PageSourceImpl implements PageSource {
 	}
 
 	public void resetLoaded() {
-		Page p = pcn.getPage();
+		Page p = getPage();
 		if (p != null) p.setLoadType((byte) 0);
 	}
 }
