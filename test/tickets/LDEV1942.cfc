@@ -44,6 +44,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 	}
 
 	private boolean function hasCredentials() {
-		return (structCount(server.getDatasource("postgres")) gt 0);
+		return (structCount(server.getDatasource("mysql")) gt 0);
 	}
 }
