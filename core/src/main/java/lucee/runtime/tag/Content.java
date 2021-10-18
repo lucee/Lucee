@@ -164,7 +164,10 @@ public final class Content extends BodyTagImpl {
 		Resource file = null;
 		if (content == null && !StringUtil.isEmpty(strFile)) {
             file = ResourceUtil.toResourceExisting(pageContext, strFile);
-            type = ResourceUtil.getMimeType(file, "text/html");
+            // Do not overwrite type-attribute
+            if (StringUtil.isEmpty(type, true)) {
+              type = ResourceUtil.getMimeType(file, "text/html");
+            }
         }
 
 		// get response object
