@@ -384,7 +384,8 @@ public final class MappingImpl implements Mapping {
 
 	@Override
 	public PageSource getPageSource(final String path, final boolean isOut) {
-		return pageSourcePool.getOrSetPageSource(path, (key)-> new PageSourceImpl(this, path, isOut), true);
+		MappingImpl thisObj = this;
+		return pageSourcePool.getOrSetPageSource(path, (String ignored)-> new PageSourceImpl(thisObj, path, isOut), true);
 	}
 
 	/**
