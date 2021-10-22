@@ -136,7 +136,7 @@ public final class ArgumentImpl extends ScopeSupport implements Argument, ArrayP
 
 		if (key.length() > 0) {
 			char c = key.charAt(0);
-			if ((c >= '0' && c <= '9') || c='+') {
+			if ((c >= '0' && c <= '9') || c == '+') {
 				o = get(Caster.toIntValue(key.getString(), -1), Null.NULL);
 				if (o != Null.NULL) return o;
 			}
