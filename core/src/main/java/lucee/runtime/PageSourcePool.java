@@ -21,8 +21,12 @@ package lucee.runtime;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.function.Function;
+
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.RemovalListener;
 
 import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
@@ -39,20 +43,25 @@ import lucee.runtime.type.dt.DateTimeImpl;
  * pool to handle pages
  */
 public final class PageSourcePool implements Dumpable {
-	private ConcurrentHashMap<String, PageSource> pageSources = new ConcurrentHashMap<String, PageSource>();
-	// timeout timeout for files
-	private long timeout;
-	// max size of the pool cache
-	private int high_watermark;
-	private int low_watermark;
+	private Cache<String, PageSource> cache;
+	RemovalListener<String, PageSource> nullListener = (k, v, c) -> {}; // Only used for typing
+
+	private int maximumSize;
 
 	/**
 	 * constructor of the class
 	 */
 	public PageSourcePool() {
-		this.timeout = 10000;
-		this.high_watermark = 1000;
-		this.low_watermark = 900;
+		this(3000);
+	}
+
+	public PageSourcePool(int maximumSize) {
+		this.maximumSize = maximumSize;
+		Caffeine<String, PageSource> cacheBuilder = Caffeine.newBuilder().removalListener(nullListener);
+
+		this.cache = cacheBuilder
+			.maximumSize(this.maximumSize)
+			.build();
 	}
 
 	/**
@@ -63,14 +72,11 @@ public final class PageSourcePool implements Dumpable {
 	 * @return page
 	 */
 	public PageSource getPageSource(String key, boolean updateAccesTime) { // DO NOT CHANGE INTERFACE (used by Argus Monitor)
-		PageSource ps = this.pageSources.get(key.toLowerCase());
-		if (ps == null) return null;
-		if (updateAccesTime) ps.setLastAccessTime();
-		return ps;
+		return this.cache.getIfPresent(key.toLowerCase());
 	}
 
 	public PageSource getOrSetPageSource(final String key, final Function<String, PageSource> getSources, boolean updateAccessTime) {
-		PageSource ps = this.pageSources.computeIfAbsent(
+		PageSource ps = this.cache.asMap().computeIfAbsent(
 			key.toLowerCase(), 
 			(lkey) -> {
 				return getSources.apply(key);
@@ -86,17 +92,15 @@ public final class PageSourcePool implements Dumpable {
 	 * @param ps pagesource to store
 	 */
 	public void setPage(String key, PageSource ps) {
-		ps.setLastAccessTime();
-
-		this.pageSources.put(key.toLowerCase(), ps);
+		this.cache.put(key.toLowerCase(), ps);
 	}
 
 	/**
 	 * @return returns an array of all keys in the page pool
 	 */
 	public String[] keys() {
-		if (this.pageSources == null) return new String[0];
-		Set<String> set = pageSources.keySet();
+		if (this.cache == null) return new String[0];
+		Set<String> set = this.cache.asMap().keySet();
 		return set.toArray(new String[set.size()]);
 	}
 
@@ -119,7 +123,7 @@ public final class PageSourcePool implements Dumpable {
 	 */
 
 	public boolean flushPage(String key) {
-		PageSource ps = this.pageSources.computeIfPresent(
+		PageSource ps = this.cache.asMap().computeIfPresent(
 			key.toLowerCase(), 
 			(k, v) -> {
 				if (v != null && v instanceof PageSourceImpl) {
@@ -136,31 +140,32 @@ public final class PageSourcePool implements Dumpable {
 	 * @return returns the size of the pool
 	 */
 	public int size() {
-		return this.pageSources.size();
+		return (int) this.cache.estimatedSize();
 	}
 
 	/**
 	 * @return returns if pool is empty or not
 	 */
 	public boolean isEmpty() {
-		return this.pageSources.isEmpty();
+		return this.cache.asMap().isEmpty();
 	}
 
 	/**
 	 * clear unused pages from page pool
 	 */
 	public void clearUnused(Config config) {
-		// Fixme : reimplement
+		return;
 	}
 
 	@Override
 	public DumpData toDumpData(final PageContext pageContext, final int maxlevel, final DumpProperties dp) {
 		final int newML = maxlevel-1;
+		ConcurrentMap<String, PageSource> map = this.cache.asMap();
 		
 		DumpTable table = new DumpTable("#FFCC00", "#FFFF00", "#000000");
 		table.setTitle("Page Source Pool");
-		table.appendRow(1, new SimpleDumpData("Count"), new SimpleDumpData(pageSources.size()));
-		this.pageSources.forEach((key, ps) -> {
+		table.appendRow(1, new SimpleDumpData("Count"), new SimpleDumpData(map.size()));
+		map.forEach((key, ps) -> {
 			if (ps == null ) return;
 			DumpTable inner = new DumpTable("#FFCC00", "#FFFF00", "#000000");
 			inner.setWidth("100%");
@@ -178,7 +183,7 @@ public final class PageSourcePool implements Dumpable {
 	 * @param cl
 	 */
 	public void clearPages(ClassLoader cl) {
-		this.pageSources.forEach(
+		this.cache.asMap().forEach(
 			(key, ps) -> {
 				PageSourceImpl psi = (PageSourceImpl) ps;
 				if (psi != null) {
@@ -193,7 +198,7 @@ public final class PageSourcePool implements Dumpable {
 	}
 
 	public void resetPages(ClassLoader cl) {
-		this.pageSources.forEach(
+		this.cache.asMap().forEach(
 			(key, ps) -> {
 				PageSourceImpl psi = (PageSourceImpl) ps;
 				if (psi != null) {
@@ -209,10 +214,9 @@ public final class PageSourcePool implements Dumpable {
 
 	public void clear() {
 		clearPages(null);
-		// pageSources.clear();
 	}
 
 	public int getMaxSize() {
-		return high_watermark;
+		return maximumSize;
 	}
 }
