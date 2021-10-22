@@ -671,7 +671,13 @@
       <groupId>org.lucee</groupId>
       <artifactId>argon2</artifactId>
       <version>2.7.0</version>
-	</dependency>
+  </dependency>
+  <dependency>
+    <groupId>com.github.ben-manes.caffeine</groupId>
+    <artifactId>caffeine</artifactId>
+    <version>3.0.4</version>
+    <scope>provided</scope>
+  </dependency>  
 </dependencies>
 
 
