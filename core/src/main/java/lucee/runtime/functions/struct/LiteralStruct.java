@@ -28,7 +28,7 @@ public class LiteralStruct implements Function {
 	private static final long serialVersionUID = 3030769464899375329L;
 
 	public static Struct call(PageContext pc, Object[] objArr) throws PageException {
-		return Struct_._call(objArr, "invalid argument for literal struct, only named arguments are allowed like {name:\"value\",name2:\"value2\"}", -1);
+		return Struct_._call(objArr, "invalid argument for literal struct, only named arguments like {name:\"value\",name2:\"value2\"} or shorthand non-dotted arguments like {identifier} (but not {variables.identifier}) are allowed", -1);
 
 	}
 }

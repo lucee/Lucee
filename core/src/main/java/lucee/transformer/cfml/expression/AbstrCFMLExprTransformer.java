@@ -40,11 +40,13 @@ import lucee.transformer.bytecode.expression.var.Argument;
 import lucee.transformer.bytecode.expression.var.Assign;
 import lucee.transformer.bytecode.expression.var.BIF;
 import lucee.transformer.bytecode.expression.var.Call;
+import lucee.transformer.bytecode.expression.var.DataMemberImpl;
 import lucee.transformer.bytecode.expression.var.DynAssign;
 import lucee.transformer.bytecode.expression.var.Func;
 import lucee.transformer.bytecode.expression.var.FunctionMember;
 import lucee.transformer.bytecode.expression.var.NamedArgument;
 import lucee.transformer.bytecode.expression.var.UDF;
+import lucee.transformer.bytecode.expression.var.VariableImpl;
 import lucee.transformer.bytecode.literal.Identifier;
 import lucee.transformer.bytecode.literal.Null;
 import lucee.transformer.bytecode.literal.NullConstant;
@@ -1275,7 +1277,39 @@ public abstract class AbstrCFMLExprTransformer {
 			comments(data);
 			if (data.srcCode.isCurrent(end)) break;
 
-			bif.addArgument(functionArgument(data, data.settings.dotNotationUpper));
+			Argument syntheticArg = functionArgument(data, data.settings.dotNotationUpper);
+
+			// If we're parsing a struct literal, check if the argument we just parsed was not named
+			// If the arg was not named, and if the identifier is not a dotted path like (scope qualified or otherwise) like "variables.x" or "a.b" or etc.,
+			//   then we support object-shorthand-notation, in which `{value}` is treated equivalently to `{value: value}`
+			// Normal scope-lookup rules apply
+			// A possible ambiguity arises in ordered struct literals, like `[a]` -- is that "[a] meaning [a:a]" or just literally "[a]"
+			// We resolve this like adobe - `[a, b, c]` is an array literal; shorthand notation for ordered struct literals is not supported
+			if (start == '{') {
+				boolean argIsNotNamed = !(syntheticArg instanceof NamedArgument);
+				if (argIsNotNamed) {
+					boolean argRawIsVariableImpl = syntheticArg.getRawValue() instanceof VariableImpl;
+					boolean argRawIsNotADottedPath = argRawIsVariableImpl
+						? ((VariableImpl)syntheticArg.getRawValue()).getMembers().size() == 1 && ((VariableImpl)syntheticArg.getRawValue()).getScope() == Scope.SCOPE_UNDEFINED
+						: false;
+					boolean argRawIsDataMemberImpl = argRawIsNotADottedPath
+						? ((VariableImpl)syntheticArg.getRawValue()).getMembers().get(0) instanceof DataMemberImpl
+						: false;
+					boolean argRawIsLoneIdentifier = argRawIsDataMemberImpl
+						? ((DataMemberImpl)((VariableImpl)syntheticArg.getRawValue()).getMembers().get(0)).getName() instanceof Identifier
+						: false;
+
+					if (argRawIsLoneIdentifier) {
+						DataMemberImpl dataMemberImpl = (DataMemberImpl) ((VariableImpl)syntheticArg.getRawValue()).getMembers().get(0);
+						Identifier name = (Identifier) dataMemberImpl.getName();
+						Variable expr = data.factory.createVariable(name.getStart(), name.getEnd());
+						expr.addMember(dataMemberImpl);
+						syntheticArg = new NamedArgument(name, expr, null, data.settings.dotNotationUpper);
+					}
+				}
+			}
+
+			bif.addArgument(syntheticArg);
 			comments(data);
 		}
 		while (data.srcCode.forwardIfCurrent(','));
