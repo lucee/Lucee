@@ -25,6 +25,7 @@ import java.io.IOException;
 
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
+import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
@@ -42,8 +43,8 @@ public final class GetTempFile implements Function {
 		if (!dir.isDirectory()) throw new ExpressionException("[" + strDir + "] is not a directory");
 		int count = 1;
 		Resource file;
-		if (extension.trim().isEmpty() == true) { extension = ".tmp"; }
-		if (extension.charAt(0) != '.') { extension = "." + extension; }
+		if (StringUtil.isEmpty(extension, true)) extension = ".tmp";
+		if (extension.charAt(0) != '.') extension = "." + extension;
 		while ((file = dir.getRealResource(prefix + pc.getId() + count + extension)).exists()) {
 			count++;
 		}
