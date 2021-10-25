@@ -78,7 +78,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 	function testValueNull() {
 		assertTrue(isJson('null'));
-		assertEquals(deserializeJson('null'), javacast("null", 0));
+		assertTrue(isNull(deserializeJson('null')));
 	}
 
 	function testValueEmoji() {
