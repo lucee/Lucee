@@ -260,7 +260,7 @@ END
 
 	private struct function getDatasource2(){
 			var mySQL=getCredencials();
-			if(mySQL.count()==0) return {};
+			if(mySQL.count()==0 || isEmpty(mySQL.server?:"")) return {};
 			
 			return {
 			  type= 'mysql'
