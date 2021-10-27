@@ -159,6 +159,9 @@ public final class Duplicator {
 		catch (ClassException e) {
 			newList = new ArrayList();
 		}
+		catch (ClassCastException e) {
+			newList = new ArrayList();
+		}
 		return duplicateList(list, newList, deepCopy);
 	}
 
@@ -186,6 +189,9 @@ public final class Duplicator {
 				newMap = (Map) ClassUtil.loadInstance(map.getClass());
 			}
 			catch (ClassException e) {
+				newMap = new HashMap();
+			}
+			catch (ClassCastException e) {
 				newMap = new HashMap();
 			}
 			boolean inside = ThreadLocalDuplication.set(map, newMap);
