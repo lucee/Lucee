@@ -4367,12 +4367,12 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	 * store(); // adminSync.broadcast(attributes, config); }
 	 */
 
-	private void doUpdateExtensionProvider() throws PageException {
+	private void doUpdateExtensionProvider() throws MalformedURLException,  PageException {
 		admin.updateExtensionProvider(getString("admin", "UpdateExtensionProvider", "url"));
 		store();
 	}
 
-	private void doUpdateRHExtensionProvider() throws PageException {
+	private void doUpdateRHExtensionProvider() throws MalformedURLException, PageException {
 		try {
 			admin.updateRHExtensionProvider(getString("admin", "UpdateRHExtensionProvider", "url"));
 		}

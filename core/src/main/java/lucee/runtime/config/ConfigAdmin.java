@@ -4042,10 +4042,12 @@ public final class ConfigAdmin {
 		updateExtensionProvider(strUrl);
 	}
 
-	public void updateExtensionProvider(String strUrl) throws PageException {
+	public void updateExtensionProvider(String strUrl) throws MalformedURLException, PageException {
 		Array children = ConfigWebUtil.getAsArray("extensionProviders", root);
-
 		strUrl = strUrl.trim();
+
+		URL _url = HTTPUtil.toURL(strUrl, HTTPUtil.ENCODED_NO);
+		strUrl = _url.toExternalForm();
 
 		// Update
 		String url;
