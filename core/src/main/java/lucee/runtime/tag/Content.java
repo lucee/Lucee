@@ -162,7 +162,13 @@ public final class Content extends BodyTagImpl {
 	private int _doStartTag() throws PageException {
 		// check the file before doing anything else
 		Resource file = null;
-		if (content == null && !StringUtil.isEmpty(strFile)) file = ResourceUtil.toResourceExisting(pageContext, strFile);
+		if (content == null && !StringUtil.isEmpty(strFile)) {
+            file = ResourceUtil.toResourceExisting(pageContext, strFile);
+            // Do not overwrite type-attribute
+            if (StringUtil.isEmpty(type, true)) {
+              type = ResourceUtil.getMimeType(file, "text/html");
+            }
+        }
 
 		// get response object
 		HttpServletResponse rsp = pageContext.getHttpServletResponse();
