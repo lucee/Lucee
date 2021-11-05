@@ -9980,6 +9980,15 @@ Valid only for cfinput type="text".</description>
 			<rtexprvalue>true</rtexprvalue>
 			<description>HTML attribute: Specifies the legal number intervals for the input field</description>
 		</attribute>
+		<attribute>
+			<type>boolean</type>
+			<name>encodeValue</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>By default the value parameter is automatically html encoded, but not using ESAPI encodeForHtmlAttribute() for historical reasons. Default is true.
+			Set to false to disable the encoding and handle the encoding yourself.
+			</description>
+		</attribute>
 	</tag>
 
 	<!-- Select -->
