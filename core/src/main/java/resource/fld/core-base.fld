@@ -14212,6 +14212,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
     		<type>string</type>
     	</return>
     </function>
+	<!-- StringReduce -->
     <function>
     		<name>StringReduce</name>
     		<member-name>reduce</member-name>
@@ -14263,6 +14264,23 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</argument>
 		<return>
 			<type>array</type>
+		</return>
+	</function>
+	<!-- QueryIsEmpty -->
+	<function>
+		<name>QueryIsEmpty</name>
+		<member-name>isEmpty</member-name>
+		<class>lucee.runtime.functions.query.QueryIsEmpty</class>
+		<keywords>query</keywords>
+		<description>returns query empty or not</description>
+		<argument>
+			<name>query</name>
+			<type>query</type>
+			<required>Yes</required>
+			<description></description>
+		</argument>
+		<return>
+			<type>boolean</type>
 		</return>
 	</function>
 </func-lib>
