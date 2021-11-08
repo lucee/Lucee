@@ -4652,7 +4652,7 @@ EntitySave(entity, [forceInsert])</description>
 			<alias>path,filepath,source</alias>
 			<type>string</type>
 			<required>Yes</required>
-		<description>a file path</description>
+		<description>a file/resource path</description>
     </argument>
 		<argument>
 			<name>mode</name>
