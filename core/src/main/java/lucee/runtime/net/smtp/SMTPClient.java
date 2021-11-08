@@ -961,7 +961,7 @@ public final class SMTPClient implements Serializable {
 		return timeout > 0 ? timeout : config.getMailTimeout() * 1000L;
 	}
 
-	// remove all atttachements that are marked to remove
+	// remove any attachments that are marked to remove after sending
 	private static void clean(Config config, Attachment[] attachmentz) {
 		if (attachmentz != null) for (int i = 0; i < attachmentz.length; i++) {
 			if (attachmentz[i].isRemoveAfterSend()) {
