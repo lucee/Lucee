@@ -1,4 +1,4 @@
-component extends = "org.lucee.cfml.test.LuceeTestCase" {
+component extends = "org.lucee.cfml.test.LuceeTestCase" skip=true{
 	function run( testResults, textbox ) {
 		describe("testcase for LDEV-3742", function() {
 			variables.path = "http://"&cgi.SERVER_NAME & getDirectoryFromPath(cgi.SCRIPT_NAME)&"LDEV3742/test.cfc";
