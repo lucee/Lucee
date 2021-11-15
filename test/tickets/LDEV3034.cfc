@@ -2,7 +2,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 	function run( testResults , testbox ){
 		describe( "Testcase for LDEV-3034", function(){
             var base64Valid = "dmFsaWQ=";
-            var base64Invalid = "invalid";
+            var base64Invalid = "@@@@";
             it(title="binaryDecode() with valid base64 data", body=function( currentSpec ){
                 res = (toString(binaryDecode(base64Valid, "base64")));
                 expect(res).toBe("valid");
