@@ -145,9 +145,6 @@ function mem(type) {
 					pp = left(pp, pp.len() - 1);
 					pp = listTrim(pp, "\/");
 
-					if (name does not contain "2308")
-						return false;
-
 					// only testcases in sub directory of "test" are allowed
 					var _test = listTrim(test,"\/");
 					return (_test == pp || _test == p) && left(name, 1) != "_";
