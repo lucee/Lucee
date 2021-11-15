@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase"{
+component extends="org.lucee.cfml.test.LuceeTestCase" skip="true" {
 	public function run( testResults , testBox ) {
 		describe( "Testcase for LDEV-3197", function() {
 			it( title="switch with different case", body=function( currentSpec ){
