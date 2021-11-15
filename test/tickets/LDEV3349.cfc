@@ -1,6 +1,9 @@
-component extends="org.lucee.cfml.test.LuceeTestCase"{
+component extends="org.lucee.cfml.test.LuceeTestCase" skip=true {
 	function run( testResults, testBox ){
-		describe( "Test case for LDEV-3349", function() {
+		
+        // TODO this does not work locally, when running the test cases via JSR 223 (via build process), becazse there is not web server!
+        
+        describe( "Test case for LDEV-3349", function() {
             it( title="cfhttp with queryString %20", body=function( currentSpec ){
                 cfhttp( method="get", url="#cgi.SERVER_NAME & getDirectoryFromPath(cgi.SCRIPT_NAME)#LDEV3349/test.cfm?%20");
                 expect(cfhttp.filecontent).toBe("%20");
