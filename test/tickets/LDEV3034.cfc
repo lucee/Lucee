@@ -21,16 +21,6 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
                 }
                 expect(hasError).toBe(true);
             });
-            it(title="binaryEncode() with String", body=function( currentSpec ){
-                try{      
-                    res = binaryEncode("String instead of binary Object", "base64");
-                    hasError = false;      
-                }
-                catch(any e){
-                    hasError = true;
-                }
-                expect(hasError).toBe(true);
-            });
             it(title="binaryDecode() with invalid base64 data", body=function( currentSpec ){
                 try{
                     res = binaryDecode(base64Invalid, "base64");  
