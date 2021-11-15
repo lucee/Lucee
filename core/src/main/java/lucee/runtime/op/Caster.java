@@ -79,6 +79,7 @@ import lucee.runtime.ComponentSpecificAccess;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.coder.Base64Coder;
+import lucee.runtime.coder.CoderException;
 import lucee.runtime.component.Member;
 import lucee.runtime.component.Property;
 import lucee.runtime.component.PropertyImpl;
@@ -2785,6 +2786,11 @@ public final class Caster {
 		}
 		catch (PageException e) {
 			throw new CasterException(o, "binary");
+		}
+		catch (CoderException e) {
+			CasterException ce = new CasterException(e.getMessage());
+			ce.initCause(e);
+			throw ce;
 		}
 	}
 
