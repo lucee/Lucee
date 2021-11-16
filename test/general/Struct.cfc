@@ -43,6 +43,18 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				expect(msg).toBe("sorry but we cannot help!");
 			});
 
+			it(title="shorthand notation", body=function() {
+				var someKey = 42;
+				var shortHandStruct = { someKvPair: "a", someKey, someOtherKvPair: "b" };
+
+				expect(shortHandStruct.keyExists("someKey")).toBe(true);
+				expect(shortHandStruct.someKey).toBe(42);
+
+				var identity = (v) => v;
+
+				expect(identity({identity}).identity).toBe(identity);
+			})
+
 		});
 	}
 }
