@@ -23,21 +23,26 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="zip" {
 		variables.currFile=getCurrentTemplatePath();
 		variables.currDir=getDirectoryFromPath(currFile);
 
-		variables.root=currDir&"zip/";
-		variables.dir=root&"a/b/c/";
-		variables.file1=dir&"a.txt"
-		variables.dir1=root&"a/";
-		variables.file2=root&"a/b.txt";
-		variables.target=root&"test.zip";
-		variables.targetStored=root&"testStored.zip";
-		variables.unzip=root&"unzip";
+		variables.root=currDir & "zip/";
+		variables.dir=root & "a/b/c/";
+		variables.file1=dir & "a.txt"
+		variables.dir1=root & "a/";
+		variables.file2=root & "a/b.txt";
+		variables.target=root & "test.zip";
+		variables.targetStored=root & "testStored.zip";
+		variables.unzip=root & "unzip";
 
-		if(directoryExists(root)) directoryDelete(root,true);
+		if (directoryExists(root)) directoryDelete(root,true);
 
 		directoryCreate(dir);
 		directoryCreate(unzip);
 		fileWrite(file1,"file 1");
 		fileWrite(file2,"file 2");
+	}
+
+	function afterAll(){
+		if ( directoryExists( root ) ) 
+			directoryDelete( root , true );
 	}
 
 	public function test() {
@@ -92,18 +97,19 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="zip" {
 
 		}
 		finally {
-			if(directoryExists(root)) directoryDelete(root,true);
+			if ( directoryExists( root ) ) 
+				directoryDelete( root , true );
 		}
 	}
 	
 	public function testInvalidEntryName() {
-		var curr=getDirectoryFromPath(getCurrentTemplatePath());
-		var trg=curr&"zip/"
-		trg2=trg&"sub/sub/";
-		if(directoryExists(trg)) directoryDelete(trg,true);
-		directoryCreate(trg);
-		directoryCreate(trg2);
-			
+		var curr = getDirectoryFromPath( getCurrentTemplatePath() );
+		var trg=curr & "zip/"
+		trg2 = trg & "sub/sub/";
+		if ( directoryExists( trg ) ) 
+			directoryDelete( trg, true );
+		directoryCreate( trg );
+		directoryCreate( trg2 );
 
 		try{
 			// create the test zip
@@ -119,12 +125,82 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="zip" {
 			assertFalse(fileExists("#trg#invalidpath.txt"));
 		}
 		finally {
-			if(directoryExists(trg)) directoryDelete(trg,true);
+			if (directoryExists( trg ) ) 
+				directoryDelete( trg, true );
 		}
-
-	
 	}
 
+	public function testZipExecutableFlag() { // LDEV-2117
+
+		if ( isNotSupported() ) return;  // this is unix only
+
+		var curr = getDirectoryFromPath( getCurrentTemplatePath() );
+		var src = curr & "zip_exe";
+		var dest = curr & "unzip_exe";
+
+		try {
+			if ( directoryExists( src ) ) 
+				directoryDelete( src, true );
+			directoryCreate( src );
+			if ( directoryExists( dest ) ) 
+				directoryDelete( dest, true );
+			directoryCreate( dest );
+
+			var testFile = src & "/test.txt";
+			FileWrite( testFile, "why do you want to execute me?");
+			fileSetAccessMode( testFile, "744");
+
+			var testFile2 = src & "/test2.txt";
+			FileWrite( testFile2, "why don't you want to execute me?");
+
+			var info = FileInfo( testFile );
+			// systemOutput( info , true );
+			expect( info.execute ).toBeTrue();
+			expect( info.mode ).toBe( 744 );
+
+			// systemOutput( info, true );
+			systemOutput( directoryList( path=src, listinfo="query" ), true );
+
+			// create the test zip
+			zip action="zip" file="#src#/test.zip" {
+				zipparam source=testFile;
+				zipparam source=testFile2;
+			}
+
+			zip action="list" file="#src#/test.zip" name="local.qry";
+			// systemOutput( local.qry, true );
+
+			expect( local.qry.recordcount ).toBe( 2 );
+			// expect( local.qry.mode[1] ).toBe( 744 ); // cfzip doesn't list mode
+
+			// unzip the created zip
+			zip action="unzip" file="#src#/test.zip" destination=dest;
+
+			info = FileInfo( dest & "/test.txt" );
+			systemOutput( info, true );
+			expect( info.execute ).toBeTrue();
+			expect( info.mode ).toBe( 744 );
+
+			systemOutput( directoryList( path=dest, listinfo="query" ), true );
+
+			info = FileInfo( dest & "/test2.txt" );
+			systemOutput( info, true );
+			expect( info.execute ).toBeFalse();
+			expect( info.mode ).toNotBe( 744 );
+		}
+		finally {
+			if ( directoryExists( src ) )
+				directoryDelete( src, true );
+			if ( directoryExists( dest ) )
+				directoryDelete( dest, true );
+		}
+	}
+
+	function isNotSupported() {
+		var isWindows = find("Windows", server.os.name );
+		if (isWindows > 0 ) return true;
+		else return false;
+	}
 	
 } 
 </cfscript>

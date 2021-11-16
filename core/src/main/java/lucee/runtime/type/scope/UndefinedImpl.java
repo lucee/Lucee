@@ -45,6 +45,7 @@ import lucee.runtime.op.Duplicator;
 import lucee.runtime.type.BIF;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.KeyImpl;
+import lucee.runtime.type.Objects;
 import lucee.runtime.type.Query;
 import lucee.runtime.type.QueryColumn;
 import lucee.runtime.type.Struct;
@@ -60,7 +61,7 @@ import lucee.runtime.util.QueryStackImpl;
 /**
  * Undefined Scope
  */
-public final class UndefinedImpl extends StructSupport implements Undefined {
+public final class UndefinedImpl extends StructSupport implements Undefined, Objects {
 
 	private static final long serialVersionUID = -5626787508494702023L;
 
@@ -669,7 +670,7 @@ public final class UndefinedImpl extends StructSupport implements Undefined {
 
 	@Override
 	public final boolean containsKey(Key key) {
-		return get(key, null) != null;
+		return get(pc, key, null) != null;
 	}
 
 	@Override
@@ -780,7 +781,7 @@ public final class UndefinedImpl extends StructSupport implements Undefined {
 
 	@Override
 	public Object call(PageContext pc, final Key methodName, Object[] args) throws PageException {
-		Object obj = get(methodName, null); // every none UDF value is fine as default argument
+		Object obj = get(pc, methodName, null); // every none UDF value is fine as default argument
 		if (obj instanceof UDF) {
 			return ((UDF) obj).call(pc, methodName, args, false);
 		}
@@ -798,7 +799,7 @@ public final class UndefinedImpl extends StructSupport implements Undefined {
 
 	@Override
 	public Object callWithNamedValues(PageContext pc, Key methodName, Struct args) throws PageException {
-		Object obj = get(methodName, null);
+		Object obj = get(pc, methodName, null);
 		if (obj instanceof UDF) {
 			return ((UDF) obj).callWithNamedValues(pc, methodName, args, false);
 		}

@@ -4652,7 +4652,7 @@ EntitySave(entity, [forceInsert])</description>
 			<alias>path,filepath,source</alias>
 			<type>string</type>
 			<required>Yes</required>
-		<description>a file path</description>
+		<description>a file/resource path</description>
     </argument>
 		<argument>
 			<name>mode</name>
@@ -14200,6 +14200,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
     <function>
 		<name>StringSort</name>
 		<class>lucee.runtime.functions.string.StringSort</class>
+		<member-name>sort</member-name>
 		<description>Returns a string containing the sorted characters from the input.</description>
     	<argument>
 			<name>inputString</name>
@@ -14211,4 +14212,75 @@ You can find a list of all available timezones in the Lucee administrator (Setti
     		<type>string</type>
     	</return>
     </function>
+	<!-- StringReduce -->
+    <function>
+    		<name>StringReduce</name>
+    		<member-name>reduce</member-name>
+    		<class>lucee.runtime.functions.string.StringReduce</class>
+    		<description>Iterates over every element of the string and calls the closure to work on the elements of the string. This function will reduce the string to a single value and will return the value.</description>
+        	<argument>
+    			<name>string</name>
+    			<type>string</type>
+    			<alias>inputString,object</alias>
+    			<required>Yes</required>
+    			<description>Input string.</description>
+        	</argument>
+        	<argument>
+    			<name>closure</name>
+    			<type>function</type>
+				<alias>function,callback,udf</alias>
+    			<required>Yes</required>
+    			<description> Closure or a function reference that will be called for each of the iteration.</description>
+    		</argument>
+	    	<argument>
+	    		<name>initialVal</name>
+				<alias>initial,initalValue</alias>
+	    		<type>any</type>
+	    		<required>No</required>
+	    		<description> Initial value that will be used for the reduce operation.</description>
+	    	</argument>
+        	<return>
+        		<type>any</type>
+        	</return>
+        </function>
+	<!-- ArrayRemoveDuplicates -->
+	<function>
+		<name>ArrayRemoveDuplicates</name>
+		<class>lucee.runtime.functions.arrays.ArrayRemoveDuplicates</class>
+		<keywords>array</keywords>
+		<member-name>removeDuplicates</member-name>
+		<description>Removes duplicate values from array.</description>
+		<argument>
+			<name>array</name>
+			<type>array</type>
+			<required>Yes</required>
+			<description>A array to Removes duplicate</description>
+		</argument>
+		<argument>
+			<name>ignoreCase</name>
+			<type>boolean</type>
+			<required>no</required>
+			<description>if set to true, the duplicate value will not be case sensitive</description>
+		</argument>
+		<return>
+			<type>array</type>
+		</return>
+	</function>
+	<!-- QueryIsEmpty -->
+	<function>
+		<name>QueryIsEmpty</name>
+		<member-name>isEmpty</member-name>
+		<class>lucee.runtime.functions.query.QueryIsEmpty</class>
+		<keywords>query</keywords>
+		<description>returns query empty or not</description>
+		<argument>
+			<name>query</name>
+			<type>query</type>
+			<required>Yes</required>
+			<description></description>
+		</argument>
+		<return>
+			<type>boolean</type>
+		</return>
+	</function>
 </func-lib>

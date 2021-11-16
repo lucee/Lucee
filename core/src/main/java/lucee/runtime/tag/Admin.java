@@ -86,6 +86,7 @@ import lucee.runtime.cache.CacheConnection;
 import lucee.runtime.cache.CacheUtil;
 import lucee.runtime.cfx.customtag.CFXTagClass;
 import lucee.runtime.cfx.customtag.JavaCFXTagClass;
+import lucee.runtime.coder.CoderException;
 import lucee.runtime.config.AdminSync;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigAdmin;
@@ -117,6 +118,7 @@ import lucee.runtime.engine.CFMLEngineImpl;
 import lucee.runtime.engine.ExecutionLogFactory;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
+import lucee.runtime.exp.CasterException;
 import lucee.runtime.exp.DeprecatedException;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
@@ -148,9 +150,9 @@ import lucee.runtime.net.mail.ServerImpl;
 import lucee.runtime.net.proxy.ProxyData;
 import lucee.runtime.net.proxy.ProxyDataImpl;
 import lucee.runtime.op.Caster;
-import lucee.runtime.op.OpUtil;
 import lucee.runtime.op.Decision;
 import lucee.runtime.op.Duplicator;
+import lucee.runtime.op.OpUtil;
 import lucee.runtime.op.date.DateCaster;
 import lucee.runtime.orm.ORMConfiguration;
 import lucee.runtime.orm.ORMConfigurationImpl;
@@ -4316,7 +4318,14 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			String str = (String) obj;
 			// we assume that when the string is more than 5000 it is a base64 encoded binary
 			if (str.length() > 5000) {
-				obj = Base64Encoder.decode(str);
+				try {
+					obj = Base64Encoder.decode(str);
+				}
+				catch (CoderException e) {
+					CasterException ce = new CasterException(e.getMessage());
+					ce.initCause(e);
+					throw ce;
+				}
 			}
 		}
 
