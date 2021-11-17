@@ -52,30 +52,30 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 			});
 		});
 
-        describe( title="Checking number member function with string and numeric values", body=function() {
-            var num = 123.000;
-            var numAsString = "123.000";
-            var str = "test";
+		describe( title="Checking number member function with string and numeric values", body=function() {
+			var num = 123.000;
+			var numAsString = "123.000";
+			var str = "test";
 			it( title='Checking round of number, like round(number)', body=function( currentSpec ) {
 				expect(round(num)).toBe(123);
 			});
-            it( title='Checking round of stringAsNumber, like round(stringAsNumber)', body=function( currentSpec ) {
+			it( title='Checking round of stringAsNumber, like round(stringAsNumber)', body=function( currentSpec ) {
 				expect(round(numAsString)).toBe(123);
 			});
-            it( title='Checking round of number to MemberFunction, like number.round()', body=function( currentSpec ) {
+			it( title='Checking round of number to MemberFunction, like number.round()', body=function( currentSpec ) {
 				expect(num.round()).toBe(123);
 			});
-            it( title='Checking round of number numberAsString to MemberFunction, like numberAsString.round()', body=function( currentSpec ) {
+			it( title='Checking round of number numberAsString to MemberFunction, like numberAsString.round()', body=function( currentSpec ) {
 				expect(numAsString.round()).toBe(123);
 			});
-            it( title='Checking round of number string to MemberFunction, like string.round()', body=function( currentSpec ) {
-                try {
-                    hasError = false;
-                    result = str.round();
-                }
-                catch(any e){
-                    hasError = true;
-                }
+			it( title='Checking round of number string to MemberFunction, like string.round()', body=function( currentSpec ) {
+				try {
+					hasError = false;
+					result = str.round();
+				}
+				catch(any e){
+					hasError = true;
+				}
 				expect(hasError).toBe(true);
 			});
 		});
