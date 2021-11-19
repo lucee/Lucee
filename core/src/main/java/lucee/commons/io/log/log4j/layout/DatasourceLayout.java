@@ -43,7 +43,8 @@ public class DatasourceLayout extends Layout {
 	}
 
 	@Override
-	public void activateOptions() {}
+	public void activateOptions() {
+	}
 
 	@Override
 	public String format(LoggingEvent event) {

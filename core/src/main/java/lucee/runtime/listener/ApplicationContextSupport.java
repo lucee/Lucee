@@ -480,4 +480,8 @@ public abstract class ApplicationContextSupport implements ApplicationContext {
 
 	public abstract void setRegex(Regex regex);
 
+	public abstract boolean getPreciseMath();
+
+	public abstract void setPreciseMath(boolean preciseMath);
+
 }

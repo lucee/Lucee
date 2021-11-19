@@ -85,13 +85,24 @@ public class DataSourceUtil {
 	}
 
 	public static boolean isMSSQLDriver(DatasourceConnection dc) {
-		try {
-			if (dc.getConnection().getMetaData().getDriverName().indexOf("Microsoft SQL Server JDBC Driver") != -1) return true;
-		}
-		catch (SQLException e) {}
+		DataSourcePro dsp = (DataSourcePro) dc.getDatasource();
 
-		String className = dc.getDatasource().getClassDefinition().getClassName();
-		return className.equals("com.microsoft.jdbc.sqlserver.SQLServerDriver") || className.equals("com.microsoft.sqlserver.jdbc.SQLServerDriver");
+		if (dsp.isMSSQL() == null) {
+			try {
+				if (dc.getConnection().getMetaData().getDriverName().indexOf("Microsoft SQL Server JDBC Driver") != -1) {
+					dsp.setMSSQL(true);
+					return true;
+				}
+			}
+			catch (SQLException e) {
+			}
+
+			String className = dc.getDatasource().getClassDefinition().getClassName();
+			boolean isMSSQL = className.equals("com.microsoft.jdbc.sqlserver.SQLServerDriver") || className.equals("com.microsoft.sqlserver.jdbc.SQLServerDriver");
+			dsp.setMSSQL(isMSSQL);
+			return isMSSQL;
+		}
+		else return dsp.isMSSQL();
 	}
 
 	public static boolean isValid(DatasourceConnection dc, int timeout) throws SQLException {
@@ -130,7 +141,8 @@ public class DataSourceUtil {
 		try {
 			if (seconds > 0) stat.setQueryTimeout(seconds);
 		}
-		catch (SQLException e) {}
+		catch (SQLException e) {
+		}
 	}
 
 	public static String getLargeTextSqlTypeName(DatasourceConnection dc) {

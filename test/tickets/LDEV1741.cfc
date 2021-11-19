@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase"{
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm"{
 	function run( testResults , testBox ) {
 		describe( title="Test suite for LDEV-1741", body=function() {
 			it( title='checking ORM secondary ehcache with this.ormsettings.cacheconfig = "ehcache.xml" ',body=function( currentSpec ) {

@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase"{
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="search"{
 	function beforeAll(){
 		variables.uri = createURI("LDEV1684");
 		if(directoryExists(variables.uri)){

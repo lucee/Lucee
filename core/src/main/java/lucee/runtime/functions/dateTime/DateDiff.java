@@ -128,11 +128,14 @@ public final class DateDiff extends BIF {
 		if (DATEPART_D == datepart || DATEPART_WW == datepart) {
 			int tmp = 0;
 			if (hDiff < 0) tmp = -1;
-			else if (hDiff > 0) {}
+			else if (hDiff > 0) {
+			}
 			else if (nDiff < 0) tmp = -1;
-			else if (nDiff > 0) {}
+			else if (nDiff > 0) {
+			}
 			else if (sDiff < 0) tmp = -1;
-			else if (sDiff > 0) {}
+			else if (sDiff > 0) {
+			}
 			long rst = dayDiff(cLeft, cRight) + tmp;
 			if (DATEPART_WW == datepart) rst /= 7;
 			return rst;
@@ -143,28 +146,37 @@ public final class DateDiff extends BIF {
 		if (DATEPART_YYYY == datepart) {
 			int tmp = 0;
 			if (mDiff < 0) tmp = -1;
-			else if (mDiff > 0) {}
+			else if (mDiff > 0) {
+			}
 			else if (dDiff < 0) tmp = -1;
-			else if (dDiff > 0) {}
+			else if (dDiff > 0) {
+			}
 			else if (hDiff < 0) tmp = -1;
-			else if (hDiff > 0) {}
+			else if (hDiff > 0) {
+			}
 			else if (nDiff < 0) tmp = -1;
-			else if (nDiff > 0) {}
+			else if (nDiff > 0) {
+			}
 			else if (sDiff < 0) tmp = -1;
-			else if (sDiff > 0) {}
+			else if (sDiff > 0) {
+			}
 			return yDiff + tmp;
 		}
 		if (DATEPART_M == datepart || DATEPART_Q == datepart) {
 			int tmp = 0;
 			if (dDiff < 0 && isEndOfMonth(cRight)) dDiff = 0;
 			if (dDiff < 0) tmp = -1;
-			else if (dDiff > 0) {}
+			else if (dDiff > 0) {
+			}
 			else if (hDiff < 0) tmp = -1;
-			else if (hDiff > 0) {}
+			else if (hDiff > 0) {
+			}
 			else if (nDiff < 0) tmp = -1;
-			else if (nDiff > 0) {}
+			else if (nDiff > 0) {
+			}
 			else if (sDiff < 0) tmp = -1;
-			else if (sDiff > 0) {}
+			else if (sDiff > 0) {
+			}
 			long rst = mDiff + (yDiff * 12) + tmp;
 			if (DATEPART_Q == datepart) rst /= 3;
 			return rst;

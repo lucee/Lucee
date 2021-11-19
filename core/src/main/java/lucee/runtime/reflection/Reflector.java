@@ -59,9 +59,9 @@ import lucee.runtime.exp.SecurityException;
 import lucee.runtime.functions.conversion.DeserializeJSON;
 import lucee.runtime.java.JavaObject;
 import lucee.runtime.op.Caster;
+import lucee.runtime.op.OpUtil;
 import lucee.runtime.op.Decision;
 import lucee.runtime.op.Duplicator;
-import lucee.runtime.op.Operator;
 import lucee.runtime.reflection.pairs.ConstructorInstance;
 import lucee.runtime.reflection.pairs.MethodInstance;
 import lucee.runtime.reflection.storage.SoftMethodStorage;
@@ -354,7 +354,7 @@ public final class Reflector {
 
 			// CF Equal
 			try {
-				if (Operator.equals(src, trg, false, true)) {
+				if (OpUtil.equals(ThreadLocalPageContext.get(), src, trg, false, true)) {
 					rating.plus(3);
 					return trg;
 				}
@@ -552,7 +552,8 @@ public final class Reflector {
 		try {
 			md = src.getMetaData(pc);
 		}
-		catch (PageException pe) {}
+		catch (PageException pe) {
+		}
 
 		String str;
 		JavaAnnotation ja = null;
@@ -561,7 +562,8 @@ public final class Reflector {
 			try {
 				sct = Caster.toStruct(DeserializeJSON.call(pc, str), null);
 			}
-			catch (Exception e) {}
+			catch (Exception e) {
+			}
 			if (sct == null) return null;
 
 			// interfaces
@@ -1388,7 +1390,8 @@ public final class Reflector {
 					fields[i].set(obj, convert(value, toReferenceClass(fields[i].getType()), null));
 					return true;
 				}
-				catch (PageException e) {}
+				catch (PageException e) {
+				}
 			}
 		}
 		catch (Exception e) {

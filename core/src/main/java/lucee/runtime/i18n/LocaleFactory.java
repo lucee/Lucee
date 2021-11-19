@@ -130,7 +130,8 @@ public final class LocaleFactory {
 		setLocalAlias("welsh", new Locale("cy", "GB"));
 	}
 
-	private LocaleFactory() {}
+	private LocaleFactory() {
+	}
 
 	private static void setLocalAlias(String name, Locale locale) {
 		if (!localeAlias.containsKey(name)) localeAlias.put(name, locale);
@@ -176,7 +177,8 @@ public final class LocaleFactory {
 					setLocalAlias(strLocaleLC, locale);
 					return locale;
 				}
-				catch (Exception e) {}
+				catch (Exception e) {
+				}
 			}
 		}
 
@@ -194,7 +196,8 @@ public final class LocaleFactory {
 					setLocalAlias(strLocaleLC, locale);
 					return locale;
 				}
-				catch (Exception e) {}
+				catch (Exception e) {
+				}
 			}
 		}
 

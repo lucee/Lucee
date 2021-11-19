@@ -17,7 +17,7 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  * 
  ---><cfscript>
-component extends="org.lucee.cfml.test.LuceeTestCase"	{
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm" {
 
 	//public function setUp(){}
 
@@ -60,11 +60,51 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		assertEquals(200,result.status);
 		assertEquals("moduleLangs:1;2;Tags:1;2;",trim(result.fileContent));
 	}
+
+	public void function testEvents() {
+		local.uri=createURI("events/index.cfm");
+		systemOutput( "", true ); 
+		local.result=_InternalRequest(uri);
+		systemOutput( "", true ); 
+		expect( result.status ).toBe( 200 );
+		expect( trim( result.fileContent ) ).toBe( 10 ); // dunno what number this should be yet
+	}
+
+	public void function testTransactionSave(){
+		local.uri=createURI("transSave/index.cfm");
+		local.result=_InternalRequest(uri);
+		assertEquals(200,result.status);
+		assertEquals("1",trim(result.fileContent));
+	}
+	public void function testTransactionSaveExCommit(){
+		local.uri=createURI("transSaveExCommit/index.cfm");
+		local.result=_InternalRequest(uri);
+		assertEquals(200,result.status);
+		assertEquals("1",trim(result.fileContent));
+	}
+	public void function testTransactionSaveFlush(){
+		local.uri=createURI("transSaveFlush/index.cfm");
+		local.result=_InternalRequest(uri);
+		assertEquals(200,result.status);
+		assertEquals("1",trim(result.fileContent));
+	}
+	/*public void function testTransactionSavepoint(){
+		local.uri=createURI("transSavepoint/index.cfm");
+		local.result=_InternalRequest(uri);
+		assertEquals(200,result.status);
+		assertEquals("1",trim(result.fileContent));
+	}*/
+	public void function testTransactionRollback(){
+		local.uri=createURI("transRollback/index.cfm");
+		local.result=_InternalRequest(uri);
+		assertEquals(200,result.status);
+		assertEquals("0",trim(result.fileContent));
+	}
+
 	
 	private string function createURI(string calledName){
 		var baseURI="/test/#listLast(getDirectoryFromPath(getCurrenttemplatepath()),"\/")#/";
 		return baseURI&""&calledName;
 	}
-	
 } 
 </cfscript>

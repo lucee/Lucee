@@ -78,7 +78,8 @@ public final class AutoCloseWriter extends Writer {
 		try {
 			writer.close();
 		}
-		catch (Exception e) {}
+		catch (Exception e) {
+		}
 	}
 
 }

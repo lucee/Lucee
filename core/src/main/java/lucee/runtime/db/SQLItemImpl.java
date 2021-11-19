@@ -58,7 +58,8 @@ public class SQLItemImpl implements SQLItem, Serializable {
 	/**
 	 * constructor of the class
 	 */
-	public SQLItemImpl() {}
+	public SQLItemImpl() {
+	}
 
 	/**
 	 * constructor of the class

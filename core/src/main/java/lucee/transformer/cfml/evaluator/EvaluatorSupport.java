@@ -89,6 +89,7 @@ public class EvaluatorSupport implements TagEvaluator {
 	 * @param libTag
 	 * @throws EvaluatorException
 	 */
-	public void evaluate(Tag tag, TagLibTag libTag) throws EvaluatorException {}
+	public void evaluate(Tag tag, TagLibTag libTag) throws EvaluatorException {
+	}
 
 }

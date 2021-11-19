@@ -52,12 +52,13 @@ import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.Md5;
 import lucee.commons.lang.StringUtil;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.net.imap.ImapClient;
 import lucee.runtime.net.pop.PopClient;
 import lucee.runtime.op.Caster;
-import lucee.runtime.op.Operator;
+import lucee.runtime.op.OpUtil;
 import lucee.runtime.pool.Pool;
 import lucee.runtime.pool.PoolItem;
 import lucee.runtime.type.Array;
@@ -276,8 +277,9 @@ public abstract class MailClient implements PoolItem {
 	 * @param uIds
 	 * @throws MessagingException
 	 * @throws IOException
+	 * @throws PageException
 	 */
-	public void deleteMails(String as[], String as1[]) throws MessagingException, IOException {
+	public void deleteMails(String as[], String as1[]) throws MessagingException, IOException, PageException {
 		Folder folder;
 		Message amessage[];
 		folder = _store.getFolder("INBOX");
@@ -306,8 +308,9 @@ public abstract class MailClient implements PoolItem {
 	 * @return all messages from inbox
 	 * @throws MessagingException
 	 * @throws IOException
+	 * @throws PageException
 	 */
-	public Query getMails(String[] messageNumbers, String[] uids, boolean all, String folderName) throws MessagingException, IOException {
+	public Query getMails(String[] messageNumbers, String[] uids, boolean all, String folderName) throws MessagingException, IOException, PageException {
 		Query qry = new QueryImpl(all ? _fldnew : _flddo, 0, "query");
 		if (StringUtil.isEmpty(folderName, true)) folderName = "INBOX";
 		else folderName = folderName.trim();
@@ -329,7 +332,8 @@ public abstract class MailClient implements PoolItem {
 		try {
 			qry.setAtEL(DATE, row, Caster.toDate(message.getSentDate(), true, null, null));
 		}
-		catch (MessagingException e) {}
+		catch (MessagingException e) {
+		}
 
 		// subject
 		try {
@@ -343,7 +347,8 @@ public abstract class MailClient implements PoolItem {
 		try {
 			qry.setAtEL(SIZE, row, new Double(message.getSize()));
 		}
-		catch (MessagingException e) {}
+		catch (MessagingException e) {
+		}
 
 		qry.setAtEL(FROM, row, toList(getHeaderEL(message, "from")));
 		qry.setAtEL(MESSAGE_NUMBER, row, new Double(message.getMessageNumber()));
@@ -366,7 +371,8 @@ public abstract class MailClient implements PoolItem {
 				content.append(header.getValue());
 			}
 		}
-		catch (MessagingException e) {}
+		catch (MessagingException e) {
+		}
 		qry.setAtEL(HEADER, row, content.toString());
 
 		if (all) {
@@ -396,8 +402,10 @@ public abstract class MailClient implements PoolItem {
 	 * @return
 	 * @return matching Messages
 	 * @throws MessagingException
+	 * @throws PageException
 	 */
-	private Map<String, Message> getMessages(Query qry, Folder folder, String[] uids, String[] messageNumbers, int startRow, int maxRow, boolean all) throws MessagingException {
+	private Map<String, Message> getMessages(Query qry, Folder folder, String[] uids, String[] messageNumbers, int startRow, int maxRow, boolean all)
+			throws MessagingException, PageException {
 
 		Message[] messages = folder.getMessages();
 		Map<String, Message> map = qry == null ? new HashMap<String, Message>() : null;
@@ -477,13 +485,15 @@ public abstract class MailClient implements PoolItem {
 					try {
 						query.setAtEL(ATTACHMENTS, row, ListUtil.arrayToList(attachments, "\t"));
 					}
-					catch (PageException pageexception) {}
+					catch (PageException pageexception) {
+					}
 				}
 				if (attachmentFiles.size() > 0) {
 					try {
 						query.setAtEL(ATTACHMENT_FILES, row, ListUtil.arrayToList(attachmentFiles, "\t"));
 					}
-					catch (PageException pageexception1) {}
+					catch (PageException pageexception1) {
+					}
 				}
 
 			}
@@ -645,10 +655,11 @@ public abstract class MailClient implements PoolItem {
 	 * @param ids
 	 * @param id
 	 * @return has element found or not
+	 * @throws PageException
 	 */
-	private boolean contains(String ids[], String id) {
+	private boolean contains(String ids[], String id) throws PageException {
 		for (int i = 0; i < ids.length; i++) {
-			if (Operator.compare(ids[i], id) == 0) return true;
+			if (OpUtil.compare(ThreadLocalPageContext.get(), ids[i], id) == 0) return true;
 		}
 		return false;
 	}
@@ -659,10 +670,11 @@ public abstract class MailClient implements PoolItem {
 	 * @param ids
 	 * @param id
 	 * @return has element found or not
+	 * @throws PageException
 	 */
-	private boolean contains(String ids[], int id) {
+	private boolean contains(String ids[], int id) throws PageException {
 		for (int i = 0; i < ids.length; i++) {
-			if (Operator.compare(ids[i], id) == 0) return true;
+			if (OpUtil.compare(ThreadLocalPageContext.get(), ids[i], id) == 0) return true;
 		}
 		return false;
 	}
@@ -686,7 +698,8 @@ public abstract class MailClient implements PoolItem {
 		try {
 			if (_store != null) _store.close();
 		}
-		catch (Exception exception) {}
+		catch (Exception exception) {
+		}
 	}
 
 	// IMAP only
@@ -748,7 +761,7 @@ public abstract class MailClient implements PoolItem {
 		return qry;
 	}
 
-	public void moveMail(String srcFolderName, String trgFolderName, String as[], String as1[]) throws MessagingException, ApplicationException {
+	public void moveMail(String srcFolderName, String trgFolderName, String as[], String as1[]) throws MessagingException, PageException {
 		if (StringUtil.isEmpty(srcFolderName, true)) srcFolderName = "INBOX";
 
 		Folder srcFolder = getFolder(srcFolderName, true, true, false);
@@ -838,7 +851,8 @@ public abstract class MailClient implements PoolItem {
 			try {
 				p = f.getParent();
 			}
-			catch (MessagingException me) {}
+			catch (MessagingException me) {
+			}
 
 			qry.setAt(KeyConstants._NAME, row, f.getName());
 			qry.setAt(FULLNAME, row, f.getFullName());

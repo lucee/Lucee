@@ -65,7 +65,7 @@
 	}
 
 	private struct function getCredentials() {
-		// getting the credetials from the enviroment variables		
+		// getting the credentials from the environment variables		
 		return server._getSystemPropOrEnvVars( "SERVER, USERNAME, PASSWORD, PORT, DATABASE", "MSSQL_");;
 	}
 </cfscript>

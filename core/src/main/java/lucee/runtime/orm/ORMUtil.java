@@ -38,8 +38,8 @@ import lucee.runtime.db.DataSource;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
+import lucee.runtime.op.OpUtil;
 import lucee.runtime.op.Decision;
-import lucee.runtime.op.Operator;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
@@ -124,7 +124,7 @@ public class ORMUtil {
 		}
 
 		try {
-			return Operator.equals(left, right, false);
+			return OpUtil.equals(ThreadLocalPageContext.get(), left, right, false);
 		}
 		catch (PageException e) {
 			return false;
@@ -385,7 +385,8 @@ public class ORMUtil {
 				return datasourceName.trim();
 			}
 		}
-		catch (PageException e) {}
+		catch (PageException e) {
+		}
 
 		DataSource ds = getDefaultDataSource(pc, null);
 		if (ds != null) return ds.getName();

@@ -357,7 +357,8 @@ public final class HTTPUtil {
 			try {
 				return URLEncoder.encode(str, pc.getWebCharset());
 			}
-			catch (UnsupportedEncodingException e) {}
+			catch (UnsupportedEncodingException e) {
+			}
 		}
 		return URLEncoder.encode(str);
 	}

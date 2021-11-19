@@ -3888,6 +3888,23 @@ type of the result returned:
 		</return>
 	</function>
 	
+	<!-- DirectoryInfo -->
+	<function>
+		<name>DirectoryInfo</name>
+		<class>lucee.runtime.functions.file.DirectoryInfo</class>
+		<description>returns detailed info about the given directory.</description>
+		<argument>
+			<name>source</name>
+			<alias>Directory</alias>
+			<type>string</type>
+			<required>Yes</required>
+			<description>directory path</description>
+		</argument>
+		<return>
+			<type>struct</type>
+		</return>
+	</function>
+	
 	<!-- encrypt -->
 	<function>
 		<name>encrypt</name>
@@ -4635,7 +4652,7 @@ EntitySave(entity, [forceInsert])</description>
 			<alias>path,filepath,source</alias>
 			<type>string</type>
 			<required>Yes</required>
-		<description>a file path</description>
+		<description>a file/resource path</description>
     </argument>
 		<argument>
 			<name>mode</name>
@@ -6741,6 +6758,7 @@ Default list delimiter: comma character.</description>
 	<function>
 		<name>hash</name>
 		<class>lucee.runtime.functions.string.Hash</class>
+		<member-name>hash</member-name>
 		<description>Converts a variable-length string to a 32-byte, hexadecimal
         string, using the MD5 algorithm. (It is not possible to convert
         the hash result back to the source string.)
@@ -7600,6 +7618,17 @@ The following things are considered to be empty:
 			<required>Yes</required>
 		<description>A WDDX packet</description>
     </argument>
+		<return>
+			<type>boolean</type>
+		</return>
+	</function>
+	
+	<!-- IsWithinTransaction -->
+	<function>
+		<name>isWithinTransaction</name>
+		<class>lucee.runtime.functions.query.IsWithinTransaction</class>
+		<keywords>decision,query,datasource</keywords>
+		<description>Determines whether the current thread is within a transaction block or not.</description>
 		<return>
 			<type>boolean</type>
 		</return>
@@ -12036,6 +12065,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<name>structDelete</name>
 		<class>lucee.runtime.functions.struct.StructDelete</class>
 		<member-name>delete</member-name>
+		<member-chaining>true</member-chaining>
 		<keywords>struct</keywords>
 		<description>Removes an element from a structure.</description>
 		<argument>
@@ -13232,6 +13262,14 @@ You can find a list of all available timezones in the Lucee administrator (Setti
   the type "synchronized" is no longer supported and get ignored, because since version 4.1 all struct/scopes are "thread safe"
 			</description>
 		</argument>
+		<argument>
+			<name>onMissingKey</name>
+			<type>function</type>
+			<required>No</required>
+			<description>
+			listener function that get invoked in case a request key does not exist.
+			</description>
+		</argument>
 		<return>
 			<type>struct</type>
 		</return>
@@ -13392,6 +13430,7 @@ _- asc (default): ascending (a to z) sort order
 	<function>
 		<name>toBase64</name>
 		<class>lucee.runtime.functions.string.ToBase64</class>
+		<member-name>toBase64</member-name>
 		<description>Calculates the Base64 representation of a string or binary
         object. The Base64 format uses printable characters, allowing
         binary data to be sent in forms and e-mail, and stored in a
@@ -14151,14 +14190,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<name>hash</name>
 			<type>string</type>
 			<required>Yes</required>
-			<description>Degrees of parallelism, a number between 1 and 10.</description>
-    	</argument>
-    	<argument>
-			<name>variant</name>
-			<type>string</type>
-			<required>No</required>
-			<default>argon2i</default>
-			<description>Either Argon2i, Argon2d or Argon2id</description>
+			<description>The hash of input.</description>
     	</argument>
     	<return>
     		<type>boolean</type>
@@ -14168,6 +14200,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
     <function>
 		<name>StringSort</name>
 		<class>lucee.runtime.functions.string.StringSort</class>
+		<member-name>sort</member-name>
 		<description>Returns a string containing the sorted characters from the input.</description>
     	<argument>
 			<name>inputString</name>
@@ -14179,8 +14212,56 @@ You can find a list of all available timezones in the Lucee administrator (Setti
     		<type>string</type>
     	</return>
     </function>
-
+  <!-- StringEvery -->  
     <function>
+    		<name>StringEvery</name>
+    		<member-name>every</member-name>
+    		<class>lucee.runtime.functions.string.StringEvery</class>
+    		<description>Determines if all elements of a string satisfy a given condition.</description>
+        	<argument>
+    			<name>string</name>
+    			<type>string</type>
+    			<alias>inputString,object</alias>
+    			<required>Yes</required>
+    			<description>Input string.</description>
+        	</argument>
+        	<argument>
+    			<name>closure</name>
+    			<type>any</type>
+    			<alias>function,callback,udf</alias>
+    			<required>Yes</required>
+    			<description> Closure or a function reference that will be called for each of the iteration.</description>
+    		</argument>
+        	<return>
+        		<type>boolean</type>
+        	</return>
+        </function>
+  <!-- StringEach -->    
+  <function>
+    		<name>StringEach</name>
+    		<member-name>each</member-name>
+    		<class>lucee.runtime.functions.string.StringEach</class>
+    		<description>Iterates over a string and runs the closure function for each element in the string.</description>
+        	<argument>
+    			<name>string</name>
+    			<type>string</type>
+    			<alias>inputString,object</alias>
+    			<required>Yes</required>
+    			<description>Input string.</description>
+        	</argument>
+        	<argument>
+    			<name>closure</name>
+    			<type>any</type>
+    			<alias>function,callback,udf</alias>
+    			<required>Yes</required>
+    			<description> Closure or a function reference that will be called for each of the iteration.</description>
+    		</argument>
+        	<return>
+        		<type>void</type>
+        	</return>
+        </function>
+	<!-- StringFilter -->
+      <function>
     		<name>StringFilter</name>
     		<member-name>filter</member-name>
     		<class>lucee.runtime.functions.string.StringFilter</class>
@@ -14204,4 +14285,75 @@ You can find a list of all available timezones in the Lucee administrator (Setti
         		<type>string</type>
         	</return>
         </function>
+	<!-- StringReduce -->
+    <function>
+    		<name>StringReduce</name>
+    		<member-name>reduce</member-name>
+    		<class>lucee.runtime.functions.string.StringReduce</class>
+    		<description>Iterates over every element of the string and calls the closure to work on the elements of the string. This function will reduce the string to a single value and will return the value.</description>
+        <argument>
+    			<name>string</name>
+    			<type>string</type>
+    			<alias>inputString,object</alias>
+    			<required>Yes</required>
+    			<description>Input string.</description>
+       </argument>
+       <argument>
+    			<name>closure</name>
+    			<type>function</type>
+				<alias>function,callback,udf</alias>
+    			<required>Yes</required>
+    			<description> Closure or a function reference that will be called for each of the iteration.</description>
+    		</argument>
+	    	<argument>
+	    		<name>initialVal</name>
+				<alias>initial,initalValue</alias>
+	    		<type>any</type>
+	    		<required>No</required>
+	    		<description> Initial value that will be used for the reduce operation.</description>
+	    	</argument>
+        	<return>
+        		<type>any</type>
+        	</return>
+        </function>
+	<!-- ArrayRemoveDuplicates -->
+	<function>
+		<name>ArrayRemoveDuplicates</name>
+		<class>lucee.runtime.functions.arrays.ArrayRemoveDuplicates</class>
+		<keywords>array</keywords>
+		<member-name>removeDuplicates</member-name>
+		<description>Removes duplicate values from array.</description>
+		<argument>
+			<name>array</name>
+			<type>array</type>
+			<required>Yes</required>
+			<description>A array to Removes duplicate</description>
+		</argument>
+		<argument>
+			<name>ignoreCase</name>
+			<type>boolean</type>
+			<required>no</required>
+			<description>if set to true, the duplicate value will not be case sensitive</description>
+		</argument>
+		<return>
+			<type>array</type>
+		</return>
+	</function>
+	<!-- QueryIsEmpty -->
+	<function>
+		<name>QueryIsEmpty</name>
+		<member-name>isEmpty</member-name>
+		<class>lucee.runtime.functions.query.QueryIsEmpty</class>
+		<keywords>query</keywords>
+		<description>returns query empty or not</description>
+		<argument>
+			<name>query</name>
+			<type>query</type>
+			<required>Yes</required>
+			<description></description>
+		</argument>
+		<return>
+			<type>boolean</type>
+		</return>
+	</function>
 </func-lib>

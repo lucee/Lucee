@@ -7,7 +7,8 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 		describe( "Test case for LDEV-3103", function() {
 			it( title = "check refind", body = function( currentSpec ){
 
-				var startPos=20; 
+			    var startPos=20; 
+				// this file should be LF
 
 var text="[pegdown](https://github.com/sirthias/pegdown). Please see both the [official Markdown website](http://daringfireball.net/projects/markdown/) and the [pegdown repository](https://github.com/sirthias/pegdown) for the supported syntax.
 #### Syntax highlighting:
@@ -16,8 +17,6 @@ var text="[pegdown](https://github.com/sirthias/pegdown). Please see both the [o
 echo( x );
 ```
 </pre>";
-
-
 
 				var referenceRegex = "```([a-z\+]+)?\n(.*?)\n```"; 
  				var match = ReFind( referenceRegex, text, startPos, true ); 

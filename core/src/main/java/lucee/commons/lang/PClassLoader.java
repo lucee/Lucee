@@ -147,7 +147,8 @@ public final class PClassLoader extends ClassLoader {
 			try {
 				return IOUtil.toBufferedInputStream(f.getInputStream());
 			}
-			catch (IOException e) {}
+			catch (IOException e) {
+			}
 		}
 		return null;
 	}

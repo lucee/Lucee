@@ -29,6 +29,7 @@ public final class PageEncoding extends TagImpl {
 	 * 
 	 * @param pageencoding value to set
 	 **/
-	public void setCharset(String charset) {}
+	public void setCharset(String charset) {
+	}
 
 }
