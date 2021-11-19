@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase"{
+component extends="org.lucee.cfml.test.LuceeTestCase" skip=true{
 	function run( testResults , testBox ) {
 		describe( title="Test suite for arrayFunctions accepts struct values", body=function() {
 			it(title = "arraysplice struct with number keys", body = function( currentSpec ) {
