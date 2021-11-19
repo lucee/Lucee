@@ -66,10 +66,10 @@ public final class ReplaceList extends BIF {
 	static String _call(PageContext pc, String str, String list1, String list2, String delimiter_list1, String delimiter_list2, boolean ignoreCase, boolean includeEmptyFields) {
 		if (delimiter_list1 == null) delimiter_list1 = ",";
 		if (delimiter_list2 == null) delimiter_list2 = ",";
-		if (delimiter_list1 == "true") delimiter_list1 = ",";
-		if (delimiter_list2 == "true") delimiter_list2 = ",";
-		if (delimiter_list1 == "false") delimiter_list1 = ",";
-		if (delimiter_list2 == "false") delimiter_list2 = ",";
+		if ("true".equalsIgnoreCase(delimiter_list1)) delimiter_list1 = ",";
+		if ("true".equalsIgnoreCase(delimiter_list2)) delimiter_list2 = ",";
+		if ("false".equalsIgnoreCase(delimiter_list1)) delimiter_list1 = ",";
+		if ("false".equalsIgnoreCase(delimiter_list2)) delimiter_list2 = ",";
 
 		Array arr1 = ListUtil.listToArray(list1, delimiter_list1, includeEmptyFields, false);
 		Array arr2 = ListUtil.listToArray(list2, delimiter_list2, includeEmptyFields, false);
