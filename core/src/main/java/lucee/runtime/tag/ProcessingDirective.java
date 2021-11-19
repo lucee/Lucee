@@ -57,7 +57,8 @@ public final class ProcessingDirective extends BodyTagTryCatchFinallyImpl {
 	/**
 	 * constructor for the tag class
 	 **/
-	public ProcessingDirective() {}
+	public ProcessingDirective() {
+	}
 
 	/**
 	 * set the value pageencoding A string literal; the character encoding to use to read the page. The
@@ -65,11 +66,14 @@ public final class ProcessingDirective extends BodyTagTryCatchFinallyImpl {
 	 * 
 	 * @param pageencoding value to set
 	 **/
-	public void setPageencoding(String pageencoding) {}
+	public void setPageencoding(String pageencoding) {
+	}
 
-	public void setExecutionlog(boolean executionlog) {}
+	public void setExecutionlog(boolean executionlog) {
+	}
 
-	public void setPreservecase(boolean b) {}
+	public void setPreservecase(boolean b) {
+	}
 
 	/**
 	 * set the value suppresswhitespace Boolean indicating whether to suppress the white space and other
@@ -91,7 +95,8 @@ public final class ProcessingDirective extends BodyTagTryCatchFinallyImpl {
 	}
 
 	@Override
-	public void doInitBody() {}
+	public void doInitBody() {
+	}
 
 	@Override
 	public int doAfterBody() {

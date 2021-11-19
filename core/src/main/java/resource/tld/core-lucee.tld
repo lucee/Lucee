@@ -615,7 +615,7 @@ Depending on this setting Lucee scans certain scopes to find a variable called f
 			<name>type</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>the type of the argument any (array, binary, boolean, date, guid, numeric, query, string, struct, uuid)</description>
+			<description>the type of the argument any (array, binary, boolean, date, guid, numeric, query, string, struct, uuid, component)</description>
 		</attribute>
 		<attribute>
 			<type>boolean</type>

@@ -20,6 +20,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import lucee.commons.io.CharsetUtil;
+import lucee.commons.lang.StringUtil;
 import lucee.runtime.coder.CoderException;
 
 public class Base64Encoder {
@@ -99,10 +100,11 @@ public class Base64Encoder {
 	 * @return the byte array (not null)
 	 * @throws CoderException
 	 */
-	public static byte[] decode(String data) {
-		// TODO: when we move to Java 8 change to
-		// https://docs.oracle.com/javase/8/docs/api/java/util/Base64.Decoder.html
-		return org.apache.commons.codec.binary.Base64.decodeBase64(data);
+	public static byte[] decode(String data) throws CoderException {
+		if (StringUtil.isEmpty(data)) return new byte[0];
+		byte[] res = org.apache.commons.codec.binary.Base64.decodeBase64(data);
+		if (res == null || res.length == 0) throw new CoderException("cannot convert the input to a binary");
+		return res;
 	}
 
 }

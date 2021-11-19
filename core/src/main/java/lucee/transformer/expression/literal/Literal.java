@@ -34,7 +34,7 @@ public interface Literal extends Expression {
 	 * @param defaultValue
 	 * @return return value as Double Object
 	 */
-	public Double getDouble(Double defaultValue);
+	public Number getNumber(Number defaultValue);
 
 	/**
 	 * @param defaultValue

@@ -47,7 +47,8 @@ public class DebuggerPool {
 			try {
 				queue.add((Struct) Duplicator.duplicate(debugger.getDebuggingData(pc, true), true));
 			}
-			catch (PageException e) {}
+			catch (PageException e) {
+			}
 
 			while (queue.size() > ((ConfigWebPro) pc.getConfig()).getDebugMaxRecordsLogged())
 				queue.poll();

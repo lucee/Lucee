@@ -16,7 +16,7 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  * 
  ---><cfscript>
-component extends="org.lucee.cfml.test.LuceeTestCase"	{
+component extends="org.lucee.cfml.test.LuceeTestCase"  labels="pdf"	{
 	public void function testPDFParam(){
 		try {
 			document format="pdf" pagetype="A4" orientation="portrait" filename="test1.pdf" overwrite="true" {

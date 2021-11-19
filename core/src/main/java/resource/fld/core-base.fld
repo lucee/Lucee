@@ -4652,7 +4652,7 @@ EntitySave(entity, [forceInsert])</description>
 			<alias>path,filepath,source</alias>
 			<type>string</type>
 			<required>Yes</required>
-		<description>a file path</description>
+		<description>a file/resource path</description>
     </argument>
 		<argument>
 			<name>mode</name>
@@ -7618,6 +7618,17 @@ The following things are considered to be empty:
 			<required>Yes</required>
 		<description>A WDDX packet</description>
     </argument>
+		<return>
+			<type>boolean</type>
+		</return>
+	</function>
+	
+	<!-- IsWithinTransaction -->
+	<function>
+		<name>isWithinTransaction</name>
+		<class>lucee.runtime.functions.query.IsWithinTransaction</class>
+		<keywords>decision,query,datasource</keywords>
+		<description>Determines whether the current thread is within a transaction block or not.</description>
 		<return>
 			<type>boolean</type>
 		</return>
@@ -13251,6 +13262,14 @@ You can find a list of all available timezones in the Lucee administrator (Setti
   the type "synchronized" is no longer supported and get ignored, because since version 4.1 all struct/scopes are "thread safe"
 			</description>
 		</argument>
+		<argument>
+			<name>onMissingKey</name>
+			<type>function</type>
+			<required>No</required>
+			<description>
+			listener function that get invoked in case a request key does not exist.
+			</description>
+		</argument>
 		<return>
 			<type>struct</type>
 		</return>
@@ -14181,6 +14200,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
     <function>
 		<name>StringSort</name>
 		<class>lucee.runtime.functions.string.StringSort</class>
+		<member-name>sort</member-name>
 		<description>Returns a string containing the sorted characters from the input.</description>
     	<argument>
 			<name>inputString</name>
@@ -14192,8 +14212,137 @@ You can find a list of all available timezones in the Lucee administrator (Setti
     		<type>string</type>
     	</return>
     </function>
-
+  <!-- StringEvery -->  
     <function>
+    		<name>StringEvery</name>
+    		<member-name>every</member-name>
+    		<class>lucee.runtime.functions.string.StringEvery</class>
+    		<description>Determines if all elements of a string satisfy a given condition.</description>
+        	<argument>
+    			<name>string</name>
+    			<type>string</type>
+    			<alias>inputString,object</alias>
+    			<required>Yes</required>
+    			<description>Input string.</description>
+        	</argument>
+        	<argument>
+    			<name>closure</name>
+    			<type>any</type>
+    			<alias>function,callback,udf</alias>
+    			<required>Yes</required>
+    			<description> Closure or a function reference that will be called for each of the iteration.</description>
+    		</argument>
+        	<return>
+        		<type>boolean</type>
+        	</return>
+        </function>
+  <!-- StringEach -->    
+  <function>
+    		<name>StringEach</name>
+    		<member-name>each</member-name>
+    		<class>lucee.runtime.functions.string.StringEach</class>
+    		<description>Iterates over a string and runs the closure function for each element in the string.</description>
+        	<argument>
+    			<name>string</name>
+    			<type>string</type>
+    			<alias>inputString,object</alias>
+    			<required>Yes</required>
+    			<description>Input string.</description>
+        	</argument>
+        	<argument>
+    			<name>closure</name>
+    			<type>any</type>
+    			<alias>function,callback,udf</alias>
+    			<required>Yes</required>
+    			<description> Closure or a function reference that will be called for each of the iteration.</description>
+    		</argument>
+        	<return>
+        		<type>void</type>
+        	</return>
+        </function>
+	<!-- StringFilter -->
+      <function>
+    		<name>StringFilter</name>
+    		<member-name>filter</member-name>
+    		<class>lucee.runtime.functions.string.StringFilter</class>
+    		<description>Filters a string to its elements for which the callback function returns true.</description>
+        	<argument>
+    			<name>string</name>
+    			<type>string</type>
+    			<alias>inputString,object</alias>
+    			<required>Yes</required>
+    			<alias>string</alias>
+    			<description>Input string.</description>
+        	</argument>
+        	<argument>
+    			<name>closure</name>
+    			<type>any</type>
+    			<alias>function,callback,udf</alias>
+    			<required>Yes</required>
+    			<description> Closure or a function reference that will be called for each of the iteration.</description>
+    		</argument>
+        	<return>
+        		<type>string</type>
+        	</return>
+        </function>
+	<!-- StringMap -->
+      <function>
+    		<name>StringMap</name>
+    		<member-name>map</member-name>
+    		<class>lucee.runtime.functions.string.StringMap</class>
+    		<description>Iterates over every entry of the string and calls the closure function to work on the element of the string. </description>
+        	<argument>
+    			<name>string</name>
+    			<type>string</type>
+    			<required>Yes</required>
+    			<alias>inputString,object</alias>
+    			<description>Input string.</description>
+        	</argument>
+        	<argument>
+    			<name>closure</name>
+    			<type>any</type>
+    			<alias>function,callback,udf</alias>
+    			<required>no</required>
+    			<alias>callback</alias>
+    			<description> Closure or a function reference that will be called for each of the iteration.</description>
+    		</argument>
+        	<return>
+        		<type>string</type>
+        	</return>
+        </function>
+	<!-- StringReduce -->
+    <function>
+    		<name>StringReduce</name>
+    		<member-name>reduce</member-name>
+    		<class>lucee.runtime.functions.string.StringReduce</class>
+    		<description>Iterates over every element of the string and calls the closure to work on the elements of the string. This function will reduce the string to a single value and will return the value.</description>
+        <argument>
+    			<name>string</name>
+    			<type>string</type>
+    			<alias>inputString,object</alias>
+    			<required>Yes</required>
+    			<description>Input string.</description>
+       </argument>
+       <argument>
+    			<name>closure</name>
+    			<type>function</type>
+				<alias>function,callback,udf</alias>
+    			<required>Yes</required>
+    			<description> Closure or a function reference that will be called for each of the iteration.</description>
+    		</argument>
+	    	<argument>
+	    		<name>initialVal</name>
+				<alias>initial,initalValue</alias>
+	    		<type>any</type>
+	    		<required>No</required>
+	    		<description> Initial value that will be used for the reduce operation.</description>
+	    	</argument>
+        	<return>
+        		<type>any</type>
+        	</return>
+        </function>
+	<!-- StringSome -->
+      <function>
     		<name>StringSome</name>
     		<class>lucee.runtime.functions.string.StringSome</class>
     		<description>This function calls a given closure/function with every element in a given string and returns true, if one of the closure calls returns true.</description>
@@ -14215,4 +14364,44 @@ You can find a list of all available timezones in the Lucee administrator (Setti
         		<type>boolean</type>
         	</return>
         </function>
+	<!-- ArrayRemoveDuplicates -->
+	<function>
+		<name>ArrayRemoveDuplicates</name>
+		<class>lucee.runtime.functions.arrays.ArrayRemoveDuplicates</class>
+		<keywords>array</keywords>
+		<member-name>removeDuplicates</member-name>
+		<description>Removes duplicate values from array.</description>
+		<argument>
+			<name>array</name>
+			<type>array</type>
+			<required>Yes</required>
+			<description>A array to Removes duplicate</description>
+		</argument>
+		<argument>
+			<name>ignoreCase</name>
+			<type>boolean</type>
+			<required>no</required>
+			<description>if set to true, the duplicate value will not be case sensitive</description>
+		</argument>
+		<return>
+			<type>array</type>
+		</return>
+	</function>
+	<!-- QueryIsEmpty -->
+	<function>
+		<name>QueryIsEmpty</name>
+		<member-name>isEmpty</member-name>
+		<class>lucee.runtime.functions.query.QueryIsEmpty</class>
+		<keywords>query</keywords>
+		<description>returns query empty or not</description>
+		<argument>
+			<name>query</name>
+			<type>query</type>
+			<required>Yes</required>
+			<description></description>
+		</argument>
+		<return>
+			<type>boolean</type>
+		</return>
+	</function>
 </func-lib>

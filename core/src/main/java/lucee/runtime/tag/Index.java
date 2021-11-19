@@ -458,7 +458,8 @@ public final class Index extends TagImpl {
 					file = ResourceUtil.toResourceExisting(pageContext, key);
 					pageContext.getConfig().getSecurityManager().checkFileLocation(file);
 				}
-				catch (ExpressionException e) {}
+				catch (ExpressionException e) {
+				}
 
 				if (file != null && file.exists() && file.isFile()) type = SearchIndex.TYPE_FILE;
 				else if (file != null && file.exists() && file.isDirectory()) type = SearchIndex.TYPE_PATH;
@@ -467,7 +468,8 @@ public final class Index extends TagImpl {
 						new URL(key);
 						type = SearchIndex.TYPE_URL;
 					}
-					catch (MalformedURLException e) {}
+					catch (MalformedURLException e) {
+					}
 				}
 			}
 		}

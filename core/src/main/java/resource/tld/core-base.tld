@@ -3514,9 +3514,20 @@ To use cached data, the tag must be called with the exact same arguments. Only u
 			<name>method</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>GET or POST. Use GET to download a text or binary file or to create a query from the contents
-	of a text file. Use POST to send information to a server page or a CGI program for processing. POST
-	requires the use of a cfhttpparam tag.</description>
+			<description>Supported methods
+
+- GET
+- POST
+- HEAD
+- PUT
+- DELETE
+- OPTIONS
+- TRACE
+- PATCH
+
+Use GET to download a text or binary file or to create a query from the contents of a text file.
+
+Use POST to send information to a server page or a CGI program for processing. POST	requires the use of a cfhttpparam tag.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -4827,6 +4838,14 @@ Permits searching collections by title or displaying a separate title from the k
 
 		Default is false (since Lucee 6, previously was true)
 		</description>
+		</attribute>
+		<attribute>
+			<type>boolean</type>
+			<name>abort</name>
+			<required>false</required>
+			<rtexprvalue>false</rtexprvalue>
+			<description>if set to true then the request will be aborted instead of redirected to allow developers
+		to troubleshoot code that contains redirects</description>
 		</attribute>
 		<attribute>
 			<type>number</type>
@@ -7998,6 +8017,14 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>ODBC lock type.</description>
+		</attribute>
+		<attribute>
+			<type>string</type>
+			<name>savepoint</name>
+			<required>false</required>
+			<status>hidden</status>
+			<rtexprvalue>true</rtexprvalue>
+			<description>optional savepoint name, used with action "setsavepoint" and "rollback".</description>
 		</attribute>
 	</tag>
 

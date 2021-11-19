@@ -26,7 +26,8 @@ public class ZipUtilImpl implements ZipUtil {
 
 	private static ZipUtil instance = new ZipUtilImpl();
 
-	private ZipUtilImpl() {}
+	private ZipUtilImpl() {
+	}
 
 	public static ZipUtil getInstance() {
 		return instance;

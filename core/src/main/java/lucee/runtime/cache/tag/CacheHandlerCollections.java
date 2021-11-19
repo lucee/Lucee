@@ -46,30 +46,37 @@ public class CacheHandlerCollections {
 		try {
 			query.release(pc);
 		}
-		catch (PageException e) {}
+		catch (PageException e) {
+		}
 		try {
 			function.release(pc);
 		}
-		catch (PageException e) {}
+		catch (PageException e) {
+		}
 		try {
 			include.release(pc);
 		}
-		catch (PageException e) {}
+		catch (PageException e) {
+		}
 		try {
 			resource.release(pc);
 		}
-		catch (PageException e) {}
+		catch (PageException e) {
+		}
 		try {
 			http.release(pc);
 		}
-		catch (PageException e) {}
+		catch (PageException e) {
+		}
 		try {
 			file.release(pc);
 		}
-		catch (PageException e) {}
+		catch (PageException e) {
+		}
 		try {
 			webservice.release(pc);
 		}
-		catch (PageException e) {}
+		catch (PageException e) {
+		}
 	}
 }

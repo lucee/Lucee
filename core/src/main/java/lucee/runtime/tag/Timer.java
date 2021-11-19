@@ -139,7 +139,8 @@ public final class Timer extends BodyTagImpl {
 			try {
 				pageContext.write("<fieldset class=\"cftimer\">");
 			}
-			catch (IOException e) {}
+			catch (IOException e) {
+			}
 		}
 		return EVAL_BODY_INCLUDE;
 	}
@@ -149,7 +150,8 @@ public final class Timer extends BodyTagImpl {
 		try {
 			_doEndTag();
 		}
-		catch (IOException e) {}
+		catch (IOException e) {
+		}
 		return EVAL_PAGE;
 	}
 

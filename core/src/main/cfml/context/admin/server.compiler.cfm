@@ -117,7 +117,7 @@ Redirtect to entry --->
 							<input type="text" class="small" name="templateCharset" value="#setting.templateCharset#" />
 						<cfelse>
 							<input type="hidden" name="templateCharset" value="#setting.templateCharset#">
-							<b>#charset.templateCharset#</b>
+							<b>#setting.templateCharset#</b>
 						</cfif>
 						<div class="comment">#stText.charset.templateCharsetDescription#</div>
 						<cfsavecontent variable="codeSample">

@@ -436,6 +436,7 @@ public final class XMLUtil {
 		return documentBuilderFactoryResource;
 	}
 
+	// used by xmlbuilder! do nt change
 	private static DocumentBuilderFactory _newDocumentBuilderFactory() {
 		Class<DocumentBuilderFactory> clazz = _newDocumentBuilderFactoryClass();
 		DocumentBuilderFactory factory = null;

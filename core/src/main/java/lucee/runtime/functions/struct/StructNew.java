@@ -29,6 +29,8 @@ import lucee.runtime.ext.function.BIF;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
+import lucee.runtime.type.StructListenerImpl;
+import lucee.runtime.type.UDF;
 
 public final class StructNew extends BIF {
 
@@ -39,6 +41,11 @@ public final class StructNew extends BIF {
 	}
 
 	public static Struct call(PageContext pc, String type) throws ApplicationException {
+		return new StructImpl(toType(type));
+	}
+
+	public static Struct call(PageContext pc, String type, UDF onMissingKey) throws ApplicationException {
+		if (onMissingKey != null) return new StructListenerImpl(toType(type), onMissingKey);
 		return new StructImpl(toType(type));
 	}
 

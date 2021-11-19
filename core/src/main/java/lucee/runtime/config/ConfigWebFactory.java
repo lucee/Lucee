@@ -572,8 +572,9 @@ public final class ConfigWebFactory extends ConfigFactory {
 		}
 
 		// no password yet
-		if (config instanceof ConfigServer && StringUtil.isEmpty(root.get("hspw",""), true) && StringUtil.isEmpty(root.get("adminhspw",""), true) && StringUtil.isEmpty(root.get("pw",""), true) && StringUtil.isEmpty(root.get("adminpw",""), true) 
-			&& StringUtil.isEmpty(root.get("password",""), true) && StringUtil.isEmpty(root.get("adminpassword",""), true)) {
+		if (config instanceof ConfigServer && StringUtil.isEmpty(root.get("hspw", ""), true) && StringUtil.isEmpty(root.get("adminhspw", ""), true)
+				&& StringUtil.isEmpty(root.get("pw", ""), true) && StringUtil.isEmpty(root.get("adminpw", ""), true) && StringUtil.isEmpty(root.get("password", ""), true)
+				&& StringUtil.isEmpty(root.get("adminpassword", ""), true)) {
 			ConfigServer cs = (ConfigServer) config;
 			Resource pwFile = cs.getConfigDir().getRealResource("password.txt");
 			if (pwFile.isFile()) {
@@ -1325,9 +1326,8 @@ public final class ConfigWebFactory extends ConfigFactory {
 		Resource gwDir = componentsDir.getRealResource("lucee/extension/gateway/");
 		create("/resource/context/gateway/",
 				new String[] { "TaskGateway." + COMPONENT_EXTENSION, "DummyGateway." + COMPONENT_EXTENSION, "DirectoryWatcher." + COMPONENT_EXTENSION,
-						"DirectoryWatcherListener." + COMPONENT_EXTENSION, "WatchService." + COMPONENT_EXTENSION, 
-						"MailWatcher." + COMPONENT_EXTENSION, "MailWatcherListener." + COMPONENT_EXTENSION,
-						"AsynchronousEvents." + COMPONENT_EXTENSION, "AsynchronousEventsListener." + COMPONENT_EXTENSION },
+						"DirectoryWatcherListener." + COMPONENT_EXTENSION, "WatchService." + COMPONENT_EXTENSION, "MailWatcher." + COMPONENT_EXTENSION,
+						"MailWatcherListener." + COMPONENT_EXTENSION, "AsynchronousEvents." + COMPONENT_EXTENSION, "AsynchronousEventsListener." + COMPONENT_EXTENSION },
 				gwDir, doNew);
 
 		// resources/language
@@ -4788,6 +4788,21 @@ public final class ConfigWebFactory extends ConfigFactory {
 			// when FNS is true or the lucee dialect is disabled we have no flip flop within a request. FNS is
 			// always the same
 			config.setFullNullSupport(fns);
+
+			// precise math
+			boolean pm = hasCS ? configServer.getPreciseMath() : false;
+			if (mode == ConfigPro.MODE_STRICT) {
+				pm = false;
+			}
+			else {
+				String str = getAttr(root, "preciseMath");
+				if (StringUtil.isEmpty(str, true)) str = SystemUtil.getSystemPropOrEnvVar("lucee.precise.math", null);
+
+				if (!StringUtil.isEmpty(str, true)) {
+					pm = Caster.toBooleanValue(str, hasCS ? configServer.getPreciseMath() : false);
+				}
+			}
+			config.setPreciseMath(pm);
 
 			// default output setting
 			String output = getAttr(root, "defaultFunctionOutput");

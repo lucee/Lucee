@@ -355,7 +355,8 @@ public class VideoPlayerJW extends BodyTagSupport {
 				key = e.getKey().getString();
 				if (StringUtil.startsWithIgnoreCase(key, "param.")) addParam(sb, key.substring(6), Caster.toString(e.getValue()));
 				else if (StringUtil.startsWithIgnoreCase(key, "variable.")) addVariable(sb, key.substring(9), Caster.toString(e.getValue()));
-				else if (StringUtil.startsWithIgnoreCase(key, "div.")) {}
+				else if (StringUtil.startsWithIgnoreCase(key, "div.")) {
+				}
 				else addVariable(sb, key, Caster.toString(e.getValue()));
 			}
 		}

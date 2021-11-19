@@ -54,6 +54,7 @@ import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.methods.HttpTrace;
 import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.config.Registry;
 import org.apache.http.config.RegistryBuilder;
 import org.apache.http.config.SocketConfig;
@@ -71,7 +72,6 @@ import org.apache.http.impl.client.DefaultRedirectStrategy;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.message.BasicNameValuePair;
-import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
 
 import lucee.commons.io.CharsetUtil;
@@ -192,6 +192,7 @@ public final class Http extends BodyTagImpl {
 	private static final Key STATUS_CODE = KeyImpl.getInstance("status_code");
 	private static final Key STATUS_TEXT = KeyImpl.getInstance("status_text");
 	private static final Key HTTP_VERSION = KeyImpl.getInstance("http_version");
+	private static final Key LOCATIONS = KeyImpl.getInstance("locations");
 
 	private static final Key EXPLANATION = KeyImpl.getInstance("explanation");
 	private static final Key RESPONSEHEADER = KeyImpl.getInstance("responseheader");
@@ -1071,7 +1072,7 @@ public final class Http extends BodyTagImpl {
 
 		CloseableHttpClient client = null;
 		try {
-			if (httpContext == null) httpContext = new BasicHttpContext();
+			if (httpContext == null) httpContext = HttpClientContext.create();
 
 			Struct cfhttp = new StructImpl();
 			cfhttp.setEL(ERROR_DETAIL, "");
@@ -1142,6 +1143,9 @@ public final class Http extends BodyTagImpl {
 			cfhttp.set(STATUS_CODE, new Double(statCode = rsp.getStatusCode()));
 			cfhttp.set(STATUS_TEXT, (rsp.getStatusText()));
 			cfhttp.set(HTTP_VERSION, (rsp.getProtocolVersion()));
+
+			Array locations = rsp.getLocations();
+			if (locations != null) cfhttp.set(LOCATIONS, locations);
 
 			// responseHeader
 			lucee.commons.net.http.Header[] headers = rsp.getAllHeaders();

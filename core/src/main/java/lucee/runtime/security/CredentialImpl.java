@@ -218,7 +218,8 @@ public final class CredentialImpl implements Credential {
 				IOUtil.write(rolesDir.getRealResource(md5), raw, CharsetUtil.UTF8, false);
 				return encrypt(username + ONE + password + ONE + "md5:" + md5, privateKey, salt, iter);
 			}
-			catch (IOException e) {}
+			catch (IOException e) {
+			}
 		}
 		try {
 			return encrypt(username + ONE + password + ONE + raw, privateKey, salt, iter);
