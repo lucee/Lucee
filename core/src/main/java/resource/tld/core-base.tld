@@ -1297,7 +1297,7 @@ Example:
 	<tag>
 		<name>Execute</name>
 		<tag-class>lucee.runtime.tag.Execute</tag-class>
-		<body-content>must</body-content>
+		<body-content>free</body-content>
 		<body-rtexprvalue>false</body-rtexprvalue>
 		<script>
 			<type>multiple</type>
