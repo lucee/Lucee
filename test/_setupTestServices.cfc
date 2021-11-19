@@ -434,7 +434,7 @@ component {
 					return {
 						class: 'org.postgresql.Driver'
 						, bundleName: 'org.postgresql.jdbc42'
-						, bundleVersion: server.getDefaultBundleVersion( 'org.postgresql.jdbc42', '9.4.1212' )
+						, bundleVersion: server.getDefaultBundleVersion( 'org.postgresql.jdbc42', '42.2.18' )
 						, connectionString: 'jdbc:postgresql://#pgsql.server#:#pgsql.port#/#pgsql.database#'
 						, username: pgsql.username
 						, password: pgsql.password
