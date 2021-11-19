@@ -106,7 +106,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		assertEquals('{"value":"a","2":1,"3":"a,b","4":","}{"value":"b","2":2,"3":"a,b","4":","}',c);
 
 		// member function test
-		res=list.map( function( value ){
+		res=listmap(list, function( value ){
  							return value EQ 'b';
  
                         },',',false,true,parallel);

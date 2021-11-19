@@ -74,7 +74,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 
 		// member function
-		res=List.Every(function(value ){return true;},',',false,true,parallel);
+		res=ListEvery(List,function(value ){return true;},',',false,true,parallel);
 		assertEquals(true,res);
 
 
