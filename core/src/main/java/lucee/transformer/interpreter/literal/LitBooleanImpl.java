@@ -1,5 +1,8 @@
 package lucee.transformer.interpreter.literal;
 
+import java.math.BigDecimal;
+
+import lucee.runtime.listener.AppListenerUtil;
 import lucee.runtime.op.Caster;
 import lucee.transformer.Factory;
 import lucee.transformer.Position;
@@ -73,17 +76,12 @@ public final class LitBooleanImpl extends ExpressionBase implements LitBoolean, 
 		return b;
 	}
 
-	/**
-	 * @see lucee.transformer.expression.literal.Literal#getDouble(java.lang.Double)
-	 */
 	@Override
-	public Double getDouble(Double defaultValue) {
-		return getDouble();
+	public Number getNumber(Number defaultValue) {
+		if (AppListenerUtil.getPreciseMath(null, null)) return b ? BigDecimal.ONE : BigDecimal.ZERO;
+		return Caster.toDouble(b);
 	}
 
-	/**
-	 * @see lucee.transformer.expression.literal.Literal#getBoolean(java.lang.Boolean)
-	 */
 	@Override
 	public Boolean getBoolean(Boolean defaultValue) {
 		return getBoolean();

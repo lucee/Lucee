@@ -67,10 +67,12 @@ public class ORMConnection implements Connection {
 	}
 
 	@Override
-	public void clearWarnings() throws SQLException {}
+	public void clearWarnings() throws SQLException {
+	}
 
 	@Override
-	public void close() throws SQLException {}
+	public void close() throws SQLException {
+	}
 
 	@Override
 	public void commit() {
@@ -193,7 +195,8 @@ public class ORMConnection implements Connection {
 	}
 
 	@Override
-	public void releaseSavepoint(Savepoint savepoint) throws SQLException {}
+	public void releaseSavepoint(Savepoint savepoint) throws SQLException {
+	}
 
 	@Override
 	public void rollback() {
@@ -215,10 +218,12 @@ public class ORMConnection implements Connection {
 	}
 
 	@Override
-	public void setCatalog(String catalog) throws SQLException {}
+	public void setCatalog(String catalog) throws SQLException {
+	}
 
 	@Override
-	public void setHoldability(int holdability) throws SQLException {}
+	public void setHoldability(int holdability) throws SQLException {
+	}
 
 	@Override
 	public void setReadOnly(boolean readOnly) throws SQLException {

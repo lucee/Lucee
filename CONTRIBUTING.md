@@ -37,4 +37,4 @@ https://docs.lucee.org/
 * [Lucee docs](https://docs.lucee.org/) 
 * [Bug Tracker](https://luceeserver.atlassian.net/)
 * [Mailing list](https://groups.google.com/forum/?hl=en#!forum/lucee) (For general help using Lucee)
-* [Lucee discourse forum](https://lang.lucee.org/) (For discussions about improving Lucee)
+* [Lucee discourse forum](https://dev.lucee.org/) (For discussions about improving Lucee)

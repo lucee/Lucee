@@ -134,9 +134,9 @@ public class ComponentLoader {
 
 		boolean doCache = config.useComponentPathCache();
 		String sub = null;
-		if (returnType != RETURN_TYPE_PAGE && rawPath.indexOf(':') != -1) {
-			int d = rawPath.indexOf(':');
-			int s = rawPath.indexOf('.');
+		if (returnType != RETURN_TYPE_PAGE && rawPath.indexOf('$') != -1) {
+			int d = rawPath.lastIndexOf('$');
+			int s = rawPath.lastIndexOf('.');
 			if (d > s) {
 				sub = rawPath.substring(d + 1);
 				rawPath = rawPath.substring(0, d);
@@ -399,9 +399,9 @@ public class ComponentLoader {
 	private static CIObject load(PageContext pc, Page page, String callPath, String sub, boolean isRealPath, short returnType, final boolean isExtendedComponent,
 			boolean executeConstr) throws PageException {
 		CIPage cip = toCIPage(page, callPath);
+		// String subName = null;
 		if (sub != null) {
 			cip = loadSub(cip, sub);
-			// page=page.loadSub(sub);
 		}
 		if (cip instanceof ComponentPageImpl) {
 			if (returnType != RETURN_TYPE_COMPONENT)
@@ -416,14 +416,19 @@ public class ComponentLoader {
 	}
 
 	private static CIPage loadSub(CIPage page, String sub) throws ApplicationException {
-		String subClassName = lucee.transformer.bytecode.Page.createSubClass(page.getClass().getName(), sub, page.getPageSource().getDialect());
+		// TODO find a better way to create that class name
+		String subClassName = lucee.transformer.bytecode.Page.createSubClass(page.getPageSource().getClassName(), sub, page.getPageSource().getDialect());
+
+		// subClassName:sub.test_cfc$cf$1$sub1
+		// - sub.test_cfc$sub1$cf
 
 		CIPage[] subs = page.getSubPages();
 		for (int i = 0; i < subs.length; i++) {
-			if (subs[i].getClass().getName().equals(subClassName)) return subs[i];
+			if (subs[i].getClass().getName().equals(subClassName)) {
+				return subs[i];
+			}
 		}
 		throw new ApplicationException("There is no Sub component [" + sub + "] in [" + page.getPageSource().getDisplayPath() + "]");
-
 	}
 
 	public static Page loadPage(PageContext pc, PageSource ps, boolean forceReload) throws PageException {
@@ -546,7 +551,6 @@ public class ComponentLoader {
 
 		ComponentPageImpl cp = (ComponentPageImpl) page;
 		ComponentImpl c = cp.newInstance(pc, callPath, isRealPath, isExtendedComponent, executeConstr);
-
 		// abstract/final check
 		if (!isExtendedComponent) {
 			if (c.getModifier() == Component.MODIFIER_ABSTRACT) throw new ApplicationException(

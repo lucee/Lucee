@@ -28,7 +28,8 @@ package lucee.runtime.crypt;
  ****************************************************************************/
 
 public final class JCrypt {
-	private JCrypt() {}
+	private JCrypt() {
+	}
 
 	private static final int ITERATIONS = 16;
 

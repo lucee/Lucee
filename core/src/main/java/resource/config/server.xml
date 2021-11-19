@@ -402,7 +402,7 @@ A flexible layout configurable with pattern string.
 - pattern: This is the string which controls formatting and consists of a mix of literal content and conversion specifiers. for more details see: http://logging.apache.org/log4j/1.2/apidocs/org/apache/log4j/PatternLayout.html
 
 <layout-class>:
-A full class path to a Layout class available in the enviroment with an empty constructor.
+A full class path to a Layout class available in the environment with an empty constructor.
 for every argument defined lucee tries to call a matching setter method
 
 
@@ -421,7 +421,7 @@ Logs error to a resource (locale file, ftp, zip, ...)
 - maxfilesize (default:1024*1024*10): the maxial size of a log file created
 
 <appender-class>:
-A full class path to an Appender class available in the enviroment with an empty constructor.
+A full class path to an Appender class available in the environment with an empty constructor.
 for every argument defined lucee tries to call a matching setter method
 
  -->

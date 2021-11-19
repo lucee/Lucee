@@ -87,7 +87,8 @@ public final class FormatTag extends BodyTagSupport {
 				time = Long.valueOf(s).longValue();
 				output_date = new Date(time);
 			}
-			catch (NumberFormatException nfe) {}
+			catch (NumberFormatException nfe) {
+			}
 		}
 
 		return SKIP_BODY;

@@ -1,7 +1,7 @@
-<cfcomponent extends="org.lucee.cfml.test.LuceeTestCase">
+<cfcomponent extends="org.lucee.cfml.test.LuceeTestCase" labels="oracle">
 	<cfscript>
 		public function isNotSupported(){
-			var orc = getCredencials();
+			var orc = getCredentials();
 			return structIsEmpty(orc);
 		}
 
@@ -45,7 +45,7 @@
 			});
 		}
 
-		private struct function getCredencials() {
+		private struct function getCredentials() {
 			return server.getDatasource("oracle");
 		}
 

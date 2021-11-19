@@ -22,10 +22,13 @@ import java.math.BigDecimal;
 import java.sql.Array;
 import java.sql.Blob;
 import java.sql.Clob;
+import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.SQLXML;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.sql.Types;
@@ -55,7 +58,8 @@ import lucee.runtime.type.sql.ClobImpl;
  */
 public final class SQLCaster {
 
-	private SQLCaster() {}
+	private SQLCaster() {
+	}
 
 	/**
 	 * 
@@ -275,12 +279,32 @@ public final class SQLCaster {
 				else throw pe;
 			}
 			return;
+
+		case Types.SQLXML:
+			// SQLXML is a JDBC 4 feature not supported in JDBC 3.
+			SQLXML xml = null;
+			Connection conn = stat.getConnection();
+			try {
+				xml = conn.createSQLXML();
+			}
+			catch (Throwable t) {// must be a throwable because it throws for example a AbstractMethodError with JDTS, but could also
+									// be other
+				ExceptionUtil.rethrowIfNecessary(t);
+				DatabaseMetaData md = conn.getMetaData();
+				if (md.getJDBCMajorVersion() < 4)
+					throw new DatabaseException("The data type [SQLXML] is not supported with this datasource.", "The datasource JDBC driver compatibility is up to the versions ["
+							+ md.getJDBCMajorVersion() + "." + md.getJDBCMinorVersion() + "], but this feature needs at least [4.0]", null, null);
+				throw Caster.toPageException(t);
+			}
+
+			xml.setString(Caster.toString(value));
+			stat.setObject(parameterIndex, xml, type);
+			return;
 		case Types.VARCHAR:
 		case Types.LONGVARCHAR:
 		case Types.LONGNVARCHAR:
 		case Types.NVARCHAR:
 		case CFTypes.VARCHAR2:
-		case Types.SQLXML:
 			stat.setObject(parameterIndex, Caster.toString(value), type);
 			//// stat.setString(parameterIndex,Caster.toString(value));
 			return;
@@ -812,8 +836,9 @@ public final class SQLCaster {
 		case Types.NCLOB:
 		case Types.LONGNVARCHAR:
 		case Types.NCHAR:
-		case Types.SQLXML:
 			return lucee.commons.lang.CFTypes.TYPE_STRING;
+		case Types.SQLXML:
+			return lucee.commons.lang.CFTypes.TYPE_XML;
 
 		case Types.TIME:
 		case Types.TIMESTAMP:

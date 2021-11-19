@@ -5,7 +5,7 @@ component {
 
 	mySQL = getCredentials();
 	if(mySQL.count()!=0){
-		this.datasource = mySQL;
+		this.datasource ="#server.getDatasource("mysql")#";
 	}
 
 	// ORM settings

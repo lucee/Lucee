@@ -25,6 +25,8 @@ import lucee.commons.io.CharsetUtil;
  */
 public final class HexCoder {
 
+	private static final char[] HEX_ARRAY = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F' };
+
 	/**
 	 * encodes a byte array to a String
 	 * 
@@ -32,19 +34,13 @@ public final class HexCoder {
 	 * @return encoed String
 	 */
 	public static String encode(byte[] bytes) {
-		String retorno = "";
-		if (bytes == null || bytes.length == 0) {
-			return retorno;
+		char[] hexChars = new char[bytes.length * 2];
+		for (int j = 0; j < bytes.length; j++) {
+			int v = bytes[j] & 0xFF;
+			hexChars[j * 2] = HEX_ARRAY[v >>> 4];
+			hexChars[j * 2 + 1] = HEX_ARRAY[v & 0x0F];
 		}
-		for (int i = 0; i < bytes.length; i++) {
-			byte valor = bytes[i];
-			int d1 = valor & 0xF;
-			d1 += (d1 < 10) ? 48 : 55;
-			int d2 = (valor & 0xF0) >> 4;
-			d2 += (d2 < 10) ? 48 : 55;
-			retorno = retorno + (char) d2 + (char) d1;
-		}
-		return retorno;
+		return new String(hexChars);
 	}
 
 	/**

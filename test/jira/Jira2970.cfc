@@ -183,7 +183,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
  
                         },queryNew(qry.columnlist),parallel);
 		}
-		assertEquals('{"row":{"a":"a1"},"2":1,"3":query("a":["a1"])}',c);
+		assertEquals('{"row":["a":"a1"],"2":1,"3":query("a":["a1"])}',c);
 
 		// test member name
 		res=qry.Map(function(row ){

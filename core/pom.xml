@@ -100,13 +100,13 @@
     <dependency>
       <groupId>org.apache.ant</groupId>
       <artifactId>ant</artifactId>
-      <version>1.9.5</version>
+      <version>1.10.11</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>org.apache.tika</groupId>
       <artifactId>tika-core</artifactId>
-      <version>1.22</version>
+      <version>1.27</version>
       <scope>provided</scope>
     </dependency>
 	<dependency>
@@ -336,7 +336,7 @@
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
-      <version>3.8.1</version>
+      <version>4.13.2</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
@@ -421,6 +421,12 @@
       <groupId>w3c</groupId>
       <artifactId>dom</artifactId>
       <version>1.1.0</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>net.java.dev.jna</groupId>
+      <artifactId>jna</artifactId>
+      <version>5.5.0</version>
       <scope>provided</scope>
     </dependency>
     <!-- <dependency>

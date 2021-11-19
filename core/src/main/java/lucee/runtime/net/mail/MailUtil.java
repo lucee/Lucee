@@ -155,7 +155,7 @@ public final class MailUtil {
 
 			String local = address.substring(0, pos);
 			String domain = address.substring(pos + 1);
-			
+
 			if (local.length() > 64) return false; // local part may only be 64 characters
 			if (domain.length() > 255) return false; // domain may only be 255 characters
 
@@ -171,7 +171,8 @@ public final class MailUtil {
 					addr.validate();
 					return true;
 				}
-				catch (AddressException e) {}
+				catch (AddressException e) {
+				}
 			}
 		}
 
@@ -200,7 +201,8 @@ public final class MailUtil {
 				// fixIDN( addr );
 				return addr;
 			}
-			catch (AddressException ex) {}
+			catch (AddressException ex) {
+			}
 		}
 		return defaultValue;
 	}

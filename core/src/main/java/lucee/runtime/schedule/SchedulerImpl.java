@@ -267,7 +267,8 @@ public final class SchedulerImpl implements Scheduler {
 			try {
 				removeScheduleTask(task.getTask(), false);
 			}
-			catch (ScheduleException e) {}
+			catch (ScheduleException e) {
+			}
 		}
 	}
 

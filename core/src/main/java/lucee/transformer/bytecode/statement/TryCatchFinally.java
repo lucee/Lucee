@@ -323,7 +323,8 @@ public final class TryCatchFinally extends StatementBase implements Opcodes, Has
 	public void addCatch(Expression type, Expression name, Body b, Position line) throws TransformerException {
 		// MUSTMUST
 		// type
-		if (type == null || type instanceof ExprString) {}
+		if (type == null || type instanceof ExprString) {
+		}
 		else if (type instanceof Variable) {
 			type = VariableString.toExprString(type);
 		}

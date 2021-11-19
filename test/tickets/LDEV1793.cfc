@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase"{
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="mysql,orm" {
 	// skip closure
 	function isNotSupported() {
 		var mySql = getCredentials();

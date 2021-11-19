@@ -6,7 +6,7 @@ component output="false" {
 	mySQL = getCredentials();
 
 	this.ormenabled = true;
-	this.datasources["trans"] = mySQL;
+	this.datasources["trans"] = server.getDatasource("mysql");
 	this.ormsettings={datasource="trans"
 		,logsql="false"
 		,cfclocation="model"

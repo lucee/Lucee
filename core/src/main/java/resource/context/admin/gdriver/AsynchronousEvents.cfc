@@ -3,7 +3,7 @@ component extends="Gateway" {
     fields = array(
     
         field("cfc","component","",true,"CFC Path","text"),
-        field("Interval (ms)", "interval", "60000",true,"The interval between checks, in miliseconds", "text")
+        field("Interval (ms)", "interval", "60000",true,"The interval between checks, in milliseconds", "text")
 
     );
 

@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" {
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="mongodb" {
 	
 	variables.cacheName="Test"&ListFirst(ListLast(getCurrentTemplatePath(),"\/"),".");
 
@@ -7,7 +7,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 
 
 	private struct function getMongoDBCredentials() {
-		// getting the credetials from the enviroment variables
+		// getting the credentials from the environment variables
 		return server.getDatasource("mongoDB");
 	}
 
@@ -236,5 +236,19 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 		    cacheClear("ab*",cacheName);
 		    assertEquals("#cacheCount(cacheName)#", "1");
     	}
+	}
+	function afterTests() {
+		var javaIoFile=createObject("java","java.io.File");
+		loop array=DirectoryList(
+			path=getDirectoryFromPath(getCurrentTemplatePath()), 
+			recurse=true, filter="*.db") item="local.path"  {
+			fileDeleteOnExit(javaIoFile,path);
+		}
+	}
+
+	private function fileDeleteOnExit(required javaIoFile, required string path) {
+		var file=javaIoFile.init(arguments.path);
+		if(!file.isFile())file=javaIoFile.init(expandPath(arguments.path));
+		if(file.isFile()) file.deleteOnExit();
 	}
 }

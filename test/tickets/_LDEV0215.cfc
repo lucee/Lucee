@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase"{
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="mssql,mysql"{
 	function isMySqlNotSupported() {
 		var mySql = mySqlCredentials();
 		if(!isNull(mysql)){
@@ -43,7 +43,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 	}
 
 	private struct function mySqlCredentials() {
-		// getting the credentials from the enviroment variables
+		// getting the credentials from the environment variables
 		return server.getDatasource("mysql");
 	}
 

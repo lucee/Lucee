@@ -212,11 +212,15 @@ public class RHExtension implements Serializable {
 		Resource res;
 		if (installIfNecessary) {
 			res = StringUtil.isEmpty(version) ? null : toResource(config, id, version, null);
+
 			if (res == null) {
 				if (!StringUtil.isEmpty(resource) && (res = ResourceUtil.toResourceExisting(config, resource, null)) != null) {
 					DeployHandler.deployExtension(config, res);
 				}
-				else DeployHandler.deployExtension(config, new ExtensionDefintion(id, version), null, false);
+				else {
+					DeployHandler.deployExtension(config, new ExtensionDefintion(id, version), null, false, true);
+					res = RHExtension.toResource(config, id, version);
+				}
 			}
 		}
 		else {
@@ -359,10 +363,10 @@ public class RHExtension implements Serializable {
 				else if (!entry.isDirectory() && (startsWith(path, type, "jars") || startsWith(path, type, "jar") || startsWith(path, type, "bundles")
 						|| startsWith(path, type, "bundle") || startsWith(path, type, "lib") || startsWith(path, type, "libs")) && (StringUtil.endsWithIgnoreCase(path, ".jar"))) {
 
-					jars.add(fileName);
-					BundleInfo bi = BundleInfo.getInstance(fileName, zis, false);
-					if (bi.isBundle()) bundles.add(bi);
-				}
+							jars.add(fileName);
+							BundleInfo bi = BundleInfo.getInstance(fileName, zis, false);
+							if (bi.isBundle()) bundles.add(bi);
+						}
 
 				// flds
 				else if (!entry.isDirectory() && startsWith(path, type, "flds") && (StringUtil.endsWithIgnoreCase(path, ".fld") || StringUtil.endsWithIgnoreCase(path, ".fldx")))
@@ -816,7 +820,7 @@ public class RHExtension implements Serializable {
 			ext = new RHExtension(config, resources[i], false);
 			xmlExt = xmlExtensions.get(ext.getId());
 			if (xmlExt != null && (xmlExt.getVersion() + "").equals(ext.getVersion() + "")) continue;
-			ConfigAdmin._updateRHExtension((ConfigPro) config, resources[i], true);
+			ConfigAdmin._updateRHExtension((ConfigPro) config, resources[i], true, true);
 		}
 
 	}
@@ -1444,14 +1448,45 @@ public class RHExtension implements Serializable {
 		int index;
 		arrr = ListUtil.trimItems(ListUtil.listToStringArray(s, ';'));
 		ExtensionDefintion ed = new ExtensionDefintion();
+		String name;
+		Resource res;
+		Config c = ThreadLocalPageContext.getConfig();
 		for (String ss: arrr) {
+			res = null;
 			index = ss.indexOf('=');
 			if (index != -1) {
-				ed.setParam(ss.substring(0, index).trim(), ss.substring(index + 1).trim());
+				name = ss.substring(0, index).trim();
+				ed.setParam(name, ss.substring(index + 1).trim());
+				if ("path".equalsIgnoreCase(name) && c != null) {
+					res = ResourceUtil.toResourceExisting(c, ss.substring(index + 1).trim(), null);
+				}
 			}
 			else if (ed.getId() == null || Decision.isUUId(ed.getId())) {
-				ed.setId(ss);
+				if (c == null || Decision.isUUId(ss) || (res = ResourceUtil.toResourceExisting(ThreadLocalPageContext.getConfig(), ss.trim(), null)) == null) ed.setId(ss);
 			}
+
+			if (res != null && res.isFile()) {
+
+				Resource trgDir = c.getLocalExtensionProviderDirectory();
+				Resource trg = trgDir.getRealResource(res.getName());
+				if (!res.equals(trg) && !trg.isFile()) {
+					try {
+						IOUtil.copy(res, trg);
+					}
+					catch (IOException e) {
+						e.printStackTrace();
+					}
+				}
+				if (!trg.isFile()) continue;
+
+				try {
+					return new RHExtension(c, trg, false).toExtensionDefinition();
+				}
+				catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+
 		}
 		return ed;
 	}

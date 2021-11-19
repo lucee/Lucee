@@ -55,14 +55,10 @@ import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
-import lucee.runtime.type.scope.client.ClientCache;
 import lucee.runtime.type.scope.client.ClientCookie;
-import lucee.runtime.type.scope.client.ClientDatasource;
 import lucee.runtime.type.scope.client.ClientFile;
 import lucee.runtime.type.scope.client.ClientMemory;
-import lucee.runtime.type.scope.session.SessionCache;
 import lucee.runtime.type.scope.session.SessionCookie;
-import lucee.runtime.type.scope.session.SessionDatasource;
 import lucee.runtime.type.scope.session.SessionFile;
 import lucee.runtime.type.scope.session.SessionMemory;
 import lucee.runtime.type.scope.storage.IKHandlerCache;
@@ -86,11 +82,6 @@ public final class ScopeContext {
 	private static final int MINUTE = 60 * 1000;
 	private static final long CLIENT_MEMORY_TIMESPAN = 5 * MINUTE;
 	private static final long SESSION_MEMORY_TIMESPAN = 5 * MINUTE;
-	private static final boolean INVIDUAL_STORAGE_KEYS;
-
-	static {
-		INVIDUAL_STORAGE_KEYS = true;// Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("individualStorageKeys", null),false);
-	}
 
 	private Map<String, Map<String, Scope>> cfSessionContexts = MapFactory.<String, Map<String, Scope>>getConcurrentMap();
 	private Map<String, Map<String, Scope>> cfClientContexts = MapFactory.<String, Map<String, Scope>>getConcurrentMap();
@@ -257,31 +248,11 @@ public final class ScopeContext {
 			else {
 				DataSource ds = pc.getDataSource(storage, null);
 				if (ds != null) {
-					if (INVIDUAL_STORAGE_KEYS) {
-						try {
-							client = (Client) IKStorageScopeSupport.getInstance(Scope.SCOPE_CLIENT, new IKHandlerDatasource(), appContext.getName(), storage, pc, existing,
-									getLog());
-						}
-						catch (PageException pe) {
-							// code above could fail when an old scope is loaded, remember client scope can be easy be
-							// 180 days old
-							client = ClientDatasource.getInstance(storage, pc, getLog());
-						}
-					}
-					else client = ClientDatasource.getInstance(storage, pc, getLog());
+					client = (Client) IKStorageScopeSupport.getInstance(Scope.SCOPE_CLIENT, new IKHandlerDatasource(), appContext.getName(), storage, pc, existing, getLog());
 				}
 				else {
-					if (INVIDUAL_STORAGE_KEYS) {
-						try {
-							client = (Client) IKStorageScopeSupport.getInstance(Scope.SCOPE_CLIENT, new IKHandlerCache(), appContext.getName(), storage, pc, existing, getLog());
-						}
-						catch (PageException pe) {
-							// code above could fail when an old scope is loaded, remember client scope can be easy be
-							// 180 days old
-							client = ClientCache.getInstance(storage, appContext.getName(), pc, existing, getLog(), null);
-						}
-					}
-					else client = ClientCache.getInstance(storage, appContext.getName(), pc, existing, getLog(), null);
+					client = (Client) IKStorageScopeSupport.getInstance(Scope.SCOPE_CLIENT, new IKHandlerCache(), appContext.getName(), storage, pc, existing, getLog());
+
 				}
 
 				if (client == null) {
@@ -523,15 +494,9 @@ public final class ScopeContext {
 			else {
 				DataSource ds = pc.getConfig().getDataSource(storage, null);
 				if (ds != null && ds.isStorage()) {
-					if (INVIDUAL_STORAGE_KEYS) {
-						return IKStorageScopeSupport.hasInstance(Scope.SCOPE_SESSION, new IKHandlerDatasource(), appContext.getName(), storage, pc);
-					}
-					else {
-						if (SessionDatasource.hasInstance(storage, pc)) return true;
-					}
+					return IKStorageScopeSupport.hasInstance(Scope.SCOPE_SESSION, new IKHandlerDatasource(), appContext.getName(), storage, pc);
 				}
-				if (INVIDUAL_STORAGE_KEYS) return IKStorageScopeSupport.hasInstance(Scope.SCOPE_SESSION, new IKHandlerCache(), appContext.getName(), storage, pc);
-				return SessionCache.hasInstance(storage, appContext.getName(), pc);
+				return IKStorageScopeSupport.hasInstance(Scope.SCOPE_SESSION, new IKHandlerCache(), appContext.getName(), storage, pc);
 			}
 		}
 		return true;
@@ -596,29 +561,11 @@ public final class ScopeContext {
 			else {
 				DataSource ds = pc.getDataSource(storage, null);
 				if (ds != null && ds.isStorage()) {
-					if (INVIDUAL_STORAGE_KEYS) {
-						try {
-							session = (Session) IKStorageScopeSupport.getInstance(Scope.SCOPE_SESSION, new IKHandlerDatasource(), appContext.getName(), storage, pc, existing,
-									getLog());
-						}
-						catch (PageException pe) {
-							pc.getConfig().getLog("application").error("session-storage", pe);
-							session = SessionDatasource.getInstance(storage, pc, getLog(), null);
-						}
-					}
-					else session = SessionDatasource.getInstance(storage, pc, getLog(), null);
+					session = (Session) IKStorageScopeSupport.getInstance(Scope.SCOPE_SESSION, new IKHandlerDatasource(), appContext.getName(), storage, pc, existing, getLog());
+
 				}
 				else {
-					if (INVIDUAL_STORAGE_KEYS) {
-						try {
-							session = (Session) IKStorageScopeSupport.getInstance(Scope.SCOPE_SESSION, new IKHandlerCache(), appContext.getName(), storage, pc, existing, getLog());
-						}
-						catch (PageException pe) {
-							pc.getConfig().getLog("application").error("session-storage", pe);
-							session = SessionCache.getInstance(storage, appContext.getName(), pc, existing, getLog(), null);
-						}
-					}
-					else session = SessionCache.getInstance(storage, appContext.getName(), pc, existing, getLog(), null);
+					session = (Session) IKStorageScopeSupport.getInstance(Scope.SCOPE_SESSION, new IKHandlerCache(), appContext.getName(), storage, pc, existing, getLog());
 				}
 
 				if (session == null) {

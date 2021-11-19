@@ -3,7 +3,7 @@ component {
 	this.name	=	Hash( GetCurrentTemplatePath() );
 	this.sessionManagement 	= false;
 
-	mySQL=getCredencials();
+	mySQL=getCredentials();
 
 	this.datasources["sample"] = mySQL;
 	this.datasource = "sample";
@@ -27,7 +27,7 @@ component {
 		}
 	}
 
-	private struct function getCredencials() {
+	private struct function getCredentials() {
 		return server.getDatasource("mysql");
 	}
 
