@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase"{
+component extends="org.lucee.cfml.test.LuceeTestCase"  skip="true" {
 	function run( testResults, testBox ){
 		describe( "Test case for LDEV-3353", function() {
             xmlObject = xmlParse("<office><employee>Test Employee</employee></office>");
