@@ -432,7 +432,8 @@ public final class ThreadTag extends BodyTagImpl implements DynamicAttributes {
 					if (_timeout != -1) ct.join(_timeout);
 					else ct.join();
 				}
-				catch (InterruptedException e) {}
+				catch (InterruptedException e) {
+				}
 			}
 			if (_timeout != -1) {
 				_timeout = _timeout - (System.currentTimeMillis() - start);

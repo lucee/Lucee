@@ -1,7 +1,7 @@
 component {
 	this.name =	"tests345";
 	mySQL = getCredentials();
-	this.datasource = mysql;
+	this.datasource = server.getDatasource("mysql");
 
 	function onRequestStart(){
 		setting showdebugOutput=false;

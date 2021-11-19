@@ -188,7 +188,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
  
                         },parallel);
 		}
-		assertEquals('{"1":{"b":"b1","a":"a1"},"2":1,"3":query("a":["a1","a2"],"b":["b1","b2"])}{"1":{"b":"b2","a":"a2"},"2":2,"3":query("a":["a1","a2"],"b":["b1","b2"])}',c);
+		assertEquals('{"1":["a":"a1","b":"b1"],"2":1,"3":query("a":["a1","a2"],"b":["b1","b2"])}{"1":["a":"a2","b":"b2"],"2":2,"3":query("a":["a1","a2"],"b":["b1","b2"])}',c);
 
 		var people = QueryNew( "name,dob,age", "varchar,date,int", [
 			[ "Susi", CreateDate( 1970, 1, 1 ), 0 ],

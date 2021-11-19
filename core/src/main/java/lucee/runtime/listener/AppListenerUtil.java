@@ -970,4 +970,12 @@ public final class AppListenerUtil {
 		if (version == null) version = OSGiUtil.toVersion(Caster.toString(sct.get("version", null), null), null);
 		return version;
 	}
+
+	public static boolean getPreciseMath(PageContext pc, Config config) {
+		pc = ThreadLocalPageContext.get(pc);
+		if (pc != null) return ((ApplicationContextSupport) pc.getApplicationContext()).getPreciseMath();
+		config = ThreadLocalPageContext.getConfig(config);
+		if (config != null) return ((ConfigPro) config).getPreciseMath();
+		return false;
+	}
 }

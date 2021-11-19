@@ -21,10 +21,10 @@ package lucee.runtime.functions.string;
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
-import lucee.runtime.op.Operator;
+import lucee.runtime.op.OpUtil;
 
 public class StringAppend {
 	public static Object call(PageContext pc, Object left, Object right) throws PageException {
-		return Operator.concat(Caster.toCharSequence(left), Caster.toCharSequence(right));
+		return OpUtil.concat(pc, Caster.toCharSequence(left), Caster.toCharSequence(right));
 	}
 }

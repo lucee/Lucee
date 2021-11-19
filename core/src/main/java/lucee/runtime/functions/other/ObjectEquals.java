@@ -25,14 +25,14 @@ import java.util.Map.Entry;
 import lucee.runtime.Component;
 import lucee.runtime.PageContext;
 import lucee.runtime.converter.LazyConverter;
-import lucee.runtime.op.Operator;
+import lucee.runtime.op.OpUtil;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.UDF;
 
 public class ObjectEquals {
 	public static boolean call(PageContext pc, Object left, Object right) {
-		return Operator.equalsComplexEL(left, right, false, false);
+		return OpUtil.equalsComplexEL(pc, left, right, false, false);
 		// return _equals(new HashSet<Object>(), left, right);
 	}
 

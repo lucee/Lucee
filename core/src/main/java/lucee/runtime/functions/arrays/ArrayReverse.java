@@ -41,7 +41,8 @@ public final class ArrayReverse extends BIF {
 			try {
 				rev.setE(len - i, array.getE(i + 1));
 			}
-			catch (PageException e) {}
+			catch (PageException e) {
+			}
 		}
 		return rev;
 	}

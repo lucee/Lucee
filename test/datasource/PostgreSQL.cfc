@@ -16,7 +16,7 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  *
  ---><cfscript>
-component extends="org.lucee.cfml.test.LuceeTestCase"	{
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="postgres"	{
 
 
 	//public function afterTests(){}
@@ -138,7 +138,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	}
 
 	private struct function getCredentials() {
-		// getting the credentials from the enviroment variables
+		// getting the credentials from the environment variables
 		return server.getDatasource("postgres");
 	}
 }

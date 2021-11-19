@@ -25,7 +25,8 @@ import javax.servlet.jsp.tagext.TagSupport;
 
 public final class CurrentTimeTag extends TagSupport {
 
-	public CurrentTimeTag() {}
+	public CurrentTimeTag() {
+	}
 
 	@Override
 	public final int doEndTag() throws JspException {

@@ -38,7 +38,8 @@ public class PortChecker {
 			s.connect(sa, 3000);
 			return true;
 		}
-		catch (IOException e) {}
+		catch (IOException e) {
+		}
 		finally {
 			IOUtil.closeEL(s);
 		}

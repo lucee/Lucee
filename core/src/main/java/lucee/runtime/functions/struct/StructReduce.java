@@ -36,11 +36,11 @@ public final class StructReduce extends BIF {
 	private static final long serialVersionUID = 2268062574022295144L;
 
 	public static Object call(PageContext pc, Struct sct, UDF udf) throws PageException {
-		return Reduce._call(pc, sct, udf, null, ClosureFunc.TYPE_STRUCT);
+		return Reduce.call(pc, sct, udf, null, ClosureFunc.TYPE_STRUCT);
 	}
 
 	public static Object call(PageContext pc, Struct sct, UDF udf, Object initValue) throws PageException {
-		return Reduce._call(pc, sct, udf, initValue, ClosureFunc.TYPE_STRUCT);
+		return Reduce.call(pc, sct, udf, initValue, ClosureFunc.TYPE_STRUCT);
 	}
 
 	@Override

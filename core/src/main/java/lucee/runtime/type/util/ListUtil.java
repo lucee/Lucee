@@ -177,7 +177,8 @@ public final class ListUtil {
 			}
 			if (last <= len) array.append(list.substring(last));
 		}
-		catch (PageException e) {}
+		catch (PageException e) {
+		}
 		return array;
 	}
 

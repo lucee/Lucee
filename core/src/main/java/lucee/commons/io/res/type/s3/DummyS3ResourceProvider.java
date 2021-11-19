@@ -57,16 +57,20 @@ public final class DummyS3ResourceProvider implements ResourceProviderPro {
 	}
 
 	@Override
-	public void setResources(Resources resources) {}
+	public void setResources(Resources resources) {
+	}
 
 	@Override
-	public void unlock(Resource res) {}
+	public void unlock(Resource res) {
+	}
 
 	@Override
-	public void lock(Resource res) throws IOException {}
+	public void lock(Resource res) throws IOException {
+	}
 
 	@Override
-	public void read(Resource res) throws IOException {}
+	public void read(Resource res) throws IOException {
+	}
 
 	@Override
 	public boolean isCaseSensitive() {

@@ -1,9 +1,9 @@
 component {
 
 	this.name	=	Hash( GetCurrentTemplatePath() );
-	this.sessionManagement 	= false;
-	mySQL=getCredencials();
-	this.datasource = mySql;	
+	this.sessionManagement 	= false;	
+
+	this.datasource =server.getDatasource("mysql");
 
 	// ORM settings
 	this.ormEnabled = true;
@@ -33,9 +33,4 @@ component {
 	        echo("INSERT INTO `test` VALUES ('1', null);");
 		}
 	}
-
-	private struct function getCredencials() {
-		return server.getDatasource("mysql");
-	}
-
 }

@@ -256,8 +256,8 @@ Error Output --->
 							</ul>
 						<cfelse>
 							<input type="hidden" name="cgiReadonly" value="#scope.cgiReadonly#">
-							<b>#stText.Scopes["cgiReadOnly"& scope.LocalMode]#</b><br />
-							<div class="comment">#stText.Scopes["cgiReadOnly"& scope.LocalMode&"desc"]#</div>
+							<b>#stText.Scopes["cgiReadOnly"& scope.cgiReadonly]#</b><br />
+							<div class="comment">#stText.Scopes["cgiReadOnly"& scope.cgiReadonly&"desc"]#</div>
 						</cfif>
 						
 						<cfsavecontent variable="codeSample">

@@ -78,30 +78,36 @@ public final class OpDecision extends ExpressionBase implements ExprBoolean {
 		}
 
 		if (op == Factory.OP_DEC_CT) {
+			adapter.loadArg(0);
 			left.writeOut(bc, MODE_REF);
 			right.writeOut(bc, MODE_REF);
-			adapter.invokeStatic(Types.OPERATOR, Methods_Operator.OPERATOR_CT);
+			adapter.invokeStatic(Types.OP_UTIL, Methods_Operator.OPERATOR_CT_PC_O_O);
 		}
 		else if (op == Factory.OP_DEC_NCT) {
+			adapter.loadArg(0);
 			left.writeOut(bc, MODE_REF);
 			right.writeOut(bc, MODE_REF);
-			adapter.invokeStatic(Types.OPERATOR, Methods_Operator.OPERATOR_NCT);
+			adapter.invokeStatic(Types.OP_UTIL, Methods_Operator.OPERATOR_NCT_PC_O_O);
 		}
 		else if (op == Factory.OP_DEC_EEQ) {
+			adapter.loadArg(0);
 			left.writeOut(bc, MODE_REF);
 			right.writeOut(bc, MODE_REF);
-			adapter.invokeStatic(Types.OPERATOR, Methods_Operator.OPERATOR_EEQ);
+			adapter.invokeStatic(Types.OP_UTIL, Methods_Operator.OPERATOR_EEQ_PC_O_O);
 		}
 		else if (op == Factory.OP_DEC_NEEQ) {
+			adapter.loadArg(0);
 			left.writeOut(bc, MODE_REF);
 			right.writeOut(bc, MODE_REF);
-			adapter.invokeStatic(Types.OPERATOR, Methods_Operator.OPERATOR_NEEQ);
+			adapter.invokeStatic(Types.OP_UTIL, Methods_Operator.OPERATOR_NEEQ_PC_O_O);
 		}
 		else {
-			int iLeft = Types.getType(((ExpressionBase) left).writeOutAsType(bc, MODE_VALUE));
-			int iRight = Types.getType(((ExpressionBase) right).writeOutAsType(bc, MODE_VALUE));
+			adapter.loadArg(0);
+			int iLeft = Methods_Operator.getType(((ExpressionBase) left).writeOutAsType(bc, MODE_REF));
+			int iRight = Methods_Operator.getType(((ExpressionBase) right).writeOutAsType(bc, MODE_REF));
 
-			adapter.invokeStatic(Types.OPERATOR, Methods_Operator.OPERATORS[iLeft][iRight]);
+			adapter.invokeStatic(Types.OP_UTIL, Methods_Operator.COMPARATORS[iLeft][iRight]);
+			// adapter.invokeStatic(Types.OPERATOR, Methods_Operator.OPERATORS[iLeft][iRight]);
 
 			adapter.visitInsn(Opcodes.ICONST_0);
 

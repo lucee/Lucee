@@ -744,7 +744,7 @@ public class VariableImpl extends ExpressionBase implements Variable {
 		String type = flfa.getTypeAsString();
 		if (defaultValue == null) {
 			if (type.equals("boolean") || type.equals("bool")) return new VT(factory.FALSE(), type, -1);
-			if (type.equals("number") || type.equals("numeric") || type.equals("double")) return new VT(factory.DOUBLE_ZERO(), type, -1);
+			if (type.equals("number") || type.equals("numeric") || type.equals("double")) return new VT(factory.NUMBER_ONE(), type, -1);
 			return new VT(null, type, -1);
 		}
 		return new VT(factory.toExpression(factory.createLitString(defaultValue), type), type, -1);
@@ -792,11 +792,12 @@ public class VariableImpl extends ExpressionBase implements Variable {
 	private static boolean isNamed(String funcName, Argument[] args) throws TransformerException {
 		if (ArrayUtil.isEmpty(args)) return false;
 		boolean named = false;
-		boolean unNamed = false; 
+		boolean unNamed = false;
 		for (int i = 0; i < args.length; i++) {
 			if (args[i] instanceof NamedArgument) named = true;
 			else unNamed = true;
-			if ( named && unNamed ) throw new TransformerException("Invalid argument for function [ " + funcName + " ], You can't mix named and unNamed arguments", args[i].getStart());
+			if (named && unNamed)
+				throw new TransformerException("Invalid argument for function [ " + funcName + " ], You can't mix named and unNamed arguments", args[i].getStart());
 		}
 		return named;
 	}

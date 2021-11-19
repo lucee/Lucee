@@ -6,7 +6,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 	function run( testResults, testBox ) { 
 		describe( "testcase for LDEV-2902", function(){
 			it(title="Checking datasource configured with timezone",body=function( currentSpec ){
-				if(!hasCredencials()) return;
+				if(!hasCredentials()) return;
 				local.result = _InternalRequest(
 					template : "#uri#\test.cfm",
 					forms : {Scene = 1}
@@ -15,7 +15,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 			});
 
 			it(title="Checking datasource configured without timezone",body=function( currentSpec ){
-				if(!hasCredencials()) return;
+				if(!hasCredentials()) return;
 				local.result = _InternalRequest(
 					template : "#uri#\test.cfm",
 					forms : {Scene = 2}
@@ -24,7 +24,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 			});
 
 			it(title="Checking datasource configured Empty timezone",body=function( currentSpec ){
-				if(!hasCredencials()) return;
+				if(!hasCredentials()) return;
 				local.result = _InternalRequest(
 					template : "#uri#\test.cfm",
 					forms : {Scene = 3}
@@ -39,7 +39,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 		return baseURI&""&calledName;
 	}
 
-	private boolean function hasCredencials() {
+	private boolean function hasCredentials() {
 		msSQL
 		return false;
 	}

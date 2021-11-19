@@ -64,7 +64,17 @@ public class ScriptEngineImpl implements ScriptEngine {
 			return res.getValue();
 		}
 		catch (PageException pe) {
+			pe.printStackTrace();
 			throw toScriptException(pe);
+		}
+		catch (RuntimeException re) {
+			re.printStackTrace();
+			throw re;
+		}
+		catch (Throwable t) {
+			if (t instanceof ThreadDeath) throw (ThreadDeath) t;
+			t.printStackTrace();
+			throw new RuntimeException(t);
 		}
 		finally {
 			releasePageContext(pc, oldPC);
