@@ -2974,7 +2974,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<name>dateDiff</name>
 		<class>lucee.runtime.functions.dateTime.DateDiff</class>
 		<member-name>diff</member-name>
-		<member-position>2</member-position>
+		<member-position>3</member-position>
 		<description>Determines the number of given date parts between two different dates</description>
 		<argument>
 			<name>datePart</name>
