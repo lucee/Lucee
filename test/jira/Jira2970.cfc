@@ -72,7 +72,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		var list2 = "I;love@lucee,";
 		var result2 = list2.Map(function(element){
 			return element;
-		},'@');
+		});
 		assertEquals('I;love@lucee,' , result2);
 	}
 
