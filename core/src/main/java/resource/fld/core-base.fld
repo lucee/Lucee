@@ -14341,6 +14341,29 @@ You can find a list of all available timezones in the Lucee administrator (Setti
         		<type>any</type>
         	</return>
         </function>
+	<!-- StringSome -->
+      <function>
+    		<name>StringSome</name>
+    		<class>lucee.runtime.functions.string.StringSome</class>
+    		<description>This function calls a given closure/function with every element in a given string and returns true, if one of the closure calls returns true.</description>
+        	<argument>
+    			<name>string</name>
+    			<type>string</type>
+    			<alias>inputString,object</alias>
+    			<required>Yes</required>
+    			<description>Input string.</description>
+        	</argument>
+        	<argument>
+    			<name>closure</name>
+    			<type>any</type>
+    			<alias>function,callback,udf</alias>
+    			<required>No</required>
+    			<description>The value to find or a closure/function that gets every value of the array as input and returns true if the given value is right.</description>
+    		</argument>
+        	<return>
+        		<type>boolean</type>
+        	</return>
+        </function>
 	<!-- ArrayRemoveDuplicates -->
 	<function>
 		<name>ArrayRemoveDuplicates</name>
