@@ -1408,7 +1408,7 @@ public final class ListUtil {
 	 */
 	public static int len(String list, char delimiter, boolean ignoreEmpty) {
 		int len = StringUtil.length(list);
-		if (len == 0) return 0;
+		if (len == 0 && ignoreEmpty) return 0;
 
 		int count = 0;
 		int last = 0;
