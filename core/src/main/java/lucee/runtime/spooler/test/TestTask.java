@@ -28,36 +28,36 @@ import lucee.runtime.type.StructImpl;
 
 public class TestTask extends SpoolerTaskSupport {
 
-    private int fail;
-    private String label;
+	private int fail;
+	private String label;
 
-    public TestTask(ExecutionPlan[] plans, String label, int fail) {
-	super(plans);
-	this.label = label;
-	this.fail = fail;
-    }
+	public TestTask(ExecutionPlan[] plans, String label, int fail) {
+		super(plans);
+		this.label = label;
+		this.fail = fail;
+	}
 
-    @Override
-    public String getType() {
-	return "test";
-    }
+	@Override
+	public String getType() {
+		return "test";
+	}
 
-    @Override
-    public Struct detail() {
-	return new StructImpl();
-    }
+	@Override
+	public Struct detail() {
+		return new StructImpl();
+	}
 
-    @Override
-    public Object execute(Config config) throws PageException {
-	// print.out("execute:"+label+":"+fail+":"+new Date());
-	if (fail-- > 0) throw new ExpressionException("no idea");
+	@Override
+	public Object execute(Config config) throws PageException {
+		// print.out("execute:"+label+":"+fail+":"+new Date());
+		if (fail-- > 0) throw new ExpressionException("no idea");
 
-	return null;
-    }
+		return null;
+	}
 
-    @Override
-    public String subject() {
-	return label;
-    }
+	@Override
+	public String subject() {
+		return label;
+	}
 
 }

@@ -29,29 +29,29 @@ import lucee.runtime.cfx.customtag.CFXTagClass;
  */
 public interface CFXTagPool {
 
-    /**
-     * @return Returns the classes.
-     */
-    public abstract Map<String, CFXTagClass> getClasses();
+	/**
+	 * @return Returns the classes.
+	 */
+	public abstract Map<String, CFXTagClass> getClasses();
 
-    /**
-     * return custom tag that match the name
-     * 
-     * @param name
-     * @return matching tag
-     * @throws CFXTagException
-     */
-    public CustomTag getCustomTag(String name) throws CFXTagException;
+	/**
+	 * return custom tag that match the name
+	 * 
+	 * @param name custom tag name
+	 * @return matching tag
+	 * @throws CFXTagException CFX Tag Exception
+	 */
+	public CustomTag getCustomTag(String name) throws CFXTagException;
 
-    public CFXTagClass getCFXTagClass(String name) throws CFXTagException;
+	public CFXTagClass getCFXTagClass(String name) throws CFXTagException;
 
-    /**
-     * realese custom tag
-     * 
-     * @param ct
-     */
-    public void releaseCustomTag(CustomTag ct);
+	/**
+	 * realese custom tag
+	 * 
+	 * @param ct Custom Tag
+	 */
+	public void releaseCustomTag(CustomTag ct);
 
-    public void releaseTag(Object tag);
+	public void releaseTag(Object tag);
 
 }

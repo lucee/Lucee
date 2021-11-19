@@ -28,26 +28,26 @@ import lucee.runtime.op.Castable;
  */
 public interface FunctionValue extends Castable, Serializable, Dumpable {
 
-    /**
-     * @return Returns the name.
-     * @deprecated use instead <code>getNameAsString();</code>
-     */
-    @Deprecated
-    public abstract String getName();
+	/**
+	 * @return Returns the name.
+	 * @deprecated use instead <code>getNameAsString();</code>
+	 */
+	@Deprecated
+	public abstract String getName();
 
-    /**
-     * @return Returns the name as string
-     */
-    public String getNameAsString();
+	/**
+	 * @return Returns the name as string
+	 */
+	public String getNameAsString();
 
-    /**
-     * @return Returns the name as key
-     */
-    public Collection.Key getNameAsKey();
+	/**
+	 * @return Returns the name as key
+	 */
+	public Collection.Key getNameAsKey();
 
-    /**
-     * @return Returns the value.
-     */
-    public abstract Object getValue();
+	/**
+	 * @return Returns the value.
+	 */
+	public abstract Object getValue();
 
 }

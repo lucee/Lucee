@@ -34,57 +34,57 @@ import lucee.runtime.type.util.ListUtil;
  */
 public final class CFXTagPoolImpl implements CFXTagPool {
 
-    Config config;
-    Map<String, CFXTagClass> classes;
-    Map<String, CFXTagClass> objects = MapFactory.<String, CFXTagClass>getConcurrentMap();
+	Config config;
+	Map<String, CFXTagClass> classes;
+	Map<String, CFXTagClass> objects = MapFactory.<String, CFXTagClass>getConcurrentMap();
 
-    /**
-     * constructor of the class
-     * 
-     * @param classes
-     */
-    public CFXTagPoolImpl(Map<String, CFXTagClass> classes) {
-	this.classes = classes;
-    }
-
-    @Override
-    public Map<String, CFXTagClass> getClasses() {
-	return classes;
-    }
-
-    @Override
-    public synchronized CustomTag getCustomTag(String name) throws CFXTagException {
-	name = name.toLowerCase();
-
-	Object o = classes.get(name);
-	if (o == null) {
-	    Set<String> set = classes.keySet();
-	    String names = ListUtil.arrayToList(set.toArray(new String[set.size()]), ",");
-
-	    throw new CFXTagException("there is no Custom Tag (CFX) with name [" + name + "], available Custom Tags are [" + names + "]");
+	/**
+	 * constructor of the class
+	 * 
+	 * @param classes
+	 */
+	public CFXTagPoolImpl(Map<String, CFXTagClass> classes) {
+		this.classes = classes;
 	}
-	CFXTagClass ctc = (CFXTagClass) o;
-	CustomTag ct = ctc.newInstance();
-	// if(!(o instanceof CustomTag))throw new CFXTagException("["+name+"] is not of type
-	// ["+CustomTag.class.getName()+"]");
-	return ct;
-    }
 
-    @Override
-    public synchronized CFXTagClass getCFXTagClass(String name) throws CFXTagException {
-	name = name.toLowerCase();
-	CFXTagClass ctc = classes.get(name);
-	if (ctc == null) throw new CFXTagException("there is not Custom Tag (CFX) with name [" + name + "]");
-	return ctc;
-    }
+	@Override
+	public Map<String, CFXTagClass> getClasses() {
+		return classes;
+	}
 
-    @Override
-    public void releaseCustomTag(CustomTag ct) {
-	// table.put(ct.getClass().toString(),ct);
-    }
+	@Override
+	public synchronized CustomTag getCustomTag(String name) throws CFXTagException {
+		name = name.toLowerCase();
 
-    @Override
-    public void releaseTag(Object tag) {
-	// table.put(ct.getClass().toString(),ct);
-    }
+		Object o = classes.get(name);
+		if (o == null) {
+			Set<String> set = classes.keySet();
+			String names = ListUtil.arrayToList(set.toArray(new String[set.size()]), ",");
+
+			throw new CFXTagException("there is no Custom Tag (CFX) with name [" + name + "], available Custom Tags are [" + names + "]");
+		}
+		CFXTagClass ctc = (CFXTagClass) o;
+		CustomTag ct = ctc.newInstance();
+		// if(!(o instanceof CustomTag))throw new CFXTagException("["+name+"] is not of type
+		// ["+CustomTag.class.getName()+"]");
+		return ct;
+	}
+
+	@Override
+	public synchronized CFXTagClass getCFXTagClass(String name) throws CFXTagException {
+		name = name.toLowerCase();
+		CFXTagClass ctc = classes.get(name);
+		if (ctc == null) throw new CFXTagException("there is not Custom Tag (CFX) with name [" + name + "]");
+		return ctc;
+	}
+
+	@Override
+	public void releaseCustomTag(CustomTag ct) {
+		// table.put(ct.getClass().toString(),ct);
+	}
+
+	@Override
+	public void releaseTag(Object tag) {
+		// table.put(ct.getClass().toString(),ct);
+	}
 }

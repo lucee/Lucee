@@ -1,309 +1,328 @@
 package lucee.transformer.interpreter;
 
+import java.math.BigDecimal;
+
 import lucee.runtime.config.Config;
+import lucee.runtime.engine.ThreadLocalPageContext;
+import lucee.runtime.exp.PageException;
+import lucee.runtime.op.Caster;
 import lucee.transformer.Context;
+import lucee.transformer.Factory;
 import lucee.transformer.FactoryBase;
 import lucee.transformer.Position;
 import lucee.transformer.TransformerException;
-import lucee.transformer.bytecode.cast.CastOther;
 import lucee.transformer.expression.ExprBoolean;
-import lucee.transformer.expression.ExprDouble;
-import lucee.transformer.expression.ExprFloat;
 import lucee.transformer.expression.ExprInt;
+import lucee.transformer.expression.ExprNumber;
 import lucee.transformer.expression.ExprString;
 import lucee.transformer.expression.Expression;
 import lucee.transformer.expression.literal.LitBoolean;
-import lucee.transformer.expression.literal.LitDouble;
-import lucee.transformer.expression.literal.LitFloat;
 import lucee.transformer.expression.literal.LitInteger;
 import lucee.transformer.expression.literal.LitLong;
+import lucee.transformer.expression.literal.LitNumber;
 import lucee.transformer.expression.literal.LitString;
 import lucee.transformer.expression.var.DataMember;
 import lucee.transformer.expression.var.Variable;
 import lucee.transformer.interpreter.cast.CastBoolean;
-import lucee.transformer.interpreter.cast.CastDouble;
-import lucee.transformer.interpreter.cast.CastFloat;
 import lucee.transformer.interpreter.cast.CastInt;
+import lucee.transformer.interpreter.cast.CastNumber;
+import lucee.transformer.interpreter.cast.CastOther;
 import lucee.transformer.interpreter.cast.CastString;
 import lucee.transformer.interpreter.expression.var.EmptyArray;
 import lucee.transformer.interpreter.expression.var.EmptyStruct;
 import lucee.transformer.interpreter.literal.Empty;
 import lucee.transformer.interpreter.literal.LitBooleanImpl;
-import lucee.transformer.interpreter.literal.LitDoubleImpl;
-import lucee.transformer.interpreter.literal.LitFloatImpl;
 import lucee.transformer.interpreter.literal.LitIntegerImpl;
 import lucee.transformer.interpreter.literal.LitLongImpl;
+import lucee.transformer.interpreter.literal.LitNumberImpl;
 import lucee.transformer.interpreter.literal.LitStringImpl;
 import lucee.transformer.interpreter.literal.Null;
 import lucee.transformer.interpreter.literal.NullConstant;
 import lucee.transformer.interpreter.op.OpBool;
+import lucee.transformer.interpreter.op.OpContional;
 import lucee.transformer.interpreter.op.OpDecision;
-import lucee.transformer.interpreter.op.OpDouble;
+import lucee.transformer.interpreter.op.OpElvis;
+import lucee.transformer.interpreter.op.OpNegate;
+import lucee.transformer.interpreter.op.OpNegateNumber;
+import lucee.transformer.interpreter.op.OpNumber;
 import lucee.transformer.interpreter.op.OpString;
 
 public class InterpreterFactory extends FactoryBase {
 
-    private final LitBoolean TRUE;
-    private final LitBoolean FALSE;
-    private final LitString EMPTY;
-    private final LitString NULL;
-    private final LitDouble DOUBLE_ZERO;
-    private final LitDouble DOUBLE_ONE;
-    private Config config;
+	private final LitBoolean TRUE;
+	private final LitBoolean FALSE;
+	private final LitString EMPTY;
+	private final LitString NULL;
+	private final LitNumber NUMBER_ZERO;
+	private final LitNumber NUMBER_ONE;
+	private Config config;
 
-    public InterpreterFactory(Config config) {
-	TRUE = createLitBoolean(true);
-	FALSE = createLitBoolean(false);
-	EMPTY = createLitString("");
-	NULL = createLitString("NULL");
-	DOUBLE_ZERO = createLitDouble(0);
-	DOUBLE_ONE = createLitDouble(1);
-	this.config = config;
-    }
+	private static InterpreterFactory instance;
 
-    @Override
-    public LitBoolean TRUE() {
-	return TRUE;
-    }
+	public static Factory getInstance(Config config) {
+		if (instance == null) instance = new InterpreterFactory(config == null ? ThreadLocalPageContext.getConfig() : config);
+		return instance;
+	}
 
-    @Override
-    public LitBoolean FALSE() {
-	return FALSE;
-    }
+	public InterpreterFactory(Config config) {
+		TRUE = createLitBoolean(true);
+		FALSE = createLitBoolean(false);
+		EMPTY = createLitString("");
+		NULL = createLitString("NULL");
+		NUMBER_ZERO = createLitNumber(0);
+		NUMBER_ONE = createLitNumber(1);
+		this.config = config;
+	}
 
-    @Override
-    public LitString EMPTY() {
-	return EMPTY;
-    }
+	@Override
+	public LitBoolean TRUE() {
+		return TRUE;
+	}
 
-    @Override
-    public LitDouble DOUBLE_ZERO() {
-	return DOUBLE_ZERO;
-    }
+	@Override
+	public LitBoolean FALSE() {
+		return FALSE;
+	}
 
-    @Override
-    public LitDouble DOUBLE_ONE() {
-	return DOUBLE_ONE;
-    }
+	@Override
+	public LitString EMPTY() {
+		return EMPTY;
+	}
 
-    @Override
-    public LitString NULL() {
-	return NULL;
-    }
+	@Override
+	public LitNumber NUMBER_ZERO() {
+		return NUMBER_ZERO;
+	}
 
-    @Override
-    public LitString createLitString(String str) {
-	return new LitStringImpl(this, str, null, null);
-    }
+	@Override
+	public LitNumber NUMBER_ONE() {
+		return NUMBER_ONE;
+	}
 
-    @Override
-    public LitString createLitString(String str, Position start, Position end) {
-	return new LitStringImpl(this, str, start, end);
-    }
+	@Override
+	public LitString NULL() {
+		return NULL;
+	}
 
-    @Override
-    public LitBoolean createLitBoolean(boolean b) {
-	return new LitBooleanImpl(this, b, null, null);
-    }
+	@Override
+	public LitString createLitString(String str) {
+		return new LitStringImpl(this, str, null, null);
+	}
 
-    @Override
-    public LitBoolean createLitBoolean(boolean b, Position start, Position end) {
-	return new LitBooleanImpl(this, b, start, end);
-    }
+	@Override
+	public LitString createLitString(String str, Position start, Position end) {
+		return new LitStringImpl(this, str, start, end);
+	}
 
-    @Override
-    public LitDouble createLitDouble(double d) {
-	return new LitDoubleImpl(this, d, null, null);
-    }
+	@Override
+	public LitBoolean createLitBoolean(boolean b) {
+		return new LitBooleanImpl(this, b, null, null);
+	}
 
-    @Override
-    public LitDouble createLitDouble(double d, Position start, Position end) {
-	return new LitDoubleImpl(this, d, start, end);
-    }
+	@Override
+	public LitBoolean createLitBoolean(boolean b, Position start, Position end) {
+		return new LitBooleanImpl(this, b, start, end);
+	}
 
-    @Override
-    public LitFloat createLitFloat(float f) {
-	return new LitFloatImpl(this, f, null, null);
-    }
+	@Override
+	public LitNumber createLitNumber(String number) throws PageException {
+		return createLitNumber(number, null, null);
+	}
 
-    @Override
-    public LitFloat createLitFloat(float f, Position start, Position end) {
-	return new LitFloatImpl(this, f, start, end);
-    }
+	@Override
+	public LitNumber createLitNumber(String number, Position start, Position end) throws PageException {
+		return new LitNumberImpl(this, Caster.toBigDecimal(number), start, end);
+	}
 
-    @Override
-    public LitLong createLitLong(long l) {
-	return new LitLongImpl(this, l, null, null);
-    }
+	@Override
+	public LitNumber createLitNumber(BigDecimal bd) {
+		return createLitNumber(bd, null, null);
+	}
 
-    @Override
-    public LitLong createLitLong(long l, Position start, Position end) {
-	return new LitLongImpl(this, l, start, end);
-    }
+	@Override
+	public LitNumber createLitNumber(BigDecimal bd, Position start, Position end) {
+		return new LitNumberImpl(this, bd, start, end);
+	}
 
-    @Override
-    public LitInteger createLitInteger(int i) {
-	return new LitIntegerImpl(this, i, null, null);
-    }
+	@Override
+	public LitNumber createLitNumber(Number n) {
+		return createLitNumber(n, null, null);
+	}
 
-    @Override
-    public LitInteger createLitInteger(int i, Position start, Position end) {
-	return new LitIntegerImpl(this, i, start, end);
-    }
+	@Override
+	public LitNumber createLitNumber(Number n, Position start, Position end) {
+		return new LitNumberImpl(this, n, start, end);
+	}
 
-    @Override
-    public boolean isNull(Expression e) {
-	return e instanceof Null;
-    }
+	@Override
+	public LitLong createLitLong(long l) {
+		return new LitLongImpl(this, l, null, null);
+	}
 
-    @Override
-    public Expression createNull() {
-	return new Null(this, null, null);
-    }
+	@Override
+	public LitLong createLitLong(long l, Position start, Position end) {
+		return new LitLongImpl(this, l, start, end);
+	}
 
-    @Override
-    public Expression createNull(Position start, Position end) {
-	return new Null(this, start, end);
-    }
+	@Override
+	public LitInteger createLitInteger(int i) {
+		return new LitIntegerImpl(this, i, null, null);
+	}
 
-    @Override
-    public Expression createNullConstant(Position start, Position end) {
-	return new NullConstant(this, null, null);
-    }
+	@Override
+	public LitInteger createLitInteger(int i, Position start, Position end) {
+		return new LitIntegerImpl(this, i, start, end);
+	}
 
-    @Override
-    public Expression createEmpty() {
-	return new Empty(this, null, null);
-    }
+	@Override
+	public boolean isNull(Expression e) {
+		return e instanceof Null;
+	}
 
-    @Override
-    public DataMember createDataMember(ExprString name) {
-	// TODO Auto-generated method stub
-	return null;
-    }
+	@Override
+	public Expression createNull() {
+		return new Null(this, null, null);
+	}
 
-    @Override
-    public Variable createVariable(Position start, Position end) {
-	// TODO Auto-generated method stub
-	return null;
-    }
+	@Override
+	public Expression createNull(Position start, Position end) {
+		return new Null(this, start, end);
+	}
 
-    @Override
-    public Variable createVariable(int scope, Position start, Position end) {
-	// TODO Auto-generated method stub
-	return null;
-    }
+	@Override
+	public Expression createNullConstant(Position start, Position end) {
+		return new NullConstant(this, null, null);
+	}
 
-    @Override
-    public Expression createStruct() {
-	return new EmptyStruct(this);
-    }
+	@Override
+	public Expression createEmpty() {
+		return new Empty(this, null, null);
+	}
 
-    @Override
-    public Expression createArray() {
-	return new EmptyArray(this);
-    }
+	@Override
+	public DataMember createDataMember(ExprString name) {
+		// TODO Auto-generated method stub
+		return null;
+	}
 
-    @Override
-    public ExprDouble toExprDouble(Expression expr) {
-	return CastDouble.toExprDouble(expr);
-    }
+	@Override
+	public Variable createVariable(Position start, Position end) {
+		// TODO Auto-generated method stub
+		return null;
+	}
 
-    @Override
-    public ExprString toExprString(Expression expr) {
-	return CastString.toExprString(expr);
-    }
+	@Override
+	public Variable createVariable(int scope, Position start, Position end) {
+		// TODO Auto-generated method stub
+		return null;
+	}
 
-    @Override
-    public ExprBoolean toExprBoolean(Expression expr) {
-	return CastBoolean.toExprBoolean(expr);
-    }
+	@Override
+	public Expression createStruct() {
+		return new EmptyStruct(this);
+	}
 
-    @Override
-    public ExprInt toExprInt(Expression expr) {
-	return CastInt.toExprInt(expr);
-    }
+	@Override
+	public Expression createArray() {
+		return new EmptyArray(this);
+	}
 
-    @Override
-    public ExprFloat toExprFloat(Expression expr) {
-	return CastFloat.toExprFloat(expr);
-    }
+	@Override
+	public ExprNumber toExprNumber(Expression expr) {
+		return CastNumber.toExprNumber(expr);
+	}
 
-    @Override
-    public Expression toExpression(Expression expr, String type) {
-	return CastOther.toExpression(expr, type);
-    }
+	@Override
+	public ExprString toExprString(Expression expr) {
+		return CastString.toExprString(expr);
+	}
 
-    @Override
-    public ExprString opString(Expression left, Expression right) {
-	return OpString.toExprString(left, right, true);
-    }
+	@Override
+	public ExprBoolean toExprBoolean(Expression expr) {
+		return CastBoolean.toExprBoolean(expr);
+	}
 
-    @Override
-    public ExprString opString(Expression left, Expression right, boolean concatStatic) {
-	return OpString.toExprString(left, right, concatStatic);
-    }
+	@Override
+	public ExprInt toExprInt(Expression expr) {
+		return CastInt.toExprInt(expr);
+	}
 
-    @Override
-    public ExprBoolean opBool(Expression left, Expression right, int operation) {
-	return OpBool.toExprBoolean(left, right, operation);
-    }
+	@Override
+	public Expression toExpression(Expression expr, String type) {
+		return CastOther.toExpression(expr, type);
+	}
 
-    @Override
-    public ExprDouble opDouble(Expression left, Expression right, int operation) {
-	return OpDouble.toExprDouble(left, right, operation);
-    }
+	@Override
+	public ExprString opString(Expression left, Expression right) {
+		return OpString.toExprString(left, right, true);
+	}
 
-    @Override
-    public ExprDouble opUnary(Variable var, Expression value, short type, int operation, Position start, Position end) {
-	return null;
-    }
+	@Override
+	public ExprString opString(Expression left, Expression right, boolean concatStatic) {
+		return OpString.toExprString(left, right, concatStatic);
+	}
 
-    @Override
-    public Expression opNegate(Expression expr, Position start, Position end) {
-	// TODO Auto-generated method stub
-	return null;
-    }
+	@Override
+	public ExprBoolean opBool(Expression left, Expression right, int operation) {
+		return OpBool.toExprBoolean(left, right, operation);
+	}
 
-    @Override
-    public ExprDouble opNegateNumber(Expression expr, int operation, Position start, Position end) {
-	// TODO Auto-generated method stub
-	return null;
-    }
+	@Override
+	public ExprNumber opNumber(Expression left, Expression right, int operation) {
+		return OpNumber.toExprNumber(left, right, operation);
+	}
 
-    @Override
-    public Expression opContional(Expression cont, Expression left, Expression right) {
-	// TODO Auto-generated method stub
-	return null;
-    }
+	@Override
+	public ExprNumber opUnaryNumber(Variable var, Expression value, short type, int operation, Position start, Position end) {
+		return null;
+	}
 
-    @Override
-    public ExprBoolean opDecision(Expression left, Expression right, int operation) {
-	return OpDecision.toExprBoolean(left, right, operation);
-    }
+	@Override
+	public ExprString opUnaryString(Variable var, Expression value, short type, int operation, Position start, Position end) {
+		return null;
+	}
 
-    @Override
-    public Expression opElvis(Variable left, Expression right) {
-	// TODO Auto-generated method stub
-	return null;
-    }
+	@Override
+	public Expression opNegate(Expression expr, Position start, Position end) {
+		return OpNegate.toExprBoolean(expr, start, end);
+	}
 
-    @Override
-    public Expression removeCastString(Expression expr) {
-	// TODO Auto-generated method stub
-	return null;
-    }
+	@Override
+	public ExprNumber opNegateNumber(Expression expr, int operation, Position start, Position end) {
+		return OpNegateNumber.toExprNumber(expr, operation, start, end);
+	}
 
-    @Override
-    public void registerKey(Context bc, Expression name, boolean doUpperCase) throws TransformerException {
-	// TODO Auto-generated method stub
+	@Override
+	public Expression opContional(Expression cont, Expression left, Expression right) {
+		return OpContional.toExpr(cont, left, right);
+	}
 
-    }
+	@Override
+	public ExprBoolean opDecision(Expression left, Expression right, int operation) {
+		return OpDecision.toExprBoolean(left, right, operation);
+	}
 
-    @Override
-    public Config getConfig() {
-	// TODO Auto-generated method stub
-	return null;
-    }
+	@Override
+	public Expression opElvis(Variable left, Expression right) {
+		return OpElvis.toExpr(left, right);
+	}
+
+	@Override
+	public Expression removeCastString(Expression expr) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void registerKey(Context bc, Expression name, boolean doUpperCase) throws TransformerException {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public Config getConfig() {
+		// TODO Auto-generated method stub
+		return null;
+	}
 
 }

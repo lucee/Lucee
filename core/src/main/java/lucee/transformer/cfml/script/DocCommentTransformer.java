@@ -28,82 +28,82 @@ import lucee.transformer.expression.literal.LitBoolean;
 
 public class DocCommentTransformer {
 
-    public DocComment transform(Factory f, String str) {
-	try {
-	    DocComment dc = new DocComment();
-	    str = str.trim();
-	    if (str.startsWith("/**")) str = str.substring(3);
-	    if (str.endsWith("*/")) str = str.substring(0, str.length() - 2);
-	    ParserString ps = new ParserString(str);
-	    transform(f, dc, ps);
-	    dc.getHint();// TODO do different -> make sure internal structure is valid
-	    return dc;
-	}
-	catch (Throwable t) {
-	    ExceptionUtil.rethrowIfNecessary(t);
-	    return null;
-	}
-    }
-
-    private void transform(Factory factory, DocComment dc, ParserString ps) {
-	while (ps.isValidIndex()) {
-	    asterix(ps);
-	    ps.removeSpace();
-	    // param
-	    if (ps.forwardIfCurrent('@')) {
-		dc.addParam(param(factory, ps));
-	    }
-	    // hint
-	    else {
-		while (ps.isValidIndex() && ps.getCurrent() != '\n') {
-		    dc.addHint(ps.getCurrent());
-		    ps.next();
+	public DocComment transform(Factory f, String str) {
+		try {
+			DocComment dc = new DocComment();
+			str = str.trim();
+			if (str.startsWith("/**")) str = str.substring(3);
+			if (str.endsWith("*/")) str = str.substring(0, str.length() - 2);
+			ParserString ps = new ParserString(str);
+			transform(f, dc, ps);
+			dc.getHint();// TODO do different -> make sure internal structure is valid
+			return dc;
 		}
-		dc.addHint('\n');
-	    }
-	    ps.removeSpace();
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+			return null;
+		}
 	}
-    }
 
-    private Attribute param(Factory factory, ParserString ps) {
-	String name = paramName(ps);
-	if (name == null) return new Attribute(true, "@", factory.TRUE(), "boolean");
-
-	// white space
-	while (ps.isValidIndex() && ps.isCurrentWhiteSpace()) {
-	    if (ps.getCurrent() == '\n') return new Attribute(true, name, factory.TRUE(), "boolean");
-	    ps.next();
+	private void transform(Factory factory, DocComment dc, ParserString ps) {
+		while (ps.isValidIndex()) {
+			asterix(ps);
+			ps.removeSpace();
+			// param
+			if (ps.forwardIfCurrent('@')) {
+				dc.addParam(param(factory, ps));
+			}
+			// hint
+			else {
+				while (ps.isValidIndex() && ps.getCurrent() != '\n') {
+					dc.addHint(ps.getCurrent());
+					ps.next();
+				}
+				dc.addHint('\n');
+			}
+			ps.removeSpace();
+		}
 	}
-	Expression value = paramValue(factory, ps);
-	return new Attribute(true, name, value, value instanceof LitBoolean ? "boolean" : "string");
-    }
 
-    private String paramName(ParserString ps) {
-	StringBuilder sb = new StringBuilder();
-	while (ps.isValidIndex() && !ps.isCurrentWhiteSpace()) {
-	    sb.append(ps.getCurrent());
-	    ps.next();
+	private Attribute param(Factory factory, ParserString ps) {
+		String name = paramName(ps);
+		if (name == null) return new Attribute(true, "@", factory.TRUE(), "boolean");
+
+		// white space
+		while (ps.isValidIndex() && ps.isCurrentWhiteSpace()) {
+			if (ps.getCurrent() == '\n') return new Attribute(true, name, factory.TRUE(), "boolean");
+			ps.next();
+		}
+		Expression value = paramValue(factory, ps);
+		return new Attribute(true, name, value, value instanceof LitBoolean ? "boolean" : "string");
 	}
-	if (sb.length() == 0) return null;
-	return sb.toString();
-    }
 
-    private Expression paramValue(Factory factory, ParserString ps) {
-	StringBuilder sb = new StringBuilder();
-	while (ps.isValidIndex() && ps.getCurrent() != '\n') {
-	    sb.append(ps.getCurrent());
-	    ps.next();
+	private String paramName(ParserString ps) {
+		StringBuilder sb = new StringBuilder();
+		while (ps.isValidIndex() && !ps.isCurrentWhiteSpace()) {
+			sb.append(ps.getCurrent());
+			ps.next();
+		}
+		if (sb.length() == 0) return null;
+		return sb.toString();
 	}
-	if (sb.length() == 0) return factory.TRUE();
-	return factory.createLitString(StringUtil.unwrap(sb.toString()));
-    }
 
-    private void asterix(ParserString ps) {
-	do {
-	    ps.removeSpace();
+	private Expression paramValue(Factory factory, ParserString ps) {
+		StringBuilder sb = new StringBuilder();
+		while (ps.isValidIndex() && ps.getCurrent() != '\n') {
+			sb.append(ps.getCurrent());
+			ps.next();
+		}
+		if (sb.length() == 0) return factory.TRUE();
+		return factory.createLitString(StringUtil.unwrap(sb.toString()));
 	}
-	while (ps.forwardIfCurrent('*'));
 
-    }
+	private void asterix(ParserString ps) {
+		do {
+			ps.removeSpace();
+		}
+		while (ps.forwardIfCurrent('*'));
+
+	}
 
 }

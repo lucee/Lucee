@@ -19,12 +19,12 @@
 package lucee.runtime.functions.other;
 
 import lucee.runtime.PageContext;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
 
 public class CTCacheClear {
-    public static String call(PageContext pc) {
-	ConfigImpl config = (ConfigImpl) pc.getConfig();
-	config.clearCTCache();
-	return null;
-    }
+	public static String call(PageContext pc) {
+		ConfigPro config = (ConfigPro) pc.getConfig();
+		config.clearCTCache();
+		return null;
+	}
 }

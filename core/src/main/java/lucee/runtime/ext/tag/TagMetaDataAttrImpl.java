@@ -23,55 +23,55 @@ import lucee.runtime.type.Collection;
 import lucee.runtime.type.KeyImpl;
 
 public class TagMetaDataAttrImpl extends MissingAttribute implements TagMetaDataAttr {
-    private String description;
-    private boolean required;
-    private boolean isRuntimeExpressionValue;
-    private String defaultValue;
+	private String description;
+	private boolean required;
+	private boolean isRuntimeExpressionValue;
+	private String defaultValue;
 
-    /**
-     * Constructor of the class
-     * 
-     * @param name
-     * @param required
-     * @param type
-     */
-    public TagMetaDataAttrImpl(String name, String[] alias, boolean required, String type, boolean isRuntimeExpressionValue, String defaultValue, String description) {
-	this(KeyImpl.getInstance(name), alias, required, type, isRuntimeExpressionValue, defaultValue, description);
-    }
+	/**
+	 * Constructor of the class
+	 * 
+	 * @param name
+	 * @param required
+	 * @param type
+	 */
+	public TagMetaDataAttrImpl(String name, String[] alias, boolean required, String type, boolean isRuntimeExpressionValue, String defaultValue, String description) {
+		this(KeyImpl.getInstance(name), alias, required, type, isRuntimeExpressionValue, defaultValue, description);
+	}
 
-    /**
-     * Constructor of the class
-     * 
-     * @param name
-     * @param required
-     * @param type
-     * @param description
-     */
-    public TagMetaDataAttrImpl(Collection.Key name, String[] alias, boolean required, String type, boolean isRuntimeExpressionValue, String defaultValue, String description) {
-	super(name, type, alias);
-	this.required = required;
-	this.description = description;
-	this.defaultValue = defaultValue;
-	this.isRuntimeExpressionValue = isRuntimeExpressionValue;
-    }
+	/**
+	 * Constructor of the class
+	 * 
+	 * @param name
+	 * @param required
+	 * @param type
+	 * @param description
+	 */
+	public TagMetaDataAttrImpl(Collection.Key name, String[] alias, boolean required, String type, boolean isRuntimeExpressionValue, String defaultValue, String description) {
+		super(name, type, alias);
+		this.required = required;
+		this.description = description;
+		this.defaultValue = defaultValue;
+		this.isRuntimeExpressionValue = isRuntimeExpressionValue;
+	}
 
-    @Override
-    public String getDescription() {
-	return description;
-    }
+	@Override
+	public String getDescription() {
+		return description;
+	}
 
-    @Override
-    public boolean isRequired() {
-	return required;
-    }
+	@Override
+	public boolean isRequired() {
+		return required;
+	}
 
-    @Override
-    public boolean isRuntimeExpressionValue() {
-	return isRuntimeExpressionValue;
-    }
+	@Override
+	public boolean isRuntimeExpressionValue() {
+		return isRuntimeExpressionValue;
+	}
 
-    @Override
-    public String getDefaultVaue() {
-	return defaultValue;
-    }
+	@Override
+	public String getDefaultVaue() {
+		return defaultValue;
+	}
 }

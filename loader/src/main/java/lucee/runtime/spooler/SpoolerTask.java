@@ -27,76 +27,77 @@ import lucee.runtime.type.Struct;
 
 public interface SpoolerTask extends Serializable {
 
-    public String getId();
+	public String getId();
 
-    public void setId(String id);
+	public void setId(String id);
 
-    /**
-     * execute Task
-     * 
-     * @param config
-     * @throws PageException
-     */
-    public Object execute(Config config) throws PageException;
+	/**
+	 * execute Task
+	 * 
+	 * @param config config
+	 * @return Task Object
+	 * @throws PageException Page Exception
+	 */
+	public Object execute(Config config) throws PageException;
 
-    /**
-     * returns a short info to the task
-     * 
-     * @return Task subject
-     */
-    public String subject();
+	/**
+	 * returns a short info to the task
+	 * 
+	 * @return Task subject
+	 */
+	public String subject();
 
-    /**
-     * returns task type as String
-     * 
-     * @return Task subject
-     */
-    public String getType();
+	/**
+	 * returns task type as String
+	 * 
+	 * @return Task subject
+	 */
+	public String getType();
 
-    /**
-     * returns advanced info to the task
-     * 
-     * @return Task detail
-     */
-    public Struct detail();
+	/**
+	 * returns advanced info to the task
+	 * 
+	 * @return Task detail
+	 */
+	public Struct detail();
 
-    /**
-     * return last execution of this task
-     * 
-     * @return last execution
-     */
-    public long lastExecution();
+	/**
+	 * return last execution of this task
+	 * 
+	 * @return last execution
+	 */
+	public long lastExecution();
 
-    public void setNextExecution(long nextExecution);
+	public void setNextExecution(long nextExecution);
 
-    public long nextExecution();
+	public long nextExecution();
 
-    /**
-     * returns how many tries to send are already done
-     * 
-     * @return tries
-     */
-    public int tries();
+	/**
+	 * returns how many tries to send are already done
+	 * 
+	 * @return tries
+	 */
+	public int tries();
 
-    /**
-     * @return the exceptions
-     */
-    public Array getExceptions();
+	/**
+	 * @return the exceptions
+	 */
+	public Array getExceptions();
 
-    public void setClosed(boolean closed);
+	public void setClosed(boolean closed);
 
-    public boolean closed();
+	public boolean closed();
 
-    /**
-     * @return the plans
-     */
-    public ExecutionPlan[] getPlans();
+	/**
+	 * @return the plans
+	 */
+	public ExecutionPlan[] getPlans();
 
-    /**
-     * @return the creation
-     */
-    public long getCreation();
+	/**
+	 * @return the creation
+	 */
+	public long getCreation();
 
-    public void setLastExecution(long lastExecution);
+	public void setLastExecution(long lastExecution);
 
 }

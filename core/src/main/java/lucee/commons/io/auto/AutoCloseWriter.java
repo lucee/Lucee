@@ -26,59 +26,60 @@ import java.io.Writer;
  */
 public final class AutoCloseWriter extends Writer {
 
-    private final Writer writer;
+	private final Writer writer;
 
-    /**
-     * constructor of the class
-     * 
-     * @param writer
-     */
-    public AutoCloseWriter(Writer writer) {
-	this.writer = writer;
-    }
-
-    @Override
-    public void close() throws IOException {
-	writer.close();
-    }
-
-    @Override
-    public void flush() throws IOException {
-	writer.flush();
-    }
-
-    @Override
-    public void write(char[] cbuf, int off, int len) throws IOException {
-	writer.write(cbuf, off, len);
-    }
-
-    @Override
-    public void write(char[] cbuf) throws IOException {
-	writer.write(cbuf);
-    }
-
-    @Override
-    public void write(int c) throws IOException {
-	writer.write(c);
-    }
-
-    @Override
-    public void write(String str, int off, int len) throws IOException {
-	writer.write(str, off, len);
-    }
-
-    @Override
-    public void write(String str) throws IOException {
-	writer.write(str);
-    }
-
-    @Override
-    public void finalize() throws Throwable {
-	super.finalize();
-	try {
-	    writer.close();
+	/**
+	 * constructor of the class
+	 * 
+	 * @param writer
+	 */
+	public AutoCloseWriter(Writer writer) {
+		this.writer = writer;
 	}
-	catch (Exception e) {}
-    }
+
+	@Override
+	public void close() throws IOException {
+		writer.close();
+	}
+
+	@Override
+	public void flush() throws IOException {
+		writer.flush();
+	}
+
+	@Override
+	public void write(char[] cbuf, int off, int len) throws IOException {
+		writer.write(cbuf, off, len);
+	}
+
+	@Override
+	public void write(char[] cbuf) throws IOException {
+		writer.write(cbuf);
+	}
+
+	@Override
+	public void write(int c) throws IOException {
+		writer.write(c);
+	}
+
+	@Override
+	public void write(String str, int off, int len) throws IOException {
+		writer.write(str, off, len);
+	}
+
+	@Override
+	public void write(String str) throws IOException {
+		writer.write(str);
+	}
+
+	@Override
+	public void finalize() throws Throwable {
+		super.finalize();
+		try {
+			writer.close();
+		}
+		catch (Exception e) {
+		}
+	}
 
 }

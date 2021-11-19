@@ -23,34 +23,35 @@ import lucee.runtime.op.Duplicator;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
+import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.StructUtil;
 
 public class FeedProperties {
-    private static final Collection.Key ITEM = KeyImpl.intern("ITEM");
-    private static final Collection.Key ITEMS = KeyImpl.intern("ITEMS");
-    private static final Collection.Key ENTRY = KeyImpl.intern("ENTRY");
-    private static final Collection.Key RDF = KeyImpl.intern("RDF");
-    private static final Collection.Key RSS = KeyImpl.intern("RSS");
-    private static final Collection.Key CHANNEL = KeyImpl.intern("channel");
+	private static final Collection.Key ITEM = KeyConstants._ITEM;
+	private static final Collection.Key ITEMS = KeyConstants._ITEMS;
+	private static final Collection.Key ENTRY = KeyConstants._ENTRY;
+	private static final Collection.Key RDF = KeyImpl.getInstance("RDF");
+	private static final Collection.Key RSS = KeyImpl.getInstance("RSS");
+	private static final Collection.Key CHANNEL = KeyImpl.getInstance("channel");
 
-    public static Struct toProperties(Struct data) {
-	data = (Struct) Duplicator.duplicate(data, true);
+	public static Struct toProperties(Struct data) {
+		data = (Struct) Duplicator.duplicate(data, true);
 
-	Struct rdf = Caster.toStruct(data.removeEL(RDF), null, false);
-	if (rdf == null) rdf = Caster.toStruct(data.removeEL(RSS), null, false);
-	if (rdf != null) {
-	    rdf.removeEL(ITEM);
-	    Struct channel = Caster.toStruct(rdf.get(CHANNEL, null), null, false);
-	    if (channel != null) {
-		channel.removeEL(ITEMS);
-		StructUtil.copy(channel, data, true);
+		Struct rdf = Caster.toStruct(data.removeEL(RDF), null, false);
+		if (rdf == null) rdf = Caster.toStruct(data.removeEL(RSS), null, false);
+		if (rdf != null) {
+			rdf.removeEL(ITEM);
+			Struct channel = Caster.toStruct(rdf.get(CHANNEL, null), null, false);
+			if (channel != null) {
+				channel.removeEL(ITEMS);
+				StructUtil.copy(channel, data, true);
 
-	    }
+			}
+		}
+
+		data.removeEL(ITEM);
+		data.removeEL(ENTRY);
+
+		return data;
 	}
-
-	data.removeEL(ITEM);
-	data.removeEL(ENTRY);
-
-	return data;
-    }
 }

@@ -27,58 +27,58 @@ import lucee.runtime.type.Collection;
  */
 public interface Query extends ResultSet {
 
-    /**
-     * @return adds a row to resultset
-     */
-    public int addRow();
+	/**
+	 * @return adds a row to resultset
+	 */
+	public int addRow();
 
-    /**
-     * returns index of a columnName
-     * 
-     * @param coulmnName column name to get index for
-     * @return index of a columnName
-     */
-    public int getColumnIndex(String coulmnName);
+	/**
+	 * returns index of a columnName
+	 * 
+	 * @param coulmnName column name to get index for
+	 * @return index of a columnName
+	 */
+	public int getColumnIndex(String coulmnName);
 
-    /**
-     * @return All column Names of resultset as string
-     * @deprecated use instead <code>getColumnNamesAsString()</code>
-     */
-    @Deprecated
-    public String[] getColumns();
+	/**
+	 * @return All column Names of resultset as string
+	 * @deprecated use instead <code>getColumnNamesAsString()</code>
+	 */
+	@Deprecated
+	public String[] getColumns();
 
-    public String[] getColumnNamesAsString();
+	public String[] getColumnNamesAsString();
 
-    public Collection.Key[] getColumnNames();
+	public Collection.Key[] getColumnNames();
 
-    /**
-     * returns one field of a Query as String
-     * 
-     * @param row row number to get
-     * @param col column number to get
-     * @return data from query object
-     * @throws IndexOutOfBoundsException thrown when col or/and row are invalid
-     */
-    public String getData(int row, int col) throws IndexOutOfBoundsException;
+	/**
+	 * returns one field of a Query as String
+	 * 
+	 * @param row row number to get
+	 * @param col column number to get
+	 * @return data from query object
+	 * @throws IndexOutOfBoundsException thrown when col or/and row are invalid
+	 */
+	public String getData(int row, int col) throws IndexOutOfBoundsException;
 
-    /**
-     * @return returns name of the query
-     */
-    public String getName();
+	/**
+	 * @return returns name of the query
+	 */
+	public String getName();
 
-    /**
-     * @return returns row count
-     */
-    public int getRowCount();
+	/**
+	 * @return returns row count
+	 */
+	public int getRowCount();
 
-    /**
-     * sets value at a defined position in Query
-     * 
-     * @param row row number to set
-     * @param col column number to set
-     * @param value value to set
-     * @throws IndexOutOfBoundsException thrown when col or/and row are invalid
-     */
-    public void setData(int row, int col, String value) throws IndexOutOfBoundsException;
+	/**
+	 * sets value at a defined position in Query
+	 * 
+	 * @param row row number to set
+	 * @param col column number to set
+	 * @param value value to set
+	 * @throws IndexOutOfBoundsException thrown when col or/and row are invalid
+	 */
+	public void setData(int row, int col, String value) throws IndexOutOfBoundsException;
 
 }

@@ -24,37 +24,40 @@ import lucee.runtime.exp.PageException;
 
 public interface CacheHandlerCollection {
 
-    // public static final int TYPE_TIMESPAN=1;
-    // public static final int TYPE_REQUEST=2;
-    // public static final int TYPE_SMART=4;
+	// public static final int TYPE_TIMESPAN=1;
+	// public static final int TYPE_REQUEST=2;
+	// public static final int TYPE_SMART=4;
 
-    /**
-     * based on the cachedWithin Object we choose the right Cachehandler and return it
-     * 
-     * @return
-     */
-    public CacheHandler getInstanceMatchingObject(Object cachedWithin, CacheHandler defaultValue);
+	/**
+	 * based on the cachedWithin Object we choose the right Cachehandler and return it
+	 * 
+	 * @param cachedWithin cached within
+	 * @param defaultValue default value
+	 * @return Returns the matching Object.
+	 */
+	public CacheHandler getInstanceMatchingObject(Object cachedWithin, CacheHandler defaultValue);
 
-    /**
-     * 
-     * @param cacheHandlerId id returned by CacheHandler.id() can be for example (request,timespan,...)
-     * @return
-     */
-    public CacheHandler getInstance(String cacheHandlerId, CacheHandler defaultValue);
+	/**
+	 * 
+	 * @param cacheHandlerId id returned by CacheHandler.id() can be for example (request,timespan,...)
+	 * @param defaultValue default value
+	 * @return Returns the instance.
+	 */
+	public CacheHandler getInstance(String cacheHandlerId, CacheHandler defaultValue);
 
-    // public SmartCacheHandler getSmartCacheHandler();
+	// public SmartCacheHandler getSmartCacheHandler();
 
-    public int size(PageContext pc) throws PageException;
+	public int size(PageContext pc) throws PageException;
 
-    public void clear(PageContext pc) throws PageException;
+	public void clear(PageContext pc) throws PageException;
 
-    public void clear(PageContext pc, CacheHandlerFilter filter) throws PageException;
+	public void clear(PageContext pc, CacheHandlerFilter filter) throws PageException;
 
-    public void clean(PageContext pc) throws PageException;
+	public void clean(PageContext pc) throws PageException;
 
-    public void remove(PageContext pageContext, String id) throws PageException;
+	public void remove(PageContext pageContext, String id) throws PageException;
 
-    public void release(PageContext pc) throws PageException;
+	public void release(PageContext pc) throws PageException;
 
-    public List<String> getPatterns();
+	public List<String> getPatterns();
 }

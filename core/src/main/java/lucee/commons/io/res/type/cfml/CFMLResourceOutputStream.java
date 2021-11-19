@@ -25,47 +25,47 @@ import java.io.OutputStream;
 import lucee.commons.lang.ExceptionUtil;
 
 public final class CFMLResourceOutputStream extends OutputStream {
-    private ByteArrayOutputStream baos;
-    private CFMLResource res;
+	private ByteArrayOutputStream baos;
+	private CFMLResource res;
 
-    public CFMLResourceOutputStream(CFMLResource res) {
-	this.res = res;
-	baos = new ByteArrayOutputStream();
-    }
-
-    @Override
-    public void close() throws IOException {
-	baos.close();
-
-	try {
-	    res.setBinary(baos.toByteArray());
+	public CFMLResourceOutputStream(CFMLResource res) {
+		this.res = res;
+		baos = new ByteArrayOutputStream();
 	}
-	catch (Throwable t) {
-	    ExceptionUtil.rethrowIfNecessary(t);
-	    throw ExceptionUtil.toIOException(t);
+
+	@Override
+	public void close() throws IOException {
+		baos.close();
+
+		try {
+			res.setBinary(baos.toByteArray());
+		}
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+			throw ExceptionUtil.toIOException(t);
+		}
+		finally {
+			res.getResourceProvider().unlock(res);
+		}
 	}
-	finally {
-	    res.getResourceProvider().unlock(res);
+
+	@Override
+	public void flush() throws IOException {
+		baos.flush();
 	}
-    }
 
-    @Override
-    public void flush() throws IOException {
-	baos.flush();
-    }
+	@Override
+	public void write(byte[] b, int off, int len) throws IOException {
+		baos.write(b, off, len);
+	}
 
-    @Override
-    public void write(byte[] b, int off, int len) throws IOException {
-	baos.write(b, off, len);
-    }
+	@Override
+	public void write(byte[] b) throws IOException {
+		baos.write(b);
+	}
 
-    @Override
-    public void write(byte[] b) throws IOException {
-	baos.write(b);
-    }
-
-    @Override
-    public void write(int b) throws IOException {
-	baos.write(b);
-    }
+	@Override
+	public void write(int b) throws IOException {
+		baos.write(b);
+	}
 }

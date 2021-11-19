@@ -37,87 +37,87 @@ import javax.servlet.ServletException;
 
 public class CLIFactory extends Thread {
 
-    private static final int PORT = 8893;
-    private final File root;
-    private final String servletName;
-    private final Map<String, String> config;
-    private long idleTime;
+	private static final int PORT = 8893;
+	private final File root;
+	private final String servletName;
+	private final Map<String, String> config;
+	private long idleTime;
 
-    public CLIFactory(final File root, final String servletName, final Map<String, String> config) {
-	this.root = root;
-	this.servletName = servletName;
-	this.config = config;
+	public CLIFactory(final File root, final String servletName, final Map<String, String> config) {
+		this.root = root;
+		this.servletName = servletName;
+		this.config = config;
 
-	this.idleTime = 60000;
-	final String strIdle = config.get("idle");
-	if (strIdle != null) try {
-	    idleTime = Long.parseLong(strIdle);
+		this.idleTime = 60000;
+		final String strIdle = config.get("idle");
+		if (strIdle != null) try {
+			idleTime = Long.parseLong(strIdle);
+		}
+		catch (final Throwable t) {}
 	}
-	catch (final Throwable t) {}
-    }
 
-    @Override
-    public void run() {
+	@Override
+	public void run() {
 
-	final String name = root.getAbsolutePath();
-	InetAddress current = null;
-	try {
-	    current = InetAddress.getLocalHost();
+		final String name = root.getAbsolutePath();
+		InetAddress current = null;
+		try {
+			current = InetAddress.getLocalHost();
+		}
+		catch (final UnknownHostException e1) {
+			e1.printStackTrace();
+			return;
+		}
+		try {
+			try {
+				// first try to call existing service
+				invoke(current, name);
+
+			}
+			catch (final ConnectException e) {
+				startInvoker(name);
+				invoke(current, name);
+			}
+		}
+		catch (final Throwable t) {
+			t.printStackTrace();
+		}
 	}
-	catch (final UnknownHostException e1) {
-	    e1.printStackTrace();
-	    return;
+
+	private void invoke(final InetAddress current, final String name) throws RemoteException, NotBoundException {
+		final Registry registry = LocateRegistry.getRegistry(current.getHostAddress(), PORT);
+		final CLIInvoker invoker = (CLIInvoker) registry.lookup(name);
+		invoker.invoke(config);
 	}
-	try {
-	    try {
-		// first try to call existing service
-		invoke(current, name);
 
-	    }
-	    catch (final ConnectException e) {
-		startInvoker(name);
-		invoke(current, name);
-	    }
+	private void startInvoker(final String name) throws ServletException, RemoteException {
+		final Registry myReg = getRegistry(PORT);
+		final CLIInvokerImpl invoker = new CLIInvokerImpl(root, servletName);
+		final CLIInvoker stub = (CLIInvoker) UnicastRemoteObject.exportObject(invoker, 0);
+		myReg.rebind(name, stub);
+		if (idleTime > 0) {
+			final Closer closer = new Closer(myReg, invoker, name, idleTime);
+			closer.setDaemon(false);
+			closer.start();
+		}
 	}
-	catch (final Throwable t) {
-	    t.printStackTrace();
+
+	public static Registry getRegistry(final int port) {
+		Registry registry = null;
+		try {
+
+			registry = LocateRegistry.createRegistry(port);
+		}
+		catch (final RemoteException e) {}
+
+		try {
+
+			if (registry == null) registry = LocateRegistry.getRegistry(port);
+		}
+		catch (final RemoteException e) {}
+
+		RemoteServer.setLog(System.out);
+
+		return registry;
 	}
-    }
-
-    private void invoke(final InetAddress current, final String name) throws RemoteException, NotBoundException {
-	final Registry registry = LocateRegistry.getRegistry(current.getHostAddress(), PORT);
-	final CLIInvoker invoker = (CLIInvoker) registry.lookup(name);
-	invoker.invoke(config);
-    }
-
-    private void startInvoker(final String name) throws ServletException, RemoteException {
-	final Registry myReg = getRegistry(PORT);
-	final CLIInvokerImpl invoker = new CLIInvokerImpl(root, servletName);
-	final CLIInvoker stub = (CLIInvoker) UnicastRemoteObject.exportObject(invoker, 0);
-	myReg.rebind(name, stub);
-	if (idleTime > 0) {
-	    final Closer closer = new Closer(myReg, invoker, name, idleTime);
-	    closer.setDaemon(false);
-	    closer.start();
-	}
-    }
-
-    public static Registry getRegistry(final int port) {
-	Registry registry = null;
-	try {
-
-	    registry = LocateRegistry.createRegistry(port);
-	}
-	catch (final RemoteException e) {}
-
-	try {
-
-	    if (registry == null) registry = LocateRegistry.getRegistry(port);
-	}
-	catch (final RemoteException e) {}
-
-	RemoteServer.setLog(System.out);
-
-	return registry;
-    }
 }

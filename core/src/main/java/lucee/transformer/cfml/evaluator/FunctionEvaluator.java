@@ -25,22 +25,22 @@ import lucee.transformer.library.function.FunctionLibFunction;
 
 public interface FunctionEvaluator {
 
-    public FunctionLibFunction pre(BIF bif, FunctionLibFunction flf) throws TemplateException;
+	public FunctionLibFunction pre(BIF bif, FunctionLibFunction flf) throws TemplateException;
 
-    /**
-     * this method is executed to check the tag itself, the method is invoked after Lucee has read that
-     * function, but before reading the rest. so you have not the complete environment of the function.
-     */
-    public void execute(BIF bif, FunctionLibFunction flf) throws TemplateException;
+	/**
+	 * this method is executed to check the tag itself, the method is invoked after Lucee has read that
+	 * function, but before reading the rest. so you have not the complete environment of the function.
+	 */
+	public void execute(BIF bif, FunctionLibFunction flf) throws TemplateException;
 
-    /**
-     * This method is invoked to check the environment of a function, the method is invoked AFTER the
-     * parser has read the complete template, so you have the full environment.
-     * 
-     * @param bif
-     * @param flf the definition of the function from the fld file
-     * @throws TemplateException
-     */
-    public void evaluate(BIF bif, FunctionLibFunction flf) throws EvaluatorException;
+	/**
+	 * This method is invoked to check the environment of a function, the method is invoked AFTER the
+	 * parser has read the complete template, so you have the full environment.
+	 * 
+	 * @param bif
+	 * @param flf the definition of the function from the fld file
+	 * @throws TemplateException
+	 */
+	public void evaluate(BIF bif, FunctionLibFunction flf) throws EvaluatorException;
 
 }

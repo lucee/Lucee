@@ -18,54 +18,124 @@
  **/
 package lucee.commons.lang.types;
 
+import java.util.Date;
+
+import lucee.runtime.engine.ThreadLocalPageContext;
+import lucee.runtime.exp.PageException;
+import lucee.runtime.op.Castable;
+import lucee.runtime.op.Caster;
+import lucee.runtime.op.OpUtil;
+import lucee.runtime.type.dt.DateTime;
+
 /**
  * Integer Type that can be modified
  */
-public final class RefLongImpl implements RefLong {
+public final class RefLongImpl implements RefLong, Castable {
 
-    private long value;
+	private long value;
 
-    /**
-     * Constructor of the class
-     * 
-     * @param value
-     */
-    public RefLongImpl(long value) {
-	this.value = value;
-    }
+	/**
+	 * Constructor of the class
+	 * 
+	 * @param value
+	 */
+	public RefLongImpl(long value) {
+		this.value = value;
+	}
 
-    /**
-     * Constructor of the class
-     */
-    public RefLongImpl() {}
+	/**
+	 * Constructor of the class
+	 */
+	public RefLongImpl() {
+	}
 
-    @Override
-    public void setValue(long value) {
-	this.value = value;
-    }
+	@Override
+	public void setValue(long value) {
+		this.value = value;
+	}
 
-    @Override
-    public void plus(long value) {
-	this.value += value;
-    }
+	@Override
+	public void plus(long value) {
+		this.value += value;
+	}
 
-    @Override
-    public void minus(long value) {
-	this.value -= value;
-    }
+	@Override
+	public void minus(long value) {
+		this.value -= value;
+	}
 
-    @Override
-    public Long toLong() {
-	return Long.valueOf(value);
-    }
+	@Override
+	public Long toLong() {
+		return Long.valueOf(value);
+	}
 
-    @Override
-    public long toLongValue() {
-	return value;
-    }
+	@Override
+	public long toLongValue() {
+		return value;
+	}
 
-    @Override
-    public String toString() {
-	return String.valueOf(value);
-    }
+	@Override
+	public String toString() {
+		return String.valueOf(value);
+	}
+
+	@Override
+	public Boolean castToBoolean(Boolean defaultValue) {
+		return Caster.toBoolean(value);
+	}
+
+	@Override
+	public boolean castToBooleanValue() {
+		return Caster.toBooleanValue(value);
+	}
+
+	@Override
+	public DateTime castToDateTime() throws PageException {
+		return Caster.toDatetime(value, null);
+	}
+
+	@Override
+	public DateTime castToDateTime(DateTime defaultValue) {
+		return Caster.toDate(value, false, null, defaultValue);
+	}
+
+	@Override
+	public double castToDoubleValue() throws PageException {
+		return Caster.toDoubleValue(value);
+	}
+
+	@Override
+	public double castToDoubleValue(double defaultValue) {
+		return Caster.toDoubleValue(value);
+	}
+
+	@Override
+	public String castToString() throws PageException {
+		return toString();
+	}
+
+	@Override
+	public String castToString(String defaultValue) {
+		return toString();
+	}
+
+	@Override
+	public int compareTo(String other) throws PageException {
+		return OpUtil.compare(ThreadLocalPageContext.get(), castToString(), other);
+	}
+
+	@Override
+	public int compareTo(boolean other) throws PageException {
+		return OpUtil.compare(ThreadLocalPageContext.get(), castToBooleanValue() ? Boolean.TRUE : Boolean.FALSE, other ? Boolean.TRUE : Boolean.FALSE);
+	}
+
+	@Override
+	public int compareTo(double other) throws PageException {
+		return OpUtil.compare(ThreadLocalPageContext.get(), Double.valueOf(castToDoubleValue()), Double.valueOf(other));
+	}
+
+	@Override
+	public int compareTo(DateTime other) throws PageException {
+		return OpUtil.compare(ThreadLocalPageContext.get(), (Date) castToDateTime(), (Date) other);
+	}
 }

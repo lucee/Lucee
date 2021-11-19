@@ -34,86 +34,87 @@ import lucee.runtime.op.Caster;
 
 public final class FileResourceProvider implements ResourceProviderPro {
 
-    private String scheme = "file";
+	private String scheme = "file";
 
-    private long lockTimeout = 10000;
-    private boolean caseSensitive = SystemUtil.isFSCaseSensitive();
-    private final ResourceLockImpl lock = new ResourceLockImpl(lockTimeout, caseSensitive);
-    private Map arguments;
+	private long lockTimeout = 10000;
+	private boolean caseSensitive = SystemUtil.isFSCaseSensitive();
+	private final ResourceLockImpl lock = new ResourceLockImpl(lockTimeout, caseSensitive);
+	private Map arguments;
 
-    @Override
-    public ResourceProvider init(String scheme, Map arguments) {
-	if (!StringUtil.isEmpty(scheme)) this.scheme = scheme;
-	this.arguments = arguments;
-	if (arguments != null) {
-	    // lock-timeout
-	    String strTimeout = (String) arguments.get("lock-timeout");
-	    if (strTimeout != null) {
-		lockTimeout = Caster.toLongValue(arguments.get("lock-timeout"), lockTimeout);
-	    }
+	@Override
+	public ResourceProvider init(String scheme, Map arguments) {
+		if (!StringUtil.isEmpty(scheme)) this.scheme = scheme;
+		this.arguments = arguments;
+		if (arguments != null) {
+			// lock-timeout
+			String strTimeout = (String) arguments.get("lock-timeout");
+			if (strTimeout != null) {
+				lockTimeout = Caster.toLongValue(arguments.get("lock-timeout"), lockTimeout);
+			}
+		}
+		lock.setLockTimeout(lockTimeout);
+
+		return this;
 	}
-	lock.setLockTimeout(lockTimeout);
 
-	return this;
-    }
+	/**
+	 * Constructor of the class
+	 */
+	public FileResourceProvider() {
+	}
 
-    /**
-     * Constructor of the class
-     */
-    public FileResourceProvider() {}
+	@Override
+	public Resource getResource(String path) {
+		return new FileResource(this, ResourceUtil.removeScheme("file", path));
+	}
 
-    @Override
-    public Resource getResource(String path) {
-	return new FileResource(this, ResourceUtil.removeScheme("file", path));
-    }
+	@Override
+	public String getScheme() {
+		return scheme;
+	}
 
-    @Override
-    public String getScheme() {
-	return scheme;
-    }
+	@Override
+	public void setResources(Resources resources) {
+		// this.resources=resources;
+	}
 
-    @Override
-    public void setResources(Resources resources) {
-	// this.resources=resources;
-    }
+	@Override
+	public void lock(Resource res) throws IOException {
+		lock.lock(res);
+	}
 
-    @Override
-    public void lock(Resource res) throws IOException {
-	lock.lock(res);
-    }
+	@Override
+	public void unlock(Resource res) {
+		lock.unlock(res);
+	}
 
-    @Override
-    public void unlock(Resource res) {
-	lock.unlock(res);
-    }
+	@Override
+	public void read(Resource res) throws IOException {
+		lock.read(res);
+	}
 
-    @Override
-    public void read(Resource res) throws IOException {
-	lock.read(res);
-    }
+	@Override
+	public boolean isAttributesSupported() {
+		return SystemUtil.isWindows();
+	}
 
-    @Override
-    public boolean isAttributesSupported() {
-	return SystemUtil.isWindows();
-    }
+	@Override
+	public boolean isCaseSensitive() {
+		return caseSensitive;
+	}
 
-    @Override
-    public boolean isCaseSensitive() {
-	return caseSensitive;
-    }
+	@Override
+	public boolean isModeSupported() {
+		return false;// SystemUtil.isUnix(); FUTURE add again
+	}
 
-    @Override
-    public boolean isModeSupported() {
-	return false;// SystemUtil.isUnix(); FUTURE add again
-    }
+	@Override
+	public Map getArguments() {
+		return arguments;
+	}
 
-    @Override
-    public Map getArguments() {
-	return arguments;
-    }
-
-    @Override
-    public char getSeparator() {
-	return File.separatorChar;
-    }
+	@Override
+	public char getSeparator() {
+		return File.separatorChar;
+	}
 }

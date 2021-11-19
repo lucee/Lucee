@@ -26,7 +26,7 @@ import lucee.runtime.ext.function.Function;
 import lucee.runtime.functions.decision.IsDefined;
 
 public final class ParameterExists implements Function {
-    public static boolean call(PageContext pc, String string) {
-	return IsDefined.call(pc, string);
-    }
+	public static boolean call(PageContext pc, String string) {
+		return IsDefined.call(pc, string);
+	}
 }

@@ -18,5 +18,5 @@
 package lucee.runtime.config;
 
 public interface IdentificationWeb extends Identification {
-    public IdentificationServer getServerIdentification();
+	public IdentificationServer getServerIdentification();
 }

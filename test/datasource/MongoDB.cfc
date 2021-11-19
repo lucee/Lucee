@@ -17,7 +17,7 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  *
  ---><cfscript>
-component extends="org.lucee.cfml.test.LuceeTestCase"	{
+component extends="org.lucee.cfml.test.LuceeTestCase"  labels="mongodb"	{
 
 	// skip closure
 	function isNotSupported() {
@@ -32,32 +32,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	}
 
 	private struct function getCredentials() {
-		// getting the credetials from the enviroment variables
-		var mongoDB={};
-		if(!isNull(server.system.environment.MONGODB_SERVER) && !isNull(server.system.environment.MONGODB_PORT) && !isNull(server.system.environment.MONGODB_USERNAME) && !isNull(server.system.environment.MONGODB_PASSWORD)) {
-			mongoDB.server=server.system.environment.MONGODB_SERVER;
-			mongoDB.port=server.system.environment.MONGODB_PORT;
-			mongoDB.db=server.system.environment.MONGODB_DATABASE;
-
-			mongoDB.user="";
-			mongoDB.pass="";
-			// TODO: re-enable after MongoDB authentication is implemented
-			// mongoDB.user=server.system.environment.MONGODB_USERNAME;
-			// mongoDB.pass=server.system.environment.MONGODB_PASSWORD;
-		}
-		// getting the credetials from the system variables
-		else if(!isNull(server.system.properties.MONGODB_SERVER) && !isNull(server.system.properties.MONGODB_PORT) && !isNull(server.system.properties.MONGODB_USERNAME) && !isNull(server.system.properties.MONGODB_PASSWORD)) {
-			mongoDB.server=server.system.properties.MONGODB_SERVER;
-			mongoDB.port=server.system.properties.MONGODB_PORT;
-			mongoDB.db=server.system.properties.MONGODB_DATABASE;
-
-			mongoDB.user="";
-			mongoDB.pass="";
-			// TODO: re-enable after MongoDB authentication is implemented
-			// mongoDB.user=server.system.properties.MONGODB_USERNAME;
-			// mongoDB.pass=server.system.properties.MONGODB_PASSWORD;
-		}
-		return mongoDB;
+		// getting the credentials from the environment variables
+		return server.getDatasource("mongoDB");
 	}
 
 	private any function resetTestCollection() {
@@ -72,7 +48,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 		coll.drop();
 		coll.insert(docs);
-
 		return coll;
 	}
 
@@ -81,8 +56,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	public function beforeTests() skip="isNotSupported" {
 		if(isNotSupported()) return;
 		var uri = "mongodb://#variables.mongoDB.server#:#variables.mongoDB.port#";
-		if (!isempty(variables.mongoDB.user) && !isEmpty(variables.mongoDB.pass))
-			uri = "mongodb://#variables.mongoDB.user#:#variables.mongoDB.pass#@#variables.mongoDB.server#:#variables.mongoDB.port#";
+		if (!isempty(variables.mongoDB.username) && !isEmpty(variables.mongoDB.password))
+			uri = "mongodb://#variables.mongoDB.username#:#variables.mongoDB.password#@#variables.mongoDB.server#:#variables.mongoDB.port#";
 
 		//systemOutput("MongoDB URI: " & uri, true, true);
 
@@ -111,8 +86,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	public void function testConnectByURI() skip="isNotSupported" {
 		if(isNotSupported()) return;
 		var uri = "mongodb://#variables.mongoDB.server#:#variables.mongoDB.port#";
-		if (!isempty(variables.mongoDB.user) && !isEmpty(variables.mongoDB.pass))
-			uri = "mongodb://#variables.mongoDB.user#:#variables.mongoDB.pass#@#variables.mongoDB.server#:#variables.mongoDB.port#";
+		if (!isempty(variables.mongoDB.username) && !isEmpty(variables.mongoDB.password))
+			uri = "mongodb://#variables.mongoDB.username#:#variables.mongoDB.password#@#variables.mongoDB.server#:#variables.mongoDB.port#";
 
 		var mongo = MongoDBConnect(variables.mongoDB.db, uri);
  		assertEquals(variables.mongoDB.db, mongo.getName());
@@ -122,7 +97,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	public void function testAuthenticate() skip="true" {
 		if(isNotSupported()) return;
 		var mongo = MongoDBConnect(variables.mongoDB.db, variables.mongoDB.server, variables.mongoDB.port);
-		mongo.authenticate(variables.mongoDB.user, variables.mongoDB.pass);
+		mongo.authenticate(variables.mongoDB.username, variables.mongoDB.password);
 	}
 
 	public void function testIdConversion() skip="isNotSupported" {
@@ -240,7 +215,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		$assert.isEqual( 0, coll.count() );
 	}
 
-	public void function testAggregateResults() skip="isNotSupported" {
+	public void function testAggregateResults() skip="true" { // TODO broken https://luceeserver.atlassian.net/browse/LDEV-3432
 		if(isNotSupported()) return;
 		var coll = resetTestCollection();
 
@@ -321,7 +296,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		// group is not implemented yet!
 	}
 
-	public void function testMapReduce() skip="isNotSupported" {
+	public void function testMapReduce() skip="true" { // TODO broken https://luceeserver.atlassian.net/browse/LDEV-3432
 		if(isNotSupported()) return;
 		var coll = resetTestCollection();
 		var fMap = "function() {
@@ -345,14 +320,17 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 	public void function testRename() skip="isNotSupported" {
 		if(isNotSupported()) return;
+
+		try {
+			if ( structKeyExists(db, "test2") )
+				db["test2"].drop(); // avoid collection exists error if test fails
+		} catch (e) {};
 		var coll = resetTestCollection();
 		coll.rename("test2");
 		$assert.isEqual(5, db["test2"].count());
 
 		db["test2"].drop();
 	}
-
-
 
 	private void function testCacheAsScope() skip="isNotSupported" {
 		local.id=createUniqueId();

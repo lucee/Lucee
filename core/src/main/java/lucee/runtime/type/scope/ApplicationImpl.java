@@ -35,83 +35,83 @@ import lucee.runtime.type.Struct;
  */
 public final class ApplicationImpl extends ScopeSupport implements Application, SharedScope {
 
-    private static final long serialVersionUID = 700830188207594563L;
+	private static final long serialVersionUID = 700830188207594563L;
 
-    private static final Collection.Key APPLICATION_NAME = KeyImpl.intern("applicationname");
-    private long lastAccess;
-    private long timeSpan;
-    private long created;
+	private static final Collection.Key APPLICATION_NAME = KeyImpl.getInstance("applicationname");
+	private long lastAccess;
+	private long timeSpan;
+	private long created;
 
-    private Component component;
+	private Component component;
 
-    /**
-     * default constructor of the session scope
-     */
-    public ApplicationImpl() {
-	super("application", SCOPE_APPLICATION, Struct.TYPE_LINKED);
-	created = System.currentTimeMillis();
-    }
+	/**
+	 * default constructor of the session scope
+	 */
+	public ApplicationImpl() {
+		super("application", SCOPE_APPLICATION, Struct.TYPE_LINKED);
+		created = System.currentTimeMillis();
+	}
 
-    @Override
-    public long getLastAccess() {
-	return lastAccess;
-    }
+	@Override
+	public long getLastAccess() {
+		return lastAccess;
+	}
 
-    @Override
-    public long getTimeSpan() {
-	return timeSpan;
-    }
+	@Override
+	public long getTimeSpan() {
+		return timeSpan;
+	}
 
-    @Override
-    public void touchBeforeRequest(PageContext pc) {
-	ApplicationContext appContext = pc.getApplicationContext();
-	setEL(APPLICATION_NAME, appContext.getName());
-	timeSpan = appContext.getApplicationTimeout().getMillis();
-	lastAccess = System.currentTimeMillis();
-    }
+	@Override
+	public void touchBeforeRequest(PageContext pc) {
+		ApplicationContext appContext = pc.getApplicationContext();
+		setEL(APPLICATION_NAME, appContext.getName());
+		timeSpan = appContext.getApplicationTimeout().getMillis();
+		lastAccess = System.currentTimeMillis();
+	}
 
-    @Override
-    public void touchAfterRequest(PageContext pc) {
-	// do nothing
-    }
+	@Override
+	public void touchAfterRequest(PageContext pc) {
+		// do nothing
+	}
 
-    @Override
-    public boolean isExpired() {
-	return (lastAccess + timeSpan) < System.currentTimeMillis();
-    }
+	@Override
+	public boolean isExpired() {
+		return (lastAccess + timeSpan) < System.currentTimeMillis();
+	}
 
-    /**
-     * @param lastAccess the lastAccess to set
-     */
-    public void setLastAccess(long lastAccess) {
-	this.lastAccess = lastAccess;
-    }
+	/**
+	 * @param lastAccess the lastAccess to set
+	 */
+	public void setLastAccess(long lastAccess) {
+		this.lastAccess = lastAccess;
+	}
 
-    @Override
-    public void touch() {
-	lastAccess = System.currentTimeMillis();
-    }
+	@Override
+	public void touch() {
+		lastAccess = System.currentTimeMillis();
+	}
 
-    /**
-     * undocumented Feature in ACF
-     * 
-     * @return
-     * @throws PageException
-     */
-    public Map getApplicationSettings() throws PageException {
-	return GetApplicationSettings.call(ThreadLocalPageContext.get());
-    }
+	/**
+	 * undocumented Feature in ACF
+	 * 
+	 * @return
+	 * @throws PageException
+	 */
+	public Map getApplicationSettings() throws PageException {
+		return GetApplicationSettings.call(ThreadLocalPageContext.get());
+	}
 
-    @Override
-    public long getCreated() {
-	return created;
-    }
+	@Override
+	public long getCreated() {
+		return created;
+	}
 
-    public void setComponent(Component component) {
-	this.component = component;
-    }
+	public void setComponent(Component component) {
+		this.component = component;
+	}
 
-    public Component getComponent() {
-	return component;
-    }
+	public Component getComponent() {
+		return component;
+	}
 }

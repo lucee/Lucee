@@ -21,49 +21,56 @@
  */
 package lucee.runtime.functions.string;
 
-import org.apache.oro.text.regex.MalformedPatternException;
-
 import lucee.runtime.PageContext;
-import lucee.runtime.exp.ExpressionException;
+import lucee.runtime.PageContextImpl;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
 import lucee.runtime.op.Caster;
-import lucee.runtime.regex.Perl5Util;
+import lucee.runtime.regex.Regex;
 
 public final class REFind extends BIF {
 
-    public static Object call(PageContext pc, String regExpr, String str) throws ExpressionException {
-	return call(pc, regExpr, str, 1, false);
-    }
+	private static final long serialVersionUID = -8034489549729549800L;
 
-    public static Object call(PageContext pc, String regExpr, String str, double start) throws ExpressionException {
-	return call(pc, regExpr, str, start, false);
-    }
-
-    public static Object call(PageContext pc, String regExpr, String str, double start, boolean returnsubexpressions) throws ExpressionException {
-	return call(pc, regExpr, str, start, returnsubexpressions, "one");
-    }
-
-    public static Object call(PageContext pc, String regExpr, String str, double start, boolean returnsubexpressions, String scope) throws ExpressionException {
-	try {
-	    boolean isMatchAll = scope.equalsIgnoreCase("all");
-	    if (returnsubexpressions) {
-		return Perl5Util.find(regExpr, str, (int) start, true, isMatchAll);
-	    }
-	    return Perl5Util.indexOf(regExpr, str, (int) start, true, isMatchAll);
+	public static Object call(PageContext pc, String regExpr, String str) throws PageException {
+		return call(pc, regExpr, str, 1, false, null, false);
 	}
-	catch (MalformedPatternException e) {
-	    throw new FunctionException(pc, "reFind", 1, "regularExpression", e.getMessage());
+
+	public static Object call(PageContext pc, String regExpr, String str, double start) throws PageException {
+		return call(pc, regExpr, str, start, false, null, false);
 	}
-    }
 
-    @Override
-    public Object invoke(PageContext pc, Object[] args) throws PageException {
-	if (args.length == 2) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]));
-	if (args.length == 3) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toDoubleValue(args[2]));
-	if (args.length == 4) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toDoubleValue(args[2]), Caster.toBooleanValue(args[3]));
+	public static Object call(PageContext pc, String regExpr, String str, double start, boolean returnsubexpressions) throws PageException {
+		return call(pc, regExpr, str, start, returnsubexpressions, null, false);
+	}
 
-	throw new FunctionException(pc, "REFind", 2, 4, args.length);
-    }
+	public static Object call(PageContext pc, String regExpr, String str, double start, boolean returnsubexpressions, String scope) throws PageException {
+		return call(pc, regExpr, str, start, returnsubexpressions, scope, false);
+	}
+
+	public static Object call(PageContext pc, String regExpr, String str, double start, boolean returnsubexpressions, String scope, boolean multiLine) throws PageException {
+		boolean isMatchAll = scope == null ? false : scope.equalsIgnoreCase("all");
+		Regex regex = ((PageContextImpl) pc).getRegex();
+		if (returnsubexpressions) {
+			if (isMatchAll) return regex.findAll(regExpr, str, (int) start, true, multiLine);
+			return regex.find(regExpr, str, (int) start, true, multiLine);
+		}
+		if (isMatchAll) return regex.indexOfAll(regExpr, str, (int) start, true, multiLine);
+		return regex.indexOf(regExpr, str, (int) start, true, multiLine);
+
+	}
+
+	@Override
+	public Object invoke(PageContext pc, Object[] args) throws PageException {
+		if (args.length == 2) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]));
+		if (args.length == 3) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toDoubleValue(args[2]));
+		if (args.length == 4) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toDoubleValue(args[2]), Caster.toBooleanValue(args[3]));
+		if (args.length == 5)
+			return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toDoubleValue(args[2]), Caster.toBooleanValue(args[3]), Caster.toString(args[4]));
+		if (args.length == 6) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toDoubleValue(args[2]), Caster.toBooleanValue(args[3]),
+				Caster.toString(args[4]), Caster.toBooleanValue(args[5]));
+
+		throw new FunctionException(pc, "REFind", 2, 6, args.length);
+	}
 }

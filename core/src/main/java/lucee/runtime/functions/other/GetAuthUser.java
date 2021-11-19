@@ -27,16 +27,16 @@ import lucee.runtime.ext.function.Function;
 import lucee.runtime.security.Credential;
 
 public final class GetAuthUser implements Function {
-    public static String call(PageContext pc) throws PageException {
-	Credential remoteUser = pc.getRemoteUser();
-	if (remoteUser == null) {
-	    String user = pc.getHttpServletRequest().getRemoteUser();
-	    if (user != null) {
-		return user;
-	    }
-	    return "";
-	}
-	return remoteUser.getUsername();
+	public static String call(PageContext pc) throws PageException {
+		Credential remoteUser = pc.getRemoteUser();
+		if (remoteUser == null) {
+			String user = pc.getHttpServletRequest().getRemoteUser();
+			if (user != null) {
+				return user;
+			}
+			return "";
+		}
+		return remoteUser.getUsername();
 
-    }
+	}
 }

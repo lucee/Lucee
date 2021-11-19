@@ -29,25 +29,25 @@ import lucee.runtime.exp.PageServletException;
  */
 public abstract class BodyTagTryCatchFinallyImpl extends BodyTagImpl implements TryCatchFinally {
 
-    @Override
-    public void doCatch(Throwable t) throws Throwable {
-	ExceptionUtil.rethrowIfNecessary(t);
-	if (t instanceof PageServletException) {
-	    PageServletException pse = (PageServletException) t;
-	    t = pse.getPageException();
+	@Override
+	public void doCatch(Throwable t) throws Throwable {
+		ExceptionUtil.rethrowIfNecessary(t);
+		if (t instanceof PageServletException) {
+			PageServletException pse = (PageServletException) t;
+			t = pse.getPageException();
+		}
+		if (bodyContent != null) {
+			if (t instanceof AbortException) {
+				bodyContent.writeOut(bodyContent.getEnclosingWriter());
+			}
+			bodyContent.clearBuffer();
+		}
+		throw t;
 	}
-	if (bodyContent != null) {
-	    if (t instanceof AbortException) {
-		bodyContent.writeOut(bodyContent.getEnclosingWriter());
-	    }
-	    bodyContent.clearBuffer();
+
+	@Override
+	public void doFinally() {
+
 	}
-	throw t;
-    }
-
-    @Override
-    public void doFinally() {
-
-    }
 
 }

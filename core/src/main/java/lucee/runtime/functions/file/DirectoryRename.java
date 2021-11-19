@@ -26,13 +26,12 @@ import lucee.runtime.tag.Directory;
 
 public class DirectoryRename {
 
-    public static String call(PageContext pc, String oldPath, String newPath) throws PageException {
-	return call(pc, oldPath, newPath, true);
-    }
+	public static String call(PageContext pc, String oldPath, String newPath) throws PageException {
+		return call(pc, oldPath, newPath, true);
+	}
 
-    public static String call(PageContext pc, String oldPath, String newPath, boolean createPath) throws PageException {
-	Resource dir = ResourceUtil.toResourceNotExisting(pc, oldPath);
-	Directory.actionRename(pc, dir, newPath, null, createPath, "public-read", null);
-	return null;
-    }
+	public static String call(PageContext pc, String oldPath, String newPath, boolean createPath) throws PageException {
+		Resource dir = ResourceUtil.toResourceNotExisting(pc, oldPath);
+		return Directory.actionRename(pc, dir, newPath, null, createPath, "public-read", null);
+	}
 }

@@ -35,16 +35,16 @@ import lucee.runtime.type.util.KeyConstants;
  */
 @Deprecated
 public final class ComponentInfo implements Function {
-    public static Struct call(PageContext pc, Component component) {
-	DeprecatedUtil.function(pc, "ComponentInfo", "GetMetaData");
-	Struct sct = new StructImpl();
-	sct.setEL(KeyConstants._name, component.getName());
-	sct.setEL(KeyConstants._fullname, component.getCallName());
-	String extend = component.getExtends();
-	if (extend == null || extend.length() == 0) extend = "Component"; // TODO Object instead?
-	sct.setEL(KeyConstants._extends, extend);
-	sct.setEL(KeyConstants._hint, component.getHint());
+	public static Struct call(PageContext pc, Component component) {
+		DeprecatedUtil.function(pc, "ComponentInfo", "GetMetaData");
+		Struct sct = new StructImpl();
+		sct.setEL(KeyConstants._name, component.getName());
+		sct.setEL(KeyConstants._fullname, component.getCallName());
+		String extend = component.getExtends();
+		if (extend == null || extend.length() == 0) extend = "Component"; // TODO Object instead?
+		sct.setEL(KeyConstants._extends, extend);
+		sct.setEL(KeyConstants._hint, component.getHint());
 
-	return sct;
-    }
+		return sct;
+	}
 }

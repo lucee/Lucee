@@ -25,11 +25,11 @@ import lucee.runtime.PageContext;
 import lucee.runtime.ext.function.Function;
 
 public final class GetFileFromPath implements Function {
-    public static String call(PageContext pc, String path) {
-	path = path.replace('\\', '/');
-	// get file name
-	if (path.endsWith("..")) return ".";
-	if (path.endsWith(".") || path.endsWith("/")) return "";
-	return pc.getConfig().getResource(path).getName();
-    }
+	public static String call(PageContext pc, String path) {
+		path = path.replace('\\', '/');
+		// get file name
+		if (path.endsWith("..")) return ".";
+		if (path.endsWith(".") || path.endsWith("/")) return "";
+		return pc.getConfig().getResource(path).getName();
+	}
 }

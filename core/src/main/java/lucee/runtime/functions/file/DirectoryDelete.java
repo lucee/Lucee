@@ -25,13 +25,13 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.tag.Directory;
 
 public class DirectoryDelete {
-    public static String call(PageContext pc, String path) throws PageException {
-	return call(pc, path, false);
-    }
+	public static String call(PageContext pc, String path) throws PageException {
+		return call(pc, path, false);
+	}
 
-    public static String call(PageContext pc, String path, boolean recurse) throws PageException {
-	Resource dir = ResourceUtil.toResourceNotExisting(pc, path);
-	Directory.actionDelete(pc, dir, recurse, null);
-	return null;
-    }
+	public static String call(PageContext pc, String path, boolean recurse) throws PageException {
+		Resource dir = ResourceUtil.toResourceNotExisting(pc, path);
+		Directory.actionDelete(pc, dir, recurse, null);
+		return null;
+	}
 }

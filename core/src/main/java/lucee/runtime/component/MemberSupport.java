@@ -27,54 +27,54 @@ import lucee.runtime.type.util.ComponentUtil;
 
 public abstract class MemberSupport implements Serializable, Member, Duplicable {
 
-    private int access;
-    private final int modifier;
+	private int access;
+	private final int modifier;
 
-    /**
-     * Constructor of the class
-     * 
-     * @param access
-     * @param value
-     */
-    public MemberSupport(int access) {
-	this.access = access;
-	this.modifier = Member.MODIFIER_NONE;
-    }
+	/**
+	 * Constructor of the class
+	 * 
+	 * @param access
+	 * @param value
+	 */
+	public MemberSupport(int access) {
+		this.access = access;
+		this.modifier = Member.MODIFIER_NONE;
+	}
 
-    /**
-     * Constructor of the class
-     * 
-     * @param access
-     * @param value
-     */
-    public MemberSupport(int access, int modifier) {
-	this.access = access;
-	this.modifier = modifier;
-    }
+	/**
+	 * Constructor of the class
+	 * 
+	 * @param access
+	 * @param value
+	 */
+	public MemberSupport(int access, int modifier) {
+		this.access = access;
+		this.modifier = modifier;
+	}
 
-    @Override
-    public int getModifier() {
-	return modifier;
-    }
+	@Override
+	public int getModifier() {
+		return modifier;
+	}
 
-    @Override
-    public int getAccess() {
-	return access;
-    }
+	@Override
+	public int getAccess() {
+		return access;
+	}
 
-    /**
-     * @param access
-     */
-    public void setAccess(int access) {
-	this.access = access;
-    }
+	/**
+	 * @param access
+	 */
+	public void setAccess(int access) {
+		this.access = access;
+	}
 
-    /**
-     * @param access the access to set
-     * @throws ExpressionException
-     */
-    public void setAccess(String access) throws ApplicationException {
-	this.access = ComponentUtil.toIntAccess(access);
-    }
+	/**
+	 * @param access the access to set
+	 * @throws ExpressionException
+	 */
+	public void setAccess(String access) throws ApplicationException {
+		this.access = ComponentUtil.toIntAccess(access);
+	}
 
 }

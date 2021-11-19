@@ -29,32 +29,32 @@ import lucee.runtime.type.scope.ScopeContext;
  */
 public abstract class StorageScopeMemory extends StorageScopeImpl implements MemoryScope {
 
-    private static final long serialVersionUID = -6917303245683342065L;
+	private static final long serialVersionUID = -6917303245683342065L;
 
-    /**
-     * Constructor of the class
-     * 
-     * @param pc
-     * @param log
-     * @param name
-     */
-    protected StorageScopeMemory(PageContext pc, String strType, int type, Log log) {
-	super(new StructImpl(), new DateTimeImpl(pc.getConfig()), null, -1, 1, strType, type);
-	ScopeContext.info(log, "create new memory based " + strType + " scope for " + pc.getApplicationContext().getName() + "/" + pc.getCFID());
+	/**
+	 * Constructor of the class
+	 * 
+	 * @param pc
+	 * @param log
+	 * @param name
+	 */
+	protected StorageScopeMemory(PageContext pc, String strType, int type, Log log) {
+		super(new StructImpl(), new DateTimeImpl(pc.getConfig()), null, -1, 1, strType, type);
+		ScopeContext.debug(log, "create new memory based " + strType + " scope for " + pc.getApplicationContext().getName() + "/" + pc.getCFID());
 
-    }
+	}
 
-    /**
-     * Constructor of the class, clone existing
-     * 
-     * @param other
-     */
-    protected StorageScopeMemory(StorageScopeMemory other, boolean deepCopy) {
-	super(other, deepCopy);
-    }
+	/**
+	 * Constructor of the class, clone existing
+	 * 
+	 * @param other
+	 */
+	protected StorageScopeMemory(StorageScopeMemory other, boolean deepCopy) {
+		super(other, deepCopy);
+	}
 
-    @Override
-    public String getStorageType() {
-	return "Memory";
-    }
+	@Override
+	public String getStorageType() {
+		return "Memory";
+	}
 }

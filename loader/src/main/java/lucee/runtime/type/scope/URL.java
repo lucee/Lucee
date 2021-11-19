@@ -27,20 +27,20 @@ import lucee.runtime.listener.ApplicationContext;
  */
 public interface URL extends Scope {
 
-    /**
-     * @return Returns the encoding.
-     */
-    public abstract String getEncoding();
+	/**
+	 * @return Returns the encoding.
+	 */
+	public abstract String getEncoding();
 
-    /**
-     * @param ac current ApplicationContext
-     * @param encoding The encoding to set.
-     * @throws UnsupportedEncodingException
-     */
-    public abstract void setEncoding(ApplicationContext ac, String encoding) throws UnsupportedEncodingException;
+	/**
+	 * @param ac current ApplicationContext
+	 * @param encoding The encoding to set.
+	 * @throws UnsupportedEncodingException Unsupported Encoding Exception
+	 */
+	public abstract void setEncoding(ApplicationContext ac, String encoding) throws UnsupportedEncodingException;
 
-    public abstract void setScriptProtecting(ApplicationContext ac, boolean b);
+	public abstract void setScriptProtecting(ApplicationContext ac, boolean b);
 
-    public abstract void reinitialize(ApplicationContext ac);
+	public abstract void reinitialize(ApplicationContext ac);
 
 }

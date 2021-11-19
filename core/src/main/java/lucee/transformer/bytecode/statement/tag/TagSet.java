@@ -30,17 +30,17 @@ import lucee.transformer.expression.Expression;
 
 public final class TagSet extends TagBaseNoFinal {
 
-    public TagSet(Factory f, Position start, Position end) {
-	super(f, start, end);
-    }
+	public TagSet(Factory f, Position start, Position end) {
+		super(f, start, end);
+	}
 
-    @Override
-    public void _writeOut(BytecodeContext bc) throws TransformerException {
-	Type rtn = ((ExpressionBase) getAttribute("noname").getValue()).writeOutAsType(bc, Expression.MODE_VALUE);
-	// TODO sollte nicht auch long geprueft werden?
-	ASMUtil.pop(bc.getAdapter(), rtn);
-	// if(rtn.equals(Types.DOUBLE_VALUE))bc.getAdapter().pop2();
-	// else bc.getAdapter().pop();
-    }
+	@Override
+	public void _writeOut(BytecodeContext bc) throws TransformerException {
+		Type rtn = ((ExpressionBase) getAttribute("noname").getValue()).writeOutAsType(bc, Expression.MODE_VALUE);
+		// TODO sollte nicht auch long geprueft werden?
+		ASMUtil.pop(bc.getAdapter(), rtn);
+		// if(rtn.equals(Types.DOUBLE_VALUE))bc.getAdapter().pop2();
+		// else bc.getAdapter().pop();
+	}
 
 }

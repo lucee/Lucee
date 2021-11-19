@@ -4,7 +4,7 @@
     <cfset fields=array(
 		field("Directory","directory","",true,"The directory you want to watch","text")
 		,field("Watch subdirectories","recurse","true",true,"Should we watch the directory and all subdirectories too","checkbox")
-		,field("Interval (ms)","interval","60000",true,"The interval between checks, in miliseconds","text")
+		,field("Interval (ms)","interval","60000",true,"The interval between checks, in milliseconds","text")
 		,field("File filter","extensions","*",true,"The comma separated list of file filters to match (* = all files). Examples: *user*,*.gif,2010*,myfilename.txt","text")
 
 		,group("CFC Listener Function Definition","Definition for the CFC Listener Functions, when empty no listener is called",3)

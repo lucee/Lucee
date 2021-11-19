@@ -21,5 +21,5 @@ package lucee.commons.io.res.filter;
 import lucee.commons.io.res.Resource;
 
 public interface ResourceNameFilter {
-    public boolean accept(Resource parent, String name);
+	public boolean accept(Resource parent, String name);
 }

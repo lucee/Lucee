@@ -36,53 +36,54 @@ import lucee.transformer.library.function.FunctionLibFunction;
 
 public class IsDefined implements FunctionEvaluator {
 
-    @Override
-    public void execute(BIF bif, FunctionLibFunction flf) throws TemplateException {
-	Argument arg = bif.getArguments()[0];
-	Expression value = arg.getValue();
-	if (value instanceof LitString) {
-	    String str = ((LitString) value).getString();
-	    StringList sl = VariableInterpreter.parse(str, false);
-	    if (sl != null) {
-		// scope
-		str = sl.next();
+	@Override
+	public void execute(BIF bif, FunctionLibFunction flf) throws TemplateException {
+		Argument arg = bif.getArguments()[0];
+		Expression value = arg.getValue();
+		if (value instanceof LitString) {
+			String str = ((LitString) value).getString();
+			StringList sl = VariableInterpreter.parse(str, false);
+			if (sl != null) {
+				// scope
+				str = sl.next();
 
-		int scope = VariableInterpreter.scopeString2Int(bif.ts.ignoreScopes, str);
-		if (scope == Scope.SCOPE_UNDEFINED) sl.reset();
+				int scope = VariableInterpreter.scopeString2Int(bif.ts.ignoreScopes, str);
+				if (scope == Scope.SCOPE_UNDEFINED) sl.reset();
 
-		// keys
-		String[] arr = sl.toArray();
-		ArrayUtil.trim(arr);
+				// keys
+				String[] arr = sl.toArray();
+				ArrayUtil.trim(arr);
 
-		// update first arg
-		arg.setValue(bif.getFactory().createLitDouble(scope), "number");
+				// update first arg
+				arg.setValue(bif.getFactory().createLitNumber(scope), "number");
 
-		// add second argument
+				// add second argument
 
-		if (arr.length == 1) {
-		    Expression expr = new CollectionKey(bif.getFactory(), arr[0]);// LitString.toExprString(str);
-		    arg = new Argument(expr, Collection.Key.class.getName());
-		    bif.addArgument(arg);
+				if (arr.length == 1) {
+					Expression expr = new CollectionKey(bif.getFactory(), arr[0]);// LitString.toExprString(str);
+					arg = new Argument(expr, Collection.Key.class.getName());
+					bif.addArgument(arg);
+				}
+				else {
+					CollectionKeyArray expr = new CollectionKeyArray(bif.getFactory(), arr);
+					// LiteralStringArray expr = new LiteralStringArray(arr);
+					arg = new Argument(expr, Collection.Key[].class.getName());
+					bif.addArgument(arg);
+				}
+
+			}
+
 		}
-		else {
-		    CollectionKeyArray expr = new CollectionKeyArray(bif.getFactory(), arr);
-		    // LiteralStringArray expr = new LiteralStringArray(arr);
-		    arg = new Argument(expr, Collection.Key[].class.getName());
-		    bif.addArgument(arg);
-		}
-
-	    }
-
+		// print.out("bif:"+arg.getValue().getClass().getName());
 	}
-	// print.out("bif:"+arg.getValue().getClass().getName());
-    }
 
-    @Override
-    public void evaluate(BIF bif, FunctionLibFunction flf) throws EvaluatorException {}
+	@Override
+	public void evaluate(BIF bif, FunctionLibFunction flf) throws EvaluatorException {
+	}
 
-    @Override
-    public FunctionLibFunction pre(BIF bif, FunctionLibFunction flf) throws TemplateException {
-	return null;
-    }
+	@Override
+	public FunctionLibFunction pre(BIF bif, FunctionLibFunction flf) throws TemplateException {
+		return null;
+	}
 
 }

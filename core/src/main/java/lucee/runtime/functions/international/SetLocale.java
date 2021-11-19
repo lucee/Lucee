@@ -28,12 +28,12 @@ import lucee.runtime.ext.function.Function;
  */
 public final class SetLocale implements Function {
 
-    private static final long serialVersionUID = -4941933470300726563L;
+	private static final long serialVersionUID = -4941933470300726563L;
 
-    public static Locale call(PageContext pc, Locale locale) {
-	Locale old = pc.getLocale();
-	pc.setLocale(locale);
-	return old;
+	public static Locale call(PageContext pc, Locale locale) {
+		Locale old = pc.getLocale();
+		pc.setLocale(locale);
+		return old;
 
-    }
+	}
 }

@@ -27,7 +27,7 @@ import lucee.runtime.ext.function.Function;
 import lucee.runtime.type.KeyImpl;
 
 public final class DeleteClientVariable implements Function {
-    public static boolean call(PageContext pc, String variableName) throws PageException {
-	return pc.clientScope().removeEL(KeyImpl.init(variableName)) != null;
-    }
+	public static boolean call(PageContext pc, String variableName) throws PageException {
+		return pc.clientScope().removeEL(KeyImpl.init(variableName)) != null;
+	}
 }

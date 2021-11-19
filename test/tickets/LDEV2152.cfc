@@ -1,5 +1,6 @@
-component extends="org.lucee.cfml.test.LuceeTestCase"{
-	function beforeAll(){
+component extends="org.lucee.cfml.test.LuceeTestCase" skip=true {
+
+  function beforeAll(){
 		variables.base = GetDirectoryFromPath(getcurrentTemplatepath()) & "LDEV2152\";
 		if(!directoryExists(base)){
 			directorycreate(base);
@@ -21,6 +22,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 			filewrite(base&'n\o.txt',"");
 		})
 	}
+
 	function run( testResults , testBox ) {
 		describe( "test suite for LDEV-2152", function() {
 			it(title = "directorylist() with attribute listinfo = 'query'", body = function( currentSpec ) {
@@ -96,7 +98,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 			});
 		});
 	}		
-
+  
 	function afterAll(){
 		if(directoryExists(base)){
 			directoryDelete(base,true);

@@ -34,25 +34,25 @@ import lucee.transformer.util.PageSourceCode;
 
 public final class PageEncoding extends EvaluatorSupport {
 
-    @Override
-    public TagLib execute(Config config, Tag tag, TagLibTag libTag, FunctionLib[] flibs, Data data) throws TemplateException {
+	@Override
+	public TagLib execute(Config config, Tag tag, TagLibTag libTag, FunctionLib[] flibs, Data data) throws TemplateException {
 
-	// encoding
-	String str = ASMUtil.getAttributeString(tag, "charset", null);
-	if (str == null) throw new TemplateException(data.srcCode, "attribute [pageencoding] of the tag [processingdirective] must be a constant value");
+		// encoding
+		String str = ASMUtil.getAttributeString(tag, "charset", null);
+		if (str == null) throw new TemplateException(data.srcCode, "attribute [pageencoding] of the tag [processingdirective] must be a constant value");
 
-	Charset cs = CharsetUtil.toCharset(str);
-	PageSourceCode psc = data.srcCode instanceof PageSourceCode ? (PageSourceCode) data.srcCode : null;
-	if (psc == null || cs.equals(psc.getCharset()) || CharsetUtil.UTF8.equals(psc.getCharset())) {
-	    cs = null;
+		Charset cs = CharsetUtil.toCharset(str);
+		PageSourceCode psc = data.srcCode instanceof PageSourceCode ? (PageSourceCode) data.srcCode : null;
+		if (psc == null || cs.equals(psc.getCharset()) || CharsetUtil.UTF8.equals(psc.getCharset())) {
+			cs = null;
+		}
+
+		//
+
+		if (cs != null) {
+			throw new ProcessingDirectiveException(data.srcCode, cs, null, data.srcCode.getWriteLog());
+		}
+
+		return null;
 	}
-
-	//
-
-	if (cs != null) {
-	    throw new ProcessingDirectiveException(data.srcCode, cs, null, data.srcCode.getWriteLog());
-	}
-
-	return null;
-    }
 }

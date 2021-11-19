@@ -25,36 +25,36 @@ import lucee.runtime.config.Constants;
 
 public class InitFile {
 
-    private PageSource ps;
-    private String filename;
-    private boolean isCFC;
+	private PageSource ps;
+	private String filename;
+	private boolean isCFC;
 
-    public InitFile(PageContext pc, PageSource ps, String filename) {
-	this.ps = ps;
-	this.filename = filename;
+	public InitFile(PageContext pc, PageSource ps, String filename) {
+		this.ps = ps;
+		this.filename = filename;
 
-	// the lucee dialect has not different extension for component and templates, but this dialect also
-	// only supports components
-	isCFC = false;
-	String[] extensions = Constants.getComponentExtensions();// CustomTagUtil.getComponentExtension(pc,ps);
-	for (int i = 0; i < extensions.length; i++) {
-	    if (StringUtil.endsWithIgnoreCase(filename, '.' + extensions[i])) {
-		isCFC = true;
-		break;
-	    }
+		// the lucee dialect has not different extension for component and templates, but this dialect also
+		// only supports components
+		isCFC = false;
+		String[] extensions = Constants.getComponentExtensions();// CustomTagUtil.getComponentExtension(pc,ps);
+		for (int i = 0; i < extensions.length; i++) {
+			if (StringUtil.endsWithIgnoreCase(filename, '.' + extensions[i])) {
+				isCFC = true;
+				break;
+			}
+		}
+
 	}
 
-    }
+	public PageSource getPageSource() {
+		return ps;
+	}
 
-    public PageSource getPageSource() {
-	return ps;
-    }
+	public String getFilename() {
+		return filename;
+	}
 
-    public String getFilename() {
-	return filename;
-    }
-
-    public boolean isCFC() {
-	return isCFC;
-    }
+	public boolean isCFC() {
+		return isCFC;
+	}
 }

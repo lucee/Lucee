@@ -29,51 +29,51 @@ import lucee.runtime.type.util.KeyConstants;
 
 public class ComponentIterator implements Iterator, Resetable {
 
-    private static final Object[] EMPTY = new Object[0];
+	private static final Object[] EMPTY = new Object[0];
 
-    private ComponentImpl cfc;
+	private ComponentImpl cfc;
 
-    public ComponentIterator(ComponentImpl cfc) {
-	this.cfc = cfc;
-    }
+	public ComponentIterator(ComponentImpl cfc) {
+		this.cfc = cfc;
+	}
 
-    @Override
-    public boolean hasNext() {
-	try {
-	    return Caster.toBooleanValue(cfc.call(ThreadLocalPageContext.get(), KeyConstants.__hasNext, EMPTY));
+	@Override
+	public boolean hasNext() {
+		try {
+			return Caster.toBooleanValue(cfc.call(ThreadLocalPageContext.get(), KeyConstants.__hasNext, EMPTY));
+		}
+		catch (PageException pe) {
+			throw new PageRuntimeException(pe);
+		}
 	}
-	catch (PageException pe) {
-	    throw new PageRuntimeException(pe);
-	}
-    }
 
-    @Override
-    public Object next() {
-	try {
-	    return cfc.call(ThreadLocalPageContext.get(), KeyConstants.__next, EMPTY);
+	@Override
+	public Object next() {
+		try {
+			return cfc.call(ThreadLocalPageContext.get(), KeyConstants.__next, EMPTY);
+		}
+		catch (PageException pe) {
+			throw new PageRuntimeException(pe);
+		}
 	}
-	catch (PageException pe) {
-	    throw new PageRuntimeException(pe);
-	}
-    }
 
-    @Override
-    public void remove() {
-	try {
-	    cfc.call(ThreadLocalPageContext.get(), KeyConstants.__remove, EMPTY);
+	@Override
+	public void remove() {
+		try {
+			cfc.call(ThreadLocalPageContext.get(), KeyConstants.__remove, EMPTY);
+		}
+		catch (PageException pe) {
+			throw new PageRuntimeException(pe);
+		}
 	}
-	catch (PageException pe) {
-	    throw new PageRuntimeException(pe);
-	}
-    }
 
-    @Override
-    public void reset() {
-	try {
-	    cfc.call(ThreadLocalPageContext.get(), KeyConstants.__reset, EMPTY);
+	@Override
+	public void reset() {
+		try {
+			cfc.call(ThreadLocalPageContext.get(), KeyConstants.__reset, EMPTY);
+		}
+		catch (PageException pe) {
+			throw new PageRuntimeException(pe);
+		}
 	}
-	catch (PageException pe) {
-	    throw new PageRuntimeException(pe);
-	}
-    }
 }

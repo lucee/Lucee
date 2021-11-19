@@ -11,7 +11,7 @@
 					<td>
 						<select name="maxLogs">
 							<cfset selected=false>
-							<cfloop list="10,20,50,100,200,500,1000" index="idx">
+							<cfloop list="10,20,50,100,200,500,1000,5000,10000" index="idx">
 								<option <cfif idx EQ setting.maxLogs><cfset selected=true>selected="selected"</cfif> value="#idx#">#idx#</option>
 							</cfloop>
 							<cfif !selected>
@@ -36,6 +36,7 @@
 				<tr>
 					<td colspan="2">
 						<input type="submit" class="bl button submit" name="mainAction" value="#stText.Buttons.Update#">
+						<input type="submit" class="bm button submit" name="mainAction" value="#stText.Buttons.Purge#">
 						<input type="reset" class="<cfif request.adminType EQ "web">bm<cfelse>br</cfif> button reset" name="cancel" value="#stText.Buttons.Cancel#">
 						<cfif request.adminType EQ "web"><input class="br button submit" type="submit" name="mainAction" value="#stText.Buttons.resetServerAdmin#"></cfif>
 					</td>
@@ -84,7 +85,9 @@
 					<tr>
 						<th width="50%" rowspan="2">#stText.Debug.path#</th>
 						<th width="35%" rowspan="2">#stText.Debug.reqTime#</th>
+						
 						<th width="15%" colspan="3">#stText.Debug.exeTime#</th>
+						<th width="35%" rowspan="2">#stText.Debug.scopeLoookups#</th>
 					</tr>
 					<tr>
 						<th width="5%">#stText.Debug.exeTimeQuery#</th>
@@ -98,10 +101,12 @@
 							<input type="text" name="path" class="xlarge" value="#session.debugFilter.path#" />
 							<div class="comment">#stText.Debug.filterPath#</div>
 						</td>
-					    <td nowrap><input type="text" name="starttime" class="xlarge" value="#LSDateFormat(session.debugFilter.starttime)# #LSTimeFormat(session.debugFilter.starttime)#" /></td>
+						<td nowrap><input type="text" name="starttime" class="xlarge" value="#LSDateFormat(session.debugFilter.starttime)# #LSTimeFormat(session.debugFilter.starttime)#" /></td>
+						
 					    <td nowrap><input type="text" name="query" class="number" value="#session.debugFilter.query#" /></td>
     					<td nowrap><input type="text" name="app" class="number" value="#session.debugFilter.app#" /></td>
-    					<td nowrap><input type="text" name="total" class="number" value="#session.debugFilter.total#" /></td>
+						<td nowrap><input type="text" name="total" class="number" value="#session.debugFilter.total#" /></td>
+						<td nowrap><input type="text" name="scope" class="number" value="#session.debugFilter.scope#" /></td>
 					</tr>
 				</tbody>
 				<tfoot>
@@ -116,18 +121,21 @@
 							<cfset _total=0><cfloop query="el.pages"><cfset _total+=el.pages.total></cfloop>
 							<cfset _query=0><cfloop query="el.pages"><cfset _query+=el.pages.query></cfloop>
 							<cfset _app=0><cfloop query="el.pages"><cfset _app+=el.pages.app></cfloop>	
+							<cfset _scope=el.implicitAccess.recordCount ?: 0>
 							<cfset _path=el.scope.cgi.SCRIPT_NAME& (len(el.scope.cgi.QUERY_STRING)?"?"& el.scope.cgi.QUERY_STRING:"")>
 							<cfif 
 								doFilter(session.debugFilter.path,_path,false) and 
 								doFilterMin(session.debugFilter.query,_query) and 
 								doFilterMin(session.debugFilter.app,_app) and 
+								doFilterMin(session.debugFilter.scope,_scope) and 
 								doFilterMin(session.debugFilter.total,_total)> 
 								<tr>
-									<td><a href="#request.self#?action=#url.action#&action2=detail&id=#hash(el.id&":"&el.startTime)#">#_path#</a></td>
+									<td><a href="#request.self#?action=#url.action#&action2=detail&id=#hash(el.id&":"&el.startTime)#">#encodeForHtml(el.scope.cgi.REQUEST_URL)#</a></td>
 									<td>#LSDateFormat(el.starttime)# #LSTimeFormat(el.starttime)#</td>
-									<td nowrap>#formatUnit(_query)#</td>
-									<td nowrap>#formatUnit(_app)#</td>
-									<td nowrap>#formatUnit(_total)#</td>
+									<td nowrap align="right"><cfif listFirst(formatUnit(_query)," ") gt 0>#formatUnit(_query)#<cfelse>-</cfif></td>
+									<td nowrap align="right">#formatUnit(_app)#</td>
+									<td nowrap align="right">#formatUnit(_total)#</td>
+									<td nowrap align="right"><cfif _scope eq 0><cfelse>#lsNumberFormat(_scope)#</cfif></td>
 								</tr>
 							</cfif>
 						</cfloop>

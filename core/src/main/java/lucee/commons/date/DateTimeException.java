@@ -22,7 +22,7 @@ import lucee.runtime.exp.ExpressionException;
 
 public class DateTimeException extends ExpressionException {
 
-    public DateTimeException(String msg) {
-	super(msg);
-    }
+	public DateTimeException(String msg) {
+		super(msg);
+	}
 }

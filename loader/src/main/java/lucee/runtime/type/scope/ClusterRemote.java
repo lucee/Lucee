@@ -22,36 +22,37 @@ import lucee.runtime.config.ConfigServer;
 
 public interface ClusterRemote {
 
-    /**
-     * broadcast data on stack and clear stack
-     */
-    public void broadcastEntries();
+	/**
+	 * broadcast data on stack and clear stack
+	 */
+	public void broadcastEntries();
 
-    /**
-     * set entry on stack
-     * 
-     * @param entry
-     */
-    public void addEntry(ClusterEntry entry);
+	/**
+	 * set entry on stack
+	 * 
+	 * @param entry entry
+	 */
+	public void addEntry(ClusterEntry entry);
 
-    /**
-     * check if the value can distributed over the "cluster"
-     * 
-     * @param value
-     */
-    public boolean checkValue(Object value);
+	/**
+	 * check if the value can distributed over the "cluster"
+	 * 
+	 * @param value value
+	 * @return if the value can be distributed
+	 */
+	public boolean checkValue(Object value);
 
-    /**
-     * duplicate this object
-     * 
-     * @return duplicated object
-     */
-    public ClusterRemote duplicate();
+	/**
+	 * duplicate this object
+	 * 
+	 * @return duplicated object
+	 */
+	public ClusterRemote duplicate();
 
-    /**
-     * @param configServer
-     * @param cluster
-     */
-    public void init(ConfigServer configServer, Cluster cluster);
+	/**
+	 * @param configServer config server
+	 * @param cluster cluster
+	 */
+	public void init(ConfigServer configServer, Cluster cluster);
 
 }

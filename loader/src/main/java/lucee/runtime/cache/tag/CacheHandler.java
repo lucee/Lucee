@@ -23,32 +23,32 @@ import lucee.runtime.exp.PageException;
 
 public interface CacheHandler {
 
-    public void init(ConfigWeb cw, String id, int cacheType) throws PageException;
+	public void init(ConfigWeb cw, String id, int cacheType) throws PageException;
 
-    public String id();
+	public String id();
 
-    public CacheItem get(PageContext pc, String id) throws PageException;
+	public CacheItem get(PageContext pc, String id) throws PageException;
 
-    public boolean remove(PageContext pc, String id) throws PageException;
+	public boolean remove(PageContext pc, String id) throws PageException;
 
-    public void set(PageContext pc, String id, Object cachedwithin, CacheItem value) throws PageException;
+	public void set(PageContext pc, String id, Object cachedwithin, CacheItem value) throws PageException;
 
-    public void clear(PageContext pc) throws PageException;
+	public void clear(PageContext pc) throws PageException;
 
-    public void clear(PageContext pc, CacheHandlerFilter filter) throws PageException;
+	public void clear(PageContext pc, CacheHandlerFilter filter) throws PageException;
 
-    public void clean(PageContext pc) throws PageException;
+	public void clean(PageContext pc) throws PageException;
 
-    public int size(PageContext pc) throws PageException;
+	public int size(PageContext pc) throws PageException;
 
-    public void release(PageContext pc) throws PageException;
+	public void release(PageContext pc) throws PageException;
 
-    public boolean acceptCachedWithin(Object cachedWithin);
+	public boolean acceptCachedWithin(Object cachedWithin);
 
-    /**
-     * return a pattern for that handler, for example "request" or "{time-span}"
-     * 
-     * @return
-     */
-    public String pattern();
+	/**
+	 * return a pattern for that handler, for example "request" or "{time-span}"
+	 * 
+	 * @return Returns the pattern.
+	 */
+	public String pattern();
 }

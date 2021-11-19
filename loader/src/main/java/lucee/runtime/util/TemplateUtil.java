@@ -27,46 +27,47 @@ import lucee.runtime.exp.PageException;
 
 public interface TemplateUtil {
 
-    /**
-     * generate a ComponentJavaAccess (CJA) class from a component a CJA is a dynamic generated java
-     * class that has all method defined inside a component as java methods.
-     * 
-     * This is used to generated server side Webservices.
-     * 
-     * @param component
-     * @param isNew
-     * @param create
-     * @param writeLog
-     * @param suppressWSbeforeArg
-     * @param output
-     * @param returnValue if true the method returns the value of the last expression executed inside
-     *            when you call the method "call"
-     * @return
-     * @throws PageException
-     */
-    public Class<?> getComponentJavaAccess(PageContext pc, Component component, RefBoolean isNew, boolean create, boolean writeLog, boolean suppressWSbeforeArg, boolean output,
-	    boolean returnValue) throws PageException;
+	/**
+	 * generate a ComponentJavaAccess (CJA) class from a component a CJA is a dynamic generated java
+	 * class that has all method defined inside a component as java methods.
+	 * 
+	 * This is used to generated server side Webservices.
+	 * 
+	 * @param pc Page context
+	 * @param component Component
+	 * @param isNew is new
+	 * @param create create
+	 * @param writeLog write log
+	 * @param suppressWSbeforeArg suppress whitespace before argument
+	 * @param output output
+	 * @param returnValue if true the method returns the value of the last expression executed inside
+	 *            when you call the method "call"
+	 * @return Returns a Class.
+	 * @throws PageException Page Exception
+	 */
+	public Class<?> getComponentJavaAccess(PageContext pc, Component component, RefBoolean isNew, boolean create, boolean writeLog, boolean suppressWSbeforeArg, boolean output,
+			boolean returnValue) throws PageException;
 
-    public Class<?> getComponentPropertiesClass(PageContext pc, Component component) throws PageException;
+	public Class<?> getComponentPropertiesClass(PageContext pc, Component component) throws PageException;
 
-    public long getCompileTime(PageContext pc, PageSource ps, long defaultValue);
+	public long getCompileTime(PageContext pc, PageSource ps, long defaultValue);
 
-    public long getCompileTime(PageContext pc, PageSource ps) throws PageException;
+	public long getCompileTime(PageContext pc, PageSource ps) throws PageException;
 
-    public Component searchComponent(PageContext pc, PageSource loadingLocation, String rawPath, Boolean searchLocal, Boolean searchRoot, boolean isExtendedComponent,
-	    boolean executeConstr) throws PageException;
+	public Component searchComponent(PageContext pc, PageSource loadingLocation, String rawPath, Boolean searchLocal, Boolean searchRoot, boolean isExtendedComponent,
+			boolean executeConstr) throws PageException;
 
-    public Interface searchInterface(PageContext pc, PageSource loadingLocation, String rawPath, boolean executeConstr) throws PageException;
+	public Interface searchInterface(PageContext pc, PageSource loadingLocation, String rawPath, boolean executeConstr) throws PageException;
 
-    public Page searchPage(PageContext pc, PageSource child, String rawPath, Boolean searchLocal, Boolean searchRoot) throws PageException;
+	public Page searchPage(PageContext pc, PageSource child, String rawPath, Boolean searchLocal, Boolean searchRoot) throws PageException;
 
-    public Component loadComponent(PageContext pc, Page page, String callPath, boolean isRealPath, boolean silent, boolean isExtendedComponent, boolean executeConstr)
-	    throws PageException;
+	public Component loadComponent(PageContext pc, Page page, String callPath, boolean isRealPath, boolean silent, boolean isExtendedComponent, boolean executeConstr)
+			throws PageException;
 
-    public Component loadComponent(PageContext pc, PageSource ps, String callPath, boolean isRealPath, boolean silent, boolean executeConstr) throws PageException;
+	public Component loadComponent(PageContext pc, PageSource ps, String callPath, boolean isRealPath, boolean silent, boolean executeConstr) throws PageException;
 
-    public Page loadPage(PageContext pc, PageSource ps, boolean forceReload) throws PageException;
+	public Page loadPage(PageContext pc, PageSource ps, boolean forceReload) throws PageException;
 
-    public Interface loadInterface(PageContext pc, Page page, PageSource ps, String callPath, boolean isRealPath) throws PageException;
+	public Interface loadInterface(PageContext pc, Page page, PageSource ps, String callPath, boolean isRealPath) throws PageException;
 
 }

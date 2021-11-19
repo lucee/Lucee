@@ -23,34 +23,34 @@ package lucee.runtime.db;
  */
 public interface SQL {
 
-    /**
-     * @return Returns the items.
-     */
-    public abstract SQLItem[] getItems();
+	/**
+	 * @return Returns the items.
+	 */
+	public abstract SQLItem[] getItems();
 
-    /**
-     * @return Returns the position.
-     */
-    public abstract int getPosition();
+	/**
+	 * @return Returns the position.
+	 */
+	public abstract int getPosition();
 
-    /**
-     * @param position The position to set.
-     */
-    public abstract void setPosition(int position);
+	/**
+	 * @param position The position to set.
+	 */
+	public abstract void setPosition(int position);
 
-    /**
-     * @return returns the pure SQL String
-     */
-    public abstract String getSQLString();
+	/**
+	 * @return returns the pure SQL String
+	 */
+	public abstract String getSQLString();
 
-    /**
-     * @param strSQL sets the SQL String
-     */
-    public abstract void setSQLString(String strSQL);
+	/**
+	 * @param strSQL sets the SQL String
+	 */
+	public abstract void setSQLString(String strSQL);
 
-    /**
-     * @return returns Unique String for Hash
-     */
-    public abstract String toHashString();
+	/**
+	 * @return returns Unique String for Hash
+	 */
+	public abstract String toHashString();
 
 }

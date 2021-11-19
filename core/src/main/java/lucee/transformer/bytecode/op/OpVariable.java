@@ -25,11 +25,7 @@ import lucee.transformer.expression.var.Variable;
 
 public final class OpVariable extends Assign {
 
-    public OpVariable(Variable variable, Expression value, Position end) {
-	super(variable, value, end);
-    }
-
-    public OpVariable(Variable variable, double value, Position end) {
-	super(variable, variable.getFactory().createLitDouble(value, variable.getEnd(), end), end);
-    }
+	public OpVariable(Variable variable, Expression value, Position end) {
+		super(variable, value, end);
+	}
 }

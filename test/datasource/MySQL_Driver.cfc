@@ -1,22 +1,25 @@
-component extends="org.lucee.cfml.test.LuceeTestCase"{
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="mysql" {
 	function isNotSupported() {
-		variables.mySql = getCredencials();
-		if(!isNull(variables.mySql)){
+		variables.mySql = getCredentials();
+		if (len(variables.mySql)){
 			return false;
 		} else{
 			return true;
 		}
-
 	}
 
 	function beforeAll(){
 		variables.originalTZ=getTimeZone();
 	}
 
+	function afterAll(){
+		setTimezone(variables.originalTZ);
+	}
 	
 	function run( testResults , testBox ) {
-		if(!hasCredencials()) return;
+		if(!hasCredentials()) return;
 		describe( "Checking MYSQL JDBC drivers", function() {
+			/*
 			it( title='test with version 5.1.20',skip=isNotSupported(), body=function( currentSpec ) {
 				defineDatasource('com.mysql.jdbc.Driver',  'com.mysql.jdbc', '5.1.20');
 				var result = testConnection();
@@ -30,8 +33,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 			});
 
 			it( title='test with version 5.1.40',skip=isNotSupported(), body=function( currentSpec ) {
-				defineDatasource('com.mysql.jdbc.Driver',  'com.mysql.jdbc', '5.1.40');
-				var result = testConnection();
+				defineDatasource('com.mysql.jdbc.Driver',  'com.mysql.jdbc', '5.1.40'); 
+				var result = testConnection(); 
 				assertEquals(true, isQuery(result));
 			});
 
@@ -40,6 +43,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				var result = testConnection();
 				assertEquals(true, isQuery(result));
 			});
+			*/
 
 			xit( title='test with version 6.0.6',skip=isNotSupported(), body=function( currentSpec ) {
 				defineDatasource('com.mysql.cj.jdbc.Driver',  'com.mysql.cj', '6.0.6');
@@ -47,14 +51,38 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				assertEquals(true, isQuery(result));
 			});
 
-			it( title='test with version 8.0.9',skip=isNotSupported(), body=function( currentSpec ) {
-				defineDatasource('com.mysql.cj.jdbc.Driver',  'com.mysql.cj', '8.0.9');
+			it( title='test with version 8.0.15',skip=isNotSupported(), body=function( currentSpec ) {
+				defineDatasource('com.mysql.cj.jdbc.Driver',  'com.mysql.cj', '8.0.15');
+				var result = testConnection();
+				assertEquals(true, isQuery(result));
+			});
+
+			it( title='test with version 8.0.16',skip=isNotSupported(), body=function( currentSpec ) {
+				defineDatasource('com.mysql.cj.jdbc.Driver',  'com.mysql.cj', '8.0.16');
+				var result = testConnection();
+				assertEquals(true, isQuery(result));
+			});
+
+			it( title='test with version 8.0.17',skip=isNotSupported(), body=function( currentSpec ) {
+				defineDatasource('com.mysql.cj.jdbc.Driver',  'com.mysql.cj', '8.0.17');
+				var result = testConnection();
+				assertEquals(true, isQuery(result));
+			});
+
+			it( title='test with version 8.0.18',skip=isNotSupported(), body=function( currentSpec ) {
+				defineDatasource('com.mysql.cj.jdbc.Driver',  'com.mysql.cj', '8.0.18');
+				var result = testConnection();
+				assertEquals(true, isQuery(result));
+			});
+
+			it( title='test with version 8.0.24',skip=isNotSupported(), body=function( currentSpec ) {
+				defineDatasource('com.mysql.cj.jdbc.Driver',  'com.mysql.cj', '8.0.24');
 				var result = testConnection();
 				assertEquals(true, isQuery(result));
 			});
 		});
 
-		describe( "Checking MYSQL JDBC drivers with PDT timeZone", function() {
+		describe( title="Checking MYSQL JDBC drivers with PDT timeZone", body=function() {
 
 			beforeEach( function( currentSpec ) {
 				application action="update" timezone="PDT";
@@ -65,7 +93,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				application action="update" timezone="#variables.originalTZ#";
 				setTimeZone("#variables.originalTZ#");
 			});
-
+			/*
 			it( title='test with version 5.1.20',skip=isNotSupported(), body=function( currentSpec ) {
 				defineDatasource('com.mysql.jdbc.Driver',  'com.mysql.jdbc', '5.1.20');
 				var result = testConnection();
@@ -89,6 +117,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				var result = testConnection();
 				assertEquals(true, isQuery(result));
 			});
+			*/
 
 			xit( title='test with version 6.0.6',skip=isNotSupported(), body=function( currentSpec ) {
 				defineDatasource('com.mysql.cj.jdbc.Driver',  'com.mysql.cj', '6.0.6');
@@ -96,14 +125,51 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				assertEquals(true, isQuery(result));
 			});
 
-			it( title='test with version 8.0.9',skip=isNotSupported(), body=function( currentSpec ) {
-				defineDatasource('com.mysql.cj.jdbc.Driver',  'com.mysql.cj', '8.0.9');
+			it( title='test with version 8.0.15',skip=isNotSupported(), body=function( currentSpec ) {
+				defineDatasource('com.mysql.cj.jdbc.Driver',  'com.mysql.cj', '8.0.15');
+				var result = testConnection();
+				assertEquals(true, isQuery(result));
+			});
+			/* TODO:
+			Errored: test with version 8.0.11 --> Cannot open file:/home/travis/build/lucee/Lucee/temp/archive/base/lucee-server/context/security/cacerts [Keystore was tampered with, or password was incorrect]
+			it( title='test with version 8.0.11',skip=isNotSupported(), body=function( currentSpec ) {
+				defineDatasource('com.mysql.cj.jdbc.Driver',  'com.mysql.cj', '8.0.11');
+				var result = testConnection(); // TODO
+				assertEquals(true, isQuery(result));
+			});
+
+			it( title='test with version 8.0.12',skip=isNotSupported(), body=function( currentSpec ) {
+				defineDatasource('com.mysql.cj.jdbc.Driver',  'com.mysql.cj', '8.0.12');
+				var result = testConnection(); // TODO
+				assertEquals(true, isQuery(result));
+			});
+
+			it( title='test with version 8.0.13',skip=isNotSupported(), body=function( currentSpec ) {
+				defineDatasource('com.mysql.cj.jdbc.Driver',  'com.mysql.cj', '8.0.13');
+				var result = testConnection(); // TODO
+				assertEquals(true, isQuery(result));
+			});*/
+
+			it( title='test with version 8.0.14',skip=isNotSupported(), body=function( currentSpec ) {
+				defineDatasource('com.mysql.cj.jdbc.Driver',  'com.mysql.cj', '8.0.14');
+				var result = testConnection();
+				assertEquals(true, isQuery(result));
+			});
+
+			it( title='test with version 8.0.15',skip=isNotSupported(), body=function( currentSpec ) {
+				defineDatasource('com.mysql.cj.jdbc.Driver',  'com.mysql.cj', '8.0.15');
+				var result = testConnection();
+				assertEquals(true, isQuery(result));
+			});
+
+			it( title='test with version 8.0.24',skip=isNotSupported(), body=function( currentSpec ) {
+				defineDatasource('com.mysql.cj.jdbc.Driver',  'com.mysql.cj', '8.0.24');
 				var result = testConnection();
 				assertEquals(true, isQuery(result));
 			});
 		});
 	
-		describe( "Checking MYSQL JDBC drivers with CEST timeZone", function() {
+		describe( title="Checking MYSQL JDBC drivers with CEST timeZone", body=function() {
 
 			beforeEach( function( currentSpec ) {
 				application action="update" timezone="CEST";
@@ -114,7 +180,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				application action="update" timezone="#variables.originalTZ#";
 				setTimeZone("#variables.originalTZ#");
 			});
-
+			/*
 			it( title='test with version 5.1.20',skip=isNotSupported(), body=function( currentSpec ) {
 				defineDatasource('com.mysql.jdbc.Driver',  'com.mysql.jdbc', '5.1.20');
 				var result = testConnection();
@@ -144,68 +210,43 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				var result = testConnection();
 				assertEquals(true, isQuery(result));
 			});
+			*/
 
-			it( title='test with version 8.0.9',skip=isNotSupported(), body=function( currentSpec ) {
-				defineDatasource('com.mysql.cj.jdbc.Driver',  'com.mysql.cj', '8.0.9');
+			it( title='test with version 8.0.15',skip=isNotSupported(), body=function( currentSpec ) {
+				defineDatasource('com.mysql.cj.jdbc.Driver',  'com.mysql.cj', '8.0.15');
+				var result = testConnection();
+				assertEquals(true, isQuery(result));
+			});
+
+			it( title='test with version 8.0.24',skip=isNotSupported(), body=function( currentSpec ) {
+				defineDatasource('com.mysql.cj.jdbc.Driver',  'com.mysql.cj', '8.0.24');
 				var result = testConnection();
 				assertEquals(true, isQuery(result));
 			});
 		});
 	}
 
-	private void function defineDatasource(class,bundle,version){
-		application action="update"
-			datasource={
-				  class: arguments.class
-				, bundleName: arguments.bundle
-				, bundleVersion:arguments.version
-				, connectionString: 'jdbc:mysql://'&variables.mySQL.server&':'&variables.mySQL.port&'/'&variables.mySQL.database&'?useUnicode=true&characterEncoding=UTF-8&useLegacyDatetimeCode=true'
-				, username: variables.mySQL.username
-				, password: variables.mySQL.password
-		};
+	private void function defineDatasource(class,bundle,bundleVersion){
+		var mySQL = server.getDatasource("mysql");
+		mySQL.class=arguments.class;
+		mySQL.bundle=arguments.bundle;
+		mySQL.bundleVersion=arguments.bundleVersion;
+		application action="update" datasource=mySQL;
 	}
 
 	private query function testConnection(){
 		query name="local.qry" {
 			echo("SELECT now()");
 		}
-
 		return local.qry;
 	}
 
-
-	private boolean function hasCredencials() {
-		return structCount(getCredencials());
+	private boolean function hasCredentials() {
+		return structCount(getCredentials());
 	}
 
-	private struct function getCredencials() {
-		// getting the credetials from the enviroment variables
-		var mySQL={};
-		if(
-			!isNull(server.system.environment.MYSQL_SERVER) && 
-			!isNull(server.system.environment.MYSQL_USERNAME) && 
-			!isNull(server.system.environment.MYSQL_PASSWORD) && 
-			!isNull(server.system.environment.MYSQL_PORT) && 
-			!isNull(server.system.environment.MYSQL_DATABASE)) {
-			mySQL.server=server.system.environment.MYSQL_SERVER;
-			mySQL.username=server.system.environment.MYSQL_USERNAME;
-			mySQL.password=server.system.environment.MYSQL_PASSWORD;
-			mySQL.port=server.system.environment.MYSQL_PORT;
-			mySQL.database=server.system.environment.MYSQL_DATABASE;
-		}
-		// getting the credetials from the system variables
-		else if(
-			!isNull(server.system.properties.MYSQL_SERVER) && 
-			!isNull(server.system.properties.MYSQL_USERNAME) && 
-			!isNull(server.system.properties.MYSQL_PASSWORD) && 
-			!isNull(server.system.properties.MYSQL_PORT) && 
-			!isNull(server.system.properties.MYSQL_DATABASE)) {
-			mySQL.server=server.system.properties.MYSQL_SERVER;
-			mySQL.username=server.system.properties.MYSQL_USERNAME;
-			mySQL.password=server.system.properties.MYSQL_PASSWORD;
-			mySQL.port=server.system.properties.MYSQL_PORT;
-			mySQL.database=server.system.properties.MYSQL_DATABASE;
-		}
-		return mysql;
+	private struct function getCredentials() {
+		// getting the credentials from the environment variables
+		return server.getDatasource("mysql");
 	}
 }

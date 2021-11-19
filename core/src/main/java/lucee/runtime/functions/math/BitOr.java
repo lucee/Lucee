@@ -25,7 +25,7 @@ import lucee.runtime.PageContext;
 import lucee.runtime.ext.function.Function;
 
 public final class BitOr implements Function {
-    public static double call(PageContext pc, double number, double number2) {
-	return (int) number | (int) number2;
-    }
+	public static double call(PageContext pc, double number, double number2) {
+		return (int) number | (int) number2;
+	}
 }

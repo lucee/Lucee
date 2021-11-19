@@ -26,27 +26,27 @@ import lucee.runtime.exp.PageException;
  */
 public interface Credential extends ScriptConvertable {
 
-    /**
-     * @return Returns the password.
-     */
-    public abstract String getPassword();
+	/**
+	 * @return Returns the password.
+	 */
+	public abstract String getPassword();
 
-    /**
-     * @return Returns the roles.
-     */
-    public abstract String[] getRoles();
+	/**
+	 * @return Returns the roles.
+	 */
+	public abstract String[] getRoles();
 
-    /**
-     * @return Returns the username.
-     */
-    public abstract String getUsername();
+	/**
+	 * @return Returns the username.
+	 */
+	public abstract String getUsername();
 
-    /**
-     * encode rhe Credential to a Base64 String value
-     * 
-     * @return base64 encoded string
-     * @throws PageException
-     */
-    public abstract String encode() throws PageException;
+	/**
+	 * encode rhe Credential to a Base64 String value
+	 * 
+	 * @return base64 encoded string
+	 * @throws PageException Page Exception
+	 */
+	public abstract String encode() throws PageException;
 
 }

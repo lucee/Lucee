@@ -28,65 +28,66 @@ import lucee.runtime.op.Castable;
  */
 public interface Objects extends Dumpable, Castable {
 
-    /**
-     * return property
-     * 
-     * @param pc PageContext
-     * @param key Name of the Property
-     * @return return value of the Property
-     */
-    public Object get(PageContext pc, Collection.Key key, Object defaultValue);
+	/**
+	 * return property
+	 * 
+	 * @param pc PageContext
+	 * @param key Name of the Property
+	 * @param defaultValue Default Value
+	 * @return return value of the Property
+	 */
+	public Object get(PageContext pc, Collection.Key key, Object defaultValue);
 
-    /**
-     * return property or getter of the ContextCollection
-     * 
-     * @param pc PageContext
-     * @param key Name of the Property
-     * @return return value of the Property
-     * @throws PageException
-     */
-    public Object get(PageContext pc, Collection.Key key) throws PageException;
+	/**
+	 * return property or getter of the ContextCollection
+	 * 
+	 * @param pc PageContext
+	 * @param key Name of the Property
+	 * @return return value of the Property
+	 * @throws PageException Page Exception
+	 */
+	public Object get(PageContext pc, Collection.Key key) throws PageException;
 
-    /**
-     * sets a property (Data Member) value of the object
-     * 
-     * @param pc
-     * @param propertyName property name to set
-     * @param value value to insert
-     * @return value set to property
-     * @throws PageException
-     */
-    public Object set(PageContext pc, Collection.Key propertyName, Object value) throws PageException;
+	/**
+	 * sets a property (Data Member) value of the object
+	 * 
+	 * @param pc page context
+	 * @param propertyName property name to set
+	 * @param value value to insert
+	 * @return value set to property
+	 * @throws PageException Page Exception
+	 */
+	public Object set(PageContext pc, Collection.Key propertyName, Object value) throws PageException;
 
-    /**
-     * sets a property (Data Member) value of the object
-     * 
-     * @param pc
-     * @param propertyName property name to set
-     * @param value value to insert
-     * @return value set to property
-     */
-    public Object setEL(PageContext pc, Collection.Key propertyName, Object value);
+	/**
+	 * sets a property (Data Member) value of the object
+	 * 
+	 * @param pc page context
+	 * @param propertyName property name to set
+	 * @param value value to insert
+	 * @return value set to property
+	 */
+	public Object setEL(PageContext pc, Collection.Key propertyName, Object value);
 
-    /**
-     * calls a method of the object
-     * 
-     * @param pc
-     * @param methodName name of the method to call
-     * @param arguments arguments to call method with
-     * @return return value of the method
-     * @throws PageException
-     */
-    public Object call(PageContext pc, Collection.Key methodName, Object[] arguments) throws PageException;
+	/**
+	 * calls a method of the object
+	 * 
+	 * @param pc page context
+	 * @param methodName name of the method to call
+	 * @param arguments arguments to call method with
+	 * @return return value of the method
+	 * @throws PageException Page Exception
+	 */
+	public Object call(PageContext pc, Collection.Key methodName, Object[] arguments) throws PageException;
 
-    /**
-     * call a method of the Object with named arguments
-     * 
-     * @param pc PageContext
-     * @param methodName name of the method
-     * @param args Named Arguments for the method
-     * @return return result of the method
-     * @throws PageException
-     */
-    public abstract Object callWithNamedValues(PageContext pc, Collection.Key methodName, Struct args) throws PageException;
+	/**
+	 * call a method of the Object with named arguments
+	 * 
+	 * @param pc PageContext
+	 * @param methodName name of the method
+	 * @param args Named Arguments for the method
+	 * @return return result of the method
+	 * @throws PageException Page Exception
+	 */
+	public abstract Object callWithNamedValues(PageContext pc, Collection.Key methodName, Struct args) throws PageException;
 }

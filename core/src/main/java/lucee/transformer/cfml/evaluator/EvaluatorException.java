@@ -24,13 +24,13 @@ package lucee.transformer.cfml.evaluator;
  */
 public final class EvaluatorException extends Exception {
 
-    private static final long serialVersionUID = 8659768179869079664L;
+	private static final long serialVersionUID = 8659768179869079664L;
 
-    /**
-     * @param message exception message
-     */
-    public EvaluatorException(String message) {
-	super(message);
-    }
+	/**
+	 * @param message exception message
+	 */
+	public EvaluatorException(String message) {
+		super(message);
+	}
 
 }

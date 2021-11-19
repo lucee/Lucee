@@ -24,15 +24,15 @@ import javax.servlet.jsp.tagext.Tag;
  * for tag with appendix like cfx or customtags
  */
 public interface AppendixTag extends Tag {
-    /**
-     * @return returns the appendix of the tag
-     */
-    public String getAppendix();
+	/**
+	 * @return returns the appendix of the tag
+	 */
+	public String getAppendix();
 
-    /**
-     * sets the appendix of the tag
-     * 
-     * @param appendix
-     */
-    public void setAppendix(String appendix);
+	/**
+	 * sets the appendix of the tag
+	 * 
+	 * @param appendix appendix
+	 */
+	public void setAppendix(String appendix);
 }

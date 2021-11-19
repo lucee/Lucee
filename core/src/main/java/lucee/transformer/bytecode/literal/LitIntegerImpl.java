@@ -35,89 +35,84 @@ import lucee.transformer.expression.literal.LitInteger;
  */
 public final class LitIntegerImpl extends ExpressionBase implements LitInteger, ExprInt {
 
-    private int i;
+	private int i;
 
-    /**
-     * constructor of the class
-     * 
-     * @param d
-     * @param line
-     */
-    public LitIntegerImpl(Factory f, int i, Position start, Position end) {
-	super(f, start, end);
-	this.i = i;
-    }
-
-    /**
-     * @return return value as int
-     */
-    @Override
-    public int geIntValue() {
-	return i;
-    }
-
-    /**
-     * @return return value as Double Object
-     */
-    @Override
-    public Integer getInteger() {
-	return new Integer(i);
-    }
-
-    /**
-     * @see lucee.transformer.expression.literal.Literal#getString()
-     */
-    @Override
-    public String getString() {
-	return Caster.toString(i);
-    }
-
-    /**
-     * @return return value as a Boolean Object
-     */
-    public Boolean getBoolean() {
-	return Caster.toBoolean(i);
-    }
-
-    /**
-     * @return return value as a boolean value
-     */
-    public boolean getBooleanValue() {
-	return Caster.toBooleanValue(i);
-    }
-
-    /**
-     * @see lucee.transformer.expression.Expression#_writeOut(org.objectweb.asm.commons.GeneratorAdapter,
-     *      int)
-     */
-    @Override
-    public Type _writeOut(BytecodeContext bc, int mode) {
-	GeneratorAdapter adapter = bc.getAdapter();
-	adapter.push(i);
-	if (mode == MODE_REF) {
-	    adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_INTEGER_FROM_INT);
-	    return Types.INTEGER;
+	/**
+	 * constructor of the class
+	 * 
+	 * @param d
+	 * @param line
+	 */
+	public LitIntegerImpl(Factory f, int i, Position start, Position end) {
+		super(f, start, end);
+		this.i = i;
 	}
-	return Types.INT_VALUE;
-    }
 
-    /**
-     * @see lucee.transformer.expression.literal.Literal#getDouble(java.lang.Double)
-     */
-    @Override
-    public Double getDouble(Double defaultValue) {
-	return getDouble();
-    }
+	/**
+	 * @return return value as int
+	 */
+	@Override
+	public int geIntValue() {
+		return i;
+	}
 
-    private Double getDouble() {
-	return new Double(i);
-    }
+	/**
+	 * @return return value as Double Object
+	 */
+	@Override
+	public Integer getInteger() {
+		return Integer.valueOf(i);
+	}
 
-    /**
-     * @see lucee.transformer.expression.literal.Literal#getBoolean(java.lang.Boolean)
-     */
-    @Override
-    public Boolean getBoolean(Boolean defaultValue) {
-	return getBoolean();
-    }
+	@Override
+	public Number getNumber() {
+		return getInteger();
+	}
+
+	@Override
+	public Number getNumber(Number defaultValue) {
+		return getInteger();
+	}
+
+	/**
+	 * @see lucee.transformer.expression.literal.Literal#getString()
+	 */
+	@Override
+	public String getString() {
+		return Caster.toString(i);
+	}
+
+	/**
+	 * @return return value as a Boolean Object
+	 */
+	public Boolean getBoolean() {
+		return Caster.toBoolean(i);
+	}
+
+	/**
+	 * @return return value as a boolean value
+	 */
+	public boolean getBooleanValue() {
+		return Caster.toBooleanValue(i);
+	}
+
+	/**
+	 * @see lucee.transformer.expression.Expression#_writeOut(org.objectweb.asm.commons.GeneratorAdapter,
+	 *      int)
+	 */
+	@Override
+	public Type _writeOut(BytecodeContext bc, int mode) {
+		GeneratorAdapter adapter = bc.getAdapter();
+		adapter.push(i);
+		if (mode == MODE_REF) {
+			adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_INTEGER_FROM_INT);
+			return Types.INTEGER;
+		}
+		return Types.INT_VALUE;
+	}
+
+	@Override
+	public Boolean getBoolean(Boolean defaultValue) {
+		return getBoolean();
+	}
 }

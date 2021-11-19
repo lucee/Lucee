@@ -24,56 +24,56 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * class to make a enumaration from a ser, map or iterator
+ * class to make an enumaration from a ser, map or iterator
  */
 public final class EnumerationWrapper<E> implements Enumeration<E> {
 
-    private Iterator<E> it;
+	private Iterator<E> it;
 
-    /**
-     * @param map Constructor with a Map
-     */
-    public EnumerationWrapper(Map<E, ?> map) {
-	this(map.keySet().iterator());
-    }
+	/**
+	 * @param map Constructor with a Map
+	 */
+	public EnumerationWrapper(Map<E, ?> map) {
+		this(map.keySet().iterator());
+	}
 
-    /**
-     * @param set Constructor with a Set
-     */
-    public EnumerationWrapper(Set<E> set) {
-	this(set.iterator());
-    }
+	/**
+	 * @param set Constructor with a Set
+	 */
+	public EnumerationWrapper(Set<E> set) {
+		this(set.iterator());
+	}
 
-    /**
-     * Constructor of the class
-     * 
-     * @param objs
-     */
-    public EnumerationWrapper(E[] objs) {
-	this(new ArrayIterator(objs));
-    }
+	/**
+	 * Constructor of the class
+	 * 
+	 * @param objs
+	 */
+	public EnumerationWrapper(E[] objs) {
+		this(new ArrayIterator(objs));
+	}
 
-    /**
-     * @param it Constructor with a iterator
-     */
-    public EnumerationWrapper(Iterator<E> it) {
-	this.it = it;
-    }
+	/**
+	 * @param it Constructor with an iterator
+	 */
+	public EnumerationWrapper(Iterator<E> it) {
+		this.it = it;
+	}
 
-    /**
-     * @see java.util.Enumeration#hasMoreElements()
-     */
-    @Override
-    public boolean hasMoreElements() {
-	return it.hasNext();
-    }
+	/**
+	 * @see java.util.Enumeration#hasMoreElements()
+	 */
+	@Override
+	public boolean hasMoreElements() {
+		return it.hasNext();
+	}
 
-    /**
-     * @see java.util.Enumeration#nextElement()
-     */
-    @Override
-    public E nextElement() {
-	return it.next();
-    }
+	/**
+	 * @see java.util.Enumeration#nextElement()
+	 */
+	@Override
+	public E nextElement() {
+		return it.next();
+	}
 
 }

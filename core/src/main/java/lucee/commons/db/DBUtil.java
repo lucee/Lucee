@@ -29,72 +29,71 @@ import lucee.commons.lang.ExceptionUtil;
  */
 public final class DBUtil {
 
-    public static void setAutoCommitEL(Connection conn, boolean b) {
-	try {
+	public static void setAutoCommitEL(Connection conn, boolean b) {
+		try {
 
-	    if (conn != null) conn.setAutoCommit(b);
+			if (conn != null) conn.setAutoCommit(b);
+		}
+		catch (Throwable e) {
+			ExceptionUtil.rethrowIfNecessary(e);
+		}
 	}
-	catch (Throwable e) {
-	    ExceptionUtil.rethrowIfNecessary(e);
-	}
-    }
 
-    public static void setReadOnlyEL(Connection conn, boolean b) {
-	try {
-	    if (conn != null) conn.setReadOnly(b);
+	public static void setReadOnlyEL(Connection conn, boolean b) {
+		try {
+			if (conn != null) conn.setReadOnly(b);
+		}
+		catch (Throwable e) {
+			ExceptionUtil.rethrowIfNecessary(e);
+		}
 	}
-	catch (Throwable e) {
-	    ExceptionUtil.rethrowIfNecessary(e);
-	}
-    }
 
-    public static void commitEL(Connection conn) {
-	try {
-	    if (conn != null) conn.commit();
+	public static void commitEL(Connection conn) {
+		try {
+			if (conn != null) conn.commit();
+		}
+		catch (Throwable e) {
+			ExceptionUtil.rethrowIfNecessary(e);
+		}
 	}
-	catch (Throwable e) {
-	    ExceptionUtil.rethrowIfNecessary(e);
-	}
-    }
 
-    public static void setTransactionIsolationEL(Connection conn, int level) {
-	try {
-	    if (conn != null) conn.setTransactionIsolation(level);
+	public static void setTransactionIsolationEL(Connection conn, int level) {
+		try {
+			if (conn != null) conn.setTransactionIsolation(level);
+		}
+		catch (Exception e) {
+		}
 	}
-	catch (Throwable e) {
-	    ExceptionUtil.rethrowIfNecessary(e);
-	}
-    }
 
-    public static void closeEL(Statement stat) {
-	if (stat != null) {
-	    try {
-		stat.close();
-	    }
-	    catch (Throwable t) {
-		ExceptionUtil.rethrowIfNecessary(t);
-	    }
+	public static void closeEL(Statement stat) {
+		if (stat != null) {
+			try {
+				stat.close();
+			}
+			catch (Throwable t) {
+				ExceptionUtil.rethrowIfNecessary(t);
+			}
+		}
 	}
-    }
 
-    public static void closeEL(ResultSet rs) {
-	if (rs != null) {
-	    try {
-		rs.close();
-	    }
-	    catch (Throwable t) {
-		ExceptionUtil.rethrowIfNecessary(t);
-	    }
+	public static void closeEL(ResultSet rs) {
+		if (rs != null) {
+			try {
+				rs.close();
+			}
+			catch (Throwable t) {
+				ExceptionUtil.rethrowIfNecessary(t);
+			}
+		}
 	}
-    }
 
-    /*
-     * public static Connection getConnection(String connStr, String user, String pass) throws
-     * SQLException { try { return new ConnectionProxy(new StateFactory(),
-     * DriverManager.getConnection(connStr, user, pass)); } catch (SQLException e) {
-     * 
-     * if(connStr.indexOf('?')!=-1) { connStr=connStr+"&user="+user+"&password="+pass; return new
-     * ConnectionProxy(new StateFactory(), DriverManager.getConnection(connStr)); } throw e; } }
-     */
+	/*
+	 * public static Connection getConnection(String connStr, String user, String pass) throws
+	 * SQLException { try { return new ConnectionProxy(new StateFactory(),
+	 * DriverManager.getConnection(connStr, user, pass)); } catch (SQLException e) {
+	 * 
+	 * if(connStr.indexOf('?')!=-1) { connStr=connStr+"&user="+user+"&password="+pass; return new
+	 * ConnectionProxy(new StateFactory(), DriverManager.getConnection(connStr)); } throw e; } }
+	 */
 
 }

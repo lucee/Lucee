@@ -30,25 +30,25 @@ import lucee.runtime.type.dt.DateTime;
 import lucee.runtime.type.dt.DateTimeImpl;
 
 public final class Beat implements Function {
-    private static final double day = 86400000;
-    private static final TimeZone BMD = TimeZone.getTimeZone("GMT+1");
+	private static final double day = 86400000;
+	private static final TimeZone BMD = TimeZone.getTimeZone("GMT+1");
 
-    public static double call(PageContext pc) throws PageException {
-	return call(pc, null);
-    }
+	public static double call(PageContext pc) throws PageException {
+		return call(pc, null);
+	}
 
-    public static double call(PageContext pc, Object obj) throws PageException {
-	if (obj == null) obj = new DateTimeImpl(pc);
+	public static double call(PageContext pc, Object obj) throws PageException {
+		if (obj == null) obj = new DateTimeImpl(pc);
 
-	TimeZone tz = ThreadLocalPageContext.getTimeZone(pc);
-	DateTime date = DateCaster.toDateAdvanced(obj, tz);
-	return format(date.getTime());
-    }
+		TimeZone tz = ThreadLocalPageContext.getTimeZone(pc);
+		DateTime date = DateCaster.toDateAdvanced(obj, tz);
+		return format(date.getTime());
+	}
 
-    public static double format(long time) {
+	public static double format(long time) {
 
-	long millisInDay = DateTimeUtil.getInstance().getMilliSecondsInDay(BMD, time);
-	double res = (millisInDay / day) * 1000;
-	return ((int) (res * 1000)) / 1000D;
-    }
+		long millisInDay = DateTimeUtil.getInstance().getMilliSecondsInDay(BMD, time);
+		double res = (millisInDay / day) * 1000;
+		return ((int) (res * 1000)) / 1000D;
+	}
 }

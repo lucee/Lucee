@@ -33,31 +33,31 @@ import lucee.runtime.op.Caster;
 
 public final class WriteOutput extends BIF {
 
-    public static boolean call(PageContext pc, String string) throws PageException {
-	try {
-	    pc.forceWrite(string);
+	public static boolean call(PageContext pc, String string) throws PageException {
+		try {
+			pc.forceWrite(string);
+		}
+		catch (IOException e) {
+			throw Caster.toPageException(e);
+		}
+		return true;
 	}
-	catch (IOException e) {
-	    throw Caster.toPageException(e);
-	}
-	return true;
-    }
 
-    public static boolean call(PageContext pc, String string, String encodeFor) throws PageException {
-	try {
-	    if (!StringUtil.isEmpty(string)) pc.forceWrite(ESAPIUtil.esapiEncode(pc, encodeFor, string));
-	    else pc.forceWrite(string);
+	public static boolean call(PageContext pc, String string, String encodeFor) throws PageException {
+		try {
+			if (!StringUtil.isEmpty(string)) pc.forceWrite(ESAPIUtil.esapiEncode(pc, encodeFor, string));
+			else pc.forceWrite(string);
+		}
+		catch (IOException e) {
+			throw Caster.toPageException(e);
+		}
+		return true;
 	}
-	catch (IOException e) {
-	    throw Caster.toPageException(e);
-	}
-	return true;
-    }
 
-    @Override
-    public Object invoke(PageContext pc, Object[] args) throws PageException {
-	if (args.length == 2) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]));
-	if (args.length == 1) return call(pc, Caster.toString(args[0]));
-	throw new FunctionException(pc, "WriteOutput", 1, 2, args.length);
-    }
+	@Override
+	public Object invoke(PageContext pc, Object[] args) throws PageException {
+		if (args.length == 2) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]));
+		if (args.length == 1) return call(pc, Caster.toString(args[0]));
+		throw new FunctionException(pc, "WriteOutput", 1, 2, args.length);
+	}
 }

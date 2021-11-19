@@ -29,26 +29,26 @@ import lucee.runtime.op.Castable;
  */
 public abstract class DateTime extends Date implements Dumpable, Castable, Serializable {
 
-    private static final long serialVersionUID = 2248055338411091647L;
+	private static final long serialVersionUID = 2248055338411091647L;
 
-    /**
-     * constructor of the class
-     * 
-     * @param time
-     */
-    public DateTime(final long time) {
-	super(time);
-    }
+	/**
+	 * constructor of the class
+	 * 
+	 * @param time time
+	 */
+	public DateTime(final long time) {
+		super(time);
+	}
 
-    /**
-     * constructor of the class
-     */
-    public DateTime() {
-	super();
-    }
+	/**
+	 * constructor of the class
+	 */
+	public DateTime() {
+		super();
+	}
 
-    /**
-     * @return returns the CFML type double value represent a date
-     */
-    public abstract double toDoubleValue();
+	/**
+	 * @return returns the CFML type double value represent a date
+	 */
+	public abstract double toDoubleValue();
 }

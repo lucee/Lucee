@@ -19,9 +19,8 @@ package lucee.runtime.functions.cache;
 
 import lucee.runtime.PageContext;
 import lucee.runtime.cache.CacheUtil;
-import lucee.runtime.config.ConfigWebImpl;
 import lucee.runtime.config.Password;
-import lucee.runtime.config.XMLConfigAdmin;
+import lucee.runtime.config.ConfigAdmin;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
@@ -34,27 +33,27 @@ import lucee.runtime.op.Caster;
  */
 public class CacheRegionExists extends BIF {
 
-    private static final long serialVersionUID = 5966166102856736134L;
+	private static final long serialVersionUID = 5966166102856736134L;
 
-    public static boolean call(PageContext pc, String cacheName, String strWebAdminPassword) throws PageException {
-	Password webAdminPassword = CacheUtil.getPassword(pc, strWebAdminPassword, false);
-	try {
-	    XMLConfigAdmin adminConfig = XMLConfigAdmin.newInstance((ConfigWebImpl) pc.getConfig(), webAdminPassword);
-	    return adminConfig.cacheConnectionExists(cacheName);
+	public static boolean call(PageContext pc, String cacheName, String strWebAdminPassword) throws PageException {
+		Password webAdminPassword = CacheUtil.getPassword(pc, strWebAdminPassword, false);
+		try {
+			ConfigAdmin adminConfig = ConfigAdmin.newInstance(pc.getConfig(), webAdminPassword);
+			return adminConfig.cacheConnectionExists(cacheName);
+		}
+		catch (Exception e) {
+			throw Caster.toPageException(e);
+		}
 	}
-	catch (Exception e) {
-	    throw Caster.toPageException(e);
+
+	public static boolean call(PageContext pc, String cacheName) throws PageException {
+		return call(pc, cacheName, null);
 	}
-    }
 
-    public static boolean call(PageContext pc, String cacheName) throws PageException {
-	return call(pc, cacheName, null);
-    }
-
-    @Override
-    public Object invoke(PageContext pc, Object[] args) throws PageException {
-	if (args.length == 1) return call(pc, Caster.toString(args[0]));
-	if (args.length == 2) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]));
-	throw new FunctionException(pc, "CacheRegionExists", 0, 1, args.length);
-    }
+	@Override
+	public Object invoke(PageContext pc, Object[] args) throws PageException {
+		if (args.length == 1) return call(pc, Caster.toString(args[0]));
+		if (args.length == 2) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]));
+		throw new FunctionException(pc, "CacheRegionExists", 0, 1, args.length);
+	}
 }

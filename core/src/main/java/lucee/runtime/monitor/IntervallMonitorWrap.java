@@ -28,40 +28,40 @@ import lucee.runtime.op.Caster;
 import lucee.runtime.type.Query;
 
 public class IntervallMonitorWrap extends MonitorWrap implements IntervallMonitor {
-    private static final Object[] PARAMS_LOG = new Object[0];
+	private static final Object[] PARAMS_LOG = new Object[0];
 
-    private Method log;
-    private Method getData;
+	private Method log;
+	private Method getData;
 
-    public IntervallMonitorWrap(Object monitor) {
-	super(monitor, TYPE_INTERVAL);
-    }
-
-    @Override
-    public void log() throws IOException {
-
-	try {
-	    if (log == null) {
-		log = monitor.getClass().getMethod("log", new Class[0]);
-	    }
-	    log.invoke(monitor, PARAMS_LOG);
+	public IntervallMonitorWrap(Object monitor) {
+		super(monitor, TYPE_INTERVAL);
 	}
-	catch (Exception e) {
-	    throw ExceptionUtil.toIOException(e);
-	}
-    }
 
-    @Override
-    public Query getData(Map<String, Object> arguments) throws PageException {
-	try {
-	    if (getData == null) {
-		getData = monitor.getClass().getMethod("getData", new Class[] { Map.class });
-	    }
-	    return (Query) getData.invoke(monitor, new Object[] { arguments });
+	@Override
+	public void log() throws IOException {
+
+		try {
+			if (log == null) {
+				log = monitor.getClass().getMethod("log", new Class[0]);
+			}
+			log.invoke(monitor, PARAMS_LOG);
+		}
+		catch (Exception e) {
+			throw ExceptionUtil.toIOException(e);
+		}
 	}
-	catch (Exception e) {
-	    throw Caster.toPageException(e);
+
+	@Override
+	public Query getData(Map<String, Object> arguments) throws PageException {
+		try {
+			if (getData == null) {
+				getData = monitor.getClass().getMethod("getData", new Class[] { Map.class });
+			}
+			return (Query) getData.invoke(monitor, new Object[] { arguments });
+		}
+		catch (Exception e) {
+			throw Caster.toPageException(e);
+		}
 	}
-    }
 
 }

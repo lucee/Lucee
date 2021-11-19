@@ -21,9 +21,9 @@ import java.io.IOException;
 
 public final class ClassException extends IOException {
 
-    private static final long serialVersionUID = 5593538081687614284L;
+	private static final long serialVersionUID = 5593538081687614284L;
 
-    public ClassException(final String message) {
-	super(message);
-    }
+	public ClassException(final String message) {
+		super(message);
+	}
 }

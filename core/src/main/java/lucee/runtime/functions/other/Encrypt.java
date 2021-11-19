@@ -33,51 +33,51 @@ import lucee.runtime.op.Caster;
 
 public final class Encrypt implements Function {
 
-    private static final long serialVersionUID = -4144513980542568375L;
+	private static final long serialVersionUID = -4144513980542568375L;
 
-    public static String call(PageContext pc, String input, String key) throws PageException {
-	return invoke(input, key, CFMXCompat.ALGORITHM_NAME, Cryptor.DEFAULT_ENCODING, null, 0);
-    }
-
-    public static String call(PageContext pc, String input, String key, String algorithm) throws PageException {
-	return invoke(input, key, algorithm, Cryptor.DEFAULT_ENCODING, null, 0);
-    }
-
-    public static String call(PageContext pc, String input, String key, String algorithm, String encoding) throws PageException {
-	return invoke(input, key, algorithm, encoding, null, 0);
-    }
-
-    public static String call(PageContext pc, String input, String key, String algorithm, String encoding, Object ivOrSalt) throws PageException {
-	return invoke(input, key, algorithm, encoding, ivOrSalt, 0);
-    }
-
-    public static String call(PageContext pc, String input, String key, String algorithm, String encoding, Object ivOrSalt, double iterations) throws PageException {
-	return invoke(input, key, algorithm, encoding, ivOrSalt, Caster.toInteger(iterations));
-    }
-
-    public static String invoke(String input, String key, String algorithm, String encoding, Object ivOrSalt, int iterations) throws PageException {
-	try {
-	    if ("RSA".equalsIgnoreCase(algorithm)) {
-		return Coder.encode(encoding, RSA.encrypt(input.getBytes(Cryptor.DEFAULT_CHARSET), RSA.toKey(key)));
-	    }
-	    else if (CFMXCompat.isCfmxCompat(algorithm))
-		return Coder.encode(encoding, new CFMXCompat().transformString(Caster.toString(key), input.getBytes(Cryptor.DEFAULT_CHARSET)));
-
-	    byte[] baIVS = null;
-	    if (ivOrSalt instanceof String) baIVS = ((String) ivOrSalt).getBytes(Cryptor.DEFAULT_CHARSET);
-	    else if (ivOrSalt != null) baIVS = Caster.toBinary(ivOrSalt);
-
-	    return Cryptor.encrypt(input, Caster.toString(key), algorithm, baIVS, iterations, encoding, Cryptor.DEFAULT_CHARSET);
+	public static String call(PageContext pc, String input, String key) throws PageException {
+		return invoke(input, key, CFMXCompat.ALGORITHM_NAME, Cryptor.DEFAULT_ENCODING, null, 0);
 	}
-	catch (Throwable t) {
-	    ExceptionUtil.rethrowIfNecessary(t);
-	    throw Caster.toPageException(t);
+
+	public static String call(PageContext pc, String input, String key, String algorithm) throws PageException {
+		return invoke(input, key, algorithm, Cryptor.DEFAULT_ENCODING, null, 0);
 	}
-    }
 
-    public static byte[] invoke(byte[] input, String key, String algorithm, byte[] ivOrSalt, int iterations) throws PageException {
-	if (CFMXCompat.isCfmxCompat(algorithm)) return new CFMXCompat().transformString(key, input);
+	public static String call(PageContext pc, String input, String key, String algorithm, String encoding) throws PageException {
+		return invoke(input, key, algorithm, encoding, null, 0);
+	}
 
-	return Cryptor.encrypt(input, key, algorithm, ivOrSalt, iterations);
-    }
+	public static String call(PageContext pc, String input, String key, String algorithm, String encoding, Object ivOrSalt) throws PageException {
+		return invoke(input, key, algorithm, encoding, ivOrSalt, 0);
+	}
+
+	public static String call(PageContext pc, String input, String key, String algorithm, String encoding, Object ivOrSalt, double iterations) throws PageException {
+		return invoke(input, key, algorithm, encoding, ivOrSalt, Caster.toInteger(iterations));
+	}
+
+	public static String invoke(String input, String key, String algorithm, String encoding, Object ivOrSalt, int iterations) throws PageException {
+		try {
+			if ("RSA".equalsIgnoreCase(algorithm)) {
+				return Coder.encode(encoding, RSA.encrypt(input.getBytes(Cryptor.DEFAULT_CHARSET), RSA.toKey(key)));
+			}
+			else if (CFMXCompat.isCfmxCompat(algorithm))
+				return Coder.encode(encoding, new CFMXCompat().transformString(Caster.toString(key), input.getBytes(Cryptor.DEFAULT_CHARSET)));
+
+			byte[] baIVS = null;
+			if (ivOrSalt instanceof String) baIVS = ((String) ivOrSalt).getBytes(Cryptor.DEFAULT_CHARSET);
+			else if (ivOrSalt != null) baIVS = Caster.toBinary(ivOrSalt);
+
+			return Cryptor.encrypt(input, Caster.toString(key), algorithm, baIVS, iterations, encoding, Cryptor.DEFAULT_CHARSET);
+		}
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+			throw Caster.toPageException(t);
+		}
+	}
+
+	public static byte[] invoke(byte[] input, String key, String algorithm, byte[] ivOrSalt, int iterations) throws PageException {
+		if (CFMXCompat.isCfmxCompat(algorithm)) return new CFMXCompat().transformString(key, input);
+
+		return Cryptor.encrypt(input, key, algorithm, ivOrSalt, iterations);
+	}
 }

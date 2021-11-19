@@ -32,23 +32,24 @@ import lucee.runtime.type.util.ArrayUtil;
 
 public final class ArrayReverse extends BIF {
 
-    private static final long serialVersionUID = 5418304787535992180L;
+	private static final long serialVersionUID = 5418304787535992180L;
 
-    public static Array call(PageContext pc, Array array) throws ExpressionException {
-	Array rev = ArrayUtil.getInstance(array.getDimension());
-	int len = array.size();
-	for (int i = 0; i < len; i++) {
-	    try {
-		rev.setE(len - i, array.getE(i + 1));
-	    }
-	    catch (PageException e) {}
+	public static Array call(PageContext pc, Array array) throws ExpressionException {
+		Array rev = ArrayUtil.getInstance(array.getDimension());
+		int len = array.size();
+		for (int i = 0; i < len; i++) {
+			try {
+				rev.setE(len - i, array.getE(i + 1));
+			}
+			catch (PageException e) {
+			}
+		}
+		return rev;
 	}
-	return rev;
-    }
 
-    @Override
-    public Object invoke(PageContext pc, Object[] args) throws PageException {
-	if (args.length == 1) return call(pc, Caster.toArray(args[0]));
-	else throw new FunctionException(pc, "ArrayReverse", 1, 1, args.length);
-    }
+	@Override
+	public Object invoke(PageContext pc, Object[] args) throws PageException {
+		if (args.length == 1) return call(pc, Caster.toArray(args[0]));
+		else throw new FunctionException(pc, "ArrayReverse", 1, 1, args.length);
+	}
 }

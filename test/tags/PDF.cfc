@@ -16,7 +16,7 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  * 
  ---><cfscript>
-component extends="org.lucee.cfml.test.LuceeTestCase"	{
+component extends="org.lucee.cfml.test.LuceeTestCase"  labels="pdf"	{
 	public void function testPDFParam(){
 		try {
 			document format="pdf" pagetype="A4" orientation="portrait" filename="test1.pdf" overwrite="true" {
@@ -44,7 +44,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		}
 	}
 
-	private void function testPDFProtect(){
+	public void function testPDFProtect(){
 		try {
 			document format="pdf" pagetype="A4" orientation="portrait" filename="test-protect.pdf" overwrite="true" {
 				echo("<p>This is where mickey mouse lives</p>");
@@ -55,6 +55,22 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		}
 		finally {
 			if(fileExists("test-protect.pdf"))fileDelete("test-protect.pdf");
+		}
+	}
+
+
+	public void function testPDFOpen(){
+		try {
+			document format="pdf" pagetype="A4" orientation="portrait" filename="test-protect2.pdf" overwrite="true" {
+				echo("<p>This is where mickey mouse lives</p>");
+			}
+			pdf action="protect" encrypt="AES_128" source="test-protect2.pdf" newUserPassword="PDFPassword";
+			cfpdf(action="open" source="test-protect2.pdf" password="PDFPassword" destination="test-unprotect.pdf" overwrite="yes");
+			cfpdf(action="read" source="test-unprotect.pdf" name="local.pdf");
+		}
+		finally {
+			if(fileExists("test-protect2.pdf"))fileDelete("test-protect2.pdf");
+			if(fileExists("test-unprotect.pdf"))fileDelete("test-unprotect.pdf");
 		}
 	}
 } 

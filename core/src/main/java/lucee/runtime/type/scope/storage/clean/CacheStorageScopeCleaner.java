@@ -29,108 +29,109 @@ import lucee.commons.io.cache.Cache;
 import lucee.commons.io.cache.CacheEntry;
 import lucee.commons.io.cache.CacheKeyFilter;
 import lucee.runtime.cache.CacheConnection;
-import lucee.runtime.config.ConfigWebImpl;
-import lucee.runtime.type.scope.storage.StorageScopeCache;
+import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.type.scope.storage.StorageScopeEngine;
 import lucee.runtime.type.scope.storage.StorageScopeListener;
 
 public class CacheStorageScopeCleaner extends StorageScopeCleanerSupport {
 
-    private Filter filter;
+	public static final long SAVE_EXPIRES_OFFSET = 60 * 60 * 1000;
 
-    public CacheStorageScopeCleaner(int type, StorageScopeListener listener) {
-	super(type, listener, INTERVALL_MINUTE);
-	// this.strType=VariableInterpreter.scopeInt2String(type);
-	filter = new Filter(strType);
-    }
+	private Filter filter;
 
-    @Override
-    public void init(StorageScopeEngine engine) {
-	super.init(engine);
-
-    }
-
-    @Override
-    protected void _clean() {
-	ConfigWebImpl config = (ConfigWebImpl) engine.getFactory().getConfig();
-	Map<String, CacheConnection> connections = config.getCacheConnections();
-	CacheConnection cc;
-
-	if (connections != null) {
-	    Map.Entry<String, CacheConnection> entry;
-	    Iterator<Entry<String, CacheConnection>> it = connections.entrySet().iterator();
-	    while (it.hasNext()) {
-		entry = it.next();
-		cc = entry.getValue();
-		if (cc.isStorage()) {
-		    try {
-			clean(cc, config);
-		    }
-		    catch (IOException e) {
-			error(e);
-		    }
-		}
-	    }
-	}
-
-    }
-
-    private void clean(CacheConnection cc, ConfigWebImpl config) throws IOException {
-	Cache cache = cc.getInstance(config);
-	int len = filter.length(), index;
-	List<CacheEntry> entries = cache.entries(filter);
-	CacheEntry ce;
-	long expires;
-
-	String key, appname, cfid;
-	if (entries.size() > 0) {
-	    Iterator<CacheEntry> it = entries.iterator();
-	    while (it.hasNext()) {
-		ce = it.next();
-
-		Date lm = ce.lastModified();
-		long time = lm != null ? lm.getTime() : 0;
-
-		expires = time + ce.idleTimeSpan() - StorageScopeCache.SAVE_EXPIRES_OFFSET;
-		if (expires <= System.currentTimeMillis()) {
-		    key = ce.getKey().substring(len);
-		    index = key.indexOf(':');
-		    cfid = key.substring(0, index);
-		    appname = key.substring(index + 1);
-
-		    if (listener != null) listener.doEnd(engine, this, appname, cfid);
-		    info("remove " + strType + "/" + appname + "/" + cfid + " from cache " + cc.getName());
-		    engine.remove(type, appname, cfid);
-		    cache.remove(ce.getKey());
-		}
-	    }
-	}
-
-	// engine.remove(type,appName,cfid);
-
-	// return (Struct) cache.getValue(key,null);
-    }
-
-    public static class Filter implements CacheKeyFilter {
-	private String startsWith;
-
-	public Filter(String type) {
-	    startsWith = new StringBuilder("lucee-storage:").append(type).append(":").toString().toUpperCase();
+	public CacheStorageScopeCleaner(int type, StorageScopeListener listener) {
+		super(type, listener, INTERVALL_MINUTE);
+		// this.strType=VariableInterpreter.scopeInt2String(type);
+		filter = new Filter(strType);
 	}
 
 	@Override
-	public String toPattern() {
-	    return startsWith + "*";
+	public void init(StorageScopeEngine engine) {
+		super.init(engine);
+
 	}
 
 	@Override
-	public boolean accept(String key) {
-	    return key.startsWith(startsWith);
+	protected void _clean() {
+		ConfigWeb config = engine.getFactory().getConfig();
+		Map<String, CacheConnection> connections = config.getCacheConnections();
+		CacheConnection cc;
+
+		if (connections != null) {
+			Map.Entry<String, CacheConnection> entry;
+			Iterator<Entry<String, CacheConnection>> it = connections.entrySet().iterator();
+			while (it.hasNext()) {
+				entry = it.next();
+				cc = entry.getValue();
+				if (cc.isStorage()) {
+					try {
+						clean(cc, config);
+					}
+					catch (IOException e) {
+						error(e);
+					}
+				}
+			}
+		}
+
 	}
 
-	public int length() {
-	    return startsWith.length();
+	private void clean(CacheConnection cc, ConfigWeb config) throws IOException {
+		Cache cache = cc.getInstance(config);
+		int len = filter.length(), index;
+		List<CacheEntry> entries = cache.entries(filter);
+		CacheEntry ce;
+		long expires;
+
+		String key, appname, cfid;
+		if (entries.size() > 0) {
+			Iterator<CacheEntry> it = entries.iterator();
+			while (it.hasNext()) {
+				ce = it.next();
+
+				Date lm = ce.lastModified();
+				long time = lm != null ? lm.getTime() : 0;
+
+				expires = time + ce.idleTimeSpan() - SAVE_EXPIRES_OFFSET;
+				if (expires <= System.currentTimeMillis()) {
+					key = ce.getKey().substring(len);
+					index = key.indexOf(':');
+					cfid = key.substring(0, index);
+					appname = key.substring(index + 1);
+
+					if (listener != null) listener.doEnd(engine, this, appname, cfid);
+					info("remove " + strType + "/" + appname + "/" + cfid + " from cache " + cc.getName());
+					engine.remove(type, appname, cfid);
+					cache.remove(ce.getKey());
+				}
+			}
+		}
+
+		// engine.remove(type,appName,cfid);
+
+		// return (Struct) cache.getValue(key,null);
 	}
 
-    }
+	public static class Filter implements CacheKeyFilter {
+		private String startsWith;
+
+		public Filter(String type) {
+			startsWith = new StringBuilder("lucee-storage:").append(type).append(":").toString().toUpperCase();
+		}
+
+		@Override
+		public String toPattern() {
+			return startsWith + "*";
+		}
+
+		@Override
+		public boolean accept(String key) {
+			return key.startsWith(startsWith);
+		}
+
+		public int length() {
+			return startsWith.length();
+		}
+
+	}
 }

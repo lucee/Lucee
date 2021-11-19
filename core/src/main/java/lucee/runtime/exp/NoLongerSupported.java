@@ -18,7 +18,7 @@
 package lucee.runtime.exp;
 
 public class NoLongerSupported extends RuntimeException {
-    public NoLongerSupported() {
-	super("no longer supported!");
-    }
+	public NoLongerSupported() {
+		super("no longer supported!");
+	}
 }

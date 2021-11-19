@@ -18,6 +18,8 @@
  **/
 package lucee.transformer.cfml.evaluator.impl;
 
+import java.util.concurrent.ThreadLocalRandom;
+
 import lucee.runtime.op.Caster;
 import lucee.transformer.bytecode.statement.tag.Attribute;
 import lucee.transformer.bytecode.statement.tag.Tag;
@@ -26,8 +28,8 @@ import lucee.transformer.cfml.evaluator.EvaluatorSupport;
 
 public class Lock extends EvaluatorSupport {
 
-    @Override
-    public void evaluate(Tag tag) throws EvaluatorException {
-	tag.addAttribute(new Attribute(false, "id", tag.getFactory().createLitString(Caster.toString((int) (Math.random() * 100000))), "string"));
-    }
+	@Override
+	public void evaluate(Tag tag) throws EvaluatorException {
+		tag.addAttribute(new Attribute(false, "id", tag.getFactory().createLitString(Caster.toString(ThreadLocalRandom.current().nextInt(100000))), "string"));
+	}
 }

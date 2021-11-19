@@ -30,29 +30,29 @@ import lucee.runtime.op.Caster;
  */
 public final class DynAssign extends RefSupport implements Ref {
 
-    private Ref value;
-    private Ref key;
-    private final boolean limited;
+	private Ref value;
+	private Ref key;
+	private final boolean limited;
 
-    /**
-     * @param pc
-     * @param key
-     * @param value
-     */
-    public DynAssign(Ref key, Ref value, boolean limited) {
-	this.key = key;
-	this.value = value;
-	this.limited = limited;
-    }
+	/**
+	 * @param pc
+	 * @param key
+	 * @param value
+	 */
+	public DynAssign(Ref key, Ref value, boolean limited) {
+		this.key = key;
+		this.value = value;
+		this.limited = limited;
+	}
 
-    @Override
-    public Object getValue(PageContext pc) throws PageException {
-	if (limited) throw new InterpreterException("invalid syntax, variables are not supported in a json string.");
-	return pc.setVariable(Caster.toString(key.getValue(pc)), value.getValue(pc));
-    }
+	@Override
+	public Object getValue(PageContext pc) throws PageException {
+		if (limited) throw new InterpreterException("invalid syntax, variables are not supported in a json string.");
+		return pc.setVariable(Caster.toString(key.getValue(pc)), value.getValue(pc));
+	}
 
-    @Override
-    public String getTypeName() {
-	return "operation";
-    }
+	@Override
+	public String getTypeName() {
+		return "operation";
+	}
 }

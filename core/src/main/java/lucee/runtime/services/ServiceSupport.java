@@ -25,58 +25,62 @@ import coldfusion.server.Service;
 import coldfusion.server.ServiceException;
 import coldfusion.server.ServiceMetaData;
 import lucee.runtime.PageContext;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.SecurityException;
 
 public class ServiceSupport implements Service {
 
-    @Override
-    public void start() throws ServiceException {}
+	@Override
+	public void start() throws ServiceException {
+	}
 
-    @Override
-    public void stop() throws ServiceException {}
+	@Override
+	public void stop() throws ServiceException {
+	}
 
-    @Override
-    public void restart() throws ServiceException {}
+	@Override
+	public void restart() throws ServiceException {
+	}
 
-    @Override
-    public int getStatus() {
-	return STARTED;
-    }
+	@Override
+	public int getStatus() {
+		return STARTED;
+	}
 
-    @Override
-    public ServiceMetaData getMetaData() {
-	return new EmptyServiceMetaData();
-    }
+	@Override
+	public ServiceMetaData getMetaData() {
+		return new EmptyServiceMetaData();
+	}
 
-    @Override
-    public Object getProperty(String key) {
-	return null;
-    }
+	@Override
+	public Object getProperty(String key) {
+		return null;
+	}
 
-    @Override
-    public void setProperty(String key, Object value) {}
+	@Override
+	public void setProperty(String key, Object value) {
+	}
 
-    @Override
-    public Map getResourceBundle() {
-	return new HashMap();
-    }
+	@Override
+	public Map getResourceBundle() {
+		return new HashMap();
+	}
 
-    protected void checkWriteAccess() throws SecurityException {
-	ConfigWebUtil.checkGeneralWriteAccess(config(), null);
-    }
+	protected void checkWriteAccess() throws SecurityException {
+		ConfigWebUtil.checkGeneralWriteAccess(config(), null);
+	}
 
-    protected void checkReadAccess() throws SecurityException {
-	ConfigWebUtil.checkGeneralReadAccess(config(), null);
-    }
+	protected void checkReadAccess() throws SecurityException {
+		ConfigWebUtil.checkGeneralReadAccess(config(), null);
+	}
 
-    protected ConfigImpl config() {
-	return (ConfigImpl) ThreadLocalPageContext.getConfig();
-    }
+	protected ConfigPro config() {
+		return (ConfigPro) ThreadLocalPageContext.getConfig();
+	}
 
-    protected PageContext pc() {
-	return ThreadLocalPageContext.get();
-    }
+	protected PageContext pc() {
+		return ThreadLocalPageContext.get();
+	}
 }

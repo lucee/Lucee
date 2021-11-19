@@ -26,15 +26,17 @@ import lucee.runtime.PageContext;
  */
 public interface SharedScope extends Scope {
 
-    /**
-     * Initialize Scope only for this request, scope was already used
-     * 
-     * @param pc Page Context
-     */
-    public void touchBeforeRequest(PageContext pc);
+	/**
+	 * Initialize Scope only for this request, scope was already used
+	 * 
+	 * @param pc Page Context
+	 */
+	public void touchBeforeRequest(PageContext pc);
 
-    /**
-     * release scope only for current request, scope will be used again
-     */
-    public void touchAfterRequest(PageContext pc);
+	/**
+	 * release scope only for current request, scope will be used again
+	 * 
+	 * @param pc Page Context
+	 */
+	public void touchAfterRequest(PageContext pc);
 }

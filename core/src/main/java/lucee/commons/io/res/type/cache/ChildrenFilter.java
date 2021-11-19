@@ -23,20 +23,20 @@ import lucee.commons.lang.StringUtil;
 
 public class ChildrenFilter implements CacheKeyFilter {
 
-    private String path;
+	private String path;
 
-    public ChildrenFilter(String path) {
-	this.path = (StringUtil.endsWith(path, '/')) ? path + ":" : path + "/:";
-    }
+	public ChildrenFilter(String path) {
+		this.path = (StringUtil.endsWith(path, '/')) ? path + ":" : path + "/:";
+	}
 
-    @Override
-    public boolean accept(String key) {
-	return key.startsWith(path);
-    }
+	@Override
+	public boolean accept(String key) {
+		return key.startsWith(path);
+	}
 
-    @Override
-    public String toPattern() {
-	return path + "*";
-    }
+	@Override
+	public String toPattern() {
+		return path + "*";
+	}
 
 }

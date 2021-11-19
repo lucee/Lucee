@@ -23,23 +23,23 @@ package lucee.runtime.cfx;
  */
 public final class CFXTagException extends Exception {
 
-    private static final long serialVersionUID = 680174337882347105L;
+	private static final long serialVersionUID = 680174337882347105L;
 
-    /**
-     * Constructor of the Exception
-     * 
-     * @param message
-     */
-    public CFXTagException(final String message) {
-	super(message);
-    }
+	/**
+	 * Constructor of the Exception
+	 * 
+	 * @param message exception message
+	 */
+	public CFXTagException(final String message) {
+		super(message);
+	}
 
-    /**
-     * Constructor of the Exception
-     * 
-     * @param e
-     */
-    public CFXTagException(final Throwable e) {
-	super(e.getClass().getName() + ":" + e.getMessage());
-    }
+	/**
+	 * Constructor of the Exception
+	 * 
+	 * @param e exception
+	 */
+	public CFXTagException(final Throwable e) {
+		super(e.getClass().getName() + ":" + e.getMessage());
+	}
 }

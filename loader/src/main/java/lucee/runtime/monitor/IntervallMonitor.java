@@ -26,7 +26,7 @@ import lucee.runtime.type.Query;
 
 public interface IntervallMonitor extends Monitor {
 
-    public void log() throws IOException;
+	public void log() throws IOException;
 
-    public Query getData(Map<String, Object> arguments) throws PageException;
+	public Query getData(Map<String, Object> arguments) throws PageException;
 }

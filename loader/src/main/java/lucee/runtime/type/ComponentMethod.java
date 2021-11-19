@@ -22,7 +22,7 @@ import lucee.runtime.Component;
 
 public interface ComponentMethod extends UDF {
 
-    public Component getComponent();
+	public Component getComponent();
 
-    public UDF getUserDefinedFunction();
+	public UDF getUserDefinedFunction();
 }

@@ -27,12 +27,12 @@ import lucee.runtime.interpreter.ref.Ref;
  */
 public interface Literal extends Ref {
 
-    /**
-     * cast literal to a string
-     * 
-     * @return casted string
-     * @throws PageException
-     */
-    String getString(PageContext pc) throws PageException;
+	/**
+	 * cast literal to a string
+	 * 
+	 * @return casted string
+	 * @throws PageException
+	 */
+	String getString(PageContext pc) throws PageException;
 
 }

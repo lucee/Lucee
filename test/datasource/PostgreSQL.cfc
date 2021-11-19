@@ -16,7 +16,7 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  *
  ---><cfscript>
-component extends="org.lucee.cfml.test.LuceeTestCase"	{
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="postgres"	{
 
 
 	//public function afterTests(){}
@@ -95,99 +95,51 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 		assertEquals("2016-11-08", qry.election_date);
 	}
+
 	private boolean function defineDatasource42(){
-		var pgsql=getCredencials();
+		var pgsql = getCredentials();
 		if(pgsql.count()==0) return false;
-		application action="update"
-			datasource="#{
-	  class: 'org.postgresql.Driver'
-	, bundleName: 'org.postgresql.jdbc42'
-	, bundleVersion: '42.1.4'
-	, connectionString: 'jdbc:postgresql://#pgsql.server#:#pgsql.port#/#pgsql.database#'
-	, username: pgsql.username
-	, password: pgsql.password
-}#";
-	return true;
+
+		pgsql.bundleName = 'org.postgresql.jdbc42';
+		pgsql.bundleVersion = '42.1.4';
+		application action="update" datasource="#pgSQL#";
+		return true;
 	}
 
 	private boolean function defineDatasource94(){
-		var pgsql=getCredencials();
+		var pgsql = getCredentials();
 		if(pgsql.count()==0) return false;
-		application action="update"
-			datasource="#{
-	  class: 'org.postgresql.Driver'
-	, bundleName: 'org.postgresql.jdbc42'
-	, bundleVersion: '9.4.1212'
-	, connectionString: 'jdbc:postgresql://#pgsql.server#:#pgsql.port#/#pgsql.database#'
-	, username: pgsql.username
-	, password: pgsql.password
-}#";
-	return true;
+
+		pgsql.bundleName = 'org.postgresql.jdbc42';
+		pgsql.bundleVersion = '9.4.1212';
+		application action="update" datasource="#pgSQL#";
+		return true;
 	}
 
-
 	private boolean function defineDatasource83(){
-		var pgsql=getCredencials();
+		var pgsql = getCredentials();
 		if(pgsql.count()==0) return false;
-		application action="update"
-			datasource="#{
-	  class: 'org.postgresql.Driver'
-	, bundleName: 'org.lucee.postgresql'
-	, bundleVersion: '8.3.0.jdbc4'
-	, connectionString: 'jdbc:postgresql://#pgsql.server#:#pgsql.port#/#pgsql.database#'
-	, username: pgsql.username
-	, password: pgsql.password
-}#";
-	return true;
+
+		pgsql.bundleName = 'org.lucee.postgresql';
+		pgsql.bundleVersion = '8.3.0.jdbc4';
+		application action="update" datasource="#pgSQL#";
+		return true;
 	}
 
 	// bundled version
 	private boolean function defineDatasource(){
-		var pgsql=getCredencials();
+		var pgsql = getCredentials();
 		if(pgsql.count()==0) return false;
-		application action="update"
-			datasource="#{
-	  class: 'org.postgresql.Driver'
-	, connectionString: 'jdbc:postgresql://#pgsql.server#:#pgsql.port#/#pgsql.database#'
-	, username: pgsql.username
-	, password: pgsql.password
-}#";
-	return true;
+
+		structDelete(pgsql, "bundleName");
+		structDelete(pgsql, "bundleVersion");
+		application action="update" datasource="#pgsql#";
+		return true;
 	}
 
-	private struct function getCredencials() {
-		// getting the credetials from the enviroment variables
-		var pgsql={};
-		if(
-			!isNull(server.system.environment.POSTGRES_SERVER) &&
-			!isNull(server.system.environment.POSTGRES_USERNAME) &&
-			!isNull(server.system.environment.POSTGRES_PASSWORD) &&
-			!isNull(server.system.environment.POSTGRES_PORT) &&
-			!isNull(server.system.environment.POSTGRES_DATABASE)) {
-			pgsql.server=server.system.environment.POSTGRES_SERVER;
-			pgsql.username=server.system.environment.POSTGRES_USERNAME;
-			pgsql.password=server.system.environment.POSTGRES_PASSWORD;
-			pgsql.port=server.system.environment.POSTGRES_PORT;
-			pgsql.database=server.system.environment.POSTGRES_DATABASE;
-		}
-		// getting the credetials from the system variables
-		else if(
-			!isNull(server.system.properties.POSTGRES_SERVER) &&
-			!isNull(server.system.properties.POSTGRES_USERNAME) &&
-			!isNull(server.system.properties.POSTGRES_PASSWORD) &&
-			!isNull(server.system.properties.POSTGRES_PORT) &&
-			!isNull(server.system.properties.POSTGRES_DATABASE)) {
-			pgsql.server=server.system.properties.POSTGRES_SERVER;
-			pgsql.username=server.system.properties.POSTGRES_USERNAME;
-			pgsql.password=server.system.properties.POSTGRES_PASSWORD;
-			pgsql.port=server.system.properties.POSTGRES_PORT;
-			pgsql.database=server.system.properties.POSTGRES_DATABASE;
-		}
-		return pgsql;
+	private struct function getCredentials() {
+		// getting the credentials from the environment variables
+		return server.getDatasource("postgres");
 	}
-
-
-
-
 }
 </cfscript>

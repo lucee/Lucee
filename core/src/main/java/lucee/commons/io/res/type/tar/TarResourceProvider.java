@@ -26,27 +26,32 @@ import lucee.commons.io.res.type.compress.CompressResourceProvider;
 
 public final class TarResourceProvider extends CompressResourceProvider {
 
-    public TarResourceProvider() {
-	scheme = "tar";
-    }
+	public TarResourceProvider() {
+		scheme = "tar";
+	}
 
-    @Override
-    public Compress getCompress(Resource file) throws IOException {
-	return Compress.getInstance(file, Compress.FORMAT_TAR, caseSensitive);
-    }
+	@Override
+	public Compress getCompress(Resource file) throws IOException {
+		return Compress.getInstance(file, Compress.FORMAT_TAR, caseSensitive);
+	}
 
-    @Override
-    public boolean isAttributesSupported() {
-	return false;
-    }
+	@Override
+	public boolean isAttributesSupported() {
+		return false;
+	}
 
-    @Override
-    public boolean isCaseSensitive() {
-	return caseSensitive;
-    }
+	@Override
+	public boolean isCaseSensitive() {
+		return caseSensitive;
+	}
 
-    @Override
-    public boolean isModeSupported() {
-	return true;
-    }
+	@Override
+	public boolean isModeSupported() {
+		return true;
+	}
+	
+	@Override
+	public char getSeparator() {
+		return '/';
+	}
 }

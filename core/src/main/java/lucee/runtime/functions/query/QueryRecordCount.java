@@ -29,14 +29,14 @@ import lucee.runtime.type.Query;
  */
 public final class QueryRecordCount extends BIF {
 
-    private static final long serialVersionUID = -5956390806966915503L;
+	private static final long serialVersionUID = -5956390806966915503L;
 
-    public static double call(PageContext pc, Query qry) {
-	return qry.getRowCount();
-    }
+	public static double call(PageContext pc, Query qry) {
+		return qry.getRowCount();
+	}
 
-    @Override
-    public Object invoke(PageContext pc, Object[] args) throws PageException {
-	return call(pc, Caster.toQuery(args[0]));
-    }
+	@Override
+	public Object invoke(PageContext pc, Object[] args) throws PageException {
+		return call(pc, Caster.toQuery(args[0]));
+	}
 }

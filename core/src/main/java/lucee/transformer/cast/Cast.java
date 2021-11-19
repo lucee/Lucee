@@ -21,5 +21,5 @@ package lucee.transformer.cast;
 import lucee.transformer.expression.Expression;
 
 public interface Cast {
-    public Expression getExpr();
+	public Expression getExpr();
 }

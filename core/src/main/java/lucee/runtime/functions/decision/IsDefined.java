@@ -34,74 +34,74 @@ import lucee.runtime.util.VariableUtilImpl;
 
 public final class IsDefined implements Function {
 
-    private static final long serialVersionUID = -6477602189364145523L;
+	private static final long serialVersionUID = -6477602189364145523L;
 
-    public static boolean call(PageContext pc, String varName) {
-	return VariableInterpreter.isDefined(pc, varName);
-	// return pc.isDefined(varName);
-    }
-
-    public static boolean call(PageContext pc, double scope, Collection.Key key) {
-	try {
-	    Object coll = VariableInterpreter.scope(pc, (int) scope, false);
-	    if (coll == null) return false;
-	    Object _null = NullSupportHelper.NULL(pc);
-	    coll = ((VariableUtilImpl) pc.getVariableUtil()).get(pc, coll, key, _null);
-	    if (coll == _null) return false;
-	    // return pc.scope((int)scope).get(key,null)!=null;
+	public static boolean call(PageContext pc, String varName) {
+		return VariableInterpreter.isDefined(pc, varName);
+		// return pc.isDefined(varName);
 	}
-	catch (Throwable t) {
-	    ExceptionUtil.rethrowIfNecessary(t);
-	    return false;
-	}
-	return true;
-    }
 
-    public static boolean call(PageContext pc, double scope, Collection.Key[] varNames) {
-	Object defVal = NullSupportHelper.NULL(pc);
-	try {
-	    Object coll = VariableInterpreter.scope(pc, (int) scope, false);
-	    // Object coll =pc.scope((int)scope);
-	    VariableUtilImpl vu = ((VariableUtilImpl) pc.getVariableUtil());
-	    for (int i = 0; i < varNames.length; i++) {
-		coll = vu.getCollection(pc, coll, varNames[i], defVal);
-		if (coll == defVal) return false;
-	    }
+	public static boolean call(PageContext pc, double scope, Collection.Key key) {
+		try {
+			Object coll = VariableInterpreter.scope(pc, (int) scope, false);
+			if (coll == null) return false;
+			Object _null = NullSupportHelper.NULL(pc);
+			coll = ((VariableUtilImpl) pc.getVariableUtil()).get(pc, coll, key, _null);
+			if (coll == _null) return false;
+			// return pc.scope((int)scope).get(key,null)!=null;
+		}
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+			return false;
+		}
+		return true;
 	}
-	catch (Throwable t) {
-	    ExceptionUtil.rethrowIfNecessary(t);
-	    return false;
+
+	public static boolean call(PageContext pc, double scope, Collection.Key[] varNames) {
+		Object defVal = NullSupportHelper.NULL(pc);
+		try {
+			Object coll = VariableInterpreter.scope(pc, (int) scope, false);
+			// Object coll =pc.scope((int)scope);
+			VariableUtilImpl vu = ((VariableUtilImpl) pc.getVariableUtil());
+			for (int i = 0; i < varNames.length; i++) {
+				coll = vu.getCollection(pc, coll, varNames[i], defVal);
+				if (coll == defVal) return false;
+			}
+		}
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+			return false;
+		}
+		return true;
 	}
-	return true;
-    }
 
-    // used for older compiled code in ra files
-    public static boolean invoke(PageContext pc, String[] varNames, boolean allowNull) {
-	int scope = VariableInterpreter.scopeString2Int(pc.ignoreScopes(), varNames[0]);
+	// used for older compiled code in ra files
+	public static boolean invoke(PageContext pc, String[] varNames, boolean allowNull) {
+		int scope = VariableInterpreter.scopeString2Int(pc.ignoreScopes(), varNames[0]);
 
-	Object defVal = allowNull ? Null.NULL : null;
-	try {
-	    Object coll = VariableInterpreter.scope(pc, scope, false);
-	    // Object coll =pc.scope((int)scope);
-	    for (int i = scope == Scope.SCOPE_UNDEFINED ? 0 : 1; i < varNames.length; i++) {
-		coll = pc.getVariableUtil().getCollection(pc, coll, varNames[i], defVal);
-		if (coll == defVal) return false;
-	    }
+		Object defVal = allowNull ? Null.NULL : null;
+		try {
+			Object coll = VariableInterpreter.scope(pc, scope, false);
+			// Object coll =pc.scope((int)scope);
+			for (int i = scope == Scope.SCOPE_UNDEFINED ? 0 : 1; i < varNames.length; i++) {
+				coll = pc.getVariableUtil().getCollection(pc, coll, varNames[i], defVal);
+				if (coll == defVal) return false;
+			}
+		}
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+			return false;
+		}
+		return true;
 	}
-	catch (Throwable t) {
-	    ExceptionUtil.rethrowIfNecessary(t);
-	    return false;
+
+	// used for older compiled code in ra files
+	public static boolean call(PageContext pc, double scope, String key) {
+		return call(pc, scope, KeyImpl.getInstance(key));
 	}
-	return true;
-    }
 
-    // used for older compiled code in ra files
-    public static boolean call(PageContext pc, double scope, String key) {
-	return call(pc, scope, KeyImpl.getInstance(key));
-    }
-
-    // used for older compiled code in ra files
-    public static boolean call(PageContext pc, double scope, String[] varNames) {
-	return call(pc, scope, KeyImpl.toKeyArray(varNames));
-    }
+	// used for older compiled code in ra files
+	public static boolean call(PageContext pc, double scope, String[] varNames) {
+		return call(pc, scope, KeyImpl.toKeyArray(varNames));
+	}
 }

@@ -17,12 +17,12 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  * 
  ---><cfscript>
-component extends="org.lucee.cfml.test.LuceeTestCase"	{
+component extends="org.lucee.cfml.test.LuceeTestCase"  labels="mysql,orm" {
 
 	//public function setUp(){}
 
-	public void function test()  skip="notHasMySQLCredencials"{
-		//if(!hasMySQLCredencials()) return;
+	public void function testMySql()  skip="notHasMySQLCredentials"{
+		//if(!hasMySQLCredentials()) return;
 		local.uri=createURI("Jira2049/index.cfm");
 		local.result=_InternalRequest(uri);
 		assertEquals(200,result.status);
@@ -37,14 +37,14 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		assertEquals("Susix",res.author.authorName);
 	}
 
-	public void function test1(){
+	public void function testH2_1(){
 		local.uri=createURI("Jira2049.1/index.cfm");
 		local.result=_InternalRequest(uri);
 		assertEquals(200,result.status);
 		assertEquals("",trim(result.fileContent));
 	}
 
-	public void function test2(){
+	public void function testH2_2(){
 		local.uri=createURI("Jira2049.2/index.cfm");
 		local.result=_InternalRequest(uri);
 		assertEquals(200,result.status);
@@ -56,27 +56,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		return baseURI&""&calledName;
 	}
 
-
-	public boolean function notHasMySQLCredencials() {
-		// getting the credetials from the enviroment variables
-		if(
-			!isNull(server.system.environment.MYSQL_SERVER) && 
-			!isNull(server.system.environment.MYSQL_USERNAME) && 
-			!isNull(server.system.environment.MYSQL_PASSWORD) && 
-			!isNull(server.system.environment.MYSQL_PORT) && 
-			!isNull(server.system.environment.MYSQL_DATABASE)) {
-			return false;
-		}
-		// getting the credetials from the system variables
-		else if(
-			!isNull(server.system.properties.MYSQL_SERVER) && 
-			!isNull(server.system.properties.MYSQL_USERNAME) && 
-			!isNull(server.system.properties.MYSQL_PASSWORD) && 
-			!isNull(server.system.properties.MYSQL_PORT) && 
-			!isNull(server.system.properties.MYSQL_DATABASE)) {
-			return false;
-		}
-		return true;
+	public boolean function notHasMySQLCredentials() {
+		return (structCount(server.getDatasource("mysql")) eq 0);	
 	}
 	
 } 

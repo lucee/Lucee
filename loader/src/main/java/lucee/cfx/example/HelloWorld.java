@@ -27,13 +27,13 @@ import com.allaire.cfx.Response;
  */
 public final class HelloWorld implements CustomTag {
 
-    /**
-     * @see com.allaire.cfx.CustomTag#processRequest(com.allaire.cfx.Request, com.allaire.cfx.Response)
-     */
-    @Override
-    public void processRequest(final Request request, final Response response) throws Exception {
+	/**
+	 * @see com.allaire.cfx.CustomTag#processRequest(com.allaire.cfx.Request, com.allaire.cfx.Response)
+	 */
+	@Override
+	public void processRequest(final Request request, final Response response) throws Exception {
 
-	if (request.attributeExists("name")) response.write("hello " + request.getAttribute("name"));
-	else response.write("hello");
-    }
+		if (request.attributeExists("name")) response.write("hello " + request.getAttribute("name"));
+		else response.write("hello");
+	}
 }

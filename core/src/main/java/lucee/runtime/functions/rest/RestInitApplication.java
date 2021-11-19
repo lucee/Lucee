@@ -22,9 +22,9 @@ import lucee.commons.io.res.Resource;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.cache.CacheUtil;
-import lucee.runtime.config.ConfigWebImpl;
+import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.config.Password;
-import lucee.runtime.config.XMLConfigAdmin;
+import lucee.runtime.config.ConfigAdmin;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.rest.Mapping;
@@ -32,65 +32,65 @@ import lucee.runtime.rest.RestUtil;
 
 public class RestInitApplication {
 
-    public static String call(PageContext pc, String dirPath) throws PageException {
-	return _call(pc, dirPath, null, null, null);
-    }
-
-    public static String call(PageContext pc, String dirPath, String serviceMapping) throws PageException {
-	return _call(pc, dirPath, serviceMapping, null, null);
-    }
-
-    public static String call(PageContext pc, String dirPath, String serviceMapping, boolean defaultMapping) throws PageException {
-	return _call(pc, dirPath, serviceMapping, defaultMapping, null);
-    }
-
-    public static String call(PageContext pc, String dirPath, String serviceMapping, boolean defaultMapping, String webAdminPassword) throws PageException {
-	return _call(pc, dirPath, serviceMapping, defaultMapping, webAdminPassword);
-    }
-
-    public static String _call(PageContext pc, String dirPath, String serviceMapping, Boolean defaultMapping, String webAdminPassword) throws PageException {
-	if (StringUtil.isEmpty(serviceMapping, true)) {
-	    serviceMapping = pc.getApplicationContext().getName();
+	public static String call(PageContext pc, String dirPath) throws PageException {
+		return _call(pc, dirPath, null, null, null);
 	}
-	Resource dir = RestDeleteApplication.toResource(pc, dirPath);
 
-	ConfigWebImpl config = (ConfigWebImpl) pc.getConfig();
-	Mapping[] mappings = config.getRestMappings();
-	Mapping mapping;
+	public static String call(PageContext pc, String dirPath, String serviceMapping) throws PageException {
+		return _call(pc, dirPath, serviceMapping, null, null);
+	}
 
-	// id is mapping name
+	public static String call(PageContext pc, String dirPath, String serviceMapping, boolean defaultMapping) throws PageException {
+		return _call(pc, dirPath, serviceMapping, defaultMapping, null);
+	}
 
-	String virtual = serviceMapping.trim();
-	if (!virtual.startsWith("/")) virtual = "/" + virtual;
-	if (!virtual.endsWith("/")) virtual += "/";
-	boolean hasResetted = false;
-	for (int i = 0; i < mappings.length; i++) {
-	    mapping = mappings[i];
-	    if (mapping.getVirtualWithSlash().equals(virtual)) {
-		// directory has changed
-		if (!RestUtil.isMatch(pc, mapping, dir) || (defaultMapping != null && mapping.isDefault() != defaultMapping.booleanValue())) {
-		    update(pc, dir, virtual, CacheUtil.getPassword(pc, webAdminPassword, false), defaultMapping == null ? mapping.isDefault() : defaultMapping.booleanValue());
+	public static String call(PageContext pc, String dirPath, String serviceMapping, boolean defaultMapping, String webAdminPassword) throws PageException {
+		return _call(pc, dirPath, serviceMapping, defaultMapping, webAdminPassword);
+	}
+
+	public static String _call(PageContext pc, String dirPath, String serviceMapping, Boolean defaultMapping, String webAdminPassword) throws PageException {
+		if (StringUtil.isEmpty(serviceMapping, true)) {
+			serviceMapping = pc.getApplicationContext().getName();
 		}
-		mapping.reset(pc);
-		hasResetted = true;
-	    }
-	}
-	if (!hasResetted) {
-	    update(pc, dir, virtual, CacheUtil.getPassword(pc, webAdminPassword, false), defaultMapping == null ? false : defaultMapping.booleanValue());
+		Resource dir = RestDeleteApplication.toResource(pc, dirPath);
+
+		ConfigWebPro config = (ConfigWebPro) pc.getConfig();
+		Mapping[] mappings = config.getRestMappings();
+		Mapping mapping;
+
+		// id is mapping name
+
+		String virtual = serviceMapping.trim();
+		if (!virtual.startsWith("/")) virtual = "/" + virtual;
+		if (!virtual.endsWith("/")) virtual += "/";
+		boolean hasResetted = false;
+		for (int i = 0; i < mappings.length; i++) {
+			mapping = mappings[i];
+			if (mapping.getVirtualWithSlash().equals(virtual)) {
+				// directory has changed
+				if (!RestUtil.isMatch(pc, mapping, dir) || (defaultMapping != null && mapping.isDefault() != defaultMapping.booleanValue())) {
+					update(pc, dir, virtual, CacheUtil.getPassword(pc, webAdminPassword, false), defaultMapping == null ? mapping.isDefault() : defaultMapping.booleanValue());
+				}
+				mapping.reset(pc);
+				hasResetted = true;
+			}
+		}
+		if (!hasResetted) {
+			update(pc, dir, virtual, CacheUtil.getPassword(pc, webAdminPassword, false), defaultMapping == null ? false : defaultMapping.booleanValue());
+		}
+
+		return null;
 	}
 
-	return null;
-    }
-
-    private static void update(PageContext pc, Resource dir, String virtual, Password webAdminPassword, boolean defaultMapping) throws PageException {
-	try {
-	    XMLConfigAdmin admin = XMLConfigAdmin.newInstance((ConfigWebImpl) pc.getConfig(), webAdminPassword);
-	    admin.updateRestMapping(virtual, dir.getAbsolutePath(), defaultMapping);
-	    admin.storeAndReload();
+	private static void update(PageContext pc, Resource dir, String virtual, Password webAdminPassword, boolean defaultMapping) throws PageException {
+		try {
+			ConfigAdmin admin = ConfigAdmin.newInstance(pc.getConfig(), webAdminPassword);
+			admin.updateRestMapping(virtual, dir.getAbsolutePath(), defaultMapping);
+			admin.storeAndReload();
+		}
+		catch (Exception e) {
+			throw Caster.toPageException(e);
+		}
 	}
-	catch (Exception e) {
-	    throw Caster.toPageException(e);
-	}
-    }
 
 }

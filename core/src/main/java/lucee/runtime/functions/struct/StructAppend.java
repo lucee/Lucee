@@ -34,27 +34,27 @@ import lucee.runtime.type.Struct;
 
 public final class StructAppend extends BIF {
 
-    private static final long serialVersionUID = 6131382324325758447L;
+	private static final long serialVersionUID = 6131382324325758447L;
 
-    public static boolean call(PageContext pc, Struct struct1, Struct struct2) throws PageException {
-	return call(pc, struct1, struct2, true);
-    }
-
-    public static boolean call(PageContext pc, Struct struct1, Struct struct2, boolean overwrite) throws PageException {
-	Iterator<Key> it = struct2.keyIterator();
-	Key key;
-	while (it.hasNext()) {
-	    key = KeyImpl.toKey(it.next());
-	    if (overwrite || struct1.get(key, null) == null) struct1.setEL(key, struct2.get(key, null));
+	public static boolean call(PageContext pc, Struct struct1, Struct struct2) throws PageException {
+		return call(pc, struct1, struct2, true);
 	}
-	return true;
-    }
 
-    @Override
-    public Object invoke(PageContext pc, Object[] args) throws PageException {
-	if (args.length == 3) return call(pc, Caster.toStruct(args[0]), Caster.toStruct(args[1]), Caster.toBooleanValue(args[2]));
-	if (args.length == 2) return call(pc, Caster.toStruct(args[0]), Caster.toStruct(args[1]));
-	throw new FunctionException(pc, "StructAppend", 2, 3, args.length);
-    }
+	public static boolean call(PageContext pc, Struct struct1, Struct struct2, boolean overwrite) throws PageException {
+		Iterator<Key> it = struct2.keyIterator();
+		Key key;
+		while (it.hasNext()) {
+			key = KeyImpl.toKey(it.next());
+			if (overwrite || struct1.get(key, null) == null) struct1.setEL(key, struct2.get(key, null));
+		}
+		return true;
+	}
+
+	@Override
+	public Object invoke(PageContext pc, Object[] args) throws PageException {
+		if (args.length == 3) return call(pc, Caster.toStruct(args[0]), Caster.toStruct(args[1]), Caster.toBooleanValue(args[2]));
+		if (args.length == 2) return call(pc, Caster.toStruct(args[0]), Caster.toStruct(args[1]));
+		throw new FunctionException(pc, "StructAppend", 2, 3, args.length);
+	}
 
 }

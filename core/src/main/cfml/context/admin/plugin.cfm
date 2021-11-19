@@ -2,23 +2,43 @@
 <cfparam name="application.pluginLanguage.de" default="#struct()#">
 <cfparam name="application.pluginLanguage.en" default="#struct()#">
 <cfparam name="url.pluginAction" default="overview">
+<cfif url.pluginAction.len() EQ 0>
+	<cfset url.pluginAction = "overview">
+</cfif>
 <cfif not structKeyExists(url,"plugin")>
 	<cflocation url="#request.self#" addtoken="no">
 </cfif>
 
-<!--- load plugin --->
-<cfif not structKeyExists(application.plugin,url.plugin)>
-	<cfset application.plugin[url.plugin].application=struct()>
-</cfif>
-<cfif not structKeyExists(application.plugin[url.plugin],'component') or session.alwaysNew>
-	<cfset application.plugin[url.plugin].component=createObject('component','lucee_plugin_directory.'&url.plugin&'.Action')>
-	<cfset application.plugin[url.plugin].component.init(
-		application.pluginLanguage[session.lucee_admin_lang][url.plugin],
-		application.plugin[url.plugin].application)>
-</cfif>
-<cfset plugin=application.plugin[url.plugin]>
+<!--- avoid concurrency problems when resetting plugins --->
+<cflock name="lucee_admin_plugins_last_updated">
+	<cfscript>
+		if (not StructKeyExists(application.plugin, request.adminType))
+			application.plugin[request.adminType] = {};
+	</cfscript>
 
-<cfset plugin.language=application.pluginLanguage[session.lucee_admin_lang][url.plugin]>
+	<!--- load plugin --->
+	<cfif not structKeyExists(application.plugin[request.adminType], url.plugin)>
+		<cfset application.plugin[request.adminType][url.plugin].application=struct()>
+	</cfif>
+	<cfif not structKeyExists(application.plugin[request.adminType][url.plugin],'component') or session.alwaysNew>
+		<cftry>
+			<cfset application.plugin[request.adminType][url.plugin].component=createObject('component','lucee_plugin_directory.'&url.plugin&'.Action')>
+			<cfset application.plugin[request.adminType][url.plugin].mapping = "/lucee_plugin_directory">
+			<cfcatch>
+				<cfif request.adminType eq "web">
+					<!--- web contexts inherit the server context settings and plugins --->
+					<cfset application.plugin[request.adminType][url.plugin].component=createObject('component','lucee_server_plugin_directory.'&url.plugin&'.Action')>
+					<cfset application.plugin[request.adminType][url.plugin].mapping = "/lucee_server_plugin_directory">
+				</cfif>
+			</cfcatch>
+		</cftry>
+		<cfset application.plugin[request.adminType][url.plugin].component.init(
+				application.pluginLanguage[session.lucee_admin_lang][url.plugin],
+				application.plugin[request.adminType][url.plugin].application)>		
+	</cfif>
+	<cfset plugin=application.plugin[request.adminType][url.plugin]>
+	<cfset plugin.language=application.pluginLanguage[session.lucee_admin_lang][url.plugin]>
+</cflock>
 
 <cfoutput><cfif not request.disableFrame and structKeyExists(plugin.language,'text') and len(trim(plugin.language.text))>#plugin.language.text#<br /><br /></cfif></cfoutput>
 
@@ -40,11 +60,10 @@
 <cfset hasAction=structKeyExists(plugin.component,url.pluginAction)>
 
 <cfif hasAction>
-	<cfset rtnAction= plugin.component._action(url.pluginAction,lang,app,req)>
-    
+	<cfset rtnAction= plugin.component._action(url.pluginAction,lang,app,req)>    
 	<!--- cfset rtnAction= plugin.component[url.pluginAction](lang,app,req)--->
 </cfif>
-<cfif not isDefined('rtnAction')>
+<cfif rtnAction?:"".len() EQ 0>
 	<cfset rtnAction=url.pluginAction>
 </cfif>
 
@@ -54,9 +73,9 @@
 </cfif>
 
 <!--- then call display --->
-<cfset dspFile="/lucee_plugin_directory/#url.plugin#/#rtnAction#.cfm">
+<cfset dspFile="#plugin.mapping#/#url.plugin#/#rtnAction#.cfm">	
 
-<cfset hasDisplay=fileExists(expandPath(dspFile))>
+<cfset hasDisplay=fileExists(dspFile)>
 <cfif rtnAction NEQ "_none" and hasDisplay>
 	<cftry>
 		<cfset rtnAction= plugin.component._display(dspFile,lang,app,req)>
@@ -69,5 +88,5 @@
 </cfif>
 
 <cfif not hasAction and not hasDisplay>
-<cfset printError(struct(message:"there is no action [#url.pluginAction#] or diplay handler [#expandPath(dspFile)#] defined for "&url.plugin,detail:''))>
+<cfset printError(struct(message:"there is no action [#url.pluginAction#] or display handler [#expandPath(dspFile)#] defined for "&url.plugin,detail:''))>
 </cfif>

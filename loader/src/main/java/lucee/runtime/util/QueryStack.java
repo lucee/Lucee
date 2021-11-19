@@ -29,50 +29,52 @@ import lucee.runtime.type.QueryColumn;
  */
 public interface QueryStack {
 
-    /**
-     * adds a Query to the Stack
-     * 
-     * @param query
-     */
-    public abstract void addQuery(Query query);
+	/**
+	 * adds a Query to the Stack
+	 * 
+	 * @param query Query
+	 */
+	public abstract void addQuery(Query query);
 
-    /**
-     * removes a Query from Stack
-     */
-    public abstract void removeQuery();
+	/**
+	 * removes a Query from Stack
+	 */
+	public abstract void removeQuery();
 
-    /**
-     * @return returns if stack is empty or not
-     */
-    public abstract boolean isEmpty();
+	/**
+	 * @return returns if stack is empty or not
+	 */
+	public abstract boolean isEmpty();
 
-    /**
-     * loop over all Queries and return value at first occurrence
-     * 
-     * @param key column name of the value to get
-     * @return value
-     * 
-     */
-    public Object getDataFromACollection(PageContext pc, Key key, Object defaultValue);
+	/**
+	 * loop over all Queries and return value at first occurrence
+	 * 
+	 * @param pc Page Context
+	 * @param key column name of the value to get
+	 * @param defaultValue default value
+	 * @return value
+	 * 
+	 */
+	public Object getDataFromACollection(PageContext pc, Key key, Object defaultValue);
 
-    /**
-     * loop over all Queries and return value as QueryColumn at first occurrence
-     * 
-     * @param key column name of the value to get
-     * @return value
-     */
-    public abstract QueryColumn getColumnFromACollection(Collection.Key key);
+	/**
+	 * loop over all Queries and return value as QueryColumn at first occurrence
+	 * 
+	 * @param key column name of the value to get
+	 * @return value
+	 */
+	public abstract QueryColumn getColumnFromACollection(Collection.Key key);
 
-    /**
-     * clear the collection stack
-     */
-    public abstract void clear();
+	/**
+	 * clear the collection stack
+	 */
+	public abstract void clear();
 
-    /**
-     * @return returns all queries in the stack
-     */
-    public Query[] getQueries();
+	/**
+	 * @return returns all queries in the stack
+	 */
+	public Query[] getQueries();
 
-    public QueryStack duplicate(boolean deepCopy);
+	public QueryStack duplicate(boolean deepCopy);
 
 }

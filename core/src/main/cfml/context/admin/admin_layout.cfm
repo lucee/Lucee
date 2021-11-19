@@ -10,43 +10,41 @@
 
 		variables.stText = application.stText[session.lucee_admin_lang];
 		ad=request.adminType;
-		hasNavigation=len(attributes.navigation) GT 0;
-		home=request.adminType&".cfm";
+		hasNavigation = len(attributes.navigation) GT 0;
+		home = request.adminType & ".cfm";
 		homeQS = URL.keyExists("action") ? "?action=" & url.action : "";
-
-		request.mode="full";
-
-		resNameAppendix = hash(server.lucee.version&server.lucee['release-date'],'quick');
+		request.mode = "full";
+		resNameAppendix = hash(server.lucee.version & server.lucee["release-date"], "quick");
 	</cfscript>
-<cfcontent reset="yes"><!DOCTYPE HTML>
+<cfcontent reset="yes"><!DOCTYPE html>
 <cfoutput>
 <html>
 <head>
 	<title>#attributes.title# - Lucee #ucFirst(request.adminType)# Administrator</title>
-	<link rel="stylesheet" href="../res/css/admin-#resNameAppendix#.css.cfm" type="text/css">
+	<link rel="stylesheet" href="../res/css/admin6-#resNameAppendix#.css.cfm" type="text/css">
 	<meta name="robots" content="noindex,nofollow">
 	<cfhtmlhead action="flush">
 </head>
 
 <cfparam name="attributes.onload" default="">
-
-<body id="body" class="admin-#request.adminType# #request.adminType#<cfif application.adminfunctions.getdata('fullscreen') eq 1> full</cfif>" onload="#attributes.onload#">
+<cfset mode=request.singleMode?"single":request.adminType>
+<body id="body" class="admin-#mode# #mode#<cfif application.adminfunctions.getdata('fullscreen') eq 1> full</cfif>" onload="#attributes.onload#">
 	<div id="<cfif !hasNavigation>login<cfelse>layout</cfif>">
 		<table id="layouttbl">
 			<tbody>
 				<tr id="tr-header">	<!--- TODO: not sure where height of 275px is coming from? forcing here 113px/63px !--->
 					<td colspan="2">
 						<div id="header">
-							<!--- http://localhost:9090/context5/res/img/web-lucee.png.cfm --->
-							<a id="logo" class="sprite" href="#home#"></a>
-							<div id="admin-tabs" class="clearfix">
-								<a href="server.cfm#homeQS#" class="sprite server"></a>
-								<a href="web.cfm#homeQS#" class="sprite web"></a>
-							</div>
+								<a id="logo" class="sprite" href="#home#"></a>
+							<cfif not request.singleMode>
+								<div id="admin-tabs" class="clearfix">
+									<a href="server.cfm#homeQS#" class="sprite server"></a>
+									<a href="web.cfm#homeQS#" class="sprite web"></a>
+								</div>
+							</cfif>
 						</div>	<!--- #header !--->
 					</td>
 				</tr>
-
 				<tr>
 				<cfif hasNavigation>
 					<td id="navtd" class="lotd">
@@ -54,8 +52,8 @@
 							<a href="##" id="resizewin" class="sprite" title="resize window"></a>
 
 								<form method="get" action="#cgi.SCRIPT_NAME#">
-									<input type="hidden" name="action" value="admin.search" />
-									<input type="text" name="q" size="15"  class="navSearch" id="lucee-admin-search-input" placeholder="#stText.buttons.search.ucase()#" />
+									<input type="hidden" name="action" value="admin.search">
+									<input type="text" name="q" size="15"  class="navSearch" id="lucee-admin-search-input" placeholder="#stText.buttons.search.ucase()#">
 									<button type="submit" class="sprite  btn-search"><!--- <span>#stText.buttons.search# ---></span></button>
 									<!--- btn-mini title="#stText.buttons.search#" --->
 								</form>
@@ -72,8 +70,8 @@
 									<a class="sprite tooltipMe logout" href="#request.self#?action=logout" title="Logout"></a>
 									</div>
 									<!--- Favorites --->
-									<cfparam name="url.action" default="" />
-									<cfset pageIsFavorite = application.adminfunctions.isFavorite(url.action) />
+									<cfparam name="url.action" default="">
+									<cfset pageIsFavorite = application.adminfunctions.isFavorite(url.action)>
 									<div id="favorites">
 
 
@@ -88,7 +86,7 @@
 											<cfif attributes.favorites neq "">
 												#attributes.favorites#
 											<cfelse>
-												<li class="favtext"><i>No items yet.<br />Go to a page you use often, and click on "Favorites" to add it here.</i></li>
+												<li class="favtext"><i>No items yet.<br>Go to a page you use often, and click on "Favorites" to add it here.</i></li>
 											</cfif>
 										</ul>
 									</div>
@@ -106,7 +104,7 @@
 					<td class="lotd" id="copyrighttd" colspan="#hasNavigation?2:1#">
 						<div id="copyright" class="copy">
 							&copy; #year(Now())#
-							<a href="http://www.lucee.org" target="_blank">Lucee Association Switzerland</a>.
+							<a href="https://www.lucee.org" target="_blank">Lucee Association Switzerland</a>.
 							All Rights Reserved
 						</div>
 					</td>
@@ -146,6 +144,8 @@
 </cfoutput>
 	<cfset thistag.generatedcontent="">
 </cfif>
-
-<cfparam name="url.debug" default="no">
-<cfsetting showdebugoutput="#url.debug#">
+<cfparam name="session.debugEnabled" default="false">
+<cfif structKeyExists (url, "debug")>
+	<cfset session.debugEnabled = url.debug>
+</cfif>
+<cfsetting showdebugoutput="#session.debugEnabled#">

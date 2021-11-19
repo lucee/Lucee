@@ -1,7 +1,7 @@
 # How to contribute
 
 Thanks for considering contributing to the Lucee Server platform.  We love community input and we'll look at your pulls as soon as we can, but keep in mind we may not be able to merge your changes right away if they require a lot of review.
-If you have a large change, consider posting on our [mailing list](https://groups.google.com/forum/?hl=en#!forum/lucee) or [Discourse forum](http://lang.lucee.org/) first to get direction.
+If you have a large change, consider posting on our [mailing list](https://groups.google.com/forum/?hl=en#!forum/lucee) or [Discourse forum](https://lang.lucee.org/) first to get direction.
 
 # Lucee core vs extensions
 
@@ -16,11 +16,11 @@ This repo contains the code for the main Lucee engine.  If you would like to imp
 * Make sure you fill in the earliest version that you know has the issue.
 * Fork the repository on GitHub
 
-Please read our docs on working with the Lucee source code: http://docs.lucee.org/guides/working-with-source.html
+Please read our docs on working with the Lucee source code: https://docs.lucee.org/guides/working-with-source.html
 
 # Submission guidelines
 
-* Please do not send pull requests to the `master` branch.  All new develpment happens on a version branch such as `5.0` and is merged into `master` once it is released.
+* Please do not send pull requests to the `master` branch.  All new development happens on a version branch such as `5.0` and is merged into `master` once it is released.
 * Create a feature branch off the version branch for each pull you want to create.  
 * Please include the ticket number in your commit messages.
 * Make sure your branch is rebased with the latest changes  from the upstream repo before submitting your pull
@@ -29,12 +29,12 @@ Please read our docs on working with the Lucee source code: http://docs.lucee.or
 # Documentation
 
 If your change affects a documented feature of Lucee, please submit a pull to our doc site as well.  The Lucee docs are stored in a GitHub repo as markdown.
-http://docs.lucee.org/
+https://docs.lucee.org/
 
 # Additional Resources
 
-* [Lucee Site](http://lucee.org/)
-* [Lucee docs](http://docs.lucee.org/) 
+* [Lucee Site](https://lucee.org/)
+* [Lucee docs](https://docs.lucee.org/) 
 * [Bug Tracker](https://luceeserver.atlassian.net/)
 * [Mailing list](https://groups.google.com/forum/?hl=en#!forum/lucee) (For general help using Lucee)
-* [Lucee discourse forum](http://lang.lucee.org/) (For discussions about improving Lucee)
+* [Lucee discourse forum](https://dev.lucee.org/) (For discussions about improving Lucee)

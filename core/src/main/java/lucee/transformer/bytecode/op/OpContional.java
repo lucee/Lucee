@@ -33,60 +33,60 @@ import lucee.transformer.expression.Expression;
 
 public final class OpContional extends ExpressionBase {
 
-    private ExprBoolean cont;
-    private Expression left;
-    private Expression right;
+	private ExprBoolean cont;
+	private Expression left;
+	private Expression right;
 
-    /**
-     *
-     * @see lucee.transformer.bytecode.expression.ExpressionBase#_writeOut(org.objectweb.asm.commons.GeneratorAdapter,
-     *      int)
-     */
-    @Override
-    public Type _writeOut(BytecodeContext bc, int mode) throws TransformerException {
-	GeneratorAdapter adapter = bc.getAdapter();
+	/**
+	 *
+	 * @see lucee.transformer.bytecode.expression.ExpressionBase#_writeOut(org.objectweb.asm.commons.GeneratorAdapter,
+	 *      int)
+	 */
+	@Override
+	public Type _writeOut(BytecodeContext bc, int mode) throws TransformerException {
+		GeneratorAdapter adapter = bc.getAdapter();
 
-	Label yes = new Label();
-	Label end = new Label();
+		Label yes = new Label();
+		Label end = new Label();
 
-	// cont
-	ExpressionUtil.visitLine(bc, cont.getStart());
-	cont.writeOut(bc, MODE_VALUE);
-	ExpressionUtil.visitLine(bc, cont.getEnd());
-	adapter.visitJumpInsn(Opcodes.IFEQ, yes);
+		// cont
+		ExpressionUtil.visitLine(bc, cont.getStart());
+		cont.writeOut(bc, MODE_VALUE);
+		ExpressionUtil.visitLine(bc, cont.getEnd());
+		adapter.visitJumpInsn(Opcodes.IFEQ, yes);
 
-	// left
-	ExpressionUtil.visitLine(bc, left.getStart());
-	left.writeOut(bc, MODE_REF);
-	ExpressionUtil.visitLine(bc, left.getEnd());
-	adapter.visitJumpInsn(Opcodes.GOTO, end);
+		// left
+		ExpressionUtil.visitLine(bc, left.getStart());
+		left.writeOut(bc, MODE_REF);
+		ExpressionUtil.visitLine(bc, left.getEnd());
+		adapter.visitJumpInsn(Opcodes.GOTO, end);
 
-	// right
-	ExpressionUtil.visitLine(bc, right.getStart());
-	adapter.visitLabel(yes);
-	right.writeOut(bc, MODE_REF);
-	ExpressionUtil.visitLine(bc, right.getEnd());
-	adapter.visitLabel(end);
+		// right
+		ExpressionUtil.visitLine(bc, right.getStart());
+		adapter.visitLabel(yes);
+		right.writeOut(bc, MODE_REF);
+		ExpressionUtil.visitLine(bc, right.getEnd());
+		adapter.visitLabel(end);
 
-	return Types.OBJECT;
+		return Types.OBJECT;
 
-    }
+	}
 
-    private OpContional(Expression cont, Expression left, Expression right) {
-	super(left.getFactory(), left.getStart(), right.getEnd());
-	this.cont = left.getFactory().toExprBoolean(cont);
-	this.left = left;
-	this.right = right;
-    }
+	private OpContional(Expression cont, Expression left, Expression right) {
+		super(left.getFactory(), left.getStart(), right.getEnd());
+		this.cont = left.getFactory().toExprBoolean(cont);
+		this.left = left;
+		this.right = right;
+	}
 
-    public static Expression toExpr(Expression cont, Expression left, Expression right) {
-	return new OpContional(cont, left, right);
-    }
+	public static Expression toExpr(Expression cont, Expression left, Expression right) {
+		return new OpContional(cont, left, right);
+	}
 
-    /*
-     * *
-     * 
-     * @see lucee.transformer.bytecode.expression.Expression#getType() / public int getType() { return
-     * Types._BOOLEAN; }
-     */
+	/*
+	 * *
+	 * 
+	 * @see lucee.transformer.bytecode.expression.Expression#getType() / public int getType() { return
+	 * Types._BOOLEAN; }
+	 */
 }

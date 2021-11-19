@@ -26,28 +26,39 @@ import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
 import lucee.runtime.op.Caster;
+import lucee.runtime.type.util.ListUtil;
 
 public final class ListAppend extends BIF {
 
-    private static final long serialVersionUID = -4893447489733907241L;
+	private static final long serialVersionUID = -4893447489733907241L;
 
-    public static String call(PageContext pc, String list, String value, String delimiter) {
-	if (list.length() == 0) return value;
-	switch (delimiter.length()) {
-	case 0:
-	    return list;
-	case 1:
-	    return new StringBuilder(list).append(delimiter).append(value).toString();
+	public static String call(PageContext pc, String list, String value) {
+		return call(pc, list, value, ",", true);
 	}
-	return new StringBuilder(list).append(delimiter.charAt(0)).append(value).toString();
-    }
 
-    @Override
-    public Object invoke(PageContext pc, Object[] args) throws PageException {
-	if (args.length == 2) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), ",");
-	if (args.length == 3) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toString(args[2]));
+	public static String call(PageContext pc, String list, String value, String delimiter) {
+		return call(pc, list, value, delimiter, true);
+	}
 
-	throw new FunctionException(pc, "ListAppend", 2, 3, args.length);
-    }
+	public static String call(PageContext pc, String list, String value, String delimiter, boolean includeEmptyFields) {
+		if (list.length() == 0) return value;
+		if (delimiter.length() == 0) return list;
+
+		char del = delimiter.charAt(0);
+		if (!includeEmptyFields) {
+			list = ListUtil.listRemoveEmpty(list, del);
+			value = ListUtil.listRemoveEmpty(value, del);
+		}
+		return new StringBuilder(list).append(del).append(value).toString();
+	}
+
+	@Override
+	public Object invoke(PageContext pc, Object[] args) throws PageException {
+		if (args.length == 2) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), ",", true);
+		if (args.length == 3) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toString(args[2]), true);
+		if (args.length == 4) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toString(args[2]), Caster.toBooleanValue(args[3]));
+
+		throw new FunctionException(pc, "ListAppend", 2, 4, args.length);
+	}
 
 }

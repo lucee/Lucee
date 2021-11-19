@@ -27,85 +27,85 @@ import lucee.runtime.type.Collection;
  */
 public interface Reference {
 
-    /**
-     * @return returns the value of the Variable
-     * @throws PageException
-     * @deprecated use instead <code>{@link #getKey()}</code>
-     */
-    @Deprecated
-    public abstract String getKeyAsString() throws PageException;
+	/**
+	 * @return returns the value of the Variable
+	 * @throws PageException Page Exception
+	 * @deprecated use instead <code>{@link #getKey()}</code>
+	 */
+	@Deprecated
+	public abstract String getKeyAsString() throws PageException;
 
-    /**
-     * @return returns the value of the Variable
-     * @throws PageException
-     */
-    public abstract Collection.Key getKey() throws PageException;
+	/**
+	 * @return returns the value of the Variable
+	 * @throws PageException Page Exception
+	 */
+	public abstract Collection.Key getKey() throws PageException;
 
-    /**
-     * @param pc PageContext of the current Request
-     * @return returns the value of the Variable
-     * @throws PageException
-     */
-    public abstract Object get(PageContext pc) throws PageException;
+	/**
+	 * @param pc PageContext of the current Request
+	 * @return returns the value of the Variable
+	 * @throws PageException Page Exception
+	 */
+	public abstract Object get(PageContext pc) throws PageException;
 
-    /**
-     * @param pc PageContext of the current Request
-     * @param defaultValue default value
-     * @return returns the value of the Variable
-     */
-    public abstract Object get(PageContext pc, Object defaultValue);
+	/**
+	 * @param pc PageContext of the current Request
+	 * @param defaultValue default value
+	 * @return returns the value of the Variable
+	 */
+	public abstract Object get(PageContext pc, Object defaultValue);
 
-    /**
-     * @param pc PageContext of the current Request
-     * @param value resets the value of the variable
-     * @return new Value set
-     * @throws PageException
-     */
-    public abstract Object set(PageContext pc, Object value) throws PageException;
+	/**
+	 * @param pc PageContext of the current Request
+	 * @param value resets the value of the variable
+	 * @return new Value set
+	 * @throws PageException Page Exception
+	 */
+	public abstract Object set(PageContext pc, Object value) throws PageException;
 
-    /**
-     * @param pc PageContext of the current Request
-     * @param value resets the value of the variable
-     * @return new value set
-     */
-    public abstract Object setEL(PageContext pc, Object value);
+	/**
+	 * @param pc PageContext of the current Request
+	 * @param value resets the value of the variable
+	 * @return new value set
+	 */
+	public abstract Object setEL(PageContext pc, Object value);
 
-    /**
-     * clears the variable from collection
-     * 
-     * @param pc
-     * @return removed Object
-     * @throws PageException
-     */
-    public abstract Object remove(PageContext pc) throws PageException;
+	/**
+	 * clears the variable from collection
+	 * 
+	 * @param pc Page Context
+	 * @return removed Object
+	 * @throws PageException Page Exception
+	 */
+	public abstract Object remove(PageContext pc) throws PageException;
 
-    /**
-     * clears the variable from collection
-     * 
-     * @param pc
-     * @return removed Object
-     */
-    public abstract Object removeEL(PageContext pc);
+	/**
+	 * clears the variable from collection
+	 * 
+	 * @param pc Page Context
+	 * @return removed Object
+	 */
+	public abstract Object removeEL(PageContext pc);
 
-    /**
-     * create it when not exist
-     * 
-     * @param pc
-     * @return removed Object
-     * @throws PageException
-     */
-    public abstract Object touch(PageContext pc) throws PageException;
+	/**
+	 * create it when not exist
+	 * 
+	 * @param pc Page Context
+	 * @return removed Object
+	 * @throws PageException Page Exception
+	 */
+	public abstract Object touch(PageContext pc) throws PageException;
 
-    /**
-     * create it when not exist
-     * 
-     * @param pc
-     * @return removed Object
-     */
-    public abstract Object touchEL(PageContext pc);
+	/**
+	 * create it when not exist
+	 * 
+	 * @param pc Page Context
+	 * @return removed Object
+	 */
+	public abstract Object touchEL(PageContext pc);
 
-    /**
-     * @return returns the collection
-     */
-    public abstract Object getParent();
+	/**
+	 * @return returns the collection
+	 */
+	public abstract Object getParent();
 }

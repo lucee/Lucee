@@ -24,11 +24,11 @@ import lucee.runtime.PageContext;
 
 public interface ThreadQueue {
 
-    public void enter(PageContext pc) throws IOException;
+	public void enter(PageContext pc) throws IOException;
 
-    public void exit(PageContext pc);
+	public void exit(PageContext pc);
 
-    public void clear();
+	public void clear();
 
-    public int size();
+	public int size();
 }

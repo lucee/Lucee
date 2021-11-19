@@ -1,0 +1,4 @@
+component {
+    function test(){
+    }
+}

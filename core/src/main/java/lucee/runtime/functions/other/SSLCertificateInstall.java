@@ -25,15 +25,15 @@ import lucee.runtime.tag.Admin;
 
 public final class SSLCertificateInstall implements Function {
 
-    private static final long serialVersionUID = -831759073098524176L;
+	private static final long serialVersionUID = -831759073098524176L;
 
-    public static String call(PageContext pc, String host) throws PageException {
-	return call(pc, host, 443);
-    }
+	public static String call(PageContext pc, String host) throws PageException {
+		return call(pc, host, 443);
+	}
 
-    public static String call(PageContext pc, String host, double port) throws PageException {
-	Admin.updateSSLCertificate(pc.getConfig(), host, (int) port);
-	return "";
-    }
+	public static String call(PageContext pc, String host, double port) throws PageException {
+		Admin.updateSSLCertificate(pc.getConfig(), host, (int) port);
+		return "";
+	}
 
 }

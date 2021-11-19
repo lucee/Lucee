@@ -27,9 +27,9 @@ import lucee.runtime.ext.function.Function;
  */
 public final class PrecisionEvaluate implements Function {
 
-    public static Object call(PageContext pc, Object[] objs) throws PageException {
+	public static Object call(PageContext pc, Object[] objs) throws PageException {
 
-	return Evaluate.call(pc, objs, true);
-    }
+		return Evaluate.call(pc, objs, true);
+	}
 
 }

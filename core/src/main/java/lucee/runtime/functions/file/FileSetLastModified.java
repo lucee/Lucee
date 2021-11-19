@@ -28,12 +28,12 @@ import lucee.runtime.type.dt.DateTime;
 
 public class FileSetLastModified {
 
-    public static String call(PageContext pc, Object oSrc, DateTime date) throws PageException {
-	Resource src = Caster.toResource(pc, oSrc, false);
-	pc.getConfig().getSecurityManager().checkFileLocation(src);
-	if (!src.exists() || !src.isFile()) throw Caster.toPageException(new FileNotFoundException(src.getAbsolutePath()));
+	public static String call(PageContext pc, Object oSrc, DateTime date) throws PageException {
+		Resource src = Caster.toResource(pc, oSrc, false);
+		pc.getConfig().getSecurityManager().checkFileLocation(src);
+		if (!src.exists() || !src.isFile()) throw Caster.toPageException(new FileNotFoundException(src.getAbsolutePath()));
 
-	src.setLastModified(date.getTime());
-	return null;
-    }
+		src.setLastModified(date.getTime());
+		return null;
+	}
 }

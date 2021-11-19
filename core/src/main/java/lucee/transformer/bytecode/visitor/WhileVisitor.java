@@ -27,59 +27,59 @@ import lucee.transformer.bytecode.util.ExpressionUtil;
 
 public final class WhileVisitor implements LoopVisitor {
 
-    private Label begin;
-    private Label end;
+	private Label begin;
+	private Label end;
 
-    public void visitBeforeExpression(BytecodeContext bc) {
-	begin = new Label();
-	end = new Label();
-	bc.getAdapter().visitLabel(begin);
-    }
+	public void visitBeforeExpression(BytecodeContext bc) {
+		begin = new Label();
+		end = new Label();
+		bc.getAdapter().visitLabel(begin);
+	}
 
-    public void visitAfterExpressionBeforeBody(BytecodeContext bc) {
-	bc.getAdapter().ifZCmp(Opcodes.IFEQ, end);
-    }
+	public void visitAfterExpressionBeforeBody(BytecodeContext bc) {
+		bc.getAdapter().ifZCmp(Opcodes.IFEQ, end);
+	}
 
-    public void visitAfterBody(BytecodeContext bc, Position endline) {
-	bc.getAdapter().visitJumpInsn(Opcodes.GOTO, begin);
-	bc.getAdapter().visitLabel(end);
-	ExpressionUtil.visitLine(bc, endline);
-    }
+	public void visitAfterBody(BytecodeContext bc, Position endline) {
+		bc.getAdapter().visitJumpInsn(Opcodes.GOTO, begin);
+		bc.getAdapter().visitLabel(end);
+		ExpressionUtil.visitLine(bc, endline);
+	}
 
-    /**
-     *
-     * @see lucee.transformer.bytecode.visitor.LoopVisitor#visitContinue(org.objectweb.asm.commons.GeneratorAdapter)
-     */
-    @Override
-    public void visitContinue(BytecodeContext bc) {
-	bc.getAdapter().visitJumpInsn(Opcodes.GOTO, begin);
-    }
+	/**
+	 *
+	 * @see lucee.transformer.bytecode.visitor.LoopVisitor#visitContinue(org.objectweb.asm.commons.GeneratorAdapter)
+	 */
+	@Override
+	public void visitContinue(BytecodeContext bc) {
+		bc.getAdapter().visitJumpInsn(Opcodes.GOTO, begin);
+	}
 
-    /**
-     *
-     * @see lucee.transformer.bytecode.visitor.LoopVisitor#visitBreak(org.objectweb.asm.commons.GeneratorAdapter)
-     */
-    @Override
-    public void visitBreak(BytecodeContext bc) {
-	bc.getAdapter().visitJumpInsn(Opcodes.GOTO, end);
-    }
+	/**
+	 *
+	 * @see lucee.transformer.bytecode.visitor.LoopVisitor#visitBreak(org.objectweb.asm.commons.GeneratorAdapter)
+	 */
+	@Override
+	public void visitBreak(BytecodeContext bc) {
+		bc.getAdapter().visitJumpInsn(Opcodes.GOTO, end);
+	}
 
-    /**
-     *
-     * @see lucee.transformer.bytecode.visitor.LoopVisitor#getContinueLabel()
-     */
-    @Override
-    public Label getContinueLabel() {
-	return begin;
-    }
+	/**
+	 *
+	 * @see lucee.transformer.bytecode.visitor.LoopVisitor#getContinueLabel()
+	 */
+	@Override
+	public Label getContinueLabel() {
+		return begin;
+	}
 
-    /**
-     *
-     * @see lucee.transformer.bytecode.visitor.LoopVisitor#getBreakLabel()
-     */
-    @Override
-    public Label getBreakLabel() {
-	return end;
-    }
+	/**
+	 *
+	 * @see lucee.transformer.bytecode.visitor.LoopVisitor#getBreakLabel()
+	 */
+	@Override
+	public Label getBreakLabel() {
+		return end;
+	}
 
 }

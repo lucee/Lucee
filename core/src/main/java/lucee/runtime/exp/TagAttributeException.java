@@ -23,13 +23,13 @@ package lucee.runtime.exp;
  */
 public final class TagAttributeException extends ApplicationException {
 
-    /**
-     * constructor of the class
-     * 
-     * @param attributeName
-     * @param message
-     */
-    public TagAttributeException(String attributeName, String message) {
-	super("attribute " + attributeName + " is invalid", message);
-    }
+	/**
+	 * constructor of the class
+	 * 
+	 * @param attributeName
+	 * @param message
+	 */
+	public TagAttributeException(String attributeName, String message) {
+		super("Attribute [" + attributeName + "] is invalid", message);
+	}
 }

@@ -23,39 +23,39 @@ package lucee.runtime.lock;
  */
 public interface LockManager {
 
-    /**
-     * Field <code>TYPE_READONLY</code>
-     */
-    public static final int TYPE_READONLY = 0;
+	/**
+	 * Field <code>TYPE_READONLY</code>
+	 */
+	public static final int TYPE_READONLY = 0;
 
-    /**
-     * Field <code>TYPE_EXCLUSIVE</code>
-     */
-    public static final int TYPE_EXCLUSIVE = 1;
+	/**
+	 * Field <code>TYPE_EXCLUSIVE</code>
+	 */
+	public static final int TYPE_EXCLUSIVE = 1;
 
-    /**
-     * locks a thread if already a other thread is come until other thread notify him by unlock method
-     * 
-     * @param type
-     * @param name Lock Name (not case sensitive)
-     * @param timeout timeout to for waiting in this method, if timeout occurs "lockTimeoutException"
-     *            will be thrown
-     * @param pageContextId
-     * @return lock data object key for unlocking this lock
-     * @throws LockTimeoutException
-     * @throws InterruptedException
-     */
-    public abstract LockData lock(int type, String name, int timeout, int pageContextId) throws LockTimeoutException, InterruptedException;
+	/**
+	 * locks a thread if already another thread is come until other thread notify him by unlock method
+	 * 
+	 * @param type Local Type
+	 * @param name Lock Name (not case sensitive)
+	 * @param timeout timeout to for waiting in this method, if timeout occurs "lockTimeoutException"
+	 *            will be thrown
+	 * @param pageContextId page context id
+	 * @return lock data object key for unlocking this lock
+	 * @throws LockTimeoutException Lock Timeout Exception
+	 * @throws InterruptedException Interrupted Exception
+	 */
+	public abstract LockData lock(int type, String name, int timeout, int pageContextId) throws LockTimeoutException, InterruptedException;
 
-    /**
-     * unlocks a locked thread in lock method
-     * 
-     * @param data
-     */
-    public abstract void unlock(LockData data);
+	/**
+	 * unlocks a locked thread in lock method
+	 * 
+	 * @param data data
+	 */
+	public abstract void unlock(LockData data);
 
-    public String[] getOpenLockNames();
+	public String[] getOpenLockNames();
 
-    public abstract void clean();
+	public abstract void clean();
 
 }

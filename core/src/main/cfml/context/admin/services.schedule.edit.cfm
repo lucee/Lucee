@@ -1,4 +1,8 @@
 <cfscript>
+stText.Schedule.unique="Run Exclusive";
+stText.Schedule.uniqueDescription="If set run the task only once at time. Every time a task is started, it will check if still a task from previous round is running, if so no new test is started.";
+
+
 function toFile(path,file) {
 	if(len(arguments.path) EQ 0) return arguments.file;
 	if(right(arguments.path,1) NEQ server.separator.file) arguments.path=arguments.path&server.separator.file;
@@ -91,7 +95,6 @@ ACTIONS --->
 		<cfelse>
 			<cfset variables.passwordserver="">
 		</cfif>
-			
 			<cfadmin
 				action="schedule"
 				type="#request.adminType#"
@@ -101,6 +104,7 @@ ACTIONS --->
 				task="#form.name#"
 				url="#form.url#"
 				port="#form.port#"
+				unique="#form.unique?:false#"
 				requesttimeout="#form.timeout#"
 				username="#nullIfEmpty(form.username)#"
 				schedulePassword="#nullIfEmpty(form.password)#"
@@ -196,6 +200,14 @@ Error Output--->
 					<td>
 						<cfinputClassic type="text" name="timeout" value="#task.timeout#" class="number" required="no" validate="integer">
 						<div class="comment">#stText.Schedule.TimeoutDescription#</div>
+					</td>
+				</tr>
+
+				<tr>
+					<th scope="row">#stText.Schedule.unique#</th>
+					<td>
+						<input type="checkbox" class="checkbox" name="unique" value="true" <cfif task.unique?:false>checked</cfif>>
+						<div class="comment">#stText.Schedule.uniqueDescription#</div>
 					</td>
 				</tr>
 
@@ -299,7 +311,7 @@ Error Output--->
 			<br />
 			#stText.Schedule.CurrentDateTime#&nbsp;
 			#dateFormat(now(),'mmmm dd yyyy')# #timeFormat(now(),'HH:mm:ss')# <!---(mmmm dd yyyy HH:mm:ss)--->
-		</div><cfset css="color:white;background-color:#request.adminType EQ "web"?'##39c':'##c00'#;">
+		</div><cfset css="color:white;background-color:#request.adminType EQ "web"?'##0f75a8':'##c00'#;">
 
 			<input style="margin-left:0px;#iif(task.interval EQ 'once','css',de(''))#"
 					type="submit" class="bl button submit" name="interval" value="once">

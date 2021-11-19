@@ -223,18 +223,22 @@ Create Datasource --->
 		<h3>
 			Current time settings
 		</h3>
-		<table class="maintbl" style="width:300px">
+		<cfscript>
+			jvmTZ = GetTimeZoneInfo( "jvm" );
+			luceeTZ = GetTimeZoneInfo( GetTimeZone() );
+		</cfscript>
+		<table class="maintbl" style="width:500px">
 			<tbody>
 				<tr>
 					<th scope="row" nowrap="nowrap">#stText.Overview.ServerTime#</th>
 					<td>#lsdateFormat(date:now(),timezone:"jvm")#
-						#lstimeFormat(time:now(),timezone:"jvm")#
+						#lstimeFormat(time:now(),timezone:"jvm")# (#jvmTZ.isDSTon ? jvmTZ.nameDST : jvmTZ.name#)
 					</td>
 				</tr>
 				<tr>
 					<th scope="row">#stText.Overview.DateTime#</th>
 					<td>#lsdateFormat(now())#
-						#lstimeFormat(now())#
+						#lstimeFormat(now())# (#luceeTZ.isDSTon ? luceeTZ.nameDST : luceeTZ.name#)
 					</td>
 				</tr>
 			</tbody>

@@ -27,53 +27,55 @@ import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.scope.Caller;
 import lucee.runtime.type.scope.Scope;
+import lucee.runtime.type.util.KeyConstants;
 
 public abstract class CustomTag extends BodyTagTryCatchFinallyImpl implements DynamicAttributes, AppendixTag {
 
-    protected static final Collection.Key ON_ERROR = KeyImpl.intern("onError");
-    protected static final Collection.Key ON_FINALLY = KeyImpl.intern("onFinally");
-    protected static final Collection.Key ON_START_TAG = KeyImpl.intern("onStartTag");
-    protected static final Collection.Key ON_END_TAG = KeyImpl.intern("onEndTag");
-    protected static final Collection.Key INIT = KeyImpl.intern("init");
-    protected static final Collection.Key GENERATED_CONTENT = KeyImpl.intern("GENERATEDCONTENT");
+	protected static final Collection.Key ON_ERROR = KeyConstants._onError;
+	protected static final Collection.Key ON_FINALLY = KeyConstants._onFinally;
+	protected static final Collection.Key ON_START_TAG = KeyConstants._onStartTag;
+	protected static final Collection.Key ON_END_TAG = KeyConstants._onEndTag;
+	protected static final Collection.Key INIT = KeyConstants._init;
+	protected static final Collection.Key GENERATED_CONTENT = KeyConstants._GENERATEDCONTENT;
 
-    protected static final Collection.Key EXECUTION_MODE = KeyImpl.intern("EXECUTIONMODE");
-    protected static final Collection.Key EXECUTE_BODY = KeyImpl.intern("EXECUTEBODY");
-    protected static final Collection.Key HAS_END_TAG = KeyImpl.intern("HASENDTAG");
+	protected static final Collection.Key EXECUTION_MODE = KeyConstants._EXECUTIONMODE;
+	protected static final Collection.Key EXECUTE_BODY = KeyConstants._EXECUTEBODY;
+	protected static final Collection.Key HAS_END_TAG = KeyConstants._HASENDTAG;
 
-    protected static final Collection.Key ATTRIBUTES = KeyImpl.intern("ATTRIBUTES");
-    protected static final Collection.Key CALLER = KeyImpl.intern("CALLER");
-    protected static final Collection.Key THIS_TAG = KeyImpl.intern("THISTAG");
+	protected static final Collection.Key ATTRIBUTES = KeyConstants._ATTRIBUTES;
+	protected static final Collection.Key CALLER = KeyConstants._CALLER;
+	protected static final Collection.Key THIS_TAG = KeyConstants._THISTAG;
 
-    protected StructImpl attributesScope;
-    protected Caller callerScope;
+	protected StructImpl attributesScope;
+	protected Caller callerScope;
 
-    @Override
-    public void doInitBody() {}
+	@Override
+	public void doInitBody() {
+	}
 
-    @Override
-    public final void setDynamicAttribute(String uri, String name, Object value) {
-	TagUtil.setDynamicAttribute(attributesScope, KeyImpl.init(name), value, TagUtil.UPPER_CASE);
-    }
+	@Override
+	public final void setDynamicAttribute(String uri, String name, Object value) {
+		TagUtil.setDynamicAttribute(attributesScope, KeyImpl.init(name), value, TagUtil.UPPER_CASE);
+	}
 
-    /**
-     * @return return thistag scope
-     */
-    public abstract Struct getThisTagScope();
+	/**
+	 * @return return thistag scope
+	 */
+	public abstract Struct getThisTagScope();
 
-    /**
-     * @return return the caller scope
-     */
-    public abstract Struct getCallerScope();
+	/**
+	 * @return return the caller scope
+	 */
+	public abstract Struct getCallerScope();
 
-    /**
-     * @return return attributes scope
-     */
-    public abstract Struct getAttributesScope();
+	/**
+	 * @return return attributes scope
+	 */
+	public abstract Struct getAttributesScope();
 
-    /**
-     * @return the variables scope
-     */
-    public abstract Scope getVariablesScope();
+	/**
+	 * @return the variables scope
+	 */
+	public abstract Scope getVariablesScope();
 
 }

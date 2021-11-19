@@ -25,151 +25,163 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
+import lucee.runtime.type.util.KeyConstants;
 
-public class CFCGateway implements Gateway {
+public class CFCGateway implements GatewaySupport {
 
-    // private static final Object OBJ = new Object();
-    // private Component _cfc;
-    private String id;
-    private int state = Gateway.STOPPED;
-    private String cfcPath;
-    // private Config config;
-    // private String requestURI;
-    // private Resource cfcDirectory;
-    private GatewayEngineImpl engine;
+	// private static final Object OBJ = new Object();
+	// private Component _cfc;
+	private String id;
+	private int state = Gateway.STOPPED;
+	private String cfcPath;
+	// private Config config;
+	// private String requestURI;
+	// private Resource cfcDirectory;
+	private GatewayEngineImpl engine;
+	private Thread thread;
 
-    public CFCGateway(String cfcPath) {
-	this.cfcPath = cfcPath;
-    }
-
-    @Override
-    public void init(GatewayEngine engine, String id, String cfcPath, Map config) throws GatewayException {
-	this.engine = (GatewayEngineImpl) engine;
-	this.id = id;
-
-	// requestURI=engine.toRequestURI(cfcPath);
-	Struct args = new StructImpl(Struct.TYPE_LINKED);
-	args.setEL("id", id);
-	args.setEL("config", Caster.toStruct(config, null, false));
-	if (!StringUtil.isEmpty(cfcPath)) {
-	    try {
-		args.setEL("listener", this.engine.getComponent(cfcPath, id));
-	    }
-	    catch (PageException e) {
-		engine.log(this, GatewayEngine.LOGLEVEL_ERROR, e.getMessage());
-	    }
+	public CFCGateway(String cfcPath) {
+		this.cfcPath = cfcPath;
 	}
 
-	try {
-	    callOneWay("init", args);
-	}
-	catch (PageException pe) {
+	@Override
+	public void init(GatewayEngine engine, String id, String cfcPath, Map config) throws GatewayException {
+		this.engine = (GatewayEngineImpl) engine;
+		this.id = id;
 
-	    engine.log(this, GatewayEngine.LOGLEVEL_ERROR, pe.getMessage());
-	    // throw new PageGatewayException(pe);
-	}
-
-    }
-
-    @Override
-    public void doRestart() throws GatewayException {
-
-	engine.log(this, GatewayEngine.LOGLEVEL_INFO, "restart");
-	Struct args = new StructImpl();
-	try {
-	    boolean has = callOneWay("restart", args);
-	    if (!has) {
-		if (callOneWay("stop", args)) {
-		    // engine.clear(cfcPath,id);
-		    callOneWay("start", args);
+		// requestURI=engine.toRequestURI(cfcPath);
+		Struct args = new StructImpl(Struct.TYPE_LINKED);
+		args.setEL(KeyConstants._id, id);
+		args.setEL(KeyConstants._config, Caster.toStruct(config, null, false));
+		if (!StringUtil.isEmpty(cfcPath)) {
+			try {
+				args.setEL(KeyConstants._listener, this.engine.getComponent(cfcPath, id));
+			}
+			catch (PageException e) {
+				engine.log(this, GatewayEngine.LOGLEVEL_ERROR, e.getMessage());
+			}
 		}
-	    }
+
+		try {
+			callOneWay("init", args);
+		}
+		catch (PageException pe) {
+
+			engine.log(this, GatewayEngine.LOGLEVEL_ERROR, pe.getMessage());
+			// throw new PageGatewayException(pe);
+		}
+
 	}
-	catch (PageException pe) {
-	    throw new PageGatewayException(pe);
+
+	@Override
+	public void doRestart() throws GatewayException {
+
+		engine.log(this, GatewayEngine.LOGLEVEL_INFO, "restart");
+		Struct args = new StructImpl();
+		try {
+			boolean has = callOneWay("restart", args);
+			if (!has) {
+				if (callOneWay("stop", args)) {
+					// engine.clear(cfcPath,id);
+					callOneWay("start", args);
+				}
+			}
+		}
+		catch (PageException pe) {
+			throw new PageGatewayException(pe);
+		}
+
 	}
 
-    }
-
-    @Override
-    public void doStart() throws GatewayException {
-	engine.log(this, GatewayEngine.LOGLEVEL_INFO, "start");
-	Struct args = new StructImpl();
-	state = STARTING;
-	try {
-	    callOneWay("start", args);
-	    engine.log(this, GatewayEngine.LOGLEVEL_INFO, "running");
-	    state = RUNNING;
+	@Override
+	public void doStart() throws GatewayException {
+		engine.log(this, GatewayEngine.LOGLEVEL_INFO, "start");
+		Struct args = new StructImpl();
+		state = STARTING;
+		try {
+			callOneWay("start", args);
+			engine.log(this, GatewayEngine.LOGLEVEL_INFO, "running");
+			state = RUNNING;
+		}
+		catch (PageException pe) {
+			state = FAILED;
+			throw new PageGatewayException(pe);
+		}
 	}
-	catch (PageException pe) {
-	    state = FAILED;
-	    throw new PageGatewayException(pe);
+
+	@Override
+	public void doStop() throws GatewayException {
+
+		engine.log(this, GatewayEngine.LOGLEVEL_INFO, "stop");
+		Struct args = new StructImpl();
+		state = STOPPING;
+		try {
+			callOneWay("stop", args);
+			// engine.clear(cfcPath,id);
+			state = STOPPED;
+		}
+		catch (PageException pe) {
+			state = FAILED;
+			// engine.clear(cfcPath,id);
+			throw new PageGatewayException(pe);
+		}
 	}
-    }
 
-    @Override
-    public void doStop() throws GatewayException {
-
-	engine.log(this, GatewayEngine.LOGLEVEL_INFO, "stop");
-	Struct args = new StructImpl();
-	state = STOPPING;
-	try {
-	    callOneWay("stop", args);
-	    // engine.clear(cfcPath,id);
-	    state = STOPPED;
+	@Override
+	public Object getHelper() {
+		Struct args = new StructImpl(Struct.TYPE_LINKED);
+		return callEL("getHelper", args, null);
 	}
-	catch (PageException pe) {
-	    state = FAILED;
-	    // engine.clear(cfcPath,id);
-	    throw new PageGatewayException(pe);
+
+	@Override
+	public String getId() {
+		return id;
 	}
-    }
 
-    @Override
-    public Object getHelper() {
-	Struct args = new StructImpl(Struct.TYPE_LINKED);
-	return callEL("getHelper", args, null);
-    }
-
-    @Override
-    public String getId() {
-	return id;
-    }
-
-    @Override
-    public int getState() {
-	Struct args = new StructImpl();
-	Integer state = Integer.valueOf(this.state);
-	try {
-	    return GatewayEngineImpl.toIntState(Caster.toString(call("getState", args, state)), this.state);
+	@Override
+	public int getState() {
+		Struct args = new StructImpl();
+		Integer state = Integer.valueOf(this.state);
+		try {
+			return GatewayEngineImpl.toIntState(Caster.toString(call("getState", args, state)), this.state);
+		}
+		catch (PageException pe) {
+			engine.log(this, GatewayEngine.LOGLEVEL_ERROR, pe.getMessage());
+		}
+		return this.state;
 	}
-	catch (PageException pe) {
-	    engine.log(this, GatewayEngine.LOGLEVEL_ERROR, pe.getMessage());
+
+	@Override
+	public String sendMessage(Map data) throws GatewayException {
+		Struct args = new StructImpl(Struct.TYPE_LINKED);
+		args.setEL("data", Caster.toStruct(data, null, false));
+		try {
+			return Caster.toString(call("sendMessage", args, ""));
+		}
+		catch (PageException pe) {
+			throw new PageGatewayException(pe);
+		}
 	}
-	return this.state;
-    }
 
-    @Override
-    public String sendMessage(Map data) throws GatewayException {
-	Struct args = new StructImpl(Struct.TYPE_LINKED);
-	args.setEL("data", Caster.toStruct(data, null, false));
-	try {
-	    return Caster.toString(call("sendMessage", args, ""));
+	private Object callEL(String methodName, Struct arguments, Object defaultValue) {
+		return engine.callEL(cfcPath, id, methodName, arguments, true, defaultValue);
 	}
-	catch (PageException pe) {
-	    throw new PageGatewayException(pe);
+
+	private boolean callOneWay(String methodName, Struct arguments) throws PageException {
+		return engine.callOneWay(cfcPath, id, methodName, arguments, true);
 	}
-    }
 
-    private Object callEL(String methodName, Struct arguments, Object defaultValue) {
-	return engine.callEL(cfcPath, id, methodName, arguments, true, defaultValue);
-    }
+	private Object call(String methodName, Struct arguments, Object defaultValue) throws PageException {
+		return engine.call(cfcPath, id, methodName, arguments, true, defaultValue);
+	}
 
-    private boolean callOneWay(String methodName, Struct arguments) throws PageException {
-	return engine.callOneWay(cfcPath, id, methodName, arguments, true);
-    }
+	@Override
+	public void setThread(Thread thread) {
+		this.thread = thread;
+	}
 
-    private Object call(String methodName, Struct arguments, Object defaultValue) throws PageException {
-	return engine.call(cfcPath, id, methodName, arguments, true, defaultValue);
-    }
+	@Override
+	public Thread getThread() {
+		return thread;
+	}
 }

@@ -5,7 +5,7 @@
 	<tlib-version>1.0</tlib-version>
 	<cfml-version>1.0</cfml-version>
 	<short-name>tbase</short-name>
-	<uri>http://www.lucee.org/cf-tld-3-1</uri>
+	<uri>https://www.lucee.org/cf-tld-3-1</uri>
 	<display-name>Lucee Core Tag Library</display-name>
 	<description></description>
 	<name-space></name-space>
@@ -27,12 +27,12 @@
 			<rtexprvalue>true</rtexprvalue>
 		</script>
 		<description>
-			Defines scoping for a application, enables or disables storing client variables,
+			Defines scoping for an application, enables or disables storing client variables,
 			and specifies a client variable storage mechanism.
 			By default, client variables are disabled. Also, enables session variables and sets timeouts
 			for session and application variables. Session and application variables are stored in memory.
 		</description>
-		<attribute-type>fixed</attribute-type>
+		<attribute-type>mixed</attribute-type>
 		<attribute>
 			<type>string</type>
 			<name>name</name>
@@ -58,7 +58,7 @@
 		</attribute>
 		<attribute>
 			<type>object</type>
-			<name>defaultdatasource</name>
+			<name>defaultDatasource</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>the default datasource for this environment</description>
@@ -188,7 +188,7 @@ Specifies how Lucee stores session variables:
 			<description>Yes or No. Yes enables session variables. Default is No.</description>
 		</attribute>
 		<attribute>
-			<type>timespan</type>
+			<type>timeSpan</type>
 			<name>sessionTimeout</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
@@ -197,7 +197,7 @@ Specifies how Lucee stores session variables:
 		Variables page of the Lucee Administrator.</description>
 		</attribute>
 		<attribute>
-			<type>timespan</type>
+			<type>timeSpan</type>
 			<name>clientTimeout</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
@@ -206,7 +206,7 @@ Specifies how Lucee stores session variables:
 		Variables page of the Lucee Administrator.</description>
 		</attribute>
 		<attribute>
-			<type>timespan</type>
+			<type>timeSpan</type>
 			<name>applicationTimeout</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
@@ -215,7 +215,7 @@ Specifies how Lucee stores session variables:
 		the Variables page of the Lucee Administrator.</description>
 		</attribute>
 		<attribute>
-			<type>timespan</type>
+			<type>timeSpan</type>
 			<name>requestTimeout</name>
 			<alias>timeout</alias>
 			<required>false</required>
@@ -239,7 +239,7 @@ Specifies how Lucee stores session variables:
 		</attribute>
 		<attribute>
 			<type>any</type>
-			<name>functionpaths</name>
+			<name>functionPaths</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Array or String list of paths where you have your functions.</description>
@@ -262,14 +262,14 @@ Specifies how Lucee stores session variables:
 		</attribute>
 		<attribute>
 			<type>any</type>
-			<name>customtagpaths</name>
+			<name>customTagPaths</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Contains custom tag paths.</description>
 		</attribute>
 		<attribute>
 			<type>any</type>
-			<name>componentpaths</name>
+			<name>componentPaths</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Contains component paths.</description>
@@ -284,7 +284,7 @@ Specifies how Lucee stores session variables:
 		</attribute>
 		<attribute>
 			<type>string</type>
-			<name>wstype</name>
+			<name>wsType</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>webservice type used, this can be one of the following values
@@ -333,14 +333,14 @@ Specifies how Lucee stores session variables:
 		</attribute>
 		<attribute>
 			<type>boolean</type>
-			<name>ormenabled</name>
+			<name>ormEnabled</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Specifies whether ORM should be enabled for the current application context.The default is false.</description>
 		</attribute>
 		<attribute>
 			<type>struct</type>
-			<name>ormsettings</name>
+			<name>ormSettings</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>
@@ -458,7 +458,7 @@ A struct that defines default ftp settings, this settings can be overwritten as 
 			<name>cacheInclude</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>name of the cache used to store data from a include</description>
+			<description>name of the cache used to store data from an include</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -507,21 +507,21 @@ A struct that defines default ftp settings, this settings can be overwritten as 
 		</attribute>
 		<attribute>
 			<type>String</type>
-			<name>webcharset</name>
+			<name>webCharset</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>character set used for output streams, form-, url-, and cgi scope variables and reading/writing the header</description>
 		</attribute>
 		<attribute>
 			<type>String</type>
-			<name>resourcecharset</name>
+			<name>resourceCharset</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>character set used for reading from/writing to various resources</description>
 		</attribute>
 		<attribute>
 			<type>String</type>
-			<name>scopecascading</name>
+			<name>scopeCascading</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>
@@ -536,29 +536,60 @@ Depending on this setting Lucee scans certain scopes to find a variable called f
 			<name>searchImplicitScopes</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>alias to the attribute "scopecascading", takes a boolean value where true is equal to "standard" and false is equal to "struct" scope cascading mode.
-			For details see the description for the attribute "scopecascading".</description>
+			<description>alias to the attribute "scopeCascading", takes a boolean value where true is equal to "standard" and false is equal to "struct" scope cascading mode.
+			For details see the description for the attribute "scopeCascading".</description>
 		</attribute>
 		<attribute>
 			<type>struct</type>
-			<name>authcookie</name>
+			<name>authCookie</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>cfauthorization cookie behaviour</description>
 		</attribute>
 		<attribute>
 			<type>struct</type>
-			<name>sessioncookie</name>
+			<name>sessionCookie</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>session cookie behaviour</description>
+			<description>session cookie behaviour
+				
+			- secure	
+			- httpOnly
+			- samesite
+			- expires
+			- domain
+			- path
+			</description>
 		</attribute>
 		<attribute>
-			<type>timespan</type>
+			<type>timeSpan</type>
 			<name>cachedAfter</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>set the timespan for the attribute "cachedAfter" from tag "query".</description>
+			<description>set the timeSpan for the attribute "cachedAfter" from tag "query".</description>
+		</attribute>
+		<attribute>
+			<name>javaSettings</name>
+			<type>struct</type>
+			<required>false</required>
+			<description>
+	a struct to define dynamically java libraries
+	the following keys are supported
+	- loadPaths - an array or a comma separated string list of jars or class directories
+	- reloadOnChange - reload updated jars without a restart necessary
+	- watchInterval - interval it checks for changes with the jar files
+	- watchExtensions - extension of the files read
+			</description>
+		</attribute>
+		<attribute>
+			<name>xmlFeatures</name>
+			<type>struct</type>
+			<required>false</required>
+			<description>Allows to set XML Features to prevent XXE attacks
+
+	- disallowDoctypeDecl (true / false) 
+	- externalGeneralEntities (true/false)
+	 - secure (true/false)</description>
 		</attribute>
 	</tag>	
 	
@@ -584,7 +615,7 @@ Depending on this setting Lucee scans certain scopes to find a variable called f
 			<name>type</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>the type of the argumentany (array, binary, boolean, date, guid, numeric, query, string, struct, uuid)</description>
+			<description>the type of the argument any (array, binary, boolean, date, guid, numeric, query, string, struct, uuid, component)</description>
 		</attribute>
 		<attribute>
 			<type>boolean</type>
@@ -603,7 +634,7 @@ Depending on this setting Lucee scans certain scopes to find a variable called f
 		</attribute>
 		<attribute>
 			<type>string</type>
-			<name>displayname</name>
+			<name>displayName</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>name to display (only used by components)</description>
@@ -707,7 +738,7 @@ Depending on this setting Lucee scans certain scopes to find a variable called f
 		</attribute>
 		<attribute>
 			<type>string</type>
-			<name>serviceportname</name>
+			<name>servicePortName</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<status>unimplemented</status>
@@ -716,7 +747,7 @@ Depending on this setting Lucee scans certain scopes to find a variable called f
 		</attribute>
 		<attribute>
 			<type>string</type>
-			<name>serviceaddress</name>
+			<name>serviceAddress</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<status>unimplemented</status>
@@ -725,16 +756,16 @@ Depending on this setting Lucee scans certain scopes to find a variable called f
 		</attribute>
 		<attribute>
 			<type>string</type>
-			<name>porttypename</name>
+			<name>portTypeName</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<status>unimplemented</status>
-			<description>Specifies the name of the porttype element in the WSDL.
+			<description>Specifies the name of the portType element in the WSDL.
             This attribute applies only when style="document".</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
-			<name>bindingname</name>
+			<name>bindingName</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Specifies the name of the binding element in the WSDL.
@@ -742,7 +773,7 @@ Depending on this setting Lucee scans certain scopes to find a variable called f
 		</attribute>
 		<attribute>
 			<type>string</type>
-			<name>wsdlfile</name>
+			<name>wsdlFile</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 		    <status>unimplemented</status>
@@ -822,7 +853,7 @@ no: the function is processed as if it were within a cfsilent tag </description>
 		</attribute>
 		<attribute>
 			<type>string</type>
-			<name>displayname</name>
+			<name>displayName</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Display Name of the Function</description>
@@ -884,8 +915,8 @@ no: the function is processed as if it were within a cfsilent tag </description>
 			<rtexprvalue>true</rtexprvalue>
 		<description>
 possible values are:
-String "request": If original content was created within the current request, cached content data isused.
-a timespan (created with function CreateTimeSpan): If original content date falls within the time span, cached content data isused. 
+String "request": If original content was created within the current request, cached content data is used.
+a timeSpan (created with function CreateTimeSpan): If original content date falls within the time span, cached content data is used.
 
 To use cached data, the function must be called with the exact same arguments.</description>
     </attribute>
@@ -956,7 +987,7 @@ To use cached data, the function must be called with the exact same arguments.</
 		<attribute-type>fixed</attribute-type>
 		<attribute>
 			<type>string</type>
-			<name>encodefor</name>
+			<name>encodeFor</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>encode for what, valid values are:
@@ -981,7 +1012,7 @@ To use cached data, the function must be called with the exact same arguments.</
 		<tdbt-class>lucee.transformer.cfml.script.CFMLScriptTransformer</tdbt-class>
 		<ttt-class>lucee.transformer.bytecode.statement.tag.TagScript</ttt-class>
 		<tte-class>lucee.transformer.cfml.evaluator.impl.Script</tte-class>
-		<body-content>tagdependent</body-content>
+		<body-content>tagDependent</body-content>
 		<body-rtexprvalue>false</body-rtexprvalue>
 		<description>Encloses a code segment containing cfscript.</description>
 		<attribute-type>fixed</attribute-type>

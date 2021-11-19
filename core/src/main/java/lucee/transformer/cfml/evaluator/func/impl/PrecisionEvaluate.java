@@ -22,7 +22,7 @@ import lucee.runtime.exp.TemplateException;
 import lucee.transformer.bytecode.expression.var.Argument;
 import lucee.transformer.bytecode.expression.var.BIF;
 import lucee.transformer.bytecode.op.OpBigDecimal;
-import lucee.transformer.bytecode.op.OpDouble;
+import lucee.transformer.bytecode.op.OpNumber;
 import lucee.transformer.cfml.evaluator.EvaluatorException;
 import lucee.transformer.cfml.evaluator.FunctionEvaluator;
 import lucee.transformer.expression.Expression;
@@ -30,32 +30,33 @@ import lucee.transformer.library.function.FunctionLibFunction;
 
 public class PrecisionEvaluate implements FunctionEvaluator {
 
-    @Override
-    public void execute(BIF bif, FunctionLibFunction flf) throws TemplateException {
+	@Override
+	public void execute(BIF bif, FunctionLibFunction flf) throws TemplateException {
 
-	Argument[] args = bif.getArguments();
+		Argument[] args = bif.getArguments();
 
-	for (Argument arg: args) {
-	    Expression value = arg.getValue();
-	    if (value instanceof OpDouble) {
-		arg.setValue(value.getFactory().toExprString(toOpBigDecimal(((OpDouble) value))), "any");
-	    }
+		for (Argument arg: args) {
+			Expression value = arg.getValue();
+			if (value instanceof OpNumber) {
+				arg.setValue(value.getFactory().toExprString(toOpBigDecimal(((OpNumber) value))), "any");
+			}
+		}
 	}
-    }
 
-    private OpBigDecimal toOpBigDecimal(OpDouble op) {
-	Expression left = op.getLeft();
-	Expression right = op.getRight();
-	if (left instanceof OpDouble) left = toOpBigDecimal((OpDouble) left);
-	if (right instanceof OpDouble) right = toOpBigDecimal((OpDouble) right);
-	return new OpBigDecimal(left, right, op.getOperation());
-    }
+	private OpBigDecimal toOpBigDecimal(OpNumber op) {
+		Expression left = op.getLeft();
+		Expression right = op.getRight();
+		if (left instanceof OpNumber) left = toOpBigDecimal((OpNumber) left);
+		if (right instanceof OpNumber) right = toOpBigDecimal((OpNumber) right);
+		return new OpBigDecimal(left, right, op.getOperation());
+	}
 
-    @Override
-    public void evaluate(BIF bif, FunctionLibFunction flf) throws EvaluatorException {}
+	@Override
+	public void evaluate(BIF bif, FunctionLibFunction flf) throws EvaluatorException {
+	}
 
-    @Override
-    public FunctionLibFunction pre(BIF bif, FunctionLibFunction flf) throws TemplateException {
-	return null;
-    }
+	@Override
+	public FunctionLibFunction pre(BIF bif, FunctionLibFunction flf) throws TemplateException {
+		return null;
+	}
 }

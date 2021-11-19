@@ -133,7 +133,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
  							return key&":"&value;
  
                         },parallel);
-		assertEquals('{"A":"A:1","B":"B:2","C":"C:3"}',serialize(res));
+		assertEquals('["A":"A:1","B":"B:2","C":"C:3"]',serialize(res));
 		
 		// test content produced
 		savecontent variable="c" {
@@ -151,7 +151,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
  
                         },parallel);
 
-		assertEquals('{"A":"A:1","B":"B:2","C":"C:3"}',serialize(res));
+		assertEquals('["A":"A:1","B":"B:2","C":"C:3"]',serialize(res));
 
 	}
 
@@ -183,7 +183,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
  
                         },queryNew(qry.columnlist),parallel);
 		}
-		assertEquals('{"row":{"a":"a1"},"2":1,"3":query("a":["a1"])}',c);
+		assertEquals('{"row":["a":"a1"],"2":1,"3":query("a":["a1"])}',c);
 
 		// test member name
 		res=qry.Map(function(row ){

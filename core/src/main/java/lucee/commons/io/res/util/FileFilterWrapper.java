@@ -26,21 +26,21 @@ import lucee.commons.io.res.type.file.FileResourceFilter;
 
 public final class FileFilterWrapper implements FileResourceFilter {
 
-    private final FileFilter filter;
+	private final FileFilter filter;
 
-    public FileFilterWrapper(FileFilter fileFilter) {
-	this.filter = fileFilter;
-    }
+	public FileFilterWrapper(FileFilter fileFilter) {
+		this.filter = fileFilter;
+	}
 
-    @Override
-    public boolean accept(Resource res) {
-	if (res instanceof File) return accept(((File) res));
-	return accept(FileWrapper.toFile(res));
-    }
+	@Override
+	public boolean accept(Resource res) {
+		if (res instanceof File) return accept(((File) res));
+		return accept(FileWrapper.toFile(res));
+	}
 
-    @Override
-    public boolean accept(File pathname) {
-	return filter.accept(pathname);
-    }
+	@Override
+	public boolean accept(File pathname) {
+		return filter.accept(pathname);
+	}
 
 }

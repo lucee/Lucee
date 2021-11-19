@@ -20,57 +20,57 @@ package lucee.runtime.config.component;
 
 import lucee.commons.io.res.Resource;
 import lucee.runtime.config.Constants;
-import lucee.runtime.config.XMLConfigFactory;
+import lucee.runtime.config.ConfigFactory;
 
 public class ComponentFactory {
 
-    /**
-     * this method deploy all components for org.lucee.cfml
-     * 
-     * @param dir components directory
-     * @param doNew redeploy even the file exist, this is set to true when a new version is started
-     */
-    public static void deploy(Resource dir, boolean doNew) {
-	String path = "/resource/component/" + (Constants.DEFAULT_PACKAGE.replace('.', '/')) + "/";
+	/**
+	 * this method deploy all components for org.lucee.cfml
+	 * 
+	 * @param dir components directory
+	 * @param doNew redeploy even the file exist, this is set to true when a new version is started
+	 */
+	public static void deploy(Resource dir, boolean doNew) {
+		String path = "/resource/component/" + (Constants.DEFAULT_PACKAGE.replace('.', '/')) + "/";
 
-	delete(dir, "Base");
-	deploy(dir, path, doNew, "HelperBase");
-	deploy(dir, path, doNew, "Feed");
-	deploy(dir, path, doNew, "Ftp");
-	deploy(dir, path, doNew, "Http");
-	deploy(dir, path, doNew, "Mail");
-	deploy(dir, path, doNew, "Query");
-	deploy(dir, path, doNew, "Result");
-	deploy(dir, path, doNew, "Administrator");
+		delete(dir, "Base");
+		deploy(dir, path, doNew, "HelperBase");
+		deploy(dir, path, doNew, "Feed");
+		deploy(dir, path, doNew, "Ftp");
+		deploy(dir, path, doNew, "Http");
+		deploy(dir, path, doNew, "Mail");
+		deploy(dir, path, doNew, "Query");
+		deploy(dir, path, doNew, "Result");
+		deploy(dir, path, doNew, "Administrator");
 
-	// orm
-	{
-	    Resource ormDir = dir.getRealResource("orm");
-	    String ormPath = path + "orm/";
-	    if (!ormDir.exists()) ormDir.mkdirs();
-	    deploy(ormDir, ormPath, doNew, "IEventHandler");
-	    deploy(ormDir, ormPath, doNew, "INamingStrategy");
+		// orm
+		{
+			Resource ormDir = dir.getRealResource("orm");
+			String ormPath = path + "orm/";
+			if (!ormDir.exists()) ormDir.mkdirs();
+			deploy(ormDir, ormPath, doNew, "IEventHandler");
+			deploy(ormDir, ormPath, doNew, "INamingStrategy");
+		}
+		// test
+		{
+			Resource testDir = dir.getRealResource("test");
+			String testPath = path + "test/";
+			if (!testDir.exists()) testDir.mkdirs();
+
+			deploy(testDir, testPath, doNew, "LuceeTestSuite");
+			deploy(testDir, testPath, doNew, "LuceeTestSuiteRunner");
+			deploy(testDir, testPath, doNew, "LuceeTestCase");
+		}
+
 	}
-	// test
-	{
-	    Resource testDir = dir.getRealResource("test");
-	    String testPath = path + "test/";
-	    if (!testDir.exists()) testDir.mkdirs();
 
-	    deploy(testDir, testPath, doNew, "LuceeTestSuite");
-	    deploy(testDir, testPath, doNew, "LuceeTestSuiteRunner");
-	    deploy(testDir, testPath, doNew, "LuceeTestCase");
+	private static void deploy(Resource dir, String path, boolean doNew, String name) {
+		Resource f = dir.getRealResource(name + ".cfc");
+		if (!f.exists() || doNew) ConfigFactory.createFileFromResourceEL(path + name + ".cfc", f);
 	}
 
-    }
-
-    private static void deploy(Resource dir, String path, boolean doNew, String name) {
-	Resource f = dir.getRealResource(name + ".cfc");
-	if (!f.exists() || doNew) XMLConfigFactory.createFileFromResourceEL(path + name + ".cfc", f);
-    }
-
-    private static void delete(Resource dir, String name) {
-	Resource f = dir.getRealResource(name + ".cfc");
-	if (f.exists()) f.delete();
-    }
+	private static void delete(Resource dir, String name) {
+		Resource f = dir.getRealResource(name + ".cfc");
+		if (f.exists()) f.delete();
+	}
 }

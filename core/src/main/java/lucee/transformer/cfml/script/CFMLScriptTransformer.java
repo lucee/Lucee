@@ -26,46 +26,43 @@ import lucee.transformer.cfml.tag.TagDependentBodyTransformer;
 import lucee.transformer.expression.Expression;
 
 public class CFMLScriptTransformer extends AbstrCFMLScriptTransformer implements TagDependentBodyTransformer {
-    @Override
-    public Body transform(Data data, String surroundingTagName) throws TemplateException {
+	@Override
+	public Body transform(Data data, String surroundingTagName) throws TemplateException {
 
-	// tag.setBody(tdbt.transform(data.factory,data.root,data.ep,data.tlibs,data.flibs,
-	// tagLibTag.getFullName(),data.scriptTags,data.srcCode,data.settings));
+		boolean isCFC = data.page instanceof Page && data.page.isComponent();
+		boolean isInterface = data.page instanceof Page && data.page.isInterface();
 
-	boolean isCFC = data.root instanceof Page && ((Page) data.root).isComponent();
-	boolean isInterface = data.root instanceof Page && ((Page) data.root).isInterface();
+		Data ed = init(data);
 
-	Data ed = init(data);
+		boolean oldAllowLowerThan = ed.allowLowerThan;
+		boolean oldInsideFunction = ed.insideFunction = false;
+		String oldTagName = ed.tagName;
+		boolean oldIsCFC = ed.isCFC;
+		boolean oldIsInterface = ed.isInterface;
 
-	boolean oldAllowLowerThan = ed.allowLowerThan;
-	boolean oldInsideFunction = ed.insideFunction = false;
-	String oldTagName = ed.tagName;
-	boolean oldIsCFC = ed.isCFC;
-	boolean oldIsInterface = ed.isInterface;
+		ed.allowLowerThan = true;
+		ed.insideFunction = false;
+		ed.tagName = surroundingTagName;
+		ed.isCFC = isCFC;
+		ed.isInterface = isInterface;
+		try {
+			return statements(ed);
+		}
+		finally {
+			ed.allowLowerThan = oldAllowLowerThan;
+			ed.insideFunction = oldInsideFunction;
+			ed.tagName = oldTagName;
+			ed.isCFC = oldIsCFC;
+			ed.isInterface = oldIsInterface;
 
-	ed.allowLowerThan = true;
-	ed.insideFunction = false;
-	ed.tagName = surroundingTagName;
-	ed.isCFC = isCFC;
-	ed.isInterface = isInterface;
-	try {
-	    return statements(ed);
+		}
 	}
-	finally {
-	    ed.allowLowerThan = oldAllowLowerThan;
-	    ed.insideFunction = oldInsideFunction;
-	    ed.tagName = oldTagName;
-	    ed.isCFC = oldIsCFC;
-	    ed.isInterface = oldIsInterface;
 
+	@Override
+	public final Expression expression(Data data) throws TemplateException {
+		Expression expr;
+		expr = super.expression(data);
+		comments(data);
+		return expr;
 	}
-    }
-
-    @Override
-    public final Expression expression(Data data) throws TemplateException {
-	Expression expr;
-	expr = super.expression(data);
-	comments(data);
-	return expr;
-    }
 }

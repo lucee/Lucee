@@ -29,17 +29,17 @@ import lucee.runtime.video.VideoUtilImpl;
 
 public class IsVideoFile {
 
-    public static boolean call(PageContext pc, String path) throws PageException {
-	try {
-	    ConfigWeb config = pc.getConfig();
-	    VideoExecuter ve = VideoUtilImpl.createVideoExecuter(config);
-	    ve.info(config, new VideoInputImpl(Caster.toResource(pc, path, true)));
-	}
-	catch (Exception e) {
+	public static boolean call(PageContext pc, String path) throws PageException {
+		try {
+			ConfigWeb config = pc.getConfig();
+			VideoExecuter ve = VideoUtilImpl.createVideoExecuter(config);
+			ve.info(config, new VideoInputImpl(Caster.toResource(pc, path, true)));
+		}
+		catch (Exception e) {
 
-	    if (StringUtil.contains(e.getMessage(), "missing ffmpeg installation")) throw Caster.toPageException(e);
-	    return false;
+			if (StringUtil.contains(e.getMessage(), "missing ffmpeg installation")) throw Caster.toPageException(e);
+			return false;
+		}
+		return true;
 	}
-	return true;
-    }
 }

@@ -38,205 +38,206 @@ import lucee.runtime.op.Caster;
 
 public class HTTPResource extends ReadOnlyResourceSupport {
 
-    private final HTTPResourceProvider provider;
-    private final HTTPConnectionData data;
-    private final String path;
-    private final String name;
-    private HTTPResponse http;
+	private final HTTPResourceProvider provider;
+	private final HTTPConnectionData data;
+	private final String path;
+	private final String name;
+	private HTTPResponse http;
 
-    public HTTPResource(HTTPResourceProvider provider, HTTPConnectionData data) {
-	this.provider = provider;
-	this.data = data;
+	public HTTPResource(HTTPResourceProvider provider, HTTPConnectionData data) {
+		this.provider = provider;
+		this.data = data;
 
-	String[] pathName = ResourceUtil.translatePathName(data.path);
-	this.path = pathName[0];
-	this.name = pathName[1];
+		String[] pathName = ResourceUtil.translatePathName(data.path);
+		this.path = pathName[0];
+		this.name = pathName[1];
 
-    }
-
-    private HTTPResponse getHTTPResponse(boolean create) throws IOException {
-	if (create || http == null) {
-	    // URL url = HTTPUtil.toURL("http://"+data.host+":"+data.port+"/"+data.path);
-	    URL url = new URL(provider.getProtocol(), data.host, data.port, data.path);
-	    // TODO Support for proxy
-	    ProxyData pd = ProxyDataImpl.isValid(data.proxyData, url.getHost()) ? data.proxyData : ProxyDataImpl.NO_PROXY;
-
-	    http = HTTPEngine.get(url, data.username, data.password, _getTimeout(), true, null, data.userAgent, pd, null);
 	}
-	return http;
-    }
 
-    private int getStatusCode() throws IOException {
-	if (http == null) {
-	    URL url = new URL(provider.getProtocol(), data.host, data.port, data.path);
-	    ProxyData pd = ProxyDataImpl.isValid(data.proxyData, url.getHost()) ? data.proxyData : ProxyDataImpl.NO_PROXY;
-	    return HTTPEngine.head(url, data.username, data.password, _getTimeout(), true, null, data.userAgent, pd, null).getStatusCode();
+	private HTTPResponse getHTTPResponse(boolean create) throws IOException {
+		if (create || http == null) {
+			// URL url = HTTPUtil.toURL("http://"+data.host+":"+data.port+"/"+data.path);
+			URL url = new URL(provider.getProtocol(), data.host, data.port, data.path);
+			// TODO Support for proxy
+			ProxyData pd = ProxyDataImpl.isValid(data.proxyData, url.getHost()) ? data.proxyData : ProxyDataImpl.NO_PROXY;
+
+			http = HTTPEngine.get(url, data.username, data.password, _getTimeout(), true, null, data.userAgent, pd, null);
+		}
+		return http;
 	}
-	return http.getStatusCode();
-    }
 
-    public ContentType getContentType() throws IOException {
-	if (http == null) {
-	    URL url = new URL(provider.getProtocol(), data.host, data.port, data.path);
-	    ProxyData pd = ProxyDataImpl.isValid(data.proxyData, url.getHost()) ? data.proxyData : ProxyDataImpl.NO_PROXY;
-	    return HTTPEngine.head(url, data.username, data.password, _getTimeout(), true, null, data.userAgent, pd, null).getContentType();
+	private int getStatusCode() throws IOException {
+		if (http == null) {
+			URL url = new URL(provider.getProtocol(), data.host, data.port, data.path);
+			ProxyData pd = ProxyDataImpl.isValid(data.proxyData, url.getHost()) ? data.proxyData : ProxyDataImpl.NO_PROXY;
+			return HTTPEngine.head(url, data.username, data.password, _getTimeout(), true, null, data.userAgent, pd, null).getStatusCode();
+		}
+		return http.getStatusCode();
 	}
-	return http.getContentType();
-    }
 
-    @Override
-    public boolean exists() {
-	try {
-	    provider.read(this);
-	    int code = getStatusCode();// getHttpMethod().getStatusCode();
-	    return code != 404;
+	public ContentType getContentType() throws IOException {
+		if (http == null) {
+			URL url = new URL(provider.getProtocol(), data.host, data.port, data.path);
+			ProxyData pd = ProxyDataImpl.isValid(data.proxyData, url.getHost()) ? data.proxyData : ProxyDataImpl.NO_PROXY;
+			return HTTPEngine.head(url, data.username, data.password, _getTimeout(), true, null, data.userAgent, pd, null).getContentType();
+		}
+		return http.getContentType();
 	}
-	catch (IOException e) {
-	    return false;
+
+	@Override
+	public boolean exists() {
+		try {
+			provider.read(this);
+			int code = getStatusCode();// getHttpMethod().getStatusCode();
+			return code != 404;
+		}
+		catch (IOException e) {
+			return false;
+		}
 	}
-    }
 
-    public int statusCode() {
-	HTTPResponse rsp = null;
-	try {
-	    provider.read(this);
-	    return (rsp = getHTTPResponse(false)).getStatusCode();
+	public int statusCode() {
+		HTTPResponse rsp = null;
+		try {
+			provider.read(this);
+			return (rsp = getHTTPResponse(false)).getStatusCode();
+		}
+		catch (IOException e) {
+			return 0;
+		}
+		finally {
+			HTTPEngine.closeEL(rsp);
+		}
 	}
-	catch (IOException e) {
-	    return 0;
+
+	@Override
+	public InputStream getInputStream() throws IOException {
+		// ResourceUtil.checkGetInputStreamOK(this);
+		// provider.lock(this);
+		provider.read(this);
+		HTTPResponse method = getHTTPResponse(true);
+		try {
+			return IOUtil.toBufferedInputStream(method.getContentAsStream());
+		}
+		catch (IOException e) {
+			// provider.unlock(this);
+			throw e;
+		}
+		finally {
+			HTTPEngine.closeEL(method);
+		}
 	}
-	finally {
-	    HTTPEngine.closeEL(rsp);
+
+	@Override
+	public String getName() {
+		return name;
 	}
-    }
 
-    @Override
-    public InputStream getInputStream() throws IOException {
-	// ResourceUtil.checkGetInputStreamOK(this);
-	// provider.lock(this);
-	provider.read(this);
-	HTTPResponse method = getHTTPResponse(true);
-	try {
-	    return IOUtil.toBufferedInputStream(method.getContentAsStream());
+	@Override
+	public String getParent() {
+		if (isRoot()) return null;
+		return provider.getProtocol().concat("://").concat(data.key()).concat(path.substring(0, path.length() - 1));
 	}
-	catch (IOException e) {
-	    // provider.unlock(this);
-	    throw e;
+
+	private boolean isRoot() {
+		return StringUtil.isEmpty(name);
 	}
-	finally {
-	    HTTPEngine.closeEL(method);
+
+	@Override
+	public Resource getParentResource() {
+		if (isRoot()) return null;
+		return new HTTPResource(provider, new HTTPConnectionData(data.username, data.password, data.host, data.port, path, data.proxyData, data.userAgent));
 	}
-    }
 
-    @Override
-    public String getName() {
-	return name;
-    }
-
-    @Override
-    public String getParent() {
-	if (isRoot()) return null;
-	return provider.getProtocol().concat("://").concat(data.key()).concat(path.substring(0, path.length() - 1));
-    }
-
-    private boolean isRoot() {
-	return StringUtil.isEmpty(name);
-    }
-
-    @Override
-    public Resource getParentResource() {
-	if (isRoot()) return null;
-	return new HTTPResource(provider, new HTTPConnectionData(data.username, data.password, data.host, data.port, path, data.proxyData, data.userAgent));
-    }
-
-    @Override
-    public String getPath() {
-	return provider.getProtocol().concat("://").concat(data.key()).concat(path).concat(name);
-    }
-
-    @Override
-    public Resource getRealResource(String realpath) {
-	realpath = ResourceUtil.merge(path.concat(name), realpath);
-	if (realpath.startsWith("../")) return null;
-	return new HTTPResource(provider, new HTTPConnectionData(data.username, data.password, data.host, data.port, realpath, data.proxyData, data.userAgent));
-    }
-
-    @Override
-    public ResourceProvider getResourceProvider() {
-	return provider;
-    }
-
-    @Override
-    public boolean isAbsolute() {
-	return true;
-    }
-
-    @Override
-    public boolean isDirectory() {
-	return false;
-    }
-
-    @Override
-    public boolean isFile() {
-	return exists();
-    }
-
-    @Override
-    public boolean isReadable() {
-	return exists();
-    }
-
-    @Override
-    public long lastModified() {
-	int last = 0;
-	HTTPResponse rsp = null;
-	try {
-	    Header cl = (rsp = getHTTPResponse(false)).getLastHeaderIgnoreCase("last-modified");
-	    if (cl != null && exists()) last = Caster.toIntValue(cl.getValue(), 0);
+	@Override
+	public String getPath() {
+		return provider.getProtocol().concat("://").concat(data.key()).concat(path).concat(name);
 	}
-	catch (IOException e) {}
-	finally {
-	    HTTPEngine.closeEL(rsp);
+
+	@Override
+	public Resource getRealResource(String realpath) {
+		realpath = ResourceUtil.merge(path.concat(name), realpath);
+		if (realpath.startsWith("../")) return null;
+		return new HTTPResource(provider, new HTTPConnectionData(data.username, data.password, data.host, data.port, realpath, data.proxyData, data.userAgent));
 	}
-	return last;
-    }
 
-    @Override
-    public long length() {
-	HTTPResponse rsp = null;
-	try {
-	    if (!exists()) return 0;
-	    return (rsp = getHTTPResponse(false)).getContentLength();
+	@Override
+	public ResourceProvider getResourceProvider() {
+		return provider;
 	}
-	catch (IOException e) {
-	    return 0;
+
+	@Override
+	public boolean isAbsolute() {
+		return true;
 	}
-	finally {
-	    HTTPEngine.closeEL(rsp);
+
+	@Override
+	public boolean isDirectory() {
+		return false;
 	}
-    }
 
-    @Override
-    public Resource[] listResources() {
-	return null;
-    }
+	@Override
+	public boolean isFile() {
+		return exists();
+	}
 
-    public void setProxyData(ProxyData pd) {
-	this.http = null;
-	this.data.setProxyData(pd);
-    }
+	@Override
+	public boolean isReadable() {
+		return exists();
+	}
 
-    public void setUserAgent(String userAgent) {
-	this.http = null;
-	this.data.userAgent = userAgent;
-    }
+	@Override
+	public long lastModified() {
+		int last = 0;
+		HTTPResponse rsp = null;
+		try {
+			Header cl = (rsp = getHTTPResponse(false)).getLastHeaderIgnoreCase("last-modified");
+			if (cl != null && exists()) last = Caster.toIntValue(cl.getValue(), 0);
+		}
+		catch (IOException e) {
+		}
+		finally {
+			HTTPEngine.closeEL(rsp);
+		}
+		return last;
+	}
 
-    public void setTimeout(int timeout) {
-	this.http = null;
-	data.timeout = timeout;
-    }
+	@Override
+	public long length() {
+		HTTPResponse rsp = null;
+		try {
+			if (!exists()) return 0;
+			return (rsp = getHTTPResponse(false)).getContentLength();
+		}
+		catch (IOException e) {
+			return 0;
+		}
+		finally {
+			HTTPEngine.closeEL(rsp);
+		}
+	}
 
-    private int _getTimeout() {
-	return data.timeout < provider.getSocketTimeout() ? data.timeout : provider.getSocketTimeout();
-    }
+	@Override
+	public Resource[] listResources() {
+		return null;
+	}
+
+	public void setProxyData(ProxyData pd) {
+		this.http = null;
+		this.data.setProxyData(pd);
+	}
+
+	public void setUserAgent(String userAgent) {
+		this.http = null;
+		this.data.userAgent = userAgent;
+	}
+
+	public void setTimeout(int timeout) {
+		this.http = null;
+		data.timeout = timeout;
+	}
+
+	private int _getTimeout() {
+		return data.timeout < provider.getSocketTimeout() ? data.timeout : provider.getSocketTimeout();
+	}
 }

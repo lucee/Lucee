@@ -26,30 +26,30 @@ import lucee.transformer.expression.Expression;
 
 public class CFMLExprTransformer extends AbstrCFMLScriptTransformer implements ExprTransformer {
 
-    @Override
-    public Expression transformAsString(Data data) throws TemplateException {
-	boolean alt = data.allowLowerThan;
-	data.allowLowerThan = false;
-	Data ed = init(data);
-	try {
-	    return transformAsString(ed, new String[] { " ", ">", "/>" });
+	@Override
+	public Expression transformAsString(Data data) throws TemplateException {
+		boolean alt = data.allowLowerThan;
+		data.allowLowerThan = false;
+		Data ed = init(data);
+		try {
+			return transformAsString(ed, new String[] { " ", ">", "/>" });
+		}
+		finally {
+			data.allowLowerThan = alt;
+		}
 	}
-	finally {
-	    data.allowLowerThan = alt;
-	}
-    }
 
-    @Override
-    public Expression transform(Data data) throws TemplateException {
-	boolean alt = data.allowLowerThan;
-	data.allowLowerThan = false;
-	Data ed = init(data);
-	try {
-	    comments(ed);
-	    return assignOp(ed);
+	@Override
+	public Expression transform(Data data) throws TemplateException {
+		boolean alt = data.allowLowerThan;
+		data.allowLowerThan = false;
+		Data ed = init(data);
+		try {
+			comments(ed);
+			return assignOp(ed);
+		}
+		finally {
+			data.allowLowerThan = alt;
+		}
 	}
-	finally {
-	    data.allowLowerThan = alt;
-	}
-    }
 }

@@ -30,36 +30,36 @@ import lucee.runtime.config.Constants;
  * @see org.xml.sax.EntityResolver
  */
 public final class TagLibEntityResolver implements EntityResolver {
-    /**
-     * Definert den DTD welche eine TLD validieren kann
-     */
-    public final static String LUCEE_DTD_1_0 = "/resource/dtd/web-cfmtaglibrary_1_0.dtd";
+	/**
+	 * Definert den DTD welche eine TLD validieren kann
+	 */
+	public final static String LUCEE_DTD_1_0 = "/resource/dtd/web-cfmtaglibrary_1_0.dtd";
 
-    public final static String SUN_DTD_1_0 = "/resource/dtd/web-jsptaglibrary_1_0.dtd";
-    public final static String SUN_DTD_1_1 = "/resource/dtd/web-jsptaglibrary_1_1.dtd";
-    public final static String SUN_DTD_1_2 = "/resource/dtd/web-jsptaglibrary_1_2.dtd";
+	public final static String SUN_DTD_1_0 = "/resource/dtd/web-jsptaglibrary_1_0.dtd";
+	public final static String SUN_DTD_1_1 = "/resource/dtd/web-jsptaglibrary_1_1.dtd";
+	public final static String SUN_DTD_1_2 = "/resource/dtd/web-jsptaglibrary_1_2.dtd";
 
-    /**
-     * Laedt die DTD vom lokalen System.
-     * 
-     * @see org.xml.sax.EntityResolver#resolveEntity(java.lang.String, java.lang.String)
-     */
-    @Override
-    public InputSource resolveEntity(String publicId, String systemId) {
+	/**
+	 * Laedt die DTD vom lokalen System.
+	 * 
+	 * @see org.xml.sax.EntityResolver#resolveEntity(java.lang.String, java.lang.String)
+	 */
+	@Override
+	public InputSource resolveEntity(String publicId, String systemId) {
 
-	for (int i = 0; i < Constants.DTDS_TLD.length; i++) {
-	    if (publicId.equals(Constants.DTDS_TLD[i])) {
-		return new InputSource(getClass().getResourceAsStream(LUCEE_DTD_1_0));
-	    }
+		for (int i = 0; i < Constants.DTDS_TLD.length; i++) {
+			if (publicId.equals(Constants.DTDS_TLD[i])) {
+				return new InputSource(getClass().getResourceAsStream(LUCEE_DTD_1_0));
+			}
+		}
+
+		if (publicId.equals("-//Sun Microsystems, Inc.//DTD JSP Tag Library 1.1//EN")) {
+			return new InputSource(getClass().getResourceAsStream(SUN_DTD_1_1));
+		}
+		else if (publicId.equals("-//Sun Microsystems, Inc.//DTD JSP Tag Library 1.2//EN")) {
+			return new InputSource(getClass().getResourceAsStream(SUN_DTD_1_2));
+		}
+		return null;
 	}
-
-	if (publicId.equals("-//Sun Microsystems, Inc.//DTD JSP Tag Library 1.1//EN")) {
-	    return new InputSource(getClass().getResourceAsStream(SUN_DTD_1_1));
-	}
-	else if (publicId.equals("-//Sun Microsystems, Inc.//DTD JSP Tag Library 1.2//EN")) {
-	    return new InputSource(getClass().getResourceAsStream(SUN_DTD_1_2));
-	}
-	return null;
-    }
 
 }

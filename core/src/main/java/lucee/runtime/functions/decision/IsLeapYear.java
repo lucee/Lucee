@@ -26,8 +26,8 @@ import lucee.runtime.op.Decision;
  * Implements the CFML Function isleapyear
  */
 public final class IsLeapYear implements Function {
-    public static boolean call(PageContext pc, double year) {
-	return Decision.isLeapYear((int) year);
-    }
+	public static boolean call(PageContext pc, double year) {
+		return Decision.isLeapYear((int) year);
+	}
 
 }

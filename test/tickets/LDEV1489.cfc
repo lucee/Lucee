@@ -1,9 +1,10 @@
-<cfcomponent extends="org.lucee.cfml.test.LuceeTestCase">
+<cfcomponent extends="org.lucee.cfml.test.LuceeTestCase" labels="s3">
 	<cfscript>
 		// skip closure
 		function isNotSupported() {
 			variables.s3Details=getCredentials();
-			if(!isNull(variables.s3Details.ACCESSKEYID) && !isNull(variables.s3Details.AWSSECRETKEY)) {
+			if(structIsEmpty(s3Details)) return true;
+			if(!isNull(variables.s3Details.ACCESS_KEY_ID) && !isNull(variables.s3Details.SECRET_KEY)) {
 				variables.supported = true;
 			}
 			else
@@ -15,9 +16,9 @@
 		function beforeAll() skip="isNotSupported"{
 			if(isNotSupported()) return;
 			s3Details = getCredentials();
-			mitrahsoftBucketName = "ldev1489";
-			base = "s3://#s3Details.ACCESSKEYID#:#s3Details.AWSSECRETKEY#@";
-			variables.baseWithBucketName = "s3://#s3Details.ACCESSKEYID#:#s3Details.AWSSECRETKEY#@/#mitrahsoftBucketName#";
+			bucketName = lcase("lucee-ldev1489-#hash(CreateGUID())#");
+			base = "s3://#s3Details.ACCESS_KEY_ID#:#s3Details.SECRET_KEY#@";
+			variables.baseWithBucketName = "s3://#s3Details.ACCESS_KEY_ID#:#s3Details.SECRET_KEY#@/#bucketName#";
 			// for skipping rest of the cases, if error occurred.
 			hasError = false;
 			// for replacing s3 access keys from error msgs
@@ -42,7 +43,10 @@
 				it(title="checking ACL permission, default set in application.cfc", skip=isNotSupported(), body=function( currentSpec ){
 					uri = createURI('LDEV1489')
 					local.result = _InternalRequest(
-						template:"#uri#/test.cfm"
+						template:"#uri#/test.cfm",
+						url: {
+							bucketName: bucketName
+						}
 					);
 					expect(local.result.filecontent).toBe('WRITE|READ');
 				});
@@ -89,27 +93,17 @@
 		}
 
 		private function removeFullControl(acl) {
-			index=0;
+			local.index=0;
 			loop array=acl index="local.i" item="local.el" {
 				if(el.permission=="FULL_CONTROL")
 					local.index=i;
 			}
-			if(index>0)ArrayDeleteAt( acl, index );
+			if(index gt 0) ArrayDeleteAt( acl, index );
 		}
 
 		// Private functions
 		private struct function getCredentials() {
-			var s3 = {};
-			if(!isNull(server.system.environment.S3_ACCESS_ID) && !isNull(server.system.environment.S3_SECRET_KEY)) {
-				// getting the credentials from the environment variables
-				s3.ACCESSKEYID=server.system.environment.S3_ACCESS_ID;
-				s3.AWSSECRETKEY=server.system.environment.S3_SECRET_KEY;
-			}else if(!isNull(server.system.properties.S3_ACCESS_ID) && !isNull(server.system.properties.S3_SECRET_KEY)) {
-				// getting the credentials from the system variables
-				s3.ACCESSKEYID=server.system.properties.S3_ACCESS_ID;
-				s3.AWSSECRETKEY=server.system.properties.S3_SECRET_KEY;
-			}
-			return s3;
+			return server.getTestService("s3");
 		}
 
 

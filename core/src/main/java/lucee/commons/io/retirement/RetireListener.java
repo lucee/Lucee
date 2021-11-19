@@ -19,5 +19,5 @@
 package lucee.commons.io.retirement;
 
 public interface RetireListener {
-    public void retire(RetireOutputStream os);
+	public void retire(RetireOutputStream os);
 }

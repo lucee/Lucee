@@ -43,197 +43,195 @@ import lucee.runtime.type.util.CollectionUtil;
  */
 public final class DataSourceImpl extends DataSourceSupport {
 
-    private String connStr;
-    private String host;
-    private String database;
-    private int port;
-    private String connStrTranslated;
-    private Struct custom;
-    private String dbdriver;
-    private final ParamSyntax paramSyntax;
-    private final boolean literalTimestampWithTSOffset;
-    private final boolean alwaysSetTimeout;
+	private String connStr;
+	private String host;
+	private String database;
+	private int port;
+	private String connStrTranslated;
+	private Struct custom;
+	private String dbdriver;
+	private final ParamSyntax paramSyntax;
+	private final boolean alwaysSetTimeout;
 
-    /**
-     * constructor
-     * 
-     * @param config
-     * @param driver
-     * @param name
-     * @param cd
-     * @param host
-     * @param connStr
-     * @param database
-     * @param port
-     * @param username
-     * @param password
-     * @param connectionLimit
-     * @param connectionTimeout
-     * @param metaCacheTimeout
-     * @param blob
-     * @param clob
-     * @param allow
-     * @param custom
-     * @param readOnly
-     * @param validate
-     * @param storage
-     * @param timezone
-     * @param dbdriver
-     * @param paramSyntax
-     * @param literalTimestampWithTSOffset
-     * @param alwaysSetTimeout
-     * @param log
-     * @throws BundleException
-     * @throws ClassException
-     * @throws SQLException
-     */
-    public DataSourceImpl(Config config, String name, ClassDefinition cd, String host, String connStr, String database, int port, String username, String password,
-	    TagListener listener, int connectionLimit, int connectionTimeout, long metaCacheTimeout, boolean blob, boolean clob, int allow, Struct custom, boolean readOnly,
-	    boolean validate, boolean storage, TimeZone timezone, String dbdriver, ParamSyntax paramSyntax, boolean literalTimestampWithTSOffset, boolean alwaysSetTimeout, Log log)
-	    throws BundleException, ClassException, SQLException {
+	/**
+	 * 
+	 * @param config
+	 * @param name
+	 * @param cd
+	 * @param host
+	 * @param connStr
+	 * @param database
+	 * @param port
+	 * @param username
+	 * @param password
+	 * @param listener
+	 * @param connectionLimit
+	 * @param idleTimeout
+	 * @param liveTimeout
+	 * @param metaCacheTimeout
+	 * @param blob
+	 * @param clob
+	 * @param allow
+	 * @param custom
+	 * @param readOnly
+	 * @param validate
+	 * @param storage
+	 * @param timezone
+	 * @param dbdriver
+	 * @param paramSyntax
+	 * @param literalTimestampWithTSOffset
+	 * @param alwaysSetTimeout
+	 * @param requestExclusive
+	 * @param alwaysResetConnections
+	 * @param log
+	 * @throws BundleException
+	 * @throws ClassException
+	 * @throws SQLException
+	 */
+	public DataSourceImpl(Config config, String name, ClassDefinition cd, String host, String connStr, String database, int port, String username, String password,
+			TagListener listener, int connectionLimit, int idleTimeout, int liveTimeout, int minIdle, int maxIdle, int maxTotal, long metaCacheTimeout, boolean blob, boolean clob,
+			int allow, Struct custom, boolean readOnly, boolean validate, boolean storage, TimeZone timezone, String dbdriver, ParamSyntax paramSyntax,
+			boolean literalTimestampWithTSOffset, boolean alwaysSetTimeout, boolean requestExclusive, boolean alwaysResetConnections, Log log)
+			throws BundleException, ClassException, SQLException {
 
-	super(config, name, cd, username, ConfigWebUtil.decrypt(password), listener, blob, clob, connectionLimit, connectionTimeout, metaCacheTimeout, timezone,
-		allow < 0 ? ALLOW_ALL : allow, storage, readOnly, validate, log);
+		super(config, name, cd, username, ConfigWebUtil.decrypt(password), listener, blob, clob, connectionLimit, idleTimeout, liveTimeout, minIdle, maxIdle, maxTotal,
+				metaCacheTimeout, timezone, allow < 0 ? ALLOW_ALL : allow, storage, readOnly, validate, requestExclusive, alwaysResetConnections, literalTimestampWithTSOffset,
+				log);
 
-	this.host = host;
-	this.database = database;
-	this.connStr = connStr;
-	this.port = port;
+		this.host = host;
+		this.database = database;
+		this.connStr = connStr;
+		this.port = port;
 
-	this.custom = custom;
+		this.custom = custom;
 
-	this.connStrTranslated = connStr;
-	this.paramSyntax = (paramSyntax == null) ? ParamSyntax.DEFAULT : paramSyntax;
-	this.literalTimestampWithTSOffset = literalTimestampWithTSOffset;
-	this.alwaysSetTimeout = alwaysSetTimeout;
-	translateConnStr();
+		this.connStrTranslated = connStr;
+		this.paramSyntax = (paramSyntax == null) ? ParamSyntax.DEFAULT : paramSyntax;
+		this.alwaysSetTimeout = alwaysSetTimeout;
+		translateConnStr();
 
-	this.dbdriver = dbdriver;
-    }
-
-    private void translateConnStr() {
-	connStrTranslated = replace(connStrTranslated, "host", host, false, false);
-	connStrTranslated = replace(connStrTranslated, "database", database, false, false);
-	connStrTranslated = replace(connStrTranslated, "port", Caster.toString(port), false, false);
-	connStrTranslated = replace(connStrTranslated, "username", getUsername(), false, false);
-	connStrTranslated = replace(connStrTranslated, "password", getPassword(), false, false);
-
-	// Collection.Key[] keys = custom==null?new Collection.Key[0]:custom.keys();
-	if (custom != null) {
-	    Iterator<Entry<Key, Object>> it = custom.entryIterator();
-	    Entry<Key, Object> e;
-	    boolean leading = true;
-	    while (it.hasNext()) {
-		e = it.next();
-		connStrTranslated = replace(connStrTranslated, e.getKey().getString(), Caster.toString(e.getValue(), ""), true, leading);
-		leading = false;
-	    }
+		this.dbdriver = dbdriver;
 	}
-    }
 
-    private String replace(String src, String name, String value, boolean doQueryString, boolean leading) {
-	if (StringUtil.indexOfIgnoreCase(src, "{" + name + "}") != -1) {
-	    return StringUtil.replace(connStrTranslated, "{" + name + "}", value, false);
+	private void translateConnStr() {
+		connStrTranslated = replace(connStrTranslated, "host", host, false, false);
+		connStrTranslated = replace(connStrTranslated, "database", database, false, false);
+		connStrTranslated = replace(connStrTranslated, "port", Caster.toString(port), false, false);
+		connStrTranslated = replace(connStrTranslated, "username", getUsername(), false, false);
+		connStrTranslated = replace(connStrTranslated, "password", getPassword(), false, false);
+
+		// Collection.Key[] keys = custom==null?new Collection.Key[0]:custom.keys();
+		if (custom != null) {
+			Iterator<Entry<Key, Object>> it = custom.entryIterator();
+			Entry<Key, Object> e;
+			boolean leading = true;
+			while (it.hasNext()) {
+				e = it.next();
+				connStrTranslated = replace(connStrTranslated, e.getKey().getString(), Caster.toString(e.getValue(), ""), true, leading);
+				leading = false;
+			}
+		}
 	}
-	if (!doQueryString) return src;
 
-	// FUTURE remove; this is for backward compatibility to old MSSQL driver
-	if (ParamSyntax.DEFAULT.equals(paramSyntax) && getClassDefinition().getClassName().indexOf("microsoft") != -1 || getClassDefinition().getClassName().indexOf("jtds") != -1)
-	    return src += ';' + name + '=' + value;
-	return src += (leading ? paramSyntax.leadingDelimiter : paramSyntax.delimiter) + name + paramSyntax.separator + value;
-	// return src+=((src.indexOf('?')!=-1)?'&':'?')+name+'='+value;
-    }
+	private String replace(String src, String name, String value, boolean doQueryString, boolean leading) {
+		if (StringUtil.indexOfIgnoreCase(src, "{" + name + "}") != -1) {
+			return StringUtil.replace(connStrTranslated, "{" + name + "}", value, false);
+		}
+		if (!doQueryString) return src;
 
-    @Override
-    public String getDsnOriginal() {
-	return getConnectionString();
-    }
-
-    @Override
-    public String getConnectionString() {
-	return connStr;
-    }
-
-    @Override
-    public String getDsnTranslated() {
-	return getConnectionStringTranslated();
-    }
-
-    @Override
-    public String getConnectionStringTranslated() {
-	return connStrTranslated;
-    }
-
-    @Override
-    public String getDatabase() {
-	return database;
-    }
-
-    @Override
-    public int getPort() {
-	return port;
-    }
-
-    @Override
-    public String getHost() {
-	return host;
-    }
-
-    // FUTURE add to interface
-    public ParamSyntax getParamSyntax() {
-	return paramSyntax;
-    }
-
-    // FUTURE add to interface
-    public boolean getLiteralTimestampWithTSOffset() {
-	return literalTimestampWithTSOffset;
-    }
-
-    // FUTURE add to interface
-    public boolean getAlwaysSetTimeout() {
-	return alwaysSetTimeout;
-    }
-
-    @Override
-    public Object clone() {
-	return _clone(isReadOnly());
-    }
-
-    @Override
-    public DataSource cloneReadOnly() {
-	return _clone(true);
-    }
-
-    public DataSource _clone(boolean readOnly) {
-	try {
-	    return new DataSourceImpl(ThreadLocalPageContext.getConfig(), getName(), getClassDefinition(), host, connStr, database, port, getUsername(), getPassword(),
-		    getListener(), getConnectionLimit(), getConnectionTimeout(), getMetaCacheTimeout(), isBlob(), isClob(), allow, custom, readOnly, validate(), isStorage(),
-		    getTimeZone(), dbdriver, getParamSyntax(), literalTimestampWithTSOffset, alwaysSetTimeout, getLog());
+		// FUTURE remove; this is for backward compatibility to old MSSQL driver
+		if (ParamSyntax.DEFAULT.equals(paramSyntax) && getClassDefinition().getClassName().indexOf("microsoft") != -1 || getClassDefinition().getClassName().indexOf("jtds") != -1)
+			return src += ';' + name + '=' + value;
+		return src += (leading ? paramSyntax.leadingDelimiter : paramSyntax.delimiter) + name + paramSyntax.separator + value;
+		// return src+=((src.indexOf('?')!=-1)?'&':'?')+name+'='+value;
 	}
-	catch (RuntimeException re) {
-	    throw re; // this should never happens, because the class was already loaded in this object
+
+	@Override
+	public String getDsnOriginal() {
+		return getConnectionString();
 	}
-	catch (Exception e) {
-	    throw new RuntimeException(e); // this should never happens, because the class was already loaded in this object
+
+	@Override
+	public String getConnectionString() {
+		return connStr;
 	}
-    }
 
-    @Override
-    public String getCustomValue(String key) {
-	return Caster.toString(custom.get(KeyImpl.init(key), null), "");
-    }
+	@Override
+	public String getDsnTranslated() {
+		return getConnectionStringTranslated();
+	}
 
-    @Override
-    public String[] getCustomNames() {
-	return CollectionUtil.keysAsString(custom);
-    }
+	@Override
+	public String getConnectionStringTranslated() {
+		return connStrTranslated;
+	}
 
-    @Override
-    public Struct getCustoms() {
-	return (Struct) custom.clone();
-    }
+	@Override
+	public String getDatabase() {
+		return database;
+	}
 
-    public String getDbDriver() {
-	return dbdriver;
-    }
+	@Override
+	public int getPort() {
+		return port;
+	}
+
+	@Override
+	public String getHost() {
+		return host;
+	}
+
+	// FUTURE add to interface
+	public ParamSyntax getParamSyntax() {
+		return paramSyntax;
+	}
+
+	// FUTURE add to interface
+	public boolean getAlwaysSetTimeout() {
+		return alwaysSetTimeout;
+	}
+
+	@Override
+	public Object clone() {
+		return _clone(isReadOnly());
+	}
+
+	@Override
+	public DataSource cloneReadOnly() {
+		return _clone(true);
+	}
+
+	public DataSource _clone(boolean readOnly) {
+		try {
+			return new DataSourceImpl(ThreadLocalPageContext.getConfig(), getName(), getClassDefinition(), host, connStr, database, port, getUsername(), getPassword(),
+					getListener(), getConnectionLimit(), getIdleTimeout(), getLiveTimeout(), getMinIdle(), getMaxIdle(), getMaxTotal(), getMetaCacheTimeout(), isBlob(), isClob(),
+					allow, custom, readOnly, validate(), isStorage(), getTimeZone(), dbdriver, getParamSyntax(), getLiteralTimestampWithTSOffset(), alwaysSetTimeout,
+					isRequestExclusive(), isAlwaysResetConnections(), getLog());
+		}
+		catch (RuntimeException re) {
+			throw re; // this should never happens, because the class was already loaded in this object
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e); // this should never happens, because the class was already loaded in this object
+		}
+	}
+
+	@Override
+	public String getCustomValue(String key) {
+		return Caster.toString(custom.get(KeyImpl.init(key), null), "");
+	}
+
+	@Override
+	public String[] getCustomNames() {
+		return CollectionUtil.keysAsString(custom);
+	}
+
+	@Override
+	public Struct getCustoms() {
+		return (Struct) custom.clone();
+	}
+
+	public String getDbDriver() {
+		return dbdriver;
+	}
 }

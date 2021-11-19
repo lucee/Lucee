@@ -32,7 +32,7 @@ import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.DatabaseException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
-import lucee.runtime.op.Operator;
+import lucee.runtime.op.OpUtil;
 import lucee.runtime.op.date.DateCaster;
 import lucee.runtime.type.dt.DateTime;
 import lucee.runtime.type.it.EntryIterator;
@@ -46,373 +46,377 @@ import lucee.runtime.type.util.ListUtil;
  */
 public final class QueryColumnRef implements QueryColumn {
 
-    private Query query;
-    private Collection.Key columnName;
-    private int type;
+	private Query query;
+	private Collection.Key columnName;
+	private int type;
 
-    /**
-     * Constructor of the class
-     * 
-     * @param query
-     * @param columnName
-     * @param type
-     */
-    public QueryColumnRef(Query query, Collection.Key columnName, int type) {
-	this.query = query;
-	this.columnName = columnName;
-	this.type = type;
-    }
-
-    @Override
-    public Object remove(int row) throws DatabaseException {
-	throw new DatabaseException("can't remove " + columnName + " at row " + row + " value from Query", null, null, null);
-    }
-
-    @Override
-    public Object removeEL(int row) {
-	return query.getAt(columnName, row, null);
-    }
-
-    @Override
-    public Object get(int row) throws PageException {
-	return query.getAt(columnName, row);
-    }
-
-    /**
-     * touch a value, means if key dosent exist, it will created
-     * 
-     * @param row
-     * @return matching value or created value
-     * @throws PageException
-     */
-    public Object touch(int row) throws PageException {
-	Object _null = NullSupportHelper.NULL();
-	Object o = query.getAt(columnName, row, _null);
-	if (o != _null) return o;
-	return query.setAt(columnName, row, new StructImpl());
-    }
-
-    public Object touchEL(int row) {
-	Object _null = NullSupportHelper.NULL();
-	Object o = query.getAt(columnName, row, _null);
-	if (o != _null) return o;
-	return query.setAtEL(columnName, row, new StructImpl());
-    }
-
-    @Override
-    public Object get(int row, Object defaultValue) {
-	return query.getAt(columnName, row, defaultValue);
-    }
-
-    @Override
-    public Object set(int row, Object value) throws DatabaseException {
-	throw new DatabaseException("can't change " + columnName + " value from Query", null, null, null);
-    }
-
-    @Override
-    public Object setEL(int row, Object value) {
-	return query.getAt(columnName, row, null);
-    }
-
-    @Override
-    public void add(Object value) {}
-
-    @Override
-    public void addRow(int count) {}
-
-    @Override
-    public int getType() {
-	return type;
-    }
-
-    @Override
-    public String getTypeAsString() {
-	return QueryImpl.getColumTypeName(getType());
-    }
-
-    @Override
-    public void cutRowsTo(int maxrows) {}
-
-    @Override
-    public int size() {
-	return query.size();
-    }
-
-    @Override
-    public Collection.Key[] keys() {
-	Collection.Key[] k = new Collection.Key[size()];
-	for (int i = 1; i <= k.length; i++) {
-	    k[i - 1] = KeyImpl.init(Caster.toString(i));
+	/**
+	 * Constructor of the class
+	 * 
+	 * @param query
+	 * @param columnName
+	 * @param type
+	 */
+	public QueryColumnRef(Query query, Collection.Key columnName, int type) {
+		this.query = query;
+		this.columnName = columnName;
+		this.type = type;
 	}
-	return k;
-    }
 
-    @Override
-    public Object remove(Collection.Key key) throws PageException {
-	throw new DatabaseException("can't remove " + key + " from Query", null, null, null);
-    }
+	@Override
+	public Object remove(int row) throws DatabaseException {
+		throw new DatabaseException("can't remove " + columnName + " at row " + row + " value from Query", null, null, null);
+	}
 
-    @Override
-    public Object removeEL(Collection.Key key) {
-	return get(key, null);
-    }
+	@Override
+	public Object removeEL(int row) {
+		return query.getAt(columnName, row, null);
+	}
 
-    @Override
-    public Object remove(Collection.Key key, Object defaultValue) {
-	return get(key, defaultValue);
-    }
+	@Override
+	public Object get(int row) throws PageException {
+		return query.getAt(columnName, row);
+	}
 
-    @Override
-    public void clear() {}
+	/**
+	 * touch a value, means if key dosent exist, it will created
+	 * 
+	 * @param row
+	 * @return matching value or created value
+	 * @throws PageException
+	 */
+	public Object touch(int row) throws PageException {
+		Object _null = NullSupportHelper.NULL();
+		Object o = query.getAt(columnName, row, _null);
+		if (o != _null) return o;
+		return query.setAt(columnName, row, new StructImpl());
+	}
 
-    @Override
-    public Object get(String key) throws PageException {
-	return get(Caster.toIntValue(key));
-    }
+	public Object touchEL(int row) {
+		Object _null = NullSupportHelper.NULL();
+		Object o = query.getAt(columnName, row, _null);
+		if (o != _null) return o;
+		return query.setAtEL(columnName, row, new StructImpl());
+	}
 
-    @Override
-    public Object get(Collection.Key key) throws PageException {
-	return get(Caster.toIntValue(key.getString()));
-    }
+	@Override
+	public Object get(int row, Object defaultValue) {
+		return query.getAt(columnName, row, defaultValue);
+	}
 
-    @Override
-    public Object get(String key, Object defaultValue) {
-	return get(Caster.toIntValue(key, query.getCurrentrow(ThreadLocalPageContext.get().getId())), defaultValue);
-    }
+	@Override
+	public Object set(int row, Object value) throws DatabaseException {
+		throw new DatabaseException("can't change " + columnName + " value from Query", null, null, null);
+	}
 
-    @Override
-    public Object get(Collection.Key key, Object defaultValue) {
-	return get(Caster.toIntValue(key, query.getCurrentrow(ThreadLocalPageContext.get().getId())), defaultValue);
-    }
+	@Override
+	public Object setEL(int row, Object value) {
+		return query.getAt(columnName, row, null);
+	}
 
-    @Override
-    public Object set(String key, Object value) throws PageException {
-	return set(Caster.toIntValue(key), value);
-    }
+	@Override
+	public void add(Object value) {
+	}
 
-    @Override
-    public Object set(Collection.Key key, Object value) throws PageException {
-	return set(Caster.toIntValue(key), value);
-    }
+	@Override
+	public void addRow(int count) {
+	}
 
-    @Override
-    public Object setEL(String key, Object value) {
-	return setEL(Caster.toIntValue(key, query.getCurrentrow(ThreadLocalPageContext.get().getId())), value);
-    }
+	@Override
+	public int getType() {
+		return type;
+	}
 
-    @Override
-    public Object setEL(Collection.Key key, Object value) {
-	return setEL(Caster.toIntValue(key, query.getCurrentrow(ThreadLocalPageContext.get().getId())), value);
-    }
+	@Override
+	public String getTypeAsString() {
+		return QueryImpl.getColumTypeName(getType());
+	}
 
-    @Override
-    public Iterator<Collection.Key> keyIterator() {
-	return new KeyIterator(keys());
-    }
+	@Override
+	public void cutRowsTo(int maxrows) {
+	}
 
-    @Override
-    public Iterator<String> keysAsStringIterator() {
-	return new StringIterator(keys());
-    }
+	@Override
+	public int size() {
+		return query.size();
+	}
 
-    @Override
-    public Iterator<Entry<Key, Object>> entryIterator() {
-	return new EntryIterator(this, keys());
-    }
+	@Override
+	public Collection.Key[] keys() {
+		Collection.Key[] k = new Collection.Key[size()];
+		for (int i = 1; i <= k.length; i++) {
+			k[i - 1] = KeyImpl.init(Caster.toString(i));
+		}
+		return k;
+	}
 
-    @Override
-    public Iterator<Object> valueIterator() {
-	return query.getColumn(columnName, null).valueIterator();
-    }
+	@Override
+	public Object remove(Collection.Key key) throws PageException {
+		throw new DatabaseException("can't remove " + key + " from Query", null, null, null);
+	}
 
-    @Override
-    public boolean containsKey(String key) {
-	Object _null = NullSupportHelper.NULL();
-	return get(key, _null) != _null;
-    }
+	@Override
+	public Object removeEL(Collection.Key key) {
+		return get(key, null);
+	}
 
-    @Override
-    public boolean containsKey(Collection.Key key) {
-	Object _null = NullSupportHelper.NULL();
-	return get(key, _null) != _null;
-    }
+	@Override
+	public Object remove(Collection.Key key, Object defaultValue) {
+		return get(key, defaultValue);
+	}
 
-    @Override
-    public DumpData toDumpData(PageContext pageContext, int maxlevel, DumpProperties dp) {
-	return DumpUtil.toDumpData(get(query.getCurrentrow(pageContext.getId()), null), pageContext, maxlevel, dp);
-    }
+	@Override
+	public void clear() {
+	}
 
-    @Override
-    public String castToString() throws PageException {
-	return Caster.toString(get(query.getCurrentrow(ThreadLocalPageContext.get().getId())));
-    }
+	@Override
+	public Object get(String key) throws PageException {
+		return get(Caster.toIntValue(key));
+	}
 
-    @Override
-    public String castToString(String defaultValue) {
-	Object _null = NullSupportHelper.NULL();
-	Object value = get(query.getCurrentrow(ThreadLocalPageContext.get().getId()), _null);
-	if (value == _null) return defaultValue;
-	return Caster.toString(value, defaultValue);
-    }
+	@Override
+	public Object get(Collection.Key key) throws PageException {
+		return get(Caster.toIntValue(key.getString()));
+	}
 
-    @Override
-    public boolean castToBooleanValue() throws PageException {
-	return Caster.toBooleanValue(get(query.getCurrentrow(ThreadLocalPageContext.get().getId())));
-    }
+	@Override
+	public Object get(String key, Object defaultValue) {
+		return get(Caster.toIntValue(key, query.getCurrentrow(ThreadLocalPageContext.get().getId())), defaultValue);
+	}
 
-    @Override
-    public Boolean castToBoolean(Boolean defaultValue) {
-	Object _null = NullSupportHelper.NULL();
-	Object value = get(query.getCurrentrow(ThreadLocalPageContext.get().getId()), _null);
-	if (value == _null) return defaultValue;
-	return Caster.toBoolean(value, defaultValue);
-    }
+	@Override
+	public Object get(Collection.Key key, Object defaultValue) {
+		return get(Caster.toIntValue(key, query.getCurrentrow(ThreadLocalPageContext.get().getId())), defaultValue);
+	}
 
-    @Override
-    public double castToDoubleValue() throws PageException {
-	return Caster.toDoubleValue(get(query.getCurrentrow(ThreadLocalPageContext.get().getId())));
-    }
+	@Override
+	public Object set(String key, Object value) throws PageException {
+		return set(Caster.toIntValue(key), value);
+	}
 
-    @Override
-    public double castToDoubleValue(double defaultValue) {
-	Object _null = NullSupportHelper.NULL();
-	Object value = get(query.getCurrentrow(ThreadLocalPageContext.get().getId()), _null);
-	if (value == _null) return defaultValue;
-	return Caster.toDoubleValue(value, true, defaultValue);
-    }
+	@Override
+	public Object set(Collection.Key key, Object value) throws PageException {
+		return set(Caster.toIntValue(key), value);
+	}
 
-    @Override
-    public DateTime castToDateTime() throws PageException {
-	return Caster.toDate(get(query.getCurrentrow(ThreadLocalPageContext.get().getId())), null);
-    }
+	@Override
+	public Object setEL(String key, Object value) {
+		return setEL(Caster.toIntValue(key, query.getCurrentrow(ThreadLocalPageContext.get().getId())), value);
+	}
 
-    @Override
-    public DateTime castToDateTime(DateTime defaultValue) {
-	Object _null = NullSupportHelper.NULL();
-	Object value = get(query.getCurrentrow(ThreadLocalPageContext.get().getId()), _null);
-	if (value == _null) return defaultValue;
-	return DateCaster.toDateAdvanced(value, DateCaster.CONVERTING_TYPE_OFFSET, null, defaultValue);
-    }
+	@Override
+	public Object setEL(Collection.Key key, Object value) {
+		return setEL(Caster.toIntValue(key, query.getCurrentrow(ThreadLocalPageContext.get().getId())), value);
+	}
 
-    @Override
-    public int compareTo(boolean b) throws PageException {
-	return Operator.compare(castToBooleanValue(), b);
-    }
+	@Override
+	public Iterator<Collection.Key> keyIterator() {
+		return new KeyIterator(keys());
+	}
 
-    @Override
-    public int compareTo(DateTime dt) throws PageException {
-	return Operator.compare((Date) castToDateTime(), (Date) dt);
-    }
+	@Override
+	public Iterator<String> keysAsStringIterator() {
+		return new StringIterator(keys());
+	}
 
-    @Override
-    public int compareTo(double d) throws PageException {
-	return Operator.compare(castToDoubleValue(), d);
-    }
+	@Override
+	public Iterator<Entry<Key, Object>> entryIterator() {
+		return new EntryIterator(this, keys());
+	}
 
-    @Override
-    public int compareTo(String str) throws PageException {
-	return Operator.compare(castToString(), str);
-    }
+	@Override
+	public Iterator<Object> valueIterator() {
+		return query.getColumn(columnName, null).valueIterator();
+	}
 
-    @Override
-    public String getKeyAsString() throws PageException {
-	return columnName.toString();
-    }
+	@Override
+	public boolean containsKey(String key) {
+		Object _null = NullSupportHelper.NULL();
+		return get(key, _null) != _null;
+	}
 
-    @Override
-    public Collection.Key getKey() throws PageException {
-	return columnName;
-    }
+	@Override
+	public boolean containsKey(Collection.Key key) {
+		Object _null = NullSupportHelper.NULL();
+		return get(key, _null) != _null;
+	}
 
-    @Override
-    public Object get(PageContext pc) throws PageException {
-	return get(query.getCurrentrow(pc.getId()));
-    }
+	@Override
+	public DumpData toDumpData(PageContext pageContext, int maxlevel, DumpProperties dp) {
+		return DumpUtil.toDumpData(get(query.getCurrentrow(pageContext.getId()), null), pageContext, maxlevel, dp);
+	}
 
-    @Override
-    public Object get(PageContext pc, Object defaultValue) {
-	return get(query.getCurrentrow(pc.getId()), defaultValue);
-    }
+	@Override
+	public String castToString() throws PageException {
+		return Caster.toString(get(query.getCurrentrow(ThreadLocalPageContext.get().getId())));
+	}
 
-    @Override
-    public Object removeRow(int row) throws DatabaseException {
-	throw new DatabaseException("can't remove row from Query", null, null, null);
-    }
+	@Override
+	public String castToString(String defaultValue) {
+		Object _null = NullSupportHelper.NULL();
+		Object value = get(query.getCurrentrow(ThreadLocalPageContext.get().getId()), _null);
+		if (value == _null) return defaultValue;
+		return Caster.toString(value, defaultValue);
+	}
 
-    @Override
-    public Object touch(PageContext pc) throws PageException {
-	return touch(query.getCurrentrow(pc.getId()));
-    }
+	@Override
+	public boolean castToBooleanValue() throws PageException {
+		return Caster.toBooleanValue(get(query.getCurrentrow(ThreadLocalPageContext.get().getId())));
+	}
 
-    @Override
-    public Object touchEL(PageContext pc) {
-	return touchEL(query.getCurrentrow(pc.getId()));
-    }
+	@Override
+	public Boolean castToBoolean(Boolean defaultValue) {
+		Object _null = NullSupportHelper.NULL();
+		Object value = get(query.getCurrentrow(ThreadLocalPageContext.get().getId()), _null);
+		if (value == _null) return defaultValue;
+		return Caster.toBoolean(value, defaultValue);
+	}
 
-    @Override
-    public Object set(PageContext pc, Object value) throws PageException {
-	return set(query.getCurrentrow(pc.getId()), value);
-    }
+	@Override
+	public double castToDoubleValue() throws PageException {
+		return Caster.toDoubleValue(get(query.getCurrentrow(ThreadLocalPageContext.get().getId())));
+	}
 
-    @Override
-    public Object setEL(PageContext pc, Object value) {
-	return setEL(query.getCurrentrow(pc.getId()), value);
-    }
+	@Override
+	public double castToDoubleValue(double defaultValue) {
+		Object _null = NullSupportHelper.NULL();
+		Object value = get(query.getCurrentrow(ThreadLocalPageContext.get().getId()), _null);
+		if (value == _null) return defaultValue;
+		return Caster.toDoubleValue(value, true, defaultValue);
+	}
 
-    @Override
-    public Object remove(PageContext pc) throws PageException {
-	return remove(query.getCurrentrow(pc.getId()));
-    }
+	@Override
+	public DateTime castToDateTime() throws PageException {
+		return Caster.toDate(get(query.getCurrentrow(ThreadLocalPageContext.get().getId())), null);
+	}
 
-    @Override
-    public Object removeEL(PageContext pc) {
-	return removeEL(query.getCurrentrow(pc.getId()));
-    }
+	@Override
+	public DateTime castToDateTime(DateTime defaultValue) {
+		Object _null = NullSupportHelper.NULL();
+		Object value = get(query.getCurrentrow(ThreadLocalPageContext.get().getId()), _null);
+		if (value == _null) return defaultValue;
+		return DateCaster.toDateAdvanced(value, DateCaster.CONVERTING_TYPE_OFFSET, null, defaultValue);
+	}
 
-    @Override
-    public Object getParent() {
-	return query;
-    }
+	@Override
+	public int compareTo(boolean b) throws PageException {
+		return OpUtil.compare(ThreadLocalPageContext.get(), castToBooleanValue() ? Boolean.TRUE : Boolean.FALSE, b ? Boolean.TRUE : Boolean.FALSE);
+	}
 
-    @Override
-    public Object clone() {
-	QueryColumn clone = new QueryColumnRef(query, columnName, type);
-	return clone;
-    }
+	@Override
+	public int compareTo(DateTime dt) throws PageException {
+		return OpUtil.compare(ThreadLocalPageContext.get(), (Date) castToDateTime(), (Date) dt);
+	}
 
-    @Override
-    public Collection duplicate(boolean deepCopy) {
-	// MUST muss deepCopy checken
-	QueryColumn clone = new QueryColumnRef(query, columnName, type);
-	return clone;
-    }
+	@Override
+	public int compareTo(double d) throws PageException {
+		return OpUtil.compare(ThreadLocalPageContext.get(), Double.valueOf(castToDoubleValue()), Double.valueOf(d));
+	}
 
-    @Override
-    public java.util.Iterator<String> getIterator() {
-	return keysAsStringIterator();
-    }
+	@Override
+	public int compareTo(String str) throws PageException {
+		return OpUtil.compare(ThreadLocalPageContext.get(), castToString(), str);
+	}
 
-    @Override
-    public boolean equals(Object obj) {
-	if (!(obj instanceof Collection)) return false;
-	return CollectionUtil.equals(this, (Collection) obj);
-    }
+	@Override
+	public String getKeyAsString() throws PageException {
+		return columnName.toString();
+	}
 
-    /**
-     * This method was added for ACF compatibility per LDEV-1142 and should be avoided if cross engine
-     * code is not required. Use instead Query.columnArray() or Query.columnList().listToArray().
-     * 
-     * @return an Array of the names of columns
-     * @throws PageException
-     */
-    public Array listToArray() throws PageException {
+	@Override
+	public Collection.Key getKey() throws PageException {
+		return columnName;
+	}
 
-	if (this.query instanceof QueryImpl) return ListUtil.listToArray(((QueryImpl) this.query).getColumnlist(false), ",");
+	@Override
+	public Object get(PageContext pc) throws PageException {
+		return get(query.getCurrentrow(pc.getId()));
+	}
 
-	throw new ApplicationException("Query is not of type QueryImpl. Use instead Query.columnArray() or Query.columnList().listToArray().");
-    }
+	@Override
+	public Object get(PageContext pc, Object defaultValue) {
+		return get(query.getCurrentrow(pc.getId()), defaultValue);
+	}
 
-    /*
-     * @Override public int hashCode() { return CollectionUtil.hashCode(this); }
-     */
+	@Override
+	public Object removeRow(int row) throws DatabaseException {
+		throw new DatabaseException("can't remove row from Query", null, null, null);
+	}
+
+	@Override
+	public Object touch(PageContext pc) throws PageException {
+		return touch(query.getCurrentrow(pc.getId()));
+	}
+
+	@Override
+	public Object touchEL(PageContext pc) {
+		return touchEL(query.getCurrentrow(pc.getId()));
+	}
+
+	@Override
+	public Object set(PageContext pc, Object value) throws PageException {
+		return set(query.getCurrentrow(pc.getId()), value);
+	}
+
+	@Override
+	public Object setEL(PageContext pc, Object value) {
+		return setEL(query.getCurrentrow(pc.getId()), value);
+	}
+
+	@Override
+	public Object remove(PageContext pc) throws PageException {
+		return remove(query.getCurrentrow(pc.getId()));
+	}
+
+	@Override
+	public Object removeEL(PageContext pc) {
+		return removeEL(query.getCurrentrow(pc.getId()));
+	}
+
+	@Override
+	public Object getParent() {
+		return query;
+	}
+
+	@Override
+	public Object clone() {
+		QueryColumn clone = new QueryColumnRef(query, columnName, type);
+		return clone;
+	}
+
+	@Override
+	public Collection duplicate(boolean deepCopy) {
+		// MUST muss deepCopy checken
+		QueryColumn clone = new QueryColumnRef(query, columnName, type);
+		return clone;
+	}
+
+	@Override
+	public java.util.Iterator<String> getIterator() {
+		return keysAsStringIterator();
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (!(obj instanceof Collection)) return false;
+		return CollectionUtil.equals(this, (Collection) obj);
+	}
+
+	/**
+	 * This method was added for ACF compatibility per LDEV-1142 and should be avoided if cross engine
+	 * code is not required. Use instead Query.columnArray() or Query.columnList().listToArray().
+	 * 
+	 * @return an Array of the names of columns
+	 * @throws PageException
+	 */
+	public Array listToArray() throws PageException {
+
+		if (this.query instanceof QueryImpl) return ListUtil.listToArray(((QueryImpl) this.query).getColumnlist(false, ", "), ",");
+
+		throw new ApplicationException("Query is not of type QueryImpl. Use instead Query.columnArray() or Query.columnList().listToArray().");
+	}
+
+	/*
+	 * @Override public int hashCode() { return CollectionUtil.hashCode(this); }
+	 */
 }

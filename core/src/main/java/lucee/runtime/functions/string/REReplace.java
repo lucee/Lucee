@@ -21,54 +21,41 @@
  */
 package lucee.runtime.functions.string;
 
-import org.apache.oro.text.regex.MalformedPatternException;
-
 import lucee.runtime.PageContext;
-import lucee.runtime.exp.ExpressionException;
+import lucee.runtime.PageContextImpl;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
 import lucee.runtime.op.Caster;
-import lucee.runtime.regex.Perl5Util;
+import lucee.runtime.regex.Regex;
 
 public final class REReplace extends BIF {
 
-    private static final long serialVersionUID = -1140669656936340678L;
+	private static final long serialVersionUID = -1140669656936340678L;
 
-    public static String call(String string, String regExp, String replace) throws ExpressionException { // MUST is this really needed?
-	try {
-	    return Perl5Util.replace(string, regExp, replace, true, false);
+	public static String call(String string, String regExp, String replace) throws PageException { // MUST is this really needed?
+		Regex regex = ((PageContextImpl) ThreadLocalPageContext.get()).getRegex();
+		return regex.replace(string, regExp, replace, true, false);
 	}
-	catch (MalformedPatternException e) {
-	    throw new ExpressionException("reReplace" + "second" + "regularExpression" + e.getMessage());
-	}
-    }
 
-    public static String call(PageContext pc, String string, String regExp, String replace) throws ExpressionException {
-	try {
-	    return Perl5Util.replace(string, regExp, replace, true, false);
+	public static String call(PageContext pc, String string, String regExp, String replace) throws PageException {
+		Regex regex = ((PageContextImpl) pc).getRegex();
+		return regex.replace(string, regExp, replace, true, false);
 	}
-	catch (MalformedPatternException e) {
-	    throw new FunctionException(pc, "reReplace", 2, "regularExpression", e.getMessage());
-	}
-    }
 
-    public static String call(PageContext pc, String string, String regExp, String replace, String scope) throws ExpressionException {
-	try {
-	    if (scope.equalsIgnoreCase("all")) return Perl5Util.replace(string, regExp, replace, true, true);
-	    return Perl5Util.replace(string, regExp, replace, true, false);
+	public static String call(PageContext pc, String string, String regExp, String replace, String scope) throws PageException {
+		Regex regex = ((PageContextImpl) ThreadLocalPageContext.get()).getRegex();
+		if (scope.equalsIgnoreCase("all")) return regex.replaceAll(string, regExp, replace, true, false);
+		return regex.replace(string, regExp, replace, true, false);
 	}
-	catch (MalformedPatternException e) {
-	    throw new FunctionException(pc, "reReplace", 2, "regularExpression", e.getMessage());
+
+	@Override
+	public Object invoke(PageContext pc, Object[] args) throws PageException {
+		if (args.length == 3) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toString(args[2]));
+		if (args.length == 4) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toString(args[2]), Caster.toString(args[3]));
+
+		throw new FunctionException(pc, "REReplace", 3, 4, args.length);
 	}
-    }
-
-    @Override
-    public Object invoke(PageContext pc, Object[] args) throws PageException {
-	if (args.length == 3) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toString(args[2]));
-	if (args.length == 4) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toString(args[2]), Caster.toString(args[3]));
-
-	throw new FunctionException(pc, "REReplace", 3, 4, args.length);
-    }
 
 }

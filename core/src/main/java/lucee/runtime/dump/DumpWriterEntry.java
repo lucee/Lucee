@@ -23,43 +23,43 @@ package lucee.runtime.dump;
  * name and if it is a default.
  */
 public class DumpWriterEntry {
-    private String name;
-    private DumpWriter writer;
-    private int defaultType;
+	private String name;
+	private DumpWriter writer;
+	private int defaultType;
 
-    public DumpWriterEntry(int defaultType, String name, DumpWriter writer) {
-	// print.err(name+":"+defaultType);
-	this.defaultType = defaultType;
-	this.name = name;
-	this.writer = writer;
-    }
+	public DumpWriterEntry(int defaultType, String name, DumpWriter writer) {
+		// print.err(name+":"+defaultType);
+		this.defaultType = defaultType;
+		this.name = name;
+		this.writer = writer;
+	}
 
-    /**
-     * @return the def
-     */
-    public int getDefaultType() {
-	return defaultType;
-    }
+	/**
+	 * @return the def
+	 */
+	public int getDefaultType() {
+		return defaultType;
+	}
 
-    /**
-     * @param def the def to set
-     */
-    public void setDefaultType(int defaultType) {
-	this.defaultType = defaultType;
-    }
+	/**
+	 * @param def the def to set
+	 */
+	public void setDefaultType(int defaultType) {
+		this.defaultType = defaultType;
+	}
 
-    /**
-     * @return the name
-     */
-    public String getName() {
-	return name;
-    }
+	/**
+	 * @return the name
+	 */
+	public String getName() {
+		return name;
+	}
 
-    /**
-     * @return the writer
-     */
-    public DumpWriter getWriter() {
-	return writer;
-    }
+	/**
+	 * @return the writer
+	 */
+	public DumpWriter getWriter() {
+		return writer;
+	}
 
 }
