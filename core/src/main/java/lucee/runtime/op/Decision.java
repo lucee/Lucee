@@ -225,7 +225,8 @@ public final class Decision {
 	}
 
 	public static boolean isInteger(Object value, boolean alsoBooleans) {
-		if (!alsoBooleans && value instanceof Boolean) return false;
+		if (!alsoBooleans && isBoolean(value)) return false;
+
 		double dbl = Caster.toDoubleValue(value, false, Double.NaN);
 		if (!Decision.isValid(dbl)) return false;
 		int i = (int) dbl;
@@ -1013,14 +1014,7 @@ public final class Decision {
 			if ("guid".equals(type)) return isGUId(value);
 			break;
 		case 'i':
-			if ("integer".equals(type)) 
-				try{
-					Integer.parseInt(Caster.toString(value));
-					return true;
-				}
-				catch(Exception e){
-					return false;
-				}
+			if ("integer".equals(type)) return isInteger(value, false);
 			if ("image".equals(type)) return ImageUtil.isImage(value);
 			break;
 		case 'l':
