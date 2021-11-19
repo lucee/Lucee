@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase"{
+component extends="org.lucee.cfml.test.LuceeTestCase" skip=true{
     function beforeAll(){
         afterAll();
         if( !directoryExists("./LDEV3391" )) directoryCreate("./LDEV3391");
