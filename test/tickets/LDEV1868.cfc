@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase"{
+component extends="org.lucee.cfml.test.LuceeTestCase" skip=true{
 	function run( testResults , testBox ) {
 		describe( "Test case for LDEV_1868", function() {
 			it( title='Checking Application context for MailSettings', body=function( currentSpec ) {
