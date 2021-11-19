@@ -62,7 +62,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="image" {
 		}).toThrow();
 
 		expect(ImageResize( image=image, width=20, height=20, blurFactor=5)).toBeNull();
-		expect(ImageResize( image=image, width=20, height=20, blurFactor=0)).toBeNull();
 		expect(ImageResize( image=image, width=20, height=20, blurFactor=10)).toBeNull();
 	}  
 
