@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase"{
+component extends="org.lucee.cfml.test.LuceeTestCase" skip=true {
     function run( testResults, testBox ){
         describe( "Test case for LDEV-3384", function() {
             it(title="dateDiff function", body=function( currentSpec ){
