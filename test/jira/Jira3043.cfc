@@ -17,11 +17,20 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  * 
  ---><cfscript>
-component extends="org.lucee.cfml.test.LuceeTestCase"	{
+component extends="org.lucee.cfml.test.LuceeTestCase"  labels="mysql" {
 	
 	
-	//public function afterTests(){}
-	
+	public function beforeTests(){
+		// stash system timezone
+		variables.timezone = getApplicationSettings().timezone;
+	}
+
+	public function afterTests(){
+		// pop system timezone
+		application action="update" timezone="#variables.timezone#";
+		setTimeZone(variables.timezone);
+	}
+
 	public function setUp(){
 		variables.has=defineDatasource();
 	}

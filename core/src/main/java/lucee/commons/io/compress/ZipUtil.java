@@ -36,7 +36,8 @@ public final class ZipUtil {
 					// Command.execute("unzip "+zip+" -d "+dir);
 					Command.execute("unzip", new String[] { "-o", zip.getAbsolutePath(), "-d", dir.getAbsolutePath() });
 				}
-				catch (InterruptedException e) {}
+				catch (InterruptedException e) {
+				}
 				return;
 			}
 			CompressUtil.extract(CompressUtil.FORMAT_ZIP, zip, dir);
@@ -48,7 +49,8 @@ public final class ZipUtil {
 		try {
 			zos.close();
 		}
-		catch (IOException e) {}
+		catch (IOException e) {
+		}
 	}
 
 	public static void close(ZipFile file) {
@@ -56,7 +58,8 @@ public final class ZipUtil {
 		try {
 			file.close();
 		}
-		catch (IOException e) {}
+		catch (IOException e) {
+		}
 	}
 
 	public static Resource toResource(Resource targetDir, ZipEntry entry) throws IOException {

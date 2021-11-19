@@ -453,7 +453,7 @@ public final class FileTag extends BodyTagImpl {
 		case ACTION_UNDEFINED:
 			throw new ApplicationException("Missing attribute action"); // should never happens
 
-			// write and append
+		// write and append
 		default:
 			return EVAL_BODY_BUFFERED;
 		}
@@ -726,6 +726,8 @@ public final class FileTag extends BodyTagImpl {
 			else if (nameconflict == NAMECONFLICT_SKIP) return;
 			// OVERWRITE
 			else if (nameconflict == NAMECONFLICT_OVERWRITE) file.delete();
+			// MAKEUNIQUE
+			else if (nameconflict == NAMECONFLICT_MAKEUNIQUE) file = makeUnique(file);
 		}
 
 		setACL(pageContext, file, acl);
@@ -834,6 +836,7 @@ public final class FileTag extends BodyTagImpl {
 		Struct sct = new StructImpl();
 
 		// fill data to query
+		sct.setEL(KeyConstants._path, file.getAbsolutePath());
 		sct.setEL(KeyConstants._name, file.getName());
 		sct.setEL(KeyConstants._size, Long.valueOf(file.length()));
 		sct.setEL(KeyConstants._type, file.isDirectory() ? "Dir" : "File");
@@ -1148,7 +1151,7 @@ public final class FileTag extends BodyTagImpl {
 	}
 
 	/**
-	 * rreturn fileItem matching to filefiled definition or throw an exception
+	 * return fileItem matching to filefield definition or throw an exception
 	 * 
 	 * @return FileItem
 	 * @throws ApplicationException

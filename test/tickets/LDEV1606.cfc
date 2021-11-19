@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase"{
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="zip"{
 	function run( testResults , testBox ) {
 		describe( title="Test suite for LDEV-1606", body=function() {
 			it( title='Checking cfzipparam tag with attribute filter',body=function( currentSpec ) {

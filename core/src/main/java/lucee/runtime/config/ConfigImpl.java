@@ -417,6 +417,8 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	private long applicationPathCacheTimeout = Caster.toLongValue(SystemUtil.getSystemPropOrEnvVar("lucee.application.path.cache.timeout", null), 20000);
 	private ClassLoader envClassLoader;
 
+	private boolean preciseMath = true;
+
 	/**
 	 * @return the allowURLRequestTimeout
 	 */
@@ -3004,7 +3006,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		SoftReference<CacheElement> tmp = getApplicationPathCacheTimeout() <= 0 ? null : applicationPathCache.get(id);
 		if (tmp != null) {
 			CacheElement ce = tmp.get();
-			if ((ce.created + getApplicationPathCacheTimeout()) >= System.currentTimeMillis()) {
+			if (ce != null && (ce.created + getApplicationPathCacheTimeout()) >= System.currentTimeMillis()) {
 				if (ce.pageSource.loadPage(pc, false, (Page) null) != null) {
 					if (isCFC != null) isCFC.setValue(ce.isCFC);
 					return ce.pageSource;
@@ -3793,4 +3795,12 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		this.regex = regex;
 	}
 
+	@Override
+	public boolean getPreciseMath() {
+		return preciseMath;
+	}
+
+	protected void setPreciseMath(boolean preciseMath) {
+		this.preciseMath = preciseMath;
+	}
 }

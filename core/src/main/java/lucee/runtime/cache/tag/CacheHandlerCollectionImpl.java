@@ -341,6 +341,7 @@ public class CacheHandlerCollectionImpl implements CacheHandlerCollection {
 				if (filter.accept(obj)) cache.remove(ce.getKey());
 			}
 		}
-		catch (IOException e) {}
+		catch (IOException e) {
+		}
 	}
 }

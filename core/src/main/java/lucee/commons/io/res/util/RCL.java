@@ -189,7 +189,8 @@ public final class RCL extends ClassLoader implements Closeable {
 			}
 			return data;
 		}
-		catch (IOException ioe) {}
+		catch (IOException ioe) {
+		}
 		finally {
 			IOUtil.closeEL(is);
 		}
@@ -207,6 +208,7 @@ public final class RCL extends ClassLoader implements Closeable {
 		try {
 			if (zipFile != null) zipFile.close();
 		}
-		catch (IOException e) {}
+		catch (IOException e) {
+		}
 	}
 }

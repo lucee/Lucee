@@ -144,8 +144,8 @@ import lucee.runtime.net.http.ReqRspUtil;
 import lucee.runtime.net.mail.ServerImpl;
 import lucee.runtime.net.proxy.ProxyData;
 import lucee.runtime.op.Caster;
+import lucee.runtime.op.OpUtil;
 import lucee.runtime.op.Decision;
-import lucee.runtime.op.Operator;
 import lucee.runtime.orm.ORMConfiguration;
 import lucee.runtime.orm.ORMEngine;
 import lucee.runtime.orm.ORMSession;
@@ -592,8 +592,7 @@ public final class PageContextImpl extends PageContext {
 
 		if (config.debug()) {
 			boolean skipLogThread = isChild;
-			if (skipLogThread && config.hasDebugOptions(ConfigPro.DEBUG_THREAD))
-				skipLogThread = false;
+			if (skipLogThread && config.hasDebugOptions(ConfigPro.DEBUG_THREAD)) skipLogThread = false;
 			if (!gatewayContext && !skipLogThread) config.getDebuggerPool().store(this, debugger);
 			debugger.reset();
 		}
@@ -863,8 +862,11 @@ public final class PageContextImpl extends PageContext {
 
 	public PageSource[] getRelativePageSources(String realPath) {
 		if (StringUtil.startsWith(realPath, '/')) return getPageSources(realPath);
-		if (pathList.size() == 0) return null;
-		return new PageSource[] { pathList.getLast().getRealPage(realPath) };
+
+		PageSource ps = getCurrentPageSource(null);
+		if (ps == null) return null;
+
+		return new PageSource[] { ps.getRealPage(realPath) };
 	}
 
 	public PageSource getPageSource(String realPath) {
@@ -2704,7 +2706,12 @@ public final class PageContextImpl extends PageContext {
 	}
 
 	private boolean isValidCfToken(String value) {
-		return Operator.compare(value, "0") == 0;
+		try {
+			return OpUtil.compare(this, value, "0") == 0;
+		}
+		catch (PageException e) {
+			return value.equals("0");
+		}
 	}
 
 	public void resetIdAndToken() {
@@ -3128,7 +3135,7 @@ public final class PageContextImpl extends PageContext {
 		// Application
 		application = scopeContext.getApplicationScope(this, false, null);// this is needed that the
 		// application scope is initilized
-		if (application == null) {
+		if (application == null || !application.isInitalized()) {
 			// because we had no lock so far, it could be that we more than one thread here at the same time
 			Lock nameLock = lock.lock(name, getRequestTimeout());
 			try {
@@ -3146,6 +3153,9 @@ public final class PageContextImpl extends PageContext {
 					catch (PageException pe) {
 						scopeContext.removeApplicationScope(this);
 						throw pe;
+					}
+					finally {
+						application.initialize(this);
 					}
 				}
 			}

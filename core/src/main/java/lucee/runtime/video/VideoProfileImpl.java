@@ -56,7 +56,8 @@ public class VideoProfileImpl implements VideoProfile {
 		this.audioSamplerate = audioSamplerate;
 	}
 
-	public VideoProfileImpl() {}
+	public VideoProfileImpl() {
+	}
 
 	@Override
 	public VideoProfile duplicate() {

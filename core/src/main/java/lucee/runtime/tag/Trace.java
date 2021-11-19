@@ -151,7 +151,8 @@ public final class Trace extends BodyTagImpl {
 		try {
 			_doEndTag();
 		}
-		catch (IOException e) {}
+		catch (IOException e) {
+		}
 		return EVAL_PAGE;
 	}
 
