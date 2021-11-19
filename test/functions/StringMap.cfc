@@ -24,8 +24,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
         closure=function(item){ 
             return item+5; 
         }
-    	assertEquals('545556575859606162', myStr.map(closure));
-
+    	assertEquals('67891011121314', myStr.map(closure));
+        
     	myString="Hello World"         
         closure=function(val){               
             return (val & 'a')  
