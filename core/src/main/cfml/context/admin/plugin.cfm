@@ -63,7 +63,7 @@
 	<cfset rtnAction= plugin.component._action(url.pluginAction,lang,app,req)>    
 	<!--- cfset rtnAction= plugin.component[url.pluginAction](lang,app,req)--->
 </cfif>
-<cfif rtnAction?:"".len() EQ 0>
+<cfif "#rtnAction?:"".len()#" EQ 0>
 	<cfset rtnAction=url.pluginAction>
 </cfif>
 
