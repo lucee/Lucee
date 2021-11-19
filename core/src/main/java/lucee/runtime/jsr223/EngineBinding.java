@@ -27,70 +27,70 @@ import lucee.runtime.PageContext;
 
 public class EngineBinding implements Bindings {
 
-    private PageContext pc;
+	private PageContext pc;
 
-    public EngineBinding(PageContext pc) {
-	this.pc = pc;
-    }
+	public EngineBinding(PageContext pc) {
+		this.pc = pc;
+	}
 
-    @Override
-    public int size() {
-	return pc.undefinedScope().size();
-    }
+	@Override
+	public int size() {
+		return pc.undefinedScope().size();
+	}
 
-    @Override
-    public boolean isEmpty() {
-	return pc.undefinedScope().isEmpty();
-    }
+	@Override
+	public boolean isEmpty() {
+		return pc.undefinedScope().isEmpty();
+	}
 
-    @Override
-    public boolean containsValue(Object value) {
-	return pc.undefinedScope().containsValue(value);
-    }
+	@Override
+	public boolean containsValue(Object value) {
+		return pc.undefinedScope().containsValue(value);
+	}
 
-    @Override
-    public void clear() {
-	pc.undefinedScope().clear();
-    }
+	@Override
+	public void clear() {
+		pc.undefinedScope().clear();
+	}
 
-    @Override
-    public Set<String> keySet() {
-	return pc.undefinedScope().keySet();
-    }
+	@Override
+	public Set<String> keySet() {
+		return pc.undefinedScope().keySet();
+	}
 
-    @Override
-    public Collection<Object> values() {
-	return pc.undefinedScope().values();
-    }
+	@Override
+	public Collection<Object> values() {
+		return pc.undefinedScope().values();
+	}
 
-    @Override
-    public Set<java.util.Map.Entry<String, Object>> entrySet() {
-	return pc.undefinedScope().entrySet();
-    }
+	@Override
+	public Set<java.util.Map.Entry<String, Object>> entrySet() {
+		return pc.undefinedScope().entrySet();
+	}
 
-    @Override
-    public Object put(String name, Object value) {
-	return pc.undefinedScope().put(name, value);
-    }
+	@Override
+	public Object put(String name, Object value) {
+		return pc.undefinedScope().put(name, value);
+	}
 
-    @Override
-    public void putAll(Map<? extends String, ? extends Object> toMerge) {
-	pc.undefinedScope().putAll(toMerge);
-    }
+	@Override
+	public void putAll(Map<? extends String, ? extends Object> toMerge) {
+		pc.undefinedScope().putAll(toMerge);
+	}
 
-    @Override
-    public boolean containsKey(Object key) {
-	return pc.undefinedScope().containsKey(key);
-    }
+	@Override
+	public boolean containsKey(Object key) {
+		return pc.undefinedScope().containsKey(key);
+	}
 
-    @Override
-    public Object get(Object key) {
-	return pc.undefinedScope().get(key);
-    }
+	@Override
+	public Object get(Object key) {
+		return pc.undefinedScope().get(key);
+	}
 
-    @Override
-    public Object remove(Object key) {
-	return pc.undefinedScope().remove(key);
-    }
+	@Override
+	public Object remove(Object key) {
+		return pc.undefinedScope().remove(key);
+	}
 
 }

@@ -28,33 +28,33 @@ import lucee.runtime.op.Caster;
 
 public class URLEncode {
 
-    public static String call(PageContext pc, String str) throws PageException {
+	public static String call(PageContext pc, String str) throws PageException {
 
-	return invoke(str, "UTF-8", true);
-    }
-
-    public static String call(PageContext pc, String str, String encoding) throws PageException {
-
-	return invoke(str, encoding, true);
-    }
-
-    public static String call(PageContext pc, String str, String encoding, boolean force) throws PageException {
-
-	return invoke(str, encoding, force);
-    }
-
-    public static String invoke(String str, String encoding, boolean force) throws PageException {
-
-	if (!force && !ReqRspUtil.needEncoding(str, false)) return str;
-
-	try {
-
-	    return URLEncoder.encode(str, encoding);
+		return invoke(str, "UTF-8", true);
 	}
-	catch (UnsupportedEncodingException e) {
 
-	    throw Caster.toPageException(e);
+	public static String call(PageContext pc, String str, String encoding) throws PageException {
+
+		return invoke(str, encoding, true);
 	}
-    }
+
+	public static String call(PageContext pc, String str, String encoding, boolean force) throws PageException {
+
+		return invoke(str, encoding, force);
+	}
+
+	public static String invoke(String str, String encoding, boolean force) throws PageException {
+
+		if (!force && !ReqRspUtil.needEncoding(str, false)) return str;
+
+		try {
+
+			return URLEncoder.encode(str, encoding);
+		}
+		catch (UnsupportedEncodingException e) {
+
+			throw Caster.toPageException(e);
+		}
+	}
 
 }

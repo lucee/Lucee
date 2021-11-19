@@ -29,7 +29,7 @@ import lucee.runtime.text.xml.XMLUtil;
  */
 public final class XmlGetNodeType implements Function {
 
-    public static String call(PageContext pc, Node node) {
-	return XMLUtil.getTypeAsString(node, false);
-    }
+	public static String call(PageContext pc, Node node) {
+		return XMLUtil.getTypeAsString(node, false);
+	}
 }

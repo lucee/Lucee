@@ -25,11 +25,11 @@ import lucee.runtime.ext.function.Function;
 
 public class SessionInvalidate implements Function {
 
-    private static final long serialVersionUID = -4219932267580490719L;
+	private static final long serialVersionUID = -4219932267580490719L;
 
-    public static String call(PageContext pc) throws PageException {
-	((PageContextImpl) pc).invalidateUserScopes(false, true);
-	return null;
-    }
+	public static String call(PageContext pc) throws PageException {
+		((PageContextImpl) pc).invalidateUserScopes(false, true);
+		return null;
+	}
 
 }

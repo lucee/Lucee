@@ -28,34 +28,34 @@ import lucee.runtime.op.Castable;
  */
 public interface TimeSpan extends Castable, Dumpable, Serializable {
 
-    /**
-     * @return returns the timespan in milliseconds
-     */
-    public abstract long getMillis();
+	/**
+	 * @return returns the timespan in milliseconds
+	 */
+	public abstract long getMillis();
 
-    /**
-     * @return returns the timespan in seconds
-     */
-    public abstract long getSeconds();
+	/**
+	 * @return returns the timespan in seconds
+	 */
+	public abstract long getSeconds();
 
-    /**
-     * @return Returns the day value.
-     */
-    public abstract int getDay();
+	/**
+	 * @return Returns the day value.
+	 */
+	public abstract int getDay();
 
-    /**
-     * @return Returns the hour value.
-     */
-    public abstract int getHour();
+	/**
+	 * @return Returns the hour value.
+	 */
+	public abstract int getHour();
 
-    /**
-     * @return Returns the minute value.
-     */
-    public abstract int getMinute();
+	/**
+	 * @return Returns the minute value.
+	 */
+	public abstract int getMinute();
 
-    /**
-     * @return Returns the second value.
-     */
-    public abstract int getSecond();
+	/**
+	 * @return Returns the second value.
+	 */
+	public abstract int getSecond();
 
 }

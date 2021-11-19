@@ -27,39 +27,39 @@ import lucee.runtime.type.KeyImpl;
 
 public class ComponentCacheEventListener implements CacheEventListener {
 
-    private static final long serialVersionUID = 6271280246677734153L;
-    private static final Collection.Key ON_EXPIRES = KeyImpl.intern("onExpires");
-    private static final Collection.Key ON_PUT = KeyImpl.intern("onPut");
-    private static final Collection.Key ON_REMOVE = KeyImpl.intern("onRemove");
-    private Component component;
+	private static final long serialVersionUID = 6271280246677734153L;
+	private static final Collection.Key ON_EXPIRES = KeyImpl.getInstance("onExpires");
+	private static final Collection.Key ON_PUT = KeyImpl.getInstance("onPut");
+	private static final Collection.Key ON_REMOVE = KeyImpl.getInstance("onRemove");
+	private Component component;
 
-    public ComponentCacheEventListener(Component component) {
-	this.component = component;
-    }
+	public ComponentCacheEventListener(Component component) {
+		this.component = component;
+	}
 
-    @Override
-    public void onRemove(CacheEntry entry) {
-	call(ON_REMOVE, entry);
-    }
+	@Override
+	public void onRemove(CacheEntry entry) {
+		call(ON_REMOVE, entry);
+	}
 
-    @Override
-    public void onPut(CacheEntry entry) {
-	call(ON_PUT, entry);
-    }
+	@Override
+	public void onPut(CacheEntry entry) {
+		call(ON_PUT, entry);
+	}
 
-    @Override
-    public void onExpires(CacheEntry entry) {
-	call(ON_EXPIRES, entry);
-    }
+	@Override
+	public void onExpires(CacheEntry entry) {
+		call(ON_EXPIRES, entry);
+	}
 
-    private void call(Key methodName, CacheEntry entry) {
-	// Struct data = entry.getCustomInfo();
-	// cfc.callWithNamedValues(pc, methodName, data);
-    }
+	private void call(Key methodName, CacheEntry entry) {
+		// Struct data = entry.getCustomInfo();
+		// cfc.callWithNamedValues(pc, methodName, data);
+	}
 
-    @Override
-    public CacheEventListener duplicate() {
-	return new ComponentCacheEventListener((Component) component.duplicate(false));
-    }
+	@Override
+	public CacheEventListener duplicate() {
+		return new ComponentCacheEventListener((Component) component.duplicate(false));
+	}
 
 }

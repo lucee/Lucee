@@ -19,5 +19,5 @@
 package lucee.runtime.converter;
 
 public interface Convertable {
-    public String toJson();
+	public String toJson();
 }

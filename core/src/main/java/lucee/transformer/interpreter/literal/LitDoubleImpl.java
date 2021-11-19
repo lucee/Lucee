@@ -13,76 +13,76 @@ import lucee.transformer.interpreter.expression.ExpressionBase;
  */
 public final class LitDoubleImpl extends ExpressionBase implements LitDouble, ExprDouble {
 
-    // public static final LitDouble ZERO=new LitDouble(0,null,null);
+	// public static final LitDouble ZERO=new LitDouble(0,null,null);
 
-    private double d;
+	private double d;
 
-    /**
-     * constructor of the class
-     * 
-     * @param d
-     * @param line
-     */
-    public LitDoubleImpl(Factory f, double d, Position start, Position end) {
-	super(f, start, end);
+	/**
+	 * constructor of the class
+	 * 
+	 * @param d
+	 * @param line
+	 */
+	public LitDoubleImpl(Factory f, double d, Position start, Position end) {
+		super(f, start, end);
 
-	this.d = d;
-    }
-
-    @Override
-    public Class<?> _writeOut(InterpreterContext ic, int mode) {
-	if (mode == MODE_REF) {
-	    ic.stack(Double.valueOf(d));
-	    return Double.class;
+		this.d = d;
 	}
-	ic.stack(d);
-	return double.class;
-    }
 
-    /**
-     * @return return value as double value
-     */
-    @Override
-    public double getDoubleValue() {
-	return d;
-    }
+	@Override
+	public Class<?> _writeOut(InterpreterContext ic, int mode) {
+		if (mode == MODE_REF) {
+			ic.stack(Double.valueOf(d));
+			return Double.class;
+		}
+		ic.stack(d);
+		return double.class;
+	}
 
-    /**
-     * @return return value as Double Object
-     */
-    public Double getDouble() {
-	return new Double(d);
-    }
+	/**
+	 * @return return value as double value
+	 */
+	@Override
+	public double getDoubleValue() {
+		return d;
+	}
 
-    /**
-     * @see lucee.transformer.expression.literal.Literal#getString()
-     */
-    @Override
-    public String getString() {
-	return Caster.toString(d);
-    }
+	/**
+	 * @return return value as Double Object
+	 */
+	public Double getDouble() {
+		return new Double(d);
+	}
 
-    /**
-     * @return return value as a Boolean Object
-     */
-    public Boolean getBoolean() {
-	return Caster.toBoolean(d);
-    }
+	/**
+	 * @see lucee.transformer.expression.literal.Literal#getString()
+	 */
+	@Override
+	public String getString() {
+		return Caster.toString(d);
+	}
 
-    /**
-     * @return return value as a boolean value
-     */
-    public boolean getBooleanValue() {
-	return Caster.toBooleanValue(d);
-    }
+	/**
+	 * @return return value as a Boolean Object
+	 */
+	public Boolean getBoolean() {
+		return Caster.toBoolean(d);
+	}
 
-    @Override
-    public Double getDouble(Double defaultValue) {
-	return getDouble();
-    }
+	/**
+	 * @return return value as a boolean value
+	 */
+	public boolean getBooleanValue() {
+		return Caster.toBooleanValue(d);
+	}
 
-    @Override
-    public Boolean getBoolean(Boolean defaultValue) {
-	return getBoolean();
-    }
+	@Override
+	public Double getDouble(Double defaultValue) {
+		return getDouble();
+	}
+
+	@Override
+	public Boolean getBoolean(Boolean defaultValue) {
+		return getBoolean();
+	}
 }

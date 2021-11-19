@@ -31,50 +31,52 @@ import lucee.runtime.exp.PageException;
  */
 public final class ResponseImpl implements Response {
 
-    private PageContext pc;
-    private boolean debug;
+	private PageContext pc;
+	private boolean debug;
 
-    /**
-     * @param pc
-     * @param debug
-     */
-    public ResponseImpl(PageContext pc, boolean debug) {
-	this.pc = pc;
-	this.debug = debug;
-    }
-
-    @Override
-    public Query addQuery(String name, String[] column) {
-	lucee.runtime.type.Query query = new lucee.runtime.type.QueryImpl(column, 0, name);
-
-	try {
-	    pc.setVariable(name, query);
+	/**
+	 * @param pc
+	 * @param debug
+	 */
+	public ResponseImpl(PageContext pc, boolean debug) {
+		this.pc = pc;
+		this.debug = debug;
 	}
-	catch (PageException e) {}
-	return new QueryWrap(query);
-    }
 
-    @Override
-    public void setVariable(String key, String value) {
-	try {
-	    pc.setVariable(key, value);
+	@Override
+	public Query addQuery(String name, String[] column) {
+		lucee.runtime.type.Query query = new lucee.runtime.type.QueryImpl(column, 0, name);
+
+		try {
+			pc.setVariable(name, query);
+		}
+		catch (PageException e) {
+		}
+		return new QueryWrap(query);
 	}
-	catch (PageException e) {}
-    }
 
-    @Override
-    public void write(String str) {
-	try {
-	    pc.write(str);
+	@Override
+	public void setVariable(String key, String value) {
+		try {
+			pc.setVariable(key, value);
+		}
+		catch (PageException e) {
+		}
 	}
-	catch (IOException e) {
 
+	@Override
+	public void write(String str) {
+		try {
+			pc.write(str);
+		}
+		catch (IOException e) {
+
+		}
 	}
-    }
 
-    @Override
-    public void writeDebug(String str) {
-	if (debug) write(str);
-    }
+	@Override
+	public void writeDebug(String str) {
+		if (debug) write(str);
+	}
 
 }

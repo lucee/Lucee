@@ -31,6 +31,29 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				expect(data.bundle).toBe(false);
 			});
 
+
+			it(title="checking OSGi Update Bundle", body=function(){
+				var uri=createURI("javaSettings/osgiupdate/index.cfm");
+				var res=_InternalRequest(addToken:true,template:uri);
+				var data=deserializeJson(res.fileContent);
+				
+				expect(data.bundle1.name).toBe("lucee.mockup");
+				expect(data.bundle1.version).toBe("1.0.0.0");
+
+				expect(data.bundle2.name).toBe("lucee.mockup");
+				expect(data.bundle2.version).toBe("1.0.0.0");
+			});
+
+
+			it(title="checking OSGi 2 Bundle", body=function(){
+				var uri=createURI("javaSettings/osgi2/index.cfm");
+				var res=_InternalRequest(addToken:true,template:uri);
+				var data=deserializeJson(res.fileContent);
+				
+				expect(data.bundle.name).toBe("lucee.mockup2");
+				expect(data.bundle.version).toBe("1.0.0.0");
+			});
+
 		});
 	}
 

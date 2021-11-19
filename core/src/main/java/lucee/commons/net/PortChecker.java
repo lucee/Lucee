@@ -29,41 +29,42 @@ import lucee.commons.io.IOUtil;
 
 public class PortChecker {
 
-    public static boolean isActive(String host, int port) {
-	Socket s = null;
-	try {
-	    s = new Socket();
-	    s.setReuseAddress(true);
-	    SocketAddress sa = new InetSocketAddress(host, port);
-	    s.connect(sa, 3000);
-	    return true;
+	public static boolean isActive(String host, int port) {
+		Socket s = null;
+		try {
+			s = new Socket();
+			s.setReuseAddress(true);
+			SocketAddress sa = new InetSocketAddress(host, port);
+			s.connect(sa, 3000);
+			return true;
+		}
+		catch (IOException e) {
+		}
+		finally {
+			IOUtil.closeEL(s);
+		}
+		return false;
 	}
-	catch (IOException e) {}
-	finally {
-	    IOUtil.closeEL(s);
-	}
-	return false;
-    }
 
-    public static Map<Integer, Boolean> portsTaken(int portFrom, int portTo) {
-	Map<Integer, Boolean> result = new HashMap<Integer, Boolean>();
-	for (int i = portFrom; i <= portTo; i++) {
-	    result.put(i, portTaken(i));
+	public static Map<Integer, Boolean> portsTaken(int portFrom, int portTo) {
+		Map<Integer, Boolean> result = new HashMap<Integer, Boolean>();
+		for (int i = portFrom; i <= portTo; i++) {
+			result.put(i, portTaken(i));
+		}
+		return result;
 	}
-	return result;
-    }
 
-    public static boolean portTaken(int port) {
-	ServerSocket socket = null;
-	try {
-	    socket = new ServerSocket(port);
+	public static boolean portTaken(int port) {
+		ServerSocket socket = null;
+		try {
+			socket = new ServerSocket(port);
+		}
+		catch (IOException e) {
+			return true;
+		}
+		finally {
+			IOUtil.closeEL(socket);
+		}
+		return false;
 	}
-	catch (IOException e) {
-	    return true;
-	}
-	finally {
-	    IOUtil.closeEL(socket);
-	}
-	return false;
-    }
 }

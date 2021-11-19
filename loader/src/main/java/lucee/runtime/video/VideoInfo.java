@@ -22,62 +22,62 @@ import lucee.runtime.type.Struct;
 
 public interface VideoInfo {
 
-    public long getAudioBitrate();
+	public long getAudioBitrate();
 
-    /**
-     * @return the audioChannels
-     */
-    public String getAudioChannels();
+	/**
+	 * @return the audioChannels
+	 */
+	public String getAudioChannels();
 
-    /**
-     * @return the audioCodec
-     */
-    public String getAudioCodec();
+	/**
+	 * @return the audioCodec
+	 */
+	public String getAudioCodec();
 
-    /**
-     * @return the audioSampleRate
-     */
-    public long getAudioSamplerate();
+	/**
+	 * @return the audioSampleRate
+	 */
+	public long getAudioSamplerate();
 
-    /**
-     * @return the duration
-     */
-    public long getDuration();
+	/**
+	 * @return the duration
+	 */
+	public long getDuration();
 
-    /**
-     * @return the bitrate
-     */
-    public long getVideoBitrate();
+	/**
+	 * @return the bitrate
+	 */
+	public long getVideoBitrate();
 
-    /**
-     * @return the framerate
-     */
-    public double getFramerate();
+	/**
+	 * @return the framerate
+	 */
+	public double getFramerate();
 
-    /**
-     * @return the videoCodec
-     */
-    public String getVideoCodec();
+	/**
+	 * @return the videoCodec
+	 */
+	public String getVideoCodec();
 
-    /**
-     * @return the videoFormat
-     */
-    public String getVideoFormat();
+	/**
+	 * @return the videoFormat
+	 */
+	public String getVideoFormat();
 
-    /**
-     * @return the height
-     */
-    public int getHeight();
+	/**
+	 * @return the height
+	 */
+	public int getHeight();
 
-    /**
-     * @return the width
-     */
-    public int getWidth();
+	/**
+	 * @return the width
+	 */
+	public int getWidth();
 
-    /**
-     * returns the information as Struct
-     * 
-     * @return
-     */
-    public Struct toStruct();
+	/**
+	 * returns the information as Struct
+	 * 
+	 * @return
+	 */
+	public Struct toStruct();
 }

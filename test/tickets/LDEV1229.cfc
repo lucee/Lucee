@@ -23,7 +23,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 			});
 		});
 
-
+		afterTests();
 	}
 	// private Function//
 	private string function createURI(string calledName){
@@ -33,39 +33,21 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 
 	private boolean function checkMySqlEnvVarsAvailable() {
 		// getting the credentials from the environment variables
-		var mySQL={};
-		if(isNull(server.system)){
-			server.system = structNew();
-			currSystem = createObject("java", "java.lang.System");
-			server.system.environment = currSystem.getenv();
-			server.system.properties = currSystem.getproperties();
-		}
+		return (structCount(server.getDatasource("mysql")) eq 0);
+	}
 
-		if(
-			!isNull(server.system.environment.MYSQL_SERVER) &&
-			!isNull(server.system.environment.MYSQL_USERNAME) &&
-			!isNull(server.system.environment.MYSQL_PASSWORD) &&
-			!isNull(server.system.environment.MYSQL_PORT) &&
-			!isNull(server.system.environment.MYSQL_DATABASE)) {
-			mySQL.server=server.system.environment.MYSQL_SERVER;
-			mySQL.username=server.system.environment.MYSQL_USERNAME;
-			mySQL.password=server.system.environment.MYSQL_PASSWORD;
-			mySQL.port=server.system.environment.MYSQL_PORT;
-			mySQL.database=server.system.environment.MYSQL_DATABASE;
+	private function afterTests() {
+		var javaIoFile=createObject("java","java.io.File");
+		loop array=DirectoryList(
+			path=getDirectoryFromPath(getCurrentTemplatePath()), 
+			recurse=true, filter="*.db") item="local.path"  {
+			fileDeleteOnExit(javaIoFile,path);
 		}
-		// getting the credentials from the system variables
-		else if(
-			!isNull(server.system.properties.MYSQL_SERVER) &&
-			!isNull(server.system.properties.MYSQL_USERNAME) &&
-			!isNull(server.system.properties.MYSQL_PASSWORD) &&
-			!isNull(server.system.properties.MYSQL_PORT) &&
-			!isNull(server.system.properties.MYSQL_DATABASE)) {
-			mySQL.server=server.system.properties.MYSQL_SERVER;
-			mySQL.username=server.system.properties.MYSQL_USERNAME;
-			mySQL.password=server.system.properties.MYSQL_PASSWORD;
-			mySQL.port=server.system.properties.MYSQL_PORT;
-			mySQL.database=server.system.properties.MYSQL_DATABASE;
-		}
-		return structIsEmpty(mySQL);
+	}
+
+	private function fileDeleteOnExit(required javaIoFile, required string path) {
+		var file=javaIoFile.init(arguments.path);
+		if(!file.isFile())file=javaIoFile.init(expandPath(arguments.path));
+		if(file.isFile()) file.deleteOnExit();
 	}
 }

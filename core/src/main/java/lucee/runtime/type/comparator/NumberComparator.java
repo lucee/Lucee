@@ -30,33 +30,33 @@ import lucee.runtime.op.Caster;
  */
 public final class NumberComparator implements Comparator {
 
-    private boolean isAsc;
+	private boolean isAsc;
 
-    /**
-     * constructor of the class
-     * 
-     * @param isAsc is ascendinf or descending
-     */
-    public NumberComparator(boolean isAsc) {
-	this.isAsc = isAsc;
-    }
-
-    @Override
-    public int compare(Object oLeft, Object oRight) {
-	try {
-	    if (isAsc) return compareObjects(oLeft, oRight);
-	    return compareObjects(oRight, oLeft);
+	/**
+	 * constructor of the class
+	 * 
+	 * @param isAsc is ascendinf or descending
+	 */
+	public NumberComparator(boolean isAsc) {
+		this.isAsc = isAsc;
 	}
-	catch (PageException e) {
-	    throw new PageRuntimeException(new ExpressionException("can only sort arrays with simple values", e.getMessage()));
+
+	@Override
+	public int compare(Object oLeft, Object oRight) {
+		try {
+			if (isAsc) return compareObjects(oLeft, oRight);
+			return compareObjects(oRight, oLeft);
+		}
+		catch (PageException e) {
+			throw new PageRuntimeException(new ExpressionException("can only sort arrays with simple values", e.getMessage()));
+		}
 	}
-    }
 
-    private int compareObjects(Object oLeft, Object oRight) throws PageException {
-	double left = Caster.toDoubleValue(oLeft);
-	double right = Caster.toDoubleValue(oRight);
-	if (left < right) return -1;
-	return left > right ? 1 : 0;
+	private int compareObjects(Object oLeft, Object oRight) throws PageException {
+		double left = Caster.toDoubleValue(oLeft);
+		double right = Caster.toDoubleValue(oRight);
+		if (left < right) return -1;
+		return left > right ? 1 : 0;
 
-    }
+	}
 }

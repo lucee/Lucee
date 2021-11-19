@@ -41,271 +41,280 @@ import lucee.runtime.type.util.ListUtil;
 import lucee.runtime.type.util.StructUtil;
 
 /**
- * Simple standart implementation of a Scope, for standart use.
+ * Simple implementation of a Scope, for general use.
  */
 public abstract class ScopeSupport extends StructImpl implements Scope {
 
-    private static final long serialVersionUID = -4185219623238374574L;
+	private static final long serialVersionUID = -4185219623238374574L;
 
-    private String name;
-    private String dspName;
-    private static int _id = 0;
-    private int id = 0;
-    private static final byte[] EMPTY = "".getBytes();
+	private String name;
+	private String dspName;
+	private static int _id = 0;
+	private int id = 0;
+	private static final byte[] EMPTY = "".getBytes();
 
-    /**
-     * Field <code>isInit</code>
-     */
-    protected boolean isInit;
-    private int type;
+	/**
+	 * Field <code>isInit</code>
+	 */
+	protected boolean isInit;
+	private int type;
 
-    /**
-     * constructor for the Simple class
-     * 
-     * @param name name of the scope
-     * @param type scope type (SCOPE_APPLICATION,SCOPE_COOKIE use)
-     */
-    private ScopeSupport(String name, int type) {
-	this(name, type, Struct.TYPE_LINKED);
-    }
+	/**
+	 * constructor for the Simple class
+	 * 
+	 * @param name name of the scope
+	 * @param type scope type (SCOPE_APPLICATION,SCOPE_COOKIE use)
+	 */
+	private ScopeSupport(String name, int type) {
+		this(name, type, Struct.TYPE_LINKED);
+	}
 
-    /**
-     * constructor for ScopeSupport
-     * 
-     * @param name name of the scope
-     * @param type scope type (SCOPE_APPLICATION,SCOPE_COOKIE use)
-     * @param doubleLinked mean that the struct has predictable iteration order this make the input
-     *            order fix
-     */
-    public ScopeSupport(String name, int type, int mapType) {
-	super(mapType);
-	this.name = name;
-	this.type = type;
+	/**
+	 * constructor for ScopeSupport
+	 * 
+	 * @param name name of the scope
+	 * @param type scope type (SCOPE_APPLICATION,SCOPE_COOKIE use)
+	 * @param mapType mean that the struct has predictable iteration order this make the input order fix
+	 */
+	public ScopeSupport(String name, int type, int mapType) {
+		super(mapType);
+		this.name = name;
+		this.type = type;
 
-	id = ++_id;
-    }
+		id = ++_id;
+	}
 
-    @Override
+	@Override
 
-    public DumpData toDumpData(PageContext pageContext, int maxlevel, DumpProperties dp) {
-	return toDumpData(pageContext, maxlevel, dp, this, dspName);
-    }
+	public DumpData toDumpData(PageContext pageContext, int maxlevel, DumpProperties dp) {
+		return toDumpData(pageContext, maxlevel, dp, this, dspName);
+	}
 
-    public static DumpData toDumpData(PageContext pageContext, int maxlevel, DumpProperties dp, Struct sct, String dspName) {
-	if (StringUtil.isEmpty(dspName)) dspName = "Scope";
+	public static DumpData toDumpData(PageContext pageContext, int maxlevel, DumpProperties dp, Struct sct, String dspName) {
+		if (StringUtil.isEmpty(dspName)) dspName = "Scope";
 
-	return StructUtil.toDumpTable(sct, dspName, pageContext, maxlevel, dp);
-
-    }
-
-    protected ExpressionException invalidKey(String key) {
-	return new ExpressionException("variable [" + key + "] doesn't exist in " + StringUtil.ucFirst(name) + " Scope (keys:" + ListUtil.arrayToList(keys(), ",") + ")");
-    }
-
-    /**
-     * write parameter defined in a query string (name1=value1&name2=value2) to the scope
-     * 
-     * @param qs Query String
-     * @return parsed name value pair
-     */
-    protected static URLItem[] setFromQueryString(String str) {
-	return setFrom___(str, '&');
-    }
-
-    protected static URLItem[] setFromTextPlain(String str) {
-	return setFrom___(str, '\n');
-    }
-
-    protected static URLItem[] setFrom___(String tp, char delimiter) {
-	if (tp == null) return new URLItem[0];
-	Array arr = ListUtil.listToArrayRemoveEmpty(tp, delimiter);
-	URLItem[] pairs = new URLItem[arr.size()];
-
-	// Array item;
-	int index;
-	String name;
-
-	for (int i = 1; i <= pairs.length; i++) {
-	    name = Caster.toString(arr.get(i, ""), "");
-	    // if(name.length()==0) continue;
-
-	    index = name.indexOf('=');
-	    if (index != -1) pairs[i - 1] = new URLItem(name.substring(0, index), name.substring(index + 1), true);
-	    else pairs[i - 1] = new URLItem(name, "", true);
+		return StructUtil.toDumpTable(sct, dspName, pageContext, maxlevel, dp);
 
 	}
-	return pairs;
-    }
 
-    protected static byte[] getBytes(String str) {
-	return str.getBytes();
-    }
-
-    protected static byte[] getBytes(String str, String encoding) {
-	try {
-	    return str.getBytes(encoding);
+	protected ExpressionException invalidKey(String key) {
+		return new ExpressionException("variable [" + key + "] doesn't exist in " + StringUtil.ucFirst(name) + " Scope (keys:" + ListUtil.arrayToList(keys(), ",") + ")");
 	}
-	catch (UnsupportedEncodingException e) {
-	    return EMPTY;
-	}
-    }
 
-    protected void fillDecodedEL(URLItem[] raw, String encoding, boolean scriptProteced, boolean sameAsArray) {
-	try {
-	    fillDecoded(raw, encoding, scriptProteced, sameAsArray);
+	/**
+	 * write parameter defined in a query string (name1=value1&name2=value2) to the scope
+	 * 
+	 * @param str Query String
+	 * @return parsed name value pair
+	 */
+	protected static URLItem[] setFromQueryString(String str) {
+		return setFrom___(str, '&');
 	}
-	catch (UnsupportedEncodingException e) {
-	    try {
-		fillDecoded(raw, "iso-8859-1", scriptProteced, sameAsArray);
-	    }
-	    catch (UnsupportedEncodingException e1) {}
+
+	protected static URLItem[] setFromTextPlain(String str) {
+		return setFrom___(str, '\n');
 	}
-    }
 
-    /**
-     * fill th data from given strut and decode it
-     * 
-     * @param raw
-     * @param encoding
-     * @throws UnsupportedEncodingException
-     */
-    protected void fillDecoded(URLItem[] raw, String encoding, boolean scriptProteced, boolean sameAsArray) throws UnsupportedEncodingException {
-	clear();
-	String name, value;
-	// Object curr;
-	for (int i = 0; i < raw.length; i++) {
-	    name = raw[i].getName();
-	    value = raw[i].getValue();
-	    if (raw[i].isUrlEncoded()) {
-		name = URLDecoder.decode(name, encoding, true);
-		value = URLDecoder.decode(value, encoding, true);
-	    }
-	    // MUST valueStruct
-	    if (name.indexOf('.') != -1) {
+	protected static URLItem[] setFrom___(String tp, char delimiter) {
+		if (tp == null) return new URLItem[0];
+		Array arr = ListUtil.listToArrayRemoveEmpty(tp, delimiter);
+		URLItem[] pairs = new URLItem[arr.size()];
 
-		StringList list = ListUtil.listToStringListRemoveEmpty(name, '.');
-		if (list.size() > 0) {
-		    Struct parent = this;
-		    while (list.hasNextNext()) {
-			parent = _fill(parent, list.next(), new CastableStruct(Struct.TYPE_LINKED), false, scriptProteced, sameAsArray);
-		    }
-		    _fill(parent, list.next(), value, true, scriptProteced, sameAsArray);
+		// Array item;
+		int index;
+		String name;
+
+		for (int i = 1; i <= pairs.length; i++) {
+			name = Caster.toString(arr.get(i, ""), "");
+			// if(name.length()==0) continue;
+
+			index = name.indexOf('=');
+			if (index != -1) pairs[i - 1] = new URLItem(name.substring(0, index), name.substring(index + 1), true);
+			else pairs[i - 1] = new URLItem(name, "", true);
+
 		}
-	    }
-	    // else
-	    _fill(this, name, value, true, scriptProteced, sameAsArray);
-	}
-    }
-
-    private Struct _fill(final Struct parent, String name, Object value, boolean isLast, boolean scriptProteced, boolean sameAsArray) {
-	Object curr;
-	boolean isArrayDef = sameAsArray;
-	Collection.Key key = KeyImpl.init(name);
-
-	// script protect
-	if (scriptProteced && value instanceof String) {
-	    value = ScriptProtect.translate((String) value);
+		return pairs;
 	}
 
-	if (name.length() > 2 && name.endsWith("[]")) {
-	    isArrayDef = true;
-	    name = name.substring(0, name.length() - 2);
-	    key = KeyImpl.getInstance(name);
-	    curr = parent.get(key, null);
-	}
-	else {
-	    curr = parent.get(key, null);
+	protected static byte[] getBytes(String str) {
+		return str.getBytes();
 	}
 
-	if (curr == null) {
-	    if (isArrayDef) {
-		Array arr = new ArrayImpl();
-		arr.appendEL(value);
-		parent.setEL(key, arr);
-	    }
-	    else parent.setEL(key, value);
-	}
-	else if (curr instanceof Array) {
-	    ((Array) curr).appendEL(value);
-	}
-	else if (curr instanceof CastableStruct) {
-	    if (isLast) ((CastableStruct) curr).setValue(value);
-	    else return (Struct) curr;
-
-	}
-	else if (curr instanceof Struct) {
-	    if (isLast) parent.setEL(key, value);
-	    else return (Struct) curr;
-	}
-	else if (curr instanceof String) {
-	    if (isArrayDef) {
-		Array arr = new ArrayImpl();
-		arr.appendEL(curr);
-		arr.appendEL(value);
-		parent.setEL(key, arr);
-	    }
-	    else if (value instanceof Struct) {
-		parent.setEL(key, value);
-	    }
-	    else {
-		if (!StringUtil.isEmpty(value)) {
-		    String existing = Caster.toString(curr, "");
-		    if (StringUtil.isEmpty(existing)) parent.setEL(key, value);
-		    else parent.setEL(key, Caster.toString(curr, "") + ',' + value);
+	protected static byte[] getBytes(String str, String encoding) {
+		try {
+			return str.getBytes(encoding);
 		}
-	    }
+		catch (UnsupportedEncodingException e) {
+			return EMPTY;
+		}
 	}
-	if (!isLast) {
-	    return (Struct) value;
+
+	protected void fillDecodedEL(URLItem[] raw, String encoding, boolean scriptProteced, boolean sameAsArray) {
+		try {
+			fillDecoded(raw, encoding, scriptProteced, sameAsArray);
+		}
+		catch (UnsupportedEncodingException e) {
+			try {
+				fillDecoded(raw, "iso-8859-1", scriptProteced, sameAsArray);
+			}
+			catch (UnsupportedEncodingException e1) {
+			}
+		}
 	}
-	return null;
-    }
 
-    /*
-     * private String decode(Object value,String encoding) throws UnsupportedEncodingException { return
-     * URLDecoder.decode(new
-     * String(Caster.toString(value,"").getBytes("ISO-8859-1"),encoding),encoding); }
-     */
+	/**
+	 * fill th data from given strut and decode it
+	 * 
+	 * @param raw
+	 * @param encoding
+	 * @throws UnsupportedEncodingException
+	 */
+	protected void fillDecoded(URLItem[] raw, String encoding, boolean scriptProteced, boolean sameAsArray) throws UnsupportedEncodingException {
+		clear();
+		String name, value;
+		// Object curr;
+		for (int i = 0; i < raw.length; i++) {
+			name = raw[i].getName();
+			value = raw[i].getValue();
+			if (raw[i].isUrlEncoded()) {
+				name = URLDecoder.decode(name, encoding, true);
+				value = URLDecoder.decode(value, encoding, true);
+			}
+			// MUST valueStruct
+			if (name.indexOf('.') != -1) {
 
-    @Override
-    public boolean isInitalized() {
-	return isInit;
-    }
+				StringList list = ListUtil.listToStringListRemoveEmpty(name, '.');
+				if (list.size() > 0) {
+					Struct parent = this;
+					while (list.hasNextNext()) {
+						parent = _fill(parent, list.next(), new CastableStruct(Struct.TYPE_LINKED), false, scriptProteced, sameAsArray);
+					}
+					_fill(parent, list.next(), value, true, scriptProteced, sameAsArray);
+				}
+			}
+			// else
+			_fill(this, name, value, true, scriptProteced, sameAsArray);
+		}
+	}
 
-    @Override
-    public void initialize(PageContext pc) {
-	isInit = true;
-    }
+	private Struct _fill(final Struct parent, String name, Object value, boolean isLast, boolean scriptProteced, boolean sameAsArray) {
+		Object curr;
+		boolean isArrayDef = false;
+		Collection.Key key = KeyImpl.init(name);
 
-    @Override
-    public void release(PageContext pc) {
-	clear();
-	isInit = false;
-    }
+		// script protect
+		if (scriptProteced && value instanceof String) {
+			value = ScriptProtect.translate((String) value);
+		}
 
-    /**
-     * @return Returns the id.
-     */
-    public int _getId() {
-	return id;
-    }
+		if (name.length() > 2 && name.endsWith("[]")) {
+			isArrayDef = true;
+			name = name.substring(0, name.length() - 2);
+			key = KeyImpl.getInstance(name);
+			curr = parent.get(key, null);
+		}
+		else {
+			curr = parent.get(key, null);
+		}
 
-    /**
-     * display name for dump
-     * 
-     * @param dspName
-     */
-    protected void setDisplayName(String dspName) {
-	this.dspName = dspName;
-    }
+		if (curr == null) {
+			if (isArrayDef) {
+				Array arr = new ArrayImpl();
+				arr.appendEL(value);
+				parent.setEL(key, arr);
+			}
+			else parent.setEL(key, value);
+		}
+		else if (curr instanceof Array) {
+			((Array) curr).appendEL(value);
+		}
+		else if (curr instanceof CastableStruct) {
+			if (isLast) ((CastableStruct) curr).setValue(value);
+			else return (Struct) curr;
 
-    @Override
-    public int getType() {
-	return type;
-    }
+		}
+		else if (curr instanceof Struct) {
+			if (isLast) parent.setEL(key, value);
+			else return (Struct) curr;
+		}
+		else if (curr instanceof String) {
+			if (isArrayDef) {
+				Array arr = new ArrayImpl();
+				arr.appendEL(curr);
+				arr.appendEL(value);
+				parent.setEL(key, arr);
+			}
+			else if (value instanceof Struct) {
+				parent.setEL(key, value);
+			}
+			else {
+				if (!StringUtil.isEmpty(value)) {
+					String existing = Caster.toString(curr, "");
+					if (StringUtil.isEmpty(existing)) parent.setEL(key, value);
+					else {
+						if (sameAsArray) {
+							Array arr = new ArrayImpl();
+							arr.appendEL(curr);
+							arr.appendEL(value);
+							parent.setEL(key, arr);
+						}
+						else parent.setEL(key, Caster.toString(curr, "") + ',' + value);
+					}
+				}
+			}
+		}
+		if (!isLast) {
+			return (Struct) value;
+		}
+		return null;
+	}
 
-    @Override
-    public String getTypeAsString() {
-	return name;
-    }
+	/*
+	 * private String decode(Object value,String encoding) throws UnsupportedEncodingException { return
+	 * URLDecoder.decode(new
+	 * String(Caster.toString(value,"").getBytes("ISO-8859-1"),encoding),encoding); }
+	 */
+
+	@Override
+	public boolean isInitalized() {
+		return isInit;
+	}
+
+	@Override
+	public void initialize(PageContext pc) {
+		isInit = true;
+	}
+
+	@Override
+	public void release(PageContext pc) {
+		clear();
+		isInit = false;
+	}
+
+	/**
+	 * @return Returns the id.
+	 */
+	public int _getId() {
+		return id;
+	}
+
+	/**
+	 * display name for dump
+	 * 
+	 * @param dspName
+	 */
+	protected void setDisplayName(String dspName) {
+		this.dspName = dspName;
+	}
+
+	@Override
+	public int getType() {
+		return type;
+	}
+
+	@Override
+	public String getTypeAsString() {
+		return name;
+	}
+
 }

@@ -43,312 +43,352 @@ import lucee.runtime.type.wrap.ArrayAsArrayList;
 
 public class XMLMultiElementArray extends ArraySupport {
 
-    private static final long serialVersionUID = -2673749147723742450L;
-    private XMLMultiElementStruct struct;
+	private static final long serialVersionUID = -2673749147723742450L;
+	private XMLMultiElementStruct struct;
 
-    public XMLMultiElementArray(XMLMultiElementStruct struct) {
-	this.struct = struct;
-    }
-
-    @Override
-    public Object append(Object o) throws PageException {
-	return setE(size() + 1, o);
-    }
-
-    @Override
-    public Object appendEL(Object o) {
-	return setEL(size() + 1, o);
-    }
-
-    @Override
-    public boolean containsKey(int key) {
-	return get(key, null) != null;
-    }
-
-    @Override
-    public Object get(int key, Object defaultValue) {
-	return struct.get(key, defaultValue);
-    }
-
-    @Override
-    public Object getE(int key) throws PageException {
-	return struct.get(key);
-    }
-
-    @Override
-    public int getDimension() {
-	return struct.getInnerArray().getDimension();
-    }
-
-    @Override
-    public boolean insert(int index, Object value) throws PageException {
-	Element element = XMLCaster.toElement(struct.getOwnerDocument(), value);
-	boolean rtn = struct.getInnerArray().insert(index, element);
-	Object obj = struct.getInnerArray().get(index, null);
-
-	if (obj instanceof Element) {
-	    Element el = ((Element) obj);
-	    el.getParentNode().insertBefore(XMLCaster.toRawNode(element), el);
+	public XMLMultiElementArray(XMLMultiElementStruct struct) {
+		this.struct = struct;
 	}
-	else {
-	    struct.getParentNode().appendChild(XMLCaster.toRawNode(element));
+
+	@Override
+	public Object append(Object o) throws PageException {
+		return setE(size() + 1, o);
 	}
-	return rtn;
-    }
 
-    @Override
-    public int[] intKeys() {
-	return struct.getInnerArray().intKeys();
-    }
-
-    @Override
-    public Object prepend(Object value) throws PageException {
-	Element element = XMLCaster.toElement(struct.getOwnerDocument(), value);
-	Object obj = struct.getInnerArray().get(1, null);
-
-	if (obj instanceof Element) {
-	    Element el = ((Element) obj);
-	    el.getParentNode().insertBefore(XMLCaster.toRawNode(element), el);
+	@Override
+	public Object appendEL(Object o) {
+		return setEL(size() + 1, o);
 	}
-	else {
-	    struct.getParentNode().appendChild(XMLCaster.toRawNode(element));
+
+	@Override
+	public boolean containsKey(int key) {
+		return get(key, null) != null;
 	}
-	return struct.getInnerArray().prepend(element);
-    }
 
-    @Override
-    public Object removeE(int key) throws PageException {
-	return struct.remove(key);
-    }
+	@Override
+	public Object get(int key, Object defaultValue) {
+		return struct.get(key, defaultValue);
+	}
 
-    @Override
-    public Object removeEL(int key) {
-	return struct.removeEL(key);
-    }
+	@Override
+	public Object getE(int key) throws PageException {
+		return struct.get(key);
+	}
 
-    @Override
-    public void resize(int to) throws PageException {
-	throw new PageRuntimeException("resizing of xml nodelist not allowed");
-    }
+	@Override
+	public int getDimension() {
+		return struct.getInnerArray().getDimension();
+	}
 
-    @Override
-    public Object setE(int key, Object value) throws PageException {
-	return struct.set(key, value);
-    }
+	@Override
+	public boolean insert(int index, Object value) throws PageException {
+		Element element = XMLCaster.toElement(struct.getOwnerDocument(), value);
+		boolean rtn = struct.getInnerArray().insert(index, element);
+		Object obj = struct.getInnerArray().get(index, null);
 
-    @Override
-    public Object setEL(int key, Object value) {
-	return struct.setEL(key, value);
-    }
+		if (obj instanceof Element) {
+			Element el = ((Element) obj);
+			el.getParentNode().insertBefore(XMLCaster.toRawNode(element), el);
+		}
+		else {
+			struct.getParentNode().appendChild(XMLCaster.toRawNode(element));
+		}
+		return rtn;
+	}
 
-    @Override
-    public void sort(String sortType, String sortOrder) throws PageException {
-	if (size() <= 1) return;
+	@Override
+	public int[] intKeys() {
+		return struct.getInnerArray().intKeys();
+	}
 
-	struct.getInnerArray().sort(sortType, sortOrder);
+	@Override
+	public Object prepend(Object value) throws PageException {
+		Element element = XMLCaster.toElement(struct.getOwnerDocument(), value);
+		Object obj = struct.getInnerArray().get(1, null);
 
-	Object[] nodes = struct.getInnerArray().toArray();
-	Node last = (Node) nodes[nodes.length - 1], current;
-	Node parent = last.getParentNode();
-	for (int i = nodes.length - 2; i >= 0; i--) {
-	    current = (Node) nodes[i];
-	    parent.insertBefore(current, last);
-	    last = current;
-	} // MUST testen
-    }
+		if (obj instanceof Element) {
+			Element el = ((Element) obj);
+			el.getParentNode().insertBefore(XMLCaster.toRawNode(element), el);
+		}
+		else {
+			struct.getParentNode().appendChild(XMLCaster.toRawNode(element));
+		}
+		return struct.getInnerArray().prepend(element);
+	}
 
-    @Override
-    public void sortIt(Comparator comp) {
-	if (size() <= 1) return;
+	@Override
+	public Object removeE(int key) throws PageException {
+		return struct.remove(key);
+	}
 
-	struct.getInnerArray().sortIt(comp);
+	@Override
+	public Object removeEL(int key) {
+		return struct.removeEL(key);
+	}
 
-	Object[] nodes = struct.getInnerArray().toArray();
-	Node last = (Node) nodes[nodes.length - 1], current;
-	Node parent = last.getParentNode();
-	for (int i = nodes.length - 2; i >= 0; i--) {
-	    current = (Node) nodes[i];
-	    parent.insertBefore(current, last);
-	    last = current;
-	} // MUST testen
-    }
+	@Override
+	public Object pop() throws PageException {
+		return removeE(size());
+	}
 
-    @Override
-    public Object[] toArray() {
-	return struct.getInnerArray().toArray();
-    }
+	@Override
+	public Object pop(Object defaultValue) {
+		try {
+			return removeE(size());
+		}
+		catch (Exception e) {
+			return defaultValue;
+		}
+	}
 
-    public ArrayList toArrayList() {
-	return ArrayAsArrayList.toArrayList(this);
-    }
+	@Override
+	public Object shift() throws PageException {
+		return removeE(1);
+	}
 
-    @Override
-    public void clear() {// MUST
-    }
+	@Override
+	public Object shift(Object defaultValue) {
+		try {
+			return removeE(1);
+		}
+		catch (Exception e) {
+			return defaultValue;
+		}
+	}
 
-    @Override
-    public boolean containsKey(String key) {
-	return struct.containsKey(key);
-    }
+	@Override
+	public void resize(int to) throws PageException {
+		throw new PageRuntimeException("resizing of xml nodelist not allowed");
+	}
 
-    @Override
-    public boolean containsKey(Key key) {
-	return struct.containsKey(key);
-    }
+	@Override
+	public Object setE(int key, Object value) throws PageException {
+		return struct.set(key, value);
+	}
 
-    @Override
-    public Collection duplicate(boolean deepCopy) {
-	return new XMLMultiElementArray((XMLMultiElementStruct) Duplicator.duplicate(struct, deepCopy));
-    }
+	@Override
+	public Object setEL(int key, Object value) {
+		return struct.setEL(key, value);
+	}
 
-    @Override
-    public Object get(String key) throws PageException {
-	return struct.get(key);
-    }
+	@Override
+	public void sort(String sortType, String sortOrder) throws PageException {
+		if (size() <= 1) return;
 
-    @Override
-    public Object get(Key key) throws PageException {
-	return struct.get(key);
-    }
+		struct.getInnerArray().sort(sortType, sortOrder);
 
-    @Override
-    public Object get(String key, Object defaultValue) {
-	return struct.get(key, defaultValue);
-    }
+		Object[] nodes = struct.getInnerArray().toArray();
+		Node last = (Node) nodes[nodes.length - 1], current;
+		Node parent = last.getParentNode();
+		for (int i = nodes.length - 2; i >= 0; i--) {
+			current = (Node) nodes[i];
+			parent.insertBefore(current, last);
+			last = current;
+		} // MUST testen
+	}
 
-    @Override
-    public Object get(Key key, Object defaultValue) {
-	return struct.get(key, defaultValue);
-    }
+	@Override
+	public void sortIt(Comparator comp) {
+		if (size() <= 1) return;
 
-    @Override
-    public Key[] keys() {
-	return struct.getInnerArray().keys();
-    }
+		struct.getInnerArray().sortIt(comp);
 
-    @Override
-    public Object remove(Key key) throws PageException {
-	return struct.remove(key);
-    }
+		Object[] nodes = struct.getInnerArray().toArray();
+		Node last = (Node) nodes[nodes.length - 1], current;
+		Node parent = last.getParentNode();
+		for (int i = nodes.length - 2; i >= 0; i--) {
+			current = (Node) nodes[i];
+			parent.insertBefore(current, last);
+			last = current;
+		} // MUST testen
+	}
 
-    @Override
-    public Object removeEL(Key key) {
-	return struct.removeEL(key);
-    }
+	@Override
+	public Object[] toArray() {
+		return struct.getInnerArray().toArray();
+	}
 
-    @Override
-    public Object set(String key, Object value) throws PageException {
-	return struct.set(key, value);
-    }
+	public ArrayList toArrayList() {
+		return ArrayAsArrayList.toArrayList(this);
+	}
 
-    @Override
-    public Object set(Key key, Object value) throws PageException {
-	return struct.set(key, value);
-    }
+	@Override
+	public void clear() {// MUST
+	}
 
-    @Override
-    public Object setEL(String key, Object value) {
-	return struct.setEL(key, value);
-    }
+	@Override
+	public boolean containsKey(String key) {
+		return struct.containsKey(key);
+	}
 
-    @Override
-    public Object setEL(Key key, Object value) {
-	return struct.setEL(key, value);
-    }
+	@Override
+	public boolean containsKey(Key key) {
+		return struct.containsKey(key);
+	}
 
-    @Override
-    public int size() {
-	return struct.getInnerArray().size();
-    }
+	@Override
+	public Collection duplicate(boolean deepCopy) {
+		return new XMLMultiElementArray((XMLMultiElementStruct) Duplicator.duplicate(struct, deepCopy));
+	}
 
-    @Override
-    public DumpData toDumpData(PageContext pageContext, int maxlevel, DumpProperties dp) {
-	return struct.toDumpData(pageContext, maxlevel, dp);
-    }
+	@Override
+	public Object get(String key) throws PageException {
+		return struct.get(key);
+	}
 
-    @Override
-    public Iterator<Collection.Key> keyIterator() {
-	return new KeyIterator(keys());
-    }
+	@Override
+	public final Object get(Key key) throws PageException {
+		return struct.get(key);
+	}
 
-    @Override
-    public Iterator<String> keysAsStringIterator() {
-	return new StringIterator(keys());
-    }
+	@Override
+	public final Object get(PageContext pc, Key key) throws PageException {
+		return struct.get(key);
+	}
 
-    @Override
-    public Iterator<Entry<Key, Object>> entryIterator() {
-	return new EntryIterator(this, keys());
-    }
+	@Override
+	public Object get(String key, Object defaultValue) {
+		return struct.get(key, defaultValue);
+	}
 
-    @Override
-    public boolean castToBooleanValue() throws PageException {
-	return struct.castToBooleanValue();
-    }
+	@Override
+	public final Object get(Key key, Object defaultValue) {
+		return struct.get(key, defaultValue);
+	}
 
-    @Override
-    public Boolean castToBoolean(Boolean defaultValue) {
-	return struct.castToBoolean(defaultValue);
-    }
+	@Override
+	public final Object get(PageContext pc, Key key, Object defaultValue) {
+		return struct.get(pc, key, defaultValue);
+	}
 
-    @Override
-    public DateTime castToDateTime() throws PageException {
-	return struct.castToDateTime();
-    }
+	@Override
+	public Key[] keys() {
+		return struct.getInnerArray().keys();
+	}
 
-    @Override
-    public DateTime castToDateTime(DateTime defaultValue) {
-	return struct.castToDateTime(defaultValue);
-    }
+	@Override
+	public Object remove(Key key) throws PageException {
+		return struct.remove(key);
+	}
 
-    @Override
-    public double castToDoubleValue() throws PageException {
-	return struct.castToDoubleValue();
-    }
+	@Override
+	public Object removeEL(Key key) {
+		return struct.removeEL(key);
+	}
 
-    @Override
-    public double castToDoubleValue(double defaultValue) {
-	return struct.castToDoubleValue(defaultValue);
-    }
+	@Override
+	public Object set(String key, Object value) throws PageException {
+		return struct.set(key, value);
+	}
 
-    @Override
-    public String castToString() throws PageException {
-	return struct.castToString();
-    }
+	@Override
+	public Object set(Key key, Object value) throws PageException {
+		return struct.set(key, value);
+	}
 
-    @Override
-    public String castToString(String defaultValue) {
-	return struct.castToString(defaultValue);
-    }
+	@Override
+	public Object setEL(String key, Object value) {
+		return struct.setEL(key, value);
+	}
 
-    @Override
-    public int compareTo(String str) throws PageException {
-	return struct.compareTo(str);
-    }
+	@Override
+	public Object setEL(Key key, Object value) {
+		return struct.setEL(key, value);
+	}
 
-    @Override
-    public int compareTo(boolean b) throws PageException {
-	return struct.compareTo(b);
-    }
+	@Override
+	public int size() {
+		return struct.getInnerArray().size();
+	}
 
-    @Override
-    public int compareTo(double d) throws PageException {
-	return struct.compareTo(d);
-    }
+	@Override
+	public DumpData toDumpData(PageContext pageContext, int maxlevel, DumpProperties dp) {
+		return struct.toDumpData(pageContext, maxlevel, dp);
+	}
 
-    @Override
-    public int compareTo(DateTime dt) throws PageException {
-	return struct.compareTo(dt);
-    }
+	@Override
+	public Iterator<Collection.Key> keyIterator() {
+		return new KeyIterator(keys());
+	}
 
-    @Override
-    public Object clone() {
-	return duplicate(true);
-    }
+	@Override
+	public Iterator<String> keysAsStringIterator() {
+		return new StringIterator(keys());
+	}
 
-    @Override
-    public boolean add(Object o) {
-	// TODO Auto-generated method stub
-	return false;
-    }
+	@Override
+	public Iterator<Entry<Key, Object>> entryIterator() {
+		return new EntryIterator(this, keys());
+	}
+
+	@Override
+	public boolean castToBooleanValue() throws PageException {
+		return struct.castToBooleanValue();
+	}
+
+	@Override
+	public Boolean castToBoolean(Boolean defaultValue) {
+		return struct.castToBoolean(defaultValue);
+	}
+
+	@Override
+	public DateTime castToDateTime() throws PageException {
+		return struct.castToDateTime();
+	}
+
+	@Override
+	public DateTime castToDateTime(DateTime defaultValue) {
+		return struct.castToDateTime(defaultValue);
+	}
+
+	@Override
+	public double castToDoubleValue() throws PageException {
+		return struct.castToDoubleValue();
+	}
+
+	@Override
+	public double castToDoubleValue(double defaultValue) {
+		return struct.castToDoubleValue(defaultValue);
+	}
+
+	@Override
+	public String castToString() throws PageException {
+		return struct.castToString();
+	}
+
+	@Override
+	public String castToString(String defaultValue) {
+		return struct.castToString(defaultValue);
+	}
+
+	@Override
+	public int compareTo(String str) throws PageException {
+		return struct.compareTo(str);
+	}
+
+	@Override
+	public int compareTo(boolean b) throws PageException {
+		return struct.compareTo(b);
+	}
+
+	@Override
+	public int compareTo(double d) throws PageException {
+		return struct.compareTo(d);
+	}
+
+	@Override
+	public int compareTo(DateTime dt) throws PageException {
+		return struct.compareTo(dt);
+	}
+
+	@Override
+	public Object clone() {
+		return duplicate(true);
+	}
+
+	@Override
+	public boolean add(Object o) {
+
+		return false;
+	}
 }

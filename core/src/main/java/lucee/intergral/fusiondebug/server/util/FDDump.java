@@ -28,63 +28,63 @@ import lucee.commons.io.log.LogUtil;
 
 public class FDDump {
 
-    public static void dump(IFDVariable var) {
-	LogUtil.log(null, Log.LEVEL_INFO, FDDump.class.getName(), toString(var));
-    }
-
-    public static String toString(Object value) {
-	StringBuffer sb = new StringBuffer();
-	dump(sb, value, 0);
-	return sb.toString();
-    }
-
-    public static String toString(IFDVariable var) {
-	StringBuffer sb = new StringBuffer();
-	dump(sb, var, 0);
-	return sb.toString();
-    }
-
-    private static void dump(StringBuffer sb, Object value, int level) {
-	if (value instanceof IFDValue) dump(sb, (IFDValue) value, level);
-	else dump(sb, (IFDVariable) value, level);
-    }
-
-    private static void dump(StringBuffer sb, IFDValue value, int level) {
-	for (int i = 0; i < level; i++) {
-	    sb.append(" - ");
+	public static void dump(IFDVariable var) {
+		LogUtil.log(null, Log.LEVEL_INFO, FDDump.class.getName(), toString(var));
 	}
 
-	sb.append(value.toString());
-	sb.append("\n");
-	if (value.hasChildren()) {
-	    Iterator it = value.getChildren().iterator();
-	    while (it.hasNext()) {
-		Object o = it.next();
-		dump(sb, (IFDVariable) o, level + 1);
-	    }
+	public static String toString(Object value) {
+		StringBuffer sb = new StringBuffer();
+		dump(sb, value, 0);
+		return sb.toString();
 	}
-    }
 
-    private static void dump(StringBuffer sb, IFDVariable var, int level) {
-	for (int i = 0; i < level; i++) {
-	    sb.append(" - ");
+	public static String toString(IFDVariable var) {
+		StringBuffer sb = new StringBuffer();
+		dump(sb, var, 0);
+		return sb.toString();
 	}
-	sb.append(var.getName());
-	sb.append(":");
-	IFDValue value = var.getValue();
 
-	sb.append(value.toString());
-	sb.append("\n");
-	// print.err(value.getClass().getName());
-	if (value.hasChildren()) {
-	    Iterator it = value.getChildren().iterator();
-	    while (it.hasNext()) {
-		Object o = it.next();
-		// print.err(o.getClass().getName());
-		dump(sb, (IFDVariable) o, level + 1);
-		// dump(sb,(IFDVariable) it.next(),level+1);
-	    }
+	private static void dump(StringBuffer sb, Object value, int level) {
+		if (value instanceof IFDValue) dump(sb, (IFDValue) value, level);
+		else dump(sb, (IFDVariable) value, level);
 	}
-    }
+
+	private static void dump(StringBuffer sb, IFDValue value, int level) {
+		for (int i = 0; i < level; i++) {
+			sb.append(" - ");
+		}
+
+		sb.append(value.toString());
+		sb.append("\n");
+		if (value.hasChildren()) {
+			Iterator it = value.getChildren().iterator();
+			while (it.hasNext()) {
+				Object o = it.next();
+				dump(sb, (IFDVariable) o, level + 1);
+			}
+		}
+	}
+
+	private static void dump(StringBuffer sb, IFDVariable var, int level) {
+		for (int i = 0; i < level; i++) {
+			sb.append(" - ");
+		}
+		sb.append(var.getName());
+		sb.append(":");
+		IFDValue value = var.getValue();
+
+		sb.append(value.toString());
+		sb.append("\n");
+		// print.err(value.getClass().getName());
+		if (value.hasChildren()) {
+			Iterator it = value.getChildren().iterator();
+			while (it.hasNext()) {
+				Object o = it.next();
+				// print.err(o.getClass().getName());
+				dump(sb, (IFDVariable) o, level + 1);
+				// dump(sb,(IFDVariable) it.next(),level+1);
+			}
+		}
+	}
 
 }

@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns="http://xmlns.jcp.org/xml/ns/javaee"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee
+                      http://xmlns.jcp.org/xml/ns/javaee/web-app_4_0.xsd"
+    metadata-complete="true"
+    version="4.0">
+
+  <!-- Set the default request and response character encodings to UTF-8.   -->
+  <request-character-encoding>UTF-8</request-character-encoding>
+  <response-character-encoding>UTF-8</response-character-encoding>
+
+
+  <!-- ===================================================================== -->
+  <!-- Lucee CFML Servlet - this is the main Lucee servlet                   -->
+  <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+  <servlet id="Lucee">
+    <description>Lucee CFML Engine</description>
+    <servlet-name>CFMLServlet</servlet-name>
+    <servlet-class>lucee.loader.servlet.CFMLServlet</servlet-class>
+    <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+    <!-- to specify the location of the Lucee Server config and libraries,   -->
+    <!-- uncomment the init-param below.  make sure that the param-value     -->
+    <!-- points to a valid folder, and that the process that runs Lucee has  -->
+    <!-- write permissions to that folder.  leave commented for defaults.    -->
+    <!--
+    <init-param>
+      <param-name>lucee-server-root</param-name>
+      <param-value>/var/Lucee/config/server/</param-value>
+      <description>Lucee Server configuration directory (for Server-wide configurations, settings, and libraries)</description>
+    </init-param>
+    !-->
+    <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+    <!-- to specify the location of the Web Contexts' config and libraries,  -->
+    <!-- uncomment the init-param below.  make sure that the param-value     -->
+    <!-- points to a valid folder, and that the process that runs Lucee has  -->
+    <!-- write permissions to that folder.  the {web-context-label} can be   -->
+    <!-- set in Lucee Server Admin homepage.  leave commented for defaults.  -->
+    <!--
+    <init-param>
+      <param-name>lucee-web-directory</param-name>
+      <param-value>/var/Lucee/config/web/{web-context-label}/</param-value>
+      <description>Lucee Web Directory (for Website-specific configurations, settings, and libraries)</description>
+    </init-param>
+    !-->
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>CFMLServlet</servlet-name>
+    <url-pattern>*.cfc</url-pattern>
+    <url-pattern>*.cfm</url-pattern>
+  </servlet-mapping>
+
+  <!-- ===================================================================== -->
+  <!-- Lucee REST Servlet - handles Lucee's RESTful web services             -->
+  <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+  <servlet id="LuceeREST">
+    <description>Lucee Servlet for RESTful services</description>
+    <servlet-name>RESTServlet</servlet-name>
+    <servlet-class>lucee.loader.servlet.RestServlet</servlet-class>
+    <load-on-startup>2</load-on-startup>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>RESTServlet</servlet-name>
+    <url-pattern>/rest/*</url-pattern>
+  </servlet-mapping>
+  
+  
+  <!-- The default servlet for all web applications, that serves static     -->
+  <!-- resources.  See documentation at                                     -->
+  <!--     https://github.com/apache/tomcat/blob/master/conf/web.xml        -->
+  <servlet>
+    <servlet-name>default</servlet-name>
+    <servlet-class>org.apache.catalina.servlets.DefaultServlet</servlet-class>
+    <init-param>
+      <param-name>debug</param-name>
+      <param-value>0</param-value>
+    </init-param>
+    <init-param>
+      <param-name>listings</param-name>
+      <param-value>true</param-value>
+    </init-param>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+
+  <!-- The mapping for the default servlet -->
+  <servlet-mapping>
+    <servlet-name>default</servlet-name>
+    <url-pattern>/</url-pattern>
+  </servlet-mapping>
+
+  
+  <!-- ==================== Default Welcome File List ===================== -->
+  <!-- When a request URI refers to a directory, the default servlet looks  -->
+  <!-- for a "welcome file" within that directory and, if present, to the   -->
+  <!-- corresponding resource URI for display.                              -->
+  <!-- If no welcome files are present, the default servlet either serves a -->
+  <!-- directory listing (see default servlet configuration on how to       -->
+  <!-- customize) or returns a 404 status, depending on the value of the    -->
+  <!-- listings setting.                                                    -->
+  <!--                                                                      -->
+  <!-- If you define welcome files in your own application's web.xml        -->
+  <!-- deployment descriptor, that list *replaces* the list configured      -->
+  <!-- here, so be sure to include any of the default values that you wish  -->
+  <!-- to use within your application.                                      -->
+  <welcome-file-list>
+    <welcome-file>index.cfm</welcome-file>
+    <welcome-file>index.html</welcome-file>
+    <welcome-file>index.htm</welcome-file>
+  </welcome-file-list>
+
+</web-app>

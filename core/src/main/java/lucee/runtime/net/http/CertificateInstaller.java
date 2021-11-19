@@ -40,135 +40,135 @@ import lucee.commons.io.res.Resource;
 
 public class CertificateInstaller {
 
-    private String host;
-    private int port;
-    private char[] passphrase;
-    private Resource source;
-    private TrustManagerFactory tmf;
-    private SavingTrustManager tm;
-    private SSLContext context;
-    private KeyStore ks;
+	private String host;
+	private int port;
+	private char[] passphrase;
+	private Resource source;
+	private TrustManagerFactory tmf;
+	private SavingTrustManager tm;
+	private SSLContext context;
+	private KeyStore ks;
 
-    public CertificateInstaller(Resource source, String host, int port) throws IOException, KeyStoreException, GeneralSecurityException {
-	this(source, host, port, "changeit".toCharArray());
-    }
-
-    public CertificateInstaller(Resource source, String host, int port, char[] passphrase) throws IOException, KeyStoreException, GeneralSecurityException {
-	this.source = source;
-	this.host = host;
-	this.port = port;
-	this.passphrase = passphrase;
-
-	ks = null;
-	InputStream in = source.getInputStream();
-	try {
-	    ks = KeyStore.getInstance(KeyStore.getDefaultType());
-	    ks.load(in, passphrase);
-	}
-	finally {
-	    IOUtil.closeEL(in);
+	public CertificateInstaller(Resource source, String host, int port) throws IOException, KeyStoreException, GeneralSecurityException {
+		this(source, host, port, "changeit".toCharArray());
 	}
 
-	context = SSLContext.getInstance("SSL");
-	tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
-	tmf.init(ks);
-	X509TrustManager defaultTrustManager = (X509TrustManager) tmf.getTrustManagers()[0];
-	tm = new SavingTrustManager(defaultTrustManager);
-	context.init(null, new TrustManager[] { tm }, null);
+	public CertificateInstaller(Resource source, String host, int port, char[] passphrase) throws IOException, KeyStoreException, GeneralSecurityException {
+		this.source = source;
+		this.host = host;
+		this.port = port;
+		this.passphrase = passphrase;
 
-	checkCertificate();
+		ks = null;
+		InputStream in = source.getInputStream();
+		try {
+			ks = KeyStore.getInstance(KeyStore.getDefaultType());
+			ks.load(in, passphrase);
+		}
+		finally {
+			IOUtil.close(in);
+		}
 
-	if (tm.chain == null) throw new IOException("Could not obtain server certificate chain");
+		context = SSLContext.getInstance("SSL");
+		tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+		tmf.init(ks);
+		X509TrustManager defaultTrustManager = (X509TrustManager) tmf.getTrustManagers()[0];
+		tm = new SavingTrustManager(defaultTrustManager);
+		context.init(null, new TrustManager[] { tm }, null);
 
-    }
+		checkCertificate();
 
-    public void installAll() throws IOException, KeyStoreException, NoSuchAlgorithmException, CertificateException {
-	for (int i = 0; i < tm.chain.length; i++) {
-	    install(i);
-	}
-    }
+		if (tm.chain == null) throw new IOException("Could not obtain server certificate chain");
 
-    public void install(int index) throws IOException, KeyStoreException, NoSuchAlgorithmException, CertificateException {
-
-	X509Certificate cert = tm.chain[index];
-	String alias = host + "-" + (index + 1);
-	ks.setCertificateEntry(alias, cert);
-
-	OutputStream os = source.getOutputStream();
-	try {
-	    ks.store(os, passphrase);
-	}
-	finally {
-	    IOUtil.closeEL(os);
-	}
-    }
-
-    /**
-     * checks if a certificate is installed for given host:port
-     * 
-     * @param context
-     * @param host
-     * @param port
-     * @return
-     */
-    public IOException checkCertificate() {
-	SSLSocketFactory factory = context.getSocketFactory();
-
-	try {
-	    SSLSocket socket = (SSLSocket) factory.createSocket(host, port);
-	    socket.setSoTimeout(10000);
-	    socket.startHandshake();
-	    socket.close();
-	    return null;
-	}
-	catch (IOException e) {
-	    return e;
-	}
-    }
-
-    public X509Certificate[] getCertificates() {
-	return tm.chain;
-    }
-
-    private static class SavingTrustManager implements X509TrustManager {
-
-	private final X509TrustManager tm;
-	private X509Certificate[] chain;
-
-	SavingTrustManager(X509TrustManager tm) {
-	    this.tm = tm;
 	}
 
-	@Override
-	public X509Certificate[] getAcceptedIssuers() {
-	    throw new UnsupportedOperationException();
+	public void installAll() throws IOException, KeyStoreException, NoSuchAlgorithmException, CertificateException {
+		for (int i = 0; i < tm.chain.length; i++) {
+			install(i);
+		}
 	}
 
-	@Override
-	public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {
-	    throw new UnsupportedOperationException();
+	public void install(int index) throws IOException, KeyStoreException, NoSuchAlgorithmException, CertificateException {
+
+		X509Certificate cert = tm.chain[index];
+		String alias = host + "-" + (index + 1);
+		ks.setCertificateEntry(alias, cert);
+
+		OutputStream os = source.getOutputStream();
+		try {
+			ks.store(os, passphrase);
+		}
+		finally {
+			IOUtil.close(os);
+		}
 	}
 
-	@Override
-	public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {
-	    this.chain = chain;
-	    tm.checkServerTrusted(chain, authType);
-	}
-    }
+	/**
+	 * checks if a certificate is installed for given host:port
+	 * 
+	 * @param context
+	 * @param host
+	 * @param port
+	 * @return
+	 */
+	public IOException checkCertificate() {
+		SSLSocketFactory factory = context.getSocketFactory();
 
-    /*
-     * public static void main(String[] args) throws Exception { //String host="jira.jboss.org";
-     * 
-     * String host="sso.vogel.de"; int port=443; char[] passphrase="changeit".toCharArray();
-     * 
-     * ResourceProvider frp = ResourcesImpl.getFileResourceProvider(); Resource source =
-     * frp.getResource("/Users/mic/Temp/cacerts");
-     * 
-     * 
-     * CertificateInstaller util = new CertificateInstaller(source,host,port,passphrase);
-     * util.printCertificates(); util.installAll();
-     * 
-     * }
-     */
+		try {
+			SSLSocket socket = (SSLSocket) factory.createSocket(host, port);
+			socket.setSoTimeout(10000);
+			socket.startHandshake();
+			socket.close();
+			return null;
+		}
+		catch (IOException e) {
+			return e;
+		}
+	}
+
+	public X509Certificate[] getCertificates() {
+		return tm.chain;
+	}
+
+	private static class SavingTrustManager implements X509TrustManager {
+
+		private final X509TrustManager tm;
+		private X509Certificate[] chain;
+
+		SavingTrustManager(X509TrustManager tm) {
+			this.tm = tm;
+		}
+
+		@Override
+		public X509Certificate[] getAcceptedIssuers() {
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+			this.chain = chain;
+			tm.checkServerTrusted(chain, authType);
+		}
+	}
+
+	/*
+	 * public static void main(String[] args) throws Exception { //String host="jira.jboss.org";
+	 * 
+	 * String host="sso.vogel.de"; int port=443; char[] passphrase="changeit".toCharArray();
+	 * 
+	 * ResourceProvider frp = ResourcesImpl.getFileResourceProvider(); Resource source =
+	 * frp.getResource("/Users/mic/Temp/cacerts");
+	 * 
+	 * 
+	 * CertificateInstaller util = new CertificateInstaller(source,host,port,passphrase);
+	 * util.printCertificates(); util.installAll();
+	 * 
+	 * }
+	 */
 
 }

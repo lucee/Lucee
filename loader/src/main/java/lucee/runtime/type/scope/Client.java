@@ -26,15 +26,15 @@ import lucee.runtime.type.scope.storage.StorageScope;
  */
 public interface Client extends Scope, UserScope, StorageScope {
 
-    /**
-     * @return time when Client Scope last time is visited
-     */
-    @Override
-    public abstract long lastVisit();
+	/**
+	 * @return time when Client Scope last time is visited
+	 */
+	@Override
+	public abstract long lastVisit();
 
-    /**
-     * @return all keys except the readonly ones (cfid,cftoken,hitcount,lastvisit ...)
-     */
-    public abstract Collection.Key[] pureKeys();
+	/**
+	 * @return all keys except the readonly ones (cfid,cftoken,hitcount,lastvisit ...)
+	 */
+	public abstract Collection.Key[] pureKeys();
 
 }

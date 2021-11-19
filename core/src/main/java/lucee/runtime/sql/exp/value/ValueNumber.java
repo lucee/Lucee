@@ -23,35 +23,35 @@ import lucee.runtime.sql.exp.Literal;
 
 public class ValueNumber extends ValueSupport implements Literal {
 
-    private double value;
+	private double value;
 
-    public ValueNumber(double value) {
-	super(Caster.toString(value));
-	this.value = value;
-    }
+	public ValueNumber(double value) {
+		super(Caster.toString(value));
+		this.value = value;
+	}
 
-    public ValueNumber(double value, String strValue) {
-	super(strValue);
-	this.value = value;
-    }
+	public ValueNumber(double value, String strValue) {
+		super(strValue);
+		this.value = value;
+	}
 
-    public ValueNumber(String strValue) {
-	super(strValue);
-	this.value = Caster.toDoubleValue(strValue, 0);
-    }
+	public ValueNumber(String strValue) {
+		super(strValue);
+		this.value = Caster.toDoubleValue(strValue, 0);
+	}
 
-    @Override
-    public String toString(boolean noAlias) {
-	if (noAlias || getIndex() == 0) return getString();
-	return getString() + " as " + getAlias();
-    }
+	@Override
+	public String toString(boolean noAlias) {
+		if (noAlias || getIndex() == 0) return getString();
+		return getString() + " as " + getAlias();
+	}
 
-    @Override
-    public Object getValue() {
-	return Caster.toDouble(value);
-    }
+	@Override
+	public Object getValue() {
+		return Caster.toDouble(value);
+	}
 
-    public double getValueAsDouble() {
-	return value;
-    }
+	public double getValueAsDouble() {
+		return value;
+	}
 }

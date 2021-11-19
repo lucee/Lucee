@@ -28,41 +28,41 @@ import lucee.commons.io.res.Resource;
 
 public class CacheWriter extends ForkWriter {
 
-    private Writer out;
-    private Resource cacheFile;
+	private Writer out;
+	private Resource cacheFile;
 
-    public CacheWriter(Writer out, Resource cacheFile) throws IOException {
-	super(out, IOUtil.getWriter(cacheFile, (Charset) null));
-	this.out = out;
-	this.cacheFile = cacheFile;
-    }
+	public CacheWriter(Writer out, Resource cacheFile) throws IOException {
+		super(out, IOUtil.getWriter(cacheFile, (Charset) null));
+		this.out = out;
+		this.cacheFile = cacheFile;
+	}
 
-    /**
-     * @return the cacheFile
-     */
-    public Resource getCacheFile() {
-	return cacheFile;
-    }
+	/**
+	 * @return the cacheFile
+	 */
+	public Resource getCacheFile() {
+		return cacheFile;
+	}
 
-    /**
-     * @param cacheFile the cacheFile to set
-     */
-    public void setCacheFile(Resource cacheFile) {
-	this.cacheFile = cacheFile;
-    }
+	/**
+	 * @param cacheFile the cacheFile to set
+	 */
+	public void setCacheFile(Resource cacheFile) {
+		this.cacheFile = cacheFile;
+	}
 
-    /**
-     * @return the out
-     */
-    public Writer getOut() {
-	return out;
-    }
+	/**
+	 * @return the out
+	 */
+	public Writer getOut() {
+		return out;
+	}
 
-    /**
-     * @param out the out to set
-     */
-    public void setOut(Writer out) {
-	this.out = out;
-    }
+	/**
+	 * @param out the out to set
+	 */
+	public void setOut(Writer out) {
+		this.out = out;
+	}
 
 }

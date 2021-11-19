@@ -22,54 +22,54 @@ package lucee;
  */
 public interface Info {
 
-    public static final int STATE_ALPHA = 2 * 100000000;
-    public static final int STATE_BETA = 1 * 100000000;
-    public static final int STATE_RC = 3 * 100000000;
-    public static final int STATE_FINAL = 0;
+	public static final int STATE_ALPHA = 2 * 100000000;
+	public static final int STATE_BETA = 1 * 100000000;
+	public static final int STATE_RC = 3 * 100000000;
+	public static final int STATE_FINAL = 0;
 
-    /**
-     * @return the level
-     */
-    public String getLevel();
+	/**
+	 * @return the level
+	 */
+	public String getLevel();
 
-    /**
-     * @return Returns the releaseTime.
-     */
-    public long getRealeaseTime();
+	/**
+	 * @return Returns the releaseTime.
+	 */
+	public long getRealeaseTime();
 
-    /**
-     * @return Returns the version.
-     */
-    public org.osgi.framework.Version getVersion();
+	/**
+	 * @return Returns the version.
+	 */
+	public org.osgi.framework.Version getVersion();
 
-    /**
-     * @return returns the state
-     */
-    // public int getStateAsInt();
+	/**
+	 * @return returns the state
+	 */
+	// public int getStateAsInt();
 
-    /**
-     * @return returns the state
-     */
-    // public String getStateAsString();
+	/**
+	 * @return returns the state
+	 */
+	// public String getStateAsString();
 
-    public long getFullVersionInfo();
+	public long getFullVersionInfo();
 
-    public String getVersionName();
+	public String getVersionName();
 
-    public String getVersionNameExplanation();
+	public String getVersionNameExplanation();
 
-    public String[] getCFMLTemplateExtensions();
+	public String[] getCFMLTemplateExtensions();
 
-    public String[] getLuceeTemplateExtensions();
+	public String[] getLuceeTemplateExtensions();
 
-    @Deprecated
-    public String[] getCFMLComponentExtensions();
+	@Deprecated
+	public String[] getCFMLComponentExtensions();
 
-    @Deprecated
-    public String[] getLuceeComponentExtensions();
+	@Deprecated
+	public String[] getLuceeComponentExtensions();
 
-    public String getCFMLComponentExtension();
+	public String getCFMLComponentExtension();
 
-    public String getLuceeComponentExtension();
+	public String getLuceeComponentExtension();
 
 }

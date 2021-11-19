@@ -23,123 +23,123 @@ import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 
 public final class PropertiesImpl implements Properties {
-    private String accessKeyId;
-    private String secretAccessKey;
-    private String defaultLocation = null;
-    private String host = "s3.amazonaws.com";
-    private String acl;
-    private long cache;
+	private String accessKeyId;
+	private String secretAccessKey;
+	private String defaultLocation = null;
+	private String host = "s3.amazonaws.com";
+	private String acl;
+	private long cache;
 
-    @Override
-    public Struct toStruct() {
-	Struct sct = new StructImpl();
+	@Override
+	public Struct toStruct() {
+		Struct sct = new StructImpl();
 
-	sct.setEL("accessKeyId", accessKeyId);
-	sct.setEL("awsSecretKey", secretAccessKey);
-	sct.setEL("defaultLocation", defaultLocation);
-	sct.setEL("host", host);
-	if (!StringUtil.isEmpty(acl)) sct.setEL("acl", acl);
+		sct.setEL("accessKeyId", accessKeyId);
+		sct.setEL("awsSecretKey", secretAccessKey);
+		sct.setEL("defaultLocation", defaultLocation);
+		sct.setEL("host", host);
+		if (!StringUtil.isEmpty(acl)) sct.setEL("acl", acl);
 
-	return sct;
-    }
+		return sct;
+	}
 
-    /**
-     * @return the accessKeyId
-     */
-    @Override
-    public String getAccessKeyId() {
-	return accessKeyId;
-    }
+	/**
+	 * @return the accessKeyId
+	 */
+	@Override
+	public String getAccessKeyId() {
+		return accessKeyId;
+	}
 
-    // FUTURE add to interface
-    public String getACL() {
-	return acl;
-    }
+	// FUTURE add to interface
+	public String getACL() {
+		return acl;
+	}
 
-    // FUTURE add to interface
-    public void setACL(String acl) {
-	this.acl = acl;
-    }
+	// FUTURE add to interface
+	public void setACL(String acl) {
+		this.acl = acl;
+	}
 
-    /**
-     * @return the host
-     */
-    @Override
-    public String getHost() {
-	return host;
-    }
+	/**
+	 * @return the host
+	 */
+	@Override
+	public String getHost() {
+		return host;
+	}
 
-    /**
-     * @param host the host to set
-     */
-    public void setHost(String host) {
-	this.host = host;
-    }
+	/**
+	 * @param host the host to set
+	 */
+	public void setHost(String host) {
+		this.host = host;
+	}
 
-    /**
-     * @return the defaultLocation
-     */
-    @Override
-    public String getDefaultLocation() {
-	return defaultLocation;
-    }
+	/**
+	 * @return the defaultLocation
+	 */
+	@Override
+	public String getDefaultLocation() {
+		return defaultLocation;
+	}
 
-    /**
-     * @param defaultLocation the defaultLocation to set
-     */
-    public void setDefaultLocation(String defaultLocation) {
-	this.defaultLocation = improveLocation(defaultLocation);
-    }
+	/**
+	 * @param defaultLocation the defaultLocation to set
+	 */
+	public void setDefaultLocation(String defaultLocation) {
+		this.defaultLocation = improveLocation(defaultLocation);
+	}
 
-    /**
-     * @param accessKeyId the accessKeyId to set
-     */
-    public void setAccessKeyId(String accessKeyId) {
-	this.accessKeyId = accessKeyId;
-    }
+	/**
+	 * @param accessKeyId the accessKeyId to set
+	 */
+	public void setAccessKeyId(String accessKeyId) {
+		this.accessKeyId = accessKeyId;
+	}
 
-    /**
-     * @return the secretAccessKey
-     */
-    @Override
-    public String getSecretAccessKey() {
-	return secretAccessKey;
-    }
+	/**
+	 * @return the secretAccessKey
+	 */
+	@Override
+	public String getSecretAccessKey() {
+		return secretAccessKey;
+	}
 
-    /**
-     * @param secretAccessKey the secretAccessKey to set
-     */
-    public void setSecretAccessKey(String secretAccessKey) {
-	this.secretAccessKey = secretAccessKey;
-    }
+	/**
+	 * @param secretAccessKey the secretAccessKey to set
+	 */
+	public void setSecretAccessKey(String secretAccessKey) {
+		this.secretAccessKey = secretAccessKey;
+	}
 
-    @Override
-    public String toString() {
-	return "accessKeyId:" + accessKeyId + ";defaultLocation:" + defaultLocation + ";host:" + host + ";secretAccessKey:" + secretAccessKey;
-    }
+	@Override
+	public String toString() {
+		return "accessKeyId:" + accessKeyId + ";defaultLocation:" + defaultLocation + ";host:" + host + ";secretAccessKey:" + secretAccessKey;
+	}
 
-    private static String improveLocation(String location) {
-	if (location == null) return location;
-	location = location.toLowerCase().trim();
-	if ("usa".equals(location)) return "us";
-	if ("u.s.".equals(location)) return "us";
-	if ("u.s.a.".equals(location)) return "us";
-	if ("united states of america".equals(location)) return "us";
+	private static String improveLocation(String location) {
+		if (location == null) return location;
+		location = location.toLowerCase().trim();
+		if ("usa".equals(location)) return "us";
+		if ("u.s.".equals(location)) return "us";
+		if ("u.s.a.".equals(location)) return "us";
+		if ("united states of america".equals(location)) return "us";
 
-	if ("europe.".equals(location)) return "eu";
-	if ("euro.".equals(location)) return "eu";
-	if ("e.u.".equals(location)) return "eu";
+		if ("europe.".equals(location)) return "eu";
+		if ("euro.".equals(location)) return "eu";
+		if ("e.u.".equals(location)) return "eu";
 
-	if ("usa-west".equals(location)) return "us-west";
+		if ("usa-west".equals(location)) return "us-west";
 
-	return location;
-    }
+		return location;
+	}
 
-    public void setCache(long millis) {
-	this.cache = millis;
-    }
+	public void setCache(long millis) {
+		this.cache = millis;
+	}
 
-    public long getCache() { // FUTURE add to interface
-	return this.cache;
-    }
+	public long getCache() { // FUTURE add to interface
+		return this.cache;
+	}
 }

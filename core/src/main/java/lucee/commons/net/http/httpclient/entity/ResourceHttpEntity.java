@@ -33,48 +33,48 @@ import lucee.commons.io.res.Resource;
  */
 public class ResourceHttpEntity extends AbstractHttpEntity implements Entity4 {
 
-    final Resource res;
-    private ContentType ct;
+	final Resource res;
+	private ContentType ct;
 
-    public ResourceHttpEntity(final Resource res, final ContentType contentType) {
-	super();
-	this.res = res;
-	if (contentType != null) setContentType(contentType.toString());
-	ct = contentType;
-    }
+	public ResourceHttpEntity(final Resource res, final ContentType contentType) {
+		super();
+		this.res = res;
+		if (contentType != null) setContentType(contentType.toString());
+		ct = contentType;
+	}
 
-    @Override
-    public long getContentLength() {
-	return this.res.length();
-    }
+	@Override
+	public long getContentLength() {
+		return this.res.length();
+	}
 
-    @Override
-    public boolean isRepeatable() {
-	return true;
-    }
+	@Override
+	public boolean isRepeatable() {
+		return true;
+	}
 
-    @Override
-    public InputStream getContent() throws IOException {
-	return res.getInputStream();
-    }
+	@Override
+	public InputStream getContent() throws IOException {
+		return res.getInputStream();
+	}
 
-    @Override
-    public void writeTo(final OutputStream out) throws IOException {
-	IOUtil.copy(res.getInputStream(), out, true, false);
-    }
+	@Override
+	public void writeTo(final OutputStream out) throws IOException {
+		IOUtil.copy(res.getInputStream(), out, true, false);
+	}
 
-    @Override
-    public boolean isStreaming() {
-	return false;
-    }
+	@Override
+	public boolean isStreaming() {
+		return false;
+	}
 
-    @Override
-    public long contentLength() {
-	return getContentLength();
-    }
+	@Override
+	public long contentLength() {
+		return getContentLength();
+	}
 
-    @Override
-    public String contentType() {
-	return ct != null ? ct.toString() : null;
-    }
+	@Override
+	public String contentType() {
+		return ct != null ? ct.toString() : null;
+	}
 }

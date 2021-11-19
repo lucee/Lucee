@@ -22,7 +22,7 @@ import lucee.runtime.exp.PageException;
 
 public interface CustomType {
 
-    public Object convert(PageContext pc, Object o) throws PageException;
+	public Object convert(PageContext pc, Object o) throws PageException;
 
-    public Object convert(PageContext pc, Object o, Object defaultValue);
+	public Object convert(PageContext pc, Object o, Object defaultValue);
 }

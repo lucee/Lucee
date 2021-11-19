@@ -22,22 +22,18 @@ import lucee.runtime.sql.exp.Literal;
 
 public class ValueNull extends ValueSupport implements Literal {
 
-    public static final ValueNull NULL = new ValueNull();
+	public ValueNull() {
+		super("NULL");
+	}
 
-    // private boolean value;
+	@Override
+	public String toString(boolean noAlias) {
+		if (noAlias || getIndex() == 0) return getString();
+		return getString() + " as " + getAlias();
+	}
 
-    private ValueNull() {
-	super("NULL");
-    }
-
-    @Override
-    public String toString(boolean noAlias) {
-	if (noAlias || getIndex() == 0) return getString();
-	return getString() + " as " + getAlias();
-    }
-
-    @Override
-    public Object getValue() {
-	return null;
-    }
+	@Override
+	public Object getValue() {
+		return null;
+	}
 }

@@ -19,12 +19,12 @@ package lucee.runtime.orm;
 
 public interface ORMTransaction {
 
-    public void begin();
+	public void begin();
 
-    public void commit();
+	public void commit();
 
-    public void rollback();
+	public void rollback();
 
-    public void end();
+	public void end();
 
 }

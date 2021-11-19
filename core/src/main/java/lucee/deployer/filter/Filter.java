@@ -28,11 +28,11 @@ import lucee.commons.io.res.Resource;
  */
 public interface Filter {
 
-    /**
-     * Gibt zurueck ob die eingegebene Datei eine CFML Datei ist oder nicht.
-     * 
-     * @param file File das geprueft werden soll.
-     * @return handelt es sich bei der CFML Datei um eine CFML
-     */
-    public boolean isValid(Resource res);
+	/**
+	 * Gibt zurueck ob die eingegebene Datei eine CFML Datei ist oder nicht.
+	 * 
+	 * @param file File das geprueft werden soll.
+	 * @return handelt es sich bei der CFML Datei um eine CFML
+	 */
+	public boolean isValid(Resource res);
 }

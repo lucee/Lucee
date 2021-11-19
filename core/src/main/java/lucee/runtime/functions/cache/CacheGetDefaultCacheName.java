@@ -22,7 +22,7 @@ import lucee.runtime.PageContext;
 import lucee.runtime.cache.CacheConnection;
 import lucee.runtime.cache.CacheUtil;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
@@ -34,23 +34,23 @@ import lucee.runtime.op.Caster;
  */
 public final class CacheGetDefaultCacheName extends BIF {
 
-    private static final long serialVersionUID = 6115589794465960484L;
+	private static final long serialVersionUID = 6115589794465960484L;
 
-    public static String call(PageContext pc, String strType) throws PageException {
-	int type = CacheUtil.toType(strType, Config.CACHE_TYPE_NONE);
-	if (type == Config.CACHE_TYPE_NONE)
-	    throw new FunctionException(pc, "CacheGetDefaultCacheName", 1, "type", "invalid type definition [" + strType + "], valid types are [object,resource,template,query]");
+	public static String call(PageContext pc, String strType) throws PageException {
+		int type = CacheUtil.toType(strType, Config.CACHE_TYPE_NONE);
+		if (type == Config.CACHE_TYPE_NONE)
+			throw new FunctionException(pc, "CacheGetDefaultCacheName", 1, "type", "invalid type definition [" + strType + "], valid types are [object,resource,template,query]");
 
-	ConfigImpl config = (ConfigImpl) pc.getConfig();
-	CacheConnection conn = config.getCacheDefaultConnection(type);
-	if (conn == null) throw new ExpressionException("there is no default cache defined for type [" + strType + "]");
+		ConfigPro config = (ConfigPro) pc.getConfig();
+		CacheConnection conn = config.getCacheDefaultConnection(type);
+		if (conn == null) throw new ExpressionException("there is no default cache defined for type [" + strType + "]");
 
-	return conn.getName();
-    }
+		return conn.getName();
+	}
 
-    @Override
-    public Object invoke(PageContext pc, Object[] args) throws PageException {
-	if (args.length == 1) return call(pc, Caster.toString(args[0]));
-	throw new FunctionException(pc, "CacheGetDefaultCacheName", 1, 1, args.length);
-    }
+	@Override
+	public Object invoke(PageContext pc, Object[] args) throws PageException {
+		if (args.length == 1) return call(pc, Caster.toString(args[0]));
+		throw new FunctionException(pc, "CacheGetDefaultCacheName", 1, 1, args.length);
+	}
 }

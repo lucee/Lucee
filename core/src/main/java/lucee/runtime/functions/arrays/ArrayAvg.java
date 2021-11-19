@@ -32,15 +32,15 @@ import lucee.runtime.type.util.ArrayUtil;
 
 public final class ArrayAvg extends BIF {
 
-    private static final long serialVersionUID = -6440677638555730262L;
+	private static final long serialVersionUID = -6440677638555730262L;
 
-    public static double call(PageContext pc, Array array) throws ExpressionException {
-	return ArrayUtil.avg(array);
-    }
+	public static double call(PageContext pc, Array array) throws ExpressionException {
+		return ArrayUtil.avg(array);
+	}
 
-    @Override
-    public Object invoke(PageContext pc, Object[] args) throws PageException {
-	if (args.length == 1) return call(pc, Caster.toArray(args[0]));
-	else throw new FunctionException(pc, "ArrayAvg", 1, 1, args.length);
-    }
+	@Override
+	public Object invoke(PageContext pc, Object[] args) throws PageException {
+		if (args.length == 1) return call(pc, Caster.toArray(args[0]));
+		else throw new FunctionException(pc, "ArrayAvg", 1, 1, args.length);
+	}
 }

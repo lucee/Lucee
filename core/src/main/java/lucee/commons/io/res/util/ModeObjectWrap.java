@@ -30,94 +30,94 @@ import lucee.runtime.type.dt.DateTime;
 
 public final class ModeObjectWrap implements ObjectWrap, Castable {
 
-    private static final long serialVersionUID = -1630745501422006978L;
+	private static final long serialVersionUID = -1630745501422006978L;
 
-    private final Resource res;
-    private String mode = null;
+	private final Resource res;
+	private String mode = null;
 
-    public ModeObjectWrap(Resource res) {
-	this.res = res;
-    }
+	public ModeObjectWrap(Resource res) {
+		this.res = res;
+	}
 
-    @Override
-    public Object getEmbededObject() {
-	return toString();
-    }
+	@Override
+	public Object getEmbededObject() {
+		return toString();
+	}
 
-    @Override
-    public Object getEmbededObject(Object def) {
-	return toString();
-    }
+	@Override
+	public Object getEmbededObject(Object def) {
+		return toString();
+	}
 
-    @Override
-    public String toString() {
-	// print.dumpStack();
-	if (mode == null) mode = ModeUtil.toStringMode(res.getMode());
-	return mode;
-    }
+	@Override
+	public String toString() {
+		// print.dumpStack();
+		if (mode == null) mode = ModeUtil.toStringMode(res.getMode());
+		return mode;
+	}
 
-    public String castString() {
-	return toString();
-    }
+	public String castString() {
+		return toString();
+	}
 
-    @Override
-    public boolean castToBooleanValue() throws PageException {
-	return Caster.toBooleanValue(toString());
-    }
+	@Override
+	public boolean castToBooleanValue() throws PageException {
+		return Caster.toBooleanValue(toString());
+	}
 
-    @Override
-    public Boolean castToBoolean(Boolean defaultValue) {
-	return Caster.toBoolean(toString(), defaultValue);
-    }
+	@Override
+	public Boolean castToBoolean(Boolean defaultValue) {
+		return Caster.toBoolean(toString(), defaultValue);
+	}
 
-    @Override
-    public DateTime castToDateTime() throws PageException {
-	return Caster.toDatetime(toString(), null);
-    }
+	@Override
+	public DateTime castToDateTime() throws PageException {
+		return Caster.toDatetime(toString(), null);
+	}
 
-    @Override
-    public DateTime castToDateTime(DateTime defaultValue) {
-	return DateCaster.toDateAdvanced(toString(), DateCaster.CONVERTING_TYPE_OFFSET, null, defaultValue);
-    }
+	@Override
+	public DateTime castToDateTime(DateTime defaultValue) {
+		return DateCaster.toDateAdvanced(toString(), DateCaster.CONVERTING_TYPE_OFFSET, null, defaultValue);
+	}
 
-    @Override
-    public double castToDoubleValue() throws PageException {
-	return Caster.toDoubleValue(toString());
-    }
+	@Override
+	public double castToDoubleValue() throws PageException {
+		return Caster.toDoubleValue(toString());
+	}
 
-    @Override
-    public double castToDoubleValue(double defaultValue) {
-	return Caster.toDoubleValue(toString(), defaultValue);
-    }
+	@Override
+	public double castToDoubleValue(double defaultValue) {
+		return Caster.toDoubleValue(toString(), defaultValue);
+	}
 
-    @Override
-    public String castToString() throws PageException {
-	return toString();
-    }
+	@Override
+	public String castToString() throws PageException {
+		return toString();
+	}
 
-    @Override
-    public String castToString(String defaultValue) {
-	return toString();
-    }
+	@Override
+	public String castToString(String defaultValue) {
+		return toString();
+	}
 
-    @Override
-    public int compareTo(String str) throws PageException {
-	return Operator.compare(toString(), str);
-    }
+	@Override
+	public int compareTo(String str) throws PageException {
+		return Operator.compare(toString(), str);
+	}
 
-    @Override
-    public int compareTo(boolean b) throws PageException {
-	return Operator.compare(castToBooleanValue(), b);
-    }
+	@Override
+	public int compareTo(boolean b) throws PageException {
+		return Operator.compare(castToBooleanValue(), b);
+	}
 
-    @Override
-    public int compareTo(double d) throws PageException {
-	return Operator.compare(castToDoubleValue(), d);
-    }
+	@Override
+	public int compareTo(double d) throws PageException {
+		return Operator.compare(castToDoubleValue(), d);
+	}
 
-    @Override
-    public int compareTo(DateTime dt) throws PageException {
-	return Operator.compare(toString(), dt.castToString());
-    }
+	@Override
+	public int compareTo(DateTime dt) throws PageException {
+		return Operator.compare(toString(), dt.castToString());
+	}
 
 }

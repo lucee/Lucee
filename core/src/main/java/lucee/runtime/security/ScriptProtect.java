@@ -29,75 +29,75 @@ import lucee.runtime.type.Struct;
  */
 public final class ScriptProtect {
 
-    public static final String[] invalids = new String[] { "object", "embed", "script", "applet", "meta", "iframe" };
+	public static final String[] invalids = new String[] { "object", "embed", "script", "applet", "meta", "iframe" };
 
-    /**
-     * translate all strig values of the struct i script-protected form
-     * 
-     * @param sct Struct to translate its values
-     */
-    public static void translate(Struct sct) {
-	Iterator<Entry<Key, Object>> it = sct.entryIterator();
-	Entry<Key, Object> e;
-	Object value;
-	while (it.hasNext()) {
-	    e = it.next();
-	    value = e.getValue();
-	    if (value instanceof String) {
-		sct.setEL(e.getKey(), translate((String) value));
-	    }
-	}
-    }
-
-    /**
-     * translate string to script-protected form
-     * 
-     * @param str
-     * @return translated String
-     */
-    public static String translate(String str) {
-	if (str == null) return "";
-	// TODO do-while machen
-	int index, last = 0, endIndex;
-	StringBuilder sb = null;
-	String tagName;
-	while ((index = str.indexOf('<', last)) != -1) {
-	    // read tagname
-	    int len = str.length();
-	    char c;
-	    for (endIndex = index + 1; endIndex < len; endIndex++) {
-		c = str.charAt(endIndex);
-		if ((c < 'a' || c > 'z') && (c < 'A' || c > 'Z')) break;
-	    }
-	    tagName = str.substring(index + 1, endIndex);
-
-	    if (compareTagName(tagName)) {
-		if (sb == null) {
-		    sb = new StringBuilder();
-		    last = 0;
+	/**
+	 * translate all strig values of the struct i script-protected form
+	 * 
+	 * @param sct Struct to translate its values
+	 */
+	public static void translate(Struct sct) {
+		Iterator<Entry<Key, Object>> it = sct.entryIterator();
+		Entry<Key, Object> e;
+		Object value;
+		while (it.hasNext()) {
+			e = it.next();
+			value = e.getValue();
+			if (value instanceof String) {
+				sct.setEL(e.getKey(), translate((String) value));
+			}
 		}
-		sb.append(str.substring(last, index + 1));
-		sb.append("invalidTag");
-		last = endIndex;
-	    }
-	    else if (sb != null) {
-		sb.append(str.substring(last, index + 1));
-		last = index + 1;
-	    }
-	    else last = index + 1;
+	}
 
-	}
-	if (sb != null) {
-	    if (last != str.length()) sb.append(str.substring(last));
-	    return sb.toString();
-	}
-	return str;
-    }
+	/**
+	 * translate string to script-protected form
+	 * 
+	 * @param str
+	 * @return translated String
+	 */
+	public static String translate(String str) {
+		if (str == null) return "";
+		// TODO do-while machen
+		int index, last = 0, endIndex;
+		StringBuilder sb = null;
+		String tagName;
+		while ((index = str.indexOf('<', last)) != -1) {
+			// read tagname
+			int len = str.length();
+			char c;
+			for (endIndex = index + 1; endIndex < len; endIndex++) {
+				c = str.charAt(endIndex);
+				if ((c < 'a' || c > 'z') && (c < 'A' || c > 'Z')) break;
+			}
+			tagName = str.substring(index + 1, endIndex);
 
-    private static boolean compareTagName(String tagName) {
-	for (int i = 0; i < invalids.length; i++) {
-	    if (invalids[i].equalsIgnoreCase(tagName)) return true;
+			if (compareTagName(tagName)) {
+				if (sb == null) {
+					sb = new StringBuilder();
+					last = 0;
+				}
+				sb.append(str.substring(last, index + 1));
+				sb.append("invalidTag");
+				last = endIndex;
+			}
+			else if (sb != null) {
+				sb.append(str.substring(last, index + 1));
+				last = index + 1;
+			}
+			else last = index + 1;
+
+		}
+		if (sb != null) {
+			if (last != str.length()) sb.append(str.substring(last));
+			return sb.toString();
+		}
+		return str;
 	}
-	return false;
-    }
+
+	private static boolean compareTagName(String tagName) {
+		for (int i = 0; i < invalids.length; i++) {
+			if (invalids[i].equalsIgnoreCase(tagName)) return true;
+		}
+		return false;
+	}
 }

@@ -37,145 +37,147 @@ import lucee.runtime.type.scope.Session;
  */
 public final class ClassicAppListener extends AppListenerSupport {
 
-    private int mode = MODE_CURRENT2ROOT;
+	private int mode = MODE_CURRENT2ROOT;
 
-    @Override
-    public void onRequest(PageContext pc, PageSource requestedPage, RequestListener rl) throws PageException {
+	@Override
+	public void onRequest(PageContext pc, PageSource requestedPage, RequestListener rl) throws PageException {
 
-	PageSource application = AppListenerUtil.getApplicationPageSource(pc, requestedPage, Constants.CFML_CLASSIC_APPLICATION_EVENT_HANDLER, mode);
+		PageSource application = AppListenerUtil.getApplicationPageSource(pc, requestedPage, Constants.CFML_CLASSIC_APPLICATION_EVENT_HANDLER, mode,
+				ApplicationListener.TYPE_CLASSIC);
 
-	_onRequest(pc, requestedPage, application, rl);
-    }
-
-    static void _onRequest(PageContext pc, PageSource requestedPage, PageSource application, RequestListener rl) throws PageException {
-	PageContextImpl pci = (PageContextImpl) pc;
-	pci.setAppListenerType(ApplicationListener.TYPE_CLASSIC);
-
-	// on requestStart
-	if (application != null) pci._doInclude(new PageSource[] { application }, false, null);
-
-	if (rl != null) {
-	    requestedPage = rl.execute(pc, requestedPage);
-	    if (requestedPage == null) return;
+		_onRequest(pc, requestedPage, application, rl);
 	}
 
-	// request
-	try {
-	    pci._doInclude(new PageSource[] { requestedPage }, false, null);
-	}
-	catch (MissingIncludeException mie) {
-	    ApplicationContext ac = pc.getApplicationContext();
-	    boolean rethrow = true;
-	    if (ac instanceof ClassicApplicationContext) {
-		ClassicApplicationContext cfc = (ClassicApplicationContext) ac;
-		UDF udf = cfc.getOnMissingTemplate();
-		if (udf != null) {
-		    String targetPage = requestedPage.getRealpathWithVirtual();
-		    rethrow = (!Caster.toBooleanValue(udf.call(pc, new Object[] { targetPage }, true), true));
+	static void _onRequest(PageContext pc, PageSource requestedPage, PageSource application, RequestListener rl) throws PageException {
+		PageContextImpl pci = (PageContextImpl) pc;
+		pci.setAppListenerType(ApplicationListener.TYPE_CLASSIC);
+
+		// on requestStart
+		if (application != null) pci._doInclude(new PageSource[] { application }, false, null);
+
+		if (rl != null) {
+			requestedPage = rl.execute(pc, requestedPage);
+			if (requestedPage == null) return;
 		}
-	    }
-	    if (rethrow) throw mie;
+
+		// request
+		try {
+			pci._doInclude(new PageSource[] { requestedPage }, false, null);
+		}
+		catch (MissingIncludeException mie) {
+			ApplicationContext ac = pc.getApplicationContext();
+			boolean rethrow = true;
+			if (ac instanceof ClassicApplicationContext) {
+				ClassicApplicationContext cfc = (ClassicApplicationContext) ac;
+				UDF udf = cfc.getOnMissingTemplate();
+				if (udf != null) {
+					String targetPage = requestedPage.getRealpathWithVirtual();
+					rethrow = (!Caster.toBooleanValue(udf.call(pc, new Object[] { targetPage }, true), true));
+				}
+			}
+			if (rethrow) throw mie;
+		}
+
+		// on Request End
+		if (application != null) {
+			PageSource onReqEnd = application.getRealPage(Constants.CFML_CLASSIC_APPLICATION_END_EVENT_HANDLER);
+			if (onReqEnd.exists()) pci._doInclude(new PageSource[] { onReqEnd }, false, null);
+		}
 	}
 
-	// on Request End
-	if (application != null) {
-	    PageSource onReqEnd = application.getRealPage(Constants.CFML_CLASSIC_APPLICATION_END_EVENT_HANDLER);
-	    if (onReqEnd.exists()) pci._doInclude(new PageSource[] { onReqEnd }, false, null);
+	@Override
+	public boolean onApplicationStart(PageContext pc) throws PageException {
+		// do nothing
+		return true;
 	}
-    }
 
-    @Override
-    public boolean onApplicationStart(PageContext pc) throws PageException {
-	// do nothing
-	return true;
-    }
-
-    @Override
-    public boolean onApplicationStart(PageContext pc, Application application) throws PageException {
-	// do nothing
-	return true;
-    }
-
-    @Override
-    public void onSessionStart(PageContext pc) throws PageException {
-	// do nothing
-    }
-
-    @Override
-    public void onSessionStart(PageContext pc, Session session) throws PageException {
-	// do nothing
-    }
-
-    @Override
-    public void onApplicationEnd(CFMLFactory factory, String applicationName) throws PageException {
-	// do nothing
-    }
-
-    @Override
-    public void onSessionEnd(CFMLFactory cfmlFactory, String applicationName, String cfid) throws PageException {
-	// do nothing
-    }
-
-    @Override
-    public void onDebug(PageContext pc) throws PageException {
-	_onDebug(pc);
-    }
-
-    public static void _onDebug(PageContext pc) throws PageException {
-	try {
-	    if (pc.getConfig().debug()) pc.getDebugger().writeOut(pc);
+	@Override
+	public boolean onApplicationStart(PageContext pc, Application application) throws PageException {
+		// do nothing
+		return true;
 	}
-	catch (IOException e) {
-	    throw Caster.toPageException(e);
+
+	@Override
+	public void onSessionStart(PageContext pc) throws PageException {
+		// do nothing
 	}
-    }
 
-    @Override
-    public void onError(PageContext pc, PageException pe) {
-	_onError(pc, pe);
-    }
+	@Override
+	public void onSessionStart(PageContext pc, Session session) throws PageException {
+		// do nothing
+	}
 
-    public static void _onError(PageContext pc, PageException pe) {
-	pc.handlePageException(pe);
-    }
+	@Override
+	public void onApplicationEnd(CFMLFactory factory, String applicationName) throws PageException {
+		// do nothing
+	}
 
-    @Override
-    public void onTimeout(PageContext pc) {
-	_onTimeout(pc);
-    }
+	@Override
+	public void onSessionEnd(CFMLFactory cfmlFactory, String applicationName, String cfid) throws PageException {
+		// do nothing
+	}
 
-    public static void _onTimeout(PageContext pc) {}
+	@Override
+	public void onDebug(PageContext pc) throws PageException {
+		_onDebug(pc);
+	}
 
-    @Override
-    public boolean hasOnApplicationStart() {
-	return false;
-    }
+	public static void _onDebug(PageContext pc) throws PageException {
+		try {
+			if (pc.getConfig().debug()) pc.getDebugger().writeOut(pc);
+		}
+		catch (IOException e) {
+			throw Caster.toPageException(e);
+		}
+	}
 
-    public static boolean _hasOnApplicationStart() {
-	return false;
-    }
+	@Override
+	public void onError(PageContext pc, PageException pe) {
+		_onError(pc, pe);
+	}
 
-    @Override
-    public boolean hasOnSessionStart(PageContext pc) {
-	return false;
-    }
+	public static void _onError(PageContext pc, PageException pe) {
+		pc.handlePageException(pe);
+	}
 
-    public static boolean _hasOnSessionStart(PageContext pc) {
-	return false;
-    }
+	@Override
+	public void onTimeout(PageContext pc) {
+		_onTimeout(pc);
+	}
 
-    @Override
-    public void setMode(int mode) {
-	this.mode = mode;
-    }
+	public static void _onTimeout(PageContext pc) {
+	}
 
-    @Override
-    public int getMode() {
-	return mode;
-    }
+	@Override
+	public boolean hasOnApplicationStart() {
+		return false;
+	}
 
-    @Override
-    public String getType() {
-	return "classic";
-    }
+	public static boolean _hasOnApplicationStart() {
+		return false;
+	}
+
+	@Override
+	public boolean hasOnSessionStart(PageContext pc) {
+		return false;
+	}
+
+	public static boolean _hasOnSessionStart(PageContext pc) {
+		return false;
+	}
+
+	@Override
+	public void setMode(int mode) {
+		this.mode = mode;
+	}
+
+	@Override
+	public int getMode() {
+		return mode;
+	}
+
+	@Override
+	public String getType() {
+		return "classic";
+	}
 }

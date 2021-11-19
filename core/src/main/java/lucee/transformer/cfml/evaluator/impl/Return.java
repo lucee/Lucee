@@ -29,15 +29,15 @@ import lucee.transformer.library.tag.TagLibTag;
  */
 public final class Return extends EvaluatorSupport {
 
-    @Override
-    public void evaluate(Tag tag, TagLibTag libTag) throws EvaluatorException {
-	// String ns=libTag.getTagLib().getNameSpaceAndSeperator();
-	// String funcName=ns+"function";
+	@Override
+	public void evaluate(Tag tag, TagLibTag libTag) throws EvaluatorException {
+		// String ns=libTag.getTagLib().getNameSpaceAndSeperator();
+		// String funcName=ns+"function";
 
-	// check if tag is direct inside if
-	// if(!ASMUtil.hasAncestorTag(tag,funcName))
-	// throw new EvaluatorException("Wrong Context, tag "+libTag.getFullName()+" must be inside a
-	// "+funcName+" tag");
-    }
+		// check if tag is direct inside if
+		// if(!ASMUtil.hasAncestorTag(tag,funcName))
+		// throw new EvaluatorException("Wrong Context, tag "+libTag.getFullName()+" must be inside a
+		// "+funcName+" tag");
+	}
 
 }

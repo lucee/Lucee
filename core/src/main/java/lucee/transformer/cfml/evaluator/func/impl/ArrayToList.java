@@ -30,26 +30,27 @@ import lucee.transformer.library.function.FunctionLibFunction;
 
 public class ArrayToList implements FunctionEvaluator {
 
-    @Override
-    public void execute(BIF bif, FunctionLibFunction flf) throws TemplateException {
-	Argument[] args = bif.getArguments();
+	@Override
+	public void execute(BIF bif, FunctionLibFunction flf) throws TemplateException {
+		Argument[] args = bif.getArguments();
 
-	Argument arg = args[0];
-	Expression value = arg.getValue();
-	if (value instanceof Cast) {
-	    value = ((Cast) value).getExpr();
+		Argument arg = args[0];
+		Expression value = arg.getValue();
+		if (value instanceof Cast) {
+			value = ((Cast) value).getExpr();
+		}
+		if (value instanceof Variable) {
+			((Variable) value).setAsCollection(Boolean.TRUE);
+		}
 	}
-	if (value instanceof Variable) {
-	    ((Variable) value).setAsCollection(Boolean.TRUE);
+
+	@Override
+	public void evaluate(BIF bif, FunctionLibFunction flf) throws EvaluatorException {
 	}
-    }
 
-    @Override
-    public void evaluate(BIF bif, FunctionLibFunction flf) throws EvaluatorException {}
-
-    @Override
-    public FunctionLibFunction pre(BIF bif, FunctionLibFunction flf) throws TemplateException {
-	return null;
-    }
+	@Override
+	public FunctionLibFunction pre(BIF bif, FunctionLibFunction flf) throws TemplateException {
+		return null;
+	}
 
 }

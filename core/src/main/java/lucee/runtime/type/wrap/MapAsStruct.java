@@ -47,240 +47,252 @@ import lucee.runtime.type.util.StructUtil;
  */
 public class MapAsStruct extends StructSupport implements Struct {
 
-    Map map;
-    private boolean caseSensitive;
+	Map map;
+	private boolean caseSensitive;
 
-    /**
-     * constructor of the class
-     * 
-     * @param map
-     * @param caseSensitive
-     */
-    private MapAsStruct(Map map, boolean caseSensitive) {
-	this.map = map;
-	this.caseSensitive = caseSensitive;
-    }
-
-    public static Struct toStruct(Map map) {
-	return toStruct(map, false);
-    }
-
-    public static Struct toStruct(Map map, boolean caseSensitive) {
-	if (map instanceof Struct) return ((Struct) map);
-	return new MapAsStruct(map, caseSensitive);
-    }
-
-    @Override
-    public int size() {
-	return map.size();
-    }
-
-    @Override
-    public Collection.Key[] keys() {
-	Set set = map.keySet();
-	Iterator it = set.iterator();
-	Collection.Key[] k = new Collection.Key[set.size()];
-	int count = 0;
-	while (it.hasNext()) {
-	    k[count++] = KeyImpl.init(StringUtil.toStringNative(it.next(), ""));
+	/**
+	 * constructor of the class
+	 * 
+	 * @param map
+	 * @param caseSensitive
+	 */
+	private MapAsStruct(Map map, boolean caseSensitive) {
+		this.map = map;
+		this.caseSensitive = caseSensitive;
 	}
-	return k;
-    }
 
-    public static String getCaseSensitiveKey(Map map, String key) {
-	Iterator it = map.keySet().iterator();
-	String strKey;
-	while (it.hasNext()) {
-	    strKey = Caster.toString(it.next(), "");
-	    if (strKey.equalsIgnoreCase(key)) return strKey;
+	public static Struct toStruct(Map map) {
+		return toStruct(map, false);
 	}
-	return null;
-    }
 
-    @Override
-    public Object remove(Collection.Key key) throws ExpressionException {
-	Object obj = map.remove(key.getString());
-	if (obj == null) {
-	    if (map.containsKey(key.getString())) return null;
-	    if (!caseSensitive) {
-		String csKey = getCaseSensitiveKey(map, key.getString());
-		if (csKey != null) obj = map.remove(csKey);
-		if (obj != null) return obj;
-	    }
-	    throw new ExpressionException("can't remove key [" + key.getString() + "] from map, key doesn't exist");
+	public static Struct toStruct(Map map, boolean caseSensitive) {
+		if (map instanceof Struct) return ((Struct) map);
+		return new MapAsStruct(map, caseSensitive);
 	}
-	return obj;
-    }
 
-    @Override
-    public Object removeEL(Collection.Key key) {
-	Object obj = map.remove(key.getString());
-	if (!caseSensitive && obj == null) {
-	    String csKey = getCaseSensitiveKey(map, key.getString());
-	    if (csKey != null) obj = map.remove(csKey);
+	@Override
+	public int size() {
+		return map.size();
 	}
-	return obj;
-    }
 
-    @Override
-    public void clear() {
-	map.clear();
-    }
-
-    @Override
-    public Object get(Collection.Key key) throws ExpressionException {
-	Object o = map.get(key.getString());
-	if (o == null) {
-	    if (map.containsKey(key.getString())) return null;
-	    if (!caseSensitive) {
-		String csKey = getCaseSensitiveKey(map, key.getString());
-		if (csKey != null) o = map.get(csKey);
-		if (o != null || map.containsKey(csKey)) return o;
-	    }
-	    throw new ExpressionException("key " + key.getString() + " doesn't exist in " + Caster.toClassName(map));
+	@Override
+	public Collection.Key[] keys() {
+		Set set = map.keySet();
+		Iterator it = set.iterator();
+		Collection.Key[] k = new Collection.Key[set.size()];
+		int count = 0;
+		while (it.hasNext()) {
+			k[count++] = KeyImpl.init(StringUtil.toStringNative(it.next(), ""));
+		}
+		return k;
 	}
-	return o;
-    }
 
-    @Override
-    public Object get(Collection.Key key, Object defaultValue) {
-	Object obj = map.get(key.getString());
-	if (obj == null) {
-	    if (map.containsKey(key.getString())) return null;
-	    if (!caseSensitive) {
-		String csKey = getCaseSensitiveKey(map, key.getString());
-		if (csKey != null) obj = map.get(csKey);
-		if (obj != null || map.containsKey(csKey)) return obj;
-	    }
-	    return defaultValue;
+	public static String getCaseSensitiveKey(Map map, String key) {
+		Iterator it = map.keySet().iterator();
+		String strKey;
+		while (it.hasNext()) {
+			strKey = Caster.toString(it.next(), "");
+			if (strKey.equalsIgnoreCase(key)) return strKey;
+		}
+		return null;
 	}
-	return obj;
-    }
 
-    @Override
-    public Object set(Collection.Key key, Object value) throws PageException {
-	return map.put(key.getString(), value);
-    }
+	@Override
+	public Object remove(Collection.Key key) throws ExpressionException {
+		Object obj = map.remove(key.getString());
+		if (obj == null) {
+			if (map.containsKey(key.getString())) return null;
+			if (!caseSensitive) {
+				String csKey = getCaseSensitiveKey(map, key.getString());
+				if (csKey != null) obj = map.remove(csKey);
+				if (obj != null) return obj;
+			}
+			throw new ExpressionException("can't remove key [" + key.getString() + "] from map, key doesn't exist");
+		}
+		return obj;
+	}
 
-    @Override
-    public Object setEL(Collection.Key key, Object value) {
-	return map.put(key.getString(), value);
-    }
+	@Override
+	public Object removeEL(Collection.Key key) {
+		Object obj = map.remove(key.getString());
+		if (!caseSensitive && obj == null) {
+			String csKey = getCaseSensitiveKey(map, key.getString());
+			if (csKey != null) obj = map.remove(csKey);
+		}
+		return obj;
+	}
 
-    @Override
-    public Iterator<Collection.Key> keyIterator() {
-	return new KeyIterator(keys());
-    }
+	@Override
+	public void clear() {
+		map.clear();
+	}
 
-    @Override
-    public Iterator<String> keysAsStringIterator() {
-	return new StringIterator(keys());
-    }
+	@Override
+	public final Object get(Collection.Key key) throws ExpressionException {
+		return get((PageContext) null, key);
+	}
 
-    @Override
-    public Iterator<Entry<Key, Object>> entryIterator() {
-	return new EntryIterator(this, keys());
-    }
+	@Override
+	public final Object get(PageContext pc, Collection.Key key) throws ExpressionException {
+		Object o = map.get(key.getString());
+		if (o == null) {
+			if (map.containsKey(key.getString())) return null;
+			if (!caseSensitive) {
+				String csKey = getCaseSensitiveKey(map, key.getString());
+				if (csKey != null) o = map.get(csKey);
+				if (o != null || map.containsKey(csKey)) return o;
+			}
+			throw new ExpressionException("key " + key.getString() + " doesn't exist in " + Caster.toClassName(map));
+		}
+		return o;
+	}
 
-    @Override
-    public Iterator<Object> valueIterator() {
-	return new ValueIterator(this, keys());
-    }
+	@Override
+	public final Object get(Collection.Key key, Object defaultValue) {
+		return get((PageContext) null, key, defaultValue);
+	}
 
-    @Override
-    public DumpData toDumpData(PageContext pageContext, int maxlevel, DumpProperties dp) {
-	return DumpUtil.toDumpData(map, pageContext, maxlevel, dp);
-    }
+	@Override
+	public final Object get(PageContext pc, Collection.Key key, Object defaultValue) {
+		Object obj = map.get(key.getString());
+		if (obj == null) {
+			if (map.containsKey(key.getString())) return null;
+			if (!caseSensitive) {
+				String csKey = getCaseSensitiveKey(map, key.getString());
+				if (csKey != null) obj = map.get(csKey);
+				if (obj != null || map.containsKey(csKey)) return obj;
+			}
+			return defaultValue;
+		}
+		return obj;
+	}
 
-    @Override
-    public Collection duplicate(boolean deepCopy) {
-	return new MapAsStruct(Duplicator.duplicateMap(map, deepCopy), caseSensitive);
-    }
+	@Override
+	public Object set(Collection.Key key, Object value) throws PageException {
+		return map.put(key.getString(), value);
+	}
 
-    @Override
-    public boolean containsKey(Collection.Key key) {
+	@Override
+	public Object setEL(Collection.Key key, Object value) {
+		return map.put(key.getString(), value);
+	}
 
-	// return map.containsKey(key.getString());
+	@Override
+	public Iterator<Collection.Key> keyIterator() {
+		return new KeyIterator(keys());
+	}
 
-	boolean contains = map.containsKey(key.getString());
-	if (contains) return true;
-	if (!caseSensitive) return map.containsKey(getCaseSensitiveKey(map, key.getString()));
-	return false;
-    }
+	@Override
+	public Iterator<String> keysAsStringIterator() {
+		return new StringIterator(keys());
+	}
 
-    @Override
-    public String castToString() throws ExpressionException {
-	throw new ExpressionException("Can't cast Complex Object Type Struct [" + getClass().getName() + "] to String",
-		"Use Built-In-Function \"serialize(Struct):String\" to create a String from Struct");
-    }
+	@Override
+	public Iterator<Entry<Key, Object>> entryIterator() {
+		return new EntryIterator(this, keys());
+	}
 
-    @Override
-    public String castToString(String defaultValue) {
-	return defaultValue;
-    }
+	@Override
+	public Iterator<Object> valueIterator() {
+		return new ValueIterator(this, keys());
+	}
 
-    @Override
-    public boolean castToBooleanValue() throws ExpressionException {
-	throw new ExpressionException("Can't cast Complex Object Type Struct [" + getClass().getName() + "] to a boolean value");
-    }
+	@Override
+	public DumpData toDumpData(PageContext pageContext, int maxlevel, DumpProperties dp) {
+		return DumpUtil.toDumpData(map, pageContext, maxlevel, dp);
+	}
 
-    @Override
-    public Boolean castToBoolean(Boolean defaultValue) {
-	return defaultValue;
-    }
+	@Override
+	public Collection duplicate(boolean deepCopy) {
+		return new MapAsStruct(Duplicator.duplicateMap(map, deepCopy), caseSensitive);
+	}
 
-    @Override
-    public double castToDoubleValue() throws ExpressionException {
-	throw new ExpressionException("Can't cast Complex Object Type Struct [" + getClass().getName() + "] to a number value");
-    }
+	@Override
+	public final boolean containsKey(Collection.Key key) {
+		return containsKey(null, key);
+	}
 
-    @Override
-    public double castToDoubleValue(double defaultValue) {
-	return defaultValue;
-    }
+	@Override
+	public final boolean containsKey(PageContext pc, Collection.Key key) {
+		boolean contains = map.containsKey(key.getString());
+		if (contains) return true;
+		if (!caseSensitive) return map.containsKey(getCaseSensitiveKey(map, key.getString()));
+		return false;
+	}
 
-    @Override
-    public DateTime castToDateTime() throws ExpressionException {
-	throw new ExpressionException("Can't cast Complex Object Type Struct [" + getClass().getName() + "] to a Date");
-    }
+	@Override
+	public String castToString() throws ExpressionException {
+		throw new ExpressionException("Can't cast Complex Object Type Struct [" + getClass().getName() + "] to String",
+				"Use Built-In-Function \"serialize(Struct):String\" to create a String from Struct");
+	}
 
-    @Override
-    public DateTime castToDateTime(DateTime defaultValue) {
-	return defaultValue;
-    }
+	@Override
+	public String castToString(String defaultValue) {
+		return defaultValue;
+	}
 
-    @Override
-    public int compareTo(boolean b) throws ExpressionException {
-	throw new ExpressionException("can't compare Complex Object Type Struct [" + getClass().getName() + "] with a boolean value");
-    }
+	@Override
+	public boolean castToBooleanValue() throws ExpressionException {
+		throw new ExpressionException("Can't cast Complex Object Type Struct [" + getClass().getName() + "] to a boolean value");
+	}
 
-    @Override
-    public int compareTo(DateTime dt) throws PageException {
-	throw new ExpressionException("can't compare Complex Object Type Struct [" + getClass().getName() + "] with a DateTime Object");
-    }
+	@Override
+	public Boolean castToBoolean(Boolean defaultValue) {
+		return defaultValue;
+	}
 
-    @Override
-    public int compareTo(double d) throws PageException {
-	throw new ExpressionException("can't compare Complex Object Type Struct [" + getClass().getName() + "] with a numeric value");
-    }
+	@Override
+	public double castToDoubleValue() throws ExpressionException {
+		throw new ExpressionException("Can't cast Complex Object Type Struct [" + getClass().getName() + "] to a number value");
+	}
 
-    @Override
-    public int compareTo(String str) throws PageException {
-	throw new ExpressionException("can't compare Complex Object Type Struct [" + getClass().getName() + "] with a String");
-    }
+	@Override
+	public double castToDoubleValue(double defaultValue) {
+		return defaultValue;
+	}
 
-    @Override
-    public boolean containsValue(Object value) {
-	return map.containsValue(value);
-    }
+	@Override
+	public DateTime castToDateTime() throws ExpressionException {
+		throw new ExpressionException("Can't cast Complex Object Type Struct [" + getClass().getName() + "] to a Date");
+	}
 
-    @Override
-    public java.util.Collection values() {
-	return map.values();
-    }
+	@Override
+	public DateTime castToDateTime(DateTime defaultValue) {
+		return defaultValue;
+	}
 
-    @Override
-    public int getType() {
-	return StructUtil.getType(map);
-    }
+	@Override
+	public int compareTo(boolean b) throws ExpressionException {
+		throw new ExpressionException("can't compare Complex Object Type Struct [" + getClass().getName() + "] with a boolean value");
+	}
+
+	@Override
+	public int compareTo(DateTime dt) throws PageException {
+		throw new ExpressionException("can't compare Complex Object Type Struct [" + getClass().getName() + "] with a DateTime Object");
+	}
+
+	@Override
+	public int compareTo(double d) throws PageException {
+		throw new ExpressionException("can't compare Complex Object Type Struct [" + getClass().getName() + "] with a numeric value");
+	}
+
+	@Override
+	public int compareTo(String str) throws PageException {
+		throw new ExpressionException("can't compare Complex Object Type Struct [" + getClass().getName() + "] with a String");
+	}
+
+	@Override
+	public boolean containsValue(Object value) {
+		return map.containsValue(value);
+	}
+
+	@Override
+	public java.util.Collection values() {
+		return map.values();
+	}
+
+	@Override
+	public int getType() {
+		return StructUtil.getType(map);
+	}
 }

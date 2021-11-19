@@ -35,33 +35,33 @@ import lucee.runtime.type.util.KeyConstants;
  */
 public final class GetLuceeId implements Function {
 
-    private static final long serialVersionUID = 105306626462365773L;
+	private static final long serialVersionUID = 105306626462365773L;
 
-    private static final Collection.Key SECURITY_KEY = KeyImpl.intern("securityKey");
-    private static final Collection.Key API_KEY = KeyImpl.intern("apiKey");
+	private static final Collection.Key SECURITY_KEY = KeyImpl.getInstance("securityKey");
+	private static final Collection.Key API_KEY = KeyImpl.getInstance("apiKey");
 
-    public static Struct call(PageContext pc) throws PageException {
-	Struct sct = new StructImpl();
-	Struct web = new StructImpl();
-	Struct server = new StructImpl();
+	public static Struct call(PageContext pc) throws PageException {
+		Struct sct = new StructImpl();
+		Struct web = new StructImpl();
+		Struct server = new StructImpl();
 
-	IdentificationWeb idw = pc.getConfig().getIdentification();
-	IdentificationServer ids = idw.getServerIdentification();
+		IdentificationWeb idw = pc.getConfig().getIdentification();
+		IdentificationServer ids = idw.getServerIdentification();
 
-	// Web
-	web.set(SECURITY_KEY, idw.getSecurityKey());
-	web.set(KeyConstants._id, idw.getId());
-	web.set(API_KEY, idw.getApiKey());
-	sct.set(KeyConstants._web, web);
+		// Web
+		web.set(SECURITY_KEY, idw.getSecurityKey());
+		web.set(KeyConstants._id, idw.getId());
+		web.set(API_KEY, idw.getApiKey());
+		sct.set(KeyConstants._web, web);
 
-	// Server
-	server.set(SECURITY_KEY, ids.getSecurityKey());
-	server.set(KeyConstants._id, ids.getId());
-	server.set(API_KEY, ids.getApiKey());
-	sct.set(KeyConstants._server, server);
+		// Server
+		server.set(SECURITY_KEY, ids.getSecurityKey());
+		server.set(KeyConstants._id, ids.getId());
+		server.set(API_KEY, ids.getApiKey());
+		sct.set(KeyConstants._server, server);
 
-	sct.set(KeyConstants._request, Caster.toString(pc.getId()));
-	return sct;
-    }
+		sct.set(KeyConstants._request, Caster.toString(pc.getId()));
+		return sct;
+	}
 
 }

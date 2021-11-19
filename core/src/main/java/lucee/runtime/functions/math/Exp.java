@@ -25,7 +25,7 @@ import lucee.runtime.PageContext;
 import lucee.runtime.ext.function.Function;
 
 public final class Exp implements Function {
-    public static double call(PageContext pc, double number) {
-	return Math.exp(number);
-    }
+	public static double call(PageContext pc, double number) {
+		return Math.exp(number);
+	}
 }

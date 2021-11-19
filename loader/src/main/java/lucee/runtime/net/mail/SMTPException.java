@@ -23,14 +23,14 @@ package lucee.runtime.net.mail;
  */
 public abstract class SMTPException extends Exception {
 
-    private static final long serialVersionUID = -8180250507355937595L;
+	private static final long serialVersionUID = -8180250507355937595L;
 
-    /**
-     * constructor of the class
-     * 
-     * @param message
-     */
-    public SMTPException(final String message) {
-	super(message);
-    }
+	/**
+	 * constructor of the class
+	 * 
+	 * @param message
+	 */
+	public SMTPException(final String message) {
+		super(message);
+	}
 }

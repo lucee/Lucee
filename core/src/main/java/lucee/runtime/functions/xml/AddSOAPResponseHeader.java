@@ -19,23 +19,23 @@
 package lucee.runtime.functions.xml;
 
 import lucee.runtime.PageContext;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 
 public class AddSOAPResponseHeader {
-    public static boolean call(PageContext pc, String nameSpace, String name, Object value) throws PageException {
-	return call(pc, nameSpace, name, value, false);
-    }
+	public static boolean call(PageContext pc, String nameSpace, String name, Object value) throws PageException {
+		return call(pc, nameSpace, name, value, false);
+	}
 
-    public static boolean call(PageContext pc, String nameSpace, String name, Object value, boolean mustUnderstand) throws PageException {
-	try {
-	    ((ConfigImpl) ThreadLocalPageContext.getConfig(pc)).getWSHandler().addSOAPResponseHeader(nameSpace, name, value, mustUnderstand);
+	public static boolean call(PageContext pc, String nameSpace, String name, Object value, boolean mustUnderstand) throws PageException {
+		try {
+			((ConfigWebPro) ThreadLocalPageContext.getConfig(pc)).getWSHandler().addSOAPResponseHeader(nameSpace, name, value, mustUnderstand);
+		}
+		catch (Exception e) {
+			throw Caster.toPageException(e);
+		}
+		return true;
 	}
-	catch (Exception e) {
-	    throw Caster.toPageException(e);
-	}
-	return true;
-    }
 }

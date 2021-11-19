@@ -24,46 +24,47 @@ import lucee.commons.io.CharsetUtil;
 
 public final class CharSet implements Externalizable {
 
-    public static final CharSet UTF8 = new CharSet(CharsetUtil.UTF8);
-    public static final CharSet ISO88591 = new CharSet(CharsetUtil.ISO88591);
-    public static final CharSet UTF16BE = new CharSet(CharsetUtil.UTF16BE);
-    public static final CharSet UTF16LE = new CharSet(CharsetUtil.UTF16LE);
-    public static final CharSet UTF32BE = new CharSet(CharsetUtil.UTF32BE);
+	public static final CharSet UTF8 = new CharSet(CharsetUtil.UTF8);
+	public static final CharSet ISO88591 = new CharSet(CharsetUtil.ISO88591);
+	public static final CharSet UTF16BE = new CharSet(CharsetUtil.UTF16BE);
+	public static final CharSet UTF16LE = new CharSet(CharsetUtil.UTF16LE);
+	public static final CharSet UTF32BE = new CharSet(CharsetUtil.UTF32BE);
 
-    private transient java.nio.charset.Charset charset;
+	private transient java.nio.charset.Charset charset;
 
-    /**
-     * NEVER USE THIS CONSTRUCTOR DIRECTLY, THIS IS FOR Externalizable ONLY
-     */
-    public CharSet() {}
+	/**
+	 * NEVER USE THIS CONSTRUCTOR DIRECTLY, THIS IS FOR Externalizable ONLY
+	 */
+	public CharSet() {
+	}
 
-    public CharSet(String charsetName) {
-	this.charset = java.nio.charset.Charset.forName(charsetName);
-    }
+	public CharSet(String charsetName) {
+		this.charset = java.nio.charset.Charset.forName(charsetName);
+	}
 
-    public CharSet(java.nio.charset.Charset charset) {
-	this.charset = charset;
-    }
+	public CharSet(java.nio.charset.Charset charset) {
+		this.charset = charset;
+	}
 
-    @Override
-    public void writeExternal(ObjectOutput out) throws IOException {
-	out.writeUTF(charset.name());
-    }
+	@Override
+	public void writeExternal(ObjectOutput out) throws IOException {
+		out.writeUTF(charset.name());
+	}
 
-    @Override
-    public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
-	this.charset = java.nio.charset.Charset.forName(in.readUTF());
-    }
+	@Override
+	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+		this.charset = java.nio.charset.Charset.forName(in.readUTF());
+	}
 
-    public String toString() {
-	return charset.name();
-    }
+	public String toString() {
+		return charset.name();
+	}
 
-    public String name() {
-	return charset.name();
-    }
+	public String name() {
+		return charset.name();
+	}
 
-    public java.nio.charset.Charset toCharset() {
-	return charset;
-    }
+	public java.nio.charset.Charset toCharset() {
+		return charset;
+	}
 }

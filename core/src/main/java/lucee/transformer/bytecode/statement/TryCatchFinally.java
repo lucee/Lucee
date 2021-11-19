@@ -51,331 +51,332 @@ import lucee.transformer.expression.var.Variable;
  */
 public final class TryCatchFinally extends StatementBase implements Opcodes, HasBodies, FlowControlRetry {
 
-    // private static LitString ANY=LitString.toExprString("any", -1);
+	// private static LitString ANY=LitString.toExprString("any", -1);
 
-    private static final Method TO_PAGE_EXCEPTION = new Method("toPageException", Types.PAGE_EXCEPTION, new Type[] { Types.THROWABLE });
+	private static final Method TO_PAGE_EXCEPTION = new Method("toPageException", Types.PAGE_EXCEPTION, new Type[] { Types.THROWABLE });
 
-    // public boolean typeEqual(String type);
-    private static final Method TYPE_EQUAL = new Method("typeEqual", Types.BOOLEAN_VALUE, new Type[] { Types.STRING });
+	// public boolean typeEqual(String type);
+	private static final Method TYPE_EQUAL = new Method("typeEqual", Types.BOOLEAN_VALUE, new Type[] { Types.STRING });
 
-    // Struct getCatchBlock(PageContext pc);
-    private static final Method GET_CATCH_BLOCK = new Method("getCatchBlock", Types.STRUCT, new Type[] { Types.PAGE_CONTEXT });
+	// Struct getCatchBlock(PageContext pc);
+	private static final Method GET_CATCH_BLOCK = new Method("getCatchBlock", Types.STRUCT, new Type[] { Types.PAGE_CONTEXT });
 
-    // void isAbort(e)
-    public static final Method IS_ABORT = new Method("isAbort", Types.BOOLEAN_VALUE, new Type[] { Types.THROWABLE });
+	// void isAbort(e)
+	public static final Method IS_ABORT = new Method("isAbort", Types.BOOLEAN_VALUE, new Type[] { Types.THROWABLE });
 
-    private final static Method SET = new Method("set", Types.OBJECT, new Type[] { Types.PAGE_CONTEXT, Types.OBJECT });
+	private final static Method SET = new Method("set", Types.OBJECT, new Type[] { Types.PAGE_CONTEXT, Types.OBJECT });
 
-    private static final Method REMOVE_EL = new Method("removeEL", Types.OBJECT, new Type[] { Types.PAGE_CONTEXT });
+	private static final Method REMOVE_EL = new Method("removeEL", Types.OBJECT, new Type[] { Types.PAGE_CONTEXT });
 
-    private Body tryBody;
-    private Body finallyBody;
-    private List<Catch> catches = new ArrayList<Catch>();
-    private Position finallyLine;
+	private Body tryBody;
+	private Body finallyBody;
+	private List<Catch> catches = new ArrayList<Catch>();
+	private Position finallyLine;
 
-    private Label begin = new Label();
+	private Label begin = new Label();
 
-    private FlowControlFinal fcf;
+	private FlowControlFinal fcf;
 
-    /**
-     * Constructor of the class
-     * 
-     * @param body
-     * @param line
-     */
-    public TryCatchFinally(Factory factory, Body body, Position start, Position end) {
-	super(factory, start, end);
-	this.tryBody = body;
-	body.setParent(this);
-    }
-
-    /**
-     * sets finally body
-     * 
-     * @param body
-     */
-    public void setFinally(Body body, Position finallyLine) {
-	body.setParent(this);
-	this.finallyBody = body;
-	this.finallyLine = finallyLine;
-    }
-
-    /**
-     * data for a single catch block
-     */
-    private class Catch {
-
-	private ExprString type;
-	private Body body;
-	private VariableRef name;
-	private Position line;
-
-	public Catch(ExprString type, VariableRef name, Body body, Position line) {
-	    this.type = type;
-	    this.name = name;
-	    this.body = body;
-	    this.line = line;
+	/**
+	 * Constructor of the class
+	 * 
+	 * @param body
+	 * @param line
+	 */
+	public TryCatchFinally(Factory factory, Body body, Position start, Position end) {
+		super(factory, start, end);
+		this.tryBody = body;
+		body.setParent(this);
 	}
 
-    }
-
-    /**
-     *
-     * @see lucee.transformer.bytecode.statement.StatementBase#_writeOut(org.objectweb.asm.commons.GeneratorAdapter)
-     */
-    @Override
-    public void _writeOut(BytecodeContext bc) throws TransformerException {
-	final GeneratorAdapter adapter = bc.getAdapter();
-
-	adapter.visitLabel(begin);
-
-	// Reference ref=null;
-	final int lRef = adapter.newLocal(Types.REFERENCE);
-	adapter.visitInsn(Opcodes.ACONST_NULL);
-	adapter.storeLocal(lRef);
-
-	// has no try body, if there is no try body, no catches are executed, only finally
-	if (!tryBody.hasStatements()) {
-	    if (finallyBody != null) finallyBody.writeOut(bc);
-	    return;
+	/**
+	 * sets finally body
+	 * 
+	 * @param body
+	 */
+	public void setFinally(Body body, Position finallyLine) {
+		body.setParent(this);
+		this.finallyBody = body;
+		this.finallyLine = finallyLine;
 	}
 
-	// PageExceptionImpl old=pc.getCatch();
-	final int old = adapter.newLocal(Types.PAGE_EXCEPTION);
-	adapter.loadArg(0);
-	adapter.invokeVirtual(Types.PAGE_CONTEXT, TagTry.GET_CATCH);
-	adapter.storeLocal(old);
+	/**
+	 * data for a single catch block
+	 */
+	private class Catch {
 
-	TryCatchFinallyVisitor tcfv = new TryCatchFinallyVisitor(new OnFinally() {
+		private ExprString type;
+		private Body body;
+		private VariableRef name;
+		private Position line;
 
-	    @Override
-	    public void _writeOut(BytecodeContext bc) throws TransformerException {
+		public Catch(ExprString type, VariableRef name, Body body, Position line) {
+			this.type = type;
+			this.name = name;
+			this.body = body;
+			this.line = line;
+		}
 
+	}
+
+	/**
+	 *
+	 * @see lucee.transformer.bytecode.statement.StatementBase#_writeOut(org.objectweb.asm.commons.GeneratorAdapter)
+	 */
+	@Override
+	public void _writeOut(BytecodeContext bc) throws TransformerException {
+		final GeneratorAdapter adapter = bc.getAdapter();
+
+		adapter.visitLabel(begin);
+
+		// Reference ref=null;
+		final int lRef = adapter.newLocal(Types.REFERENCE);
+		adapter.visitInsn(Opcodes.ACONST_NULL);
+		adapter.storeLocal(lRef);
+
+		// has no try body, if there is no try body, no catches are executed, only finally
+		if (!tryBody.hasStatements()) {
+			if (finallyBody != null) finallyBody.writeOut(bc);
+			return;
+		}
+
+		// PageExceptionImpl old=pc.getCatch();
+		final int old = adapter.newLocal(Types.PAGE_EXCEPTION);
 		adapter.loadArg(0);
-		adapter.loadLocal(old);
-		adapter.invokeVirtual(Types.PAGE_CONTEXT, TagTry.SET_CATCH_PE);
+		adapter.invokeVirtual(Types.PAGE_CONTEXT, TagTry.GET_CATCH);
+		adapter.storeLocal(old);
 
-		_writeOutFinally(bc, lRef);
-	    }
-	}, getFlowControlFinal());
+		TryCatchFinallyVisitor tcfv = new TryCatchFinallyVisitor(new OnFinally() {
 
-	// try
-	tcfv.visitTryBegin(bc);
-	tryBody.writeOut(bc);
-	int lThrow = tcfv.visitTryEndCatchBeging(bc);
-	_writeOutCatch(bc, lRef, lThrow, old);
-	tcfv.visitCatchEnd(bc);
+			@Override
+			public void _writeOut(BytecodeContext bc) throws TransformerException {
 
-    }
+				adapter.loadArg(0);
+				adapter.loadLocal(old);
+				adapter.invokeVirtual(Types.PAGE_CONTEXT, TagTry.SET_CATCH_PE);
 
-    private void _writeOutFinally(BytecodeContext bc, int lRef) throws TransformerException {
-	// ref.remove(pc);
-	// Reference r=null;
-	GeneratorAdapter adapter = bc.getAdapter();
+				_writeOutFinally(bc, lRef);
+			}
+		}, getFlowControlFinal());
 
-	// if(fcf!=null &&
-	// fcf.getAfterFinalGOTOLabel()!=null)ASMUtil.visitLabel(adapter,fcf.getFinalEntryLabel());
-	ExpressionUtil.visitLine(bc, finallyLine);
+		// try
+		tcfv.visitTryBegin(bc);
+		tryBody.writeOut(bc);
+		int lThrow = tcfv.visitTryEndCatchBeging(bc);
+		_writeOutCatch(bc, lRef, lThrow, old);
+		tcfv.visitCatchEnd(bc);
 
-	// if (reference != null)
-	// reference.removeEL(pagecontext);
-	Label removeEnd = new Label();
-	adapter.loadLocal(lRef);
-	adapter.ifNull(removeEnd);
-	adapter.loadLocal(lRef);
-	adapter.loadArg(0);
-	adapter.invokeInterface(Types.REFERENCE, REMOVE_EL);
-	adapter.pop();
-	adapter.visitLabel(removeEnd);
+	}
 
-	if (finallyBody != null) finallyBody.writeOut(bc); // finally
-	/*
-	 * if(fcf!=null){ Label l = fcf.getAfterFinalGOTOLabel();
-	 * if(l!=null)adapter.visitJumpInsn(Opcodes.GOTO, l); }
-	 */
-    }
+	private void _writeOutFinally(BytecodeContext bc, int lRef) throws TransformerException {
+		// ref.remove(pc);
+		// Reference r=null;
+		GeneratorAdapter adapter = bc.getAdapter();
 
-    private void _writeOutCatch(BytecodeContext bc, int lRef, int lThrow, int old) throws TransformerException {
-	GeneratorAdapter adapter = bc.getAdapter();
-	int pe = adapter.newLocal(Types.PAGE_EXCEPTION);
+		// if(fcf!=null &&
+		// fcf.getAfterFinalGOTOLabel()!=null)ASMUtil.visitLabel(adapter,fcf.getFinalEntryLabel());
+		ExpressionUtil.visitLine(bc, finallyLine);
 
-	// instance of Abort
-	Label abortEnd = new Label();
-	adapter.loadLocal(lThrow);
-	adapter.invokeStatic(Types.ABORT, TryCatchFinally.IS_ABORT);
-	// adapter.instanceOf(Types.ABORT);
-	adapter.ifZCmp(Opcodes.IFEQ, abortEnd);
-	adapter.loadLocal(lThrow);
-	adapter.throwException();
-	adapter.visitLabel(abortEnd);
+		// if (reference != null)
+		// reference.removeEL(pagecontext);
+		Label removeEnd = new Label();
+		adapter.loadLocal(lRef);
+		adapter.ifNull(removeEnd);
+		adapter.loadLocal(lRef);
+		adapter.loadArg(0);
+		adapter.invokeInterface(Types.REFERENCE, REMOVE_EL);
+		adapter.pop();
+		adapter.visitLabel(removeEnd);
 
-	/*
-	 * // PageExceptionImpl old=pc.getCatch(); int old=adapter.newLocal(Types.PAGE_EXCEPTION);
-	 * adapter.loadArg(0); adapter.invokeVirtual(Types.PAGE_CONTEXT, TagTry.GET_CATCH);
-	 * adapter.storeLocal(old);
-	 */
+		if (finallyBody != null) finallyBody.writeOut(bc); // finally
+		/*
+		 * if(fcf!=null){ Label l = fcf.getAfterFinalGOTOLabel();
+		 * if(l!=null)adapter.visitJumpInsn(Opcodes.GOTO, l); }
+		 */
+	}
 
-	// cast to PageException Caster.toPagException(t);
-	adapter.loadLocal(lThrow);
-	adapter.invokeStatic(Types.CASTER, TO_PAGE_EXCEPTION);
+	private void _writeOutCatch(BytecodeContext bc, int lRef, int lThrow, int old) throws TransformerException {
+		GeneratorAdapter adapter = bc.getAdapter();
+		int pe = adapter.newLocal(Types.PAGE_EXCEPTION);
 
-	// PageException pe=...
-	adapter.storeLocal(pe);
+		// instance of Abort
+		Label abortEnd = new Label();
+		adapter.loadLocal(lThrow);
+		adapter.invokeStatic(Types.ABORT, TryCatchFinally.IS_ABORT);
+		// adapter.instanceOf(Types.ABORT);
+		adapter.ifZCmp(Opcodes.IFEQ, abortEnd);
+		adapter.loadLocal(lThrow);
+		adapter.throwException();
+		adapter.visitLabel(abortEnd);
 
-	// catch loop
-	Label endAllIf = new Label();
-	Iterator<Catch> it = catches.iterator();
-	Catch ctElse = null;
-	while (it.hasNext()) {
-	    Catch ct = it.next();
-	    // store any for else
-	    if (ct.type != null && ct.type instanceof LitString && ((LitString) ct.type).getString().equalsIgnoreCase("any")) {
-		ctElse = ct;
-		continue;
-	    }
+		/*
+		 * // PageExceptionImpl old=pc.getCatch(); int old=adapter.newLocal(Types.PAGE_EXCEPTION);
+		 * adapter.loadArg(0); adapter.invokeVirtual(Types.PAGE_CONTEXT, TagTry.GET_CATCH);
+		 * adapter.storeLocal(old);
+		 */
 
-	    ExpressionUtil.visitLine(bc, ct.line);
+		// cast to PageException Caster.toPagException(t);
+		adapter.loadLocal(lThrow);
+		adapter.invokeStatic(Types.CASTER, TO_PAGE_EXCEPTION);
 
-	    // pe.typeEqual(type)
-	    if (ct.type == null) {
-		getFactory().TRUE().writeOut(bc, Expression.MODE_VALUE);
-	    }
-	    else {
+		// PageException pe=...
+		adapter.storeLocal(pe);
+
+		// catch loop
+		Label endAllIf = new Label();
+		Iterator<Catch> it = catches.iterator();
+		Catch ctElse = null;
+		while (it.hasNext()) {
+			Catch ct = it.next();
+			// store any for else
+			if (ct.type != null && ct.type instanceof LitString && ((LitString) ct.type).getString().equalsIgnoreCase("any")) {
+				ctElse = ct;
+				continue;
+			}
+
+			ExpressionUtil.visitLine(bc, ct.line);
+
+			// pe.typeEqual(type)
+			if (ct.type == null) {
+				getFactory().TRUE().writeOut(bc, Expression.MODE_VALUE);
+			}
+			else {
+				adapter.loadLocal(pe);
+				ct.type.writeOut(bc, Expression.MODE_REF);
+				adapter.invokeVirtual(Types.PAGE_EXCEPTION, TYPE_EQUAL);
+			}
+
+			Label endIf = new Label();
+			adapter.ifZCmp(Opcodes.IFEQ, endIf);
+
+			catchBody(bc, adapter, ct, pe, lRef, true, true);
+
+			adapter.visitJumpInsn(Opcodes.GOTO, endAllIf);
+			adapter.visitLabel(endIf);
+
+		}
+
+		if (ctElse != null) {
+			catchBody(bc, adapter, ctElse, pe, lRef, true, true);
+		}
+		else {
+			// pc.setCatch(pe,true);
+			adapter.loadArg(0);
+			adapter.loadLocal(pe);
+			adapter.push(false);
+			adapter.push(false);
+			adapter.invokeVirtual(Types.PAGE_CONTEXT, TagTry.SET_CATCH3);
+
+			adapter.loadLocal(pe);
+			adapter.throwException();
+		}
+		adapter.visitLabel(endAllIf);
+
+		/*
+		 * adapter.loadArg(0); adapter.loadLocal(old); adapter.invokeVirtual(Types.PAGE_CONTEXT,
+		 * TagTry.SET_CATCH_PE);
+		 */
+
+	}
+
+	private static void catchBody(BytecodeContext bc, GeneratorAdapter adapter, Catch ct, int pe, int lRef, boolean caugth, boolean store) throws TransformerException {
+		// pc.setCatch(pe,true);
+		adapter.loadArg(0);
 		adapter.loadLocal(pe);
-		ct.type.writeOut(bc, Expression.MODE_REF);
-		adapter.invokeVirtual(Types.PAGE_EXCEPTION, TYPE_EQUAL);
-	    }
+		adapter.push(caugth);
+		adapter.push(store);
+		adapter.invokeVirtual(Types.PAGE_CONTEXT, TagTry.SET_CATCH3);
 
-	    Label endIf = new Label();
-	    adapter.ifZCmp(Opcodes.IFEQ, endIf);
+		// ref=
+		ct.name.writeOut(bc, Expression.MODE_REF);
+		adapter.storeLocal(lRef);
 
-	    catchBody(bc, adapter, ct, pe, lRef, true, true);
+		adapter.loadLocal(lRef);
+		adapter.loadArg(0);
+		adapter.loadLocal(pe);// (...,pe.getCatchBlock(pc))
+		adapter.loadArg(0);
+		adapter.invokeVirtual(Types.PAGE_EXCEPTION, GET_CATCH_BLOCK);
+		adapter.invokeInterface(Types.REFERENCE, SET);
+		adapter.pop();
 
-	    adapter.visitJumpInsn(Opcodes.GOTO, endAllIf);
-	    adapter.visitLabel(endIf);
-
+		ct.body.writeOut(bc);
 	}
 
-	if (ctElse != null) {
-	    catchBody(bc, adapter, ctElse, pe, lRef, true, true);
-	}
-	else {
-	    // pc.setCatch(pe,true);
-	    adapter.loadArg(0);
-	    adapter.loadLocal(pe);
-	    adapter.push(false);
-	    adapter.push(false);
-	    adapter.invokeVirtual(Types.PAGE_CONTEXT, TagTry.SET_CATCH3);
-
-	    adapter.loadLocal(pe);
-	    adapter.throwException();
-	}
-	adapter.visitLabel(endAllIf);
-
-	/*
-	 * adapter.loadArg(0); adapter.loadLocal(old); adapter.invokeVirtual(Types.PAGE_CONTEXT,
-	 * TagTry.SET_CATCH_PE);
+	/**
+	 * @param type
+	 * @param name
+	 * @param body
+	 * @param line
 	 */
-
-    }
-
-    private static void catchBody(BytecodeContext bc, GeneratorAdapter adapter, Catch ct, int pe, int lRef, boolean caugth, boolean store) throws TransformerException {
-	// pc.setCatch(pe,true);
-	adapter.loadArg(0);
-	adapter.loadLocal(pe);
-	adapter.push(caugth);
-	adapter.push(store);
-	adapter.invokeVirtual(Types.PAGE_CONTEXT, TagTry.SET_CATCH3);
-
-	// ref=
-	ct.name.writeOut(bc, Expression.MODE_REF);
-	adapter.storeLocal(lRef);
-
-	adapter.loadLocal(lRef);
-	adapter.loadArg(0);
-	adapter.loadLocal(pe);// (...,pe.getCatchBlock(pc))
-	adapter.loadArg(0);
-	adapter.invokeVirtual(Types.PAGE_EXCEPTION, GET_CATCH_BLOCK);
-	adapter.invokeInterface(Types.REFERENCE, SET);
-	adapter.pop();
-
-	ct.body.writeOut(bc);
-    }
-
-    /**
-     * @param type
-     * @param name
-     * @param body
-     * @param line
-     */
-    public void addCatch(ExprString type, VariableRef name, Body body, Position line) {
-	body.setParent(this);
-	catches.add(new Catch(type, name, body, line));
-    }
-
-    /**
-     * @param type
-     * @param name
-     * @param b
-     * @param line
-     * @throws TransformerException
-     */
-    public void addCatch(Expression type, Expression name, Body b, Position line) throws TransformerException {
-	// MUSTMUST
-	// type
-	if (type == null || type instanceof ExprString) {}
-	else if (type instanceof Variable) {
-	    type = VariableString.toExprString(type);
+	public void addCatch(ExprString type, VariableRef name, Body body, Position line) {
+		body.setParent(this);
+		catches.add(new Catch(type, name, body, line));
 	}
-	else throw new TransformerException("type from catch statement is invalid", type.getStart());
 
-	// name
-	if (name instanceof LitString) {
-	    Variable v = getFactory().createVariable(Scope.SCOPE_UNDEFINED, name.getStart(), name.getEnd());
-	    v.addMember(getFactory().createDataMember(getFactory().toExprString(name)));
-	    name = new VariableRef(v, true);
+	/**
+	 * @param type
+	 * @param name
+	 * @param b
+	 * @param line
+	 * @throws TransformerException
+	 */
+	public void addCatch(Expression type, Expression name, Body b, Position line) throws TransformerException {
+		// MUSTMUST
+		// type
+		if (type == null || type instanceof ExprString) {
+		}
+		else if (type instanceof Variable) {
+			type = VariableString.toExprString(type);
+		}
+		else throw new TransformerException("type from catch statement is invalid", type.getStart());
+
+		// name
+		if (name instanceof LitString) {
+			Variable v = getFactory().createVariable(Scope.SCOPE_UNDEFINED, name.getStart(), name.getEnd());
+			v.addMember(getFactory().createDataMember(getFactory().toExprString(name)));
+			name = new VariableRef(v, true);
+		}
+		else if (name instanceof Variable) name = new VariableRef((Variable) name, true);
+		else throw new TransformerException("name from catch statement is invalid", name.getStart());
+
+		addCatch((ExprString) type, (VariableRef) name, b, line);
 	}
-	else if (name instanceof Variable) name = new VariableRef((Variable) name, true);
-	else throw new TransformerException("name from catch statement is invalid", name.getStart());
 
-	addCatch((ExprString) type, (VariableRef) name, b, line);
-    }
+	/**
+	 * @see lucee.transformer.bytecode.statement.HasBodies#getBodies()
+	 */
+	@Override
+	public Body[] getBodies() {
 
-    /**
-     * @see lucee.transformer.bytecode.statement.HasBodies#getBodies()
-     */
-    @Override
-    public Body[] getBodies() {
+		int len = catches.size(), count = 0;
+		if (tryBody != null) len++;
+		if (finallyBody != null) len++;
+		Body[] bodies = new Body[len];
+		Catch c;
+		Iterator<Catch> it = catches.iterator();
+		while (it.hasNext()) {
+			c = it.next();
+			bodies[count++] = c.body;
+		}
+		if (tryBody != null) bodies[count++] = tryBody;
+		if (finallyBody != null) bodies[count++] = finallyBody;
 
-	int len = catches.size(), count = 0;
-	if (tryBody != null) len++;
-	if (finallyBody != null) len++;
-	Body[] bodies = new Body[len];
-	Catch c;
-	Iterator<Catch> it = catches.iterator();
-	while (it.hasNext()) {
-	    c = it.next();
-	    bodies[count++] = c.body;
+		return bodies;
 	}
-	if (tryBody != null) bodies[count++] = tryBody;
-	if (finallyBody != null) bodies[count++] = finallyBody;
 
-	return bodies;
-    }
+	@Override
+	public FlowControlFinal getFlowControlFinal() {
+		if (fcf == null) fcf = new FlowControlFinalImpl();
+		return fcf;
+	}
 
-    @Override
-    public FlowControlFinal getFlowControlFinal() {
-	if (fcf == null) fcf = new FlowControlFinalImpl();
-	return fcf;
-    }
+	@Override
+	public Label getRetryLabel() {
+		return begin;
+	}
 
-    @Override
-    public Label getRetryLabel() {
-	return begin;
-    }
-
-    @Override
-    public String getLabel() {
-	return null;
-    }
+	@Override
+	public String getLabel() {
+		return null;
+	}
 }

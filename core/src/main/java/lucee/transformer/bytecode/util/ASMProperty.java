@@ -24,18 +24,18 @@ import lucee.runtime.exp.PageException;
 
 public interface ASMProperty {
 
-    /**
-     * @return the name
-     */
-    public String getName();
+	/**
+	 * @return the name
+	 */
+	public String getName();
 
-    /**
-     * @return the type
-     */
-    public Type getASMType() throws PageException;
+	/**
+	 * @return the type
+	 */
+	public Type getASMType() throws PageException;
 
-    /**
-     * @return the clazz
-     */
-    public Class getClazz();
+	/**
+	 * @return the clazz
+	 */
+	public Class getClazz();
 }

@@ -10,15 +10,13 @@
 
 		variables.stText = application.stText[session.lucee_admin_lang];
 		ad=request.adminType;
-		hasNavigation=len(attributes.navigation) GT 0;
-		home=request.adminType&".cfm";
+		hasNavigation = len(attributes.navigation) GT 0;
+		home = request.adminType & ".cfm";
 		homeQS = URL.keyExists("action") ? "?action=" & url.action : "";
-
-		request.mode="full";
-
-		resNameAppendix = hash(server.lucee.version&server.lucee['release-date'],'quick');
+		request.mode = "full";
+		resNameAppendix = hash(server.lucee.version & server.lucee["release-date"], "quick");
 	</cfscript>
-<cfcontent reset="yes"><!DOCTYPE HTML>
+<cfcontent reset="yes"><!DOCTYPE html>
 <cfoutput>
 <html>
 <head>
@@ -46,7 +44,6 @@
 						</div>	<!--- #header !--->
 					</td>
 				</tr>
-
 				<tr>
 				<cfif hasNavigation>
 					<td id="navtd" class="lotd">
@@ -54,8 +51,8 @@
 							<a href="##" id="resizewin" class="sprite" title="resize window"></a>
 
 								<form method="get" action="#cgi.SCRIPT_NAME#">
-									<input type="hidden" name="action" value="admin.search" />
-									<input type="text" name="q" size="15"  class="navSearch" id="lucee-admin-search-input" placeholder="#stText.buttons.search.ucase()#" />
+									<input type="hidden" name="action" value="admin.search">
+									<input type="text" name="q" size="15"  class="navSearch" id="lucee-admin-search-input" placeholder="#stText.buttons.search.ucase()#">
 									<button type="submit" class="sprite  btn-search"><!--- <span>#stText.buttons.search# ---></span></button>
 									<!--- btn-mini title="#stText.buttons.search#" --->
 								</form>
@@ -72,8 +69,8 @@
 									<a class="sprite tooltipMe logout" href="#request.self#?action=logout" title="Logout"></a>
 									</div>
 									<!--- Favorites --->
-									<cfparam name="url.action" default="" />
-									<cfset pageIsFavorite = application.adminfunctions.isFavorite(url.action) />
+									<cfparam name="url.action" default="">
+									<cfset pageIsFavorite = application.adminfunctions.isFavorite(url.action)>
 									<div id="favorites">
 
 
@@ -88,7 +85,7 @@
 											<cfif attributes.favorites neq "">
 												#attributes.favorites#
 											<cfelse>
-												<li class="favtext"><i>No items yet.<br />Go to a page you use often, and click on "Favorites" to add it here.</i></li>
+												<li class="favtext"><i>No items yet.<br>Go to a page you use often, and click on "Favorites" to add it here.</i></li>
 											</cfif>
 										</ul>
 									</div>
@@ -106,7 +103,7 @@
 					<td class="lotd" id="copyrighttd" colspan="#hasNavigation?2:1#">
 						<div id="copyright" class="copy">
 							&copy; #year(Now())#
-							<a href="http://www.lucee.org" target="_blank">Lucee Association Switzerland</a>.
+							<a href="https://www.lucee.org" target="_blank">Lucee Association Switzerland</a>.
 							All Rights Reserved
 						</div>
 					</td>
@@ -146,6 +143,8 @@
 </cfoutput>
 	<cfset thistag.generatedcontent="">
 </cfif>
-
-<cfparam name="url.debug" default="no">
-<cfsetting showdebugoutput="#url.debug#">
+<cfparam name="session.debugEnabled" default="false">
+<cfif structKeyExists (url, "debug")>
+	<cfset session.debugEnabled = url.debug>
+</cfif>
+<cfsetting showdebugoutput="#session.debugEnabled#">

@@ -20,106 +20,106 @@ package lucee.runtime.dump;
 
 public class DumpRow {
 
-    private final int highlightType;
-    private final DumpData[] items;
+	private final int highlightType;
+	private final DumpData[] items;
 
-    /**
-     * constructor of the class
-     * 
-     * @param highlightType binary Values define which columns are highlighted
-     * @param items items as DumpData Array
-     */
-    public DumpRow(final int highlightType, final DumpData[] items) {
-	this.highlightType = highlightType;
-	this.items = items;
-    }
+	/**
+	 * constructor of the class
+	 * 
+	 * @param highlightType binary Values define which columns are highlighted
+	 * @param items items as DumpData Array
+	 */
+	public DumpRow(final int highlightType, final DumpData[] items) {
+		this.highlightType = highlightType;
+		this.items = items;
+	}
 
-    /**
-     * Constructor of the class
-     * 
-     * @param highlightType binary Values define which columns are highlighted
-     * @param item1 item for the array
-     */
-    public DumpRow(final int highlightType, final DumpData item1) {
-	this(highlightType, new DumpData[] { item1 });
-    }
+	/**
+	 * Constructor of the class
+	 * 
+	 * @param highlightType binary Values define which columns are highlighted
+	 * @param item1 item for the array
+	 */
+	public DumpRow(final int highlightType, final DumpData item1) {
+		this(highlightType, new DumpData[] { item1 });
+	}
 
-    /**
-     * Constructor of the class
-     * 
-     * @param highlightType binary Values define which columns are highlighted
-     * @param item1 item for the array
-     * @param item2 item for the array
-     */
-    public DumpRow(final int highlightType, final DumpData item1, final DumpData item2) {
-	this(highlightType, new DumpData[] { item1, item2 });
-    }
+	/**
+	 * Constructor of the class
+	 * 
+	 * @param highlightType binary Values define which columns are highlighted
+	 * @param item1 item for the array
+	 * @param item2 item for the array
+	 */
+	public DumpRow(final int highlightType, final DumpData item1, final DumpData item2) {
+		this(highlightType, new DumpData[] { item1, item2 });
+	}
 
-    /**
-     * Constructor of the class
-     * 
-     * @param highlightType binary Values define which columns are highlighted
-     * @param item1 item for the array
-     * @param item2 item for the array
-     * @param item3 item for the array
-     */
-    public DumpRow(final int highlightType, final DumpData item1, final DumpData item2, final DumpData item3) {
-	this(highlightType, new DumpData[] { item1, item2, item3 });
-    }
+	/**
+	 * Constructor of the class
+	 * 
+	 * @param highlightType binary Values define which columns are highlighted
+	 * @param item1 item for the array
+	 * @param item2 item for the array
+	 * @param item3 item for the array
+	 */
+	public DumpRow(final int highlightType, final DumpData item1, final DumpData item2, final DumpData item3) {
+		this(highlightType, new DumpData[] { item1, item2, item3 });
+	}
 
-    /**
-     * Constructor of the class
-     * 
-     * @param highlightType binary Values define which columns are highlighted
-     * @param item1 item for the array
-     * @param item2 item for the array
-     * @param item3 item for the array
-     * @param item4 item for the array
-     */
-    public DumpRow(final int highlightType, final DumpData item1, final DumpData item2, final DumpData item3, final DumpData item4) {
-	this(highlightType, new DumpData[] { item1, item2, item3, item4 });
-    }
+	/**
+	 * Constructor of the class
+	 * 
+	 * @param highlightType binary Values define which columns are highlighted
+	 * @param item1 item for the array
+	 * @param item2 item for the array
+	 * @param item3 item for the array
+	 * @param item4 item for the array
+	 */
+	public DumpRow(final int highlightType, final DumpData item1, final DumpData item2, final DumpData item3, final DumpData item4) {
+		this(highlightType, new DumpData[] { item1, item2, item3, item4 });
+	}
 
-    /**
-     * Constructor of the class
-     * 
-     * @param highlightType binary Values define which columns are highlighted
-     * @param item1 item for the array
-     * @param item2 item for the array
-     * @param item3 item for the array
-     * @param item4 item for the array
-     * @param item5 item for the array
-     */
-    public DumpRow(final int highlightType, final DumpData item1, final DumpData item2, final DumpData item3, final DumpData item4, final DumpData item5) {
-	this(highlightType, new DumpData[] { item1, item2, item3, item4, item5 });
-    }
+	/**
+	 * Constructor of the class
+	 * 
+	 * @param highlightType binary Values define which columns are highlighted
+	 * @param item1 item for the array
+	 * @param item2 item for the array
+	 * @param item3 item for the array
+	 * @param item4 item for the array
+	 * @param item5 item for the array
+	 */
+	public DumpRow(final int highlightType, final DumpData item1, final DumpData item2, final DumpData item3, final DumpData item4, final DumpData item5) {
+		this(highlightType, new DumpData[] { item1, item2, item3, item4, item5 });
+	}
 
-    /**
-     * Constructor of the class
-     * 
-     * @param highlightType binary Values define which columns are highlighted
-     * @param item1 item for the array
-     * @param item2 item for the array
-     * @param item3 item for the array
-     * @param item4 item for the array
-     * @param item5 item for the array
-     * @param item6 item for the array
-     */
-    public DumpRow(final int highlightType, final DumpData item1, final DumpData item2, final DumpData item3, final DumpData item4, final DumpData item5, final DumpData item6) {
-	this(highlightType, new DumpData[] { item1, item2, item3, item4, item5, item6 });
-    }
+	/**
+	 * Constructor of the class
+	 * 
+	 * @param highlightType binary Values define which columns are highlighted
+	 * @param item1 item for the array
+	 * @param item2 item for the array
+	 * @param item3 item for the array
+	 * @param item4 item for the array
+	 * @param item5 item for the array
+	 * @param item6 item for the array
+	 */
+	public DumpRow(final int highlightType, final DumpData item1, final DumpData item2, final DumpData item3, final DumpData item4, final DumpData item5, final DumpData item6) {
+		this(highlightType, new DumpData[] { item1, item2, item3, item4, item5, item6 });
+	}
 
-    /**
-     * @return the highlightType
-     */
-    public int getHighlightType() {
-	return highlightType;
-    }
+	/**
+	 * @return the highlightType
+	 */
+	public int getHighlightType() {
+		return highlightType;
+	}
 
-    /**
-     * @return the items
-     */
-    public DumpData[] getItems() {
-	return items;
-    }
+	/**
+	 * @return the items
+	 */
+	public DumpData[] getItems() {
+		return items;
+	}
 }

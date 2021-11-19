@@ -24,12 +24,12 @@ import lucee.transformer.expression.ExprString;
  */
 public interface LitString extends Literal, ExprString {
 
-    public LitString duplicate();
+	public LitString duplicate();
 
-    public void upperCase();
+	public void upperCase();
 
-    public void fromBracket(boolean fromBracket);
+	public void fromBracket(boolean fromBracket);
 
-    public boolean fromBracket();
+	public boolean fromBracket();
 
 }

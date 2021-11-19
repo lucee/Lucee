@@ -23,29 +23,29 @@ package lucee.runtime.type.scope;
  */
 public interface Caller extends Scope {
 
-    /**
-     * sets the scopes
-     * 
-     * @param variablesScope
-     * @param localScope
-     * @param argumentsScope
-     * @param checkArgs
-     */
-    public abstract void setScope(Variables variablesScope, Local localScope, Argument argumentsScope, boolean checkArgs);
+	/**
+	 * sets the scopes
+	 * 
+	 * @param variablesScope
+	 * @param localScope
+	 * @param argumentsScope
+	 * @param checkArgs
+	 */
+	public abstract void setScope(Variables variablesScope, Local localScope, Argument argumentsScope, boolean checkArgs);
 
-    /**
-     * @return the variablesScope
-     */
-    public Variables getVariablesScope();
+	/**
+	 * @return the variablesScope
+	 */
+	public Variables getVariablesScope();
 
-    /**
-     * @return the localScope
-     */
-    public Local getLocalScope();
+	/**
+	 * @return the localScope
+	 */
+	public Local getLocalScope();
 
-    /**
-     * @return the argumentsScope
-     */
-    public Argument getArgumentsScope();
+	/**
+	 * @return the argumentsScope
+	 */
+	public Argument getArgumentsScope();
 
 }

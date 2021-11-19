@@ -25,68 +25,68 @@ import java.util.List;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.lang.SerializableObject;
 import lucee.runtime.PageContext;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
 
 public class ThreadQueueImpl implements ThreadQueue {
-    private final SerializableObject token = new SerializableObject();
+	private final SerializableObject token = new SerializableObject();
 
-    public final List<PageContext> list = new ArrayList<PageContext>();
-    private int waiting = 0;
+	public final List<PageContext> list = new ArrayList<PageContext>();
+	private int waiting = 0;
 
-    @Override
-    public void enter(PageContext pc) throws IOException {
-	try {
-	    synchronized (token) {
-		waiting++;
-	    }
-	    _enter(pc);
-	}
-	finally {
-	    synchronized (token) {
-		waiting--;
-	    }
-	}
-    }
-
-    private void _enter(PageContext pc) throws IOException {
-	ConfigImpl ci = (ConfigImpl) pc.getConfig();
-	// print.e("enter("+Thread.currentThread().getName()+"):"+list.size());
-	long start = System.currentTimeMillis();
-	long timeout = ci.getQueueTimeout();
-	if (timeout <= 0) timeout = pc.getRequestTimeout();
-	while (true) {
-	    synchronized (token) {
-		if (list.size() < ci.getQueueMax()) {
-		    // print.e("- ok("+Thread.currentThread().getName()+"):"+list.size());
-		    list.add(pc);
-		    return;
+	@Override
+	public void enter(PageContext pc) throws IOException {
+		try {
+			synchronized (token) {
+				waiting++;
+			}
+			_enter(pc);
 		}
-	    }
-	    if (timeout > 0) SystemUtil.wait(token, timeout);
-	    else SystemUtil.wait(token);
-
-	    if (timeout > 0 && (System.currentTimeMillis() - start) >= timeout) throw new IOException("Concurrent request timeout (" + (System.currentTimeMillis() - start) + ") ["
-		    + timeout + " ms] has occurred, server is too busy handling other requests. This timeout setting can be changed in the server administrator.");
+		finally {
+			synchronized (token) {
+				waiting--;
+			}
+		}
 	}
-    }
 
-    @Override
-    public void exit(PageContext pc) {
-	// print.e("exist("+Thread.currentThread().getName()+")");
-	synchronized (token) {
-	    list.remove(pc);
-	    token.notify();
+	private void _enter(PageContext pc) throws IOException {
+		ConfigPro ci = (ConfigPro) pc.getConfig();
+		// print.e("enter("+Thread.currentThread().getName()+"):"+list.size());
+		long start = System.currentTimeMillis();
+		long timeout = ci.getQueueTimeout();
+		if (timeout <= 0) timeout = pc.getRequestTimeout();
+		while (true) {
+			synchronized (token) {
+				if (list.size() < ci.getQueueMax()) {
+					// print.e("- ok("+Thread.currentThread().getName()+"):"+list.size());
+					list.add(pc);
+					return;
+				}
+			}
+			if (timeout > 0) SystemUtil.wait(token, timeout);
+			else SystemUtil.wait(token);
+
+			if (timeout > 0 && (System.currentTimeMillis() - start) >= timeout) throw new IOException("Concurrent request timeout (" + (System.currentTimeMillis() - start) + ") ["
+					+ timeout + " ms] has occurred, server is too busy handling other requests. This timeout setting can be changed in the server administrator.");
+		}
 	}
-    }
 
-    @Override
-    public int size() {
-	return waiting;
-    }
+	@Override
+	public void exit(PageContext pc) {
+		// print.e("exist("+Thread.currentThread().getName()+")");
+		synchronized (token) {
+			list.remove(pc);
+			token.notify();
+		}
+	}
 
-    @Override
-    public void clear() {
-	list.clear();
-	token.notifyAll();
-    }
+	@Override
+	public int size() {
+		return waiting;
+	}
+
+	@Override
+	public void clear() {
+		list.clear();
+		token.notifyAll();
+	}
 }

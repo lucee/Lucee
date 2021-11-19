@@ -20,7 +20,7 @@ package lucee.commons.net.http;
 
 public interface Header {
 
-    public String getName();
+	public String getName();
 
-    public String getValue();
+	public String getValue();
 }

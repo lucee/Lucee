@@ -18,9 +18,7 @@
  **/
 package lucee.runtime.exp;
 
-import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageSource;
-import lucee.runtime.op.Caster;
 import lucee.transformer.util.PageSourceCode;
 import lucee.transformer.util.SourceCode;
 
@@ -29,96 +27,103 @@ import lucee.transformer.util.SourceCode;
  */
 public class TemplateException extends PageExceptionImpl {
 
-    /**
-     * @return the line
-     */
-    public int getLine() {
-	return line;
-    }
+	private int line;
+	private PageSource pageSource;
 
-    /**
-     * @return the pageSource
-     */
-    public PageSource getPageSource() {
-	return pageSource;
-    }
+	/**
+	 * constructor of the template exception
+	 * 
+	 * @param message Exception Message
+	 */
+	public TemplateException(String message) {
+		super(message, "template");
+	}
 
-    private int line;
-    private PageSource pageSource;
+	/**
+	 * constructor of the template exception
+	 * 
+	 * @param message Exception Message
+	 * @param detail Detailed Exception Message
+	 */
+	public TemplateException(String message, String detail) {
+		super(message, "template");
+		setDetail(detail);
+	}
 
-    /**
-     * constructor of the template exception
-     * 
-     * @param message Exception Message
-     */
-    public TemplateException(String message) {
-	super(message, "template");
-    }
+	/**
+	 * Constructor of the class
+	 * 
+	 * @param srcCode
+	 * @param message
+	 */
+	public TemplateException(PageSource ps, int line, int column, String message) {
+		super(message, "template");
+		// print.err(line+"+"+column);
+		addContext(ps, line, column, null);
+		this.line = line;
+		this.pageSource = ps;
+	}
 
-    /**
-     * constructor of the template exception
-     * 
-     * @param message Exception Message
-     * @param detail Detailed Exception Message
-     */
-    public TemplateException(String message, String detail) {
-	super(message, "template");
-	setDetail(detail);
-    }
+	public TemplateException(PageSource ps, int line, int column, Throwable t) {
+		super(t, "template");
+		// print.err(line+"+"+column);
+		addContext(ps, line, column, null);
+		this.line = line;
+		this.pageSource = ps;
+	}
 
-    /**
-     * Constructor of the class
-     * 
-     * @param srcCode
-     * @param message
-     */
-    public TemplateException(PageSource ps, int line, int column, String message) {
-	super(message, "template");
-	// print.err(line+"+"+column);
-	addContext(ps, line, column, null);
-	this.line = line;
-	this.pageSource = ps;
-    }
+	/**
+	 * Constructor of the class
+	 * 
+	 * @param cfml
+	 * @param message
+	 */
+	public TemplateException(SourceCode sc, String message) {
+		this(getPageSource(sc), sc.getLine(), sc.getColumn(), message);
+	}
 
-    /**
-     * Constructor of the class
-     * 
-     * @param cfml
-     * @param message
-     */
-    public TemplateException(SourceCode sc, String message) {
-	this(getPageSource(sc), sc.getLine(), sc.getColumn(), message);
-    }
+	public TemplateException(SourceCode sc, int line, int column, String message) {
+		this(getPageSource(sc), line, column, message);
+	}
 
-    public TemplateException(SourceCode sc, int line, int column, String message) {
-	this(getPageSource(sc), line, column, message);
-    }
+	/**
+	 * Constructor of the class
+	 * 
+	 * @param cfml
+	 * @param message
+	 * @param detail
+	 */
+	public TemplateException(SourceCode sc, String message, String detail) {
+		this(getPageSource(sc), sc.getLine(), sc.getColumn(), message);
+		setDetail(detail);
+	}
 
-    /**
-     * Constructor of the class
-     * 
-     * @param cfml
-     * @param message
-     * @param detail
-     */
-    public TemplateException(SourceCode sc, String message, String detail) {
-	this(getPageSource(sc), sc.getLine(), sc.getColumn(), message);
-	setDetail(detail);
-    }
+	/**
+	 * Constructor of the class
+	 * 
+	 * @param cfml
+	 * @param e
+	 */
+	public TemplateException(SourceCode sc, Throwable t) {
+		this(getPageSource(sc), sc.getLine(), sc.getColumn(), t);
+	}
 
-    private static PageSource getPageSource(SourceCode sc) {
-	if (sc instanceof PageSourceCode) return ((PageSourceCode) sc).getPageSource();
-	return null;
-    }
+	/**
+	 * @return the line
+	 */
+	public int getLine() {
+		return line;
+	}
 
-    /**
-     * Constructor of the class
-     * 
-     * @param cfml
-     * @param e
-     */
-    public TemplateException(SourceCode cfml, Throwable e) {
-	this(cfml, StringUtil.isEmpty(e.getMessage()) ? (Caster.toClassName(e)) : e.getMessage());
-	setStackTrace(e.getStackTrace());
-    }
+	/**
+	 * @return the pageSource
+	 */
+	public PageSource getPageSource() {
+		return pageSource;
+	}
+
+	private static PageSource getPageSource(SourceCode sc) {
+		if (sc instanceof PageSourceCode) return ((PageSourceCode) sc).getPageSource();
+		return null;
+	}
 }

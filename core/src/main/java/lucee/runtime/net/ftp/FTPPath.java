@@ -36,85 +36,85 @@ import lucee.runtime.type.util.ListUtil;
  */
 public final class FTPPath implements Dumpable {
 
-    private String path;
-    private String name;
-    // private Array arrPath;
+	private String path;
+	private String name;
+	// private Array arrPath;
 
-    /**
-     * @param current
-     * @param relpath
-     * @throws PageException
-     * @throws IOException
-     */
-    public FTPPath(AFTPClient client, String relpath) throws PageException, IOException {
-	relpath = relpath.replace('\\', '/');
-	Array relpathArr = ListUtil.listToArrayTrim(relpath, '/');
+	/**
+	 * @param current
+	 * @param relpath
+	 * @throws PageException
+	 * @throws IOException
+	 */
+	public FTPPath(AFTPClient client, String relpath) throws PageException, IOException {
+		relpath = relpath.replace('\\', '/');
+		Array relpathArr = ListUtil.listToArrayTrim(relpath, '/');
 
-	// relpath is absolute
-	if (relpath.startsWith("/")) {
-	    init(relpathArr);
-	    return;
+		// relpath is absolute
+		if (relpath.startsWith("/")) {
+			init(relpathArr);
+			return;
+		}
+		String current;
+		if (client == null) current = "";
+		else current = client.printWorkingDirectory().replace('\\', '/');
+		Array parentArr = ListUtil.listToArrayTrim(current, '/');
+
+		// Single Dot .
+		if (relpathArr.size() > 0 && relpathArr.get(1, "").equals(".")) {
+			relpathArr.removeEL(1);
+		}
+
+		// Double Dot ..
+		while (relpathArr.size() > 0 && relpathArr.get(1, "").equals("..")) {
+			relpathArr.removeEL(1);
+			if (parentArr.size() > 0) {
+				parentArr.removeEL(parentArr.size());
+			}
+			else {
+				parentArr.prepend("..");
+			}
+		}
+		ArrayMerge.append(parentArr, relpathArr);
+		init(parentArr);
 	}
-	String current;
-	if (client == null) current = "";
-	else current = client.printWorkingDirectory().replace('\\', '/');
-	Array parentArr = ListUtil.listToArrayTrim(current, '/');
 
-	// Single Dot .
-	if (relpathArr.size() > 0 && relpathArr.get(1, "").equals(".")) {
-	    relpathArr.removeEL(1);
+	private void init(Array arr) throws PageException {
+		if (arr.size() > 0) {
+			this.name = (String) arr.get(arr.size(), "");
+			arr.removeEL(arr.size());
+			this.path = '/' + ListUtil.arrayToList(arr, "/") + '/';
+		}
+		else {
+			this.path = "/";
+			this.name = "";
+		}
+		// this.arrPath=arr;
 	}
 
-	// Double Dot ..
-	while (relpathArr.size() > 0 && relpathArr.get(1, "").equals("..")) {
-	    relpathArr.removeEL(1);
-	    if (parentArr.size() > 0) {
-		parentArr.removeEL(parentArr.size());
-	    }
-	    else {
-		parentArr.prepend("..");
-	    }
+	/**
+	 * @return Returns the name.
+	 */
+	public String getName() {
+		return name;
 	}
-	ArrayMerge.append(parentArr, relpathArr);
-	init(parentArr);
-    }
 
-    private void init(Array arr) throws PageException {
-	if (arr.size() > 0) {
-	    this.name = (String) arr.get(arr.size(), "");
-	    arr.removeEL(arr.size());
-	    this.path = '/' + ListUtil.arrayToList(arr, "/") + '/';
+	/**
+	 * @return Returns the path.
+	 */
+	public String getPath() {
+		return path;
 	}
-	else {
-	    this.path = "/";
-	    this.name = "";
+
+	@Override
+	public String toString() {
+		return path + name;// +" - "+"path("+getPath()+");"+"name("+getName()+");"+"parent("+getParentPath()+");";
 	}
-	// this.arrPath=arr;
-    }
 
-    /**
-     * @return Returns the name.
-     */
-    public String getName() {
-	return name;
-    }
-
-    /**
-     * @return Returns the path.
-     */
-    public String getPath() {
-	return path;
-    }
-
-    @Override
-    public String toString() {
-	return path + name;// +" - "+"path("+getPath()+");"+"name("+getName()+");"+"parent("+getParentPath()+");";
-    }
-
-    @Override
-    public DumpData toDumpData(PageContext pageContext, int maxlevel, DumpProperties dp) {
-	DumpTable table = new DumpTable("string", "#ff6600", "#ffcc99", "#000000");
-	table.appendRow(1, new SimpleDumpData("FTPPath"), new SimpleDumpData(toString()));
-	return table;
-    }
+	@Override
+	public DumpData toDumpData(PageContext pageContext, int maxlevel, DumpProperties dp) {
+		DumpTable table = new DumpTable("string", "#ff6600", "#ffcc99", "#000000");
+		table.appendRow(1, new SimpleDumpData("FTPPath"), new SimpleDumpData(toString()));
+		return table;
+	}
 }

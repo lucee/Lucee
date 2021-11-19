@@ -23,11 +23,11 @@ import java.util.Map;
 import lucee.runtime.PageContext;
 
 public interface ExecutionLog {
-    public void init(PageContext pc, Map<String, String> arguments);
+	public void init(PageContext pc, Map<String, String> arguments);
 
-    public void release();
+	public void release();
 
-    public void start(int pos, String id);
+	public void start(int pos, String id);
 
-    public void end(int pos, String id);
+	public void end(int pos, String id);
 }

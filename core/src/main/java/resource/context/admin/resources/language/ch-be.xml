@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
 <language key="ch-be" label="Bärndütsch">
-	<data key="services.update.locdesc">Hie chasch d'Url definiere wo mä äs Lucee Update cha bezieh, normalerwis gset das öpe su us &apos;http://www.lucee.ch&apos;</data>
+	<data key="services.update.locdesc">Hie chasch d'Url definiere wo mä äs Lucee Update cha bezieh, normalerwis gset das öpe su us &apos;https://www.lucee.org&apos;</data>
 	<data key="services.update.type_manually">Manueu</data>
 	<data key="services.update.location">URL</data>
 	<data key="services.update.settitle">Istellige</data>
@@ -253,7 +253,7 @@
 	<data key="remote.adminpassworddesc.server">Passwort für den Zugriff auf den Remote Lucee Server Administrator</data>
 	<data key="remote.urlpath">Pfad</data>
 	<data key="remote.urlmissing">Die Remote Client URL fehlt</data>
-	<data key="remote.urlserverdesc">Remote Client Server (Beispiel: http://lucee.ch)</data>
+	<data key="remote.urlserverdesc">Remote Client Server (Beispiel: https://lucee.org)</data>
 	<data key="remote.proxyport">Port</data>
 	<data key="remote.labelmissing">Die Bezeichnung für den Remote Client fehlt</data>
 	<data key="remote.proxypassword">Passwort</data>
@@ -423,7 +423,7 @@
     sucht Lucee nach einer entsprechenden CFC-Funktion (Methode) mit dem Namen &quot;getPropertyName&quot;. Für Schreiboperationen auf eine solche Eigenschaft wird nach einer Methode &quot;setPropertyName&quot; in der Komponente gesucht.</data>
 	<data key="components.physical">Ressource</data>
 	<data key="components.trusted">Trusted</data>
-	<data key="components.componentdumptemplatedescription">Wenn Sie ein Komponente direkt über den Browser aufrufen, wird dieses Template für die Darstellung verwendet. (Beispiel: http://www.lucee.ch/ch/lucee/common/Example.cfc)</data>
+	<data key="components.componentdumptemplatedescription">Wenn Sie ein Komponente direkt über den Browser aufrufen, wird dieses Template für die Darstellung verwendet. (Beispiel: https://www.lucee.org/ch/lucee/common/Example.cfc)</data>
 	<data key="components.basecomponentmissing">Bitte geben Sie einen Wert für die Basis/Root Komponente ein.</data>
 	<data key="components.component">Komponente</data>
 	<data key="components.componentmappingsearchdesc">Die Komponente wird auch innerhalb der Mappings gesucht, damit wird auch das implizite Mapping &quot;/&quot; einbezogen, welches aufs webroot zeigt</data>
@@ -621,6 +621,7 @@ When checked, any requested files will be inspected only once for potential upda
 	<data key="buttons.filter">fiutärä</data>
 	<data key="buttons.agree">iverstandä</data>
 	<data key="buttons.submit">sändä</data>
+	<data key="buttons.reload">nöi lade</data>
 	<data key="buttons.ok">OK</data>
 	<data key="buttons.purge">lärä</data>
 	<data key="buttons.install">installirä</data>

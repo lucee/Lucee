@@ -24,7 +24,7 @@ import java.util.TimeZone;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
 
 /**
  * class to handle thread local PageContext, do use pagecontext in classes that have no method
@@ -32,140 +32,145 @@ import lucee.runtime.config.ConfigImpl;
  */
 public final class ThreadLocalPageContext {
 
-    private static final Locale DEFAULT_LOCALE = Locale.getDefault();
-    private static final TimeZone DEFAULT_TIMEZONE = TimeZone.getDefault();
-    private static ThreadLocal<PageContext> pcThreadLocal = new ThreadLocal<PageContext>();
-    public final static CallOnStart callOnStart = new CallOnStart();
+	private static final Locale DEFAULT_LOCALE = Locale.getDefault();
+	private static final TimeZone DEFAULT_TIMEZONE = TimeZone.getDefault();
+	private static ThreadLocal<PageContext> pcThreadLocal = new ThreadLocal<PageContext>();
+	public final static CallOnStart callOnStart = new CallOnStart();
 
-    /**
-     * register a pagecontext for he current thread
-     * 
-     * @param pc PageContext to register
-     */
-    public static void register(PageContext pc) {// print.ds(Thread.currentThread().getName());
-	if (pc == null) return; // TODO happens with Gateway, but should not!
-	// TODO should i set the old one by "release"?
-	Thread t = Thread.currentThread();
-	t.setContextClassLoader(((ConfigImpl) pc.getConfig()).getClassLoaderEnv());
-	((PageContextImpl) pc).setThread(t);
-	pcThreadLocal.set(pc);
-    }
-
-    /**
-     * returns pagecontext registered for the current thread
-     * 
-     * @return pagecontext for the current thread or null if no pagecontext is regisred for the current
-     *         thread
-     */
-    public static PageContext get() {// print.dumpStack();
-	return pcThreadLocal.get();
-    }
-
-    public static Config getConfig() {
-	PageContext pc = get();
-	if (pc != null) {
-	    return pc.getConfig();
-	}
-	return ThreadLocalConfig.get();
-
-    }
-
-    /**
-     * release the pagecontext for the current thread
-     */
-    public static void release() {// print.ds(Thread.currentThread().getName());
-	pcThreadLocal.set(null);
-    }
-
-    public static Config getConfig(PageContext pc) {
-	if (pc == null) return getConfig();
-	return pc.getConfig();
-    }
-
-    public static Config getConfig(Config config) {
-	if (config == null) return getConfig();
-	return config;
-    }
-
-    public static TimeZone getTimeZone(PageContext pc) {
-	// pc
-	pc = get(pc);
-	if (pc != null) {
-	    if (pc.getTimeZone() != null) return pc.getTimeZone();
-	    return DEFAULT_TIMEZONE;
+	/**
+	 * register a pagecontext for he current thread
+	 * 
+	 * @param pc PageContext to register
+	 */
+	public static void register(PageContext pc) {// print.ds(Thread.currentThread().getName());
+		if (pc == null) return; // TODO happens with Gateway, but should not!
+		// TODO should i set the old one by "release"?
+		Thread t = Thread.currentThread();
+		t.setContextClassLoader(((ConfigPro) pc.getConfig()).getClassLoaderEnv());
+		((PageContextImpl) pc).setThread(t);
+		pcThreadLocal.set(pc);
 	}
 
-	// config
-	Config config = getConfig((Config) null);
-	if (config != null && config.getTimeZone() != null) {
-	    return config.getTimeZone();
-	}
-	return DEFAULT_TIMEZONE;
-    }
-
-    public static Locale getLocale() {
-	return getLocale((PageContext) null);
-    }
-
-    public static Locale getLocale(Locale l) {
-	if (l != null) return l;
-	return getLocale((PageContext) null);
-    }
-
-    public static Locale getLocale(PageContext pc) {
-	// pc
-	pc = get(pc);
-	if (pc != null) {
-	    if (pc.getLocale() != null) return pc.getLocale();
-	    return DEFAULT_LOCALE;
+	/**
+	 * returns pagecontext registered for the current thread
+	 * 
+	 * @return pagecontext for the current thread or null if no pagecontext is regisred for the current
+	 *         thread
+	 */
+	public static PageContext get() {// print.dumpStack();
+		return pcThreadLocal.get();
 	}
 
-	// config
-	Config config = getConfig((Config) null);
-	if (config != null && config.getLocale() != null) {
-	    return config.getLocale();
-	}
-	return DEFAULT_LOCALE;
-    }
+	public static Config getConfig() {
+		PageContext pc = get();
+		if (pc != null) {
+			return pc.getConfig();
+		}
+		return ThreadLocalConfig.get();
 
-    public static TimeZone getTimeZone(Config config) {
-	PageContext pc = get();
-	if (pc != null && pc.getTimeZone() != null) return pc.getTimeZone();
-
-	config = getConfig(config);
-	if (config != null && config.getTimeZone() != null) {
-	    return config.getTimeZone();
-	}
-	return DEFAULT_TIMEZONE;
-    }
-
-    public static TimeZone getTimeZone(TimeZone timezone) {
-	if (timezone != null) return timezone;
-	return getTimeZone((PageContext) null);
-    }
-
-    public static TimeZone getTimeZone() {
-	return getTimeZone((PageContext) null);
-    }
-
-    public static PageContext get(PageContext pc) {
-	if (pc == null) return get();
-	return pc;
-    }
-
-    public static PageContext get(Config config) {
-	PageContext pc = get();
-	if (pc != null && pc.getConfig() == config) return pc;
-	return null;
-    }
-
-    public static class CallOnStart extends ThreadLocal<Boolean> {
-
-	@Override
-	protected Boolean initialValue() {
-	    return Boolean.TRUE;
 	}
 
-    }
+	/**
+	 * release the pagecontext for the current thread
+	 */
+	public static void release() {// print.ds(Thread.currentThread().getName());
+		pcThreadLocal.set(null);
+	}
+
+	public static Config getConfig(PageContext pc) {
+		if (pc == null) return getConfig();
+		return pc.getConfig();
+	}
+
+	public static Config getConfig(Config config) {
+		if (config == null) return getConfig();
+		return config;
+	}
+
+	public static TimeZone getTimeZone(PageContext pc) {
+		// pc
+		pc = get(pc);
+		if (pc != null) {
+			if (pc.getTimeZone() != null) return pc.getTimeZone();
+			return DEFAULT_TIMEZONE;
+		}
+
+		// config
+		Config config = getConfig((Config) null);
+		if (config != null && config.getTimeZone() != null) {
+			return config.getTimeZone();
+		}
+		return DEFAULT_TIMEZONE;
+	}
+
+	public static Locale getLocale() {
+		return getLocale((PageContext) null);
+	}
+
+	public static Locale getLocale(Locale l) {
+		if (l != null) return l;
+		return getLocale((PageContext) null);
+	}
+
+	public static Locale getLocale(PageContext pc) {
+		// pc
+		pc = get(pc);
+		if (pc != null) {
+			if (pc.getLocale() != null) return pc.getLocale();
+			return DEFAULT_LOCALE;
+		}
+
+		// config
+		Config config = getConfig((Config) null);
+		if (config != null && config.getLocale() != null) {
+			return config.getLocale();
+		}
+		return DEFAULT_LOCALE;
+	}
+
+	public static TimeZone getTimeZone(Config config) {
+		PageContext pc = get();
+		if (pc != null && pc.getTimeZone() != null) return pc.getTimeZone();
+
+		config = getConfig(config);
+		if (config != null && config.getTimeZone() != null) {
+			return config.getTimeZone();
+		}
+		return DEFAULT_TIMEZONE;
+	}
+
+	public static TimeZone getTimeZone(TimeZone timezone) {
+		if (timezone != null) return timezone;
+		return getTimeZone((PageContext) null);
+	}
+
+	public static TimeZone getTimeZone() {
+		return getTimeZone((PageContext) null);
+	}
+
+	public static PageContext get(PageContext pc) {
+		if (pc == null) return get();
+		return pc;
+	}
+
+	public static PageContext get(Config config) {
+		PageContext pc = get();
+		if (pc != null && pc.getConfig() == config) return pc;
+		return null;
+	}
+
+	public static class CallOnStart extends ThreadLocal<Boolean> {
+
+		@Override
+		protected Boolean initialValue() {
+			return Boolean.TRUE;
+		}
+
+	}
+
+	public static long getThreadId(PageContext pc) {
+		if (pc != null) return pc.getThread().getId();
+		return Thread.currentThread().getId();
+	}
 
 }

@@ -29,8 +29,8 @@ import lucee.transformer.cfml.evaluator.EvaluatorSupport;
  */
 public final class Silent extends EvaluatorSupport {
 
-    @Override
-    public void evaluate(Tag tag) throws EvaluatorException {
-	ASMUtil.removeLiterlChildren(tag, true);
-    }
+	@Override
+	public void evaluate(Tag tag) throws EvaluatorException {
+		ASMUtil.removeLiterlChildren(tag, true);
+	}
 }

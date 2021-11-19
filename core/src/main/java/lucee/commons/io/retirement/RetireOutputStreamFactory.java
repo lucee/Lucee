@@ -26,66 +26,72 @@ import lucee.commons.io.log.LogUtil;
 
 public class RetireOutputStreamFactory {
 
-    static List<RetireOutputStream> list = new ArrayList<RetireOutputStream>();
-    private static RetireThread thread;
-    private static boolean closed = false;
+	static List<RetireOutputStream> list = new ArrayList<RetireOutputStream>();
+	private static RetireThread thread;
+	private static boolean closed = false;
 
-    /**
-     * close existing threads and stops opening new onces
-     */
-    public static void close() {
-	if (thread != null && thread.isAlive()) {
-	    thread.close = true;
-	    closed = true;
-	    SystemUtil.notify(thread);
-	    SystemUtil.patienceStop(thread, 5);
-	}
-    }
-
-    static void startThread(long timeout) {
-	if (timeout < 1000) timeout = 1000;
-	if (thread == null || !thread.isAlive()) {
-	    thread = new RetireThread(timeout);
-	    thread.start();
-	}
-	else if (thread.sleepTime > timeout) {
-	    thread.sleepTime = timeout;
-	    SystemUtil.notify(thread);
-	}
-    }
-
-    static class RetireThread extends Thread {
-
-	public long sleepTime;
-	public boolean close = false;
-
-	public RetireThread(long sleepTime) {
-	    this.sleepTime = sleepTime;
-	}
-
-	@Override
-	public void run() {
-	    while (true) {
-		try {
-		    if (list.size() == 0) break;
-		    SystemUtil.wait(this, sleepTime);
-		    RetireOutputStream[] arr = list.toArray(new RetireOutputStream[list.size()]); // not using iterator to avoid ConcurrentModificationException
-		    for (int i = 0; i < arr.length; i++) {
-			if (arr[i] == null) continue;
-			if (close) arr[i].retireNow();
-			else arr[i].retire();
-		    }
-		    if (close) break;
+	/**
+	 * close existing threads and stops opening new onces
+	 */
+	public static void close() {
+		if (thread != null && thread.isAlive()) {
+			thread.close = true;
+			closed = true;
+			SystemUtil.notify(thread);
+			SystemUtil.stop(thread);
 		}
-		catch (Exception e) {
-		    LogUtil.log(null, "file", e);
-		}
-	    }
-	    thread = null;
 	}
-    }
 
-    public static boolean isClosed() {
-	return closed;
-    }
+	static void startThread(long timeout) {
+		if (timeout < 1000) timeout = 1000;
+		if (thread == null || !thread.isAlive()) {
+			thread = new RetireThread(timeout);
+			thread.start();
+		}
+		else if (thread.sleepTime > timeout) {
+			thread.sleepTime = timeout;
+			SystemUtil.notify(thread);
+		}
+	}
+
+	static class RetireThread extends Thread {
+
+		public long sleepTime;
+		public boolean close = false;
+
+		public RetireThread(long sleepTime) {
+			this.sleepTime = sleepTime;
+		}
+
+		@Override
+		public void run() {
+			while (true) {
+				try {
+					if (list.size() == 0) break;
+					synchronized (this) {
+						this.wait(sleepTime);
+					}
+					RetireOutputStream[] arr = list.toArray(new RetireOutputStream[list.size()]); // not using iterator to avoid ConcurrentModificationException
+					for (int i = 0; i < arr.length; i++) {
+						if (arr[i] == null) continue;
+						if (close) arr[i].retireNow();
+						else arr[i].retire();
+					}
+					if (close) break;
+				}
+				catch (InterruptedException ie) {
+					LogUtil.log(null, "file", ie);
+					break;
+				}
+				catch (Exception e) {
+					LogUtil.log(null, "file", e);
+				}
+			}
+			thread = null;
+		}
+	}
+
+	public static boolean isClosed() {
+		return closed;
+	}
 }

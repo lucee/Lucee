@@ -13,112 +13,113 @@ import lucee.runtime.type.util.ComponentUtil;
 
 public abstract class UDFPropertiesBase implements UDFProperties {
 
-    private Page page;
-    private String id;
-    protected PageSource ps;
-    protected PageSource psOrg;
-    protected int startLine;
-    protected int endLine;
+	private Page page;
+	private String id;
+	protected PageSource ps;
+	protected PageSource psOrg;
+	protected int startLine;
+	protected int endLine;
 
-    public UDFPropertiesBase() {}
-
-    public UDFPropertiesBase(Page page, PageSource ps, int startLine, int endLine) {
-	this.page = page;
-	psOrg = ps;
-
-	if (ps == null) {
-	    ps = ThreadLocalPageSource.get();
-	    if (ps == null && page != null) {
-		ps = page.getPageSource();
-	    }
+	public UDFPropertiesBase() {
 	}
-	this.ps = ps;
-	this.startLine = startLine;
-	this.endLine = endLine;
-    }
 
-    public final Page getPage(PageContext pc) throws PageException {
+	public UDFPropertiesBase(Page page, PageSource ps, int startLine, int endLine) {
+		this.page = page;
+		psOrg = ps;
 
-	// MUST no page source
-	PageException pe = null;
-	if (getPageSource() != null) {
-	    try {
-		return ComponentUtil.getPage(pc, getPageSource());
-	    }
-	    catch (PageException e) {
-		pe = e;
-	    }
+		if (ps == null) {
+			ps = ThreadLocalPageSource.get();
+			if (ps == null && page != null) {
+				ps = page.getPageSource();
+			}
+		}
+		this.ps = ps;
+		this.startLine = startLine;
+		this.endLine = endLine;
 	}
-	Page p = getPage();
-	if (p != null) return p;
 
-	if (pe != null) throw pe;
-	throw new ApplicationException("missing Page Source");
-    }
+	public final Page getPage(PageContext pc) throws PageException {
+		Page p = getPage();
+		if (p != null) return p;
 
-    public final String id() {
-	if (id == null) {
-	    // MUST no page source
-	    if (getPageSource() != null) {
-		id = getPageSource().getDisplayPath() + ":" + getIndex();
-	    }
-	    else if (getPage() != null) {
-		// MUST id for Page
-		id = getPage().hashCode() + ":" + getIndex();
-	    }
+		// MUST no page source
+		PageException pe = null;
+		if (getPageSource() != null) {
+			try {
+				return ComponentUtil.getPage(pc, getPageSource());
+			}
+			catch (PageException e) {
+				pe = e;
+			}
+		}
+
+		if (pe != null) throw pe;
+		throw new ApplicationException("missing Page Source");
 	}
-	return id;
-    }
 
-    protected final Page getPage() {
-	return page;
-    }
+	public final String id() {
+		if (id == null) {
+			// MUST no page source
+			if (getPageSource() != null) {
+				id = getPageSource().getDisplayPath() + ":" + getIndex();
+			}
+			else if (getPage() != null) {
+				// MUST id for Page
+				id = getPage().hashCode() + ":" + getIndex();
+			}
+		}
+		return id;
+	}
 
-    public final PageSource getPageSource() {
-	return ps;
-    }
+	protected final Page getPage() {
+		return page;
+	}
 
-    public final int getStartLine() {
-	return startLine;
-    }
+	public final PageSource getPageSource() {
+		return ps;
+	}
 
-    public final int getEndLine() {
-	return endLine;
-    }
+	public final int getStartLine() {
+		return startLine;
+	}
 
-    public abstract String getFunctionName();
+	public final int getEndLine() {
+		return endLine;
+	}
 
-    public abstract boolean getOutput();
+	public abstract String getFunctionName();
 
-    public abstract Boolean getBufferOutput();
+	public abstract boolean getOutput();
 
-    public abstract int getReturnType();
+	public abstract Boolean getBufferOutput();
 
-    public abstract String getReturnTypeAsString();
+	public abstract int getReturnType();
 
-    public abstract String getDescription();
+	public abstract String getReturnTypeAsString();
 
-    public abstract int getReturnFormat();
+	public abstract String getDescription();
 
-    public abstract String getReturnFormatAsString();
+	public abstract int getReturnFormat();
 
-    public abstract int getIndex();
+	public abstract String getReturnFormatAsString();
 
-    public abstract Object getCachedWithin();
+	public abstract int getIndex();
 
-    public abstract Boolean getSecureJson();
+	public abstract Object getCachedWithin();
 
-    public abstract Boolean getVerifyClient();
+	public abstract Boolean getSecureJson();
 
-    public abstract FunctionArgument[] getFunctionArguments();
+	public abstract Boolean getVerifyClient();
 
-    public abstract String getDisplayName();
+	public abstract FunctionArgument[] getFunctionArguments();
 
-    public abstract String getHint();
+	public abstract String getDisplayName();
 
-    public abstract Struct getMeta();
+	public abstract String getHint();
 
-    public abstract Integer getLocalMode();
+	public abstract Struct getMeta();
 
-    public abstract Set<Key> getArgumentsSet();
+	public abstract Integer getLocalMode();
+
+	public abstract Set<Key> getArgumentsSet();
 }

@@ -4,9 +4,9 @@
 <func-lib>
 	<flib-version>1.00</flib-version>
 	<short-name>fbase</short-name>
-	<uri>http://www.lucee.org/cf-fld-3-1</uri>
+	<uri>https://www.lucee.org/cf-fld-3-1</uri>
 	<display-name>Lucee Core Function Library</display-name>
-	<description>All build in Functions of Lucee</description>
+	<description>All built in Functions of Lucee</description>
 	
 	<!-- abs -->
 	<function>
@@ -88,6 +88,17 @@
 			<type>array</type>
 		</return>
 	</function>
+	
+	<!-- ApplicationPathCacheClear -->
+	<function>
+		<name>ApplicationPathCacheClear</name>
+		<class>lucee.runtime.functions.other.ApplicationPathCacheClear</class>
+		<description>flush the application.[cfc|cfm] path cache</description>
+		<return>
+			<type>void</type>
+		</return>
+	</function>
+	
 	<!-- arrayAppend -->
 	<function>
 		<name>arrayAppend</name>
@@ -429,6 +440,7 @@ All elements in the array must contain values that can be converted to numeric.<
 		</argument>
 		<argument>
 			<name>maxThreads</name>
+			<alias>maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
 			<default>20</default>
@@ -491,6 +503,7 @@ All elements in the array must contain values that can be converted to numeric.<
 		</argument>
 		<argument>
 			<name>maxThreads</name>
+			<alias>maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
 			<default>20</default>
@@ -530,6 +543,7 @@ All elements in the array must contain values that can be converted to numeric.<
 		</argument>
 		<argument>
 			<name>maxThreads</name>
+			<alias>maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
 			<default>20</default>
@@ -698,7 +712,7 @@ Remember CFML arrays start at 1 not 0.</description>
 		<class>lucee.runtime.functions.closure.Map</class>
 		<keywords>iterator</keywords>
 		<description>Calls the given closure with every element in the given collection.
-		the function returns a array or struct (depending on the input) that contains all values returned by the closure.</description>
+		the function returns an array or struct (depending on the input) that contains all values returned by the closure.</description>
 		<argument>
 			<name>collection</name>
 			<alias>object</alias>
@@ -721,6 +735,7 @@ Remember CFML arrays start at 1 not 0.</description>
 		</argument>
 		<argument>
 			<name>maxThreads</name>
+			<alias>maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
 			<default>20</default>
@@ -738,7 +753,7 @@ Remember CFML arrays start at 1 not 0.</description>
 		<member-name>map</member-name>
 		<keywords>array,iterator</keywords>
 		<description>Calls the given closure with every element in the given array.
-		the function returns a array that contains all values returned by the closure.</description>
+		the function returns an array that contains all values returned by the closure.</description>
 		<argument>
 			<name>array</name>
 			<type>array</type>
@@ -760,6 +775,7 @@ Remember CFML arrays start at 1 not 0.</description>
 		</argument>
 		<argument>
 			<name>maxThreads</name>
+			<alias>maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
 			<default>20</default>
@@ -776,8 +792,8 @@ Remember CFML arrays start at 1 not 0.</description>
 		<class>lucee.runtime.functions.list.ListMap</class>
 		<member-name>listMap,map</member-name>
 		<keywords>string,list,iterator</keywords>
-		<description>Calls the given closure with every element in the given array.
-		the function returns a array that contains all values returned by the closure.</description>
+		<description>Calls the given closure with every element in the given list.
+		The function returns a list that contains all values returned by the closure.</description>
 		<argument>
 			<name>list</name>
 			<type>string</type>
@@ -821,6 +837,7 @@ Remember CFML arrays start at 1 not 0.</description>
 		</argument>
 		<argument>
 			<name>maxThreads</name>
+			<alias>maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
 			<default>20</default>
@@ -862,6 +879,7 @@ Remember CFML arrays start at 1 not 0.</description>
 		</argument>
 		<argument>
 			<name>maxThreads</name>
+			<alias>maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
 			<default>20</default>
@@ -910,6 +928,7 @@ Remember CFML arrays start at 1 not 0.</description>
 		</argument>
 		<argument>
 			<name>maxThreads</name>
+			<alias>maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
 			<default>20</default>
@@ -946,7 +965,7 @@ Remember CFML arrays start at 1 not 0.</description>
 		<class>lucee.runtime.functions.arrays.ArrayMid</class>
 		<member-name>mid</member-name>
 		<keywords>array</keywords>
-		<description>Extracts a sub array from a array.</description>
+		<description>Extracts a sub array from an array.</description>
 		<argument>
 			<name>array</name>
 			<type>array</type>
@@ -1053,6 +1072,58 @@ Remember CFML arrays start at 1 not 0.</description>
 			<type>boolean</type>
 		</return>
 	</function>
+	
+	<!-- arrayPop -->
+	<function>
+		<name>arrayPop</name>
+		<class>lucee.runtime.functions.arrays.ArrayPop</class>
+		<member-name>pop</member-name>
+		<member-chaining>false</member-chaining>
+		<keywords>array</keywords>
+		<description>pops the last element from an array. In case the array is empty an exception is thrown, 
+			unless the second argument "defaultValue" is provided, in that case that value is returned.</description>
+		<argument>
+			<name>array</name>
+			<type>array</type>
+			<required>Yes</required>
+			<description>Name of an array</description>
+    	</argument>
+		<argument>
+			<name>defaultValue</name>
+			<type>any</type>
+			<required>no</required>
+			<description>this value is returned in case the array is empty</description>
+    	</argument>
+		<return>
+			<type>any</type>
+		</return>
+	</function>
+	
+	<!-- arrayPush -->
+	<function>
+		<name>arrayPush</name>
+		<class>lucee.runtime.functions.arrays.ArrayPush</class>
+		<member-name>push</member-name>
+		<member-chaining>false</member-chaining>
+		<keywords>array</keywords>
+		<description>Inserts an array element at the end of an array and return the new size of the array.</description>
+		<argument>
+			<name>array</name>
+			<type>array</type>
+			<required>Yes</required>
+			<description>Name of an array</description>
+    	</argument>
+		<argument>
+			<name>value</name>
+			<type>any</type>
+			<required>Yes</required>
+			<description>value to prepend</description>
+    	</argument>
+		<return>
+			<type>numeric</type>
+		</return>
+	</function>
+	
 	<!-- arrayResize -->
 	<function>
 		<name>arrayResize</name>
@@ -1138,6 +1209,33 @@ Remember CFML arrays start at 1 not 0.</description>
 			<type>boolean</type>
 		</return>
 	</function>
+	
+	<!-- arrayShift -->
+	<function>
+		<name>arrayShift</name>
+		<class>lucee.runtime.functions.arrays.ArrayShift</class>
+		<member-name>shift</member-name>
+		<member-chaining>false</member-chaining>
+		<keywords>array</keywords>
+		<description>pops the first element from an array and shift the rest of the values to the left. In case the array is empty an exception is thrown, 
+			unless the second argument "defaultValue" is provided, in that case that value is returned.</description>
+		<argument>
+			<name>array</name>
+			<type>array</type>
+			<required>Yes</required>
+			<description>array to shift</description>
+    	</argument>
+		<argument>
+			<name>defaultValue</name>
+			<type>any</type>
+			<required>No</required>
+			<description>this value is returned in case the array is empty</description>
+    	</argument>
+		<return>
+			<type>any</type>
+		</return>
+	</function>
+	
 	<!-- arraySlice -->
 	<function>
 		<name>arraySlice</name>
@@ -1276,6 +1374,34 @@ sort direction:
 			<type>boolean</type>
 		</return>
 	</function>
+	
+	<!-- arrayUnShift -->
+	<function>
+		<name>arrayUnShift</name>
+		<class>lucee.runtime.functions.arrays.ArrayUnShift</class>
+		<member-name>unshift</member-name>
+		<member-chaining>false</member-chaining>
+		<keywords>array</keywords>
+		<description>Adds an element at the beginning of the array and shifts the rest of the elements to the right.</description>
+		<argument>
+			<name>array</name>
+			<type>array</type>
+			<required>Yes</required>
+			<description>array to add element</description>
+    	</argument>
+		<argument>
+			<name>value</name>
+			<type>any</type>
+			<required>Yes</required>
+			<description>element to add.</description>
+    	</argument>
+		<return>
+			<type>numeric</type>
+		</return>
+	</function>
+	
+	
+	
 	<!-- arrayToList -->
 	<function>
 		<name>arrayToList</name>
@@ -1493,13 +1619,13 @@ sort direction:
 			<name>number1</name>
 			<type>number</type>
 			<required>Yes</required>
-		<description>a integer</description>
+		<description>an integer</description>
     </argument>
 		<argument>
 			<name>number2</name>
 			<type>number</type>
 			<required>Yes</required>
-		<description>a integer</description>
+		<description>an integer</description>
     </argument>
 		<return>
 			<type>number</type>
@@ -1516,7 +1642,7 @@ sort direction:
 			<name>number</name>
 			<type>number</type>
 			<required>Yes</required>
-		<description>a integer</description>
+		<description>an integer</description>
     </argument>
 		<argument>
 			<name>start</name>
@@ -1547,7 +1673,7 @@ sort direction:
 			<name>number</name>
 			<type>number</type>
 			<required>Yes</required>
-		<description>a integer to mask</description>
+		<description>an integer to mask</description>
     </argument>
 		<argument>
 			<name>start</name>
@@ -1576,7 +1702,7 @@ sort direction:
 			<name>number</name>
 			<type>number</type>
 			<required>Yes</required>
-		<description>a integer</description>
+		<description>an integer</description>
     </argument>
 		<argument>
 			<name>mask</name>
@@ -1611,7 +1737,7 @@ sort direction:
 			<name>number</name>
 			<type>number</type>
 			<required>Yes</required>
-		<description>a integer</description>
+		<description>an integer</description>
     </argument>
 		<return>
 			<type>number</type>
@@ -1628,13 +1754,13 @@ sort direction:
 			<name>number1</name>
 			<type>number</type>
 			<required>Yes</required>
-		<description>a integer</description>
+		<description>an integer</description>
     </argument>
 		<argument>
 			<name>number2</name>
 			<type>number</type>
 			<required>Yes</required>
-		<description>a integer</description>
+		<description>an integer</description>
     </argument>
 		<return>
 			<type>number</type>
@@ -1651,7 +1777,7 @@ sort direction:
 			<name>number</name>
 			<type>number</type>
 			<required>Yes</required>
-		<description>a integer</description>
+		<description>an integer</description>
     </argument>
 		<argument>
 			<name>count</name>
@@ -1674,7 +1800,7 @@ sort direction:
 			<name>number</name>
 			<type>number</type>
 			<required>Yes</required>
-		<description>a integer</description>
+		<description>an integer</description>
     </argument>
 		<argument>
 			<name>count</name>
@@ -1697,13 +1823,13 @@ sort direction:
 			<name>number1</name>
 			<type>number</type>
 			<required>Yes</required>
-		<description>a integer</description>
+		<description>an integer</description>
     </argument>
 		<argument>
 			<name>number2</name>
 			<type>number</type>
 			<required>Yes</required>
-		<description>a integer</description>
+		<description>an integer</description>
     </argument>
 		<return>
 			<type>number</type>
@@ -1715,7 +1841,7 @@ sort direction:
 		<name>BundleInfo</name>
 		<introduced>5.0.0.0</introduced>
 		<class>lucee.runtime.functions.system.BundleInfo</class>
-		<description>if the given object is loaded by a OSGi bundle, this function is returning information about that bundle</description>
+		<description>if the given object is loaded by an OSGi bundle, this function is returning information about that bundle</description>
 		<argument>
 			<name>object</name>
 			<type>any</type>
@@ -1781,15 +1907,15 @@ sort direction:
 		<argument>
 			<name>id</name>
 			<alias>name,key</alias>
-			<type>string</type>
+			<type>object</type>
 			<required>Yes</required>
-			<description>the id of the element to delete, can also contain a "," (not used as separator)</description>
+			<description>the id of the element to delete, you can also pass an array of multiple ids.</description>
 		</argument>
 		<argument>
 			<name>throwOnError</name>
 			<type>boolean</type>
 			<required>No</required>
-			<description>define if the functions throws a exception when the element does not exist (default is false).</description>
+			<description>define if the functions throws an exception when the element does not exist (default is false).</description>
 		</argument>
 		<argument>
 			<name>cacheName</name>
@@ -1820,7 +1946,7 @@ sort direction:
 			<default>false</default>
 			<type>object</type>
 			<required>no</required>
-			<description>define if the functions throws a exception when the element does not exist (default is false).</description>
+			<description>define if the functions throws an exception when the element does not exist (default is false).</description>
 		</argument>
 		<argument>
 			<name>cacheName</name>
@@ -1877,7 +2003,7 @@ sort direction:
 	<function>
 		<name>CacheGetAllIds</name>
 		<class>lucee.runtime.functions.cache.CacheGetAllIds</class>
-		<description>this function return a array containing all keys inside the cache.</description>
+		<description>this function return an array containing all keys inside the cache.</description>
 		<argument>
 			<name>filter</name>
 			<type>string</type>
@@ -1970,7 +2096,7 @@ sort direction:
 	<function>
 		<name>cachePut</name>
 		<class>lucee.runtime.functions.cache.CachePut</class>
-		<description>Stores an object in the cache, with a life time and a idle time.</description>
+		<description>Stores an object in the cache, with a life time and an idle time.</description>
 		<argument>
 			<name>id</name>
 			<alias>key,name</alias>
@@ -2018,13 +2144,13 @@ sort direction:
 			<alias>names,keys</alias>
 			<type>object</type>
 			<required>Yes</required>
-			<description>This can be a string list of multiple elements or a array containing the keys</description>
+			<description>This can be a string list of multiple elements or an array containing the keys</description>
 		</argument>
 		<argument>
 			<name>throwOnError</name>
 			<type>boolean</type>
 			<required>No</required>
-			<description>define if the functions throws a exception when the element does not exist (default is false)</description>
+			<description>define if the functions throws an exception when the element does not exist (default is false)</description>
 		</argument>
 		<argument>
 			<name>cacheName</name>
@@ -2173,7 +2299,7 @@ sort direction:
 		<name>ComponentListPackage</name>
 		<class>lucee.runtime.functions.component.ComponentListPackage</class>
 		<status>hidden</status>
-		<description>this implementation is experimentell. list all components in a certain package, throws a application exception if package does not exist.</description>
+		<description>this implementation is experimentell. list all components in a certain package, throws an application exception if package does not exist.</description>
 		<argument>
 			<name>package</name>
 			<alias>packageName,name</alias>
@@ -2250,6 +2376,72 @@ sort direction:
 			<type>struct</type>
 		</return>
 	</function>
+	<!-- ConfigImport -->
+	<function>
+		<name>ConfigImport</name>
+		<class>lucee.runtime.functions.system.ConfigImport</class>
+		<description>
+			Imports a configuration based on the "CFConfig" format. 
+			This configuration can be provided as a path (String) to a JSON based file or as a Struct.
+			The values inside the provided configuration can use placeholders following this pattern ${key:default}.
+			The function will check for the actual values for this placeholders in 3 places (in this order):
+			- function argument "params" (if provided)
+			- system properties
+			- enviroment variables
+		</description>
+		<argument>
+			<name>path</name>
+			<type>any</type>
+			<alias>path,data</alias>
+			<required>Yes</required>
+			<description>
+			Path to the .CFConfig.json file or the data itself as a Struct. 
+			</description>
+		</argument>
+		<argument>
+			<name>type</name>
+			<type>string</type>
+			<required>no</required>
+			<default>server</default>
+			<values>server,web</values>
+			<description>
+				Config Context to manipulate, server or web context.
+			</description>
+		</argument>
+		<argument>
+			<name>password</name>
+			<type>string</type>
+			<required>no</required>
+			<description>
+				password to access the configuration, depending on the value set for the attribute type. 
+				If not set Lucee will check in the following places for the password (replace {type} with the actual type choosen for the attribute type).
+				Enviroment variable "LUCEE_{type}_ADMIN_PASSWORD" or system property "lucee.{type}.admin.password".
+			</description>
+		</argument>
+		<argument>
+			<name>params</name>
+			<type>struct</type>
+			<required>no</required>
+			<description>
+				placeholder parameters to use as actual data for the placeholders inside the configuration, see main description of this function for more details.
+			</description>
+		</argument>
+		<argument>
+			<name>charset</name>
+			<type>string</type>
+			<required>no</required>
+			<description>
+				charset to use to read the .CFConfig file, if not defined, Lucee will use the default resource charset.
+			</description>
+		</argument>
+		
+		<return>
+			<type>struct</type>
+		</return>
+	</function>
+	
+	
+	
 	<!-- compress -->
 	<function>
 		<name>compress</name>
@@ -2352,7 +2544,7 @@ sort direction:
 			<type>timezone</type>
 			<required>NO</required>
 		<description>
-A datetime object is independent of a specific timezone, it is only a offset in milliseconds from 1970-1-1 00.00:00 UTC (Coordinated Universal Time).
+A datetime object is independent of a specific timezone, it is only an offset in milliseconds from 1970-1-1 00.00:00 UTC (Coordinated Universal Time).
 This means that the timezone only comes into play when you need specific information like hours in a day, minutes in a hour or which day it is since those calculations depend on the timezone.
 For these calculations, a timezone must be specified in order to translate the date object to something else. If you do not provide the timezone in the function call, it will default to the timezone specified in the Lucee Administrator (Settings/Regional), or the timezone specified for the current request using the function setTimezone.
 You can find a list of all available timezones in the Lucee administrator (Settings/Regional). Some examples of valid timezones:
@@ -2430,7 +2622,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>timezone</type>
 			<required>NO</required>
 		<description>
-A datetime object is independent of a specific timezone, it is only a offset in milliseconds from 1970-1-1 00.00:00 UTC (Coordinated Universal Time).
+A datetime object is independent of a specific timezone, it is only an offset in milliseconds from 1970-1-1 00.00:00 UTC (Coordinated Universal Time).
 This means that the timezone only comes into play when you need specific information like hours in a day, minutes in a hour or which day it is since those calculations depend on the timezone.
 For these calculations, a timezone must be specified in order to translate the date object to something else. If you do not provide the timezone in the function call, it will default to the timezone specified in the Lucee Administrator (Settings/Regional), or the timezone specified for the current request using the function setTimezone.
 You can find a list of all available timezones in the Lucee administrator (Settings/Regional). Some examples of valid timezones:
@@ -2581,7 +2773,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>timezone</type>
 			<required>No</required>
 		<description>
-A datetime object is independent of a specific timezone, it is only a offset in milliseconds from 1970-1-1 00.00:00 UTC (Coordinated Universal Time).
+A datetime object is independent of a specific timezone, it is only an offset in milliseconds from 1970-1-1 00.00:00 UTC (Coordinated Universal Time).
 This means that the timezone only comes into play when you need specific information like hours in a day, minutes in a hour or which day it is since those calculations depend on the timezone.
 For these calculations, a timezone must be specified in order to translate the date object to something else. If you do not provide the timezone in the function call, it will default to the timezone specified in the Lucee Administrator (Settings/Regional), or the timezone specified for the current request using the function setTimezone.
 You can find a list of all available timezones in the Lucee administrator (Settings/Regional). Some examples of valid timezones:
@@ -2847,7 +3039,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>timezone</type>
 			<required>no</required>
 		<description>
-A datetime object is independent of a specific timezone, it is only a offset in milliseconds from 1970-1-1 00.00:00 UTC (Coordinated Universal Time).
+A datetime object is independent of a specific timezone, it is only an offset in milliseconds from 1970-1-1 00.00:00 UTC (Coordinated Universal Time).
 This means that the timezone only comes into play when you need specific information like hours in a day, minutes in a hour or which day it is since those calculations depend on the timezone.
 For these calculations, a timezone must be specified in order to translate the date object to something else. If you do not provide the timezone in the function call, it will default to the timezone specified in the Lucee Administrator (Settings/Regional), or the timezone specified for the current request using the function setTimezone.
 You can find a list of all available timezones in the Lucee administrator (Settings/Regional). Some examples of valid timezones:
@@ -2923,7 +3115,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>timezone</type>
 			<required>no</required>
 		<description>
-A datetime object is independent of a specific timezone, it is only a offset in milliseconds from 1970-1-1 00.00:00 UTC (Coordinated Universal Time).
+A datetime object is independent of a specific timezone, it is only an offset in milliseconds from 1970-1-1 00.00:00 UTC (Coordinated Universal Time).
 This means that the timezone only comes into play when you need specific information like hours in a day, minutes in a hour or which day it is since those calculations depend on the timezone.
 For these calculations, a timezone must be specified in order to translate the date object to something else. If you do not provide the timezone in the function call, it will default to the timezone specified in the Lucee Administrator (Settings/Regional), or the timezone specified for the current request using the function setTimezone.
 You can find a list of all available timezones in the Lucee administrator (Settings/Regional). Some examples of valid timezones:
@@ -2953,7 +3145,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>timezone</type>
 			<required>no</required>
 		<description>
-A datetime object is independent of a specific timezone, it is only a offset in milliseconds from 1970-1-1 00.00:00 UTC (Coordinated Universal Time).
+A datetime object is independent of a specific timezone, it is only an offset in milliseconds from 1970-1-1 00.00:00 UTC (Coordinated Universal Time).
 This means that the timezone only comes into play when you need specific information like hours in a day, minutes in a hour or which day it is since those calculations depend on the timezone.
 For these calculations, a timezone must be specified in order to translate the date object to something else. If you do not provide the timezone in the function call, it will default to the timezone specified in the Lucee Administrator (Settings/Regional), or the timezone specified for the current request using the function setTimezone.
 You can find a list of all available timezones in the Lucee administrator (Settings/Regional). Some examples of valid timezones:
@@ -3867,7 +4059,7 @@ EntityLoad(entityname, filtercriteria, sortorder [, options])</description>
 			<alias>unique,order</alias>
 			<type>any</type>
 			<required>no</required>
-		<description>when the second argument is a id then this argument defines the boolean "unique" otherwise it defines the order.
+		<description>when the second argument is an id then this argument defines the boolean "unique" otherwise it defines the order.
 		
 - unique:
 If unique is set to true, then the entity is returned.
@@ -4203,6 +4395,52 @@ EntitySave(entity, [forceinsert])</description>
     	    
     		<return>
     			<type>any</type>
+    		</return>
+    	</function>
+    	
+    	
+	<!-- QueryLazy -->
+    	<function>
+    		<name>QueryLazy</name>
+    		<class>lucee.runtime.functions.query.QueryLazy</class>
+    		<status>hidden</status>
+			<keywords>query</keywords>
+			<description>Executes a SQL query without loading the data entierly to memory. Instead it calls the given Function with every single row</description>
+    		<argument>
+    			<name>sql</name>
+    			<type>string</type>
+    			<required>Yes</required>
+    			<description>SQL to execute</description>
+    	    </argument>
+    		<argument>
+    			<name>listener</name>
+    			<type>function</type>
+    			<required>Yes</required>
+    			<description>listener function that will be called with the data of every single row. if returns false, execution is stopped.</description>
+    	    </argument>
+    		<argument>
+    			<name>params</name>
+    			<alias>param</alias>
+    			<type>any</type>
+    			<required>No</required>
+    			<description>
+    			Array or Struct of parameter values. 
+    			When passing an array use ? as place holders. 
+    			When passing a struct use :keyName where keyName is the name of the key in the structure corresponding to
+    			the parameter. 
+    			The struct or array can be a struct with keys such as the following: cfsqltype, list
+    			</description>
+    	    </argument>
+    	    
+    	    <argument>
+    			<name>options</name>
+    			<alias>option,queryOptions</alias>
+    			<type>struct</type>
+    			<required>No</required>
+    			<description>Struct containing query options, all cfquery tag attributes are supported except the name attribute.</description>
+    	    </argument>
+    		<return>
+    			<type>void</type>
     		</return>
     	</function>
 	
@@ -4550,6 +4788,7 @@ The browser uses file extension to determine file type. </description>
     	</argument>
 		<argument>
 			<name>nameConflict</name>
+			<alias>onConflict</alias>
 			<type>string</type>
 			<required>no</required>
 			<description>Action to take if filename is the same as that of a file in the directory.</description>
@@ -4949,7 +5188,7 @@ Set the attribute to normal to make a file not read-only and not hidden.</descri
 			<type>number</type>
 			<required>No</required>
 			<default>1</default>
-		<description>Start position of search.</description>
+		<description>Start position of search from the left.</description>
     </argument>
 		<return>
 			<type>number</type>
@@ -4982,7 +5221,7 @@ Set the attribute to normal to make a file not read-only and not hidden.</descri
 			<type>number</type>
 			<required>No</required>
 			<default>1</default>
-		<description>Start position of search.</description>
+		<description>Start position of search from the left.</description>
     </argument>
 		<return>
 			<type>number</type>
@@ -4993,6 +5232,7 @@ Set the attribute to normal to make a file not read-only and not hidden.</descri
 		<name>findOneOf</name>
 		<class>lucee.runtime.functions.string.FindOneOf</class>
 		<member-name>findOneOf</member-name>
+		<member-position>2</member-position>
 		<keywords>string,find</keywords>
 		<description>Finds the first occurrence of any one of a set of characters
         in a string, from a specified start position. The search is
@@ -5020,6 +5260,76 @@ Set the attribute to normal to make a file not read-only and not hidden.</descri
 			<type>number</type>
 		</return>
 	</function>
+	
+	<!-- findLast -->
+	<function>
+		<name>findLast</name>
+		<class>lucee.runtime.functions.string.FindLast</class>
+		<member-name>findLast</member-name>
+		<member-position>2</member-position>
+		<status>hidden</status>
+		<keywords>string,find</keywords>
+		<description>Finds the last occurrence of a substring in a string, from a
+        specified start position. The search is case-sensitive.</description>
+		<argument>
+			<name>substring</name>
+			<type>string</type>
+			<required>Yes</required>
+		<description>String for which to search.</description>
+    </argument>
+		<argument>
+			<name>string</name>
+			<type>string</type>
+			<required>Yes</required>
+			<description>String in which to search.</description>
+		</argument>
+		<argument>
+			<name>start</name>
+			<type>number</type>
+			<required>No</required>
+			<default>1</default>
+		<description>End position of search from the left.</description>
+    </argument>
+		<return>
+			<type>number</type>
+		</return>
+	</function>
+
+	<!-- findLastNoCase -->
+	<function>
+		<name>findLastNoCase</name>
+		<class>lucee.runtime.functions.string.FindLastNoCase</class>
+		<member-name>findLastNoCase</member-name>
+		<member-position>2</member-position>
+		<status>hidden</status>
+		<keywords>string,find</keywords>
+		<description>Finds the last occurrence of a substring in a string, from a
+        specified start position. If substring is not in string,
+        returns zero. The search is case-insensitive.</description>
+		<argument>
+			<name>substring</name>
+			<type>string</type>
+			<required>Yes</required>
+		<description>String for which to search.</description>
+    </argument>
+		<argument>
+			<name>string</name>
+			<type>string</type>
+			<required>Yes</required>
+		<description>String in which to search.</description>
+    </argument>
+		<argument>
+			<name>start</name>
+			<type>number</type>
+			<required>No</required>
+			<default>1</default>
+		<description>End position of search from the left.</description>
+    </argument>
+		<return>
+			<type>number</type>
+		</return>
+	</function>
+	
 	<!-- firstDayOfMonth -->
 	<function>
 		<name>firstDayOfMonth</name>
@@ -5038,7 +5348,7 @@ Set the attribute to normal to make a file not read-only and not hidden.</descri
 			<type>timezone</type>
 			<required>No</required>
 		<description>
-A datetime object is independent of a specific timezone, it is only a offset in milliseconds from 1970-1-1 00.00:00 UTC (Coordinated Universal Time).
+A datetime object is independent of a specific timezone, it is only an offset in milliseconds from 1970-1-1 00.00:00 UTC (Coordinated Universal Time).
 This means that the timezone only comes into play when you need specific information like hours in a day, minutes in a hour or which day it is since those calculations depend on the timezone.
 For these calculations, a timezone must be specified in order to translate the date object to something else. If you do not provide the timezone in the function call, it will default to the timezone specified in the Lucee Administrator (Settings/Regional), or the timezone specified for the current request using the function setTimezone.
 You can find a list of all available timezones in the Lucee administrator (Settings/Regional). Some examples of valid timezones:
@@ -5205,7 +5515,7 @@ Example Values:
 	<function>
 		<name>GetApplicationSettings</name>
 		<class>lucee.runtime.functions.system.GetApplicationSettings</class>
-		<description>return all data from this scope, when using a application.cfc or all setting defined in tag cfapplication</description>
+		<description>return all data from this scope, when using an application.cfc or all setting defined in tag cfapplication</description>
 		<argument>
 			<name>suppressFunction</name>
 			<type>boolean</type>
@@ -5270,7 +5580,7 @@ Example Values:
 	<function>
 		<name>GetBuiltInFunction</name>
 		<class>lucee.runtime.functions.system.GetBuiltInFunction</class>
-		<description>return a build in function as a object, matching the given name, throws a exception when the function does not exist.</description>
+		<description>return a build in function as an object, matching the given name, throws an exception when the function does not exist.</description>
 		<argument>
 			<name>name</name>
 			<type>string</type>
@@ -5318,7 +5628,7 @@ Example Values:
 	<function>
 		<name>getClassPath</name>
 		<class>lucee.runtime.functions.system.GetClassPath</class>
-		<description>returns a array containing the Java classpath of the current environment.</description>
+		<description>returns an array containing the Java classpath of the current environment.</description>
 		<return>
 			<type>array</type>
 		</return>
@@ -5434,12 +5744,24 @@ Example Values:
             <default>array</default>
             <description>the type of the returned value, possible values are: [array], string, html, json</description>
         </argument>
+		<argument>
+            <name>offset</name>
+            <type>number</type>
+            <required>false</required>
+            <default>0</default>
+            <description>the number of frames to skip, default is 0</description>
+        </argument>
+		<argument>
+            <name>maxFrames</name>
+            <type>number</type>
+            <required>false</required>
+            <default>0</default>
+            <description>the maximum number of frames to return, default is 0 which means all</description>
+        </argument>
 		<return>
 			<type>any</type>
 		</return>
 	</function>
-	
-	
 	
 	<!-- GetFunctionCalledName -->
 	<function>
@@ -5752,7 +6074,7 @@ The returned number of unallocated bytes is a hint, but not a guarantee, that it
 		<name>getGatewayHelper</name>
 		<class>lucee.runtime.functions.gateway.GetGatewayHelper</class>
 		<status>unimplemented</status>
-		<description>Gets a Java GatewayHelper object that provides methods and properties for use with a event gateways.</description>
+		<description>Gets a Java GatewayHelper object that provides methods and properties for use with event gateways.</description>
 		<argument>
 			<name>gatewayID</name>
 			<type>string</type>
@@ -5792,6 +6114,16 @@ The returned number of unallocated bytes is a hint, but not a guarantee, that it
 			<type>struct</type>
 		</return>
 	</function>
+    <!-- getHTTPRequestHeaders -->
+    <function>
+        <name>getHTTPRequestHeaders</name>
+        <class>lucee.runtime.functions.other.GetHTTPRequestHeaders</class>
+		<status>hidden</status>
+        <description>Returns a Struct with HTTP Request Headers</description>
+        <return>
+            <type>struct</type>
+        </return>
+    </function>
 	<!-- getHttpTimeString -->
 	<function>
 		<name>getHttpTimeString</name>
@@ -5892,7 +6224,7 @@ if this attribute is not provided all types are returned.</description>
 	<function>
 		<name>createPageContext</name>
 		<class>lucee.runtime.functions.other.CreatePageContext</class>
-		<description>Creates a PageContext (http://www.lucee.org/javadoc/lucee/runtime/PageContext.html) object that provides access to page attributes and configuration, request and response objects.</description>
+		<description>Creates a PageContext (https://www.lucee.org/javadoc/lucee/runtime/PageContext.html) object that provides access to page attributes and configuration, request and response objects.</description>
 		<argument>
 			<name>serverName</name>
 			<type>string</type>
@@ -5940,11 +6272,12 @@ if this attribute is not provided all types are returned.</description>
 		</return>
 	</function> -->
 	
+	
 	<!-- getPageContext -->
 	<function>
 		<name>getPageContext</name>
 		<class>lucee.runtime.functions.other.GetPageContext</class>
-		<description>Gets the current PageContext (http://www.lucee.org/javadoc/lucee/runtime/PageContext.html) object that provides access to page attributes and configuration, request and response objects.</description>
+		<description>Gets the current PageContext (https://www.lucee.org/javadoc/lucee/runtime/PageContext.html) object that provides access to page attributes and configuration, request and response objects.</description>
 		<return>
 			<type>any</type>
 		</return>
@@ -5964,7 +6297,7 @@ if this attribute is not provided all types are returned.</description>
 			<name>iniFile</name>
 			<type>string</type>
 			<required>Yes</required>
-			<description>path to a ini file.</description>
+			<description>path to an ini file.</description>
 		</argument>
 		<return>
 			<type>struct</type>
@@ -6290,6 +6623,15 @@ if this attribute is not provided all types are returned.</description>
 			<type>struct</type>
 		</return>
 	</function>
+	<!-- clearTimeZone -->
+	<function>
+		<name>clearTimeZone</name>
+		<class>lucee.runtime.functions.dateTime.ClearTimeZone</class>
+		<description>resets the timezone for the current request to Lucee default setting.</description>
+		<return>
+			<type>void</type>
+		</return>
+	</function>
 	<!-- getTimeZone -->
 	<function>
 		<name>getTimeZone</name>
@@ -6378,7 +6720,7 @@ Default list delimiter: comma character.</description>
 			<alias>string</alias>
 			<type>any</type>
 			<required>Yes</required>
-		<description>String to hash.</description>
+		<description>String or byte array to hash.</description>
     </argument>
 		<argument>
 			<name>algorithm</name>
@@ -6429,7 +6771,7 @@ Default list delimiter: comma character.</description>
 			<type>timezone</type>
 			<required>no</required>
 		<description>
-A datetime object is independent of a specific timezone, it is only a offset in milliseconds from 1970-1-1 00.00:00 UTC (Coordinated Universal Time).
+A datetime object is independent of a specific timezone, it is only an offset in milliseconds from 1970-1-1 00.00:00 UTC (Coordinated Universal Time).
 This means that the timezone only comes into play when you need specific information like hours in a day, minutes in a hour or which day it is since those calculations depend on the timezone.
 For these calculations, a timezone must be specified in order to translate the date object to something else. If you do not provide the timezone in the function call, it will default to the timezone specified in the Lucee Administrator (Settings/Regional), or the timezone specified for the current request using the function setTimezone.
 You can find a list of all available timezones in the Lucee administrator (Settings/Regional). Some examples of valid timezones:
@@ -6814,16 +7156,16 @@ The following things are considered to be empty:
 		<argument>
 			<name>urls</name>
 			<alias>url</alias>
-			<type>struct</type>
+			<type>any</type>
 			<required>no</required>
-			<description>URL scope passed to the request (query string).</description>
+			<description>URL scope passed to the request (query string). This can be a struct or a string following this format [name1=value1&amp;name2=value2].</description>
     	</argument>
 		<argument>
 			<name>forms</name>
 			<alias>form</alias>
-			<type>struct</type>
+			<type>any</type>
 			<required>no</required>
-			<description>FORM scope passed to the request.</description>
+			<description>FORM scope passed to the request.This can be a struct or a string following this format [name1=value1&amp;name2=value2].</description>
     	</argument>
 		<argument>
 			<name>cookies</name>
@@ -7232,6 +7574,17 @@ The following things are considered to be empty:
 			<type>boolean</type>
 		</return>
 	</function>
+	
+	<!-- IsWithinTransaction -->
+	<function>
+		<name>isWithinTransaction</name>
+		<class>lucee.runtime.functions.query.IsWithinTransaction</class>
+		<keywords>decision,query,datasource</keywords>
+		<description>Determines whether the current thread is within a transaction block or not.</description>
+		<return>
+			<type>boolean</type>
+		</return>
+	</function>
 	<!-- IsVideoFile -->
 	<function>
 		<name>IsVideoFile</name>
@@ -7491,6 +7844,14 @@ The following things are considered to be empty:
 			<description>Characters that separate list elements. The default value is comma.
 			If this string contains more than one character, only the first character is used.</description>
 		</argument>
+		<argument>
+			<name>includeEmptyFields</name>
+			<status>hidden</status>
+			<type>boolean</type>
+			<required>No</required>
+			<default>true</default>
+			<description>if false it cleans up empty fields.</description>
+		</argument>
 		<return>
 			<type>string</type>
 		</return>
@@ -7580,7 +7941,7 @@ The following things are considered to be empty:
 		<class>lucee.runtime.functions.list.ListCompact</class>
 		<keywords>list,string</keywords>
 		<member-name>listCompact</member-name>
-		<description>remove empty items at the and and at the start of the list</description>
+		<description>Removes any empty items from the start and end of the list</description>
 		<argument>
 			<name>list</name>
 			<type>string</type>
@@ -7789,6 +8150,7 @@ The following things are considered to be empty:
 		</argument>
 		<argument>
 			<name>maxThreads</name>
+			<alias>maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
 			<default>20</default>
@@ -8162,6 +8524,14 @@ The following things are considered to be empty:
 			<default>,</default>
 			<description>Characters that separate list elements. The default value is comma.</description>
 		</argument>
+		<argument>
+			<name>includeEmptyFields</name>
+			<status>hidden</status>
+			<type>boolean</type>
+			<required>No</required>
+			<default>true</default>
+			<description>if false it cleans up empty fields.</description>
+		</argument>
 		<return>
 			<type>string</type>
 		</return>
@@ -8214,6 +8584,66 @@ The following things are considered to be empty:
 			<type>string</type>
 		</return>
 	</function>
+	
+	<!-- ListQualifiedToArray -->
+	<function>
+		<name>ListQualifiedToArray</name>
+		<status>hidden</status>
+		<class>lucee.runtime.functions.list.ListQualifiedToArray</class>
+		<keywords>list,string,array</keywords>
+		<member-name>listQualifiedToArray</member-name>
+		<description>Copies the elements of a list to an array.</description>
+		<argument>
+			<name>list</name>
+			<type>string</type>
+			<required>Yes</required>
+			<description>a string list</description>
+		</argument>
+		<argument>
+			<name>delimiter</name>
+			<alias>delimiters</alias>
+			<type>string</type>
+			<required>No</required>
+			<default>,</default>
+			<description>a single character that separate list elements.</description>
+		</argument>
+		<argument>
+			<name>qualifier</name>
+			<alias>qualifiers</alias>
+			<type>string</type>
+			<required>No</required>
+			<default>"</default>
+			<description>a single character before and after the list elements.</description>
+		</argument>
+		<argument>
+			<name>qualifierRequired</name>
+			<type>boolean</type>
+			<required>No</required>
+			<default>false</default>
+			<description>if set to true, all values need to have qualifier (quotes) around them.</description>
+		</argument>
+		<argument>
+			<name>includeEmptyFields</name>
+			<type>boolean</type>
+			<required>No</required>
+			<default>false</default>
+			<description>if set to true, empty values are included as well</description>
+		</argument>
+		<!-- not yet supported <argument>
+			<name>multiCharacterDelimiter</name>
+			<default>false</default>
+			<type>boolean</type>
+			<required>No</required>
+			<default>false</default>
+			<description>specifying whether the delimiters parameter specifies a multi-character delimiter. The default is false. If this parameter is true, the delimiters parameter must specify a single delimiter consisting of multiple characters. This parameter enables the ListToArray function to convert a list such as the following to an array of color names: red:|orange:|yellow:|green:|blue:|indigo:|violet.</description>
+		</argument> -->
+		
+		<return>
+			<type>array</type>
+		</return>
+	</function>
+	
+	
 	<!-- listRest -->
 	<function>
 		<name>listRest</name>
@@ -8698,7 +9128,7 @@ The following things are considered to be empty:
 			<type>timezone</type>
 			<required>no</required>
 		<description>
-A datetime object is independent of a specific timezone, it is only a offset in milliseconds from 1970-1-1 00.00:00 UTC (Coordinated Universal Time).
+A datetime object is independent of a specific timezone, it is only an offset in milliseconds from 1970-1-1 00.00:00 UTC (Coordinated Universal Time).
 This means that the timezone only comes into play when you need specific information like hours in a day, minutes in a hour or which day it is since those calculations depend on the timezone.
 For these calculations, a timezone must be specified in order to translate the date object to something else. If you do not provide the timezone in the function call, it will default to the timezone specified in the Lucee Administrator (Settings/Regional), or the timezone specified for the current request using the function setTimezone.
 You can find a list of all available timezones in the Lucee administrator (Settings/Regional). Some examples of valid timezones:
@@ -8728,7 +9158,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>timezone</type>
 			<required>no</required>
 		<description>
-A datetime object is independent of a specific timezone, it is only a offset in milliseconds from 1970-1-1 00.00:00 UTC (Coordinated Universal Time).
+A datetime object is independent of a specific timezone, it is only an offset in milliseconds from 1970-1-1 00.00:00 UTC (Coordinated Universal Time).
 This means that the timezone only comes into play when you need specific information like hours in a day, minutes in a hour or which day it is since those calculations depend on the timezone.
 For these calculations, a timezone must be specified in order to translate the date object to something else. If you do not provide the timezone in the function call, it will default to the timezone specified in the Lucee Administrator (Settings/Regional), or the timezone specified for the current request using the function setTimezone.
 You can find a list of all available timezones in the Lucee administrator (Settings/Regional). Some examples of valid timezones:
@@ -8758,7 +9188,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>timezone</type>
 			<required>no</required>
 		<description>
-A datetime object is independent of a specific timezone, it is only a offset in milliseconds from 1970-1-1 00.00:00 UTC (Coordinated Universal Time).
+A datetime object is independent of a specific timezone, it is only an offset in milliseconds from 1970-1-1 00.00:00 UTC (Coordinated Universal Time).
 This means that the timezone only comes into play when you need specific information like hours in a day, minutes in a hour or which day it is since those calculations depend on the timezone.
 For these calculations, a timezone must be specified in order to translate the date object to something else. If you do not provide the timezone in the function call, it will default to the timezone specified in the Lucee Administrator (Settings/Regional), or the timezone specified for the current request using the function setTimezone.
 You can find a list of all available timezones in the Lucee administrator (Settings/Regional). Some examples of valid timezones:
@@ -8832,13 +9262,13 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 	<function>
 		<name>ObjectLoad</name>
 		<class>lucee.runtime.functions.other.ObjectLoad</class>
-		<description>loads a object serialized in a binary form from a file or as binary input</description>
+		<description>loads an object serialized in a binary form from a file or as binary input</description>
 		<argument>
 			<name>input</name>
 			<alias>object</alias>
 			<type>any</type>
 			<required>no</required>
-			<description>a binary representation of a object or a path to a file that contains this</description>
+			<description>a binary representation of an object or a path to a file that contains this</description>
    		</argument>
 		<return>
 			<type>any</type>
@@ -8849,7 +9279,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 	<function>
 		<name>ObjectSave</name>
 		<class>lucee.runtime.functions.other.ObjectSave</class>
-		<description>serialize a (Serialiable) object to a binary representation of th object</description>
+		<description>serialize a (Serializable) object to a binary representation of the object</description>
 		<argument>
 			<name>input</name>
 			<alias>object</alias>
@@ -9135,7 +9565,7 @@ ormEvictQueries([cacheName])</description>
 			<type>timezone</type>
 			<required>no</required>
 		<description>
-A datetime object is independent of a specific timezone, it is only a offset in milliseconds from 1970-1-1 00.00:00 UTC (Coordinated Universal Time).
+A datetime object is independent of a specific timezone, it is only an offset in milliseconds from 1970-1-1 00.00:00 UTC (Coordinated Universal Time).
 This means that the timezone only comes into play when you need specific information like hours in a day, minutes in a hour or which day it is since those calculations depend on the timezone.
 For these calculations, a timezone must be specified in order to translate the date object to something else. If you do not provide the timezone in the function call, it will default to the timezone specified in the Lucee Administrator (Settings/Regional), or the timezone specified for the current request using the function setTimezone.
 You can find a list of all available timezones in the Lucee administrator (Settings/Regional). Some examples of valid timezones:
@@ -9153,7 +9583,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<name>query</name>
 		<class>lucee.runtime.functions.query.Query_</class>
 		<keywords>query</keywords>
-		<description>create ans populates a query object in the form query(columnName1:[1,2,3],columnName2:[4,5,6])</description>
+		<description>Create and populate a query object in the form query(columnName1:[1,2,3],columnName2:[4,5,6])</description>
 		<argument-type>dynamic</argument-type>
 		<return>
 			<type>query</type>
@@ -9218,7 +9648,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>any</type>
 			<required>No</required>
 			<default>1</default>
-		<description>Number of rows to add to the query or a struct/array containing the data tp populate the row.
+		<description>Number of rows to add to the query or a struct/array containing the data to populate the row.
 		Example:
 		queryAddRow(qry,3);
 		queryAddRow(qry,["Susi",20]);
@@ -9244,6 +9674,23 @@ You can find a list of all available timezones in the Lucee administrator (Setti
     </argument>	
 		<return>
 			<type>number</type>
+		</return>
+	</function>
+
+	<!-- queryClose -->
+	<function>
+		<name>queryClose</name>
+		<class>lucee.runtime.functions.query.QueryClose</class>
+		<keywords>query</keywords>
+		<description>When using lazy="true", it is important to close the resultset during a request or it will continue to use heap memory.</description>
+		<argument>
+			<name>query</name>
+			<type>query</type>
+			<required>Yes</required>
+			<description></description>
+		</argument>
+		<return>
+			<type>boolean</type>
 		</return>
 	</function>
 	
@@ -9362,6 +9809,74 @@ You can find a list of all available timezones in the Lucee administrator (Setti
     			<required>Yes</required>
     			<description>position of the row to be returned</description>
     	    </argument>
+			<argument>
+    			<name>format</name>
+    			<type>string</type>
+    			<required>No</required>
+    			<description>struct or array</description>
+				<default>struct</default>
+				<alias>returnFormat</alias>
+    	    </argument>
+    		<return>
+    			<type>any</type>
+    		</return>
+    	</function>
+
+	<!-- queryRowByIndex -->
+    	<function>
+    		<name>queryRowByIndex</name>
+    		<class>lucee.runtime.functions.query.QueryRowByIndex</class>
+    		<member-name>rowByIndex</member-name>
+    		<keywords>query</keywords>
+			<description></description>
+    		<argument>
+    			<name>query</name>
+    			<type>query</type>
+    			<required>Yes</required>
+    			<description>query object do get data from</description>
+    	    </argument>
+    		<argument>
+    			<name>index</name>
+    			<type>string</type>
+    			<required>Yes</required>
+    			<description></description>
+    	    </argument>
+			<argument>
+				<name>defaultValue</name>
+				<type>numeric</type>
+				<required>no</required>
+				<description>In case no matching index was found, this value is returned by the function, in case it is not set, the function will throw an exception.</description>
+			</argument>
+    		<return>
+    			<type>numeric</type>
+    		</return>
+    	</function>
+    	
+	<!-- queryRowDataByIndex -->
+    	<function>
+    		<name>queryRowDataByIndex</name>
+    		<class>lucee.runtime.functions.query.QueryRowDataByIndex</class>
+    		<member-name>rowDataByIndex</member-name>
+    		<keywords>query</keywords>
+			<description></description>
+    		<argument>
+    			<name>query</name>
+    			<type>query</type>
+    			<required>Yes</required>
+    			<description>query object do get data from</description>
+    	    </argument>
+    		<argument>
+    			<name>index</name>
+    			<type>string</type>
+    			<required>Yes</required>
+    			<description></description>
+    	    </argument>
+			<argument>
+				<name>defaultValue</name>
+				<type>struct</type>
+				<required>no</required>
+				<description>In case no matching index was found, this value is returned by the function, in case it is not set, the function will throw an exception.</description>
+			</argument>
     		<return>
     			<type>struct</type>
     		</return>
@@ -9488,6 +10003,41 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>any</type>
 		</return>
 	</function>
+	<!-- queryGetCellByIndex -->
+	<function>
+		<name>queryGetCellByIndex</name>
+		<class>lucee.runtime.functions.query.QueryGetCellByIndex</class>
+		<member-name>getCellByIndex</member-name>
+		<keywords>query</keywords>
+		<description>return the value of a specific query cell</description>
+		<argument>
+			<name>query</name>
+			<type>query</type>
+			<required>Yes</required>
+			<description>query to get cell value from</description>
+		</argument>
+		<argument>
+			<name>column_name</name>
+			<type>string</type>
+			<required>Yes</required>
+			<description>name of the column</description>
+		</argument>
+		<argument>
+			<name>index</name>
+			<type>string</type>
+			<required>yes</required>
+			<description></description>
+		</argument>
+		<argument>
+			<name>defaultValue</name>
+			<type>any</type>
+			<required>no</required>
+			<description>In case no matching index was found, this value is returned by the function, in case it is not set, the function will throw an exception.</description>
+		</argument>
+		<return>
+			<type>any</type>
+		</return>
+	</function>
 	<!-- queryNew -->
 	<function>
 		<name>queryNew</name>
@@ -9499,20 +10049,20 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<alias>names,columns,columnlist</alias>
 			<type>object</type>
 			<required>Yes</required>
-			<description>column names for the query created, allowed are comma-delimited string lists or a array.</description>
+			<description>column names for the query created, allowed are comma-delimited string lists or an array.</description>
     	</argument>
 		<argument>
 			<name>columnTypes</name>
 			<alias>types,columntypelist</alias>
 			<type>object</type>
 			<required>No</required>
-			<description>column types for the query created, allowed are comma-delimited string lists or a array.</description>
+			<description>column types for the query created, allowed are comma-delimited string lists or an array.</description>
     	</argument>
 		<argument>
 			<name>data</name>
 			<type>any</type>
 			<required>No</required>
-			<description>data to populate the new Query, a array of arrays or a array of structs.
+			<description>data to populate the new Query, an array of arrays or an array of structs.
 			Example usage:
 			queryNew("name,age","varchar,numeric",[["Susi",20],["Urs",24]]);
 			queryNew("name,age","varchar,numeric",[[name:"Susi",age:20],[name:"Urs",age:24]]);
@@ -9581,6 +10131,40 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>boolean</type>
 		</return>
 	</function>
+
+	<!-- querySetRow -->
+    	<function>
+    		<name>querySetRow</name>
+    		<class>lucee.runtime.functions.query.QuerySetRow</class>
+    		<member-name>setRow</member-name>
+    		<keywords>query</keywords>
+			<description>Adds a row to a query, either by struct or array</description>
+    		<argument>
+    			<name>query</name>
+    			<type>query</type>
+    			<required>Yes</required>
+    			<description>query object do get data from</description>
+    	    </argument>
+    		<argument>
+    			<name>rowNumber</name>
+				<alias>row</alias>
+    			<type>number</type>
+    			<required>No</required>
+    			<description>position of the row to updated, otherwise a new row is added</description>
+				<default>0</default>
+    	    </argument>
+			<argument>
+    			<name>rowData</name>
+    			<type>any</type>
+    			<required>yes</required>
+    			<description>a struct or array</description>
+				<alias>data</alias>
+    	    </argument>
+    		<return>
+    			<type>boolean</type>
+    		</return>
+    	</function>
+
 	<!-- querySlice -->
 	<function>
 		<name>querySlice</name>
@@ -9758,6 +10342,17 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<required>No</required>
 			<description></description>
     	</argument>
+		<argument>
+			<name>multiline</name>
+			<type>boolean</type>
+			<required>No</required>
+			<default>false</default>
+			<description>
+				If true indicate the regular expression should treat input as having multiple lines.
+				This option affects the interpretation of the ^ and $ metacharacters. 
+				When true the ^ metacharacter matches at the beginning of every line, and the $ metacharacter matches at the end of every line. 
+				Additionally the . metacharacter will not match newlines when true.</description>
+		</argument>
 		<return>
 			<type>any</type>
 		</return>
@@ -9814,6 +10409,17 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<required>No</required>
 			<description></description>
     	</argument>
+		<argument>
+			<name>multiline</name>
+			<type>boolean</type>
+			<required>No</required>
+			<default>false</default>
+			<description>
+				If true indicate the regular expression should treat input as having multiple lines.
+				This option affects the interpretation of the ^ and $ metacharacters. 
+				When true the ^ metacharacter matches at the beginning of every line, and the $ metacharacter matches at the end of every line. 
+				Additionally the . metacharacter will not match newlines when true.</description>
+		</argument>
 		<return>
 			<type>any</type>
 		</return>
@@ -9837,8 +10443,19 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<name>string</name>
 			<type>string</type>
 			<required>Yes</required>
-		<description>String in which to search.</description>
-    </argument>
+			<description>String in which to search.</description>
+		</argument>
+		<argument>
+			<name>multiline</name>
+			<type>boolean</type>
+			<required>No</required>
+			<default>false</default>
+			<description>
+				If true indicate the regular expression should treat input as having multiple lines.
+				This option affects the interpretation of the ^ and $ metacharacters. 
+				When true the ^ metacharacter matches at the beginning of every line, and the $ metacharacter matches at the end of every line. 
+				Additionally the . metacharacter will not match newlines when true.</description>
+		</argument>
 		<return>
 			<type>array</type>
 		</return>
@@ -9862,8 +10479,19 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<name>string</name>
 			<type>string</type>
 			<required>Yes</required>
-		<description>String in which to search.</description>
-    </argument>
+			<description>String in which to search.</description>
+		</argument>
+		<argument>
+			<name>multiline</name>
+			<type>boolean</type>
+			<required>No</required>
+			<default>false</default>
+			<description>
+				If true indicate the regular expression should treat input as having multiple lines.
+				This option affects the interpretation of the ^ and $ metacharacters. 
+				When true the ^ metacharacter matches at the beginning of every line, and the $ metacharacter matches at the end of every line. 
+				Additionally the . metacharacter will not match newlines when true.</description>
+		</argument>
 		<return>
 			<type>array</type>
 		</return>
@@ -10198,7 +10826,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 	<function>
 		<name>RestDeleteApplication</name>
 		<class>lucee.runtime.functions.rest.RestDeleteApplication</class>
-		<description>Deletes a existing REST mapping.</description>
+		<description>Deletes an existing REST mapping.</description>
 		<argument>
 			<name>dirPath</name>
 			<alias>dir,directory,path</alias>
@@ -10429,7 +11057,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>timezone</type>
 			<required>no</required>
 		<description>
-A datetime object is independent of a specific timezone, it is only a offset in milliseconds from 1970-1-1 00.00:00 UTC (Coordinated Universal Time).
+A datetime object is independent of a specific timezone, it is only an offset in milliseconds from 1970-1-1 00.00:00 UTC (Coordinated Universal Time).
 This means that the timezone only comes into play when you need specific information like hours in a day, minutes in a hour or which day it is since those calculations depend on the timezone.
 For these calculations, a timezone must be specified in order to translate the date object to something else. If you do not provide the timezone in the function call, it will default to the timezone specified in the Lucee Administrator (Settings/Regional), or the timezone specified for the current request using the function setTimezone.
 You can find a list of all available timezones in the Lucee administrator (Settings/Regional). Some examples of valid timezones:
@@ -10467,7 +11095,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>timezone</type>
 			<required>no</required>
 		<description>
-A datetime object is independent of a specific timezone, it is only a offset in milliseconds from 1970-1-1 00.00:00 UTC (Coordinated Universal Time).
+A datetime object is independent of a specific timezone, it is only an offset in milliseconds from 1970-1-1 00.00:00 UTC (Coordinated Universal Time).
 This means that the timezone only comes into play when you need specific information like hours in a day, minutes in a hour or which day it is since those calculations depend on the timezone.
 For these calculations, a timezone must be specified in order to translate the date object to something else. If you do not provide the timezone in the function call, it will default to the timezone specified in the Lucee Administrator (Settings/Regional), or the timezone specified for the current request using the function setTimezone.
 You can find a list of all available timezones in the Lucee administrator (Settings/Regional). Some examples of valid timezones:
@@ -10505,7 +11133,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>timezone</type>
 			<required>no</required>
 		<description>
-A datetime object is independent of a specific timezone, it is only a offset in milliseconds from 1970-1-1 00.00:00 UTC (Coordinated Universal Time).
+A datetime object is independent of a specific timezone, it is only an offset in milliseconds from 1970-1-1 00.00:00 UTC (Coordinated Universal Time).
 This means that the timezone only comes into play when you need specific information like hours in a day, minutes in a hour or which day it is since those calculations depend on the timezone.
 For these calculations, a timezone must be specified in order to translate the date object to something else. If you do not provide the timezone in the function call, it will default to the timezone specified in the Lucee Administrator (Settings/Regional), or the timezone specified for the current request using the function setTimezone.
 You can find a list of all available timezones in the Lucee administrator (Settings/Regional). Some examples of valid timezones:
@@ -10543,7 +11171,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>timezone</type>
 			<required>no</required>
 		<description>
-A datetime object is independent of a specific timezone, it is only a offset in milliseconds from 1970-1-1 00.00:00 UTC (Coordinated Universal Time).
+A datetime object is independent of a specific timezone, it is only an offset in milliseconds from 1970-1-1 00.00:00 UTC (Coordinated Universal Time).
 This means that the timezone only comes into play when you need specific information like hours in a day, minutes in a hour or which day it is since those calculations depend on the timezone.
 For these calculations, a timezone must be specified in order to translate the date object to something else. If you do not provide the timezone in the function call, it will default to the timezone specified in the Lucee Administrator (Settings/Regional), or the timezone specified for the current request using the function setTimezone.
 You can find a list of all available timezones in the Lucee administrator (Settings/Regional). Some examples of valid timezones:
@@ -10582,7 +11210,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>timezone</type>
 			<required>no</required>
 		<description>
-A datetime object is independent of a specific timezone, it is only a offset in milliseconds from 1970-1-1 00.00:00 UTC (Coordinated Universal Time).
+A datetime object is independent of a specific timezone, it is only an offset in milliseconds from 1970-1-1 00.00:00 UTC (Coordinated Universal Time).
 This means that the timezone only comes into play when you need specific information like hours in a day, minutes in a hour or which day it is since those calculations depend on the timezone.
 For these calculations, a timezone must be specified in order to translate the date object to something else. If you do not provide the timezone in the function call, it will default to the timezone specified in the Lucee Administrator (Settings/Regional), or the timezone specified for the current request using the function setTimezone.
 You can find a list of all available timezones in the Lucee administrator (Settings/Regional). Some examples of valid timezones:
@@ -10621,7 +11249,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>timezone</type>
 			<required>no</required>
 		<description>
-A datetime object is independent of a specific timezone, it is only a offset in milliseconds from 1970-1-1 00.00:00 UTC (Coordinated Universal Time).
+A datetime object is independent of a specific timezone, it is only an offset in milliseconds from 1970-1-1 00.00:00 UTC (Coordinated Universal Time).
 This means that the timezone only comes into play when you need specific information like hours in a day, minutes in a hour or which day it is since those calculations depend on the timezone.
 For these calculations, a timezone must be specified in order to translate the date object to something else. If you do not provide the timezone in the function call, it will default to the timezone specified in the Lucee Administrator (Settings/Regional), or the timezone specified for the current request using the function setTimezone.
 You can find a list of all available timezones in the Lucee administrator (Settings/Regional). Some examples of valid timezones:
@@ -10660,7 +11288,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>timezone</type>
 			<required>no</required>
 		<description>
-A datetime object is independent of a specific timezone, it is only a offset in milliseconds from 1970-1-1 00.00:00 UTC (Coordinated Universal Time).
+A datetime object is independent of a specific timezone, it is only an offset in milliseconds from 1970-1-1 00.00:00 UTC (Coordinated Universal Time).
 This means that the timezone only comes into play when you need specific information like hours in a day, minutes in a hour or which day it is since those calculations depend on the timezone.
 For these calculations, a timezone must be specified in order to translate the date object to something else. If you do not provide the timezone in the function call, it will default to the timezone specified in the Lucee Administrator (Settings/Regional), or the timezone specified for the current request using the function setTimezone.
 You can find a list of all available timezones in the Lucee administrator (Settings/Regional). Some examples of valid timezones:
@@ -10699,7 +11327,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>timezone</type>
 			<required>no</required>
 		<description>
-A datetime object is independent of a specific timezone, it is only a offset in milliseconds from 1970-1-1 00.00:00 UTC (Coordinated Universal Time).
+A datetime object is independent of a specific timezone, it is only an offset in milliseconds from 1970-1-1 00.00:00 UTC (Coordinated Universal Time).
 This means that the timezone only comes into play when you need specific information like hours in a day, minutes in a hour or which day it is since those calculations depend on the timezone.
 For these calculations, a timezone must be specified in order to translate the date object to something else. If you do not provide the timezone in the function call, it will default to the timezone specified in the Lucee Administrator (Settings/Regional), or the timezone specified for the current request using the function setTimezone.
 You can find a list of all available timezones in the Lucee administrator (Settings/Regional). Some examples of valid timezones:
@@ -10717,7 +11345,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 	<function>
 		<name>SendGatewayMessage</name>
 		<class>lucee.runtime.functions.gateway.SendGatewayMessage</class>
-		<description>Sends an outgoing message through a event gateway.</description>
+		<description>Sends an outgoing message through an event gateway.</description>
 		<argument>
 			<name>gatewayID</name>
 			<type>string</type>
@@ -10754,6 +11382,8 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 	<function>
 		<name>SerializeJSON</name>
 		<class>lucee.runtime.functions.conversion.SerializeJSON</class>
+		<member-name>toJson</member-name>
+		<member-type>any</member-type>
 		<keywords>string,formatting,json,javascript</keywords>
 		<description>Converts CFML data into a JSON (JavaScript Object Notation) representation of the data.</description>
 		<argument>
@@ -11266,6 +11896,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</argument>
 		<argument>
 			<name>maxThreads</name>
+			<alias>maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
 			<default>20</default>
@@ -11305,6 +11936,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</argument>
 		<argument>
 			<name>maxThreads</name>
+			<alias>maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
 			<default>20</default>
@@ -11343,6 +11975,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</argument>
 		<argument>
 			<name>maxThreads</name>
+			<alias>maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
 			<default>20</default>
@@ -11380,6 +12013,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</argument>
 		<argument>
 			<name>maxThreads</name>
+			<alias>maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
 			<default>20</default>
@@ -11418,6 +12052,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</argument>
 		<argument>
 			<name>maxThreads</name>
+			<alias>maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
 			<default>20</default>
@@ -11501,9 +12136,9 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<name>ListReduce</name>
 		<class>lucee.runtime.functions.list.ListReduce</class>
 		<member-name>listReduce</member-name>
-		<keywords>array,iterator</keywords>
-		<description>Iterates over every entry of the given array and calls the closure with every element. 
-		This function will reduce the array to a single value and will return the value.</description>
+		<keywords>list,iterator</keywords>
+		<description>Iterates over every entry of the given list and calls the closure with every element. 
+		This function will reduce the list to a single value and will return the value.</description>
 		<argument>
 			<name>list</name>
 			<alias>string</alias>
@@ -11648,6 +12283,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</argument>
 		<argument>
 			<name>maxThreads</name>
+			<alias>maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
 			<default>20</default>
@@ -11687,6 +12323,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</argument>
 		<argument>
 			<name>maxThreads</name>
+			<alias>maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
 			<default>20</default>
@@ -11726,6 +12363,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</argument>
 		<argument>
 			<name>maxThreads</name>
+			<alias>maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
 			<default>20</default>
@@ -11742,7 +12380,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<name>ListSome</name>
 		<class>lucee.runtime.functions.list.ListSome</class>
 		<member-name>listSome,some</member-name>
-		<keywords>array,iterator</keywords>
+		<keywords>list,iterator</keywords>
 		<description>This function calls a given closure/function with every element in a given string list and returns true, if one of the closure calls returns true.</description>
 		<argument>
 			<name>list</name>
@@ -11788,6 +12426,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</argument>
 		<argument>
 			<name>maxThreads</name>
+			<alias>maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
 			<default>20</default>
@@ -11827,6 +12466,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</argument>
 		<argument>
 			<name>maxThreads</name>
+			<alias>maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
 			<default>20</default>
@@ -11866,6 +12506,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</argument>
 		<argument>
 			<name>maxThreads</name>
+			<alias>maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
 			<default>20</default>
@@ -11904,6 +12545,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</argument>
 		<argument>
 			<name>maxThreads</name>
+			<alias>maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
 			<default>20</default>
@@ -11944,6 +12586,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</argument>
 		<argument>
 			<name>maxThreads</name>
+			<alias>maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
 			<default>20</default>
@@ -12005,6 +12648,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</argument>
 		<argument>
 			<name>maxThreads</name>
+			<alias>maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
 			<default>20</default>
@@ -12044,6 +12688,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</argument>
 		<argument>
 			<name>maxThreads</name>
+			<alias>maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
 			<default>20</default>
@@ -12083,6 +12728,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</argument>
 		<argument>
 			<name>maxThreads</name>
+			<alias>maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
 			<default>20</default>
@@ -12272,16 +12918,14 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<class>lucee.runtime.functions.struct.StructKeyArray</class>
 		<member-name>keyArray</member-name>
 		<keywords>struct</keywords>
-		<description>Finds the keys in a struct.
-        An array of keys; if structure does not exist, CFML
-        throws an exception.</description>
+		<description>Returns an Array with the keys of the Struct</description>
 		<argument>
 			<name>struct</name>
 			<alias>structure,object</alias>
 			<type>struct</type>
 			<required>Yes</required>
-		<description>Structure from which to extract a list of keys</description>
-    </argument>
+			<description>Structure from which to extract a list of keys</description>
+		</argument>
 		<return>
 			<type>array</type>
 		</return>
@@ -12367,8 +13011,6 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 				leave original key in struct
 			</description>
 		</argument>
-		
-		
 		<return>
 			<type>number</type>
 		</return>
@@ -12474,6 +13116,24 @@ _- asc (default): ascending (a to z) sort order
 			<type>boolean</type>
 		</return>
 	</function>
+	<!-- structValueArray -->
+	<function>
+		<name>structValueArray</name>
+		<class>lucee.runtime.functions.struct.StructValueArray</class>
+		<member-name>valueArray</member-name>
+		<keywords>struct</keywords>
+		<description>Returns an Array with the values of the Struct</description>
+		<argument>
+			<name>struct</name>
+			<alias>structure,object</alias>
+			<type>struct</type>
+			<required>Yes</required>
+			<description>Structure from which to extract a list of keys</description>
+		</argument>
+		<return>
+			<type>array</type>
+		</return>
+	</function>
 	
 	<!-- SystemOutput -->
 	<function>
@@ -12518,6 +13178,16 @@ _- asc (default): ascending (a to z) sort order
     </argument>
 		<return>
 			<type>number</type>
+		</return>
+	</function>
+	<!-- ThreadData -->
+	<function>
+		<name>ThreadData</name>
+		<class>lucee.runtime.functions.thread.ThreadData</class>
+		<keywords>threading</keywords>
+		<description>returns the root cfthread scope.</description>
+		<return>
+			<type>struct</type>
 		</return>
 	</function>
 
@@ -12993,9 +13663,9 @@ _- asc (default): ascending (a to z) sort order
 			<name>caseSensitive</name>
 			<type>boolean</type>
 			<required>No</required>
-		<description>Maintains the case of document elements and attributes.
+			<description>Maintains the case of document elements and attributes.
             Default: false</description>
-    </argument>
+    	</argument>
 		<argument>
 			<name>validator</name>
 			<type>string</type>
@@ -13005,6 +13675,13 @@ _- asc (default): ascending (a to z) sort order
 - The name of a DTD or Schema file
 - The URL of a DTD or Schema file; valid protocol identifiers include http, https, ftp, and file</description>
     </argument>
+		<argument>
+			<name>lenient</name>
+			<type>boolean</type>
+			<required>No</required>
+			<default>false</default>
+			<description>if set to true, the parser is more lenient and forgives invalid XML and does the best to interpret it.</description>
+		</argument>
 		<return>
 			<type>xml</type>
 		</return>
@@ -13114,12 +13791,13 @@ _- asc (default): ascending (a to z) sort order
 		</argument>
 		<argument>
 			<name>validator</name>
-			<type>string</type>
+			<alias>validators</alias>
+			<type>any</type>
 			<required>No</required>
 			<description>Any of the following:
  - A string containing a DTD or Schema.
- - The name of a DTD or Schema file.
- - The URL of a DTD or Schema file; valid protocol identifiers include http, https, ftp, and file.</description>
+ - The name of a DTD, Schema file or an array containing multiple schema file names.
+ - The URL of a DTD or Schema file or an array containing multiple schema URLs; valid protocol identifiers include http, https, ftp, and file.</description>
 		</argument>
 		<return>
 			<type>struct</type>
@@ -13142,7 +13820,7 @@ _- asc (default): ascending (a to z) sort order
 			<type>timezone</type>
 			<required>no</required>
 			<description>
-A datetime object is independent of a specific timezone, it is only a offset in milliseconds from 1970-1-1 00.00:00 UTC (Coordinated Universal Time).
+A datetime object is independent of a specific timezone, it is only an offset in milliseconds from 1970-1-1 00.00:00 UTC (Coordinated Universal Time).
 This means that the timezone only comes into play when you need specific information like hours in a day, minutes in a hour or which day it is since those calculations depend on the timezone.
 For these calculations, a timezone must be specified in order to translate the date object to something else. If you do not provide the timezone in the function call, it will default to the timezone specified in the Lucee Administrator (Settings/Regional), or the timezone specified for the current request using the function setTimezone.
 You can find a list of all available timezones in the Lucee administrator (Settings/Regional). Some examples of valid timezones:
@@ -13214,6 +13892,77 @@ You can find a list of all available timezones in the Lucee administrator (Setti
     		<default>false</default>
     		<description>pass true for a case-insensitive match</description>
         </argument>
+    	<return>
+    		<type>boolean</type>
+    	</return>
+    </function>
+    
+    <function>
+		<name>GenerateArgon2Hash</name>
+		<class>lucee.runtime.functions.other.GenerateArgon2Hash</class>
+		<description>Returns hash of input using Argon2.</description>
+    	<argument>
+			<name>input</name>
+			<type>string</type>
+			<required>Yes</required>
+			<description>Input string.</description>
+    	</argument>
+    	<argument>
+			<name>variant</name>
+			<type>string</type>
+			<required>No</required>
+			<default>argon2i</default>
+			<description>Either Argon2i, Argon2d or Argon2id</description>
+    	</argument>
+    	<argument>
+			<name>parallelismFactor</name>
+			<type>number</type>
+			<required>No</required>
+			<default>1</default>
+			<description>Degrees of parallelism, a number between 1 and 10.</description>
+    	</argument>
+    	<argument>
+			<name>memoryCost</name>
+			<type>number</type>
+			<required>No</required>
+			<default>8</default>
+			<description>A number between 8 and 100000.</description>
+    	</argument>
+    	<argument>
+			<name>iterations</name>
+			<type>number</type>
+			<required>No</required>
+			<default>1</default>
+			<description>A number between 1 and 20.</description>
+    	</argument>
+    	<return>
+    		<type>string</type>
+    	</return>
+    </function>
+    
+    <function>
+		<name>Argon2CheckHash</name>
+		<class>lucee.runtime.functions.other.Argon2CheckHash</class>
+		<description>Returns hash of input using Argon2.</description>
+    	<argument>
+			<name>input</name>
+			<type>string</type>
+			<required>Yes</required>
+			<description>Input string.</description>
+    	</argument>
+    	<argument>
+			<name>hash</name>
+			<type>string</type>
+			<required>Yes</required>
+			<description>Degrees of parallelism, a number between 1 and 10.</description>
+    	</argument>
+    	<argument>
+			<name>variant</name>
+			<type>string</type>
+			<required>No</required>
+			<default>argon2i</default>
+			<description>Either Argon2i, Argon2d or Argon2id</description>
+    	</argument>
     	<return>
     		<type>boolean</type>
     	</return>

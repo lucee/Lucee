@@ -19,103 +19,103 @@
 package lucee.runtime.functions.decision;
 
 import lucee.runtime.PageContext;
+import lucee.runtime.PageContextImpl;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
-import lucee.runtime.regex.Perl5Util;
 
 /**
  * 
  */
 public final class IsValid implements Function {
 
-    private static final long serialVersionUID = -1383105304624662986L;
+	private static final long serialVersionUID = -1383105304624662986L;
 
-    /**
-     * check for many diff types
-     * 
-     * @param pc
-     * @param type
-     * @param value
-     * @return
-     * @throws ExpressionException
-     */
-    public static boolean call(PageContext pc, String type, Object value) throws ExpressionException {
-	type = type.trim();
+	/**
+	 * check for many diff types
+	 * 
+	 * @param pc
+	 * @param type
+	 * @param value
+	 * @return
+	 * @throws ExpressionException
+	 */
+	public static boolean call(PageContext pc, String type, Object value) throws ExpressionException {
+		type = type.trim();
 
-	if ("range".equalsIgnoreCase(type)) throw new FunctionException(pc, "isValid", 1, "type", "for [range] you have to define a min and max value");
+		if ("range".equalsIgnoreCase(type)) throw new FunctionException(pc, "isValid", 1, "type", "for [range] you have to define a min and max value");
 
-	if ("regex".equalsIgnoreCase(type) || "regular_expression".equalsIgnoreCase(type))
-	    throw new FunctionException(pc, "isValid", 1, "type", "for [regex] you have to define a pattern");
+		if ("regex".equalsIgnoreCase(type) || "regular_expression".equalsIgnoreCase(type))
+			throw new FunctionException(pc, "isValid", 1, "type", "for [regex] you have to define a pattern");
 
-	return Decision.isValid(type, value);
-    }
-
-    /**
-     * regex check
-     * 
-     * @param pc
-     * @param type
-     * @param value
-     * @param objPattern
-     * @return
-     * @throws PageException
-     */
-    public static boolean call(PageContext pc, String type, Object value, Object objPattern) throws PageException {
-	type = type.trim();
-
-	if (!"regex".equalsIgnoreCase(type) && !"regular_expression".equalsIgnoreCase(type))
-	    throw new FunctionException(pc, "isValid", 1, "type", "wrong attribute count for type [" + type + "]");
-
-	return regex(Caster.toString(value, null), Caster.toString(objPattern));
-    }
-
-    public static boolean regex(String value, String strPattern) {
-	if (value == null) return false;
-	return Perl5Util.matches(strPattern, value, false);
-    }
-
-    public static boolean call(PageContext pc, String type, Object value, Object objMin, Object objMax) throws PageException {
-
-	// for named argument calls
-	if (objMax == null) {
-	    if (objMin == null) return call(pc, type, value);
-	    return call(pc, type, value, objMin);
+		return Decision.isValid(type, value);
 	}
 
-	type = type.trim().toLowerCase();
+	/**
+	 * regex check
+	 * 
+	 * @param pc
+	 * @param type
+	 * @param value
+	 * @param objPattern
+	 * @return
+	 * @throws PageException
+	 */
+	public static boolean call(PageContext pc, String type, Object value, Object objPattern) throws PageException {
+		type = type.trim();
 
-	// numeric
-	if ("range".equals(type) || "integer".equals(type) || "float".equals(type) || "numeric".equals(type) || "number".equals(type)) {
+		if (!"regex".equalsIgnoreCase(type) && !"regular_expression".equalsIgnoreCase(type))
+			throw new FunctionException(pc, "isValid", 1, "type", "wrong attribute count for type [" + type + "]");
 
-	    double number = Caster.toDoubleValue(value, true, Double.NaN);
-	    if (!Decision.isValid(number)) return false;
-
-	    double min = toRangeNumber(pc, objMin, 3, "min");
-	    double max = toRangeNumber(pc, objMax, 4, "max");
-
-	    return number >= min && number <= max;
-	}
-	else if ("string".equals(type)) {
-	    String str = Caster.toString(value, null);
-	    if (str == null) return false;
-
-	    double min = toRangeNumber(pc, objMin, 3, "min");
-	    double max = toRangeNumber(pc, objMax, 4, "max");
-
-	    return str.length() >= min && str.length() <= max;
+		return regex(pc, Caster.toString(value, null), Caster.toString(objPattern));
 	}
 
-	else throw new FunctionException(pc, "isValid", 1, "type", "wrong attribute count for type [" + type + "]");
+	public static boolean regex(PageContext pc, String value, String strPattern) {
+		if (value == null) return false;
+		return ((PageContextImpl) pc).getRegex().matches(strPattern, value, false);
+	}
 
-    }
+	public static boolean call(PageContext pc, String type, Object value, Object objMin, Object objMax) throws PageException {
 
-    private static double toRangeNumber(PageContext pc, Object objMin, int index, String name) throws FunctionException {
-	double d = Caster.toDoubleValue(objMin, false, Double.NaN);
-	if (!Decision.isValid(d)) throw new FunctionException(pc, "isValid", index, name, "value must be numeric");
-	return d;
-    }
+		// for named argument calls
+		if (objMax == null) {
+			if (objMin == null) return call(pc, type, value);
+			return call(pc, type, value, objMin);
+		}
+
+		type = type.trim().toLowerCase();
+
+		// numeric
+		if ("range".equals(type) || "integer".equals(type) || "float".equals(type) || "numeric".equals(type) || "number".equals(type)) {
+
+			double number = Caster.toDoubleValue(value, true, Double.NaN);
+			if (!Decision.isValid(number)) return false;
+
+			double min = toRangeNumber(pc, objMin, 3, "min");
+			double max = toRangeNumber(pc, objMax, 4, "max");
+
+			return number >= min && number <= max;
+		}
+		else if ("string".equals(type)) {
+			String str = Caster.toString(value, null);
+			if (str == null) return false;
+
+			double min = toRangeNumber(pc, objMin, 3, "min");
+			double max = toRangeNumber(pc, objMax, 4, "max");
+
+			return str.length() >= min && str.length() <= max;
+		}
+
+		else throw new FunctionException(pc, "isValid", 1, "type", "wrong attribute count for type [" + type + "]");
+
+	}
+
+	private static double toRangeNumber(PageContext pc, Object objMin, int index, String name) throws FunctionException {
+		double d = Caster.toDoubleValue(objMin, false, Double.NaN);
+		if (!Decision.isValid(d)) throw new FunctionException(pc, "isValid", index, name, "value must be numeric");
+		return d;
+	}
 }

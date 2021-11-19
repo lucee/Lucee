@@ -30,33 +30,33 @@ import lucee.runtime.type.UDF;
 
 public class QueryEvery extends BIF {
 
-    private static final long serialVersionUID = -9206289776586881074L;
+	private static final long serialVersionUID = -9206289776586881074L;
 
-    public static boolean call(PageContext pc, Query qry, UDF udf) throws PageException {
-	return _call(pc, qry, udf, false, 20);
-    }
+	public static boolean call(PageContext pc, Query qry, UDF udf) throws PageException {
+		return _call(pc, qry, udf, false, 20);
+	}
 
-    public static boolean call(PageContext pc, Query qry, UDF udf, boolean parallel) throws PageException {
-	return _call(pc, qry, udf, parallel, 20);
-    }
+	public static boolean call(PageContext pc, Query qry, UDF udf, boolean parallel) throws PageException {
+		return _call(pc, qry, udf, parallel, 20);
+	}
 
-    public static boolean call(PageContext pc, Query qry, UDF udf, boolean parallel, double maxThreads) throws PageException {
-	return _call(pc, qry, udf, parallel, (int) maxThreads);
-    }
+	public static boolean call(PageContext pc, Query qry, UDF udf, boolean parallel, double maxThreads) throws PageException {
+		return _call(pc, qry, udf, parallel, (int) maxThreads);
+	}
 
-    private static boolean _call(PageContext pc, Query qry, UDF udf, boolean parallel, int maxThreads) throws PageException {
-	return Every._call(pc, qry, udf, parallel, maxThreads, ClosureFunc.TYPE_QUERY);
-    }
+	private static boolean _call(PageContext pc, Query qry, UDF udf, boolean parallel, int maxThreads) throws PageException {
+		return Every._call(pc, qry, udf, parallel, maxThreads, ClosureFunc.TYPE_QUERY);
+	}
 
-    @Override
-    public Object invoke(PageContext pc, Object[] args) throws PageException {
+	@Override
+	public Object invoke(PageContext pc, Object[] args) throws PageException {
 
-	if (args.length == 2) return call(pc, Caster.toQuery(args[0]), Caster.toFunction(args[1]));
-	if (args.length == 3) return call(pc, Caster.toQuery(args[0]), Caster.toFunction(args[1]), Caster.toBooleanValue(args[2]));
-	if (args.length == 4) return call(pc, Caster.toQuery(args[0]), Caster.toFunction(args[1]), Caster.toBooleanValue(args[2]), Caster.toDoubleValue(args[3]));
+		if (args.length == 2) return call(pc, Caster.toQuery(args[0]), Caster.toFunction(args[1]));
+		if (args.length == 3) return call(pc, Caster.toQuery(args[0]), Caster.toFunction(args[1]), Caster.toBooleanValue(args[2]));
+		if (args.length == 4) return call(pc, Caster.toQuery(args[0]), Caster.toFunction(args[1]), Caster.toBooleanValue(args[2]), Caster.toDoubleValue(args[3]));
 
-	throw new FunctionException(pc, "QueryEvery", 2, 4, args.length);
+		throw new FunctionException(pc, "QueryEvery", 2, 4, args.length);
 
-    }
+	}
 
 }

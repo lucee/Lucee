@@ -27,49 +27,49 @@ import java.sql.SQLException;
  */
 public interface DatasourceConnection extends Connection {
 
-    /**
-     * @return Returns the connection.
-     */
-    public abstract Connection getConnection();
+	/**
+	 * @return Returns the connection.
+	 */
+	public abstract Connection getConnection();
 
-    /**
-     * @return Returns the datasource.
-     */
-    public abstract DataSource getDatasource();
+	/**
+	 * @return Returns the datasource.
+	 */
+	public abstract DataSource getDatasource();
 
-    /**
-     * @return the password
-     */
-    public String getPassword();
+	/**
+	 * @return the password
+	 */
+	public String getPassword();
 
-    /**
-     * @return the username
-     */
-    public String getUsername();
+	/**
+	 * @return the username
+	 */
+	public String getUsername();
 
-    public boolean supportsGetGeneratedKeys();
+	public boolean supportsGetGeneratedKeys();
 
-    public PreparedStatement getPreparedStatement(SQL sql, boolean createGeneratedKeys, boolean allowCaching) throws SQLException;
+	public PreparedStatement getPreparedStatement(SQL sql, boolean createGeneratedKeys, boolean allowCaching) throws SQLException;
 
-    public PreparedStatement getPreparedStatement(SQL sql, int resultSetType, int resultSetConcurrency) throws SQLException;
+	public PreparedStatement getPreparedStatement(SQL sql, int resultSetType, int resultSetConcurrency) throws SQLException;
 
-    @Override
-    public void close() throws SQLException;
+	@Override
+	public void close() throws SQLException;
 
-    /**
-     * @return is timeout or not
-     */
-    public abstract boolean isTimeout();
+	/**
+	 * @return is timeout or not
+	 */
+	public abstract boolean isTimeout();
 
-    /**
-     * is life cycle timeout
-     * 
-     * @return
-     */
-    public abstract boolean isLifecycleTimeout();
+	/**
+	 * is life cycle timeout
+	 * 
+	 * @return
+	 */
+	public abstract boolean isLifecycleTimeout();
 
-    // FUTURE public boolean isAutoCommit() throws SQLException;
+	// FUTURE public boolean isAutoCommit() throws SQLException;
 
-    // FUTURE public void setAutoCommit(boolean setting) throws SQLException;
+	// FUTURE public void setAutoCommit(boolean setting) throws SQLException;
 
 }

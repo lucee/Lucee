@@ -22,5 +22,5 @@ import lucee.commons.io.res.Resource;
 
 public interface ResourceFilter {
 
-    public boolean accept(Resource res);
+	public boolean accept(Resource res);
 }

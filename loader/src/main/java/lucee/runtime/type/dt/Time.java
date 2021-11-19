@@ -23,21 +23,21 @@ package lucee.runtime.type.dt;
  */
 public abstract class Time extends DateTime {
 
-    private static final long serialVersionUID = -4388176623510915568L;
+	private static final long serialVersionUID = -4388176623510915568L;
 
-    /**
-     * constructor of the class
-     * 
-     * @param time
-     */
-    public Time(final long time) {
-	super(time);
-    }
+	/**
+	 * constructor of the class
+	 * 
+	 * @param time
+	 */
+	public Time(final long time) {
+		super(time);
+	}
 
-    /**
-     * constructor of the class
-     */
-    public Time() {
-	super();
-    }
+	/**
+	 * constructor of the class
+	 */
+	public Time() {
+		super();
+	}
 }

@@ -24,7 +24,7 @@
 
 <!--- try to upload (.zip and .re) --->
 <cftry>
-	<cffile action="upload" filefield="extfile" destination="#GetTempDirectory()#" nameconflict="makeunique" />
+	<cffile action="upload" filefield="extfile" destination="#GetTempDirectory()#" nameconflict="forceunique" />
 	<cfif cffile.serverfileext neq "lex">
 		<cfthrow message="Only .lex is allowed as extension!" />
 	</cfif>

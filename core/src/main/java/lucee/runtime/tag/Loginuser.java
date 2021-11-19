@@ -27,6 +27,7 @@ import lucee.runtime.listener.ApplicationContext;
 import lucee.runtime.listener.ApplicationContextSupport;
 import lucee.runtime.listener.AuthCookieData;
 import lucee.runtime.listener.AuthCookieDataImpl;
+import lucee.runtime.listener.CookieData;
 import lucee.runtime.security.CredentialImpl;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.dt.TimeSpan;
@@ -37,82 +38,83 @@ import lucee.runtime.type.scope.Scope;
  * 
  */
 public final class Loginuser extends TagImpl {
-    private String name;
-    private String password;
-    private String[] roles;
+	private String name;
+	private String password;
+	private String[] roles;
 
-    @Override
-    public void release() {
-	super.release();
-	name = null;
-	password = null;
-	roles = null;
-    }
-
-    /**
-     * @param name The name to set.
-     */
-    public void setName(String name) {
-	this.name = name;
-    }
-
-    /**
-     * @param password The password to set.
-     */
-    public void setPassword(String password) {
-	this.password = password;
-    }
-
-    /**
-     * @param oRoles The roles to set.
-     * @throws PageException
-     */
-    public void setRoles(Object oRoles) throws PageException {
-	roles = CredentialImpl.toRole(oRoles);
-    }
-
-    @Override
-    public int doStartTag() throws PageException {
-	Resource rolesDir = pageContext.getConfig().getConfigDir().getRealResource("roles");
-	CredentialImpl login = new CredentialImpl(name, password, roles, rolesDir);
-	pageContext.setRemoteUser(login);
-
-	Tag parent = getParent();
-	while (parent != null && !(parent instanceof Login)) {
-	    parent = parent.getParent();
+	@Override
+	public void release() {
+		super.release();
+		name = null;
+		password = null;
+		roles = null;
 	}
-	ApplicationContext appContext = pageContext.getApplicationContext();
-	if (parent != null) {
-	    int loginStorage = appContext.getLoginStorage();
-	    String name = Login.getApplicationName(appContext);
 
-	    if (loginStorage == Scope.SCOPE_SESSION && pageContext.getApplicationContext().isSetSessionManagement())
-		pageContext.sessionScope().set(KeyImpl.init(name), login.encode());
-	    else {
-		ApplicationContext ac = pageContext.getApplicationContext();
-		TimeSpan tsExpires = AuthCookieDataImpl.DEFAULT.getTimeout();
-		if (ac instanceof ApplicationContextSupport) {
-		    ApplicationContextSupport acs = (ApplicationContextSupport) ac;
-		    AuthCookieData data = acs.getAuthCookie();
-		    if (data != null) {
-			TimeSpan tmp = data.getTimeout();
-			if (tmp != null) tsExpires = tmp;
-		    }
+	/**
+	 * @param name The name to set.
+	 */
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	/**
+	 * @param password The password to set.
+	 */
+	public void setPassword(String password) {
+		this.password = password;
+	}
+
+	/**
+	 * @param oRoles The roles to set.
+	 * @throws PageException
+	 */
+	public void setRoles(Object oRoles) throws PageException {
+		roles = CredentialImpl.toRole(oRoles);
+	}
+
+	@Override
+	public int doStartTag() throws PageException {
+		Resource rolesDir = pageContext.getConfig().getConfigDir().getRealResource("roles");
+		CredentialImpl login = new CredentialImpl(name, password, roles, rolesDir);
+		pageContext.setRemoteUser(login);
+
+		Tag parent = getParent();
+		while (parent != null && !(parent instanceof Login)) {
+			parent = parent.getParent();
 		}
-		int expires;
-		long tmp = tsExpires.getSeconds();
-		if (Integer.MAX_VALUE < tmp) expires = Integer.MAX_VALUE;
-		else expires = (int) tmp;
+		ApplicationContext appContext = pageContext.getApplicationContext();
+		if (parent != null) {
+			int loginStorage = appContext.getLoginStorage();
+			String name = Login.getApplicationName(appContext);
 
-		((CookieImpl) pageContext.cookieScope()).setCookie(KeyImpl.init(name), login.encode(), expires, false, "/", Login.getCookieDomain(appContext));
-	    }
+			if (loginStorage == Scope.SCOPE_SESSION && pageContext.getApplicationContext().isSetSessionManagement())
+				pageContext.sessionScope().set(KeyImpl.init(name), login.encode());
+			else {
+				ApplicationContext ac = pageContext.getApplicationContext();
+				TimeSpan tsExpires = AuthCookieDataImpl.DEFAULT.getTimeout();
+				if (ac instanceof ApplicationContextSupport) {
+					ApplicationContextSupport acs = (ApplicationContextSupport) ac;
+					AuthCookieData data = acs.getAuthCookie();
+					if (data != null) {
+						TimeSpan tmp = data.getTimeout();
+						if (tmp != null) tsExpires = tmp;
+					}
+				}
+				int expires;
+				long tmp = tsExpires.getSeconds();
+				if (Integer.MAX_VALUE < tmp) expires = Integer.MAX_VALUE;
+				else expires = (int) tmp;
+
+				((CookieImpl) pageContext.cookieScope()).setCookie(KeyImpl.init(name), login.encode(), expires, false, "/", Login.getCookieDomain(appContext),
+						CookieData.SAMESITE_EMPTY);
+			}
+		}
+
+		return SKIP_BODY;
 	}
 
-	return SKIP_BODY;
-    }
-
-    @Override
-    public int doEndTag() {
-	return EVAL_PAGE;
-    }
+	@Override
+	public int doEndTag() {
+		return EVAL_PAGE;
+	}
 }

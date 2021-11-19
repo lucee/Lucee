@@ -23,8 +23,8 @@ import lucee.transformer.Position;
 
 public class TagComponent extends TagCIObject {
 
-    public TagComponent(Factory f, Position start, Position end) {
-	super(f, start, end);
-    }
+	public TagComponent(Factory f, Position start, Position end) {
+		super(f, start, end);
+	}
 
 }

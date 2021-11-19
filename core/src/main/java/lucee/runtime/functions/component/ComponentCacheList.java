@@ -19,12 +19,12 @@
 package lucee.runtime.functions.component;
 
 import lucee.runtime.PageContext;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.type.Struct;
 
 public class ComponentCacheList {
-    public static Struct call(PageContext pc) {
-	ConfigImpl config = (ConfigImpl) pc.getConfig();
-	return config.listComponentCache();
-    }
+	public static Struct call(PageContext pc) {
+		ConfigPro config = (ConfigPro) pc.getConfig();
+		return config.listComponentCache();
+	}
 }

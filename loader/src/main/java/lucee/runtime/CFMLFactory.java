@@ -35,110 +35,106 @@ import lucee.runtime.config.ConfigWeb;
  */
 public abstract class CFMLFactory extends JspFactory {
 
-    /**
-     * reset the PageContexes
-     */
-    public abstract void resetPageContext();
+	/**
+	 * reset the PageContexes
+	 */
+	public abstract void resetPageContext();
 
-    /**
-     * similar to getPageContext Method but return the concrete implementation of the Lucee PageCOntext
-     * and take the HTTP Version of the Servlet Objects
-     * 
-     * @param servlet
-     * @param req
-     * @param rsp
-     * @param errorPageURL
-     * @param needsSession
-     * @param bufferSize
-     * @param autoflush
-     * @return return the pageContext
-     * @deprecated use instead <code>getLuceePageContext(HttpServlet servlet,
-    		HttpServletRequest req, HttpServletResponse rsp,
-    		String errorPageURL, boolean needsSession, int bufferSize,
-    		boolean autoflush,boolean register)</code>
-     */
-    @Deprecated
-    public abstract PageContext getLuceePageContext(HttpServlet servlet, HttpServletRequest req, HttpServletResponse rsp, String errorPageURL, boolean needsSession, int bufferSize,
-	    boolean autoflush);
+	/**
+	 * similar to getPageContext Method but return the concrete implementation of the Lucee PageContext
+	 * and take the HTTP Version of the Servlet Objects
+	 * 
+	 * @param servlet servlet
+	 * @param req http request
+	 * @param rsp http response
+	 * @param errorPageURL error page URL
+	 * @param needsSession need session
+	 * @param bufferSize buffer size
+	 * @param autoflush auto flush
+	 * @return page context created
+	 */
+	@Deprecated
+	public abstract PageContext getLuceePageContext(HttpServlet servlet, HttpServletRequest req, HttpServletResponse rsp, String errorPageURL, boolean needsSession, int bufferSize,
+			boolean autoflush);
 
-    /**
-     * similar to getPageContext Method but return the concrete implementation of the Lucee PageCOntext
-     * and take the HTTP Version of the Servlet Objects
-     * 
-     * @param servlet
-     * @param req
-     * @param rsp
-     * @param errorPageURL
-     * @param needsSession
-     * @param bufferSize
-     * @param autoflush
-     * @param register register the PageContext to the current thread
-     * @param timeout timeout in ms, if the value is smaller than 1 it is ignored and the value comming
-     *            from the context is used
-     * @return return the PageContext
-     */
-    public abstract PageContext getLuceePageContext(HttpServlet servlet, HttpServletRequest req, HttpServletResponse rsp, String errorPageURL, boolean needsSession, int bufferSize,
-	    boolean autoflush, boolean register, long timeout, boolean register2RunningThreads, boolean ignoreScopes);
+	/**
+	 * similar to getPageContext Method but return the concrete implementation of the Lucee PageCOntext
+	 * and take the HTTP Version of the Servlet Objects
+	 * 
+	 * @param servlet servlet
+	 * @param req http request
+	 * @param rsp http response
+	 * @param errorPageURL error page URL
+	 * @param needsSession need session
+	 * @param bufferSize buffer size
+	 * @param autoflush auto flush
+	 * @param register register the PageContext to the current thread
+	 * @param timeout timeout in ms, if the value is smaller than 1 it is ignored and the value comming
+	 *            from the context is used
+	 * @return return the PageContext
+	 */
+	public abstract PageContext getLuceePageContext(HttpServlet servlet, HttpServletRequest req, HttpServletResponse rsp, String errorPageURL, boolean needsSession, int bufferSize,
+			boolean autoflush, boolean register, long timeout, boolean register2RunningThreads, boolean ignoreScopes);
 
-    /**
-     * Similar to the releasePageContext Method, but take lucee PageContext as entry
-     * 
-     * @param pc
-     * @deprecated use instead <code>releaseLuceePageContext(PageContext pc, boolean unregister)</code>
-     */
-    @Deprecated
-    public abstract void releaseLuceePageContext(PageContext pc);
+	/**
+	 * Similar to the releasePageContext Method, but take lucee PageContext as entry
+	 * 
+	 * @param pc page context
+	 * @deprecated use instead <code>releaseLuceePageContext(PageContext pc, boolean unregister)</code>
+	 */
+	@Deprecated
+	public abstract void releaseLuceePageContext(PageContext pc);
 
-    /**
-     * Similar to the releasePageContext Method, but take lucee PageContext as entry
-     * 
-     * @param pc
-     * @param unregister unregister from current thread
-     */
-    public abstract void releaseLuceePageContext(PageContext pc, boolean unregister);
+	/**
+	 * Similar to the releasePageContext Method, but take lucee PageContext as entry
+	 * 
+	 * @param pc page context
+	 * @param unregister unregister from current thread
+	 */
+	public abstract void releaseLuceePageContext(PageContext pc, boolean unregister);
 
-    /**
-     * check timeout of all running threads, downgrade also priority from all thread run longer than 10
-     * seconds
-     */
-    public abstract void checkTimeout();
+	/**
+	 * check timeout of all running threads, downgrade also priority from all thread run longer than 10
+	 * seconds
+	 */
+	public abstract void checkTimeout();
 
-    /**
-     * @return returns count of pagecontext in use
-     */
-    public abstract int getUsedPageContextLength();
+	/**
+	 * @return returns count of pagecontext in use
+	 */
+	public abstract int getUsedPageContextLength();
 
-    /**
-     * @return Returns the config.
-     */
-    public abstract ConfigWeb getConfig();
+	/**
+	 * @return Returns the config.
+	 */
+	public abstract ConfigWeb getConfig();
 
-    /**
-     * @return label of the factory
-     */
-    public abstract Object getLabel();
+	/**
+	 * @return label of the factory
+	 */
+	public abstract Object getLabel();
 
-    public abstract URL getURL();
+	public abstract URL getURL();
 
-    /**
-     * @deprecated no replacement
-     * @param label
-     */
-    @Deprecated
-    public abstract void setLabel(String label);
+	/**
+	 * @deprecated no replacement
+	 * @param label
+	 */
+	@Deprecated
+	public abstract void setLabel(String label);
 
-    /**
-     * @return the servlet
-     */
-    public abstract HttpServlet getServlet();
+	/**
+	 * @return the servlet
+	 */
+	public abstract HttpServlet getServlet();
 
-    public abstract CFMLEngine getEngine();
+	public abstract CFMLEngine getEngine();
 
-    public abstract int toDialect(String ext); // FUTURE deprecate
-    // public abstract int toDialect(String ext, int defaultValue);// FUTURE
+	public abstract int toDialect(String ext); // FUTURE deprecate
+	// public abstract int toDialect(String ext, int defaultValue);// FUTURE
 
-    public abstract Iterator<String> getCFMLExtensions();
+	public abstract Iterator<String> getCFMLExtensions();
 
-    public abstract Iterator<String> getLuceeExtensions();
+	public abstract Iterator<String> getLuceeExtensions();
 
 }

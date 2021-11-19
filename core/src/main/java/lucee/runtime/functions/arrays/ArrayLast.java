@@ -28,17 +28,17 @@ import lucee.runtime.type.Array;
 
 public final class ArrayLast extends BIF {
 
-    private static final long serialVersionUID = -2378677202092684813L;
+	private static final long serialVersionUID = -2378677202092684813L;
 
-    public static Object call(PageContext pc, Array array) throws PageException {
-	if (array.size() == 0) throw new ExpressionException("Cannot return last element of array; array is empty");
-	return array.getE(array.size());
-    }
+	public static Object call(PageContext pc, Array array) throws PageException {
+		if (array.size() == 0) throw new ExpressionException("Cannot return last element of array; array is empty");
+		return array.getE(array.size());
+	}
 
-    @Override
-    public Object invoke(PageContext pc, Object[] args) throws PageException {
-	if (args.length == 1) return call(pc, Caster.toArray(args[0]));
-	else throw new FunctionException(pc, "ArrayLast", 1, 1, args.length);
-    }
+	@Override
+	public Object invoke(PageContext pc, Object[] args) throws PageException {
+		if (args.length == 1) return call(pc, Caster.toArray(args[0]));
+		else throw new FunctionException(pc, "ArrayLast", 1, 1, args.length);
+	}
 
 }

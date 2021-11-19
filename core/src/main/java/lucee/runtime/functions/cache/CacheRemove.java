@@ -39,55 +39,56 @@ import lucee.runtime.type.util.ListUtil;
  */
 public final class CacheRemove extends BIF {
 
-    private static final long serialVersionUID = -5823359978885018762L;
+	private static final long serialVersionUID = -5823359978885018762L;
 
-    public static String call(PageContext pc, Object ids) throws PageException {
-	return call(pc, ids, false, null);
-    }
-
-    public static String call(PageContext pc, Object ids, boolean throwOnError) throws PageException {
-	return call(pc, ids, throwOnError, null);
-    }
-
-    public static String call(PageContext pc, Object ids, boolean throwOnError, String cacheName) throws PageException {
-	Array arr = toArray(ids);//
-	Iterator it = arr.valueIterator();
-	String id;
-	Cache cache;
-	try {
-	    cache = CacheUtil.getCache(pc, cacheName, Config.CACHE_TYPE_OBJECT);
+	public static String call(PageContext pc, Object ids) throws PageException {
+		return call(pc, ids, false, null);
 	}
-	catch (IOException e) {
-	    throw Caster.toPageException(e);
+
+	public static String call(PageContext pc, Object ids, boolean throwOnError) throws PageException {
+		return call(pc, ids, throwOnError, null);
 	}
-	StringBuilder sb = null;
-	try {
-	    while (it.hasNext()) {
-		id = CacheUtil.key(Caster.toString(it.next()));
-		if (!cache.remove(id) && throwOnError) {
-		    if (sb == null) sb = new StringBuilder();
-		    else sb.append(',');
-		    sb.append(id);
+
+	public static String call(PageContext pc, Object ids, boolean throwOnError, String cacheName) throws PageException {
+		Array arr = toArray(ids);//
+		Iterator it = arr.valueIterator();
+		String id;
+		Cache cache;
+		try {
+			cache = CacheUtil.getCache(pc, cacheName, Config.CACHE_TYPE_OBJECT);
 		}
-	    }
+		catch (IOException e) {
+			throw Caster.toPageException(e);
+		}
+		StringBuilder sb = null;
+		try {
+			while (it.hasNext()) {
+				id = CacheUtil.key(Caster.toString(it.next()));
+				if (!cache.remove(id) && throwOnError) {
+					if (sb == null) sb = new StringBuilder();
+					else sb.append(',');
+					sb.append(id);
+				}
+			}
+		}
+		catch (IOException e) {
+		}
+		if (throwOnError && sb != null) throw new ApplicationException("can not remove the elements with the following id(s) [" + sb + "]");
+		return null;
 	}
-	catch (IOException e) {}
-	if (throwOnError && sb != null) throw new ApplicationException("can not remove the elements with the following id(s) [" + sb + "]");
-	return null;
-    }
 
-    @Override
-    public Object invoke(PageContext pc, Object[] args) throws PageException {
-	if (args.length == 1) return call(pc, args[0]);
-	if (args.length == 2) return call(pc, args[0], Caster.toBooleanValue(args[1]));
-	if (args.length == 3) return call(pc, args[0], Caster.toBooleanValue(args[1]), Caster.toString(args[2]));
-	throw new FunctionException(pc, "CacheRemove", 1, 3, args.length);
-    }
-
-    private static Array toArray(Object oIds) throws PageException {
-	if (Decision.isArray(oIds)) {
-	    return Caster.toArray(oIds);
+	@Override
+	public Object invoke(PageContext pc, Object[] args) throws PageException {
+		if (args.length == 1) return call(pc, args[0]);
+		if (args.length == 2) return call(pc, args[0], Caster.toBooleanValue(args[1]));
+		if (args.length == 3) return call(pc, args[0], Caster.toBooleanValue(args[1]), Caster.toString(args[2]));
+		throw new FunctionException(pc, "CacheRemove", 1, 3, args.length);
 	}
-	return ListUtil.listToArray(Caster.toString(oIds), ',');
-    }
+
+	private static Array toArray(Object oIds) throws PageException {
+		if (Decision.isArray(oIds)) {
+			return Caster.toArray(oIds);
+		}
+		return ListUtil.listToArray(Caster.toString(oIds), ',');
+	}
 }

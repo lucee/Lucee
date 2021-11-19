@@ -31,70 +31,71 @@ import lucee.commons.io.IOUtil;
 
 public final class URLDataSource2 implements DataSource {
 
-    private URL url;
-    private final static String DEFAULT_CONTENT_TYPE = "application/octet-stream";
-    private byte[] barr;
+	private URL url;
+	private final static String DEFAULT_CONTENT_TYPE = "application/octet-stream";
+	private byte[] barr;
 
-    /**
-     * Creates a URLDataSource from a URL object
-     */
-    public URLDataSource2(URL url) {
-	this.url = url;
-    }
-
-    /**
-     * Returns the value of the URL content-type header field
-     * 
-     */
-    @Override
-    public String getContentType() {
-	URLConnection connection = null;
-	try {
-	    connection = url.openConnection();
+	/**
+	 * Creates a URLDataSource from a URL object
+	 */
+	public URLDataSource2(URL url) {
+		this.url = url;
 	}
-	catch (IOException e) {}
-	if (connection == null) return DEFAULT_CONTENT_TYPE;
 
-	return connection.getContentType();
+	/**
+	 * Returns the value of the URL content-type header field
+	 * 
+	 */
+	@Override
+	public String getContentType() {
+		URLConnection connection = null;
+		try {
+			connection = url.openConnection();
+		}
+		catch (IOException e) {
+		}
+		if (connection == null) return DEFAULT_CONTENT_TYPE;
 
-    }
+		return connection.getContentType();
 
-    /**
-     * Returns the file name of the URL object
-     */
-    @Override
-    public String getName() {
-	return url.getFile();
-    }
-
-    /**
-     * Returns an InputStream obtained from the data source
-     */
-    @Override
-    public InputStream getInputStream() throws IOException {
-	if (barr == null) {
-	    barr = IOUtil.toBytes(url.openStream());
 	}
-	return new ByteArrayInputStream(barr);
-    }
 
-    /**
-     * Returns an OutputStream obtained from the data source
-     */
-    @Override
-    public OutputStream getOutputStream() throws IOException {
+	/**
+	 * Returns the file name of the URL object
+	 */
+	@Override
+	public String getName() {
+		return url.getFile();
+	}
 
-	URLConnection connection = url.openConnection();
-	if (connection == null) return null;
+	/**
+	 * Returns an InputStream obtained from the data source
+	 */
+	@Override
+	public InputStream getInputStream() throws IOException {
+		if (barr == null) {
+			barr = IOUtil.toBytes(url.openStream());
+		}
+		return new ByteArrayInputStream(barr);
+	}
 
-	connection.setDoOutput(true); // is it necessary?
-	return connection.getOutputStream();
-    }
+	/**
+	 * Returns an OutputStream obtained from the data source
+	 */
+	@Override
+	public OutputStream getOutputStream() throws IOException {
 
-    /**
-     * Returns the URL of the data source
-     */
-    public URL getURL() {
-	return url;
-    }
+		URLConnection connection = url.openConnection();
+		if (connection == null) return null;
+
+		connection.setDoOutput(true); // is it necessary?
+		return connection.getOutputStream();
+	}
+
+	/**
+	 * Returns the URL of the data source
+	 */
+	public URL getURL() {
+		return url;
+	}
 }

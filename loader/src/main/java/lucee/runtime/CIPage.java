@@ -19,28 +19,28 @@ package lucee.runtime;
 
 public abstract class CIPage extends Page {
 
-    private static final long serialVersionUID = -398015716783522906L;
+	private static final long serialVersionUID = -398015716783522906L;
 
-    /*
-     * executed before the static constructor is executed to set the environment right
-     * 
-     * @param pc
-     * 
-     * @return
-     * 
-     * public abstract Variables beforeStaticConstructor(PageContext pc);
-     */
+	/*
+	 * executed before the static constructor is executed to set the environment right
+	 * 
+	 * @param pc
+	 * 
+	 * @return
+	 * 
+	 * public abstract Variables beforeStaticConstructor(PageContext pc);
+	 */
 
-    /*
-     * executed after the static constructor is executed to reset the environment to previous state
-     * 
-     * @param pc
-     * 
-     * @return
-     * 
-     * public abstract void afterStaticConstructor(PageContext pc, Variables var);
-     */
+	/*
+	 * executed after the static constructor is executed to reset the environment to previous state
+	 * 
+	 * @param pc
+	 * 
+	 * @return
+	 * 
+	 * public abstract void afterStaticConstructor(PageContext pc, Variables var);
+	 */
 
-    // public abstract String getComponentName();
+	// public abstract String getComponentName();
 
 }

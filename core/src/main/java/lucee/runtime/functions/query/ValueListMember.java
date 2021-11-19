@@ -27,18 +27,18 @@ import lucee.runtime.type.util.ListUtil;
 
 public class ValueListMember extends BIF {
 
-    public static String call(PageContext pc, Query query, String columnName) throws PageException {
-	return call(pc, query, columnName, ",");
-    }
+	public static String call(PageContext pc, Query query, String columnName) throws PageException {
+		return call(pc, query, columnName, ",");
+	}
 
-    public static String call(PageContext pc, Query query, String columnName, String delimiter) throws PageException {
-	if (delimiter == null) delimiter = ",";
-	return ListUtil.arrayToList(QueryColumnData.call(pc, query, columnName, null), delimiter);
-    }
+	public static String call(PageContext pc, Query query, String columnName, String delimiter) throws PageException {
+		if (delimiter == null) delimiter = ",";
+		return ListUtil.arrayToList(QueryColumnData.call(pc, query, columnName, null), delimiter);
+	}
 
-    @Override
-    public Object invoke(PageContext pc, Object[] args) throws PageException {
-	if (args.length == 2) return call(pc, Caster.toQuery(args[0]), Caster.toString(args[1]));
-	return call(pc, Caster.toQuery(args[0]), Caster.toString(args[1]), Caster.toString(args[2]));
-    }
+	@Override
+	public Object invoke(PageContext pc, Object[] args) throws PageException {
+		if (args.length == 2) return call(pc, Caster.toQuery(args[0]), Caster.toString(args[1]));
+		return call(pc, Caster.toQuery(args[0]), Caster.toString(args[1]), Caster.toString(args[2]));
+	}
 }

@@ -30,24 +30,24 @@ import lucee.runtime.type.UDF;
 
 public class QueryCacheHandlerFilterUDF extends UDFFilterSupport implements CacheHandlerFilter {
 
-    private UDF udf;
+	private UDF udf;
 
-    public QueryCacheHandlerFilterUDF(UDF udf) throws ExpressionException {
-	super(udf);
-	this.udf = udf;
-    }
-
-    @Override
-    public boolean accept(Object obj) {
-	if (!(obj instanceof Query)) return false;
-
-	args[0] = ((Query) obj).getSql();
-	try {
-	    return Caster.toBooleanValue(udf.call(ThreadLocalPageContext.get(), args, true));
+	public QueryCacheHandlerFilterUDF(UDF udf) throws ExpressionException {
+		super(udf);
+		this.udf = udf;
 	}
-	catch (PageException e) {
-	    throw new PageRuntimeException(e);
+
+	@Override
+	public boolean accept(Object obj) {
+		if (!(obj instanceof Query)) return false;
+
+		args[0] = ((Query) obj).getSql();
+		try {
+			return Caster.toBooleanValue(udf.call(ThreadLocalPageContext.get(), args, true));
+		}
+		catch (PageException e) {
+			throw new PageRuntimeException(e);
+		}
 	}
-    }
 
 }

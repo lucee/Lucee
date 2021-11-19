@@ -31,18 +31,18 @@ import lucee.runtime.type.StructImpl;
 
 public final class StructGet extends BIF {
 
-    private static final long serialVersionUID = -4661190117177511485L;
+	private static final long serialVersionUID = -4661190117177511485L;
 
-    public static Object call(PageContext pc, String string) throws PageException {
-	Object obj = VariableInterpreter.getVariableEL(pc, string, null);
-	if (obj != null) return obj;
-	return pc.setVariable(string, new StructImpl());
+	public static Object call(PageContext pc, String string) throws PageException {
+		Object obj = VariableInterpreter.getVariableEL(pc, string, null);
+		if (obj != null) return obj;
+		return pc.setVariable(string, new StructImpl());
 
-    }
+	}
 
-    @Override
-    public Object invoke(PageContext pc, Object[] args) throws PageException {
-	if (args.length == 1) return call(pc, Caster.toString(args[0]));
-	throw new FunctionException(pc, "StructGet", 1, 1, args.length);
-    }
+	@Override
+	public Object invoke(PageContext pc, Object[] args) throws PageException {
+		if (args.length == 1) return call(pc, Caster.toString(args[0]));
+		throw new FunctionException(pc, "StructGet", 1, 1, args.length);
+	}
 }

@@ -26,12 +26,12 @@ import lucee.runtime.ext.function.Function;
 import lucee.runtime.op.Decision;
 
 public final class IsDate implements Function {
-    public static boolean call(PageContext pc, Object object) {
-	return Decision.isDateAdvanced(object, false);
-    }
+	public static boolean call(PageContext pc, Object object) {
+		return Decision.isDateAdvanced(object, false);
+	}
 
-    public static boolean call(PageContext pc, Object object, boolean allowLocaleBasedDates) {
-	if (allowLocaleBasedDates) return Decision.isDateAdvanced(object, false);
-	return Decision.isDateSimple(object, false);
-    }
+	public static boolean call(PageContext pc, Object object, boolean allowLocaleBasedDates) {
+		if (allowLocaleBasedDates) return Decision.isDateAdvanced(object, false);
+		return Decision.isDateSimple(object, false);
+	}
 }

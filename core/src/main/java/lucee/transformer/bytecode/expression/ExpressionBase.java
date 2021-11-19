@@ -32,71 +32,71 @@ import lucee.transformer.bytecode.util.Types;
 import lucee.transformer.expression.Expression;
 
 /**
- * A Expression (Operation, Literal aso.)
+ * An Expression (Operation, Literal aso.)
  */
 public abstract class ExpressionBase implements Expression {
 
-    private Position start;
-    private Position end;
-    private Factory factory;
+	private Position start;
+	private Position end;
+	private Factory factory;
 
-    public ExpressionBase(Factory factory, Position start, Position end) {
-	this.start = start;
-	this.end = end;
-	this.factory = factory;
-    }
-
-    @Override
-    public final Class<?> writeOut(Context c, int mode) throws TransformerException {
-	try {
-	    return Types.toClass(writeOutAsType(c, mode));
+	public ExpressionBase(Factory factory, Position start, Position end) {
+		this.start = start;
+		this.end = end;
+		this.factory = factory;
 	}
-	catch (ClassException e) {
-	    throw new TransformerException(e, null);
+
+	@Override
+	public final Class<?> writeOut(Context c, int mode) throws TransformerException {
+		try {
+			return Types.toClass(writeOutAsType(c, mode));
+		}
+		catch (ClassException e) {
+			throw new TransformerException(e, null);
+		}
 	}
-    }
 
-    public final Type writeOutAsType(Context c, int mode) throws TransformerException {
-	BytecodeContext bc = (BytecodeContext) c;
-	ExpressionUtil.visitLine(bc, start);
-	Type type = _writeOut(bc, mode);
-	ExpressionUtil.visitLine(bc, end);
-	return type;
-    }
+	public final Type writeOutAsType(Context c, int mode) throws TransformerException {
+		BytecodeContext bc = (BytecodeContext) c;
+		ExpressionUtil.visitLine(bc, start);
+		Type type = _writeOut(bc, mode);
+		ExpressionUtil.visitLine(bc, end);
+		return type;
+	}
 
-    /**
-     * write out the statement to the adapter
-     * 
-     * @param adapter
-     * @param mode
-     * @return return Type of expression
-     * @throws TemplateException
-     */
-    public abstract Type _writeOut(BytecodeContext bc, int mode) throws TransformerException;
+	/**
+	 * write out the statement to the adapter
+	 * 
+	 * @param adapter
+	 * @param mode
+	 * @return return Type of expression
+	 * @throws TemplateException
+	 */
+	public abstract Type _writeOut(BytecodeContext bc, int mode) throws TransformerException;
 
-    @Override
-    public Factory getFactory() {
-	return factory;
-    }
+	@Override
+	public Factory getFactory() {
+		return factory;
+	}
 
-    @Override
-    public Position getStart() {
-	return start;
-    }
+	@Override
+	public Position getStart() {
+		return start;
+	}
 
-    @Override
-    public Position getEnd() {
-	return end;
-    }
+	@Override
+	public Position getEnd() {
+		return end;
+	}
 
-    @Override
-    public void setStart(Position start) {
-	this.start = start;
-    }
+	@Override
+	public void setStart(Position start) {
+		this.start = start;
+	}
 
-    @Override
-    public void setEnd(Position end) {
-	this.end = end;
-    }
+	@Override
+	public void setEnd(Position end) {
+		this.end = end;
+	}
 
 }

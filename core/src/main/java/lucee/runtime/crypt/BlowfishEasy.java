@@ -42,286 +42,286 @@ import java.util.Random;
 
 public final class BlowfishEasy {
 
-    // the Blowfish CBC instance
+	// the Blowfish CBC instance
 
-    BlowfishCBC m_bfish;
+	BlowfishCBC m_bfish;
 
-    // one random generator for all simple callers...
+	// one random generator for all simple callers...
 
-    static Random m_rndGen;
+	static Random m_rndGen;
 
-    // ...and created early
+	// ...and created early
 
-    static {
+	static {
 
-	m_rndGen = new Random();
-
-    }
-
-    /**
-     * 
-     * constructor to set up a string as the key (oversized password will be cut)
-     * 
-     * @param sPassword the password (treated as a real unicode array)
-     * 
-     */
-
-    public BlowfishEasy(String sPassword) {
-
-	// hash down the password to a 160bit key
-
-	SHA1 hasher = new SHA1();
-
-	hasher.update(sPassword);
-
-	hasher.finalize();
-
-	// setup the encryptor (use a dummy IV)
-
-	m_bfish = new BlowfishCBC(hasher.getDigest(), 0);
-
-	hasher.clear();
-
-    }
-
-    /**
-     * 
-     * encrypts a string (treated in UNICODE) using the
-     * 
-     * standard Java random generator, which isn't that
-     * 
-     * great for creating IVs
-     * 
-     * @param sPlainText string to encrypt
-     * 
-     * @return encrypted string in binhex format
-     * 
-     */
-
-    public String encryptString(String sPlainText) {
-
-	// get the IV
-
-	long lCBCIV;
-
-	synchronized (m_rndGen) {
-	    lCBCIV = m_rndGen.nextLong();
-	}
-
-	// map the call;
-
-	return encStr(sPlainText, lCBCIV);
-
-    }
-
-    /**
-     * 
-     * encrypts a string (treated in UNICODE)
-     * 
-     * @param sPlainText string to encrypt
-     * 
-     * @param rndGen random generator (usually a java.security.SecureRandom instance)
-     * 
-     * @return encrypted string in binhex format
-     * 
-     */
-
-    public String encryptString(String sPlainText,
-
-	    Random rndGen) {
-
-	// get the IV
-
-	long lCBCIV = rndGen.nextLong();
-
-	// map the call;
-
-	return encStr(sPlainText, lCBCIV);
-
-    }
-
-    // internal routine for string encryption
-
-    private String encStr(String sPlainText,
-
-	    long lNewCBCIV) {
-
-	// allocate the buffer (align to the next 8 byte border plus padding)
-
-	int nStrLen = sPlainText.length();
-
-	byte[] buf = new byte[((nStrLen << 1) & 0xfffffff8) + 8];
-
-	// copy all bytes of the string into the buffer (use network byte order)
-
-	int nI;
-
-	int nPos = 0;
-
-	for (nI = 0; nI < nStrLen; nI++) {
-
-	    char cActChar = sPlainText.charAt(nI);
-
-	    buf[nPos++] = (byte) ((cActChar >> 8) & 0x0ff);
-
-	    buf[nPos++] = (byte) (cActChar & 0x0ff);
+		m_rndGen = new Random();
 
 	}
 
-	// pad the rest with the PKCS5 scheme
+	/**
+	 * 
+	 * constructor to set up a string as the key (oversized password will be cut)
+	 * 
+	 * @param sPassword the password (treated as a real unicode array)
+	 * 
+	 */
 
-	byte bPadVal = (byte) (buf.length - (nStrLen << 1));
+	public BlowfishEasy(String sPassword) {
 
-	while (nPos < buf.length)
+		// hash down the password to a 160bit key
 
-	    buf[nPos++] = bPadVal;
+		SHA1 hasher = new SHA1();
 
-	// create the encryptor
+		hasher.update(sPassword);
 
-	m_bfish.setCBCIV(lNewCBCIV);
+		hasher.finalize();
 
-	// encrypt the buffer
+		// setup the encryptor (use a dummy IV)
 
-	m_bfish.encrypt(buf);
+		m_bfish = new BlowfishCBC(hasher.getDigest(), 0);
 
-	// return the binhex string
+		hasher.clear();
 
-	byte[] newCBCIV = new byte[BlowfishECB.BLOCKSIZE];
+	}
 
-	BinConverter.longToByteArray(lNewCBCIV,
+	/**
+	 * 
+	 * encrypts a string (treated in UNICODE) using the
+	 * 
+	 * standard Java random generator, which isn't that
+	 * 
+	 * great for creating IVs
+	 * 
+	 * @param sPlainText string to encrypt
+	 * 
+	 * @return encrypted string in binhex format
+	 * 
+	 */
 
-		newCBCIV,
+	public String encryptString(String sPlainText) {
 
-		0);
+		// get the IV
 
-	return BinConverter.bytesToBinHex(newCBCIV,
+		long lCBCIV;
 
-		0,
+		synchronized (m_rndGen) {
+			lCBCIV = m_rndGen.nextLong();
+		}
 
-		BlowfishECB.BLOCKSIZE) +
+		// map the call;
 
-		BinConverter.bytesToBinHex(buf,
+		return encStr(sPlainText, lCBCIV);
 
-			0,
+	}
 
-			buf.length);
+	/**
+	 * 
+	 * encrypts a string (treated in UNICODE)
+	 * 
+	 * @param sPlainText string to encrypt
+	 * 
+	 * @param rndGen random generator (usually a java.security.SecureRandom instance)
+	 * 
+	 * @return encrypted string in binhex format
+	 * 
+	 */
 
-    }
+	public String encryptString(String sPlainText,
 
-    /**
-     * 
-     * decrypts a hexbin string (handling is case sensitive)
-     * 
-     * @param sCipherText hexbin string to decrypt
-     * 
-     * @return decrypted string (null equals an error)
-     * 
-     */
+			Random rndGen) {
 
-    public String decryptString(String sCipherText) {
+		// get the IV
 
-	// get the number of estimated bytes in the string (cut off broken blocks)
+		long lCBCIV = rndGen.nextLong();
 
-	int nLen = (sCipherText.length() >> 1) & ~7;
+		// map the call;
 
-	// does the given stuff make sense (at least the CBC IV)?
+		return encStr(sPlainText, lCBCIV);
 
-	if (nLen < BlowfishECB.BLOCKSIZE)
+	}
 
-	    return null;
+	// internal routine for string encryption
 
-	// get the CBC IV
+	private String encStr(String sPlainText,
 
-	byte[] cbciv = new byte[BlowfishECB.BLOCKSIZE];
+			long lNewCBCIV) {
 
-	int nNumOfBytes = BinConverter.binHexToBytes(sCipherText,
+		// allocate the buffer (align to the next 8 byte border plus padding)
 
-		cbciv,
+		int nStrLen = sPlainText.length();
 
-		0,
+		byte[] buf = new byte[((nStrLen << 1) & 0xfffffff8) + 8];
 
-		0,
+		// copy all bytes of the string into the buffer (use network byte order)
 
-		BlowfishECB.BLOCKSIZE);
+		int nI;
 
-	if (nNumOfBytes < BlowfishECB.BLOCKSIZE)
+		int nPos = 0;
 
-	    return null;
+		for (nI = 0; nI < nStrLen; nI++) {
 
-	// (got it)
+			char cActChar = sPlainText.charAt(nI);
 
-	m_bfish.setCBCIV(cbciv);
+			buf[nPos++] = (byte) ((cActChar >> 8) & 0x0ff);
 
-	// something left to decrypt?
+			buf[nPos++] = (byte) (cActChar & 0x0ff);
 
-	nLen -= BlowfishECB.BLOCKSIZE;
+		}
 
-	if (nLen == 0)
+		// pad the rest with the PKCS5 scheme
 
-	    return "";
+		byte bPadVal = (byte) (buf.length - (nStrLen << 1));
 
-	// get all data bytes now
+		while (nPos < buf.length)
 
-	byte[] buf = new byte[nLen];
+			buf[nPos++] = bPadVal;
 
-	nNumOfBytes = BinConverter.binHexToBytes(sCipherText,
+		// create the encryptor
 
-		buf,
+		m_bfish.setCBCIV(lNewCBCIV);
 
-		BlowfishECB.BLOCKSIZE * 2,
+		// encrypt the buffer
 
-		0,
+		m_bfish.encrypt(buf);
 
-		nLen);
+		// return the binhex string
 
-	// we cannot accept broken binhex sequences due to padding
+		byte[] newCBCIV = new byte[BlowfishECB.BLOCKSIZE];
 
-	// and decryption
+		BinConverter.longToByteArray(lNewCBCIV,
 
-	if (nNumOfBytes < nLen)
+				newCBCIV,
 
-	    return null;
+				0);
 
-	// decrypt the buffer
+		return BinConverter.bytesToBinHex(newCBCIV,
 
-	m_bfish.decrypt(buf);
+				0,
 
-	// get the last padding byte
+				BlowfishECB.BLOCKSIZE) +
 
-	int nPadByte = buf[buf.length - 1] & 0x0ff;
+				BinConverter.bytesToBinHex(buf,
 
-	// ( try to get all information if the padding doesn't seem to be correct)
+						0,
 
-	if ((nPadByte > 8) || (nPadByte < 0))
+						buf.length);
 
-	    nPadByte = 0;
+	}
 
-	// calculate the real size of this message
+	/**
+	 * 
+	 * decrypts a hexbin string (handling is case sensitive)
+	 * 
+	 * @param sCipherText hexbin string to decrypt
+	 * 
+	 * @return decrypted string (null equals an error)
+	 * 
+	 */
 
-	nNumOfBytes -= nPadByte;
+	public String decryptString(String sCipherText) {
 
-	if (nNumOfBytes < 0)
+		// get the number of estimated bytes in the string (cut off broken blocks)
 
-	    return "";
+		int nLen = (sCipherText.length() >> 1) & ~7;
 
-	// success
+		// does the given stuff make sense (at least the CBC IV)?
 
-	return BinConverter.byteArrayToUNCString(buf, 0, nNumOfBytes);
+		if (nLen < BlowfishECB.BLOCKSIZE)
 
-    }
+			return null;
 
-    /**
-     * 
-     * destroys (clears) the encryption engine,
-     * 
-     * after that the instance is not valid anymore
-     * 
-     */
+		// get the CBC IV
 
-    public void destroy() {
+		byte[] cbciv = new byte[BlowfishECB.BLOCKSIZE];
 
-	m_bfish.cleanUp();
+		int nNumOfBytes = BinConverter.binHexToBytes(sCipherText,
 
-    }
+				cbciv,
+
+				0,
+
+				0,
+
+				BlowfishECB.BLOCKSIZE);
+
+		if (nNumOfBytes < BlowfishECB.BLOCKSIZE)
+
+			return null;
+
+		// (got it)
+
+		m_bfish.setCBCIV(cbciv);
+
+		// something left to decrypt?
+
+		nLen -= BlowfishECB.BLOCKSIZE;
+
+		if (nLen == 0)
+
+			return "";
+
+		// get all data bytes now
+
+		byte[] buf = new byte[nLen];
+
+		nNumOfBytes = BinConverter.binHexToBytes(sCipherText,
+
+				buf,
+
+				BlowfishECB.BLOCKSIZE * 2,
+
+				0,
+
+				nLen);
+
+		// we cannot accept broken binhex sequences due to padding
+
+		// and decryption
+
+		if (nNumOfBytes < nLen)
+
+			return null;
+
+		// decrypt the buffer
+
+		m_bfish.decrypt(buf);
+
+		// get the last padding byte
+
+		int nPadByte = buf[buf.length - 1] & 0x0ff;
+
+		// ( try to get all information if the padding doesn't seem to be correct)
+
+		if ((nPadByte > 8) || (nPadByte < 0))
+
+			nPadByte = 0;
+
+		// calculate the real size of this message
+
+		nNumOfBytes -= nPadByte;
+
+		if (nNumOfBytes < 0)
+
+			return "";
+
+		// success
+
+		return BinConverter.byteArrayToUNCString(buf, 0, nNumOfBytes);
+
+	}
+
+	/**
+	 * 
+	 * destroys (clears) the encryption engine,
+	 * 
+	 * after that the instance is not valid anymore
+	 * 
+	 */
+
+	public void destroy() {
+
+		m_bfish.cleanUp();
+
+	}
 
 }

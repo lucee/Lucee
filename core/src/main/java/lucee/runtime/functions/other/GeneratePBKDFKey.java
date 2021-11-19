@@ -34,51 +34,51 @@ import lucee.runtime.op.Caster;
 
 public class GeneratePBKDFKey extends BIF {
 
-    private static final long serialVersionUID = -2558116913822203235L;
+	private static final long serialVersionUID = -2558116913822203235L;
 
-    public static String call(PageContext pc, String algorithm, String passPhrase, String salt) throws PageException {
-	return call(pc, algorithm, passPhrase, salt, 4096, 128);
-    }
-
-    public static String call(PageContext pc, String algorithm, String passPhrase, String salt, double iterations) throws PageException {
-	return call(pc, algorithm, passPhrase, salt, iterations, 128);
-    }
-
-    public static String call(PageContext pc, String algorithm, String passPhrase, String salt, double iterations, double keySize) throws PageException {
-	// algo
-	if (StringUtil.isEmpty(algorithm)) throw new FunctionException(pc, "GeneratePBKDFKey", 1, "algorithm", "algorithm argument is empty.");
-	algorithm = algorithm.trim();
-	if (!StringUtil.startsWithIgnoreCase(algorithm, "PBK"))
-	    throw new FunctionException(pc, "GeneratePBKDFKey", 1, "algorithm", "algorithm [" + algorithm + "] is not supported.");
-
-	// TODO add provider to support addional keys by addin a provider that is supporting it
-	SecretKeyFactory key = null;
-	try {
-	    key = SecretKeyFactory.getInstance(algorithm);
-	}
-	catch (NoSuchAlgorithmException e) {
-	    if (!algorithm.equalsIgnoreCase("PBKDF2WithHmacSHA1"))
-		throw new FunctionException(pc, "GeneratePBKDFKey", 1, "algorithm", "only the algorithm [PBKDF2WithHmacSHA1] is supported by the build in .");
-	    else throw Caster.toPageException(e);
-
+	public static String call(PageContext pc, String algorithm, String passPhrase, String salt) throws PageException {
+		return call(pc, algorithm, passPhrase, salt, 4096, 128);
 	}
 
-	try {
-	    PBEKeySpec spec = new PBEKeySpec(passPhrase.toCharArray(), salt.getBytes(), (int) iterations, (int) keySize);
-	    return Base64Coder.encode(key.generateSecret(spec).getEncoded());
+	public static String call(PageContext pc, String algorithm, String passPhrase, String salt, double iterations) throws PageException {
+		return call(pc, algorithm, passPhrase, salt, iterations, 128);
 	}
-	catch (InvalidKeySpecException ikse) {
-	    throw Caster.toPageException(ikse);
+
+	public static String call(PageContext pc, String algorithm, String passPhrase, String salt, double iterations, double keySize) throws PageException {
+		// algo
+		if (StringUtil.isEmpty(algorithm)) throw new FunctionException(pc, "GeneratePBKDFKey", 1, "algorithm", "Argument [algorithm] is empty.");
+		algorithm = algorithm.trim();
+		if (!StringUtil.startsWithIgnoreCase(algorithm, "PBK"))
+			throw new FunctionException(pc, "GeneratePBKDFKey", 1, "algorithm", "Algorithm [" + algorithm + "] is not supported.");
+
+		// TODO add provider to support addional keys by addin a provider that is supporting it
+		SecretKeyFactory key = null;
+		try {
+			key = SecretKeyFactory.getInstance(algorithm);
+		}
+		catch (NoSuchAlgorithmException e) {
+			if (!algorithm.equalsIgnoreCase("PBKDF2WithHmacSHA1"))
+				throw new FunctionException(pc, "GeneratePBKDFKey", 1, "algorithm", "The only supported algorithm is [PBKDF2WithHmacSHA1].");
+			else throw Caster.toPageException(e);
+
+		}
+
+		try {
+			PBEKeySpec spec = new PBEKeySpec(passPhrase.toCharArray(), salt.getBytes(), (int) iterations, (int) keySize);
+			return Base64Coder.encode(key.generateSecret(spec).getEncoded());
+		}
+		catch (InvalidKeySpecException ikse) {
+			throw Caster.toPageException(ikse);
+		}
 	}
-    }
 
-    @Override
-    public Object invoke(PageContext pc, Object[] args) throws PageException {
-	if (args.length == 5)
-	    return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toString(args[2]), Caster.toDoubleValue(args[3]), Caster.toDoubleValue(args[4]));
-	if (args.length == 4) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toString(args[2]), Caster.toDoubleValue(args[3]));
-	if (args.length == 3) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toString(args[2]));
+	@Override
+	public Object invoke(PageContext pc, Object[] args) throws PageException {
+		if (args.length == 5)
+			return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toString(args[2]), Caster.toDoubleValue(args[3]), Caster.toDoubleValue(args[4]));
+		if (args.length == 4) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toString(args[2]), Caster.toDoubleValue(args[3]));
+		if (args.length == 3) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toString(args[2]));
 
-	throw new FunctionException(pc, "GeneratePBKDFKey", 3, 5, args.length);
-    }
+		throw new FunctionException(pc, "GeneratePBKDFKey", 3, 5, args.length);
+	}
 }

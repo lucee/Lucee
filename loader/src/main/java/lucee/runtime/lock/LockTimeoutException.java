@@ -23,29 +23,29 @@ package lucee.runtime.lock;
  */
 public final class LockTimeoutException extends Exception {
 
-    private static final long serialVersionUID = -2772267544602614500L;
+	private static final long serialVersionUID = -2772267544602614500L;
 
-    /**
-     * @param type type of the log
-     * @param name name of the Lock
-     * @param timeout
-     */
-    public LockTimeoutException(final int type, final String name, final int timeout) {
-	// A timeout occurred while attempting to lock lockname
-	super("a timeout occurred on a " + toString(type) + " lock with name [" + name + "] after " + getTime(timeout));
-    }
-
-    private static String getTime(final int timeout) {
-	if (timeout / 1000 * 1000 == timeout) {
-	    final int s = timeout / 1000;
-	    return s + (s > 1 ? " seconds" : " second");
+	/**
+	 * @param type type of the log
+	 * @param name name of the Lock
+	 * @param timeout
+	 */
+	public LockTimeoutException(final int type, final String name, final int timeout) {
+		// A timeout occurred while attempting to lock lockname
+		super("a timeout occurred on a " + toString(type) + " lock with name [" + name + "] after " + getTime(timeout));
 	}
-	return timeout + (timeout > 1 ? " milliseconds" : " millisecond");
-    }
 
-    private static String toString(final int type) {
-	if (LockManager.TYPE_EXCLUSIVE == type) return "exclusive";
-	return "read-only";
-    }
+	private static String getTime(final int timeout) {
+		if (timeout / 1000 * 1000 == timeout) {
+			final int s = timeout / 1000;
+			return s + (s > 1 ? " seconds" : " second");
+		}
+		return timeout + (timeout > 1 ? " milliseconds" : " millisecond");
+	}
+
+	private static String toString(final int type) {
+		if (LockManager.TYPE_EXCLUSIVE == type) return "exclusive";
+		return "read-only";
+	}
 
 }

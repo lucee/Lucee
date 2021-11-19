@@ -21,23 +21,23 @@ import java.io.IOException;
 import java.lang.instrument.Instrumentation;
 
 public class Agent {
-    private static Instrumentation instrumentation;
+	private static Instrumentation instrumentation;
 
-    public static void premain(final String agentArgs, final Instrumentation inst) {
-	if (inst != null) instrumentation = inst;
-    }
+	public static void premain(final String agentArgs, final Instrumentation inst) {
+		if (inst != null) instrumentation = inst;
+	}
 
-    public static void agentmain(final String agentArgs, final Instrumentation inst) {
-	if (inst != null) instrumentation = inst;
-    }
+	public static void agentmain(final String agentArgs, final Instrumentation inst) {
+		if (inst != null) instrumentation = inst;
+	}
 
-    public static Instrumentation getInstrumentation() throws IOException {
-	if (instrumentation == null) throw new IOException("There is no Instrumentation class available");
-	return instrumentation;
-    }
+	public static Instrumentation getInstrumentation() throws IOException {
+		if (instrumentation == null) throw new IOException("There is no Instrumentation class available");
+		return instrumentation;
+	}
 
-    public static Instrumentation getInstrumentation(final Instrumentation defaultValue) {
-	if (instrumentation == null) return defaultValue;
-	return instrumentation;
-    }
+	public static Instrumentation getInstrumentation(final Instrumentation defaultValue) {
+		if (instrumentation == null) return defaultValue;
+		return instrumentation;
+	}
 }

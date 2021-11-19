@@ -25,27 +25,30 @@ import lucee.runtime.type.scope.Session;
 
 public abstract class AppListenerSupport implements ApplicationListener {
 
-    @Override
-    public boolean hasOnApplicationStart() {
-	return false;
-    }
+	@Override
+	public boolean hasOnApplicationStart() {
+		return false;
+	}
 
-    @Override
-    public boolean hasOnSessionStart(PageContext pc) {
-	return false;
-    }
+	@Override
+	public boolean hasOnSessionStart(PageContext pc) {
+		return false;
+	}
 
-    @Override
-    public void onServerStart() throws PageException {}
+	@Override
+	public void onServerStart() throws PageException {
+	}
 
-    @Override
-    public void onServerEnd() throws PageException {}
+	@Override
+	public void onServerEnd() throws PageException {
+	}
 
-    @Override
-    public void onTimeout(PageContext pc) {}
+	@Override
+	public void onTimeout(PageContext pc) {
+	}
 
-    // FUTURE add to interface
-    public abstract void onSessionStart(PageContext pc, Session session) throws PageException;
+	// FUTURE add to interface
+	public abstract void onSessionStart(PageContext pc, Session session) throws PageException;
 
-    public abstract boolean onApplicationStart(PageContext pc, Application application) throws PageException;
+	public abstract boolean onApplicationStart(PageContext pc, Application application) throws PageException;
 }

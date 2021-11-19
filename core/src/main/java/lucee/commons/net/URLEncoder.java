@@ -59,44 +59,45 @@ import lucee.commons.lang.StringUtil;
  */
 public class URLEncoder {
 
-    /**
-     * You can't call the constructor.
-     */
-    private URLEncoder() {}
+	/**
+	 * You can't call the constructor.
+	 */
+	private URLEncoder() {
+	}
 
-    /**
-     * Translates a string into <code>x-www-form-urlencoded</code> format. This method uses the
-     * platform's default encoding as the encoding scheme to obtain the bytes for unsafe characters.
-     *
-     * @param s <code>String</code> to be translated.
-     * @deprecated The resulting string may vary depending on the platform's default encoding. Instead,
-     *             use the encode(String,String) method to specify the encoding.
-     * @return the translated <code>String</code>.
-     */
-    @Deprecated
-    public static String encode(String s) {
-	s = java.net.URLEncoder.encode(s);
-	if (s.indexOf('+') != -1) s = StringUtil.replace(s, "+", "%20", false);
-	return s;
-    }
+	/**
+	 * Translates a string into <code>x-www-form-urlencoded</code> format. This method uses the
+	 * platform's default encoding as the encoding scheme to obtain the bytes for unsafe characters.
+	 *
+	 * @param s <code>String</code> to be translated.
+	 * @deprecated The resulting string may vary depending on the platform's default encoding. Instead,
+	 *             use the encode(String,String) method to specify the encoding.
+	 * @return the translated <code>String</code>.
+	 */
+	@Deprecated
+	public static String encode(String s) {
+		s = java.net.URLEncoder.encode(s);
+		if (s.indexOf('+') != -1) s = StringUtil.replace(s, "+", "%20", false);
+		return s;
+	}
 
-    /**
-     * @deprecated use instead <code>encode(String s, Charset cs)</code>
-     * @param s
-     * @param enc
-     * @return
-     * @throws UnsupportedEncodingException
-     */
-    @Deprecated
-    public static String encode(String s, String enc) throws UnsupportedEncodingException {
-	s = java.net.URLEncoder.encode(s, enc);
-	if (s.indexOf('+') != -1) s = StringUtil.replace(s, "+", "%20", false);
-	return s;
-    }
+	/**
+	 * @deprecated use instead <code>encode(String s, Charset cs)</code>
+	 * @param s
+	 * @param enc
+	 * @return
+	 * @throws UnsupportedEncodingException
+	 */
+	@Deprecated
+	public static String encode(String s, String enc) throws UnsupportedEncodingException {
+		s = java.net.URLEncoder.encode(s, enc);
+		if (s.indexOf('+') != -1) s = StringUtil.replace(s, "+", "%20", false);
+		return s;
+	}
 
-    public static String encode(String s, Charset cs) throws UnsupportedEncodingException {
-	s = java.net.URLEncoder.encode(s, cs.name());
-	if (s.indexOf('+') != -1) s = StringUtil.replace(s, "+", "%20", false);
-	return s;
-    }
+	public static String encode(String s, Charset cs) throws UnsupportedEncodingException {
+		s = java.net.URLEncoder.encode(s, cs.name());
+		if (s.indexOf('+') != -1) s = StringUtil.replace(s, "+", "%20", false);
+		return s;
+	}
 }

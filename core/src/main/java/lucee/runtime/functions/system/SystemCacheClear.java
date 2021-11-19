@@ -25,7 +25,7 @@ import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigWebImpl;
+import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
@@ -37,63 +37,63 @@ import lucee.runtime.type.util.KeyConstants;
 
 public final class SystemCacheClear implements Function {
 
-    private static final long serialVersionUID = 2151674703665027213L;
+	private static final long serialVersionUID = 2151674703665027213L;
 
-    public static String call(PageContext pc) throws PageException {
-	return call(pc, null);
-    }
-
-    public static String call(PageContext pc, String cacheName) throws PageException {
-
-	if (StringUtil.isEmpty(cacheName, true) || "all".equals(cacheName = cacheName.trim().toLowerCase())) {
-	    PagePoolClear.call(pc);
-	    ComponentCacheClear.call(pc);
-	    CTCacheClear.call(pc);
-	    queryCache(pc);
-	    tagCache(pc);
-	    functionCache(pc);
+	public static String call(PageContext pc) throws PageException {
+		return call(pc, null);
 	}
-	else if ("template".equals(cacheName) || "page".equals(cacheName)) {
-	    PagePoolClear.call(pc);
-	}
-	else if ("component".equals(cacheName) || "cfc".equals(cacheName) || "class".equals(cacheName)) {
-	    ComponentCacheClear.call(pc);
-	}
-	else if ("customtag".equals(cacheName) || "ct".equals(cacheName)) {
-	    CTCacheClear.call(pc);
-	}
-	else if ("query".equals(cacheName) || "object".equals(cacheName)) {
-	    queryCache(pc);
-	}
-	else if ("tag".equals(cacheName)) {
-	    tagCache(pc);
-	}
-	else if ("function".equals(cacheName)) {
-	    functionCache(pc);
-	}
-	else throw new FunctionException(pc, "cacheClear", 1, "cacheName",
-		ExceptionUtil.similarKeyMessage(new Collection.Key[] { KeyConstants._all, KeyConstants._template, KeyConstants._component, KeyImpl.init("customtag"),
-			KeyConstants._query, KeyConstants._tag, KeyConstants._function }, cacheName, "cache name", "cache names", null, true));
 
-	return null;
-    }
+	public static String call(PageContext pc, String cacheName) throws PageException {
 
-    private static void queryCache(PageContext pc) throws PageException {
-	pc.getConfig().getCacheHandlerCollection(Config.CACHE_TYPE_QUERY, null).clear(pc);
-	// pc.getQueryCache().clear(pc);
-    }
+		if (StringUtil.isEmpty(cacheName, true) || "all".equals(cacheName = cacheName.trim().toLowerCase())) {
+			PagePoolClear.call(pc);
+			ComponentCacheClear.call(pc);
+			CTCacheClear.call(pc);
+			queryCache(pc);
+			tagCache(pc);
+			functionCache(pc);
+		}
+		else if ("template".equals(cacheName) || "page".equals(cacheName)) {
+			PagePoolClear.call(pc);
+		}
+		else if ("component".equals(cacheName) || "cfc".equals(cacheName) || "class".equals(cacheName)) {
+			ComponentCacheClear.call(pc);
+		}
+		else if ("customtag".equals(cacheName) || "ct".equals(cacheName)) {
+			CTCacheClear.call(pc);
+		}
+		else if ("query".equals(cacheName) || "object".equals(cacheName)) {
+			queryCache(pc);
+		}
+		else if ("tag".equals(cacheName)) {
+			tagCache(pc);
+		}
+		else if ("function".equals(cacheName)) {
+			functionCache(pc);
+		}
+		else throw new FunctionException(pc, "cacheClear", 1, "cacheName",
+				ExceptionUtil.similarKeyMessage(new Collection.Key[] { KeyConstants._all, KeyConstants._template, KeyConstants._component, KeyImpl.getInstance("customtag"),
+						KeyConstants._query, KeyConstants._tag, KeyConstants._function }, cacheName, "cache name", "cache names", null, true));
 
-    private static void tagCache(PageContext pc) {
-	ConfigWebImpl config = (ConfigWebImpl) pc.getConfig();
-	PagePoolClear.clear(config, config.getServerTagMappings(), false);
-	PagePoolClear.clear(config, config.getTagMappings(), false);
-    }
+		return null;
+	}
 
-    private static void functionCache(PageContext pc) {
-	ConfigWebImpl config = (ConfigWebImpl) pc.getConfig();
-	config.clearFunctionCache();
-	PagePoolClear.clear(config, config.getServerFunctionMappings(), false);
-	PagePoolClear.clear(config, config.getFunctionMappings(), false);
+	private static void queryCache(PageContext pc) throws PageException {
+		pc.getConfig().getCacheHandlerCollection(Config.CACHE_TYPE_QUERY, null).clear(pc);
+		// pc.getQueryCache().clear(pc);
+	}
 
-    }
+	private static void tagCache(PageContext pc) {
+		ConfigWebPro config = (ConfigWebPro) pc.getConfig();
+		PagePoolClear.clear(config, config.getServerTagMappings(), false);
+		PagePoolClear.clear(config, config.getTagMappings(), false);
+	}
+
+	private static void functionCache(PageContext pc) {
+		ConfigWebPro config = (ConfigWebPro) pc.getConfig();
+		config.clearFunctionCache();
+		PagePoolClear.clear(config, config.getServerFunctionMappings(), false);
+		PagePoolClear.clear(config, config.getFunctionMappings(), false);
+
+	}
 }

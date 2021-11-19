@@ -32,80 +32,80 @@ import lucee.transformer.expression.Expression;
 
 public final class PrintOut extends StatementBaseNoFinal {
 
-    // void write (String)
-    private final static Method METHOD_WRITE = new Method("write", Types.VOID, new Type[] { Types.STRING });
-    // void writePSQ (Object) TODO muss param 1 wirklich objekt sein
-    private final static Method METHOD_WRITE_PSQ = new Method("writePSQ", Types.VOID, new Type[] { Types.OBJECT });
+	// void write (String)
+	private final static Method METHOD_WRITE = new Method("write", Types.VOID, new Type[] { Types.STRING });
+	// void writePSQ (Object) TODO muss param 1 wirklich objekt sein
+	private final static Method METHOD_WRITE_PSQ = new Method("writePSQ", Types.VOID, new Type[] { Types.OBJECT });
 
-    private final static Method METHOD_WRITE_ENCODE_STRING = new Method("writeEncodeFor", Types.VOID, new Type[] { Types.STRING, Types.STRING });
+	private final static Method METHOD_WRITE_ENCODE_STRING = new Method("writeEncodeFor", Types.VOID, new Type[] { Types.STRING, Types.STRING });
 
-    Expression expr;
+	Expression expr;
 
-    private boolean checkPSQ;
+	private boolean checkPSQ;
 
-    private Expression encodeFor;
+	private Expression encodeFor;
 
-    /**
-     * constructor of the class
-     * 
-     * @param expr
-     * @param line
-     */
-    public PrintOut(Expression expr, Position start, Position end) {
-	super(expr.getFactory(), start, end);
-	this.expr = expr.getFactory().toExprString(expr);
-    }
-
-    /**
-     * @see lucee.transformer.bytecode.Statement#_writeOut(org.objectweb.asm.commons.GeneratorAdapter)
-     */
-    @Override
-    public void _writeOut(BytecodeContext bc) throws TransformerException {
-	boolean doEncode = !checkPSQ && encodeFor != null;
-	GeneratorAdapter adapter = bc.getAdapter();
-	adapter.loadArg(0);
-	if (doEncode) adapter.checkCast(Types.PAGE_CONTEXT_IMPL); // FUTURE keyword:encodefore remove
-
-	ExprString es = bc.getFactory().toExprString(expr);
-	boolean usedExternalizer = false;
-
-	if (!usedExternalizer) es.writeOut(bc, Expression.MODE_REF);
-	if (doEncode) {
-	    /*
-	     * if(encodeForIsInt) { encodeFor.writeOut(bc, Expression.MODE_VALUE);
-	     * adapter.visitInsn(Opcodes.I2S);
-	     * adapter.invokeVirtual(Types.PAGE_CONTEXT_IMPL,METHOD_WRITE_ENCODE_SHORT); // FUTURE
-	     * keyword:encodefore remove _IMPL } else {
-	     */
-	    encodeFor.writeOut(bc, Expression.MODE_REF);
-	    adapter.invokeVirtual(Types.PAGE_CONTEXT_IMPL, METHOD_WRITE_ENCODE_STRING); // FUTURE keyword:encodefore remove _IMPL
-	    // }
+	/**
+	 * constructor of the class
+	 * 
+	 * @param expr
+	 * @param line
+	 */
+	public PrintOut(Expression expr, Position start, Position end) {
+		super(expr.getFactory(), start, end);
+		this.expr = expr.getFactory().toExprString(expr);
 	}
-	else adapter.invokeVirtual(Types.PAGE_CONTEXT, checkPSQ ? METHOD_WRITE_PSQ : METHOD_WRITE);
-    }
 
-    /**
-     * @return the expr
-     */
-    public Expression getExpr() {
-	return expr;
-    }
+	/**
+	 * @see lucee.transformer.bytecode.Statement#_writeOut(org.objectweb.asm.commons.GeneratorAdapter)
+	 */
+	@Override
+	public void _writeOut(BytecodeContext bc) throws TransformerException {
+		boolean doEncode = !checkPSQ && encodeFor != null;
+		GeneratorAdapter adapter = bc.getAdapter();
+		adapter.loadArg(0);
+		if (doEncode) adapter.checkCast(Types.PAGE_CONTEXT_IMPL); // FUTURE keyword:encodefore remove
 
-    /**
-     * @param expr the expr to set
-     */
-    public void setExpr(Expression expr) {
-	this.expr = expr;
-    }
+		ExprString es = bc.getFactory().toExprString(expr);
+		boolean usedExternalizer = false;
 
-    /**
-     * @param preserveSingleQuote the preserveSingleQuote to set
-     */
-    public void setCheckPSQ(boolean checkPSQ) {
-	this.checkPSQ = checkPSQ;
-    }
+		if (!usedExternalizer) es.writeOut(bc, Expression.MODE_REF);
+		if (doEncode) {
+			/*
+			 * if(encodeForIsInt) { encodeFor.writeOut(bc, Expression.MODE_VALUE);
+			 * adapter.visitInsn(Opcodes.I2S);
+			 * adapter.invokeVirtual(Types.PAGE_CONTEXT_IMPL,METHOD_WRITE_ENCODE_SHORT); // FUTURE
+			 * keyword:encodefore remove _IMPL } else {
+			 */
+			encodeFor.writeOut(bc, Expression.MODE_REF);
+			adapter.invokeVirtual(Types.PAGE_CONTEXT_IMPL, METHOD_WRITE_ENCODE_STRING); // FUTURE keyword:encodefore remove _IMPL
+			// }
+		}
+		else adapter.invokeVirtual(Types.PAGE_CONTEXT, checkPSQ ? METHOD_WRITE_PSQ : METHOD_WRITE);
+	}
 
-    public void setEncodeFor(Expression encodeFor) {
-	this.encodeFor = expr.getFactory().toExprString(encodeFor);
-    }
+	/**
+	 * @return the expr
+	 */
+	public Expression getExpr() {
+		return expr;
+	}
+
+	/**
+	 * @param expr the expr to set
+	 */
+	public void setExpr(Expression expr) {
+		this.expr = expr;
+	}
+
+	/**
+	 * @param preserveSingleQuote the preserveSingleQuote to set
+	 */
+	public void setCheckPSQ(boolean checkPSQ) {
+		this.checkPSQ = checkPSQ;
+	}
+
+	public void setEncodeFor(Expression encodeFor) {
+		this.encodeFor = expr.getFactory().toExprString(encodeFor);
+	}
 }

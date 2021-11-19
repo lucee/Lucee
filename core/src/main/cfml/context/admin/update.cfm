@@ -45,8 +45,41 @@
 			
 			<cfset curr=server.lucee.version>
 			<cfset updateInfo=getAvailableVersion()>
-			<cfset hasUpdate=structKeyExists(updateInfo,"available") && curr LT updateInfo.available>
-			
+			<cfif server.lucee.state EQ "RC">
+				<cfset get_rc = "">
+				<cfloop index="rcList" array="#updateInfo.otherVersions#">
+					<cfif listContainsNoCase(rcList,"-RC") EQ 1>
+						<cfset get_rc = listAppend(get_rc,rcList)>
+					</cfif>
+				</cfloop>
+				<cfset available = listlast(get_rc)>
+				<cfset hasUpdate = curr LT available>
+			<cfelseif server.lucee.state EQ "stable">
+				<cfset get_stable = "">
+				<cfloop index="stableList" array="#updateInfo.otherVersions#">
+					<cfif ( !listContainsNoCase(stableList,"-SNAPSHOT") EQ 1 ) AND ( !listContainsNoCase(stableList,"-BETA") EQ 1 AND (!listContainsNoCase(stableList,"-RC") EQ 1) )>
+						<cfset get_stable = listAppend(get_stable,stableList)>
+					</cfif>
+				</cfloop>
+				<cfset available = listlast(get_stable)>
+				<cfset hasUpdate = curr LT available>
+			<cfelse>
+				<cfset ava_ver = listfirst(updateInfo.available,"-")>
+				<cfset cur_ver = listfirst(curr,"-")>
+				<cfloop from="1" to="#listlen(cur_ver,".")#" index="i">
+					<cfif len(listgetat(ava_ver,i,".")) eq 1>
+						<cfset last = 0&listgetat(ava_ver,i,".")>
+						<cfset ava_ver = listsetat(ava_ver,i,last,".")>
+					</cfif>
+					<cfif len(listgetat(cur_ver,i,".")) eq 1>
+						<cfset last = 0&listgetat(cur_ver,i,".")>
+						<cfset cur_ver = listsetat(cur_ver,i,last,".")>
+					</cfif>
+				</cfloop>
+				<cfset ava_ver = ava_ver&"-"&listlast(updateInfo.available,"-")>
+				<cfset cur_ver = cur_ver&"-"&listlast(curr,"-")>
+				<cfset hasUpdate = structKeyExists(updateInfo,"available") && ava_ver gt cur_ver>
+			</cfif>
 		</cfif>
 
 	<!--- Extensions --->
@@ -131,7 +164,11 @@
 				<cfif adminType == "server" and hasUpdate>
 					<div class="error">
 						<a href="server.cfm?action=services.update" style="color:red;text-decoration:none;">
-						#replace( stText.services.update.update, { '{available}': updateInfo.available, '{current}': curr } )#
+							<cfif server.lucee.state eq "SNAPSHOT" OR server.lucee.state eq "BETA">
+								#replace( stText.services.update.update, { '{available}': updateinfo.available, '{current}': curr } )#
+							<cfelse>	
+								#replace( stText.services.update.update, { '{available}': available, '{current}': curr } )#
+							</cfif>
 						</a>
 					</div>
 				</cfif>
@@ -170,10 +207,10 @@
 	
 	<cfcatch>
 		<cfoutput>
-			<div class="error">
-				Failed to retrieve update information:
-				#cfcatch.message# #cfcatch.detail#
-			</div>
+			<!--- <div class="error">
+				Failed to retrieve update information<br>
+				<span class="comment">#cfcatch.message# #cfcatch.detail#</span>
+			</div> --->
 		</cfoutput>
 	</cfcatch>
 </cftry>

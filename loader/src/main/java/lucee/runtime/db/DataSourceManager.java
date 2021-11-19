@@ -23,87 +23,87 @@ import lucee.runtime.exp.PageException;
 
 public interface DataSourceManager {
 
-    /**
-     * return a database connection matching to datsource name
-     * 
-     * @param datasource datasource whished
-     * @param user username to datasource
-     * @param pass password to datasource
-     * @return return a Db Connection9n Object
-     * @throws PageException
-     * @deprecated use instead
-     *             <code>getConnection(PageContext pc,DataSource ds, String user, String pass)</code>
-     */
-    @Deprecated
-    public DatasourceConnection getConnection(PageContext pc, String datasource, String user, String pass) throws PageException;
+	/**
+	 * return a database connection matching to datsource name
+	 * 
+	 * @param datasource datasource whished
+	 * @param user username to datasource
+	 * @param pass password to datasource
+	 * @return return a Db Connection9n Object
+	 * @throws PageException
+	 * @deprecated use instead
+	 *             <code>getConnection(PageContext pc,DataSource ds, String user, String pass)</code>
+	 */
+	@Deprecated
+	public DatasourceConnection getConnection(PageContext pc, String datasource, String user, String pass) throws PageException;
 
-    /**
-     * return a database connection matching to datsource name
-     * 
-     * @param ds datasource whished
-     * @param user username to datasource
-     * @param pass password to datasource
-     * @return return a Db Connection Object
-     * @throws PageException
-     */
-    public DatasourceConnection getConnection(PageContext pc, DataSource ds, String user, String pass) throws PageException;
+	/**
+	 * return a database connection matching to datsource name
+	 * 
+	 * @param ds datasource whished
+	 * @param user username to datasource
+	 * @param pass password to datasource
+	 * @return return a Db Connection Object
+	 * @throws PageException
+	 */
+	public DatasourceConnection getConnection(PageContext pc, DataSource ds, String user, String pass) throws PageException;
 
-    public abstract void releaseConnection(PageContext pc, DatasourceConnection dc) throws PageException;
+	public abstract void releaseConnection(PageContext pc, DatasourceConnection dc) throws PageException;
 
-    /**
-     * set state of transaction to begin
-     */
-    public abstract void begin();
+	/**
+	 * set state of transaction to begin
+	 */
+	public abstract void begin();
 
-    /**
-     * set state of transaction to begin
-     * 
-     * @param isolation isolation level of the transaction
-     */
-    public abstract void begin(String isolation);
+	/**
+	 * set state of transaction to begin
+	 * 
+	 * @param isolation isolation level of the transaction
+	 */
+	public abstract void begin(String isolation);
 
-    /**
-     * set state of transaction to begin
-     * 
-     * @param isolation isolation level of the transaction
-     */
-    public abstract void begin(int isolation);
+	/**
+	 * set state of transaction to begin
+	 * 
+	 * @param isolation isolation level of the transaction
+	 */
+	public abstract void begin(int isolation);
 
-    /**
-     * rollback hanging transaction
-     * 
-     * @throws PageException
-     */
-    public abstract void rollback() throws PageException;
+	/**
+	 * rollback hanging transaction
+	 * 
+	 * @throws PageException
+	 */
+	public abstract void rollback() throws PageException;
 
-    public abstract void savepoint() throws PageException;
+	public abstract void savepoint() throws PageException;
 
-    /**
-     * commit hanging transaction
-     * 
-     * @throws PageException
-     */
-    public abstract void commit() throws PageException;
+	/**
+	 * commit hanging transaction
+	 * 
+	 * @throws PageException
+	 */
+	public abstract void commit() throws PageException;
 
-    /**
-     * @return return if manager is in autocommit mode or not
-     */
-    public abstract boolean isAutoCommit();
+	/**
+	 * @return return if manager is in autocommit mode or not
+	 */
+	public abstract boolean isAutoCommit();
 
-    /**
-     * ends the manual commit state
-     */
-    public abstract void end();
+	/**
+	 * ends the manual commit state
+	 */
+	public abstract void end();
 
-    /**
-     * @deprecated use instead <code>remove(DataSource datasource)</code>
-     * @param datasource
-     */
-    @Deprecated
-    public abstract void remove(String datasource);
+	/**
+	 * @deprecated use instead <code>remove(DataSource datasource)</code>
+	 * @param datasource
+	 */
+	@Deprecated
+	public abstract void remove(String datasource);
 
-    public abstract void remove(DataSource datasource);
+	public abstract void remove(DataSource datasource);
 
-    public abstract void release();
+	public abstract void release();
 
 }

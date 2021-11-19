@@ -24,32 +24,32 @@ package lucee.runtime.sql.old;
 
 public final class ZDelete implements ZStatement {
 
-    public ZDelete(String s) {
-	where_ = null;
-	table_ = new String(s);
-    }
+	public ZDelete(String s) {
+		where_ = null;
+		table_ = new String(s);
+	}
 
-    public void addWhere(ZExp zexp) {
-	where_ = zexp;
-    }
+	public void addWhere(ZExp zexp) {
+		where_ = zexp;
+	}
 
-    public String getTable() {
-	return table_;
-    }
+	public String getTable() {
+		return table_;
+	}
 
-    public ZExp getWhere() {
-	return where_;
-    }
+	public ZExp getWhere() {
+		return where_;
+	}
 
-    @Override
-    public String toString() {
-	StringBuffer stringbuffer = new StringBuffer("delete ");
-	if (where_ != null) stringbuffer.append("from ");
-	stringbuffer.append(table_);
-	if (where_ != null) stringbuffer.append(" where " + where_.toString());
-	return stringbuffer.toString();
-    }
+	@Override
+	public String toString() {
+		StringBuffer stringbuffer = new StringBuffer("delete ");
+		if (where_ != null) stringbuffer.append("from ");
+		stringbuffer.append(table_);
+		if (where_ != null) stringbuffer.append(" where " + where_.toString());
+		return stringbuffer.toString();
+	}
 
-    String table_;
-    ZExp where_;
+	String table_;
+	ZExp where_;
 }

@@ -29,14 +29,14 @@ import lucee.runtime.type.Struct;
 
 public abstract class WebserviceClient implements Objects, Iteratorable {
 
-    // TODO add the missing parts
-    public abstract WebserviceClient init(PageContext pc, String wsdlUrl, String username, String password, ProxyData proxyData) throws PageException;
+	// TODO add the missing parts
+	public abstract WebserviceClient init(PageContext pc, String wsdlUrl, String username, String password, ProxyData proxyData) throws PageException;
 
-    // public abstract void addHeader(Object header) throws PageException;
-    // public abstract Call getLastCall()throws PageException;
-    public abstract Object callWithNamedValues(Config config, Collection.Key methodName, Struct arguments) throws PageException;
+	// public abstract void addHeader(Object header) throws PageException;
+	// public abstract Call getLastCall()throws PageException;
+	public abstract Object callWithNamedValues(Config config, Collection.Key methodName, Struct arguments) throws PageException;
 
-    @Override
-    public abstract Object callWithNamedValues(PageContext pc, Collection.Key methodName, Struct arguments) throws PageException;
+	@Override
+	public abstract Object callWithNamedValues(PageContext pc, Collection.Key methodName, Struct arguments) throws PageException;
 
 }

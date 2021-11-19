@@ -28,50 +28,50 @@ import lucee.runtime.op.Operator;
  */
 public final class NumberSortRegisterComparator implements ExceptionComparator {
 
-    private boolean isAsc;
-    private PageException pageException = null;
+	private boolean isAsc;
+	private PageException pageException = null;
 
-    /**
-     * constructor of the class
-     * 
-     * @param isAsc is ascendinf or descending
-     */
-    public NumberSortRegisterComparator(boolean isAsc) {
-	this.isAsc = isAsc;
-    }
-
-    /**
-     * @return Returns the expressionException.
-     */
-    @Override
-    public PageException getPageException() {
-	return pageException;
-    }
-
-    @Override
-    public int compare(Object oLeft, Object oRight) {
-	try {
-	    if (pageException != null) return 0;
-	    else if (isAsc) return compareObjects(oLeft, oRight);
-	    else return compareObjects(oRight, oLeft);
-	}
-	catch (PageException e) {
-	    pageException = e;
-	    return 0;
-	}
-    }
-
-    private int compareObjects(Object oLeft, Object oRight) throws PageException {
-	/*
-	 * return Operator.compare( ((SortRegister)oLeft).getValue(), ((SortRegister)oRight).getValue() );
+	/**
+	 * constructor of the class
+	 * 
+	 * @param isAsc is ascendinf or descending
 	 */
-	return Operator.compare(Caster.toDoubleValue(v(((SortRegister) oLeft).getValue())), Caster.toDoubleValue(v(((SortRegister) oRight).getValue())));
+	public NumberSortRegisterComparator(boolean isAsc) {
+		this.isAsc = isAsc;
+	}
 
-    }
+	/**
+	 * @return Returns the expressionException.
+	 */
+	@Override
+	public PageException getPageException() {
+		return pageException;
+	}
 
-    private Object v(Object value) {
-	if (value instanceof String && StringUtil.isEmpty(value.toString())) return null;
-	return value;
-    }
+	@Override
+	public int compare(Object oLeft, Object oRight) {
+		try {
+			if (pageException != null) return 0;
+			else if (isAsc) return compareObjects(oLeft, oRight);
+			else return compareObjects(oRight, oLeft);
+		}
+		catch (PageException e) {
+			pageException = e;
+			return 0;
+		}
+	}
+
+	private int compareObjects(Object oLeft, Object oRight) throws PageException {
+		/*
+		 * return Operator.compare( ((SortRegister)oLeft).getValue(), ((SortRegister)oRight).getValue() );
+		 */
+		return Operator.compare(Caster.toDoubleValue(v(((SortRegister) oLeft).getValue())), Caster.toDoubleValue(v(((SortRegister) oRight).getValue())));
+
+	}
+
+	private Object v(Object value) {
+		if (value instanceof String && StringUtil.isEmpty(value.toString())) return null;
+		return value;
+	}
 
 }

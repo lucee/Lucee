@@ -32,28 +32,28 @@ import lucee.transformer.library.tag.TagLibTag;
  */
 public interface TagEvaluator {
 
-    /**
-     * this method is executed to check the tag itself, the method is invoked after Lucee has read that
-     * tag, but before reading following tags. so you have not the complete environment of the tag.
-     * 
-     * @param config
-     * @param tag the tag to check
-     * @param libTag the definition of the tag from the tld file
-     * @param flibs all fld libraries.
-     * @param data data object of the running parser
-     * @throws TemplateException
-     */
-    public TagLib execute(Config config, Tag tag, TagLibTag libTag, FunctionLib[] flibs, Data data) throws TemplateException;
+	/**
+	 * this method is executed to check the tag itself, the method is invoked after Lucee has read that
+	 * tag, but before reading following tags. so you have not the complete environment of the tag.
+	 * 
+	 * @param config
+	 * @param tag the tag to check
+	 * @param libTag the definition of the tag from the tld file
+	 * @param flibs all fld libraries.
+	 * @param data data object of the running parser
+	 * @throws TemplateException
+	 */
+	public TagLib execute(Config config, Tag tag, TagLibTag libTag, FunctionLib[] flibs, Data data) throws TemplateException;
 
-    /**
-     * This method is invoked to check the environment of a tag, the method is invoked AFTER the parser
-     * has read the complete template, so you have the full environment.
-     * 
-     * @param tag the tag to check
-     * @param libTag the definition of the tag from the tld file
-     * @param flibs all fld libraries.
-     * @throws EvaluatorException
-     */
-    public void evaluate(Tag tag, TagLibTag libTag, FunctionLib[] flibs) throws EvaluatorException;
+	/**
+	 * This method is invoked to check the environment of a tag, the method is invoked AFTER the parser
+	 * has read the complete template, so you have the full environment.
+	 * 
+	 * @param tag the tag to check
+	 * @param libTag the definition of the tag from the tld file
+	 * @param flibs all fld libraries.
+	 * @throws EvaluatorException
+	 */
+	public void evaluate(Tag tag, TagLibTag libTag, FunctionLib[] flibs) throws EvaluatorException;
 
 }

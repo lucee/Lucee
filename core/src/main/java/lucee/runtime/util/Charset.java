@@ -23,10 +23,10 @@ package lucee.runtime.util;
  */
 public final class Charset {
 
-    /**
-     * @return returns default charset
-     */
-    public static String getDefault() {
-	return System.getProperty("file.encoding");
-    }
+	/**
+	 * @return returns default charset
+	 */
+	public static String getDefault() {
+		return System.getProperty("file.encoding");
+	}
 }

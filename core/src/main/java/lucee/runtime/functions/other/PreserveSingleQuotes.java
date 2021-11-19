@@ -25,8 +25,8 @@ import lucee.runtime.PageContext;
 import lucee.runtime.ext.function.Function;
 
 public final class PreserveSingleQuotes implements Function {
-    public static String call(PageContext pc, String string) {
-	// print.ln("PreserveSingleQuotes:"+string);
-	return string;
-    }
+	public static String call(PageContext pc, String string) {
+		// print.ln("PreserveSingleQuotes:"+string);
+		return string;
+	}
 }

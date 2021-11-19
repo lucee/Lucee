@@ -28,20 +28,20 @@ import lucee.commons.io.res.filter.ResourceFilter;
  */
 public final class AndFileFilter implements ResourceFilter {
 
-    private ResourceFilter[] filters;
+	private ResourceFilter[] filters;
 
-    /**
-     * @param filters
-     */
-    public AndFileFilter(ResourceFilter[] filters) {
-	this.filters = filters;
-    }
-
-    @Override
-    public boolean accept(Resource res) {
-	for (int i = 0; i < filters.length; i++) {
-	    if (!filters[i].accept(res)) return false;
+	/**
+	 * @param filters
+	 */
+	public AndFileFilter(ResourceFilter[] filters) {
+		this.filters = filters;
 	}
-	return true;
-    }
+
+	@Override
+	public boolean accept(Resource res) {
+		for (int i = 0; i < filters.length; i++) {
+			if (!filters[i].accept(res)) return false;
+		}
+		return true;
+	}
 }

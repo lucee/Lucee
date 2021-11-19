@@ -21,7 +21,7 @@ import lucee.runtime.type.Array;
 
 public interface SuggestionItem {
 
-    public Array getKeywords();
+	public Array getKeywords();
 
-    public Array getKeywordScore();
+	public Array getKeywordScore();
 }

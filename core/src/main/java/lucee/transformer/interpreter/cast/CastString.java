@@ -13,40 +13,40 @@ import lucee.transformer.interpreter.expression.ExpressionBase;
  */
 public final class CastString extends ExpressionBase implements ExprString, Cast {
 
-    private Expression expr;
+	private Expression expr;
 
-    /**
-     * constructor of the class
-     * 
-     * @param expr
-     */
-    private CastString(Expression expr) {
-	super(expr.getFactory(), expr.getStart(), expr.getEnd());
-	this.expr = expr;
-    }
+	/**
+	 * constructor of the class
+	 * 
+	 * @param expr
+	 */
+	private CastString(Expression expr) {
+		super(expr.getFactory(), expr.getStart(), expr.getEnd());
+		this.expr = expr;
+	}
 
-    /**
-     * Create a String expression from a Expression
-     * 
-     * @param expr
-     * @param pos
-     * @return String expression
-     */
-    public static ExprString toExprString(Expression expr) {
-	if (expr instanceof ExprString) return (ExprString) expr;
-	if (expr instanceof Literal) return expr.getFactory().createLitString(((Literal) expr).getString(), expr.getStart(), expr.getEnd());
-	return new CastString(expr);
-    }
+	/**
+	 * Create a String expression from an Expression
+	 * 
+	 * @param expr
+	 * @param pos
+	 * @return String expression
+	 */
+	public static ExprString toExprString(Expression expr) {
+		if (expr instanceof ExprString) return (ExprString) expr;
+		if (expr instanceof Literal) return expr.getFactory().createLitString(((Literal) expr).getString(), expr.getStart(), expr.getEnd());
+		return new CastString(expr);
+	}
 
-    @Override
-    public Class<?> _writeOut(InterpreterContext ic, int mode) throws PageException {
-	ic.stack(ic.getValueAsString(expr));
-	return String.class;
-    }
+	@Override
+	public Class<?> _writeOut(InterpreterContext ic, int mode) throws PageException {
+		ic.stack(ic.getValueAsString(expr));
+		return String.class;
+	}
 
-    @Override
-    public Expression getExpr() {
-	return expr;
-    }
+	@Override
+	public Expression getExpr() {
+		return expr;
+	}
 
 }

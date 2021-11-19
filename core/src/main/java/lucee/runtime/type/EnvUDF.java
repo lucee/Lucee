@@ -33,109 +33,109 @@ import lucee.runtime.type.scope.Variables;
 
 public abstract class EnvUDF extends UDFImpl {
 
-    private static final long serialVersionUID = -7200106903813254844L; // do not change
+	private static final long serialVersionUID = -7200106903813254844L; // do not change
 
-    protected Variables variables;
+	protected Variables variables;
 
-    public EnvUDF() {// needed for externalize
-	super();
-    }
-
-    EnvUDF(UDFProperties properties) {
-	super(properties);
-	PageContext pc = ThreadLocalPageContext.get();
-	if (pc.undefinedScope().getCheckArguments()) {
-	    this.variables = new ClosureScope(pc, pc.argumentsScope(), pc.localScope(), pc.variablesScope());
+	public EnvUDF() {// needed for externalize
+		super();
 	}
-	else {
-	    this.variables = pc.variablesScope();
-	    variables.setBind(true);
+
+	EnvUDF(UDFProperties properties) {
+		super(properties);
+		PageContext pc = ThreadLocalPageContext.get();
+		if (pc.undefinedScope().getCheckArguments()) {
+			this.variables = new ClosureScope(pc, pc.argumentsScope(), pc.localScope(), pc.variablesScope());
+		}
+		else {
+			this.variables = pc.variablesScope();
+			variables.setBind(true);
+		}
 	}
-    }
 
-    EnvUDF(UDFProperties properties, Variables variables) {
-	super(properties);
-	this.variables = variables;
-    }
-
-    @Override
-    public UDF duplicate(Component c) {
-	return _duplicate(c);
-    }
-
-    public abstract UDF _duplicate(Component c);
-
-    @Override
-    public Object callWithNamedValues(PageContext pc, Collection.Key calledName, Struct values, boolean doIncludePath) throws PageException {
-	Variables parent = pc.variablesScope();
-	try {
-	    pc.setVariablesScope(variables);
-	    return super.callWithNamedValues(pc, calledName, values, doIncludePath);
+	EnvUDF(UDFProperties properties, Variables variables) {
+		super(properties);
+		this.variables = variables;
 	}
-	finally {
-	    pc.setVariablesScope(parent);
+
+	@Override
+	public UDF duplicate(Component c) {
+		return _duplicate(c);
 	}
-    }
 
-    @Override
-    public Object callWithNamedValues(PageContext pc, Struct values, boolean doIncludePath) throws PageException {
-	Variables parent = pc.variablesScope();
-	try {
-	    pc.setVariablesScope(variables);
-	    return super.callWithNamedValues(pc, values, doIncludePath);
+	public abstract UDF _duplicate(Component c);
+
+	@Override
+	public Object callWithNamedValues(PageContext pc, Collection.Key calledName, Struct values, boolean doIncludePath) throws PageException {
+		Variables parent = pc.variablesScope();
+		try {
+			pc.setVariablesScope(variables);
+			return super.callWithNamedValues(pc, calledName, values, doIncludePath);
+		}
+		finally {
+			pc.setVariablesScope(parent);
+		}
 	}
-	finally {
-	    pc.setVariablesScope(parent);
+
+	@Override
+	public Object callWithNamedValues(PageContext pc, Struct values, boolean doIncludePath) throws PageException {
+		Variables parent = pc.variablesScope();
+		try {
+			pc.setVariablesScope(variables);
+			return super.callWithNamedValues(pc, values, doIncludePath);
+		}
+		finally {
+			pc.setVariablesScope(parent);
+		}
 	}
-    }
 
-    @Override
-    public Object call(PageContext pc, Collection.Key calledName, Object[] args, boolean doIncludePath) throws PageException {
-	Variables parent = pc.variablesScope();
-	try {
-	    pc.setVariablesScope(variables);
-	    return super.call(pc, calledName, args, doIncludePath);
+	@Override
+	public Object call(PageContext pc, Collection.Key calledName, Object[] args, boolean doIncludePath) throws PageException {
+		Variables parent = pc.variablesScope();
+		try {
+			pc.setVariablesScope(variables);
+			return super.call(pc, calledName, args, doIncludePath);
+		}
+		finally {
+			pc.setVariablesScope(parent);
+		}
 	}
-	finally {
-	    pc.setVariablesScope(parent);
+
+	@Override
+	public Object call(PageContext pc, Object[] args, boolean doIncludePath) throws PageException {
+		Variables parent = pc.variablesScope();
+		try {
+			pc.setVariablesScope(variables);
+			return super.call(pc, args, doIncludePath);
+		}
+		finally {
+			pc.setVariablesScope(parent);
+		}
 	}
-    }
 
-    @Override
-    public Object call(PageContext pc, Object[] args, boolean doIncludePath) throws PageException {
-	Variables parent = pc.variablesScope();
-	try {
-	    pc.setVariablesScope(variables);
-	    return super.call(pc, args, doIncludePath);
+	@Override
+	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+		variables = (Variables) in.readObject();
+		super.readExternal(in);
 	}
-	finally {
-	    pc.setVariablesScope(parent);
+
+	@Override
+	public void writeExternal(ObjectOutput out) throws IOException {
+		out.writeObject(ClosureScope.prepare(variables));
+		super.writeExternal(out);
 	}
-    }
 
-    @Override
-    public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
-	variables = (Variables) in.readObject();
-	super.readExternal(in);
-    }
+	@Override
+	public DumpData toDumpData(PageContext pageContext, int maxlevel, DumpProperties dp) {
+		return _toDumpData(pageContext, maxlevel, dp);
+	}
 
-    @Override
-    public void writeExternal(ObjectOutput out) throws IOException {
-	out.writeObject(ClosureScope.prepare(variables));
-	super.writeExternal(out);
-    }
+	public abstract DumpData _toDumpData(PageContext pageContext, int maxlevel, DumpProperties dp);
 
-    @Override
-    public DumpData toDumpData(PageContext pageContext, int maxlevel, DumpProperties dp) {
-	return _toDumpData(pageContext, maxlevel, dp);
-    }
+	@Override
+	public Struct getMetaData(PageContext pc) throws PageException {
+		return _getMetaData(pc);
+	}
 
-    public abstract DumpData _toDumpData(PageContext pageContext, int maxlevel, DumpProperties dp);
-
-    @Override
-    public Struct getMetaData(PageContext pc) throws PageException {
-	return _getMetaData(pc);
-    }
-
-    public abstract Struct _getMetaData(PageContext pc) throws PageException;
+	public abstract Struct _getMetaData(PageContext pc) throws PageException;
 }

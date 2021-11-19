@@ -29,22 +29,22 @@ import lucee.runtime.op.Caster;
 
 public final class NewLine extends BIF {
 
-    private static final long serialVersionUID = -5537738458169706L;
-    private static final String NL = System.getProperty("line.separator");
+	private static final long serialVersionUID = -5537738458169706L;
+	private static final String NL = System.getProperty("line.separator");
 
-    public static String call(PageContext pc) {
-	return call(pc, true);
-    }
+	public static String call(PageContext pc) {
+		return call(pc, true);
+	}
 
-    public static String call(PageContext pc, boolean includeCROnWindows) {
-	return includeCROnWindows ? NL : "\n";
-    }
+	public static String call(PageContext pc, boolean includeCROnWindows) {
+		return includeCROnWindows ? NL : "\n";
+	}
 
-    @Override
-    public Object invoke(PageContext pc, Object[] args) throws PageException {
-	if (args.length == 0) return call(pc, true);
-	if (args.length == 1) return call(pc, Caster.toBooleanValue(args[0]));
+	@Override
+	public Object invoke(PageContext pc, Object[] args) throws PageException {
+		if (args.length == 0) return call(pc, true);
+		if (args.length == 1) return call(pc, Caster.toBooleanValue(args[0]));
 
-	throw new FunctionException(pc, "NewLine", 0, 1, args.length);
-    }
+		throw new FunctionException(pc, "NewLine", 0, 1, args.length);
+	}
 }

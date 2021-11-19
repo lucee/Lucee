@@ -32,23 +32,23 @@ import lucee.runtime.text.xml.XMLCaster;
 import lucee.runtime.text.xml.XMLUtil;
 
 public final class HtmlParse implements Function {
-    public static Node call(PageContext pc, String string) throws PageException {
-	return call(pc, string, false);
-    }
-
-    public static Node call(PageContext pc, String strHTML, boolean caseSensitive) throws PageException {
-	try {
-	    InputSource xml = XMLUtil.toInputSource(pc, strHTML, false);
-	    return XMLCaster.toXMLStruct(XMLUtil.parse(xml, null, true), caseSensitive);
-	}
-	catch (Exception e) {
-	    throw Caster.toPageException(e);
+	public static Node call(PageContext pc, String string) throws PageException {
+		return call(pc, string, false);
 	}
 
-	/*
-	 * try { return XMLCaster.toXMLStruct(XMLUtil.parse(string,true),caseSensitive);//new
-	 * XMLNodeStruct(XMLUtil.parse(string),caseSensitive); } catch (Exception e) { throw
-	 * Caster.toPageException(e); }
-	 */
-    }
+	public static Node call(PageContext pc, String strHTML, boolean caseSensitive) throws PageException {
+		try {
+			InputSource xml = XMLUtil.toInputSource(pc, strHTML, false);
+			return XMLCaster.toXMLStruct(XMLUtil.parse(xml, null, true), caseSensitive);
+		}
+		catch (Exception e) {
+			throw Caster.toPageException(e);
+		}
+
+		/*
+		 * try { return XMLCaster.toXMLStruct(XMLUtil.parse(string,true),caseSensitive);//new
+		 * XMLNodeStruct(XMLUtil.parse(string),caseSensitive); } catch (Exception e) { throw
+		 * Caster.toPageException(e); }
+		 */
+	}
 }

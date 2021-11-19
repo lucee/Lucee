@@ -31,206 +31,206 @@ import lucee.runtime.type.it.ArrayListIteratorImpl;
 
 public class ArrayAsList implements List {
 
-    Array array;
+	Array array;
 
-    private ArrayAsList(Array array) {
-	this.array = array;
-    }
-
-    public static List toList(Array array) {
-	if (array instanceof ListAsArray) return ((ListAsArray) array).list;
-	if (array instanceof List) return (List) array;
-	return new ArrayAsList(array);
-    }
-
-    @Override
-    public boolean add(Object o) {
-	try {
-	    array.append(o);
+	private ArrayAsList(Array array) {
+		this.array = array;
 	}
-	catch (PageException e) {
-	    return false;
+
+	public static List toList(Array array) {
+		if (array instanceof ListAsArray) return ((ListAsArray) array).list;
+		if (array instanceof List) return (List) array;
+		return new ArrayAsList(array);
 	}
-	return true;
-    }
 
-    @Override
-    public void add(int index, Object element) {
-	try {
-	    array.insert(index + 1, element);
+	@Override
+	public boolean add(Object o) {
+		try {
+			array.append(o);
+		}
+		catch (PageException e) {
+			return false;
+		}
+		return true;
 	}
-	catch (PageException e) {
-	    throw new IndexOutOfBoundsException(e.getMessage());
+
+	@Override
+	public void add(int index, Object element) {
+		try {
+			array.insert(index + 1, element);
+		}
+		catch (PageException e) {
+			throw new IndexOutOfBoundsException(e.getMessage());
+		}
 	}
-    }
 
-    @Override
-    public boolean addAll(Collection c) {
-	Iterator it = c.iterator();
-	while (it.hasNext()) {
-	    add(it.next());
+	@Override
+	public boolean addAll(Collection c) {
+		Iterator it = c.iterator();
+		while (it.hasNext()) {
+			add(it.next());
+		}
+		return !c.isEmpty();
 	}
-	return !c.isEmpty();
-    }
 
-    @Override
-    public boolean addAll(int index, Collection c) {
-	Iterator it = c.iterator();
-	while (it.hasNext()) {
-	    add(index++, it.next());
+	@Override
+	public boolean addAll(int index, Collection c) {
+		Iterator it = c.iterator();
+		while (it.hasNext()) {
+			add(index++, it.next());
+		}
+		return !c.isEmpty();
 	}
-	return !c.isEmpty();
-    }
 
-    @Override
-    public void clear() {
-	array.clear();
-    }
-
-    @Override
-    public boolean contains(Object o) {
-	return indexOf(o) != -1;
-    }
-
-    @Override
-    public boolean containsAll(Collection c) {
-	Iterator it = c.iterator();
-	while (it.hasNext()) {
-	    if (!contains(it.next())) return false;
+	@Override
+	public void clear() {
+		array.clear();
 	}
-	return true;
-    }
 
-    @Override
-    public Object get(int index) {
-	try {
-	    return array.getE(index + 1);
+	@Override
+	public boolean contains(Object o) {
+		return indexOf(o) != -1;
 	}
-	catch (PageException e) {
-	    throw new IndexOutOfBoundsException(e.getMessage());
+
+	@Override
+	public boolean containsAll(Collection c) {
+		Iterator it = c.iterator();
+		while (it.hasNext()) {
+			if (!contains(it.next())) return false;
+		}
+		return true;
 	}
-    }
 
-    @Override
-    public int indexOf(Object o) {
-	Iterator<Object> it = array.valueIterator();
-	int index = 0;
-	while (it.hasNext()) {
-	    if (it.next().equals(o)) return index;
-	    index++;
+	@Override
+	public Object get(int index) {
+		try {
+			return array.getE(index + 1);
+		}
+		catch (PageException e) {
+			throw new IndexOutOfBoundsException(e.getMessage());
+		}
 	}
-	return -1;
-    }
 
-    @Override
-    public boolean isEmpty() {
-	return array.size() == 0;
-    }
-
-    @Override
-    public Iterator iterator() {
-	return array.valueIterator();
-    }
-
-    @Override
-    public int lastIndexOf(Object o) {
-	Iterator<Object> it = array.valueIterator();
-	int index = 0;
-	int rtn = -1;
-	while (it.hasNext()) {
-	    if (it.next().equals(o)) rtn = index;
-	    index++;
+	@Override
+	public int indexOf(Object o) {
+		Iterator<Object> it = array.valueIterator();
+		int index = 0;
+		while (it.hasNext()) {
+			if (it.next().equals(o)) return index;
+			index++;
+		}
+		return -1;
 	}
-	return rtn;
-    }
 
-    @Override
-    public ListIterator listIterator() {
-	return listIterator(0);
-    }
-
-    @Override
-    public ListIterator listIterator(int index) {
-	return new ArrayListIteratorImpl(array, index);
-	// return array.toList().listIterator(index);
-    }
-
-    @Override
-    public boolean remove(Object o) {
-	int index = indexOf(o);
-	if (index == -1) return false;
-
-	try {
-	    array.removeE(index + 1);
+	@Override
+	public boolean isEmpty() {
+		return array.size() == 0;
 	}
-	catch (PageException e) {
-	    return false;
+
+	@Override
+	public Iterator iterator() {
+		return array.valueIterator();
 	}
-	return true;
-    }
 
-    @Override
-    public Object remove(int index) {
-	try {
-	    return array.removeE(index + 1);
+	@Override
+	public int lastIndexOf(Object o) {
+		Iterator<Object> it = array.valueIterator();
+		int index = 0;
+		int rtn = -1;
+		while (it.hasNext()) {
+			if (it.next().equals(o)) rtn = index;
+			index++;
+		}
+		return rtn;
 	}
-	catch (PageException e) {
-	    throw new IndexOutOfBoundsException(e.getMessage());
+
+	@Override
+	public ListIterator listIterator() {
+		return listIterator(0);
 	}
-    }
 
-    @Override
-    public boolean removeAll(Collection c) {
-	Iterator it = c.iterator();
-	boolean rtn = false;
-	while (it.hasNext()) {
-	    if (remove(it.next())) rtn = true;
+	@Override
+	public ListIterator listIterator(int index) {
+		return new ArrayListIteratorImpl(array, index);
+		// return array.toList().listIterator(index);
 	}
-	return rtn;
-    }
 
-    @Override
-    public boolean retainAll(Collection c) {
-	new ArrayList().retainAll(c);
-	boolean modified = false;
-	Iterator it = iterator();
-	while (it.hasNext()) {
-	    if (!c.contains(it.next())) {
-		it.remove();
-		modified = true;
-	    }
+	@Override
+	public boolean remove(Object o) {
+		int index = indexOf(o);
+		if (index == -1) return false;
+
+		try {
+			array.removeE(index + 1);
+		}
+		catch (PageException e) {
+			return false;
+		}
+		return true;
 	}
-	return modified;
-    }
 
-    @Override
-    public Object set(int index, Object element) {
-	try {
-	    if (!array.containsKey(index + 1)) throw new IndexOutOfBoundsException("Index: " + (index + 1) + ", Size: " + size());
-	    return array.setE(index + 1, element);
+	@Override
+	public Object remove(int index) {
+		try {
+			return array.removeE(index + 1);
+		}
+		catch (PageException e) {
+			throw new IndexOutOfBoundsException(e.getMessage());
+		}
 	}
-	catch (PageException e) {
-	    throw new PageRuntimeException(e);
+
+	@Override
+	public boolean removeAll(Collection c) {
+		Iterator it = c.iterator();
+		boolean rtn = false;
+		while (it.hasNext()) {
+			if (remove(it.next())) rtn = true;
+		}
+		return rtn;
 	}
-    }
 
-    @Override
-    public int size() {
-	return array.size();
-    }
+	@Override
+	public boolean retainAll(Collection c) {
+		new ArrayList().retainAll(c);
+		boolean modified = false;
+		Iterator it = iterator();
+		while (it.hasNext()) {
+			if (!c.contains(it.next())) {
+				it.remove();
+				modified = true;
+			}
+		}
+		return modified;
+	}
 
-    @Override
-    public List subList(int fromIndex, int toIndex) {
-	return array.toList().subList(fromIndex, toIndex);
-    }
+	@Override
+	public Object set(int index, Object element) {
+		try {
+			if (!array.containsKey(index + 1)) throw new IndexOutOfBoundsException("Index: " + (index + 1) + ", Size: " + size());
+			return array.setE(index + 1, element);
+		}
+		catch (PageException e) {
+			throw new PageRuntimeException(e);
+		}
+	}
 
-    @Override
-    public Object[] toArray() {
-	return array.toArray();
-    }
+	@Override
+	public int size() {
+		return array.size();
+	}
 
-    @Override
-    public Object[] toArray(Object[] a) {
-	return array.toArray();
-    }
+	@Override
+	public List subList(int fromIndex, int toIndex) {
+		return array.toList().subList(fromIndex, toIndex);
+	}
+
+	@Override
+	public Object[] toArray() {
+		return array.toArray();
+	}
+
+	@Override
+	public Object[] toArray(Object[] a) {
+		return array.toArray();
+	}
 }

@@ -25,20 +25,20 @@ import lucee.transformer.bytecode.BytecodeContext;
 
 public final class IfVisitor {
 
-    private Label end;
+	private Label end;
 
-    public void visitBeforeExpression() {
+	public void visitBeforeExpression() {
 
-	end = new Label();
+		end = new Label();
 
-    }
+	}
 
-    public void visitAfterExpressionBeforeBody(BytecodeContext bc) {
-	bc.getAdapter().ifZCmp(Opcodes.IFEQ, end);
-    }
+	public void visitAfterExpressionBeforeBody(BytecodeContext bc) {
+		bc.getAdapter().ifZCmp(Opcodes.IFEQ, end);
+	}
 
-    public void visitAfterBody(BytecodeContext bc) {
-	bc.getAdapter().visitLabel(end);
-    }
+	public void visitAfterBody(BytecodeContext bc) {
+		bc.getAdapter().visitLabel(end);
+	}
 
 }

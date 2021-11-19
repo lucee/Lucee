@@ -19,21 +19,23 @@
 package lucee.runtime.sql.exp;
 
 public interface Expression {
-    public void setIndex(int index);
+	public void setIndex(int index);
 
-    public int getIndex();
+	public int getIndex();
 
-    public String getAlias();
+	public String getAlias();
 
-    public void setAlias(String alias);
+	public void setAlias(String alias);
 
-    public boolean hasAlias();
+	public boolean hasAlias();
 
-    public boolean hasIndex();
+	public boolean hasIndex();
 
-    public String toString(boolean noAlias);
+	public String toString(boolean noAlias);
 
-    public void setDirectionBackward(boolean b);
+	public void setDirectionBackward(boolean b);
 
-    public boolean isDirectionBackward();
+	public void reset();
+
+	public boolean isDirectionBackward();
 }

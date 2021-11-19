@@ -29,11 +29,11 @@ import lucee.runtime.ext.function.Function;
  */
 public final class CreateGUID implements Function {
 
-    public static String call(PageContext pc) {
-	return UUID.randomUUID().toString().toUpperCase();
-    }
+	public static String call(PageContext pc) {
+		return UUID.randomUUID().toString().toUpperCase();
+	}
 
-    public static String invoke() {
-	return UUID.randomUUID().toString().toUpperCase();
-    }
+	public static String invoke() {
+		return UUID.randomUUID().toString().toUpperCase();
+	}
 }

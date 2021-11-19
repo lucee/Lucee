@@ -18,6 +18,8 @@
  **/
 package lucee.runtime.type.scope;
 
+import java.util.concurrent.ConcurrentLinkedQueue;
+
 import lucee.runtime.PageContext;
 
 /**
@@ -25,96 +27,95 @@ import lucee.runtime.PageContext;
  */
 public final class ScopeFactory {
 
-    int argumentCounter = 0;
-    final Argument[] arguments = new Argument[] { new ArgumentImpl(), new ArgumentImpl(), new ArgumentImpl(), new ArgumentImpl(), new ArgumentImpl(), new ArgumentImpl(),
-	    new ArgumentImpl(), new ArgumentImpl(), new ArgumentImpl(), new ArgumentImpl(), new ArgumentImpl(), new ArgumentImpl(), new ArgumentImpl(), new ArgumentImpl(),
-	    new ArgumentImpl(), new ArgumentImpl(), new ArgumentImpl(), new ArgumentImpl(), new ArgumentImpl() };
+	private static final int MAX_SIZE = 50;
 
-    int localCounter = 0;
-    LocalImpl[] locals = new LocalImpl[] { new LocalImpl(), new LocalImpl(), new LocalImpl(), new LocalImpl(), new LocalImpl(), new LocalImpl(), new LocalImpl(), new LocalImpl(),
-	    new LocalImpl(), new LocalImpl(), new LocalImpl(), new LocalImpl(), new LocalImpl(), new LocalImpl(), new LocalImpl(), new LocalImpl(), new LocalImpl(),
-	    new LocalImpl() };
+	int argumentCounter = 0;
 
-    /**
-     * @return returns a Argument scope
-     */
-    public Argument getArgumentInstance() {
-	if (argumentCounter < arguments.length) {
-	    return arguments[argumentCounter++];
-	}
-	return new ArgumentImpl();
-    }
+	private final ConcurrentLinkedQueue<Argument> arguments = new ConcurrentLinkedQueue<Argument>();
+	private final ConcurrentLinkedQueue<LocalImpl> locals = new ConcurrentLinkedQueue<LocalImpl>();
 
-    /**
-     * @return retruns a Local Instance
-     */
-    public LocalImpl getLocalInstance() {
-	if (localCounter < locals.length) {
-	    return locals[localCounter++];
-	}
-	return new LocalImpl();
-    }
-
-    /**
-     * @param argument recycle a Argument scope for reuse
-     */
-    public void recycle(PageContext pc, Argument argument) {
-	if (argumentCounter <= 0 || argument.isBind()) return;
-	argument.release(pc);
-	arguments[--argumentCounter] = argument;
-    }
-
-    /**
-     * @param local recycle a Local scope for reuse
-     */
-    public void recycle(PageContext pc, LocalImpl local) {
-	if (localCounter <= 0 || local.isBind()) return;
-	local.release(pc);
-	locals[--localCounter] = local;
-    }
-
-    /**
-     * cast a int scope definition to a string definition
-     * 
-     * @param scope
-     * @return
-     */
-    public static String toStringScope(int scope, String defaultValue) {
-	switch (scope) {
-	case Scope.SCOPE_APPLICATION:
-	    return "application";
-	case Scope.SCOPE_ARGUMENTS:
-	    return "arguments";
-	case Scope.SCOPE_CALLER:
-	    return "caller";
-	case Scope.SCOPE_CGI:
-	    return "cgi";
-	case Scope.SCOPE_CLIENT:
-	    return "client";
-	case Scope.SCOPE_COOKIE:
-	    return "cookie";
-	case Scope.SCOPE_FORM:
-	    return "form";
-	case Scope.SCOPE_VAR:
-	case Scope.SCOPE_LOCAL:
-	    return "local";
-	case Scope.SCOPE_REQUEST:
-	    return "request";
-	case Scope.SCOPE_SERVER:
-	    return "server";
-	case Scope.SCOPE_SESSION:
-	    return "session";
-	case Scope.SCOPE_UNDEFINED:
-	    return "undefined";
-	case Scope.SCOPE_URL:
-	    return "url";
-	case Scope.SCOPE_VARIABLES:
-	    return "variables";
-	case Scope.SCOPE_CLUSTER:
-	    return "cluster";
+	/**
+	 * @return returns an Argument scope
+	 */
+	public Argument getArgumentInstance() {
+		Argument arg = arguments.poll();
+		if (arg != null) {
+			return arg;
+		}
+		return new ArgumentImpl();
 	}
 
-	return defaultValue;
-    }
+	/**
+	 * @return retruns a Local Instance
+	 */
+	public LocalImpl getLocalInstance() {
+		LocalImpl lcl = locals.poll();
+		if (lcl != null) {
+			return lcl;
+		}
+		return new LocalImpl();
+	}
+
+	/**
+	 * @param argument recycle an Argument scope for reuse
+	 */
+	public void recycle(PageContext pc, Argument argument) {
+		if (arguments.size() >= MAX_SIZE || argument.isBind()) return;
+		argument.release(pc);
+		arguments.add(argument);
+	}
+
+	/**
+	 * @param local recycle a Local scope for reuse
+	 */
+	public void recycle(PageContext pc, LocalImpl local) {
+		if (locals.size() >= MAX_SIZE || local.isBind()) return;
+		local.release(pc);
+		locals.add(local);
+	}
+
+	/**
+	 * cast an int scope definition to a string definition
+	 * 
+	 * @param scope
+	 * @return
+	 */
+	public static String toStringScope(int scope, String defaultValue) {
+		switch (scope) {
+		case Scope.SCOPE_APPLICATION:
+			return "application";
+		case Scope.SCOPE_ARGUMENTS:
+			return "arguments";
+		case Scope.SCOPE_CALLER:
+			return "caller";
+		case Scope.SCOPE_CGI:
+			return "cgi";
+		case Scope.SCOPE_CLIENT:
+			return "client";
+		case Scope.SCOPE_COOKIE:
+			return "cookie";
+		case Scope.SCOPE_FORM:
+			return "form";
+		case Scope.SCOPE_VAR:
+		case Scope.SCOPE_LOCAL:
+			return "local";
+		case Scope.SCOPE_REQUEST:
+			return "request";
+		case Scope.SCOPE_SERVER:
+			return "server";
+		case Scope.SCOPE_SESSION:
+			return "session";
+		case Scope.SCOPE_UNDEFINED:
+			return "undefined";
+		case Scope.SCOPE_URL:
+			return "url";
+		case Scope.SCOPE_VARIABLES:
+			return "variables";
+		case Scope.SCOPE_CLUSTER:
+			return "cluster";
+		}
+
+		return defaultValue;
+	}
 
 }

@@ -29,27 +29,27 @@ import lucee.runtime.ext.function.Function;
 
 public final class LSIsCurrency implements Function {
 
-    private static final long serialVersionUID = -8659567712610988769L;
+	private static final long serialVersionUID = -8659567712610988769L;
 
-    public static boolean call(PageContext pc, String string) {
-	try {
-	    LSParseCurrency.toDoubleValue(pc.getLocale(), string, true);
-	    return true;
+	public static boolean call(PageContext pc, String string) {
+		try {
+			LSParseCurrency.toDoubleValue(pc.getLocale(), string, true);
+			return true;
+		}
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+			return false;
+		}
 	}
-	catch (Throwable t) {
-	    ExceptionUtil.rethrowIfNecessary(t);
-	    return false;
-	}
-    }
 
-    public static boolean call(PageContext pc, String string, Locale locale) {
-	try {
-	    LSParseCurrency.toDoubleValue(locale == null ? pc.getLocale() : locale, string, false);
-	    return true;
+	public static boolean call(PageContext pc, String string, Locale locale) {
+		try {
+			LSParseCurrency.toDoubleValue(locale == null ? pc.getLocale() : locale, string, false);
+			return true;
+		}
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+			return false;
+		}
 	}
-	catch (Throwable t) {
-	    ExceptionUtil.rethrowIfNecessary(t);
-	    return false;
-	}
-    }
 }

@@ -29,15 +29,15 @@ import lucee.runtime.type.UDF;
  */
 public final class GetFunctionCalledName implements Function {
 
-    private static final long serialVersionUID = -3345605395096765821L;
+	private static final long serialVersionUID = -3345605395096765821L;
 
-    public static String call(PageContext pc) {
-	PageContextImpl pci = (PageContextImpl) pc;
-	Key name = pci.getActiveUDFCalledName();
-	if (name != null) return name.getString();
+	public static String call(PageContext pc) {
+		PageContextImpl pci = (PageContextImpl) pc;
+		Key name = pci.getActiveUDFCalledName();
+		if (name != null) return name.getString();
 
-	UDF[] udfs = ((PageContextImpl) pc).getUDFs();
-	if (udfs.length == 0) return "";
-	return udfs[udfs.length - 1].getFunctionName();
-    }
+		UDF[] udfs = ((PageContextImpl) pc).getUDFs();
+		if (udfs.length == 0) return "";
+		return udfs[udfs.length - 1].getFunctionName();
+	}
 }

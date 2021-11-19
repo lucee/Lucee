@@ -29,65 +29,65 @@ import lucee.runtime.type.Query;
  */
 public interface SearchEngine {
 
-    /**
-     * overwrite allowed
-     */
-    public static final boolean ALLOW_OVERWRITE = true;
+	/**
+	 * overwrite allowed
+	 */
+	public static final boolean ALLOW_OVERWRITE = true;
 
-    /**
-     * overwrite denied
-     */
-    public static final boolean DENY_OVERWRITE = false;
+	/**
+	 * overwrite denied
+	 */
+	public static final boolean DENY_OVERWRITE = false;
 
-    public abstract void init(Config config, Resource searchDir) throws IOException, SearchException;
+	public abstract void init(Config config, Resource searchDir) throws IOException, SearchException;
 
-    /**
-     * returns a collection by name
-     * 
-     * @param name name of the desired collection (case insensitive)
-     * @return returns lucene collection object matching name
-     * @throws SearchException if no matching Collection exist
-     */
-    public abstract SearchCollection getCollectionByName(String name) throws SearchException;
+	/**
+	 * returns a collection by name
+	 * 
+	 * @param name name of the desired collection (case insensitive)
+	 * @return returns lucene collection object matching name
+	 * @throws SearchException if no matching Collection exist
+	 */
+	public abstract SearchCollection getCollectionByName(String name) throws SearchException;
 
-    /**
-     * @return returns all collections as a query object
-     */
-    public abstract Query getCollectionsAsQuery() throws SearchException;
+	/**
+	 * @return returns all collections as a query object
+	 */
+	public abstract Query getCollectionsAsQuery() throws SearchException;
 
-    /**
-     * Creates a new Collection and Store it (creating always a spellindex)
-     * 
-     * @param name The Name of the Collection
-     * @param path the path to store
-     * @param language The language of the collection
-     * @param allowOverwrite
-     * @return New SearchCollection
-     * @throws SearchException
-     */
-    public abstract SearchCollection createCollection(String name, Resource path, String language, boolean allowOverwrite) throws SearchException;
+	/**
+	 * Creates a new Collection and Store it (creating always a spellindex)
+	 * 
+	 * @param name The Name of the Collection
+	 * @param path the path to store
+	 * @param language The language of the collection
+	 * @param allowOverwrite
+	 * @return New SearchCollection
+	 * @throws SearchException
+	 */
+	public abstract SearchCollection createCollection(String name, Resource path, String language, boolean allowOverwrite) throws SearchException;
 
-    /**
-     * @return returns the directory of the search storage
-     */
-    public abstract Resource getDirectory();
+	/**
+	 * @return returns the directory of the search storage
+	 */
+	public abstract Resource getDirectory();
 
-    /*
-     * * return XML Element Matching index id
-     * 
-     * @param collElement XML Collection Element
-     * 
-     * @param id
-     * 
-     * @return XML Element
-     */
-    // public abstract Element getIndexElement(Element collElement, String id);
+	/*
+	 * * return XML Element Matching index id
+	 * 
+	 * @param collElement XML Collection Element
+	 * 
+	 * @param id
+	 * 
+	 * @return XML Element
+	 */
+	// public abstract Element getIndexElement(Element collElement, String id);
 
-    /**
-     * @return returns the Name of the search engine to display in admin
-     */
-    public abstract String getDisplayName();
+	/**
+	 * @return returns the Name of the search engine to display in admin
+	 */
+	public abstract String getDisplayName();
 
-    public abstract SearchData createSearchData(int suggestionMax);
+	public abstract SearchData createSearchData(int suggestionMax);
 
 }
