@@ -14251,7 +14251,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
         	</argument>
         	<argument>
     			<name>closure</name>
-    			<type>any</type>
+    			<type>function</type>
     			<alias>function,callback,udf</alias>
     			<required>Yes</required>
     			<description> Closure or a function reference that will be called for each of the iteration.</description>
