@@ -17,6 +17,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				assertEquals("9",listLen('aaa,,,,,bbb,ccc,,',',',true));
 				assertEquals("6",listLen('aaa,b.bb,c,.cc',',.',true));
 				assertEquals("9",listLen('||a||b||c||','|',true));
+				assertEquals("1",listLen("","",true));
 			});
 
 			it( title = "Checking with listlen member function", body = function( currentSpec ) {
@@ -34,6 +35,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				assertEquals("9",'aaa,,,,,bbb,ccc,,'.listLen(',',true));
 				assertEquals("6",'aaa,b.bb,c,.cc'.listLen(',.',true));
 				assertEquals("9",'||a||b||c||'.listLen('|',true));
+				assertEquals("1","".listLen("",true));	
 			});
 		});
 	}
