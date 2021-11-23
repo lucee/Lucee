@@ -67,8 +67,8 @@
 	<data key="services.update.titleDesc">Upgrade or Downgrade the version by selecting from the drop-down box below.</data>
 	<data key="services.update.titleDesc2">You cannot downgrade below {min-version} because your lucee.jar has bundled this version. To go below this version you need to replace your lucee.jar with an older version.</data>
 	<data key="services.update.downgradeVersion">To downgrade your version below {minVersion} you need to replace your lucee.jar with an older version one you can download {url}. This is because the lucee.jars always bundles a version itself and it will always use at least that version.</data>
-	<data key="services.update.installExtns">All of the extensions are installed / Couldn't able to reach the server for list the Uninstalled Extensions. Please check your Internet Connection.</data>
-	<data key="services.update.chkInternet">Couldn't able to reach the server for list the "Uninstalled Extensions". Please check your Internet Connection</data>
+	<data key="services.update.installExtns">All of the extensions are installed / Unable to connect to the update server to get the list of Available Extensions. Please check your Internet Connection.</data>
+	<data key="services.update.chkInternet">Unable to connect to the update server to get the list of Available Extensions. Please check your Internet Connection</data>
 
 	<data key="services.certificate.desc">List SSL Certificates for a specific Host or install them.</data>
 	<data key="services.certificate.host">Host</data>

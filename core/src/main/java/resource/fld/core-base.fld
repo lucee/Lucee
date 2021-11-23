@@ -2376,6 +2376,69 @@ sort direction:
 			<type>struct</type>
 		</return>
 	</function>
+	<!-- ConfigImport -->
+	<function>
+		<name>ConfigImport</name>
+		<class>lucee.runtime.functions.system.ConfigImport</class>
+		<description>
+			Imports a configuration based on the "CFConfig" format. 
+			This configuration can be provided as a path (String) to a JSON based file or as a Struct.
+			The values inside the provided configuration can use placeholders following this pattern ${key:default}.
+			The function will check for the actual values for this placeholders in 3 places (in this order):
+			- function argument "placeHolderData" (if provided)
+			- system properties
+			- enviroment variables
+		</description>
+		<argument>
+			<name>path</name>
+			<type>any</type>
+			<alias>path,data</alias>
+			<required>Yes</required>
+			<description>
+			Path to the .CFConfig.json file or the data itself as a Struct. 
+			</description>
+		</argument>
+		<argument>
+			<name>type</name>
+			<type>string</type>
+			<required>no</required>
+			<default>server</default>
+			<values>server,web</values>
+			<description>
+				Config Context to manipulate, server or web context.
+			</description>
+		</argument>
+		<argument>
+			<name>password</name>
+			<type>string</type>
+			<required>no</required>
+			<description>
+				password to access the configuration, depending on the value set for the attribute type. 
+				If not set Lucee will check in the following places for the password (replace {type} with the actual type choosen for the attribute type).
+				Enviroment variable "LUCEE_{type}_ADMIN_PASSWORD" or system property "lucee.{type}.admin.password".
+			</description>
+		</argument>
+		<argument>
+			<name>placeHolderData</name>
+			<type>struct</type>
+			<required>no</required>
+			<description>
+				placeholder data to use as actual data for the placeholders inside the configuration, see main description of this function for more details.
+			</description>
+		</argument>
+		<argument>
+			<name>charset</name>
+			<type>string</type>
+			<required>no</required>
+			<description>
+				charset to use to read the .CFConfig file, if not defined, Lucee will use the default resource charset.
+			</description>
+		</argument>
+		
+		<return>
+			<type>struct</type>
+		</return>
+	</function>
 	<!-- compress -->
 	<function>
 		<name>compress</name>
