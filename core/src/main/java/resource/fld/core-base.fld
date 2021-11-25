@@ -6758,6 +6758,8 @@ Default list delimiter: comma character.</description>
 	<function>
 		<name>hash</name>
 		<class>lucee.runtime.functions.string.Hash</class>
+		<member-name>hash</member-name>
+		<member-type>string</member-type>
 		<description>Converts a variable-length string to a 32-byte, hexadecimal
         string, using the MD5 algorithm. (It is not possible to convert
         the hash result back to the source string.)
@@ -13410,6 +13412,8 @@ _- asc (default): ascending (a to z) sort order
 	<function>
 		<name>toBase64</name>
 		<class>lucee.runtime.functions.string.ToBase64</class>
+		<member-name>toBase64</member-name>
+		<member-type>string</member-type>
 		<description>Calculates the Base64 representation of a string or binary
         object. The Base64 format uses printable characters, allowing
         binary data to be sent in forms and e-mail, and stored in a
@@ -14190,78 +14194,4 @@ You can find a list of all available timezones in the Lucee administrator (Setti
     		<type>string</type>
     	</return>
     </function>
-	<!-- StringToBase64 - added to support member method on String -->
-	<function>
-		<name>StringToBase64</name>
-		<class>lucee.runtime.functions.string.ToBase64</class>
-    	<status>hidden</status>
-		<member-name>toBase64</member-name>
-		<description>Calculates the Base64 representation of a string or binary
-        object. The Base64 format uses printable characters, allowing
-        binary data to be sent in forms and e-mail, and stored in a
-        database or file. Added to support toBase64 string member function with hidden status </description>
-		<argument>
-			<name>input</name>
-			<type>string</type>
-			<required>Yes</required>
-			<description>A string, the name of a string, or a binary object.</description>
-    	</argument>
-		<argument>
-			<name>encoding</name>
-			<type>string</type>
-			<required>No</required>
-			<description>For a string, defines how characters are represented in a
-            byte array.</description>
-    	</argument>
-		<return>
-			<type>string</type>
-		</return>
-	</function>
-	<!-- StringHash - added to support member method on String -->
-	<function>
-		<name>StringHash</name>
-		<class>lucee.runtime.functions.string.Hash</class>
-    	<status>hidden</status>
-		<member-name>hash</member-name>
-		<description>Converts a variable-length string to a 32-byte, hexadecimal
-        string, using the MD5 algorithm. (It is not possible to convert
-        the hash result back to the source string.)
-        32-byte, hexadecimal string</description>
-		<argument>
-			<name>input</name>
-			<alias>string</alias>
-			<type>string</type>
-			<required>Yes</required>
-			<description>String or byte array to hash.</description>
-    	</argument>
-		<argument>
-			<name>algorithm</name>
-			<type>string</type>
-			<required>No</required>
-			<description>The algorithm to use to hash the string. Supported are the following algorithms:
-- QUICK: generating a fast hash string, that provides no security. this algorithm is good when you simply need to shorten a string for an id, for example
-- CFMX_COMPAT: generating a hash string using classic CFML algorithm.
-- MD5: (default) Generates a 32-character, hexadecimal string, using the MD5 algorithm.
-- SHA: Generates a 28-character string using the Secure Hash Standard SHA-1 algorithm specified by Nation Institute of Standards and Technology (NIST) FIPS-180-2.
-- SHA-256: Generates a 44-character string using the SHA-256 algorithm specified by FIPS-180-2.
-- SHA-384: Generates a 64-character string using the SHA-384 algorithm specified by FIPS-180-2.
-- SHA-512: Generates an 88-character string using the SHA-1 algorithm specified by FIPS-180-2.</description>
-    	</argument>
-		<argument>
-			<name>encoding</name>
-			<type>string</type>
-			<required>No</required>
-			<description>A string specifying the encoding to use when converting
-            the string to byte data used by the hash algorithm.</description>
-		</argument>
-		<argument>
-			<name>numIterations</name>
-			<type>number</type>
-			<required>No</required>
-			<description>number of iterations; default is 1.</description>
-		</argument>
-		<return>
-			<type>string</type>
-		</return>
-	</function>
 </func-lib>
