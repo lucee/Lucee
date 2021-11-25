@@ -20,7 +20,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 					template : "#uri#\test.cfm",
 					forms : {scene = 2}
 					);
-				expect(trim(result.filecontent)).toBe("Cannot convert image to jpeg, jpeg doesn't support ARGB images");
+				expect(trim(result.filecontent)).toBe("Success");
 			});
 		});
 	}
