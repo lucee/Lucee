@@ -19,12 +19,19 @@
  <cfscript>
 component extends="org.lucee.cfml.test.LuceeTestCase" {
 
-	public void function testStringEach() {
+    public void function testStringEach() {
+		
 		local.testString = "MEANINGLESS_VALUE";
 		callback = function( c ) {
+            data&=c;
 			return c & "TEST"; 
     	}
-    	assertEquals(StringEach( local.testString, callback ), local.testString.each( callback ));
+        local.data="";
+        StringEach( testString, callback );
+    	local.prev=data;
+		local.data="";
+        testString.each( callback );
+        assertEquals(StringEach( prev, data);
 	}
 } 
 </cfscript>
