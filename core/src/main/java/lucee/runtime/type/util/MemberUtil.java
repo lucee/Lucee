@@ -216,8 +216,12 @@ public class MemberUtil {
 				}
 				return new BIFCall(coll, member, refs.toArray(new Ref[refs.size()])).getValue(pc);
 			}
-
+			else {
+				throw new ExpressionException("There are to many arguments (" + args.size() + ") passed into the member function  [" + methodName
+						+ "], the maximum number of arguments is [" + (_args.size() - 1) + "]");
+			}
 		}
+
 		throw new ExpressionException("No matching function member [" + methodName + "] for call with named arguments found, available function members are ["
 				+ lucee.runtime.type.util.ListUtil.sort(CollectionUtil.getKeyList(members.keySet().iterator(), ","), "textnocase", "asc", ",") + "]");
 	}

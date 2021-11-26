@@ -225,7 +225,8 @@ public final class Decision {
 	}
 
 	public static boolean isInteger(Object value, boolean alsoBooleans) {
-		if (!alsoBooleans && value instanceof Boolean) return false;
+		if (!alsoBooleans && isBoolean(value)) return false;
+
 		double dbl = Caster.toDoubleValue(value, false, Double.NaN);
 		if (!Decision.isValid(dbl)) return false;
 		int i = (int) dbl;

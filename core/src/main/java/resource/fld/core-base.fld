@@ -2974,7 +2974,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<name>dateDiff</name>
 		<class>lucee.runtime.functions.dateTime.DateDiff</class>
 		<member-name>diff</member-name>
-		<member-position>2</member-position>
+		<member-position>3</member-position>
 		<description>Determines the number of given date parts between two different dates</description>
 		<argument>
 			<name>datePart</name>
@@ -12828,7 +12828,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 	<function>
 		<name>listEvery</name>
 		<class>lucee.runtime.functions.list.ListEvery</class>
-		<member-name>listEvery,every</member-name>
+		<member-name>listEvery</member-name>
 		<keywords>list,string,iterator</keywords>
 		<description>This function calls a given closure/function with every element in a given string list and returns true, if all of the closure calls returns true.</description>
 		<argument>
@@ -14212,12 +14212,12 @@ You can find a list of all available timezones in the Lucee administrator (Setti
     		<type>string</type>
     	</return>
     </function>
-	<!-- StringReduce -->
+  <!-- StringEvery -->  
     <function>
-    		<name>StringReduce</name>
-    		<member-name>reduce</member-name>
-    		<class>lucee.runtime.functions.string.StringReduce</class>
-    		<description>Iterates over every element of the string and calls the closure to work on the elements of the string. This function will reduce the string to a single value and will return the value.</description>
+    		<name>StringEvery</name>
+    		<member-name>every</member-name>
+    		<class>lucee.runtime.functions.string.StringEvery</class>
+    		<description>Determines if all elements of a string satisfy a given condition.</description>
         	<argument>
     			<name>string</name>
     			<type>string</type>
@@ -14226,6 +14226,104 @@ You can find a list of all available timezones in the Lucee administrator (Setti
     			<description>Input string.</description>
         	</argument>
         	<argument>
+    			<name>closure</name>
+    			<type>function</type>
+    			<alias>function,callback,udf</alias>
+    			<required>Yes</required>
+    			<description> Closure or a function reference that will be called for each of the iteration.</description>
+    		</argument>
+        	<return>
+        		<type>boolean</type>
+        	</return>
+        </function>
+  <!-- StringEach -->    
+  <function>
+    		<name>StringEach</name>
+    		<member-name>each</member-name>
+    		<class>lucee.runtime.functions.string.StringEach</class>
+    		<description>Iterates over a string and runs the closure function for each element in the string.</description>
+        	<argument>
+    			<name>string</name>
+    			<type>string</type>
+    			<alias>inputString,object</alias>
+    			<required>Yes</required>
+    			<description>Input string.</description>
+        	</argument>
+        	<argument>
+    			<name>closure</name>
+    			<type>function</type>
+    			<alias>function,callback,udf</alias>
+    			<required>Yes</required>
+    			<description> Closure or a function reference that will be called for each of the iteration.</description>
+    		</argument>
+        	<return>
+        		<type>void</type>
+        	</return>
+        </function>
+	<!-- StringFilter -->
+      <function>
+    		<name>StringFilter</name>
+    		<member-name>filter</member-name>
+    		<class>lucee.runtime.functions.string.StringFilter</class>
+    		<description>Filters a string to its elements for which the callback function returns true.</description>
+        	<argument>
+    			<name>string</name>
+    			<type>string</type>
+    			<alias>inputString,object</alias>
+    			<required>Yes</required>
+    			<alias>string</alias>
+    			<description>Input string.</description>
+        	</argument>
+        	<argument>
+    			<name>closure</name>
+    			<type>function</type>
+    			<alias>function,callback,udf</alias>
+    			<required>Yes</required>
+    			<description> Closure or a function reference that will be called for each of the iteration.</description>
+    		</argument>
+        	<return>
+        		<type>string</type>
+        	</return>
+        </function>
+	<!-- StringMap -->
+      <function>
+    		<name>StringMap</name>
+    		<member-name>map</member-name>
+    		<class>lucee.runtime.functions.string.StringMap</class>
+    		<description>Iterates over every entry of the string and calls the closure function to work on the element of the string. </description>
+        	<argument>
+    			<name>string</name>
+    			<type>string</type>
+    			<required>Yes</required>
+    			<alias>inputString,object</alias>
+    			<description>Input string.</description>
+        	</argument>
+        	<argument>
+    			<name>closure</name>
+    			<type>function</type>
+    			<alias>function,callback,udf</alias>
+    			<required>no</required>
+    			<alias>callback</alias>
+    			<description> Closure or a function reference that will be called for each of the iteration.</description>
+    		</argument>
+        	<return>
+        		<type>string</type>
+        	</return>
+        </function>
+	<!-- StringReduce -->
+    <function>
+    		<name>StringReduce</name>
+    		<member-name>reduce</member-name>
+    		<class>lucee.runtime.functions.string.StringReduce</class>
+    		<description>Iterates over every element of the string and calls the closure to work on the elements of the string. This function will reduce the string to a single value and will return the value.</description>
+        <argument>
+    			<name>string</name>
+    			<type>string</type>
+    			<alias>inputString,object</alias>
+    			<required>Yes</required>
+    			<description>Input string.</description>
+       </argument>
+       <argument>
     			<name>closure</name>
     			<type>function</type>
 				<alias>function,callback,udf</alias>
@@ -14241,6 +14339,29 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 	    	</argument>
         	<return>
         		<type>any</type>
+        	</return>
+        </function>
+	<!-- StringSome -->
+      <function>
+    		<name>StringSome</name>
+    		<class>lucee.runtime.functions.string.StringSome</class>
+    		<description>This function calls a given closure/function with every element in a given string and returns true, if one of the closure calls returns true.</description>
+        	<argument>
+    			<name>string</name>
+    			<type>string</type>
+    			<alias>inputString,object</alias>
+    			<required>Yes</required>
+    			<description>Input string.</description>
+        	</argument>
+        	<argument>
+    			<name>closure</name>
+    			<type>function</type>
+    			<alias>function,callback,udf</alias>
+    			<required>No</required>
+    			<description>The value to find or a closure/function that gets every value of the array as input and returns true if the given value is right.</description>
+    		</argument>
+        	<return>
+        		<type>boolean</type>
         	</return>
         </function>
 	<!-- ArrayRemoveDuplicates -->

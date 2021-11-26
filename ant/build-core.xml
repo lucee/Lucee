@@ -593,6 +593,41 @@
 
 </target>
 
+<target name="test_warm_up" if="testcases">
+    <jar 
+      basedir="${outputDir}/" 
+      jarfile="${trgLoader}/lucee-${version}.jar" 
+      manifest="${goal}/META-INF/MANIFEST.MF"/>
+    <echots message="build-jar-man:${goal}/META-INF/MANIFEST.MF"/>
+
+    <echots message="Testing LUCEE_ENABLE_WARMUP"/>
+    
+    <!-- Test Lucee Warmup -->
+    <java classname="org.apache.tools.ant.launch.Launcher" dir="${ant}" fork="true" failonerror="true" errorproperty="exc4">
+      <classpath path="${java.class.path}">
+          <pathelement location="${trgLoader}/lucee-${version}.jar"/>
+          <pathelement path="${runtime_classpath}"/>
+      </classpath>
+
+      <arg value="-f"/>
+      <arg value="${ant}/build-warmup-test.xml"/>
+
+      <jvmarg value="-Dbasedir=${baseDir}"/>
+      <jvmarg value="-Dlucee.base.dir=${temp}/archive/base"/>
+      <jvmarg value="-Dlucee.web.dir=${temp}/archive/webroot"/>
+      <!-- <jvmarg value="-Dlucee-extensions=${extS3}"/> -->
+      <jvmarg value="-Dlucee.extensions.install=true"/>
+      <jvmarg value="-Dlucee.full.null.support=false"/>
+      <jvmarg value="-Dlucee.enable.warmup=true"/>
+      <jvmarg value="-Dluceejar=${trgLoader}/lucee-${version}.jar"/>
+      <jvmarg value="-DluceeCore=${trgLoader}/${version}.lco"/>
+      <jvmarg value="-DtrgLoader=${trgLoader}"/>
+
+    </java>
+    <echo>${exc4}</echo>
+
+</target>
+
 
   <target name="__build" depends="__build_archives,__build_testbox">
     <!-- now we have to build the lucee.jar again, this time with the lar files -->
@@ -694,7 +729,7 @@
     <echots message="build-jar-ant:${goal}/META-INF/MANIFEST.MF"/>  
   </target>
 
-  <target name="_buildLoaderMaven" depends="__build,setMvnEnv,addExtensions,addBundles,addFelix,createCore,createLoader" description="generate the loader jar">
+  <target name="_buildLoaderMaven" depends="__build,setMvnEnv,addExtensions,addBundles,addFelix,createCore,createLoader,test_warm_up" description="generate the loader jar">
     <!-- version -->
     <currentTime property="ct" />
     <echo file="${outputDir}/lucee/version" message="${version}:${ct}" encoding="UTF-8"/>
@@ -710,7 +745,7 @@
     <echo>after:${goal}</echo>  
   </target>
 
-  <target name="buildLoaderAnt" depends="__build,setAntEnv,addExtensions,addBundles,addFelix,createCore,createLoader" description="generate the loader jar" >
+  <target name="buildLoaderAnt" depends="__build,setAntEnv,addExtensions,addBundles,addFelix,createCore,createLoader,test_warm_up" description="generate the loader jar" >
     <!-- version -->
     <currentTime property="ct" />
     <echo file="${temp}/loader/lucee/version" message="${version}:${ct}" encoding="UTF-8"/>
