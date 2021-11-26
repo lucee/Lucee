@@ -12828,7 +12828,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 	<function>
 		<name>listEvery</name>
 		<class>lucee.runtime.functions.list.ListEvery</class>
-		<member-name>listEvery,every</member-name>
+		<member-name>listEvery</member-name>
 		<keywords>list,string,iterator</keywords>
 		<description>This function calls a given closure/function with every element in a given string list and returns true, if all of the closure calls returns true.</description>
 		<argument>
