@@ -14300,7 +14300,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
         	</argument>
         	<argument>
     			<name>closure</name>
-    			<type>any</type>
+    			<type>function</type>
     			<alias>function,callback,udf</alias>
     			<required>no</required>
     			<alias>callback</alias>
