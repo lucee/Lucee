@@ -145,6 +145,8 @@ function mem(type) {
 					pp = left(pp, pp.len() - 1);
 					pp = listTrim(pp, "\/");
 
+					return (path contains "cookie.cfc");
+
 					// only testcases in sub directory of "test" are allowed
 					var _test = listTrim(test,"\/");
 					return (_test == pp || _test == p) && left(name, 1) != "_";
