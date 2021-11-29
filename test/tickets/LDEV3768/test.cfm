@@ -4,7 +4,7 @@
         res = isArray(ORMExecuteQuery("From test where Ant = :ok",{"ok":'lucee'}));
     }
     if( form.scene == 2 ){
-        res = isArray(ORMExecuteQuery("From test where Ant = 'lucee'"));
+        res = isArray(ORMExecuteQuery("From test where ant = 'lucee'"));
     }
     if( form.scene == 3 ){
         try{
