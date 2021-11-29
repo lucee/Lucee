@@ -11,6 +11,13 @@ component extends = "org.lucee.cfml.test.LuceeTestCase"{
 				expect(isvalid("integer",'lucee')).tobe(false);
 				expect(isvalid("integer",11)).tobe(true);
 				expect(isvalid("integer",'31')).tobe(true);
+				expect(isValid("integer",235.)).tobe(true);
+				expect(isValid("integer",235.1)).tobe(false);
+				expect(isValid("integer",235.0)).tobe(true);
+				expect(isValid("integer",-2.67)).tobe(false);
+				expect(isValid("integer","235.1")).tobe(false);
+				expect(isValid("integer","235.")).tobe(false);
+				expect(isValid("integer","235.0")).tobe(false);
 			});
 		});
 	}
