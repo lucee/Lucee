@@ -1464,7 +1464,7 @@ public final class ConfigAdmin {
 		if (!StringUtil.isEmpty(timezone)) el.setEL("timezone", timezone);
 		el.setEL("database", database);
 		if (port > -1) el.setEL("port", Caster.toString(port));
-		if (connectionLimit > -1) el.setEL("connectionLimit", Caster.toString(connectionLimit));
+		el.setEL("connectionLimit", Caster.toString(connectionLimit));
 		if (idleTimeout > -1) el.setEL("connectionTimeout", Caster.toString(idleTimeout));
 		if (liveTimeout > -1) el.setEL("liveTimeout", Caster.toString(liveTimeout));
 		if (metaCacheTimeout > -1) el.setEL("metaCacheTimeout", Caster.toString(metaCacheTimeout));
