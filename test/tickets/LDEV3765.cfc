@@ -1,4 +1,4 @@
-component extends = "org.lucee.cfml.test.LuceeTestCase" {
+component extends = "org.lucee.cfml.test.LuceeTestCase" skip=true {
 	function run( testResults, textbox ) {
 		describe("testcase for LDEV-3765", function() {
 			it(title="Replace() with struct", body=function( currentSpec ) {
