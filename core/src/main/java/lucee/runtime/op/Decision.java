@@ -181,7 +181,7 @@ public final class Decision {
 		for (; pos < len; pos++) {
 			curr = str.charAt(pos);
 			if (curr < '0') {
-				if (curr == '.') {
+				if (curr == '.' || curr == '-' || curr == '+') {
 					if (pos + 1 >= len || hasDot) return false;
 					hasDot = true;
 				}
@@ -202,7 +202,7 @@ public final class Decision {
 					if (pos + 1 >= len || hasExp) return false;
 
 					hasExp = true;
-					hasDot = true;
+					// hasDot = true;
 				}
 				else return false;
 			}
