@@ -1434,7 +1434,7 @@ public final class ListUtil {
 		if (delimiter.length() == 1) return len(list, delimiter.charAt(0), ignoreEmpty);
 		char[] del = delimiter.toCharArray();
 		int len = StringUtil.length(list);
-		if (len == 0) return 0;
+		if (len == 0 && ignoreEmpty) return 0;
 
 		int count = 0;
 		int last = 0;
