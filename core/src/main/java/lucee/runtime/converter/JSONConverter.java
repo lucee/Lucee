@@ -63,6 +63,7 @@ import lucee.runtime.op.Decision;
 import lucee.runtime.orm.ORMUtil;
 import lucee.runtime.reflection.Reflector;
 import lucee.runtime.text.xml.XMLCaster;
+import lucee.runtime.util.ObjectIdentityHashSet;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
@@ -142,7 +143,7 @@ public final class JSONConverter extends ConverterSupport {
 	 * @throws ConverterException
 	 */
 
-	private void _serializeClass(PageContext pc, Set test, Class clazz, Object obj, StringBuilder sb, int queryFormat, Set<Object> done) throws ConverterException {
+	private void _serializeClass(PageContext pc, Set test, Class clazz, Object obj, StringBuilder sb, int queryFormat, ObjectIdentityHashSet done) throws ConverterException {
 
 		Struct sct = new StructImpl(Struct.TYPE_LINKED);
 		if (test == null) test = new HashSet();
@@ -153,7 +154,7 @@ public final class JSONConverter extends ConverterSupport {
 		for (int i = 0; i < fields.length; i++) {
 			field = fields[i];
 			if (obj != null || (field.getModifiers() & Modifier.STATIC) > 0) try {
-				sct.setEL(field.getName(), testRecusrion(test, field.get(obj)));
+				sct.setEL(field.getName(), testRecursion(test, field.get(obj)));
 			}
 			catch (Exception e) {
 				LogUtil.log(ThreadLocalPageContext.getConfig(pc), Controler.class.getName(), e);
@@ -169,7 +170,7 @@ public final class JSONConverter extends ConverterSupport {
 			Method[] getters = Reflector.getGetters(clazz);
 			for (int i = 0; i < getters.length; i++) {
 				try {
-					sct.setEL(getters[i].getName().substring(3), testRecusrion(test, getters[i].invoke(obj, ArrayUtil.OBJECT_EMPTY)));
+					sct.setEL(getters[i].getName().substring(3), testRecursion(test, getters[i].invoke(obj, ArrayUtil.OBJECT_EMPTY)));
 
 				}
 				catch (Exception e) {
@@ -182,7 +183,7 @@ public final class JSONConverter extends ConverterSupport {
 		_serializeStruct(pc, test, sct, sb, queryFormat, true, done);
 	}
 
-	private Object testRecusrion(Set test, Object obj) {
+	private Object testRecursion(Set test, Object obj) {
 		if (test.contains(obj.getClass())) return obj.getClass().getName();
 		return obj;
 	}
@@ -226,7 +227,7 @@ public final class JSONConverter extends ConverterSupport {
 	 * @param done
 	 * @throws ConverterException
 	 */
-	private void _serializeArray(PageContext pc, Set test, Array array, StringBuilder sb, int queryFormat, Set<Object> done) throws ConverterException {
+	private void _serializeArray(PageContext pc, Set test, Array array, StringBuilder sb, int queryFormat, ObjectIdentityHashSet done) throws ConverterException {
 		_serializeList(pc, test, array.toList(), sb, queryFormat, done);
 	}
 
@@ -239,7 +240,7 @@ public final class JSONConverter extends ConverterSupport {
 	 * @param done
 	 * @throws ConverterException
 	 */
-	private void _serializeList(PageContext pc, Set test, List list, StringBuilder sb, int queryFormat, Set<Object> done) throws ConverterException {
+	private void _serializeList(PageContext pc, Set test, List list, StringBuilder sb, int queryFormat, ObjectIdentityHashSet done) throws ConverterException {
 
 		sb.append("[");
 		indentPlus(sb);
@@ -257,7 +258,7 @@ public final class JSONConverter extends ConverterSupport {
 		sb.append(']');
 	}
 
-	private void _serializeArray(PageContext pc, Set test, Object[] arr, StringBuilder sb, int queryFormat, Set<Object> done) throws ConverterException {
+	private void _serializeArray(PageContext pc, Set test, Object[] arr, StringBuilder sb, int queryFormat, ObjectIdentityHashSet done) throws ConverterException {
 
 		sb.append("[");
 		indentPlus(sb);
@@ -282,7 +283,7 @@ public final class JSONConverter extends ConverterSupport {
 	 * @param done
 	 * @throws ConverterException
 	 */
-	public void _serializeStruct(PageContext pc, Set test, Struct struct, StringBuilder sb, int queryFormat, boolean addUDFs, Set<Object> done) throws ConverterException {
+	public void _serializeStruct(PageContext pc, Set test, Struct struct, StringBuilder sb, int queryFormat, boolean addUDFs, ObjectIdentityHashSet done) throws ConverterException {
 
 		// preserve case by default for Struct
 		boolean preserveCase = getPreserveCase(pc, false);
@@ -406,7 +407,7 @@ public final class JSONConverter extends ConverterSupport {
 	 * @param done
 	 * @throws ConverterException
 	 */
-	private void _serializeMap(PageContext pc, Set test, Map map, StringBuilder sb, int queryFormat, Set<Object> done) throws ConverterException {
+	private void _serializeMap(PageContext pc, Set test, Map map, StringBuilder sb, int queryFormat, ObjectIdentityHashSet done) throws ConverterException {
 
 		sb.append("{");
 		indentPlus(sb);
@@ -436,12 +437,12 @@ public final class JSONConverter extends ConverterSupport {
 	 * @param done
 	 * @throws ConverterException
 	 */
-	private void _serializeComponent(PageContext pc, Set test, Component component, StringBuilder sb, int queryFormat, Set<Object> done) throws ConverterException {
+	private void _serializeComponent(PageContext pc, Set test, Component component, StringBuilder sb, int queryFormat, ObjectIdentityHashSet done) throws ConverterException {
 		ComponentSpecificAccess cw = ComponentSpecificAccess.toComponentSpecificAccess(Component.ACCESS_PRIVATE, component);
 		_serializeStruct(pc, test, cw, sb, queryFormat, false, done);
 	}
 
-	private void _serializeUDF(PageContext pc, Set test, UDF udf, StringBuilder sb, int queryFormat, Set<Object> done) throws ConverterException {
+	private void _serializeUDF(PageContext pc, Set test, UDF udf, StringBuilder sb, int queryFormat, ObjectIdentityHashSet done) throws ConverterException {
 		Struct sct = new StructImpl();
 		try {
 			// Meta
@@ -478,7 +479,7 @@ public final class JSONConverter extends ConverterSupport {
 	 * @param done
 	 * @throws ConverterException
 	 */
-	private void _serializeQuery(PageContext pc, Set test, Query query, StringBuilder sb, int queryFormat, Set<Object> done) throws ConverterException {
+	private void _serializeQuery(PageContext pc, Set test, Query query, StringBuilder sb, int queryFormat, ObjectIdentityHashSet done) throws ConverterException {
 
 		boolean preserveCase = getPreserveCase(pc, true); // UPPERCASE column keys by default for Query
 
@@ -635,7 +636,7 @@ public final class JSONConverter extends ConverterSupport {
 	 * @param done
 	 * @throws ConverterException
 	 */
-	private void _serialize(PageContext pc, Set test, Object object, StringBuilder sb, int queryFormat, Set done) throws ConverterException {
+	private void _serialize(PageContext pc, Set test, Object object, StringBuilder sb, int queryFormat, ObjectIdentityHashSet done) throws ConverterException {
 
 		// NULL
 		if (object == null || object == CollectionUtil.NULL) {
@@ -814,7 +815,7 @@ public final class JSONConverter extends ConverterSupport {
 	 */
 	public String serialize(PageContext pc, Object object, int queryFormat) throws ConverterException {
 		StringBuilder sb = new StringBuilder(256);
-		_serialize(pc, null, object, sb, queryFormat, new HashSet());
+		_serialize(pc, null, object, sb, queryFormat, new ObjectIdentityHashSet());
 		return sb.toString();
 	}
 
