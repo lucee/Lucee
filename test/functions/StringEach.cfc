@@ -31,7 +31,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
     	local.prev=data;
 		local.data="";
         testString.each( callback );
-        assertEquals(StringEach( prev, data);
+        assertEquals(prev, data);
 	}
 } 
 </cfscript>
