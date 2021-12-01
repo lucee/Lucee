@@ -3,9 +3,15 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 	function run( testResults , testBox ) {
 		describe( "Test suite for LDEV-1736", function() {
 			it( title='serialize server scope', body=function( currentSpec ) {
+				systemOutput("", true);
+				loop collection=server item="local.p" {
+					systemOutput(local.p, true);
+					local.res=serialize( server[local.p] );
+				}
 				// TODO ZAC can you find out why this is no longer working on github (works fine locally), i assume that something get set to the server scope that vcann be serialized 
-				//local.res=serialize(server);
-				//evaluate(res);
+				local.res=serialize(server);
+				evaluate(res);
+				
 				local.res=serialize(server.os.macAddress);
 				evaluate(res);
 			});
