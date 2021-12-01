@@ -2170,6 +2170,10 @@ public final class Caster {
 		return dfp.format(d);
 	}
 
+	public static String format(double d) {
+		return dfp.format(d);
+	}
+
 	public static String toStringPrecise(Number n) {
 		double d = n.doubleValue();
 		long l = (long) d;
