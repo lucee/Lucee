@@ -2,7 +2,7 @@ name: Java CI
 
 on: [push, pull_request, workflow_dispatch]
 
-concurrency: 
+concurrency:
   group: lucee-build
   cancel-in-progress: true
 
