@@ -3,7 +3,7 @@ name: Java CI
 on: [push, pull_request, workflow_dispatch]
 
 concurrency:
-  group: lucee-build
+  group: ${{ github.head_ref }}
   cancel-in-progress: true
 
 jobs:
