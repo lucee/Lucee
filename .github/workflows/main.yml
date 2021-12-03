@@ -2,9 +2,9 @@ name: Java CI
 
 on: [push, pull_request, workflow_dispatch]
 
-concurrency:
-  group: ${{ github.head_ref }}
-  cancel-in-progress: true
+#concurrency:
+#  group: ${{ github.head_ref }}
+#  cancel-in-progress: true
 
 jobs:
   build:
