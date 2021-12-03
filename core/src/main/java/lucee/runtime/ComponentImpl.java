@@ -1613,7 +1613,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 		// static functions
 		{
 			StaticScope statics = comp.staticScope();
-			Iterator<Entry<Key, Object>> it = statics.entryIterator();
+			Iterator<Entry<Key, Object>> it = statics.entryIterator(ACCESS_PRIVATE);
 			Entry<Key, Object> e;
 			while (it.hasNext()) {
 				e = it.next();

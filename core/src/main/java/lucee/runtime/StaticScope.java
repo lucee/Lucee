@@ -259,6 +259,10 @@ public class StaticScope extends StructSupport implements Variables, Objects {
 		return _entries(new HashMap<Key, Object>(), c.getAccess(ThreadLocalPageContext.get())).entrySet().iterator();
 	}
 
+	public Iterator<Entry<Key, Object>> entryIterator(int access) {
+		return _entries(new HashMap<Key, Object>(), access).entrySet().iterator();
+	}
+
 	private Map<Key, Object> _entries(Map<Key, Object> map, int access) {
 		// call parent
 		if (base != null) base._entries(map, access);
