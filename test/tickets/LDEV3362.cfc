@@ -7,7 +7,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="static,metadata"{
                 loop array=metaData.functions item="local.f" {
                     arrayAppend(names, f.name);
                 }
-                arraySort(name, "textnocase");
+                arraySort(names, "textnocase");
 
                 expect(arrayToList(names))
                 .toBe("foo1_public,foo2_private,foo3_package,foo4_remote,foo5_staticPublic,foo6_StaticPrivate,foo7_StaticPackage,foo8_StaticRemote");
