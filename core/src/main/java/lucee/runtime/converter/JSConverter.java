@@ -102,7 +102,7 @@ public final class JSConverter extends ConverterSupport {
 		if (object instanceof Number) {
 			sb.append(goIn());
 			sb.append("\"");
-			sb.append(Caster.toStringPrecise(((Number) object)));
+			sb.append(Caster.toString(((Number) object)));
 			sb.append("\";");
 			return;
 		}
