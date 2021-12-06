@@ -43,7 +43,6 @@
                 form: {test=1}
             );
             var json=deserializeJSON(result.filecontent);
-
             expect(json.form.test).toBe( "1" );
             expect(json.form.fieldnames).toBe( "TEST" );
             expect( structCount(json.url) ).toBe( 0 );
@@ -55,7 +54,7 @@
                 template: uri,
                 form: "test=1"
             );
-            
+            var json=deserializeJSON(result.filecontent);
             expect(json.form.test).toBe( "1" );
             expect(json.form.fieldnames).toBe( "TEST" );
             expect( structCount(json.url) ).toBe( 0 );
