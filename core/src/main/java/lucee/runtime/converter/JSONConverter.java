@@ -670,7 +670,6 @@ public final class JSONConverter extends ConverterSupport {
 		}
 		// Number
 		if (object instanceof Number) {
-
 			sb.append(Caster.toString(((Number) object)));
 			return;
 		}

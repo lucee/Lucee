@@ -10,7 +10,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm"{
 
 				var result2 = _InternalRequest(
 					template:"#uri#/App1/index.cfm",
-					urls:{appName:"MyAppTwo"}
+					urls:"appName=MyAppTwo"
 				);
 
 				assertEquals(200, result2.status_code);

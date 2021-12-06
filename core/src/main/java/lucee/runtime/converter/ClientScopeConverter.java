@@ -117,7 +117,7 @@ public class ClientScopeConverter {
 		else if (object instanceof String) return escape(object.toString());
 
 		// Number
-		else if (object instanceof Number) return Caster.toString(((Number) object));
+		else if (object instanceof Number) return Caster.toStringPrecise(((Number) object));
 
 		// Boolean
 		else if (object instanceof Boolean) return Caster.toString(((Boolean) object).booleanValue());

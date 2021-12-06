@@ -18,6 +18,8 @@
  */
 package lucee.runtime.type.scope;
 
+import java.io.UnsupportedEncodingException;
+
 import lucee.commons.lang.StringList;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.net.URLDecoder;
@@ -37,8 +39,6 @@ import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.util.ListUtil;
 import lucee.runtime.type.util.StructUtil;
-
-import java.io.UnsupportedEncodingException;
 
 /**
  * Simple implementation of a Scope, for general use.

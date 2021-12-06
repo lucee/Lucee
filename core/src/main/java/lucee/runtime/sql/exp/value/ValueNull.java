@@ -22,11 +22,7 @@ import lucee.runtime.sql.exp.Literal;
 
 public class ValueNull extends ValueSupport implements Literal {
 
-	public static final ValueNull NULL = new ValueNull();
-
-	// private boolean value;
-
-	private ValueNull() {
+	public ValueNull() {
 		super("NULL");
 	}
 

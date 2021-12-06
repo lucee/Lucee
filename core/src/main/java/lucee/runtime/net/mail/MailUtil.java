@@ -56,7 +56,7 @@ public final class MailUtil {
 
 	public static InternetAddress toInternetAddress(Object emails) throws MailException, UnsupportedEncodingException, PageException {
 		if (emails instanceof String) {
-			return parseEmail(emails);
+			return parseEmail(emails, null);
 		}
 		InternetAddress[] addresses = toInternetAddresses(emails);
 		if (addresses != null && addresses.length > 0) return addresses[0];
@@ -90,7 +90,7 @@ public final class MailUtil {
 			}
 			else {
 
-				InternetAddress addr = parseEmail(Caster.toString(el));
+				InternetAddress addr = parseEmail(Caster.toString(el), null);
 				if (addr != null) pairs.add(addr);
 			}
 		}
@@ -182,7 +182,10 @@ public final class MailUtil {
 	public static InternetAddress parseEmail(Object value) throws MailException {
 		InternetAddress ia = parseEmail(value, null);
 		if (ia != null) return ia;
-		if (value instanceof CharSequence) throw new MailException("[" + value + "] cannot be converted to an email address");
+		if (value instanceof CharSequence) {
+			if (StringUtil.isEmpty(value.toString())) return null;
+			throw new MailException("[" + value + "] cannot be converted to an email address");
+		}
 		throw new MailException("input cannot be converted to an email address");
 	}
 
@@ -194,6 +197,7 @@ public final class MailUtil {
 	 */
 	public static InternetAddress parseEmail(Object value, InternetAddress defaultValue) {
 		String str = Caster.toString(value, "");
+		if (StringUtil.isEmpty(str)) return defaultValue;
 		if (str.indexOf('@') > -1) {
 			try {
 				str = fixIDN(str);
