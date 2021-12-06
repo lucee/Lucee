@@ -10,7 +10,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" labels="regex"{
                 application regex="#{type="java"}#";
                 expect(serializeJSON(reMatchNoCase(".*", ""))).toBe('[""]');
                 expect(serializeJSON(reMatchNoCase(".*", " "))).toBe('[" ",""]');
-                expect(serializeJSON(reMatchNoCase(".*", "123"))).toBe('["123"]');
+                expect(serializeJSON(reMatchNoCase(".*", "123"))).toBe('["123",""]');
             });
         });
     }
