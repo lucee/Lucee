@@ -42,9 +42,13 @@
                 template: uri,
                 form: {test=1}
             );
-            expect( result.filecontent ).toBe( '{"FORM":{"TEST":1},"URL":{}}' );
-        }
+            var json=deserializeJSON(result.filecontent);
 
+            expect(json.form.test).toBe( "1" );
+            expect(json.form.fieldnames).toBe( "TEST" );
+            expect( structCount(json.url) ).toBe( 0 );
+        }
+        
         public void function testFormQueryString() localmode=true {
             uri = createURI("internalRequest/echo.cfm");
             result =_InternalRequest(
