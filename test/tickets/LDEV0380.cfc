@@ -42,12 +42,12 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				request.hasError4 = "";
 				thread name="w1" action="run"{
 					thread name="w1.1" action="run"{
-						sleep(100);
+						sleep(200);
 					}
 				}
 				thread name="w2" action="run"{
 					thread name="w2.1" action="run"{
-						sleep(1);
+						sleep(100);
 						try{
 							thread action="join" name="w1.1" timeout="5000";
 						} catch( any e){
