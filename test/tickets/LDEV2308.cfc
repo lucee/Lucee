@@ -42,8 +42,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="thread,cookie,sess
 				);
 				dumpResult(local.result);
 				expect( structCount(result.cookies ) ).toBeGT( 0 );
-				expect( structKeyExists(result.cookies, "JsessionId" ) ).toBeTrue();
-				expect( structKeyExists(result.cookies, "CFID" ) ).toBeFalse();
 			});
 		});
 	}

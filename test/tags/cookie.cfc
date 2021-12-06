@@ -1,5 +1,5 @@
 
-component extends="org.lucee.cfml.test.LuceeTestCase" labels="cookie"	{
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="cookie" skip=true	{
 
 	public void function testCookieEncode(){
 		var uri = createURI("cookie/encode.cfm")

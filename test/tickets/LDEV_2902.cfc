@@ -28,7 +28,9 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 					template : "#uri#\test.cfm",
 					forms : { Scene = 3 }
 				);
-				expect(trim(result.filecontent)).toBe(gettimezone());
+				
+				var tz=createObject("java","java.util.TimeZone").getDefault();
+				expect(trim(result.filecontent)).toBe(tz.id);
 			});
 		});
 	}

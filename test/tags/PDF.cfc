@@ -59,14 +59,15 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	}
 
 	public void function testPDFOrientation(){
-		document pagetype="letter" orientation="landscape" filename="test-orientation.pdf" overwrite="true" {
+		var path=getDirectoryFromPath(getCurrentTemplatePath())&"test-orientation.pdf";
+		document pagetype="letter" orientation="landscape" filename=path overwrite="true" {
 			documentsection { echo("I am landscape"); }
 			documentsection orientation="portrait" { echo("I am portrait"); }
 			documentsection orientation="landscape" { echo("I am landscape"); }
 		}
-		assertTrue(isPDFFile("test-orientation.pdf"));
+		assertTrue(isPDFFile(path));
 
-		pageSizes = getPageSizes(ExpandPath('./test-orientation.pdf'));
+		pageSizes = getPageSizes(ExpandPath(path));
 
 		expected = [
 			{ height: 612, width: 792 },
@@ -106,7 +107,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 				});
 			}
 		} finally {
-			pdDocument.close();
+			if(!isNull(pdDocument))pdDocument.close();
 		}
 		return pageSizes;
 	}
