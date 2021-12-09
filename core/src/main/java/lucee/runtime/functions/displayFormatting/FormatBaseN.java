@@ -28,8 +28,20 @@ import lucee.runtime.ext.function.Function;
 import lucee.runtime.op.Caster;
 
 public final class FormatBaseN implements Function {
+	private static final long uint32_mask = 0x0000_0000_FFFF_FFFFL;
+
 	public static String call(PageContext pc, double number, double radix) throws ExpressionException {
 		if (radix < 2 || radix > 36) throw new FunctionException(pc, "formatBaseN", 2, "radix", "radix must be between 2 an 36");
-		return Long.toString(Caster.toLongValue(number), (int) radix);
+
+		// LDEV-3776
+		// Adobe compat - only support values in the range of a signed int32, and for base 2 and 16 mask away the high 32 bits
+		// By masking away the most-significant digits we stringify the raw "unsigned" 2's complement bitwise representation of the number
+		final long converted = Caster.toLongValue(number);
+		if (converted < Integer.MIN_VALUE || converted > Integer.MAX_VALUE) {
+			throw new FunctionException(pc, "formatBaseN", 1, "number", "number to formatted must be on or between Integer.MIN_VALUE and Integer.MAX_VALUE (" + Integer.MIN_VALUE + ", " + Integer.MAX_VALUE + ")");
+		}
+		return radix == 2 || radix == 16
+			? Long.toString(converted & uint32_mask, (int) radix)
+			: Long.toString(converted, (int) radix);
 	}
 }
