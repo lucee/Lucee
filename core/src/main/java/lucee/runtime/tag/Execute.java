@@ -246,7 +246,7 @@ public final class Execute extends BodyTagImpl {
 		else execute.join();
 		if (execute.hasException()) throw execute.getException();
 		if (!execute.hasFinished()) {
-			execute.abort(true);
+			execute.abort(terminateOnTimeout);
 			throw new ApplicationException("timeout [" + (timeout) + " ms] expired while executing [" + ListUtil.listToList(arguments, " ") + "]");
 		}
 
