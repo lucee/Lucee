@@ -1709,10 +1709,10 @@ public final class CFMLEngineImpl implements CFMLEngine {
 	}
 
 	public void onStart(ConfigPro config, boolean reload) {
+		boolean isWeb = config instanceof ConfigWeb;
+		String context = isWeb ? "Web" : "Server";
 
-		String context = config instanceof ConfigWeb ? "Web" : "Server";
-
-		if (context == "Web" && SystemUtil.getSystemPropOrEnvVar("lucee.enable.warmup", "").equalsIgnoreCase("true")) {
+		if (isWeb && SystemUtil.getSystemPropOrEnvVar("lucee.enable.warmup", "").equalsIgnoreCase("true")) {
 			String msg = "Lucee warmup completed. Shutting down.";
 			CONSOLE_ERR.println(msg);
 			LogUtil.log(config, Log.LEVEL_ERROR, "application", msg);
@@ -1722,17 +1722,44 @@ public final class CFMLEngineImpl implements CFMLEngine {
 
 		if (!ThreadLocalPageContext.callOnStart.get()) return;
 
-		Resource listenerTemplateLucee = config.getConfigDir().getRealResource("context/" + context + "." + lucee.runtime.config.Constants.getLuceeComponentExtension());
 		Resource listenerTemplateCFML = config.getConfigDir().getRealResource("context/" + context + "." + lucee.runtime.config.Constants.getCFMLComponentExtension());
+		Resource listenerTemplateLucee = config.getConfigDir().getRealResource("context/" + context + "." + lucee.runtime.config.Constants.getLuceeComponentExtension());
+
+		Resource listenerTemplateCFMLWebRoot = null;
+		Resource listenerTemplateLuceeWebRoot = null;
+		if (isWeb) {
+			try {
+				Resource rootdir = config.getRootDirectory();
+				listenerTemplateCFMLWebRoot = rootdir.getRealResource(context + "." + lucee.runtime.config.Constants.getCFMLComponentExtension());
+				listenerTemplateLuceeWebRoot = rootdir.getRealResource(context + "." + lucee.runtime.config.Constants.getLuceeComponentExtension());
+			}
+			catch (Exception e) {
+			}
+		}
 
 		// dialect
 		int dialect;
-		if (listenerTemplateLucee.isFile()) dialect = CFMLEngine.DIALECT_LUCEE;
-		else if (listenerTemplateCFML.isFile()) dialect = CFMLEngine.DIALECT_CFML;
+		boolean inWebRoot;
+		if (listenerTemplateCFMLWebRoot != null && listenerTemplateCFMLWebRoot.isFile()) {
+			inWebRoot = true;
+			dialect = CFMLEngine.DIALECT_CFML;
+		}
+		else if (listenerTemplateLuceeWebRoot != null && listenerTemplateLuceeWebRoot.isFile()) {
+			inWebRoot = true;
+			dialect = CFMLEngine.DIALECT_LUCEE;
+		}
+		else if (listenerTemplateCFML.isFile()) {
+			inWebRoot = false;
+			dialect = CFMLEngine.DIALECT_CFML;
+		}
+		else if (listenerTemplateLucee.isFile()) {
+			inWebRoot = false;
+			dialect = CFMLEngine.DIALECT_LUCEE;
+		}
 		else return;
 
 		// we do not wait for this
-		new OnStart(config, dialect, context, reload).start();
+		new OnStart(config, dialect, context, reload, inWebRoot).start();
 	}
 
 	/**
@@ -1744,12 +1771,14 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		private int dialect;
 		private boolean reload;
 		private String context;
+		private boolean inWebRoot;
 
-		public OnStart(ConfigPro config, int dialect, String context, boolean reload) {
+		public OnStart(ConfigPro config, int dialect, String context, boolean reload, boolean inWebRoot) {
 			this.config = config;
 			this.dialect = dialect;
 			this.context = context;
 			this.reload = reload;
+			this.inWebRoot = inWebRoot;
 		}
 
 		@Override
@@ -1757,7 +1786,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 			boolean isWeb = config instanceof ConfigWeb;
 
 			String id = CreateUniqueId.invoke();
-			final String requestURI = "/" + (isWeb ? "lucee" : "lucee-server") + "/" + context + "."
+			final String requestURI = (inWebRoot ? "" : ("/" + (isWeb ? "lucee" : "lucee-server"))) + "/" + context + "."
 					+ (dialect == CFMLEngine.DIALECT_LUCEE ? lucee.runtime.config.Constants.getLuceeComponentExtension()
 							: lucee.runtime.config.Constants.getCFMLComponentExtension());
 
