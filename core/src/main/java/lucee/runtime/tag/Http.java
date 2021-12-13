@@ -1206,9 +1206,12 @@ public final class Http extends BodyTagImpl {
 			}
 			boolean isText = mimetype != null && mimetype != NO_MIMETYPE && HTTPUtil.isTextMimeType(mimetype);
 
+			// is multipart
+			boolean isMultipart = MultiPartResponseUtils.isMultipart(mimetype);
+
 			// we still don't know the mime type
 			byte[] barr = null;
-			if (!isText && safeToMemory) {
+			if (!isText && safeToMemory && !isMultipart) {
 				barr = contentAsBinary(rsp, contentEncoding);
 				String mt = IOUtil.getMimeType(barr, null);
 				if (mt != null) {
@@ -1217,9 +1220,6 @@ public final class Http extends BodyTagImpl {
 				}
 
 			}
-
-			// is multipart
-			boolean isMultipart = MultiPartResponseUtils.isMultipart(mimetype);
 
 			if (safeToMemory) cfhttp.set(KeyConstants._text, Caster.toBoolean(isText));
 
