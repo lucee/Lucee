@@ -13,7 +13,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" skip=true{
 
 	function run( testResults, testBox ) {
 		describe("Testcase for LDEV-3780", function() {
-			it( title="", body=function( currentSpec ){
+			it( title="Accessing static member in race condition", body=function( currentSpec ){
 				assertEquals("result,result,", test());
 			});
 		});
