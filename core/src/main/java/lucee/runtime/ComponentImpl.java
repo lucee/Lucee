@@ -35,6 +35,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
@@ -161,11 +162,13 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 
 	StaticScope _static;
 
-	Map<Long, Boolean> insideStaticConstr = new HashMap<>();
+	Map<Long, Boolean> insideStaticConstr = new ConcurrentHashMap<>();
 
 	private AbstractFinal absFin;
 
 	private ImportDefintion[] importDefintions;
+
+	private static ThreadLocalConstrCall statConstr = new ThreadLocalConstrCall();
 
 	/**
 	 * Constructor of the Component, USED ONLY FOR DESERIALIZE
@@ -427,13 +430,21 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 			synchronized (ss) {
 				// invoke static constructor
 				if (!ss.isInit()) {
-					ss.setInit(true);// this needs to happen before the call
-					try {
-						componentPage.staticConstructor(pageContext, this);
-					}
-					catch (Exception e) {
-						ss.setInit(false);
-						throw Caster.toPageException(e);
+					Map<String, Boolean> map = statConstr.get();
+					String id = "" + componentPage.getHash();
+					if (!Caster.toBooleanValue(map.get(id), false)) {
+						map.put(id, Boolean.TRUE);
+
+						// this needs to happen before the call
+						try {
+							componentPage.staticConstructor(pageContext, this);
+						}
+						catch (Exception e) {
+							ss.setInit(false);
+							throw Caster.toPageException(e);
+						}
+						ss.setInit(true);
+						map.remove(id);
 					}
 				}
 			}
@@ -2376,5 +2387,14 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 	@Override
 	public int getType() {
 		return StructUtil.getType(_data);
+	}
+
+	private static class ThreadLocalConstrCall extends ThreadLocal<Map<String, Boolean>> {
+
+		@Override
+		protected Map<String, Boolean> initialValue() {
+			return new HashMap<>();
+		}
+
 	}
 }
