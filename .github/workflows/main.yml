@@ -1,4 +1,4 @@
-name: Java CI
+name: Build 6.0 
 
 on: [push, pull_request, workflow_dispatch]
 
