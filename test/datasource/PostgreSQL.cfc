@@ -28,13 +28,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	public void function testConnection(){
 		_testConnection(defineDatasource());
 	}
-	public void function testConnection83(){
+	public void function testConnection83() skip=true { // no longer works with postgres 14 on github actions
 		_testConnection(defineDatasource83());
 	}
 	public void function testConnection94(){
 		_testConnection(defineDatasource94());
 	}
-	public void function testConnection42(){
+	public void function testConnection42() skip=true { // no longer works with postgres 14 on github actions
 		_testConnection(defineDatasource42());
 	}
 	private void function _testConnection(has){
@@ -101,8 +101,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		application action="update"
 			datasource="#{
 	  class: 'org.postgresql.Driver'
-	, bundleName: 'org.postgresql.jdbc42'
-	, bundleVersion: '42.1.4'
+	, bundleName: 'org.postgresql.jdbc'
+	, bundleVersion: '42.2.20'
 	, connectionString: 'jdbc:postgresql://#pgsql.server#:#pgsql.port#/#pgsql.database#'
 	, username: pgsql.username
 	, password: pgsql.password

@@ -326,8 +326,8 @@ component {
 				if ( structCount( pgsql ) gt 0 ){
 					return {
 						class: 'org.postgresql.Driver'
-						, bundleName: 'org.postgresql.jdbc42'
-						, bundleVersion: server.getDefaultBundleVersion('org.postgresql.jdbc42', '42.2.18')
+						, bundleName: 'org.postgresql.jdbc'
+						, bundleVersion: server.getDefaultBundleVersion('org.postgresql.jdbc', '42.2.20')
 						, connectionString: 'jdbc:postgresql://#pgsql.server#:#pgsql.port#/#pgsql.database#'
 						, username: pgsql.username
 						, password: pgsql.password
