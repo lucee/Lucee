@@ -73,7 +73,7 @@ jobs:
         MYSQL_DATABASE: lucee
         POSTGRES_SERVER: localhost
         POSTGRES_USERNAME: lucee
-        POSTGRES_PASSWORD: lucee
+#        POSTGRES_PASSWORD: lucee
         POSTGRES_PORT: 5432
         POSTGRES_DATABASE: lucee
         MONGODB_SERVER: localhost
