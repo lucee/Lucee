@@ -31,16 +31,16 @@ import lucee.runtime.type.Array;
 
 public final class ArrayIndexExists extends BIF {
 
-    private static final long serialVersionUID = -4490011932571314711L;
+	private static final long serialVersionUID = -4490011932571314711L;
 
-    public static boolean call(PageContext pc, Array array, double index) {
-	Object _null = NullSupportHelper.NULL(pc);
-	return array.get((int) index, _null) != _null;
-    }
+	public static boolean call(PageContext pc, Array array, double index) {
+		Object _null = NullSupportHelper.NULL(pc);
+		return array.get((int) index, _null) != _null;
+	}
 
-    @Override
-    public Object invoke(PageContext pc, Object[] args) throws PageException {
-	if (args.length == 2) return call(pc, Caster.toArray(args[0]), Caster.toDoubleValue(args[1]));
-	else throw new FunctionException(pc, "ArrayIndexExists", 2, 2, args.length);
-    }
+	@Override
+	public Object invoke(PageContext pc, Object[] args) throws PageException {
+		if (args.length == 2) return call(pc, Caster.toArray(args[0]), Caster.toDoubleValue(args[1]));
+		else throw new FunctionException(pc, "ArrayIndexExists", 2, 2, args.length);
+	}
 }

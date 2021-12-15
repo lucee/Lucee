@@ -35,42 +35,42 @@ import lucee.runtime.type.util.ListUtil;
  */
 public final class CFImportTag extends CFTag {
 
-    @Override
-    public void initFile() throws PageException {
-	ConfigWeb config = pageContext.getConfig();
+	@Override
+	public void initFile() throws PageException {
+		ConfigWeb config = pageContext.getConfig();
 
-	String[] filenames = CustomTagUtil.getFileNames(config, getAppendix());// = appendix+'.'+config.getCFMLExtension();
+		String[] filenames = CustomTagUtil.getFileNames(config, getAppendix());// = appendix+'.'+config.getCFMLExtension();
 
-	String strRealPathes = attributesScope.remove("__custom_tag_path").toString();
-	String[] realPathes = ListUtil.listToStringArray(strRealPathes, File.pathSeparatorChar);
-	for (int i = 0; i < realPathes.length; i++) {
-	    if (!StringUtil.endsWith(realPathes[i], '/')) realPathes[i] = realPathes[i] + "/";
-	}
-
-	// MUSTMUST use cache like regular ct
-	// page source
-	PageSource ps;
-	for (int rp = 0; rp < realPathes.length; rp++) {
-	    for (int fn = 0; fn < filenames.length; fn++) {
-		ps = ((PageContextImpl) pageContext).getRelativePageSourceExisting(realPathes[rp] + filenames[fn]);
-		if (ps != null) {
-		    source = new InitFile(pageContext, ps, filenames[fn]);
-		    return;
+		String strRealPathes = attributesScope.remove("__custom_tag_path").toString();
+		String[] realPathes = ListUtil.listToStringArray(strRealPathes, File.pathSeparatorChar);
+		for (int i = 0; i < realPathes.length; i++) {
+			if (!StringUtil.endsWith(realPathes[i], '/')) realPathes[i] = realPathes[i] + "/";
 		}
-	    }
+
+		// MUSTMUST use cache like regular ct
+		// page source
+		PageSource ps;
+		for (int rp = 0; rp < realPathes.length; rp++) {
+			for (int fn = 0; fn < filenames.length; fn++) {
+				ps = ((PageContextImpl) pageContext).getRelativePageSourceExisting(realPathes[rp] + filenames[fn]);
+				if (ps != null) {
+					source = new InitFile(pageContext, ps, filenames[fn]);
+					return;
+				}
+			}
+		}
+
+		// EXCEPTION
+		// message
+
+		StringBuffer msg = new StringBuffer("could not find template [");
+		msg.append(CustomTagUtil.getDisplayName(config, getAppendix()));
+		msg.append("] in the following directories [");
+		msg.append(strRealPathes.replace(File.pathSeparatorChar, ','));
+		msg.append(']');
+
+		throw new ExpressionException(msg.toString());
+
 	}
-
-	// EXCEPTION
-	// message
-
-	StringBuffer msg = new StringBuffer("could not find template [");
-	msg.append(CustomTagUtil.getDisplayName(config, getAppendix()));
-	msg.append("] in the following directories [");
-	msg.append(strRealPathes.replace(File.pathSeparatorChar, ','));
-	msg.append(']');
-
-	throw new ExpressionException(msg.toString());
-
-    }
 
 }

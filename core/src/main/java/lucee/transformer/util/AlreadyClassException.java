@@ -25,23 +25,24 @@ import lucee.commons.io.res.Resource;
 
 public class AlreadyClassException extends IOException {
 
-    private Resource res;
-    private boolean encrypted;
+	private Resource res;
+	private boolean encrypted;
 
-    public AlreadyClassException(Resource resource, boolean encrypted) {
-	this.res = resource;
-	this.encrypted = encrypted;
-    }
+	public AlreadyClassException(Resource resource, boolean encrypted) {
+		this.res = resource;
+		this.encrypted = encrypted;
+	}
 
-    public InputStream getInputStream() throws IOException {
-	return res.getInputStream();
-    }
+	public InputStream getInputStream() throws IOException {
+		return res.getInputStream();
+	}
 
-    public boolean getEncrypted() {
-	return encrypted;
-    }
+	public boolean getEncrypted() {
+		return encrypted;
+	}
 
-    public String toString() {
-	return res.getAbsolutePath();
-    }
+	@Override
+	public String toString() {
+		return res.getAbsolutePath();
+	}
 }

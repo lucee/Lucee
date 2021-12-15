@@ -52,1754 +52,1756 @@ import lucee.runtime.type.util.QueryUtil;
 
 public class TOQuery extends TOCollection implements Query, com.allaire.cfx.Query {
 
-    private Query qry;
+	private Query qry;
 
-    protected TOQuery(Debugger debugger, Query qry, int type, String category, String text) {
-	super(debugger, qry, type, category, text);
-	this.qry = qry;
-    }
+	protected TOQuery(Debugger debugger, Query qry, int type, String category, String text) {
+		super(debugger, qry, type, category, text);
+		this.qry = qry;
+	}
 
-    @Override
-    public int executionTime() {
-	return qry.executionTime();
-    }
+	@Override
+	public int executionTime() {
+		return qry.executionTime();
+	}
 
-    @Override
-    public int getUpdateCount() {
+	@Override
+	public int getUpdateCount() {
 
-	return qry.getUpdateCount();
-    }
+		return qry.getUpdateCount();
+	}
 
-    @Override
-    public Query getGeneratedKeys() {
+	@Override
+	public Query getGeneratedKeys() {
 
-	return qry.getGeneratedKeys();
-    }
+		return qry.getGeneratedKeys();
+	}
 
-    @Override
+	@Override
 
-    public Object getAt(String key, int row, Object defaultValue) {
+	public Object getAt(String key, int row, Object defaultValue) {
 
-	return qry.getAt(key, row, defaultValue);
-    }
+		return qry.getAt(key, row, defaultValue);
+	}
 
-    @Override
+	@Override
 
-    public Object getAt(Key key, int row, Object defaultValue) {
+	public Object getAt(Key key, int row, Object defaultValue) {
 
-	return qry.getAt(key, row, defaultValue);
-    }
+		return qry.getAt(key, row, defaultValue);
+	}
 
-    @Override
+	@Override
 
-    public Object getAt(String key, int row) throws PageException {
+	public Object getAt(String key, int row) throws PageException {
 
-	return qry.getAt(key, row);
-    }
+		return qry.getAt(key, row);
+	}
 
-    @Override
+	@Override
 
-    public Object getAt(Key key, int row) throws PageException {
+	public Object getAt(Key key, int row) throws PageException {
 
-	return qry.getAt(key, row);
-    }
+		return qry.getAt(key, row);
+	}
 
-    @Override
+	@Override
 
-    public int removeRow(int row) throws PageException {
-	return qry.removeRow(row);
-    }
+	public int removeRow(int row) throws PageException {
+		return qry.removeRow(row);
+	}
 
-    @Override
+	@Override
 
-    public int removeRowEL(int row) {
+	public int removeRowEL(int row) {
 
-	return qry.removeRowEL(row);
-    }
+		return qry.removeRowEL(row);
+	}
 
-    @Override
+	@Override
 
-    public QueryColumn removeColumn(String key) throws PageException {
-	log(key);
-	return qry.removeColumn(key);
-    }
+	public QueryColumn removeColumn(String key) throws PageException {
+		log(key);
+		return qry.removeColumn(key);
+	}
 
-    @Override
+	@Override
 
-    public QueryColumn removeColumn(Key key) throws PageException {
-	log(key.getString());
-	return qry.removeColumn(key);
-    }
+	public QueryColumn removeColumn(Key key) throws PageException {
+		log(key.getString());
+		return qry.removeColumn(key);
+	}
 
-    @Override
+	@Override
 
-    public QueryColumn removeColumnEL(String key) {
-	log(key);
-	return qry.removeColumnEL(key);
-    }
+	public QueryColumn removeColumnEL(String key) {
+		log(key);
+		return qry.removeColumnEL(key);
+	}
 
-    @Override
+	@Override
 
-    public QueryColumn removeColumnEL(Key key) {
-	log(key.getString());
-	return qry.removeColumnEL(key);
-    }
+	public QueryColumn removeColumnEL(Key key) {
+		log(key.getString());
+		return qry.removeColumnEL(key);
+	}
 
-    @Override
+	@Override
 
-    public Object setAt(String key, int row, Object value) throws PageException {
-	log(key);
-	return qry.setAt(key, row, value);
-    }
+	public Object setAt(String key, int row, Object value) throws PageException {
+		log(key);
+		return qry.setAt(key, row, value);
+	}
 
-    @Override
+	@Override
 
-    public Object setAt(Key key, int row, Object value) throws PageException {
-	log(key.getString());
-	return qry.setAt(key, row, value);
-    }
+	public Object setAt(Key key, int row, Object value) throws PageException {
+		log(key.getString());
+		return qry.setAt(key, row, value);
+	}
 
-    @Override
+	@Override
 
-    public Object setAtEL(String key, int row, Object value) {
-	log(key);
-	return qry.setAtEL(key, row, value);
-    }
+	public Object setAtEL(String key, int row, Object value) {
+		log(key);
+		return qry.setAtEL(key, row, value);
+	}
 
-    @Override
+	@Override
 
-    public Object setAtEL(Key key, int row, Object value) {
-	log(key.getString());
-	return qry.setAtEL(key, row, value);
-    }
+	public Object setAtEL(Key key, int row, Object value) {
+		log(key.getString());
+		return qry.setAtEL(key, row, value);
+	}
 
-    @Override
+	@Override
 
-    public boolean next() {
-	log();
-	return qry.next();
-    }
+	public boolean next() {
+		log();
+		return qry.next();
+	}
 
-    @Override
+	@Override
 
-    public boolean next(int pid) throws PageException {
-	log();
-	return qry.next(pid);
-    }
+	public boolean next(int pid) throws PageException {
+		log();
+		return qry.next(pid);
+	}
 
-    @Override
+	@Override
 
-    public void reset() throws PageException {
-	log();
-	qry.reset();
-    }
+	public void reset() throws PageException {
+		log();
+		qry.reset();
+	}
 
-    @Override
+	@Override
 
-    public void reset(int pid) throws PageException {
-	log();
-	qry.reset(pid);
-    }
+	public void reset(int pid) throws PageException {
+		log();
+		qry.reset(pid);
+	}
 
-    @Override
+	@Override
 
-    public int getRecordcount() {
-	log();
-	return qry.getRecordcount();
-    }
+	public int getRecordcount() {
+		log();
+		return qry.getRecordcount();
+	}
 
-    @Override
-    public int getCurrentrow(int pid) {
-	log();
-	return qry.getCurrentrow(pid);
-    }
+	@Override
+	public int getCurrentrow(int pid) {
+		log();
+		return qry.getCurrentrow(pid);
+	}
 
-    @Override
+	@Override
 
-    public boolean go(int index, int pid) throws PageException {
-	log();
-	return qry.go(index, pid);
-    }
+	public boolean go(int index, int pid) throws PageException {
+		log();
+		return qry.go(index, pid);
+	}
 
-    @Override
+	@Override
 
-    public boolean isEmpty() {
-	log();
-	return qry.isEmpty();
-    }
+	public boolean isEmpty() {
+		log();
+		return qry.isEmpty();
+	}
 
-    @Override
+	@Override
 
-    public void sort(String column) throws PageException {
-	log(column);
-	qry.sort(column);
-    }
+	public void sort(String column) throws PageException {
+		log(column);
+		qry.sort(column);
+	}
 
-    @Override
+	@Override
 
-    public void sort(Key column) throws PageException {
-	log(column.getString());
-	qry.sort(column);
-    }
+	public void sort(Key column) throws PageException {
+		log(column.getString());
+		qry.sort(column);
+	}
 
-    @Override
+	@Override
 
-    public void sort(String strColumn, int order) throws PageException {
-	log(strColumn);
-	qry.sort(strColumn, order);
-    }
+	public void sort(String strColumn, int order) throws PageException {
+		log(strColumn);
+		qry.sort(strColumn, order);
+	}
 
-    @Override
+	@Override
 
-    public void sort(Key keyColumn, int order) throws PageException {
-	log(keyColumn.getString());
-	qry.sort(keyColumn, order);
-    }
+	public void sort(Key keyColumn, int order) throws PageException {
+		log(keyColumn.getString());
+		qry.sort(keyColumn, order);
+	}
 
-    @Override
+	@Override
 
-    public boolean addRow(int count) {
-	log("" + count);
-	return qry.addRow(count);
-    }
+	public boolean addRow(int count) {
+		log("" + count);
+		return qry.addRow(count);
+	}
 
-    @Override
+	@Override
 
-    public boolean addColumn(String columnName, Array content) throws PageException {
-	log(columnName);
-	return qry.addColumn(columnName, content);
-    }
+	public boolean addColumn(String columnName, Array content) throws PageException {
+		log(columnName);
+		return qry.addColumn(columnName, content);
+	}
 
-    @Override
+	@Override
 
-    public boolean addColumn(Key columnName, Array content) throws PageException {
-	log(columnName.getString());
-	return qry.addColumn(columnName, content);
-    }
+	public boolean addColumn(Key columnName, Array content) throws PageException {
+		log(columnName.getString());
+		return qry.addColumn(columnName, content);
+	}
 
-    @Override
+	@Override
 
-    public boolean addColumn(String columnName, Array content, int type) throws PageException {
-	log(columnName);
-	return qry.addColumn(columnName, content, type);
-    }
+	public boolean addColumn(String columnName, Array content, int type) throws PageException {
+		log(columnName);
+		return qry.addColumn(columnName, content, type);
+	}
 
-    @Override
+	@Override
 
-    public boolean addColumn(Key columnName, Array content, int type) throws PageException {
-	log();
-	return qry.addColumn(columnName, content, type);
-    }
+	public boolean addColumn(Key columnName, Array content, int type) throws PageException {
+		log();
+		return qry.addColumn(columnName, content, type);
+	}
 
-    @Override
+	@Override
 
-    public int[] getTypes() {
-	log();
-	return qry.getTypes();
-    }
+	public int[] getTypes() {
+		log();
+		return qry.getTypes();
+	}
 
-    @Override
+	@Override
 
-    public Map getTypesAsMap() {
-	log();
-	return qry.getTypesAsMap();
-    }
+	public Map getTypesAsMap() {
+		log();
+		return qry.getTypesAsMap();
+	}
 
-    @Override
+	@Override
 
-    public QueryColumn getColumn(String key) throws PageException {
-	log(key);
-	return qry.getColumn(key);
-    }
+	public QueryColumn getColumn(String key) throws PageException {
+		log(key);
+		return qry.getColumn(key);
+	}
 
-    @Override
+	@Override
 
-    public QueryColumn getColumn(Key key) throws PageException {
-	log(key.getString());
-	return qry.getColumn(key);
-    }
+	public QueryColumn getColumn(Key key) throws PageException {
+		log(key.getString());
+		return qry.getColumn(key);
+	}
 
-    @Override
+	@Override
 
-    public void rename(Key columnName, Key newColumnName) throws PageException {
-	log(columnName + ":" + newColumnName);
-	qry.rename(columnName, newColumnName);
-    }
+	public void rename(Key columnName, Key newColumnName) throws PageException {
+		log(columnName + ":" + newColumnName);
+		qry.rename(columnName, newColumnName);
+	}
 
-    @Override
+	@Override
 
-    public QueryColumn getColumn(String key, QueryColumn defaultValue) {
-	log(key);
-	return qry.getColumn(key, defaultValue);
-    }
+	public QueryColumn getColumn(String key, QueryColumn defaultValue) {
+		log(key);
+		return qry.getColumn(key, defaultValue);
+	}
 
-    @Override
+	@Override
 
-    public QueryColumn getColumn(Key key, QueryColumn defaultValue) {
-	log(key.getString());
-	return qry.getColumn(key, defaultValue);
-    }
+	public QueryColumn getColumn(Key key, QueryColumn defaultValue) {
+		log(key.getString());
+		return qry.getColumn(key, defaultValue);
+	}
 
-    @Override
-    public void setExecutionTime(long exeTime) {
-	log();
-	qry.setExecutionTime(exeTime);
-    }
+	@Override
+	public void setExecutionTime(long exeTime) {
+		log();
+		qry.setExecutionTime(exeTime);
+	}
 
-    @Override
+	@Override
 
-    public void setCached(boolean isCached) {
-	log("" + isCached);
-	qry.setCached(isCached);
-    }
+	public void setCached(boolean isCached) {
+		log("" + isCached);
+		qry.setCached(isCached);
+	}
 
-    @Override
+	@Override
 
-    public boolean isCached() {
-	log();
-	return qry.isCached();
-    }
+	public boolean isCached() {
+		log();
+		return qry.isCached();
+	}
 
-    @Override
+	@Override
 
-    public int addRow() {
-	log();
-	return qry.addRow();
-    }
+	public int addRow() {
+		log();
+		return qry.addRow();
+	}
 
-    @Override
+	@Override
 
-    public int getColumnIndex(String coulmnName) {
-	log(coulmnName);
-	return qry.getColumnIndex(coulmnName);
-    }
+	public int getColumnIndex(String coulmnName) {
+		log(coulmnName);
+		return qry.getColumnIndex(coulmnName);
+	}
 
-    @Override
+	@Override
 
-    public String[] getColumns() {
-	log();
-	return qry.getColumns();
-    }
+	public String[] getColumns() {
+		log();
+		return qry.getColumns();
+	}
 
-    @Override
+	@Override
 
-    public Key[] getColumnNames() {
-	log();
-	return qry.getColumnNames();
-    }
+	public Key[] getColumnNames() {
+		log();
+		return qry.getColumnNames();
+	}
 
-    @Override
+	@Override
 
-    public String[] getColumnNamesAsString() {
-	log();
-	return qry.getColumnNamesAsString();
-    }
+	public String[] getColumnNamesAsString() {
+		log();
+		return qry.getColumnNamesAsString();
+	}
 
-    @Override
+	@Override
 
-    public String getData(int row, int col) throws IndexOutOfBoundsException {
-	log(row + ":" + col);
-	return qry.getData(row, col);
-    }
+	public String getData(int row, int col) throws IndexOutOfBoundsException {
+		log(row + ":" + col);
+		return qry.getData(row, col);
+	}
 
-    @Override
+	@Override
 
-    public String getName() {
-	log();
-	return qry.getName();
-    }
+	public String getName() {
+		log();
+		return qry.getName();
+	}
 
-    @Override
+	@Override
 
-    public int getRowCount() {
-	log();
-	return qry.getRowCount();
-    }
+	public int getRowCount() {
+		log();
+		return qry.getRowCount();
+	}
 
-    @Override
+	@Override
 
-    public void setData(int row, int col, String value) throws IndexOutOfBoundsException {
-	log("" + row);
-	qry.setData(row, col, value);
-    }
+	public void setData(int row, int col, String value) throws IndexOutOfBoundsException {
+		log("" + row);
+		qry.setData(row, col, value);
+	}
 
-    @Override
+	@Override
 
-    public Array getMetaDataSimple() {
-	log();
-	return qry.getMetaDataSimple();
-    }
+	public Array getMetaDataSimple() {
+		log();
+		return qry.getMetaDataSimple();
+	}
 
-    @Override
+	@Override
 
-    public Object getObject(String columnName) throws SQLException {
-	log(columnName);
-	return qry.getObject(columnName);
-    }
+	public Object getObject(String columnName) throws SQLException {
+		log(columnName);
+		return qry.getObject(columnName);
+	}
 
-    @Override
+	@Override
 
-    public Object getObject(int columnIndex) throws SQLException {
-	log("" + columnIndex);
-	return qry.getObject(columnIndex);
-    }
+	public Object getObject(int columnIndex) throws SQLException {
+		log("" + columnIndex);
+		return qry.getObject(columnIndex);
+	}
 
-    @Override
+	@Override
 
-    public String getString(int columnIndex) throws SQLException {
-	log("" + columnIndex);
-	return qry.getString(columnIndex);
-    }
+	public String getString(int columnIndex) throws SQLException {
+		log("" + columnIndex);
+		return qry.getString(columnIndex);
+	}
 
-    @Override
+	@Override
 
-    public String getString(String columnName) throws SQLException {
-	log(columnName);
-	return qry.getString(columnName);
-    }
+	public String getString(String columnName) throws SQLException {
+		log(columnName);
+		return qry.getString(columnName);
+	}
 
-    @Override
+	@Override
 
-    public boolean getBoolean(int columnIndex) throws SQLException {
-	log("" + columnIndex);
-	return qry.getBoolean(columnIndex);
-    }
+	public boolean getBoolean(int columnIndex) throws SQLException {
+		log("" + columnIndex);
+		return qry.getBoolean(columnIndex);
+	}
 
-    @Override
+	@Override
 
-    public boolean getBoolean(String columnName) throws SQLException {
-	log(columnName);
-	return qry.getBoolean(columnName);
-    }
+	public boolean getBoolean(String columnName) throws SQLException {
+		log(columnName);
+		return qry.getBoolean(columnName);
+	}
 
-    @Override
+	@Override
 
-    public boolean wasNull() throws SQLException {
-	log();
-	return qry.wasNull();
-    }
+	public boolean wasNull() throws SQLException {
+		log();
+		return qry.wasNull();
+	}
 
-    @Override
+	@Override
 
-    public boolean absolute(int row) throws SQLException {
-	log();
-	return qry.absolute(row);
-    }
+	public boolean absolute(int row) throws SQLException {
+		log();
+		return qry.absolute(row);
+	}
 
-    @Override
+	@Override
 
-    public void afterLast() throws SQLException {
-	log();
-	qry.afterLast();
-    }
+	public void afterLast() throws SQLException {
+		log();
+		qry.afterLast();
+	}
 
-    @Override
+	@Override
 
-    public void beforeFirst() throws SQLException {
-	log();
-	qry.beforeFirst();
-    }
+	public void beforeFirst() throws SQLException {
+		log();
+		qry.beforeFirst();
+	}
 
-    @Override
+	@Override
 
-    public void cancelRowUpdates() throws SQLException {
-	log();
-	qry.cancelRowUpdates();
-    }
+	public void cancelRowUpdates() throws SQLException {
+		log();
+		qry.cancelRowUpdates();
+	}
 
-    @Override
+	@Override
 
-    public void clearWarnings() throws SQLException {
-	log();
-	qry.clearWarnings();
-    }
+	public void clearWarnings() throws SQLException {
+		log();
+		qry.clearWarnings();
+	}
 
-    @Override
+	@Override
 
-    public void close() throws SQLException {
-	log();
-	qry.close();
-    }
+	public void close() throws SQLException {
+		log();
+		qry.close();
+	}
 
-    @Override
+	@Override
 
-    public void deleteRow() throws SQLException {
-	log();
-	qry.deleteRow();
-    }
+	public void deleteRow() throws SQLException {
+		log();
+		qry.deleteRow();
+	}
 
-    @Override
+	@Override
 
-    public int findColumn(String columnName) throws SQLException {
-	log();
-	return qry.findColumn(columnName);
-    }
+	public int findColumn(String columnName) throws SQLException {
+		log();
+		return qry.findColumn(columnName);
+	}
 
-    @Override
+	@Override
 
-    public boolean first() throws SQLException {
-	log();
-	return qry.first();
-    }
+	public boolean first() throws SQLException {
+		log();
+		return qry.first();
+	}
 
-    @Override
+	@Override
 
-    public java.sql.Array getArray(int i) throws SQLException {
-	log("" + i);
-	return qry.getArray(i);
-    }
+	public java.sql.Array getArray(int i) throws SQLException {
+		log("" + i);
+		return qry.getArray(i);
+	}
 
-    @Override
+	@Override
 
-    public java.sql.Array getArray(String colName) throws SQLException {
-	log(colName);
-	return qry.getArray(colName);
-    }
+	public java.sql.Array getArray(String colName) throws SQLException {
+		log(colName);
+		return qry.getArray(colName);
+	}
 
-    @Override
+	@Override
 
-    public InputStream getAsciiStream(int columnIndex) throws SQLException {
-	log("" + columnIndex);
-	return qry.getAsciiStream(columnIndex);
-    }
+	public InputStream getAsciiStream(int columnIndex) throws SQLException {
+		log("" + columnIndex);
+		return qry.getAsciiStream(columnIndex);
+	}
 
-    @Override
+	@Override
 
-    public InputStream getAsciiStream(String columnName) throws SQLException {
-	log(columnName);
-	return qry.getAsciiStream(columnName);
-    }
+	public InputStream getAsciiStream(String columnName) throws SQLException {
+		log(columnName);
+		return qry.getAsciiStream(columnName);
+	}
 
-    @Override
+	@Override
 
-    public BigDecimal getBigDecimal(int columnIndex) throws SQLException {
-	log("" + columnIndex);
-	return qry.getBigDecimal(columnIndex);
-    }
+	public BigDecimal getBigDecimal(int columnIndex) throws SQLException {
+		log("" + columnIndex);
+		return qry.getBigDecimal(columnIndex);
+	}
 
-    @Override
+	@Override
 
-    public BigDecimal getBigDecimal(String columnName) throws SQLException {
-	log(columnName);
-	return qry.getBigDecimal(columnName);
-    }
+	public BigDecimal getBigDecimal(String columnName) throws SQLException {
+		log(columnName);
+		return qry.getBigDecimal(columnName);
+	}
 
-    @Override
+	@Override
 
-    public BigDecimal getBigDecimal(int columnIndex, int scale) throws SQLException {
-	log("" + columnIndex);
-	return qry.getBigDecimal(columnIndex, scale);
-    }
+	public BigDecimal getBigDecimal(int columnIndex, int scale) throws SQLException {
+		log("" + columnIndex);
+		return qry.getBigDecimal(columnIndex, scale);
+	}
 
-    @Override
+	@Override
 
-    public BigDecimal getBigDecimal(String columnName, int scale) throws SQLException {
-	log(columnName);
-	return qry.getBigDecimal(columnName, scale);
-    }
+	public BigDecimal getBigDecimal(String columnName, int scale) throws SQLException {
+		log(columnName);
+		return qry.getBigDecimal(columnName, scale);
+	}
 
-    @Override
+	@Override
 
-    public InputStream getBinaryStream(int columnIndex) throws SQLException {
-	log("" + columnIndex);
-	return qry.getBinaryStream(columnIndex);
-    }
+	public InputStream getBinaryStream(int columnIndex) throws SQLException {
+		log("" + columnIndex);
+		return qry.getBinaryStream(columnIndex);
+	}
 
-    @Override
+	@Override
 
-    public InputStream getBinaryStream(String columnName) throws SQLException {
-	log(columnName);
-	return qry.getBinaryStream(columnName);
-    }
+	public InputStream getBinaryStream(String columnName) throws SQLException {
+		log(columnName);
+		return qry.getBinaryStream(columnName);
+	}
 
-    @Override
+	@Override
 
-    public Blob getBlob(int i) throws SQLException {
-	log("" + i);
-	return qry.getBlob(i);
-    }
+	public Blob getBlob(int i) throws SQLException {
+		log("" + i);
+		return qry.getBlob(i);
+	}
 
-    @Override
+	@Override
 
-    public Blob getBlob(String colName) throws SQLException {
-	log(colName);
-	return qry.getBlob(colName);
-    }
+	public Blob getBlob(String colName) throws SQLException {
+		log(colName);
+		return qry.getBlob(colName);
+	}
 
-    @Override
+	@Override
 
-    public byte getByte(int columnIndex) throws SQLException {
-	log("" + columnIndex);
-	return qry.getByte(columnIndex);
-    }
+	public byte getByte(int columnIndex) throws SQLException {
+		log("" + columnIndex);
+		return qry.getByte(columnIndex);
+	}
 
-    @Override
+	@Override
 
-    public byte getByte(String columnName) throws SQLException {
-	log("" + columnName);
-	return qry.getByte(columnName);
-    }
+	public byte getByte(String columnName) throws SQLException {
+		log("" + columnName);
+		return qry.getByte(columnName);
+	}
 
-    @Override
+	@Override
 
-    public byte[] getBytes(int columnIndex) throws SQLException {
-	log("" + columnIndex);
-	return qry.getBytes(columnIndex);
-    }
+	public byte[] getBytes(int columnIndex) throws SQLException {
+		log("" + columnIndex);
+		return qry.getBytes(columnIndex);
+	}
 
-    @Override
+	@Override
 
-    public byte[] getBytes(String columnName) throws SQLException {
-	log(columnName);
-	return qry.getBytes(columnName);
-    }
+	public byte[] getBytes(String columnName) throws SQLException {
+		log(columnName);
+		return qry.getBytes(columnName);
+	}
 
-    @Override
+	@Override
 
-    public Reader getCharacterStream(int columnIndex) throws SQLException {
-	log("" + columnIndex);
-	return qry.getCharacterStream(columnIndex);
-    }
+	public Reader getCharacterStream(int columnIndex) throws SQLException {
+		log("" + columnIndex);
+		return qry.getCharacterStream(columnIndex);
+	}
 
-    @Override
+	@Override
 
-    public Reader getCharacterStream(String columnName) throws SQLException {
-	log(columnName);
-	return qry.getCharacterStream(columnName);
-    }
+	public Reader getCharacterStream(String columnName) throws SQLException {
+		log(columnName);
+		return qry.getCharacterStream(columnName);
+	}
 
-    @Override
+	@Override
 
-    public Clob getClob(int i) throws SQLException {
-	log("" + i);
-	return qry.getClob(i);
-    }
+	public Clob getClob(int i) throws SQLException {
+		log("" + i);
+		return qry.getClob(i);
+	}
 
-    @Override
+	@Override
 
-    public Clob getClob(String colName) throws SQLException {
-	log(colName);
-	return qry.getClob(colName);
-    }
+	public Clob getClob(String colName) throws SQLException {
+		log(colName);
+		return qry.getClob(colName);
+	}
 
-    @Override
+	@Override
 
-    public int getConcurrency() throws SQLException {
-	log();
-	return qry.getConcurrency();
-    }
+	public int getConcurrency() throws SQLException {
+		log();
+		return qry.getConcurrency();
+	}
 
-    @Override
+	@Override
 
-    public String getCursorName() throws SQLException {
-	log();
-	return qry.getCursorName();
-    }
+	public String getCursorName() throws SQLException {
+		log();
+		return qry.getCursorName();
+	}
 
-    @Override
+	@Override
 
-    public Date getDate(int columnIndex) throws SQLException {
-	log("" + columnIndex);
-	return qry.getDate(columnIndex);
-    }
+	public Date getDate(int columnIndex) throws SQLException {
+		log("" + columnIndex);
+		return qry.getDate(columnIndex);
+	}
 
-    @Override
+	@Override
 
-    public Date getDate(String columnName) throws SQLException {
-	log(columnName);
-	return qry.getDate(columnName);
-    }
+	public Date getDate(String columnName) throws SQLException {
+		log(columnName);
+		return qry.getDate(columnName);
+	}
 
-    @Override
+	@Override
 
-    public Date getDate(int columnIndex, Calendar cal) throws SQLException {
-	log(columnIndex + "");
-	return qry.getDate(columnIndex, cal);
-    }
+	public Date getDate(int columnIndex, Calendar cal) throws SQLException {
+		log(columnIndex + "");
+		return qry.getDate(columnIndex, cal);
+	}
 
-    @Override
+	@Override
 
-    public Date getDate(String columnName, Calendar cal) throws SQLException {
-	log(columnName);
-	return qry.getDate(columnName, cal);
-    }
+	public Date getDate(String columnName, Calendar cal) throws SQLException {
+		log(columnName);
+		return qry.getDate(columnName, cal);
+	}
 
-    @Override
+	@Override
 
-    public double getDouble(int columnIndex) throws SQLException {
-	log("" + columnIndex);
-	return qry.getDouble(columnIndex);
-    }
+	public double getDouble(int columnIndex) throws SQLException {
+		log("" + columnIndex);
+		return qry.getDouble(columnIndex);
+	}
 
-    @Override
+	@Override
 
-    public double getDouble(String columnName) throws SQLException {
-	log(columnName);
-	return qry.getDouble(columnName);
-    }
+	public double getDouble(String columnName) throws SQLException {
+		log(columnName);
+		return qry.getDouble(columnName);
+	}
 
-    @Override
+	@Override
 
-    public int getFetchDirection() throws SQLException {
-	log();
-	return qry.getFetchDirection();
-    }
+	public int getFetchDirection() throws SQLException {
+		log();
+		return qry.getFetchDirection();
+	}
 
-    @Override
+	@Override
 
-    public int getFetchSize() throws SQLException {
-	log();
-	return qry.getFetchSize();
-    }
+	public int getFetchSize() throws SQLException {
+		log();
+		return qry.getFetchSize();
+	}
 
-    @Override
+	@Override
 
-    public float getFloat(int columnIndex) throws SQLException {
-	log(columnIndex + "");
-	return qry.getFloat(columnIndex);
-    }
+	public float getFloat(int columnIndex) throws SQLException {
+		log(columnIndex + "");
+		return qry.getFloat(columnIndex);
+	}
 
-    @Override
+	@Override
 
-    public float getFloat(String columnName) throws SQLException {
-	log(columnName);
-	return qry.getFloat(columnName);
-    }
+	public float getFloat(String columnName) throws SQLException {
+		log(columnName);
+		return qry.getFloat(columnName);
+	}
 
-    @Override
+	@Override
 
-    public int getInt(int columnIndex) throws SQLException {
-	log("" + columnIndex);
-	return qry.getInt(columnIndex);
-    }
+	public int getInt(int columnIndex) throws SQLException {
+		log("" + columnIndex);
+		return qry.getInt(columnIndex);
+	}
 
-    @Override
+	@Override
 
-    public int getInt(String columnName) throws SQLException {
-	log(columnName);
-	return qry.getInt(columnName);
-    }
+	public int getInt(String columnName) throws SQLException {
+		log(columnName);
+		return qry.getInt(columnName);
+	}
 
-    @Override
+	@Override
 
-    public long getLong(int columnIndex) throws SQLException {
-	log("" + columnIndex);
-	return qry.getLong(columnIndex);
-    }
+	public long getLong(int columnIndex) throws SQLException {
+		log("" + columnIndex);
+		return qry.getLong(columnIndex);
+	}
 
-    @Override
+	@Override
 
-    public long getLong(String columnName) throws SQLException {
-	log(columnName);
-	return qry.getLong(columnName);
-    }
+	public long getLong(String columnName) throws SQLException {
+		log(columnName);
+		return qry.getLong(columnName);
+	}
 
-    @Override
+	@Override
 
-    public Ref getRef(int i) throws SQLException {
-	log("" + i);
-	return qry.getRef(i);
-    }
+	public Ref getRef(int i) throws SQLException {
+		log("" + i);
+		return qry.getRef(i);
+	}
 
-    @Override
+	@Override
 
-    public Ref getRef(String colName) throws SQLException {
-	log(colName);
-	return qry.getRef(colName);
-    }
+	public Ref getRef(String colName) throws SQLException {
+		log(colName);
+		return qry.getRef(colName);
+	}
 
-    @Override
+	@Override
 
-    public int getRow() throws SQLException {
-	log();
-	return qry.getRow();
-    }
+	public int getRow() throws SQLException {
+		log();
+		return qry.getRow();
+	}
 
-    @Override
+	@Override
 
-    public short getShort(int columnIndex) throws SQLException {
-	log("" + columnIndex);
-	return qry.getShort(columnIndex);
-    }
+	public short getShort(int columnIndex) throws SQLException {
+		log("" + columnIndex);
+		return qry.getShort(columnIndex);
+	}
 
-    @Override
+	@Override
 
-    public short getShort(String columnName) throws SQLException {
-	log(columnName);
-	return qry.getShort(columnName);
-    }
+	public short getShort(String columnName) throws SQLException {
+		log(columnName);
+		return qry.getShort(columnName);
+	}
 
-    @Override
+	@Override
 
-    public Statement getStatement() throws SQLException {
-	log();
-	return qry.getStatement();
-    }
+	public Statement getStatement() throws SQLException {
+		log();
+		return qry.getStatement();
+	}
 
-    @Override
+	@Override
 
-    public Time getTime(int columnIndex) throws SQLException {
-	log("" + columnIndex);
-	return qry.getTime(columnIndex);
-    }
+	public Time getTime(int columnIndex) throws SQLException {
+		log("" + columnIndex);
+		return qry.getTime(columnIndex);
+	}
 
-    @Override
+	@Override
 
-    public Time getTime(String columnName) throws SQLException {
-	log(columnName);
-	return qry.getTime(columnName);
-    }
+	public Time getTime(String columnName) throws SQLException {
+		log(columnName);
+		return qry.getTime(columnName);
+	}
 
-    @Override
+	@Override
 
-    public Time getTime(int columnIndex, Calendar cal) throws SQLException {
-	log("" + columnIndex);
-	return qry.getTime(columnIndex, cal);
-    }
+	public Time getTime(int columnIndex, Calendar cal) throws SQLException {
+		log("" + columnIndex);
+		return qry.getTime(columnIndex, cal);
+	}
 
-    @Override
+	@Override
 
-    public Time getTime(String columnName, Calendar cal) throws SQLException {
-	log(columnName);
-	return qry.getTime(columnName, cal);
-    }
+	public Time getTime(String columnName, Calendar cal) throws SQLException {
+		log(columnName);
+		return qry.getTime(columnName, cal);
+	}
 
-    @Override
+	@Override
 
-    public Timestamp getTimestamp(int columnIndex) throws SQLException {
-	log("" + columnIndex);
-	return qry.getTimestamp(columnIndex);
-    }
+	public Timestamp getTimestamp(int columnIndex) throws SQLException {
+		log("" + columnIndex);
+		return qry.getTimestamp(columnIndex);
+	}
 
-    @Override
+	@Override
 
-    public Timestamp getTimestamp(String columnName) throws SQLException {
-	log(columnName);
-	return qry.getTimestamp(columnName);
-    }
+	public Timestamp getTimestamp(String columnName) throws SQLException {
+		log(columnName);
+		return qry.getTimestamp(columnName);
+	}
 
-    @Override
+	@Override
 
-    public Timestamp getTimestamp(int columnIndex, Calendar cal) throws SQLException {
-	log("" + columnIndex);
-	return qry.getTimestamp(columnIndex, cal);
-    }
+	public Timestamp getTimestamp(int columnIndex, Calendar cal) throws SQLException {
+		log("" + columnIndex);
+		return qry.getTimestamp(columnIndex, cal);
+	}
 
-    @Override
+	@Override
 
-    public Timestamp getTimestamp(String columnName, Calendar cal) throws SQLException {
-	log(columnName);
-	return qry.getTimestamp(columnName, cal);
-    }
+	public Timestamp getTimestamp(String columnName, Calendar cal) throws SQLException {
+		log(columnName);
+		return qry.getTimestamp(columnName, cal);
+	}
 
-    @Override
+	@Override
 
-    public int getType() throws SQLException {
-	log();
-	return qry.getType();
-    }
+	public int getType() throws SQLException {
+		log();
+		return qry.getType();
+	}
 
-    @Override
+	@Override
 
-    public URL getURL(int columnIndex) throws SQLException {
-	log();
-	return qry.getURL(columnIndex);
-    }
+	public URL getURL(int columnIndex) throws SQLException {
+		log();
+		return qry.getURL(columnIndex);
+	}
 
-    @Override
+	@Override
 
-    public URL getURL(String columnName) throws SQLException {
-	log();
-	return qry.getURL(columnName);
-    }
+	public URL getURL(String columnName) throws SQLException {
+		log();
+		return qry.getURL(columnName);
+	}
 
-    @Override
+	@Override
 
-    public InputStream getUnicodeStream(int columnIndex) throws SQLException {
-	log();
-	return qry.getUnicodeStream(columnIndex);
-    }
+	public InputStream getUnicodeStream(int columnIndex) throws SQLException {
+		log();
+		return qry.getUnicodeStream(columnIndex);
+	}
 
-    @Override
+	@Override
 
-    public InputStream getUnicodeStream(String columnName) throws SQLException {
-	log();
-	return qry.getUnicodeStream(columnName);
-    }
+	public InputStream getUnicodeStream(String columnName) throws SQLException {
+		log();
+		return qry.getUnicodeStream(columnName);
+	}
 
-    @Override
+	@Override
 
-    public SQLWarning getWarnings() throws SQLException {
-	log();
-	return qry.getWarnings();
-    }
+	public SQLWarning getWarnings() throws SQLException {
+		log();
+		return qry.getWarnings();
+	}
 
-    @Override
+	@Override
 
-    public void insertRow() throws SQLException {
-	log();
-	qry.insertRow();
-    }
+	public void insertRow() throws SQLException {
+		log();
+		qry.insertRow();
+	}
 
-    @Override
+	@Override
 
-    public boolean isAfterLast() throws SQLException {
-	log();
-	return qry.isAfterLast();
-    }
+	public boolean isAfterLast() throws SQLException {
+		log();
+		return qry.isAfterLast();
+	}
 
-    @Override
+	@Override
 
-    public boolean isBeforeFirst() throws SQLException {
-	log();
-	return qry.isBeforeFirst();
-    }
+	public boolean isBeforeFirst() throws SQLException {
+		log();
+		return qry.isBeforeFirst();
+	}
 
-    @Override
+	@Override
 
-    public boolean isFirst() throws SQLException {
-	log();
-	return qry.isFirst();
-    }
+	public boolean isFirst() throws SQLException {
+		log();
+		return qry.isFirst();
+	}
 
-    @Override
+	@Override
 
-    public boolean isLast() throws SQLException {
-	log();
-	return qry.isLast();
-    }
+	public boolean isLast() throws SQLException {
+		log();
+		return qry.isLast();
+	}
 
-    @Override
+	@Override
 
-    public boolean last() throws SQLException {
-	log();
-	return qry.last();
-    }
+	public boolean last() throws SQLException {
+		log();
+		return qry.last();
+	}
 
-    @Override
+	@Override
 
-    public void moveToCurrentRow() throws SQLException {
-	log();
-	qry.moveToCurrentRow();
-    }
+	public void moveToCurrentRow() throws SQLException {
+		log();
+		qry.moveToCurrentRow();
+	}
 
-    @Override
+	@Override
 
-    public void moveToInsertRow() throws SQLException {
-	log();
-	qry.moveToInsertRow();
-    }
+	public void moveToInsertRow() throws SQLException {
+		log();
+		qry.moveToInsertRow();
+	}
 
-    @Override
+	@Override
 
-    public boolean previous() throws SQLException {
-	log();
-	return qry.previous();
-    }
+	public boolean previous() throws SQLException {
+		log();
+		return qry.previous();
+	}
 
-    @Override
+	@Override
 
-    public boolean previous(int pid) {
-	log();
-	return qry.previous(pid);
-    }
+	public boolean previous(int pid) {
+		log();
+		return qry.previous(pid);
+	}
 
-    @Override
+	@Override
 
-    public void refreshRow() throws SQLException {
-	log();
-	qry.refreshRow();
-    }
+	public void refreshRow() throws SQLException {
+		log();
+		qry.refreshRow();
+	}
 
-    @Override
+	@Override
 
-    public boolean relative(int rows) throws SQLException {
-	log();
-	return qry.relative(rows);
-    }
+	public boolean relative(int rows) throws SQLException {
+		log();
+		return qry.relative(rows);
+	}
 
-    @Override
+	@Override
 
-    public boolean rowDeleted() throws SQLException {
-	log();
-	return qry.rowDeleted();
-    }
+	public boolean rowDeleted() throws SQLException {
+		log();
+		return qry.rowDeleted();
+	}
 
-    @Override
+	@Override
 
-    public boolean rowInserted() throws SQLException {
-	log();
-	return qry.rowInserted();
-    }
+	public boolean rowInserted() throws SQLException {
+		log();
+		return qry.rowInserted();
+	}
 
-    @Override
+	@Override
 
-    public boolean rowUpdated() throws SQLException {
-	log();
-	return qry.rowUpdated();
-    }
+	public boolean rowUpdated() throws SQLException {
+		log();
+		return qry.rowUpdated();
+	}
 
-    @Override
+	@Override
 
-    public void setFetchDirection(int direction) throws SQLException {
-	log();
-	qry.setFetchDirection(direction);
-    }
+	public void setFetchDirection(int direction) throws SQLException {
+		log();
+		qry.setFetchDirection(direction);
+	}
 
-    @Override
+	@Override
 
-    public void setFetchSize(int rows) throws SQLException {
-	log("" + rows);
-	qry.setFetchSize(rows);
-    }
+	public void setFetchSize(int rows) throws SQLException {
+		log("" + rows);
+		qry.setFetchSize(rows);
+	}
 
-    @Override
+	@Override
 
-    public void updateArray(int columnIndex, java.sql.Array x) throws SQLException {
-	log(columnIndex + "");
-	qry.updateArray(columnIndex, x);
-    }
+	public void updateArray(int columnIndex, java.sql.Array x) throws SQLException {
+		log(columnIndex + "");
+		qry.updateArray(columnIndex, x);
+	}
 
-    @Override
+	@Override
 
-    public void updateArray(String columnName, java.sql.Array x) throws SQLException {
-	log(columnName);
-	qry.updateArray(columnName, x);
-    }
+	public void updateArray(String columnName, java.sql.Array x) throws SQLException {
+		log(columnName);
+		qry.updateArray(columnName, x);
+	}
 
-    @Override
+	@Override
 
-    public void updateAsciiStream(int columnIndex, InputStream x, int length) throws SQLException {
-	log("" + columnIndex);
-	qry.updateAsciiStream(columnIndex, x, length);
-    }
+	public void updateAsciiStream(int columnIndex, InputStream x, int length) throws SQLException {
+		log("" + columnIndex);
+		qry.updateAsciiStream(columnIndex, x, length);
+	}
 
-    @Override
+	@Override
 
-    public void updateAsciiStream(String columnName, InputStream x, int length) throws SQLException {
-	log(columnName);
-	qry.updateAsciiStream(columnName, x, length);
-    }
+	public void updateAsciiStream(String columnName, InputStream x, int length) throws SQLException {
+		log(columnName);
+		qry.updateAsciiStream(columnName, x, length);
+	}
 
-    @Override
+	@Override
 
-    public void updateBigDecimal(int columnIndex, BigDecimal x) throws SQLException {
-	log("" + columnIndex);
-	qry.updateBigDecimal(columnIndex, x);
-    }
+	public void updateBigDecimal(int columnIndex, BigDecimal x) throws SQLException {
+		log("" + columnIndex);
+		qry.updateBigDecimal(columnIndex, x);
+	}
 
-    @Override
+	@Override
 
-    public void updateBigDecimal(String columnName, BigDecimal x) throws SQLException {
-	log(columnName);
-	qry.updateBigDecimal(columnName, x);
-    }
+	public void updateBigDecimal(String columnName, BigDecimal x) throws SQLException {
+		log(columnName);
+		qry.updateBigDecimal(columnName, x);
+	}
 
-    @Override
+	@Override
 
-    public void updateBinaryStream(int columnIndex, InputStream x, int length) throws SQLException {
-	log("" + columnIndex);
-	qry.updateBinaryStream(columnIndex, x, length);
-    }
+	public void updateBinaryStream(int columnIndex, InputStream x, int length) throws SQLException {
+		log("" + columnIndex);
+		qry.updateBinaryStream(columnIndex, x, length);
+	}
 
-    @Override
+	@Override
 
-    public void updateBinaryStream(String columnName, InputStream x, int length) throws SQLException {
-	log(columnName);
-	qry.updateBinaryStream(columnName, x, length);
-    }
+	public void updateBinaryStream(String columnName, InputStream x, int length) throws SQLException {
+		log(columnName);
+		qry.updateBinaryStream(columnName, x, length);
+	}
 
-    @Override
+	@Override
 
-    public void updateBlob(int columnIndex, Blob x) throws SQLException {
-	log("" + columnIndex);
-	qry.updateBlob(columnIndex, x);
-    }
+	public void updateBlob(int columnIndex, Blob x) throws SQLException {
+		log("" + columnIndex);
+		qry.updateBlob(columnIndex, x);
+	}
 
-    @Override
+	@Override
 
-    public void updateBlob(String columnName, Blob x) throws SQLException {
-	log(columnName);
-	qry.updateBlob(columnName, x);
-    }
+	public void updateBlob(String columnName, Blob x) throws SQLException {
+		log(columnName);
+		qry.updateBlob(columnName, x);
+	}
 
-    @Override
+	@Override
 
-    public void updateBoolean(int columnIndex, boolean x) throws SQLException {
-	log("" + columnIndex);
-	qry.updateBoolean(columnIndex, x);
-    }
+	public void updateBoolean(int columnIndex, boolean x) throws SQLException {
+		log("" + columnIndex);
+		qry.updateBoolean(columnIndex, x);
+	}
 
-    @Override
+	@Override
 
-    public void updateBoolean(String columnName, boolean x) throws SQLException {
-	log(columnName);
-	qry.updateBoolean(columnName, x);
-    }
+	public void updateBoolean(String columnName, boolean x) throws SQLException {
+		log(columnName);
+		qry.updateBoolean(columnName, x);
+	}
 
-    @Override
+	@Override
 
-    public void updateByte(int columnIndex, byte x) throws SQLException {
-	log("" + columnIndex);
-	qry.updateByte(columnIndex, x);
-    }
+	public void updateByte(int columnIndex, byte x) throws SQLException {
+		log("" + columnIndex);
+		qry.updateByte(columnIndex, x);
+	}
 
-    @Override
+	@Override
 
-    public void updateByte(String columnName, byte x) throws SQLException {
-	log(columnName);
-	qry.updateByte(columnName, x);
-    }
+	public void updateByte(String columnName, byte x) throws SQLException {
+		log(columnName);
+		qry.updateByte(columnName, x);
+	}
 
-    @Override
+	@Override
 
-    public void updateBytes(int columnIndex, byte[] x) throws SQLException {
-	log("" + columnIndex);
-	qry.updateBytes(columnIndex, x);
-    }
+	public void updateBytes(int columnIndex, byte[] x) throws SQLException {
+		log("" + columnIndex);
+		qry.updateBytes(columnIndex, x);
+	}
 
-    @Override
+	@Override
 
-    public void updateBytes(String columnName, byte[] x) throws SQLException {
-	log(columnName);
-	qry.updateBytes(columnName, x);
-    }
+	public void updateBytes(String columnName, byte[] x) throws SQLException {
+		log(columnName);
+		qry.updateBytes(columnName, x);
+	}
 
-    @Override
+	@Override
 
-    public void updateCharacterStream(int columnIndex, Reader reader, int length) throws SQLException {
-	log("" + columnIndex);
-	qry.updateCharacterStream(columnIndex, reader, length);
-    }
+	public void updateCharacterStream(int columnIndex, Reader reader, int length) throws SQLException {
+		log("" + columnIndex);
+		qry.updateCharacterStream(columnIndex, reader, length);
+	}
 
-    @Override
+	@Override
 
-    public void updateCharacterStream(String columnName, Reader reader, int length) throws SQLException {
-	log(columnName);
-	qry.updateCharacterStream(columnName, reader, length);
-    }
+	public void updateCharacterStream(String columnName, Reader reader, int length) throws SQLException {
+		log(columnName);
+		qry.updateCharacterStream(columnName, reader, length);
+	}
 
-    @Override
+	@Override
 
-    public void updateClob(int columnIndex, Clob x) throws SQLException {
-	log("" + columnIndex);
-	qry.updateClob(columnIndex, x);
-    }
+	public void updateClob(int columnIndex, Clob x) throws SQLException {
+		log("" + columnIndex);
+		qry.updateClob(columnIndex, x);
+	}
 
-    @Override
+	@Override
 
-    public void updateClob(String columnName, Clob x) throws SQLException {
-	log(columnName);
-	qry.updateClob(columnName, x);
-    }
+	public void updateClob(String columnName, Clob x) throws SQLException {
+		log(columnName);
+		qry.updateClob(columnName, x);
+	}
 
-    @Override
+	@Override
 
-    public void updateDate(int columnIndex, Date x) throws SQLException {
-	log("" + columnIndex);
-	qry.updateDate(columnIndex, x);
-    }
+	public void updateDate(int columnIndex, Date x) throws SQLException {
+		log("" + columnIndex);
+		qry.updateDate(columnIndex, x);
+	}
 
-    @Override
+	@Override
 
-    public void updateDate(String columnName, Date x) throws SQLException {
-	log(columnName);
-	qry.updateDate(columnName, x);
-    }
+	public void updateDate(String columnName, Date x) throws SQLException {
+		log(columnName);
+		qry.updateDate(columnName, x);
+	}
 
-    @Override
+	@Override
 
-    public void updateDouble(int columnIndex, double x) throws SQLException {
-	log("" + columnIndex);
-	qry.updateDouble(columnIndex, x);
-    }
+	public void updateDouble(int columnIndex, double x) throws SQLException {
+		log("" + columnIndex);
+		qry.updateDouble(columnIndex, x);
+	}
 
-    @Override
+	@Override
 
-    public void updateDouble(String columnName, double x) throws SQLException {
-	log(columnName);
-	qry.updateDouble(columnName, x);
-    }
+	public void updateDouble(String columnName, double x) throws SQLException {
+		log(columnName);
+		qry.updateDouble(columnName, x);
+	}
 
-    @Override
+	@Override
 
-    public void updateFloat(int columnIndex, float x) throws SQLException {
-	log("" + columnIndex);
-	qry.updateFloat(columnIndex, x);
-    }
+	public void updateFloat(int columnIndex, float x) throws SQLException {
+		log("" + columnIndex);
+		qry.updateFloat(columnIndex, x);
+	}
 
-    @Override
+	@Override
 
-    public void updateFloat(String columnName, float x) throws SQLException {
-	log(columnName);
-	qry.updateFloat(columnName, x);
-    }
+	public void updateFloat(String columnName, float x) throws SQLException {
+		log(columnName);
+		qry.updateFloat(columnName, x);
+	}
 
-    @Override
+	@Override
 
-    public void updateInt(int columnIndex, int x) throws SQLException {
-	log("" + columnIndex);
-	qry.updateInt(columnIndex, x);
-    }
+	public void updateInt(int columnIndex, int x) throws SQLException {
+		log("" + columnIndex);
+		qry.updateInt(columnIndex, x);
+	}
 
-    @Override
+	@Override
 
-    public void updateInt(String columnName, int x) throws SQLException {
-	log(columnName);
-	qry.updateInt(columnName, x);
-    }
+	public void updateInt(String columnName, int x) throws SQLException {
+		log(columnName);
+		qry.updateInt(columnName, x);
+	}
 
-    @Override
+	@Override
 
-    public void updateLong(int columnIndex, long x) throws SQLException {
-	log("" + columnIndex);
-	qry.updateLong(columnIndex, x);
-    }
+	public void updateLong(int columnIndex, long x) throws SQLException {
+		log("" + columnIndex);
+		qry.updateLong(columnIndex, x);
+	}
 
-    @Override
+	@Override
 
-    public void updateLong(String columnName, long x) throws SQLException {
-	log(columnName);
-	qry.updateLong(columnName, x);
-    }
+	public void updateLong(String columnName, long x) throws SQLException {
+		log(columnName);
+		qry.updateLong(columnName, x);
+	}
 
-    @Override
+	@Override
 
-    public void updateNull(int columnIndex) throws SQLException {
-	log("" + columnIndex);
-	qry.updateNull(columnIndex);
-    }
+	public void updateNull(int columnIndex) throws SQLException {
+		log("" + columnIndex);
+		qry.updateNull(columnIndex);
+	}
 
-    @Override
+	@Override
 
-    public void updateNull(String columnName) throws SQLException {
-	log(columnName);
-	qry.updateNull(columnName);
-    }
+	public void updateNull(String columnName) throws SQLException {
+		log(columnName);
+		qry.updateNull(columnName);
+	}
 
-    @Override
+	@Override
 
-    public void updateObject(int columnIndex, Object x) throws SQLException {
+	public void updateObject(int columnIndex, Object x) throws SQLException {
 
-	qry.updateObject(columnIndex, x);
-    }
+		qry.updateObject(columnIndex, x);
+	}
 
-    @Override
+	@Override
 
-    public void updateObject(String columnName, Object x) throws SQLException {
-	log(columnName);
-	qry.updateObject(columnName, x);
-    }
+	public void updateObject(String columnName, Object x) throws SQLException {
+		log(columnName);
+		qry.updateObject(columnName, x);
+	}
 
-    @Override
+	@Override
 
-    public void updateObject(int columnIndex, Object x, int scale) throws SQLException {
-	log("" + columnIndex);
-	qry.updateObject(columnIndex, x, scale);
-    }
+	public void updateObject(int columnIndex, Object x, int scale) throws SQLException {
+		log("" + columnIndex);
+		qry.updateObject(columnIndex, x, scale);
+	}
 
-    @Override
+	@Override
 
-    public void updateObject(String columnName, Object x, int scale) throws SQLException {
-	log(columnName);
-	qry.updateObject(columnName, x, scale);
-    }
+	public void updateObject(String columnName, Object x, int scale) throws SQLException {
+		log(columnName);
+		qry.updateObject(columnName, x, scale);
+	}
 
-    @Override
+	@Override
 
-    public void updateRef(int columnIndex, Ref x) throws SQLException {
-	log("" + columnIndex);
-	qry.updateRef(columnIndex, x);
-    }
+	public void updateRef(int columnIndex, Ref x) throws SQLException {
+		log("" + columnIndex);
+		qry.updateRef(columnIndex, x);
+	}
 
-    @Override
+	@Override
 
-    public void updateRef(String columnName, Ref x) throws SQLException {
-	log(columnName);
-	qry.updateRef(columnName, x);
-    }
+	public void updateRef(String columnName, Ref x) throws SQLException {
+		log(columnName);
+		qry.updateRef(columnName, x);
+	}
 
-    @Override
+	@Override
 
-    public void updateRow() throws SQLException {
-	log();
-	qry.updateRow();
-    }
+	public void updateRow() throws SQLException {
+		log();
+		qry.updateRow();
+	}
 
-    @Override
+	@Override
 
-    public void updateShort(int columnIndex, short x) throws SQLException {
-	log("" + columnIndex);
-	qry.updateShort(columnIndex, x);
-    }
+	public void updateShort(int columnIndex, short x) throws SQLException {
+		log("" + columnIndex);
+		qry.updateShort(columnIndex, x);
+	}
 
-    @Override
+	@Override
 
-    public void updateShort(String columnName, short x) throws SQLException {
-	log(columnName);
-	qry.updateShort(columnName, x);
-    }
+	public void updateShort(String columnName, short x) throws SQLException {
+		log(columnName);
+		qry.updateShort(columnName, x);
+	}
 
-    @Override
+	@Override
 
-    public void updateString(int columnIndex, String x) throws SQLException {
-	log("" + columnIndex);
-	qry.updateString(columnIndex, x);
-    }
+	public void updateString(int columnIndex, String x) throws SQLException {
+		log("" + columnIndex);
+		qry.updateString(columnIndex, x);
+	}
 
-    @Override
+	@Override
 
-    public void updateString(String columnName, String x) throws SQLException {
-	log(columnName);
-	qry.updateString(columnName, x);
-    }
+	public void updateString(String columnName, String x) throws SQLException {
+		log(columnName);
+		qry.updateString(columnName, x);
+	}
 
-    @Override
+	@Override
 
-    public void updateTime(int columnIndex, Time x) throws SQLException {
-	log("" + columnIndex);
-	qry.updateTime(columnIndex, x);
-    }
+	public void updateTime(int columnIndex, Time x) throws SQLException {
+		log("" + columnIndex);
+		qry.updateTime(columnIndex, x);
+	}
 
-    @Override
+	@Override
 
-    public void updateTime(String columnName, Time x) throws SQLException {
-	log(columnName);
-	qry.updateTime(columnName, x);
-    }
+	public void updateTime(String columnName, Time x) throws SQLException {
+		log(columnName);
+		qry.updateTime(columnName, x);
+	}
 
-    @Override
+	@Override
 
-    public void updateTimestamp(int columnIndex, Timestamp x) throws SQLException {
-	log("" + columnIndex);
-	qry.updateTimestamp(columnIndex, x);
-    }
+	public void updateTimestamp(int columnIndex, Timestamp x) throws SQLException {
+		log("" + columnIndex);
+		qry.updateTimestamp(columnIndex, x);
+	}
 
-    @Override
+	@Override
 
-    public void updateTimestamp(String columnName, Timestamp x) throws SQLException {
-	log(columnName);
-	qry.updateTimestamp(columnName, x);
-    }
+	public void updateTimestamp(String columnName, Timestamp x) throws SQLException {
+		log(columnName);
+		qry.updateTimestamp(columnName, x);
+	}
 
-    @Override
+	@Override
 
-    public ResultSetMetaData getMetaData() throws SQLException {
-	log();
-	return qry.getMetaData();
-    }
+	public ResultSetMetaData getMetaData() throws SQLException {
+		log();
+		return qry.getMetaData();
+	}
 
-    @Override
+	@Override
 
-    public int getHoldability() throws SQLException {
-	log();
-	return qry.getHoldability();
-    }
+	public int getHoldability() throws SQLException {
+		log();
+		return qry.getHoldability();
+	}
 
-    @Override
+	@Override
 
-    public boolean isClosed() throws SQLException {
-	log();
-	return qry.isClosed();
-    }
+	public boolean isClosed() throws SQLException {
+		log();
+		return qry.isClosed();
+	}
 
-    @Override
+	@Override
 
-    public void updateNString(int columnIndex, String nString) throws SQLException {
-	log("" + columnIndex);
-	qry.updateNString(columnIndex, nString);
-    }
+	public void updateNString(int columnIndex, String nString) throws SQLException {
+		log("" + columnIndex);
+		qry.updateNString(columnIndex, nString);
+	}
 
-    @Override
+	@Override
 
-    public void updateNString(String columnLabel, String nString) throws SQLException {
-	log(columnLabel);
-	qry.updateNString(columnLabel, nString);
-    }
+	public void updateNString(String columnLabel, String nString) throws SQLException {
+		log(columnLabel);
+		qry.updateNString(columnLabel, nString);
+	}
 
-    @Override
+	@Override
 
-    public String getNString(int columnIndex) throws SQLException {
-	log("" + columnIndex);
-	return qry.getNString(columnIndex);
-    }
+	public String getNString(int columnIndex) throws SQLException {
+		log("" + columnIndex);
+		return qry.getNString(columnIndex);
+	}
 
-    @Override
+	@Override
 
-    public String getNString(String columnLabel) throws SQLException {
-	log(columnLabel);
-	return qry.getNString(columnLabel);
-    }
+	public String getNString(String columnLabel) throws SQLException {
+		log(columnLabel);
+		return qry.getNString(columnLabel);
+	}
 
-    @Override
+	@Override
 
-    public Reader getNCharacterStream(int columnIndex) throws SQLException {
-	log("" + columnIndex);
-	return qry.getNCharacterStream(columnIndex);
-    }
+	public Reader getNCharacterStream(int columnIndex) throws SQLException {
+		log("" + columnIndex);
+		return qry.getNCharacterStream(columnIndex);
+	}
 
-    @Override
+	@Override
 
-    public Reader getNCharacterStream(String columnLabel) throws SQLException {
-	log(columnLabel);
-	return qry.getNCharacterStream(columnLabel);
-    }
+	public Reader getNCharacterStream(String columnLabel) throws SQLException {
+		log(columnLabel);
+		return qry.getNCharacterStream(columnLabel);
+	}
 
-    @Override
+	@Override
 
-    public void updateNCharacterStream(int columnIndex, Reader x, long length) throws SQLException {
-	log("" + columnIndex);
-	qry.updateNCharacterStream(columnIndex, x, length);
-    }
+	public void updateNCharacterStream(int columnIndex, Reader x, long length) throws SQLException {
+		log("" + columnIndex);
+		qry.updateNCharacterStream(columnIndex, x, length);
+	}
 
-    @Override
+	@Override
 
-    public void updateNCharacterStream(String columnLabel, Reader reader, long length) throws SQLException {
-	log(columnLabel);
-	qry.updateNCharacterStream(columnLabel, reader, length);
-    }
+	public void updateNCharacterStream(String columnLabel, Reader reader, long length) throws SQLException {
+		log(columnLabel);
+		qry.updateNCharacterStream(columnLabel, reader, length);
+	}
 
-    @Override
+	@Override
 
-    public void updateAsciiStream(int columnIndex, InputStream x, long length) throws SQLException {
-	log("" + columnIndex);
-	qry.updateAsciiStream(columnIndex, x, length);
-    }
+	public void updateAsciiStream(int columnIndex, InputStream x, long length) throws SQLException {
+		log("" + columnIndex);
+		qry.updateAsciiStream(columnIndex, x, length);
+	}
 
-    @Override
+	@Override
 
-    public void updateBinaryStream(int columnIndex, InputStream x, long length) throws SQLException {
-	log(columnIndex + "");
-	qry.updateBinaryStream(columnIndex, x, length);
-    }
+	public void updateBinaryStream(int columnIndex, InputStream x, long length) throws SQLException {
+		log(columnIndex + "");
+		qry.updateBinaryStream(columnIndex, x, length);
+	}
 
-    @Override
+	@Override
 
-    public void updateCharacterStream(int columnIndex, Reader x, long length) throws SQLException {
-	log(columnIndex + "");
-	qry.updateCharacterStream(columnIndex, x, length);
-    }
+	public void updateCharacterStream(int columnIndex, Reader x, long length) throws SQLException {
+		log(columnIndex + "");
+		qry.updateCharacterStream(columnIndex, x, length);
+	}
 
-    @Override
+	@Override
 
-    public void updateAsciiStream(String columnLabel, InputStream x, long length) throws SQLException {
-	log(columnLabel);
-	qry.updateAsciiStream(columnLabel, x, length);
-    }
+	public void updateAsciiStream(String columnLabel, InputStream x, long length) throws SQLException {
+		log(columnLabel);
+		qry.updateAsciiStream(columnLabel, x, length);
+	}
 
-    @Override
+	@Override
 
-    public void updateBinaryStream(String columnLabel, InputStream x, long length) throws SQLException {
-	log(columnLabel);
-	qry.updateBinaryStream(columnLabel, x, length);
-    }
+	public void updateBinaryStream(String columnLabel, InputStream x, long length) throws SQLException {
+		log(columnLabel);
+		qry.updateBinaryStream(columnLabel, x, length);
+	}
 
-    @Override
+	@Override
 
-    public void updateCharacterStream(String columnLabel, Reader reader, long length) throws SQLException {
-	log(columnLabel);
-	qry.updateCharacterStream(columnLabel, reader, length);
-    }
+	public void updateCharacterStream(String columnLabel, Reader reader, long length) throws SQLException {
+		log(columnLabel);
+		qry.updateCharacterStream(columnLabel, reader, length);
+	}
 
-    @Override
+	@Override
 
-    public void updateBlob(int columnIndex, InputStream inputStream, long length) throws SQLException {
-	log("" + columnIndex);
-	qry.updateBlob(columnIndex, inputStream, length);
-    }
+	public void updateBlob(int columnIndex, InputStream inputStream, long length) throws SQLException {
+		log("" + columnIndex);
+		qry.updateBlob(columnIndex, inputStream, length);
+	}
 
-    @Override
+	@Override
 
-    public void updateBlob(String columnLabel, InputStream inputStream, long length) throws SQLException {
-	log(columnLabel);
-	qry.updateBlob(columnLabel, inputStream, length);
-    }
+	public void updateBlob(String columnLabel, InputStream inputStream, long length) throws SQLException {
+		log(columnLabel);
+		qry.updateBlob(columnLabel, inputStream, length);
+	}
 
-    @Override
+	@Override
 
-    public void updateClob(int columnIndex, Reader reader, long length) throws SQLException {
-	log("" + columnIndex);
-	qry.updateClob(columnIndex, reader, length);
-    }
+	public void updateClob(int columnIndex, Reader reader, long length) throws SQLException {
+		log("" + columnIndex);
+		qry.updateClob(columnIndex, reader, length);
+	}
 
-    @Override
+	@Override
 
-    public void updateClob(String columnLabel, Reader reader, long length) throws SQLException {
-	log(columnLabel);
-	qry.updateClob(columnLabel, reader, length);
-    }
+	public void updateClob(String columnLabel, Reader reader, long length) throws SQLException {
+		log(columnLabel);
+		qry.updateClob(columnLabel, reader, length);
+	}
 
-    @Override
+	@Override
 
-    public void updateNClob(int columnIndex, Reader reader, long length) throws SQLException {
-	log("" + columnIndex);
-	qry.updateNClob(columnIndex, reader, length);
-    }
+	public void updateNClob(int columnIndex, Reader reader, long length) throws SQLException {
+		log("" + columnIndex);
+		qry.updateNClob(columnIndex, reader, length);
+	}
 
-    @Override
+	@Override
 
-    public void updateNClob(String columnLabel, Reader reader, long length) throws SQLException {
-	log(columnLabel);
-	qry.updateNClob(columnLabel, reader, length);
-    }
+	public void updateNClob(String columnLabel, Reader reader, long length) throws SQLException {
+		log(columnLabel);
+		qry.updateNClob(columnLabel, reader, length);
+	}
 
-    @Override
+	@Override
 
-    public void updateNCharacterStream(int columnIndex, Reader x) throws SQLException {
-	log("" + columnIndex);
-	qry.updateNCharacterStream(columnIndex, x);
-    }
+	public void updateNCharacterStream(int columnIndex, Reader x) throws SQLException {
+		log("" + columnIndex);
+		qry.updateNCharacterStream(columnIndex, x);
+	}
 
-    @Override
+	@Override
 
-    public void updateNCharacterStream(String columnLabel, Reader reader) throws SQLException {
-	log(columnLabel);
-	qry.updateNCharacterStream(columnLabel, reader);
-    }
+	public void updateNCharacterStream(String columnLabel, Reader reader) throws SQLException {
+		log(columnLabel);
+		qry.updateNCharacterStream(columnLabel, reader);
+	}
 
-    @Override
+	@Override
 
-    public void updateAsciiStream(int columnIndex, InputStream x) throws SQLException {
-	log("" + columnIndex);
-	qry.updateAsciiStream(columnIndex, x);
-    }
+	public void updateAsciiStream(int columnIndex, InputStream x) throws SQLException {
+		log("" + columnIndex);
+		qry.updateAsciiStream(columnIndex, x);
+	}
 
-    @Override
+	@Override
 
-    public void updateBinaryStream(int columnIndex, InputStream x) throws SQLException {
-	log("" + columnIndex);
-	qry.updateBinaryStream(columnIndex, x);
-    }
+	public void updateBinaryStream(int columnIndex, InputStream x) throws SQLException {
+		log("" + columnIndex);
+		qry.updateBinaryStream(columnIndex, x);
+	}
 
-    @Override
+	@Override
 
-    public void updateCharacterStream(int columnIndex, Reader x) throws SQLException {
-	log("" + columnIndex);
-	qry.updateCharacterStream(columnIndex, x);
-    }
+	public void updateCharacterStream(int columnIndex, Reader x) throws SQLException {
+		log("" + columnIndex);
+		qry.updateCharacterStream(columnIndex, x);
+	}
 
-    @Override
+	@Override
 
-    public void updateAsciiStream(String columnLabel, InputStream x) throws SQLException {
-	log(columnLabel);
-	qry.updateAsciiStream(columnLabel, x);
-    }
+	public void updateAsciiStream(String columnLabel, InputStream x) throws SQLException {
+		log(columnLabel);
+		qry.updateAsciiStream(columnLabel, x);
+	}
 
-    @Override
+	@Override
 
-    public void updateBinaryStream(String columnLabel, InputStream x) throws SQLException {
-	log(columnLabel);
-	qry.updateBinaryStream(columnLabel, x);
-    }
+	public void updateBinaryStream(String columnLabel, InputStream x) throws SQLException {
+		log(columnLabel);
+		qry.updateBinaryStream(columnLabel, x);
+	}
 
-    @Override
+	@Override
 
-    public void updateCharacterStream(String columnLabel, Reader reader) throws SQLException {
-	log(columnLabel);
-	qry.updateCharacterStream(columnLabel, reader);
-    }
+	public void updateCharacterStream(String columnLabel, Reader reader) throws SQLException {
+		log(columnLabel);
+		qry.updateCharacterStream(columnLabel, reader);
+	}
 
-    @Override
+	@Override
 
-    public void updateBlob(int columnIndex, InputStream inputStream) throws SQLException {
-	log("" + columnIndex);
-	qry.updateBlob(columnIndex, inputStream);
-    }
+	public void updateBlob(int columnIndex, InputStream inputStream) throws SQLException {
+		log("" + columnIndex);
+		qry.updateBlob(columnIndex, inputStream);
+	}
 
-    @Override
+	@Override
 
-    public void updateBlob(String columnLabel, InputStream inputStream) throws SQLException {
-	log(columnLabel);
-	qry.updateBlob(columnLabel, inputStream);
-    }
+	public void updateBlob(String columnLabel, InputStream inputStream) throws SQLException {
+		log(columnLabel);
+		qry.updateBlob(columnLabel, inputStream);
+	}
 
-    @Override
+	@Override
 
-    public void updateClob(int columnIndex, Reader reader) throws SQLException {
-	log("" + columnIndex);
-	qry.updateClob(columnIndex, reader);
-    }
+	public void updateClob(int columnIndex, Reader reader) throws SQLException {
+		log("" + columnIndex);
+		qry.updateClob(columnIndex, reader);
+	}
 
-    @Override
+	@Override
 
-    public void updateClob(String columnLabel, Reader reader) throws SQLException {
-	log(columnLabel);
-	qry.updateClob(columnLabel, reader);
-    }
+	public void updateClob(String columnLabel, Reader reader) throws SQLException {
+		log(columnLabel);
+		qry.updateClob(columnLabel, reader);
+	}
 
-    @Override
+	@Override
 
-    public void updateNClob(int columnIndex, Reader reader) throws SQLException {
-	log("" + columnIndex);
-	qry.updateNClob(columnIndex, reader);
-    }
+	public void updateNClob(int columnIndex, Reader reader) throws SQLException {
+		log("" + columnIndex);
+		qry.updateNClob(columnIndex, reader);
+	}
 
-    @Override
+	@Override
 
-    public void updateNClob(String columnLabel, Reader reader) throws SQLException {
-	log(columnLabel);
-	qry.updateNClob(columnLabel, reader);
-    }
+	public void updateNClob(String columnLabel, Reader reader) throws SQLException {
+		log(columnLabel);
+		qry.updateNClob(columnLabel, reader);
+	}
 
-    @Override
+	@Override
 
-    public <T> T unwrap(Class<T> iface) throws SQLException {
-	log();
-	return qry.unwrap(iface);
-    }
+	public <T> T unwrap(Class<T> iface) throws SQLException {
+		log();
+		return qry.unwrap(iface);
+	}
 
-    @Override
+	@Override
 
-    public boolean isWrapperFor(Class<?> iface) throws SQLException {
-	log();
-	return qry.isWrapperFor(iface);
-    }
+	public boolean isWrapperFor(Class<?> iface) throws SQLException {
+		log();
+		return qry.isWrapperFor(iface);
+	}
 
-    @Override
-    public Collection duplicate(boolean deepCopy) {
-	log();
-	return new TOQuery(debugger, (Query) Duplicator.duplicate(qry, deepCopy), type, category, text);
-    }
+	@Override
+	public Collection duplicate(boolean deepCopy) {
+		log();
+		return new TOQuery(debugger, (Query) Duplicator.duplicate(qry, deepCopy), type, category, text);
+	}
 
-    @Override
-    public NClob getNClob(int arg0) throws SQLException {
-	log("" + arg0);
-	return qry.getNClob(arg0);
-    }
+	@Override
+	public NClob getNClob(int arg0) throws SQLException {
+		log("" + arg0);
+		return qry.getNClob(arg0);
+	}
 
-    @Override
-    public NClob getNClob(String arg0) throws SQLException {
-	log(arg0);
-	return qry.getNClob(arg0);
-    }
+	@Override
+	public NClob getNClob(String arg0) throws SQLException {
+		log(arg0);
+		return qry.getNClob(arg0);
+	}
 
-    @Override
-    public Object getObject(int arg0, Map<String, Class<?>> arg1) throws SQLException {
-	log("" + arg0);
-	return qry.getObject(arg0, arg1);
-    }
+	@Override
+	public Object getObject(int arg0, Map<String, Class<?>> arg1) throws SQLException {
+		log("" + arg0);
+		return qry.getObject(arg0, arg1);
+	}
 
-    @Override
-    public Object getObject(String arg0, Map<String, Class<?>> arg1) throws SQLException {
-	log(arg0);
-	return qry.getObject(arg0, arg1);
-    }
+	@Override
+	public Object getObject(String arg0, Map<String, Class<?>> arg1) throws SQLException {
+		log(arg0);
+		return qry.getObject(arg0, arg1);
+	}
 
-    // used only with java 7, do not set @Override
-    public <T> T getObject(int columnIndex, Class<T> type) throws SQLException {
-	return (T) QueryUtil.getObject(this, columnIndex, type);
-    }
+	// used only with java 7, do not set @Override
+	@Override
+	public <T> T getObject(int columnIndex, Class<T> type) throws SQLException {
+		return (T) QueryUtil.getObject(this, columnIndex, type);
+	}
 
-    // used only with java 7, do not set @Override
-    public <T> T getObject(String columnLabel, Class<T> type) throws SQLException {
-	return (T) QueryUtil.getObject(this, columnLabel, type);
-    }
+	// used only with java 7, do not set @Override
+	@Override
+	public <T> T getObject(String columnLabel, Class<T> type) throws SQLException {
+		return (T) QueryUtil.getObject(this, columnLabel, type);
+	}
 
-    @Override
-    public RowId getRowId(int arg0) throws SQLException {
-	log("" + arg0);
-	return qry.getRowId(arg0);
-    }
+	@Override
+	public RowId getRowId(int arg0) throws SQLException {
+		log("" + arg0);
+		return qry.getRowId(arg0);
+	}
 
-    @Override
-    public RowId getRowId(String arg0) throws SQLException {
-	log(arg0);
-	return qry.getRowId(arg0);
-    }
+	@Override
+	public RowId getRowId(String arg0) throws SQLException {
+		log(arg0);
+		return qry.getRowId(arg0);
+	}
 
-    @Override
-    public SQLXML getSQLXML(int arg0) throws SQLException {
-	log("" + arg0);
-	return qry.getSQLXML(arg0);
-    }
+	@Override
+	public SQLXML getSQLXML(int arg0) throws SQLException {
+		log("" + arg0);
+		return qry.getSQLXML(arg0);
+	}
 
-    @Override
-    public SQLXML getSQLXML(String arg0) throws SQLException {
-	log(arg0);
-	return qry.getSQLXML(arg0);
-    }
+	@Override
+	public SQLXML getSQLXML(String arg0) throws SQLException {
+		log(arg0);
+		return qry.getSQLXML(arg0);
+	}
 
-    @Override
-    public void updateNClob(int arg0, NClob arg1) throws SQLException {
-	log("" + arg0);
-	qry.updateNClob(arg0, arg1);
-    }
+	@Override
+	public void updateNClob(int arg0, NClob arg1) throws SQLException {
+		log("" + arg0);
+		qry.updateNClob(arg0, arg1);
+	}
 
-    @Override
-    public void updateNClob(String arg0, NClob arg1) throws SQLException {
-	log(arg0);
-	qry.updateNClob(arg0, arg1);
-    }
+	@Override
+	public void updateNClob(String arg0, NClob arg1) throws SQLException {
+		log(arg0);
+		qry.updateNClob(arg0, arg1);
+	}
 
-    @Override
-    public void updateRowId(int arg0, RowId arg1) throws SQLException {
-	log("" + arg0);
-	qry.updateRowId(arg0, arg1);
-    }
+	@Override
+	public void updateRowId(int arg0, RowId arg1) throws SQLException {
+		log("" + arg0);
+		qry.updateRowId(arg0, arg1);
+	}
 
-    @Override
-    public void updateRowId(String arg0, RowId arg1) throws SQLException {
-	log(arg0);
-	qry.updateRowId(arg0, arg1);
-    }
+	@Override
+	public void updateRowId(String arg0, RowId arg1) throws SQLException {
+		log(arg0);
+		qry.updateRowId(arg0, arg1);
+	}
 
-    @Override
-    public void updateSQLXML(int arg0, SQLXML arg1) throws SQLException {
-	log(arg0 + "");
-	qry.updateSQLXML(arg0, arg1);
-    }
+	@Override
+	public void updateSQLXML(int arg0, SQLXML arg1) throws SQLException {
+		log(arg0 + "");
+		qry.updateSQLXML(arg0, arg1);
+	}
 
-    @Override
-    public void updateSQLXML(String columnIndex, SQLXML x) throws SQLException {
-	log(columnIndex);
-	qry.updateSQLXML(columnIndex, x);
-    }
+	@Override
+	public void updateSQLXML(String columnIndex, SQLXML x) throws SQLException {
+		log(columnIndex);
+		qry.updateSQLXML(columnIndex, x);
+	}
 
-    @Override
-    public SQL getSql() {
-	log();
-	return qry.getSql();
-    }
+	@Override
+	public SQL getSql() {
+		log();
+		return qry.getSql();
+	}
 
-    @Override
-    public String getTemplate() {
-	log();
-	return qry.getTemplate();
-    }
+	@Override
+	public String getTemplate() {
+		log();
+		return qry.getTemplate();
+	}
 
-    @Override
-    public long getExecutionTime() {
-	log();
-	return qry.getExecutionTime();
-    }
+	@Override
+	public long getExecutionTime() {
+		log();
+		return qry.getExecutionTime();
+	}
 
-    @Override
-    public java.util.Iterator getIterator() {
-	log();
-	return new ForEachQueryIterator(this, ThreadLocalPageContext.get().getId());
-    }
+	@Override
+	public java.util.Iterator getIterator() {
+		log();
+		return new ForEachQueryIterator(null, this, ThreadLocalPageContext.get().getId());
+	}
 
-    @Override
-    public String getCacheType() {
-	log();
-	return qry.getCacheType();
-    }
+	@Override
+	public String getCacheType() {
+		log();
+		return qry.getCacheType();
+	}
 
-    @Override
-    public void setCacheType(String cacheType) {
-	log(cacheType);
-	qry.setCacheType(cacheType);
-    }
+	@Override
+	public void setCacheType(String cacheType) {
+		log(cacheType);
+		qry.setCacheType(cacheType);
+	}
 
-    @Override
-    public int getColumnCount() {
-	log();
-	return qry.getColumnCount();
-    }
+	@Override
+	public int getColumnCount() {
+		log();
+		return qry.getColumnCount();
+	}
 
-    @Override
-    public void enableShowQueryUsage() {
-	log();
-	qry.enableShowQueryUsage();
-    }
+	@Override
+	public void enableShowQueryUsage() {
+		log();
+		qry.enableShowQueryUsage();
+	}
 }

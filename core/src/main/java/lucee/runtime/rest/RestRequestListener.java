@@ -22,6 +22,7 @@ import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 
+import lucee.commons.lang.HTMLEntities;
 import lucee.commons.lang.mimetype.MimeType;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageSource;
@@ -31,49 +32,49 @@ import lucee.runtime.type.Struct;
 
 public class RestRequestListener implements RequestListener {
 
-    private final Mapping mapping;
-    private final String path;
-    private final int format;
-    private final Struct matrix;
-    private final Result defaultValue;
-    private Result result;
-    private final List<MimeType> accept;
-    private final MimeType contentType;
-    private final boolean hasFormatExtension;
+	private final Mapping mapping;
+	private final String path;
+	private final int format;
+	private final Struct matrix;
+	private final Result defaultValue;
+	private Result result;
+	private final List<MimeType> accept;
+	private final MimeType contentType;
+	private final boolean hasFormatExtension;
 
-    public RestRequestListener(Mapping mapping, String path, Struct matrix, int format, boolean hasFormatExtension, List<MimeType> accept, MimeType contentType,
-	    Result defaultValue) {
-	this.mapping = mapping;
-	this.path = path;
-	this.format = format;
-	this.hasFormatExtension = hasFormatExtension;
-	this.matrix = matrix;
-	this.defaultValue = defaultValue;
-	this.accept = accept;
-	this.contentType = contentType;
-    }
-
-    @Override
-    public PageSource execute(PageContext pc, PageSource requestedPage) throws PageException {
-	result = mapping.getResult(pc, path, matrix, format, hasFormatExtension, accept, contentType, defaultValue);
-	HttpServletRequest req = pc.getHttpServletRequest();
-	req.setAttribute("client", "lucee-rest-1-0");
-	req.setAttribute("rest-path", path);
-	req.setAttribute("rest-result", result);
-
-	if (result == null) {
-	    RestUtil.setStatus(pc, 404, "no rest service for [" + path + "] found in mapping [" + mapping.getVirtual() + "]");
-	    pc.getConfig().getLog("rest").error("REST", "no rest service for [" + path + "] found in mapping [" + mapping.getVirtual() + "]");
-	    return null;
+	public RestRequestListener(Mapping mapping, String path, Struct matrix, int format, boolean hasFormatExtension, List<MimeType> accept, MimeType contentType,
+			Result defaultValue) {
+		this.mapping = mapping;
+		this.path = path;
+		this.format = format;
+		this.hasFormatExtension = hasFormatExtension;
+		this.matrix = matrix;
+		this.defaultValue = defaultValue;
+		this.accept = accept;
+		this.contentType = contentType;
 	}
 
-	return result.getSource().getPageSource();
-    }
+	@Override
+	public PageSource execute(PageContext pc, PageSource requestedPage) throws PageException {
+		result = mapping.getResult(pc, path, matrix, format, hasFormatExtension, accept, contentType, defaultValue);
+		HttpServletRequest req = pc.getHttpServletRequest();
+		req.setAttribute("client", "lucee-rest-1-0");
+		req.setAttribute("rest-path", path);
+		req.setAttribute("rest-result", result);
 
-    /**
-     * @return the result
-     */
-    public Result getResult() {
-	return result;
-    }
+		if (result == null) {
+			RestUtil.setStatus(pc, 404, "no rest service for [" + HTMLEntities.escapeHTML(path) + "] found in mapping [" + mapping.getVirtual() + "]");
+			pc.getConfig().getLog("rest").error("REST", "no rest service for [" + path + "] found in mapping [" + mapping.getVirtual() + "]");
+			return null;
+		}
+
+		return result.getSource().getPageSource();
+	}
+
+	/**
+	 * @return the result
+	 */
+	public Result getResult() {
+		return result;
+	}
 }

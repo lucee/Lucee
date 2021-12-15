@@ -20,9 +20,12 @@ target/*
 /cache
 WEB-INF
 
-
 .classpath
 *.eml
 *.iml
 *.ipr
 *.iws
+
+.idea/
+buildVersionNumber.txt
+/test/reports

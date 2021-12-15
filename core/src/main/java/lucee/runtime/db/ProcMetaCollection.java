@@ -19,14 +19,20 @@
 package lucee.runtime.db;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class ProcMetaCollection {
 
-    public final List<ProcMeta> metas;
-    public long created = System.currentTimeMillis();
+	public final String name;
+	public final List<ProcMeta> metas;
+	public long created = System.currentTimeMillis();
 
-    public ProcMetaCollection(List<ProcMeta> metas) {
-	this.metas = metas;
-    }
+	public ProcMetaCollection(String name, List<ProcMeta> metas) {
+		this.name = name;
+		this.metas = metas;
+	}
 
+	public static String getParamTypeList(List<ProcMeta> metas) {
+		return metas.stream().map(pm -> SQLCaster.toStringType(pm.dataType, "?")).collect(Collectors.joining(", "));
+	}
 }

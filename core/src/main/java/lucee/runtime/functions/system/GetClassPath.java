@@ -26,8 +26,8 @@ import lucee.runtime.type.Array;
 
 public final class GetClassPath {
 
-    public static Array call(PageContext pc) throws PageException {
-	return Caster.toArray(ClassUtil.getClassPath(pc.getConfig()));
-    }
+	public static Array call(PageContext pc) throws PageException {
+		return Caster.toArray(ClassUtil.getClassPath(pc.getConfig()));
+	}
 
 }

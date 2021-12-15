@@ -3,7 +3,7 @@
 
   <groupId>org.lucee</groupId>
   <artifactId>lucee</artifactId>
-  <version>5.3.2.69-SNAPSHOT</version>
+  <version>5.3.9.23-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>Lucee Loader Build</name>
@@ -149,7 +149,7 @@
         <plugin>
      		<groupId>org.apache.maven.plugins</groupId>
      		<artifactId>maven-javadoc-plugin</artifactId>
-         	<version>2.10.3</version>
+         	<version>3.2.0</version>
 
           <executions>
             <execution>
@@ -157,10 +157,14 @@
               <goals>
                 <goal>jar</goal>
               </goals>
-            <!-- add this to disable checking
-            <configuration>
+			<configuration>
+               <source>8</source>
+               <detectJavaApiLink>false</detectJavaApiLink>
+               <quiet>true</quiet>
+               <!-- add this to disable checking
                 <additionalparam>-Xdoclint:none</additionalparam>
-            </configuration> -->
+               -->
+            </configuration>            
             </execution>
           </executions>
         </plugin>
@@ -292,7 +296,7 @@
   <dependency>
     <groupId>junit</groupId>
     <artifactId>junit</artifactId>
-    <version>4.12</version>
+    <version>4.13.2</version>
     <scope>test</scope>
   </dependency>
 
@@ -300,7 +304,7 @@
 	<dependency>
     <groupId>org.apache.felix</groupId>
     <artifactId>org.apache.felix.framework</artifactId>
-    <version>6.0.1</version><!-- 4.6.1 -->
+    <version>6.0.3</version><!-- 4.6.1 -->
     <scope>compile</scope>
   </dependency>
   <dependency>
@@ -324,7 +328,7 @@
   <dependency>
     <groupId>org.apache.ant</groupId>
     <artifactId>ant</artifactId>
-    <version>1.9.5</version>
+    <version>1.10.11</version>
     <scope>compile</scope>
   </dependency>
 
@@ -346,7 +350,7 @@
   <dependency>
     <groupId>org.apache.tika</groupId>
     <artifactId>tika-core</artifactId>
-    <version>1.20</version>
+    <version>1.27</version>
     <scope>provided</scope>
   </dependency>
   <dependency>
@@ -358,7 +362,7 @@
   <dependency>
 	  <groupId>org.apache.commons</groupId>
 	  <artifactId>commons-collections4</artifactId>
-	  <version>4.0</version>
+	  <version>4.4</version>
     <scope>provided</scope>
   </dependency>
   <dependency>
@@ -461,7 +465,7 @@
   	<groupId>org.lucee</groupId>
   	<artifactId>portlet</artifactId>
   	<version>1.0.0</version>
-    <scope>provided</scope>  
+    <scope>provided</scope>
   </dependency>
   <!--
   <dependency>
@@ -504,19 +508,19 @@
   <dependency>
   	<groupId>org.lucee</groupId>
   	<artifactId>httpcomponents-httpclient</artifactId>
-  	<version>4.5.6</version>
+  	<version>4.5.10</version>
     <scope>provided</scope>
   </dependency>
   <dependency>
   	<groupId>org.lucee</groupId>
   	<artifactId>httpcomponents-httpcore</artifactId>
-  	<version>4.4.10</version>
+  	<version>4.4.12</version>
     <scope>provided</scope>
   </dependency>
   <dependency>
   	<groupId>org.lucee</groupId>
   	<artifactId>httpcomponents-httpmime</artifactId>
-  	<version>4.5.6</version>
+  	<version>4.5.10</version>
     <scope>provided</scope>
   </dependency>
   <dependency>
@@ -612,7 +616,7 @@
   <dependency>
 	  <groupId>javax.mail</groupId>
 	  <artifactId>activation</artifactId>
-	  <version>1.4.7.0002L</version>
+	  <version>1.6.2.0000L</version>
     <scope>provided</scope>
   </dependency>
   <dependency>
@@ -633,6 +637,18 @@
     <version>1.1.0</version>
     <scope>provided</scope>
   </dependency>
+  <dependency>
+        <groupId>javax.websocket</groupId>
+        <artifactId>javax.websocket-api</artifactId>
+        <version>1.1</version>
+        <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>net.java.dev.jna</groupId>
+      <artifactId>jna</artifactId>
+      <version>5.5.0</version>
+      <scope>provided</scope>
+    </dependency>
   <!-- <dependency>
     <groupId>xdb</groupId>
     <artifactId>xdb</artifactId>
@@ -651,6 +667,11 @@
     <version>5.1.2.0002L</version>
     <scope>provided</scope>
   </dependency>
+  <dependency>
+      <groupId>org.lucee</groupId>
+      <artifactId>argon2</artifactId>
+      <version>2.7.0</version>
+	</dependency>
 </dependencies>
 
 

@@ -41,83 +41,84 @@ import lucee.runtime.type.dt.TimeSpan;
 // MUST this must be come from configuration
 public class CacheEngine {
 
-    private static Map caches = new HashMap();
-    private Cache cache;
+	private static Map caches = new HashMap();
+	private Cache cache;
 
-    public CacheEngine(Cache cache) {
-	this.cache = cache;
-    }
-
-    public void delete(String key, boolean throwWhenNotExists) throws IOException {
-	if (!cache.remove(key) && throwWhenNotExists) throw new CacheException("there is no entry in cache with key [" + key + "]");
-    }
-
-    public boolean exists(String key) throws IOException {
-	return cache.contains(key);
-    }
-
-    public int flush(String key, String filter) throws IOException {
-	if (!Util.isEmpty(key)) return cache.remove(key) ? 1 : 0;
-	if (!Util.isEmpty(filter)) return cache.remove(new WildCardFilter(filter, false));
-	return cache.remove(CacheKeyFilterAll.getInstance());
-    }
-
-    public Object get(String key, Object defaultValue) {
-	return cache.getValue(key, defaultValue);
-    }
-
-    public Object get(String key) throws IOException {
-	return cache.getValue(key);
-    }
-
-    public Array keys(String filter) {
-	try {
-	    List keys;
-	    if (Util.isEmpty(filter)) keys = cache.keys();
-	    else keys = cache.keys(new WildCardFilter(filter, false));
-	    return Caster.toArray(keys);
+	public CacheEngine(Cache cache) {
+		this.cache = cache;
 	}
-	catch (Exception e) {}
-	return new ArrayImpl();
-    }
 
-    public Struct list(String filter) {
-
-	Struct sct = new StructImpl();
-	try {
-	    List entries;
-	    if (Util.isEmpty(filter)) entries = cache.entries();
-	    else entries = cache.entries(new WildCardFilter(filter, false));
-
-	    Iterator it = entries.iterator();
-	    CacheEntry entry;
-	    while (it.hasNext()) {
-		entry = (CacheEntry) it.next();
-		sct.setEL(entry.getKey(), entry.getValue());
-	    }
+	public void delete(String key, boolean throwWhenNotExists) throws IOException {
+		if (!cache.remove(key) && throwWhenNotExists) throw new CacheException("there is no entry in cache with key [" + key + "]");
 	}
-	catch (Exception e) {
-	    LogUtil.log(null, "cache", e);
+
+	public boolean exists(String key) throws IOException {
+		return cache.contains(key);
 	}
-	return sct;
-    }
 
-    public void set(String key, Object value, TimeSpan timespan) throws IOException {
-	Long until = timespan == null ? null : Long.valueOf(timespan.getMillis());
-	cache.put(key, value, null, until);
-    }
+	public int flush(String key, String filter) throws IOException {
+		if (!Util.isEmpty(key)) return cache.remove(key) ? 1 : 0;
+		if (!Util.isEmpty(filter)) return cache.remove(new WildCardFilter(filter, false));
+		return cache.remove(CacheKeyFilterAll.getInstance());
+	}
 
-    public Struct info() throws IOException {
-	return cache.getCustomInfo();
-    }
+	public Object get(String key, Object defaultValue) {
+		return cache.getValue(key, defaultValue);
+	}
 
-    public Struct info(String key) throws IOException {
-	if (key == null) return info();
-	CacheEntry entry = cache.getCacheEntry(key);
-	return entry.getCustomInfo();
-    }
+	public Object get(String key) throws IOException {
+		return cache.getValue(key);
+	}
 
-    public Cache getCache() {
-	return cache;
-    }
+	public Array keys(String filter) {
+		try {
+			List keys;
+			if (Util.isEmpty(filter)) keys = cache.keys();
+			else keys = cache.keys(new WildCardFilter(filter, false));
+			return Caster.toArray(keys);
+		}
+		catch (Exception e) {
+		}
+		return new ArrayImpl();
+	}
+
+	public Struct list(String filter) {
+
+		Struct sct = new StructImpl();
+		try {
+			List entries;
+			if (Util.isEmpty(filter)) entries = cache.entries();
+			else entries = cache.entries(new WildCardFilter(filter, false));
+
+			Iterator it = entries.iterator();
+			CacheEntry entry;
+			while (it.hasNext()) {
+				entry = (CacheEntry) it.next();
+				sct.setEL(entry.getKey(), entry.getValue());
+			}
+		}
+		catch (Exception e) {
+			LogUtil.log(null, "cache", e);
+		}
+		return sct;
+	}
+
+	public void set(String key, Object value, TimeSpan timespan) throws IOException {
+		Long until = timespan == null ? null : Long.valueOf(timespan.getMillis());
+		cache.put(key, value, null, until);
+	}
+
+	public Struct info() throws IOException {
+		return cache.getCustomInfo();
+	}
+
+	public Struct info(String key) throws IOException {
+		if (key == null) return info();
+		CacheEntry entry = cache.getCacheEntry(key);
+		return entry.getCustomInfo();
+	}
+
+	public Cache getCache() {
+		return cache;
+	}
 }

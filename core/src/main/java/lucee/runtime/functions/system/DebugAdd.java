@@ -16,29 +16,29 @@ import lucee.runtime.type.Struct;
 
 public class DebugAdd extends BIF {
 
-    private static final long serialVersionUID = 3480038887443615199L;
+	private static final long serialVersionUID = 3480038887443615199L;
 
-    public static String call(PageContext pc, String category, Struct data) throws PageException {
-	Debugger debugger = pc.getDebugger();
+	public static String call(PageContext pc, String category, Struct data) throws PageException {
+		Debugger debugger = pc.getDebugger();
 
-	debugger.addGenericData(category, toMapStrStr(data));
-	return null;
-    }
-
-    private static Map<String, String> toMapStrStr(Struct struct) throws PageException {
-	Iterator<Entry<Key, Object>> it = struct.entryIterator();
-	Map<String, String> map = new HashMap<String, String>();
-	Entry<Key, Object> e;
-	while (it.hasNext()) {
-	    e = it.next();
-	    map.put(e.getKey().getString(), Caster.toString(e.getValue()));
+		debugger.addGenericData(category, toMapStrStr(data));
+		return null;
 	}
-	return map;
-    }
 
-    @Override
-    public Object invoke(PageContext pc, Object[] args) throws PageException {
-	if (args.length == 2) return call(pc, Caster.toString(args[0]), Caster.toStruct(args[1]));
-	throw new FunctionException(pc, "DebugAdd", 2, 2, args.length);
-    }
+	private static Map<String, String> toMapStrStr(Struct struct) throws PageException {
+		Iterator<Entry<Key, Object>> it = struct.entryIterator();
+		Map<String, String> map = new HashMap<String, String>();
+		Entry<Key, Object> e;
+		while (it.hasNext()) {
+			e = it.next();
+			map.put(e.getKey().getString(), Caster.toString(e.getValue()));
+		}
+		return map;
+	}
+
+	@Override
+	public Object invoke(PageContext pc, Object[] args) throws PageException {
+		if (args.length == 2) return call(pc, Caster.toString(args[0]), Caster.toStruct(args[1]));
+		throw new FunctionException(pc, "DebugAdd", 2, 2, args.length);
+	}
 }

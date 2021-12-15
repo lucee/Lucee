@@ -43,165 +43,169 @@ import lucee.runtime.type.dt.TimeSpan;
 
 public class TimespanCacheHandler implements CacheHandlerPro {
 
-    private int cacheType;
-    private Cache defaultCache;
-    private String id;
+	private int cacheType;
+	private Cache defaultCache;
+	private String id;
 
-    public TimespanCacheHandler() {}
-
-    @Override
-    public void init(ConfigWeb cw, String id, int cacheType) {
-	this.cacheType = cacheType;
-	this.id = id;
-    }
-
-    public void setDefaultCache(Cache defaultCache) {
-	this.defaultCache = defaultCache;
-    }
-
-    @Override
-    public CacheItem get(PageContext pc, String id) {
-	Object cachedValue = getCache(pc).getValue(id, null);
-	return CacheHandlerCollectionImpl.toCacheItem(cachedValue, null);
-    }
-
-    @Override
-    public boolean remove(PageContext pc, String id) {
-	try {
-	    return getCache(pc).remove(id);
-	}
-	catch (IOException e) {}
-	return false;
-    }
-
-    @Override
-    public void set(PageContext pc, String id, Object cachedWithin, CacheItem value) throws PageException {
-
-	long cachedWithinMillis;
-	if (Decision.isDate(cachedWithin, false) && !(cachedWithin instanceof TimeSpan))
-	    cachedWithinMillis = Caster.toDate(cachedWithin, null).getTime() - System.currentTimeMillis();
-	else cachedWithinMillis = Caster.toTimespan(cachedWithin).getMillis();
-
-	if (cachedWithinMillis == 0) return;
-
-	try {
-	    getCache(pc).put(id, value, Long.valueOf(cachedWithinMillis), Long.valueOf(cachedWithinMillis));
-	}
-	catch (IOException e) {
-	    throw Caster.toPageException(e);
-	}
-    }
-
-    @Override
-    public void clean(PageContext pc) {
-	try {
-	    Cache c = getCache(pc);
-	    List<CacheEntry> entries = c.entries();
-	    if (entries.size() < 100) return;
-
-	    Iterator<CacheEntry> it = entries.iterator();
-	    while (it.hasNext()) {
-		it.next(); // touch them to makes sure the cache remove them, not really good, cache must do this by itself
-	    }
-	}
-	catch (IOException ioe) {}
-    }
-
-    @Override
-    public void clear(PageContext pc) {
-	try {
-	    getCache(pc).remove(CacheKeyFilterAll.getInstance());
-	}
-	catch (IOException e) {}
-    }
-
-    @Override
-    public void clear(PageContext pc, CacheHandlerFilter filter) {
-	CacheHandlerCollectionImpl.clear(pc, getCache(pc), filter);
-    }
-
-    @Override
-    public int size(PageContext pc) {
-	try {
-	    return getCache(pc).keys().size();
-	}
-	catch (IOException e) {
-	    return 0;
-	}
-    }
-
-    private Cache getCache(PageContext pc) {
-
-	Cache cache = CacheUtil.getDefault(pc, cacheType, null);
-
-	if (cache == null) {
-
-	    if (defaultCache == null) {
-		RamCache rm = new RamCache().init(0, 0, RamCache.DEFAULT_CONTROL_INTERVAL);
-		rm.decouple();
-		defaultCache = rm;
-	    }
-
-	    return defaultCache;
+	public TimespanCacheHandler() {
 	}
 
-	if (cache instanceof CachePro) return ((CachePro) cache).decouple();
-
-	return cache;
-    }
-
-    @Override
-    public String id() {
-	return id;
-    }
-
-    @Override
-    public void release(PageContext pc) {
-	// to nothing
-    }
-
-    @Override
-    public boolean acceptCachedWithin(Object cachedWithin) {
-	return Caster.toTimespan(cachedWithin, null) != null;
-    }
-
-    @Override
-    public String pattern() {
-	// TODO Auto-generated method stub
-	return "#createTimespan(0,0,0,10)#";
-    }
-
-    @Override
-    public CacheItem get(PageContext pc, String cacheId, Object cachePolicy) throws PageException {
-
-	Date cachedAfter;
-
-	if (Decision.isDate(cachePolicy, false) && !(cachePolicy instanceof TimeSpan)) {
-	    // cachedAfter was passed
-	    cachedAfter = Caster.toDate(cachePolicy, null);
-	}
-	else {
-
-	    long cachedWithinMillis = Caster.toTimeSpan(cachePolicy).getMillis();
-
-	    if (cachedWithinMillis == 0) {
-		this.remove(pc, cacheId);
-		return null;
-	    }
-
-	    cachedAfter = new Date(System.currentTimeMillis() - cachedWithinMillis);
+	@Override
+	public void init(ConfigWeb cw, String id, int cacheType) {
+		this.cacheType = cacheType;
+		this.id = id;
 	}
 
-	CacheItem cacheItem = this.get(pc, cacheId);
-
-	if (cacheItem instanceof QueryResultCacheItem) {
-
-	    if (((QueryResultCacheItem) cacheItem).isCachedAfter(cachedAfter)) return cacheItem;
-
-	    return null; // cacheItem is from before cachedAfter, discard it so that it can be refreshed
+	public void setDefaultCache(Cache defaultCache) {
+		this.defaultCache = defaultCache;
 	}
 
-	return cacheItem;
-    }
+	@Override
+	public CacheItem get(PageContext pc, String id) {
+		Object cachedValue = getCache(pc).getValue(id, null);
+		return CacheHandlerCollectionImpl.toCacheItem(cachedValue, null);
+	}
+
+	@Override
+	public boolean remove(PageContext pc, String id) {
+		try {
+			return getCache(pc).remove(id);
+		}
+		catch (IOException e) {
+		}
+		return false;
+	}
+
+	@Override
+	public void set(PageContext pc, String id, Object cachedWithin, CacheItem value) throws PageException {
+
+		long cachedWithinMillis;
+		if (Decision.isDate(cachedWithin, false) && !(cachedWithin instanceof TimeSpan))
+			cachedWithinMillis = Caster.toDate(cachedWithin, null).getTime() - System.currentTimeMillis();
+		else cachedWithinMillis = Caster.toTimespan(cachedWithin).getMillis();
+
+		if (cachedWithinMillis == 0) return;
+
+		try {
+			getCache(pc).put(id, value, Long.valueOf(cachedWithinMillis), Long.valueOf(cachedWithinMillis));
+		}
+		catch (IOException e) {
+			throw Caster.toPageException(e);
+		}
+	}
+
+	@Override
+	public void clean(PageContext pc) {
+		try {
+			Cache c = getCache(pc);
+			List<CacheEntry> entries = c.entries();
+			if (entries.size() < 100) return;
+
+			Iterator<CacheEntry> it = entries.iterator();
+			while (it.hasNext()) {
+				it.next(); // touch them to makes sure the cache remove them, not really good, cache must do this by itself
+			}
+		}
+		catch (IOException ioe) {
+		}
+	}
+
+	@Override
+	public void clear(PageContext pc) {
+		try {
+			getCache(pc).remove(CacheKeyFilterAll.getInstance());
+		}
+		catch (IOException e) {
+		}
+	}
+
+	@Override
+	public void clear(PageContext pc, CacheHandlerFilter filter) {
+		CacheHandlerCollectionImpl.clear(pc, getCache(pc), filter);
+	}
+
+	@Override
+	public int size(PageContext pc) {
+		try {
+			return getCache(pc).keys().size();
+		}
+		catch (IOException e) {
+			return 0;
+		}
+	}
+
+	private Cache getCache(PageContext pc) {
+
+		Cache cache = CacheUtil.getDefault(pc, cacheType, null);
+
+		if (cache == null) {
+
+			if (defaultCache == null) {
+				RamCache rm = new RamCache().init(0, 0, RamCache.DEFAULT_CONTROL_INTERVAL);
+				rm.decouple();
+				defaultCache = rm;
+			}
+
+			return defaultCache;
+		}
+
+		if (cache instanceof CachePro) return ((CachePro) cache).decouple();
+
+		return cache;
+	}
+
+	@Override
+	public String id() {
+		return id;
+	}
+
+	@Override
+	public void release(PageContext pc) {
+		// to nothing
+	}
+
+	@Override
+	public boolean acceptCachedWithin(Object cachedWithin) {
+		return Caster.toTimespan(cachedWithin, null) != null;
+	}
+
+	@Override
+	public String pattern() {
+		// TODO Auto-generated method stub
+		return "#createTimespan(0,0,0,10)#";
+	}
+
+	@Override
+	public CacheItem get(PageContext pc, String cacheId, Object cachePolicy) throws PageException {
+
+		Date cachedAfter;
+
+		if (Decision.isDate(cachePolicy, false) && !(cachePolicy instanceof TimeSpan)) {
+			// cachedAfter was passed
+			cachedAfter = Caster.toDate(cachePolicy, null);
+		}
+		else {
+
+			long cachedWithinMillis = Caster.toTimeSpan(cachePolicy).getMillis();
+
+			if (cachedWithinMillis == 0) {
+				this.remove(pc, cacheId);
+				return null;
+			}
+
+			cachedAfter = new Date(System.currentTimeMillis() - cachedWithinMillis);
+		}
+
+		CacheItem cacheItem = this.get(pc, cacheId);
+
+		if (cacheItem instanceof QueryResultCacheItem) {
+
+			if (((QueryResultCacheItem) cacheItem).isCachedAfter(cachedAfter)) return cacheItem;
+
+			return null; // cacheItem is from before cachedAfter, discard it so that it can be refreshed
+		}
+
+		return cacheItem;
+	}
 
 }

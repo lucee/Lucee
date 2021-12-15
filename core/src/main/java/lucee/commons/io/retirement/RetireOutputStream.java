@@ -26,110 +26,111 @@ import lucee.commons.lang.SerializableObject;
 
 public class RetireOutputStream extends OutputStream {
 
-    private Resource res;
-    private boolean append;
-    private OutputStream os;
-    private long lastAccess = 0;
-    private long retireRange;
-    private RetireListener listener;
-    private final Object sync = new SerializableObject();
+	private Resource res;
+	private boolean append;
+	private OutputStream os;
+	private long lastAccess = 0;
+	private long retireRange;
+	private RetireListener listener;
+	private final Object sync = new SerializableObject();
 
-    /**
-     * 
-     * @param res
-     * @param append
-     * @param retireRange retire the stream after given time in minutes
-     */
-    public RetireOutputStream(Resource res, boolean append, int retireRangeInSeconds, RetireListener listener) {
-	this.res = res;
-	this.append = append;
-	retireRange = retireRangeInSeconds > 0 ? retireRangeInSeconds * 1000 : 0;
-	// print.e("range:"+retireRange);
-	this.listener = listener;
-    }
-
-    private OutputStream getOutputStream() throws IOException {
-
-	if (os == null) {
-	    os = res.getOutputStream(append);
-	    if (os == null) throw new IOException("could not open a connection to [" + res + "]");
-	    RetireOutputStreamFactory.list.add(this);
-	    RetireOutputStreamFactory.startThread(retireRange);
+	/**
+	 * 
+	 * @param res
+	 * @param append
+	 * @param retireRange retire the stream after given time in minutes
+	 */
+	public RetireOutputStream(Resource res, boolean append, int retireRangeInSeconds, RetireListener listener) {
+		this.res = res;
+		this.append = append;
+		retireRange = retireRangeInSeconds > 0 ? retireRangeInSeconds * 1000 : 0;
+		// print.e("range:"+retireRange);
+		this.listener = listener;
 	}
-	lastAccess = System.currentTimeMillis();
-	return os;
-    }
 
-    public boolean retire() throws IOException {
-	synchronized (sync) {
-	    if (os == null || (lastAccess + retireRange) > System.currentTimeMillis()) {
-		// print.e("not retire "+res);
-		return false;
-	    }
-	    // print.e("retire "+res);
-	    append = true;
-	    close();
-	    return true;
-	}
-    }
+	private OutputStream getOutputStream() throws IOException {
 
-    public boolean retireNow() throws IOException {
-	synchronized (sync) {
-	    if (os == null) return false;
-	    append = true;
-	    close();
-	    return true;
-	}
-    }
-
-    @Override
-    public void close() throws IOException {
-	synchronized (sync) {
-	    if (os != null) {
-		if (listener != null) listener.retire(this);
-		try {
-		    os.close();
+		if (os == null) {
+			os = res.getOutputStream(append);
+			if (os == null) throw new IOException("could not open a connection to [" + res + "]");
+			if (RetireOutputStreamFactory.isClosed()) return os;
+			RetireOutputStreamFactory.list.add(this);
+			RetireOutputStreamFactory.startThread(retireRange);
 		}
-		finally {
-		    RetireOutputStreamFactory.list.remove(this);
-		    os = null;
+		lastAccess = System.currentTimeMillis();
+		return os;
+	}
+
+	public boolean retire() throws IOException {
+		synchronized (sync) {
+			if (os == null || (lastAccess + retireRange) > System.currentTimeMillis()) {
+				// print.e("not retire "+res);
+				return false;
+			}
+			// print.e("retire "+res);
+			append = true;
+			close();
+			return true;
 		}
-	    }
 	}
-    }
 
-    @Override
-    public void flush() throws IOException {
-	synchronized (sync) {
-	    if (os != null) {
-		getOutputStream().flush();
-		if (retireRange == 0) retireNow();
-	    }
+	public boolean retireNow() throws IOException {
+		synchronized (sync) {
+			if (os == null) return false;
+			append = true;
+			close();
+			return true;
+		}
 	}
-    }
 
-    @Override
-    public void write(int b) throws IOException {
-	synchronized (sync) {
-	    getOutputStream().write(b);
-	    if (retireRange == 0) retireNow();
+	@Override
+	public void close() throws IOException {
+		synchronized (sync) {
+			if (os != null) {
+				if (listener != null) listener.retire(this);
+				try {
+					os.close();
+				}
+				finally {
+					RetireOutputStreamFactory.list.remove(this);
+					os = null;
+				}
+			}
+		}
 	}
-    }
 
-    @Override
-    public void write(byte[] b) throws IOException {
-	synchronized (sync) {
-	    getOutputStream().write(b);
-	    if (retireRange == 0) retireNow();
+	@Override
+	public void flush() throws IOException {
+		synchronized (sync) {
+			if (os != null) {
+				getOutputStream().flush();
+				if (retireRange == 0) retireNow();
+			}
+		}
 	}
-    }
 
-    @Override
-    public void write(byte[] b, int off, int len) throws IOException {
-	synchronized (sync) {
-	    getOutputStream().write(b, off, len);
-	    if (retireRange == 0) retireNow();
+	@Override
+	public void write(int b) throws IOException {
+		synchronized (sync) {
+			getOutputStream().write(b);
+			if (retireRange == 0) retireNow();
+		}
 	}
-    }
+
+	@Override
+	public void write(byte[] b) throws IOException {
+		synchronized (sync) {
+			getOutputStream().write(b);
+			if (retireRange == 0) retireNow();
+		}
+	}
+
+	@Override
+	public void write(byte[] b, int off, int len) throws IOException {
+		synchronized (sync) {
+			getOutputStream().write(b, off, len);
+			if (retireRange == 0) retireNow();
+		}
+	}
 
 }

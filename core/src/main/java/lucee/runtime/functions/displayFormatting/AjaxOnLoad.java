@@ -28,7 +28,7 @@ import lucee.runtime.ext.function.Function;
  */
 public final class AjaxOnLoad implements Function {
 
-    public static String call(PageContext pc, String functionName) throws PageException {
-	throw new FunctionNotSupported("AjaxOnLoad");
-    }
+	public static String call(PageContext pc, String functionName) throws PageException {
+		throw new FunctionNotSupported("AjaxOnLoad");
+	}
 }

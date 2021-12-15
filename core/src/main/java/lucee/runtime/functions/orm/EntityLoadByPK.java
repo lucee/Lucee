@@ -8,12 +8,12 @@ import lucee.runtime.orm.ORMSession;
 import lucee.runtime.orm.ORMUtil;
 
 public class EntityLoadByPK {
-    public static Object call(PageContext pc, String name, Object oID) throws PageException {
-	ORMSession session = ORMUtil.getSession(pc);
-	String id;
-	if (Decision.isBinary(oID)) id = Caster.toBase64(oID);
-	else id = Caster.toString(oID);
-	return session.load(pc, name, id);
-	// FUTURE call instead load(..,..,OBJECT);
-    }
+	public static Object call(PageContext pc, String name, Object oID) throws PageException {
+		ORMSession session = ORMUtil.getSession(pc);
+		String id;
+		if (Decision.isBinary(oID)) id = Caster.toBase64(oID);
+		else id = Caster.toString(oID);
+		return session.load(pc, name, id);
+		// FUTURE call instead load(..,..,OBJECT);
+	}
 }

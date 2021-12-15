@@ -26,7 +26,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import lucee.runtime.PageContext;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
@@ -39,43 +39,43 @@ import lucee.transformer.library.tag.TagLib;
 
 public final class GetFunctionList implements Function {
 
-    /**
-     * 
-     */
-    private static final long serialVersionUID = -7313412061811118382L;
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -7313412061811118382L;
 
-    public static lucee.runtime.type.Struct call(PageContext pc) throws PageException {
-	return _call(pc, pc.getCurrentTemplateDialect());
-    }
-
-    public static lucee.runtime.type.Struct call(PageContext pc, String strDialect) throws PageException {
-	int dialect = ConfigWebUtil.toDialect(strDialect, -1);
-	if (dialect == -1) throw new FunctionException(pc, "GetFunctionList", 1, "dialect", "value [" + strDialect + "] is invalid, valid values are [cfml,lucee]");
-
-	return _call(pc, dialect);
-    }
-
-    private static lucee.runtime.type.Struct _call(PageContext pc, int dialect) throws PageException {
-
-	Struct sct = new StructImpl();
-	// synchronized(sct) {
-	// hasSet=true;
-	FunctionLib[] flds;
-	flds = ((ConfigImpl) pc.getConfig()).getFLDs(dialect);
-	FunctionLibFunction func;
-	Map<String, FunctionLibFunction> _functions;
-	Iterator<Entry<String, FunctionLibFunction>> it;
-	Entry<String, FunctionLibFunction> e;
-	for (int i = 0; i < flds.length; i++) {
-	    _functions = flds[i].getFunctions();
-	    it = _functions.entrySet().iterator();
-
-	    while (it.hasNext()) {
-		e = it.next();
-		func = e.getValue();
-		if (func.getStatus() != TagLib.STATUS_HIDDEN && func.getStatus() != TagLib.STATUS_UNIMPLEMENTED) sct.set(e.getKey(), "");
-	    }
+	public static lucee.runtime.type.Struct call(PageContext pc) throws PageException {
+		return _call(pc, pc.getCurrentTemplateDialect());
 	}
-	return sct;
-    }
+
+	public static lucee.runtime.type.Struct call(PageContext pc, String strDialect) throws PageException {
+		int dialect = ConfigWebUtil.toDialect(strDialect, -1);
+		if (dialect == -1) throw new FunctionException(pc, "GetFunctionList", 1, "dialect", "value [" + strDialect + "] is invalid, valid values are [cfml,lucee]");
+
+		return _call(pc, dialect);
+	}
+
+	private static lucee.runtime.type.Struct _call(PageContext pc, int dialect) throws PageException {
+
+		Struct sct = new StructImpl();
+		// synchronized(sct) {
+		// hasSet=true;
+		FunctionLib[] flds;
+		flds = ((ConfigPro) pc.getConfig()).getFLDs(dialect);
+		FunctionLibFunction func;
+		Map<String, FunctionLibFunction> _functions;
+		Iterator<Entry<String, FunctionLibFunction>> it;
+		Entry<String, FunctionLibFunction> e;
+		for (int i = 0; i < flds.length; i++) {
+			_functions = flds[i].getFunctions();
+			it = _functions.entrySet().iterator();
+
+			while (it.hasNext()) {
+				e = it.next();
+				func = e.getValue();
+				if (func.getStatus() != TagLib.STATUS_HIDDEN && func.getStatus() != TagLib.STATUS_UNIMPLEMENTED) sct.set(e.getKey(), "");
+			}
+		}
+		return sct;
+	}
 }

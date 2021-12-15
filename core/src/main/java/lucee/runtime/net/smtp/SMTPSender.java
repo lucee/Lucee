@@ -24,78 +24,80 @@ import javax.mail.Transport;
 
 import lucee.commons.io.SystemUtil;
 import lucee.commons.lang.ExceptionUtil;
+import lucee.commons.lang.StringUtil;
 import lucee.runtime.net.smtp.SMTPClient.MimeMessageAndSession;
 
 public final class SMTPSender extends Thread {
 
-    private boolean isSent = false;
-    private Exception throwable;
-    private Object lock;
-    private String host;
-    private int port;
-    private String user;
-    private String pass;
-    private MimeMessageAndSession mmas;
-    private boolean recyleConnection;
+	private boolean isSent = false;
+	private Exception throwable;
+	private Object lock;
+	private String host;
+	private int port;
+	private String user;
+	private String pass;
+	private MimeMessageAndSession mmas;
+	private boolean recyleConnection;
 
-    public SMTPSender(Object lock, MimeMessageAndSession mmas, String host, int port, String user, String pass, boolean reuseConnection) {
-	this.lock = lock;
-	this.mmas = mmas;
+	public SMTPSender(Object lock, MimeMessageAndSession mmas, String host, int port, String user, String pass, boolean reuseConnection) {
+		this.lock = lock;
+		this.mmas = mmas;
 
-	this.host = host;
-	this.port = port;
-	this.user = user;
-	this.pass = pass;
-	this.recyleConnection = reuseConnection;
-    }
-
-    @Override
-    public void run() {
-	Transport transport = null;
-	try {
-	    transport = mmas.session.transport;// SMTPConnectionPool.getTransport(session,host,port,user,pass);
-	    if (user == null) pass = null;
-	    // connect
-	    if (!transport.isConnected()) transport.connect(host, port, user, pass);
-
-	    mmas.message.saveChanges();
-	    transport.sendMessage(mmas.message, mmas.message.getAllRecipients());
-	    isSent = true;
+		this.host = host;
+		this.port = port;
+		this.user = user;
+		this.pass = pass;
+		this.recyleConnection = reuseConnection;
 	}
-	catch (SendFailedException sfe) {
-	    Address[] valid = sfe.getValidSentAddresses();
-	    // a soon the mail was send to one reciever we do no longer block it
-	    if (valid != null && valid.length > 0) isSent = true;
-	    this.throwable = sfe;
-	}
-	catch (Exception e) {
-	    this.throwable = e;
-	}
-	finally {
-	    try {
-		if (recyleConnection) SMTPConnectionPool.releaseSessionAndTransport(mmas.session);
-		else SMTPConnectionPool.disconnect(mmas.session.transport);
 
-	    }
-	    catch (Throwable t) {
-		ExceptionUtil.rethrowIfNecessary(t);
-	    }
-	    SystemUtil.notify(lock);
+	@Override
+	public void run() {
+		Transport transport = null;
+		try {
+			transport = mmas.session.transport;// SMTPConnectionPool.getTransport(session,host,port,user,pass);
+			if (user == null) pass = null;
+			// connect
+			if (!transport.isConnected()) transport.connect(host, port, user, pass);
+
+			mmas.message.saveChanges();
+			if (!StringUtil.isEmpty(mmas.messageId)) mmas.message.setHeader("Message-ID", mmas.messageId); // must be set after message.saveChanges()
+			transport.sendMessage(mmas.message, mmas.message.getAllRecipients());
+			isSent = true;
+		}
+		catch (SendFailedException sfe) {
+			Address[] valid = sfe.getValidSentAddresses();
+			// a soon the mail was send to one reciever we do no longer block it
+			if (valid != null && valid.length > 0) isSent = true;
+			this.throwable = sfe;
+		}
+		catch (Exception e) {
+			this.throwable = e;
+		}
+		finally {
+			try {
+				if (recyleConnection) SMTPConnectionPool.releaseSessionAndTransport(mmas.session);
+				else SMTPConnectionPool.disconnect(mmas.session.transport);
+
+			}
+			catch (Throwable t) {
+				ExceptionUtil.rethrowIfNecessary(t);
+			}
+			SystemUtil.notify(lock);
+		}
 	}
-    }
 
-    /**
-     * @return the messageExpection
-     */
-    public Throwable getThrowable() {
-	return throwable;
-    }
+	/**
+	 * @return the messageExpection
+	 */
+	public Throwable getThrowable() {
+		return throwable;
+	}
 
-    /**
-     * @return was message sent
-     */
-    public boolean isSent() {
-	return isSent;
-    }
+	/**
+	 * @return was message sent
+	 */
+	public boolean isSent() {
+		return isSent;
+	}
 
 }

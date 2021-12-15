@@ -24,6 +24,7 @@ import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
+import lucee.runtime.listener.JavaSettingsImpl;
 import lucee.runtime.op.Caster;
 import lucee.runtime.reflection.Reflector;
 
@@ -33,44 +34,45 @@ import lucee.runtime.reflection.Reflector;
  * Pool to Handle Tags
  */
 public final class FunctionHandlerPool {
-    private static ConcurrentHashMap<String, BIF> map = new ConcurrentHashMap<String, BIF>();
+	private static ConcurrentHashMap<String, BIF> map = new ConcurrentHashMap<String, BIF>();
 
-    public static Object invoke(PageContext pc, Object[] args, String className, String bundleName, String bundleVersion) throws PageException {
-	return use(pc, className, bundleName, bundleVersion).invoke(pc, args);
-    }
-
-    /**
-     * return a tag to use from a class
-     * 
-     * @param tagClass
-     * @return Tag
-     * @throws PageException
-     */
-    public static BIF use(PageContext pc, String className, String bundleName, String bundleVersion) throws PageException {
-	String id = toId(className, bundleName, bundleVersion);
-	BIF bif = map.get(id);
-	if (bif != null) return bif;
-
-	try {
-	    Class<?> clazz;
-	    // OSGi bundle
-	    if (!StringUtil.isEmpty(bundleName)) clazz = ClassUtil.loadClassByBundle(className, bundleName, bundleVersion, pc.getConfig().getIdentification());
-	    // JAR
-	    else clazz = ClassUtil.loadClass(className);
-
-	    if (Reflector.isInstaneOf(clazz, BIF.class, false)) bif = (BIF) clazz.newInstance();
-	    else bif = new BIFProxy(clazz);
+	public static Object invoke(PageContext pc, Object[] args, String className, String bundleName, String bundleVersion) throws PageException {
+		return use(pc, className, bundleName, bundleVersion).invoke(pc, args);
 	}
-	catch (Exception e) {
-	    throw Caster.toPageException(e);
-	}
-	map.put(id, bif);
-	return bif;
-    }
 
-    private static String toId(String className, String bundleName, String bundleVersion) {
-	if (bundleName == null && bundleVersion == null) return className;
-	if (bundleVersion == null) return className + ":" + bundleName;
-	return className + ":" + bundleName + ":" + bundleVersion;
-    }
+	/**
+	 * return a tag to use from a class
+	 * 
+	 * @param tagClass
+	 * @return Tag
+	 * @throws PageException
+	 */
+	public static BIF use(PageContext pc, String className, String bundleName, String bundleVersion) throws PageException {
+		String id = toId(className, bundleName, bundleVersion);
+		BIF bif = map.get(id);
+		if (bif != null) return bif;
+
+		try {
+			Class<?> clazz;
+			// OSGi bundle
+			if (!StringUtil.isEmpty(bundleName))
+				clazz = ClassUtil.loadClassByBundle(className, bundleName, bundleVersion, pc.getConfig().getIdentification(), JavaSettingsImpl.getBundleDirectories(pc));
+			// JAR
+			else clazz = ClassUtil.loadClass(className);
+
+			if (Reflector.isInstaneOf(clazz, BIF.class, false)) bif = (BIF) ClassUtil.newInstance(clazz);
+			else bif = new BIFProxy(clazz);
+		}
+		catch (Exception e) {
+			throw Caster.toPageException(e);
+		}
+		map.put(id, bif);
+		return bif;
+	}
+
+	private static String toId(String className, String bundleName, String bundleVersion) {
+		if (bundleName == null && bundleVersion == null) return className;
+		if (bundleVersion == null) return className + ":" + bundleName;
+		return className + ":" + bundleName + ":" + bundleVersion;
+	}
 }

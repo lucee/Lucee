@@ -22,7 +22,7 @@ import lucee.runtime.exp.ApplicationException;
 
 public class ServiceException extends ApplicationException {
 
-    public ServiceException(String message) {
-	super(message);
-    }
+	public ServiceException(String message) {
+		super(message);
+	}
 }

@@ -28,16 +28,16 @@ import lucee.runtime.type.Struct;
 
 public class GetComponentStaticScope extends BIF {
 
-    public static Struct call(PageContext pc, String componentPath) throws PageException {
+	public static Struct call(PageContext pc, String componentPath) throws PageException {
 
-	return ComponentLoader.searchComponent(pc, null, componentPath, null, null, false, false).staticScope();
-    }
+		return ComponentLoader.searchComponent(pc, null, componentPath, null, null, false, false).staticScope();
+	}
 
-    @Override
-    public Object invoke(PageContext pc, Object[] args) throws PageException {
-	if (args.length == 1) return call(pc, Caster.toString(args[0]));
+	@Override
+	public Object invoke(PageContext pc, Object[] args) throws PageException {
+		if (args.length == 1) return call(pc, Caster.toString(args[0]));
 
-	throw new FunctionException(pc, "GetComponentStaticScope", 1, 1, args.length);
-    }
+		throw new FunctionException(pc, "GetComponentStaticScope", 1, 1, args.length);
+	}
 
 }

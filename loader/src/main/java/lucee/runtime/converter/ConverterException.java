@@ -19,18 +19,18 @@
 package lucee.runtime.converter;
 
 /**
- * Exception throwed by a Converter
+ * Exception thrown by a Converter
  */
 public final class ConverterException extends Exception {
 
-    private static final long serialVersionUID = -5591914619316366638L;
+	private static final long serialVersionUID = -5591914619316366638L;
 
-    /**
-     * constructor of the Exception
-     * 
-     * @param message
-     */
-    public ConverterException(final String message) {
-	super(message);
-    }
+	/**
+	 * constructor of the Exception
+	 * 
+	 * @param message
+	 */
+	public ConverterException(final String message) {
+		super(message);
+	}
 }

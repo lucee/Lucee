@@ -30,47 +30,47 @@ import lucee.runtime.op.Caster;
  */
 public final class UDFCall extends RefSupport implements Ref {
 
-    private Ref[] arguments;
-    private String name;
-    private Ref parent;
-    private Ref refName;
+	private Ref[] arguments;
+	private String name;
+	private Ref parent;
+	private Ref refName;
 
-    /**
-     * @param pc
-     * @param parent
-     * @param name
-     * @param arguments
-     */
-    public UDFCall(Ref parent, String name, Ref[] arguments) {
-	this.parent = parent;
-	this.name = name;
-	this.arguments = arguments;
-    }
+	/**
+	 * @param pc
+	 * @param parent
+	 * @param name
+	 * @param arguments
+	 */
+	public UDFCall(Ref parent, String name, Ref[] arguments) {
+		this.parent = parent;
+		this.name = name;
+		this.arguments = arguments;
+	}
 
-    /**
-     * @param pc
-     * @param parent
-     * @param refName
-     * @param arguments
-     */
-    public UDFCall(Ref parent, Ref refName, Ref[] arguments) {
-	this.parent = parent;
-	this.refName = refName;
-	this.arguments = arguments;
-    }
+	/**
+	 * @param pc
+	 * @param parent
+	 * @param refName
+	 * @param arguments
+	 */
+	public UDFCall(Ref parent, Ref refName, Ref[] arguments) {
+		this.parent = parent;
+		this.refName = refName;
+		this.arguments = arguments;
+	}
 
-    @Override
-    public Object getValue(PageContext pc) throws PageException {
-	return pc.getVariableUtil().callFunction(pc, parent.getValue(pc), getName(pc), RefUtil.getValue(pc, arguments));
-    }
+	@Override
+	public Object getValue(PageContext pc) throws PageException {
+		return pc.getVariableUtil().callFunction(pc, parent.getValue(pc), getName(pc), RefUtil.getValue(pc, arguments));
+	}
 
-    private String getName(PageContext pc) throws PageException {
-	if (name != null) return name;
-	return Caster.toString(refName.getValue(pc));
-    }
+	private String getName(PageContext pc) throws PageException {
+		if (name != null) return name;
+		return Caster.toString(refName.getValue(pc));
+	}
 
-    @Override
-    public String getTypeName() {
-	return "user defined function";
-    }
+	@Override
+	public String getTypeName() {
+		return "user defined function";
+	}
 }

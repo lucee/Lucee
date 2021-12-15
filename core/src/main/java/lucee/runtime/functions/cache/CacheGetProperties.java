@@ -37,62 +37,63 @@ import lucee.runtime.type.util.ListUtil;
  */
 public final class CacheGetProperties extends BIF {
 
-    private static final long serialVersionUID = -8665995702411192700L;
+	private static final long serialVersionUID = -8665995702411192700L;
 
-    public static Array call(PageContext pc) throws PageException {
-	return call(pc, null);
-    }
+	public static Array call(PageContext pc) throws PageException {
+		return call(pc, null);
+	}
 
-    public static Array call(PageContext pc, String cacheName) throws PageException {
-	Array arr = new ArrayImpl();
-	try {
-	    if (StringUtil.isEmpty(cacheName)) {
-		addDefault(pc, Config.CACHE_TYPE_OBJECT, arr);
-		addDefault(pc, Config.CACHE_TYPE_TEMPLATE, arr);
-		addDefault(pc, Config.CACHE_TYPE_QUERY, arr);
-		addDefault(pc, Config.CACHE_TYPE_RESOURCE, arr);
-		addDefault(pc, Config.CACHE_TYPE_FUNCTION, arr);
-		addDefault(pc, Config.CACHE_TYPE_INCLUDE, arr);
-		addDefault(pc, Config.CACHE_TYPE_HTTP, arr);
-		addDefault(pc, Config.CACHE_TYPE_FILE, arr);
-		addDefault(pc, Config.CACHE_TYPE_WEBSERVICE, arr);
-		// MUST welcher muss zuers sein
-	    }
-	    else {
-		String name;
-		String[] names = ListUtil.listToStringArray(cacheName, ',');
-		for (int i = 0; i < names.length; i++) {
-		    name = names[i].trim();
-		    if (name.equalsIgnoreCase("template")) arr.appendEL(CacheUtil.getDefault(pc, Config.CACHE_TYPE_TEMPLATE).getCustomInfo());
-		    else if (name.equalsIgnoreCase("object")) arr.appendEL(CacheUtil.getDefault(pc, Config.CACHE_TYPE_OBJECT).getCustomInfo());
-		    else if (name.equalsIgnoreCase("query")) arr.appendEL(CacheUtil.getDefault(pc, Config.CACHE_TYPE_QUERY).getCustomInfo());
-		    else if (name.equalsIgnoreCase("resource")) arr.appendEL(CacheUtil.getDefault(pc, Config.CACHE_TYPE_RESOURCE).getCustomInfo());
-		    else if (name.equalsIgnoreCase("function")) arr.appendEL(CacheUtil.getDefault(pc, Config.CACHE_TYPE_FUNCTION).getCustomInfo());
-		    else if (name.equalsIgnoreCase("include")) arr.appendEL(CacheUtil.getDefault(pc, Config.CACHE_TYPE_INCLUDE).getCustomInfo());
-		    else if (name.equalsIgnoreCase("http")) arr.appendEL(CacheUtil.getDefault(pc, Config.CACHE_TYPE_HTTP).getCustomInfo());
-		    else if (name.equalsIgnoreCase("file")) arr.appendEL(CacheUtil.getDefault(pc, Config.CACHE_TYPE_FILE).getCustomInfo());
-		    else if (name.equalsIgnoreCase("webservice")) arr.appendEL(CacheUtil.getDefault(pc, Config.CACHE_TYPE_WEBSERVICE).getCustomInfo());
-		    else arr.appendEL(CacheUtil.getCache(pc, name).getCustomInfo());
+	public static Array call(PageContext pc, String cacheName) throws PageException {
+		Array arr = new ArrayImpl();
+		try {
+			if (StringUtil.isEmpty(cacheName)) {
+				addDefault(pc, Config.CACHE_TYPE_OBJECT, arr);
+				addDefault(pc, Config.CACHE_TYPE_TEMPLATE, arr);
+				addDefault(pc, Config.CACHE_TYPE_QUERY, arr);
+				addDefault(pc, Config.CACHE_TYPE_RESOURCE, arr);
+				addDefault(pc, Config.CACHE_TYPE_FUNCTION, arr);
+				addDefault(pc, Config.CACHE_TYPE_INCLUDE, arr);
+				addDefault(pc, Config.CACHE_TYPE_HTTP, arr);
+				addDefault(pc, Config.CACHE_TYPE_FILE, arr);
+				addDefault(pc, Config.CACHE_TYPE_WEBSERVICE, arr);
+				// MUST welcher muss zuers sein
+			}
+			else {
+				String name;
+				String[] names = ListUtil.listToStringArray(cacheName, ',');
+				for (int i = 0; i < names.length; i++) {
+					name = names[i].trim();
+					if (name.equalsIgnoreCase("template")) arr.appendEL(CacheUtil.getDefault(pc, Config.CACHE_TYPE_TEMPLATE).getCustomInfo());
+					else if (name.equalsIgnoreCase("object")) arr.appendEL(CacheUtil.getDefault(pc, Config.CACHE_TYPE_OBJECT).getCustomInfo());
+					else if (name.equalsIgnoreCase("query")) arr.appendEL(CacheUtil.getDefault(pc, Config.CACHE_TYPE_QUERY).getCustomInfo());
+					else if (name.equalsIgnoreCase("resource")) arr.appendEL(CacheUtil.getDefault(pc, Config.CACHE_TYPE_RESOURCE).getCustomInfo());
+					else if (name.equalsIgnoreCase("function")) arr.appendEL(CacheUtil.getDefault(pc, Config.CACHE_TYPE_FUNCTION).getCustomInfo());
+					else if (name.equalsIgnoreCase("include")) arr.appendEL(CacheUtil.getDefault(pc, Config.CACHE_TYPE_INCLUDE).getCustomInfo());
+					else if (name.equalsIgnoreCase("http")) arr.appendEL(CacheUtil.getDefault(pc, Config.CACHE_TYPE_HTTP).getCustomInfo());
+					else if (name.equalsIgnoreCase("file")) arr.appendEL(CacheUtil.getDefault(pc, Config.CACHE_TYPE_FILE).getCustomInfo());
+					else if (name.equalsIgnoreCase("webservice")) arr.appendEL(CacheUtil.getDefault(pc, Config.CACHE_TYPE_WEBSERVICE).getCustomInfo());
+					else arr.appendEL(CacheUtil.getCache(pc, name).getCustomInfo());
+				}
+			}
+			return arr;
 		}
-	    }
-	    return arr;
+		catch (IOException e) {
+			throw Caster.toPageException(e);
+		}
 	}
-	catch (IOException e) {
-	    throw Caster.toPageException(e);
-	}
-    }
 
-    @Override
-    public Object invoke(PageContext pc, Object[] args) throws PageException {
-	if (args.length == 0) return call(pc);
-	if (args.length == 1) return call(pc, Caster.toString(args[0]));
-	throw new FunctionException(pc, "CacheGetProperties", 0, 1, args.length);
-    }
-
-    private static void addDefault(PageContext pc, int type, Array arr) {
-	try {
-	    arr.appendEL(CacheUtil.getDefault(pc, type).getCustomInfo());
+	@Override
+	public Object invoke(PageContext pc, Object[] args) throws PageException {
+		if (args.length == 0) return call(pc);
+		if (args.length == 1) return call(pc, Caster.toString(args[0]));
+		throw new FunctionException(pc, "CacheGetProperties", 0, 1, args.length);
 	}
-	catch (IOException e) {}
-    }
+
+	private static void addDefault(PageContext pc, int type, Array arr) {
+		try {
+			arr.appendEL(CacheUtil.getDefault(pc, type).getCustomInfo());
+		}
+		catch (IOException e) {
+		}
+	}
 }

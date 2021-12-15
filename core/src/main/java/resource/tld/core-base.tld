@@ -5,7 +5,7 @@
 	<tlib-version>1.0</tlib-version>
 	<cfml-version>1.0</cfml-version>
 	<short-name>tbase</short-name>
-	<uri>http://www.lucee.org/cf-tld-3-1</uri>
+	<uri>https://www.lucee.org/cf-tld-3-1</uri>
 	<display-name>Lucee Core Tag Library</display-name>
 	<description></description>
 	<name-space>cf</name-space>
@@ -123,7 +123,7 @@
 			<script-support>optional</script-support>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>used to a address a specific loop instead of the nearest one.</description>
+			<description>used to an address a specific loop instead of the nearest one.</description>
 		</attribute>
 	</tag>
 
@@ -778,7 +778,7 @@ A return value from the CreateTimeSpan function, for example, "#CreateTimeSpan(0
 			<script-support>optional</script-support>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>used to a address a specific loop instead of the nearest one.</description>
+			<description>used to an address a specific loop instead of the nearest one.</description>
 		</attribute>
 	</tag>
 	<!-- Content -->
@@ -941,6 +941,15 @@ A return value from the CreateTimeSpan function, for example, "#CreateTimeSpan(0
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>if set to true, Lucee url encodes the given name and value if necessary.</description>
+		</attribute>
+		<attribute>
+			<type>string</type>
+			<name>samesite</name>
+			<values>Strict,Lax,None</values>
+			<default-value></default-value>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>It will help to prevent Cross-Site Request Forgeries. Enabling this attribute on the cookie will instruct the browser to afford this cookie certain protections.</description>
 		</attribute>
 	</tag>
 	<!-- DBInfo -->
@@ -1311,6 +1320,14 @@ Example:
 			<rtexprvalue>true</rtexprvalue>
 			<description>Variable in which to put program error stream output. If neither errorFile nor errorVariable is specified, the error stream is discarded.</description>
 		</attribute>
+		<attribute>
+			<type>string</type>
+			<name>directory</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>The working directory in which to execute the command</description>
+			<status>hidden</status>
+		</attribute>
 	</tag>
 	<!-- Exit -->
 	<tag>
@@ -1367,8 +1384,7 @@ Example:
 			<type>struct</type>
 			<name>columnMap</name>
 			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-		    <status>unimplemented</status>
+			<rtexprvalue>true</rtexprvalue>		    
 		<description>Used only for the create action with a query attribute.
             A structure specifying a mapping between the names of the columns in the object specified by the query attribute
             and the columns of the feed format, as described in the Query attribute section.
@@ -1709,6 +1725,22 @@ To use cached data, the tag must be called with the exact same arguments. Only u
 			<rtexprvalue>true</rtexprvalue>
 			<description>Name of the result value (default:cffile)</description>
 		</attribute>
+		<attribute>
+			<type>any</type>
+			<name>allowedExtensions</name>
+			<alias>allowExtension,allowedExtension</alias>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>String list or string array of extensions allowed, this overwrites any other setting including the attribute [blockedExtensions] and settings done for example in the Application.cfc. </description>
+		</attribute>
+		<attribute>
+			<type>any</type>
+			<name>blockedExtensions</name>
+			<alias>blockExtension,blockedExtension</alias>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>String list or string array of extensions blocked, this overwrites any setting done for example in the Application.cfc.</description>
+		</attribute>
 	</tag>
 	<!-- Flush -->
 	<tag>
@@ -1919,7 +1951,7 @@ To use cached data, the tag must be called with the exact same arguments. Only u
 			<name>failIfExists</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>throw a error if local file already exist or overwrite it</description>
+			<description>throw an error if local file already exists or overwrite it</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -3388,7 +3420,9 @@ To use cached data, the tag must be called with the exact same arguments. Only u
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>
-			if set to true (default value) URL encodes the value of the attribute "URL" if necessary (no double encoding is happening).
+				Specifies whether to URL encode the the URL.
+				If not set at all (auto mode), it only encodes when necessary to avoid double encoding.
+				If set to true it encodes the URL, if set to false it does not touch it.
 			This setting has no influence on the values from httpparam type="url", for this use the attribute "encoded" from httpparam</description>
 		</attribute>
 		<attribute>
@@ -3741,7 +3775,10 @@ To use cached data, the tag must be called with the exact same arguments.</descr
 			<rtexprvalue>true</rtexprvalue>
 			<description>
 				Applies to type "cgi" and "url", ignored for all other types.
-				 Specifies whether to URL encode the the values defined with the tag, but only if necessary (no double encoding).</description>
+				Specifies whether to URL encode the the values defined with the tag.
+				If not set at all (auto mode), it only encodes when necessary to avoid double encoding.
+				If set to true it encodes the value, if set to false it does not touch it.
+			</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -3779,7 +3816,7 @@ To use cached data, the tag must be called with the exact same arguments.</descr
 			<type>multiple</type>
 			<rtexprvalue>true</rtexprvalue>
 		</script>
-		<description>Retrieves and deletes e-mail messages from a Imap mail server.
+		<description>Retrieves and deletes e-mail messages from an Imap mail server.
 		This tag works exactly the same way as the cfmail tag. It has the same attributes.
 		The Internet Message Access Protocol or IMAP is one of two of the most prevalent Internet standard protocols for e-mail retrieval,
 		the other being POP3. Virtually all modern e-mail clients and servers support both protocols as a means of transferring e-mail messages from a server,
@@ -3840,11 +3877,22 @@ To use cached data, the tag must be called with the exact same arguments.</descr
 		<attribute>
 			<type>string</type>
 			<name>action</name>
-			<values>getHeaderOnly,getAll,delete</values>
+			<values>getHeaderOnly,getAll,delete,open,close,markread,createfolder,deletefolder,renamefolder,listallfolders,movemail</values>
 			<default-value>getHeaderOnly</default-value>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>Specifies the mail action.</description>
+			<description>Specifies the mail action.
+- getHeaderOnly
+- getAll
+- delete
+- open
+- close
+- markread
+- createfolder
+- deletefolder
+- renamefolder
+- listallfolders
+- movemail</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -3951,7 +3999,10 @@ To use cached data, the tag must be called with the exact same arguments.</descr
 			<name>taglib</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>Path to a custom tag libraray or a jsp tld</description>
+			<description>Path to a custom tag library or a jsp tld
+				
+As cfimport is a compiler directive, Application.cfc mappings won't work, but mappings configured via the web admin will.
+</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -3993,6 +4044,7 @@ If you import a CFML custom tag directory and specify an empty value, "", for th
 		<attribute>
 			<type>string</type>
 			<name>displayName</name>
+			<alias>name</alias>
 			<required>no</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>A value to be displayed when using introspection to show a descriptive name for the interface.</description>
@@ -4699,7 +4751,7 @@ Permits searching collections by title or displaying a separate title from the k
 	<tag>
 		<name>location</name>
 		<tag-class>lucee.runtime.tag.Location</tag-class>
-		<body-content>empty</body-content>
+		<body-content>free</body-content>
 		<body-rtexprvalue>false</body-rtexprvalue>
 		<script>
 			<type>multiple</type>
@@ -4836,7 +4888,7 @@ Permits searching collections by title or displaying a separate title from the k
 			<name>text</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>a exception to log.</description>
+			<description>an exception to log.</description>
 		</attribute>
 		<attribute>
 			<type>any</type>
@@ -4930,6 +4982,7 @@ Permits searching collections by title or displaying a separate title from the k
 			<name>application</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
+			<default>true</default>
 			<description>Specifies whether to log the application name if one has been specified in a cfapplication tag.</description>
 		</attribute>
 	</tag>
@@ -5131,7 +5184,7 @@ Lucee uses the number of characters in the file.</description>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 		    <status>implemented</status>
-			<description>used to a address this loop from a "break" or "continue" statement (instead of the nearest one).</description>
+			<description>used to an address this loop from a "break" or "continue" statement (instead of the nearest one).</description>
 		</attribute>
 
 
@@ -5169,7 +5222,7 @@ Lucee uses the number of characters in the file.</description>
 		<attribute>
 			<type>object</type>
 			<name>to</name>
-			<required>false</required>
+			<required>true</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>The name of the e-mail message recipient.</description>
 		</attribute>
@@ -5214,6 +5267,7 @@ Lucee uses the number of characters in the file.</description>
 			<type>string</type>
 			<name>type</name>
 			<required>false</required>
+			<default>text/plain</default>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Specifies extended type attributes for the message.</description>
 		</attribute>
@@ -5569,7 +5623,7 @@ Lucee uses the number of characters in the file.</description>
 			<type>multiple</type>
 			<rtexprvalue>true</rtexprvalue>
 		</script>
-		<description>Flushes a object cache or returns the current size.</description>
+		<description>Flushes an object cache or returns the current size.</description>
 		<attribute-type>fixed</attribute-type>
 		<attribute>
 			<type>string</type>
@@ -6294,11 +6348,14 @@ sct["bracketNotation"] --> keyname: "bracketNotation"
 		<attribute>
 			<type>string</type>
 			<name>columnkey</name>
-			<alias>columnname,column</alias>
+			<alias>columnname,column,keycolumn</alias>
 			<status>hidden</status>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>When return type is set to "struct", the value of this column is used as key in the struct for every record.</description>
+			<description>When return type is set to "struct", the value of this column can be used as key in the struct for every record.
+				If not set then the query must not return more than one record, and the keys of the returned struct are the column names
+				and the values are the column values for the single record that is returned. 
+			</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -6327,7 +6384,7 @@ sct["bracketNotation"] --> keyname: "bracketNotation"
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>support the following values:
-			- query: for doing a query on a existing query object
+			- query: for doing a query on an existing query object
 			- hql: for doing a query on orm </description>
 		</attribute>
 		<attribute>
@@ -6476,12 +6533,24 @@ To use cached data, the current query must use the same SQL statement, data sour
 		</attribute>
 		<attribute>
 			<type>string</type>
+			<name>indexName</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description></description>
+		</attribute>
+		<attribute>
+			<type>string</type>
 			<name>returntype</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>one of the following values:
 			- query: default for all dbtype expect "hql", returns a query object
-			- array_of_entity: works only with dbtype "hql" and is also the default value for dbtype "hql"</description>
+			- array_of_entity: works only with dbtype "hql" and is also the default value for dbtype "hql"
+			- array: returns an array, where each element is a struct with a query record
+			- struct: returns either a struct of structs where the key is specified by the keyColumn attribute
+			and each value is a struct with a query record, or a single record if keyColumn is not set, where
+			each key is a column name and each value has its corresponding value.
+			</description>
 		</attribute>
 		<attribute>
 			<type>timezone</type>
@@ -6499,7 +6568,7 @@ To use cached data, the current query must use the same SQL statement, data sour
 			<description>
 			if "lazy" is set to true (default "false") Lucee does not initially load all the data from the datasource,
 			in that case the data are only loaded when requested, so this means the data are depending on the datasource connection.
-			if the datasource connection is gone and the data are not requested yet, lucee throws a error if you try to access the data.
+			if the datasource connection is gone and the data are not requested yet, lucee throws an error if you try to access the data.
 			lazy is only working when the following attributes are not used: cachewithin,cacheafter,result
 			</description>
 		</attribute>
@@ -6539,6 +6608,13 @@ To use cached data, the current query must use the same SQL statement, data sour
 			<status>hidden</status>
 			<required>false</required>
 			<description></description>
+		</attribute>
+		<attribute>
+			<name>cacheid</name>
+			<type>string</type>
+			<status>unimplemented</status>
+			<required>false</required>
+			<description>Attribute not supported</description>
 		</attribute>
 	</tag>
 
@@ -6588,7 +6664,16 @@ To use cached data, the current query must use the same SQL statement, data sour
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Maximum length of the parameter. The default value is the length of the string specified in
-	the value attribute.</description>
+	the value attribute. if the attribute charset is defined, this comparsion will be byte based.</description>
+		</attribute>
+		<attribute>
+			<type>string</type>
+			<name>charset</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>This attribute is used for 2 things:
+			- it checks if the given value is compatible with that charset
+			- to check the binary length of the value (see attribute maxlength).</description>
 		</attribute>
 		<attribute>
 			<type>number</type>
@@ -7323,6 +7408,22 @@ To use cached data, the current query must use the same SQL statement, data sour
 			<description>Yes or No. When set to Yes, cfsetting blocks output of HTML that resides outside cfoutput tags.</description>
 		</attribute>
 		<attribute>
+			<type>string</type>
+			<name>info</name>
+			<required>false</required>
+			<status>hidden</status>
+			<rtexprvalue>true</rtexprvalue>
+			<description>name of variable created for all information for this tag.</description>
+		</attribute>
+		<attribute>
+			<type>boolean</type>
+			<name>listen</name>
+			<required>false</required>
+			<status>hidden</status>
+			<rtexprvalue>true</rtexprvalue>
+			<description>do log all action, so it can report more detail with info.</description>
+		</attribute>
+		<attribute>
 			<type>boolean</type>
 			<name>showDebugOutput</name>
 			<required>false</required>
@@ -7590,7 +7691,7 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 			<alias>retryIntervall</alias>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>when type task, this attribute define a execution plan for additional tries of execution.
+			<description>when type task, this attribute define an execution plan for additional tries of execution.
 			you can define a single rule or multiple rules as array
 
 			Example single rule:
@@ -7614,6 +7715,7 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 		<attribute>
 			<type>string</type>
 			<name>name</name>
+			<alias>names</alias>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>The name of the thread to which the action applies:
@@ -7798,6 +7900,14 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>ODBC lock type.</description>
+		</attribute>
+		<attribute>
+			<type>string</type>
+			<name>savepoint</name>
+			<required>false</required>
+			<status>hidden</status>
+			<rtexprvalue>true</rtexprvalue>
+			<description>optional savepoint name, used with action "setsavepoint" and "rollback".</description>
 		</attribute>
 	</tag>
 
@@ -8712,6 +8822,13 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 - The name of a DTD or Schema file
 - The URL of a DTD or Schema file; valid protocol identifiers include http, https, ftp, and file</description>
 		</attribute>
+		<attribute>
+			<type>boolean</type>
+			<name>lenient</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>if set to true, the parser is more lenient and forgives invalid XML and does the best to interpret it.</description>
+		</attribute>
 	</tag>
 	<!-- x_ -->
 	<tag>
@@ -8734,6 +8851,10 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 		<handle-exception>true</handle-exception>
 		<body-content>free</body-content>
 		<body-rtexprvalue>false</body-rtexprvalue>
+		<script>
+			<type>multiple</type>
+			<rtexprvalue>true</rtexprvalue>
+		</script>
 		<description>Creates a Custom Tag</description>
 		<attribute-type>dynamic</attribute-type>
 	</tag>
@@ -8769,270 +8890,10 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 		<attribute>
 			<type>string</type>
 			<name>label</name>
-			<description>used to a address this loop from a "break" or "continue" statement (instead of the nearest one).</description>
+			<description>used to an address this loop from a "break" or "continue" statement (instead of the nearest one).</description>
 		</attribute>
 	</tag>
-	<!-- Zip
-	<tag>
-		<name>Zip</name>
-		<tag-class>lucee.runtime.tag.Zip</tag-class>
-		<body-content>free</body-content>
-		<body-rtexprvalue>false</body-rtexprvalue>
-		<script>
-			<type>multiple</type>
-			<rtexprvalue>true</rtexprvalue>
-			<context>zip</context>
-		</script>
-		<description>Manipulates ZIP and Java Archive (JAR) files.
-		In addition to the basic zip and unzip functions, use the cfzip tag to delete entries from an archive, filter files,
-		read files in binary format, list the contents of an archive, and specify an entry path used in an executable JAR file.</description>
-		<attribute-type>fixed</attribute-type>
-		<attribute>
-			<type>string</type>
-			<name>action</name>
-			<values>delete,list,read,readbinary,unzip,zip</values>
-			<default-value>zip</default-value>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-		<description>The action to take.</description>
-    </attribute>
-		<attribute>
-			<type>string</type>
-			<name>charset</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-		<description>The character set used to translate the ZIP or JAR
-            entry into a text string. Examples of character sets are:
-            JIS
-            RFC1345
-            UTF-16 (optional, default=encoding of the host machine)</description>
-    </attribute>
-		<attribute>
-			<type>string</type>
-			<name>destination</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-		<description>Destination directory where the ZIP or JAR file is extracted. </description>
-    </attribute>
-		<attribute>
-			<type>string</type>
-			<name>entryPath</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-		<description>Pathname on which the action is performed. </description>
-    </attribute>
-		<attribute>
-			<type>string</type>
-			<name>file</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-		<description>Absolute pathname of the file on which the action is performed.
-            For example, the full pathname of the ZIP file: c:\temp\log.zip.
-            </description>
-    </attribute>
-		<attribute>
-            <type>any</type>
-            <name>filter</name>
-            <required>false</required>
-            <rtexprvalue>true</rtexprvalue>
-            <description>Optional filter. Can be either a wildcard filter,
-            e.g. "m*", or a UDF/Closure which accepts the file/directory name and returns a boolean value to indicate
-            whether that item should be included in the result or not.</description>
-        </attribute>
-        <attribute>
-            <type>string</type>
-            <name>filterDelimiters</name>
-            <required>false</required>
-            <rtexprvalue>true</rtexprvalue>
-            <description>Optional when passing a filter pattern. This value is used as a delimiter for the patterns.
-            Default is the pipe "|" character.</description>
-        </attribute>
-		<attribute>
-			<type>string</type>
-			<name>name</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-		<description>Record set name in which the result of the list action is stored.
-            The record set columns are:
-            name: filename of the entry in the JAR file. For example, if the entry is
-            help/docs/index.htm, the name is index.htm.
-            directory: directory containing the entry. For the example above, the
-            directory is help/docs. You can obtain the full entry name by concatenating
-            directory and name. If an entry is at the root level, the directory is empty ('').
-            size: uncompressed size of the entry, in bytes.
-            compressedSize: compressed size of the entry, in bytes.
-            type: type of entry (directory or file).
-            dateLastModified: last modified date of the entry, cfdate object.
-            comment: any comment, if present, for the entry.
-            crc: crc-32 checksum of the uncompressed entry data. </description>
-    </attribute>
-		<attribute>
-			<type>boolean</type>
-			<name>overwrite</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-		<description>unzip: Specifies whether to overwrite the extracted files:
-            yes: if the extracted file already exists at the destination specified,
-            the file is overwritten.
-            no: if the extracted file already exists at the destination specified,
-            the file is not overwritten and that entry is not extracted. The remaining
-            entries are extracted.
-            zip: Specifies whether to overwrite the contents of a ZIP or JAR file:
-            yes: overwrites all of the content in the ZIP or JAR file if it exists.
-            no: updates existing entries and adds new entries to the ZIP or JAR file
-            if it exists. (optional, default=no)</description>
-    </attribute>
-		<attribute>
-			<type>string</type>
-			<name>prefix</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-		<description>String added as a prefix to the ZIP or JAR entry.
-            The string is the name of a subdirectory in which the
-            entries are added. </description>
-    </attribute>
-		<attribute>
-			<type>boolean</type>
-			<name>recurse</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-		<description>Specifies whether the action
-            applies to subdirectories:
-            yes: includes subdirectories.
-            no: does not include subdirectories. (optional, default=yes)</description>
-    </attribute>
-		<attribute>
-			<type>boolean</type>
-			<name>showDirectory</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-		<description>yes: lists the directories.
-            no: does not list directories. (optional, default= no)</description>
-    </attribute>
-		<attribute>
-			<type>string</type>
-			<name>source</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-		<description>Source directory to be zipped. Not required
-            if cfzipparam is specified. </description>
-    </attribute>
-		<attribute>
-			<type>boolean</type>
-			<name>storePath</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-		<description>zip: Specifies whether pathnames are stored in the ZIP or JAR file:
-            yes: pathnames of entries are stored in the ZIP or JAR file.
-            no: pathnames of the entries are not stored in the ZIP or JAR file.
-            All the files are placed at the root level. In case of a name conflict,
-            the last file in the iteration is added.
-            unzip: Specifies whether files are stored at the entrypath:
-            yes: the files are extracted to the entrypath.
-            no: the entrypath is ignored and all the files are extracted
-            at the root level. (optional, default= yes)</description>
-    </attribute>
-		<attribute>
-			<type>string</type>
-			<name>variable</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-		<description>Variable in which the read content is stored. </description>
-    </attribute>
-	</tag> -->
-	<!-- ZipParam
-	<tag>
-		<name>ZipParam</name>
-		<tag-class>lucee.runtime.tag.ZipParam</tag-class>
-		<body-content>empty</body-content>
-		<body-rtexprvalue>false</body-rtexprvalue>
-		<script>
-			<type>multiple</type>
-			<rtexprvalue>true</rtexprvalue>
-		</script>
-		<description>The cfzipparam tag is always a child tag of the cfzip tag. see tag zip for more details.</description>
-		<attribute-type>fixed</attribute-type>
-		<attribute>
-			<type>string</type>
-			<name>charset</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-		<description>Converts string content into binary data before putting
-            it into a ZIP or JAR file. Used only when cfzip
-            action="zip" and the cfzipparam content is a string.
-            Examples of character sets are:
-             JIS
-             RFC1345
-             UTF-16 (optional, default=encoding of the host machine)</description>
-    </attribute>
-		<attribute>
-			<type>any</type>
-			<name>content</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-		<description>Content written to the ZIP or JAR entry. Used only when cfzip action="zip".
-            Valid content data types are binary and string. If you specify the content
-            attribute, you must specify the entrypath attribute. </description>
-    </attribute>
-		<attribute>
-			<type>string</type>
-			<name>entryPath</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-		<description>Pathname used:
-             For cfzip action="zip", it is the entrypath used. This is valid only
-            when the source is a file. The entrypath creates a subdirectory within
-            the ZIP or JAR file.
-             For cfzip action="unzip", it is the pathname to unzip.
-             For cfzip action="delete", it is the pathname to delete from the
-            ZIP or JAR file. </description>
-    </attribute>
-		<attribute>
-            <type>any</type>
-            <name>filter</name>
-            <required>false</required>
-            <rtexprvalue>true</rtexprvalue>
-            <description>Optional filter. Can be either a wildcard filter,
-            e.g. "m*", or a UDF/Closure which accepts the file/directory name and returns a boolean value to indicate
-            whether that item should be included in the result or not.</description>
-        </attribute>
-        <attribute>
-            <type>string</type>
-            <name>filterDelimiters</name>
-            <required>false</required>
-            <rtexprvalue>true</rtexprvalue>
-            <description>Optional when passing a filter pattern. This value is used as a delimiter for the patterns.
-            Default is the pipe "|" character.</description>
-        </attribute>
-		<attribute>
-			<type>string</type>
-			<name>prefix</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-		<description>String added as a prefix to the ZIP or JAR entry. Used only
-            when cfzip action="zip". </description>
-    </attribute>
-		<attribute>
-			<type>string</type>
-			<name>source</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-		<description>Source directory or file. Used only when cfzip action="zip".
-            Specified file(s) are added to the ZIP or JAR file:
-             If you specify source attribute for the cfzip tag, the
-            cfzipparam source is relative to it.
-             If you do not specify a source attribute for the cfzip
-            tag, the cfzipparam source must be an absolute path. </description>
-    </attribute>
-		<attribute>
-			<type>boolean</type>
-			<name>recurse</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-		<description>Recurse the directory to be zipped, unzipped, or deleted,
-            as specified by the cfzip parent tag. (optional, default=yes)</description>
-    </attribute>
-	</tag> -->
+
 
 	<!-- Form -->
 	<tag>
@@ -10118,6 +9979,15 @@ Valid only for cfinput type="text".</description>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>HTML attribute: Specifies the legal number intervals for the input field</description>
+		</attribute>
+		<attribute>
+			<type>boolean</type>
+			<name>encodeValue</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>By default the value parameter is automatically html encoded, but not using ESAPI encodeForHtmlAttribute() for historical reasons. Default is true.
+			Set to false to disable the encoding and handle the encoding yourself.
+			</description>
 		</attribute>
 	</tag>
 

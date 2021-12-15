@@ -23,19 +23,16 @@ package lucee.commons.lang.types;
  */
 public interface RefBoolean {
 
-    /**
-     * @param value
-     */
-    public void setValue(boolean value);
+	public void setValue(boolean value);
 
-    /**
-     * @return returns value as Boolean Object
-     */
-    public Boolean toBoolean();
+	/**
+	 * @return returns value as Boolean Object
+	 */
+	public Boolean toBoolean();
 
-    /**
-     * @return returns value as boolean value
-     */
-    public boolean toBooleanValue();
+	/**
+	 * @return returns value as boolean value
+	 */
+	public boolean toBooleanValue();
 
 }

@@ -31,49 +31,55 @@ import lucee.commons.io.DevNullServletOutputStream;
 
 public final class DevNullHttpServletResponse extends HttpServletResponseWrapper {
 
-    private HttpServletResponse httpServletResponse;
+	private HttpServletResponse httpServletResponse;
 
-    /**
-     * constructor of the class
-     * 
-     * @param httpServletResponse
-     */
-    public DevNullHttpServletResponse(HttpServletResponse httpServletResponse) {
-	super(httpServletResponse);
-	this.httpServletResponse = httpServletResponse;
-    }
+	/**
+	 * constructor of the class
+	 * 
+	 * @param httpServletResponse
+	 */
+	public DevNullHttpServletResponse(HttpServletResponse httpServletResponse) {
+		super(httpServletResponse);
+		this.httpServletResponse = httpServletResponse;
+	}
 
-    @Override
-    public void flushBuffer() {}
+	@Override
+	public void flushBuffer() {
+	}
 
-    @Override
-    public ServletResponse getResponse() {
-	return httpServletResponse;
-    }
+	@Override
+	public ServletResponse getResponse() {
+		return httpServletResponse;
+	}
 
-    @Override
-    public PrintWriter getWriter() throws IOException {
-	return new PrintWriter(DevNullOutputStream.DEV_NULL_OUTPUT_STREAM);
-    }
+	@Override
+	public PrintWriter getWriter() throws IOException {
+		return new PrintWriter(DevNullOutputStream.DEV_NULL_OUTPUT_STREAM);
+	}
 
-    @Override
-    public void reset() {}
+	@Override
+	public void reset() {
+	}
 
-    @Override
-    public void resetBuffer() {}
+	@Override
+	public void resetBuffer() {
+	}
 
-    @Override
-    public void setBufferSize(int size) {}
+	@Override
+	public void setBufferSize(int size) {
+	}
 
-    @Override
-    public void setContentLength(int size) {}
+	@Override
+	public void setContentLength(int size) {
+	}
 
-    @Override
-    public void setContentType(String type) {}
+	@Override
+	public void setContentType(String type) {
+	}
 
-    @Override
-    public ServletOutputStream getOutputStream() throws IOException {
-	return new DevNullServletOutputStream();
-    }
+	@Override
+	public ServletOutputStream getOutputStream() throws IOException {
+		return new DevNullServletOutputStream();
+	}
 
 }

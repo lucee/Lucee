@@ -43,95 +43,95 @@ import lucee.runtime.type.util.ListUtil;
  */
 public final class CacheClear extends BIF implements Function, CacheKeyFilter {
 
-    private static final long serialVersionUID = 6080620551371620016L;
+	private static final long serialVersionUID = 6080620551371620016L;
 
-    public static CacheKeyFilter FILTER = new CacheClear();
+	public static CacheKeyFilter FILTER = new CacheClear();
 
-    public static double call(PageContext pc) throws PageException {
-	return _call(pc, null, null);
-    }
-
-    // FUTURE remove, only exist for code in Lucee archives using that function
-    public static double call(PageContext pc, String strFilter) throws PageException {
-	return _call(pc, strFilter, null);
-    }
-
-    public static double call(PageContext pc, Object filterOrTags) throws PageException {
-	return _call(pc, filterOrTags, null);
-    }
-
-    // FUTURE remove, only exist for code in Lucee archives using that function
-    public static double call(PageContext pc, String filter, String cacheName) throws PageException {
-	return _call(pc, filter, cacheName);
-    }
-
-    public static double call(PageContext pc, Object filterOrTags, String cacheName) throws PageException {
-	return _call(pc, filterOrTags, cacheName);
-    }
-
-    private static double _call(PageContext pc, Object filterOrTags, String cacheName) throws PageException {
-	try {
-	    Object filter = FILTER;
-	    // tags
-	    boolean isArray = false;
-	    String dsn = null;
-	    if ((isArray = Decision.isArray(filterOrTags)) || Decision.isStruct(filterOrTags)) {
-
-		// read tags from collection and datasource (optional)
-		String[] tags;
-		if (!isArray) {
-		    Struct sct = Caster.toStruct(filterOrTags);
-		    Array arr = Caster.toArray(sct.get("tags", null), null);
-		    if (arr == null) throw new FunctionException(pc, "CacheClear", 1, "tags",
-			    "if you pass the tags within a struct, that struct need to have a key [tags] containing the tags in an array.");
-		    tags = ListUtil.toStringArray(arr);
-		    dsn = Caster.toString(sct.get(KeyConstants._datasource, null), null);
-		}
-		else {
-		    tags = ListUtil.toStringArray(Caster.toArray(filterOrTags));
-		}
-
-		// get default datasource
-		if (StringUtil.isEmpty(dsn)) {
-		    Object tmp = pc.getApplicationContext().getDefDataSource();
-		    dsn = tmp instanceof CharSequence ? Caster.toString(tmp, null) : null;
-		}
-
-		filter = new QueryTagFilter(tags, StringUtil.isEmpty(dsn) ? null : dsn);
-	    }
-	    // filter
-	    else {
-		String strFilter = Caster.toString(filterOrTags);
-		if (CacheGetAllIds.isFilter(strFilter)) filter = new WildCardFilter(strFilter, true);
-
-	    }
-
-	    Cache cache = CacheUtil.getCache(pc, cacheName, Config.CACHE_TYPE_OBJECT);
-	    if (filter instanceof CacheKeyFilter) return cache.remove((CacheKeyFilter) filter);
-	    return cache.remove((CacheEntryFilter) filter);
-
+	public static double call(PageContext pc) throws PageException {
+		return _call(pc, null, null);
 	}
-	catch (Exception e) {
-	    throw Caster.toPageException(e);
+
+	// FUTURE remove, only exist for code in Lucee archives using that function
+	public static double call(PageContext pc, String strFilter) throws PageException {
+		return _call(pc, strFilter, null);
 	}
-    }
 
-    @Override
-    public boolean accept(String key) {
-	return true;
-    }
+	public static double call(PageContext pc, Object filterOrTags) throws PageException {
+		return _call(pc, filterOrTags, null);
+	}
 
-    @Override
-    public String toPattern() {
-	return "*";
-    }
+	// FUTURE remove, only exist for code in Lucee archives using that function
+	public static double call(PageContext pc, String filter, String cacheName) throws PageException {
+		return _call(pc, filter, cacheName);
+	}
 
-    @Override
-    public Object invoke(PageContext pc, Object[] args) throws PageException {
-	if (args.length == 0) return call(pc);
-	if (args.length == 1) return call(pc, args[0]);
-	if (args.length == 2) return call(pc, args[0], Caster.toString(args[1]));
-	throw new FunctionException(pc, "CacheClear", 0, 2, args.length);
-    }
+	public static double call(PageContext pc, Object filterOrTags, String cacheName) throws PageException {
+		return _call(pc, filterOrTags, cacheName);
+	}
+
+	private static double _call(PageContext pc, Object filterOrTags, String cacheName) throws PageException {
+		try {
+			Object filter = FILTER;
+			// tags
+			boolean isArray = false;
+			String dsn = null;
+			if ((isArray = Decision.isArray(filterOrTags)) || Decision.isStruct(filterOrTags)) {
+
+				// read tags from collection and datasource (optional)
+				String[] tags;
+				if (!isArray) {
+					Struct sct = Caster.toStruct(filterOrTags);
+					Array arr = Caster.toArray(sct.get("tags", null), null);
+					if (arr == null) throw new FunctionException(pc, "CacheClear", 1, "tags",
+							"if you pass the tags within a struct, that struct need to have a key [tags] containing the tags in an array.");
+					tags = ListUtil.toStringArray(arr);
+					dsn = Caster.toString(sct.get(KeyConstants._datasource, null), null);
+				}
+				else {
+					tags = ListUtil.toStringArray(Caster.toArray(filterOrTags));
+				}
+
+				// get default datasource
+				if (StringUtil.isEmpty(dsn)) {
+					Object tmp = pc.getApplicationContext().getDefDataSource();
+					dsn = tmp instanceof CharSequence ? Caster.toString(tmp, null) : null;
+				}
+
+				filter = new QueryTagFilter(tags, StringUtil.isEmpty(dsn) ? null : dsn);
+			}
+			// filter
+			else {
+				String strFilter = Caster.toString(filterOrTags);
+				if (CacheGetAllIds.isFilter(strFilter)) filter = new WildCardFilter(strFilter, true);
+
+			}
+
+			Cache cache = CacheUtil.getCache(pc, cacheName, Config.CACHE_TYPE_OBJECT);
+			if (filter instanceof CacheKeyFilter) return cache.remove((CacheKeyFilter) filter);
+			return cache.remove((CacheEntryFilter) filter);
+
+		}
+		catch (Exception e) {
+			throw Caster.toPageException(e);
+		}
+	}
+
+	@Override
+	public boolean accept(String key) {
+		return true;
+	}
+
+	@Override
+	public String toPattern() {
+		return "*";
+	}
+
+	@Override
+	public Object invoke(PageContext pc, Object[] args) throws PageException {
+		if (args.length == 0) return call(pc);
+		if (args.length == 1) return call(pc, args[0]);
+		if (args.length == 2) return call(pc, args[0], Caster.toString(args[1]));
+		throw new FunctionException(pc, "CacheClear", 0, 2, args.length);
+	}
 
 }

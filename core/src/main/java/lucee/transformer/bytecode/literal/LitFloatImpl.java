@@ -35,66 +35,66 @@ import lucee.transformer.expression.literal.LitFloat;
  */
 public final class LitFloatImpl extends ExpressionBase implements LitFloat, ExprFloat {
 
-    private float f;
+	private float f;
 
-    /**
-     * constructor of the class
-     * 
-     * @param d
-     * @param line
-     */
-    public LitFloatImpl(Factory fac, float f, Position start, Position end) {
-	super(fac, start, end);
-	this.f = f;
-    }
-
-    @Override
-    public float getFloatValue() {
-	return f;
-    }
-
-    @Override
-    public Float getFloat() {
-	return new Float(f);
-    }
-
-    @Override
-    public String getString() {
-	return Caster.toString(f);
-    }
-
-    /**
-     * @return return value as a Boolean Object
-     */
-    public Boolean getBoolean() {
-	return Caster.toBoolean(f);
-    }
-
-    /**
-     * @return return value as a boolean value
-     */
-    public boolean getBooleanValue() {
-	return Caster.toBooleanValue(f);
-    }
-
-    @Override
-    public Type _writeOut(BytecodeContext bc, int mode) {
-	GeneratorAdapter adapter = bc.getAdapter();
-	adapter.push(f);
-	if (mode == MODE_REF) {
-	    adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_FLOAT_FROM_FLOAT);
-	    return Types.FLOAT;
+	/**
+	 * constructor of the class
+	 * 
+	 * @param d
+	 * @param line
+	 */
+	public LitFloatImpl(Factory fac, float f, Position start, Position end) {
+		super(fac, start, end);
+		this.f = f;
 	}
-	return Types.FLOAT_VALUE;
-    }
 
-    @Override
-    public Double getDouble(Double defaultValue) {
-	return new Double(getFloatValue());
-    }
+	@Override
+	public float getFloatValue() {
+		return f;
+	}
 
-    @Override
-    public Boolean getBoolean(Boolean defaultValue) {
-	return getBoolean();
-    }
+	@Override
+	public Float getFloat() {
+		return new Float(f);
+	}
+
+	@Override
+	public String getString() {
+		return Caster.toString(f);
+	}
+
+	/**
+	 * @return return value as a Boolean Object
+	 */
+	public Boolean getBoolean() {
+		return Caster.toBoolean(f);
+	}
+
+	/**
+	 * @return return value as a boolean value
+	 */
+	public boolean getBooleanValue() {
+		return Caster.toBooleanValue(f);
+	}
+
+	@Override
+	public Type _writeOut(BytecodeContext bc, int mode) {
+		GeneratorAdapter adapter = bc.getAdapter();
+		adapter.push(f);
+		if (mode == MODE_REF) {
+			adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_FLOAT_FROM_FLOAT);
+			return Types.FLOAT;
+		}
+		return Types.FLOAT_VALUE;
+	}
+
+	@Override
+	public Double getDouble(Double defaultValue) {
+		return new Double(getFloatValue());
+	}
+
+	@Override
+	public Boolean getBoolean(Boolean defaultValue) {
+		return getBoolean();
+	}
 }

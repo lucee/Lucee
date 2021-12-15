@@ -21,65 +21,65 @@ package lucee.runtime.db;
 import lucee.runtime.exp.PageException;
 
 /**
- * a Item of a SQL Statement
+ * an Item of a SQL Statement
  */
 public interface SQLItem {
 
-    /**
-     * @return Returns the nulls.
-     */
-    public abstract boolean isNulls();
+	/**
+	 * @return Returns the nulls.
+	 */
+	public abstract boolean isNulls();
 
-    /**
-     * @param nulls The nulls to set.
-     */
-    public abstract void setNulls(boolean nulls);
+	/**
+	 * @param nulls The nulls to set.
+	 */
+	public abstract void setNulls(boolean nulls);
 
-    /**
-     * @return Returns the scale.
-     */
-    public abstract int getScale();
+	/**
+	 * @return Returns the scale.
+	 */
+	public abstract int getScale();
 
-    /**
-     * @param scale The scale to set.
-     */
-    public abstract void setScale(int scale);
+	/**
+	 * @param scale The scale to set.
+	 */
+	public abstract void setScale(int scale);
 
-    /**
-     * @return Returns the value.
-     */
-    public abstract Object getValue();
+	/**
+	 * @return Returns the value.
+	 */
+	public abstract Object getValue();
 
-    /**
-     * @param value The value to set.
-     */
-    public abstract void setValue(Object value);
+	/**
+	 * @param value The value to set.
+	 */
+	public abstract void setValue(Object value);
 
-    /**
-     * @return Returns the cfsqltype.
-     */
-    public abstract int getType();
+	/**
+	 * @return Returns the cfsqltype.
+	 */
+	public abstract int getType();
 
-    /**
-     * @param type The cfsqltype to set.
-     */
-    public abstract void setType(int type);
+	/**
+	 * @param type The cfsqltype to set.
+	 */
+	public abstract void setType(int type);
 
-    /**
-     * @param object
-     * @return cloned SQL Item
-     */
-    public abstract SQLItem clone(Object object);
+	/**
+	 * @param object
+	 * @return cloned SQL Item
+	 */
+	public abstract SQLItem clone(Object object);
 
-    /**
-     * @return CF compatible Type
-     * @throws PageException
-     */
-    public abstract Object getValueForCF() throws PageException;
+	/**
+	 * @return CF compatible Type
+	 * @throws PageException
+	 */
+	public abstract Object getValueForCF() throws PageException;
 
-    /**
-     * @return Returns the isValueSet.
-     */
-    public abstract boolean isValueSet();
+	/**
+	 * @return Returns the isValueSet.
+	 */
+	public abstract boolean isValueSet();
 
 }

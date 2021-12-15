@@ -29,35 +29,35 @@ import lucee.runtime.op.Caster;
 
 public class FileWrite {
 
-    public static String call(PageContext pc, Object obj, Object data) throws PageException {
-	return call(pc, obj, data, ((PageContextImpl) pc).getResourceCharset().name());
-    }
-
-    public static String call(PageContext pc, Object obj, Object data, String charset) throws PageException {
-	FileStreamWrapper fsw = null;
-	boolean close = false;
-	if (StringUtil.isEmpty(charset, true)) charset = ((PageContextImpl) pc).getResourceCharset().name();
-	try {
-	    try {
-		if (obj instanceof FileStreamWrapper) {
-		    fsw = (FileStreamWrapper) obj;
-		}
-		else {
-		    close = true;
-		    Resource res = Caster.toResource(pc, obj, false);
-		    pc.getConfig().getSecurityManager().checkFileLocation(res);
-		    fsw = new FileStreamWrapperWrite(res, charset, false, false);
-		}
-		fsw.write(data);
-	    }
-	    finally {
-		if (close && fsw != null) fsw.close();
-	    }
-
+	public static String call(PageContext pc, Object obj, Object data) throws PageException {
+		return call(pc, obj, data, ((PageContextImpl) pc).getResourceCharset().name());
 	}
-	catch (IOException e) {
-	    throw Caster.toPageException(e);
+
+	public static String call(PageContext pc, Object obj, Object data, String charset) throws PageException {
+		FileStreamWrapper fsw = null;
+		boolean close = false;
+		if (StringUtil.isEmpty(charset, true)) charset = ((PageContextImpl) pc).getResourceCharset().name();
+		try {
+			try {
+				if (obj instanceof FileStreamWrapper) {
+					fsw = (FileStreamWrapper) obj;
+				}
+				else {
+					close = true;
+					Resource res = Caster.toResource(pc, obj, false);
+					pc.getConfig().getSecurityManager().checkFileLocation(res);
+					fsw = new FileStreamWrapperWrite(res, charset, false, false);
+				}
+				fsw.write(data);
+			}
+			finally {
+				if (close && fsw != null) fsw.close();
+			}
+
+		}
+		catch (IOException e) {
+			throw Caster.toPageException(e);
+		}
+		return null;
 	}
-	return null;
-    }
 }

@@ -26,7 +26,7 @@ import lucee.runtime.ext.function.Function;
  */
 public final class GetContextRoot implements Function {
 
-    public static String call(PageContext pc) {
-	return pc.getHttpServletRequest().getContextPath();
-    }
+	public static String call(PageContext pc) {
+		return pc.getHttpServletRequest().getContextPath();
+	}
 }

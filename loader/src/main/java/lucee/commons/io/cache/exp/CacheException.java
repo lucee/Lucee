@@ -21,18 +21,18 @@ package lucee.commons.io.cache.exp;
 import java.io.IOException;
 
 /**
- * Exceptin throwed by Cache or CacheEntry
+ * Exceptin thrown by Cache or CacheEntry
  */
 public class CacheException extends IOException {
 
-    private static final long serialVersionUID = -7937763383640628704L;
+	private static final long serialVersionUID = -7937763383640628704L;
 
-    /**
-     * Constructor of the class
-     * 
-     * @param message
-     */
-    public CacheException(final String message) {
-	super(message);
-    }
+	/**
+	 * Constructor of the class
+	 * 
+	 * @param message message of the exception
+	 */
+	public CacheException(final String message) {
+		super(message);
+	}
 }

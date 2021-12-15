@@ -24,6 +24,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 import javax.servlet.jsp.tagext.Tag;
 
+import lucee.commons.lang.ClassUtil;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.config.Identification;
 import lucee.runtime.exp.ExpressionException;
@@ -37,73 +38,71 @@ import lucee.transformer.library.ClassDefinitionImpl;
  * Pool to Handle Tags
  */
 public final class TagHandlerPool {
-    private ConcurrentHashMap<String, Queue<Tag>> map = new ConcurrentHashMap<String, Queue<Tag>>();
-    private ConfigWeb config;
+	private ConcurrentHashMap<String, Queue<Tag>> map = new ConcurrentHashMap<String, Queue<Tag>>();
+	private ConfigWeb config;
 
-    public TagHandlerPool(ConfigWeb config) {
-	this.config = config;
-    }
-
-    /**
-     * return a tag to use from a class
-     * 
-     * @param tagClass
-     * @return Tag
-     * @throws PageException
-     */
-    public Tag use(String className, String tagBundleName, String tagBundleVersion, Identification id) throws PageException {
-	Queue<Tag> queue = getQueue(toId(className, tagBundleName, tagBundleVersion));
-	Tag tag = queue.poll();
-	if (tag != null) return tag;
-	return loadTag(className, tagBundleName, tagBundleVersion, id);
-    }
-
-    private String toId(String className, String tagBundleName, String tagBundleVersion) {
-	if (tagBundleName == null && tagBundleVersion == null) return className;
-	if (tagBundleVersion == null) return className + ":" + tagBundleName;
-	return className + ":" + tagBundleName + ":" + tagBundleVersion;
-    }
-
-    /**
-     * free a tag for reusing
-     * 
-     * @param tag
-     * @throws ExpressionException
-     */
-    public void reuse(Tag tag) {
-	tag.release();
-	Queue<Tag> queue = getQueue(tag.getClass().getName());
-	queue.add(tag);
-    }
-
-    public void reuse(Tag tag, String bundleName, String bundleVersion) {
-	tag.release();
-	Queue<Tag> queue = getQueue(toId(tag.getClass().getName(), bundleName, bundleVersion));
-	queue.add(tag);
-    }
-
-    private Tag loadTag(String className, String tagBundleName, String tagBundleVersion, Identification id) throws PageException {
-	try {
-	    return (Tag) new ClassDefinitionImpl(className, tagBundleName, tagBundleVersion, id).getClazz().newInstance();
-	    // Class<Tag> clazz = ClassUtil.loadClass(config.getClassLoader(),tagClass);
-	    // return clazz.newInstance();
+	public TagHandlerPool(ConfigWeb config) {
+		this.config = config;
 	}
-	catch (Exception e) {
-	    throw Caster.toPageException(e);
+
+	/**
+	 * return a tag to use from a class
+	 * 
+	 * @param tagClass
+	 * @return Tag
+	 * @throws PageException
+	 */
+	public Tag use(String className, String tagBundleName, String tagBundleVersion, Identification id) throws PageException {
+		Queue<Tag> queue = getQueue(toId(className, tagBundleName, tagBundleVersion));
+		Tag tag = queue.poll();
+		if (tag != null) return tag;
+		return loadTag(className, tagBundleName, tagBundleVersion, id);
 	}
-    }
 
-    private Queue<Tag> getQueue(String id) {
-	Queue<Tag> queue = map.get(id);// doing get before, do avoid constructing ConcurrentLinkedQueue Object all the time
-	if (queue != null) return queue;
-	Queue<Tag> nq, oq;
-	oq = map.putIfAbsent(id, nq = new ConcurrentLinkedQueue<Tag>());
-	if (oq != null) return oq;
-	return nq;
+	private String toId(String className, String tagBundleName, String tagBundleVersion) {
+		if (tagBundleName == null && tagBundleVersion == null) return className;
+		if (tagBundleVersion == null) return className + ":" + tagBundleName;
+		return className + ":" + tagBundleName + ":" + tagBundleVersion;
+	}
 
-    }
+	/**
+	 * free a tag for reusing
+	 * 
+	 * @param tag
+	 * @throws ExpressionException
+	 */
+	public void reuse(Tag tag) {
+		tag.release();
+		Queue<Tag> queue = getQueue(tag.getClass().getName());
+		queue.add(tag);
+	}
 
-    public void reset() {
-	map.clear();
-    }
+	public void reuse(Tag tag, String bundleName, String bundleVersion) {
+		tag.release();
+		Queue<Tag> queue = getQueue(toId(tag.getClass().getName(), bundleName, bundleVersion));
+		queue.add(tag);
+	}
+
+	private Tag loadTag(String className, String tagBundleName, String tagBundleVersion, Identification id) throws PageException {
+		try {
+			return (Tag) ClassUtil.newInstance(new ClassDefinitionImpl(className, tagBundleName, tagBundleVersion, id).getClazz());
+		}
+		catch (Exception e) {
+			throw Caster.toPageException(e);
+		}
+	}
+
+	private Queue<Tag> getQueue(String id) {
+		Queue<Tag> queue = map.get(id);// doing get before, do avoid constructing ConcurrentLinkedQueue Object all the time
+		if (queue != null) return queue;
+		Queue<Tag> nq, oq;
+		oq = map.putIfAbsent(id, nq = new ConcurrentLinkedQueue<Tag>());
+		if (oq != null) return oq;
+		return nq;
+
+	}
+
+	public void reset() {
+		map.clear();
+	}
 }

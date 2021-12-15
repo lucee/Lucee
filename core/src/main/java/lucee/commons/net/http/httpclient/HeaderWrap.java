@@ -21,29 +21,29 @@ package lucee.commons.net.http.httpclient;
 import org.apache.http.Header;
 
 public class HeaderWrap implements lucee.commons.net.http.Header {
-    public final Header header;
+	public final Header header;
 
-    public HeaderWrap(Header header) {
-	this.header = header;
-    }
+	public HeaderWrap(Header header) {
+		this.header = header;
+	}
 
-    @Override
-    public String getName() {
-	return header.getName();
-    }
+	@Override
+	public String getName() {
+		return header.getName();
+	}
 
-    @Override
-    public String getValue() {
-	return header.getValue();
-    }
+	@Override
+	public String getValue() {
+		return header.getValue();
+	}
 
-    @Override
-    public String toString() {
-	return header.toString();
-    }
+	@Override
+	public String toString() {
+		return header.toString();
+	}
 
-    @Override
-    public boolean equals(Object obj) {
-	return header.equals(obj);
-    }
+	@Override
+	public boolean equals(Object obj) {
+		return header.equals(obj);
+	}
 }

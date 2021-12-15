@@ -30,130 +30,130 @@ import lucee.runtime.config.Config;
  */
 public interface Mapping extends Serializable {
 
-    public Class<?> getArchiveClass(String className) throws ClassNotFoundException;
+	public Class<?> getArchiveClass(String className) throws ClassNotFoundException;
 
-    public Class<?> getArchiveClass(String className, Class<?> defaultValue);
+	public Class<?> getArchiveClass(String className, Class<?> defaultValue);
 
-    public InputStream getArchiveResourceAsStream(String string);
+	public InputStream getArchiveResourceAsStream(String string);
 
-    public Class<?> getPhysicalClass(String className) throws ClassNotFoundException, IOException;
+	public Class<?> getPhysicalClass(String className) throws ClassNotFoundException, IOException;
 
-    public Class<?> getPhysicalClass(String className, byte[] code) throws IOException;
+	public Class<?> getPhysicalClass(String className, byte[] code) throws IOException;
 
-    /**
-     * @return Returns the physical.
-     */
-    public abstract Resource getPhysical();
+	/**
+	 * @return Returns the physical.
+	 */
+	public abstract Resource getPhysical();
 
-    /**
-     * @return Returns the virtual lower case.
-     */
-    public abstract String getVirtualLowerCase();
+	/**
+	 * @return Returns the virtual lower case.
+	 */
+	public abstract String getVirtualLowerCase();
 
-    /**
-     * @return Returns the virtual lower case with slash at the end.
-     */
-    public abstract String getVirtualLowerCaseWithSlash();
+	/**
+	 * @return Returns the virtual lower case with slash at the end.
+	 */
+	public abstract String getVirtualLowerCaseWithSlash();
 
-    /**
-     * @return return the archive file
-     */
-    public abstract Resource getArchive();
+	/**
+	 * @return return the archive file
+	 */
+	public abstract Resource getArchive();
 
-    /**
-     * @return returns if mapping has a archive
-     */
-    public abstract boolean hasArchive();
+	/**
+	 * @return returns if mapping has an archive
+	 */
+	public abstract boolean hasArchive();
 
-    /**
-     * @return return if mapping has a physical path
-     */
-    public abstract boolean hasPhysical();
+	/**
+	 * @return return if mapping has a physical path
+	 */
+	public abstract boolean hasPhysical();
 
-    /**
-     * @return class root directory
-     */
-    public abstract Resource getClassRootDirectory();
+	/**
+	 * @return class root directory
+	 */
+	public abstract Resource getClassRootDirectory();
 
-    /**
-     * pagesource matching given realpath
-     * 
-     * @param realPath
-     * @return matching pagesource
-     */
-    public abstract PageSource getPageSource(String realPath);
+	/**
+	 * pagesource matching given realpath
+	 * 
+	 * @param realPath
+	 * @return matching pagesource
+	 */
+	public abstract PageSource getPageSource(String realPath);
 
-    /**
-     * @param path
-     * @param isOut
-     * @return matching pagesource
-     */
-    public abstract PageSource getPageSource(String path, boolean isOut);
+	/**
+	 * @param path
+	 * @param isOut
+	 * @return matching pagesource
+	 */
+	public abstract PageSource getPageSource(String path, boolean isOut);
 
-    /**
-     * checks the mapping
-     */
-    public abstract void check();
+	/**
+	 * checks the mapping
+	 */
+	public abstract void check();
 
-    /**
-     * @return Returns the hidden.
-     */
-    public abstract boolean isHidden();
+	/**
+	 * @return Returns the hidden.
+	 */
+	public abstract boolean isHidden();
 
-    /**
-     * @return Returns the physicalFirst.
-     */
-    public abstract boolean isPhysicalFirst();
+	/**
+	 * @return Returns the physicalFirst.
+	 */
+	public abstract boolean isPhysicalFirst();
 
-    /**
-     * @return Returns the readonly.
-     */
-    public abstract boolean isReadonly();
+	/**
+	 * @return Returns the readonly.
+	 */
+	public abstract boolean isReadonly();
 
-    /**
-     * @return Returns the strArchive.
-     */
-    public abstract String getStrArchive();
+	/**
+	 * @return Returns the strArchive.
+	 */
+	public abstract String getStrArchive();
 
-    /**
-     * @return Returns the strPhysical.
-     */
-    public abstract String getStrPhysical();
+	/**
+	 * @return Returns the strPhysical.
+	 */
+	public abstract String getStrPhysical();
 
-    /**
-     * @return Returns the trusted.
-     * @deprecated use instead <code>public short getInspectTemplate();</code>
-     */
-    @Deprecated
-    public abstract boolean isTrusted();
+	/**
+	 * @return Returns the trusted.
+	 * @deprecated use instead <code>public short getInspectTemplate();</code>
+	 */
+	@Deprecated
+	public abstract boolean isTrusted();
 
-    public short getInspectTemplate();
+	public short getInspectTemplate();
 
-    public abstract boolean isTopLevel();
+	public abstract boolean isTopLevel();
 
-    /**
-     * @return Returns the virtual.
-     */
-    public abstract String getVirtual();
+	/**
+	 * @return Returns the virtual.
+	 */
+	public abstract String getVirtual();
 
-    /**
-     * returns config of the mapping
-     * 
-     * @return config
-     */
-    public Config getConfig();
+	/**
+	 * returns config of the mapping
+	 * 
+	 * @return config
+	 */
+	public Config getConfig();
 
-    /**
-     * mapping can have a specific listener mode to overwrite the listener mode coming from the
-     * Application Context
-     */
-    public int getListenerMode();
+	/**
+	 * mapping can have a specific listener mode to overwrite the listener mode coming from the
+	 * Application Context
+	 */
+	public int getListenerMode();
 
-    /**
-     * mapping can have a specific listener type to overwrite the listener mode coming from the
-     * Application Context
-     */
-    public int getListenerType();
+	/**
+	 * mapping can have a specific listener type to overwrite the listener mode coming from the
+	 * Application Context
+	 */
+	public int getListenerType();
 
-    // public void flush(); FUTURE
+	// public void flush(); FUTURE
 }

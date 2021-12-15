@@ -75,19 +75,26 @@
 			<cfadmin 
 				action="updateDebugSetting"
 				type="#request.adminType#"
-				password="#session["password"&request.adminType]#"
-				
+				password="#session["password"&request.adminType]#"				
                 maxLogs="#form.maxLogs#"
 				remoteClients="#request.getRemoteClients()#">
 			
 		</cfcase>
+	<!--- CLEAR DEBUG POOL OF LOGS --->
+	<cfcase value="#stText.Buttons.Purge#">
+		<cfadmin 
+			action="PurgeDebugPool"
+			type="#request.adminType#"
+			password="#session["password"&request.adminType]#"
+			remoteClients="#request.getRemoteClients()#">
+		<cfset logs = []>
+	</cfcase>
 	<!--- reset to server setting --->
 		<cfcase value="#stText.Buttons.resetServerAdmin#">
 			<cfadmin 
 				action="updateDebugSetting"
 				type="#request.adminType#"
-				password="#session["password"&request.adminType]#"
-				
+				password="#session["password"&request.adminType]#"				
                 maxLogs=""
 				remoteClients="#request.getRemoteClients()#">
 			
@@ -109,7 +116,7 @@
             <cfif isNumeric(trim(form.query))><cfset session.debugFilter.query=form.query><cfelse><cfset session.debugFilter.query=""></cfif>
             <cfif isNumeric(trim(form.app))><cfset session.debugFilter.app=form.app><cfelse><cfset session.debugFilter.app=""></cfif>
             <cfif isNumeric(trim(form.total))><cfset session.debugFilter.total=form.total><cfelse><cfset session.debugFilter.total=""></cfif>
-			</cfcase>
+		</cfcase>
         
         #stText.Debug.filter#
 	</cfswitch>

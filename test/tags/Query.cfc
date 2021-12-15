@@ -1,4 +1,4 @@
-<!--- 
+﻿<!--- 
  *
  * Copyright (c) 2014, the Railo Company LLC. All rights reserved.
  *
@@ -17,7 +17,7 @@
  * 
  ---><cfscript>
 component extends="org.lucee.cfml.test.LuceeTestCase"	{
-	
+	//processingdirective pageencoding="UTF-8";
 	variables.suffix="Query";
 
 	public function beforeTests(){
@@ -36,6 +36,20 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 			echo("id int NOT NULL,");
 			echo("i int,");		
 			echo("dec DECIMAL");		
+			echo(") ");
+		}
+
+		try{
+			query {
+				echo("drop TABLE TX"&suffix);
+			}
+		}
+		catch(local.e){}
+		
+		
+		query  {
+			echo("CREATE TABLE TX"&suffix&" (");
+			echo("str varchar(10)");		
 			echo(") ");
 		}
 	}
@@ -63,6 +77,49 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		assertEquals(columnList1,columnList2);
 		queryAddColumn(qry,"susi2");
 
+	}
+
+	public void function testQueryParamCharset() {
+		// when NO charset is defined, it checks char length
+		query name="local.qry" {
+			echo("insert into TX"&suffix&" (str) values(");
+			queryparam maxlength=10 value="ĀĀĀĀĀĀĀĀĀĀ";
+			echo(")");
+		}
+
+		// when charset is defined, it checks for byte length
+		var fail=false;
+		try{
+			query name="local.qry" {
+				echo("insert into TX"&suffix&" (str) values(");
+				queryparam maxlength=10 charset="UTF-8" value="ĀĀĀĀĀĀĀĀĀĀ";
+				echo(")");
+			}
+		}
+		catch(e) {
+			fail=true;
+		}
+		if(!fail) throw "it must fail when doing byte length compare!"
+		
+	}
+
+
+	public void function testParamsCharset() {
+		// when NO charset is defined, it checks char length
+		query name="local.qry" params=[{value:"ĀĀĀĀĀĀĀĀĀĀ",maxlength:10}] {
+			echo("insert into TX"&suffix&" (str) values(?)");
+		}
+		
+		var fail=false;
+		try{
+			query name="local.qry" params=[{value:"ĀĀĀĀĀĀĀĀĀĀ",charset:"UTF-8",maxlength:10}] {
+				echo("insert into TX"&suffix&" (str) values(?)");
+			}
+		}
+		catch(e) {
+			fail=true;
+		}
+		if(!fail) throw "it must fail when doing byte length compare!"
 	}
 
 	public void function testCachedAfter() {
@@ -224,6 +281,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		}
 		finally {
 			dropTable(tbl);
+			end();
 		}
 	}
 
@@ -300,6 +358,21 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 			}
 		}
 		catch(local.e){}
+	}
+
+	function end() {
+		var javaIoFile=createObject("java","java.io.File");
+		loop array=DirectoryList(
+			path=getDirectoryFromPath(getCurrentTemplatePath()), 
+			recurse=true, filter="*.db") item="local.path"  {
+			fileDeleteOnExit(javaIoFile,path);
+		}
+	}
+
+	private function fileDeleteOnExit(required javaIoFile, required string path) {
+		var file=javaIoFile.init(arguments.path);
+		if(!file.isFile())file=javaIoFile.init(expandPath(arguments.path));
+		if(file.isFile()) file.deleteOnExit();
 	}
 } 
 </cfscript>

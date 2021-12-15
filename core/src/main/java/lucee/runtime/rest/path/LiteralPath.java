@@ -22,19 +22,19 @@ import lucee.runtime.type.Struct;
 
 public class LiteralPath extends Path {
 
-    private String path;
+	private String path;
 
-    public LiteralPath(String path) {
-	this.path = path;
-    }
+	public LiteralPath(String path) {
+		this.path = path;
+	}
 
-    @Override
-    public boolean match(Struct variables, String path) {
-	return this.path.equals(path);
-    }
+	@Override
+	public boolean match(Struct variables, String path) {
+		return this.path.equals(path);
+	}
 
-    @Override
-    public String toString() {
-	return "literal:" + path;
-    }
+	@Override
+	public String toString() {
+		return "literal:" + path;
+	}
 }

@@ -25,6 +25,7 @@ import java.nio.charset.Charset;
 
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.log.Log;
+import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.ContentType;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.StringUtil;
@@ -33,7 +34,8 @@ import lucee.commons.net.http.HTTPResponse;
 import lucee.commons.net.http.Header;
 import lucee.commons.security.Credentials;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.engine.ThreadLocalConfig;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.functions.other.CreateUUID;
 import lucee.runtime.net.proxy.ProxyData;
@@ -42,139 +44,146 @@ import lucee.runtime.util.URLResolver;
 
 class ExecutionThread extends Thread {
 
-    private Config config;
-    // private Log log;
-    private ScheduleTask task;
-    private String charset;
+	private Config config;
+	// private Log log;
+	private ScheduleTask task;
+	private String charset;
 
-    public ExecutionThread(Config config, ScheduleTask task, String charset) {
-	this.config = config;
-	this.task = task;
-	this.charset = charset;
-    }
-
-    @Override
-    public void run() {
-	execute(config, task, charset);
-    }
-
-    public static void execute(Config config, ScheduleTask task, String charset) {
-	Log log = getLog(config);
-	boolean hasError = false;
-	String logName = "schedule task:" + task.getTask();
-	// init
-	// HttpClient client = new HttpClient();
-	// client.setStrictMode(false);
-	// HttpState state = client.getState();
-
-	String url;
-	if (task.getUrl().getQuery() == null) url = task.getUrl().toExternalForm() + "?RequestTimeout=" + (task.getTimeout() / 1000);
-	else if (StringUtil.isEmpty(task.getUrl().getQuery())) url = task.getUrl().toExternalForm() + "RequestTimeout=" + (task.getTimeout() / 1000);
-	else {
-	    if (StringUtil.indexOfIgnoreCase(task.getUrl().getQuery() + "", "RequestTimeout") != -1) url = task.getUrl().toExternalForm();
-	    else url = task.getUrl().toExternalForm() + "&RequestTimeout=" + (task.getTimeout() / 1000);
+	public ExecutionThread(Config config, ScheduleTask task, String charset) {
+		this.config = config;
+		this.task = task;
+		this.charset = charset;
 	}
 
-	// HttpMethod method = new GetMethod(url);
-	// HostConfiguration hostConfiguration = client.getHostConfiguration();
-
-	Header[] headers = new Header[] { HTTPEngine.header("User-Agent", "CFSCHEDULE") };
-	// method.setRequestHeader("User-Agent","CFSCHEDULE");
-
-	// Userame / Password
-	Credentials credentials = task.getCredentials();
-	String user = null, pass = null;
-	if (credentials != null) {
-	    user = credentials.getUsername();
-	    pass = credentials.getPassword();
-	    // get.addRequestHeader("Authorization","Basic admin:spwwn1p");
+	@Override
+	public void run() {
+		if (ThreadLocalPageContext.getConfig() == null && config != null) ThreadLocalConfig.register(config);
+		execute(config, task, charset);
 	}
 
-	// Proxy
-	ProxyData proxy = ProxyDataImpl.validate(task.getProxyData(), task.getUrl().getHost());
-	if (proxy == null) {
-	    proxy = ProxyDataImpl.validate(config.getProxyData(), task.getUrl().getHost());
-	}
+	public static void execute(Config config, ScheduleTask task, String charset) {
+		Scheduler scheduler = ((ScheduleTaskImpl) task).getScheduler();
+		if (scheduler instanceof SchedulerImpl && !((SchedulerImpl) scheduler).active()) return;
+		Log log = getLog(config);
+		boolean hasError = false;
+		String logName = "schedule task:" + task.getTask();
+		// init
+		// HttpClient client = new HttpClient();
+		// client.setStrictMode(false);
+		// HttpState state = client.getState();
 
-	HTTPResponse rsp = null;
+		String url;
+		if (task.getUrl().getQuery() == null) url = task.getUrl().toExternalForm() + "?RequestTimeout=" + (task.getTimeout() / 1000);
+		else if (StringUtil.isEmpty(task.getUrl().getQuery())) url = task.getUrl().toExternalForm() + "RequestTimeout=" + (task.getTimeout() / 1000);
+		else {
+			if (StringUtil.indexOfIgnoreCase(task.getUrl().getQuery() + "", "RequestTimeout") != -1) url = task.getUrl().toExternalForm();
+			else url = task.getUrl().toExternalForm() + "&RequestTimeout=" + (task.getTimeout() / 1000);
+		}
 
-	// execute
-	log.info(logName, "calling URL [" + url + "]");
-	try {
-	    rsp = HTTPEngine.get(new URL(url), user, pass, task.getTimeout(), true, charset, null, proxy, headers);
-	    if (rsp != null) {
-		int sc = rsp.getStatusCode();
-		if (sc >= 200 && sc < 300) log.info(logName, "sucessfully called URL [" + url + "], response code " + sc);
-		else log.warn(logName, "called URL [" + url + "] returned response code " + sc);
-	    }
+		// HttpMethod method = new GetMethod(url);
+		// HostConfiguration hostConfiguration = client.getHostConfiguration();
 
-	}
-	catch (Exception e) {
+		Header[] headers = new Header[] { HTTPEngine.header("User-Agent", "CFSCHEDULE") };
+		// method.setRequestHeader("User-Agent","CFSCHEDULE");
 
-	    log.log(Log.LEVEL_ERROR, logName, e);
-	    hasError = true;
-	}
+		// Userame / Password
+		Credentials credentials = task.getCredentials();
+		String user = null, pass = null;
+		if (credentials != null) {
+			user = credentials.getUsername();
+			pass = credentials.getPassword();
+			// get.addRequestHeader("Authorization","Basic admin:spwwn1p");
+		}
 
-	// write file
-	Resource file = task.getResource();
-	if (!hasError && file != null && task.isPublish()) {
-	    String n = file.getName();
-	    if (n.indexOf("{id}") != -1) {
-		n = StringUtil.replace(n, "{id}", CreateUUID.invoke(), false);
-		file = file.getParentResource().getRealResource(n);
-	    }
+		// Proxy
+		ProxyData proxy = ProxyDataImpl.validate(task.getProxyData(), task.getUrl().getHost());
+		if (proxy == null) {
+			proxy = ProxyDataImpl.validate(config.getProxyData(), task.getUrl().getHost());
+		}
 
-	    if (isText(rsp) && task.isResolveURL()) {
+		HTTPResponse rsp = null;
 
-		String str;
+		// execute
+		log.info(logName, "calling URL [" + url + "]");
 		try {
-		    InputStream stream = rsp.getContentAsStream();
-		    str = stream == null ? "" : IOUtil.toString(stream, (Charset) null);
-		    if (str == null) str = "";
+			rsp = HTTPEngine.get(new URL(url), user, pass, task.getTimeout(), true, charset, null, proxy, headers);
+			if (rsp != null) {
+				int sc = rsp.getStatusCode();
+				if (sc >= 200 && sc < 300) log.info(logName, "successfully called URL [" + url + "], response code " + sc);
+				else log.warn(logName, "called URL [" + url + "] returned response code " + sc);
+			}
+
 		}
-		catch (IOException e) {
-		    str = e.getMessage();
+		catch (Exception e) {
+			try {
+				log.log(Log.LEVEL_ERROR, logName, e);
+			}
+			catch (Exception ee) {
+				LogUtil.logGlobal(config, "scheduler", e);
+				LogUtil.logGlobal(config, "scheduler", ee);
+			}
+			hasError = true;
 		}
 
-		try {
-		    str = new URLResolver().transform(str, task.getUrl(), false);
+		// write file
+		Resource file = task.getResource();
+		if (!hasError && file != null && task.isPublish()) {
+			String n = file.getName();
+			if (n.indexOf("{id}") != -1) {
+				n = StringUtil.replace(n, "{id}", CreateUUID.invoke(), false);
+				file = file.getParentResource().getRealResource(n);
+			}
+
+			if (isText(rsp) && task.isResolveURL()) {
+
+				String str;
+				try {
+					InputStream stream = rsp.getContentAsStream();
+					str = stream == null ? "" : IOUtil.toString(stream, (Charset) null);
+					if (str == null) str = "";
+				}
+				catch (IOException e) {
+					str = e.getMessage();
+				}
+
+				try {
+					str = new URLResolver().transform(str, task.getUrl(), false);
+				}
+				catch (PageException e) {
+					log.log(Log.LEVEL_ERROR, logName, e);
+					hasError = true;
+				}
+				try {
+					IOUtil.write(file, str, charset, false);
+				}
+				catch (IOException e) {
+					log.log(Log.LEVEL_ERROR, logName, e);
+					hasError = true;
+				}
+			}
+			else {
+				try {
+					IOUtil.copy(rsp.getContentAsStream(), file, true);
+				}
+				catch (IOException e) {
+					log.log(Log.LEVEL_ERROR, logName, e);
+					hasError = true;
+				}
+			}
+			HTTPEngine.closeEL(rsp);
 		}
-		catch (PageException e) {
-		    log.log(Log.LEVEL_ERROR, logName, e);
-		    hasError = true;
-		}
-		try {
-		    IOUtil.write(file, str, charset, false);
-		}
-		catch (IOException e) {
-		    log.log(Log.LEVEL_ERROR, logName, e);
-		    hasError = true;
-		}
-	    }
-	    else {
-		try {
-		    IOUtil.copy(rsp.getContentAsStream(), file, true);
-		}
-		catch (IOException e) {
-		    log.log(Log.LEVEL_ERROR, logName, e);
-		    hasError = true;
-		}
-	    }
-	    HTTPEngine.closeEL(rsp);
 	}
-	if (!hasError) log.log(Log.LEVEL_INFO, logName, "executed");
-    }
 
-    private static Log getLog(Config config) {
-	return ((ConfigImpl) config).getLog("scheduler");
-    }
+	private static Log getLog(Config config) {
+		return config.getLog("scheduler");
+	}
 
-    private static boolean isText(HTTPResponse rsp) {
-	ContentType ct = rsp.getContentType();
-	if (ct == null) return true;
-	String mimetype = ct.getMimeType();
-	return mimetype == null || mimetype.startsWith("text") || mimetype.startsWith("application/octet-stream");
+	private static boolean isText(HTTPResponse rsp) {
+		ContentType ct = rsp.getContentType();
+		if (ct == null) return true;
+		String mimetype = ct.getMimeType();
+		return mimetype == null || mimetype.startsWith("text") || mimetype.startsWith("application/octet-stream");
 
-    }
+	}
 
 }

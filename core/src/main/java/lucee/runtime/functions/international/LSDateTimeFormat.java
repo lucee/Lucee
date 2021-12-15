@@ -32,22 +32,22 @@ import lucee.runtime.functions.displayFormatting.DateTimeFormat;
  */
 public final class LSDateTimeFormat implements Function {
 
-    private static final long serialVersionUID = -1677384484943178492L;
+	private static final long serialVersionUID = -1677384484943178492L;
 
-    public static String call(PageContext pc, Object object) throws ExpressionException {
-	return DateTimeFormat.invoke(pc, object, null, pc.getLocale(), ThreadLocalPageContext.getTimeZone(pc));
-    }
+	public static String call(PageContext pc, Object object) throws ExpressionException {
+		return DateTimeFormat.invoke(pc, object, null, pc.getLocale(), ThreadLocalPageContext.getTimeZone(pc));
+	}
 
-    public static String call(PageContext pc, Object object, String mask) throws ExpressionException {
-	return DateTimeFormat.invoke(pc, object, mask, pc.getLocale(), ThreadLocalPageContext.getTimeZone(pc));
-    }
+	public static String call(PageContext pc, Object object, String mask) throws ExpressionException {
+		return DateTimeFormat.invoke(pc, object, mask, pc.getLocale(), ThreadLocalPageContext.getTimeZone(pc));
+	}
 
-    public static String call(PageContext pc, Object object, String mask, Locale locale) throws ExpressionException {
-	return DateTimeFormat.invoke(pc, object, mask, locale, ThreadLocalPageContext.getTimeZone(pc));
-    }
+	public static String call(PageContext pc, Object object, String mask, Locale locale) throws ExpressionException {
+		return DateTimeFormat.invoke(pc, object, mask, locale, ThreadLocalPageContext.getTimeZone(pc));
+	}
 
-    public static String call(PageContext pc, Object object, String mask, Locale locale, TimeZone tz) throws ExpressionException {
-	return DateTimeFormat.invoke(pc, object, mask, locale == null ? pc.getLocale() : locale, tz == null ? ThreadLocalPageContext.getTimeZone(pc) : tz);
-    }
+	public static String call(PageContext pc, Object object, String mask, Locale locale, TimeZone tz) throws ExpressionException {
+		return DateTimeFormat.invoke(pc, object, mask, locale == null ? pc.getLocale() : locale, tz == null ? ThreadLocalPageContext.getTimeZone(pc) : tz);
+	}
 
 }

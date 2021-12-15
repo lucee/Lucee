@@ -36,15 +36,13 @@ import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.CFMLFactoryImpl;
 import lucee.runtime.Mapping;
-import lucee.runtime.MappingImpl;
-import lucee.runtime.PageSource;
-import lucee.runtime.PageSourcePool;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigServer;
 import lucee.runtime.config.ConfigWeb;
-import lucee.runtime.config.ConfigWebImpl;
+import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.config.DeployHandler;
 import lucee.runtime.config.XMLConfigAdmin;
+import lucee.runtime.extension.RHExtension;
 import lucee.runtime.functions.system.PagePoolClear;
 import lucee.runtime.lock.LockManagerImpl;
 import lucee.runtime.net.smtp.SMTPConnectionPool;
@@ -59,570 +57,538 @@ import lucee.runtime.type.util.ArrayUtil;
  */
 public final class Controler extends Thread {
 
-    private static final long TIMEOUT = 50 * 1000;
+	private static final long TIMEOUT = 50 * 1000;
 
-    private int interval;
-    private long lastMinuteInterval = System.currentTimeMillis() - (1000 * 59); // first after a second
-    private long last10SecondsInterval = System.currentTimeMillis() - (1000 * 9); // first after a second
-    private long lastHourInterval = System.currentTimeMillis();
+	private static final ControllerState INACTIVE = new ControllerStateImpl(false);
 
-    private final Map contextes;
-    // private ScheduleThread scheduleThread;
-    private final ConfigServer configServer;
-    // private final ShutdownHook shutdownHook;
-    private ControllerState state;
+	private int interval;
+	private long lastMinuteInterval = System.currentTimeMillis() - (1000 * 59); // first after a second
+	private long last10SecondsInterval = System.currentTimeMillis() - (1000 * 9); // first after a second
+	private long lastHourInterval = System.currentTimeMillis();
 
-    /**
-     * @param contextes
-     * @param interval
-     * @param run
-     */
-    public Controler(ConfigServer configServer, Map contextes, int interval, ControllerState state) {
-	this.contextes = contextes;
-	this.interval = interval;
-	this.state = state;
-	this.configServer = configServer;
+	private final Map contextes;
+	// private ScheduleThread scheduleThread;
+	private final ConfigServer configServer;
+	// private final ShutdownHook shutdownHook;
+	private ControllerState state;
 
-	// shutdownHook=new ShutdownHook(configServer);
-	// Runtime.getRuntime().addShutdownHook(shutdownHook);
-    }
+	private boolean poolValidate;
 
-    private static class ControlerThread extends Thread {
-	private Controler controler;
-	private CFMLFactoryImpl[] factories;
-	private boolean firstRun;
-	private long done = -1;
-	private Throwable t;
-	private Log log;
-	private long start;
+	/**
+	 * @param contextes
+	 * @param interval
+	 * @param run
+	 */
+	public Controler(ConfigServer configServer, Map contextes, int interval, ControllerState state) {
+		this.contextes = contextes;
+		this.interval = interval;
+		this.state = state;
+		this.configServer = configServer;
+		this.poolValidate = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.datasource.pool.validate", null), true);
+		// shutdownHook=new ShutdownHook(configServer);
+		// Runtime.getRuntime().addShutdownHook(shutdownHook);
+	}
 
-	public ControlerThread(Controler controler, CFMLFactoryImpl[] factories, boolean firstRun, Log log) {
-	    this.start = System.currentTimeMillis();
-	    this.controler = controler;
-	    this.factories = factories;
-	    this.firstRun = firstRun;
-	    this.log = log;
+	private static class ControlerThread extends Thread {
+		private Controler controler;
+		private CFMLFactoryImpl[] factories;
+		private boolean firstRun;
+		private long done = -1;
+		private Throwable t;
+		private Log log;
+		private long start;
+
+		public ControlerThread(Controler controler, CFMLFactoryImpl[] factories, boolean firstRun, Log log) {
+			this.start = System.currentTimeMillis();
+			this.controler = controler;
+			this.factories = factories;
+			this.firstRun = firstRun;
+			this.log = log;
+		}
+
+		@Override
+		public void run() {
+			long start = System.currentTimeMillis();
+			try {
+				controler.control(factories, firstRun);
+				done = System.currentTimeMillis() - start;
+			}
+			catch (Throwable t) {
+				ExceptionUtil.rethrowIfNecessary(t);
+				this.t = t;
+			}
+			// long time=System.currentTimeMillis()-start;
+			// if(time>10000) {
+			// log.info("controller", "["+hashCode()+"] controller was running for "+time+"ms");
+			// }
+		}
 	}
 
 	@Override
 	public void run() {
-	    long start = System.currentTimeMillis();
-	    try {
-		controler.control(factories, firstRun);
-		done = System.currentTimeMillis() - start;
-	    }
-	    catch (Throwable t) {
-		ExceptionUtil.rethrowIfNecessary(t);
-		this.t = t;
-	    }
-	    // long time=System.currentTimeMillis()-start;
-	    // if(time>10000) {
-	    // log.info("controller", "["+hashCode()+"] controller was running for "+time+"ms");
-	    // }
-	}
-    }
+		// scheduleThread.start();
+		boolean firstRun = true;
+		List<ControlerThread> threads = new ArrayList<ControlerThread>();
+		CFMLFactoryImpl factories[] = null;
+		while (state.active()) {
 
-    @Override
-    public void run() {
-	// scheduleThread.start();
-	boolean firstRun = true;
-	List<ControlerThread> threads = new ArrayList<ControlerThread>();
-	CFMLFactoryImpl factories[] = null;
-	while (state.active()) {
-	    // sleep
-	    SystemUtil.sleep(interval);
-	    factories = toFactories(factories, contextes);
-	    // start the thread that calls control
-	    ControlerThread ct = new ControlerThread(this, factories, firstRun, configServer.getLog("application"));
-	    ct.start();
-	    threads.add(ct);
+			// sleep
+			SystemUtil.wait(this, interval);
+			if (!state.active()) break;
 
-	    if (threads.size() > 10 && lastMinuteInterval + 60000 < System.currentTimeMillis())
-		configServer.getLog("application").info("controller", threads.size() + " active controller threads");
+			factories = toFactories(factories, contextes);
+			// start the thread that calls control
+			ControlerThread ct = new ControlerThread(this, factories, firstRun, configServer.getLog("application"));
+			ct.start();
+			threads.add(ct);
 
-	    // now we check all threads we have
-	    Iterator<ControlerThread> it = threads.iterator();
-	    long time;
-	    while (it.hasNext()) {
-		ct = it.next();
-		// print.e(ct.hashCode());
-		time = System.currentTimeMillis() - ct.start;
-		// done
-		if (ct.done >= 0) {
-		    if (time > 10000) configServer.getLog("application").info("controller", "controler took " + ct.done + "ms to execute sucessfully.");
-		    it.remove();
+			if (threads.size() > 10 && lastMinuteInterval + 60000 < System.currentTimeMillis())
+				configServer.getLog("application").info("controller", threads.size() + " active controller threads");
+
+			// now we check all threads we have
+			Iterator<ControlerThread> it = threads.iterator();
+			long time;
+			while (it.hasNext()) {
+				ct = it.next();
+				// print.e(ct.hashCode());
+				time = System.currentTimeMillis() - ct.start;
+				// done
+				if (ct.done >= 0) {
+					if (time > 10000) configServer.getLog("application").info("controller", "controller took " + ct.done + "ms to execute successfully.");
+					it.remove();
+				}
+				// failed
+				else if (ct.t != null) {
+					configServer.getLog("application").log(Log.LEVEL_ERROR, "controler", ct.t);
+					it.remove();
+				}
+				// stop it!
+				else if (time > TIMEOUT) {
+					SystemUtil.stop(ct);
+					// print.e(ct.getStackTrace());
+					if (!ct.isAlive()) {
+						configServer.getLog("application").error("controller", "controller thread [" + ct.hashCode() + "] forced to stop after " + time + "ms");
+						it.remove();
+					}
+					else {
+						Throwable t = new Throwable();
+						t.setStackTrace(ct.getStackTrace());
+
+						configServer.getLog("application").log(Log.LEVEL_ERROR, "controler", "was not able to stop controller thread running for " + time + "ms", t);
+					}
+				}
+			}
+			if (factories.length > 0) firstRun = false;
 		}
-		// failed
-		else if (ct.t != null) {
-		    configServer.getLog("application").log(Log.LEVEL_ERROR, "controler", ct.t);
-		    it.remove();
-		}
-		// stop it!
-		else if (time > TIMEOUT) {
-		    SystemUtil.stop(ct);
-		    // print.e(ct.getStackTrace());
-		    if (!ct.isAlive()) {
-			configServer.getLog("application").error("controller", "controler thread [" + ct.hashCode() + "] forced to stop after " + time + "ms");
-			it.remove();
-		    }
-		    else {
-			Throwable t = new Throwable();
-			t.setStackTrace(ct.getStackTrace());
-
-			configServer.getLog("application").log(Log.LEVEL_ERROR, "controler", "was not able to stop controller thread running for " + time + "ms", t);
-		    }
-		}
-	    }
-	    if (factories.length > 0) firstRun = false;
-	}
-    }
-
-    private void control(CFMLFactoryImpl[] factories, boolean firstRun) {
-	long now = System.currentTimeMillis();
-	boolean do10Seconds = last10SecondsInterval + 10000 < now;
-	if (do10Seconds) last10SecondsInterval = now;
-
-	boolean doMinute = lastMinuteInterval + 60000 < now;
-	if (doMinute) lastMinuteInterval = now;
-
-	boolean doHour = (lastHourInterval + (1000 * 60 * 60)) < now;
-	if (doHour) lastHourInterval = now;
-
-	// broadcast cluster scope
-	try {
-	    ScopeContext.getClusterScope(configServer, true).broadcast();
-	}
-	catch (Throwable t) {
-	    ExceptionUtil.rethrowIfNecessary(t);
 	}
 
-	// every 10 seconds
-	if (do10Seconds) {
-	    // deploy extensions, archives ...
-	    // try{DeployHandler.deploy(configServer);}catch(Throwable t){ExceptionUtil.rethrowIfNecessary(t);}
-	}
-	// every minute
-	if (doMinute) {
-	    // deploy extensions, archives ...
-	    try {
-		DeployHandler.deploy(configServer);
-	    }
-	    catch (Throwable t) {
-		ExceptionUtil.rethrowIfNecessary(t);
-	    }
-	    try {
-		XMLConfigAdmin.checkForChangesInConfigFile(configServer);
-	    }
-	    catch (Throwable t) {
-		ExceptionUtil.rethrowIfNecessary(t);
-	    }
-	}
-	// every hour
-	if (doHour) {
-	    try {
-		configServer.checkPermGenSpace(true);
-	    }
-	    catch (Throwable t) {
-		ExceptionUtil.rethrowIfNecessary(t);
-	    }
-	}
+	private void control(CFMLFactoryImpl[] factories, boolean firstRun) {
+		long now = System.currentTimeMillis();
+		boolean do10Seconds = last10SecondsInterval + 10000 < now;
+		if (do10Seconds) last10SecondsInterval = now;
 
-	for (int i = 0; i < factories.length; i++) {
-	    control(factories[i], do10Seconds, doMinute, doHour, firstRun);
-	}
-    }
+		boolean doMinute = lastMinuteInterval + 60000 < now;
+		if (doMinute) lastMinuteInterval = now;
 
-    private void control(CFMLFactoryImpl cfmlFactory, boolean do10Seconds, boolean doMinute, boolean doHour, boolean firstRun) {
-	try {
-	    boolean isRunning = cfmlFactory.getUsedPageContextLength() > 0;
-	    if (isRunning) {
-		cfmlFactory.checkTimeout();
-	    }
-	    ConfigWeb config = null;
+		boolean doHour = (lastHourInterval + (1000 * 60 * 60)) < now;
+		if (doHour) lastHourInterval = now;
 
-	    if (firstRun) {
-		config = cfmlFactory.getConfig();
-		ThreadLocalConfig.register(config);
-
-		config.reloadTimeServerOffset();
-		checkOldClientFile(config);
-
-		// try{checkStorageScopeFile(config,Session.SCOPE_CLIENT);}catch(Throwable t)
-		// {ExceptionUtil.rethrowIfNecessary(t);}
-		// try{checkStorageScopeFile(config,Session.SCOPE_SESSION);}catch(Throwable t)
-		// {ExceptionUtil.rethrowIfNecessary(t);}
+		// broadcast cluster scope
 		try {
-		    config.reloadTimeServerOffset();
+			ScopeContext.getClusterScope(configServer, true).broadcast();
 		}
 		catch (Throwable t) {
-		    ExceptionUtil.rethrowIfNecessary(t);
-		}
-		try {
-		    checkTempDirectorySize(config);
-		}
-		catch (Throwable t) {
-		    ExceptionUtil.rethrowIfNecessary(t);
-		}
-		try {
-		    checkCacheFileSize(config);
-		}
-		catch (Throwable t) {
-		    ExceptionUtil.rethrowIfNecessary(t);
-		}
-		try {
-		    cfmlFactory.getScopeContext().clearUnused();
-		}
-		catch (Throwable t) {
-		    ExceptionUtil.rethrowIfNecessary(t);
-		}
-	    }
-
-	    if (config == null) {
-		config = cfmlFactory.getConfig();
-	    }
-	    ThreadLocalConfig.register(config);
-	    if (do10Seconds) {
-		// try{DeployHandler.deploy(config);}catch(Throwable t){ExceptionUtil.rethrowIfNecessary(t);}
-	    }
-
-	    // every Minute
-	    if (doMinute) {
-		if (config == null) {
-		    config = cfmlFactory.getConfig();
-		}
-		ThreadLocalConfig.register(config);
-
-		try {
-		    ((SchedulerImpl) ((ConfigWebImpl) config).getScheduler()).startIfNecessary();
-		}
-		catch (Exception e) {
-		    LogUtil.log(ThreadLocalPageContext.getConfig(configServer), Controler.class.getName(), e);
+			ExceptionUtil.rethrowIfNecessary(t);
 		}
 
-		// double check templates
-		try {
-		    ((ConfigWebImpl) config).getCompiler().checkWatched();
-		}
-		catch (Exception e) {
-		    LogUtil.log(ThreadLocalPageContext.getConfig(configServer), Controler.class.getName(), e);
-		}
-
-		// deploy extensions, archives ...
-		try {
-		    DeployHandler.deploy(config);
-		}
-		catch (Throwable t) {
-		    ExceptionUtil.rethrowIfNecessary(t);
+		if (firstRun) {
+			try {
+				RHExtension.correctExtensions(configServer);
+			}
+			catch (Exception e) {
+			}
 		}
 
-		// clear unused DB Connections
-		try {
-		    ((ConfigImpl) config).getDatasourceConnectionPool().clear(false);
+		// every 10 seconds
+		if (do10Seconds) {
+			// deploy extensions, archives ...
+			// try{DeployHandler.deploy(configServer);}catch(Throwable t){ExceptionUtil.rethrowIfNecessary(t);}
 		}
-		catch (Throwable t) {
-		    ExceptionUtil.rethrowIfNecessary(t);
+		// every minute
+		if (doMinute) {
+			// deploy extensions, archives ...
+			try {
+				DeployHandler.deploy(configServer, false);
+			}
+			catch (Throwable t) {
+				ExceptionUtil.rethrowIfNecessary(t);
+			}
+			try {
+				XMLConfigAdmin.checkForChangesInConfigFile(configServer);
+			}
+			catch (Throwable t) {
+				ExceptionUtil.rethrowIfNecessary(t);
+			}
 		}
-		// clear all unused scopes
-		try {
-		    cfmlFactory.getScopeContext().clearUnused();
-		}
-		catch (Throwable t) {
-		    ExceptionUtil.rethrowIfNecessary(t);
-		}
-		// Memory usage
-		// clear Query Cache
-		/*
-		 * try{ ConfigWebUtil.getCacheHandlerFactories(config).query.clean(null);
-		 * ConfigWebUtil.getCacheHandlerFactories(config).include.clean(null);
-		 * ConfigWebUtil.getCacheHandlerFactories(config).function.clean(null);
-		 * //cfmlFactory.getDefaultQueryCache().clearUnused(null); }catch(Throwable
-		 * t){ExceptionUtil.rethrowIfNecessary(t);}
-		 */
-		// contract Page Pool
-		try {
-		    doClearPagePools((ConfigWebImpl) config);
-		}
-		catch (Exception e) {}
-		// try{checkPermGenSpace((ConfigWebImpl) config);}catch(Throwable t)
-		// {ExceptionUtil.rethrowIfNecessary(t);}
-		try {
-		    doCheckMappings(config);
-		}
-		catch (Throwable t) {
-		    ExceptionUtil.rethrowIfNecessary(t);
-		}
-		try {
-		    doClearMailConnections();
-		}
-		catch (Throwable t) {
-		    ExceptionUtil.rethrowIfNecessary(t);
-		}
-		// clean LockManager
-		if (cfmlFactory.getUsedPageContextLength() == 0) try {
-		    ((LockManagerImpl) config.getLockManager()).clean();
-		}
-		catch (Throwable t) {
-		    ExceptionUtil.rethrowIfNecessary(t);
+		// every hour
+		if (doHour) {
+			try {
+				configServer.checkPermGenSpace(true);
+			}
+			catch (Throwable t) {
+				ExceptionUtil.rethrowIfNecessary(t);
+			}
 		}
 
-		try {
-		    XMLConfigAdmin.checkForChangesInConfigFile(config);
+		for (int i = 0; i < factories.length; i++) {
+			control(factories[i], do10Seconds, doMinute, doHour, firstRun);
 		}
-		catch (Throwable t) {
-		    ExceptionUtil.rethrowIfNecessary(t);
-		}
-
-	    }
-	    // every hour
-	    if (doHour) {
-		if (config == null) {
-		    config = cfmlFactory.getConfig();
-		}
-		ThreadLocalConfig.register(config);
-
-		// time server offset
-		try {
-		    config.reloadTimeServerOffset();
-		}
-		catch (Throwable t) {
-		    ExceptionUtil.rethrowIfNecessary(t);
-		}
-		// check file based client/session scope
-		// try{checkStorageScopeFile(config,Session.SCOPE_CLIENT);}catch(Throwable t)
-		// {ExceptionUtil.rethrowIfNecessary(t);}
-		// try{checkStorageScopeFile(config,Session.SCOPE_SESSION);}catch(Throwable t)
-		// {ExceptionUtil.rethrowIfNecessary(t);}
-		// check temp directory
-		try {
-		    checkTempDirectorySize(config);
-		}
-		catch (Throwable t) {
-		    ExceptionUtil.rethrowIfNecessary(t);
-		}
-		// check cache directory
-		try {
-		    checkCacheFileSize(config);
-		}
-		catch (Throwable t) {
-		    ExceptionUtil.rethrowIfNecessary(t);
-		}
-	    }
-
-	    try {
-		configServer.checkPermGenSpace(true);
-	    }
-	    catch (Throwable t) {
-		ExceptionUtil.rethrowIfNecessary(t);
-	    }
-	}
-	catch (Throwable t) {
-	    ExceptionUtil.rethrowIfNecessary(t);
-	}
-	finally {
-	    ThreadLocalConfig.release();
-	}
-    }
-
-    private void doClearPagePools(ConfigWebImpl config) {
-	PagePoolClear.clear(null, config, true);
-    }
-
-    private CFMLFactoryImpl[] toFactories(CFMLFactoryImpl[] factories, Map contextes) {
-	if (factories == null || factories.length != contextes.size()) factories = (CFMLFactoryImpl[]) contextes.values().toArray(new CFMLFactoryImpl[contextes.size()]);
-
-	return factories;
-    }
-
-    private void doClearMailConnections() {
-	SMTPConnectionPool.closeSessions();
-    }
-
-    private void checkOldClientFile(ConfigWeb config) {
-	ExtensionResourceFilter filter = new ExtensionResourceFilter(".script", false);
-
-	// move old structured file in new structure
-	try {
-	    Resource dir = config.getClientScopeDir(), trgres;
-	    Resource[] children = dir.listResources(filter);
-	    String src, trg;
-	    int index;
-	    for (int i = 0; i < children.length; i++) {
-		src = children[i].getName();
-		index = src.indexOf('-');
-
-		trg = StorageScopeFile.getFolderName(src.substring(0, index), src.substring(index + 1), false);
-		trgres = dir.getRealResource(trg);
-		if (!trgres.exists()) {
-		    trgres.createFile(true);
-		    ResourceUtil.copy(children[i], trgres);
-		}
-		// children[i].moveTo(trgres);
-		children[i].delete();
-
-	    }
-	}
-	catch (Throwable t) {
-	    ExceptionUtil.rethrowIfNecessary(t);
-	}
-    }
-
-    private void checkCacheFileSize(ConfigWeb config) {
-	checkSize(config, config.getCacheDir(), config.getCacheDirSize(), new ExtensionResourceFilter(".cache"));
-    }
-
-    private void checkTempDirectorySize(ConfigWeb config) {
-	checkSize(config, config.getTempDirectory(), 1024 * 1024 * 1024, null);
-    }
-
-    private void checkSize(ConfigWeb config, Resource dir, long maxSize, ResourceFilter filter) {
-	if (!dir.exists()) return;
-	Resource res = null;
-	int count = ArrayUtil.size(filter == null ? dir.list() : dir.list(filter));
-	long size = ResourceUtil.getRealSize(dir, filter);
-	LogUtil.log(ThreadLocalPageContext.getConfig(config), Log.LEVEL_WARN, Controler.class.getName(), "check size of directory [" + dir + "]");
-	LogUtil.log(ThreadLocalPageContext.getConfig(config), Log.LEVEL_WARN, Controler.class.getName(), "- current size	[" + size + "]");
-	LogUtil.log(ThreadLocalPageContext.getConfig(config), Log.LEVEL_WARN, Controler.class.getName(), "- max size 	[" + maxSize + "]");
-	int len = -1;
-	while (count > 100000 || size > maxSize) {
-	    Resource[] files = filter == null ? dir.listResources() : dir.listResources(filter);
-	    if (len == files.length) break;// protect from inifinti loop
-	    len = files.length;
-	    for (int i = 0; i < files.length; i++) {
-		if (res == null || res.lastModified() > files[i].lastModified()) {
-		    res = files[i];
-		}
-	    }
-	    if (res != null) {
-		size -= res.length();
-		try {
-		    res.remove(true);
-		    count--;
-		}
-		catch (IOException e) {
-		    LogUtil.log(ThreadLocalPageContext.getConfig(config), Log.LEVEL_WARN, Controler.class.getName(), "cannot remove resource " + res.getAbsolutePath());
-		    break;
-		}
-	    }
-	    res = null;
 	}
 
-    }
+	private void control(CFMLFactoryImpl cfmlFactory, boolean do10Seconds, boolean doMinute, boolean doHour, boolean firstRun) {
+		try {
+			boolean isRunning = cfmlFactory.getUsedPageContextLength() > 0;
+			if (isRunning) {
+				cfmlFactory.checkTimeout();
+			}
+			ConfigWeb config = null;
 
-    private void doCheckMappings(ConfigWeb config) {
-	Mapping[] mappings = config.getMappings();
-	for (int i = 0; i < mappings.length; i++) {
-	    Mapping mapping = mappings[i];
-	    mapping.check();
-	}
-    }
+			if (firstRun) {
+				config = cfmlFactory.getConfig();
+				ThreadLocalConfig.register(config);
 
-    private PageSourcePool[] getPageSourcePools(ConfigWeb config) {
-	return getPageSourcePools(config.getMappings());
-    }
+				config.reloadTimeServerOffset();
+				checkOldClientFile(config);
 
-    private PageSourcePool[] getPageSourcePools(Mapping... mappings) {
-	PageSourcePool[] pools = new PageSourcePool[mappings.length];
-	// int size=0;
+				try {
+					RHExtension.correctExtensions(config);
+				}
+				catch (Exception e) {
+				}
 
-	for (int i = 0; i < mappings.length; i++) {
-	    pools[i] = ((MappingImpl) mappings[i]).getPageSourcePool();
-	    // size+=pools[i].size();
-	}
-	return pools;
-    }
+				// try{checkStorageScopeFile(config,Session.SCOPE_CLIENT);}catch(Throwable t)
+				// {ExceptionUtil.rethrowIfNecessary(t);}
+				// try{checkStorageScopeFile(config,Session.SCOPE_SESSION);}catch(Throwable t)
+				// {ExceptionUtil.rethrowIfNecessary(t);}
+				try {
+					config.reloadTimeServerOffset();
+				}
+				catch (Throwable t) {
+					ExceptionUtil.rethrowIfNecessary(t);
+				}
+				try {
+					checkTempDirectorySize(config);
+				}
+				catch (Throwable t) {
+					ExceptionUtil.rethrowIfNecessary(t);
+				}
+				try {
+					checkCacheFileSize(config);
+				}
+				catch (Throwable t) {
+					ExceptionUtil.rethrowIfNecessary(t);
+				}
+				try {
+					cfmlFactory.getScopeContext().clearUnused();
+				}
+				catch (Throwable t) {
+					ExceptionUtil.rethrowIfNecessary(t);
+				}
+			}
 
-    private int getPageSourcePoolSize(PageSourcePool[] pools) {
-	int size = 0;
-	for (int i = 0; i < pools.length; i++)
-	    size += pools[i].size();
-	return size;
-    }
+			if (config == null) {
+				config = cfmlFactory.getConfig();
+			}
+			ThreadLocalConfig.register(config);
+			if (do10Seconds) {
+				// try{DeployHandler.deploy(config);}catch(Throwable t){ExceptionUtil.rethrowIfNecessary(t);}
+			}
 
-    private void removeOldest(PageSourcePool[] pools) {
-	PageSourcePool pool = null;
-	String key = null;
-	PageSource ps = null;
+			// every Minute
+			if (doMinute) {
+				if (config == null) {
+					config = cfmlFactory.getConfig();
+				}
+				ThreadLocalConfig.register(config);
 
-	long date = -1;
-	for (int i = 0; i < pools.length; i++) {
-	    try {
-		String[] keys = pools[i].keys();
-		for (int y = 0; y < keys.length; y++) {
-		    ps = pools[i].getPageSource(keys[y], false);
-		    if (date == -1 || date > ps.getLastAccessTime()) {
-			pool = pools[i];
-			key = keys[y];
-			date = ps.getLastAccessTime();
-		    }
+				try {
+					((SchedulerImpl) config.getScheduler()).startIfNecessary();
+				}
+				catch (Exception e) {
+					LogUtil.log(ThreadLocalPageContext.getConfig(configServer), Controler.class.getName(), e);
+				}
+
+				// double check templates
+				try {
+					((ConfigWebPro) config).getCompiler().checkWatched();
+				}
+				catch (Exception e) {
+					LogUtil.log(ThreadLocalPageContext.getConfig(configServer), Controler.class.getName(), e);
+				}
+
+				// deploy extensions, archives ...
+				try {
+					DeployHandler.deploy(config, false);
+				}
+				catch (Throwable t) {
+					ExceptionUtil.rethrowIfNecessary(t);
+				}
+
+				// clear unused DB Connections
+				try {
+					((ConfigPro) config).getDatasourceConnectionPool().clear(false, this.poolValidate);
+				}
+				catch (Throwable t) {
+					ExceptionUtil.rethrowIfNecessary(t);
+				}
+				// clear all unused scopes
+				try {
+					cfmlFactory.getScopeContext().clearUnused();
+				}
+				catch (Throwable t) {
+					ExceptionUtil.rethrowIfNecessary(t);
+				}
+				// Memory usage
+				// clear Query Cache
+				/*
+				 * try{ ConfigWebUtil.getCacheHandlerFactories(config).query.clean(null);
+				 * ConfigWebUtil.getCacheHandlerFactories(config).include.clean(null);
+				 * ConfigWebUtil.getCacheHandlerFactories(config).function.clean(null);
+				 * //cfmlFactory.getDefaultQueryCache().clearUnused(null); }catch(Throwable
+				 * t){ExceptionUtil.rethrowIfNecessary(t);}
+				 */
+				// contract Page Pool
+				try {
+					doClearPagePools(config);
+				}
+				catch (Exception e) {
+				}
+				// try{checkPermGenSpace((ConfigWebPro) config);}catch(Throwable t)
+				// {ExceptionUtil.rethrowIfNecessary(t);}
+				try {
+					doCheckMappings(config);
+				}
+				catch (Throwable t) {
+					ExceptionUtil.rethrowIfNecessary(t);
+				}
+				try {
+					doClearMailConnections();
+				}
+				catch (Throwable t) {
+					ExceptionUtil.rethrowIfNecessary(t);
+				}
+				// clean LockManager
+				if (cfmlFactory.getUsedPageContextLength() == 0) try {
+					((LockManagerImpl) config.getLockManager()).clean();
+				}
+				catch (Throwable t) {
+					ExceptionUtil.rethrowIfNecessary(t);
+				}
+
+				try {
+					XMLConfigAdmin.checkForChangesInConfigFile(config);
+				}
+				catch (Throwable t) {
+					ExceptionUtil.rethrowIfNecessary(t);
+				}
+
+			}
+			// every hour
+			if (doHour) {
+				if (config == null) {
+					config = cfmlFactory.getConfig();
+				}
+				ThreadLocalConfig.register(config);
+
+				// time server offset
+				try {
+					config.reloadTimeServerOffset();
+				}
+				catch (Throwable t) {
+					ExceptionUtil.rethrowIfNecessary(t);
+				}
+				// check file based client/session scope
+				// try{checkStorageScopeFile(config,Session.SCOPE_CLIENT);}catch(Throwable t)
+				// {ExceptionUtil.rethrowIfNecessary(t);}
+				// try{checkStorageScopeFile(config,Session.SCOPE_SESSION);}catch(Throwable t)
+				// {ExceptionUtil.rethrowIfNecessary(t);}
+				// check temp directory
+				try {
+					checkTempDirectorySize(config);
+				}
+				catch (Throwable t) {
+					ExceptionUtil.rethrowIfNecessary(t);
+				}
+				// check cache directory
+				try {
+					checkCacheFileSize(config);
+				}
+				catch (Throwable t) {
+					ExceptionUtil.rethrowIfNecessary(t);
+				}
+			}
+
+			try {
+				configServer.checkPermGenSpace(true);
+			}
+			catch (Throwable t) {
+				ExceptionUtil.rethrowIfNecessary(t);
+			}
 		}
-	    }
-	    catch (Throwable t) {
-		ExceptionUtil.rethrowIfNecessary(t);
-		pools[i].clear();
-	    }
-
-	}
-	if (pool != null) pool.remove(key);
-    }
-
-    private void clear(PageSourcePool[] pools) {
-	for (int i = 0; i < pools.length; i++) {
-	    pools[i].clear();
-	}
-    }
-
-    public void close() {
-	// boolean res=Runtime.getRuntime().removeShutdownHook(shutdownHook);
-	// shutdownHook.run();
-    }
-
-    /*
-     * private void doLogMemoryUsage(ConfigWeb config) { if(config.logMemoryUsage()&&
-     * config.getMemoryLogger()!=null) config.getMemoryLogger().write(); }
-     */
-
-    static class ExpiresFilter implements ResourceFilter {
-
-	private long time;
-	private boolean allowDir;
-
-	public ExpiresFilter(long time, boolean allowDir) {
-	    this.allowDir = allowDir;
-	    this.time = time;
-	}
-
-	@Override
-	public boolean accept(Resource res) {
-
-	    if (res.isDirectory()) return allowDir;
-
-	    // load content
-	    String str = null;
-	    try {
-		str = IOUtil.toString(res, "UTF-8");
-	    }
-	    catch (IOException e) {
-		return false;
-	    }
-
-	    int index = str.indexOf(':');
-	    if (index != -1) {
-		long expires = Caster.toLongValue(str.substring(0, index), -1L);
-		// check is for backward compatibility, old files have no expires date inside. they do ot expire
-		if (expires != -1) {
-		    if (expires < System.currentTimeMillis()) {
-			return true;
-		    }
-		    str = str.substring(index + 1);
-		    return false;
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 		}
-	    }
-	    // old files not having a timestamp inside
-	    else if (res.lastModified() <= time) {
-		return true;
-
-	    }
-	    return false;
+		finally {
+			ThreadLocalConfig.release();
+		}
 	}
-    }
+
+	private void doClearPagePools(ConfigWeb config) {
+		PagePoolClear.clear(null, config, true);
+	}
+
+	private CFMLFactoryImpl[] toFactories(CFMLFactoryImpl[] factories, Map contextes) {
+		if (factories == null || factories.length != contextes.size()) factories = (CFMLFactoryImpl[]) contextes.values().toArray(new CFMLFactoryImpl[contextes.size()]);
+
+		return factories;
+	}
+
+	private void doClearMailConnections() {
+		SMTPConnectionPool.closeSessions();
+	}
+
+	private void checkOldClientFile(ConfigWeb config) {
+		ExtensionResourceFilter filter = new ExtensionResourceFilter(".script", false);
+
+		// move old structured file in new structure
+		try {
+			Resource dir = config.getClientScopeDir(), trgres;
+			Resource[] children = dir.listResources(filter);
+			String src, trg;
+			int index;
+			for (int i = 0; i < children.length; i++) {
+				src = children[i].getName();
+				index = src.indexOf('-');
+
+				trg = StorageScopeFile.getFolderName(src.substring(0, index), src.substring(index + 1), false);
+				trgres = dir.getRealResource(trg);
+				if (!trgres.exists()) {
+					trgres.createFile(true);
+					ResourceUtil.copy(children[i], trgres);
+				}
+				// children[i].moveTo(trgres);
+				children[i].delete();
+
+			}
+		}
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+		}
+	}
+
+	private void checkCacheFileSize(ConfigWeb config) {
+		checkSize(config, config.getCacheDir(), config.getCacheDirSize(), new ExtensionResourceFilter(".cache"));
+	}
+
+	private void checkTempDirectorySize(ConfigWeb config) {
+		checkSize(config, config.getTempDirectory(), 1024 * 1024 * 1024, null);
+	}
+
+	private void checkSize(ConfigWeb config, Resource dir, long maxSize, ResourceFilter filter) {
+		if (!dir.exists()) return;
+		Resource res = null;
+		int count = ArrayUtil.size(filter == null ? dir.list() : dir.list(filter));
+		long size = ResourceUtil.getRealSize(dir, filter);
+		LogUtil.log(ThreadLocalPageContext.getConfig(config), Log.LEVEL_DEBUG, Controler.class.getName(),
+				"Checking size of directory [" + dir + "]. Current size [" + size + "]. Max size [" + maxSize + "].");
+
+		int len = -1;
+
+		if (count > 100000 || size > maxSize) {
+			LogUtil.log(ThreadLocalPageContext.getConfig(config), Log.LEVEL_WARN, Controler.class.getName(),
+					"Removing files from directory [" + dir + "]. Current size [" + size + "]. Max size [" + maxSize + "]. Number of files [" + count + "]");
+		}
+
+		while (count > 100000 || size > maxSize) {
+			Resource[] files = filter == null ? dir.listResources() : dir.listResources(filter);
+			if (len == files.length) break;// protect from inifinti loop
+			len = files.length;
+			for (int i = 0; i < files.length; i++) {
+				if (res == null || res.lastModified() > files[i].lastModified()) {
+					res = files[i];
+				}
+			}
+			if (res != null) {
+				size -= res.length();
+				try {
+					res.remove(true);
+					count--;
+				}
+				catch (IOException e) {
+					LogUtil.log(ThreadLocalPageContext.getConfig(config), Log.LEVEL_ERROR, Controler.class.getName(), "cannot remove resource [" + res.getAbsolutePath() + "]");
+					break;
+				}
+			}
+			res = null;
+		}
+
+	}
+
+	private void doCheckMappings(ConfigWeb config) {
+		Mapping[] mappings = config.getMappings();
+		for (int i = 0; i < mappings.length; i++) {
+			Mapping mapping = mappings[i];
+			mapping.check();
+		}
+	}
+
+	public void close() {
+		state = INACTIVE;
+		SystemUtil.notify(this);
+	}
+
+	static class ExpiresFilter implements ResourceFilter {
+
+		private long time;
+		private boolean allowDir;
+
+		public ExpiresFilter(long time, boolean allowDir) {
+			this.allowDir = allowDir;
+			this.time = time;
+		}
+
+		@Override
+		public boolean accept(Resource res) {
+
+			if (res.isDirectory()) return allowDir;
+
+			// load content
+			String str = null;
+			try {
+				str = IOUtil.toString(res, "UTF-8");
+			}
+			catch (IOException e) {
+				return false;
+			}
+
+			int index = str.indexOf(':');
+			if (index != -1) {
+				long expires = Caster.toLongValue(str.substring(0, index), -1L);
+				// check is for backward compatibility, old files have no expires date inside. they do ot expire
+				if (expires != -1) {
+					if (expires < System.currentTimeMillis()) {
+						return true;
+					}
+					str = str.substring(index + 1);
+					return false;
+				}
+			}
+			// old files not having a timestamp inside
+			else if (res.lastModified() <= time) {
+				return true;
+
+			}
+			return false;
+		}
+	}
 }

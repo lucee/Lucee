@@ -20,21 +20,21 @@ package lucee.commons.cli;
 
 public class CommandResult {
 
-    private final String out, err;
+	private final String out, err;
 
-    public CommandResult(String out, String err) {
+	public CommandResult(String out, String err) {
 
-	this.out = out;
-	this.err = err;
-    }
+		this.out = out;
+		this.err = err;
+	}
 
-    public String getOutput() {
+	public String getOutput() {
 
-	return out;
-    }
+		return out;
+	}
 
-    public String getError() {
+	public String getError() {
 
-	return err;
-    }
+		return err;
+	}
 }

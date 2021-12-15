@@ -34,52 +34,52 @@ import lucee.runtime.type.util.StringListData;
 
 public final class ListMap extends BIF {
 
-    /**
-     * 
-     */
-    private static final long serialVersionUID = 259806095458506715L;
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 259806095458506715L;
 
-    public static String call(PageContext pc, String list, UDF filter) throws PageException {
-	return call(pc, list, filter, ",", false, true, false, 20);
-    }
+	public static String call(PageContext pc, String list, UDF filter) throws PageException {
+		return call(pc, list, filter, ",", false, true, false, 20);
+	}
 
-    public static String call(PageContext pc, String list, UDF filter, String delimiter) throws PageException {
-	return call(pc, list, filter, delimiter, false, true, false, 20);
-    }
+	public static String call(PageContext pc, String list, UDF filter, String delimiter) throws PageException {
+		return call(pc, list, filter, delimiter, false, true, false, 20);
+	}
 
-    public static String call(PageContext pc, String list, UDF filter, String delimiter, boolean includeEmptyFields) throws PageException {
-	return call(pc, list, filter, delimiter, includeEmptyFields, true, false, 20);
-    }
+	public static String call(PageContext pc, String list, UDF filter, String delimiter, boolean includeEmptyFields) throws PageException {
+		return call(pc, list, filter, delimiter, includeEmptyFields, true, false, 20);
+	}
 
-    public static String call(PageContext pc, String list, UDF filter, String delimiter, boolean includeEmptyFields, boolean multiCharacterDelimiter) throws PageException {
-	return call(pc, list, filter, delimiter, includeEmptyFields, multiCharacterDelimiter, false, 20);
-    }
+	public static String call(PageContext pc, String list, UDF filter, String delimiter, boolean includeEmptyFields, boolean multiCharacterDelimiter) throws PageException {
+		return call(pc, list, filter, delimiter, includeEmptyFields, multiCharacterDelimiter, false, 20);
+	}
 
-    public static String call(PageContext pc, String list, UDF filter, String delimiter, boolean includeEmptyFields, boolean multiCharacterDelimiter, boolean parallel)
-	    throws PageException {
-	return call(pc, list, filter, delimiter, includeEmptyFields, multiCharacterDelimiter, parallel, 20);
-    }
+	public static String call(PageContext pc, String list, UDF filter, String delimiter, boolean includeEmptyFields, boolean multiCharacterDelimiter, boolean parallel)
+			throws PageException {
+		return call(pc, list, filter, delimiter, includeEmptyFields, multiCharacterDelimiter, parallel, 20);
+	}
 
-    public static String call(PageContext pc, String list, UDF filter, String delimiter, boolean includeEmptyFields, boolean multiCharacterDelimiter, boolean parallel,
-	    double maxThreads) throws PageException {
+	public static String call(PageContext pc, String list, UDF filter, String delimiter, boolean includeEmptyFields, boolean multiCharacterDelimiter, boolean parallel,
+			double maxThreads) throws PageException {
 
-	return ListUtil.arrayToList((Array) Map.call(pc, new StringListData(list, delimiter, includeEmptyFields, multiCharacterDelimiter), filter, parallel, maxThreads),
-		delimiter);
-    }
+		return ListUtil.arrayToList((Array) Map.call(pc, new StringListData(list, delimiter, includeEmptyFields, multiCharacterDelimiter), filter, parallel, maxThreads),
+				delimiter);
+	}
 
-    @Override
-    public Object invoke(PageContext pc, Object[] args) throws PageException {
+	@Override
+	public Object invoke(PageContext pc, Object[] args) throws PageException {
 
-	if (args.length == 2) return call(pc, Caster.toString(args[0]), Caster.toFunction(args[1]));
-	if (args.length == 3) return call(pc, Caster.toString(args[0]), Caster.toFunction(args[1]), Caster.toString(args[2]));
-	if (args.length == 4) return call(pc, Caster.toString(args[0]), Caster.toFunction(args[1]), Caster.toString(args[2]), Caster.toBooleanValue(args[3]));
-	if (args.length == 5)
-	    return call(pc, Caster.toString(args[0]), Caster.toFunction(args[1]), Caster.toString(args[2]), Caster.toBooleanValue(args[3]), Caster.toBooleanValue(args[4]));
-	if (args.length == 6) return call(pc, Caster.toString(args[0]), Caster.toFunction(args[1]), Caster.toString(args[2]), Caster.toBooleanValue(args[3]),
-		Caster.toBooleanValue(args[4]), Caster.toBooleanValue(args[5]));
-	if (args.length == 7) return call(pc, Caster.toString(args[0]), Caster.toFunction(args[1]), Caster.toString(args[2]), Caster.toBooleanValue(args[3]),
-		Caster.toBooleanValue(args[4]), Caster.toBooleanValue(args[5]), Caster.toDoubleValue(args[6]));
+		if (args.length == 2) return call(pc, Caster.toString(args[0]), Caster.toFunction(args[1]));
+		if (args.length == 3) return call(pc, Caster.toString(args[0]), Caster.toFunction(args[1]), Caster.toString(args[2]));
+		if (args.length == 4) return call(pc, Caster.toString(args[0]), Caster.toFunction(args[1]), Caster.toString(args[2]), Caster.toBooleanValue(args[3]));
+		if (args.length == 5)
+			return call(pc, Caster.toString(args[0]), Caster.toFunction(args[1]), Caster.toString(args[2]), Caster.toBooleanValue(args[3]), Caster.toBooleanValue(args[4]));
+		if (args.length == 6) return call(pc, Caster.toString(args[0]), Caster.toFunction(args[1]), Caster.toString(args[2]), Caster.toBooleanValue(args[3]),
+				Caster.toBooleanValue(args[4]), Caster.toBooleanValue(args[5]));
+		if (args.length == 7) return call(pc, Caster.toString(args[0]), Caster.toFunction(args[1]), Caster.toString(args[2]), Caster.toBooleanValue(args[3]),
+				Caster.toBooleanValue(args[4]), Caster.toBooleanValue(args[5]), Caster.toDoubleValue(args[6]));
 
-	throw new FunctionException(pc, "ListMap", 2, 7, args.length);
-    }
+		throw new FunctionException(pc, "ListMap", 2, 7, args.length);
+	}
 }

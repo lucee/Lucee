@@ -26,14 +26,14 @@ import lucee.runtime.type.Struct;
 
 public class _GetSuperStaticScope implements Function {
 
-    private static final long serialVersionUID = -2676531632543576056L;
+	private static final long serialVersionUID = -2676531632543576056L;
 
-    public static Struct call(PageContext pc) throws PageException {
-	Component cfc = pc.getActiveComponent();
-	if (cfc == null) throw new ApplicationException("[static::] is not supported outside a component.");
-	Component base = cfc.getBaseComponent();
-	if (base == null) throw new ApplicationException("component [" + cfc.getCallName() + "] does not have a base component.");
-	return base.staticScope();
-    }
+	public static Struct call(PageContext pc) throws PageException {
+		Component cfc = pc.getActiveComponent();
+		if (cfc == null) throw new ApplicationException("[static::] is not supported outside a component.");
+		Component base = cfc.getBaseComponent();
+		if (base == null) throw new ApplicationException("component [" + cfc.getCallName() + "] does not have a base component.");
+		return base.staticScope();
+	}
 
 }

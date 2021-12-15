@@ -18,21 +18,21 @@
 package lucee.runtime.config;
 
 public interface Password {
-    public static final int HASHED = 1;
-    public static final int HASHED_SALTED = 2;
+	public static final int HASHED = 1;
+	public static final int HASHED_SALTED = 2;
 
-    public static final int ORIGIN_ENCRYPTED = 3;
-    public static final int ORIGIN_HASHED = 4;
-    public static final int ORIGIN_HASHED_SALTED = 5;
-    public static final int ORIGIN_UNKNOW = 6;
+	public static final int ORIGIN_ENCRYPTED = 3;
+	public static final int ORIGIN_HASHED = 4;
+	public static final int ORIGIN_HASHED_SALTED = 5;
+	public static final int ORIGIN_UNKNOW = 6;
 
-    public String getPassword();
+	public String getPassword();
 
-    public String getSalt();
+	public String getSalt();
 
-    public int getType();
+	public int getType();
 
-    public int getOrigin();
+	public int getOrigin();
 
-    public Password isEqual(Config config, String otherPassword);
+	public Password isEqual(Config config, String otherPassword);
 }

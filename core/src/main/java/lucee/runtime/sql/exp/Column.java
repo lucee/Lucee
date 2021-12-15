@@ -18,25 +18,30 @@
  **/
 package lucee.runtime.sql.exp;
 
+import lucee.runtime.PageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.Query;
 
 public interface Column extends Expression {
-    public String getFullName();
+	public String getFullName();
 
-    public Collection.Key getColumn();
+	public Collection.Key getColumn();
 
-    public String getTable();
+	public Collection.Key getColumnAlias();
 
-    public boolean hasBracked();
+	public String getTable();
 
-    public void hasBracked(boolean b);
+	public boolean hasBracked();
 
-    public int getColumnIndex();
+	public void hasBracked(boolean b);
 
-    public Object getValue(Query qry, int row) throws PageException;
+	public boolean isParam();
 
-    public Object getValue(Query qry, int row, Object defaultValue);
+	public int getColumnIndex();
+
+	public Object getValue(PageContext pc, Query qry, int row) throws PageException;
+
+	public Object getValue(PageContext pc, Query qry, int row, Object defaultValue);
 
 }

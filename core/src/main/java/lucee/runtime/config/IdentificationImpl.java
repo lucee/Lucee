@@ -29,69 +29,69 @@ import lucee.loader.util.Util;
 
 public abstract class IdentificationImpl implements Identification, Serializable {
 
-    private final String apiKey;
-    private String id;
-    private final String securityKey;
-    private final String securityToken;
+	private final String apiKey;
+	private String id;
+	private final String securityKey;
+	private final String securityToken;
 
-    public IdentificationImpl(ConfigImpl c, String securityKey, String apiKey) {
-	this.apiKey = apiKey;
-	this.securityKey = securityKey;
-	this.securityToken = createSecurityToken(c.getConfigDir());
-    }
-
-    @Override
-    public String getApiKey() {
-	return apiKey;
-    }
-
-    @Override
-    public String getId() {
-	// this is here for performance reasons
-	if (id == null) id = createId(securityKey, securityToken, false, securityKey);
-	return id;
-    }
-
-    @Override
-    public String getSecurityKey() {
-	return securityKey;
-    }
-
-    @Override
-    public String getSecurityToken() {
-	return securityToken;
-    }
-
-    static String createId(String key, String token, boolean addMacAddress, String defaultValue) {
-
-	try {
-	    if (addMacAddress) {// because this was new we could swutch to a new ecryption // FUTURE cold we get rid of the old one?
-		return Hash.sha256(key + ";" + token + ":" + SystemUtil.getMacAddress(""));
-	    }
-	    return Md5.getDigestAsString(key + token);
-	}
-	catch (Throwable t) {
-	    ExceptionUtil.rethrowIfNecessary(t);
-	    return defaultValue;
-	}
-    }
-
-    private static String createSecurityToken(Resource dir) {
-	try {
-	    return Md5.getDigestAsString(dir.getAbsolutePath());
-	}
-	catch (IOException e) {
-	    return null;
+	public IdentificationImpl(ConfigPro c, String securityKey, String apiKey) {
+		this.apiKey = apiKey;
+		this.securityKey = securityKey;
+		this.securityToken = createSecurityToken(c.getConfigDir());
 	}
 
-    }
+	@Override
+	public String getApiKey() {
+		return apiKey;
+	}
 
-    protected static void append(StringBuilder qs, String name, String value) {
-	if (Util.isEmpty(value, true)) return;
+	@Override
+	public String getId() {
+		// this is here for performance reasons
+		if (id == null) id = createId(securityKey, securityToken, false, securityKey);
+		return id;
+	}
 
-	if (qs.length() > 0) qs.append('&');
-	else qs.append('?');
-	qs.append(name).append('=').append(value); // TODO encoding
-    }
+	@Override
+	public String getSecurityKey() {
+		return securityKey;
+	}
+
+	@Override
+	public String getSecurityToken() {
+		return securityToken;
+	}
+
+	static String createId(String key, String token, boolean addMacAddress, String defaultValue) {
+
+		try {
+			if (addMacAddress) {// because this was new we could swutch to a new ecryption // FUTURE cold we get rid of the old one?
+				return Hash.sha256(key + ";" + token + ":" + SystemUtil.getMacAddress(""));
+			}
+			return Md5.getDigestAsString(key + token);
+		}
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+			return defaultValue;
+		}
+	}
+
+	private static String createSecurityToken(Resource dir) {
+		try {
+			return Md5.getDigestAsString(dir.getAbsolutePath());
+		}
+		catch (IOException e) {
+			return null;
+		}
+
+	}
+
+	protected static void append(StringBuilder qs, String name, String value) {
+		if (Util.isEmpty(value, true)) return;
+
+		if (qs.length() > 0) qs.append('&');
+		else qs.append('?');
+		qs.append(name).append('=').append(value); // TODO encoding
+	}
 
 }

@@ -42,157 +42,157 @@ import lucee.runtime.type.Struct;
 
 public interface XMLUtil {
 
-    public String unescapeXMLString(String str);
+	public String unescapeXMLString(String str);
 
-    public String escapeXMLString(String xmlStr);
+	public String escapeXMLString(String xmlStr);
 
-    public TransformerFactory getTransformerFactory();
+	public TransformerFactory getTransformerFactory();
 
-    /**
-     * parse XML/HTML String to a XML DOM representation
-     * 
-     * @param xml XML InputSource
-     * @param isHtml is a HTML or XML Object
-     * @return parsed Document
-     * @throws SAXException
-     * @throws IOException
-     */
-    public Document parse(InputSource xml, InputSource validator, boolean isHtml) throws SAXException, IOException;
+	/**
+	 * parse XML/HTML String to a XML DOM representation
+	 * 
+	 * @param xml XML InputSource
+	 * @param isHtml is a HTML or XML Object
+	 * @return parsed Document
+	 * @throws SAXException
+	 * @throws IOException
+	 */
+	public Document parse(InputSource xml, InputSource validator, boolean isHtml) throws SAXException, IOException;
 
-    public void replaceChild(Node newChild, Node oldChild);
+	public void replaceChild(Node newChild, Node oldChild);
 
-    /**
-     * check if given name is equal to name of the element (with and without namespace)
-     * 
-     * @param node node to compare the name
-     * @param name name to compare
-     * @return is name of the given Node equal to the given name
-     */
-    public boolean nameEqual(Node node, String name);
+	/**
+	 * check if given name is equal to name of the element (with and without namespace)
+	 * 
+	 * @param node node to compare the name
+	 * @param name name to compare
+	 * @return is name of the given Node equal to the given name
+	 */
+	public boolean nameEqual(Node node, String name);
 
-    /**
-     * return the root Element from a node
-     * 
-     * @param node node to get root element from
-     * @return Root Element
-     */
-    public Element getRootElement(Node node);
+	/**
+	 * return the root Element from a node
+	 * 
+	 * @param node node to get root element from
+	 * @return Root Element
+	 */
+	public Element getRootElement(Node node);
 
-    /**
-     * returns a new Empty XMl Document
-     * 
-     * @return new Document
-     * @throws ParserConfigurationException
-     * @throws FactoryConfigurationError
-     */
-    public Document newDocument() throws ParserConfigurationException, FactoryConfigurationError;
+	/**
+	 * returns a new Empty XMl Document
+	 * 
+	 * @return new Document
+	 * @throws ParserConfigurationException
+	 * @throws FactoryConfigurationError
+	 */
+	public Document newDocument() throws ParserConfigurationException, FactoryConfigurationError;
 
-    /**
-     * return the Owner Document of a Node List
-     * 
-     * @param nodeList
-     * @return XML Document
-     * @throws PageException
-     */
-    public Document getDocument(NodeList nodeList) throws PageException;
+	/**
+	 * return the Owner Document of a Node List
+	 * 
+	 * @param nodeList
+	 * @return XML Document
+	 * @throws PageException
+	 */
+	public Document getDocument(NodeList nodeList) throws PageException;
 
-    public Document getDocument(Node node);
+	public Document getDocument(Node node);
 
-    /**
-     * return all Children of a node by a defined type as Node List
-     * 
-     * @param node node to get children from
-     * @param type type of returned node
-     * @param filter filter to use
-     * @return all matching child node
-     */
-    public ArrayList<Node> getChildNodes(Node node, short type, String filter);
+	/**
+	 * return all Children of a node by a defined type as Node List
+	 * 
+	 * @param node node to get children from
+	 * @param type type of returned node
+	 * @param filter filter to use
+	 * @return all matching child node
+	 */
+	public ArrayList<Node> getChildNodes(Node node, short type, String filter);
 
-    public Node getChildNode(Node node, short type, String filter, int index);
+	public Node getChildNode(Node node, short type, String filter, int index);
 
-    /**
-     * transform a XML Object to a other format, with help of a XSL Stylesheet
-     * 
-     * @param xml xml to convert
-     * @param xsl xsl used to convert
-     * @param parameters parameters used to convert
-     * @return resulting string
-     * @throws TransformerException
-     * @throws SAXException
-     * @throws IOException
-     */
-    public String transform(InputSource xml, InputSource xsl, Map<String, Object> parameters) throws TransformerException, SAXException, IOException;
+	/**
+	 * transform a XML Object to another format, with help of a XSL Stylesheet
+	 * 
+	 * @param xml xml to convert
+	 * @param xsl xsl used to convert
+	 * @param parameters parameters used to convert
+	 * @return resulting string
+	 * @throws TransformerException
+	 * @throws SAXException
+	 * @throws IOException
+	 */
+	public String transform(InputSource xml, InputSource xsl, Map<String, Object> parameters) throws TransformerException, SAXException, IOException;
 
-    /**
-     * transform a XML Document to a other format, with help of a XSL Stylesheet
-     * 
-     * @param doc xml to convert
-     * @param xsl xsl used to convert
-     * @param parameters parameters used to convert
-     * @return resulting string
-     * @throws TransformerException
-     */
-    public String transform(Document doc, InputSource xsl, Map<String, Object> parameters) throws TransformerException;
+	/**
+	 * transform a XML Document to another format, with help of a XSL Stylesheet
+	 * 
+	 * @param doc xml to convert
+	 * @param xsl xsl used to convert
+	 * @param parameters parameters used to convert
+	 * @return resulting string
+	 * @throws TransformerException
+	 */
+	public String transform(Document doc, InputSource xsl, Map<String, Object> parameters) throws TransformerException;
 
-    public Element getChildWithName(String name, Element el);
+	public Element getChildWithName(String name, Element el);
 
-    public InputSource toInputSource(Resource res, Charset cs) throws IOException;
+	public InputSource toInputSource(Resource res, Charset cs) throws IOException;
 
-    public InputSource toInputSource(Object value) throws IOException, PageException;
+	public InputSource toInputSource(Object value) throws IOException, PageException;
 
-    public Struct validate(InputSource xml, InputSource schema, String strSchema) throws PageException;
+	public Struct validate(InputSource xml, InputSource schema, String strSchema) throws PageException;
 
-    public void prependChild(Element parent, Element child);
+	public void prependChild(Element parent, Element child);
 
-    public void setFirst(Node parent, Node node);
+	public void setFirst(Node parent, Node node);
 
-    /**
-     * write a xml Dom to a file
-     * 
-     * @param node
-     * @param file
-     * @throws PageException
-     */
-    public void writeTo(Node node, Resource file) throws PageException;
+	/**
+	 * write a xml Dom to a file
+	 * 
+	 * @param node
+	 * @param file
+	 * @throws PageException
+	 */
+	public void writeTo(Node node, Resource file) throws PageException;
 
-    public String toString(Node node, boolean omitXMLDecl, boolean indent, String publicId, String systemId, String encoding) throws PageException;
+	public String toString(Node node, boolean omitXMLDecl, boolean indent, String publicId, String systemId, String encoding) throws PageException;
 
-    public String toString(NodeList nodes, boolean omitXMLDecl, boolean indent) throws PageException;
+	public String toString(NodeList nodes, boolean omitXMLDecl, boolean indent) throws PageException;
 
-    public String toString(Node node, String defaultValue);
+	public String toString(Node node, String defaultValue);
 
-    public void writeTo(Node node, Result res, boolean omitXMLDecl, boolean indent, String publicId, String systemId, String encoding) throws PageException;
+	public void writeTo(Node node, Result res, boolean omitXMLDecl, boolean indent, String publicId, String systemId, String encoding) throws PageException;
 
-    public Node toNode(Object obj) throws PageException;
+	public Node toNode(Object obj) throws PageException;
 
-    /**
-     * creates and returns a xml Document instance
-     * 
-     * @param file
-     * @param isHtml
-     * @return struct
-     * @throws PageException
-     */
-    public abstract Document createDocument(Resource file, boolean isHtml) throws PageException;
+	/**
+	 * creates and returns a xml Document instance
+	 * 
+	 * @param file
+	 * @param isHtml
+	 * @return struct
+	 * @throws PageException
+	 */
+	public abstract Document createDocument(Resource file, boolean isHtml) throws PageException;
 
-    /**
-     * creates and returns a xml Document instance
-     * 
-     * @param xml
-     * @param isHtml
-     * @return struct
-     * @throws PageException
-     */
-    public abstract Document createDocument(String xml, boolean isHtml) throws PageException;
+	/**
+	 * creates and returns a xml Document instance
+	 * 
+	 * @param xml
+	 * @param isHtml
+	 * @return struct
+	 * @throws PageException
+	 */
+	public abstract Document createDocument(String xml, boolean isHtml) throws PageException;
 
-    /**
-     * creates and returns a xml Document instance
-     * 
-     * @param is
-     * @param isHtml
-     * @return struct
-     * @throws PageException
-     */
-    public abstract Document createDocument(InputStream is, boolean isHtml) throws PageException;
+	/**
+	 * creates and returns a xml Document instance
+	 * 
+	 * @param is
+	 * @param isHtml
+	 * @return struct
+	 * @throws PageException
+	 */
+	public abstract Document createDocument(InputStream is, boolean isHtml) throws PageException;
 
 }

@@ -60,11 +60,40 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		assertEquals(200,result.status);
 		assertEquals("moduleLangs:1;2;Tags:1;2;",trim(result.fileContent));
 	}
+	public void function testTransactionSave(){
+		local.uri=createURI("transSave/index.cfm");
+		local.result=_InternalRequest(uri);
+		assertEquals(200,result.status);
+		assertEquals("1",trim(result.fileContent));
+	}
+	public void function testTransactionSaveExCommit(){
+		local.uri=createURI("transSaveExCommit/index.cfm");
+		local.result=_InternalRequest(uri);
+		assertEquals(200,result.status);
+		assertEquals("1",trim(result.fileContent));
+	}
+	public void function testTransactionSaveFlush(){
+		local.uri=createURI("transSaveFlush/index.cfm");
+		local.result=_InternalRequest(uri);
+		assertEquals(200,result.status);
+		assertEquals("1",trim(result.fileContent));
+	}
+	/*public void function testTransactionSavepoint(){
+		local.uri=createURI("transSavepoint/index.cfm");
+		local.result=_InternalRequest(uri);
+		assertEquals(200,result.status);
+		assertEquals("1",trim(result.fileContent));
+	}*/
+	public void function testTransactionRollback(){
+		local.uri=createURI("transRollback/index.cfm");
+		local.result=_InternalRequest(uri);
+		assertEquals(200,result.status);
+		assertEquals("0",trim(result.fileContent));
+	}
 	
 	private string function createURI(string calledName){
 		var baseURI="/test/#listLast(getDirectoryFromPath(getCurrenttemplatepath()),"\/")#/";
 		return baseURI&""&calledName;
 	}
-	
 } 
 </cfscript>

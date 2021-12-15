@@ -37,39 +37,39 @@ import lucee.runtime.search.SearchEngine;
  */
 public interface ConfigWeb extends Config, ServletConfig {
 
-    /**
-     * @return lockmanager
-     */
-    public LockManager getLockManager();
+	/**
+	 * @return lockmanager
+	 */
+	public LockManager getLockManager();
 
-    /**
-     * @return return if is allowed to define request timeout via URL
-     */
-    public boolean isAllowURLRequestTimeout();
+	/**
+	 * @return return if is allowed to define request timeout via URL
+	 */
+	public boolean isAllowURLRequestTimeout();
 
-    public String getLabel();
+	public String getLabel();
 
-    public Resource getConfigServerDir();
+	public Resource getConfigServerDir();
 
-    public CFMLFactory getFactory();
+	public CFMLFactory getFactory();
 
-    /**
-     * 
-     * @param type Config.CACHE_TYPE_***
-     * @return
-     */
-    public CacheHandlerCollection getCacheHandlerCollection(int type, CacheHandlerCollection defaultValue);
+	/**
+	 * 
+	 * @param type Config.CACHE_TYPE_***
+	 * @return
+	 */
+	public CacheHandlerCollection getCacheHandlerCollection(int type, CacheHandlerCollection defaultValue);
 
-    @Override
-    public IdentificationWeb getIdentification();
+	@Override
+	public IdentificationWeb getIdentification();
 
-    public ConfigServer getConfigServer(Password password) throws PageException;
+	public ConfigServer getConfigServer(Password password) throws PageException;
 
-    public SearchEngine getSearchEngine(PageContext pc) throws PageException;
+	public SearchEngine getSearchEngine(PageContext pc) throws PageException;
 
-    public boolean getSuppressWSBeforeArg();
+	public boolean getSuppressWSBeforeArg();
 
-    public JspWriter getWriter(PageContext pc, HttpServletRequest req, HttpServletResponse rsp);
+	public JspWriter getWriter(PageContext pc, HttpServletRequest req, HttpServletResponse rsp);
 
-    public AMFEngine getAMFEngine();
+	public AMFEngine getAMFEngine();
 }

@@ -7,17 +7,18 @@ import lucee.runtime.engine.CFMLEngineImpl;
 
 public class CFMLServletContextListener implements ServletContextListener {
 
-    private CFMLEngineImpl engine;
+	private CFMLEngineImpl engine;
 
-    public CFMLServletContextListener(CFMLEngineImpl engine) {
-	this.engine = engine;
-    }
+	public CFMLServletContextListener(CFMLEngineImpl engine) {
+		this.engine = engine;
+	}
 
-    @Override
-    public void contextInitialized(ServletContextEvent sce) {}
+	@Override
+	public void contextInitialized(ServletContextEvent sce) {
+	}
 
-    @Override
-    public void contextDestroyed(ServletContextEvent sce) {
-	engine.reset();
-    }
+	@Override
+	public void contextDestroyed(ServletContextEvent sce) {
+		engine.reset();
+	}
 }

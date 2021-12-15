@@ -22,23 +22,23 @@ import lucee.commons.io.res.Resource;
 
 public interface FormItem {
 
-    /**
-     * @return the resource
-     */
-    public Resource getResource();
+	/**
+	 * @return the resource
+	 */
+	public Resource getResource();
 
-    /**
-     * @return the contentType
-     */
-    public String getContentType();
+	/**
+	 * @return the contentType
+	 */
+	public String getContentType();
 
-    /**
-     * @return the name
-     */
-    public String getName();
+	/**
+	 * @return the name
+	 */
+	public String getName();
 
-    /**
-     * @return the fieldName
-     */
-    public String getFieldName();
+	/**
+	 * @return the fieldName
+	 */
+	public String getFieldName();
 }

@@ -24,26 +24,26 @@ import lucee.runtime.exp.PageException;
 
 public class UDFCustomType implements CustomType {
 
-    private UDF udf;
+	private UDF udf;
 
-    public UDFCustomType(UDF udf) {
-	this.udf = udf;
-    }
-
-    @Override
-    public Object convert(PageContext pc, Object o) throws PageException {
-	return udf.call(pc, new Object[] { o }, false);
-    }
-
-    @Override
-    public Object convert(PageContext pc, Object o, Object defaultValue) {
-	try {
-	    return udf.call(pc, new Object[] { o }, false);
+	public UDFCustomType(UDF udf) {
+		this.udf = udf;
 	}
-	catch (Throwable t) {
-	    ExceptionUtil.rethrowIfNecessary(t);
-	    return defaultValue;
+
+	@Override
+	public Object convert(PageContext pc, Object o) throws PageException {
+		return udf.call(pc, new Object[] { o }, false);
 	}
-    }
+
+	@Override
+	public Object convert(PageContext pc, Object o, Object defaultValue) {
+		try {
+			return udf.call(pc, new Object[] { o }, false);
+		}
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+			return defaultValue;
+		}
+	}
 
 }

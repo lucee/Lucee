@@ -27,36 +27,37 @@ import lucee.runtime.PageContext;
 
 public class ConsoleExecutionLog extends ExecutionLogSupport {
 
-    private PrintWriter pw;
-    private PageContext pc;
+	private PrintWriter pw;
+	private PageContext pc;
 
-    @Override
-    protected void _init(PageContext pc, Map<String, String> arguments) {
-	this.pc = pc;
+	@Override
+	protected void _init(PageContext pc, Map<String, String> arguments) {
+		this.pc = pc;
 
-	if (pw == null) {
-	    // stream type
-	    String type = arguments.get("stream-type");
-	    if (type != null && type.trim().equalsIgnoreCase("error")) pw = new PrintWriter(System.err);
-	    else pw = new PrintWriter(System.out);
+		if (pw == null) {
+			// stream type
+			String type = arguments.get("stream-type");
+			if (type != null && type.trim().equalsIgnoreCase("error")) pw = new PrintWriter(System.err);
+			else pw = new PrintWriter(System.out);
 
+		}
 	}
-    }
 
-    @Override
-    protected void _log(int startPos, int endPos, long startTime, long endTime) {
+	@Override
+	protected void _log(int startPos, int endPos, long startTime, long endTime) {
 
-	long diff = endTime - startTime;
-	LogUtil.log(ThreadLocalPageContext.getConfig(pc), Log.LEVEL_INFO, Controler.class.getName(),
-		pc.getId() + ":" + pc.getCurrentPageSource().getDisplayPath() + ":" + positons(startPos, endPos) + " > " + timeLongToString(diff));
-    }
+		long diff = endTime - startTime;
+		LogUtil.log(ThreadLocalPageContext.getConfig(pc), Log.LEVEL_INFO, Controler.class.getName(),
+				pc.getId() + ":" + pc.getCurrentPageSource().getDisplayPath() + ":" + positons(startPos, endPos) + " > " + timeLongToString(diff));
+	}
 
-    @Override
-    protected void _release() {}
+	@Override
+	protected void _release() {
+	}
 
-    private static String positons(int startPos, int endPos) {
-	if (startPos == endPos) return startPos + "";
-	return startPos + ":" + endPos;
-    }
+	private static String positons(int startPos, int endPos) {
+		if (startPos == endPos) return startPos + "";
+		return startPos + ":" + endPos;
+	}
 
 }

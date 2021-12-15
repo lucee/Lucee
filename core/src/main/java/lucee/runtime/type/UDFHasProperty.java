@@ -37,140 +37,140 @@ import lucee.runtime.type.util.UDFUtil;
 
 public final class UDFHasProperty extends UDFGSProperty {
 
-    private final Property prop;
-    // private ComponentScope scope;
+	private final Property prop;
+	// private ComponentScope scope;
 
-    private final Key propName;
+	private final Key propName;
 
-    // private static final String NULL="sdsdsdfsfsfjkln fsdfsa";
+	// private static final String NULL="sdsdsdfsfsfjkln fsdfsa";
 
-    public UDFHasProperty(Component component, Property prop) {
-	super(component, "has" + StringUtil.ucFirst(PropertyFactory.getSingularName(prop)), getFunctionArgument(prop), CFTypes.TYPE_BOOLEAN);
-	this.prop = prop;
-	this.propName = KeyImpl.getInstance(prop.getName());
-    }
-
-    private static FunctionArgument[] getFunctionArgument(Property prop) {
-	String t = PropertyFactory.getType(prop);
-
-	if ("struct".equalsIgnoreCase(t)) {
-	    FunctionArgument key = new FunctionArgumentLight(KeyConstants._key, "string", CFTypes.TYPE_STRING, false);
-	    return new FunctionArgument[] { key };
-	}
-	FunctionArgument value = new FunctionArgumentLight(KeyImpl.init(PropertyFactory.getSingularName(prop)), "any", CFTypes.TYPE_ANY, false);
-	return new FunctionArgument[] { value };
-    }
-
-    private boolean isStruct() {
-	String t = PropertyFactory.getType(prop);
-	return "struct".equalsIgnoreCase(t);
-    }
-
-    @Override
-    public UDF duplicate() {
-	return new UDFHasProperty(srcComponent, prop);
-    }
-
-    @Override
-    public Object _call(PageContext pageContext, Object[] args, boolean doIncludePath) throws PageException {
-	if (args.length < 1) return has(pageContext);
-	return has(pageContext, args[0]);
-    }
-
-    @Override
-    public Object _callWithNamedValues(PageContext pageContext, Struct values, boolean doIncludePath) throws PageException {
-	UDFUtil.argumentCollection(values, getFunctionArguments());
-	Key key = arguments[0].getName();
-	Object value = values.get(key, null);
-	if (value == null) {
-	    Key[] keys = CollectionUtil.keys(values);
-	    if (keys.length > 0) {
-		value = values.get(keys[0]);
-	    }
-	    else return has(pageContext);
+	public UDFHasProperty(Component component, Property prop) {
+		super(component, "has" + StringUtil.ucFirst(PropertyFactory.getSingularName(prop)), getFunctionArgument(prop), CFTypes.TYPE_BOOLEAN);
+		this.prop = prop;
+		this.propName = KeyImpl.init(prop.getName());
 	}
 
-	return has(pageContext, value);
-    }
+	private static FunctionArgument[] getFunctionArgument(Property prop) {
+		String t = PropertyFactory.getType(prop);
 
-    private boolean has(PageContext pageContext) {
-	Object propValue = getComponent(pageContext).getComponentScope().get(propName, null);
-
-	// struct
-	if (isStruct()) {
-	    if (propValue instanceof Map) {
-		return !((Map) propValue).isEmpty();
-	    }
-	    return false;
+		if ("struct".equalsIgnoreCase(t)) {
+			FunctionArgument key = new FunctionArgumentLight(KeyConstants._key, "string", CFTypes.TYPE_STRING, false);
+			return new FunctionArgument[] { key };
+		}
+		FunctionArgument value = new FunctionArgumentLight(KeyImpl.init(PropertyFactory.getSingularName(prop)), "any", CFTypes.TYPE_ANY, false);
+		return new FunctionArgument[] { value };
 	}
 
-	// Object o;
-	if (propValue instanceof Array) {
-	    Array arr = ((Array) propValue);
-	    return arr.size() > 0;
-	}
-	else if (propValue instanceof java.util.List) {
-
-	    return ((java.util.List) propValue).size() > 0;
-	}
-	return propValue instanceof Component;
-
-    }
-
-    private boolean has(PageContext pageContext, Object value) throws PageException {
-	Object propValue = getComponent(pageContext).getComponentScope().get(propName, null);
-
-	// struct
-	if (isStruct()) {
-	    String strKey = Caster.toString(value);
-	    // if(strKey==NULL) throw new ;
-
-	    if (propValue instanceof Struct) {
-		return ((Struct) propValue).containsKey(KeyImpl.getInstance(strKey));
-	    }
-	    else if (propValue instanceof Map) {
-		return ((Map) propValue).containsKey(strKey);
-	    }
-	    return false;
+	private boolean isStruct() {
+		String t = PropertyFactory.getType(prop);
+		return "struct".equalsIgnoreCase(t);
 	}
 
-	Object o;
-
-	if (propValue instanceof Array) {
-	    Array arr = ((Array) propValue);
-	    Iterator<Object> it = arr.valueIterator();
-	    while (it.hasNext()) {
-		if (ORMUtil.equals(value, it.next())) return true;
-	    }
+	@Override
+	public UDF duplicate() {
+		return new UDFHasProperty(srcComponent, prop);
 	}
-	else if (propValue instanceof java.util.List) {
-	    Iterator it = ((java.util.List) propValue).iterator();
-	    while (it.hasNext()) {
-		o = it.next();
-		if (ORMUtil.equals(value, o)) return true;
-	    }
+
+	@Override
+	public Object _call(PageContext pageContext, Object[] args, boolean doIncludePath) throws PageException {
+		if (args.length < 1) return has(pageContext);
+		return has(pageContext, args[0]);
 	}
-	return false;
 
-    }
+	@Override
+	public Object _callWithNamedValues(PageContext pageContext, Struct values, boolean doIncludePath) throws PageException {
+		UDFUtil.argumentCollection(values, getFunctionArguments());
+		Key key = arguments[0].getName();
+		Object value = values.get(key, null);
+		if (value == null) {
+			Key[] keys = CollectionUtil.keys(values);
+			if (keys.length > 0) {
+				value = values.get(keys[0]);
+			}
+			else return has(pageContext);
+		}
 
-    @Override
-    public Object implementation(PageContext pageContext) throws Throwable {
-	return null;
-    }
+		return has(pageContext, value);
+	}
 
-    @Override
-    public Object getDefaultValue(PageContext pc, int index) throws PageException {
-	return prop.getDefault();
-    }
+	private boolean has(PageContext pageContext) {
+		Object propValue = getComponent(pageContext).getComponentScope().get(propName, null);
 
-    @Override
-    public Object getDefaultValue(PageContext pc, int index, Object defaultValue) throws PageException {
-	return prop.getDefault();
-    }
+		// struct
+		if (isStruct()) {
+			if (propValue instanceof Map) {
+				return !((Map) propValue).isEmpty();
+			}
+			return false;
+		}
 
-    @Override
-    public String getReturnTypeAsString() {
-	return "boolean";
-    }
+		// Object o;
+		if (propValue instanceof Array) {
+			Array arr = ((Array) propValue);
+			return arr.size() > 0;
+		}
+		else if (propValue instanceof java.util.List) {
+
+			return ((java.util.List) propValue).size() > 0;
+		}
+		return propValue instanceof Component;
+
+	}
+
+	private boolean has(PageContext pageContext, Object value) throws PageException {
+		Object propValue = getComponent(pageContext).getComponentScope().get(propName, null);
+
+		// struct
+		if (isStruct()) {
+			String strKey = Caster.toString(value);
+			// if(strKey==NULL) throw new ;
+
+			if (propValue instanceof Struct) {
+				return ((Struct) propValue).containsKey(KeyImpl.getInstance(strKey));
+			}
+			else if (propValue instanceof Map) {
+				return ((Map) propValue).containsKey(strKey);
+			}
+			return false;
+		}
+
+		Object o;
+
+		if (propValue instanceof Array) {
+			Array arr = ((Array) propValue);
+			Iterator<Object> it = arr.valueIterator();
+			while (it.hasNext()) {
+				if (ORMUtil.equals(value, it.next())) return true;
+			}
+		}
+		else if (propValue instanceof java.util.List) {
+			Iterator it = ((java.util.List) propValue).iterator();
+			while (it.hasNext()) {
+				o = it.next();
+				if (ORMUtil.equals(value, o)) return true;
+			}
+		}
+		return false;
+
+	}
+
+	@Override
+	public Object implementation(PageContext pageContext) throws Throwable {
+		return null;
+	}
+
+	@Override
+	public Object getDefaultValue(PageContext pc, int index) throws PageException {
+		return prop.getDefault();
+	}
+
+	@Override
+	public Object getDefaultValue(PageContext pc, int index, Object defaultValue) throws PageException {
+		return prop.getDefault();
+	}
+
+	@Override
+	public String getReturnTypeAsString() {
+		return "boolean";
+	}
 }

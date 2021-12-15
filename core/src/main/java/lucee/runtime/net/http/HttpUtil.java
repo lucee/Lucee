@@ -35,80 +35,80 @@ import lucee.runtime.type.StructImpl;
 
 public class HttpUtil {
 
-    /**
-     * read all headers from request and return it
-     * 
-     * @param req
-     * @return
-     */
-    public static Pair<String, String>[] cloneHeaders(HttpServletRequest req) {
-	List<Pair<String, String>> headers = new ArrayList<Pair<String, String>>();
-	Enumeration<String> e = req.getHeaderNames(), ee;
-	String name;
-	while (e.hasMoreElements()) {
-	    name = e.nextElement();
-	    ee = req.getHeaders(name);
-	    while (ee.hasMoreElements()) {
-		headers.add(new Pair<String, String>(name, ee.nextElement().toString()));
-	    }
-	}
-	return (Pair<String, String>[]) headers.toArray(new Pair[headers.size()]);
-    }
-
-    public static Struct getAttributesAsStruct(HttpServletRequest req) {
-	Struct attributes = new StructImpl();
-	Enumeration e = req.getAttributeNames();
-	String name;
-	while (e.hasMoreElements()) {
-	    name = (String) e.nextElement();// MUST (hhlhgiug) can throw ConcurrentModificationException
-	    if (name != null) attributes.setEL(name, req.getAttribute(name));
-	}
-	return attributes;
-    }
-
-    public static Pair<String, Object>[] getAttributes(HttpServletRequest req) {
-	List<Pair<String, Object>> attributes = new ArrayList<Pair<String, Object>>();
-	Enumeration e = req.getAttributeNames();
-	String name;
-	while (e.hasMoreElements()) {
-	    name = (String) e.nextElement();
-	    attributes.add(new Pair<String, Object>(name, req.getAttribute(name)));
-	}
-	return attributes.toArray(new Pair[attributes.size()]);
-    }
-
-    public static Pair<String, String>[] cloneParameters(HttpServletRequest req) {
-	List<Pair<String, String>> parameters = new ArrayList<Pair<String, String>>();
-	Enumeration e = req.getParameterNames();
-	String[] values;
-	String name;
-
-	while (e.hasMoreElements()) {
-	    name = (String) e.nextElement();
-	    values = req.getParameterValues(name);
-	    if (values == null && ReqRspUtil.needEncoding(name, false)) values = req.getParameterValues(ReqRspUtil.encode(name, ReqRspUtil.getCharacterEncoding(null, req)));
-	    if (values == null) {
-		PageContext pc = ThreadLocalPageContext.get();
-		if (pc != null && ReqRspUtil.identical(pc.getHttpServletRequest(), req)) {
-		    values = HTTPServletRequestWrap.getParameterValues(ThreadLocalPageContext.get(), name);
+	/**
+	 * read all headers from request and return it
+	 * 
+	 * @param req
+	 * @return
+	 */
+	public static Pair<String, String>[] cloneHeaders(HttpServletRequest req) {
+		List<Pair<String, String>> headers = new ArrayList<Pair<String, String>>();
+		Enumeration<String> e = req.getHeaderNames(), ee;
+		String name;
+		while (e.hasMoreElements()) {
+			name = e.nextElement();
+			ee = req.getHeaders(name);
+			while (ee.hasMoreElements()) {
+				headers.add(new Pair<String, String>(name, ee.nextElement().toString()));
+			}
 		}
-	    }
-	    if (values != null) for (int i = 0; i < values.length; i++) {
-		parameters.add(new Pair<String, String>(name, values[i]));
-	    }
+		return (Pair<String, String>[]) headers.toArray(new Pair[headers.size()]);
 	}
-	return parameters.toArray(new Pair[parameters.size()]);
-    }
 
-    public static Cookie[] cloneCookies(Config config, HttpServletRequest req) {
-	Cookie[] src = ReqRspUtil.getCookies(req, CharsetUtil.getWebCharset());
-	if (src == null) return new Cookie[0];
-
-	Cookie[] dest = new Cookie[src.length];
-	for (int i = 0; i < src.length; i++) {
-	    dest[i] = (Cookie) src[i].clone();
+	public static Struct getAttributesAsStruct(HttpServletRequest req) {
+		Struct attributes = new StructImpl();
+		Enumeration e = req.getAttributeNames();
+		String name;
+		while (e.hasMoreElements()) {
+			name = (String) e.nextElement();// MUST (hhlhgiug) can throw ConcurrentModificationException
+			if (name != null) attributes.setEL(name, req.getAttribute(name));
+		}
+		return attributes;
 	}
-	return dest;
-    }
+
+	public static Pair<String, Object>[] getAttributes(HttpServletRequest req) {
+		List<Pair<String, Object>> attributes = new ArrayList<Pair<String, Object>>();
+		Enumeration e = req.getAttributeNames();
+		String name;
+		while (e.hasMoreElements()) {
+			name = (String) e.nextElement();
+			attributes.add(new Pair<String, Object>(name, req.getAttribute(name)));
+		}
+		return attributes.toArray(new Pair[attributes.size()]);
+	}
+
+	public static Pair<String, String>[] cloneParameters(HttpServletRequest req) {
+		List<Pair<String, String>> parameters = new ArrayList<Pair<String, String>>();
+		Enumeration e = req.getParameterNames();
+		String[] values;
+		String name;
+
+		while (e.hasMoreElements()) {
+			name = (String) e.nextElement();
+			values = req.getParameterValues(name);
+			if (values == null && ReqRspUtil.needEncoding(name, false)) values = req.getParameterValues(ReqRspUtil.encode(name, ReqRspUtil.getCharacterEncoding(null, req)));
+			if (values == null) {
+				PageContext pc = ThreadLocalPageContext.get();
+				if (pc != null && ReqRspUtil.identical(pc.getHttpServletRequest(), req)) {
+					values = HTTPServletRequestWrap.getParameterValues(ThreadLocalPageContext.get(), name);
+				}
+			}
+			if (values != null) for (int i = 0; i < values.length; i++) {
+				parameters.add(new Pair<String, String>(name, values[i]));
+			}
+		}
+		return parameters.toArray(new Pair[parameters.size()]);
+	}
+
+	public static Cookie[] cloneCookies(Config config, HttpServletRequest req) {
+		Cookie[] src = ReqRspUtil.getCookies(req, CharsetUtil.getWebCharset());
+		if (src == null) return new Cookie[0];
+
+		Cookie[] dest = new Cookie[src.length];
+		for (int i = 0; i < src.length; i++) {
+			dest[i] = (Cookie) src[i].clone();
+		}
+		return dest;
+	}
 
 }

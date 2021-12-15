@@ -30,54 +30,54 @@ import lucee.runtime.type.QueryColumn;
 
 public final class ArrayToList extends BIF {
 
-    private static final long serialVersionUID = -4909685848106371747L;
+	private static final long serialVersionUID = -4909685848106371747L;
 
-    public static String call(PageContext pc, Array array) throws PageException {
-	return call(pc, array, ',');
-    }
-
-    public static String call(PageContext pc, Array array, String delimiter) throws PageException {
-	if (delimiter.length() == 1) return call(pc, array, delimiter.charAt(0));
-	if (array instanceof QueryColumn) array = unwrap(pc, (QueryColumn) array);
-	int len = array.size();
-	if (len == 0) return "";
-	if (len == 1) return Caster.toString(array.get(1, ""));
-
-	Object o = array.get(1, null);
-	StringBuilder sb = new StringBuilder(o == null ? "" : Caster.toString(o));
-	for (int i = 2; i <= len; i++) {
-	    sb.append(delimiter);
-	    o = array.get(i, null);
-	    sb.append(o == null ? "" : Caster.toString(o));
+	public static String call(PageContext pc, Array array) throws PageException {
+		return call(pc, array, ',');
 	}
-	return sb.toString();
-    }
 
-    public static String call(PageContext pc, Array array, char delimiter) throws PageException {
-	if (array instanceof QueryColumn) array = unwrap(pc, (QueryColumn) array);
-	int len = array.size();
-	if (len == 0) return "";
-	if (len == 1) return Caster.toString(array.getE(1));
+	public static String call(PageContext pc, Array array, String delimiter) throws PageException {
+		if (delimiter.length() == 1) return call(pc, array, delimiter.charAt(0));
+		if (array instanceof QueryColumn) array = unwrap(pc, (QueryColumn) array);
+		int len = array.size();
+		if (len == 0) return "";
+		if (len == 1) return Caster.toString(array.get(1, ""));
 
-	Object o = array.get(1, null);
-	StringBuilder sb = new StringBuilder(o == null ? "" : Caster.toString(o));
-	for (int i = 2; i <= len; i++) {
-	    sb.append(delimiter);
-	    o = array.get(i, null);
-	    sb.append(o == null ? "" : Caster.toString(o));
+		Object o = array.get(1, null);
+		StringBuilder sb = new StringBuilder(o == null ? "" : Caster.toString(o));
+		for (int i = 2; i <= len; i++) {
+			sb.append(delimiter);
+			o = array.get(i, null);
+			sb.append(o == null ? "" : Caster.toString(o));
+		}
+		return sb.toString();
 	}
-	return sb.toString();
-    }
 
-    private static Array unwrap(PageContext pc, QueryColumn col) {
-	Array arr = Caster.toArray(col.get(pc, (Object) null), null);
-	if (arr != null) return arr;
-	return (Array) col;
-    }
+	public static String call(PageContext pc, Array array, char delimiter) throws PageException {
+		if (array instanceof QueryColumn) array = unwrap(pc, (QueryColumn) array);
+		int len = array.size();
+		if (len == 0) return "";
+		if (len == 1) return Caster.toString(array.get(1, ""));
 
-    @Override
-    public Object invoke(PageContext pc, Object[] args) throws PageException {
-	if (args.length == 1) return call(pc, Caster.toArray(args[0]));
-	return call(pc, Caster.toArray(args[0]), Caster.toString(args[1]));
-    }
+		Object o = array.get(1, null);
+		StringBuilder sb = new StringBuilder(o == null ? "" : Caster.toString(o));
+		for (int i = 2; i <= len; i++) {
+			sb.append(delimiter);
+			o = array.get(i, null);
+			sb.append(o == null ? "" : Caster.toString(o));
+		}
+		return sb.toString();
+	}
+
+	private static Array unwrap(PageContext pc, QueryColumn col) {
+		Array arr = Caster.toArray(col.get(pc, (Object) null), null);
+		if (arr != null) return arr;
+		return (Array) col;
+	}
+
+	@Override
+	public Object invoke(PageContext pc, Object[] args) throws PageException {
+		if (args.length == 1) return call(pc, Caster.toArray(args[0]));
+		return call(pc, Caster.toArray(args[0]), Caster.toString(args[1]));
+	}
 }

@@ -26,16 +26,16 @@ import lucee.runtime.net.rpc.client.WSClient;
 
 public class AddSOAPRequestHeader implements Function {
 
-    private static final long serialVersionUID = 4305004275924545217L;
+	private static final long serialVersionUID = 4305004275924545217L;
 
-    public static boolean call(PageContext pc, Object client, String nameSpace, String name, Object value) throws PageException {
-	return call(pc, client, nameSpace, name, value, false);
-    }
+	public static boolean call(PageContext pc, Object client, String nameSpace, String name, Object value) throws PageException {
+		return call(pc, client, nameSpace, name, value, false);
+	}
 
-    public static boolean call(PageContext pc, Object client, String nameSpace, String name, Object value, boolean mustUnderstand) throws PageException {
-	if (!(client instanceof WSClient))
-	    throw new FunctionException(pc, "addSOAPRequestHeader", 1, "webservice", "value must be a webservice Object generated with createObject/<cfobject>");
-	((WSClient) client).addSOAPRequestHeader(nameSpace, name, value, mustUnderstand);
-	return true;
-    }
+	public static boolean call(PageContext pc, Object client, String nameSpace, String name, Object value, boolean mustUnderstand) throws PageException {
+		if (!(client instanceof WSClient))
+			throw new FunctionException(pc, "addSOAPRequestHeader", 1, "webservice", "value must be a webservice Object generated with createObject/<cfobject>");
+		((WSClient) client).addSOAPRequestHeader(nameSpace, name, value, mustUnderstand);
+		return true;
+	}
 }

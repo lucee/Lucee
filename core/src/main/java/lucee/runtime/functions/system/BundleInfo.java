@@ -44,81 +44,81 @@ import lucee.runtime.type.util.KeyConstants;
 
 public class BundleInfo implements Function {
 
-    private static final long serialVersionUID = 3928190461638362170L;
+	private static final long serialVersionUID = 3928190461638362170L;
 
-    public static Struct call(PageContext pc, Object obj) throws PageException {
-	if (obj == null) throw new FunctionException(pc, "bundleInfo", 1, "object", "value is null");
+	public static Struct call(PageContext pc, Object obj) throws PageException {
+		if (obj == null) throw new FunctionException(pc, "bundleInfo", 1, "object", "value is null");
 
-	Class<?> clazz;
-	if (obj instanceof JavaObject) clazz = ((JavaObject) obj).getClazz();
-	else if (obj instanceof ObjectWrap) clazz = ((ObjectWrap) obj).getEmbededObject().getClass();
-	else clazz = obj.getClass();
+		Class<?> clazz;
+		if (obj instanceof JavaObject) clazz = ((JavaObject) obj).getClazz();
+		else if (obj instanceof ObjectWrap) clazz = ((ObjectWrap) obj).getEmbededObject().getClass();
+		else clazz = obj.getClass();
 
-	ClassLoader cl = clazz.getClassLoader();
-	if (cl instanceof BundleClassLoader) {
-	    BundleClassLoader bcl = (BundleClassLoader) cl;
-	    Bundle b = bcl.getBundle();
-	    Struct sct = new StructImpl();
-	    sct.setEL(KeyConstants._id, b.getBundleId());
-	    sct.setEL(KeyConstants._name, b.getSymbolicName());
-	    sct.setEL("location", b.getLocation());
-	    sct.setEL(KeyConstants._version, b.getVersion().toString());
-	    sct.setEL(KeyConstants._state, OSGiUtil.toState(b.getState(), null));
-	    try {
-		sct.setEL("requiredBundles", toArray1(OSGiUtil.getRequiredBundles(b)));
-		sct.setEL("requiredPackages", toArray2(OSGiUtil.getRequiredPackages(b)));
-	    }
-	    catch (BundleException be) {
-		throw Caster.toPageException(be);
-	    }
-	    return sct;
+		ClassLoader cl = clazz.getClassLoader();
+		if (cl instanceof BundleClassLoader) {
+			BundleClassLoader bcl = (BundleClassLoader) cl;
+			Bundle b = bcl.getBundle();
+			Struct sct = new StructImpl();
+			sct.setEL(KeyConstants._id, b.getBundleId());
+			sct.setEL(KeyConstants._name, b.getSymbolicName());
+			sct.setEL(KeyConstants._location, b.getLocation());
+			sct.setEL(KeyConstants._version, b.getVersion().toString());
+			sct.setEL(KeyConstants._state, OSGiUtil.toState(b.getState(), null));
+			try {
+				sct.setEL("requiredBundles", toArray1(OSGiUtil.getRequiredBundles(b)));
+				sct.setEL("requiredPackages", toArray2(OSGiUtil.getRequiredPackages(b)));
+			}
+			catch (BundleException be) {
+				throw Caster.toPageException(be);
+			}
+			return sct;
+		}
+		throw new ApplicationException("object [" + clazz + "] is not from an OSGi bundle");
 	}
-	throw new ApplicationException("object [" + clazz + "] is not from a OSGi bundle");
-    }
 
-    private static Array toArray1(List<BundleDefinition> list) {
-	Struct sct;
-	Array arr = new ArrayImpl();
-	Iterator<BundleDefinition> it = list.iterator();
-	BundleDefinition bd;
-	VersionDefinition vd;
-	while (it.hasNext()) {
-	    bd = it.next();
-	    sct = new StructImpl();
-	    sct.setEL(KeyConstants._bundleName, bd.getName());
-	    vd = bd.getVersionDefiniton();
-	    if (vd != null) {
-		sct.setEL(KeyConstants._bundleVersion, vd.getVersionAsString());
-		sct.setEL("operator", vd.getOpAsString());
-	    }
-	    arr.appendEL(sct);
+	private static Array toArray1(List<BundleDefinition> list) {
+		Struct sct;
+		Array arr = new ArrayImpl();
+		Iterator<BundleDefinition> it = list.iterator();
+		BundleDefinition bd;
+		VersionDefinition vd;
+		while (it.hasNext()) {
+			bd = it.next();
+			sct = new StructImpl();
+			sct.setEL(KeyConstants._bundleName, bd.getName());
+			vd = bd.getVersionDefiniton();
+			if (vd != null) {
+				sct.setEL(KeyConstants._bundleVersion, vd.getVersionAsString());
+				sct.setEL("operator", vd.getOpAsString());
+			}
+			arr.appendEL(sct);
+		}
+		return arr;
 	}
-	return arr;
-    }
 
-    private static Array toArray2(List<PackageQuery> list) {
-	Struct sct, _sct;
-	Array arr = new ArrayImpl(), _arr;
-	Iterator<PackageQuery> it = list.iterator();
-	PackageQuery pd;
-	Iterator<VersionDefinition> _it;
-	VersionDefinition vd;
-	while (it.hasNext()) {
-	    pd = it.next();
-	    sct = new StructImpl();
-	    sct.setEL(KeyConstants._package, pd.getName());
-	    sct.setEL("versions", _arr = new ArrayImpl());
+	private static Array toArray2(List<PackageQuery> list) {
+		Struct sct, _sct;
+		Array arr = new ArrayImpl(), _arr;
+		Iterator<PackageQuery> it = list.iterator();
+		PackageQuery pd;
+		Iterator<VersionDefinition> _it;
+		VersionDefinition vd;
+		while (it.hasNext()) {
+			pd = it.next();
+			sct = new StructImpl();
+			sct.setEL(KeyConstants._package, pd.getName());
+			sct.setEL("versions", _arr = new ArrayImpl());
 
-	    _it = pd.getVersionDefinitons().iterator();
-	    while (_it.hasNext()) {
-		vd = _it.next();
-		_sct = new StructImpl();
-		_sct.setEL(KeyConstants._bundleVersion, vd.getVersion().toString());
-		_sct.setEL("operator", vd.getOpAsString());
-		_arr.appendEL(_sct);
-	    }
-	    arr.appendEL(sct);
+			_it = pd.getVersionDefinitons().iterator();
+			while (_it.hasNext()) {
+				vd = _it.next();
+				_sct = new StructImpl();
+				_sct.setEL(KeyConstants._bundleVersion, vd.getVersion().toString());
+				_sct.setEL("operator", vd.getOpAsString());
+				_arr.appendEL(_sct);
+			}
+			arr.appendEL(sct);
+		}
+		return arr;
 	}
-	return arr;
-    }
 }

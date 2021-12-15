@@ -29,43 +29,46 @@ import lucee.runtime.type.util.ListUtil;
 
 public final class ZipUtil {
 
-    public static void unzip(Resource zip, Resource dir) throws IOException {
-	if (zip.length() > 0 && (dir.exists() || dir.mkdirs())) {
-	    if ("Mac OS X".equalsIgnoreCase(System.getProperty("os.name"))) {
-		try {
-		    // Command.execute("unzip "+zip+" -d "+dir);
-		    Command.execute("unzip", new String[] { "-o", zip.getAbsolutePath(), "-d", dir.getAbsolutePath() });
+	public static void unzip(Resource zip, Resource dir) throws IOException {
+		if (zip.length() > 0 && (dir.exists() || dir.mkdirs())) {
+			if ("Mac OS X".equalsIgnoreCase(System.getProperty("os.name"))) {
+				try {
+					// Command.execute("unzip "+zip+" -d "+dir);
+					Command.execute("unzip", new String[] { "-o", zip.getAbsolutePath(), "-d", dir.getAbsolutePath() });
+				}
+				catch (InterruptedException e) {
+				}
+				return;
+			}
+			CompressUtil.extract(CompressUtil.FORMAT_ZIP, zip, dir);
 		}
-		catch (InterruptedException e) {}
-		return;
-	    }
-	    CompressUtil.extract(CompressUtil.FORMAT_ZIP, zip, dir);
 	}
-    }
 
-    public static void close(ZipOutputStream zos) {
-	if (zos == null) return;
-	try {
-	    zos.close();
+	public static void close(ZipOutputStream zos) {
+		if (zos == null) return;
+		try {
+			zos.close();
+		}
+		catch (IOException e) {
+		}
 	}
-	catch (IOException e) {}
-    }
 
-    public static void close(ZipFile file) {
-	if (file == null) return;
-	try {
-	    file.close();
+	public static void close(ZipFile file) {
+		if (file == null) return;
+		try {
+			file.close();
+		}
+		catch (IOException e) {
+		}
 	}
-	catch (IOException e) {}
-    }
 
-    public static Resource toResource(Resource targetDir, ZipEntry entry) throws IOException {
-	Resource target = targetDir.getRealResource(entry.getName());
+	public static Resource toResource(Resource targetDir, ZipEntry entry) throws IOException {
+		Resource target = targetDir.getRealResource(entry.getName());
 
-	// in case a file is outside the target directory, we copy it to the target directory
-	if (!target.getCanonicalPath().startsWith(targetDir.getCanonicalPath())) {
-	    target = targetDir.getRealResource(ListUtil.last(entry.getName(), "\\/", true));
+		// in case a file is outside the target directory, we copy it to the target directory
+		if (!target.getCanonicalPath().startsWith(targetDir.getCanonicalPath())) {
+			target = targetDir.getRealResource(ListUtil.last(entry.getName(), "\\/", true));
+		}
+		return target;
 	}
-	return target;
-    }
 }

@@ -26,7 +26,7 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
 
 public final class IIf implements Function {
-    public static Object call(PageContext pc, boolean bool, String str1, String str2) throws PageException {
-	return bool ? Evaluate.call(pc, new Object[] { str1 }) : Evaluate.call(pc, new Object[] { str2 });
-    }
+	public static Object call(PageContext pc, boolean bool, String str1, String str2) throws PageException {
+		return bool ? Evaluate.call(pc, new Object[] { str1 }) : Evaluate.call(pc, new Object[] { str2 });
+	}
 }

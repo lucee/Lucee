@@ -29,51 +29,51 @@ import lucee.runtime.type.scope.storage.StorageScopeMemory;
 
 public class SessionMemory extends StorageScopeMemory implements Session, MemoryScope {
 
-    private static final long serialVersionUID = 7703261878730061485L;
-    private Component component;
+	private static final long serialVersionUID = 7703261878730061485L;
+	private Component component;
 
-    /**
-     * Constructor of the class
-     * 
-     * @param pc
-     * @param isNew
-     * @param name
-     */
-    protected SessionMemory(PageContext pc, Log log) {
-	super(pc, "session", SCOPE_SESSION, log);
-    }
+	/**
+	 * Constructor of the class
+	 * 
+	 * @param pc
+	 * @param isNew
+	 * @param name
+	 */
+	protected SessionMemory(PageContext pc, Log log) {
+		super(pc, "session", SCOPE_SESSION, log);
+	}
 
-    /**
-     * Constructor of the class, clone existing
-     * 
-     * @param other
-     */
-    protected SessionMemory(StorageScopeMemory other, boolean deepCopy) {
-	super(other, deepCopy);
-    }
+	/**
+	 * Constructor of the class, clone existing
+	 * 
+	 * @param other
+	 */
+	protected SessionMemory(StorageScopeMemory other, boolean deepCopy) {
+		super(other, deepCopy);
+	}
 
-    /**
-     * load a new instance of the class
-     * 
-     * @param pc
-     * @param isNew
-     * @return
-     */
-    public static Session getInstance(PageContext pc, RefBoolean isNew, Log log) {
-	isNew.setValue(true);
-	return new SessionMemory(pc, log);
-    }
+	/**
+	 * load a new instance of the class
+	 * 
+	 * @param pc
+	 * @param isNew
+	 * @return
+	 */
+	public static Session getInstance(PageContext pc, RefBoolean isNew, Log log) {
+		isNew.setValue(true);
+		return new SessionMemory(pc, log);
+	}
 
-    @Override
-    public Collection duplicate(boolean deepCopy) {
-	return new SessionMemory(this, deepCopy);
-    }
+	@Override
+	public Collection duplicate(boolean deepCopy) {
+		return new SessionMemory(this, deepCopy);
+	}
 
-    public void setComponent(Component component) {
-	this.component = component;
-    }
+	public void setComponent(Component component) {
+		this.component = component;
+	}
 
-    public Component getComponent() {
-	return component;
-    }
+	public Component getComponent() {
+		return component;
+	}
 }

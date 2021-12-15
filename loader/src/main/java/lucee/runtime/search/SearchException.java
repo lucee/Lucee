@@ -23,22 +23,22 @@ package lucee.runtime.search;
  */
 public final class SearchException extends Exception {
 
-    private static final long serialVersionUID = 5156297144445929730L;
+	private static final long serialVersionUID = 5156297144445929730L;
 
-    /**
-     * constructor o the class
-     * 
-     * @param message
-     */
-    public SearchException(final String message) {
-	super(message);
-    }
+	/**
+	 * constructor o the class
+	 * 
+	 * @param message
+	 */
+	public SearchException(final String message) {
+		super(message);
+	}
 
-    /**
-     * @param e
-     */
-    public SearchException(final Exception e) {
-	super(e.getMessage());
-	setStackTrace(e.getStackTrace());
-    }
+	/**
+	 * @param e
+	 */
+	public SearchException(final Exception e) {
+		super(e.getMessage());
+		setStackTrace(e.getStackTrace());
+	}
 }

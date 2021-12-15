@@ -25,28 +25,45 @@ import lucee.runtime.PageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.op.Caster;
+import lucee.runtime.op.Decision;
 import lucee.runtime.text.xml.XMLUtil;
 import lucee.runtime.type.Struct;
+import lucee.runtime.type.util.ListUtil;
 
 /**
  * 
  */
 public final class XmlValidate implements Function {
 
-    public static Struct call(PageContext pc, String strXml) throws PageException {
-	return call(pc, strXml, null);
-    }
+	private static final long serialVersionUID = 3566454779506863837L;
 
-    public static Struct call(PageContext pc, String strXml, String strValidator) throws PageException {
-	strXml = strXml.trim();
-	try {
-	    InputSource xml = XMLUtil.toInputSource(pc, strXml);
-	    InputSource validator = StringUtil.isEmpty(strValidator) ? null : XMLUtil.toInputSource(pc, strValidator);
-	    return XMLUtil.validate(xml, validator, strValidator);
-	}
-	catch (Exception e) {
-	    throw Caster.toPageException(e);
+	public static Struct call(PageContext pc, String strXml) throws PageException {
+		return call(pc, strXml, null);
 	}
 
-    }
+	public static Struct call(PageContext pc, String strXml, Object objValidator) throws PageException {
+		strXml = strXml.trim();
+		try {
+			InputSource xml = XMLUtil.toInputSource(pc, strXml);
+			InputSource[] validators;
+			if (StringUtil.isEmpty(objValidator)) validators = null;
+			else {
+				String[] strValidators;
+				if (Decision.isArray(objValidator)) strValidators = ListUtil.toStringArray(Caster.toArray(objValidator));
+				else strValidators = new String[] { Caster.toString(objValidator) };
+				// else strValidators = ListUtil.listToStringArray(Caster.toString(objValidator), ',');
+
+				validators = new InputSource[strValidators.length];
+				for (int i = 0; i < validators.length; i++) {
+					validators[i] = XMLUtil.toInputSource(pc, strValidators[i]);
+				}
+			}
+
+			return XMLUtil.validate(xml, validators, null);
+		}
+		catch (Exception e) {
+			throw Caster.toPageException(e);
+		}
+
+	}
 }

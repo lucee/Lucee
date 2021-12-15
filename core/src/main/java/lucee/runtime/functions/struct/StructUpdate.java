@@ -31,19 +31,19 @@ import lucee.runtime.type.KeyImpl;
 
 public final class StructUpdate extends BIF {
 
-    private static final long serialVersionUID = -6768103097076333814L;
+	private static final long serialVersionUID = -6768103097076333814L;
 
-    public static boolean call(PageContext pc, lucee.runtime.type.Struct struct, String key, Object object) throws PageException {
-	Key k = KeyImpl.init(key);
-	struct.get(k);
-	struct.set(k, object);
-	return true;
-    }
+	public static boolean call(PageContext pc, lucee.runtime.type.Struct struct, String key, Object object) throws PageException {
+		Key k = KeyImpl.init(key);
+		struct.get(k);
+		struct.set(k, object);
+		return true;
+	}
 
-    @Override
-    public Object invoke(PageContext pc, Object[] args) throws PageException {
-	if (args.length == 3) return call(pc, Caster.toStruct(args[0]), Caster.toString(args[1]), args[2]);
-	throw new FunctionException(pc, "StructUpdate", 3, 3, args.length);
-    }
+	@Override
+	public Object invoke(PageContext pc, Object[] args) throws PageException {
+		if (args.length == 3) return call(pc, Caster.toStruct(args[0]), Caster.toString(args[1]), args[2]);
+		throw new FunctionException(pc, "StructUpdate", 3, 3, args.length);
+	}
 
 }

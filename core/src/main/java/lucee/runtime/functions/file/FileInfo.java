@@ -8,7 +8,7 @@ import lucee.runtime.type.Struct;
 
 public class FileInfo {
 
-    public static Struct call(PageContext pc, String path) throws PageException {
-	return FileTag.getInfo(pc, ResourceUtil.toResourceExisting(pc, path), null);
-    }
+	public static Struct call(PageContext pc, String path) throws PageException {
+		return FileTag.getInfo(pc, ResourceUtil.toResourceExisting(pc, path), null);
+	}
 }

@@ -18,83 +18,121 @@
  **/
 package lucee.runtime.tag.util;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import lucee.commons.io.res.filter.ExtensionResourceFilter;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.exp.ApplicationException;
+import lucee.runtime.exp.PageException;
+import lucee.runtime.op.Caster;
+import lucee.runtime.op.Decision;
+import lucee.runtime.type.util.ListUtil;
 
 public class FileUtil {
 
-    public static final int NAMECONFLICT_UNDEFINED = 1; // can't start at 0 because we need to be able to do a bitmask test
-    public static final int NAMECONFLICT_ERROR = 2;
-    public static final int NAMECONFLICT_SKIP = 4; // same as IGNORE
-    public static final int NAMECONFLICT_OVERWRITE = 8; // same as MERGE
-    public static final int NAMECONFLICT_MAKEUNIQUE = 16;
-    // public static final int NAMECONFLICT_CLOSURE = 32; // FUTURE
+	public static final int NAMECONFLICT_UNDEFINED = 1; // can't start at 0 because we need to be able to do a bitmask test
+	public static final int NAMECONFLICT_ERROR = 2;
+	public static final int NAMECONFLICT_SKIP = 4; // same as IGNORE
+	public static final int NAMECONFLICT_OVERWRITE = 8; // same as MERGE
+	public static final int NAMECONFLICT_MAKEUNIQUE = 16;
+	public static final int NAMECONFLICT_FORCEUNIQUE = 32;
+	// public static final int NAMECONFLICT_CLOSURE = 32; // FUTURE
 
-    public static int toNameConflict(String nameConflict) throws ApplicationException {
+	public static int toNameConflict(String nameConflict) throws ApplicationException {
 
-	if (StringUtil.isEmpty(nameConflict, true)) return NAMECONFLICT_UNDEFINED;
-	nameConflict = nameConflict.trim().toLowerCase();
+		if (StringUtil.isEmpty(nameConflict, true)) return NAMECONFLICT_UNDEFINED;
+		nameConflict = nameConflict.trim().toLowerCase();
 
-	if ("error".equals(nameConflict)) return NAMECONFLICT_ERROR;
+		if ("error".equals(nameConflict)) return NAMECONFLICT_ERROR;
 
-	if ("skip".equals(nameConflict) || "ignore".equals(nameConflict)) return NAMECONFLICT_SKIP;
+		if ("skip".equals(nameConflict) || "ignore".equals(nameConflict)) return NAMECONFLICT_SKIP;
 
-	if ("merge".equals(nameConflict) || "overwrite".equals(nameConflict)) return NAMECONFLICT_OVERWRITE;
+		if ("merge".equals(nameConflict) || "overwrite".equals(nameConflict)) return NAMECONFLICT_OVERWRITE;
 
-	if ("makeunique".equals(nameConflict) || "unique".equals(nameConflict)) return NAMECONFLICT_MAKEUNIQUE;
+		if ("makeunique".equals(nameConflict) || "unique".equals(nameConflict)) return NAMECONFLICT_MAKEUNIQUE;
 
-	throw new ApplicationException("Invalid value for attribute nameConflict [" + nameConflict + "]", "valid values are [" + fromNameConflictBitMask(Integer.MAX_VALUE) + "]");
-    }
+		if ("forceunique".equals(nameConflict)) return NAMECONFLICT_FORCEUNIQUE;
 
-    /**
-     *
-     * @param nameConflict
-     * @param allowedValuesMask
-     * @return
-     * @throws ApplicationException
-     */
-    public static int toNameConflict(String nameConflict, int allowedValuesMask) throws ApplicationException {
-
-	int result = toNameConflict(nameConflict);
-
-	if ((allowedValuesMask & result) == 0) {
-
-	    throw new ApplicationException("Invalid value for attribute nameConflict [" + nameConflict + "]",
-		    "valid values are [" + fromNameConflictBitMask(allowedValuesMask) + "]");
+		throw new ApplicationException("Invalid value for attribute nameConflict [" + nameConflict + "]", "valid values are [" + fromNameConflictBitMask(Integer.MAX_VALUE) + "]");
 	}
 
-	return result;
-    }
+	/**
+	 *
+	 * @param nameConflict
+	 * @param allowedValuesMask
+	 * @return
+	 * @throws ApplicationException
+	 */
+	public static int toNameConflict(String nameConflict, int allowedValuesMask) throws ApplicationException {
 
-    /**
-     *
-     * @param nameConflict
-     * @param allowedValuesMask
-     * @param defaultValue
-     * @return
-     * @throws ApplicationException
-     */
-    public static int toNameConflict(String nameConflict, int allowedValuesMask, int defaultValue) throws ApplicationException {
+		int result = toNameConflict(nameConflict);
 
-	int result = toNameConflict(nameConflict, allowedValuesMask);
+		if ((allowedValuesMask & result) == 0) {
 
-	if (result == NAMECONFLICT_UNDEFINED) return defaultValue;
+			throw new ApplicationException("Invalid value for attribute nameConflict [" + nameConflict + "]",
+					"valid values are [" + fromNameConflictBitMask(allowedValuesMask) + "]");
+		}
 
-	return result;
-    }
+		return result;
+	}
 
-    public static String fromNameConflictBitMask(int bitmask) {
+	/**
+	 *
+	 * @param nameConflict
+	 * @param allowedValuesMask
+	 * @param defaultValue
+	 * @return
+	 * @throws ApplicationException
+	 */
+	public static int toNameConflict(String nameConflict, int allowedValuesMask, int defaultValue) throws ApplicationException {
 
-	StringBuilder sb = new StringBuilder();
+		int result = toNameConflict(nameConflict, allowedValuesMask);
 
-	if ((bitmask & NAMECONFLICT_ERROR) > 0) sb.append("error").append(',');
-	if ((bitmask & NAMECONFLICT_MAKEUNIQUE) > 0) sb.append("makeunique (unique)").append(',');
-	if ((bitmask & NAMECONFLICT_OVERWRITE) > 0) sb.append("overwrite (merge)").append(',');
-	if ((bitmask & NAMECONFLICT_SKIP) > 0) sb.append("skip (ignore)").append(',');
+		if (result == NAMECONFLICT_UNDEFINED) return defaultValue;
 
-	if (sb.length() > 0) sb.setLength(sb.length() - 1); // remove last ,
+		return result;
+	}
 
-	return sb.toString();
-    }
+	public static String fromNameConflictBitMask(int bitmask) {
+
+		StringBuilder sb = new StringBuilder();
+
+		if ((bitmask & NAMECONFLICT_ERROR) > 0) sb.append("error").append(',');
+		if ((bitmask & NAMECONFLICT_MAKEUNIQUE) > 0) sb.append("makeunique (unique)").append(',');
+		if ((bitmask & NAMECONFLICT_FORCEUNIQUE) > 0) sb.append("forceunique").append(',');
+		if ((bitmask & NAMECONFLICT_OVERWRITE) > 0) sb.append("overwrite (merge)").append(',');
+		if ((bitmask & NAMECONFLICT_SKIP) > 0) sb.append("skip (ignore)").append(',');
+
+		if (sb.length() > 0) sb.setLength(sb.length() - 1); // remove last ,
+
+		return sb.toString();
+	}
+
+	public static ExtensionResourceFilter toExtensionFilter(Object obj) throws PageException {
+		List<String> list = new ArrayList<>();
+		if (Decision.isArray(obj)) {
+			String str;
+			for (Object o: Caster.toNativeArray(obj)) {
+				str = toExtensions(Caster.toString(o));
+				if (!StringUtil.isEmpty(str)) list.add(str);
+			}
+		}
+		else {
+			for (String str: ListUtil.listToList(Caster.toString(obj), ',', true)) {
+				str = toExtensions(str);
+				if (!StringUtil.isEmpty(str)) list.add(str);
+			}
+		}
+		return new ExtensionResourceFilter(list.toArray(new String[list.size()]), false, true, false);
+	}
+
+	public static String toExtensions(String str) throws PageException {
+		if (StringUtil.isEmpty(str, true)) return null;
+		str = str.trim();
+		if (str.startsWith("*.")) return str.substring(2).toLowerCase();
+		if (str.startsWith(".")) return str.substring(1).toLowerCase();
+		return str.toLowerCase();
+	}
 
 }

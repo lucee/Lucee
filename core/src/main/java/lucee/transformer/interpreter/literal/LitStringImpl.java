@@ -13,75 +13,75 @@ import lucee.transformer.interpreter.expression.ExpressionBase;
  */
 public class LitStringImpl extends ExpressionBase implements LitString, ExprString {
 
-    private String str;
-    private boolean fromBracket;
+	private String str;
+	private boolean fromBracket;
 
-    /**
-     * constructor of the class
-     * 
-     * @param str
-     * @param line
-     */
-    public LitStringImpl(Factory f, String str, Position start, Position end) {
-	super(f, start, end);
-	this.str = str;
-    }
+	/**
+	 * constructor of the class
+	 * 
+	 * @param str
+	 * @param line
+	 */
+	public LitStringImpl(Factory f, String str, Position start, Position end) {
+		super(f, start, end);
+		this.str = str;
+	}
 
-    @Override
-    public Class<?> _writeOut(InterpreterContext ic, int mode) {
-	ic.stack(str);
-	return String.class;
-    }
+	@Override
+	public Class<?> _writeOut(InterpreterContext ic, int mode) {
+		ic.stack(str);
+		return String.class;
+	}
 
-    @Override
-    public String getString() {
-	return str;
-    }
+	@Override
+	public String getString() {
+		return str;
+	}
 
-    @Override
-    public Double getDouble(Double defaultValue) {
-	return Caster.toDouble(getString(), defaultValue);
-    }
+	@Override
+	public Double getDouble(Double defaultValue) {
+		return Caster.toDouble(getString(), defaultValue);
+	}
 
-    @Override
-    public Boolean getBoolean(Boolean defaultValue) {
-	return Caster.toBoolean(getString(), defaultValue);
-    }
+	@Override
+	public Boolean getBoolean(Boolean defaultValue) {
+		return Caster.toBoolean(getString(), defaultValue);
+	}
 
-    @Override
-    public boolean equals(Object obj) {
-	if (this == obj) return true;
-	if (!(obj instanceof LitString)) return false;
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) return true;
+		if (!(obj instanceof LitString)) return false;
 
-	return str.equals(((LitStringImpl) obj).getString());
-    }
+		return str.equals(((LitStringImpl) obj).getString());
+	}
 
-    @Override
-    public String toString() {
-	return str;
-    }
+	@Override
+	public String toString() {
+		return str;
+	}
 
-    @Override
-    public void upperCase() {
-	str = str.toUpperCase();
-    }
+	@Override
+	public void upperCase() {
+		str = str.toUpperCase();
+	}
 
-    public void lowerCase() {
-	str = str.toLowerCase();
-    }
+	public void lowerCase() {
+		str = str.toLowerCase();
+	}
 
-    @Override
-    public LitString duplicate() {
-	return new LitStringImpl(getFactory(), str, getStart(), getEnd());
-    }
+	@Override
+	public LitString duplicate() {
+		return new LitStringImpl(getFactory(), str, getStart(), getEnd());
+	}
 
-    @Override
-    public void fromBracket(boolean fromBracket) {
-	this.fromBracket = fromBracket;
-    }
+	@Override
+	public void fromBracket(boolean fromBracket) {
+		this.fromBracket = fromBracket;
+	}
 
-    @Override
-    public boolean fromBracket() {
-	return fromBracket;
-    }
+	@Override
+	public boolean fromBracket() {
+		return fromBracket;
+	}
 }

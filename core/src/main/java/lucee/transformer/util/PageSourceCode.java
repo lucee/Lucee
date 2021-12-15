@@ -28,54 +28,53 @@ import lucee.runtime.PageSource;
 
 public class PageSourceCode extends SourceCode {
 
-    private final Charset charset;
-    private final PageSource ps;
+	private final Charset charset;
+	private final PageSource ps;
 
-    public PageSourceCode(PageSource ps, Charset charset, boolean writeLog) throws IOException {
-	super(toString(ps, charset), writeLog, ps.getDialect());
-	this.charset = charset;
-	this.ps = ps;
-	// this.source=ps.getPhyscalFile().getAbsolutePath();
-    }
-
-    public PageSourceCode(PageSource ps, String text, Charset charset, boolean writeLog) {
-	super(text, writeLog, ps.getDialect());
-	this.charset = charset;
-	this.ps = ps;
-    }
-
-    public static String toString(PageSource ps, Charset charset) throws IOException {
-	String content;
-	InputStream is = null;
-	try {
-	    is = IOUtil.toBufferedInputStream(ps.getPhyscalFile().getInputStream());
-	    if (ClassUtil.isBytecode(is)) throw new AlreadyClassException(ps.getPhyscalFile(), false);
-	    if (ClassUtil.isEncryptedBytecode(is)) throw new AlreadyClassException(ps.getPhyscalFile(), true);
-
-	    content = IOUtil.toString(is, charset);
-
+	public PageSourceCode(PageSource ps, Charset charset, boolean writeLog) throws IOException {
+		super(toString(ps, charset), writeLog, ps.getDialect());
+		this.charset = charset;
+		this.ps = ps;
+		// this.source=ps.getPhyscalFile().getAbsolutePath();
 	}
-	finally {
-	    IOUtil.closeEL(is);
+
+	public PageSourceCode(PageSource ps, String text, Charset charset, boolean writeLog) {
+		super(text, writeLog, ps.getDialect());
+		this.charset = charset;
+		this.ps = ps;
 	}
-	return content;
-    }
 
-    public String id() {
-	return HashUtil.create64BitHashAsString(getPageSource().getDisplayPath());
-    }
+	public static String toString(PageSource ps, Charset charset) throws IOException {
+		String content;
+		InputStream is = null;
+		try {
+			is = IOUtil.toBufferedInputStream(ps.getPhyscalFile().getInputStream());
+			if (ClassUtil.isBytecode(is)) throw new AlreadyClassException(ps.getPhyscalFile(), false);
+			if (ClassUtil.isEncryptedBytecode(is)) throw new AlreadyClassException(ps.getPhyscalFile(), true);
+			content = IOUtil.toString(is, charset);
+		}
+		finally {
+			IOUtil.close(is);
+		}
+		return content;
+	}
 
-    /**
-     * Gibt die Quelle aus dem der CFML Code stammt als File Objekt zurueck, falls dies nicht aud einem
-     * File stammt wird null zurueck gegeben.
-     * 
-     * @return source Quelle des CFML Code.
-     */
-    public PageSource getPageSource() {
-	return ps;
-    }
+	@Override
+	public String id() {
+		return HashUtil.create64BitHashAsString(getPageSource().getDisplayPath());
+	}
 
-    public Charset getCharset() {
-	return charset;
-    }
+	/**
+	 * Gibt die Quelle aus dem der CFML Code stammt als File Objekt zurueck, falls dies nicht aud einem
+	 * File stammt wird null zurueck gegeben.
+	 * 
+	 * @return source Quelle des CFML Code.
+	 */
+	public PageSource getPageSource() {
+		return ps;
+	}
+
+	public Charset getCharset() {
+		return charset;
+	}
 }

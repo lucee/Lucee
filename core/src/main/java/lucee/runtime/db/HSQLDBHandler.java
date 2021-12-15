@@ -32,11 +32,12 @@ import java.util.Iterator;
 import java.util.Set;
 
 import lucee.commons.db.DBUtil;
+import lucee.commons.io.SystemUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.SerializableObject;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.exp.DatabaseException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
@@ -54,330 +55,331 @@ import lucee.runtime.type.dt.TimeSpan;
 import lucee.runtime.type.util.CollectionUtil;
 
 /**
- * class to reexecute queries on the resultset object inside the cfml enviroment
+ * class to reexecute queries on the resultset object inside the cfml environment
  */
 public final class HSQLDBHandler {
 
-    private static final int STRING = 0;
-    private static final int INT = 1;
-    private static final int DOUBLE = 2;
-    private static final int DATE = 3;
-    private static final int TIME = 4;
-    private static final int TIMESTAMP = 5;
-    private static final int BINARY = 6;
+	private static final int STRING = 0;
+	private static final int INT = 1;
+	private static final int DOUBLE = 2;
+	private static final int DATE = 3;
+	private static final int TIME = 4;
+	private static final int TIMESTAMP = 5;
+	private static final int BINARY = 6;
 
-    Executer executer = new Executer();
-    QoQ qoq = new QoQ();
-    private static Object lock = new SerializableObject();
+	Executer executer = new Executer();
+	QoQ qoq = new QoQ();
+	private static Object lock = new SerializableObject();
+	private static boolean hsqldbDisable;
+	private static boolean hsqldbDebug;
 
-    /**
-     * constructor of the class
-     */
-    public HSQLDBHandler() {
-
-    }
-
-    /**
-     * adds a table to the memory database
-     * 
-     * @param conn
-     * @param pc
-     * @param name name of the new table
-     * @param query data source for table
-     * @throws SQLException
-     * @throws PageException
-     */
-    private static void addTable(Connection conn, PageContext pc, String name, Query query, boolean doSimpleTypes, ArrayList<String> usedTables)
-	    throws SQLException, PageException {
-	Statement stat;
-	usedTables.add(name);
-	stat = conn.createStatement();
-	Key[] keys = CollectionUtil.keys(query);
-	int[] types = query.getTypes();
-	int[] innerTypes = toInnerTypes(types);
-	// CREATE STATEMENT
-	String comma = "";
-	StringBuilder create = new StringBuilder("CREATE TABLE " + name + " (");
-	StringBuilder insert = new StringBuilder("INSERT INTO  " + name + " (");
-	StringBuilder values = new StringBuilder("VALUES (");
-	for (int i = 0; i < keys.length; i++) {
-	    String key = keys[i].getString();
-	    String type = (doSimpleTypes) ? "VARCHAR_IGNORECASE" : toUsableType(types[i]);
-
-	    create.append(comma + key);
-	    create.append(" ");
-	    create.append(type);
-	    insert.append(comma + key);
-	    values.append(comma + "?");
-	    comma = ",";
+	static {
+		hsqldbDisable = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.qoq.hsqldb.disable", "false"), false);
+		hsqldbDebug = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.qoq.hsqldb.debug", "false"), false);
 	}
-	create.append(")");
-	insert.append(")");
-	values.append(")");
-	stat.execute(create.toString());
-	PreparedStatement prepStat = conn.prepareStatement(insert.toString() + values.toString());
 
-	// INSERT STATEMENT
-	// HashMap integerTypes=getIntegerTypes(types);
+	/**
+	 * constructor of the class
+	 */
+	public HSQLDBHandler() {
 
-	int count = query.getRecordcount();
-	QueryColumn[] columns = new QueryColumn[keys.length];
-	for (int i = 0; i < keys.length; i++) {
-	    columns[i] = query.getColumn(keys[i]);
 	}
-	for (int y = 0; y < count; y++) {
-	    for (int i = 0; i < keys.length; i++) {
-		int type = innerTypes[i];
-		Object value = columns[i].get(y + 1, null);
 
-		// print.out("*** "+type+":"+Caster.toString(value));
-		if (doSimpleTypes) {
+	/**
+	 * adds a table to the memory database
+	 * 
+	 * @param conn
+	 * @param pc
+	 * @param name name of the new table
+	 * @param query data source for table
+	 * @throws SQLException
+	 * @throws PageException
+	 */
+	private static void addTable(Connection conn, PageContext pc, String name, Query query, boolean doSimpleTypes, ArrayList<String> usedTables)
+			throws SQLException, PageException {
+		Statement stat;
+		usedTables.add(name);
+		stat = conn.createStatement();
+		Key[] keys = CollectionUtil.keys(query);
+		int[] types = query.getTypes();
+		int[] innerTypes = toInnerTypes(types);
+		// CREATE STATEMENT
+		String comma = "";
+		StringBuilder create = new StringBuilder("CREATE TABLE " + name + " (");
+		StringBuilder insert = new StringBuilder("INSERT INTO  " + name + " (");
+		StringBuilder values = new StringBuilder("VALUES (");
+		for (int i = 0; i < keys.length; i++) {
+			String key = keys[i].getString();
+			String type = (doSimpleTypes) ? "VARCHAR_IGNORECASE" : toUsableType(types[i]);
 
-		    prepStat.setObject(i + 1, Caster.toString(value));
+			create.append(comma + key);
+			create.append(" ");
+			create.append(type);
+			insert.append(comma + key);
+			values.append(comma + "?");
+			comma = ",";
 		}
-		else {
-		    if (value == null) prepStat.setNull(i + 1, types[i]);
-		    else if (type == BINARY) prepStat.setBytes(i + 1, Caster.toBinary(value));
-		    else if (type == DATE) {
-			// print.out(new java.util.Date(new
-			// Date(DateCaster.toDateAdvanced(value,pc.getTimeZone()).getTime()).getTime()));
+		create.append(")");
+		insert.append(")");
+		values.append(")");
+		stat.execute(create.toString());
+		PreparedStatement prepStat = conn.prepareStatement(insert.toString() + values.toString());
 
-			prepStat.setTimestamp(i + 1, (value.equals("")) ? null : new Timestamp(DateCaster.toDateAdvanced(query.getAt(keys[i], y + 1), pc.getTimeZone()).getTime()));
-			// prepStat.setObject(i+1,Caster.toDate(value,null));
-			// prepStat.setDate(i+1,(value==null || value.equals(""))?null:new
-			// Date(DateCaster.toDateAdvanced(value,pc.getTimeZone()).getTime()));
-		    }
-		    else if (type == TIME)
-			prepStat.setTime(i + 1, (value.equals("")) ? null : new Time(DateCaster.toDateAdvanced(query.getAt(keys[i], y + 1), pc.getTimeZone()).getTime()));
-		    else if (type == TIMESTAMP)
-			prepStat.setTimestamp(i + 1, (value.equals("")) ? null : new Timestamp(DateCaster.toDateAdvanced(query.getAt(keys[i], y + 1), pc.getTimeZone()).getTime()));
-		    else if (type == DOUBLE) prepStat.setDouble(i + 1, (value.equals("")) ? 0 : Caster.toDoubleValue(query.getAt(keys[i], y + 1)));
-		    else if (type == INT) prepStat.setLong(i + 1, (value.equals("")) ? 0 : Caster.toLongValue(query.getAt(keys[i], y + 1)));
-		    else if (type == STRING) prepStat.setObject(i + 1, Caster.toString(value));
+		// INSERT STATEMENT
+		// HashMap integerTypes=getIntegerTypes(types);
+
+		int count = query.getRecordcount();
+		QueryColumn[] columns = new QueryColumn[keys.length];
+		for (int i = 0; i < keys.length; i++) {
+			columns[i] = query.getColumn(keys[i]);
+		}
+		for (int y = 0; y < count; y++) {
+			for (int i = 0; i < keys.length; i++) {
+				int type = innerTypes[i];
+				Object value = columns[i].get(y + 1, null);
+
+				// print.out("*** "+type+":"+Caster.toString(value));
+				if (doSimpleTypes) {
+
+					prepStat.setObject(i + 1, Caster.toString(value));
+				}
+				else {
+					if (value == null) prepStat.setNull(i + 1, types[i]);
+					else if (type == BINARY) prepStat.setBytes(i + 1, Caster.toBinary(value));
+					else if (type == DATE) {
+						// print.out(new java.util.Date(new
+						// Date(DateCaster.toDateAdvanced(value,pc.getTimeZone()).getTime()).getTime()));
+
+						prepStat.setTimestamp(i + 1, (value.equals("")) ? null : new Timestamp(DateCaster.toDateAdvanced(query.getAt(keys[i], y + 1), pc.getTimeZone()).getTime()));
+						// prepStat.setObject(i+1,Caster.toDate(value,null));
+						// prepStat.setDate(i+1,(value==null || value.equals(""))?null:new
+						// Date(DateCaster.toDateAdvanced(value,pc.getTimeZone()).getTime()));
+					}
+					else if (type == TIME)
+						prepStat.setTime(i + 1, (value.equals("")) ? null : new Time(DateCaster.toDateAdvanced(query.getAt(keys[i], y + 1), pc.getTimeZone()).getTime()));
+					else if (type == TIMESTAMP)
+						prepStat.setTimestamp(i + 1, (value.equals("")) ? null : new Timestamp(DateCaster.toDateAdvanced(query.getAt(keys[i], y + 1), pc.getTimeZone()).getTime()));
+					else if (type == DOUBLE) prepStat.setDouble(i + 1, (value.equals("")) ? 0 : Caster.toDoubleValue(query.getAt(keys[i], y + 1)));
+					else if (type == INT) prepStat.setLong(i + 1, (value.equals("")) ? 0 : Caster.toLongValue(query.getAt(keys[i], y + 1)));
+					else if (type == STRING) prepStat.setObject(i + 1, Caster.toString(value));
+				}
+
+			}
+			prepStat.execute();
 		}
 
-	    }
-	    prepStat.execute();
 	}
 
-    }
+	private static int[] toInnerTypes(int[] types) {
+		int[] innerTypes = new int[types.length];
+		for (int i = 0; i < types.length; i++) {
+			int type = types[i];
 
-    private static int[] toInnerTypes(int[] types) {
-	int[] innerTypes = new int[types.length];
-	for (int i = 0; i < types.length; i++) {
-	    int type = types[i];
+			if (type == Types.BIGINT || type == Types.BIT || type == Types.INTEGER || type == Types.SMALLINT || type == Types.TINYINT) innerTypes[i] = INT;
+			else if (type == Types.DECIMAL || type == Types.DOUBLE || type == Types.NUMERIC || type == Types.REAL) innerTypes[i] = DOUBLE;
+			else if (type == Types.DATE) innerTypes[i] = DATE;
+			else if (type == Types.TIME) innerTypes[i] = TIME;
+			else if (type == Types.TIMESTAMP) innerTypes[i] = TIMESTAMP;
+			else if (type == Types.BINARY || type == Types.LONGVARBINARY || type == Types.VARBINARY) innerTypes[i] = BINARY;
+			else innerTypes[i] = STRING;
 
-	    if (type == Types.BIGINT || type == Types.BIT || type == Types.INTEGER || type == Types.SMALLINT || type == Types.TINYINT) innerTypes[i] = INT;
-	    else if (type == Types.DECIMAL || type == Types.DOUBLE || type == Types.NUMERIC || type == Types.REAL) innerTypes[i] = DOUBLE;
-	    else if (type == Types.DATE) innerTypes[i] = DATE;
-	    else if (type == Types.TIME) innerTypes[i] = TIME;
-	    else if (type == Types.TIMESTAMP) innerTypes[i] = TIMESTAMP;
-	    else if (type == Types.BINARY || type == Types.LONGVARBINARY || type == Types.VARBINARY) innerTypes[i] = BINARY;
-	    else innerTypes[i] = STRING;
-
-	}
-	return innerTypes;
-    }
-
-    private static String toUsableType(int type) {
-	if (type == Types.NCHAR) return "CHAR";
-	if (type == Types.NCLOB) return "CLOB";
-	if (type == Types.NVARCHAR) return "VARCHAR_IGNORECASE";
-	if (type == Types.VARCHAR) return "VARCHAR_IGNORECASE";
-	if (type == Types.JAVA_OBJECT) return "VARCHAR_IGNORECASE";
-
-	return QueryImpl.getColumTypeName(type);
-
-    }
-
-    /**
-     * remove a table from the memory database
-     * 
-     * @param conn
-     * @param name
-     * @throws DatabaseException
-     */
-    private static void removeTable(Connection conn, String name) throws SQLException {
-	name = name.replace('.', '_');
-	Statement stat = conn.createStatement();
-	stat.execute("DROP TABLE " + name);
-	DBUtil.commitEL(conn);
-    }
-
-    /**
-     * remove all table inside the memory database
-     * 
-     * @param conn
-     */
-    private static void removeAll(Connection conn, ArrayList<String> usedTables) {
-	int len = usedTables.size();
-
-	for (int i = 0; i < len; i++) {
-
-	    String tableName = usedTables.get(i).toString();
-	    // print.out("remove:"+tableName);
-	    try {
-		removeTable(conn, tableName);
-	    }
-	    catch (Throwable t) {
-		ExceptionUtil.rethrowIfNecessary(t);
-	    }
-	}
-    }
-
-    /**
-     * executes a query on the queries inside the cld fusion enviroment
-     * 
-     * @param pc Page Context
-     * @param sql
-     * @param maxrows
-     * @return result as Query
-     * @throws PageException
-     * @throws PageException
-     */
-    public Query execute(PageContext pc, SQL sql, int maxrows, int fetchsize, TimeSpan timeout) throws PageException {
-	Stopwatch stopwatch = new Stopwatch(Stopwatch.UNIT_NANO);
-	stopwatch.start();
-	String prettySQL = null;
-	Selects selects = null;
-
-	// First Chance
-	try {
-	    SelectParser parser = new SelectParser();
-	    selects = parser.parse(sql.getSQLString());
-
-	    Query q = qoq.execute(pc, sql, selects, maxrows);
-	    q.setExecutionTime(stopwatch.time());
-
-	    return q;
-	}
-	catch (SQLParserException spe) {
-	    // lucee.print.printST(spe);
-	    // sp
-	    // lucee.print.out("sql parser crash at:");
-	    // lucee.print.out("--------------------------------");
-	    // lucee.print.out(sql.getSQLString().trim());
-	    // lucee.print.out("--------------------------------");
-	    // print.e("1:"+sql.getSQLString());
-	    prettySQL = SQLPrettyfier.prettyfie(sql.getSQLString());
-	    // print.e("2:"+prettySQL);
-	    try {
-		Query query = executer.execute(pc, sql, prettySQL, maxrows);
-		query.setExecutionTime(stopwatch.time());
-		return query;
-	    }
-	    catch (PageException ex) {
-		// lucee.print.printST(ex);
-		// lucee.print.out("old executor/zql crash at:");
-		// lucee.print.out("--------------------------------");
-		// lucee.print.out(sql.getSQLString().trim());
-		// lucee.print.out("--------------------------------");
-
-	    }
-
-	}
-	catch (PageException e) {
-	    // throw e;
-	    // print.out("new executor crash at:");
-	    // print.out("--------------------------------");
-	    // print.out(sql.getSQLString().trim());
-	    // print.out("--------------------------------");
-	}
-	// if(true) throw new RuntimeException();
-
-	// SECOND Chance with hsqldb
-	try {
-	    boolean isUnion = false;
-	    Set<String> tables = null;
-	    if (selects != null) {
-		HSQLUtil2 hsql2 = new HSQLUtil2(selects);
-		isUnion = hsql2.isUnion();
-		tables = hsql2.getInvokedTables();
-	    }
-	    else {
-		if (prettySQL == null) prettySQL = SQLPrettyfier.prettyfie(sql.getSQLString());
-		HSQLUtil hsql = new HSQLUtil(prettySQL);
-		tables = hsql.getInvokedTables();
-		isUnion = hsql.isUnion();
-	    }
-
-	    String strSQL = StringUtil.replace(sql.getSQLString(), "[", "", false);
-	    strSQL = StringUtil.replace(strSQL, "]", "", false);
-	    sql.setSQLString(strSQL);
-	    return _execute(pc, sql, maxrows, fetchsize, timeout, stopwatch, tables, isUnion);
-
-	}
-	catch (ParseException e) {
-	    throw new DatabaseException(e.getMessage(), null, sql, null);
+		}
+		return innerTypes;
 	}
 
-    }
+	private static String toUsableType(int type) {
+		if (type == Types.NCHAR) return "CHAR";
+		if (type == Types.NCLOB) return "CLOB";
+		if (type == Types.NVARCHAR) return "VARCHAR_IGNORECASE";
+		if (type == Types.VARCHAR) return "VARCHAR_IGNORECASE";
+		if (type == Types.JAVA_OBJECT) return "VARCHAR_IGNORECASE";
 
-    private QueryImpl _execute(PageContext pc, SQL sql, int maxrows, int fetchsize, TimeSpan timeout, Stopwatch stopwatch, Set<String> tables, boolean isUnion)
-	    throws PageException {
-	try {
-	    return __execute(pc, SQLImpl.duplicate(sql), maxrows, fetchsize, timeout, stopwatch, tables, false);
+		return QueryImpl.getColumTypeName(type);
+
 	}
-	catch (PageException pe) {
-	    if (isUnion || StringUtil.indexOf(pe.getMessage(), "NumberFormatException:") != -1) {
-		return __execute(pc, sql, maxrows, fetchsize, timeout, stopwatch, tables, true);
-	    }
-	    throw pe;
+
+	/**
+	 * remove a table from the memory database
+	 * 
+	 * @param conn
+	 * @param name
+	 * @throws DatabaseException
+	 */
+	private static void removeTable(Connection conn, String name) throws SQLException {
+		name = name.replace('.', '_');
+		Statement stat = conn.createStatement();
+		stat.execute("DROP TABLE " + name);
+		DBUtil.commitEL(conn);
 	}
-    }
 
-    public static QueryImpl __execute(PageContext pc, SQL sql, int maxrows, int fetchsize, TimeSpan timeout, Stopwatch stopwatch, Set<String> tables, boolean doSimpleTypes)
-	    throws PageException {
-	ArrayList<String> usedTables = new ArrayList<String>();
-	synchronized (lock) {
+	/**
+	 * remove all table inside the memory database
+	 * 
+	 * @param conn
+	 */
+	private static void removeAll(Connection conn, ArrayList<String> usedTables) {
+		int len = usedTables.size();
 
-	    QueryImpl nqr = null;
-	    ConfigImpl config = (ConfigImpl) pc.getConfig();
-	    DatasourceConnectionPool pool = config.getDatasourceConnectionPool();
-	    DatasourceConnection dc = pool.getDatasourceConnection(config, config.getDataSource(QOQ_DATASOURCE_NAME), "sa", "");
-	    Connection conn = dc.getConnection();
-	    try {
-		DBUtil.setAutoCommitEL(conn, false);
+		for (int i = 0; i < len; i++) {
 
-		// sql.setSQLString(HSQLUtil.sqlToZQL(sql.getSQLString(),false));
+			String tableName = usedTables.get(i).toString();
+			// print.out("remove:"+tableName);
+			try {
+				removeTable(conn, tableName);
+			}
+			catch (Throwable t) {
+				ExceptionUtil.rethrowIfNecessary(t);
+			}
+		}
+	}
+
+	/**
+	 * executes a query on the queries inside the cfml environment
+	 * 
+	 * @param pc Page Context
+	 * @param sql
+	 * @param maxrows
+	 * @return result as Query
+	 * @throws PageException
+	 * @throws PageException
+	 */
+	public QueryImpl execute(PageContext pc, final SQL sql, int maxrows, int fetchsize, TimeSpan timeout) throws PageException {
+		Stopwatch stopwatch = new Stopwatch(Stopwatch.UNIT_NANO);
+		stopwatch.start();
+		String prettySQL = null;
+		Selects selects = null;
+
+		Exception qoqException = null;
+
+		// First Chance
 		try {
-		    Iterator<String> it = tables.iterator();
-		    // int len=tables.size();
-		    while (it.hasNext()) {
-			String tableName = it.next().toString();// tables.get(i).toString();
-
-			String modTableName = tableName.replace('.', '_');
-			String modSql = StringUtil.replace(sql.getSQLString(), tableName, modTableName, false);
-			sql.setSQLString(modSql);
-			addTable(conn, pc, modTableName, Caster.toQuery(pc.getVariable(tableName)), doSimpleTypes, usedTables);
-		    }
-		    DBUtil.setReadOnlyEL(conn, true);
-		    try {
-			nqr = new QueryImpl(pc, dc, sql, maxrows, fetchsize, timeout, "query", null, false, false);
-		    }
-		    finally {
-			DBUtil.setReadOnlyEL(conn, false);
-			DBUtil.commitEL(conn);
-			DBUtil.setAutoCommitEL(conn, true);
-		    }
+			SelectParser parser = new SelectParser();
+			selects = parser.parse(sql.getSQLString());
+			QueryImpl q = (QueryImpl) qoq.execute(pc, sql, selects, maxrows);
+			q.setExecutionTime(stopwatch.time());
+			return q;
+		}
+		catch (SQLParserException spe) {
+			qoqException = spe;
+			prettySQL = SQLPrettyfier.prettyfie(sql.getSQLString());
+			try {
+				QueryImpl query = executer.execute(pc, sql, prettySQL, maxrows);
+				query.setExecutionTime(stopwatch.time());
+				return query;
+			}
+			catch (PageException ex) {
+			}
 
 		}
-		catch (SQLException e) {
-		    DatabaseException de = new DatabaseException("there is a problem to execute sql statement on query", null, sql, null);
-		    de.setDetail(e.getMessage());
-		    throw de;
+		catch (PageException e) {
+			qoqException = e;
 		}
 
-	    }
-	    finally {
-		removeAll(conn, usedTables);
-		DBUtil.setAutoCommitEL(conn, true);
-		pool.releaseDatasourceConnection(dc);
+		// Debugging option to completely disable HyperSQL for testing
+		if (qoqException != null && hsqldbDisable) {
+			throw Caster.toPageException(qoqException);
+		}
 
-		// manager.releaseConnection(dc);
-	    }
-	    nqr.setExecutionTime(stopwatch.time());
-	    return nqr;
+		// Debugging option to to log all QoQ that fall back on hsqldb in the datasource log
+		if (qoqException != null && hsqldbDebug) {
+			pc.getConfig().getLog("datasource").error("QoQ [" + sql.getSQLString() + "] errored and is falling back to HyperSQL.", qoqException);
+		}
+
+		// SECOND Chance with hsqldb
+		try {
+			boolean isUnion = false;
+			Set<String> tables = null;
+			if (selects != null) {
+				HSQLUtil2 hsql2 = new HSQLUtil2(selects);
+				isUnion = hsql2.isUnion();
+				tables = hsql2.getInvokedTables();
+			}
+			else {
+				if (prettySQL == null) prettySQL = SQLPrettyfier.prettyfie(sql.getSQLString());
+				HSQLUtil hsql = new HSQLUtil(prettySQL);
+				tables = hsql.getInvokedTables();
+				isUnion = hsql.isUnion();
+			}
+
+			String strSQL = StringUtil.replace(sql.getSQLString(), "[", "", false);
+			strSQL = StringUtil.replace(strSQL, "]", "", false);
+			sql.setSQLString(strSQL);
+			return _execute(pc, sql, maxrows, fetchsize, timeout, stopwatch, tables, isUnion);
+
+		}
+		catch (ParseException e) {
+			throw new DatabaseException(e.getMessage(), null, sql, null);
+		}
+
 	}
-    }
+
+	private QueryImpl _execute(PageContext pc, SQL sql, int maxrows, int fetchsize, TimeSpan timeout, Stopwatch stopwatch, Set<String> tables, boolean isUnion)
+			throws PageException {
+		try {
+			return __execute(pc, SQLImpl.duplicate(sql), maxrows, fetchsize, timeout, stopwatch, tables, false);
+		}
+		catch (PageException pe) {
+			if (isUnion || StringUtil.indexOf(pe.getMessage(), "NumberFormatException:") != -1) {
+				return __execute(pc, sql, maxrows, fetchsize, timeout, stopwatch, tables, true);
+			}
+			throw pe;
+		}
+	}
+
+	public static QueryImpl __execute(PageContext pc, SQL sql, int maxrows, int fetchsize, TimeSpan timeout, Stopwatch stopwatch, Set<String> tables, boolean doSimpleTypes)
+			throws PageException {
+		ArrayList<String> usedTables = new ArrayList<String>();
+		synchronized (lock) {
+
+			QueryImpl nqr = null;
+			ConfigPro config = (ConfigPro) pc.getConfig();
+			DatasourceConnectionPool pool = config.getDatasourceConnectionPool();
+			DatasourceConnection dc = pool.getDatasourceConnection(config, config.getDataSource(QOQ_DATASOURCE_NAME), "sa", "");
+			Connection conn = dc.getConnection();
+			try {
+				DBUtil.setAutoCommitEL(conn, false);
+
+				// sql.setSQLString(HSQLUtil.sqlToZQL(sql.getSQLString(),false));
+				try {
+					Iterator<String> it = tables.iterator();
+					// int len=tables.size();
+					while (it.hasNext()) {
+						String tableName = it.next().toString();// tables.get(i).toString();
+
+						String modTableName = tableName.replace('.', '_');
+						String modSql = StringUtil.replace(sql.getSQLString(), tableName, modTableName, false);
+						sql.setSQLString(modSql);
+						if (sql.getItems() != null && sql.getItems().length > 0) sql = new SQLImpl(sql.toString());
+
+						addTable(conn, pc, modTableName, Caster.toQuery(pc.getVariable(tableName)), doSimpleTypes, usedTables);
+					}
+					DBUtil.setReadOnlyEL(conn, true);
+					try {
+						nqr = new QueryImpl(pc, dc, sql, maxrows, fetchsize, timeout, "query", null, false, false, null);
+					}
+					finally {
+						DBUtil.setReadOnlyEL(conn, false);
+						DBUtil.commitEL(conn);
+						DBUtil.setAutoCommitEL(conn, true);
+					}
+
+				}
+				catch (SQLException e) {
+					DatabaseException de = new DatabaseException("there is a problem to execute sql statement on query", null, sql, null);
+					de.setDetail(e.getMessage());
+					throw de;
+				}
+
+			}
+			finally {
+				removeAll(conn, usedTables);
+				DBUtil.setAutoCommitEL(conn, true);
+				pool.releaseDatasourceConnection(dc);
+
+				// manager.releaseConnection(dc);
+			}
+			nqr.setExecutionTime(stopwatch.time());
+			return nqr;
+		}
+	}
 }

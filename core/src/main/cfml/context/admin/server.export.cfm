@@ -91,7 +91,12 @@ Defaults --->
 	type="#request.adminType#"
 	password="#session["password"&request.adminType]#"
 	returnVariable="mailservers">
-	
+<!--- regex --->
+<cfadmin 
+	action="getRegex"
+	type="#request.adminType#"
+	password="#session["password"&request.adminType]#"
+	returnVariable="regex">
 
 <!--- cache --->
 <cfadmin 
@@ -125,8 +130,6 @@ hasCache=hasObj || hasTem || hasQry || hasRes || hasFun || hasInc;
 	returnVariable="datasources">
 
 </cfsilent>
-
-
 <cfoutput>
 
 	<cfsavecontent variable="codeSample">
@@ -141,7 +144,7 @@ component {
 	this.timezone = "#regional.timezone#"; 
 
 // scope handling
-	// lifespan of a untouched application scope
+	// lifespan of an untouched application scope
 	this.applicationTimeout = createTimeSpan( #scope.applicationTimeout_day#, #scope.applicationTimeout_hour#, #scope.applicationTimeout_minute#, #scope.applicationTimeout_second# ); 
 	
 	// session handling enabled or not
@@ -164,7 +167,7 @@ component {
 	// prefer the local scope at un-scoped write
 	this.localMode = "#scope.LocalMode#"; 
 	
-	// buffer the output of a tag/function body to output in case of a exception
+	// buffer the output of a tag/function body to output in case of an exception
 	this.bufferOutput = #outputSetting.bufferOutput#; 
 	this.compression = #outputSetting.AllowCompression#;
 	this.suppressRemoteComponentContent = #outputSetting.suppressContent#;
@@ -182,7 +185,9 @@ component {
 	this.charset.resource="#charset.resourceCharset#";
 	
 	this.scopeCascading = "#scope.scopeCascadingType#";
-
+	this.searchResults = #trueFalseFormat(scope.allowImplicidQueryCall)#;
+// regex
+	this.regex.type = "#regex.type#";
 //////////////////////////////////////////////
 //               MAIL SERVERS               //
 //////////////////////////////////////////////
@@ -278,6 +283,6 @@ this.mappings["#mappings.virtual#"]=<cfif len(mappings.strPhysical) && !len(mapp
 </cfformClassic>
 
 
-<cfset renderCodingTip( codeSample,false, false )>
+<cfset renderCodingTip( codeSample,false, true )>
 
 </cfoutput>

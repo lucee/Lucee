@@ -30,30 +30,30 @@ import lucee.runtime.op.Operator;
  */
 public final class NCT extends RefSupport implements Ref {
 
-    private Ref right;
-    private Ref left;
-    private boolean limited;
+	private Ref right;
+	private Ref left;
+	private boolean limited;
 
-    /**
-     * constructor of the class
-     * 
-     * @param left
-     * @param right
-     */
-    public NCT(Ref left, Ref right, boolean limited) {
-	this.left = left;
-	this.right = right;
-	this.limited = limited;
-    }
+	/**
+	 * constructor of the class
+	 * 
+	 * @param left
+	 * @param right
+	 */
+	public NCT(Ref left, Ref right, boolean limited) {
+		this.left = left;
+		this.right = right;
+		this.limited = limited;
+	}
 
-    @Override
-    public Object getValue(PageContext pc) throws PageException {
-	if (limited) throw new InterpreterException("invalid syntax, boolean operations are not supported in a json string.");
-	return Operator.nct(left.getValue(pc), right.getValue(pc)) ? Boolean.TRUE : Boolean.FALSE;
-    }
+	@Override
+	public Object getValue(PageContext pc) throws PageException {
+		if (limited) throw new InterpreterException("invalid syntax, boolean operations are not supported in a json string.");
+		return Operator.nct(left.getValue(pc), right.getValue(pc)) ? Boolean.TRUE : Boolean.FALSE;
+	}
 
-    @Override
-    public String getTypeName() {
-	return "operation";
-    }
+	@Override
+	public String getTypeName() {
+		return "operation";
+	}
 }

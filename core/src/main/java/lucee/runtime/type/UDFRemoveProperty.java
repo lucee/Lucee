@@ -39,130 +39,130 @@ import lucee.runtime.type.util.UDFUtil;
 
 public final class UDFRemoveProperty extends UDFGSProperty {
 
-    private static final long serialVersionUID = -7030615729484825208L;
+	private static final long serialVersionUID = -7030615729484825208L;
 
-    private final Property prop;
-    private final Key propName;
+	private final Property prop;
+	private final Key propName;
 
-    public UDFRemoveProperty(Component component, Property prop) {
-	super(component, "remove" + StringUtil.ucFirst(PropertyFactory.getSingularName(prop)), getFunctionArgument(prop), CFTypes.TYPE_BOOLEAN);
-	this.prop = prop;
-	this.propName = KeyImpl.getInstance(prop.getName());
-    }
-
-    private static FunctionArgument[] getFunctionArgument(Property prop) {
-	String t = PropertyFactory.getType(prop);
-
-	if ("struct".equalsIgnoreCase(t)) {
-	    FunctionArgument key = new FunctionArgumentLight(KeyConstants._key, "string", CFTypes.TYPE_STRING, true);
-	    return new FunctionArgument[] { key };
-	}
-	FunctionArgument value = new FunctionArgumentLight(KeyImpl.init(PropertyFactory.getSingularName(prop)), "any", CFTypes.TYPE_ANY, true);
-	return new FunctionArgument[] { value };
-    }
-
-    private boolean isStruct() {
-	String t = PropertyFactory.getType(prop);
-	return "struct".equalsIgnoreCase(t);
-    }
-
-    @Override
-    public UDF duplicate() {
-	return new UDFRemoveProperty(srcComponent, prop);
-    }
-
-    @Override
-    public Object _call(PageContext pageContext, Object[] args, boolean doIncludePath) throws PageException {
-	if (args.length < 1)
-	    throw new ExpressionException("The parameter " + this.arguments[0].getName() + " to function " + getFunctionName() + " is required but was not passed in.");
-
-	return remove(pageContext, args[0]);
-    }
-
-    @Override
-    public Object _callWithNamedValues(PageContext pageContext, Struct values, boolean doIncludePath) throws PageException {
-	UDFUtil.argumentCollection(values, getFunctionArguments());
-	Key key = arguments[0].getName();
-	Object value = values.get(key, null);
-	if (value == null) {
-	    Key[] keys = CollectionUtil.keys(values);
-	    if (keys.length == 1) {
-		value = values.get(keys[0]);
-	    }
-	    else throw new ExpressionException("The parameter " + key + " to function " + getFunctionName() + " is required but was not passed in.");
+	public UDFRemoveProperty(Component component, Property prop) {
+		super(component, "remove" + StringUtil.ucFirst(PropertyFactory.getSingularName(prop)), getFunctionArgument(prop), CFTypes.TYPE_BOOLEAN);
+		this.prop = prop;
+		this.propName = KeyImpl.init(prop.getName());
 	}
 
-	return remove(pageContext, value);
-    }
+	private static FunctionArgument[] getFunctionArgument(Property prop) {
+		String t = PropertyFactory.getType(prop);
 
-    private boolean remove(PageContext pageContext, Object value) throws PageException {
-	Component c = getComponent(pageContext);
-	Object propValue = c.getComponentScope().get(propName, null);
-	value = cast(pageContext, arguments[0], value, 1);
-
-	// make sure it is reconized that set is called by hibernate
-	// if(component.isPersistent())ORMUtil.getSession(pageContext);
-	ApplicationContext appContext = pageContext.getApplicationContext();
-	if (appContext.isORMEnabled() && c.isPersistent()) ORMUtil.getSession(pageContext);
-
-	// struct
-	if (isStruct()) {
-	    String strKey = Caster.toString(value, null);
-	    if (strKey == null) return false;
-
-	    if (propValue instanceof Struct) {
-		return ((Struct) propValue).removeEL(KeyImpl.getInstance(strKey)) != null;
-	    }
-	    else if (propValue instanceof Map) {
-		return ((Map) propValue).remove(strKey) != null;
-	    }
-	    return false;
-	}
-
-	Object o;
-	boolean has = false;
-	if (propValue instanceof Array) {
-	    Array arr = ((Array) propValue);
-	    Key[] keys = CollectionUtil.keys(arr);
-	    for (int i = 0; i < keys.length; i++) {
-		o = arr.get(keys[i], null);
-		if (ORMUtil.equals(value, o)) {
-		    arr.removeEL(keys[i]);
-		    has = true;
+		if ("struct".equalsIgnoreCase(t)) {
+			FunctionArgument key = new FunctionArgumentLight(KeyConstants._key, "string", CFTypes.TYPE_STRING, true);
+			return new FunctionArgument[] { key };
 		}
-	    }
+		FunctionArgument value = new FunctionArgumentLight(KeyImpl.init(PropertyFactory.getSingularName(prop)), "any", CFTypes.TYPE_ANY, true);
+		return new FunctionArgument[] { value };
 	}
-	else if (propValue instanceof java.util.List) {
-	    Iterator it = ((java.util.List) propValue).iterator();
-	    while (it.hasNext()) {
-		o = it.next();
-		if (ORMUtil.equals(value, o)) {
-		    it.remove();
-		    has = true;
+
+	private boolean isStruct() {
+		String t = PropertyFactory.getType(prop);
+		return "struct".equalsIgnoreCase(t);
+	}
+
+	@Override
+	public UDF duplicate() {
+		return new UDFRemoveProperty(srcComponent, prop);
+	}
+
+	@Override
+	public Object _call(PageContext pageContext, Object[] args, boolean doIncludePath) throws PageException {
+		if (args.length < 1)
+			throw new ExpressionException("The parameter [" + this.arguments[0].getName() + "] to function [" + getFunctionName() + "] is required but was not passed in.");
+
+		return remove(pageContext, args[0]);
+	}
+
+	@Override
+	public Object _callWithNamedValues(PageContext pageContext, Struct values, boolean doIncludePath) throws PageException {
+		UDFUtil.argumentCollection(values, getFunctionArguments());
+		Key key = arguments[0].getName();
+		Object value = values.get(key, null);
+		if (value == null) {
+			Key[] keys = CollectionUtil.keys(values);
+			if (keys.length == 1) {
+				value = values.get(keys[0]);
+			}
+			else throw new ExpressionException("The parameter [" + key + "] to function [" + getFunctionName() + "] is required but was not passed in.");
 		}
-	    }
+
+		return remove(pageContext, value);
 	}
-	return has;
 
-    }
+	private boolean remove(PageContext pageContext, Object value) throws PageException {
+		Component c = getComponent(pageContext);
+		Object propValue = c.getComponentScope().get(propName, null);
+		value = cast(pageContext, arguments[0], value, 1);
 
-    @Override
-    public Object implementation(PageContext pageContext) throws Throwable {
-	return null;
-    }
+		// make sure it is reconized that set is called by hibernate
+		// if(component.isPersistent())ORMUtil.getSession(pageContext);
+		ApplicationContext appContext = pageContext.getApplicationContext();
+		if (appContext.isORMEnabled() && c.isPersistent()) ORMUtil.getSession(pageContext);
 
-    @Override
-    public Object getDefaultValue(PageContext pc, int index) throws PageException {
-	return prop.getDefault();
-    }
+		// struct
+		if (isStruct()) {
+			String strKey = Caster.toString(value, null);
+			if (strKey == null) return false;
 
-    @Override
-    public Object getDefaultValue(PageContext pc, int index, Object defaultValue) throws PageException {
-	return prop.getDefault();
-    }
+			if (propValue instanceof Struct) {
+				return ((Struct) propValue).removeEL(KeyImpl.getInstance(strKey)) != null;
+			}
+			else if (propValue instanceof Map) {
+				return ((Map) propValue).remove(strKey) != null;
+			}
+			return false;
+		}
 
-    @Override
-    public String getReturnTypeAsString() {
-	return "boolean";
-    }
+		Object o;
+		boolean has = false;
+		if (propValue instanceof Array) {
+			Array arr = ((Array) propValue);
+			Key[] keys = CollectionUtil.keys(arr);
+			for (int i = 0; i < keys.length; i++) {
+				o = arr.get(keys[i], null);
+				if (ORMUtil.equals(value, o)) {
+					arr.removeEL(keys[i]);
+					has = true;
+				}
+			}
+		}
+		else if (propValue instanceof java.util.List) {
+			Iterator it = ((java.util.List) propValue).iterator();
+			while (it.hasNext()) {
+				o = it.next();
+				if (ORMUtil.equals(value, o)) {
+					it.remove();
+					has = true;
+				}
+			}
+		}
+		return has;
+
+	}
+
+	@Override
+	public Object implementation(PageContext pageContext) throws Throwable {
+		return null;
+	}
+
+	@Override
+	public Object getDefaultValue(PageContext pc, int index) throws PageException {
+		return prop.getDefault();
+	}
+
+	@Override
+	public Object getDefaultValue(PageContext pc, int index, Object defaultValue) throws PageException {
+		return prop.getDefault();
+	}
+
+	@Override
+	public String getReturnTypeAsString() {
+		return "boolean";
+	}
 }

@@ -33,15 +33,15 @@ import lucee.runtime.text.xml.XMLUtil;
  */
 public final class IsXML implements Function {
 
-    public static boolean call(PageContext pc, Object xml) {
-	if (xml instanceof Node) return true;
+	public static boolean call(PageContext pc, Object xml) {
+		if (xml instanceof Node) return true;
 
-	try {
-	    XMLUtil.parse(new InputSource(new StringReader(Caster.toString(xml))), null, false);
-	    return true;
+		try {
+			XMLUtil.parse(new InputSource(new StringReader(Caster.toString(xml))), null, false);
+			return true;
+		}
+		catch (Exception e) {
+			return false;
+		}
 	}
-	catch (Exception e) {
-	    return false;
-	}
-    }
 }

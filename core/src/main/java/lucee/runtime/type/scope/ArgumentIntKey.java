@@ -27,42 +27,43 @@ import lucee.runtime.type.KeyImpl;
 
 public final class ArgumentIntKey extends KeyImpl {
 
-    private static final ArgumentIntKey[] KEYS = new ArgumentIntKey[] { new ArgumentIntKey(0), new ArgumentIntKey(1), new ArgumentIntKey(2), new ArgumentIntKey(3),
-	    new ArgumentIntKey(4), new ArgumentIntKey(5), new ArgumentIntKey(6), new ArgumentIntKey(7), new ArgumentIntKey(8), new ArgumentIntKey(9), new ArgumentIntKey(10),
-	    new ArgumentIntKey(11), new ArgumentIntKey(12), new ArgumentIntKey(13), new ArgumentIntKey(14), new ArgumentIntKey(15), new ArgumentIntKey(16),
-	    new ArgumentIntKey(17), };
+	private static final ArgumentIntKey[] KEYS = new ArgumentIntKey[] { new ArgumentIntKey(0), new ArgumentIntKey(1), new ArgumentIntKey(2), new ArgumentIntKey(3),
+			new ArgumentIntKey(4), new ArgumentIntKey(5), new ArgumentIntKey(6), new ArgumentIntKey(7), new ArgumentIntKey(8), new ArgumentIntKey(9), new ArgumentIntKey(10),
+			new ArgumentIntKey(11), new ArgumentIntKey(12), new ArgumentIntKey(13), new ArgumentIntKey(14), new ArgumentIntKey(15), new ArgumentIntKey(16),
+			new ArgumentIntKey(17), };
 
-    private int intKey;
+	private int intKey;
 
-    /**
-     * Do NEVER use, only for Externilze
-     */
-    public ArgumentIntKey() {}
+	/**
+	 * Do NEVER use, only for Externilze
+	 */
+	public ArgumentIntKey() {
+	}
 
-    public ArgumentIntKey(int key) {
-	super(Caster.toString(key));
+	public ArgumentIntKey(int key) {
+		super(Caster.toString(key));
 
-	this.intKey = key;
-    }
+		this.intKey = key;
+	}
 
-    public int getIntKey() {
-	return intKey;
-    }
+	public int getIntKey() {
+		return intKey;
+	}
 
-    public static ArgumentIntKey init(int i) {
-	if (i >= 0 && i < KEYS.length) return KEYS[i];
-	return new ArgumentIntKey(i);
-    }
+	public static ArgumentIntKey init(int i) {
+		if (i >= 0 && i < KEYS.length) return KEYS[i];
+		return new ArgumentIntKey(i);
+	}
 
-    @Override
-    public void writeExternal(ObjectOutput out) throws IOException {
-	out.writeInt(intKey);
-	super.writeExternal(out);
-    }
+	@Override
+	public void writeExternal(ObjectOutput out) throws IOException {
+		out.writeInt(intKey);
+		super.writeExternal(out);
+	}
 
-    @Override
-    public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
-	intKey = in.readInt();
-	super.readExternal(in);
-    }
+	@Override
+	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+		intKey = in.readInt();
+		super.readExternal(in);
+	}
 }

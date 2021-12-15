@@ -37,130 +37,131 @@ import lucee.runtime.net.http.ReqRspUtil;
 
 public final class ResourceLockImpl implements ResourceLock {
 
-    private static final long serialVersionUID = 6888529579290798651L;
+	private static final long serialVersionUID = 6888529579290798651L;
 
-    private long lockTimeout;
-    private boolean caseSensitive;
+	private long lockTimeout;
+	private boolean caseSensitive;
 
-    public ResourceLockImpl(long timeout, boolean caseSensitive) {
-	this.lockTimeout = timeout;
-	this.caseSensitive = caseSensitive;
-    }
-
-    private Object token = new SerializableObject();
-    private Map<String, Thread> resources = new HashMap<String, Thread>();
-
-    @Override
-    public void lock(Resource res) {
-	String path = getPath(res);
-
-	synchronized (token) {
-	    _read(path);
-	    resources.put(path, Thread.currentThread());
+	public ResourceLockImpl(long timeout, boolean caseSensitive) {
+		this.lockTimeout = timeout;
+		this.caseSensitive = caseSensitive;
 	}
-    }
 
-    private String getPath(Resource res) {
-	return caseSensitive ? res.getPath() : res.getPath().toLowerCase();
-    }
+	private Object token = new SerializableObject();
+	private Map<String, Thread> resources = new HashMap<String, Thread>();
 
-    @Override
-    public void unlock(Resource res) {
-	String path = getPath(res);
-	// if(path.endsWith(".dmg"))print.err("unlock:"+path);
-	synchronized (token) {
-	    resources.remove(path);
-	    token.notifyAll();
-	}
-    }
+	@Override
+	public void lock(Resource res) {
+		String path = getPath(res);
 
-    @Override
-    public void read(Resource res) {
-	String path = getPath(res);
-	synchronized (token) {
-	    // print.ln(".......");
-	    _read(path);
-	}
-    }
-
-    private void _read(String path) {
-	long start = -1, now;
-	Thread t;
-	do {
-	    if ((t = resources.get(path)) == null) {
-		return;
-	    }
-	    if (t == Thread.currentThread()) {
-		Config config = ThreadLocalPageContext.getConfig();
-		LogUtil.log(config, Log.LEVEL_ERROR, "file", "conflict in same thread: on " + path);
-		return;
-	    }
-	    // bugfix when lock von totem thread, wird es ignoriert
-	    if (!t.isAlive()) {
-		resources.remove(path);
-		return;
-	    }
-	    if (start == -1) start = System.currentTimeMillis();
-	    try {
-		token.wait(lockTimeout);
-		now = System.currentTimeMillis();
-		if ((start + lockTimeout) <= now) {
-		    Config config = ThreadLocalPageContext.getConfig();
-
-		    if (config != null) {
-			PageContextImpl pc = null;
-			String add = "";
-			if (config instanceof ConfigWeb) {
-			    CFMLFactory factory = ((ConfigWeb) config).getFactory();
-			    if (factory instanceof CFMLFactoryImpl) {
-				Map<Integer, PageContextImpl> pcs = ((CFMLFactoryImpl) factory).getActivePageContexts();
-				Iterator<PageContextImpl> it = pcs.values().iterator();
-				PageContextImpl tmp;
-				while (it.hasNext()) {
-				    tmp = it.next();
-				    if (t == tmp.getThread()) {
-					pc = tmp;
-					break;
-				    }
-				}
-			    }
-			}
-			if (pc != null) {
-			    add = " The file is locked by a request on the following URL " + ReqRspUtil.getRequestURL(pc.getHttpServletRequest(), true) + ", that request started "
-				    + (System.currentTimeMillis() - pc.getStartTime()) + "ms ago.";
-			}
-
-			LogUtil.log(config, Log.LEVEL_ERROR, "file",
-				"timeout after " + (now - start) + " ms (" + (lockTimeout) + " ms) occured while accessing file [" + path + "]." + add);
-
-		    }
-		    else LogUtil.log(config, Log.LEVEL_ERROR, "file", "timeout (" + (lockTimeout) + " ms) occured while accessing file [" + path + "].");
-
-		    return;
+		synchronized (token) {
+			_read(path);
+			resources.put(path, Thread.currentThread());
 		}
-	    }
-	    catch (InterruptedException e) {}
 	}
-	while (true);
-    }
 
-    @Override
-    public long getLockTimeout() {
-	return lockTimeout;
-    }
+	private String getPath(Resource res) {
+		return caseSensitive ? res.getPath() : res.getPath().toLowerCase();
+	}
 
-    /**
-     * @param lockTimeout the lockTimeout to set
-     */
-    @Override
-    public void setLockTimeout(long lockTimeout) {
-	this.lockTimeout = lockTimeout;
-    }
+	@Override
+	public void unlock(Resource res) {
+		String path = getPath(res);
+		// if(path.endsWith(".dmg"))print.err("unlock:"+path);
+		synchronized (token) {
+			resources.remove(path);
+			token.notifyAll();
+		}
+	}
 
-    /**
-     * @param caseSensitive the caseSensitive to set
-     */
-    public void setCaseSensitive(boolean caseSensitive) {
-	this.caseSensitive = caseSensitive;
-    }
+	@Override
+	public void read(Resource res) {
+		String path = getPath(res);
+		synchronized (token) {
+			// print.ln(".......");
+			_read(path);
+		}
+	}
+
+	private void _read(String path) {
+		long start = -1, now;
+		Thread t;
+		do {
+			if ((t = resources.get(path)) == null) {
+				return;
+			}
+			if (t == Thread.currentThread()) {
+				Config config = ThreadLocalPageContext.getConfig();
+				if (!LogUtil.isAlreadyInLog()) LogUtil.log(config, Log.LEVEL_ERROR, "file", "Conflict in same thread: on [" + path + "]");
+				return;
+			}
+			// bugfix when lock from dead thread, it will be ignored
+			if (!t.isAlive()) {
+				resources.remove(path);
+				return;
+			}
+			if (start == -1) start = System.currentTimeMillis();
+			try {
+				token.wait(lockTimeout);
+				now = System.currentTimeMillis();
+				if ((start + lockTimeout) <= now) {
+					Config config = ThreadLocalPageContext.getConfig();
+
+					if (config != null) {
+						PageContextImpl pc = null;
+						String add = "";
+						if (config instanceof ConfigWeb) {
+							CFMLFactory factory = ((ConfigWeb) config).getFactory();
+							if (factory instanceof CFMLFactoryImpl) {
+								Map<Integer, PageContextImpl> pcs = ((CFMLFactoryImpl) factory).getActivePageContexts();
+								Iterator<PageContextImpl> it = pcs.values().iterator();
+								PageContextImpl tmp;
+								while (it.hasNext()) {
+									tmp = it.next();
+									if (t == tmp.getThread()) {
+										pc = tmp;
+										break;
+									}
+								}
+							}
+						}
+						if (pc != null) {
+							add = " The file is locked by a request on the following URL [" + ReqRspUtil.getRequestURL(pc.getHttpServletRequest(), true)
+									+ "], that request started " + (System.currentTimeMillis() - pc.getStartTime()) + "ms ago.";
+						}
+						if (!LogUtil.isAlreadyInLog()) LogUtil.log(config, Log.LEVEL_ERROR, "file",
+								"Timeout after " + (now - start) + " ms (" + (lockTimeout) + " ms) occurred while accessing file [" + path + "]." + add);
+					}
+					else {
+						if (!LogUtil.isAlreadyInLog())
+							LogUtil.log(config, Log.LEVEL_ERROR, "file", "Timeout (" + (lockTimeout) + " ms) occurred while accessing file [" + path + "].");
+					}
+					return;
+				}
+			}
+			catch (InterruptedException e) {
+			}
+		}
+		while (true);
+	}
+
+	@Override
+	public long getLockTimeout() {
+		return lockTimeout;
+	}
+
+	/**
+	 * @param lockTimeout the lockTimeout to set
+	 */
+	@Override
+	public void setLockTimeout(long lockTimeout) {
+		this.lockTimeout = lockTimeout;
+	}
+
+	/**
+	 * @param caseSensitive the caseSensitive to set
+	 */
+	public void setCaseSensitive(boolean caseSensitive) {
+		this.caseSensitive = caseSensitive;
+	}
 }

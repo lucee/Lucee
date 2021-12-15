@@ -32,47 +32,47 @@ import lucee.runtime.exp.PageException;
  */
 public final class HtmlHead extends HtmlHeadBodyBase {
 
-    @Override
-    public String getTagName() {
-	return "htmlhead";
-    }
+	@Override
+	public String getTagName() {
+		return "htmlhead";
+	}
 
-    @Override
-    public void actionAppend() throws IOException, ApplicationException {
-	((PageContextImpl) pageContext).getRootOut().appendHTMLHead(text);
-    }
+	@Override
+	public void actionAppend() throws IOException, ApplicationException {
+		((PageContextImpl) pageContext).getRootOut().appendHTMLHead(text);
+	}
 
-    @Override
-    public void actionWrite() throws IOException, ApplicationException {
+	@Override
+	public void actionWrite() throws IOException, ApplicationException {
 
-	((PageContextImpl) pageContext).getRootOut().writeHTMLHead(text);
-    }
+		((PageContextImpl) pageContext).getRootOut().writeHTMLHead(text);
+	}
 
-    @Override
-    public void actionReset() throws IOException {
+	@Override
+	public void actionReset() throws IOException {
 
-	((PageContextImpl) pageContext).getRootOut().resetHTMLHead();
-    }
+		((PageContextImpl) pageContext).getRootOut().resetHTMLHead();
+	}
 
-    @Override
-    public void actionRead() throws PageException, IOException {
+	@Override
+	public void actionRead() throws PageException, IOException {
 
-	String str = ((PageContextImpl) pageContext).getRootOut().getHTMLHead();
-	pageContext.setVariable(!StringUtil.isEmpty(variable) ? variable : "cfhtmlhead", str);
-    }
+		String str = ((PageContextImpl) pageContext).getRootOut().getHTMLHead();
+		pageContext.setVariable(!StringUtil.isEmpty(variable) ? variable : "cfhtmlhead", str);
+	}
 
-    @Override
-    public void actionFlush() throws IOException {
+	@Override
+	public void actionFlush() throws IOException {
 
-	PageContextImpl pci = (PageContextImpl) pageContext;
+		PageContextImpl pci = (PageContextImpl) pageContext;
 
-	pci.write(pci.getRootOut().getHTMLHead());
-	pci.getRootOut().resetHTMLHead();
-    }
+		pci.write(pci.getRootOut().getHTMLHead());
+		pci.getRootOut().resetHTMLHead();
+	}
 
-    @Override
-    public boolean getDefaultForce() {
-	return true;
-    }
+	@Override
+	public boolean getDefaultForce() {
+		return true;
+	}
 
 }

@@ -5,7 +5,7 @@
 	<tlib-version>1.0</tlib-version>
 	<cfml-version>1.0</cfml-version>
 	<short-name>tbase</short-name>
-	<uri>http://www.lucee.org/cf-tld-3-1</uri>
+	<uri>https://www.lucee.org/cf-tld-3-1</uri>
 	<display-name>Lucee Core Tag Library</display-name>
 	<description></description>
 	<name-space></name-space>
@@ -27,12 +27,12 @@
 			<rtexprvalue>true</rtexprvalue>
 		</script>
 		<description>
-			Defines scoping for a application, enables or disables storing client variables,
+			Defines scoping for an application, enables or disables storing client variables,
 			and specifies a client variable storage mechanism.
 			By default, client variables are disabled. Also, enables session variables and sets timeouts
 			for session and application variables. Session and application variables are stored in memory.
 		</description>
-		<attribute-type>fixed</attribute-type>
+		<attribute-type>mixed</attribute-type>
 		<attribute>
 			<type>string</type>
 			<name>name</name>
@@ -458,7 +458,7 @@ A struct that defines default ftp settings, this settings can be overwritten as 
 			<name>cacheInclude</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>name of the cache used to store data from a include</description>
+			<description>name of the cache used to store data from an include</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -551,7 +551,15 @@ Depending on this setting Lucee scans certain scopes to find a variable called f
 			<name>sessioncookie</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>session cookie behaviour</description>
+			<description>session cookie behaviour
+				
+			- secure	
+			- httpOnly
+			- samesite
+			- expires
+			- domain
+			- path
+			</description>
 		</attribute>
 		<attribute>
 			<type>timespan</type>
@@ -559,6 +567,29 @@ Depending on this setting Lucee scans certain scopes to find a variable called f
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>set the timespan for the attribute "cachedAfter" from tag "query".</description>
+		</attribute>
+		<attribute>
+			<name>javaSettings</name>
+			<type>struct</type>
+			<required>false</required>
+			<description>
+	a struct to define dynamically java libraries
+	the following keys are supported
+	- loadPaths - an array or a comma separated string list of jars or class directories
+	- reloadOnChange - reload updated jars without a restart necessary
+	- watchInterval - interval it checks for changes with the jar files
+	- watchExtensions - extension of the files read
+			</description>
+		</attribute>
+		<attribute>
+			<name>xmlFeatures</name>
+			<type>struct</type>
+			<required>false</required>
+			<description>Allows to set XML Features to prevent XXE attacks
+
+	- disallowDoctypeDecl (true / false) 
+	- externalGeneralEntities (true/false)
+	 - secure (true/false)</description>
 		</attribute>
 	</tag>	
 	

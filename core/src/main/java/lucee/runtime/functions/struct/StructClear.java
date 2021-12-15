@@ -30,16 +30,16 @@ import lucee.runtime.type.Struct;
 
 public final class StructClear extends BIF {
 
-    private static final long serialVersionUID = 1814513664840100560L;
+	private static final long serialVersionUID = 1814513664840100560L;
 
-    public static boolean call(PageContext pc, Struct struct) {
-	struct.clear();
-	return true;
-    }
+	public static boolean call(PageContext pc, Struct struct) {
+		struct.clear();
+		return true;
+	}
 
-    @Override
-    public Object invoke(PageContext pc, Object[] args) throws PageException {
-	if (args.length == 1) return call(pc, Caster.toStruct(args[0]));
-	throw new FunctionException(pc, "StructClear", 1, 1, args.length);
-    }
+	@Override
+	public Object invoke(PageContext pc, Object[] args) throws PageException {
+		if (args.length == 1) return call(pc, Caster.toStruct(args[0]));
+		throw new FunctionException(pc, "StructClear", 1, 1, args.length);
+	}
 }

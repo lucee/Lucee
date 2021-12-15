@@ -32,9 +32,9 @@ import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.Page;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageSource;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigWeb;
-import lucee.runtime.config.ConfigWebImpl;
+import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.config.Constants;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
@@ -42,99 +42,99 @@ import lucee.transformer.util.SourceCode;
 
 public class Renderer {
 
-    private static final long MAX_SIZE = 1024 * 1024;
-    private static MemoryClassLoader mcl;
-    private static Map<String, Page> pages = new HashMap<String, Page>();
+	private static final long MAX_SIZE = 1024 * 1024;
+	private static MemoryClassLoader mcl;
+	private static Map<String, Page> pages = new HashMap<String, Page>();
 
-    private static Class<? extends Page> loadClass(ConfigWeb config, String className, String cfml, int dialect, boolean ignoreScopes) throws Exception {
+	private static Class<? extends Page> loadClass(ConfigWebPro config, String className, String cfml, int dialect, boolean ignoreScopes) throws Exception {
 
-	ConfigWebImpl cw = (ConfigWebImpl) config;
-	CFMLCompilerImpl compiler = cw.getCompiler();
-	// create className based o the content
+		CFMLCompilerImpl compiler = config.getCompiler();
+		// create className based o the content
 
-	Class<? extends Page> clazz = null;
-	if (mcl == null) {
-	    mcl = createMemoryClassLoader(cw);
-	}
-	else clazz = ClassUtil.loadClass(mcl, className, null);
+		Class<? extends Page> clazz = null;
+		if (mcl == null) {
+			mcl = createMemoryClassLoader(config);
+		}
+		else clazz = ClassUtil.loadClass(mcl, className, null);
 
-	if (clazz != null) return clazz;
+		if (clazz != null) return clazz;
 
-	SourceCode sc = new SourceCode(cfml, false, dialect);
+		SourceCode sc = new SourceCode(cfml, false, dialect);
 
-	// compile
-	lucee.runtime.compiler.CFMLCompilerImpl.Result result = compiler.compile(cw, sc, cw.getTLDs(dialect), cw.getFLDs(dialect), null, className, true, ignoreScopes);
+		// compile
+		lucee.runtime.compiler.CFMLCompilerImpl.Result result = compiler.compile(config, sc, config.getTLDs(dialect), config.getFLDs(dialect), null, className, true, ignoreScopes);
 
-	// before we add a new class, we make sure we are still in range
-	if (mcl.getSize() + result.barr.length > MAX_SIZE) {
-	    mcl = createMemoryClassLoader(cw);
-	    pages.clear();
-	}
+		// before we add a new class, we make sure we are still in range
+		if (mcl.getSize() + result.barr.length > MAX_SIZE) {
+			mcl = createMemoryClassLoader(config);
+			pages.clear();
+		}
 
-	return (Class<? extends Page>) mcl.loadClass(className, result.barr);
-    }
-
-    private static MemoryClassLoader createMemoryClassLoader(ConfigWebImpl cw) throws IOException {
-	return new MemoryClassLoader(cw, cw.getClass().getClassLoader());
-    }
-
-    private static Page loadPage(ConfigWeb cw, PageSource ps, String cfml, int dialect, boolean ignoreScopes) throws Exception {
-	String className = HashUtil.create64BitHashAsString(cfml);
-
-	// do we already have the page?
-	Page p = pages.get(className);
-	if (p != null) return p;
-
-	// load class
-	Constructor<? extends Page> constr = loadClass(cw, className, cfml, dialect, ignoreScopes).getDeclaredConstructor(PageSource.class);
-	p = constr.newInstance(ps);
-	pages.put(className, p);
-	return p;
-    }
-
-    public static Result script(PageContext pc, String cfml, int dialect, boolean catchOutput, boolean ignoreScopes) throws PageException {
-	String prefix = ((ConfigImpl) pc.getConfig()).getCoreTagLib(dialect).getNameSpaceAndSeparator();
-	String name = prefix + (dialect == CFMLEngine.DIALECT_CFML ? Constants.CFML_SCRIPT_TAG_NAME : Constants.LUCEE_SCRIPT_TAG_NAME);
-	return tag(pc, "<" + name + ">" + cfml + "</" + name + ">", dialect, catchOutput, ignoreScopes);
-    }
-
-    public static Result tag(PageContext pc, String cfml, int dialect, boolean catchOutput, boolean ignoreScopes) throws PageException {
-	// execute
-	Result res = new Result();
-	BodyContent bc = null;
-	try {
-	    if (catchOutput) bc = pc.pushBody();
-
-	    res.value = loadPage(pc.getConfig(), null, cfml, dialect, ignoreScopes).call(pc);
-	}
-	catch (Throwable t) {
-	    ExceptionUtil.rethrowIfNecessary(t);
-	    throw Caster.toPageException(t);
-	}
-	finally {
-	    if (catchOutput) {
-		if (bc != null) res.output = bc.getString();
-		pc.popBody();
-	    }
-	}
-	return res;
-    }
-
-    public static class Result {
-
-	private String output;
-	private Object value;
-
-	public String getOutput() {
-	    return output == null ? "" : output;
+		return (Class<? extends Page>) mcl.loadClass(className, result.barr);
 	}
 
-	public Object getValue() {
-	    return value;
+	private static MemoryClassLoader createMemoryClassLoader(ConfigWeb cw) throws IOException {
+		return new MemoryClassLoader(cw, cw.getClass().getClassLoader());
 	}
 
-	public String toString() {
-	    return "output:" + output + ";value:" + value;
+	private static Page loadPage(ConfigWebPro cw, PageSource ps, String cfml, int dialect, boolean ignoreScopes) throws Exception {
+		String className = HashUtil.create64BitHashAsString(cfml);
+
+		// do we already have the page?
+		Page p = pages.get(className);
+		if (p != null) return p;
+
+		// load class
+		Constructor<? extends Page> constr = loadClass(cw, className, cfml, dialect, ignoreScopes).getDeclaredConstructor(PageSource.class);
+		p = constr.newInstance(ps);
+		pages.put(className, p);
+		return p;
 	}
-    }
+
+	public static Result script(PageContext pc, String cfml, int dialect, boolean catchOutput, boolean ignoreScopes) throws PageException {
+		String prefix = ((ConfigPro) pc.getConfig()).getCoreTagLib(dialect).getNameSpaceAndSeparator();
+		String name = prefix + (dialect == CFMLEngine.DIALECT_CFML ? Constants.CFML_SCRIPT_TAG_NAME : Constants.LUCEE_SCRIPT_TAG_NAME);
+		return tag(pc, "<" + name + ">" + cfml + "</" + name + ">", dialect, catchOutput, ignoreScopes);
+	}
+
+	public static Result tag(PageContext pc, String cfml, int dialect, boolean catchOutput, boolean ignoreScopes) throws PageException {
+		// execute
+		Result res = new Result();
+		BodyContent bc = null;
+		try {
+			if (catchOutput) bc = pc.pushBody();
+
+			res.value = loadPage((ConfigWebPro) pc.getConfig(), null, cfml, dialect, ignoreScopes).call(pc);
+		}
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+			throw Caster.toPageException(t);
+		}
+		finally {
+			if (catchOutput) {
+				if (bc != null) res.output = bc.getString();
+				pc.popBody();
+			}
+		}
+		return res;
+	}
+
+	public static class Result {
+
+		private String output;
+		private Object value;
+
+		public String getOutput() {
+			return output == null ? "" : output;
+		}
+
+		public Object getValue() {
+			return value;
+		}
+
+		@Override
+		public String toString() {
+			return "output:" + output + ";value:" + value;
+		}
+	}
 }

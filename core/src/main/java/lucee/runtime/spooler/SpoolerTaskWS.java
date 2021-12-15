@@ -20,7 +20,7 @@ package lucee.runtime.spooler;
 
 import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.config.RemoteClient;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
@@ -32,42 +32,42 @@ import lucee.runtime.type.StructImpl;
 
 public abstract class SpoolerTaskWS extends SpoolerTaskSupport {
 
-    private RemoteClient client;
+	private RemoteClient client;
 
-    public SpoolerTaskWS(ExecutionPlan[] plans, RemoteClient client) {
-	super(plans);
-	this.client = client;
-    }
-
-    @Override
-    public final Object execute(Config config) throws PageException {
-	try {
-	    WSClient rpc = ((ConfigImpl) ThreadLocalPageContext.getConfig(config)).getWSHandler().getWSClient(client.getUrl(), client.getServerUsername(),
-		    client.getServerPassword(), client.getProxyData());
-
-	    return rpc.callWithNamedValues(config, KeyImpl.init(getMethodName()), getArguments());
+	public SpoolerTaskWS(ExecutionPlan[] plans, RemoteClient client) {
+		super(plans);
+		this.client = client;
 	}
-	catch (Throwable t) {
-	    ExceptionUtil.rethrowIfNecessary(t);
-	    throw Caster.toPageException(t);
+
+	@Override
+	public final Object execute(Config config) throws PageException {
+		try {
+			WSClient rpc = ((ConfigWebPro) ThreadLocalPageContext.getConfig(config)).getWSHandler().getWSClient(client.getUrl(), client.getServerUsername(),
+					client.getServerPassword(), client.getProxyData());
+
+			return rpc.callWithNamedValues(config, KeyImpl.init(getMethodName()), getArguments());
+		}
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+			throw Caster.toPageException(t);
+		}
 	}
-    }
 
-    @Override
-    public String subject() {
-	return client.getLabel();
-    }
+	@Override
+	public String subject() {
+		return client.getLabel();
+	}
 
-    @Override
-    public Struct detail() {
-	Struct sct = new StructImpl();
-	sct.setEL("label", client.getLabel());
-	sct.setEL("url", client.getUrl());
+	@Override
+	public Struct detail() {
+		Struct sct = new StructImpl();
+		sct.setEL("label", client.getLabel());
+		sct.setEL("url", client.getUrl());
 
-	return sct;
-    }
+		return sct;
+	}
 
-    protected abstract String getMethodName();
+	protected abstract String getMethodName();
 
-    protected abstract Struct getArguments();
+	protected abstract Struct getArguments();
 }

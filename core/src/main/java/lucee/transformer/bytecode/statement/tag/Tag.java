@@ -28,112 +28,112 @@ import lucee.transformer.library.tag.TagLibTagAttr;
 
 public interface Tag extends Statement, HasBody {
 
-    /**
-     * appendix of the tag
-     * 
-     * @return appendix
-     */
-    public abstract String getAppendix();
+	/**
+	 * appendix of the tag
+	 * 
+	 * @return appendix
+	 */
+	public abstract String getAppendix();
 
-    /**
-     * return all Attributes as a map
-     * 
-     * @return attributes
-     */
-    public abstract Map<String, Attribute> getAttributes();
+	/**
+	 * return all Attributes as a map
+	 * 
+	 * @return attributes
+	 */
+	public abstract Map<String, Attribute> getAttributes();
 
-    /**
-     * returns the fullname of the tag
-     * 
-     * @return fullname
-     */
-    public abstract String getFullname();
+	/**
+	 * returns the fullname of the tag
+	 * 
+	 * @return fullname
+	 */
+	public abstract String getFullname();
 
-    /**
-     * return the TagLibTag to this tag
-     * 
-     * @return taglibtag
-     */
-    public abstract TagLibTag getTagLibTag();
+	/**
+	 * return the TagLibTag to this tag
+	 * 
+	 * @return taglibtag
+	 */
+	public abstract TagLibTag getTagLibTag();
 
-    /**
-     * sets the appendix of the tag
-     * 
-     * @param appendix
-     */
-    public abstract void setAppendix(String appendix);
+	/**
+	 * sets the appendix of the tag
+	 * 
+	 * @param appendix
+	 */
+	public abstract void setAppendix(String appendix);
 
-    /**
-     * sets the fullname of the tag
-     * 
-     * @param fullname
-     */
-    public abstract void setFullname(String fullname);
+	/**
+	 * sets the fullname of the tag
+	 * 
+	 * @param fullname
+	 */
+	public abstract void setFullname(String fullname);
 
-    /**
-     * sets the tagLibTag of this tag
-     * 
-     * @param tagLibTag
-     */
-    public abstract void setTagLibTag(TagLibTag tagLibTag);
+	/**
+	 * sets the tagLibTag of this tag
+	 * 
+	 * @param tagLibTag
+	 */
+	public abstract void setTagLibTag(TagLibTag tagLibTag);
 
-    /**
-     * adds a attribute to the tag
-     * 
-     * @param attribute
-     */
-    public abstract void addAttribute(Attribute attribute);
+	/**
+	 * adds an attribute to the tag
+	 * 
+	 * @param attribute
+	 */
+	public abstract void addAttribute(Attribute attribute);
 
-    /**
-     * check if tag has a tag with given name
-     * 
-     * @param name
-     * @return contains attribute
-     */
-    public abstract boolean containsAttribute(String name);
+	/**
+	 * check if tag has a tag with given name
+	 * 
+	 * @param name
+	 * @return contains attribute
+	 */
+	public abstract boolean containsAttribute(String name);
 
-    /**
-     * returns the body of the tag
-     * 
-     * @return body of the tag
-     */
-    @Override
-    public Body getBody();
+	/**
+	 * returns the body of the tag
+	 * 
+	 * @return body of the tag
+	 */
+	@Override
+	public Body getBody();
 
-    /**
-     * sets the body of the tag
-     * 
-     * @param body
-     */
-    public abstract void setBody(Body body);
+	/**
+	 * sets the body of the tag
+	 * 
+	 * @param body
+	 */
+	public abstract void setBody(Body body);
 
-    /**
-     * returns a specified attribute from the tag
-     * 
-     * @param name
-     * @return
-     */
-    public abstract Attribute getAttribute(String name);
+	/**
+	 * returns a specified attribute from the tag
+	 * 
+	 * @param name
+	 * @return
+	 */
+	public abstract Attribute getAttribute(String name);
 
-    /**
-     * returns a specified attribute from the tag
-     * 
-     * @param name
-     * @return
-     */
-    public abstract Attribute removeAttribute(String name);
+	/**
+	 * returns a specified attribute from the tag
+	 * 
+	 * @param name
+	 * @return
+	 */
+	public abstract Attribute removeAttribute(String name);
 
-    public abstract void addMissingAttribute(TagLibTagAttr attr);
+	public abstract void addMissingAttribute(TagLibTagAttr attr);
 
-    public abstract TagLibTagAttr[] getMissingAttributes();
+	public abstract TagLibTagAttr[] getMissingAttributes();
 
-    public abstract void setScriptBase(boolean scriptBase);
+	public abstract void setScriptBase(boolean scriptBase);
 
-    public abstract boolean isScriptBase();
+	public abstract boolean isScriptBase();
 
-    // public abstract void setHint(String hint);
-    public abstract void addMetaData(Attribute metadata);
+	// public abstract void setHint(String hint);
+	public abstract void addMetaData(Attribute metadata);
 
-    // public abstract String getHint();
-    public abstract Map<String, Attribute> getMetaData();
+	// public abstract String getHint();
+	public abstract Map<String, Attribute> getMetaData();
 }

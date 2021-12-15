@@ -329,7 +329,7 @@ private function toResource(string path) localMode=true {
 
 private function testResourceIS(res) localMode=true {
     
-    // must be a existing dir
+    // must be an existing dir
     assertTrue(res.exists());
     assertTrue(res.isDirectory());
     assertFalse(res.isFile());
@@ -482,7 +482,7 @@ private function assertEqualPaths(string path1, string path2) {
 
 	private void function test(string label,string root){
 		var start=getTickCount();
-		var dir=arguments.root&"testresource1/";
+		var dir=arguments.root&"test-#createUniqueId()#-res/";
 		
 		// make sure there are no data from a previous run 
 		if(directoryExists(dir)) {
@@ -507,23 +507,6 @@ private function assertEqualPaths(string path1, string path2) {
 		assertFalse(DirectoryExists(dir));
 
 	}
-
-	private struct function getCredencials() {
-		// getting the credetials from the enviroment variables
-		var s3={};
-		if(!isNull(server.system.environment.S3_ACCESS_ID) && !isNull(server.system.environment.S3_SECRET_KEY)) {
-			s3.accessKeyId=server.system.environment.S3_ACCESS_ID;
-			s3.awsSecretKey=server.system.environment.S3_SECRET_KEY;
-		}
-		// getting the credetials from the system variables
-		else if(!isNull(server.system.properties.S3_ACCESS_ID) && !isNull(server.system.properties.S3_SECRET_KEY)) {
-			s3.accessKeyId=server.system.properties.S3_ACCESS_ID;
-			s3.awsSecretKey=server.system.properties.S3_SECRET_KEY;
-		}
-		return s3;
-	}
-
-	
 
 	private void function addMapping(required string virtual, required string path){
 		var mappings=getApplicationSettings().mappings;
@@ -587,20 +570,29 @@ private function assertEqualPaths(string path1, string path2) {
 		}
 	}
 
-
+	private struct function getCredentials() {
+		// getting the credetials from the enviroment variables
+		return server.getTestService("s3");
+	}
 
 	public void function testS3() localmode=true{
-		var s3=getCredencials();
-		if(!isNull(s3.accessKeyId)) {
-			application action="update" s3=s3; 
+		var s3 = getCredentials();
+		if( !isNull( s3.ACCESS_KEY_ID ) ) {
+			application action="update" s3={
+				accessKeyId: s3.ACCESS_KEY_ID,
+				awsSecretKey: s3.SECRET_KEY
+			}; 
 			test("s3","s3:///");
 		}
 	}
 
 	public void function testS3AsMapping() localmode=true{
-		var s3=getCredencials();
-		if(!isNull(s3.accessKeyId)) {
-			application action="update" s3=s3; 
+		var s3 = getCredentials();
+		if( !isNull( s3.ACCESS_KEY_ID ) ) {
+			application action="update" s3={
+				accessKeyId: s3.ACCESS_KEY_ID,
+				awsSecretKey: s3.SECRET_KEY
+			}; 
 			addMapping("/testress3","s3:///");
 			test("s3","/testress3/");
 		}

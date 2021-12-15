@@ -28,17 +28,17 @@ import lucee.commons.io.IOUtil;
 
 public class BlobCast implements Cast {
 
-    @Override
-    public Object toCFType(TimeZone tz, ResultSet rst, int columnIndex) throws SQLException, IOException {
-	InputStream is = null;
-	try {
-	    is = rst.getBinaryStream(columnIndex);
-	    if (is == null) return null;
-	    return IOUtil.toBytes(is);
+	@Override
+	public Object toCFType(TimeZone tz, ResultSet rst, int columnIndex) throws SQLException, IOException {
+		InputStream is = null;
+		try {
+			is = rst.getBinaryStream(columnIndex);
+			if (is == null) return null;
+			return IOUtil.toBytes(is);
+		}
+		finally {
+			IOUtil.close(is);
+		}
 	}
-	finally {
-	    IOUtil.closeEL(is);
-	}
-    }
 
 }

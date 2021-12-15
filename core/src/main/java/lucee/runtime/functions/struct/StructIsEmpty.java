@@ -30,15 +30,15 @@ import lucee.runtime.type.Struct;
 
 public final class StructIsEmpty extends BIF {
 
-    private static final long serialVersionUID = 6804878535578055394L;
+	private static final long serialVersionUID = 6804878535578055394L;
 
-    public static boolean call(PageContext pc, Struct struct) {
-	return struct.size() == 0;
-    }
+	public static boolean call(PageContext pc, Struct struct) {
+		return struct.size() == 0;
+	}
 
-    @Override
-    public Object invoke(PageContext pc, Object[] args) throws PageException {
-	if (args.length == 1) return call(pc, Caster.toStruct(args[0]));
-	throw new FunctionException(pc, "StructIsEmpty", 1, 1, args.length);
-    }
+	@Override
+	public Object invoke(PageContext pc, Object[] args) throws PageException {
+		if (args.length == 1) return call(pc, Caster.toStruct(args[0]));
+		throw new FunctionException(pc, "StructIsEmpty", 1, 1, args.length);
+	}
 }

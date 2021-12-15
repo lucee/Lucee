@@ -31,75 +31,76 @@ import lucee.runtime.type.scope.storage.StorageValue;
 
 public final class SessionCache extends StorageScopeCache implements Session {
 
-    private static final long serialVersionUID = -875719423763891692L;
-    private static SerializableObject token = new SerializableObject();
+	private static final long serialVersionUID = -875719423763891692L;
+	private static SerializableObject token = new SerializableObject();
 
-    private SessionCache(PageContext pc, String cacheName, String appName, Struct sct, long lastStored) {
-	super(pc, cacheName, appName, "session", SCOPE_SESSION, sct, lastStored);
-    }
+	private SessionCache(PageContext pc, String cacheName, String appName, Struct sct, long lastStored) {
+		super(pc, cacheName, appName, "session", SCOPE_SESSION, sct, lastStored);
+	}
 
-    /**
-     * Constructor of the class, clone existing
-     * 
-     * @param other
-     */
-    private SessionCache(StorageScopeCache other, boolean deepCopy) {
-	super(other, deepCopy);
-    }
+	/**
+	 * Constructor of the class, clone existing
+	 * 
+	 * @param other
+	 */
+	private SessionCache(StorageScopeCache other, boolean deepCopy) {
+		super(other, deepCopy);
+	}
 
-    @Override
-    public Collection duplicate(boolean deepCopy) {
-	return new SessionCache(this, deepCopy);
-    }
+	@Override
+	public Collection duplicate(boolean deepCopy) {
+		return new SessionCache(this, deepCopy);
+	}
 
-    /**
-     * load an new instance of the client datasource scope
-     * 
-     * @param cacheName
-     * @param appName
-     * @param pc
-     * @return client datasource scope
-     * @throws PageException
-     */
-    public static Session getInstance(String cacheName, String appName, PageContext pc, Session existing, Log log) throws PageException {
-	if (appName != null && appName.startsWith("no-in-memory-cache-")) existing = null;
+	/**
+	 * load an new instance of the client datasource scope
+	 * 
+	 * @param cacheName
+	 * @param appName
+	 * @param pc
+	 * @return client datasource scope
+	 * @throws PageException
+	 */
+	public static Session getInstance(String cacheName, String appName, PageContext pc, Session existing, Log log) throws PageException {
+		if (appName != null && appName.startsWith("no-in-memory-cache-")) existing = null;
 
-	synchronized (token) {
-	    StorageValue sv = _loadData(pc, cacheName, appName, "session", log);
-	    if (sv != null) {
-		long time = sv.lastModified();
+		synchronized (token) {
+			StorageValue sv = _loadData(pc, cacheName, appName, "session", log);
+			if (sv != null) {
+				long time = sv.lastModified();
 
-		if (existing instanceof StorageScopeCache) {
-		    if (((StorageScopeCache) existing).lastModified() >= time) {
-			return existing;
-		    }
+				if (existing instanceof StorageScopeCache) {
+					if (((StorageScopeCache) existing).lastModified() >= time) {
+						return existing;
+					}
+				}
+				return new SessionCache(pc, cacheName, appName, sv.getValue(), time);
+			}
+			else if (existing != null) {
+				return existing;
+			}
+
+			SessionCache session = new SessionCache(pc, cacheName, appName, new StructImpl(), 0);
+			session.store(pc);
+			return session;
 		}
-		return new SessionCache(pc, cacheName, appName, sv.getValue(), time);
-	    }
-	    else if (existing != null) {
-		return existing;
-	    }
+	}
 
-	    SessionCache session = new SessionCache(pc, cacheName, appName, new StructImpl(), 0);
-	    session.store(pc);
-	    return session;
+	public static Session getInstance(String cacheName, String appName, PageContext pc, Session existing, Log log, Session defaultValue) {
+		try {
+			return getInstance(cacheName, appName, pc, existing, log);
+		}
+		catch (PageException e) {
+		}
+		return defaultValue;
 	}
-    }
 
-    public static Session getInstance(String cacheName, String appName, PageContext pc, Session existing, Log log, Session defaultValue) {
-	try {
-	    return getInstance(cacheName, appName, pc, existing, log);
+	public static boolean hasInstance(String cacheName, String appName, PageContext pc) {
+		try {
+			return _loadData(pc, cacheName, appName, "session", null) != null;
+		}
+		catch (PageException e) {
+			return false;
+		}
 	}
-	catch (PageException e) {}
-	return defaultValue;
-    }
-
-    public static boolean hasInstance(String cacheName, String appName, PageContext pc) {
-	try {
-	    return _loadData(pc, cacheName, appName, "session", null) != null;
-	}
-	catch (PageException e) {
-	    return false;
-	}
-    }
 }

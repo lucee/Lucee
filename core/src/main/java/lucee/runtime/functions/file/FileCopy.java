@@ -28,12 +28,12 @@ import lucee.runtime.tag.util.FileUtil;
 
 public class FileCopy {
 
-    public static String call(PageContext pc, Object oSrc, Object oDst) throws PageException {
-	Resource src = Caster.toResource(pc, oSrc, false);
-	if (!src.exists()) throw new FunctionException(pc, "FileCopy", 1, "source", "source file [" + src + "] does not exist");
+	public static String call(PageContext pc, Object oSrc, Object oDst) throws PageException {
+		Resource src = Caster.toResource(pc, oSrc, false);
+		if (!src.exists()) throw new FunctionException(pc, "FileCopy", 1, "source", "source file [" + src + "] does not exist");
 
-	FileTag.actionCopy(pc, pc.getConfig().getSecurityManager(), src, Caster.toString(oDst), FileUtil.NAMECONFLICT_UNDEFINED, null, null, -1, null);
+		FileTag.actionCopy(pc, pc.getConfig().getSecurityManager(), src, Caster.toString(oDst), FileUtil.NAMECONFLICT_UNDEFINED, null, null, -1, null);
 
-	return null;
-    }
+		return null;
+	}
 }

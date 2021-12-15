@@ -22,9 +22,9 @@ import lucee.runtime.type.Struct;
 
 public class AdminSyncNotSupported implements AdminSync {
 
-    @Override
-    public void broadcast(Struct attributes, Config config) {
-	// print.out("AdminSync#broadcast(");
-    }
+	@Override
+	public void broadcast(Struct attributes, Config config) {
+		// print.out("AdminSync#broadcast(");
+	}
 
 }

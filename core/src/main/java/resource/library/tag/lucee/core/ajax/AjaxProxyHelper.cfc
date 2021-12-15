@@ -83,10 +83,10 @@
 				<cfif method.access eq 'remote'>
 					<cfif listLen(arguments.methods)>
 						<cfif listFindnocase(arguments.methods,method.name) gt 0>
-							<cfset result.add(method) />
+							<cfset result.append(method) />
 						</cfif>						
 					<cfelse>
-						<cfset result.add(method) />
+						<cfset result.append(method) />
 					</cfif>	
 				</cfif>
 			</cfif>

@@ -44,7 +44,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		}
 	}
 
-	private void function testPDFProtect(){
+	public void function testPDFProtect(){
 		try {
 			document format="pdf" pagetype="A4" orientation="portrait" filename="test-protect.pdf" overwrite="true" {
 				echo("<p>This is where mickey mouse lives</p>");
@@ -57,5 +57,59 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 			if(fileExists("test-protect.pdf"))fileDelete("test-protect.pdf");
 		}
 	}
-} 
+
+	public void function testPDFOrientation(){
+		var path=getDirectoryFromPath(getCurrentTemplatePath())&"test-orientation.pdf";
+		document pagetype="letter" orientation="landscape" filename=path overwrite="true" {
+			documentsection { echo("I am landscape"); }
+			documentsection orientation="portrait" { echo("I am portrait"); }
+			documentsection orientation="landscape" { echo("I am landscape"); }
+		}
+		assertTrue(isPDFFile(path));
+
+		pageSizes = getPageSizes(ExpandPath(path));
+
+		expected = [
+			{ height: 612, width: 792 },
+			{ height: 792, width: 612 },
+			{ height: 612, width: 792 }
+		];
+
+		assertEquals(expected, pageSizes);
+	}
+
+	public void function testPDFOpen(){
+		try {
+			document format="pdf" pagetype="A4" orientation="portrait" filename="test-protect2.pdf" overwrite="true" {
+				echo("<p>This is where mickey mouse lives</p>");
+			}
+			pdf action="protect" encrypt="AES_128" source="test-protect2.pdf" newUserPassword="PDFPassword";
+			cfpdf(action="open" source="test-protect2.pdf" password="PDFPassword" destination="test-unprotect.pdf" overwrite="yes");
+			cfpdf(action="read" source="test-unprotect.pdf" name="local.pdf");
+		}
+		finally {
+			if(fileExists("test-protect2.pdf"))fileDelete("test-protect2.pdf");
+			if(fileExists("test-unprotect.pdf"))fileDelete("test-unprotect.pdf");
+		}
+	}
+
+	private array function getPageSizes (required string path) {
+		pageSizes = [];
+		try {
+			pdDocument = CreateObject("java", "org.apache.pdfbox.pdmodel.PDDocument").load(arguments.path);
+			pageIterator = pdDocument.getDocumentCatalog().getPages().getKids().iterator();
+
+			while (pageIterator.hasNext()) {
+				objPage = pageIterator.next();
+				pageSizes.append({
+					width: objPage.getTrimBox().getWidth(),
+					height: objPage.getTrimBox().getHeight()
+				});
+			}
+		} finally {
+			if(!isNull(pdDocument))pdDocument.close();
+		}
+		return pageSizes;
+	}
+}
 </cfscript>

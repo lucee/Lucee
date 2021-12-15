@@ -26,21 +26,21 @@ import lucee.runtime.op.Caster;
 
 public class CacheRemoveAll extends BIF {
 
-    private static final long serialVersionUID = -3444983104369826751L;
+	private static final long serialVersionUID = -3444983104369826751L;
 
-    public static double call(PageContext pc) throws PageException {
-	return CacheClear.call(pc);
+	public static double call(PageContext pc) throws PageException {
+		return CacheClear.call(pc);
 
-    }
+	}
 
-    public static double call(PageContext pc, String cacheName) throws PageException {
-	return CacheClear.call(pc, null, cacheName);
-    }
+	public static double call(PageContext pc, String cacheName) throws PageException {
+		return CacheClear.call(pc, null, cacheName);
+	}
 
-    @Override
-    public Object invoke(PageContext pc, Object[] args) throws PageException {
-	if (args.length == 0) return call(pc);
-	if (args.length == 1) return call(pc, Caster.toString(args[0]));
-	throw new FunctionException(pc, "CacheRemoveAll", 0, 1, args.length);
-    }
+	@Override
+	public Object invoke(PageContext pc, Object[] args) throws PageException {
+		if (args.length == 0) return call(pc);
+		if (args.length == 1) return call(pc, Caster.toString(args[0]));
+		throw new FunctionException(pc, "CacheRemoveAll", 0, 1, args.length);
+	}
 }

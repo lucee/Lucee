@@ -20,10 +20,10 @@ package lucee.runtime.debug.filter;
 
 public class IPDebugFiler implements DebugFilter {
 
-    @Override
-    public boolean accept() {
-	// TODO Auto-generated method stub
-	return false;
-    }
+	@Override
+	public boolean accept() {
+		// TODO Auto-generated method stub
+		return false;
+	}
 
 }

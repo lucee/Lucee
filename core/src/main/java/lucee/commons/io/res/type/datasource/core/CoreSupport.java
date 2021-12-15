@@ -29,34 +29,38 @@ import lucee.runtime.db.SQLImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
 
 public abstract class CoreSupport implements Core {
-    public static final Attr ATTR_ROOT = new Attr(0, null, null, true, Attr.TYPE_DIRECTORY, 0, 0, (short) 0777, (short) 0, 0);
+	public static final Attr ATTR_ROOT = new Attr(0, null, null, true, Attr.TYPE_DIRECTORY, 0, 0, (short) 0777, (short) 0, 0);
 
-    public static boolean isDirectory(int type) {
-	return type == Attr.TYPE_DIRECTORY;
-    }
+	public static boolean isDirectory(int type) {
+		return type == Attr.TYPE_DIRECTORY;
+	}
 
-    public static boolean isFile(int type) {
-	return type == Attr.TYPE_FILE;
-    }
+	public static boolean isFile(int type) {
+		return type == Attr.TYPE_FILE;
+	}
 
-    public static boolean isLink(int type) {
-	return type == Attr.TYPE_LINK;
-    }
+	public static boolean isLink(int type) {
+		return type == Attr.TYPE_LINK;
+	}
 
-    public static Calendar getCalendar() {
-	return JREDateTimeUtil.getThreadCalendar(ThreadLocalPageContext.getTimeZone());
-    }
+	public static Calendar getCalendar() {
+		return JREDateTimeUtil.getThreadCalendar(ThreadLocalPageContext.getTimeZone());
+	}
 
-    public static void log(String s1) {}
+	public static void log(String s1) {
+	}
 
-    public static void log(String s1, String s2) {}
+	public static void log(String s1, String s2) {
+	}
 
-    public static void log(String s1, String s2, String s3) {}
+	public static void log(String s1, String s2, String s3) {
+	}
 
-    public static void log(String s1, String s2, String s3, String s4) {}
+	public static void log(String s1, String s2, String s3, String s4) {
+	}
 
-    PreparedStatement prepareStatement(DatasourceConnection dc, String sql) throws SQLException {
-	return dc.getPreparedStatement(new SQLImpl(sql), false, true);
-    }
+	PreparedStatement prepareStatement(DatasourceConnection dc, String sql) throws SQLException {
+		return dc.getPreparedStatement(new SQLImpl(sql), false, true);
+	}
 
 }

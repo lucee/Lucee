@@ -32,117 +32,117 @@ import lucee.runtime.util.QueryStack;
  */
 public interface Undefined extends Scope {
 
-    public static final int MODE_NO_LOCAL_AND_ARGUMENTS = 0;
-    public static final int MODE_LOCAL_OR_ARGUMENTS_ONLY_WHEN_EXISTS = 1;
-    public static final int MODE_LOCAL_OR_ARGUMENTS_ALWAYS = 2;
+	public static final int MODE_NO_LOCAL_AND_ARGUMENTS = 0;
+	public static final int MODE_LOCAL_OR_ARGUMENTS_ONLY_WHEN_EXISTS = 1;
+	public static final int MODE_LOCAL_OR_ARGUMENTS_ALWAYS = 2;
 
-    /**
-     * @return returns the current local scope defined in the undefined scope
-     */
-    public abstract Local localScope();
+	/**
+	 * @return returns the current local scope defined in the undefined scope
+	 */
+	public abstract Local localScope();
 
-    public Argument argumentsScope();
+	public Argument argumentsScope();
 
-    public Variables variablesScope();
+	public Variables variablesScope();
 
-    /**
-     * sets mode of scope
-     * 
-     * @param mode new mode
-     * @return old mode
-     */
-    public abstract int setMode(int mode);
+	/**
+	 * sets mode of scope
+	 * 
+	 * @param mode new mode
+	 * @return old mode
+	 */
+	public abstract int setMode(int mode);
 
-    public boolean getLocalAlways();
+	public boolean getLocalAlways();
 
-    /**
-     * sets the functions scopes
-     * 
-     * @param local local scope
-     * @param argument argument scope
-     */
-    public abstract void setFunctionScopes(Local local, Argument argument);
+	/**
+	 * sets the functions scopes
+	 * 
+	 * @param local local scope
+	 * @param argument argument scope
+	 */
+	public abstract void setFunctionScopes(Local local, Argument argument);
 
-    /**
-     * @return returns current collection stack
-     */
-    public abstract QueryStack getQueryStack();
+	/**
+	 * @return returns current collection stack
+	 */
+	public abstract QueryStack getQueryStack();
 
-    /**
-     * sets a individual query stack to the undefined scope
-     * 
-     * @param qryStack Query stack
-     */
-    public abstract void setQueryStack(QueryStack qryStack);
+	/**
+	 * sets an individual query stack to the undefined scope
+	 * 
+	 * @param qryStack Query stack
+	 */
+	public abstract void setQueryStack(QueryStack qryStack);
 
-    /**
-     * add a collection to the undefined scope
-     * 
-     * @param qry Query to add to undefined scope
-     */
-    public abstract void addQuery(Query qry);
+	/**
+	 * add a collection to the undefined scope
+	 * 
+	 * @param qry Query to add to undefined scope
+	 */
+	public abstract void addQuery(Query qry);
 
-    /**
-     * remove a collection from the undefined scope
-     */
-    public abstract void removeQuery();
+	/**
+	 * remove a collection from the undefined scope
+	 */
+	public abstract void removeQuery();
 
-    /**
-     * return value matching key, if value is from Query return a QueryColumn
-     * 
-     * @param key
-     * @return return matched value
-     * @throws PageException
-     * @deprecated use instead <code>{@link #getCollection(lucee.runtime.type.Collection.Key)}</code>
-     */
-    @Deprecated
-    public abstract Object getCollection(String key) throws PageException;
+	/**
+	 * return value matching key, if value is from Query return a QueryColumn
+	 * 
+	 * @param key
+	 * @return return matched value
+	 * @throws PageException
+	 * @deprecated use instead <code>{@link #getCollection(lucee.runtime.type.Collection.Key)}</code>
+	 */
+	@Deprecated
+	public abstract Object getCollection(String key) throws PageException;
 
-    public List<String> getScopeNames();
+	public List<String> getScopeNames();
 
-    /**
-     * return value matching key, if value is from Query return a QueryColumn
-     * 
-     * @param key
-     * @return return matched value
-     * @throws PageException
-     */
-    public abstract Object getCollection(Collection.Key key) throws PageException;
+	/**
+	 * return value matching key, if value is from Query return a QueryColumn
+	 * 
+	 * @param key
+	 * @return return matched value
+	 * @throws PageException
+	 */
+	public abstract Object getCollection(Collection.Key key) throws PageException;
 
-    /**
-     * gets a key from all cascaded scopes, but not from variables scope
-     * 
-     * @param key key to get
-     * @return matching value or null
-     * @deprecated use instead
-     * @see #getCascading(lucee.runtime.type.Collection.Key, Object)
-     */
-    @Deprecated
-    public abstract Object getCascading(Collection.Key key);
+	/**
+	 * gets a key from all cascaded scopes, but not from variables scope
+	 * 
+	 * @param key key to get
+	 * @return matching value or null
+	 * @deprecated use instead
+	 * @see #getCascading(lucee.runtime.type.Collection.Key, Object)
+	 */
+	@Deprecated
+	public abstract Object getCascading(Collection.Key key);
 
-    /**
-     * gets a key from all cascaded scopes, but not from variables scope
-     * 
-     * @param key key to get
-     * @return matching value or null
-     */
-    public Object getCascading(Collection.Key key, Object defaultValue);
+	/**
+	 * gets a key from all cascaded scopes, but not from variables scope
+	 * 
+	 * @param key key to get
+	 * @return matching value or null
+	 */
+	public Object getCascading(Collection.Key key, Object defaultValue);
 
-    /**
-     * change the variable scope
-     * 
-     * @param scope
-     */
-    public abstract void setVariableScope(Variables scope);
+	/**
+	 * change the variable scope
+	 * 
+	 * @param scope
+	 */
+	public abstract void setVariableScope(Variables scope);
 
-    /**
-     * @return if check for arguments and local scope values
-     */
-    public boolean getCheckArguments();
+	/**
+	 * @return if check for arguments and local scope values
+	 */
+	public boolean getCheckArguments();
 
-    public Struct getScope(Collection.Key key);
+	public Struct getScope(Collection.Key key);
 
-    public boolean setAllowImplicidQueryCall(boolean allowImplicidQueryCall);
+	public boolean setAllowImplicidQueryCall(boolean allowImplicidQueryCall);
 
-    public void reinitialize(PageContext pc);
+	public void reinitialize(PageContext pc);
 }

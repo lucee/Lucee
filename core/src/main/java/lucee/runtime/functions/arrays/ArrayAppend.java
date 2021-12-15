@@ -34,35 +34,35 @@ import lucee.runtime.type.Array;
  */
 public final class ArrayAppend extends BIF {
 
-    private static final long serialVersionUID = 5989673419120862625L;
+	private static final long serialVersionUID = 5989673419120862625L;
 
-    public static boolean call(PageContext pc, Array array, Object object) throws PageException {
-	return call(pc, array, object, false);
-    }
-
-    /**
-     * @param pc
-     * @param array
-     * @param object
-     * @return has appended
-     * @throws PageException
-     */
-    public static boolean call(PageContext pc, Array array, Object object, boolean merge) throws PageException {
-	if (merge && Decision.isCastableToArray(object)) {
-	    Object[] appends = Caster.toNativeArray(object);
-
-	    for (int i = 0; i < appends.length; i++) {
-		array.append(appends[i]);
-	    }
+	public static boolean call(PageContext pc, Array array, Object object) throws PageException {
+		return call(pc, array, object, false);
 	}
-	else array.append(object);
-	return true;
-    }
 
-    @Override
-    public Object invoke(PageContext pc, Object[] args) throws PageException {
-	if (args.length == 2) return call(pc, Caster.toArray(args[0]), args[1]);
-	else if (args.length == 3) return call(pc, Caster.toArray(args[0]), args[1], Caster.toBooleanValue(args[2]));
-	else throw new FunctionException(pc, "ArrayAppend", 2, 2, args.length);
-    }
+	/**
+	 * @param pc
+	 * @param array
+	 * @param object
+	 * @return has appended
+	 * @throws PageException
+	 */
+	public static boolean call(PageContext pc, Array array, Object object, boolean merge) throws PageException {
+		if (merge && Decision.isArray(object)) {
+			Object[] appends = Caster.toNativeArray(object);
+
+			for (int i = 0; i < appends.length; i++) {
+				array.append(appends[i]);
+			}
+		}
+		else array.append(object);
+		return true;
+	}
+
+	@Override
+	public Object invoke(PageContext pc, Object[] args) throws PageException {
+		if (args.length == 2) return call(pc, Caster.toArray(args[0]), args[1]);
+		else if (args.length == 3) return call(pc, Caster.toArray(args[0]), args[1], Caster.toBooleanValue(args[2]));
+		else throw new FunctionException(pc, "ArrayAppend", 2, 3, args.length);
+	}
 }

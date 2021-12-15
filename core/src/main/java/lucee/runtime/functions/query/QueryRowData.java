@@ -18,12 +18,15 @@
  **/
 package lucee.runtime.functions.query;
 
+import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.NullSupportHelper;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
 import lucee.runtime.op.Caster;
+import lucee.runtime.type.Array;
+import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.Query;
 import lucee.runtime.type.Struct;
@@ -34,26 +37,42 @@ import lucee.runtime.type.StructImpl;
  */
 public class QueryRowData extends BIF {
 
-    public static Struct call(PageContext pc, Query query, double rowNumber) throws PageException {
+	// is this needed?
+	private static final long serialVersionUID = -5234853923691806118L;
 
-	int row = Caster.toInteger(rowNumber);
+	public static Object call(PageContext pc, Query query, double rowNumber) throws PageException {
+		return call(pc, query, rowNumber, "struct");
+	}
 
-	if (row < 1 || row > query.getRecordcount()) throw new FunctionException(pc, QueryRowData.class.getSimpleName(), 2, "rowNumber",
-		"The argument rowNumber [" + row + "] must be between 1 and the query's record count [" + query.getRecordcount() + "]");
+	public static Object call(PageContext pc, Query query, double rowNumber, String returnFormat) throws PageException {
 
-	Collection.Key[] colNames = query.getColumnNames();
+		int row = Caster.toInteger(rowNumber);
 
-	Struct result = new StructImpl();
+		if (row < 1 || row > query.getRecordcount()) throw new FunctionException(pc, QueryRowData.class.getSimpleName(), 2, "rowNumber",
+				"The argument rowNumber [" + row + "] must be between 1 and the query's record count [" + query.getRecordcount() + "]");
 
-	for (int col = 0; col < colNames.length; col++)
-	    result.setEL(colNames[col], query.getAt(colNames[col], row, NullSupportHelper.empty(pc)));
+		Collection.Key[] colNames = query.getColumnNames();
 
-	return result;
-    }
+		if (!StringUtil.isEmpty(returnFormat, true)) {
+			if ("array".equalsIgnoreCase(returnFormat.trim())) {
+				Array resultArray = new ArrayImpl();
+				for (int col = 0; col < colNames.length; col++) {
+					resultArray.append(query.getAt(colNames[col], row, NullSupportHelper.empty(pc)));
+				}
+				return resultArray;
+			}
+		}
+		Struct result = new StructImpl();
 
-    @Override
-    public Object invoke(PageContext pc, Object[] args) throws PageException {
+		for (int col = 0; col < colNames.length; col++)
+			result.setEL(colNames[col], query.getAt(colNames[col], row, NullSupportHelper.empty(pc)));
 
-	return call(pc, Caster.toQuery(args[0]), Caster.toInteger(args[1]));
-    }
+		return result;
+	}
+
+	@Override
+	public Object invoke(PageContext pc, Object[] args) throws PageException {
+		if (args.length == 2) return call(pc, Caster.toQuery(args[0]), Caster.toDouble(args[1]));
+		else return call(pc, Caster.toQuery(args[0]), Caster.toInteger(args[1]), Caster.toString(args[2]));
+	}
 }

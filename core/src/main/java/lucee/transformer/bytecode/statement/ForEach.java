@@ -39,127 +39,127 @@ import lucee.transformer.expression.var.Variable;
 
 public final class ForEach extends StatementBase implements FlowControlBreak, FlowControlContinue, HasBody {
 
-    private Body body;
-    private VariableRef key;
-    private Expression value;
+	private Body body;
+	private VariableRef key;
+	private Expression value;
 
-    private final static Method HAS_NEXT = new Method("hasNext", Types.BOOLEAN_VALUE, new Type[] {});
-    private final static Method NEXT = new Method("next", Types.OBJECT, new Type[] {});
-    private final static Method SET = new Method("set", Types.OBJECT, new Type[] { Types.PAGE_CONTEXT, Types.OBJECT });
-    public static final Method LOOP_COLLECTION = new Method("loopCollection", Types.ITERATOR, new Type[] { Types.OBJECT });
-    public static final Method FOR_EACH = new Method("forEach", Types.ITERATOR, new Type[] { Types.OBJECT });
+	private final static Method HAS_NEXT = new Method("hasNext", Types.BOOLEAN_VALUE, new Type[] {});
+	private final static Method NEXT = new Method("next", Types.OBJECT, new Type[] {});
+	private final static Method SET = new Method("set", Types.OBJECT, new Type[] { Types.PAGE_CONTEXT, Types.OBJECT });
+	public static final Method LOOP_COLLECTION = new Method("loopCollection", Types.ITERATOR, new Type[] { Types.OBJECT });
+	public static final Method FOR_EACH = new Method("forEach", Types.ITERATOR, new Type[] { Types.OBJECT });
 
-    public static final Type FOR_EACH_UTIL = Type.getType(ForEachUtil.class);
-    public static final Method RESET = new Method("reset", Types.VOID, new Type[] { Types.ITERATOR });
+	public static final Type FOR_EACH_UTIL = Type.getType(ForEachUtil.class);
+	public static final Method RESET = new Method("reset", Types.VOID, new Type[] { Types.ITERATOR });
 
-    // private static final Type COLLECTION_UTIL = Type.getType(CollectionUtil.class);
+	// private static final Type COLLECTION_UTIL = Type.getType(CollectionUtil.class);
 
-    private Label begin = new Label();
-    private Label end = new Label();
-    private FlowControlFinal fcf;
-    private String label;
+	private Label begin = new Label();
+	private Label end = new Label();
+	private FlowControlFinal fcf;
+	private String label;
 
-    /**
-     * Constructor of the class
-     * 
-     * @param key
-     * @param value
-     * @param body
-     * @param line
-     */
-    public ForEach(Variable key, Expression value, Body body, Position start, Position end, String label) {
-	super(key.getFactory(), start, end);
-	this.key = new VariableRef(key, false);
-	this.value = value;
-	this.body = body;
-	this.label = label;
-	body.setParent(this);
+	/**
+	 * Constructor of the class
+	 * 
+	 * @param key
+	 * @param value
+	 * @param body
+	 * @param line
+	 */
+	public ForEach(Variable key, Expression value, Body body, Position start, Position end, String label) {
+		super(key.getFactory(), start, end);
+		this.key = new VariableRef(key, false);
+		this.value = value;
+		this.body = body;
+		this.label = label;
+		body.setParent(this);
 
-    }
+	}
 
-    @Override
-    public void _writeOut(BytecodeContext bc) throws TransformerException {
-	GeneratorAdapter adapter = bc.getAdapter();
-	final int it = adapter.newLocal(Types.ITERATOR);
-	final int item = adapter.newLocal(Types.REFERENCE);
+	@Override
+	public void _writeOut(BytecodeContext bc) throws TransformerException {
+		GeneratorAdapter adapter = bc.getAdapter();
+		final int it = adapter.newLocal(Types.ITERATOR);
+		final int item = adapter.newLocal(Types.REFERENCE);
 
-	// Value
-	// ForEachUtil.toIterator(value)
-	value.writeOut(bc, Expression.MODE_REF);
-	adapter.invokeStatic(FOR_EACH_UTIL, FOR_EACH);
-	// adapter.invokeStatic(COLLECTION_UTIL, TO_ITERATOR);
-	// Iterator it=...
-	adapter.storeLocal(it);
-	TryFinallyVisitor tfv = new TryFinallyVisitor(new OnFinally() {
+		// Value
+		// ForEachUtil.toIterator(value)
+		value.writeOut(bc, Expression.MODE_REF);
+		adapter.invokeStatic(FOR_EACH_UTIL, FOR_EACH);
+		// adapter.invokeStatic(COLLECTION_UTIL, TO_ITERATOR);
+		// Iterator it=...
+		adapter.storeLocal(it);
+		TryFinallyVisitor tfv = new TryFinallyVisitor(new OnFinally() {
 
-	    @Override
-	    public void _writeOut(BytecodeContext bc) throws TransformerException {
-		GeneratorAdapter a = bc.getAdapter();
-		// if(fcf!=null &&
-		// fcf.getAfterFinalGOTOLabel()!=null)ASMUtil.visitLabel(a,fcf.getFinalEntryLabel());
-		a.loadLocal(it);
-		a.invokeStatic(FOR_EACH_UTIL, RESET);
-		/*
-		 * if(fcf!=null){ Label l=fcf.getAfterFinalGOTOLabel(); if(l!=null)a.visitJumpInsn(Opcodes.GOTO, l);
-		 * }
-		 */
-	    }
-	}, getFlowControlFinal());
-	tfv.visitTryBegin(bc);
-	// Key
-	// new VariableReference(...)
-	key.writeOut(bc, Expression.MODE_REF);
-	// VariableReference item=...
-	adapter.storeLocal(item);
+			@Override
+			public void _writeOut(BytecodeContext bc) throws TransformerException {
+				GeneratorAdapter a = bc.getAdapter();
+				// if(fcf!=null &&
+				// fcf.getAfterFinalGOTOLabel()!=null)ASMUtil.visitLabel(a,fcf.getFinalEntryLabel());
+				a.loadLocal(it);
+				a.invokeStatic(FOR_EACH_UTIL, RESET);
+				/*
+				 * if(fcf!=null){ Label l=fcf.getAfterFinalGOTOLabel(); if(l!=null)a.visitJumpInsn(Opcodes.GOTO, l);
+				 * }
+				 */
+			}
+		}, getFlowControlFinal());
+		tfv.visitTryBegin(bc);
+		// Key
+		// new VariableReference(...)
+		key.writeOut(bc, Expression.MODE_REF);
+		// VariableReference item=...
+		adapter.storeLocal(item);
 
-	// while
-	ExpressionUtil.visitLine(bc, getStart());
-	adapter.visitLabel(begin);
+		// while
+		ExpressionUtil.visitLine(bc, getStart());
+		adapter.visitLabel(begin);
 
-	// hasNext
-	adapter.loadLocal(it);
-	adapter.invokeInterface(Types.ITERATOR, HAS_NEXT);
-	adapter.ifZCmp(Opcodes.IFEQ, end);
+		// hasNext
+		adapter.loadLocal(it);
+		adapter.invokeInterface(Types.ITERATOR, HAS_NEXT);
+		adapter.ifZCmp(Opcodes.IFEQ, end);
 
-	// item.set(pc,it.next());
-	adapter.loadLocal(item);
-	adapter.loadArg(0);
-	adapter.loadLocal(it);
-	adapter.invokeInterface(Types.ITERATOR, NEXT);
-	adapter.invokeInterface(Types.REFERENCE, SET);
-	adapter.pop();
+		// item.set(pc,it.next());
+		adapter.loadLocal(item);
+		adapter.loadArg(0);
+		adapter.loadLocal(it);
+		adapter.invokeInterface(Types.ITERATOR, NEXT);
+		adapter.invokeInterface(Types.REFERENCE, SET);
+		adapter.pop();
 
-	// Body
-	body.writeOut(bc);
-	adapter.visitJumpInsn(Opcodes.GOTO, begin);
-	adapter.visitLabel(end);
-	tfv.visitTryEnd(bc);
+		// Body
+		body.writeOut(bc);
+		adapter.visitJumpInsn(Opcodes.GOTO, begin);
+		adapter.visitLabel(end);
+		tfv.visitTryEnd(bc);
 
-    }
+	}
 
-    @Override
-    public Label getBreakLabel() {
-	return end;
-    }
+	@Override
+	public Label getBreakLabel() {
+		return end;
+	}
 
-    @Override
-    public Label getContinueLabel() {
-	return begin;
-    }
+	@Override
+	public Label getContinueLabel() {
+		return begin;
+	}
 
-    @Override
-    public Body getBody() {
-	return body;
-    }
+	@Override
+	public Body getBody() {
+		return body;
+	}
 
-    @Override
-    public FlowControlFinal getFlowControlFinal() {
-	if (fcf == null) fcf = new FlowControlFinalImpl();
-	return fcf;
-    }
+	@Override
+	public FlowControlFinal getFlowControlFinal() {
+		if (fcf == null) fcf = new FlowControlFinalImpl();
+		return fcf;
+	}
 
-    @Override
-    public String getLabel() {
-	return label;
-    }
+	@Override
+	public String getLabel() {
+		return label;
+	}
 }

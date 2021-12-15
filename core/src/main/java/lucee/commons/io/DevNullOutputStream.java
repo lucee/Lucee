@@ -26,26 +26,32 @@ import java.io.Serializable;
  */
 public final class DevNullOutputStream extends OutputStream implements Serializable {
 
-    public static final DevNullOutputStream DEV_NULL_OUTPUT_STREAM = new DevNullOutputStream();
+	public static final DevNullOutputStream DEV_NULL_OUTPUT_STREAM = new DevNullOutputStream();
 
-    /**
-     * Constructor of the class
-     */
-    private DevNullOutputStream() {}
+	/**
+	 * Constructor of the class
+	 */
+	private DevNullOutputStream() {
+	}
 
-    @Override
-    public void close() {}
+	@Override
+	public void close() {
+	}
 
-    @Override
-    public void flush() {}
+	@Override
+	public void flush() {
+	}
 
-    @Override
-    public void write(byte[] b, int off, int len) {}
+	@Override
+	public void write(byte[] b, int off, int len) {
+	}
 
-    @Override
-    public void write(byte[] b) {}
+	@Override
+	public void write(byte[] b) {
+	}
 
-    @Override
-    public void write(int b) {}
+	@Override
+	public void write(int b) {
+	}
 
 }

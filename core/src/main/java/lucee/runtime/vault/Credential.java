@@ -19,41 +19,41 @@ import lucee.runtime.util.Excepton;
 
 public class Credential {
 
-    private String key;
-    private byte[] username;
-    private byte[] password;
+	private String key;
+	private byte[] username;
+	private byte[] password;
 
-    public Credential(String key, byte[] username, byte[] password) throws NoSuchAlgorithmException, InvalidKeySpecException, IOException {
-	this.username = username;
-	this.password = password;
-    }
-
-    public static void validate() {
-	StackTraceElement caller = Caller.caller(5);
-	if (!caller.getClassName().startsWith("lucee.runtime.")) {
-	    Excepton util = CFMLEngineFactory.getInstance().getExceptionUtil();
-	    util.createPageRuntimeException(util.createApplicationException("You cannot access the credentials info from your context"));
+	public Credential(String key, byte[] username, byte[] password) throws NoSuchAlgorithmException, InvalidKeySpecException, IOException {
+		this.username = username;
+		this.password = password;
 	}
-    }
 
-    String getUsername(PublicKey decryptKey) throws InvalidKeyException, UnsupportedEncodingException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException,
-	    BadPaddingException, CoderException {
-	validate();
-	return new String(RSA.decrypt(username, decryptKey, 0), Cryptor.DEFAULT_CHARSET);
-    }
+	public static void validate() {
+		StackTraceElement caller = Caller.caller(5);
+		if (!caller.getClassName().startsWith("lucee.runtime.")) {
+			Excepton util = CFMLEngineFactory.getInstance().getExceptionUtil();
+			util.createPageRuntimeException(util.createApplicationException("You cannot access the credentials info from your context"));
+		}
+	}
 
-    String getPassword(PublicKey decryptKey) throws InvalidKeyException, UnsupportedEncodingException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException,
-	    BadPaddingException, CoderException {
-	validate();
-	return new String(RSA.decrypt(password, decryptKey, 0), Cryptor.DEFAULT_CHARSET);
-    }
+	String getUsername(PublicKey decryptKey) throws InvalidKeyException, UnsupportedEncodingException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException,
+			BadPaddingException, CoderException {
+		validate();
+		return new String(RSA.decrypt(username, decryptKey, 0), Cryptor.DEFAULT_CHARSET);
+	}
 
-    public String getKey() {
-	return key;
-    }
+	String getPassword(PublicKey decryptKey) throws InvalidKeyException, UnsupportedEncodingException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException,
+			BadPaddingException, CoderException {
+		validate();
+		return new String(RSA.decrypt(password, decryptKey, 0), Cryptor.DEFAULT_CHARSET);
+	}
 
-    @Override
-    public String toString() {
-	return "credential:" + key;
-    }
+	public String getKey() {
+		return key;
+	}
+
+	@Override
+	public String toString() {
+		return "credential:" + key;
+	}
 }

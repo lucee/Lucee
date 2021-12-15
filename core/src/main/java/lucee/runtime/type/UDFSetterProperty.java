@@ -36,118 +36,118 @@ import lucee.runtime.type.util.UDFUtil;
 
 public final class UDFSetterProperty extends UDFGSProperty {
 
-    /**
-     * 
-     */
-    private static final long serialVersionUID = 378348754607851563L;
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 378348754607851563L;
 
-    private static final Collection.Key VALIDATE_PARAMS = KeyImpl.intern("validateParams");
-    private final Property prop;
-    private final Key propName;
-    private String validate;
-    private Struct validateParams;
+	private static final Collection.Key VALIDATE_PARAMS = KeyImpl.getInstance("validateParams");
+	private final Property prop;
+	private final Key propName;
+	private String validate;
+	private Struct validateParams;
 
-    private UDFSetterProperty(Component component, Property prop, String validate, Struct validateParams) {
-	super(component, "set" + StringUtil.ucFirst(prop.getName()),
-		new FunctionArgument[] {
-			new FunctionArgumentLight(KeyImpl.init(prop.getName()), prop.getType(), CFTypes.toShortStrict(prop.getType(), CFTypes.TYPE_UNKNOW), true) },
-		CFTypes.TYPE_ANY);
-	this.prop = prop;
-	this.propName = KeyImpl.getInstance(prop.getName());
-	this.validate = validate;
-	this.validateParams = validateParams;
-    }
+	private UDFSetterProperty(Component component, Property prop, String validate, Struct validateParams) {
+		super(component, "set" + StringUtil.ucFirst(prop.getName()),
+				new FunctionArgument[] {
+						new FunctionArgumentLight(KeyImpl.init(prop.getName()), prop.getType(), CFTypes.toShortStrict(prop.getType(), CFTypes.TYPE_UNKNOW), true) },
+				CFTypes.TYPE_ANY);
+		this.prop = prop;
+		this.propName = KeyImpl.init(prop.getName());
+		this.validate = validate;
+		this.validateParams = validateParams;
+	}
 
-    public UDFSetterProperty(Component component, Property prop) throws PageException {
-	super(component, "set" + StringUtil.ucFirst(prop.getName()),
-		new FunctionArgument[] {
-			new FunctionArgumentLight(KeyImpl.init(prop.getName()), prop.getType(), CFTypes.toShortStrict(prop.getType(), CFTypes.TYPE_UNKNOW), true) },
-		CFTypes.TYPE_ANY);
+	public UDFSetterProperty(Component component, Property prop) throws PageException {
+		super(component, "set" + StringUtil.ucFirst(prop.getName()),
+				new FunctionArgument[] {
+						new FunctionArgumentLight(KeyImpl.init(prop.getName()), prop.getType(), CFTypes.toShortStrict(prop.getType(), CFTypes.TYPE_UNKNOW), true) },
+				CFTypes.TYPE_ANY);
 
-	this.prop = prop;
-	this.propName = KeyImpl.getInstance(prop.getName());
+		this.prop = prop;
+		this.propName = KeyImpl.init(prop.getName());
 
-	this.validate = Caster.toString(prop.getDynamicAttributes().get(KeyConstants._validate, null), null);
-	if (!StringUtil.isEmpty(validate, true)) {
-	    validate = validate.trim().toLowerCase();
-	    Struct da = prop.getDynamicAttributes();
-	    if (da != null) {
-		Object o = da.get(VALIDATE_PARAMS, null);
-		if (o != null) {
-		    if (Decision.isStruct(o)) validateParams = Caster.toStruct(o);
-		    else {
-			String str = Caster.toString(o);
-			if (!StringUtil.isEmpty(str, true)) {
-			    validateParams = ORMUtil.convertToSimpleMap(str);
-			    if (validateParams == null) throw new ExpressionException("cannot parse string [" + str + "] as struct");
+		this.validate = Caster.toString(prop.getDynamicAttributes().get(KeyConstants._validate, null), null);
+		if (!StringUtil.isEmpty(validate, true)) {
+			validate = validate.trim().toLowerCase();
+			Struct da = prop.getDynamicAttributes();
+			if (da != null) {
+				Object o = da.get(VALIDATE_PARAMS, null);
+				if (o != null) {
+					if (Decision.isStruct(o)) validateParams = Caster.toStruct(o);
+					else {
+						String str = Caster.toString(o);
+						if (!StringUtil.isEmpty(str, true)) {
+							validateParams = ORMUtil.convertToSimpleMap(str);
+							if (validateParams == null) throw new ExpressionException("cannot parse string [" + str + "] as struct");
+						}
+					}
+				}
 			}
-		    }
 		}
-	    }
 	}
-    }
 
-    @Override
-    public UDF duplicate() {
-	return new UDFSetterProperty(srcComponent, prop, validate, validateParams);
-    }
-
-    @Override
-    public Object _call(PageContext pageContext, Object[] args, boolean doIncludePath) throws PageException {
-	if (args.length < 1) throw new ExpressionException("The parameter " + prop.getName() + " to function " + getFunctionName() + " is required but was not passed in.");
-	validate(validate, validateParams, args[0]);
-	Component c = getComponent(pageContext);
-	c.getComponentScope().set(propName, cast(pageContext, this.arguments[0], args[0], 1));
-
-	// make sure it is reconized that set is called by hibernate
-	// if(component.isPersistent())ORMUtil.getSession(pageContext);
-	ApplicationContext appContext = pageContext.getApplicationContext();
-	if (appContext.isORMEnabled() && c.isPersistent()) ORMUtil.getSession(pageContext);
-
-	return c;
-    }
-
-    @Override
-    public Object _callWithNamedValues(PageContext pageContext, Struct values, boolean doIncludePath) throws PageException {
-	UDFUtil.argumentCollection(values, getFunctionArguments());
-	Object value = values.get(propName, null);
-	Component c = getComponent(pageContext);
-
-	if (value == null) {
-	    Key[] keys = CollectionUtil.keys(values);
-	    if (keys.length == 1) {
-		value = values.get(keys[0]);
-	    }
-	    else throw new ExpressionException("The parameter " + prop.getName() + " to function " + getFunctionName() + " is required but was not passed in.");
+	@Override
+	public UDF duplicate() {
+		return new UDFSetterProperty(srcComponent, prop, validate, validateParams);
 	}
-	c.getComponentScope().set(propName, cast(pageContext, arguments[0], value, 1));
 
-	// make sure it is reconized that set is called by hibernate
-	// if(component.isPersistent())ORMUtil.getSession(pageContext);
-	ApplicationContext appContext = pageContext.getApplicationContext();
-	if (appContext.isORMEnabled() && c.isPersistent()) ORMUtil.getSession(pageContext);
+	@Override
+	public Object _call(PageContext pageContext, Object[] args, boolean doIncludePath) throws PageException {
+		if (args.length < 1) throw new ExpressionException("The parameter " + prop.getName() + " to function " + getFunctionName() + " is required but was not passed in.");
+		validate(validate, validateParams, args[0]);
+		Component c = getComponent(pageContext);
+		c.getComponentScope().set(propName, cast(pageContext, this.arguments[0], args[0], 1));
 
-	return c;
-    }
+		// make sure it is reconized that set is called by hibernate
+		// if(component.isPersistent())ORMUtil.getSession(pageContext);
+		ApplicationContext appContext = pageContext.getApplicationContext();
+		if (appContext.isORMEnabled() && c.isPersistent()) ORMUtil.getSession(pageContext);
 
-    @Override
-    public Object getDefaultValue(PageContext pc, int index) throws PageException {
-	return prop.getDefault();
-    }
+		return c;
+	}
 
-    @Override
-    public Object getDefaultValue(PageContext pc, int index, Object defaultValue) throws PageException {
-	return prop.getDefault();
-    }
+	@Override
+	public Object _callWithNamedValues(PageContext pageContext, Struct values, boolean doIncludePath) throws PageException {
+		UDFUtil.argumentCollection(values, getFunctionArguments());
+		Object value = values.get(propName, null);
+		Component c = getComponent(pageContext);
 
-    @Override
-    public String getReturnTypeAsString() {
-	return "any";
-    }
+		if (value == null) {
+			Key[] keys = CollectionUtil.keys(values);
+			if (keys.length == 1) {
+				value = values.get(keys[0]);
+			}
+			else throw new ExpressionException("The parameter " + prop.getName() + " to function " + getFunctionName() + " is required but was not passed in.");
+		}
+		c.getComponentScope().set(propName, cast(pageContext, arguments[0], value, 1));
 
-    @Override
-    public Object implementation(PageContext pageContext) throws Throwable {
-	return null;
-    }
+		// make sure it is reconized that set is called by hibernate
+		// if(component.isPersistent())ORMUtil.getSession(pageContext);
+		ApplicationContext appContext = pageContext.getApplicationContext();
+		if (appContext.isORMEnabled() && c.isPersistent()) ORMUtil.getSession(pageContext);
+
+		return c;
+	}
+
+	@Override
+	public Object getDefaultValue(PageContext pc, int index) throws PageException {
+		return prop.getDefault();
+	}
+
+	@Override
+	public Object getDefaultValue(PageContext pc, int index, Object defaultValue) throws PageException {
+		return prop.getDefault();
+	}
+
+	@Override
+	public String getReturnTypeAsString() {
+		return "any";
+	}
+
+	@Override
+	public Object implementation(PageContext pageContext) throws Throwable {
+		return null;
+	}
 
 }

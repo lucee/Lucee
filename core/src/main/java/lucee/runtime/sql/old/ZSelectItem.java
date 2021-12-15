@@ -23,41 +23,41 @@ package lucee.runtime.sql.old;
 
 public final class ZSelectItem extends ZAliasedName {
 
-    public ZSelectItem() {
-	expression_ = null;
-	aggregate_ = null;
-    }
+	public ZSelectItem() {
+		expression_ = null;
+		aggregate_ = null;
+	}
 
-    public ZSelectItem(String s) {
-	super(s, ZAliasedName.FORM_COLUMN);
-	expression_ = null;
-	aggregate_ = null;
-	setAggregate(ZUtils.getAggregateCall(s));
-    }
+	public ZSelectItem(String s) {
+		super(s, ZAliasedName.FORM_COLUMN);
+		expression_ = null;
+		aggregate_ = null;
+		setAggregate(ZUtils.getAggregateCall(s));
+	}
 
-    public ZExp getExpression() {
-	if (isExpression()) return expression_;
-	if (isWildcard()) return null;
-	return new ZConstant(getColumn(), 0);
-    }
+	public ZExp getExpression() {
+		if (isExpression()) return expression_;
+		if (isWildcard()) return null;
+		return new ZConstant(getColumn(), 0);
+	}
 
-    public void setExpression(ZExp zexp) {
-	expression_ = zexp;
-	strform_ = expression_.toString();
-    }
+	public void setExpression(ZExp zexp) {
+		expression_ = zexp;
+		strform_ = expression_.toString();
+	}
 
-    public boolean isExpression() {
-	return expression_ != null;
-    }
+	public boolean isExpression() {
+		return expression_ != null;
+	}
 
-    public void setAggregate(String s) {
-	aggregate_ = s;
-    }
+	public void setAggregate(String s) {
+		aggregate_ = s;
+	}
 
-    public String getAggregate() {
-	return aggregate_;
-    }
+	public String getAggregate() {
+		return aggregate_;
+	}
 
-    ZExp expression_;
-    String aggregate_;
+	ZExp expression_;
+	String aggregate_;
 }

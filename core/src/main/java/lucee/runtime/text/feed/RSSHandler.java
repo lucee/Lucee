@@ -43,199 +43,198 @@ import lucee.runtime.type.Query;
 import lucee.runtime.type.QueryImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
+import lucee.runtime.type.util.KeyConstants;
 
 public final class RSSHandler extends DefaultHandler {
 
-    private static final Key RSSLINK = KeyImpl.intern("RSSLINK");
-    private static final Key CONTENT = KeyImpl.intern("CONTENT");
+	private static final Key RSSLINK = KeyImpl.getInstance("RSSLINK");
+	private static final Key CONTENT = KeyImpl.getInstance("CONTENT");
 
-    private static final Key LINK = KeyImpl.intern("LINK");
-    private static final Key DESCRIPTION = KeyImpl.intern("DESCRIPTION");
+	private static final Key LINK = KeyImpl.getInstance("LINK");
+	private static final Key DESCRIPTION = KeyImpl.getInstance("DESCRIPTION");
 
-    private static Collection.Key[] COLUMNS = new Collection.Key[] { KeyImpl.intern("AUTHOREMAIL"), KeyImpl.intern("AUTHORNAME"), KeyImpl.intern("AUTHORURI"),
-	    KeyImpl.intern("CATEGORYLABEL"), KeyImpl.intern("CATEGORYSCHEME"), KeyImpl.intern("CATEGORYTERM"), KeyImpl.intern("COMMENTS"), CONTENT, KeyImpl.intern("CONTENTMODE"),
-	    KeyImpl.intern("CONTENTSRC"), KeyImpl.intern("CONTENTTYPE"), KeyImpl.intern("CONTRIBUTOREMAIL"), KeyImpl.intern("CONTRIBUTORNAME"), KeyImpl.intern("CONTRIBUTORURI"),
-	    KeyImpl.intern("CREATEDDATE"), KeyImpl.intern("EXPIRATIONDATE"), KeyImpl.intern("ID"), KeyImpl.intern("IDPERMALINK"), KeyImpl.intern("LINKHREF"),
-	    KeyImpl.intern("LINKHREFLANG"), KeyImpl.intern("LINKLENGTH"), KeyImpl.intern("LINKREL"), KeyImpl.intern("LINKTITLE"), KeyImpl.intern("LINKTYPE"),
-	    KeyImpl.intern("PUBLISHEDDATE"), KeyImpl.intern("RIGHTS"), RSSLINK, KeyImpl.intern("SOURCE"), KeyImpl.intern("SOURCEURL"), KeyImpl.intern("SUMMARY"),
-	    KeyImpl.intern("SUMMARYMODE"), KeyImpl.intern("SUMMARYSRC"), KeyImpl.intern("SUMMARYTYPE"), KeyImpl.intern("TITLE"), KeyImpl.intern("TITLETYPE"),
-	    KeyImpl.intern("UPDATEDDATE"), KeyImpl.intern("URI"), KeyImpl.intern("XMLBASE") };
+	private static Collection.Key[] COLUMNS = new Collection.Key[] { KeyImpl.getInstance("AUTHOREMAIL"), KeyImpl.getInstance("AUTHORNAME"), KeyImpl.getInstance("AUTHORURI"),
+			KeyImpl.getInstance("CATEGORYLABEL"), KeyImpl.getInstance("CATEGORYSCHEME"), KeyImpl.getInstance("CATEGORYTERM"), KeyImpl.getInstance("COMMENTS"), CONTENT,
+			KeyImpl.getInstance("CONTENTMODE"), KeyImpl.getInstance("CONTENTSRC"), KeyImpl.getInstance("CONTENTTYPE"), KeyImpl.getInstance("CONTRIBUTOREMAIL"),
+			KeyImpl.getInstance("CONTRIBUTORNAME"), KeyImpl.getInstance("CONTRIBUTORURI"), KeyImpl.getInstance("CREATEDDATE"), KeyImpl.getInstance("EXPIRATIONDATE"),
+			KeyConstants._ID, KeyImpl.getInstance("IDPERMALINK"), KeyImpl.getInstance("LINKHREF"), KeyImpl.getInstance("LINKHREFLANG"), KeyImpl.getInstance("LINKLENGTH"),
+			KeyImpl.getInstance("LINKREL"), KeyImpl.getInstance("LINKTITLE"), KeyImpl.getInstance("LINKTYPE"), KeyImpl.getInstance("PUBLISHEDDATE"), KeyImpl.getInstance("RIGHTS"),
+			RSSLINK, KeyImpl.getInstance("SOURCE"), KeyImpl.getInstance("SOURCEURL"), KeyImpl.getInstance("SUMMARY"), KeyImpl.getInstance("SUMMARYMODE"),
+			KeyImpl.getInstance("SUMMARYSRC"), KeyImpl.getInstance("SUMMARYTYPE"), KeyImpl.getInstance("TITLE"), KeyImpl.getInstance("TITLETYPE"),
+			KeyImpl.getInstance("UPDATEDDATE"), KeyImpl.getInstance("URI"), KeyImpl.getInstance("XMLBASE") };
 
-    private XMLReader xmlReader;
+	private XMLReader xmlReader;
 
-    private String lcInside;
-    private StringBuffer content = new StringBuffer();
+	private String lcInside;
+	private StringBuffer content = new StringBuffer();
 
-    private boolean insideImage;
-    private boolean insideItem;
+	private boolean insideImage;
+	private boolean insideItem;
 
-    private Struct image;
-    private Struct properties;
-    private Query items;
+	private Struct image;
+	private Struct properties;
+	private Query items;
 
-    private Collection.Key inside;
+	private Collection.Key inside;
 
-    /**
-     * Constructor of the class
-     * 
-     * @param res
-     * @throws IOException
-     * @throws SAXException
-     * @throws DatabaseException
-     */
-    public RSSHandler(Resource res) throws IOException, SAXException, DatabaseException {
-	InputStream is = null;
-	try {
-	    InputSource source = new InputSource(is = res.getInputStream());
-	    source.setSystemId(res.getPath());
-	    init(source);
-	}
-	finally {
-	    IOUtil.closeEL(is);
-	}
-    }
-
-    /**
-     * Constructor of the class
-     * 
-     * @param stream
-     * @throws IOException
-     * @throws SAXException
-     * @throws DatabaseException
-     */
-    public RSSHandler(InputStream stream) throws IOException, SAXException, DatabaseException {
-	InputSource is = new InputSource(IOUtil.getReader(stream, SystemUtil.getCharset()));
-	init(is);
-    }
-
-    private void init(InputSource is) throws SAXException, IOException, DatabaseException {
-	properties = new StructImpl();
-	items = new QueryImpl(COLUMNS, 0, "query");
-	xmlReader = XMLUtil.createXMLReader();
-	xmlReader.setContentHandler(this);
-	xmlReader.setErrorHandler(this);
-
-	// xmlReader.setEntityResolver(new TagLibEntityResolver());
-	xmlReader.parse(is);
-
-	// properties.setEL("encoding",is.getEncoding());
-
-    }
-
-    @Override
-    public void setDocumentLocator(Locator locator) {
-	if (locator instanceof Locator2) {
-	    Locator2 locator2 = (Locator2) locator;
-	    properties.setEL("encoding", locator2.getEncoding());
-	}
-    }
-
-    @Override
-    public void startElement(String uri, String name, String qName, Attributes atts) {
-	inside = KeyImpl.getInstance(qName);
-	lcInside = qName.toLowerCase();
-	if (lcInside.equals("image")) insideImage = true;
-	else if (qName.equals("item")) {
-	    items.addRow();
-	    insideItem = true;
-	}
-	else if (lcInside.equals("rss")) {
-	    String version = atts.getValue("version");
-	    if (!StringUtil.isEmpty(version)) properties.setEL("version", "rss_" + version);
-	}
-
-	/*
-	 * / cloud else if(!insideItem && lcInside.equals("cloud")) {
+	/**
+	 * Constructor of the class
 	 * 
-	 * 
-	 * 
-	 * String url = atts.getValue("url"); if(!StringUtil.isEmpty(url))items.setAtEL("LINKHREF",
-	 * items.getRowCount(), url); String length = atts.getValue("length");
-	 * if(!StringUtil.isEmpty(length))items.setAtEL("LINKLENGTH", items.getRowCount(), length); String
-	 * type = atts.getValue("type"); if(!StringUtil.isEmpty(type))items.setAtEL("LINKTYPE",
-	 * items.getRowCount(), type); }
+	 * @param res
+	 * @throws IOException
+	 * @throws SAXException
+	 * @throws DatabaseException
 	 */
-
-	// enclosure
-	else if (insideItem && lcInside.equals("enclosure")) {
-	    String url = atts.getValue("url");
-	    if (!StringUtil.isEmpty(url)) items.setAtEL("LINKHREF", items.getRowCount(), url);
-	    String length = atts.getValue("length");
-	    if (!StringUtil.isEmpty(length)) items.setAtEL("LINKLENGTH", items.getRowCount(), length);
-	    String type = atts.getValue("type");
-	    if (!StringUtil.isEmpty(type)) items.setAtEL("LINKTYPE", items.getRowCount(), type);
+	public RSSHandler(Resource res) throws IOException, SAXException, DatabaseException {
+		InputStream is = null;
+		try {
+			InputSource source = new InputSource(is = res.getInputStream());
+			source.setSystemId(res.getPath());
+			init(source);
+		}
+		finally {
+			IOUtil.close(is);
+		}
 	}
 
-	else if (atts.getLength() > 0) {
-	    int len = atts.getLength();
-	    Struct sct = new StructImpl();
-	    for (int i = 0; i < len; i++) {
-		sct.setEL(atts.getQName(i), atts.getValue(i));
-	    }
-	    properties.setEL(inside, sct);
+	/**
+	 * Constructor of the class
+	 * 
+	 * @param stream
+	 * @throws IOException
+	 * @throws SAXException
+	 * @throws DatabaseException
+	 */
+	public RSSHandler(InputStream stream) throws IOException, SAXException, DatabaseException {
+		InputSource is = new InputSource(IOUtil.getReader(stream, SystemUtil.getCharset()));
+		init(is);
 	}
 
-	// <enclosure url="http://www.scripting.com/mp3s/weatherReportDicksPicsVol7.mp3" length="6182912"
-	// type="audio/mpeg"/>
-    }
+	private void init(InputSource is) throws SAXException, IOException, DatabaseException {
+		properties = new StructImpl();
+		items = new QueryImpl(COLUMNS, 0, "query");
+		xmlReader = XMLUtil.createXMLReader();
+		xmlReader.setContentHandler(this);
+		xmlReader.setErrorHandler(this);
 
-    @Override
-    public void endElement(String uri, String name, String qName) {
-	setContent(content.toString().trim());
-	content = new StringBuffer();
-	inside = null;
-	lcInside = "";
+		// xmlReader.setEntityResolver(new TagLibEntityResolver());
+		xmlReader.parse(is);
 
-	if (qName.equals("image")) insideImage = false;
-	if (qName.equals("item")) insideItem = false;
-    }
-
-    @Override
-    public void characters(char ch[], int start, int length) {
-	content.append(new String(ch, start, length));
-    }
-
-    private void setContent(String value) {
-	if (StringUtil.isEmpty(lcInside)) return;
-
-	if (insideImage) {
-	    if (image == null) {
-		image = new StructImpl();
-		properties.setEL("image", image);
-	    }
-	    image.setEL(inside, value);
-	}
-	else if (insideItem) {
-	    try {
-		items.setAt(toItemColumn(inside), items.getRowCount(), value);
-	    }
-	    catch (PageException e) {
-		// print.err(inside);
-	    }
+		// properties.setEL("encoding",is.getEncoding());
 
 	}
-	else {
-	    if (!(StringUtil.isEmpty(value, true) && properties.containsKey(inside))) properties.setEL(inside, value);
+
+	@Override
+	public void setDocumentLocator(Locator locator) {
+		if (locator instanceof Locator2) {
+			Locator2 locator2 = (Locator2) locator;
+			properties.setEL("encoding", locator2.getEncoding());
+		}
 	}
-    }
 
-    private Collection.Key toItemColumn(Collection.Key key) {
-	if (key.equalsIgnoreCase(LINK)) return RSSLINK;
-	else if (key.equalsIgnoreCase(DESCRIPTION)) return CONTENT;
-	return key;
-    }
+	@Override
+	public void startElement(String uri, String name, String qName, Attributes atts) {
+		inside = KeyImpl.getInstance(qName);
+		lcInside = qName.toLowerCase();
+		if (lcInside.equals("image")) insideImage = true;
+		else if (qName.equals("item")) {
+			items.addRow();
+			insideItem = true;
+		}
+		else if (lcInside.equals("rss")) {
+			String version = atts.getValue("version");
+			if (!StringUtil.isEmpty(version)) properties.setEL("version", "rss_" + version);
+		}
 
-    /**
-     * @return the properties
-     */
-    public Struct getProperties() {
-	return properties;
-    }
+		/*
+		 * / cloud else if(!insideItem && lcInside.equals("cloud")) {
+		 * 
+		 * 
+		 * 
+		 * String url = atts.getValue("url"); if(!StringUtil.isEmpty(url))items.setAtEL("LINKHREF",
+		 * items.getRowCount(), url); String length = atts.getValue("length");
+		 * if(!StringUtil.isEmpty(length))items.setAtEL("LINKLENGTH", items.getRowCount(), length); String
+		 * type = atts.getValue("type"); if(!StringUtil.isEmpty(type))items.setAtEL("LINKTYPE",
+		 * items.getRowCount(), type); }
+		 */
 
-    /**
-     * @return the items
-     */
-    public Query getItems() {
-	return items;
-    }
+		// enclosure
+		else if (insideItem && lcInside.equals("enclosure")) {
+			String url = atts.getValue("url");
+			if (!StringUtil.isEmpty(url)) items.setAtEL("LINKHREF", items.getRowCount(), url);
+			String length = atts.getValue("length");
+			if (!StringUtil.isEmpty(length)) items.setAtEL("LINKLENGTH", items.getRowCount(), length);
+			String type = atts.getValue("type");
+			if (!StringUtil.isEmpty(type)) items.setAtEL("LINKTYPE", items.getRowCount(), type);
+		}
+
+		else if (atts.getLength() > 0) {
+			int len = atts.getLength();
+			Struct sct = new StructImpl();
+			for (int i = 0; i < len; i++) {
+				sct.setEL(atts.getQName(i), atts.getValue(i));
+			}
+			properties.setEL(inside, sct);
+		}
+	}
+
+	@Override
+	public void endElement(String uri, String name, String qName) {
+		setContent(content.toString().trim());
+		content = new StringBuffer();
+		inside = null;
+		lcInside = "";
+
+		if (qName.equals("image")) insideImage = false;
+		if (qName.equals("item")) insideItem = false;
+	}
+
+	@Override
+	public void characters(char ch[], int start, int length) {
+		content.append(new String(ch, start, length));
+	}
+
+	private void setContent(String value) {
+		if (StringUtil.isEmpty(lcInside)) return;
+
+		if (insideImage) {
+			if (image == null) {
+				image = new StructImpl();
+				properties.setEL("image", image);
+			}
+			image.setEL(inside, value);
+		}
+		else if (insideItem) {
+			try {
+				items.setAt(toItemColumn(inside), items.getRowCount(), value);
+			}
+			catch (PageException e) {
+				// print.err(inside);
+			}
+
+		}
+		else {
+			if (!(StringUtil.isEmpty(value, true) && properties.containsKey(inside))) properties.setEL(inside, value);
+		}
+	}
+
+	private Collection.Key toItemColumn(Collection.Key key) {
+		if (key.equalsIgnoreCase(LINK)) return RSSLINK;
+		else if (key.equalsIgnoreCase(DESCRIPTION)) return CONTENT;
+		return key;
+	}
+
+	/**
+	 * @return the properties
+	 */
+	public Struct getProperties() {
+		return properties;
+	}
+
+	/**
+	 * @return the items
+	 */
+	public Query getItems() {
+		return items;
+	}
 }

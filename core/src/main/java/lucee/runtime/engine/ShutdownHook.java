@@ -22,14 +22,14 @@ import lucee.runtime.config.ConfigServer;
 
 public class ShutdownHook extends Thread {
 
-    private ConfigServer cs;
+	private ConfigServer cs;
 
-    public ShutdownHook(ConfigServer cs) {
-	this.cs = cs;
-    }
+	public ShutdownHook(ConfigServer cs) {
+		this.cs = cs;
+	}
 
-    @Override
-    public void run() {
-	cs.getEngine().reset();
-    }
+	@Override
+	public void run() {
+		cs.getEngine().reset();
+	}
 }

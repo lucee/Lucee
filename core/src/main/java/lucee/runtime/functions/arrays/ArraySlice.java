@@ -31,45 +31,45 @@ import lucee.runtime.type.util.ArrayUtil;
 
 public final class ArraySlice extends BIF {
 
-    private static final long serialVersionUID = 7309769117464009924L;
+	private static final long serialVersionUID = 7309769117464009924L;
 
-    public static Array call(PageContext pc, Array arr, double offset) throws PageException {
-	return call(pc, arr, offset, 0);
-    }
-
-    public static Array call(PageContext pc, Array arr, double offset, double length) throws PageException {
-
-	int len = arr.size();
-	if (offset > 0) {
-	    if (len < offset) throw new FunctionException(pc, "arraySlice", 2, "offset", "Offset cannot be greater than size of the array");
-
-	    int to = 0;
-	    if (length > 0) to = (int) (offset + length - 1);
-	    else if (length < 0) to = (int) (len + length);
-	    if (len < to) throw new FunctionException(pc, "arraySlice", 3, "length", "Offset+length cannot be greater than size of the array");
-
-	    return get(arr, (int) offset, to);
+	public static Array call(PageContext pc, Array arr, double offset) throws PageException {
+		return call(pc, arr, offset, 0);
 	}
-	return call(pc, arr, len + offset, length);
-    }
 
-    @Override
-    public Object invoke(PageContext pc, Object[] args) throws PageException {
-	if (args.length == 2) return call(pc, Caster.toArray(args[0]), Caster.toDoubleValue(args[1]));
-	else if (args.length == 3) return call(pc, Caster.toArray(args[0]), Caster.toDoubleValue(args[1]), Caster.toDoubleValue(args[2]));
-	else throw new FunctionException(pc, "ArraySlice", 2, 3, args.length);
-    }
+	public static Array call(PageContext pc, Array arr, double offset, double length) throws PageException {
 
-    private static Array get(Array arr, int from, int to) throws PageException {
-	Array rtn = ArrayUtil.getInstance(arr.getDimension());
-	int[] keys = arr.intKeys();
-	for (int i = 0; i < keys.length; i++) {
-	    int key = keys[i];
-	    if (key < from) continue;
-	    if (to > 0 && key > to) break;
-	    rtn.append(arr.getE(key));
+		int len = arr.size();
+		if (offset > 0) {
+			if (len < offset) throw new FunctionException(pc, "arraySlice", 2, "offset", "Offset cannot be greater than size of the array");
+
+			int to = 0;
+			if (length > 0) to = (int) (offset + length - 1);
+			else if (length < 0) to = (int) (len + length);
+			if (len < to) throw new FunctionException(pc, "arraySlice", 3, "length", "Offset+length cannot be greater than size of the array");
+
+			return get(arr, (int) offset, to);
+		}
+		return call(pc, arr, len + offset, length);
 	}
-	return rtn;
-    }
+
+	@Override
+	public Object invoke(PageContext pc, Object[] args) throws PageException {
+		if (args.length == 2) return call(pc, Caster.toArray(args[0]), Caster.toDoubleValue(args[1]));
+		else if (args.length == 3) return call(pc, Caster.toArray(args[0]), Caster.toDoubleValue(args[1]), Caster.toDoubleValue(args[2]));
+		else throw new FunctionException(pc, "ArraySlice", 2, 3, args.length);
+	}
+
+	public static Array get(Array arr, int from, int to) throws PageException {
+		Array rtn = ArrayUtil.getInstance(arr.getDimension());
+		int[] keys = arr.intKeys();
+		for (int i = 0; i < keys.length; i++) {
+			int key = keys[i];
+			if (key < from) continue;
+			if (to > 0 && key > to) break;
+			rtn.append(arr.getE(key));
+		}
+		return rtn;
+	}
 
 }

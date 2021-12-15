@@ -71,290 +71,240 @@ import lucee.runtime.video.VideoUtil;
  */
 public interface CFMLEngine {
 
-    public static final int DIALECT_LUCEE = 0;
-    public static final int DIALECT_CFML = 1;
-    public static final int DIALECT_BOTH = 3;
+	public static final int DIALECT_LUCEE = 0;
+	public static final int DIALECT_CFML = 1;
+	public static final int DIALECT_BOTH = 3;
 
-    /**
-     * Field <code>CAN_UPDATE</code>
-     */
-    public static int CAN_UPDATE = 0;
+	/**
+	 * Field <code>CAN_UPDATE</code>
+	 */
+	public static int CAN_UPDATE = 0;
 
-    /**
-     * Field <code>CAN_RESTART</code>
-     */
-    public static int CAN_RESTART = 1;
-    public static int CAN_RESTART_ALL = CAN_RESTART;
-    public static int CAN_RESTART_CONTEXT = 2;
+	/**
+	 * Field <code>CAN_RESTART</code>
+	 */
+	public static int CAN_RESTART = 1;
+	public static int CAN_RESTART_ALL = CAN_RESTART;
+	public static int CAN_RESTART_CONTEXT = 2;
 
-    public abstract CFMLFactory getCFMLFactory(ServletConfig srvConfig, HttpServletRequest req) throws ServletException;
+	public abstract CFMLFactory getCFMLFactory(ServletConfig srvConfig, HttpServletRequest req) throws ServletException;
 
-    /**
-     * adds a servlet config
-     * 
-     * @param config
-     * @throws ServletException
-     */
-    public abstract void addServletConfig(ServletConfig config) throws ServletException;
+	public abstract void addServletConfig(ServletConfig config) throws ServletException;
 
-    /**
-     * method to invoke the engine for a regular Lucee call
-     * 
-     * @param servlet
-     * @param req
-     * @param rsp
-     * @throws ServletException
-     * @throws IOException
-     * @throws ServletException
-     */
-    public void service(HttpServlet servlet, HttpServletRequest req, HttpServletResponse rsp) throws IOException, ServletException;
+	public void service(HttpServlet servlet, HttpServletRequest req, HttpServletResponse rsp) throws IOException, ServletException;
 
-    /**
-     * method to invoke the engine for CFML
-     * 
-     * @param servlet
-     * @param req
-     * @param rsp
-     * @throws ServletException
-     * @throws IOException
-     * @throws ServletException
-     */
-    public void serviceCFML(HttpServlet servlet, HttpServletRequest req, HttpServletResponse rsp) throws IOException, ServletException;
+	public void serviceCFML(HttpServlet servlet, HttpServletRequest req, HttpServletResponse rsp) throws IOException, ServletException;
 
-    /**
-     * method to invoke the engine for AMF
-     * 
-     * @param servlet
-     * @param req
-     * @param rsp
-     * @throws ServletException
-     * @throws IOException
-     */
-    public void serviceAMF(HttpServlet servlet, HttpServletRequest req, HttpServletResponse rsp) throws ServletException, IOException;
+	public void serviceAMF(HttpServlet servlet, HttpServletRequest req, HttpServletResponse rsp) throws ServletException, IOException;
 
-    /**
-     * method to invoke the engine for a simple file
-     * 
-     * @param servlet
-     * @param req
-     * @param rsp
-     * @throws ServletException
-     * @throws IOException
-     */
-    public void serviceFile(HttpServlet servlet, HttpServletRequest req, HttpServletResponse rsp) throws ServletException, IOException;
+	public void serviceFile(HttpServlet servlet, HttpServletRequest req, HttpServletResponse rsp) throws ServletException, IOException;
 
-    /**
-     * method to invoke the engine for a Rest Requests
-     * 
-     * @param servlet
-     * @param req
-     * @param rsp
-     * @throws ServletException
-     * @throws IOException
-     */
-    public abstract void serviceRest(HttpServlet servlet, HttpServletRequest req, HttpServletResponse rsp) throws ServletException, IOException;
+	public abstract void serviceRest(HttpServlet servlet, HttpServletRequest req, HttpServletResponse rsp) throws ServletException, IOException;
 
-    public Info getInfo();
+	public Info getInfo();
 
-    /**
-     * @return returns the version of the engine in the format [x.x.x.xxx]
-     * @deprecated use instead getInfo()
-     */
-    @Deprecated
-    public String getVersion();
+	/**
+	 * @return returns the version of the engine in the format [x.x.x.xxx]
+	 * @deprecated use instead getInfo()
+	 */
+	@Deprecated
+	public String getVersion();
 
-    /**
-     * @return returns the state of the version (alpha,beta,rc,final)
-     * @deprecated use instead getInfo()
-     */
+	/**
+	 * @return returns how this engine will be updated (auto, manual)
+	 */
+	public String getUpdateType();
 
-    /**
-     * @return returns how this engine will be updated (auto, manual)
-     */
-    public String getUpdateType();
+	/**
+	 * @return return location URL to get updates for the engines
+	 */
+	public URL getUpdateLocation();
 
-    /**
-     * @return return location URL to get updates for the engines
-     */
-    public URL getUpdateLocation();
+	public Identification getIdentification();
 
-    public Identification getIdentification();
+	/**
+	 * checks if process has the right to do was given with type, the engine with given password
+	 * 
+	 * @param type restart type (CFMLEngine.CAN_UPDATE, CFMLEngine.CAN_RESTART)
+	 * @param password password for the env
+	 * @return has right
+	 */
+	public boolean can(int type, Password password);
 
-    /**
-     * checks if process has the right to do was given with type, the engine with given password
-     * 
-     * @param type restart type (CFMLEngine.CAN_UPDATE, CFMLEngine.CAN_RESTART)
-     * @param password
-     * @return has right
-     */
-    public boolean can(int type, Password password);
+	/**
+	 * @return returns the engine that has produced this engine
+	 */
+	public CFMLEngineFactory getCFMLEngineFactory();
 
-    /**
-     * @return returns the engine that has produced this engine
-     */
-    public CFMLEngineFactory getCFMLEngineFactory();
+	/**
+	 * reset the engine
+	 */
+	public void reset();
 
-    /**
-     * reset the engine
-     */
-    public void reset();
+	/**
+	 * reset a specific config
+	 * 
+	 * @param configId id of the config to reset
+	 */
+	public void reset(String configId);
 
-    /**
-     * reset the engine
-     */
-    public void reset(String configId);
+	/**
+	 * return the cast util
+	 * 
+	 * @return operaton util
+	 */
+	public Cast getCastUtil();
 
-    /**
-     * return the cast util
-     * 
-     * @return operaton util
-     */
-    public Cast getCastUtil();
+	/**
+	 * return the operation util
+	 * 
+	 * @return operaton util
+	 */
+	public Operation getOperatonUtil();
 
-    /**
-     * return the operation util
-     * 
-     * @return operaton util
-     */
-    public Operation getOperatonUtil();
+	/**
+	 * returns the decision util
+	 * 
+	 * @return decision util
+	 */
+	public Decision getDecisionUtil();
 
-    /**
-     * returns the decision util
-     * 
-     * @return decision util
-     */
-    public Decision getDecisionUtil();
+	/**
+	 * returns the decision util
+	 * 
+	 * @return decision util
+	 */
+	public Excepton getExceptionUtil();
 
-    /**
-     * returns the decision util
-     * 
-     * @return decision util
-     */
-    public Excepton getExceptionUtil();
+	/**
+	 * returns the decision util
+	 * 
+	 * @return decision util
+	 */
+	public Creation getCreationUtil();
 
-    /**
-     * returns the decision util
-     * 
-     * @return decision util
-     */
-    public Creation getCreationUtil();
+	public Object getJavaProxyUtil();// FUTURE return JavaProxyUtil
 
-    public Object getJavaProxyUtil();// FUTURE return JavaProxyUtil
+	/**
+	 * returns the IO util
+	 * 
+	 * @return decision util
+	 */
+	public IO getIOUtil();
 
-    /**
-     * returns the IO util
-     * 
-     * @return decision util
-     */
-    public IO getIOUtil();
+	/**
+	 * returns the IO util
+	 * 
+	 * @return decision util
+	 */
+	public Strings getStringUtil();
 
-    /**
-     * returns the IO util
-     * 
-     * @return decision util
-     */
-    public Strings getStringUtil();
+	public ClassUtil getClassUtil();
 
-    public ClassUtil getClassUtil();
+	/**
+	 * returns the FusionDebug Engine
+	 * 
+	 * @return IFDController
+	 */
+	public Object getFDController();
 
-    /**
-     * returns the FusionDebug Engine
-     * 
-     * @return IFDController
-     */
-    public Object getFDController();
+	/*
+	 * removed to avoid library conflicts, the blazeDS implementation is no longer under development an
+	 * in a separate jar
+	 */
+	// public Object getBlazeDSUtil();
 
-    /*
-     * removed to avoid library conflicts, the blazeDS implementation is no longer under development an
-     * in a separate jar
-     */
-    // public Object getBlazeDSUtil();
+	/**
+	 * returns the Resource Util
+	 * 
+	 * @return Blaze DS Util
+	 */
+	public ResourceUtil getResourceUtil();
 
-    /**
-     * returns the Resource Util
-     * 
-     * @return Blaze DS Util
-     */
-    public ResourceUtil getResourceUtil();
+	/**
+	 * returns the HTTP Util
+	 * 
+	 * @return the HTTP Util
+	 */
+	public HTTPUtil getHTTPUtil();
 
-    /**
-     * returns the HTTP Util
-     * 
-     * @return the HTTP Util
-     */
-    public HTTPUtil getHTTPUtil();
+	// public XMLUtil getXMLUtil();
 
-    // public XMLUtil getXMLUtil();
+	public ListUtil getListUtil();
 
-    public ListUtil getListUtil();
+	public HTMLUtil getHTMLUtil();
 
-    public HTMLUtil getHTMLUtil();
+	public DBUtil getDBUtil();
 
-    public DBUtil getDBUtil();
+	public Instrumentation getInstrumentation();
 
-    public Instrumentation getInstrumentation();
+	public abstract ORMUtil getORMUtil();
 
-    public abstract ORMUtil getORMUtil();
+	/**
+	 * @return return existing PageContext for the current PageContext
+	 */
+	public PageContext getThreadPageContext();
 
-    /**
-     * @return return existing PageContext for the current PageContext
-     */
-    public PageContext getThreadPageContext();
+	public Config getThreadConfig();
 
-    public Config getThreadConfig();
+	public TimeZone getThreadTimeZone();
 
-    public TimeZone getThreadTimeZone();
+	/**
+	 * create and register a PageContext, use releasePageContext when done
+	 * 
+	 * @param contextRoot context root
+	 * @param host host name
+	 * @param scriptName script name
+	 * @param queryString query string
+	 * @param cookies cookies
+	 * @param headers header elements
+	 * @param parameters parameters
+	 * @param attributes attributes
+	 * @param os output stream to write response body
+	 * @param timeout timeout for the thread
+	 * @param register register to thread or not
+	 * @return PageContext Object created
+	 * @throws ServletException in case the PC cannot be created
+	 */
+	public PageContext createPageContext(File contextRoot, String host, String scriptName, String queryString, Cookie[] cookies, Map<String, Object> headers,
+			Map<String, String> parameters, Map<String, Object> attributes, OutputStream os, long timeout, boolean register) throws ServletException;
 
-    /**
-     * create and register a PageContext, use releasePageContext when done
-     * 
-     * @return PageContext Object created
-     * @throws ServletException
-     */
-    public PageContext createPageContext(File contextRoot, String host, String scriptName, String queryString, Cookie[] cookies, Map<String, Object> headers,
-	    Map<String, String> parameters, Map<String, Object> attributes, OutputStream os, long timeout, boolean register) throws ServletException;
+	public void releasePageContext(PageContext pc, boolean unregister);
 
-    /**
-     * 
-     * @param pc
-     * @param unregister
-     */
-    public void releasePageContext(PageContext pc, boolean unregister);
+	public ConfigWeb createConfig(File contextRoot, String host, String scriptName) throws ServletException;
 
-    public ConfigWeb createConfig(File contextRoot, String host, String scriptName) throws ServletException;
+	public VideoUtil getVideoUtil();
 
-    public VideoUtil getVideoUtil();
+	public ZipUtil getZipUtil();
 
-    public ZipUtil getZipUtil();
+	public abstract void cli(Map<String, String> config, ServletConfig servletConfig) throws IOException, JspException, ServletException;
 
-    public abstract void cli(Map<String, String> config, ServletConfig servletConfig) throws IOException, JspException, ServletException;
+	public abstract void registerThreadPageContext(PageContext pc);
 
-    public abstract void registerThreadPageContext(PageContext pc);
+	public ConfigServer getConfigServer(Password password) throws PageException;
 
-    public ConfigServer getConfigServer(Password password) throws PageException;
+	public ConfigServer getConfigServer(String key, long timeNonce) throws PageException;
 
-    public ConfigServer getConfigServer(String key, long timeNonce) throws PageException;
+	public long uptime();
 
-    public long uptime();
+	public ServletConfig[] getServletConfigs();
 
-    public ServletConfig[] getServletConfigs();
+	/*
+	 * get the OSGi Bundle of the core
+	 * 
+	 * @return / public abstract Bundle getCoreBundle();
+	 */
 
-    /*
-     * get the OSGi Bundle of the core
-     * 
-     * @return / public abstract Bundle getCoreBundle();
-     */
+	public BundleCollection getBundleCollection();
 
-    public BundleCollection getBundleCollection();
+	public BundleContext getBundleContext();
 
-    public BundleContext getBundleContext();
+	public ScriptEngineFactory getScriptEngineFactory(int dialect);
 
-    public ScriptEngineFactory getScriptEngineFactory(int dialect);
+	public ScriptEngineFactory getTagEngineFactory(int dialect);
 
-    public ScriptEngineFactory getTagEngineFactory(int dialect);
+	public abstract TemplateUtil getTemplateUtil();
 
-    public abstract TemplateUtil getTemplateUtil();
-
-    public abstract SystemUtil getSystemUtil();
+	public abstract SystemUtil getSystemUtil();
 
 }

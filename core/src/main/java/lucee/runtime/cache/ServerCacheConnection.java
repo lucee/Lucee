@@ -28,62 +28,63 @@ import lucee.runtime.type.Struct;
 
 public class ServerCacheConnection implements CacheConnectionPlus {
 
-    private CacheConnection cc;
-    private ConfigServerImpl cs;
+	private CacheConnection cc;
+	private ConfigServerImpl cs;
 
-    /**
-     * Constructor of the class
-     * 
-     * @param configServer
-     * @param cc
-     */
-    public ServerCacheConnection(ConfigServerImpl cs, CacheConnection cc) {
-	this.cs = cs;
-	this.cc = cc;
-    }
-
-    @Override
-    public CacheConnection duplicate(Config config) throws IOException {
-	return new ServerCacheConnection(cs, (CacheConnectionPlus) cc.duplicate(config));
-    }
-
-    @Override
-    public ClassDefinition getClassDefinition() {
-	return cc.getClassDefinition();
-    }
-
-    @Override
-    public Struct getCustom() {
-	return cc.getCustom();
-    }
-
-    @Override
-    public Cache getInstance(Config config) throws IOException {
-	return cc.getInstance(cs);
-    }
-
-    @Override
-    public String getName() {
-	return cc.getName();
-    }
-
-    @Override
-    public boolean isReadOnly() {
-	return true;
-    }
-
-    @Override
-    public boolean isStorage() {
-	return cc.isStorage();
-    }
-
-    @Override
-    public Cache getLoadedInstance() {
-	if (cc instanceof CacheConnectionPlus) return ((CacheConnectionPlus) cc).getLoadedInstance();
-	try {
-	    return cc.getInstance(null);
+	/**
+	 * Constructor of the class
+	 * 
+	 * @param configServer
+	 * @param cc
+	 */
+	public ServerCacheConnection(ConfigServerImpl cs, CacheConnection cc) {
+		this.cs = cs;
+		this.cc = cc;
 	}
-	catch (Exception e) {}
-	return null;
-    }
+
+	@Override
+	public CacheConnection duplicate(Config config) throws IOException {
+		return new ServerCacheConnection(cs, (CacheConnectionPlus) cc.duplicate(config));
+	}
+
+	@Override
+	public ClassDefinition getClassDefinition() {
+		return cc.getClassDefinition();
+	}
+
+	@Override
+	public Struct getCustom() {
+		return cc.getCustom();
+	}
+
+	@Override
+	public Cache getInstance(Config config) throws IOException {
+		return cc.getInstance(cs);
+	}
+
+	@Override
+	public String getName() {
+		return cc.getName();
+	}
+
+	@Override
+	public boolean isReadOnly() {
+		return true;
+	}
+
+	@Override
+	public boolean isStorage() {
+		return cc.isStorage();
+	}
+
+	@Override
+	public Cache getLoadedInstance() {
+		if (cc instanceof CacheConnectionPlus) return ((CacheConnectionPlus) cc).getLoadedInstance();
+		try {
+			return cc.getInstance(null);
+		}
+		catch (Exception e) {
+		}
+		return null;
+	}
 }

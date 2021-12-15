@@ -44,232 +44,239 @@ import lucee.runtime.type.util.ListUtil;
  **/
 public final class Execute extends BodyTagImpl {
 
-    /** Command-line arguments passed to the application. */
-    private List<String> arguments;
+	/** Command-line arguments passed to the application. */
+	private List<String> arguments;
 
-    /**
-     * Indicates how long, in seconds, the CFML executing thread waits for the spawned process. A
-     * timeout of 0 is equivalent to the non-blocking mode of executing. A very high timeout value is
-     ** equivalent to a blocking mode of execution. The default is 0; therefore, the CFML thread spawns a
-     * process and returns without waiting for the process to terminate.If no output file is specified,
-     ** and the timeout value is 0, the program output is discarded.
-     */
-    private long timeout;
+	/**
+	 * Indicates how long, in seconds, the CFML executing thread waits for the spawned process. A
+	 * timeout of 0 is equivalent to the non-blocking mode of executing. A very high timeout value is
+	 ** equivalent to a blocking mode of execution. The default is 0; therefore, the CFML thread spawns a
+	 * process and returns without waiting for the process to terminate.If no output file is specified,
+	 ** and the timeout value is 0, the program output is discarded.
+	 */
+	private long timeout;
 
-    /**
-     * The full pathname of the application to execute. Note: On Windows, you must specify the extension
-     * as part of the application's name. For example, myapp.exe,
-     */
-    private String name = null;
+	/**
+	 * The full pathname of the application to execute. Note: On Windows, you must specify the extension
+	 * as part of the application's name. For example, myapp.exe,
+	 */
+	private String name = null;
 
-    /**
-     * The file to which to direct the output of the program. If not specified, the output is displayed
-     * on the page from which it was called.
-     */
-    private Resource outputfile;
-    private Resource errorFile;
+	/**
+	 * The file to which to direct the output of the program. If not specified, the output is displayed
+	 * on the page from which it was called.
+	 */
+	private Resource outputfile;
+	private Resource errorFile;
 
-    private String variable;
-    private String errorVariable;
+	private String variable;
+	private String errorVariable;
 
-    private String body;
+	private String body;
+	private String directory;
 
-    private boolean terminateOnTimeout = false;
+	private boolean terminateOnTimeout = false;
 
-    @Override
-    public void release() {
-	super.release();
-	arguments = null;
-	timeout = 0L;
-	name = null;
-	outputfile = null;
-	errorFile = null;
-	variable = null;
-	errorVariable = null;
-	body = null;
-	terminateOnTimeout = false;
-    }
-
-    /**
-     * set the value arguments Command-line arguments passed to the application.
-     * 
-     * @param args value to set
-     * @throws PageException
-     **/
-    public void setArguments(Object args) throws PageException {
-	if (args instanceof lucee.runtime.type.Collection) {
-	    this.arguments = new ArrayList<String>();
-	    lucee.runtime.type.Collection coll = (lucee.runtime.type.Collection) args;
-	    Iterator<Object> it = coll.valueIterator();
-	    while (it.hasNext()) {
-		arguments.add(Caster.toString(it.next()));
-	    }
-	}
-	else {
-	    arguments = Command.toList(Caster.toString(args));
-	}
-    }
-
-    public static void main(String[] args) throws Exception {
-	CommandResult cr = Command.execute("curl http://snapshot.lucee.org/rest/update/provider/echoGet", true);
-	_Execute e = new _Execute(null, null, new String[] { "curl", "http://snapshot.lucee.org/rest/update/provider/echoGet" }, null, null, null, null);
-	e._run(null);
-    }
-
-    /**
-     * set the value timeout Indicates how long, in seconds, the CFML executing thread waits for the
-     * spawned process. A timeout of 0 is equivalent to the non-blocking mode of executing. A very high
-     * timeout value is equivalent to a blocking mode of execution. The default is 0; therefore, the
-     * CFML thread spawns a process and returns without waiting for the process to terminate.If no
-     * output file is specified, and the timeout value is 0, the program output is discarded.
-     * 
-     * @param timeout value to set
-     * @throws ApplicationException
-     **/
-    public void setTimeout(double timeout) throws ApplicationException {
-	if (timeout < 0) throw new ApplicationException("value must be a positive number now [" + Caster.toString(timeout) + "]");
-	this.timeout = (long) (timeout * 1000L);
-    }
-
-    public void setTerminateontimeout(boolean terminateontimeout) {
-	this.terminateOnTimeout = terminateontimeout;
-    }
-
-    /**
-     * set the value name The full pathname of the application to execute. Note: On Windows, you must
-     * specify the extension as part of the application's name. For example, myapp.exe,
-     * 
-     * @param name value to set
-     **/
-    public void setName(String name) {
-	this.name = name;
-    }
-
-    /**
-     * define name of variable where output is written to
-     * 
-     * @param variable
-     * @throws PageException
-     */
-    public void setVariable(String variable) throws PageException {
-	this.variable = variable;
-	pageContext.setVariable(variable, "");
-    }
-
-    public void setErrorvariable(String errorVariable) throws PageException {
-	this.errorVariable = errorVariable;
-	pageContext.setVariable(errorVariable, "");
-    }
-
-    /**
-     * set the value outputfile The file to which to direct the output of the program. If not specified,
-     * the output is displayed on the page from which it was called.
-     * 
-     * @param outputfile value to set
-     * @throws SecurityException
-     **/
-    public void setOutputfile(String outputfile) {
-	try {
-	    this.outputfile = ResourceUtil.toResourceExistingParent(pageContext, outputfile);
-	    pageContext.getConfig().getSecurityManager().checkFileLocation(this.outputfile);
-
-	}
-	catch (PageException e) {
-	    this.outputfile = pageContext.getConfig().getTempDirectory().getRealResource(outputfile);
-	    if (!this.outputfile.getParentResource().exists()) this.outputfile = null;
-	    else if (!this.outputfile.isFile()) this.outputfile = null;
-	    else if (!this.outputfile.exists()) {
-		ResourceUtil.createFileEL(this.outputfile, false);
-		// try {
-		// this.outputfile.createNewFile();
-		/*
-		 * } catch (IOException e1) { this.outputfile=null; }
-		 */
-	    }
-	}
-    }
-
-    public void setErrorfile(String errorfile) {
-
-	try {
-	    this.errorFile = ResourceUtil.toResourceExistingParent(pageContext, errorfile);
-	    pageContext.getConfig().getSecurityManager().checkFileLocation(this.errorFile);
-	}
-	catch (PageException e) {
-
-	    this.errorFile = pageContext.getConfig().getTempDirectory().getRealResource(errorfile);
-
-	    if (!this.errorFile.getParentResource().exists()) this.errorFile = null;
-	    else if (!this.errorFile.isFile()) this.errorFile = null;
-	    else if (!this.errorFile.exists()) {
-		ResourceUtil.createFileEL(this.errorFile, false);
-	    }
-	}
-    }
-
-    @Override
-    public int doStartTag() throws PageException {
-	return EVAL_BODY_BUFFERED;
-    }
-
-    private void _execute() throws Exception {
-	Object monitor = new SerializableObject();
-	if (name == null) {
-	    if (StringUtil.isEmpty(body)) {
-		required("execute", "name", name);
-		required("execute", "arguments", arguments);
-	    }
-	    else {
-		name = body;
-	    }
-	}
-	if (arguments == null || arguments.size() == 0) {
-	    arguments = Command.toList(name);
-	}
-	else {
-	    arguments.add(0, name);
-	}
-	_Execute execute = new _Execute(pageContext, monitor, arguments.toArray(new String[arguments.size()]), outputfile, variable, errorFile, errorVariable);
-
-	// if(timeout<=0)execute._run();
-	// else {
-	execute.start();
-	long start = System.currentTimeMillis();
-	if (timeout > 0) execute.join(timeout);
-	else execute.join();
-	if (execute.hasException()) throw execute.getException();
-	if (!execute.hasFinished()) {
-	    execute.abort(true);
-	    throw new ApplicationException("timeout [" + (timeout) + " ms] expired while executing [" + ListUtil.listToList(arguments, " ") + "]");
+	@Override
+	public void release() {
+		super.release();
+		arguments = null;
+		timeout = 0L;
+		name = null;
+		outputfile = null;
+		errorFile = null;
+		variable = null;
+		errorVariable = null;
+		body = null;
+		terminateOnTimeout = false;
+		directory = null;
 	}
 
-    }
-
-    @Override
-    public int doEndTag() throws PageException {
-	if (pageContext.getConfig().getSecurityManager().getAccess(SecurityManager.TYPE_TAG_EXECUTE) == SecurityManager.VALUE_NO)
-	    throw new SecurityException("can't access tag [execute]", "access is prohibited by security manager");
-	try {
-	    _execute();
+	/**
+	 * set the value arguments Command-line arguments passed to the application.
+	 * 
+	 * @param args value to set
+	 * @throws PageException
+	 **/
+	public void setArguments(Object args) throws PageException {
+		if (args instanceof lucee.runtime.type.Collection) {
+			this.arguments = new ArrayList<String>();
+			lucee.runtime.type.Collection coll = (lucee.runtime.type.Collection) args;
+			Iterator<Object> it = coll.valueIterator();
+			while (it.hasNext()) {
+				arguments.add(Caster.toString(it.next()));
+			}
+		}
+		else {
+			arguments = Command.toList(Caster.toString(args));
+		}
 	}
-	catch (PageException pe) {
-	    throw pe;
+
+	public static void main(String[] args) throws Exception {
+		CommandResult cr = Command.execute("curl https://update.lucee.org/rest/update/provider/echoGet", true);
+		_Execute e = new _Execute(null, null, new String[] { "curl", "https://update.lucee.org/rest/update/provider/echoGet" }, null, null, null, null, null);
+		e._run(null);
 	}
-	catch (Exception e) {
-	    throw new ApplicationException("Error invoking external process", e.getMessage());
+
+	/**
+	 * set the value timeout Indicates how long, in seconds, the CFML executing thread waits for the
+	 * spawned process. A timeout of 0 is equivalent to the non-blocking mode of executing. A very high
+	 * timeout value is equivalent to a blocking mode of execution. The default is 0; therefore, the
+	 * CFML thread spawns a process and returns without waiting for the process to terminate.If no
+	 * output file is specified, and the timeout value is 0, the program output is discarded.
+	 * 
+	 * @param timeout value to set
+	 * @throws ApplicationException
+	 **/
+	public void setTimeout(double timeout) throws ApplicationException {
+		if (timeout < 0) throw new ApplicationException("value must be a positive number now [" + Caster.toString(timeout) + "]");
+		this.timeout = (long) (timeout * 1000L);
 	}
-	return EVAL_PAGE;
-    }
 
-    @Override
-    public void doInitBody() {
+	public void setTerminateontimeout(boolean terminateontimeout) {
+		this.terminateOnTimeout = terminateontimeout;
+	}
 
-    }
+	/**
+	 * set the value name The full pathname of the application to execute. Note: On Windows, you must
+	 * specify the extension as part of the application's name. For example, myapp.exe,
+	 * 
+	 * @param name value to set
+	 **/
+	public void setName(String name) {
+		this.name = name;
+	}
 
-    @Override
-    public int doAfterBody() {
-	body = bodyContent.getString();
-	if (!StringUtil.isEmpty(body)) body = body.trim();
-	return SKIP_BODY;
-    }
+	/**
+	 * define name of variable where output is written to
+	 * 
+	 * @param variable
+	 * @throws PageException
+	 */
+	public void setVariable(String variable) throws PageException {
+		this.variable = variable;
+		pageContext.setVariable(variable, "");
+	}
+
+	public void setErrorvariable(String errorVariable) throws PageException {
+		this.errorVariable = errorVariable;
+		pageContext.setVariable(errorVariable, "");
+	}
+
+	/**
+	 * set the value outputfile The file to which to direct the output of the program. If not specified,
+	 * the output is displayed on the page from which it was called.
+	 * 
+	 * @param outputfile value to set
+	 * @throws SecurityException
+	 **/
+	public void setOutputfile(String outputfile) {
+		try {
+			this.outputfile = ResourceUtil.toResourceExistingParent(pageContext, outputfile);
+			pageContext.getConfig().getSecurityManager().checkFileLocation(this.outputfile);
+
+		}
+		catch (PageException e) {
+			this.outputfile = pageContext.getConfig().getTempDirectory().getRealResource(outputfile);
+			if (!this.outputfile.getParentResource().exists()) this.outputfile = null;
+			else if (!this.outputfile.isFile()) this.outputfile = null;
+			else if (!this.outputfile.exists()) {
+				ResourceUtil.createFileEL(this.outputfile, false);
+				// try {
+				// this.outputfile.createNewFile();
+				/*
+				 * } catch (IOException e1) { this.outputfile=null; }
+				 */
+			}
+		}
+	}
+
+	public void setErrorfile(String errorfile) {
+
+		try {
+			this.errorFile = ResourceUtil.toResourceExistingParent(pageContext, errorfile);
+			pageContext.getConfig().getSecurityManager().checkFileLocation(this.errorFile);
+		}
+		catch (PageException e) {
+
+			this.errorFile = pageContext.getConfig().getTempDirectory().getRealResource(errorfile);
+
+			if (!this.errorFile.getParentResource().exists()) this.errorFile = null;
+			else if (!this.errorFile.isFile()) this.errorFile = null;
+			else if (!this.errorFile.exists()) {
+				ResourceUtil.createFileEL(this.errorFile, false);
+			}
+		}
+	}
+
+	public void setDirectory(String directory) {
+		this.directory = directory;
+	}
+
+	@Override
+	public int doStartTag() throws PageException {
+		return EVAL_BODY_BUFFERED;
+	}
+
+	private void _execute() throws Exception {
+		Object monitor = new SerializableObject();
+		if (name == null) {
+			if (StringUtil.isEmpty(body)) {
+				required("execute", "name", name);
+				required("execute", "arguments", arguments);
+			}
+			else {
+				name = body;
+			}
+		}
+		if (arguments == null || arguments.size() == 0) {
+			arguments = Command.toList(name);
+		}
+		else {
+			arguments.add(0, name);
+		}
+
+		_Execute execute = new _Execute(pageContext, monitor, arguments.toArray(new String[arguments.size()]), outputfile, variable, errorFile, errorVariable, directory);
+
+		// if(timeout<=0)execute._run();
+		// else {
+		execute.start();
+		long start = System.currentTimeMillis();
+		if (timeout > 0) execute.join(timeout);
+		else execute.join();
+		if (execute.hasException()) throw execute.getException();
+		if (!execute.hasFinished()) {
+			execute.abort(terminateOnTimeout);
+			throw new ApplicationException("timeout [" + (timeout) + " ms] expired while executing [" + ListUtil.listToList(arguments, " ") + "]");
+		}
+
+	}
+
+	@Override
+	public int doEndTag() throws PageException {
+		if (pageContext.getConfig().getSecurityManager().getAccess(SecurityManager.TYPE_TAG_EXECUTE) == SecurityManager.VALUE_NO)
+			throw new SecurityException("can't access tag [execute]", "access is prohibited by security manager");
+		try {
+			_execute();
+		}
+		catch (PageException pe) {
+			throw pe;
+		}
+		catch (Exception e) {
+			throw new ApplicationException("Error invoking external process", e.getMessage());
+		}
+		return EVAL_PAGE;
+	}
+
+	@Override
+	public void doInitBody() {
+
+	}
+
+	@Override
+	public int doAfterBody() {
+		body = bodyContent.getString();
+		if (!StringUtil.isEmpty(body)) body = body.trim();
+		return SKIP_BODY;
+	}
 }

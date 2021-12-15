@@ -20,7 +20,7 @@ package lucee.intergral.fusiondebug.server;
 
 public class FDLicense {
 
-    public static String getLicenseInformation(String key) {
-	return null;
-    }
+	public static String getLicenseInformation(String key) {
+		return null;
+	}
 }

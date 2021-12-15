@@ -26,7 +26,7 @@ import lucee.runtime.exp.FunctionNotSupported;
 import lucee.runtime.ext.function.Function;
 
 public final class IsDDX implements Function {
-    public static boolean call(PageContext pc, String strOrPath) throws FunctionNotSupported {
-	throw new FunctionNotSupported("IsDDX");
-    }
+	public static boolean call(PageContext pc, String strOrPath) throws FunctionNotSupported {
+		throw new FunctionNotSupported("IsDDX");
+	}
 }

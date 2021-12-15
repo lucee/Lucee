@@ -37,20 +37,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				errorMsg = "";
 				try {
 					query name="getDeptEmpCount" result="result" dbtype="query"{
-						echo("select COUNT(dept) AS dept from empDetails WHERE dept = 'Employee' GROUP BY dept");
-					}
-				} catch( any e ) {
-					errorMsg = e.Detail;
-				}
-				expect(errorMsg).toBe("");
-				expect(getDeptEmpCount).toBeTypeOf("Query");
-				expect(getMaxEmpAge.dept).toBe(2);
-			});
-
-			it("Checking QOQ with different alias for a column with some condition using it in where clause & group by clause", function( currentSpec ){
-				errorMsg = "";
-				try {
-					query name="getDeptEmpCount" result="result" dbtype="query"{
 						echo("select COUNT(dept) AS deptCount from empDetails WHERE dept = 'Employee' GROUP BY dept");
 					}
 				} catch( any e ) {

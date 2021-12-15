@@ -33,47 +33,47 @@ import lucee.runtime.type.dt.TimeSpan;
  */
 public final class CachePut extends BIF {
 
-    private static final long serialVersionUID = -8636947330333269874L;
+	private static final long serialVersionUID = -8636947330333269874L;
 
-    public static String call(PageContext pc, String key, Object value) throws PageException {
-	return _call(pc, key, value, null, null, null);
-    }
-
-    public static String call(PageContext pc, String key, Object value, TimeSpan timeSpan) throws PageException {
-	return _call(pc, key, value, valueOf(timeSpan), null, null);
-    }
-
-    public static String call(PageContext pc, String key, Object value, TimeSpan timeSpan, TimeSpan idleTime) throws PageException {
-	return _call(pc, key, value, valueOf(timeSpan), valueOf(idleTime), null);
-    }
-
-    public static String call(PageContext pc, String key, Object value, TimeSpan timeSpan, TimeSpan idleTime, String cacheName) throws PageException {
-	return _call(pc, key, value, valueOf(timeSpan), valueOf(idleTime), cacheName);
-    }
-
-    @Override
-    public Object invoke(PageContext pc, Object[] args) throws PageException {
-	if (args.length == 2) return call(pc, Caster.toString(args[0]), args[1]);
-	if (args.length == 3) return call(pc, Caster.toString(args[0]), args[1], Caster.toTimespan(args[2]));
-	if (args.length == 4) return call(pc, Caster.toString(args[0]), args[1], Caster.toTimespan(args[2]), Caster.toTimespan(args[3]));
-	if (args.length == 5) return call(pc, Caster.toString(args[0]), args[1], Caster.toTimespan(args[2]), Caster.toTimespan(args[3]), Caster.toString(args[4]));
-	throw new FunctionException(pc, "CacheKeyExists", 1, 2, args.length);
-    }
-
-    private static String _call(PageContext pc, String key, Object value, Long timeSpan, Long idleTime, String cacheName) throws PageException {
-	try {
-	    Cache cache = CacheUtil.getCache(pc, cacheName, Config.CACHE_TYPE_OBJECT);
-	    cache.put(CacheUtil.key(key), value, idleTime, timeSpan);
-	}
-	catch (Exception e) {
-	    throw Caster.toPageException(e);
+	public static String call(PageContext pc, String key, Object value) throws PageException {
+		return _call(pc, key, value, null, null, null);
 	}
 
-	return "";
-    }
+	public static String call(PageContext pc, String key, Object value, TimeSpan timeSpan) throws PageException {
+		return _call(pc, key, value, valueOf(timeSpan), null, null);
+	}
 
-    private static Long valueOf(TimeSpan timeSpan) {
-	if (timeSpan == null) return null;
-	return Long.valueOf(timeSpan.getMillis());
-    }
+	public static String call(PageContext pc, String key, Object value, TimeSpan timeSpan, TimeSpan idleTime) throws PageException {
+		return _call(pc, key, value, valueOf(timeSpan), valueOf(idleTime), null);
+	}
+
+	public static String call(PageContext pc, String key, Object value, TimeSpan timeSpan, TimeSpan idleTime, String cacheName) throws PageException {
+		return _call(pc, key, value, valueOf(timeSpan), valueOf(idleTime), cacheName);
+	}
+
+	@Override
+	public Object invoke(PageContext pc, Object[] args) throws PageException {
+		if (args.length == 2) return call(pc, Caster.toString(args[0]), args[1]);
+		if (args.length == 3) return call(pc, Caster.toString(args[0]), args[1], Caster.toTimespan(args[2]));
+		if (args.length == 4) return call(pc, Caster.toString(args[0]), args[1], Caster.toTimespan(args[2]), Caster.toTimespan(args[3]));
+		if (args.length == 5) return call(pc, Caster.toString(args[0]), args[1], Caster.toTimespan(args[2]), Caster.toTimespan(args[3]), Caster.toString(args[4]));
+		throw new FunctionException(pc, "CacheKeyExists", 1, 2, args.length);
+	}
+
+	private static String _call(PageContext pc, String key, Object value, Long timeSpan, Long idleTime, String cacheName) throws PageException {
+		try {
+			Cache cache = CacheUtil.getCache(pc, cacheName, Config.CACHE_TYPE_OBJECT);
+			cache.put(CacheUtil.key(key), value, idleTime, timeSpan);
+		}
+		catch (Exception e) {
+			throw Caster.toPageException(e);
+		}
+
+		return "";
+	}
+
+	private static Long valueOf(TimeSpan timeSpan) {
+		if (timeSpan == null) return null;
+		return Long.valueOf(timeSpan.getMillis());
+	}
 }

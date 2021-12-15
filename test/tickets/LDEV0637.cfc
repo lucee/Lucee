@@ -61,7 +61,7 @@ END;
 		storedproc procedure="lucee_bug_test.testproc";
 	}
 
-	public void function testStoredProc2(){
+	public void function testStoredProc2() skip="true"{  // no system access
 		if(!variables.has) return;
 		// calling people_web_app.lucee_bug_test.testproc
   		storedproc procedure="system.lucee_bug_test.testproc";
@@ -75,7 +75,7 @@ END;
 		}
 	}
 
-	public void function testStoredProcIn2(){
+	public void function testStoredProcIn2() skip="true"{  // no system access
 		if(!variables.has) return;
 		// calling people_web_app.lucee_bug_test.testproc2('foo')
   		storedproc procedure="system.lucee_bug_test.testproc2" {
@@ -95,53 +95,14 @@ END;
 
 		application action="update" 
 
-			datasource="#
-			{
-	  class: 'oracle.jdbc.OracleDriver'
-	, bundleName: 'ojdbc7'
-	, bundleVersion: '12.1.0.2'
-	, connectionString: 'jdbc:oracle:thin:@#orc.server#:#orc.port#/#orc.database#'
-	, username: orc.username
-	, password: orc.password
-}#";
+			datasource="#server.getDatasource("oracle")#";
 	
 	return true;
 	}
 
 	private struct function getCredencials() {
-		// getting the credetials from the enviroment variables
-		var orc={};
-
-		if(
-			!isNull(server.system.environment.ORACLE_SERVER) && 
-			!isNull(server.system.environment.ORACLE_USERNAME) && 
-			!isNull(server.system.environment.ORACLE_PASSWORD) && 
-			!isNull(server.system.environment.ORACLE_PORT) && 
-			!isNull(server.system.environment.ORACLE_DATABASE)) {
-			orc.server=server.system.environment.ORACLE_SERVER;
-			orc.username=server.system.environment.ORACLE_USERNAME;
-			orc.password=server.system.environment.ORACLE_PASSWORD;
-			orc.port=server.system.environment.ORACLE_PORT;
-			orc.database=server.system.environment.ORACLE_DATABASE;
-		}
-		// getting the credetials from the system variables
-		else if(
-			!isNull(server.system.properties.ORACLE_SERVER) && 
-			!isNull(server.system.properties.ORACLE_USERNAME) && 
-			!isNull(server.system.properties.ORACLE_PASSWORD) && 
-			!isNull(server.system.properties.ORACLE_PORT) && 
-			!isNull(server.system.properties.ORACLE_DATABASE)) {
-			orc.server=server.system.properties.ORACLE_SERVER;
-			orc.username=server.system.properties.ORACLE_USERNAME;
-			orc.password=server.system.properties.ORACLE_PASSWORD;
-			orc.port=server.system.properties.ORACLE_PORT;
-			orc.database=server.system.properties.ORACLE_DATABASE;
-		}
-		return orc;
+		return server.getDatasource("oracle");
 	}
-
-
-
 
 } 
 </cfscript>

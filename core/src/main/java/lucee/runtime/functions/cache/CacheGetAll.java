@@ -40,39 +40,39 @@ import lucee.runtime.type.StructImpl;
  */
 public final class CacheGetAll extends BIF {
 
-    private static final long serialVersionUID = 6395709569356486777L;
+	private static final long serialVersionUID = 6395709569356486777L;
 
-    public static Struct call(PageContext pc) throws PageException {
-	return call(pc, null, null);
-    }
-
-    public static Struct call(PageContext pc, String filter) throws PageException {
-	return call(pc, filter, null);
-    }
-
-    public static Struct call(PageContext pc, String filter, String cacheName) throws PageException {
-	try {
-	    Cache cache = CacheUtil.getCache(pc, cacheName, Config.CACHE_TYPE_OBJECT);
-	    List<CacheEntry> entries = CacheGetAllIds.isFilter(filter) ? cache.entries(new WildCardFilter(filter, true)) : cache.entries();
-	    Iterator<CacheEntry> it = entries.iterator();
-	    Struct sct = new StructImpl();
-	    CacheEntry entry;
-	    while (it.hasNext()) {
-		entry = it.next();
-		sct.setEL(KeyImpl.getInstance(entry.getKey()), entry.getValue());
-	    }
-	    return sct;
+	public static Struct call(PageContext pc) throws PageException {
+		return call(pc, null, null);
 	}
-	catch (Exception e) {
-	    throw Caster.toPageException(e);
-	}
-    }
 
-    @Override
-    public Object invoke(PageContext pc, Object[] args) throws PageException {
-	if (args.length == 0) return call(pc);
-	if (args.length == 1) return call(pc, Caster.toString(args[0]));
-	if (args.length == 2) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]));
-	throw new FunctionException(pc, "CacheGetAll", 0, 2, args.length);
-    }
+	public static Struct call(PageContext pc, String filter) throws PageException {
+		return call(pc, filter, null);
+	}
+
+	public static Struct call(PageContext pc, String filter, String cacheName) throws PageException {
+		try {
+			Cache cache = CacheUtil.getCache(pc, cacheName, Config.CACHE_TYPE_OBJECT);
+			List<CacheEntry> entries = CacheGetAllIds.isFilter(filter) ? cache.entries(new WildCardFilter(filter, true)) : cache.entries();
+			Iterator<CacheEntry> it = entries.iterator();
+			Struct sct = new StructImpl();
+			CacheEntry entry;
+			while (it.hasNext()) {
+				entry = it.next();
+				sct.setEL(KeyImpl.init(entry.getKey()), entry.getValue());
+			}
+			return sct;
+		}
+		catch (Exception e) {
+			throw Caster.toPageException(e);
+		}
+	}
+
+	@Override
+	public Object invoke(PageContext pc, Object[] args) throws PageException {
+		if (args.length == 0) return call(pc);
+		if (args.length == 1) return call(pc, Caster.toString(args[0]));
+		if (args.length == 2) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]));
+		throw new FunctionException(pc, "CacheGetAll", 0, 2, args.length);
+	}
 }

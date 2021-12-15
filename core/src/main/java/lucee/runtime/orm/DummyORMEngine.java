@@ -24,49 +24,45 @@ import lucee.runtime.exp.PageRuntimeException;
 
 public class DummyORMEngine implements ORMEngine {
 
-    private static final String HIBERNATE = "FAD1E8CB-4F45-4184-86359145767C29DE";
-    private static boolean tryToInstall = true;
+	private static final String HIBERNATE = "FAD1E8CB-4F45-4184-86359145767C29DE";
+	private static boolean tryToInstall = true;
 
-    @Override
-    public String getLabel() {
-	return "No ORM Engine Installed";
-    }
+	@Override
+	public String getLabel() {
+		return "No ORM Engine Installed";
+	}
 
-    @Override
-    public int getMode() {
-	return ORMEngine.MODE_STRICT;
-    }
+	@Override
+	public int getMode() {
+		return ORMEngine.MODE_STRICT;
+	}
 
-    @Override
-    public ORMSession createSession(PageContext pc) throws PageException {
-	throw notInstalledEL();
-    }
+	@Override
+	public ORMSession createSession(PageContext pc) throws PageException {
+		throw notInstalledEL();
+	}
 
-    @Override
-    public void init(PageContext pc) throws PageException {}
+	@Override
+	public void init(PageContext pc) throws PageException {
+	}
 
-    @Override
-    public ORMConfiguration getConfiguration(PageContext pc) {
-	throw notInstalledEL();
-    }
+	@Override
+	public ORMConfiguration getConfiguration(PageContext pc) {
+		throw notInstalledEL();
+	}
 
-    @Override
-    public boolean reload(PageContext pc, boolean force) throws PageException {
-	throw notInstalledEL();
-    }
+	@Override
+	public boolean reload(PageContext pc, boolean force) throws PageException {
+		throw notInstalledEL();
+	}
 
-    private PageException notInstalled(PageContext pc) {
-	/*
-	 * if(tryToInstall){ try { ConfigWebImpl config = (ConfigWebImpl)
-	 * ThreadLocalPageContext.getConfig(pc); if(config.installServerExtension(HIBERNATE)) return new
-	 * ApplicationException("Hibernate ORM Engine installed, with the next request the extension should work."
-	 * ); } finally { tryToInstall=false; } }
-	 */
-	return new ApplicationException("No ORM Engine installed!", "Check out the Extension Store in the Lucee Administrator for \"ORM\".");
-    }
+	private PageException notInstalled(PageContext pc) {
 
-    private PageRuntimeException notInstalledEL() {
-	return new PageRuntimeException(notInstalled(null));
-    }
+		return new ApplicationException("No ORM Engine installed!", "Check out the Extension Store in the Lucee Administrator for \"ORM\".");
+	}
+
+	private PageRuntimeException notInstalledEL() {
+		return new PageRuntimeException(notInstalled(null));
+	}
 
 }

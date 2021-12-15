@@ -32,36 +32,43 @@ import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 
 public class ObjectLoad {
-    public static Object call(PageContext pc, Object input) throws PageException {
-	InputStream is;
-	boolean closeStream = true;
-	if (Decision.isBinary(input)) {
-	    is = new ByteArrayInputStream(Caster.toBinary(input));
-	}
-	else if (input instanceof InputStream) {
-	    is = (InputStream) input;
-	    closeStream = false;
-	}
-	else {
-	    Resource res = ResourceUtil.toResourceExisting(pc, Caster.toString(input));
-	    pc.getConfig().getSecurityManager().checkFileLocation(res);
-	    try {
-		is = res.getInputStream();
-	    }
-	    catch (IOException e) {
-		throw Caster.toPageException(e);
-	    }
-	}
+	public static Object call(PageContext pc, Object input) throws PageException {
+		InputStream is;
+		boolean closeStream = true;
+		if (Decision.isBinary(input)) {
+			is = new ByteArrayInputStream(Caster.toBinary(input));
+		}
+		else if (input instanceof InputStream) {
+			is = (InputStream) input;
+			closeStream = false;
+		}
+		else {
+			Resource res = ResourceUtil.toResourceExisting(pc, Caster.toString(input));
+			pc.getConfig().getSecurityManager().checkFileLocation(res);
+			try {
+				is = res.getInputStream();
+			}
+			catch (IOException e) {
+				throw Caster.toPageException(e);
+			}
+		}
 
-	try {
-	    return JavaConverter.deserialize(is);
+		try {
+			return JavaConverter.deserialize(is);
+		}
+		catch (Exception e) {
+			throw Caster.toPageException(e);
+		}
+		finally {
+			if (closeStream) {
+				try {
+					IOUtil.close(is);
+				}
+				catch (IOException e) {
+					throw Caster.toPageException(e);
+				}
+			}
+		}
 	}
-	catch (Exception e) {
-	    throw Caster.toPageException(e);
-	}
-	finally {
-	    if (closeStream) IOUtil.closeEL(is);
-	}
-    }
 
 }

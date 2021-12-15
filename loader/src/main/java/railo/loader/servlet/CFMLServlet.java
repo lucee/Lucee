@@ -24,9 +24,9 @@ package railo.loader.servlet;
 @Deprecated
 public class CFMLServlet extends lucee.loader.servlet.CFMLServlet {
 
-    /**
-     * 
-     */
-    private static final long serialVersionUID = -2183043796265350062L;
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -2183043796265350062L;
 
 }

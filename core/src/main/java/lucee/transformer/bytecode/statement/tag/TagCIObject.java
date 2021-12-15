@@ -42,93 +42,93 @@ import lucee.transformer.cfml.evaluator.EvaluatorException;
 
 public abstract class TagCIObject extends TagBase {
 
-    private boolean main;
-    private String name;
+	private boolean main = true;
+	private String name;
 
-    @Override
-    public void _writeOut(BytecodeContext bc) throws TransformerException {
-	_writeOut(bc, true, null);
-    }
-
-    @Override
-    public void _writeOut(BytecodeContext bc, boolean doReuse) throws TransformerException {
-	_writeOut(bc, doReuse, null);
-    }
-
-    @Override
-
-    protected void _writeOut(BytecodeContext bc, boolean doReuse, FlowControlFinal fcf) throws TransformerException {
-	writeOut(bc.getPage());
-    }
-
-    public void writeOut(Page p) throws TransformerException {
-
-	Page page = new Page(p.getFactory(), p.getConfig(), p.getSourceCode(), this, CFMLEngineFactory.getInstance().getInfo().getFullVersionInfo(), p.getLastModifed(),
-		p.writeLog(), p.getSupressWSbeforeArg(), p.getOutput(), p.returnValue(), p.ignoreScopes);
-	// page.setIsComponent(true); // MUST can be a interface as well
-	page.addStatement(this);
-
-	byte[] barr = page.execute(p.getClassName());
-	Resource classFile = null;// ps.getMapping().getClassRootDirectory().getRealResource(page.getClassName()+".class");
-	try {
-	    IOUtil.copy(new ByteArrayInputStream(barr), classFile, true);
+	@Override
+	public void _writeOut(BytecodeContext bc) throws TransformerException {
+		_writeOut(bc, true, null);
 	}
-	catch (IOException e) {
-	    new TransformerException(ExceptionUtil.getMessage(e), getStart());
+
+	@Override
+	public void _writeOut(BytecodeContext bc, boolean doReuse) throws TransformerException {
+		_writeOut(bc, doReuse, null);
 	}
-    }
 
-    /**
-     * Constructor of the class
-     * 
-     * @param startLine
-     * @param endLine
-     */
-    public TagCIObject(Factory f, Position start, Position end) {
-	super(f, start, end);
-    }
+	@Override
 
-    @Override
-    public FlowControlFinal getFlowControlFinal() {
-	return null;
-    }
+	protected void _writeOut(BytecodeContext bc, boolean doReuse, FlowControlFinal fcf) throws TransformerException {
+		writeOut(bc.getPage());
+	}
 
-    public void setMain(boolean main) {
-	this.main = main;
-    }
+	public void writeOut(Page p) throws TransformerException {
 
-    public boolean isMain() {
-	return main;
-    }
+		Page page = new Page(p.getFactory(), p.getConfig(), p.getSourceCode(), this, CFMLEngineFactory.getInstance().getInfo().getFullVersionInfo(), p.getLastModifed(),
+				p.writeLog(), p.getSupressWSbeforeArg(), p.getOutput(), p.returnValue(), p.ignoreScopes);
+		// page.setIsComponent(true); // MUST can be an interface as well
+		page.addStatement(this);
 
-    public void setName(String name) throws EvaluatorException {
-	if (!Decision.isVariableName(name)) throw new EvaluatorException("component name [" + name + "] is invalid");
-
-	this.name = name;
-    }
-
-    public String getName() {
-	return name;
-    }
-
-    public List<StaticBody> getStaticBodies() {
-	Body b = getBody();
-	List<StaticBody> list = null;
-	if (!ASMUtil.isEmpty(b)) {
-	    Statement stat;
-	    Iterator<Statement> it = b.getStatements().iterator();
-	    while (it.hasNext()) {
-		stat = it.next();
-		// StaticBody
-		if (stat instanceof StaticBody) {
-		    it.remove();
-		    if (list == null) list = new ArrayList<StaticBody>();
-		    list.add((StaticBody) stat);
-		    // return (StaticBody) stat;
+		byte[] barr = page.execute(p.getClassName());
+		Resource classFile = null;// ps.getMapping().getClassRootDirectory().getRealResource(page.getClassName()+".class");
+		try {
+			IOUtil.copy(new ByteArrayInputStream(barr), classFile, true);
 		}
-	    }
+		catch (IOException e) {
+			new TransformerException(ExceptionUtil.getMessage(e), getStart());
+		}
 	}
-	return list;
-    }
+
+	/**
+	 * Constructor of the class
+	 * 
+	 * @param startLine
+	 * @param endLine
+	 */
+	public TagCIObject(Factory f, Position start, Position end) {
+		super(f, start, end);
+	}
+
+	@Override
+	public FlowControlFinal getFlowControlFinal() {
+		return null;
+	}
+
+	public void setMain(boolean main) {
+		this.main = main;
+	}
+
+	public boolean isMain() {
+		return main;
+	}
+
+	public void setName(String name) throws EvaluatorException {
+		if (!Decision.isVariableName(name)) throw new EvaluatorException("component name [" + name + "] is invalid");
+
+		this.name = name;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public List<StaticBody> getStaticBodies() {
+		Body b = getBody();
+		List<StaticBody> list = null;
+		if (!ASMUtil.isEmpty(b)) {
+			Statement stat;
+			Iterator<Statement> it = b.getStatements().iterator();
+			while (it.hasNext()) {
+				stat = it.next();
+				// StaticBody
+				if (stat instanceof StaticBody) {
+					it.remove();
+					if (list == null) list = new ArrayList<StaticBody>();
+					list.add((StaticBody) stat);
+					// return (StaticBody) stat;
+				}
+			}
+		}
+		return list;
+	}
 
 }
