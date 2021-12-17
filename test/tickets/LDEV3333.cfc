@@ -68,8 +68,44 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
                 hc = System.identityHashCode(x);
                 expect(isValid("integer", hc)).toBe(true);
             });
-
-
+            it( title="LDEV-3333 using Circular references with arrays in serializeJSON() & deserializeJSON()", body=function(){
+                try{
+                    arrOne = [1,2,3];
+                    arrTwo = ["one","two","three"];
+                    arrOne.append(arrTwo);
+                    arrTwo.append(arrOne)
+                    res = serializeJSON(arrTwo);
+                }
+                catch(any e){
+                    res = e.message;
+                }
+                expect(res).toBe('["one","two","three",[1,2,3,["one","two","three"]]]');
+                expect(deserializeJSON(res)).toBe(["one","two","three",[1,2,3,["one","two","three"]]]);
+            });
+            it( title="LDEV-3731 using array appended with same array as input in serializeJSON() & deserializeJSON()", body=function(){
+                try{
+                    arr = [1,2,3];
+                    arr.append(arr);
+                    res = serializeJSON(arr);
+                }
+                catch(any e){
+                    res = e.message;
+                }
+                expect(res).toBe('[1,2,3,[1,2,3]]');
+                expect(deserializeJSON(res)).toBe([1,2,3,[1,2,3]]);
+            });
+            it( title="Using toString() with circularly referenced array", body=function(){
+                try{
+                    res = "toString() with circularly referenced array works"
+                    arr = [1,2,3];
+                    arr.append(arr);
+                    arr.toString(); // thorws StackOverFlow error
+                }
+                catch(any e){
+                    res = e.message;
+                }
+                expect(res).toBe('toString() with circularly referenced array works');
+            });
         });
     }
 }
