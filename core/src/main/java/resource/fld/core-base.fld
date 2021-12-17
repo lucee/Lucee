@@ -9155,6 +9155,43 @@ The following things are considered to be empty:
 			<type>number</type>
 		</return>
 	</function>
+
+
+	
+	<!-- MarkdownToHTML -->
+	<function>
+		<name>MarkdownToHTML</name>
+		<member-name>MarkdownToHTML</member-name>
+		<class>lucee.runtime.functions.string.MarkdownToHTML</class>
+	<keywords>string</keywords>
+		<description>Transforms Markdown formatted String into HTML.</description>
+		<argument>
+			<name>string</name>
+			<alias>markdown</alias>
+			<type>string</type>
+			<required>Yes</required>
+			<description>A Markdown formatted string or a path to a file containf a markdown formatted string to convert to HTML</description>
+		</argument>
+		<argument>
+			<name>safeMode</name>
+			<type>boolean</type>
+			<alias>safe</alias>
+			<default>false</default>
+			<required>No</required>
+			<description>If set to true it does escape unsafe HTML tags</description>
+		</argument>
+		<argument>
+			<name>encoding</name>
+			<type>string</type>
+			<alias>charset</alias>
+			<required>No</required>
+			<description>Charset, only used in case the argument markdown contains a file path</description>
+		</argument>
+		<return>
+			<type>string</type>
+		</return>
+	</function>
+
 	
 	<!-- metaphone -->
 	<function>
