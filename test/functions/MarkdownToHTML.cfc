@@ -41,7 +41,6 @@ This is code!
 </li>
 </ol>");
 	
-	
 	function run( testResults, testBox ){
 		describe( title="Testcase for markdownToHTML()", body=function() {
 			it( title = "Checking with markdownToHTML with a string", body=function( currentSpec ) {
