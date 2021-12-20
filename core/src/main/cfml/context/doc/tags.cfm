@@ -315,8 +315,8 @@
 					<cfset queryList = queryNew("tags")>
 					<cfset QueryAddRow(queryList, ["cf_"])>
 				<cfelse>
-					<cfquery name="queryList" dbtype="query">
-						SELECT tags FROM qryAllItems  WHERE tags LIKE 'cf#i#%';
+					<cfquery name="queryList" dbtype="query" params=#["cf#i#%"]#>
+						SELECT tags FROM qryAllItems  WHERE tags LIKE ?;
 					</cfquery>
 				</cfif>
 				<div class="tile tile-collapse tile-collapse-full">

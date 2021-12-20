@@ -211,8 +211,8 @@
 
 		<div class="tile-wrap tile-wrap-animation">
 			<cfloop index="i"  list="#list#">
-					<cfquery name="queryList" dbtype="query">
-						SELECT functions FROM qryAllItems  WHERE functions LIKE '#i#%';
+					<cfquery name="queryList" dbtype="query" params=#["#i#%"]#>
+						SELECT functions FROM qryAllItems  WHERE functions LIKE ?;
 					</cfquery>
 				<div class="tile tile-collapse tile-collapse-full">
 					<div class="tile-toggle" data-target="##function-#lCase(i)#" data-toggle="tile">

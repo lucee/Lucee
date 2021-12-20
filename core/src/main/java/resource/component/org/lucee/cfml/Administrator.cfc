@@ -512,12 +512,12 @@ component {
 
 		var mailServers = getMailservers();
 		if( structKeyExists(arguments, 'username') && arguments.username == ''  ){
-			query name="local.existing" dbtype="query"{
-				echo("SELECT * FROM mailservers WHERE hostName = '#arguments.host#' and port = '#arguments.port#' ")
+			query name="local.existing" dbtype="query" params=[arguments.host,arguments.port]{
+				echo("SELECT * FROM mailservers WHERE hostName = ? AND port = ?")
 			}
 		} else{
-			query name="local.existing" dbtype="query"{
-				echo("SELECT * FROM mailservers WHERE hostName = '#arguments.host#' and port = '#arguments.port#' and username = '#arguments.username#' ")
+			query name="local.existing" dbtype="query" params=[arguments.host,arguments.port,arguments.username]{
+				echo("SELECT * FROM mailservers WHERE hostName = ? AND port = ? AND username = ?")
 			}
 		}
 
@@ -1196,8 +1196,8 @@ component {
 		boolean storage
 	){
 		var connections =  getCacheConnections()
-		query name="local.existing" dbtype="query"{
-			echo("SELECT * FROM connections WHERE class = '#arguments.class#' and name = '#arguments.name#' ")
+		query name="local.existing" dbtype="query" params=[arguments.class,arguments.name]{
+			echo("SELECT * FROM connections WHERE class = ? AND name = ?")
 		}
 
 		admin
@@ -1387,8 +1387,8 @@ component {
 	*/
 	public void function updateGatewayEntry( required string id, required string startupMode, string class, string cfcPath, string listenerCfcPath,  struct custom ){
 		var getGatewayEntries = getGatewayEntries();
-		query name="local.existing" dbtype="query"{
-			echo("SELECT * FROM getGatewayEntries WHERE id = '#arguments.id#' and startupMode = '#arguments.startupMode#' ")
+		query name="local.existing" dbtype="query"  params=[arguments.id,arguments.startupMode]{
+			echo("SELECT * FROM getGatewayEntries WHERE id = ? AND startupMode = ?")
 		}
 		admin
 			action="updateGatewayEntry"
@@ -1509,8 +1509,8 @@ component {
 		var driver=drivers[trim(arguments.type)];
 		var meta=getMetaData(driver);
 		var debugEntry = getDebugEntry();
-		query name="local.existing" dbtype="query"{
-			echo("SELECT * FROM debugEntry WHERE label = '#arguments.label#' ");
+		query name="local.existing" dbtype="query"  params=[arguments.label]{
+			echo("SELECT * FROM debugEntry WHERE label = ?");
 		}
 		admin
 			action="updateDebugEntry"
@@ -1979,8 +1979,8 @@ component {
 		,          struct layoutArgs={}
 	){
 		var LogSettings = getLogSettings();
-		query name="local.existing" dbtype="query"{
-			echo("SELECT * FROM LogSettings WHERE name = '#arguments.name#' ");
+		query name="local.existing" dbtype="query"  params=[arguments.name]{
+			echo("SELECT * FROM LogSettings WHERE name = ?");
 		}
 
 		admin
