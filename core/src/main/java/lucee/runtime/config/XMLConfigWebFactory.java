@@ -726,6 +726,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 
     private static void _loadScriptProtect(ConfigServerImpl configServer, ConfigImpl config, Document doc, Log log) {
         try {
+            config.setScriptProtectRegexList(new ArrayList<>());
             Element root = doc == null ? null : getChildByName(doc.getDocumentElement(), "scriptprotect");
             Element[] regexFilters = root == null ? null : getChildren(root, "filter-regex");
             if (!ArrayUtil.isEmpty(regexFilters)) {
