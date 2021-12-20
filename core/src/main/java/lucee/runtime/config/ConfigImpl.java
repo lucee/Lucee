@@ -37,6 +37,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TimeZone;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.regex.Pattern;
 
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Version;
@@ -306,6 +307,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	private ApplicationListener applicationListener;
 
 	private int scriptProtect = ApplicationContext.SCRIPT_PROTECT_ALL;
+    private ArrayList<Pattern> scriptProtectRegexList = new ArrayList<>();
 
 	private ProxyData proxy = null;
 
@@ -2321,6 +2323,18 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	protected void setScriptProtect(int scriptProtect) {
 		this.scriptProtect = scriptProtect;
 	}
+
+    public ArrayList<Pattern> getScriptProtectRegexList() {
+        return scriptProtectRegexList;
+    }
+
+    public void setScriptProtectRegexList(ArrayList<Pattern> scriptProtectRegexList) {
+        this.scriptProtectRegexList = scriptProtectRegexList;
+    }
+
+    public void addScriptProtectRegex(Pattern scriptProtectRegex) {
+        this.scriptProtectRegexList.add(scriptProtectRegex);
+    }
 
 	/**
 	 * @return the proxyPassword

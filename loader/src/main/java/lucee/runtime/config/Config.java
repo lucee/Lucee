@@ -22,9 +22,11 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.URL;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
+import java.util.regex.Pattern;
 
 import lucee.commons.io.log.Log;
 import lucee.commons.io.res.Resource;
@@ -475,7 +477,12 @@ public interface Config {
 	 */
 	public int getScriptProtect();
 
-	/**
+    /**
+     * @return scriptProtect Regex-Filter-Pattern-List
+     */
+    public ArrayList<Pattern> getScriptProtectRegexList();
+
+    /**
 	 * return default proxy setting password
 	 * 
 	 * @return the password for proxy

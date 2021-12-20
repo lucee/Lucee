@@ -320,7 +320,14 @@ Path placeholders:
 	-->
 	<regional
 		timeserver="pool.ntp.org"/>
-	
+
+  <!--
+  Filters variables via regex due of scriptprotect setting
+  -->
+  <scriptprotect>
+    <filter-regex value="&lt;s*(object|embed|script|applet|meta|iframe)" />
+  </scriptprotect>
+
 	<!--
 	orm configuration:
 		

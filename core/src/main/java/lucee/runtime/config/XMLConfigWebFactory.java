@@ -48,6 +48,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TimeZone;
 import java.util.UUID;
+import java.util.regex.Pattern;
 
 import javax.servlet.ServletConfig;
 
@@ -167,6 +168,7 @@ import lucee.runtime.reflection.pairs.ConstructorInstance;
 import lucee.runtime.regex.RegexFactory;
 import lucee.runtime.search.DummySearchEngine;
 import lucee.runtime.search.SearchEngine;
+import lucee.runtime.security.ScriptProtect;
 import lucee.runtime.security.SecurityManager;
 import lucee.runtime.security.SecurityManagerImpl;
 import lucee.runtime.spooler.SpoolerEngineImpl;
@@ -461,6 +463,8 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded orm");
 		_loadCacheHandler(cs, config, doc, log);
 		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded cache handlers");
+        _loadScriptProtect(cs, config, doc, log);
+        if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded scriptprotect regex");
 		_loadCharset(cs, config, doc, log);
 		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded charset");
 		_loadApplication(cs, config, doc, mode, log);
@@ -719,6 +723,35 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			log(config, log, e);
 		}
 	}
+
+    private static void _loadScriptProtect(ConfigServerImpl configServer, ConfigImpl config, Document doc, Log log) {
+        try {
+            boolean hasCS = configServer != null;
+
+            // add scriptprotect-regex from server context to web context
+            if (hasCS) {
+                config.setScriptProtectRegexList(configServer.getScriptProtectRegexList());
+            }
+
+            Element root = doc == null ? null : getChildByName(doc.getDocumentElement(), "scriptprotect");
+            Element[] regexFilters = root == null ? null : getChildren(root, "filter-regex");
+            if (!ArrayUtil.isEmpty(regexFilters)) {
+                for (Element regexFilter : regexFilters) {
+                    String regexValue = getAttr(regexFilter, "value");
+                    Pattern regexPattern = Pattern.compile(regexValue, Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
+                    config.addScriptProtectRegex(regexPattern);
+                }
+            }
+            else {
+                //Loading default scriptprotect settings
+                Pattern invalidTagRegex = Pattern.compile(ScriptProtect.INVALID_TAG_REGEX_DEFAULT, Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
+                config.addScriptProtectRegex(invalidTagRegex);
+            }
+        }
+        catch (Exception e) {
+            log(config, log, e);
+        }
+    }
 
 	private static void _loadDumpWriter(ConfigServerImpl configServer, ConfigImpl config, Document doc, Log log) {
 		try {
