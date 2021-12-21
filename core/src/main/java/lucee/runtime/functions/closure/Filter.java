@@ -135,6 +135,11 @@ public class Filter extends BIF implements ClosureFunc {
 		else if (obj instanceof StringListData) {
 			coll = invoke(pc, (StringListData) obj, udf, execute, futures);
 		}
+		// char[]
+		else if (obj instanceof char[]) {
+			coll = invoke(pc, (char[]) obj, udf, execute, futures);
+		}
+
 		else throw new FunctionException(pc, "Filter", 1, "data", "cannot iterate througth this type " + Caster.toTypeName(obj.getClass()));
 
 		if (parallel) afterCall(pc, coll, futures, execute);
@@ -178,6 +183,20 @@ public class Filter extends BIF implements ClosureFunc {
 			if (!async && Caster.toBooleanValue(res)) {
 				rtn.append(e.getValue());
 			}
+		}
+		return rtn;
+	}
+
+	private static Collection invoke(PageContext pc, char[] chars, UDF udf, ExecutorService es, List<Future<Data<Pair<Object, Object>>>> futures)
+			throws CasterException, PageException {
+
+		Array rtn = new ArrayImpl();
+		boolean async = es != null;
+		Object res;
+		for (int i = 0; i < chars.length; i++) {
+			char val = chars[i];
+			res = _inv(pc, udf, new Object[] { chars[i], Caster.toDoubleValue(i+1), Caster.toString(chars) }, i, val, es, futures);
+			if (!async && Caster.toBooleanValue(res)) rtn.append(val);;
 		}
 		return rtn;
 	}

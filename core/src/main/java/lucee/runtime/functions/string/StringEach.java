@@ -22,8 +22,7 @@ public class StringEach extends BIF implements Function {
 	}
 
 	public static String call(PageContext pc, String str, UDF udf) throws PageException {
-		StringListData stringList = new StringListData(str, "", false, false);
-		return Each.call(pc, stringList, udf);
+		return Each.call(pc, (Object) str.toCharArray(), udf);
 	}
 	// call(Llucee/runtime/PageContext;Ljava/lang/String;Ljava/lang/Object;)Ljava/lang/String;
 

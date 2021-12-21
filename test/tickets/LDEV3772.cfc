@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" skip=true{
+component extends="org.lucee.cfml.test.LuceeTestCase" {
 	function run( testResults, testBox ){
 		describe( title="Test case for LDEV-3772", body=function() {
 			it( title="StringEach() - Arithmetic operation with elements", body=function( currentSpec ) {
@@ -17,13 +17,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase" skip=true{
 			});
 			it( title="StringEvery() - comparison operation with elements", body=function( currentSpec ) {
 				callback = function(num) {
-					return num > 10; // comparison operation
+					return num+0 > 10; // comparison operation
 				}
 				assertEquals(true, stringEvery( "123456789", callback ));
 			});
 			it( title="StringFilter() - comparison operation with elements", body=function( currentSpec ) {
 				callback = function(chr) {
-					 return chr > 53; // comparison operation
+					 return chr+0 > 53; // comparison operation
 					}
 					assertEquals('6789', stringFilter( "123456789", callback ));
 			});
@@ -44,7 +44,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" skip=true{
 			});
 			it( title="StringSome() - comparison operation with elements", body=function( currentSpec ) {
 				callback = function(num) {
-					return num > 10; // comparison operation
+					return num+0 > 10; // comparison operation
 				}
 				assertEquals(true, stringSome( "123456789", callback ));
 			});

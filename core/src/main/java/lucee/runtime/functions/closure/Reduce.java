@@ -108,10 +108,16 @@ public class Reduce extends BIF implements ClosureFunc {
 		else if (obj instanceof Enumeration) {
 			value = invoke(pc, (Enumeration) obj, udf, initalValue);
 		}
+		// StringListData
 		else if (obj instanceof StringListData) {
 			value = invoke(pc, (StringListData) obj, udf, initalValue);
 		}
-		else throw new FunctionException(pc, "Filter", 1, "data", "cannot iterate througth this type " + Caster.toTypeName(obj.getClass()));
+		// char[]
+		else if (obj instanceof char[]) {
+			value = invoke(pc, (char[]) obj, udf, initalValue);
+		}
+
+		else throw new FunctionException(pc, "Reduce", 1, "data", "cannot iterate througth this type " + Caster.toTypeName(obj.getClass()));
 
 		return value;
 	}
@@ -134,6 +140,14 @@ public class Reduce extends BIF implements ClosureFunc {
 		while (it.hasNext()) {
 			e = (Entry) it.next();
 			initalValue = udf.call(pc, new Object[] { initalValue, e.getValue(), Caster.toDoubleValue(e.getKey()), sld.list, sld.delimiter }, true);
+		}
+		return initalValue;
+	}
+
+	private static Object invoke(PageContext pc, char[] chars, UDF udf, Object initalValue) throws CasterException, PageException {
+
+		for (int i = 0; i < chars.length; i++) {
+			initalValue = udf.call(pc, new Object[] { initalValue, chars[i], Caster.toDoubleValue(i+1), Caster.toString(chars) }, true);
 		}
 		return initalValue;
 	}

@@ -25,8 +25,7 @@ public class StringFilter extends BIF implements Function {
 	}
 
 	public static String call(PageContext pc, String str, UDF udf) throws PageException {
-		StringListData stringList = new StringListData(str, "", false, false);
-		ArrayImpl array = (ArrayImpl) Filter.call(pc, stringList, udf);
+		ArrayImpl array = (ArrayImpl) Filter.call(pc, str.toCharArray(), udf);
 		Iterator it = array.getIterator();
 		StringBuilder result = new StringBuilder();
 		while (it.hasNext()) {

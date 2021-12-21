@@ -138,6 +138,10 @@ public final class Each extends BIF implements ClosureFunc {
 		else if (obj instanceof StringListData) {
 			invoke(pc, (StringListData) obj, udf, execute, futures);
 		}
+		// char[]
+		else if (obj instanceof char[]) {
+			invoke(pc, (char[]) obj, udf, execute, futures);
+		}
 
 		else throw new FunctionException(pc, "Each", 1, "data", "cannot iterate througth this type " + Caster.toTypeName(obj.getClass()));
 
@@ -168,6 +172,12 @@ public final class Each extends BIF implements ClosureFunc {
 		while (it.hasNext()) {
 			e = (Entry) it.next();
 			_call(pc, udf, new Object[] { e.getValue(), Caster.toDoubleValue(e.getKey()), array }, execute, futures);
+		}
+	}
+
+	public static void invoke(PageContext pc, char[] chars, UDF udf, ExecutorService execute, List<Future<Data<Object>>> futures) throws PageException {
+		for (int i = 0; i < chars.length; i++) {
+			_call(pc, udf, new Object[] { chars[i], Caster.toDoubleValue(i+1), Caster.toString(chars) }, execute, futures);
 		}
 	}
 

@@ -22,8 +22,7 @@ public class StringEvery extends BIF implements Function {
     }
 
     public static boolean call(PageContext pc, String str, UDF udf) throws PageException {
-        StringListData stringList = new StringListData(str, "", false, false);
-        return Every.call(pc, (Object) stringList, udf);
+        return Every.call(pc, (Object) str.toCharArray(), udf);
     }
 
 }

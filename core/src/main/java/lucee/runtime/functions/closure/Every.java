@@ -131,6 +131,11 @@ public class Every extends BIF implements ClosureFunc {
 		else if (obj instanceof StringListData) {
 			res = invoke(pc, (StringListData) obj, udf, execute, futures);
 		}
+		// char[]
+		else if (obj instanceof char[]) {
+			res = invoke(pc, (char[]) obj, udf, execute, futures);
+		}
+
 		else throw new FunctionException(pc, "Every", 1, "data", "cannot iterate througth this type " + Caster.toTypeName(obj.getClass()));
 
 		if (parallel) res = afterCall(pc, futures, execute);
@@ -192,6 +197,18 @@ public class Every extends BIF implements ClosureFunc {
 			if (!async && !Caster.toBooleanValue(res)) {
 				return false;
 			}
+		}
+		return true;
+	}
+
+	private static boolean invoke(PageContext pc, char[] chars, UDF udf, ExecutorService es, List<Future<Data<Object>>> futures) throws CasterException, PageException {
+
+		boolean async = es != null;
+		Object res;
+		for (int i = 0; i < chars.length; i++) {
+			char val = chars[i];
+			res = _inv(pc, udf, new Object[] { val, Caster.toDoubleValue(i+1), Caster.toString(chars) }, i, val, es, futures);
+			if (!async && !Caster.toBooleanValue(res)) return false;
 		}
 		return true;
 	}
