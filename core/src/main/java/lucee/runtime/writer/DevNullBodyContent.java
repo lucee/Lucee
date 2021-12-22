@@ -225,7 +225,7 @@ public final class DevNullBodyContent extends BodyContent {
 	 */
 	@Override
 	public void close() throws IOException {
-		enclosingWriter.close();
+		if (enclosingWriter != null) enclosingWriter.close();
 	}
 
 	/**
@@ -256,7 +256,7 @@ public final class DevNullBodyContent extends BodyContent {
 	 */
 	@Override
 	public void flush() throws IOException {
-		enclosingWriter.flush();
+		if (enclosingWriter != null) enclosingWriter.flush();
 	}
 
 	/**
