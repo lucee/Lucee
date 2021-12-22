@@ -63,7 +63,7 @@ public final class PageSourcePool implements Dumpable {
 	 * @return page
 	 */
 	public PageSource getPageSource(String key, boolean updateAccesTime) { // DO NOT CHANGE INTERFACE (used by Argus Monitor)
-		SoftReference<PageSource> tmp = pageSources.get(key.toLowerCase());
+        SoftReference<PageSource> tmp = pageSources.get(key);
 		PageSource ps = tmp == null ? null : tmp.get();
 		if (ps == null) return null;
 		if (updateAccesTime) ps.setLastAccessTime();
@@ -77,9 +77,8 @@ public final class PageSourcePool implements Dumpable {
 	 * @param ps pagesource to store
 	 */
 	public void setPage(String key, PageSource ps) {
-		ps.setLastAccessTime();
-
-		pageSources.put(key.toLowerCase(), new SoftReference<PageSource>(ps));
+        ps.setLastAccessTime();
+		pageSources.put(key, new SoftReference<>(ps));
 	}
 
 	/**
@@ -89,7 +88,7 @@ public final class PageSourcePool implements Dumpable {
 	 * @return has page object or not
 	 */
 	public boolean exists(String key) {
-		return pageSources.containsKey(key.toLowerCase());
+        return pageSources.containsKey(key);
 	}
 
 	/**
@@ -120,7 +119,7 @@ public final class PageSourcePool implements Dumpable {
 	 */
 
 	public boolean flushPage(String key) {
-		SoftReference<PageSource> tmp = pageSources.get(key.toLowerCase());
+        SoftReference<PageSource> tmp = pageSources.get(key);
 		PageSource ps = tmp == null ? null : tmp.get();
 		if (ps != null) {
 			((PageSourceImpl) ps).flush();
