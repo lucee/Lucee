@@ -1606,7 +1606,7 @@ public final class ListUtil {
 				}
 			}
 		}
-		if (last <= len) set.add(list.substring(last));
+		if (last <= len) set.add(trim ? list.substring(last).trim() : list.substring(last));
 		return set;
 	}
 
@@ -1624,7 +1624,7 @@ public final class ListUtil {
 				last = i + 1;
 			}
 		}
-		if (last <= len) set.add(list.substring(last));
+		if (last <= len) set.add(trim ? list.substring(last).trim() : list.substring(last));
 		return set;
 	}
 
