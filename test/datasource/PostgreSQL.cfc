@@ -31,7 +31,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	public void function testConnection83(){
 		_testConnection(defineDatasource83());
 	}
-	public void function testConnection94(){
+	public void function testConnection94() skip=true{
 		_testConnection(defineDatasource94());
 	}
 	public void function testConnection42(){
