@@ -369,8 +369,8 @@ component {
 				if ( structCount( oracle ) gt 0 ){
 					return {
 						class: 'oracle.jdbc.OracleDriver'
-						, bundleName: 'ojdbc7'
-						, bundleVersion: server.getDefaultBundleVersion('ojdbc7', '11.2.0.4')
+						, bundleName: 'org.lucee.oracle'
+						, bundleVersion: server.getDefaultBundleVersion('org.lucee.oracle', '11.2.0.4')
 						, connectionString: 'jdbc:oracle:thin:@#oracle.server#:#oracle.port#/#oracle.database#'
 						, username: oracle.username
 						, password: oracle.password
