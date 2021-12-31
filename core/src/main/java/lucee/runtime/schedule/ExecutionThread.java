@@ -22,7 +22,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 
+import lucee.commons.digest.Base64Encoder;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
@@ -83,7 +85,8 @@ class ExecutionThread extends Thread {
 		// HttpMethod method = new GetMethod(url);
 		// HostConfiguration hostConfiguration = client.getHostConfiguration();
 
-		Header[] headers = new Header[] { HTTPEngine.header("User-Agent", "CFSCHEDULE") };
+		ArrayList<Header> headers = new ArrayList<Header>();
+		headers.add( HTTPEngine.header("User-Agent", "CFSCHEDULE"));
 		// method.setRequestHeader("User-Agent","CFSCHEDULE");
 
 		// Userame / Password
@@ -93,6 +96,10 @@ class ExecutionThread extends Thread {
 			user = credentials.getUsername();
 			pass = credentials.getPassword();
 			// get.addRequestHeader("Authorization","Basic admin:spwwn1p");
+			String plainCredentials = user + ":" + pass;
+			String base64Credentials = Base64Encoder.encode(plainCredentials.getBytes());
+			String authorizationHeader = "Basic " + base64Credentials;
+			headers.add( HTTPEngine.header("Authorization", authorizationHeader));
 		}
 
 		// Proxy
@@ -106,7 +113,7 @@ class ExecutionThread extends Thread {
 		// execute
 		log.info(logName, "calling URL [" + url + "]");
 		try {
-			rsp = HTTPEngine.get(new URL(url), user, pass, task.getTimeout(), true, charset, null, proxy, headers);
+			rsp = HTTPEngine.get(new URL(url), user, pass, task.getTimeout(), true, charset, null, proxy, headers.toArray(new Header[headers.size()]));
 			if (rsp != null) {
 				int sc = rsp.getStatusCode();
 				if (sc >= 200 && sc < 300) log.info(logName, "successfully called URL [" + url + "], response code " + sc);
