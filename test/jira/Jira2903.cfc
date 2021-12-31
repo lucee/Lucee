@@ -34,8 +34,7 @@
 		application action="update"
 			datasource="#{
 	  class: 'org.postgresql.Driver'
-	, bundleName: 'org.postgresql.jdbc42'
-	, bundleVersion: '9.4.1212'
+	, bundleName: 'org.postgresql.jdbc'
 	, connectionString: 'jdbc:postgresql://#pgsql.server#:#pgsql.port#/#pgsql.database#'
 	, username: pgsql.username
 	, password: pgsql.password
@@ -50,7 +49,7 @@
 
 	private struct function getCredencials() {
 		// getting the credetials from the environment variables
-		return server.getDatasource("postgres");
+		return server._getSystemPropOrEnvVars( "SERVER, USERNAME, PASSWORD, PORT, DATABASE", "POSTGRES_");
 	}
 
 

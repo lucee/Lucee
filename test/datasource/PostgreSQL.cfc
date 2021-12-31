@@ -31,7 +31,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	public void function testConnection83(){
 		_testConnection(defineDatasource83());
 	}
-	public void function testConnection94(){
+	public void function testConnection94() skip=true{
 		_testConnection(defineDatasource94());
 	}
 	public void function testConnection42(){
@@ -101,8 +101,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		application action="update"
 			datasource="#{
 	  class: 'org.postgresql.Driver'
-	, bundleName: 'org.postgresql.jdbc42'
-	, bundleVersion: '42.1.4'
+	, bundleName: 'org.postgresql.jdbc'
+	, bundleVersion: '42.2.20'
 	, connectionString: 'jdbc:postgresql://#pgsql.server#:#pgsql.port#/#pgsql.database#'
 	, username: pgsql.username
 	, password: pgsql.password
@@ -157,7 +157,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 	private struct function getCredencials() {
 		// getting the credetials from the environment variables
-		return server.getDatasource("postgres");
+		return server._getSystemPropOrEnvVars( "SERVER, USERNAME, PASSWORD, PORT, DATABASE", "POSTGRES_");
 	}
 
 }
