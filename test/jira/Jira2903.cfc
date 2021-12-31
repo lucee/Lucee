@@ -50,7 +50,7 @@
 
 	private struct function getCredencials() {
 		// getting the credetials from the environment variables
-		return server.getDatasource("postgres");
+		return server._getSystemPropOrEnvVars( "SERVER, USERNAME, PASSWORD, PORT, DATABASE", "POSTGRES_");
 	}
 
 
