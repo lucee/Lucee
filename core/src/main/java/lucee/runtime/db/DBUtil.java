@@ -76,7 +76,7 @@ public class DBUtil {
 		}
 		if ("oracle".equals(type)) {
 			if (ORACLE == null) {
-				JDBCDriver jdbc = getJDBCDriver(config, "oracle", "oracle.jdbc.driver.OracleDriver", "ojdbc7", "12.1.0.2L0001",
+				JDBCDriver jdbc = getJDBCDriver(config, "oracle", "oracle.jdbc.driver.OracleDriver", "org.lucee.oracle", "12.1.0.2L0001",
 						"jdbc:oracle:{drivertype}:@{host}:{port}:{database}");
 				ORACLE = new DataSourceDefintion(jdbc.cd, jdbc.connStr, 1521);
 			}
