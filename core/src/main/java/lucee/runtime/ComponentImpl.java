@@ -35,7 +35,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
@@ -141,6 +140,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 	ComponentImpl top = this;
 	ComponentImpl base;
 	private PageSource pageSource;
+	private ComponentPageImpl cp;
 	private ComponentScope scope;
 
 	// for all the same
@@ -160,9 +160,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 	private boolean hasInjectedFunctions;
 	private boolean isExtended; // is this component extended by another component?
 
-	StaticScope _static;
-
-	Map<Long, Boolean> insideStaticConstr = new ConcurrentHashMap<>();
+	StaticScope _static = null;
 
 	private AbstractFinal absFin;
 
@@ -198,8 +196,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 	public ComponentImpl(ComponentPageImpl componentPage, Boolean output, boolean _synchronized, String extend, String implement, String hint, String dspName, String callPath,
 			boolean realPath, String style, boolean persistent, boolean accessors, int modifier, boolean isExtended, StructImpl meta) throws ApplicationException {
 		this.properties = new ComponentProperties(dspName, extend.trim(), implement, hint, output, callPath, realPath, _synchronized, null, persistent, accessors, modifier, meta);
-		// this.componentPage=componentPage instanceof
-		// ComponentPageProxy?componentPage:PageProxy.toProxy(componentPage);
+		this.cp = componentPage;
 		this.pageSource = componentPage.getPageSource();
 		this.importDefintions = componentPage.getImportDefintions();
 		// if(modifier!=0)
@@ -223,6 +220,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 		try {
 			// attributes
 			trg.pageSource = pageSource;
+			trg.cp = cp;
 			// trg._triggerDataMember=_triggerDataMember;
 			trg.useShadow = useShadow;
 			trg._static = _static;
@@ -705,16 +703,12 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 
 	@Override
 	public Variables beforeStaticConstructor(PageContext pc) {
-		insideStaticConstr.put(ThreadLocalPageContext.getThreadId(pc), Boolean.TRUE);
-		Variables parent = pc.variablesScope();
-		pc.setVariablesScope(_static);
-		return parent;
+		return StaticScope.beforeStaticConstructor(pc, cp, _static);
 	}
 
 	@Override
 	public void afterStaticConstructor(PageContext pc, Variables parent) {
-		insideStaticConstr.remove(ThreadLocalPageContext.getThreadId(pc));
-		pc.setVariablesScope(parent);
+		StaticScope.afterStaticConstructor(pc, cp, parent);
 	}
 
 	/**
@@ -1699,7 +1693,8 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 	 */
 	public void registerUDF(Key key, UDF udf, boolean useShadow, boolean injected) throws ApplicationException {
 		if (udf instanceof UDFPlus) ((UDFPlus) udf).setOwnerComponent(this);
-		if (insideStaticConstr.getOrDefault(ThreadLocalPageContext.getThreadId(null), Boolean.FALSE)) {
+
+		if (cp.insideStaticConstr.getOrDefault(ThreadLocalPageContext.getThreadId(null), Boolean.FALSE)) {
 			_static.put(key, udf);
 			return;
 		}
