@@ -84,7 +84,8 @@ public class StaticScope extends StructSupport implements Variables, Objects {
 			return ss.remove(key);
 		}
 		// if not the parent (inside the static constructor we do not remove keys from base static scopes)
-		if (base != null && !c.insideStaticConstr.getOrDefault(ThreadLocalPageContext.getThreadId(pc), Boolean.FALSE)) return base._remove(pc, key);
+
+		if (base != null && !cp.insideStaticConstr.getOrDefault(ThreadLocalPageContext.getThreadId(pc), Boolean.FALSE)) return base._remove(pc, key);
 		return null;
 	}
 
@@ -170,7 +171,7 @@ public class StaticScope extends StructSupport implements Variables, Objects {
 			return _set(pc, m, key, value);
 		}
 		// if not the parent (we only do this if we are outside the static constructor)
-		if (base != null && !c.insideStaticConstr.getOrDefault(ThreadLocalPageContext.getThreadId(pc), Boolean.FALSE)) return base._setIfExists(pc, key, value);
+		if (base != null && !cp.insideStaticConstr.getOrDefault(ThreadLocalPageContext.getThreadId(pc), Boolean.FALSE)) return base._setIfExists(pc, key, value);
 		return null;
 	}
 
@@ -324,12 +325,12 @@ public class StaticScope extends StructSupport implements Variables, Objects {
 			long time = System.nanoTime();
 
 			try {
-				parent = c.beforeStaticConstructor(pc);
+				parent = beforeStaticConstructor(pc, cp, this);
 				if (args != null) rtn = udf.call(pc, calledName, args, true);
 				else rtn = udf.callWithNamedValues(pc, calledName, namedArgs, true);
 			}
 			finally {
-				c.afterStaticConstructor(pc, parent);
+				afterStaticConstructor(pc, cp, parent);
 				long diff = ((System.nanoTime() - time) - (pc.getExecutionTime() - currTime));
 				pc.setExecutionTime(pc.getExecutionTime() + diff);
 				debugEntry.updateExeTime(diff);
@@ -339,12 +340,12 @@ public class StaticScope extends StructSupport implements Variables, Objects {
 		// debug no
 		else { // this.cp._static
 			try {
-				parent = c.beforeStaticConstructor(pc);
+				parent = beforeStaticConstructor(pc, cp, this);
 				if (args != null) rtn = udf.call(pc, calledName, args, true);
 				else rtn = udf.callWithNamedValues(pc, calledName, namedArgs, true);
 			}
 			finally {
-				c.afterStaticConstructor(pc, parent);
+				afterStaticConstructor(pc, cp, parent);
 			}
 		}
 		return rtn;
@@ -443,6 +444,18 @@ public class StaticScope extends StructSupport implements Variables, Objects {
 
 	public Component getComponent() {
 		return c;
+	}
+
+	public static Variables beforeStaticConstructor(PageContext pc, ComponentPageImpl cp, StaticScope ss) {
+		cp.insideStaticConstr.put(ThreadLocalPageContext.getThreadId(pc), Boolean.TRUE);
+		Variables parent = pc.variablesScope();
+		pc.setVariablesScope(ss);
+		return parent;
+	}
+
+	public static void afterStaticConstructor(PageContext pc, ComponentPageImpl cp, Variables parent) {
+		cp.insideStaticConstr.remove(ThreadLocalPageContext.getThreadId(pc));
+		pc.setVariablesScope(parent);
 	}
 
 }
