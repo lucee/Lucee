@@ -22,7 +22,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" skip="true"{
 	}
 
 	private string function createURI(string calledName) {
-        var baseURI = "/test/#listLast(getDirectoryFromPath(getCurrenttemplatepath()),"\/")#/";
-        return baseURI&""&calledName;
+		var baseURI = "/test/#listLast(getDirectoryFromPath(getCurrenttemplatepath()),"\/")#/";
+		return baseURI&""&calledName;
     }
 }
