@@ -24,9 +24,7 @@ import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
-import java.util.concurrent.ConcurrentHashMap;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -98,8 +96,6 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 	private long lastCheck = -1;
 
 	private StaticScope staticScope;
-
-	Map<Long, Boolean> insideStaticConstr = new ConcurrentHashMap<>();
 
 	public abstract ComponentImpl newInstance(PageContext pc, String callPath, boolean isRealPath, boolean isExtendedComponent, boolean executeConstr)
 			throws lucee.runtime.exp.PageException;

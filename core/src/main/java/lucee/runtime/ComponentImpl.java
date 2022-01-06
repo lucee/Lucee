@@ -35,6 +35,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
@@ -161,6 +162,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 	private boolean isExtended; // is this component extended by another component?
 
 	StaticScope _static = null;
+	Map<Long, Boolean> insideStaticConstr = new ConcurrentHashMap<>();
 
 	private AbstractFinal absFin;
 
@@ -703,12 +705,12 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 
 	@Override
 	public Variables beforeStaticConstructor(PageContext pc) {
-		return StaticScope.beforeStaticConstructor(pc, cp, _static);
+		return StaticScope.beforeStaticConstructor(pc, this, _static);
 	}
 
 	@Override
 	public void afterStaticConstructor(PageContext pc, Variables parent) {
-		StaticScope.afterStaticConstructor(pc, cp, parent);
+		StaticScope.afterStaticConstructor(pc, this, parent);
 	}
 
 	/**
@@ -1694,7 +1696,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 	public void registerUDF(Key key, UDF udf, boolean useShadow, boolean injected) throws ApplicationException {
 		if (udf instanceof UDFPlus) ((UDFPlus) udf).setOwnerComponent(this);
 
-		if (cp.insideStaticConstr.getOrDefault(ThreadLocalPageContext.getThreadId(null), Boolean.FALSE)) {
+		if (insideStaticConstr.getOrDefault(ThreadLocalPageContext.getThreadId(null), Boolean.FALSE)) {
 			_static.put(key, udf);
 			return;
 		}
