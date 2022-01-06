@@ -1,4 +1,4 @@
-component extends = "org.lucee.cfml.test.LuceeTestCase" skip=true{
+component extends = "org.lucee.cfml.test.LuceeTestCase" {
 
 	function beforeAll() {
 		variables.adm = new Administrator("web", request.WEBADMINPASSWORD?:server.WEBADMINPASSWORD);
@@ -31,7 +31,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" skip=true{
 				);
 				expect(trim(result.filecontent)).toBe("0");
 			});
-			it(title="cfsavecontent with cfprocessingdirective suppresswhitespace=true", body=function( currentSpec ) {
+			it(title="cfsavecontent with cfprocessingdirective suppresswhitespace=true", skip=true, body=function( currentSpec ) {
 				adm.updateOutputSetting(cfmlWriter="regular");
 				local.result = _InternalRequest(
 					template : uri,
