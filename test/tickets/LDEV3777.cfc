@@ -1,4 +1,4 @@
-component extends = "org.lucee.cfml.test.LuceeTestCase"{
+component extends = "org.lucee.cfml.test.LuceeTestCase" skip=true{
 
 	function beforeAll() {
 		variables.adm = new Administrator("web", request.WEBADMINPASSWORD?:server.WEBADMINPASSWORD);
