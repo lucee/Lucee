@@ -56,7 +56,6 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 			}
 			catch(any e) {
 				thread.result = e.message;
-				systemoutput(e.message);
 			}
 		}
 		thread action = "join" name="#name#";
