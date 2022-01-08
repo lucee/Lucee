@@ -74,6 +74,7 @@ import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.protocol.HttpContext;
 
+import lucee.commons.io.log.Log;
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
@@ -107,6 +108,7 @@ import lucee.runtime.exp.NativeException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.RequestTimeoutException;
 import lucee.runtime.ext.tag.BodyTagImpl;
+import lucee.runtime.functions.system.CallStackGet;
 import lucee.runtime.net.http.MultiPartResponseUtils;
 import lucee.runtime.net.http.ReqRspUtil;
 import lucee.runtime.net.http.sni.DefaultHostnameVerifierImpl;
@@ -781,6 +783,7 @@ public final class Http extends BodyTagImpl {
 					CacheItem cacheItem = ((CacheHandlerPro) cacheHandler).get(pageContext, cacheId, cachedWithin);
 
 					if (cacheItem instanceof HTTPCacheItem) {
+						logHttpRequest(pageContext, ((HTTPCacheItem) cacheItem).getData(),  url, this.method, System.nanoTime() - start, true);
 						pageContext.setVariable(result, ((HTTPCacheItem) cacheItem).getData());
 						return;
 					}
@@ -790,6 +793,7 @@ public final class Http extends BodyTagImpl {
 					CacheItem cacheItem = cacheHandler.get(pageContext, cacheId);
 
 					if (cacheItem instanceof HTTPCacheItem) {
+						logHttpRequest(pageContext, ((HTTPCacheItem) cacheItem).getData(),  url, this.method, System.nanoTime() - start, true);
 						pageContext.setVariable(result, ((HTTPCacheItem) cacheItem).getData());
 						return;
 					}
@@ -1315,9 +1319,11 @@ public final class Http extends BodyTagImpl {
 
 			// TODO: check if we can use statCode instead of rsp.getStatusCode() everywhere and cleanup the code
 			if (cacheHandler != null && rsp.getStatusCode() == 200) {
-				// add to cache
+				// add to cache 
 				cacheHandler.set(pageContext, cacheId, cachedWithin, new HTTPCacheItem(cfhttp, url, System.nanoTime() - start));
 			}
+
+			logHttpRequest(pageContext, cfhttp, url, method, System.nanoTime() - start, false);
 		}
 		finally {
 			if (client != null) client.close();
@@ -1617,6 +1623,14 @@ public final class Http extends BodyTagImpl {
 	private static String urlenc(String str, String charset, boolean checkIfNeeded) throws UnsupportedEncodingException {
 		if (checkIfNeeded && !ReqRspUtil.needEncoding(str, false)) return str;
 		return URLEncoder.encode(str, CharsetUtil.toCharset(charset));
+	}
+
+	// TODO method is a short, rather than a string
+	private static void logHttpRequest(PageContext pc, Struct data, String url, short method, long executionTimeNS, boolean cached) throws PageException{
+		Log log = pc.getConfig().getLog("trace");
+		if (log != null && log.getLogLevel() <= Log.LEVEL_INFO)
+			log.log(Log.LEVEL_INFO, "cftrace", "httpRequest [" + method + "] to [" + url + "], returned [" + data.get(STATUSCODE) + "] in "
+				+ executionTimeNS + "ns, " + (cached ? "(cached response)" : "") + " at " + CallStackGet.call(pc, "text"));
 	}
 
 	@Override
