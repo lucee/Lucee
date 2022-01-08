@@ -13954,7 +13954,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<name>hash</name>
 			<type>string</type>
 			<required>Yes</required>
-			<description>Degrees of parallelism, a number between 1 and 10.</description>
+			<description>Argon2 hash to compare against input string.</description>
     	</argument>
     	<argument>
 			<name>variant</name>
