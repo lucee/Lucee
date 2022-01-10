@@ -1732,7 +1732,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	}
 
 	@Override
-	public Log getLog(String name) {
+	public Log getLog(String name) throws PageException {
 		if (!initLog) initLog();
 		Pair<Log, Struct> pair = logs.get(KeyImpl.init(StringUtil.emptyIfNull(name)));
 		if (pair == null) return null;
@@ -1740,7 +1740,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	}
 
 	@Override
-	public Struct getLogMetaData(String name) {
+	public Struct getLogMetaData(String name) throws PageException {
 		if (!initLog) initLog();
 		Pair<Log, Struct> pair = logs.get(KeyImpl.init(StringUtil.emptyIfNull(name)));
 		if (pair == null) return null;
@@ -1748,12 +1748,12 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	}
 
 	@Override
-	public java.util.Collection<Collection.Key> getLogNames() {
+	public java.util.Collection<Collection.Key> getLogNames() throws PageException {
 		if (!initLog) initLog();
 		return logs.keySet();
 	}
 
-	private void initLog() {
+	private void initLog() throws PageException {
 		// appender
 		Object oLogs = get(component, LOGS, null);
 		if (oLogs == null) oLogs = get(component, LOG, null);

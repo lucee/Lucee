@@ -429,8 +429,9 @@ public final class CFMLEngineImpl implements CFMLEngine {
 			}
 		}
 		finally {
-			logDeploy.flush(cs.getLog("deploy", true));
-			logApp.flush(cs.getLog("application", true));
+
+			logDeploy.flush(cs, "deploy");
+			logDeploy.flush(cs, "application");
 		}
 	}
 

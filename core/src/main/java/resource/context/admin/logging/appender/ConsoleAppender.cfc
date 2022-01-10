@@ -6,7 +6,7 @@
 		)>
     
 	<cffunction name="getClass" returntype="string" output="false">
-    	<cfreturn "lucee.commons.io.log.log4j.appender.ConsoleAppender">
+    	<cfreturn "console">
     </cffunction>
     
 	<cffunction name="getLabel" returntype="string" output="false">

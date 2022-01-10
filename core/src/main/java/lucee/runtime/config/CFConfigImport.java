@@ -21,6 +21,7 @@ import lucee.loader.engine.CFMLEngine;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.loader.util.Util;
 import lucee.runtime.PageContext;
+import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.tag.DynamicAttributes;
@@ -359,7 +360,7 @@ public class CFConfigImport {
 			tag.setPageContext(pc);
 			boolean empty = true;
 			for (Item item: items) {
-				val = item.getValue(json);
+				val = item.getValue(pc.getConfig(), json);
 				if (val != null) empty = false;
 				else val = item.getDefault();
 				dynAttr.setDynamicAttribute(null, item.getTargetAttrName(), val);
@@ -429,9 +430,9 @@ public class CFConfigImport {
 			return e.getCastUtil().toKey(trgAttrName);
 		}
 
-		private Object getValue(Struct json) {
+		private Object getValue(Config config, Struct json) throws PageException {
 			if (modifier != null) {
-				return modifier.getValue(json);
+				return modifier.getValue(config, json);
 			}
 			Object obj = null;
 			for (String srcKeyName: srcKeyNames) {
@@ -455,12 +456,10 @@ public class CFConfigImport {
 	}
 
 	private static interface Modifier {
-
-		String getValue(Struct json);
-
+		Object getValue(Config config, Struct json) throws PageException;
 	}
 
-	private abstract static class ALModifier implements Modifier {
+	private static abstract class ClassDefintionModifier implements Modifier {
 
 		public String getValue(Struct json, String name) {
 			// to we have the main key?
@@ -470,41 +469,26 @@ public class CFConfigImport {
 			if (!Util.isEmpty(data, true)) return data;
 			return null;
 		}
-
 	}
 
-	private static class AppenderModifier extends ALModifier {
+	private static class AppenderModifier extends ClassDefintionModifier {
 
 		@Override
-		public String getValue(Struct json) {
+		public ClassDefinition<?> getValue(Config config, Struct json) throws PageException {
 			String val = getValue(json, "appenderclass");
-			if (val != null) return val;
-			val = getValue(json, "appender");
-
-			if ("console".equalsIgnoreCase(val)) return "lucee.commons.io.log.log4j.appender.ConsoleAppender";
-			if ("resource".equalsIgnoreCase(val)) return "lucee.commons.io.log.log4j.appender.RollingResourceAppender";
-			if ("datasource".equalsIgnoreCase(val)) return "lucee.commons.io.log.log4j.appender.DatasourceAppender";
-
-			return val;
+			if (val == null) val = getValue(json, "appender");
+			return ((ConfigPro) config).getLogEngine().appenderClassDefintion(val);
 		}
 
 	}
 
-	private static class LayoutModifier extends ALModifier {
+	private static class LayoutModifier extends ClassDefintionModifier {
 
 		@Override
-		public String getValue(Struct json) {
+		public ClassDefinition<?> getValue(Config config, Struct json) throws PageException {
 			String val = getValue(json, "layoutclass");
-			if (val != null) return val;
-			val = getValue(json, "layout");
-
-			if ("classic".equalsIgnoreCase(val)) return "lucee.commons.io.log.log4j.layout.ClassicLayout";
-			if ("datasource".equalsIgnoreCase(val)) return "lucee.commons.io.log.log4j.layout.DatasourceLayout";
-			if ("html".equalsIgnoreCase(val)) return "org.apache.log4j.HTMLLayout";
-			if ("xml".equalsIgnoreCase(val)) return "org.apache.log4j.xml.XMLLayout";
-			if ("pattern".equalsIgnoreCase(val)) return "org.apache.log4j.PatternLayout";
-
-			return val;
+			if (val == null) val = getValue(json, "layout");
+			return ((ConfigPro) config).getLogEngine().layoutClassDefintion(val);
 		}
 
 	}
@@ -520,7 +504,7 @@ public class CFConfigImport {
 		}
 
 		@Override
-		public String getValue(Struct json) {
+		public String getValue(Config config, Struct json) {
 			// to we have the main key?
 			CFMLEngine e = CFMLEngineFactory.getInstance();
 			String data = null;

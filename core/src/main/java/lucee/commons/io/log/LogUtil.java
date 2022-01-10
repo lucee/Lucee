@@ -66,7 +66,7 @@ public final class LogUtil {
 		StackTraceElement[] stes = Thread.currentThread().getStackTrace();
 		if (stes != null) {
 			for (StackTraceElement ste: stes) {
-				if (ste.getClassName().indexOf("org.apache.log4j.") == 0) return true;
+				if (ste.getClassName().indexOf("org.apache.log4j.") == 0 || ste.getClassName().indexOf("org.apache.logging.log4j.") == 0) return true;
 			}
 		}
 		return false;

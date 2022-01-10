@@ -144,8 +144,8 @@ import lucee.runtime.net.http.ReqRspUtil;
 import lucee.runtime.net.mail.ServerImpl;
 import lucee.runtime.net.proxy.ProxyData;
 import lucee.runtime.op.Caster;
-import lucee.runtime.op.OpUtil;
 import lucee.runtime.op.Decision;
+import lucee.runtime.op.OpUtil;
 import lucee.runtime.orm.ORMConfiguration;
 import lucee.runtime.orm.ORMEngine;
 import lucee.runtime.orm.ORMSession;
@@ -3748,7 +3748,7 @@ public final class PageContextImpl extends PageContext {
 		return config.getLog(name);
 	}
 
-	public Log getLog(String name, boolean createIfNecessary) {
+	public Log getLog(String name, boolean createIfNecessary) throws PageException {
 		if (applicationContext != null) {
 			Log log = applicationContext.getLog(name);
 			if (log != null) return log;
@@ -3756,7 +3756,7 @@ public final class PageContextImpl extends PageContext {
 		return config.getLog(name, createIfNecessary);
 	}
 
-	public java.util.Collection<String> getLogNames() {
+	public java.util.Collection<String> getLogNames() throws PageException {
 		java.util.Collection<String> cnames = config.getLoggers().keySet();
 		if (applicationContext != null) {
 			java.util.Collection<Collection.Key> anames = applicationContext.getLogNames();

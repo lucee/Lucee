@@ -3,6 +3,8 @@ package lucee.commons.io.log;
 import java.util.ArrayList;
 import java.util.List;
 
+import lucee.runtime.config.Config;
+
 public class LogBuffer implements Log {
 
 	private List<LogData> datas = new ArrayList<>();
@@ -71,6 +73,22 @@ public class LogBuffer implements Log {
 	@Override
 	public void warn(String application, String message) {
 		datas.add(new LogData(Log.LEVEL_WARN, application, message, null));
+	}
+
+	public void flush(Config config, String logName) {
+		Log log;
+		try {
+			log = config.getLog(logName);
+		}
+		catch (Exception e) {
+			return;
+		}
+
+		for (LogData data: datas) {
+			if (data.exception != null) log.log(data.level, data.application, data.message, data.exception);
+			else log.log(data.level, data.application, data.message);
+		}
+		datas.clear();
 	}
 
 	public void flush(Log log) {

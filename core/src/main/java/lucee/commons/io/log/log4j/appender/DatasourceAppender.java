@@ -31,6 +31,7 @@ import org.apache.log4j.spi.ThrowableInformation;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.log.log4j.LogAdapter;
 import lucee.commons.io.log.log4j.layout.DatasourceLayout;
+import lucee.commons.lang.SystemOut;
 import lucee.commons.lang.types.RefBoolean;
 import lucee.commons.lang.types.RefBooleanImpl;
 import lucee.runtime.PageContext;
@@ -184,15 +185,20 @@ public class DatasourceAppender extends JDBCAppender implements Appender {
 	}
 
 	private void logConsole(LoggingEvent event) {
-		ThrowableInformation ti = event.getThrowableInformation();
-		Throwable t;
-		if (ti != null && (t = ti.getThrowable()) != null) {
-			getConsoleLogger().log(event.getLevel(), event.getMessage(), t);
+		try {
+			ThrowableInformation ti = event.getThrowableInformation();
+			Throwable t;
+			if (ti != null && (t = ti.getThrowable()) != null) {
+				getConsoleLogger().log(event.getLevel(), event.getMessage(), t);
+			}
+			else getConsoleLogger().log(event.getLevel(), event.getMessage());
 		}
-		else getConsoleLogger().log(event.getLevel(), event.getMessage());
+		catch (Exception e) {
+			SystemOut.printDate(e);
+		}
 	}
 
-	private Logger getConsoleLogger() {
+	private Logger getConsoleLogger() throws PageException {
 		ConfigPro config = (ConfigPro) ThreadLocalPageContext.getConfig();
 		if (logger == null) {
 			LogAdapter la = (LogAdapter) config.getLog("console_datasource_appender", true); // TODO use log level from this logger...

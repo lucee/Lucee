@@ -1537,4 +1537,9 @@ public final class ResourceUtil {
 		return Hash.md5(res);
 	}
 
+	public static File toFile(Resource res) throws IOException {
+		if (res instanceof File) return (File) res;
+		throw new IOException("cannot convert [" + res + "] to a local file from type [" + res.getResourceProvider().getScheme() + "]");
+	}
+
 }

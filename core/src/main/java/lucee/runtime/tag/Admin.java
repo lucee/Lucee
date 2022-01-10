@@ -50,7 +50,7 @@ import org.osgi.framework.BundleException;
 import org.osgi.framework.Version;
 
 import lucee.VersionInfo;
-import lucee.print;
+import lucee.aprint;
 import lucee.commons.collection.MapFactory;
 import lucee.commons.digest.Base64Encoder;
 import lucee.commons.digest.HashUtil;
@@ -59,6 +59,7 @@ import lucee.commons.io.SystemUtil;
 import lucee.commons.io.cache.Cache;
 import lucee.commons.io.cache.CachePro;
 import lucee.commons.io.compress.CompressUtil;
+import lucee.commons.io.log.LogEngine;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.log.LoggerAndSourceData;
 import lucee.commons.io.res.Resource;
@@ -385,7 +386,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			sb.append(", new Item(\"").append(e.getKey()).append("\")");
 		}
 		sb.append(");");
-		print.e(sb);
+		aprint.e(sb);
 
 	}
 
@@ -3179,7 +3180,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		pageContext.setVariable(returnVariable, _doGetLogSettings());
 	}
 
-	private Query _doGetLogSettings() {
+	private Query _doGetLogSettings() throws PageException {
 		Map<String, LoggerAndSourceData> loggers = config.getLoggers();
 		Query qry = new QueryImpl(new String[] { "name", "level", "appenderClass", "appenderBundleName", "appenderBundleVersion", "appenderArgs", "layoutClass", "layoutBundleName",
 				"layoutBundleVersion", "layoutArgs", "readonly" }, 0, lucee.runtime.type.util.ListUtil.last("logs", '.'));
@@ -4400,7 +4401,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	 * store(); // adminSync.broadcast(attributes, config); }
 	 */
 
-	private void doUpdateExtensionProvider() throws MalformedURLException,  PageException {
+	private void doUpdateExtensionProvider() throws MalformedURLException, PageException {
 		admin.updateExtensionProvider(getString("admin", "UpdateExtensionProvider", "url"));
 		store();
 	}
@@ -4713,10 +4714,22 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		int l = LogUtil.toLevel(str, -1);
 		if (l == -1) throw new ApplicationException("Invalid log level name [" + str + "], valid log level names are [INFO,DEBUG,WARN,ERROR,FATAL,TRACE]");
 
-		ClassDefinition acd = new ClassDefinitionImpl(getString("admin", action, "appenderClass", true), getString("appenderBundleName", null),
-				getString("appenderBundleVersion", null), config.getIdentification());
-		ClassDefinition lcd = new ClassDefinitionImpl(getString("admin", action, "layoutClass", true), getString("layoutBundleName", null), getString("layoutBundleVersion", null),
-				config.getIdentification());
+		LogEngine eng = config.getLogEngine();
+
+		// appender
+		String className = getString("admin", action, "appenderClass", true);
+		String bundleName = getString("appenderBundleName", null);
+		String bundleVersion = getString("appenderBundleVersion", null);
+		ClassDefinition acd = StringUtil.isEmpty(bundleName) ? eng.appenderClassDefintion(className)
+				: new ClassDefinitionImpl(className, bundleName, bundleVersion, config.getIdentification());
+
+		// layout
+		className = getString("admin", action, "layoutClass", true);
+		bundleName = getString("layoutBundleName", null);
+		bundleVersion = getString("layoutBundleVersion", null);
+
+		ClassDefinition lcd = StringUtil.isEmpty(bundleName) ? eng.layoutClassDefintion(className)
+				: new ClassDefinitionImpl(className, bundleName, bundleVersion, config.getIdentification());
 
 		admin.updateLogSettings(getString("admin", "UpdateLogSettings", "name", true), l, acd, Caster.toStruct(getObject("admin", "UpdateLogSettings", "appenderArgs")), lcd,
 				Caster.toStruct(getObject("admin", "UpdateLogSettings", "layoutArgs")));

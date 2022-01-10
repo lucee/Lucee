@@ -1817,6 +1817,9 @@ public final class ConfigWebFactory extends ConfigFactory {
 					tmp = StringUtil.trim(getAttr(child, "appender"), "");
 					cdAppender = config.getLogEngine().appenderClassDefintion(tmp);
 				}
+				else if (!cdAppender.isBundle()) {
+					cdAppender = config.getLogEngine().appenderClassDefintion(cdAppender.getClassName());
+				}
 				appenderArgs = StringUtil.trim(getAttr(child, "appenderArguments"), "");
 
 				// layout
@@ -1824,6 +1827,9 @@ public final class ConfigWebFactory extends ConfigFactory {
 				if (!cdLayout.hasClass()) {
 					tmp = StringUtil.trim(getAttr(child, "layout"), "");
 					cdLayout = config.getLogEngine().layoutClassDefintion(tmp);
+				}
+				else if (!cdLayout.isBundle()) {
+					cdLayout = config.getLogEngine().layoutClassDefintion(cdLayout.getClassName());
 				}
 				layoutArgs = StringUtil.trim(getAttr(child, "layoutArguments"), "");
 

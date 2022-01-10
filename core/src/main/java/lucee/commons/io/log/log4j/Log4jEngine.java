@@ -65,9 +65,15 @@ public class Log4jEngine extends LogEngine {
 	}
 
 	@Override
-	public Log getResourceLog(Resource res, Charset charset, String name, int level, int timeout, RetireListener listener, boolean async) throws IOException {
-		Appender a = new RollingResourceAppender(new ClassicLayout(), res, charset, true, RollingResourceAppender.DEFAULT_MAX_FILE_SIZE,
-				RollingResourceAppender.DEFAULT_MAX_BACKUP_INDEX, timeout, listener); // no open stream at all
+	public Log getResourceLog(Resource res, Charset charset, String name, int level, int timeout, RetireListener listener, boolean async) throws PageException {
+		Appender a;
+		try {
+			a = new RollingResourceAppender(new ClassicLayout(), res, charset, true, RollingResourceAppender.DEFAULT_MAX_FILE_SIZE,
+					RollingResourceAppender.DEFAULT_MAX_BACKUP_INDEX, timeout, listener);
+		}
+		catch (IOException e) {
+			throw Caster.toPageException(e);
+		} // no open stream at all
 
 		if (async) {
 			a = new TaskAppender(ConfigWebUtil.toConfigWeb(config), a);
@@ -107,9 +113,9 @@ public class Log4jEngine extends LogEngine {
 	public ClassDefinition layoutClassDefintion(String className) {
 		if ("classic".equalsIgnoreCase(className)) return new ClassDefinitionImpl(ClassicLayout.class);
 		if ("datasource".equalsIgnoreCase(className)) return new ClassDefinitionImpl(DatasourceLayout.class);
-		if ("html".equalsIgnoreCase(className)) return new ClassDefinitionImpl(HTMLLayout.class);
-		if ("xml".equalsIgnoreCase(className)) return new ClassDefinitionImpl(XMLLayout.class);
-		if ("pattern".equalsIgnoreCase(className)) return new ClassDefinitionImpl(PatternLayout.class);
+		if ("html".equalsIgnoreCase(className) || "org.apache.logging.log4j.core.layout.HtmlLayout".equals(className)) return new ClassDefinitionImpl(HTMLLayout.class);
+		if ("xml".equalsIgnoreCase(className) || "org.apache.logging.log4j.core.layout.XmlLayout".equalsIgnoreCase(className)) return new ClassDefinitionImpl(XMLLayout.class);
+		if ("pattern".equalsIgnoreCase(className) || "org.apache.logging.log4j.core.layout.PatternLayout".equals(className)) return new ClassDefinitionImpl(PatternLayout.class);
 
 		return new ClassDefinitionImpl(className);
 	}
@@ -429,5 +435,10 @@ public class Log4jEngine extends LogEngine {
 	@Override
 	public Object getDefaultLayout() {
 		return new PatternLayout("%d{dd.MM.yyyy HH:mm:ss,SSS} %-5p [%c] %m%n");
+	}
+
+	@Override
+	public Object getClassicLayout() {
+		return new ClassicLayout();
 	}
 }
