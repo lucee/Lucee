@@ -782,7 +782,7 @@ public final class Http extends BodyTagImpl {
 					CacheItem cacheItem = ((CacheHandlerPro) cacheHandler).get(pageContext, cacheId, cachedWithin);
 
 					if (cacheItem instanceof HTTPCacheItem) {
-						logHttpRequest(pageContext, ((HTTPCacheItem) cacheItem).getData(),  url, this.method, System.nanoTime() - start, true);
+						logHttpRequest(pageContext, ((HTTPCacheItem) cacheItem).getData(),  url, req.getMethod(), System.nanoTime() - start, true);
 						pageContext.setVariable(result, ((HTTPCacheItem) cacheItem).getData());
 						return;
 					}
@@ -792,7 +792,7 @@ public final class Http extends BodyTagImpl {
 					CacheItem cacheItem = cacheHandler.get(pageContext, cacheId);
 
 					if (cacheItem instanceof HTTPCacheItem) {
-						logHttpRequest(pageContext, ((HTTPCacheItem) cacheItem).getData(),  url, this.method, System.nanoTime() - start, true);
+						logHttpRequest(pageContext, ((HTTPCacheItem) cacheItem).getData(),  url, req.getMethod(), System.nanoTime() - start, true);
 						pageContext.setVariable(result, ((HTTPCacheItem) cacheItem).getData());
 						return;
 					}
@@ -1319,7 +1319,7 @@ public final class Http extends BodyTagImpl {
 				cacheHandler.set(pageContext, cacheId, cachedWithin, new HTTPCacheItem(cfhttp, url, System.nanoTime() - start));
 			}
 
-			logHttpRequest(pageContext, cfhttp, url, method, System.nanoTime() - start, false);
+			logHttpRequest(pageContext, cfhttp, url, req.getMethod(), System.nanoTime() - start, false);
 		}
 		finally {
 			if (client != null) client.close();
@@ -1621,12 +1621,11 @@ public final class Http extends BodyTagImpl {
 		return URLEncoder.encode(str, CharsetUtil.toCharset(charset));
 	}
 
-	// TODO method is a short, rather than a string
-	private static void logHttpRequest(PageContext pc, Struct data, String url, short method, long executionTimeNS, boolean cached) throws PageException{
+	private static void logHttpRequest(PageContext pc, Struct data, String url, String method, long executionTimeNS, boolean cached) throws PageException{
 		Log log = pc.getConfig().getLog("trace");
 		if (log != null && log.getLogLevel() <= Log.LEVEL_INFO)
 			log.log(Log.LEVEL_INFO, "cftrace", "httpRequest [" + method + "] to [" + url + "], returned [" + data.get(STATUSCODE) + "] in "
-				+ executionTimeNS + "ns, " + (cached ? "(cached response)" : "") + " at " + CallStackGet.call(pc, "text"));
+				+ (executionTimeNS / 1000000) + "ms, " + (cached ? "(cached response)" : "") + " at " + CallStackGet.call(pc, "text"));
 	}
 
 	@Override
