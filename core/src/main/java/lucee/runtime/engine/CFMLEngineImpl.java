@@ -280,7 +280,14 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		}
 		CFMLEngineFactory.registerInstance((this));// patch, not really good but it works
 		ConfigServerImpl cs = getConfigServerImpl();
-		Log log = cs == null ? null : cs.getLog("deploy", true);
+		Log log = null;
+		if (cs != null) {
+			try {
+				log = cs.getLog("deploy", true);
+			}
+			catch (PageException e) {
+			}
+		}
 
 		boolean isRe = configDir == null ? false : XMLConfigFactory.isRequiredExtension(this, configDir, log);
 		boolean installExtensions = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.extensions.install", null), true);

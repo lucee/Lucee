@@ -18,7 +18,6 @@
  **/
 package lucee.runtime.tag;
 
-import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.Iterator;
 import java.util.Map;
@@ -38,7 +37,6 @@ import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.CasterException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.tag.TagImpl;
-import lucee.runtime.op.Caster;
 import lucee.runtime.type.KeyImpl;
 
 /**
@@ -265,14 +263,9 @@ public final class Log extends TagImpl {
 
 			if (charset == null) charset = CharsetUtil.toCharSet(((PageContextImpl) pc).getResourceCharset());
 
-			try {
-				log = config.getLogEngine().getResourceLog(res, CharsetUtil.toCharset(charset), "cflog." + FileLogPool.toKey(file, CharsetUtil.toCharset(charset)),
-						lucee.commons.io.log.Log.LEVEL_TRACE, 5, new Listener(FileLogPool.instance, res, charset), async);
-				FileLogPool.instance.put(res, CharsetUtil.toCharset(charset), log);
-			}
-			catch (IOException e) {
-				throw Caster.toPageException(e);
-			}
+			log = config.getLogEngine().getResourceLog(res, CharsetUtil.toCharset(charset), "cflog." + FileLogPool.toKey(file, CharsetUtil.toCharset(charset)),
+					lucee.commons.io.log.Log.LEVEL_TRACE, 5, new Listener(FileLogPool.instance, res, charset), async);
+			FileLogPool.instance.put(res, CharsetUtil.toCharset(charset), log);
 			return log;
 		}
 	}

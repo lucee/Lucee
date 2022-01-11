@@ -68,7 +68,7 @@ public final class LogUtil {
 			String str;
 			for (StackTraceElement ste: stes) {
 				str = ste.getClassName();
-				if (str.indexOf("org.apache.log4j.") == 0 || str.indexOf("org.apache.logging.log4j.") == 0) return true;
+				if (ste.getClassName().indexOf("org.apache.log4j.") == 0 || ste.getClassName().indexOf("org.apache.logging.log4j.") == 0) return true;
 			}
 		}
 		return false;

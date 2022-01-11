@@ -1749,12 +1749,17 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	}
 
 	private void initLog() {
-		// appender
-		Object oLogs = get(component, LOGS, null);
-		if (oLogs == null) oLogs = get(component, LOG, null);
-		Struct sct = Caster.toStruct(oLogs, null);
-		logs = initLog(ThreadLocalPageContext.getConfig(config), sct);
-		initLog = true;
+		try {
+			// appender
+			Object oLogs = get(component, LOGS, null);
+			if (oLogs == null) oLogs = get(component, LOG, null);
+			Struct sct = Caster.toStruct(oLogs, null);
+			logs = initLog(ThreadLocalPageContext.getConfig(config), sct);
+			initLog = true;
+		}
+		catch (PageException e) {
+			throw new PageRuntimeException(e);
+		}
 	}
 
 	public static void releaseInitCacheConnections() {

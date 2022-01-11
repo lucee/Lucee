@@ -144,7 +144,7 @@ public interface ConfigPro extends Config {
 
 	public TimeSpan getCachedAfterTimeRange();
 
-	public Log getLog(String name, boolean createIfNecessary);
+	public Log getLog(String name, boolean createIfNecessary) throws PageException;
 
 	public Map<String, LoggerAndSourceData> getLoggers();
 

@@ -49,7 +49,6 @@ import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogEngine;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.log.LoggerAndSourceData;
-import lucee.commons.io.log.log4j.layout.ClassicLayout;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourceProvider;
 import lucee.commons.io.res.Resources;
@@ -3624,14 +3623,14 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		resourceLayouts.add(layout);
 	}
 
-	public Object[] getConsoleLayouts() {
+	public Object[] getConsoleLayouts() throws PageException {
 		if (consoleLayouts.isEmpty()) consoleLayouts.add(getLogEngine().getDefaultLayout());
 		return consoleLayouts.toArray(new Object[consoleLayouts.size()]);
 
 	}
 
-	public Object[] getResourceLayouts() {
-		if (resourceLayouts.isEmpty()) resourceLayouts.add(new ClassicLayout());
+	public Object[] getResourceLayouts() throws PageException {
+		if (resourceLayouts.isEmpty()) resourceLayouts.add(getLogEngine().getClassicLayout());
 		return resourceLayouts.toArray(new Object[resourceLayouts.size()]);
 	}
 
@@ -3663,7 +3662,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	}
 
 	protected LoggerAndSourceData addLogger(String name, int level, ClassDefinition appender, Map<String, String> appenderArgs, ClassDefinition layout,
-			Map<String, String> layoutArgs, boolean readOnly, boolean dyn) {
+			Map<String, String> layoutArgs, boolean readOnly, boolean dyn) throws PageException {
 		LoggerAndSourceData existing = loggers.get(name.toLowerCase());
 		String id = LoggerAndSourceData.id(name.toLowerCase(), appender, appenderArgs, layout, layoutArgs, level, readOnly);
 
@@ -3691,17 +3690,22 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 
 	@Override
 	public Log getLog(String name) {
-		return getLog(name, true);
+		try {
+			return getLog(name, true);
+		}
+		catch (PageException e) {
+			throw new PageRuntimeException(e);
+		}
 	}
 
 	@Override
-	public Log getLog(String name, boolean createIfNecessary) {
+	public Log getLog(String name, boolean createIfNecessary) throws PageException {
 		LoggerAndSourceData lsd = _getLoggerAndSourceData(name, createIfNecessary);
 		if (lsd == null) return null;
 		return lsd.getLog();
 	}
 
-	private LoggerAndSourceData _getLoggerAndSourceData(String name, boolean createIfNecessary) {
+	private LoggerAndSourceData _getLoggerAndSourceData(String name, boolean createIfNecessary) throws PageException {
 		LoggerAndSourceData las = loggers.get(name.toLowerCase());
 		if (las == null) {
 			if (!createIfNecessary) return null;
@@ -3985,7 +3989,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 
 	@Override
 	public LogEngine getLogEngine() {
-		if (logEngine == null) logEngine = LogEngine.getInstance(this);
+		if (logEngine == null) logEngine = LogEngine.newInstance(this);
 		return logEngine;
 	}
 

@@ -45,6 +45,7 @@ import lucee.runtime.db.SQL;
 import lucee.runtime.db.SQLImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.type.QueryImpl;
 
 public class DatasourceAppender extends JDBCAppender implements Appender {
@@ -191,13 +192,18 @@ public class DatasourceAppender extends JDBCAppender implements Appender {
 	private void logConsole(LoggingEvent event) {
 		ThrowableInformation ti = event.getThrowableInformation();
 		Throwable t;
-		if (ti != null && (t = ti.getThrowable()) != null) {
-			getConsoleLogger().log(event.getLevel(), event.getMessage(), t);
+		try {
+			if (ti != null && (t = ti.getThrowable()) != null) {
+				getConsoleLogger().log(event.getLevel(), event.getMessage(), t);
+			}
+			else getConsoleLogger().log(event.getLevel(), event.getMessage());
 		}
-		else getConsoleLogger().log(event.getLevel(), event.getMessage());
+		catch (PageException e) {
+			throw new PageRuntimeException(e);
+		}
 	}
 
-	private Logger getConsoleLogger() {
+	private Logger getConsoleLogger() throws PageException {
 		ConfigPro config = (ConfigPro) ThreadLocalPageContext.getConfig();
 		if (logger == null) {
 			LogAdapter la = (LogAdapter) config.getLog("console_datasource_appender", true); // TODO use log level from this logger...

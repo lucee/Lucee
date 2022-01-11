@@ -3734,7 +3734,7 @@ public final class PageContextImpl extends PageContext {
 		return config.getLog(name);
 	}
 
-	public Log getLog(String name, boolean createIfNecessary) {
+	public Log getLog(String name, boolean createIfNecessary) throws PageException {
 		if (applicationContext != null) {
 			Log log = applicationContext.getLog(name);
 			if (log != null) return log;

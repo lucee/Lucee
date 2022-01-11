@@ -5526,6 +5526,16 @@ Example Values:
 			<type>struct</type>
 		</return>
 	</function>
+	<!-- GetConfigSettings -->
+	<function>
+		<name>GetConfigSettings</name>
+		<class>lucee.runtime.functions.system.GetConfigSettings</class>
+		<status>hidden</status>
+		<description></description>
+		<return>
+			<type>struct</type>
+		</return>
+	</function>
 
 	<!-- getBaseTagData -->
 	<function>
