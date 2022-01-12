@@ -206,13 +206,13 @@ public final class ServerImpl implements Server, Serializable {
 		ArrayList<lucee.runtime.net.mail.Server> result = new ArrayList<Server>();
 
 		// first we fill it with the left array
-		for (int i = 0; i < arr2.length; i++) {
-			result.add(arr2[i]);
+		for (int i = 0; i < arr1.length; i++) {
+			result.add(arr1[i]);
 		}
 
 		// now we fill the second array, but only the one not existing yet
-		for (int i = 0; i < arr1.length; i++) {
-			if (!result.contains(arr1[i])) result.add(arr1[i]);
+		for (int i = 0; i < arr2.length; i++) {
+			if (!result.contains(arr2[i])) result.add(arr2[i]);
 		}
 		return result.toArray(new lucee.runtime.net.mail.Server[result.size()]);
 	}
