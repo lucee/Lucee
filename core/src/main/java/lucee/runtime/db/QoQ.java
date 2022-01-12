@@ -34,7 +34,6 @@ import lucee.commons.lang.CFTypes;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.math.MathUtil;
 import lucee.runtime.PageContext;
-import lucee.runtime.config.NullSupportHelper;
 import lucee.runtime.exp.DatabaseException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
@@ -308,7 +307,7 @@ public final class QoQ {
 		for (int row = 1; row <= target.getRecordcount(); row++) {
 			previous.addRow(1);
 			for (int col = 0; col < targetColKeys.length; col++) {
-				previous.setAt(previousColKeys[col], previous.getRecordcount(), target.getAt(targetColKeys[col], row));
+				previous.setAt(previousColKeys[col], previous.getRecordcount(), target.getColumn(targetColKeys[col]).get(row, null));
 			}
 		}
 		return previous;
@@ -365,7 +364,7 @@ public final class QoQ {
 			newTarget.addRow(1);
 
 			for (int col = 0; col < targetColKeys.length; col++) {
-				newTarget.setAt(previousColKeys[col], newTarget.getRecordcount(), sourcePartition.getAt(previousColKeys[col], 1));
+				newTarget.setAt(previousColKeys[col], newTarget.getRecordcount(), sourcePartition.getColumn(previousColKeys[col]).get(1, null));
 			}
 
 		}
@@ -404,7 +403,7 @@ public final class QoQ {
 		if (hasAggregateSelect && source.getRecordcount() == 0) {
 			target.addRow(1);
 			for (int cell = 0; cell < headers.length; cell++) {
-				trgColumns[cell].set(1, getValue(pc, sql, source, 1, headers[cell], trgValues[cell]));
+				trgColumns[cell].set(1, getValue(pc, sql, source, 1, headers[cell], trgValues[cell], null));
 			}
 			return;
 		}
@@ -422,7 +421,7 @@ public final class QoQ {
 				target.addRow(1);
 				// If we have a match, add this row into the target query
 				for (int cell = 0; cell < headers.length; cell++) {
-					trgColumns[cell].set(target.getRecordcount(), getValue(pc, sql, source, row, headers[cell], trgValues[cell]));
+					trgColumns[cell].set(target.getRecordcount(), getValue(pc, sql, source, row, headers[cell], trgValues[cell], null));
 				}
 			}
 
@@ -463,7 +462,7 @@ public final class QoQ {
 		if (hasAggregateSelect && select.getGroupbys().length == 0 && source.getRecordcount() == 0) {
 			target.addRow(1);
 			for (int cell = 0; cell < headers.length; cell++) {
-				trgColumns[cell].set(1, getValue(pc, sql, source, 1, headers[cell], trgValues[cell]));
+				trgColumns[cell].set(1, getValue(pc, sql, source, 1, headers[cell], trgValues[cell], null));
 			}
 			return;
 		}
@@ -509,6 +508,7 @@ public final class QoQ {
 		
 		// Add first row of each group of partitioned data into final result
 		for (Query sourcePartition: queryPartitions.getPartitions().values()) {
+			
 			target.addRow(1);
 			for (int cell = 0; cell < headers.length; cell++) {
 
@@ -523,17 +523,17 @@ public final class QoQ {
 				if (trgValues[cell] instanceof ColumnExpression) {
 					ColumnExpression ce = (ColumnExpression) trgValues[cell];
 					if (ce.getColumn().equals(paramKey)) {
-						target.setAt(headers[cell], target.getRecordcount(), getValue(pc, sql, sourcePartition, 1, null, trgValues[cell]));
+						target.setAt(headers[cell], target.getRecordcount(), getValue(pc, sql, sourcePartition, 1, null, trgValues[cell], null));
 					}
 					else {
 						// Then make sure to use the alias now to reference it since it changed
 						// names after going into the partition
-						target.setAt(headers[cell], target.getRecordcount(), getValue(pc, sql, sourcePartition, 1, ce.getColumnAlias(), null));
+						target.setAt(headers[cell], target.getRecordcount(), getValue(pc, sql, sourcePartition, 1, ce.getColumnAlias(), null, null));
 					}
 				}
 				// For Operations, just execute them normally
 				else {
-					target.setAt(headers[cell], target.getRecordcount(), getValue(pc, sql, sourcePartition, 1, null, trgValues[cell]));
+					target.setAt(headers[cell], target.getRecordcount(), getValue(pc, sql, sourcePartition, 1, null, trgValues[cell], null));
 				}
 			}
 
@@ -568,7 +568,23 @@ public final class QoQ {
 	 */
 	public Object getValue(PageContext pc, SQL sql, Query querySource, int row, Collection.Key key, Object value) throws PageException {
 		if (value instanceof Expression) return executeExp(pc, sql, querySource, ((Expression) value), row);
-		return querySource.getAt(key, row, null);
+		return querySource.getColumn(key).get(row, null);
+	}
+
+	/**
+	 * return value
+	 * 
+	 * @param sql
+	 * @param querySource
+	 * @param row
+	 * @param key
+	 * @param value
+	 * @return value
+	 * @throws PageException
+	 */
+	public Object getValue(PageContext pc, SQL sql, Query querySource, int row, Collection.Key key, Object value, Object defaultValue) throws PageException {
+		if (value instanceof Expression) return executeExp(pc, sql, querySource, ((Expression) value), row, defaultValue);
+		return querySource.getColumn(key).get(row, null);
 	}
 
 	/**
@@ -778,7 +794,7 @@ public final class QoQ {
 				if (op.equals("avg")) {
 					// If there are no non-null values, return empty
 					if (aggregateValues.length == 0) {
-						return (NullSupportHelper.full(pc) ? null : "");
+						return null;
 					}
 					return ArrayUtil.avg(Caster.toArray(aggregateValues));
 				}
@@ -843,7 +859,7 @@ public final class QoQ {
 
 					// If there are no non-null values, return empty
 					if (colData.size() == 0) {
-						return (NullSupportHelper.full(pc) ? null : "");
+						return null;
 					}
 					// The first item in the array is our "max" or "min"
 					return colData.getE(1);
@@ -860,7 +876,7 @@ public final class QoQ {
 				if (op.equals("sum")) {
 					// If there are no non-null values, return empty
 					if (aggregateValues.length == 0) {
-						return (NullSupportHelper.full(pc) ? null : "");
+						return null;
 					}
 					return ArrayUtil.sum(Caster.toArray(aggregateValues));
 				}
@@ -948,26 +964,14 @@ public final class QoQ {
 	}
 
 	private Object executeCoalesce(PageContext pc, SQL sql, Query source, Expression[] inputs, Integer row) throws PageException {
-		boolean nullSupport = NullSupportHelper.full(pc);
 
 		for (Expression thisOp: inputs) {
-			Object thisValue = executeExp(pc, sql, source, thisOp, row);
-			// If full null support is enabled, do actual null check
-			if (nullSupport) {
-				if (thisValue != null) {
-					return thisValue;
-				}
+			Object thisValue = executeExp(pc, sql, source, thisOp, row, null);
+			if (thisValue != null) {
+				return thisValue;
 			}
-			// If full null support is NOT enabled, check for empty string
-			else {
-				if (!Caster.toString(thisValue).equals("")) {
-					return thisValue;
-				}
-			}
-
 		}
-		// Default value depends on full null support
-		return (nullSupport ? null : "");
+		return null;
 	}
 
 	/*
@@ -1305,8 +1309,7 @@ public final class QoQ {
 			if (sql.getItems()[pos].isNulls()) return null;
 			return sql.getItems()[pos].getValueForCF();
 		}
-		return column.getValue(pc, source, row);
-		// return source.getAt(column.getColumn(),row);
+		return column.getValue(pc, source, row, null);
 	}
 
 	private Object executeColumn(PageContext pc, SQL sql, Query source, Column column, int row, Object defaultValue) throws PageException {

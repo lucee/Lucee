@@ -142,7 +142,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 				expect( actual.empid[2] ).toBe( 'sgsdg' );
 				expect( actual.empidNonNull[2] ).toBe( 'sgsdg' );
 				expect( actual.empid[3] ).toBe( '' );
-				expect( actual.empidNonNull[3] ).toBe( 'default' );
+				expect( actual.empidNonNull[3] ).toBe( '' );
 			});
 				
 			it( 'Can handle isnull with full null support' , function() {
