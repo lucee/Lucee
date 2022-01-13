@@ -73,7 +73,7 @@ public abstract class StructSupport implements Map, Struct {
 		Object k;
 		while (it.hasNext()) {
 			k = it.next();
-			if (sb.length() > 0) sb.append(', ');
+			if (sb.length() > 0) sb.append(", ");
 			sb.append(k.toString());
 		}
 		return new ExpressionException(
