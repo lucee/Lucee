@@ -73,11 +73,11 @@ public abstract class StructSupport implements Map, Struct {
 		Object k;
 		while (it.hasNext()) {
 			k = it.next();
-			if (sb.length() > 0) sb.append(',');
+			if (sb.length() > 0) sb.append(', ');
 			sb.append(k.toString());
 		}
 		return new ExpressionException(
-				(remove ? "cannot remove key [" + key + "] from struct, key doesn't exist" : "key [" + key + "] doesn't exist") + " (existing keys:" + sb.toString() + ")");
+				(remove ? "cannot remove key [" + key + "] from struct, key doesn't exist" : "key [" + key + "] doesn't exist") + " (existing keys: [" + sb.toString() + "])");
 	}
 
 	@Override

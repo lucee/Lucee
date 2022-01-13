@@ -342,10 +342,10 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 			Object k;
 			while (it.hasNext()) {
 				k = it.next();
-				if (sb.length() > 0) sb.append(',');
+				if (sb.length() > 0) sb.append(', ');
 				sb.append(k.toString());
 			}
-			return new ExpressionException("key [" + key + "] doesn't exist (existing keys:" + sb.toString() + ")");
+			return new ExpressionException("key [" + key + "] doesn't exist (existing keys: [" + sb.toString() + "])");
 		}
 		return v.getValue();
 	}
