@@ -45,6 +45,13 @@ public class Select {
 	private boolean unionDistinct;
 
 	public void addSelectExpression(Expression select) {
+		// Make sure there isn't already a column or alias of the same name. This will just cause issues down the road since our
+		// column counts in the final query won't match the index in the expression
+		for (Expression col: getSelects()) {
+			if (col.getAlias().equalsIgnoreCase(select.getAlias())) {
+				return;
+			}
+		}
 		selects.add(select);
 		select.setIndex(selects.size());
 	}
