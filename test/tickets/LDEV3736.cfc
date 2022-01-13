@@ -3,7 +3,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 
     function run( testResults, textbox ) {
 
-        describe("testcase for LDEV-3734", function(){
+        describe("testcase for LDEV-3736", function(){
 
             it(title="Arithmetic addition with empty string in QoQ", body=function( currentSpec ){
                 qry = QueryNew('foo','integer',[[40]]);
