@@ -1336,7 +1336,7 @@ public final class QoQ {
 			}
 			
 			return new Double( dLeft + dRight );
-		// If casting fails, we assume the inpiuts are strings and concat instead
+		// If casting fails, we assume the inputs are strings and concat instead
 		// Unlike SQL, we're not going to return null for a null string concat
 		} catch (PageException e) {
 			return Caster.toString(left) + Caster.toString(right);
