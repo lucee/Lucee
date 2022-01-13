@@ -802,8 +802,16 @@ public final class QoQ {
 			case 'c':
 				if (op.equals("ceiling")) return new Double(Math.ceil(Caster.toDoubleValue(value)));
 				if (op.equals("cos")) return new Double(Math.cos(Caster.toDoubleValue(value)));
-				if (op.equals("cast")) return Caster.castTo(pc, CFTypes.toShort(operators[0].getAlias(), true, CFTypes.TYPE_UNKNOW), operators[0].getAlias(), value);
 				if (op.equals("count")) return executeCount(pc, sql, source, operators);
+				if (op.equals("cast")) {
+					// Cast is a single operand operator, but it gets the type from the alias of the single operand
+					// i.e. cast( col1 as date )
+					// If there is no alias, throw an exception. 
+					if( !operators[0].hasAlias() ) {
+						throw new DatabaseException("No type provided to cast to. [" + opn.toString(true) + "] ", null, sql, null);
+					}
+					return executeCast( pc, value, Caster.toString( operators[0].getAlias() ) );
+				}
 				if (op.equals("coalesce")) return executeCoalesce(pc, sql, source, operators, row);
 				break;
 			case 'e':
@@ -910,6 +918,16 @@ public final class QoQ {
 				if (op.equals("concat")) return Caster.toString(left).concat(Caster.toString(right));
 				if (op.equals("count")) return executeCount(pc, sql, source, operators);
 				if (op.equals("coalesce")) return executeCoalesce(pc, sql, source, operators, row);
+				if (op.equals("convert")) {
+					// If the user does convert( col1, 'string' ) it will be a ValueExpression and we can use it directly;
+					// If the user does convert( col1, string ) it will be a ColumnExpressin and we just want to use the column name ("string" in this case).
+					// convert() is the binary version of the unary operator cast()
+					// i.e. convert( col1, string ) is the same as cast( col1 as string )
+					if( operators[1] instanceof ColumnExpression ) {
+						right = ((ColumnExpression)operators[1]).getColumnName(); 
+					} 
+					return executeCast( pc, left, Caster.toString( right ) );
+				}
 				break;
 			case 'i':
 				if (op.equals("isnull")) return executeCoalesce(pc, sql, source, operators, row);
@@ -974,6 +992,13 @@ public final class QoQ {
 		return null;
 	}
 
+	
+
+	private Object executeCast( PageContext pc, Object value, String type ) throws PageException {
+		return Caster.castTo(pc, CFTypes.toShort(type, true, CFTypes.TYPE_UNKNOW), type, value);
+	}
+	
+	
 	/*
 	 * *
 	 * 
