@@ -11,9 +11,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				var r = DeserializeJosn(result.filecontent.trim());
 				expect(r.a).toBeArray();
 				expect(r.b).toBeArray();
-				expect(ArrayLen(r.a).toBe(2);
-				expect(ArrayLen(r.b).toBe(2);
-				expect(ArrayLen(r.a[1]).toBe("");
+				expect(ArrayLen(r.a)).toBe(2);
+				expect(ArrayLen(r.b)).toBe(2);
+				expect(ArrayLen(r.a[1])).toBe("");
 				expect(result.filecontent.trim()).toBe('{"a":["",""],"b":["1","2"],"fieldnames":"a,b"}');				
 			});
 
@@ -26,7 +26,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				var r = DeserializeJosn(result.filecontent.trim());
 				expect(r.a).toBeString();
 				expect(r.b).toBeString();
-				expect(ListLen(r.b).toBe(2);
+				expect(ListLen(r.b)).toBe(2);
 				expect(a).toBe(",");
 				expect(result.filecontent.trim()).toBe('{"a":",","b":"1,2","fieldnames":"a,b"}');
 			});
