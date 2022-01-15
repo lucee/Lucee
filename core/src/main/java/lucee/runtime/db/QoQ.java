@@ -719,8 +719,8 @@ public final class QoQ {
 				return executeDivide(pc, sql, source, op2, row);
 			case Operation.OPERATION2_MULTIPLY:
 				return executeMultiply(pc, sql, source, op2, row);
-			case Operation.OPERATION2_EXP:
-				return executeExponent(pc, sql, source, op2, row);
+			case Operation.OPERATION2_BITWISE:
+				return executeBitwise(pc, sql, source, op2, row);
 			case Operation.OPERATION2_LIKE:
 				return Caster.toBoolean(executeLike(pc, sql, source, op2, row));
 			case Operation.OPERATION2_NOT_LIKE:
@@ -915,7 +915,23 @@ public final class QoQ {
 				if (op.equals("isnull")) return executeCoalesce(pc, sql, source, operators, row);
 				break;
 			case 'm':
-				if (op.equals("mod")) return new Double(Operator.modulus(Caster.toDoubleValue(left), Caster.toDoubleValue(right)));
+				if (op.equals("mod")) {
+					// The result of any mathmatical operation involving a null is null
+					if( left == null || right == null ) {
+						return null;
+					}
+					
+					return new Double( castForMathDouble(left) % castForMathDouble(right) );
+				}
+				break;
+			case 'p':
+				if (op.equals("power")) {
+					// The result of any mathmatical operation involving a null is null
+					if( left == null || right == null ) {
+						return null;
+					}
+					return Math.pow(castForMathDouble(left), castForMathDouble(right));	
+				}
 				break;
 
 			}
@@ -1146,9 +1162,15 @@ public final class QoQ {
 	}
 
 	private Object executeMod(PageContext pc, SQL sql, Query source, Operation2 expression, int row) throws PageException {
-
-		return Caster.toDouble(
-				Caster.toDoubleValue(executeExp(pc, sql, source, expression.getLeft(), row)) % Caster.toDoubleValue(executeExp(pc, sql, source, expression.getRight(), row)));
+		Object left = executeExp(pc, sql, source, expression.getLeft(), row);
+		Object right = executeExp(pc, sql, source, expression.getRight(), row);
+		
+		// The result of any mathmatical operation involving a null is null
+		if( left == null || right == null ) {
+			return null;
+		}
+		
+		return new Double( castForMathDouble(left) % castForMathDouble(right) );
 	}
 
 	/**
@@ -1173,6 +1195,31 @@ public final class QoQ {
 	}
 
 	/**
+	 * Cast value to Double, accounting for logic such as turning empty strings into zero.
+	 * @param value Value for casting. Must be non-null
+	 * @return Value cast to a Double
+	 */
+	private Double castForMathDouble( Object value ) throws PageException {
+		if( Caster.toString( value ).equals( "" ) ) {
+			return Double.valueOf(0);
+		}
+		return Caster.toDoubleValue(value);
+	}
+
+
+	/**
+	 * Cast value to Int, accounting for logic such as turning empty strings into zero.
+	 * @param value Value for casting. Must be non-null
+	 * @return Value cast to a Int
+	 */
+	private Integer castForMathInt( Object value ) throws PageException {
+		if( Caster.toString( value ).equals( "" ) ) {
+			return Integer.valueOf(0);
+		}
+		return Caster.toIntValue(value);
+	}
+	
+	/**
 	 * 
 	 * execute a minus operation
 	 * 
@@ -1184,8 +1231,15 @@ public final class QoQ {
 	 * @throws PageException
 	 */
 	private Object executeMinus(PageContext pc, SQL sql, Query source, Operation2 expression, int row) throws PageException {
-		return new Double(
-				Caster.toDoubleValue(executeExp(pc, sql, source, expression.getLeft(), row)) - Caster.toDoubleValue(executeExp(pc, sql, source, expression.getRight(), row)));
+		Object left = executeExp(pc, sql, source, expression.getLeft(), row);
+		Object right = executeExp(pc, sql, source, expression.getRight(), row);
+		
+		// The result of any mathmatical operation involving a null is null
+		if( left == null || right == null ) {
+			return null;
+		}
+		
+		return new Double( castForMathDouble(left) - castForMathDouble(right) );
 	}
 
 	/**
@@ -1200,8 +1254,15 @@ public final class QoQ {
 	 * @throws PageException
 	 */
 	private Object executeDivide(PageContext pc, SQL sql, Query source, Operation2 expression, int row) throws PageException {
-		return new Double(
-				Caster.toDoubleValue(executeExp(pc, sql, source, expression.getLeft(), row)) / Caster.toDoubleValue(executeExp(pc, sql, source, expression.getRight(), row)));
+		Object left = executeExp(pc, sql, source, expression.getLeft(), row);
+		Object right = executeExp(pc, sql, source, expression.getRight(), row);
+		
+		// The result of any mathmatical operation involving a null is null
+		if( left == null || right == null ) {
+			return null;
+		}
+		
+		return new Double( castForMathDouble(left) / castForMathDouble(right) );
 	}
 
 	/**
@@ -1216,13 +1277,20 @@ public final class QoQ {
 	 * @throws PageException
 	 */
 	private Object executeMultiply(PageContext pc, SQL sql, Query source, Operation2 expression, int row) throws PageException {
-		return new Double(
-				Caster.toDoubleValue(executeExp(pc, sql, source, expression.getLeft(), row)) * Caster.toDoubleValue(executeExp(pc, sql, source, expression.getRight(), row)));
+		Object left = executeExp(pc, sql, source, expression.getLeft(), row);
+		Object right = executeExp(pc, sql, source, expression.getRight(), row);
+		
+		// The result of any mathmatical operation involving a null is null
+		if( left == null || right == null ) {
+			return null;
+		}
+		
+		return new Double( castForMathDouble(left) * castForMathDouble(right) );
 	}
 
 	/**
 	 * 
-	 * execute a multiply operation
+	 * execute a bitwise operation
 	 * 
 	 * @param sql
 	 * @param source QueryResult to execute on it
@@ -1231,9 +1299,16 @@ public final class QoQ {
 	 * @return result
 	 * @throws PageException
 	 */
-	private Object executeExponent(PageContext pc, SQL sql, Query source, Operation2 expression, int row) throws PageException {
-		return Integer
-				.valueOf(Caster.toIntValue(executeExp(pc, sql, source, expression.getLeft(), row)) ^ Caster.toIntValue(executeExp(pc, sql, source, expression.getRight(), row)));
+	private Object executeBitwise(PageContext pc, SQL sql, Query source, Operation2 expression, int row) throws PageException {
+		Object left = executeExp(pc, sql, source, expression.getLeft(), row);
+		Object right = executeExp(pc, sql, source, expression.getRight(), row);
+		
+		// The result of any mathmatical operation involving a null is null
+		if( left == null || right == null ) {
+			return null;
+		}
+		
+		return Integer.valueOf(castForMathInt(left) ^ castForMathInt(right));
 	}
 
 	/**
@@ -1252,9 +1327,18 @@ public final class QoQ {
 		Object right = executeExp(pc, sql, source, expression.getRight(), row);
 
 		try {
-			return new Double(Caster.toDoubleValue(left) + Caster.toDoubleValue(right));
-		}
-		catch (PageException e) {
+			Double dLeft = Caster.toDoubleValue(left);
+			Double dRight = Caster.toDoubleValue(right);
+
+			// The result of any mathmatical operation involving a null is null
+			if( left == null || right == null ) {
+				return null;
+			}
+			
+			return new Double( dLeft + dRight );
+		// If casting fails, we assume the inputs are strings and concat instead
+		// Unlike SQL, we're not going to return null for a null string concat
+		} catch (PageException e) {
 			return Caster.toString(left) + Caster.toString(right);
 		}
 	}
