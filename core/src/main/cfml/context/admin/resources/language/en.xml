@@ -334,7 +334,7 @@
 	<data key="ext.documentationUrl">Documentation</data>	
 	<data key="ext.installeddesc">These applications are already installed on the system.</data>
 	<data key="ext.installedServer">Installed in Server Administrator</data>
-	<data key="ext.installedServerDesc">This Extension is already installed in the Server Administrator, you have 2 options, you can overwrite it for the current web context by installing it here as well or you can change it in the Server Administrator what will affect all Web Contexts.</data>
+	<data key="ext.installedServerDesc">This Extension is already installed in the Server Administrator, you have 2 options, you can overwrite it for the current web context by installing it here as well or you can change it in the Server Administrator that will affect all Web Contexts.</data>
 	<data key="ext.free">Free</data>
 	<data key="ext.price">Price</data>
 	<data key="ext.licenseagreement">License agreement</data>
@@ -377,6 +377,7 @@
 	<data key="ext.upDownDesc">Update or downgrade your already installed version.</data>
 	<data key="ext.uninstallDesc">Uninstall this version</data>
 	<data key="ext.searchbox">There is no extension available with name</data>
+	<data key="ext.providerWarning">This extension is not provided by the Lucee Association Switzerland and does not neccessarily follow our guidelines. This extension is not reviewed by the Lucee Association Switzerland. For any sugestion to improve the Extension or any issue you encounter, please contact the author of the extension directly.</data>
 	<data key="Buttons.go">go</data>
 	<data key="Buttons.upDown">update / downgrade</data>
 
