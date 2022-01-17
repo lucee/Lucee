@@ -103,13 +103,16 @@ public class ClassicLayout extends AbstractStringLayout { // TODO <Serializable>
 		// Message
 		data.append('"');
 		if (msg == null && event.getMessage() != null) msg = event.getMessage().toString();
-		data.append(StringUtil.replace(msg, "\"", "\"\"", false));
+		msg = StringUtil.replace(msg, "\"", "\"\"", false);
+		data.append(msg);
 		Throwable t = event.getThrown();
 		if (t != null) {
 			data.append(';');
-			String em = ExceptionUtil.getMessage(t);
-			data.append(StringUtil.replace(em, "\"", "\"\"", false));
-			data.append(';');
+			String em = StringUtil.replace(ExceptionUtil.getMessage(t), "\"", "\"\"", false);
+			if (!em.equals(msg)) {
+				data.append(em);
+				data.append(';');
+			}
 			String est = ExceptionUtil.getStacktrace(t, false, true);
 			data.append(StringUtil.replace(est, "\"", "\"\"", false));
 		}
