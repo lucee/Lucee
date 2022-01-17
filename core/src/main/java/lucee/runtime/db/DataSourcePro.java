@@ -16,4 +16,12 @@ public interface DataSourcePro extends DataSource {
 	public int getDefaultTransactionIsolation();
 
 	public TagListener getListener();
+
+	public int getIdleTimeout();
+
+	public int getLiveTimeout();
+
+	public Boolean isMSSQL();
+
+	public void setMSSQL(boolean ismssql);
 }

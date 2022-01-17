@@ -82,10 +82,10 @@
 			<cfif form.rememberMe != "s">
 				<cfcookie
 					expires="#dateAdd(form.rememberMe, 1, now())#"
-					name="lucee_admin_pw_#server.lucee.version#_#ad#"
+					name="lucee_admin_pw_#ad#"
 					value="#hashedPassword#">
 			<cfelse>
-				<cfcookie expires="Now" name="lucee_admin_pw_#server.lucee.version#_#ad#" value="">
+				<cfcookie expires="Now" name="lucee_admin_pw_#ad#" value="">
 			</cfif>
 			<cfif isDefined("cookie.lucee_admin_lastpage") && cookie.lucee_admin_lastpage != "logout">
 				<cfset url.action = cookie.lucee_admin_lastpage>
@@ -112,20 +112,21 @@
 		<cfif form.rememberMe != "s">
 			<cfcookie
 				expires="#dateAdd(form.rememberMe,1,now())#"
-				name="lucee_admin_pw_#server.lucee.version#_#ad#"
+				name="lucee_admin_pw_#ad#"
 				value="#hashedPassword#">
 		<cfelse>
-			<cfcookie expires="Now" name="lucee_admin_pw_#server.lucee.version#_#ad#" value="">
+			<cfcookie expires="Now" name="lucee_admin_pw_#ad#" value="">
 		</cfif>
 	</cfif>
 </cfif>
-
 <!--- cookie ---->
+
 <cfset fromCookie=false>
-<cfif !structKeyExists(session, "password" & request.adminType) && structKeyExists(cookie,'lucee_admin_pw_#server.lucee.version#_#ad#')>
+<cfif !structKeyExists(session, "password" & request.adminType) && structKeyExists(cookie,'lucee_admin_pw_#ad#')>
 	<cfset fromCookie=true>
+	
 	<cftry>
-		<cfset session["password" & ad]=cookie['lucee_admin_pw_#server.lucee.version#_#ad#']>
+		<cfset session["password" & ad]=cookie['lucee_admin_pw_#ad#']>
 		<cfcatch></cfcatch>
 	</cftry>
 </cfif>
@@ -192,8 +193,7 @@
 	</cfif>
 	<cfset var txtLanguage="">
 	<cfset var xml="">
-	<cfset var idx="">
-
+	<cfset var idx="">	
 	<cfif fileExists(fileLanguage)>
 		<cffile action="read" file="#fileLanguage#" variable="txtLanguage" charset="utf-8">
 		<cfxml casesensitive="no" variable="xml"><cfoutput>#txtLanguage#</cfoutput></cfxml>
@@ -222,7 +222,6 @@
 	</cfif>
 	<cfreturn language>
 </cffunction>
-
 <cfset navigation = stText.MenuStruct[request.adminType]>
 
 <cfset plugins = []>
@@ -232,86 +231,112 @@
 		type="#request.adminType#"
 		password="#session["password" & request.adminType]#"
 		returnVariable="pluginDir">
+	<cfset mappings = [:]>
 	<cfset mappings['/lucee_plugin_directory/']=pluginDir>
+	
+	<!--- this is only used when request.adminType eq "web" --->
+	<cfset mappings['/lucee_server_plugin_directory/']=ExpandPath("{lucee-server}/context/admin/plugin")>
+	
 	<cfapplication action="update" mappings="#mappings#">
 
 	<cfset hasPlugin=false>
 	<cfloop array="#navigation#" index="el">
-		<cfif el.action == "plugin"><cfset hasPlugin=true></cfif>
+		<cfif el.action == "plugin">
+			<cfset hasPlugin=true>
+			<cfbreak>
+		</cfif>
 	</cfloop>
-
-	<cfif !hasPlugin || (structKeyExists(session, "alwaysNew") && session.alwaysNew)>
+	<cfscript>
+		refreshPlugins = false;
+		if (structKeyExists(application, "reloadPlugins")){
+			refreshPlugins = true;
+			structDelete(application, "reloadPlugins");	
+		} else if (not StructKeyExists(application, "lucee_admin_plugins_last_updated")){
+			refreshPlugins = true;
+		} else if ((StructKeyExists(server, "lucee_admin_plugins_last_updated")
+				and (not StructKeyExists(application, "lucee_admin_plugins_last_updated")
+					or DateCompare(server.lucee_admin_plugins_last_updated, application.lucee_admin_plugins_last_updated) neq 1) )
+				){
+			refreshPlugins = true;
+		}		
+	</cfscript>	
+	<cfif refreshPlugins || !hasPlugin || (structKeyExists(session, "alwaysNew") && session.alwaysNew)>
+		<cfscript>
+			lock name="lucee_admin_plugins_last_updated"{ 
+				application.lucee_admin_plugins_last_updated = now(); // used to compare against server
+				application.plugin = {}; // clear plugins
+			}
+		</cfscript>
 		<cfif !hasPlugin>
-		<cfset plugin=struct(
-			label:"Plugins",
-			children:plugins,
-			action:"plugin"
-		)>
-		<cfset navigation[arrayLen(navigation)+1]=plugin>
+			<cfset plugin=struct(
+				label:"Plugins",
+				children:plugins,
+				action:"plugin"
+			)>
+			<cfset navigation[arrayLen(navigation)+1]=plugin>
 		</cfif>
 
 		<cfset sctNav={}>
 		<cfloop array="#navigation#" index="item">
 			<cfset sctNav[item.action]=item>
 		</cfloop>
+		<cfloop list=#mappings.keyList()# item="_pluginDir">
+			<cfdirectory directory="#_plugindir#" action="list" name="plugindirs" recurse="no">
+			<cfloop query="plugindirs">
+				<cfif plugindirs.type == "dir">
+					<cfset _lang=loadPluginLanguage(_pluginDir,plugindirs.name)>
+					<cfif isNull(_lang.__group)>
+						<cfcontinue>
+					</cfif>
+					<cfset _act=_lang.__action>
+					<cfset _group=_lang.__group>
+					<cfset _pos=_lang.__position>
+					<cfset structDelete(_lang,"__action",false)>
 
-		<cfdirectory directory="#plugindir#" action="list" name="plugindirs" recurse="no">
-		<cfloop query="plugindirs">
-			<cfif plugindirs.type == "dir">
-				<cfset _lang=loadPluginLanguage(pluginDir,plugindirs.name)>
-				<cfif isNull(_lang.__group)>
-					<cfcontinue>
-				</cfif>
-				<cfset _act=_lang.__action>
-				<cfset _group=_lang.__group>
-				<cfset _pos=_lang.__position>
-				<cfset structDelete(_lang,"__action",false)>
+					<cfset application.pluginLanguage[session.lucee_admin_lang][plugindirs.name]=_lang>
 
-				<cfset application.pluginLanguage[session.lucee_admin_lang][plugindirs.name]=_lang>
-
-				<cfset item=struct(
-					label:_lang.title,
-					action:plugindirs.name,
-					_action:'plugin&plugin='&plugindirs.name
-				)>
-
-				<cfif !structKeyExists(sctNav,_act)>
-					<cfset sctNav[_act]=struct(
-						label:_group,
-						children:[],
-						action:_act
+					<cfset item=struct(
+						label:_lang.title,
+						action:plugindirs.name,
+						_action:'plugin&plugin='&plugindirs.name
 					)>
-					<cfif _pos GT 0 && _pos LTE arrayLen(navigation)>
-						<cfscript>
-						for(i=arrayLen(navigation)+1;i>_pos;i--){
-							navigation[i]=navigation[i-1];
-						}
-						navigation[_pos]=sctNav[_act];
-						</cfscript>
-					<cfelse>
-						<cfset navigation[arrayLen(navigation)+1]=sctNav[_act]>
+
+					<cfif !structKeyExists(sctNav,_act)>
+						<cfset sctNav[_act]=struct(
+							label:_group,
+							children:[],
+							action:_act
+						)>
+						<cfif _pos GT 0 && _pos LTE arrayLen(navigation)>
+							<cfscript>
+							for(i=arrayLen(navigation)+1;i>_pos;i--){
+								navigation[i]=navigation[i-1];
+							}
+							navigation[_pos]=sctNav[_act];
+							</cfscript>
+						<cfelse>
+							<cfset navigation[arrayLen(navigation)+1]=sctNav[_act]>
+						</cfif>
+
 					</cfif>
 
+					<cfset children=sctNav[_act].children>
+					<cfset isUpdate=false>
+					<cfloop from="1" to="#arrayLen(children)#" index="i">
+						<cfif children[i].action == item.action>
+							<cfset children[i]=item>
+							<cfset isUpdate=true>
+						</cfif>
+					</cfloop>
+					<cfif !isUpdate>
+						<cfset children[arrayLen(children) + 1] = item>
+					</cfif>
 				</cfif>
-
-				<cfset children=sctNav[_act].children>
-				<cfset isUpdate=false>
-				<cfloop from="1" to="#arrayLen(children)#" index="i">
-					<cfif children[i].action == item.action>
-						<cfset children[i]=item>
-						<cfset isUpdate=true>
-			</cfif>
-		</cfloop>
-				<cfif !isUpdate>
-					<cfset children[arrayLen(children) + 1] = item>
-	</cfif>
-
-</cfif>
+			</cfloop>
 		</cfloop>
 	</cfif>
 		<cfcatch><cfrethrow></cfcatch>
 	</cftry>
-
 </cfif>
 <cfsavecontent variable="arrow"><img src="resources/img/arrow.gif.cfm" width="4" height="7" /></cfsavecontent>
 <cfif structKeyExists(url, "action") && url.action == "plugin" && !structKeyExists(url, "plugin")>
@@ -463,7 +488,7 @@
 	</cfif>
 <cfelse>
 	<cfsavecontent variable="content">
-		<cfif !findOneOf("\/",current.action)>
+		<cfif !findOneOf("\/",current.action) && fileExists("#current.action#.cfm")>
 			<cfinclude template="#current.action#.cfm">
 		<cfelse>
 			<cfset current.label = "Error">
@@ -479,6 +504,7 @@
 				$(function() {
 					initMenu();
 					__blockUI=function() {
+						chartTimer = null; // stop the overview page graphs from updating after navigation
 						setTimeout(createWaitBlockUI(<cfoutput>"#JSStringFormat(stText.general.wait)#"</cfoutput>),1000);
 					}
 					$('.submit,.menu_inactive,.menu_active').click(__blockUI);
@@ -500,7 +526,7 @@
 		</cfmodule>
 	</cfif>
 </cfif>
-<cfif (current.action != "overview" || current.action != "chartAjax") && current.action != "services.restart">
+<cfif (current.action != "changeTo" || current.action != "overview" || current.action != "chartAjax") && current.action != "services.restart">
 	<cfcookie name="lucee_admin_lastpage" value="overview" expires="NEVER">
 <cfelseif current.action == "services.restart">
 	<cfcookie name="lucee_admin_lastpage" value="services.restart" expires="NEVER">

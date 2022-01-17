@@ -1,3 +1,3 @@
 <cfscript>
 	echo(SerializeJson(form));
-</cfscript> 
+</cfscript>

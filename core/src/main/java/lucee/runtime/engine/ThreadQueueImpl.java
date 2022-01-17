@@ -25,7 +25,7 @@ import java.util.List;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.lang.SerializableObject;
 import lucee.runtime.PageContext;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
 
 public class ThreadQueueImpl implements ThreadQueue {
 	private final SerializableObject token = new SerializableObject();
@@ -49,7 +49,7 @@ public class ThreadQueueImpl implements ThreadQueue {
 	}
 
 	private void _enter(PageContext pc) throws IOException {
-		ConfigImpl ci = (ConfigImpl) pc.getConfig();
+		ConfigPro ci = (ConfigPro) pc.getConfig();
 		// print.e("enter("+Thread.currentThread().getName()+"):"+list.size());
 		long start = System.currentTimeMillis();
 		long timeout = ci.getQueueTimeout();

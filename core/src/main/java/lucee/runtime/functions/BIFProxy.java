@@ -22,6 +22,7 @@ import lucee.runtime.PageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
 import lucee.runtime.reflection.Reflector;
+import lucee.runtime.type.util.KeyConstants;
 
 public class BIFProxy extends BIF {
 
@@ -38,7 +39,7 @@ public class BIFProxy extends BIF {
 		for (int i = 0; i < args.length; i++) {
 			_args[i + 1] = args[i];
 		}
-		return Reflector.callStaticMethod(clazz, "call", _args);
+		return Reflector.callStaticMethod(clazz, KeyConstants._call, _args);
 	}
 
 }

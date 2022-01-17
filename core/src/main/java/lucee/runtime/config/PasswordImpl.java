@@ -220,12 +220,12 @@ public class PasswordImpl implements Password {
 		writeToXML(root, (Password) null, isDefault);
 	}
 
-	public static Password updatePasswordIfNecessary(ConfigImpl config, Password passwordOld, String strPasswordNew) {
+	public static Password updatePasswordIfNecessary(ConfigPro config, Password passwordOld, String strPasswordNew) {
 
 		try {
 			// is the server context default password used
 			boolean defPass = false;
-			if (config instanceof ConfigWebImpl) defPass = ((ConfigWebImpl) config).isDefaultPassword();
+			if (config instanceof ConfigWebPro) defPass = ((ConfigWebPro) config).isDefaultPassword();
 
 			int origin = config.getPasswordOrigin();
 
@@ -261,7 +261,7 @@ public class PasswordImpl implements Password {
 	 * @throws PageException
 	 * @throws BundleException
 	 */
-	public static void updatePassword(ConfigImpl config, String strPasswordOld, String strPasswordNew) throws SAXException, IOException, PageException, BundleException {
+	public static void updatePassword(ConfigPro config, String strPasswordOld, String strPasswordNew) throws SAXException, IOException, PageException, BundleException {
 
 		// old salt
 		int pwType = config.getPasswordType(); // get type from password
@@ -283,9 +283,9 @@ public class PasswordImpl implements Password {
 
 	}
 
-	public static void updatePassword(ConfigImpl config, Password passwordOld, Password passwordNew) throws SAXException, IOException, PageException, BundleException {
+	public static void updatePassword(ConfigPro config, Password passwordOld, Password passwordNew) throws SAXException, IOException, PageException, BundleException {
 		if (!config.hasPassword()) {
-			config.setPassword(passwordNew);
+			((ConfigImpl) config).setPassword(passwordNew);
 			XMLConfigAdmin admin = XMLConfigAdmin.newInstance(config, passwordNew);
 			admin.setPassword(passwordNew);
 			admin.storeAndReload();
@@ -301,7 +301,7 @@ public class PasswordImpl implements Password {
 
 	public static Password passwordToCompare(ConfigWeb cw, boolean server, String rawPassword) {
 		if (StringUtil.isEmpty(rawPassword, true)) return null;
-		ConfigWebImpl cwi = (ConfigWebImpl) cw;
+		ConfigWebPro cwi = (ConfigWebPro) cw;
 		int pwType;
 		String pwSalt;
 		if (server) {

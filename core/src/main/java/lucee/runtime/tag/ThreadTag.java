@@ -32,7 +32,7 @@ import lucee.commons.lang.StringUtil;
 import lucee.runtime.Page;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
@@ -249,14 +249,14 @@ public final class ThreadTag extends BodyTagImpl implements DynamicAttributes {
 	@Override
 	public void setDynamicAttribute(String uri, String name, Object value) {
 		if (attrs == null) attrs = new StructImpl();
-		Key key = KeyImpl.getInstance(StringUtil.trim(name, ""));
+		Key key = KeyImpl.init(StringUtil.trim(name, ""));
 		attrs.setEL(key, value);
 	}
 
 	@Override
 	public void setDynamicAttribute(String uri, Collection.Key name, Object value) {
 		if (attrs == null) attrs = new StructImpl();
-		Key key = KeyImpl.getInstance(StringUtil.trim(name.getString(), ""));
+		Key key = KeyImpl.init(StringUtil.trim(name.getString(), ""));
 		attrs.setEL(key, value);
 	}
 
@@ -311,7 +311,7 @@ public final class ThreadTag extends BodyTagImpl implements DynamicAttributes {
 			else {
 				ChildThreadImpl ct = new ChildThreadImpl((PageContextImpl) pc, currentPage, name.getString(), threadIndex, attrs, true);
 				ct.setPriority(priority);
-				((ConfigImpl) pc.getConfig()).getSpoolerEngine().add(new ChildSpoolerTask(ct, plans));
+				((ConfigPro) pc.getConfig()).getSpoolerEngine().add(new ChildSpoolerTask(ct, plans));
 			}
 
 		}
@@ -432,7 +432,8 @@ public final class ThreadTag extends BodyTagImpl implements DynamicAttributes {
 					if (_timeout != -1) ct.join(_timeout);
 					else ct.join();
 				}
-				catch (InterruptedException e) {}
+				catch (InterruptedException e) {
+				}
 			}
 			if (_timeout != -1) {
 				_timeout = _timeout - (System.currentTimeMillis() - start);

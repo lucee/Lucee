@@ -18,8 +18,6 @@
  **/
 package lucee.runtime.text.xml;
 
-import java.io.IOException;
-
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
@@ -47,8 +45,8 @@ public class XMLValidator extends XMLEntityResolverDefaultHandler {
 	private boolean hasErrors;
 	private String strSchema;
 
-	public XMLValidator(InputSource validator, String strSchema) {
-		super(validator);
+	public XMLValidator(InputSource[] validators, String strSchema) {
+		super(validators);
 		this.strSchema = strSchema;
 	}
 
@@ -112,10 +110,9 @@ public class XMLValidator extends XMLEntityResolverDefaultHandler {
 			if (!StringUtil.isEmpty(strSchema)) parser.setProperty("http://apache.org/xml/properties/schema/external-noNamespaceSchemaLocation", strSchema);
 			parser.parse(xml);
 		}
-		catch (SAXException e) {}
-		catch (IOException e) {
+		catch (Exception e) {
 
-			throw new XMLException(e.getMessage());
+			throw new XMLException(e);
 		}
 
 		// result

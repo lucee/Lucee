@@ -20,7 +20,8 @@ public abstract class UDFPropertiesBase implements UDFProperties {
 	protected int startLine;
 	protected int endLine;
 
-	public UDFPropertiesBase() {}
+	public UDFPropertiesBase() {
+	}
 
 	public UDFPropertiesBase(Page page, PageSource ps, int startLine, int endLine) {
 		this.page = page;
@@ -38,6 +39,8 @@ public abstract class UDFPropertiesBase implements UDFProperties {
 	}
 
 	public final Page getPage(PageContext pc) throws PageException {
+		Page p = getPage();
+		if (p != null) return p;
 
 		// MUST no page source
 		PageException pe = null;
@@ -49,8 +52,6 @@ public abstract class UDFPropertiesBase implements UDFProperties {
 				pe = e;
 			}
 		}
-		Page p = getPage();
-		if (p != null) return p;
 
 		if (pe != null) throw pe;
 		throw new ApplicationException("missing Page Source");

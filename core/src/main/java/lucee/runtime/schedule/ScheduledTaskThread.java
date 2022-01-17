@@ -31,16 +31,17 @@ import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.engine.CFMLEngineImpl;
 import lucee.runtime.engine.ThreadLocalConfig;
 import lucee.runtime.engine.ThreadLocalPageContext;
+import lucee.runtime.op.Caster;
 
 public class ScheduledTaskThread extends Thread {
 
 	private static final long DAY = 24 * 3600000;
 	// private Calendar calendar;
 
+	private final long start;
 	private long startDate;
 	private long startTime;
 	private long endDate;
@@ -51,7 +52,7 @@ public class ScheduledTaskThread extends Thread {
 
 	private DateTimeUtil util;
 
-	private int cIntervall;
+	// private int cIntervall;
 
 	private ScheduleTask task;
 	private final CFMLEngineImpl engine;
@@ -68,8 +69,9 @@ public class ScheduledTaskThread extends Thread {
 		this.scheduler = (SchedulerImpl) scheduler;
 		this.task = task;
 		timeZone = ThreadLocalPageContext.getTimeZone(this.scheduler.getConfig());
-		this.startDate = util.getMilliSecondsAdMidnight(timeZone, task.getStartDate().getTime());
-		this.startTime = util.getMilliSecondsInDay(timeZone, task.getStartTime().getTime());
+		this.start = Caster.toTime(task.getStartDate(), task.getStartTime(), timeZone);
+		this.startDate = util.getMilliSecondsAdMidnight(timeZone, start);
+		this.startTime = util.getMilliSecondsInDay(timeZone, start);
 		this.endDate = task.getEndDate() == null ? Long.MAX_VALUE : util.getMilliSecondsAdMidnight(timeZone, task.getEndDate().getTime());
 		this.endTime = task.getEndTime() == null ? DAY : util.getMilliSecondsInDay(timeZone, task.getEndTime().getTime());
 		this.unique = ((ScheduleTaskImpl) task).unique();
@@ -80,7 +82,7 @@ public class ScheduledTaskThread extends Thread {
 		}
 		else amount = 1;
 
-		cIntervall = toCalndarIntervall(intervall);
+		// cIntervall = toCalndarIntervall(intervall);
 		this.config = ThreadLocalPageContext.getConfig(this.scheduler.getConfig());
 	}
 
@@ -106,14 +108,17 @@ public class ScheduledTaskThread extends Thread {
 
 		// stop this thread itself
 		SystemUtil.notify(this);
+		if (this.isAlive()) SystemUtil.sleep(1);
 		SystemUtil.stop(this);
-		if (this.isAlive()) log.warn("scheduler", "task [" + task.getTask() + "] could not be stopped:" + ExceptionUtil.toString(this.getStackTrace()));
+
+		if (this.isAlive()) log.log(Log.LEVEL_WARN, "scheduler", "task [" + task.getTask() + "] could not be stopped.", ExceptionUtil.toThrowable(this.getStackTrace()));
 		else log.info("scheduler", "task [" + task.getTask() + "] stopped");
 	}
 
 	private void stop(Log log, ExecutionThread et) {
-		SystemUtil.stop(exeThread);
-		if (et != null && et.isAlive()) log.warn("scheduler", "task thread [" + task.getTask() + "] could not be stopped:" + ExceptionUtil.toString(et.getStackTrace()));
+		if (exeThread != null) SystemUtil.stop(exeThread);
+		if (et != null && et.isAlive())
+			log.log(Log.LEVEL_WARN, "scheduler", "task thread [" + task.getTask() + "] could not be stopped.", ExceptionUtil.toThrowable(et.getStackTrace()));
 		else log.info("scheduler", "task thread [" + task.getTask() + "] stopped");
 	}
 
@@ -135,7 +140,8 @@ public class ScheduledTaskThread extends Thread {
 			try {
 				scheduler.removeIfNoLonerValid(task);
 			}
-			catch (Exception e) {}
+			catch (Exception e) {
+			}
 		}
 
 	}
@@ -163,7 +169,6 @@ public class ScheduledTaskThread extends Thread {
 			execution = startDate + startTime;
 		}
 		else execution = calculateNextExecution(today, false);
-		// long sleep=execution-today;
 
 		log(Log.LEVEL_INFO, "First execution");
 
@@ -197,7 +202,6 @@ public class ScheduledTaskThread extends Thread {
 			}
 			today = System.currentTimeMillis();
 			execution = calculateNextExecution(today, true);
-
 			if (!task.isPaused()) log(Log.LEVEL_DEBUG, "next execution runs at " + DateTimeUtil.format(execution, null, timeZone));
 			// sleep=execution-today;
 		}
@@ -206,7 +210,7 @@ public class ScheduledTaskThread extends Thread {
 	private void log(int level, String msg) {
 		try {
 			String logName = "schedule task:" + task.getTask();
-			((ConfigImpl) scheduler.getConfig()).getLog("scheduler").log(level, logName, msg);
+			scheduler.getConfig().getLog("scheduler").log(level, logName, msg);
 
 		}
 		catch (Exception e) {
@@ -218,7 +222,7 @@ public class ScheduledTaskThread extends Thread {
 	private void log(int level, Exception e) {
 		try {
 			String logName = "schedule task:" + task.getTask();
-			((ConfigImpl) scheduler.getConfig()).getLog("scheduler").log(level, logName, e);
+			scheduler.getConfig().getLog("scheduler").log(level, logName, e);
 
 		}
 		catch (Exception ee) {
@@ -229,13 +233,15 @@ public class ScheduledTaskThread extends Thread {
 
 	private void sleepEL(long when, long now) {
 		long millis = when - now;
-
 		try {
-			while (true) {
-				SystemUtil.wait(this, millis);
-				millis = when - System.currentTimeMillis();
-				if (millis <= 0) break;
-				millis = 10;
+			if (millis > 0) {
+				while (true) {
+					SystemUtil.wait(this, millis);
+					if (stop) break;
+					millis = when - System.currentTimeMillis();
+					if (millis <= 0) break;
+					millis = 10;
+				}
 			}
 		}
 		catch (Exception e) {
@@ -275,48 +281,199 @@ public class ScheduledTaskThread extends Thread {
 	}
 
 	private long calculateNextExecution(long now, boolean notNow) {
-		long nowTime = util.getMilliSecondsInDay(timeZone, now);
-		long nowDate = now - nowTime;
-
-		// when second or date intervall switch to current date
-		if (startDate < nowDate && (cIntervall == Calendar.SECOND || cIntervall == Calendar.DATE)) startDate = nowDate;
-
-		// init calendar
-		Calendar calendar = JREDateTimeUtil.getThreadCalendar(timeZone);
-		calendar.setTimeInMillis(startDate + startTime);
-
-		long time;
-		while (true) {
-			time = getMilliSecondsInDay(calendar);
-			if (now <= calendar.getTimeInMillis() && time >= startTime) {
-				// this is used because when cames back sometme to early
-				if (notNow && (calendar.getTimeInMillis() - now) < 1000) {}
-				else if (intervall == ScheduleTaskImpl.INTERVAL_EVEREY && time > endTime) now = nowDate + DAY;
-				else break;
-			}
-			calendar.add(cIntervall, amount);
-		}
-		return calendar.getTimeInMillis();
+		if (intervall == ScheduleTaskImpl.INTERVAL_EVEREY) return calculateNextExecutionEvery(util, now, notNow, timeZone, start, endTime, amount);
+		return calculateNextExecutionNotEvery(util, now, notNow, timeZone, start, intervall);
 	}
 
-	private static int toCalndarIntervall(int intervall) {
-		switch (intervall) {
-		case ScheduleTask.INTERVAL_DAY:
-			return Calendar.DATE;
-		case ScheduleTask.INTERVAL_MONTH:
-			return Calendar.MONTH;
-		case ScheduleTask.INTERVAL_WEEK:
-			return Calendar.WEEK_OF_YEAR;
-		case ScheduleTask.INTERVAL_ONCE:
-			return -1;
+	public static long calculateNextExecutionNotEvery(DateTimeUtil util, long now, boolean notNow, TimeZone timeZone, long start, int intervall) {
+		int intType = 0;
+		if (intervall == ScheduleTaskImpl.INTERVAL_DAY) intType = Calendar.DAY_OF_MONTH;
+		else if (intervall == ScheduleTaskImpl.INTERVAL_WEEK) intType = Calendar.WEEK_OF_YEAR;
+		else if (intervall == ScheduleTaskImpl.INTERVAL_MONTH) intType = Calendar.MONTH;
+		else if (intervall == ScheduleTaskImpl.INTERVAL_YEAR) intType = Calendar.YEAR;
+
+		Calendar c = JREDateTimeUtil.getThreadCalendar(timeZone);
+
+		// get the current years, so we only have to search this year
+
+		c.setTimeInMillis(now);
+		int nowYear = c.get(Calendar.YEAR);
+
+		// extract the time in day info (we do not seconds in day to avoid DST issues)
+		c.setTimeInMillis(start);
+		int startDOW = c.get(Calendar.DAY_OF_WEEK);
+		int startDOM = c.get(Calendar.DAY_OF_MONTH);
+		int startMonth = c.get(Calendar.MONTH);
+		if (c.get(Calendar.YEAR) < nowYear) {
+			c.set(Calendar.YEAR, nowYear);
+			c.set(Calendar.MONTH, 0);
+			c.set(Calendar.DAY_OF_MONTH, 1);
+		}
+		int startHour = c.get(Calendar.HOUR_OF_DAY);
+		int startMinute = c.get(Calendar.MINUTE);
+		int startSecond = c.get(Calendar.SECOND);
+		int startMilliSecond = c.get(Calendar.MILLISECOND);
+		long next = c.getTimeInMillis();
+
+		// weekly
+		if (intervall == ScheduleTaskImpl.INTERVAL_WEEK) {
+			boolean update = false;
+			while (c.get(Calendar.DAY_OF_WEEK) != startDOW) {
+				c.add(Calendar.DAY_OF_YEAR, 1);
+				update = true;
+			}
+			if (update) next = c.getTimeInMillis();
+		}
+		// montly
+		else if (intervall == ScheduleTaskImpl.INTERVAL_MONTH) {
+			boolean update = false;
+			while (c.get(Calendar.DAY_OF_MONTH) != startDOM) {
+				c.add(Calendar.DAY_OF_YEAR, 1);
+				update = true;
+			}
+			if (update) next = c.getTimeInMillis();
+		}
+		// yearly
+		else if (intervall == ScheduleTaskImpl.INTERVAL_YEAR) {
+			boolean update = false;
+			while (c.get(Calendar.MONTH) != startMonth) {
+				c.add(Calendar.MONTH, 1);
+				update = true;
+			}
+			while (c.get(Calendar.DAY_OF_MONTH) != startDOM) {
+				c.add(Calendar.DAY_OF_YEAR, 1);
+				update = true;
+			}
+
+			if (update) next = c.getTimeInMillis();
+		}
+
+		// is it already in the future or we want not now
+		while (next <= now) {
+			// we allow now
+			if (!notNow) {
+				long diff = now - next;
+				if (diff >= 0 && diff < 1000) break;
+			}
+
+			c.add(intType, 1);
+			c.set(Calendar.HOUR_OF_DAY, startHour);
+			c.set(Calendar.MINUTE, startMinute);
+			c.set(Calendar.SECOND, startSecond);
+			c.set(Calendar.MILLISECOND, startMilliSecond);
+
+			// Daylight saving time
+			if (c.get(Calendar.HOUR_OF_DAY) != startHour) {
+				c.add(intType, 1);
+				c.set(Calendar.HOUR_OF_DAY, startHour);
+				c.set(Calendar.MINUTE, startMinute);
+				c.set(Calendar.SECOND, startSecond);
+				c.set(Calendar.MILLISECOND, startMilliSecond);
+			}
+			next = c.getTimeInMillis();
 
 		}
-		return Calendar.SECOND;
+		return next;
+	}
+
+	// public static void main(String[] args) {
+	// long start = 1604217661000L; // Sunday, November 1, 2020 9:01:01 AM CET
+	// long now = 1610704861000L; // Friday, January 1, 2021 11:01:01 AM CET
+	// long end = 4759891261000L; // Friday, January 1, 2021 11:01:01 AM CET
+
+	// long next = calculateNextExecutionNotEvery(DateTimeUtil.getInstance(), now, true,
+	// TimeZone.getDefault(), start, ScheduleTaskImpl.INTERVAL_HOUR);
+
+	// long next = calculateNextExecutionEvery(DateTimeUtil.getInstance(), now, true,
+	// TimeZone.getDefault(), start, end, 30);
+
+	// print.e("start: " + java.text.DateFormat.getDateTimeInstance(java.text.DateFormat.FULL,
+	// java.text.DateFormat.FULL, Locale.getDefault()).format(new Date(start)));
+	// print.e("now: " + java.text.DateFormat.getDateTimeInstance(java.text.DateFormat.FULL,
+	// java.text.DateFormat.FULL, Locale.getDefault()).format(new Date(now)));
+	// print.e("next: " + java.text.DateFormat.getDateTimeInstance(java.text.DateFormat.FULL,
+	// java.text.DateFormat.FULL, Locale.getDefault()).format(new Date(next)));
+	// print.e(next);
+	// }
+
+	public static long calculateNextExecutionEvery(DateTimeUtil util, long now, boolean notNow, TimeZone timeZone, long start, long endTime, int amount) {
+		Calendar c = JREDateTimeUtil.getThreadCalendar(timeZone);
+		// print.e("----------------------------------");
+		// print.e("now:" + new Date(now));
+		// print.e("start:" + new Date(start));
+		// print.e(amount);
+		// get the current years, so we only have to search this year
+
+		// extract the time in day info (we do not seconds in day to avoid DST issues)
+		c.setTimeInMillis(start);
+		int startHour = c.get(Calendar.HOUR_OF_DAY);
+		int startMinute = c.get(Calendar.MINUTE);
+		int startSecond = c.get(Calendar.SECOND);
+		int startMilliSecond = c.get(Calendar.MILLISECOND);
+
+		// set to midnight
+		c.setTimeInMillis(now);
+		c.set(Calendar.HOUR_OF_DAY, 0);
+		c.set(Calendar.MINUTE, 0);
+		c.set(Calendar.SECOND, 0);
+		c.set(Calendar.MILLISECOND, 0);
+		c.setTimeInMillis(c.getTimeInMillis() + endTime);
+		long end = c.getTimeInMillis();
+		// print.e("end:" + c.getTime());
+
+		c.setTimeInMillis(now);
+		c.set(Calendar.HOUR_OF_DAY, startHour);
+		revertDST(c, startHour, Calendar.SECOND, amount);
+		c.set(Calendar.MINUTE, startMinute);
+		c.set(Calendar.SECOND, startSecond);
+		c.set(Calendar.MILLISECOND, startMilliSecond);
+		long next = c.getTimeInMillis();
+		// print.e("start:" + new Date(next));
+
+		// is it already in the future or we want not now
+		while (next <= now) {
+			// we allow now
+			if (!notNow) {
+				long diff = now - next;
+				if (diff >= 0 && diff < 1000) break;
+			}
+
+			c.add(Calendar.SECOND, amount);
+			next = c.getTimeInMillis();
+			// print.e("- " + c.getTime());
+			// we reach end so we set it to start tomorrow
+			if (next > end) {
+				c.setTimeInMillis(now);
+				c.set(Calendar.HOUR_OF_DAY, startHour);
+				c.set(Calendar.MINUTE, startMinute);
+				c.set(Calendar.SECOND, startSecond);
+				c.set(Calendar.MILLISECOND, startMilliSecond);
+				c.add(Calendar.DAY_OF_MONTH, 1);
+				// print.e("next0:" + c.getTime());
+				return c.getTimeInMillis();
+			}
+		}
+		// print.e("next2:" + new Date(next));
+		return next;
+	}
+
+	private static void revertDST(Calendar c, int hourExpected, int intervall, int amount) {
+		int hour = c.get(Calendar.HOUR_OF_DAY);
+		if (hour == hourExpected) return;
+		// go back until it shifts
+		while (true) {
+			// print.e("- " + c.getTime());
+			c.add(intervall, -amount);
+			hour = c.get(Calendar.HOUR_OF_DAY);
+			if (hour <= hourExpected) {
+				c.add(intervall, amount);
+				break;
+			}
+		}
 	}
 
 	public static long getMilliSecondsInDay(Calendar c) {
 		return (c.get(Calendar.HOUR_OF_DAY) * 3600000) + (c.get(Calendar.MINUTE) * 60000) + (c.get(Calendar.SECOND) * 1000) + (c.get(Calendar.MILLISECOND));
-
 	}
 
 	public Config getConfig() {

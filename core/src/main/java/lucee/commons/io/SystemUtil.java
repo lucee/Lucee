@@ -102,6 +102,7 @@ import lucee.runtime.op.Caster;
 import lucee.runtime.op.Operator;
 import lucee.runtime.op.date.DateCaster;
 import lucee.runtime.osgi.OSGiUtil;
+import lucee.runtime.thread.ThreadUtil;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.KeyImpl;
@@ -129,8 +130,9 @@ public final class SystemUtil {
 
 	public static final String SETTING_CONTROLLER_DISABLED = "lucee.controller.disabled";
 	public static final String SETTING_UPLOAD_EXT_BLACKLIST = "lucee.upload.blacklist";
+	public static final String SETTING_UPLOAD_EXT_BLOCKLIST = "lucee.upload.blocklist";
 
-	public static final String DEFAULT_UPLOAD_EXT_BLACKLIST = "asp,aspx,cfc,cfm,cfml,do,htm,html,jsp,jspx,php";
+	public static final String DEFAULT_UPLOAD_EXT_BLOCKLIST = "asp,aspx,cfc,cfm,cfml,do,htm,html,jsp,jspx,php";
 
 	public static final char CHAR_DOLLAR = (char) 36;
 	public static final char CHAR_POUND = (char) 163;
@@ -438,7 +440,8 @@ public final class SystemUtil {
 		try {
 			return frp.getResource(".").getCanonicalResource();
 		}
-		catch (IOException e) {}
+		catch (IOException e) {
+		}
 		URL url = InfoImpl.class.getClassLoader().getResource(".");
 		try {
 			return frp.getResource(FileUtil.URLToFile(url).getAbsolutePath());
@@ -534,6 +537,20 @@ public final class SystemUtil {
 	}
 
 	/**
+	 * return the memory percentage
+	 * 
+	 * @return value from 0 to 1
+	 */
+	public static float getMemoryPercentage() {
+		Runtime r = Runtime.getRuntime();
+		long max = r.maxMemory();
+		if (max == Long.MAX_VALUE || max < 0) return -1;
+
+		long used = r.totalMemory() - r.freeMemory();
+		return (1F / max * used);
+	}
+
+	/**
 	 * replace path placeholder with the real path, placeholders are
 	 * [{temp-directory},{system-directory},{home-directory}]
 	 * 
@@ -563,7 +580,8 @@ public final class SystemUtil {
 			try {
 				return StringUtil.replace(file.getCanonicalPath(), dir.getCanonicalPath(), placeholder, true);
 			}
-			catch (IOException e) {}
+			catch (IOException e) {
+			}
 		}
 		return null;
 	}
@@ -634,7 +652,8 @@ public final class SystemUtil {
 		try {
 			id = MD5.getDigestAsString(ReqRspUtil.getRootPath(sc));
 		}
-		catch (IOException e) {}
+		catch (IOException e) {
+		}
 		return id;
 	}
 
@@ -662,35 +681,40 @@ public final class SystemUtil {
 		try {
 			Thread.sleep(time);
 		}
-		catch (InterruptedException e) {}
+		catch (InterruptedException e) {
+		}
 	}
 
 	public static void sleep(long time) {
 		try {
 			Thread.sleep(time);
 		}
-		catch (InterruptedException e) {}
+		catch (InterruptedException e) {
+		}
 	}
 
 	public static void join(Thread t) {
 		try {
 			t.join();
 		}
-		catch (InterruptedException e) {}
+		catch (InterruptedException e) {
+		}
 	}
 
 	public static void resumeEL(Thread t) {
 		try {
 			t.resume();
 		}
-		catch (Exception e) {}
+		catch (Exception e) {
+		}
 	}
 
 	public static void suspendEL(Thread t) {
 		try {
 			t.suspend();
 		}
-		catch (Exception e) {}
+		catch (Exception e) {
+		}
 	}
 
 	/**
@@ -706,7 +730,8 @@ public final class SystemUtil {
 				lock.wait(timeout);
 			}
 		}
-		catch (InterruptedException e) {}
+		catch (InterruptedException e) {
+		}
 	}
 
 	public static void wait(Object lock, int timeout) {
@@ -715,7 +740,8 @@ public final class SystemUtil {
 				lock.wait(timeout);
 			}
 		}
-		catch (InterruptedException e) {}
+		catch (InterruptedException e) {
+		}
 	}
 
 	/**
@@ -730,7 +756,8 @@ public final class SystemUtil {
 				lock.wait();
 			}
 		}
-		catch (InterruptedException e) {}
+		catch (InterruptedException e) {
+		}
 	}
 
 	/**
@@ -917,6 +944,7 @@ public final class SystemUtil {
 			bean = it.next();
 			usage = bean.getUsage();
 			_type = bean.getType();
+
 			if ((type == MEMORY_TYPE_HEAP && _type == MemoryType.HEAP) || (type == MEMORY_TYPE_NON_HEAP && _type == MemoryType.NON_HEAP)) {
 				used += usage.getUsed();
 				max += usage.getMax();
@@ -927,7 +955,7 @@ public final class SystemUtil {
 		sct.setEL(KeyConstants._used, Caster.toDouble(used));
 		sct.setEL(KeyConstants._max, Caster.toDouble(max));
 		sct.setEL(KeyConstants._init, Caster.toDouble(init));
-		sct.setEL(KeyImpl.init("available"), Caster.toDouble(max - used));
+		sct.setEL(KeyConstants._available, Caster.toDouble(max - used));
 		return sct;
 	}
 
@@ -978,8 +1006,8 @@ public final class SystemUtil {
 	}
 
 	public static TemplateLine getCurrentContext(PageContext pc) {
-		StackTraceElement[] traces = new Exception().getStackTrace();
-
+		// StackTraceElement[] traces = new Exception().getStackTrace();
+		StackTraceElement[] traces = Thread.currentThread().getStackTrace();
 		int line = 0;
 		String template;
 
@@ -993,7 +1021,8 @@ public final class SystemUtil {
 				pc = ThreadLocalPageContext.get(pc);
 				if (pc != null) template = ExpandPath.call(pc, template);
 			}
-			catch (PageException e) {} // optional step, so in case it fails we are still fine
+			catch (PageException e) {
+			} // optional step, so in case it fails we are still fine
 
 			return new TemplateLine(template, line);
 		}
@@ -1022,6 +1051,12 @@ public final class SystemUtil {
 		public String toString() {
 			if (line < 1) return template;
 			return template + ":" + line;
+		}
+
+		public StringBuilder toString(StringBuilder sb) {
+			if (line < 1) sb.append(template);
+			else sb.append(template).append(':').append(line);
+			return sb;
 		}
 
 		public String toString(PageContext pc, boolean contract) {
@@ -1054,6 +1089,22 @@ public final class SystemUtil {
 		sleep(time);
 
 		return jsm.cpuTimes().getCpuUsage(previous) * 100D;
+	}
+
+	public static float getCpuPercentage() {
+		if (jsm == null) jsm = new JavaSysMon();
+		CpuTimes cput = jsm.cpuTimes();
+		if (cput == null) return -1;
+		CpuTimes previous = new CpuTimes(cput.getUserMillis(), cput.getSystemMillis(), cput.getIdleMillis());
+		int max = 50;
+		float res = 0;
+		while (true) {
+			if (--max == 0) break;
+			sleep(100);
+			res = jsm.cpuTimes().getCpuUsage(previous);
+			if (res != 1) break;
+		}
+		return res;
 	}
 
 	private synchronized static MemoryStats physical() throws ApplicationException {
@@ -1269,7 +1320,7 @@ public final class SystemUtil {
 	}
 
 	public static void stop(PageContext pc, Thread thread) {
-		if (thread == null || !thread.isAlive()) return;
+		if (thread == null || !thread.isAlive() || thread == Thread.currentThread() || ThreadUtil.isInNativeMethod(thread, false)) return;
 		Log log = null;
 		// in case it is the request thread
 		if (pc instanceof PageContextImpl && thread == pc.getThread()) {
@@ -1290,8 +1341,10 @@ public final class SystemUtil {
 				else thread.stop();
 			}
 			else {
-				if (log != null) log.error("thread",
-						"do not " + (force ? "stop" : "interrupt") + " thread because thread is not within Lucee code" + "\n" + ExceptionUtil.toString(thread.getStackTrace()));
+				if (log != null) {
+					log.log(Log.LEVEL_INFO, "thread", "do not " + (force ? "stop" : "interrupt") + " thread because thread is not within Lucee code",
+							ExceptionUtil.toThrowable(thread.getStackTrace()));
+				}
 				return true;
 			}
 		}
@@ -1301,18 +1354,17 @@ public final class SystemUtil {
 
 		// a request still will create the error template output, so it can take some time to finish
 		for (int i = 0; i < 100; i++) {
-			// SystemOut.printDate("STOP A THREAD");
-			// SystemOut.printDate("- alive?" + thread.isAlive());
-			// SystemOut.printDate("- interupted?" + thread.isInterrupted());
-			// SystemOut.printDate("- inLucee?" + isInLucee(thread));
-			// SystemOut.printDate(ExceptionUtil.toString(thread.getStackTrace()));
 			if (!isInLucee(thread)) {
 				if (log != null) log.info("thread", "sucessfully " + (force ? "stop" : "interrupt") + " thread.");
 				return true;
 			}
 			SystemUtil.sleep(10);
 		}
-		if (log != null) log.error("thread", "failed to " + (force ? "stop" : "interrupt") + " thread." + "\n" + ExceptionUtil.toString(thread.getStackTrace()));
+		if (log != null) {
+
+			log.log(force ? Log.LEVEL_ERROR : Log.LEVEL_WARN, "thread", "failed to " + (force ? "stop" : "interrupt") + " thread." + "\n",
+					ExceptionUtil.toThrowable(thread.getStackTrace()));
+		}
 		return false;
 	}
 
@@ -1632,7 +1684,8 @@ public final class SystemUtil {
 				booted = Caster.toBoolean(m.invoke(null, EMPTY_OBJ));
 				return booted.booleanValue();
 			}
-			catch (Exception e) {}
+			catch (Exception e) {
+			}
 		}
 		return true;
 	}
@@ -1664,7 +1717,8 @@ public final class SystemUtil {
 				Method m = clazz.getMethod("getJavaObjectInputStreamAccess", EMPTY_CLASS);
 				joisa = m.invoke(null, EMPTY_OBJ);
 			}
-			catch (Exception e) {}
+			catch (Exception e) {
+			}
 		}
 
 		if (joisa != null) {
@@ -1674,7 +1728,8 @@ public final class SystemUtil {
 				m.invoke(joisa, new Object[] { s, class1, cap });
 				return true;
 			}
-			catch (Exception e) {}
+			catch (Exception e) {
+			}
 		}
 		return false;
 	}

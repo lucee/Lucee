@@ -116,7 +116,8 @@ public class QueryColumnImpl implements QueryColumnPro, Objects {
 	/**
 	 * Constructor of the class for internal usage only
 	 */
-	public QueryColumnImpl() {}
+	public QueryColumnImpl() {
+	}
 
 	@Override
 	public int size() {
@@ -321,6 +322,13 @@ public class QueryColumnImpl implements QueryColumnPro, Objects {
 
 	@Override
 	public Object set(int row, Object value) throws DatabaseException {
+		return set(row, value, false);
+	}
+
+	// Pass trustType=true to optimize operations such as QoQ where lots of values are being moved
+	// around between query objects but we know the types are already fine and don't need to
+	// redefine them every time
+	public Object set(int row, Object value, boolean trustType) throws DatabaseException {
 		query.disableIndex();
 		// query.disconnectCache();
 		if (row < 1) throw new DatabaseException("invalid row number [" + row + "]", "valid row numbers a greater or equal to one", null, null);
@@ -329,7 +337,7 @@ public class QueryColumnImpl implements QueryColumnPro, Objects {
 			throw new DatabaseException("invalid row number [" + row + "]", "valid row numbers goes from 1 to " + size, null, null);
 		}
 		synchronized (sync) {
-			value = reDefineType(value);
+			if (!trustType) value = reDefineType(value);
 			data[row - 1] = value;
 			return value;
 		}
@@ -611,7 +619,8 @@ public class QueryColumnImpl implements QueryColumnPro, Objects {
 			trg.key = this.key;
 			if (trg.query != null) trg.query.disableIndex();
 
-			// we first get data local, because length of the object cannot be changed, the safes us from
+			// we first get data local, because length of the object cannot be changed, the safes us
+			// from
 			// modifications from outside
 			Object[] data = this.data;
 			trg.data = new Object[data.length];
@@ -752,7 +761,8 @@ public class QueryColumnImpl implements QueryColumnPro, Objects {
 			try {
 				if (Operator.compare(o, data[i]) == 0) return i;
 			}
-			catch (PageException e) {}
+			catch (PageException e) {
+			}
 		}
 		return -1;
 	}
@@ -762,7 +772,8 @@ public class QueryColumnImpl implements QueryColumnPro, Objects {
 			try {
 				if (Operator.compare(o, data[i]) == 0) return i;
 			}
-			catch (PageException e) {}
+			catch (PageException e) {
+			}
 		}
 		return -1;
 	}

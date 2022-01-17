@@ -145,6 +145,36 @@ public final class XMLNodeList extends ArraySupport implements NodeList, XMLObje
 	}
 
 	@Override
+	public Object pop() throws PageException {
+		return removeE(size());
+	}
+
+	@Override
+	public Object pop(Object defaultValue) {
+		try {
+			return removeE(size());
+		}
+		catch (Exception e) {
+			return defaultValue;
+		}
+	}
+
+	@Override
+	public Object shift() throws PageException {
+		return removeE(1);
+	}
+
+	@Override
+	public Object shift(Object defaultValue) {
+		try {
+			return removeE(1);
+		}
+		catch (Exception e) {
+			return defaultValue;
+		}
+	}
+
+	@Override
 	public void clear() {
 		Node[] nodes = getChildNodesAsArray();
 		for (int i = 0; i < nodes.length; i++) {

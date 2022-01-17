@@ -83,7 +83,8 @@ public final class GetMetaData implements Function {
 				Method m = object.getClass().getMethod("info", new Class[] {});
 				return m.invoke(object, new Object[] {});
 			}
-			catch (Exception e) {}
+			catch (Exception e) {
+			}
 
 			if (object == null) throw new FunctionException(pc, "GetMetaData", 1, "object", "value is null");
 			return object.getClass();

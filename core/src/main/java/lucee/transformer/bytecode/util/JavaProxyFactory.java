@@ -105,19 +105,12 @@ public class JavaProxyFactory {
 			new Type[] {});
 
 	/*
-	 * 
-	 * public static Object to(Object obj, Class clazz) { return obj; }
-	 */
-
-	/*
 	 * public static Object createProxy(Config config,Component cfc, String className) throws
 	 * PageException, IOException { return createProxy(cfc, null,
 	 * ClassUtil.loadClass(config.getClassLoader(), className)); }
 	 */
-
 	public static Object createProxy(PageContext pc, Component cfc, Class extendz, Class... interfaces) throws PageException, IOException {
 		PageContextImpl pci = (PageContextImpl) pc;
-		// ((ConfigImpl)pci.getConfig()).getClassLoaderEnv()
 		ClassLoader[] parents = extractClassLoaders(null, interfaces);
 
 		if (extendz == null) extendz = Object.class;

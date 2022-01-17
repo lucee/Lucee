@@ -24,9 +24,10 @@ import java.util.Map.Entry;
 
 import lucee.commons.digest.HashUtil;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.engine.ThreadLocalPageContext;
+import lucee.runtime.exp.PageException;
 
 /**
  * 
@@ -85,7 +86,7 @@ public final class LoggerAndSourceData {
 	 * public Object getAppender() { getLog();// initialize if necessary return _appender; }
 	 */
 
-	public void close() {
+	public void close() throws PageException {
 
 		if (_log != null) {
 
@@ -97,7 +98,7 @@ public final class LoggerAndSourceData {
 		}
 	}
 
-	public Map<String, String> getAppenderArgs() {
+	public Map<String, String> getAppenderArgs() throws PageException {
 		getLog();// initialize if necessary
 		return appenderArgs;
 	}
@@ -110,7 +111,7 @@ public final class LoggerAndSourceData {
 		return cdLayout;
 	}
 
-	public Map<String, String> getLayoutArgs() {
+	public Map<String, String> getLayoutArgs() throws PageException {
 		getLog();// initialize if necessary
 		return layoutArgs;
 	}
@@ -123,7 +124,7 @@ public final class LoggerAndSourceData {
 		return readOnly;
 	}
 
-	public Log getLog() {
+	public Log getLog() throws PageException {
 		if (_log == null) {
 			config = ThreadLocalPageContext.getConfig(config);
 			layout = eng().getLayout(cdLayout, layoutArgs, cdAppender, name);
@@ -134,7 +135,7 @@ public final class LoggerAndSourceData {
 	}
 
 	private LogEngine eng() {
-		return ((ConfigImpl) config).getLogEngine();
+		return ((ConfigPro) config).getLogEngine();
 	}
 
 	/*

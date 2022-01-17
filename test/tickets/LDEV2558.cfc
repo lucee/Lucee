@@ -7,12 +7,12 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 					password="#request.SERVERADMINPASSWORD#"
 					returnVariable="local.extensions";
 
-				expect(len(extensions)>0).toBe(true);
+				expect(len(extensions)>10).toBe(true);
 			});
 
 			it(title = "getPageContext().getConfig().getServerRHExtensions()", body = function( currentSpec ) {
 				local.extensions=getPageContext().getConfig().getServerRHExtensions();
-				expect(len(extensions)>0).toBe(true);
+				expect(len(extensions)>10).toBe(true);
 			});
 
 		});

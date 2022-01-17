@@ -42,6 +42,7 @@
 					timer="#isDefined('form.timer') && form.timer#"
 					implicitAccess="#isDefined('form.implicitAccess') && form.implicitAccess#"
 					queryUsage="#isDefined('form.queryUsage') && form.queryUsage#"
+					template="#isDefined('form.template') && form.template#"
 
 
 					debugTemplate=""
@@ -143,7 +144,7 @@ Redirtect to entry --->
 									<div class="comment">#stText.debug.settings.generalYes#</div>
 									<table class="maintbl autowidth" id="debugoptionstbl">
 									<tbody>
-										<cfloop list="database,exception,tracing,dump,timer,implicitAccess" item="item">
+										<cfloop list="template,database,exception,tracing,dump,timer,implicitAccess" item="item">
 										<tr>
 											<th scope="row">#stText.debug.settings[item]#</th>
 											<td>

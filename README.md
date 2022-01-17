@@ -2,6 +2,8 @@
 
 ![GitHub](https://img.shields.io/github/license/lucee/Lucee)
 [![Build Status](https://travis-ci.org/lucee/Lucee.svg?branch=5.3)](https://travis-ci.org/lucee/Lucee)
+[![Backers on Open Collective](https://opencollective.com/Lucee/backers/badge.svg)](#backers)
+[![Sponsors on Open Collective](https://opencollective.com/Lucee/sponsors/badge.svg)](#sponsors) 
 
 [![Maven Central](https://img.shields.io/maven-central/v/org.lucee/lucee)](https://mvnrepository.com/artifact/org.lucee/lucee)
 [![GitHub pull requests](https://img.shields.io/github/issues-pr-raw/lucee/Lucee)](https://github.com/lucee/Lucee/pulls)
@@ -23,22 +25,22 @@ Lucee provides a compatibility layer for Adobe ColdFusion &copy;  CFML using les
 
 ## Installation
 
-You can [build Lucee from source](http://docs.lucee.org/guides/working-with-source.html) or grab one of our distributions:
+You can [build Lucee from source](https://docs.lucee.org/guides/working-with-source.html) or grab one of our distributions:
 
-- [Lucee Express](http://lucee.org/downloads.html) (just unzip and run; delete to clean up)
-- [Installers for Windows, Linux and OSX](http://lucee.org/downloads.html)
+- [Lucee Express](https://lucee.org/downloads.html) (just unzip and run; delete to clean up)
+- [Installers for Windows, Linux and OSX](https://lucee.org/downloads.html)
 - [Official Dockerfiles and Docker images](https://github.com/lucee/lucee-dockerfiles)
 
 Alternatively try the super-useful [CommandBox](https://www.ortussolutions.com/products/commandbox) standalone developer tools for CFML powered by Lucee.
 
 ## Getting Help
 
-- [Lucee Documentation Project](http://docs.lucee.org/)
+- [Lucee Documentation Project](https://docs.lucee.org/)
 - [Lucee Google Group](https://groups.google.com/forum/#!forum/lucee); general app developer support
 - [Lucee Lang Forum](http://lang.lucee.org/); hacking on Lucee itself
 - [Lucee Bug Tracker](https://luceeserver.atlassian.net/projects/LDEV/issues)
 
-If you are [looking for commercial support](http://lucee.org/members.html), you might try one of the LAS Members.
+If you are [looking for commercial support](https://lucee.org/members.html), you might try one of the LAS Members.
 
 ## System Requirements
 
@@ -56,6 +58,34 @@ For more peruse the [Lucee Manifesto](http://lang.lucee.org/t/lucee-manifesto/18
 
 The Lucee team is always open to feedback and active at CFML community events, and is keen to remind people that Lucee is a community project.
 
+## Contributors
+
+This project exists thanks to all the people who contribute. [[Contribute](CONTRIBUTING.md)].
+<a href="https://github.com/lucee/Lucee/graphs/contributors"><img src="https://opencollective.com/Lucee/contributors.svg?width=890&button=false" /></a>
+
+
+## Backers
+
+Thank you to all our backers! 🙏 [[Become a backer](https://opencollective.com/Lucee#backer)]
+
+<a href="https://opencollective.com/Lucee#backers" target="_blank"><img src="https://opencollective.com/Lucee/backers.svg?width=890"></a>
+
+
+## Sponsors
+
+Support this project by becoming a sponsor. Your logo will show up here with a link to your website. [[Become a sponsor](https://opencollective.com/Lucee#sponsor)]
+
+<a href="https://opencollective.com/Lucee/sponsor/0/website" target="_blank"><img src="https://opencollective.com/Lucee/sponsor/0/avatar.svg"></a>
+<a href="https://opencollective.com/Lucee/sponsor/1/website" target="_blank"><img src="https://opencollective.com/Lucee/sponsor/1/avatar.svg"></a>
+<a href="https://opencollective.com/Lucee/sponsor/2/website" target="_blank"><img src="https://opencollective.com/Lucee/sponsor/2/avatar.svg"></a>
+<a href="https://opencollective.com/Lucee/sponsor/3/website" target="_blank"><img src="https://opencollective.com/Lucee/sponsor/3/avatar.svg"></a>
+<a href="https://opencollective.com/Lucee/sponsor/4/website" target="_blank"><img src="https://opencollective.com/Lucee/sponsor/4/avatar.svg"></a>
+<a href="https://opencollective.com/Lucee/sponsor/5/website" target="_blank"><img src="https://opencollective.com/Lucee/sponsor/5/avatar.svg"></a>
+<a href="https://opencollective.com/Lucee/sponsor/6/website" target="_blank"><img src="https://opencollective.com/Lucee/sponsor/6/avatar.svg"></a>
+<a href="https://opencollective.com/Lucee/sponsor/7/website" target="_blank"><img src="https://opencollective.com/Lucee/sponsor/7/avatar.svg"></a>
+<a href="https://opencollective.com/Lucee/sponsor/8/website" target="_blank"><img src="https://opencollective.com/Lucee/sponsor/8/avatar.svg"></a>
+<a href="https://opencollective.com/Lucee/sponsor/9/website" target="_blank"><img src="https://opencollective.com/Lucee/sponsor/9/avatar.svg"></a>
+
 ## Copyright / License
 
 Copyright 2006-2014 Various contributing authors
@@ -68,4 +98,4 @@ Lucee Server is licensed under the Lesser GNU General Public License Version 2.1
 
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
 
-Lucee logo and related marks belong to [Lucee Association Switzerland](http://lucee.org/).
+Lucee logo and related marks belong to [Lucee Association Switzerland](https://lucee.org/).

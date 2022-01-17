@@ -35,9 +35,8 @@ import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSourceImpl;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.config.ConfigWeb;
-import lucee.runtime.config.ConfigWebImpl;
+import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.Abort;
 import lucee.runtime.exp.PageException;
@@ -48,7 +47,6 @@ import lucee.runtime.op.Caster;
 import lucee.runtime.op.Duplicator;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
-import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.scope.Argument;
@@ -57,12 +55,13 @@ import lucee.runtime.type.scope.Local;
 import lucee.runtime.type.scope.LocalImpl;
 import lucee.runtime.type.scope.Threads;
 import lucee.runtime.type.scope.Undefined;
+import lucee.runtime.type.util.KeyConstants;
 
 public class ChildThreadImpl extends ChildThread implements Serializable {
 
 	private static final long serialVersionUID = -8902836175312356628L;
 
-	private static final Collection.Key KEY_ATTRIBUTES = KeyImpl.intern("attributes");
+	private static final Collection.Key KEY_ATTRIBUTES = KeyConstants._attributes;
 
 	// private static final Set EMPTY = new HashSet();
 
@@ -158,9 +157,9 @@ public class ChildThreadImpl extends ChildThread implements Serializable {
 			}
 			// task
 			else {
-				ConfigWebImpl cwi;
+				ConfigWebPro cwi;
 				try {
-					cwi = (ConfigWebImpl) config;
+					cwi = (ConfigWebPro) config;
 					DevNullOutputStream os = DevNullOutputStream.DEV_NULL_OUTPUT_STREAM;
 					pc = ThreadUtil.createPageContext(cwi, os, serverName, requestURI, queryString, SerializableCookie.toCookies(cookies), headers, null, parameters, attributes,
 							true, -1);
@@ -207,11 +206,8 @@ public class ChildThreadImpl extends ChildThread implements Serializable {
 				ExceptionUtil.rethrowIfNecessary(t);
 				if (!Abort.isSilentAbort(t)) {
 					ConfigWeb c = pc.getConfig();
-					if (c instanceof ConfigImpl) {
-						ConfigImpl ci = (ConfigImpl) c;
-						Log log = ci.getLog("thread");
-						if (log != null) log.log(Log.LEVEL_ERROR, this.getName(), t);
-					}
+					Log log = c.getLog("thread");
+					if (log != null) log.log(Log.LEVEL_ERROR, this.getName(), t);
 					PageException pe = Caster.toPageException(t);
 					if (!serializable) catchBlock = pe.getCatchBlock(pc.getConfig());
 					return pe;

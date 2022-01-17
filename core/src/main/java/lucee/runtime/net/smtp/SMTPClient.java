@@ -69,9 +69,9 @@ import lucee.runtime.Component;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigWeb;
-import lucee.runtime.config.ConfigWebImpl;
+import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.config.Constants;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
@@ -115,6 +115,7 @@ public final class SMTPClient implements Serializable {
 
 	private static final String TEXT_HTML = "text/html";
 	private static final String TEXT_PLAIN = "text/plain";
+	private static final String MESSAGE_ID = "Message-ID";
 	// private static final SerializableObject LOCK = new SerializableObject();
 
 	private static Map<TimeZone, SoftReference<SimpleDateFormat>> formatters = new ConcurrentHashMap<TimeZone, SoftReference<SimpleDateFormat>>();
@@ -261,6 +262,10 @@ public final class SMTPClient implements Serializable {
 		tos = add(tos, to);
 	}
 
+	public void setTos(InternetAddress[] tos) {
+		this.tos = tos;
+	}
+
 	public void addTo(Object to) throws UnsupportedEncodingException, PageException, MailException {
 		InternetAddress[] tmp = MailUtil.toInternetAddresses(to);
 		for (int i = 0; i < tmp.length; i++) {
@@ -272,14 +277,19 @@ public final class SMTPClient implements Serializable {
 		this.from = from;
 	}
 
-	public void setFrom(Object from) throws UnsupportedEncodingException, MailException, PageException {
+	public boolean setFrom(Object from) throws UnsupportedEncodingException, MailException, PageException {
 		InternetAddress[] addrs = MailUtil.toInternetAddresses(from);
-		if (addrs.length == 0) return;
+		if (addrs.length == 0) return false;
 		setFrom(addrs[0]);
+		return true;
 	}
 
 	public void addBCC(InternetAddress bcc) {
 		bccs = add(bccs, bcc);
+	}
+
+	public void setBCCs(InternetAddress[] bccs) {
+		this.bccs = bccs;
 	}
 
 	public void addBCC(Object bcc) throws UnsupportedEncodingException, MailException, PageException {
@@ -293,6 +303,10 @@ public final class SMTPClient implements Serializable {
 		ccs = add(ccs, cc);
 	}
 
+	public void setCCs(InternetAddress[] ccs) {
+		this.ccs = ccs;
+	}
+
 	public void addCC(Object cc) throws UnsupportedEncodingException, MailException, PageException {
 		InternetAddress[] tmp = MailUtil.toInternetAddresses(cc);
 		for (int i = 0; i < tmp.length; i++) {
@@ -304,6 +318,10 @@ public final class SMTPClient implements Serializable {
 		rts = add(rts, rt);
 	}
 
+	public void setReplyTos(InternetAddress[] rts) {
+		this.rts = rts;
+	}
+
 	public void addReplyTo(Object rt) throws UnsupportedEncodingException, MailException, PageException {
 		InternetAddress[] tmp = MailUtil.toInternetAddresses(rt);
 		for (int i = 0; i < tmp.length; i++) {
@@ -313,6 +331,10 @@ public final class SMTPClient implements Serializable {
 
 	public void addFailTo(InternetAddress ft) {
 		fts = add(fts, ft);
+	}
+
+	public void setFailTos(InternetAddress[] fts) {
+		this.fts = fts;
 	}
 
 	public String getHTMLTextAsString() {
@@ -390,10 +412,12 @@ public final class SMTPClient implements Serializable {
 	public static class MimeMessageAndSession {
 		public final MimeMessage message;
 		public final SessionAndTransport session;
+		public final String messageId;
 
-		public MimeMessageAndSession(MimeMessage message, SessionAndTransport session) {
+		public MimeMessageAndSession(MimeMessage message, SessionAndTransport session, String messageId) {
 			this.message = message;
 			this.session = session;
+			this.messageId = messageId;
 		}
 	}
 
@@ -487,6 +511,8 @@ public final class SMTPClient implements Serializable {
 
 		msg.setHeader("Date", getNow(timeZone));
 
+		String messageId = getMessageId(headers); // Message-Id needs to be set after calling message.saveChanges();
+
 		Multipart mp = null;
 
 		// only Plain
@@ -494,7 +520,7 @@ public final class SMTPClient implements Serializable {
 			if (ArrayUtil.isEmpty(attachmentz) && ArrayUtil.isEmpty(parts)) {
 				fillPlainText(config, msg);
 				setHeaders(msg, headers);
-				return new MimeMessageAndSession(msg, sat);
+				return new MimeMessageAndSession(msg, sat, messageId);
 			}
 			mp = new MimeMultipart("mixed");
 			mp.addBodyPart(getPlainText(config));
@@ -504,7 +530,7 @@ public final class SMTPClient implements Serializable {
 			if (ArrayUtil.isEmpty(attachmentz) && ArrayUtil.isEmpty(parts)) {
 				fillHTMLText(config, msg);
 				setHeaders(msg, headers);
-				return new MimeMessageAndSession(msg, sat);
+				return new MimeMessageAndSession(msg, sat, messageId);
 			}
 			mp = new MimeMultipart("mixed");
 			mp.addBodyPart(getHTMLText(config));
@@ -547,7 +573,7 @@ public final class SMTPClient implements Serializable {
 		msg.setContent(mp);
 		setHeaders(msg, headers);
 
-		return new MimeMessageAndSession(msg, sat);
+		return new MimeMessageAndSession(msg, sat, messageId);
 	}
 
 	/*
@@ -603,6 +629,16 @@ public final class SMTPClient implements Serializable {
 		}
 	}
 
+	private static String getMessageId(Map<String, String> headers) {
+		Iterator<Entry<String, String>> it = headers.entrySet().iterator();
+		Entry<String, String> e;
+		while (it.hasNext()) {
+			e = it.next();
+			if (e.getKey().equals(MESSAGE_ID)) return e.getValue();
+		}
+		return null;
+	}
+
 	private void checkAddress(InternetAddress[] ias, CharSet charset) { // DIFF 23
 		for (int i = 0; i < ias.length; i++) {
 			checkAddress(ias[i], charset);
@@ -616,7 +652,8 @@ public final class SMTPClient implements Serializable {
 				if (!personal.equals(ia.getPersonal())) ia.setPersonal(personal);
 			}
 		}
-		catch (UnsupportedEncodingException e) {}
+		catch (UnsupportedEncodingException e) {
+		}
 	}
 
 	/**
@@ -688,7 +725,8 @@ public final class SMTPClient implements Serializable {
 			try {
 				fileName = MimeUtility.encodeText(fileName, "UTF-8", null);
 			}
-			catch (UnsupportedEncodingException e) {} // that should never happen!
+			catch (UnsupportedEncodingException e) {
+			} // that should never happen!
 		}
 		mbp.setFileName(fileName);
 		if (!StringUtil.isEmpty(att.getType())) mbp.setHeader("Content-Type", att.getType());
@@ -750,7 +788,7 @@ public final class SMTPClient implements Serializable {
 		try {
 
 			Proxy.start(proxyData);
-			Log log = ((ConfigImpl) config).getLog("mail");
+			Log log = config.getLog("mail");
 			// Server
 			// Server[] servers = config.getMailServers();
 			if (host != null) {
@@ -811,8 +849,7 @@ public final class SMTPClient implements Serializable {
 				{// synchronized(LOCK) {
 					try {
 						msgSess = createMimeMessage(config, server.getHostName(), server.getPort(), _username, _password, ((ServerImpl) server).getLifeTimeSpan(),
-								((ServerImpl) server).getIdleTimeSpan(), _tls, _ssl, ((ConfigImpl) config).isMailSendPartial(), !recyleConnection,
-								((ConfigImpl) config).isUserset());
+								((ServerImpl) server).getIdleTimeSpan(), _tls, _ssl, ((ConfigPro) config).isMailSendPartial(), !recyleConnection, ((ConfigPro) config).isUserset());
 					}
 					catch (MessagingException e) {
 						// listener
@@ -904,7 +941,7 @@ public final class SMTPClient implements Serializable {
 		props.put("tos", this.tos);
 		props.put("username", this.username);
 		props.put("xmailer", this.xmailer);
-		((ConfigWebImpl) config).getActionMonitorCollector().log(config, "mail", "Mail", exe, props);
+		((ConfigWebPro) config).getActionMonitorCollector().log(config, "mail", "Mail", exe, props);
 
 	}
 

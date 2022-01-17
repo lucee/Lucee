@@ -26,5 +26,6 @@ public class ValueArray implements FunctionEvaluator {
 	}
 
 	@Override
-	public void evaluate(BIF bif, FunctionLibFunction flf) throws EvaluatorException {}
+	public void evaluate(BIF bif, FunctionLibFunction flf) throws EvaluatorException {
+	}
 }

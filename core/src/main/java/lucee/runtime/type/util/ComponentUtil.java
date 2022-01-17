@@ -56,7 +56,7 @@ import lucee.runtime.component.AbstractFinal.UDFB;
 import lucee.runtime.component.ImportDefintion;
 import lucee.runtime.component.Property;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.ExpressionException;
@@ -276,7 +276,7 @@ public final class ComponentUtil {
 	 */
 	private static Class registerTypeMapping(Class clazz) throws PageException {
 		PageContext pc = ThreadLocalPageContext.get();
-		WSServer server = ((ConfigImpl) ThreadLocalPageContext.getConfig(pc)).getWSHandler().getWSServer(pc);
+		WSServer server = ((ConfigWebPro) ThreadLocalPageContext.getConfig(pc)).getWSHandler().getWSServer(pc);
 		return registerTypeMapping(server, clazz);
 	}
 
@@ -584,7 +584,7 @@ public final class ComponentUtil {
 
 	private static Type toType(String cfType, boolean axistype) throws PageException {
 		Class clazz = Caster.cfTypeToClass(cfType);
-		if (axistype) clazz = ((ConfigImpl) ThreadLocalPageContext.getConfig()).getWSHandler().toWSTypeClass(clazz);
+		if (axistype) clazz = ((ConfigWebPro) ThreadLocalPageContext.getConfig()).getWSHandler().toWSTypeClass(clazz);
 		return Type.getType(clazz);
 
 	}
@@ -660,8 +660,8 @@ public final class ComponentUtil {
 	public static String toStringAccess(int access) throws ApplicationException {
 		String res = toStringAccess(access, null);
 		if (res != null) return res;
-		throw new ApplicationException(
-				"Invalid function access type [" + access + "], access types are [Component.ACCESS_PACKAGE, Component.ACCESS_PRIVATE, Component.ACCESS_PUBLIC, Component.ACCESS_REMOTE]");
+		throw new ApplicationException("Invalid function access type [" + access
+				+ "], access types are [Component.ACCESS_PACKAGE, Component.ACCESS_PRIVATE, Component.ACCESS_PUBLIC, Component.ACCESS_REMOTE]");
 	}
 
 	public static String toStringAccess(int access, String defaultValue) {
@@ -788,7 +788,7 @@ public final class ComponentUtil {
 		func.set(KeyConstants._name, udf.getFunctionName());
 		func.set(KeyConstants._output, Caster.toBoolean(udf.getOutput()));
 		func.set(KeyConstants._returntype, udf.getReturnTypeAsString());
-		func.set("modifier", udf.getModifier() == Component.MODIFIER_NONE ? "" : ComponentUtil.toModifier(udf.getModifier(), ""));
+		func.set(KeyConstants._modifier, udf.getModifier() == Component.MODIFIER_NONE ? "" : ComponentUtil.toModifier(udf.getModifier(), ""));
 		func.set(KeyConstants._description, udf.getDescription());
 		if (udf.getLocalMode() != null) func.set("localMode", AppListenerUtil.toLocalMode(udf.getLocalMode().intValue(), ""));
 
@@ -796,9 +796,9 @@ public final class ComponentUtil {
 
 		if (udf.getStartLine() > 0 && udf.getEndLine() > 0) {
 			Struct pos = new StructImpl();
-			pos.set("start", udf.getStartLine());
-			pos.set("end", udf.getEndLine());
-			func.setEL("position", pos);
+			pos.set(KeyConstants._start, udf.getStartLine());
+			pos.set(KeyConstants._end, udf.getEndLine());
+			func.setEL(KeyConstants._position, pos);
 		}
 
 		int format = udf.getReturnFormat();

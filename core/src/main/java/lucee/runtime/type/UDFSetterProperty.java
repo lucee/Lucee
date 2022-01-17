@@ -41,7 +41,7 @@ public final class UDFSetterProperty extends UDFGSProperty {
 	 */
 	private static final long serialVersionUID = 378348754607851563L;
 
-	private static final Collection.Key VALIDATE_PARAMS = KeyImpl.intern("validateParams");
+	private static final Collection.Key VALIDATE_PARAMS = KeyImpl.getInstance("validateParams");
 	private final Property prop;
 	private final Key propName;
 	private String validate;
@@ -53,7 +53,7 @@ public final class UDFSetterProperty extends UDFGSProperty {
 						new FunctionArgumentLight(KeyImpl.init(prop.getName()), prop.getType(), CFTypes.toShortStrict(prop.getType(), CFTypes.TYPE_UNKNOW), true) },
 				CFTypes.TYPE_ANY);
 		this.prop = prop;
-		this.propName = KeyImpl.getInstance(prop.getName());
+		this.propName = KeyImpl.init(prop.getName());
 		this.validate = validate;
 		this.validateParams = validateParams;
 	}
@@ -65,7 +65,7 @@ public final class UDFSetterProperty extends UDFGSProperty {
 				CFTypes.TYPE_ANY);
 
 		this.prop = prop;
-		this.propName = KeyImpl.getInstance(prop.getName());
+		this.propName = KeyImpl.init(prop.getName());
 
 		this.validate = Caster.toString(prop.getDynamicAttributes().get(KeyConstants._validate, null), null);
 		if (!StringUtil.isEmpty(validate, true)) {

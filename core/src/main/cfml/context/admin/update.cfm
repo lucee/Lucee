@@ -63,8 +63,22 @@
 				</cfloop>
 				<cfset available = listlast(get_stable)>
 				<cfset hasUpdate = curr LT available>
-			<cfelse>	
-				<cfset hasUpdate=structKeyExists(updateInfo,"available") && curr LT updateInfo.available>
+			<cfelse>
+				<cfset ava_ver = listfirst(updateInfo.available,"-")>
+				<cfset cur_ver = listfirst(curr,"-")>
+				<cfloop from="1" to="#listlen(cur_ver,".")#" index="i">
+					<cfif len(listgetat(ava_ver,i,".")) eq 1>
+						<cfset last = 0&listgetat(ava_ver,i,".")>
+						<cfset ava_ver = listsetat(ava_ver,i,last,".")>
+					</cfif>
+					<cfif len(listgetat(cur_ver,i,".")) eq 1>
+						<cfset last = 0&listgetat(cur_ver,i,".")>
+						<cfset cur_ver = listsetat(cur_ver,i,last,".")>
+					</cfif>
+				</cfloop>
+				<cfset ava_ver = ava_ver&"-"&listlast(updateInfo.available,"-")>
+				<cfset cur_ver = cur_ver&"-"&listlast(curr,"-")>
+				<cfset hasUpdate = structKeyExists(updateInfo,"available") && ava_ver gt cur_ver>
 			</cfif>
 		</cfif>
 

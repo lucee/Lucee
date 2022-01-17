@@ -67,7 +67,7 @@ import lucee.runtime.type.util.KeyConstants;
  * class to serialize and desirilize WDDX Packes
  */
 public final class ScriptConverter extends ConverterSupport {
-	private static final Collection.Key REMOTING_FETCH = KeyImpl.intern("remotingFetch");
+	private static final Collection.Key REMOTING_FETCH = KeyImpl.getInstance("remotingFetch");
 	private static final char QUOTE_CHR = '"';
 	private static final String QUOTE_STR = String.valueOf(QUOTE_CHR);
 
@@ -77,7 +77,8 @@ public final class ScriptConverter extends ConverterSupport {
 	/**
 	 * constructor of the class
 	 */
-	public ScriptConverter() {}
+	public ScriptConverter() {
+	}
 
 	public ScriptConverter(boolean ignoreRemotingFetch) {
 		this.ignoreRemotingFetch = ignoreRemotingFetch;
@@ -451,7 +452,7 @@ public final class ScriptConverter extends ConverterSupport {
 		// Number
 		if (object instanceof Number) {
 			sb.append(goIn());
-			sb.append(Caster.toString(((Number) object)));
+			sb.append(Caster.toStringPrecise(((Number) object)));
 			deep--;
 			return;
 		}

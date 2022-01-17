@@ -45,6 +45,7 @@ import lucee.runtime.type.Struct;
 
 public class ThreadUtil {
 
+	// do not change, used in Redis extension
 	public static PageContextImpl clonePageContext(PageContext pc, OutputStream os, boolean stateless, boolean register2Thread, boolean register2RunningThreads) {
 		// TODO stateless
 		CFMLFactoryImpl factory = (CFMLFactoryImpl) pc.getConfig().getFactory();
@@ -54,8 +55,8 @@ public class ThreadUtil {
 		// copy state
 		PageContextImpl pci = (PageContextImpl) pc;
 		PageContextImpl dest = factory.getPageContextImpl(factory.getServlet(), req, rsp, null, false, -1, false, register2Thread, true, pc.getRequestTimeout(),
-				register2RunningThreads, false, false);
-		pci.copyStateTo(dest);
+				register2RunningThreads, false, false, pci);
+		// pci.copyStateTo(dest);
 		return dest;
 	}
 
@@ -75,6 +76,7 @@ public class ThreadUtil {
 	 *            from the context is used
 	 * @return
 	 */
+	// used in Websocket extension
 	public static PageContextImpl createPageContext(ConfigWeb config, OutputStream os, String serverName, String requestURI, String queryString, Cookie[] cookies, Pair[] headers,
 			byte[] body, Pair[] parameters, Struct attributes, boolean register, long timeout) {
 		CFMLFactory factory = config.getFactory();
@@ -171,5 +173,13 @@ public class ThreadUtil {
 			aprint.e(e.getKey().getName());
 			aprint.e(ExceptionUtil.toString(e.getValue()));
 		}
+	}
+
+	public static boolean isInNativeMethod(Thread thread, boolean defaultValue) {
+		if (thread == null) return defaultValue;
+		StackTraceElement[] stes = thread.getStackTrace();
+		if (stes == null || stes.length == 0) return defaultValue;
+		StackTraceElement ste = stes[0];
+		return ste.isNativeMethod();
 	}
 }

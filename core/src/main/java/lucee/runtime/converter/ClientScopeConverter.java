@@ -117,7 +117,7 @@ public class ClientScopeConverter {
 		else if (object instanceof String) return escape(object.toString());
 
 		// Number
-		else if (object instanceof Number) return Caster.toString(((Number) object));
+		else if (object instanceof Number) return Caster.toStringPrecise(((Number) object));
 
 		// Boolean
 		else if (object instanceof Boolean) return Caster.toString(((Boolean) object).booleanValue());
@@ -128,6 +128,6 @@ public class ClientScopeConverter {
 		// Date
 		else if (object instanceof Date) return Caster.toString(object, null);
 
-		throw new ConverterException("can't convert complex value " + Caster.toTypeName(object) + " to a simple value");
+		throw new ConverterException("Can't convert complex value [" + Caster.toTypeName(object) + "] to a simple value");
 	}
 }

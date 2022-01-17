@@ -27,7 +27,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import lucee.commons.collection.LongKeyList;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.Config;
 import lucee.runtime.dump.DumpData;
 import lucee.runtime.dump.DumpProperties;
 import lucee.runtime.dump.DumpTable;
@@ -40,7 +40,7 @@ import lucee.runtime.type.dt.DateTimeImpl;
  * pool to handle pages
  */
 public final class PageSourcePool implements Dumpable {
-
+	// TODO must not be thread safe, is used in sync block only
 	private Map<String, SoftReference<PageSource>> pageSources = new ConcurrentHashMap<String, SoftReference<PageSource>>();
 	// timeout timeout for files
 	private long timeout;
@@ -107,24 +107,17 @@ public final class PageSourcePool implements Dumpable {
 	 * @param key key reference to page object
 	 * @return page object matching to key reference
 	 */
-	public boolean remove(String key) {
-
-		if (pageSources.remove(key.toLowerCase()) != null) return true;
-
-		Set<String> set = pageSources.keySet();
-		String[] keys = set.toArray(new String[set.size()]); // done this way to avoid ConcurrentModificationException
-		SoftReference<PageSource> tmp;
-		PageSource ps;
-		for (String k: keys) {
-			tmp = pageSources.get(k);
-			ps = tmp == null ? null : tmp.get();
-			if (ps != null && key.equalsIgnoreCase(ps.getClassName())) {
-				pageSources.remove(k);
-				return true;
-			}
-		}
-		return false;
-	}
+	/*
+	 * private boolean remove(String key) {
+	 * 
+	 * if (pageSources.remove(key.toLowerCase()) != null) return true;
+	 * 
+	 * Set<String> set = pageSources.keySet(); String[] keys = set.toArray(new String[set.size()]); //
+	 * done this way to avoid ConcurrentModificationException SoftReference<PageSource> tmp; PageSource
+	 * ps; for (String k: keys) { tmp = pageSources.get(k); ps = tmp == null ? null : tmp.get(); if (ps
+	 * != null && key.equalsIgnoreCase(ps.getClassName())) { pageSources.remove(k); return true; } }
+	 * return false; }
+	 */
 
 	public boolean flushPage(String key) {
 		SoftReference<PageSource> tmp = pageSources.get(key.toLowerCase());
@@ -162,9 +155,9 @@ public final class PageSourcePool implements Dumpable {
 	/**
 	 * clear unused pages from page pool
 	 */
-	public void clearUnused(ConfigImpl config) {
+	public void clearUnused(Config config) {
 		if (size() > maxSize) {
-			LogUtil.log(config, Log.LEVEL_INFO, PageSourcePool.class.getName(), "PagePool: " + size() + ">(" + maxSize + ")");
+			LogUtil.log(config, Log.LEVEL_INFO, PageSourcePool.class.getName(), "PagePool size [" + size() + "] has exceeded max size [" + maxSize + "]. Clearing unused...");
 			String[] keys = keys();
 			LongKeyList list = new LongKeyList();
 			for (int i = 0; i < keys.length; i++) {
@@ -179,8 +172,9 @@ public final class PageSourcePool implements Dumpable {
 			while (size() > maxSize) {
 				Object key = list.shift();
 				if (key == null) break;
-				remove(key.toString());
+				// remove(key.toString());
 			}
+			LogUtil.log(config, Log.LEVEL_INFO, PageSourcePool.class.getName(), "New pagePool size [" + size() + "].");
 		}
 	}
 
@@ -236,7 +230,8 @@ public final class PageSourcePool implements Dumpable {
 	}
 
 	public void clear() {
-		pageSources.clear();
+		clearPages(null);
+		// pageSources.clear();
 	}
 
 	public int getMaxSize() {

@@ -50,6 +50,7 @@ import lucee.runtime.PageSource;
 import lucee.runtime.component.ImportDefintion;
 import lucee.runtime.component.ImportDefintionImpl;
 import lucee.runtime.component.Member;
+import lucee.runtime.component.StaticStruct;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.config.Identification;
@@ -274,6 +275,7 @@ public final class Types {
 	public static final Type BIF = Type.getType(lucee.runtime.ext.function.BIF.class);
 	public static final Type DATA_MEMBER = Type.getType(lucee.runtime.component.DataMember.class);
 	public static final Type EXPRESSION_EXCEPTION = Type.getType(ExpressionException.class);
+	public static final Type STATIC_STRUCT = Type.getType(StaticStruct.class);
 
 	/**
 	 * translate sString classname to a real type

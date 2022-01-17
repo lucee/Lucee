@@ -22,10 +22,13 @@ import java.math.BigDecimal;
 import java.sql.Array;
 import java.sql.Blob;
 import java.sql.Clob;
+import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.SQLXML;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.sql.Types;
@@ -55,7 +58,8 @@ import lucee.runtime.type.sql.ClobImpl;
  */
 public final class SQLCaster {
 
-	private SQLCaster() {}
+	private SQLCaster() {
+	}
 
 	/**
 	 * 
@@ -128,7 +132,8 @@ public final class SQLCaster {
 				if (value instanceof lucee.runtime.type.Array) return Caster.toList(value);
 				if (value instanceof lucee.runtime.type.Struct) return Caster.toMap(value);
 
-				return value;// toSQLObject(value); TODO alle lucee spezifischen typen sollten in sql typen uebersetzt werden
+				return value;// toSQLObject(value); TODO alle lucee spezifischen typen sollten in
+								// sql typen uebersetzt werden
 			}
 		}
 		catch (PageException pe) {
@@ -274,12 +279,32 @@ public final class SQLCaster {
 				else throw pe;
 			}
 			return;
+
+		case Types.SQLXML:
+			// SQLXML is a JDBC 4 feature not supported in JDBC 3.
+			SQLXML xml = null;
+			Connection conn = stat.getConnection();
+			try {
+				xml = conn.createSQLXML();
+			}
+			catch (Throwable t) {// must be a throwable because it throws for example a AbstractMethodError with JDTS, but could also
+									// be other
+				ExceptionUtil.rethrowIfNecessary(t);
+				DatabaseMetaData md = conn.getMetaData();
+				if (md.getJDBCMajorVersion() < 4)
+					throw new DatabaseException("The data type [SQLXML] is not supported with this datasource.", "The datasource JDBC driver compatibility is up to the versions ["
+							+ md.getJDBCMajorVersion() + "." + md.getJDBCMinorVersion() + "], but this feature needs at least [4.0]", null, null);
+				throw Caster.toPageException(t);
+			}
+
+			xml.setString(Caster.toString(value));
+			stat.setObject(parameterIndex, xml, type);
+			return;
 		case Types.VARCHAR:
 		case Types.LONGVARCHAR:
 		case Types.LONGNVARCHAR:
 		case Types.NVARCHAR:
 		case CFTypes.VARCHAR2:
-		case Types.SQLXML:
 			stat.setObject(parameterIndex, Caster.toString(value), type);
 			//// stat.setString(parameterIndex,Caster.toString(value));
 			return;
@@ -297,7 +322,8 @@ public final class SQLCaster {
 		case Types.TIME:
 			try {
 
-				// stat.setObject(parameterIndex, new Time((Caster.toDate(value,null).getTime())), type);
+				// stat.setObject(parameterIndex, new Time((Caster.toDate(value,null).getTime())),
+				// type);
 				stat.setTime(parameterIndex, new Time(Caster.toDate(value, tz).getTime()), JREDateTimeUtil.getThreadCalendar(tz));
 			}
 			catch (PageException pe) {
@@ -307,7 +333,8 @@ public final class SQLCaster {
 			return;
 		case Types.TIMESTAMP:
 			try {
-				// stat.setObject(parameterIndex, new Timestamp((Caster.toDate(value,null).getTime())), type);
+				// stat.setObject(parameterIndex, new
+				// Timestamp((Caster.toDate(value,null).getTime())), type);
 				// stat.setObject(parameterIndex, value, type);
 				stat.setTimestamp(parameterIndex, new Timestamp(Caster.toDate(value, tz).getTime()), JREDateTimeUtil.getThreadCalendar(tz));
 			}
@@ -326,7 +353,8 @@ public final class SQLCaster {
 		 */
 		default:
 			stat.setObject(parameterIndex, value, type);
-			// throw new DatabaseException(toStringType(item.getType())+" is not a supported Type",null,null);
+			// throw new DatabaseException(toStringType(item.getType())+" is not a supported
+			// Type",null,null);
 
 		}
 	}
@@ -689,7 +717,7 @@ public final class SQLCaster {
 	 */
 
 	/**
-	 * cast a String SQL Type to int Type
+	 * cast a String SQL Type, e.g. from cfqueryparam, to int Type
 	 * 
 	 * @param strType
 	 * @return SQL Type as int
@@ -722,6 +750,7 @@ public final class SQLCaster {
 			else if (first == 'D') {
 				if (strType.equals("DATALINK")) return Types.DATALINK;
 				else if (strType.equals("DATE")) return Types.DATE;
+				else if (strType.equals("DATETIME")) return Types.TIMESTAMP;
 				else if (strType.equals("DISTINCT")) return Types.DISTINCT;
 				else if (strType.equals("DECIMAL")) return Types.DECIMAL;
 				else if (strType.equals("DOUBLE")) return Types.DOUBLE;
@@ -769,7 +798,8 @@ public final class SQLCaster {
 				else if (strType.equals("SQLXML")) return Types.SQLXML;
 			}
 			else if (first == 'T') {
-				if (strType.equals("TIME")) return Types.TIME;
+				if (strType.equals("TEXT")) return Types.VARCHAR;
+				else if (strType.equals("TIME")) return Types.TIME;
 				else if (strType.equals("TIMESTAMP")) return Types.TIMESTAMP;
 				else if (strType.equals("TINYINT")) return Types.TINYINT;
 			}
@@ -806,8 +836,9 @@ public final class SQLCaster {
 		case Types.NCLOB:
 		case Types.LONGNVARCHAR:
 		case Types.NCHAR:
-		case Types.SQLXML:
 			return lucee.commons.lang.CFTypes.TYPE_STRING;
+		case Types.SQLXML:
+			return lucee.commons.lang.CFTypes.TYPE_XML;
 
 		case Types.TIME:
 		case Types.TIMESTAMP:

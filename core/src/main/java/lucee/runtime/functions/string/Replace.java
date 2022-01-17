@@ -67,7 +67,7 @@ public final class Replace extends BIF {
 
 	public static String call(PageContext pc, String input, Object struct) throws PageException {
 		if (!Decision.isStruct(struct)) throw new FunctionException(pc, "replace", 2, "sub1", "When passing only two parameters, the second parameter must be a Struct.");
-		return StringUtil.replaceMap(input, Caster.toMap(struct), false);
+		return StringUtil.replaceStruct(input, Caster.toStruct(struct), false);
 	}
 
 	private static String _call(PageContext pc, String str, String sub1, Object sub2, boolean firstOnly) throws PageException {

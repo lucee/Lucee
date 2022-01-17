@@ -19,10 +19,10 @@
 package lucee.runtime.type;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.Map.Entry;
 
-import edu.emory.mathcs.backport.java.util.Collections;
 import lucee.runtime.PageContext;
 import lucee.runtime.dump.DumpData;
 import lucee.runtime.dump.DumpProperties;
@@ -79,7 +79,8 @@ public class ArrayImpl extends ListAsArray {
 				else arr.set(e.getKey(), e.getValue());
 			}
 		}
-		catch (PageException ee) {} // MUST habdle this
+		catch (PageException ee) {
+		} // MUST habdle this
 		finally {
 			if (!inside) ThreadLocalDuplication.reset();
 		}
@@ -104,7 +105,8 @@ public class ArrayImpl extends ListAsArray {
 			try {
 				o = getE(i);
 			}
-			catch (Exception e) {}
+			catch (Exception e) {
+			}
 
 			table.appendRow(1, new SimpleDumpData(i), DumpUtil.toDumpData(o, pageContext, maxlevel, dp));
 

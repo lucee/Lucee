@@ -42,7 +42,7 @@ import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.component.Property;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
@@ -656,7 +656,7 @@ public final class ASMUtil {
 	 * @throws PageException
 	 */
 	public static Type toType(Class type, boolean axistype) throws PageException {
-		if (axistype) type = ((ConfigImpl) ThreadLocalPageContext.getConfig()).getWSHandler().toWSTypeClass(type);
+		if (axistype) type = ((ConfigWebPro) ThreadLocalPageContext.getConfig()).getWSHandler().toWSTypeClass(type);
 		return Type.getType(type);
 	}
 
@@ -673,7 +673,8 @@ public final class ASMUtil {
 					sb.append("type:" + props[i].getASMType() + ";");
 
 				}
-				catch (PageException e) {}
+				catch (PageException e) {
+				}
 			}
 		}
 		try {
@@ -729,7 +730,8 @@ public final class ASMUtil {
 
 	public static void pop(GeneratorAdapter adapter, Type type) {
 		if (type.equals(Types.DOUBLE_VALUE)) adapter.pop2();
-		else if (type.equals(Types.VOID)) {}
+		else if (type.equals(Types.VOID)) {
+		}
 		else adapter.pop();
 	}
 

@@ -47,7 +47,8 @@ public class TimespanCacheHandler implements CacheHandlerPro {
 	private Cache defaultCache;
 	private String id;
 
-	public TimespanCacheHandler() {}
+	public TimespanCacheHandler() {
+	}
 
 	@Override
 	public void init(ConfigWeb cw, String id, int cacheType) {
@@ -70,7 +71,8 @@ public class TimespanCacheHandler implements CacheHandlerPro {
 		try {
 			return getCache(pc).remove(id);
 		}
-		catch (IOException e) {}
+		catch (IOException e) {
+		}
 		return false;
 	}
 
@@ -104,7 +106,8 @@ public class TimespanCacheHandler implements CacheHandlerPro {
 				it.next(); // touch them to makes sure the cache remove them, not really good, cache must do this by itself
 			}
 		}
-		catch (IOException ioe) {}
+		catch (IOException ioe) {
+		}
 	}
 
 	@Override
@@ -112,7 +115,8 @@ public class TimespanCacheHandler implements CacheHandlerPro {
 		try {
 			getCache(pc).remove(CacheKeyFilterAll.getInstance());
 		}
-		catch (IOException e) {}
+		catch (IOException e) {
+		}
 	}
 
 	@Override

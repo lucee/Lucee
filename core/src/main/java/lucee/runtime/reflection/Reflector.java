@@ -24,6 +24,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Member;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.lang.reflect.Parameter;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -79,8 +80,8 @@ import lucee.runtime.type.util.Type;
  */
 public final class Reflector {
 
-	private static final Collection.Key SET_ACCESSIBLE = KeyImpl.intern("setAccessible");
-	private static final Collection.Key EXIT = KeyImpl.intern("exit");
+	private static final Collection.Key SET_ACCESSIBLE = KeyImpl.getInstance("setAccessible");
+	private static final Collection.Key EXIT = KeyImpl.getInstance("exit");
 
 	private static WeakConstructorStorage cStorage = new WeakConstructorStorage();
 	private static WeakFieldStorage fStorage = new WeakFieldStorage();
@@ -418,7 +419,7 @@ public final class Reflector {
 		else if (Reflector.isInstaneOf(trgClass, Pojo.class, true) && src instanceof Map) {
 			Struct sct = Caster.toStruct(src);
 			try {
-				Pojo pojo = (Pojo) trgClass.newInstance();
+				Pojo pojo = (Pojo) ClassUtil.newInstance(trgClass);
 				if (sct instanceof Component) return Caster.toPojo(pojo, (Component) sct, new HashSet<Object>());
 				return Caster.toPojo(pojo, sct, new HashSet<Object>());
 			}
@@ -571,9 +572,9 @@ public final class Reflector {
 	}
 
 	private static Object[] cleanArgs(Object[] args) {
-		Set<Object> done = new HashSet<Object>();
 		if (args == null) return args;
 
+		Set<Object> done = new HashSet<Object>();
 		for (int i = 0; i < args.length; i++) {
 			args[i] = _clean(done, args[i]);
 		}
@@ -700,8 +701,8 @@ public final class Reflector {
 	 * @throws NoSuchMethodException
 	 * @throws PageException
 	 */
-	public static MethodInstance getMethodInstance(Object obj, Class clazz, String methodName, Object[] args) throws NoSuchMethodException {
-		MethodInstance mi = getMethodInstanceEL(obj, clazz, KeyImpl.getInstance(methodName), args);
+	public static MethodInstance getMethodInstance(Object obj, Class clazz, Collection.Key methodName, Object[] args) throws NoSuchMethodException {
+		MethodInstance mi = getMethodInstanceEL(obj, clazz, methodName, args);
 		if (mi != null) return mi;
 
 		Class[] classes = getClasses(args);
@@ -763,7 +764,7 @@ public final class Reflector {
 	}
 
 	public static String[] getPropertyKeys(Class clazz) {
-		Set keys = new HashSet();
+		Set<String> keys = new HashSet<String>();
 		Field[] fields = clazz.getFields();
 		Field field;
 		Method[] methods = clazz.getMethods();
@@ -787,7 +788,7 @@ public final class Reflector {
 			}
 		}
 
-		return (String[]) keys.toArray(new String[keys.size()]);
+		return keys.toArray(new String[keys.size()]);
 	}
 
 	public static boolean hasPropertyIgnoreCase(Class clazz, String name) {
@@ -863,7 +864,7 @@ public final class Reflector {
 	 * @throws PageException
 	 */
 	public static Object callMethod(Object obj, String methodName, Object[] args) throws PageException {
-		return callMethod(obj, KeyImpl.getInstance(methodName), args);
+		return callMethod(obj, KeyImpl.init(methodName), args);
 	}
 
 	public static Object callMethod(Object obj, Collection.Key methodName, Object[] args) throws PageException {
@@ -945,7 +946,7 @@ public final class Reflector {
 	 * @return return return value of the called Method
 	 * @throws PageException
 	 */
-	public static Object callStaticMethod(Class clazz, String methodName, Object[] args) throws PageException {
+	public static Object callStaticMethod(Class clazz, Collection.Key methodName, Object[] args) throws PageException {
 		try {
 			return getMethodInstance(null, clazz, methodName, args).invoke(null);
 		}
@@ -970,11 +971,11 @@ public final class Reflector {
 	 */
 	public static MethodInstance getGetter(Class clazz, String prop) throws PageException, NoSuchMethodException {
 		String getterName = "get" + StringUtil.ucFirst(prop);
-		MethodInstance mi = getMethodInstanceEL(null, clazz, KeyImpl.getInstance(getterName), ArrayUtil.OBJECT_EMPTY);
+		MethodInstance mi = getMethodInstanceEL(null, clazz, KeyImpl.init(getterName), ArrayUtil.OBJECT_EMPTY);
 
 		if (mi == null) {
 			String isName = "is" + StringUtil.ucFirst(prop);
-			mi = getMethodInstanceEL(null, clazz, KeyImpl.getInstance(isName), ArrayUtil.OBJECT_EMPTY);
+			mi = getMethodInstanceEL(null, clazz, KeyImpl.init(isName), ArrayUtil.OBJECT_EMPTY);
 			if (mi != null) {
 				Method m = mi.getMethod();
 				Class rtn = m.getReturnType();
@@ -1000,7 +1001,7 @@ public final class Reflector {
 	 */
 	public static MethodInstance getGetterEL(Class clazz, String prop) {
 		prop = "get" + StringUtil.ucFirst(prop);
-		MethodInstance mi = getMethodInstanceEL(null, clazz, KeyImpl.getInstance(prop), ArrayUtil.OBJECT_EMPTY);
+		MethodInstance mi = getMethodInstanceEL(null, clazz, KeyImpl.init(prop), ArrayUtil.OBJECT_EMPTY);
 		if (mi == null) return null;
 		if (mi.getMethod().getReturnType() == void.class) return null;
 		return mi;
@@ -1040,7 +1041,7 @@ public final class Reflector {
 	 */
 	public static MethodInstance getSetter(Object obj, String prop, Object value) throws NoSuchMethodException {
 		prop = "set" + StringUtil.ucFirst(prop);
-		MethodInstance mi = getMethodInstance(obj, obj.getClass(), prop, new Object[] { value });
+		MethodInstance mi = getMethodInstance(obj, obj.getClass(), KeyImpl.init(prop), new Object[] { value });
 		Method m = mi.getMethod();
 
 		if (m.getReturnType() != void.class)
@@ -1064,8 +1065,8 @@ public final class Reflector {
 	 * 
 	 * public static MethodInstance getSetterEL(Object obj, String prop,Object value) {
 	 * prop="set"+StringUtil.ucFirst(prop); MethodInstance mi =
-	 * getMethodInstanceEL(obj.getClass(),KeyImpl.getInstance(prop),new Object[]{value}); if(mi==null)
-	 * return null; Method m=mi.getMethod();
+	 * getMethodInstanceEL(obj.getClass(),KeyImpl.init(prop),new Object[]{value}); if(mi==null) return
+	 * null; Method m=mi.getMethod();
 	 * 
 	 * if(m.getReturnType()!=void.class) return null; return mi; }
 	 */
@@ -1080,7 +1081,7 @@ public final class Reflector {
 	 */
 	public static MethodInstance getSetter(Object obj, String prop, Object value, MethodInstance defaultValue) {
 		prop = "set" + StringUtil.ucFirst(prop);
-		MethodInstance mi = getMethodInstanceEL(obj, obj.getClass(), KeyImpl.getInstance(prop), new Object[] { value });
+		MethodInstance mi = getMethodInstanceEL(obj, obj.getClass(), KeyImpl.init(prop), new Object[] { value });
 		if (mi == null) return defaultValue;
 		Method m = mi.getMethod();
 
@@ -1202,7 +1203,8 @@ public final class Reflector {
 					fields[i].set(obj, convert(value, toReferenceClass(fields[i].getType()), null));
 					return true;
 				}
-				catch (PageException e) {}
+				catch (PageException e) {
+				}
 			}
 		}
 		catch (Exception e) {
@@ -1449,22 +1451,22 @@ public final class Reflector {
 	 */
 	public static Method[] getDeclaredMethods(Class clazz) {
 		Method[] methods = clazz.getMethods();
-		ArrayList list = new ArrayList();
+		ArrayList<Method> list = new ArrayList<Method>();
 		for (int i = 0; i < methods.length; i++) {
 			if (methods[i].getDeclaringClass() == clazz) list.add(methods[i]);
 		}
 		if (list.size() == 0) return new Method[0];
-		return (Method[]) list.toArray(new Method[list.size()]);
+		return list.toArray(new Method[list.size()]);
 	}
 
 	public static Method[] getSetters(Class clazz) {
 		Method[] methods = clazz.getMethods();
-		ArrayList list = new ArrayList();
+		ArrayList<Method> list = new ArrayList<Method>();
 		for (int i = 0; i < methods.length; i++) {
 			if (isSetter(methods[i])) list.add(methods[i]);
 		}
 		if (list.size() == 0) return new Method[0];
-		return (Method[]) list.toArray(new Method[list.size()]);
+		return list.toArray(new Method[list.size()]);
 	}
 
 	public static Method[] getGetters(Class clazz) {
@@ -1534,6 +1536,18 @@ public final class Reflector {
 		catch (Exception e) {
 			return defaultValue;
 		}
+	}
+
+	public static Constructor getConstructor(Class clazz, Class[] args, Constructor defaultValue) {
+		outer: for (Constructor c: clazz.getConstructors()) {
+			Parameter[] params = c.getParameters();
+			if (params.length != args.length) continue;
+			for (int i = 0; i < params.length; i++) {
+				if (!isInstaneOf(args[i], params[i].getType(), true)) continue outer;
+			}
+			return c;
+		}
+		return defaultValue;
 	}
 
 }

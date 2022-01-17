@@ -92,10 +92,10 @@ public final class ResourceLockImpl implements ResourceLock {
 			}
 			if (t == Thread.currentThread()) {
 				Config config = ThreadLocalPageContext.getConfig();
-				if (!LogUtil.isAlreadyInLog()) LogUtil.log(config, Log.LEVEL_ERROR, "file", "conflict in same thread: on " + path);
+				if (!LogUtil.isAlreadyInLog()) LogUtil.log(config, Log.LEVEL_ERROR, "file", "Conflict in same thread: on [" + path + "]");
 				return;
 			}
-			// bugfix when lock von totem thread, wird es ignoriert
+			// bugfix when lock from dead thread, it will be ignored
 			if (!t.isAlive()) {
 				resources.remove(path);
 				return;
@@ -126,23 +126,21 @@ public final class ResourceLockImpl implements ResourceLock {
 							}
 						}
 						if (pc != null) {
-							add = " The file is locked by a request on the following URL " + ReqRspUtil.getRequestURL(pc.getHttpServletRequest(), true) + ", that request started "
-									+ (System.currentTimeMillis() - pc.getStartTime()) + "ms ago.";
+							add = " The file is locked by a request on the following URL [" + ReqRspUtil.getRequestURL(pc.getHttpServletRequest(), true)
+									+ "], that request started " + (System.currentTimeMillis() - pc.getStartTime()) + "ms ago.";
 						}
-
 						if (!LogUtil.isAlreadyInLog()) LogUtil.log(config, Log.LEVEL_ERROR, "file",
-								"timeout after " + (now - start) + " ms (" + (lockTimeout) + " ms) occured while accessing file [" + path + "]." + add);
-
+								"Timeout after " + (now - start) + " ms (" + (lockTimeout) + " ms) occurred while accessing file [" + path + "]." + add);
 					}
 					else {
 						if (!LogUtil.isAlreadyInLog())
-							LogUtil.log(config, Log.LEVEL_ERROR, "file", "timeout (" + (lockTimeout) + " ms) occured while accessing file [" + path + "].");
+							LogUtil.log(config, Log.LEVEL_ERROR, "file", "Timeout (" + (lockTimeout) + " ms) occurred while accessing file [" + path + "].");
 					}
-
 					return;
 				}
 			}
-			catch (InterruptedException e) {}
+			catch (InterruptedException e) {
+			}
 		}
 		while (true);
 	}

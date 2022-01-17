@@ -138,7 +138,7 @@ public final class LDAPClient {
 			Class clazz = ClassUtil.loadClass("com.sun.net.ssl.internal.ssl.Provider");
 
 			try {
-				Security.addProvider((Provider) clazz.newInstance());
+				Security.addProvider((Provider) ClassUtil.newInstance(clazz));
 			}
 			catch (Exception e) {
 				throw new RuntimeException(e);
@@ -348,7 +348,8 @@ public final class LDAPClient {
 						try {
 							value = attributesRow.get(name).get();
 						}
-						catch (Exception e) {}
+						catch (Exception e) {
+						}
 
 						qry.setAtEL("name", len, name);
 						qry.setAtEL("value", len, value);

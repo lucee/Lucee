@@ -48,7 +48,22 @@ public class DatasourceConnectionPool {
 	private static final long WAIT = 1000L;
 	private final Object waiter = new Object();
 
+	private static final ConcurrentHashMap<String, String> tokens = new ConcurrentHashMap<String, String>();
+
 	private ConcurrentHashMap<String, DCStack> dcs = new ConcurrentHashMap<String, DCStack>();
+
+	public int getOpenConnection(DataSource datasource, String user, String pass) throws PageException {
+		if (StringUtil.isEmpty(user)) {
+			user = datasource.getUsername();
+			pass = datasource.getPassword();
+		}
+		if (pass == null) pass = "";
+
+		// get stack
+		DCStack stack = getDCStack(datasource, user, pass);
+		RefInteger cnt = stack.getCounter();
+		return cnt == null ? 0 : cnt.toInt();
+	}
 
 	// !!! do not change used in hibernate extension
 	public DatasourceConnection getDatasourceConnection(Config config, DataSource datasource, String user, String pass) throws PageException {
@@ -95,28 +110,27 @@ public class DatasourceConnectionPool {
 					}
 				}
 
-				_inc(stack, datasource, user, pass); // if new or fine we
-				// increase in any case
+				_inc(stack, datasource, user, pass); // if new or fine we increase in any case
 				// create a new instance
-				if (rtn == null) {
-					try {
-						rtn = loadDatasourceConnection(config, (DataSourcePro) datasource, user, pass);
-					}
-					catch (PageException pe) {
-						_dec(stack, datasource, user, pass);
-						throw pe;
-					}
-
-					if (rtn instanceof DatasourceConnectionImpl) ((DatasourceConnectionImpl) rtn).using();
-
-					return rtn;
+			}
+			if (rtn == null) {
+				try {
+					rtn = loadDatasourceConnection(config, (DataSourcePro) datasource, user, pass);
 				}
+				catch (PageException pe) {
+					synchronized (stack) {
+						_dec(stack, datasource, user, pass);
+					}
+					throw pe;
+				}
+				if (rtn instanceof DatasourceConnectionPro) ((DatasourceConnectionPro) rtn).using();
+				return rtn;
 			}
 
 			// we get us a fine connection (we do validation outside the
 			// synchronized to safe shared time)
-			if (isValid(rtn, Boolean.TRUE)) {
-				if (rtn instanceof DatasourceConnectionImpl) ((DatasourceConnectionImpl) rtn).using();
+			if (isValid(rtn)) {
+				if (rtn instanceof DatasourceConnectionPro) ((DatasourceConnectionPro) rtn).using();
 				return rtn;
 			}
 
@@ -154,18 +168,12 @@ public class DatasourceConnectionPool {
 	public void releaseDatasourceConnection(DatasourceConnection dc, boolean closeIt) {
 		if (dc == null) return;
 		if (!closeIt && dc.getDatasource().getConnectionTimeout() == 0) closeIt = true; // smaller than 0 is infiniti
-
+		if (closeIt) IOUtil.closeEL(dc.getConnection());
 		DCStack stack = getDCStack(dc.getDatasource(), dc.getUsername(), dc.getPassword());
 		synchronized (stack) {
-			if (closeIt) IOUtil.closeEL(dc.getConnection());
-			else stack.add(dc);
-
-			int max = dc.getDatasource().getConnectionLimit();
-			if (max != -1) {
-				_dec(stack, dc.getDatasource(), dc.getUsername(), dc.getPassword());
-				SystemUtil.notify(waiter);
-			}
-			else _dec(stack, dc.getDatasource(), dc.getUsername(), dc.getPassword());
+			if (!closeIt) stack.add(dc);
+			_dec(stack, dc.getDatasource(), dc.getUsername(), dc.getPassword());
+			if (dc.getDatasource().getConnectionLimit() != -1) SystemUtil.notify(waiter);
 		}
 	}
 
@@ -173,14 +181,14 @@ public class DatasourceConnectionPool {
 		releaseDatasourceConnection(dc, false);
 	}
 
-	public void clear(boolean force) {
+	public void clear(boolean force, boolean validate) {
 		// remove all timed out conns
 		try {
 			Object[] arr = dcs.entrySet().toArray();
 			if (ArrayUtil.isEmpty(arr)) return;
 			for (int i = 0; i < arr.length; i++) {
 				DCStack conns = (DCStack) ((Map.Entry) arr[i]).getValue();
-				if (conns != null) conns.clear(force);
+				if (conns != null) conns.clear(force, validate);
 			}
 		}
 		catch (Throwable t) {
@@ -188,7 +196,13 @@ public class DatasourceConnectionPool {
 		}
 	}
 
-	public void clear(String dataSourceName, boolean force) {
+	/**
+	 * 
+	 * @param dataSourceName
+	 * @param force
+	 * @param validate only used when force is false
+	 */
+	public void clear(String dataSourceName, boolean force, boolean validate) {
 		// remove all timed out conns
 		try {
 			Object[] arr = dcs.entrySet().toArray();
@@ -202,7 +216,7 @@ public class DatasourceConnectionPool {
 				if (dc != null) {
 					String name = dc.getDatasource().getName();
 					if (dataSourceName.equalsIgnoreCase(name)) {
-						if (conns != null) conns.clear(force);
+						if (conns != null) conns.clear(force, validate);
 					}
 				}
 			}
@@ -222,13 +236,13 @@ public class DatasourceConnectionPool {
 			while (it.hasNext()) {
 				e = it.next();
 				if (datasource.equals(e.getValue().getDatasource())) {
-					e.getValue().clear(true);
+					e.getValue().clear(true, false);
 				}
 			}
 		}
 	}
 
-	public static boolean isValid(DatasourceConnection dc, Boolean autoCommit) {
+	public static boolean isValid(DatasourceConnection dc) {
 		try {
 			if (dc.getConnection().isClosed()) return false;
 		}
@@ -245,13 +259,11 @@ public class DatasourceConnectionPool {
 		} // not all driver support this, because of that we ignore an error
 			// here, also protect from java 5
 
-		try {
-			if (autoCommit != null) dc.getConnection().setAutoCommit(autoCommit.booleanValue());
-		}
-		catch (Throwable t) {
-			ExceptionUtil.rethrowIfNecessary(t);
-			return false;
-		}
+		/*
+		 * try { if (autoCommit != null && autoCommit.booleanValue() != dc.getAutoCommit())
+		 * dc.setAutoCommit(autoCommit.booleanValue()); } catch (Throwable t) {
+		 * ExceptionUtil.rethrowIfNecessary(t); return false; }
+		 */
 
 		return true;
 	}
@@ -313,7 +325,6 @@ public class DatasourceConnectionPool {
 		String id = createId(datasource, user, pass);
 		synchronized (id) {
 			DCStack stack = dcs.get(id);
-
 			if (stack == null) {
 				dcs.put(id, stack = new DCStack(datasource, user, pass));
 			}
@@ -355,6 +366,11 @@ public class DatasourceConnectionPool {
 	}
 
 	public static String createId(DataSource datasource, String user, String pass) {
-		return datasource.id() + "::" + user + ":" + pass;
+		String str = new StringBuilder().append(datasource.id()).append("::").append(user).append(":").append(pass).toString();
+		String lock = tokens.putIfAbsent(str, str);
+		if (lock == null) {
+			lock = str;
+		}
+		return lock;
 	}
 }

@@ -181,7 +181,7 @@ public class RamCache extends CacheSupport {
 		SoftReference<RamCacheEntry> entry;
 		while (it.hasNext()) {
 			entry = it.next().getValue();
-			if (valid(entry.get())) list.add(entry.get().getKey());
+			if (entry != null && valid(entry.get())) list.add(entry.get().getKey());
 		}
 		return list;
 	}
@@ -283,4 +283,7 @@ public class RamCache extends CacheSupport {
 		return info;
 	}
 
+	public boolean isObjectSerialisationSupported() {
+		return true;
+	}
 }

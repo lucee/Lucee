@@ -57,16 +57,20 @@ public final class DummyS3ResourceProvider implements ResourceProviderPro {
 	}
 
 	@Override
-	public void setResources(Resources resources) {}
+	public void setResources(Resources resources) {
+	}
 
 	@Override
-	public void unlock(Resource res) {}
+	public void unlock(Resource res) {
+	}
 
 	@Override
-	public void lock(Resource res) throws IOException {}
+	public void lock(Resource res) throws IOException {
+	}
 
 	@Override
-	public void read(Resource res) throws IOException {}
+	public void read(Resource res) throws IOException {
+	}
 
 	@Override
 	public boolean isCaseSensitive() {
@@ -89,12 +93,6 @@ public final class DummyS3ResourceProvider implements ResourceProviderPro {
 	}
 
 	private PageException notInstalled() {
-		/*
-		 * if(tryToInstall){ try { ConfigWebImpl config = (ConfigWebImpl)
-		 * ThreadLocalPageContext.getConfig(); if(config.installServerExtension(S3)) return new
-		 * ApplicationException("S3 Resource installed, with the next request the extension should work.");
-		 * } finally { tryToInstall=false; } }
-		 */
 		return new ApplicationException("No S3 Resource installed!", "Check out the Extension Store in the Lucee Administrator for \"S3\".");
 	}
 

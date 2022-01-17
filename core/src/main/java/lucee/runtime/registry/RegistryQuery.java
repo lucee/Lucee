@@ -203,7 +203,8 @@ public final class RegistryQuery {
 				while ((c = is.read()) != -1)
 					sw.write(c);
 			}
-			catch (IOException e) {}
+			catch (IOException e) {
+			}
 		}
 
 		String getResult() {

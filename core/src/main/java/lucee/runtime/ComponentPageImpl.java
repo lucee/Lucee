@@ -36,12 +36,12 @@ import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.CFTypes;
 import lucee.commons.lang.ExceptionUtil;
+import lucee.commons.lang.HTMLEntities;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.mimetype.MimeType;
 import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.component.StaticStruct;
-import lucee.runtime.config.ConfigImpl;
-import lucee.runtime.config.ConfigWebImpl;
+import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.converter.BinaryConverter;
 import lucee.runtime.converter.ConverterException;
 import lucee.runtime.converter.JSONConverter;
@@ -91,12 +91,11 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 
 	private static final long serialVersionUID = -3483642653131058030L;
 
-	public static final lucee.runtime.type.Collection.Key REMOTE_PERSISTENT_ID = KeyImpl.intern("Id16hohohh");
+	public static final lucee.runtime.type.Collection.Key REMOTE_PERSISTENT_ID = KeyImpl.getInstance("Id16hohohh");
 
 	private long lastCheck = -1;
 
-	// static scope
-	public final StaticStruct _static = new StaticStruct();
+	private StaticScope staticScope;
 
 	public abstract ComponentImpl newInstance(PageContext pc, String callPath, boolean isRealPath, boolean isExtendedComponent, boolean executeConstr)
 			throws lucee.runtime.exp.PageException;
@@ -134,8 +133,8 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 			// load the cfc
 			try {
 				if (internalCall && strRemotePersisId != null) {
-					ConfigWebImpl config = (ConfigWebImpl) pc.getConfig();
-					GatewayEngineImpl engine = config.getGatewayEngine();
+					ConfigWebPro config = (ConfigWebPro) pc.getConfig();
+					GatewayEngineImpl engine = (GatewayEngineImpl) config.getGatewayEngine();
 					component = engine.getPersistentRemoteCFC(strRemotePersisId);
 
 					if (component == null) {
@@ -163,18 +162,20 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 
 			// METHOD INVOCATION
 			String qs = ReqRspUtil.getQueryString(pc.getHttpServletRequest());
+
 			if (pc.getBasePageSource() == this.getPageSource() && pc.getConfig().debug()) pc.getDebugger().setOutput(false);
+
 			boolean isPost = pc.getHttpServletRequest().getMethod().equalsIgnoreCase("POST");
 
 			boolean suppressContent = pc.getRequestDialect() == CFMLEngine.DIALECT_LUCEE || ((PageContextImpl) pc).getSuppressContent();
 			if (suppressContent) pc.clear();
-			Object method;
 
 			if (fromRest) {
-
 				callRest(pc, component, Caster.toString(req.getAttribute("rest-path"), ""), (Result) req.getAttribute("rest-result"), suppressContent);
 				return null;
 			}
+
+			Object method;
 
 			// POST
 			if (isPost) {
@@ -190,7 +191,6 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 					// close(pc);
 					return null;
 				}
-
 			}
 
 			// GET
@@ -247,15 +247,16 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 			}
 
 			// DUMP
-			// TODO component.setAccess(pc,Component.ACCESS_PUBLIC);
-			String cdf = pc.getConfig().getComponentDumpTemplate();
+			if (!req.getServletPath().equalsIgnoreCase("/Web." + (pc.getRequestDialect() == CFMLEngine.DIALECT_CFML ? lucee.runtime.config.Constants.getCFMLComponentExtension()
+					: lucee.runtime.config.Constants.getLuceeComponentExtension()))) {
+				String cdf = pc.getConfig().getComponentDumpTemplate();
 
-			if (cdf != null && cdf.trim().length() > 0) {
-				pc.variablesScope().set(KeyConstants._component, component);
-				pc.doInclude(cdf, false);
+				if (cdf != null && cdf.trim().length() > 0) {
+					pc.variablesScope().set(KeyConstants._component, component);
+					pc.doInclude(cdf, false);
+				}
+				else pc.write(pc.getConfig().getDefaultDumpWriter(DumpWriter.DEFAULT_RICH).toString(pc, component.toDumpData(pc, 9999, DumpUtil.toDumpProperties()), true));
 			}
-			else pc.write(pc.getConfig().getDefaultDumpWriter(DumpWriter.DEFAULT_RICH).toString(pc, component.toDumpData(pc, 9999, DumpUtil.toDumpProperties()), true));
-
 		}
 		catch (Throwable t) {
 			throw Caster.toPageException(t);// Exception Handler.castAnd
@@ -270,7 +271,7 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 		return pc.urlScope().get(key, defaultValue);
 	}
 
-	private void callRest(PageContext pc, Component component, String path, Result result, boolean suppressContent) throws IOException, ConverterException {
+	private void callRest(PageContext pc, Component component, String path, Result result, boolean suppressContent) throws PageException, IOException, ConverterException {
 		String method = pc.getHttpServletRequest().getMethod();
 		String[] subPath = result.getPath();
 		Struct cMeta;
@@ -365,11 +366,13 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 				}
 				catch (PageException pe) {
 					pc.getConfig().getLog("rest").error("REST", pe);
+					throw pe;
 				}
 			}
 		}
+
 		if (status == 404) {
-			RestUtil.setStatus(pc, 404, "no rest service for [" + path + "] found");
+			RestUtil.setStatus(pc, 404, "no rest service for [" + HTMLEntities.escapeHTML(path) + "] found");
 			pc.getConfig().getLog("rest").error("REST", "404; no rest service for [" + path + "] found");
 		}
 		else if (status == 405) {
@@ -442,6 +445,7 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 		catch (PageException e) {
 			RestUtil.setStatus(pc, 500, ExceptionUtil.getMessage(e));
 			pc.getConfig().getLog("rest").error("REST", e);
+			throw e;
 		}
 		finally {
 			if (suppressContent) pc.unsetSilent();
@@ -465,7 +469,8 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 						pc.forceWrite(content);
 						hasContent = true;
 					}
-					catch (IOException e) {}
+					catch (IOException e) {
+					}
 				}
 			}
 
@@ -487,6 +492,7 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 				}
 			}
 		}
+
 		// convert result
 		if (rtn != null && !hasContent) {
 			Props props = new Props();
@@ -653,7 +659,8 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 							try {
 								args = new CFMLExpressionInterpreter().interpret(pc, str);
 							}
-							catch (PageException _pe) {}
+							catch (PageException _pe) {
+							}
 						}
 					}
 				}
@@ -975,12 +982,12 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 		}
 		// create a wsdl file
 		else {
-			((ConfigImpl) ThreadLocalPageContext.getConfig(pc)).getWSHandler().getWSServer(pc).doGet(pc, pc.getHttpServletRequest(), pc.getHttpServletResponse(), component);
+			((ConfigWebPro) ThreadLocalPageContext.getConfig(pc)).getWSHandler().getWSServer(pc).doGet(pc, pc.getHttpServletRequest(), pc.getHttpServletResponse(), component);
 		}
 	}
 
 	private void callWebservice(PageContext pc, Component component) throws IOException, ServletException, PageException {
-		((ConfigImpl) ThreadLocalPageContext.getConfig(pc)).getWSHandler().getWSServer(pc).doPost(pc, pc.getHttpServletRequest(), pc.getHttpServletResponse(), component);
+		((ConfigWebPro) ThreadLocalPageContext.getConfig(pc)).getWSHandler().getWSServer(pc).doPost(pc, pc.getHttpServletRequest(), pc.getHttpServletResponse(), component);
 	}
 
 	/**
@@ -988,6 +995,11 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 	 */
 	public void staticConstructor(PageContext pagecontext, ComponentImpl cfc) {
 		// do nothing
+	}
+
+	// this method only exist that old classes from archives still work, not perfectly, but good enough
+	public StaticStruct getStaticStruct() {
+		return new StaticStruct();
 	}
 
 	public abstract void initComponent(PageContext pc, ComponentImpl c, boolean executeDefaultConstructor) throws PageException;
@@ -1002,6 +1014,14 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 
 	public String getComponentName() {
 		return getPageSource().getComponentName();
+	}
+
+	public StaticScope getStaticScope() {
+		return staticScope;
+	}
+
+	public void setStaticScope(StaticScope staticScope) {
+		this.staticScope = staticScope;
 	}
 
 }

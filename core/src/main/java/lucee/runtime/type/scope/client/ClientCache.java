@@ -86,7 +86,8 @@ public final class ClientCache extends StorageScopeCache implements Client {
 		try {
 			return getInstance(cacheName, appName, pc, existing, log);
 		}
-		catch (PageException e) {}
+		catch (PageException e) {
+		}
 		return defaultValue;
 	}
 

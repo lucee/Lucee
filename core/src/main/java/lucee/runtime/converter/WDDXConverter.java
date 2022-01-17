@@ -50,7 +50,7 @@ import lucee.runtime.PageContext;
 import lucee.runtime.coder.Base64Coder;
 import lucee.runtime.coder.CoderException;
 import lucee.runtime.component.Property;
-import lucee.runtime.config.ConfigWebImpl;
+import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
@@ -79,7 +79,7 @@ import lucee.runtime.type.util.KeyConstants;
  */
 public final class WDDXConverter extends ConverterSupport {
 
-	private static final Collection.Key REMOTING_FETCH = KeyImpl.intern("remotingFetch");
+	private static final Collection.Key REMOTING_FETCH = KeyImpl.getInstance("remotingFetch");
 
 	private static final List<String> KNOWN_STRUCT_TYPES = Arrays.asList(new String[] { "coldfusion.server.ConfigMap" });
 
@@ -325,7 +325,7 @@ public final class WDDXConverter extends ConverterSupport {
 		// fieldnames
 		PageContext pc = ThreadLocalPageContext.get();
 		boolean upperCase = false;
-		if (pc != null) upperCase = pc.getCurrentTemplateDialect() == CFMLEngine.DIALECT_CFML && !((ConfigWebImpl) pc.getConfig()).preserveCase();
+		if (pc != null) upperCase = pc.getCurrentTemplateDialect() == CFMLEngine.DIALECT_CFML && !((ConfigWebPro) pc.getConfig()).preserveCase();
 
 		StringBuilder fn = new StringBuilder();
 		Collection.Key[] keys = CollectionUtil.keys(query);
@@ -383,7 +383,7 @@ public final class WDDXConverter extends ConverterSupport {
 		}
 		// Number
 		if (object instanceof Number) {
-			rtn = goIn() + "<number>" + ((Number) object).doubleValue() + "</number>";
+			rtn = goIn() + "<number>" + Caster.toStringPrecise((Number) object) + "</number>";
 			deep--;
 			return rtn;
 		}

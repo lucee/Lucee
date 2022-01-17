@@ -88,11 +88,27 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	private void function defineDatasource(){
 		application action="update" 
 			datasource={
-	  		class: 'org.hsqldb.jdbcDriver'
-			, bundleName: 'org.hsqldb.hsqldb'
-			//, bundleVersion: arguments.version
-			, connectionString: 'jdbc:hsqldb:file:#getDirectoryFromPath(getCurrentTemplatePath())#/LDEV1304/db'
+			class: 'org.h2.Driver'
+			, bundleName: 'org.h2'
+			, bundleVersion: '1.3.172'
+			, connectionString: 'jdbc:h2:#getDirectoryFromPath(getCurrentTemplatePath())#/LDEV1304/db;MODE=MySQL'
+			, connectionLimit:100 // default:-1
 		};
 	}
-} 
+
+	function afterTests() {
+		var javaIoFile=createObject("java","java.io.File");
+		loop array=DirectoryList(
+			path=getDirectoryFromPath(getCurrentTemplatePath()), 
+			recurse=true, filter="*.db") item="local.path"  {
+			fileDeleteOnExit(javaIoFile,path);
+		}
+	}
+
+	private function fileDeleteOnExit(required javaIoFile, required string path) {
+		var file=javaIoFile.init(arguments.path);
+		if(!file.isFile())file=javaIoFile.init(expandPath(arguments.path));
+		if(file.isFile()) file.deleteOnExit();
+	}
+}
 </cfscript>

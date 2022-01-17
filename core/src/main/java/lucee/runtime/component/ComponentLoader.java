@@ -18,6 +18,8 @@
  */
 package lucee.runtime.component;
 
+import java.util.concurrent.ConcurrentHashMap;
+
 import javax.servlet.jsp.tagext.BodyContent;
 
 import lucee.commons.io.res.filter.DirectoryResourceFilter;
@@ -41,7 +43,8 @@ import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
 import lucee.runtime.PageSourceImpl;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.StaticScope;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.Constants;
 import lucee.runtime.debug.DebugEntryTemplate;
 import lucee.runtime.exp.ApplicationException;
@@ -57,7 +60,7 @@ public class ComponentLoader {
 	private static final short RETURN_TYPE_PAGE = 1;
 	private static final short RETURN_TYPE_INTERFACE = 2;
 	private static final short RETURN_TYPE_COMPONENT = 3;
-
+	private static final ConcurrentHashMap<String, String> tokens = new ConcurrentHashMap<String, String>();
 	private static final ResourceFilter DIR_OR_EXT = new OrResourceFilter(
 			new ResourceFilter[] { DirectoryResourceFilter.FILTER, new ExtensionResourceFilter(Constants.getComponentExtensions()) });
 	private static final ImportDefintion[] EMPTY_ID = new ImportDefintion[0];
@@ -82,6 +85,29 @@ public class ComponentLoader {
 	public static ComponentImpl searchComponent(PageContext pc, PageSource loadingLocation, String rawPath, Boolean searchLocal, Boolean searchRoot,
 			final boolean isExtendedComponent, boolean executeConstr) throws PageException {
 		return (ComponentImpl) _search(pc, loadingLocation, rawPath, searchLocal, searchRoot, executeConstr, RETURN_TYPE_COMPONENT, isExtendedComponent);
+	}
+
+	public static StaticScope getStaticScope(PageContext pc, PageSource loadingLocation, String rawPath, Boolean searchLocal, Boolean searchRoot) throws PageException {
+		ComponentPageImpl cp = searchComponentPage(pc, loadingLocation, rawPath, searchLocal, searchRoot);
+		StaticScope ss = cp.getStaticScope();
+		if (ss == null) {
+			synchronized (getToken(cp.getHash() + "")) {
+				ss = cp.getStaticScope();
+				if (ss == null) {
+					cp.setStaticScope(ss = searchComponent(pc, loadingLocation, rawPath, searchLocal, searchRoot, false, false).staticScope());
+				}
+			}
+		}
+		return ss;
+	}
+
+	public static ComponentPageImpl searchComponentPage(PageContext pc, PageSource loadingLocation, String rawPath, Boolean searchLocal, Boolean searchRoot) throws PageException {
+		Object obj = _search(pc, loadingLocation, rawPath, searchLocal, searchRoot, false, RETURN_TYPE_PAGE, false);
+
+		if (obj instanceof ComponentPageImpl) return (ComponentPageImpl) obj;
+		int dialect = pc.getCurrentTemplateDialect();
+		throw new ExpressionException(
+				"invalid " + toStringType(RETURN_TYPE_PAGE, dialect) + " definition, can't find " + toStringType(RETURN_TYPE_PAGE, dialect) + " [" + rawPath + "]");
 	}
 
 	public static InterfaceImpl searchInterface(PageContext pc, PageSource loadingLocation, String rawPath, boolean executeConstr) throws PageException {
@@ -116,7 +142,7 @@ public class ComponentLoader {
 		// first try for the current dialect
 		Object obj = _search(pc, loadingLocation, rawPath, searchLocal, searchRoot, executeConstr, returnType, currPS, importDefintions, dialect, isExtendedComponent);
 		// then we try the opposite dialect
-		if (obj == null && ((ConfigImpl) pc.getConfig()).allowLuceeDialect()) { // only when the lucee dialect is enabled we have to check the opposite
+		if (obj == null && ((ConfigPro) pc.getConfig()).allowLuceeDialect()) { // only when the lucee dialect is enabled we have to check the opposite
 			obj = _search(pc, loadingLocation, rawPath, searchLocal, searchRoot, executeConstr, returnType, currPS, importDefintions,
 					dialect == CFMLEngine.DIALECT_CFML ? CFMLEngine.DIALECT_LUCEE : CFMLEngine.DIALECT_CFML, isExtendedComponent);
 		}
@@ -128,7 +154,7 @@ public class ComponentLoader {
 
 	private static Object _search(PageContext pc, PageSource loadingLocation, String rawPath, Boolean searchLocal, Boolean searchRoot, boolean executeConstr, short returnType,
 			PageSource currPS, ImportDefintion[] importDefintions, int dialect, final boolean isExtendedComponent) throws PageException {
-		ConfigImpl config = (ConfigImpl) pc.getConfig();
+		ConfigPro config = (ConfigPro) pc.getConfig();
 
 		if (dialect == CFMLEngine.DIALECT_LUCEE && !config.allowLuceeDialect()) PageContextImpl.notSupported();
 
@@ -427,7 +453,7 @@ public class ComponentLoader {
 	}
 
 	public static Page loadPage(PageContext pc, PageSource ps, boolean forceReload) throws PageException {
-		if (pc.getConfig().debug()) {
+		if (pc.getConfig().debug() && ((ConfigPro) pc.getConfig()).hasDebugOptions(ConfigPro.DEBUG_TEMPLATE)) {
 			DebugEntryTemplate debugEntry = pc.getDebugger().getEntry(pc, ps);
 			pc.addPageSource(ps, true);
 
@@ -459,7 +485,7 @@ public class ComponentLoader {
 	private static ComponentImpl _loadComponent(PageContext pc, CIPage page, String callPath, boolean isRealPath, final boolean isExtendedComponent, boolean executeConstr)
 			throws PageException {
 		ComponentImpl rtn = null;
-		if (pc.getConfig().debug()) {
+		if (pc.getConfig().debug() && ((ConfigPro) pc.getConfig()).hasDebugOptions(ConfigPro.DEBUG_TEMPLATE)) {
 			DebugEntryTemplate debugEntry = pc.getDebugger().getEntry(pc, page.getPageSource());
 			pc.addPageSource(page.getPageSource(), true);
 
@@ -497,7 +523,7 @@ public class ComponentLoader {
 
 	public static InterfaceImpl loadInterface(PageContext pc, Page page, PageSource ps, String callPath, boolean isRealPath) throws PageException {
 		InterfaceImpl rtn = null;
-		if (pc.getConfig().debug()) {
+		if (pc.getConfig().debug() && ((ConfigPro) pc.getConfig()).hasDebugOptions(ConfigPro.DEBUG_TEMPLATE)) {
 			DebugEntryTemplate debugEntry = pc.getDebugger().getEntry(pc, ps);
 			pc.addPageSource(ps, true);
 
@@ -570,5 +596,13 @@ public class ComponentLoader {
 	private static CIPage toCIPage(Page p) {
 		if (p instanceof CIPage) return (CIPage) p;
 		return null;
+	}
+
+	public static String getToken(String key) {
+		String lock = tokens.putIfAbsent(key, key);
+		if (lock == null) {
+			lock = key;
+		}
+		return lock;
 	}
 }

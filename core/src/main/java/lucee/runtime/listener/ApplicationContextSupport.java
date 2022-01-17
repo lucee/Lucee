@@ -37,14 +37,16 @@ import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.cache.CacheConnection;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.db.DataSource;
 import lucee.runtime.exp.ApplicationException;
+import lucee.runtime.exp.PageException;
 import lucee.runtime.net.proxy.ProxyData;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Duplicator;
+import lucee.runtime.regex.Regex;
 import lucee.runtime.tag.listener.TagListener;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
@@ -58,8 +60,8 @@ import lucee.transformer.library.tag.TagLibTag;
 import lucee.transformer.library.tag.TagLibTagAttr;
 
 /**
- * This is a base class for ModernApplicationSupport and ClassicApplicationSupport.  It contains
- * code that is shared between the subclasses.
+ * This is a base class for ModernApplicationSupport and ClassicApplicationSupport. It contains code
+ * that is shared between the subclasses.
  */
 public abstract class ApplicationContextSupport implements ApplicationContext {
 
@@ -84,7 +86,7 @@ public abstract class ApplicationContextSupport implements ApplicationContext {
 
 	public ApplicationContextSupport(ConfigWeb config) {
 		this.config = config;
-		tagDefaultAttributeValues = ((ConfigImpl) config).getTagDefaultAttributeValues();
+		tagDefaultAttributeValues = ((ConfigPro) config).getTagDefaultAttributeValues();
 
 		cachedWithinFunction = config.getCachedWithin(Config.CACHEDWITHIN_FUNCTION);
 		cachedWithinInclude = config.getCachedWithin(Config.CACHEDWITHIN_INCLUDE);
@@ -193,7 +195,7 @@ public abstract class ApplicationContextSupport implements ApplicationContext {
 
 	public static void initTagDefaultAttributeValues(Config config, Map<Collection.Key, Map<Collection.Key, Object>> tagDefaultAttributeValues, Struct sct, int dialect) {
 		if (sct.size() == 0) return;
-		ConfigImpl ci = ((ConfigImpl) config);
+		ConfigPro ci = ((ConfigPro) config);
 
 		// first check the core lib without namespace
 		TagLib lib = ci.getCoreTagLib(dialect);
@@ -299,7 +301,7 @@ public abstract class ApplicationContextSupport implements ApplicationContext {
 		return null;
 	}
 
-	public static Map<Collection.Key, Pair<Log, Struct>> initLog(Config config, Struct sct) {
+	public static Map<Collection.Key, Pair<Log, Struct>> initLog(Config config, Struct sct) throws PageException {
 		Map<Collection.Key, Pair<Log, Struct>> rtn = new ConcurrentHashMap<Collection.Key, Pair<Log, Struct>>();
 		if (sct == null) return rtn;
 
@@ -321,7 +323,7 @@ public abstract class ApplicationContextSupport implements ApplicationContext {
 			String ac = AppListenerUtil.toClassName(sctApp);
 			String abn = AppListenerUtil.toBundleName(sctApp);
 			Version abv = AppListenerUtil.toBundleVersion(sctApp);
-			if (StringUtil.isEmpty(abn)) cdApp = ((ConfigImpl) config).getLogEngine().appenderClassDefintion(ac);
+			if (StringUtil.isEmpty(abn)) cdApp = ((ConfigPro) config).getLogEngine().appenderClassDefintion(ac);
 			else cdApp = new ClassDefinitionImpl<>(config.getIdentification(), ac, abn, abv);
 
 			// layout
@@ -330,7 +332,7 @@ public abstract class ApplicationContextSupport implements ApplicationContext {
 			String lc = AppListenerUtil.toClassName(sctLay);
 			String lbn = AppListenerUtil.toBundleName(sctLay);
 			Version lbv = AppListenerUtil.toBundleVersion(sctLay);
-			if (StringUtil.isEmpty(lbn)) cdLay = ((ConfigImpl) config).getLogEngine().layoutClassDefintion(lc);
+			if (StringUtil.isEmpty(lbn)) cdLay = ((ConfigPro) config).getLogEngine().layoutClassDefintion(lc);
 			else cdLay = new ClassDefinitionImpl<>(config.getIdentification(), lc, lbn, lbv);
 
 			if (cdApp != null && cdApp.hasClass()) {
@@ -372,7 +374,7 @@ public abstract class ApplicationContextSupport implements ApplicationContext {
 	}
 
 	private static LoggerAndSourceData addLogger(Collection.Key name, int level, ClassDefinition appender, Map<String, String> appenderArgs, ClassDefinition layout,
-			Map<String, String> layoutArgs, boolean readOnly) {
+			Map<String, String> layoutArgs, boolean readOnly) throws PageException {
 		LoggerAndSourceData existing = _loggers.get(name);
 		String id = LoggerAndSourceData.id(name.getLowerString(), appender, appenderArgs, layout, layoutArgs, level, readOnly);
 
@@ -470,5 +472,13 @@ public abstract class ApplicationContextSupport implements ApplicationContext {
 	public abstract Struct getXmlFeatures();
 
 	public abstract void setXmlFeatures(Struct xmlFeatures);
+
+	public abstract boolean getAllowImplicidQueryCall();
+
+	public abstract void setAllowImplicidQueryCall(boolean allowImplicidQueryCall);
+
+	public abstract Regex getRegex();
+
+	public abstract void setRegex(Regex regex);
 
 }

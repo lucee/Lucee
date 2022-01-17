@@ -68,7 +68,9 @@ public class RetireOutputStreamFactory {
 			while (true) {
 				try {
 					if (list.size() == 0) break;
-					SystemUtil.wait(this, sleepTime);
+					synchronized (this) {
+						this.wait(sleepTime);
+					}
 					RetireOutputStream[] arr = list.toArray(new RetireOutputStream[list.size()]); // not using iterator to avoid ConcurrentModificationException
 					for (int i = 0; i < arr.length; i++) {
 						if (arr[i] == null) continue;
@@ -76,6 +78,10 @@ public class RetireOutputStreamFactory {
 						else arr[i].retire();
 					}
 					if (close) break;
+				}
+				catch (InterruptedException ie) {
+					LogUtil.log(null, "file", ie);
+					break;
 				}
 				catch (Exception e) {
 					LogUtil.log(null, "file", e);

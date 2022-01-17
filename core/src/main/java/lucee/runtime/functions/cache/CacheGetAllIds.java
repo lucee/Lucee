@@ -53,10 +53,12 @@ public final class CacheGetAllIds extends BIF {
 			Cache cache = CacheUtil.getCache(pc, cacheName, Config.CACHE_TYPE_OBJECT);
 
 			List<String> keys = isFilter(filter) ? cache.keys(new WildCardFilter(filter, true)) : cache.keys();
-			Iterator<String> it = keys.iterator();
 			Array arr = new ArrayImpl();
-			while (it.hasNext()) {
-				arr.append(it.next());
+			if (keys != null) {
+				Iterator<String> it = keys.iterator();
+				while (it.hasNext()) {
+					arr.append(it.next());
+				}
 			}
 			return arr;
 		}

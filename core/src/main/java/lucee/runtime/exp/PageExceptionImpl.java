@@ -267,7 +267,8 @@ public abstract class PageExceptionImpl extends PageException {
 					}
 				}
 			}
-			catch (Throwable th) {}
+			catch (Throwable th) {
+			}
 
 			// check last
 			if (tagContext.size() > 0) {
@@ -275,7 +276,8 @@ public abstract class PageExceptionImpl extends PageException {
 					Struct last = (Struct) tagContext.getE(tagContext.size());
 					if (last.get(KeyConstants._Raw_Trace).equals(trace.toString())) continue;
 				}
-				catch (Exception e) {}
+				catch (Exception e) {
+				}
 			}
 
 			item = new StructImpl();
@@ -326,7 +328,7 @@ public abstract class PageExceptionImpl extends PageException {
 	public Struct getErrorBlock(PageContext pc, ErrorPage ep) {
 		Struct struct = new StructImpl();
 
-		struct.setEL("browser", pc.cgiScope().get("HTTP_USER_AGENT", ""));
+		struct.setEL(KeyConstants._browser, pc.cgiScope().get("HTTP_USER_AGENT", ""));
 		struct.setEL("datetime", new DateTimeImpl(pc));
 		struct.setEL("diagnostics", getMessage() + ' ' + getDetail() + "<br>The error occurred on line " + getLine(pc.getConfig()) + " in file " + getFile(pc.getConfig()) + ".");
 		struct.setEL("GeneratedContent", getGeneratedContent(pc));
@@ -357,7 +359,8 @@ public abstract class PageExceptionImpl extends PageException {
 		try {
 			ro.clearBuffer();
 		}
-		catch (IOException ioe) {}
+		catch (IOException ioe) {
+		}
 		if (gc == null) return "";
 		return gc;
 	}
@@ -402,7 +405,8 @@ public abstract class PageExceptionImpl extends PageException {
 			}
 			tagContext.append(struct);
 		}
-		catch (Exception e) {}
+		catch (Exception e) {
+		}
 	}
 
 	private static String getCodePrint(String[] content, int line, boolean asHTML) {
@@ -476,7 +480,8 @@ public abstract class PageExceptionImpl extends PageException {
 				htmlBox.appendRow(1, new SimpleDumpData("Code"), code);
 
 			}
-			catch (PageException e) {}
+			catch (PageException e) {
+			}
 		}
 
 		// Java Stacktrace

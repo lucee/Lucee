@@ -25,7 +25,7 @@
 <cfswitch expression="#url.action2#">
 	<cfcase value="settings">
 		<cfif !structKeyExists(form, "location") OR !structKeyExists(form, "locationCustom")>
-			<cfset form.locationCustom = "http://release.lucee.org">
+			<cfset form.locationCustom = "https://update.lucee.org">
 		</cfif>
 		<cfadmin
 			action="UpdateUpdate"
@@ -81,7 +81,7 @@
 		}
 		updateData=getAvailableVersion();*/
 
-		if(updateData.provider.location EQ "http://update.lucee.org"){
+		if(updateData.provider.location EQ "https://update.lucee.org" || updateData.provider.location EQ "http://update.lucee.org"){
 			version = "lucee";
 		} 
 		else{
@@ -169,7 +169,9 @@
 <cfelse>
 	<!--- <h1>#stText.services.update.luceeProvider#</h1>--->
 	<p>
-		#replace(stText.services.update.titleDesc,'{version}',"<b>"&server.lucee.version&"</b>") #
+		Current Version <b>( #server.lucee.version# )</b><br><br>
+		#stText.services.update.titleDesc#
+		<!--- #replace(stText.services.update.titleDesc,'{version}',"<b>"&server.lucee.version&"</b>") # --->
 	</p>
 
 	<cfset hiddenFormContents = "" >
@@ -195,9 +197,9 @@
 			<div class="whitePanel">
 				<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
 					<select name="UPDATE" id="upt_version"  class="large">
-						<option value="">--- select the version ---</option>
+						<!--- <option value="">--- select the version ---</option> --->
 						<cfloop list="#listVrs#" index="key">
-							<cfif len(versionsStr[key].upgrade) || len(versionsStr[key].downgrade)>
+							<cfif len(versionsStr[key].upgrade) gt 0|| len(versionsStr[key].downgrade) gt 0>
 								<optgroup class="td_#UcFirst(Lcase(key))#" label="#stText.services.update.short[key]#">
 									<cfloop array="#versionsStr[key].upgrade#" index="i">
 										<option class="td_#UcFirst(Lcase(key))#" value="#i#">#stText.services.update.upgradeTo# #i#</option>
@@ -207,8 +209,13 @@
 										<option class="td_#UcFirst(Lcase(key))#" value="#i#">#stText.services.update.downgradeTo# #i#</option>
 									</cfloop>
 								</optgroup>
+							<cfelseif len(versionsStr[key].upgrade) eq 0>
+								<cfset session.empUpgrade = true>
 							</cfif>
 						</cfloop>
+						<cfif isdefined("session.empUpgrade") && session.empUpgrade eq true>
+							<option value="">--- select the version ---</option>
+						</cfif>
 					</select>
 					<input type="button" class="button submit"
 						onclick="changeVersion(this, UPDATE)" 
@@ -248,7 +255,7 @@
 									<b>#stText.services.update.location_custom#</b>
 								</label>
 								<input id="customtextinput" type="text" class="text" name="locationCustom" size="40" value="<cfif  version EQ 'custom'>#updateData.provider.location#</cfif>" disabled>
-								<div class="comment">#replace("#stText.services.update.location_customDesc#","{url}","<a href=""http://docs.lucee.org"">http://docs.lucee.org</a>")#</div>
+								<div class="comment">#replace("#stText.services.update.location_customDesc#","{url}","<a href=""https://docs.lucee.org"">https://docs.lucee.org</a>")#</div>
 								<cfif version EQ 'custom'>
 									<cfhtmlbody>
 										<script type="text/javascript">
@@ -354,7 +361,7 @@
 				else{
 					submitted = true;
 					$('##group_Connection').hide();
-					url='changeto.cfm?#session.urltoken#&adminType=#request.admintype#&version='+frm.value;
+					url='?action=changeto&adminType=#request.admintype#&version='+frm.value;
 					$(document).ready(function(){
 						$('##updateInfoDesc').html('<img src="../res/img/spinner16.gif.cfm">');
 						disableBlockUI=true;

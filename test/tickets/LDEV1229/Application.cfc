@@ -14,14 +14,7 @@ component {
 	else {
 		mySQL = getCredentials();
 		if(mySQL.count()!=0){
-			this.datasource={
-				class: 'org.gjt.mm.mysql.Driver'
-				, bundleName:'com.mysql.jdbc'
-				, bundleVersion:'5.1.38'
-				, connectionString: 'jdbc:mysql://'&mySQL.server&':'&mySQL.port&'/'&mySQL.database&'?useUnicode=true&characterEncoding=UTF-8&useLegacyDatetimeCode=true'
-				, username: mySQL.username
-				, password: mySQL.password
-			};
+			this.datasource=server.getDatasource("mysql");
 		}
 	}
 
@@ -96,5 +89,20 @@ component {
 			mySQL.database=server.system.properties.MYSQL_DATABASE;
 		}
 		return mysql;
+	}
+
+	function onRequestEnd() {
+		var javaIoFile=createObject("java","java.io.File");
+		loop array=DirectoryList(
+			path=getDirectoryFromPath(getCurrentTemplatePath()), 
+			recurse=true, filter="*.db") item="local.path"  {
+			fileDeleteOnExit(javaIoFile,path);
+		}
+	}
+
+	private function fileDeleteOnExit(required javaIoFile, required string path) {
+		var file=javaIoFile.init(arguments.path);
+		if(!file.isFile())file=javaIoFile.init(expandPath(arguments.path));
+		if(file.isFile()) file.deleteOnExit();
 	}
 }

@@ -36,15 +36,13 @@ import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.CFMLFactoryImpl;
 import lucee.runtime.Mapping;
-import lucee.runtime.MappingImpl;
-import lucee.runtime.PageSource;
-import lucee.runtime.PageSourcePool;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigServer;
 import lucee.runtime.config.ConfigWeb;
-import lucee.runtime.config.ConfigWebImpl;
+import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.config.DeployHandler;
 import lucee.runtime.config.XMLConfigAdmin;
+import lucee.runtime.extension.RHExtension;
 import lucee.runtime.functions.system.PagePoolClear;
 import lucee.runtime.lock.LockManagerImpl;
 import lucee.runtime.net.smtp.SMTPConnectionPool;
@@ -74,6 +72,8 @@ public final class Controler extends Thread {
 	// private final ShutdownHook shutdownHook;
 	private ControllerState state;
 
+	private boolean poolValidate;
+
 	/**
 	 * @param contextes
 	 * @param interval
@@ -84,7 +84,7 @@ public final class Controler extends Thread {
 		this.interval = interval;
 		this.state = state;
 		this.configServer = configServer;
-
+		this.poolValidate = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.datasource.pool.validate", null), true);
 		// shutdownHook=new ShutdownHook(configServer);
 		// Runtime.getRuntime().addShutdownHook(shutdownHook);
 	}
@@ -201,6 +201,14 @@ public final class Controler extends Thread {
 			ExceptionUtil.rethrowIfNecessary(t);
 		}
 
+		if (firstRun) {
+			try {
+				RHExtension.correctExtensions(configServer);
+			}
+			catch (Exception e) {
+			}
+		}
+
 		// every 10 seconds
 		if (do10Seconds) {
 			// deploy extensions, archives ...
@@ -210,7 +218,7 @@ public final class Controler extends Thread {
 		if (doMinute) {
 			// deploy extensions, archives ...
 			try {
-				DeployHandler.deploy(configServer);
+				DeployHandler.deploy(configServer, false);
 			}
 			catch (Throwable t) {
 				ExceptionUtil.rethrowIfNecessary(t);
@@ -251,6 +259,12 @@ public final class Controler extends Thread {
 
 				config.reloadTimeServerOffset();
 				checkOldClientFile(config);
+
+				try {
+					RHExtension.correctExtensions(config);
+				}
+				catch (Exception e) {
+				}
 
 				// try{checkStorageScopeFile(config,Session.SCOPE_CLIENT);}catch(Throwable t)
 				// {ExceptionUtil.rethrowIfNecessary(t);}
@@ -298,7 +312,7 @@ public final class Controler extends Thread {
 				ThreadLocalConfig.register(config);
 
 				try {
-					((SchedulerImpl) ((ConfigWebImpl) config).getScheduler()).startIfNecessary();
+					((SchedulerImpl) config.getScheduler()).startIfNecessary();
 				}
 				catch (Exception e) {
 					LogUtil.log(ThreadLocalPageContext.getConfig(configServer), Controler.class.getName(), e);
@@ -306,7 +320,7 @@ public final class Controler extends Thread {
 
 				// double check templates
 				try {
-					((ConfigWebImpl) config).getCompiler().checkWatched();
+					((ConfigWebPro) config).getCompiler().checkWatched();
 				}
 				catch (Exception e) {
 					LogUtil.log(ThreadLocalPageContext.getConfig(configServer), Controler.class.getName(), e);
@@ -314,7 +328,7 @@ public final class Controler extends Thread {
 
 				// deploy extensions, archives ...
 				try {
-					DeployHandler.deploy(config);
+					DeployHandler.deploy(config, false);
 				}
 				catch (Throwable t) {
 					ExceptionUtil.rethrowIfNecessary(t);
@@ -322,7 +336,7 @@ public final class Controler extends Thread {
 
 				// clear unused DB Connections
 				try {
-					((ConfigImpl) config).getDatasourceConnectionPool().clear(false);
+					((ConfigPro) config).getDatasourceConnectionPool().clear(false, this.poolValidate);
 				}
 				catch (Throwable t) {
 					ExceptionUtil.rethrowIfNecessary(t);
@@ -345,10 +359,11 @@ public final class Controler extends Thread {
 				 */
 				// contract Page Pool
 				try {
-					doClearPagePools((ConfigWebImpl) config);
+					doClearPagePools(config);
 				}
-				catch (Exception e) {}
-				// try{checkPermGenSpace((ConfigWebImpl) config);}catch(Throwable t)
+				catch (Exception e) {
+				}
+				// try{checkPermGenSpace((ConfigWebPro) config);}catch(Throwable t)
 				// {ExceptionUtil.rethrowIfNecessary(t);}
 				try {
 					doCheckMappings(config);
@@ -428,7 +443,7 @@ public final class Controler extends Thread {
 		}
 	}
 
-	private void doClearPagePools(ConfigWebImpl config) {
+	private void doClearPagePools(ConfigWeb config) {
 		PagePoolClear.clear(null, config, true);
 	}
 
@@ -484,10 +499,16 @@ public final class Controler extends Thread {
 		Resource res = null;
 		int count = ArrayUtil.size(filter == null ? dir.list() : dir.list(filter));
 		long size = ResourceUtil.getRealSize(dir, filter);
-		LogUtil.log(ThreadLocalPageContext.getConfig(config), Log.LEVEL_INFO, Controler.class.getName(),
-				"check size of directory [" + dir + "]; current size	[" + size + "];max size 	[" + maxSize + "]");
+		LogUtil.log(ThreadLocalPageContext.getConfig(config), Log.LEVEL_DEBUG, Controler.class.getName(),
+				"Checking size of directory [" + dir + "]. Current size [" + size + "]. Max size [" + maxSize + "].");
 
 		int len = -1;
+
+		if (count > 100000 || size > maxSize) {
+			LogUtil.log(ThreadLocalPageContext.getConfig(config), Log.LEVEL_WARN, Controler.class.getName(),
+					"Removing files from directory [" + dir + "]. Current size [" + size + "]. Max size [" + maxSize + "]. Number of files [" + count + "]");
+		}
+
 		while (count > 100000 || size > maxSize) {
 			Resource[] files = filter == null ? dir.listResources() : dir.listResources(filter);
 			if (len == files.length) break;// protect from inifinti loop
@@ -504,7 +525,7 @@ public final class Controler extends Thread {
 					count--;
 				}
 				catch (IOException e) {
-					LogUtil.log(ThreadLocalPageContext.getConfig(config), Log.LEVEL_ERROR, Controler.class.getName(), "cannot remove resource " + res.getAbsolutePath());
+					LogUtil.log(ThreadLocalPageContext.getConfig(config), Log.LEVEL_ERROR, Controler.class.getName(), "cannot remove resource [" + res.getAbsolutePath() + "]");
 					break;
 				}
 			}
@@ -521,70 +542,10 @@ public final class Controler extends Thread {
 		}
 	}
 
-	private PageSourcePool[] getPageSourcePools(ConfigWeb config) {
-		return getPageSourcePools(config.getMappings());
-	}
-
-	private PageSourcePool[] getPageSourcePools(Mapping... mappings) {
-		PageSourcePool[] pools = new PageSourcePool[mappings.length];
-		// int size=0;
-
-		for (int i = 0; i < mappings.length; i++) {
-			pools[i] = ((MappingImpl) mappings[i]).getPageSourcePool();
-			// size+=pools[i].size();
-		}
-		return pools;
-	}
-
-	private int getPageSourcePoolSize(PageSourcePool[] pools) {
-		int size = 0;
-		for (int i = 0; i < pools.length; i++)
-			size += pools[i].size();
-		return size;
-	}
-
-	private void removeOldest(PageSourcePool[] pools) {
-		PageSourcePool pool = null;
-		String key = null;
-		PageSource ps = null;
-
-		long date = -1;
-		for (int i = 0; i < pools.length; i++) {
-			try {
-				String[] keys = pools[i].keys();
-				for (int y = 0; y < keys.length; y++) {
-					ps = pools[i].getPageSource(keys[y], false);
-					if (date == -1 || date > ps.getLastAccessTime()) {
-						pool = pools[i];
-						key = keys[y];
-						date = ps.getLastAccessTime();
-					}
-				}
-			}
-			catch (Throwable t) {
-				ExceptionUtil.rethrowIfNecessary(t);
-				pools[i].clear();
-			}
-
-		}
-		if (pool != null) pool.remove(key);
-	}
-
-	private void clear(PageSourcePool[] pools) {
-		for (int i = 0; i < pools.length; i++) {
-			pools[i].clear();
-		}
-	}
-
 	public void close() {
 		state = INACTIVE;
 		SystemUtil.notify(this);
 	}
-
-	/*
-	 * private void doLogMemoryUsage(ConfigWeb config) { if(config.logMemoryUsage()&&
-	 * config.getMemoryLogger()!=null) config.getMemoryLogger().write(); }
-	 */
 
 	static class ExpiresFilter implements ResourceFilter {
 

@@ -20,7 +20,6 @@ package lucee.transformer.cfml.evaluator.impl;
 
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.loader.engine.CFMLEngine;
@@ -101,7 +100,10 @@ public class Component extends EvaluatorSupport {
 
 		// Page page=(Page) pPage;
 		Boolean insideCITemplate = isInsideCITemplate(page);
-		boolean main = isMainComponent(page, tc);
+		if (!isMainComponent(page, tc)) {
+			throw new EvaluatorException(
+					"Wrong Context, [" + tlt.getFullName() + "] tag, sub components are not supported in this version. Only define a single component within a component file.");
+		}
 
 		// is a full grown component or an inline component
 		if (insideCITemplate == Boolean.FALSE) {
@@ -110,36 +112,6 @@ public class Component extends EvaluatorSupport {
 		}
 
 		boolean isComponent = tlt.getTagClassDefinition().isClassNameEqualTo("lucee.runtime.tag.Component");
-		/*
-		 * boolean isInterface="lucee.runtime.tag.Interface".equals(tlt.getTagClassName()); if(main) {
-		 * if(isComponent) page.setIsComponent(true); else if(isInterface) page.setIsInterface(true); }
-		 */
-		tc.setMain(main);
-
-		// Attributes
-
-		// Name
-		String name = null;
-		if (!main) {
-			Map<String, Attribute> attrs = tag.getAttributes();
-			if (attrs.size() > 0) {
-				Attribute first = attrs.values().iterator().next();
-				if (first.isDefaultValue()) {
-					name = first.getName();
-				}
-			}
-
-			if (name == null) {
-				Attribute attr = tag.getAttribute("name");
-				if (attr != null) {
-					Expression expr = tag.getFactory().toExprString(attr.getValue());
-					if (!(expr instanceof LitString)) throw new EvaluatorException("Name of the component " + tlt.getFullName() + ", must be a literal string value");
-					name = ((LitString) expr).getString();
-				}
-				else throw new EvaluatorException("Missing name of the component [" + tlt.getFullName() + "]");
-			}
-			tc.setName(name);
-		}
 
 		// output
 		// "output=true" is handled in "lucee.transformer.cfml.attributes.impl.Function"
@@ -147,7 +119,7 @@ public class Component extends EvaluatorSupport {
 		if (attr != null) {
 			Expression expr = tag.getFactory().toExprBoolean(attr.getValue());
 			if (!(expr instanceof LitBoolean))
-				throw new EvaluatorException("Attribute output of the tag [" + tlt.getFullName() + "], must contain a static boolean value (true or false, yes or no)");
+				throw new EvaluatorException("Attribute [output] of the tag [" + tlt.getFullName() + "], must contain a static boolean value (true or false, yes or no)");
 			// boolean output = ((LitBoolean)expr).getBooleanValue();
 			// if(!output) ASMUtil.removeLiterlChildren(tag, true);
 		}
@@ -156,7 +128,7 @@ public class Component extends EvaluatorSupport {
 		attr = tag.getAttribute("extends");
 		if (attr != null) {
 			Expression expr = tag.getFactory().toExprString(attr.getValue());
-			if (!(expr instanceof LitString)) throw new EvaluatorException("Attribute extends of the tag [" + tlt.getFullName() + "], must contain a literal string value");
+			if (!(expr instanceof LitString)) throw new EvaluatorException("Attribute [extends] of the tag [" + tlt.getFullName() + "], must contain a literal string value");
 		}
 
 		// implements
@@ -164,7 +136,8 @@ public class Component extends EvaluatorSupport {
 			attr = tag.getAttribute("implements");
 			if (attr != null) {
 				Expression expr = tag.getFactory().toExprString(attr.getValue());
-				if (!(expr instanceof LitString)) throw new EvaluatorException("Attribute implements of the tag [" + tlt.getFullName() + "], must contain a literal string value");
+				if (!(expr instanceof LitString))
+					throw new EvaluatorException("Attribute [implements] of the tag [" + tlt.getFullName() + "], must contain a literal string value");
 			}
 		}
 		// modifier
@@ -172,12 +145,12 @@ public class Component extends EvaluatorSupport {
 			attr = tag.getAttribute("modifier");
 			if (attr != null) {
 				Expression expr = tag.getFactory().toExprString(attr.getValue());
-				if (!(expr instanceof LitString)) throw new EvaluatorException("Attribute modifier of the tag [" + tlt.getFullName() + "], must contain a literal string value");
+				if (!(expr instanceof LitString)) throw new EvaluatorException("Attribute [modifier] of the tag [" + tlt.getFullName() + "], must contain a literal string value");
 				LitString ls = (LitString) expr;
 				int mod = ComponentUtil.toModifier(ls.getString(), lucee.runtime.Component.MODIFIER_NONE, -1);
 
 				if (mod == -1) throw new EvaluatorException(
-						"Value [" + ls.getString() + "] from attribute modifier of the tag [" + tlt.getFullName() + "] is invalid,valid values are [none,abstract,final]");
+						"Value [" + ls.getString() + "] from attribute [modifier] of the tag [" + tlt.getFullName() + "] is invalid, valid values are [none, abstract, final]");
 			}
 		}
 	}

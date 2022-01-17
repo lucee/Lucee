@@ -29,6 +29,21 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		variables.has=defineDatasource();		
 	}
 
+	private boolean function defineDatasource(){
+		var orcl = server.getDatasource("oracle");
+		if(orcl.count()==0) return false;
+
+		// otherwise we get the following on travis ORA-00604: error occurred at recursive SQL level 1 / ORA-01882: timezone region not found
+		var tz=getTimeZone();
+		//var d1=tz.getDefault();
+		tz.setDefault(tz);
+		//throw d1&":"&tz.getDefault();
+
+		application action="update" datasource="#orcl#";
+	
+		return true;
+	}
+
 
 	public void function testStoredProcIn(){
 		if(!variables.has) return;
@@ -101,7 +116,7 @@ END;
 		echo(now()&"start:testConnection
 			");
 		query name="local.qry" {
-			echo("SELECT owner, table_name FROM dba_tables where table_name like 'MAP_%'");
+			echo("SELECT table_name FROM user_tables where table_name like 'MAP_%'");
 		}
 		echo(now()&"endpublic:testConnection
 			");
@@ -109,65 +124,63 @@ END;
 		
 	}
 
-	private boolean function defineDatasource(){
-		var orc=getCredencials();
-		if(orc.count()==0) return false;
+	private function cleanupInsertTable() localmode=true{
+		query name="exists" params={id: "INSERT_TEST"}{
+			echo("SELECT table_name FROM user_tables WHERE table_name = :id");
+		}
+		//systemoutput(exists, true);
+		if ( exists.recordcount eq 1 ){
+			//systemoutput("dropping insert_test", true);
+			query {
+				echo( "DROP TABLE insert_test" );
+			}
+		}
 
-		// otherwise we get the following on travis ORA-00604: error occurred at recursive SQL level 1 / ORA-01882: timezone region not found
-		var tz=getTimeZone();
-		//var d1=tz.getDefault();
-		tz.setDefault(tz);
-		//throw d1&":"&tz.getDefault();
+		query name="exists" params={id: "INSERT_SEQ" } {
+			echo( "SELECT sequence_name FROM user_sequences WHERE sequence_name = :id" );
+		}
+		//systemoutput(exists, true);
+		if ( exists.recordcount eq 1 ){
+			//systemoutput("dropping insert_seq", true);
+			query {
+				echo ( "DROP SEQUENCE insert_seq" );
+			}
+		}
+	}
 
-		application action="update" 
+	public void function testInsertTable() localmode=true{
+		if ( !variables.has ) return;
 
-			datasource="#
-			{
-	  class: 'oracle.jdbc.OracleDriver'
-	, bundleName: 'ojdbc7'
-	, bundleVersion: '12.1.0.2'
-	, connectionString: 'jdbc:oracle:thin:@#orc.server#:#orc.port#/#orc.database#'
-	, username: orc.username
-	, password: orc.password
-}#";
+		//systemOutput("", true); // just a new line
+		cleanupInsertTable();
+		query {
+			echo ( "CREATE TABLE insert_test ( id number(10) )" );
+		}
+		query {
+			echo ( "CREATE SEQUENCE insert_seq START WITH 3" ); // start with 3, so the test is a little more testing!
+		}
 	
-	return true;
-	}
+		query result="result" {
+			echo("INSERT INTO insert_test ( id ) VALUES ( insert_seq.nextval )");
+		}; // TODO this needs to have a column list passed so it returns the ID value
 
-	private struct function getCredencials() {
-		// getting the credetials from the enviroment variables
-		var orc={};
+		query name="q" {
+			echo( "SELECT id FROM insert_test" );
+		};
+		//systemOutput( q, true );
+		//systemOutput( result, true );
 
-		if(
-			!isNull(server.system.environment.ORACLE_SERVER) && 
-			!isNull(server.system.environment.ORACLE_USERNAME) && 
-			!isNull(server.system.environment.ORACLE_PASSWORD) && 
-			!isNull(server.system.environment.ORACLE_PORT) && 
-			!isNull(server.system.environment.ORACLE_DATABASE)) {
-			orc.server=server.system.environment.ORACLE_SERVER;
-			orc.username=server.system.environment.ORACLE_USERNAME;
-			orc.password=server.system.environment.ORACLE_PASSWORD;
-			orc.port=server.system.environment.ORACLE_PORT;
-			orc.database=server.system.environment.ORACLE_DATABASE;
+		query name="seq" {
+			echo ( "SELECT insert_seq.currval AS id FROM dual" );
 		}
-		// getting the credetials from the system variables
-		else if(
-			!isNull(server.system.properties.ORACLE_SERVER) && 
-			!isNull(server.system.properties.ORACLE_USERNAME) && 
-			!isNull(server.system.properties.ORACLE_PASSWORD) && 
-			!isNull(server.system.properties.ORACLE_PORT) && 
-			!isNull(server.system.properties.ORACLE_DATABASE)) {
-			orc.server=server.system.properties.ORACLE_SERVER;
-			orc.username=server.system.properties.ORACLE_USERNAME;
-			orc.password=server.system.properties.ORACLE_PASSWORD;
-			orc.port=server.system.properties.ORACLE_PORT;
-			orc.database=server.system.properties.ORACLE_DATABASE;
-		}
-		return orc;
+		expect( seq.id ).toBe( 3 );
+		expect( seq.id ).toBe( q.id );
+		// expect( result.generatedKey ).toBe( seq.id );  // TODO returns oracle.sql.ROWID instead
+		// expect( result.generatedKey ).toInclude( "oracle.sql.ROWID" ); // 11 returns a oracle.sql.ROWID object, 12 returns actial rowid value 
+
+		// systemOutput( seq, true );
+
+		cleanupInsertTable();
 	}
-
-
-
-
 } 
 </cfscript>

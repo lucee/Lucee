@@ -47,7 +47,7 @@ import lucee.commons.io.SystemUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceClassLoader;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.Identification;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
@@ -377,13 +377,23 @@ public final class ClassUtil {
 	 */
 	public static Object loadInstance(Class clazz) throws ClassException {
 		try {
-			return clazz.newInstance();
+			return newInstance(clazz);
 		}
 		catch (InstantiationException e) {
 			throw new ClassException("the specified class object [" + clazz.getName() + "()] cannot be instantiated");
 		}
 		catch (IllegalAccessException e) {
-			throw new ClassException("can't load class because the currently executing method does not have access to the definition of the specified class");
+			throw new ClassException("can't load class [" + clazz.getName() + "] because the currently executing method does not have access to the definition of the specified class");
+		}
+		catch (Exception e) {
+			String message = "";
+			if( e.getMessage() != null ) {
+				message = e.getMessage() + " ";
+			}
+			message += e.getClass().getName() + " while creating an instance of " + clazz.getName();
+			ClassException ce = new ClassException(message);
+			ce.setStackTrace(e.getStackTrace());
+			throw ce;
 		}
 	}
 
@@ -403,7 +413,7 @@ public final class ClassUtil {
 	 */
 	public static Object loadInstance(Class clazz, Object defaultValue) {
 		try {
-			return clazz.newInstance();
+			return newInstance(clazz);
 		}
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
@@ -538,7 +548,8 @@ public final class ClassUtil {
 				if (file.exists()) try {
 					pathes.put(file.getCanonicalPath(), "");
 				}
-				catch (IOException e) {}
+				catch (IOException e) {
+				}
 			}
 		}
 
@@ -546,8 +557,8 @@ public final class ClassUtil {
 		getClassPathesFromLoader(new ClassUtil().getClass().getClassLoader(), pathes);
 		getClassPathesFromLoader(config.getClassLoader(), pathes);
 
-		Set set = pathes.keySet();
-		return (String[]) set.toArray(new String[set.size()]);
+		Set<String> set = pathes.keySet();
+		return set.toArray(new String[set.size()]);
 	}
 
 	/**
@@ -571,7 +582,8 @@ public final class ClassUtil {
 			if (file.exists()) try {
 				pathes.put(file.getCanonicalPath(), "");
 			}
-			catch (IOException e) {}
+			catch (IOException e) {
+			}
 		}
 	}
 
@@ -592,6 +604,8 @@ public final class ClassUtil {
 
 	private static final byte BCF = (byte) ICF;// CF
 	private static final byte B33 = (byte) I33;// 33
+	private static final Class[] EMPTY_CLASS = new Class[0];
+	private static final Object[] EMPTY_OBJ = new Object[0];
 
 	/**
 	 * check if given stream is a bytecode stream, if yes remove bytecode mark
@@ -753,7 +767,8 @@ public final class ClassUtil {
 			is = cl.getResourceAsStream(clazz.getName().replace('.', '/') + ".class");
 			return IOUtil.toBytes(is);
 		}
-		catch (Exception e) {}
+		catch (Exception e) {
+		}
 
 		is = null;
 		ZipFile zf = null;
@@ -777,7 +792,8 @@ public final class ClassUtil {
 				if (f.isFile()) return IOUtil.toBytes(f);
 			}
 		}
-		catch (Exception e) {}
+		catch (Exception e) {
+		}
 		finally {
 			IOUtil.closeEL(is);
 			IOUtil.closeELL(zf);
@@ -917,9 +933,14 @@ public final class ClassUtil {
 		if (cl != null) return cl;
 
 		Config config = ThreadLocalPageContext.getConfig();
-		if (config instanceof ConfigImpl) {
-			return ((ConfigImpl) config).getClassLoaderCore();
+		if (config instanceof ConfigPro) {
+			return ((ConfigPro) config).getClassLoaderCore();
 		}
 		return new lucee.commons.lang.ClassLoaderHelper().getClass().getClassLoader();
+	}
+
+	public static Object newInstance(Class clazz)
+			throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+		return clazz.getConstructor(EMPTY_CLASS).newInstance(EMPTY_OBJ);
 	}
 }

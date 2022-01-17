@@ -110,7 +110,7 @@ public class UDFImpl extends MemberSupport implements UDFPlus, Externalizable {
 		if (value == null && ((PageContextImpl) pc).getFullNullSupport()) return value;
 
 		if (!((PageContextImpl) pc).getTypeChecking() || Decision.isCastableTo(pc, arg.getType(), arg.getTypeAsString(), value))
-			return arg.isPassByReference() ? value : Duplicator.duplicate(value, false);
+			return arg.isPassByReference() ? value : Duplicator.duplicate(value, true);
 		throw new UDFCasterException(this, arg, value, index);
 	}
 

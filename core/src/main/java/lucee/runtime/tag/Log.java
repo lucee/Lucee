@@ -18,7 +18,6 @@
  **/
 package lucee.runtime.tag;
 
-import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.Iterator;
 import java.util.Map;
@@ -33,12 +32,11 @@ import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.CasterException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.tag.TagImpl;
-import lucee.runtime.op.Caster;
 import lucee.runtime.type.KeyImpl;
 
 /**
@@ -66,8 +64,10 @@ public final class Log extends TagImpl {
 	private String file;
 	private Throwable exception;
 
-	/** Specifies whether to log the application name if one has been specified in an application tag. */
-	private boolean application;
+	/**
+	 * Specifies whether to log the application name if one has been specified in an application tag.
+	 */
+	private boolean application = true;
 	private CharSet charset = null;
 
 	private boolean async;
@@ -78,7 +78,7 @@ public final class Log extends TagImpl {
 		log = DEfAULT_LOG;
 		type = lucee.commons.io.log.Log.LEVEL_INFO;
 		file = null;
-		application = false;
+		application = true;
 		charset = null;
 		exception = null;
 		text = null;
@@ -129,7 +129,7 @@ public final class Log extends TagImpl {
 		else if (type.startsWith("fatal")) this.type = lucee.commons.io.log.Log.LEVEL_FATAL;
 		else if (type.startsWith("debug")) this.type = lucee.commons.io.log.Log.LEVEL_DEBUG;
 		else if (type.startsWith("trace")) this.type = lucee.commons.io.log.Log.LEVEL_TRACE;
-		else throw new ApplicationException("invalid value for attribute type [" + type + "]", "valid values are [information,warning,error,fatal,debug]");
+		else throw new ApplicationException("Invalid value for attribute type [" + type + "]", "valid values are [information, warning, error, fatal, debug]");
 
 	}
 
@@ -142,7 +142,7 @@ public final class Log extends TagImpl {
 	public void setTime(boolean useTime) throws ApplicationException {
 		if (useTime) return;
 		// DeprecatedUtil.tagAttribute(pageContext,"Log", "time");
-		throw new ApplicationException("attribute [time] for tag [log] is deprecated, only the value true is allowed");
+		throw new ApplicationException("Attribute [time] for tag [log] is deprecated, only the value [true] is allowed");
 	}
 
 	/**
@@ -154,8 +154,8 @@ public final class Log extends TagImpl {
 	public void setFile(String file) throws ApplicationException {
 		if (StringUtil.isEmpty(file)) return;
 
-		if (file.indexOf('/') != -1 || file.indexOf('\\') != -1)
-			throw new ApplicationException("value [" + file + "] from attribute [file] at tag [log] can only contain a filename, file separators like [\\/] are not allowed");
+		if (file.indexOf('/') != -1 || file.indexOf('\\') != -1) throw new ApplicationException(
+				"Invalid value [" + file + "] for the attribute [file] for tag [log], it must be a valid filename, file separators like [\\/] are not allowed");
 		if (!file.endsWith(".log")) file += ".log";
 		this.file = file;
 	}
@@ -169,7 +169,7 @@ public final class Log extends TagImpl {
 	public void setDate(boolean useDate) throws ApplicationException {
 		if (useDate) return;
 		// DeprecatedUtil.tagAttribute(pageContext,"Log", "date");
-		throw new ApplicationException("attribute [date] for tag [log] is deprecated, only the value true is allowed");
+		throw new ApplicationException("Attribute [date] for tag [log] is deprecated, only the value [true] is allowed");
 	}
 
 	/**
@@ -185,7 +185,7 @@ public final class Log extends TagImpl {
 	public void setThread(boolean thread) throws ApplicationException {
 		if (thread) return;
 		// DeprecatedUtil.tagAttribute(pageContext,"Log", "thread");
-		throw new ApplicationException("attribute [thread] for tag [log] is deprecated, only the value true is allowed");
+		throw new ApplicationException("Attribute [thread] for tag [log] is deprecated, only the value [true] is allowed");
 	}
 
 	/**
@@ -210,16 +210,15 @@ public final class Log extends TagImpl {
 	@Override
 	public int doStartTag() throws PageException {
 
-		if (text == null && exception == null) throw new ApplicationException("Wrong Context, you must define one of the following attributes [text, exception]");
+		if (text == null && exception == null) throw new ApplicationException("Tag [log] requires one of the following attributes [text, exception]");
 		PageContextImpl pci = (PageContextImpl) pageContext;
-		ConfigImpl config = (ConfigImpl) pageContext.getConfig();
 		lucee.commons.io.log.Log logger;
 		if (file == null) {
 			logger = pci.getLog(log.toLowerCase(), false);
 			if (logger == null) {
 				// for backward compatibility
 				if ("console".equalsIgnoreCase(log))
-					logger = ((ConfigImpl) pageContext.getConfig()).getLogEngine().getConsoleLog(false, "cflog", lucee.commons.io.log.Log.LEVEL_INFO);
+					logger = ((ConfigPro) pageContext.getConfig()).getLogEngine().getConsoleLog(false, "cflog", lucee.commons.io.log.Log.LEVEL_INFO);
 				else {
 					java.util.Collection<String> set = pci.getLogNames();
 					Iterator<String> it = set.iterator();
@@ -243,31 +242,32 @@ public final class Log extends TagImpl {
 			if (StringUtil.isEmpty(text)) logger.log(type, contextName, exception);
 			else logger.log(type, contextName, text, exception);
 		}
-		else if (!StringUtil.isEmpty(text)) logger.log(type, contextName, text);
-		else throw new ApplicationException("you must define attribute text or attribute exception with the tag cflog");
+		else if (!StringUtil.isEmpty(text)) {
+			logger.log(type, contextName, text);
+		}
+		else throw new ApplicationException("Tag [log] requires one of the following attributes [text, exception]");
 		// logger.write(toStringType(type),contextName,text);
 		return SKIP_BODY;
 	}
 
 	private static lucee.commons.io.log.Log getFileLog(PageContext pc, String file, CharSet charset, boolean async) throws PageException {
-		ConfigImpl config = (ConfigImpl) pc.getConfig();
+
+		ConfigPro config = (ConfigPro) pc.getConfig();
 		Resource logDir = config.getLogDirectory();
 		Resource res = logDir.getRealResource(file);
-
 		lucee.commons.io.log.Log log = FileLogPool.instance.get(res, CharsetUtil.toCharset(charset));
 		if (log != null) return log;
+		synchronized (FileLogPool.instance) {
+			log = FileLogPool.instance.get(res, CharsetUtil.toCharset(charset));
+			if (log != null) return log;
 
-		if (charset == null) charset = CharsetUtil.toCharSet(((PageContextImpl) pc).getResourceCharset());
+			if (charset == null) charset = CharsetUtil.toCharSet(((PageContextImpl) pc).getResourceCharset());
 
-		try {
 			log = config.getLogEngine().getResourceLog(res, CharsetUtil.toCharset(charset), "cflog." + FileLogPool.toKey(file, CharsetUtil.toCharset(charset)),
 					lucee.commons.io.log.Log.LEVEL_TRACE, 5, new Listener(FileLogPool.instance, res, charset), async);
 			FileLogPool.instance.put(res, CharsetUtil.toCharset(charset), log);
+			return log;
 		}
-		catch (IOException e) {
-			throw Caster.toPageException(e);
-		}
-		return log;
 	}
 
 	/**

@@ -42,6 +42,7 @@ import lucee.runtime.op.Operator;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayClassic;
 import lucee.runtime.type.ArrayImpl;
+import lucee.runtime.type.ArrayPro;
 import lucee.runtime.type.QueryColumn;
 import lucee.runtime.type.comparator.SortRegister;
 
@@ -166,7 +167,8 @@ public final class ArrayUtil {
 			try {
 				if (tmp != null && Operator.compare(object, tmp) == 0) return i;
 			}
-			catch (PageException e) {}
+			catch (PageException e) {
+			}
 		}
 		return 0;
 	}
@@ -1009,5 +1011,10 @@ public final class ArrayUtil {
 		for (int i = 0; i < arr.length; i++) {
 			list.add(arr[i]);
 		}
+	}
+
+	public static ArrayPro toArrayPro(Array array) {
+		if (array instanceof ArrayPro) return (ArrayPro) array;
+		return new ArrayAsArrayPro(array);
 	}
 }

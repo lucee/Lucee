@@ -18,6 +18,17 @@
  **/
 package lucee.runtime.net.mail;
 
+import java.io.UnsupportedEncodingException;
+import java.net.IDN;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import javax.mail.internet.AddressException;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeUtility;
+
 import lucee.commons.io.SystemUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.config.Config;
@@ -29,16 +40,6 @@ import lucee.runtime.op.Decision;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.util.ListUtil;
-
-import javax.mail.internet.AddressException;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeUtility;
-import java.io.UnsupportedEncodingException;
-import java.net.IDN;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.stream.Collectors;
 
 public final class MailUtil {
 
@@ -54,13 +55,12 @@ public final class MailUtil {
 	}
 
 	public static InternetAddress toInternetAddress(Object emails) throws MailException, UnsupportedEncodingException, PageException {
-
-		if (emails instanceof String) return parseEmail(emails, null);
-
+		if (emails instanceof String) {
+			return parseEmail(emails, null);
+		}
 		InternetAddress[] addresses = toInternetAddresses(emails);
 		if (addresses != null && addresses.length > 0) return addresses[0];
-
-		return null;
+		throw new MailException("invalid email address definition");// should never come to this!
 	}
 
 	public static InternetAddress[] toInternetAddresses(Object emails) throws MailException, UnsupportedEncodingException, PageException {
@@ -125,7 +125,7 @@ public final class MailUtil {
 
 		while (it.hasNext()) {
 
-			InternetAddress addr = parseEmail(it.next(), null);
+			InternetAddress addr = parseEmail(it.next());
 
 			if (addr != null) al.add(addr);
 		}
@@ -156,6 +156,9 @@ public final class MailUtil {
 			String local = address.substring(0, pos);
 			String domain = address.substring(pos + 1);
 
+			if (local.length() > 64) return false; // local part may only be 64 characters
+			if (domain.length() > 255) return false; // domain may only be 255 characters
+
 			if (domain.charAt(0) == '.' || local.charAt(0) == '.' || local.charAt(local.length() - 1) == '.') return false;
 
 			pos = domain.lastIndexOf('.');
@@ -168,7 +171,8 @@ public final class MailUtil {
 					addr.validate();
 					return true;
 				}
-				catch (AddressException e) {}
+				catch (AddressException e) {
+				}
 			}
 		}
 
@@ -178,7 +182,10 @@ public final class MailUtil {
 	public static InternetAddress parseEmail(Object value) throws MailException {
 		InternetAddress ia = parseEmail(value, null);
 		if (ia != null) return ia;
-		if (value instanceof CharSequence) throw new MailException("[" + value + "] cannot be converted to an email address");
+		if (value instanceof CharSequence) {
+			if (StringUtil.isEmpty(value.toString())) return null;
+			throw new MailException("[" + value + "] cannot be converted to an email address");
+		}
 		throw new MailException("input cannot be converted to an email address");
 	}
 
@@ -190,6 +197,7 @@ public final class MailUtil {
 	 */
 	public static InternetAddress parseEmail(Object value, InternetAddress defaultValue) {
 		String str = Caster.toString(value, "");
+		if (StringUtil.isEmpty(str)) return defaultValue;
 		if (str.indexOf('@') > -1) {
 			try {
 				str = fixIDN(str);
@@ -197,7 +205,8 @@ public final class MailUtil {
 				// fixIDN( addr );
 				return addr;
 			}
-			catch (AddressException ex) {}
+			catch (AddressException ex) {
+			}
 		}
 		return defaultValue;
 	}
@@ -221,24 +230,19 @@ public final class MailUtil {
 	}
 
 	/**
-	 * This method should be called when TLS is used to ensure that the supported protocols are set.  Some
-	 * servers, e.g. Outlook365, reject lists with older protocols so we only pass protocols that start with
-	 * the prefix "TLS"
+	 * This method should be called when TLS is used to ensure that the supported protocols are set.
+	 * Some servers, e.g. Outlook365, reject lists with older protocols so we only pass protocols that
+	 * start with the prefix "TLS"
 	 */
 	public static void setSystemPropMailSslProtocols() {
 		String protocols = SystemUtil.getSystemPropOrEnvVar(SYSTEM_PROP_MAIL_SSL_PROTOCOLS, "");
 		if (protocols.isEmpty()) {
 			List<String> supportedProtocols = SSLConnectionSocketFactoryImpl.getSupportedSslProtocols();
-			protocols = supportedProtocols.stream()
-					.filter(el -> el.startsWith("TLS"))
-					.collect(Collectors.joining(" "));
+			protocols = supportedProtocols.stream().filter(el -> el.startsWith("TLS")).collect(Collectors.joining(" "));
 			if (!protocols.isEmpty()) {
 				System.setProperty(SYSTEM_PROP_MAIL_SSL_PROTOCOLS, protocols);
 				Config config = ThreadLocalPageContext.getConfig();
-				if (config != null)
-					config
-						.getLog("mail")
-						.info("mail", "Lucee system property " + SYSTEM_PROP_MAIL_SSL_PROTOCOLS + " set to [" + protocols + "]");
+				if (config != null) config.getLog("mail").info("mail", "Lucee system property " + SYSTEM_PROP_MAIL_SSL_PROTOCOLS + " set to [" + protocols + "]");
 			}
 		}
 	}

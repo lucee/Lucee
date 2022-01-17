@@ -65,8 +65,12 @@ public final class LogUtil {
 	public static boolean isAlreadyInLog() {
 		StackTraceElement[] stes = Thread.currentThread().getStackTrace();
 		if (stes != null) {
+			String str;
 			for (StackTraceElement ste: stes) {
-				if (ste.getClassName().indexOf("org.apache.log4j.") == 0) return true;
+				str = ste.getClassName();
+				if (ste.getClassName().indexOf("org.apache.log4j.") == 0 || ste.getClassName().indexOf("org.apache.logging.log4j.") == 0
+						|| ste.getClassName().indexOf("lucee.commons.io.log.log4j") == 0)
+					return true;
 			}
 		}
 		return false;
@@ -76,15 +80,15 @@ public final class LogUtil {
 		log(config, level, "application", type, msg);
 	}
 
-	public static void log(Config config, String type, Exception e) {
-		log(config, "application", type, e);
+	public static void log(Config config, String type, Throwable t) {
+		log(config, "application", type, t);
 	}
 
-	public static void log(Config config, String logName, String type, Exception e) {
-		log(config, logName, type, e, Log.LEVEL_ERROR);
+	public static void log(Config config, String logName, String type, Throwable t) {
+		log(config, logName, type, t, Log.LEVEL_ERROR);
 	}
 
-	public static void log(Config config, String logName, String type, Exception e, int logLevel) {
+	public static void log(Config config, String logName, String type, Throwable t, int logLevel) {
 		config = ThreadLocalPageContext.getConfig(config);
 		Log log = null;
 		if (config != null) {
@@ -92,10 +96,10 @@ public final class LogUtil {
 		}
 
 		if (log != null) {
-			if (Log.LEVEL_ERROR == logLevel) log.error(type, e);
-			else log.log(logLevel, type, e);
+			if (Log.LEVEL_ERROR == logLevel) log.error(type, t);
+			else log.log(logLevel, type, t);
 		}
-		else logGlobal(config, logLevel, type, ExceptionUtil.getStacktrace(e, true));
+		else logGlobal(config, logLevel, type, ExceptionUtil.getStacktrace(t, true));
 	}
 
 	public static void log(Config config, int level, String logName, String type, String msg) {
@@ -132,7 +136,7 @@ public final class LogUtil {
 		}
 	}
 
-	public static void logGlobal(Config config, String type, Exception e) {
-		logGlobal(config, Log.LEVEL_ERROR, type, ExceptionUtil.getStacktrace(e, true));
+	public static void logGlobal(Config config, String type, Throwable t) {
+		logGlobal(config, Log.LEVEL_ERROR, type, ExceptionUtil.getStacktrace(t, true));
 	}
 }

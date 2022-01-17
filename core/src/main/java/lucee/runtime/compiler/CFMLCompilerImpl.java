@@ -36,7 +36,7 @@ import lucee.commons.lang.compiler.JavaFunction;
 import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.PageSource;
 import lucee.runtime.PageSourceImpl;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.Constants;
 import lucee.runtime.exp.TemplateException;
 import lucee.runtime.type.util.ListUtil;
@@ -71,12 +71,12 @@ public final class CFMLCompilerImpl implements CFMLCompiler {
 		cfmlTransformer = new CFMLTransformer();
 	}
 
-	public Result compile(ConfigImpl config, PageSource ps, TagLib[] tld, FunctionLib[] fld, Resource classRootDir, boolean returnValue, boolean ignoreScopes)
+	public Result compile(ConfigPro config, PageSource ps, TagLib[] tld, FunctionLib[] fld, Resource classRootDir, boolean returnValue, boolean ignoreScopes)
 			throws TemplateException, IOException {
 		return _compile(config, ps, null, null, tld, fld, classRootDir, returnValue, ignoreScopes);
 	}
 
-	public Result compile(ConfigImpl config, SourceCode sc, TagLib[] tld, FunctionLib[] fld, Resource classRootDir, String className, boolean returnValue, boolean ignoreScopes)
+	public Result compile(ConfigPro config, SourceCode sc, TagLib[] tld, FunctionLib[] fld, Resource classRootDir, String className, boolean returnValue, boolean ignoreScopes)
 			throws TemplateException, IOException {
 
 		// just to be sure
@@ -85,28 +85,7 @@ public final class CFMLCompilerImpl implements CFMLCompiler {
 		return _compile(config, ps, sc, className, tld, fld, classRootDir, returnValue, ignoreScopes);
 	}
 
-	/*
-	 * private byte[] _compiless(ConfigImpl config,PageSource ps,SourceCode sc,String className,
-	 * TagLib[] tld, FunctionLib[] fld, Resource classRootDir,TransfomerSettings settings) throws
-	 * TemplateException { Factory factory = BytecodeFactory.getInstance(config);
-	 * 
-	 * Page page=null;
-	 * 
-	 * TagLib[][] _tlibs=new TagLib[][]{null,new TagLib[0]}; _tlibs[CFMLTransformer.TAG_LIB_GLOBAL]=tld;
-	 * // reset page tlds if(_tlibs[CFMLTransformer.TAG_LIB_PAGE].length>0) {
-	 * _tlibs[CFMLTransformer.TAG_LIB_PAGE]=new TagLib[0]; }
-	 * 
-	 * CFMLScriptTransformer scriptTransformer = new CFMLScriptTransformer();
-	 * scriptTransformer.transform( BytecodeFactory.getInstance(config) , page , new EvaluatorPool() ,
-	 * _tlibs, fld , null , config.getCoreTagLib(ps.getDialect()).getScriptTags() , sc , settings);
-	 * 
-	 * //CFMLExprTransformer extr=new CFMLExprTransformer(); //extr.transform(factory, page, ep, tld,
-	 * fld, scriptTags, cfml, settings)
-	 * 
-	 * return null; }
-	 */
-
-	private Result _compile(ConfigImpl config, PageSource ps, SourceCode sc, String className, TagLib[] tld, FunctionLib[] fld, Resource classRootDir, boolean returnValue,
+	private Result _compile(ConfigPro config, PageSource ps, SourceCode sc, String className, TagLib[] tld, FunctionLib[] fld, Resource classRootDir, boolean returnValue,
 			boolean ignoreScopes) throws TemplateException, IOException {
 		String javaName;
 		if (className == null) {
@@ -196,14 +175,14 @@ public final class CFMLCompilerImpl implements CFMLCompiler {
 			// source is cfm and target cfc
 			if (dialect == CFMLEngine.DIALECT_CFML && endsWith(srcName, Constants.getCFMLTemplateExtensions(), dialect) && className
 					.endsWith("_" + Constants.getCFMLComponentExtension() + (dialect == CFMLEngine.DIALECT_CFML ? Constants.CFML_CLASS_SUFFIX : Constants.LUCEE_CLASS_SUFFIX))) {
-				throw new TemplateException("source file " + displayPath + "contains the bytecode for a regular cfm template not for a component");
+				throw new TemplateException("Source file [" + displayPath + "] contains the bytecode for a regular cfm template not for a component");
 			}
 			// source is cfc and target cfm
 			if (dialect == CFMLEngine.DIALECT_CFML
 					&& srcName.endsWith(
 							"_" + Constants.getCFMLComponentExtension() + (dialect == CFMLEngine.DIALECT_CFML ? Constants.CFML_CLASS_SUFFIX : Constants.LUCEE_CLASS_SUFFIX))
 					&& endsWith(className, Constants.getCFMLTemplateExtensions(), dialect))
-				throw new TemplateException("source file " + displayPath + "contains a component not a regular cfm template");
+				throw new TemplateException("Source file [" + displayPath + "] contains a component not a regular cfm template");
 
 			// rename class name when needed
 			if (!srcName.equals(javaName)) {
@@ -241,7 +220,7 @@ public final class CFMLCompilerImpl implements CFMLCompiler {
 
 		String str = System.getenv("PUBLIC_KEY");
 		if (str == null) str = System.getProperty("PUBLIC_KEY");
-		if (str == null) throw new RuntimeException("to decrypt encrypted bytecode, you need to set PUBLIC_KEY as system property or or environment variable");
+		if (str == null) throw new RuntimeException("To decrypt encrypted bytecode, you need to set PUBLIC_KEY as system property or as an environment variable");
 
 		byte[] bytes = IOUtil.toBytes(ace.getInputStream(), true);
 		try {
@@ -266,7 +245,7 @@ public final class CFMLCompilerImpl implements CFMLCompiler {
 		return false;
 	}
 
-	public Page transform(ConfigImpl config, PageSource source, TagLib[] tld, FunctionLib[] fld, boolean returnValue, boolean ignoreScopes) throws TemplateException, IOException {
+	public Page transform(ConfigPro config, PageSource source, TagLib[] tld, FunctionLib[] fld, boolean returnValue, boolean ignoreScopes) throws TemplateException, IOException {
 		return cfmlTransformer.transform(BytecodeFactory.getInstance(config), config, source, tld, fld, returnValue, ignoreScopes);
 	}
 

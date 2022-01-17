@@ -25,6 +25,8 @@ import java.util.Set;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.component.DataMember;
 import lucee.runtime.component.Member;
+import lucee.runtime.component.StaticStruct;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.debug.DebugEntryTemplate;
 import lucee.runtime.dump.DumpData;
 import lucee.runtime.dump.DumpProperties;
@@ -64,25 +66,26 @@ public class StaticScope extends StructSupport implements Variables, Objects {
 
 	@Override
 	public int size() {
-		if (base == null) return cp._static.size();
-		return base.size() + cp._static.size();
+		int s = cp.getStaticStruct().size();
+		return (base == null) ? s : base.size() + s;
 
 	}
 
 	public Member _remove(PageContext pc, Key key) throws PageException {
+		StaticStruct ss = cp.getStaticStruct();
 		// does the current struct has this key
-		Member m = cp._static.get(key);
+		Member m = ss.get(key);
 		if (m != null) {
 			if (m.getModifier() == Member.MODIFIER_FINAL)
 				throw new ExpressionException("Cannot remove key [" + key + "] in static scope from component [" + cp.getComponentName() + "], that member is set to final");
 
 			if (!c.isAccessible(ThreadLocalPageContext.get(pc), m.getAccess()))
 				throw new ExpressionException("Component from type [" + cp.getComponentName() + "] has no accessible static Member with name [" + key + "]");
-			return cp._static.remove(key);
+			return ss.remove(key);
 		}
 		// if not the parent (inside the static constructor we do not remove keys from base static scopes)
-		if (base != null && !c.insideStaticConstr) return base._remove(pc, key);
 
+		if (base != null && !c.insideStaticConstr.getOrDefault(ThreadLocalPageContext.getThreadId(pc), Boolean.FALSE)) return base._remove(pc, key);
 		return null;
 	}
 
@@ -107,20 +110,22 @@ public class StaticScope extends StructSupport implements Variables, Objects {
 	@Override
 	public void clear() {
 		if (base != null) base.clear();
-		cp._static.clear();
+		cp.getStaticStruct().clear();
 	}
 
 	private Member _get(PageContext pc, Key key, Member defaultValue) {
 		// does the current struct has this key
-		Member m = cp._static.get(key);
-		if (m != null) {
-			if (c.isAccessible(pc, m)) return m;
-			return null;
-		}
+		StaticStruct ss = cp.getStaticStruct();
+		if (!ss.isEmpty()) {
+			Member m = ss.get(key);
 
+			if (m != null) {
+				if (c.isAccessible(pc, m)) return m;
+				return null;
+			}
+		}
 		// if not the parent
 		if (base != null) return base._get(pc, key, defaultValue);
-
 		return null;
 	}
 
@@ -152,31 +157,35 @@ public class StaticScope extends StructSupport implements Variables, Objects {
 		return defaultValue;
 	}
 
+	public Member getMember(PageContext pc, Key key, Member defaultValue) {
+		return _get(ThreadLocalPageContext.get(pc), key, null);
+	}
+
 	private Member _setIfExists(PageContext pc, Key key, Object value) throws PageException {
 		// does the current struct has this key
-		Member m = cp._static.get(key);
+		Member m = cp.getStaticStruct().get(key);
 		if (m != null) {
 			if (m.getModifier() == Member.MODIFIER_FINAL)
 				throw new ExpressionException("Cannot update key [" + key + "] in static scope from component [" + cp.getComponentName() + "], that member is set to final");
 
 			return _set(pc, m, key, value);
 		}
-
 		// if not the parent (we only do this if we are outside the static constructor)
-		if (base != null && !c.insideStaticConstr) return base._setIfExists(pc, key, value);
-
+		if (base != null && !c.insideStaticConstr.getOrDefault(ThreadLocalPageContext.getThreadId(pc), Boolean.FALSE)) return base._setIfExists(pc, key, value);
 		return null;
 	}
 
 	private Member _set(PageContext pc, Member existing, Key key, Object value) throws ExpressionException {
-		if (value instanceof Member) return cp._static.put(key, (Member) value);
+		if (value instanceof Member) {
+			return cp.getStaticStruct().put(key, (Member) value);
+		}
 
 		// check if user has access
 		if (!c.isAccessible(pc, existing != null ? existing.getAccess() : dataMemberDefaultAccess))
 			throw new ExpressionException("Component from type [" + cp.getComponentName() + "] has no accessible static Member with name [" + key + "]");
 
 		// set
-		return cp._static.put(key,
+		return cp.getStaticStruct().put(key,
 				new DataMember(existing != null ? existing.getAccess() : dataMemberDefaultAccess, existing != null ? existing.getModifier() : Member.MODIFIER_NONE, value));
 	}
 
@@ -219,13 +228,14 @@ public class StaticScope extends StructSupport implements Variables, Objects {
 	@Override
 	public final boolean containsKey(Key key) {
 		if (base != null && base.containsKey(key)) return true;
-		return cp._static.containsKey(key);
+		return cp.getStaticStruct().containsKey(key);
 	}
 
 	@Override
 	public final boolean containsKey(PageContext pc, Key key) {
 		if (base != null && base.containsKey(pc, key)) return true;
-		return cp._static.containsKey(key);
+		StaticStruct ss = cp.getStaticStruct();
+		return cp.getStaticStruct().containsKey(key);
 	}
 
 	@Override
@@ -254,11 +264,13 @@ public class StaticScope extends StructSupport implements Variables, Objects {
 		if (base != null) base._entries(map, access);
 
 		// fill accessable keys
-		Iterator<Entry<Key, Member>> it = cp._static.entrySet().iterator();
-		Entry<Key, Member> e;
-		while (it.hasNext()) {
-			e = it.next();
-			if (e.getValue().getAccess() <= access) map.put(e.getKey(), e.getValue().getValue());
+		if (!cp.getStaticStruct().isEmpty()) {
+			Iterator<Entry<Key, Member>> it = cp.getStaticStruct().entrySet().iterator();
+			Entry<Key, Member> e;
+			while (it.hasNext()) {
+				e = it.next();
+				if (e.getValue().getAccess() <= access) map.put(e.getKey(), e.getValue().getValue());
+			}
 		}
 		return map;
 	}
@@ -268,11 +280,13 @@ public class StaticScope extends StructSupport implements Variables, Objects {
 		if (base != null) base.all(map);
 
 		// fill accessable keys
-		Iterator<Entry<Key, Member>> it = cp._static.entrySet().iterator();
-		Entry<Key, Member> e;
-		while (it.hasNext()) {
-			e = it.next();
-			map.put(e.getKey(), e.getValue());
+		if (!cp.getStaticStruct().isEmpty()) {
+			Iterator<Entry<Key, Member>> it = cp.getStaticStruct().entrySet().iterator();
+			Entry<Key, Member> e;
+			while (it.hasNext()) {
+				e = it.next();
+				map.put(e.getKey(), e.getValue());
+			}
 		}
 		return map;
 	}
@@ -305,71 +319,33 @@ public class StaticScope extends StructSupport implements Variables, Objects {
 		// INFO duplicate code is for faster execution -> less contions
 
 		// debug yes
-		if (pc.getConfig().debug()) {
+		if (pc.getConfig().debug() && ((ConfigPro) pc.getConfig()).hasDebugOptions(ConfigPro.DEBUG_TEMPLATE)) {
 			DebugEntryTemplate debugEntry = pc.getDebugger().getEntry(pc, cp.getPageSource(), udf.getFunctionName());// new DebugEntry(src,udf.getFunctionName());
 			long currTime = pc.getExecutionTime();
 			long time = System.nanoTime();
 
-			// sync yes
-			if (c.top.properties._synchronized) {
-				synchronized (this) {
-					try {
-						parent = c.beforeStaticConstructor(pc);
-						if (args != null) rtn = udf.call(pc, calledName, args, true);
-						else rtn = udf.callWithNamedValues(pc, calledName, namedArgs, true);
-					}
-					finally {
-						c.afterStaticConstructor(pc, parent);
-						long diff = ((System.nanoTime() - time) - (pc.getExecutionTime() - currTime));
-						pc.setExecutionTime(pc.getExecutionTime() + diff);
-						debugEntry.updateExeTime(diff);
-					}
-				}
+			try {
+				parent = beforeStaticConstructor(pc, c, this);
+				if (args != null) rtn = udf.call(pc, calledName, args, true);
+				else rtn = udf.callWithNamedValues(pc, calledName, namedArgs, true);
 			}
-
-			// sync no
-			else {
-				try {
-					parent = c.beforeStaticConstructor(pc);
-					if (args != null) rtn = udf.call(pc, calledName, args, true);
-					else rtn = udf.callWithNamedValues(pc, calledName, namedArgs, true);
-				}
-				finally {
-					c.afterStaticConstructor(pc, parent);
-					long diff = ((System.nanoTime() - time) - (pc.getExecutionTime() - currTime));
-					pc.setExecutionTime(pc.getExecutionTime() + diff);
-					debugEntry.updateExeTime(diff);
-				}
+			finally {
+				afterStaticConstructor(pc, c, parent);
+				long diff = ((System.nanoTime() - time) - (pc.getExecutionTime() - currTime));
+				pc.setExecutionTime(pc.getExecutionTime() + diff);
+				debugEntry.updateExeTime(diff);
 			}
-
 		}
 
 		// debug no
-		else {
-
-			// sync yes
-			if (c.top.properties._synchronized) {
-				synchronized (this) {
-					try {
-						parent = c.beforeStaticConstructor(pc);
-						if (args != null) rtn = udf.call(pc, calledName, args, true);
-						else rtn = udf.callWithNamedValues(pc, calledName, namedArgs, true);
-					}
-					finally {
-						c.afterStaticConstructor(pc, parent);
-					}
-				}
+		else { // this.cp._static
+			try {
+				parent = beforeStaticConstructor(pc, c, this);
+				if (args != null) rtn = udf.call(pc, calledName, args, true);
+				else rtn = udf.callWithNamedValues(pc, calledName, namedArgs, true);
 			}
-
-			else {
-				try {
-					parent = c.beforeStaticConstructor(pc);
-					if (args != null) rtn = udf.call(pc, calledName, args, true);
-					else rtn = udf.callWithNamedValues(pc, calledName, namedArgs, true);
-				}
-				finally {
-					c.afterStaticConstructor(pc, parent);
-				}
+			finally {
+				afterStaticConstructor(pc, c, parent);
 			}
 		}
 		return rtn;
@@ -401,7 +377,8 @@ public class StaticScope extends StructSupport implements Variables, Objects {
 	}
 
 	@Override
-	public void setBind(boolean bind) {}
+	public void setBind(boolean bind) {
+	}
 
 	@Override
 	public boolean isBind() {
@@ -467,6 +444,18 @@ public class StaticScope extends StructSupport implements Variables, Objects {
 
 	public Component getComponent() {
 		return c;
+	}
+
+	public static Variables beforeStaticConstructor(PageContext pc, ComponentImpl c, StaticScope ss) {
+		c.insideStaticConstr.put(ThreadLocalPageContext.getThreadId(pc), Boolean.TRUE);
+		Variables parent = pc.variablesScope();
+		pc.setVariablesScope(ss);
+		return parent;
+	}
+
+	public static void afterStaticConstructor(PageContext pc, ComponentImpl c, Variables parent) {
+		c.insideStaticConstr.remove(ThreadLocalPageContext.getThreadId(pc));
+		pc.setVariablesScope(parent);
 	}
 
 }

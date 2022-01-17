@@ -40,9 +40,9 @@ import lucee.commons.lang.types.RefIntegerSync;
 import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.compiler.CFMLCompilerImpl.Result;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigWeb;
-import lucee.runtime.config.ConfigWebImpl;
+import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.config.Constants;
 import lucee.runtime.engine.ThreadLocalPageContext;
@@ -267,7 +267,8 @@ public final class PageSourceImpl implements PageSource {
 				try {
 					page = loadPhysical(pc, page);
 				}
-				catch (TemplateException e) {}
+				catch (TemplateException e) {
+				}
 			}
 			if (page != null) return page;
 		}
@@ -321,11 +322,12 @@ public final class PageSourceImpl implements PageSource {
 					try {
 						same = pp.getHash() == PageSourceCode.toString(this, config.getTemplateCharset()).hashCode();
 					}
-					catch (IOException e) {}
+					catch (IOException e) {
+					}
 
 				}
 				if (!same) {
-					LogUtil.log(config, Log.LEVEL_INFO, "compile", "recompile [" + getDisplayPath() + "] because loaded page has changed");
+					LogUtil.log(config, Log.LEVEL_DEBUG, "compile", "recompile [" + getDisplayPath() + "] because loaded page has changed");
 					pcn.set(page = compile(config, mapping.getClassRootDirectory(), page, false, pc.ignoreScopes()));
 					page.setPageSource(this);
 				}
@@ -339,12 +341,8 @@ public final class PageSourceImpl implements PageSource {
 			boolean isNew = false;
 			// new class
 			if (flush || !classFile.exists()) {
-				if (!flush || !classFile.exists()) {
-					LogUtil.log(config, Log.LEVEL_INFO, "compile", "compile [" + getDisplayPath() + "] no previous class file ");
-				}
-				else {
-					LogUtil.log(config, Log.LEVEL_INFO, "compile", "compile [" + getDisplayPath() + "] because flush");
-				}
+				LogUtil.log(config, Log.LEVEL_DEBUG, "compile", "compile [" + getDisplayPath() + "] no previous class file or flush");
+
 				pcn.set(page = compile(config, classRootDir, null, false, pc.ignoreScopes()));
 				flush = false;
 				isNew = true;
@@ -352,28 +350,36 @@ public final class PageSourceImpl implements PageSource {
 			// load page
 			else {
 				try {
-					/*
-					 * if (InstrumentationFactory.getInstrumentation(config) != null) { LogUtil.log(config,
-					 * Log.LEVEL_INFO, "compile", "load class from classloader  [" + getDisplayPath() + "]");
-					 * pcn.set(page = newInstance(mapping.getPhysicalClass(this.getClassName()))); } else {
-					 */
 					String cn = pcn.className;
+					boolean done = false;
 					if (cn != null) {
-						LogUtil.log(config, Log.LEVEL_INFO, "compile", "load class from ClassLoader  [" + getDisplayPath() + "]");
-						pcn.set(page = newInstance(mapping.getPhysicalClass(cn)));
+						try {
+							LogUtil.log(config, Log.LEVEL_DEBUG, "compile", "load class from ClassLoader  [" + getDisplayPath() + "]");
+							pcn.set(page = newInstance(mapping.getPhysicalClass(cn)));
+							done = true;
+						}
+						catch (ClassNotFoundException cnfe) {
+							LogUtil.log(config, "compile", cnfe);
+						}
 					}
-					else {
-						LogUtil.log(config, Log.LEVEL_INFO, "compile", "load class from binary  [" + getDisplayPath() + "]");
-						pcn.set(page = newInstance(mapping.getPhysicalClass(this.getClassName(), IOUtil.toBytes(classFile))));
+					if (!done) {
+						LogUtil.log(config, Log.LEVEL_DEBUG, "compile", "load class from binary  [" + getDisplayPath() + "]");
+						byte[] bytes = IOUtil.toBytes(classFile);
+						if (ClassUtil.isBytecode(bytes)) pcn.set(page = newInstance(mapping.getPhysicalClass(this.getClassName(), bytes)));
 					}
-					// }
+
 				}
 				catch (Exception e) {
 					LogUtil.log(config, "compile", e);
 					pcn.reset();
 				}
+				catch (ClassFormatError cfe) {
+					LogUtil.log(config, Log.LEVEL_ERROR, "compile", "size of the class file:" + classFile.length());
+					LogUtil.log(config, "compile", cfe);
+					pcn.reset();
+				}
 				if (page == null) {
-					LogUtil.log(config, Log.LEVEL_INFO, "compile", "compile  [" + getDisplayPath() + "] in case loading of the class fails");
+					LogUtil.log(config, Log.LEVEL_DEBUG, "compile", "compile  [" + getDisplayPath() + "] in case loading of the class fails");
 					pcn.set(page = compile(config, classRootDir, null, false, pc.ignoreScopes()));
 					isNew = true;
 				}
@@ -382,7 +388,7 @@ public final class PageSourceImpl implements PageSource {
 			// check if version changed or lasMod
 			if (!isNew && (srcLastModified != page.getSourceLastModified() || page.getVersion() != pc.getConfig().getFactory().getEngine().getInfo().getFullVersionInfo())) {
 				isNew = true;
-				LogUtil.log(config, Log.LEVEL_INFO, "compile", "recompile [" + getDisplayPath() + "] because unloaded page has changed");
+				LogUtil.log(config, Log.LEVEL_DEBUG, "compile", "recompile [" + getDisplayPath() + "] because unloaded page has changed");
 				pcn.set(page = compile(config, classRootDir, page, false, pc.ignoreScopes()));
 			}
 			page.setPageSource(this);
@@ -404,7 +410,7 @@ public final class PageSourceImpl implements PageSource {
 
 	private Page compile(ConfigWeb config, Resource classRootDir, Page existing, boolean returnValue, boolean ignoreScopes) throws TemplateException {
 		try {
-			return _compile(config, classRootDir, existing, returnValue, ignoreScopes);
+			return _compile(config, classRootDir, existing, returnValue, ignoreScopes, false);
 		}
 		catch (RuntimeException re) {
 			String msg = StringUtil.emptyIfNull(re.getMessage());
@@ -429,9 +435,9 @@ public final class PageSourceImpl implements PageSource {
 		}
 	}
 
-	private Page _compile(ConfigWeb config, Resource classRootDir, Page existing, boolean returnValue, boolean ignoreScopes)
+	private Page _compile(ConfigWeb config, Resource classRootDir, Page existing, boolean returnValue, boolean ignoreScopes, boolean split)
 			throws IOException, SecurityException, IllegalArgumentException, PageException {
-		ConfigWebImpl cwi = (ConfigWebImpl) config;
+		ConfigWebPro cwi = (ConfigWebPro) config;
 		int dialect = getDialect();
 
 		long now;
@@ -449,9 +455,23 @@ public final class PageSourceImpl implements PageSource {
 			}
 			return newInstance(clazz);
 		}
-		catch (Throwable t) {
-			ExceptionUtil.rethrowIfNecessary(t);
-			PageException pe = Caster.toPageException(t);
+		catch (RuntimeException re) {
+			String msg = StringUtil.emptyIfNull(re.getMessage());
+			if (!split && StringUtil.indexOfIgnoreCase(msg, "Method code too large!") != -1) {
+				return _compile(config, classRootDir, existing, returnValue, ignoreScopes, true);
+			}
+			else throw re;
+		}
+		catch (ClassFormatError cfe) {
+			String msg = StringUtil.emptyIfNull(cfe.getMessage());
+			if (!split && StringUtil.indexOfIgnoreCase(msg, "Invalid method Code length") != -1) {
+				return _compile(config, classRootDir, existing, returnValue, ignoreScopes, true);
+			}
+			else throw cfe;
+		}
+
+		catch (Exception e) {
+			PageException pe = Caster.toPageException(e);
 			pe.setExtendedInfo("failed to load template " + getDisplayPath());
 			throw pe;
 		}
@@ -1010,7 +1030,7 @@ public final class PageSourceImpl implements PageSource {
 	@Override
 	public int getDialect() {
 		Config c = getMapping().getConfig();
-		if (!((ConfigImpl) c).allowLuceeDialect()) return CFMLEngine.DIALECT_CFML;
+		if (!((ConfigPro) c).allowLuceeDialect()) return CFMLEngine.DIALECT_CFML;
 		// MUST improve performance on this
 		ConfigWeb cw = null;
 

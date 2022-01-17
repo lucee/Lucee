@@ -77,7 +77,8 @@ public final class LSTimeFormat implements Function {
 				try {
 					return new DateTimeImpl(formats[i].parse(str).getTime(), false);
 				}
-				catch (ParseException e) {}
+				catch (ParseException e) {
+				}
 			}
 
 		}

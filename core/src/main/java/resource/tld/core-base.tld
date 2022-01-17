@@ -5,7 +5,7 @@
 	<tlib-version>1.0</tlib-version>
 	<cfml-version>1.0</cfml-version>
 	<short-name>tbase</short-name>
-	<uri>http://www.lucee.org/cf-tld-3-1</uri>
+	<uri>https://www.lucee.org/cf-tld-3-1</uri>
 	<display-name>Lucee Core Tag Library</display-name>
 	<description></description>
 	<name-space>cf</name-space>
@@ -942,6 +942,15 @@ A return value from the CreateTimeSpan function, for example, "#CreateTimeSpan(0
 			<rtexprvalue>true</rtexprvalue>
 			<description>if set to true, Lucee url encodes the given name and value if necessary.</description>
 		</attribute>
+		<attribute>
+			<type>string</type>
+			<name>samesite</name>
+			<values>Strict,Lax,None</values>
+			<default-value></default-value>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>It will help to prevent Cross-Site Request Forgeries. Enabling this attribute on the cookie will instruct the browser to afford this cookie certain protections.</description>
+		</attribute>
 	</tag>
 	<!-- DBInfo -->
 	<tag>
@@ -1311,6 +1320,14 @@ Example:
 			<rtexprvalue>true</rtexprvalue>
 			<description>Variable in which to put program error stream output. If neither errorFile nor errorVariable is specified, the error stream is discarded.</description>
 		</attribute>
+		<attribute>
+			<type>string</type>
+			<name>directory</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>The working directory in which to execute the command</description>
+			<status>hidden</status>
+		</attribute>
 	</tag>
 	<!-- Exit -->
 	<tag>
@@ -1367,8 +1384,7 @@ Example:
 			<type>struct</type>
 			<name>columnMap</name>
 			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-		    <status>unimplemented</status>
+			<rtexprvalue>true</rtexprvalue>		    
 		<description>Used only for the create action with a query attribute.
             A structure specifying a mapping between the names of the columns in the object specified by the query attribute
             and the columns of the feed format, as described in the Query attribute section.
@@ -1708,6 +1724,22 @@ To use cached data, the tag must be called with the exact same arguments. Only u
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Name of the result value (default:cffile)</description>
+		</attribute>
+		<attribute>
+			<type>any</type>
+			<name>allowedExtensions</name>
+			<alias>allowExtension,allowedExtension</alias>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>String list or string array of extensions allowed, this overwrites any other setting including the attribute [blockedExtensions] and settings done for example in the Application.cfc. </description>
+		</attribute>
+		<attribute>
+			<type>any</type>
+			<name>blockedExtensions</name>
+			<alias>blockExtension,blockedExtension</alias>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>String list or string array of extensions blocked, this overwrites any setting done for example in the Application.cfc.</description>
 		</attribute>
 	</tag>
 	<!-- Flush -->
@@ -4719,7 +4751,7 @@ Permits searching collections by title or displaying a separate title from the k
 	<tag>
 		<name>location</name>
 		<tag-class>lucee.runtime.tag.Location</tag-class>
-		<body-content>empty</body-content>
+		<body-content>free</body-content>
 		<body-rtexprvalue>false</body-rtexprvalue>
 		<script>
 			<type>multiple</type>
@@ -4950,6 +4982,7 @@ Permits searching collections by title or displaying a separate title from the k
 			<name>application</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
+			<default>true</default>
 			<description>Specifies whether to log the application name if one has been specified in a cfapplication tag.</description>
 		</attribute>
 	</tag>
@@ -5189,7 +5222,7 @@ Lucee uses the number of characters in the file.</description>
 		<attribute>
 			<type>object</type>
 			<name>to</name>
-			<required>false</required>
+			<required>true</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>The name of the e-mail message recipient.</description>
 		</attribute>
@@ -5234,6 +5267,7 @@ Lucee uses the number of characters in the file.</description>
 			<type>string</type>
 			<name>type</name>
 			<required>false</required>
+			<default>text/plain</default>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Specifies extended type attributes for the message.</description>
 		</attribute>
@@ -6318,7 +6352,10 @@ sct["bracketNotation"] --> keyname: "bracketNotation"
 			<status>hidden</status>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>When return type is set to "struct", the value of this column is used as key in the struct for every record.</description>
+			<description>When return type is set to "struct", the value of this column can be used as key in the struct for every record.
+				If not set then the query must not return more than one record, and the keys of the returned struct are the column names
+				and the values are the column values for the single record that is returned. 
+			</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -6508,7 +6545,12 @@ To use cached data, the current query must use the same SQL statement, data sour
 			<rtexprvalue>true</rtexprvalue>
 			<description>one of the following values:
 			- query: default for all dbtype expect "hql", returns a query object
-			- array_of_entity: works only with dbtype "hql" and is also the default value for dbtype "hql"</description>
+			- array_of_entity: works only with dbtype "hql" and is also the default value for dbtype "hql"
+			- array: returns an array, where each element is a struct with a query record
+			- struct: returns either a struct of structs where the key is specified by the keyColumn attribute
+			and each value is a struct with a query record, or a single record if keyColumn is not set, where
+			each key is a column name and each value has its corresponding value.
+			</description>
 		</attribute>
 		<attribute>
 			<type>timezone</type>
@@ -6567,6 +6609,13 @@ To use cached data, the current query must use the same SQL statement, data sour
 			<required>false</required>
 			<description></description>
 		</attribute>
+		<attribute>
+			<name>cacheid</name>
+			<type>string</type>
+			<status>unimplemented</status>
+			<required>false</required>
+			<description>Attribute not supported</description>
+		</attribute>
 	</tag>
 
 	<!-- QueryParam -->
@@ -6615,7 +6664,16 @@ To use cached data, the current query must use the same SQL statement, data sour
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Maximum length of the parameter. The default value is the length of the string specified in
-	the value attribute.</description>
+	the value attribute. if the attribute charset is defined, this comparsion will be byte based.</description>
+		</attribute>
+		<attribute>
+			<type>string</type>
+			<name>charset</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>This attribute is used for 2 things:
+			- it checks if the given value is compatible with that charset
+			- to check the binary length of the value (see attribute maxlength).</description>
 		</attribute>
 		<attribute>
 			<type>number</type>
@@ -7657,6 +7715,7 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 		<attribute>
 			<type>string</type>
 			<name>name</name>
+			<alias>names</alias>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>The name of the thread to which the action applies:
@@ -7841,6 +7900,14 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>ODBC lock type.</description>
+		</attribute>
+		<attribute>
+			<type>string</type>
+			<name>savepoint</name>
+			<required>false</required>
+			<status>hidden</status>
+			<rtexprvalue>true</rtexprvalue>
+			<description>optional savepoint name, used with action "setsavepoint" and "rollback".</description>
 		</attribute>
 	</tag>
 
@@ -8754,6 +8821,13 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 - A string containing a DTD or Schema
 - The name of a DTD or Schema file
 - The URL of a DTD or Schema file; valid protocol identifiers include http, https, ftp, and file</description>
+		</attribute>
+		<attribute>
+			<type>boolean</type>
+			<name>lenient</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>if set to true, the parser is more lenient and forgives invalid XML and does the best to interpret it.</description>
 		</attribute>
 	</tag>
 	<!-- x_ -->
@@ -9905,6 +9979,15 @@ Valid only for cfinput type="text".</description>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>HTML attribute: Specifies the legal number intervals for the input field</description>
+		</attribute>
+		<attribute>
+			<type>boolean</type>
+			<name>encodeValue</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>By default the value parameter is automatically html encoded, but not using ESAPI encodeForHtmlAttribute() for historical reasons. Default is true.
+			Set to false to disable the encoding and handle the encoding yourself.
+			</description>
 		</attribute>
 	</tag>
 

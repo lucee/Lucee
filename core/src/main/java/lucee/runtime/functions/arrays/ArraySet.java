@@ -51,6 +51,6 @@ public final class ArraySet extends BIF {
 	@Override
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
 		if (args.length == 4) return call(pc, Caster.toArray(args[0]), Caster.toDoubleValue(args[1]), Caster.toDoubleValue(args[2]), args[3]);
-		else throw new FunctionException(pc, "ArraySet", 1, 1, args.length);
+		else throw new FunctionException(pc, "ArraySet", 4, 4, args.length);
 	}
 }

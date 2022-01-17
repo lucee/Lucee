@@ -25,7 +25,13 @@ import java.util.List;
 
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
+import lucee.commons.io.res.Resource;
+import lucee.commons.io.res.type.file.FileResource;
+import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.StringUtil;
+import lucee.runtime.PageContext;
+import lucee.runtime.engine.ThreadLocalPageContext;
+import lucee.runtime.exp.ExpressionException;
 
 public class Command {
 
@@ -34,8 +40,21 @@ public class Command {
 		return Runtime.getRuntime().exec(toArray(cmdline));
 	}
 
-	public static Process createProcess(String[] commands) throws IOException {
-		return Runtime.getRuntime().exec(commands);
+	public static Process createProcess(PageContext pc, String[] commands, String workingDir) throws IOException, ExpressionException {
+		pc = ThreadLocalPageContext.get(pc);
+		FileResource dir = null;
+		if (!StringUtil.isEmpty(workingDir, true)) {
+			Resource res = ResourceUtil.toResourceExisting(pc, workingDir);
+			if (!res.isDirectory()) throw new IOException("CFEXECUTE Directory [" + workingDir + "] is not a existing directory");
+			if (res instanceof FileResource) dir = (FileResource) res;
+			else throw new IOException(
+					"CFEXECUTE directory [" + workingDir + "] must be a local directory, scheme [" + res.getResourceProvider().getScheme() + "] is not supported in this context.");
+		}
+		return Runtime.getRuntime().exec(commands, null, dir);
+	}
+
+	public static Process createProcess(PageContext pc, String[] commands) throws IOException, ExpressionException {
+		return createProcess(pc, commands, null);
 	}
 
 	/**

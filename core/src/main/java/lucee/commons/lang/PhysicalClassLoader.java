@@ -36,7 +36,7 @@ import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceClassLoader;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.transformer.bytecode.util.ClassRenamer;
 
@@ -50,10 +50,11 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 	}
 
 	private Resource directory;
-	private ConfigImpl config;
+	private ConfigPro config;
 	private final ClassLoader[] parents;
 
 	private Map<String, String> loadedClasses = new ConcurrentHashMap<String, String>();
+	private Map<String, String> allLoadedClasses = new ConcurrentHashMap<String, String>(); // this includes all renames
 	private Map<String, String> unavaiClasses = new ConcurrentHashMap<String, String>();
 
 	private Map<String, SoftReference<PhysicalClassLoader>> customCLs;
@@ -88,7 +89,7 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 
 	public PhysicalClassLoader(Config c, Resource directory, ClassLoader[] parentClassLoaders, boolean includeCoreCL) throws IOException {
 		super(parentClassLoaders == null || parentClassLoaders.length == 0 ? c.getClassLoader() : parentClassLoaders[0]);
-		config = (ConfigImpl) c;
+		config = (ConfigPro) c;
 
 		// ClassLoader resCL = parent!=null?parent:config.getResourceClassLoader(null);
 
@@ -108,8 +109,8 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 
 		// check directory
 		if (!directory.exists()) directory.mkdirs();
-		if (!directory.isDirectory()) throw new IOException("resource " + directory + " is not a directory");
-		if (!directory.canRead()) throw new IOException("no access to " + directory + " directory");
+		if (!directory.isDirectory()) throw new IOException("Resource [" + directory + "] is not a directory");
+		if (!directory.canRead()) throw new IOException("Access denied to [" + directory + "] directory");
 		this.directory = directory;
 	}
 
@@ -126,10 +127,6 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 	}
 
 	private Class<?> loadClass(String name, boolean resolve, boolean loadFromFS) throws ClassNotFoundException {
-		if (loadedClasses.containsKey(name) || unavaiClasses.containsKey(name)) {
-			return super.loadClass(name, false); // Use default CL cache
-		}
-
 		// First, check if the class has already been loaded
 		Class<?> c = findLoadedClass(name);
 		if (c == null) {
@@ -138,7 +135,8 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 					c = p.loadClass(name);
 					break;
 				}
-				catch (Exception e) {}
+				catch (Exception e) {
+				}
 			}
 			if (c == null) {
 				if (loadFromFS) c = findClass(name);
@@ -160,7 +158,7 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 			}
 			catch (IOException e) {
 				this.unavaiClasses.put(name, "");
-				throw new ClassNotFoundException("class " + name + " is invalid or doesn't exist");
+				throw new ClassNotFoundException("Class [" + name + "] is invalid or doesn't exist", e);
 			}
 
 			byte[] barr = baos.toByteArray();
@@ -179,7 +177,8 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 			try {
 				clazz = loadClass(name, false, false); // we do not load existing class from disk
 			}
-			catch (ClassNotFoundException cnf) {}
+			catch (ClassNotFoundException cnf) {
+			}
 			if (clazz == null) return _loadClass(name, barr, false);
 
 			// first we try to update the class what needs instrumentation object
@@ -202,6 +201,8 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 		Class<?> clazz = defineClass(name, barr, 0, barr.length);
 		if (clazz != null) {
 			if (!rename) loadedClasses.put(name, "");
+			allLoadedClasses.put(name, "");
+
 			resolveClass(clazz);
 		}
 		return clazz;
@@ -212,8 +213,8 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 		return null;
 	}
 
-	public int getSize() {
-		return loadedClasses.size();
+	public int getSize(boolean includeAllRenames) {
+		return includeAllRenames ? allLoadedClasses.size() : loadedClasses.size();
 	}
 
 	@Override
@@ -226,7 +227,8 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 			try {
 				return IOUtil.toBufferedInputStream(f.getInputStream());
 			}
-			catch (IOException e) {}
+			catch (IOException e) {
+			}
 		}
 		return null;
 	}
@@ -289,6 +291,7 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 
 	public void clear() {
 		this.loadedClasses.clear();
+		this.allLoadedClasses.clear();
 		this.unavaiClasses.clear();
 	}
 }

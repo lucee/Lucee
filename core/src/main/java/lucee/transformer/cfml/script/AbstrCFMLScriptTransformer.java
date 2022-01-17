@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -239,13 +240,15 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		else if ((child = returnStatement(data)) != null) parent.addStatement(child);
 		else if ((child = switchStatement(data)) != null) parent.addStatement(child);
 		else if ((child = tryStatement(data)) != null) parent.addStatement(child);
-		else if (islandStatement(data, parent)) {}
+		else if (islandStatement(data, parent)) {
+		}
 		// else if(staticStatement(data,parent)) ; // do nothing, happen already inside the method
 		else if ((child = staticStatement(data, parent)) != null) parent.addStatement(child);
 		else if ((child = componentStatement(data, parent)) != null) parent.addStatement(child);
 		else if ((child = tagStatement(data, parent)) != null) parent.addStatement(child);
 		else if ((child = cftagStatement(data, parent)) != null) parent.addStatement(child);
-		else if (block(data, parent)) {}
+		else if (block(data, parent)) {
+		}
 
 		else parent.addStatement(expressionStatement(data, parent));
 		data.docComment = null;
@@ -2445,7 +2448,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 
 	private final Attribute[] attributes(Tag tag, TagLibTag tlt, Data data, EndCondition endCond, Expression defaultValue, Object oAllowExpression, String ignoreAttrReqFor,
 			boolean allowTwiceAttr, char attributeSeparator, boolean allowColonAsNameValueSeparator) throws TemplateException {
-		Map<String, Attribute> attrs = new HashMap<String, Attribute>();
+		Map<String, Attribute> attrs = new LinkedHashMap<String, Attribute>(); // need to be linked hashmap to keep the right order
 		ArrayList<String> ids = new ArrayList<String>();
 		while (data.srcCode.isValidIndex()) {
 			data.srcCode.removeSpace();

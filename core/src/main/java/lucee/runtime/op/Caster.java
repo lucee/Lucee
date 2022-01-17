@@ -42,6 +42,7 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
@@ -78,6 +79,7 @@ import lucee.runtime.ComponentSpecificAccess;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.coder.Base64Coder;
+import lucee.runtime.coder.CoderException;
 import lucee.runtime.component.Member;
 import lucee.runtime.component.Property;
 import lucee.runtime.component.PropertyImpl;
@@ -127,6 +129,7 @@ import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.UDF;
 import lucee.runtime.type.dt.DateTime;
 import lucee.runtime.type.dt.DateTimeImpl;
+import lucee.runtime.type.dt.Time;
 import lucee.runtime.type.dt.TimeSpan;
 import lucee.runtime.type.dt.TimeSpanImpl;
 import lucee.runtime.type.scope.ObjectStruct;
@@ -143,7 +146,8 @@ import lucee.runtime.util.ForEachUtil;
  * This class can cast object of one type to another by CFML rules
  */
 public final class Caster {
-	private Caster() {}
+	private Caster() {
+	}
 	// static Map calendarsMap=new ReferenceMap(ReferenceMap.SOFT,ReferenceMap.SOFT);
 
 	private static final int NUMBERS_MIN = 0;
@@ -495,7 +499,10 @@ public final class Caster {
 			else {
 				rtn *= 10;
 				rtn += toDigit(curr);
-				if (hasDot) deep *= 10;
+				if (hasDot) {
+					deep *= 10;
+					if (deep > 1000000000000000000000D) return Double.parseDouble(str); // patch for LDEV-2654
+				}
 
 			}
 		}
@@ -2124,8 +2131,10 @@ public final class Caster {
 	}
 
 	private static DecimalFormat df = (DecimalFormat) DecimalFormat.getInstance(Locale.US);// ("#.###########");
+	private static DecimalFormat dfp = (DecimalFormat) DecimalFormat.getInstance(Locale.US);// ("#.###########");
 	static {
 		df.applyLocalizedPattern("#.############");
+		dfp.applyLocalizedPattern("#.###############");
 	}
 
 	public static String toString(double d) {
@@ -2145,6 +2154,33 @@ public final class Caster {
 
 		if (d > l && (d - l) < 0.000000000001) return toString(l);
 		if (l > d && (l - d) < 0.000000000001) return toString(l);
+
+		if (n instanceof Double) return toString(n.doubleValue());
+		return n.toString();
+		// return df.format(d);
+	}
+
+	public static String toStringPrecise(double d) {
+		long l = (long) d;
+		if (l == d) return toString(l);
+
+		if (d > l && (d - l) < 0.000000000000001) return toString(l);
+		if (l > d && (l - d) < 0.000000000000001) return toString(l);
+
+		return dfp.format(d);
+	}
+
+	public static String format(double d) {
+		return dfp.format(d);
+	}
+
+	public static String toStringPrecise(Number n) {
+		double d = n.doubleValue();
+		long l = (long) d;
+		if (l == d) return toString(l);
+
+		if (d > l && (d - l) < 0.000000000000001) return toString(l);
+		if (l > d && (l - d) < 0.000000000000001) return toString(l);
 
 		if (n instanceof Double) return toString(n.doubleValue());
 		return n.toString();
@@ -2755,6 +2791,11 @@ public final class Caster {
 		catch (PageException e) {
 			throw new CasterException(o, "binary");
 		}
+		catch (CoderException e) {
+			CasterException ce = new CasterException(e.getMessage());
+			ce.initCause(e);
+			throw ce;
+		}
 	}
 
 	/**
@@ -3235,7 +3276,8 @@ public final class Caster {
 					}
 					return new TimeSpanImpl(values[0], values[1], values[2], values[3]);
 				}
-				catch (ExpressionException e) {}
+				catch (ExpressionException e) {
+				}
 			}
 		}
 		else if (o instanceof ObjectWrap) {
@@ -3366,7 +3408,8 @@ public final class Caster {
 			try {
 				return toClassName(((ObjectWrap) o).getEmbededObject());
 			}
-			catch (PageException e) {}
+			catch (PageException e) {
+			}
 		}
 		return toClassName(o.getClass());
 	}
@@ -3922,7 +3965,7 @@ public final class Caster {
 			lucee.runtime.net.rpc.PojoIterator it = new lucee.runtime.net.rpc.PojoIterator(pojo);
 			// only when the same amount of properties
 			if (props.length == it.size()) {
-				Map<Collection.Key, Property> propMap = toMap(props);
+				Map<Collection.Key, Property> propMap = propToMap(props);
 				Property p;
 				lucee.commons.lang.Pair<Collection.Key, Object> pair;
 				ComponentScope scope = cfc.getComponentScope();
@@ -3934,7 +3977,8 @@ public final class Caster {
 					try {
 						val = Caster.castTo(pc, p.getType(), pair.getValue(), false);
 					}
-					catch (PageException e) {}
+					catch (PageException e) {
+					}
 
 					// store in variables and this scope
 					scope.setEL(pair.getName(), val);
@@ -3943,8 +3987,17 @@ public final class Caster {
 				return cfc;
 			}
 		}
-		catch (PageException e) {}
+		catch (PageException e) {
+		}
 		return defaultValue;
+	}
+
+	private static Map<Key, Property> propToMap(Property[] props) {
+		Map<Collection.Key, Property> map = new HashMap<>();
+		for (Property p: props) {
+			map.put(KeyImpl.init(p.getName()), p);
+		}
+		return map;
 	}
 
 	/**
@@ -4545,7 +4598,8 @@ public final class Caster {
 				return new ScriptConverter().serialize(value);
 			}
 		}
-		catch (ConverterException e) {}
+		catch (ConverterException e) {
+		}
 		return defaultValue;
 	}
 
@@ -4875,5 +4929,20 @@ public final class Caster {
 				Reflector.callSetter(pojo, p.getName().toLowerCase(), v);
 			}
 		}
+	}
+
+	public static long toTime(lucee.runtime.type.dt.Date date, Time time, TimeZone tz) {
+		if (time == null) return date.getTime();
+		tz = ThreadLocalPageContext.getTimeZone(tz);
+		Calendar c = JREDateTimeUtil.getThreadCalendar(tz);
+		c.setTimeInMillis(date.getTime());
+		int y = c.get(Calendar.YEAR);
+		int m = c.get(Calendar.MONTH);
+		int d = c.get(Calendar.DAY_OF_MONTH);
+		c.setTimeInMillis(time.getTime());
+		c.set(Calendar.YEAR, y);
+		c.set(Calendar.MONTH, m);
+		c.set(Calendar.DAY_OF_MONTH, d);
+		return c.getTimeInMillis();
 	}
 }

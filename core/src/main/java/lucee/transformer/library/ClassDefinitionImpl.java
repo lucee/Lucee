@@ -80,7 +80,8 @@ public class ClassDefinitionImpl<T> implements ClassDefinition<T>, Externalizabl
 	/**
 	 * only used by deserializer!
 	 */
-	public ClassDefinitionImpl() {}
+	public ClassDefinitionImpl() {
+	}
 
 	@Override
 	public void writeExternal(ObjectOutput out) throws IOException {

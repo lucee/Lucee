@@ -23,6 +23,8 @@ import java.io.InputStream;
 import java.io.Serializable;
 import java.lang.instrument.UnmodifiableClassException;
 import java.lang.ref.SoftReference;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -41,12 +43,15 @@ import lucee.commons.lang.PhysicalClassLoader;
 import lucee.commons.lang.StringUtil;
 import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigImpl;
-import lucee.runtime.config.ConfigWebImpl;
+import lucee.runtime.config.ConfigPro;
+import lucee.runtime.config.ConfigWeb;
+import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.engine.ThreadLocalPageContext;
+import lucee.runtime.exp.PageException;
 import lucee.runtime.listener.ApplicationListener;
 import lucee.runtime.osgi.OSGiUtil;
+import lucee.runtime.type.Array;
 import lucee.runtime.type.util.ArrayUtil;
 
 /**
@@ -56,21 +61,23 @@ public final class MappingImpl implements Mapping {
 
 	private static final long serialVersionUID = 6431380676262041196L;
 
-	private static final int MAX_SIZE = 6783;
+	private static final int MAX_SIZE_CFC = 3000;// 6783;
+	private static final int MAX_SIZE_CFM = 2000;// 6783;
 
 	private String virtual;
 	private String lcVirtual;
 	private boolean topLevel;
 	private short inspect;
 	private boolean physicalFirst;
-	private transient PhysicalClassLoader pcl;
+	private transient PhysicalClassLoader pclCFM;
+	private transient PhysicalClassLoader pclCFC;
 	private transient PCLCollection pcoll;
 	private Resource archive;
 
 	private boolean hasArchive;
 	private final Config config;
 	private Resource classRootDirectory;
-	private PageSourcePool pageSourcePool = new PageSourcePool();
+	private final PageSourcePool pageSourcePool = new PageSourcePool();
 
 	private boolean readonly = false;
 	private boolean hidden = false;
@@ -94,6 +101,15 @@ public final class MappingImpl implements Mapping {
 	private int listenerMode;
 	private int listenerType;
 
+	private boolean checkPhysicalFromWebroot;
+	private boolean checkArchiveFromWebroot;
+
+	public MappingImpl(Config config, String virtual, String strPhysical, String strArchive, short inspect, boolean physicalFirst, boolean hidden, boolean readonly,
+			boolean topLevel, boolean appMapping, boolean ignoreVirtual, ApplicationListener appListener, int listenerMode, int listenerType) {
+		this(config, virtual, strPhysical, strArchive, inspect, physicalFirst, hidden, readonly, topLevel, appMapping, ignoreVirtual, appListener, listenerMode, listenerType, true,
+				true);
+	}
+
 	/**
 	 * constructor of the class
 	 * 
@@ -111,7 +127,8 @@ public final class MappingImpl implements Mapping {
 	 * @param appListener
 	 */
 	public MappingImpl(Config config, String virtual, String strPhysical, String strArchive, short inspect, boolean physicalFirst, boolean hidden, boolean readonly,
-			boolean topLevel, boolean appMapping, boolean ignoreVirtual, ApplicationListener appListener, int listenerMode, int listenerType) {
+			boolean topLevel, boolean appMapping, boolean ignoreVirtual, ApplicationListener appListener, int listenerMode, int listenerType, boolean checkPhysicalFromWebroot,
+			boolean checkArchiveFromWebroot) {
 		this.ignoreVirtual = ignoreVirtual;
 		this.config = config;
 		this.hidden = hidden;
@@ -125,6 +142,8 @@ public final class MappingImpl implements Mapping {
 		this.appListener = appListener;
 		this.listenerMode = listenerMode;
 		this.listenerType = listenerType;
+		this.checkPhysicalFromWebroot = checkPhysicalFromWebroot;
+		this.checkArchiveFromWebroot = checkArchiveFromWebroot;
 
 		// virtual
 		if (virtual.length() == 0) virtual = "/";
@@ -133,12 +152,12 @@ public final class MappingImpl implements Mapping {
 		this.lcVirtual = this.virtual.toLowerCase();
 		this.lcVirtualWithSlash = lcVirtual.endsWith("/") ? this.lcVirtual : this.lcVirtual + '/';
 
-		ServletContext cs = (config instanceof ConfigWebImpl) ? ((ConfigWebImpl) config).getServletContext() : null;
+		ServletContext cs = (config instanceof ConfigWeb) ? ((ConfigWeb) config).getServletContext() : null;
 
 		// Physical
-		physical = ConfigWebUtil.getExistingResource(cs, strPhysical, null, config.getConfigDir(), FileUtil.TYPE_DIR, config);
+		physical = ConfigWebUtil.getExistingResource(cs, strPhysical, null, config.getConfigDir(), FileUtil.TYPE_DIR, config, checkPhysicalFromWebroot);
 		// Archive
-		archive = ConfigWebUtil.getExistingResource(cs, strArchive, null, config.getConfigDir(), FileUtil.TYPE_FILE, config);
+		archive = ConfigWebUtil.getExistingResource(cs, strArchive, null, config.getConfigDir(), FileUtil.TYPE_FILE, config, checkArchiveFromWebroot);
 		loadArchive();
 
 		hasArchive = archive != null;
@@ -182,7 +201,8 @@ public final class MappingImpl implements Mapping {
 			if (archiveBundle != null) return archiveBundle.loadClass(className);
 			// else if(archiveClassLoader!=null) return archiveClassLoader.loadClass(className);
 		}
-		catch (ClassNotFoundException e) {}
+		catch (ClassNotFoundException e) {
+		}
 
 		return defaultValue;
 	}
@@ -217,21 +237,26 @@ public final class MappingImpl implements Mapping {
 		return pcoll;
 	}
 
-	private PhysicalClassLoader touchPhysicalClassLoader() throws IOException {
-		if (pcl == null) {
-			pcl = new PhysicalClassLoader(config, getClassRootDirectory());
+	private PhysicalClassLoader touchPhysicalClassLoader(boolean forComponent) throws IOException {
+		if (forComponent ? pclCFC == null : pclCFM == null) {
+			if (forComponent) pclCFC = new PhysicalClassLoader(config, getClassRootDirectory());
+			else pclCFM = new PhysicalClassLoader(config, getClassRootDirectory());
 		}
-		else if (pcl.getSize() > MAX_SIZE) {
-			pageSourcePool.clearPages(pcl);
+		else if ((forComponent ? pclCFC : pclCFM).getSize(true) > (forComponent ? MAX_SIZE_CFC : MAX_SIZE_CFM)) {
+			PhysicalClassLoader pcl = forComponent ? pclCFC : pclCFM;
+			synchronized (pageSourcePool) {
+				pageSourcePool.clearPages(pcl);
+			}
 			pcl.clear();
-			pcl = new PhysicalClassLoader(config, getClassRootDirectory());
+			if (forComponent) pclCFC = new PhysicalClassLoader(config, getClassRootDirectory());
+			else pclCFM = new PhysicalClassLoader(config, getClassRootDirectory());
 		}
-		return pcl;
+		return forComponent ? pclCFC : pclCFM;
 	}
 
 	@Override
 	public Class<?> getPhysicalClass(String className) throws ClassNotFoundException, IOException {
-		return touchPhysicalClassLoader().loadClass(className);
+		return touchPhysicalClassLoader(className.contains("_cfc$cf")).loadClass(className);
 		// return touchClassLoader().loadClass(className);
 	}
 
@@ -248,7 +273,7 @@ public final class MappingImpl implements Mapping {
 	public Class<?> getPhysicalClass(String className, byte[] code) throws IOException {
 
 		try {
-			return touchPhysicalClassLoader().loadClass(className, code);
+			return touchPhysicalClassLoader(className.contains("_cfc$cf")).loadClass(className, code);
 		}
 		catch (UnmodifiableClassException e) {
 			throw new IOException(e);
@@ -265,7 +290,21 @@ public final class MappingImpl implements Mapping {
 	 * @param cl
 	 */
 	public void clearPages(ClassLoader cl) {
-		pageSourcePool.clearPages(cl);
+		synchronized (pageSourcePool) {
+			pageSourcePool.clearPages(cl);
+		}
+	}
+
+	public void clearUnused(Config config) {
+		synchronized (pageSourcePool) {
+			pageSourcePool.clearUnused(config);
+		}
+	}
+
+	public void resetPages(ClassLoader cl) {
+		synchronized (pageSourcePool) {
+			pageSourcePool.resetPages(cl);
+		}
 	}
 
 	@Override
@@ -316,9 +355,9 @@ public final class MappingImpl implements Mapping {
 	 * @return cloned mapping
 	 * @throws IOException
 	 */
-	public MappingImpl cloneReadOnly(ConfigImpl config) {
+	public MappingImpl cloneReadOnly(Config config) {
 		return new MappingImpl(config, virtual, strPhysical, strArchive, inspect, physicalFirst, hidden, true, topLevel, appMapping, ignoreVirtual, appListener, listenerMode,
-				listenerType);
+				listenerType, checkPhysicalFromWebroot, checkArchiveFromWebroot);
 	}
 
 	@Override
@@ -357,37 +396,64 @@ public final class MappingImpl implements Mapping {
 
 	@Override
 	public PageSource getPageSource(String path, boolean isOut) {
-		PageSource source = pageSourcePool.getPageSource(path, true);
-		if (source != null) return source;
+		synchronized (pageSourcePool) {
+			PageSource source = pageSourcePool.getPageSource(path, true);
+			if (source != null) return source;
 
-		PageSourceImpl newSource = new PageSourceImpl(this, path, isOut);
-		pageSourcePool.setPage(path, newSource);
+			PageSourceImpl newSource = new PageSourceImpl(this, path, isOut);
+			pageSourcePool.setPage(path, newSource);
 
-		return newSource;// new PageSource(this,path);
+			return newSource;// new PageSource(this,path);
+		}
 	}
 
 	/**
 	 * @return Returns the pageSourcePool.
+	 * 
+	 *         public PageSourcePool getPageSourcePoolX() { synchronized (pageSourcePoolX) { return
+	 *         pageSourcePoolX; } }
 	 */
-	public PageSourcePool getPageSourcePool() {
-		return pageSourcePool;
+
+	public Array getDisplayPathes(Array arr) throws PageException {
+		synchronized (pageSourcePool) {
+			String[] keys = pageSourcePool.keys();
+			PageSourceImpl ps;
+			for (int y = 0; y < keys.length; y++) {
+				ps = (PageSourceImpl) pageSourcePool.getPageSource(keys[y], false);
+				if (ps != null && ps.isLoad()) arr.append(ps.getDisplayPath());
+			}
+			return arr;
+		}
+	}
+
+	public List<PageSource> getPageSources(boolean loaded) {
+		List<PageSource> list = new ArrayList<>();
+		synchronized (pageSourcePool) {
+			String[] keys = pageSourcePool.keys();
+			PageSourceImpl ps;
+			for (int y = 0; y < keys.length; y++) {
+				ps = (PageSourceImpl) pageSourcePool.getPageSource(keys[y], false);
+				if (ps != null) {
+					if (!loaded || ps.isLoad()) list.add(ps);
+				}
+			}
+		}
+		return list;
 	}
 
 	@Override
 	public void check() {
-		// if(config instanceof ConfigServer) return;
-		// ConfigWebImpl cw=(ConfigWebImpl) config;
-		ServletContext cs = (config instanceof ConfigWebImpl) ? ((ConfigWebImpl) config).getServletContext() : null;
+		ServletContext cs = (config instanceof ConfigWeb) ? ((ConfigWeb) config).getServletContext() : null;
 
 		// Physical
 		if (getPhysical() == null && strPhysical != null && strPhysical.length() > 0) {
-			physical = ConfigWebUtil.getExistingResource(cs, strPhysical, null, config.getConfigDir(), FileUtil.TYPE_DIR, config);
+			physical = ConfigWebUtil.getExistingResource(cs, strPhysical, null, config.getConfigDir(), FileUtil.TYPE_DIR, config, checkPhysicalFromWebroot);
 
 		}
 		// Archive
 		if (getArchive() == null && strArchive != null && strArchive.length() > 0) {
 
-			archive = ConfigWebUtil.getExistingResource(cs, strArchive, null, config.getConfigDir(), FileUtil.TYPE_FILE, config);
+			archive = ConfigWebUtil.getExistingResource(cs, strArchive, null, config.getConfigDir(), FileUtil.TYPE_FILE, config, checkArchiveFromWebroot);
 			loadArchive();
 
 			hasArchive = archive != null;
@@ -504,7 +570,7 @@ public final class MappingImpl implements Mapping {
 	}
 
 	public boolean getDotNotationUpperCase() {
-		return ((ConfigImpl) config).getDotNotationUpperCase();
+		return ((ConfigPro) config).getDotNotationUpperCase();
 	}
 
 	public void shrink() {
@@ -523,7 +589,9 @@ public final class MappingImpl implements Mapping {
 	}
 
 	public void flush() {
-		getPageSourcePool().clear();
+		synchronized (pageSourcePool) {
+			pageSourcePool.clear();
+		}
 	}
 
 	public SerMapping toSerMapping() {
@@ -549,7 +617,7 @@ public final class MappingImpl implements Mapping {
 		}
 
 		public Mapping toMapping() {
-			ConfigWebImpl cwi = (ConfigWebImpl) ThreadLocalPageContext.getConfig();
+			ConfigWebPro cwi = (ConfigWebPro) ThreadLocalPageContext.getConfig();
 			return cwi.getApplicationMapping(type, virtual, physical, archive, physicalFirst, ignoreVirtual);
 		}
 	}

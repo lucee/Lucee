@@ -101,7 +101,8 @@ public final class CastBoolean extends ExpressionBase implements ExprBoolean, Ca
 				if (!Types.isPrimitiveType(rtn)) {
 					adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_BOOLEAN_VALUE);
 				}
-				else if (Types.BOOLEAN_VALUE.equals(rtn)) {}
+				else if (Types.BOOLEAN_VALUE.equals(rtn)) {
+				}
 				else if (Types.DOUBLE_VALUE.equals(rtn)) {
 					adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_BOOLEAN_VALUE_FROM_DOUBLE);
 				}
@@ -112,7 +113,8 @@ public final class CastBoolean extends ExpressionBase implements ExprBoolean, Ca
 				// return Types.BOOLEAN_VALUE;
 			}
 			else {
-				if (Types.BOOLEAN.equals(rtn)) {}
+				if (Types.BOOLEAN.equals(rtn)) {
+				}
 				else adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_BOOLEAN);
 			}
 		}

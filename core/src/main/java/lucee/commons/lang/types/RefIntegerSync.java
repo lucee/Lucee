@@ -41,7 +41,8 @@ public class RefIntegerSync implements RefInteger, Castable {
 		this.value = value;
 	}
 
-	public RefIntegerSync() {}
+	public RefIntegerSync() {
+	}
 
 	/**
 	 * @param value

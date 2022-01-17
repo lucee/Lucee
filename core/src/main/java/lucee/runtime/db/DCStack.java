@@ -21,19 +21,26 @@ package lucee.runtime.db;
 import java.sql.Connection;
 import java.sql.SQLException;
 
+import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.lang.types.RefInteger;
 import lucee.commons.lang.types.RefIntegerImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
+import lucee.runtime.op.Caster;
 
 class DCStack {
 
+	private static final int DEFAULT_TIMEOUT;
 	private Item item;
 	private DataSource datasource;
 	private String user;
 	private String pass;
 	private final RefInteger counter;
+
+	static {
+		DEFAULT_TIMEOUT = Caster.toIntValue(SystemUtil.getSystemPropOrEnvVar("lucee.datasource.timeout.validation", null), 5);
+	}
 
 	DCStack(DataSource datasource, String user, String pass) {
 		this.datasource = datasource;
@@ -79,7 +86,8 @@ class DCStack {
 			}
 			return get();
 		}
-		catch (SQLException e) {}
+		catch (SQLException e) {
+		}
 		return null;
 	}
 
@@ -104,7 +112,8 @@ class DCStack {
 			try {
 				if (!i.dc.getConnection().isClosed()) count++;
 			}
-			catch (Exception e) {}
+			catch (Exception e) {
+			}
 			i = i.prev;
 		}
 		return count;
@@ -135,8 +144,10 @@ class DCStack {
 		}
 	}
 
-	public synchronized void clear(boolean force) {
-		clear(item, null, force);
+	public void clear(boolean force, boolean validate) {
+		synchronized (this) {
+			clear(item, null, force, validate);
+		}
 	}
 
 	/**
@@ -146,19 +157,20 @@ class DCStack {
 	 * @param timeout timeout in seconds used to validate existing connections
 	 * @throws SQLException
 	 */
-	private void clear(Item current, Item next, boolean force) {
+	private void clear(Item current, Item next, boolean force, boolean validate) {
 		if (current == null) return;
 
 		// timeout or closed
 		if (force || current.dc.isTimeout() || current.dc.isLifecycleTimeout() || isClosedEL(current.dc.getConnection())
-				|| Boolean.FALSE.equals(isValidEL(current.dc.getConnection()))) {
+				|| (validate && Boolean.FALSE.equals(isValidEL(current.dc.getConnection())))) {
 
 			// when timeout was reached but it is still open, close it
 			if (!isClosedEL(current.dc.getConnection())) {
 				try {
 					current.dc.close();
 				}
-				catch (Exception e) {}
+				catch (Exception e) {
+				}
 			}
 
 			// remove this connection from chain
@@ -167,9 +179,17 @@ class DCStack {
 				next.prev = current.prev;
 			}
 
-			clear(current.prev, next, force);
+			clear(current.prev, next, force, validate);
 		}
-		else clear(current.prev, current, force);
+		else {
+			// make sure that auto commit is true
+			try {
+				if (!current.dc.getAutoCommit()) current.dc.setAutoCommit(true);
+			}
+			catch (SQLException e) {
+			}
+			clear(current.prev, current, force, validate);
+		}
 
 		counter.setValue(0);
 	}
@@ -194,7 +214,12 @@ class DCStack {
 
 	private Boolean isValidEL(Connection conn) {
 		try {
-			return conn.isValid(datasource.getNetworkTimeout()) ? Boolean.TRUE : Boolean.FALSE;
+			// value is in ms but method expect s
+			int ms = datasource.getNetworkTimeout();
+			int s = DEFAULT_TIMEOUT;
+			if (ms > 0) s = (int) Math.ceil(ms / 1000);
+
+			return conn.isValid(s) ? Boolean.TRUE : Boolean.FALSE;
 		}
 		catch (Exception e) {
 			return null;

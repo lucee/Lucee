@@ -54,10 +54,8 @@ public final class DataSourceImpl extends DataSourceSupport {
 	private final boolean alwaysSetTimeout;
 
 	/**
-	 * constructor
 	 * 
 	 * @param config
-	 * @param driver
 	 * @param name
 	 * @param cd
 	 * @param host
@@ -66,8 +64,10 @@ public final class DataSourceImpl extends DataSourceSupport {
 	 * @param port
 	 * @param username
 	 * @param password
+	 * @param listener
 	 * @param connectionLimit
-	 * @param connectionTimeout
+	 * @param idleTimeout
+	 * @param liveTimeout
 	 * @param metaCacheTimeout
 	 * @param blob
 	 * @param clob
@@ -82,17 +82,18 @@ public final class DataSourceImpl extends DataSourceSupport {
 	 * @param literalTimestampWithTSOffset
 	 * @param alwaysSetTimeout
 	 * @param requestExclusive
+	 * @param alwaysResetConnections
 	 * @param log
 	 * @throws BundleException
 	 * @throws ClassException
 	 * @throws SQLException
 	 */
 	public DataSourceImpl(Config config, String name, ClassDefinition cd, String host, String connStr, String database, int port, String username, String password,
-			TagListener listener, int connectionLimit, int connectionTimeout, long metaCacheTimeout, boolean blob, boolean clob, int allow, Struct custom, boolean readOnly,
-			boolean validate, boolean storage, TimeZone timezone, String dbdriver, ParamSyntax paramSyntax, boolean literalTimestampWithTSOffset, boolean alwaysSetTimeout,
-			boolean requestExclusive, boolean alwaysResetConnections, Log log) throws BundleException, ClassException, SQLException {
+			TagListener listener, int connectionLimit, int idleTimeout, int liveTimeout, long metaCacheTimeout, boolean blob, boolean clob, int allow, Struct custom,
+			boolean readOnly, boolean validate, boolean storage, TimeZone timezone, String dbdriver, ParamSyntax paramSyntax, boolean literalTimestampWithTSOffset,
+			boolean alwaysSetTimeout, boolean requestExclusive, boolean alwaysResetConnections, Log log) throws BundleException, ClassException, SQLException {
 
-		super(config, name, cd, username, ConfigWebUtil.decrypt(password), listener, blob, clob, connectionLimit, connectionTimeout, metaCacheTimeout, timezone,
+		super(config, name, cd, username, ConfigWebUtil.decrypt(password), listener, blob, clob, connectionLimit, idleTimeout, liveTimeout, metaCacheTimeout, timezone,
 				allow < 0 ? ALLOW_ALL : allow, storage, readOnly, validate, requestExclusive, alwaysResetConnections, literalTimestampWithTSOffset, log);
 
 		this.host = host;
@@ -201,8 +202,9 @@ public final class DataSourceImpl extends DataSourceSupport {
 	public DataSource _clone(boolean readOnly) {
 		try {
 			return new DataSourceImpl(ThreadLocalPageContext.getConfig(), getName(), getClassDefinition(), host, connStr, database, port, getUsername(), getPassword(),
-					getListener(), getConnectionLimit(), getConnectionTimeout(), getMetaCacheTimeout(), isBlob(), isClob(), allow, custom, readOnly, validate(), isStorage(),
-					getTimeZone(), dbdriver, getParamSyntax(), getLiteralTimestampWithTSOffset(), alwaysSetTimeout, isRequestExclusive(), isAlwaysResetConnections(), getLog());
+					getListener(), getConnectionLimit(), getIdleTimeout(), getLiveTimeout(), getMetaCacheTimeout(), isBlob(), isClob(), allow, custom, readOnly, validate(),
+					isStorage(), getTimeZone(), dbdriver, getParamSyntax(), getLiteralTimestampWithTSOffset(), alwaysSetTimeout, isRequestExclusive(), isAlwaysResetConnections(),
+					getLog());
 		}
 		catch (RuntimeException re) {
 			throw re; // this should never happens, because the class was already loaded in this object

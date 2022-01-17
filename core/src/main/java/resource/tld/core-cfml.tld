@@ -5,7 +5,7 @@
 	<tlib-version>1.0</tlib-version>
 	<cfml-version>1.0</cfml-version>
 	<short-name>tbase</short-name>
-	<uri>http://www.lucee.org/cf-tld-3-1</uri>
+	<uri>https://www.lucee.org/cf-tld-3-1</uri>
 	<display-name>Lucee Core Tag Library</display-name>
 	<description></description>
 	<name-space>cf</name-space>
@@ -736,6 +736,14 @@ Depending on this setting Lucee scans certain scopes to find a variable called f
 			For details see the description for the attribute "scopecascading".</description>
 		</attribute>
 		<attribute>
+			<type>boolean</type>
+			<name>searchResults</name>
+			<alias>searchQueries,,searchQuery,searchResult</alias>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>When a variable has no scope defined (Example: #myVar# instead of #variables.myVar#), Lucee will also search available resultsets if this is set to true.</description>
+		</attribute>
+		<attribute>
 			<type>struct</type>
 			<name>authcookie</name>
 			<required>false</required>
@@ -808,7 +816,18 @@ Depending on this setting Lucee scans certain scopes to find a variable called f
 			<name>xmlFeatures</name>
 			<type>struct</type>
 			<required>false</required>
-			<description>Allows to set XML Features to prevent XXE attacks</description>
+			<description>Allows to set XML Features to prevent XXE attacks
+
+	- disallowDoctypeDecl (true / false) 
+	- externalGeneralEntities (true/false)
+	 - secure (true/false)</description>
+		</attribute>
+		<attribute>
+			<name>regex</name>
+			<type>any</type>
+			<required>false</required>
+			<description>allow to define a struct containg the configuration for regular expressions, 
+			ATM only the key "engine" is supported, with the possible values [java,perl] to choose the regex dialect.</description>
 		</attribute>
 	</tag>
 

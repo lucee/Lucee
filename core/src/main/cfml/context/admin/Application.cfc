@@ -28,11 +28,33 @@ this.setdomaincookies="no";
 this.applicationtimeout="#createTimeSpan(1,0,0,0)#";
 this.localmode="update";
 this.web.charset="utf-8";
+this.sessionCookie.httpOnly = true; // prevent access to session cookies from javascript
+this.sessionCookie.sameSite = "strict";
+this.tag.cookie.sameSite = "strict";
+
+this.xmlFeatures = {
+	externalGeneralEntities: false,
+	secure: true,
+	disallowDoctypeDecl: true
+};
+
+public function onRequestStart() {
+	// if not logged in, we only allow access to admin|web|server[.cfm]
+	if(!structKeyExists(session, "passwordWeb") && !structKeyExists(session, "passwordServer")){
+		var fileName=listLast(cgi.script_name,"/");
+		if(fileName!="admin.cfm" && fileName!="web.cfm" && fileName!="server.cfm") {
+			cfsetting(showdebugoutput:false);
+			cfheader(statuscode="404" statustext="Invalid access");
+			cfcontent(reset="true");
+			abort;
+		}
+	}
+}
 
 public function onApplicationStart(){
 	if(structKeyExists(server.system.environment,"LUCEE_ADMIN_ENABLED") && server.system.environment.LUCEE_ADMIN_ENABLED EQ false){
 		cfheader(statuscode="404" statustext="Invalid access");
-        abort;
+		abort;
 	}
 }
 

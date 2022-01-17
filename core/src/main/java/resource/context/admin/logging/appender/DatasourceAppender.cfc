@@ -5,9 +5,10 @@
 		password="#session["password"&request.adminType]#"
 		returnVariable="datasources">
 
-    <cfset fields=array(
-		field("Datasource","datasource",queryColumnData(datasources,"name").toList(),true,"Choose a datasource to log into. Go to Services/Datasource to create a new datasource.","select")
-		,field("Table name","table","LOGS",true,"Name of the table data are logged into.","text")
+	<cfset fields=array(
+		field("Datasource","datasource",queryColumnData(datasources,"name").toList(),true,
+			"Choose a Datasource to log into. Go to Services/Datasource to create a new Datasource. The Storage option must be enabled.","select")
+		,field("Table name","table","LOGS",true,"Name of the table log data is logged into.","text")
 		,field("Custom","custom","",true,"Custom data passed into every single record created in the datasource.","textarea")
 	
 		//,field("Charset","charset","UTF-8",true,"charset used to write the file (empty == resource charset)","text")
@@ -27,27 +28,23 @@
 					</cfif>
 					<cfset field.setDefaultValue(dv&form._name&".log")>
 				</cfif>
-			
 			</cfloop>
-			
-			
-			
 		</cfif>
 		<cfreturn fields>
-    </cffunction>
-    
+	</cffunction>
+	
 	<cffunction name="getClass" returntype="string" output="false">
-    	<cfreturn "lucee.commons.io.log.log4j.appender.DatasourceAppender">
-    </cffunction>
-    
+		<cfreturn left(getConfigSettings().log4j.version,1)==1?"lucee.commons.io.log.log4j.appender.DatasourceAppender":"lucee.commons.io.log.log4j2.appender.DatasourceAppender">
+	</cffunction>
+	
 	<cffunction name="getLabel" returntype="string" output="false">
-    	<cfreturn "Datasource">
-    </cffunction>
+		<cfreturn "Datasource">
+	</cffunction>
 	<cffunction name="getDescription" returntype="string" output="no">
-    	<cfreturn "Logs to a datasource.">
-    </cffunction>
+		<cfreturn "Logs to a datasource.">
+	</cffunction>
 	<cffunction name="getLayout" returntype="string" output="no">
-    	<cfreturn "lucee.commons.io.log.log4j.layout.DatasourceLayout">
-    </cffunction>
-    
+		<cfreturn "lucee.commons.io.log.log4j.layout.DatasourceLayout">
+	</cffunction>
+	
 </cfcomponent>

@@ -355,7 +355,8 @@ public class VideoPlayerJW extends BodyTagSupport {
 				key = e.getKey().getString();
 				if (StringUtil.startsWithIgnoreCase(key, "param.")) addParam(sb, key.substring(6), Caster.toString(e.getValue()));
 				else if (StringUtil.startsWithIgnoreCase(key, "variable.")) addVariable(sb, key.substring(9), Caster.toString(e.getValue()));
-				else if (StringUtil.startsWithIgnoreCase(key, "div.")) {}
+				else if (StringUtil.startsWithIgnoreCase(key, "div.")) {
+				}
 				else addVariable(sb, key, Caster.toString(e.getValue()));
 			}
 		}
@@ -456,7 +457,7 @@ public class VideoPlayerJW extends BodyTagSupport {
 
 	private static int[] calculateDimension(PageContext pc, List params, int width, String strWidth, int height, String strHeight) throws PageException {
 		Iterator it = params.iterator();
-		ArrayList sources = new ArrayList();
+		ArrayList<VideoInputImpl> sources = new ArrayList<VideoInputImpl>();
 		// Resource[] sources=new Resource[params.size()];
 		VideoPlayerParamBean param;
 
@@ -464,7 +465,7 @@ public class VideoPlayerJW extends BodyTagSupport {
 			param = (VideoPlayerParamBean) it.next();
 			if (param.getVideo() != null) sources.add(new VideoInputImpl(param.getVideo()));
 		}
-		return VideoUtilImpl.getInstance().calculateDimension(pc, (VideoInput[]) sources.toArray(new VideoInput[sources.size()]), width, strWidth, height, strHeight);
+		return VideoUtilImpl.getInstance().calculateDimension(pc, sources.toArray(new VideoInput[sources.size()]), width, strWidth, height, strHeight);
 
 	}
 

@@ -48,7 +48,7 @@ public final class Property extends TagImpl implements DynamicAttributes {
 
 	@Override
 	public void setDynamicAttribute(String uri, String name, Object value) {
-		property.getDynamicAttributes().setEL(KeyImpl.getInstance(name), value);
+		property.getDynamicAttributes().setEL(KeyImpl.init(name), value);
 	}
 
 	@Override
@@ -57,7 +57,7 @@ public final class Property extends TagImpl implements DynamicAttributes {
 	}
 
 	public void setMetaData(String name, Object value) {
-		property.getMeta().setEL(KeyImpl.getInstance(name), value);
+		property.getMeta().setEL(KeyImpl.init(name), value);
 	}
 
 	/**

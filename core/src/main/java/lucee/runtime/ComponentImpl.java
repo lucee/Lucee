@@ -35,6 +35,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
@@ -62,10 +63,11 @@ import lucee.runtime.component.Member;
 import lucee.runtime.component.MetaDataSoftReference;
 import lucee.runtime.component.MetadataUtil;
 import lucee.runtime.component.Property;
+import lucee.runtime.component.StaticStruct;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigWeb;
-import lucee.runtime.config.ConfigWebImpl;
+import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.config.NullSupportHelper;
 import lucee.runtime.debug.DebugEntryTemplate;
 import lucee.runtime.dump.DumpData;
@@ -107,7 +109,6 @@ import lucee.runtime.type.it.StringIterator;
 import lucee.runtime.type.scope.Argument;
 import lucee.runtime.type.scope.ArgumentImpl;
 import lucee.runtime.type.scope.ArgumentIntKey;
-import lucee.runtime.type.scope.Scope;
 import lucee.runtime.type.scope.Variables;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.ComponentUtil;
@@ -140,6 +141,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 	ComponentImpl top = this;
 	ComponentImpl base;
 	private PageSource pageSource;
+	private ComponentPageImpl cp;
 	private ComponentScope scope;
 
 	// for all the same
@@ -159,18 +161,20 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 	private boolean hasInjectedFunctions;
 	private boolean isExtended; // is this component extended by another component?
 
-	StaticScope _static;
-
-	boolean insideStaticConstr;
+	StaticScope _static = null;
+	Map<Long, Boolean> insideStaticConstr = new ConcurrentHashMap<>();
 
 	private AbstractFinal absFin;
 
 	private ImportDefintion[] importDefintions;
 
+	private static ThreadLocalConstrCall statConstr = new ThreadLocalConstrCall();
+
 	/**
 	 * Constructor of the Component, USED ONLY FOR DESERIALIZE
 	 */
-	public ComponentImpl() {}
+	public ComponentImpl() {
+	}
 
 	/**
 	 * constructor of the class
@@ -194,8 +198,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 	public ComponentImpl(ComponentPageImpl componentPage, Boolean output, boolean _synchronized, String extend, String implement, String hint, String dspName, String callPath,
 			boolean realPath, String style, boolean persistent, boolean accessors, int modifier, boolean isExtended, StructImpl meta) throws ApplicationException {
 		this.properties = new ComponentProperties(dspName, extend.trim(), implement, hint, output, callPath, realPath, _synchronized, null, persistent, accessors, modifier, meta);
-		// this.componentPage=componentPage instanceof
-		// ComponentPageProxy?componentPage:PageProxy.toProxy(componentPage);
+		this.cp = componentPage;
 		this.pageSource = componentPage.getPageSource();
 		this.importDefintions = componentPage.getImportDefintions();
 		// if(modifier!=0)
@@ -219,6 +222,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 		try {
 			// attributes
 			trg.pageSource = pageSource;
+			trg.cp = cp;
 			// trg._triggerDataMember=_triggerDataMember;
 			trg.useShadow = useShadow;
 			trg._static = _static;
@@ -375,7 +379,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 			base = ComponentLoader.searchComponent(pageContext, componentPage.getPageSource(), properties.extend, Boolean.TRUE, null, true, executeConstr);
 		}
 		else {
-			CIPage p = ((ConfigWebImpl) pageContext.getConfig()).getBaseComponentPage(pageSource.getDialect(), pageContext);
+			CIPage p = ((ConfigWebPro) pageContext.getConfig()).getBaseComponentPage(pageSource.getDialect(), pageContext);
 			if (!componentPage.getPageSource().equals(p.getPageSource())) {
 				base = ComponentLoader.loadComponent(pageContext, p, "Component", false, false, true, executeConstr);
 			}
@@ -421,17 +425,28 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 			scope = new ComponentScopeThis(this);
 		}
 		initProperties();
+		StaticStruct ss = componentPage.getStaticStruct();
+		if (!ss.isInit()) {
+			synchronized (ss) {
+				// invoke static constructor
+				if (!ss.isInit()) {
+					Map<String, Boolean> map = statConstr.get();
+					String id = "" + componentPage.getHash();
+					if (!Caster.toBooleanValue(map.get(id), false)) {
+						map.put(id, Boolean.TRUE);
 
-		// invoke static constructor
-		if (!componentPage._static.isInit()) {
-			componentPage._static.setInit(true);// this needs to happen before the call
-			try {
-				componentPage.staticConstructor(pageContext, this);
-			}
-			catch (Throwable t) {
-				ExceptionUtil.rethrowIfNecessary(t);
-				componentPage._static.setInit(false);
-				throw Caster.toPageException(t);
+						// this needs to happen before the call
+						try {
+							componentPage.staticConstructor(pageContext, this);
+						}
+						catch (Exception e) {
+							ss.setInit(false);
+							throw Caster.toPageException(e);
+						}
+						ss.setInit(true);
+						map.remove(id);
+					}
+				}
 			}
 		}
 	}
@@ -617,7 +632,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 		// INFO duplicate code is for faster execution -> less contions
 
 		// debug yes
-		if (pc.getConfig().debug()) {
+		if (pc.getConfig().debug() && ((ConfigPro) pc.getConfig()).hasDebugOptions(ConfigPro.DEBUG_TEMPLATE)) {
 			DebugEntryTemplate debugEntry = pc.getDebugger().getEntry(pc, pageSource, udf.getFunctionName());// new DebugEntry(src,udf.getFunctionName());
 			long currTime = pc.getExecutionTime();
 			long time = System.nanoTime();
@@ -690,16 +705,12 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 
 	@Override
 	public Variables beforeStaticConstructor(PageContext pc) {
-		insideStaticConstr = true;
-		Variables parent = pc.variablesScope();
-		pc.setVariablesScope(_static);
-		return parent;
+		return StaticScope.beforeStaticConstructor(pc, this, _static);
 	}
 
 	@Override
 	public void afterStaticConstructor(PageContext pc, Variables parent) {
-		insideStaticConstr = false;
-		pc.setVariablesScope(parent);
+		StaticScope.afterStaticConstructor(pc, this, parent);
 	}
 
 	/**
@@ -859,6 +870,13 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 			if (member.getAccess() <= access) return member;
 			return null;
 		}
+
+		// static
+		member = staticScope().getMember(null, key, null);
+		if (member != null) {
+			if (member.getAccess() <= access) return member;
+			return null;
+		}
 		return null;
 	}
 
@@ -877,27 +895,29 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 			Component ac = ComponentUtil.getActiveComponent(pc, this);
 			return SuperComponent.superMember((ComponentImpl) ac.getBaseComponent());
 		}
-		if (superAccess) return _udfs.get(key);
-
+		if (superAccess) {
+			return _udfs.get(key);
+		}
 		// check data
 		Member member = _data.get(key);
-		if (isAccessible(pc, member)) return member;
+		if (member != null && isAccessible(pc, member)) return member;
+
+		// static
+		member = staticScope().getMember(pc, key, null);
+		if (member != null) return member;
+
 		return null;
 	}
 
 	boolean isAccessible(PageContext pc, Member member) {
-		// TODO geschwindigkeit
-		if (member != null) {
-			int access = member.getAccess();
-			if (access <= ACCESS_PUBLIC) return true;
-			else if (access == ACCESS_PRIVATE && isPrivate(pc)) return true;
-			else if (access == ACCESS_PACKAGE && isPackage(pc)) return true;
-		}
+		int access = member.getAccess();
+		if (access <= ACCESS_PUBLIC) return true;
+		else if (access == ACCESS_PRIVATE && isPrivate(pc)) return true;
+		else if (access == ACCESS_PACKAGE && isPackage(pc)) return true;
 		return false;
 	}
 
 	boolean isAccessible(PageContext pc, int access) {
-
 		if (access <= ACCESS_PUBLIC) return true;
 		else if (access == ACCESS_PRIVATE && isPrivate(pc)) return true;
 		else if (access == ACCESS_PACKAGE && isPackage(pc)) return true;
@@ -1526,7 +1546,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 
 		boolean supressWSBeforeArg = dialect != CFMLEngine.DIALECT_CFML || pc.getConfig().getSuppressWSBeforeArg();
 
-		Class<?> skeleton = comp.getJavaAccessClass(pc, new RefBooleanImpl(false), ((ConfigImpl) pc.getConfig()).getExecutionLogEnabled(), false, false, supressWSBeforeArg);
+		Class<?> skeleton = comp.getJavaAccessClass(pc, new RefBooleanImpl(false), ((ConfigPro) pc.getConfig()).getExecutionLogEnabled(), false, false, supressWSBeforeArg);
 		if (skeleton != null) sct.set(KeyConstants._skeleton, skeleton);
 
 		HttpServletRequest req = pc.getHttpServletRequest();
@@ -1593,8 +1613,8 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 		}
 		if (arr.size() != 0) {
 			Collections.sort(arr, new ComparatorImpl());
-			sct.set(KeyConstants._functions, arr);
 		}
+		sct.set(KeyConstants._functions, arr);
 	}
 
 	private static class ComparatorImpl implements Comparator {
@@ -1673,9 +1693,10 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 	/*
 	 * @deprecated injected is not used
 	 */
-	public void registerUDF(Collection.Key key, UDF udf, boolean useShadow, boolean injected) throws ApplicationException {
+	public void registerUDF(Key key, UDF udf, boolean useShadow, boolean injected) throws ApplicationException {
 		if (udf instanceof UDFPlus) ((UDFPlus) udf).setOwnerComponent(this);
-		if (insideStaticConstr) {
+
+		if (insideStaticConstr.getOrDefault(ThreadLocalPageContext.getThreadId(null), Boolean.FALSE)) {
 			_static.put(key, udf);
 			return;
 		}
@@ -2340,7 +2361,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 	}
 
 	@Override
-	public Scope staticScope() {
+	public StaticScope staticScope() {
 		return _static;
 	}
 
@@ -2363,5 +2384,14 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 	@Override
 	public int getType() {
 		return StructUtil.getType(_data);
+	}
+
+	private static class ThreadLocalConstrCall extends ThreadLocal<Map<String, Boolean>> {
+
+		@Override
+		protected Map<String, Boolean> initialValue() {
+			return new HashMap<>();
+		}
+
 	}
 }
