@@ -31,8 +31,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 					sql = "SELECT DISTINCT age, name, age, email from employees ORDER BY age, email",
 					options = { dbtype: 'query' }
 				);
-				systemOutput( actual );
-
+				
 				expect( actual ).toBeQuery();
 				expect( actual.recordCount ).toBe( 2 );
 				expect( queryColumnData( actual, 'age' )[2] ).toBe( 20 );
