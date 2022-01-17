@@ -42,8 +42,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 			it(title="valid characters, valid length", body = function( currentSpec ) {
 				assertEquals(binaryDecode("String==", "base64")[1],74);
 				assertEquals(binaryDecode("String==", "base64",false)[1],74);
-				assertEquals(binaryDecode("String==", "base64",trueFalseFormat(value))[1],74);
-				
+				assertEquals(binaryDecode("String==", "base64",true)[1],74);
 			});
 
 
