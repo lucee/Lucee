@@ -17,7 +17,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 
 			});
 
-			it(title="valid characters, invalid length percise mode", body = function( currentSpec ) {
+			it(title="valid characters, invalid length precise mode", body = function( currentSpec ) {
 				var failed=false;
 				try{
 					binaryDecode("String", "base64",true);
@@ -33,7 +33,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 			});
 
 
-			it(title="valid characters, invalid length NOT percise mode", body = function( currentSpec ) {
+			it(title="valid characters, invalid length NOT precise mode", body = function( currentSpec ) {
 				assertEquals(binaryDecode("String", "base64")[1],74);
 				assertEquals(binaryDecode("String", "base64",false)[1],74);
 				
