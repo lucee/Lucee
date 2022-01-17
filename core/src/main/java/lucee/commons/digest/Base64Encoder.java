@@ -89,8 +89,8 @@ public class Base64Encoder {
 		return c;
 	}
 
-	public static String decodeAsString(String data) throws CoderException {
-		return new String(decode(data), CharsetUtil.UTF8);
+	public static String decodeAsString(String data, boolean percise) throws CoderException {
+		return new String(decode(data, percise), CharsetUtil.UTF8);
 	}
 
 	/**
@@ -100,8 +100,15 @@ public class Base64Encoder {
 	 * @return the byte array (not null)
 	 * @throws CoderException
 	 */
-	public static byte[] decode(String data) throws CoderException {
+	public static byte[] decode(String data, boolean percise) throws CoderException {
 		if (StringUtil.isEmpty(data)) return new byte[0];
+		if (percise) {
+			int l = data.length();
+			if (((l / 4) * 4) != l) {
+				throw new CoderException("cannot convert the input to a binary, invalid length (" + l + ") of the string");
+			}
+		}
+
 		byte[] res = org.apache.commons.codec.binary.Base64.decodeBase64(data);
 		if (res == null || res.length == 0) throw new CoderException("cannot convert the input to a binary");
 		return res;

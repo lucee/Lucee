@@ -2786,7 +2786,7 @@ public final class Caster {
 			}
 		}
 		try {
-			return Base64Encoder.decode(toString(o));
+			return Base64Encoder.decode(toString(o), false);
 		}
 		catch (PageException e) {
 			throw new CasterException(o, "binary");

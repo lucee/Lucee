@@ -42,11 +42,11 @@ public final class Coder {
 	 * @return
 	 * @throws CoderException
 	 */
-	public static byte[] decode(String type, String value) throws CoderException {
+	public static byte[] decode(String type, String value, boolean percise) throws CoderException {
 		type = type.toLowerCase().trim();
-		if (type.equals("hex")) return decode(ENCODING_HEX, value);
-		if (type.equals("uu")) return decode(ENCODING_UU, value);
-		if (type.equals("base64")) return decode(ENCODING_BASE64, value);
+		if (type.equals("hex")) return decode(ENCODING_HEX, value, percise);
+		if (type.equals("uu")) return decode(ENCODING_UU, value, percise);
+		if (type.equals("base64")) return decode(ENCODING_BASE64, value, percise);
 		throw new CoderException("Invalid encoding definition [" + type + "]. Valid encodings are [hex, uu, base64].");
 	}
 
@@ -56,10 +56,10 @@ public final class Coder {
 	 * @return
 	 * @throws CoderException
 	 */
-	public static byte[] decode(short type, String value) throws CoderException {
+	public static byte[] decode(short type, String value, boolean percise) throws CoderException {
 		if (type == ENCODING_UU) return UUCoder.decode(value);
 		else if (type == ENCODING_HEX) return HexCoder.decode(value);
-		else if (type == ENCODING_BASE64) return Base64Coder.decode(value);
+		else if (type == ENCODING_BASE64) return Base64Coder.decode(value, percise);
 		throw new CoderException("Invalid encoding definition");
 	}
 

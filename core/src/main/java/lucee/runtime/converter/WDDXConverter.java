@@ -682,7 +682,7 @@ public final class WDDXConverter extends ConverterSupport {
 		if (node instanceof CharacterData) {
 			String data = ((CharacterData) node).getData();
 			try {
-				return Base64Coder.decode(data);
+				return Base64Coder.decode(data, true);
 			}
 			catch (CoderException e) {
 				throw new ConverterException(e.getMessage());

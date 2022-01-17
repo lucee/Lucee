@@ -4306,7 +4306,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			// we assume that when the string is more than 5000 it is a base64 encoded binary
 			if (str.length() > 5000) {
 				try {
-					obj = Base64Encoder.decode(str);
+					obj = Base64Encoder.decode(str, true);
 				}
 				catch (CoderException e) {
 					CasterException ce = new CasterException(e.getMessage());
