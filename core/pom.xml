@@ -111,7 +111,7 @@
   	<dependency>
   		<groupId>org.lucee</groupId>
   		<artifactId>jsch</artifactId>
-  		<version>0.1.53</version>
+  		<version>0.1.55</version>
     	<scope>provided</scope>
   	</dependency>
     <dependency>
