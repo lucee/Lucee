@@ -165,70 +165,12 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	}
 
 	private struct function getFTPCredencials() {
-		// getting the credetials from the enviroment variables
-		var ftp={};
-		if(
-			!isNull(server.system.environment.FTP_SERVER) && 
-			!isNull(server.system.environment.FTP_SERVER) && 
-			!isNull(server.system.environment.FTP_PASSWORD) && 
-			!isNull(server.system.environment.FTP_PORT) && 
-			!isNull(server.system.environment.FTP_BASE_PATH)) {
-			ftp.server=server.system.environment.FTP_SERVER;
-			ftp.username=server.system.environment.FTP_USERNAME;
-			ftp.password=server.system.environment.FTP_PASSWORD;
-			ftp.port=server.system.environment.FTP_PORT;
-			ftp.base=server.system.environment.FTP_BASE_PATH;
-		}
-		// getting the credetials from the system variables
-		else if(
-			!isNull(server.system.properties.FTP_SERVER) && 
-			!isNull(server.system.properties.FTP_SERVER) && 
-			!isNull(server.system.properties.FTP_PASSWORD) && 
-			!isNull(server.system.properties.FTP_PORT) && 
-			!isNull(server.system.properties.FTP_BASE_PATH)) {
-			ftp.server=server.system.properties.FTP_SERVER;
-			ftp.username=server.system.properties.FTP_USERNAME;
-			ftp.password=server.system.properties.FTP_PASSWORD;
-			ftp.port=server.system.properties.FTP_PORT;
-			ftp.base=server.system.properties.FTP_BASE_PATH;
-		}
-		return ftp;
+		return server.getTestService("ftp");
 	}
 
 	private struct function getSFTPCredencials() {
-		// getting the credetials from the enviroment variables
-		var sftp={};
-		if(
-			!isNull(server.system.environment.SFTP_SERVER) && 
-			!isNull(server.system.environment.SFTP_SERVER) && 
-			!isNull(server.system.environment.SFTP_PASSWORD) && 
-			!isNull(server.system.environment.SFTP_PORT) && 
-			!isNull(server.system.environment.SFTP_BASE_PATH)) {
-			sftp.server=server.system.environment.SFTP_SERVER;
-			sftp.username=server.system.environment.SFTP_USERNAME;
-			sftp.password=server.system.environment.SFTP_PASSWORD;
-			sftp.port=server.system.environment.SFTP_PORT;
-			sftp.base=server.system.environment.SFTP_BASE_PATH;
-		}
-		// getting the credetials from the system variables
-		else if(
-			!isNull(server.system.properties.SFTP_SERVER) && 
-			!isNull(server.system.properties.SFTP_SERVER) && 
-			!isNull(server.system.properties.SFTP_PASSWORD) && 
-			!isNull(server.system.properties.SFTP_PORT) && 
-			!isNull(server.system.properties.SFTP_BASE_PATH)) {
-			sftp.server=server.system.properties.SFTP_SERVER;
-			sftp.username=server.system.properties.SFTP_USERNAME;
-			sftp.password=server.system.properties.SFTP_PASSWORD;
-			sftp.port=server.system.properties.SFTP_PORT;
-			sftp.base=server.system.properties.SFTP_BASE_PATH;
-		}
-		return sftp;
+		return server.getTestService("sftp");
 	}
-
-
-
-
 
 } 
 </cfscript>
