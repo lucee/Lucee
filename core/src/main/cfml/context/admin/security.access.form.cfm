@@ -247,7 +247,7 @@
 								</cfloop>
 								<!--- INSERT --->
 								<tr name="fileAccess" style="display:#access.file EQ 'local'?'':'none'#">
-									<td nowrap><cfinputClassic type="text" name="path_#arrayLen(access.file_access)+1#" value="" required="no" class="large"> <input type="button" name="addFileAccessDirectory" class="addFileAccessDirectory" data-index="#arrayLen(access.file_access)+1#" value="Add"></td>
+									<td nowrap><cfinputClassic type="text" name="path_#arrayLen(access.file_access)+1#" value="" required="no" class="large"> <input type="button" name="addFileAccessDirectory" class="addFileAccessDirectory button" data-index="#arrayLen(access.file_access)+1#" value="Add"></td>
 								</tr>
 							</tbody>
 						</table>
@@ -275,12 +275,9 @@
 		</table>
 		
 		<!--- This code allows you to add multiple file access directories in one request.   Otherwise you can prevent Lucee from functioning by accident, forcing the developer to modify the XML directly and restart Lucee to fix the problem.  --->
-		<cfscript>
-		fileAccessIndex=arrayLen(access.file_access)+1;
-		</cfscript>
 		<cfsavecontent variable="fileAccessDirectoryTemplate">
 			<tr name="fileAccess">
-				<td nowrap><cfinputClassic type="text" name="{FIELDNAME}" value="" required="no" class="large"> <input type="button" name="addFileAccessDirectory" class="addFileAccessDirectory" value="Add" data-index="{INDEX}" onclick="this.style.display='none';"></td>
+				<td nowrap><cfinputClassic type="text" name="{FIELDNAME}" value="" required="no" class="large"> <input type="button" name="addFileAccessDirectory" class="addFileAccessDirectory button" value="Add" data-index="{INDEX}" onclick="this.style.display='none';"></td>
 			</tr>
 		</cfsavecontent>
 		<input type="hidden" name="fileAccessDirectoryTemplate" id="fileAccessDirectoryTemplate" value="#htmleditformat(fileAccessDirectoryTemplate)#">
