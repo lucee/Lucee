@@ -275,9 +275,6 @@
 		</table>
 		
 		<!--- This code allows you to add multiple file access directories in one request.   Otherwise you can prevent Lucee from functioning by accident, forcing the developer to modify the XML directly and restart Lucee to fix the problem.  --->
-		<cfscript>
-		fileAccessIndex=arrayLen(access.file_access)+1;
-		</cfscript>
 		<cfsavecontent variable="fileAccessDirectoryTemplate">
 			<tr name="fileAccess">
 				<td nowrap><cfinputClassic type="text" name="{FIELDNAME}" value="" required="no" class="large"> <input type="button" name="addFileAccessDirectory" class="addFileAccessDirectory button" value="Add" data-index="{INDEX}" onclick="this.style.display='none';"></td>
