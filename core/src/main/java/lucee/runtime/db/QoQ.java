@@ -128,7 +128,7 @@ public final class QoQ {
 
 		// Order By
 		if (orders.length > 0) {
-			order(target, orders, isUnion, sql);
+			order(pc, target, orders, isUnion, sql);
 			// Clean up extra columns that we added in just for the sorting
 			for (Collection.Key col: target.getColumnNames()) {
 				if (col.getLowerString().startsWith("__order_by_expression__")) {
@@ -164,19 +164,28 @@ public final class QoQ {
 	 * @param sql
 	 * @throws PageException
 	 */
-	private static void order(Query target, Expression[] columns, boolean isUnion, SQL sql) throws PageException {
+	private static void order( PageContext pc, Query target, Expression[] columns, boolean isUnion, SQL sql) throws PageException {
 		Expression col;
 		// Looping backwards over columns so they order correctly
 		for (int i = columns.length - 1; i >= 0; i--) {
 			col = columns[i];
 			if (!isUnion) {
-				// order by 'test' -- just ignore this
-				if (col instanceof Literal) return;
-				// order by ? -- ignore this as well
-				if (col instanceof Column && ((Column) col).getColumn().equals(paramKey)) return;
+				Integer ordinalIndex;
+				if (col instanceof Literal ) {
+					if( col instanceof ValueNumber && ( ordinalIndex = Caster.toInteger( ((Literal)col).getValue(), null ) ) != null && ordinalIndex > 0 && ordinalIndex <= target.getColumnNames().length ) {
+						// Sort the column referenced by the ordinal position
+						target.sort(target.getColumnNames()[ ordinalIndex-1 ], col.isDirectionBackward() ? Query.ORDER_DESC : Query.ORDER_ASC);	
+					} else {
+						// All other non-integer literals are invalid.
+						throw new DatabaseException("ORDER BY item [" + col.toString(true) + "] in position " + (i+1) + " cannot be a literal value unless it is an integer matching a select column's ordinal position.", null, sql, null);
+					}
+				} else {
+					// order by ? -- ignore this as well
+					if (col instanceof Column && ((Column) col).getColumn().equals(paramKey)) continue;
 
-				// Lookup column in query based on the index stored in the order by expression
-				target.sort(target.getColumnNames()[col.getIndex() - 1], col.isDirectionBackward() ? Query.ORDER_DESC : Query.ORDER_ASC);
+					// Lookup column in query based on the index stored in the order by expression
+					target.sort(target.getColumnNames()[col.getIndex() - 1], col.isDirectionBackward() ? Query.ORDER_DESC : Query.ORDER_ASC);
+				}
 			}
 			else if (col instanceof Column) {
 				Column c = (Column) col;
