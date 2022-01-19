@@ -23,5 +23,11 @@
 
 	EntityDelete( code );
 
+	// trigger onEvict
+	ormEvictEntity( "Code" );
+
+	// trigger onClear
+	ormClearSession();
+
 	echo( len( application.ormEventLog ) );
 </cfscript>

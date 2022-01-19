@@ -8,6 +8,9 @@ component hint="logs out any orm events"  {
 	function preFlush(  entity ){
 		eventLog( arguments );
 	}
+	function onFlush( entity ) {
+		eventLog( arguments );
+	}
 	function postFlush( entity ){
 		eventLog( arguments );
 	}
@@ -36,7 +39,14 @@ component hint="logs out any orm events"  {
 	function preDelete( entity ){
 		eventLog( arguments );
 	}	
+	function onDelete( entity ) {
+		eventLog( arguments );
+	}
 	function postDelete( entity ) {
+		eventLog( arguments );
+	}
+
+	function onDirtyCheck( entity ) {
 		eventLog( arguments );
 	}
 
