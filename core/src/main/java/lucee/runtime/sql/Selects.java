@@ -23,6 +23,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import lucee.runtime.exp.DatabaseException;
+import lucee.runtime.exp.PageException;
 import lucee.runtime.sql.exp.Column;
 import lucee.runtime.sql.exp.Expression;
 import lucee.runtime.sql.exp.Literal;
@@ -39,7 +40,7 @@ public class Selects {
 		this.orderbys.add(exp);
 	}
 
-	public void calcOrderByExpressions() {
+	public void calcOrderByExpressions() throws PageException {
 		if (getSelects().length == 1) {
 			// Check if this order by is already present in the select
 			for (Expression exp: getOrderbys()) {
@@ -63,6 +64,12 @@ public class Selects {
 				// Didn't find it? It means we're ordering on a column we're not selecting like
 				// SELECT col1 FROM table ORDER BY col2
 				if (exp.getIndex() == 0) {
+					
+					// Don't allow this invalid scenario
+					if( getSelects()[0].isDistinct() ) {
+						throw new DatabaseException("ORDER BY items must appear in the select list if SELECT DISTINCT is specified. Order by expression not found is [" + exp.toString(true) + "]", null, null, null);	
+					}
+					
 					// We need to add a phantom column into our result so
 					// we can track the value and order on it
 					exp.setAlias("__order_by_expression__" + getSelects()[0].getSelects().length);
