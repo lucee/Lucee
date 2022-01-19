@@ -25,8 +25,10 @@ import java.util.List;
 import lucee.runtime.exp.DatabaseException;
 import lucee.runtime.sql.exp.Column;
 import lucee.runtime.sql.exp.Expression;
+import lucee.runtime.sql.exp.Literal;
 import lucee.runtime.sql.exp.op.Operation;
 import lucee.runtime.sql.exp.value.ValueNumber;
+import lucee.runtime.op.Caster;
 
 public class Selects {
 
@@ -41,10 +43,17 @@ public class Selects {
 		if (getSelects().length == 1) {
 			// Check if this order by is already present in the select
 			for (Expression exp: getOrderbys()) {
+
+				Integer ordinalIndex;
+				// For literals who are integers that point to a select column, we'll use these as ordinal indexes later, so no need to do anything else with them.
+				if (exp instanceof Literal && ( ordinalIndex = Caster.toInteger( ((Literal)exp).getValue(), null ) ) != null && ordinalIndex <= getSelects()[0].getSelects().length ) {
+					continue;
+				}
+				
 				// For each expression in the select column list
 				for (Expression col: getSelects()[0].getSelects()) {
-					// If this same expression is present, regardless of alias...
-					if (col.toString(true).equals(exp.toString(true)) || col.getAlias().equals(exp.getAlias())) {
+					// If this is the same column or the same alias...
+					if ( ( col instanceof Column && col.toString(true).equals(exp.toString(true)) ) || col.getAlias().equals(exp.getAlias()) ) {
 						// Then set our order by's index to point to the index
 						// of the column that has that data
 						exp.setIndex(col.getIndex());
