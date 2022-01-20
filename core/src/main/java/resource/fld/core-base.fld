@@ -1533,7 +1533,7 @@ sort direction:
 - base64: data is encoded using the Base64 algorithm</description>
     </argument>
 		<argument>
-			<name>percise</name>
+			<name>precise</name>
 			<type>boolean</type>
 			<required>no</required>
 			<default>false</default>

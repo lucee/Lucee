@@ -38,9 +38,9 @@ public final class BinaryDecode extends BIF implements Function {
 		return call(pc, encoded_binary, binaryencoding, false);
 	}
 
-	public static byte[] call(PageContext pc, String encoded_binary, String binaryencoding, boolean percise) throws PageException {
+	public static byte[] call(PageContext pc, String encoded_binary, String binaryencoding, boolean precise) throws PageException {
 		try {
-			return Coder.decode(binaryencoding, encoded_binary, percise);
+			return Coder.decode(binaryencoding, encoded_binary, precise);
 		}
 		catch (CoderException e) {
 			throw Caster.toPageException(e);

@@ -1,4 +1,4 @@
-component extends = "org.lucee.cfml.test.LuceeTestCase" {
+component extends = "org.lucee.cfml.test.LuceeTestCase" labels="qoq" {
 
 	function run( testResults, textbox ) {
 
@@ -32,23 +32,6 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 					options = { dbtype: 'query' }
 				);
 				
-				expect( actual ).toBeQuery();
-				expect( actual.recordCount ).toBe( 2 );
-				expect( queryColumnData( actual, 'age' )[2] ).toBe( 20 );
-
-			});
-
-			it(title="Select the same column twice without error in QoQ ORDER BY using an ordinal position ORDER BY", skip=true, body=function( currentSpec ){
-				var employees = queryNew( 'name,age,email', 'varchar,integer,varchar',[
-					['Brad',20,'brad@test.com'],
-					['Luis',10,'luis@test.com']
-				]);
-
-				var actual = QueryExecute(
-					sql = "SELECT DISTINCT age, name, age, email from employees ORDER BY 3",
-					options = { dbtype: 'query' }
-				);
-
 				expect( actual ).toBeQuery();
 				expect( actual.recordCount ).toBe( 2 );
 				expect( queryColumnData( actual, 'age' )[2] ).toBe( 20 );

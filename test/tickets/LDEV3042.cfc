@@ -92,16 +92,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 				expect( actual.dept[15] ).toBe( 'IT' );
 			});
 				
-			it( 'Can order by literal' , function() {				
-				actual = QueryExecute(
-					sql = "SELECT department as dept from employees ORDER BY name,'test', 'foo', 7, false",
-					options = { dbtype: 'query' }
-				);
-				expect( actual.recordcount ).toBe( 15 );
-				expect( actual.dept[1] ).toBe( 'Acounting' );
-				expect( actual.dept[15] ).toBe( 'Executive' );
-			});
-				
 			it( 'Can order by columns not in select' , function() {				
 				actual = QueryExecute(
 					sql = "SELECT department from employees ORDER BY department, isActive desc, name, email",
