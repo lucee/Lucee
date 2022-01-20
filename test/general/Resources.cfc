@@ -482,7 +482,7 @@ private function assertEqualPaths(string path1, string path2) {
 
 	private void function test(string label,string root){
 		var start=getTickCount();
-		var dir=arguments.root&"test-#createUniqueId()#-res/";
+		var dir=arguments.root&"lucee-res-#lcase(hash(CreateGUID()))#/";
 		
 		// make sure there are no data from a previous run 
 		if(directoryExists(dir)) {
