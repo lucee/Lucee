@@ -6,6 +6,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 
 	function run( testResults , testBox ) {
 		describe( "Test case for LDEV-2772", function() {
+
+			// note scopeCascading has no effect currently
+
 			it( title = "enable/disable search result, scopeCascading=standard", body = function( currentSpec ) {
 				application action="update" scopeCascading="standard";
 				checkSearchResults();
@@ -33,6 +36,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 	private function checkSearchResults(){
 		var q = query( a:[1], b:[2] );
 		var b = 3;
+
+		systemOutput(local, true);
 				
 		try {
 			application action="update" searchResults=false;
@@ -40,7 +45,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				expect( isNull(a) ).toBeTrue();
 				expect( q.a ).toBe( 1 );
 				expect( q.b ).toBe( 2 );
-				expect( b ).toBe( 3 ); // queries get checked before local scope
+				expect( b ).toBe( 3 ); // query scope lookup disabled, so local scope
 			}
 
 			application action="update" searchQueries=true;
@@ -48,7 +53,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				expect( isNull( a ) ).toBeFalse();
 				expect( q.a ).toBe( 1 );
 				expect( q.b ).toBe( 2 );
-				expect( b ).toBe( 3 ); // queries get checked before local scope
+				expect( b ).toBe( 2 ); // query scope get checked before local scope
 			}
 		}
 		finally {
