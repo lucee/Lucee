@@ -333,11 +333,6 @@ public final class QoQ {
 	 * @throws PageException
 	 */
 	private Query doUnionDistinct(PageContext pc, Query previous, Query target, SQL sql) throws PageException {
-		// If this is the first select in a series of unions, just return it directly. It's column
-		// names now get set in stone as the column names the next union(s) will use!
-		if (previous.getRecordcount() == 0) {
-			return target;
-		}
 		Collection.Key[] previousColKeys = previous.getColumnNames();
 		Collection.Key[] targetColKeys = target.getColumnNames();
 		
