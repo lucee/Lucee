@@ -35,7 +35,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
@@ -162,7 +161,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 	private boolean isExtended; // is this component extended by another component?
 
 	StaticScope _static = null;
-	Map<Long, Boolean> insideStaticConstr = new ConcurrentHashMap<>();
+	ThreadInsideStaticConstr insideStaticConstrThread = new ThreadInsideStaticConstr();
 
 	private AbstractFinal absFin;
 
@@ -1690,13 +1689,17 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 		registerUDF(key, jf);
 	}
 
+	public void registerStaticUDF(Key key, UDFProperties prop) throws ApplicationException {
+		_static.put(key, new UDFImpl(prop, this));
+	}
+
 	/*
 	 * @deprecated injected is not used
 	 */
 	public void registerUDF(Key key, UDF udf, boolean useShadow, boolean injected) throws ApplicationException {
 		if (udf instanceof UDFPlus) ((UDFPlus) udf).setOwnerComponent(this);
 
-		if (insideStaticConstr.getOrDefault(ThreadLocalPageContext.getThreadId(null), Boolean.FALSE)) {
+		if (insideStaticConstrThread.get()) {
 			_static.put(key, udf);
 			return;
 		}
@@ -2391,6 +2394,15 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 		@Override
 		protected Map<String, Boolean> initialValue() {
 			return new HashMap<>();
+		}
+
+	}
+
+	static class ThreadInsideStaticConstr extends ThreadLocal<Boolean> {
+
+		@Override
+		protected Boolean initialValue() {
+			return Boolean.FALSE;
 		}
 
 	}
