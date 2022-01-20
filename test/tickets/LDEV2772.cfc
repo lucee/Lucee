@@ -34,26 +34,28 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 	}
 
 	private function checkSearchResults(){
-		var q = query( a:[1], b:[2] );
-		var b = 3;
+		var q = query( a:['query'], b:['query'], c:['query']);
+		var b = 'local';
+		variables.c = 'variables';
 
-		systemOutput(local, true);
-				
 		try {
 			application action="update" searchResults=false;
 			loop query="q" {
 				expect( isNull(a) ).toBeTrue();
-				expect( q.a ).toBe( 1 );
-				expect( q.b ).toBe( 2 );
-				expect( b ).toBe( 3 ); // query scope lookup disabled, so local scope
+				expect( q.a ).toBe( 'query' );
+				expect( q.b ).toBe( 'query' );
+				expect( b ).toBe( 'local' ); // query scope lookup disabled, so local scope
+				expect( c ).toBe( 'variables' ); // query scope lookup disabled, so variables scope
 			}
 
 			application action="update" searchQueries=true;
 			loop query="q" {
 				expect( isNull( a ) ).toBeFalse();
-				expect( q.a ).toBe( 1 );
-				expect( q.b ).toBe( 2 );
-				expect( b ).toBe( 2 ); // query scope get checked before local scope
+				expect( q.a ).toBe( 'query' );
+				expect( q.b ).toBe( 'query' );
+				// local scope gets checked first, when inside a function with an arguments scope, but in a plain old .cfm template
+				expect( b ).toBe( 'local' ); // inside a function, so local scope always gets checked first
+				expect( c ).toBe( 'query' ); // query scope get checked before variables scope
 			}
 		}
 		finally {
