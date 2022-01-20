@@ -85,7 +85,7 @@ public class StaticScope extends StructSupport implements Variables, Objects {
 		}
 		// if not the parent (inside the static constructor we do not remove keys from base static scopes)
 
-		if (base != null && !c.insideStaticConstr.getOrDefault(ThreadLocalPageContext.getThreadId(pc), Boolean.FALSE)) return base._remove(pc, key);
+		if (base != null && !c.insideStaticConstrThread.get()) return base._remove(pc, key);
 		return null;
 	}
 
@@ -171,7 +171,7 @@ public class StaticScope extends StructSupport implements Variables, Objects {
 			return _set(pc, m, key, value);
 		}
 		// if not the parent (we only do this if we are outside the static constructor)
-		if (base != null && !c.insideStaticConstr.getOrDefault(ThreadLocalPageContext.getThreadId(pc), Boolean.FALSE)) return base._setIfExists(pc, key, value);
+		if (base != null && !c.insideStaticConstrThread.get()) return base._setIfExists(pc, key, value);
 		return null;
 	}
 
@@ -447,14 +447,14 @@ public class StaticScope extends StructSupport implements Variables, Objects {
 	}
 
 	public static Variables beforeStaticConstructor(PageContext pc, ComponentImpl c, StaticScope ss) {
-		c.insideStaticConstr.put(ThreadLocalPageContext.getThreadId(pc), Boolean.TRUE);
+		c.insideStaticConstrThread.set(Boolean.TRUE);
 		Variables parent = pc.variablesScope();
 		pc.setVariablesScope(ss);
 		return parent;
 	}
 
 	public static void afterStaticConstructor(PageContext pc, ComponentImpl c, Variables parent) {
-		c.insideStaticConstr.remove(ThreadLocalPageContext.getThreadId(pc));
+		c.insideStaticConstrThread.set(Boolean.FALSE);
 		pc.setVariablesScope(parent);
 	}
 
