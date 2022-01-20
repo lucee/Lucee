@@ -62,7 +62,7 @@
 
 		</cfcase>
 	</cfswitch>
-	<cfcatch>
+	<cfcatch><cfrethrow>
 		<cfset error.message=cfcatch.message>
 		<cfset error.detail=cfcatch.Detail>
 		<cfset error.cfcatch=cfcatch>
@@ -97,19 +97,19 @@ Redirtect to entry --->
 	<cfset log=struct()>
 	<cfset log.name=form._name>
 	
-	<cfset log.appenderClass=form.appenderClass>
-	<cfset log.appenderBundleName=form.appenderBundleName?:''>
-	<cfset log.appenderBundleVersion=form.appenderBundleVersion?:''>
+	<cfset log.appenderClass=trim(form.appenderClass)>
+	<cfset log.appenderBundleName=trim(form.appenderBundleName?:'')>
+	<cfset log.appenderBundleVersion=trim(form.appenderBundleVersion?:'')>
 	
-	<cfset log.layoutClass=form.layoutClass>
-	<cfset log.layoutBundleName=form.layoutBundleName?:''>
-	<cfset log.layoutBundleVersion=form.layoutBundleVersion?:''>
+	<cfset log.layoutClass=trim(form.layoutClass)>
+	<cfset log.layoutBundleName=trim(form.layoutBundleName?:'')>
+	<cfset log.layoutBundleVersion=trim(form.layoutBundleVersion?:'')>
 	
 	<cfset log.appenderArgs={}>
 	<cfset log.layoutArgs={}>
 	<cfset log.level="ERROR">
 	<cfset layout=layouts[log.layoutClass]>
-	<cfset appender=isNull(appenders[log.appenderClass])?nullValue():appenders[log.appenderClass]>
+	<cfset appender=isNull(appenders[log.appenderClass])?nullValue():appenders[trim(log.appenderClass)]>
 </cfif>
 
 <cfoutput>
