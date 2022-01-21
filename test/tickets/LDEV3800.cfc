@@ -1,4 +1,4 @@
-component extends = "org.lucee.cfml.test.LuceeTestCase" skip="true"{
+component extends = "org.lucee.cfml.test.LuceeTestCase" {
 	function run( testResults, testBox ){
 		describe( "Test case for LDEV-3800",function() {
 			it( title = "Checking isvalid(email , email with german characters)",body = function( currentSpec ){
