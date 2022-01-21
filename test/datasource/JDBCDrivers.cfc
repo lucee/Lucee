@@ -43,7 +43,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				loadJDBCDriverClass("org.postgresql.jdbc","42.2.20");
 			});
 
-			it( title='Exasol',body=function( currentSpec ) {
+			xit( title='Exasol',body=function( currentSpec ) { // LDEV-4296
 				loadJDBCDriverClass("org.lucee.exasol","7.1.2");
 			});
 
