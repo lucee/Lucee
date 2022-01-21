@@ -307,6 +307,9 @@ public final class Http extends BodyTagImpl {
 	 */
 	private short method = METHOD_GET;
 
+	/** cached method name for checking the cache before the req is setup . */
+	private String methodName;
+
 	// private boolean hasBody=false;
 
 	private boolean firstrowasheaders = true;
@@ -362,6 +365,7 @@ public final class Http extends BodyTagImpl {
 		strPath = null;
 		name = null;
 		method = METHOD_GET;
+		methodName = null;
 		// hasBody=false;
 		firstrowasheaders = true;
 
@@ -630,6 +634,7 @@ public final class Http extends BodyTagImpl {
 	 **/
 	public void setMethod(String method) throws ApplicationException {
 		method = method.toLowerCase().trim();
+		methodName = method;
 		if (method.equals("post")) this.method = METHOD_POST;
 		else if (method.equals("get")) this.method = METHOD_GET;
 		else if (method.equals("head")) this.method = METHOD_HEAD;
@@ -782,7 +787,7 @@ public final class Http extends BodyTagImpl {
 					CacheItem cacheItem = ((CacheHandlerPro) cacheHandler).get(pageContext, cacheId, cachedWithin);
 
 					if (cacheItem instanceof HTTPCacheItem) {
-						logHttpRequest(pageContext, ((HTTPCacheItem) cacheItem).getData(),  url, req.getMethod(), System.nanoTime() - start, true);
+						logHttpRequest(pageContext, ((HTTPCacheItem) cacheItem).getData(),  url, methodName, System.nanoTime() - start, true);
 						pageContext.setVariable(result, ((HTTPCacheItem) cacheItem).getData());
 						return;
 					}
@@ -792,7 +797,7 @@ public final class Http extends BodyTagImpl {
 					CacheItem cacheItem = cacheHandler.get(pageContext, cacheId);
 
 					if (cacheItem instanceof HTTPCacheItem) {
-						logHttpRequest(pageContext, ((HTTPCacheItem) cacheItem).getData(),  url, req.getMethod(), System.nanoTime() - start, true);
+						logHttpRequest(pageContext, ((HTTPCacheItem) cacheItem).getData(),  url, methodName, System.nanoTime() - start, true);
 						pageContext.setVariable(result, ((HTTPCacheItem) cacheItem).getData());
 						return;
 					}

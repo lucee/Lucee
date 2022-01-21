@@ -56,6 +56,17 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 		assertEquals(data,res.httpRequestData.content);
 	}
 
+	public void function testCachedHttpRequest(){
+		http url="https://update.lucee.org/rest/update/provider/echoGet" result="local.res" method="get" cachedWithin="request"{
+			httpparam name="susi" value="Sorglos";
+		}
+		http url="https://update.lucee.org/rest/update/provider/echoGet" result="local.res2" method="get" cachedWithin="request"{
+			httpparam name="susi" value="Sorglos";
+		}
+		res = evaluate( res.filecontent );
+		res2 = evaluate( res2.filecontent );
+		expect( res.url.susi ).toBe( res2.url.susi );
+	}
 
 
 }
