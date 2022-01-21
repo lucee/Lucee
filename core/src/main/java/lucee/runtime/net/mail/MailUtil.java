@@ -140,42 +140,43 @@ public final class MailUtil {
 	 * @return
 	 */
 	public static boolean isValidEmail(Object value) {
+		try {
+			InternetAddress addr = parseEmail(value, null);
+			if (addr != null) {
 
-		InternetAddress addr = parseEmail(value, null);
+				String address = addr.getAddress();
 
-		if (addr != null) {
+				if (address.contains("..")) return false;
 
-			String address = addr.getAddress();
+				int pos = address.indexOf('@');
 
-			if (address.contains("..")) return false;
+				if (pos < 1 || pos == address.length() - 1) return false;
 
-			int pos = address.indexOf('@');
+				String local = address.substring(0, pos);
+				String domain = address.substring(pos + 1);
 
-			if (pos < 1 || pos == address.length() - 1) return false;
+				if (local.length() > 64) return false; // local part may only be 64 characters
+				if (domain.length() > 255) return false; // domain may only be 255 characters
 
-			String local = address.substring(0, pos);
-			String domain = address.substring(pos + 1);
+				if (domain.charAt(0) == '.' || local.charAt(0) == '.' || local.charAt(local.length() - 1) == '.') return false;
 
-			if (local.length() > 64) return false; // local part may only be 64 characters
-			if (domain.length() > 255) return false; // domain may only be 255 characters
+				pos = domain.lastIndexOf('.');
 
-			if (domain.charAt(0) == '.' || local.charAt(0) == '.' || local.charAt(local.length() - 1) == '.') return false;
-
-			pos = domain.lastIndexOf('.');
-
-			if (pos > 0 && pos < domain.length() - 2) { // test TLD to be at
-				// least 2 chars all
-				// alpha characters
-				if (StringUtil.isAllAlpha(domain.substring(pos + 1))) return true;
-				try {
-					addr.validate();
-					return true;
-				}
-				catch (AddressException e) {
+				if (pos > 0 && pos < domain.length() - 2) { // test TLD to be at
+					// least 2 chars all
+					// alpha characters
+					if (StringUtil.isAllAlpha(domain.substring(pos + 1))) return true;
+					try {
+						addr.validate();
+						return true;
+					}
+					catch (AddressException e) {
+					}
 				}
 			}
 		}
-
+		catch (Exception e) {
+		}
 		return false;
 	}
 
