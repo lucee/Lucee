@@ -35,7 +35,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 
 		assertEquals("Sorglos",res.url.susi);
 	}
-			
+
+	public void function testPatch(){
+		http url="https://update.lucee.org/rest/update/provider/echoGet" result="local.res" method="patch"{
+			httpparam name="susi" value="Sorglos";
+		}
+	}
+
 	public void function testImplicit(){
 		var data=chr(228)&chr(246)&chr(252); // äöü
 		data="{aaa:'#data#'}";

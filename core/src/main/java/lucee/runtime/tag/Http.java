@@ -33,6 +33,7 @@ import java.net.URL;
 import java.nio.charset.Charset;
 import java.security.KeyStore;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -181,6 +182,8 @@ public final class Http extends BodyTagImpl {
 	private static final short METHOD_TRACE = 6;
 	private static final short METHOD_PATCH = 7;
 
+	private static final List<String> methods = Arrays.asList(new String[] { "GET", "POST", "HEAD", "PUT", "DELETE", "OPTIONS", "TRACE", "PATCH" }); 
+
 	private static final String NO_MIMETYPE = "Unable to determine MIME type of file.";
 
 	private static final short GET_AS_BINARY_NO = 0;
@@ -307,9 +310,6 @@ public final class Http extends BodyTagImpl {
 	 */
 	private short method = METHOD_GET;
 
-	/** cached method name for checking the cache before the req is setup . */
-	private String methodName;
-
 	// private boolean hasBody=false;
 
 	private boolean firstrowasheaders = true;
@@ -365,7 +365,6 @@ public final class Http extends BodyTagImpl {
 		strPath = null;
 		name = null;
 		method = METHOD_GET;
-		methodName = null;
 		// hasBody=false;
 		firstrowasheaders = true;
 
@@ -633,26 +632,27 @@ public final class Http extends BodyTagImpl {
 	 * @throws ApplicationException
 	 **/
 	public void setMethod(String method) throws ApplicationException {
-		method = method.toLowerCase().trim();
-		methodName = method;
-		if (method.equals("post")) this.method = METHOD_POST;
-		else if (method.equals("get")) this.method = METHOD_GET;
-		else if (method.equals("head")) this.method = METHOD_HEAD;
-		else if (method.equals("delete")) this.method = METHOD_DELETE;
-		else if (method.equals("put")) this.method = METHOD_PUT;
-		else if (method.equals("trace")) this.method = METHOD_TRACE;
-		else if (method.equals("options")) this.method = METHOD_OPTIONS;
-		else if (method.equals("patch")) this.method = METHOD_PATCH;
-		else throw new ApplicationException("invalid method type [" + (method.toUpperCase()) + "], valid types are POST,GET,HEAD,DELETE,PUT,TRACE,OPTIONS,PATCH");
+		method = method.toUpperCase().trim();
+		short idx = (short) methods.indexOf(method);
+		if (idx < 0) 
+			throw new ApplicationException("invalid method type [" + method + "], valid types are [" + methods.toString() + "]");
+		this.method = idx;
 	}
 
+	private static String getMethodAsVerb(short method) throws ApplicationException {
+		if (method < 0 || method > methods.size() - 1)
+			throw new ApplicationException("invalid method [" + method + "], valid types are [" + methods.toString() + "]" ); // never will reach this, due to above
+		
+		return methods.get(method);
+	}
+	
 	public void setCompression(String strCompression) throws ApplicationException {
 		if (StringUtil.isEmpty(strCompression, true)) return;
 		Boolean b = Caster.toBoolean(strCompression, null);
 
 		if (b != null) compression = b.booleanValue();
 		else if (strCompression.trim().equalsIgnoreCase("none")) compression = false;
-		else throw new ApplicationException("invalid value for attribute compression [" + strCompression + "], valid values are: true,false or none");
+		else throw new ApplicationException("invalid value for attribute compression [" + strCompression + "], valid values are: [true, false or none]");
 
 	}
 
@@ -787,7 +787,7 @@ public final class Http extends BodyTagImpl {
 					CacheItem cacheItem = ((CacheHandlerPro) cacheHandler).get(pageContext, cacheId, cachedWithin);
 
 					if (cacheItem instanceof HTTPCacheItem) {
-						logHttpRequest(pageContext, ((HTTPCacheItem) cacheItem).getData(),  url, methodName, System.nanoTime() - start, true);
+						logHttpRequest(pageContext, ((HTTPCacheItem) cacheItem).getData(),  url, getMethodAsVerb(method), System.nanoTime() - start, true);
 						pageContext.setVariable(result, ((HTTPCacheItem) cacheItem).getData());
 						return;
 					}
@@ -797,7 +797,7 @@ public final class Http extends BodyTagImpl {
 					CacheItem cacheItem = cacheHandler.get(pageContext, cacheId);
 
 					if (cacheItem instanceof HTTPCacheItem) {
-						logHttpRequest(pageContext, ((HTTPCacheItem) cacheItem).getData(),  url, methodName, System.nanoTime() - start, true);
+						logHttpRequest(pageContext, ((HTTPCacheItem) cacheItem).getData(),  url, getMethodAsVerb(method), System.nanoTime() - start, true);
 						pageContext.setVariable(result, ((HTTPCacheItem) cacheItem).getData());
 						return;
 					}
