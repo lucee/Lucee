@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase"	{
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="qoq" {
 
 	function beforeAll() {
 			employees = queryNew( 'name,age,email,department,isContract,yearsEmployed,sickDaysLeft,hireDate,isActive,empID,favoriteColor', 'varchar,integer,varchar,varchar,boolean,integer,integer,date,boolean,varchar,varchar', [
