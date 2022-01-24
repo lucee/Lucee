@@ -94,6 +94,29 @@ function mem(type) {
 	systemOutput(content,true);
 	systemOutput("--------------------------------------",true);
 
+	// set deploy and trace logs to TRACE out to console
+	admin
+		action="updateLogSettings"
+		type="server"
+		password="#request.SERVERADMINPASSWORD#"
+		name="deploy"
+		level="TRACE"
+		appenderClass="lucee.commons.io.log.log4j2.appender.ConsoleAppender"
+		appenderArgs={streamType: "output"}
+		layoutClass="lucee.commons.io.log.log4j2.layout.ClassicLayout"
+		layoutArgs={};
+	
+	admin
+		action="updateLogSettings"
+		type="server"
+		password="#request.SERVERADMINPASSWORD#"
+		name="trace"
+		level="TRACE"
+		appenderClass="lucee.commons.io.log.log4j2.appender.ConsoleAppender"
+		appenderArgs={streamType: "output"}
+		layoutClass="lucee.commons.io.log.log4j2.layout.ClassicLayout"
+		layoutArgs={};
+
 
 	// create "/test" mapping
 	admin
