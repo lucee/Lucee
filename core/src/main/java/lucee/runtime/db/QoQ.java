@@ -1199,7 +1199,12 @@ public final class QoQ {
 			return null;
 		}
 		
-		return new Double( castForMathDouble(left) % castForMathDouble(right) );
+		Double rightDouble = castForMathDouble(right);		
+		if( rightDouble == 0 ) {
+			throw new DatabaseException("Divide by zero not allowed.  Encountered while evaluating ["  + expression.toString( true ) + "] in row " + row, null, sql, null);
+		}
+		
+		return new Double( castForMathDouble(left) % rightDouble );
 	}
 
 	/**
@@ -1290,8 +1295,13 @@ public final class QoQ {
 		if( left == null || right == null ) {
 			return null;
 		}
+
+		Double rightDouble = castForMathDouble(right);
+		if( rightDouble == 0 ) {
+			throw new DatabaseException("Divide by zero not allowed.  Encountered while evaluating ["  + expression.toString( true ) + "] in row " + row, null, sql, null);
+		}
 		
-		return new Double( castForMathDouble(left) / castForMathDouble(right) );
+		return new Double( castForMathDouble(left) / rightDouble );
 	}
 
 	/**
