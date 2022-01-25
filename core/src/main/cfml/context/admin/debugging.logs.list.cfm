@@ -114,9 +114,18 @@
 					<tbody>
 						<cfloop from="#arrayLen(logs)#" to="1" index="i" step="-1">
 							<cfset el=logs[i]>
-							<cfset _total=0><cfloop query="el.pages"><cfset _total+=el.pages.total></cfloop>
-							<cfset _query=0><cfloop query="el.pages"><cfset _query+=el.pages.query></cfloop>
-							<cfset _app=0><cfloop query="el.pages"><cfset _app+=el.pages.app></cfloop>	
+							<cfset _total=0>
+							<cfset _query=0>
+							<cfset _app=0>
+							<cfif structKeyExists(el, "pages")>
+								<cfloop query="el.pages"><cfset _total+=el.pages.total></cfloop>
+								<cfloop query="el.pages"><cfset _query+=el.pages.query></cfloop>
+								<cfloop query="el.pages"><cfset _app+=el.pages.app></cfloop>	
+							<cfelse>
+								<cfset _total+=el.times.total>
+								<cfset _query+=el.times.query>
+								<cfset _app+= _total-_query>
+							</cfif>
 							<cfset _path=el.scope.cgi.SCRIPT_NAME& (len(el.scope.cgi.QUERY_STRING)?"?"& el.scope.cgi.QUERY_STRING:"")>
 							<cfif 
 								doFilter(session.debugFilter.path,_path,false) and 
