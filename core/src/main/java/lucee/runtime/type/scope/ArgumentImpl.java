@@ -142,7 +142,7 @@ public final class ArgumentImpl extends ScopeSupport implements Argument, ArrayP
 			}
 		}
 
-		throw new ExpressionException("Key [" + key.getString() + "] doesn't exist in arguments scope. The existing keys are ["
+		throw new ExpressionException("The key [" + key.getString() + "] doesn't exist in the arguments scope. The existing keys are ["
 				+ lucee.runtime.type.util.ListUtil.arrayToList(CollectionUtil.keys(this), ", ") + "]");
 	}
 
