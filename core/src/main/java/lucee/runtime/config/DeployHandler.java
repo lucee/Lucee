@@ -252,6 +252,7 @@ public class DeployHandler {
 					return true;
 				}
 				catch (Exception e) {
+					e.printStackTrace();
 					// check if the zip is valid
 					if (res instanceof File) {
 						if (!IsZipFile.invoke((File) res)) {
@@ -311,6 +312,7 @@ public class DeployHandler {
 					}
 				}
 				catch (Exception e) {
+					e.printStackTrace();
 					if (log != null) log.error("extension", e);
 				}
 				finally {
@@ -332,6 +334,7 @@ public class DeployHandler {
 				return true;
 			}
 			catch (Exception e) {
+				e.printStackTrace();
 				if (log != null) log.error("extension", e);
 			}
 		}
@@ -345,6 +348,7 @@ public class DeployHandler {
 				return true;
 			}
 			catch (Exception e) {
+				e.printStackTrace();
 				if (log != null) log.error("extension", e);
 				else throw Caster.toPageException(e);
 			}
