@@ -911,7 +911,7 @@ public final class SMTPClient implements Serializable {
 	}
 
 	private void listener(ConfigWeb config, Server server, Log log, Exception e, long exe) {
-		if (e == null) log.info("mail", "mail sent (subject:" + subject + "from:" + toString(from) + "; to:" + toString(tos) + "; cc:" + toString(ccs) + "; bcc:" + toString(bccs)
+		if (e == null) log.info("mail", "mail sent (subject:" + subject + "; server:" + server.getHostName() + "; port:" + server.getPort() + "; from:" + toString(from) + "; to:" + toString(tos) + "; cc:" + toString(ccs) + "; bcc:" + toString(bccs)
 				+ "; ft:" + toString(fts) + "; rt:" + toString(rts) + ")");
 		else log.log(Log.LEVEL_ERROR, "mail", e);
 
