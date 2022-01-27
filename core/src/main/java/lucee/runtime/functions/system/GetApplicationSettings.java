@@ -196,7 +196,7 @@ public class GetApplicationSettings extends BIF {
 		}
 
 		Struct log4j = new StructImpl(Struct.TYPE_LINKED);
-		log4j.setEL(KeyConstants._version, ((ConfigPro) pc.getConfig()).getLogEngine().getVersion());
+		log4j.setEL(KeyConstants._version, ((ConfigWebPro) pc.getConfig()).getLogEngine().getVersion());
 		sct.setEL("log4j", log4j);
 
 		// mails
