@@ -5539,17 +5539,6 @@ Example Values:
 			<type>struct</type>
 		</return>
 	</function>
-	<!-- GetConfigSettings -->
-	<function>
-		<name>GetConfigSettings</name>
-		<class>lucee.runtime.functions.system.GetConfigSettings</class>
-		<status>hidden</status>
-		<description></description>
-		<return>
-			<type>struct</type>
-		</return>
-	</function>
-
 	<!-- getBaseTagData -->
 	<function>
 		<name>getBaseTagData</name>
@@ -6597,8 +6586,11 @@ if this attribute is not provided all types are returned.</description>
 	<!-- getTemplatePath -->
 	<function>
 		<name>getTemplatePath</name>
+		<status>deprecated</status>
 		<class>lucee.runtime.functions.system.GetTemplatePath</class>
-		<description></description>
+		<description>This function is deprecated.
+
+Use the GetBaseTemplatePath() function instead.</description>
 		<return>
 			<type>any</type>
 		</return>

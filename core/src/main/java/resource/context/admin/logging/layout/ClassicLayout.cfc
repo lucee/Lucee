@@ -4,7 +4,7 @@
 		)>
     
 	<cffunction name="getClass" returntype="string">
-    	<cfreturn left(getConfigSettings().log4j.version,1)==1?"lucee.commons.io.log.log4j.layout.ClassicLayout":"lucee.commons.io.log.log4j2.layout.ClassicLayout">
+    	<cfreturn "lucee.commons.io.log.log4j2.layout.ClassicLayout">
     </cffunction>
     
 	<cffunction name="getLabel" returntype="string" output="false">

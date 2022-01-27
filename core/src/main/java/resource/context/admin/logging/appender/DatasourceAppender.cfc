@@ -34,7 +34,7 @@
 	</cffunction>
 	
 	<cffunction name="getClass" returntype="string" output="false">
-		<cfreturn left(getConfigSettings().log4j.version,1)==1?"lucee.commons.io.log.log4j.appender.DatasourceAppender":"lucee.commons.io.log.log4j2.appender.DatasourceAppender">
+		<cfreturn "lucee.commons.io.log.log4j2.appender.DatasourceAppender">
 	</cffunction>
 	
 	<cffunction name="getLabel" returntype="string" output="false">
