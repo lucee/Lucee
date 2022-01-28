@@ -86,6 +86,12 @@
 
 		fileWrite( testboxArchive, FileReadBinary( testboxUrl ) );
 		testboxDir = "#getTempDirectory()#testbox";
+
+		// we need the compress extension, if running with lucee light, it won't be installed yet
+		if ( !extensionExists("8D7FB0DF-08BB-1589-FE3975678F07DB17") ){
+			throw "Lucee Compress extension is required, but not installed, are you using the Lucee light jar?";
+		}		
+
 		zip action="unzip" file="#testboxArchive#" destination="#getTempDirectory()#";
 		testboxArchive = testboxDir;
 
