@@ -32,13 +32,13 @@
       <mkdir dir="${outputDir}"/>
   </target>
 
-  <target name="core" depends="withTestcases,setEnv,buildLoaderAnt" description="build only Lucee itself">
+  <target name="core" depends="withTestcases,setEnv,buildLoaderAnt,test_stable_loader" description="build only Lucee itself">
 
       <delete dir="${outputDir}"/>
   </target>
 
 
-  <target name="fast" depends="setEnv,buildLoaderAnt" description="build only Lucee itself">
+  <target name="fast" depends="setEnv,buildLoaderAnt,test_stable_loader" description="build only Lucee itself">
 
       <delete dir="${outputDir}"/>
   </target>
