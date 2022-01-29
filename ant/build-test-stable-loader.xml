@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project default="all" basedir="." name="Lucee">
+
+	<property name="srcCFML" location="${src}"/>
+	<property name="srcAdmin" location="${src}/cfml/admin"/>
+	<property name="srcDoc" location="${src}/cfml/doc"/>
+	<property name="srcTB" location="${testbox}"/>
+
+	<macrodef name="echots">
+		<attribute name="message"/>
+		<sequential>
+			<local name="timestamp" />
+			<tstamp>
+				<format property="timestamp" pattern="yyyy-MM-dd HH:mm:ss" />
+			</tstamp>
+			<echo message="---------- ${timestamp} - @{message} ----------" />
+		</sequential>
+	</macrodef>
+
+<target name="all">
+
+	<echots message="Starting Lucee with Stable Loader"/>
+	<script language="CFML">
+	<![CDATA[
+	systemOutput("---------- #DateTimeFormat(now(),'yyyy-mm-dd HH:nn:ss')# - Lucee Started with stable loader ----------", true);
+
+	systemOutput("Core version: " & server.lucee.version, true);
+	systemOutput("Loader version: " & stableLoader, true);
+
+	]]>
+	</script>
+</target>
+</project>
