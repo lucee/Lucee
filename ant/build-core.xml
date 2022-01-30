@@ -199,15 +199,15 @@
     <echo message="${name.explanation}"/> -->
     <echo message="Root: ${rootDir}"/>
     <echo message="Required-Extensions: ${reqExt.labels}"/>
-    <echo message="Java: ${java.version}" />       
-    <echo message="Java: ${java.home}" />       
-                    
-    
+    <echo message="Java: ${java.version}" />
+    <echo message="Java: ${java.home}" />
+    <echo message="Optional Java Version for tests: ${testJavaVersionHome}" />
+
     <!-- Create the time stamp -->
     <tstamp/>
-    
+
     <delete dir="${temp}"/>
-    
+
     <!-- Create the  directory structure needed -->
     <mkdir dir="${core}"/>
     <mkdir dir="${loader}"/>
