@@ -609,7 +609,7 @@ public class OSGiUtil {
 				+ (id == null ? "?" : "&") + "allowRedirect=true"
 
 		);
-		log(Logger.LOG_WARNING, "Downloading bundle [" + symbolicName + ":" + symbolicVersion + "] from " + updateUrl);
+		log(Logger.LOG_INFO, "Downloading bundle [" + symbolicName + ":" + symbolicVersion + "] from [" + updateUrl + "]");
 
 		int code;
 		HttpURLConnection conn;
