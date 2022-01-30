@@ -177,7 +177,8 @@ public final class PCLBlock extends ExtendableClassLoader {
 			try {
 				return IOUtil.toBufferedInputStream(f.getInputStream());
 			}
-			catch (IOException e) {}
+			catch (IOException e) {
+			}
 		}
 		return null;
 	}

@@ -151,6 +151,8 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 
 	private static final Key ENABLE_NULL_SUPPORT = KeyImpl.getInstance("enableNULLSupport");
 	private static final Key NULL_SUPPORT = KeyImpl.getInstance("nullSupport");
+	private static final Key PRECISE_MATH = KeyImpl.getInstance("preciseMath");
+	private static final Key PRECISION_EVAL = KeyImpl.getInstance("precisionEvaluate");
 	private static final Key PSQ = KeyImpl.getInstance("psq");
 	private static final Key PSQ_LONG = KeyImpl.getInstance("preservesinglequote");
 	private static final Key VAR_USAGE = KeyImpl.getInstance("varusage");
@@ -209,6 +211,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	private boolean sameURLFieldAsArray;
 	private Map<String, CustomType> customTypes;
 	private boolean cgiScopeReadonly;
+	private boolean preciseMath;
 	private SessionCookieData sessionCookie;
 	private AuthCookieData authCookie;
 	private Object mailListener;
@@ -277,6 +280,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	private CharSet resourceCharset;
 	private boolean initResourceCharset;
 	private boolean initCGIScopeReadonly;
+	private boolean initPreciseMath;
 	private boolean initSessionCookie;
 	private boolean initAuthCookie;
 	private boolean initSerializationSettings;
@@ -335,6 +339,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 		this.sessionType = config.getSessionType();
 		this.wstype = WS_TYPE_AXIS1;
 		this.cgiScopeReadonly = ci.getCGIScopeReadonly();
+		this.preciseMath = ci.getPreciseMath();
 		this.fullNullSupport = ci.getFullNullSupport();
 		this.queryPSQ = ci.getPSQL();
 		this.queryCachedAfter = ci.getCachedAfterTimeRange();
@@ -963,7 +968,8 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 			else LogUtil.log(ThreadLocalPageContext.getConfig(config), Log.LEVEL_ERROR, ModernApplicationContext.class.getName(),
 					"method [init(Config,String[],Struct[]):void] for class [" + cd.toString() + "] is not static");
 		}
-		catch (Exception e) {}
+		catch (Exception e) {
+		}
 		initCacheConnections.put(id, cc);
 		return cc;
 
@@ -1726,7 +1732,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	}
 
 	@Override
-	public Log getLog(String name) {
+	public Log getLog(String name) throws PageException {
 		if (!initLog) initLog();
 		Pair<Log, Struct> pair = logs.get(KeyImpl.init(StringUtil.emptyIfNull(name)));
 		if (pair == null) return null;
@@ -1734,7 +1740,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	}
 
 	@Override
-	public Struct getLogMetaData(String name) {
+	public Struct getLogMetaData(String name) throws PageException {
 		if (!initLog) initLog();
 		Pair<Log, Struct> pair = logs.get(KeyImpl.init(StringUtil.emptyIfNull(name)));
 		if (pair == null) return null;
@@ -1742,12 +1748,12 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	}
 
 	@Override
-	public java.util.Collection<Collection.Key> getLogNames() {
+	public java.util.Collection<Collection.Key> getLogNames() throws PageException {
 		if (!initLog) initLog();
 		return logs.keySet();
 	}
 
-	private void initLog() {
+	private void initLog() throws PageException {
 		// appender
 		Object oLogs = get(component, LOGS, null);
 		if (oLogs == null) oLogs = get(component, LOG, null);
@@ -1780,6 +1786,24 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	public void setFullNullSupport(boolean fullNullSupport) {
 		this.fullNullSupport = fullNullSupport;
 		this.initFullNullSupport = true;
+	}
+
+	@Override
+	public boolean getPreciseMath() {
+		if (!initPreciseMath) {
+			Boolean b = Caster.toBoolean(get(component, PRECISE_MATH, null), null);
+			if (b == null) b = Caster.toBoolean(get(component, PRECISION_EVAL, null), null);
+			if (b != null) preciseMath = b.booleanValue();
+
+			initPreciseMath = true;
+		}
+		return preciseMath;
+	}
+
+	@Override
+	public void setPreciseMath(boolean preciseMath) {
+		this.preciseMath = preciseMath;
+		this.initPreciseMath = true;
 	}
 
 	@Override
@@ -1916,4 +1940,5 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	public void setRegex(Regex regex) {
 		this.regex = regex;
 	}
+
 }

@@ -63,7 +63,8 @@ public final class Function extends EvaluatorSupport {
 		try {
 			isCI = ASMUtil.getAncestorPage(tag).isComponent() || ASMUtil.getAncestorPage(tag).isInterface();
 		}
-		catch (TransformerException e) {}
+		catch (TransformerException e) {
+		}
 
 		Attribute attrName = tag.getAttribute("name");
 		if (attrName != null) {

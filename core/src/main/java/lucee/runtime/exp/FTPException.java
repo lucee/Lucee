@@ -30,7 +30,7 @@ public class FTPException extends ApplicationException {
 	private String msg;
 
 	public FTPException(String action, FTPClient client) {
-		super("action [" + action + "] from tag ftp failed", client.getReplyString());
+		super("Action [" + action + "] from tag [ftp] failed", client.getReplyString());
 		// setAdditional("ReplyCode",Caster.toDouble(client.getReplyCode()));
 		// setAdditional("ReplyMessage",client.getReplyString());
 		code = client.getReplyCode();
@@ -38,7 +38,7 @@ public class FTPException extends ApplicationException {
 	}
 
 	public FTPException(String action, AFTPClient client) {
-		super("action [" + action + "] from tag ftp failed", client.getReplyString());
+		super("Action [" + action + "] from tag [ftp] failed", client.getReplyString());
 		// setAdditional("ReplyCode",Caster.toDouble(client.getReplyCode()));
 		// setAdditional("ReplyMessage",client.getReplyString());
 		code = client.getReplyCode();

@@ -19,6 +19,7 @@
 package lucee.runtime.net.http;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -53,6 +54,8 @@ import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
+import lucee.commons.lang.types.RefBoolean;
+import lucee.commons.lang.types.RefBooleanImpl;
 import lucee.commons.net.URLItem;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
@@ -178,13 +181,12 @@ public final class HTTPServletRequestWrap implements HttpServletRequest, Seriali
 
 	@Override
 	public StringBuffer getRequestURL() {
-		if( String.valueOf(getServerPort()).equals("80") || String.valueOf(getServerPort()).equals("443") ) {
-			return new StringBuffer(isSecure() ? "https" : "http").append("://").append(getServerName())
-				.append(request_uri.startsWith("/") ? request_uri : "/" + request_uri);
+		if (String.valueOf(getServerPort()).equals("80") || String.valueOf(getServerPort()).equals("443")) {
+			return new StringBuffer(isSecure() ? "https" : "http").append("://").append(getServerName()).append(request_uri.startsWith("/") ? request_uri : "/" + request_uri);
 		}
-		else{
+		else {
 			return new StringBuffer(isSecure() ? "https" : "http").append("://").append(getServerName()).append(':').append(getServerPort())
-			.append(request_uri.startsWith("/") ? request_uri : "/" + request_uri);
+					.append(request_uri.startsWith("/") ? request_uri : "/" + request_uri);
 		}
 	}
 
@@ -262,18 +264,42 @@ public final class HTTPServletRequestWrap implements HttpServletRequest, Seriali
 	}
 
 	private void storeEL() {
-		if (getContentLength() <= MAX_MEMORY_SIZE) {
-			try {
-				bytes = IOUtil.toBytes(req.getInputStream(), true);
-				return;
-			}
-			catch (Exception e) {}
-		}
+		ServletInputStream is = null;
+		RefBoolean maxReached = new RefBooleanImpl();
 		try {
-			file = File.createTempFile("upload", ".tmp");
-			IOUtil.copy(req.getInputStream(), new FileOutputStream(file), true, true);
+			{
+				try {
+					is = req.getInputStream();
+					bytes = IOUtil.toBytesMax(is, MAX_MEMORY_SIZE, maxReached);
+
+					if (!maxReached.toBooleanValue()) {
+						return;
+					}
+				}
+				catch (Exception e) {
+				}
+			}
+			FileOutputStream fos = null;
+			try {
+				file = File.createTempFile("upload", ".tmp");
+				fos = new FileOutputStream(file);
+				if (maxReached.toBooleanValue()) {
+					IOUtil.copy(new ByteArrayInputStream(bytes), fos, true, false);
+					bytes = null;
+				}
+				if (is == null) is = req.getInputStream();
+				IOUtil.copy(is, fos, 0xfffff, true, true);
+
+			}
+			catch (Exception e) {
+			}
+			finally {
+				IOUtil.closeEL(fos);
+			}
 		}
-		catch (Exception e) {}
+		finally {
+			IOUtil.closeEL(is);
+		}
 	}
 
 	@Override

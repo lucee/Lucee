@@ -72,7 +72,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		var list2 = "I;love@lucee,";
 		var result2 = list2.Map(function(element){
 			return element;
-		},'@');
+		});
 		assertEquals('I;love@lucee,' , result2);
 	}
 
@@ -106,7 +106,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		assertEquals('{"value":"a","2":1,"3":"a,b","4":","}{"value":"b","2":2,"3":"a,b","4":","}',c);
 
 		// member function test
-		res=list.map( function( value ){
+		res=listmap(list, function( value ){
  							return value EQ 'b';
  
                         },',',false,true,parallel);
@@ -183,7 +183,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
  
                         },queryNew(qry.columnlist),parallel);
 		}
-		assertEquals('{"row":{"a":"a1"},"2":1,"3":query("a":["a1"])}',c);
+		assertEquals('{"row":["a":"a1"],"2":1,"3":query("a":["a1"])}',c);
 
 		// test member name
 		res=qry.Map(function(row ){

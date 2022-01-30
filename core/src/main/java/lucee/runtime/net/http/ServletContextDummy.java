@@ -45,6 +45,7 @@ import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigPro;
+import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
@@ -60,7 +61,7 @@ public class ServletContextDummy implements ServletContext {
 	private Log log;
 	private Resource root;
 
-	public ServletContextDummy(Config config, Resource root, Struct attributes, Struct parameters, int majorVersion, int minorVersion) {
+	public ServletContextDummy(Config config, Resource root, Struct attributes, Struct parameters, int majorVersion, int minorVersion) throws PageException {
 		this.config = config;
 		this.root = root;
 		this.attributes = attributes;

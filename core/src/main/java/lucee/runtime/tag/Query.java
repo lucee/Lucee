@@ -72,6 +72,7 @@ import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.orm.ORMSession;
 import lucee.runtime.orm.ORMUtil;
+import lucee.runtime.spooler.SpoolerEngineImpl;
 import lucee.runtime.tag.listener.ComponentTagListener;
 import lucee.runtime.tag.listener.TagListener;
 import lucee.runtime.tag.listener.UDFTagListener;
@@ -558,8 +559,8 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 
 		if (data.async) {
 			PageSource ps = getPageSource();
-			((ConfigPro) pageContext.getConfig()).getSpoolerEngine()
-					.add(new QuerySpoolerTask(pageContext, data, strSQL, toTemplateLine(pageContext.getConfig(), sourceTemplate, ps), ps));
+			((SpoolerEngineImpl) ((ConfigPro) pageContext.getConfig()).getSpoolerEngine()).add(pageContext.getConfig(),
+					new QuerySpoolerTask(pageContext, data, strSQL, toTemplateLine(pageContext.getConfig(), sourceTemplate, ps), ps));
 		}
 		else {
 			_doEndTag(pageContext, data, strSQL, toTemplateLine(pageContext.getConfig(), sourceTemplate, getPageSource()), true); // when

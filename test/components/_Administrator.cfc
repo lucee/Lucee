@@ -224,7 +224,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				});
 
 				it(title="testUpdateDataSource", body=function( currentSpec ) {
-					var mySQL = getCredencials();
+					var mySQL = getCredentials();
 					if(structCount(mySQL)) {
 						var tmpStrt = {};
 						tmpStrt.name = "TestDSN";
@@ -263,7 +263,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				});
 
 				it(title="testgetDatasource()", body=function( currentSpec ) {
-					if(structCount(getCredencials())) {
+					if(structCount(getCredentials())) {
 						var datasource = adminWeb.getDatasource('TestDSN1');
 						assertEquals(isstruct(datasource) ,true);
 						assertEquals(datasource.name EQ 'TestDSN1', true);
@@ -271,7 +271,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				});
 
 				it(title="checking verifyDatasource()", body=function( currentSpec ) {
-					if(structCount(getCredencials())) {
+					if(structCount(getCredentials())) {
 						var datasource = adminWeb.getDatasource('TestDSN1');
 						assertEquals(isstruct(datasource), true);
 						tmpStrt.name = datasource.name;
@@ -282,7 +282,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				});
 
 				it(title="testremoveDatasource()", body=function( currentSpec ) {
-					if(structCount(getCredencials())) {
+					if(structCount(getCredentials())) {
 						adminWeb.removeDatasource('testDSN1');
 						var datasource = adminWeb.getDatasources();
 						var ListOfDSNName = valueList(datasource.name);
@@ -1781,34 +1781,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 		});
 	}
 
-	private struct function getCredencials() {
-		// getting the credetials from the enviroment variables
-		var mySQL={};
-		if(
-			!isNull(server.system.environment.MYSQL_SERVER) &&
-			!isNull(server.system.environment.MYSQL_USERNAME) &&
-			!isNull(server.system.environment.MYSQL_PASSWORD) &&
-			!isNull(server.system.environment.MYSQL_PORT) &&
-			!isNull(server.system.environment.MYSQL_DATABASE)) {
-			mySQL.server=server.system.environment.MYSQL_SERVER;
-			mySQL.username=server.system.environment.MYSQL_USERNAME;
-			mySQL.password=server.system.environment.MYSQL_PASSWORD;
-			mySQL.port=server.system.environment.MYSQL_PORT;
-			mySQL.database=server.system.environment.MYSQL_DATABASE;
-		}
-		// getting the credetials from the system variables
-		else if(
-			!isNull(server.system.properties.MYSQL_SERVER) &&
-			!isNull(server.system.properties.MYSQL_USERNAME) &&
-			!isNull(server.system.properties.MYSQL_PASSWORD) &&
-			!isNull(server.system.properties.MYSQL_PORT) &&
-			!isNull(server.system.properties.MYSQL_DATABASE)) {
-			mySQL.server=server.system.properties.MYSQL_SERVER;
-			mySQL.username=server.system.properties.MYSQL_USERNAME;
-			mySQL.password=server.system.properties.MYSQL_PASSWORD;
-			mySQL.port=server.system.properties.MYSQL_PORT;
-			mySQL.database=server.system.properties.MYSQL_DATABASE;
-		}
-		return mysql;
+	private struct function getCredentials() {
+		// getting the credentials from the environment variables
+		return server.getDatasource("mysql");
 	}
 }

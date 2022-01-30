@@ -95,7 +95,8 @@ public interface TagMetaData {
 	public String getDescription();
 
 	/**
-	 * fix attributes of the tag
+	 * get attributes of the tag
+	 * @return attributes of the tag
 	 */
 	public TagMetaDataAttr[] getAttributes();
 

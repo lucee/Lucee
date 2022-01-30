@@ -178,7 +178,8 @@ public class CatchBlockImpl extends StructImpl implements CatchBlock, Castable, 
 					}
 				}
 			}
-			catch (PageException pe) {}
+			catch (PageException pe) {
+			}
 
 			superSetEL(key, o);
 
@@ -223,7 +224,8 @@ public class CatchBlockImpl extends StructImpl implements CatchBlock, Castable, 
 			try {
 				return PageContextUtil.getHandlePageException((PageContextImpl) pc, exception);
 			}
-			catch (PageException e) {}
+			catch (PageException e) {
+			}
 		}
 		return exception.getClass().getName();
 	}
@@ -313,7 +315,8 @@ public class CatchBlockImpl extends StructImpl implements CatchBlock, Castable, 
 				try {
 					setter.invoke(pair.throwable);
 				}
-				catch (Exception e) {}
+				catch (Exception e) {
+				}
 				return value;
 			}
 		}
@@ -437,12 +440,12 @@ public class CatchBlockImpl extends StructImpl implements CatchBlock, Castable, 
 	}
 
 	public Object callWithNamedValues(PageContext pc, String methodName, Struct args) throws PageException {
-		throw new ApplicationException("named arguments not supported");
+		throw new ApplicationException("Named arguments not supported");
 	}
 
 	@Override
 	public Object callWithNamedValues(PageContext pc, Key methodName, Struct args) throws PageException {
-		throw new ApplicationException("named arguments not supported");
+		throw new ApplicationException("Named arguments not supported");
 	}
 
 	public boolean isInitalized() {

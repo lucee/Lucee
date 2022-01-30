@@ -41,6 +41,7 @@ public final class ArrayVisitor {
 		adapter.visitInsn(Opcodes.AASTORE);
 	}
 
-	public void visitEnd() {}
+	public void visitEnd() {
+	}
 
 }

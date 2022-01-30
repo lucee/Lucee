@@ -30,6 +30,7 @@ import javax.servlet.http.HttpServletResponse;
 import lucee.commons.date.DateTimeUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
+import lucee.commons.lang.HTMLEntities;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.Config;
 import lucee.runtime.engine.ThreadLocalPageContext;
@@ -264,7 +265,7 @@ public final class CookieImpl extends ScopeSupport implements Cookie, ScriptProt
 
 		// build the value
 		StringBuilder sb = new StringBuilder();
-		/* Name */ sb.append(enc(name)).append('=').append(enc(value));
+		/* Name */ sb.append(enc(name)).append('=').append(enc(value, encode));
 		/* Path */sb.append(";Path=").append(enc(path));
 		/* Domain */if (!StringUtil.isEmpty(domain)) sb.append(";Domain=").append(enc(domain));
 		/* Expires */if (expires != EXPIRES_NULL) sb.append(";Expires=").append(DateTimeUtil.toHTTPTimeString(System.currentTimeMillis() + (expires * 1000L), false));
@@ -369,19 +370,27 @@ public final class CookieImpl extends ScopeSupport implements Cookie, ScriptProt
 		return ReqRspUtil.decode(str, charset, false);
 	}
 
-	public String enc(String str) {
+	public String enc(String str, boolean encode) {
+		if (encode) return HTMLEntities.escapeHTML(str, HTMLEntities.HTMLV20);
 		if (ReqRspUtil.needEncoding(str, false)) return ReqRspUtil.encode(str, charset);
 		return str;
 	}
 
-	@Override
-	public void resetEnv(PageContext pc) {}
+	public String enc(String str) {
+		return enc(str, false);
+	}
 
 	@Override
-	public void touchBeforeRequest(PageContext pc) {}
+	public void resetEnv(PageContext pc) {
+	}
 
 	@Override
-	public void touchAfterRequest(PageContext pc) {}
+	public void touchBeforeRequest(PageContext pc) {
+	}
+
+	@Override
+	public void touchAfterRequest(PageContext pc) {
+	}
 
 	public static void setHTTPOnly(javax.servlet.http.Cookie cookie) {
 		try {

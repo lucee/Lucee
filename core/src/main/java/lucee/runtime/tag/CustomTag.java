@@ -50,7 +50,8 @@ public abstract class CustomTag extends BodyTagTryCatchFinallyImpl implements Dy
 	protected Caller callerScope;
 
 	@Override
-	public void doInitBody() {}
+	public void doInitBody() {
+	}
 
 	@Override
 	public final void setDynamicAttribute(String uri, String name, Object value) {

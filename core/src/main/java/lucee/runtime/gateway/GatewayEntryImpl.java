@@ -80,6 +80,7 @@ public class GatewayEntryImpl implements GatewayEntry {
 	 */
 	@Override
 	public void createGateway(Config config) throws ClassException, PageException, BundleException {
+		// TODO config is ignored here???
 		if (gateway == null) {
 			if (classDefintion != null && classDefintion.hasClass()) {
 				Class clazz = classDefintion.getClazz();

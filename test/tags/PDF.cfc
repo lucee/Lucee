@@ -16,7 +16,7 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  * 
  ---><cfscript>
-component extends="org.lucee.cfml.test.LuceeTestCase"	{
+component extends="org.lucee.cfml.test.LuceeTestCase"  labels="pdf"	{
 	public void function testPDFParam(){
 		try {
 			document format="pdf" pagetype="A4" orientation="portrait" filename="test1.pdf" overwrite="true" {
@@ -58,6 +58,30 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		}
 	}
 
+	public void function testPDFOrientation(){
+		try {
+			var path=getDirectoryFromPath(getCurrentTemplatePath())&"test-orientation.pdf";
+			document pagetype="letter" orientation="landscape" filename=path overwrite="true" {
+				documentsection { echo("I am landscape"); }
+				documentsection orientation="portrait" { echo("I am portrait"); }
+				documentsection orientation="landscape" { echo("I am landscape"); }
+			}
+			assertTrue(isPDFFile(path));
+
+			pageSizes = getPageSizes(ExpandPath(path));
+
+			expected = [
+				{ height: 612, width: 792 },
+				{ height: 792, width: 612 },
+				{ height: 612, width: 792 }
+			];
+
+			assertEquals(expected, pageSizes);
+		}
+		finally {
+			if(fileExists(path))fileDelete(path);
+		}
+	}
 
 	public void function testPDFOpen(){
 		try {
@@ -73,5 +97,24 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 			if(fileExists("test-unprotect.pdf"))fileDelete("test-unprotect.pdf");
 		}
 	}
-} 
+
+	private array function getPageSizes (required string path) {
+		pageSizes = [];
+		try {
+			pdDocument = CreateObject("java", "org.apache.pdfbox.pdmodel.PDDocument").load(arguments.path);
+			pageIterator = pdDocument.getDocumentCatalog().getPages().getKids().iterator();
+
+			while (pageIterator.hasNext()) {
+				objPage = pageIterator.next();
+				pageSizes.append({
+					width: objPage.getTrimBox().getWidth(),
+					height: objPage.getTrimBox().getHeight()
+				});
+			}
+		} finally {
+			if(!isNull(pdDocument))pdDocument.close();
+		}
+		return pageSizes;
+	}
+}
 </cfscript>

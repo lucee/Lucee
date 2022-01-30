@@ -12,6 +12,7 @@ import lucee.runtime.type.Array;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.Query;
 import lucee.runtime.type.Struct;
+import lucee.runtime.type.util.ListUtil;
 
 public class QueryInsertAt extends BIF implements Function {
 
@@ -45,7 +46,17 @@ public class QueryInsertAt extends BIF implements Function {
 			Struct sct = (Struct) value;
 			Key[] cn1 = qry.getColumnNames();
 			Key[] cn2 = sct.keys();
-			QueryAppend.validate(qry, cn1, cn2);
+			
+			if (cn1.length != cn2.length) {
+				throw new ApplicationException("query column count [" + cn1.length + "] and struct size [" + cn2.length + "] are not same");
+			}
+
+			for (Key k: cn2) {
+				if (qry.getColumn(k, null) == null) {
+					throw new ApplicationException("column names [" + ListUtil.arrayToList(cn1, ", ") + "] of the query does not match the keys [" 
+						+ ListUtil.arrayToList(cn2, ", ") + "] of the struct");
+				}
+			}
 
 			QueryPrepend.makeSpace(qry, 1, off);
 			for (int row = 1; row > 0; row--) {

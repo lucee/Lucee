@@ -22,12 +22,9 @@ import lucee.runtime.sql.exp.Literal;
 
 public class ValueBoolean extends ValueSupport implements Literal {
 
-	public static final ValueBoolean TRUE = new ValueBoolean(true);
-	public static final ValueBoolean FALSE = new ValueBoolean(false);
-
 	private boolean value;
 
-	private ValueBoolean(boolean value) {
+	public ValueBoolean(boolean value) {
 		super(value ? "TRUE" : "FALSE");
 		this.value = value;
 	}

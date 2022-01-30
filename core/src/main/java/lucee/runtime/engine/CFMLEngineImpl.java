@@ -78,6 +78,7 @@ import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.compress.CompressUtil;
 import lucee.commons.io.log.Log;
+import lucee.commons.io.log.LogBuffer;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourceProvider;
@@ -109,20 +110,21 @@ import lucee.runtime.PageSource;
 import lucee.runtime.PageSourceImpl;
 import lucee.runtime.cache.CacheUtil;
 import lucee.runtime.config.Config;
+import lucee.runtime.config.ConfigAdmin;
+import lucee.runtime.config.ConfigFactory;
+import lucee.runtime.config.ConfigFactory.UpdateInfo;
+import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigServer;
+import lucee.runtime.config.ConfigServerFactory;
 import lucee.runtime.config.ConfigServerImpl;
 import lucee.runtime.config.ConfigWeb;
+import lucee.runtime.config.ConfigWebFactory;
 import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.config.DeployHandler;
 import lucee.runtime.config.Identification;
 import lucee.runtime.config.Password;
-import lucee.runtime.config.ConfigAdmin;
-import lucee.runtime.config.ConfigFactory;
-import lucee.runtime.config.ConfigFactory.UpdateInfo;
-import lucee.runtime.config.ConfigServerFactory;
-import lucee.runtime.config.ConfigWebFactory;
 import lucee.runtime.engine.listener.CFMLServletContextListener;
 import lucee.runtime.exp.Abort;
 import lucee.runtime.exp.ApplicationException;
@@ -188,6 +190,10 @@ import lucee.runtime.video.VideoUtilImpl;
  * The CFMl Engine
  */
 public final class CFMLEngineImpl implements CFMLEngine {
+
+	static {
+		System.setProperty("org.apache.commons.logging.Log", "org.apache.commons.logging.impl.NoOpLog");
+	}
 
 	public static final PrintStream CONSOLE_ERR = System.err;
 	public static final PrintStream CONSOLE_OUT = System.out;
@@ -275,151 +281,161 @@ public final class CFMLEngineImpl implements CFMLEngine {
 			throw Caster.toPageRuntimeException(e);
 		}
 		CFMLEngineFactory.registerInstance((this));// patch, not really good but it works
-		ConfigServerImpl cs = getConfigServerImpl();
-		Log log = cs == null ? null : cs.getLog("deploy", true);
 
-		boolean isRe = configDir == null ? false : ConfigFactory.isRequiredExtension(this, configDir, log);
-		boolean installExtensions = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.extensions.install", null), true);
+		LogBuffer logDeploy = new LogBuffer();
+		LogBuffer logApp = new LogBuffer();
+		RefBoolean isNewConfig = new RefBooleanImpl(false);
+		ConfigServerImpl cs = getConfigServerImpl(logApp);
 
-		// copy bundled extension to local extension directory (if never done before)
-		if (installExtensions && updateInfo.updateType != ConfigFactory.NEW_NONE) {
-			int count = deployBundledExtension(cs, false);
-			LogUtil.log(cs, Log.LEVEL_INFO, "deploy", "controller",
-					count == 0 ? "no new extension available to add  to local extension directory" : "copied [" + count + "] bundled extension(s) to local extension directory");
-		}
-		// required extensions
-
-		// if we have a "fresh" install
-		Set<ExtensionDefintion> extensions;
-		Set<String> extensionsToRemove = null;
-
-		if (installExtensions && (updateInfo.updateType == ConfigFactory.NEW_FRESH || updateInfo.updateType == ConfigFactory.NEW_FROM4)) {
-			List<ExtensionDefintion> ext = info.getRequiredExtension();
-			extensions = toSet(null, ext);
-			LogUtil.log(cs, Log.LEVEL_INFO, "deploy", "controller", "detected Extensions to install (new;" + updateInfo.getUpdateTypeAsString() + "):" + toList(extensions));
-		}
-		// if we have an update we update the extension that re installed and we have an older version as
-		// defined in the manifest
-		else if (installExtensions && (updateInfo.updateType == ConfigFactory.NEW_MINOR || !isRe)) {
-			extensions = new HashSet<ExtensionDefintion>();
-			extensionsToRemove = new HashSet<String>();
-
-			checkInvalidExtensions(cs, extensions, extensionsToRemove);
-
-			Iterator<ExtensionDefintion> it = info.getRequiredExtension().iterator();
-			ExtensionDefintion ed;
-			RHExtension rhe;
-			Version edVersion, rheVersion;
-			while (it.hasNext()) {
-				ed = it.next();
-				edVersion = OSGiUtil.toVersion(ed.getVersion(), null);
-				if (ed.getVersion() == null) {
-					continue; // no version definition no update
-				}
-				try {
-					rhe = ConfigAdmin.hasRHExtensions(cs, new ExtensionDefintion(ed.getId()));
-					if (rhe == null) {
-						rheVersion = null;
-						Version since = ed.getSince();
-						if (since == null || updateInfo.oldVersion == null || !Util.isNewerThan(since, updateInfo.oldVersion)) continue; // not installed we do not update
-
-						LogUtil.log(cs, Log.LEVEL_INFO, "deploy", "controller", "detected newer [" + since + ":" + updateInfo.oldVersion + "] Extension version [" + ed + "]");
-						extensions.add(ed);
-					}
-					else rheVersion = OSGiUtil.toVersion(rhe.getVersion(), null);
-					// if the installed is older than the one defined in the manifest we update (if possible)
-					if (rheVersion != null && OSGiUtil.isNewerThan(edVersion, rheVersion)) { // TODO do none OSGi version number comparsion
-						LogUtil.log(cs, Log.LEVEL_INFO, "deploy", "controller", "detected newer [" + edVersion + ":" + rheVersion + "] Extension version [" + ed + "]");
-						extensions.add(ed);
-					}
-				}
-				catch (Exception e) {
-					LogUtil.log(cs, "deploy", "controller", e);
-					extensions.add(ed);
-				}
-			}
-			if (!extensions.isEmpty()) {
-				LogUtil.log(cs, Log.LEVEL_INFO, "deploy", "controller", "detected Extensions to install (minor;" + updateInfo.getUpdateTypeAsString() + "):" + toList(extensions));
-			}
-		}
-		else {
-			LogUtil.log(cs, Log.LEVEL_INFO, "deploy", "controller", "no extension to add/install");
-
-			extensions = new HashSet<ExtensionDefintion>();
-		}
-
-		// install extension defined
-		String extensionIds = StringUtil.unwrap(SystemUtil.getSystemPropOrEnvVar("lucee-extensions", null)); // old no longer used
-		if (StringUtil.isEmpty(extensionIds, true)) extensionIds = StringUtil.unwrap(SystemUtil.getSystemPropOrEnvVar("lucee.extensions", null));
-
-		this.envExt = null;
-		if (!StringUtil.isEmpty(extensionIds, true)) {
-			this.envExt = extensionIds;
-			LogUtil.log(cs, Log.LEVEL_INFO, "deploy", "controller", "extensions to install defined in env variable or system property:" + extensionIds);
-			List<ExtensionDefintion> _extensions = RHExtension.toExtensionDefinitions(extensionIds);
-			extensions = toSet(extensions, _extensions);
-
-		}
-
-		if (extensions.size() > 0) {
-			boolean sucess;
-			try {
-				sucess = DeployHandler.deployExtensions(cs, extensions.toArray(new ExtensionDefintion[extensions.size()]), log);
-			}
-			catch (PageException e) {
-				LogUtil.log(cs, "deploy", "controller", e);
-				sucess = false;
-			}
-			if (sucess && configDir != null) ConfigFactory.updateRequiredExtension(this, configDir, log);
-			LogUtil.log(cs, Log.LEVEL_INFO, "deploy", "controller", (sucess ? "successfully" : "unsuccessfully") + " installed extensions :" + toList(extensions));
-		}
-		else if (configDir != null) ConfigFactory.updateRequiredExtension(this, configDir, log);
-
-		// extension to remove (we only have to remove in case we did not install an other version)
-
-		if (extensionsToRemove != null) {
-			for (ExtensionDefintion ed: extensions) {
-				extensionsToRemove.remove(ed.getId());
-			}
-			if (!extensionsToRemove.isEmpty()) {
-				// remove extension that are not valid (to new for current version)
-				LogUtil.log(cs, Log.LEVEL_ERROR, "deploy", ConfigWebFactory.class.getName(), "uninstall extensions ["
-						+ lucee.runtime.type.util.ListUtil.toList(extensionsToRemove, ", ") + "] because it is not supported for the current Lucee version.");
-				try {
-					ConfigAdmin.removeRHExtensions(cs, lucee.runtime.type.util.ListUtil.toStringArray(extensionsToRemove), false);
-					if (configDir != null) ConfigFactory.updateRequiredExtension(this, configDir, log);
-				}
-				catch (Exception e) {
-					LogUtil.log(cs, "debug", ConfigWebFactory.class.getName(), e);
-				}
-			}
-		}
-
-		touchMonitor(cs);
-		LogUtil.log(cs, Log.LEVEL_INFO, "startup", "touched monitors");
-		this.uptime = System.currentTimeMillis();
-
-		// check deploy folder
 		try {
-			DeployHandler.deploy(cs);
-		}
-		catch (Throwable t) {
-			ExceptionUtil.rethrowIfNecessary(t);
-		}
+			boolean isRe = configDir == null ? false : ConfigFactory.isRequiredExtension(this, configDir, logDeploy);
+			boolean installExtensions = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.extensions.install", null), true);
 
-		controler = new Controler(cs, initContextes, 5 * 1000, controlerState);
-		controler.setDaemon(true);
-		controler.setPriority(Thread.MIN_PRIORITY);
+			// copy bundled extension to local extension directory (if never done before)
+			if (installExtensions && updateInfo.updateType != ConfigFactory.NEW_NONE) {
+				int count = deployBundledExtension(cs, logDeploy, false);
+				logDeploy.log(Log.LEVEL_INFO, "controller", count == 0 ? "no new extension available to add  to local extension directory"
+						: "copied [" + count + "] bundled extension(s) to local extension directory");
+			}
+			// required extensions
 
-		boolean disabled = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar(SystemUtil.SETTING_CONTROLLER_DISABLED, null), false);
-		if (!disabled) {
-			// start the controller
-			LogUtil.log(cs, Log.LEVEL_INFO, "startup", "Start CFML Controller");
-			controler.start();
+			// if we have a "fresh" install
+			Set<ExtensionDefintion> extensions;
+			Set<String> extensionsToRemove = null;
+
+			if (installExtensions && (updateInfo.updateType == ConfigFactory.NEW_FRESH || updateInfo.updateType == ConfigFactory.NEW_FROM4)) {
+				List<ExtensionDefintion> ext = info.getRequiredExtension();
+				extensions = toSet(null, ext);
+				logDeploy.log(Log.LEVEL_INFO, "controller", "detected Extensions to install (new;" + updateInfo.getUpdateTypeAsString() + "):" + toList(extensions));
+			}
+			// if we have an update we update the extension that re installed and we have an older version as
+			// defined in the manifest
+			else if (installExtensions && (updateInfo.updateType == ConfigFactory.NEW_MINOR || !isRe)) {
+				extensions = new HashSet<ExtensionDefintion>();
+				extensionsToRemove = new HashSet<String>();
+
+				checkInvalidExtensions(cs, logDeploy, extensions, extensionsToRemove);
+
+				Iterator<ExtensionDefintion> it = info.getRequiredExtension().iterator();
+				ExtensionDefintion ed;
+				RHExtension rhe;
+				Version edVersion, rheVersion;
+				while (it.hasNext()) {
+					ed = it.next();
+					edVersion = OSGiUtil.toVersion(ed.getVersion(), null);
+					if (ed.getVersion() == null) {
+						continue; // no version definition no update
+					}
+					try {
+						rhe = ConfigAdmin.hasRHExtensions(cs, new ExtensionDefintion(ed.getId()));
+						if (rhe == null) {
+							rheVersion = null;
+							Version since = ed.getSince();
+							if (since == null || updateInfo.oldVersion == null || !Util.isNewerThan(since, updateInfo.oldVersion)) continue; // not installed we do not update
+
+							logDeploy.log(Log.LEVEL_INFO, "controller", "detected newer [" + since + ":" + updateInfo.oldVersion + "] Extension version [" + ed + "]");
+							extensions.add(ed);
+						}
+						else rheVersion = OSGiUtil.toVersion(rhe.getVersion(), null);
+						// if the installed is older than the one defined in the manifest we update (if possible)
+						if (rheVersion != null && OSGiUtil.isNewerThan(edVersion, rheVersion)) { // TODO do none OSGi version number comparsion
+							logDeploy.log(Log.LEVEL_INFO, "controller", "detected newer [" + edVersion + ":" + rheVersion + "] Extension version [" + ed + "]");
+							extensions.add(ed);
+						}
+					}
+					catch (Exception e) {
+						logDeploy.log(Log.LEVEL_ERROR, "controller", e);
+						extensions.add(ed);
+					}
+				}
+				if (!extensions.isEmpty()) {
+					logDeploy.log(Log.LEVEL_INFO, "controller", "detected Extensions to install (minor;" + updateInfo.getUpdateTypeAsString() + "):" + toList(extensions));
+				}
+			}
+			else {
+				logDeploy.log(Log.LEVEL_INFO, "controller", "no extension to add/install");
+
+				extensions = new HashSet<ExtensionDefintion>();
+			}
+
+			// install extension defined
+			String extensionIds = StringUtil.unwrap(SystemUtil.getSystemPropOrEnvVar("lucee-extensions", null)); // old no longer used
+			if (StringUtil.isEmpty(extensionIds, true)) extensionIds = StringUtil.unwrap(SystemUtil.getSystemPropOrEnvVar("lucee.extensions", null));
+
+			this.envExt = null;
+			if (!StringUtil.isEmpty(extensionIds, true)) {
+				this.envExt = extensionIds;
+				logDeploy.log(Log.LEVEL_INFO, "controller", "extensions to install defined in env variable or system property:" + extensionIds);
+				List<ExtensionDefintion> _extensions = RHExtension.toExtensionDefinitions(extensionIds);
+				extensions = toSet(extensions, _extensions);
+
+			}
+
+			if (extensions.size() > 0) {
+				boolean sucess;
+				try {
+					sucess = DeployHandler.deployExtensions(cs, extensions.toArray(new ExtensionDefintion[extensions.size()]), logDeploy, false);
+				}
+				catch (PageException e) {
+					logDeploy.log(Log.LEVEL_ERROR, "controller", e);
+					sucess = false;
+				}
+				if (sucess && configDir != null) ConfigFactory.updateRequiredExtension(this, configDir, logDeploy);
+				logDeploy.log(Log.LEVEL_INFO, "controller", (sucess ? "successfully" : "unsuccessfully") + " installed extensions :" + toList(extensions));
+			}
+			else if (configDir != null) ConfigFactory.updateRequiredExtension(this, configDir, logDeploy);
+
+			// extension to remove (we only have to remove in case we did not install an other version)
+
+			if (extensionsToRemove != null) {
+				for (ExtensionDefintion ed: extensions) {
+					extensionsToRemove.remove(ed.getId());
+				}
+				if (!extensionsToRemove.isEmpty()) {
+					// remove extension that are not valid (to new for current version)
+					logDeploy.log(Log.LEVEL_ERROR, ConfigWebFactory.class.getName(), "uninstall extensions [" + lucee.runtime.type.util.ListUtil.toList(extensionsToRemove, ", ")
+							+ "] because it is not supported for the current Lucee version.");
+					try {
+						ConfigAdmin.removeRHExtensions(cs, logDeploy, lucee.runtime.type.util.ListUtil.toStringArray(extensionsToRemove), false);
+						if (configDir != null) ConfigFactory.updateRequiredExtension(this, configDir, logDeploy);
+					}
+					catch (Exception e) {
+						logDeploy.log(Log.LEVEL_ERROR, "controller", e);
+					}
+				}
+			}
+
+			touchMonitor(cs);
+			logApp.log(Log.LEVEL_INFO, "startup", "touched monitors");
+			this.uptime = System.currentTimeMillis();
+
+			// check deploy folder
+			try {
+				DeployHandler.deploy(cs, logDeploy, false);
+			}
+			catch (Throwable t) {
+				ExceptionUtil.rethrowIfNecessary(t);
+			}
+
+			controler = new Controler(cs, initContextes, 5 * 1000, controlerState);
+			controler.setDaemon(true);
+			controler.setPriority(Thread.MIN_PRIORITY);
+
+			boolean disabled = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar(SystemUtil.SETTING_CONTROLLER_DISABLED, null), false);
+			if (!disabled) {
+				// start the controller
+				logApp.log(Log.LEVEL_INFO, "startup", "Start CFML Controller");
+				controler.start();
+			}
+		}
+		finally {
+
+			logDeploy.flush(cs, "deploy");
+			logDeploy.flush(cs, "application");
 		}
 	}
 
-	private static void checkInvalidExtensions(ConfigPro config, Set<ExtensionDefintion> extensionsToInstall, Set<String> extensionsToRemove) {
+	private static void checkInvalidExtensions(ConfigPro config, Log log, Set<ExtensionDefintion> extensionsToInstall, Set<String> extensionsToRemove) {
 		RHExtension[] extensions = config.getRHExtensions();
 		if (extensions != null) {
 			InfoImpl info = (InfoImpl) ConfigWebUtil.getEngine(config).getInfo();
@@ -432,7 +448,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 				}
 				catch (ApplicationException ae) {
 					valid = false;
-					LogUtil.log(config, "debug", "check-invalid-extension", ae);
+					log.log(Log.LEVEL_ERROR, "check-invalid-extension", ae);
 				}
 				if (!valid) {
 					try {
@@ -440,17 +456,16 @@ public final class CFMLEngineImpl implements CFMLEngine {
 
 						if (ed != null) {
 							extensionsToInstall.add(ed);
-							LogUtil.log(config, Log.LEVEL_INFO, "debug", "check-invalid-extension",
-									"installed extension [" + ext + "] is invalid and get removed and replaced by [" + ed + "]");
+							log.log(Log.LEVEL_INFO, "check-invalid-extension", "installed extension [" + ext + "] is invalid and get removed and replaced by [" + ed + "]");
 						}
 						else {
 							extensionsToRemove.add(ext.toExtensionDefinition().getId());
-							LogUtil.log(config, Log.LEVEL_INFO, "debug", "check-invalid-extension", "installed extension [" + ext + "] is invalid and get removed.");
+							log.log(Log.LEVEL_INFO, "check-invalid-extension", "installed extension [" + ext + "] is invalid and get removed.");
 
 						}
 					}
 					catch (Exception e) {
-						LogUtil.log(config, "debug", ConfigWebFactory.class.getName(), e);
+						log.log(Log.LEVEL_ERROR, "debug", e);
 					}
 				}
 			}
@@ -511,11 +526,11 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		return sb.toString();
 	}
 
-	public int deployBundledExtension(boolean validate) {
-		return deployBundledExtension(getConfigServerImpl(), validate);
+	public int deployBundledExtension(Log log, boolean validate) {
+		return deployBundledExtension(getConfigServerImpl(log), log, validate);
 	}
 
-	private int deployBundledExtension(ConfigServerImpl cs, boolean validate) {
+	private int deployBundledExtension(ConfigServerImpl cs, Log log, boolean validate) {
 		int count = 0;
 		Resource dir = cs.getLocalExtensionProviderDirectory();
 		List<ExtensionDefintion> existing = DeployHandler.getLocalExtensions(cs, validate);
@@ -529,11 +544,10 @@ public final class CFMLEngineImpl implements CFMLEngine {
 				try {
 					existingMap.put(ed.getSource().getName(), ed);
 				}
-				catch (ApplicationException e) {}
+				catch (ApplicationException e) {
+				}
 			}
 		}
-
-		Log log = cs.getLog("deploy");
 
 		// get the index
 		ClassLoader cl = CFMLEngineFactory.getInstance().getCFMLEngineFactory().getClass().getClassLoader();
@@ -872,14 +886,18 @@ public final class CFMLEngineImpl implements CFMLEngine {
 	}
 
 	private ConfigServerImpl getConfigServerImpl() {
+		return getConfigServerImpl(null);
+	}
+
+	private ConfigServerImpl getConfigServerImpl(Log log) {
 		if (configServer == null) {
 			try {
 				Resource context = getSeverContextConfigDirectory(factory);
 				configServer = ConfigServerFactory.newInstance(this, initContextes, contextes, context);
 			}
 			catch (Exception e) {
-				e.printStackTrace();
-				LogUtil.log(configServer, "startup", e);
+				if (log != null) log.log(Log.LEVEL_ERROR, "startup", e);
+				else e.printStackTrace();
 			}
 		}
 		return configServer;
@@ -894,13 +912,21 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		try {
 			if (ConfigWebFactory.LOG) LogUtil.log(configServer, Log.LEVEL_INFO, "startup", "load Context");
 			// Load Config
-			RefBoolean isCustomSetting = new RefBooleanImpl();
-			Resource configDir = getConfigDirectory(sg, configServer, countExistingContextes, isCustomSetting);
 			if (ConfigWebFactory.LOG) LogUtil.log(configServer, Log.LEVEL_INFO, "startup", "got context directory");
 
+			boolean multi = configServer.getAdminMode() == ConfigImpl.ADMINMODE_MULTI;
 			CFMLFactoryImpl factory = new CFMLFactoryImpl(this, sg);
 			if (ConfigWebFactory.LOG) LogUtil.log(configServer, Log.LEVEL_INFO, "startup", "init factory");
-			ConfigWebPro config = ConfigWebFactory.newInstance(this, factory, configServer, configDir, isCustomSetting.toBooleanValue(), sg);
+			ConfigWebPro config;
+			if (multi) {
+				RefBoolean isCustomSetting = new RefBooleanImpl();
+				Resource configDir = getConfigDirectory(sg, configServer, countExistingContextes, isCustomSetting);
+				config = ConfigWebFactory.newInstanceMulti(this, factory, configServer, configDir, isCustomSetting.toBooleanValue(), sg);
+			}
+			else {
+				config = ConfigWebFactory.newInstanceSingle(this, factory, configServer, sg);
+			}
+
 			if (ConfigWebFactory.LOG) LogUtil.log(configServer, Log.LEVEL_INFO, "startup", "loaded config");
 			factory.setConfig(config);
 			return factory;

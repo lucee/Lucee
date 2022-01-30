@@ -27,64 +27,84 @@ import javax.servlet.WriteListener;
 public final class DevNullServletOutputStream extends ServletOutputStream {
 
 	@Override
-	public void close() {}
+	public void close() {
+	}
 
 	@Override
-	public void flush() {}
+	public void flush() {
+	}
 
 	@Override
-	public void write(byte[] b, int off, int len) {}
+	public void write(byte[] b, int off, int len) {
+	}
 
 	@Override
-	public void write(byte[] b) {}
+	public void write(byte[] b) {
+	}
 
 	@Override
-	public void write(int b) {}
+	public void write(int b) {
+	}
 
 	@Override
-	public void print(boolean b) {}
+	public void print(boolean b) {
+	}
 
 	@Override
-	public void print(char c) {}
+	public void print(char c) {
+	}
 
 	@Override
-	public void print(double d) {}
+	public void print(double d) {
+	}
 
 	@Override
-	public void print(float f) {}
+	public void print(float f) {
+	}
 
 	@Override
-	public void print(int i) {}
+	public void print(int i) {
+	}
 
 	@Override
-	public void print(long l) {}
+	public void print(long l) {
+	}
 
 	@Override
-	public void print(String str) {}
+	public void print(String str) {
+	}
 
 	@Override
-	public void println() {}
+	public void println() {
+	}
 
 	@Override
-	public void println(boolean b) {}
+	public void println(boolean b) {
+	}
 
 	@Override
-	public void println(char c) {}
+	public void println(char c) {
+	}
 
 	@Override
-	public void println(double d) {}
+	public void println(double d) {
+	}
 
 	@Override
-	public void println(float f) {}
+	public void println(float f) {
+	}
 
 	@Override
-	public void println(int i) {}
+	public void println(int i) {
+	}
 
 	@Override
-	public void println(long l) {}
+	public void println(long l) {
+	}
 
 	@Override
-	public void println(String str) {}
+	public void println(String str) {
+	}
 
 	@Override
 	public boolean isReady() {
@@ -92,6 +112,7 @@ public final class DevNullServletOutputStream extends ServletOutputStream {
 	}
 
 	@Override
-	public void setWriteListener(WriteListener arg0) {}
+	public void setWriteListener(WriteListener arg0) {
+	}
 
 }

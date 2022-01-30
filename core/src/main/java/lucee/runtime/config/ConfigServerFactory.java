@@ -98,9 +98,8 @@ public final class ConfigServerFactory extends ConfigFactory {
 						+ "===================================================================\n"
 
 		);
-
-		int iDoNew = getNew(engine, configDir, false, UpdateInfo.NEW_NONE).updateType;
-		boolean doNew = iDoNew != NEW_NONE;
+		UpdateInfo ui = getNew(engine, configDir, false, UpdateInfo.NEW_NONE);
+		boolean doNew = ui.updateType != NEW_NONE;
 
 		Resource configFileOld = configDir.getRealResource("lucee-server.xml");
 		Resource configFileNew = configDir.getRealResource(".CFConfig.json");
@@ -110,10 +109,12 @@ public final class ConfigServerFactory extends ConfigFactory {
 		if (!hasConfigNew) {
 			hasConfigOld = configFileOld.exists() && configFileOld.length() > 0;
 		}
+		ConfigServerImpl config = new ConfigServerImpl(engine, initContextes, contextes, configDir, configFileNew, ui);
+
 		// translate to new
 		if (!hasConfigNew) {
 			if (hasConfigOld) {
-				translateConfigFile(configFileOld, configFileNew);
+				translateConfigFile(config, configFileOld, configFileNew, "multi", true);
 			}
 			// create config file
 			else {
@@ -126,7 +127,6 @@ public final class ConfigServerFactory extends ConfigFactory {
 		double version = ConfigWebUtil.getAsDouble("version", root, 1.0d);
 		boolean cleanupDatasources = version < 5.0D;
 
-		ConfigServerImpl config = new ConfigServerImpl(engine, initContextes, contextes, configDir, configFileNew);
 		load(config, root, false, doNew);
 
 		createContextFiles(configDir, config, doNew, cleanupDatasources);
@@ -148,7 +148,7 @@ public final class ConfigServerFactory extends ConfigFactory {
 	 * @throws BundleException
 	 */
 	public static void reloadInstance(CFMLEngine engine, ConfigServerImpl configServer)
-			throws SAXException, ClassException, PageException, IOException, TagLibException, FunctionLibException, BundleException {
+			throws ClassException, PageException, IOException, TagLibException, FunctionLibException, BundleException {
 		Resource configFile = configServer.getConfigFile();
 		if (configFile == null) return;
 		if (second(configServer.getLoadTime()) > second(configFile.lastModified())) {
@@ -241,7 +241,8 @@ public final class ConfigServerFactory extends ConfigFactory {
 		// Gateway Drivers
 		Resource gDir = adminDir.getRealResource("gdriver");
 		create("/resource/context/admin/gdriver/",
-				new String[] { "TaskGatewayDriver.cfc", "AsynchronousEvents.cfc", "DirectoryWatcher.cfc", "MailWatcher.cfc", "Gateway.cfc", "Field.cfc", "Group.cfc" }, gDir,
+				new String[] { "TaskGatewayDriver.cfc", "AsynchronousEvents.cfc", 
+					"DirectoryWatcher.cfc", "MailWatcher.cfc", "Gateway.cfc", "Field.cfc", "Group.cfc" }, gDir,
 				doNew);
 
 		// Logging/appender
@@ -254,12 +255,16 @@ public final class ConfigServerFactory extends ConfigFactory {
 		create("/resource/context/admin/logging/layout/",
 				new String[] { "ClassicLayout.cfc", "HTMLLayout.cfc", "PatternLayout.cfc", "XMLLayout.cfc", "Layout.cfc", "Field.cfc", "Group.cfc" }, lay, doNew);
 
-		// Security
+		// Security / SSL
 		Resource secDir = configDir.getRealResource("security");
 		if (!secDir.exists()) secDir.mkdirs();
 		Resource res = create("/resource/security/", "cacerts", secDir, false);
-		System.setProperty("javax.net.ssl.trustStore", res.toString());
-
+		if (SystemUtil.getSystemPropOrEnvVar("lucee.use.lucee.SSL.TrustStore", "").equalsIgnoreCase("true"))
+			System.setProperty("javax.net.ssl.trustStore", res.toString());
+		// Allow using system proxies
+		if (!SystemUtil.getSystemPropOrEnvVar("lucee.disable.systemProxies", "").equalsIgnoreCase("true"))
+			System.setProperty("java.net.useSystemProxies", "true"); // it defaults to false
+		
 		// Jacob
 		if (SystemUtil.isWindows()) {
 

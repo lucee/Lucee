@@ -1,9 +1,11 @@
-component extends="org.lucee.cfml.test.LuceeTestCase"{
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="s3"{
 
 	// skip closure
 	function isNotSupported() {
 		variables.s3Details=getCredentials();
-		if(!isNull(variables.s3Details.ACCESSKEYID) && !isNull(variables.s3Details.AWSSECRETKEY)) {
+		if(structIsEmpty(s3Details)) return true;
+
+		if(!isNull(variables.s3Details.ACCESS_KEY_ID) && !isNull(variables.s3Details.SECRET_KEY)) {
 			variables.supported = true;
 		}
 		else
@@ -15,8 +17,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 	function beforeAll() skip="isNotSupported"{
 		if(isNotSupported()) return;
 		s3Details = getCredentials();
-		variables.mitrahsoftBucketName = "LDEV1774";
-		variables.baseWithBucketName = "s3://#s3Details.ACCESSKEYID#:#s3Details.AWSSECRETKEY#@/#variables.mitrahsoftBucketName#";
+		variables.mitrahsoftBucketName = lcase("lucee-ldev1774-#hash(CreateGUID())#");
+		variables.baseWithBucketName = "s3://#s3Details.ACCESS_KEY_ID#:#s3Details.SECRET_KEY#@/#variables.mitrahsoftBucketName#";	
 		variables.URI = createURI("LDEV1774");
 	}
 
@@ -55,17 +57,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 
 	// Private functions
 	private struct function getCredentials() {
-		var s3 = {};
-		if(!isNull(server.system.environment.S3_ACCESS_ID) && !isNull(server.system.environment.S3_SECRET_KEY)) {
-			// getting the credentials from the environment variables
-			s3.ACCESSKEYID=server.system.environment.S3_ACCESS_ID;
-			s3.AWSSECRETKEY=server.system.environment.S3_SECRET_KEY;
-		}else if(!isNull(server.system.properties.S3_ACCESS_ID) && !isNull(server.system.properties.S3_SECRET_KEY)) {
-			// getting the credentials from the system variables
-			s3.ACCESSKEYID=server.system.properties.S3_ACCESS_ID;
-			s3.AWSSECRETKEY=server.system.properties.S3_SECRET_KEY;
-		}
-		return s3;
+		return server.getTestService("s3");
 	}
 
 	private string function createURI(string calledName){

@@ -371,7 +371,8 @@ public final class Search extends TagImpl {
 							keywords.set(key, clazz.getMethod("getKeywords", new Class[0]).invoke(obj, new Object[0]));
 							keywordScore.set(key, clazz.getMethod("getKeywordScore", new Class[0]).invoke(obj, new Object[0]));
 						}
-						catch (Exception e) {}
+						catch (Exception e) {
+						}
 					}
 
 				}

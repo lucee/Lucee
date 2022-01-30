@@ -383,7 +383,7 @@ public final class WDDXConverter extends ConverterSupport {
 		}
 		// Number
 		if (object instanceof Number) {
-			rtn = goIn() + "<number>" + ((Number) object).doubleValue() + "</number>";
+			rtn = goIn() + "<number>" + Caster.toString((Number) object) + "</number>";
 			deep--;
 			return rtn;
 		}

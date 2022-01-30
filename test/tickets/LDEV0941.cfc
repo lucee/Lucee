@@ -1,7 +1,8 @@
-<cfcomponent extends="org.lucee.cfml.test.LuceeTestCase">
+<cfcomponent extends="org.lucee.cfml.test.LuceeTestCase"  labels="pdf,zip">
 	<cfscript>
 		function beforeAll(){
 			uri = createURI("testFolder");
+            afterAll();
 			if(not directoryExists(uri)){
 				Directorycreate(uri);
 			}
@@ -28,6 +29,12 @@
 		private string function createURI(string calledName){
 			var baseURI="/test/#listLast(getDirectoryFromPath(getCurrenttemplatepath()),"\/")#/";
 			return baseURI&""&calledName;
+		}
+
+		function afterAll(){
+			if(directoryExists(uri)){
+				directoryDelete(uri,true);
+			}
 		}
 	</cfscript>
 

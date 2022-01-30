@@ -386,7 +386,8 @@ public final class FTPResource extends ResourceSupport {
 			client.unregisterFTPFile(this);
 			return true;
 		}
-		catch (IOException e) {}
+		catch (IOException e) {
+		}
 		finally {
 			provider.returnClient(client);
 			provider.unlock(this);
@@ -578,7 +579,8 @@ public final class FTPResource extends ResourceSupport {
 			return mode;
 
 		}
-		catch (IOException e) {}
+		catch (IOException e) {
+		}
 		finally {
 			provider.returnClient(client);
 		}
@@ -615,7 +617,8 @@ public final class FTPResource extends ResourceSupport {
 				client.unregisterFTPFile(this);
 			}
 		}
-		catch (IOException e) {}
+		catch (IOException e) {
+		}
 		finally {
 			provider.returnClient(client);
 			provider.unlock(this);

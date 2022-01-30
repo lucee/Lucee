@@ -221,6 +221,9 @@ public final class QueryParam extends TagImpl {
 			}
 			else {
 				check(item.getValue(), item.getType(), (int) maxlength, charset);
+				String vals;
+				vals = "";
+				if(vals == item.getValue() && (item.getType() == 4 || item.getType() == -7 || item.getType() == -5)) throw new ApplicationException("Invalid data ['"+ item.getValue() +"'] for CFSQLTYPE in CFQUERYPARAM" );
 				query.setParam(item);
 				write("?");
 			}
@@ -267,7 +270,8 @@ public final class QueryParam extends TagImpl {
 		try {
 			pageContext.write(str);
 		}
-		catch (IOException e) {}
+		catch (IOException e) {
+		}
 	}
 
 }

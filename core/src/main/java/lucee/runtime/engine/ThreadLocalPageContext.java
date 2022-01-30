@@ -168,4 +168,8 @@ public final class ThreadLocalPageContext {
 
 	}
 
+	public static long getThreadId(PageContext pc) {
+		if (pc != null) return pc.getThread().getId();
+		return Thread.currentThread().getId();
+	}
 }

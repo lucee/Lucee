@@ -1,7 +1,8 @@
-component extends="org.lucee.cfml.test.LuceeTestCase"{
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="oracle,postgres,mssql,mysql,orm"{
 	// skip closure
-	function isNotSupported() {
-		var mySql = getCredentials();
+	function isNotSupported(db) {
+		if (db eq "oracle" or db eq "mssql" ) 			return true; // currently broken
+		var mySql = getCredentials(db);
 		if(!isNull(mysql) && mysql.count()>0){
 			return false;
 		} else{
@@ -11,18 +12,42 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 
 	function run( testResults , testBox ) {
 		describe( title="Test suite for LDEV-1760", body=function() {
-			it( title='checking Dialect ORM with mySQL without setting in ORM settings',skip=isNotSupported(),body=function( currentSpec ) {
+			it( title='MySql checking ORM auto detect dialect',skip=isNotSupported("mysql"),body=function( currentSpec ) {
 				var uri = createURI("LDEV1760");
 				var result = _InternalRequest(
-					template:"#uri#/App1/index.cfm"
+					template:"#uri#/AutoDetectMySql/index.cfm"
 				);
 				expect(result.filecontent.trim()).toBe('');
 			});
 
-			it( title='checking Dialect ORM with mySQL with dialect="MySQLwithInnoDB" in ORM settings',skip=isNotSupported(),body=function( currentSpec ) {
+			it( title='Oracle checking ORM auto detect dialect',skip=isNotSupported("oracle"),body=function( currentSpec ) {
 				var uri = createURI("LDEV1760");
 				var result = _InternalRequest(
-					template:"#uri#/App2/index.cfm"
+					template:"#uri#/AutoDetectOracle/index.cfm"
+				);
+				expect(result.filecontent.trim()).toBe('');
+			});
+
+			it( title='Postgres checking ORM auto detect dialect',skip=isNotSupported("postgres"),body=function( currentSpec ) {
+				var uri = createURI("LDEV1760");
+				var result = _InternalRequest(
+					template:"#uri#/AutoDetectPostgres/index.cfm"
+				);
+				expect(result.filecontent.trim()).toBe('');
+			});
+
+			it( title='MsSql checking ORM auto detect dialect',skip=isNotSupported("mssql"),body=function( currentSpec ) {
+				var uri = createURI("LDEV1760");
+				var result = _InternalRequest(
+					template:"#uri#/AutoDetectMsSql/index.cfm"
+				);
+				expect(result.filecontent.trim()).toBe('');
+			});
+
+			it( title='checking Dialect ORM with mySQL with dialect="MySQLwithInnoDB" in ORM settings',skip=isNotSupported("mysql"),body=function( currentSpec ) {
+				var uri = createURI("LDEV1760");
+				var result = _InternalRequest(
+					template:"#uri#/MySQLwithInnoDB/index.cfm"
 				);
 				expect(result.filecontent.trim()).toBe('');
 			});
@@ -35,35 +60,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 		return baseURI&""&calledName;
 	}
 
-	private struct function getCredentials() {
-		// getting the credentials from the enviroment variables
-
-		var mySQL={};
-		if(
-			!isNull(server.system.environment.MYSQL_SERVER) &&
-			!isNull(server.system.environment.MYSQL_USERNAME) &&
-			!isNull(server.system.environment.MYSQL_PASSWORD) &&
-			!isNull(server.system.environment.MYSQL_PORT) &&
-			!isNull(server.system.environment.MYSQL_DATABASE)) {
-			mySQL.server=server.system.environment.MYSQL_SERVER;
-			mySQL.username=server.system.environment.MYSQL_USERNAME;
-			mySQL.password=server.system.environment.MYSQL_PASSWORD;
-			mySQL.port=server.system.environment.MYSQL_PORT;
-			mySQL.database=server.system.environment.MYSQL_DATABASE;
-		}
-		// getting the credentials from the system variables
-		else if(
-			!isNull(server.system.properties.MYSQL_SERVER) &&
-			!isNull(server.system.properties.MYSQL_USERNAME) &&
-			!isNull(server.system.properties.MYSQL_PASSWORD) &&
-			!isNull(server.system.properties.MYSQL_PORT) &&
-			!isNull(server.system.properties.MYSQL_DATABASE)) {
-			mySQL.server=server.system.properties.MYSQL_SERVER;
-			mySQL.username=server.system.properties.MYSQL_USERNAME;
-			mySQL.password=server.system.properties.MYSQL_PASSWORD;
-			mySQL.port=server.system.properties.MYSQL_PORT;
-			mySQL.database=server.system.properties.MYSQL_DATABASE;
-		}
-		return mysql;
+	private struct function getCredentials(db) {
+		return server.getDatasource(db);
 	}
 }

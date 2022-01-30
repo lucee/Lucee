@@ -39,19 +39,22 @@ public class DebuggerUtil {
 		try {
 			sct.set(KeyConstants._application, _pointOutClosuresInPersistentScopes(pc, pc.applicationScope(), done));
 		}
-		catch (PageException e) {}
+		catch (PageException e) {
+		}
 
 		// Session Scope
 		try {
 			sct.set(KeyConstants._application, _pointOutClosuresInPersistentScopes(pc, pc.sessionScope(), done));
 		}
-		catch (PageException e) {}
+		catch (PageException e) {
+		}
 
 		// Server Scope
 		try {
 			sct.set(KeyConstants._application, _pointOutClosuresInPersistentScopes(pc, pc.serverScope(), done));
 		}
-		catch (PageException e) {}
+		catch (PageException e) {
+		}
 
 		return null;
 	}

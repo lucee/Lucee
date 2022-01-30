@@ -14,7 +14,6 @@ import org.xml.sax.XMLReader;
 import org.xml.sax.ext.LexicalHandler;
 import org.xml.sax.helpers.DefaultHandler;
 
-import lucee.print;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourcesImpl;
@@ -166,13 +165,29 @@ public final class XMLConfigReader extends DefaultHandler implements LexicalHand
 	public static void main(String[] args) throws Exception {
 		Resource src = ResourcesImpl.getFileResourceProvider().getResource("/Users/mic/Projects/Lucee/Lucee5/core/src/main/java/resource/config/web.xml");
 		Resource trg = ResourcesImpl.getFileResourceProvider().getResource("/Users/mic/Projects/Lucee/Lucee5/core/src/main/java/resource/config/web.json");
-		ConfigWebFactory.translateConfigFile(src, trg);
+		ConfigWebFactory.translateConfigFile(null, src, trg, "", false);
 
 		src = ResourcesImpl.getFileResourceProvider().getResource("/Users/mic/Projects/Lucee/Lucee5/core/src/main/java/resource/config/server.xml");
 		trg = ResourcesImpl.getFileResourceProvider().getResource("/Users/mic/Projects/Lucee/Lucee5/core/src/main/java/resource/config/server.json");
-		ConfigWebFactory.translateConfigFile(src, trg);
+		ConfigWebFactory.translateConfigFile(null, src, trg, "single", true);
 
-		print.e("DONE!");
+		// src =
+		// ResourcesImpl.getFileResourceProvider().getResource("/Users/mic/Test/test/webapps/ROOT/WEB-INF/lucee/lucee-web.xml.cfm");
+		// trg =
+		// ResourcesImpl.getFileResourceProvider().getResource("/Users/mic/Test/test/webapps/ROOT/WEB-INF/lucee/lucee-web.json");
+		// ConfigWebFactory.translateConfigFile(null, src, trg);
+
+		// src =
+		// ResourcesImpl.getFileResourceProvider().getResource("/Users/mic/Test/test/lucee-server/context/lucee-server.xml");
+		// trg =
+		// ResourcesImpl.getFileResourceProvider().getResource("/Users/mic/Test/test/lucee-server/context/lucee-server.json");
+		// ConfigWebFactory.translateConfigFile(null, src, trg);
+
+		src = ResourcesImpl.getFileResourceProvider().getResource("/Users/mic/Test/test/webapps/ROOT/WEB-INF/lucee/.CFConfig.json");
+		src.delete();
+		src = ResourcesImpl.getFileResourceProvider().getResource("/Users/mic/Test/test/lucee-server/context/.CFConfig.json");
+		src.delete();
+
 		/*
 		 * XMLConfigReader reader = new XMLConfigReader(res, true, new ReadRule(), new NameRule()); String
 		 * str = ser(reader.getData().get("cfLuceeConfiguration")); IOUtil.write(trg, str, CharsetUtil.UTF8,
@@ -202,7 +217,7 @@ public final class XMLConfigReader extends DefaultHandler implements LexicalHand
 		public ReadRule() {
 			this.names.add("data-source");
 			this.names.add("label");
-
+			this.names.add("debugEntry");
 		}
 
 		public boolean asArray(String name) {

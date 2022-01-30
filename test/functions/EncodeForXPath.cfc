@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase"{
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="esapi"{
 	function run( testResults , testBox ) {
 		describe( "test case for EncodeForXPathMember", function() {
 			it(title = "Checking with EncodeForXPathMember", body = function( currentSpec ) {

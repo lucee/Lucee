@@ -100,7 +100,8 @@ public final class ArgumentThreadImpl implements Argument {
 	}
 
 	@Override
-	public void initialize(PageContext pc) {}
+	public void initialize(PageContext pc) {
+	}
 
 	@Override
 	public boolean isInitalized() {
@@ -108,7 +109,8 @@ public final class ArgumentThreadImpl implements Argument {
 	}
 
 	@Override
-	public void release(PageContext pc) {}
+	public void release(PageContext pc) {
+	}
 
 	@Override
 	public void clear() {

@@ -39,7 +39,8 @@ public final class ZqlJJParser implements ZqlJJParserConstants {
 		int arg;
 		JJCalls next;
 
-		JJCalls() {}
+		JJCalls() {
+		}
 	}
 
 	/*
@@ -3661,9 +3662,11 @@ public final class ZqlJJParser implements ZqlJJParserConstants {
 		return new ParseException(token, ai, ZqlJJParserConstants.tokenImage);
 	}
 
-	public final void enable_tracing() {}
+	public final void enable_tracing() {
+	}
 
-	public final void disable_tracing() {}
+	public final void disable_tracing() {
+	}
 
 	private final void jj_rescan_token() {
 		jj_rescan = true;

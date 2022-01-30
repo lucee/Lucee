@@ -49,7 +49,6 @@ import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogEngine;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.log.LoggerAndSourceData;
-import lucee.commons.io.log.log4j.layout.ClassicLayout;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourceProvider;
 import lucee.commons.io.res.Resources;
@@ -57,8 +56,6 @@ import lucee.commons.io.res.ResourcesImpl;
 import lucee.commons.io.res.ResourcesImpl.ResourceProviderFactory;
 import lucee.commons.io.res.filter.ExtensionResourceFilter;
 import lucee.commons.io.res.type.compress.Compress;
-import lucee.commons.io.res.type.compress.CompressResource;
-import lucee.commons.io.res.type.compress.CompressResourceProvider;
 import lucee.commons.io.res.util.ResourceClassLoader;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.CharSet;
@@ -68,6 +65,7 @@ import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.Md5;
 import lucee.commons.lang.PhysicalClassLoader;
 import lucee.commons.lang.StringUtil;
+import lucee.commons.lang.types.RefBoolean;
 import lucee.commons.net.IPRange;
 import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.CIPage;
@@ -76,7 +74,6 @@ import lucee.runtime.Mapping;
 import lucee.runtime.MappingImpl;
 import lucee.runtime.Page;
 import lucee.runtime.PageContext;
-import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
 import lucee.runtime.PageSourceImpl;
 import lucee.runtime.cache.CacheConnection;
@@ -86,10 +83,12 @@ import lucee.runtime.cfx.CFXTagPool;
 import lucee.runtime.cfx.customtag.CFXTagPoolImpl;
 import lucee.runtime.component.ImportDefintion;
 import lucee.runtime.component.ImportDefintionImpl;
+import lucee.runtime.config.ConfigWebUtil.CacheElement;
 import lucee.runtime.customtag.InitFile;
 import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.db.DataSource;
-import lucee.runtime.db.DatasourceConnectionPool;
+import lucee.runtime.db.DataSourcePro;
+import lucee.runtime.db.DatasourceConnectionFactory;
 import lucee.runtime.db.JDBCDriver;
 import lucee.runtime.dump.DumpWriter;
 import lucee.runtime.dump.DumpWriterEntry;
@@ -135,6 +134,8 @@ import lucee.runtime.schedule.SchedulerImpl;
 import lucee.runtime.search.SearchEngine;
 import lucee.runtime.security.SecurityManager;
 import lucee.runtime.spooler.SpoolerEngine;
+import lucee.runtime.type.Array;
+import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
@@ -163,8 +164,12 @@ import lucee.transformer.library.tag.TagLibTagScript;
  */
 public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 
-	private static final Extension[] EXTENSIONS_EMPTY = new Extension[0];
 	private static final RHExtension[] RHEXTENSIONS_EMPTY = new RHExtension[0];
+
+	// FUTURE add to interface
+	public static final short ADMINMODE_SINGLE = 1;
+	public static final short ADMINMODE_MULTI = 2;
+	public static final short ADMINMODE_AUTO = 4;
 
 	private int mode = MODE_CUSTOM;
 
@@ -320,7 +325,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	private PrintWriter out = SystemUtil.getPrintWriter(SystemUtil.OUT);
 	private PrintWriter err = SystemUtil.getPrintWriter(SystemUtil.ERR);
 
-	private DatasourceConnectionPool pool = new DatasourceConnectionPool();
+	private Map<String, DatasourceConnPool> pools = new HashMap<>();
 
 	private boolean doCustomTagDeepSearch = false;
 	private boolean doComponentTagDeepSearch = false;
@@ -347,9 +352,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 
 	private RHExtensionProvider[] rhextensionProviders = Constants.RH_EXTENSION_PROVIDERS;
 
-	private Extension[] extensions = EXTENSIONS_EMPTY;
 	private RHExtension[] rhextensions = RHEXTENSIONS_EMPTY;
-	private boolean extensionEnabled;
 	private boolean allowRealPath = true;
 
 	private DumpWriterEntry[] dmpWriterEntries;
@@ -371,7 +374,6 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 
 	private short inspectTemplate = INSPECT_ONCE;
 	private boolean typeChecking = true;
-	private String serial = "";
 	private String cacheMD5;
 	private boolean executionLogEnabled;
 	private ExecutionLogFactory executionLogFactory;
@@ -411,6 +413,11 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 
 	private Regex regex; // TODO add possibility to configure
 
+	private long applicationPathCacheTimeout = Caster.toLongValue(SystemUtil.getSystemPropOrEnvVar("lucee.application.path.cache.timeout", null), 20000);
+	private ClassLoader envClassLoader;
+
+	private boolean preciseMath = true;
+
 	/**
 	 * @return the allowURLRequestTimeout
 	 */
@@ -441,6 +448,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		clearFunctionCache();
 		clearCTCache();
 		clearComponentCache();
+		clearApplicationCache();
 		// clearComponentMetadata();
 	}
 
@@ -644,7 +652,8 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	// do not remove, ised in Hibernate extension
 	@Override
 	public ClassLoader getClassLoaderEnv() {
-		return new EnvClassLoader(this);
+		if (envClassLoader == null) envClassLoader = new EnvClassLoader(this);
+		return envClassLoader;
 	}
 
 	@Override
@@ -780,103 +789,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	@Override
 	public PageSource getPageSourceExisting(PageContext pc, Mapping[] mappings, String realPath, boolean onlyTopLevel, boolean useSpecialMappings, boolean useDefaultMapping,
 			boolean onlyPhysicalExisting) {
-		realPath = realPath.replace('\\', '/');
-		String lcRealPath = StringUtil.toLowerCase(realPath) + '/';
-		Mapping mapping;
-		PageSource ps;
-		Mapping rootApp = null;
-		if (mappings != null) {
-			for (int i = 0; i < mappings.length; i++) {
-				mapping = mappings[i];
-				// we keep this for later
-				if ("/".equals(mapping.getVirtual())) {
-					rootApp = mapping;
-					continue;
-				}
-				if (lcRealPath.startsWith(mapping.getVirtualLowerCaseWithSlash(), 0)) {
-					ps = mapping.getPageSource(realPath.substring(mapping.getVirtual().length()));
-					if (onlyPhysicalExisting) {
-						if (ps.physcalExists()) return ps;
-					}
-					else if (ps.exists()) return ps;
-				}
-			}
-		}
-
-		/// special mappings
-		if (useSpecialMappings && lcRealPath.startsWith("/mapping-", 0)) {
-			String virtual = "/mapping-tag";
-			// tag mappings
-			Mapping[] tagMappings = (this instanceof ConfigWebPro) ? new Mapping[] { ((ConfigWebPro) this).getDefaultServerTagMapping(), getDefaultTagMapping() }
-					: new Mapping[] { getDefaultTagMapping() };
-			if (lcRealPath.startsWith(virtual, 0)) {
-				for (int i = 0; i < tagMappings.length; i++) {
-					mapping = tagMappings[i];
-					// if(lcRealPath.startsWith(mapping.getVirtualLowerCaseWithSlash(),0)) {
-					ps = mapping.getPageSource(realPath.substring(virtual.length()));
-					if (onlyPhysicalExisting) {
-						if (ps.physcalExists()) return ps;
-					}
-					else if (ps.exists()) return ps;
-					// }
-				}
-			}
-
-			// customtag mappings
-			tagMappings = getCustomTagMappings();
-			virtual = "/mapping-customtag";
-			if (lcRealPath.startsWith(virtual, 0)) {
-				for (int i = 0; i < tagMappings.length; i++) {
-					mapping = tagMappings[i];
-					// if(lcRealPath.startsWith(mapping.getVirtualLowerCaseWithSlash(),0)) {
-					ps = mapping.getPageSource(realPath.substring(virtual.length()));
-					if (onlyPhysicalExisting) {
-						if (ps.physcalExists()) return ps;
-					}
-					else if (ps.exists()) return ps;
-					// }
-				}
-			}
-		}
-
-		// component mappings (only used for gateway)
-		if (pc != null && ((PageContextImpl) pc).isGatewayContext()) {
-			boolean isCFC = Constants.isComponentExtension(ResourceUtil.getExtension(realPath, null));
-			if (isCFC) {
-				Mapping[] cmappings = getComponentMappings();
-				for (int i = 0; i < cmappings.length; i++) {
-					ps = cmappings[i].getPageSource(realPath);
-					if (onlyPhysicalExisting) {
-						if (ps.physcalExists()) return ps;
-					}
-					else if (ps.exists()) return ps;
-				}
-			}
-		}
-
-		// config mappings
-		for (int i = 0; i < this.mappings.length - 1; i++) {
-			mapping = this.mappings[i];
-			if ((!onlyTopLevel || mapping.isTopLevel()) && lcRealPath.startsWith(mapping.getVirtualLowerCaseWithSlash(), 0)) {
-				ps = mapping.getPageSource(realPath.substring(mapping.getVirtual().length()));
-				if (onlyPhysicalExisting) {
-					if (ps.physcalExists()) return ps;
-				}
-				else if (ps.exists()) return ps;
-			}
-		}
-
-		if (useDefaultMapping) {
-			if (rootApp != null) mapping = rootApp;
-			else mapping = this.mappings[this.mappings.length - 1];
-
-			ps = mapping.getPageSource(realPath);
-			if (onlyPhysicalExisting) {
-				if (ps.physcalExists()) return ps;
-			}
-			else if (ps.exists()) return ps;
-		}
-		return null;
+		return ConfigWebUtil.getPageSourceExisting(pc, this, mappings, realPath, onlyTopLevel, useSpecialMappings, useDefaultMapping, onlyPhysicalExisting);
 	}
 
 	@Override
@@ -890,95 +803,10 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		return getPageSources(pc, mappings, realPath, onlyTopLevel, useSpecialMappings, useDefaultMapping, useComponentMappings, onlyFirstMatch);
 	}
 
-	public PageSource[] getPageSources(PageContext pc, Mapping[] mappings, String realPath, boolean onlyTopLevel, boolean useSpecialMappings, boolean useDefaultMapping,
+	public PageSource[] getPageSources(PageContext pc, Mapping[] appMappings, String realPath, boolean onlyTopLevel, boolean useSpecialMappings, boolean useDefaultMapping,
 			boolean useComponentMappings, boolean onlyFirstMatch) {
-		realPath = realPath.replace('\\', '/');
-		String lcRealPath = StringUtil.toLowerCase(realPath) + '/';
-		Mapping mapping;
-		Mapping rootApp = null;
-		PageSource ps;
-		List<PageSource> list = new ArrayList<PageSource>();
 
-		if (mappings != null) {
-			for (int i = 0; i < mappings.length; i++) {
-				mapping = mappings[i];
-				// we keep this for later
-				if ("/".equals(mapping.getVirtual())) {
-					rootApp = mapping;
-					continue;
-				}
-				// print.err(lcRealPath+".startsWith"+(mapping.getStrPhysical()));
-				if (lcRealPath.startsWith(mapping.getVirtualLowerCaseWithSlash(), 0)) {
-					ps = mapping.getPageSource(realPath.substring(mapping.getVirtual().length()));
-					if (onlyFirstMatch) return new PageSource[] { ps };
-					else list.add(ps);
-				}
-			}
-		}
-
-		/// special mappings
-		if (useSpecialMappings && lcRealPath.startsWith("/mapping-", 0)) {
-			String virtual = "/mapping-tag";
-			// tag mappings
-			Mapping[] tagMappings = (this instanceof ConfigWebPro) ? new Mapping[] { ((ConfigWebPro) this).getDefaultServerTagMapping(), getDefaultTagMapping() }
-					: new Mapping[] { getDefaultTagMapping() };
-			if (lcRealPath.startsWith(virtual, 0)) {
-				for (int i = 0; i < tagMappings.length; i++) {
-					ps = tagMappings[i].getPageSource(realPath.substring(virtual.length()));
-					if (ps.exists()) {
-						if (onlyFirstMatch) return new PageSource[] { ps };
-						else list.add(ps);
-					}
-				}
-			}
-
-			// customtag mappings
-			tagMappings = getCustomTagMappings();
-			virtual = "/mapping-customtag";
-			if (lcRealPath.startsWith(virtual, 0)) {
-				for (int i = 0; i < tagMappings.length; i++) {
-					ps = tagMappings[i].getPageSource(realPath.substring(virtual.length()));
-					if (ps.exists()) {
-						if (onlyFirstMatch) return new PageSource[] { ps };
-						else list.add(ps);
-					}
-				}
-			}
-		}
-
-		// component mappings (only used for gateway)
-		if (useComponentMappings || (pc != null && ((PageContextImpl) pc).isGatewayContext())) {
-			boolean isCFC = Constants.isComponentExtension(ResourceUtil.getExtension(realPath, null));
-			if (isCFC) {
-				Mapping[] cmappings = getComponentMappings();
-				for (int i = 0; i < cmappings.length; i++) {
-					ps = cmappings[i].getPageSource(realPath);
-					if (ps.exists()) {
-						if (onlyFirstMatch) return new PageSource[] { ps };
-						else list.add(ps);
-					}
-				}
-			}
-		}
-
-		// config mappings
-		for (int i = 0; i < this.mappings.length - 1; i++) {
-			mapping = this.mappings[i];
-			if ((!onlyTopLevel || mapping.isTopLevel()) && lcRealPath.startsWith(mapping.getVirtualLowerCaseWithSlash(), 0)) {
-				ps = mapping.getPageSource(realPath.substring(mapping.getVirtual().length()));
-				if (onlyFirstMatch) return new PageSource[] { ps };
-				else list.add(ps);
-			}
-		}
-
-		if (useDefaultMapping) {
-			if (rootApp != null) mapping = rootApp;
-			else mapping = this.mappings[this.mappings.length - 1];
-			ps = mapping.getPageSource(realPath);
-			if (onlyFirstMatch) return new PageSource[] { ps };
-			else list.add(ps);
-		}
-		return list.toArray(new PageSource[list.size()]);
+		return ConfigWebUtil.getPageSources(pc, this, appMappings, realPath, onlyTopLevel, useSpecialMappings, useDefaultMapping, useComponentMappings, onlyFirstMatch);
 	}
 
 	/**
@@ -995,95 +823,20 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	@Override
 	public Resource[] getPhysicalResources(PageContext pc, Mapping[] mappings, String realPath, boolean onlyTopLevel, boolean useSpecialMappings, boolean useDefaultMapping) {
 		// now that archives can be used the same way as physical resources, there is no need anymore to
-		// limit to that
+		// limit to that FUTURE remove
 		throw new PageRuntimeException(new DeprecatedException("method not supported"));
 	}
 
 	@Override
 	public Resource getPhysicalResourceExisting(PageContext pc, Mapping[] mappings, String realPath, boolean onlyTopLevel, boolean useSpecialMappings, boolean useDefaultMapping) {
 		// now that archives can be used the same way as physical resources, there is no need anymore to
-		// limit to that
+		// limit to that FUTURE remove
 		throw new PageRuntimeException(new DeprecatedException("method not supported"));
 	}
 
 	@Override
 	public PageSource toPageSource(Mapping[] mappings, Resource res, PageSource defaultValue) {
-		Mapping mapping;
-		String path;
-
-		// app mappings
-		if (mappings != null) {
-			for (int i = 0; i < mappings.length; i++) {
-				mapping = mappings[i];
-
-				// Physical
-				if (mapping.hasPhysical()) {
-					path = ResourceUtil.getPathToChild(res, mapping.getPhysical());
-					if (path != null) {
-						return mapping.getPageSource(path);
-					}
-				}
-				// Archive
-				if (mapping.hasArchive() && res.getResourceProvider() instanceof CompressResourceProvider) {
-					Resource archive = mapping.getArchive();
-					CompressResource cr = ((CompressResource) res);
-					if (archive.equals(cr.getCompressResource())) {
-						return mapping.getPageSource(cr.getCompressPath());
-					}
-				}
-			}
-		}
-
-		// config mappings
-		for (int i = 0; i < this.mappings.length; i++) {
-			mapping = this.mappings[i];
-
-			// Physical
-			if (mapping.hasPhysical()) {
-				path = ResourceUtil.getPathToChild(res, mapping.getPhysical());
-				if (path != null) {
-					return mapping.getPageSource(path);
-				}
-			}
-			// Archive
-			if (mapping.hasArchive() && res.getResourceProvider() instanceof CompressResourceProvider) {
-				Resource archive = mapping.getArchive();
-				CompressResource cr = ((CompressResource) res);
-				if (archive.equals(cr.getCompressResource())) {
-					return mapping.getPageSource(cr.getCompressPath());
-				}
-			}
-		}
-
-		// map resource to root mapping when same filesystem
-		Mapping rootMapping = this.mappings[this.mappings.length - 1];
-		Resource root;
-		if (rootMapping.hasPhysical() && res.getResourceProvider().getScheme().equals((root = rootMapping.getPhysical()).getResourceProvider().getScheme())) {
-
-			String realpath = "";
-			while (root != null && !ResourceUtil.isChildOf(res, root)) {
-				root = root.getParentResource();
-				realpath += "../";
-			}
-			String p2c = ResourceUtil.getPathToChild(res, root);
-			if (StringUtil.startsWith(p2c, '/') || StringUtil.startsWith(p2c, '\\')) p2c = p2c.substring(1);
-			realpath += p2c;
-
-			return rootMapping.getPageSource(realpath);
-
-		}
-		// MUST better impl than this
-		if (this instanceof ConfigWebPro) {
-			Resource parent = res.getParentResource();
-			if (parent != null && !parent.equals(res)) {
-				Mapping m = ((ConfigWebPro) this).getApplicationMapping("application", "/", parent.getAbsolutePath(), null, true, false);
-				return m.getPageSource(res.getName());
-			}
-		}
-
-		// Archive
-		// MUST check archive
-		return defaultValue;
+		return ConfigWebUtil.toPageSource(this, mappings, res, defaultValue);
 	}
 
 	@Override
@@ -1101,7 +854,8 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	 * 
 	 * @param password
 	 */
-	protected void setPassword(Password password) {
+	@Override
+	public void setPassword(Password password) {
 		this.password = password;
 	}
 
@@ -1639,15 +1393,14 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	 * @param logger
 	 * @throws PageException
 	 */
-	protected void setScheduler(CFMLEngine engine, Resource scheduleDirectory) throws PageException {
-		if (scheduleDirectory == null) {
-			if (this.scheduler == null) this.scheduler = new SchedulerImpl(engine, "<?xml version=\"1.0\"?>\n<schedule></schedule>", this);
+	protected void setScheduler(CFMLEngine engine, Array scheduledTasks) throws PageException {
+		if (scheduledTasks == null) {
+			if (this.scheduler == null) this.scheduler = new SchedulerImpl(engine, this, new ArrayImpl());
 			return;
 		}
 
-		if (!isDirectory(scheduleDirectory)) throw new ExpressionException("schedule task directory " + scheduleDirectory + " doesn't exist or is not a directory");
 		try {
-			if (this.scheduler == null) this.scheduler = new SchedulerImpl(engine, this, scheduleDirectory, SystemUtil.getCharset().name());
+			if (this.scheduler == null) this.scheduler = new SchedulerImpl(engine, this, scheduledTasks);
 		}
 		catch (Exception e) {
 			throw Caster.toPageException(e);
@@ -2496,6 +2249,10 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		if (componentPathCache != null) componentPathCache.clear();
 	}
 
+	public void flushApplicationPathCache() {
+		if (applicationPathCache != null) applicationPathCache.clear();
+	}
+
 	public void flushCTPathCache() {
 		if (ctPatchCache != null) ctPatchCache.clear();
 	}
@@ -2559,8 +2316,44 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	}
 
 	@Override
-	public DatasourceConnectionPool getDatasourceConnectionPool() {
+	public DatasourceConnPool getDatasourceConnectionPool(DataSource ds, String user, String pass) {
+		String id = DatasourceConnectionFactory.createId(ds, user, pass);
+		DatasourceConnPool pool = pools.get(id);
+		if (pool == null) {
+			synchronized (id) {
+				pool = pools.get(id);
+				if (pool == null) {// TODO add config but from where?
+					DataSourcePro dsp = (DataSourcePro) ds;
+
+					pool = new DatasourceConnPool(this, ds, user, pass, "datasource",
+							DatasourceConnPool.createPoolConfig(null, null, null, dsp.getMinIdle(), dsp.getMaxIdle(), dsp.getMaxTotal(), 0, 0, 0, 0, 0, null));
+					pools.put(id, pool);
+				}
+			}
+		}
 		return pool;
+	}
+
+	@Override
+	public MockPool getDatasourceConnectionPool() {
+		return new MockPool();
+	}
+
+	@Override
+	public Collection<DatasourceConnPool> getDatasourceConnectionPools() {
+		return pools.values();
+	}
+
+	@Override
+	public void removeDatasourceConnectionPool(DataSource ds) {
+		for (Entry<String, DatasourceConnPool> e: pools.entrySet()) {
+			if (e.getValue().getFactory().getDatasource().getName().equalsIgnoreCase(ds.getName())) {
+				synchronized (e.getKey()) {
+					pools.remove(e.getKey());
+				}
+				e.getValue().clear();
+			}
+		}
 	}
 
 	@Override
@@ -2786,7 +2579,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 
 	@Override
 	public Extension[] getExtensions() {
-		return extensions;
+		throw new PageRuntimeException("no longer supported");
 	}
 
 	@Override
@@ -2794,21 +2587,13 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		return rhextensions;
 	}
 
-	protected void setExtensions(Extension[] extensions) {
-		this.extensions = extensions;
-	}
-
 	protected void setExtensions(RHExtension[] extensions) {
 		this.rhextensions = extensions;
 	}
 
-	protected void setExtensionEnabled(boolean extensionEnabled) {
-		this.extensionEnabled = extensionEnabled;
-	}
-
 	@Override
 	public boolean isExtensionEnabled() {
-		return extensionEnabled;
+		throw new PageRuntimeException("no longer supported");
 	}
 
 	@Override
@@ -2974,13 +2759,9 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		this.inspectTemplate = inspectTemplate;
 	}
 
-	protected void setSerialNumber(String serial) {
-		this.serial = serial;
-	}
-
 	@Override
 	public String getSerialNumber() {
-		return serial;
+		return "";
 	}
 
 	protected void setCaches(Map<String, CacheConnection> caches) {
@@ -3142,9 +2923,8 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 
 			if (t != null) {
 				ApplicationException ae = new ApplicationException("cannot initialize ORM Engine [" + cdORMEngine + "], make sure you have added all the required jar files");
-
-				ae.setStackTrace(t.getStackTrace());
-				ae.setDetail(t.getMessage());
+				ae.initCause(t);
+				throw ae;
 
 			}
 			ormengines.put(name, engine);
@@ -3191,13 +2971,13 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	}
 
 	private Map<String, SoftReference<PageSource>> componentPathCache = null;// new ArrayList<Page>();
+	private Map<String, SoftReference<ConfigWebUtil.CacheElement>> applicationPathCache = null;// new ArrayList<Page>();
 	private Map<String, SoftReference<InitFile>> ctPatchCache = null;// new ArrayList<Page>();
 	private Map<String, SoftReference<UDF>> udfCache = new ConcurrentHashMap<String, SoftReference<UDF>>();
 
 	@Override
 	public CIPage getCachedPage(PageContext pc, String pathWithCFC) throws TemplateException {
 		if (componentPathCache == null) return null;
-
 		SoftReference<PageSource> tmp = componentPathCache.get(pathWithCFC.toLowerCase());
 		PageSource ps = tmp == null ? null : tmp.get();
 		if (ps == null) return null;
@@ -3215,6 +2995,41 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		if (componentPathCache == null) componentPathCache = new ConcurrentHashMap<String, SoftReference<PageSource>>();// MUSTMUST new
 		// ReferenceMap(ReferenceMap.SOFT,ReferenceMap.SOFT);
 		componentPathCache.put(pathWithCFC.toLowerCase(), new SoftReference<PageSource>(ps));
+	}
+
+	@Override
+	public PageSource getApplicationPageSource(PageContext pc, String path, String filename, int mode, RefBoolean isCFC) {
+		if (applicationPathCache == null) return null;
+		String id = (path + ":" + filename + ":" + mode).toLowerCase();
+
+		SoftReference<CacheElement> tmp = getApplicationPathCacheTimeout() <= 0 ? null : applicationPathCache.get(id);
+		if (tmp != null) {
+			CacheElement ce = tmp.get();
+			if (ce != null && (ce.created + getApplicationPathCacheTimeout()) >= System.currentTimeMillis()) {
+				if (ce.pageSource.loadPage(pc, false, (Page) null) != null) {
+					if (isCFC != null) isCFC.setValue(ce.isCFC);
+					return ce.pageSource;
+				}
+			}
+		}
+		return null;
+	}
+
+	@Override
+	public void putApplicationPageSource(String path, PageSource ps, String filename, int mode, boolean isCFC) {
+		if (getApplicationPathCacheTimeout() <= 0) return;
+		if (applicationPathCache == null) applicationPathCache = new ConcurrentHashMap<String, SoftReference<CacheElement>>();// MUSTMUST new
+		String id = (path + ":" + filename + ":" + mode).toLowerCase();
+		applicationPathCache.put(id, new SoftReference<CacheElement>(new CacheElement(ps, isCFC)));
+	}
+
+	@Override
+	public long getApplicationPathCacheTimeout() {
+		return applicationPathCacheTimeout;
+	}
+
+	protected void setApplicationPathCacheTimeout(long applicationPathCacheTimeout) {
+		this.applicationPathCacheTimeout = applicationPathCacheTimeout;
 	}
 
 	@Override
@@ -3244,10 +3059,14 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 
 		Entry<String, SoftReference<InitFile>> entry;
 		SoftReference<InitFile> v;
+		InitFile initFile;
 		while (it.hasNext()) {
 			entry = it.next();
 			v = entry.getValue();
-			if (v != null) sct.setEL(entry.getKey(), v.get().getPageSource().getDisplayPath());
+			if (v != null) {
+				initFile = v.get();
+				if (initFile != null) sct.setEL(entry.getKey(), initFile.getPageSource().getDisplayPath());
+			}
 		}
 		return sct;
 	}
@@ -3299,6 +3118,12 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	public void clearComponentCache() {
 		if (componentPathCache == null) return;
 		componentPathCache.clear();
+	}
+
+	@Override
+	public void clearApplicationCache() {
+		if (applicationPathCache == null) return;
+		applicationPathCache.clear();
 	}
 
 	@Override
@@ -3578,14 +3403,14 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		resourceLayouts.add(layout);
 	}
 
-	public Object[] getConsoleLayouts() {
+	public Object[] getConsoleLayouts() throws PageException {
 		if (consoleLayouts.isEmpty()) consoleLayouts.add(getLogEngine().getDefaultLayout());
 		return consoleLayouts.toArray(new Object[consoleLayouts.size()]);
 
 	}
 
-	public Object[] getResourceLayouts() {
-		if (resourceLayouts.isEmpty()) resourceLayouts.add(new ClassicLayout());
+	public Object[] getResourceLayouts() throws PageException {
+		if (resourceLayouts.isEmpty()) resourceLayouts.add(getLogEngine().getClassicLayout());
 		return resourceLayouts.toArray(new Object[resourceLayouts.size()]);
 	}
 
@@ -3604,7 +3429,8 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 
 			}
 		}
-		catch (Exception e) {}
+		catch (Exception e) {
+		}
 
 		if (list == null) loggers.clear();
 		else {
@@ -3616,7 +3442,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	}
 
 	protected LoggerAndSourceData addLogger(String name, int level, ClassDefinition appender, Map<String, String> appenderArgs, ClassDefinition layout,
-			Map<String, String> layoutArgs, boolean readOnly, boolean dyn) {
+			Map<String, String> layoutArgs, boolean readOnly, boolean dyn) throws PageException {
 		LoggerAndSourceData existing = loggers.get(name.toLowerCase());
 		String id = LoggerAndSourceData.id(name.toLowerCase(), appender, appenderArgs, layout, layoutArgs, level, readOnly);
 
@@ -3644,17 +3470,22 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 
 	@Override
 	public Log getLog(String name) {
-		return getLog(name, true);
+		try {
+			return getLog(name, true);
+		}
+		catch (PageException e) {
+			throw new PageRuntimeException(e);
+		}
 	}
 
 	@Override
-	public Log getLog(String name, boolean createIfNecessary) {
+	public Log getLog(String name, boolean createIfNecessary) throws PageException {
 		LoggerAndSourceData lsd = _getLoggerAndSourceData(name, createIfNecessary);
 		if (lsd == null) return null;
 		return lsd.getLog();
 	}
 
-	private LoggerAndSourceData _getLoggerAndSourceData(String name, boolean createIfNecessary) {
+	private LoggerAndSourceData _getLoggerAndSourceData(String name, boolean createIfNecessary) throws PageException {
 		LoggerAndSourceData las = loggers.get(name.toLowerCase());
 		if (las == null) {
 			if (!createIfNecessary) return null;
@@ -3938,7 +3769,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 
 	@Override
 	public LogEngine getLogEngine() {
-		if (logEngine == null) logEngine = LogEngine.getInstance(this);
+		if (logEngine == null) logEngine = LogEngine.newInstance(this);
 		return logEngine;
 	}
 
@@ -3966,5 +3797,14 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 
 	protected void setRegex(Regex regex) {
 		this.regex = regex;
+	}
+
+	@Override
+	public boolean getPreciseMath() {
+		return preciseMath;
+	}
+
+	protected void setPreciseMath(boolean preciseMath) {
+		this.preciseMath = preciseMath;
 	}
 }

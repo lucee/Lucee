@@ -221,9 +221,9 @@ Redirtect to entry --->
 				<tfoot>
 					<tr>
 						<td colspan="4">
-							<input type="submit" class="bl button submit" name="mainAction" value="#stText.Buttons.verify#">
-							<input type="submit" class="bm button submit" name="mainAction" value="#stText.Buttons.delete#">
-							<input type="reset" class="br button reset" name="cancel" value="#stText.Buttons.Cancel#">
+							<input type="submit" class="bl button submit enablebutton" name="mainAction" value="#stText.Buttons.verify#">
+							<input type="submit" class="bm button submit enablebutton" name="mainAction" value="#stText.Buttons.delete#">
+							<input type="reset" class="br button reset enablebutton" id="clickCancel" name="cancel" value="#stText.Buttons.Cancel#">
 						</td>	
 					</tr>
 				</tfoot>

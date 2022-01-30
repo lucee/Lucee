@@ -283,4 +283,7 @@ public class RamCache extends CacheSupport {
 		return info;
 	}
 
+	public boolean isObjectSerialisationSupported() {
+		return true;
+	}
 }

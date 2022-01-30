@@ -38,7 +38,7 @@
 		<member-position>2</member-position>
 		<description>Extracts the given date part from the date object</description>
 		<argument>
-			<name>datepart</name>
+			<name>datePart</name>
 			<type>string</type>
 			<required>Yes</required>
 		<description>one of the following:
@@ -59,7 +59,7 @@
 			<name>date</name>
 			<type>datetime</type>
 			<required>Yes</required>
-			<description>dateobject the get part from</description>
+			<description>date object the get part from</description>
 		</argument>
 		<argument>
 			<name>locale</name>
@@ -491,7 +491,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 	<function>
 		<name>JavaNew</name>
 		<class>lucee.runtime.functions.other.JavaProxy</class>
-		<description>create a Java Proxy object (not a nobject instance)</description>
+		<description>create a Java Proxy object (not an object instance)</description>
 		
 		<argument>
 			<name>classname</name>
@@ -505,7 +505,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>object</type>
 			<required>No</required>
 			<description>
-			OSGi "Bundle-SymbolicName" or paths to libaries:
+			OSGi "Bundle-SymbolicName" or paths to libraries:
 			- Name: Bundle-SymbolicName, for example "com.example.acme"
 			- Paths: paths used to load the defined class, this can be a string containing a list of multiple paths or an array of with multiple string paths (directories containing class files or jar files)
 			</description>
@@ -516,8 +516,17 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>string</type>
 			<required>No</required>
 			<description>
-				When with argument "nameOrPath" a "Bundle-SymbolicName" was set, this argument takes a "Bundle-Version" otherwise a possible delimiter for the given string list from argument "nameOrPath".
-				
+				When the argument "nameOrPath" a "Bundle-SymbolicName" was set, this argument takes a "Bundle-Version" otherwise a possible delimiter for the given string list from argument "nameOrPath".
+			</description>
+		</argument>
+		<argument>
+			<name>relatedBundles</name>
+			<alias>requiredBundles</alias>
+			<type>array</type>
+			<required>No</required>
+			<description>
+				Additional related bundles required by the main bundle. Must be an array of structs that looks like this:
+				[{name:bundle-name,version:bundle-version}]
 			</description>
 		</argument>
 		<return>
@@ -700,7 +709,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<class>lucee.runtime.functions.string.MonthShortAsString</class>
 		<description>Returns the string label for the given month in short format</description>
 		<argument>
-			<name>monthnumber</name>
+			<name>monthNumber</name>
 			<type>number</type>
 			<required>Yes</required>
 			<description></description>
