@@ -11,8 +11,7 @@ jobs:
       uses: actions/setup-java@v2
       with:
         java-version: '17'
-        distribution: 'adopt'
-    - name: stash java jome      
+        distribution: 'adopt'    
   build:
     uses: ./.github/workflows/main.yml
     needs: [setUpJava17]
