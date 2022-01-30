@@ -14,6 +14,6 @@ jobs:
         java-version: '14'
         distribution: 'adopt'
     - name: Run Lucee Build
-      uses: ./.github/actions/main
+      uses: ./.github/workflows/main.yml
       env:
         LUCEE_TEST_JAVA_HOME: ${ env.JAVA_HOME }
