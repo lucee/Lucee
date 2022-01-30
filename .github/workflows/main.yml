@@ -1,6 +1,14 @@
 name: Build 6.0 
 
-on: [push, pull_request, workflow_dispatch]
+on: 
+  workflow_call:
+    inputs:
+      LUCEE_TEST_JAVA_HOME:
+        required: true
+        type: string
+  push: 
+  pull_request:
+  workflow_dispatch:
 
 #concurrency:
 #  group: ${{ github.head_ref }}
@@ -42,7 +50,7 @@ jobs:
     - uses: actions/checkout@v2
     - name: Set up JDK 8
       uses: actions/setup-java@v2
-      if: ${{ env.LUCEE_CUSTOM_JAVA_VERSION != 'true' }}
+      #if: ${{ env.LUCEE_TEST_JAVA_HOME != 'true' }}
       with:
         java-version: '8'
         distribution: 'adopt'
@@ -114,9 +122,10 @@ jobs:
         CI_DEPLOY_USERNAME: ${{ secrets.CI_DEPLOY_USERNAME }}
         CI_DEPLOY_PASSWORD: ${{ secrets.CI_DEPLOY_PASSWORD }}
         CI_DEPLOY_PASSPHRASE: ${{ secrets.CI_DEPLOY_PASSPHRASE }}
+        testJavaVersionHome: ${{ env.LUCEE_TEST_JAVA_HOME }}
       #run: ant -noinput -buildfile loader/build.xml
       run: |
-        if [ "${DO_DEPLOY}" == "true" ]; then        
+        if [ "${DO_DEPLOY}" == "true" ]; then
           echo "------- Maven Deploy on ${{ github.event_name }} -------";
           mvn -B -e -f loader/pom.xml clean deploy --settings travis-settings.xml;
         else
