@@ -79,6 +79,7 @@
     <!-- enable debug output from tests (i.e tests which crash are normally silently skipped)  -->
     <property name="testDebug" value=""/>
     <!-- allow running tests with a different java version  -->
+    <property environment="env"/>
     <property name="testJavaVersionHome" value="${env.testJavaVersionHome}"/>
     
     <property name="temp" location="${rootDir}/temp"/>
