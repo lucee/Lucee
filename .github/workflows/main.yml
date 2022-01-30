@@ -53,6 +53,7 @@ jobs:
       if: ${{ inputs.LUCEE_TEST_JAVA_VERSION != '' }}
       with:
         java-version: ${{ inputs.LUCEE_TEST_JAVA_VERSION }}
+        distribution: 'temurin'
     - name: Stash Test Java Version Home
       if: ${{ inputs.LUCEE_TEST_JAVA_VERSION != '' }}
       run: echo "LUCEE_TEST_JAVA_HOME=${{ env.JAVA_HOME }}" >> $GITHUB_ENV
@@ -60,6 +61,7 @@ jobs:
       uses: actions/setup-java@v2
       with:
         java-version: '8'
+        distribution: 'temurin'
     - name: Cache Lucee extensions
       uses: actions/cache@v2
       with:
