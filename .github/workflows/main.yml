@@ -1,6 +1,14 @@
-name: Java CI
+name: Build 5.3
 
-on: [push, pull_request, workflow_dispatch]
+on: 
+  workflow_call:
+    inputs:
+      LUCEE_TEST_JAVA_VERSION:
+        required: true
+        type: string
+  push: 
+  pull_request:
+  workflow_dispatch:
 
 concurrency:
   group: lucee-build
@@ -17,7 +25,7 @@ jobs:
         env:
           MSSQL_PID: Express
           ACCEPT_EULA: Y
-          SA_PASSWORD: Lucee!1433 # password must be complex or it won't start
+          SA_PASSWORD: Lucee!1433 # password must be complex or the service won't start
         ports:
           - 1433:1433
         options: --health-cmd="/opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P ${SA_PASSWORD} -Q 'SELECT 1' || exit 1"  --health-interval 10s --health-timeout 5s --health-retries 5
@@ -26,11 +34,20 @@ jobs:
       with:
         timezoneLinux: "UTC"
     - uses: actions/checkout@v2
+    - name: Set up Test Java Version
+      uses: actions/setup-java@v2
+      if: ${{ inputs.LUCEE_TEST_JAVA_VERSION != '' }}
+      with:
+        java-version: ${{ inputs.LUCEE_TEST_JAVA_VERSION }}
+        distribution: 'temurin'
+    - name: Stash Test Java Version Home
+      if: ${{ inputs.LUCEE_TEST_JAVA_VERSION != '' }}
+      run: echo "LUCEE_TEST_JAVA_EXEC=${{ env.JAVA_HOME }}/bin/java" >> $GITHUB_ENV
     - name: Set up JDK 8
       uses: actions/setup-java@v2
       with:
         java-version: '8'
-        distribution: 'adopt'
+        distribution: 'temurin'
     - name: Cache Lucee extensions
       uses: actions/cache@v2
       with:
@@ -95,6 +112,7 @@ jobs:
         CI_DEPLOY_USERNAME: ${{ secrets.CI_DEPLOY_USERNAME }}
         CI_DEPLOY_PASSWORD: ${{ secrets.CI_DEPLOY_PASSWORD }}
         CI_DEPLOY_PASSPHRASE: ${{ secrets.CI_DEPLOY_PASSPHRASE }}
+        testJavaVersionHome: ${{ env.LUCEE_TEST_JAVA_EXEC }}
       #run: ant -noinput -buildfile loader/build.xml
       run: |
         if [ "${{ github.event_name == 'push' }}" == "true" ]; then
