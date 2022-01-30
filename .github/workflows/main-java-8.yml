@@ -16,4 +16,4 @@ jobs:
     - name: Run Lucee Build
       uses: ./.github/actions/main.yml
       env:
-        LUCEE_CUSTOM_JAVA_VERSION: true
+        LUCEE_TEST_JAVA_HOME: ${ env.JAVA_HOME }
