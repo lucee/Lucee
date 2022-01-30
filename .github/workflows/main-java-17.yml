@@ -1,10 +1,9 @@
-name: Build with Java 17
+name: Test with Java 17
 
 on: [workflow_dispatch]
 
 jobs:
-  build:
-
+  setUpJava17:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -13,7 +12,9 @@ jobs:
       with:
         java-version: '17'
         distribution: 'adopt'
-    - name: Run Lucee Build
-      uses: ./.github/workflows/main.yml
-      env:
-        LUCEE_TEST_JAVA_HOME: ${ env.JAVA_HOME }
+    - name: stash java jome      
+  build:
+    uses: ./.github/workflows/main.yml
+    needs: [setUpJava17]
+    with:
+      LUCEE_TEST_JAVA_HOME: ${ env.JAVA_HOME }
