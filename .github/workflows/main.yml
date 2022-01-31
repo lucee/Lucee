@@ -129,16 +129,15 @@ jobs:
         # used by travis-settings.xml
         CI_DEPLOY_USERNAME: ${{ secrets.CI_DEPLOY_USERNAME }}
         CI_DEPLOY_PASSWORD: ${{ secrets.CI_DEPLOY_PASSWORD }}
-        CI_DEPLOY_PASSPHRASE: ${{ secrets.CI_DEPLOY_PASSPHRASE }}
-        testJavaVersionExec: ${{ env.LUCEE_TEST_JAVA_EXEC }}
+        CI_DEPLOY_PASSPHRASE: ${{ secrets.CI_DEPLOY_PASSPHRASE }}        
       #run: ant -noinput -buildfile loader/build.xml
       run: |
         if [ "${DO_DEPLOY}" == "true" ]; then
           echo "------- Maven Deploy on ${{ github.event_name }} -------";
-          mvn -B -e -f loader/pom.xml clean deploy --settings travis-settings.xml;
+          mvn -B -e -f loader/pom.xml clean deploy --settings travis-settings.xml -DtestJavaVersionExec="${{ env.LUCEE_TEST_JAVA_EXEC }}";
         else
           echo "------- Maven Install on ${{ github.event_name }} ---------";
-          mvn -B -e -f loader/pom.xml clean install
+          mvn -B -e -f loader/pom.xml clean install -DtestJavaVersionExec="${{ env.LUCEE_TEST_JAVA_EXEC }}"
         fi
     - name: Publish Test Results
       uses: EnricoMi/publish-unit-test-result-action@v1
