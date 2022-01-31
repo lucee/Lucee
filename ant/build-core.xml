@@ -201,7 +201,7 @@
     <echo message="Required-Extensions: ${reqExt.labels}"/>
     <echo message="Java: ${java.version}" />
     <echo message="Java: ${java.home}" />
-    <echo message="Optional Java Version for tests: ${testJavaVersionHome}" />
+    <echo message="Optional Java Version for tests: ${testJavaVersionExec}" />
 
     <!-- Create the time stamp -->
     <tstamp/>
