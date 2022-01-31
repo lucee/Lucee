@@ -130,7 +130,7 @@ jobs:
         CI_DEPLOY_USERNAME: ${{ secrets.CI_DEPLOY_USERNAME }}
         CI_DEPLOY_PASSWORD: ${{ secrets.CI_DEPLOY_PASSWORD }}
         CI_DEPLOY_PASSPHRASE: ${{ secrets.CI_DEPLOY_PASSPHRASE }}
-        testJavaVersionHome: ${{ env.LUCEE_TEST_JAVA_EXEC }}
+        testJavaVersionExec: ${{ env.LUCEE_TEST_JAVA_EXEC }}
       #run: ant -noinput -buildfile loader/build.xml
       run: |
         if [ "${DO_DEPLOY}" == "true" ]; then
