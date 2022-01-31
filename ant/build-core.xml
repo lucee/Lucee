@@ -78,9 +78,8 @@
     <property name="testSkip" value=""/>
     <!-- enable debug output from tests (i.e tests which crash are normally silently skipped)  -->
     <property name="testDebug" value=""/>
-    <!-- allow running tests with a different java version  -->
-    <property environment="env"/>
-    <property name="testJavaVersionHome" value="${env.testJavaVersionHome}"/>
+    <!-- allow running tests with a different java version (ant needs the exe not java home)  -->
+    <property name="testJavaVersionExec" value=""/>
     
     <property name="temp" location="${rootDir}/temp"/>
     <property name="loader" location="${temp}/loader"/>
@@ -202,7 +201,7 @@
     <echo message="Required-Extensions: ${reqExt.labels}"/>
     <echo message="Java: ${java.version}" />
     <echo message="Java: ${java.home}" />
-    <echo message="Optional Java Version for tests: ${testJavaVersionHome}" />
+    <echo message="Optional Java Version for tests: ${testJavaVersionExec}" />
 
     <!-- Create the time stamp -->
     <tstamp/>
@@ -558,9 +557,9 @@
       deploydir="${temp}/archive/base/lucee-server/deploy/"/>
 
     <listDirectory directory="${test}/lib" delimiter=":" returnvalue="test_jars"/>
-    <echots message="execute testcases ${testcases} with java ${testJavaVersionHome}"/>
+    <echots message="execute testcases ${testcases} with java ${testJavaVersionExec}"/>
     <!-- execute CFML testcases -->
-    <java classname="org.apache.tools.ant.launch.Launcher" dir="${ant}" fork="true" failonerror="true" errorproperty="exc2" jvm="${testJavaVersionHome}">
+    <java classname="org.apache.tools.ant.launch.Launcher" dir="${ant}" fork="true" failonerror="true" errorproperty="exc2" jvm="${testJavaVersionExec}">
       <classpath path="${java.class.path}">
           <pathelement location="${temp}/lucee.jar"/>
           <pathelement path="${runtime_classpath}"/>
