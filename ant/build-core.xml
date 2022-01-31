@@ -79,7 +79,7 @@
     <!-- enable debug output from tests (i.e tests which crash are normally silently skipped)  -->
     <property name="testDebug" value=""/>
     <!-- allow running tests with a different java version (ant needs the exe not java home)  -->
-    <property name="testJavaVersionExec" value="${testJavaVersionExec}"/>
+    <property name="testJavaVersionExec" value=""/>
     
     <property name="temp" location="${rootDir}/temp"/>
     <property name="loader" location="${temp}/loader"/>
