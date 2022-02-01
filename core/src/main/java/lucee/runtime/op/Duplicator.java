@@ -212,6 +212,15 @@ public final class Duplicator {
 			other = (Map) ClassUtil.loadInstance(map.getClass());
 		}
 		catch (ClassException e) {
+			if (map instanceof Serializable && deepCopy) { // Checks deepCopy too before using JavaConverter.serialize
+				try {
+					String ser = JavaConverter.serialize((Serializable) map);
+					return (Map) JavaConverter.deserialize(ser);
+
+				}
+				catch (Exception t) {
+				}
+			}
 			other = new HashMap();
 		}
 		boolean inside = ThreadLocalDuplication.set(map, other);
