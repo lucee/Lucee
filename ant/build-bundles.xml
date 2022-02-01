@@ -113,7 +113,7 @@
 				ignoredAvailable.push( " - " + b + "\t[" + availableBundles[b].path + "]" );
 		}
 		if ( ignoredAvailable.length ){
-			echo( "WARNING: pom.xml bundles not defined in MANIFEST.MF:" );
+			echo( "WARNING: these bundles defined in pom.xml where not referenced in MANIFEST.MF:" );
 			echo( ignoredAvailable.join("\n") );
 		}
 
@@ -122,7 +122,9 @@
 				echo( "" );
 			}
 			echo( "ERROR: Missing Required-Bundles from MANIFEST.MF:\n " + missingBundles.join("\n") );
-			echo( "Unmatched  Bundles: \n" + ignoredAvailable.join("\n") ); 
+			if ( ignoredAvailable.length ){
+				echo( "\HINT: Perhaps the missing bundle(s) are listed above?");
+			}
 			throw "Missing Required Bundles: " + missingBundles.join("\n"); 
 		}
 		echo( "" );
