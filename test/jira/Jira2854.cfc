@@ -16,7 +16,7 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  * 
  ---><cfscript>
-component extends="org.lucee.cfml.test.LuceeTestCase" {
+component extends="org.lucee.cfml.test.LuceeTestCase" skip = true{
 	public void function testAnnotations(){
         try {
             var udfs = getComponentMetadata("jira2854.test").functions;
