@@ -29,6 +29,7 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileTime;
 
 import lucee.commons.io.ModeUtil;
+import lucee.commons.io.SystemUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourceMetaData;
 import lucee.commons.io.res.filter.AndResourceFilter;
@@ -534,6 +535,7 @@ public final class Directory extends TagImpl {
 		sct.setEL("isReadable", directory.isReadable());
 		sct.setEL(KeyConstants._path, directory.getAbsolutePath());
 		sct.setEL("dateLastModified", new DateTimeImpl(pc.getConfig()));
+		if (SystemUtil.isUnix()) sct.setEL(KeyConstants._mode, new ModeObjectWrap(directory));
 		File file = new File(Caster.toString(directory));
 		BasicFileAttributes attr;
 		try {
