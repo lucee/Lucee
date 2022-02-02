@@ -60,21 +60,25 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 	public void function testPDFOrientation(){
 		var path=getDirectoryFromPath(getCurrentTemplatePath())&"test-orientation.pdf";
-		document pagetype="letter" orientation="landscape" filename=path overwrite="true" {
-			documentsection { echo("I am landscape"); }
-			documentsection orientation="portrait" { echo("I am portrait"); }
-			documentsection orientation="landscape" { echo("I am landscape"); }
+		try{
+			document pagetype="letter" orientation="landscape" filename=path overwrite="true" {
+				documentsection { echo("I am landscape"); }
+				documentsection orientation="portrait" { echo("I am portrait"); }
+				documentsection orientation="landscape" { echo("I am landscape"); }
+			}
+			assertTrue(isPDFFile(path));
+
+			// TODO get pagesizes based on the new lib pageSizes = getPageSizes(ExpandPath(path));
+
+			expected = [
+				{ height: 612, width: 792 },
+				{ height: 792, width: 612 },
+				{ height: 612, width: 792 }
+			];
 		}
-		assertTrue(isPDFFile(path));
-
-		// TODO get pagesizes based on the new lib pageSizes = getPageSizes(ExpandPath(path));
-
-		expected = [
-			{ height: 612, width: 792 },
-			{ height: 792, width: 612 },
-			{ height: 612, width: 792 }
-		];
-
+		finally {
+			if(fileExists(path))fileDelete(path);
+		}
 		// TODO assertEquals(expected, pageSizes);
 	}
 
