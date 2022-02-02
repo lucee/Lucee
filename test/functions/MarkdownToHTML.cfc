@@ -22,12 +22,12 @@ This is code!
      - Second nested list item
 ");
 
-variables.htmlString=trim("<h2>Headline with ID</h2>
+variables.htmlString=trim('<h2>Headline with ID</h2>
 <h2>Another headline with ID</h2>
 <ul>
 <li>List with ID</li>
 </ul>
-<p>Links: <a href="#headid">Foo</a></p>
+<p>Links: <a href="##headid">Foo</a></p>
 <p>This is <strong><em>TXTMARK</em></strong>
 This is <strong><em>TXTMARK</em></strong></p>
 <p><code>
@@ -39,7 +39,7 @@ This is code!
 <li>Second nested list item</li>
 </ul>
 </li>
-</ol>");
+</ol>');
 	
 	function run( testResults, testBox ){
 		describe( title="Testcase for markdownToHTML()", body=function() {
