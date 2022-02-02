@@ -52,7 +52,7 @@ component {
 						throw( object=meta._exception );
 					}
 				}
-				return meta;
+				return meta._exception.message;
 			}
 
 			if (request.testSkip && structKeyExists(meta, "skip") && meta.skip ?: false)
