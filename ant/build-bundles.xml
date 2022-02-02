@@ -59,7 +59,7 @@
 			};
 		}
 
-		if (true) { // debug
+		if (false) { // debug
 			echo( "---------- Bundles -------------------" );
 			echo( bundles.join(",\n"), true );
 

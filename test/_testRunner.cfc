@@ -42,10 +42,16 @@ component {
 					break;
 			};
 			var meta = getTestMeta( arguments.path );
-			if ( !isStruct( meta ) ){
-				// TODO bad cfc tickets get ignored
-				if ( request.testDebug )
-					SystemOutput( "ERROR: [" & arguments.path & "] threw " & meta, true );
+			if ( structKeyExists( meta, "_exception" ) ) {
+				if ( request.testDebug ){
+					SystemOutput( "ERROR: [" & arguments.path & "] threw " & meta._exception.message, true );
+				} else { //} if ( !request.testSkip ){
+					if ( fileRead( arguments.path ) contains "org.lucee.cfml.test.LuceeTestCase" ){
+						// throw an error on bad cfc test cases
+						SystemOutput( "ERROR: [" & arguments.path & "] threw " & meta._exception.message, true );
+						throw( object=meta._exception );
+					}
+				}
 				return meta;
 			}
 
@@ -82,7 +88,9 @@ component {
 			} catch ( e ){
 				if ( request.testDebug )
 					systemOutput( cfcatch, true );
-				return cfcatch.message;
+				return {
+					"_exception": cfcatch
+				}
 			}
 			return meta;
 		};
