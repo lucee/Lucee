@@ -18,18 +18,18 @@
  ---><cfscript>
 component extends="org.lucee.cfml.test.LuceeTestCase" skip = true{
 	public void function testAnnotations(){
-        try {
-            var udfs = getComponentMetadata("jira2854.test").functions;
-            var res = "";
-            loop array="#udfs#" item="local.udf" {
-                res &= structKeyExists(udf, 'inline_annotation') & ",";
-                res &= structKeyExists(udf, 'comment_annotation') & ",";
-		    }
-        }
-        catch(any e) {
-            res = e.type;
-        }
-        expect(res).tobe("true,true,true,true,");
+		try {
+			var udfs = getComponentMetadata("jira2854.test").functions;
+			var res = "";
+			loop array="#udfs#" item="local.udf" {
+				res &= structKeyExists(udf, 'inline_annotation') & ",";
+				res &= structKeyExists(udf, 'comment_annotation') & ",";
+			}
+		}
+		catch(any e) {
+			res = e.type;
+		}
+		expect(res).tobe("true,true,true,true,");
 	}
 } 
 </cfscript>
