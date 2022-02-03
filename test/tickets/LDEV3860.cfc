@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" skip=true {
+component extends="org.lucee.cfml.test.LuceeTestCase" {
     function run( testResults, testBox ) {
         describe("Testcase for LDEV-3860", function() {
             it( title="Checking the exception occured in transaction with ORM", body=function( currentSpec ) {
@@ -9,7 +9,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" skip=true {
             });
         });
     }
-    
+
     private string function createURI(string calledName) {
         var baseURI = "/test/#listLast(getDirectoryFromPath(getCurrenttemplatepath()),"\/")#/";
         return baseURI&""&calledName;
