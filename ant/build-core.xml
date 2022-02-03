@@ -821,7 +821,6 @@
 
 <target name="__build_archives" depends="buildJars">
 
-
     <!-- first we copy the jars in place otherwise, Lucee downloads them  -->
     <echots message="copy bundles in place"/>
     <addBundles 
@@ -837,8 +836,6 @@
       </fileset>
     </copy>
 
-
-
     <echots message="getting and unzip testbox"/>
     <!-- now we need to get the testbox source -->
     <unzip src="${temp}/testbox-${testboxVersion}.zip" dest="${temp}/testbox"/>
@@ -847,7 +844,7 @@
 
     <echots message="building different archives that get bundled (admin,doc) with help of the temporary generated lucee.jar"/>
     <!-- build the lucee-context.lar -->
-    <java classname="org.apache.tools.ant.launch.Launcher" dir="${ant}" fork="true" failonerror="false" errorproperty="exc">
+    <java classname="org.apache.tools.ant.launch.Launcher" dir="${ant}" fork="true" failonerror="true" errorproperty="exc">
       <classpath path="${java.class.path}">
           <pathelement location="${temp}/lucee.jar"/>
           <pathelement path="${runtime_classpath}"/>
@@ -867,6 +864,8 @@
       <!-- this checks to see that all the required bundles are provided, so that none are missing -->
       <jvmarg value="-Dlucee.enable.bundle.download=false"/>
       <jvmarg value="-Dlucee.cli.printExpections=true"/>
+      <!-- fail the build if there are any runtime  OSGI errors -->
+      <jvmarg value="-Dlucee.osgi.fatal=true"/>
     </java>
     <echo>${exc}</echo>
 
@@ -903,6 +902,8 @@
       <jvmarg value="-Dlucee.enable.bundle.download=trueanf fast"/>
       <jvmarg value="-Dlucee.full.null.support=false"/>
       <jvmarg value="-Dlucee.cli.printExpections=true"/>
+      <!-- fail the build if there are any runtime  OSGI errors -->
+      <jvmarg value="-Dlucee.osgi.fatal=true"/>
       <!--
       <jvmarg value="-Xdebug"/>
       <jvmarg value="-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5000"/>

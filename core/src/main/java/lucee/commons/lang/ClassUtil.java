@@ -21,6 +21,7 @@ package lucee.commons.lang;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PrintStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -57,6 +58,8 @@ import lucee.runtime.type.Array;
 import lucee.runtime.type.util.ListUtil;
 
 public final class ClassUtil {
+
+	public static final PrintStream CONSOLE_ERR = System.err;
 
 	/**
 	 * @param className
@@ -160,6 +163,15 @@ public final class ClassUtil {
 			if (version == null) ce = new ClassException("In the OSGi Bundle with the name [" + name + "] was no class with name [" + className + "] found." + appendix);
 			else ce = new ClassException(
 					"In the OSGi Bundle with the name [" + name + "] and the version [" + version + "] was no class with name [" + className + "] found." + appendix);
+
+			if (SystemUtil.getSystemPropOrEnvVar("lucee.osgi.fatal", "").equalsIgnoreCase("true")) {
+				String msg = "Lucee OSGI error. As LUCEE_OSGI_FATAL=true, shutting down.";
+				CONSOLE_ERR.println(e);
+				CONSOLE_ERR.println(msg);
+				//logDeploy.log(Log.LEVEL_ERROR, "osgi", msg);
+				//shutdownFelix();
+				System.exit(1);
+			}
 
 			ce.initCause(e);
 			throw ce;
