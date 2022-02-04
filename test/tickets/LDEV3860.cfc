@@ -1,9 +1,19 @@
 component extends="org.lucee.cfml.test.LuceeTestCase" {
+    function beforeAll(){
+        variables.uri = createURI("LDEV3860");
+    }
+    
     function run( testResults, testBox ) {
-        describe("Testcase for LDEV-3860", function() {
-            it( title="Checking the exception occured in transaction with ORM", body=function( currentSpec ) {
+        describe("Testcase for LDEV-3859 & LDEV-3860", function() {
+            it( title="LDEV-3860 -- Checking the exception occured in transaction with ORM", body=function( currentSpec ) {
                     local.result = _InternalRequest(
-                        template : "#createURI("LDEV3860")#\test.cfm"
+                        template : "#uri#\LDEV3860.cfm"
+                    );
+                expect(trim(result.filecontent)).toBe(true);
+            });
+            it( title="LDEV-3859 -- Checking the multiple transactions with ORM and query", body=function( currentSpec ) {
+                    local.result = _InternalRequest(
+                        template : "#uri#\LDEV3859.cfm"
                     );
                 expect(trim(result.filecontent)).toBe(true);
             });

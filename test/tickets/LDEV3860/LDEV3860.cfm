@@ -9,3 +9,4 @@
         writeOutput(findNoCase("foo", e.message) != 0);
     }
 </cfscript>
+
