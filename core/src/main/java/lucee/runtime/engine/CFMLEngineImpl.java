@@ -265,7 +265,6 @@ public final class CFMLEngineImpl implements CFMLEngine {
 				throw Caster.toPageRuntimeException(e);
 			}
 		}
-
 		this.info = new InfoImpl(bundleCollection == null ? null : bundleCollection.core);
 		Thread.currentThread().setContextClassLoader(this.getClass().getClassLoader()); // MUST better location for this
 
@@ -427,6 +426,15 @@ public final class CFMLEngineImpl implements CFMLEngine {
 			// start the controller
 			LogUtil.log(cs, Log.LEVEL_INFO, "startup", "Start CFML Controller");
 			controler.start();
+		}
+
+		// remove old log4j bundles FUTURE remove
+		try {
+			OSGiUtil.removeLocalBundle("log4j", OSGiUtil.toVersion("1.2.16"), null, true, true);
+			OSGiUtil.removeLocalBundle("log4j", OSGiUtil.toVersion("1.2.17"), null, true, true);
+		}
+		catch (Exception e) {
+			LogUtil.log(cs, "startup", e);
 		}
 	}
 
