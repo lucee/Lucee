@@ -89,35 +89,44 @@ public final class SQLImpl implements SQL, Serializable {
 	 * 
 	 * @return
 	 */
+
 	@Override
 	public String toString() {
-		if (items.length == 0) return strSQL;
 
-		StringBuilder sb = new StringBuilder(256);
-		int pos, last = 0;
-		for (int i = 0; i < items.length; i++) {
+		StringBuilder sb = new StringBuilder();
+		int sqlLen = strSQL.length();
+		char c, quoteType = 0, p = 0;
+		boolean inQuotes = false;
+		int index = 0;
+		for (int i = 0; i < sqlLen; i++) {
+			c = strSQL.charAt(i);
 
-			pos = strSQL.indexOf('?', last);
-			if (pos == -1) {
-				sb.append(strSQL.substring(last));
-				break;
+			if (c == '"' || c == '\'') {
+				if (inQuotes) {
+					if (c == quoteType) {
+						if ('\\' != p) {
+							inQuotes = false;
+						}
+					}
+				}
+				else {
+					quoteType = c;
+					inQuotes = true;
+				}
+			}
+			else if (!inQuotes && c == '?') {
+				if ((index + 1) > items.length) throw new RuntimeException("there are more question marks in the SQL than params defined");
+				if (items[index].isNulls()) sb.append("null");
+				else sb.append(SQLCaster.toString(items[index]));
+				index++;
 			}
 
-			if (pos < (strSQL.length() - 1) && strSQL.charAt(pos + 1) == '?') {
-				// the '?' is escaped
-				sb.append(strSQL.substring(last, pos + 1));
-				last = pos + 2; // skip 2 chars to account for the escape char
-				i--; // keep i unchanged for the next iteration
-			}
 			else {
-				sb.append(strSQL.substring(last, pos));
-				if (items[i].isNulls()) sb.append("null");
-				else sb.append(SQLCaster.toString(items[i]));
-				last = pos + 1;
+				sb.append(c);
 			}
-		}
+			p = c;
 
-		sb.append(strSQL.substring(last));
+		}
 		return sb.toString();
 	}
 

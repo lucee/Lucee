@@ -138,16 +138,20 @@ public class QueryParamConverter {
 
 		StringBuilder sb = new StringBuilder();
 		int sqlLen = sql.length(), initialParamSize = items.size();
-		char c, quoteType = 0;
+		char c, quoteType = 0, p = 0, pp = 0;
 		boolean inQuotes = false;
 		int qm = 0, _qm = 0;
+
 		for (int i = 0; i < sqlLen; i++) {
 			c = sql.charAt(i);
 
 			if (c == '"' || c == '\'') {
 				if (inQuotes) {
 					if (c == quoteType) {
-						inQuotes = false;
+						if ('\\' != p) {
+							inQuotes = false;
+						}
+
 					}
 				}
 				else {
@@ -191,7 +195,7 @@ public class QueryParamConverter {
 				}
 			}
 
-			if (c == '?') {
+			if (c == '?' && !inQuotes) {
 				int len = items.get(qm).size();
 				for (int j = 1; j <= len; j++) {
 					if (j > 1) sb.append(',');
@@ -202,10 +206,10 @@ public class QueryParamConverter {
 			else {
 				sb.append(c);
 			}
+			pp = p;
+			p = c;
 		}
-
 		SQLItems<SQLItem> finalItems = flattenItems(items);
-
 		return new SQLImpl(sb.toString(), finalItems.toArray(new SQLItem[finalItems.size()]));
 	}
 
