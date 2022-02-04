@@ -30,6 +30,7 @@ import lucee.cli.servlet.ServletConfigImpl;
 import lucee.cli.servlet.ServletContextImpl;
 import lucee.loader.engine.CFMLEngine;
 import lucee.loader.engine.CFMLEngineFactory;
+import lucee.loader.util.Util;
 
 public abstract class BaseScriptEngineFactory implements ScriptEngineFactory {
 
@@ -55,7 +56,7 @@ public abstract class BaseScriptEngineFactory implements ScriptEngineFactory {
 				
 				// Allow override of context root
 				String rootPath = System.getProperty("lucee.cli.contextRoot");
-				if( rootPath == null ) {
+				if( Util.isEmpty(rootPath) ) {
 					// working directory that the java command was called from
 					rootPath = ".";
 				}
