@@ -1976,7 +1976,7 @@ sort direction:
 			<name>type</name>
 			<type>string</type>
 			<required>yes</required>
-			<description>cache type, valid values are [object,resource,template,query]</description>
+			<description>cache type, valid values are [object, template, query, resource, function, include, http, file, webservice]</description>
 		</argument>
 		<return>
 			<type>string</type>
