@@ -330,7 +330,6 @@ Specifies how Lucee stores session variables:
 			<type>boolean</type>
 			<name>cgiReadonly</name>
 			<required>false</required>
-			<default-value>true</default-value>
 			<rtexprvalue>true</rtexprvalue>
 			<description>if set to true, the CGI Scope is readonly.</description>
 		</attribute>
