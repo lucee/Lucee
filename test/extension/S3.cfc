@@ -23,7 +23,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="s3"	{
 	
 	public function setUp(){
 		if(!(isNotSupported() || isNotSupportedCustom() || isNotSupportedGoogle())) return;
-		bucketName = "lucee-testsuite";
+		bucketName = "lucee-s3ext-#lcase(hash(CreateGUID()))#";
 		variables.s3ExtVersion = extensionList().filter( function( row ){ return row.name contains "s3" }).version;
 		systemOutput( "", true );
 		systemOutput( "Running S3 Extension: #variables.s3ExtVersion#", true );

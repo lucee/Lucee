@@ -5,7 +5,7 @@
 	}
 
 	s3Details = getCredentials();
-	mitrahsoftBucketName = "ldev1176";
+	mitrahsoftBucketName = ""lucee-ldev1176-#lcase(hash(CreateGUID()))#";";
 	base = "s3://#s3Details.ACCESS_KEY_ID#:#s3Details.SECRET_KEY#@";
 	baseWithBucketName = "s3://#s3Details.ACCESS_KEY_ID#:#s3Details.SECRET_KEY#@/#mitrahsoftBucketName#";
 
