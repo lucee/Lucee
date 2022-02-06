@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" {
+component extends="org.lucee.cfml.test.LuceeTestCase" skip=true {
     function run( testResults, testBox ) {
         describe("Testcase for LDEV-3841", function() {
             it( title="cfapplication cgiReadOnly=false", body=function( currentSpec ) {    
