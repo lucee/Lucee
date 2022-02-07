@@ -48,8 +48,11 @@ component {
 				} else { //} if ( !request.testSkip ){
 					if ( fileRead( arguments.path ) contains "org.lucee.cfml.test.LuceeTestCase" ){
 						// throw an error on bad cfc test cases
-						SystemOutput( "ERROR: [" & arguments.path & "] threw " & meta._exception.message, true );
-						throw( object=meta._exception );
+						// but ignore errors when using any labels, as some extensions might not be installed, causing compile syntax errors
+						if ( len( request.testLabels ) eq 0 ) { 
+							SystemOutput( "ERROR: [" & arguments.path & "] threw " & meta._exception.message, true );
+							throw( object=meta._exception );
+						}
 					}
 				}
 				return meta._exception.message;
