@@ -127,9 +127,9 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
-  	  <groupId>org.lucee</groupId>
+  	  <groupId>org.apache.commons</groupId>
   	  <artifactId>commons-compress</artifactId>
-  	  <version>1.9.0</version>
+  	  <version>1.21</version>
       <scope>provided</scope>
     </dependency>
 	  <!--Axis?
