@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
+import lucee.print;
 import lucee.commons.db.DBUtil;
 import lucee.commons.digest.HashUtil;
 import lucee.commons.lang.Pair;
@@ -94,6 +95,7 @@ public final class DatasourceManagerImpl implements DataSourceManager {
 					if (isolation != Connection.TRANSACTION_NONE) DBUtil.setTransactionIsolationEL(newDC.getConnection(), isolation);
 				}
 				transConnsReg.put(ds, newDC);
+				if (newDC.getClass().getName().indexOf("ORM") != -1) print.ds(newDC.getClass().getName());
 				return newDC;
 			}
 
@@ -112,6 +114,7 @@ public final class DatasourceManagerImpl implements DataSourceManager {
 							if (isolation != Connection.TRANSACTION_NONE) existingDC.setTransactionIsolation(isolation);
 						}
 					}
+					if (existingDC.getClass().getName().indexOf("ORM") != -1) print.ds(existingDC.getClass().getName());
 					return existingDC;
 				}
 				throw new DatabaseException("can't use different connections to the same datasource inside a single transaction.", null, null, existingDC);
@@ -129,6 +132,7 @@ public final class DatasourceManagerImpl implements DataSourceManager {
 					if (isolation != Connection.TRANSACTION_NONE) existingDC.setTransactionIsolation(isolation);
 				}
 			}
+			if (existingDC.getClass().getName().indexOf("ORM") != -1) print.ds(existingDC.getClass().getName());
 			return existingDC;
 		}
 		catch (SQLException e) {
@@ -180,6 +184,7 @@ public final class DatasourceManagerImpl implements DataSourceManager {
 	}
 
 	private void releaseConnection(PageContext pc, DatasourceConnection dc, boolean ignoreRequestExclusive) {
+		if (dc != null && dc.getClass().getName().indexOf("ORM") != -1) print.ds(dc.getClass().getName());
 		if (autoCommit && (ignoreRequestExclusive || !((DataSourcePro) dc.getDatasource()).isRequestExclusive())) {
 			config.getDatasourceConnectionPool().releaseDatasourceConnection(dc, pc != null && ((PageContextImpl) pc).getTimeoutStackTrace() != null);
 		}
