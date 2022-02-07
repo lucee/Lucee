@@ -1,27 +1,15 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" skip=true {
+component extends="org.lucee.cfml.test.LuceeTestCase" skip="true" {
 
-
-    function beforeAll() {
-        systemOutput("CGIReadOnly:" & getApplicationSettings().CGIReadOnly, true);
-    }
-
-    function afterAll() {
-        systemOutput("CGIReadOnly:" & getApplicationSettings().CGIReadOnly, true);
-    }
-
-    public function run( testResults, testBox ) {
+    private function run( testResults, testBox ) {
         describe("Testcase for LDEV-3841", function() {
             it( title="cfapplication cgiReadOnly=false", body=function( currentSpec ) {
                 expect( cgiReadOnlyTest( 1 ) ).toBe( "writable:1" );
-                systemOutput("CGIReadOnly:" & getApplicationSettings().CGIReadOnly, true);
             });
             it( title="cfapplication without setting cgiReadOnly", body=function( currentSpec ) {
                 expect( cgiReadOnlyTest( 2 ) ).toBe( "writable:2" );
-                systemOutput("CGIReadOnly:" & getApplicationSettings().CGIReadOnly, true);
             });
             it( title="cfapplication cgiReadOnly=true", body=function( currentSpec ) {
                 expect( cgiReadOnlyTest( 3 ) ).toBe( "cgiReadOnly:3" );
-                systemOutput("CGIReadOnly:" & getApplicationSettings().CGIReadOnly, true);
             });
         });
     }
