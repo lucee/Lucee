@@ -1976,7 +1976,7 @@ sort direction:
 			<name>type</name>
 			<type>string</type>
 			<required>yes</required>
-			<description>cache type, valid values are [object,resource,template,query]</description>
+			<description>cache type, valid values are [object, template, query, resource, function, include, http, file, webservice]</description>
 		</argument>
 		<return>
 			<type>string</type>
@@ -6566,19 +6566,27 @@ if this attribute is not provided all types are returned.</description>
 		<name>getTempFile</name>
 		<class>lucee.runtime.functions.system.GetTempFile</class>
 		<description>Creates a temporary file in a directory whose name starts with
-        (at most) the first three characters of prefix.</description>
+        (at most) the first three characters of prefix, with an optional extension, default is .tmp.</description>
 		<argument>
 			<name>dir</name>
 			<type>string</type>
 			<required>Yes</required>
-		<description>Directory name</description>
-    </argument>
+			<description>Directory name</description>
+		</argument>
 		<argument>
 			<name>prefix</name>
 			<type>string</type>
 			<required>Yes</required>
-		<description>Prefix of a temporary file to create in the dir directory</description>
-    </argument>
+			<description>Prefix of a temporary file to create in the dir directory</description>
+		</argument>
+		<argument>
+			<name>extension</name>
+			<alias>ext</alias>
+			<type>string</type>
+			<required>No</required>
+			<Default>tmp</Default>
+			<description>Extension for the temporary file, default is .tmp</description>
+		</argument>
 		<return>
 			<type>string</type>
 		</return>
