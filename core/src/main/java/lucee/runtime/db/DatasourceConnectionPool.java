@@ -38,7 +38,6 @@ import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.DatabaseException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
-import lucee.runtime.orm.ORMDatasourceConnection;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.util.ArrayUtil;
@@ -170,7 +169,6 @@ public class DatasourceConnectionPool {
 		if (dc == null) return;
 		if (!closeIt && dc.getDatasource().getConnectionTimeout() == 0) closeIt = true; // smaller than 0 is infiniti
 		if (closeIt) IOUtil.closeEL(dc.getConnection());
-		if (dc instanceof ORMDatasourceConnection) return;
 
 		DCStack stack = getDCStack(dc.getDatasource(), dc.getUsername(), dc.getPassword());
 		synchronized (stack) {
