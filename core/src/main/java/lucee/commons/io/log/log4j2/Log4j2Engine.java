@@ -31,6 +31,7 @@ import lucee.commons.io.log.log4j2.appender.DatasourceAppender;
 import lucee.commons.io.log.log4j2.appender.ResourceAppender;
 import lucee.commons.io.log.log4j2.appender.TaskAppender;
 import lucee.commons.io.log.log4j2.layout.ClassicLayout;
+import lucee.commons.io.log.log4j2.layout.DataDogLayout;
 import lucee.commons.io.log.log4j2.layout.XMLLayout;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
@@ -138,6 +139,9 @@ public class Log4j2Engine extends LogEngine {
 		if ("pattern".equalsIgnoreCase(className) || "org.apache.log4j.PatternLayout".equals(className) || "org.apache.logging.log4j.core.layout.PatternLayout".equals(className)) {
 			return new ClassDefinitionImpl(PatternLayout.class);
 		}
+		if ("datadog".equalsIgnoreCase(className) || className.indexOf(".DataDogLayout") != -1) {
+			return new ClassDefinitionImpl(DataDogLayout.class);
+		}
 
 		return new ClassDefinitionImpl(className);
 	}
@@ -232,6 +236,10 @@ public class Log4j2Engine extends LogEngine {
 
 				layout = builder.build();
 			}
+			// DataDog Layout
+			else if (cd.getClassName().indexOf(".DataDogLayout") != -1) {
+				layout = new DataDogLayout();
+			}
 			// class definition
 			else {
 				// MUST that will no longer work that way
@@ -258,7 +266,6 @@ public class Log4j2Engine extends LogEngine {
 			}
 		}
 		if (layout != null) return layout;
-
 		return new ClassicLayout();
 	}
 
