@@ -30,35 +30,18 @@ public class DataDogLayout extends Layout {
 	private DateFormat format;
 	private CFMLEngine engine;
 	private Cast caster;
-	private boolean json;
-	private boolean cache = true;
-	private Class<?> correlationIdentifierClass;
-	private Method getTraceId;
-	private Method getSpanId;
-	private BIF serializeJSONBIF;
-	private Object[] ids;
+
+	private static Class<?> correlationIdentifierClass;
+	private static Method getTraceId;
+	private static Method getSpanId;
+	private static BIF serializeJSONBIF;
+	private static Object[] ids;
 
 	public DataDogLayout() {
 		engine = CFMLEngineFactory.getInstance();
 		caster = engine.getCastUtil();
 		format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
-	}
-
-	public void setJson(boolean json) {
-		this.json = json;
-	}
-
-	public void setJson(Object json) throws PageException {
-		this.json = caster.toBooleanValue(json);
-	}
-
-	public void setCache(boolean cache) {
-		this.cache = cache;
-	}
-
-	public void setCache(Object cache) throws PageException {
-		this.cache = caster.toBooleanValue(cache);
 	}
 
 	@Override
@@ -205,7 +188,7 @@ public class DataDogLayout extends Layout {
 
 	private Object[] getCorrelationIdentifier() {
 
-		if (cache && ids != null) return ids;
+		if (ids != null) return ids;
 
 		try {
 			if (correlationIdentifierClass == null) {
@@ -227,7 +210,7 @@ public class DataDogLayout extends Layout {
 		}
 		catch (Exception e) {
 			// we cannot send this to a logger, because that could cause an infiniti loop
-			e.printStackTrace();
+			// e.printStackTrace();
 		}
 		/// CorrelationIdentifier.getTraceId()
 
