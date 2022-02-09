@@ -238,7 +238,7 @@ component {
 	}
 
 	public function verifyS3 ( s3 ) localmode=true{
-		bucketName = "lucee-testsuite";
+		bucketName = "luceetestsuite";
 		base = "s3://#arguments.s3.ACCESS_KEY_ID#:#arguments.s3.SECRET_KEY#@/#bucketName#";
 		DirectoryExists( base );		
 		return "s3 Connection Verified";

@@ -24,7 +24,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	public function setUp(){
 		if(isNotSupported()) return;
 		var s3Details = getCredentials();
-		var bucketName = "lucee-testsuite";
+		var bucketName = "luceetestsuite";
 		base = "s3://#s3Details.ACCESS_KEY_ID#:#s3Details.SECRET_KEY#@/#bucketName#";
 
 	}

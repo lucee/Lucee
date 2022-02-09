@@ -8,7 +8,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 	function beforeAll() skip="isNotSupported"{
 		if(isNotSupported()) return;
 		s3Details = getCredentials();
-		mitrahsoftBucketName = "lucee-testsuite";
+		mitrahsoftBucketName = "luceetestsuite";
 		base = "s3://#s3Details.ACCESS_KEY_ID#:#s3Details.SECRET_KEY#@";
 		baseWithBucketName = "s3://#s3Details.ACCESS_KEY_ID#:#s3Details.SECRET_KEY#@/#mitrahsoftBucketName#";
 		// for skipping rest of the cases, if error occurred.
