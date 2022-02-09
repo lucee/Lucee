@@ -26,6 +26,7 @@ import lucee.commons.io.log.log4j.appender.DatasourceAppender;
 import lucee.commons.io.log.log4j.appender.RollingResourceAppender;
 import lucee.commons.io.log.log4j.appender.TaskAppender;
 import lucee.commons.io.log.log4j.layout.ClassicLayout;
+import lucee.commons.io.log.log4j.layout.DataDogLayout;
 import lucee.commons.io.log.log4j.layout.DatasourceLayout;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
@@ -110,6 +111,7 @@ public class Log4jEngine extends LogEngine {
 		if ("html".equalsIgnoreCase(className)) return new ClassDefinitionImpl(HTMLLayout.class);
 		if ("xml".equalsIgnoreCase(className)) return new ClassDefinitionImpl(XMLLayout.class);
 		if ("pattern".equalsIgnoreCase(className)) return new ClassDefinitionImpl(PatternLayout.class);
+		if ("datadog".equalsIgnoreCase(className) || className.indexOf(".DataDogLayout") != -1) return new ClassDefinitionImpl(DataDogLayout.class);
 
 		return new ClassDefinitionImpl(className);
 	}
@@ -138,91 +140,99 @@ public class Log4jEngine extends LogEngine {
 	@Override
 	public final Object getLayout(ClassDefinition cd, Map<String, String> layoutArgs, ClassDefinition cdAppender, String name) {
 		if (layoutArgs == null) layoutArgs = new HashMap<String, String>();
+		try {
+			// Layout
+			Layout layout = null;
 
-		// Layout
-		Layout layout = null;
-
-		if (cd != null && cd.hasClass()) {
-			// Classic Layout
-			if (ClassicLayout.class.getName().equalsIgnoreCase(cd.getClassName())) {
-				layout = new ClassicLayout();
-			}
-			// Datasource Layout
-			else if (DatasourceLayout.class.getName().equalsIgnoreCase(cd.getClassName())) {
-				layout = new DatasourceLayout(name);
-			}
-			// HTML Layout
-			else if (HTMLLayout.class.getName().equalsIgnoreCase(cd.getClassName())) {
-				HTMLLayout html = new HTMLLayout();
-				layout = html;
-
-				// Location Info
-				Boolean locInfo = Caster.toBoolean(layoutArgs.get("locationinfo"), null);
-				if (locInfo != null) html.setLocationInfo(locInfo.booleanValue());
-				else locInfo = Boolean.FALSE;
-				layoutArgs.put("locationinfo", locInfo.toString());
-
-				// Title
-				String title = Caster.toString(layoutArgs.get("title"), "");
-				if (!StringUtil.isEmpty(title, true)) html.setTitle(title);
-				layoutArgs.put("title", title);
-
-			}
-			// XML Layout
-			else if (XMLLayout.class.getName().equalsIgnoreCase(cd.getClassName())) {
-				XMLLayout xml = new XMLLayout();
-				layout = xml;
-
-				// Location Info
-				Boolean locInfo = Caster.toBoolean(layoutArgs.get("locationinfo"), null);
-				if (locInfo != null) xml.setLocationInfo(locInfo.booleanValue());
-				else locInfo = Boolean.FALSE;
-				layoutArgs.put("locationinfo", locInfo.toString());
-
-				// Properties
-				Boolean props = Caster.toBoolean(layoutArgs.get("properties"), null);
-				if (props != null) xml.setProperties(props.booleanValue());
-				else props = Boolean.FALSE;
-				layoutArgs.put("properties", props.toString());
-
-			}
-			// Pattern Layout
-			else if (PatternLayout.class.getName().equalsIgnoreCase(cd.getClassName())) {
-				PatternLayout patt = new PatternLayout();
-				layout = patt;
-
-				// pattern
-				String pattern = Caster.toString(layoutArgs.get("pattern"), null);
-				if (!StringUtil.isEmpty(pattern, true)) patt.setConversionPattern(pattern);
-				else {
-					patt.setConversionPattern(DEFAULT_PATTERN);
-					layoutArgs.put("pattern", DEFAULT_PATTERN);
+			if (cd != null && cd.hasClass()) {
+				// Classic Layout
+				if (ClassicLayout.class.getName().equalsIgnoreCase(cd.getClassName())) {
+					layout = new ClassicLayout();
 				}
-			}
-			// class definition
-			else {
-				Object obj = ClassUtil.loadInstance(cd.getClazz(null), null, null);
-				if (obj instanceof Layout) {
-					layout = toLayout(obj);
-					Iterator<Entry<String, String>> it = layoutArgs.entrySet().iterator();
-					Entry<String, String> e;
-					while (it.hasNext()) {
-						e = it.next();
-						try {
-							Reflector.callSetter(obj, e.getKey(), e.getValue());
-						}
-						catch (PageException e1) {
-							SystemOut.printDate(e1);// TODO log
-						}
+				// Datasource Layout
+				else if (DatasourceLayout.class.getName().equalsIgnoreCase(cd.getClassName())) {
+					layout = new DatasourceLayout(name);
+				}
+				// HTML Layout
+				else if (HTMLLayout.class.getName().equalsIgnoreCase(cd.getClassName())) {
+					HTMLLayout html = new HTMLLayout();
+					layout = html;
+
+					// Location Info
+					Boolean locInfo = Caster.toBoolean(layoutArgs.get("locationinfo"), null);
+					if (locInfo != null) html.setLocationInfo(locInfo.booleanValue());
+					else locInfo = Boolean.FALSE;
+					layoutArgs.put("locationinfo", locInfo.toString());
+
+					// Title
+					String title = Caster.toString(layoutArgs.get("title"), "");
+					if (!StringUtil.isEmpty(title, true)) html.setTitle(title);
+					layoutArgs.put("title", title);
+
+				}
+				// XML Layout
+				else if (XMLLayout.class.getName().equalsIgnoreCase(cd.getClassName())) {
+					XMLLayout xml = new XMLLayout();
+					layout = xml;
+
+					// Location Info
+					Boolean locInfo = Caster.toBoolean(layoutArgs.get("locationinfo"), null);
+					if (locInfo != null) xml.setLocationInfo(locInfo.booleanValue());
+					else locInfo = Boolean.FALSE;
+					layoutArgs.put("locationinfo", locInfo.toString());
+
+					// Properties
+					Boolean props = Caster.toBoolean(layoutArgs.get("properties"), null);
+					if (props != null) xml.setProperties(props.booleanValue());
+					else props = Boolean.FALSE;
+					layoutArgs.put("properties", props.toString());
+
+				}
+				// Pattern Layout
+				else if (PatternLayout.class.getName().equalsIgnoreCase(cd.getClassName())) {
+					PatternLayout patt = new PatternLayout();
+					layout = patt;
+
+					// pattern
+					String pattern = Caster.toString(layoutArgs.get("pattern"), null);
+					if (!StringUtil.isEmpty(pattern, true)) patt.setConversionPattern(pattern);
+					else {
+						patt.setConversionPattern(DEFAULT_PATTERN);
+						layoutArgs.put("pattern", DEFAULT_PATTERN);
 					}
-
 				}
+				// DataDog Layout
+				else if (DataDogLayout.class.getName().equalsIgnoreCase(cd.getClassName()) || cd.getClassName().indexOf(".DataDogLayout") != -1) {
+					layout = new DataDogLayout();
+				}
+				// class definition
+				else {
+					Object obj = ClassUtil.loadInstance(cd.getClazz(null), null, null);
+					if (obj instanceof Layout) {
+						layout = toLayout(obj);
+						Iterator<Entry<String, String>> it = layoutArgs.entrySet().iterator();
+						Entry<String, String> e;
+						while (it.hasNext()) {
+							e = it.next();
+							try {
+								Reflector.callSetter(obj, e.getKey(), e.getValue());
+							}
+							catch (PageException e1) {
+								SystemOut.printDate(e1);// TODO log
+							}
+						}
+
+					}
+				}
+			}
+			if (layout != null) return layout;
+
+			if (cdAppender != null && DatasourceAppender.class.getName().equals(cdAppender.getClassName())) {
+				return new DatasourceLayout(name);
 			}
 		}
-		if (layout != null) return layout;
-
-		if (cdAppender != null && DatasourceAppender.class.getName().equals(cdAppender.getClassName())) {
-			return new DatasourceLayout(name);
+		catch (Exception ex) {
+			SystemOut.printDate(ex);// TODO log
 		}
 		return new ClassicLayout();
 	}
