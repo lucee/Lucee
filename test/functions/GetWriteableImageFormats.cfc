@@ -16,7 +16,7 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  * 
  ---><cfscript>
-component extends="org.lucee.cfml.test.LuceeTestCase" labels="image" {
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="image" skip="true" {
 
 	public void function testWritableImageFormats() localmode="true"{
 		var imageFormats = listToArray( getWriteableImageFormats() );
