@@ -90,10 +90,11 @@ public class ComponentLoader {
 	public static StaticScope getStaticScope(PageContext pc, PageSource loadingLocation, String rawPath, Boolean searchLocal, Boolean searchRoot) throws PageException {
 		ComponentPageImpl cp = searchComponentPage(pc, loadingLocation, rawPath, searchLocal, searchRoot);
 		StaticScope ss = cp.getStaticScope();
-		if (ss == null) {
+		if (ss == null || cp.isStaticScopeInvalidated()) {
 			synchronized (getToken(cp.getHash() + "")) {
 				ss = cp.getStaticScope();
-				if (ss == null) {
+				if (ss == null || cp.isStaticScopeInvalidated()) {
+					cp.getStaticStruct().setInit(false);
 					cp.setStaticScope(ss = searchComponent(pc, loadingLocation, rawPath, searchLocal, searchRoot, false, false).staticScope());
 				}
 			}

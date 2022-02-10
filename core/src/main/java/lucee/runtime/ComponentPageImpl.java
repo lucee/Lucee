@@ -97,6 +97,8 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 
 	private StaticScope staticScope;
 
+	private boolean invalidateStaticScope;
+
 	public abstract ComponentImpl newInstance(PageContext pc, String callPath, boolean isRealPath, boolean isExtendedComponent, boolean executeConstr)
 			throws lucee.runtime.exp.PageException;
 
@@ -1022,6 +1024,15 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 
 	public void setStaticScope(StaticScope staticScope) {
 		this.staticScope = staticScope;
+		invalidateStaticScope = false;
+	}
+
+	public boolean isStaticScopeInvalidated() {
+		return this.invalidateStaticScope;
+	}
+
+	public void invalidateStaticScope() {
+		this.invalidateStaticScope = true;
 	}
 
 }

@@ -140,7 +140,7 @@ public class StaticScope extends StructSupport implements Variables, Objects {
 
 		Member m = _get(ThreadLocalPageContext.get(pc), key, null);
 		if (m != null) return m.getValue();
-
+		cp.invalidateStaticScope();
 		throw new ExpressionException("Component from type [" + cp.getComponentName() + "] has no accessible static Member with name [" + key + "]");
 	}
 
@@ -181,9 +181,10 @@ public class StaticScope extends StructSupport implements Variables, Objects {
 		}
 
 		// check if user has access
-		if (!c.isAccessible(pc, existing != null ? existing.getAccess() : dataMemberDefaultAccess))
+		if (!c.isAccessible(pc, existing != null ? existing.getAccess() : dataMemberDefaultAccess)) {
+			cp.invalidateStaticScope();
 			throw new ExpressionException("Component from type [" + cp.getComponentName() + "] has no accessible static Member with name [" + key + "]");
-
+		}
 		// set
 		return cp.getStaticStruct().put(key,
 				new DataMember(existing != null ? existing.getAccess() : dataMemberDefaultAccess, existing != null ? existing.getModifier() : Member.MODIFIER_NONE, value));
@@ -297,7 +298,7 @@ public class StaticScope extends StructSupport implements Variables, Objects {
 		if (m instanceof UDF) {
 			return _call(pc, key, ((UDF) m), null, args);
 		}
-
+		cp.invalidateStaticScope();
 		throw new ExpressionException("Component from type [" + cp.getComponentName() + "] has no accessible static Member with name [" + key + "]");
 	}
 
@@ -307,7 +308,7 @@ public class StaticScope extends StructSupport implements Variables, Objects {
 		if (m instanceof UDF) {
 			return _call(pc, key, ((UDF) m), args, null);
 		}
-
+		cp.invalidateStaticScope();
 		throw new ExpressionException("Component from type [" + cp.getComponentName() + "] has no accessible static Member with name [" + key + "]");
 	}
 
@@ -325,12 +326,12 @@ public class StaticScope extends StructSupport implements Variables, Objects {
 			long time = System.nanoTime();
 
 			try {
-				parent = beforeStaticConstructor(pc, c, this);
+				parent = beforeStaticCall(pc, c, this);
 				if (args != null) rtn = udf.call(pc, calledName, args, true);
 				else rtn = udf.callWithNamedValues(pc, calledName, namedArgs, true);
 			}
 			finally {
-				afterStaticConstructor(pc, c, parent);
+				if (parent != null) afterStaticCall(pc, c, parent);
 				long diff = ((System.nanoTime() - time) - (pc.getExecutionTime() - currTime));
 				pc.setExecutionTime(pc.getExecutionTime() + diff);
 				debugEntry.updateExeTime(diff);
@@ -340,12 +341,12 @@ public class StaticScope extends StructSupport implements Variables, Objects {
 		// debug no
 		else { // this.cp._static
 			try {
-				parent = beforeStaticConstructor(pc, c, this);
+				parent = beforeStaticCall(pc, c, this);
 				if (args != null) rtn = udf.call(pc, calledName, args, true);
 				else rtn = udf.callWithNamedValues(pc, calledName, namedArgs, true);
 			}
 			finally {
-				afterStaticConstructor(pc, c, parent);
+				if (parent != null) afterStaticCall(pc, c, parent);
 			}
 		}
 		return rtn;
@@ -455,6 +456,19 @@ public class StaticScope extends StructSupport implements Variables, Objects {
 
 	public static void afterStaticConstructor(PageContext pc, ComponentImpl c, Variables parent) {
 		c.insideStaticConstrThread.set(Boolean.FALSE);
+		pc.setVariablesScope(parent);
+	}
+
+	private static Variables beforeStaticCall(PageContext pc, ComponentImpl c, StaticScope ss) {
+		Variables parent = pc.variablesScope();
+		if (parent != ss) {
+			pc.setVariablesScope(ss);
+			return parent;
+		}
+		return null;
+	}
+
+	private static void afterStaticCall(PageContext pc, ComponentImpl c, Variables parent) {
 		pc.setVariablesScope(parent);
 	}
 
