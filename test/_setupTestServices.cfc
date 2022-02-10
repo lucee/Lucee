@@ -299,35 +299,35 @@ component {
 	public function verifyMemcached ( memcached ) localmode=true{
 		if ( structCount( memcached ) eq 2 ){
 			try {
-			testCacheName = "testMemcached";
-			application 
-				action="update" 
-				caches="#{
-					testMemcached: {
-						class: 'org.lucee.extension.cache.mc.MemcachedCache'
-						, bundleName: 'memcached.extension'
-						, bundleVersion: '4.0.0.7-SNAPSHOT'
-						, storage: false
-						, custom: {
-							"socket_timeout": "3",
-							"initial_connections": "1",
-							"alive_check": "true",
-							"buffer_size": "1",
-							"max_spare_connections": "32",
-							"storage_format": "Binary",
-							"socket_connect_to": "3",
-							"min_spare_connections": "1",
-							"maint_thread_sleep": "5",
-							"failback": "true",
-							"max_idle_time": "600",
-							"max_busy_time": "30",
-							"nagle_alg": "true",
-							"failover": "false",
-							"servers": "#memcached.server#:#memcached.port#"
+				testCacheName = "testMemcached";
+				application 
+					action="update" 
+					caches="#{
+						testMemcached: {
+							class: 'org.lucee.extension.cache.mc.MemcachedCache'
+							, bundleName: 'memcached.extension'
+							, bundleVersion: '4.0.0.7-SNAPSHOT'
+							, storage: false
+							, custom: {
+								"socket_timeout": "3",
+								"initial_connections": "1",
+								"alive_check": "true",
+								"buffer_size": "1",
+								"max_spare_connections": "32",
+								"storage_format": "Binary",
+								"socket_connect_to": "3",
+								"min_spare_connections": "1",
+								"maint_thread_sleep": "5",
+								"failback": "true",
+								"max_idle_time": "600",
+								"max_busy_time": "30",
+								"nagle_alg": "true",
+								"failover": "false",
+								"servers": "#memcached.server#:#memcached.port#"
+							}
+							, default: ''
 						}
-						, default: ''
-					}
-				}#";
+					}#";
 				cachePut( id='abcd', value=1234, cacheName=testCacheName );
 				valid = !isNull( cacheGet( id:'abcd', cacheName:testCacheName ) );
 				application action="update" caches="#{}#";
