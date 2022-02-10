@@ -18,7 +18,7 @@
  ---><cfscript>
 component extends="org.lucee.cfml.test.LuceeTestCase" labels="image" {
 
-	public void function testWritableImageFormats() localmode="true"{
+	public void function testWritableImageFormats() localmode="true" skip="true"{
 		var imageFormats = listToArray( getWriteableImageFormats() );
 		var testFile = "";
 		var testImage = imageNew( "", 100, 100, "rgb", "yellow" );
