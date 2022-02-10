@@ -69,11 +69,11 @@ public abstract class EnvUDF extends UDFImpl {
 	public Object callWithNamedValues(PageContext pc, Collection.Key calledName, Struct values, boolean doIncludePath) throws PageException {
 		Variables parent = pc.variablesScope();
 		try {
-			pc.setVariablesScope(variables);
+			if (parent != variables) pc.setVariablesScope(variables);
 			return super.callWithNamedValues(pc, calledName, values, doIncludePath);
 		}
 		finally {
-			pc.setVariablesScope(parent);
+			if (parent != variables) pc.setVariablesScope(parent);
 		}
 	}
 
@@ -81,11 +81,11 @@ public abstract class EnvUDF extends UDFImpl {
 	public Object callWithNamedValues(PageContext pc, Struct values, boolean doIncludePath) throws PageException {
 		Variables parent = pc.variablesScope();
 		try {
-			pc.setVariablesScope(variables);
+			if (parent != variables) pc.setVariablesScope(variables);
 			return super.callWithNamedValues(pc, values, doIncludePath);
 		}
 		finally {
-			pc.setVariablesScope(parent);
+			if (parent != variables) pc.setVariablesScope(parent);
 		}
 	}
 
@@ -93,11 +93,11 @@ public abstract class EnvUDF extends UDFImpl {
 	public Object call(PageContext pc, Collection.Key calledName, Object[] args, boolean doIncludePath) throws PageException {
 		Variables parent = pc.variablesScope();
 		try {
-			pc.setVariablesScope(variables);
+			if (parent != variables) pc.setVariablesScope(variables);
 			return super.call(pc, calledName, args, doIncludePath);
 		}
 		finally {
-			pc.setVariablesScope(parent);
+			if (parent != variables) pc.setVariablesScope(parent);
 		}
 	}
 
@@ -105,11 +105,11 @@ public abstract class EnvUDF extends UDFImpl {
 	public Object call(PageContext pc, Object[] args, boolean doIncludePath) throws PageException {
 		Variables parent = pc.variablesScope();
 		try {
-			pc.setVariablesScope(variables);
+			if (parent != variables) pc.setVariablesScope(variables);
 			return super.call(pc, args, doIncludePath);
 		}
 		finally {
-			pc.setVariablesScope(parent);
+			if (parent != variables) pc.setVariablesScope(parent);
 		}
 	}
 

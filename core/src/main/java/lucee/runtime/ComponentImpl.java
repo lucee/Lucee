@@ -645,7 +645,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 						else rtn = udf.callWithNamedValues(pc, calledName, namedArgs, true);
 					}
 					finally {
-						pc.setVariablesScope(parent);
+						if (parent != null) pc.setVariablesScope(parent);
 						long diff = ((System.nanoTime() - time) - (pc.getExecutionTime() - currTime));
 						pc.setExecutionTime(pc.getExecutionTime() + diff);
 						debugEntry.updateExeTime(diff);
@@ -661,7 +661,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 					else rtn = udf.callWithNamedValues(pc, calledName, namedArgs, true);
 				}
 				finally {
-					pc.setVariablesScope(parent);
+					if (parent != null) pc.setVariablesScope(parent);
 					long diff = ((System.nanoTime() - time) - (pc.getExecutionTime() - currTime));
 					pc.setExecutionTime(pc.getExecutionTime() + diff);
 					debugEntry.updateExeTime(diff);
@@ -682,7 +682,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 						else rtn = udf.callWithNamedValues(pc, calledName, namedArgs, true);
 					}
 					finally {
-						pc.setVariablesScope(parent);
+						if (parent != null) pc.setVariablesScope(parent);
 					}
 				}
 			}
@@ -695,7 +695,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 					else rtn = udf.callWithNamedValues(pc, calledName, namedArgs, true);
 				}
 				finally {
-					pc.setVariablesScope(parent);
+					if (parent != null) pc.setVariablesScope(parent);
 				}
 			}
 		}
@@ -720,8 +720,11 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 	 */
 	public Variables beforeCall(PageContext pc) {
 		Variables parent = pc.variablesScope();
-		pc.setVariablesScope(scope);
-		return parent;
+		if (parent != scope) {
+			pc.setVariablesScope(scope);
+			return parent;
+		}
+		return null;
 	}
 
 	/**
@@ -732,7 +735,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 	 * @throws ApplicationException
 	 */
 	public void afterConstructor(PageContext pc, Variables parent) throws ApplicationException {
-		pc.setVariablesScope(parent);
+		if (parent != null) pc.setVariablesScope(parent);
 		this.afterConstructor = true;
 	}
 
