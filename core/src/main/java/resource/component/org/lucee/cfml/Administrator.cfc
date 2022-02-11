@@ -1354,7 +1354,7 @@ component {
 	/**
 	* @hint returns the list of gateway entries
 	*/
-	public query function getGatewayEntries( type ){
+	public query function getGatewayEntries(){
 		admin
 			action="getGatewayEntries"
 			type="#variables.type#"
