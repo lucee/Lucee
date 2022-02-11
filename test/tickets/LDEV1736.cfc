@@ -6,7 +6,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				systemOutput("", true);
 				loop collection=server item="local.p" {
 					if(left(p,1)=="_") continue;
-					systemOutput(local.p, true);
 					local.res=serialize( server[local.p] );
 				}
 				
