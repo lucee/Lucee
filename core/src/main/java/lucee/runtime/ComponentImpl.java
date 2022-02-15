@@ -1590,8 +1590,19 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 		if (comp._udfs != null) {
 			getUDFs(pc, comp._udfs.values().iterator(), comp, access, arr, false);
 		}
+
+		// static functions
 		if (comp._static != null) {
-			List<UDF> udfs = extractUDFS(comp._static.values());
+			// List<UDF> udfs = extractUDFS(comp._static.values());
+			List<UDF> udfs = new ArrayList<>();
+			Iterator<Entry<Key, Object>> it = comp._static.entryIterator(ACCESS_PRIVATE);
+			Entry<Key, Object> e;
+			while (it.hasNext()) {
+				e = it.next();
+				if (!(e.getValue() instanceof UDF)) continue;
+				udfs.add((UDF) e.getValue());
+			}
+
 			if (udfs.size() > 0) getUDFs(pc, udfs.iterator(), comp, access, arr, true);
 		}
 
@@ -1615,13 +1626,13 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 		sct.set(KeyConstants._functions, arr);
 	}
 
-	private static List<UDF> extractUDFS(java.util.Collection values) {
-		List<UDF> udfs = new ArrayList<>();
-		for (Object o: values) {
-			if (o instanceof UDF) udfs.add((UDF) o);
-		}
-		return udfs;
-	}
+	// private static List<UDF> extractUDFS(java.util.Collection values) {
+	// 	List<UDF> udfs = new ArrayList<>();
+	// 	for (Object o: values) {
+	// 		if (o instanceof UDF) udfs.add((UDF) o);
+	// 	}
+	// 	return udfs;
+	// }
 
 	private static class ComparatorImpl implements Comparator {
 		@Override
