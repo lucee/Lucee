@@ -7,14 +7,14 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				StructEach(animals, function(key,value) { 
 					animalList &= key& ":" & value & ", ";
 				});
-				assertEquals('cow:moo, pig:oink,',trim(animalList));
+				assertEquals('cow:moo, pig:oink,', trim(animalList));
 			});
 			it(title="checking Struct.Each() member function", body=function( currentSpec ) {
 				var animalList = "";
 				animals.Each(function(key,value) { 
 					animalList &= key& ":" & value & ", ";
 				});
-				assertEquals("cow:moo, pig:oink,",trim(animalList));
+				assertEquals("cow:moo, pig:oink,", trim(animalList));
 			});
 		});
 	}
