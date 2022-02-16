@@ -6,6 +6,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import lucee.commons.io.DevNullOutputStream;
 import lucee.commons.lang.Pair;
+import lucee.runtime.listener.ApplicationContext;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.engine.ThreadLocalPageContext;
@@ -29,6 +30,7 @@ public class CallableUDF implements Callable<Object> {
 	private long requestTimeout;
 	private ConfigWeb cw;
 	private Object arg;
+	private ApplicationContext ac;
 
 	public CallableUDF(PageContext parent, UDF udf, Object arg) {
 		// this.template=page.getPageSource().getRealpathWithVirtual();
@@ -41,6 +43,9 @@ public class CallableUDF implements Callable<Object> {
 		headers = HttpUtil.cloneHeaders(req);
 		attributes = HttpUtil.getAttributesAsStruct(req);
 		requestTimeout = parent.getRequestTimeout();
+		
+		// ApplicationContext
+		ac = parent.getApplicationContext();
 
 		cw = parent.getConfig();
 		this.udf = udf;
@@ -55,6 +60,8 @@ public class CallableUDF implements Callable<Object> {
 		DevNullOutputStream os = DevNullOutputStream.DEV_NULL_OUTPUT_STREAM;
 		pc = ThreadUtil.createPageContext(cw, os, serverName, requestURI, queryString, SerializableCookie.toCookies(cookies), headers, null, parameters, attributes, true, -1);
 		pc.setRequestTimeout(requestTimeout);
+		
+		pc.setApplicationContext(ac);
 
 		try {
 			return udf.call(pc, arg == Future.ARG_NULL ? new Object[] {} : new Object[] { arg }, true);
