@@ -231,14 +231,14 @@ public class QueryParamConverter {
 		SQLItems<NamedSQLItem> item;
 		while (it.hasNext()) {
 			item = it.next();
-			if (item.isEmpty()) {
-				throw new ApplicationException("param [" + name + "] may not be empty");
-			}
-			if (item.get(0).name.equalsIgnoreCase(name)) {
+			if (item.size() > 0 && item.get(0).name.equalsIgnoreCase(name)) {
+				if (item.isEmpty()) {
+					throw new ApplicationException("queryparam [" + name + "] may not be empty");
+				}
 				return item.convertToSQLItems();
 			}
 		}
-		throw new ApplicationException("param [" + name + "] not found");
+		throw new ApplicationException("queryparam [" + name + "] not found");
 	}
 
 	private static boolean isParamNull(Struct param) throws PageException {
