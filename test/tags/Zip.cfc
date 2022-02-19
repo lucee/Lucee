@@ -130,7 +130,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="zip" {
 		}
 	}
 
-	public function testZipExecutableFlag() { // LDEV-2117
+	public function testZipExecutableFlag() skip="true" { // LDEV-2117
 
 		if ( isNotSupported() ) return;  // this is unix only
 
