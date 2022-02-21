@@ -117,7 +117,7 @@ public class Base64Encoder {
 				if (c != '=') break;
 				count++;
 			}
-			if (count > 3) throw new CoderException("invalid padding length [" + count + "], maximal 3 [=] are allowed");
+			if (count > 3) throw new CoderException("invalid padding length [" + count + "], maximal length is [3]");
 
 			for (; i >= 0; i--) {
 				c = data.charAt(i);
