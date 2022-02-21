@@ -107,11 +107,29 @@ public class Base64Encoder {
 			if (((l / 4) * 4) != l) {
 				throw new CoderException("cannot convert the input to a binary, invalid length (" + l + ") of the string");
 			}
+
+			// A–Z, a–z, 0–9, +, / and =
+			char c;
+			int i = data.length() - 1;
+			int count = 0;
+			for (; i >= 0; i--) {
+				c = data.charAt(i);
+				if (c != '=') break;
+				count++;
+			}
+			if (count > 3) throw new CoderException("invalid padding length [" + count + "], maximal 3 [=] are allowed");
+
+			for (; i >= 0; i--) {
+				c = data.charAt(i);
+				if ((c >= '0' && c <= '9') || (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '+' || c == '/') continue;
+
+				throw new CoderException("invalid character [" + c + "] in base64 string at position [" + (i + 1) + "]");
+			}
+
 		}
 
 		byte[] res = org.apache.commons.codec.binary.Base64.decodeBase64(data);
 		if (res == null || res.length == 0) throw new CoderException("cannot convert the input to a binary");
 		return res;
 	}
-
 }
