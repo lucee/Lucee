@@ -104,15 +104,14 @@ public final class SQLImpl implements SQL, Serializable {
 			if (c == '"' || c == '\'') {
 				if (inQuotes) {
 					if (c == quoteType) {
-						if ('\\' != p) {
-							inQuotes = false;
-						}
+						inQuotes = false;
 					}
 				}
 				else {
 					quoteType = c;
 					inQuotes = true;
 				}
+				sb.append(c);
 			}
 			else if (!inQuotes && c == '?') {
 				if ((index + 1) > items.length) throw new RuntimeException("there are more question marks in the SQL than params defined");

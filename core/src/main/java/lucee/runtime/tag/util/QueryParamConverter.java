@@ -148,10 +148,7 @@ public class QueryParamConverter {
 			if (c == '"' || c == '\'') {
 				if (inQuotes) {
 					if (c == quoteType) {
-						if ('\\' != p) {
-							inQuotes = false;
-						}
-
+						inQuotes = false;
 					}
 				}
 				else {
