@@ -748,8 +748,8 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 				DebuggerImpl di = (DebuggerImpl) pageContext.getDebugger();
 				boolean logdb = ((ConfigPro) pageContext.getConfig()).hasDebugOptions(ConfigPro.DEBUG_DATABASE);
 				if (logdb) {
-					boolean debugUsage = DebuggerImpl.debugQueryUsage(pageContext, queryResult);
-					di.addQuery(debugUsage ? queryResult : null, data.datasource != null ? data.datasource.getName() : null, data.name, sqlQuery, queryResult.getRecordcount(), tl,
+					// boolean debugUsage = DebuggerImpl.debugQueryUsage(pageContext, queryResult);
+					di.addQuery(queryResult, data.datasource != null ? data.datasource.getName() : null, data.name, sqlQuery, queryResult.getRecordcount(), tl,
 							exe);
 				}
 				else {
