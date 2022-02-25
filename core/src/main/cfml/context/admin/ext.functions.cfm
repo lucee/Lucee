@@ -575,6 +575,18 @@
 		}
 	}
 
+	function toVersionsSorted(required array versions) localMode=true {
+		var vs = [=];
+		loop array=arguments.versions item="local.v"{
+			vs[toVersionSortable(v)] = v;
+		}
+		var sorted = structSort(vs,"text", "desc");
+		var rtn = [=];
+		loop array=sorted item="local.v" {
+			rtn[v] = vs[v];
+		}
+		return rtn;
+	}
 
 	function toVersionSortable(required string version) localMode=true {
 		version=variables.unwrap(arguments.version.trim());
