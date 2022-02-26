@@ -5,7 +5,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
     
     function run( testResults, testBox ) {
         describe("Testcase for LDEV-3859 & LDEV-3860", function() {
-            it( title="LDEV-3860 -- Checking the exception occured in transaction with ORM", body=function( currentSpec ) {
+            it( title="LDEV-3860 -- Checking the exception occured in transaction with ORM",  skip=true, body=function( currentSpec ) {
                     local.result = _InternalRequest(
                         template : "#uri#\LDEV3860.cfm"
                     );
