@@ -257,6 +257,61 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		testAsyn(sctListener,tbl,3);
 	}
 
+	public void function testArrayQueryParamsInts() {
+		testArrayQueryParam( [ 1, 2, 3 ] );
+	}
+
+	public void function testArrayQueryParamsStrings() {
+		testArrayQueryParam( [ "1", "2", "3" ] );
+	}
+
+	private void function testArrayQueryParam( arr ) localmode=true{
+		var tbl = "qp_array";
+		var qry = "";
+		createTable( tbl );
+		try {
+			query name="qry" {
+				echo("insert into #tbl# ( id, i, dec) values( 1, 1, 1.0 )");
+			} 
+
+			var params = {
+				id: { value: arguments.arr, type: "integer", list: false }
+			};
+			expect( function(){
+				query name="qry" params=#params# {
+					echo(" SELECT id FROM #tbl# WHERE id = :id ");
+				} 
+			}).toThrow(); // Array explicitly not allowed
+
+			expect( function(){
+				query name="qry" params=#params# {
+					echo(" SELECT id FROM #tbl# WHERE id IN ( :id ) ");
+				} 
+			}).toThrow(); // Array explicitly not allowed, despite IN clause
+
+			params.id.list = true;
+			expect( function(){
+				query name="qry" params=#params# {
+					echo(" SELECT id FROM #tbl# WHERE id = :id ");
+				}
+			}).toThrow(); // Array throws an error, as it doesn't produce valid sql (not an IN clause, ID = ?,?,? )
+
+			query name="qry" params=#params# {
+				echo(" SELECT id FROM #tbl# WHERE id IN ( :id ) ");
+			} 
+			expect( qry.recordcount ).toBe( 1 ); // Array allowed, works inside an IN clause
+
+			structDelete( params.id, "list" );
+			query name="qry" params=#params# {
+				echo(" SELECT id FROM #tbl# WHERE id IN ( :id ) ");
+			} 
+			expect( qry.recordcount ).toBe( 1 ); // Array allowed, inside an IN clause (default 5 behavior) 
+		}
+		finally {
+			dropTable( tbl );
+		}
+	}
+
 	private void function testAsyn(listener,tbl, res) {
 		createTable(tbl);
 		try {
