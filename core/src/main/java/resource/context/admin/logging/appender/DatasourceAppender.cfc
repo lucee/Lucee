@@ -44,7 +44,7 @@
 		<cfreturn "Logs to a datasource.">
 	</cffunction>
 	<cffunction name="getLayout" returntype="string" output="no">
-		<cfreturn "lucee.commons.io.log.log4j.layout.DatasourceLayout">
+		<cfreturn "lucee.commons.io.log.log4j2.layout.ClassicLayout">
 	</cffunction>
 	
 </cfcomponent>
