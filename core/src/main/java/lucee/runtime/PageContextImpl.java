@@ -3142,7 +3142,7 @@ public final class PageContextImpl extends PageContext {
 						throw pe;
 					}
 					finally {
-						application.initialize(this);
+						if (application != null) application.initialize(this);
 					}
 				}
 			}
