@@ -685,8 +685,10 @@ public final class PageContextImpl extends PageContext {
 			lazyStats = null;
 		}
 
-		pathList.clear();
-		includePathList.clear();
+		if (!hasFamily) {
+			pathList.clear();
+			includePathList.clear();
+		}
 		executionTime = 0;
 
 		bodyContentStack.release();
