@@ -128,7 +128,7 @@ public class Log4j2Engine extends LogEngine {
 				|| "lucee.commons.io.log.log4j2.layout.ClassicLayout".equals(className)) {
 			return new ClassDefinitionImpl(ClassicLayout.class);
 		}
-		if ("datasource".equalsIgnoreCase(className)) return new ClassDefinitionImpl(ClassicLayout.class);
+		if ("datasource".equalsIgnoreCase(className) || "lucee.commons.io.log.log4j.layout.DatasourceLayout".equals(className)) return new ClassDefinitionImpl(ClassicLayout.class);
 		if ("html".equalsIgnoreCase(className) || "org.apache.log4j.HTMLLayout".equals(className) || "org.apache.logging.log4j.core.layout.HtmlLayout".equals(className)) {
 			return new ClassDefinitionImpl(HtmlLayout.class);
 		}
