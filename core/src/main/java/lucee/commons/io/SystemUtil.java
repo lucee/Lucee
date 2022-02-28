@@ -102,7 +102,6 @@ import lucee.runtime.op.Caster;
 import lucee.runtime.op.Operator;
 import lucee.runtime.op.date.DateCaster;
 import lucee.runtime.osgi.OSGiUtil;
-import lucee.runtime.thread.ThreadUtil;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.KeyImpl;
@@ -1320,7 +1319,9 @@ public final class SystemUtil {
 	}
 
 	public static void stop(PageContext pc, Thread thread) {
-		if (thread == null || !thread.isAlive() || thread == Thread.currentThread() || ThreadUtil.isInNativeMethod(thread, false)) return;
+		// if (thread == null || !thread.isAlive() || thread == Thread.currentThread() ||
+		// ThreadUtil.isInNativeMethod(thread, false)) return;
+		if (thread == null || !thread.isAlive() || thread == Thread.currentThread()) return;
 		Log log = null;
 		// in case it is the request thread
 		if (pc instanceof PageContextImpl && thread == pc.getThread()) {
