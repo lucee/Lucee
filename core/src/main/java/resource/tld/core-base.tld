@@ -6695,8 +6695,11 @@ To use cached data, the current query must use the same SQL statement, data sour
 			<name>list</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>Yes or No. Indicates that the parameter value of the value attribute is a list of values,
-	separated by a separator character. The default is No</description>
+			<description>true, false or not set. 
+			If set to true this indicates that the parameter value of the value attribute is a list of values and is handled as such,
+			if set to false it is handled as a simple value.
+			if not set lucee will automatically detect if it is an array or not.
+			</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
