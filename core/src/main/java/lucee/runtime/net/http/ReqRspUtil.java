@@ -459,7 +459,8 @@ public final class ReqRspUtil {
 		String strContentType = contentType == MimeType.ALL ? null : contentType.toString();
 		Charset cs = getCharacterEncoding(pc, req);
 
-		boolean isBinary = !(strContentType == null || HTTPUtil.isTextMimeType(contentType) || strContentType.toLowerCase().startsWith("application/x-www-form-urlencoded"));
+		boolean isBinary = !(strContentType == null || HTTPUtil.isTextMimeType(contentType) == Boolean.TRUE
+				|| strContentType.toLowerCase().startsWith("application/x-www-form-urlencoded"));
 
 		if (req.getContentLength() > -1) {
 			ServletInputStream is = null;

@@ -74,10 +74,10 @@ import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
 
-import lucee.commons.io.log.Log;
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
+import lucee.commons.io.log.Log;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ExceptionUtil;
@@ -182,7 +182,7 @@ public final class Http extends BodyTagImpl {
 	private static final short METHOD_TRACE = 6;
 	private static final short METHOD_PATCH = 7;
 
-	private static final List<String> methods = Arrays.asList(new String[] { "GET", "POST", "HEAD", "PUT", "DELETE", "OPTIONS", "TRACE", "PATCH" }); 
+	private static final List<String> methods = Arrays.asList(new String[] { "GET", "POST", "HEAD", "PUT", "DELETE", "OPTIONS", "TRACE", "PATCH" });
 
 	private static final String NO_MIMETYPE = "Unable to determine MIME type of file.";
 
@@ -634,18 +634,20 @@ public final class Http extends BodyTagImpl {
 	public void setMethod(String method) throws ApplicationException {
 		method = method.toUpperCase().trim();
 		short idx = (short) methods.indexOf(method);
-		if (idx < 0) 
-			throw new ApplicationException("invalid method type [" + method + "], valid types are [" + methods.toString() + "]");
+		if (idx < 0) throw new ApplicationException("invalid method type [" + method + "], valid types are [" + methods.toString() + "]");
 		this.method = idx;
 	}
 
 	private static String getMethodAsVerb(short method) throws ApplicationException {
-		if (method < 0 || method > methods.size() - 1)
-			throw new ApplicationException("invalid method [" + method + "], valid types are [" + methods.toString() + "]" ); // never will reach this, due to above
-		
+		if (method < 0 || method > methods.size() - 1) throw new ApplicationException("invalid method [" + method + "], valid types are [" + methods.toString() + "]"); // never
+																																										// will
+																																										// reach
+																																										// this, due
+																																										// to above
+
 		return methods.get(method);
 	}
-	
+
 	public void setCompression(String strCompression) throws ApplicationException {
 		if (StringUtil.isEmpty(strCompression, true)) return;
 		Boolean b = Caster.toBoolean(strCompression, null);
@@ -787,7 +789,7 @@ public final class Http extends BodyTagImpl {
 					CacheItem cacheItem = ((CacheHandlerPro) cacheHandler).get(pageContext, cacheId, cachedWithin);
 
 					if (cacheItem instanceof HTTPCacheItem) {
-						logHttpRequest(pageContext, ((HTTPCacheItem) cacheItem).getData(),  url, getMethodAsVerb(method), System.nanoTime() - start, true);
+						logHttpRequest(pageContext, ((HTTPCacheItem) cacheItem).getData(), url, getMethodAsVerb(method), System.nanoTime() - start, true);
 						pageContext.setVariable(result, ((HTTPCacheItem) cacheItem).getData());
 						return;
 					}
@@ -797,7 +799,7 @@ public final class Http extends BodyTagImpl {
 					CacheItem cacheItem = cacheHandler.get(pageContext, cacheId);
 
 					if (cacheItem instanceof HTTPCacheItem) {
-						logHttpRequest(pageContext, ((HTTPCacheItem) cacheItem).getData(),  url, getMethodAsVerb(method), System.nanoTime() - start, true);
+						logHttpRequest(pageContext, ((HTTPCacheItem) cacheItem).getData(), url, getMethodAsVerb(method), System.nanoTime() - start, true);
 						pageContext.setVariable(result, ((HTTPCacheItem) cacheItem).getData());
 						return;
 					}
@@ -1209,29 +1211,34 @@ public final class Http extends BodyTagImpl {
 			if (mimetype == null || mimetype == NO_MIMETYPE) {
 
 			}
-			boolean isText = mimetype != null && mimetype != NO_MIMETYPE && HTTPUtil.isTextMimeType(mimetype);
+
+			Boolean _isText = null;
+			if (mimetype != null && mimetype != NO_MIMETYPE) {
+				_isText = HTTPUtil.isTextMimeType(mimetype);
+			}
 
 			// is multipart
 			boolean isMultipart = MultiPartResponseUtils.isMultipart(mimetype);
 
 			// we still don't know the mime type
 			byte[] barr = null;
-			if (!isText && safeToMemory && !isMultipart) {
+			if (Boolean.TRUE != _isText && safeToMemory && !isMultipart) {
 				barr = contentAsBinary(rsp, contentEncoding);
-				String mt = IOUtil.getMimeType(barr, null);
-				if (mt != null) {
-					isText = HTTPUtil.isTextMimeType(mt);
-					mimetype = mt;
+				if (_isText == null) {
+					String mt = IOUtil.getMimeType(barr, null);
+					if (mt != null) {
+						_isText = HTTPUtil.isTextMimeType(mt);
+						mimetype = mt;
+					}
 				}
-
 			}
 
-			if (safeToMemory) cfhttp.set(KeyConstants._text, Caster.toBoolean(isText));
+			if (safeToMemory && _isText != null) cfhttp.set(KeyConstants._text, _isText);
 
 			// mimetype charset
 			// boolean responseProvideCharset=false;
 			if (!StringUtil.isEmpty(mimetype, true)) {
-				if (isText) {
+				if (Boolean.TRUE == _isText) {
 					String[] types = HTTPUtil.splitMimeTypeAndCharset(mimetype, null);
 					if (types[0] != null) cfhttp.set(KeyConstants._mimetype, types[0]);
 					if (types[1] != null) cfhttp.set(CHARSET, types[1]);
@@ -1263,7 +1270,7 @@ public final class Http extends BodyTagImpl {
 
 			// filecontent
 
-			if (isText && getAsBinary != GET_AS_BINARY_YES && safeToMemory) {
+			if (Boolean.TRUE == _isText && getAsBinary != GET_AS_BINARY_YES && safeToMemory) {
 				// store to memory
 				String str;
 				if (barr == null) str = contentAsString(rsp, responseCharset, contentEncoding, e);
@@ -1626,11 +1633,10 @@ public final class Http extends BodyTagImpl {
 		return URLEncoder.encode(str, CharsetUtil.toCharset(charset));
 	}
 
-	private static void logHttpRequest(PageContext pc, Struct data, String url, String method, long executionTimeNS, boolean cached) throws PageException{
+	private static void logHttpRequest(PageContext pc, Struct data, String url, String method, long executionTimeNS, boolean cached) throws PageException {
 		Log log = pc.getConfig().getLog("trace");
-		if (log != null && log.getLogLevel() <= Log.LEVEL_INFO)
-			log.log(Log.LEVEL_INFO, "cftrace", "httpRequest [" + method + "] to [" + url + "], returned [" + data.get(STATUSCODE) + "] in "
-				+ (executionTimeNS / 1000000) + "ms, " + (cached ? "(cached response)" : "") + " at " + CallStackGet.call(pc, "text"));
+		if (log != null && log.getLogLevel() <= Log.LEVEL_INFO) log.log(Log.LEVEL_INFO, "cftrace", "httpRequest [" + method + "] to [" + url + "], returned ["
+				+ data.get(STATUSCODE) + "] in " + (executionTimeNS / 1000000) + "ms, " + (cached ? "(cached response)" : "") + " at " + CallStackGet.call(pc, "text"));
 	}
 
 	@Override
@@ -1793,7 +1799,7 @@ public final class Http extends BodyTagImpl {
 
 		try {
 			// text
-			if (HTTPUtil.isTextMimeType(contentType)) {
+			if (HTTPUtil.isTextMimeType(contentType) == Boolean.TRUE) {
 				String[] tmp = HTTPUtil.splitMimeTypeAndCharset(contentType, null);
 				Charset cs = Http.getCharset(tmp[1]);
 
