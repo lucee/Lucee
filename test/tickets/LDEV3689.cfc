@@ -3,7 +3,9 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 	function beforeAll(){
 		variables.uri=createURI("LDEV3689");
 		variables.file = GetDirectoryFromPath(getcurrentTemplatepath())&'LDEV3689/result.txt';
-		if(fileExists(file)) fileDelete(file);
+		variables.file2 = GetDirectoryFromPath(getcurrentTemplatepath())&'LDEV3689/withApp/result.txt';
+		if (fileExists(file)) fileDelete(file);
+		if (fileExists(file2)) fileDelete(file2);
 	}
 
 	function run( testResults, textbox ) {
@@ -11,7 +13,8 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 		describe("testcase for LDEV-3689 ", function() {
 
 			afterEach( function( currentSpec ){
-				if(fileExists(file)) fileDelete(file);
+				if (fileExists(file)) fileDelete(file);
+				if (fileExists(file2)) fileDelete(file2);
 			});
 
 			it(title="Checking custom tag inside thread", body=function( currentSpec ) {
@@ -20,7 +23,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 			it(title="Checking include page inside thread", body=function( currentSpec ) {
 				expect(trim(test(2))).toBe("Page included");
 			});
-			it(title="Checking custom tag inside long running thread", skip="true", body=function( currentSpec ) { 
+			it(title="Checking custom tag inside long running thread", body=function( currentSpec ) { 
 				_InternalRequest(
 					template : "#uri#/LDEV3689.cfm",
 					forms:{Scene=1}
@@ -28,13 +31,29 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 				sleep(100);
 				expect(trim(fileread(file))).tobe("$55.00");
 			});
-			it(title="Checking include page inside long running thread", skip="true", body=function( currentSpec ) {
+			it(title="Checking include page inside long running thread", body=function( currentSpec ) {
 				_InternalRequest(
 					template : "#uri#/LDEV3689.cfm",
 					forms:{Scene=2}
 				);
 				sleep(100);
 				expect(trim(fileread(file))).tobe("Page included");
+			});
+			it(title="Checking custom tag inside long running thread with Application", body=function( currentSpec ) { 
+				_InternalRequest(
+					template : "#uri#/withApp/LDEV3689.cfm",
+					forms:{Scene=1}
+				);
+				sleep(100);
+				expect(trim(fileread(file2))).tobe("$55.00");
+			});
+			it(title="Checking include page inside long running thread with Application", body=function( currentSpec ) {
+				_InternalRequest(
+					template : "#uri#/withApp/LDEV3689.cfm",
+					forms:{Scene=2}
+				);
+				sleep(100);
+				expect(trim(fileread(file2))).tobe("Page included");
 			});
 		});
 	}
@@ -66,5 +85,4 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 		var baseURI = "/test/#listLast(getDirectoryFromPath(getCurrenttemplatepath()),"\/")#/";
 		return baseURI & "" & calledName;
 	}
-
 }
