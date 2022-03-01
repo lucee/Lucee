@@ -195,8 +195,13 @@ public class DataDogLayout extends AbstractStringLayout {
 			if (getSpanId == null) {
 				getSpanId = correlationIdentifierClass.getMethod("getSpanId", EMPTY_CLASS);
 			}
-			ids = new Object[] { getTraceId.invoke(null, EMPTY_OBJ), getSpanId.invoke(null, EMPTY_OBJ) };
-			return ids;
+			Object[] tmp = new Object[] { getTraceId.invoke(null, EMPTY_OBJ), getSpanId.invoke(null, EMPTY_OBJ) };
+
+			if (!"0".equals(tmp[0])) {
+				ids = tmp;
+				return ids;
+			}
+			return ids = new Object[] { "0", "0" };
 		}
 		catch (Exception e) {
 			// we cannot send this to a logger, because that could cause an infiniti loop
