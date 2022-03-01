@@ -20,5 +20,4 @@
 			FileWrite( file, e.message);
 		}
 	} 
-	writeDump(cfthread);
 </cfscript>
