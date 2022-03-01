@@ -20,7 +20,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 			it(title="Checking include page inside thread", body=function( currentSpec ) {
 				expect(trim(test(2))).toBe("Page included");
 			});
-			it(title="Checking custom tag inside long running thread", body=function( currentSpec ) { 
+			it(title="Checking custom tag inside long running thread", skip="true", body=function( currentSpec ) { 
 				_InternalRequest(
 					template : "#uri#/LDEV3689.cfm",
 					forms:{Scene=1}
@@ -28,7 +28,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 				sleep(100);
 				expect(trim(fileread(file))).tobe("$55.00");
 			});
-			it(title="Checking include page inside long running thread", body=function( currentSpec ) {
+			it(title="Checking include page inside long running thread", skip="true", body=function( currentSpec ) {
 				_InternalRequest(
 					template : "#uri#/LDEV3689.cfm",
 					forms:{Scene=2}
