@@ -1,7 +1,7 @@
 component extends="org.lucee.cfml.test.LuceeTestCase" {
 
 	function run( testResults , testBox ) {
-		
+
 		describe( title = "Test suite for getMetaData", body = function() {
 
 			it( title = 'Checking regular array', body = function( currentSpec ) {
@@ -62,7 +62,27 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				assertEquals("soft",meta.type);
 			});
 
+			it( "Checking UDFs", () => {
+				var metaA = getMetadata( exampleFunctionWithDescriptionInAnnotation );
+				expect( metaA ).toBeStruct();
+				expect( metaA ).toHaveKey( "description" );
+				expect( metaA.description ).toBe( "Description shows up." );
+
+				var metaB = getMetadata( exampleFunctionWithDescriptionInDocblock );
+				expect( metaB ).toBeStruct();
+				expect( metaB ).toHaveKey( "description" );
+				expect( metaB.description ).toBe( "Description does not show up." );
+			} );
+
 		});
 
 	}
+
+	function exampleFunctionWithDescriptionInAnnotation() description="Description shows up." {}
+
+	/**
+	 * @description Description does not show up.
+	 */
+	function exampleFunctionWithDescriptionInDocblock() {}
+
 }
