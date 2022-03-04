@@ -6,8 +6,7 @@ component {
         ,dialect="MicrosoftSQLServer"
     } 
     mssql = getDatasource();
-    this.datasources["LDEV_3860"] = mssql;
-    this.datasource = "LDEV_3860";
+    this.datasource = mssql;
 
     public function onRequestStart() {
         if (StructIsEmpty(mssql)) {
