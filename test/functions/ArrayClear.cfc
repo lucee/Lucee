@@ -49,5 +49,23 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		}
 		catch(local.exp){}*/
 	}
+
+	public void function testArrayClearMemberFunction(){
+		var arr = arrayNew(1);
+		ArrayAppend( arr, 1 );
+		ArrayAppend( arr, 2 );
+		ArrayAppend( arr, 3 );
+		arr.clear();
+		assertEquals(0,arrayLen(arr));
+
+		arr = arrayNew(1);
+		arr[10] = 3;
+		ArrayResize(arr, 20);
+		ArrayAppend( arr, 1 );
+		ArrayAppend( arr, 2 );
+		ArrayAppend( arr, 3 );
+		arr.clear();
+		assertEquals(0,arrayLen(arr));
+	}
 } 
 </cfscript>
