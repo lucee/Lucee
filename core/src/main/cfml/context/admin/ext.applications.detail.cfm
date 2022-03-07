@@ -55,7 +55,7 @@ isInstalled=installed.count() GT 0;
 	versionStr.release = [];
 	if(len(all)){
 		for(versions in all ){
-			if(FindNoCase("SNAPSHOT", versions)){
+			if(FindNoCase("SNAPSHOT", versions) || FindNoCase("SNAPHOT", versions)){  // checks SNAPHOT too due to LDEV-3876
 				arrayprepend(versionStr.snapShot, versions)
 			}else if(FindNoCase("ALPHA", versions) || FindNoCase("BETA", versions) || FindNoCase("RC", versions)){
 				arrayprepend(versionStr.pre_release, versions);
