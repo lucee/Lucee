@@ -90,7 +90,36 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		assertEquals(200,result.status);
 		assertEquals("0",trim(result.fileContent));
 	}
+
+	// ormSettings dialects tests
+	public void function testDialectMYSQL(){
+		local.uri=createURI("testDialects/testMysql/index.cfm");
+		local.result=_InternalRequest(uri);
+		assertEquals(200,result.status);
+		assertEquals(true, findNoCase("mysql", result.fileContent) > 0);
+	}
+
+	public void function testDialectMSSQL(){
+		local.uri=createURI("testDialects/testMssql/index.cfm");
+		local.result=_InternalRequest(uri);
+		assertEquals(200,result.status);
+		assertEquals(true, findNoCase("SQLServer", result.fileContent) > 0);
+	}
+
+	public void function testDialectPostgres(){
+		local.uri=createURI("testDialects/testPostgres/index.cfm");
+		local.result=_InternalRequest(uri);
+		assertEquals(200,result.status);
+		assertEquals(true, findNoCase("postgres", result.fileContent) > 0);
+	}
 	
+	public void function testDialectH2(){
+		local.uri=createURI("testDialects/testH2/index.cfm");
+		local.result=_InternalRequest(uri);
+		assertEquals(200,result.status);
+		assertEquals(true, findNoCase("H2", result.fileContent) > 0);
+	}
+
 	private string function createURI(string calledName){
 		var baseURI="/test/#listLast(getDirectoryFromPath(getCurrenttemplatepath()),"\/")#/";
 		return baseURI&""&calledName;
