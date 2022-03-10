@@ -1,5 +1,5 @@
 component extends = "org.lucee.cfml.test.LuceeTestCase"{
-	cfapplication(mappings = { "/cfcMap" : getDirectoryFromPath(getCurrentTemplatePath()) & "LDEV3900\othercfc"});
+	cfapplication(mappings = { "/cfcMap" : getDirectoryFromPath(getCurrentTemplatePath()) & "LDEV3900\otherCfc"});
 	function run( testResults , testBox ) {
 		describe( "Test case for LDEV-3900", function() {
 			it(title="check import component definition using component object", body=function( currentSpec ) {
