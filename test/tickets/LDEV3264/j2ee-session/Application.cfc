@@ -16,13 +16,11 @@ component {
 	}
 
 	function onSessionStart() {
-		systemOutput("", true);
 		systemOutput("session started #cgi.SCRIPT_NAME#", true);
 		session.started = now();
 	}
 
 	function onSessionEnd(SessionScope, ApplicationScope) {
-		systemOutput("", true);
 		systemOutput("#now()# session ended #cgi.SCRIPT_NAME# #sessionScope.sessionid#", true);
 		server.LDEV3264_endedSessions[ arguments.sessionScope.sessionid ] = now();
 	}

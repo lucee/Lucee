@@ -8,7 +8,12 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="session" {
 
 	function afterAll(){
 		systemOutput("-------------------------" , true);
+
+		sleep(61000);
+		systemOutput("", true);
+		systemOutput("ended sessionids:" & structKeyList(server.LDEV3264_endedSessions), true);
 		structDelete(server, "LDEV3264_endedSessions");
+		
 	}
 
 	function run( testResults , testBox ) {
@@ -18,9 +23,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="session" {
 				local.cfmlSessionId = _InternalRequest(
 					template : "#uri#\cfml-session\testOnSessionEnd.cfm"
 				);
-				debug(local.cfmlSessionId );
-				expect( len( local.cfmlSessionId.filecontent ) ).toBeGT( 0 );
-				sleep(61000);
+				dumpResult( "cfmlSessionId: " & cfmlSessionId.filecontent );
+				expect( len( cfmlSessionId.filecontent ) ).toBeGT( 0 );
+				admin
+					action="purgeExpiredSessions"
+					type="server"
+					password="#request.SERVERADMINPASSWORD#";
+
 				local.result = _InternalRequest(
 					template : "#uri#\cfml-session\testOnSessionEnd.cfm",
 					url: {
@@ -28,7 +37,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="session" {
 						check: trim(cfmlSessionId.filecontent)
 					}
 				);
-				debug(local.result );
+				dumpResult( result.filecontent );
 				expect( trim( result.filecontent ) ).toBeTrue();
 			});
 
@@ -37,9 +46,12 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="session" {
 				local.j2eeSessionId = _InternalRequest(
 					template : "#uri#\j2ee-session\testOnSessionEnd.cfm"
 				);
-				debug( local.j2eeSessionId );
-				expect( len( local.j2eeSessionId.filecontent ) ).toBeGT( 0 );
-				sleep(61000);
+				dumpResult( "j2eeSessionId: " & j2eeSessionId.filecontent );
+				expect( len( j2eeSessionId.filecontent ) ).toBeGT( 0 );
+				admin
+					action="purgeExpiredSessions"
+					type="server"
+					password="#request.SERVERADMINPASSWORD#";
 				local.result = _InternalRequest(
 					template : "#uri#\j2ee-session\testOnSessionEnd.cfm",
 					url: {
@@ -47,16 +59,16 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="session" {
 						check: trim(j2eeSessionId.filecontent)
 					}
 				);
-				debug( local.result );
+				dumpResult( result.filecontent );
 				expect( trim( result.filecontent ) ).toBeTrue();
 			});
 		});
 	}
 
 	private function dumpResult(r){
-		systemOutput("", true);
-		systemOutput(r.filecontent, true);
-		systemOutput("", true);
+//		systemOutput("---", true);
+		systemOutput(r, true);
+//		systemOutput("---", true);
 	}
 
 	private string function createURI(string calledName){
