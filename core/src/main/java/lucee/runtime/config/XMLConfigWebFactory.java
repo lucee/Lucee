@@ -404,8 +404,9 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 
 					}
 				}
-				catch (Exception e) {
-					log(config, null, e);
+				catch (Throwable t) {
+					ExceptionUtil.rethrowIfNecessary(t);
+					log(config, null, t);
 				}
 			}
 			// reload when an old version of xml got updated
@@ -415,8 +416,9 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			}
 
 		}
-		catch (Exception e) {
-			log(config, null, e);
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+			log(config, null, t);
 		}
 
 		config.setLastModified();
@@ -443,8 +445,9 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		try {
 			ConfigWebUtil.loadLib(cs, config);
 		}
-		catch (Exception e) {
-			log(config, log, e);
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+			log(config, log, t);
 		}
 		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded lib");
 		_loadSystem(cs, config, doc, log);
@@ -632,8 +635,9 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 							config.addResourceProvider(strProviderScheme, new ClassDefinitionImpl(CFMLResourceProvider.class), args);
 						}
 					}
-					catch (Exception e) {
-						log(config, log, e);
+					catch (Throwable t) {
+						ExceptionUtil.rethrowIfNecessary(t);
+						log(config, log, t);
 					}
 				}
 
@@ -650,8 +654,9 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 				}
 			}
 		}
-		catch (Exception e) {
-			log(config, log, e);
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+			log(config, log, t);
 		}
 	}
 
@@ -691,8 +696,9 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 						try {
 							config.addCacheHandler(entry.getKey(), entry.getValue());
 						}
-						catch (Exception e) {
-							log(config, log, e);
+						catch (Throwable t) {
+							ExceptionUtil.rethrowIfNecessary(t);
+							log(config, log, t);
 						}
 					}
 				}
@@ -719,14 +725,16 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 							}
 						}
 					}
-					catch (Exception e) {
-						log(config, log, e);
+					catch (Throwable t) {
+						ExceptionUtil.rethrowIfNecessary(t);
+						log(config, log, t);
 					}
 				}
 			}
 		}
-		catch (Exception e) {
-			log(config, log, e);
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+			log(config, log, t);
 		}
 	}
 
@@ -750,8 +758,9 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 							if (entries[i].getDefaultType() == HTMLDumpWriter.DEFAULT_RICH) hasRich = true;
 							sct.put(entries[i].getName(), entries[i]);
 						}
-						catch (Exception e) {
-							log(config, log, e);
+						catch (Throwable t) {
+							ExceptionUtil.rethrowIfNecessary(t);
+							log(config, log, t);
 						}
 					}
 				}
@@ -776,8 +785,9 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 							sct.put(strName, new DumpWriterEntry(def, strName, (DumpWriter) ClassUtil.loadInstance(clazz)));
 						}
 					}
-					catch (Exception e) {
-						log(config, log, e);
+					catch (Throwable t) {
+						ExceptionUtil.rethrowIfNecessary(t);
+						log(config, log, t);
 					}
 				}
 			}
@@ -797,8 +807,9 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			}
 			config.setDumpWritersEntries(entries.toArray(new DumpWriterEntry[entries.size()]));
 		}
-		catch (Exception e) {
-			log(config, log, e);
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+			log(config, log, t);
 		}
 	}
 
@@ -864,8 +875,9 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 				if (listener != null) listener.onLoadWebContext(configServer, (ConfigWeb) config);
 			}
 		}
-		catch (Exception e) {
-			log(config, log, e);
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+			log(config, log, t);
 		}
 	}
 
@@ -873,8 +885,9 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		try {
 			doCheckChangesInLibraries(config);
 		}
-		catch (Exception e) {
-			log(config, log, e);
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+			log(config, log, t);
 		}
 	}
 
@@ -884,8 +897,9 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			String strVersion = getAttr(luceeConfiguration, "version");
 			config.setVersion(Caster.toDoubleValue(strVersion, 1.0d));
 		}
-		catch (Exception e) {
-			log(config, log, e);
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+			log(config, log, t);
 		}
 	}
 
@@ -925,8 +939,9 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			else((ConfigServerImpl) config).setIdentification(new IdentificationServerImpl((ConfigServerImpl) config, securityKey, apiKey));
 			config.getIdentification().getId();
 		}
-		catch (Exception e) {
-			log(config, log, e);
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+			log(config, log, t);
 		}
 	}
 
@@ -1000,8 +1015,9 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 							cs.setSecurityManager(id, sm);
 						}
 					}
-					catch (Exception e) {
-						log(config, log, e);
+					catch (Throwable t) {
+						ExceptionUtil.rethrowIfNecessary(t);
+						log(config, log, t);
 					}
 				}
 
@@ -1021,9 +1037,10 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 				config.setQueryVarUsage(vu);
 			}
 		}
-		catch (Exception e) {
-			e.printStackTrace();
-			log(config, log, e);
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+			t.printStackTrace();
+			log(config, log, t);
 		}
 	}
 
@@ -1041,8 +1058,9 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 					if (res.isDirectory()) reses.add(res);
 				}
 			}
-			catch (Exception e) {
-				log(config, log, e);
+			catch (Throwable t) {
+				ExceptionUtil.rethrowIfNecessary(t);
+				log(config, log, t);
 			}
 		}
 		return reses.toArray(new Resource[reses.size()]);
@@ -1094,10 +1112,11 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		try {
 			createFileFromResourceCheckSizeDiff(resource, file);
 		}
-		catch (Exception e) {
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
 			LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), Log.LEVEL_ERROR, XMLConfigWebFactory.class.getName(), resource);
 			LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), Log.LEVEL_ERROR, XMLConfigWebFactory.class.getName(), file + "");
-			LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), XMLConfigWebFactory.class.getName(), e);
+			LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), XMLConfigWebFactory.class.getName(), t);
 		}
 	}
 
@@ -1548,8 +1567,9 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 								}
 							}
 						}
-						catch (Exception e) {
-							log(config, log, e);
+						catch (Throwable t) {
+							ExceptionUtil.rethrowIfNecessary(t);
+							log(config, log, t);
 						}
 					}
 				}
@@ -1621,8 +1641,9 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 								}
 							}
 						}
-						catch (Exception e) {
-							log(config, log, e);
+						catch (Throwable t) {
+							ExceptionUtil.rethrowIfNecessary(t);
+							log(config, log, t);
 						}
 					}
 				}
@@ -1662,8 +1683,9 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			// config.setMappings((Mapping[]) mappings.toArray(new
 			// Mapping[mappings.size()]));
 		}
-		catch (Exception e) {
-			log(config, log, e);
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+			log(config, log, t);
 		}
 	}
 
@@ -1712,8 +1734,9 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 								mappings.put(tmp.getVirtual(), tmp);
 							}
 						}
-						catch (Exception e) {
-							log(config, log, e);
+						catch (Throwable t) {
+							ExceptionUtil.rethrowIfNecessary(t);
+							log(config, log, t);
 						}
 					}
 				}
@@ -1734,16 +1757,18 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 							mappings.put(tmp.getVirtual(), tmp);
 						}
 					}
-					catch (Exception e) {
-						log(config, log, e);
+					catch (Throwable t) {
+						ExceptionUtil.rethrowIfNecessary(t);
+						log(config, log, t);
 					}
 				}
 			}
 
 			config.setRestMappings(mappings.values().toArray(new lucee.runtime.rest.Mapping[mappings.size()]));
 		}
-		catch (Exception e) {
-			log(config, log, e);
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+			log(config, log, t);
 		}
 	}
 
@@ -1773,8 +1798,9 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 				}
 			}
 		}
-		catch (Exception e) {
-			log(config, log, e);
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+			log(config, log, t);
 		}
 	}
 
@@ -1788,8 +1814,9 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 				log.error("Flex", "object [" + Caster.toClassName(obj) + "] must implement the interface " + AMFEngine.class.getName());
 			}
 		}
-		catch (Exception e) {
-			log.error("Flex", e);
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+			log.error("Flex", t);
 		}
 		return defaultValue;
 	}
@@ -1845,8 +1872,9 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 						else config.addLogger(name, level, cdAppender, appArgs, null, null, readOnly, false);
 					}
 				}
-				catch (Exception e) {
-					log(config, null, e);
+				catch (Throwable t) {
+					ExceptionUtil.rethrowIfNecessary(t);
+					log(config, null, t);
 				}
 			}
 
@@ -1864,14 +1892,16 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 									data.getLayoutArgs(), true, false);
 						}
 					}
-					catch (Exception ex) {
-						log(config, null, ex);
+					catch (Throwable th) {
+						ExceptionUtil.rethrowIfNecessary(th);
+						log(config, null, th);
 					}
 				}
 			}
 		}
-		catch (Exception e) {
-			log(config, null, e);
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+			log(config, null, t);
 		}
 	}
 
@@ -1937,8 +1967,9 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 						}
 					}
 				}
-				catch (Exception e) {
-					LogUtil.logGlobal(ThreadLocalPageContext.getConfig(configServer == null ? config : configServer), XMLConfigWebFactory.class.getName(), e);
+				catch (Throwable t) {
+					ExceptionUtil.rethrowIfNecessary(t);
+					LogUtil.logGlobal(ThreadLocalPageContext.getConfig(configServer == null ? config : configServer), XMLConfigWebFactory.class.getName(), t);
 					clazz = ConsoleExecutionLog.class;
 				}
 				if (clazz != null) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(configServer == null ? config : configServer), Log.LEVEL_INFO,
@@ -1956,8 +1987,9 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 				else config.setExecutionLogFactory(new ExecutionLogFactory(ConsoleExecutionLog.class, new HashMap<String, String>()));
 			}
 		}
-		catch (Exception e) {
-			log(config, log, e);
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+			log(config, log, t);
 		}
 	}
 
@@ -2004,8 +2036,9 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 					try {
 						if (!entry.getKey().equals(QOQ_DATASOURCE_NAME)) datasources.put(entry.getKey(), entry.getValue().cloneReadOnly());
 					}
-					catch (Exception e) {
-						log(config, log, e);
+					catch (Throwable t) {
+						ExceptionUtil.rethrowIfNecessary(t);
+						log(config, log, t);
 					}
 				}
 			}
@@ -2022,8 +2055,9 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 						"hypersonic-hsqldb", "", -1, "jdbc:hsqldb:.", "sa", "", null, DEFAULT_MAX_CONNECTION, -1, -1, 60000, true, true, DataSource.ALLOW_ALL, false, false, null,
 						new StructImpl(), "", ParamSyntax.DEFAULT, false, false, false, false);
 			}
-			catch (Exception e) {
-				log.error("Datasource", e);
+			catch (Throwable t) {
+				ExceptionUtil.rethrowIfNecessary(t);
+				log.error("Datasource", t);
 			}
 
 			SecurityManager sm = config.getSecurityManager();
@@ -2101,20 +2135,23 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 
 							);
 						}
-						catch (Exception e) {
-							log.error("Datasource", e);
+						catch (Throwable t) {
+							ExceptionUtil.rethrowIfNecessary(t);
+							log.error("Datasource", t);
 						}
 					}
 				}
-				catch (Exception e) {
-					log(config, log, e);
+				catch (Throwable t) {
+					ExceptionUtil.rethrowIfNecessary(t);
+					log(config, log, t);
 				}
 			}
 			// }
 			config.setDataSources(datasources);
 		}
-		catch (Exception e) {
-			log(config, log, e);
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+			log(config, log, t);
 		}
 	}
 
@@ -2165,8 +2202,9 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 						try {
 							map.put(sd.cd.toString(), sd);
 						}
-						catch (Exception e) {
-							log(config, log, e);
+						catch (Throwable t) {
+							ExceptionUtil.rethrowIfNecessary(t);
+							log(config, log, t);
 						}
 					}
 				}
@@ -2186,7 +2224,8 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 							String cn = JDBCDriver.extractClassName(bundle);
 							cd = new ClassDefinitionImpl(config.getIdentification(), cn, cd.getName(), cd.getVersion());
 						}
-						catch (Exception e) {
+						catch (Throwable t) {
+							ExceptionUtil.rethrowIfNecessary(t);
 						}
 					}
 
@@ -2206,13 +2245,15 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 					}
 					map.put(cd.toString(), new JDBCDriver(label, id, connStr, cd));
 				}
-				catch (Exception e) {
-					log(config, log, e);
+				catch (Throwable t) {
+					ExceptionUtil.rethrowIfNecessary(t);
+					log(config, log, t);
 				}
 			}
 		}
-		catch (Exception e) {
-			log(config, log, e);
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+			log(config, log, t);
 		}
 		return map.values().toArray(new JDBCDriver[map.size()]);
 	}
@@ -2265,8 +2306,9 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 						}
 						map.put(cd.getClassName(), cd);
 					}
-					catch (Exception e) {
-						log(config, log, e);
+					catch (Throwable t) {
+						ExceptionUtil.rethrowIfNecessary(t);
+						log(config, log, t);
 					}
 				}
 				config.setCacheDefinitions(map);
@@ -2305,8 +2347,9 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 					}
 					else config.setCacheDefaultConnectionName(+types[i], "");
 				}
-				catch (Exception e) {
-					log(config, log, e);
+				catch (Throwable t) {
+					ExceptionUtil.rethrowIfNecessary(t);
+					log(config, log, t);
 				}
 			}
 
@@ -2355,8 +2398,9 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 
 						}
 					}
-					catch (Exception e) {
-						log(config, log, e);
+					catch (Throwable t) {
+						ExceptionUtil.rethrowIfNecessary(t);
+						log(config, log, t);
 					}
 
 				}
@@ -2383,8 +2427,9 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 							}
 							list.add(cc);
 						}
-						catch (Exception e) {
-							log(config, log, e);
+						catch (Throwable t) {
+							ExceptionUtil.rethrowIfNecessary(t);
+							log(config, log, t);
 						}
 					}
 				}
@@ -2431,15 +2476,17 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 						cc = entry.getValue();
 						if (!caches.containsKey(entry.getKey())) caches.put(entry.getKey(), new ServerCacheConnection(configServer, cc));
 					}
-					catch (Exception e) {
-						log(config, log, e);
+					catch (Throwable t) {
+						ExceptionUtil.rethrowIfNecessary(t);
+						log(config, log, t);
 					}
 				}
 			}
 			config.setCaches(caches);
 		}
-		catch (Exception e) {
-			log(config, log, e);
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+			log(config, log, t);
 		}
 	}
 
@@ -2470,8 +2517,9 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 						try {
 							mapGateways.put(e.getKey(), ((GatewayEntryImpl) e.getValue()).duplicateReadOnly(engine));
 						}
-						catch (Exception ex) {
-							log(config, log, ex);
+						catch (Throwable th) {
+							ExceptionUtil.rethrowIfNecessary(th);
+							log(config, log, th);
 						}
 					}
 				}
@@ -2504,8 +2552,9 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 						else LogUtil.logGlobal(ThreadLocalPageContext.getConfig(configServer == null ? config : configServer), Log.LEVEL_ERROR, XMLConfigWebFactory.class.getName(),
 								"missing id");
 					}
-					catch (Exception e) {
-						log(config, log, e);
+					catch (Throwable t) {
+						ExceptionUtil.rethrowIfNecessary(t);
+						log(config, log, t);
 					}
 				}
 				config.setGatewayEntries(mapGateways);
@@ -2514,8 +2563,9 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 				((GatewayEngineImpl) ((ConfigWebPro) config).getGatewayEngine()).clear();
 			}
 		}
-		catch (Exception e) {
-			log(config, log, e);
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+			log(config, log, t);
 		}
 	}
 
@@ -2664,8 +2714,9 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 						mappings[i] = new MappingImpl(config, XMLConfigAdmin.createVirtual(ctMapping), physical, archive, inspTemp, physicalFirst, hidden, readonly, true, false,
 								true, null, -1, -1);
 					}
-					catch (Exception e) {
-						log(config, log, e);
+					catch (Throwable t) {
+						ExceptionUtil.rethrowIfNecessary(t);
+						log(config, log, t);
 					}
 				}
 
@@ -2685,8 +2736,9 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 						m = ((MappingImpl) originals[i]).cloneReadOnly(config);
 						map.put(toKey(m), m);
 					}
-					catch (Exception e) {
-						log(config, log, e);
+					catch (Throwable t) {
+						ExceptionUtil.rethrowIfNecessary(t);
+						log(config, log, t);
 					}
 				}
 
@@ -2706,8 +2758,9 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 							entry = (Entry) it.next();
 							clones[index++] = (Mapping) entry.getValue();
 						}
-						catch (Exception e) {
-							log(config, log, e);
+						catch (Throwable t) {
+							ExceptionUtil.rethrowIfNecessary(t);
+							log(config, log, t);
 						}
 					}
 					hasSet = true;
@@ -2724,8 +2777,9 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 				// Mapping[]{m.cloneReadOnly(config)});
 			}
 		}
-		catch (Exception e) {
-			log(config, log, e);
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+			log(config, log, t);
 		}
 
 	}
@@ -2831,8 +2885,9 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 							cd = getClassDefinition(tag, "", config.getIdentification());
 							config.addTag(ns, nss, n, CFMLEngine.DIALECT_BOTH, cd);
 						}
-						catch (Exception e) {
-							log(config, log, e);
+						catch (Throwable t) {
+							ExceptionUtil.rethrowIfNecessary(t);
+							log(config, log, t);
 						}
 					}
 				}
@@ -2863,8 +2918,9 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 						ApplicationContextSupport.initTagDefaultAttributeValues(config, trg, tags, CFMLEngine.DIALECT_LUCEE);
 						config.setTagDefaultAttributeValues(trg);
 					}
-					catch (Exception e) {
-						log(config, log, e);
+					catch (Throwable t) {
+						ExceptionUtil.rethrowIfNecessary(t);
+						log(config, log, t);
 					}
 				}
 
@@ -2872,8 +2928,9 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 
 			}
 		}
-		catch (Exception e) {
-			log(config, log, e);
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+			log(config, log, t);
 		}
 	}
 
@@ -2903,8 +2960,9 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 
 			config.setTempDirectory(cst, !isReload);
 		}
-		catch (Exception e) {
-			log(config, log, e);
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+			log(config, log, t);
 		}
 	}
 
@@ -3018,8 +3076,9 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 						Resource dir = ConfigWebUtil.getFile(config, configDir, str, FileUtil.TYPE_DIR);
 						if (dir != null) listTags.add(dir);
 					}
-					catch (Exception e) {
-						log(config, log, e);
+					catch (Throwable t) {
+						ExceptionUtil.rethrowIfNecessary(t);
+						log(config, log, t);
 					}
 				}
 			}
@@ -3069,15 +3128,17 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 						Resource dir = ConfigWebUtil.getFile(config, configDir, str, FileUtil.TYPE_DIR);
 						if (dir != null) listFuncs.add(dir);
 					}
-					catch (Exception e) {
-						log(config, log, e);
+					catch (Throwable t) {
+						ExceptionUtil.rethrowIfNecessary(t);
+						log(config, log, t);
 					}
 				}
 			}
 			config.setFunctionDirectory(listFuncs);
 		}
-		catch (Exception e) {
-			log(config, log, e);
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+			log(config, log, t);
 		}
 	}
 
@@ -3111,8 +3172,9 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 					f = build.getRealResource(names[i]);
 					if (!f.exists() || doNew) createFileFromResourceEL("/resource/library/tag/build/" + names[i], f);
 				}
-				catch (Exception e) {
-					log(config, null, e);
+				catch (Throwable t) {
+					ExceptionUtil.rethrowIfNecessary(t);
+					log(config, null, t);
 				}
 
 			}
@@ -3126,8 +3188,9 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 					f = jquery.getRealResource(names[i]);
 					if (!f.exists() || doNew) createFileFromResourceEL("/resource/library/tag/build/jquery/" + names[i], f);
 				}
-				catch (Exception e) {
-					log(config, null, e);
+				catch (Throwable t) {
+					ExceptionUtil.rethrowIfNecessary(t);
+					log(config, null, t);
 				}
 			}
 
@@ -3233,8 +3296,9 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 				}
 			}
 		}
-		catch (Exception e) {
-			log(config, log, e);
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+			log(config, log, t);
 		}
 	}
 
@@ -3257,14 +3321,16 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 					config.setVideoExecuterClass(clazz);
 
 				}
-				catch (Exception e) {
-					LogUtil.logGlobal(ThreadLocalPageContext.getConfig(configServer == null ? config : configServer), XMLConfigWebFactory.class.getName(), e);
+				catch (Throwable t) {
+					ExceptionUtil.rethrowIfNecessary(t);
+					LogUtil.logGlobal(ThreadLocalPageContext.getConfig(configServer == null ? config : configServer), XMLConfigWebFactory.class.getName(), t);
 				}
 			}
 			else if (hasCS) config.setVideoExecuterClass(configServer.getVideoExecuterClass());
 		}
-		catch (Exception e) {
-			log(config, log, e);
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+			log(config, log, t);
 		}
 	}
 
@@ -3367,8 +3433,9 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			}
 			else if (hasCS) config.setDevelopMode(configServer.isDevelopMode());
 		}
-		catch (Exception e) {
-			log(config, log, e);
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+			log(config, log, t);
 		}
 	}
 
@@ -3451,8 +3518,9 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 					}
 					list.add(new RemoteClientImpl(label, type, url, sUser, sPass, aPass, pd, aCode, usage));
 				}
-				catch (Exception e) {
-					log(config, log, e);
+				catch (Throwable t) {
+					ExceptionUtil.rethrowIfNecessary(t);
+					log(config, log, t);
 				}
 			}
 			if (list.size() > 0) config.setRemoteClients(list.toArray(new RemoteClient[list.size()]));
@@ -3473,8 +3541,9 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 
 			}
 		}
-		catch (Exception e) {
-			log(config, log, e);
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+			log(config, log, t);
 		}
 	}
 
@@ -3514,8 +3583,9 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			System.setErr(ps);
 
 		}
-		catch (Exception e) {
-			log(config, log, e);
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+			log(config, log, t);
 		}
 	}
 
@@ -3533,7 +3603,8 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 
 					return (PrintStream) ClassUtil.loadInstance(classname);
 				}
-				catch (Exception e) {
+				catch (Throwable t) {
+					ExceptionUtil.rethrowIfNecessary(t);
 				}
 			}
 			// file
@@ -3544,7 +3615,8 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 					Resource res = ConfigWebUtil.getFile(config, config.getConfigDir(), strRes, ResourceUtil.TYPE_FILE);
 					if (res != null) return new PrintStream(res.getOutputStream(), true);
 				}
-				catch (Exception e) {
+				catch (Throwable t) {
+					ExceptionUtil.rethrowIfNecessary(t);
 				}
 			}
 			else if (StringUtil.startsWithIgnoreCase(streamtype, "log")) {
@@ -3558,7 +3630,8 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 					}
 					return new PrintStream(new RetireOutputStream(log, true, 5, null));
 				}
-				catch (Exception e) {
+				catch (Throwable t) {
+					ExceptionUtil.rethrowIfNecessary(t);
 				}
 			}
 		}
@@ -3610,8 +3683,9 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			if (!StringUtil.isEmpty(resource)) config.setResourceCharset(resource);
 			else if (hasCS) config.setResourceCharset(configServer.getResourceCharset());
 		}
-		catch (Exception e) {
-			log(config, log, e);
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+			log(config, log, t);
 		}
 	}
 
@@ -3647,8 +3721,9 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 				config.setQueueEnable(configServer.getQueueEnable());
 			}
 		}
-		catch (Exception e) {
-			log(config, log, e);
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+			log(config, log, t);
 		}
 	}
 
@@ -3705,8 +3780,9 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			else if (hasCS) config.setLocale(configServer.getLocale());
 			else config.setLocale(Locale.US);
 		}
-		catch (Exception e) {
-			log(config, log, e);
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+			log(config, log, t);
 		}
 	}
 
@@ -3721,8 +3797,9 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 				config.setWSHandlerClassDefinition(configServer.getWSHandlerClassDefinition());
 			}
 		}
-		catch (Exception e) {
-			log(config, log, e);
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+			log(config, log, t);
 		}
 	}
 
@@ -3764,8 +3841,9 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			ORMConfiguration ormConfig = doc == null ? def : ORMConfigurationImpl.load(config, null, orm, config.getRootDirectory(), def);
 			config.setORMConfig(ormConfig);
 		}
-		catch (Exception e) {
-			log(config, log, e);
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+			log(config, log, t);
 		}
 	}
 
@@ -3795,8 +3873,9 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 						config.setClusterClass(clazz);
 
 					}
-					catch (Exception e) {
-						LogUtil.logGlobal(ThreadLocalPageContext.getConfig(configServer == null ? config : configServer), XMLConfigWebFactory.class.getName(), e);
+					catch (Throwable t) {
+						ExceptionUtil.rethrowIfNecessary(t);
+						LogUtil.logGlobal(ThreadLocalPageContext.getConfig(configServer == null ? config : configServer), XMLConfigWebFactory.class.getName(), t);
 					}
 
 				}
@@ -3967,8 +4046,9 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			}
 			else if (hasCS) config.setDomainCookies(configServer.isDomainCookies());
 		}
-		catch (Exception e) {
-			log(config, log, e);
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+			log(config, log, t);
 		}
 	}
 
@@ -4001,8 +4081,9 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 				config.setCompileType(configServer.getCompileType());
 			}
 		}
-		catch (Exception e) {
-			log(config, log, e);
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+			log(config, log, t);
 		}
 	}
 
@@ -4026,26 +4107,29 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 					if (StringUtil.isEmpty(name)) continue;
 					sct.setEL(KeyImpl.getInstance(name.trim()), getAttr(elConstants[i], "value"));
 				}
-				catch (Exception e) {
-					log(config, null, e);
+				catch (Throwable t) {
+					ExceptionUtil.rethrowIfNecessary(t);
+					log(config, null, t);
 				}
 			}
 			config.setConstants(sct);
 		}
-		catch (Exception e) {
-			log(config, null, e);
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+			log(config, null, t);
 		}
 	}
 
-	public static void log(Config config, Log log, Exception e) {
+	public static void log(Config config, Log log, Throwable e) {
 		try {
 			if (log != null) log.error("configuration", e);
 			else {
 				LogUtil.logGlobal(config, XMLConfigWebFactory.class.getName(), e);
 			}
 		}
-		catch (Exception ee) {
-			ee.printStackTrace();
+		catch (Throwable th) {
+			ExceptionUtil.rethrowIfNecessary(th);
+			th.printStackTrace();
 		}
 	}
 
@@ -4064,8 +4148,9 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 				cs.setRememberMe(rememberme);
 			}
 		}
-		catch (Exception e) {
-			log(config, log, e);
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+			log(config, log, t);
 		}
 	}
 
@@ -4089,7 +4174,8 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 								fin.invoke(existing.instance, new Object[0]);
 							}
 						}
-						catch (Exception e) {
+						catch (Throwable t) {
+							ExceptionUtil.rethrowIfNecessary(t);
 						}
 					}
 					Class clazz = cd.getClazz();
@@ -4098,13 +4184,15 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 					if (constr != null) config.getStartups().put(cd.getClassName(), new ConfigBase.Startup(cd, constr.newInstance(new Object[] { config })));
 					else config.getStartups().put(cd.getClassName(), new ConfigBase.Startup(cd, ClassUtil.loadInstance(clazz)));
 				}
-				catch (Exception e) {
-					log(config, log, e);
+				catch (Throwable t) {
+					ExceptionUtil.rethrowIfNecessary(t);
+					log(config, log, t);
 				}
 			}
 		}
-		catch (Exception e) {
-			log(config, log, e);
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+			log(config, log, t);
 		}
 	}
 
@@ -4175,8 +4263,9 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 						try {
 							servers.add(readOnlyServers[index++].cloneReadOnly());
 						}
-						catch (Exception e) {
-							log(config, log, e);
+						catch (Throwable t) {
+							ExceptionUtil.rethrowIfNecessary(t);
+							log(config, log, t);
 						}
 					}
 				}
@@ -4192,15 +4281,17 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 										toLong(el.getAttribute("idle"), 1000 * 60 * 1), toBoolean(getAttr(el, "tls"), false), toBoolean(getAttr(el, "ssl"), false),
 										toBoolean(getAttr(el, "reuse-connection"), true), hasCS ? ServerImpl.TYPE_LOCAL : ServerImpl.TYPE_GLOBAL));
 					}
-					catch (Exception e) {
-						log(config, log, e);
+					catch (Throwable t) {
+						ExceptionUtil.rethrowIfNecessary(t);
+						log(config, log, t);
 					}
 				}
 			}
 			config.setMailServers(servers.toArray(new Server[servers.size()]));
 		}
-		catch (Exception e) {
-			log(config, log, e);
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+			log(config, log, t);
 		}
 	}
 
@@ -4266,13 +4357,15 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 								requests.add(m);
 							}
 						}
-						catch (Exception e) {
-							LogUtil.logGlobal(ThreadLocalPageContext.getConfig(configServer == null ? config : configServer), XMLConfigWebFactory.class.getName(), e);
+						catch (Throwable t) {
+							ExceptionUtil.rethrowIfNecessary(t);
+							LogUtil.logGlobal(ThreadLocalPageContext.getConfig(configServer == null ? config : configServer), XMLConfigWebFactory.class.getName(), t);
 						}
 					}
 				}
-				catch (Exception e) {
-					log(config, log, e);
+				catch (Throwable t) {
+					ExceptionUtil.rethrowIfNecessary(t);
+					log(config, log, t);
 				}
 			}
 			configServer.setRequestMonitors(requests.toArray(new RequestMonitor[requests.size()]));
@@ -4282,8 +4375,9 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 
 			((CFMLEngineImpl) configServer.getCFMLEngine()).touchMonitor(configServer);
 		}
-		catch (Exception e) {
-			log(config, log, e);
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+			log(config, log, t);
 		}
 	}
 
@@ -4313,8 +4407,9 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 
 			config.setSearchEngine(cd, dir);
 		}
-		catch (Exception e) {
-			log(config, log, e);
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+			log(config, log, t);
 		}
 	}
 
@@ -4337,8 +4432,9 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			Resource file = ConfigWebUtil.getFile(config.getRootDirectory(), getAttr(scheduler, "directory"), "scheduler", configDir, FileUtil.TYPE_DIR, config);
 			config.setScheduler(configServer.getCFMLEngine(), file);
 		}
-		catch (Exception e) {
-			log(config, log, e);
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+			log(config, log, t);
 		}
 	}
 
@@ -4362,8 +4458,9 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 					try {
 						list.put(_entries[i].getId(), _entries[i].duplicate(true));
 					}
-					catch (Exception e) {
-						log(config, log, e);
+					catch (Throwable t) {
+						ExceptionUtil.rethrowIfNecessary(t);
+						log(config, log, t);
 					}
 				}
 			}
@@ -4376,8 +4473,9 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 					list.put(id, new DebugEntry(id, getAttr(e, "type"), getAttr(e, "iprange"), getAttr(e, "label"), e.getAttribute("path"), getAttr(e, "fullname"),
 							toStruct(getAttr(e, "custom"))));
 				}
-				catch (Exception ex) {
-					log(config, log, ex);
+				catch (Throwable th) {
+					ExceptionUtil.rethrowIfNecessary(th);
+					log(config, log, th);
 				}
 			}
 			config.setDebugEntries(list.values().toArray(new DebugEntry[list.size()]));
@@ -4469,8 +4567,9 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 
 			config.setDebugOptions(options);
 		}
-		catch (Exception e) {
-			log(config, log, e);
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+			log(config, log, t);
 		}
 	}
 
@@ -4534,16 +4633,18 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 							}
 						}
 					}
-					catch (Exception e) {
-						log(config, log, e);
+					catch (Throwable t) {
+						ExceptionUtil.rethrowIfNecessary(t);
+						log(config, log, t);
 					}
 				}
 
 			}
 			config.setCFXTagPool(map);
 		}
-		catch (Exception e) {
-			log(config, log, e);
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+			log(config, log, t);
 		}
 	}
 
@@ -4570,14 +4671,16 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 					if (rhe.getStartBundles()) rhe.deployBundles(config);
 					extensions.add(rhe);
 				}
-				catch (Exception e) {
-					log(config, log, e);
+				catch (Throwable t) {
+					ExceptionUtil.rethrowIfNecessary(t);
+					log(config, log, t);
 				}
 			}
 			config.setExtensions(extensions.toArray(new RHExtension[extensions.size()]));
 		}
-		catch (Exception e) {
-			log(config, log, e);
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+			log(config, log, t);
 		}
 	}
 
@@ -4613,8 +4716,9 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 								}
 							}
 						}
-						catch (Exception e) {
-							log(config, log, e);
+						catch (Throwable t) {
+							ExceptionUtil.rethrowIfNecessary(t);
+							log(config, log, t);
 						}
 					}
 				}
@@ -4636,15 +4740,17 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 								getAttr(xmlExtension, "mailinglist"), getAttr(xmlExtension, "network"), DateCaster.toDateAdvanced(getAttr(xmlExtension, "created"), null, null),
 								getAttr(xmlExtension, "type"));
 					}
-					catch (Exception e) {
-						log(config, log, e);
+					catch (Throwable t) {
+						ExceptionUtil.rethrowIfNecessary(t);
+						log(config, log, t);
 					}
 				}
 			}
 			config.setExtensions(extensions);
 		}
-		catch (Exception e) {
-			log(config, log, e);
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+			log(config, log, t);
 		}
 	}
 
@@ -4821,8 +4927,9 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 						hasSet = true;
 						mappings[i] = new MappingImpl(config, virtual, physical, archive, inspTemp, physicalFirst, hidden, readonly, true, false, true, null, listMode, listType);
 					}
-					catch (Exception e) {
-						log(config, log, e);
+					catch (Throwable t) {
+						ExceptionUtil.rethrowIfNecessary(t);
+						log(config, log, t);
 					}
 				}
 
@@ -4841,8 +4948,9 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 						m = ((MappingImpl) originals[i]).cloneReadOnly(config);
 						map.put(toKey(m), m);
 					}
-					catch (Exception e) {
-						log(config, log, e);
+					catch (Throwable t) {
+						ExceptionUtil.rethrowIfNecessary(t);
+						log(config, log, t);
 					}
 				}
 
@@ -4876,8 +4984,9 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			}
 
 		}
-		catch (Exception e) {
-			log(config, log, e);
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+			log(config, log, t);
 		}
 	}
 
@@ -4906,8 +5015,9 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			}
 			else if (hasCS) config.setProxyData(configServer.getProxyData());
 		}
-		catch (Exception e) {
-			log(config, log, e);
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+			log(config, log, t);
 		}
 	}
 
@@ -4953,8 +5063,9 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			}
 			else if (hasCS) config.setErrorStatusCode(configServer.getErrorStatusCode());
 		}
-		catch (Exception e) {
-			log(config, log, e);
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+			log(config, log, t);
 		}
 
 	}
@@ -4975,8 +5086,9 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			else config.setRegex(RegexFactory.toRegex(RegexFactory.TYPE_PERL, null));
 
 		}
-		catch (Exception e) {
-			log(config, log, e);
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+			log(config, log, t);
 		}
 
 	}
@@ -5094,8 +5206,9 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 				}
 			}
 		}
-		catch (Exception e) {
-			log(config, log, e);
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+			log(config, log, t);
 		}
 
 	}
@@ -5142,8 +5255,9 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 					if (!StringUtil.isEmpty(cw, true)) config.setCachedWithin(types[i], cw);
 					else if (hasCS) config.setCachedWithin(types[i], configServer.getCachedWithin(types[i]));
 				}
-				catch (Exception e) {
-					log(config, log, e);
+				catch (Throwable t) {
+					ExceptionUtil.rethrowIfNecessary(t);
+					log(config, log, t);
 				}
 			}
 
@@ -5252,14 +5366,16 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 					config.setAdminSyncClass(clazz);
 
 				}
-				catch (Exception e) {
-					LogUtil.logGlobal(configServer == null ? config : configServer, XMLConfigWebFactory.class.getName(), e);
+				catch (Throwable t) {
+					ExceptionUtil.rethrowIfNecessary(t);
+					LogUtil.logGlobal(configServer == null ? config : configServer, XMLConfigWebFactory.class.getName(), t);
 				}
 			}
 			else if (hasCS) config.setAdminSyncClass(configServer.getAdminSyncClass());
 		}
-		catch (Exception e) {
-			log(config, log, e);
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+			log(config, log, t);
 		}
 	}
 

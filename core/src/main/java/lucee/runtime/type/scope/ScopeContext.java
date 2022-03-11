@@ -816,6 +816,7 @@ public final class ScopeContext {
 					// ,new CacheStorageScopeCleaner(Scope.SCOPE_CLIENT, null) //Cache storage need no control, if
 					// there is no listener
 					});
+
 			// store session/client scope and remove from memory
 			storeUnusedStorageScope(factory, Scope.SCOPE_CLIENT);
 			storeUnusedStorageScope(factory, Scope.SCOPE_SESSION);
@@ -928,7 +929,6 @@ public final class ScopeContext {
 	private void clearUnusedMemoryScope(CFMLFactoryImpl cfmlFactory, int type) {
 		Map<String, Map<String, Scope>> contexts = type == Scope.SCOPE_CLIENT ? cfClientContexts : cfSessionContexts;
 		if (contexts.size() == 0) return;
-
 		Object[] arrContexts = contexts.keySet().toArray();
 		ApplicationListener listener = cfmlFactory.getConfig().getApplicationListener();
 		Object applicationName, cfid, o;
@@ -937,10 +937,10 @@ public final class ScopeContext {
 		for (int i = 0; i < arrContexts.length; i++) {
 			applicationName = arrContexts[i];
 			fhm = contexts.get(applicationName);
-
 			if (fhm.size() > 0) {
 				Object[] cfids = fhm.keySet().toArray();
 				int count = cfids.length;
+
 				for (int y = 0; y < cfids.length; y++) {
 					cfid = cfids[y];
 					o = fhm.get(cfid);
@@ -958,7 +958,9 @@ public final class ScopeContext {
 						}
 						scope.touch();
 						try {
-							if (type == Scope.SCOPE_SESSION) listener.onSessionEnd(cfmlFactory, (String) applicationName, (String) cfid);
+							if (type == Scope.SCOPE_SESSION) {
+								listener.onSessionEnd(cfmlFactory, (String) applicationName, (String) cfid);
+							}
 						}
 						catch (Throwable t) {
 							ExceptionUtil.rethrowIfNecessary(t);
