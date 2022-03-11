@@ -48,7 +48,7 @@ import org.osgi.framework.BundleException;
 import org.osgi.framework.Version;
 
 import lucee.VersionInfo;
-import lucee.print;
+import lucee.aprint;
 import lucee.commons.collection.MapFactory;
 import lucee.commons.digest.Base64Encoder;
 import lucee.commons.digest.HashUtil;
@@ -378,7 +378,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			sb.append(", new Item(\"").append(e.getKey()).append("\")");
 		}
 		sb.append(");");
-		print.e(sb);
+		aprint.e(sb);
 
 	}
 
