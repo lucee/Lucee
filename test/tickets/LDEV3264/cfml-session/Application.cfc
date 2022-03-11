@@ -8,7 +8,11 @@ component {
 	this.sessionType="cfml"; // lucee default
 
 	function onApplicationStart(){
-		application.endedSessions = {};
+		systemOutput("application start #cgi.SCRIPT_NAME#", true);
+	}
+
+	function onApplicationEnd(){
+		systemOutput("#now()# application end #cgi.SCRIPT_NAME#", true);
 	}
 
 	function onSessionStart() {
@@ -19,8 +23,8 @@ component {
 
 	function onSessionEnd(SessionScope, ApplicationScope) {
 		systemOutput("", true);
-		systemOutput("session ended #cgi.SCRIPT_NAME# #sessionScope.sessionid#", true);
-		arguments.ApplicationScope.endedSessions[ arguments.sessionScope.sessionid ] = now();
+		systemOutput("#now()# session ended #cgi.SCRIPT_NAME# #sessionScope.sessionid#", true);
+		server.LDEV3264_endedSessions[ arguments.sessionScope.sessionid ] = now();
 	}
 
 }

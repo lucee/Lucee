@@ -1,5 +1,16 @@
 component extends="org.lucee.cfml.test.LuceeTestCase" labels="session" {
 
+
+	function beforeAll(){
+		server.LDEV3264_endedSessions = {};
+		systemOutput("", true);
+	}
+
+	function afterAll(){
+		systemOutput("-------------------------" , true);
+		structDelete(server, "LDEV3264_endedSessions");
+	}
+
 	function run( testResults , testBox ) {
 		describe( "Test suite for LDEV2308", function() {
 			it( title='check onSessionEnd with cfml session', body=function( currentSpec ) {
@@ -9,15 +20,16 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="session" {
 				);
 				debug(local.cfmlSessionId );
 				expect( len( local.cfmlSessionId.filecontent ) ).toBeGT( 0 );
-				sleep(5000);
+				sleep(61000);
 				local.result = _InternalRequest(
 					template : "#uri#\cfml-session\testOnSessionEnd.cfm",
 					url: {
-						dumpEndedSessions: true
+						dumpEndedSessions: true,
+						check: trim(cfmlSessionId.filecontent)
 					}
 				);
 				debug(local.result );
-				expect( trim( result.filecontent ) ).toBe( trim( cfmlSessionId.fileContent ) );
+				expect( trim( result.filecontent ) ).toBeTrue();
 			});
 
 			it( title='check onSessionEnd with cfml session', body=function( currentSpec ) {
@@ -27,15 +39,16 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="session" {
 				);
 				debug( local.j2eeSessionId );
 				expect( len( local.j2eeSessionId.filecontent ) ).toBeGT( 0 );
-				sleep(5000);
+				sleep(61000);
 				local.result = _InternalRequest(
 					template : "#uri#\j2ee-session\testOnSessionEnd.cfm",
 					url: {
-						dumpEndedSessions: true
+						dumpEndedSessions: true,
+						check: trim(j2eeSessionId.filecontent)
 					}
 				);
 				debug( local.result );
-				expect( trim( result.filecontent ) ).toBe( trim( j2eeSessionId.filecontent ) );
+				expect( trim( result.filecontent ) ).toBeTrue();
 			});
 		});
 	}
