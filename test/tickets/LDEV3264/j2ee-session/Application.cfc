@@ -8,20 +8,20 @@ component {
 	this.sessionType="j2ee";
 
 	function onApplicationStart(){
-		systemOutput("application start #cgi.SCRIPT_NAME#", true);
+		//systemOutput("application start #cgi.SCRIPT_NAME#", true);
 	}
 
 	function onApplicationEnd(){
-		systemOutput("#now()# application end #cgi.SCRIPT_NAME#", true);
+		//systemOutput("#now()# application end #cgi.SCRIPT_NAME#", true);
 	}
 
 	function onSessionStart() {
-		systemOutput("session started #cgi.SCRIPT_NAME#", true);
+		//systemOutput("session started #cgi.SCRIPT_NAME#", true);
 		session.started = now();
 	}
 
 	function onSessionEnd(SessionScope, ApplicationScope) {
-		systemOutput("#now()# session ended #cgi.SCRIPT_NAME# #sessionScope.sessionid#", true);
+		//systemOutput("#now()# session ended #cgi.SCRIPT_NAME# #sessionScope.sessionid#", true);
 		server.LDEV3264_endedSessions[ arguments.sessionScope.sessionid ] = now();
 	}
 }

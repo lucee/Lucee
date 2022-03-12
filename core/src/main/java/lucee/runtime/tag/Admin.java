@@ -1534,7 +1534,6 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	}
 
 	private void doPurgeExpiredSessions() throws PageException {
-		
 		ConfigServer cs = (ConfigServer) config;
 		ConfigWeb[] webs = cs.getConfigWebs();
 		

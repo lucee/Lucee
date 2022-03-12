@@ -2,16 +2,11 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="session" {
 
 
 	function beforeAll(){
-		server.LDEV3264_endedSessions = {};
-		systemOutput("", true);
+		server.LDEV3264_endedSessions = {};		
 	}
 
-	function afterAll(){
-		systemOutput("-------------------------" , true);
-
-		sleep(61000);
-		systemOutput("", true);
-		systemOutput("ended sessionids:" & structKeyList(server.LDEV3264_endedSessions), true);
+	function afterAll(){		
+		//systemOutput("ended sessionids:" & structKeyList(server.LDEV3264_endedSessions), true);
 		structDelete(server, "LDEV3264_endedSessions");
 		
 	}
@@ -23,13 +18,15 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="session" {
 				local.cfmlSessionId = _InternalRequest(
 					template : "#uri#\cfml-session\testOnSessionEnd.cfm"
 				);
-				dumpResult( "cfmlSessionId: " & cfmlSessionId.filecontent );
+				//dumpResult( "cfmlSessionId: " & cfmlSessionId.filecontent );
 				expect( len( cfmlSessionId.filecontent ) ).toBeGT( 0 );
+				// allow session to expire
+				sleep(1001);
 				admin
 					action="purgeExpiredSessions"
 					type="server"
 					password="#request.SERVERADMINPASSWORD#";
-
+				
 				local.result = _InternalRequest(
 					template : "#uri#\cfml-session\testOnSessionEnd.cfm",
 					url: {
@@ -37,7 +34,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="session" {
 						check: trim(cfmlSessionId.filecontent)
 					}
 				);
-				dumpResult( result.filecontent );
+				//dumpResult( result.filecontent );
 				expect( trim( result.filecontent ) ).toBeTrue();
 			});
 
@@ -46,12 +43,15 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="session" {
 				local.j2eeSessionId = _InternalRequest(
 					template : "#uri#\j2ee-session\testOnSessionEnd.cfm"
 				);
-				dumpResult( "j2eeSessionId: " & j2eeSessionId.filecontent );
+				//dumpResult( "j2eeSessionId: " & j2eeSessionId.filecontent );
 				expect( len( j2eeSessionId.filecontent ) ).toBeGT( 0 );
+				// allow session to expire
+				sleep(1001);
 				admin
 					action="purgeExpiredSessions"
 					type="server"
 					password="#request.SERVERADMINPASSWORD#";
+				
 				local.result = _InternalRequest(
 					template : "#uri#\j2ee-session\testOnSessionEnd.cfm",
 					url: {
@@ -59,7 +59,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="session" {
 						check: trim(j2eeSessionId.filecontent)
 					}
 				);
-				dumpResult( result.filecontent );
+				//dumpResult( result.filecontent );
 				expect( trim( result.filecontent ) ).toBeTrue();
 			});
 		});
