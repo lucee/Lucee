@@ -58,7 +58,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"  labels="pdf"	{
 		}
 	}
 
-	public void function testPDFOrientation() skip=true {  // LDEV-3868
+	public void function testPDFOrientation() {  // LDEV-3868
 		try {
 			var path=getDirectoryFromPath(getCurrentTemplatePath())&"test-orientation.pdf";
 			document pagetype="letter" orientation="landscape" filename=path overwrite="true" {
@@ -101,14 +101,15 @@ component extends="org.lucee.cfml.test.LuceeTestCase"  labels="pdf"	{
 	private array function getPageSizes (required string path) {
 		pageSizes = [];
 		try {
-			pdDocument = CreateObject("java", "org.apache.pdfbox.pdmodel.PDDocument").load(arguments.path); // TODO PDFBOX 3.0 api has changed
-			pageIterator = pdDocument.getDocumentCatalog().getPages().getKids().iterator();
+			var file = CreateObject("java", "java.io.File").init(arguments.path);
+			pdDocument = CreateObject("java", "org.apache.pdfbox.Loader").loadPDF(file);
+			pageIterator = pdDocument.getDocumentCatalog().getPages().iterator();
 
 			while (pageIterator.hasNext()) {
 				objPage = pageIterator.next();
 				pageSizes.append({
-					width: objPage.getTrimBox().getWidth(),
-					height: objPage.getTrimBox().getHeight()
+					width: objPage.getCropBox().getWidth(),
+					height: objPage.getCropBox().getHeight()
 				});
 			}
 		} finally {
