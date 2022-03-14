@@ -126,17 +126,14 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	}
 
 	public boolean function notHasMysql() {
-		systemOutput(serializeJSON(server.getDatasource("mysql")), true);
 		return structCount(server.getDatasource("mysql")) == 0;
 	}
 
 	public boolean function notHasMSSQL() {
-		systemOutput(serializeJSON(server.getDatasource("mssql")), true);
 		return structCount(server.getDatasource("mssql")) == 0;
 	}
 
 	public boolean function notHasPostgres() {
-		systemOutput(serializeJSON(server.getDatasource("postgres")), true);
 		return structCount(server.getDatasource("postgres")) == 0;
 	}
 } 
