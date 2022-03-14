@@ -234,6 +234,9 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 			trg.isInit = isInit;
 			trg.absFin = absFin;
 
+			// importDefintions
+			trg.importDefintions = importDefintions;
+
 			boolean useShadow = scope instanceof ComponentScopeShadow;
 			if (!useShadow) trg.scope = new ComponentScopeThis(trg);
 
