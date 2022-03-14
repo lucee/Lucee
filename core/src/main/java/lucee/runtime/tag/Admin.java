@@ -672,6 +672,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		else if (check("getLoggedDebugData", ACCESS_FREE)) // no password necessary for this
 			doGetLoggedDebugData();
 		else if (check("PurgeDebugPool", ACCESS_FREE) && check2(ACCESS_WRITE)) doPurgeDebugPool();
+		else if (check("PurgeExpiredSessions", ACCESS_FREE) && check2(ACCESS_WRITE)) doPurgeExpiredSessions();
 		else if (check("getDebugSetting", ACCESS_FREE) && check2(ACCESS_READ)) doGetDebugSetting();
 		else if (check("getSSLCertificate", ACCESS_NOT_WHEN_WEB) && check2(ACCESS_READ)) doGetSSLCertificate();
 		else if (check("getPluginDirectory", ACCESS_FREE) && check2(ACCESS_READ)) doGetPluginDirectory();
@@ -1530,6 +1531,21 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		if (config instanceof ConfigServer) return;
 		ConfigWebPro cw = (ConfigWebPro) config;
 		cw.getDebuggerPool().purge();
+	}
+
+	private void doPurgeExpiredSessions() throws PageException {
+		ConfigServer cs = (ConfigServer) config;
+		ConfigWeb[] webs = cs.getConfigWebs();
+		
+		for (int i = 0; i < webs.length; i++) {
+			ConfigWeb cw = webs[i];
+			try {
+				((CFMLFactoryImpl) cw.getFactory()).getScopeContext().clearUnused();
+			}
+			catch (Throwable t) {
+				ExceptionUtil.rethrowIfNecessary(t);
+			}
+		}
 	}
 
 	private void doGetInfo() throws PageException {
