@@ -20,4 +20,19 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		expect( isObject( javacast( 'null', '' ) ) ).toBe( false );
 	}
 
+	function testNullSupport() {
+		local.uri = createURI("nullSupport");
+
+		local.nullCheck = _InternalRequest(
+			template : "#uri#/isObject.cfm"
+		);
+
+		expect( local.nullCheck.fileContent.trim() ).toBe( "true" );
+	}	
+
+	private string function createURI(string calledName){
+		var baseURI = "/test/#listLast(getDirectoryFromPath(getCurrentTemplatePath()),"\/")#/";
+		return baseURI&""&calledName;
+	}
+
 } 
