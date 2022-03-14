@@ -5,6 +5,7 @@ Minor-Name: Gelert
 Minor-Name-Explanation: https://en.wikipedia.org/wiki/Gelert
 State: beta
 Bundle-Name: Lucee Core
+Multi-Release: true
 Require-Bundle-Fragment: slf4j.nop;bundle-version=1.7.12
 Bundle-ManifestVersion: 2
 Bundle-SymbolicName: lucee.core
