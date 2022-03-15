@@ -328,6 +328,8 @@ public final class PageContextImpl extends PageContext {
 	private Map<Key, Threads> allThreads;
 	private boolean hasFamily = false;
 	private PageContextImpl parent = null;
+	private PageSource caller = null;
+	private PageSource callerTemplate = null;
 	private PageContextImpl root = null;
 
 	private List<String> parentTags;
@@ -430,6 +432,8 @@ public final class PageContextImpl extends PageContext {
 	public PageContextImpl initialize(HttpServlet servlet, HttpServletRequest req, HttpServletResponse rsp, String errorPageURL, boolean needsSession, int bufferSize,
 			boolean autoFlush, boolean isChild, boolean ignoreScopes, PageContextImpl tmplPC) {
 		parent = null;
+		caller = null;
+		callerTemplate = null;
 		root = null;
 
 		boolean clone = tmplPC != null;
@@ -556,6 +560,8 @@ public final class PageContextImpl extends PageContext {
 			tmplPC.hasFamily = true;
 
 			this.parent = tmplPC;
+			this.caller = tmplPC.getCurrentPageSource();
+			this.callerTemplate = tmplPC.getCurrentTemplatePageSource();
 			this.root = tmplPC.root == null ? tmplPC : tmplPC.root;
 			this.tagName = tmplPC.tagName;
 			this.parentTags = tmplPC.parentTags == null ? null : (List) ((ArrayList) tmplPC.parentTags).clone();
@@ -577,7 +583,6 @@ public final class PageContextImpl extends PageContext {
 				this.pathList.add(it.next());
 			}
 		}
-
 		return this;
 	}
 
@@ -602,6 +607,8 @@ public final class PageContextImpl extends PageContext {
 
 		// boolean isChild=parent!=null; // isChild is defined in the class outside this method
 		parent = null;
+		caller = null;
+		callerTemplate = null;
 		root = null;
 		// Attention have to be before close
 		if (client != null) {
@@ -687,8 +694,10 @@ public final class PageContextImpl extends PageContext {
 			lazyStats = null;
 		}
 
-		pathList.clear();
-		includePathList.clear();
+		if (!hasFamily) {
+			pathList.clear();
+			includePathList.clear();
+		}
 		executionTime = 0;
 
 		bodyContentStack.release();
@@ -1095,8 +1104,10 @@ public final class PageContextImpl extends PageContext {
 	@Override
 	public PageSource getCurrentPageSource() {
 		if (pathList.isEmpty()) {
-			if (parent != null && parent != this) // second comparision should not be necesary, just in case ...
+			if (parent != null && parent != this && parent.isInitialized()) { // second comparision should not be necesary, just in case ...
 				return parent.getCurrentPageSource();
+			}
+			else if (caller != null) return caller;
 			return null;
 		}
 		return pathList.getLast();
@@ -1105,8 +1116,10 @@ public final class PageContextImpl extends PageContext {
 	@Override
 	public PageSource getCurrentPageSource(PageSource defaultvalue) {
 		if (pathList.isEmpty()) {
-			if (parent != null && parent != this) // second comparision should not be necesary, just in case ...
+			if (parent != null && parent != this && parent.isInitialized()) { // second comparision should not be necesary, just in case ...
 				return parent.getCurrentPageSource(defaultvalue);
+			}
+			else if (caller != null) return caller;
 			return defaultvalue;
 		}
 		return pathList.getLast();
@@ -1118,8 +1131,10 @@ public final class PageContextImpl extends PageContext {
 	@Override
 	public PageSource getCurrentTemplatePageSource() {
 		if (includePathList.isEmpty()) {
-			if (parent != null && parent != this) // second comparision should not be necesary, just in case ...
+			if (parent != null && parent != this && parent.isInitialized()) { // second comparision should not be necesary, just in case ...
 				return parent.getCurrentTemplatePageSource();
+			}
+			else if (callerTemplate != null) return callerTemplate;
 			return null;
 		}
 		return includePathList.getLast();
@@ -3155,7 +3170,7 @@ public final class PageContextImpl extends PageContext {
 						throw pe;
 					}
 					finally {
-						application.initialize(this);
+						if (application != null) application.initialize(this);
 					}
 				}
 			}

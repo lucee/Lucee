@@ -16,9 +16,9 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  * 
  ---><cfscript>
-component extends="org.lucee.cfml.test.LuceeTestCase" labels="image" skip="true" {
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="image" {
 
-	public void function testWritableImageFormats() localmode="true"{
+	public void function testWritableImageFormats() localmode="true" skip="true"{
 		var imageFormats = listToArray( getWriteableImageFormats() );
 		var testFile = "";
 		var testImage = imageNew( "", 100, 100, "rgb", "yellow" );
@@ -27,7 +27,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="image" skip="true"
 				// test if we can write a file in this image format (image format is based on file extension )
 				testFile = getTempFile( getTempDirectory(), "image-test", imageFormat );
 				imageWrite ( testImage, testFile );
-				expect( isImageFile( testFile ) ).toBeTrue( "Can write an image with the format/extension [#imageFormat#]" );
+				expect( isImageFile( testFile ) ).toBeTrue("Can write an image with the format [#imageFormat#]");
 			} finally {
 				if ( fileExists( testFile ) )
 					fileDelete( testFile );

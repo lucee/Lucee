@@ -18,6 +18,8 @@
  */
 package lucee.runtime.component;
 
+import java.util.concurrent.ConcurrentHashMap;
+
 import javax.servlet.jsp.tagext.BodyContent;
 
 import lucee.commons.io.res.filter.DirectoryResourceFilter;
@@ -41,6 +43,7 @@ import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
 import lucee.runtime.PageSourceImpl;
+import lucee.runtime.StaticScope;
 import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.Constants;
 import lucee.runtime.debug.DebugEntryTemplate;
@@ -57,7 +60,7 @@ public class ComponentLoader {
 	private static final short RETURN_TYPE_PAGE = 1;
 	private static final short RETURN_TYPE_INTERFACE = 2;
 	private static final short RETURN_TYPE_COMPONENT = 3;
-
+	private static final ConcurrentHashMap<String, String> tokens = new ConcurrentHashMap<String, String>();
 	private static final ResourceFilter DIR_OR_EXT = new OrResourceFilter(
 			new ResourceFilter[] { DirectoryResourceFilter.FILTER, new ExtensionResourceFilter(Constants.getComponentExtensions()) });
 	private static final ImportDefintion[] EMPTY_ID = new ImportDefintion[0];
@@ -82,6 +85,29 @@ public class ComponentLoader {
 	public static ComponentImpl searchComponent(PageContext pc, PageSource loadingLocation, String rawPath, Boolean searchLocal, Boolean searchRoot,
 			final boolean isExtendedComponent, boolean executeConstr) throws PageException {
 		return (ComponentImpl) _search(pc, loadingLocation, rawPath, searchLocal, searchRoot, executeConstr, RETURN_TYPE_COMPONENT, isExtendedComponent);
+	}
+
+	public static StaticScope getStaticScope(PageContext pc, PageSource loadingLocation, String rawPath, Boolean searchLocal, Boolean searchRoot) throws PageException {
+		ComponentPageImpl cp = searchComponentPage(pc, loadingLocation, rawPath, searchLocal, searchRoot);
+		StaticScope ss = cp.getStaticScope();
+		if (ss == null) {
+			synchronized (getToken(cp.getHash() + "")) {
+				ss = cp.getStaticScope();
+				if (ss == null) {
+					cp.setStaticScope(ss = searchComponent(pc, loadingLocation, rawPath, searchLocal, searchRoot, false, false).staticScope());
+				}
+			}
+		}
+		return ss;
+	}
+
+	public static ComponentPageImpl searchComponentPage(PageContext pc, PageSource loadingLocation, String rawPath, Boolean searchLocal, Boolean searchRoot) throws PageException {
+		Object obj = _search(pc, loadingLocation, rawPath, searchLocal, searchRoot, false, RETURN_TYPE_PAGE, false);
+
+		if (obj instanceof ComponentPageImpl) return (ComponentPageImpl) obj;
+		int dialect = pc.getCurrentTemplateDialect();
+		throw new ExpressionException(
+				"invalid " + toStringType(RETURN_TYPE_PAGE, dialect) + " definition, can't find " + toStringType(RETURN_TYPE_PAGE, dialect) + " [" + rawPath + "]");
 	}
 
 	public static InterfaceImpl searchInterface(PageContext pc, PageSource loadingLocation, String rawPath, boolean executeConstr) throws PageException {
@@ -574,5 +600,13 @@ public class ComponentLoader {
 	private static CIPage toCIPage(Page p) {
 		if (p instanceof CIPage) return (CIPage) p;
 		return null;
+	}
+
+	public static String getToken(String key) {
+		String lock = tokens.putIfAbsent(key, key);
+		if (lock == null) {
+			lock = key;
+		}
+		return lock;
 	}
 }

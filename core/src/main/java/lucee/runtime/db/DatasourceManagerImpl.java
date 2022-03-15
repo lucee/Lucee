@@ -449,7 +449,6 @@ public final class DatasourceManagerImpl implements DataSourceManager {
 					}
 					continue;
 				}
-				releaseConnection(null, dc, true);
 			}
 			transConnsORM.clear();
 		}

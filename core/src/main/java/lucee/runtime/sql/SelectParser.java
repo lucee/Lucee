@@ -514,7 +514,7 @@ public class SelectParser {
 		// Modulus Operation
 		while (raw.forwardIfCurrent('^')) {
 			raw.removeSpace();
-			exp = new Operation2(exp, negateMinusOp(raw), Operation.OPERATION2_EXP);
+			exp = new Operation2(exp, negateMinusOp(raw), Operation.OPERATION2_BITWISE);
 		}
 		return exp;
 	}
