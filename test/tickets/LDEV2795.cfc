@@ -18,18 +18,18 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				expect( result.filecontent.trim() ).toBe( '{"a":["",""],"b":["1","2"],"fieldnames":"a,b"}' );
 			});
 
-			it( title='sameFormFieldsAsArray=false', body=function( currentSpec ) {
+			it( title='sameFormFieldsAsArray=false', skip=true, body=function( currentSpec ) {
 				var uri = createURI( "LDEV2795" );
 				var result = _InternalRequest(
 					template:"#uri#/disabled/index.cfm",
-					form: "a=&b=1&a=&b=2"
+					form: "a=&b=1&a=&b=2&a=1"
 				);
 				var r = DeserializeJson( result.filecontent.trim() );
 				expect( r.a ).toBeString();
 				expect( r.b ).toBeString();
 				expect( ListLen(r.b) ).toBe(2);
-				expect( r.a ).toBe( "," );
-				expect( result.filecontent.trim() ).toBe( '{"a":",","b":"1,2","fieldnames":"a,b"}' );
+				expect( r.a ).toBe( "1" );
+				expect( result.filecontent.trim() ).toBe( '{"a":"1","b":"1,2","fieldnames":"a,b"}' );
 			});
 		});
 	}
