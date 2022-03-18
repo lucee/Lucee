@@ -52,7 +52,7 @@ public class IsDefined implements FunctionEvaluator {
 
 				// keys
 				String[] arr = sl.toArray();
-				ArrayUtil.trim(arr);
+				ArrayUtil.trimItems(arr);
 
 				// update first arg
 				arg.setValue(bif.getFactory().createLitDouble(scope), "number");

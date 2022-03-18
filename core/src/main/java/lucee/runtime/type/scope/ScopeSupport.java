@@ -221,12 +221,14 @@ public abstract class ScopeSupport extends StructImpl implements Scope {
 			if (isArrayDef) {
 				Array arr = new ArrayImpl();
 				arr.appendEL(value);
-				parent.setEL(key, arr);
+				parent.setEL(key, ListUtil.trim(arr));
 			}
 			else parent.setEL(key, value);
 		}
 		else if (curr instanceof Array) {
-			((Array) curr).appendEL(value);
+			Array arr = ((Array) curr);
+			arr.appendEL(value);
+			ListUtil.trim(arr);
 		}
 		else if (curr instanceof CastableStruct) {
 			if (isLast) ((CastableStruct) curr).setValue(value);
@@ -242,7 +244,7 @@ public abstract class ScopeSupport extends StructImpl implements Scope {
 				Array arr = new ArrayImpl();
 				arr.appendEL(curr);
 				arr.appendEL(value);
-				parent.setEL(key, arr);
+				parent.setEL(key, ListUtil.trim(arr));
 			}
 			else if (value instanceof Struct) {
 				parent.setEL(key, value);
@@ -252,9 +254,11 @@ public abstract class ScopeSupport extends StructImpl implements Scope {
 					Array arr = new ArrayImpl();
 					arr.appendEL(curr);
 					arr.appendEL(value);
-					parent.setEL(key, arr);
+					parent.setEL(key, ListUtil.trim(arr));
 				}
-				else parent.setEL(key, Caster.toString(curr, "") + ',' + value);
+				else {
+					parent.setEL(key, ListUtil.trim(Caster.toString(curr, "") + ',' + value, ","));
+				}
 			}
 		}
 		if (!isLast) {
