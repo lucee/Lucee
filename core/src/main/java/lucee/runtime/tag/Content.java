@@ -182,7 +182,7 @@ public final class Content extends BodyTagImpl {
 			ReqRspUtil.setContentType(rsp, type);
 
 			// TODO more dynamic implementation, configuration in admin?
-			if (!HTTPUtil.isTextMimeType(type) == Boolean.TRUE) {
+			if (HTTPUtil.isTextMimeType(type) == Boolean.FALSE) {
 				((PageContextImpl) pageContext).getRootOut().setAllowCompression(false);
 			}
 		}
