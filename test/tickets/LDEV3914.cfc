@@ -7,7 +7,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase" skip="true"{
 					thread name="LDEV-3914" {}
 					return "success"
 				}
-
 				expect( runner() ).toBe("success");
 			});
 
