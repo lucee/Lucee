@@ -1,7 +1,7 @@
 component extends="org.lucee.cfml.test.LuceeTestCase"{
 	
 	function run( testResults , testBox ) {
-		describe( title="Test suite for sameFormFieldsAsArray LDEV-2795", body=function() {
+		describe( title="Test suite for sameFormFieldsAsArray LDEV-2795", body=function() { 
 			it( title='sameFormFieldsAsArray=true',body=function( currentSpec ) {
 				var uri = createURI( "LDEV2795" );
 				var result = _InternalRequest(
@@ -18,7 +18,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				expect( result.filecontent.trim() ).toBe( '{"a":["",""],"b":["1","2"],"fieldnames":"a,b"}' );
 			});
 
-			it( title='sameFormFieldsAsArray=false', skip=true, body=function( currentSpec ) {
+			it( title='sameFormFieldsAsArray=false', body=function( currentSpec ) {
 				var uri = createURI( "LDEV2795" );
 				var result = _InternalRequest(
 					template:"#uri#/disabled/index.cfm",
