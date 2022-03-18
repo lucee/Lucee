@@ -833,7 +833,10 @@ Depending on this setting Lucee scans certain scopes to find a variable called f
 			<type>boolean</type>
 			<name>sameFormFieldsAsArray</name>
 			<required>false</required>
-			<description>when true, form fields with the same name will be combined into an array.</description>
+			<description>Default False
+			When true, form fields with the same name will be combined into an array.
+			This only works with Application.cfc
+			</description>
 		</attribute>
 	</tag>
 
