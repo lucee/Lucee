@@ -91,7 +91,7 @@ public class ComponentLoader {
 		ComponentPageImpl cp = searchComponentPage(pc, loadingLocation, rawPath, searchLocal, searchRoot);
 		StaticScope ss = cp.getStaticScope();
 		if (ss == null || cp.isStaticScopeInvalidated()) {
-			synchronized (getToken(cp.getHash() + "")) {
+			synchronized (getToken(cp.getPageSource().getDisplayPath() + ":" + cp.getHash())) {
 				ss = cp.getStaticScope();
 				if (ss == null || cp.isStaticScopeInvalidated()) {
 					cp.getStaticStruct().setInit(false);
