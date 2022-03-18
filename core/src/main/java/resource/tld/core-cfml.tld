@@ -829,6 +829,12 @@ Depending on this setting Lucee scans certain scopes to find a variable called f
 			<description>allow to define a struct containg the configuration for regular expressions, 
 			ATM only the key "engine" is supported, with the possible values [java,perl] to choose the regex dialect.</description>
 		</attribute>
+		<attribute>
+			<type>boolean</type>
+			<name>sameFormFieldsAsArray</name>
+			<required>false</required>
+			<description>when true, form fields with the same name will be combined into an array.</description>
+		</attribute>
 	</tag>
 
 	<!-- Argument -->
