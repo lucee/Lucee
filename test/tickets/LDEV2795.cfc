@@ -11,11 +11,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				var r = DeserializeJson( result.filecontent.trim() );
 				expect( r.a ).toBeArray();
 				expect( r.b ).toBeArray();
-				expect( ArrayLen( r.a ) ).toBe( 2 );
+				expect( ArrayLen( r.a ) ).toBe( 0 );
 				expect( ArrayLen( r.b ) ).toBe( 2 );
-				expect( r.a[ 1 ] ).toBe( "" );
-				expect( r.a[ 2 ] ).toBe( "" );
-				expect( result.filecontent.trim() ).toBe( '{"a":["",""],"b":["1","2"],"fieldnames":"a,b"}' );
+				expect( r.b[ 2 ] ).toBe( "2" );
+				expect( result.filecontent.trim() ).toBe( '{"a":[],"b":["1","2"],"fieldnames":"a,b"}' );
 			});
 
 			it( title='sameFormFieldsAsArray=false', body=function( currentSpec ) {
@@ -27,8 +26,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				var r = DeserializeJson( result.filecontent.trim() );
 				expect( r.a ).toBeString();
 				expect( r.b ).toBeString();
-				expect( ListLen(r.b) ).toBe(2);
+				expect( r.b ).toBe("1,2");
 				expect( r.a ).toBe( "1" );
+				expect( ListLen(r.b) ).toBe(2);
 				expect( result.filecontent.trim() ).toBe( '{"a":"1","b":"1,2","fieldnames":"a,b"}' );
 			});
 		});
