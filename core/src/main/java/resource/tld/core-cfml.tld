@@ -835,7 +835,16 @@ Depending on this setting Lucee scans certain scopes to find a variable called f
 			<required>false</required>
 			<description>Default False
 			When true, form fields with the same name will be combined into an array.
-			This only works with Application.cfc
+			This only works via Application.cfc
+			</description>
+		</attribute>
+		<attribute>
+			<type>boolean</type>
+			<name>sameURLFieldsAsArray</name>
+			<required>false</required>
+			<description>Default False
+			When true, url fields/parameters with the same name will be combined into an array.
+			This only works via Application.cfc
 			</description>
 		</attribute>
 	</tag>
