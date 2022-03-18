@@ -93,6 +93,8 @@ public final class SQLImpl implements SQL, Serializable {
 	@Override
 	public String toString() {
 
+		if (items.length == 0) return strSQL;
+
 		StringBuilder sb = new StringBuilder();
 		int sqlLen = strSQL.length();
 		char c, quoteType = 0, p = 0;
