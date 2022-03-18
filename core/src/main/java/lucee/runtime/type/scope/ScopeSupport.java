@@ -254,7 +254,12 @@ public abstract class ScopeSupport extends StructImpl implements Scope {
 					arr.appendEL(value);
 					parent.setEL(key, arr);
 				}
-				else parent.setEL(key, Caster.toString(curr, "") + ',' + value);
+				else {
+					String scopeName = getTypeAsString();
+					String existing = Caster.toString(curr, "");
+					if (StringUtil.isEmpty(existing) && scopeName == "form") parent.setEL(key, value);
+					else if (!(StringUtil.isEmpty(value,true) && scopeName == "form")) parent.setEL(key, existing + ',' + value);
+				}
 			}
 		}
 		if (!isLast) {
