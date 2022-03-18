@@ -5,16 +5,16 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 	function run( testResults , testBox ) {
 		describe( "Test cases for LDEV-1619", function() {
 			it(title = "Checking URL with first parameter as empty", body = function( currentSpec ) {
-				expect(testUrl("a=&a=1")).toBe(",1");
+				expect(testUrl("a=&a=1")).toBe("1");
 			});
 			it(title = "Checking URL with second parameter as empty", body = function( currentSpec ) {
-				expect(testUrl("a=1&a=")).toBe("1,");
+				expect(testUrl("a=1&a=")).toBe("1");
 			});
 			it(title = "Checking URL with middle parameter as empty", body = function( currentSpec ) {
-				expect(testUrl("a=1&a=&a=3")).toBe("1,,3"); 
+				expect(testUrl("a=1&a=&a=3")).toBe("1,3"); 
 			});
 			it(title = "Checking URL with first & last parameter as empty", body = function( currentSpec ) {
-				expect(testUrl("a=&a=2&a=")).toBe(",2,");
+				expect(testUrl("a=&a=2&a=")).toBe("2");
 			});
 		});
 	}
