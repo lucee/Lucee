@@ -69,7 +69,7 @@
     <dependency>
       <groupId>org.apache.felix</groupId>
       <artifactId>org.apache.felix.framework</artifactId>
-      <version>6.0.3</version><!-- 4.6.1 -->
+      <version>6.0.5</version><!-- 4.6.1 -->
       <scope>compile</scope>
     </dependency>
     <dependency>
@@ -111,13 +111,13 @@
   	<dependency>
   		<groupId>org.lucee</groupId>
   		<artifactId>jsch</artifactId>
-  		<version>0.1.53</version>
+  		<version>0.1.55</version>
     	<scope>provided</scope>
   	</dependency>
     <dependency>
       <groupId>commons-codec</groupId>
       <artifactId>commons-codec</artifactId>
-      <version>1.9</version>
+      <version>1.15</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
@@ -173,21 +173,21 @@
       <scope>provided</scope>
   	</dependency>
     <dependency>
-  	  <groupId>org.lucee</groupId>
-  	  <artifactId>commons-logging-adapters</artifactId>
-  	  <version>1.1.0</version>
+      <groupId>org.lucee</groupId>
+      <artifactId>commons-logging-adapters</artifactId>
+      <version>1.1.0.0000L</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
-    	<groupId>org.lucee</groupId>
-    	<artifactId>commons-logging-api</artifactId>
-    	<version>1.1.0</version>
+      <groupId>org.lucee</groupId>
+      <artifactId>commons-logging-api</artifactId>
+      <version>1.1.0.0000L</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
-    	<groupId>org.lucee</groupId>
-    	<artifactId>commons-logging</artifactId>
-    	<version>1.1.1.L0001</version>
+      <groupId>org.lucee</groupId>
+      <artifactId>commons-logging</artifactId>
+      <version>1.2.0.0000L</version>
       <scope>provided</scope>
     </dependency>
   	<dependency>
@@ -207,20 +207,16 @@
       <version>2.0.8</version>
       <scope>provided</scope>
     </dependency>
-  	<dependency>
-  		<groupId>log4j</groupId>
-  		<artifactId>log4j</artifactId>
-  		<version>1.2.17</version>
-      <scope>provided</scope>
-  	</dependency>
-  	
-  	<!-- org.apache.logging.log4j.core-2.7.0 for later use
-  	<dependency>
-  		<groupId>org.apache.logging.log4j</groupId>
-  		<artifactId>log4j-core</artifactId>
-  		<version>2.7</version>
-      <scope>provided</scope>
-  	</dependency> -->
+    <dependency>
+      <groupId>org.lucee</groupId>
+      <artifactId>log4j-core</artifactId>
+      <version>2.17.1</version>
+    </dependency>
+    <dependency>
+      <groupId>org.lucee</groupId>
+      <artifactId>log4j-api</artifactId>
+      <version>2.17.1</version>
+    </dependency>
     <!-- <dependency>
     	<groupId>org.lucee</groupId>
     	<artifactId>xalan</artifactId>
@@ -419,7 +415,7 @@
     <dependency>
       <groupId>net.java.dev.jna</groupId>
       <artifactId>jna</artifactId>
-      <version>5.5.0</version>
+      <version>5.10.0</version>
       <scope>provided</scope>
     </dependency>
     <!-- <dependency>
@@ -452,20 +448,6 @@
       <version>0.16.0</version>
       <scope>provided</scope>
     </dependency>
-
-
-  <dependency>
-    <groupId>org.lucee</groupId>
-    <artifactId>log4j-core</artifactId>
-    <version>2.17.0.0031L</version>
-  </dependency>
-  <dependency>
-    <groupId>org.lucee</groupId>
-    <artifactId>log4j-api</artifactId>
-    <version>2.17.0.0002L</version>
-  </dependency>
-
-
   </dependencies>
 
   <repositories>

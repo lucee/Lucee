@@ -645,6 +645,7 @@
 					&"."&repeatString("0",3-len(sct.minor))&sct.minor
 					&"."&repeatString("0",3-len(sct.micro))&sct.micro
 					&"."&repeatString("0",4-len(sct.qualifier))&sct.qualifier
+					& #sct.keyExists("qualifier_appendix1") && isNumeric(sct.qualifier_appendix1)? "."&repeatString("0",4-len(sct.qualifier_appendix1))&sct.qualifier_appendix1  : ""#
 					&"."&repeatString("0",3-len(sct.qualifier_appendix_nbr))&sct.qualifier_appendix_nbr;
 
 		return sct;

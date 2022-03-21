@@ -150,7 +150,7 @@ public class InternalRequest implements Function {
 			status = rsp.getStatus();
 			ContentType ct = HTTPUtil.toContentType(rsp.getContentType(), null);
 			if (ct != null) {
-				isText = HTTPUtil.isTextMimeType(ct.getMimeType());
+				isText = HTTPUtil.isTextMimeType(ct.getMimeType()) == Boolean.TRUE;
 				if (ct.getCharset() != null) _charset = CharsetUtil.toCharset(ct.getCharset(), null);
 			}
 			releasePageContext(_pc, pc);

@@ -4,6 +4,7 @@
         "titleBar.activeBackground": "#2A4711",
         "titleBar.activeForeground": "#F7FCF2"
     },
+    "java.configuration.updateBuildConfiguration": "automatic",
     "cflint.exclude": [
         "loader/**",
         "temp/**"
