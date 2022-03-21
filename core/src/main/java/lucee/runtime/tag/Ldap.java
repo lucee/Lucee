@@ -242,7 +242,7 @@ public final class Ldap extends TagImpl {
 	 * @throws PageException
 	 */
 	public void setReturnasbinary(String returnAsBinary) throws PageException {
-		this.returnAsBinary = ArrayUtil.trim(ListUtil.toStringArray(ListUtil.listToArrayRemoveEmpty(returnAsBinary, ',')));
+		this.returnAsBinary = ArrayUtil.trimItems(ListUtil.toStringArray(ListUtil.listToArrayRemoveEmpty(returnAsBinary, ',')));
 	}
 
 	/**
@@ -253,7 +253,7 @@ public final class Ldap extends TagImpl {
 	 * @throws PageException
 	 */
 	public void setSort(String sort) throws PageException {
-		this.sort = ArrayUtil.trim(ListUtil.toStringArray(ListUtil.listToArrayRemoveEmpty(sort, ',')));
+		this.sort = ArrayUtil.trimItems(ListUtil.toStringArray(ListUtil.listToArrayRemoveEmpty(sort, ',')));
 	}
 
 	/**
@@ -263,7 +263,7 @@ public final class Ldap extends TagImpl {
 	 * @throws PageException
 	 */
 	public void setSortcontrol(String sortControl) throws PageException {
-		String[] sortControlArr = ArrayUtil.trim(ListUtil.toStringArray(ListUtil.listToArrayRemoveEmpty(sortControl, ',')));
+		String[] sortControlArr = ArrayUtil.trimItems(ListUtil.toStringArray(ListUtil.listToArrayRemoveEmpty(sortControl, ',')));
 		for (int i = 0; i < sortControlArr.length; i++) {
 			String scs = sortControlArr[i].trim().toLowerCase();
 

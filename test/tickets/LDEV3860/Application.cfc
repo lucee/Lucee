@@ -1,17 +1,19 @@
 component {
     this.name = "LDEV-3860";
+
+    mssql = getDatasource();
+    this.datasource = mssql;
+
     this.ormenabled = true;
     this.ormsettings = {
         dbcreate="dropCreate"
         ,dialect="MicrosoftSQLServer"
-    } 
-    mssql = getDatasource();
-    this.datasource = mssql;
+    }
 
     public function onRequestStart() {
         if (StructIsEmpty(mssql)) {
-            writeoutput("Datasource credentials was not available"); // Datasource credentials was not available means need to skip the iteration.
-            abort;
+            writeoutput("Datasource credentials not available");
+            return false;
         }
     }
     public function onRequestEnd() {
@@ -20,5 +22,5 @@ component {
 
     private struct function getDatasource(){
         return server.getDatasource("mssql");
-    } 
+    }
 }

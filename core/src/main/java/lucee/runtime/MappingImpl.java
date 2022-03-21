@@ -407,12 +407,12 @@ public final class MappingImpl implements Mapping {
 		}
 	}
 
-	/**
-	 * @return Returns the pageSourcePool.
-	 * 
-	 *         public PageSourcePool getPageSourcePoolX() { synchronized (pageSourcePoolX) { return
-	 *         pageSourcePoolX; } }
-	 */
+	// to not delete,used for argus monitor!
+	public PageSourcePool getPageSourcePool() {
+		synchronized (pageSourcePool) {
+			return pageSourcePool;
+		}
+	}
 
 	public Array getDisplayPathes(Array arr) throws PageException {
 		synchronized (pageSourcePool) {

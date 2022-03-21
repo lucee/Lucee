@@ -7320,6 +7320,16 @@ The following things are considered to be empty:
 			<required>no</required>
 			<description>if yes add urlToken as cookie</description>
     	</argument>
+		<argument>
+			<name>throwonerror</name>
+			<type>boolean</type>
+			<default>true</default>
+			<required>no</required>
+			<description>if true (default) and the called template throws an exception, that exception is thrown within the caller request.
+            If false, an exception is caught and passed back in as part of the result struct.</description>
+    	</argument>
+    	
+    	
 		<return>
 			<type>struct</type>
 		</return>

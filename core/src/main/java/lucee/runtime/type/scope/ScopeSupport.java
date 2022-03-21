@@ -226,7 +226,8 @@ public abstract class ScopeSupport extends StructImpl implements Scope {
 			else parent.setEL(key, value);
 		}
 		else if (curr instanceof Array) {
-			((Array) curr).appendEL(value);
+			Array arr = ((Array) curr);
+			arr.appendEL(value);
 		}
 		else if (curr instanceof CastableStruct) {
 			if (isLast) ((CastableStruct) curr).setValue(value);
@@ -254,7 +255,16 @@ public abstract class ScopeSupport extends StructImpl implements Scope {
 					arr.appendEL(value);
 					parent.setEL(key, arr);
 				}
-				else parent.setEL(key, Caster.toString(curr, "") + ',' + value);
+				else {
+					String c = Caster.toString(curr, "");
+					String v = Caster.toString(value, "");
+					if (StringUtil.isEmpty(c)) {
+						parent.setEL(key, v);
+					}
+					else if (!StringUtil.isEmpty(v)) {
+						parent.setEL(key, c + ',' + v);
+					}
+				}
 			}
 		}
 		if (!isLast) {
