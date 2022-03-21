@@ -98,7 +98,7 @@
 				if(fileExists("test-unprotect.pdf"))fileDelete("test-unprotect.pdf");
 			}
 		}
-	
+
 		private array function getPageSizes (required string path) {
 			// TODO no loner works as expected, because lib changed
 			pageSizes = [];
@@ -110,9 +110,10 @@
 	
 				while (pageIterator.hasNext()) {
 					var objPage = pageIterator.next();
+					var box = objPage.getTrimBox()?: objPage.getCropBox();
 					pageSizes.append({
-						width: objPage.getTrimBox().getWidth(),
-						height: objPage.getTrimBox().getHeight()
+						width: box.getWidth(),
+						height: box.getHeight()
 					});
 				}
 			} finally {
