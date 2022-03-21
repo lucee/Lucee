@@ -61,7 +61,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
                     template="#variables.uri#\LDEV3860.cfm",
                     forms = {scene:7}
                 );
-                expect( res.filecontent.trim() ).toBe("true");
+                expect( res.filecontent.trim() ).notToBe("true");
             });
         });
     }
