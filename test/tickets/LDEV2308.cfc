@@ -7,7 +7,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="thread,cookie,sess
 				local.result = _InternalRequest(
 					template : "#uri#\no-session\testThreadCookies.cfm"
 				);
-			 	debug(local.result);
+				//dumpResult(local.result);
 			 	expect( structCount(result.cookies ) ).toBe( 0 );
 				//expect( structKeyExists(result.cookies, "CFID" ) ).toBeFalse();
 				//expect( structKeyExists(result.cookies, "JsessionId" ) ).toBeFalse();
@@ -18,7 +18,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="thread,cookie,sess
 				local.result = _InternalRequest(
 					template : "#uri#\no-cookies\testThreadCookies.cfm"
 				);
-			 	debug(local.result);
+				//dumpResult(local.result);
 			 	expect( structCount(result.cookies ) ).toBe( 0 );
 				//expect( structKeyExists(result.cookies, "CFID" ) ).toBeFalse();
 				//expect( structKeyExists(result.cookies, "JsessionId" ) ).toBeFalse();
@@ -29,7 +29,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="thread,cookie,sess
 				local.result = _InternalRequest(
 					template : "#uri#\cfml-session\testThreadCookies.cfm"
 				);
-				debug(local.result);
+				//dumpResult(local.result);
 				expect( structCount(result.cookies ) ).toBeGT( 0 );
 				expect( structKeyExists(result.cookies, "CFID" ) ).toBeTrue();
 				expect( structKeyExists(result.cookies, "JsessionId" ) ).toBeFalse();
@@ -40,7 +40,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="thread,cookie,sess
 				local.result = _InternalRequest(
 					template : "#uri#\j2ee-session\testThreadCookies.cfm"
 				);
-				debug(local.result);
+				//dumpResult(local.result);
 				expect( structCount(result.cookies ) ).toBeGT( 0 );
 			});
 		});
