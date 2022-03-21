@@ -110,9 +110,10 @@
 	
 				while (pageIterator.hasNext()) {
 					var objPage = pageIterator.next();
+					var box = objPage.getTrimBox()?: objPage.getCropBox();
 					pageSizes.append({
-						width: objPage.getTrimBox().getWidth(),
-						height: objPage.getTrimBox().getHeight()
+						width: box.getWidth(),
+						height: box.getHeight()
 					});
 				}
 			} finally {
