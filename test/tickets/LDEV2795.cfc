@@ -14,7 +14,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				expect( ArrayLen( r.a ) ).toBe( 2 );
 				expect( ArrayLen( r.b ) ).toBe( 2 );
 				expect( r.b[ 2 ] ).toBe( "2" );
-				expect( result.filecontent.trim() ).toBe( '{"a":[],"b":["1","2"],"fieldnames":"a,b"}' );
+				expect( result.filecontent.trim() ).toBe( '{"a":["",""],"b":["1","2"],"fieldnames":"a,b"}' );
 			});
 
 			it( title='sameFormFieldsAsArray=false', body=function( currentSpec ) {
