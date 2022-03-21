@@ -7223,6 +7223,15 @@ The following things are considered to be empty:
 			<required>no</required>
 			<description>if yes add urltoken as cookie</description>
     	</argument>
+		<argument>
+			<name>throwonerror</name>
+			<type>boolean</type>
+			<default>true</default>
+			<required>no</required>
+			<description>if true (default) and the called age throws an exception, that exception is clso thrown within the caller request. If false itis catched and only reported in he resulting struct.</description>
+    	</argument>
+    	
+    	
 		<return>
 			<type>struct</type>
 		</return>
