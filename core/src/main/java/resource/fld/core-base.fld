@@ -7228,7 +7228,8 @@ The following things are considered to be empty:
 			<type>boolean</type>
 			<default>true</default>
 			<required>no</required>
-			<description>if true (default) and the called age throws an exception, that exception is clso thrown within the caller request. If false itis catched and only reported in he resulting struct.</description>
+			<description>if true (default) and the called template throws an exception, that exception is thrown within the caller request.
+            If false, an exception is caught and passed back in as part of the result struct.</description>
     	</argument>
     	
     	
