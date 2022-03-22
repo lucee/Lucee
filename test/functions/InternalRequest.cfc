@@ -57,7 +57,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					template : "#uri#\content.cfm"
 				);
 				expect(result["headers"]["content-type"]).toBe("application/pdf");
-				expect(result["headers"]["content-length"]).toBe(975);
+				expect(result["headers"]["content-length"]).toBeBetween(800, 1000);
 			});
 		});	
 	}
