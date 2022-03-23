@@ -441,9 +441,10 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 						try {
 							componentPage.staticConstructor(pageContext, this);
 						}
-						catch (Exception e) {
+						catch (Throwable t) {
 							ss.setInit(false);
-							throw Caster.toPageException(e);
+							ExceptionUtil.rethrowIfNecessary(t);
+							throw Caster.toPageException(t);
 						}
 						ss.setInit(true);
 						map.remove(id);

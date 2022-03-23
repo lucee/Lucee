@@ -2,7 +2,7 @@
     result = true;
     try {
         // the transaction with ORM task
-        transaction {   
+        transaction {
             ormGetSession();
         }
         // the transaction with query

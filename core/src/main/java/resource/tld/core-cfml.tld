@@ -851,6 +851,24 @@ Depending on this setting Lucee scans certain scopes to find a variable called f
 			<description>allow to define a struct containing the configuration for regular expressions,
 			ATM only the key "engine" is supported, with the possible values [java,perl] to choose the regex dialect.</description>
 		</attribute>
+		<attribute>
+			<type>boolean</type>
+			<name>sameFormFieldsAsArray</name>
+			<required>false</required>
+			<description>Default False
+			When true, form fields with the same name will be combined into an array.
+			This only works via Application.cfc
+			</description>
+		</attribute>
+		<attribute>
+			<type>boolean</type>
+			<name>sameURLFieldsAsArray</name>
+			<required>false</required>
+			<description>Default False
+			When true, url fields/parameters with the same name will be combined into an array.
+			This only works via Application.cfc
+			</description>
+		</attribute>
 	</tag>
 
 	<!-- Argument -->
