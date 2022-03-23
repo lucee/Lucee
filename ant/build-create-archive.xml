@@ -31,7 +31,7 @@
 	try {
 
 // set a password for the admin
-	if(server.lucee.adminmode!="single") {
+	if(!server.lucee.singleContext) {
 		admin 
 			action="updatePassword"
 			type="web"
