@@ -31,7 +31,7 @@
 	try {
 
 // set a password for the admin
-	if(getConfigSettings().mode!="single") {
+	if(server.lucee.adminmode!="single") {
 		admin 
 			action="updatePassword"
 			type="web"

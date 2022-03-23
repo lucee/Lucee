@@ -33,6 +33,7 @@ import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.cache.CacheConnection;
 import lucee.runtime.config.Config;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.db.ClassDefinition;
@@ -119,6 +120,9 @@ public class GetApplicationSettings extends BIF {
 		if (ac.getScopeCascading() != Config.SCOPE_SMALL) {
 			sct.setEL("searchImplicitScopes", ac.getScopeCascading() == Config.SCOPE_STANDARD);
 		}
+
+		// adminMode
+		sct.setEL("adminmode", ConfigWebUtil.toAdminMode(((ConfigPro) pc.getConfig()).getAdminMode(), "single"));
 
 		Struct cs = new StructImpl(Struct.TYPE_LINKED);
 		cs.setEL("web", pc.getWebCharset().name());

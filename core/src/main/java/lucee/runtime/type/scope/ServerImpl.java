@@ -28,6 +28,8 @@ import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
+import lucee.runtime.config.ConfigPro;
+import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
@@ -76,6 +78,7 @@ public final class ServerImpl extends ScopeSupport implements Server, SharedScop
 	private static final Key VERSION_NAME_EXPLANATION = KeyImpl.getInstance("versionNameExplanation");
 	private static final Key HOST_NAME = KeyImpl.getInstance("hostname");
 	private static final Key ENVIRONMENT = KeyConstants._environment;
+	private static final Key ADMIN_MODE = KeyImpl.getInstance("adminmode");
 
 	private static String jep;
 
@@ -158,6 +161,9 @@ public final class ServerImpl extends ScopeSupport implements Server, SharedScop
 		lucee.setEL(LOADER_VERSION, Caster.toDouble(SystemUtil.getLoaderVersion()));
 		lucee.setEL(LOADER_PATH, ClassUtil.getSourcePathForClass("lucee.loader.servlet.CFMLServlet", ""));
 		lucee.setEL(ENVIRONMENT, jsr223 != null && jsr223.booleanValue() ? "jsr223" : "servlet");
+
+		// adminMode
+		lucee.setEL(ADMIN_MODE, ConfigWebUtil.toAdminMode(((ConfigPro) pc.getConfig()).getAdminMode(), "single"));
 
 		lucee.setReadOnly(true);
 		super.setEL(KeyConstants._lucee, lucee);
