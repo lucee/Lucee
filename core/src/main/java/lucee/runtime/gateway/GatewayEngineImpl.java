@@ -238,7 +238,7 @@ public class GatewayEngineImpl implements GatewayEngine {
 					log(g.getId(), LOGLEVEL_ERROR, e.getMessage(), e);
 				}
 			}
-			if (ge.getStartupMode() == GatewayEntry.STARTUP_MODE_AUTOMATIC) start(g);
+			// if (ge.getStartupMode() == GatewayEntry.STARTUP_MODE_AUTOMATIC) start(g);
 
 		}
 	}
