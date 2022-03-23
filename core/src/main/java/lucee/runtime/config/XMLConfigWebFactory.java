@@ -285,6 +285,8 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		// call web.cfc for this context
 		((CFMLEngineImpl) ConfigWebUtil.getEngine(configWeb)).onStart(configWeb, false);
 
+		((GatewayEngineImpl) configWeb.getGatewayEngine()).autoStart();
+
 		return configWeb;
 	}
 
@@ -335,6 +337,8 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		createContextFilesPost(configDir, cw, null, false, doNew);
 
 		((CFMLEngineImpl) ConfigWebUtil.getEngine(cw)).onStart(cw, true);
+
+		((GatewayEngineImpl) cw.getGatewayEngine()).autoStart();
 	}
 
 	private static long second(long ms) {
