@@ -51,7 +51,15 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm" {
 		assertTrue(isValid('component',code));
 		assertEquals(1,code.getId());
 		assertEquals("a",code.getCode());
+	}
 
+	public void function testEvents() skip="isHibernate54"{
+		local.uri=createURI("events/index.cfm");
+		systemOutput( "", true ); 
+		local.result=_InternalRequest(uri);
+		systemOutput( "", true ); 
+		expect( result.status ).toBe( 200 );
+		expect( trim( result.fileContent ) ).toBe( 8 ); // dunno what number this should be yet
 	}
 
 	public void function testMany2Many() {
@@ -135,6 +143,11 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm" {
 
 	public boolean function notHasPostgres() {
 		return structCount(server.getDatasource("postgres")) == 0;
+	}
+
+	public boolean function isHibernate54() {
+		var version = extensionList().filter( function(row){ return row.name contains "hibernate" }).version;
+		return left(version,3) eq "5.4";
 	}
 } 
 </cfscript>
