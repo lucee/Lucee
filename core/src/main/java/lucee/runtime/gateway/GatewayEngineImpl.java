@@ -239,7 +239,6 @@ public class GatewayEngineImpl implements GatewayEngine {
 				}
 			}
 			// if (ge.getStartupMode() == GatewayEntry.STARTUP_MODE_AUTOMATIC) start(g);
-
 		}
 	}
 
