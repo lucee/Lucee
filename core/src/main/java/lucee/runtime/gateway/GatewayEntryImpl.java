@@ -95,10 +95,6 @@ public class GatewayEntryImpl implements GatewayEntry {
 				gateway.init(engine, getId(), getListenerCfcPath(), getCustom());
 				if (getStartupMode() == GatewayEntry.STARTUP_MODE_AUTOMATIC) {
 					// new GatewayThread(engine, gateway, GatewayThread.START).start();
-					/*
-					 * try{ //gateway.doStart(); } catch(GatewayException ge){
-					 * engine.log(gateway,GatewayEngine.LOGLEVEL_ERROR, ge.getMessage()); }
-					 */
 				}
 			}
 			catch (IOException ioe) {
