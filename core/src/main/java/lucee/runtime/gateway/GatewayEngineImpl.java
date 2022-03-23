@@ -179,6 +179,17 @@ public class GatewayEngineImpl implements GatewayEngine {
 		executeThread(gateway, GatewayThread.START);
 	}
 
+	public void autoStart() {
+		Gateway g;
+		for (GatewayEntry ge: entries.values()) {
+			if (ge.getStartupMode() != GatewayEntry.STARTUP_MODE_AUTOMATIC) continue;
+			g = ge.getGateway();
+			if (g.getState() != Gateway.RUNNING && g.getState() != Gateway.STARTING) {
+				start(g);
+			}
+		}
+	}
+
 	/**
 	 * stop the gateway
 	 * 
