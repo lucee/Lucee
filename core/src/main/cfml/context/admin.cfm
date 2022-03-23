@@ -1,5 +1,5 @@
 <cfscript>
-	if(getApplicationSettings().adminMode=="single") {
+	if(getApplicationSettings().singleContext) {
 		location url="admin/index.cfm" addtoken="no";
 	}
 	else {
