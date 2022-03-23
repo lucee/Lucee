@@ -59,6 +59,13 @@ try{
 	trg.jar = trg.dir & src.jarName;
 	trg.core = trg.dir & src.coreName;
 
+	// we only upload / publish artifacts once LDEV-3921
+
+	if ( fileExists( trg.jar ) && fileExists( trg.core ) ){
+		SystemOutput( "Build artifacts have already been uploaded for this version, nothing to do", 1, 1 );
+		return;
+	}
+
 	// copy jar
 	SystemOutput( "upload #src.jarName# to S3",1,1 );
 	if ( fileExists( trg.jar ) ) 
