@@ -38,6 +38,7 @@ import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.DatabaseException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
+import lucee.runtime.osgi.OSGiUtil;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.util.ArrayUtil;
@@ -251,6 +252,8 @@ public class DatasourceConnectionPool {
 			ExceptionUtil.rethrowIfNecessary(t);
 			return false;
 		}
+
+		if (!OSGiUtil.isValid(dc.getConnection())) return false;
 
 		try {
 			if (dc.getDatasource().validate() && !DataSourceUtil.isValid(dc, 1000)) return false;
