@@ -314,12 +314,12 @@ public final class ReqRspUtil {
 					char c1 = str.charAt(i + 1);
 					char c2 = str.charAt(i + 2);
 					if (!isHex(c1) || !isHex(c2)) return true;
-					Integer.parseInt(c1 + "" + c2, 16);
+					// Integer.parseInt(c1 + "" + c2, 16);
 				}
 				catch (NumberFormatException nfe) {
 					return true;
 				}
-				i += 3;
+				i += 2;
 				continue;
 			}
 			return true;
@@ -357,7 +357,7 @@ public final class ReqRspUtil {
 				catch (NumberFormatException nfe) {
 					return false;
 				}
-				i += 3;
+				i += 2;
 				need = true;
 				continue;
 			}

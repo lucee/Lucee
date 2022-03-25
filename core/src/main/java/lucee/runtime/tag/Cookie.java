@@ -67,7 +67,7 @@ public final class Cookie extends TagImpl {
 
 	private boolean httponly;
 	private boolean preservecase;
-	private Boolean _encode = null;
+	private Boolean encode = null;
 
 	private short samesite = SessionCookieData.SAMESITE_EMPTY;
 
@@ -82,7 +82,7 @@ public final class Cookie extends TagImpl {
 		name = null;
 		httponly = false;
 		preservecase = false;
-		_encode = null;
+		encode = null;
 		samesite = SessionCookieData.SAMESITE_EMPTY;
 	}
 
@@ -165,11 +165,11 @@ public final class Cookie extends TagImpl {
 	}
 
 	public void setEncodevalue(boolean encode) {
-		this._encode = encode;
+		this.encode = encode;
 	}
 
 	public void setEncode(boolean encode) {
-		this._encode = encode;
+		this.encode = encode;
 	}
 
 	public void setSamesite(String samesite) throws ApplicationException {
@@ -190,7 +190,7 @@ public final class Cookie extends TagImpl {
 
 			}
 		}
-		((CookieImpl) pageContext.cookieScope()).setCookie(key, value, expires, secure, path, domain, httponly, preservecase, _encode, samesite);
+		((CookieImpl) pageContext.cookieScope()).setCookie(key, value, expires, secure, path, domain, httponly, preservecase, encode, samesite);
 		return SKIP_BODY;
 	}
 
