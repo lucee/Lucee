@@ -31,6 +31,7 @@ import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -134,7 +135,6 @@ public final class ReqRspUtil {
 
 	public static Cookie[] getCookies(HttpServletRequest req, Charset charset) {
 		Cookie[] cookies = req.getCookies();
-
 		if (cookies != null) {
 			Cookie cookie;
 			String tmp;
@@ -147,27 +147,30 @@ public final class ReqRspUtil {
 				}
 			}
 		}
-		else {
 
-			String str = req.getHeader("Cookie");
-			if (str != null) {
-				try {
-					String[] arr = lucee.runtime.type.util.ListUtil.listToStringArray(str, ';'), tmp;
-					java.util.List<Cookie> list = new ArrayList<Cookie>();
-					Cookie c;
-					for (int i = 0; i < arr.length; i++) {
-						tmp = lucee.runtime.type.util.ListUtil.listToStringArray(arr[i], '=');
-						if (tmp.length > 0) {
-							c = ReqRspUtil.toCookie(dec(tmp[0], charset.name(), false), tmp.length > 1 ? dec(tmp[1], charset.name(), false) : "", null);
-							if (c != null) list.add(c);
-						}
+		String str = req.getHeader("Cookie");
+		if (str != null) {
+			try {
+				String[] arr = lucee.runtime.type.util.ListUtil.listToStringArray(str, ';'), tmp;
+				java.util.Map<String, Cookie> map = new HashMap<String, Cookie>();
+				Cookie c;
+				for (int i = 0; i < arr.length; i++) {
+					tmp = lucee.runtime.type.util.ListUtil.listToStringArray(arr[i], '=');
+					if (tmp.length > 0) {
+						c = ReqRspUtil.toCookie(dec(tmp[0], charset.name(), false), tmp.length > 1 ? dec(tmp[1], charset.name(), false) : "", null);
+						if (c != null) map.put(c.getName().toUpperCase(), c);
 					}
+				}
 
-					cookies = list.toArray(new Cookie[list.size()]);
+				if (cookies != null && map.size() > cookies.length) {
+					for (Cookie cookie: cookies) {
+						map.put(cookie.getName().toUpperCase(), cookie);
+					}
 				}
-				catch (Throwable t) {
-					ExceptionUtil.rethrowIfNecessary(t);
-				}
+				cookies = map.values().toArray(new Cookie[map.size()]);
+			}
+			catch (Throwable t) {
+				ExceptionUtil.rethrowIfNecessary(t);
 			}
 		}
 
