@@ -132,7 +132,7 @@ public class DatasourceAppender extends AbstractAppender {
 		catch (PageException pe) {
 
 			error("failed to append in DatasourceAppender:" + pe.getMessage(), event, pe);
-			pe.printStackTrace(); // TODO log as well to console
+			SystemOut.printDate(pe);
 		}
 		finally {
 			try {
@@ -140,7 +140,7 @@ public class DatasourceAppender extends AbstractAppender {
 			}
 			catch (PageException pee) {
 				error("failed to release connection in DatasourceAppender:" + pee.getMessage(), event, pee);
-				pee.printStackTrace(); // TODO log as well to console
+				SystemOut.printDate(pee);
 			}
 		}
 	}
@@ -155,12 +155,12 @@ public class DatasourceAppender extends AbstractAppender {
 			new QueryImpl(optionalPC, conn, sql, -1, -1, null, "query");
 		}
 		catch (PageException pe) {
-			pe.printStackTrace();
+			SystemOut.printDate(pe);
 			try {
 				new QueryImpl(optionalPC, conn, createSQL(conn), -1, -1, null, "query");
 			}
-			catch (PageException pe2) {
-				pe2.printStackTrace();
+			catch (Exception e2) {
+				SystemOut.printDate(e2);
 				throw pe;
 			}
 		}

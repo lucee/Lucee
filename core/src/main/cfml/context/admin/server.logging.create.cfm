@@ -41,7 +41,7 @@
 			</cfloop>
 
 			<cfif structKeyExists(form,'custom_2_appender_table') and !structKeyExists(form,'custom_2_appender_datasource')>
-				<cfset error.message = "No Datasource has defined">
+				<cfset error.message = "No Datasource has been defined">
 			<cfelseif structKeyExists(form,"custom_3_appender_path")>
 				<cfset path = getDirectoryFromPath(form.custom_3_appender_path)>
 				<cfif findNoCase("{lucee-config}",path) NEQ 0>

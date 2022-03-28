@@ -3702,7 +3702,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	public Log getLog(String name, boolean createIfNecessary) throws PageException {
 		LoggerAndSourceData lsd = _getLoggerAndSourceData(name, createIfNecessary);
 		if (lsd == null) return null;
-		return lsd.getLog();
+		return lsd.getLog(false);
 	}
 
 	private LoggerAndSourceData _getLoggerAndSourceData(String name, boolean createIfNecessary) throws PageException {

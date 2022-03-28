@@ -1892,8 +1892,8 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 						// logger only exists in server context
 						if (config.getLog(e.getKey(), false) == null) {
 							data = e.getValue();
-							config.addLogger(e.getKey(), data.getLevel(), data.getAppenderClassDefinition(), data.getAppenderArgs(), data.getLayoutClassDefinition(),
-									data.getLayoutArgs(), true, false);
+							config.addLogger(e.getKey(), data.getLevel(), data.getAppenderClassDefinition(), data.getAppenderArgs(false), data.getLayoutClassDefinition(),
+									data.getLayoutArgs(false), true, false);
 						}
 					}
 					catch (Throwable th) {
