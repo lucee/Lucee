@@ -5,11 +5,11 @@ component extends="org.lucee.cfml.test.LuceeTestCase"  labels="pdf"{
             echo("<H1>I am a watermark test</H1>");
         }
        
-        local.img =  ImageNew("", 100,100,"rgb","Red");
+        //local.img =  ImageNew("", 100,100,"rgb","Red");
 
         pdf action = "addWaterMark"
             source ="test"
-            image="#img#"
+            image=#expandPath("./LDEV1519/lucee-screens-500px.jpg")#
             pages="1"
             name="watermarkedPDF"
             overwrite="true"
