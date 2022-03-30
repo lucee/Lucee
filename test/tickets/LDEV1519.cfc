@@ -9,7 +9,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"  labels="pdf"{
 
         pdf action = "addWaterMark"
             source ="test"
-            image=#expandPath("./LDEV1519/lucee-screens-500px.jpg")#
+            image="LDEV1519/lucee-screens-500px.jpg"
             pages="1"
             name="watermarkedPDF"
             overwrite="true"
