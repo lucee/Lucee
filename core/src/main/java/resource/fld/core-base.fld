@@ -93,6 +93,7 @@
 	<function>
 		<name>ApplicationPathCacheClear</name>
 		<class>lucee.runtime.functions.other.ApplicationPathCacheClear</class>
+		<introduced>5.3.8.149</introduced>
 		<description>flush the application.[cfc|cfm] path cache</description>
 		<return>
 			<type>void</type>
@@ -1077,6 +1078,7 @@ Remember CFML arrays start at 1 not 0.</description>
 	<function>
 		<name>arrayPop</name>
 		<class>lucee.runtime.functions.arrays.ArrayPop</class>
+		<introduced>5.3.8.104</introduced>
 		<member-name>pop</member-name>
 		<member-chaining>false</member-chaining>
 		<keywords>array</keywords>
@@ -1103,6 +1105,7 @@ Remember CFML arrays start at 1 not 0.</description>
 	<function>
 		<name>arrayPush</name>
 		<class>lucee.runtime.functions.arrays.ArrayPush</class>
+		<introduced>5.3.8.104</introduced>
 		<member-name>push</member-name>
 		<member-chaining>false</member-chaining>
 		<keywords>array</keywords>
@@ -1214,6 +1217,7 @@ Remember CFML arrays start at 1 not 0.</description>
 	<function>
 		<name>arrayShift</name>
 		<class>lucee.runtime.functions.arrays.ArrayShift</class>
+		<introduced>5.3.8.104</introduced>
 		<member-name>shift</member-name>
 		<member-chaining>false</member-chaining>
 		<keywords>array</keywords>
@@ -1379,6 +1383,7 @@ sort direction:
 	<function>
 		<name>arrayUnShift</name>
 		<class>lucee.runtime.functions.arrays.ArrayUnShift</class>
+		<introduced>5.3.8.104</introduced>
 		<member-name>unshift</member-name>
 		<member-chaining>false</member-chaining>
 		<keywords>array</keywords>
@@ -7612,6 +7617,7 @@ The following things are considered to be empty:
 	<function>
 		<name>isWithinTransaction</name>
 		<class>lucee.runtime.functions.query.IsWithinTransaction</class>
+		<introduced>5.3.9.4</introduced>
 		<keywords>decision,query,datasource</keywords>
 		<description>Determines whether the current thread is within a transaction block or not.</description>
 		<return>
@@ -9714,6 +9720,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 	<function>
 		<name>queryClose</name>
 		<class>lucee.runtime.functions.query.QueryClose</class>
+		<introduced>5.3.6.19</introduced>
 		<keywords>query</keywords>
 		<description>When using lazy="true", it is important to close the resultset during a request or it will continue to use heap memory.</description>
 		<argument>
@@ -9859,6 +9866,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
     	<function>
     		<name>queryRowByIndex</name>
     		<class>lucee.runtime.functions.query.QueryRowByIndex</class>
+			<introduced>5.3.4.34</introduced>
     		<member-name>rowByIndex</member-name>
     		<keywords>query</keywords>
 			<description></description>
@@ -9889,6 +9897,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
     	<function>
     		<name>queryRowDataByIndex</name>
     		<class>lucee.runtime.functions.query.QueryRowDataByIndex</class>
+			<introduced>5.3.4.34</introduced>
     		<member-name>rowDataByIndex</member-name>
     		<keywords>query</keywords>
 			<description></description>
@@ -10040,6 +10049,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 	<function>
 		<name>queryGetCellByIndex</name>
 		<class>lucee.runtime.functions.query.QueryGetCellByIndex</class>
+		<introduced>5.3.4.34</introduced>
 		<member-name>getCellByIndex</member-name>
 		<keywords>query</keywords>
 		<description>return the value of a specific query cell</description>
@@ -10169,6 +10179,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
     	<function>
     		<name>querySetRow</name>
     		<class>lucee.runtime.functions.query.QuerySetRow</class>
+			<introduced>5.3.8.120</introduced>
     		<member-name>setRow</member-name>
     		<keywords>query</keywords>
 			<description>Adds a row to a query, either by struct or array</description>
@@ -13217,6 +13228,7 @@ _- asc (default): ascending (a to z) sort order
 	<function>
 		<name>ThreadData</name>
 		<class>lucee.runtime.functions.thread.ThreadData</class>
+		<introduced>5.3.6.19</introduced>
 		<keywords>threading</keywords>
 		<description>returns the root cfthread scope.</description>
 		<return>
@@ -13933,6 +13945,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
     <function>
 		<name>GenerateArgon2Hash</name>
 		<class>lucee.runtime.functions.other.GenerateArgon2Hash</class>
+		<introduced>5.3.8.18</introduced>
 		<description>Returns hash of input using Argon2.</description>
     	<argument>
 			<name>input</name>
@@ -13976,6 +13989,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
     <function>
 		<name>Argon2CheckHash</name>
 		<class>lucee.runtime.functions.other.Argon2CheckHash</class>
+		<introduced>5.3.8.43</introduced>
 		<description>Returns hash of input using Argon2.</description>
     	<argument>
 			<name>input</name>
