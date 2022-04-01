@@ -1459,6 +1459,8 @@ If the timezone of your Lucee instance and your database is different, this can 
 	<data key="Settings.cache.storage">Storage</data>
 	<data key="Settings.cache.storageDesc">Allow to use this cache as client/session storage.</data>
 	<data key="settings.cache.name">Name</data>
+	<data key="settings.cache.clearCacheTitle">clear cache</data>
+	<data key="settings.cache.clearCache">clear cache ({count}) element(s)</data>
 	<data key="settings.cache.class">Class</data>
 	<data key="settings.cache.titleCreate">Create a new cache connection</data>
 	<data key="settings.cache.titleExisting">List of existing cache connections</data>
