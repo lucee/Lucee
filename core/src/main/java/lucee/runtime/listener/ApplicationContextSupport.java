@@ -145,7 +145,7 @@ public abstract class ApplicationContextSupport implements ApplicationContext {
 
 	@Override
 	public String getSecurityCookieDomain() {
-		if (StringUtil.isEmpty(applicationtoken, true)) return null;
+		if (StringUtil.isEmpty(cookiedomain, true)) return null;
 		return cookiedomain;
 	}
 

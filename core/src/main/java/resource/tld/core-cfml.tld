@@ -1260,7 +1260,6 @@ To use cached data, the function must be called with the exact same arguments.</
 			<name>idletimeout</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-		    <status>unimplemented</status>
 			<description>Time interval, in seconds, after which Lucee logs off the user.</description>
 		</attribute>
 		<attribute>
@@ -1268,7 +1267,6 @@ To use cached data, the function must be called with the exact same arguments.</
 			<name>applicationtoken</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-		    <status>unimplemented</status>
 			<description>The login that applies to the application. To let users log in to only one application, specify a unique value for that application. To let users log in to multiple applications, specify the same value for those applications. If you do not set a value for the applicationtoken attribute, the default value is CFAUTHORIZATION_applicationname.</description>
 		</attribute>
 		<attribute>
@@ -1276,7 +1274,6 @@ To use cached data, the function must be called with the exact same arguments.</
 			<name>cookiedomain</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-		    <status>unimplemented</status>
 			<description>Domain of the cookie that is used to mark a user as logged in. Use this attribute to enable a user login cookie to work with multiple clustered servers in the same domain.</description>
 		</attribute>
 	</tag>
