@@ -111,7 +111,7 @@
 			thread name="provider:#providerURL#" {
 			   thread.datas=getProviderInfo(provider:providerURL);
 		   	}
-			thread action="join" name="provider:#providerURL#" timeout=100;
+			thread action="join" name="provider:#providerURL#";
 			datas[providerURL]=isNull(cfthread["provider:#providerURL#"].datas)?{}:cfthread["provider:#providerURL#"].datas;
 		}
 	}
