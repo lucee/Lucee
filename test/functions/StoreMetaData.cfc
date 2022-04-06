@@ -17,52 +17,77 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  * 
  ---><cfscript>
-component extends="org.lucee.cfml.test.LuceeTestCase" labels="s3"	{
-	
-	//public function beforeTests(){}
-	
-	//public function afterTests(){}
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="s3" {
 
-
-	private struct function getCredentials() {
-		// getting the credentials from the environment variables
-		return server.getTestService("s3");
-	}
-	  
 	public function setUp(){
-		var s3=getCredentials();
-		if(!isNull(s3.ACCESS_KEY_ID)) {
-			application action="update" s3={
-				accessKeyId: s3.ACCESS_KEY_ID,
-				awsSecretKey: s3.SECRET_KEY
-			}; 
-			variables.s3Supported=true;
-		}
-		else 
-			variables.s3Supported=false;
+		variables.dir = "s3://lucee-s3meta-#lcase(hash(CreateGUID()))#";
 	}
 
-	public function testStoreMetadata() localMode=true {
-		if(!variables.s3Supported) return;
+	public void function testS3storeMetaData() skip="isNotSupported"{
+		var s3=getCredentials("s3");
+		application action="update" s3={
+			accessKeyId: s3.ACCESS_KEY_ID,
+			awsSecretKey: s3.SECRET_KEY
+		}; 
+		testStoreMetadata("s3");
+	}
+	
+	public void function testS3storeMetaDataCustom() skip="isNotSupportedCustom"{
+		var s3=getCredentials("s3_custom");
+		application action="update" s3={
+			accessKeyId: s3.ACCESS_KEY_ID,
+			awsSecretKey: s3.SECRET_KEY,
+			host: s3.HOST
+		}; 
+		testStoreMetadata("s3_custom");
+	}
+
+	public void function testS3storeMetaDataGoogle() skip="isNotSupportedGoogle"{
+		var s3=getCredentials("s3_google");
+		application action="update" s3={
+			accessKeyId: s3.ACCESS_KEY_ID,
+			awsSecretKey: s3.SECRET_KEY,
+			host: s3.HOST
+		}; 
+		testStoreMetadata("s3_google");
+	}
+
+	private void function testStoreMetadata() localMode=true {
 		
-		var dir="s3://lucee-testsuite-metadata/object/";
-		if(DirectoryExists(dir)) directoryDelete(dir,true);
+		if (DirectoryExists(dir)) 
+			directoryDelete(dir,true);
 		try {
 			assertFalse(DirectoryExists(dir));
 			directoryCreate(dir);
-
 		
 			var md=storeGetMetaData(dir);
 			var countBefore=structCount(md);
-			storesetMetaData(dir,{"susi":"Susanne"});
-    		var md=storeGetMetaData(dir);
-    		assertEquals(countBefore+1,structCount(md));
+			storeSetMetaData(dir,{"susi":"Susanne"});
+
+			var md=storeGetMetaData(dir);
+			assertEquals(countBefore+1,structCount(md));
 			assertEquals("Susanne",md.susi);
 		}
 		finally {
-    		if(DirectoryExists(dir))
-    			directoryDelete(dir,true);
-    	}  
+			if (DirectoryExists(dir))
+				directoryDelete(dir,true);
+		}  
+	}
+
+	public boolean function isNotSupported() {
+		return structCount( getCredentials("s3") ) == 0;
+	}
+
+	public boolean function isNotSupportedCustom() {
+		return structCount( getCredentials("s3_custom") ) == 0;
+	}
+
+	public boolean function isNotSupportedGoogle() {
+		return structCount( getCredentials("s3_google") ) == 0 ;
+	}
+
+	private struct function getCredentials(s3_cfg) {
+		return server.getTestService(s3_cfg);
 	}
 } 
 </cfscript>
