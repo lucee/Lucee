@@ -191,7 +191,7 @@ class JavaRegex implements Regex {
 		for(int i=0; i<=matcher.groupCount();i++) {
 			lenArray.appendEL(matcher.end(i) - matcher.start(i));
 			posArray.appendEL(matcher.start(i) + 1);
-			matchArray.appendEL(input.substring(matcher.start(i), matcher.end(i)));
+			matchArray.appendEL(matcher.group(i));
 		}
 
 		sct.setEL(POS, posArray);

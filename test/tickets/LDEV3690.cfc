@@ -26,6 +26,35 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				expect(reReplaceNoCase( "ONE123ONE", "[a-z]+", "", "one")).toBe("123ONE");
 				expect(reReplaceNoCase( "ONE123ONE", "[a-z]+", "", "all")).toBe("123");
 			});
+			it(title = "rematchNoCase() & reReplaceNoCase() with java regex engine", body = function( currentSpec ) {
+				expect(rematchNoCase("[a-z]+","abcABC")[1]).toBe("abcABC");
+				expect(reReplaceNoCase( "ONE123", "[a-z]+", "", "one")).toBe("123");
+				expect(reReplaceNoCase( "ONE123ONE", "[a-z]+", "", "one")).toBe("123ONE");
+				expect(reReplaceNoCase( "ONE123ONE", "[a-z]+", "", "all")).toBe("123");
+			});
+			it(title = "reFind() with java regex engine", body = function( currentSpec ) {
+				// check this (from LDEV-3103) because once it throws String index out of range: -1 with java regex engine
+				var text="
+```
+echo( x );
+```
+";
+				var text = Replace(text, "#chr(13)##chr(10)#",chr(10), "all");
+    			var referenceRegex = "```([a-z\+]+)?\n(.*?)\n```"
+				var match = ReFind( referenceRegex, text, 0, true ); 
+
+				expect(len(match.len)).toBe(3);
+
+				expect(match.len[1]).toBe(18);
+				expect(match.len[2]).toBe(0);
+				expect(match.len[3]).toBe(10);
+
+				expect(match.pos[1]).toBe(2);
+				expect(match.pos[2]).toBe(0);
+				expect(match.pos[3]).toBe(6);
+
+				expect(isNull(match.match[2])).toBe(true);;
+			});
 		});
 	}
 
