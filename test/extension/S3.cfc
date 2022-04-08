@@ -374,7 +374,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 			});
 			
 
-			it(title="check having a file and directory with the same name", skip=isNotSupported(), body=function( currentSpec ) {
+			it(title="check having a file and directory with the same name", skip=true, body=function( currentSpec ) {
 				if(isNotSupported()) return;
 
 				var bucketName = "test-same-#id#";

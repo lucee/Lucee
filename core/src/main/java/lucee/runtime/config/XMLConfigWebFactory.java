@@ -2123,7 +2123,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 							if (!cd.isBundle()) cd = patchJDBCClass(config, cd);
 							int idle = Caster.toIntValue(getAttr(dataSource, "idleTimeout"), -1);
 							if (idle == -1) idle = Caster.toIntValue(getAttr(dataSource, "connectionTimeout"), -1);
-							int defLive = 60;
+							int defLive = 15;
 							if (idle > 0) defLive = idle * 5;// for backward compatibility
 
 							setDatasource(config, datasources, getAttr(dataSource, "name"), cd, getAttr(dataSource, "host"), getAttr(dataSource, "database"),

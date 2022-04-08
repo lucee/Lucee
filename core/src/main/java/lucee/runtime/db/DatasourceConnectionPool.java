@@ -256,18 +256,15 @@ public class DatasourceConnectionPool {
 		if (!OSGiUtil.isValid(dc.getConnection())) return false;
 
 		try {
-			if (dc.getDatasource().validate() && !DataSourceUtil.isValid(dc, 1000)) return false;
+			if (((DatasourceConnectionPro) dc).validate() || dc.isLifecycleTimeout() || dc.isTimeout()) {
+				if (!DataSourceUtil.isValid(dc, 1000)) return false;
+			}
+
 		}
 		catch (Exception e) {
 			LogUtil.log(ThreadLocalPageContext.getConfig(), "datasource", "connection", e, Log.LEVEL_INFO);
 		} // not all driver support this, because of that we ignore an error
 			// here, also protect from java 5
-
-		/*
-		 * try { if (autoCommit != null && autoCommit.booleanValue() != dc.getAutoCommit())
-		 * dc.setAutoCommit(autoCommit.booleanValue()); } catch (Throwable t) {
-		 * ExceptionUtil.rethrowIfNecessary(t); return false; }
-		 */
 
 		return true;
 	}
