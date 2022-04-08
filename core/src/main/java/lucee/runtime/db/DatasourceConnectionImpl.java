@@ -82,6 +82,7 @@ public final class DatasourceConnectionImpl implements DatasourceConnectionPro, 
 			this.password = datasource.getPassword();
 		}
 		if (this.password == null) this.password = "";
+		lastValidation = System.currentTimeMillis();
 	}
 
 	@Override

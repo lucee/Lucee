@@ -257,7 +257,7 @@ public class DatasourceConnectionPool {
 
 		try {
 			if (((DatasourceConnectionPro) dc).validate() || dc.isLifecycleTimeout() || dc.isTimeout()) {
-				if (!DataSourceUtil.isValid(dc, 1000)) return false;
+				if (!DataSourceUtil.isValid(dc, 1000, true)) return false;
 			}
 
 		}

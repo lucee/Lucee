@@ -22,6 +22,7 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+import lucee.print;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 
@@ -107,6 +108,17 @@ public class DataSourceUtil {
 
 	public static boolean isValid(DatasourceConnection dc, int timeout) throws SQLException {
 		return dc.getConnection().isValid(timeout);
+	}
+
+	public static boolean isValid(DatasourceConnection dc, int timeout, boolean defaultValue) {
+		try {
+			print.e(dc.getConnection().getClass().getName());
+			return dc.getConnection().isValid(timeout);
+		}
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+			return defaultValue;
+		}
 	}
 
 	public static boolean isClosed(PreparedStatement ps, boolean defaultValue) {
