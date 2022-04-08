@@ -26,12 +26,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				expect(reReplaceNoCase( "ONE123ONE", "[a-z]+", "", "one")).toBe("123ONE");
 				expect(reReplaceNoCase( "ONE123ONE", "[a-z]+", "", "all")).toBe("123");
 			});
-			it(title = "rematchNoCase() & reReplaceNoCase() with java regex engine", body = function( currentSpec ) {
-				expect(rematchNoCase("[a-z]+","abcABC")[1]).toBe("abcABC");
-				expect(reReplaceNoCase( "ONE123", "[a-z]+", "", "one")).toBe("123");
-				expect(reReplaceNoCase( "ONE123ONE", "[a-z]+", "", "one")).toBe("123ONE");
-				expect(reReplaceNoCase( "ONE123ONE", "[a-z]+", "", "all")).toBe("123");
-			});
 			it(title = "reFind() with java regex engine", body = function( currentSpec ) {
 				// check this (from LDEV-3103) because once it throws String index out of range: -1 with java regex engine
 				var text="
