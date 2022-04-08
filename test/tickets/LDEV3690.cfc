@@ -1,7 +1,11 @@
 component extends="org.lucee.cfml.test.LuceeTestCase"{
+
+	function beforeAll() {
+		application name="LDEV-3690" regex={"type":"java"}; // sets java as regex engine
+	}
+
 	function run( testResults , testBox ) {
 		describe( "Testcase for LDEV-3533", function() {
-			application name="LDEV-3533" regex={"type":"java"}; // sets java as regex engine
 			it(title = "reFindnocase() with java regex engine", body = function( currentSpec ) {
 				expect(arrayLen(reFindnocase("(f)(oo)", "foo", 1, true, "all")[1].len)).toBe(3);
 				expect(reFindnocase("(f)(oo)", "foo", 1, false, "all")[1]).toBe(1);
@@ -10,7 +14,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 			});
 		});
 		describe( "Testcase for LDEV-3690", function() {
-			application name="LDEV-3690" regex={"type":"java"};
 			it(title = "reFindnocase start argument with java regex engine", body = function( currentSpec ) {
 				var result = reFindnocase("[1-9]+", "123abc456", 6, true);
 				expect(result.pos[1]).toBe(7);
@@ -24,5 +27,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				expect(reReplaceNoCase( "ONE123ONE", "[a-z]+", "", "all")).toBe("123");
 			});
 		});
+	}
+
+	function beforeAll() {
+		application name="LDEV-3690" regex={"type":"perl"}; // again sets to default value(perl) for regex engine
 	}
 }
