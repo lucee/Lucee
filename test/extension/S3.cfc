@@ -4,7 +4,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		if(isNotSupported()) return;
 		var s3Details = getCredentials();
 		id=lcase(hash(CreateGUID()));
-		root = "s3://#s3Details.ACCESS_KEY_ID#:#s3Details.SECRET_KEY#@#s3Details.HOST#/";
+		root = "s3://#s3Details.ACCESS_KEY_ID#:#s3Details.SECRET_KEY#@/";
 	}
 
 	function afterAll() skip="isNotSupported"{
@@ -427,4 +427,3 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		return server.getTestService("s3");
 	}
 }
-
