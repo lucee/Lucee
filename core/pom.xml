@@ -272,7 +272,7 @@
     <dependency>
     	<groupId>org.lucee</groupId>
     	<artifactId>httpcomponents-httpclient</artifactId>
-    	<version>4.5.10</version>
+    	<version>4.5.10.0002l</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
@@ -284,7 +284,7 @@
     <dependency>
     	<groupId>org.lucee</groupId>
     	<artifactId>httpcomponents-httpmime</artifactId>
-    	<version>4.5.10</version>
+    	<version>4.5.10.0002l</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
