@@ -1,22 +1,28 @@
 component {
 	this.name = "orm" & hash( getCurrentTemplatePath() );
 
-    // H2 config - gives me a lock timeout error
-	// this.datasource={
-    //     class: 'org.h2.Driver'
-    //     , bundleName: 'org.h2'
-    //     , connectionString: 'jdbc:h2:#getDirectoryFromPath(getCurrentTemplatePath())#/datasource/db;MODE=MySQL'
-    // };
-    // this.ormSettings = {
-	// 	dbcreate = "dropcreate"
-	// };
-    // mssql setup
-    this.datasource = server.getDatasource("mssql");
+	param name="form.dbfile" default=""; // required for h2 
+	param name="form.db" default=""; // 
 
-	this.ormEnabled = true;
-	this.ormSettings = {
-		dbcreate = "dropcreate",
-		dialect  = "org.hibernate.dialect.SQLServer2008Dialect"
-	};
-
+	switch(form.db){
+		case "h2":
+			// H2 config - gives me a lock timeout error
+			this.datasource= server.getDatasource("h2", form.dbfile);
+			this.ormEnabled = true;
+			this.ormSettings = {
+				dbcreate = "dropcreate"
+			};
+			break;
+		case "mssql":
+			// mssql setup (HANGS 5.4, passes 3.55)
+			this.datasource = server.getDatasource("mssql");
+			this.ormEnabled = true;
+			this.ormSettings = {
+				dbcreate = "dropcreate",
+				dialect  = "org.hibernate.dialect.SQLServer2008Dialect"
+			};
+			break;
+		default:
+			throw "db #form.db# no yet supported";
+	}
 }
