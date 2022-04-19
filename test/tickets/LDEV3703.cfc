@@ -14,4 +14,8 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" labels="regex"{
             });
         });
     }
+
+    function afterAll() {
+        application regex="#{type="perl"}#"; // after the test again set regex type to perl 
+    }
 }
