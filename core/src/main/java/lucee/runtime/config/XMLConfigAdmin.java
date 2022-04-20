@@ -4529,7 +4529,7 @@ public final class XMLConfigAdmin {
 		for (int i = 0; i < children.length; i++) {
 			child = children[i];
 			try {
-				rhe = new RHExtension(config, child);
+				rhe = new RHExtension(config, child, false);
 
 				// ed=ExtensionDefintion.getInstance(config,child);
 			}
@@ -4668,20 +4668,20 @@ public final class XMLConfigAdmin {
 		}
 	}
 
-	public static void _updateRHExtension(ConfigPro config, Resource ext, boolean reload, boolean force) throws PageException {
+	public static void _updateRHExtension(ConfigPro config, Resource ext, boolean reload, boolean force, boolean moveIfNecessary) throws PageException {
 		try {
 			XMLConfigAdmin admin = new XMLConfigAdmin(config, null);
-			admin.updateRHExtension(config, ext, reload, force);
+			admin.updateRHExtension(config, ext, reload, force, moveIfNecessary);
 		}
 		catch (Exception e) {
 			throw Caster.toPageException(e);
 		}
 	}
 
-	public void updateRHExtension(Config config, Resource ext, boolean reload, boolean force) throws PageException {
+	public void updateRHExtension(Config config, Resource ext, boolean reload, boolean force, boolean moveIfNecessary) throws PageException {
 		RHExtension rhext;
 		try {
-			rhext = new RHExtension(config, ext, true);
+			rhext = new RHExtension(config, ext, moveIfNecessary);
 			rhext.validate();
 		}
 		catch (Throwable t) {
@@ -5401,7 +5401,7 @@ public final class XMLConfigAdmin {
 			ExceptionUtil.rethrowIfNecessary(t);
 			// failed to uninstall, so we install it again
 			try {
-				updateRHExtension(config, rhe.getExtensionFile(), true, true);
+				updateRHExtension(config, rhe.getExtensionFile(), true, true, true);
 				// RHExtension.install(config, rhe.getExtensionFile());
 			}
 			catch (Throwable t2) {
@@ -6463,7 +6463,7 @@ public final class XMLConfigAdmin {
 		if (children != null) for (int i = 0; i < children.length; i++) {
 			if (!id.equals(children[i].getAttribute("id"))) continue;
 			try {
-				return new RHExtension(config, children[i]);
+				return new RHExtension(config, children[i], false);
 			}
 			catch (Exception e) {
 				return defaultValue;
@@ -6496,7 +6496,7 @@ public final class XMLConfigAdmin {
 			for (int i = 0; i < children.length; i++) {
 				tmp = null;
 				try {
-					tmp = new RHExtension(config, children[i]);
+					tmp = new RHExtension(config, children[i], false);
 				}
 				catch (Exception e) {
 				}

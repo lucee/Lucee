@@ -4335,13 +4335,13 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		// path
 		if (obj instanceof String) {
 			Resource src = ResourceUtil.toResourceExisting(config, (String) obj);
-			XMLConfigAdmin._updateRHExtension(config, src, true, true);
+			XMLConfigAdmin._updateRHExtension(config, src, true, true, true);
 		}
 		else {
 			try {
 				Resource tmp = SystemUtil.getTempFile("lex", true);
 				IOUtil.copy(new ByteArrayInputStream(Caster.toBinary(obj)), tmp, true);
-				XMLConfigAdmin._updateRHExtension(config, tmp, true, true);
+				XMLConfigAdmin._updateRHExtension(config, tmp, true, true, true);
 			}
 			catch (IOException ioe) {
 				throw Caster.toPageException(ioe);
