@@ -4671,7 +4671,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			for (Element child: children) {
 				BundleInfo[] bfsq;
 				try {
-					rhe = new RHExtension(config, child, true);
+					rhe = new RHExtension(config, child);
 					if (rhe.getStartBundles()) rhe.deployBundles(config);
 					extensions.add(rhe);
 				}

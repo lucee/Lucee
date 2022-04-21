@@ -45,7 +45,6 @@ import lucee.commons.io.log.Log;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.filter.ExtensionResourceFilter;
 import lucee.commons.io.res.filter.ResourceNameFilter;
-import lucee.commons.io.res.type.file.FileResource;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
@@ -195,55 +194,11 @@ public class RHExtension implements Serializable {
 
 	public final boolean softLoaded;
 
-	public RHExtension(Config config, Element el, boolean installIfNecessary) throws PageException, IOException, BundleException {
+	public RHExtension(Config config, Element el) throws PageException, IOException, BundleException {
 		this.config = config;
 		// we have a newer version that holds the Manifest data
-		Resource res = toResource(config, el, null);
-		if (res == null) {
-			boolean hasResource;
-
-			if (!installIfNecessary) throw new ApplicationException("extension [" + id + "] in version [" + version + "], could not be loaded");
-
-			String resource = StringUtil.unwrap(el.getAttribute("url"));
-			if (StringUtil.isEmpty(resource)) resource = StringUtil.unwrap(el.getAttribute("resource"));
-			if (StringUtil.isEmpty(resource)) resource = StringUtil.unwrap(el.getAttribute("path"));
-
-			// if we do not have id/version we need to extract from the extension itself
-			hasResource = !StringUtil.isEmpty(resource) && (res = ResourceUtil.toResourceExisting(config, resource, null)) != null;
-			ExtensionDefintion ed = null;
-			if (hasResource) {
-				Resource tmp = null;
-				if (!(res instanceof FileResource)) {
-					tmp = SystemUtil.getTempFile("lex", false);
-					IOUtil.copy(res, tmp);
-					res = tmp;
-				}
-				ed = new RHExtension(config, res, false).toExtensionDefinition();
-				ed.setSource(config, res);
-				this.id = ed.getId();
-				this.version = ed.getVersion();
-			}
-			else {
-				this.id = StringUtil.unwrap(el.getAttribute("id"));
-				if (!Decision.isUUId(id)) {
-					throw new ApplicationException(
-							"The Extension [" + StringUtil.unwrap(el.getAttribute("name")) + "] has no valid id defined (" + id + "),id must be a valid UUID.");
-				}
-				this.version = StringUtil.unwrap(el.getAttribute("version"));
-				if (!StringUtil.isEmpty(id) && !StringUtil.isEmpty(version)) {
-					ed = new ExtensionDefintion(id, version);
-				}
-			}
-
-			if (ed != null && !StringUtil.isEmpty(id)) {
-				DeployHandler.deployExtension(config, ed, null, false, true);
-				res = toResource(config, id, version, null);
-			}
-		}
-
-		// we have a newer version that holds the Manifest data
 		if (el.hasAttribute("start-bundles")) {
-			this.extensionFile = res;
+			this.extensionFile = toResource(config, el);
 			boolean _softLoaded;
 			try {
 				readManifestConfig(el, extensionFile.getAbsolutePath(), null);
@@ -259,7 +214,7 @@ public class RHExtension implements Serializable {
 			softLoaded = _softLoaded;
 		}
 		else {
-			init(res, false);
+			init(toResource(config, el), false);
 			softLoaded = false;
 		}
 	}
@@ -293,8 +248,7 @@ public class RHExtension implements Serializable {
 			trgDir.mkdirs();
 			if (!ext.getParentResource().equals(trgDir)) {
 				if (trg.exists()) trg.delete();
-				IOUtil.copy(ext, trg);
-				ext.delete();
+				ResourceUtil.moveTo(ext, trg, true);
 				this.extensionFile = trg;
 			}
 		}
@@ -765,26 +719,6 @@ public class RHExtension implements Serializable {
 		return res;
 	}
 
-	public static Resource toResource(Config config, String id, String version, Resource defaultValue) throws PageException {
-		Resource res;
-		String fileName = toHash(id, version, "lex");
-		res = getExtensionDir(config).getRealResource(fileName);
-		if (!res.exists()) return defaultValue;
-		return res;
-	}
-
-	public static Resource toResource(Config config, String id, String version) throws PageException {
-		String fileName = toHash(id, version, "lex");
-		Resource res = getExtensionDir(config).getRealResource(fileName);
-		if (!res.exists()) throw new ApplicationException("Extension [" + fileName + "] was not found at [" + res + "]");
-		return res;
-	}
-
-	public static String toHash(String id, String version, String ext) {
-		if (ext == null) ext = "lex";
-		return HashUtil.create64BitHashAsString(id + version, Character.MAX_RADIX) + "." + ext;
-	}
-
 	private static Resource getExtensionFile(Config config, Resource ext, String id, String name, String version) {
 		String fileName = toHash(id, name, version, ResourceUtil.getExtension(ext, "lex"));
 		// String
@@ -834,7 +768,7 @@ public class RHExtension implements Serializable {
 			ext = new RHExtension(config, resources[i], false);
 			xmlExt = xmlExtensions.get(ext.getId());
 			if (xmlExt != null && (xmlExt.getVersion() + "").equals(ext.getVersion() + "")) continue;
-			XMLConfigAdmin._updateRHExtension((ConfigPro) config, resources[i], true, true, true);
+			XMLConfigAdmin._updateRHExtension((ConfigPro) config, resources[i], true, true);
 		}
 
 	}
@@ -1042,7 +976,7 @@ public class RHExtension implements Serializable {
 		Query qry = createQuery();
 		for (int i = 0; i < children.length; i++) {
 			try {
-				new RHExtension(config, children[i], false).populate(qry); // ,i+1
+				new RHExtension(config, children[i]).populate(qry); // ,i+1
 			}
 			catch (Throwable t) {
 				ExceptionUtil.rethrowIfNecessary(t);
