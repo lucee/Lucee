@@ -119,7 +119,9 @@ public class OSGiUtil {
 	private static Map<String, String> packageBundleMapping = new HashMap<String, String>();
 
 	static {
-		packageBundleMapping.put("org.bouncycastle.", "bcprov");
+		// this is needed in case old version of extensions are used, because lucee no longer bundles this
+		packageBundleMapping.put("org.bouncycastle", "bcprov");
+		packageBundleMapping.put("org.apache.log4j", "log4j");
 	}
 
 	/**
@@ -460,8 +462,12 @@ public class OSGiUtil {
 				}
 			}
 		}
+
+		String bn = packageBundleMapping.get(packageName);
+		if (!StringUtil.isEmpty(bn)) return loadBundle(bn, null, null, null, startIfNecessary);
+
 		for (Entry<String, String> e: packageBundleMapping.entrySet()) {
-			if (packageName.startsWith(e.getKey())) return loadBundle(e.getValue(), null, null, null, startIfNecessary);
+			if (packageName.startsWith(e.getKey() + ".")) return loadBundle(e.getValue(), null, null, null, startIfNecessary);
 		}
 		return null;
 	}
@@ -2019,5 +2025,15 @@ public class OSGiUtil {
 		}
 		// TODO Auto-generated method stub
 
+	}
+
+	public static boolean isValid(Object obj) {
+		if (obj != null) {
+			ClassLoader cl = obj.getClass().getClassLoader();
+			if (cl instanceof BundleClassLoader) {
+				if (((Bundle) ((BundleClassLoader) cl).getBundle()).getState() != Bundle.ACTIVE) return false;
+			}
+		}
+		return true;
 	}
 }

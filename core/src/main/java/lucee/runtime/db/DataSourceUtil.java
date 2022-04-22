@@ -109,6 +109,16 @@ public class DataSourceUtil {
 		return dc.getConnection().isValid(timeout);
 	}
 
+	public static boolean isValid(DatasourceConnection dc, int timeout, boolean defaultValue) {
+		try {
+			return dc.getConnection().isValid(timeout);
+		}
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+			return defaultValue;
+		}
+	}
+
 	public static boolean isClosed(PreparedStatement ps, boolean defaultValue) {
 		try {
 			return ps.isClosed();

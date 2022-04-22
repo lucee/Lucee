@@ -204,6 +204,7 @@ public final class CookieImpl extends ScopeSupport implements Cookie, ScriptProt
 	// FUTURE add to interface
 	public void setCookie(Collection.Key key, Object value, Object expires, boolean secure, String path, String domain, boolean httpOnly, boolean preserveCase, Boolean encode,
 			short samesite) throws PageException {
+
 		int exp = EXPIRES_NULL;
 
 		// expires
@@ -266,7 +267,7 @@ public final class CookieImpl extends ScopeSupport implements Cookie, ScriptProt
 
 		// build the value
 		StringBuilder sb = new StringBuilder();
-		/* Name */ sb.append(enc(name)).append('=').append(encode == null ? enc(value) : enc(value, encode));
+		/* Name */ sb.append(enc(name)).append('=').append(encode == null ? enc(value) : enc(value, encode.booleanValue()));
 		/* Path */sb.append(";Path=").append(enc(path));
 		/* Domain */if (!StringUtil.isEmpty(domain)) sb.append(";Domain=").append(enc(domain));
 		/* Expires */if (expires != EXPIRES_NULL) sb.append(";Expires=").append(DateTimeUtil.toHTTPTimeString(System.currentTimeMillis() + (expires * 1000L), false));

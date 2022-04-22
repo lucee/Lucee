@@ -3,7 +3,7 @@
 
   <groupId>org.lucee</groupId>
   <artifactId>lucee</artifactId>
-  <version>6.0.0.157-SNAPSHOT</version>
+  <version>6.0.0.158-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>Lucee Loader Build</name>
@@ -507,9 +507,9 @@
     <scope>provided</scope>
   </dependency>
   <dependency>
-    <groupId>org.lucee</groupId>
-    <artifactId>httpcomponents-httpclient</artifactId>
-    <version>4.5.10</version>
+  	<groupId>org.lucee</groupId>
+  	<artifactId>httpcomponents-httpclient</artifactId>
+  	<version>4.5.10.0002L</version>
     <scope>provided</scope>
   </dependency>
   <dependency>
@@ -519,9 +519,9 @@
     <scope>provided</scope>
   </dependency>
   <dependency>
-    <groupId>org.lucee</groupId>
-    <artifactId>httpcomponents-httpmime</artifactId>
-    <version>4.5.10</version>
+  	<groupId>org.lucee</groupId>
+  	<artifactId>httpcomponents-httpmime</artifactId>
+  	<version>4.5.10.0002L</version>
     <scope>provided</scope>
   </dependency>
   <dependency>

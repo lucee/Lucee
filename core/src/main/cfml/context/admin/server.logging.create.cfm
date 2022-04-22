@@ -40,25 +40,39 @@
 				</cfif>
 			</cfloop>
 
+			<cfif structKeyExists(form,'custom_2_appender_table') and !structKeyExists(form,'custom_2_appender_datasource')>
+				<cfset error.message = "No Datasource has been defined">
+			<cfelseif structKeyExists(form,"custom_3_appender_path")>
+				<cfset path = getDirectoryFromPath(form.custom_3_appender_path)>
+				<cfif findNoCase("{lucee-config}",path) NEQ 0>
+					<cfset path = "#expandpath(replaceNoCase(path,"{lucee-config}","{lucee-server}"))#">
+				</cfif>
+			
+				<cfif !directoryExists(path)>
+					<cfset error.message = "Path [#form.custom_3_appender_path#] doesn't exist">
+				</cfif>
+			</cfif>
+			
 			<cfset layoutClass=trim(form.appenderLayoutClass?:'')>
 			<cfif isEmpty(layoutClass)><cfset layoutClass=trim(form.layoutClass)></cfif>
 			
-			<cfadmin
-				action="updateLogSettings"
-				type="#request.adminType#"
-				password="#session["password"&request.adminType]#"
-				name="#trim(form._name)#"
-				level="#form.level#"
-				appenderClass="#trim(form.appenderClass)#"
-				appenderBundleName="#trim(form.appenderBundleName?:'')#"
-				appenderBundleVersion="#trim(form.appenderBundleVersion?:'')#"
-				appenderArgs="#appenderArgs#"
-				layoutClass="#layoutClass#"
-				layoutBundleName="#trim(form.layoutBundleName?:'')#"
-				layoutBundleVersion="#trim(form.layoutBundleVersion?:'')#"
-				layoutArgs="#(layoutArgs)#"
-
-				remoteClients="#request.getRemoteClients()#">
+			<cfif error.message EQ "">
+				<cfadmin
+					action="updateLogSettings"
+					type="#request.adminType#"
+					password="#session["password"&request.adminType]#"
+					name="#trim(form._name)#"
+					level="#form.level#"
+					appenderClass="#trim(form.appenderClass)#"
+					appenderBundleName="#trim(form.appenderBundleName?:'')#"
+					appenderBundleVersion="#trim(form.appenderBundleVersion?:'')#"
+					appenderArgs="#appenderArgs#"
+					layoutClass="#layoutClass#"
+					layoutBundleName="#trim(form.layoutBundleName?:'')#"
+					layoutBundleVersion="#trim(form.layoutBundleVersion?:'')#"
+					layoutArgs="#(layoutArgs)#"
+					remoteClients="#request.getRemoteClients()#">
+			</cfif>
 
 		</cfcase>
 	</cfswitch>

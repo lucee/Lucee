@@ -422,4 +422,9 @@ public class ORMDatasourceConnection implements DatasourceConnectionPro {
 	public void release() {
 		IOUtil.closeEL(connection);
 	}
+
+	@Override
+	public boolean validate() {
+		return datasource.validate();
+	}
 }

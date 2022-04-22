@@ -232,7 +232,7 @@
 			</cfif>				
 
 			<cfcatch>
-				<cfset systemOutput(cfcatch,1,1)>
+				<cflog text="Error parsing extension logo, #cfcatch.message#, [#arguments.src#]" type="error">
 				<cfset local.b64=local.empty>
 			</cfcatch>
 		</cftry>

@@ -52,6 +52,7 @@ import lucee.runtime.spooler.Task;
 public final class DatasourceConnectionImpl implements DatasourceConnectionPro, Task {
 
 	// private static final int MAX_PS = 100;
+	private static final int VALIDATION_TIMEOUT = 60000;
 	private Connection connection;
 	private DataSourcePro datasource;
 	private long lastUsed;
@@ -62,6 +63,7 @@ public final class DatasourceConnectionImpl implements DatasourceConnectionPro, 
 	private int requestId = -1;
 	private Boolean supportsGetGeneratedKeys;
 	private DatasourceConnPool pool;
+	private long lastValidation;
 
 	/**
 	 * @param connection
@@ -82,6 +84,7 @@ public final class DatasourceConnectionImpl implements DatasourceConnectionPro, 
 			this.password = datasource.getPassword();
 		}
 		if (this.password == null) this.password = "";
+		lastValidation = System.currentTimeMillis();
 	}
 
 	@Override
@@ -495,6 +498,17 @@ public final class DatasourceConnectionImpl implements DatasourceConnectionPro, 
 	@Override
 	public void release() {
 		pool.returnObject(this);
+	}
+
+	@Override
+	public final boolean validate() {
+		if (getDatasource().validate()) return true;
+		long now;
+		if ((lastValidation + VALIDATION_TIMEOUT) < (now = System.currentTimeMillis())) {
+			lastValidation = now;
+			return true;
+		}
+		return false;
 	}
 
 }

@@ -295,6 +295,8 @@ public final class ConfigWebFactory extends ConfigFactory {
 		// call web.cfc for this context
 		((CFMLEngineImpl) ConfigWebUtil.getEngine(configWeb)).onStart(configWeb, false);
 
+		((GatewayEngineImpl) configWeb.getGatewayEngine()).autoStart();
+
 		return configWeb;
 	}
 
@@ -377,6 +379,8 @@ public final class ConfigWebFactory extends ConfigFactory {
 		createContextFilesPost(configDir, cw, null, false, doNew);
 
 		((CFMLEngineImpl) ConfigWebUtil.getEngine(cw)).onStart(cw, true);
+
+		((GatewayEngineImpl) cw.getGatewayEngine()).autoStart();
 	}
 
 	private static long second(long ms) {
@@ -1938,8 +1942,8 @@ public final class ConfigWebFactory extends ConfigFactory {
 						// logger only exists in server context
 						if (config.getLog(e.getKey(), false) == null) {
 							data = e.getValue();
-							config.addLogger(e.getKey(), data.getLevel(), data.getAppenderClassDefinition(), data.getAppenderArgs(), data.getLayoutClassDefinition(),
-									data.getLayoutArgs(), true, false);
+							config.addLogger(e.getKey(), data.getLevel(), data.getAppenderClassDefinition(), data.getAppenderArgs(false), data.getLayoutClassDefinition(),
+									data.getLayoutArgs(false), true, false);
 						}
 					}
 					catch (Throwable th) {
@@ -2135,6 +2139,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 						jdbc = config.getJDBCDriverById(getAttr(dataSource, "id"), null);
 						if (jdbc != null && jdbc.cd != null) {
 							cd = jdbc.cd;
+
 						}
 						else cd = getClassDefinition(dataSource, "", config.getIdentification());
 						// we only have a class
@@ -2146,7 +2151,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 						if (!cd.isBundle()) cd = patchJDBCClass(config, cd);
 						int idle = Caster.toIntValue(getAttr(dataSource, "idleTimeout"), -1);
 						if (idle == -1) idle = Caster.toIntValue(getAttr(dataSource, "connectionTimeout"), -1);
-						int defLive = 60;
+						int defLive = 15;
 						if (idle > 0) defLive = idle * 5;// for backward compatibility
 
 						setDatasource(config, datasources, e.getKey().getString(), cd, getAttr(dataSource, "host"), getAttr(dataSource, "database"),

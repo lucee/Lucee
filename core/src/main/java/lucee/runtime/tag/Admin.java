@@ -3217,12 +3217,12 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			qry.setAtEL("appenderBundleName", row, logger.getAppenderClassDefinition().getName());
 			qry.setAtEL("appenderBundleVersion", row, logger.getAppenderClassDefinition().getVersionAsString());
 
-			qry.setAtEL("appenderArgs", row, toStruct(logger.getAppenderArgs()));
+			qry.setAtEL("appenderArgs", row, toStruct(logger.getAppenderArgs(true)));
 			qry.setAtEL("layoutClass", row, logger.getLayoutClassDefinition().getClassName());
 			qry.setAtEL("layoutBundleName", row, logger.getLayoutClassDefinition().getName());
 			qry.setAtEL("layoutBundleVersion", row, logger.getLayoutClassDefinition().getVersionAsString());
 
-			qry.setAtEL("layoutArgs", row, toStruct(logger.getLayoutArgs()));
+			qry.setAtEL("layoutArgs", row, toStruct(logger.getLayoutArgs(true)));
 			qry.setAtEL("readonly", row, logger.getReadOnly());
 		}
 		return qry;
