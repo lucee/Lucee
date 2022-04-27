@@ -8,7 +8,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				var data=[1,2,3];
 				var meta=data.getmetadata();
 
-				assertEquals("datatype,dimensions,type",listSort(meta.keyList()));
+				assertEquals("datatype,dimensions,type",listSort(meta.keyList(),"text"));
 				assertEquals("any",meta.datatype);
 				assertEquals(1,meta.dimensions);
 				assertEquals("unsynchronized",meta.type);
@@ -18,7 +18,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				var data=arrayNew(2);
 				var meta=data.getmetadata();
 
-				assertEquals("datatype,dimensions,type",listSort(meta.keyList()));
+				assertEquals("datatype,dimensions,type",listSort(meta.keyList(), "text"));
 				assertEquals("any",meta.datatype);
 				assertEquals(2,meta.dimensions);
 				assertEquals("unsynchronized",meta.type);
@@ -28,7 +28,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				var data=arrayNew(1,"string");
 				var meta=data.getmetadata();
 
-				assertEquals("datatype,dimensions,type",listSort(meta.keyList()));
+				assertEquals("datatype,dimensions,type",listSort(meta.keyList(), "text"));
 				assertEquals("string",meta.datatype);
 				assertEquals(1,meta.dimensions);
 				assertEquals("unsynchronized",meta.type);
