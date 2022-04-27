@@ -4,7 +4,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="smtp" {
 	}
 	function run( testResults , testBox ) {
 		describe( "test case for LDEV-1537", function() {
-			it(title = "Checking mail spooler retries emails without from address", skip=isAvailable()  body = function( currentSpec ) {
+			it(title = "Checking mail spooler retries emails without from address", skip=isAvailable(),  body = function( currentSpec ) {
 				local.result = _InternalRequest(
 					template:"#variables.uri#/test.cfm"
 				);
