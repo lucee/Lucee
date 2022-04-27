@@ -21,6 +21,11 @@ jobs:
     env:
       DO_DEPLOY: "${{ github.event_name == 'push' && github.ref == 'refs/heads/6.0' }}"
     services:
+      mailhog:
+        image: mailhog/mailhog:v1.0.0
+        ports:
+          - 1025
+          - 8025
       sql-server:
         # Docker Hub image
         image: mcr.microsoft.com/mssql/server:2019-latest
@@ -119,6 +124,11 @@ jobs:
         MEMCACHED_SERVER: localhost
         REDIS_PORT: 6379
         REDIS_SERVER: localhost
+        SMTP_PORT_INSECURE: 1025
+        SMTP_PORT_SECURE: 15675
+        SMTP_SERVER: localhost
+        SMTP_USERNAME: lucee
+        SMTP_PASSWORD: doesntmatter
         S3_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_ID_TEST }}
         S3_SECRET_KEY: ${{ secrets.S3_SECRET_KEY_TEST }}
         # DO_DEPLOY: ${{ github.event_name == 'push' }}

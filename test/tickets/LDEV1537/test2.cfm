@@ -1,5 +1,5 @@
 <cftry>
-    <cfmail from="from:81@gmail.com" to="xxx@yy.com" subject="test subject" server="localhost">
+    <cfmail from="from:81@gmail.com" to="xxx@yy.com" subject="test subject">
      dummy email
     </cfmail>
 	<cfcatch>
