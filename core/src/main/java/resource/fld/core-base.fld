@@ -14329,6 +14329,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
     	</return>
     </function>
     
+	<!-- StringSort -->
     <function>
 		<name>StringSort</name>
 		<class>lucee.runtime.functions.string.StringSort</class>
