@@ -1,6 +1,6 @@
 <cftry>
 	<cfset hasError = false>
-    <cfmail from="" to="xxx@yy.com" subject="mail test" server="localhost">
+    <cfmail from="" to="xxx@yy.com" subject="mail test">
     	Dummy email
     </cfmail>
 	<cfcatch>
