@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase"{
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="imap,pop" {
 	variables.isSupported=false;
 	variables.myMailSettings=getCredentials();
 	if(!structIsEmpty(myMailSettings))
@@ -74,13 +74,12 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 	}
 
 	private struct function getCredentials(){
-		var result = server.getTestService("mail");
-		if ( structCount(result) eq 0)
-			return result;
-		return {}; // TODO fix failing tests on travis https://luceeserver.atlassian.net/browse/LDEV-3431
-		result.imap =  server.getTestService("imap");
-		result.pop =  server.getTestService("pop");
-		result.smtp = server.getTestService("smtp");
+		var result = {
+			imap: server.getTestService("imap"),
+			pop: server.getTestService("pop"),
+			smtp: server.getTestService("smtp")
+		}
+		return {};
 		return result;
 	}
 }
