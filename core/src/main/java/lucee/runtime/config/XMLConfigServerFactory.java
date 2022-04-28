@@ -68,9 +68,9 @@ public final class XMLConfigServerFactory extends XMLConfigFactory {
 	 * @throws FunctionLibException
 	 * @throws BundleException
 	 */
-	public static ConfigServerImpl newInstance(CFMLEngineImpl engine, Map<String, CFMLFactory> initContextes, Map<String, CFMLFactory> contextes, Resource configDir)
-			throws SAXException, ClassException, PageException, IOException, TagLibException, FunctionLibException, BundleException {
-
+	public static ConfigServerImpl newInstance(CFMLEngineImpl engine, Map<String, CFMLFactory> initContextes, Map<String, CFMLFactory> contextes, Resource configDir,
+			ConfigServerImpl csi, boolean quick) throws SAXException, ClassException, PageException, IOException, TagLibException, FunctionLibException, BundleException {
+		long start = System.currentTimeMillis();
 		boolean isCLI = SystemUtil.isCLICall();
 		if (isCLI) {
 			Resource logs = configDir.getRealResource("logs");
@@ -106,7 +106,7 @@ public final class XMLConfigServerFactory extends XMLConfigFactory {
 			// InputStream in = new TextFile("").getClass().getResourceAsStream("/resource/config/server.xml");
 			createFileFromResource("/resource/config/server.xml", configFile.getAbsoluteResource(), "tpiasfap");
 		}
-
+		ConfigServerImpl config;
 		Document doc = loadDocumentCreateIfFails(configFile, "server");
 
 		// get version
@@ -115,12 +115,12 @@ public final class XMLConfigServerFactory extends XMLConfigFactory {
 		double version = Caster.toDoubleValue(strVersion, 1.0d);
 		boolean cleanupDatasources = version < 5.0D;
 
-		ConfigServerImpl config = new ConfigServerImpl(engine, initContextes, contextes, configDir, configFile);
-		load(config, doc, false, doNew);
+		config = csi != null ? csi : new ConfigServerImpl(engine, initContextes, contextes, configDir, configFile, quick);
 
-		createContextFiles(configDir, config, doNew, cleanupDatasources);
+		load(config, doc, false, doNew, quick);
+		if (!quick) createContextFiles(configDir, config, doNew, cleanupDatasources);
 
-		((CFMLEngineImpl) ConfigWebUtil.getEngine(config)).onStart(config, false);
+		if (!quick) ((CFMLEngineImpl) ConfigWebUtil.getEngine(config)).onStart(config, false);
 		return config;
 	}
 
@@ -145,7 +145,7 @@ public final class XMLConfigServerFactory extends XMLConfigFactory {
 		}
 		int iDoNew = getNew(engine, configServer.getConfigDir(), false, UpdateInfo.NEW_NONE).updateType;
 		boolean doNew = iDoNew != NEW_NONE;
-		load(configServer, loadDocument(configFile), true, doNew);
+		load(configServer, loadDocument(configFile), true, doNew, false);
 		((CFMLEngineImpl) ConfigWebUtil.getEngine(configServer)).onStart(configServer, true);
 	}
 
@@ -163,11 +163,12 @@ public final class XMLConfigServerFactory extends XMLConfigFactory {
 	 * @throws PageException
 	 * @throws BundleException
 	 */
-	static void load(ConfigServerImpl configServer, Document doc, boolean isReload, boolean doNew)
+	static void load(ConfigServerImpl configServer, Document doc, boolean isReload, boolean doNew, boolean quick)
 			throws ClassException, PageException, IOException, TagLibException, FunctionLibException, BundleException {
+		long start = System.currentTimeMillis();
 		ConfigBase.onlyFirstMatch = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.mapping.first", null), false);
-		XMLConfigWebFactory.load(null, configServer, doc, isReload, doNew);
 
+		XMLConfigWebFactory.load(null, configServer, doc, isReload, doNew, quick);
 		loadLabel(configServer, doc);
 	}
 
