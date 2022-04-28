@@ -20,7 +20,10 @@ package lucee.runtime.security;
 
 import java.util.Iterator;
 import java.util.Map.Entry;
+import java.util.regex.Pattern;
 
+import lucee.runtime.config.ConfigWebPro;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.Struct;
 
@@ -29,10 +32,10 @@ import lucee.runtime.type.Struct;
  */
 public final class ScriptProtect {
 
-	public static final String[] invalids = new String[] { "object", "embed", "script", "applet", "meta", "iframe" };
+    public static final String INVALID_TAG_REGEX_DEFAULT = "<s*(object|embed|script|applet|meta|iframe)";
 
 	/**
-	 * translate all strig values of the struct i script-protected form
+	 * translate all string values of the struct in a script-protected form
 	 * 
 	 * @param sct Struct to translate its values
 	 */
@@ -57,47 +60,14 @@ public final class ScriptProtect {
 	 */
 	public static String translate(String str) {
 		if (str == null) return "";
-		// TODO do-while machen
-		int index, last = 0, endIndex;
-		StringBuilder sb = null;
-		String tagName;
-		while ((index = str.indexOf('<', last)) != -1) {
-			// read tagname
-			int len = str.length();
-			char c;
-			for (endIndex = index + 1; endIndex < len; endIndex++) {
-				c = str.charAt(endIndex);
-				if ((c < 'a' || c > 'z') && (c < 'A' || c > 'Z')) break;
-			}
-			tagName = str.substring(index + 1, endIndex);
-
-			if (compareTagName(tagName)) {
-				if (sb == null) {
-					sb = new StringBuilder();
-					last = 0;
-				}
-				sb.append(str.substring(last, index + 1));
-				sb.append("invalidTag");
-				last = endIndex;
-			}
-			else if (sb != null) {
-				sb.append(str.substring(last, index + 1));
-				last = index + 1;
-			}
-			else last = index + 1;
-
-		}
-		if (sb != null) {
-			if (last != str.length()) sb.append(str.substring(last));
-			return sb.toString();
-		}
-		return str;
+        ConfigWebPro config = (ConfigWebPro) ThreadLocalPageContext.get().getConfig();
+        for(Pattern regexFilterPattern : config.getScriptProtectRegexList()){
+            str = invalidateMaliciousInput(str, regexFilterPattern);
+        }
+        return str;
 	}
 
-	private static boolean compareTagName(String tagName) {
-		for (int i = 0; i < invalids.length; i++) {
-			if (invalids[i].equalsIgnoreCase(tagName)) return true;
-		}
-		return false;
-	}
+    private static String invalidateMaliciousInput(String str, Pattern regexPattern) {
+        return regexPattern.matcher(str).replaceAll("invalid");
+    }
 }

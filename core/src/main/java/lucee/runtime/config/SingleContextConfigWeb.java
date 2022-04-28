@@ -4,14 +4,9 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.URL;
 import java.nio.charset.Charset;
-import java.util.Collection;
-import java.util.Enumeration;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.TimeZone;
+import java.util.regex.Pattern;
 
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
@@ -609,7 +604,12 @@ public class SingleContextConfigWeb extends ConfigBase implements ConfigWebPro {
 		return cs.getScriptProtect();
 	}
 
-	@Override
+    @Override
+    public ArrayList<Pattern> getScriptProtectRegexList() {
+        return cs.getScriptProtectRegexList();
+    }
+
+    @Override
 	public ProxyData getProxyData() {
 		return cs.getProxyData();
 	}

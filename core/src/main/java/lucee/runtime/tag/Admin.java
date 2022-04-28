@@ -39,6 +39,7 @@ import java.util.Set;
 import java.util.TimeZone;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
+import java.util.regex.Pattern;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.jsp.tagext.Tag;
@@ -4428,6 +4429,11 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		Struct sct = new StructImpl();
 		pageContext.setVariable(getString("admin", action, "returnVariable"), sct);
 		sct.set("scriptProtect", AppListenerUtil.translateScriptProtect(config.getScriptProtect()));
+        ArrayList<String> scriptProtectRegexList = new ArrayList<>();
+        for(Pattern pattern : config.getScriptProtectRegexList()) {
+            scriptProtectRegexList.add(pattern.pattern());
+        }
+        sct.set("scriptProtectRegexList", scriptProtectRegexList);
 
 		// request timeout
 		TimeSpan ts = config.getRequestTimeout();

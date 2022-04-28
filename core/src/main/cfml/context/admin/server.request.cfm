@@ -270,6 +270,18 @@ Error Output --->
 							<!---<input type="hidden" name="scriptProtect" value="#appSettings.scriptProtect#">--->
 							<b>#appSettings.scriptProtect#</b>
 						</cfif>
+            <table class="maintbl">
+              <tbody>
+                <th scope="row">Regex-Filter</th>
+                <td>
+                  <cfloop array="#appSettings.scriptProtectRegexList#" index="tmpScriptProtectRegex">
+                    <div class="scriptprotect-regex-filter-wrapper">
+                      <input type="text" name="scriptProtectRegex" style="width: 100%;" value="#tmpScriptProtectRegex#" readonly disabled>
+                    </div>
+                  </cfloop>
+                </td>
+              </tbody>
+            </table>
 <cfsavecontent variable="codeSample">
 	this.scriptprotect="#appSettings.scriptProtect#";
 </cfsavecontent>
