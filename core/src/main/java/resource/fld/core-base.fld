@@ -1597,6 +1597,13 @@ sort direction:
 - UU: data is encoded using the UNIX UUencode algorithm
 - base64: data is encoded using the Base64 algorithm</description>
     </argument>
+    <argument>
+			<name>precise</name>
+			<type>boolean</type>
+			<required>no</required>
+			<default>false</default>
+		<description>if set to true the input must follow the rule for that encoding a 100%, the decryptor will not try to interpret inputs that are not a 100% correct. This should be used to avoud false positives.</description>
+    </argument>
 		<return>
 			<type>binary</type>
 		</return>

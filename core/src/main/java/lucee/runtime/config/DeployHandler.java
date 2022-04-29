@@ -167,7 +167,7 @@ public class DeployHandler {
 				catch (PageException e) {
 					if (throwOnError) throw e;
 					if (log != null) log.error("deploy-extension", e);
-					else LogUtil.log(null, null, "deploy-extension", e);
+					else LogUtil.log(null, "deploy-extension", e);
 					sucess = false;
 				}
 				if (!sucess) allSucessfull = false;
