@@ -306,7 +306,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 			extensions = new HashSet<ExtensionDefintion>();
 			extensionsToRemove = new HashSet<String>();
 
-			checkInvalidExtensions(this, null, extensions, extensionsToRemove);
+			checkInvalidExtensions(this, cs, extensions, extensionsToRemove);
 
 			Iterator<ExtensionDefintion> it = info.getRequiredExtension().iterator();
 			ExtensionDefintion ed;
