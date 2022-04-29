@@ -11,7 +11,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 			});
 			it(title="checking list.Each() member function", body=function( currentSpec ) {
 				var result = "";
+				// CHANGED since version 6 this uses StringEach not ListEach
 				list.Each(function(value) { 
+					result &= value;
+				});
+				assertEquals("a,b,c,d,e,f", result);
+
+				list.listEach(function(value) { 
 					result &= value;
 				});
 				assertEquals("abcdef", result);
