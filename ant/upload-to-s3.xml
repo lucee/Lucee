@@ -139,6 +139,25 @@ try{
 
 	systemOutput("Forgebox build triggered, #result.statuscode# (always returns a 204 no content, see https://github.com/Ortus-Lucee/forgebox-cfengine-publisher/actions for output)", true);
 
+	// Lucee Docker builds
+
+	systemOutput("Trigger Lucee Docker builds", true);
+
+	gha_pat_token = server.system.environment.LUCEE_DOCKER_FILES_PAT_TOKEN; // github person action token
+    body = {
+        "event_type": "build-docker-images", 
+        "client_payload": { 
+            "LUCEE_VERSION": server.system.properties.luceeVersion
+        } 
+    };
+    http url="https://api.github.com/repos/lucee/lucee-dockerfiles/dispatches" method="POST" result="result" timeout="90"{
+        httpparam type="header" name='authorization' value='Bearer #gha_pat_token#';
+        httpparam type="body" value='#body.toJson()#';
+    }
+
+	systemOutput("Lucee Docker builds triggered, #result.statuscode# (always returns a 204 no content, see https://github.com/lucee/lucee-dockerfiles/actions for output)", true);
+
+
 	// express
 
 }
