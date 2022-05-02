@@ -955,6 +955,7 @@
       <jvmarg value="-Dluceejar=${trgLoader}/lucee-${version}.jar"/>
       <jvmarg value="-DluceeCore=${trgLoader}/${version}.lco"/>
       <jvmarg value="-DtrgLoader=${trgLoader}"/>
+      <jvmarg value="-DluceeVersion=${version}"/>
 
     </java>
     <echo>${exc3}</echo>
