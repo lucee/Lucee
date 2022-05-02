@@ -2,14 +2,14 @@
 <project default="run" basedir="." name="LuceeUploadToS3">
 
 <macrodef name="echots">
-    <attribute name="message"/>
-    <sequential>
-      <local name="timestamp" />
-      <tstamp>
-        <format property="timestamp" pattern="yyyy-MM-dd HH:mm:ss" />
-      </tstamp>
-      <echo message="---------- ${timestamp} - @{message} ----------" />
-    </sequential>
+	<attribute name="message"/>
+	<sequential>
+	  <local name="timestamp" />
+	  <tstamp>
+		<format property="timestamp" pattern="yyyy-MM-dd HH:mm:ss" />
+	  </tstamp>
+	  <echo message="---------- ${timestamp} - @{message} ----------" />
+	</sequential>
   </macrodef>
 
 <target name="run">
@@ -125,6 +125,20 @@ try{
 	systemOutput(downloadUpdate.fileContent, true);
 
 	// forgebox
+
+	systemOutput("Trigger forgebox builds", true);
+
+	gha_pat_token = server.system.environment.LUCEE_DOCKER_FILES_PAT_TOKEN; // github person action token
+	body = {
+		"event_type": "forgebox_deploy"
+	};
+	http url="https://api.github.com/repos/lucee/lucee-dockerfiles/dispatches" method="POST" result="result" timeout="90"{
+		httpparam type="header" name='authorization' value='Bearer #gha_pat_token#';
+		httpparam type="body" value='#body.toJson()#';
+	}
+
+	systemOutput("Forgebox build triggered, #result.statuscode# (always returns a 204 no content, see https://github.com/Ortus-Lucee/forgebox-cfengine-publisher/actions for output)", true);
+
 	// express
 
 }
@@ -134,48 +148,48 @@ catch( e ){
 }
 
 
-    private function createLight( string loader, string trg, version ) {
-        var sep = server.separator.file;
-    	var tmpDir = getDirectoryFromPath( loader );
+	private function createLight( string loader, string trg, version ) {
+		var sep = server.separator.file;
+		var tmpDir = getDirectoryFromPath( loader );
 
-        local.tmpLoader = tmpDir & "lucee-loader-" & createUniqueId(  ); // the jar
-        if ( directoryExists( tmpLoader ) ) 
+		local.tmpLoader = tmpDir & "lucee-loader-" & createUniqueId(  ); // the jar
+		if ( directoryExists( tmpLoader ) ) 
 			directoryDelete( tmpLoader,true );
-        directoryCreate( tmpLoader );
+		directoryCreate( tmpLoader );
 
-        // unzip
-        zip action = "unzip" file = loader destination = tmpLoader;
+		// unzip
+		zip action = "unzip" file = loader destination = tmpLoader;
 
-        // remove extensions
-        var extDir = tmpLoader&sep&"extensions";
-        if ( directoryExists( extDir ) )
+		// remove extensions
+		var extDir = tmpLoader&sep&"extensions";
+		if ( directoryExists( extDir ) )
 			directoryDelete( extDir, true ); // deletes directory with all files inside
-        directoryCreate( extDir ); // create empty dir again ( maybe Lucee expect this directory to exist )
+		directoryCreate( extDir ); // create empty dir again ( maybe Lucee expect this directory to exist )
 
-        // unzip core
-        var lcoFile = tmpLoader & sep & "core" & sep & "core.lco";
-        local.tmpCore = tmpDir & "lucee-core-" & createUniqueId(  ); // the jar
-        directoryCreate( tmpCore );
-        zip action = "unzip" file = lcoFile destination = tmpCore;
+		// unzip core
+		var lcoFile = tmpLoader & sep & "core" & sep & "core.lco";
+		local.tmpCore = tmpDir & "lucee-core-" & createUniqueId(  ); // the jar
+		directoryCreate( tmpCore );
+		zip action = "unzip" file = lcoFile destination = tmpCore;
 
-        // rewrite manifest
-        var manifest = tmpCore & sep & "META-INF" & sep & "MANIFEST.MF";
-        var content = fileRead( manifest );
-        var index = find( 'Require-Extension',content );
-        if ( index > 0 ) 
+		// rewrite manifest
+		var manifest = tmpCore & sep & "META-INF" & sep & "MANIFEST.MF";
+		var content = fileRead( manifest );
+		var index = find( 'Require-Extension',content );
+		if ( index > 0 ) 
 			content = mid( content, 1, index - 1 ) & variables.NL;
-        fileWrite( manifest,content );
-        
-        // zip core
-        fileDelete( lcoFile );
-        zip action = "zip" source = tmpCore file = lcoFile;
-        
-        // zip loader
-        if ( fileExists( trg ) ) 
+		fileWrite( manifest,content );
+		
+		// zip core
+		fileDelete( lcoFile );
+		zip action = "zip" source = tmpCore file = lcoFile;
+		
+		// zip loader
+		if ( fileExists( trg ) ) 
 			fileDelete( trg );
-        zip action = "zip" source = tmpLoader file = trg;
-        
-    }
+		zip action = "zip" source = tmpLoader file = trg;
+		
+	}
 
 
 ]]>
