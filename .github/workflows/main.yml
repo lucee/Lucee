@@ -144,12 +144,6 @@ jobs:
       with:
         files: test/reports/junit-test-results.xml
         check_name: "Lucee Test Results"
-    - name: Update Provider
-      if: ${{ env.DO_DEPLOY == 'true' }}
-      run: |
-        curl --no-progress-meter -sIXGET "https://update.lucee.org/rest/update/provider/buildLatest"
-        curl --no-progress-meter -sIXGET "https://extension.lucee.org/rest/extension/provider/reset"
-        curl --no-progress-meter -sIXGET "https://download.lucee.org/?type=snapshots&reset=force"
     - name: Trigger Docker Build
       if: ${{ env.DO_DEPLOY == 'true' }}
       env:
