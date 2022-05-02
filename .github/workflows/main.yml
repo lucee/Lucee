@@ -111,6 +111,7 @@ jobs:
         CI_DEPLOY_USERNAME: ${{ secrets.CI_DEPLOY_USERNAME }}
         CI_DEPLOY_PASSWORD: ${{ secrets.CI_DEPLOY_PASSWORD }}
         CI_DEPLOY_PASSPHRASE: ${{ secrets.CI_DEPLOY_PASSPHRASE }}
+        LUCEE_DOCKER_FILES_PAT_TOKEN: ${{ secrets.LUCEE_DOCKER_FILES_PAT_TOKEN }}
       #run: ant -noinput -buildfile loader/build.xml
       run: |
         if [ "${{ github.event_name == 'push' }}" == "true" ]; then
@@ -126,18 +127,3 @@ jobs:
       with:
         files: test/reports/junit-test-results.xml
         check_name: "Test Results"
-    - name: Update Provider
-      if: ${{ github.event_name == 'push' }}
-      run: |
-        curl --no-progress-meter -sIXGET "https://update.lucee.org/rest/update/provider/buildLatest"
-        curl --no-progress-meter -sIXGET "https://extension.lucee.org/rest/extension/provider/reset"
-        curl --no-progress-meter -sIXGET "https://download.lucee.org/?type=snapshots&reset=force"
-    - name: Trigger Docker Build
-      if: ${{ github.event_name == 'push' }}
-      env:
-        TRAVIS_JOB_ID: ${{ github.run_id }}
-        TRAVIS_TOKEN: ${{ secrets.DOCKER_AUTH_TOKEN }} # not set up yet
-      run: |
-        echo "Trigger Docker Build on Travis https://travis-ci.com/github/lucee/lucee-dockerfiles"
-        chmod +x travis-docker-build.sh
-        ./travis-docker-build.sh

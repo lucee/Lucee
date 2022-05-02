@@ -110,7 +110,35 @@ try{
 	fileCopy( src.light,trg.light );
 	*/
 
+	// update provider
+
+	systemOutput("Trigger builds", true);
+	http url="https://update.lucee.org/rest/update/provider/buildLatest" method="GET" timeout=90 result="buildLatest";
+	systemOutput(buildLatest.fileContent, true);
+
+	systemOutput("Update Extension Provider", true);
+	http url="https://extension.lucee.org/rest/extension/provider/reset" method="GET" timeout=90 result="extensionReset";
+	systemOutput(extensionReset.fileContent, true);
+
+	systemOutput("Update Downloads Page", true);
+	http url="https://download.lucee.org/?type=snapshots&reset=force" method="GET" timeout=90 result="downloadUpdate";
+	systemOutput(downloadUpdate.fileContent, true);
+
 	// forgebox
+
+	systemOutput("Trigger forgebox builds", true);
+
+	gha_pat_token = server.system.environment.LUCEE_DOCKER_FILES_PAT_TOKEN; // github person action token
+	body = {
+		"event_type": "forgebox_deploy"
+	};
+	http url="https://api.github.com/repos/lucee/lucee-dockerfiles/dispatches" method="POST" result="result" timeout="90"{
+		httpparam type="header" name='authorization' value='Bearer #gha_pat_token#';
+		httpparam type="body" value='#body.toJson()#';
+	}
+
+	systemOutput("Forgebox build triggered, #result.statuscode# (always returns a 204 no content, see https://github.com/Ortus-Lucee/forgebox-cfengine-publisher/actions for output)", true);
+
 	// express
 
 }
