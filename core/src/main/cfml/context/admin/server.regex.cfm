@@ -90,7 +90,7 @@ Redirtect to entry --->
 	stText.regex.type_java="Modern";
 	stText.regex.type_perl="Classic (CFML Default)";
 	stText.regex.typedesc_java="Modern type is the dialect used by Java itself.";
-	stText.regex.typedesc_perl="Classic type is the Perl5 dialect used by CFML tradionally.";
+	stText.regex.typedesc_perl="Classic type is the Perl5 dialect used by CFML traditionally.";
 </cfscript>
 <!--- 
 Error Output --->
