@@ -405,6 +405,9 @@ public class StaticScope extends StructSupport implements Variables, Objects {
 		accesses[Component.ACCESS_PUBLIC] = new DumpTable("#ffcc99", "#ffffcc", "#000000");
 		accesses[Component.ACCESS_PUBLIC].setTitle("public");
 		accesses[Component.ACCESS_PUBLIC].setWidth("100%");
+		accesses[Component.ACCESS_REMOTE] = new DumpTable("#ccffcc", "#ffffcc", "#000000");
+		accesses[Component.ACCESS_REMOTE].setTitle("remote");
+		accesses[Component.ACCESS_REMOTE].setWidth("100%");
 
 		Iterator<Entry<Key, Member>> it = all(new HashMap<Key, Member>()).entrySet().iterator();
 		Entry<Key, Member> e;
@@ -415,7 +418,9 @@ public class StaticScope extends StructSupport implements Variables, Objects {
 			DumpTable box = accesses[a];
 			Object o = e.getValue().getValue();
 
-			if (DumpUtil.keyValid(dp, maxlevel, e.getKey())) box.appendRow(1, new SimpleDumpData(e.getKey().getString()), DumpUtil.toDumpData(o, pc, maxlevel, dp));
+			if (DumpUtil.keyValid(dp, maxlevel, e.getKey())) {
+				box.appendRow(1, new SimpleDumpData(e.getKey() + ""), DumpUtil.toDumpData(o, pc, maxlevel, dp));
+			}
 		}
 
 		DumpTable table = new DumpTable("#ffffff", "#cccccc", "#000000");
