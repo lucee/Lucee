@@ -1,7 +1,7 @@
 ﻿<!--- 
  *
  * Copyright (c) 2014, the Railo Company LLC. All rights reserved.
- * Copyright (c) 2016, Lucee Assosication Switzerland. All rights reserved.
+ * Copyright (c) 2016, Lucee Association Switzerland. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
