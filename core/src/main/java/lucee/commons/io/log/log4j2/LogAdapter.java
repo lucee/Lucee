@@ -20,7 +20,6 @@ public class LogAdapter implements Log {
 	@Override
 	public void log(int level, String application, String message) {
 		logger.log(toLevel(level), merge(application, message));
-
 	}
 
 	@Override
@@ -85,7 +84,13 @@ public class LogAdapter implements Log {
 
 	@Override
 	public void setLogLevel(int level) {
-		// MUSTMUST logger.setLevel(toLevel(level));
+		if (logger instanceof org.apache.logging.log4j.core.Logger) {
+			org.apache.logging.log4j.core.Logger cl = (org.apache.logging.log4j.core.Logger) logger;
+			cl.setLevel(LogAdapter.toLevel(level));
+		}
+		else {
+			logger.atLevel(LogAdapter.toLevel(level));
+		}
 	}
 
 	public Logger getLogger() {
