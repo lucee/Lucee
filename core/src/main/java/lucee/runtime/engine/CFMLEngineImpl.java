@@ -833,7 +833,9 @@ public final class CFMLEngineImpl implements CFMLEngine {
 					return;
 				}
 				catch (Exception e) {
-					LogUtil.log(configServer, "add-event-listener", e);
+					// because this is optional and not all servlet engine do support this, we keep the log level on
+					// info
+					LogUtil.log(configServer, "application", "add-event-listener", e, Log.LEVEL_INFO);
 				}
 
 			}
@@ -848,7 +850,9 @@ public final class CFMLEngineImpl implements CFMLEngine {
 				return;
 			}
 			catch (Exception e) {
-				LogUtil.log(configServer, "add-event-listener", e);
+				// because this is optional and not all servlet engine do support this, we keep the log level on
+				// info
+				LogUtil.log(configServer, "application", "add-event-listener", e, Log.LEVEL_INFO);
 			}
 		}
 
