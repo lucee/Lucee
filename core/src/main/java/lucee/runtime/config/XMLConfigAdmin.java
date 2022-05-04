@@ -1210,10 +1210,10 @@ public final class XMLConfigAdmin {
 	/**
 	 * make sure every context has a salt
 	 */
-	public static boolean fixSaltAndPW(Document doc, Config config) {
+	public static boolean fixSaltAndPW(Document doc, Config config, boolean quick) {
 		if (doc == null) return false;
+		long start = System.currentTimeMillis();
 		Element root = doc.getDocumentElement();
-
 		// salt
 		String salt = root.getAttribute("salt");
 		boolean rtn = false;
@@ -1224,7 +1224,7 @@ public final class XMLConfigAdmin {
 		}
 
 		// no password yet
-		if (config instanceof ConfigServer && !root.hasAttribute("hspw") && !root.hasAttribute("pw") && !root.hasAttribute("password")) {
+		if (!quick && config instanceof ConfigServer && !root.hasAttribute("hspw") && !root.hasAttribute("pw") && !root.hasAttribute("password")) {
 			ConfigServer cs = (ConfigServer) config;
 			Resource pwFile = cs.getConfigDir().getRealResource("password.txt");
 			if (pwFile.isFile()) {

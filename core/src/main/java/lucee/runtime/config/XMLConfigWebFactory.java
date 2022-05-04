@@ -279,7 +279,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		createContextFiles(configDir, servletConfig, doNew);
 		ConfigWebImpl configWeb = new ConfigWebImpl(factory, configServer, servletConfig, configDir, configFile);
 
-		load(configServer, configWeb, doc, false, doNew);
+		load(configServer, configWeb, doc, false, doNew, false);
 		createContextFilesPost(configDir, configWeb, servletConfig, false, doNew);
 
 		// call web.cfc for this context
@@ -333,7 +333,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		Document doc = loadDocument(configFile);
 		createContextFiles(configDir, null, doNew);
 		cw.reset();
-		load(cs, cw, doc, true, doNew);
+		load(cs, cw, doc, true, doNew, false);
 		createContextFilesPost(configDir, cw, null, false, doNew);
 
 		((CFMLEngineImpl) ConfigWebUtil.getEngine(cw)).onStart(cw, true);
@@ -356,11 +356,11 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 	 * @throws PageException
 	 * @throws BundleException
 	 */
-	synchronized static void load(ConfigServerImpl cs, ConfigImpl config, Document doc, boolean isReload, boolean doNew) throws IOException {
+	synchronized static void load(ConfigServerImpl cs, ConfigImpl config, Document doc, boolean isReload, boolean doNew, boolean quick) throws IOException {
+		long start = System.currentTimeMillis();
 		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "start reading config");
 		ThreadLocalConfig.register(config);
 		boolean reload = false;
-
 		try {
 			// fix stuff from older config files
 			if (XMLConfigAdmin.fixLFI(doc)) {
@@ -374,31 +374,30 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 				}
 				catch (SAXException e) {
 				}
+				if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "fixed LFI");
 			}
-
-			if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "fixed LFI");
-
-			if (XMLConfigAdmin.fixSaltAndPW(doc, config)) reload = true;
+			if (XMLConfigAdmin.fixSaltAndPW(doc, config, quick)) reload = true;
 			if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "fixed salt");
+			if (!quick) {
+				if (XMLConfigAdmin.fixS3(doc)) reload = true;
+				if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "fixed S3");
+				if (XMLConfigAdmin.fixPSQ(doc)) reload = true;
+				if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "fixed PSQ");
 
-			if (XMLConfigAdmin.fixS3(doc)) reload = true;
-			if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "fixed S3");
-
-			if (XMLConfigAdmin.fixPSQ(doc)) reload = true;
-			if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "fixed PSQ");
-
-			if (XMLConfigAdmin.fixLogging(cs, config, doc)) reload = true;
-			if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "fixed logging");
-
+				if (XMLConfigAdmin.fixLogging(cs, config, doc)) reload = true;
+				if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "fixed logging");
+			}
 			if (XMLConfigAdmin.fixExtension(config, doc)) reload = true;
 			if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "fixed Extension");
-
-			if (XMLConfigAdmin.fixComponentMappings(config, doc)) reload = true;
-			if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "fixed component mappings");
+			if (!quick) {
+				if (XMLConfigAdmin.fixComponentMappings(config, doc)) reload = true;
+				if (LOG)
+					LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "fixed component mappings");
+			}
 
 			// delete to big felix.log (there is also code in the loader to do this, but if the loader is not
 			// updated ...)
-			if (config instanceof ConfigServerImpl) {
+			if (!quick && config instanceof ConfigServerImpl) {
 				try {
 					ConfigServerImpl _cs = (ConfigServerImpl) config;
 					File root = _cs.getCFMLEngine().getCFMLEngineFactory().getResourceRoot();
@@ -426,14 +425,18 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		}
 
 		config.setLastModified();
-		if (config instanceof ConfigWeb) ConfigWebUtil.deployWebContext(cs, (ConfigWeb) config, false);
-		if (config instanceof ConfigWeb) ConfigWebUtil.deployWeb(cs, (ConfigWeb) config, false);
+		if (!quick && config instanceof ConfigWeb) {
+			ConfigWebUtil.deployWebContext(cs, (ConfigWeb) config, false);
+			ConfigWebUtil.deployWeb(cs, (ConfigWeb) config, false);
+		}
 		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "deploy web context");
 		_loadConfig(cs, config, doc);
 		int mode = config.getMode();
 		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded config");
-		_loadConstants(cs, config, doc);
-		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded constants");
+		if (!quick) {
+			_loadConstants(cs, config, doc);
+			if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded constants");
+		}
 		_loadLoggers(cs, config, doc, isReload);
 		Log log = config.getLog("application");
 		// loadServerLibDesc(cs, config, doc,log);
@@ -444,8 +447,11 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded id");
 		_loadVersion(config, doc, log);
 		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded version");
-		_loadSecurity(cs, config, doc, log);
-		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded security");
+		if (!quick) {
+			_loadSecurity(cs, config, doc, log);
+			if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded security");
+		}
+
 		try {
 			ConfigWebUtil.loadLib(cs, config);
 		}
@@ -454,103 +460,187 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			log(config, log, t);
 		}
 		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded lib");
-		_loadSystem(cs, config, doc, log);
-		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded system");
-		_loadResourceProvider(cs, config, doc, log);
-		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded resource providers");
+		if (!quick) {
+			_loadSystem(cs, config, doc, log);
+			if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded system");
+		}
+		if (!quick) {
+			_loadResourceProvider(cs, config, doc, log);
+			if (LOG)
+				LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded resource providers");
+		}
 		_loadFilesystem(cs, config, doc, doNew, log); // load this before execute any code, what for example loadxtension does (json)
 		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded filesystem");
-		_loadExtensionBundles(cs, config, doc, log);
-		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded extension bundles");
-		_loadWS(cs, config, doc, log);
-		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded webservice");
-		_loadORM(cs, config, doc, log);
-		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded orm");
-		_loadCacheHandler(cs, config, doc, log);
-		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded cache handlers");
-		_loadCharset(cs, config, doc, log);
-		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded charset");
+		if (!quick) {
+			_loadExtensionBundles(cs, config, doc, log);
+			if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded extension bundles");
+		}
+		if (!quick) {
+			_loadWS(cs, config, doc, log);
+			if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded webservice");
+		}
+		if (!quick) {
+			_loadORM(cs, config, doc, log);
+			if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded orm");
+		}
+		if (!quick) {
+			_loadCacheHandler(cs, config, doc, log);
+			if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded cache handlers");
+		}
+		if (!quick) {
+			_loadCharset(cs, config, doc, log);
+			if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded charset");
+		}
+
 		_loadApplication(cs, config, doc, mode, log);
 		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded application");
-		_loadMappings(cs, config, doc, mode, log); // it is important this runs after
-		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded mappings");
-		// loadApplication
-		_loadRest(cs, config, doc, log);
-		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded rest");
+		if (!quick) {
+			_loadMappings(cs, config, doc, mode, log); // it is important this runs after
+			if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded mappings");
+			// loadApplication
+		}
+		if (!quick) {
+			_loadRest(cs, config, doc, log);
+			if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded rest");
+		}
 		_loadExtensions(cs, config, doc, log);
 		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded extensions");
-		_loadPagePool(cs, config, doc, log);
-		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded page pool");
-		_loadDataSources(cs, config, doc, log);
-		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded datasources");
-		_loadCache(cs, config, doc, log);
-		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded cache");
-		_loadCustomTagsMappings(cs, config, doc, mode, log);
-		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded custom tag mappings");
-		// loadFilesystem(cs, config, doc, doNew); // load tlds
+		if (!quick) {
+			_loadPagePool(cs, config, doc, log);
+			if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded page pool");
+		}
+		if (!quick) {
+			_loadDataSources(cs, config, doc, log);
+			if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded datasources");
+		}
+		if (!quick) {
+			_loadCache(cs, config, doc, log);
+			if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded cache");
+		}
+		if (!quick) {
+			_loadCustomTagsMappings(cs, config, doc, mode, log);
+			if (LOG)
+				LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded custom tag mappings");
+			// loadFilesystem(cs, config, doc, doNew); // load tlds
+		}
 		_loadTag(cs, config, doc, log); // load tlds
 		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded tags");
-		_loadRegional(cs, config, doc, log);
-		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded regional");
-		_loadCompiler(cs, config, doc, mode, log);
-		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded compiler");
-		_loadScope(cs, config, doc, mode, log);
-		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded scope");
-		_loadMail(cs, config, doc, log);
-		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded mail");
-		_loadSearch(cs, config, doc, log);
-		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded search");
-		_loadScheduler(cs, config, doc, log);
-		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded scheduled tasks");
-		_loadDebug(cs, config, doc, log);
-		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded debug");
-		_loadError(cs, config, doc, log);
-		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded error");
-		_loadRegex(cs, config, doc, log);
-		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded regex");
-		_loadCFX(cs, config, doc, log);
-		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded cfx");
-		_loadComponent(cs, config, doc, mode, log);
-		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded component");
-		_loadUpdate(cs, config, doc, log);
-		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded update");
-		_loadJava(cs, config, doc, log); // define compile type
-		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded java");
-		_loadSetting(cs, config, doc, log);
-		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded setting");
-		_loadProxy(cs, config, doc, log);
-		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded proxy");
-		_loadRemoteClient(cs, config, doc, log);
-		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded remote clients");
-		_loadVideo(cs, config, doc, log);
-		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded video");
-		_loadFlex(cs, config, doc, log);
-		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded flex");
-		settings(config, log);
-		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded settings2");
-		_loadListener(cs, config, doc, log);
-		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded listeners");
-		_loadDumpWriter(cs, config, doc, log);
-		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded dump writers");
-		_loadGatewayEL(cs, config, doc, log);
-		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded gateways");
-		_loadExeLog(cs, config, doc, log);
-		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded exe log");
-		_loadQueue(cs, config, doc, log);
-		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded queue");
-		_loadMonitors(cs, config, doc, log);
-		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded monitors");
-		_loadLogin(cs, config, doc, log);
-		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded login");
-		_loadStartupHook(cs, config, doc, log);
-		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded startup hook");
+		if (!quick) {
+			_loadRegional(cs, config, doc, log);
+			if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded regional");
+		}
+		if (!quick) {
+			_loadCompiler(cs, config, doc, mode, log);
+			if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded compiler");
+		}
+		if (!quick) {
+			_loadScope(cs, config, doc, mode, log);
+			if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded scope");
+		}
+		if (!quick) {
+			_loadMail(cs, config, doc, log);
+			if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded mail");
+		}
 
-		config.setLoadTime(System.currentTimeMillis());
+		if (!quick) {
+			_loadSearch(cs, config, doc, log);
+			if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded search");
+		}
+		if (!quick) {
+			_loadScheduler(cs, config, doc, log);
+			if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded scheduled tasks");
+		}
+		if (!quick) {
+			_loadDebug(cs, config, doc, log);
+			if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded debug");
+		}
+		if (!quick) {
+			_loadError(cs, config, doc, log);
+			if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded error");
+		}
+		if (!quick) {
+			_loadRegex(cs, config, doc, log);
+			if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded regex");
+		}
+		if (!quick) {
+			_loadCFX(cs, config, doc, log);
+			if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded cfx");
+		}
+		if (!quick) {
+			_loadComponent(cs, config, doc, mode, log);
+			if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded component");
+		}
+		if (!quick) {
+			_loadUpdate(cs, config, doc, log);
+			if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded update");
+		}
+		if (!quick) {
+			_loadJava(cs, config, doc, log); // define compile type
+			if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded java");
+		}
+		if (!quick) {
+			_loadSetting(cs, config, doc, log);
+			if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded setting");
+		}
+		if (!quick) {
+			_loadProxy(cs, config, doc, log);
+			if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded proxy");
+		}
+		if (!quick) {
+			_loadRemoteClient(cs, config, doc, log);
+			if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded remote clients");
+		}
+		if (!quick) {
+			_loadVideo(cs, config, doc, log);
+			if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded video");
+		}
+		if (!quick) {
+			_loadFlex(cs, config, doc, log);
+			if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded flex");
+		}
+		if (!quick) {
+			settings(config, log);
+			if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded settings2");
+		}
+		if (!quick) {
+			_loadListener(cs, config, doc, log);
+			if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded listeners");
+		}
+		if (!quick) {
+			_loadDumpWriter(cs, config, doc, log);
+			if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded dump writers");
+		}
+		if (!quick) {
+			_loadGatewayEL(cs, config, doc, log);
+			if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded gateways");
+		}
+		if (!quick) {
+			_loadExeLog(cs, config, doc, log);
+			if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded exe log");
+		}
+		if (!quick) {
+			_loadQueue(cs, config, doc, log);
+			if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded queue");
+		}
+		if (!quick) {
+			_loadMonitors(cs, config, doc, log);
+			if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded monitors");
+		}
+		if (!quick) {
+			_loadLogin(cs, config, doc, log);
+			if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded login");
+		}
+		if (!quick) {
+			_loadStartupHook(cs, config, doc, log);
+			if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded startup hook");
+		}
+		if (!quick) config.setLoadTime(System.currentTimeMillis());
 
 		if (config instanceof ConfigWebImpl) {
 			TagUtil.addTagMetaData((ConfigWebImpl) config, log);
 			if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "added tag meta data");
 		}
+
 	}
 
 	private static Document reload(Document doc, ConfigImpl config, ConfigServerImpl cs) throws PageException, IOException {

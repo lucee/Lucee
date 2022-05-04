@@ -4309,7 +4309,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			String version = getString("version", null);
 			if (!StringUtil.isEmpty(version, true) && !"latest".equalsIgnoreCase(version)) ed = new ExtensionDefintion(id, version);
 			else ed = RHExtension.toExtensionDefinition(id);
-			DeployHandler.deployExtension(config, ed, config == null ? null : config.getLog("application"), true, true);
+			DeployHandler.deployExtension(config, ed, config == null ? null : config.getLog("application"), true, true, true);
 			return;
 		}
 

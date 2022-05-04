@@ -138,6 +138,7 @@ public abstract class XMLConfigFactory {
 		}
 		catch (Exception e) {
 			if (log != null) log.error("required-extension", e);
+			else LogUtil.log(null, "required-extension", e);
 		}
 		return false;
 	}
