@@ -148,25 +148,30 @@ public final class ReqRspUtil {
 			}
 		}
 
-		String str = req.getHeader("Cookie");
-		if (str != null) {
+		Enumeration<String> values = req.getHeaders("Cookie");
+		if (values != null) {
+			java.util.Map<String, Cookie> map = new HashMap<String, Cookie>();
+			if (cookies != null) {
+				for (Cookie cookie: cookies) {
+					map.put(cookie.getName().toUpperCase(), cookie);
+				}
+			}
+
 			try {
-				String[] arr = lucee.runtime.type.util.ListUtil.listToStringArray(str, ';'), tmp;
-				java.util.Map<String, Cookie> map = new HashMap<String, Cookie>();
-				Cookie c;
-				for (int i = 0; i < arr.length; i++) {
-					tmp = lucee.runtime.type.util.ListUtil.listToStringArray(arr[i], '=');
-					if (tmp.length > 0) {
-						c = ReqRspUtil.toCookie(dec(tmp[0], charset.name(), false), tmp.length > 1 ? dec(tmp[1], charset.name(), false) : "", null);
-						if (c != null) map.put(c.getName().toUpperCase(), c);
+				String val;
+				while (values.hasMoreElements()) {
+					val = values.nextElement();
+					String[] arr = lucee.runtime.type.util.ListUtil.listToStringArray(val, ';'), tmp;
+					Cookie c;
+					for (int i = 0; i < arr.length; i++) {
+						tmp = lucee.runtime.type.util.ListUtil.listToStringArray(arr[i], '=');
+						if (tmp.length > 0) {
+							c = ReqRspUtil.toCookie(dec(tmp[0], charset.name(), false), tmp.length > 1 ? dec(tmp[1], charset.name(), false) : "", null);
+							if (c != null) map.put(c.getName().toUpperCase(), c);
+						}
 					}
 				}
 
-				if (cookies != null && map.size() > cookies.length) {
-					for (Cookie cookie: cookies) {
-						map.put(cookie.getName().toUpperCase(), cookie);
-					}
-				}
 				cookies = map.values().toArray(new Cookie[map.size()]);
 			}
 			catch (Throwable t) {
