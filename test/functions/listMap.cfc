@@ -5,8 +5,8 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 			it(title="checking listMap() function", body=function( currentSpec ) {
 				assertEquals( "aa,ba,ca,da,fa", listMap( list, function(e)  { return e & "a"; })); 
 			});
-			it(title="checking list.Map() member function", body=function( currentSpec ) {
-				assertEquals( "aa,ba,ca,da,fa", list.Map( function(e) { return e & "a"; })); 
+			it(title="checking list.listMap() member function", body=function( currentSpec ) {
+				assertEquals( "aa,ba,ca,da,fa", list.listMap( function(e) { return e & "a"; })); 
 			});
 		});
 	}
