@@ -2,7 +2,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" skip=true{
 
 	function run( testResults , testBox ) {
 		describe( title="Test case for LDEV-3809", body=function() {
-			it(title="", body = function( currentSpec ) {
+			it(title="java.lang.VerifyError in dataAdd arguments with hyphen(-)", body = function( currentSpec ) {
 				try {
 					var res = _InternalRequest(
 						template:createURI("LDEV3809/LDEV3809.cfm")
