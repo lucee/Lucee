@@ -1600,7 +1600,8 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 			getUDFs(pc, comp._udfs.values().iterator(), comp, access, arr, false);
 		}
 		if (comp._static != null) {
-			List<UDF> udfs = extractUDFS(comp._static.values());
+			Map<Key, Object> entries = comp._static._entries(new HashMap<Key, Object>(), access);
+			List<UDF> udfs = extractUDFS(entries.values());
 			if (udfs.size() > 0) getUDFs(pc, udfs.iterator(), comp, access, arr, true);
 		}
 

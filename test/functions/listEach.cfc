@@ -16,7 +16,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 					result &= value;
 				});
 				assertEquals("a,b,c,d,e,f", result);
-
+			});
+			it(title="checking list.listEach() member function", body=function( currentSpec ) {
+				var result = "";
 				list.listEach(function(value) { 
 					result &= value;
 				});
