@@ -155,6 +155,7 @@ try{
 		httpparam type="body" value='#body.toJson()#';
 	}
 
+	systemOutput("Lucee Docker builds triggered, #result.statuscode# (always returns a 204 no content, see https://github.com/lucee/lucee-dockerfiles/actions for output)", true);
 
 	// express
 
