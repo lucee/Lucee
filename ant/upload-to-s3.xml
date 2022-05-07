@@ -122,7 +122,7 @@ try{
 
 	systemOutput("Update Downloads Page", true);
 	http url="https://download.lucee.org/?type=snapshots&reset=force" method="GET" timeout=90 result="downloadUpdate";
-	systemOutput(downloadUpdate.fileContent, true);
+	systemOutput("Server response status code: " & downloadUpdate.statusCode, true);
 
 	// forgebox
 
