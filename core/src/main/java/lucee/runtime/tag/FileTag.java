@@ -510,15 +510,15 @@ public final class FileTag extends BodyTagImpl {
 
 		// destination
 		if (destination.isDirectory()) destination = destination.getRealResource(source.getName());
-		if (destination.exists()) {
+		// FORCEUNIQUE
+		if (nameconflict == NAMECONFLICT_FORCEUNIQUE) destination = forceUnique(destination);
+		else if (destination.exists()) {
 			// SKIP
 			if (nameconflict == NAMECONFLICT_SKIP) return;
 			// OVERWRITE
 			else if (nameconflict == NAMECONFLICT_OVERWRITE) destination.delete();
 			// MAKEUNIQUE
 			else if (nameconflict == NAMECONFLICT_MAKEUNIQUE) destination = makeUnique(destination);
-			// FORCEUNIQUE
-			else if (nameconflict == NAMECONFLICT_FORCEUNIQUE) destination = forceUnique(destination);
 			// ERROR
 			else throw new ApplicationException("Destination file [" + destination.toString() + "] already exists");
 		}
@@ -569,15 +569,15 @@ public final class FileTag extends BodyTagImpl {
 
 		// destination
 		if (destination.isDirectory()) destination = destination.getRealResource(source.getName());
-		if (destination.exists()) {
+		// FORCEUNIQUE
+		if (nameconflict == NAMECONFLICT_FORCEUNIQUE) destination = forceUnique(destination);
+		else if (destination.exists()) {
 			// SKIP
 			if (nameconflict == NAMECONFLICT_SKIP) return;
-			// SKIP
+			// OVERWRITE
 			else if (nameconflict == NAMECONFLICT_OVERWRITE) destination.delete();
 			// MAKEUNIQUE
 			else if (nameconflict == NAMECONFLICT_MAKEUNIQUE) destination = makeUnique(destination);
-			// FORCEUNIQUE
-			else if (nameconflict == NAMECONFLICT_FORCEUNIQUE) destination = forceUnique(destination);
 			// ERROR
 			else throw new ApplicationException("Destination file [" + destination.toString() + "] already exists");
 		}
@@ -619,9 +619,8 @@ public final class FileTag extends BodyTagImpl {
 		String name = ResourceUtil.getName(res);
 		String ext = ResourceUtil.getExtension(res, "");
 		if (!StringUtil.isEmpty(ext)) ext = "." + ext;
-		while (res.exists()) {
-			res = res.getParentResource().getRealResource(name + "_" + HashUtil.create64BitHashAsString(CreateUUID.invoke(), Character.MAX_RADIX) + ext);
-		}
+		// forceunique always create a new name for fileUpload
+		res = res.getParentResource().getRealResource(name + "_" + HashUtil.create64BitHashAsString(CreateUUID.invoke(), Character.MAX_RADIX) + ext);
 		return res;
 	}
 
@@ -991,6 +990,17 @@ public final class FileTag extends BodyTagImpl {
 		cffile.set("attemptedserverfile", destination.getName());
 
 		// check nameconflict
+		if (nameconflict == NAMECONFLICT_FORCEUNIQUE) {
+			destination = forceUnique(destination);
+			fileWasRenamed = true;
+
+			cffile.set("serverdirectory", getParent(destination));
+			cffile.set("serverfile", destination.getName());
+			cffile.set("serverfileext", ResourceUtil.getExtension(destination, ""));
+			cffile.set("serverfilename", ResourceUtil.getName(destination));
+			cffile.set("attemptedserverfile", destination.getName());
+		}
+
 		if (destination.exists()) {
 			fileExisted = true;
 			if (nameconflict == NAMECONFLICT_ERROR) {
@@ -1015,16 +1025,6 @@ public final class FileTag extends BodyTagImpl {
 				cffile.set("serverfilename", ResourceUtil.getName(destination));
 				cffile.set("attemptedserverfile", destination.getName());
 				// }
-			}
-			else if (nameconflict == NAMECONFLICT_FORCEUNIQUE) {
-				destination = forceUnique(destination);
-				fileWasRenamed = true;
-
-				cffile.set("serverdirectory", getParent(destination));
-				cffile.set("serverfile", destination.getName());
-				cffile.set("serverfileext", ResourceUtil.getExtension(destination, ""));
-				cffile.set("serverfilename", ResourceUtil.getName(destination));
-				cffile.set("attemptedserverfile", destination.getName());
 			}
 			else if (nameconflict == NAMECONFLICT_OVERWRITE) {
 				// fileWasAppended=true;
