@@ -54,6 +54,7 @@ public final class DatasourceManagerImpl implements DataSourceManager {
 	private int isolation = Connection.TRANSACTION_NONE;
 	private Map<DataSource, DatasourceConnection> transConnsReg = new HashMap<DataSource, DatasourceConnection>();
 	private Map<DataSource, ORMDatasourceConnection> transConnsORM = new HashMap<DataSource, ORMDatasourceConnection>();
+	private static final ConcurrentHashMap<String, String> tokens = new ConcurrentHashMap<String, String>();
 	private boolean inside;
 
 	private Map<String, Savepoint> savepoints = new ConcurrentHashMap<>();
@@ -80,9 +81,6 @@ public final class DatasourceManagerImpl implements DataSourceManager {
 		if (autoCommit && !((DataSourcePro) ds).isRequestExclusive()) {
 			return config.getDatasourceConnectionPool().getDatasourceConnection(ThreadLocalPageContext.getConfig(pc), ds, user, pass);
 		}
-
-		// print.e(SystemUtil.getCallerClass());
-
 		pc = ThreadLocalPageContext.get(pc);
 		// DatasourceConnection newDC = _getConnection(pc,ds,user,pass);
 		DatasourceConnectionPro existingDC = null;
@@ -91,13 +89,18 @@ public final class DatasourceManagerImpl implements DataSourceManager {
 
 			// first time that datasource is used within this transaction
 			if (existingDC == null) {
-				DatasourceConnection newDC = config.getDatasourceConnectionPool().getDatasourceConnection(config, ds, user, pass);
-				if (!autoCommit) {
-					newDC.setAutoCommit(false);
-					if (isolation != Connection.TRANSACTION_NONE) DBUtil.setTransactionIsolationEL(newDC.getConnection(), isolation);
+				synchronized (getToken(ds.id())) {
+					existingDC = (DatasourceConnectionPro) transConnsReg.get(ds);
+					if (existingDC == null) {
+						DatasourceConnection newDC = config.getDatasourceConnectionPool().getDatasourceConnection(config, ds, user, pass);
+						if (!autoCommit) {
+							newDC.setAutoCommit(false);
+							if (isolation != Connection.TRANSACTION_NONE) DBUtil.setTransactionIsolationEL(newDC.getConnection(), isolation);
+						}
+						transConnsReg.put(ds, newDC);
+						return newDC;
+					}
 				}
-				transConnsReg.put(ds, newDC);
-				return newDC;
 			}
 
 			// we have already the same datasource but with different credentials
@@ -485,4 +488,11 @@ public final class DatasourceManagerImpl implements DataSourceManager {
 		return transConnsORM.size() + transConnsReg.size();
 	}
 
+	public static String getToken(String key) {
+		String lock = tokens.putIfAbsent(key, key);
+		if (lock == null) {
+			lock = key;
+		}
+		return lock;
+	}
 }
