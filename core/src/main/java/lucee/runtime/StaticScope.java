@@ -425,6 +425,9 @@ public class StaticScope extends StructSupport implements Variables, Objects {
 
 		DumpTable table = new DumpTable("#ffffff", "#cccccc", "#000000");
 
+		if (!accesses[Component.ACCESS_REMOTE].isEmpty()) {
+			table.appendRow(0, accesses[Component.ACCESS_REMOTE]);
+		}
 		if (!accesses[Component.ACCESS_PUBLIC].isEmpty()) {
 			table.appendRow(0, accesses[Component.ACCESS_PUBLIC]);
 		}
