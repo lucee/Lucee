@@ -67,7 +67,7 @@ public final class ArraySlice extends BIF {
 
 	public static Array get(Array arr, int from, int to) throws PageException {
 		int dimension = arr.getDimension();
-		Array rtn= ArrayUtil.getInstance(dimension);
+		Array rtn = ArrayUtil.getInstance(dimension);
 
 		if (dimension < 2) {
 			if (to < 1) to = arr.size();
