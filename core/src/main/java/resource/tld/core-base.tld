@@ -5469,12 +5469,19 @@ Lucee uses the number of characters in the file.</description>
 			<description>remove all attachments from filesystem after the mail is successfully sent</description>
 		</attribute>
 		<attribute>
-            <type>datetime</type>
-            <name>sendTime</name>
-            <required>false</required>
-            <rtexprvalue>true</rtexprvalue>
-            <description>Set a future date time to send an email in the future via the spooler.</description>
-        </attribute>
+			<type>datetime</type>
+			<name>sendTime</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>Set a future date time to send an email in the future via the spooler.</description>
+		</attribute>
+		<attribute>
+			<type>boolean</type>
+			<name>debug</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>Whether to enable detailed logging to console.</description>
+		</attribute>
 	</tag>
 	<!-- MailPart -->
 	<tag>
