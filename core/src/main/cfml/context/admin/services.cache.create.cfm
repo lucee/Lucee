@@ -5,64 +5,13 @@
     </while>--->
     <cfreturn arguments.str>
 </cffunction>
-<cftry>
-	<cfset stVeritfyMessages = StructNew()>
-	<cfswitch expression="#form.mainAction#">
-	<!--- UPDATE --->
-		<cfcase value="#stText.Buttons.submit#">
-			<cfset custom=struct()>
-		
-		
-			<!--- custom --->
-			<cfloop collection="#form#" item="key">
-				<cfif left(key,13) EQ "custompart_d_">
-					<cfset name=mid(key,14,10000)>
-					<cfset custom[name]=(form["custompart_d_"&name]*86400)+(form["custompart_h_"&name]*3600)+(form["custompart_m_"&name]*60)+form["custompart_s_"&name]>
-				</cfif>
-			</cfloop>	   
-			<cfloop collection="#form#" item="key">
-				<cfif left(key,7) EQ "custom_">
-					<cfset custom[mid(key,8,10000)]=form[key]>
-				</cfif>
-			</cfloop>
-			<cfadmin 
-				action="updateCacheConnection"
-				type="#request.adminType#"
-				password="#session["password"&request.adminType]#"
-				
-				
-				name="#trim(form.name)#" 
-				class="#trim(form.class)#"
-				bundleName="#isNull(form.bundleName)?"":trim(form.bundleName)#"
-				bundleVersion="#isNull(form.bundleVersion)?"":trim(form.bundleVersion)#"
-
-
-				storage="#isDefined('form.storage') and form.storage#"
-				default="#StructKeyExists(form,'default')?form.default:""#" 
-				custom="#custom#"
-				
-				remoteClients="#request.getRemoteClients()#">
-					
-		</cfcase>
-	</cfswitch>
-	<cfcatch>
-		<cfset error.message=cfcatch.message>
-		<cfset error.detail=cfcatch.Detail>
-		<cfset error.cfcatch=cfcatch>
-	</cfcatch>
-</cftry>
-<!--- 
-Redirtect to entry --->
-<cfif cgi.request_method EQ "POST" and error.message EQ "" and form.mainAction neq "none">
-	<cflocation url="#request.self#?action=#url.action#" addtoken="no">
-</cfif>
-
 <cfset isNew=false>
 <cfif StructKeyExists(url,'name')>
 	<cfloop query="connections" >
 		<cfif hash(connections.name) EQ url.name>
 			<cfset connection=querySlice(connections,connections.currentrow,1)>
 			<cfset driver=drivers[connections.class]>
+			<cfset btnClearCache = rePlace(stText.Settings.cache.clearCache,"{count}",cacheCount(cacheName=connection.name))>
 		</cfif> 
 	</cfloop>
 <cfelse>
@@ -74,6 +23,64 @@ Redirtect to entry --->
 	<cfset connection.name=form._name>
 	<cfset connection.custom=struct()>
 	<cfset driver=drivers[form.class]>
+	<cfset btnClearCache = "">
+</cfif>
+<cftry>
+	<cfset stVeritfyMessages = StructNew()>
+	<cfif structKeyExists(form,"subAction") AND form.subAction == btnClearCache>
+	<!--- cache clear --->
+		<cfset cacheClear(cacheName=connection.name)>	
+		<cfset btnClearCache = rePlace(stText.Settings.cache.clearCache,"{count}",cacheCount(cacheName=connection.name))>
+	<cfelse>
+		<cfswitch expression="#form.mainAction#">
+			<!--- UPDATE --->
+			<cfcase value="#stText.Buttons.submit#">
+				<cfset custom=struct()>
+					
+			
+				<!--- custom --->
+				<cfloop collection="#form#" item="key">
+					<cfif left(key,13) EQ "custompart_d_">
+						<cfset name=mid(key,14,10000)>
+						<cfset custom[name]=(form["custompart_d_"&name]*86400)+(form["custompart_h_"&name]*3600)+(form["custompart_m_"&name]*60)+form["custompart_s_"&name]>
+					</cfif>
+				</cfloop>	   
+				<cfloop collection="#form#" item="key">
+					<cfif left(key,7) EQ "custom_">
+						<cfset custom[mid(key,8,10000)]=form[key]>
+					</cfif>
+				</cfloop>
+				<cfadmin 
+					action="updateCacheConnection"
+					type="#request.adminType#"
+					password="#session["password"&request.adminType]#"
+					
+					
+					name="#trim(form.name)#" 
+					class="#trim(form.class)#"
+					bundleName="#isNull(form.bundleName)?"":trim(form.bundleName)#"
+					bundleVersion="#isNull(form.bundleVersion)?"":trim(form.bundleVersion)#"
+
+
+					storage="#isDefined('form.storage') and form.storage#"
+					default="#StructKeyExists(form,'default')?form.default:""#" 
+					custom="#custom#"
+					
+					remoteClients="#request.getRemoteClients()#">
+					
+			</cfcase>
+		</cfswitch>
+	</cfif>
+	<cfcatch>
+		<cfset error.message=cfcatch.message>
+		<cfset error.detail=cfcatch.Detail>
+		<cfset error.cfcatch=cfcatch>
+	</cfcatch>
+</cftry>
+<!--- 
+Redirtect to entry --->
+<cfif cgi.request_method EQ "POST" and error.message EQ "" and form.mainAction neq "none">
+	<cflocation url="#request.self#?action=#url.action#" addtoken="no">
 </cfif>
 <cfoutput>
 	<!--- 
@@ -101,6 +108,14 @@ Redirtect to entry --->
 						<div class="comment">#stText.Settings.cache.storageDesc#</div>
 					</td>
 				</tr>
+				<cfif !isNew>
+					<tr>
+						<th scope="row">#stText.settings.cache.clearCacheTitle#</th>
+						<td>
+							<cfinputClassic type="submit" class="button submit" name="subAction" value="#btnClearCache#">
+						</td>
+					</tr>
+				</cfif>
 			</tbody>
 		</table>
 		<br />
@@ -255,7 +270,8 @@ Redirtect to entry --->
 			<tfoot>
 				<tr>
 					<td colspan="2">
-						<input type="submit" class="bs button submit" name="mainAction" value="#stText.Buttons.submit#">
+						<input type="submit" class="bl button submit" name="mainAction" value="#stText.Buttons.submit#">
+						<input type="submit" class="br button submit" name="mainAction" value="#stText.Buttons.Cancel#">
 					</td>
 				</tr>
 			</tfoot>
