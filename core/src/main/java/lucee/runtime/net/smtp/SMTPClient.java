@@ -162,6 +162,8 @@ public final class SMTPClient implements Serializable {
 
 	private Object listener;
 
+	private boolean debug;
+
 	public static String getNow(TimeZone tz) {
 		tz = ThreadLocalPageContext.getTimeZone(tz);
 		SoftReference<SimpleDateFormat> tmp = formatters.get(tz);
@@ -185,6 +187,15 @@ public final class SMTPClient implements Serializable {
 	 */
 	public void setPort(int port) {
 		this.port = port;
+	}
+
+	/**
+	 * enable console logging of the mail session to console
+	 * 
+	 * @param debug
+	 */
+	public void setDebug(boolean debug) {
+		this.debug = debug;
 	}
 
 	/**
@@ -468,6 +479,8 @@ public final class SMTPClient implements Serializable {
 
 		SessionAndTransport sat = newConnection ? new SessionAndTransport(hash(props), props, auth, lifeTimesan, idleTimespan)
 				: SMTPConnectionPool.getSessionAndTransport(props, hash(props), auth, lifeTimesan, idleTimespan);
+		
+		if (debug) sat.session.setDebug(true); // enable logging mail debug output to console
 
 		// Contacts
 		SMTPMessage msg = new SMTPMessage(sat.session);
