@@ -485,6 +485,10 @@ public final class Mail extends BodyTagImpl {
 		smtp.setSSL(ssl);
 	}
 
+	public void setDebug(boolean debug) {
+		smtp.setDebug(debug);
+	}
+
 	public void setPriority(String strPriority) throws ExpressionException {
 		strPriority = strPriority.trim().toLowerCase();
 		boolean valid = true;
