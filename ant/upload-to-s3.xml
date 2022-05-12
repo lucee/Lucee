@@ -132,7 +132,7 @@ try{
 	body = {
 		"event_type": "forgebox_deploy"
 	};
-	http url="https://api.github.com/repos/lucee/lucee-dockerfiles/dispatches" method="POST" result="result" timeout="90"{
+	http url="https://api.github.com/repos/Ortus-Lucee/forgebox-cfengine-publisher/dispatches" method="POST" result="result" timeout="90"{
 		httpparam type="header" name='authorization' value='Bearer #gha_pat_token#';
 		httpparam type="body" value='#body.toJson()#';
 	}
