@@ -429,7 +429,7 @@ function showLayout() {
 				<tr>
 					<td colspan="2">
 						<input type="submit" class="bl button submit" name="mainAction" value="#stText.Buttons.submit#">
-						<input type="submit" class="br button submit" name="mainAction" va lue="#stText.Buttons.Cancel#">
+						<input type="submit" class="br button submit" name="mainAction" value="#stText.Buttons.Cancel#">
 					</td>
 				</tr>
 			</tfoot>
