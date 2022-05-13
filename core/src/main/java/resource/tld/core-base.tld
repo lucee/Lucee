@@ -4680,8 +4680,8 @@ Permits searching collections by title or displaying a separate title from the k
 			<name>timeout</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>Specifies the maximum amount of time, in seconds, to wait for LDAP processing. Defaults to
-		60 seconds.</description>
+			<description>Specifies the maximum amount of time, in milliseconds, to wait for LDAP processing. Defaults to
+		60000 ms (60 seconds).</description>
 		</attribute>
 		<attribute>
 			<type>number</type>
