@@ -113,7 +113,7 @@ try{
 	// update provider
 
 	systemOutput("Trigger builds", true);
-	http url="https://update.lucee.org/rest/update/provider/buildLatest" method="GET" timeout=90 result="buildLatest";
+	http url="https://update.lucee.org/rest/update/provider/buildLatest" method="GET" timeout=90 result="buildLatest"; 
 	systemOutput(buildLatest.fileContent, true);
 
 	systemOutput("Update Extension Provider", true);
@@ -122,7 +122,7 @@ try{
 
 	systemOutput("Update Downloads Page", true);
 	http url="https://download.lucee.org/?type=snapshots&reset=force" method="GET" timeout=90 result="downloadUpdate";
-	systemOutput(downloadUpdate.fileContent, true);
+	systemOutput("Server response status code: " & downloadUpdate.statusCode, true);
 
 	// forgebox
 
@@ -132,7 +132,7 @@ try{
 	body = {
 		"event_type": "forgebox_deploy"
 	};
-	http url="https://api.github.com/repos/lucee/lucee-dockerfiles/dispatches" method="POST" result="result" timeout="90"{
+	http url="https://api.github.com/repos/Ortus-Lucee/forgebox-cfengine-publisher/dispatches" method="POST" result="result" timeout="90"{
 		httpparam type="header" name='authorization' value='Bearer #gha_pat_token#';
 		httpparam type="body" value='#body.toJson()#';
 	}
@@ -155,6 +155,7 @@ try{
 		httpparam type="body" value='#body.toJson()#';
 	}
 
+	systemOutput("Lucee Docker builds triggered, #result.statuscode# (always returns a 204 no content, see https://github.com/lucee/lucee-dockerfiles/actions for output)", true);
 
 	// express
 
