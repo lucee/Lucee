@@ -20,4 +20,8 @@ public interface DatasourceConnectionPro extends DatasourceConnection {
 	public void release();
 
 	public boolean validate();
+
+	public void setManaged(boolean managed);
+
+	public boolean isManaged();
 }

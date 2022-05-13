@@ -64,6 +64,7 @@ public final class DatasourceConnectionImpl implements DatasourceConnectionPro, 
 	private Boolean supportsGetGeneratedKeys;
 	private DatasourceConnPool pool;
 	private long lastValidation;
+	private boolean managed;
 
 	/**
 	 * @param connection
@@ -497,7 +498,14 @@ public final class DatasourceConnectionImpl implements DatasourceConnectionPro, 
 
 	@Override
 	public void release() {
-		pool.returnObject(this);
+		setManaged(false);
+		try {
+			pool.returnObject(this);
+		}
+		catch (IllegalStateException ise) {
+			// old Hibernate extension cause: Object has already been returned to this pool or is invalid
+		}
+
 	}
 
 	@Override
@@ -509,6 +517,16 @@ public final class DatasourceConnectionImpl implements DatasourceConnectionPro, 
 			return true;
 		}
 		return false;
+	}
+
+	@Override
+	public boolean isManaged() {
+		return managed;
+	}
+
+	@Override
+	public void setManaged(boolean managed) {
+		this.managed = managed;
 	}
 
 }
