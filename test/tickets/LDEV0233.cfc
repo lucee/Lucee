@@ -6,7 +6,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mysql,orm" {
 				var result = _InternalRequest(
 					template:uri
 				);
-				expect(result.fileContent.trim()).toBeTrue();
+				if(isBoolean(result.fileContent.trim()))
+					expect(result.fileContent.trim()).toBeTrue();
+				else throw result.fileContent.trim()
 			});
 
 			it(title="Checking ORM without cftransaction", body=function(){
@@ -14,7 +16,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mysql,orm" {
 				var result = _InternalRequest(
 					template:uri
 				);
-				expect(result.fileContent.trim()).toBeTrue();
+				if(isBoolean(result.fileContent.trim()))
+					expect(result.fileContent.trim()).toBeTrue();
+				else throw result.fileContent.trim()
 			});
 		});
 	}
