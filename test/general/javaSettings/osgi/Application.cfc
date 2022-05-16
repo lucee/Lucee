@@ -7,4 +7,9 @@ component {
     	loadCFMLClassPath = true, 
     	reloadOnChange = false
 	}
+	
+	public function onRequestStart() {
+		setting requesttimeout=10;
+	}
+
 }

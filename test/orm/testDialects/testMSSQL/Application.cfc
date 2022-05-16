@@ -6,4 +6,8 @@ component {
     this.ormSettings.dialect = "MicrosoftSQLServer";
 
     this.datasource = server.getDatasource("mssql");
+
+	public function onRequestStart() {
+		setting requesttimeout=10;
+	}
 }

@@ -3,8 +3,8 @@ component {
 	mySQL = getCredentials();
 	this.datasource = server.getDatasource("mysql");
 
-	function onRequestStart(){
-		setting showdebugOutput=false;
+	public function onRequestStart() {
+		setting requesttimeout=10 showdebugOutput=false;
 	}
 
 	function onApplicationStart(){

@@ -5,4 +5,9 @@
 		sleep(100);
 		session.test="test";
 	}
+	
+	public function onRequestStart() {
+		setting requesttimeout=10;
+	}
+
 }

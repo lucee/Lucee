@@ -18,8 +18,8 @@ component {
 	}
 
 
-	function onRequestStart(){
-		setting showdebugOutput=false;
+	public function onRequestStart() {
+		setting requesttimeout=10 showdebugOutput=false;
 	}
 
 

@@ -25,4 +25,8 @@ component {
 		default:
 			throw "db #form.db# no yet supported";
 	}
+
+	public function onRequestStart() {
+		setting requesttimeout=10;
+	}
 }

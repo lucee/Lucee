@@ -21,7 +21,7 @@
 
 
 <cffunction name="onRequestStart">
-
+	<cfsetting requesttimeout=10>
 </cffunction>
 
 </cfcomponent>
