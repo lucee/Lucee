@@ -13753,6 +13753,7 @@ _- asc (default): ascending (a to z) sort order
 	<function>
 		<name>toString</name>
 		<class>lucee.runtime.functions.string.ToString</class>
+		<member-name>toString</member-name>
 		<description>Converts a value to a string.</description>
 		<argument>
 			<name>value</name>
