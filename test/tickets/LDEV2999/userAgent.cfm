@@ -1,0 +1,1 @@
+<cfoutput>#getHttpRequestData().headers["user-agent"]#</cfoutput>
