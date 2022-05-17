@@ -33,7 +33,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" skip=true{
     function afterAll() {
         if(fileExists(fileName)) fileDelete(fileName);
         try {
-            cfschedule( action="delete", task="headertest"); // throws error due to LDEV-3449
+            cfschedule( action="delete", task="userAgenttest"); // throws error due to LDEV-3449
         }
         catch(any e) {}
     }
