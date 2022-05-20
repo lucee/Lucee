@@ -2411,7 +2411,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 				if (rpccl == null || reload) {
 					Resource dir = getClassDirectory().getRealResource("RPC");
 					if (!dir.exists()) {
-						dir.createDirectory(true);
+						ResourceUtil.createDirectoryEL(dir, true);
 					}
 					rpcClassLoaders.put(key, rpccl = new PhysicalClassLoader(this, dir, parents != null && parents.length == 0 ? null : parents, false));
 				}
