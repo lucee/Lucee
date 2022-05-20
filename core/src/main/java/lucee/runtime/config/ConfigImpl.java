@@ -41,6 +41,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Version;
 
+import lucee.commons.digest.HashUtil;
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.FileUtil;
 import lucee.commons.io.SystemUtil;
@@ -2155,7 +2156,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 			synchronized (key) {
 				rpccl = rpcClassLoaders.get(key);
 				if (rpccl == null || reload) {
-					Resource dir = getClassDirectory().getRealResource("RPC");
+					Resource dir = getClassDirectory().getRealResource("RPC/" + key);
 					if (!dir.exists()) {
 						ResourceUtil.createDirectoryEL(dir, true);
 					}
@@ -2173,7 +2174,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		for (ClassLoader parent: parents) {
 			sb.append(';').append(System.identityHashCode(parent));
 		}
-		return sb.toString();
+		return HashUtil.create64BitHashAsString(sb.toString());
 	}
 
 	public void resetRPCClassLoader() {
