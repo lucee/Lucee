@@ -2420,10 +2420,12 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		return rpccl;
 	}
 
-	private String toKey(ClassLoader[] loaders) {
+	private String toKey(ClassLoader[] parents) {
+		if (parents == null || parents.length == 0) return "orphan";
+
 		StringBuilder sb = new StringBuilder();
-		for (ClassLoader loader: loaders) {
-			sb.append(';').append(System.identityHashCode(loader));
+		for (ClassLoader parent: parents) {
+			sb.append(';').append(System.identityHashCode(parent));
 		}
 		return sb.toString();
 	}
