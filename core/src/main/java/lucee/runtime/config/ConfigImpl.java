@@ -166,10 +166,11 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 
 	private static final Extension[] EXTENSIONS_EMPTY = new Extension[0];
 	private static final RHExtension[] RHEXTENSIONS_EMPTY = new RHExtension[0];
+	private final ConcurrentHashMap<String, Object> tokens = new ConcurrentHashMap<String, Object>();
 
 	private int mode = MODE_CUSTOM;
 
-	private PhysicalClassLoader rpcClassLoader;
+	private Map<String, PhysicalClassLoader> rpcClassLoaders = new ConcurrentHashMap<String, PhysicalClassLoader>();
 	private Map<String, DataSource> datasources = new HashMap<String, DataSource>();
 	private Map<String, CacheConnection> caches = new HashMap<String, CacheConnection>();
 
@@ -2397,28 +2398,38 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 
 	@Override
 	public ClassLoader getRPCClassLoader(boolean reload) throws IOException {
-
-		if (rpcClassLoader != null && !reload) return rpcClassLoader;
-
-		Resource dir = getClassDirectory().getRealResource("RPC");
-		if (!dir.exists()) dir.createDirectory(true);
-		rpcClassLoader = new PhysicalClassLoader(this, dir, null, false);
-		return rpcClassLoader;
+		return getRPCClassLoader(reload, null);
 	}
 
 	@Override
 	public ClassLoader getRPCClassLoader(boolean reload, ClassLoader[] parents) throws IOException {
+		String key = toKey(parents);
+		PhysicalClassLoader rpccl = rpcClassLoaders.get(key);
+		if (rpccl == null || reload) {
+			synchronized (key) {
+				rpccl = rpcClassLoaders.get(key);
+				if (rpccl == null || reload) {
+					Resource dir = getClassDirectory().getRealResource("RPC");
+					if (!dir.exists()) {
+						dir.createDirectory(true);
+					}
+					rpcClassLoaders.put(key, rpccl = new PhysicalClassLoader(this, dir, parents != null && parents.length == 0 ? null : parents, false));
+				}
+			}
+		}
+		return rpccl;
+	}
 
-		if (rpcClassLoader != null && !reload) return rpcClassLoader;
-
-		Resource dir = getClassDirectory().getRealResource("RPC");
-		if (!dir.exists()) dir.createDirectory(true);
-		rpcClassLoader = new PhysicalClassLoader(this, dir, parents, false);
-		return rpcClassLoader;
+	private String toKey(ClassLoader[] loaders) {
+		StringBuilder sb = new StringBuilder();
+		for (ClassLoader loader: loaders) {
+			sb.append(';').append(System.identityHashCode(loader));
+		}
+		return sb.toString();
 	}
 
 	public void resetRPCClassLoader() {
-		rpcClassLoader = null;
+		rpcClassLoaders.clear();
 	}
 
 	protected void setCacheDir(Resource cacheDir) {
@@ -4022,5 +4033,14 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	@Override
 	public TimeSpan getApplicationPathhCacheTimeout() {
 		return TimeSpanImpl.fromMillis(applicationPathhCacheTimeout);
+	}
+
+	private Object getToken(String className) {
+		Object newLock = new Object();
+		Object lock = tokens.putIfAbsent(className, newLock);
+		if (lock == null) {
+			lock = newLock;
+		}
+		return lock;
 	}
 }
