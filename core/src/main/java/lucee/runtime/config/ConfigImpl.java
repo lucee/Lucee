@@ -2401,7 +2401,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		if (rpcClassLoader != null && !reload) return rpcClassLoader;
 
 		Resource dir = getClassDirectory().getRealResource("RPC");
-		if (!dir.exists()) dir.createDirectory(true);
+		if (!dir.exists()) ResourceUtil.createDirectoryEL(dir, true);
 		rpcClassLoader = new PhysicalClassLoader(this, dir, null, false);
 		return rpcClassLoader;
 	}
@@ -2412,7 +2412,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		if (rpcClassLoader != null && !reload) return rpcClassLoader;
 
 		Resource dir = getClassDirectory().getRealResource("RPC");
-		if (!dir.exists()) dir.createDirectory(true);
+		if (!dir.exists()) ResourceUtil.createDirectoryEL(dir, true);
 		rpcClassLoader = new PhysicalClassLoader(this, dir, parents, false);
 		return rpcClassLoader;
 	}
