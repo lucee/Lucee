@@ -23,6 +23,17 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	
 	//public function afterTests(){}
 
+	private function isNewS3(){
+		qry=  extensionlist(false);
+		isNewS3=false;
+		loop query=qry {
+			if(qry.id=="17AB52DE-B300-A94B-E058BD978511E39E") {
+				if(left(qry.version,1)>=2) return true;
+			}
+		}
+		return false;
+	}
+
 
 	private struct function getCredencials() {
 		return server.getTestService("s3");
@@ -92,7 +103,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		    
 		    // check inital data
 			var acl=StoreGetACL(dir);
-			if(bucket) {
+			if(bucket || isNewS3()) {// newer S3 extension no longer set public read by default for objects
 				assertEquals(1,acl.len());
 				assertEquals("FULL_CONTROL",toList(acl,"permission"));
 				assertEquals("info",toList(acl,"displayName"));
@@ -114,7 +125,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 			    // test output
 			    var acl=StoreGetACL(dir);
 			    
-			    if(bucket) {
+			    if(bucket || isNewS3()) {// newer S3 extension no longer set public read by default for objects
 			    	assertEquals(2,acl.len());
 					assertEquals("FULL_CONTROL,WRITE",toList(acl,"permission"));
 					assertEquals("authenticated",toList(acl,"group"));
