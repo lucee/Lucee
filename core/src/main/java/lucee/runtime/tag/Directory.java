@@ -59,6 +59,7 @@ import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.Query;
 import lucee.runtime.type.QueryImpl;
 import lucee.runtime.type.Struct;
+import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.UDF;
 import lucee.runtime.type.util.KeyConstants;
 
@@ -673,13 +674,18 @@ public final class Directory extends TagImpl {
 				try {
 					// old way
 					if (Decision.isString(acl)) {
-						Reflector.callMethod(res, "setACL", new Object[] { improveACL(Caster.toString(acl)) });
+						Array arr = new ArrayImpl();
+						Struct sct = new StructImpl();
+						arr.appendEL(sct);
+						sct.setEL("group", "all");
+						sct.setEL("permission", acl);
+						acl = arr;
+						// Reflector.callMethod(res, "setACL", new Object[] { improveACL(Caster.toString(acl)) });
 					}
-					// new way
-					else {
-						BIF bif = CFMLEngineFactory.getInstance().getClassUtil().loadBIF(pc, "StoreSetACL");
-						bif.invoke(pc, new Object[] { res.getAbsolutePath(), acl });
-					}
+
+					BIF bif = CFMLEngineFactory.getInstance().getClassUtil().loadBIF(pc, "StoreSetACL");
+					bif.invoke(pc, new Object[] { res.getAbsolutePath(), acl });
+
 				}
 				catch (Exception e) {
 					throw Caster.toPageException(e);

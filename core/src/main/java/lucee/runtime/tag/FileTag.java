@@ -523,7 +523,6 @@ public final class FileTag extends BodyTagImpl {
 			else throw new ApplicationException("Destination file [" + destination.toString() + "] already exists");
 		}
 
-		setACL(pageContext, destination, acl);
 		try {
 			source.moveTo(destination);
 
@@ -535,6 +534,7 @@ public final class FileTag extends BodyTagImpl {
 
 		setMode(destination, mode);
 		setAttributes(destination, attributes);
+		setACL(pageContext, destination, acl);
 	}
 
 	private static Resource toDestination(PageContext pageContext, String path, Resource source) {
@@ -582,7 +582,6 @@ public final class FileTag extends BodyTagImpl {
 			else throw new ApplicationException("Destination file [" + destination.toString() + "] already exists");
 		}
 
-		setACL(pageContext, destination, acl);
 		try {
 			IOUtil.copy(source, destination);
 		}
@@ -595,6 +594,7 @@ public final class FileTag extends BodyTagImpl {
 
 		setMode(destination, mode);
 		setAttributes(destination, attributes);
+		setACL(pageContext, destination, acl);
 	}
 
 	private static void setACL(PageContext pc, Resource res, Object acl) throws PageException {
@@ -721,7 +721,6 @@ public final class FileTag extends BodyTagImpl {
 			else if (nameconflict == NAMECONFLICT_OVERWRITE) file.delete();
 		}
 
-		setACL(pageContext, file, acl);
 		try {
 			if (output instanceof InputStream) {
 				IOUtil.copy((InputStream) output, file, false);
@@ -747,6 +746,7 @@ public final class FileTag extends BodyTagImpl {
 		}
 		setMode(file, mode);
 		setAttributes(file, attributes);
+		setACL(pageContext, file, acl);
 	}
 
 	/**
@@ -762,7 +762,6 @@ public final class FileTag extends BodyTagImpl {
 			String attributes) throws PageException {
 		checkFile(pageContext, securityManager, file, serverPassword, createPath, true, true, true);
 
-		setACL(pageContext, file, acl);
 		try {
 			ResourceUtil.touch(file);
 		}
@@ -772,6 +771,7 @@ public final class FileTag extends BodyTagImpl {
 		}
 		setMode(file, mode);
 		setAttributes(file, attributes);
+		setACL(pageContext, file, acl);
 	}
 
 	/**
@@ -783,7 +783,6 @@ public final class FileTag extends BodyTagImpl {
 		if (output == null) throw new ApplicationException("Attribute [output] is not defined for tag [file]");
 		checkFile(pageContext, securityManager, file, serverPassword, createPath, true, false, true);
 
-		setACL(pageContext, file, acl);
 		try {
 			if (!file.exists()) file.createNewFile();
 			String content = Caster.toString(output);
@@ -800,6 +799,7 @@ public final class FileTag extends BodyTagImpl {
 		}
 		setMode(file, mode);
 		setAttributes(file, attributes);
+		setACL(pageContext, file, acl);
 	}
 
 	private String doFixNewLine(String content) {
@@ -1036,7 +1036,6 @@ public final class FileTag extends BodyTagImpl {
 
 		}
 
-		setACL(pageContext, destination, acl);
 		try {
 			destination.createNewFile();
 			IOUtil.copy(formItem.getResource(), destination);
@@ -1056,6 +1055,7 @@ public final class FileTag extends BodyTagImpl {
 
 		setMode(destination, mode);
 		setAttributes(destination, attributes);
+		setACL(pageContext, destination, acl);
 		return cffile;
 	}
 
