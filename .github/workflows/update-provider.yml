@@ -10,7 +10,7 @@ jobs:
 
     runs-on: ubuntu-latest
     env:
-      luceeVersion: light-6.0.0.172-SNAPSHOT
+      luceeVersion: light-6.0.0.152-SNAPSHOT
 
     steps:
     - uses: actions/checkout@v2
