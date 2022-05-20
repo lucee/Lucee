@@ -824,7 +824,7 @@ public final class Directory extends TagImpl {
 		}
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
-			throw new ApplicationException(t.getMessage());
+			throw Caster.toPageException(t);
 		}
 
 		// set S3 stuff
