@@ -27,6 +27,6 @@ jobs:
     - name: Trigger Lucee Update Providers
       uses: lucee/script-runner@main
       with:
-        webroot: ${{ github.workspace }}/lucee/test
+        webroot: ${{ github.workspace }}/test
         execute: /update-provider.cfm
         luceeVersion: ${{ env.luceeVersion }}
