@@ -115,6 +115,10 @@ public class MemberUtil {
 					members = getMembers(pc, CFTypes.TYPE_NUMERIC);
 					member = members.get(methodName);
 				}
+				if (member == null && type == CFTypes.TYPE_STRING && Decision.isDateAdvanced(coll, false)) {
+					members = getMembers(pc, CFTypes.TYPE_DATETIME);
+					member = members.get(methodName);
+				}
 				isChked = true;
 			}
 			if (member != null) {
