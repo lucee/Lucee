@@ -115,7 +115,7 @@ public class MemberUtil {
 					members = getMembers(pc, CFTypes.TYPE_NUMERIC);
 					member = members.get(methodName);
 				}
-				if (type == CFTypes.TYPE_STRING && member == null && Caster.toString(coll).length() > 2 && !Decision.isInteger(coll, false)) { // to avoid the overhead of isDateAdvanced()
+				if (type == CFTypes.TYPE_STRING && member == null && Caster.toString(coll).length() > 2 && !Decision.isInteger(coll, false) && args.length <= 3) { // to avoid the overhead of isDateAdvanced()
 					if (Decision.isDateAdvanced(coll, false)) {
 						members = getMembers(pc, CFTypes.TYPE_DATETIME);
 						member = members.get(methodName);
