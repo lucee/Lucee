@@ -3,4 +3,6 @@
 	<cflog type="information" file="LDEV3978_1" text="testone_#idx#" />
 	<cflog type="information" file="LDEV3978_2" text="testtwo_#idx#" />
 	<cflog type="information" file="LDEV3978_3" text="testthree_#idx#" />
-</cfloop>
+
+	<cflog text="test_application_without_file_#idx#"> <!--- cflog without file attribute --->
+</cfloop> 
