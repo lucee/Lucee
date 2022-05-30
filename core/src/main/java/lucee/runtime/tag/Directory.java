@@ -49,7 +49,6 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
 import lucee.runtime.ext.tag.TagImpl;
 import lucee.runtime.op.Caster;
-import lucee.runtime.op.Decision;
 import lucee.runtime.reflection.Reflector;
 import lucee.runtime.security.SecurityManager;
 import lucee.runtime.tag.util.FileUtil;
@@ -59,7 +58,6 @@ import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.Query;
 import lucee.runtime.type.QueryImpl;
 import lucee.runtime.type.Struct;
-import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.UDF;
 import lucee.runtime.type.util.KeyConstants;
 
@@ -672,20 +670,8 @@ public final class Directory extends TagImpl {
 			// ACL
 			if (acl != null) {
 				try {
-					// old way
-					if (Decision.isString(acl)) {
-						Array arr = new ArrayImpl();
-						Struct sct = new StructImpl();
-						arr.appendEL(sct);
-						sct.setEL("group", "all");
-						sct.setEL("permission", acl);
-						acl = arr;
-						// Reflector.callMethod(res, "setACL", new Object[] { improveACL(Caster.toString(acl)) });
-					}
-
 					BIF bif = CFMLEngineFactory.getInstance().getClassUtil().loadBIF(pc, "StoreSetACL");
 					bif.invoke(pc, new Object[] { res.getAbsolutePath(), acl });
-
 				}
 				catch (Exception e) {
 					throw Caster.toPageException(e);
