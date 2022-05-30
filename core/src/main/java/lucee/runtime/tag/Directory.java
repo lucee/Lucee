@@ -781,7 +781,7 @@ public final class Directory extends TagImpl {
 		}
 
 		// set S3 stuff
-		setS3Attrs(pc, directory, acl, storage);
+		setS3Attrs(pc, newdirectory, acl, storage);
 
 	}
 
@@ -834,7 +834,7 @@ public final class Directory extends TagImpl {
 		}
 
 		// set S3 stuff
-		setS3Attrs(pc, directory, acl, storage);
+		setS3Attrs(pc, newdirectory, acl, storage);
 
 	}
 
