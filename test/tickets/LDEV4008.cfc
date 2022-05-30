@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" labels="output" {
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="output" skip=true{
 
 	function run( testResults, testBox ) {
 		describe("Testcase for LDEV-4008", function() {
