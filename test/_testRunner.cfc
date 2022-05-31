@@ -107,11 +107,16 @@ component {
 			if ( arrayLen (request.testLabels) eq 0 )
 				return "";
 			var labels = meta.labels ?: "";
+			var labelsMatched = 0;
 			loop array="#request.testLabels#" item="local.f" {
-				if ( FindNoCase( f, labels ) gt 0 )
-					return "";
+				if ( ListFindNoCase( f, labels ) gt 0 )
+					labelsMatched++;
 			}
-			return "no matching labels";
+			if ( labelsMatched neq arrayLen(request.testLabels) )
+				return "didn't match all label(s)";
+			else {
+				return ""; //ok	
+			}
 		};
 
 		allowed = isValidTestCase( arguments.path );
