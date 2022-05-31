@@ -124,6 +124,27 @@ function mem(type) {
 	out=SystemOut.setOut(nullValue());
 	//err=SystemOut.setErr(nullValue());
 
+	testDirectory = expandPath( "/test" );
+	
+	_getTestMeta = function ( string path ){
+		var cfcPath = ListChangeDelims( "/test" & Mid( arguments.path, len( testDirectory ) + 1 ), ".", "/\" );
+		cfcPath = mid( cfcPath, 1, len( cfcPath ) - 4 ); // strip off ".cfc"
+		try {
+			// triggers a compile, which make the initial filter slower, but it would be compiled later anyway
+			// GetComponentMetaData leaks output https://luceeserver.atlassian.net/browse/LDEV-3582
+			silent {
+				var meta = GetComponentMetaData( cfcPath );
+			}
+		} catch ( e ){
+			systemOutput("ERROR calling GetComponentMetaData on #cfcPath#", true);
+			systemOutput(e.message, true);
+			return {
+				"_exception": cfcatch
+			}
+		}
+		return meta;
+	};
+
 	silent {
 		try {
 
@@ -147,7 +168,14 @@ function mem(type) {
 
 					// only testcases in sub directory of "test" are allowed
 					var _test = listTrim(test,"\/");
-					return (_test == pp || _test == p) && left(name, 1) != "_";
+					var allowed = (_test == pp || _test == p) && left(name, 1) != "_";
+					if ( allowed ){
+						// check for skip=true on test case components
+						var meta = _getTestMeta( path );
+						if ( structKeyExists( meta, "skip" ) and meta.skip eq true )
+							allowed = false;
+					}
+					return allowed;
 				}
 			};
 
