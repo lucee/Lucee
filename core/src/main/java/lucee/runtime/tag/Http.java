@@ -1321,7 +1321,9 @@ public final class Http extends BodyTagImpl {
 				String msg = rsp.getStatusCode() + " " + rsp.getStatusText();
 				cfhttp.setEL(ERROR_DETAIL, msg);
 				if (throwonerror) {
-					throw new HTTPException(msg, null, rsp.getStatusCode(), rsp.getStatusText(), rsp.getURL());
+					URL url = rsp.getURL();
+					String details = getMethodAsVerb(method) + " " + url.toExternalForm();
+					throw new HTTPException(msg, details, rsp.getStatusCode(), rsp.getStatusText(), url);
 				}
 			}
 
