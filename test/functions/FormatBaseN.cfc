@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase"{
+component extends="org.lucee.cfml.test.LuceeTestCase" skip=true {
     function run( testResults, testBox ) {
         describe("Testcase for FormatBaseN()", function() {
             it( title="Format to base binary(2)", body=function( currentSpec ){
