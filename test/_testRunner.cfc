@@ -103,23 +103,25 @@ component {
 		};
 
 		/* testbox mixes label and skip, which is confusing, skip false should always mean skip, so we check it manually */
-		var checkTestLabels = function (any meta, string path ){
-			if ( arrayLen (request.testLabels) eq 0 )
+		var checkTestLabels = function ( any meta, string path ){
+			if ( arrayLen ( request.testLabels ) eq 0 )
 				return "";
 			var labels = meta.labels ?: "";
 			var labelsMatched = 0;
 			loop array="#request.testLabels#" item="local.f" {
-				if ( ListFindNoCase( f, labels ) gt 0 )
+				if ( ListFindNoCase( labels, f ) gt 0 )
 					labelsMatched++;
 			}
-			if ( labelsMatched neq arrayLen(request.testLabels) )
-				return "didn't match all label(s)";
-			else {
+			if ( labelsMatched neq arrayLen( request.testLabels ) ){
+				var failed = "#path# [#labels#] didn't match all label(s) #serializeJson(request.testLabels)#, only [#labelsMatched#] matched";
+				// systemOutput(failed, true);
+				return failed;
+			} else {
 				return ""; //ok	
 			}
 		};
 
-		allowed = isValidTestCase( arguments.path );
+		var allowed = isValidTestCase( arguments.path );
 		//SystemOutput( arguments.path & " :: " & allowed, true );
 		if ( allowed != "" ){
 			if ( request.testDebug )
