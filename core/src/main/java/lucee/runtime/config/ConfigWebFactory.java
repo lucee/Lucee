@@ -1386,13 +1386,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 
 		f = contextDir.getRealResource("wddx." + TEMPLATE_EXTENSION);
 		if (!f.exists()) createFileFromResourceEL("/resource/context/wddx." + TEMPLATE_EXTENSION, f);
-
-		f = contextDir.getRealResource("lucee-applet." + TEMPLATE_EXTENSION);
-		if (!f.exists()) createFileFromResourceEL("/resource/context/lucee-applet." + TEMPLATE_EXTENSION, f);
-
-		f = contextDir.getRealResource("lucee-applet.jar");
-		if (!f.exists() || doNew) createFileFromResourceEL("/resource/context/lucee-applet.jar", f);
-
+		
 		// f=new BinaryFile(contextDir,"lucee_context.ra");
 		// if(!f.exists())createFileFromResource("/resource/context/lucee_context.ra",f);
 
