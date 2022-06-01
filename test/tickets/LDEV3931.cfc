@@ -1,4 +1,4 @@
-component extends = "org.lucee.cfml.test.LuceeTestCase" {
+component extends = "org.lucee.cfml.test.LuceeTestCase" labesl="image" skip=true {
 	function beforeAll() {
 		variables.path = getDirectoryFromPath(getCurrenttemplatepath()) & "LDEV3931";
 		if(!directoryExists(path)) directoryCreate(path)
