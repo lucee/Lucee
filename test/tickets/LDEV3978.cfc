@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" labels="logs" {
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="logs" skip=true {
 
 	function beforeAll() {
 		variables.filePath = "#expandPath("{lucee-config}")#/logs";
