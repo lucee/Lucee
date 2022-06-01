@@ -30,6 +30,10 @@ component {
 	this.sessionStorage="test";
 	this.sessionCluster=true;
 
+	public function onRequestStart() {
+		setting requesttimeout=10;
+	}
+	
 	function onSessionStart() {
 		//session.susi="sorglos";
 		sessionRotate();

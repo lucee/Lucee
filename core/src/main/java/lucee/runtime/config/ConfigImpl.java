@@ -41,6 +41,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Version;
 
+import lucee.commons.digest.HashUtil;
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.FileUtil;
 import lucee.commons.io.SystemUtil;
@@ -173,7 +174,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 
 	private int mode = MODE_CUSTOM;
 
-	private PhysicalClassLoader rpcClassLoader;
+	private final Map<String, PhysicalClassLoader> rpcClassLoaders = new ConcurrentHashMap<String, PhysicalClassLoader>();
 	private Map<String, DataSource> datasources = new HashMap<String, DataSource>();
 	private Map<String, CacheConnection> caches = new HashMap<String, CacheConnection>();
 
@@ -2144,28 +2145,40 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 
 	@Override
 	public ClassLoader getRPCClassLoader(boolean reload) throws IOException {
-
-		if (rpcClassLoader != null && !reload) return rpcClassLoader;
-
-		Resource dir = getClassDirectory().getRealResource("RPC");
-		if (!dir.exists()) dir.createDirectory(true);
-		rpcClassLoader = new PhysicalClassLoader(this, dir, null, false);
-		return rpcClassLoader;
+		return getRPCClassLoader(reload, null);
 	}
 
 	@Override
 	public ClassLoader getRPCClassLoader(boolean reload, ClassLoader[] parents) throws IOException {
+		String key = toKey(parents);
+		PhysicalClassLoader rpccl = rpcClassLoaders.get(key);
+		if (rpccl == null || reload) {
+			synchronized (key) {
+				rpccl = rpcClassLoaders.get(key);
+				if (rpccl == null || reload) {
+					Resource dir = getClassDirectory().getRealResource("RPC/" + key);
+					if (!dir.exists()) {
+						ResourceUtil.createDirectoryEL(dir, true);
+					}
+					rpcClassLoaders.put(key, rpccl = new PhysicalClassLoader(this, dir, parents != null && parents.length == 0 ? null : parents, false));
+				}
+			}
+		}
+		return rpccl;
+	}
 
-		if (rpcClassLoader != null && !reload) return rpcClassLoader;
+	private String toKey(ClassLoader[] parents) {
+		if (parents == null || parents.length == 0) return "orphan";
 
-		Resource dir = getClassDirectory().getRealResource("RPC");
-		if (!dir.exists()) dir.createDirectory(true);
-		rpcClassLoader = new PhysicalClassLoader(this, dir, parents, false);
-		return rpcClassLoader;
+		StringBuilder sb = new StringBuilder();
+		for (ClassLoader parent: parents) {
+			sb.append(';').append(System.identityHashCode(parent));
+		}
+		return HashUtil.create64BitHashAsString(sb.toString());
 	}
 
 	public void resetRPCClassLoader() {
-		rpcClassLoader = null;
+		rpcClassLoaders.clear();
 	}
 
 	protected void setCacheDir(Resource cacheDir) {
@@ -3482,7 +3495,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	public Log getLog(String name, boolean createIfNecessary) throws PageException {
 		LoggerAndSourceData lsd = _getLoggerAndSourceData(name, createIfNecessary);
 		if (lsd == null) return null;
-		return lsd.getLog();
+		return lsd.getLog(false);
 	}
 
 	private LoggerAndSourceData _getLoggerAndSourceData(String name, boolean createIfNecessary) throws PageException {

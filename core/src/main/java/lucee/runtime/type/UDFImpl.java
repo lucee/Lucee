@@ -84,6 +84,12 @@ public class UDFImpl extends MemberSupport implements UDFPlus, Externalizable {
 		this.properties = (UDFPropertiesBase) properties;
 	}
 
+	public UDFImpl(UDFProperties properties, Component owner) {
+		super(properties.getAccess(), properties.getModifier());
+		this.properties = (UDFPropertiesBase) properties;
+		setOwnerComponent(owner);
+	}
+
 	public UDF duplicate(Component cfc) {
 		UDFImpl udf = new UDFImpl(properties);
 		udf.ownerComponent = cfc;
@@ -410,7 +416,7 @@ public class UDFImpl extends MemberSupport implements UDFPlus, Externalizable {
 
 	@Override
 	public Struct getMetaData(PageContext pc) throws PageException {
-		return ComponentUtil.getMetaData(pc, properties);
+		return ComponentUtil.getMetaData(pc, properties, null);
 		// return getMetaData(pc, this);
 	}
 

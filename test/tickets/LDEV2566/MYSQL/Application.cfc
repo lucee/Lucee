@@ -6,7 +6,9 @@ component {
 	this.datasources["ldev2566_MYSQL"] = mySQL;
 	this.datasource = "ldev2566_MYSQL";
 
-	public function onRequestStart(){
+	
+	public function onRequestStart() {
+		setting requesttimeout=10;
 		query{
 			echo("DROP TABLE IF EXISTS LDEV2566_mysql");
 		}

@@ -8,6 +8,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.apache.felix.framework.BundleWiringImpl.BundleClassLoader;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -20,6 +21,7 @@ import org.apache.logging.log4j.core.layout.HtmlLayout.Builder;
 import org.apache.logging.log4j.core.layout.HtmlLayout.FontSize;
 import org.apache.logging.log4j.core.layout.PatternLayout;
 import org.apache.logging.log4j.status.StatusLogger;
+import org.osgi.framework.Bundle;
 
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.log.Log;
@@ -29,6 +31,7 @@ import lucee.commons.io.log.log4j2.appender.DatasourceAppender;
 import lucee.commons.io.log.log4j2.appender.ResourceAppender;
 import lucee.commons.io.log.log4j2.appender.TaskAppender;
 import lucee.commons.io.log.log4j2.layout.ClassicLayout;
+import lucee.commons.io.log.log4j2.layout.DataDogLayout;
 import lucee.commons.io.log.log4j2.layout.XMLLayout;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
@@ -55,6 +58,7 @@ public class Log4j2Engine extends LogEngine {
 	private static final String DEFAULT_PATTERN = "%d{dd.MM.yyyy HH:mm:ss,SSS} %-5p [%c] %m%n";
 
 	private Config config;
+	private String version;
 
 	public Log4j2Engine(Config config) {
 		this.config = config;
@@ -89,11 +93,11 @@ public class Log4j2Engine extends LogEngine {
 			return new ClassDefinitionImpl(ConsoleAppender.class);
 		}
 		if ("resource".equalsIgnoreCase(className) || "lucee.commons.io.log.log4j.appender.RollingResourceAppender".equals(className)
-				|| "org.apache.logging.log4j.core.appender.RollingFileAppender".equals(className)) {
+				|| "lucee.commons.io.log.log4j2.appender.ResourceAppender".equals(className)) {
 			return new ClassDefinitionImpl(ResourceAppender.class);
 		}
 		if ("datasource".equalsIgnoreCase(className) || "lucee.commons.io.log.log4j.appender.DatasourceAppender".equals(className)
-				|| "lucee.commons.io.log.log4j2.appender.DatasourceAppender".equals(className) || "org.apache.logging.log4j.core.appender.db.jdbc.JdbcAppender".equals(className)) {
+				|| "lucee.commons.io.log.log4j2.appender.DatasourceAppender".equals(className)) {
 			return new ClassDefinitionImpl(DatasourceAppender.class);
 		}
 		return new ClassDefinitionImpl(className);
@@ -120,19 +124,23 @@ public class Log4j2Engine extends LogEngine {
 
 	@Override
 	public ClassDefinition<?> layoutClassDefintion(String className) {
-		if ("classic".equalsIgnoreCase(className) || "lucee.commons.io.log.log4j.layout.ClassicLayout".equals(className)) {
+		if ("classic".equalsIgnoreCase(className) || "lucee.commons.io.log.log4j.layout.ClassicLayout".equals(className)
+				|| "lucee.commons.io.log.log4j2.layout.ClassicLayout".equals(className)) {
 			return new ClassDefinitionImpl(ClassicLayout.class);
 		}
-		if ("datasource".equalsIgnoreCase(className)) return new ClassDefinitionImpl(ClassicLayout.class);
+		if ("datasource".equalsIgnoreCase(className) || "lucee.commons.io.log.log4j.layout.DatasourceLayout".equals(className)) return new ClassDefinitionImpl(ClassicLayout.class);
 		if ("html".equalsIgnoreCase(className) || "org.apache.log4j.HTMLLayout".equals(className) || "org.apache.logging.log4j.core.layout.HtmlLayout".equals(className)) {
 			return new ClassDefinitionImpl(HtmlLayout.class);
 		}
 		if ("xml".equalsIgnoreCase(className) || "org.apache.log4j.xml.XMLLayout".equalsIgnoreCase(className)
-				|| "org.apache.logging.log4j.core.layout.XmlLayout".equalsIgnoreCase(className)) {
+				|| "org.apache.logging.log4j.core.layout.XmlLayout".equalsIgnoreCase(className) || "lucee.commons.io.log.log4j2.layout.XMLLayout".equals(className)) {
 			return new ClassDefinitionImpl(XMLLayout.class);
 		}
 		if ("pattern".equalsIgnoreCase(className) || "org.apache.log4j.PatternLayout".equals(className) || "org.apache.logging.log4j.core.layout.PatternLayout".equals(className)) {
 			return new ClassDefinitionImpl(PatternLayout.class);
+		}
+		if ("datadog".equalsIgnoreCase(className) || className.indexOf(".DataDogLayout") != -1) {
+			return new ClassDefinitionImpl(DataDogLayout.class);
 		}
 
 		return new ClassDefinitionImpl(className);
@@ -228,6 +236,10 @@ public class Log4j2Engine extends LogEngine {
 
 				layout = builder.build();
 			}
+			// DataDog Layout
+			else if (cd.getClassName().indexOf(".DataDogLayout") != -1) {
+				layout = new DataDogLayout();
+			}
 			// class definition
 			else {
 				// MUST that will no longer work that way
@@ -254,7 +266,6 @@ public class Log4j2Engine extends LogEngine {
 			}
 		}
 		if (layout != null) return layout;
-
 		return new ClassicLayout();
 	}
 
@@ -533,6 +544,20 @@ public class Log4j2Engine extends LogEngine {
 		if ("xxsmall".equalsIgnoreCase(str)) return FontSize.XXSMALL;
 
 		return null;
+	}
+
+	@Override
+	public String getVersion() {
+		if (version == null) {
+			ClassLoader cl = LogManager.class.getClassLoader();
+			if (cl instanceof BundleClassLoader) {
+				BundleClassLoader bcl = (BundleClassLoader) cl;
+				Bundle b = bcl.getBundle();
+				version = b.getVersion().toString();
+			}
+			else version = "2";
+		}
+		return version;
 	}
 
 }

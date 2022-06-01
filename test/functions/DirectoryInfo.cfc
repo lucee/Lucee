@@ -1,6 +1,8 @@
 component extends="org.lucee.cfml.test.LuceeTestCase"{
 	function beforeAll(){
 		variables.uri = createURI( "LDEV3294" );
+		if ( directoryExists( uri ) )
+			directorydelete( uri , true );
 		directoryCreate( uri );
 		variables.DicFuncInfo = directoryinfo( uri );
 		directory action="info" directory="#uri#" name="variables.DicTagInfo";

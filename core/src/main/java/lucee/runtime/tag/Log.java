@@ -259,11 +259,16 @@ public final class Log extends TagImpl {
 		Resource logDir = config.getLogDirectory();
 		Resource res = logDir.getRealResource(file);
 		lucee.commons.io.log.Log log = FileLogPool.instance.get(res, CharsetUtil.toCharset(charset));
-		if (log != null) return log;
+		if (log != null) {
+			log.setLogLevel(lucee.commons.io.log.Log.LEVEL_TRACE);
+			return log;
+		}
 		synchronized (FileLogPool.instance) {
 			log = FileLogPool.instance.get(res, CharsetUtil.toCharset(charset));
-			if (log != null) return log;
-
+			if (log != null) {
+				log.setLogLevel(lucee.commons.io.log.Log.LEVEL_TRACE);
+				return log;
+			}
 			if (charset == null) charset = CharsetUtil.toCharSet(((PageContextImpl) pc).getResourceCharset());
 
 			log = config.getLogEngine().getResourceLog(res, CharsetUtil.toCharset(charset), "cflog." + FileLogPool.toKey(file, CharsetUtil.toCharset(charset)),

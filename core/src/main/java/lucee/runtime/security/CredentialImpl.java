@@ -242,7 +242,7 @@ public final class CredentialImpl implements Credential {
 	private static String decrypt(Object input, String privateKey, byte[] salt, int iter) throws PageException {
 		if (StringUtil.isEmpty(privateKey, true)) {
 			try {
-				return Base64Coder.decodeToString(Caster.toString(input), "UTF-8");
+				return Base64Coder.decodeToString(Caster.toString(input), "UTF-8", true);
 			}
 			catch (Exception e) {
 				throw Caster.toPageException(e);

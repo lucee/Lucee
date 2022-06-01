@@ -48,7 +48,7 @@
 							bucketName: bucketName
 						}
 					);
-					expect(local.result.filecontent).toBe('WRITE|READ');
+					expect(listSort(local.result.filecontent,"textnocase","asc","|")).toBe('READ|WRITE');
 				});
 
 				it(title="checking cffile, with attribute storeAcl = 'private' ", skip=isNotSupported(), body=function( currentSpec ){
@@ -70,7 +70,7 @@
 					var acl = StoreGetACL( baseWithBucketName & "/test3.txt" );
 					removeFullControl(acl);
 					var result = acl[1].permission & "|" & acl[2].permission;
-					expect(result).toBe('WRITE|READ');
+					expect(listSort(result,"textnocase","asc","|")).toBe('READ|WRITE');
 				});
 
 				it(title="checking cffile, with attribute storeAcl value as aclObject (an array of struct where struct represents an ACL grant)", skip=isNotSupported(), body=function( currentSpec ){
@@ -85,7 +85,9 @@
 					cffile (action="write", file=baseWithBucketName & "/test6.txt", output="Sample s3 text");
 					var acl = StoreGetACL( baseWithBucketName & "/test6.txt" );
 					removeFullControl(acl);
-					expect(acl[1].permission).toBe('READ');
+
+					if(isNewS3())expect(len(acl)).toBe(0);
+					else expect(acl[1].permission).toBe('READ');
 				});
 
 

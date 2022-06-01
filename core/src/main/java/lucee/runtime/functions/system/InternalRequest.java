@@ -11,6 +11,7 @@ import java.util.Map.Entry;
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.CharSet;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.mimetype.ContentType;
 import lucee.commons.net.HTTPUtil;
@@ -22,6 +23,7 @@ import lucee.runtime.CFMLFactoryImpl;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
+import lucee.runtime.exp.Abort;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
@@ -56,7 +58,7 @@ public class InternalRequest implements Function {
 	private static final Key CONTENT_TYPE = KeyImpl.getInstance("content-type");
 
 	public static Struct call(final PageContext pc, String template, String method, Object oUrls, Object oForms, Struct cookies, Struct headers, Object body, String strCharset,
-			boolean addToken) throws PageException {
+			boolean addToken, boolean throwonerror) throws PageException {
 		Struct urls = toStruct(oUrls);
 		Struct forms = toStruct(oForms);
 
@@ -116,11 +118,19 @@ public class InternalRequest implements Function {
 		long exeTime;
 		boolean isText = false;
 		Charset _charset = null;
+		PageException pe = null;
 		try {
 
 			if (CFMLEngine.DIALECT_LUCEE == dialect) _pc.execute(template, true, false);
 			else _pc.executeCFML(template, true, false);
 
+		}
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+			if (!(t instanceof Abort)) {
+				if (throwonerror) throw Caster.toPageException(t);
+				pe = Caster.toPageException(t);
+			}
 		}
 		finally {
 			_pc.flush();
@@ -150,7 +160,7 @@ public class InternalRequest implements Function {
 			status = rsp.getStatus();
 			ContentType ct = HTTPUtil.toContentType(rsp.getContentType(), null);
 			if (ct != null) {
-				isText = HTTPUtil.isTextMimeType(ct.getMimeType());
+				isText = HTTPUtil.isTextMimeType(ct.getMimeType()) == Boolean.TRUE;
 				if (ct.getCharset() != null) _charset = CharsetUtil.toCharset(ct.getCharset(), null);
 			}
 			releasePageContext(_pc, pc);
@@ -169,6 +179,7 @@ public class InternalRequest implements Function {
 		rst.set(KeyConstants._executionTime, new Double(exeTime));
 		rst.set(KeyConstants._status, new Double(status));
 		rst.set(STATUS_CODE, new Double(status));
+		if (pe != null) rst.set(KeyConstants._error, pe.getCatchBlock(pc.getConfig()));
 		return rst;
 	}
 

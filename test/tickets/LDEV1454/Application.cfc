@@ -1,5 +1,6 @@
 component{
-	function onRequestStart(){
+	public function onRequestStart() {
+		setting requesttimeout=10;
 		writeOutput( serializeJSON( form ) );
 		abort;
 	}	

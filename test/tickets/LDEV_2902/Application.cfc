@@ -32,4 +32,9 @@ component {
 		, timezone: ""
 
 	};
+	
+	public function onRequestStart() {
+		setting requesttimeout=10;
+	}
+
 }

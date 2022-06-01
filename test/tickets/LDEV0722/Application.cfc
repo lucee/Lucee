@@ -47,6 +47,7 @@ component {
 
 	// request start
 	public boolean function onRequestStart(String targetPage){
+		setting requesttimeout=10;
 		ormReload();
 		entityLoad("User",1,true);
 

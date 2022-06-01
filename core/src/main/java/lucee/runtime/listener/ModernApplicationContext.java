@@ -339,7 +339,6 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 		this.sessionType = config.getSessionType();
 		this.wstype = WS_TYPE_AXIS1;
 		this.cgiScopeReadonly = ci.getCGIScopeReadonly();
-		this.preciseMath = ci.getPreciseMath();
 		this.fullNullSupport = ci.getFullNullSupport();
 		this.queryPSQ = ci.getPSQL();
 		this.queryCachedAfter = ci.getCachedAfterTimeRange();
@@ -1732,7 +1731,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	}
 
 	@Override
-	public Log getLog(String name) throws PageException {
+	public Log getLog(String name) {
 		if (!initLog) initLog();
 		Pair<Log, Struct> pair = logs.get(KeyImpl.init(StringUtil.emptyIfNull(name)));
 		if (pair == null) return null;
@@ -1740,7 +1739,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	}
 
 	@Override
-	public Struct getLogMetaData(String name) throws PageException {
+	public Struct getLogMetaData(String name) {
 		if (!initLog) initLog();
 		Pair<Log, Struct> pair = logs.get(KeyImpl.init(StringUtil.emptyIfNull(name)));
 		if (pair == null) return null;
@@ -1748,18 +1747,23 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	}
 
 	@Override
-	public java.util.Collection<Collection.Key> getLogNames() throws PageException {
+	public java.util.Collection<Collection.Key> getLogNames() {
 		if (!initLog) initLog();
 		return logs.keySet();
 	}
 
-	private void initLog() throws PageException {
-		// appender
-		Object oLogs = get(component, LOGS, null);
-		if (oLogs == null) oLogs = get(component, LOG, null);
-		Struct sct = Caster.toStruct(oLogs, null);
-		logs = initLog(ThreadLocalPageContext.getConfig(config), sct);
-		initLog = true;
+	private void initLog() {
+		try {
+			// appender
+			Object oLogs = get(component, LOGS, null);
+			if (oLogs == null) oLogs = get(component, LOG, null);
+			Struct sct = Caster.toStruct(oLogs, null);
+			logs = initLog(ThreadLocalPageContext.getConfig(config), sct);
+			initLog = true;
+		}
+		catch (PageException e) {
+			throw new PageRuntimeException(e);
+		}
 	}
 
 	public static void releaseInitCacheConnections() {
@@ -1940,5 +1944,4 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	public void setRegex(Regex regex) {
 		this.regex = regex;
 	}
-
 }

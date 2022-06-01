@@ -71,11 +71,10 @@ jobs:
     - name: Cache Maven packages
       uses: actions/cache@v2
       with:
-        path: ~/.m2
-        key: ${{ runner.os }}-m2-${{ hashFiles('loader/pom.xml','core/pom.xml') }}
+        path: ~/.m2/repository
+        key: ${{ runner.os }}-maven-${{ hashFiles('loader/pom.xml','core/pom.xml') }}
         restore-keys: |
-          ${{ runner.os }}-m2
-          maven-cache
+          ${{ runner.os }}-maven-
     - name: Set up MySQL (local)
       run: |
         sudo systemctl start mysql
@@ -129,7 +128,8 @@ jobs:
         # used by travis-settings.xml
         CI_DEPLOY_USERNAME: ${{ secrets.CI_DEPLOY_USERNAME }}
         CI_DEPLOY_PASSWORD: ${{ secrets.CI_DEPLOY_PASSWORD }}
-        CI_DEPLOY_PASSPHRASE: ${{ secrets.CI_DEPLOY_PASSPHRASE }}        
+        CI_DEPLOY_PASSPHRASE: ${{ secrets.CI_DEPLOY_PASSPHRASE }}
+        LUCEE_DOCKER_FILES_PAT_TOKEN: ${{ secrets.LUCEE_DOCKER_FILES_PAT_TOKEN }}
       #run: ant -noinput -buildfile loader/build.xml
       run: |
         if [ "${DO_DEPLOY}" == "true" ]; then
@@ -145,12 +145,6 @@ jobs:
       with:
         files: test/reports/junit-test-results.xml
         check_name: "Lucee Test Results"
-    - name: Update Provider
-      if: ${{ env.DO_DEPLOY == 'true' }}
-      run: |
-        curl --no-progress-meter -sIXGET "https://update.lucee.org/rest/update/provider/buildLatest"
-        curl --no-progress-meter -sIXGET "https://extension.lucee.org/rest/extension/provider/reset"
-        curl --no-progress-meter -sIXGET "https://download.lucee.org/?type=snapshots&reset=force"
     - name: Trigger Docker Build
       if: ${{ env.DO_DEPLOY == 'true' }}
       env:

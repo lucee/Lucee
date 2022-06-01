@@ -803,8 +803,8 @@ public final class Decision {
 	 * @return is or not
 	 */
 	public static boolean isObject(Object o) {
+		if (o == null) return false;
 		return isComponent(o)
-
 				|| (!isArray(o) && !isQuery(o) && !isSimpleValue(o) && !isStruct(o) && !isUserDefinedFunction(o) && !isXML(o));
 	}
 

@@ -116,6 +116,13 @@ public class OSGiUtil {
 	private static final Filter JAR_EXT_FILTER = new Filter();
 
 	private static String[] bootDelegation;
+	private static Map<String, String> packageBundleMapping = new HashMap<String, String>();
+
+	static {
+		// this is needed in case old version of extensions are used, because lucee no longer bundles this
+		packageBundleMapping.put("org.bouncycastle", "bcprov");
+		packageBundleMapping.put("org.apache.log4j", "log4j");
+	}
 
 	/**
 	 * only installs a bundle, if the bundle does not already exist, if the bundle exists the existing
@@ -422,7 +429,6 @@ public class OSGiUtil {
 
 	public static Bundle loadBundleByPackage(String packageName, List<VersionDefinition> versionDefinitions, Set<Bundle> loadedBundles, boolean startIfNecessary,
 			Set<String> parents) throws BundleException, IOException {
-
 		CFMLEngine engine = CFMLEngineFactory.getInstance();
 		CFMLEngineFactory factory = engine.getCFMLEngineFactory();
 
@@ -455,6 +461,13 @@ public class OSGiUtil {
 					}
 				}
 			}
+		}
+
+		String bn = packageBundleMapping.get(packageName);
+		if (!StringUtil.isEmpty(bn)) return loadBundle(bn, null, null, null, startIfNecessary);
+
+		for (Entry<String, String> e: packageBundleMapping.entrySet()) {
+			if (packageName.startsWith(e.getKey() + ".")) return loadBundle(e.getValue(), null, null, null, startIfNecessary);
 		}
 		return null;
 	}
@@ -609,7 +622,7 @@ public class OSGiUtil {
 				+ (id == null ? "?" : "&") + "allowRedirect=true"
 
 		);
-		log(Logger.LOG_WARNING, "Downloading bundle [" + symbolicName + ":" + symbolicVersion + "] from " + updateUrl);
+		log(Logger.LOG_INFO, "Downloading bundle [" + symbolicName + ":" + symbolicVersion + "] from [" + updateUrl + "]");
 
 		int code;
 		HttpURLConnection conn;
@@ -2012,5 +2025,15 @@ public class OSGiUtil {
 		}
 		// TODO Auto-generated method stub
 
+	}
+
+	public static boolean isValid(Object obj) {
+		if (obj != null) {
+			ClassLoader cl = obj.getClass().getClassLoader();
+			if (cl instanceof BundleClassLoader) {
+				if (((Bundle) ((BundleClassLoader) cl).getBundle()).getState() != Bundle.ACTIVE) return false;
+			}
+		}
+		return true;
 	}
 }
