@@ -21,6 +21,10 @@ component {
 		"MEMCACHED_PORT": 11211
 	}
 
+	then add an ENV var pointing to the .json file
+	
+	LUCEE_BUILD_ENV=c:\work\lucee_build_env.json"
+	
 	*/
 
 	public function init (){

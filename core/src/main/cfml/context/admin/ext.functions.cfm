@@ -61,7 +61,7 @@
 		<cfloop query="providers">
 			<cfif hash(providers.url) EQ arguments.hashProvider>
 				<cfset detail.provider=loadCFC(providers.url)>
-				<Cfdump var=#detail.provider#>
+				<cfdump var=#detail.provider#>
 				<cfabort>
 				<cfset var apps=detail.provider.listApplications()>
 				<cfset detail.info=detail.provider.getInfo()>

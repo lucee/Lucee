@@ -5,6 +5,10 @@ component {
 	if(mySQL.count()!=0){
 		this.datasource=mySQL;
 	}
+	
+	public function onRequestStart() {
+		setting requesttimeout=10;
+	}
 
 	public function onApplicationStart() {
 		query {

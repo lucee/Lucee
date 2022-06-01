@@ -4680,8 +4680,8 @@ Permits searching collections by title or displaying a separate title from the k
 			<name>timeout</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>Specifies the maximum amount of time, in seconds, to wait for LDAP processing. Defaults to
-		60 seconds.</description>
+			<description>Specifies the maximum amount of time, in milliseconds, to wait for LDAP processing. Defaults to
+		60000 ms (60 seconds).</description>
 		</attribute>
 		<attribute>
 			<type>number</type>
@@ -6561,7 +6561,7 @@ possible values are:
 String "request": If original query was created within the current request, cached query data is used.
 a timeSpan (created with function CreateTimeSpan): If original query date falls within the time span, cached query data is used.
 
-To use cached data, the current query must use the same SQL statement, data source, query name, user name, and password.</description>
+To use cached data, the current query must use the same SQL statement, data source, query name, maxrows, user name, and password.</description>
     	</attribute>
 		<attribute>
 			<type>string</type>
@@ -7253,6 +7253,13 @@ To use cached data, the current query must use the same SQL statement, data sour
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Password to provide to the proxy server.</description>
+		</attribute>
+		<attribute>
+			<type>string</type>
+			<name>userAgent</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>User agent request header.</description>
 		</attribute>
 		<attribute>
 			<type>boolean</type>

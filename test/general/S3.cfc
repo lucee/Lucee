@@ -37,6 +37,28 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					,url:getCredencials());
 				expect(trim(res.filecontent?:"")).toBe("truetrue");
 			});
+			it(title="test access 100 threads at the same time", body=function() {
+				var cred=getCredencials();
+				var dir="s3://#cred.ACCESS_KEY_ID#:#cred.SECRET_KEY#/tests3/";
+				var file=dir&"testmultithread.txt";
+				try {    
+				if(!directoryExists(dir))directoryCreate(dir);
+				fileWrite(file, "Susi sorglos foehnte Ihr Haar!");
+				
+				var arr=[];
+				loop times=100 {
+					arrayAppend(arr, file);
+				}
+
+				arr.each(
+				function(el, ix, arr) localMode=true {
+					var res=fileRead(el);
+				}, true, 100);
+				}
+				finally {
+				if(directoryExists(dir))directoryDelete(dir, true);
+				}
+			});
 		});
 	}
 

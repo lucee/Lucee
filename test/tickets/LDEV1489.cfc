@@ -85,7 +85,9 @@
 					cffile (action="write", file=baseWithBucketName & "/test6.txt", output="Sample s3 text");
 					var acl = StoreGetACL( baseWithBucketName & "/test6.txt" );
 					removeFullControl(acl);
-					expect(acl[1].permission).toBe('READ');
+
+					if(isNewS3())expect(len(acl)).toBe(0);
+					else expect(acl[1].permission).toBe('READ');
 				});
 
 

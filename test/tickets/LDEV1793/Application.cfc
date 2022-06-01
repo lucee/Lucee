@@ -13,7 +13,9 @@ component {
 	this.ormSettings = {
 		dialect = "MySQLwithInnoDB"
 	};
-	function onRequestStart(){
+
+	public function onRequestStart() {
+		setting requesttimeout=10;
 
 		query {
 	        echo("SET FOREIGN_KEY_CHECKS=0");

@@ -7,7 +7,9 @@ component {
 	this.name="thread-session-cfml";
 	this.sessionType="j2ee";
 
-	function onSessionStart() {
+	
+	public function onRequestStart() {
+		setting requesttimeout=10;
 		// this is needed to force cookie creation
 		//echo("session started");
 	}

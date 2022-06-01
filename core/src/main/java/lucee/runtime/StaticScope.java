@@ -261,7 +261,7 @@ public class StaticScope extends StructSupport implements Variables, Objects {
 		return _entries(new HashMap<Key, Object>(), access).entrySet().iterator();
 	}
 
-	private Map<Key, Object> _entries(Map<Key, Object> map, int access) {
+	Map<Key, Object> _entries(Map<Key, Object> map, int access) {
 		// call parent
 		if (base != null) base._entries(map, access);
 
@@ -402,12 +402,18 @@ public class StaticScope extends StructSupport implements Variables, Objects {
 		accesses[Component.ACCESS_PRIVATE] = new DumpTable("#ff6633", "#ff9966", "#000000");
 		accesses[Component.ACCESS_PRIVATE].setTitle("private");
 		accesses[Component.ACCESS_PRIVATE].setWidth("100%");
+
 		accesses[Component.ACCESS_PACKAGE] = new DumpTable("#ff9966", "#ffcc99", "#000000");
 		accesses[Component.ACCESS_PACKAGE].setTitle("package");
 		accesses[Component.ACCESS_PACKAGE].setWidth("100%");
+
 		accesses[Component.ACCESS_PUBLIC] = new DumpTable("#ffcc99", "#ffffcc", "#000000");
 		accesses[Component.ACCESS_PUBLIC].setTitle("public");
 		accesses[Component.ACCESS_PUBLIC].setWidth("100%");
+
+		accesses[Component.ACCESS_REMOTE] = new DumpTable("#ccffcc", "#ffffcc", "#000000");
+		accesses[Component.ACCESS_REMOTE].setTitle("remote");
+		accesses[Component.ACCESS_REMOTE].setWidth("100%");
 
 		Iterator<Entry<Key, Member>> it = all(new HashMap<Key, Member>()).entrySet().iterator();
 		Entry<Key, Member> e;
@@ -418,11 +424,16 @@ public class StaticScope extends StructSupport implements Variables, Objects {
 			DumpTable box = accesses[a];
 			Object o = e.getValue().getValue();
 
-			if (DumpUtil.keyValid(dp, maxlevel, e.getKey())) box.appendRow(1, new SimpleDumpData(e.getKey().getString()), DumpUtil.toDumpData(o, pc, maxlevel, dp));
+			if (DumpUtil.keyValid(dp, maxlevel, e.getKey())) {
+				box.appendRow(1, new SimpleDumpData(e.getKey().getString()), DumpUtil.toDumpData(o, pc, maxlevel, dp));
+			}
 		}
 
 		DumpTable table = new DumpTable("#ffffff", "#cccccc", "#000000");
 
+		if (!accesses[Component.ACCESS_REMOTE].isEmpty()) {
+			table.appendRow(0, accesses[Component.ACCESS_REMOTE]);
+		}
 		if (!accesses[Component.ACCESS_PUBLIC].isEmpty()) {
 			table.appendRow(0, accesses[Component.ACCESS_PUBLIC]);
 		}

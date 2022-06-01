@@ -4,8 +4,9 @@ component {
 	this.name = "luceetest";
 	this.datasources["ldev3091_DSN"] = mySQL;
 	this.datasource = "ldev3091_DSN";
-
-	public function onRequestStart(){
+	
+	public function onRequestStart() {
+		setting requesttimeout=10;
 		query{
 			echo("DROP TABLE IF EXISTS ldev3118");
 		}

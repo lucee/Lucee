@@ -7,4 +7,7 @@ component {
 
     this.datasource =  server.getDatasource("postgres");
 
+	public function onRequestStart() {
+		setting requesttimeout=10;
+	}
 }
