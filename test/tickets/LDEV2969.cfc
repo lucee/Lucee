@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" skip=true{
+component extends="org.lucee.cfml.test.LuceeTestCase" {
     function run( testResults , testBox ) {
         describe( "test case for LDEV-2969", function() {
             it( title = "deserializeJSON with large precision", body=function( currentSpec ) {
