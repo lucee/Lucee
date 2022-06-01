@@ -1,4 +1,4 @@
-component extends = "org.lucee.cfml.test.LuceeTestCase" skip="true"{
+component extends = "org.lucee.cfml.test.LuceeTestCase" {
 	function beforeAll(){
 		variables.uri=createURI("LDEV3802");
 		variables.file = GetDirectoryFromPath(getcurrentTemplatepath())&'LDEV3802\result.txt';
