@@ -18,17 +18,14 @@
  ---><cfscript>
 component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	
-	//public function beforeTests(){}
-	
-	//public function afterTests(){}
-	
-	//public function setUp(){}
-
-	public void function testArrrayFirst(){
-		if(server.ColdFusion.ProductName EQ "lucee"){
-			var x=array(1,2,3,4,5,6,7,8);
-			assertEquals(1,ArrayFirst(x));
-		}
+	public void function testArrayFirst() {
+		var x = array(1,2,3,4,5,6,7,8);
+		assertEquals(1,ArrayFirst(x));
 	}
-} 
+
+	public void function testArrayFirstMemberFunction() {
+		var x = array(1,2,3,4,5,6,7,8);
+		assertEquals(1,x.first());
+	} 
+}
 </cfscript>

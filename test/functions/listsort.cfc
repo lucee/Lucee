@@ -21,6 +21,18 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				list=ListSort(list, "textnocase","asc");
 				assertEquals("#list#", "a,a,A,b,d");
 			});
+			it( title='Test case for list.ListSort member function  ',body=function( currentSpec ) {
+				assertEquals("#'ccc,aaa,bbb,AAAA,BB'.ListSort('text','asc')#", "AAAA,BB,aaa,bbb,ccc");
+				assertEquals("#'ccc,aaa,bbb,AAAA,BB'.ListSort('text','desc')#", "ccc,bbb,aaa,BB,AAAA");
+				assertEquals("#'ccc,aaa,bbb,AAAA,BB'.ListSort('textnocase','asc')#", "aaa,AAAA,BB,bbb,ccc");
+				assertEquals("#'ccc,aaa,bbb,AAAA,BB'.ListSort('textnocase','desc')#", "ccc,bbb,BB,AAAA,aaa");
+				assertEquals("#'1111,3,44,777,2,11'.ListSort('textnocase','desc')#", "777,44,3,2,1111,11");
+				assertEquals("#'1111,3,44,777,2,11'.ListSort('numeric','desc')#", "1111,777,44,11,3,2");
+			
+				list=("d,a,a,b,A");
+				list=list.ListSort("textnocase","asc");
+				assertEquals("#list#", "a,a,A,b,d");
+			});
 		});
 	}
 }
