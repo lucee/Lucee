@@ -31,10 +31,10 @@
 				<cfif structKeyExists(data,"error")>
 					<cfset stVeritfyMessages[provider].Label = "Error">
 					<cfif data.status_code == 404>
-						<cfset stVeritfyMessages[provider].message = "Was not able to retrieve data from ["&provider&"]. status code : 404">
+						<cfset stVeritfyMessages[provider].message = "Was not able to retrieve data from ["&provider&"]. status code: 404">
 						<cfset stVeritfyMessages[provider].detail ="">
 					<cfelse>
-						<cfset stVeritfyMessages[provider].message = "Failed to retrieve data from ["&provider&"].">
+						<cfset stVeritfyMessages[provider].message = "Failed to retrieve data from ["&provider&"]. status code: #data.status_code#">
 						<cfset stVeritfyMessages[provider].detail = "Message from server: "&data.error>
 					</cfif>
 				<cfelse>
