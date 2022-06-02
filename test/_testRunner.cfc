@@ -118,7 +118,7 @@ component {
 
 			if ( ArrayLen( labelsMatched ) eq arrayLen( arguments.requiredTestLabels ) )
 				matched = true; // matched all the required labels
-			if  matched and listLen( testLabels ) neq ArrayLen( labelsMatched ) )
+			if ( matched and listLen( testLabels ) neq ArrayLen( labelsMatched ) )
 				matched = false; // but we didn't match all the specified labels for the test
 
 			var matchStatus = "#path# [#testLabels#] matched required label(s) #serializeJson(arguments.requiredTestLabels)#,"
