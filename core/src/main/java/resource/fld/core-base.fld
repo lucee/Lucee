@@ -11796,7 +11796,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<member-name>append</member-name>
 		<member-chaining>true</member-chaining>
 		<keywords>struct</keywords>
-		<description>Appends all the data from struct2 into struct2, replacing duplicate keys unless specified by the overwrite flag</description>
+		<description>Appends all the data from struct2 into struct1, replacing duplicate keys unless specified by the overwrite flag</description>
 		<argument>
 			<name>Struct1</name>
 			<type>struct</type>
