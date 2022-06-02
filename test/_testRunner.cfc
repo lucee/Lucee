@@ -7,7 +7,7 @@ component {
 	public array function getBundles( testMapping, testDirectory ){
 		var srcBundles = directoryList( path=arguments.testMapping, recurse=true, listInfo="path", filter="*.cfc" );
 		var testDirectoryLen = len( arguments.testDirectory );
-		var mapping = ListChangeDelims( arguments.testMapping, "", "/\" ); 
+		var mapping = ListChangeDelims( arguments.testMapping, "", "/\" );
 		var bundles = [];
 		ArrayEach( array=srcBundles, closure=function( el, idx, arr ){
 			if ( testFilter( arguments.el, testDirectory, testMapping ) ) {
@@ -49,7 +49,7 @@ component {
 					if ( fileRead( arguments.path ) contains "org.lucee.cfml.test.LuceeTestCase" ){
 						// throw an error on bad cfc test cases
 						// but ignore errors when using any labels, as some extensions might not be installed, causing compile syntax errors
-						if ( len( request.testLabels ) eq 0 ) { 
+						if ( len( request.testLabels ) eq 0 ) {
 							SystemOutput( "ERROR: [" & arguments.path & "] threw " & meta._exception.message, true );
 							throw( object=meta._exception );
 						}
@@ -64,8 +64,8 @@ component {
 			var extends = checkExtendsTestCase( meta, arguments.path );
 			if ( extends neq "org.lucee.cfml.test.LuceeTestCase" )
 				return "test doesn't extend Lucee Test Case (#extends#)";
-			
-			return checkTestLabels( meta, arguments.path );
+
+			return checkTestLabels( meta, arguments.path, request.testLabels );
 		};
 
 		var checkTestFilter = function ( string path ){
@@ -102,22 +102,33 @@ component {
 			return meta.extends.fullname ?: "";
 		};
 
-		/* testbox mixes label and skip, which is confusing, skip false should always mean skip, so we check it manually */
-		var checkTestLabels = function ( any meta, string path ){
-			if ( arrayLen ( request.testLabels ) eq 0 )
-				return "";
-			var labels = meta.labels ?: "";
-			var labelsMatched = 0;
-			loop array="#request.testLabels#" item="local.f" {
-				if ( ListFindNoCase( labels, f ) gt 0 )
-					labelsMatched++;
+		/* testbox mixes labels and skip, which is confusing, skip false should always mean skip, so we check it manually */
+		var checkTestLabels = function ( required any meta, required string path, required array requiredTestLabels ){
+			if ( arrayLen ( arguments.requiredTestLabels ) eq 0 )
+				return ""; // no labels to filter by
+			var testLabels = meta.labels ?: "";
+			var labelsMatched = [];
+
+			// TODO allow any of syntax, orm|cache
+			loop array="#arguments.requiredTestLabels#" item="local.f" {
+				if ( ListFindNoCase( testLabels, f ) gt 0 )
+					ArrayAppend( labelsMatched, f );
 			}
-			if ( labelsMatched neq arrayLen( request.testLabels ) ){
-				var failed = "#path# [#labels#] didn't match all label(s) #serializeJson(request.testLabels)#, only [#labelsMatched#] matched";
-				// systemOutput(failed, true);
-				return failed;
+			var matched = false;
+
+			if ( ArrayLen( labelsMatched ) eq arrayLen( arguments.requiredTestLabels ) )
+				matched = true; // matched all the required labels
+			if  matched and listLen( testLabels ) neq ArrayLen( labelsMatched ) )
+				matched = false; // but we didn't match all the specified labels for the test
+
+			var matchStatus = "#path# [#testLabels#] matched required label(s) #serializeJson(arguments.requiredTestLabels)#,"
+				& " only #serializeJson( labelsMatched )# matched";
+			if ( !matched ){
+				// systemOutput( "FAILED: " & matchStatus, true );
+				return matchStatus;
 			} else {
-				return ""; //ok	
+				// systemOutput( "OK: " & matchStatus  , true);
+				return ""; //ok
 			}
 		};
 
@@ -315,7 +326,7 @@ component {
 				}
 			}
 		}
-		
+
 	// exceptions
 	if ( !isSimpleValue( bundle.globalException ) ) {
 		systemOutput( "Global Bundle Exception
@@ -357,7 +368,7 @@ Begin Stack Trace
 		result: tb.getResult(),
 		failedTestCases: failedTestCases,
 		tb: tb
-	};	
+	};
 	return testResults;
 }
 
