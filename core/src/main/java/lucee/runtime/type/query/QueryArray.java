@@ -27,6 +27,7 @@ public class QueryArray extends ArrayImpl implements QueryResult {
 	private String cacheType;
 	private int updateCount;
 	private Key[] columnNames;
+	private String datasourceName;
 
 	public QueryArray(String name, SQL sql, TemplateLine templateLine) {
 		this.name = name;
@@ -56,6 +57,9 @@ public class QueryArray extends ArrayImpl implements QueryResult {
 			comment.append("Cache Type: ").append(ct).append("\n");
 		}
 
+		String datasourceName = getDatasourceName();
+		if(datasourceName != null) comment.append("Datasource: ").append(datasourceName).append("\n");
+
 		SQL sql = getSql();
 		if (sql != null) comment.append("SQL: ").append("\n").append(StringUtil.suppressWhiteSpace(sql.toString().trim())).append("\n");
 
@@ -72,6 +76,7 @@ public class QueryArray extends ArrayImpl implements QueryResult {
 		qa.columnNames = columnNames;
 		qa.executionTime = executionTime;
 		qa.updateCount = updateCount;
+		qa.datasourceName = datasourceName;
 		return duplicate(qa, deepCopy);
 	}
 
@@ -93,6 +98,14 @@ public class QueryArray extends ArrayImpl implements QueryResult {
 	@Override
 	public boolean isCached() {
 		return cacheType != null;
+	}
+
+	public String getDatasourceName() {
+		return datasourceName;
+	}
+
+	public void setDatasourceName(String datasourceName) {
+		this.datasourceName = datasourceName;
 	}
 
 	@Override
