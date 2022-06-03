@@ -8,7 +8,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="query"{
     }
 
     private function cleanUp() {
-        if (notHasMysql()) {
+        if (!notHasMysql()) {
             queryExecute( sql="DROP TABLE IF EXISTS LDEV3070", options: {
                 datasource: server.getDatasource("mysql")
             }); 
