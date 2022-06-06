@@ -22,7 +22,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ORM" skip=true{
 
 	function run( testResults, testBox ) {
 		describe("Testcase for LDEV4017", function() {
-			it( title="", skip="#notHasH2()#", body=function( currentSpec ) {
+			it( title="Access the lazy-loaded ORM entity after the transaction ends", skip="#notHasH2()#", body=function( currentSpec ) {
 				var result = _InternalRequest(
 					template : "#variables.uri#/LDEV4017.cfm",
 					forms : { uuid : createUUID(), dbfile : variables.dbfile }
