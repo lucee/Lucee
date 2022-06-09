@@ -81,6 +81,6 @@ public final class ListRemoveDuplicates extends BIF {
 		if (args.length == 2) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]));
 		if (args.length == 3) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toBooleanValue(args[2]));
 
-		throw new FunctionException(pc, "ListRemoveDuplicates", 2, 5, args.length);
+		throw new FunctionException(pc, "ListRemoveDuplicates", 1, 3, args.length);
 	}
 }

@@ -54,4 +54,40 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 		
 
 	}
+
+	function testListRestmember(){
+		assertEquals("",''.ListRest());
+		assertEquals("b/c","//a/b/c".listRest("/"));
+		assertEquals("/a/b/c","//a/b/c".listRest("/", true));
+		assertEquals("/a/b/c","//a/b/c".listRest("/", 3));
+		assertEquals("b/c","//a/b/c".listRest("/", true, 3));
+		assertEquals("localhost:8888/lucee-tests/index.cfm","http://localhost:8888/lucee-tests/index.cfm".listRest("/"));
+		assertEquals("/localhost:9999/lucee-tests/index.cfm","http://localhost:9999/lucee-tests/index.cfm".listRest("/", true));
+		assertEquals("lucee-tests/index9.cfm","http://localhost:8888/lucee-tests/index9.cfm".listRest("/", true, 3));
+		assertEquals("index1.cfm","http://localhost:8888/lucee-tests/index1.cfm".listRest("/", false, 3));
+
+		assertEquals("bb/cc","aa//bb/cc".listRest("/", false, 1));
+		assertEquals("bb/cc","aa////bb/cc".listRest("/", false, 1));
+		assertEquals("/bb/cc","aa//bb/cc".listRest("/", true, 1));
+
+		assertEquals("///bb/cc","aa////bb/cc".listRest("/", true, 1));
+
+		assertEquals("dd","aa//bb/cc/dd".listRest("/", false, 3));
+		assertEquals("dd","aa////bb/cc/dd".listRest("/", false, 3));
+		assertEquals("dd","aa//bb////cc/dd".listRest("/", false, 3));
+		assertEquals("dd","aa////bb/////cc/////dd".listRest("/", false, 3));
+
+		assertEquals("cc/dd","aa//bb/cc/dd".listRest("/", true, 3));
+		assertEquals("bb/cc/dd","aa///bb/cc/dd".listRest("/", true, 3));
+
+
+		assertEquals("b/c","//a/b/c".listRest("/"));
+		assertEquals("c","//a/b/c".listRest("/",false,2));
+		assertEquals("d","//a/b/c/d".listRest("/",false,3));
+
+
+		assertEquals("/a/b/c","//a/b/c".listRest("/",true));
+		assertEquals("a/b/c","//a/b/c".listRest("/",true,2));
+		assertEquals("b/c/d","//a/b/c/d".listRest("/",true,3));
+	}
 }
