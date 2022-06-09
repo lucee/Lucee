@@ -6411,15 +6411,6 @@ sct["bracketNotation"] --> keyname: "bracketNotation"
 			<description>This attribute has been deprecated and is non-functional.</description>
 		</attribute>
 		<attribute>
-			<type>any</type>
-			<name>tags</name>
-			<alias>tag</alias>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<status>hidden</status>
-			<description>tags stored with the cache.</description>
-		</attribute>
-		<attribute>
 			<type>string</type>
 			<name>connectString</name>
 			<required>false</required>
@@ -6485,6 +6476,14 @@ a timespan (created with function CreateTimeSpan): If original query date falls 
 
 To use cached data, the current query must use the same SQL statement, data source, query name, user name, and password.</description>
     	</attribute>
+		<attribute>
+			<type>any</type>
+			<name>tags</name>
+			<alias>tag</alias>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>tags stored with the cache.</description>
+		</attribute>
 		<attribute>
 			<type>string</type>
 			<name>provider</name>
