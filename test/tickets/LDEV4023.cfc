@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" labels="array" {
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="array" skip=true{
 	function run( testResults, testBox ) {
 		describe("Testcase for LDEV-4023", function() {
 			it( title="Checking arrayEach() with the array that has null values", body=function( currentSpec ) {
