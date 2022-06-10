@@ -40,16 +40,18 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="thread,cookie,sess
 				local.result = _InternalRequest(
 					template : "#uri#\j2ee-session\testThreadCookies.cfm"
 				);
-				//dumpResult(local.result);
-				expect( structCount(result.cookies ) ).toBeGT( 0 );
+				dumpResult(local.result);
+				expect( structCount(result.cookies ) ).toBe( 1 );
+				expect( structKeyExists(result.cookies, "CFID" ) ).toBeFalse();
+				expect( structKeyExists(result.cookies, "JsessionId" ) ).toBeTrue();
 			});
 		});
 	}
 
 	private function dumpResult(r){
 		systemOutput("", true);
-		systemOutput(r.cookies, true);
-		systemOutput(r.headers, true);
+		systemOutput("Cookies: " & serializeJson(r.cookies), true);
+		systemOutput("Headers: " & serializeJson(r.headers), true);
 		systemOutput("", true);
 	}
 	
