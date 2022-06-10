@@ -11544,9 +11544,8 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 	</function>
 	<!-- setSecond -->
 	<function>
-		<name>__setSecond</name>
+		<name>setSecond</name>
 		<class>lucee.runtime.functions.dateTime.SetSecond</class>
-		<status>hidden</status>
 		<member-name>setSecond</member-name>
 		<description>Sets the seconds of this Date Object to the specified value.</description>
 		<argument>
@@ -11582,9 +11581,8 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 	</function>
 	<!-- setMinute -->
 	<function>
-		<name>__setMinute</name>
+		<name>setMinute</name>
 		<class>lucee.runtime.functions.dateTime.SetMinute</class>
-		<status>hidden</status>
 		<member-name>setMinute</member-name>
 		<description>Sets the minutes of this Date Object to the specified value.</description>
 		<argument>
@@ -11621,9 +11619,8 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 	
 	<!-- setHour -->
 	<function>
-		<name>__setHour</name>
+		<name>setHour</name>
 		<class>lucee.runtime.functions.dateTime.SetHour</class>
-		<status>hidden</status>
 		<member-name>setHour</member-name>
 		<description>Sets the hours of this Date Object to the specified value.</description>
 		<argument>
@@ -11660,9 +11657,8 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 	
 	<!-- setDay -->
 	<function>
-		<name>__setDay</name>
+		<name>setDay</name>
 		<class>lucee.runtime.functions.dateTime.SetDay</class>
-		<status>hidden</status>
 		<member-name>setDay</member-name>
 		<description>Sets the days of this Date Object to the specified value.</description>
 		<argument>
@@ -11699,9 +11695,8 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 	
 	<!-- setMonth -->
 	<function>
-		<name>__setMonth</name>
+		<name>setMonth</name>
 		<class>lucee.runtime.functions.dateTime.SetMonth</class>
-		<status>hidden</status>
 		<member-name>setMonth</member-name>
 		<description>Sets the months of this Date Object to the specified value.</description>
 		<argument>
@@ -11738,9 +11733,8 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 	
 	<!-- setYear -->
 	<function>
-		<name>___setYear</name>
+		<name>setYear</name>
 		<class>lucee.runtime.functions.dateTime.SetYear</class>
-		<status>hidden</status>
 		<member-name>setYear</member-name>
 		<description>Sets the years of this Date Object to the specified value.</description>
 		<argument>

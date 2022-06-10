@@ -17,7 +17,7 @@
 component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 	public void function testMemberFunction() localmode="true" {
-		t=createDateTime(2000,1,1,0,0,0);
+		t = createDateTime(2000,1,1,0,0,0);
 		assertEquals("{ts '2000-01-01 00:00:00'}",t&"");
 		t.setYear(2016);
 		assertEquals("{ts '2016-01-01 00:00:00'}",t&"");
@@ -28,12 +28,17 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		assertEquals("{ts '2059-01-01 00:00:00'}",t.setYear(2059,getTimeZone())&"");
 	}
 
-	/* support for this is removed public void function testFunction() localmode="true" {
-		t=createDateTime(2000,1,1,0,0,0);
+	public void function testFunction() localmode="true" {
+		t = createDateTime(2000,1,1,0,0,0);
 		assertEquals("{ts '2000-01-01 00:00:00'}",t&"");
+
 		setYear(t,2019);
 		assertEquals("{ts '2019-01-01 00:00:00'}",t&"");
-	}*/
-	
 
+		assertEquals("{ts '2059-01-01 00:00:00'}",setYear(t,2059,getTimeZone())&"");
+
+		date = "{ts '2000-01-01 00:00:00'}";
+		assertEquals("{ts '2001-01-01 00:00:00'}",setYear(date,2001)&"");
+	}
+	
 } 

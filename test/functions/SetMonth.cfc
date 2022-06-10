@@ -17,7 +17,7 @@
 component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 	public void function testMemberFunction() localmode="true" {
-		t=createDateTime(2000,1,1,0,0,0,0,getTimeZone());
+		t = createDateTime(2000,1,1,0,0,0,0,getTimeZone());
 		assertEquals("{ts '2000-01-01 00:00:00'}",t&"");
 		t.setMonth(2,getTimeZone());
 		assertEquals("{ts '2000-02-01 00:00:00'}",t&"");
@@ -26,13 +26,17 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		assertEquals("{ts '2000-03-01 00:00:00'}",t&"");
 		
 		assertEquals("{ts '2000-04-01 00:00:00'}",t.setMonth(4,getTimeZone())&"");
-	}    // testMemberFunction:Expected [{ts '2000-02-01 00:00:00'}] but received [{ts '2000-03-01 00:00:00'}]
-    
+	}	// testMemberFunction:Expected [{ts '2000-02-01 00:00:00'}] but received [{ts '2000-03-01 00:00:00'}]
 
-	/* support for this is removed public void function testFunction() localmode="true" {
-		t=createDateTime(2000,1,1,0,0,0);
+	
+	public void function testFunction() localmode="true" {
+		t = createDateTime(2000,1,1,0,0,0);
 		assertEquals("{ts '2000-01-01 00:00:00'}",t&"");
 		setMonth(t,13);
 		assertEquals("{ts '2001-01-01 00:00:00'}",t&"");
-	}*/
+
+		date = "{ts '2000-05-04 00:00:00'}";
+		assertEquals("{ts '2000-09-04 00:00:00'}",setMonth(date,9,getTimeZone())&"");
+		assertEquals("{ts '2001-01-04 00:00:00'}",setMonth(date,13)&"");
+	}
 } 
