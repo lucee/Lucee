@@ -17,25 +17,25 @@
 component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 	public void function testMemberFunction() localmode="true" {
-		t = createDateTime(2000,1,1,0,0,0);
-		assertEquals("{ts '2000-01-01 00:00:00'}",t&"");
+		t = createDateTime( year=2000, month=1, day=2, hour=3, minute=4, second=5, millisecond=6);
+		assertEquals("{ts '2000-01-02 03:04:05'}",t&"");
 		t.setYear(2016);
-		assertEquals("{ts '2016-01-01 00:00:00'}",t&"");
+		assertEquals("{ts '2016-01-02 03:04:05'}",t&"");
 		
-		assertEquals("{ts '2017-01-01 00:00:00'}",t.setYear(2017)&"");
-		assertEquals("{ts '2017-01-01 00:00:00'}",t&"");
+		assertEquals("{ts '2017-01-02 03:04:05'}",t.setYear(2017)&"");
+		assertEquals("{ts '2017-01-02 03:04:05'}",t&"");
 		
-		assertEquals("{ts '2059-01-01 00:00:00'}",t.setYear(2059,getTimeZone())&"");
+		assertEquals("{ts '2059-01-02 03:04:05'}",t.setYear(2059,getTimeZone())&"");
 	}
 
 	public void function testFunction() localmode="true" {
-		t = createDateTime(2000,1,1,0,0,0);
-		assertEquals("{ts '2000-01-01 00:00:00'}",t&"");
+		t = createDateTime( year=2000, month=1, day=2, hour=3, minute=4, second=5, millisecond=6);
+		assertEquals("{ts '2000-01-02 03:04:05'}",t&"");
 
 		setYear(t,2019);
-		assertEquals("{ts '2019-01-01 00:00:00'}",t&"");
+		assertEquals("{ts '2019-01-02 03:04:05'}",t&"");
 
-		assertEquals("{ts '2059-01-01 00:00:00'}",setYear(t,2059,getTimeZone())&"");
+		assertEquals("{ts '2059-01-02 03:04:05'}",setYear(t,2059,getTimeZone())&"");
 
 		date = "{ts '2000-01-01 00:00:00'}";
 		assertEquals("{ts '2001-01-01 00:00:00'}",setYear(date,2001)&"");
