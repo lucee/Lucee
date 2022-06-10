@@ -26,6 +26,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		assertEquals("{ts '2000-01-02 03:10:05'}",t&"");
 		
 		assertEquals("{ts '2000-01-02 03:01:05'}",t.setMinute(1,getTimeZone())&"");
+	}
 
 	public void function testFunction() localmode="true" {
 		t = createDateTime( year=2000, month=1, day=2, hour=3, minute=4, second=5, millisecond=6);
@@ -33,9 +34,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		setMinute(t,100);
 		assertEquals("{ts '2000-01-02 04:40:05'}",t&"");
 
-		date = "{ts '2000-05-04 00:00:00'}";
-		assertEquals("{ts '2000-05-04 00:30:00'}",setMinute(date,30,getTimeZone())&"");
-		assertEquals("{ts '2000-05-04 01:00:00'}",setMinute(date,60)&"");
+		date = "{ts '2000-05-04 01:00:00'}";
+		assertEquals("{ts '2000-05-04 01:30:00'}",setMinute(date,30,getTimeZone())&"");
+		assertEquals("{ts '2000-05-04 02:00:00'}",setMinute(date,60)&"");
 	}
 
 } 
