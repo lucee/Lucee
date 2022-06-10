@@ -14,6 +14,7 @@
 	result="result"
 	returnVariable="tasks">
 
+<cfset findKey = []>
 <cfloop query="tasks">
 	<cfset taskDetail = tasks.detail>
 	<cfset findkey = structFindValue(taskDetail,"sample","all")>
