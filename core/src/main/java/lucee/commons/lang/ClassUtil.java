@@ -392,13 +392,23 @@ public final class ClassUtil {
 					"can't load class [" + clazz.getName() + "] because the currently executing method does not have access to the definition of the specified class");
 		}
 		catch (Exception e) {
+			Throwable t;
+			if (e instanceof InvocationTargetException) {
+				t = ((InvocationTargetException) e).getTargetException();
+			}
+			else {
+				t = e;
+			}
+
 			String message = "";
 			if (e.getMessage() != null) {
 				message = e.getMessage() + " ";
 			}
 			message += e.getClass().getName() + " while creating an instance of " + clazz.getName();
+
 			ClassException ce = new ClassException(message);
 			ce.setStackTrace(e.getStackTrace());
+			ce.initCause(t);
 			throw ce;
 		}
 	}
