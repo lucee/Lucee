@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.felix.framework.BundleWiringImpl.BundleClassLoader;
 import org.apache.logging.log4j.Level;
@@ -56,7 +57,7 @@ public class Log4j2Engine extends LogEngine {
 	public static final int DEFAULT_MAX_BACKUP_INDEX = 10;
 
 	private static final String DEFAULT_PATTERN = "%d{dd.MM.yyyy HH:mm:ss,SSS} %-5p [%c] %m%n";
-
+	private static Map<String, LogAdapter> loggers = new ConcurrentHashMap<>();
 	private Config config;
 	private String version;
 
@@ -69,10 +70,9 @@ public class Log4j2Engine extends LogEngine {
 	public Log getConsoleLog(boolean errorStream, String name, int level) {
 		PrintWriter pw = errorStream ? config.getErrWriter() : config.getOutWriter();
 		if (pw == null) pw = new PrintWriter(errorStream ? System.err : System.out);
-
-		return new LogAdapter(_getLogger(config,
+		return _getLogger(config,
 				getConsoleAppender(createFullName(ThreadLocalPageContext.getConfig(), name), pw, PatternLayout.newBuilder().withPattern(DEFAULT_PATTERN).build(), true), name,
-				level));
+				level);
 	}
 
 	@Override
@@ -82,7 +82,7 @@ public class Log4j2Engine extends LogEngine {
 		if (async) {
 			a = new TaskAppender(config, a);
 		}
-		return new LogAdapter(_getLogger(config, a, name, level));
+		return _getLogger(config, a, name, level);
 	}
 
 	@Override
@@ -374,9 +374,8 @@ public class Log4j2Engine extends LogEngine {
 			// class definition
 			else {
 				Object obj = ClassUtil.loadInstance(cd.getClazz(null), null, null);
-
 				if (obj instanceof Appender) {
-					Appender a = (Appender) obj;
+					appender = (Appender) obj;
 					Reflector.callSetter(obj, "name", name);
 					Reflector.callSetter(obj, "layout", toLayout(layout));
 					Iterator<Entry<String, String>> it = appenderArgs.entrySet().iterator();
@@ -411,46 +410,40 @@ public class Log4j2Engine extends LogEngine {
 
 	@Override
 	public Log getLogger(Config config, Object appender, String name, int level) throws ApplicationException {
-		return new LogAdapter(_getLogger(config, toAppender(appender), name, level));
+
+		return _getLogger(config, toAppender(appender), name, level);
 	}
 
-	private static final Logger _getLogger(Config config, Appender appender, String name, int level) {
-
+	private static final LogAdapter _getLogger(Config config, Appender appender, String name, int level) {
+		Level le = LogAdapter.toLevel(level);
 		if (!(LogManager.getFactory() instanceof org.apache.logging.log4j.core.impl.Log4jContextFactory)) {
 			init();
 		}
 
 		String fullname = createFullName(config, name);
-
-		// fullname
-
-		Logger l;
-		if (LogManager.exists(fullname)) {
-			l = LogManager.getLogger(fullname);
-			if (l instanceof org.apache.logging.log4j.core.Logger) {
-				org.apache.logging.log4j.core.Logger cl = (org.apache.logging.log4j.core.Logger) l;
-				for (Appender a: cl.getAppenders().values()) {
-					cl.removeAppender(a);
-				}
-			}
-		}
-		else l = LogManager.getLogger(fullname);
-
+		Logger l = LogManager.getLogger(fullname);
+		// remove existing appenders
 		if (l instanceof org.apache.logging.log4j.core.Logger) {
 			org.apache.logging.log4j.core.Logger cl = (org.apache.logging.log4j.core.Logger) l;
+
+			// remove existing appenders
+			for (Appender a: cl.getAppenders().values()) {
+				cl.removeAppender(a);
+			}
+
 			cl.setAdditive(false);
 			cl.addAppender(appender);
-			cl.setLevel(LogAdapter.toLevel(level));
+			cl.setLevel(le);
 		}
-		else {
-			l.atLevel(LogAdapter.toLevel(level));
+		LogAdapter la = new LogAdapter(l, le);
+		loggers.put(fullname, la);
+
+		// rest the log level of all existing new, because they get lost when creating a new one
+		for (LogAdapter tmp: loggers.values()) {
+			tmp.validate();
 		}
 
-		//
-		//
-		//
-
-		return l;
+		return la;
 	}
 
 	private static String createFullName(Config config, String name) {

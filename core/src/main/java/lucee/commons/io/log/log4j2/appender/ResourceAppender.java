@@ -53,6 +53,10 @@ public class ResourceAppender extends AbstractAppender {
 		this.token = createToken(res);
 	}
 
+	public Resource getResource() {
+		return res;
+	}
+
 	@Override
 	public void append(LogEvent event) {
 		start();

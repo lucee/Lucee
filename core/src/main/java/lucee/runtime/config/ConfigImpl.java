@@ -416,6 +416,8 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 
 	private long applicationPathhCacheTimeout = Caster.toLongValue(SystemUtil.getSystemPropOrEnvVar("lucee.application.path.cache.timeout", null), 0);
 	private ClassLoader envClassLoader;
+	private boolean fullNullSupport = false;
+	private static Object token = new Object();
 
 	/**
 	 * @return the allowURLRequestTimeout
@@ -3679,14 +3681,12 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 			Map<String, String> layoutArgs, boolean readOnly, boolean dyn) throws PageException {
 		LoggerAndSourceData existing = loggers.get(name.toLowerCase());
 		String id = LoggerAndSourceData.id(name.toLowerCase(), appender, appenderArgs, layout, layoutArgs, level, readOnly);
-
 		if (existing != null) {
 			if (existing.id().equals(id)) {
 				return existing;
 			}
 			existing.close();
 		}
-
 		LoggerAndSourceData las = new LoggerAndSourceData(this, id, name.toLowerCase(), appender, appenderArgs, layout, layoutArgs, level, readOnly, dyn);
 		loggers.put(name.toLowerCase(), las);
 		return las;
@@ -3988,8 +3988,6 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		return cd == null || StringUtil.isEmpty(cd.getClassName());
 	}
 
-	private boolean fullNullSupport = false;
-
 	protected final void setFullNullSupport(boolean fullNullSupport) {
 		this.fullNullSupport = fullNullSupport;
 	}
@@ -3999,11 +3997,18 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		return fullNullSupport;
 	}
 
-	private LogEngine logEngine;
+	private static LogEngine logEngine;
 
 	@Override
 	public LogEngine getLogEngine() {
-		if (logEngine == null) logEngine = LogEngine.newInstance(this);
+		if (logEngine == null) {
+			synchronized (token) {
+				if (logEngine == null) {
+					logEngine = LogEngine.newInstance(this);
+				}
+			}
+
+		}
 		return logEngine;
 	}
 

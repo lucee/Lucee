@@ -67,6 +67,7 @@ public final class LoggerAndSourceData {
 		this.level = level;
 		this.readOnly = readOnly;
 		this.dyn = dyn;
+		init();
 	}
 
 	public String id() {
@@ -144,6 +145,20 @@ public final class LoggerAndSourceData {
 		return _log;
 	}
 
+	public void init() {
+		if (_log == null) {
+			config = ThreadLocalPageContext.getConfig(config);
+			try {
+				layout = eng().getLayout(cdLayout, layoutArgs, cdAppender, name);
+				_appender = eng().getAppender(config, layout, name, cdAppender, appenderArgs);
+				_log = eng().getLogger(config, _appender, name, level);
+			}
+			catch (Throwable t) {
+				ExceptionUtil.rethrowIfNecessary(t);
+			}
+		}
+	}
+
 	private LogEngine eng() {
 		return ((ConfigPro) config).getLogEngine();
 	}
@@ -173,5 +188,4 @@ public final class LoggerAndSourceData {
 			sb.append(e.getKey()).append(':').append(e.getValue()).append('|');
 		}
 	}
-
 }
