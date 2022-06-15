@@ -414,6 +414,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 
 	private long applicationPathhCacheTimeout = Caster.toLongValue(SystemUtil.getSystemPropOrEnvVar("lucee.application.path.cache.timeout", null), 0);
 	private ClassLoader envClassLoader;
+	private static Object token = new Object();
 
 	/**
 	 * @return the allowURLRequestTimeout
@@ -3985,11 +3986,18 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		return fullNullSupport;
 	}
 
-	private LogEngine logEngine;
+	private static LogEngine logEngine;
 
 	@Override
 	public LogEngine getLogEngine() {
-		if (logEngine == null) logEngine = LogEngine.newInstance(this);
+		if (logEngine == null) {
+			synchronized (token) {
+				if (logEngine == null) {
+					logEngine = LogEngine.newInstance(this);
+				}
+			}
+
+		}
 		return logEngine;
 	}
 
