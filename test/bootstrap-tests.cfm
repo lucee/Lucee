@@ -1,5 +1,5 @@
 <cfscript>
-	encodeForHTML("abc"); // test if ESAPI extension exist right away
+	//encodeForHTML("abc"); // test if ESAPI extension exist right away
 	systemOutput("---------- #DateTimeFormat(now(),'yyyy-mm-dd HH:nn:ss')# - Lucee Started ----------", true);
 
 	setting requesttimeout = 10*60; // 10 mins, for when running via script-runner and _internalRequest
@@ -11,8 +11,8 @@
 	param name="testFilter" default="";
 	param name="srcAll" default="../core/src/main/"; // used for compiling
 
-	param name="testBoxArchive" default=""; 
-	
+	param name="testBoxArchive" default="";
+
 	if (len(test) eq 0){
 		test = GetDirectoryFromPath(GetCurrentTemplatePath());
 		test =left(test, len(test)-1);
@@ -89,12 +89,7 @@
 		fileWrite( testboxArchive, FileReadBinary( testboxUrl ) );
 		testboxDir = "#getTempDirectory()#testbox";
 
-		// we need the compress extension, if running with lucee light, it won't be installed yet
-		if ( !extensionExists("8D7FB0DF-08BB-1589-FE3975678F07DB17") ){
-			throw "Lucee Compress extension is required, but not installed, are you using the Lucee light jar?";
-		}		
-
-		zip action="unzip" file="#testboxArchive#" destination="#getTempDirectory()#";
+		extract( format="zip", source=testboxArchive, target=getTempDirectory() );
 		testboxArchive = testboxDir;
 
 		admin

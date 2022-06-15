@@ -183,7 +183,6 @@ import lucee.runtime.type.scope.Undefined;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.ListUtil;
-import lucee.runtime.video.VideoExecuter;
 import lucee.transformer.library.ClassDefinitionImpl;
 import lucee.transformer.library.function.FunctionLib;
 import lucee.transformer.library.function.FunctionLibException;
@@ -588,9 +587,6 @@ public final class ConfigWebFactory extends ConfigFactory {
 
 			_loadRemoteClient(cs, config, root, log);
 			if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_DEBUG, ConfigWebFactory.class.getName(), "loaded remote clients");
-
-			_loadVideo(cs, config, root, log);
-			if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_DEBUG, ConfigWebFactory.class.getName(), "loaded video");
 
 			settings(config, log);
 			if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_DEBUG, ConfigWebFactory.class.getName(), "loaded settings2");
@@ -1305,13 +1301,6 @@ public final class ConfigWebFactory extends ConfigFactory {
 			if (!dir.exists()) dir.mkdirs();
 			Resource file = dir.getRealResource("pt-PT-date.df");
 			if (!file.exists()) createFileFromResourceEL("/resource/locales/pt-PT-date.df", file);
-
-			// video
-			Resource videoDir = configDir.getRealResource("video");
-			if (!videoDir.exists()) videoDir.mkdirs();
-
-			Resource video = videoDir.getRealResource("video.xml");
-			if (!video.exists()) createFileFromResourceEL("/resource/video/video.xml", video);
 		}
 		// bin
 		Resource binDir = configDir.getRealResource("bin");
@@ -1387,29 +1376,12 @@ public final class ConfigWebFactory extends ConfigFactory {
 
 		f = contextDir.getRealResource("wddx." + TEMPLATE_EXTENSION);
 		if (!f.exists()) createFileFromResourceEL("/resource/context/wddx." + TEMPLATE_EXTENSION, f);
-
-		f = contextDir.getRealResource("lucee-applet." + TEMPLATE_EXTENSION);
-		if (!f.exists()) createFileFromResourceEL("/resource/context/lucee-applet." + TEMPLATE_EXTENSION, f);
-
-		f = contextDir.getRealResource("lucee-applet.jar");
-		if (!f.exists() || doNew) createFileFromResourceEL("/resource/context/lucee-applet.jar", f);
-
+		
 		// f=new BinaryFile(contextDir,"lucee_context.ra");
 		// if(!f.exists())createFileFromResource("/resource/context/lucee_context.ra",f);
 
 		f = contextDir.getRealResource("admin." + TEMPLATE_EXTENSION);
 		if (!f.exists()) createFileFromResourceEL("/resource/context/admin." + TEMPLATE_EXTENSION, f);
-
-		// Video
-		f = contextDir.getRealResource("swfobject.js");
-		if (!f.exists() || doNew) createFileFromResourceEL("/resource/video/swfobject.js", f);
-		f = contextDir.getRealResource("swfobject.js." + TEMPLATE_EXTENSION);
-		if (!f.exists() || doNew) createFileFromResourceEL("/resource/video/swfobject.js." + TEMPLATE_EXTENSION, f);
-
-		f = contextDir.getRealResource("mediaplayer.swf");
-		if (!f.exists() || doNew) createFileFromResourceEL("/resource/video/mediaplayer.swf", f);
-		f = contextDir.getRealResource("mediaplayer.swf." + TEMPLATE_EXTENSION);
-		if (!f.exists() || doNew) createFileFromResourceEL("/resource/video/mediaplayer.swf." + TEMPLATE_EXTENSION, f);
 
 		Resource adminDir = contextDir.getRealResource("admin");
 		if (!adminDir.exists()) adminDir.mkdirs();
@@ -3250,34 +3222,12 @@ public final class ConfigWebFactory extends ConfigFactory {
 			 * ,"modern."+CFML_TEMPLATE_MAIN_EXTENSION ,"classic."+CFML_TEMPLATE_MAIN_EXTENSION
 			 * ,"pastel."+CFML_TEMPLATE_MAIN_EXTENSION },sub,doNew);
 			 */
-
-			// MediaPlayer
-			Resource f = dir.getRealResource("MediaPlayer." + COMPONENT_EXTENSION);
-			if (!f.exists() || doNew) createFileFromResourceEL("/resource/library/tag/MediaPlayer." + COMPONENT_EXTENSION, f);
-
-			// /resource/library/tag/build
+			Resource f;
 			Resource build = dir.getRealResource("build");
-			if (!build.exists()) build.mkdirs();
-			String[] names = new String[] { "_background.png", "_bigplay.png", "_controls.png", "_loading.gif", "_player.swf", "_player.xap",
-					"background_png." + TEMPLATE_EXTENSION, "bigplay_png." + TEMPLATE_EXTENSION, "controls_png." + TEMPLATE_EXTENSION, "jquery.js." + TEMPLATE_EXTENSION,
-					"loading_gif." + TEMPLATE_EXTENSION, "mediaelement-and-player.min.js." + TEMPLATE_EXTENSION, "mediaelementplayer.min.css." + TEMPLATE_EXTENSION,
-					"player.swf." + TEMPLATE_EXTENSION, "player.xap." + TEMPLATE_EXTENSION };
-			for (int i = 0; i < names.length; i++) {
-				try {
-					f = build.getRealResource(names[i]);
-					if (!f.exists() || doNew) createFileFromResourceEL("/resource/library/tag/build/" + names[i], f);
-				}
-				catch (Throwable t) {
-					ExceptionUtil.rethrowIfNecessary(t);
-					log(config, null, t);
-				}
-
-			}
-
 			// /resource/library/tag/build/jquery
 			Resource jquery = build.getRealResource("jquery");
 			if (!jquery.isDirectory()) jquery.mkdirs();
-			names = new String[] { "jquery-1.12.4.min.js" };
+			String[] names = new String[] { "jquery-1.12.4.min.js" };
 			for (int i = 0; i < names.length; i++) {
 				try {
 					f = jquery.getRealResource(names[i]);
@@ -3393,39 +3343,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 			log(config, log, t);
 		}
 	}
-
-	private static void _loadVideo(ConfigServerImpl configServer, ConfigImpl config, Struct root, Log log) {
-		try {
-			Struct video = ConfigWebUtil.getAsStruct("video", root);
-			boolean hasCS = configServer != null;
-			ClassDefinition cd = null;
-			// video-executer
-			if (video != null) {
-				cd = getClassDefinition(video, "videoExecuter", config.getIdentification());
-			}
-
-			if (cd != null && cd.hasClass()) {
-
-				try {
-					Class clazz = cd.getClazz();
-					if (!Reflector.isInstaneOf(clazz, VideoExecuter.class, false))
-						throw new ApplicationException("class [" + cd + "] does not implement interface [" + VideoExecuter.class.getName() + "]");
-					config.setVideoExecuterClass(clazz);
-
-				}
-				catch (Throwable t) {
-					ExceptionUtil.rethrowIfNecessary(t);
-					LogUtil.logGlobal(ThreadLocalPageContext.getConfig(configServer == null ? config : configServer), ConfigWebFactory.class.getName(), t);
-				}
-			}
-			else if (hasCS) config.setVideoExecuterClass(configServer.getVideoExecuterClass());
-		}
-		catch (Throwable t) {
-			ExceptionUtil.rethrowIfNecessary(t);
-			log(config, log, t);
-		}
-	}
-
+	
 	/**
 	 * @param configServer
 	 * @param config
