@@ -39,6 +39,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -1935,8 +1936,9 @@ public final class ConfigWebFactory extends ConfigFactory {
 	}
 
 	private static void _loadLoggers(ConfigServerImpl configServer, ConfigImpl config, Struct root, boolean isReload) {
+		boolean hasCS = configServer != null;
+		Set<String> existing = new HashSet<>();
 		try {
-			config.clearLoggers(Boolean.FALSE);
 			Struct loggers = ConfigWebUtil.getAsStruct("loggers", root);
 			String name, appenderArgs, tmp, layoutArgs;
 			ClassDefinition cdAppender, cdLayout;
@@ -1982,11 +1984,12 @@ public final class ConfigWebFactory extends ConfigFactory {
 					// ignore when no appender/name is defined
 					if (cdAppender.hasClass() && !StringUtil.isEmpty(name)) {
 						Map<String, String> appArgs = cssStringToMap(appenderArgs, true, true);
+						existing.add(name.toLowerCase());
 						if (cdLayout.hasClass()) {
 							Map<String, String> layArgs = cssStringToMap(layoutArgs, true, true);
 							config.addLogger(name, level, cdAppender, appArgs, cdLayout, layArgs, readOnly, false);
-
 						}
+						else config.addLogger(name, level, cdAppender, appArgs, null, null, readOnly, false);
 					}
 				}
 				catch (Throwable t) {
@@ -1995,7 +1998,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 				}
 			}
 
-			if (configServer != null) {
+			if (hasCS) {
 				Iterator<Entry<String, LoggerAndSourceData>> it = configServer.getLoggers().entrySet().iterator();
 				Entry<String, LoggerAndSourceData> e;
 				LoggerAndSourceData data;
@@ -2003,7 +2006,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 					e = it.next();
 					try {
 						// logger only exists in server context
-						if (config.getLog(e.getKey(), false) == null) {
+						if (!existing.contains(e.getKey().toLowerCase())) {
 							data = e.getValue();
 							config.addLogger(e.getKey(), data.getLevel(), data.getAppenderClassDefinition(), data.getAppenderArgs(false), data.getLayoutClassDefinition(),
 									data.getLayoutArgs(false), true, false);

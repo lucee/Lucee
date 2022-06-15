@@ -88,6 +88,10 @@ public class ResourceAppender extends AbstractAppender {
 		}
 	}
 
+	public Resource getResource() {
+		return res;
+	}
+
 	/**
 	 * <p>
 	 * Sets and <i>opens</i> the file where the log output will go. The specified file must be writable.
