@@ -1,7 +1,7 @@
 component {
     this.name = "LDEV-3406";
 
-    this.datasource = server.getDatasource("h2", "#getDirectoryFromPath(getCurrentTemplatePath())#/datasource/db");
+    this.datasource = server.getDatasource("mysql");
 
     public function onRequestStart() {
         query {
@@ -16,7 +16,7 @@ component {
             );
         }
         query {
-            echo("INSERT INTO LDEV3406(intCol, bitCol, varcharCol) VALUES(1000, 0, 1000),('1000', '0', '1000')");
+            echo("INSERT INTO LDEV3406(intCol, bitCol, varcharCol) VALUES(1000,0,1000),('1000',1,'1000')");
         }
     }
 }

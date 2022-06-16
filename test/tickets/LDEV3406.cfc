@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" skip=true {
+component extends="org.lucee.cfml.test.LuceeTestCase" {
     function beforeAll(){
         variables.uri = createURI("LDEV3406");
     }
@@ -24,22 +24,21 @@ component extends="org.lucee.cfml.test.LuceeTestCase" skip=true {
             });
 
 
-            it( title="serializeJSON() with JDBC query column type bit", body=function( currentSpec ){
+            it( title="serializeJSON() with JDBC query column type bit", skip="#notHasMysql()#", body=function( currentSpec ){
                 var result = _InternalRequest(
                     template : "#variables.uri#/LDEV3406.cfm",
                     forms = {colname:"bitCol"}
                 ).fileContent.trim();
-                echo(result);
-                expect(result).toBe('{"COLUMNS":["bitCol"],"DATA":[[false],[false]]}');
+                expect(result).toBe('{"COLUMNS":["bitCol"],"DATA":[[false],[true]]}');
             });
-            it( title="serializeJSON() with JDBC query column type integer", body=function( currentSpec ){
+            it( title="serializeJSON() with JDBC query column type integer", skip="#notHasMysql()#", body=function( currentSpec ){
                 var result = _InternalRequest(
                     template : "#variables.uri#/LDEV3406.cfm",
                     forms : {colname:"intCol"}
                 ).fileContent.trim();
                 expect(result).toBe('{"COLUMNS":["intCol"],"DATA":[[1000],[1000]]}');
             });
-            it( title="serializeJSON() with JDBC query column type varchar", body=function( currentSpec ){
+            it( title="serializeJSON() with JDBC query column type varchar", skip="#notHasMysql()#", body=function( currentSpec ){
                  var result = _InternalRequest(
                     template : "#variables.uri#/LDEV3406.cfm",
                     forms : {colname:"varcharCol"}
@@ -50,18 +49,15 @@ component extends="org.lucee.cfml.test.LuceeTestCase" skip=true {
     }
 
     function afterAll() {
-        var javaIoFile=createObject("java","java.io.File");
-        loop array=DirectoryList(
-            path=getDirectoryFromPath(getCurrentTemplatePath())&"LDEV3406\", 
-            recurse=true, filter="*.db") item="local.path"  {
-            fileDeleteOnExit(javaIoFile,path);
+        if (!notHasMysql()) {
+            query datasource=server.getDatasource("mysql") {
+                echo("DROP TABLE IF EXISTS LDEV3406");
+            }
         }
     }
 
-    private function fileDeleteOnExit(required javaIoFile, required string path) {
-        var file=javaIoFile.init(arguments.path);
-        if(!file.isFile())file=javaIoFile.init(expandPath(arguments.path));
-        if(file.isFile()) file.deleteOnExit();
+    private boolean function notHasMysql() {
+        return !structCount(server.getDatasource("mysql"));
     }
 
     private string function createURI(string calledName){
