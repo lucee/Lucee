@@ -47,8 +47,7 @@ The test suites use a range of Test Services, like s3, database, ftp, etc. You c
 ## Getting Help
 
 - [Lucee Documentation Project](https://docs.lucee.org/)
-- [Lucee Google Group](https://groups.google.com/forum/#!forum/lucee); general app developer support
-- [Lucee Lang Forum](http://lang.lucee.org/); hacking on Lucee itself
+- [Lucee Mailing List / Forum ](https://dev.lucee.org); General app developer support, hacking on Lucee itself
 - [Lucee Bug Tracker](https://luceeserver.atlassian.net/projects/LDEV/issues)
 
 If you are [looking for commercial support](https://lucee.org/members.html), you might try one of the LAS Members.
