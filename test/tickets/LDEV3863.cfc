@@ -28,6 +28,20 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
                 );
                 expect(emptyParams.recordcount).toBe(2);
             });
+
+            it( title="queryExecute with empty params struct, but with a :id param", body=function( currentSpec ){
+                var emptyParams = queryExecute(sql="SELECT name FROM qry where id = :id",
+                    options={dbtype="query"}
+                );
+                expect(emptyParams.recordcount).toBe(2); // :id becomes null, 0 rows returned
+            });
+
+            it( title="queryExecute with empty params struct, but with a ? param", body=function( currentSpec ){
+                var emptyParams = queryExecute(sql="SELECT name FROM qry where id = ?",
+                    options={dbtype="query"}
+                ); // fails with native QoQ, falls back to hsqldb, Assert failed: S0000 Direct execute with param count > 0java.lang.Exception 
+                expect(emptyParams.recordcount).toBe(2); 
+            });
         });
     }
 }
