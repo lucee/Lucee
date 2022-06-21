@@ -75,6 +75,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase" lables="query" skip=true {
 	}
 
 	private function notHasMysql() {
-		return structCount(server.getDatasource("mssql")) == 0;
+		return structCount(server.getDatasource("mysql")) == 0;
 	}
 }
