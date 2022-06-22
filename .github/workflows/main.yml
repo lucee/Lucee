@@ -121,9 +121,9 @@ jobs:
           echo "------- Maven Install on ${{ github.event_name }} ---------"
           mvn -B -e -f loader/pom.xml clean install -DtestJavaVersionExec="${{ env.LUCEE_TEST_JAVA_EXEC }}"
         fi
-    - name: Publish Test Results
-      uses: EnricoMi/publish-unit-test-result-action@v1
-      if: always()
-      with:
-        files: test/reports/junit-test-results.xml
-        check_name: "Test Results"
+   # - name: Publish Test Results
+   #   uses: EnricoMi/publish-unit-test-result-action@v1
+   #   if: always()
+   #   with:
+   #     files: test/reports/junit-test-results.xml
+   #    check_name: "Test Results"
