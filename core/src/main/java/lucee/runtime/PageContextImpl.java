@@ -2470,10 +2470,6 @@ public final class PageContextImpl extends PageContext {
 	}
 
 	private final void execute(PageSource ps, boolean throwExcpetion, boolean onlyTopLevel) throws PageException {
-
-		String client = Caster.toString(req.getAttribute("client"), null);
-		boolean internalCall = "lucee-gateway-1-0".equals(client) || "lucee-listener-1-0".equals(client);
-
 		ApplicationListener listener;
 		// if a listener is called (Web.cfc/Server.cfc we don't wanna any Application.cfc to be executed)
 		if (listenerContext) listener = new NoneAppListener();

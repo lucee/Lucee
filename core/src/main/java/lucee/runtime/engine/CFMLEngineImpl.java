@@ -1853,8 +1853,8 @@ public final class CFMLEngineImpl implements CFMLEngine {
 							DevNullOutputStream.DEV_NULL_OUTPUT_STREAM, true, Long.MAX_VALUE,
 							Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.ignore.scopes", null), false));
 				}
-				((PageContextImpl) pc).setListenerContext(true);
 
+				((PageContextImpl) pc).setListenerContext(true);
 				if (dialect == CFMLEngine.DIALECT_LUCEE) pc.execute(requestURI, true, false);
 				else pc.executeCFML(requestURI, true, false);
 				((PageContextImpl) pc).setListenerContext(false);
