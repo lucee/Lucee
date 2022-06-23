@@ -1503,17 +1503,23 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 				Mapping[] sm = configServer.getMappings();
 				if (sm != null) {
 					for (int i = 0; i < sm.length; i++) {
-						if (!sm[i].isHidden()) {
-							if ("/".equals(sm[i].getVirtual())) finished = true;
-							if (sm[i] instanceof MappingImpl) {
-								tmp = ((MappingImpl) sm[i]).cloneReadOnly(config);
-								mappings.put(tmp.getVirtualLowerCase(), tmp);
+						try {
+							if (!sm[i].isHidden()) {
+								if ("/".equals(sm[i].getVirtual())) finished = true;
+								if (sm[i] instanceof MappingImpl) {
+									tmp = ((MappingImpl) sm[i]).cloneReadOnly(config);
+									mappings.put(tmp.getVirtualLowerCase(), tmp);
 
+								}
+								else {
+									tmp = sm[i];
+									mappings.put(tmp.getVirtualLowerCase(), tmp);
+								}
 							}
-							else {
-								tmp = sm[i];
-								mappings.put(tmp.getVirtualLowerCase(), tmp);
-							}
+						}
+						catch (Throwable t) {
+							ExceptionUtil.rethrowIfNecessary(t);
+							log(config, log, t);
 						}
 					}
 				}
@@ -1523,65 +1529,71 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 				boolean hasServerContext = false;
 				if (_mappings != null) {
 					for (int i = 0; i < _mappings.length; i++) {
-						el = _mappings[i];
+						try {
+							el = _mappings[i];
 
-						String physical = el.getAttribute("physical");
-						String archive = el.getAttribute("archive");
-						String virtual = getAttr(el, "virtual");
-						String listType = getAttr(el, "listener-type");
-						String listMode = getAttr(el, "listener-mode");
+							String physical = el.getAttribute("physical");
+							String archive = el.getAttribute("archive");
+							String virtual = getAttr(el, "virtual");
+							String listType = getAttr(el, "listener-type");
+							String listMode = getAttr(el, "listener-mode");
 
-						boolean readonly = toBoolean(getAttr(el, "readonly"), false);
-						boolean hidden = toBoolean(getAttr(el, "hidden"), false);
-						boolean toplevel = toBoolean(getAttr(el, "toplevel"), true);
+							boolean readonly = toBoolean(getAttr(el, "readonly"), false);
+							boolean hidden = toBoolean(getAttr(el, "hidden"), false);
+							boolean toplevel = toBoolean(getAttr(el, "toplevel"), true);
 
-						if (config instanceof ConfigServer && (virtual.equalsIgnoreCase("/lucee-server/") || virtual.equalsIgnoreCase("/lucee-server-context/"))) {
-							hasServerContext = true;
-						}
-
-						// lucee
-						if (virtual.equalsIgnoreCase("/lucee/")) {
-							if (StringUtil.isEmpty(listType, true)) listType = "modern";
-							if (StringUtil.isEmpty(listMode, true)) listMode = "curr2root";
-							toplevel = true;
-						}
-
-						int listenerMode = ConfigWebUtil.toListenerMode(listMode, -1);
-						int listenerType = ConfigWebUtil.toListenerType(listType, -1);
-						ApplicationListener listener = ConfigWebUtil.loadListener(listenerType, null);
-						if (listener != null || listenerMode != -1) {
-							// type
-							if (mode == ConfigPro.MODE_STRICT) listener = new ModernAppListener();
-							else if (listener == null) listener = ConfigWebUtil.loadListener(ConfigWebUtil.toListenerType(config.getApplicationListener().getType(), -1), null);
-							if (listener == null)// this should never be true
-								listener = new ModernAppListener();
-
-							// mode
-							if (listenerMode == -1) {
-								listenerMode = config.getApplicationListener().getMode();
+							if (config instanceof ConfigServer && (virtual.equalsIgnoreCase("/lucee-server/") || virtual.equalsIgnoreCase("/lucee-server-context/"))) {
+								hasServerContext = true;
 							}
-							listener.setMode(listenerMode);
 
-						}
-
-						// physical!=null &&
-						if ((physical != null || archive != null)) {
-
-							short insTemp = inspectTemplate(el);
-							if ("/lucee/".equalsIgnoreCase(virtual) || "/lucee".equalsIgnoreCase(virtual) || "/lucee-server/".equalsIgnoreCase(virtual)
-									|| "/lucee-server-context".equalsIgnoreCase(virtual))
-								insTemp = ConfigPro.INSPECT_ONCE;
-
-							String primary = getAttr(el, "primary");
-							boolean physicalFirst = primary == null || !primary.equalsIgnoreCase("archive");
-
-							tmp = new MappingImpl(config, virtual, physical, archive, insTemp, physicalFirst, hidden, readonly, toplevel, false, false, listener, listenerMode,
-									listenerType);
-							mappings.put(tmp.getVirtualLowerCase(), tmp);
-							if (virtual.equals("/")) {
-								finished = true;
-								// break;
+							// lucee
+							if (virtual.equalsIgnoreCase("/lucee/")) {
+								if (StringUtil.isEmpty(listType, true)) listType = "modern";
+								if (StringUtil.isEmpty(listMode, true)) listMode = "curr2root";
+								toplevel = true;
 							}
+
+							int listenerMode = ConfigWebUtil.toListenerMode(listMode, -1);
+							int listenerType = ConfigWebUtil.toListenerType(listType, -1);
+							ApplicationListener listener = ConfigWebUtil.loadListener(listenerType, null);
+							if (listener != null || listenerMode != -1) {
+								// type
+								if (mode == ConfigPro.MODE_STRICT) listener = new ModernAppListener();
+								else if (listener == null) listener = ConfigWebUtil.loadListener(ConfigWebUtil.toListenerType(config.getApplicationListener().getType(), -1), null);
+								if (listener == null)// this should never be true
+									listener = new ModernAppListener();
+
+								// mode
+								if (listenerMode == -1) {
+									listenerMode = config.getApplicationListener().getMode();
+								}
+								listener.setMode(listenerMode);
+
+							}
+
+							// physical!=null &&
+							if ((physical != null || archive != null)) {
+
+								short insTemp = inspectTemplate(el);
+								if ("/lucee/".equalsIgnoreCase(virtual) || "/lucee".equalsIgnoreCase(virtual) || "/lucee-server/".equalsIgnoreCase(virtual)
+										|| "/lucee-server-context".equalsIgnoreCase(virtual))
+									insTemp = ConfigPro.INSPECT_ONCE;
+
+								String primary = getAttr(el, "primary");
+								boolean physicalFirst = primary == null || !primary.equalsIgnoreCase("archive");
+
+								tmp = new MappingImpl(config, virtual, physical, archive, insTemp, physicalFirst, hidden, readonly, toplevel, false, false, listener, listenerMode,
+										listenerType);
+								mappings.put(tmp.getVirtualLowerCase(), tmp);
+								if (virtual.equals("/")) {
+									finished = true;
+									// break;
+								}
+							}
+						}
+						catch (Throwable t) {
+							ExceptionUtil.rethrowIfNecessary(t);
+							log(config, log, t);
 						}
 					}
 				}
@@ -3865,7 +3877,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		}
 	}
 
-	public static void log(Config config, Log log, Exception e) {
+	public static void log(Config config, Log log, Throwable e) {
 		try {
 			if (log != null) log.error("configuration", e);
 			else {
