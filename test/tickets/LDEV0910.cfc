@@ -1,7 +1,6 @@
 component extends="org.lucee.cfml.test.LuceeTestCase" labels="pop,imap" {
 	variables.isSupported = false;
 	variables.creds = getCredentials();
-	systemOutput(creds, true);
 	if( !structIsEmpty(creds.pop) && !structIsEmpty(creds.imap) )
 		variables.isSupported=true;
 
