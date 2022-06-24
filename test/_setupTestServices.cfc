@@ -127,22 +127,25 @@ component {
 			"S3_GOOGLE_SECRET_KEY": "", // DON'T COMMIT
 			"S3_GOOGLE_HOST": "storage.googleapis.com",
 
-			"MAIL_USERNAME": "lucee",
-			"MAIL_PASSWORD": "", // DON'T COMMIT
-
 			// imap, pop and smtp rely on MAIL_PASSWORD being defined
 
 			"IMAP_SERVER": "localhost",
 			"IMAP_PORT_SECURE": 993,
 			"IMAP_PORT_INSECURE": 143,
+			"IMAP_USERNAME": "lucee",
+			"IMAP_PASSWORD": "", // DON'T COMMIT
 
 			"POP_SERVER": "localhost",
 			"POP_PORT_SECURE": 995,
 			"POP_PORT_INSECURE": 110,
+			"POP_USERNAME": "lucee",
+			"POP_PASSWORD": "", // DON'T COMMIT
 
 			"SMTP_SERVER": "localhost",
 			"SMTP_PORT_SECURE": 25,
 			"SMTP_PORT_INSECURE": 587,
+			"SMTP_USERNAME": "lucee",
+			"SMTP_PASSWORD": "", // DON'T COMMIT
 
 			"MEMCACHED_SERVER": "localhost",
 			// "MEMCACHED_PORT": 11211 // DON'T COMMIT
@@ -494,30 +497,15 @@ component {
 			case "sftp":
 				sftp = server._getSystemPropOrEnvVars( "SERVER, USERNAME, PASSWORD, PORT, BASE_PATH", "SFTP_");
 				return sftp;
-			case "mail":
-				mail = server._getSystemPropOrEnvVars( "USERNAME, PASSWORD", "MAIL_" );
-				return mail;
 			case "smtp":
-				mail = server._getSystemPropOrEnvVars( "USERNAME, PASSWORD", "MAIL_" );
-				if ( mail.count() gt 0 ){
-					smtp = server._getSystemPropOrEnvVars( "SERVER, PORT_SECURE, PORT_INSECURE", "SMTP_" );
-					return smtp;
-				}
-				break;
+				smtp = server._getSystemPropOrEnvVars( "SERVER, PORT_SECURE, PORT_INSECURE, USERNAME, PASSWORD", "SMTP_" );
+				return smtp;
 			case "imap":
-				mail = server._getSystemPropOrEnvVars( "USERNAME, PASSWORD", "MAIL_" );
-				if ( mail.count() gt 0 ){
-					imap = server._getSystemPropOrEnvVars( "SERVER, PORT_SECURE, PORT_INSECURE", "IMAP_" );
-					return imap;
-				}
-				break;
+				imap = server._getSystemPropOrEnvVars( "SERVER, PORT_SECURE, PORT_INSECURE, USERNAME, PASSWORD", "IMAP_" );
+				return imap;
 			case "pop":
-				mail = server._getSystemPropOrEnvVars( "USERNAME, PASSWORD", "MAIL_" );
-				if ( mail.count() gt 0 ){
-					pop = server._getSystemPropOrEnvVars( "SERVER, PORT_SECURE, PORT_INSECURE", "POP_" );
-					return pop;
-				}
-				break;
+				pop = server._getSystemPropOrEnvVars( "SERVER, PORT_SECURE, PORT_INSECURE, USERNAME, PASSWORD", "POP_" );
+				return pop;
 			case "s3":
 				s3 = server._getSystemPropOrEnvVars( "ACCESS_KEY_ID, SECRET_KEY", "S3_" );
 				return s3;
