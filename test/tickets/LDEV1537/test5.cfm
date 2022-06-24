@@ -1,5 +1,5 @@
 <cftry>
-    <cfmail from="aaa@bb.com" to="xxx@yyy.com" subject="sample" server="localhost" cc="cc:81@gmail.com">dummy email</cfmail>
+    <cfmail from="aaa@bb.com" to="xxx@yyy.com" subject="sample" cc="cc:81@gmail.com">dummy email</cfmail>
 	<cfcatch>
 		<cfdump var="#cfcatch.message#">
 	</cfcatch>
@@ -14,12 +14,13 @@
 	result="result"
 	returnVariable="tasks">
 
+<cfset findkey = []>
 <cfloop query="tasks">
 	<cfset taskDetail = tasks.detail>
 	<cfset findkey = structFindValue(taskDetail,"sample","all")>
 </cfloop>
 	
-<cfif arrayisempty(findkey) EQ false>
+<cfif isEmpty ( findkey ) EQ false>
 	<cfif taskDetail.cc EQ "">
 		Null
 	<cfelse>	

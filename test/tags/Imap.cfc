@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase"{
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="imap" {
 	variables.isSupported = false;
 	variables.imapSettings = getCredentials();
 	if(!structIsEmpty(imapSettings))
@@ -96,7 +96,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				it(title="Checking cfimap action = 'close' ", body = function( currentSpec ) {
 					cfimap(
 						action = "close",
-						connection="openConnc",
+						connection="openConnc"
 					);
 					var result = "";
 					try {
@@ -131,7 +131,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					expect(result).toBe('');
 				});
 
-				it(title="Checking cfimap  with a specific syntax", body = function( currentSpec ) {
+				it(title="Checking cfimap with a specific syntax", body = function( currentSpec ) {
 					
 					imap 
 						action="open" 
@@ -286,7 +286,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 	}
 
 	private struct function getCredentials(){
-		return {}; // fix for travis
-		//return server.getTestService("imap");
+		return server.getTestService("imap");
 	}
 }
