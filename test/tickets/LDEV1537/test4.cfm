@@ -1,9 +1,13 @@
 <cftry>
-    <cfmail from="aaa@bb.com" to="xxx@yyy.com" subject="sample" bcc="bcc:81@gmail.com">dummy email</cfmail>
+	<!--- will throw invalid bcc address --->
+	<cfmail from="aaa@bb.com" to="xxx@yyy.com" subject="sample" bcc="bcc:81@gmail.com">dummy email</cfmail>
 	<cfcatch>
-		<cfdump var="#cfcatch.message#">
+		<cfoutput>#cfcatch.message#</cfoutput>
+		<cfabort>
 	</cfcatch>
 </cftry>
+<cfoutput>ok</cfoutput>
+<!---
 
 <cfadmin 
 	action="getSpoolerTasks"
@@ -27,3 +31,4 @@
 		<cfoutput>#taskDetail.bcc#</cfoutput>
 	</cfif>
 </cfif>
+--->

@@ -1,6 +1,5 @@
 <cfparam name="form.scene" default="1">
 <cfif form.scene eq 1>
-
 	<cftry>
 		<cfmail from="aaa@bb.com" to="xxx@yyy.com" subject="sample" cc="cc81@gmail.com,cc81@gmail.com,">dummy email</cfmail>
 		<cfoutput>success</cfoutput>
