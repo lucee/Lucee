@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase"{
+component extends="org.lucee.cfml.test.LuceeTestCase" skip=true{
     function run( testResults, testBox ){
         describe(title="Testcase for LDEV-3410", body=function( currentSpec ) {
             variables.Test = new LDEV3410.Test();
