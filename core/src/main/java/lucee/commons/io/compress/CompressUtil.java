@@ -41,7 +41,6 @@ import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
 import org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream;
 import org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream;
 
-import lucee.print;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.res.Resource;
@@ -635,9 +634,6 @@ public final class CompressUtil {
 							zos.putNextEntry(entry);
 							IOUtil.copy(zis, zos, false, false);
 							done.add(entry.getName());
-						}
-						else {
-							print.e(entry.getName());
 						}
 						zos.closeEntry();
 					}

@@ -1172,7 +1172,7 @@ public final class Http extends BodyTagImpl {
 				raw.append(header.toString() + " ");
 				if (header.getName().equalsIgnoreCase("Set-Cookie")) {
 					setCookie.append(header.getValue());
-					parseCookie(cookies, header.getValue());
+					parseCookie(cookies, header.getValue(), charset);
 				}
 				else {
 					// print.ln(header.getName()+"-"+header.getValue());
@@ -1499,7 +1499,7 @@ public final class Http extends BodyTagImpl {
 				proxypassword, useragent);
 	}
 
-	private void parseCookie(Query cookies, String raw) {
+	public static void parseCookie(Query cookies, String raw, String charset) {
 		String[] arr = ListUtil.trimItems(ListUtil.trim(ListUtil.listToStringArray(raw, ';')));
 		if (arr.length == 0) return;
 		int row = cookies.addRow();
@@ -1511,10 +1511,10 @@ public final class Http extends BodyTagImpl {
 			item = arr[0];
 			index = item.indexOf('=');
 			if (index == -1) // only name
-				cookies.setAtEL(KeyConstants._name, row, dec(item));
+				cookies.setAtEL(KeyConstants._name, row, dec(item, charset));
 			else { // name and value
-				cookies.setAtEL(KeyConstants._name, row, dec(item.substring(0, index)));
-				cookies.setAtEL(KeyConstants._value, row, dec(item.substring(index + 1)));
+				cookies.setAtEL(KeyConstants._name, row, dec(item.substring(0, index), charset));
+				cookies.setAtEL(KeyConstants._value, row, dec(item.substring(index + 1), charset));
 			}
 
 		}
@@ -1525,10 +1525,10 @@ public final class Http extends BodyTagImpl {
 			item = arr[i];
 			index = item.indexOf('=');
 			if (index == -1) // only name
-				cookies.setAtEL(dec(item), row, Boolean.TRUE);
+				cookies.setAtEL(dec(item, charset), row, Boolean.TRUE);
 			else { // name and value
-				n = dec(item.substring(0, index));
-				v = dec(item.substring(index + 1));
+				n = dec(item.substring(0, index), charset);
+				v = dec(item.substring(index + 1), charset);
 				if (n.equalsIgnoreCase("expires")) {
 					DateTime d = Caster.toDate(v, false, null, null);
 
@@ -1544,6 +1544,10 @@ public final class Http extends BodyTagImpl {
 	}
 
 	public String dec(String str) {
+		return dec(str, charset);
+	}
+
+	public static String dec(String str, String charset) {
 		return ReqRspUtil.decode(str, charset, false);
 	}
 
