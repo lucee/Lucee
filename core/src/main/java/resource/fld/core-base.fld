@@ -7259,10 +7259,10 @@ The following things are considered to be empty:
 	</function>
 	
 	
-	<!-- InternalRequest -->
+	<!-- InternalRequest - this return the cookies as a query as the tag http does -->
 	<function>
 		<name>InternalRequest</name>
-		<class>lucee.runtime.functions.system.InternalRequest</class>
+		<class>lucee.runtime.functions.system.InternalRequestPublic</class>
 		<description>Makes a request to the CFML Engine internally.</description>
 		<status>hidden</status>
 		<argument>

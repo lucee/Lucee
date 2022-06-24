@@ -58,6 +58,7 @@ public class InternalRequest implements Function {
 
 	private static final long serialVersionUID = -8163856691035353577L;
 
+	public static boolean cookieAsQuery = false;
 	public static final Key FILECONTENT_BYNARY = KeyImpl.getInstance("filecontent_binary");
 	public static final Key STATUS_CODE = KeyImpl.getInstance("status_code");
 
@@ -125,7 +126,9 @@ public class InternalRequest implements Function {
 		boolean isText = false;
 		Charset _charset = null;
 		PageException pe = null;
-		Query rspCookies = new QueryImpl(new String[] { "name", "value", "path", "domain", "expires", "secure", "httpOnly", "samesite" }, 0, "cookies");
+		Object rspCookies = cookieAsQuery ? new QueryImpl(new String[] { "name", "value", "path", "domain", "expires", "secure", "httpOnly", "samesite" }, 0, "cookies")
+				: new StructImpl(Struct.TYPE_LINKED);
+
 		try {
 
 			if (CFMLEngine.DIALECT_LUCEE == dialect) _pc.execute(template, true, false);
@@ -162,7 +165,9 @@ public class InternalRequest implements Function {
 				if (name.equals("Set-Cookie")) {
 					String cs = _pc.getWebCharset().name();
 					for (String v: values) {
-						Http.parseCookie(rspCookies, v, cs);
+
+						if (cookieAsQuery) Http.parseCookie((Query) rspCookies, v, cs);
+						else Http.parseCookie((Struct) rspCookies, v, cs);
 					}
 
 				}
@@ -342,4 +347,5 @@ public class InternalRequest implements Function {
 			throw Caster.toPageException(uee);
 		}
 	}
+
 }

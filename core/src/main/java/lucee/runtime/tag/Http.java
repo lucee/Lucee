@@ -1499,6 +1499,27 @@ public final class Http extends BodyTagImpl {
 				proxypassword, useragent);
 	}
 
+	public static void parseCookie(Struct cookies, String raw, String charset) {
+		String[] arr = ListUtil.trimItems(ListUtil.trim(ListUtil.listToStringArray(raw, ';')));
+		if (arr.length == 0) return;
+		String item;
+
+		int index;
+		String n, v;
+		// name/value
+		if (arr.length > 0) {
+			item = arr[0];
+			index = item.indexOf('=');
+			if (index == -1) {
+				cookies.setEL(dec(item, charset), "");
+			}
+			else { // name and value
+				cookies.setEL(dec(item.substring(0, index), charset), dec(item.substring(index + 1), charset));
+			}
+
+		}
+	}
+
 	public static void parseCookie(Query cookies, String raw, String charset) {
 		String[] arr = ListUtil.trimItems(ListUtil.trim(ListUtil.listToStringArray(raw, ';')));
 		if (arr.length == 0) return;
@@ -1539,7 +1560,6 @@ public final class Http extends BodyTagImpl {
 				}
 				cookies.setAtEL(n, row, v);
 			}
-
 		}
 	}
 
