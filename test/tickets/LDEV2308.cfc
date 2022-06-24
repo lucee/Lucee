@@ -35,7 +35,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="thread,cookie,sess
 				expect( structKeyExists(result.cookies, "JsessionId" ) ).toBeFalse();
 			});
 
-			it( title='CFID cookie should not be set by cfthread, j2ee session', body=function( currentSpec ) {
+			// test disabled, see LDEV-4030
+			it( title='CFID cookie should not be set by cfthread, j2ee session', skip=true, body=function( currentSpec ) {
 				uri = createURI("LDEV2308");
 				local.result = _InternalRequest(
 					template : "#uri#\j2ee-session\testThreadCookies.cfm"
