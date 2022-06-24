@@ -4,37 +4,37 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="smtp" {
 	}
 	function run( testResults , testBox ) {
 		describe( "test case for LDEV-1537", function() {
-			it(title = "Checking mail spooler retries emails without from address", skip=isAvailable(), body = function( currentSpec ) {
+			it(title = "Checking cfmail tag without a FROM address throws", skip=isAvailable(), body = function( currentSpec ) {
 				local.result = _InternalRequest(
 					template:"#variables.uri#/test.cfm"
 				);
-				expect(local.result.filecontent.trim()).toBe('true');
+				expect(local.result.filecontent.trim()).notToBe('ok');
 			});
-			it(title = "Checking cfmail tag with from attribute, from address with colon", skip=isAvailable(), body = function( currentSpec ) {
+			it(title = "Checking cfmail tag with FROM address containing a colon throws", skip=isAvailable(), body = function( currentSpec ) {
 				local.result = _InternalRequest(
 					template:"#variables.uri#/test2.cfm"
 				);
-				expect(local.result.filecontent.trim()).toBe('from:81@gmail.com');
+				expect(local.result.filecontent.trim()).notToBe('ok');
 			});
 
-			it(title = "Checking cfmail tag with to attribute, to address with colon", skip=isAvailable(), body = function( currentSpec ) {
+			it(title = "Checking cfmail tag with TO attribute containing a colon throws", skip=isAvailable(), body = function( currentSpec ) {
 				local.result = _InternalRequest(
 					template:"#variables.uri#/test3.cfm"
 				);
-				expect(local.result.filecontent.trim()).toBe('true');
+				expect(local.result.filecontent.trim()).notToBe('ok');
 			});
 			
-			it(title = "Checking cfmail tag with bcc attribute, bcc with colon", skip=isAvailable(), body = function( currentSpec ) {
+			it(title = "Checking cfmail tag with BCC address containing a colon throws", skip=isAvailable(), body = function( currentSpec ) {
 				local.result = _InternalRequest(
 					template:"#variables.uri#/test4.cfm"
 				);
-				expect(local.result.filecontent.trim()).toBe('bcc:81@gmail.com');
+				expect(local.result.filecontent.trim()).notToBe('ok');
 			});
-			it(title = "Checking cfmail tag with cc attribute, cc with colon", skip=isAvailable(), body = function( currentSpec ) {
+			it(title = "Checking cfmail tag with CC address containing a colon throws", skip=isAvailable(), body = function( currentSpec ) {
 				local.result = _InternalRequest(
 					template:"#variables.uri#/test5.cfm"
 				);
-				expect(local.result.filecontent.trim()).toBe('cc:81@gmail.com');
+				expect(local.result.filecontent.trim()).notToBe('ok');
 			});
 		});
 	}
