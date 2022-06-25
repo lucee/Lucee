@@ -23,12 +23,20 @@ try{
 	SystemOutput( "inside upload-to-s3.xml", 1, 1 );	
 	s3ExtVersion = extensionList().filter( function(row){ return row.name contains "s3"; }).version;
 
-	uploadScript = expandPath( antdir & "/upload_to_s3.cfm" );
-	SystemOutput( uploadScript, true );
-	if ( fileExists( uploadScript ) )
-		include ( template=uploadScript );
-	else
-		SystemOutput("Schade, I'm unable to find #uploadScript#", true );
+	// create "/upload" mapping
+	admin
+		action="updateMapping"
+		type="web"
+		password="#request.WEBADMINPASSWORD#"
+		virtual="/upload"
+		physical="#antdir#"
+		toplevel="true"
+		archive=""
+		primary="physical"
+		trusted="no";
+
+	uploadScript = "/upload/upload_to_s3.cfm";
+	include ( template=uploadScript );	
 	
 	if ( s3Extversion eq "" )
 		throw "The S3 Extension isn't installed!"; // fatal
