@@ -161,10 +161,10 @@ jobs:
       run: |
         if [ "${DO_DEPLOY}" == "true" ]; then
           echo "------- Maven Deploy on ${{ github.event_name }} -------";
-          mvn -X -B -e -f loader/pom.xml clean deploy --settings travis-settings.xml -DtestJavaVersionExec="${{ env.LUCEE_TEST_JAVA_EXEC }}";
+          mvn -B -e -f loader/pom.xml clean deploy --settings travis-settings.xml -DtestJavaVersionExec="${{ env.LUCEE_TEST_JAVA_EXEC }}";
         else
           echo "------- Maven Install on ${{ github.event_name }} ---------";
-          mvn -X -B -e -f loader/pom.xml clean install -DtestJavaVersionExec="${{ env.LUCEE_TEST_JAVA_EXEC }}"
+          mvn -B -e -f loader/pom.xml clean install -DtestJavaVersionExec="${{ env.LUCEE_TEST_JAVA_EXEC }}"
         fi
     - name: Publish Test Results
       uses: EnricoMi/publish-unit-test-result-action@v1
