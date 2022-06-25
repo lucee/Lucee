@@ -20,11 +20,12 @@
 try{
 	NL = "
 ";
-	SystemOutput( "inside upload-to-s3.xml", 1, 1 );
-	SystemOutput( "Path: " & getCurrentTemplatePath(), true );
+	SystemOutput( "inside upload-to-s3.xml", 1, 1 );	
 	s3ExtVersion = extensionList().filter( function(row){ return row.name contains "s3"; }).version;
 
-	include (template="upload_to_s3.cfm");
+	uploadScript = expandPath( basedir & "/../ant/upload_to_s3.cfm" );
+	SystemOutput( uploadScript, true );
+	include ( template=uploadScript );
 	
 	if ( s3Extversion eq "" )
 		throw "The S3 Extension isn't installed!"; // fatal
