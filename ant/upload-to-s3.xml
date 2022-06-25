@@ -27,7 +27,7 @@ try{
 	include (template="upload_to_s3.cfm");
 	
 	if ( s3Extversion eq "" )
-		throw "The S3 Extension isn't installed!", true ); // fatal
+		throw "The S3 Extension isn't installed!"; // fatal
 	else
 		SystemOutput( "Using S3 Extension: #s3ExtVersion#", true );
 
