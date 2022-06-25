@@ -629,10 +629,11 @@
       <arg value="-f"/>
       <arg value="${ant}/upload-to-s3.xml"/>
 
+      <jvmarg value="-Dantdir=${ant}"/>
       <jvmarg value="-Dbasedir=${baseDir}"/>
       <jvmarg value="-Dlucee.base.dir=${temp}/archive/base"/>
       <jvmarg value="-Dlucee.web.dir=${temp}/archive/webroot"/>
-      <!-- <jvmarg value="-Dlucee-extensions=${extS3}"/> -->
+      <jvmarg value="-Dlucee-extensions=${extS3}"/>
       <jvmarg value="-Dlucee.extensions.install=true"/>
       <jvmarg value="-Dlucee.full.null.support=false"/>
       <jvmarg value="-Dluceejar=${trgLoader}/lucee-${version}.jar"/>
