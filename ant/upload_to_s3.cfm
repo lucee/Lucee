@@ -1,10 +1,26 @@
 <cfscript>
-try {
+	// firstly, check are we even deploying to s3
+	if ( (server.system.environment.DO_DEPLOY?:false) eq false ){
+		SystemOutput( "skip, DO_DEPLOY is false", 1 ,1 );
+		return;
+	} 
+	// secondly, do we have the s3 extension?
 	s3ExtVersion = extensionList().filter( function(row){ return row.name contains "s3"; }).version;
-	if ( s3Extversion eq "" )
+	if ( s3Extversion eq "" ){
+		SystemOutput("The S3 Extension isn't installed!", true);
 		throw "The S3 Extension isn't installed!"; // fatal
-	else
+	} else {
 		SystemOutput( "Using S3 Extension: #s3ExtVersion#", true );
+	}
+
+	// finally check for S3 credentials
+	if ( isNull( server.system.environment.S3_ACCESS_ID_DOWNLOAD )
+			|| isNull( server.system.environment.S3_SECRET_KEY_DOWNLOAD ) ) {
+		SystemOutput( "no S3 credentials defined to upload to S3", 1, 1 );
+		return;
+		//throw "no S3 credentials defined to upload to S3";
+		//trg.dir = "";
+	}
 
 	src.jar = server.system.properties.luceejar;
 	src.core = server.system.properties.luceeCore;
@@ -19,21 +35,9 @@ try {
 		throw "missing jar or .lco file";
 	}
 
-	// no S3 credentials?
-	if ( (server.system.environment.DO_DEPLOY?:false) eq false ){
-		SystemOutput( "skip, DO_DEPLOY is false", 1 ,1 );
-		return;
-	} else if ( isNull( server.system.environment.S3_ACCESS_ID_DOWNLOAD )
-			|| isNull( server.system.environment.S3_SECRET_KEY_DOWNLOAD ) ) {
-		SystemOutput( "no S3 credentials defined to upload to S3", 1, 1 );
-		return;
-		//throw "no S3 credentials defined to upload to S3";
-		//trg.dir = "";
-	} else {
-		s3_bucket = "lucee-downloads";
-		trg.dir = "s3://#server.system.environment.S3_ACCESS_ID_DOWNLOAD#:#server.system.environment.S3_SECRET_KEY_DOWNLOAD#@/#s3_bucket#/";
-	}
-
+	s3_bucket = "lucee-downloads";
+	trg.dir = "s3://#server.system.environment.S3_ACCESS_ID_DOWNLOAD#:#server.system.environment.S3_SECRET_KEY_DOWNLOAD#@/#s3_bucket#/";
+	
 	// test s3 access
 	SystemOutput( "Testing S3 Bucket Access", 1, 1 );
 	if (! DirectoryExists( trg.dir ) )
@@ -143,12 +147,6 @@ try {
 
 
 	// express
-
-}
-catch( e ){
-	SystemOutput( serialize( e ),1,1 );
-	rethrow;
-}
 
 /*
 	// not currently used
