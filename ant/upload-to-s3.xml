@@ -21,7 +21,15 @@ try{
 	NL = "
 ";
 	SystemOutput( "inside upload-to-s3.xml", 1, 1 );
-	SystemOutput( "Using S3 Extension: #extensionList().filter( function(row){ return row.name contains "s3"; }).version#", true);
+	SystemOutput( "Path: " & getCurrentTemplatePath(), true );
+	s3ExtVersion = extensionList().filter( function(row){ return row.name contains "s3"; }).version;
+
+	include (template="upload_to_s3.cfm");
+	
+	if ( s3Extversion eq "" )
+		throw "The S3 Extension isn't installed!", true ); // fatal
+	else
+		SystemOutput( "Using S3 Extension: #s3ExtVersion#", true );
 
 	src.jar = server.system.properties.luceejar;
 	src.core = server.system.properties.luceeCore;
