@@ -7,8 +7,9 @@
 	// secondly, do we have the s3 extension?
 	s3ExtVersion = extensionList().filter( function(row){ return row.name contains "s3"; }).version;
 	if ( s3Extversion eq "" ){
-		SystemOutput("The S3 Extension isn't installed!", true);
-		throw "The S3 Extension isn't installed!"; // fatal
+		SystemOutput( "ERROR! The S3 Extension isn't installed!", true );
+		return; 
+		//throw "The S3 Extension isn't installed!"; // fatal
 	} else {
 		SystemOutput( "Using S3 Extension: #s3ExtVersion#", true );
 	}
@@ -21,6 +22,9 @@
 		//throw "no S3 credentials defined to upload to S3";
 		//trg.dir = "";
 	}
+
+	NL = "
+";
 
 	src.jar = server.system.properties.luceejar;
 	src.core = server.system.properties.luceeCore;
