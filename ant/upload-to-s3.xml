@@ -21,7 +21,15 @@ try{
 	NL = "
 ";
 	SystemOutput( "inside upload-to-s3.xml", 1, 1 );
-	SystemOutput( "Using S3 Extension: #extensionList().filter( function(row){ return row.name contains "s3" }).version#", true);
+	SystemOutput( "Path: " & getCurrentTemplatePath(), true );
+	s3ExtVersion = extensionList().filter( function(row){ return row.name contains "s3"; }).version;
+
+	include (template="upload_to_s3.cfm");
+	
+	if ( s3Extversion eq "" )
+		throw "The S3 Extension isn't installed!"; // fatal
+	else
+		SystemOutput( "Using S3 Extension: #s3ExtVersion#", true );
 
 	src.jar = server.system.properties.luceejar;
 	src.core = server.system.properties.luceeCore;
@@ -102,11 +110,12 @@ try{
 	fileCopy( src.war,trg.war );
 	*/
 
-	// light
-	/*src.lightName = "lucee-light-" & src.version & ".jar";
+	// Lucee light build (disabled, done on provider)
+	/*
+	src.lightName = "lucee-light-" & src.version & ".jar";
 	src.light = src.dir & src.lightName;
 	trg.light = trg.dir & src.lightName;
-	createLight( src.jar,src.light,src.version );
+	// createLight( src.jar,src.light,src.version );
 	fileCopy( src.light,trg.light );
 	*/
 
@@ -166,7 +175,8 @@ catch( e ){
 	rethrow;
 }
 
-
+/*
+	// not currently used
 	private function createLight( string loader, string trg, version ) {
 		var sep = server.separator.file;
 		var tmpDir = getDirectoryFromPath( loader );
@@ -209,7 +219,7 @@ catch( e ){
 		zip action = "zip" source = tmpLoader file = trg;
 		
 	}
-
+*/
 
 ]]>
   </script>
