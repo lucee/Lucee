@@ -23,6 +23,28 @@ try{
 	SystemOutput( "inside upload-to-s3.xml", 1, 1 );	
 	s3ExtVersion = extensionList().filter( function(row){ return row.name contains "s3"; }).version;
 
+	request.WEBADMINPASSWORD = "webweb";
+	request.SERVERADMINPASSWORD = "webweb";
+	
+	// set a password for the admin
+	try {
+		admin
+			action="updatePassword"
+			type="web"
+			oldPassword=""
+			newPassword="#request.WEBADMINPASSWORD#";
+	}
+	catch(e){}	// may exist from previous execution
+
+	try {
+		admin
+			action="updatePassword"
+			type="server"
+			oldPassword=""
+			newPassword="#request.SERVERADMINPASSWORD#";
+	}
+	catch(e){}	// may exist from previous execution
+
 	// create "/upload" mapping
 	admin
 		action="updateMapping"
