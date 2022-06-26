@@ -618,13 +618,6 @@
     <echots message="upload to S3"/>
     <echots message="${test_jars}"/>
 
-    <!-- test debug for failing build step -->
-    <listDirectory directory="${trgLoader}" delimiter=":" returnvalue="dump_jars"/>
-    <echots message="${dump_jars}"/>
-    <listDirectory directory="${trgLoader}" delimiter=":" returnvalue="dump_ant"/>
-    <echots message="${ant}"/>
-    <echots message="run the launcher via java"/>
-    
     <!-- Upload to S3 -->
     <java classname="org.apache.tools.ant.launch.Launcher" dir="${ant}" fork="true" failonerror="true" errorproperty="exc3">
       <classpath path="${java.class.path}">
@@ -636,6 +629,7 @@
       <arg value="-f"/>
       <arg value="${ant}/upload-to-s3.xml"/>
 
+      <jvmarg value="-Dantdir=${ant}"/>
       <jvmarg value="-Dbasedir=${baseDir}"/>
       <jvmarg value="-Dlucee.base.dir=${temp}/archive/base"/>
       <jvmarg value="-Dlucee.web.dir=${temp}/archive/webroot"/>
