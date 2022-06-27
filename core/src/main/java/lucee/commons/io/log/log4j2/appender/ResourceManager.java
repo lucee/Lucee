@@ -26,6 +26,7 @@ import org.apache.logging.log4j.core.appender.OutputStreamManager;
 import org.apache.logging.log4j.core.config.Configuration;
 import org.apache.logging.log4j.core.util.Constants;
 
+import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourcesImpl;
@@ -67,10 +68,12 @@ public class ResourceManager extends OutputStreamManager {
 			this.filePermissions = null;
 			this.fileGroup = null;
 			if (filePermissions != null) {
-				LOGGER.warn("Posix file attribute permissions defined but it is not supported by this files system.");
+				LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), Log.LEVEL_WARN, "log-loading",
+						"Posix file attribute permissions defined but it is not supported by this files system.");
 			}
 			if (fileGroup != null) {
-				LOGGER.warn("Posix file attribute group defined but it is not supported by this files system.");
+				LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), Log.LEVEL_WARN, "log-loading",
+						"Posix file attribute group defined but it is not supported by this files system.");
 			}
 		}
 
@@ -80,7 +83,7 @@ public class ResourceManager extends OutputStreamManager {
 		else {
 			this.fileOwner = null;
 			if (fileOwner != null) {
-				LOGGER.warn("Owner file attribute defined but it is not supported by this files system.");
+				LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), Log.LEVEL_WARN, "log-loading", "Owner file attribute defined but it is not supported by this files system.");
 			}
 		}
 	}
@@ -130,7 +133,7 @@ public class ResourceManager extends OutputStreamManager {
 				res.setLastModified(System.currentTimeMillis());
 			}
 			catch (Exception ex) {
-				LOGGER.warn("Unable to set current file time for {}", filename);
+				LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), Log.LEVEL_WARN, "log-loading", "Unable to set current file time for " + filename);
 			}
 			writeHeader(os);
 		}
