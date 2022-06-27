@@ -2,11 +2,13 @@ package lucee.commons.io.log.log4j2.appender;
 
 import java.sql.Types;
 
+import org.apache.logging.log4j.core.Appender;
 import org.apache.logging.log4j.core.Filter;
 import org.apache.logging.log4j.core.LogEvent;
 import org.apache.logging.log4j.core.appender.AbstractAppender;
 
 import lucee.commons.io.IOUtil;
+import lucee.commons.io.log.LogUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.SystemOut;
@@ -38,8 +40,12 @@ public class DatasourceAppender extends AbstractAppender {
 	private final String tableName;
 	private final Config config;
 	private String custom;
+	private Appender fallback;
+	private DatasourceConnectionPool pool;
+	private boolean isInit;
+	private Object token = new Object();
 
-	public DatasourceAppender(Config config, String name, Filter filter, String datasource, String username, String password, String tableName, String custom)
+	public DatasourceAppender(Config config, Appender fallback, String name, Filter filter, String datasource, String username, String password, String tableName, String custom)
 			throws PageException {
 		super(name, filter, null);
 		this.datasourceName = datasource;
@@ -48,18 +54,24 @@ public class DatasourceAppender extends AbstractAppender {
 		this.config = config;
 		this.tableName = tableName;
 		this.custom = custom;
-
-		touchTable();
+		this.fallback = fallback;
 	}
 
 	public String getTableName() {
 		return tableName;
 	}
 
-	private DatasourceConnectionPool pool;
-
 	@Override
 	public void append(LogEvent event) {
+
+		if (!isInit) {
+			init();
+			if (!isInit) {
+				fallback.append(event);
+				return;
+			}
+		}
+
 		DatasourceConnection conn = null;
 		try {
 
@@ -130,42 +142,50 @@ public class DatasourceAppender extends AbstractAppender {
 			new QueryImpl(optionalPC, conn, sql, -1, -1, null, "query");
 		}
 		catch (PageException pe) {
-
-			error("failed to append in DatasourceAppender:" + pe.getMessage(), event, pe);
-			SystemOut.printDate(pe);
+			LogUtil.logGlobal(config, "log-loading", pe);
 		}
 		finally {
 			try {
 				relConnection(conn);
 			}
 			catch (PageException pee) {
-				error("failed to release connection in DatasourceAppender:" + pee.getMessage(), event, pee);
-				SystemOut.printDate(pee);
+				LogUtil.logGlobal(config, "log-loading", pee);
 			}
 		}
 	}
 
-	private void touchTable() throws PageException {
+	private void init() {
+		synchronized (token) {
+			if (!isInit) {
+				DatasourceConnection conn = null;
+				PageContext optionalPC = ThreadLocalPageContext.get();
+				SQLImpl sql = new SQLImpl("select 1 from " + tableName + " where 1=0");
+				try {
+					conn = getConnection();
 
-		DatasourceConnection conn = null;
-		PageContext optionalPC = ThreadLocalPageContext.get();
-		SQLImpl sql = new SQLImpl("select 1 from " + tableName + " where 1=0");
-		try {
-			conn = getConnection();
-			new QueryImpl(optionalPC, conn, sql, -1, -1, null, "query");
-		}
-		catch (PageException pe) {
-			SystemOut.printDate(pe);
-			try {
-				new QueryImpl(optionalPC, conn, createSQL(conn), -1, -1, null, "query");
+					try {
+						conn = getConnection();
+						new QueryImpl(optionalPC, conn, sql, -1, -1, null, "query");
+						isInit = true;
+					}
+					catch (PageException pe) {
+						try {
+							new QueryImpl(optionalPC, conn, createSQL(conn), -1, -1, null, "query");
+							isInit = true;
+						}
+						catch (Exception e2) {
+							LogUtil.logGlobal(config, "log-loading", pe);
+						}
+					}
+					finally {
+						relConnection(conn);
+					}
+				}
+				catch (PageException pe) {
+					LogUtil.logGlobal(config, "log-loading", pe);
+					isInit = false;
+				}
 			}
-			catch (Exception e2) {
-				SystemOut.printDate(e2);
-				throw pe;
-			}
-		}
-		finally {
-			relConnection(conn);
 		}
 	}
 
