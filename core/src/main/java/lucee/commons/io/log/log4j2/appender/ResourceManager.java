@@ -26,6 +26,7 @@ import org.apache.logging.log4j.core.appender.OutputStreamManager;
 import org.apache.logging.log4j.core.config.Configuration;
 import org.apache.logging.log4j.core.util.Constants;
 
+import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourcesImpl;
 import lucee.runtime.config.Config;
@@ -368,7 +369,7 @@ public class ResourceManager extends OutputStreamManager {
 				return rm;
 			}
 			catch (final IOException ex) {
-				LOGGER.error("FileManager (" + path + ") " + ex, ex);
+				LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), "log-loading", ex);
 			}
 			return null;
 		}
