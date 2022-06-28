@@ -19,7 +19,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="pop"{
 
 				expect(result).tobe("Done!!!"); // to check the mail has sended successfully
   
-				pop action="getAll" name="local.inboxemails" server="#creds.pop.server#" password="#creds.pop.password#" port="#creds.pop.PORT_SECURE#" secure="yes" username="luceeldev3548pop@localhost";
+				pop action="getAll" name="local.inboxemails" server="#creds.pop.server#" password="#creds.pop.password#" port="49158" secure="no" username="luceeldev3548pop@localhost";
 				
 				multipartMessage = queryGetRow(inboxemails,queryRecordCount(inboxemails)); // assumes last inbox mail must sended by above the process
 

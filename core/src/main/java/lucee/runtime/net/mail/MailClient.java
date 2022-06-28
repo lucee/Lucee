@@ -263,7 +263,7 @@ public abstract class MailClient implements PoolItem {
 		// if(TYPE_POP3==getType()){}
 		_session = username != null ? Session.getInstance(properties, new _Authenticator(username, password)) : Session.getInstance(properties);
 		_store = _session.getStore(type);
-		if (!StringUtil.isEmpty(username)) _store.connect(server, username, password);
+		if (!StringUtil.isEmpty(username)) _store.connect(server, port, username, password);
 		else _store.connect();
 	}
 
