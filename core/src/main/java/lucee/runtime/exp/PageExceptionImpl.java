@@ -28,6 +28,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 
 import lucee.commons.io.IOUtil;
+import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ClassUtil;
@@ -393,19 +394,20 @@ public abstract class PageExceptionImpl extends PageException {
 		// print.out(pr.getDisplayPath());
 		try {
 			String[] content = ps.getSource();
-			struct.set(KeyConstants._template, ps.getDisplayPath());
-			struct.set(KeyConstants._line, new Double(line));
-			struct.set(KeyConstants._id, "??");
-			struct.set(KeyConstants._Raw_Trace, (element != null) ? element.toString() : "");
-			struct.set(KeyConstants._Type, "cfml");
-			struct.set(KeyConstants._column, new Double(column));
+			struct.setEL(KeyConstants._template, ps.getDisplayPath());
+			struct.setEL(KeyConstants._line, new Double(line));
+			struct.setEL(KeyConstants._id, "??");
+			struct.setEL(KeyConstants._Raw_Trace, (element != null) ? element.toString() : "");
+			struct.setEL(KeyConstants._Type, "cfml");
+			struct.setEL(KeyConstants._column, new Double(column));
 			if (content != null) {
-				struct.set(KeyConstants._codePrintHTML, getCodePrint(content, line, true));
-				struct.set(KeyConstants._codePrintPlain, getCodePrint(content, line, false));
+				struct.setEL(KeyConstants._codePrintHTML, getCodePrint(content, line, true));
+				struct.setEL(KeyConstants._codePrintPlain, getCodePrint(content, line, false));
 			}
-			tagContext.append(struct);
+			tagContext.appendEL(struct);
 		}
 		catch (Exception e) {
+			LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), PageException.class.getName(), e);
 		}
 	}
 

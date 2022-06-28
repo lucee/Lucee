@@ -155,6 +155,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		// systemOutput( child.getStaticVariable( "test" ) );
 		expect( child.getStaticVariable( "test" ) ).toBe( "base" );
 	}
+
+	public void function testCreateInstanceInStaticFunction() skip=true {
+		// creates an instance inside the component of the same component
+		var instance = static.StaticCreateInstance::newInstance();
+		debug(instance);
+		expect( instance.test()).toBeTrue();
+	}
 } 
 
 

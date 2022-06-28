@@ -14,7 +14,8 @@ component {
 	};
 	this.datasource = "LDEV3207";
 
-	public function onRequestStart(){
+	public function onRequestStart() {
+		setting requesttimeout=10;
 		query{
 			echo("DROP TABLE IF EXISTS empty_table");
         }

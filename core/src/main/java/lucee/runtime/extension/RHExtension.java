@@ -218,7 +218,7 @@ public class RHExtension implements Serializable {
 					DeployHandler.deployExtension(config, res);
 				}
 				else {
-					DeployHandler.deployExtension(config, new ExtensionDefintion(id, version), null, false, true);
+					DeployHandler.deployExtension(config, new ExtensionDefintion(id, version), null, false, true, true);
 					res = RHExtension.toResource(config, id, version);
 				}
 			}

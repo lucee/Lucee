@@ -14,14 +14,22 @@ import javax.servlet.http.Cookie;
 import javax.servlet.jsp.JspException;
 import javax.servlet.jsp.tagext.Tag;
 
+import org.apache.logging.log4j.core.layout.HtmlLayout;
+import org.apache.logging.log4j.core.layout.PatternLayout;
+
 import lucee.commons.io.DevNullOutputStream;
 import lucee.commons.io.SystemUtil;
+import lucee.commons.io.log.log4j2.appender.ConsoleAppender;
+import lucee.commons.io.log.log4j2.appender.DatasourceAppender;
+import lucee.commons.io.log.log4j2.appender.ResourceAppender;
+import lucee.commons.io.log.log4j2.layout.ClassicLayout;
+import lucee.commons.io.log.log4j2.layout.DataDogLayout;
+import lucee.commons.io.log.log4j2.layout.XMLLayout;
 import lucee.commons.io.res.Resource;
 import lucee.loader.engine.CFMLEngine;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.loader.util.Util;
 import lucee.runtime.PageContext;
-import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.tag.DynamicAttributes;
@@ -360,7 +368,7 @@ public class CFConfigImport {
 			tag.setPageContext(pc);
 			boolean empty = true;
 			for (Item item: items) {
-				val = item.getValue(pc.getConfig(), json);
+				val = item.getValue(json);
 				if (val != null) empty = false;
 				else val = item.getDefault();
 				dynAttr.setDynamicAttribute(null, item.getTargetAttrName(), val);
@@ -430,9 +438,9 @@ public class CFConfigImport {
 			return e.getCastUtil().toKey(trgAttrName);
 		}
 
-		private Object getValue(Config config, Struct json) throws PageException {
+		private Object getValue(Struct json) {
 			if (modifier != null) {
-				return modifier.getValue(config, json);
+				return modifier.getValue(json);
 			}
 			Object obj = null;
 			for (String srcKeyName: srcKeyNames) {
@@ -456,10 +464,12 @@ public class CFConfigImport {
 	}
 
 	private static interface Modifier {
-		Object getValue(Config config, Struct json) throws PageException;
+
+		String getValue(Struct json);
+
 	}
 
-	private static abstract class ClassDefintionModifier implements Modifier {
+	private abstract static class ALModifier implements Modifier {
 
 		public String getValue(Struct json, String name) {
 			// to we have the main key?
@@ -469,26 +479,43 @@ public class CFConfigImport {
 			if (!Util.isEmpty(data, true)) return data;
 			return null;
 		}
+
 	}
 
-	private static class AppenderModifier extends ClassDefintionModifier {
+	private static class AppenderModifier extends ALModifier {
 
 		@Override
-		public ClassDefinition<?> getValue(Config config, Struct json) throws PageException {
+		public String getValue(Struct json) {
 			String val = getValue(json, "appenderclass");
-			if (val == null) val = getValue(json, "appender");
-			return ((ConfigPro) config).getLogEngine().appenderClassDefintion(val);
+			if (val != null) return val;
+			val = getValue(json, "appender");
+
+			if ("console".equalsIgnoreCase(val)) return ConsoleAppender.class.getName();
+			if ("resource".equalsIgnoreCase(val)) return ResourceAppender.class.getName();
+			if ("datasource".equalsIgnoreCase(val)) return DatasourceAppender.class.getName();
+
+			return val;
 		}
 
 	}
 
-	private static class LayoutModifier extends ClassDefintionModifier {
+	private static class LayoutModifier extends ALModifier {
 
 		@Override
-		public ClassDefinition<?> getValue(Config config, Struct json) throws PageException {
+		public String getValue(Struct json) {
 			String val = getValue(json, "layoutclass");
-			if (val == null) val = getValue(json, "layout");
-			return ((ConfigPro) config).getLogEngine().layoutClassDefintion(val);
+			if (val != null) return val;
+			val = getValue(json, "layout");
+
+			if ("classic".equalsIgnoreCase(val)) return ClassicLayout.class.getName();
+			;
+			if ("datasource".equalsIgnoreCase(val)) return ClassicLayout.class.getName();
+			if ("html".equalsIgnoreCase(val)) return HtmlLayout.class.getName();
+			if ("xml".equalsIgnoreCase(val)) return XMLLayout.class.getName();
+			if ("pattern".equalsIgnoreCase(val)) return PatternLayout.class.getName();
+			if ("datadog".equalsIgnoreCase(val)) return DataDogLayout.class.getName();
+
+			return val;
 		}
 
 	}
@@ -504,7 +531,7 @@ public class CFConfigImport {
 		}
 
 		@Override
-		public String getValue(Config config, Struct json) {
+		public String getValue(Struct json) {
 			// to we have the main key?
 			CFMLEngine e = CFMLEngineFactory.getInstance();
 			String data = null;

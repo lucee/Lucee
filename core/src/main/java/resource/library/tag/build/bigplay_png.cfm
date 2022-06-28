@@ -1,1 +1,0 @@
-<cfsetting showdebugoutput="no"><cfcontent type="image/x-png" file="_bigplay.png">

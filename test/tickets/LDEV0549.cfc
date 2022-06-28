@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase"{
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="cache,ehCache" {
 	function run( testResults , testBox ) {
 		describe( "Test suite for LDEV-549", function() {
 			it(title="checking EHCache with  the name 'default' ", body = function( currentSpec ) {

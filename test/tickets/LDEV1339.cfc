@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase"{
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="xml" {
 	function run( testResults , testBox ) {
 		describe( "Test suite for LDEV-1339", function() {
 			it(title="Checking XMLTransform(), with xml paramater", body = function( currentSpec ) {

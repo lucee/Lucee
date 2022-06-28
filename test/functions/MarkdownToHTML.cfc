@@ -1,18 +1,18 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" {
-	
-    variables.markdownString=trim(" 
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="markdown" {
+
+    variables.markdownString=trim("
     #### Headline with ID ####
 
 Another headline with ID
 ------------------------
 
-* List with ID 
+* List with ID
 
 Links: [Foo] (##headid)
 
 This is ***TXTMARK***
 This is ***TXTMARK***
-    
+
 ``
 This is code!
 ``
@@ -22,12 +22,12 @@ This is code!
      - Second nested list item
 ");
 
-variables.htmlString=trim("<h2>Headline with ID</h2>
+variables.htmlString=trim('<h2>Headline with ID</h2>
 <h2>Another headline with ID</h2>
 <ul>
 <li>List with ID</li>
 </ul>
-<p>Links: <a href="#headid">Foo</a></p>
+<p>Links: <a href="##headid">Foo</a></p>
 <p>This is <strong><em>TXTMARK</em></strong>
 This is <strong><em>TXTMARK</em></strong></p>
 <p><code>
@@ -39,31 +39,36 @@ This is code!
 <li>Second nested list item</li>
 </ul>
 </li>
-</ol>");
-	
+</ol>');
+	variables.htmlString = forceLF( variables.htmlString );
+
 	function run( testResults, testBox ){
 		describe( title="Testcase for markdownToHTML()", body=function() {
 			it( title = "Checking with markdownToHTML with a string", body=function( currentSpec ) {
 				assertEquals(
 					variables.htmlString,
-					markdownToHTML(variables.markdownString)
+					forceLF( markdownToHTML( variables.markdownString ).trim() )
 				);
 			});
 
 			it( title = "Checking with markdownToHTML with a file", body=function( currentSpec ) {
-				var curr=getDirectoryFromPath(getCurrentTemplatePath());
-				var file=curr&"markdownToHTML/test.md";
+				var file=getTempFile( getTempDirectory(), "markdown", "md" );
 				try {
 					fileWrite(file, markdownString);
 					assertEquals(
 						variables.htmlString,
-						markdownToHTML(file)
+						forceLF( markdownToHTML( file ).trim() )
 					);
 				}
 				finally {
-					if(fileExists(file)) fileDelete(file);
+					if( fileExists( file ) ) fileDelete( file );
 				}
 			});
 		});
+	} 
+
+	private string function forceLF (required string str ){
+		return replace( arguments.str, "#chr(13)##chr(10)#", chr(10), "all" );
 	}
+
 }

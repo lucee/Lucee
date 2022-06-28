@@ -1,5 +1,5 @@
 
-component extends="org.lucee.cfml.test.LuceeTestCase"	{
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="xml" {
 	
 	variables.xml='<img src="/lucee/graph.cfm?img=qq.png&type=png"/>';// the & is the problem
 		

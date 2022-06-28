@@ -114,7 +114,7 @@
 		<cfif !structKeyExists(url, "isAjaxRequest")>
 			<div class="tile-wrap">
 				<div class="tile">
-					<ul class="margin-no-top margin-right margin-no-bottom margin-left">
+					<ul class="breadcrumb margin-no-top margin-right margin-no-bottom margin-left">
 						<li><a href="index.cfm">Home</a></li>
 						<li><a href="tags.cfm">Lucee tags</a></li>
 						<li class="active">&lt;#lCase( tagName )#&gt;</li>
@@ -124,7 +124,7 @@
 		<cfelse>
 			<h2 style="text-align: center;">Lucee Tags</h2>
 		</cfif>
-		<h2>Tag <em>&lt;#uCase( tagName )#&gt;</em></h2>
+		<h2><em>&lt;#data.nameSpace##data.Name#&gt;</em></h2>
 
 		<cfif data.status == "deprecated">
 			<div class="warning nofocus">#stText.doc.depTag#</div>
