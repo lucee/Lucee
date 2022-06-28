@@ -44,7 +44,7 @@ jobs:
           # Maps port 6379 on service container to the host
           - 6379:6379
       greenmail:
-        image: mailhog/mailhog:v1.0.0
+        image: greenmail/standalone:1.6.9
         env: 
           GREENMAIL_OPTS: -Dgreenmail.setup.all # use standard ports due to LDEV-4050
         ports:
