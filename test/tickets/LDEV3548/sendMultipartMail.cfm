@@ -4,13 +4,13 @@
     <cfset creds = { "smtp" : server.getTestService("smtp"), "pop" : server.getTestService("pop") }>
     <cfset sBoundary = "E1DDE315-7C6C-4864-B47E-7AA62810F684--">
 
-<cfmail to = "#creds.pop.username#"
-    from = "#creds.smtp.username#"
+<cfmail to = "luceeldev3548pop@localhost"
+    from = "luceeldev3548@localhost"
     subject = "Sample inline message/rfc822 POP3 testcase" 
     server="#creds.smtp.server#"
     password="#creds.smtp.password#"
-    username="#creds.smtp.username#"
-    port="#creds.smtp.port#"
+    username="luceeldev3548@localhost"
+    port="#creds.smtp.PORT_INSECURE#"
     useTls="true"
     usessl="false"
     async="false">
