@@ -92,8 +92,8 @@ public final class Decision {
 	 * @return is value a simple value
 	 */
 	public static boolean isSimpleValue(Object value) {
-		return (value instanceof Number) || (value instanceof Locale) || (value instanceof TimeZone) || (value instanceof String) || (value instanceof Boolean)
-				|| (value instanceof Date) || ((value instanceof Castable) && !(value instanceof Objects) && !(value instanceof Collection));
+		return (value instanceof Number) || (value instanceof Locale) || (value instanceof TimeZone) || (value instanceof String) || (value instanceof Character)
+				|| (value instanceof Boolean) || (value instanceof Date) || ((value instanceof Castable) && !(value instanceof Objects) && !(value instanceof Collection));
 	}
 
 	public static boolean isSimpleValueLimited(Object value) {
@@ -225,7 +225,8 @@ public final class Decision {
 	}
 
 	public static boolean isInteger(Object value, boolean alsoBooleans) {
-		if (!alsoBooleans && value instanceof Boolean) return false;
+		if (!alsoBooleans && isBoolean(value)) return false;
+
 		double dbl = Caster.toDoubleValue(value, false, Double.NaN);
 		if (!Decision.isValid(dbl)) return false;
 		int i = (int) dbl;
@@ -802,8 +803,8 @@ public final class Decision {
 	 * @return is or not
 	 */
 	public static boolean isObject(Object o) {
+		if (o == null) return false;
 		return isComponent(o)
-
 				|| (!isArray(o) && !isQuery(o) && !isSimpleValue(o) && !isStruct(o) && !isUserDefinedFunction(o) && !isXML(o));
 	}
 

@@ -32,7 +32,6 @@ import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.nio.file.Files;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.nio.file.attribute.FileTime;
 
 import lucee.commons.digest.Hash;
 import lucee.commons.digest.HashUtil;
@@ -453,7 +452,7 @@ public final class FileTag extends BodyTagImpl {
 		case ACTION_UNDEFINED:
 			throw new ApplicationException("Missing attribute action"); // should never happens
 
-			// write and append
+		// write and append
 		default:
 			return EVAL_BODY_BUFFERED;
 		}
@@ -499,8 +498,10 @@ public final class FileTag extends BodyTagImpl {
 			String serverPassword, Object acl, int mode, String attributes) throws PageException {
 		if (nameconflict == NAMECONFLICT_UNDEFINED) nameconflict = NAMECONFLICT_OVERWRITE;
 
-		if (source == null) throw new ApplicationException("Attribute [source] is required for tag [file], when the action is [" + actionValue + "]","Required attributes for action [" + actionValue + "] is [source, destination]");
-		if (StringUtil.isEmpty(strDestination)) throw new ApplicationException("Attribute [destination] is required for tag [file], when the action is [" + actionValue + "]","Required attributes for action [" + actionValue + "] is [source, destination]");
+		if (source == null) throw new ApplicationException("Attribute [source] is required for tag [file], when the action is [" + actionValue + "]",
+				"Required attributes for action [" + actionValue + "] is [source, destination]");
+		if (StringUtil.isEmpty(strDestination)) throw new ApplicationException("Attribute [destination] is required for tag [file], when the action is [" + actionValue + "]",
+				"Required attributes for action [" + actionValue + "] is [source, destination]");
 
 		Resource destination = toDestination(pageContext, strDestination, source);
 
@@ -529,7 +530,6 @@ public final class FileTag extends BodyTagImpl {
 			else throw new ApplicationException("Destination file [" + destination.toString() + "] already exists");
 		}
 
-		setACL(pageContext, destination, acl);
 		try {
 			source.moveTo(destination);
 
@@ -541,6 +541,7 @@ public final class FileTag extends BodyTagImpl {
 
 		setMode(destination, mode);
 		setAttributes(destination, attributes);
+		setACL(pageContext, destination, acl);
 	}
 
 	private static Resource toDestination(PageContext pageContext, String path, Resource source) {
@@ -560,8 +561,10 @@ public final class FileTag extends BodyTagImpl {
 			String serverPassword, Object acl, int mode, String attributes) throws PageException {
 		if (nameconflict == NAMECONFLICT_UNDEFINED) nameconflict = NAMECONFLICT_OVERWRITE;
 
-		if (source == null) throw new ApplicationException("Attribute [source] is required for tag [file], when the action is [" + actionValue + "]","Required attributes for action [" + actionValue + "] is [source, destination]");
-		if (StringUtil.isEmpty(strDestination)) throw new ApplicationException("Attribute [destination] is required for tag [file], when the action is [" + actionValue + "]","Required attributes for action [" + actionValue + "] is [source, destination]");
+		if (source == null) throw new ApplicationException("Attribute [source] is required for tag [file], when the action is [" + actionValue + "]",
+				"Required attributes for action [" + actionValue + "] is [source, destination]");
+		if (StringUtil.isEmpty(strDestination)) throw new ApplicationException("Attribute [destination] is required for tag [file], when the action is [" + actionValue + "]",
+				"Required attributes for action [" + actionValue + "] is [source, destination]");
 
 		Resource destination = toDestination(pageContext, strDestination, source);
 
@@ -588,7 +591,6 @@ public final class FileTag extends BodyTagImpl {
 			else throw new ApplicationException("Destination file [" + destination.toString() + "] already exists");
 		}
 
-		setACL(pageContext, destination, acl);
 		try {
 			IOUtil.copy(source, destination);
 		}
@@ -601,6 +603,7 @@ public final class FileTag extends BodyTagImpl {
 
 		setMode(destination, mode);
 		setAttributes(destination, attributes);
+		setACL(pageContext, destination, acl);
 	}
 
 	private static void setACL(PageContext pc, Resource res, Object acl) throws PageException {
@@ -655,8 +658,10 @@ public final class FileTag extends BodyTagImpl {
 	 */
 	private void actionRead(boolean isBinary) throws PageException {
 
-		if (variable == null) throw new ApplicationException("Attribute [variable] is required for tag [file], when the action is [" + actionValue + "]","Required attributes for action [" + actionValue + "] is [file, variable]");
-		if (file == null) throw new ApplicationException("Attribute [file] is required for tag [file], when the action is [" + actionValue + "]","Required attributes for action [" + actionValue + "] is [file, variable]");
+		if (variable == null) throw new ApplicationException("Attribute [variable] is required for tag [file], when the action is [" + actionValue + "]",
+				"Required attributes for action [" + actionValue + "] is [file, variable]");
+		if (file == null) throw new ApplicationException("Attribute [file] is required for tag [file], when the action is [" + actionValue + "]",
+				"Required attributes for action [" + actionValue + "] is [file, variable]");
 
 		// check if we can use cache
 		if (StringUtil.isEmpty(cachedWithin)) {
@@ -717,7 +722,8 @@ public final class FileTag extends BodyTagImpl {
 	 * @throws PageException
 	 */
 	private void actionWrite() throws PageException {
-		if (output == null) throw new ApplicationException("Attribute [output] is required for tag [file], when the action is [" + actionValue + "]","Action [" + actionValue + "] requires a tag body or attribute [output]");
+		if (output == null) throw new ApplicationException("Attribute [output] is required for tag [file], when the action is [" + actionValue + "]",
+				"Action [" + actionValue + "] requires a tag body or attribute [output]");
 		boolean created = checkFile(pageContext, securityManager, file, serverPassword, createPath, true, false, true);
 		if (file.exists() && !created) {
 			// Error
@@ -730,7 +736,6 @@ public final class FileTag extends BodyTagImpl {
 			else if (nameconflict == NAMECONFLICT_MAKEUNIQUE) file = makeUnique(file);
 		}
 
-		setACL(pageContext, file, acl);
 		try {
 			if (output instanceof InputStream) {
 				IOUtil.copy((InputStream) output, file, false);
@@ -756,6 +761,7 @@ public final class FileTag extends BodyTagImpl {
 		}
 		setMode(file, mode);
 		setAttributes(file, attributes);
+		setACL(pageContext, file, acl);
 	}
 
 	/**
@@ -771,7 +777,6 @@ public final class FileTag extends BodyTagImpl {
 			String attributes) throws PageException {
 		checkFile(pageContext, securityManager, file, serverPassword, createPath, true, true, true);
 
-		setACL(pageContext, file, acl);
 		try {
 			ResourceUtil.touch(file);
 		}
@@ -781,6 +786,7 @@ public final class FileTag extends BodyTagImpl {
 		}
 		setMode(file, mode);
 		setAttributes(file, attributes);
+		setACL(pageContext, file, acl);
 	}
 
 	/**
@@ -789,10 +795,10 @@ public final class FileTag extends BodyTagImpl {
 	 * @throws PageException
 	 */
 	private void actionAppend() throws PageException {
-		if (output == null) throw new ApplicationException("Attribute [output] is required for tag [file], when the action is [" + actionValue + "]","Action [" + actionValue + "] requires a tag body or attribute [output]");
+		if (output == null) throw new ApplicationException("Attribute [output] is required for tag [file], when the action is [" + actionValue + "]",
+				"Action [" + actionValue + "] requires a tag body or attribute [output]");
 		checkFile(pageContext, securityManager, file, serverPassword, createPath, true, false, true);
 
-		setACL(pageContext, file, acl);
 		try {
 			if (!file.exists()) file.createNewFile();
 			String content = Caster.toString(output);
@@ -809,6 +815,7 @@ public final class FileTag extends BodyTagImpl {
 		}
 		setMode(file, mode);
 		setAttributes(file, attributes);
+		setACL(pageContext, file, acl);
 	}
 
 	private String doFixNewLine(String content) {
@@ -822,7 +829,8 @@ public final class FileTag extends BodyTagImpl {
 	 * @throws PageException
 	 */
 	private void actionInfo() throws PageException {
-		if (variable == null) throw new ApplicationException("Attribute [variable] is required for tag [file], when the action is [" + actionValue + "]","Required attribute for action [" + actionValue + "] is [file, variable]");
+		if (variable == null) throw new ApplicationException("Attribute [variable] is required for tag [file], when the action is [" + actionValue + "]",
+				"Required attribute for action [" + actionValue + "] is [file, variable]");
 		pageContext.setVariable(variable, getInfo(pageContext, file, serverPassword));
 
 	}
@@ -836,6 +844,7 @@ public final class FileTag extends BodyTagImpl {
 		Struct sct = new StructImpl();
 
 		// fill data to query
+		sct.setEL(KeyConstants._path, file.getAbsolutePath());
 		sct.setEL(KeyConstants._name, file.getName());
 		sct.setEL(KeyConstants._size, Long.valueOf(file.length()));
 		sct.setEL(KeyConstants._type, file.isDirectory() ? "Dir" : "File");
@@ -1051,7 +1060,6 @@ public final class FileTag extends BodyTagImpl {
 
 		}
 
-		setACL(pageContext, destination, acl);
 		try {
 			destination.createNewFile();
 			IOUtil.copy(formItem.getResource(), destination);
@@ -1071,6 +1079,7 @@ public final class FileTag extends BodyTagImpl {
 
 		setMode(destination, mode);
 		setAttributes(destination, attributes);
+		setACL(pageContext, destination, acl);
 		return cffile;
 	}
 
@@ -1150,7 +1159,7 @@ public final class FileTag extends BodyTagImpl {
 	}
 
 	/**
-	 * rreturn fileItem matching to filefiled definition or throw an exception
+	 * return fileItem matching to filefield definition or throw an exception
 	 * 
 	 * @return FileItem
 	 * @throws ApplicationException
@@ -1221,7 +1230,8 @@ public final class FileTag extends BodyTagImpl {
 					throw new ApplicationException("Invalid file [" + file + "]", e.getMessage());
 				}
 			}
-			// else if (!file.isFile()) throw new ApplicationException("Source file [" + file.toString() + "] is not a file");
+			// else if (!file.isFile()) throw new ApplicationException("Source file [" + file.toString() + "] is
+			// not a file");
 			else throw new ApplicationException("Source file [" + file.toString() + "] doesn't exist");
 		}
 		else if (!file.isFile()) throw new ApplicationException("Source file [" + file.toString() + "] is not a file");

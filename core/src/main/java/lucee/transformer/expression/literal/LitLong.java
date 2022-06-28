@@ -20,7 +20,7 @@ package lucee.transformer.expression.literal;
 /**
  * Literal Double Value
  */
-public interface LitLong extends Literal {
+public interface LitLong extends LitNumber, Literal {
 
 	/**
 	 * @return return value as int

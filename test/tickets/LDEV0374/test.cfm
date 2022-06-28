@@ -26,7 +26,7 @@
 
 	try{
 		if( FORM.Purpose == "dateDiffMember" ){
-			writeOutput(date1.diff( "d", date2 ));
+			writeOutput(date2.diff( "d", date1 ));
 		}else if( FORM.Purpose == "dateCompareMember" ){
 			writeOutput(date1.compare( date2, "d" ));
 		}else if( FORM.Purpose == "dateDiff" ){

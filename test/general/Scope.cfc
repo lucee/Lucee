@@ -34,7 +34,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 			template:uri,
 			forms:forms
 		);
-		assertEquals("a:1;b:2;e:3;d:4;f:5;",res.filecontent.trim());
+		assertEquals("a:1;b:2;e:3;d:4;f:5;fieldnames:a,b,e,d,f;",res.filecontent.trim());
 	}
 
 

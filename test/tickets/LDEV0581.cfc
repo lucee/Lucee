@@ -33,7 +33,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		assertEquals("cookie1:value",data.content.cookie.cookie1);
 		assertEquals("cookie-581",data.content.cookie.test);
 		// Form
-		assertEquals("form1,test",data.content.form.keyList().listSort("textNoCase"));
+		assertEquals("fieldnames,form1,test",data.content.form.keyList().listSort("textNoCase"));
 		assertEquals("form1:value",data.content.form.form1);
 		assertEquals("form-581",data.content.form.test);
 		// URL

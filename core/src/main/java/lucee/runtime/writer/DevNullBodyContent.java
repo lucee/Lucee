@@ -77,134 +77,155 @@ public final class DevNullBodyContent extends BodyContent {
 	 * @see javax.servlet.jsp.JspWriter#print(boolean)
 	 */
 	@Override
-	public void print(boolean b) {}
+	public void print(boolean b) {
+	}
 
 	/**
 	 * @see javax.servlet.jsp.JspWriter#print(char)
 	 */
 	@Override
-	public void print(char c) {}
+	public void print(char c) {
+	}
 
 	/**
 	 * @see javax.servlet.jsp.JspWriter#print(int)
 	 */
 	@Override
-	public void print(int i) {}
+	public void print(int i) {
+	}
 
 	/**
 	 * @see javax.servlet.jsp.JspWriter#print(long)
 	 */
 	@Override
-	public void print(long l) {}
+	public void print(long l) {
+	}
 
 	/**
 	 * @see javax.servlet.jsp.JspWriter#print(float)
 	 */
 	@Override
-	public void print(float f) {}
+	public void print(float f) {
+	}
 
 	/**
 	 * @see javax.servlet.jsp.JspWriter#print(double)
 	 */
 	@Override
-	public void print(double d) {}
+	public void print(double d) {
+	}
 
 	/**
 	 * @see javax.servlet.jsp.JspWriter#print(char[])
 	 */
 	@Override
-	public void print(char[] c) {}
+	public void print(char[] c) {
+	}
 
 	/**
 	 * @see javax.servlet.jsp.JspWriter#print(java.lang.String)
 	 */
 	@Override
-	public void print(String str) {}
+	public void print(String str) {
+	}
 
 	/**
 	 * @see javax.servlet.jsp.JspWriter#print(java.lang.Object)
 	 */
 	@Override
-	public void print(Object o) {}
+	public void print(Object o) {
+	}
 
 	/**
 	 * @see javax.servlet.jsp.JspWriter#println()
 	 */
 	@Override
-	public void println() {}
+	public void println() {
+	}
 
 	/**
 	 * @see javax.servlet.jsp.JspWriter#println(boolean)
 	 */
 	@Override
-	public void println(boolean b) {}
+	public void println(boolean b) {
+	}
 
 	/**
 	 * @see javax.servlet.jsp.JspWriter#println(char)
 	 */
 	@Override
-	public void println(char c) {}
+	public void println(char c) {
+	}
 
 	/**
 	 * @see javax.servlet.jsp.JspWriter#println(int)
 	 */
 	@Override
-	public void println(int i) {}
+	public void println(int i) {
+	}
 
 	/**
 	 * @see javax.servlet.jsp.JspWriter#println(long)
 	 */
 	@Override
-	public void println(long l) {}
+	public void println(long l) {
+	}
 
 	/**
 	 * @see javax.servlet.jsp.JspWriter#println(float)
 	 */
 	@Override
-	public void println(float f) {}
+	public void println(float f) {
+	}
 
 	/**
 	 * @see javax.servlet.jsp.JspWriter#println(double)
 	 */
 	@Override
-	public void println(double d) {}
+	public void println(double d) {
+	}
 
 	/**
 	 * @see javax.servlet.jsp.JspWriter#println(char[])
 	 */
 	@Override
-	public void println(char[] c) {}
+	public void println(char[] c) {
+	}
 
 	/**
 	 * @see javax.servlet.jsp.JspWriter#println(java.lang.String)
 	 */
 	@Override
-	public void println(String str) {}
+	public void println(String str) {
+	}
 
 	/**
 	 * @see javax.servlet.jsp.JspWriter#println(java.lang.Object)
 	 */
 	@Override
-	public void println(Object o) {}
+	public void println(Object o) {
+	}
 
 	/**
 	 * @see javax.servlet.jsp.JspWriter#clear()
 	 */
 	@Override
-	public void clear() {}
+	public void clear() {
+	}
 
 	/**
 	 * @see javax.servlet.jsp.JspWriter#clearBuffer()
 	 */
 	@Override
-	public void clearBuffer() {}
+	public void clearBuffer() {
+	}
 
 	/**
 	 * @see java.io.Writer#close()
 	 */
 	@Override
 	public void close() throws IOException {
-		enclosingWriter.close();
+		if (enclosingWriter != null) enclosingWriter.close();
 	}
 
 	/**
@@ -219,7 +240,8 @@ public final class DevNullBodyContent extends BodyContent {
 	 * @see java.io.Writer#write(char[], int, int)
 	 */
 	@Override
-	public void write(char[] cbuf, int off, int len) {}
+	public void write(char[] cbuf, int off, int len) {
+	}
 
 	/**
 	 * @see javax.servlet.jsp.tagext.BodyContent#clearBody()
@@ -234,7 +256,7 @@ public final class DevNullBodyContent extends BodyContent {
 	 */
 	@Override
 	public void flush() throws IOException {
-		enclosingWriter.flush();
+		if (enclosingWriter != null) enclosingWriter.flush();
 	}
 
 	/**

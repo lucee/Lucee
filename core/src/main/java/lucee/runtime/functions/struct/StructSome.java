@@ -45,7 +45,7 @@ public class StructSome extends BIF {
 	}
 
 	private static boolean _call(PageContext pc, Struct sct, UDF udf, boolean parallel, int maxThreads) throws PageException {
-		return Some._call(pc, sct, udf, parallel, maxThreads, ClosureFunc.TYPE_STRUCT);
+		return Some.call(pc, sct, udf, parallel, maxThreads, ClosureFunc.TYPE_STRUCT);
 	}
 
 	@Override

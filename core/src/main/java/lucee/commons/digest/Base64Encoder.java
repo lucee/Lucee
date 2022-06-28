@@ -20,6 +20,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import lucee.commons.io.CharsetUtil;
+import lucee.commons.lang.StringUtil;
 import lucee.runtime.coder.CoderException;
 
 public class Base64Encoder {
@@ -88,8 +89,8 @@ public class Base64Encoder {
 		return c;
 	}
 
-	public static String decodeAsString(String data) throws CoderException {
-		return new String(decode(data), CharsetUtil.UTF8);
+	public static String decodeAsString(String data, boolean precise) throws CoderException {
+		return new String(decode(data, precise), CharsetUtil.UTF8);
 	}
 
 	/**
@@ -99,10 +100,36 @@ public class Base64Encoder {
 	 * @return the byte array (not null)
 	 * @throws CoderException
 	 */
-	public static byte[] decode(String data) {
-		// TODO: when we move to Java 8 change to
-		// https://docs.oracle.com/javase/8/docs/api/java/util/Base64.Decoder.html
-		return org.apache.commons.codec.binary.Base64.decodeBase64(data);
-	}
+	public static byte[] decode(String data, boolean precise) throws CoderException {
+		if (StringUtil.isEmpty(data)) return new byte[0];
+		if (precise) {
+			int l = data.length();
+			if (((l / 4) * 4) != l) {
+				throw new CoderException("cannot convert the input to a binary, invalid length (" + l + ") of the string");
+			}
 
+			// A–Z, a–z, 0–9, +, / and =
+			char c;
+			int i = data.length() - 1;
+			int count = 0;
+			for (; i >= 0; i--) {
+				c = data.charAt(i);
+				if (c != '=') break;
+				count++;
+			}
+			if (count > 3) throw new CoderException("invalid padding length [" + count + "], maximal length is [3]");
+
+			for (; i >= 0; i--) {
+				c = data.charAt(i);
+				if ((c >= '0' && c <= '9') || (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '+' || c == '/') continue;
+
+				throw new CoderException("invalid character [" + c + "] in base64 string at position [" + (i + 1) + "]");
+			}
+
+		}
+
+		byte[] res = org.apache.commons.codec.binary.Base64.decodeBase64(data);
+		if (res == null || res.length == 0) throw new CoderException("cannot convert the input to a binary");
+		return res;
+	}
 }

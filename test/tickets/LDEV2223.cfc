@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase"	{
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="zip"	{
 	
 	variables.curr=getDirectoryFromPath(getCurrentTemplatePath());
 	variables.dir=curr&"LDEV2223/";

@@ -40,7 +40,8 @@ public class SSLConnectionSocketFactoryImpl extends SSLConnectionSocketFactory {
 		try {
 			return Arrays.asList(SSLContext.getDefault().getSupportedSSLParameters().getProtocols());
 		}
-		catch (NoSuchAlgorithmException ex) {}
+		catch (NoSuchAlgorithmException ex) {
+		}
 		return Collections.emptyList();
 	}
 

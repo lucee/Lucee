@@ -39,7 +39,6 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.listener.ApplicationContext;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
-import lucee.runtime.op.Duplicator;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
@@ -103,7 +102,6 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 	private IKHandler handler;
 	private String appName;
 	private String name;
-	private String cfid;
 
 	public IKStorageScopeSupport(PageContext pc, IKHandler handler, String appName, String name, String strType, int type, Map<Collection.Key, IKStorageScopeItem> data,
 			long lastModified, long timeSpan) {
@@ -132,34 +130,8 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 		this.handler = handler;
 		this.appName = appName;
 		this.name = name;
-		this.cfid = pc.getCFID();
 		id = ++_id;
 		this.timeSpan = timeSpan;
-	}
-
-	/**
-	 * Constructor of the class
-	 * 
-	 * @param other
-	 * @param deepCopy
-	 */
-	protected IKStorageScopeSupport(IKStorageScopeSupport other, boolean deepCopy) {
-		this.data0 = Duplicator.duplicateMap(other.data0, MapFactory.getConcurrentMap(), deepCopy);
-		this.timecreated = other.timecreated;
-		this._lastvisit = other._lastvisit;
-		this.hitcount = other.hitcount;
-		this.isinit = other.isinit;
-		this.lastvisit = other.lastvisit;
-		this.strType = other.strType;
-		this.type = other.type;
-		this.timeSpan = other.timeSpan;
-		id = ++_id;
-		this.lastModified = other.lastModified;
-
-		this.handler = other.handler;
-		this.appName = other.appName;
-		this.name = other.name;
-		this.cfid = other.cfid;
 	}
 
 	public static Scope getInstance(int scope, IKHandler handler, String appName, String name, PageContext pc, Scope existing, Log log) throws PageException {
@@ -168,7 +140,7 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 		else if (Scope.SCOPE_CLIENT == scope) sv = handler.loadData(pc, appName, name, "client", Scope.SCOPE_CLIENT, log);
 
 		if (sv != null) {
-			long time = sv.getLastModified();
+			long time = sv.lastModified();
 
 			if (existing instanceof IKStorageScopeSupport) {
 				IKStorageScopeSupport tmp = ((IKStorageScopeSupport) existing);
@@ -370,10 +342,10 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 			Object k;
 			while (it.hasNext()) {
 				k = it.next();
-				if (sb.length() > 0) sb.append(',');
+				if (sb.length() > 0) sb.append(", ");
 				sb.append(k.toString());
 			}
-			return new ExpressionException("key [" + key + "] doesn't exist (existing keys:" + sb.toString() + ")");
+			return new ExpressionException("key [" + key + "] doesn't exist (existing keys: [" + sb.toString() + "])");
 		}
 		return v.getValue();
 	}
@@ -487,11 +459,11 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 	}
 
 	public void store(PageContext pc) { // FUTURE add to interface
-		handler.store(this, pc, appName, name, cfid, data0, ThreadLocalPageContext.getConfig(pc).getLog("scope"));
+		handler.store(this, pc, appName, name, data0, ThreadLocalPageContext.getConfig(pc).getLog("scope"));
 	}
 
 	public void unstore(PageContext pc) {
-		handler.unstore(this, pc, appName, name, cfid, ThreadLocalPageContext.getConfig(pc).getLog("scope"));
+		handler.unstore(this, pc, appName, name, ThreadLocalPageContext.getConfig(pc).getLog("scope"));
 	}
 
 	@Override
@@ -673,7 +645,7 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 		// cached data changed in meantime
 		if (oStorage instanceof IKStorageValue) {
 			IKStorageValue storage = (IKStorageValue) oStorage;
-			if (storage.getLastModified() > lastModified) {
+			if (storage.lastModified() > lastModified) {
 				Map<Key, IKStorageScopeItem> trg = storage.getValue();
 				IKStorageScopeSupport.merge(local, trg);
 				return trg;
@@ -687,11 +659,7 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 			byte[][] barrr = (byte[][]) oStorage;
 			if (IKStorageValue.toLong(barrr[1]) > lastModified) {
 				if (barrr[0] == null || barrr[0].length == 0) return local;
-
-				Map<Key, IKStorageScopeItem> trg;
-				if (barrr.length == 4) trg = IKStorageValue.deserialize(barrr[0], IKStorageValue.toLong(barrr[2]), IKStorageValue.toLong(barrr[3]));
-				else trg = IKStorageValue.deserialize(barrr[0], 0, 0);
-
+				Map<Key, IKStorageScopeItem> trg = IKStorageValue.deserialize(barrr[0]);
 				IKStorageScopeSupport.merge(local, trg);
 				return trg;
 			}

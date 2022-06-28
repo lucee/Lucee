@@ -556,7 +556,8 @@ public final class DatasourceResourceProvider implements ResourceProviderPro {
 				dc.getConnection().setAutoCommit(true);
 				DBUtil.setTransactionIsolationEL(dc.getConnection(), ((DatasourceConnectionPro) dc).getDefaultTransactionIsolation());
 			}
-			catch (SQLException e) {}
+			catch (SQLException e) {
+			}
 			getManager().releaseConnection(ThreadLocalPageContext.get(), dc);
 		}
 	}

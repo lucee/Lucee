@@ -24,6 +24,7 @@ import lucee.runtime.type.scope.Client;
 import lucee.runtime.type.scope.storage.IKHandler;
 import lucee.runtime.type.scope.storage.IKStorageScopeItem;
 import lucee.runtime.type.scope.storage.IKStorageScopeSupport;
+import lucee.runtime.type.util.StructUtil;
 
 public final class IKStorageScopeClient extends IKStorageScopeSupport implements Client {
 
@@ -33,17 +34,8 @@ public final class IKStorageScopeClient extends IKStorageScopeSupport implements
 		super(pc, handler, appName, name, "client", SCOPE_CLIENT, data, lastStored, timeSpan);
 	}
 
-	/**
-	 * Constructor of the class, clone existing
-	 * 
-	 * @param other
-	 */
-	private IKStorageScopeClient(IKStorageScopeSupport other, boolean deepCopy) {
-		super(other, deepCopy);
-	}
-
 	@Override
 	public Collection duplicate(boolean deepCopy) {
-		return new IKStorageScopeClient(this, deepCopy);
+		return StructUtil.duplicate(this, deepCopy);
 	}
 }

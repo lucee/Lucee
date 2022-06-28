@@ -74,11 +74,11 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 
 		// member function
-		res=List.Every(function(value ){return true;},',',false,true,parallel);
+		res=ListEvery(List,function(value ){return true;},',',false,true,parallel);
 		assertEquals(true,res);
 
 
-		res=List.Every(closure:function(value ){return true;},delimiter:',',includeEmptyFields:false,multiCharacterDelimiter:true,parallel:parallel);
+		res=List.listEvery(closure:function(value ){return true;},delimiter:',',includeEmptyFields:false,multiCharacterDelimiter:true,parallel:parallel);
 		assertEquals(true,res);
 	}
 	

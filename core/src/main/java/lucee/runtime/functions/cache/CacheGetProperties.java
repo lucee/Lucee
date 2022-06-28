@@ -93,6 +93,7 @@ public final class CacheGetProperties extends BIF {
 		try {
 			arr.appendEL(CacheUtil.getDefault(pc, type).getCustomInfo());
 		}
-		catch (IOException e) {}
+		catch (IOException e) {
+		}
 	}
 }

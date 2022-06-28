@@ -85,7 +85,8 @@ public final class Stopwatch extends BodyTagImpl {
 
 				pageContext.forceWrite(writer.toString(pageContext, table, true));
 			}
-			catch (IOException e) {}
+			catch (IOException e) {
+			}
 		}
 		return EVAL_PAGE;
 	}

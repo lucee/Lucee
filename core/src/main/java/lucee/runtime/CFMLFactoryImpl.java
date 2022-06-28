@@ -230,12 +230,13 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 			ThreadLocalPageContext.register(pc);
 			tmpRegister = true;
 		}
-		boolean releaseFailed = false;
+		boolean reuse = true;
 		try {
+			reuse = !pc.hasFamily(); // we do not recycle when still referenced by child threads
 			pc.release();
 		}
 		catch (Exception e) {
-			releaseFailed = true;
+			reuse = false;
 			config.getLog("application").error("release page context", e);
 		}
 		if (tmpRegister) ThreadLocalPageContext.register(beforePC);
@@ -245,7 +246,7 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 		if (isChild) {
 			runningChildPcs.remove(Integer.valueOf(pc.getId()));
 		}
-		if (pcs.size() < 100 && ((PageContextImpl) pc).getTimeoutStackTrace() == null && !releaseFailed)// not more than 100 PCs
+		if (pcs.size() < 100 && ((PageContextImpl) pc).getTimeoutStackTrace() == null && reuse)// not more than 100 PCs
 			pcs.push((PageContextImpl) pc);
 
 		if (runningPcs.size() > MAX_SIZE) clean(runningPcs);

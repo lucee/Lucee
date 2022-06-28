@@ -332,7 +332,8 @@ public class SFTPClientImpl extends AFTPClient {
 			try {
 				session.setTimeout(timeout);
 			}
-			catch (JSchException e) {}
+			catch (JSchException e) {
+			}
 		}
 	}
 

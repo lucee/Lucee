@@ -65,10 +65,10 @@
 	<data key="services.update.noUpdateDesc">There are currently no {type} available for your version.</data>
 	<!-- <data key="services.update.titleDesc">Upgrade (or Downgrade) your Lucee version ({version}) to any version * you like.</data> -->
 	<data key="services.update.titleDesc">Upgrade or Downgrade the version by selecting from the drop-down box below.</data>
-	<data key="services.update.titleDesc2"> You cannot downgrade below {min-version} because your lucee.jar has bundled this version. To go below this version you need to replace your lucee.jar {server.lucee.loaderPath} OR .ico file {context} with an older version</data>
+	<data key="services.update.titleDesc2">You cannot downgrade below {min-version} because your lucee.jar has bundled this version. To go below this version you need to replace your lucee.jar with an older version.</data>
 	<data key="services.update.downgradeVersion">To downgrade your version below {minVersion} you need to replace your lucee.jar with an older version one you can download {url}. This is because the lucee.jars always bundles a version itself and it will always use at least that version.</data>
-	<data key="services.update.installExtns">All of the extensions are installed / Unable to reach the Server for list the Uninstalled Extensions. Please check your Internet Connection.</data>
-	<data key="services.update.chkInternet">Unable to reach the server for list the "Uninstalled Extensions". Please check your Internet Connection</data>
+	<data key="services.update.installExtns">All of the extensions are installed / Unable to connect to the update server to get the list of Available Extensions. Please check your Internet Connection.</data>
+	<data key="services.update.chkInternet">Unable to connect to the update server to get the list of Available Extensions. Please check your Internet Connection</data>
 
 	<data key="services.certificate.desc">List SSL Certificates for a specific Host or install them.</data>
 	<data key="services.certificate.host">Host</data>
@@ -117,8 +117,6 @@
 	<data key="mappings.trustedhead">Inspect</data>
 	<data key="mappings.introtext">Please note, that only pages processed by Lucee are aware of these mappings (cfm, cfml, cfc). If you want to use files not processed by Lucee for these special mapping directories, you have to add virtual mappings to these directories to your application server.</data>
 	<data key="mappings.physicalheaddescription">Path of the resource to map (absolute or relative to the webroot)</data>
-	<data key="mappings.archiveAlert">Make sure the File exist or not</data>
-	<data key="mappings.physicalAlert">Make sure the Directory exist or not</data>
 	<data key="customtags.physical">Resource</data>
 	<data key="customtags.archive">Archive</data>
 	<data key="customtags.primary">Primary</data>
@@ -313,11 +311,10 @@
 	<data key="ext.version">Version</data>
 	<data key="ext.appupdate">Update</data>
 	<data key="ext.created">Release Date</data>
-	<data key="ext.releaseStatus">Release Status</data>
-	<data key="ext.notinstalled">Available to Install</data>
+	<data key="ext.notinstalled">Not installed</data>
 	<data key="ext.codename">Code Name</data>
 	<data key="ext.stepof">Step {current} of {total}</data>
-	<data key="ext.notinstalleddesc">Applications available to be installed on this Server.</data>
+	<data key="ext.notinstalleddesc">These applications are not yet installed on the system.</data>
 	<data key="ext.uninstallmissingcfc">Can&apos;t uninstall. Install.cfc is missing. Please uninstall the application manually.</data>
 	<data key="ext.application">Application</data>
 	<data key="ext.applabel">Application</data>
@@ -335,19 +332,19 @@
 	<data key="ext.projectUrl">Homepage</data>
 	<data key="ext.sourceUrl">Source Code</data>
 	<data key="ext.documentationUrl">Documentation</data>	
-	<data key="ext.installeddesc">Applications installed on this Server.</data>
+	<data key="ext.installeddesc">These applications are already installed on the system.</data>
 	<data key="ext.installedServer">Installed in Server Administrator</data>
-	<data key="ext.installedServerDesc">This Extension is already installed in the Server Administrator, you have 2 options, you can overwrite it for the current web context by installing it here as well or you can change it in the Server Administrator what will affect all Web Contexts.</data>
+	<data key="ext.installedServerDesc">This Extension is already installed in the Server Administrator, you have 2 options, you can overwrite it for the current web context by installing it here as well or you can change it in the Server Administrator that will affect all Web Contexts.</data>
 	<data key="ext.free">Free</data>
 	<data key="ext.price">Price</data>
 	<data key="ext.licenseagreement">License agreement</data>
-	<data key="ext.uploadextension">Upload new Extension</data>
-	<data key="ext.uploadextensiondesc">If you manually downloaded an extension, or built your own, you can install the extension here. You can also just drop the .lex file in the Server's /deploy directory.</data>
+	<data key="ext.uploadextension">Upload new extension (experimental)</data>
+	<data key="ext.uploadextensiondesc">If you downloaded an extension, you can add the extension here.</data>
 	<data key="ext.upload">upload</data>
 	<data key="ext.nofileuploaded">You have not uploaded a file!&lt;br&gt;Please first choose a file.</data>
 	<data key="ext.extThumbnail">Extension thumbnail</data>
 	<data key="ext.msgAfterNotAgreed">Because you did not agree with the license, the extension was not installed.&lt;br&gt;In case you installed the extension before, you will need to uninstall it, if you do not wish to agree with it's license anymore.</data>
-	<data key="ext.extzipfile">Extension zip (*.lex) file</data>
+	<data key="ext.extzipfile">Extension file (.lex)</data>
 	<data key="ext.viewdetails">View details</data>
 	<data key="ext.theError">The error</data>
 	<data key="ext.errorFileUpload">The file could not be uploaded.</data>
@@ -380,6 +377,7 @@
 	<data key="ext.upDownDesc">Update or downgrade your already installed version.</data>
 	<data key="ext.uninstallDesc">Uninstall this version</data>
 	<data key="ext.searchbox">There is no extension available with name</data>
+	<data key="ext.providerWarning">This extension is not provided by the Lucee Association Switzerland and does not neccessarily follow our guidelines. This extension is not reviewed by the Lucee Association Switzerland. For any sugestion to improve the Extension or any issue you encounter, please contact the author of the extension directly.</data>
 	<data key="Buttons.go">go</data>
 	<data key="Buttons.upDown">update / downgrade</data>
 
@@ -743,9 +741,8 @@ you can see the log result at the end of every request, if a debug template is d
 	<data key="debug.settings.timerDesc">Select this option to show timer event information. Timers let a developer track the execution time of the code between the start and end tags of the CFTIMER tag.</data>
 	<data key="debug.settings.implicitAccess">Implicit variable Access</data>
 	<data key="debug.settings.implicitAccessDesc">Select this option to log all accesses to scopes, queries and threads that happens implicit (cascaded).</data>
-	<data key="debug.settings.implicitAccessAlert">(Development use only), high performance impact</data>
 	<data key="debug.settings.thread">Debug Threads</data>
-	<data key="debug.settings.threadDesc">Select this option to also log out individual threads.</data>
+	<data key="debug.settings.threadDesc">Select this option to also log threads.</data>
 	<data key="debug.settings.threadAlert">Depending on your application, this may produce a large volume of debug entries.</data>
 
 	<!-- debugging.logs -->
@@ -769,7 +766,6 @@ you can see the log result at the end of every request, if a debug template is d
 	<data key="debug.filterPath">Only Outputs records where the path match the following pattern.</data>
 	<data key="debug.detailTitle">Detail</data>
 	<data key="debug.detailDesc">Detailed information about a single Request</data>
-	<data key="debug.scopeLoookups">Scope Lookups</data>
 	<data key="debug.switchTemplate">Switch Debug Template</data>
 	<data key="debug.selectDebugTemplate">Select Debug Template</data>
 
@@ -1133,6 +1129,8 @@ sct[""bracketNotation""] --> keyname: "bracketNotation"</data>
 	<data key="schedule.executiondesconce">This task is executed only once at a specific date and time.</data>
 	<data key="schedule.usernamedescription">Username to access the URL if it is protected by authentication</data>
 	<data key="schedule.startdatedesc">Defines the date when the task should be executed the first time.</data>
+	<data key="schedule.useragent">User Agent</data>
+	<data key="schedule.useragentdescription">Custom User Agent for the http(s) request (some firewalls block the CFSCHEDULE user agent)</data>
 	<data key="settings.datasourcesettings">Settings</data>
 	<data key="settings.datasource.databaseName">Database (Name/Version)</data>
 	<data key="settings.datasource.driverName">Driver (Name/Version)</data>
@@ -1298,7 +1296,6 @@ If the timezone of your Lucee instance and your database is different, this can 
 	<data key="overview.Docs">Documentation</data>
 	<data key="overview.DocsDesc">If you have any questions about Lucee please take a look at the documentation in the first instance.</data>
 	<data key="overview.onlineDocsLink">Online Documentation</data>
-	<data key="overview.installDocsLink">Click to install - Lucee Documentation Extension</data>
 	<data key="overview.localRefLink">Local Reference</data>
 	<data key="overview.issuetracker">Issue Tracker</data>
 	<data key="overview.issuetrackerDesc">If you think you've found a bug, please take the time to report it via our bug tracking system.</data>
@@ -1574,15 +1571,13 @@ If the timezone of your Lucee instance and your database is different, this can 
 	<data key="settings.gateway.startupModeManual">Manual</data>
 	<data key="settings.gateway.startupModeDisabled">Disabled</data>
 
-	<data key="setting.general.web">Here you see an overview of all settings that have an influence on the behavior of Lucee, you can adjust them according to predefined criteria</data>
-	<data key="setting.general.server">Here you see an overview of all settings that have an influence on the behavior of Lucee, you can adjust them according to predefined criteria</data>
+	<data key="setting.general.web">Hier sehen Sie eine Übersicht alle Settings welche Einfluss auf das Verhalten von Lucee haben, sie können diese nach vordefinierten kriterien anpassen</data>
 	<data key="setting.general.compatibility">Compatibility</data>
-	<data key="setting.general.compatibilityDesc">With this value, all settings are set so that they correspond as far as possible to the CFML2009 standard and are compatible with implementations from other manufacturers.</data>
+	<data key="setting.general.compatibilityDesc">Mit diesem Wert werden alle Settings so gesetzt, dass sie möglichst dem CFML2009 Standard entsprechen und mit Implementationen anderer Hersteller kombatibel sind.</data>
 	<data key="setting.general.strict">Strict</data>
-	<data key="setting.general.strictDesc">With this value, all settings are set so that Lucee is as strict as possible with the implementation of the code.</data>
+	<data key="setting.general.strictDesc">Mit diesem Wert werden alle Settings so gesetzt, dass Lucee so streng wie möglich mit der Umsetzung des Code ist.</data>
 	<data key="setting.general.speed">Speed</data>
-	<data key="setting.general.speedDesc">With this value, all settings are set so that they allow the code to be executed as quickly as possible.
-	</data>
+	<data key="setting.general.speedDesc">Mit diesem Wert werden alle Settings so gesetzt, dass sie eine möglichst schnelle Ausführung des Code erlauben.</data>
 	<data key="setting.general.component">Component</data>
 	<data key="setting.general.charset">Charset</data>
 	<data key="setting.general.scope">Scope</data>

@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase"{
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="mysql" {
 	// skip closure
 	function isNotSupported() {
 		var mySql = getCredentials();
@@ -44,10 +44,11 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 	// private Function//
 	private string function createURI(string calledName){
 		var baseURI="/test/#listLast(getDirectoryFromPath(getCurrenttemplatepath()),"\/")#/";
-		return baseURI&""&calledName;
+		return baseURI&""&calledNasme;
 	}
 
 	private struct function getCredentials() {
+		// getting the credentials from the enviroment variables
 		return server.getDatasource("mysql");
 	}
 

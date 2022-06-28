@@ -73,6 +73,7 @@ import lucee.runtime.PageContextImpl;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.config.Identification;
+import lucee.runtime.engine.CFMLEngineImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
@@ -115,6 +116,13 @@ public class OSGiUtil {
 	private static final Filter JAR_EXT_FILTER = new Filter();
 
 	private static String[] bootDelegation;
+	private static Map<String, String> packageBundleMapping = new HashMap<String, String>();
+
+	static {
+		// this is needed in case old version of extensions are used, because lucee no longer bundles this
+		packageBundleMapping.put("org.bouncycastle", "bcprov");
+		packageBundleMapping.put("org.apache.log4j", "log4j");
+	}
 
 	/**
 	 * only installs a bundle, if the bundle does not already exist, if the bundle exists the existing
@@ -421,7 +429,6 @@ public class OSGiUtil {
 
 	public static Bundle loadBundleByPackage(String packageName, List<VersionDefinition> versionDefinitions, Set<Bundle> loadedBundles, boolean startIfNecessary,
 			Set<String> parents) throws BundleException, IOException {
-
 		CFMLEngine engine = CFMLEngineFactory.getInstance();
 		CFMLEngineFactory factory = engine.getCFMLEngineFactory();
 
@@ -454,6 +461,13 @@ public class OSGiUtil {
 					}
 				}
 			}
+		}
+
+		String bn = packageBundleMapping.get(packageName);
+		if (!StringUtil.isEmpty(bn)) return loadBundle(bn, null, null, null, startIfNecessary);
+
+		for (Entry<String, String> e: packageBundleMapping.entrySet()) {
+			if (packageName.startsWith(e.getKey() + ".")) return loadBundle(e.getValue(), null, null, null, startIfNecessary);
 		}
 		return null;
 	}
@@ -608,13 +622,14 @@ public class OSGiUtil {
 				+ (id == null ? "?" : "&") + "allowRedirect=true"
 
 		);
-		log(Logger.LOG_WARNING, "Downloading bundle [" + symbolicName + ":" + symbolicVersion + "] from " + updateUrl);
+		log(Logger.LOG_INFO, "Downloading bundle [" + symbolicName + ":" + symbolicVersion + "] from [" + updateUrl + "]");
 
 		int code;
 		HttpURLConnection conn;
 		try {
 			conn = (HttpURLConnection) updateUrl.openConnection();
 			conn.setRequestMethod("GET");
+			conn.setConnectTimeout(10000);
 			conn.connect();
 			code = conn.getResponseCode();
 		}
@@ -637,6 +652,7 @@ public class OSGiUtil {
 				try {
 					conn = (HttpURLConnection) url.openConnection();
 					conn.setRequestMethod("GET");
+					conn.setConnectTimeout(10000);
 					conn.connect();
 					code = conn.getResponseCode();
 				}
@@ -1126,21 +1142,17 @@ public class OSGiUtil {
 		CFMLEngine engine = CFMLEngineFactory.getInstance();
 		CFMLEngineFactory factory = engine.getCFMLEngineFactory();
 
-		BundleFile bf = _getBundleFile(factory, name, version, null, null);
-		if (bf != null) {
-			BundleDefinition bd = bf.toBundleDefinition();
-			if (bd != null) {
-				Bundle b = bd.getLocalBundle(addionalDirectories);
-				if (b != null) {
-					stopIfNecessary(b);
-					b.uninstall();
-				}
-			}
+		// first we look for an active bundle and do stop it
+		Bundle b = getBundleLoaded(name, version, null);
+		if (b != null) {
+			stopIfNecessary(b);
+			b.uninstall();
 		}
 
 		if (!removePhysical) return;
 
-		// remove file
+		// now we remove the file
+		BundleFile bf = _getBundleFile(factory, name, version, null, null);
 		if (bf != null) {
 			if (!bf.getFile().delete() && doubleTap) bf.getFile().deleteOnExit();
 		}
@@ -1150,8 +1162,7 @@ public class OSGiUtil {
 		try {
 			removeLocalBundle(name, version, addionalDirectories, removePhysical, true);
 		}
-		catch (Throwable t) {
-			ExceptionUtil.rethrowIfNecessary(t);
+		catch (Exception e) {
 		}
 	}
 
@@ -2003,5 +2014,26 @@ public class OSGiUtil {
 			sb.append(b.getLocation()).append(File.pathSeparator);
 		}
 		return sb.toString();
+	}
+
+	public static void stop(Class clazz) throws BundleException {
+		if (clazz == null) return;
+		Bundle bundleCore = OSGiUtil.getBundleFromClass(CFMLEngineImpl.class, null);
+		Bundle bundleFromClass = OSGiUtil.getBundleFromClass(clazz, null);
+		if (bundleFromClass != null && !bundleFromClass.equals(bundleCore)) {
+			OSGiUtil.stopIfNecessary(bundleFromClass);
+		}
+		// TODO Auto-generated method stub
+
+	}
+
+	public static boolean isValid(Object obj) {
+		if (obj != null) {
+			ClassLoader cl = obj.getClass().getClassLoader();
+			if (cl instanceof BundleClassLoader) {
+				if (((Bundle) ((BundleClassLoader) cl).getBundle()).getState() != Bundle.ACTIVE) return false;
+			}
+		}
+		return true;
 	}
 }

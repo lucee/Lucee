@@ -395,12 +395,18 @@ public final class ClassUtil {
 			throw new ClassException("the specified class object [" + clazz.getName() + "()] cannot be instantiated");
 		}
 		catch (IllegalAccessException e) {
-			throw new ClassException("can't load class because the currently executing method does not have access to the definition of the specified class");
+			throw new ClassException(
+					"can't load class [" + clazz.getName() + "] because the currently executing method does not have access to the definition of the specified class");
 		}
 		catch (Exception e) {
-			ClassException ce = new ClassException(e.getMessage() == null ? e.getClass().getName() : e.getMessage());
+			String message = "";
+			if (e.getMessage() != null) {
+				message = e.getMessage() + " ";
+			}
+			message += e.getClass().getName() + " while creating an instance of " + clazz.getName();
+			ClassException ce = new ClassException(message);
 			ce.setStackTrace(e.getStackTrace());
-			return e;
+			throw ce;
 		}
 	}
 
@@ -555,7 +561,8 @@ public final class ClassUtil {
 				if (file.exists()) try {
 					pathes.put(file.getCanonicalPath(), "");
 				}
-				catch (IOException e) {}
+				catch (IOException e) {
+				}
 			}
 		}
 
@@ -588,7 +595,8 @@ public final class ClassUtil {
 			if (file.exists()) try {
 				pathes.put(file.getCanonicalPath(), "");
 			}
-			catch (IOException e) {}
+			catch (IOException e) {
+			}
 		}
 	}
 
@@ -772,7 +780,8 @@ public final class ClassUtil {
 			is = cl.getResourceAsStream(clazz.getName().replace('.', '/') + ".class");
 			return IOUtil.toBytes(is);
 		}
-		catch (Exception e) {}
+		catch (Exception e) {
+		}
 
 		is = null;
 		ZipFile zf = null;
@@ -796,7 +805,8 @@ public final class ClassUtil {
 				if (f.isFile()) return IOUtil.toBytes(f);
 			}
 		}
-		catch (Exception e) {}
+		catch (Exception e) {
+		}
 		finally {
 			IOUtil.closeEL(is);
 			IOUtil.closeELL(zf);

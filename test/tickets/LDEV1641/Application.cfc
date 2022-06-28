@@ -11,7 +11,7 @@ component {
 	// any mappings go here, we create one that points to the root called test.
 	this.mappings[ "/tests" ] = getDirectoryFromPath( getCurrentTemplatePath() );
 
-	dbpath = expandPath("/data/testdb");
+	dbpath = expandPath("#getTempDirectory()#/data/testdb");
 
 	this.datasources["testdb"] = {
 		  class: 'org.h2.Driver'
@@ -37,7 +37,9 @@ component {
 	this.ormsettings.useDBForMapping		= false;					// false = do not walk the db on startup trying to create ORM definitions 
 
 	// request start
-	public boolean function onRequestStart( String targetPage ){
+	
+	public function onRequestStart() {
+		setting requesttimeout=10;
 
 		return true;
 	}

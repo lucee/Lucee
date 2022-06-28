@@ -1464,7 +1464,7 @@ public final class ConfigAdmin {
 		if (!StringUtil.isEmpty(timezone)) el.setEL("timezone", timezone);
 		el.setEL("database", database);
 		if (port > -1) el.setEL("port", Caster.toString(port));
-		if (connectionLimit > -1) el.setEL("connectionLimit", Caster.toString(connectionLimit));
+		el.setEL("connectionLimit", Caster.toString(connectionLimit));
 		if (idleTimeout > -1) el.setEL("connectionTimeout", Caster.toString(idleTimeout));
 		if (liveTimeout > -1) el.setEL("liveTimeout", Caster.toString(liveTimeout));
 		if (metaCacheTimeout > -1) el.setEL("metaCacheTimeout", Caster.toString(metaCacheTimeout));
@@ -3496,6 +3496,7 @@ public final class ConfigAdmin {
 		try {
 			conn = (HttpURLConnection) updateUrl.openConnection();
 			conn.setRequestMethod("GET");
+			conn.setConnectTimeout(10000);
 			conn.connect();
 			code = conn.getResponseCode();
 		}
@@ -3523,6 +3524,7 @@ public final class ConfigAdmin {
 				try {
 					conn = (HttpURLConnection) url.openConnection();
 					conn.setRequestMethod("GET");
+					conn.setConnectTimeout(10000);
 					conn.connect();
 					code = conn.getResponseCode();
 				}
@@ -4042,10 +4044,12 @@ public final class ConfigAdmin {
 		updateExtensionProvider(strUrl);
 	}
 
-	public void updateExtensionProvider(String strUrl) throws PageException {
+	public void updateExtensionProvider(String strUrl) throws MalformedURLException, PageException {
 		Array children = ConfigWebUtil.getAsArray("extensionProviders", root);
-
 		strUrl = strUrl.trim();
+
+		URL _url = HTTPUtil.toURL(strUrl, HTTPUtil.ENCODED_NO);
+		strUrl = _url.toExternalForm();
 
 		// Update
 		String url;
@@ -4320,17 +4324,17 @@ public final class ConfigAdmin {
 		}
 	}
 
-	public static void _updateRHExtension(ConfigPro config, Resource ext, boolean reload) throws PageException {
+	public static void _updateRHExtension(ConfigPro config, Resource ext, boolean reload, boolean force) throws PageException {
 		try {
 			ConfigAdmin admin = new ConfigAdmin(config, null);
-			admin.updateRHExtension(config, ext, reload);
+			admin.updateRHExtension(config, ext, reload, force);
 		}
 		catch (Exception e) {
 			throw Caster.toPageException(e);
 		}
 	}
 
-	public void updateRHExtension(Config config, Resource ext, boolean reload) throws PageException {
+	public void updateRHExtension(Config config, Resource ext, boolean reload, boolean force) throws PageException {
 		RHExtension rhext;
 		try {
 			rhext = new RHExtension(config, ext, true);
@@ -4341,10 +4345,20 @@ public final class ConfigAdmin {
 			DeployHandler.moveToFailedFolder(ext.getParentResource(), ext);
 			throw Caster.toPageException(t);
 		}
-		updateRHExtension(config, rhext, reload);
+		updateRHExtension(config, rhext, reload, force);
 	}
 
-	public void updateRHExtension(Config config, RHExtension rhext, boolean reload) throws PageException {
+	public void updateRHExtension(Config config, RHExtension rhext, boolean reload, boolean force) throws PageException {
+
+		try {
+			if (!force && ConfigAdmin.hasRHExtensions((ConfigPro) config, rhext.toExtensionDefinition()) != null) {
+				throw new ApplicationException("the extension " + rhext.getName() + " (id: " + rhext.getId() + ") in version " + rhext.getVersion() + " is already installed");
+			}
+		}
+		catch (Exception e) {
+			throw Caster.toPageException(e);
+		}
+
 		ConfigPro ci = (ConfigPro) config;
 		Log logger = ci.getLog("deploy");
 		String type = ci instanceof ConfigWeb ? "web" : "server";
@@ -4727,7 +4741,7 @@ public final class ConfigAdmin {
 			ExceptionUtil.rethrowIfNecessary(t);
 			DeployHandler.moveToFailedFolder(rhext.getExtensionFile().getParentResource(), rhext.getExtensionFile());
 			try {
-				ConfigAdmin.removeRHExtensions((ConfigPro) config, new String[] { rhext.getId() }, false);
+				ConfigAdmin.removeRHExtensions((ConfigPro) config, config.getLog("deploy"), new String[] { rhext.getId() }, false);
 			}
 			catch (Throwable t2) {
 				ExceptionUtil.rethrowIfNecessary(t2);
@@ -5012,7 +5026,7 @@ public final class ConfigAdmin {
 			ExceptionUtil.rethrowIfNecessary(t);
 			// failed to uninstall, so we install it again
 			try {
-				updateRHExtension(config, rhe.getExtensionFile(), true);
+				updateRHExtension(config, rhe.getExtensionFile(), true, true);
 				// RHExtension.install(config, rhe.getExtensionFile());
 			}
 			catch (Throwable t2) {
@@ -5807,7 +5821,8 @@ public final class ConfigAdmin {
 		if (trg.exists()) trg.remove(true);
 	}
 
-	public static void removeRHExtensions(ConfigPro config, String[] extensionIDs, boolean removePhysical) throws IOException, PageException, BundleException, ConverterException {
+	public static void removeRHExtensions(ConfigPro config, Log log, String[] extensionIDs, boolean removePhysical)
+			throws IOException, PageException, BundleException, ConverterException {
 		ConfigAdmin admin = new ConfigAdmin(config, null);
 
 		Map<String, BundleDefinition> oldMap = new HashMap<>();
@@ -5823,7 +5838,7 @@ public final class ConfigAdmin {
 				}
 			}
 			catch (Exception e) {
-				LogUtil.log(config, "deploy", ConfigAdmin.class.getName(), e);
+				log.log(Log.LEVEL_ERROR, ConfigAdmin.class.getName(), e);
 			}
 		}
 
@@ -5837,7 +5852,7 @@ public final class ConfigAdmin {
 					admin._storeAndReload((ConfigPro) webs[i]);
 				}
 				catch (Exception e) {
-					LogUtil.log(config, "deploy", ConfigAdmin.class.getName(), e);
+					log.log(Log.LEVEL_ERROR, ConfigAdmin.class.getName(), e);
 				}
 			}
 		}

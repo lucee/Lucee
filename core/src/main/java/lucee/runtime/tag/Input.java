@@ -143,6 +143,7 @@ public class Input extends TagImpl {
 	String validateAt;
 	double firstDayOfWeek = 0;
 	String mask;
+	boolean encodeValue = true;
 
 	@Override
 	public void release() {
@@ -160,6 +161,7 @@ public class Input extends TagImpl {
 		validateAt = null;
 		firstDayOfWeek = 0;
 		mask = null;
+		encodeValue = true;
 	}
 
 	/**
@@ -636,6 +638,13 @@ public class Input extends TagImpl {
 		if (!StringUtil.isEmpty(message)) input.setMessage(message);
 	}
 
+	/**
+	 * @param encodeValue Encode value using HTMLEntities.escapeHTML, or allow using htmlEncodeForAttribute()
+	 */
+	public void setEncodevalue(boolean encodeValue) {
+		this.encodeValue = encodeValue; 
+	}
+
 	@Override
 	public int doEndTag() throws PageException {
 		try {
@@ -702,7 +711,8 @@ public class Input extends TagImpl {
 	 * @return encoded string
 	 */
 	String enc(String str) {
-		return HTMLEntities.escapeHTML(str, HTMLEntities.HTMLV20);
+		if (encodeValue) return HTMLEntities.escapeHTML(str, HTMLEntities.HTMLV20);
+		else return str;
 	}
 
 	/**

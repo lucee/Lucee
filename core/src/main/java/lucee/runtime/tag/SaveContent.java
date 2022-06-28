@@ -18,6 +18,8 @@
  **/
 package lucee.runtime.tag;
 
+import lucee.runtime.config.ConfigPro;
+import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.tag.BodyTagTryCatchFinallyImpl;
 import lucee.runtime.interpreter.VariableInterpreter;
@@ -33,14 +35,14 @@ public final class SaveContent extends BodyTagTryCatchFinallyImpl {
 
 	/** The name of the variable in which to save the generated content inside the tag. */
 	private String variable;
-	private boolean trim;
+	private Boolean trim = null;
 	private boolean append;
 
 	@Override
 	public void release() {
 		super.release();
 		variable = null;
-		trim = false;
+		trim = null;
 		append = false;
 	}
 
@@ -73,11 +75,15 @@ public final class SaveContent extends BodyTagTryCatchFinallyImpl {
 
 	@Override
 	public int doAfterBody() throws PageException {
+		// If trim-attribute is not set by the user, use the whitespace-setting
+		if (trim == null) {
+			ConfigWebPro config = (ConfigWebPro) pageContext.getConfig();
+			trim = config.getCFMLWriterType() != ConfigPro.CFML_WRITER_REFULAR;
+		}
 
 		String value = trim ? bodyContent.getString().trim() : bodyContent.getString();
 
 		if (append) {
-
 			value = Caster.toString(VariableInterpreter.getVariableEL(pageContext, variable, ""), "") + value; // prepend the current variable or empty-string if not found
 		}
 		pageContext.setVariable(variable, value);

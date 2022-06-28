@@ -1,4 +1,4 @@
-<cfcomponent extends="org.lucee.cfml.test.LuceeTestCase">
+<cfcomponent extends="org.lucee.cfml.test.LuceeTestCase" labels="oracle">
 	<cfscript>
 		public function isNotSupported(){
 			var orc = getCredentials();

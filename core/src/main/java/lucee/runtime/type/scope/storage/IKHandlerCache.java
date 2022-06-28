@@ -23,6 +23,12 @@ public class IKHandlerCache implements IKHandler {
 
 	protected boolean storeEmpty = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.store.empty", null), false);
 
+	private static Map<String, Boolean> supportsSerialisation = new ConcurrentHashMap<>();
+	static {
+		supportsSerialisation.put("org.lucee.extension.cache.eh.EHCache", Boolean.TRUE);
+		supportsSerialisation.put(RamCache.class.getName(), Boolean.TRUE);
+	}
+
 	@Override
 	public IKStorageValue loadData(PageContext pc, String appName, String name, String strType, int type, Log log) throws PageException {
 		Cache cache = getCache(pc, name);
@@ -47,10 +53,10 @@ public class IKHandlerCache implements IKHandler {
 	}
 
 	@Override
-	public void store(IKStorageScopeSupport storageScope, PageContext pc, String appName, String name, String cfid, Map<Collection.Key, IKStorageScopeItem> data, Log log) {
+	public void store(IKStorageScopeSupport storageScope, PageContext pc, String appName, String name, Map<Collection.Key, IKStorageScopeItem> data, Log log) {
 		try {
 			Cache cache = getCache(ThreadLocalPageContext.get(pc), name);
-			String key = getKey(cfid, appName, storageScope.getTypeAsString());
+			String key = getKey(pc.getCFID(), appName, storageScope.getTypeAsString());
 
 			synchronized (getToken(key)) {
 				Object existingVal = cache.getValue(key, null);
@@ -71,19 +77,29 @@ public class IKHandlerCache implements IKHandler {
 		}
 	}
 
-	private boolean deserializeIKStorageValueSupported(Cache cache) {
+	private static boolean deserializeIKStorageValueSupported(Cache cache) {
 		// FUTURE extend Cache interface to make sure it can handle serilasation
 		if (cache == null) return false;
-		if (cache instanceof RamCache) return true;
-		if (cache.getClass().getName().equals("org.lucee.extension.cache.eh.EHCache")) return true;
-		return false;
+		Class<? extends Cache> clazz = cache.getClass();
+		String name = clazz.getName();
+		Boolean supported = supportsSerialisation.get(name);
+		if (supported == null) {
+			try {
+				supported = Caster.toBoolean(clazz.getDeclaredMethod("isObjectSerialisationSupported", new Class[] {}).invoke(cache, new Object[] {}));
+			}
+			catch (Exception e) {
+				supported = Boolean.FALSE;
+			}
+			supportsSerialisation.put(name, supported);
+		}
+		return supported.booleanValue();
 	}
 
 	@Override
-	public void unstore(IKStorageScopeSupport storageScope, PageContext pc, String appName, String name, String cfid, Log log) {
+	public void unstore(IKStorageScopeSupport storageScope, PageContext pc, String appName, String name, Log log) {
 		try {
 			Cache cache = getCache(pc, name);
-			String key = getKey(cfid, appName, storageScope.getTypeAsString());
+			String key = getKey(pc.getCFID(), appName, storageScope.getTypeAsString());
 
 			synchronized (getToken(key)) {
 				cache.remove(key);

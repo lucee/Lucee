@@ -267,7 +267,8 @@ public final class PageSourceImpl implements PageSource {
 				try {
 					page = loadPhysical(pc, page);
 				}
-				catch (TemplateException e) {}
+				catch (TemplateException e) {
+				}
 			}
 			if (page != null) return page;
 		}
@@ -313,7 +314,7 @@ public final class PageSourceImpl implements PageSource {
 		// Page exists
 		if (page != null) {
 			// if(page!=null && !recompileAlways) {
-			if (srcLastModified != page.getSourceLastModified()) {
+			if (srcLastModified != page.getSourceLastModified() || (page instanceof PagePro && ((PagePro) page).getSourceLength() != srcFile.length())) {
 				// same size, maybe the content has not changed?
 				boolean same = false;
 				if (page instanceof PagePro && ((PagePro) page).getSourceLength() == srcFile.length()) {
@@ -321,7 +322,8 @@ public final class PageSourceImpl implements PageSource {
 					try {
 						same = pp.getHash() == PageSourceCode.toString(this, config.getTemplateCharset()).hashCode();
 					}
-					catch (IOException e) {}
+					catch (IOException e) {
+					}
 
 				}
 				if (!same) {
@@ -349,15 +351,23 @@ public final class PageSourceImpl implements PageSource {
 			else {
 				try {
 					String cn = pcn.className;
+					boolean done = false;
 					if (cn != null) {
-						LogUtil.log(config, Log.LEVEL_DEBUG, "compile", "load class from ClassLoader  [" + getDisplayPath() + "]");
-						pcn.set(page = newInstance(mapping.getPhysicalClass(cn)));
+						try {
+							LogUtil.log(config, Log.LEVEL_DEBUG, "compile", "load class from ClassLoader  [" + getDisplayPath() + "]");
+							pcn.set(page = newInstance(mapping.getPhysicalClass(cn)));
+							done = true;
+						}
+						catch (ClassNotFoundException cnfe) {
+							LogUtil.log(config, "compile", cnfe);
+						}
 					}
-					else {
+					if (!done) {
 						LogUtil.log(config, Log.LEVEL_DEBUG, "compile", "load class from binary  [" + getDisplayPath() + "]");
 						byte[] bytes = IOUtil.toBytes(classFile);
 						if (ClassUtil.isBytecode(bytes)) pcn.set(page = newInstance(mapping.getPhysicalClass(this.getClassName(), bytes)));
 					}
+
 				}
 				catch (Exception e) {
 					LogUtil.log(config, "compile", e);
