@@ -145,7 +145,7 @@ jobs:
         POP_PORT_SECURE: 995
         POP_SERVER: localhost
         POP_USERNAME: lucee
-        # POP_PASSWORD: doesntmatter
+        POP_PASSWORD: doesntmatter
         S3_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_ID_TEST }}
         S3_SECRET_KEY: ${{ secrets.S3_SECRET_KEY_TEST }}
         # DO_DEPLOY: ${{ github.event_name == 'push' }}
