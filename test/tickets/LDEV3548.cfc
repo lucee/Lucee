@@ -4,10 +4,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="pop"{
 	function beforeAll() {
 		variables.uri = createURI("LDEV3548"); 	
 		variables.creds = getCredentials();
-
-		systemOutput("creds: #serializeJSON(variables.creds)#",1,1);
-		systemOutput("notHasServices: #notHasServices()#",1,1);
-
 	}
 		
 	function run( testResults, testBox ) {
