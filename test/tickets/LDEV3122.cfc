@@ -1,4 +1,3 @@
-
 component extends="org.lucee.cfml.test.LuceeTestCase" {
 	function beforeAll() {
 		variables.path = "#getDirectoryFromPath(getCurrenttemplatepath())#LDEV3122";
