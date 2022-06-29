@@ -1126,6 +1126,8 @@ sct[""bracketNotation""] --> keyname: "bracketNotation"</data>
 	<data key="schedule.executiondesconce">This task is executed only once at a specific date and time.</data>
 	<data key="schedule.usernamedescription">Username to access the URL if it is protected by authentication</data>
 	<data key="schedule.startdatedesc">Defines the date when the task should be executed the first time.</data>
+	<data key="schedule.useragent">User Agent</data>
+	<data key="schedule.useragentdescription">Custom User Agent for the http(s) request (some firewalls block the CFSCHEDULE user agent)</data>
 	<data key="settings.datasourcesettings">Settings</data>
 	<data key="settings.datasource.databaseName">Database (Name/Version)</data>
 	<data key="settings.datasource.driverName">Driver (Name/Version)</data>
