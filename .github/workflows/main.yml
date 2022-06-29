@@ -44,17 +44,15 @@ jobs:
           # Maps port 6379 on service container to the host
           - 6379:6379
       greenmail:
-        image: mailhog/mailhog:v1.0.0
-        env: 
-          GREENMAIL_OPTS: -Dgreenmail.setup.all # use standard ports due to LDEV-4050
+        image: greenmail/standalone:1.6.9
         ports:
-          - 25 #SMTP
-          - 110 #POP3
-          - 143 #IMAP
-          - 465 #SMTPS
-          - 993 #IMAPS
-          - 995 #POP3S
-          - 8080 #API
+          - 3025:3025 #SMTP
+          - 3110:3110 #POP3
+          - 3143:3143 #IMAP
+          - 3465:3465 #SMTPS
+          - 3993:3993 #IMAPS
+          - 3995:3995 #POP3S
+          - 8080:8080 #API
     steps:
     - uses: szenius/set-timezone@v1.0
       with:
@@ -131,18 +129,18 @@ jobs:
         MEMCACHED_SERVER: localhost
         REDIS_PORT: 6379
         REDIS_SERVER: localhost
-        SMTP_PORT_INSECURE: 25
-        SMTP_PORT_SECURE: 465
+        SMTP_PORT_INSECURE: 3025
+        SMTP_PORT_SECURE: 3465
         SMTP_SERVER: localhost
         SMTP_USERNAME: lucee
         SMTP_PASSWORD: doesntmatter
-        IMAP_PORT_INSECURE: 143
-        IMAP_PORT_SECURE: 993
+        IMAP_PORT_INSECURE: 3143
+        IMAP_PORT_SECURE: 3993
         IMAP_SERVER: localhost
         IMAP_USERNAME: lucee
         # IMAP_PASSWORD: doesntmatter
-        POP_PORT_INSECURE: 110
-        POP_PORT_SECURE: 995
+        POP_PORT_INSECURE: 3110
+        POP_PORT_SECURE: 3995
         POP_SERVER: localhost
         POP_USERNAME: lucee
         POP_PASSWORD: doesntmatter
