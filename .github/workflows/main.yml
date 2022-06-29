@@ -45,8 +45,6 @@ jobs:
           - 6379:6379
       greenmail:
         image: greenmail/standalone:1.6.9
-        env: 
-          GREENMAIL_OPTS: -Dgreenmail.setup.all # use standard ports due to LDEV-4050
         ports:
           - 3025:3025 #SMTP
           - 3110:3110 #POP3
