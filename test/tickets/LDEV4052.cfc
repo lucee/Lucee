@@ -5,11 +5,11 @@ component extends="org.lucee.cfml.test.LuceeTestCase" skip=true {
 	}
 
 	function testInvalidApplicationCFC() {
-		expect(
-			 _InternalRequest(
+		expect( function(){
+			_InternalRequest(
 			template:"#variables.uri#/index.cfm"
 			)
-		).toThrow(); // due to invalid Application.cfc, in a browser it throws
+		}).toThrow(); // should crash due to an invalid Application.cfc, in a browser it throws
 	}
 	
 	private string function createURI(string calledName){
