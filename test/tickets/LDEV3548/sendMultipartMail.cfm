@@ -10,7 +10,7 @@
     server="#creds.smtp.server#"
     password="#creds.smtp.password#"
     username="luceeldev3548@localhost"
-    port="3025"
+    port="#creds.smtp.PORT_INSECURE#"
     useTls="true"
     usessl="false"
     async="false">
