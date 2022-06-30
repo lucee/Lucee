@@ -584,8 +584,8 @@ Error Output--->
 			<tfoot>
 				<tr>
 					<td colspan="2">
-						<input onclick="window.location='#request.self#?action=#url.action#';" type="button" class="bl button cancel" name="cancel" value="#stText.Buttons.Cancel#">
-						<input type="submit" class="br button submit" name="run" value="#stText.Buttons.Update#">
+						<input type="submit" class="bl button submit" name="run" value="#stText.Buttons.Update#">
+						<input onclick="window.location='#request.self#?action=#url.action#';" type="button" class="br button cancel" name="cancel" value="#stText.Buttons.Cancel#">
 					</td>
 				</tr>
 			</tfoot>
