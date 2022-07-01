@@ -524,7 +524,7 @@ public final class Controler extends Thread {
 					res.remove(true);
 					count--;
 				}
-				catch (IOException e) {
+				catch (Exception e) {
 					LogUtil.log(ThreadLocalPageContext.getConfig(config), Log.LEVEL_ERROR, Controler.class.getName(), "cannot remove resource [" + res.getAbsolutePath() + "]");
 					break;
 				}

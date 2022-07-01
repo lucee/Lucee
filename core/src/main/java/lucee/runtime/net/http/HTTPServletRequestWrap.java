@@ -283,13 +283,16 @@ public final class HTTPServletRequestWrap implements HttpServletRequest, Seriali
 			try {
 				file = File.createTempFile("upload", ".tmp");
 				fos = new FileOutputStream(file);
+				// first we store what we did already load
 				if (maxReached.toBooleanValue()) {
 					IOUtil.copy(new ByteArrayInputStream(bytes), fos, true, false);
 					bytes = null;
 				}
-				if (is == null) is = req.getInputStream();
-				IOUtil.copy(is, fos, 0xfffff, true, true);
 
+				if (is == null) is = req.getInputStream();
+				// now we store the rest
+				IOUtil.copy(is, fos, 0xfffff, true, true);
+				file.deleteOnExit();
 			}
 			catch (Exception e) {
 			}
