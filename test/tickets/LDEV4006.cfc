@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" labels="json" skip=true{
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="json" skip=false{
 	function run( testResults , testBox ) {
 		describe( "test case for LDEV-4006", function() {
 			it( title = "Using exponent with large value in IsJson()", body=function( currentSpec ) {
