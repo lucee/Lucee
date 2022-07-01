@@ -48,13 +48,13 @@ public final class GetComponentMetaData implements Function {
 		// load the cfc when metadata was not defined before
 		try {
 			// Component cfc = CreateObject.doComponent(pc, Caster.toString(obj));
-			Component cfc = ComponentLoader.searchComponent(pc, null, Caster.toString(obj), null, null, false, true/* MUST false does not produce properties */);
+			Component cfc = ComponentLoader.searchComponent(pc, null, Caster.toString(obj), null, null, false, true/* MUST false does not produce properties */, false);
 			return cfc.getMetaData(pc);
 		}
 		// TODO better solution
 		catch (ApplicationException ae) {
 			try {
-				InterfaceImpl inter = ComponentLoader.searchInterface(pc, ((PageContextImpl) pc).getCurrentPageSource(null), Caster.toString(obj));
+				InterfaceImpl inter = ComponentLoader.searchInterface(pc, ((PageContextImpl) pc).getCurrentPageSource(null), Caster.toString(obj), true, false);
 				return inter.getMetaData(pc);
 			}
 			catch (PageException pe) {
