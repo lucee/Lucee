@@ -629,6 +629,7 @@ public final class ConfigAdmin {
 		data.setEL("autoDelete", ((ScheduleTaskImpl) task).isAutoDelete());
 		data.setEL("unique", ((ScheduleTaskImpl) task).unique());
 		if (((ScheduleTaskImpl) task).getUserAgent() != null) data.setEL("userAgent", ((ScheduleTaskImpl) task).getUserAgent());
+		else if (data.containsKey("userAgent")) rem(data, "userAgent");
 	}
 
 	public static void pauseScheduledTask(ConfigPro config, String name, boolean pause, boolean throwWhenNotExist, boolean reload)
