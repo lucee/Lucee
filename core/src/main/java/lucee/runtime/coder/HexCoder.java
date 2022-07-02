@@ -31,7 +31,7 @@ public final class HexCoder {
 	 * encodes a byte array to a String
 	 *
 	 * @param bytes
-	 * @return encoed String
+	 * @return encoded String
 	 */
 	public static String encode(byte[] bytes) {
 		char[] hexChars = new char[bytes.length * 2];
