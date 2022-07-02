@@ -28,8 +28,6 @@ WEB-INF
 *.jfr
 
 /.vscode
-.vscode/
-*-workspace
 /.idea
 loader/env.json
 .idea/
