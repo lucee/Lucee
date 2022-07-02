@@ -397,7 +397,7 @@ component {
 		server.getDefaultBundleVersion = getDefaultBundleVersion;  
 		server.getBundleVersions = getBundleVersions;
 	}
-	public struct function getTestService( required string service, string dbFile="", boolean verify=false ) localmode=true {
+	public struct function getTestService( required string service, string dbFile="", boolean verify=false, boolean onlyConfig=false ) localmode=true {
 
 		if ( StructKeyExists( server.test_services, arguments.service ) ){
 			if ( !server.test_services[ arguments.service ].valid ){
@@ -412,6 +412,8 @@ component {
 			case "mssql":
 				mssql = server._getSystemPropOrEnvVars( "SERVER, USERNAME, PASSWORD, PORT, DATABASE", "MSSQL_" );
 				if ( structCount( msSql ) gt 0){
+					if ( arguments.onlyConfig )
+						return msSql;
 					return {
 						class: 'com.microsoft.sqlserver.jdbc.SQLServerDriver'
 						, bundleName: 'org.lucee.mssql'
@@ -425,6 +427,8 @@ component {
 			case "mysql":
 				mysql = server._getSystemPropOrEnvVars( "SERVER, USERNAME, PASSWORD, PORT, DATABASE", "MYSQL_" );	
 				if ( structCount( mySql ) gt 0 ){
+					if ( arguments.onlyConfig )
+						return mySql;
 					return {
 						class: 'com.mysql.cj.jdbc.Driver'
 						, bundleName: 'com.mysql.cj'
@@ -438,6 +442,8 @@ component {
 			case "postgres":
 				pgsql = server._getSystemPropOrEnvVars( "SERVER, USERNAME, PASSWORD, PORT, DATABASE", "POSTGRES_" );	
 				if ( structCount( pgsql ) gt 0 ){
+					if ( arguments.onlyConfig )
+						return pgsql;
 					return {
 						class: 'org.postgresql.Driver'
 						, bundleName: 'org.postgresql.jdbc'
@@ -481,6 +487,8 @@ component {
 			case "oracle":
 				oracle = server._getSystemPropOrEnvVars( "SERVER, USERNAME, PASSWORD, PORT, DATABASE", "ORACLE_" );	
 				if ( structCount( oracle ) gt 0 ){
+					if ( arguments.onlyConfig )
+						return oracle;
 					return {
 						class: 'oracle.jdbc.OracleDriver'
 						, bundleName: 'ojdbc7'
