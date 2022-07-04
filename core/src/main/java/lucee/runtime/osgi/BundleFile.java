@@ -44,6 +44,15 @@ public class BundleFile extends BundleInfo {
 		return bi;
 	}
 
+	public static BundleFile getInstance(Resource file, BundleFile defaultValue) {
+		try {
+			return getInstance(toFileResource(file));
+		}
+		catch (Exception e) {
+			return defaultValue;
+		}
+	}
+
 	public static BundleFile getInstance(Resource file) throws IOException, BundleException {
 		return getInstance(toFileResource(file));
 	}
