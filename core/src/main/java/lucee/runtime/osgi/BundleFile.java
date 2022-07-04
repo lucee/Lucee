@@ -48,6 +48,15 @@ public class BundleFile extends BundleInfo {
 		return getInstance(toFileResource(file));
 	}
 
+	public static BundleFile getInstance(Resource file, BundleFile defaultValue) {
+		try {
+			return getInstance(toFileResource(file));
+		}
+		catch (Exception e) {
+			return defaultValue;
+		}
+	}
+
 	public static BundleFile getInstance(File file) throws IOException, BundleException {
 		SoftReference<BundleFile> tmp = files.get(file.getAbsolutePath());
 		BundleFile bi = tmp == null ? null : tmp.get();

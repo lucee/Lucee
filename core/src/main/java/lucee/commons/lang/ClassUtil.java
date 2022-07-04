@@ -138,21 +138,19 @@ public final class ClassUtil {
 		return defaultValue;
 	}
 
-	public static Class<?> loadClassByBundle(String className, String name, String strVersion, Identification id, List<Resource> addionalDirectories)
-			throws ClassException, BundleException {
+	public static Class<?> loadClassByBundle(String className, String name, String strVersion, Identification id, List<Resource> addional) throws ClassException, BundleException {
 		// version
 		Version version = null;
 		if (!StringUtil.isEmpty(strVersion, true)) {
 			version = OSGiUtil.toVersion(strVersion.trim(), null);
 			if (version == null) throw new ClassException("Version definition [" + strVersion + "] is invalid.");
 		}
-		return loadClassByBundle(className, name, version, id, addionalDirectories);
+		return loadClassByBundle(className, name, version, id, addional);
 	}
 
-	public static Class loadClassByBundle(String className, String name, Version version, Identification id, List<Resource> addionalDirectories)
-			throws BundleException, ClassException {
+	public static Class loadClassByBundle(String className, String name, Version version, Identification id, List<Resource> addional) throws BundleException, ClassException {
 		try {
-			return OSGiUtil.loadBundle(name, version, id, addionalDirectories, true).loadClass(className);
+			return OSGiUtil.loadBundle(name, version, id, addional, true).loadClass(className);
 		}
 		catch (ClassNotFoundException e) {
 			String appendix = "";
@@ -875,10 +873,9 @@ public final class ClassUtil {
 	 * @throws ClassException
 	 * @throws BundleException
 	 */
-	public static Class loadClass(String className, String bundleName, String bundleVersion, Identification id, List<Resource> addionalDirectories)
-			throws ClassException, BundleException {
+	public static Class loadClass(String className, String bundleName, String bundleVersion, Identification id, List<Resource> addional) throws ClassException, BundleException {
 		if (StringUtil.isEmpty(bundleName)) return loadClass(className);
-		return loadClassByBundle(className, bundleName, bundleVersion, id, addionalDirectories);
+		return loadClassByBundle(className, bundleName, bundleVersion, id, addional);
 	}
 
 	private static interface ClassLoading {
