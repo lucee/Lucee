@@ -807,6 +807,7 @@ Depending on this setting Lucee scans certain scopes to find a variable called f
 	a struct to define dynamically java libraries
 	the following keys are supported
 	- loadPaths - an array or a comma separated string list of jars or class directories
+	- bundles - an array or a comma separated string list of OSGI jars
 	- reloadOnChange - reload updated jars without a restart necessary
 	- watchInterval - interval it checks for changes with the jar files
 	- watchExtensions - extension of the files read
