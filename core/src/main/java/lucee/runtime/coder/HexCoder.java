@@ -55,7 +55,7 @@ public final class HexCoder {
 			throw new CoderException("can't decode empty String");
 		}
 		if ((hexa.length() % 2) != 0) {
-			throw new CoderException("invalid hexadecimal String. Number of characters must be even, Allowed characters are [0-9], [a-f], [A-F]");
+			throw new CoderException("invalid hexadecimal String for," + hexa + ". The number of characters passed in, must be even, Allowed characters are [0-9], [a-f], [A-F]");
 		}
 		int tamArray = hexa.length() / 2;
 		byte[] retorno = new byte[tamArray];
@@ -70,7 +70,7 @@ public final class HexCoder {
 			throw new CoderException("can't decode empty String");
 		}
 		if (hexa.length() != 2) {
-			throw new CoderException("invalid hexadecimal String. Number of characters must be 2. Allowed characters are [0-9], [a-f], [A-F]");
+			throw new CoderException("invalid hexadecimal String for, " + hexa + ". The number of characters passed in, must be 2. Allowed characters are [0-9], [a-f], [A-F]");
 		}
 		byte[] b = hexa.getBytes(CharsetUtil.UTF8);
 		byte valor = (byte) (hexDigitValue((char) b[0]) * 16 + hexDigitValue((char) b[1]));
@@ -89,7 +89,7 @@ public final class HexCoder {
 			retorno = (((byte) c) - 87);
 		}
 		else {
-			throw new CoderException("invalid hexadecimal String. Allowed characters are [0-9], [a-f], [A-F]");
+			throw new CoderException("invalid hexadecimal String for, " + hexa + ". Allowed characters are [0-9], [a-f], [A-F]");
 		}
 		return retorno;
 	}
