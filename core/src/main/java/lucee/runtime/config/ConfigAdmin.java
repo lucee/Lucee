@@ -2232,14 +2232,12 @@ public final class ConfigAdmin {
 		if (name.equalsIgnoreCase(Caster.toString(parent.get("defaultResource", null), null))) rem(parent, "defaultResource");
 
 		// remove element
-		Array children = ConfigWebUtil.getAsArray("connection", parent);
+		Struct children = ConfigWebUtil.getAsStruct("caches", root);
 		Key[] keys = children.keys();
-		for (int i = keys.length - 1; i >= 0; i--) {
-			Key key = keys[i];
+		for (Key key: keys) {
 			Struct tmp = Caster.toStruct(children.get(key, null), null);
 			if (tmp == null) continue;
-
-			String n = ConfigWebUtil.getAsString("name", tmp, "");
+			String n = key.getString();
 			if (n != null && n.equalsIgnoreCase(name)) {
 				Map<String, CacheConnection> conns = config.getCacheConnections();
 				CacheConnection cc = conns.get(n.toLowerCase());
