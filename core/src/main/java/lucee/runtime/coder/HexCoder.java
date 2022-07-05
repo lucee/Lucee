@@ -89,7 +89,7 @@ public final class HexCoder {
 			retorno = (((byte) c) - 87);
 		}
 		else {
-			throw new CoderException("invalid hexadecimal String for, [ " + hexa + " ]. Allowed characters are [0-9], [a-f], [A-F]");
+			throw new CoderException("invalid hexadecimal String for, [ " + c + " ]. Allowed characters are [0-9], [a-f], [A-F]");
 		}
 		return retorno;
 	}
