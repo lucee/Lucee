@@ -1,4 +1,4 @@
-component extends = "org.lucee.cfml.test.LuceeTestCase" {
+component extends = "org.lucee.cfml.test.LuceeTestCase" skip=true {
 	function run( testResults, textbox ) {
 		describe("Testcase for LDEV-4062", function() {
 			it(title="checking lambda expression without the body({})", body=function( currentSpec ) {
