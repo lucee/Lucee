@@ -17,7 +17,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="array" skip=true{
 				var arr = [ "first", nullValue(), "third"];
 				var count = 0;
 				var a = [];
-				arr.reduce((carry,value,index) => {
+				arr.reduce((carry,value) => {
 					count++;
 					arrayAppend(a, isNull(arguments.value)?"nullValue":arguments.value);
 				});
