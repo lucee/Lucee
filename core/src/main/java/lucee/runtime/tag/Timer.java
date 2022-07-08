@@ -181,7 +181,8 @@ public final class Timer extends BodyTagImpl {
 		else if (TYPE_CONSOLE == type) {
 			PageSource curr = pageContext.getCurrentTemplatePageSource();
 			String currTemplate = curr != null ? " from  template: "+ curr.getDisplayPath() : "";
-			CFMLEngineImpl.CONSOLE_OUT.println("CFTimer - " + label + ": " + exe + unitDesc + currTemplate + "");	
+			if (StringUtil.isEmpty(label, true)) label = "CFTimer";
+			CFMLEngineImpl.CONSOLE_OUT.println("" + label + ": " + exe + unitDesc + currTemplate + "");	
 		}
 	}
 
