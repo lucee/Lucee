@@ -7959,7 +7959,7 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
               is cftimer.
             - debug: displays timing information in the debug output
               under the heading CFTimer Times.
-			- console: displays timing information in the console output. The default label is CFTimer.
+            - console: displays timing information in the console output. The default label is CFTimer.
             Default: debug</description>
 		</attribute>
 		<attribute>
