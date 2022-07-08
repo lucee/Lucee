@@ -3353,7 +3353,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 				sct.set(PATH, b.getLocation());
 			}
 			else {
-				if (bf == null) bf = bd.getBundleFile(false, JavaSettingsImpl.getBundleDirectories(pageContext));
+				if (bf == null) bf = bd.getBundleFile(false, JavaSettingsImpl.getBundles(pageContext));
 				sct.set(PATH, bf.getFile());
 			}
 

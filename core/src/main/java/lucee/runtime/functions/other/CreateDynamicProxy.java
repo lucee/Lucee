@@ -114,7 +114,7 @@ public class CreateDynamicProxy implements Function {
 		if (StringUtil.isEmpty(bundleName)) {
 			return ClassUtil.loadClass(cl, className);
 		}
-		return ClassUtil.loadClass(className, bundleName, bundleVersion, pc.getConfig().getIdentification(), JavaSettingsImpl.getBundleDirectories(pc));
+		return ClassUtil.loadClass(className, bundleName, bundleVersion, pc.getConfig().getIdentification(), JavaSettingsImpl.getBundles(pc));
 	}
 
 }

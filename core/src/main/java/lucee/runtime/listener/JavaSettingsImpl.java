@@ -244,7 +244,7 @@ public class JavaSettingsImpl implements JavaSettings {
 		return null;
 	}
 
-	public static List<Resource> getBundleDirectories(PageContext pc) {
+	public static List<Resource> getBundles(PageContext pc) {
 		pc = ThreadLocalPageContext.get(pc);
 		if (pc == null) return null;
 		ApplicationContext ac = pc.getApplicationContext();
