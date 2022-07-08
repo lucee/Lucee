@@ -96,9 +96,8 @@ public final class XMLConfigServerFactory extends XMLConfigFactory {
 
 		);
 
-		int iDoNew = getNew(engine, configDir, false, UpdateInfo.NEW_NONE).updateType;
+		int iDoNew = getNew(engine, configDir, quick, UpdateInfo.NEW_NONE).updateType;
 		boolean doNew = iDoNew != NEW_NONE;
-
 		Resource configFile = configDir.getRealResource("lucee-server.xml");
 
 		if (!configFile.exists()) {
