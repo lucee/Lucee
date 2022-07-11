@@ -1,5 +1,5 @@
 
-component extends="org.lucee.cfml.test.LuceeTestCase" labels="cookie" skip=true	{
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="cookie" {
 
 	public void function testCookieEncode(){
 		var uri = createURI("cookie/encode.cfm")
@@ -19,6 +19,19 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="cookie" skip=true	
 		expect( getCookie(res, "DELIMS", true) ).toInclude("COOKIE_TEST3=;,=;"); // this will fail if not encoded as the delimiters should be encoded
 
 		expect( getCookie(res, "preservecase_simple", true) ).toIncludeWithCase("preservecase_simple="); 
+	}
+
+	public void function testCookieEncodeExtended() localmode=true {
+		var uri = createURI("cookie/extendedTest.cfm")
+		local.res = _InternalRequest(
+			template: uri
+		);
+		dumpCookies(local.res);
+
+		include template="cookie/extendedData.cfm";
+		loop array=#cookieTestData# item="c"{
+			expect( getCookie( res, c.name ) ).toBe( c.value );
+		}
 	}
 
 	private function dumpCookies(res){
@@ -42,7 +55,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="cookie" skip=true	
 	}
 
 	private string function createURI(string calledName){
-		var baseURI = "/test/#listLast(getDirectoryFromPath(getCurrenttemplatepath()),"\/")#/";
+		var baseURI = "/test/#listLast(getDirectoryFromPath(getCurrentTemplatepath()),"\/")#/";
 		return baseURI & "" & calledName;
 	}
 }
