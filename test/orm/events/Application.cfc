@@ -1,11 +1,7 @@
 component {
 
 	this.name = "orm-events";
-	this.datasource={
-        class: 'org.h2.Driver'
-        , bundleName: 'org.h2'
-        , connectionString: 'jdbc:h2:#getDirectoryFromPath(getCurrentTemplatePath())#/datasource/db;MODE=MySQL'
-    };
+	this.datasource= server.getDatasource("h2", "#getDirectoryFromPath(getCurrentTemplatePath())#/datasource/db" );
 	this.ormEnabled = true;
 	this.ormSettings = {
 		dbcreate: "dropcreate",
@@ -15,10 +11,7 @@ component {
 		autoManageSession: false,
 		flushAtRequestEnd: true,
 		useDBForMapping: false,
-		dialect: "h2",
-
-		secondarycacheenabled = true,
-		cacheprovider         = "ehCache"
+		dialect: "h2"
 	};
 
 	function onApplicationStart() {
