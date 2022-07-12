@@ -59,7 +59,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm" {
 		local.result=_InternalRequest(uri);
 		systemOutput( "", true ); 
 		expect( result.status ).toBe( 200 );
-		expect( trim( result.fileContent ) ).toBe( 15 ); // dunno what number this should be yet
+		expect( trim( result.fileContent ) ).toBe( 24 );
 	}
 
 	public void function testMany2Many() {

@@ -1,7 +1,11 @@
 component {
 
 	this.name = "orm-events";
-	this.datasource= server.getDatasource("h2", "#getDirectoryFromPath(getCurrentTemplatePath())#/datasource/db" );
+	this.datasource={
+        class: 'org.h2.Driver'
+        , bundleName: 'org.h2'
+        , connectionString: 'jdbc:h2:#getDirectoryFromPath(getCurrentTemplatePath())#/datasource/db;MODE=MySQL'
+    };
 	this.ormEnabled = true;
 	this.ormSettings = {
 		dbcreate: "dropcreate",
@@ -9,9 +13,12 @@ component {
 		eventHandling: true,
 		eventHandler: "eventHandler",
 		autoManageSession: false,
-		flushAtRequestEnd: false,
+		flushAtRequestEnd: true,
 		useDBForMapping: false,
-		dialect: "h2"
+		dialect: "h2",
+
+		secondarycacheenabled = true,
+		cacheprovider         = "ehCache"
 	};
 
 	function onApplicationStart() {
@@ -20,6 +27,10 @@ component {
 
 	public function onRequestStart() {
 		setting requesttimeout=10;
+		application.ormEventLog = [];
+		if ( url.keyExists( "flushcache" ) ){
+			componentCacheClear();
+		}
 	}
 
 	function onRequestEnd() {

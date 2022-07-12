@@ -5,12 +5,14 @@ component hint="logs out any orm events"  {
 		return this;
 	}
 
+	// Currently not implemented
 	function preFlush(  entity ){
 		eventLog( arguments );
 	}
 	function onFlush( entity ) {
 		eventLog( arguments );
 	}
+	// Currently not implemented
 	function postFlush( entity ){
 		eventLog( arguments );
 	}
@@ -29,7 +31,7 @@ component hint="logs out any orm events"  {
 		eventLog( arguments );
 	}
 
-	function preUpdate( entity, Struct oldData ){
+	function preUpdate( entity ){
 		eventLog( arguments );
 	}
 	function postUpdate( entity ){
@@ -46,15 +48,25 @@ component hint="logs out any orm events"  {
 		eventLog( arguments );
 	}
 
+	function onEvict() {
+		eventLog( arguments );
+	}
+	function onClear( entity ) {
+		eventLog( arguments );
+	}
 	function onDirtyCheck( entity ) {
+		eventLog( arguments );
+	}
+	function onAutoFlush( entity ) {
 		eventLog( arguments );
 	}
 
 	private function eventLog( required struct args ){
 		var eventName = CallStackGet( "array" )[2].function;
 		
-		systemOutput( "------- #eventName# @ #this.name# ----------", true );
-		systemOutput( arguments.args, true );
+		writeOutput( "------- #eventName# @ #this.name# ----------" );
+		writeOutput( "<br>" );
+		// writeDump( var = arguments.args, expand = false );
 
 		//if ( ! structKeyExists( application, "ormEventLog" ) )
 		//    application.ormEventLog = [];
