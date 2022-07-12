@@ -5,7 +5,7 @@ component {
 
 	// testbox doesn't always sort the order of tests, so we do it manually LDEV-3541
 	public array function getBundles( testMapping, testDirectory ){
-		var srcBundles = directoryList( path=arguments.testMapping, recurse=true, listInfo="path", filter="*.cfc" );
+		var srcBundles = directoryList( path="#expandPath(arguments.testMapping)#", recurse=true, listInfo="path", filter="*.cfc" );
 		var testDirectoryLen = len( arguments.testDirectory );
 		var mapping = ListChangeDelims( arguments.testMapping, "", "/\" );
 		var bundles = [];
