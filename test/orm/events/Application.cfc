@@ -9,7 +9,7 @@ component {
 		eventHandling: true,
 		eventHandler: "eventHandler",
 		autoManageSession: false,
-		flushAtRequestEnd: true,
+		flushAtRequestEnd: false,
 		useDBForMapping: false,
 		dialect: "h2"
 	};
