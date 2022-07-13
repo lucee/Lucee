@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" {
+component extends="org.lucee.cfml.test.LuceeTestCase" skip=true{
 	function run( testResults, testBox ) {
 		describe("Testcase for LDEV-4070", function() {
 			it( title="checking large number value with more than 19 digits", body=function( currentSpec ) {
