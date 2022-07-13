@@ -6,7 +6,6 @@
 		{name="test_tag4", value='Quotes in ASCII text "encoded"'},
 		{name="test_tag5", value=serializeJSON({"test_tag5":"somevar",rules:[]}), encodevalue=false},
 		{name="test_tag6", value="Plain ASCII text: no problem", encodevalue=false},
-		{name="test_tag7", value="Semicolon in ASCII text; problem!", encodevalue=false},
 		{name="test_tag8", value='Quotes in ASCII text "encoded"', encodevalue=false},
 		{name="test_tag9", value=serializeJSON({"test_tag9":"somevar",rules:[]}), encodevalue=true},
 		{name="test_tag10", value="Plain ASCII text: no problem", encodevalue=true},

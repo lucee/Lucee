@@ -11,7 +11,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="cookie" {
 		expect( getCookie(res, "simple") ).toBe("lucee"); 
 
 		expect( getCookie(res, "ENCODED_GUID") ).toBe("376B3346-463E-4F79-83FFE7C41451304A");
-		expect( getCookie(res, "ENCODED_HTML") ).toBe("space%26%20%26%20space%20%26%20%26nbsp%3B");
+		expect( getCookie(res, "ENCODED_HTML",false,false) ).toBe("space%26%20%26%20space%20%26%20%26nbsp%3B");
 		expect( getCookie(res, "ENCODED_DELIMS") ).toBe("%3B%2C%3D");
 		
 		expect( getCookie(res, "GUID") ).toBe("376B3346-463E-4F79-83FFE7C41451304A");
@@ -30,7 +30,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="cookie" {
 
 		include template="cookie/extendedData.cfm";
 		loop array=#cookieTestData# item="c"{
-			expect( getCookie( res, c.name ) ).toBe( c.value );
+			expect( getCookie( res, c.name,false,(c.encodevalue?:true) ) ).toBe( c.value );
 		}
 	}
 
@@ -42,13 +42,15 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="cookie" {
 		}
 	}
 
-	private function getCookie( res, string cookieName, boolean raw=false ){
+	private function getCookie( res, string cookieName, boolean raw=false,encodevalue=true ){
 		var c = arguments.res.headers["Set-Cookie"];
 		loop array=c item="local.cc"{
 			if ( listFirst( cc, "=" ) eq arguments.cookieName ){
 				if ( arguments.raw )
 					return cc;
-				return listLast( listFirst( cc, ";" ), "=" );
+				var tmp=listLast( listFirst( cc, ";" ), "=" );
+				if(encodevalue) return urlDecode(tmp);
+				return tmp;
 			}
 		}
 		return "--cookie not found--";
