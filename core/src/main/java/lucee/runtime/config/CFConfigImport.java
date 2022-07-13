@@ -63,7 +63,8 @@ public class CFConfigImport {
 	private ConfigPro config;
 	private Struct placeHolderData;
 	private Struct data;
-	private boolean pwChecked = false;
+	private boolean pwCheckedServer = false;
+	private boolean pwCheckedWeb = false;
 
 	public CFConfigImport(Config config, Resource file, Charset charset, String password, String type, Struct placeHolderData) throws PageException {
 		this.file = file;
@@ -86,7 +87,11 @@ public class CFConfigImport {
 		this.engine = CFMLEngineFactory.getInstance();
 		if ("web".equalsIgnoreCase(type) && !(config instanceof ConfigWeb))
 			throw engine.getExceptionUtil().createApplicationException("cannot manipulate a web context when you pass in a server config to the constructor!");
-		this.config = (ConfigPro) ("server".equalsIgnoreCase(type) && config instanceof ConfigWeb ? config.getConfigServer(password) : config);
+		if ("server".equalsIgnoreCase(type) && config instanceof ConfigWeb) {
+			setPasswordIfNecessary((ConfigWeb) config);
+			this.config = (ConfigPro) config.getConfigServer(password);
+		}
+		else this.config = (ConfigPro) config;
 	}
 
 	public Struct execute() throws PageException {
@@ -364,22 +369,27 @@ public class CFConfigImport {
 		}
 	}
 
-	private void set(PageContext pc, final Struct json, String trgActionName, Item... items) throws JspException {
-
-		if (!pwChecked) {
-			boolean isWeb = "web".equalsIgnoreCase(type);
-			boolean hasPassword = isWeb ? pc.getConfig().hasPassword() : pc.getConfig().hasServerPassword();
+	private void setPasswordIfNecessary(ConfigWeb config) throws PageException {
+		boolean isServer = "server".equalsIgnoreCase(type);
+		if ((isServer && !pwCheckedServer) || (!isServer && !pwCheckedWeb)) {
+			boolean hasPassword = isServer ? config.hasServerPassword() : config.hasPassword();
 			if (!hasPassword) {
 				// create password
 				try {
-					((ConfigWebPro) pc.getConfig()).updatePassword(!isWeb, null, password);
+					((ConfigWebPro) config).updatePassword(isServer, null, password);
 				}
 				catch (Exception e) {
 					throw Caster.toPageException(e);
 				}
 			}
-			pwChecked = true;
+			if (isServer) pwCheckedServer = true;
+			else pwCheckedWeb = true;
 		}
+
+	}
+
+	private void set(PageContext pc, final Struct json, String trgActionName, Item... items) throws JspException {
+		setPasswordIfNecessary(pc.getConfig());
 
 		Object val;
 		try {
