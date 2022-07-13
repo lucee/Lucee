@@ -34,6 +34,7 @@ import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.tag.DynamicAttributes;
 import lucee.runtime.interpreter.JSONExpressionInterpreter;
+import lucee.runtime.op.Caster;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
@@ -62,6 +63,7 @@ public class CFConfigImport {
 	private ConfigPro config;
 	private Struct placeHolderData;
 	private Struct data;
+	private boolean pwChecked = false;
 
 	public CFConfigImport(Config config, Resource file, Charset charset, String password, String type, Struct placeHolderData) throws PageException {
 		this.file = file;
@@ -363,6 +365,22 @@ public class CFConfigImport {
 	}
 
 	private void set(PageContext pc, final Struct json, String trgActionName, Item... items) throws JspException {
+
+		if (!pwChecked) {
+			boolean isWeb = "web".equalsIgnoreCase(type);
+			boolean hasPassword = isWeb ? pc.getConfig().hasPassword() : pc.getConfig().hasServerPassword();
+			if (!hasPassword) {
+				// create password
+				try {
+					((ConfigWebPro) pc.getConfig()).updatePassword(!isWeb, null, password);
+				}
+				catch (Exception e) {
+					throw Caster.toPageException(e);
+				}
+			}
+			pwChecked = true;
+		}
+
 		Object val;
 		try {
 			tag.setPageContext(pc);
