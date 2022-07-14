@@ -72,6 +72,8 @@ public final class Controler extends Thread {
 	// private final ShutdownHook shutdownHook;
 	private ControllerState state;
 
+	private boolean poolValidate;
+
 	/**
 	 * @param contextes
 	 * @param interval
@@ -82,6 +84,7 @@ public final class Controler extends Thread {
 		this.interval = interval;
 		this.state = state;
 		this.configServer = configServer;
+		this.poolValidate = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.datasource.pool.validate", null), true);
 		// shutdownHook=new ShutdownHook(configServer);
 		// Runtime.getRuntime().addShutdownHook(shutdownHook);
 	}
@@ -107,7 +110,7 @@ public final class Controler extends Thread {
 		public void run() {
 			long start = System.currentTimeMillis();
 			try {
-				controler.control(factories, firstRun);
+				controler.control(factories, firstRun, log);
 				done = System.currentTimeMillis() - start;
 			}
 			catch (Throwable t) {
@@ -179,7 +182,7 @@ public final class Controler extends Thread {
 		}
 	}
 
-	private void control(CFMLFactoryImpl[] factories, boolean firstRun) {
+	private void control(CFMLFactoryImpl[] factories, boolean firstRun, Log log) {
 		long now = System.currentTimeMillis();
 		boolean do10Seconds = last10SecondsInterval + 10000 < now;
 		if (do10Seconds) last10SecondsInterval = now;
@@ -196,13 +199,16 @@ public final class Controler extends Thread {
 		}
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
+			if (log != null) log.error("controler", t);
 		}
 
 		if (firstRun) {
 			try {
 				RHExtension.correctExtensions(configServer);
 			}
-			catch (Exception e) {}
+			catch (Exception e) {
+				if (log != null) log.error("controler", e);
+			}
 		}
 
 		// every 10 seconds
@@ -214,16 +220,18 @@ public final class Controler extends Thread {
 		if (doMinute) {
 			// deploy extensions, archives ...
 			try {
-				DeployHandler.deploy(configServer);
+				DeployHandler.deploy(configServer, false);
 			}
 			catch (Throwable t) {
 				ExceptionUtil.rethrowIfNecessary(t);
+				if (log != null) log.error("controler", t);
 			}
 			try {
 				XMLConfigAdmin.checkForChangesInConfigFile(configServer);
 			}
 			catch (Throwable t) {
 				ExceptionUtil.rethrowIfNecessary(t);
+				if (log != null) log.error("controler", t);
 			}
 		}
 		// every hour
@@ -233,15 +241,16 @@ public final class Controler extends Thread {
 			}
 			catch (Throwable t) {
 				ExceptionUtil.rethrowIfNecessary(t);
+				if (log != null) log.error("controler", t);
 			}
 		}
 
 		for (int i = 0; i < factories.length; i++) {
-			control(factories[i], do10Seconds, doMinute, doHour, firstRun);
+			control(factories[i], do10Seconds, doMinute, doHour, firstRun, log);
 		}
 	}
 
-	private void control(CFMLFactoryImpl cfmlFactory, boolean do10Seconds, boolean doMinute, boolean doHour, boolean firstRun) {
+	private void control(CFMLFactoryImpl cfmlFactory, boolean do10Seconds, boolean doMinute, boolean doHour, boolean firstRun, Log log) {
 		try {
 			boolean isRunning = cfmlFactory.getUsedPageContextLength() > 0;
 			if (isRunning) {
@@ -254,12 +263,14 @@ public final class Controler extends Thread {
 				ThreadLocalConfig.register(config);
 
 				config.reloadTimeServerOffset();
-				checkOldClientFile(config);
+				checkOldClientFile(config, log);
 
 				try {
 					RHExtension.correctExtensions(config);
 				}
-				catch (Exception e) {}
+				catch (Exception e) {
+					if (log != null) log.error("controler", e);
+				}
 
 				// try{checkStorageScopeFile(config,Session.SCOPE_CLIENT);}catch(Throwable t)
 				// {ExceptionUtil.rethrowIfNecessary(t);}
@@ -270,24 +281,28 @@ public final class Controler extends Thread {
 				}
 				catch (Throwable t) {
 					ExceptionUtil.rethrowIfNecessary(t);
+					if (log != null) log.error("controler", t);
 				}
 				try {
 					checkTempDirectorySize(config);
 				}
 				catch (Throwable t) {
 					ExceptionUtil.rethrowIfNecessary(t);
+					if (log != null) log.error("controler", t);
 				}
 				try {
 					checkCacheFileSize(config);
 				}
 				catch (Throwable t) {
 					ExceptionUtil.rethrowIfNecessary(t);
+					if (log != null) log.error("controler", t);
 				}
 				try {
 					cfmlFactory.getScopeContext().clearUnused();
 				}
 				catch (Throwable t) {
 					ExceptionUtil.rethrowIfNecessary(t);
+					if (log != null) log.error("controler", t);
 				}
 			}
 
@@ -310,7 +325,7 @@ public final class Controler extends Thread {
 					((SchedulerImpl) config.getScheduler()).startIfNecessary();
 				}
 				catch (Exception e) {
-					LogUtil.log(ThreadLocalPageContext.getConfig(configServer), Controler.class.getName(), e);
+					if (log != null) log.error("controler", e);
 				}
 
 				// double check templates
@@ -318,23 +333,25 @@ public final class Controler extends Thread {
 					((ConfigWebPro) config).getCompiler().checkWatched();
 				}
 				catch (Exception e) {
-					LogUtil.log(ThreadLocalPageContext.getConfig(configServer), Controler.class.getName(), e);
+					if (log != null) log.error("controler", e);
 				}
 
 				// deploy extensions, archives ...
 				try {
-					DeployHandler.deploy(config);
+					DeployHandler.deploy(config, false);
 				}
 				catch (Throwable t) {
 					ExceptionUtil.rethrowIfNecessary(t);
+					if (log != null) log.error("controler", t);
 				}
 
 				// clear unused DB Connections
 				try {
-					((ConfigPro) config).getDatasourceConnectionPool().clear(false);
+					((ConfigPro) config).getDatasourceConnectionPool().clear(false, this.poolValidate);
 				}
 				catch (Throwable t) {
 					ExceptionUtil.rethrowIfNecessary(t);
+					if (log != null) log.error("controler", t);
 				}
 				// clear all unused scopes
 				try {
@@ -342,6 +359,7 @@ public final class Controler extends Thread {
 				}
 				catch (Throwable t) {
 					ExceptionUtil.rethrowIfNecessary(t);
+					if (log != null) log.error("controler", t);
 				}
 				// Memory usage
 				// clear Query Cache
@@ -356,7 +374,9 @@ public final class Controler extends Thread {
 				try {
 					doClearPagePools(config);
 				}
-				catch (Exception e) {}
+				catch (Exception e) {
+					if (log != null) log.error("controler", e);
+				}
 				// try{checkPermGenSpace((ConfigWebPro) config);}catch(Throwable t)
 				// {ExceptionUtil.rethrowIfNecessary(t);}
 				try {
@@ -364,12 +384,14 @@ public final class Controler extends Thread {
 				}
 				catch (Throwable t) {
 					ExceptionUtil.rethrowIfNecessary(t);
+					if (log != null) log.error("controler", t);
 				}
 				try {
 					doClearMailConnections();
 				}
 				catch (Throwable t) {
 					ExceptionUtil.rethrowIfNecessary(t);
+					if (log != null) log.error("controler", t);
 				}
 				// clean LockManager
 				if (cfmlFactory.getUsedPageContextLength() == 0) try {
@@ -377,6 +399,7 @@ public final class Controler extends Thread {
 				}
 				catch (Throwable t) {
 					ExceptionUtil.rethrowIfNecessary(t);
+					if (log != null) log.error("controler", t);
 				}
 
 				try {
@@ -384,6 +407,7 @@ public final class Controler extends Thread {
 				}
 				catch (Throwable t) {
 					ExceptionUtil.rethrowIfNecessary(t);
+					if (log != null) log.error("controler", t);
 				}
 
 			}
@@ -400,6 +424,7 @@ public final class Controler extends Thread {
 				}
 				catch (Throwable t) {
 					ExceptionUtil.rethrowIfNecessary(t);
+					if (log != null) log.error("controler", t);
 				}
 				// check file based client/session scope
 				// try{checkStorageScopeFile(config,Session.SCOPE_CLIENT);}catch(Throwable t)
@@ -412,6 +437,7 @@ public final class Controler extends Thread {
 				}
 				catch (Throwable t) {
 					ExceptionUtil.rethrowIfNecessary(t);
+					if (log != null) log.error("controler", t);
 				}
 				// check cache directory
 				try {
@@ -419,6 +445,7 @@ public final class Controler extends Thread {
 				}
 				catch (Throwable t) {
 					ExceptionUtil.rethrowIfNecessary(t);
+					if (log != null) log.error("controler", t);
 				}
 			}
 
@@ -427,10 +454,12 @@ public final class Controler extends Thread {
 			}
 			catch (Throwable t) {
 				ExceptionUtil.rethrowIfNecessary(t);
+				if (log != null) log.error("controler", t);
 			}
 		}
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
+			if (log != null) log.error("controler", t);
 		}
 		finally {
 			ThreadLocalConfig.release();
@@ -451,7 +480,7 @@ public final class Controler extends Thread {
 		SMTPConnectionPool.closeSessions();
 	}
 
-	private void checkOldClientFile(ConfigWeb config) {
+	private void checkOldClientFile(ConfigWeb config, Log log) {
 		ExtensionResourceFilter filter = new ExtensionResourceFilter(".script", false);
 
 		// move old structured file in new structure
@@ -477,6 +506,7 @@ public final class Controler extends Thread {
 		}
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
+			if (log != null) log.error("controler", t);
 		}
 	}
 

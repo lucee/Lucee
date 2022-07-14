@@ -77,7 +77,8 @@ public final class ScriptConverter extends ConverterSupport {
 	/**
 	 * constructor of the class
 	 */
-	public ScriptConverter() {}
+	public ScriptConverter() {
+	}
 
 	public ScriptConverter(boolean ignoreRemotingFetch) {
 		this.ignoreRemotingFetch = ignoreRemotingFetch;
@@ -451,7 +452,7 @@ public final class ScriptConverter extends ConverterSupport {
 		// Number
 		if (object instanceof Number) {
 			sb.append(goIn());
-			sb.append(Caster.toString(((Number) object)));
+			sb.append(Caster.toStringPrecise(((Number) object)));
 			deep--;
 			return;
 		}

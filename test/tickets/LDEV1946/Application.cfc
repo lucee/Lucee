@@ -4,7 +4,8 @@ component {
 	public function onMissingTemplate() {
 		writeOutput("Missing");
 		//location url="test4.cfm" addtoken=false; // works fin
-		abort;
+		return true;
+		//abort;
 	}
 
 		

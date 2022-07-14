@@ -31,10 +31,10 @@
 				<cfif structKeyExists(data,"error")>
 					<cfset stVeritfyMessages[provider].Label = "Error">
 					<cfif data.status_code == 404>
-						<cfset stVeritfyMessages[provider].message = "Was not able to retrieve data from ["&provider&"].">
+						<cfset stVeritfyMessages[provider].message = "Was not able to retrieve data from ["&provider&"]. status code: 404">
 						<cfset stVeritfyMessages[provider].detail ="">
 					<cfelse>
-						<cfset stVeritfyMessages[provider].message = "Failed to retrieve data from ["&provider&"].">
+						<cfset stVeritfyMessages[provider].message = "Failed to retrieve data from ["&provider&"]. status code: #data.status_code#">
 						<cfset stVeritfyMessages[provider].detail = "Message from server: "&data.error>
 					</cfif>
 				<cfelse>
@@ -102,12 +102,19 @@
 
 <cfscript>
 	hasAccess=true;
-	thread name="provider:data" {
-		thread.datas=getProvidersInfo(providers:queryColumnData(providers,'url'));
+	datas = {};
+	loop array="#queryColumnData(providers,'url')#" index="i" item="providerURL" {
+		if (structKeyExists( session,"rhproviders") && structKeyExists( session.rhproviders,providerURL) ) {
+			datas[providerURL] = session.rhproviders[providerURL]; // gets the provider info from the session which is already loaded
+		} 
+		else {
+			thread name="provider:#providerURL#" {
+			   thread.datas=getProviderInfo(provider:providerURL);
+		   	}
+			thread action="join" name="provider:#providerURL#";
+			datas[providerURL]=isNull(cfthread["provider:#providerURL#"].datas)?{}:cfthread["provider:#providerURL#"].datas;
+		}
 	}
-	thread action="join" name="provider:data" timeout=100;
-	datas=isNull(cfthread["provider:data"].datas)?{}:cfthread["provider:data"].datas;
-	
 </cfscript>
 
 
@@ -159,6 +166,17 @@ list all mappings and display necessary edit fields --->
 						<td>
 							<input type="hidden" name="url_#providers.currentrow#" value="#providers.url#">
 							#providers.url#
+							<cfset title="">
+							<cfif StructKeyExists(stVeritfyMessages, providers.url)>
+								<cfset msg=stVeritfyMessages[providers.url]>
+								<cfif (structKeyExists(msg,"message") && len(trim(msg.message))) || 
+									(structKeyExists(msg,"detail")  && len(trim(msg.detail)))>
+									<cfset m=structKeyExists(msg,"message")?trim(msg.message):"">
+									<cfset d=structKeyExists(msg,"detail")?trim(msg.detail):"">
+									<cfset title=' title="#m# #d#"'>
+									<div class="commentError">#m# #d#</div>
+								</cfif>
+							</cfif>
 						</td>
 						<cfset hasData = 
 								StructKeyExists(datas,providers.url) and 
@@ -194,15 +212,6 @@ list all mappings and display necessary edit fields --->
 						</cfif>
 						<!--- check --->
 						<cfif StructKeyExists(stVeritfyMessages, providers.url)>
-							<cfset msg=stVeritfyMessages[providers.url]>
-							<cfset title="">
-							<cfif (structKeyExists(msg,"message") && len(trim(msg.message))) || 
-								  (structKeyExists(msg,"detail")  && len(trim(msg.detail)))>
-								<cfset m=structKeyExists(msg,"message")?trim(msg.message):"">
-								<cfset d=structKeyExists(msg,"detail")?trim(msg.detail):"">
-								<cfset title=' title="#m# #d#"'>
-							</cfif>
-
 							<td class="tooltipMe favorite_inactive"#title#>#msg.label#</td>
 						<cfelse>
 							<td>&nbsp;</td>

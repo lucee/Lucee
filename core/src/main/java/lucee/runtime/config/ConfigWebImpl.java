@@ -585,6 +585,7 @@ public class ConfigWebImpl extends ConfigImpl implements ServletConfig, ConfigWe
 						ConfigWebUtil.getFile(getConfigDir(), ConfigWebUtil.translateOldPath(getSearchEngineDirectory()), "search", getConfigDir(), FileUtil.TYPE_DIR, this));
 			}
 			catch (Exception e) {
+				e.printStackTrace();
 				throw Caster.toPageException(e);
 			}
 		}

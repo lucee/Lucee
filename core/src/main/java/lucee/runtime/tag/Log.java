@@ -18,7 +18,6 @@
  **/
 package lucee.runtime.tag;
 
-import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.Iterator;
 import java.util.Map;
@@ -38,7 +37,6 @@ import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.CasterException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.tag.TagImpl;
-import lucee.runtime.op.Caster;
 import lucee.runtime.type.KeyImpl;
 
 /**
@@ -69,7 +67,7 @@ public final class Log extends TagImpl {
 	/**
 	 * Specifies whether to log the application name if one has been specified in an application tag.
 	 */
-	private boolean application;
+	private boolean application = true;
 	private CharSet charset = null;
 
 	private boolean async;
@@ -80,7 +78,7 @@ public final class Log extends TagImpl {
 		log = DEfAULT_LOG;
 		type = lucee.commons.io.log.Log.LEVEL_INFO;
 		file = null;
-		application = false;
+		application = true;
 		charset = null;
 		exception = null;
 		text = null;
@@ -239,7 +237,7 @@ public final class Log extends TagImpl {
 		}
 
 		String contextName = pageContext.getApplicationContext().getName();
-		if (contextName == null || application) contextName = "";
+		if (contextName == null || !application) contextName = "";
 		if (exception != null) {
 			if (StringUtil.isEmpty(text)) logger.log(type, contextName, exception);
 			else logger.log(type, contextName, text, exception);
@@ -257,22 +255,23 @@ public final class Log extends TagImpl {
 		ConfigPro config = (ConfigPro) pc.getConfig();
 		Resource logDir = config.getLogDirectory();
 		Resource res = logDir.getRealResource(file);
-		lucee.commons.io.log.Log log = FileLogPool.instance.get(res, CharsetUtil.toCharset(charset));
-		if (log != null) return log;
+		lucee.commons.io.log.Log log = FileLogPool.instance.get(res);
+		if (log != null) {
+			log.setLogLevel(lucee.commons.io.log.Log.LEVEL_TRACE);
+			return log;
+		}
 		synchronized (FileLogPool.instance) {
-			log = FileLogPool.instance.get(res, CharsetUtil.toCharset(charset));
-			if (log != null) return log;
+			log = FileLogPool.instance.get(res);
+			if (log != null) {
+				log.setLogLevel(lucee.commons.io.log.Log.LEVEL_TRACE);
+				return log;
+			}
 
 			if (charset == null) charset = CharsetUtil.toCharSet(((PageContextImpl) pc).getResourceCharset());
 
-			try {
-				log = config.getLogEngine().getResourceLog(res, CharsetUtil.toCharset(charset), "cflog." + FileLogPool.toKey(file, CharsetUtil.toCharset(charset)),
-						lucee.commons.io.log.Log.LEVEL_TRACE, 5, new Listener(FileLogPool.instance, res, charset), async);
-				FileLogPool.instance.put(res, CharsetUtil.toCharset(charset), log);
-			}
-			catch (IOException e) {
-				throw Caster.toPageException(e);
-			}
+			log = config.getLogEngine().getResourceLog(res, CharsetUtil.toCharset(charset), "cflog." + FileLogPool.toKey(file, CharsetUtil.toCharset(charset)),
+					lucee.commons.io.log.Log.LEVEL_TRACE, 5, new Listener(FileLogPool.instance, res, charset), async);
+			FileLogPool.instance.put(res, log);
 			return log;
 		}
 	}
@@ -295,11 +294,11 @@ public final class Log extends TagImpl {
 			logs.remove(res.getAbsolutePath());
 		}
 
-		public void put(Resource res, Charset charset, lucee.commons.io.log.Log log) {
+		public void put(Resource res, lucee.commons.io.log.Log log) {
 			logs.put(res.getAbsolutePath(), log);
 		}
 
-		public lucee.commons.io.log.Log get(Resource res, Charset charset) {
+		public lucee.commons.io.log.Log get(Resource res) {
 			lucee.commons.io.log.Log l = logs.get(res.getAbsolutePath());
 			return l;
 		}

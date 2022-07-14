@@ -91,7 +91,8 @@ public final class CGIImpl extends StructSupport implements CGI, ScriptProtected
 			localAddress = addr.getHostAddress();
 			localHost = addr.getHostName();
 		}
-		catch (UnknownHostException uhe) {}
+		catch (UnknownHostException uhe) {
+		}
 	}
 
 	private transient HttpServletRequest req;

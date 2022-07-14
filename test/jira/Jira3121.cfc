@@ -21,6 +21,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	public function beforeTests(){
 		setLocale("hu_hu");
 	}
+
+	function afterAll(){
+		setLocale("en_us");
+	}
 	
 	//public function afterTests(){}
 	

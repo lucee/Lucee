@@ -108,7 +108,6 @@ import lucee.runtime.type.it.StringIterator;
 import lucee.runtime.type.scope.Argument;
 import lucee.runtime.type.scope.ArgumentImpl;
 import lucee.runtime.type.scope.ArgumentIntKey;
-import lucee.runtime.type.scope.Scope;
 import lucee.runtime.type.scope.Variables;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.ComponentUtil;
@@ -141,6 +140,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 	ComponentImpl top = this;
 	ComponentImpl base;
 	private PageSource pageSource;
+	private ComponentPageImpl cp;
 	private ComponentScope scope;
 
 	// for all the same
@@ -160,18 +160,20 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 	private boolean hasInjectedFunctions;
 	private boolean isExtended; // is this component extended by another component?
 
-	StaticScope _static;
-
-	boolean insideStaticConstr;
+	StaticScope _static = null;
+	ThreadInsideStaticConstr insideStaticConstrThread = new ThreadInsideStaticConstr();
 
 	private AbstractFinal absFin;
 
 	private ImportDefintion[] importDefintions;
 
+	private static ThreadLocalConstrCall statConstr = new ThreadLocalConstrCall();
+
 	/**
 	 * Constructor of the Component, USED ONLY FOR DESERIALIZE
 	 */
-	public ComponentImpl() {}
+	public ComponentImpl() {
+	}
 
 	/**
 	 * constructor of the class
@@ -195,8 +197,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 	public ComponentImpl(ComponentPageImpl componentPage, Boolean output, boolean _synchronized, String extend, String implement, String hint, String dspName, String callPath,
 			boolean realPath, String style, boolean persistent, boolean accessors, int modifier, boolean isExtended, StructImpl meta) throws ApplicationException {
 		this.properties = new ComponentProperties(dspName, extend.trim(), implement, hint, output, callPath, realPath, _synchronized, null, persistent, accessors, modifier, meta);
-		// this.componentPage=componentPage instanceof
-		// ComponentPageProxy?componentPage:PageProxy.toProxy(componentPage);
+		this.cp = componentPage;
 		this.pageSource = componentPage.getPageSource();
 		this.importDefintions = componentPage.getImportDefintions();
 		// if(modifier!=0)
@@ -220,6 +221,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 		try {
 			// attributes
 			trg.pageSource = pageSource;
+			trg.cp = cp;
 			// trg._triggerDataMember=_triggerDataMember;
 			trg.useShadow = useShadow;
 			trg._static = _static;
@@ -231,6 +233,9 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 			trg.properties = properties.duplicate();
 			trg.isInit = isInit;
 			trg.absFin = absFin;
+
+			// importDefintions
+			trg.importDefintions = importDefintions;
 
 			boolean useShadow = scope instanceof ComponentScopeShadow;
 			if (!useShadow) trg.scope = new ComponentScopeThis(trg);
@@ -423,16 +428,26 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 		}
 		initProperties();
 		StaticStruct ss = componentPage.getStaticStruct();
-		synchronized (ss) {
-			// invoke static constructor
-			if (!ss.isInit()) {
-				ss.setInit(true);// this needs to happen before the call
-				try {
-					componentPage.staticConstructor(pageContext, this);
-				}
-				catch (Exception e) {
-					ss.setInit(false);
-					throw Caster.toPageException(e);
+		if (!ss.isInit()) {
+			synchronized (ss) {
+				// invoke static constructor
+				if (!ss.isInit()) {
+					Map<String, Boolean> map = statConstr.get();
+					String id = "" + componentPage.getHash();
+					if (!Caster.toBooleanValue(map.get(id), false)) {
+						map.put(id, Boolean.TRUE);
+
+						// this needs to happen before the call
+						try {
+							componentPage.staticConstructor(pageContext, this);
+						}
+						catch (Exception e) {
+							ss.setInit(false);
+							throw Caster.toPageException(e);
+						}
+						ss.setInit(true);
+						map.remove(id);
+					}
 				}
 			}
 		}
@@ -633,7 +648,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 						else rtn = udf.callWithNamedValues(pc, calledName, namedArgs, true);
 					}
 					finally {
-						pc.setVariablesScope(parent);
+						if (parent != null) pc.setVariablesScope(parent);
 						long diff = ((System.nanoTime() - time) - (pc.getExecutionTime() - currTime));
 						pc.setExecutionTime(pc.getExecutionTime() + diff);
 						debugEntry.updateExeTime(diff);
@@ -649,7 +664,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 					else rtn = udf.callWithNamedValues(pc, calledName, namedArgs, true);
 				}
 				finally {
-					pc.setVariablesScope(parent);
+					if (parent != null) pc.setVariablesScope(parent);
 					long diff = ((System.nanoTime() - time) - (pc.getExecutionTime() - currTime));
 					pc.setExecutionTime(pc.getExecutionTime() + diff);
 					debugEntry.updateExeTime(diff);
@@ -670,7 +685,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 						else rtn = udf.callWithNamedValues(pc, calledName, namedArgs, true);
 					}
 					finally {
-						pc.setVariablesScope(parent);
+						if (parent != null) pc.setVariablesScope(parent);
 					}
 				}
 			}
@@ -683,7 +698,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 					else rtn = udf.callWithNamedValues(pc, calledName, namedArgs, true);
 				}
 				finally {
-					pc.setVariablesScope(parent);
+					if (parent != null) pc.setVariablesScope(parent);
 				}
 			}
 		}
@@ -692,16 +707,12 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 
 	@Override
 	public Variables beforeStaticConstructor(PageContext pc) {
-		insideStaticConstr = true;
-		Variables parent = pc.variablesScope();
-		pc.setVariablesScope(_static);
-		return parent;
+		return StaticScope.beforeStaticConstructor(pc, this, _static);
 	}
 
 	@Override
 	public void afterStaticConstructor(PageContext pc, Variables parent) {
-		insideStaticConstr = false;
-		pc.setVariablesScope(parent);
+		StaticScope.afterStaticConstructor(pc, this, parent);
 	}
 
 	/**
@@ -712,8 +723,11 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 	 */
 	public Variables beforeCall(PageContext pc) {
 		Variables parent = pc.variablesScope();
-		pc.setVariablesScope(scope);
-		return parent;
+		if (parent != scope) {
+			pc.setVariablesScope(scope);
+			return parent;
+		}
+		return null;
 	}
 
 	/**
@@ -724,7 +738,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 	 * @throws ApplicationException
 	 */
 	public void afterConstructor(PageContext pc, Variables parent) throws ApplicationException {
-		pc.setVariablesScope(parent);
+		if (parent != null) pc.setVariablesScope(parent);
 		this.afterConstructor = true;
 	}
 
@@ -861,6 +875,13 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 			if (member.getAccess() <= access) return member;
 			return null;
 		}
+
+		// static
+		member = staticScope().getMember(null, key, null);
+		if (member != null) {
+			if (member.getAccess() <= access) return member;
+			return null;
+		}
 		return null;
 	}
 
@@ -879,27 +900,29 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 			Component ac = ComponentUtil.getActiveComponent(pc, this);
 			return SuperComponent.superMember((ComponentImpl) ac.getBaseComponent());
 		}
-		if (superAccess) return _udfs.get(key);
-
+		if (superAccess) {
+			return _udfs.get(key);
+		}
 		// check data
 		Member member = _data.get(key);
-		if (isAccessible(pc, member)) return member;
+		if (member != null && isAccessible(pc, member)) return member;
+
+		// static
+		member = staticScope().getMember(pc, key, null);
+		if (member != null) return member;
+
 		return null;
 	}
 
 	boolean isAccessible(PageContext pc, Member member) {
-		// TODO geschwindigkeit
-		if (member != null) {
-			int access = member.getAccess();
-			if (access <= ACCESS_PUBLIC) return true;
-			else if (access == ACCESS_PRIVATE && isPrivate(pc)) return true;
-			else if (access == ACCESS_PACKAGE && isPackage(pc)) return true;
-		}
+		int access = member.getAccess();
+		if (access <= ACCESS_PUBLIC) return true;
+		else if (access == ACCESS_PRIVATE && isPrivate(pc)) return true;
+		else if (access == ACCESS_PACKAGE && isPackage(pc)) return true;
 		return false;
 	}
 
 	boolean isAccessible(PageContext pc, int access) {
-
 		if (access <= ACCESS_PUBLIC) return true;
 		else if (access == ACCESS_PRIVATE && isPrivate(pc)) return true;
 		else if (access == ACCESS_PACKAGE && isPackage(pc)) return true;
@@ -1558,27 +1581,23 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 	}
 
 	private static void metaUDFs(PageContext pc, ComponentImpl comp, Struct sct, int access) throws PageException {
-		// UDFs
-		/*
-		 * ArrayImpl arr1=new ArrayImpl(); { Page page = comp._getPageSource().loadPage(pc, false); // Page
-		 * page = ((PageSourceImpl)comp._getPageSource()).getPage(); if(page!=null && page.udfs!=null) {
-		 * for(int i=0;i<page.udfs.length;i++){ if(page.udfs[i].getAccess()>access) continue;
-		 * print.e(">>"+((UDFPropertiesBase)page.udfs[i]).getFunctionName());
-		 * arr1.append(ComponentUtil.getMetaData(pc,(UDFPropertiesBase) page.udfs[i])); } } }
-		 */
-
 		ArrayImpl arr = new ArrayImpl();
 		if (comp.absFin != null) {
 			// we not to add abstract separately because they are not real Methods, more a rule
 			if (comp.absFin.hasAbstractUDFs()) {
 				java.util.Collection<UDF> absUdfs = ComponentUtil.toUDFs(comp.absFin.getAbstractUDFBs().values(), false);
-				getUDFs(pc, absUdfs.iterator(), comp, access, arr);
+				getUDFs(pc, absUdfs.iterator(), comp, access, arr, false);
 			}
 		}
 
 		if (comp._udfs != null) {
-			getUDFs(pc, comp._udfs.values().iterator(), comp, access, arr);
+			getUDFs(pc, comp._udfs.values().iterator(), comp, access, arr, false);
 		}
+		if (comp._static != null) {
+			List<UDF> udfs = extractUDFS(comp._static.values());
+			if (udfs.size() > 0) getUDFs(pc, udfs.iterator(), comp, access, arr, true);
+		}
+
 		// property functions
 		Iterator<Entry<Key, UDF>> it = comp._udfs.entrySet().iterator();
 		Entry<Key, UDF> entry;
@@ -1595,8 +1614,16 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 		}
 		if (arr.size() != 0) {
 			Collections.sort(arr, new ComparatorImpl());
-			sct.set(KeyConstants._functions, arr);
 		}
+		sct.set(KeyConstants._functions, arr);
+	}
+
+	private static List<UDF> extractUDFS(java.util.Collection values) {
+		List<UDF> udfs = new ArrayList<>();
+		for (Object o: values) {
+			if (o instanceof UDF) udfs.add((UDF) o);
+		}
+		return udfs;
 	}
 
 	private static class ComparatorImpl implements Comparator {
@@ -1606,14 +1633,14 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 		}
 	}
 
-	private static void getUDFs(PageContext pc, Iterator<UDF> it, ComponentImpl comp, int access, ArrayImpl arr) throws PageException {
+	private static void getUDFs(PageContext pc, Iterator<UDF> it, ComponentImpl comp, int access, ArrayImpl arr, boolean isStatic) throws PageException {
 		UDF udf;
 		while (it.hasNext()) {
 			udf = it.next();
 			if (udf instanceof UDFGSProperty) continue;
 			if (udf.getAccess() > access) continue;
 			if (udf.getPageSource() != null && !udf.getPageSource().equals(comp._getPageSource())) continue;
-			if (udf instanceof UDFImpl) arr.append(ComponentUtil.getMetaData(pc, ((UDFImpl) udf).properties));
+			if (udf instanceof UDFImpl) arr.append(ComponentUtil.getMetaData(pc, ((UDFImpl) udf).properties, isStatic));
 		}
 	}
 
@@ -1672,12 +1699,17 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 		registerUDF(key, jf);
 	}
 
+	public void registerStaticUDF(Key key, UDFProperties prop) throws ApplicationException {
+		_static.put(key, new UDFImpl(prop, this));
+	}
+
 	/*
 	 * @deprecated injected is not used
 	 */
-	public void registerUDF(Collection.Key key, UDF udf, boolean useShadow, boolean injected) throws ApplicationException {
+	public void registerUDF(Key key, UDF udf, boolean useShadow, boolean injected) throws ApplicationException {
 		if (udf instanceof UDFPlus) ((UDFPlus) udf).setOwnerComponent(this);
-		if (insideStaticConstr) {
+
+		if (insideStaticConstrThread.get()) {
 			_static.put(key, udf);
 			return;
 		}
@@ -2342,7 +2374,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 	}
 
 	@Override
-	public Scope staticScope() {
+	public StaticScope staticScope() {
 		return _static;
 	}
 
@@ -2365,5 +2397,23 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 	@Override
 	public int getType() {
 		return StructUtil.getType(_data);
+	}
+
+	private static class ThreadLocalConstrCall extends ThreadLocal<Map<String, Boolean>> {
+
+		@Override
+		protected Map<String, Boolean> initialValue() {
+			return new HashMap<>();
+		}
+
+	}
+
+	static class ThreadInsideStaticConstr extends ThreadLocal<Boolean> {
+
+		@Override
+		protected Boolean initialValue() {
+			return Boolean.FALSE;
+		}
+
 	}
 }

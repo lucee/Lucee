@@ -335,7 +335,8 @@ public final class DBInfo extends TagImpl {
 					set = toSet(metaData.getPrimaryKeys(tblCat, tblScheme, tblName), true, "COLUMN_NAME");
 					primaries.put(tblName, set);
 				}
-				catch (Exception e) {}
+				catch (Exception e) {
+				}
 			}
 			isPrimary.append(set != null && set.contains(qry.getAt(COLUMN_NAME, i)) ? "YES" : "NO");
 		}

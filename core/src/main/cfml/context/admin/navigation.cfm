@@ -118,5 +118,23 @@
 				padding: 1px 1px 1px 1px;
 			}
 		</style>
+
+		<script>
+		$(document).ready(function(){
+		    function addDirectory(e){
+				e.preventDefault();
+				var fileAccessIndex=parseInt($(this).attr("data-index"))+1;
+				$(this).remove();
+				var template=$("##fileAccessDirectoryTemplate").val();
+				template=template.replace("{FIELDNAME}", "path_"+fileAccessIndex);
+				template=template.replace("{INDEX}", fileAccessIndex);
+				$("##fileAccessBody").append(template);
+    			$(".addFileAccessDirectory").on("click", addDirectory);
+    		}
+			$(".addFileAccessDirectory").on("click", addDirectory);
+		});
+		</script>
+
+
 	</cfhtmlbody>
 </cfoutput>

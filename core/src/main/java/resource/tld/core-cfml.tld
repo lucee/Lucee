@@ -732,7 +732,7 @@ Depending on this setting Lucee scans certain scopes to find a variable called f
 			<name>searchImplicitScopes</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>alias to the attribute "scopecascading", takes a boolean value where true is equal to "standard" and false is equal to "struct" scope cascading mode.
+			<description>alias to the attribute "scopecascading", takes a boolean value where true is equal to "standard" and false is equal to "strict" scope cascading mode.
 			For details see the description for the attribute "scopecascading".</description>
 		</attribute>
 		<attribute>
@@ -807,6 +807,7 @@ Depending on this setting Lucee scans certain scopes to find a variable called f
 	a struct to define dynamically java libraries
 	the following keys are supported
 	- loadPaths - an array or a comma separated string list of jars or class directories
+	- bundles - an array or a comma separated string list of OSGI jars
 	- reloadOnChange - reload updated jars without a restart necessary
 	- watchInterval - interval it checks for changes with the jar files
 	- watchExtensions - extension of the files read
@@ -816,7 +817,11 @@ Depending on this setting Lucee scans certain scopes to find a variable called f
 			<name>xmlFeatures</name>
 			<type>struct</type>
 			<required>false</required>
-			<description>Allows to set XML Features to prevent XXE attacks</description>
+			<description>Allows to set XML Features to prevent XXE attacks
+
+	- disallowDoctypeDecl (true / false) 
+	- externalGeneralEntities (true/false)
+	 - secure (true/false)</description>
 		</attribute>
 		<attribute>
 			<name>regex</name>
@@ -824,6 +829,24 @@ Depending on this setting Lucee scans certain scopes to find a variable called f
 			<required>false</required>
 			<description>allow to define a struct containg the configuration for regular expressions, 
 			ATM only the key "engine" is supported, with the possible values [java,perl] to choose the regex dialect.</description>
+		</attribute>
+		<attribute>
+			<type>boolean</type>
+			<name>sameFormFieldsAsArray</name>
+			<required>false</required>
+			<description>Default False
+			When true, form fields with the same name will be combined into an array.
+			This only works via Application.cfc
+			</description>
+		</attribute>
+		<attribute>
+			<type>boolean</type>
+			<name>sameURLFieldsAsArray</name>
+			<required>false</required>
+			<description>Default False
+			When true, url fields/parameters with the same name will be combined into an array.
+			This only works via Application.cfc
+			</description>
 		</attribute>
 	</tag>
 

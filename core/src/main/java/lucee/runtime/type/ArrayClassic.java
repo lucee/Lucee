@@ -411,6 +411,54 @@ public class ArrayClassic extends ArraySupport {
 	}
 
 	@Override
+	public synchronized Object pop() throws ExpressionException {
+		int key = size();
+		if (key == 0) throw new ExpressionException("cannot pop an element from array, the array is empty");
+		Object obj = get(key, null);
+		for (int i = (offset + key) - 1; i < (offset + size) - 1; i++) {
+			arr[i] = arr[i + 1];
+		}
+		size--;
+		return obj;
+	}
+
+	@Override
+	public synchronized Object pop(Object defaultValue) {
+		int key = size();
+		if (key == 0) return defaultValue;
+		Object obj = get(key, null);
+		for (int i = (offset + key) - 1; i < (offset + size) - 1; i++) {
+			arr[i] = arr[i + 1];
+		}
+		size--;
+		return obj;
+	}
+
+	@Override
+	public synchronized Object shift() throws ExpressionException {
+		if (size() == 0) throw new ExpressionException("cannot pop an element from array, the array is empty");
+		int key = 1;
+		Object obj = get(key, null);
+		for (int i = (offset + key) - 1; i < (offset + size) - 1; i++) {
+			arr[i] = arr[i + 1];
+		}
+		size--;
+		return obj;
+	}
+
+	@Override
+	public synchronized Object shift(Object defaultValue) {
+		if (size() == 0) return defaultValue;
+		int key = 1;
+		Object obj = get(key, null);
+		for (int i = (offset + key) - 1; i < (offset + size) - 1; i++) {
+			arr[i] = arr[i + 1];
+		}
+		size--;
+		return obj;
+	}
+
+	@Override
 	public synchronized Object removeEL(int key) {
 		if (key > size || key < 1) return null;
 		Object obj = get(key, null);
@@ -567,7 +615,8 @@ public class ArrayClassic extends ArraySupport {
 			try {
 				o = getE(i);
 			}
-			catch (Exception e) {}
+			catch (Exception e) {
+			}
 
 			table.appendRow(1, new SimpleDumpData(i), DumpUtil.toDumpData(o, pageContext, maxlevel, dp));
 
@@ -612,7 +661,8 @@ public class ArrayClassic extends ArraySupport {
 				else arr.set(e.getKey(), e.getValue());
 			}
 		}
-		catch (ExpressionException ee) {}
+		catch (ExpressionException ee) {
+		}
 		finally {
 			if (!inside) ThreadLocalDuplication.reset();
 		}

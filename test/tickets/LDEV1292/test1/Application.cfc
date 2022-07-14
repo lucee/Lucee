@@ -1,15 +1,10 @@
 component {
 	this.name = "test";
 	mySQL= getCredentials();
-	this.datasource = {
-		 type: "mysql"
-		 ,host: "#mySQL.server#"
-		 ,port: "#mySQL.port#"
-		 ,database: "#mySQL.database#"
-		 ,username: "#mySQL.username#"
-		 ,password: "#mySQL.password#"
-		 ,custom: { useUnicode:true }
-	};
+
+	mysql1 = server.getDatasource("mysql");
+	mysql1.custom = { useUnicode:true };
+	this.datasource = mysql1;
 
 	private struct function getCredentials() {
 		// getting the credentials from the enviroment variables

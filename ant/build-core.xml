@@ -18,9 +18,11 @@
   
   <property name="extMongo"       value="E6634E1A-4CC5-4839-A83C67549ECA8D5B"/>
   <property name="extH2"          value="465E1E35-2425-4F4E-8B3FAB638BD7280A"/>
-  <property name="extOracle"          value="D4EDFDBD-A9A3-E9AF-597322D767E0C949"/>
+  <property name="extOracle"          value="D4EDFDBD-A9A3-E9AF-597322D767E0C949;bundle-version=11.2.0.4"/>
   <property name="extJson"          value="A03F4335-BDEF-44DE-946FB16C47802F96"/>
-  
+
+  <property name="stableLoader" value="lucee-5.3.7.48"/>
+  <property name="cdnUrl" value="https://cdn.lucee.org/"/>
 
 <!-- TODO get the version number from manifest.mf -->
   
@@ -355,6 +357,9 @@
     <property name="srcInst" location="${rootDir}/instrumentation/src/main/java"/> 
     <property name="ant" location="${rootDir}/ant"/>
     <property name="test" location="${rootDir}/test"/>
+    <!-- allow running tests with a different java version  -->
+    <property name="testJavaVersionExec" value=""/>
+    
     <property name="temp" location="${rootDir}/temp"/>
     <property name="loader" location="${temp}/loader"/>
     <property name="core" location="${temp}/core"/>
@@ -465,11 +470,15 @@
     </echo>
 
     <echo message="${version}"/>
+    <!-- used for docker build -->
+    <echo file="${rootDir}/buildVersionNumber.txt" message="${version}" append="false"/>
     <!-- <echo message="${name}"/>
     <echo message="${name.explanation}"/> -->
     <echo message="Root: ${rootDir}"/>
     <echo message="Required-Extensions: ${reqExt.labels}"/>
-                    
+    <echo message="Java: ${java.version}" />       
+    <echo message="Java: ${java.home}" />       
+    <echo message="Optional Java Version for tests: ${testJavaVersionExec}" />
     
     <!-- Create the time stamp -->
     <tstamp/>
@@ -587,7 +596,7 @@
   </target> 
 
 
-  <target name="check" depends="check-mysql,check-mssql,check-postgre,check-jdts,check-chart,check-s3,check-ehcache,check-hibernate,check-lucene,check-pdf,check-admin,check-doc,check-form,check-axis,check-image,check-esapi,check-ajax,check-compress,check-testbox">
+  <target name="check" depends="check-mysql,check-mssql,check-postgre,check-jdts,check-chart,check-s3,check-ehcache,check-hibernate,check-lucene,check-pdf,check-admin,check-doc,check-form,check-axis,check-image,check-esapi,check-ajax,check-compress,check-testbox,check-lucee-loader-jar,download-lucee-loader-jar">
     
     <mkdir dir="${temp}/loader/extensions/"/>
 
@@ -628,7 +637,6 @@
         <include name="*.xml"/>
       </fileset>
     </copy>
-
     <copy todir="${srcCore}/resource/context/templates/error"  overwrite="true">
       <fileset dir="${srcCFML}/context/templates/error">
         <include name="*.cfm"/>
@@ -765,6 +773,52 @@
 
   </target>
 
+  <target name="test_stable_loader">
+    <!-- no we copy the extension in place otherwise, Lucee downloads them as well  -->
+    <echots message="copy extensions in place"/>
+    <copy todir="${temp}/stable/base/lucee-server/context/extensions/available" flatten="true">
+      <fileset dir="${cache}">
+        <include name="**/*.lex"/>
+      </fileset>
+    </copy>
+
+    <!-- make a copy of the stable fat jar  -->
+    <copy file="${cache}/${stableLoader}.jar" tofile="${temp}/stable/loader.jar"/>
+    <copy file="${trgLoader}/${version}.lco" tofile="${temp}/stable/temp/core/core.lco"/>
+    <!-- update the fat jar with the current core .lco -->
+    <jar destfile="${temp}/stable/loader.jar" update="true">
+       <fileset dir="${temp}/stable/temp"/>
+    </jar>
+
+
+    <echots message="try running the new core build with an older stable loader"/>
+    <!-- build the lucee-context.lar -->
+    <java classname="org.apache.tools.ant.launch.Launcher" dir="${ant}" fork="true" failonerror="true" errorproperty="exc">
+      <classpath path="${java.class.path}">
+          <pathelement location="${temp}/stable/loader.jar"/>
+          <pathelement path="${runtime_classpath}"/>
+      </classpath>
+
+      <arg value="-f"/>
+      <arg value="${ant}/build-test-stable-loader.xml"/>
+
+      <jvmarg value="-DstableLoader=${stableLoader}"/>
+      <jvmarg value="-Dlucee.base.dir=${temp}/stable/base"/>
+      <jvmarg value="-Dlucee.web.dir=${temp}/stable/webroot"/>
+      <jvmarg value="-Dlucee.enable.dialect=true"/>
+      <jvmarg value="-Dlucee.extensions.install=true"/>
+      <jvmarg value="-Dlucee.full.null.support=false"/>
+      <!-- older loader can dynamically download required bundles from the update provider -->
+      <jvmarg value="-Dlucee.enable.bundle.download=true"/>
+      <jvmarg value="-Dlucee.cli.printExpections=true"/>
+      <!--
+      <jvmarg value="-Xdebug"/>
+      <jvmarg value="-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5000"/>
+      -->
+    </java>
+    <echo>${exc}</echo>
+</target>
+
 <target name="__build_archives" depends="buildJars">
 
 
@@ -810,6 +864,9 @@
       <jvmarg value="-Dlucee.enable.dialect=true"/>
       <jvmarg value="-Dlucee.extensions.install=true"/>
       <jvmarg value="-Dlucee.full.null.support=false"/>
+      <!-- this checks to see that all the required bundles are provided, so that none are missing -->
+      <jvmarg value="-Dlucee.enable.bundle.download=false"/>
+      <jvmarg value="-Dlucee.cli.printExpections=true"/>
     </java>
     <echo>${exc}</echo>
 
@@ -818,9 +875,9 @@
 <target name="__build_testbox" if="testcases">
     
     <listDirectory directory="${test}/lib" delimiter=":" returnvalue="test_jars"/>
-    <echots message="execute testcases ${testcases}"/>
+    <echots message="execute testcases ${testcases} with java ${testJavaVersionExec}"/>
     <!-- execute CFML testcases -->
-    <java classname="org.apache.tools.ant.launch.Launcher" dir="${ant}" fork="true" failonerror="true" errorproperty="exc2">
+    <java classname="org.apache.tools.ant.launch.Launcher" dir="${ant}" fork="true" failonerror="true" errorproperty="exc2" jvm="${testJavaVersionExec}">
       <classpath path="${java.class.path}">
           <pathelement location="${temp}/lucee.jar"/>
           <pathelement path="${runtime_classpath}"/>
@@ -840,10 +897,16 @@
       <jvmarg value="-DindividualStorageKeys=false"/>
       <jvmarg value="-Dlucee.base.dir=${temp}/archive/base"/>
       <jvmarg value="-Dlucee.web.dir=${temp}/archive/webroot"/>
-      <jvmarg value="-Dlucee-extensions=${extH2},${extMongo},${extOracle},${extJson}"/>
+      <jvmarg value="-Dlucee-extensions=${extH2},${extMongo},${extJson}"/>
       <jvmarg value="-Dlucee.enable.dialect=true"/>
       <jvmarg value="-Dlucee.extensions.install=true"/>
+      <jvmarg value="-Dlucee.enable.bundle.download=trueanf fast"/>
       <jvmarg value="-Dlucee.full.null.support=false"/>
+      <jvmarg value="-Dlucee.cli.printExpections=true"/>
+      <!--
+      <jvmarg value="-Xdebug"/>
+      <jvmarg value="-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5000"/>
+      -->
       <!--
       <jvmarg value="-Dlucee.system.out=file:.../out.txt"/>
       <jvmarg value="-Dlucee.system.err=file:.../err.txt"/>
@@ -892,6 +955,7 @@
       <jvmarg value="-Dluceejar=${trgLoader}/lucee-${version}.jar"/>
       <jvmarg value="-DluceeCore=${trgLoader}/${version}.lco"/>
       <jvmarg value="-DtrgLoader=${trgLoader}"/>
+      <jvmarg value="-DluceeVersion=${version}"/>
 
     </java>
     <echo>${exc3}</echo>
@@ -1235,7 +1299,7 @@
     
     <delete dir="${temp}"/>
     <echots message="done with the ant part, now maven build the loader"/>
-    
+
   </target>
 
 
@@ -1273,12 +1337,21 @@
       basedir="${temp}/loader" 
       jarfile="${trgLoader}/lucee-${version}.jar" 
       manifest="${goal}/META-INF/MANIFEST.MF"/>
-      <echots message="buil-jar-ant:${goal}/META-INF/MANIFEST.MF"/>
+      <echots message="build-jar-ant:${goal}/META-INF/MANIFEST.MF"/>
     
 
     <delete dir="${temp}"/>
     <echots message="done"/>
     
   </target>
+
+  <target name="check-lucee-loader-jar">
+		<available file="${cache}/${stableLoader}.jar" property="lucee.loader-jar.present"/>
+	</target>
+
+	<target name="download-lucee-loader-jar" unless="lucee.loader-jar.present">
+		<mkdir dir="${cache}"/>
+		<get src="${cdnUrl}${stableLoader}.jar" dest="${cache}/${stableLoader}.jar"/>
+	</target>
 
 </project>

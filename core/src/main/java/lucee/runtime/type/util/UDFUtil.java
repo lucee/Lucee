@@ -349,7 +349,8 @@ public class UDFUtil {
 			try {
 				f = StringUtil.ucFirst(ComponentUtil.toStringAccess(udf.getAccess()).toLowerCase()) + " " + f;
 			}
-			catch (ApplicationException e) {}
+			catch (ApplicationException e) {
+			}
 			f += udf.getFunctionName();
 			if (udf instanceof UDFGSProperty) f += " (generated)";
 			func.setTitle(f);

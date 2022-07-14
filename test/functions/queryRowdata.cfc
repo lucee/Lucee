@@ -12,6 +12,13 @@ component extends = "org.lucee.cfml.test.LuceeTestCase"	{
 				assertEquals('Lucee',structfind(queryRowdata(myQry,1),"name"));
 			});
 
+			it( title = 'Test case for queryRowdata in function returnformat array',body = function( currentSpec ) {
+				
+				assertEquals('[2,"Lucee1"]',serialize(queryRowdata(myQry,2,"array")));
+			});
+
+			
+
 			it( title = 'Test case for queryRowdata in member-function',body = function( currentSpec ) {
 				assertEquals('2',structfind(myQry.Rowdata(2),"id"));
 				assertEquals('Lucee1',structfind(myQry.Rowdata(2),"name"));

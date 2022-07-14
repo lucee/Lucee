@@ -26,7 +26,7 @@ function save(string nbr) {
 	e.setEntityTypeId("3");
 	
 	query datasource="ds#nbr#" name="local.q" {
-		echo("select * from INFORMATION_SCHEMA.system_sessions");
+		echo("select * from INFORMATION_SCHEMA.sessions");  // hyperSQL uses system_sessions, h2 only has sessions
 	}
 	echo("-"&q.recordcount);
 

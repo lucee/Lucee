@@ -115,10 +115,12 @@ public final class QueryColumnRef implements QueryColumn {
 	}
 
 	@Override
-	public void add(Object value) {}
+	public void add(Object value) {
+	}
 
 	@Override
-	public void addRow(int count) {}
+	public void addRow(int count) {
+	}
 
 	@Override
 	public int getType() {
@@ -131,7 +133,8 @@ public final class QueryColumnRef implements QueryColumn {
 	}
 
 	@Override
-	public void cutRowsTo(int maxrows) {}
+	public void cutRowsTo(int maxrows) {
+	}
 
 	@Override
 	public int size() {
@@ -163,7 +166,8 @@ public final class QueryColumnRef implements QueryColumn {
 	}
 
 	@Override
-	public void clear() {}
+	public void clear() {
+	}
 
 	@Override
 	public Object get(String key) throws PageException {

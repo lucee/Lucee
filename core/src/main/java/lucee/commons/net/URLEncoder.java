@@ -62,7 +62,8 @@ public class URLEncoder {
 	/**
 	 * You can't call the constructor.
 	 */
-	private URLEncoder() {}
+	private URLEncoder() {
+	}
 
 	/**
 	 * Translates a string into <code>x-www-form-urlencoded</code> format. This method uses the

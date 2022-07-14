@@ -34,7 +34,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 			fileCopy(src,trg);
 
 			var img=imageRead(trg);
-			assertEquals(2448,ImageGetHeight(img));
+			assertEquals(3264,ImageGetHeight(img));
 
 			imageScaleTofit(img,"",50);
 			imageWrite(img);

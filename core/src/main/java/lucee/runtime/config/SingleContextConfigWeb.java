@@ -33,6 +33,7 @@ import lucee.commons.io.res.type.compress.Compress;
 import lucee.commons.io.res.util.ResourceClassLoader;
 import lucee.commons.lang.CharSet;
 import lucee.commons.lang.ClassException;
+import lucee.commons.lang.types.RefBoolean;
 import lucee.commons.lock.KeyLock;
 import lucee.runtime.CFMLFactory;
 import lucee.runtime.CIPage;
@@ -1009,6 +1010,11 @@ public class SingleContextConfigWeb extends ConfigBase implements ConfigWebPro {
 	}
 
 	@Override
+	public void clearApplicationCache() {
+		cs.clearApplicationCache();
+	}
+
+	@Override
 	public ImportDefintion getComponentDefaultImport() {
 		return cs.getComponentDefaultImport();
 	}
@@ -1124,7 +1130,7 @@ public class SingleContextConfigWeb extends ConfigBase implements ConfigWebPro {
 	}
 
 	@Override
-	public Log getLog(String name, boolean createIfNecessary) {
+	public Log getLog(String name, boolean createIfNecessary) throws PageException {
 		return cs.getLog(name, createIfNecessary);
 	}
 
@@ -1649,5 +1655,20 @@ public class SingleContextConfigWeb extends ConfigBase implements ConfigWebPro {
 	@Override
 	public void reset() {
 		helper.reset();
+	}
+
+	@Override
+	public PageSource getApplicationPageSource(PageContext pc, String path, String filename, int mode, RefBoolean isCFC) {
+		return cs.getApplicationPageSource(pc, path, filename, mode, isCFC);
+	}
+
+	@Override
+	public void putApplicationPageSource(String path, PageSource ps, String filename, int mode, boolean isCFC) {
+		cs.putApplicationPageSource(path, ps, filename, mode, isCFC);
+	}
+
+	@Override
+	public TimeSpan getApplicationPathhCacheTimeout() {
+		return cs.getApplicationPathhCacheTimeout();
 	}
 }

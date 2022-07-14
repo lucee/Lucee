@@ -26,6 +26,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Enumeration;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 import java.util.zip.ZipEntry;
@@ -92,7 +94,8 @@ public final class CompressUtil {
 	/**
 	 * Constructor of the class
 	 */
-	private CompressUtil() {}
+	private CompressUtil() {
+	}
 
 	/**
 	 * extract a zip file to a directory
@@ -614,31 +617,64 @@ public final class CompressUtil {
 		}
 	}
 
+	public static void merge(Resource[] sources, Resource target) throws IOException {
+		ZipEntry entry;
+		ZipInputStream zis = null;
+		ZipOutputStream zos = null;
+		Set<String> done = new HashSet<>();
+		try {
+			zos = new ZipOutputStream(IOUtil.toBufferedOutputStream(target.getOutputStream()));
+
+			for (Resource r: sources) {
+
+				try {
+					zis = new ZipInputStream(IOUtil.toBufferedInputStream(r.getInputStream()));
+					while ((entry = zis.getNextEntry()) != null) {
+						if (!done.contains(entry.getName())) {
+							zos.putNextEntry(entry);
+							IOUtil.copy(zis, zos, false, false);
+							done.add(entry.getName());
+						}
+						else {
+							// print.e(entry.getName());
+						}
+						zos.closeEntry();
+					}
+				}
+				finally {
+					IOUtil.close(zis);
+				}
+			}
+		}
+		finally {
+			IOUtil.close(zos);
+		}
+	}
+
 	public static void main(String[] args) throws IOException {
 		ResourceProvider frp = ResourcesImpl.getFileResourceProvider();
-		Resource src = frp.getResource("/Users/mic/temp/a");
+		Resource[] sources = new Resource[] { frp.getResource("/Users/mic/Downloads/aws-java-sdk-core-1.12.153.jar"),
+				frp.getResource("/Users/mic/Downloads/aws-java-sdk-kms-1.12.153.jar"), frp.getResource("/Users/mic/Downloads/aws-java-sdk-s3-1.12.153.jar"),
+				frp.getResource("/Users/mic/Downloads/jmespath-java-1.12.153.jar") };
+		merge(sources, frp.getResource("/Users/mic/Downloads/aws-java-sdk-s3-all-1.12.153.jar"));
 
-		Resource tgz = frp.getResource("/Users/mic/temp/b/a.tgz");
-		tgz.getParentResource().mkdirs();
-		Resource tar = frp.getResource("/Users/mic/temp/b/a.tar");
-		tar.getParentResource().mkdirs();
-		Resource zip = frp.getResource("/Users/mic/temp/b/a.zip");
-		zip.getParentResource().mkdirs();
-
-		Resource tgz1 = frp.getResource("/Users/mic/temp/b/tgz");
-		tgz1.mkdirs();
-		Resource tar1 = frp.getResource("/Users/mic/temp/b/tar");
-		tar1.mkdirs();
-		Resource zip1 = frp.getResource("/Users/mic/temp/b/zip");
-		zip1.mkdirs();
-
-		compressTGZ(new Resource[] { src }, tgz, -1);
-		compressTar(new Resource[] { src }, tar, -1);
-		compressZip(new Resource[] { src }, zip, null);
-
-		extractTGZ(tgz, tgz1);
-		extractTar(tar, tar1);
-		extractZip(src, zip1);
+		/*
+		 * 
+		 * Resource src = frp.getResource("/Users/mic/temp/a");
+		 * 
+		 * Resource tgz = frp.getResource("/Users/mic/temp/b/a.tgz"); tgz.getParentResource().mkdirs();
+		 * Resource tar = frp.getResource("/Users/mic/temp/b/a.tar"); tar.getParentResource().mkdirs();
+		 * Resource zip = frp.getResource("/Users/mic/temp/b/a.zip"); zip.getParentResource().mkdirs();
+		 * 
+		 * Resource tgz1 = frp.getResource("/Users/mic/temp/b/tgz"); tgz1.mkdirs(); Resource tar1 =
+		 * frp.getResource("/Users/mic/temp/b/tar"); tar1.mkdirs(); Resource zip1 =
+		 * frp.getResource("/Users/mic/temp/b/zip"); zip1.mkdirs();
+		 * 
+		 * compressTGZ(new Resource[] { src }, tgz, -1); compressTar(new Resource[] { src }, tar, -1);
+		 * compressZip(new Resource[] { src }, zip, null);
+		 * 
+		 * extractTGZ(tgz, tgz1); extractTar(tar, tar1); extractZip(src, zip1);
+		 */
 
 	}
 }

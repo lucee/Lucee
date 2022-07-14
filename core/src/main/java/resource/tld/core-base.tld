@@ -1384,8 +1384,7 @@ Example:
 			<type>struct</type>
 			<name>columnMap</name>
 			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-		    <status>unimplemented</status>
+			<rtexprvalue>true</rtexprvalue>		    
 		<description>Used only for the create action with a query attribute.
             A structure specifying a mapping between the names of the columns in the object specified by the query attribute
             and the columns of the feed format, as described in the Query attribute section.
@@ -1725,6 +1724,22 @@ To use cached data, the tag must be called with the exact same arguments. Only u
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Name of the result value (default:cffile)</description>
+		</attribute>
+		<attribute>
+			<type>any</type>
+			<name>allowedExtensions</name>
+			<alias>allowExtension,allowedExtension</alias>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>String list or string array of extensions allowed, this overwrites any other setting including the attribute [blockedExtensions] and settings done for example in the Application.cfc. </description>
+		</attribute>
+		<attribute>
+			<type>any</type>
+			<name>blockedExtensions</name>
+			<alias>blockExtension,blockedExtension</alias>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>String list or string array of extensions blocked, this overwrites any setting done for example in the Application.cfc.</description>
 		</attribute>
 	</tag>
 	<!-- Flush -->
@@ -4967,6 +4982,7 @@ Permits searching collections by title or displaying a separate title from the k
 			<name>application</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
+			<default>true</default>
 			<description>Specifies whether to log the application name if one has been specified in a cfapplication tag.</description>
 		</attribute>
 	</tag>
@@ -5453,12 +5469,19 @@ Lucee uses the number of characters in the file.</description>
 			<description>remove all attachments from filesystem after the mail is successfully sent</description>
 		</attribute>
 		<attribute>
-            <type>datetime</type>
-            <name>sendTime</name>
-            <required>false</required>
-            <rtexprvalue>true</rtexprvalue>
-            <description>Set a future date time to send an email in the future via the spooler.</description>
-        </attribute>
+			<type>datetime</type>
+			<name>sendTime</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>Set a future date time to send an email in the future via the spooler.</description>
+		</attribute>
+		<attribute>
+			<type>boolean</type>
+			<name>debug</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>Whether to enable detailed logging to console.</description>
+		</attribute>
 	</tag>
 	<!-- MailPart -->
 	<tag>
@@ -6336,7 +6359,10 @@ sct["bracketNotation"] --> keyname: "bracketNotation"
 			<status>hidden</status>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>When return type is set to "struct", the value of this column is used as key in the struct for every record.</description>
+			<description>When return type is set to "struct", the value of this column can be used as key in the struct for every record.
+				If not set then the query must not return more than one record, and the keys of the returned struct are the column names
+				and the values are the column values for the single record that is returned. 
+			</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -6526,7 +6552,12 @@ To use cached data, the current query must use the same SQL statement, data sour
 			<rtexprvalue>true</rtexprvalue>
 			<description>one of the following values:
 			- query: default for all dbtype expect "hql", returns a query object
-			- array_of_entity: works only with dbtype "hql" and is also the default value for dbtype "hql"</description>
+			- array_of_entity: works only with dbtype "hql" and is also the default value for dbtype "hql"
+			- array: returns an array, where each element is a struct with a query record
+			- struct: returns either a struct of structs where the key is specified by the keyColumn attribute
+			and each value is a struct with a query record, or a single record if keyColumn is not set, where
+			each key is a column name and each value has its corresponding value.
+			</description>
 		</attribute>
 		<attribute>
 			<type>timezone</type>
@@ -6671,8 +6702,11 @@ To use cached data, the current query must use the same SQL statement, data sour
 			<name>list</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>Yes or No. Indicates that the parameter value of the value attribute is a list of values,
-	separated by a separator character. The default is No</description>
+			<description>true, false or not set. 
+			If set to true this indicates that the parameter value of the value attribute is a list of values and is handled as such,
+			if set to false it is handled as a simple value.
+			if not set lucee will automatically detect if it is an array or not.
+			</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -7691,6 +7725,7 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 		<attribute>
 			<type>string</type>
 			<name>name</name>
+			<alias>names</alias>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>The name of the thread to which the action applies:
@@ -7875,6 +7910,14 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>ODBC lock type.</description>
+		</attribute>
+		<attribute>
+			<type>string</type>
+			<name>savepoint</name>
+			<required>false</required>
+			<status>hidden</status>
+			<rtexprvalue>true</rtexprvalue>
+			<description>optional savepoint name, used with action "setsavepoint" and "rollback".</description>
 		</attribute>
 	</tag>
 
@@ -8788,6 +8831,13 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 - A string containing a DTD or Schema
 - The name of a DTD or Schema file
 - The URL of a DTD or Schema file; valid protocol identifiers include http, https, ftp, and file</description>
+		</attribute>
+		<attribute>
+			<type>boolean</type>
+			<name>lenient</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>if set to true, the parser is more lenient and forgives invalid XML and does the best to interpret it.</description>
 		</attribute>
 	</tag>
 	<!-- x_ -->
@@ -9939,6 +9989,15 @@ Valid only for cfinput type="text".</description>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>HTML attribute: Specifies the legal number intervals for the input field</description>
+		</attribute>
+		<attribute>
+			<type>boolean</type>
+			<name>encodeValue</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>By default the value parameter is automatically html encoded, but not using ESAPI encodeForHtmlAttribute() for historical reasons. Default is true.
+			Set to false to disable the encoding and handle the encoding yourself.
+			</description>
 		</attribute>
 	</tag>
 

@@ -150,7 +150,8 @@ public final class JSONConverter extends ConverterSupport {
 					sct.setEL(getters[i].getName().substring(3), testRecusrion(test, getters[i].invoke(obj, ArrayUtil.OBJECT_EMPTY)));
 
 				}
-				catch (Exception e) {}
+				catch (Exception e) {
+				}
 			}
 		}
 
@@ -576,8 +577,7 @@ public final class JSONConverter extends ConverterSupport {
 		}
 		// Number
 		if (object instanceof Number) {
-			sb.append(goIn());
-			sb.append(Caster.toString(((Number) object)));
+			sb.append(Caster.toStringPrecise((Number) object));
 			return;
 		}
 		// Boolean

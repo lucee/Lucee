@@ -5,8 +5,7 @@ component {
 	this.name = "luceetestpostgreSQL";
 	this.datasources["ldev2566_POSTGRESQL"] = {
 		class : 'org.postgresql.Driver'
-		, bundleName : 'org.postgresql.jdbc42'
-		, bundleVersion : '9.4.1212'
+		, bundleName : 'org.postgresql.jdbc'
 		, connectionString : 'jdbc:postgresql://'&postgreSQL.server&':'&postgreSQL.PORT&'/'&postgreSQL.DATABASE
 		, username : postgreSQL.username
 		, password : postgreSQL.password

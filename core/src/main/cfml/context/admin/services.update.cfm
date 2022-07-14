@@ -169,7 +169,9 @@
 <cfelse>
 	<!--- <h1>#stText.services.update.luceeProvider#</h1>--->
 	<p>
-		#replace(stText.services.update.titleDesc,'{version}',"<b>"&server.lucee.version&"</b>") #
+		Current Version <b>( #server.lucee.version# )</b><br><br>
+		#stText.services.update.titleDesc#
+		<!--- #replace(stText.services.update.titleDesc,'{version}',"<b>"&server.lucee.version&"</b>") # --->
 	</p>
 
 	<cfset hiddenFormContents = "" >
@@ -359,7 +361,7 @@
 				else{
 					submitted = true;
 					$('##group_Connection').hide();
-					url='changeto.cfm?#session.urltoken#&adminType=#request.admintype#&version='+frm.value;
+					url='?action=changeto&adminType=#request.admintype#&version='+frm.value;
 					$(document).ready(function(){
 						$('##updateInfoDesc').html('<img src="../res/img/spinner16.gif.cfm">');
 						disableBlockUI=true;

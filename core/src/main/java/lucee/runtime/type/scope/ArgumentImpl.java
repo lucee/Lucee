@@ -117,8 +117,14 @@ public final class ArgumentImpl extends ScopeSupport implements Argument, ArrayP
 		Object o = super.g(key, Null.NULL);
 		if (o != Null.NULL) return o;
 
-		o = get(Caster.toIntValue(key.getString(), -1), Null.NULL);
-		if (o != Null.NULL) return o;
+		if (key.length() > 0) {
+			char c = key.charAt(0);
+			if ((c >= '0' && c <= '9') || c == '+') {
+				o = get(Caster.toIntValue(key.getString(), -1), Null.NULL);
+				if (o != Null.NULL) return o;
+			}
+		}
+
 		return defaultValue;
 	}
 
@@ -128,10 +134,15 @@ public final class ArgumentImpl extends ScopeSupport implements Argument, ArrayP
 		Object o = super.g(key, Null.NULL);
 		if (o != Null.NULL) return o;
 
-		o = get(Caster.toIntValue(key.getString(), -1), Null.NULL);
-		if (o != Null.NULL) return o;
+		if (key.length() > 0) {
+			char c = key.charAt(0);
+			if ((c >= '0' && c <= '9') || c == '+') {
+				o = get(Caster.toIntValue(key.getString(), -1), Null.NULL);
+				if (o != Null.NULL) return o;
+			}
+		}
 
-		throw new ExpressionException("key [" + key.getString() + "] doesn't exist in argument scope. existing keys are ["
+		throw new ExpressionException("The key [" + key.getString() + "] doesn't exist in the arguments scope. The existing keys are ["
 				+ lucee.runtime.type.util.ListUtil.arrayToList(CollectionUtil.keys(this), ", ") + "]");
 	}
 
@@ -372,13 +383,37 @@ public final class ArgumentImpl extends ScopeSupport implements Argument, ArrayP
 
 	@Override
 	public Object removeEL(int intKey) {
+		return remove(intKey, null);
+	}
+
+	public Object remove(int intKey, Object defaultValue) {
 		Key[] keys = keys();
 		for (int i = 0; i < keys.length; i++) {
 			if ((i + 1) == intKey) {
 				return super.removeEL(keys[i]);
 			}
 		}
-		return null;
+		return defaultValue;
+	}
+
+	@Override
+	public Object pop() throws PageException {
+		return removeE(size());
+	}
+
+	@Override
+	public synchronized Object pop(Object defaultValue) {
+		return remove(size(), defaultValue);
+	}
+
+	@Override
+	public Object shift() throws PageException {
+		return removeE(1);
+	}
+
+	@Override
+	public synchronized Object shift(Object defaultValue) {
+		return remove(1, defaultValue);
 	}
 
 	@Override

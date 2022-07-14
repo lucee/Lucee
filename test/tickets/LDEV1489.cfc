@@ -3,21 +3,15 @@
 		// skip closure
 		function isNotSupported() {
 			variables.s3Details=getCredentials();
-			if(!isNull(variables.s3Details.ACCESSKEYID) && !isNull(variables.s3Details.AWSSECRETKEY)) {
-				variables.supported = true;
-			}
-			else
-				variables.supported = false;
-
-			return !variables.supported;
+			return structIsEmpty(s3Details);
 		}
 
 		function beforeAll() skip="isNotSupported"{
 			if(isNotSupported()) return;
 			s3Details = getCredentials();
-			mitrahsoftBucketName = "lucee-testsuite-ldev1489";
-			base = "s3://#s3Details.ACCESSKEYID#:#s3Details.AWSSECRETKEY#@";
-			variables.baseWithBucketName = "s3://#s3Details.ACCESSKEYID#:#s3Details.AWSSECRETKEY#@/#mitrahsoftBucketName#";
+			mitrahsoftBucketName = lcase("lucee-ldev1489-#lcase(hash(CreateGUID()))#");
+			base = "s3://#s3Details.ACCESS_KEY_ID#:#s3Details.SECRET_KEY#@";
+			variables.baseWithBucketName = "s3://#s3Details.ACCESS_KEY_ID#:#s3Details.SECRET_KEY#@/#mitrahsoftBucketName#";
 			// for skipping rest of the cases, if error occurred.
 			hasError = false;
 			// for replacing s3 access keys from error msgs
@@ -42,9 +36,12 @@
 				it(title="checking ACL permission, default set in application.cfc", skip=isNotSupported(), body=function( currentSpec ){
 					uri = createURI('LDEV1489')
 					local.result = _InternalRequest(
-						template:"#uri#/test.cfm"
+						template:"#uri#/test.cfm",
+						url: {
+							bucketName: mitrahsoftBucketName
+						}
 					);
-					expect(local.result.filecontent).toBe('WRITE|READ');
+					expect(listSort(local.result.filecontent,"textnocase","asc","|")).toBe('READ|WRITE');
 				});
 
 				it(title="checking cffile, with attribute storeAcl = 'private' ", skip=isNotSupported(), body=function( currentSpec ){
@@ -66,7 +63,7 @@
 					var acl = StoreGetACL( baseWithBucketName & "/test3.txt" );
 					removeFullControl(acl);
 					var result = acl[1].permission & "|" & acl[2].permission;
-					expect(result).toBe('WRITE|READ');
+					expect(listSort(result,"textnocase","asc","|")).toBe('READ|WRITE');
 				});
 
 				it(title="checking cffile, with attribute storeAcl value as aclObject (an array of struct where struct represents an ACL grant)", skip=isNotSupported(), body=function( currentSpec ){
@@ -89,7 +86,7 @@
 		}
 
 		private function removeFullControl(acl) {
-			index=0;
+			local.index=0;
 			loop array=acl index="local.i" item="local.el" {
 				if(el.permission=="FULL_CONTROL")
 					local.index=i;
@@ -99,17 +96,7 @@
 
 		// Private functions
 		private struct function getCredentials() {
-			var s3 = {};
-			if(!isNull(server.system.environment.S3_ACCESS_ID) && !isNull(server.system.environment.S3_SECRET_KEY)) {
-				// getting the credentials from the environment variables
-				s3.ACCESSKEYID=server.system.environment.S3_ACCESS_ID;
-				s3.AWSSECRETKEY=server.system.environment.S3_SECRET_KEY;
-			}else if(!isNull(server.system.properties.S3_ACCESS_ID) && !isNull(server.system.properties.S3_SECRET_KEY)) {
-				// getting the credentials from the system variables
-				s3.ACCESSKEYID=server.system.properties.S3_ACCESS_ID;
-				s3.AWSSECRETKEY=server.system.properties.S3_SECRET_KEY;
-			}
-			return s3;
+			return server.getTestService("s3");
 		}
 
 

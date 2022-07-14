@@ -161,6 +161,8 @@ public final class SMTPClient implements Serializable {
 
 	private Object listener;
 
+	private boolean debug;
+
 	public static String getNow(TimeZone tz) {
 		tz = ThreadLocalPageContext.getTimeZone(tz);
 		SoftReference<SimpleDateFormat> tmp = formatters.get(tz);
@@ -184,6 +186,15 @@ public final class SMTPClient implements Serializable {
 	 */
 	public void setPort(int port) {
 		this.port = port;
+	}
+
+	/**
+	 * enable console logging of the mail session to console
+	 * 
+	 * @param debug
+	 */
+	public void setDebug(boolean debug) {
+		this.debug = debug;
 	}
 
 	/**
@@ -262,6 +273,10 @@ public final class SMTPClient implements Serializable {
 		tos = add(tos, to);
 	}
 
+	public void setTos(InternetAddress[] tos) {
+		this.tos = tos;
+	}
+
 	public void addTo(Object to) throws UnsupportedEncodingException, PageException, MailException {
 		InternetAddress[] tmp = MailUtil.toInternetAddresses(to);
 		for (int i = 0; i < tmp.length; i++) {
@@ -284,6 +299,10 @@ public final class SMTPClient implements Serializable {
 		bccs = add(bccs, bcc);
 	}
 
+	public void setBCCs(InternetAddress[] bccs) {
+		this.bccs = bccs;
+	}
+
 	public void addBCC(Object bcc) throws UnsupportedEncodingException, MailException, PageException {
 		InternetAddress[] tmp = MailUtil.toInternetAddresses(bcc);
 		for (int i = 0; i < tmp.length; i++) {
@@ -293,6 +312,10 @@ public final class SMTPClient implements Serializable {
 
 	public void addCC(InternetAddress cc) {
 		ccs = add(ccs, cc);
+	}
+
+	public void setCCs(InternetAddress[] ccs) {
+		this.ccs = ccs;
 	}
 
 	public void addCC(Object cc) throws UnsupportedEncodingException, MailException, PageException {
@@ -306,6 +329,10 @@ public final class SMTPClient implements Serializable {
 		rts = add(rts, rt);
 	}
 
+	public void setReplyTos(InternetAddress[] rts) {
+		this.rts = rts;
+	}
+
 	public void addReplyTo(Object rt) throws UnsupportedEncodingException, MailException, PageException {
 		InternetAddress[] tmp = MailUtil.toInternetAddresses(rt);
 		for (int i = 0; i < tmp.length; i++) {
@@ -315,6 +342,10 @@ public final class SMTPClient implements Serializable {
 
 	public void addFailTo(InternetAddress ft) {
 		fts = add(fts, ft);
+	}
+
+	public void setFailTos(InternetAddress[] fts) {
+		this.fts = fts;
 	}
 
 	public String getHTMLTextAsString() {
@@ -447,6 +478,8 @@ public final class SMTPClient implements Serializable {
 
 		SessionAndTransport sat = newConnection ? new SessionAndTransport(hash(props), props, auth, lifeTimesan, idleTimespan)
 				: SMTPConnectionPool.getSessionAndTransport(props, hash(props), auth, lifeTimesan, idleTimespan);
+		
+		if (debug) sat.session.setDebug(true); // enable logging mail debug output to console
 
 		// Contacts
 		SMTPMessage msg = new SMTPMessage(sat.session);
@@ -632,7 +665,8 @@ public final class SMTPClient implements Serializable {
 				if (!personal.equals(ia.getPersonal())) ia.setPersonal(personal);
 			}
 		}
-		catch (UnsupportedEncodingException e) {}
+		catch (UnsupportedEncodingException e) {
+		}
 	}
 
 	/**
@@ -704,7 +738,8 @@ public final class SMTPClient implements Serializable {
 			try {
 				fileName = MimeUtility.encodeText(fileName, "UTF-8", null);
 			}
-			catch (UnsupportedEncodingException e) {} // that should never happen!
+			catch (UnsupportedEncodingException e) {
+			} // that should never happen!
 		}
 		mbp.setFileName(fileName);
 		if (!StringUtil.isEmpty(att.getType())) mbp.setHeader("Content-Type", att.getType());
@@ -874,8 +909,8 @@ public final class SMTPClient implements Serializable {
 						if (i + 1 == servers.length) {
 
 							listener(config, server, log, e, System.nanoTime() - start);
-							MailException me = new MailException(server.getHostName() + " " + ExceptionUtil.getStacktrace(e, true) + ":" + i);
-							me.setStackTrace(e.getStackTrace());
+							MailException me = new MailException(server.getHostName() + " " + e.getMessage() + ":" + i);
+							me.initCause((e.getCause()));
 
 							throw me;
 						}
@@ -889,7 +924,7 @@ public final class SMTPClient implements Serializable {
 	}
 
 	private void listener(ConfigWeb config, Server server, Log log, Exception e, long exe) {
-		if (e == null) log.info("mail", "mail sent (subject:" + subject + "from:" + toString(from) + "; to:" + toString(tos) + "; cc:" + toString(ccs) + "; bcc:" + toString(bccs)
+		if (e == null) log.info("mail", "mail sent (subject:" + subject + "; server:" + server.getHostName() + "; port:" + server.getPort() + "; from:" + toString(from) + "; to:" + toString(tos) + "; cc:" + toString(ccs) + "; bcc:" + toString(bccs)
 				+ "; ft:" + toString(fts) + "; rt:" + toString(rts) + ")");
 		else log.log(Log.LEVEL_ERROR, "mail", e);
 

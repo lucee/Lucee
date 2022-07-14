@@ -90,7 +90,8 @@ public final class SessionCache extends StorageScopeCache implements Session {
 		try {
 			return getInstance(cacheName, appName, pc, existing, log);
 		}
-		catch (PageException e) {}
+		catch (PageException e) {
+		}
 		return defaultValue;
 	}
 

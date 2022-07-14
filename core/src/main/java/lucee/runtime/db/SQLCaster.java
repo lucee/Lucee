@@ -22,10 +22,13 @@ import java.math.BigDecimal;
 import java.sql.Array;
 import java.sql.Blob;
 import java.sql.Clob;
+import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.SQLXML;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.sql.Types;
@@ -55,7 +58,8 @@ import lucee.runtime.type.sql.ClobImpl;
  */
 public final class SQLCaster {
 
-	private SQLCaster() {}
+	private SQLCaster() {
+	}
 
 	/**
 	 * 
@@ -182,9 +186,8 @@ public final class SQLCaster {
 			try {
 				stat.setClob(parameterIndex, SQLUtil.toClob(stat.getConnection(), value));
 				/*
-				 * if(value instanceof String) { try{
-				 * stat.setString(parameterIndex,Caster.toString(value)); } catch(Throwable
-				 * t){ExceptionUtil.rethrowIfNecessary(t);
+				 * if(value instanceof String) { try{ stat.setString(parameterIndex,Caster.toString(value)); }
+				 * catch(Throwable t){ExceptionUtil.rethrowIfNecessary(t);
 				 * stat.setClob(parameterIndex,SQLUtil.toClob(stat.getConnection(),value)); }
 				 * 
 				 * } else stat.setClob(parameterIndex,SQLUtil.toClob(stat.getConnection(),value));
@@ -276,12 +279,32 @@ public final class SQLCaster {
 				else throw pe;
 			}
 			return;
+
+		case Types.SQLXML:
+			// SQLXML is a JDBC 4 feature not supported in JDBC 3.
+			SQLXML xml = null;
+			Connection conn = stat.getConnection();
+			try {
+				xml = conn.createSQLXML();
+			}
+			catch (Throwable t) {// must be a throwable because it throws for example a AbstractMethodError with JDTS, but could also
+									// be other
+				ExceptionUtil.rethrowIfNecessary(t);
+				DatabaseMetaData md = conn.getMetaData();
+				if (md.getJDBCMajorVersion() < 4)
+					throw new DatabaseException("The data type [SQLXML] is not supported with this datasource.", "The datasource JDBC driver compatibility is up to the versions ["
+							+ md.getJDBCMajorVersion() + "." + md.getJDBCMinorVersion() + "], but this feature needs at least [4.0]", null, null);
+				throw Caster.toPageException(t);
+			}
+
+			xml.setString(Caster.toString(value));
+			stat.setObject(parameterIndex, xml, type);
+			return;
 		case Types.VARCHAR:
 		case Types.LONGVARCHAR:
 		case Types.LONGNVARCHAR:
 		case Types.NVARCHAR:
 		case CFTypes.VARCHAR2:
-		case Types.SQLXML:
 			stat.setObject(parameterIndex, Caster.toString(value), type);
 			//// stat.setString(parameterIndex,Caster.toString(value));
 			return;
@@ -396,8 +419,8 @@ public final class SQLCaster {
 
 	/*
 	 * private static String toString(Clob clob) throws SQLException, IOException { Reader in =
-	 * clob.getCharacterStream(); StringBuilder buf = new StringBuilder(); for(int c=in.read();c !=
-	 * -1;c = in.read()) { buf.append((char)c); } return buf.toString(); }
+	 * clob.getCharacterStream(); StringBuilder buf = new StringBuilder(); for(int c=in.read();c != -1;c
+	 * = in.read()) { buf.append((char)c); } return buf.toString(); }
 	 */
 
 	/**
@@ -662,35 +685,28 @@ public final class SQLCaster {
 	 * public static int cfSQLTypeToIntType(String strType) throws DatabaseException {
 	 * strType=strType.toUpperCase().trim();
 	 * 
-	 * if(strType.equals("CF_SQL_ARRAY")) return Types.ARRAY; else
-	 * if(strType.equals("CF_SQL_BIGINT")) return Types.BIGINT; else
-	 * if(strType.equals("CF_SQL_BINARY")) return Types.BINARY; else
-	 * if(strType.equals("CF_SQL_BIT")) return Types.BIT; else if(strType.equals("CF_SQL_BLOB"))
-	 * return Types.BLOB; else if(strType.equals("CF_SQL_BOOLEAN")) return Types.BOOLEAN; else
+	 * if(strType.equals("CF_SQL_ARRAY")) return Types.ARRAY; else if(strType.equals("CF_SQL_BIGINT"))
+	 * return Types.BIGINT; else if(strType.equals("CF_SQL_BINARY")) return Types.BINARY; else
+	 * if(strType.equals("CF_SQL_BIT")) return Types.BIT; else if(strType.equals("CF_SQL_BLOB")) return
+	 * Types.BLOB; else if(strType.equals("CF_SQL_BOOLEAN")) return Types.BOOLEAN; else
 	 * if(strType.equals("CF_SQL_CHAR")) return Types.CHAR; else if(strType.equals("CF_SQL_CLOB"))
 	 * return Types.CLOB; else if(strType.equals("CF_SQL_DATALINK")) return Types.DATALINK; else
-	 * if(strType.equals("CF_SQL_DATE")) return Types.DATE; else
-	 * if(strType.equals("CF_SQL_DISTINCT")) return Types.DISTINCT; else
-	 * if(strType.equals("CF_SQL_DECIMAL")) return Types.DECIMAL; else
-	 * if(strType.equals("CF_SQL_DOUBLE")) return Types.DOUBLE; else
-	 * if(strType.equals("CF_SQL_FLOAT")) return Types.FLOAT; else
-	 * if(strType.equals("CF_SQL_IDSTAMP")) return CFTypes.IDSTAMP; else
-	 * if(strType.equals("CF_SQL_INTEGER")) return Types.INTEGER; else
-	 * if(strType.equals("CF_SQL_INT")) return Types.INTEGER; else
-	 * if(strType.equals("CF_SQL_LONGVARBINARY"))return Types.LONGVARBINARY; else
-	 * if(strType.equals("CF_SQL_LONGVARCHAR"))return Types.LONGVARCHAR; else
-	 * if(strType.equals("CF_SQL_MONEY")) return Types.DOUBLE; else
-	 * if(strType.equals("CF_SQL_MONEY4")) return Types.DOUBLE; else
-	 * if(strType.equals("CF_SQL_NUMERIC")) return Types.NUMERIC; else
+	 * if(strType.equals("CF_SQL_DATE")) return Types.DATE; else if(strType.equals("CF_SQL_DISTINCT"))
+	 * return Types.DISTINCT; else if(strType.equals("CF_SQL_DECIMAL")) return Types.DECIMAL; else
+	 * if(strType.equals("CF_SQL_DOUBLE")) return Types.DOUBLE; else if(strType.equals("CF_SQL_FLOAT"))
+	 * return Types.FLOAT; else if(strType.equals("CF_SQL_IDSTAMP")) return CFTypes.IDSTAMP; else
+	 * if(strType.equals("CF_SQL_INTEGER")) return Types.INTEGER; else if(strType.equals("CF_SQL_INT"))
+	 * return Types.INTEGER; else if(strType.equals("CF_SQL_LONGVARBINARY"))return Types.LONGVARBINARY;
+	 * else if(strType.equals("CF_SQL_LONGVARCHAR"))return Types.LONGVARCHAR; else
+	 * if(strType.equals("CF_SQL_MONEY")) return Types.DOUBLE; else if(strType.equals("CF_SQL_MONEY4"))
+	 * return Types.DOUBLE; else if(strType.equals("CF_SQL_NUMERIC")) return Types.NUMERIC; else
 	 * if(strType.equals("CF_SQL_NULL")) return Types.NULL; else if(strType.equals("CF_SQL_REAL"))
 	 * return Types.REAL; else if(strType.equals("CF_SQL_REF")) return Types.REF; else
 	 * if(strType.equals("CF_SQL_REFCURSOR")) return CFTypes.CURSOR; else
-	 * if(strType.equals("CF_SQL_OTHER")) return Types.OTHER; else
-	 * if(strType.equals("CF_SQL_SMALLINT")) return Types.SMALLINT; else
-	 * if(strType.equals("CF_SQL_STRUCT")) return Types.STRUCT; else
-	 * if(strType.equals("CF_SQL_TIME")) return Types.TIME; else
-	 * if(strType.equals("CF_SQL_TIMESTAMP")) return Types.TIMESTAMP; else
-	 * if(strType.equals("CF_SQL_TINYINT")) return Types.TINYINT; else
+	 * if(strType.equals("CF_SQL_OTHER")) return Types.OTHER; else if(strType.equals("CF_SQL_SMALLINT"))
+	 * return Types.SMALLINT; else if(strType.equals("CF_SQL_STRUCT")) return Types.STRUCT; else
+	 * if(strType.equals("CF_SQL_TIME")) return Types.TIME; else if(strType.equals("CF_SQL_TIMESTAMP"))
+	 * return Types.TIMESTAMP; else if(strType.equals("CF_SQL_TINYINT")) return Types.TINYINT; else
 	 * if(strType.equals("CF_SQL_VARBINARY")) return Types.VARBINARY; else
 	 * if(strType.equals("CF_SQL_VARCHAR")) return Types.VARCHAR; else
 	 * if(strType.equals("CF_SQL_NVARCHAR")) return Types.NVARCHAR; else
@@ -701,7 +717,7 @@ public final class SQLCaster {
 	 */
 
 	/**
-	 * cast a String SQL Type to int Type
+	 * cast a String SQL Type, e.g. from cfqueryparam, to int Type
 	 * 
 	 * @param strType
 	 * @return SQL Type as int
@@ -734,6 +750,7 @@ public final class SQLCaster {
 			else if (first == 'D') {
 				if (strType.equals("DATALINK")) return Types.DATALINK;
 				else if (strType.equals("DATE")) return Types.DATE;
+				else if (strType.equals("DATETIME")) return Types.TIMESTAMP;
 				else if (strType.equals("DISTINCT")) return Types.DISTINCT;
 				else if (strType.equals("DECIMAL")) return Types.DECIMAL;
 				else if (strType.equals("DOUBLE")) return Types.DOUBLE;
@@ -781,7 +798,8 @@ public final class SQLCaster {
 				else if (strType.equals("SQLXML")) return Types.SQLXML;
 			}
 			else if (first == 'T') {
-				if (strType.equals("TIME")) return Types.TIME;
+				if (strType.equals("TEXT")) return Types.VARCHAR;
+				else if (strType.equals("TIME")) return Types.TIME;
 				else if (strType.equals("TIMESTAMP")) return Types.TIMESTAMP;
 				else if (strType.equals("TINYINT")) return Types.TINYINT;
 			}
@@ -818,8 +836,9 @@ public final class SQLCaster {
 		case Types.NCLOB:
 		case Types.LONGNVARCHAR:
 		case Types.NCHAR:
-		case Types.SQLXML:
 			return lucee.commons.lang.CFTypes.TYPE_STRING;
+		case Types.SQLXML:
+			return lucee.commons.lang.CFTypes.TYPE_XML;
 
 		case Types.TIME:
 		case Types.TIMESTAMP:

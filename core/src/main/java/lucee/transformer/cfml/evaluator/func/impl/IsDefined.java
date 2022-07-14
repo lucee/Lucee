@@ -52,7 +52,7 @@ public class IsDefined implements FunctionEvaluator {
 
 				// keys
 				String[] arr = sl.toArray();
-				ArrayUtil.trim(arr);
+				ArrayUtil.trimItems(arr);
 
 				// update first arg
 				arg.setValue(bif.getFactory().createLitDouble(scope), "number");
@@ -78,7 +78,8 @@ public class IsDefined implements FunctionEvaluator {
 	}
 
 	@Override
-	public void evaluate(BIF bif, FunctionLibFunction flf) throws EvaluatorException {}
+	public void evaluate(BIF bif, FunctionLibFunction flf) throws EvaluatorException {
+	}
 
 	@Override
 	public FunctionLibFunction pre(BIF bif, FunctionLibFunction flf) throws TemplateException {

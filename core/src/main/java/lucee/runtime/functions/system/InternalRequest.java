@@ -4,21 +4,26 @@ import java.io.ByteArrayOutputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Map.Entry;
 
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.CharSet;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.mimetype.ContentType;
 import lucee.commons.net.HTTPUtil;
+import lucee.commons.net.URLDecoder;
 import lucee.commons.net.URLEncoder;
+import lucee.commons.net.URLItem;
 import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.CFMLFactoryImpl;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
+import lucee.runtime.exp.Abort;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
@@ -29,13 +34,19 @@ import lucee.runtime.net.http.ReqRspUtil;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.thread.ThreadUtil;
+import lucee.runtime.type.Array;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
+import lucee.runtime.type.scope.Argument;
+import lucee.runtime.type.scope.ArgumentImpl;
 import lucee.runtime.type.scope.Form;
+import lucee.runtime.type.scope.FormImpl;
+import lucee.runtime.type.scope.UrlFormImpl;
 import lucee.runtime.type.util.KeyConstants;
+import lucee.runtime.type.util.ListUtil;
 
 public class InternalRequest implements Function {
 
@@ -46,8 +57,10 @@ public class InternalRequest implements Function {
 
 	private static final Key CONTENT_TYPE = KeyImpl.getInstance("content-type");
 
-	public static Struct call(final PageContext pc, String template, String method, Struct urls, Struct forms, Struct cookies, Struct headers, Object body, String strCharset,
-			boolean addToken) throws PageException {
+	public static Struct call(final PageContext pc, String template, String method, Object oUrls, Object oForms, Struct cookies, Struct headers, Object body, String strCharset,
+			boolean addToken, boolean throwonerror) throws PageException {
+		Struct urls = toStruct(oUrls);
+		Struct forms = toStruct(oForms);
 
 		// add token
 		if (addToken) {
@@ -99,17 +112,25 @@ public class InternalRequest implements Function {
 		}
 
 		PageContextImpl _pc = createPageContext(pc, template, urls, cookies, headers, _barr, reqCharset, baos);
-		fillForm(_pc, forms);
+		fillForm(_pc, forms, reqCharset);
 		Collection cookie, request, session = null;
 		int status;
 		long exeTime;
 		boolean isText = false;
 		Charset _charset = null;
+		PageException pe = null;
 		try {
 
 			if (CFMLEngine.DIALECT_LUCEE == dialect) _pc.execute(template, true, false);
 			else _pc.executeCFML(template, true, false);
 
+		}
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+			if (!(t instanceof Abort)) {
+				if (throwonerror) throw Caster.toPageException(t);
+				pe = Caster.toPageException(t);
+			}
 		}
 		finally {
 			_pc.flush();
@@ -139,7 +160,7 @@ public class InternalRequest implements Function {
 			status = rsp.getStatus();
 			ContentType ct = HTTPUtil.toContentType(rsp.getContentType(), null);
 			if (ct != null) {
-				isText = HTTPUtil.isTextMimeType(ct.getMimeType());
+				isText = HTTPUtil.isTextMimeType(ct.getMimeType()) == Boolean.TRUE;
 				if (ct.getCharset() != null) _charset = CharsetUtil.toCharset(ct.getCharset(), null);
 			}
 			releasePageContext(_pc, pc);
@@ -158,7 +179,45 @@ public class InternalRequest implements Function {
 		rst.set(KeyConstants._executionTime, new Double(exeTime));
 		rst.set(KeyConstants._status, new Double(status));
 		rst.set(STATUS_CODE, new Double(status));
+		if (pe != null) rst.set(KeyConstants._error, pe.getCatchBlock(pc.getConfig()));
 		return rst;
+	}
+
+	private static Struct toStruct(Object obj) throws PageException {
+		if (Decision.isCastableToStruct(obj)) return Caster.toStruct(obj);
+		String str = Caster.toString(obj);
+		int index;
+		Struct data = new StructImpl(Struct.TYPE_LINKED);
+		// boolean asArray = pc.getApplicationContext().getSameFieldAsArray(scope);
+		Key n;
+		String v;
+		Object existing;
+		for (String el: ListUtil.listToList(str, '&', true)) {
+
+			index = el.indexOf('=');
+			if (index == -1) {
+				n = KeyImpl.init(URLDecoder.decode(el, true));
+				v = "";
+			}
+			else {
+				n = KeyImpl.init(URLDecoder.decode(el.substring(0, index), true));
+				v = URLDecoder.decode(el.substring(index + 1), true);
+			}
+			existing = data.get(n, null);
+			if (existing != null) {
+				if (existing instanceof ArgumentImpl) {
+					((ArgumentImpl) existing).appendEL(v);
+				}
+				else {
+					ArgumentImpl arr = new ArgumentImpl();
+					arr.append(existing);
+					arr.append(v);
+					data.setEL(n, arr);
+				}
+			}
+			else data.setEL(n, v);
+		}
+		return data;
 	}
 
 	private static boolean sessionEnabled(PageContextImpl pc) {
@@ -167,36 +226,86 @@ public class InternalRequest implements Function {
 		return ac.hasName() && ac.isSetSessionManagement();
 	}
 
-	private static void fillForm(PageContextImpl _pc, Struct src) throws PageException {
+	private static void fillForm(PageContextImpl _pc, Struct src, Charset charset) throws PageException {
 		if (src == null) return;
+
 		Iterator<Entry<Key, Object>> it = src.entryIterator();
-		Form trg = _pc.formScope();
+		Form tmp = _pc.formScope();
+		FormImpl trg = tmp instanceof UrlFormImpl ? ((UrlFormImpl) tmp).getForm() : (FormImpl) tmp;
+
 		Entry<Key, Object> e;
+		Key n;
+		Object v;
+
+		Object vv;
+		java.util.List<URLItem> list = new ArrayList<>();
 		while (it.hasNext()) {
 			e = it.next();
-			trg.set(e.getKey(), e.getValue());
+			n = e.getKey();
+			v = e.getValue();
+
+			if (v instanceof Array) {
+				Iterator<Object> itt = ((Array) v).valueIterator();
+				while (itt.hasNext()) {
+					vv = itt.next();
+					list.add(new URLItem(n.getString(), Caster.toString(vv), false));
+				}
+
+			}
+			else if (v instanceof Struct) {
+				Iterator<Entry<Key, Object>> itt = ((Struct) v).entryIterator();
+				Entry<Key, Object> ee;
+				while (itt.hasNext()) {
+					ee = itt.next();
+					list.add(new URLItem(n.getString() + "." + ee.getKey(), Caster.toString(ee.getValue()), false));
+				}
+
+			}
+			else list.add(new URLItem(n.getString(), Caster.toString(v), false));
 		}
+		trg.addRaw(null, list.toArray(new URLItem[list.size()]));
 	}
 
 	private static PageContextImpl createPageContext(PageContext pc, String template, Struct urls, Struct cookies, Struct headers, byte[] body, Charset charset, OutputStream os)
 			throws PageException {
+		return ThreadUtil.createPageContext(pc.getConfig(), os, pc.getHttpServletRequest().getServerName(), template, toQueryString(urls, charset),
+				CreatePageContext.toCookies(cookies), CreatePageContext.toPair(headers, true), body, CreatePageContext.toPair(new StructImpl(), true),
+				CreatePageContext.castValuesToString(new StructImpl()), true, -1);
+	}
 
+	private static String toQueryString(Struct urls, Charset charset) throws PageException {
 		// query string | URL
 		Entry<Key, Object> e;
 		StringBuilder sbQS = new StringBuilder();
 		if (urls != null) {
 			Iterator<Entry<Key, Object>> it = urls.entryIterator();
+			Object v;
+			Key n;
 			while (it.hasNext()) {
 				e = it.next();
-				if (sbQS.length() > 0) sbQS.append('&');
-				sbQS.append(urlenc(e.getKey().getString(), charset));
-				sbQS.append('=');
-				sbQS.append(urlenc(Caster.toString(e.getValue()), charset));
+				n = e.getKey();
+				v = e.getValue();
+
+				if (v instanceof Argument) {
+					Iterator<Entry<Key, Object>> itt = ((Argument) v).entryIterator();
+					Entry<Key, Object> ee;
+					while (itt.hasNext()) {
+						ee = itt.next();
+						if (sbQS.length() > 0) sbQS.append('&');
+						sbQS.append(urlenc(n.getString(), charset));
+						sbQS.append('=');
+						sbQS.append(urlenc(Caster.toString(ee.getValue()), charset));
+					}
+				}
+				else {
+					if (sbQS.length() > 0) sbQS.append('&');
+					sbQS.append(urlenc(e.getKey().getString(), charset));
+					sbQS.append('=');
+					sbQS.append(urlenc(Caster.toString(v), charset));
+				}
 			}
 		}
-
-		return ThreadUtil.createPageContext(pc.getConfig(), os, pc.getHttpServletRequest().getServerName(), template, sbQS.toString(), CreatePageContext.toCookies(cookies),
-				CreatePageContext.toPair(headers, true), body, CreatePageContext.toPair(new StructImpl(), true), CreatePageContext.castValuesToString(new StructImpl()), true, -1);
+		return sbQS.toString();
 	}
 
 	private static void releasePageContext(PageContext pc, PageContext oldPC) {

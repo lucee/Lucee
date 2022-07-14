@@ -1,14 +1,7 @@
 component {
 	this.name =	"tests345";
 	mySQL = getCredentials();
-	this.datasource ={
-		  class: 'com.mysql.cj.jdbc.Driver'
-		, bundleName:'com.mysql.cj'
-		, bundleVersion:'6.0.5'
-		, connectionString: 'jdbc:mysql://'&mySQL.server&':'&mySQL.port&'/'&mySQL.database&'?useUnicode=true&characterEncoding=UTF-8&useLegacyDatetimeCode=true'
-		, username: mySQL.username
-		, password: mySQL.password
-	};
+	this.datasource = server.getDatasource("mysql");
 
 	function onRequestStart(){
 		setting showdebugOutput=false;

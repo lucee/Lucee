@@ -19,6 +19,7 @@
 package lucee.runtime.net.http;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -27,6 +28,7 @@ import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 import java.security.Principal;
 import java.util.Enumeration;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Locale;
@@ -51,8 +53,12 @@ import javax.servlet.http.Part;
 import lucee.commons.collection.MapFactory;
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.IOUtil;
+import lucee.commons.io.log.Log;
+import lucee.commons.io.log.LogUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
+import lucee.commons.lang.types.RefBoolean;
+import lucee.commons.lang.types.RefBooleanImpl;
 import lucee.commons.net.URLItem;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
@@ -96,6 +102,8 @@ public final class HTTPServletRequestWrap implements HttpServletRequest, Seriali
 	private String query_string;
 	private boolean disconnected;
 	private final HttpServletRequest req;
+
+	private Set<ServletInputStreamDummy> dummies = new HashSet<ServletInputStreamDummy>();
 
 	private static class DisconnectData {
 		private Map<String, Object> attributes;
@@ -178,8 +186,13 @@ public final class HTTPServletRequestWrap implements HttpServletRequest, Seriali
 
 	@Override
 	public StringBuffer getRequestURL() {
-		return new StringBuffer(isSecure() ? "https" : "http").append("://").append(getServerName()).append(':').append(getServerPort())
-				.append(request_uri.startsWith("/") ? request_uri : "/" + request_uri);
+		if (String.valueOf(getServerPort()).equals("80") || String.valueOf(getServerPort()).equals("443")) {
+			return new StringBuffer(isSecure() ? "https" : "http").append("://").append(getServerName()).append(request_uri.startsWith("/") ? request_uri : "/" + request_uri);
+		}
+		else {
+			return new StringBuffer(isSecure() ? "https" : "http").append("://").append(getServerName()).append(':').append(getServerPort())
+					.append(request_uri.startsWith("/") ? request_uri : "/" + request_uri);
+		}
 	}
 
 	@Override
@@ -238,7 +251,11 @@ public final class HTTPServletRequestWrap implements HttpServletRequest, Seriali
 		if (bytes == null && file == null) {
 			if (!firstRead) {
 				if (bytes != null) return new ServletInputStreamDummy(bytes);
-				if (file != null) return new ServletInputStreamDummy(file);
+				if (file != null) {
+					ServletInputStreamDummy tmp = new ServletInputStreamDummy(file);
+					dummies.add(tmp);
+					return tmp;
+				}
 
 				PageContext pc = ThreadLocalPageContext.get();
 				if (pc != null) return pc.formScope().getInputStream();
@@ -250,24 +267,53 @@ public final class HTTPServletRequestWrap implements HttpServletRequest, Seriali
 			// keep the content in memory
 			storeEL();
 		}
-		if (file != null) return new ServletInputStreamDummy(file);
+		if (file != null) {
+			ServletInputStreamDummy tmp = new ServletInputStreamDummy(file);
+			dummies.add(tmp);
+			return tmp;
+		}
 		if (bytes != null) return new ServletInputStreamDummy(bytes);
 		return new ServletInputStreamDummy(new byte[] {});
 	}
 
 	private void storeEL() {
-		if (getContentLength() <= MAX_MEMORY_SIZE) {
-			try {
-				bytes = IOUtil.toBytes(req.getInputStream(), true);
-				return;
-			}
-			catch (Exception e) {}
-		}
+		ServletInputStream is = null;
+		RefBoolean maxReached = new RefBooleanImpl();
 		try {
-			file = File.createTempFile("upload", ".tmp");
-			IOUtil.copy(req.getInputStream(), new FileOutputStream(file), true, true);
+			{
+				try {
+					is = req.getInputStream();
+					bytes = IOUtil.toBytesMax(is, MAX_MEMORY_SIZE, maxReached);
+					if (!maxReached.toBooleanValue()) {
+						return;
+					}
+				}
+				catch (Exception e) {
+				}
+			}
+			FileOutputStream fos = null;
+			try {
+				file = File.createTempFile("upload", ".tmp");
+				fos = new FileOutputStream(file);
+				// first we store what we did already load
+				if (maxReached.toBooleanValue()) {
+					IOUtil.copy(new ByteArrayInputStream(bytes), fos, true, false);
+					bytes = null;
+				}
+				if (is == null) is = req.getInputStream();
+				// now we store the rest
+				IOUtil.copy(is, fos, 0xfffff, true, true);
+				file.deleteOnExit();
+			}
+			catch (Exception e) {
+			}
+			finally {
+				IOUtil.closeEL(fos);
+			}
 		}
-		catch (Exception e) {}
+		finally {
+			IOUtil.closeEL(is);
+		}
 	}
 
 	@Override
@@ -830,8 +876,19 @@ public final class HTTPServletRequestWrap implements HttpServletRequest, Seriali
 	}
 
 	public void close() {
+		// first we close all file based stream we provided, if they are not already closed
+		if (!dummies.isEmpty()) {
+			for (ServletInputStreamDummy dummy: dummies) {
+				if (!dummy.isClosed()) IOUtil.closeEL(dummy);
+			}
+		}
+		// now we can safely delete the file
 		if (file != null) {
-			if (!file.delete()) file.deleteOnExit();
+			if (!file.delete()) {
+				LogUtil.log(null, Log.LEVEL_WARN, HTTPServletRequestWrap.class.getName(),
+						"was not able to delete the file [" + file + "], will delete it when properly exit the application.");
+				file.deleteOnExit();
+			}
 			file = null;
 		}
 		bytes = null;

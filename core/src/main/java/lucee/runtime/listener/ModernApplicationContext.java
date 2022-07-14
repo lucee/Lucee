@@ -963,7 +963,8 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 			else LogUtil.log(ThreadLocalPageContext.getConfig(config), Log.LEVEL_ERROR, ModernApplicationContext.class.getName(),
 					"method [init(Config,String[],Struct[]):void] for class [" + cd.toString() + "] is not static");
 		}
-		catch (Exception e) {}
+		catch (Exception e) {
+		}
 		initCacheConnections.put(id, cc);
 		return cc;
 
@@ -1748,12 +1749,17 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	}
 
 	private void initLog() {
-		// appender
-		Object oLogs = get(component, LOGS, null);
-		if (oLogs == null) oLogs = get(component, LOG, null);
-		Struct sct = Caster.toStruct(oLogs, null);
-		logs = initLog(ThreadLocalPageContext.getConfig(config), sct);
-		initLog = true;
+		try {
+			// appender
+			Object oLogs = get(component, LOGS, null);
+			if (oLogs == null) oLogs = get(component, LOG, null);
+			Struct sct = Caster.toStruct(oLogs, null);
+			logs = initLog(ThreadLocalPageContext.getConfig(config), sct);
+			initLog = true;
+		}
+		catch (PageException e) {
+			throw new PageRuntimeException(e);
+		}
 	}
 
 	public static void releaseInitCacheConnections() {

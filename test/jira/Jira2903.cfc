@@ -34,8 +34,7 @@
 		application action="update"
 			datasource="#{
 	  class: 'org.postgresql.Driver'
-	, bundleName: 'org.postgresql.jdbc42'
-	, bundleVersion: '9.4.1212'
+	, bundleName: 'org.postgresql.jdbc'
 	, connectionString: 'jdbc:postgresql://#pgsql.server#:#pgsql.port#/#pgsql.database#'
 	, username: pgsql.username
 	, password: pgsql.password
@@ -49,34 +48,8 @@
 
 
 	private struct function getCredencials() {
-		// getting the credetials from the enviroment variables
-		var pgsql={};
-		if(
-			!isNull(server.system.environment.POSTGRES_SERVER) &&
-			!isNull(server.system.environment.POSTGRES_USERNAME) &&
-			!isNull(server.system.environment.POSTGRES_PASSWORD) &&
-			!isNull(server.system.environment.POSTGRES_PORT) &&
-			!isNull(server.system.environment.POSTGRES_DATABASE)) {
-			pgsql.server=server.system.environment.POSTGRES_SERVER;
-			pgsql.username=server.system.environment.POSTGRES_USERNAME;
-			pgsql.password=server.system.environment.POSTGRES_PASSWORD;
-			pgsql.port=server.system.environment.POSTGRES_PORT;
-			pgsql.database=server.system.environment.POSTGRES_DATABASE;
-		}
-		// getting the credetials from the system variables
-		else if(
-			!isNull(server.system.properties.POSTGRES_SERVER) &&
-			!isNull(server.system.properties.POSTGRES_USERNAME) &&
-			!isNull(server.system.properties.POSTGRES_PASSWORD) &&
-			!isNull(server.system.properties.POSTGRES_PORT) &&
-			!isNull(server.system.properties.POSTGRES_DATABASE)) {
-			pgsql.server=server.system.properties.POSTGRES_SERVER;
-			pgsql.username=server.system.properties.POSTGRES_USERNAME;
-			pgsql.password=server.system.properties.POSTGRES_PASSWORD;
-			pgsql.port=server.system.properties.POSTGRES_PORT;
-			pgsql.database=server.system.properties.POSTGRES_DATABASE;
-		}
-		return pgsql;
+		// getting the credetials from the environment variables
+		return server._getSystemPropOrEnvVars( "SERVER, USERNAME, PASSWORD, PORT, DATABASE", "POSTGRES_");
 	}
 
 

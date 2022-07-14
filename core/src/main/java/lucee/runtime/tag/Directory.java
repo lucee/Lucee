@@ -49,7 +49,6 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
 import lucee.runtime.ext.tag.TagImpl;
 import lucee.runtime.op.Caster;
-import lucee.runtime.op.Decision;
 import lucee.runtime.reflection.Reflector;
 import lucee.runtime.security.SecurityManager;
 import lucee.runtime.tag.util.FileUtil;
@@ -671,15 +670,8 @@ public final class Directory extends TagImpl {
 			// ACL
 			if (acl != null) {
 				try {
-					// old way
-					if (Decision.isString(acl)) {
-						Reflector.callMethod(res, "setACL", new Object[] { improveACL(Caster.toString(acl)) });
-					}
-					// new way
-					else {
-						BIF bif = CFMLEngineFactory.getInstance().getClassUtil().loadBIF(pc, "StoreSetACL");
-						bif.invoke(pc, new Object[] { res.getAbsolutePath(), acl });
-					}
+					BIF bif = CFMLEngineFactory.getInstance().getClassUtil().loadBIF(pc, "StoreSetACL");
+					bif.invoke(pc, new Object[] { res.getAbsolutePath(), acl });
 				}
 				catch (Exception e) {
 					throw Caster.toPageException(e);
@@ -775,7 +767,7 @@ public final class Directory extends TagImpl {
 		}
 
 		// set S3 stuff
-		setS3Attrs(pc, directory, acl, storage);
+		setS3Attrs(pc, newdirectory, acl, storage);
 
 	}
 
@@ -824,11 +816,11 @@ public final class Directory extends TagImpl {
 		}
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
-			throw new ApplicationException(t.getMessage());
+			throw Caster.toPageException(t);
 		}
 
 		// set S3 stuff
-		setS3Attrs(pc, directory, acl, storage);
+		setS3Attrs(pc, newdirectory, acl, storage);
 
 	}
 

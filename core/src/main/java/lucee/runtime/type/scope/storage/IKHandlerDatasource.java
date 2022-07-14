@@ -7,6 +7,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.PageContext;
@@ -33,6 +34,8 @@ import lucee.runtime.type.util.KeyConstants;
 public class IKHandlerDatasource implements IKHandler {
 
 	public static final String PREFIX = "cf";
+
+	protected boolean storeEmpty = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.store.empty", null), true);
 
 	@Override
 	public IKStorageValue loadData(PageContext pc, String appName, String name, String strType, int type, Log log) throws PageException {
@@ -73,7 +76,8 @@ public class IKHandlerDatasource implements IKHandler {
 			try {
 				return toIKStorageValue((Struct) pc.evaluate(str));
 			}
-			catch (Exception e) {}
+			catch (Exception e) {
+			}
 			return null;
 		}
 
@@ -112,7 +116,7 @@ public class IKHandlerDatasource implements IKHandler {
 	}
 
 	@Override
-	public void store(IKStorageScopeSupport storageScope, PageContext pc, String appName, final String name, String cfid, Map<Key, IKStorageScopeItem> data, Log log) {
+	public void store(IKStorageScopeSupport storageScope, PageContext pc, String appName, final String name, Map<Key, IKStorageScopeItem> data, Log log) {
 		DatasourceConnection dc = null;
 		ConfigPro ci = (ConfigPro) ThreadLocalPageContext.getConfig(pc);
 		DatasourceConnectionPool pool = ci.getDatasourceConnectionPool();
@@ -124,8 +128,14 @@ public class IKHandlerDatasource implements IKHandler {
 			dc = pool.getDatasourceConnection(null, ds, null, null);
 			SQLExecutor executor = SQLExecutionFactory.getInstance(dc);
 			IKStorageValue existingVal = loadData(pc, appName, name, storageScope.getTypeAsString(), storageScope.getType(), log);
-			IKStorageValue sv = new IKStorageValue(IKStorageScopeSupport.prepareToStore(data, existingVal, storageScope.lastModified()));
-			executor.update(ci, cfid, appName, dc, storageScope.getType(), sv, storageScope.getTimeSpan(), log);
+
+			if (storeEmpty || storageScope.hasContent()) {
+				IKStorageValue sv = new IKStorageValue(IKStorageScopeSupport.prepareToStore(data, existingVal, storageScope.lastModified()));
+				executor.update(ci, pc.getCFID(), appName, dc, storageScope.getType(), sv, storageScope.getTimeSpan(), log);
+			}
+			else if (existingVal != null) {
+				executor.delete(ci, pc.getCFID(), appName, dc, storageScope.getType(), log);
+			}
 		}
 		catch (Exception e) {
 			ScopeContext.error(log, e);
@@ -136,7 +146,7 @@ public class IKHandlerDatasource implements IKHandler {
 	}
 
 	@Override
-	public void unstore(IKStorageScopeSupport storageScope, PageContext pc, String appName, String name, String cfid, Log log) {
+	public void unstore(IKStorageScopeSupport storageScope, PageContext pc, String appName, String name, Log log) {
 		ConfigPro ci = (ConfigPro) ThreadLocalPageContext.getConfig(pc);
 		DatasourceConnection dc = null;
 
@@ -148,7 +158,7 @@ public class IKHandlerDatasource implements IKHandler {
 			else ds = ci.getDataSource(name);
 			dc = pool.getDatasourceConnection(null, ds, null, null);
 			SQLExecutor executor = SQLExecutionFactory.getInstance(dc);
-			executor.delete(ci, cfid, appName, dc, storageScope.getType(), log);
+			executor.delete(ci, pc.getCFID(), appName, dc, storageScope.getType(), log);
 		}
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);

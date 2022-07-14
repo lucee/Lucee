@@ -58,6 +58,29 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		}
 	}
 
+	public void function testPDFOrientation(){
+		var path=getDirectoryFromPath(getCurrentTemplatePath())&"test-orientation.pdf";
+		try{
+			document pagetype="letter" orientation="landscape" filename=path overwrite="true" {
+				documentsection { echo("I am landscape"); }
+				documentsection orientation="portrait" { echo("I am portrait"); }
+				documentsection orientation="landscape" { echo("I am landscape"); }
+			}
+			assertTrue(isPDFFile(path));
+
+			// TODO get pagesizes based on the new lib pageSizes = getPageSizes(ExpandPath(path));
+
+			expected = [
+				{ height: 612, width: 792 },
+				{ height: 792, width: 612 },
+				{ height: 612, width: 792 }
+			];
+		}
+		finally {
+			if(fileExists(path))fileDelete(path);
+		}
+		// TODO assertEquals(expected, pageSizes);
+	}
 
 	public void function testPDFOpen(){
 		try {
@@ -73,5 +96,26 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 			if(fileExists("test-unprotect.pdf"))fileDelete("test-unprotect.pdf");
 		}
 	}
-} 
+
+	private array function getPageSizes (required string path) {
+		// TODO no loner works as expected, because lib changed
+		pageSizes = [];
+		try {
+			var file = CreateObject("java", "java.io.File").init(arguments.path);
+			pdDocument = CreateObject("java", "org.apache.pdfbox.Loader").loadPDF(file);
+			pageIterator = pdDocument.getDocumentCatalog().getPages().iterator();
+
+			while (pageIterator.hasNext()) {
+				var objPage = pageIterator.next();
+				pageSizes.append({
+					width: objPage.getTrimBox().getWidth(),
+					height: objPage.getTrimBox().getHeight()
+				});
+			}
+		} finally {
+			if(!isNull(pdDocument))pdDocument.close();
+		}
+		return pageSizes;
+	}
+}
 </cfscript>

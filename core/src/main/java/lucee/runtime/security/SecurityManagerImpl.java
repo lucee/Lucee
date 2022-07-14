@@ -45,7 +45,8 @@ public final class SecurityManagerImpl implements Cloneable, SecurityManager {
 	private Resource rootDirectory;
 	private Resource[] customFileAccess = EMPTY_RESOURCE_ARRAY;
 
-	private SecurityManagerImpl() {}
+	private SecurityManagerImpl() {
+	}
 
 	/**
 	 * create a new Accessor

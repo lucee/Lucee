@@ -107,6 +107,7 @@ public class CacheUtil {
 		return cc.getInstance(config);
 	}
 
+	// do not change, used in Redis extension FUTURE add to interface
 	public static Cache getCache(PageContext pc, String cacheName, int type) throws IOException {
 		if (StringUtil.isEmpty(cacheName)) return getDefault(pc, type);
 		return getCache(pc, cacheName);
@@ -117,6 +118,7 @@ public class CacheUtil {
 		return getCache(pc, cacheName, defaultValue);
 	}
 
+	// USED in extension
 	public static Cache getCache(PageContext pc, String cacheName) throws IOException {
 		CacheConnection cc = getCacheConnection(pc, cacheName);
 		return cc.getInstance(ThreadLocalPageContext.getConfig(pc));
@@ -135,6 +137,7 @@ public class CacheUtil {
 		}
 	}
 
+	// USED in extension
 	public static CacheConnection getCacheConnection(PageContext pc, String cacheName) throws IOException {
 		pc = ThreadLocalPageContext.get(pc);
 		if (pc != null) return ((PageContextImpl) pc).getCacheConnection(cacheName);
@@ -288,7 +291,8 @@ public class CacheUtil {
 		try {
 			release(cc);
 		}
-		catch (IOException e) {}
+		catch (IOException e) {
+		}
 	}
 
 	public static void release(CacheConnection cc) throws IOException {

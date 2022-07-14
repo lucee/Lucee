@@ -196,7 +196,8 @@ public final class TemporaryStream extends OutputStream {
 			// tempFile=CFMLEngineFactory.getInstance().getCastUtil().toResource(tmp.getParent(),null);
 			tempFile = getCanonicalResourceEL(tempFile);
 		}
-		catch (IOException ioe) {}
+		catch (IOException ioe) {
+		}
 		finally {
 			if (tmp != null) tmp.delete();
 		}

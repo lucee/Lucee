@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project default="core" basedir="." name="Lucee" xmlns:artifact="antlib:org.apache.maven.artifact.ant">
 
-  <property name="version" value="5.3.8.95-SNAPSHOT"/>
+  <property name="version" value="5.3.10.30-SNAPSHOT"/>
 
   <path id="maven-ant-tasks.classpath" path="../ant/lib/maven-ant-tasks-2.1.3.jar" />
   <typedef resource="org/apache/maven/artifact/ant/antlib.xml"
@@ -32,13 +32,13 @@
       <mkdir dir="${outputDir}"/>
   </target>
 
-  <target name="core" depends="withTestcases,setEnv,buildLoaderAnt" description="build only Lucee itself">
+  <target name="core" depends="withTestcases,setEnv,buildLoaderAnt,test_stable_loader" description="build only Lucee itself">
 
       <delete dir="${outputDir}"/>
   </target>
 
 
-  <target name="fast" depends="setEnv,buildLoaderAnt" description="build only Lucee itself">
+  <target name="fast" depends="setEnv,buildLoaderAnt,test_stable_loader" description="build only Lucee itself">
 
       <delete dir="${outputDir}"/>
   </target>

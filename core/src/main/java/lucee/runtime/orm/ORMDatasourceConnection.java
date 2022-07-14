@@ -416,4 +416,9 @@ public class ORMDatasourceConnection implements DatasourceConnectionPro {
 	public int getDefaultTransactionIsolation() {
 		return ((DataSourcePro) datasource).getDefaultTransactionIsolation();
 	}
+
+	@Override
+	public boolean validate() {
+		return datasource.validate();
+	}
 }

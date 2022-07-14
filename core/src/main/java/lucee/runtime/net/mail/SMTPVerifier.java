@@ -66,7 +66,8 @@ public final class SMTPVerifier {
 					_verify(host, null, null, 25);
 					throw new SMTPExceptionImpl("Cannot connect to mail server, port definition is invalid");
 				}
-				catch (MessagingException e1) {}
+				catch (MessagingException e1) {
+				}
 			}
 
 			throw new SMTPExceptionImpl("can't connect to mail server");
@@ -86,6 +87,7 @@ public final class SMTPVerifier {
 		Authenticator auth = null;
 		if (hasAuth) auth = new DefaultAuthenticator(username, password);
 		Session session = Session.getInstance(props, auth);
+		session.setDebug(true); // enable logging mail debugging output to console
 
 		Transport transport = session.getTransport("smtp");
 		if (hasAuth) transport.connect(host, username, password);

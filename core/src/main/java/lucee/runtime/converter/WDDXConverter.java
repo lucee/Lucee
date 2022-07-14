@@ -383,7 +383,7 @@ public final class WDDXConverter extends ConverterSupport {
 		}
 		// Number
 		if (object instanceof Number) {
-			rtn = goIn() + "<number>" + ((Number) object).doubleValue() + "</number>";
+			rtn = goIn() + "<number>" + Caster.toStringPrecise((Number) object) + "</number>";
 			deep--;
 			return rtn;
 		}
@@ -682,7 +682,7 @@ public final class WDDXConverter extends ConverterSupport {
 		if (node instanceof CharacterData) {
 			String data = ((CharacterData) node).getData();
 			try {
-				return Base64Coder.decode(data);
+				return Base64Coder.decode(data, true);
 			}
 			catch (CoderException e) {
 				throw new ConverterException(e.getMessage());

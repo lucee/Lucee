@@ -45,6 +45,7 @@ import lucee.runtime.type.Struct;
 
 public class ThreadUtil {
 
+	// do not change, used in Redis extension
 	public static PageContextImpl clonePageContext(PageContext pc, OutputStream os, boolean stateless, boolean register2Thread, boolean register2RunningThreads) {
 		// TODO stateless
 		CFMLFactoryImpl factory = (CFMLFactoryImpl) pc.getConfig().getFactory();
@@ -172,5 +173,13 @@ public class ThreadUtil {
 			aprint.e(e.getKey().getName());
 			aprint.e(ExceptionUtil.toString(e.getValue()));
 		}
+	}
+
+	public static boolean isInNativeMethod(Thread thread, boolean defaultValue) {
+		if (thread == null) return defaultValue;
+		StackTraceElement[] stes = thread.getStackTrace();
+		if (stes == null || stes.length == 0) return defaultValue;
+		StackTraceElement ste = stes[0];
+		return ste.isNativeMethod();
 	}
 }

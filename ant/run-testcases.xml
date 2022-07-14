@@ -109,6 +109,8 @@ function mem(type) {
 
 	systemOutput("set /test mapping #dateTimeFormat(now())#", true);
 
+	// you can also provide a json file with your environment variables, i.e. just set LUCEE_BUILD_ENV="c:\work\lucee\loader\env.json"
+	setupTestServices = new test._setupTestServices().setup();	
 
 	// set the testbox mapping
 	application
@@ -121,6 +123,27 @@ function mem(type) {
 	SystemOut=createObject("java", "lucee.commons.lang.SystemOut");
 	out=SystemOut.setOut(nullValue());
 	//err=SystemOut.setErr(nullValue());
+
+	testDirectory = expandPath( "/test" );
+	
+	_getTestMeta = function ( string path ){
+		var cfcPath = ListChangeDelims( "/test" & Mid( arguments.path, len( testDirectory ) + 1 ), ".", "/\" );
+		cfcPath = mid( cfcPath, 1, len( cfcPath ) - 4 ); // strip off ".cfc"
+		try {
+			// triggers a compile, which make the initial filter slower, but it would be compiled later anyway
+			// GetComponentMetaData leaks output https://luceeserver.atlassian.net/browse/LDEV-3582
+			silent {
+				var meta = GetComponentMetaData( cfcPath );
+			}
+		} catch ( e ){
+			systemOutput("ERROR calling GetComponentMetaData on #cfcPath#", true);
+			systemOutput(e.message, true);
+			return {
+				"_exception": cfcatch
+			}
+		}
+		return meta;
+	};
 
 	silent {
 		try {
@@ -145,7 +168,14 @@ function mem(type) {
 
 					// only testcases in sub directory of "test" are allowed
 					var _test = listTrim(test,"\/");
-					return (_test == pp || _test == p) && left(name, 1) != "_";
+					var allowed = (_test == pp || _test == p) && left(name, 1) != "_";
+					if ( allowed ){
+						// check for skip=true on test case components
+						var meta = _getTestMeta( path );
+						if ( structKeyExists( meta, "skip" ) and meta.skip eq true )
+							allowed = false;
+					}
+					return allowed;
 				}
 			};
 
@@ -294,7 +324,13 @@ Begin Stack Trace
  		} // try
 	} // silent
 
-
+	jUnitReporter = new testbox.system.reports.JUnitReporter();
+	resultPath = ExpandPath( "/test" ) & "/reports/";
+	if ( !DirectoryExists( resultPath ) )
+		DirectoryCreate( resultPath );
+	JUnitReportFile = resultPath & "junit-test-results.xml";
+	FileWrite( JUnitReportFile, jUnitReporter.runReport( results=result, testbox=tb, justReturn=true ) );	
+	
 	echo("=============================================================" & NL);
 	echo("TestBox Version: #tb.getVersion()#" & NL);
 	echo("Lucee Version: #server.lucee.version#" & NL);
@@ -306,6 +342,7 @@ Begin Stack Trace
 	echo("->[Skipped:  #result.getTotalSkipped()#]" & NL);
 	echo("->[Failures: #result.getTotalFail()#]" & NL);
 	echo("->[Errors:   #result.getTotalError()#]" & NL);
+	echo("->[JUnitReport: #JUnitReportFile#]" & NL);
 
 		if (!isEmpty(failedTestCases)){
 

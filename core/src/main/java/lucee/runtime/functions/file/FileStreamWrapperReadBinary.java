@@ -100,7 +100,8 @@ public class FileStreamWrapperReadBinary extends FileStreamWrapper {
 			_getBIS().skip(len);
 			return;
 		}
-		catch (IOException e) {}
+		catch (IOException e) {
+		}
 
 		throw Caster.toPageException(new IOException("skip is only supported when you have set argument seekable of function fileOpen to true"));
 	}

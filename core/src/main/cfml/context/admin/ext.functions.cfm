@@ -222,7 +222,7 @@
 				
 
 			<cfcatch>
-			<cfset systemOutput(cfcatch,1,1)>
+				<cflog text="Error parsing extension logo, #cfcatch.message#, [#arguments.src#]" type="error">
 				<cfset local.b64=local.empty>
 			</cfcatch>
 		</cftry>
@@ -320,7 +320,7 @@
 
 			// rename older to otherVersions
 
-			if(queryColumnExists(data.extensions,"older") || !queryColumnExists(data.extensions,"otherVersions")) {
+			if(queryColumnExists(data.extensions,"older") && !queryColumnExists(data.extensions,"otherVersions")) {
 				data.extensions.addColumn("otherVersions",data.extensions.columnData('older'));
 				data.extensions.deleteColumn("older");
 				//QuerySetColumn(data.extensions,"older","otherVersions");
@@ -568,7 +568,10 @@
 			if(!isNull(http.status_code) && http.status_code==200) {
 				return http.fileContent;
 			}
-			throw http.fileContent;
+			var errorMessage = "Error: Download extension returned #http.status_code# for #uri#";
+			writeLog(type="ERROR", text=errorMessage, log="deploy");
+			writeLog(type="ERROR", text=http.fileContent, log="deploy"); // log the actual error response out for debugging
+			throw encodeForHtml(errorMessage); // rather not encode here, but this is hits a generic error handler
 		}
 	}
 
@@ -633,6 +636,7 @@
 					&"."&repeatString("0",3-len(sct.minor))&sct.minor
 					&"."&repeatString("0",3-len(sct.micro))&sct.micro
 					&"."&repeatString("0",4-len(sct.qualifier))&sct.qualifier
+					& #sct.keyExists("qualifier_appendix1") && isNumeric(sct.qualifier_appendix1)? "."&repeatString("0",4-len(sct.qualifier_appendix1))&sct.qualifier_appendix1  : ""#
 					&"."&repeatString("0",3-len(sct.qualifier_appendix_nbr))&sct.qualifier_appendix_nbr;
 
 

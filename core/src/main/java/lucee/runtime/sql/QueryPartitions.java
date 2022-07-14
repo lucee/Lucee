@@ -104,8 +104,19 @@ public class QueryPartitions {
 	}
 
 	/**
-	 * Call this to add a single row to the proper partition finaizedColumnVals is true when all
-	 * data in the source Query is fully realized and there are no expressions left to evaluate
+	 * Adds empty partition for aggregating empty results
+	 * 
+	 * @param source Source query to get data from
+	 * @param target target query (for column reference) 
+	 * @throws PageException
+	 */
+	public void addEmptyPartition( Query source, Query target ) throws PageException {
+		partitions.put("default", createPartition(target, source, false));
+	}
+
+	/**
+	 * Call this to add a single row to the proper partition finaizedColumnVals is true when all data in
+	 * the source Query is fully realized and there are no expressions left to evaluate
 	 * 
 	 * @param pc PageContext
 	 * @param source Source query to get data from
@@ -131,7 +142,7 @@ public class QueryPartitions {
 			Collection.Key[] sourceColKeys = source.getColumnNames();
 			Collection.Key[] targetColKeys = targetPartition.getColumnNames();
 			for (int col = 0; col < targetColKeys.length; col++) {
-				((QueryImpl) targetPartition).setAt(targetColKeys[col], targetPartition.getRecordcount(), source.getAt(sourceColKeys[col], row), true);
+				((QueryImpl) targetPartition).setAt(targetColKeys[col], targetPartition.getRecordcount(), source.getColumn(sourceColKeys[col]).get(row, null), true);
 			}
 
 		}
@@ -139,17 +150,17 @@ public class QueryPartitions {
 		// be added later, but there's no use filling up the partition with place holders
 		else {
 			for (int cell = 0; cell < columns.length; cell++) {
-				// Literal values get by alias
+				
+				// Literal values
 				if (columns[cell] instanceof Value) {
 					Value v = (Value) columns[cell];
-
-					((QueryImpl) targetPartition).setAt(columnKeys[cell], targetPartition.getRecordcount(), source.getAt(Caster.toKey(v.getAlias()), row, null), true);
+					((QueryImpl) targetPartition).setAt(columnKeys[cell], targetPartition.getRecordcount(), v.getValue(), true);
 				}
 				// A column expressions is set by column Key
 				else if (columns[cell] instanceof ColumnExpression) {
 					ColumnExpression ce = (ColumnExpression) columns[cell];
 
-					((QueryImpl) targetPartition).setAt(columnKeys[cell], targetPartition.getRecordcount(), source.getAt(ce.getColumn(), row, null), true);
+					((QueryImpl) targetPartition).setAt(columnKeys[cell], targetPartition.getRecordcount(), ce.getValue(pc, source, row, null), true);
 				}
 
 			}
@@ -157,7 +168,7 @@ public class QueryPartitions {
 			// list above
 			for (Collection.Key col: additionalColumns) {
 				if (source.containsKey(col)) {
-					((QueryImpl) targetPartition).setAt(col, targetPartition.getRecordcount(), source.getAt(col, row, null), true);
+					((QueryImpl) targetPartition).setAt(col, targetPartition.getRecordcount(), source.getColumn(col).get(row, null), true);
 				}
 			}
 		}
@@ -249,12 +260,12 @@ public class QueryPartitions {
 	}
 
 	/**
-	 * Create new Query for a partition. Needs to have all ColumnExpressions in the final select as
-	 * well as any additional columns required for operation expressions
+	 * Create new Query for a partition. Needs to have all ColumnExpressions in the final select as well
+	 * as any additional columns required for operation expressions
 	 * 
 	 * @param target Query for target data (for column refernces)
 	 * @param source source query we're getting data from
-	 * @param finalizedColumnValsfinalizedColumnVals If we're adding finalized data, just copy it
+	 * @param finalizedColumnVals If we're adding finalized data, just copy it
 	 *            across. Easy. This applies when distincting a result set after it's already been
 	 *            processed
 	 * @return Empty Query with all the needed columns

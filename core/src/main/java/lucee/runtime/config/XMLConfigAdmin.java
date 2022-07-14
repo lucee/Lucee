@@ -1049,21 +1049,25 @@ public final class XMLConfigAdmin {
 		BundleFile _bf = OSGiUtil.getBundleFile(bf.getSymbolicName(), bf.getVersion(), null, null, false, null);
 		if (_bf != null) return _bf;
 
+		ConfigPro ci = ((ConfigPro) config);
+		Log logger = ci.getLog("deploy");
+		logger.log(Log.LEVEL_INFO, "extension", "Install Bundle [" + bf.getSymbolicName() + "-" + bf.getVersion().toString() + ".jar" + "]");
+
 		CFMLEngine engine = CFMLEngineFactory.getInstance();
 		CFMLEngineFactory factory = engine.getCFMLEngineFactory();
 
 		// copy to jar directory
 		File jar = new File(factory.getBundleDirectory(), bf.getSymbolicName() + "-" + bf.getVersion().toString() + (".jar"));
-
-		InputStream is = bf.getInputStream();
-		OutputStream os = new FileOutputStream(jar);
-		try {
-			IOUtil.copy(is, os, false, false);
+		if (!jar.isFile()) {
+			InputStream is = bf.getInputStream();
+			OutputStream os = new FileOutputStream(jar);
+			try {
+				IOUtil.copy(is, os, false, false);
+			}
+			finally {
+				IOUtil.close(is, os);
+			}
 		}
-		finally {
-			IOUtil.close(is, os);
-		}
-
 		return BundleFile.getInstance(jar);
 	}
 
@@ -1210,10 +1214,10 @@ public final class XMLConfigAdmin {
 	/**
 	 * make sure every context has a salt
 	 */
-	public static boolean fixSaltAndPW(Document doc, Config config) {
+	public static boolean fixSaltAndPW(Document doc, Config config, boolean quick) {
 		if (doc == null) return false;
+		long start = System.currentTimeMillis();
 		Element root = doc.getDocumentElement();
-
 		// salt
 		String salt = root.getAttribute("salt");
 		boolean rtn = false;
@@ -1224,7 +1228,7 @@ public final class XMLConfigAdmin {
 		}
 
 		// no password yet
-		if (config instanceof ConfigServer && !root.hasAttribute("hspw") && !root.hasAttribute("pw") && !root.hasAttribute("password")) {
+		if (!quick && config instanceof ConfigServer && !root.hasAttribute("hspw") && !root.hasAttribute("pw") && !root.hasAttribute("password")) {
 			ConfigServer cs = (ConfigServer) config;
 			Resource pwFile = cs.getConfigDir().getRealResource("password.txt");
 			if (pwFile.isFile()) {
@@ -1389,14 +1393,16 @@ public final class XMLConfigAdmin {
 					setClass(logger, null, "appender-", cs.getLogEngine().appenderClassDefintion("console"));
 					setClass(logger, null, "layout-", cs.getLogEngine().layoutClassDefintion("pattern"));
 				}
-				catch (PageException e) {}
+				catch (PageException e) {
+				}
 			}
 			else {
 				try {
 					setClass(logger, null, "appender-", cs.getLogEngine().appenderClassDefintion("resource"));
 					setClass(logger, null, "layout-", cs.getLogEngine().layoutClassDefintion("classic"));
 				}
-				catch (PageException e) {}
+				catch (PageException e) {
+				}
 
 				logger.setAttribute("appender-arguments", "path:" + path);
 			}
@@ -1707,7 +1713,8 @@ public final class XMLConfigAdmin {
 				try {
 					OSGiUtil.uninstall(bl);
 				}
-				catch (BundleException e) {}
+				catch (BundleException e) {
+				}
 			}
 		}
 	}
@@ -1736,7 +1743,8 @@ public final class XMLConfigAdmin {
 				try {
 					OSGiUtil.uninstall(bl);
 				}
-				catch (BundleException e) {}
+				catch (BundleException e) {
+				}
 			}
 		}
 	}
@@ -1753,7 +1761,8 @@ public final class XMLConfigAdmin {
 			}
 			config.getStartups().remove(cd.getClassName());
 		}
-		catch (Exception e) {}
+		catch (Exception e) {
+		}
 	}
 
 	public void updateJDBCDriver(String label, String id, ClassDefinition cd) throws PageException {
@@ -1800,7 +1809,8 @@ public final class XMLConfigAdmin {
 				try {
 					OSGiUtil.uninstall(bl);
 				}
-				catch (BundleException e) {}
+				catch (BundleException e) {
+				}
 			}
 		}
 	}
@@ -1839,7 +1849,8 @@ public final class XMLConfigAdmin {
 				try {
 					OSGiUtil.uninstall(bl);
 				}
-				catch (BundleException e) {}
+				catch (BundleException e) {
+				}
 			}
 		}
 	}
@@ -3807,6 +3818,7 @@ public final class XMLConfigAdmin {
 		try {
 			conn = (HttpURLConnection) updateUrl.openConnection();
 			conn.setRequestMethod("GET");
+			conn.setConnectTimeout(10000);
 			conn.connect();
 			code = conn.getResponseCode();
 		}
@@ -3834,6 +3846,7 @@ public final class XMLConfigAdmin {
 				try {
 					conn = (HttpURLConnection) url.openConnection();
 					conn.setRequestMethod("GET");
+					conn.setConnectTimeout(10000);
 					conn.connect();
 					code = conn.getResponseCode();
 				}
@@ -4663,17 +4676,17 @@ public final class XMLConfigAdmin {
 		}
 	}
 
-	public static void _updateRHExtension(ConfigPro config, Resource ext, boolean reload) throws PageException {
+	public static void _updateRHExtension(ConfigPro config, Resource ext, boolean reload, boolean force) throws PageException {
 		try {
 			XMLConfigAdmin admin = new XMLConfigAdmin(config, null);
-			admin.updateRHExtension(config, ext, reload);
+			admin.updateRHExtension(config, ext, reload, force);
 		}
 		catch (Exception e) {
 			throw Caster.toPageException(e);
 		}
 	}
 
-	public void updateRHExtension(Config config, Resource ext, boolean reload) throws PageException {
+	public void updateRHExtension(Config config, Resource ext, boolean reload, boolean force) throws PageException {
 		RHExtension rhext;
 		try {
 			rhext = new RHExtension(config, ext, true);
@@ -4684,10 +4697,20 @@ public final class XMLConfigAdmin {
 			DeployHandler.moveToFailedFolder(ext.getParentResource(), ext);
 			throw Caster.toPageException(t);
 		}
-		updateRHExtension(config, rhext, reload);
+		updateRHExtension(config, rhext, reload, force);
 	}
 
-	public void updateRHExtension(Config config, RHExtension rhext, boolean reload) throws PageException {
+	public void updateRHExtension(Config config, RHExtension rhext, boolean reload, boolean force) throws PageException {
+
+		try {
+			if (!force && XMLConfigAdmin.hasRHExtensions((ConfigPro) config, rhext.toExtensionDefinition()) != null) {
+				throw new ApplicationException("the extension " + rhext.getName() + " (id: " + rhext.getId() + ") in version " + rhext.getVersion() + " is already installed");
+			}
+		}
+		catch (Exception e) {
+			throw Caster.toPageException(e);
+		}
+
 		ConfigPro ci = (ConfigPro) config;
 		Log logger = ci.getLog("deploy");
 		String type = ci instanceof ConfigWeb ? "web" : "server";
@@ -4715,6 +4738,10 @@ public final class XMLConfigAdmin {
 			cleanBundles(rhext, ci, existing);// clean after populating the new ones
 			// ConfigWebAdmin.updateRHExtension(ci,rhext);
 
+			String extName = "[" + rhext.getName() + ":" + rhext.getVersion() + "]";
+
+			logger.log(Log.LEVEL_INFO, "extension", "Update Extension " + extName);
+
 			ZipInputStream zis = new ZipInputStream(IOUtil.toBufferedInputStream(rhext.getExtensionFile().getInputStream()));
 			ZipEntry entry;
 			String path;
@@ -4738,13 +4765,13 @@ public final class XMLConfigAdmin {
 
 				// flds
 				if (!entry.isDirectory() && startsWith(path, type, "flds") && (StringUtil.endsWithIgnoreCase(path, ".fld") || StringUtil.endsWithIgnoreCase(path, ".fldx"))) {
-					logger.log(Log.LEVEL_INFO, "extension", "Deploy fld [" + fileName + "]");
+					logger.log(Log.LEVEL_INFO, "extension", "Deploy FLD [" + fileName + "]");
 					updateFLD(zis, fileName, false);
 					reloadNecessary = true;
 				}
 				// tlds
 				if (!entry.isDirectory() && startsWith(path, type, "tlds") && (StringUtil.endsWithIgnoreCase(path, ".tld") || StringUtil.endsWithIgnoreCase(path, ".tldx"))) {
-					logger.log(Log.LEVEL_INFO, "extension", "Deploy tld/tldx [" + fileName + "]");
+					logger.log(Log.LEVEL_INFO, "extension", "Deploy TLD/TLDX [" + fileName + "]");
 					updateTLD(zis, fileName, false);
 					reloadNecessary = true;
 				}
@@ -4752,7 +4779,7 @@ public final class XMLConfigAdmin {
 				// tags
 				if (!entry.isDirectory() && startsWith(path, type, "tags")) {
 					String sub = subFolder(entry);
-					logger.log(Log.LEVEL_INFO, "extension", "Deploy tag [" + sub + "]");
+					logger.log(Log.LEVEL_INFO, "extension", "Deploy Tag [" + sub + "]");
 					updateTag(zis, sub, false);
 					// clearTags=true;
 					reloadNecessary = true;
@@ -4761,7 +4788,7 @@ public final class XMLConfigAdmin {
 				// functions
 				if (!entry.isDirectory() && startsWith(path, type, "functions")) {
 					String sub = subFolder(entry);
-					logger.log(Log.LEVEL_INFO, "extension", "Deploy function [" + sub + "]");
+					logger.log(Log.LEVEL_INFO, "extension", "Deploy Function [" + sub + "]");
 					updateFunction(zis, sub, false);
 					// clearFunction=true;
 					reloadNecessary = true;
@@ -4770,7 +4797,7 @@ public final class XMLConfigAdmin {
 				// mappings
 				if (!entry.isDirectory() && (startsWith(path, type, "archives") || startsWith(path, type, "mappings"))) {
 					String sub = subFolder(entry);
-					logger.log(Log.LEVEL_INFO, "extension", "deploy mapping " + sub);
+					logger.log(Log.LEVEL_INFO, "extension", "Deploy Mapping [" + sub + "]");
 					updateArchive(zis, sub, false);
 					reloadNecessary = true;
 					// clearFunction=true;
@@ -4781,7 +4808,7 @@ public final class XMLConfigAdmin {
 						&& (StringUtil.endsWithIgnoreCase(path, "." + Constants.getCFMLComponentExtension())
 								|| StringUtil.endsWithIgnoreCase(path, "." + Constants.getLuceeComponentExtension()))) {
 					String sub = subFolder(entry);
-					logger.log(Log.LEVEL_INFO, "extension", "Deploy event-gateway [" + sub + "]");
+					logger.log(Log.LEVEL_INFO, "extension", "Deploy Event Gateway [" + sub + "]");
 					updateEventGateway(zis, sub, false);
 				}
 
@@ -4789,7 +4816,7 @@ public final class XMLConfigAdmin {
 				String realpath;
 				if (!entry.isDirectory() && startsWith(path, type, "context") && !StringUtil.startsWith(fileName(entry), '.')) {
 					realpath = path.substring(8);
-					logger.log(Log.LEVEL_INFO, "extension", "Deploy context [" + realpath + "]");
+					logger.log(Log.LEVEL_INFO, "extension", "Deploy Context [" + realpath + "]");
 					updateContext(zis, realpath, false, false);
 				}
 				// web contextS
@@ -4797,7 +4824,7 @@ public final class XMLConfigAdmin {
 				if (!entry.isDirectory() && ((first = startsWith(path, type, "webcontexts")) || startsWith(path, type, "web.contexts"))
 						&& !StringUtil.startsWith(fileName(entry), '.')) {
 					realpath = path.substring(first ? 12 : 13);
-					logger.log(Log.LEVEL_INFO, "extension", "Deploy webcontext [" + realpath + "]");
+					logger.log(Log.LEVEL_INFO, "extension", "Deploy Webcontext [" + realpath + "]");
 					updateWebContexts(zis, realpath, false, false);
 				}
 				// applications
@@ -4809,26 +4836,26 @@ public final class XMLConfigAdmin {
 					else index = 4; // web
 
 					realpath = path.substring(index);
-					logger.log(Log.LEVEL_INFO, "extension", "Deploy application [" + realpath + "]");
+					logger.log(Log.LEVEL_INFO, "extension", "Deploy Application [" + realpath + "]");
 					updateApplication(zis, realpath, false);
 				}
 				// configs
 				if (!entry.isDirectory() && (startsWith(path, type, "config")) && !StringUtil.startsWith(fileName(entry), '.')) {
 					realpath = path.substring(7);
-					logger.log(Log.LEVEL_INFO, "extension", "Deploy config [" + realpath + "]");
+					logger.log(Log.LEVEL_INFO, "extension", "Deploy Config [" + realpath + "]");
 					updateConfigs(zis, realpath, false, false);
 				}
 				// components
 				if (!entry.isDirectory() && (startsWith(path, type, "components")) && !StringUtil.startsWith(fileName(entry), '.')) {
 					realpath = path.substring(11);
-					logger.log(Log.LEVEL_INFO, "extension", "Deploy component [" + realpath + "]");
+					logger.log(Log.LEVEL_INFO, "extension", "Deploy Component [" + realpath + "]");
 					updateComponent(zis, realpath, false, false);
 				}
 
 				// plugins
 				if (!entry.isDirectory() && (startsWith(path, type, "plugins")) && !StringUtil.startsWith(fileName(entry), '.')) {
 					realpath = path.substring(8);
-					logger.log(Log.LEVEL_INFO, "extension", "Deploy plugin [" + realpath + "]");
+					logger.log(Log.LEVEL_INFO, "extension", "Deploy Plugin [" + realpath + "]");
 					updatePlugin(zis, realpath, false);
 				}
 
@@ -4857,8 +4884,10 @@ public final class XMLConfigAdmin {
 					if (cd != null && cd.isBundle()) {
 						_updateCache(cd);
 						reloadNecessary = true;
+						logger.info("extension", "Update Cache [" + cd + "] from extension " + extName );
+					} else {
+						logger.error("extension", "Unsupported config, failed to update Cache [" + cd + "] from extension " + extName);
 					}
-					logger.info("extension", "Update cache [" + cd + "] from extension [" + rhext.getName() + ":" + rhext.getVersion() + "]");
 				}
 			}
 
@@ -4873,8 +4902,10 @@ public final class XMLConfigAdmin {
 					if (!StringUtil.isEmpty(_id) && cd != null && cd.hasClass()) {
 						_updateCacheHandler(_id, cd);
 						reloadNecessary = true;
+						logger.info("extension", "Update Cache Handler [" + cd + "] from extension " + extName);
+					} else {
+						logger.error("extension", "Unsupported config, failed to update Cache Handler [" + cd + "] from extension " + extName);
 					}
-					logger.info("extension", "Update cache handler [" + cd + "] from extension [" + rhext.getName() + ":" + rhext.getVersion() + "]");
 				}
 			}
 
@@ -4888,8 +4919,10 @@ public final class XMLConfigAdmin {
 					if (cd != null && cd.hasClass()) {
 						_updateAMFEngine(cd, map.get("caster"), map.get("configuration"));
 						reloadNecessary = true;
+						logger.info("extension", "Update AMF engine [" + cd + "] from extension " + extName);
+					} else {
+						logger.error("extension", "Unsupported config, failed to update AMF engine [" + cd + "] from extension " + extName);
 					}
-					logger.info("extension", "Update AMF engine [" + cd + "] from extension [" + rhext.getName() + ":" + rhext.getVersion() + "]");
 				}
 			}
 
@@ -4903,8 +4936,10 @@ public final class XMLConfigAdmin {
 					if (cd != null && cd.hasClass()) {
 						_updateSearchEngine(cd);
 						reloadNecessary = true;
+						logger.info("extension", "Update Search Engine [" + cd + "] from extension " + extName);
+					} else {
+						logger.error("extension", "Unsupported config, failed to update Search Engine [" + cd + "] from extension " + extName);
 					}
-					logger.info("extension", "Update search engine [" + cd + "] from extension [" + rhext.getName() + ":" + rhext.getVersion() + "]");
 				}
 			}
 
@@ -4922,8 +4957,10 @@ public final class XMLConfigAdmin {
 						args.remove("scheme");
 						_updateResourceProvider(scheme, cd, args);
 						reloadNecessary = true;
+						logger.info("extension", "Update Resource Provider [" + scheme + "] from extension " + extName);
+					} else{
+						logger.error("extension", "Unsupported config, failed to update Resource Provider [" + scheme + "] from extension " + extName);
 					}
-					logger.info("extension", "Update resource provider [" + scheme + "] from extension [" + rhext.getName() + ":" + rhext.getVersion() + "]");
 				}
 			}
 
@@ -4938,8 +4975,10 @@ public final class XMLConfigAdmin {
 					if (cd != null && cd.hasClass()) {
 						_updateORMEngine(cd);
 						reloadNecessary = true;
+						logger.info("extension", "Update ORM engine [" + cd + "] from extension " + extName);
+					} else {
+						logger.error("extension", "Unsupported config, failed to update ORM engine [" + cd + "] from extension " + extName);
 					}
-					logger.info("extension", "Update orm engine [" + cd + "] from extension [" + rhext.getName() + ":" + rhext.getVersion() + "]");
 				}
 			}
 
@@ -4954,8 +4993,10 @@ public final class XMLConfigAdmin {
 					if (cd != null && cd.hasClass()) {
 						_updateWebserviceHandler(cd);
 						reloadNecessary = true;
+						logger.info("extension", "Update Webservice Handler [" + cd + "] from extension " + extName);
+					} else {
+						logger.error("extension", "Unsupported config, failed to update Webservice Handler [" + cd + "] from extension " + extName);
 					}
-					logger.info("extension", "Update webservice handler [" + cd + "] from extension [" + rhext.getName() + ":" + rhext.getVersion() + "]");
 				}
 			}
 
@@ -4970,8 +5011,10 @@ public final class XMLConfigAdmin {
 						_updateMonitorEnabled(true);
 						_updateMonitor(cd, map.get("type"), map.get("name"), true);
 						reloadNecessary = true;
+						logger.info("extension", "Update Monitor Engine [" + cd + "] from extension " + extName);
+					} else {
+						logger.error("extension", "Unsupported config, failed to update Monitor Engine [" + cd + "] from extension " + extName);
 					}
-					logger.info("extension", "Update monitor engine [" + cd + "] from extension [" + rhext.getName() + ":" + rhext.getVersion() + "]");
 				}
 			}
 
@@ -4987,8 +5030,10 @@ public final class XMLConfigAdmin {
 					if (cd != null && cd.isBundle()) {
 						_updateJDBCDriver(_label, _id, cd);
 						reloadNecessary = true;
+						logger.info("extension", "Update JDBC Driver [" + _label + ":" + cd + "] from extension " + extName);
+					} else {
+						logger.error("extension", "Unsupported config, failed to update JDBC Driver [" + _label + ":" + cd + "] from extension " + extName);
 					}
-					logger.info("extension", "Update JDBC Driver [" + _label + ":" + cd + "] from extension [" + rhext.getName() + ":" + rhext.getVersion() + "]");
 				}
 			}
 
@@ -5002,8 +5047,10 @@ public final class XMLConfigAdmin {
 					if (cd != null && cd.isBundle()) {
 						_updateStartupHook(cd);
 						reloadNecessary = true;
+						logger.info("extension", "Update Startup Hook [" + cd + "] from extension " + extName);
+					} else {
+						logger.error("extension", "Unsupported config, failed to update Startup Hook [" + cd + "] from extension " + extName);
 					}
-					logger.info("extension", "Update Startup Hook [" + cd + "] from extension [" + rhext.getName() + ":" + rhext.getVersion() + "]");
 				}
 			}
 
@@ -5033,7 +5080,7 @@ public final class XMLConfigAdmin {
 					_updateMapping(virtual, physical, archive, primary, inspect, toplevel, lmode, ltype, readonly);
 					reloadNecessary = true;
 
-					logger.info("extension", "Update Mapping [" + virtual + "]");
+					logger.info("extension", "Update Mapping [" + virtual + "] from extension " + extName);
 				}
 			}
 
@@ -5069,9 +5116,10 @@ public final class XMLConfigAdmin {
 
 					if (!StringUtil.isEmpty(id) && (!StringUtil.isEmpty(cfcPath) || (cd != null && cd.hasClass()))) {
 						_updateGatewayEntry(id, cd, cfcPath, listenerCfcPath, startupMode, custom, readOnly);
+						logger.info("extension", "Update Event Gateway entry [" + id + "] from extension " + extName);
+					} else {
+						logger.error("extension", "Unsupported config, failed to update Event Gateway entry [" + id + "] from extension " + extName);
 					}
-
-					logger.info("extension", "Update event gateway entry [" + id + "] from extension [" + rhext.getName() + ":" + rhext.getVersion() + "]");
 				}
 			}
 
@@ -5123,6 +5171,9 @@ public final class XMLConfigAdmin {
 		Log logger = ci.getLog("deploy");
 
 		// MUST check replacementRH everywhere
+		String extName = "[" + rhe.getName() + ":" + rhe.getVersion() + "]";
+
+		logger.log(Log.LEVEL_INFO, "extension", "Remove Extension " + extName);
 
 		try {
 			// remove the bundles
@@ -5181,7 +5232,7 @@ public final class XMLConfigAdmin {
 						_removeCacheHandler(_id);
 						// reload=true;
 					}
-					logger.info("extension", "Remove cache handler [" + cd + "] from extension [" + rhe.getName() + ":" + rhe.getVersion() + "]");
+					logger.info("extension", "Remove Cache Handler [" + cd + "] from extension " + extName);
 				}
 			}
 
@@ -5196,7 +5247,7 @@ public final class XMLConfigAdmin {
 						_removeCache(cd);
 						// reload=true;
 					}
-					logger.info("extension", "Remove cache handler [" + cd + "] from extension [" + rhe.getName() + ":" + rhe.getVersion() + "]");
+					logger.info("extension", "Remove Cache Handler [" + cd + "] from extension " + extName);
 				}
 			}
 
@@ -5211,7 +5262,7 @@ public final class XMLConfigAdmin {
 						_removeSearchEngine();
 						// reload=true;
 					}
-					logger.info("extension", "Remove search engine [" + cd + "] from extension [" + rhe.getName() + ":" + rhe.getVersion() + "]");
+					logger.info("extension", "Remove Search Engine [" + cd + "] from extension " + extName);
 				}
 			}
 
@@ -5226,7 +5277,7 @@ public final class XMLConfigAdmin {
 					if (cd != null && cd.hasClass()) {
 						_removeResourceProvider(scheme);
 					}
-					logger.info("extension", "Remove resource [" + cd + "] from extension [" + rhe.getName() + ":" + rhe.getVersion() + "]");
+					logger.info("extension", "Remove Resource Provider [" + cd + "] from extension " + extName);
 				}
 			}
 
@@ -5241,7 +5292,7 @@ public final class XMLConfigAdmin {
 						_removeAMFEngine();
 						// reload=true;
 					}
-					logger.info("extension", "Remove search engine [" + cd + "] from extension [" + rhe.getName() + ":" + rhe.getVersion() + "]");
+					logger.info("extension", "Remove AMF Engine [" + cd + "] from extension " + extName);
 				}
 			}
 
@@ -5257,7 +5308,7 @@ public final class XMLConfigAdmin {
 						_removeORMEngine();
 						// reload=true;
 					}
-					logger.info("extension", "Remove orm engine [" + cd + "] from extension [" + rhe.getName() + ":" + rhe.getVersion() + "]");
+					logger.info("extension", "Remove ORM Engine [" + cd + "] from extension " + extName);
 				}
 			}
 
@@ -5273,7 +5324,7 @@ public final class XMLConfigAdmin {
 						_removeWebserviceHandler();
 						// reload=true;
 					}
-					logger.info("extension", "Remove webservice handler [" + cd + "] from extension [" + rhe.getName() + ":" + rhe.getVersion() + "]");
+					logger.info("extension", "Remove Webservice Handler [" + cd + "] from extension " + extName);
 				}
 			}
 
@@ -5291,7 +5342,7 @@ public final class XMLConfigAdmin {
 					_removeMonitor(map.get("type"), name = map.get("name"));
 					// reload=true;
 					// }
-					logger.info("extension", "Remove monitor [" + name + "] from extension [" + rhe.getName() + ":" + rhe.getVersion() + "]");
+					logger.info("extension", "Remove Monitor [" + name + "] from extension " + extName);
 				}
 			}
 
@@ -5305,7 +5356,7 @@ public final class XMLConfigAdmin {
 					if (cd != null && cd.isBundle()) {
 						_removeJDBCDriver(cd);
 					}
-					logger.info("extension", "Remove JDBC Driver [" + cd + "] from extension [" + rhe.getName() + ":" + rhe.getVersion() + "]");
+					logger.info("extension", "Remove JDBC Driver [" + cd + "] from extension " + extName);
 				}
 			}
 
@@ -5319,7 +5370,7 @@ public final class XMLConfigAdmin {
 					if (cd != null && cd.isBundle()) {
 						_removeStartupHook(cd);
 					}
-					logger.info("extension", "Remove Startup Hook [" + cd + "] from extension [" + rhe.getName() + ":" + rhe.getVersion() + "]");
+					logger.info("extension", "Remove Startup Hook [" + cd + "] from extension " + extName);
 				}
 			}
 
@@ -5332,7 +5383,7 @@ public final class XMLConfigAdmin {
 					map = itl.next();
 					virtual = map.get("virtual");
 					_removeMapping(virtual);
-					logger.info("extension", "remove Mapping [" + virtual + "]");
+					logger.info("extension", "Remove Mapping [" + virtual + "] from extension " + extName);
 				}
 			}
 
@@ -5346,7 +5397,7 @@ public final class XMLConfigAdmin {
 					id = Caster.toString(map.get("id"), null);
 					if (!StringUtil.isEmpty(id)) {
 						_removeGatewayEntry(id);
-						logger.info("extension", "remove event gateway entry [" + id + "]");
+						logger.info("extension", "Remove Event Gateway entry [" + id + "] from extension " + extName);
 					}
 				}
 			}
@@ -5386,7 +5437,7 @@ public final class XMLConfigAdmin {
 			ExceptionUtil.rethrowIfNecessary(t);
 			// failed to uninstall, so we install it again
 			try {
-				updateRHExtension(config, rhe.getExtensionFile(), true);
+				updateRHExtension(config, rhe.getExtensionFile(), true, true);
 				// RHExtension.install(config, rhe.getExtensionFile());
 			}
 			catch (Throwable t2) {
@@ -5524,7 +5575,7 @@ public final class XMLConfigAdmin {
 		if (ArrayUtil.isEmpty(names)) return;
 		Resource file = config.getTldFile();
 		for (int i = 0; i < names.length; i++) {
-			logger.log(Log.LEVEL_INFO, "extension", "Remove TLD file " + names[i]);
+			logger.log(Log.LEVEL_INFO, "extension", "Remove TLD file [" + names[i] + "]");
 			removeFromDirectory(file, names[i]);
 		}
 	}
@@ -5533,7 +5584,7 @@ public final class XMLConfigAdmin {
 		if (ArrayUtil.isEmpty(relpath)) return;
 		Resource dir = config.getEventGatewayDirectory();// get Event gateway Directory
 		for (int i = 0; i < relpath.length; i++) {
-			logger.log(Log.LEVEL_INFO, "extension", "Remove Event Gateway " + relpath[i]);
+			logger.log(Log.LEVEL_INFO, "extension", "Remove Event Gateway [" + relpath[i] + "]");
 			removeFromDirectory(dir, relpath[i]);
 		}
 	}
@@ -5542,7 +5593,7 @@ public final class XMLConfigAdmin {
 		if (ArrayUtil.isEmpty(relpath)) return;
 		Resource file = config.getDefaultFunctionMapping().getPhysical();
 		for (int i = 0; i < relpath.length; i++) {
-			logger.log(Log.LEVEL_INFO, "extension", "Remove Function " + relpath[i]);
+			logger.log(Log.LEVEL_INFO, "extension", "Remove Function [" + relpath[i] +"]");
 			removeFromDirectory(file, relpath[i]);
 		}
 	}
@@ -5557,7 +5608,7 @@ public final class XMLConfigAdmin {
 			ZipEntry entry = file.getEntry("META-INF/MANIFEST.MF");
 
 			// no manifest
-			if (entry == null) throw new ApplicationException("Cannot remove " + Constants.NAME + " Archive [" + archive + "], file is to old, the file does not have a MANIFEST.");
+			if (entry == null) throw new ApplicationException("Cannot remove [" + Constants.NAME + "] Archive [" + archive + "], file is too old, the file does not have a MANIFEST.");
 
 			is = file.getInputStream(entry);
 			Manifest manifest = new Manifest(is);
@@ -6082,7 +6133,7 @@ public final class XMLConfigAdmin {
 		if (ArrayUtil.isEmpty(realpathes)) return false;
 		boolean force = false;
 		for (int i = 0; i < realpathes.length; i++) {
-			logger.log(Log.LEVEL_INFO, "extension", "remove " + realpathes[i]);
+			logger.log(Log.LEVEL_INFO, "extension", "Remove [" + realpathes[i] + "]");
 			if (_removeContext(config, realpathes[i], store)) force = true;
 		}
 		return force;
@@ -6483,7 +6534,8 @@ public final class XMLConfigAdmin {
 				try {
 					tmp = new RHExtension(config, children[i]);
 				}
-				catch (Exception e) {}
+				catch (Exception e) {
+				}
 
 				if (tmp != null && ed.equals(tmp)) return tmp;
 			}

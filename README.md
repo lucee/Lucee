@@ -31,8 +31,8 @@ Lucee provides a compatibility layer for Adobe ColdFusion &copy;  CFML using les
 
 You can [build Lucee from source](https://docs.lucee.org/guides/working-with-source.html) or grab one of our distributions:
 
-- [Lucee Express](http://lucee.org/downloads.html) (just unzip and run; delete to clean up)
-- [Installers for Windows, Linux and OSX](http://lucee.org/downloads.html)
+- [Lucee Express](https://lucee.org/downloads.html) (just unzip and run; delete to clean up)
+- [Installers for Windows, Linux and OSX](https://lucee.org/downloads.html)
 - [Official Dockerfiles and Docker images](https://github.com/lucee/lucee-dockerfiles)
 
 Alternatively try the super-useful [CommandBox](https://www.ortussolutions.com/products/commandbox) standalone developer tools for CFML powered by Lucee.
@@ -49,7 +49,7 @@ Alternatively try the super-useful [CommandBox](https://www.ortussolutions.com/p
 - [Lucee Lang Forum](http://lang.lucee.org/); hacking on Lucee itself
 - [Lucee Bug Tracker](https://luceeserver.atlassian.net/projects/LDEV/issues)
 
-If you are [looking for commercial support](http://lucee.org/members.html), you might try one of the LAS Members.
+If you are [looking for commercial support](https://lucee.org/members.html), you might try one of the LAS Members.
 
 ## System Requirements
 
@@ -112,4 +112,4 @@ Lucee Server is licensed under the Lesser GNU General Public License Version 2.1
 
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
 
-Lucee logo and related marks belong to [Lucee Association Switzerland](http://lucee.org/).
+Lucee logo and related marks belong to [Lucee Association Switzerland](https://lucee.org/).

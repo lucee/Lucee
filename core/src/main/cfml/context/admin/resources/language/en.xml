@@ -63,9 +63,12 @@
 	<data key="services.update.downup">Upgrade / Downgrade</data>
 	<data key="services.update.downupBtn">Execute</data>
 	<data key="services.update.noUpdateDesc">There are currently no {type} available for your version.</data>
-	<data key="services.update.titleDesc">Upgrade (or Downgrade) your Lucee version ({version}) to any version * you like.</data>
+	<!-- <data key="services.update.titleDesc">Upgrade (or Downgrade) your Lucee version ({version}) to any version * you like.</data> -->
+	<data key="services.update.titleDesc">Upgrade or Downgrade the version by selecting from the drop-down box below.</data>
 	<data key="services.update.titleDesc2">You cannot downgrade below {min-version} because your lucee.jar has bundled this version. To go below this version you need to replace your lucee.jar with an older version.</data>
 	<data key="services.update.downgradeVersion">To downgrade your version below {minVersion} you need to replace your lucee.jar with an older version one you can download {url}. This is because the lucee.jars always bundles a version itself and it will always use at least that version.</data>
+	<data key="services.update.installExtns">All of the extensions are installed / Unable to connect to the update server to get the list of Available Extensions. Please check your Internet Connection.</data>
+	<data key="services.update.chkInternet">Unable to connect to the update server to get the list of Available Extensions. Please check your Internet Connection</data>
 
 	<data key="services.certificate.desc">List SSL Certificates for a specific Host or install them.</data>
 	<data key="services.certificate.host">Host</data>
@@ -331,7 +334,7 @@
 	<data key="ext.documentationUrl">Documentation</data>	
 	<data key="ext.installeddesc">These applications are already installed on the system.</data>
 	<data key="ext.installedServer">Installed in Server Administrator</data>
-	<data key="ext.installedServerDesc">This Extension is already installed in the Server Administrator, you have 2 options, you can overwrite it for the current web context by installing it here as well or you can change it in the Server Administrator what will affect all Web Contexts.</data>
+	<data key="ext.installedServerDesc">This Extension is already installed in the Server Administrator, you have 2 options, you can overwrite it for the current web context by installing it here as well or you can change it in the Server Administrator that will affect all Web Contexts.</data>
 	<data key="ext.free">Free</data>
 	<data key="ext.price">Price</data>
 	<data key="ext.licenseagreement">License agreement</data>
@@ -341,7 +344,7 @@
 	<data key="ext.nofileuploaded">You have not uploaded a file!&lt;br&gt;Please first choose a file.</data>
 	<data key="ext.extThumbnail">Extension thumbnail</data>
 	<data key="ext.msgAfterNotAgreed">Because you did not agree with the license, the extension was not installed.&lt;br&gt;In case you installed the extension before, you will need to uninstall it, if you do not wish to agree with it's license anymore.</data>
-	<data key="ext.extzipfile">Extension zip file</data>
+	<data key="ext.extzipfile">Extension file (.lex)</data>
 	<data key="ext.viewdetails">View details</data>
 	<data key="ext.theError">The error</data>
 	<data key="ext.errorFileUpload">The file could not be uploaded.</data>
@@ -374,6 +377,7 @@
 	<data key="ext.upDownDesc">Update or downgrade your already installed version.</data>
 	<data key="ext.uninstallDesc">Uninstall this version</data>
 	<data key="ext.searchbox">There is no extension available with name</data>
+	<data key="ext.providerWarning">This extension is not provided by the Lucee Association Switzerland and does not neccessarily follow our guidelines. This extension is not reviewed by the Lucee Association Switzerland. For any sugestion to improve the Extension or any issue you encounter, please contact the author of the extension directly.</data>
 	<data key="Buttons.go">go</data>
 	<data key="Buttons.upDown">update / downgrade</data>
 
@@ -1175,7 +1179,7 @@ sct[""bracketNotation""] --> keyname: "bracketNotation"</data>
 	<data key="settings.dballowed">Allowed operations</data>
 	<data key="Settings.dbStorage">Storage</data>
 	<data key="Settings.openConn">Open Connections</data>
-	<data key="Settings.dbStorageDesc">Allow to use this datasource as client/session storage.</data>
+	<data key="Settings.dbStorageDesc">Allow using this datasource for client/session/log storage.</data>
 	<data key="settings.dbport">Port</data>
 	<data key="settings.preservesinglequotesdescription">Preserve single quotes (&quot;) in the SQL defined with the tag cfquery</data>
 	<data key="settings.dbconntimeout">Connection timeout (in minutes)</data>
@@ -1311,11 +1315,11 @@ If the timezone of your Lucee instance and your database is different, this can 
 	<data key="overview.mailinglist">Mailing list</data>
 	<data key="overview.mailinglistDesc">The mailing list is the focus of our community support program - help for users by users. </data>
 
-	<data key="overview.warning.warningMsg">The REST Servlet is not configured in your enviroment!</data>	
+	<data key="overview.warning.warningMsg">The REST Servlet is not configured in your environment!</data>	
 	<data key="overview.warning.JavaVersion">You are running Lucee with Java</data>	
 	<data key="overview.warning.JavaVersionNotSupport"> Lucee does not formally support this version of Java. Consider updating to the latest Java version for security and performance reasons.</data>
 	<data key="overview.warning.Java7NotSupport">Java 7 has been End-of-Life'd since April 2015.</data>
-	<data key="overview.contexts.desc">You can label your web contexts here, so they are more clear distinguishable for use with extensions etc. </data>
+	<data key="overview.contexts.desc">You can label your web contexts here, so they are more clear distinguishable for use with extensions etc. The default label of a web context is the MD5 hash of its webroot.</data>
 
 	<data key="overview.professional">Professional Support</data>
 	<data key="overview.professionalDesc">For many organizations and individuals, the security of a formal paid support contract is a necessity and we're pleased to offer four standard packages as well as the flexibility to create a custom package should your needs go beyond our standard offerings.</data>
@@ -1455,6 +1459,8 @@ If the timezone of your Lucee instance and your database is different, this can 
 	<data key="Settings.cache.storage">Storage</data>
 	<data key="Settings.cache.storageDesc">Allow to use this cache as client/session storage.</data>
 	<data key="settings.cache.name">Name</data>
+	<data key="settings.cache.clearCacheTitle">Clear cache</data>
+	<data key="settings.cache.clearCache">Clear cache ( {count} element(s) )</data>
 	<data key="settings.cache.class">Class</data>
 	<data key="settings.cache.titleCreate">Create a new cache connection</data>
 	<data key="settings.cache.titleExisting">List of existing cache connections</data>

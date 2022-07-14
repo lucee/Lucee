@@ -267,7 +267,8 @@ public final class HSQLDBHandler {
 				query.setExecutionTime(stopwatch.time());
 				return query;
 			}
-			catch (PageException ex) {}
+			catch (PageException ex) {
+			}
 
 		}
 		catch (PageException e) {

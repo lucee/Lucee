@@ -20,7 +20,7 @@ Please read our docs on working with the Lucee source code: https://docs.lucee.o
 
 # Submission guidelines
 
-* Please do not send pull requests to the `master` branch.  All new develpment happens on a version branch such as `5.0` and is merged into `master` once it is released.
+* Please do not send pull requests to the `master` branch.  All new development happens on a version branch such as `5.0` and is merged into `master` once it is released.
 * Create a feature branch off the version branch for each pull you want to create.  
 * Please include the ticket number in your commit messages.
 * Make sure your branch is rebased with the latest changes  from the upstream repo before submitting your pull

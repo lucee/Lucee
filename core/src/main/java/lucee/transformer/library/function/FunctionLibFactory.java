@@ -331,7 +331,8 @@ public final class FunctionLibFactory extends DefaultHandler {
 				try {
 					lib.setUri(value);
 				}
-				catch (URISyntaxException e) {}
+				catch (URISyntaxException e) {
+				}
 			}
 			else if (inside.equals("display-name")) lib.setDisplayName(value);
 			else if (inside.equals("description")) lib.setDescription(value);

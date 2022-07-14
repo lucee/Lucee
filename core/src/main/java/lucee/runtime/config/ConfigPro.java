@@ -18,6 +18,7 @@ import lucee.commons.io.res.type.compress.Compress;
 import lucee.commons.io.res.util.ResourceClassLoader;
 import lucee.commons.lang.CharSet;
 import lucee.commons.lang.ClassException;
+import lucee.commons.lang.types.RefBoolean;
 import lucee.runtime.CIPage;
 import lucee.runtime.Mapping;
 import lucee.runtime.PageContext;
@@ -143,7 +144,7 @@ public interface ConfigPro extends Config {
 
 	public TimeSpan getCachedAfterTimeRange();
 
-	public Log getLog(String name, boolean createIfNecessary);
+	public Log getLog(String name, boolean createIfNecessary) throws PageException;
 
 	public Map<String, LoggerAndSourceData> getLoggers();
 
@@ -216,6 +217,8 @@ public interface ConfigPro extends Config {
 	public Resource getEventGatewayDirectory();
 
 	public void clearComponentCache();
+
+	public void clearApplicationCache();
 
 	public Map<String, ConfigBase.Startup> getStartups();
 
@@ -323,4 +326,10 @@ public interface ConfigPro extends Config {
 	public long lastModified();
 
 	public Collection<RHExtension> getAllRHExtensions();
+
+	public PageSource getApplicationPageSource(PageContext pc, String path, String filename, int mode, RefBoolean isCFC);
+
+	public void putApplicationPageSource(String path, PageSource ps, String filename, int mode, boolean isCFC);
+
+	public TimeSpan getApplicationPathhCacheTimeout();
 }

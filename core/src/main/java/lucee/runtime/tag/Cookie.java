@@ -67,7 +67,7 @@ public final class Cookie extends TagImpl {
 
 	private boolean httponly;
 	private boolean preservecase;
-	private boolean encode = true;
+	private Boolean encode = null;
 
 	private short samesite = SessionCookieData.SAMESITE_EMPTY;
 
@@ -82,7 +82,7 @@ public final class Cookie extends TagImpl {
 		name = null;
 		httponly = false;
 		preservecase = false;
-		encode = true;
+		encode = null;
 		samesite = SessionCookieData.SAMESITE_EMPTY;
 	}
 

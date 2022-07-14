@@ -82,10 +82,10 @@
 			<cfif form.rememberMe != "s">
 				<cfcookie
 					expires="#dateAdd(form.rememberMe, 1, now())#"
-					name="lucee_admin_pw_#server.lucee.version#_#ad#"
+					name="lucee_admin_pw_#ad#"
 					value="#hashedPassword#">
 			<cfelse>
-				<cfcookie expires="Now" name="lucee_admin_pw_#server.lucee.version#_#ad#" value="">
+				<cfcookie expires="Now" name="lucee_admin_pw_#ad#" value="">
 			</cfif>
 			<cfif isDefined("cookie.lucee_admin_lastpage") && cookie.lucee_admin_lastpage != "logout">
 				<cfset url.action = cookie.lucee_admin_lastpage>
@@ -112,20 +112,21 @@
 		<cfif form.rememberMe != "s">
 			<cfcookie
 				expires="#dateAdd(form.rememberMe,1,now())#"
-				name="lucee_admin_pw_#server.lucee.version#_#ad#"
+				name="lucee_admin_pw_#ad#"
 				value="#hashedPassword#">
 		<cfelse>
-			<cfcookie expires="Now" name="lucee_admin_pw_#server.lucee.version#_#ad#" value="">
+			<cfcookie expires="Now" name="lucee_admin_pw_#ad#" value="">
 		</cfif>
 	</cfif>
 </cfif>
-
 <!--- cookie ---->
+
 <cfset fromCookie=false>
-<cfif !structKeyExists(session, "password" & request.adminType) && structKeyExists(cookie,'lucee_admin_pw_#server.lucee.version#_#ad#')>
+<cfif !structKeyExists(session, "password" & request.adminType) && structKeyExists(cookie,'lucee_admin_pw_#ad#')>
 	<cfset fromCookie=true>
+	
 	<cftry>
-		<cfset session["password" & ad]=cookie['lucee_admin_pw_#server.lucee.version#_#ad#']>
+		<cfset session["password" & ad]=cookie['lucee_admin_pw_#ad#']>
 		<cfcatch></cfcatch>
 	</cftry>
 </cfif>
@@ -487,10 +488,11 @@
 	</cfif>
 <cfelse>
 	<cfsavecontent variable="content">
-		<cfif !findOneOf("\/",current.action)>
-			<cfinclude template="#current.action#.cfm">
+		<cfif !findOneOf("\/",current.action) && fileExists("./#current.action#.cfm")>
+			<cfinclude template="./#current.action#.cfm">
 		<cfelse>
 			<cfset current.label = "Error">
+			<cfheader statuscode="404">
 			invalid action definition
 		</cfif>
 	</cfsavecontent>
@@ -503,6 +505,7 @@
 				$(function() {
 					initMenu();
 					__blockUI=function() {
+						chartTimer = null; // stop the overview page graphs from updating after navigation
 						setTimeout(createWaitBlockUI(<cfoutput>"#JSStringFormat(stText.general.wait)#"</cfoutput>),1000);
 					}
 					$('.submit,.menu_inactive,.menu_active').click(__blockUI);
@@ -524,7 +527,7 @@
 		</cfmodule>
 	</cfif>
 </cfif>
-<cfif (current.action != "overview" || current.action != "chartAjax") && current.action != "services.restart">
+<cfif (current.action != "changeTo" || current.action != "overview" || current.action != "chartAjax") && current.action != "services.restart">
 	<cfcookie name="lucee_admin_lastpage" value="overview" expires="NEVER">
 <cfelseif current.action == "services.restart">
 	<cfcookie name="lucee_admin_lastpage" value="services.restart" expires="NEVER">

@@ -79,6 +79,7 @@ import lucee.runtime.ComponentSpecificAccess;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.coder.Base64Coder;
+import lucee.runtime.coder.CoderException;
 import lucee.runtime.component.Member;
 import lucee.runtime.component.Property;
 import lucee.runtime.component.PropertyImpl;
@@ -145,7 +146,8 @@ import lucee.runtime.util.ForEachUtil;
  * This class can cast object of one type to another by CFML rules
  */
 public final class Caster {
-	private Caster() {}
+	private Caster() {
+	}
 	// static Map calendarsMap=new ReferenceMap(ReferenceMap.SOFT,ReferenceMap.SOFT);
 
 	private static final int NUMBERS_MIN = 0;
@@ -2129,8 +2131,10 @@ public final class Caster {
 	}
 
 	private static DecimalFormat df = (DecimalFormat) DecimalFormat.getInstance(Locale.US);// ("#.###########");
+	private static DecimalFormat dfp = (DecimalFormat) DecimalFormat.getInstance(Locale.US);// ("#.###########");
 	static {
 		df.applyLocalizedPattern("#.############");
+		dfp.applyLocalizedPattern("#.###############");
 	}
 
 	public static String toString(double d) {
@@ -2150,6 +2154,33 @@ public final class Caster {
 
 		if (d > l && (d - l) < 0.000000000001) return toString(l);
 		if (l > d && (l - d) < 0.000000000001) return toString(l);
+
+		if (n instanceof Double) return toString(n.doubleValue());
+		return n.toString();
+		// return df.format(d);
+	}
+
+	public static String toStringPrecise(double d) {
+		long l = (long) d;
+		if (l == d) return toString(l);
+
+		if (d > l && (d - l) < 0.000000000000001) return toString(l);
+		if (l > d && (l - d) < 0.000000000000001) return toString(l);
+
+		return dfp.format(d);
+	}
+
+	public static String format(double d) {
+		return dfp.format(d);
+	}
+
+	public static String toStringPrecise(Number n) {
+		double d = n.doubleValue();
+		long l = (long) d;
+		if (l == d) return toString(l);
+
+		if (d > l && (d - l) < 0.000000000000001) return toString(l);
+		if (l > d && (l - d) < 0.000000000000001) return toString(l);
 
 		if (n instanceof Double) return toString(n.doubleValue());
 		return n.toString();
@@ -2755,10 +2786,15 @@ public final class Caster {
 			}
 		}
 		try {
-			return Base64Encoder.decode(toString(o));
+			return Base64Encoder.decode(toString(o), false);
 		}
 		catch (PageException e) {
 			throw new CasterException(o, "binary");
+		}
+		catch (CoderException e) {
+			CasterException ce = new CasterException(e.getMessage());
+			ce.initCause(e);
+			throw ce;
 		}
 	}
 
@@ -3240,7 +3276,8 @@ public final class Caster {
 					}
 					return new TimeSpanImpl(values[0], values[1], values[2], values[3]);
 				}
-				catch (ExpressionException e) {}
+				catch (ExpressionException e) {
+				}
 			}
 		}
 		else if (o instanceof ObjectWrap) {
@@ -3371,7 +3408,8 @@ public final class Caster {
 			try {
 				return toClassName(((ObjectWrap) o).getEmbededObject());
 			}
-			catch (PageException e) {}
+			catch (PageException e) {
+			}
 		}
 		return toClassName(o.getClass());
 	}
@@ -3939,7 +3977,8 @@ public final class Caster {
 					try {
 						val = Caster.castTo(pc, p.getType(), pair.getValue(), false);
 					}
-					catch (PageException e) {}
+					catch (PageException e) {
+					}
 
 					// store in variables and this scope
 					scope.setEL(pair.getName(), val);
@@ -3948,7 +3987,8 @@ public final class Caster {
 				return cfc;
 			}
 		}
-		catch (PageException e) {}
+		catch (PageException e) {
+		}
 		return defaultValue;
 	}
 
@@ -4558,7 +4598,8 @@ public final class Caster {
 				return new ScriptConverter().serialize(value);
 			}
 		}
-		catch (ConverterException e) {}
+		catch (ConverterException e) {
+		}
 		return defaultValue;
 	}
 

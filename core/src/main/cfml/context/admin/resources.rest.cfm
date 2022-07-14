@@ -249,9 +249,11 @@ list all mappings and display necessary edit fields --->
 				</tfoot>
 			</cfif>
 		</table>
+	</cfformClassic>
 
-		<cfif hasAccess>
-			<h2>Create new mapping</h2>
+	<cfif hasAccess>
+		<h2>Create new mapping</h2>
+		<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
 			<table class="maintbl">
 				<tbody>
 					<tr>
@@ -282,6 +284,6 @@ list all mappings and display necessary edit fields --->
 					</tr>
 				</tfoot>
 			</table>
-		</cfif>
-	</cfformClassic>
+		</cfformClassic>
+	</cfif>
 </cfoutput>

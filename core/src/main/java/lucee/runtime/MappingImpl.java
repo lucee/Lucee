@@ -61,14 +61,16 @@ public final class MappingImpl implements Mapping {
 
 	private static final long serialVersionUID = 6431380676262041196L;
 
-	private static final int MAX_SIZE = 6783;
+	private static final int MAX_SIZE_CFC = 3000;// 6783;
+	private static final int MAX_SIZE_CFM = 2000;// 6783;
 
 	private String virtual;
 	private String lcVirtual;
 	private boolean topLevel;
 	private short inspect;
 	private boolean physicalFirst;
-	private transient PhysicalClassLoader pcl;
+	private transient PhysicalClassLoader pclCFM;
+	private transient PhysicalClassLoader pclCFC;
 	private transient PCLCollection pcoll;
 	private Resource archive;
 
@@ -199,7 +201,8 @@ public final class MappingImpl implements Mapping {
 			if (archiveBundle != null) return archiveBundle.loadClass(className);
 			// else if(archiveClassLoader!=null) return archiveClassLoader.loadClass(className);
 		}
-		catch (ClassNotFoundException e) {}
+		catch (ClassNotFoundException e) {
+		}
 
 		return defaultValue;
 	}
@@ -234,24 +237,26 @@ public final class MappingImpl implements Mapping {
 		return pcoll;
 	}
 
-	private PhysicalClassLoader touchPhysicalClassLoader() throws IOException {
-		if (pcl == null) {
-			pcl = new PhysicalClassLoader(config, getClassRootDirectory());
+	private PhysicalClassLoader touchPhysicalClassLoader(boolean forComponent) throws IOException {
+		if (forComponent ? pclCFC == null : pclCFM == null) {
+			if (forComponent) pclCFC = new PhysicalClassLoader(config, getClassRootDirectory());
+			else pclCFM = new PhysicalClassLoader(config, getClassRootDirectory());
 		}
-		else if (pcl.getSize() > MAX_SIZE) {
+		else if ((forComponent ? pclCFC : pclCFM).getSize(true) > (forComponent ? MAX_SIZE_CFC : MAX_SIZE_CFM)) {
+			PhysicalClassLoader pcl = forComponent ? pclCFC : pclCFM;
 			synchronized (pageSourcePool) {
 				pageSourcePool.clearPages(pcl);
 			}
-
 			pcl.clear();
-			pcl = new PhysicalClassLoader(config, getClassRootDirectory());
+			if (forComponent) pclCFC = new PhysicalClassLoader(config, getClassRootDirectory());
+			else pclCFM = new PhysicalClassLoader(config, getClassRootDirectory());
 		}
-		return pcl;
+		return forComponent ? pclCFC : pclCFM;
 	}
 
 	@Override
 	public Class<?> getPhysicalClass(String className) throws ClassNotFoundException, IOException {
-		return touchPhysicalClassLoader().loadClass(className);
+		return touchPhysicalClassLoader(className.contains("_cfc$cf")).loadClass(className);
 		// return touchClassLoader().loadClass(className);
 	}
 
@@ -268,7 +273,7 @@ public final class MappingImpl implements Mapping {
 	public Class<?> getPhysicalClass(String className, byte[] code) throws IOException {
 
 		try {
-			return touchPhysicalClassLoader().loadClass(className, code);
+			return touchPhysicalClassLoader(className.contains("_cfc$cf")).loadClass(className, code);
 		}
 		catch (UnmodifiableClassException e) {
 			throw new IOException(e);
@@ -402,12 +407,12 @@ public final class MappingImpl implements Mapping {
 		}
 	}
 
-	/**
-	 * @return Returns the pageSourcePool.
-	 * 
-	 *         public PageSourcePool getPageSourcePoolX() { synchronized (pageSourcePoolX) { return
-	 *         pageSourcePoolX; } }
-	 */
+	// to not delete,used for argus monitor!
+	public PageSourcePool getPageSourcePool() {
+		synchronized (pageSourcePool) {
+			return pageSourcePool;
+		}
+	}
 
 	public Array getDisplayPathes(Array arr) throws PageException {
 		synchronized (pageSourcePool) {

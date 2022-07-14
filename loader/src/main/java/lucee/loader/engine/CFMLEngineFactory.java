@@ -69,6 +69,7 @@ import com.intergral.fusiondebug.server.FDControllerFactory;
 
 import lucee.VersionInfo;
 import lucee.commons.io.log.Log;
+import lucee.commons.lang.ConcurrentHashMapAsHashtable;
 import lucee.loader.TP;
 import lucee.loader.osgi.BundleCollection;
 import lucee.loader.osgi.BundleLoader;
@@ -118,6 +119,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 	protected ServletConfig config;
 
 	protected CFMLEngineFactory(final ServletConfig config) {
+		System.setProperty("org.apache.commons.logging.LogFactory.HashtableImpl", ConcurrentHashMapAsHashtable.class.getName());
 		File logFile = null;
 		this.config = config;
 		try {
@@ -273,7 +275,8 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 		try {
 			Thread.sleep(5000);
 		}
-		catch (InterruptedException e) {}
+		catch (InterruptedException e) {
+		}
 
 		BundleUtil.stop(felix, false);
 	}
@@ -295,11 +298,11 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 		final File[] patches = PATCH_ENABLED ? patcheDir.listFiles(new ExtensionFilter(new String[] { ".lco" })) : null;
 		File lucee = null;
 		if (patches != null) {
-			for (final File patche: patches) {
-				if (patche.getName().startsWith("tmp.lco")) patche.delete();
-				else if (patche.lastModified() < coreCreated) patche.delete();
-				else if (patche.length() < 1000000L) patche.delete();
-				else if (lucee == null || Util.isNewerThan(toVersion(patche.getName(), VERSION_ZERO), toVersion(lucee.getName(), VERSION_ZERO))) lucee = patche;
+			for (final File patch: patches) {
+				if (patch.getName().startsWith("tmp.lco")) patch.delete();
+				else if (patch.lastModified() < coreCreated) patch.delete();
+				else if (patch.length() < 1000000L) patch.delete();
+				else if (lucee == null || Util.isNewerThan(toVersion(patch.getName(), VERSION_ZERO), toVersion(lucee.getName(), VERSION_ZERO))) lucee = patch;
 			}
 		}
 		if (lucee != null && Util.isNewerThan(coreVersion, toVersion(lucee.getName(), VERSION_ZERO))) lucee = null;
@@ -309,8 +312,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 		try {
 			// Load core version when no patch available
 			if (lucee == null) {
-				log(Logger.LOG_DEBUG, "Load Build in Core");
-				//
+				log(Logger.LOG_DEBUG, "Load built-in Core");
 
 				final String coreExt = "lco";
 				final String coreExtPack = "lco.pack.gz";
@@ -325,10 +327,18 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 					is = new TP().getClass().getResourceAsStream("/core/core." + coreExt);
 					if (is == null) {
 						is = new TP().getClass().getResourceAsStream("/core/core." + coreExtPack);
-						isPack200 = true;
+						if (is != null) {
+							isPack200 = true;
+						}
 					}
-					os = new BufferedOutputStream(new FileOutputStream(isPack200 ? rcPack200 : rc));
-					copy(is, os);
+
+					if (is != null) {
+						os = new BufferedOutputStream(new FileOutputStream(isPack200 ? rcPack200 : rc));
+						copy(is, os);
+					}
+					else {
+						System.err.println("/core/core." + coreExt + " not found");
+					}
 				}
 				finally {
 					closeEL(is);
@@ -342,19 +352,29 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 					rcPack200.delete();
 				}
 
-				lucee = new File(patcheDir, getVersion(rc) + "." + coreExt);
-				try {
-					is = new FileInputStream(rc);
-					os = new BufferedOutputStream(new FileOutputStream(lucee));
-					copy(is, os);
+				CFMLEngine engine = null;
+				if (rc.exists()) {
+					lucee = new File(patcheDir, getVersion(rc) + "." + coreExt);
+
+					try {
+						is = new FileInputStream(rc);
+						os = new BufferedOutputStream(new FileOutputStream(lucee));
+						copy(is, os);
+					}
+					finally {
+						closeEL(is);
+						closeEL(os);
+						rc.delete();
+					}
+
+					engine = _getCore(lucee);
 				}
-				finally {
-					closeEL(is);
-					closeEL(os);
-					rc.delete();
+				else {
+					// TODO: LDEV-2805 set engine's classloader to use local class files
+					// engine =
 				}
 
-				setEngine(_getCore(lucee));
+				setEngine(engine);
 			}
 			else {
 
@@ -625,7 +645,8 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 			try {
 				newLucee.delete();
 			}
-			catch (final Exception ee) {}
+			catch (final Exception ee) {
+			}
 			log(e);
 			e.printStackTrace();
 			return false;
@@ -677,7 +698,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 				+ (id == null ? "?" : "&") + "allowRedirect=true&jv=" + System.getProperty("java.version")
 
 		);
-		log(Logger.LOG_WARNING, "Downloading bundle [" + symbolicName + ":" + symbolicVersion + "] from " + updateUrl + " and copying to " + jar);
+		log(Logger.LOG_INFO, "Downloading bundle [" + symbolicName + ":" + symbolicVersion + "] from " + updateUrl + " and copying to " + jar);
 
 		int code;
 		HttpURLConnection conn;
@@ -888,10 +909,10 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 
 		final URL infoUrl = new URL(updateProvider, "/rest/update/provider/update-for/" + version.toString() + (id != null ? id.toQueryString() : ""));
 
-		log(Logger.LOG_DEBUG, "Check for update at " + updateProvider);
+		log(Logger.LOG_DEBUG, "Checking for core update at [" + updateProvider + "]");
 
 		String strAvailableVersion = toString((InputStream) infoUrl.getContent()).trim();
-		log(Logger.LOG_DEBUG, "Received available update versions from update provider (" + strAvailableVersion + ") ");
+		log(Logger.LOG_DEBUG, "Update provider reports an updated core version available [" + strAvailableVersion + "] ");
 
 		strAvailableVersion = CFMLEngineFactorySupport.removeQuotes(strAvailableVersion, true);
 
@@ -900,11 +921,11 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 			return null;
 		}
 
-		log(Logger.LOG_DEBUG, "Found a newer Version \n - current Version [" + version.toString() + "]\n - available Version [" + strAvailableVersion + "]");
+		log(Logger.LOG_INFO, "Found a newer Version \n - current Version [" + version.toString() + "]\n - available Version [" + strAvailableVersion + "]");
 
 		final URL updateUrl = new URL(updateProvider,
 				"/rest/update/provider/download/" + strAvailableVersion + (id != null ? id.toQueryString() : "") + (id == null ? "?" : "&") + "allowRedirect=true");
-		log(Logger.LOG_DEBUG, "download update from " + updateUrl);
+		log(Logger.LOG_INFO, "Downloading core update from [" + updateUrl + "]");
 
 		// local resource
 		final File patchDir = getPatchDirectory();
@@ -916,6 +937,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 		try {
 			conn = (HttpURLConnection) updateUrl.openConnection();
 			conn.setRequestMethod("GET");
+			conn.setConnectTimeout(10000);
 			conn.connect();
 			code = conn.getResponseCode();
 		}
@@ -940,6 +962,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 				try {
 					conn = (HttpURLConnection) url.openConnection();
 					conn.setRequestMethod("GET");
+					conn.setConnectTimeout(10000);
 					conn.connect();
 					code = conn.getResponseCode();
 				}

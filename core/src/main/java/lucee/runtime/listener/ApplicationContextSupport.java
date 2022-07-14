@@ -42,6 +42,7 @@ import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.db.DataSource;
 import lucee.runtime.exp.ApplicationException;
+import lucee.runtime.exp.PageException;
 import lucee.runtime.net.proxy.ProxyData;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Duplicator;
@@ -300,7 +301,7 @@ public abstract class ApplicationContextSupport implements ApplicationContext {
 		return null;
 	}
 
-	public static Map<Collection.Key, Pair<Log, Struct>> initLog(Config config, Struct sct) {
+	public static Map<Collection.Key, Pair<Log, Struct>> initLog(Config config, Struct sct) throws PageException {
 		Map<Collection.Key, Pair<Log, Struct>> rtn = new ConcurrentHashMap<Collection.Key, Pair<Log, Struct>>();
 		if (sct == null) return rtn;
 
@@ -354,7 +355,7 @@ public abstract class ApplicationContextSupport implements ApplicationContext {
 						las = addLogger(name, level, cdApp, appArgs, cdLay, layArgs, readOnly);
 					}
 					else las = addLogger(name, level, cdApp, appArgs, null, null, readOnly);
-					rtn.put(name, new Pair<Log, Struct>(las.getLog(), v));
+					rtn.put(name, new Pair<Log, Struct>(las.getLog(false), v));
 				}
 			}
 		}
@@ -373,7 +374,7 @@ public abstract class ApplicationContextSupport implements ApplicationContext {
 	}
 
 	private static LoggerAndSourceData addLogger(Collection.Key name, int level, ClassDefinition appender, Map<String, String> appenderArgs, ClassDefinition layout,
-			Map<String, String> layoutArgs, boolean readOnly) {
+			Map<String, String> layoutArgs, boolean readOnly) throws PageException {
 		LoggerAndSourceData existing = _loggers.get(name);
 		String id = LoggerAndSourceData.id(name.getLowerString(), appender, appenderArgs, layout, layoutArgs, level, readOnly);
 

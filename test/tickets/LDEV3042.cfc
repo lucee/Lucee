@@ -58,10 +58,11 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 								yearsEmployed*sickDaysLeft as calc2,
 								yearsEmployed-sickDaysLeft as calc3,
 								yearsEmployed+sickDaysLeft as calc4
-							from employees",
+							from employees
+							where sickDaysLeft > 0",
 					options = { dbtype: 'query' }
 				);
-				expect( actual.recordcount ).toBe( 15 );
+				expect( actual.recordcount ).toBe( 14 );
 			});
 
 			it( 'Can select with functions that are aliased' , function() {				
@@ -90,16 +91,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 				expect( actual.recordcount ).toBe( 15 );
 				expect( actual.dept[1] ).toBe( 'Acounting' );
 				expect( actual.dept[15] ).toBe( 'IT' );
-			});
-				
-			it( 'Can order by literal' , function() {				
-				actual = QueryExecute(
-					sql = "SELECT department as dept from employees ORDER BY name,'test', 'foo', 7, false",
-					options = { dbtype: 'query' }
-				);
-				expect( actual.recordcount ).toBe( 15 );
-				expect( actual.dept[1] ).toBe( 'Acounting' );
-				expect( actual.dept[15] ).toBe( 'Executive' );
 			});
 				
 			it( 'Can order by columns not in select' , function() {				
@@ -142,7 +133,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 				expect( actual.empid[2] ).toBe( 'sgsdg' );
 				expect( actual.empidNonNull[2] ).toBe( 'sgsdg' );
 				expect( actual.empid[3] ).toBe( '' );
-				expect( actual.empidNonNull[3] ).toBe( 'default' );
+				expect( actual.empidNonNull[3] ).toBe( '' );
 			});
 				
 			it( 'Can handle isnull with full null support' , function() {

@@ -136,7 +136,8 @@ public class HTTPResponse4Impl extends HTTPResponseSupport implements HTTPRespon
 		try {
 			_url = new URL(start.getProtocol(), start.getHost(), start.getPort(), path);
 		}
-		catch (MalformedURLException e) {}
+		catch (MalformedURLException e) {
+		}
 
 		return _url;
 	}

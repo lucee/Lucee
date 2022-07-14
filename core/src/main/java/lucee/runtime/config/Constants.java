@@ -67,7 +67,8 @@ public class Constants {
 		try {
 			DEFAULT_UPDATE_URL = new URL("https://update.lucee.org");
 		}
-		catch (MalformedURLException e) {}
+		catch (MalformedURLException e) {
+		}
 	}
 
 	public static final RHExtensionProvider[] RH_EXTENSION_PROVIDERS = new RHExtensionProvider[] {

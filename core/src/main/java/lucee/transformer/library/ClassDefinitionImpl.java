@@ -80,7 +80,8 @@ public class ClassDefinitionImpl<T> implements ClassDefinition<T>, Externalizabl
 	/**
 	 * only used by deserializer!
 	 */
-	public ClassDefinitionImpl() {}
+	public ClassDefinitionImpl() {
+	}
 
 	@Override
 	public void writeExternal(ObjectOutput out) throws IOException {
@@ -106,7 +107,7 @@ public class ClassDefinitionImpl<T> implements ClassDefinition<T>, Externalizabl
 		// regular class definition
 		if (name == null) return clazz = ClassUtil.loadClass(className);
 
-		return clazz = ClassUtil.loadClassByBundle(className, name, version, id, JavaSettingsImpl.getBundleDirectories(null));
+		return clazz = ClassUtil.loadClassByBundle(className, name, version, id, JavaSettingsImpl.getBundles(null));
 	}
 
 	@Override
