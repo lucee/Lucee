@@ -88,7 +88,7 @@ function mem(type) {
 	configDir=config.getConfigServerDir();
 	logsDir=configDir&server.separator.file&"logs";
 	deployLog=logsDir&server.separator.file&"deploy.log";
-	dump(deployLog);
+	systemOutput(deployLog, true);
 	content=fileRead(deployLog);
 	systemOutput("-------------- Deploy Log ------------",true);
 	systemOutput(content,true);
@@ -149,7 +149,7 @@ function mem(type) {
 		try {
 
 			dir = {
-				 mapping : "/test"
+				 mapping : "/test/tags/"
 				,recurse : true
 				,filter  : function(path){
 		//			echo(arguments.path&"
@@ -169,6 +169,7 @@ function mem(type) {
 					// only testcases in sub directory of "test" are allowed
 					var _test = listTrim(test,"\/");
 					var allowed = (_test == pp || _test == p) && left(name, 1) != "_";
+					var allowed = (name == "Mail.cfc");
 					if ( allowed ){
 						// check for skip=true on test case components
 						var meta = _getTestMeta( path );
@@ -199,6 +200,14 @@ function mem(type) {
 			//SystemOut.setErr(err);
 
 			systemOutput(" (#bundle.totalPass# tests passed in #LSNumberFormat(bundle.totalDuration, ',')# ms)",true);
+			if( bundle.DEBUGBUFFER.len() ){
+				var idx = 0;
+				for( var bufferOutput in bundle.DEBUGBUFFER ){
+					systemOutput(NL & "------------------------ #bufferOutput.label# - debug buffer ###(++idx)# -----------------------", true);
+					systemOutput(bufferOutput.data, true);
+					systemOutput("-------------------------------------------------------------", true);
+				}
+			}
 			//mem("non_heap");
 			//mem("heap");
 
