@@ -63,8 +63,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 							throw "Ups!";
 						}
 					}
-					systemOutput(result&":onError from within error listener",1,1);
-					expect(result).toBe("onError from within error listener");
+					systemOutput(result&":message from within error listener",1,1);
+					expect(result).toBe("message from within error listener");
 				});
 
 				it(title="with attribute ontimeout, with error , with escalation", body = function( currentSpec ) {
