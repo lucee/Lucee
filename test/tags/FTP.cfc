@@ -25,16 +25,19 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ftp,sftp"	{
 	public function setUp(){}
 
 
-	private function _test(required boolean secure,required string host,required number port=21,required string user,required string pass,required string base){
+	private void function _test(required boolean secure, required string host, required number port=21,
+		required string user, required string pass, required string base){
 
-		ftp action = "open" 
-			connection = "conn" 
-			secure=secure
-			username = user 
-			password = pass 
+		systemOutput(arguments, true);
+
+		ftp action = "open"
+			connection = "conn"
+			passive = "true"
+			secure = secure
+			username = user
+			password = pass
 			server = host
-			port=port;
-
+			port = port;
 
 		var folderName="folder"&getTickCount();
 		if(right(base,1)!="/")base=base&"/";
@@ -137,7 +140,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ftp,sftp"	{
 	public function testSFTP() {
 		var sftp=getSFTPCredentials();
 		if(!structCount(sftp)) return;
-		return; //disable failing test
+		//return; //disable failing test
 		_test(
 			secure: true,
 			host: sftp.server,
@@ -151,7 +154,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ftp,sftp"	{
 	public function testFTP() {
 		var ftp=getFTPCredentials();
 		if(!structCount(ftp)) return;
-		return; //disable failing test
+		//return; //disable failing test
 		_test(
 			secure: false,
 			host: ftp.server,
