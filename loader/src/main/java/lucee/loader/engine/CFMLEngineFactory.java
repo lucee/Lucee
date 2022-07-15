@@ -741,13 +741,8 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 
 			// no download available!
 			if (code != 200) {
-<<<<<<< HEAD
-				final String msg = "Failed to download the bundle for [" + symbolicName + "] in version [" + symbolicVersion + "] from [" + updateUrl
-						+ "], please download manually and copy to [" + jarDir + "]";
-=======
 				final String msg = "Lucee is not able to download the bundle for [" + symbolicName + "] in version [" + symbolicVersion + "] from " + updateUrl
 						+ ", please download manually and copy to [" + jarDir + "]";
->>>>>>> upstream/master
 				log(Logger.LOG_ERROR, msg);
 				conn.disconnect();
 				throw new IOException(msg);
@@ -974,13 +969,8 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 
 			// no download available!
 			if (code != 200) {
-<<<<<<< HEAD
-				final String msg = "Lucee failed to download the core for version [" + version.toString() + "] from " + updateUrl + ", please download it manually and copy to ["
-						+ patchDir + "]";
-=======
 				final String msg = "Lucee is not able to download the core for version [" + version.toString() + "] from " + updateUrl
 						+ ", please download it manually and copy to [" + patchDir + "]";
->>>>>>> upstream/master
 				log(Logger.LOG_ERROR, msg);
 				conn.disconnect();
 				throw new IOException(msg);
