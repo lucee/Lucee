@@ -1,28 +1,10 @@
-/**
- * Copyright (c) 2014, the Railo Company Ltd.
- * Copyright (c) 2015, Lucee Assosication Switzerland
- *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either 
- * version 2.1 of the License, or (at your option) any later version.
- * 
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public 
- * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
- * 
- */
 package lucee.transformer.bytecode.statement.tag;
 
 import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.GeneratorAdapter;
 import org.objectweb.asm.commons.Method;
 
-import lucee.runtime.tag.ThreadTag;
+import lucee.runtime.tag.Timeout;
 import lucee.transformer.Factory;
 import lucee.transformer.Position;
 import lucee.transformer.TransformerException;
@@ -33,24 +15,20 @@ import lucee.transformer.bytecode.Page;
 import lucee.transformer.bytecode.util.ASMUtil;
 import lucee.transformer.bytecode.util.Types;
 
-public final class TagThread extends TagBaseNoFinal implements ATagThread {
+public final class TagTimeout extends TagBaseNoFinal implements ATagThread {
 
-	public static final Type THREAD_TAG = Type.getType(ThreadTag.class);
+	public static final Type TIMEOUT_TAG = Type.getType(Timeout.class);
 
 	private static final Method REGISTER = new Method("register", Types.VOID, new Type[] { Types.PAGE, Types.INT_VALUE });
 
 	private int index;
 
-	public TagThread(Factory f, Position start, Position end) {
+	public TagTimeout(Factory f, Position start, Position end) {
 		super(f, start, end);
 		// print.e("::::"+ASMUtil.getAttributeString(this, "action","run")+":"+hashCode());
 	}
 
 	public void init() throws TransformerException {
-		String action = ASMUtil.getAttributeString(this, "action", "run");
-		// no body
-		if (!"run".equalsIgnoreCase(action)) return;
-
 		Page page = ASMUtil.getAncestorPage(this);
 		index = page.addThread(this);
 
@@ -80,7 +58,7 @@ public final class TagThread extends TagBaseNoFinal implements ATagThread {
 		adapter.loadLocal(bc.getCurrentTag());
 		adapter.loadThis();
 		adapter.push(index);
-		adapter.invokeVirtual(THREAD_TAG, REGISTER);
+		adapter.invokeVirtual(TIMEOUT_TAG, REGISTER);
 
 	}
 

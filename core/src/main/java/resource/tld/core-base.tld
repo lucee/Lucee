@@ -7857,6 +7857,52 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
             even if you specify a page timeout. (optional, default=0)</description>
 		</attribute>
 	</tag>
+	
+	
+	<!-- Timeout -->
+	<tag>
+		<name>Timeout</name>
+		<tag-class>lucee.runtime.tag.Timeout</tag-class>
+		<ttt-class>lucee.transformer.bytecode.statement.tag.TagTimeout</ttt-class>
+		<tte-class>lucee.transformer.cfml.evaluator.impl.TagTimeout</tte-class>
+		<body-content>free</body-content>
+		<body-rtexprvalue>false</body-rtexprvalue>
+		<script>
+			<type>multiple</type>
+			<rtexprvalue>true</rtexprvalue>
+		</script>
+		<description></description>
+		<attribute-type>fixed</attribute-type>
+		<attribute>
+			<type>object</type>
+			<name>timespan</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>Specifies the maximum amount of time, in seconds, to wait for execution of this tag.</description>
+		</attribute>
+		<attribute>
+			<type>any</type>
+			<name>onTimeout</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description></description>
+		</attribute>
+		<attribute>
+			<type>any</type>
+			<name>onError</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description></description>
+		</attribute>
+		<attribute>
+			<type>boolean</type>
+			<name>forcestop</name>
+			<required>false</required>
+			<default>false</default>
+			<rtexprvalue>true</rtexprvalue>
+			<description></description>
+		</attribute>
+	</tag>
 
 	<!-- Throw -->
 	<tag>
