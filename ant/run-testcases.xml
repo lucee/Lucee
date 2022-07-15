@@ -149,7 +149,7 @@ function mem(type) {
 		try {
 
 			dir = {
-				 mapping : "/test/tags/"
+				 mapping : "/test"
 				,recurse : true
 				,filter  : function(path){
 		//			echo(arguments.path&"
@@ -169,7 +169,6 @@ function mem(type) {
 					// only testcases in sub directory of "test" are allowed
 					var _test = listTrim(test,"\/");
 					var allowed = (_test == pp || _test == p) && left(name, 1) != "_";
-					var allowed = (name == "Mail.cfc");
 					if ( allowed ){
 						// check for skip=true on test case components
 						var meta = _getTestMeta( path );
