@@ -38,9 +38,11 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mysql" {
 	}
 
 	function afterAll(){
-		adm.removeDatasource(
-			dsn: 'datasource1445',
-			remoteClients: "arrayOfClients"
-		);
+		if(!isNull(adm)) {
+			adm.removeDatasource(
+				dsn: 'datasource1445',
+				remoteClients: "arrayOfClients"
+			);
+		}
 	}
 }
