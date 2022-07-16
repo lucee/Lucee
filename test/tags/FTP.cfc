@@ -124,7 +124,11 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ftp,sftp"	{
 
 			// we add again a file and directory to be sure we can delete a folder with content
 			ftp action="createdir" directory=subdir connection = "conn";
-			ftp action="putFile"  localfile=getCurrentTemplatePath() remoteFile=subfile connection= "conn";
+			ftp action="putFile"  localfile=getCurrentTemplatePath() remoteFile=subfile connection="conn";
+			// LDEV-3528  transferMode=“binary” causes "Connection is not open" error
+			ftp action="putFile"  localfile=getCurrentTemplatePath() remoteFile=subfile connection="conn" transferMode="ASCII";
+			ftp action="putFile"  localfile=getCurrentTemplatePath() remoteFile=subfile connection="conn" transferMode="auto"; // default
+			ftp action="putFile"  localfile=getCurrentTemplatePath() remoteFile=subfile connection="conn" transferMode="binary";
 			
 
 		}
