@@ -223,12 +223,23 @@ component {
 	Pass:     #bundle.totalPass#
 	Skipped:  #bundle.totalSkipped#"
 			, true );
-
+			
 			if ( !isNull( bundle.suiteStats ) ) {
 				loop array=bundle.suiteStats item="local.suiteStat" {
-					if ( !isNull( suiteStat.specStats ) ) {
-						loop array=suiteStat.specStats item="local.specStat" {
+					local.specStats = duplicate(suiteStat.specStats);
+					// spec stats are also nested 
+					loop array=suiteStat.suiteStats item="local.nestedSuiteStats" {
+						if ( !isEmpty( local.nestedSuiteStats.specStats ) ) {
+							loop array=local.nestedSuiteStats.specStats item="local.nestedSpecStats" {
+								arrayAppend( local.specStats, local.nestedspecStats );
+							}
+						}
+					}
 
+					if ( isEmpty( local.specStats ) ) {
+						systemOutput( "WARNING: suiteStat for [#bundle.name#] was empty?", true );
+					} else {
+						loop array=local.specStats item="local.specStat" {
 							if ( !isNull( specStat.failMessage ) && len( trim( specStat.failMessage ) ) ) {
 
 								var failedTestCase = {
@@ -312,6 +323,8 @@ component {
 						}
 					}
 				}
+			} else {
+				systemOutput( "WARNING: bundle.suiteStats was null?", true );
 			}
 			//systemOutput(serializeJson(bundle.suiteStats));
 		}
