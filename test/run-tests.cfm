@@ -100,9 +100,9 @@ try {
 	}
 	request.testFilter = ListToArray( trim( request.testFilter ) );
 	if ( Arraylen( request.testFilter ) gt 0 )
-		systemOutput( NL & "Filtering only tests containing: " & request.testFilter.toJson() & NL, true );
+		systemOutput( NL & "Filtering only tests with filenames containing: " & request.testFilter.toJson() & NL, true );
 	else
-		systemOutput( NL & 'Running all tests, to run a subset of test(s), use the parameter -DtestFilter="image,orm,etc"', true );
+		systemOutput( NL & 'Running all tests, to run a subset of test(s) by FILENAME, use the parameter -DtestFilter="image,orm,etc"', true );
 
 	param name="testLabels" default="";
 	request.testLabels = testLabels;
@@ -115,9 +115,9 @@ try {
 	}
 	request.testLabels = ListToArray( trim( request.testLabels ) );
 	if ( ArrayLen( request.testLabels ) )
-		SystemOutput( "Filtering tests with the following label(s) #request.testLabels.toJson()#", true );
+		SystemOutput( "Filtering tests with the following label(s): #request.testLabels.toJson()#", true );
 	else
-		systemOutput( NL & 'Running all tests, to run a subset of test(s), use the parameter -DtestLabels="s3,oracle"', true );
+		systemOutput( NL & 'Running all tests, to run a subset of test(s) by LABEL, use the parameter -DtestLabels="s3,oracle"', true );
 
 	
 	param name="testSkip" default="true";
