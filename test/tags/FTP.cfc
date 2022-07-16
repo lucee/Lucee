@@ -52,7 +52,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ftp,sftp"	{
 		var subfile=subdir&fileName;
 		
 		// list the inital state
-		ftp action="listdir" directory=base connection = "conn" name="local.list1";
+		ftp action="listdir" directory=base connection = "conn" name="local.list1" passive=true;  // passive not sticky LDEV-977
 		
 		// print working directory
 		ftp action="getcurrentdir" directory=base connection = "conn" result="local.pwd1";
@@ -77,7 +77,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ftp,sftp"	{
 
 			// we add a file
 			ftp action="putFile"  localfile=getCurrentTemplatePath() remoteFile=file connection= "conn";
-			ftp action="listdir" directory=dir connection = "conn" name="local.list3";
+			ftp action="listdir" directory=dir connection = "conn" name="local.list3"  passive=true;  // passive not sticky LDEV-977;
 			assertEquals(list3.recordcount,1);
 			assertEquals(list3.name,fileName);
 			assertEquals(list3.isDirectory,false);
