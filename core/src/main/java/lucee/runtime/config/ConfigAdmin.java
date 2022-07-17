@@ -1480,7 +1480,7 @@ public final class ConfigAdmin {
 		else if (el.containsKey(KeyConstants._id)) el.removeEL(KeyConstants._id);
 
 		if (username.length() > 0) el.setEL(KeyConstants._username, username);
-		if (password.length() > 0) el.setEL(KeyConstants._password, ConfigWebUtil.encrypt(password));
+		el.setEL(KeyConstants._password, ConfigWebUtil.encrypt(password));
 
 		el.setEL("host", host);
 		if (!StringUtil.isEmpty(timezone)) el.setEL("timezone", timezone);
