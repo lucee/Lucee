@@ -936,13 +936,12 @@ public final class ConfigAdmin {
 		}
 	}
 
-	private void _removeScheduledTask(String name) throws SecurityException {
-		checkWriteAccess();
-
+	private void _removeScheduledTask(String name) throws SecurityException, ExpressionException {
 		Array tasks = ConfigWebUtil.getAsArray("scheduledTasks", root);
 		Key[] keys = tasks.keys();
 		Struct data;
 		String n;
+		Boolean exist = false;
 		for (int i = keys.length - 1; i >= 0; i--) {
 			Key key = keys[i];
 			data = Caster.toStruct(tasks.get(key, null), null);
@@ -950,9 +949,11 @@ public final class ConfigAdmin {
 			n = Caster.toString(data.get(KeyConstants._name, null), null);
 
 			if (name.equals(n)) {
+				exist = true;
 				tasks.removeEL(key);
 			}
 		}
+		if (!exist) throw new ExpressionException("can't delete schedule task [ " + name + " ], task doesn't exist");
 	}
 
 	public void removeComponentMapping(String virtual) throws SecurityException {
