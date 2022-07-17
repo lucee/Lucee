@@ -51,6 +51,14 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				);
 			 	expect(result.filecontent).toBe('{}{"test":"1,2,3","sameFormFieldsAsArray":"true","fieldnames":"test,sameFormFieldsAsArray"}')
 			});
+
+			it(title = "Checking content-type and content-length in result", body = function( currentSpec ) {
+				local.result = _InternalRequest (
+					template : "#uri#\content.cfm"
+				);
+				expect(result["headers"]["content-type"]).toBe("application/pdf");
+				expect(result["headers"]["content-length"]).toBeBetween(800, 1000);
+			});
 		});	
 	}
 

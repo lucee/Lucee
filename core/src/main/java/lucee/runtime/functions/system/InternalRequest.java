@@ -56,6 +56,7 @@ public class InternalRequest implements Function {
 	public static final Key STATUS_CODE = KeyImpl.getInstance("status_code");
 
 	private static final Key CONTENT_TYPE = KeyImpl.getInstance("content-type");
+	private static final Key CONTENT_LENGTH = KeyImpl.getInstance("content-length");
 
 	public static Struct call(final PageContext pc, String template, String method, Object oUrls, Object oForms, Struct cookies, Struct headers, Object body, String strCharset,
 			boolean addToken, boolean throwonerror) throws PageException {
@@ -155,6 +156,9 @@ public class InternalRequest implements Function {
 				if (values.size() > 1) headers.set(name, Caster.toArray(values));
 				else headers.set(name, values.iterator().next());
 			}
+
+			headers.set(CONTENT_TYPE, rsp.getContentType());
+			if (rsp.getContentLength() != -1) headers.set(CONTENT_LENGTH, rsp.getContentLength());
 
 			// status
 			status = rsp.getStatus();
