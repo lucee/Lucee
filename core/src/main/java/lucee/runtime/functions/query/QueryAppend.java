@@ -47,7 +47,7 @@ public class QueryAppend extends BIF implements Function {
 
 		if (!validColumnNames) {
 			throw new ApplicationException("column names [" + ListUtil.arrayToList(cn1, ", ") + "] of the first query does not match the column names ["
-					+ ListUtil.arrayToList(cn2, ", ") + "] of of the second query");
+					+ ListUtil.arrayToList(cn2, ", ") + "] of the second query");
 		}
 	}
 

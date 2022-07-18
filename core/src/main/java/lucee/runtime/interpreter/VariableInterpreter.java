@@ -175,13 +175,13 @@ public final class VariableInterpreter {
 			}
 			if (var != null) {
 				Variables current = pc.variablesScope();
-				pc.setVariablesScope(var);
+				if (current != var) pc.setVariablesScope(var);
 				try {
 					if (value != CollectionUtil.NULL) return setVariable(pc, str, value);
 					return getVariable(pc, str);
 				}
 				finally {
-					pc.setVariablesScope(current);
+					if (current != var) pc.setVariablesScope(current);
 				}
 			}
 
@@ -194,15 +194,15 @@ public final class VariableInterpreter {
 				Variables orgVar = pc.variablesScope();
 				Argument orgArgs = pc.argumentsScope();
 				Local orgLocal = pc.localScope();
-
-				pci.setVariablesScope(undefined.variablesScope());
+				final Variables vs = undefined.variablesScope();
+				if (vs != orgVar) pci.setVariablesScope(vs);
 				if (check) pci.setFunctionScopes(undefined.localScope(), undefined.argumentsScope());
 				try {
 					if (value != CollectionUtil.NULL) return setVariable(pc, str, value);
 					return getVariable(pc, str);
 				}
 				finally {
-					pc.setVariablesScope(orgVar);
+					if (vs != orgVar) pc.setVariablesScope(orgVar);
 					if (check) pci.setFunctionScopes(orgLocal, orgArgs);
 				}
 			}

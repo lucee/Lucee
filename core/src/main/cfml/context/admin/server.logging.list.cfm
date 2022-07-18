@@ -89,7 +89,7 @@ Redirtect to entry --->
 							<td>#logs.name#
 								<input type="hidden" name="name_#logs.currentrow#" value="#logs.name#">
 							</td>
-							<td>#isNull(appender)?listLast(logs.appenderClass,'.'):appender.getLabel()#</td>
+							<td>#isNull(appender)?listLast(logs.appenderClass,'/'):appender.getLabel()#</td>
 							<td><cfif showLayout>#isNull(layout)?listLast(logs.layoutClass,'.'):layout.getLabel()#<cfelse>&nbsp;</cfif></td>
 							<td>#logs.level#</td>
 						</tr>

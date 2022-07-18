@@ -179,6 +179,17 @@ public class GatewayEngineImpl implements GatewayEngine {
 		executeThread(gateway, GatewayThread.START);
 	}
 
+	public void autoStart() {
+		Gateway g;
+		for (GatewayEntry ge: entries.values()) {
+			if (ge.getStartupMode() != GatewayEntry.STARTUP_MODE_AUTOMATIC) continue;
+			g = ge.getGateway();
+			if (g.getState() != Gateway.RUNNING && g.getState() != Gateway.STARTING) {
+				start(g);
+			}
+		}
+	}
+
 	/**
 	 * stop the gateway
 	 * 
@@ -205,7 +216,7 @@ public class GatewayEngineImpl implements GatewayEngine {
 		}
 	}
 
-	public void reset() {
+	public void reset(boolean start) {
 		Iterator<Entry<String, GatewayEntry>> it = entries.entrySet().iterator();
 		Entry<String, GatewayEntry> entry;
 		GatewayEntry ge;
@@ -227,7 +238,7 @@ public class GatewayEngineImpl implements GatewayEngine {
 					log(g.getId(), LOGLEVEL_ERROR, e.getMessage(), e);
 				}
 			}
-			if (ge.getStartupMode() == GatewayEntry.STARTUP_MODE_AUTOMATIC) start(g);
+			if (start && ge.getStartupMode() == GatewayEntry.STARTUP_MODE_AUTOMATIC) start(g);
 
 		}
 	}

@@ -7,7 +7,8 @@ component {
 		setting showdebugOutput=false;
 	}
 
-	function onApplicationStart(){
+	public function onRequestStart() {
+		setting requesttimeout=10;
 		query{
 			echo("DROP TABLE IF EXISTS usersDetails");
 		}

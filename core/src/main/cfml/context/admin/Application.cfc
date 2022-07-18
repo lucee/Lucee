@@ -16,7 +16,7 @@
  * 
  ---><cfcomponent><cfscript>
 
-this.name="lucee-admin-#server.lucee.version#";
+this.name="webadmin#server.lucee.version#";
 this.clientmanagement="no";
 this.clientstorage="file"; 
 this.scriptprotect="all";
@@ -40,7 +40,7 @@ this.xmlFeatures = {
 	disallowDoctypeDecl: true
 };
 
-request.singleMode=getConfigSettings().mode=="single";
+request.singleMode=getApplicationSettings().singleContext;
 if(request.singleMode)request.adminType="server";
 public function onRequestStart() {
 	// if not logged in, we only allow access to admin|web|server[.cfm]

@@ -9,8 +9,8 @@
 
 	 	this.datasource = server.getDatasource("oracle");
 
-		function onRequestStart(){
-			setting showdebugOutput=false;
+		 public function onRequestStart() {
+			setting requesttimeout=10 showdebugOutput=false;
 			//  create package
 			query {
 				echo("CREATE OR REPLACE package lucee_bug_test as PROCEDURE testproc;

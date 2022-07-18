@@ -19,4 +19,8 @@
 component {
 	this.s3.accessKeyId = "_accessKeyId";
 	this.s3.awsSecretKey = "_awsSecretKey";
+
+	public function onRequestStart() {
+		setting requesttimeout=10;
+	}
 }

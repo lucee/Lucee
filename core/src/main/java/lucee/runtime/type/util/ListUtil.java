@@ -681,7 +681,7 @@ public final class ListUtil {
 	 * @return position in list (0-n) or -1
 	 */
 	public static int listFindNoCase(String list, String value, String delimiter, boolean trim) {
-		Array arr = trim ? listToArrayTrim(list, delimiter) : listToArray(list, delimiter);
+		Array arr = listToArray(list, delimiter);
 		int len = arr.size();
 		for (int i = 1; i <= len; i++) {
 			if (((String) arr.get(i, "")).equalsIgnoreCase(value)) return i - 1;
@@ -787,7 +787,7 @@ public final class ListUtil {
 	 * @return position in list or 0
 	 */
 	public static int listFind(String list, String value, String delimiter) {
-		Array arr = listToArrayTrim(list, delimiter);
+		Array arr = listToArray(list, delimiter);
 		int len = arr.size();
 		for (int i = 1; i <= len; i++) {
 			if (arr.get(i, "").equals(value)) return i - 1;
@@ -1090,6 +1090,16 @@ public final class ListUtil {
 			String[] rtn = new String[newLen];
 			System.arraycopy(array, from, rtn, 0, newLen);
 			return rtn;
+		}
+		return array;
+	}
+
+	public static Array trim(Array array) {
+		while (array.size() > 0 && Caster.toString(array.get(1, ""), "").isEmpty()) {
+			array.removeEL(1);
+		}
+		while (array.size() > 0 && Caster.toString(array.get(array.size(), ""), "").isEmpty()) {
+			array.removeEL(array.size());
 		}
 		return array;
 	}
@@ -1408,7 +1418,7 @@ public final class ListUtil {
 	 */
 	public static int len(String list, char delimiter, boolean ignoreEmpty) {
 		int len = StringUtil.length(list);
-		if (len == 0) return 0;
+		if (len == 0 && ignoreEmpty) return 0;
 
 		int count = 0;
 		int last = 0;
@@ -1434,7 +1444,7 @@ public final class ListUtil {
 		if (delimiter.length() == 1) return len(list, delimiter.charAt(0), ignoreEmpty);
 		char[] del = delimiter.toCharArray();
 		int len = StringUtil.length(list);
-		if (len == 0) return 0;
+		if (len == 0 && ignoreEmpty) return 0;
 
 		int count = 0;
 		int last = 0;
@@ -1606,7 +1616,7 @@ public final class ListUtil {
 				}
 			}
 		}
-		if (last <= len) set.add(list.substring(last));
+		if (last <= len) set.add(trim ? list.substring(last).trim() : list.substring(last));
 		return set;
 	}
 
@@ -1624,7 +1634,7 @@ public final class ListUtil {
 				last = i + 1;
 			}
 		}
-		if (last <= len) set.add(list.substring(last));
+		if (last <= len) set.add(trim ? list.substring(last).trim() : list.substring(last));
 		return set;
 	}
 

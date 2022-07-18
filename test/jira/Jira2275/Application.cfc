@@ -58,6 +58,7 @@
 	 
 	<cffunction name="OnRequestStart" access="public" returntype="boolean" output="false" hint="Fires at first part of page processing.">
 		<cfargument name="TargetPage" type="string" required="true" />
+		<cfsetting requesttimeout=10>
 		<cfreturn true />
 	</cffunction>
 	 

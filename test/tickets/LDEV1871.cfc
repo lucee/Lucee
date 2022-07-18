@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase"{
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="xml" {
 	function run( testResults , testBox ) {
 		describe( "Test case for LDEV-1871", function() {
 			it( title='Checking cffeed entry.content.type', body=function( currentSpec ) {

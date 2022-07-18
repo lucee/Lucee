@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase"{
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="qoq"{
 	variables.isLucee5 = false;
 	if( structKeyExists(server, "lucee") && listFirst(server.lucee.version, ".") == "5" )
 		variables.isLucee5 = true;

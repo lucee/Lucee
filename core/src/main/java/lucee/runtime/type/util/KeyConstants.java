@@ -448,6 +448,7 @@ public class KeyConstants {
 	public static final Key _java = KeyImpl._const("java");
 	public static final Key _javaLoader = KeyImpl._const("javaLoader");
 	public static final Key _jsessionid = KeyImpl._const("jsessionid");
+	public static final Key _JSESSIONID = KeyImpl._const("JSESSIONID");
 	public static final Key _key = KeyImpl._const("key");
 	public static final Key _keys = KeyImpl._const("keys");
 	public static final Key _label = KeyImpl._const("label");
@@ -728,7 +729,6 @@ public class KeyConstants {
 	public static final Key __toQuery = KeyImpl._const("_toQuery");
 	public static final Key _onmissingmethod = KeyImpl._const("onmissingmethod");
 	public static final Key _functions = KeyImpl._const("functions");
-	public static final Key _staticFunctions = KeyImpl._const("staticFunctions");
 	public static final Key _fullname = KeyImpl._const("fullname");
 	public static final Key _skeleton = KeyImpl._const("skeleton");
 	public static final Key _properties = KeyImpl._const("properties");
@@ -1033,6 +1033,13 @@ public class KeyConstants {
 	public static final Key _bundleDirectories = KeyImpl._const("bundleDirectories");
 	public static final Key _virtual = KeyImpl._const("virtual");
 	public static final Key _clientMaxAge = KeyImpl._const("clientMaxAge");
+	public static final Key _new = KeyImpl._const("new");
+	public static final Key _NEW = KeyImpl._const("NEW");
+	public static final Key _COLUMNNAMES = KeyImpl._const("COLUMNNAMES");
+	public static final Key _COLUMNTYPES = KeyImpl._const("COLUMNTYPES");
+	public static final Key _columnNames = KeyImpl._const("columnNames");
+	public static final Key _columnTypes = KeyImpl._const("columnTypes");
+	public static final Key _remoteclients = KeyImpl._const("remoteclients");
 
 	private static Map<String, Key> _____keys;
 

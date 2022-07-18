@@ -34,6 +34,7 @@ import lucee.commons.net.http.HTTPResponse;
 import lucee.commons.net.http.Header;
 import lucee.commons.security.Credentials;
 import lucee.runtime.config.Config;
+import lucee.runtime.config.Constants;
 import lucee.runtime.engine.ThreadLocalConfig;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
@@ -41,6 +42,7 @@ import lucee.runtime.functions.other.CreateUUID;
 import lucee.runtime.net.proxy.ProxyData;
 import lucee.runtime.net.proxy.ProxyDataImpl;
 import lucee.runtime.util.URLResolver;
+import lucee.runtime.schedule.ScheduleTaskPro;
 
 class ExecutionThread extends Thread {
 
@@ -82,8 +84,12 @@ class ExecutionThread extends Thread {
 
 		// HttpMethod method = new GetMethod(url);
 		// HostConfiguration hostConfiguration = client.getHostConfiguration();
-
-		Header[] headers = new Header[] { HTTPEngine.header("User-Agent", "CFSCHEDULE") };
+		String userAgent = ((ScheduleTaskPro) task).getUserAgent();
+		if (StringUtil.isEmpty(userAgent))
+			userAgent = Constants.NAME + " Scheduler";
+			//userAgent = "CFSCHEDULE"; this old userAgent string is on block listslists
+		
+		Header[] headers = new Header[] { HTTPEngine.header("User-Agent", userAgent) };
 		// method.setRequestHeader("User-Agent","CFSCHEDULE");
 
 		// Userame / Password

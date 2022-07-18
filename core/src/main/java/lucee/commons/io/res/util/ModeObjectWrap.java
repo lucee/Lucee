@@ -20,10 +20,11 @@ package lucee.commons.io.res.util;
 
 import lucee.commons.io.ModeUtil;
 import lucee.commons.io.res.Resource;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Castable;
 import lucee.runtime.op.Caster;
-import lucee.runtime.op.Operator;
+import lucee.runtime.op.OpUtil;
 import lucee.runtime.op.date.DateCaster;
 import lucee.runtime.type.ObjectWrap;
 import lucee.runtime.type.dt.DateTime;
@@ -102,22 +103,22 @@ public final class ModeObjectWrap implements ObjectWrap, Castable {
 
 	@Override
 	public int compareTo(String str) throws PageException {
-		return Operator.compare(toString(), str);
+		return OpUtil.compare(ThreadLocalPageContext.get(), toString(), str);
 	}
 
 	@Override
 	public int compareTo(boolean b) throws PageException {
-		return Operator.compare(castToBooleanValue(), b);
+		return OpUtil.compare(ThreadLocalPageContext.get(), castToBooleanValue() ? Boolean.TRUE : Boolean.FALSE, b ? Boolean.TRUE : Boolean.FALSE);
 	}
 
 	@Override
 	public int compareTo(double d) throws PageException {
-		return Operator.compare(castToDoubleValue(), d);
+		return OpUtil.compare(ThreadLocalPageContext.get(), Double.valueOf(castToDoubleValue()), Double.valueOf(d));
 	}
 
 	@Override
 	public int compareTo(DateTime dt) throws PageException {
-		return Operator.compare(toString(), dt.castToString());
+		return OpUtil.compare(ThreadLocalPageContext.get(), toString(), dt.castToString());
 	}
 
 }

@@ -25,9 +25,10 @@ import lucee.runtime.dump.DumpData;
 import lucee.runtime.dump.DumpProperties;
 import lucee.runtime.dump.DumpUtil;
 import lucee.runtime.dump.Dumpable;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
-import lucee.runtime.op.Operator;
+import lucee.runtime.op.OpUtil;
 import lucee.runtime.op.date.DateCaster;
 import lucee.runtime.type.dt.DateTime;
 import lucee.runtime.type.util.ListUtil;
@@ -154,22 +155,22 @@ public final class FunctionValueImpl implements FunctionValue, Dumpable {
 
 	@Override
 	public int compareTo(boolean b) throws PageException {
-		return Operator.compare(value, b ? 1D : 0D);
+		return OpUtil.compare(ThreadLocalPageContext.get(), value, b ? Boolean.TRUE : Boolean.FALSE);
 	}
 
 	@Override
 	public int compareTo(DateTime dt) throws PageException {
-		return Operator.compare(value, (Date) dt);
+		return OpUtil.compare(ThreadLocalPageContext.get(), value, (Date) dt);
 	}
 
 	@Override
 	public int compareTo(double d) throws PageException {
-		return Operator.compare(value, d);
+		return OpUtil.compare(ThreadLocalPageContext.get(), value, Double.valueOf(d));
 	}
 
 	@Override
 	public int compareTo(String str) throws PageException {
-		return Operator.compare(value, str);
+		return OpUtil.compare(ThreadLocalPageContext.get(), value, str);
 	}
 
 	@Override

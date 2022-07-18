@@ -259,14 +259,16 @@ public class SpoolerEngineImpl implements SpoolerEngine {
 	}
 
 	private String createId(ConfigWeb config, SpoolerTask task) {
-		Resource dir = getPersisDirectory(config).getRealResource(task.closed() ? "closed" : "open");
-		dir.mkdirs();
+		Resource dirClosed = getPersisDirectory(config).getRealResource("closed");
+		Resource dirOpen = getPersisDirectory(config).getRealResource("open");
+		if (task.closed()) dirClosed.mkdirs();
+		else dirOpen.mkdirs();
 
 		String id = null;
 		do {
 			id = StringUtil.addZeros(++count, 8);
 		}
-		while (dir.getRealResource(id + ".tsk").exists());
+		while (dirOpen.getRealResource(id + ".tsk").exists() || dirClosed.getRealResource(id + ".tsk").exists());
 		return id;
 	}
 
