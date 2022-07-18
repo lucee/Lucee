@@ -151,6 +151,8 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 
 	private static final Key ENABLE_NULL_SUPPORT = KeyImpl.getInstance("enableNULLSupport");
 	private static final Key NULL_SUPPORT = KeyImpl.getInstance("nullSupport");
+	private static final Key PRECISE_MATH = KeyImpl.getInstance("preciseMath");
+	private static final Key PRECISION_EVAL = KeyImpl.getInstance("precisionEvaluate");
 	private static final Key PSQ = KeyImpl.getInstance("psq");
 	private static final Key PSQ_LONG = KeyImpl.getInstance("preservesinglequote");
 	private static final Key VAR_USAGE = KeyImpl.getInstance("varusage");
@@ -209,6 +211,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	private boolean sameURLFieldAsArray;
 	private Map<String, CustomType> customTypes;
 	private boolean cgiScopeReadonly;
+	private boolean preciseMath;
 	private SessionCookieData sessionCookie;
 	private AuthCookieData authCookie;
 	private Object mailListener;
@@ -277,6 +280,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	private CharSet resourceCharset;
 	private boolean initResourceCharset;
 	private boolean initCGIScopeReadonly;
+	private boolean initPreciseMath;
 	private boolean initSessionCookie;
 	private boolean initAuthCookie;
 	private boolean initSerializationSettings;
@@ -1749,12 +1753,17 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	}
 
 	private void initLog() {
-		// appender
-		Object oLogs = get(component, LOGS, null);
-		if (oLogs == null) oLogs = get(component, LOG, null);
-		Struct sct = Caster.toStruct(oLogs, null);
-		logs = initLog(ThreadLocalPageContext.getConfig(config), sct);
-		initLog = true;
+		try {
+			// appender
+			Object oLogs = get(component, LOGS, null);
+			if (oLogs == null) oLogs = get(component, LOG, null);
+			Struct sct = Caster.toStruct(oLogs, null);
+			logs = initLog(ThreadLocalPageContext.getConfig(config), sct);
+			initLog = true;
+		}
+		catch (PageException e) {
+			throw new PageRuntimeException(e);
+		}
 	}
 
 	public static void releaseInitCacheConnections() {
@@ -1781,6 +1790,24 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	public void setFullNullSupport(boolean fullNullSupport) {
 		this.fullNullSupport = fullNullSupport;
 		this.initFullNullSupport = true;
+	}
+
+	@Override
+	public boolean getPreciseMath() {
+		if (!initPreciseMath) {
+			Boolean b = Caster.toBoolean(get(component, PRECISE_MATH, null), null);
+			if (b == null) b = Caster.toBoolean(get(component, PRECISION_EVAL, null), null);
+			if (b != null) preciseMath = b.booleanValue();
+
+			initPreciseMath = true;
+		}
+		return preciseMath;
+	}
+
+	@Override
+	public void setPreciseMath(boolean preciseMath) {
+		this.preciseMath = preciseMath;
+		this.initPreciseMath = true;
 	}
 
 	@Override

@@ -21,6 +21,10 @@ component {
 		"MEMCACHED_PORT": 11211
 	}
 
+	then add an ENV var pointing to the .json file
+	
+	LUCEE_BUILD_ENV=c:\work\lucee_build_env.json"
+	
 	*/
 
 	public function init (){
@@ -123,25 +127,31 @@ component {
 			"S3_GOOGLE_SECRET_KEY": "", // DON'T COMMIT
 			"S3_GOOGLE_HOST": "storage.googleapis.com",
 
-			"MAIL_USERNAME": "lucee",
-			"MAIL_PASSWORD": "", // DON'T COMMIT
-
 			// imap, pop and smtp rely on MAIL_PASSWORD being defined
 
 			"IMAP_SERVER": "localhost",
 			"IMAP_PORT_SECURE": 993,
 			"IMAP_PORT_INSECURE": 143,
+			"IMAP_USERNAME": "lucee",
+			"IMAP_PASSWORD": "", // DON'T COMMIT
 
 			"POP_SERVER": "localhost",
 			"POP_PORT_SECURE": 995,
 			"POP_PORT_INSECURE": 110,
+			"POP_USERNAME": "lucee",
+			"POP_PASSWORD": "", // DON'T COMMIT
 
 			"SMTP_SERVER": "localhost",
 			"SMTP_PORT_SECURE": 25,
 			"SMTP_PORT_INSECURE": 587,
+			"SMTP_USERNAME": "lucee",
+			"SMTP_PASSWORD": "", // DON'T COMMIT
 
 			"MEMCACHED_SERVER": "localhost",
 			// "MEMCACHED_PORT": 11211 // DON'T COMMIT
+
+			"REDIS_SERVER": "localhost",
+			// "REDIS_PORT": 6379 // DON'T COMMIT
 			
 
 		};
@@ -150,9 +160,17 @@ component {
 	public void function loadServiceConfig() localmode=true {
 		systemOutput( "", true) ;		
 		systemOutput("-------------- Test Services ------------", true );
-		services = ListToArray("oracle,MySQL,MSsql,postgres,h2,mongoDb,smtp,pop,imap,s3,s3_custom,s3_google,ftp,sftp,memcached");
+		services = ListToArray("oracle,MySQL,MSsql,postgres,h2,mongoDb,smtp,pop,imap,s3,s3_custom,s3_google,ftp,sftp,memcached,redis");
 		// can take a while, so we check them them in parallel
 		services.each( function( service ) localmode=true {
+			if (! isTestServiceAllowed( arguments.service )){
+				systemOutput( "Service [ #arguments.service# ] disabled, not found in testServices", true) ;
+				server.test_services[arguments.service] = {
+					valid: false,
+					missedTests: 0
+				};
+				return;
+			}
 			cfg = server.getTestService( service=arguments.service, verify=true );
 			server.test_services[ arguments.service ]= {
 				valid: false,
@@ -192,6 +210,9 @@ component {
 						case "memcached":
 							verify = verifyMemcached(cfg);
 							break;
+						case "redis":
+							verify = verifyRedis(cfg);
+							break;
 						default:
 							verify = verifyDatasource(cfg);
 							break;
@@ -200,7 +221,7 @@ component {
 					server.test_services[arguments.service].valid = true;
 				} catch (e) {
 					systemOutput( "ERROR Service [ #arguments.service# ] threw [ #cfcatch.message# ]", true);
-					if (cfcatch.message contains "NullPointerException")
+					if ( cfcatch.message contains "NullPointerException" || request.testDebug )
 						systemOutput(cfcatch, true);
 				}
 			}
@@ -264,7 +285,7 @@ component {
 		
 		//ftp action = "close" connection = "conn";
 		
-		return "Connection Verified";
+		return "Connection Verified"; 
 	}
 
 	public function verifyS3 ( s3 ) localmode=true{
@@ -279,11 +300,59 @@ component {
 		base = "s3://#arguments.s3.ACCESS_KEY_ID#:#arguments.s3.SECRET_KEY#@#arguments.s3.HOST#/#bucketName#";
 		if ( ! DirectoryExists( base ) )
 			DirectoryCreate( base ); // for GHA, the local service starts empty
-		return "s3 custom Connection Verified";
+		return "s3 custom Connection verified";
 	}
 
 	public function verifyMemcached ( memcached ) localmode=true{
 		if ( structCount( memcached ) eq 2 ){
+			try {
+				testCacheName = "testMemcached";
+				application 
+					action="update" 
+					caches="#{
+						testMemcached: {
+							class: 'org.lucee.extension.cache.mc.MemcachedCache'
+							, bundleName: 'memcached.extension'
+							, bundleVersion: '4.0.0.7-SNAPSHOT'
+							, storage: false
+							, custom: {
+								"socket_timeout": "3",
+								"initial_connections": "1",
+								"alive_check": "true",
+								"buffer_size": "1",
+								"max_spare_connections": "32",
+								"storage_format": "Binary",
+								"socket_connect_to": "3",
+								"min_spare_connections": "1",
+								"maint_thread_sleep": "5",
+								"failback": "true",
+								"max_idle_time": "600",
+								"max_busy_time": "30",
+								"nagle_alg": "true",
+								"failover": "false",
+								"servers": "#memcached.server#:#memcached.port#"
+							}
+							, default: ''
+						}
+					}#";
+				cachePut( id='abcd', value=1234, cacheName=testCacheName );
+				valid = !isNull( cacheGet( id:'abcd', cacheName:testCacheName ) );
+				application action="update" caches="#{}#";
+				if ( !valid ) {
+					throw "MemCached configured, but not available";
+				} else {
+					return "MemCached connection verified";
+				}
+			} catch (e){
+				application action="update" caches="#{}#";
+				rethrow;
+			}
+		}
+		throw "not configured";
+	}	
+
+	public function verifyRedis ( redis ) localmode=true{
+		if ( structCount( redis ) eq 2 ){
 			return "configured (not tested)";
 		}	
 		throw "not configured";
@@ -328,7 +397,8 @@ component {
 		server.getDefaultBundleVersion = getDefaultBundleVersion;  
 		server.getBundleVersions = getBundleVersions;
 	}
-	public struct function getTestService( required string service, string dbFile="", boolean verify=false ) localmode=true {
+	public struct function getTestService( required string service, string dbFile="", boolean verify=false, boolean onlyConfig=false ) localmode=true {
+
 		if ( StructKeyExists( server.test_services, arguments.service ) ){
 			if ( !server.test_services[ arguments.service ].valid ){
 				//SystemOutput("Warning service: [ #arguments.service# ] is not available", true);
@@ -342,6 +412,8 @@ component {
 			case "mssql":
 				mssql = server._getSystemPropOrEnvVars( "SERVER, USERNAME, PASSWORD, PORT, DATABASE", "MSSQL_" );
 				if ( structCount( msSql ) gt 0){
+					if ( arguments.onlyConfig )
+						return msSql;
 					return {
 						class: 'com.microsoft.sqlserver.jdbc.SQLServerDriver'
 						, bundleName: 'org.lucee.mssql'
@@ -355,6 +427,8 @@ component {
 			case "mysql":
 				mysql = server._getSystemPropOrEnvVars( "SERVER, USERNAME, PASSWORD, PORT, DATABASE", "MYSQL_" );	
 				if ( structCount( mySql ) gt 0 ){
+					if ( arguments.onlyConfig )
+						return mySql;
 					return {
 						class: 'com.mysql.cj.jdbc.Driver'
 						, bundleName: 'com.mysql.cj'
@@ -368,10 +442,12 @@ component {
 			case "postgres":
 				pgsql = server._getSystemPropOrEnvVars( "SERVER, USERNAME, PASSWORD, PORT, DATABASE", "POSTGRES_" );	
 				if ( structCount( pgsql ) gt 0 ){
+					if ( arguments.onlyConfig )
+						return pgsql;
 					return {
 						class: 'org.postgresql.Driver'
-						, bundleName: 'org.postgresql.jdbc42'
-						, bundleVersion: server.getDefaultBundleVersion( 'org.postgresql.jdbc42', '9.4.1212' )
+						, bundleName: 'org.postgresql.jdbc'
+						, bundleVersion: server.getDefaultBundleVersion( 'org.postgresql.jdbc', '42.2.20' )
 						, connectionString: 'jdbc:postgresql://#pgsql.server#:#pgsql.port#/#pgsql.database#'
 						, username: pgsql.username
 						, password: pgsql.password
@@ -411,6 +487,8 @@ component {
 			case "oracle":
 				oracle = server._getSystemPropOrEnvVars( "SERVER, USERNAME, PASSWORD, PORT, DATABASE", "ORACLE_" );	
 				if ( structCount( oracle ) gt 0 ){
+					if ( arguments.onlyConfig )
+						return oracle;
 					return {
 						class: 'oracle.jdbc.OracleDriver'
 						, bundleName: 'ojdbc7'
@@ -427,30 +505,15 @@ component {
 			case "sftp":
 				sftp = server._getSystemPropOrEnvVars( "SERVER, USERNAME, PASSWORD, PORT, BASE_PATH", "SFTP_");
 				return sftp;
-			case "mail":
-				mail = server._getSystemPropOrEnvVars( "USERNAME, PASSWORD", "MAIL_" );
-				return mail;
 			case "smtp":
-				mail = server._getSystemPropOrEnvVars( "USERNAME, PASSWORD", "MAIL_" );
-				if ( mail.count() gt 0 ){
-					smtp = server._getSystemPropOrEnvVars( "SERVER, PORT_SECURE, PORT_INSECURE", "SMTP_" );
-					return smtp;
-				}
-				break;
+				smtp = server._getSystemPropOrEnvVars( "SERVER, PORT_SECURE, PORT_INSECURE, USERNAME, PASSWORD", "SMTP_" );
+				return smtp;
 			case "imap":
-				mail = server._getSystemPropOrEnvVars( "USERNAME, PASSWORD", "MAIL_" );
-				if ( mail.count() gt 0 ){
-					imap = server._getSystemPropOrEnvVars( "SERVER, PORT_SECURE, PORT_INSECURE", "IMAP_" );
-					return imap;
-				}
-				break;
+				imap = server._getSystemPropOrEnvVars( "SERVER, PORT_SECURE, PORT_INSECURE, USERNAME, PASSWORD", "IMAP_" );
+				return imap;
 			case "pop":
-				mail = server._getSystemPropOrEnvVars( "USERNAME, PASSWORD", "MAIL_" );
-				if ( mail.count() gt 0 ){
-					pop = server._getSystemPropOrEnvVars( "SERVER, PORT_SECURE, PORT_INSECURE", "POP_" );
-					return pop;
-				}
-				break;
+				pop = server._getSystemPropOrEnvVars( "SERVER, PORT_SECURE, PORT_INSECURE, USERNAME, PASSWORD", "POP_" );
+				return pop;
 			case "s3":
 				s3 = server._getSystemPropOrEnvVars( "ACCESS_KEY_ID, SECRET_KEY", "S3_" );
 				return s3;
@@ -464,6 +527,12 @@ component {
 				memcached = server._getSystemPropOrEnvVars( "SERVER, PORT", "MEMCACHED_" );
 				if ( memcached.count() eq 2 ){
 					return memcached;
+				}
+				break;
+			case "redis":
+				redis = server._getSystemPropOrEnvVars( "SERVER, PORT", "REDIS_" );
+				if ( redis.count() eq 2 ){
+					return redis;
 				}
 				break;
 			default:
@@ -499,6 +568,16 @@ component {
 			bundles[ _bundle[ 'Bundle-SymbolicName' ] ] = _bundle[ 'Bundle-Version' ];
 		}
 		return bundles;
+	}
+
+	function isTestServiceAllowed( service ){
+		if ( len( request.testServices) eq 0 )
+			return true;
+		loop list=request.testServices item="local.testService" {
+			if ( local.testService eq arguments.service )
+				return true;
+		}
+		return false;
 	}
 }
 

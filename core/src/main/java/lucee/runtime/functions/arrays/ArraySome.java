@@ -45,7 +45,7 @@ public class ArraySome extends BIF {
 	}
 
 	private static boolean _call(PageContext pc, Array array, UDF udf, boolean parallel, int maxThreads) throws PageException {
-		return Some._call(pc, array, udf, parallel, maxThreads, ClosureFunc.TYPE_ARRAY);
+		return Some.call(pc, array, udf, parallel, maxThreads, ClosureFunc.TYPE_ARRAY);
 	}
 
 	@Override

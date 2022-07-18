@@ -61,7 +61,7 @@
 		<cfloop query="providers">
 			<cfif hash(providers.url) EQ arguments.hashProvider>
 				<cfset detail.provider=loadCFC(providers.url)>
-				<Cfdump var=#detail.provider#>
+				<cfdump var=#detail.provider#>
 				<cfabort>
 				<cfset var apps=detail.provider.listApplications()>
 				<cfset detail.info=detail.provider.getInfo()>
@@ -232,7 +232,7 @@
 			</cfif>				
 
 			<cfcatch>
-				<cfset systemOutput(cfcatch,1,1)>
+				<cflog text="Error parsing extension logo, #cfcatch.message#, [#arguments.src#]" type="error">
 				<cfset local.b64=local.empty>
 			</cfcatch>
 		</cftry>
@@ -645,6 +645,7 @@
 					&"."&repeatString("0",3-len(sct.minor))&sct.minor
 					&"."&repeatString("0",3-len(sct.micro))&sct.micro
 					&"."&repeatString("0",4-len(sct.qualifier))&sct.qualifier
+					& #sct.keyExists("qualifier_appendix1") && isNumeric(sct.qualifier_appendix1)? "."&repeatString("0",4-len(sct.qualifier_appendix1))&sct.qualifier_appendix1  : ""#
 					&"."&repeatString("0",3-len(sct.qualifier_appendix_nbr))&sct.qualifier_appendix_nbr;
 
 		return sct;

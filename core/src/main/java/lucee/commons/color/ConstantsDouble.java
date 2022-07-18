@@ -19,11 +19,8 @@
 package lucee.commons.color;
 
 import java.lang.reflect.Field;
-import java.util.Collections;
-import java.util.Set;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
-import lucee.runtime.op.Caster;
 
 public class ConstantsDouble {
 
@@ -1129,19 +1126,24 @@ public class ConstantsDouble {
 	public static Double _99_9 = new Double(99.9d);
 	public static Double _100 = new Double(100.0d);
 
-	private static Set<String> _____keys;
+	private static Map<Double, String> _____data;
 
 	public static String getFieldName(double d) {
-		if (_____keys == null) {
+		if (_____data == null) {
 			Field[] fields = ConstantsDouble.class.getFields();
-			_____keys = Collections.newSetFromMap(new ConcurrentHashMap<String, Boolean>());
-			for (int i = 0; i < fields.length; i++) {
-				if (fields[i].getType() != Double.class) continue;
-				_____keys.add(fields[i].getName());
+			_____data = new ConcurrentHashMap<Double, String>();
+			String fieldName;
+			for (Field field: fields) {
+				if (field.getType() != Double.class) continue;
+				fieldName = field.getName();
+
+				try {
+					_____data.put((Double) field.get(null), fieldName);
+				}
+				catch (Exception e) {// we simply do no constant in case of an exception, that's fine
+				}
 			}
 		}
-		String str = "_" + Caster.toString(d).replace('-', '_').replace('.', '_');
-		return _____keys.contains(str) ? str : null;
+		return _____data.get(d);
 	}
-
 }

@@ -163,6 +163,7 @@ public final class HttpServletResponseDummy implements HttpServletResponse, Seri
 		return charset;
 	}
 
+	@Override
 	public void setCharacterEncoding(String charset) {
 		this.charset = charset;
 	}
@@ -255,6 +256,7 @@ public final class HttpServletResponseDummy implements HttpServletResponse, Seri
 	/**
 	 * @return the contentType
 	 */
+	@Override
 	public String getContentType() {
 		return contentType;
 	}
@@ -314,6 +316,7 @@ public final class HttpServletResponseDummy implements HttpServletResponse, Seri
 	/**
 	 * @return the status
 	 */
+	@Override
 	public int getStatus() {
 		return status;
 	}

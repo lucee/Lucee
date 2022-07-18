@@ -137,6 +137,7 @@ public class CacheUtil {
 		}
 	}
 
+	// USED in extension
 	public static CacheConnection getCacheConnection(PageContext pc, String cacheName) throws IOException {
 		pc = ThreadLocalPageContext.get(pc);
 		if (pc != null) return ((PageContextImpl) pc).getCacheConnection(cacheName);

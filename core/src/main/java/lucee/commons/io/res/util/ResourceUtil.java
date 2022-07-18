@@ -51,6 +51,7 @@ import lucee.runtime.PageSourceImpl;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.config.Constants;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.functions.system.ExpandPath;
@@ -229,7 +230,10 @@ public final class ResourceUtil {
 
 	public static Resource toResourceExisting(Config config, String path) throws ExpressionException {
 		path = path.replace('\\', '/');
-		Resource res = config.getResource(path);
+		config = ThreadLocalPageContext.getConfig(config);
+		Resource res;
+		if (config == null) res = ResourcesImpl.getFileResourceProvider().getResource(path);
+		else res = config.getResource(path);
 
 		if (res.exists()) return res;
 		throw new ExpressionException("file or directory [" + path + "] does not exist");
@@ -237,7 +241,10 @@ public final class ResourceUtil {
 
 	public static Resource toResourceExisting(Config config, String path, Resource defaultValue) {
 		path = path.replace('\\', '/');
-		Resource res = config.getResource(path);
+		config = ThreadLocalPageContext.getConfig(config);
+		Resource res;
+		if (config == null) res = ResourcesImpl.getFileResourceProvider().getResource(path);
+		else res = config.getResource(path);
 
 		if (res.exists()) return res;
 		return defaultValue;
@@ -1528,6 +1535,11 @@ public final class ResourceUtil {
 
 	public static String checksum(Resource res) throws NoSuchAlgorithmException, IOException {
 		return Hash.md5(res);
+	}
+
+	public static File toFile(Resource res) throws IOException {
+		if (res instanceof File) return (File) res;
+		throw new IOException("cannot convert [" + res + "] to a local file from type [" + res.getResourceProvider().getScheme() + "]");
 	}
 
 }

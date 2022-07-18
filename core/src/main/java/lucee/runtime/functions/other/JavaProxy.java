@@ -107,6 +107,10 @@ public final class JavaProxy implements Function {
 				try {
 					return ClassUtil.loadClassByBundle(className, new BundleDefinition(str, delimiterOrVersion), relatedBundles, pc.getConfig().getIdentification(),
 							JavaSettingsImpl.getBundleDirectories(pc));
+
+					// public static Class<?> loadClassByBundle(String className, String name, String strVersion,
+					// Identification id, List<Resource> addionalDirectories)
+
 				}
 				catch (Throwable t) {
 					ExceptionUtil.rethrowIfNecessary(t);

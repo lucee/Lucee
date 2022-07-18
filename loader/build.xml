@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project default="core" basedir="." name="Lucee" xmlns:artifact="antlib:org.apache.maven.artifact.ant">
 
-  <property name="version" value="6.0.0.110-SNAPSHOT"/>
+  <property name="version" value="6.0.0.202-SNAPSHOT"/>
 
   <path id="maven-ant-tasks.classpath" path="../ant/lib/maven-ant-tasks-2.1.3.jar" />
   <typedef resource="org/apache/maven/artifact/ant/antlib.xml"
@@ -9,6 +9,7 @@
            classpathref="maven-ant-tasks.classpath" />
 
   <import file="../ant/build-core.xml"/>
+
 
   <target name="withTestcases">
     <property name="testcases" value="true"/>
@@ -32,21 +33,20 @@
       <mkdir dir="${outputDir}"/>
   </target>
 
-  <target name="core" depends="withTestcases,setEnv" description="build Lucee and run testcases">
+ <target name="core" depends="withTestcases,setEnv" description="build Lucee and run testcases">
       <property name="buildLoaderJar" value="true"/>
-      
+
       <echots message="Full Build, build .lco and .jar and run testcases"/>
       <antcall target="buildLoaderAnt">
         <param name="compileTestBox" value="true"/><!-- needed for cfml build archives-->
         <param name="buildLoaderJar" value="true"/>
       </antcall>
-
       <delete dir="${outputDir}"/>
   </target>
 
   <target name="fast" depends="setEnv" description="build only Lucee itself">
       <property name="target" location="target"/>
-      
+
       <echots message="Fast Build, only build .lco and .jar"/>
       <antcall target="buildLoaderAnt">
           <param name="compileTestBox" value="false"/><!-- needed for cfml build archives-->
@@ -56,13 +56,12 @@
       <delete dir="${outputDir}"/>
   </target>
 
-  <target name="quick" depends="setEnv" description="build only Lucee itself, only the .lco file">
 
+  <target name="quick" depends="setEnv" description="build only Lucee itself, only the .lco file">
       <echots message="Quick Build, only build .lco"/>
       <antcall target="buildLoaderAnt">
         <param name="compileTestBox" value="false"/><!-- needed for cfml build archives-->
       </antcall>
-      
       <delete dir="${outputDir}"/>
   </target>
 

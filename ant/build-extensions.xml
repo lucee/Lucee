@@ -445,4 +445,14 @@
 		<echo file="${goal}/extensions/.index" append="true">${ext_compress.filename};</echo>
 
 	</target>
+
+	<target name="check-lucee-loader-jar">
+		<available file="${cache}/${stableLoader}.jar" property="lucee.loader-jar.present"/>
+	</target>
+
+	<target name="download-lucee-loader-jar" unless="lucee.loader-jar.present">
+		<mkdir dir="${cache}"/>
+		<get src="${cdnUrl}${stableLoader}.jar" dest="${cache}/${stableLoader}.jar"/>
+	</target>
+
 </project>

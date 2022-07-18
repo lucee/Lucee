@@ -81,86 +81,7 @@
 			<rtexprvalue>true</rtexprvalue>
 		</attribute>
 	</tag>
-	
-	
-	<!-- Applet -->
-	<tag>
-		<name>applet</name>
-		<tag-class>lucee.runtime.tag.Applet</tag-class>
-		<body-content>empty</body-content>
-		<body-rtexprvalue>false</body-rtexprvalue>
-		<status>deprecated</status>
-		<description>
-			Used in a cfform tag, cfapplet lets you reference custom Java applets that you have registered
-			using the Lucee Administrator.
-		</description>
-		<attribute-type>fixed</attribute-type>
-		<attribute>
-			<type>string</type>
-			<name>appletSource</name>
-			<required>true</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>The name of the registered applet.</description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>name</name>
-			<required>true</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>The form variable name for the applet.</description>
-		</attribute>
-		<attribute>
-			<type>number</type>
-			<name>height</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>The height of the applet, in pixels.</description>
-		</attribute>
-		<attribute>
-			<type>number</type>
-			<name>width</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>The width of the applet, in pixels.</description>
-		</attribute>
-		<attribute>
-			<type>number</type>
-			<name>vSpace</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>Space above and below applet, in pixels.</description>
-		</attribute>
-		<attribute>
-			<type>number</type>
-			<name>hSpace</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>Space on each side of the applet, in pixels.</description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>align</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>Alignment</description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>notSupported</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>The text to display if a page containing a Java applet-based cfform control is opened by a browser that does not support Java or has Java support disabled.</description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>param</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>The name of a registered parameter for the applet. </description>
-		</attribute>
-	</tag>
-	
-	
+
 	<!-- Application-->
 	<tag>
 		<name>application</name>
@@ -218,11 +139,20 @@
 		</attribute>
 		<attribute>
 			<type>array</type>
-			<name>mails</name>
-			<alias>mail</alias>
+			<name>mailservers</name>
+			<alias>mail,mails</alias>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>mail servers.</description>
+			<description>Array of structs that defines the mailserver configuration. Each struct configures one mailserver. Struct keys used for smtp configuration are:
+            - host (string): host name of smtp server
+            - port (numeric): port number of smtp server
+            - username (string): smtp username
+            - password (string): smtp userpassword 
+            - ssl (boolean): enable secure connections via SSL.
+            - tls (boolean): enables Transport Layer Security.
+            - lifeTimespan (timespan): overall timeout for the connections established to the mail server.
+            - idleTimespan (timespan): idle timeout for the connections established to the mail server.
+            </description>
 		</attribute>
 		<attribute>
 			<type>struct</type>
@@ -786,6 +716,16 @@ Depending on this setting Lucee scans certain scopes to find a variable called f
 		</attribute>
 		<attribute>
 			<type>boolean</type>
+			<name>preciseMath</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>
+			If set to true Lucee increases memory size for arithmetic operations and numbers. 
+			This improves the accuracy of floating point calculations.
+			</description>
+		</attribute>
+		<attribute>
+			<type>boolean</type>
 			<name>psq</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
@@ -840,6 +780,24 @@ Depending on this setting Lucee scans certain scopes to find a variable called f
 			<required>false</required>
 			<description>allow to define a struct containing the configuration for regular expressions,
 			ATM only the key "engine" is supported, with the possible values [java,perl] to choose the regex dialect.</description>
+		</attribute>
+		<attribute>
+			<type>boolean</type>
+			<name>sameFormFieldsAsArray</name>
+			<required>false</required>
+			<description>Default False
+			When true, form fields with the same name will be combined into an array.
+			This only works via Application.cfc
+			</description>
+		</attribute>
+		<attribute>
+			<type>boolean</type>
+			<name>sameURLFieldsAsArray</name>
+			<required>false</required>
+			<description>Default False
+			When true, url fields/parameters with the same name will be combined into an array.
+			This only works via Application.cfc
+			</description>
 		</attribute>
 	</tag>
 
@@ -1181,6 +1139,16 @@ a timespan (created with function CreateTimeSpan): If original content date fall
 
 To use cached data, the function must be called with the exact same arguments.</description>
     </attribute>
+        <attribute>
+			<type>string</type>
+			<name>modifier</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>Use modifier to denote a function as abstract, static or final.
+            - abstract: implementation must be defined in extended component.
+            - final: implementation cannot be extended.
+            - static: does not access instance variables in the component.</description>
+		</attribute>
 	</tag>
 	<!-- Header -->
 	<tag>

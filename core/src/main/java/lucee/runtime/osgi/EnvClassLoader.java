@@ -212,6 +212,7 @@ public class EnvClassLoader extends URLClassLoader {
 				obj = _load(loader, name, type);
 				if (obj != null) {
 					if (trace != null) trace.trace("EnvClassLoader", "found [" + name + "] in loader ClassLoader");
+					if (useCache) callerCache.put(id.toString(), new SoftReference<Object[]>(new Object[] { obj }));
 					return obj;
 				}
 			}

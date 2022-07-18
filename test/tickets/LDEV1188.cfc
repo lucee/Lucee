@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase"{
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="jsonExt,json" {
 	function run( testResults , testBox ) {
 		describe( "Test suite for LDEV-1188", function() {
 			

@@ -31,6 +31,7 @@ import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
+import lucee.runtime.osgi.BundleFile;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.KeyImpl;
@@ -92,7 +93,7 @@ public class JavaSettingsImpl implements JavaSettings {
 	public List<Resource> getBundlesTranslated() {
 		if (!hasBundlesTranslated) {
 			List<Resource> list = new ArrayList<Resource>();
-			_getBundlesTranslated(list, bundles, true);
+			_getBundlesTranslated(list, bundles, true, true);
 			bundlesTranslated = list;
 			if (bundlesTranslated != null && bundlesTranslated.isEmpty()) bundlesTranslated = null;
 			hasBundlesTranslated = true;
@@ -113,12 +114,16 @@ public class JavaSettingsImpl implements JavaSettings {
 		}
 	}
 
-	public static void _getBundlesTranslated(List<Resource> list, Resource[] resources, boolean deep) {
+	public static void _getBundlesTranslated(List<Resource> list, Resource[] resources, boolean deep, boolean checkFiles) {
 		if (ArrayUtil.isEmpty(resources)) return;
 		for (Resource resource: resources) {
 			if (resource.isDirectory()) {
-				list.add(resource);
-				if (deep) _getBundlesTranslated(list, resource.listResources(), false);
+				list.add(ResourceUtil.getCanonicalResourceEL(resource));
+				if (deep) _getBundlesTranslated(list, resource.listResources(), false, false);
+			}
+			else if (checkFiles && resource.isFile()) {
+				BundleFile bf = BundleFile.getInstance(resource, null);
+				if (bf != null && bf.isBundle()) list.add(resource);
 			}
 		}
 	}

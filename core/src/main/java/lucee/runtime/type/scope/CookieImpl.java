@@ -202,8 +202,9 @@ public final class CookieImpl extends ScopeSupport implements Cookie, ScriptProt
 	}
 
 	// FUTURE add to interface
-	public void setCookie(Collection.Key key, Object value, Object expires, boolean secure, String path, String domain, boolean httpOnly, boolean preserveCase, boolean encode,
+	public void setCookie(Collection.Key key, Object value, Object expires, boolean secure, String path, String domain, boolean httpOnly, boolean preserveCase, Boolean encode,
 			short samesite) throws PageException {
+
 		int exp = EXPIRES_NULL;
 
 		// expires
@@ -227,7 +228,9 @@ public final class CookieImpl extends ScopeSupport implements Cookie, ScriptProt
 			throw new ExpressionException("invalid type [" + Caster.toClassName(expires) + "] for expires");
 		}
 
-		setCookie(key, value, exp, secure, path, domain, httpOnly, preserveCase, encode, samesite);
+		_addCookie(key, Caster.toString(value), exp, secure, path, domain, httpOnly, preserveCase, encode, samesite);
+		super.set(key, value);
+
 	}
 
 	@Override
@@ -258,13 +261,13 @@ public final class CookieImpl extends ScopeSupport implements Cookie, ScriptProt
 		super.setEL(key, value);
 	}
 
-	private void _addCookie(Key key, String value, int expires, boolean secure, String path, String domain, boolean httpOnly, boolean preserveCase, boolean encode,
+	private void _addCookie(Key key, String value, int expires, boolean secure, String path, String domain, boolean httpOnly, boolean preserveCase, Boolean encode,
 			short samesite) {
 		String name = preserveCase ? key.getString() : key.getUpperString();
 
 		// build the value
 		StringBuilder sb = new StringBuilder();
-		/* Name */ sb.append(enc(name)).append('=').append(enc(value));
+		/* Name */ sb.append(enc(name)).append('=').append(encode == null ? enc(value) : enc(value, encode.booleanValue()));
 		/* Path */sb.append(";Path=").append(enc(path));
 		/* Domain */if (!StringUtil.isEmpty(domain)) sb.append(";Domain=").append(enc(domain));
 		/* Expires */if (expires != EXPIRES_NULL) sb.append(";Expires=").append(DateTimeUtil.toHTTPTimeString(System.currentTimeMillis() + (expires * 1000L), false));
@@ -369,9 +372,14 @@ public final class CookieImpl extends ScopeSupport implements Cookie, ScriptProt
 		return ReqRspUtil.decode(str, charset, false);
 	}
 
-	public String enc(String str) {
-		if (ReqRspUtil.needEncoding(str, false)) return ReqRspUtil.encode(str, charset);
+	public String enc(String str, boolean encode) {
+		if (encode) return ReqRspUtil.encode(str, charset);
 		return str;
+	}
+
+	public String enc(String str) {
+		if (ReqRspUtil.needEncoding(str, false)) return enc(str, true);
+		return enc(str, false);
 	}
 
 	@Override
