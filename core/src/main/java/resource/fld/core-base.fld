@@ -14619,9 +14619,9 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>boolean</type>
 		</return>
 	</function>
-  
-  <!-- ExtensionInfo -->
-  <function>
+
+	<!-- ExtensionInfo -->
+	<function>
 		<name>ExtensionInfo</name>
 		<class>lucee.runtime.functions.system.ExtensionInfo</class>
 		<description>Returns the detailed info about the extension.</description>
@@ -14630,10 +14630,9 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>string</type>
 			<required>Yes</required>
 			<description>Id of the extension</description>
-	    </argument>
+		</argument>
 		<return>
 			<type>struct</type>
 		</return>
 	</function>
 </func-lib>
-
