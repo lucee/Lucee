@@ -21,21 +21,36 @@ package lucee.runtime.functions.conversion;
 import lucee.runtime.PageContext;
 import lucee.runtime.coder.Coder;
 import lucee.runtime.coder.CoderException;
+import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.ext.function.BIF;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.op.Caster;
 
 /**
  * Decodes Binary Data that are encoded as String
  */
-public final class BinaryDecode implements Function {
+public final class BinaryDecode extends BIF implements Function {
+
+	private static final long serialVersionUID = -2161056028357718268L;
 
 	public static byte[] call(PageContext pc, String encoded_binary, String binaryencoding) throws PageException {
+		return call(pc, encoded_binary, binaryencoding, false);
+	}
+
+	public static byte[] call(PageContext pc, String encoded_binary, String binaryencoding, boolean precise) throws PageException {
 		try {
-			return Coder.decode(binaryencoding, encoded_binary);
+			return Coder.decode(binaryencoding, encoded_binary, precise);
 		}
 		catch (CoderException e) {
 			throw Caster.toPageException(e);
 		}
+	}
+
+	@Override
+	public Object invoke(PageContext pc, Object[] args) throws PageException {
+		if (args.length == 2) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]));
+		else if (args.length == 3) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toBooleanValue(args[2]));
+		else throw new FunctionException(pc, "BinaryDecode", 2, 3, args.length);
 	}
 }

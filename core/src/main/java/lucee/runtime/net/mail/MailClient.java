@@ -40,6 +40,7 @@ import javax.mail.Part;
 import javax.mail.PasswordAuthentication;
 import javax.mail.Session;
 import javax.mail.Store;
+import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 import javax.mail.internet.MimeUtility;
 
@@ -262,7 +263,7 @@ public abstract class MailClient implements PoolItem {
 		// if(TYPE_POP3==getType()){}
 		_session = username != null ? Session.getInstance(properties, new _Authenticator(username, password)) : Session.getInstance(properties);
 		_store = _session.getStore(type);
-		if (!StringUtil.isEmpty(username)) _store.connect(server, username, password);
+		if (!StringUtil.isEmpty(username)) _store.connect(server, port, username, password);
 		else _store.connect();
 	}
 
@@ -576,6 +577,10 @@ public abstract class MailClient implements PoolItem {
 
 				cids.setEL(KeyImpl.init(filename), cid);
 			}
+			else if((content = bodypart.getContent()) instanceof MimeMessage) {
+				content = getConent(bodypart);
+				if (body.length() == 0) body.append(content);
+			}
 		}
 	}
 
@@ -607,12 +612,19 @@ public abstract class MailClient implements PoolItem {
 		InputStream is = null;
 
 		try {
-			return getContent(is = bp.getInputStream(), CharsetUtil.toCharset(getCharsetFromContentType(bp.getContentType())));
+			if((bp.getContent()) instanceof MimeMessage) {
+				MimeMessage mimeContent = (MimeMessage) bp.getContent();
+				is = mimeContent.getInputStream();
+			}
+			else {
+				is = bp.getInputStream();
+			}
+			return getContent(is, CharsetUtil.toCharset(getCharsetFromContentType(bp.getContentType())));
 		}
 		catch (IOException mie) {
 			IOUtil.closeEL(is);
 			try {
-				return getContent(is = bp.getInputStream(), SystemUtil.getCharset());
+				return getContent(is, SystemUtil.getCharset());
 			}
 			catch (IOException e) {
 				return "Cannot read body of this message: " + e.getMessage();

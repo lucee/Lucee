@@ -14,8 +14,17 @@ import javax.servlet.http.Cookie;
 import javax.servlet.jsp.JspException;
 import javax.servlet.jsp.tagext.Tag;
 
+import org.apache.logging.log4j.core.layout.HtmlLayout;
+import org.apache.logging.log4j.core.layout.PatternLayout;
+
 import lucee.commons.io.DevNullOutputStream;
 import lucee.commons.io.SystemUtil;
+import lucee.commons.io.log.log4j2.appender.ConsoleAppender;
+import lucee.commons.io.log.log4j2.appender.DatasourceAppender;
+import lucee.commons.io.log.log4j2.appender.ResourceAppender;
+import lucee.commons.io.log.log4j2.layout.ClassicLayout;
+import lucee.commons.io.log.log4j2.layout.DataDogLayout;
+import lucee.commons.io.log.log4j2.layout.XMLLayout;
 import lucee.commons.io.res.Resource;
 import lucee.loader.engine.CFMLEngine;
 import lucee.loader.engine.CFMLEngineFactory;
@@ -481,9 +490,9 @@ public class CFConfigImport {
 			if (val != null) return val;
 			val = getValue(json, "appender");
 
-			if ("console".equalsIgnoreCase(val)) return "lucee.commons.io.log.log4j.appender.ConsoleAppender";
-			if ("resource".equalsIgnoreCase(val)) return "lucee.commons.io.log.log4j.appender.RollingResourceAppender";
-			if ("datasource".equalsIgnoreCase(val)) return "lucee.commons.io.log.log4j.appender.DatasourceAppender";
+			if ("console".equalsIgnoreCase(val)) return ConsoleAppender.class.getName();
+			if ("resource".equalsIgnoreCase(val)) return ResourceAppender.class.getName();
+			if ("datasource".equalsIgnoreCase(val)) return DatasourceAppender.class.getName();
 
 			return val;
 		}
@@ -498,11 +507,13 @@ public class CFConfigImport {
 			if (val != null) return val;
 			val = getValue(json, "layout");
 
-			if ("classic".equalsIgnoreCase(val)) return "lucee.commons.io.log.log4j.layout.ClassicLayout";
-			if ("datasource".equalsIgnoreCase(val)) return "lucee.commons.io.log.log4j.layout.DatasourceLayout";
-			if ("html".equalsIgnoreCase(val)) return "org.apache.log4j.HTMLLayout";
-			if ("xml".equalsIgnoreCase(val)) return "org.apache.log4j.xml.XMLLayout";
-			if ("pattern".equalsIgnoreCase(val)) return "org.apache.log4j.PatternLayout";
+			if ("classic".equalsIgnoreCase(val)) return ClassicLayout.class.getName();
+			;
+			if ("datasource".equalsIgnoreCase(val)) return ClassicLayout.class.getName();
+			if ("html".equalsIgnoreCase(val)) return HtmlLayout.class.getName();
+			if ("xml".equalsIgnoreCase(val)) return XMLLayout.class.getName();
+			if ("pattern".equalsIgnoreCase(val)) return PatternLayout.class.getName();
+			if ("datadog".equalsIgnoreCase(val)) return DataDogLayout.class.getName();
 
 			return val;
 		}

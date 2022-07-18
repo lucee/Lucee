@@ -43,7 +43,7 @@ public class Operation2 extends ExpressionSupport implements Operation {
 			return "*";
 		case Operation.OPERATION2_PLUS:
 			return "+";
-		case Operation.OPERATION2_EXP:
+		case Operation.OPERATION2_BITWISE:
 			return "^";
 		case Operation.OPERATION2_MOD:
 			return "%";

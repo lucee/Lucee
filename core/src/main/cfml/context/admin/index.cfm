@@ -1,5 +1,5 @@
 <cfscript>
-	if(getConfigSettings().mode=="single") {
+	if(getApplicationSettings().singleContext) {
 		include "web.cfm";
 	}
 	else {

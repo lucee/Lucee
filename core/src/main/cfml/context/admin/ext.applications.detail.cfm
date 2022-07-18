@@ -51,7 +51,7 @@
 	};
 	if(len(all)){
 		for(versions in all ){
-			if(FindNoCase("SNAPSHOT", versions)){
+			if(FindNoCase("SNAPSHOT", versions) || FindNoCase("SNAPHOT", versions)){  // checks SNAPHOT too due to LDEV-3876
 				arrayprepend(versionStr.snapShot, versions)
 			}else if(FindNoCase("ALPHA", versions) || FindNoCase("BETA", versions) || FindNoCase("RC", versions)){
 				arrayprepend(versionStr.pre_release, versions);
@@ -103,8 +103,7 @@
 		<h2>#app.name# (<cfif isInstalled>#stText.ext.installed#<cfelseif isServerInstalled>#stText.ext.installedServer#<cfelse>#stText.ext.notInstalled#</cfif>)</h2>
 				
 		<cfif !lasProvider>
-		<div class="warning" style="color:##C93">This extension is not provided by the Lucee Association Switzerland and does not neccessarily follow our guidelines. This extension is not reviewed by the Lucee Association Switzerland.
-		For any sugestion to improve the Extension or any issue you encounter, please contact the author of the extension directly.</div>
+		<div class="warning" style="color:##C93">#stText.ext.providerWarning#</div>
 		</cfif>
 
 		<cfif !isInstalled && isServerInstalled><div class="error">#stText.ext.installedServerDesc#</div></cfif>

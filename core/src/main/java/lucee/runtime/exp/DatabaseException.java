@@ -49,7 +49,7 @@ public final class DatabaseException extends PageExceptionImpl {
 
 		set(sqle);
 		set(dc);
-		initCause( sqle );
+		initCause(sqle);
 	}
 
 	public DatabaseException(String message, String detail, SQL sql, DatasourceConnection dc) {
@@ -81,7 +81,12 @@ public final class DatabaseException extends PageExceptionImpl {
 	private void set(SQL sql) {
 		this.sql = sql;
 		if (sql != null) {
-			setAdditional(KeyConstants._SQL, sql.toString());
+			try {
+				setAdditional(KeyConstants._SQL, sql.toString());
+			}
+			catch (Exception e) {
+				setAdditional(KeyConstants._SQL, sql.getSQLString());
+			}
 		}
 	}
 

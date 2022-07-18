@@ -36,19 +36,18 @@ Alternatively try the super-useful [CommandBox](https://www.ortussolutions.com/p
 
 ## Building Lucee from Source
 
-You can find detailed instructions on how to build Lucee [build Lucee from source](https://docs.lucee.org/guides/working-with-source.html)
+You can find detailed instructions on how to [build Lucee from source](https://docs.lucee.org/guides/working-with-source.html).
 
 Lucee has a lot of testcases, there are a number of handy [build flags](https://docs.lucee.org/guides/working-with-source/build-from-source.html#build-performance-tips) which can be used to avoid running the entire Lucee test suite (which takes a while) when you are working on a specific feature (Lucee 6.+ only).
 
-Lucee uses [Testbox](https://testbox.ortusbooks.com/) as our test framework, we have a customised cfml wrapper around testbox which can be found in the root directory under [/test](https://github.com/lucee/Lucee/tree/6.0/test). 
+Lucee uses [TestBox](https://testbox.ortusbooks.com/) as our test framework, we have a customised CFML wrapper around TestBox which can be found in the root directory under [/test](https://github.com/lucee/Lucee/tree/6.0/test). 
 
 The test suites use a range of Test Services, like s3, database, ftp, etc. You can see how they are configured in [_setupTestServices.cfc](https://github.com/lucee/Lucee/blob/6.0/test/_setupTestServices.cfc) via the source code.
 
 ## Getting Help
 
 - [Lucee Documentation Project](https://docs.lucee.org/)
-- [Lucee Google Group](https://groups.google.com/forum/#!forum/lucee); general app developer support
-- [Lucee Lang Forum](http://lang.lucee.org/); hacking on Lucee itself
+- [Lucee Mailing List / Forum ](https://dev.lucee.org); General app developer support, hacking on Lucee itself
 - [Lucee Bug Tracker](https://luceeserver.atlassian.net/projects/LDEV/issues)
 
 If you are [looking for commercial support](https://lucee.org/members.html), you might try one of the LAS Members.

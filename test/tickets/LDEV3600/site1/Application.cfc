@@ -5,4 +5,9 @@
             <cfoutput>#cfcatch.message#</cfoutput>
         </cfcatch>
     </cftry>
+<cfscript>
+	public function onRequestStart() {
+		setting requesttimeout=10;
+	}
+</cfscript>
 </cfcomponent>

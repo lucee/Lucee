@@ -19,4 +19,8 @@ component {
 	msSQL.connectionString: 'jdbc:jtds:sqlserver://'&msSQL.server&':'&msSQL.port&';DATABASENAME='&msSQL.database&';sendStringParametersAsUnicode=true;SelectMethod=direct';
 
 	this.datasources["LDEV3030_jTDS"] = mssql;
+
+	public function onRequestStart() {
+		setting requesttimeout=10;
+	}
 }

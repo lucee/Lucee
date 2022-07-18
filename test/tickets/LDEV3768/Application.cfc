@@ -8,4 +8,8 @@ component {
 		dialect = "h2"
 	};
 	this.datasources["testH2"] = server.getDatasource("h2", "#getDirectoryFromPath(getCurrentTemplatePath())#/datasource/dbh2");
+
+	public function onRequestStart() {
+		setting requesttimeout=10;
+	}
 }
