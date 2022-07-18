@@ -448,6 +448,7 @@ public class KeyConstants {
 	public static final Key _java = KeyImpl._const("java");
 	public static final Key _javaLoader = KeyImpl._const("javaLoader");
 	public static final Key _jsessionid = KeyImpl._const("jsessionid");
+	public static final Key _JSESSIONID = KeyImpl._const("JSESSIONID");
 	public static final Key _key = KeyImpl._const("key");
 	public static final Key _keys = KeyImpl._const("keys");
 	public static final Key _label = KeyImpl._const("label");
@@ -1038,6 +1039,7 @@ public class KeyConstants {
 	public static final Key _COLUMNTYPES = KeyImpl._const("COLUMNTYPES");
 	public static final Key _columnNames = KeyImpl._const("columnNames");
 	public static final Key _columnTypes = KeyImpl._const("columnTypes");
+	public static final Key _remoteclients = KeyImpl._const("remoteclients");
 
 	private static Map<String, Key> _____keys;
 

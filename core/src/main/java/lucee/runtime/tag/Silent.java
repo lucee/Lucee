@@ -81,7 +81,7 @@ public final class Silent extends BodyTagTryCatchFinallyImpl {
 	public void release() {
 		super.release();
 		bc = null;
-		this.bufferOutput = null;
+		this.bufferOutput = true;
 	}
 
 }

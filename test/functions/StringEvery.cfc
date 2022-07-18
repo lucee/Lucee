@@ -20,16 +20,31 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	
 
 	public void function testStringEvery(){
-        local.testString = "123456789";
-        callback = function(chr){
-        	return chr>5;
-        }
-        assertEquals( true, StringEvery( local.testString, callback )); 
-      
-        callback_1 = function(chr){
-        	return chr<1;
-        }
-        assertEquals( false, local.testString.every( callback_1 ));
-	}
+		local.testString = "123456789";
+		
+		var res="";
+		callback = function(chr){
+				res=chr;
+				return false;
+		}
+		StringEvery( local.testString, callback )
+		assertEquals( "1", res); 
+
+		var res="";
+		callback = function(chr){
+				res=chr;
+				return true;
+		}
+		StringEvery( local.testString, callback )
+		assertEquals( "9", res); 
+
+		var res="";
+		callback_1 = function(chr){
+				res=chr;
+				return false;
+		}
+		local.testString.every( callback_1 );
+		assertEquals( "1", res);
+        }       
 } 
 </cfscript>

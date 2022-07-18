@@ -1,4 +1,4 @@
-<cfcomponent displayName="tester" hint="Test for SOAP headers"> 
+<cfcomponent displayName="tester" hint="Test for SOAP headers" labels="xml"> 
  
  
 <cffunction name="testEmpty"  

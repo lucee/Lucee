@@ -514,7 +514,7 @@ public class SelectParser {
 		// Modulus Operation
 		while (raw.forwardIfCurrent('^')) {
 			raw.removeSpace();
-			exp = new Operation2(exp, negateMinusOp(raw), Operation.OPERATION2_EXP);
+			exp = new Operation2(exp, negateMinusOp(raw), Operation.OPERATION2_BITWISE);
 		}
 		return exp;
 	}
@@ -560,9 +560,9 @@ public class SelectParser {
 		String name = identifier(raw, hb);
 		if (name == null) return null;
 		if (!hb.toBooleanValue()) {
-			if ("true".equalsIgnoreCase(name)) return ValueBoolean.TRUE;
-			if ("false".equalsIgnoreCase(name)) return ValueBoolean.FALSE;
-			if ("null".equalsIgnoreCase(name)) return ValueNull.NULL;
+			if ("true".equalsIgnoreCase(name)) return new ValueBoolean(true);
+			if ("false".equalsIgnoreCase(name)) return new ValueBoolean(false);
+			if ("null".equalsIgnoreCase(name)) return new ValueNull();
 		}
 
 		ColumnExpression column = new ColumnExpression(name, name.equals("?") ? columnIndex++ : 0);

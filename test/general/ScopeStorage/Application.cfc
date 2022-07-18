@@ -10,4 +10,7 @@ component {
     this.clientCluster = true;
     this.clientTimeout = createTimeSpan( 0, 0, 1, 0);
 	
+	public function onRequestStart() {
+		setting requesttimeout=10;
+	}
 }

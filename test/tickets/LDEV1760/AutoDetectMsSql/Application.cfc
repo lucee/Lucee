@@ -16,6 +16,10 @@ component {
 		//dialect="MicrosoftSQLServer"
 	};
 
+	public function onRequestStart() {
+		setting requesttimeout=10;
+	}
+	
 	private struct function getCredentials() {
 		return server.getDatasource("mssql");
 	}

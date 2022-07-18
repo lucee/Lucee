@@ -1094,6 +1094,16 @@ public final class ListUtil {
 		return array;
 	}
 
+	public static Array trim(Array array) {
+		while (array.size() > 0 && Caster.toString(array.get(1, ""), "").isEmpty()) {
+			array.removeEL(1);
+		}
+		while (array.size() > 0 && Caster.toString(array.get(array.size(), ""), "").isEmpty()) {
+			array.removeEL(array.size());
+		}
+		return array;
+	}
+
 	/**
 	 * trims a string list, remove all empty delimiter at start and the end
 	 * 
@@ -1434,7 +1444,7 @@ public final class ListUtil {
 		if (delimiter.length() == 1) return len(list, delimiter.charAt(0), ignoreEmpty);
 		char[] del = delimiter.toCharArray();
 		int len = StringUtil.length(list);
-		if (len == 0) return 0;
+		if (len == 0 && ignoreEmpty) return 0;
 
 		int count = 0;
 		int last = 0;
@@ -1606,7 +1616,7 @@ public final class ListUtil {
 				}
 			}
 		}
-		if (last <= len) set.add(list.substring(last));
+		if (last <= len) set.add(trim ? list.substring(last).trim() : list.substring(last));
 		return set;
 	}
 
@@ -1624,7 +1634,7 @@ public final class ListUtil {
 				last = i + 1;
 			}
 		}
-		if (last <= len) set.add(list.substring(last));
+		if (last <= len) set.add(trim ? list.substring(last).trim() : list.substring(last));
 		return set;
 	}
 

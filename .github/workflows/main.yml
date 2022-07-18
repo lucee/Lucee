@@ -1,10 +1,18 @@
-name: Java CI
+name: Build 6.0 
 
-on: [push, pull_request, workflow_dispatch]
+on: 
+  workflow_call:
+    inputs:
+      LUCEE_TEST_JAVA_VERSION:
+        required: true
+        type: string
+  push: 
+  pull_request:
+  workflow_dispatch:
 
-concurrency: 
-  group: lucee-build
-  cancel-in-progress: true
+#concurrency:
+#  group: ${{ github.head_ref }}
+#  cancel-in-progress: true
 
 jobs:
   build:
@@ -35,16 +43,35 @@ jobs:
         ports:
           # Maps port 6379 on service container to the host
           - 6379:6379
+      greenmail:
+        image: greenmail/standalone:1.6.9
+        ports:
+          - 3025:3025 #SMTP
+          - 3110:3110 #POP3
+          - 3143:3143 #IMAP
+          - 3465:3465 #SMTPS
+          - 3993:3993 #IMAPS
+          - 3995:3995 #POP3S
+          - 8080:8080 #API
     steps:
     - uses: szenius/set-timezone@v1.0
       with:
         timezoneLinux: "UTC"
     - uses: actions/checkout@v2
-    - name: Set up JDK 11
+    - name: Set up Test Java Version
+      uses: actions/setup-java@v2
+      if: ${{ inputs.LUCEE_TEST_JAVA_VERSION != '' }}
+      with:
+        java-version: ${{ inputs.LUCEE_TEST_JAVA_VERSION }}
+        distribution: 'temurin'
+    - name: Stash Test Java Version Home
+      if: ${{ inputs.LUCEE_TEST_JAVA_VERSION != '' }}
+      run: echo "LUCEE_TEST_JAVA_EXEC=${{ env.JAVA_HOME }}/bin/java" >> $GITHUB_ENV
+    - name: Set up JDK 8
       uses: actions/setup-java@v2
       with:
         java-version: '8'
-        distribution: 'adopt'
+        distribution: 'temurin'
     - name: Cache Lucee extensions
       uses: actions/cache@v2
       with:
@@ -54,14 +81,13 @@ jobs:
     - name: Cache Maven packages
       uses: actions/cache@v2
       with:
-        path: ~/.m2
-        key: ${{ runner.os }}-m2-${{ hashFiles('loader/pom.xml','core/pom.xml') }}
+        path: ~/.m2/repository
+        key: ${{ runner.os }}-maven-${{ hashFiles('loader/pom.xml','core/pom.xml') }}
         restore-keys: |
-          ${{ runner.os }}-m2
-          maven-cache
+          ${{ runner.os }}-maven-
     - name: Set up MySQL (local)
       run: |
-        sudo /etc/init.d/mysql start
+        sudo systemctl start mysql
         mysql -e 'CREATE DATABASE lucee' -uroot -proot
         mysql -e 'CREATE USER "lucee"@"localhost" IDENTIFIED WITH mysql_native_password BY "lucee";' -uroot -proot
         mysql -e 'GRANT ALL PRIVILEGES ON lucee.* TO "lucee"@"localhost"' -uroot -proot
@@ -103,6 +129,21 @@ jobs:
         MEMCACHED_SERVER: localhost
         REDIS_PORT: 6379
         REDIS_SERVER: localhost
+        SMTP_PORT_INSECURE: 3025
+        SMTP_PORT_SECURE: 3465
+        SMTP_SERVER: localhost
+        SMTP_USERNAME: lucee
+        SMTP_PASSWORD: doesntmatter
+        IMAP_PORT_INSECURE: 3143
+        IMAP_PORT_SECURE: 3993
+        IMAP_SERVER: localhost
+        IMAP_USERNAME: lucee
+        # IMAP_PASSWORD: doesntmatter
+        POP_PORT_INSECURE: 3110
+        POP_PORT_SECURE: 3995
+        POP_SERVER: localhost
+        POP_USERNAME: lucee
+        POP_PASSWORD: doesntmatter
         S3_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_ID_TEST }}
         S3_SECRET_KEY: ${{ secrets.S3_SECRET_KEY_TEST }}
         # DO_DEPLOY: ${{ github.event_name == 'push' }}
@@ -113,14 +154,15 @@ jobs:
         CI_DEPLOY_USERNAME: ${{ secrets.CI_DEPLOY_USERNAME }}
         CI_DEPLOY_PASSWORD: ${{ secrets.CI_DEPLOY_PASSWORD }}
         CI_DEPLOY_PASSPHRASE: ${{ secrets.CI_DEPLOY_PASSPHRASE }}
+        LUCEE_DOCKER_FILES_PAT_TOKEN: ${{ secrets.LUCEE_DOCKER_FILES_PAT_TOKEN }}
       #run: ant -noinput -buildfile loader/build.xml
       run: |
-        if [ "${DO_DEPLOY}" == "true" ]; then        
+        if [ "${DO_DEPLOY}" == "true" ]; then
           echo "------- Maven Deploy on ${{ github.event_name }} -------";
-          mvn -B -e -f loader/pom.xml clean deploy --settings travis-settings.xml;
+          mvn -B -e -f loader/pom.xml clean deploy --settings travis-settings.xml -DtestJavaVersionExec="${{ env.LUCEE_TEST_JAVA_EXEC }}";
         else
           echo "------- Maven Install on ${{ github.event_name }} ---------";
-          mvn -B -e -f loader/pom.xml clean install
+          mvn -B -e -f loader/pom.xml clean install -DtestJavaVersionExec="${{ env.LUCEE_TEST_JAVA_EXEC }}"
         fi
     - name: Publish Test Results
       uses: EnricoMi/publish-unit-test-result-action@v1
@@ -128,12 +170,6 @@ jobs:
       with:
         files: test/reports/junit-test-results.xml
         check_name: "Lucee Test Results"
-    - name: Update Provider
-      if: ${{ env.DO_DEPLOY == 'true' }}
-      run: |
-        curl --no-progress-meter -sIXGET "https://update.lucee.org/rest/update/provider/buildLatest"
-        curl --no-progress-meter -sIXGET "https://extension.lucee.org/rest/extension/provider/reset"
-        curl --no-progress-meter -sIXGET "https://download.lucee.org/?type=snapshots&reset=force"
     - name: Trigger Docker Build
       if: ${{ env.DO_DEPLOY == 'true' }}
       env:

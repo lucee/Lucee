@@ -57,6 +57,11 @@ component {
 		// ORM EVENTS MUST BE TURNED ON FOR CONTENTBOX TO WORK
 		skipCFCWithError	= true
 	};
+	
+	public function onRequestStart() {
+		setting requesttimeout=10;
+	}
+
 	function onRequestEnd() {
 		var javaIoFile=createObject("java","java.io.File");
 		loop array=DirectoryList(

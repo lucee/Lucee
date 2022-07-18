@@ -27,6 +27,9 @@ component name='application' accessors=true output=false persistent=false {
 	this.ormsettings.flushatrequestend	= true;
 	this.ormsettings.autoManageSession	= false;
 	
+	public function onRequestStart() {
+		setting requesttimeout=10;
+	}
 	
 	function onRequestEnd() {
 		var javaIoFile=createObject("java","java.io.File");

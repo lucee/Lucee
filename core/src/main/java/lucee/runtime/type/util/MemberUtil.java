@@ -41,6 +41,7 @@ import lucee.runtime.interpreter.ref.func.BIFCall;
 import lucee.runtime.interpreter.ref.literal.LFunctionValue;
 import lucee.runtime.interpreter.ref.literal.LString;
 import lucee.runtime.op.Caster;
+import lucee.runtime.op.Decision;
 import lucee.runtime.reflection.Reflector;
 import lucee.runtime.reflection.pairs.MethodInstance;
 import lucee.runtime.type.Collection;
@@ -91,6 +92,7 @@ public class MemberUtil {
 		String strType;
 		Map<Key, FunctionLibFunction> members = null;
 		boolean hasAny = false;
+		boolean isChked = false;
 		for (int i = 0; i <= types.length; i++) {
 			if (i == types.length) {
 				if (hasAny) break;
@@ -104,6 +106,17 @@ public class MemberUtil {
 			}
 			members = getMembers(pc, type);
 			FunctionLibFunction member = members.get(methodName);
+			if (member == null && !isChked) {
+				if (type == CFTypes.TYPE_NUMERIC) {
+					members = getMembers(pc, CFTypes.TYPE_STRING);
+					member = members.get(methodName);
+				}
+				if (type == CFTypes.TYPE_STRING && Decision.isNumber(coll)) {
+					members = getMembers(pc, CFTypes.TYPE_NUMERIC);
+					member = members.get(methodName);
+				}
+				isChked = true;
+			}
 			if (member != null) {
 				List<FunctionLibFunctionArg> _args = member.getArg();
 				if (args.length < _args.size()) {
@@ -155,7 +168,9 @@ public class MemberUtil {
 		}
 		String msg = ExceptionUtil.similarKeyMessage(keys.toArray(new Key[keys.size()]), methodName.getString(), "function", "functions",
 				types.length == 1 && types[0] != CFTypes.TYPE_ANY ? StringUtil.ucFirst(CFTypes.toString(types[0], "Object")) : "Object", true);
-		throw new ExpressionException(msg);
+		String detail = ExceptionUtil.similarKeyMessage(keys.toArray(new Key[keys.size()]), methodName.getString(), "functions",
+				types.length == 1 && types[0] != CFTypes.TYPE_ANY ? StringUtil.ucFirst(CFTypes.toString(types[0], "Object")) : "Object", true);
+		throw new ExpressionException(msg, detail);
 	}
 
 	private static Object callMethod(Object obj, Collection.Key methodName, Object[] args) throws PageException {
@@ -216,8 +231,12 @@ public class MemberUtil {
 				}
 				return new BIFCall(coll, member, refs.toArray(new Ref[refs.size()])).getValue(pc);
 			}
-
+			else {
+				throw new ExpressionException("There are to many arguments (" + args.size() + ") passed into the member function  [" + methodName
+						+ "], the maximum number of arguments is [" + (_args.size() - 1) + "]");
+			}
 		}
+
 		throw new ExpressionException("No matching function member [" + methodName + "] for call with named arguments found, available function members are ["
 				+ lucee.runtime.type.util.ListUtil.sort(CollectionUtil.getKeyList(members.keySet().iterator(), ","), "textnocase", "asc", ",") + "]");
 	}

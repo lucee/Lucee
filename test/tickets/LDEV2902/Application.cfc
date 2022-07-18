@@ -5,4 +5,8 @@ component {
 	this.datasources["testTimeZone"] = msSql;
 	this.datasources["testNoTimeZone"] = server.getDatasource("mssql");
 	this.datasources["testemptyTimeZone"] = server.getDatasource("mssql");
+
+	public function onRequestStart() {
+		setting requesttimeout=10;
+	}
 }
