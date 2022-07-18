@@ -92,8 +92,9 @@ public final class Location extends TagImpl {
 	public void setAbort(boolean abort) {
 		this.abort = abort;
 	}
-  
-  * set the value Encode true or false.
+
+	/**
+	* set the value Encode true or false.
 	* 
 	* @param encode value to set
 	**/
