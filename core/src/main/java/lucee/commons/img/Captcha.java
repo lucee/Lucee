@@ -41,7 +41,7 @@ public final class Captcha extends AbstractCaptcha {
 	}
 
 	/**
-	 * write out image object to a output stream
+	 * write out image object to an output stream
 	 * 
 	 * @param image
 	 * @param os

@@ -38,6 +38,7 @@ import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigWeb;
+import lucee.runtime.config.Constants;
 import lucee.runtime.net.http.HTTPServletRequestWrap;
 import lucee.runtime.net.http.HttpServletRequestDummy;
 import lucee.runtime.net.http.HttpServletResponseDummy;
@@ -45,6 +46,7 @@ import lucee.runtime.type.Struct;
 
 public class ThreadUtil {
 
+	// do not change, used in Redis extension
 	public static PageContextImpl clonePageContext(PageContext pc, OutputStream os, boolean stateless, boolean register2Thread, boolean register2RunningThreads) {
 		// TODO stateless
 		CFMLFactoryImpl factory = (CFMLFactoryImpl) pc.getConfig().getFactory();
@@ -54,8 +56,8 @@ public class ThreadUtil {
 		// copy state
 		PageContextImpl pci = (PageContextImpl) pc;
 		PageContextImpl dest = factory.getPageContextImpl(factory.getServlet(), req, rsp, null, false, -1, false, register2Thread, true, pc.getRequestTimeout(),
-				register2RunningThreads, false, false);
-		pci.copyStateTo(dest);
+				register2RunningThreads, false, false, pci);
+		// pci.copyStateTo(dest);
 		return dest;
 	}
 
@@ -71,20 +73,30 @@ public class ThreadUtil {
 	 * @param parameters
 	 * @param attributes
 	 * @param register
-	 * @param timeout timeout in ms, if the value is smaller than 1 it is ignored and the value comming
+	 * @param timeout timeout in ms, if the value is smaller than 1 it is ignored and the value coming
 	 *            from the context is used
 	 * @return
 	 */
 	public static PageContextImpl createPageContext(ConfigWeb config, OutputStream os, String serverName, String requestURI, String queryString, Cookie[] cookies, Pair[] headers,
 			byte[] body, Pair[] parameters, Struct attributes, boolean register, long timeout) {
+		return createPageContext(config, os, serverName, requestURI, queryString, cookies, headers, body, parameters, attributes, register, timeout, null);
+	}
+
+	public static PageContextImpl createPageContext(ConfigWeb config, OutputStream os, String serverName, String requestURI, String queryString, Cookie[] cookies, Pair[] headers,
+			byte[] body, Pair[] parameters, Struct attributes, boolean register, long timeout, HttpSession session) {
 		CFMLFactory factory = config.getFactory();
-		HttpServletRequest req = new HttpServletRequestDummy(config.getRootDirectory(), serverName, requestURI, queryString, cookies, headers, parameters, attributes, null, body);
+		HttpServletRequest req = new HttpServletRequestDummy(config.getRootDirectory(), serverName, requestURI, queryString, cookies, headers, parameters, attributes, session,
+				body);
 
 		req = new HTTPServletRequestWrap(req);
 		HttpServletResponse rsp = createHttpServletResponse(os);
 
 		return (PageContextImpl) factory.getLuceePageContext(factory.getServlet(), req, rsp, null, false, -1, false, register, timeout, false, false);
 
+	}
+
+	public static PageContextImpl createDummyPageContext(ConfigWeb config) {
+		return createPageContext(config, DevNullOutputStream.DEV_NULL_OUTPUT_STREAM, Constants.NAME, "/", "", null, null, null, null, null, true, -1, null).setDummy(true);
 	}
 
 	/**
@@ -146,7 +158,7 @@ public class ThreadUtil {
 	}
 
 	/**
-	 * return priority as a int representation
+	 * return priority as an int representation
 	 * 
 	 * @param priority Thread priority as String definition
 	 * @return int definition of priority (-1 when input is invalid)
@@ -171,5 +183,13 @@ public class ThreadUtil {
 			aprint.e(e.getKey().getName());
 			aprint.e(ExceptionUtil.toString(e.getValue()));
 		}
+	}
+
+	public static boolean isInNativeMethod(Thread thread, boolean defaultValue) {
+		if (thread == null) return defaultValue;
+		StackTraceElement[] stes = thread.getStackTrace();
+		if (stes == null || stes.length == 0) return defaultValue;
+		StackTraceElement ste = stes[0];
+		return ste.isNativeMethod();
 	}
 }

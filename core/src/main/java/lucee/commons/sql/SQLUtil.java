@@ -93,7 +93,8 @@ public class SQLUtil {
 
 			if (c == '\'') {
 				if (inside) {
-					if (escapeMysql && p == '\\') {}
+					if (escapeMysql && p == '\\') {
+					}
 					else if (ps.hasNext() && ps.getNext() == '\'') ps.next();
 					else inside = false;
 				}
@@ -179,12 +180,18 @@ public class SQLUtil {
 		return StringUtil.indexOfIgnoreCase(conn.getClass().getName(), "oracle") != -1;
 	}
 
+	public static boolean isTeradata(Connection conn) {
+		if (conn instanceof ConnectionProxy) conn = ((ConnectionProxy) conn).getConnection();
+		return StringUtil.indexOfIgnoreCase(conn.getClass().getName(), "teradata") != -1;
+	}
+
 	public static void closeEL(Statement stat) {
 		if (stat != null) {
 			try {
 				stat.close();
 			}
-			catch (SQLException e) {}
+			catch (SQLException e) {
+			}
 		}
 	}
 
@@ -193,7 +200,8 @@ public class SQLUtil {
 			try {
 				conn.close();
 			}
-			catch (SQLException e) {}
+			catch (SQLException e) {
+			}
 		}
 	}
 
@@ -202,7 +210,8 @@ public class SQLUtil {
 			try {
 				rs.close();
 			}
-			catch (SQLException e) {}
+			catch (SQLException e) {
+			}
 		}
 	}
 

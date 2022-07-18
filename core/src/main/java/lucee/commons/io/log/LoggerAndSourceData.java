@@ -23,10 +23,14 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import lucee.commons.digest.HashUtil;
+import lucee.commons.lang.ExceptionUtil;
+import lucee.commons.lang.SystemOut;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.engine.ThreadLocalPageContext;
+import lucee.runtime.exp.PageException;
+import lucee.runtime.op.Caster;
 
 /**
  * 
@@ -53,7 +57,6 @@ public final class LoggerAndSourceData {
 			Map<String, String> layoutArgs, int level, boolean readOnly, boolean dyn) {
 		// this.log=new LogAdapter(logger);
 		this.config = config;
-
 		this.id = id;
 		this.name = name;
 		this.cdAppender = appender;
@@ -63,10 +66,25 @@ public final class LoggerAndSourceData {
 		this.level = level;
 		this.readOnly = readOnly;
 		this.dyn = dyn;
+		init();
 	}
 
 	public String id() {
 		return id;
+	}
+
+	private void init() {
+		if (_log == null) {
+			config = ThreadLocalPageContext.getConfig(config);
+			try {
+				layout = eng().getLayout(cdLayout, layoutArgs, cdAppender, name);
+				_appender = eng().getAppender(config, layout, name, cdAppender, appenderArgs);
+				_log = eng().getLogger(config, _appender, name, level);
+			}
+			catch (Throwable t) {
+				ExceptionUtil.rethrowIfNecessary(t);
+			}
+		}
 	}
 
 	public String getName() {
@@ -85,7 +103,7 @@ public final class LoggerAndSourceData {
 	 * public Object getAppender() { getLog();// initialize if necessary return _appender; }
 	 */
 
-	public void close() {
+	public void close() throws PageException {
 
 		if (_log != null) {
 
@@ -97,8 +115,8 @@ public final class LoggerAndSourceData {
 		}
 	}
 
-	public Map<String, String> getAppenderArgs() {
-		getLog();// initialize if necessary
+	public Map<String, String> getAppenderArgs(boolean catchException) throws PageException {
+		getLog(catchException);// initialize if necessary
 		return appenderArgs;
 	}
 
@@ -110,8 +128,8 @@ public final class LoggerAndSourceData {
 		return cdLayout;
 	}
 
-	public Map<String, String> getLayoutArgs() {
-		getLog();// initialize if necessary
+	public Map<String, String> getLayoutArgs(boolean catchException) throws PageException {
+		getLog(catchException);// initialize if necessary
 		return layoutArgs;
 	}
 
@@ -123,18 +141,25 @@ public final class LoggerAndSourceData {
 		return readOnly;
 	}
 
-	public Log getLog() {
+	public Log getLog(boolean catchException) throws PageException {
 		if (_log == null) {
 			config = ThreadLocalPageContext.getConfig(config);
-			layout = eng().getLayout(cdLayout, layoutArgs, cdAppender, name);
-			_appender = eng().getAppender(config, layout, name, cdAppender, appenderArgs);
-			_log = eng().getLogger(config, _appender, name, level);
+			try {
+				layout = eng().getLayout(cdLayout, layoutArgs, cdAppender, name);
+				_appender = eng().getAppender(config, layout, name, cdAppender, appenderArgs);
+				_log = eng().getLogger(config, _appender, name, level);
+			}
+			catch (Throwable t) {
+				ExceptionUtil.rethrowIfNecessary(t);
+				if (!catchException) throw Caster.toPageException(t);
+				SystemOut.printDate(t);
+			}
 		}
 		return _log;
 	}
 
 	private LogEngine eng() {
-		return ((ConfigImpl) config).getLogEngine();
+		return ((ConfigPro) config).getLogEngine();
 	}
 
 	/*

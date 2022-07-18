@@ -50,7 +50,7 @@ import lucee.runtime.PageContext;
 import lucee.runtime.coder.Base64Coder;
 import lucee.runtime.coder.CoderException;
 import lucee.runtime.component.Property;
-import lucee.runtime.config.ConfigWebImpl;
+import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
@@ -79,7 +79,7 @@ import lucee.runtime.type.util.KeyConstants;
  */
 public final class WDDXConverter extends ConverterSupport {
 
-	private static final Collection.Key REMOTING_FETCH = KeyImpl.intern("remotingFetch");
+	private static final Collection.Key REMOTING_FETCH = KeyImpl.getInstance("remotingFetch");
 
 	private static final List<String> KNOWN_STRUCT_TYPES = Arrays.asList(new String[] { "coldfusion.server.ConfigMap" });
 
@@ -167,7 +167,7 @@ public final class WDDXConverter extends ConverterSupport {
 	}
 
 	/**
-	 * serialize a Array
+	 * serialize an Array
 	 * 
 	 * @param array Array to serialize
 	 * @param done
@@ -325,7 +325,7 @@ public final class WDDXConverter extends ConverterSupport {
 		// fieldnames
 		PageContext pc = ThreadLocalPageContext.get();
 		boolean upperCase = false;
-		if (pc != null) upperCase = pc.getCurrentTemplateDialect() == CFMLEngine.DIALECT_CFML && !((ConfigWebImpl) pc.getConfig()).preserveCase();
+		if (pc != null) upperCase = pc.getCurrentTemplateDialect() == CFMLEngine.DIALECT_CFML && !((ConfigWebPro) pc.getConfig()).preserveCase();
 
 		StringBuilder fn = new StringBuilder();
 		Collection.Key[] keys = CollectionUtil.keys(query);
@@ -359,7 +359,7 @@ public final class WDDXConverter extends ConverterSupport {
 	}
 
 	/**
-	 * serialize a Object to his xml Format represenation
+	 * serialize an Object to his xml Format represenation
 	 * 
 	 * @param object Object to serialize
 	 * @param done
@@ -383,7 +383,7 @@ public final class WDDXConverter extends ConverterSupport {
 		}
 		// Number
 		if (object instanceof Number) {
-			rtn = goIn() + "<number>" + ((Number) object).doubleValue() + "</number>";
+			rtn = goIn() + "<number>" + Caster.toString((Number) object) + "</number>";
 			deep--;
 			return rtn;
 		}
@@ -474,7 +474,7 @@ public final class WDDXConverter extends ConverterSupport {
 	}
 
 	/**
-	 * serialize a Object to his xml Format represenation and create a valid wddx representation
+	 * serialize an Object to his xml Format represenation and create a valid wddx representation
 	 * 
 	 * @param object Object to serialize
 	 * @return serialized wddx package
@@ -621,7 +621,7 @@ public final class WDDXConverter extends ConverterSupport {
 		else if (nodeName.equals("binary")) {
 			return _deserializeBinary(element);
 		}
-		else throw new ConverterException("can't deserialize Element of type [" + nodeName + "] to a Object representation");
+		else throw new ConverterException("can't deserialize Element of type [" + nodeName + "] to an Object representation");
 
 	}
 
@@ -682,7 +682,7 @@ public final class WDDXConverter extends ConverterSupport {
 		if (node instanceof CharacterData) {
 			String data = ((CharacterData) node).getData();
 			try {
-				return Base64Coder.decode(data);
+				return Base64Coder.decode(data, true);
 			}
 			catch (CoderException e) {
 				throw new ConverterException(e.getMessage());
@@ -735,7 +735,7 @@ public final class WDDXConverter extends ConverterSupport {
 			comp = pc.loadComponent(name);
 			if (!ComponentUtil.md5(comp).equals(md5)) {
 				throw new ConverterException("component [" + name
-						+ "] in this enviroment has not the same interface as the component to load, it is possible that one off the components has Functions added dynamicly.");
+						+ "] in this environment has not the same interface as the component to load, it is possible that one off the components has Functions added dynamically.");
 			}
 		}
 		catch (ConverterException e) {
@@ -829,7 +829,7 @@ public final class WDDXConverter extends ConverterSupport {
 	}
 
 	/**
-	 * return fitst child Element of a Element, if there are no child Elements return null
+	 * return fitst child Element of an Element, if there are no child Elements return null
 	 * 
 	 * @param parent parent node
 	 * @return child Element

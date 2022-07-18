@@ -23,4 +23,9 @@ component {
 	request.currentPath=GetDirectoryFromPath(getCurrentTemplatePath());
 	
 	this.tag.savecontent.trim=url.trim;
+	
+	public function onRequestStart() {
+		setting requesttimeout=10;
+	}
+
 }

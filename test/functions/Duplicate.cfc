@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase"{
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="xml" {
 	function run( testResults , testBox ) {
 		describe( "test case for Duplicate", function() {
 			it(title = "Checking with Duplicate", body = function( currentSpec ) {

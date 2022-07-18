@@ -50,7 +50,7 @@ public class UDFCaller2<P> implements Callable<Data<P>> {
 	private UDFCaller2(PageContext parent) {
 		this.parent = parent;
 		this.baos = new ByteArrayOutputStream();
-		this.pc = ThreadUtil.clonePageContext(parent, baos, false, false, false);
+
 	}
 
 	public UDFCaller2(PageContext parent, UDF udf, Object[] arguments, P passed, boolean doIncludePath) {
@@ -71,6 +71,10 @@ public class UDFCaller2<P> implements Callable<Data<P>> {
 
 	@Override
 	public final Data<P> call() throws PageException {
+		if (this.pc == null) {
+			ThreadLocalPageContext.register(parent);
+			this.pc = ThreadUtil.clonePageContext(parent, baos, false, false, false);
+		}
 		ThreadLocalPageContext.register(pc);
 		pc.getRootOut().setAllowCompression(false); // make sure content is not compressed
 		String str = null;

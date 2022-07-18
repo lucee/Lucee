@@ -56,4 +56,22 @@ public class Operation1 extends ExpressionSupport implements Operation {
 		return toString(true) + " as " + getAlias();
 	}
 
+	@Override
+	public void reset() {
+		if (exp != null) {
+			exp.reset();
+		}
+	}
+
+	@Override
+	public boolean hasAggregate() {
+		if (exp instanceof OperationAggregate) {
+			return true;
+		}
+		if (exp instanceof Operation && ((Operation) exp).hasAggregate()) {
+			return true;
+		}
+		return false;
+	}
+
 }

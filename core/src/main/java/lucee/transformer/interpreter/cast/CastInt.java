@@ -10,7 +10,7 @@ import lucee.transformer.interpreter.InterpreterContext;
 import lucee.transformer.interpreter.expression.ExpressionBase;
 
 /**
- * cast a Expression to a Double
+ * cast an Expression to a Double
  */
 public final class CastInt extends ExpressionBase implements ExprInt, Cast {
 
@@ -22,7 +22,7 @@ public final class CastInt extends ExpressionBase implements ExprInt, Cast {
 	}
 
 	/**
-	 * Create a String expression from a Expression
+	 * Create a String expression from an Expression
 	 * 
 	 * @param expr
 	 * @return String expression
@@ -31,8 +31,8 @@ public final class CastInt extends ExpressionBase implements ExprInt, Cast {
 	public static ExprInt toExprInt(Expression expr) {
 		if (expr instanceof ExprInt) return (ExprInt) expr;
 		if (expr instanceof Literal) {
-			Double dbl = ((Literal) expr).getDouble(null);
-			if (dbl != null) return expr.getFactory().createLitInteger((int) dbl.doubleValue(), expr.getStart(), expr.getEnd());
+			Number n = ((Literal) expr).getNumber(null);
+			if (n != null) return expr.getFactory().createLitInteger(n.intValue(), expr.getStart(), expr.getEnd());
 		}
 		return new CastInt(expr);
 	}

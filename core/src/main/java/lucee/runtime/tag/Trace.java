@@ -23,7 +23,6 @@ import java.io.IOException;
 import lucee.commons.io.log.Log;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageSource;
-import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.converter.ConverterException;
 import lucee.runtime.converter.ScriptConverter;
 import lucee.runtime.debug.DebugTrace;
@@ -152,7 +151,8 @@ public final class Trace extends BodyTagImpl {
 		try {
 			_doEndTag();
 		}
-		catch (IOException e) {}
+		catch (IOException e) {
+		}
 		return EVAL_PAGE;
 	}
 
@@ -237,7 +237,7 @@ public final class Trace extends BodyTagImpl {
 		}
 
 		// log
-		Log log = ((ConfigImpl) pageContext.getConfig()).getLog("trace");
+		Log log = pageContext.getConfig().getLog("trace");
 		StringBuffer msg = new StringBuffer();
 		msg.append("[" + trace.getTime() + " ms " + total + "] ");
 		msg.append("[" + trace.getTemplate() + " @ line: " + trace.getLine() + "]");

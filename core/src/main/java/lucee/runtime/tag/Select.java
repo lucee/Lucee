@@ -25,12 +25,13 @@ import java.util.Map.Entry;
 import javax.servlet.jsp.tagext.Tag;
 
 import lucee.commons.lang.HTMLEntities;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.tag.BodyTagImpl;
 import lucee.runtime.op.Caster;
-import lucee.runtime.op.Operator;
+import lucee.runtime.op.OpUtil;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
@@ -87,21 +88,21 @@ public final class Select extends BodyTagImpl {
 	 * @param cssclass The cssclass to set.
 	 */
 	public void setClass(String cssclass) {
-		attributes.setEL("class", cssclass);
+		attributes.setEL(KeyConstants._class, cssclass);
 	}
 
 	/**
 	 * @param cssstyle The cssstyle to set.
 	 */
 	public void setStyle(String cssstyle) {
-		attributes.setEL("style", cssstyle);
+		attributes.setEL(KeyConstants._style, cssstyle);
 	}
 
 	/**
 	 * @param id The id to set.
 	 */
 	public void setId(String id) {
-		attributes.setEL("id", id);
+		attributes.setEL(KeyConstants._id, id);
 	}
 
 	/**
@@ -131,7 +132,7 @@ public final class Select extends BodyTagImpl {
 	 * @param tabindex The tabindex to set.
 	 */
 	public void setTabindex(String tabindex) {
-		attributes.setEL("class", tabindex);
+		attributes.setEL("tabindex", tabindex);
 	}
 
 	/**
@@ -145,14 +146,14 @@ public final class Select extends BodyTagImpl {
 	 * @param title The title to set.
 	 */
 	public void setDir(String dir) {
-		attributes.setEL("dir", dir);
+		attributes.setEL(KeyConstants._dir, dir);
 	}
 
 	/**
 	 * @param title The title to set.
 	 */
 	public void setLang(String lang) {
-		attributes.setEL("lang", lang);
+		attributes.setEL(KeyConstants._lang, lang);
 	}
 
 	/**
@@ -322,7 +323,7 @@ public final class Select extends BodyTagImpl {
 	}
 
 	private void setDisabled(boolean disabled) {
-		if (disabled) attributes.setEL("disabled", "disabled");
+		if (disabled) attributes.setEL(KeyConstants._disabled, "disabled");
 	}
 
 	/**
@@ -415,7 +416,7 @@ public final class Select extends BodyTagImpl {
 				d = hasDisplay ? Caster.toString(query.getAt(display, i)) : v;
 				if (hasGroup) {
 					tmp = Caster.toString(query.getAt(group, i));
-					if (currentGroup == null || !Operator.equals(currentGroup, tmp, true)) {
+					if (currentGroup == null || !OpUtil.equals(ThreadLocalPageContext.get(), currentGroup, tmp, true)) {
 						if (currentGroup != null) pageContext.forceWrite("</optgroup>\n");
 						pageContext.forceWrite("<optgroup label=\"" + tmp + "\">\n ");
 						currentGroup = tmp;
@@ -431,14 +432,14 @@ public final class Select extends BodyTagImpl {
 
 	}
 
-	private String selected(String str, String[] selected) {
+	private String selected(String str, String[] selected) throws PageException {
 		if (selected != null) {
 			for (int i = 0; i < selected.length; i++) {
 				if (caseSensitive) {
 					if (str.compareTo(selected[i]) == 0) return " selected";
 				}
 				else {
-					if (Operator.compare(str, selected[i]) == 0) return " selected";
+					if (OpUtil.compare(ThreadLocalPageContext.get(), str, selected[i]) == 0) return " selected";
 				}
 				// if(Operator.compare(str,selected[i])==0) return " selected";
 			}

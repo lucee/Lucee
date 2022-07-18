@@ -61,7 +61,7 @@ public class BundleInfo implements Function {
 			Struct sct = new StructImpl();
 			sct.setEL(KeyConstants._id, b.getBundleId());
 			sct.setEL(KeyConstants._name, b.getSymbolicName());
-			sct.setEL("location", b.getLocation());
+			sct.setEL(KeyConstants._location, b.getLocation());
 			sct.setEL(KeyConstants._version, b.getVersion().toString());
 			sct.setEL(KeyConstants._state, OSGiUtil.toState(b.getState(), null));
 			try {
@@ -73,7 +73,7 @@ public class BundleInfo implements Function {
 			}
 			return sct;
 		}
-		throw new ApplicationException("object [" + clazz + "] is not from a OSGi bundle");
+		throw new ApplicationException("object [" + clazz + "] is not from an OSGi bundle");
 	}
 
 	private static Array toArray1(List<BundleDefinition> list) {

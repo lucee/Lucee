@@ -109,7 +109,12 @@ public final class FunctionLibFactory extends DefaultHandler {
 			throw new FunctionLibException("File not found: " + e.getMessage());
 		}
 		finally {
-			IOUtil.closeEL(r);
+			try {
+				IOUtil.close(r);
+			}
+			catch (IOException e) {
+				throw new FunctionLibException("closing failed: " + e.getMessage());
+			}
 		}
 	}
 
@@ -326,7 +331,8 @@ public final class FunctionLibFactory extends DefaultHandler {
 				try {
 					lib.setUri(value);
 				}
-				catch (URISyntaxException e) {}
+				catch (URISyntaxException e) {
+				}
 			}
 			else if (inside.equals("display-name")) lib.setDisplayName(value);
 			else if (inside.equals("description")) lib.setDescription(value);
@@ -455,7 +461,7 @@ public final class FunctionLibFactory extends DefaultHandler {
 	}
 
 	/**
-	 * copy function from one FunctionLib to a other
+	 * copy function from one FunctionLib to another
 	 * 
 	 * @param extFL
 	 * @param newFL

@@ -52,10 +52,11 @@ public interface XMLUtil {
 	 * parse XML/HTML String to a XML DOM representation
 	 * 
 	 * @param xml XML InputSource
+	 * @param validator validator
 	 * @param isHtml is a HTML or XML Object
 	 * @return parsed Document
-	 * @throws SAXException
-	 * @throws IOException
+	 * @throws SAXException SAX Exception
+	 * @throws IOException IO Exception
 	 */
 	public Document parse(InputSource xml, InputSource validator, boolean isHtml) throws SAXException, IOException;
 
@@ -82,17 +83,17 @@ public interface XMLUtil {
 	 * returns a new Empty XMl Document
 	 * 
 	 * @return new Document
-	 * @throws ParserConfigurationException
-	 * @throws FactoryConfigurationError
+	 * @throws ParserConfigurationException Parser Configuration Exception
+	 * @throws FactoryConfigurationError Factory Configuration Error
 	 */
 	public Document newDocument() throws ParserConfigurationException, FactoryConfigurationError;
 
 	/**
 	 * return the Owner Document of a Node List
 	 * 
-	 * @param nodeList
+	 * @param nodeList node list
 	 * @return XML Document
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 */
 	public Document getDocument(NodeList nodeList) throws PageException;
 
@@ -111,26 +112,26 @@ public interface XMLUtil {
 	public Node getChildNode(Node node, short type, String filter, int index);
 
 	/**
-	 * transform a XML Object to a other format, with help of a XSL Stylesheet
+	 * transform a XML Object to another format, with help of a XSL Stylesheet
 	 * 
 	 * @param xml xml to convert
 	 * @param xsl xsl used to convert
 	 * @param parameters parameters used to convert
 	 * @return resulting string
-	 * @throws TransformerException
-	 * @throws SAXException
-	 * @throws IOException
+	 * @throws TransformerException Transformer Exception
+	 * @throws SAXException SAX Exception
+	 * @throws IOException IO Exception
 	 */
 	public String transform(InputSource xml, InputSource xsl, Map<String, Object> parameters) throws TransformerException, SAXException, IOException;
 
 	/**
-	 * transform a XML Document to a other format, with help of a XSL Stylesheet
+	 * transform a XML Document to another format, with help of a XSL Stylesheet
 	 * 
 	 * @param doc xml to convert
 	 * @param xsl xsl used to convert
 	 * @param parameters parameters used to convert
 	 * @return resulting string
-	 * @throws TransformerException
+	 * @throws TransformerException Transformer Exception
 	 */
 	public String transform(Document doc, InputSource xsl, Map<String, Object> parameters) throws TransformerException;
 
@@ -149,9 +150,9 @@ public interface XMLUtil {
 	/**
 	 * write a xml Dom to a file
 	 * 
-	 * @param node
-	 * @param file
-	 * @throws PageException
+	 * @param node node
+	 * @param file Resource
+	 * @throws PageException Page Exception
 	 */
 	public void writeTo(Node node, Resource file) throws PageException;
 
@@ -168,30 +169,30 @@ public interface XMLUtil {
 	/**
 	 * creates and returns a xml Document instance
 	 * 
-	 * @param file
-	 * @param isHtml
+	 * @param file Resource
+	 * @param isHtml Is html
 	 * @return struct
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 */
 	public abstract Document createDocument(Resource file, boolean isHtml) throws PageException;
 
 	/**
 	 * creates and returns a xml Document instance
 	 * 
-	 * @param xml
-	 * @param isHtml
+	 * @param xml XML
+	 * @param isHtml Is html
 	 * @return struct
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 */
 	public abstract Document createDocument(String xml, boolean isHtml) throws PageException;
 
 	/**
 	 * creates and returns a xml Document instance
 	 * 
-	 * @param is
-	 * @param isHtml
+	 * @param is Input Stream
+	 * @param isHtml Is html
 	 * @return struct
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 */
 	public abstract Document createDocument(InputStream is, boolean isHtml) throws PageException;
 

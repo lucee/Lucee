@@ -46,6 +46,7 @@ import lucee.commons.io.SystemUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourcesImpl;
 import lucee.commons.io.res.util.ResourceUtil;
+import lucee.runtime.engine.CFMLEngineImpl;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.QueryImpl;
@@ -61,11 +62,11 @@ public class aprint {
 	}
 
 	public static void ds(boolean useOutStream) {
-		new Exception("Stack trace").printStackTrace(useOutStream ? System.out : System.err);
+		new Exception("Stack trace").printStackTrace(useOutStream ? CFMLEngineImpl.CONSOLE_OUT : CFMLEngineImpl.CONSOLE_ERR);
 	}
 
 	public static void ds(int max, boolean useOutStream) {
-		printStackTrace(useOutStream ? System.out : System.err, max);
+		printStackTrace(useOutStream ? CFMLEngineImpl.CONSOLE_OUT : CFMLEngineImpl.CONSOLE_ERR, max);
 	}
 
 	private static void printStackTrace(PrintStream ps, int max) {
@@ -83,7 +84,7 @@ public class aprint {
 	}
 
 	public static void ds(Object label, boolean useOutStream) {
-		_eo(useOutStream ? System.out : System.err, label);
+		_eo(useOutStream ? CFMLEngineImpl.CONSOLE_OUT : CFMLEngineImpl.CONSOLE_ERR, label);
 		ds(useOutStream);
 	}
 
@@ -116,85 +117,85 @@ public class aprint {
 	}
 
 	public static void err(boolean o) {
-		System.err.println(o);
+		CFMLEngineImpl.CONSOLE_ERR.println(o);
 	}
 
 	public static void err(double d) {
-		System.err.println(d);
+		CFMLEngineImpl.CONSOLE_ERR.println(d);
 	}
 
 	public static void err(long d) {
-		System.err.println(d);
+		CFMLEngineImpl.CONSOLE_ERR.println(d);
 	}
 
 	public static void err(float d) {
-		System.err.println(d);
+		CFMLEngineImpl.CONSOLE_ERR.println(d);
 	}
 
 	public static void err(int d) {
-		System.err.println(d);
+		CFMLEngineImpl.CONSOLE_ERR.println(d);
 	}
 
 	public static void err(short d) {
-		System.err.println(d);
+		CFMLEngineImpl.CONSOLE_ERR.println(d);
 	}
 
 	public static void out(Object o1, Object o2, Object o3) {
-		System.out.print(o1);
-		System.out.print(o2);
-		System.out.println(o3);
+		CFMLEngineImpl.CONSOLE_OUT.print(o1);
+		CFMLEngineImpl.CONSOLE_OUT.print(o2);
+		CFMLEngineImpl.CONSOLE_OUT.println(o3);
 	}
 
 	public static void out(Object o1, Object o2) {
-		System.out.print(o1);
-		System.out.println(o2);
+		CFMLEngineImpl.CONSOLE_OUT.print(o1);
+		CFMLEngineImpl.CONSOLE_OUT.println(o2);
 	}
 
 	public static void out(Object o, long l) {
-		System.out.print(o);
-		System.out.println(l);
+		CFMLEngineImpl.CONSOLE_OUT.print(o);
+		CFMLEngineImpl.CONSOLE_OUT.println(l);
 	}
 
 	public static void out(Object o, double d) {
-		System.out.print(o);
-		System.out.println(d);
+		CFMLEngineImpl.CONSOLE_OUT.print(o);
+		CFMLEngineImpl.CONSOLE_OUT.println(d);
 	}
 
 	public static void out(byte[] arr, int offset, int len) {
-		System.out.print("byte[]{");
+		CFMLEngineImpl.CONSOLE_OUT.print("byte[]{");
 		for (int i = offset; i < len + offset; i++) {
-			if (i > 0) System.out.print(',');
-			System.out.print(arr[i]);
+			if (i > 0) CFMLEngineImpl.CONSOLE_OUT.print(',');
+			CFMLEngineImpl.CONSOLE_OUT.print(arr[i]);
 		}
-		System.out.println("}");
+		CFMLEngineImpl.CONSOLE_OUT.println("}");
 	}
 
 	public static void out(double o) {
-		System.out.println(o);
+		CFMLEngineImpl.CONSOLE_OUT.println(o);
 	}
 
 	public static void out(float o) {
-		System.out.println(o);
+		CFMLEngineImpl.CONSOLE_OUT.println(o);
 	}
 
 	public static void out(long o) {
-		System.out.println(o);
+		CFMLEngineImpl.CONSOLE_OUT.println(o);
 	}
 
 	public static void out(int o) {
-		System.out.println(o);
+		CFMLEngineImpl.CONSOLE_OUT.println(o);
 	}
 
 	public static void out(char o) {
-		System.out.println(o);
+		CFMLEngineImpl.CONSOLE_OUT.println(o);
 	}
 
 	public static void out(boolean o) {
-		System.out.println(o);
+		CFMLEngineImpl.CONSOLE_OUT.println(o);
 	}
 
 	public static void out() {
-		System.out.println();
+		CFMLEngineImpl.CONSOLE_OUT.println();
 	}
 
 	public static void printST(Throwable t) {
@@ -216,11 +217,11 @@ public class aprint {
 	}
 
 	public static void out(Object o) {
-		_eo(System.out, o);
+		_eo(CFMLEngineImpl.CONSOLE_OUT, o);
 	}
 
 	public static void err(Object o) {
-		_eo(System.err, o);
+		_eo(CFMLEngineImpl.CONSOLE_ERR, o);
 	}
 
 	public static void writeTemp(String name, Object o, boolean addStackTrace) {
@@ -256,27 +257,27 @@ public class aprint {
 	}
 
 	public static void _eo(Object o, boolean d) {
-		_eo(System.out, o);
+		_eo(CFMLEngineImpl.CONSOLE_OUT, o);
 	}
 
 	public static void o(Object o) {
-		_eo(System.out, o);
+		_eo(CFMLEngineImpl.CONSOLE_OUT, o);
 	}
 
 	public static void e(Object o) {
-		_eo(System.err, o);
+		_eo(CFMLEngineImpl.CONSOLE_ERR, o);
 	}
 
 	public static void oe(Object o, boolean valid) {
-		_eo(valid ? System.out : System.err, o);
+		_eo(valid ? CFMLEngineImpl.CONSOLE_OUT : CFMLEngineImpl.CONSOLE_ERR, o);
 	}
 
 	public static void dateO(String value) {
-		_date(System.out, value);
+		_date(CFMLEngineImpl.CONSOLE_OUT, value);
 	}
 
 	public static void dateE(String value) {
-		_date(System.err, value);
+		_date(CFMLEngineImpl.CONSOLE_ERR, value);
 	}
 
 	private static void _date(PrintStream ps, String value) {
@@ -316,7 +317,8 @@ public class aprint {
 			try {
 				ps.println(IOUtil.toString(is.getCharacterStream()));
 			}
-			catch (IOException e) {}
+			catch (IOException e) {
+			}
 			finally {
 				IOUtil.closeEL(r);
 			}

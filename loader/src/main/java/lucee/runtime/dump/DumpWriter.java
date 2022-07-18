@@ -33,16 +33,21 @@ public interface DumpWriter {
 	public static int DEFAULT_NONE = 2;
 
 	/**
-	 * @param data
-	 * @param writer
-	 * @throws IOException
+	 * @param pc Page Context
+	 * @param data data
+	 * @param writer writer
+	 * @param expand expand
+	 * @throws IOException IO Exception
 	 */
 	public void writeOut(PageContext pc, DumpData data, Writer writer, boolean expand) throws IOException;
 
 	/**
 	 * cast dumpdata to a string
 	 * 
-	 * @param data
+	 * @param pc Page Context
+	 * @param data data
+	 * @param expand expand
+	 * @return string
 	 */
 	public String toString(PageContext pc, DumpData data, boolean expand);
 

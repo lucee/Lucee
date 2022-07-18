@@ -23,7 +23,7 @@ import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.ext.tag.TagImpl;
 
 /**
- * this tag is not used, it will ranslation over a evaluator
+ * this tag is not used, it will ranslation over an evaluator
  * 
  * 
  * Imports a jsp Tag Library or a Custom Tag Directory
@@ -44,7 +44,8 @@ public final class ImportTag extends TagImpl {
 	/**
 	 * @param prefix
 	 */
-	public void setPrefix(String prefix) {}
+	public void setPrefix(String prefix) {
+	}
 
 	public void setPath(String path) {
 		this.path = path;
@@ -54,7 +55,8 @@ public final class ImportTag extends TagImpl {
 	/**
 	 * @param taglib
 	 */
-	public void setTaglib(String taglib) {}
+	public void setTaglib(String taglib) {
+	}
 
 	@Override
 	public int doStartTag() throws ExpressionException, ApplicationException {

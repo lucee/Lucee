@@ -42,11 +42,6 @@ public final class ExtensionFilter implements FileFilter {
 		this(new String[] { extension }, false, true);
 	}
 
-	/**
-	 * Konstruktor des Filters
-	 * 
-	 * @param extension Endung die geprueft werden soll.
-	 */
 	public ExtensionFilter(final String extension, final boolean allowDir) {
 		this(new String[] { extension }, allowDir, true);
 	}

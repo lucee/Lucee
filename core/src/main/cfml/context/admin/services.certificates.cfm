@@ -23,7 +23,22 @@ Defaults --->
 <cfset _host=session.certHost>
 <cfset _port=session.certPort>
 
+<cfscript>
+	LuceeTrustStore = false;
+	if ((server.system.properties["lucee.use.lucee.SSL.TrustStore"]?: false)
+			|| (server.system.environment["lucee_use_lucee_SSL_TrustStore"]?: false)){
+		LuceeTrustStore = true;
+	};
+	
+</cfscript>
 
+<cfif !LuceeTrustStore>
+	<p>
+	<b>As Lucee is currently using the JVM TrustStore/cacerts file, this functionality isn't available.</b>
+	<br><br>
+	Set the following System or Environment variables to enable: <code>lucee.use.lucee.SSL.TrustStore = true;</code>
+	</p>
+</cfif>
 
 <cftry>
 	<cfswitch expression="#form.mainAction#">

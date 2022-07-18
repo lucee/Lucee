@@ -387,22 +387,22 @@ public final class CastImpl implements Cast {
 
 	@Override
 	public String toDecimal(char c) {
-		return Caster.toDecimal(c);
+		return Caster.toDecimal(c, true);
 	}
 
 	@Override
 	public String toDecimal(double d) {
-		return Caster.toDecimal(d);
+		return Caster.toDecimal(d, true);
 	}
 
 	@Override
 	public String toDecimal(Object value, String defaultValue) {
-		return Caster.toDecimal(value, defaultValue);
+		return Caster.toDecimal(value, true, defaultValue);
 	}
 
 	@Override
 	public String toDecimal(Object value) throws PageException {
-		return Caster.toDecimal(value);
+		return Caster.toDecimal(value, true);
 	}
 
 	@Override

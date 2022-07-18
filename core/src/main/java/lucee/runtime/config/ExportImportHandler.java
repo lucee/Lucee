@@ -56,7 +56,7 @@ public class ExportImportHandler {
 			map.put("artifacts", artifacts);
 
 			// server
-			map.put("server", _export((ConfigImpl) cs, types, dir.getRealResource("server"), "/server", addOptionalArtifacts, regularMappingFilter, componentMappingFilter,
+			map.put("server", _export((ConfigPro) cs, types, dir.getRealResource("server"), "/server", addOptionalArtifacts, regularMappingFilter, componentMappingFilter,
 					customtagMappingFilter));
 
 			// webs
@@ -66,7 +66,7 @@ public class ExportImportHandler {
 			String id;
 			for (ConfigWeb cw: cs.getConfigWebs()) {
 				id = cw.getIdentification().getId();
-				webs.add(_export((ConfigImpl) cw, types, websDir.getRealResource(id), "/webs/" + id, addOptionalArtifacts, regularMappingFilter, componentMappingFilter,
+				webs.add(_export((ConfigPro) cw, types, websDir.getRealResource(id), "/webs/" + id, addOptionalArtifacts, regularMappingFilter, componentMappingFilter,
 						customtagMappingFilter));
 			}
 
@@ -85,12 +85,13 @@ public class ExportImportHandler {
 		return new ByteArrayInputStream(cs.toString().getBytes());
 	}
 
-	private static Map<String, Object> _export(ConfigImpl config, short types, Resource dir, String pathAppendix, boolean addOptionalArtifacts, String regularMappingFilter,
+	private static Map<String, Object> _export(ConfigPro config, short types, Resource dir, String pathAppendix, boolean addOptionalArtifacts, String regularMappingFilter,
 			String componentMappingFilter, String customtagMappingFilter) throws IOException {
 		Map<String, Object> map = new HashMap<String, Object>();
 
 		// Core
-		if ((types & TYPE_CONFIGURATION) > 0) {}
+		if ((types & TYPE_CONFIGURATION) > 0) {
+		}
 		// Extension
 		if ((types & TYPE_EXTENSION) > 0) {
 			Resource extDir = dir.getRealResource("extensions");

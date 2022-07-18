@@ -19,29 +19,29 @@
 component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	
 	public void function testArraySome() localMode="true" {
-		_arraySome(false);
+		_arraySome (false);
 	}
 
 	public void function testArraySomeParallel() localMode="true" {
-		_arraySome(true);
+		_arraySome (true);
 	}
 
-	private void function _arraySome(boolean parallel) localMode="true" {
+	private void function _arraySome (boolean parallel) localMode="true" {
 		
 		arr=['a','b','c'];
 		//arr[5]='e';
 		
 		// base test
-		res=ArraySome(arr, function(value ){return value =='b';},parallel);
+		res=ArraySome (arr, function(value ){return value =='b';},parallel);
 		assertEquals(true,res);
 		
-		res=ArraySome(arr, function(value ){return value =='d';},parallel);
+		res=ArraySome (arr, function(value ){return value =='d';},parallel);
 		assertEquals(false,res);
 		
 
 		// closure output
 		savecontent variable="c" {
-			res=ArraySome(['a'], function(){
+			res=ArraySome (['a'], function(){
 							echo(serialize(arguments));
  							return false;
  
@@ -90,11 +90,11 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 
 		// member function
-		res=list.some(function(value ){return value =='b';},',',false,true,parallel);
+		res=list.listSome(function(value ){return value =='b';},',',false,true,parallel);
 		assertEquals(true,res);
 
 		var list3 = "I,love,lucee,";
-		var result2 = list3.some(function(item){
+		var result2 = list3.listSome(function(item){
 			return item=="testcase";
 		});
 		assertEquals(false, result2);
@@ -169,7 +169,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
  
                         },parallel);
 		}
-		assertEquals('{"1":{"b":"b1","a":"a1"},"2":1,"3":query("a":["a1","a2"],"b":["b1","b2"])}{"1":{"b":"b2","a":"a2"},"2":2,"3":query("a":["a1","a2"],"b":["b1","b2"])}',c);
+		assertEquals('{"1":["a":"a1","b":"b1"],"2":1,"3":query("a":["a1","a2"],"b":["b1","b2"])}{"1":["a":"a2","b":"b2"],"2":2,"3":query("a":["a1","a2"],"b":["b1","b2"])}',c);
 
 		var people = QueryNew( "name,dob,age", "varchar,date,int", [
 			[ "Susi", CreateDate( 1970, 1, 1 ), 0 ],

@@ -85,8 +85,7 @@ public final class JavaConverter extends ConverterSupport implements BinaryConve
 			oos.writeObject(o);
 		}
 		finally {
-			IOUtil.closeEL(oos);
-			IOUtil.closeEL(os);
+			IOUtil.close(oos, os);
 		}
 	}
 
@@ -100,7 +99,7 @@ public final class JavaConverter extends ConverterSupport implements BinaryConve
 	 * @throws CoderException
 	 */
 	public static Object deserialize(String str) throws IOException, ClassNotFoundException, CoderException {
-		ByteArrayInputStream bais = new ByteArrayInputStream(Base64Coder.decode(str));
+		ByteArrayInputStream bais = new ByteArrayInputStream(Base64Coder.decode(str, true));
 		return deserialize(bais);
 	}
 
@@ -112,7 +111,7 @@ public final class JavaConverter extends ConverterSupport implements BinaryConve
 			o = ois.readObject();
 		}
 		finally {
-			IOUtil.closeEL(ois);
+			IOUtil.close(ois);
 		}
 		return o;
 	}

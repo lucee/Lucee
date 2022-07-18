@@ -49,7 +49,17 @@ public final class LitIntegerImpl extends ExpressionBase implements LitInteger, 
 	 */
 	@Override
 	public Integer getInteger() {
-		return new Integer(i);
+		return Integer.valueOf(i);
+	}
+
+	@Override
+	public Number getNumber() {
+		return getInteger();
+	}
+
+	@Override
+	public Number getNumber(Number dv) {
+		return getInteger();
 	}
 
 	/**
@@ -72,14 +82,6 @@ public final class LitIntegerImpl extends ExpressionBase implements LitInteger, 
 	 */
 	public boolean getBooleanValue() {
 		return Caster.toBooleanValue(i);
-	}
-
-	/**
-	 * @see lucee.transformer.expression.literal.Literal#getDouble(java.lang.Double)
-	 */
-	@Override
-	public Double getDouble(Double defaultValue) {
-		return getDouble();
 	}
 
 	private Double getDouble() {

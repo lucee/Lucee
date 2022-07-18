@@ -27,7 +27,7 @@ import lucee.commons.io.res.filter.ResourceFilter;
 import lucee.commons.io.res.filter.ResourceNameFilter;
 
 /**
- * a Resource handle connection to different resources in a abstract form
+ * a Resource handle connection to different resources in an abstract form
  */
 public interface Resource extends Serializable {
 
@@ -80,7 +80,7 @@ public interface Resource extends Serializable {
 	 * then the directory must be empty, when argument "force" is set to false, when argument "force" is
 	 * set to true, also the children of the directory will be deleted.
 	 * 
-	 * @param force
+	 * @param force force the removal
 	 * 
 	 * @throws IOException if the file doesn't exists or can't delete
 	 */
@@ -94,6 +94,7 @@ public interface Resource extends Serializable {
 	 * if the file doesn't exists or can't delete
 	 * 
 	 * @deprecated replaced with method remove(boolean)
+	 * @return was delete sucessfull or not
 	 */
 	@Deprecated
 	public boolean delete();
@@ -101,8 +102,8 @@ public interface Resource extends Serializable {
 	/**
 	 * Tests whether the resource denoted by this abstract pathname exists.
 	 * 
-	 * @return <code>true</code> if and only if the resource denoted by this abstract pathname exists;
-	 *         <code>false</code> otherwise
+	 * @return true if and only if the resource denoted by this abstract pathname exists; false
+	 *         otherwise
 	 */
 	public abstract boolean exists();
 
@@ -259,9 +260,9 @@ public interface Resource extends Serializable {
 	public abstract boolean isHidden();
 
 	/**
-	 * Tests whether the resource named by this abstract pathname is a archive resource.
+	 * Tests whether the resource named by this abstract pathname is an archive resource.
 	 * 
-	 * @return <code>true</code> if and only if the file denoted by this abstract pathname is a archive
+	 * @return <code>true</code> if and only if the file denoted by this abstract pathname is an archive
 	 * @deprecated use instead <code>{@link #getAttribute(short)}</code>
 	 */
 	@Deprecated
@@ -429,7 +430,7 @@ public interface Resource extends Serializable {
 	 * atomic, and it might not succeed if a file with the destination abstract pathname already exists.
 	 * 
 	 * @param dest The new abstract pathname for the named file
-	 * @throws IOException throwed when operation not done sucessfull
+	 * @throws IOException thrown when operation not done successfully
 	 * 
 	 * 
 	 */
@@ -527,6 +528,7 @@ public interface Resource extends Serializable {
 	 * operation fails it may have succeeded in creating some of the necessary parent directories.
 	 * 
 	 * @param createParentWhenNotExists throws Exception when can't create directory
+	 * @throws IOException in case copy fails
 	 */
 	public void createDirectory(boolean createParentWhenNotExists) throws IOException;
 
@@ -539,6 +541,7 @@ public interface Resource extends Serializable {
 	 * 
 	 * @param res resource to copy to
 	 * @param append do append value to existing data or overwrite
+	 * @throws IOException in case copy fails
 	 */
 	public void copyTo(Resource res, boolean append) throws IOException;
 
@@ -547,6 +550,7 @@ public interface Resource extends Serializable {
 	 * 
 	 * @param res resource to copy from
 	 * @param append do append value to existing data or overwrite
+	 * @throws IOException in case copy fails
 	 */
 	public void copyFrom(Resource res, boolean append) throws IOException;
 
@@ -562,7 +566,7 @@ public interface Resource extends Serializable {
 	 * sets hidden attribute of the resource
 	 * 
 	 * @param value value to set
-	 * @throws IOException throwed when no access to change the value or the resource doesn't exists
+	 * @throws IOException thrown when no access to change the value or the resource doesn't exist
 	 * @deprecated use instead <code>{@link #setAttribute(short, boolean)}</code>
 	 */
 	@Deprecated
@@ -572,7 +576,7 @@ public interface Resource extends Serializable {
 	 * sets system attribute of the resource
 	 * 
 	 * @param value value to set
-	 * @throws IOException throwed when no access to change the value or the resource doesn't exists
+	 * @throws IOException thrown when no access to change the value or the resource doesn't exist
 	 * @deprecated use instead <code>{@link #setAttribute(short, boolean)}</code>
 	 */
 	@Deprecated
@@ -582,19 +586,19 @@ public interface Resource extends Serializable {
 	 * sets archive attribute of the resource
 	 * 
 	 * @param value value to set
-	 * @throws IOException throwed when no access to change the value or the resource doesn't exists
+	 * @throws IOException thrown when no access to change the value or the resource doesn't exist
 	 * @deprecated use instead <code>{@link #setAttribute(short, boolean)}</code>
 	 */
 	@Deprecated
 	public void setArchive(boolean value) throws IOException;
 
 	/**
-	 * sets a attribute on the resource if supported otherwise it will ign
+	 * sets an attribute on the resource if supported otherwise it will ign
 	 * 
-	 * @param attribute wich attrbute (Resource.ATTRIBUTE_*)
+	 * @param attribute which attribute (Resource.ATTRIBUTE_*)
 	 * @param value value to set
-	 * @throws IOException throwed when no access to change the value, when attributes are not supported
-	 *             or the resource doesn't exists
+	 * @throws IOException thrown when no access to change the value, when attributes are not supported
+	 *             or the resource doesn't exist
 	 */
 	public void setAttribute(short attribute, boolean value) throws IOException;
 

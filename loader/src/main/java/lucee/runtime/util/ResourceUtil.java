@@ -67,30 +67,30 @@ public interface ResourceUtil {
 	public final short LEVEL_GRAND_PARENT_FILE = 2;
 
 	/**
-	 * cast a String (argument destination) to a File Object, if destination is not a absolute, file
+	 * cast a String (argument destination) to a File Object, if destination is not an absolute, file
 	 * object will be relative to current position (get from PageContext) file must exist otherwise
 	 * throw exception
 	 * 
 	 * @param pc Page Context to the current position in filesystem
 	 * @param path relative or absolute path for file object
 	 * @return file object from destination
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 */
 	public Resource toResourceExisting(PageContext pc, String path) throws PageException;
 
 	/**
-	 * cast a String (argument destination) to a File Object, if destination is not a absolute, file
+	 * cast a String (argument destination) to a File Object, if destination is not an absolute, file
 	 * object will be relative to current position (get from PageContext) at least parent must exist
 	 * 
 	 * @param pc Page Context to the current position in filesystem
 	 * @param destination relative or absolute path for file object
 	 * @return file object from destination
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 */
 	public Resource toResourceExistingParent(PageContext pc, String destination) throws PageException;
 
 	/**
-	 * cast a String (argument destination) to a File Object, if destination is not a absolute, file
+	 * cast a String (argument destination) to a File Object, if destination is not an absolute, file
 	 * object will be relative to current position (get from PageContext) existing file is preferred but
 	 * dont must exist
 	 * 
@@ -111,19 +111,19 @@ public interface ResourceUtil {
 	public Resource createResource(Resource res, short level, short type);
 
 	/**
-	 * sets a attribute to the resource
+	 * sets an attribute to the resource
 	 * 
-	 * @param res
-	 * @param attributes
-	 * @throws IOException
+	 * @param res Resource
+	 * @param attributes Attributes
+	 * @throws IOException IO Exception
 	 */
 	public void setAttribute(Resource res, String attributes) throws IOException;
 
 	/**
 	 * return the mime type of a file, does not check the extension of the file, it checks the header
 	 * 
-	 * @param res
-	 * @param defaultValue
+	 * @param res Resource
+	 * @param defaultValue default value
 	 * @return mime type of the file
 	 * @deprecated use instead <code>getContentType</code>
 	 */
@@ -133,8 +133,8 @@ public interface ResourceUtil {
 	/**
 	 * return the mime type of a byte array
 	 * 
-	 * @param barr
-	 * @param defaultValue
+	 * @param barr Byte Array
+	 * @param defaultValue default value
 	 * @return mime type of the file
 	 * @deprecated use instead <code>getContentType</code>
 	 */
@@ -151,17 +151,18 @@ public interface ResourceUtil {
 	public boolean isChildOf(Resource file, Resource dir);
 
 	/**
-	 * return diffrents of one file to a other if first is child of second otherwise return null
+	 * return differnce of one file to another if first is child of second otherwise return null
 	 * 
 	 * @param file file to search
 	 * @param dir directory to search
+	 * @return path to child
 	 */
 	public String getPathToChild(Resource file, Resource dir);
 
 	/**
 	 * get the Extension of a file resource
 	 * 
-	 * @param res
+	 * @param res Resource
 	 * @return extension of file
 	 * @deprecated use instead <code>getExtension(Resource res, String defaultValue);</code>
 	 */
@@ -171,7 +172,8 @@ public interface ResourceUtil {
 	/**
 	 * get the Extension of a file resource
 	 * 
-	 * @param res
+	 * @param res Resource
+	 * @param defaultValue default value
 	 * @return extension of file
 	 */
 	public String getExtension(Resource res, String defaultValue);
@@ -179,7 +181,7 @@ public interface ResourceUtil {
 	/**
 	 * get the Extension of a file
 	 * 
-	 * @param strFile
+	 * @param strFile path to file
 	 * @return extension of file
 	 * @deprecated use instead <code>getExtension(String strFile, String defaultValue);</code>
 	 */
@@ -189,6 +191,8 @@ public interface ResourceUtil {
 	/**
 	 * get the Extension of a file resource
 	 * 
+	 * @param strFile Path to resource
+	 * @param defaultValue default value
 	 * @return extension of file
 	 */
 	public String getExtension(String strFile, String defaultValue);
@@ -196,17 +200,19 @@ public interface ResourceUtil {
 	/**
 	 * copy a file or directory recursive (with his content)
 	 * 
-	 * @throws IOException
+	 * @param src Source Resource
+	 * @param trg Target Resource	 
+	 * @throws IOException IO Exception
 	 */
 	public void copyRecursive(Resource src, Resource trg) throws IOException;
 
 	/**
 	 * copy a file or directory recursive (with his content)
 	 * 
-	 * @param src
-	 * @param trg
-	 * @param filter
-	 * @throws IOException
+	 * @param src Source Resource
+	 * @param trg Target Resource
+	 * @param filter filter Filter
+	 * @throws IOException IO Exception
 	 */
 	public void copyRecursive(Resource src, Resource trg, ResourceFilter filter) throws IOException;
 
@@ -219,10 +225,11 @@ public interface ResourceUtil {
 	public void moveTo(Resource src, Resource dest) throws IOException;
 
 	/**
-	 * return if Resource is empty, means is directory and has no children or a empty file, if not exist
+	 * return if Resource is empty, means is directory and has no children or an empty file, if not exist
 	 * return false.
 	 * 
-	 * @param res
+	 * @param res Resource
+	 * @return if the resource is empty
 	 */
 	public boolean isEmpty(Resource res);
 
@@ -242,18 +249,18 @@ public interface ResourceUtil {
 	 * check if directory creation is ok with the rules for the Resource interface, to not change this
 	 * rules.
 	 * 
-	 * @param resource
-	 * @param createParentWhenNotExists
-	 * @throws IOException
+	 * @param resource Resource
+	 * @param createParentWhenNotExists create parent when not exists
+	 * @throws IOException IO Exception
 	 */
 	public void checkCreateDirectoryOK(Resource resource, boolean createParentWhenNotExists) throws IOException;
 
 	/**
 	 * check if file creating is ok with the rules for the Resource interface, to not change this rules.
 	 * 
-	 * @param resource
-	 * @param createParentWhenNotExists
-	 * @throws IOException
+	 * @param resource Resource
+	 * @param createParentWhenNotExists create parent when not exists
+	 * @throws IOException IO Exception
 	 */
 	public void checkCreateFileOK(Resource resource, boolean createParentWhenNotExists) throws IOException;
 
@@ -261,9 +268,9 @@ public interface ResourceUtil {
 	 * check if copying a file is ok with the rules for the Resource interface, to not change this
 	 * rules.
 	 * 
-	 * @param source
-	 * @param target
-	 * @throws IOException
+	 * @param source Source Resource
+	 * @param target Target Resource
+	 * @throws IOException IO Exception
 	 */
 	public void checkCopyToOK(Resource source, Resource target) throws IOException;
 
@@ -271,27 +278,27 @@ public interface ResourceUtil {
 	 * check if moveing a file is ok with the rules for the Resource interface, to not change this
 	 * rules.
 	 * 
-	 * @param source
-	 * @param target
-	 * @throws IOException
+	 * @param source Source Resource
+	 * @param target Target Resource
+	 * @throws IOException IO Exception
 	 */
 	public void checkMoveToOK(Resource source, Resource target) throws IOException;
 
 	/**
-	 * check if getting a inputstream of the file is ok with the rules for the Resource interface, to
+	 * check if getting an inputstream of the file is ok with the rules for the Resource interface, to
 	 * not change this rules.
 	 * 
-	 * @param resource
-	 * @throws IOException
+	 * @param resource Resource
+	 * @throws IOException IO Exception
 	 */
 	public void checkGetInputStreamOK(Resource resource) throws IOException;
 
 	/**
-	 * check if getting a outputstream of the file is ok with the rules for the Resource interface, to
+	 * check if getting an outputstream of the file is ok with the rules for the Resource interface, to
 	 * not change this rules.
 	 * 
-	 * @param resource
-	 * @throws IOException
+	 * @param resource Resource
+	 * @throws IOException IO Exception
 	 */
 	public void checkGetOutputStreamOK(Resource resource) throws IOException;
 
@@ -299,8 +306,8 @@ public interface ResourceUtil {
 	 * check if removing the file is ok with the rules for the Resource interface, to not change this
 	 * rules.
 	 * 
-	 * @param resource
-	 * @throws IOException
+	 * @param resource Resource
+	 * @throws IOException IO Exception
 	 */
 	public void checkRemoveOK(Resource resource) throws IOException;
 
@@ -326,13 +333,14 @@ public interface ResourceUtil {
 	public ContentType getContentType(Resource file);
 
 	/**
-	 * cast a String (argument destination) to a File Object, if destination is not a absolute, file
+	 * cast a String (argument destination) to a File Object, if destination is not an absolute, file
 	 * object will be relative to current position (get from PageContext) at least parent must exist
 	 * 
 	 * @param pc Page Context to the current position in filesystem
 	 * @param destination relative or absolute path for file object
+	 * @param allowRealpath allow real path
 	 * @return file object from destination
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 */
 	public Resource toResourceExistingParent(PageContext pc, String destination, boolean allowRealpath) throws PageException;
 
@@ -341,17 +349,17 @@ public interface ResourceUtil {
 	public boolean isUNCPath(String path);
 
 	/**
-	 * translate the path of the file to a existing file path by changing case of letters Works only on
+	 * translate the path of the file to an existing file path by changing case of letters Works only on
 	 * Linux, because
 	 * 
-	 * Example Unix: we have a existing file with path "/usr/virtual/myFile.txt" now you call this
+	 * Example Unix: we have an existing file with path "/usr/virtual/myFile.txt" now you call this
 	 * method with path "/Usr/Virtual/myfile.txt" the result of the method will be
 	 * "/usr/virtual/myFile.txt"
 	 * 
 	 * if there are more file with rhe same name but different cases Example: /usr/virtual/myFile.txt
 	 * /usr/virtual/myfile.txt /Usr/Virtual/myFile.txt the nearest case wil returned
 	 * 
-	 * @param res
+	 * @param res Resources
 	 * @return file
 	 */
 	public Resource toExactResource(Resource res);
@@ -385,7 +393,7 @@ public interface ResourceUtil {
 	/**
 	 * creates a new File
 	 * 
-	 * @param res
+	 * @param res Resource
 	 * @return was successfull
 	 */
 	public boolean createNewResourceSilent(Resource res);
@@ -394,8 +402,8 @@ public interface ResourceUtil {
 	 * similar to linux bash function touch, create file if not exist otherwise change last modified
 	 * date
 	 * 
-	 * @param res
-	 * @throws IOException
+	 * @param res Resource
+	 * @throws IOException IO Exception
 	 */
 	public void touch(Resource res) throws IOException;
 
@@ -404,14 +412,17 @@ public interface ResourceUtil {
 	/**
 	 * change extension of file and return new file
 	 * 
-	 * @param file
-	 * @param newExtension
+	 * @param file Resource
+	 * @param newExtension New file extension
 	 * @return file with new Extension
 	 */
 	public Resource changeExtension(Resource file, String newExtension);
 
 	/**
 	 * delete the content of a directory
+	 * 
+	 * @param src Resource
+	 * @param filter Filter
 	 */
 	public void deleteContent(Resource src, ResourceFilter filter);
 
@@ -433,19 +444,21 @@ public interface ResourceUtil {
 	 * return the size of the Resource, other than method length of Resource this method return the size
 	 * of all files in a directory
 	 * 
-	 * @param res
-	 * @param filter
+	 * @param res Resource
+	 * @param filter Filter
+	 * @return the size of the directory
 	 */
 	public long getRealSize(Resource res, ResourceFilter filter);
 
 	public int getChildCount(Resource res, ResourceFilter filter);
 
 	/**
-	 * return Boolean.True when directory is empty, Boolean.FALSE when directory s not empty and null if
-	 * directory does not exists
+	 * return Boolean. True when directory is empty, Boolean. FALSE when directory is not empty and null if
+	 * directory does not exist
 	 * 
-	 * @param res
-	 * @return
+	 * @param res Resource
+	 * @param filter Filter
+	 * @return Returns if the Directory is empty.
 	 */
 	public boolean isEmptyDirectory(Resource res, ResourceFilter filter);
 

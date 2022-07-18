@@ -18,6 +18,8 @@
  **/
 package lucee.runtime.spooler.mail;
 
+import java.io.UnsupportedEncodingException;
+
 import javax.mail.internet.InternetAddress;
 
 import lucee.commons.lang.StringUtil;
@@ -33,6 +35,8 @@ import lucee.runtime.spooler.ExecutionPlan;
 import lucee.runtime.spooler.ExecutionPlanImpl;
 import lucee.runtime.spooler.SpoolerTaskListener;
 import lucee.runtime.spooler.SpoolerTaskSupport;
+import lucee.runtime.type.Collection.Key;
+import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.util.ArrayUtil;
@@ -41,6 +45,12 @@ import lucee.runtime.type.util.KeyConstants;
 public class MailSpoolerTask extends SpoolerTaskSupport {
 	private static final ExecutionPlan[] EXECUTION_PLANS = new ExecutionPlan[] { new ExecutionPlanImpl(1, 60), new ExecutionPlanImpl(1, 5 * 60), new ExecutionPlanImpl(1, 3600),
 			new ExecutionPlanImpl(2, 24 * 3600), };
+
+	private static final Key CC = KeyImpl.init("cc");
+	private static final Key BCC = KeyImpl.init("bcc");
+
+	private static final Key FAILTO = KeyImpl.init("failto");
+	private static final Key REPLYTO = KeyImpl.init("replyto");
 
 	private SMTPClient client;
 	private Server[] servers;
@@ -129,19 +139,32 @@ public class MailSpoolerTask extends SpoolerTaskSupport {
 		this.listener = listener;
 	}
 
-	public void mod(Struct sct) {
-		// TODO more
+	public void mod(Struct sct) throws UnsupportedEncodingException, PageException, MailException {
+		// MUST more
 
 		// FROM
 		Object o = sct.get(KeyConstants._from, null);
-		InternetAddress from = null;
-		if (o != null) {
-			try {
-				from = MailUtil.toInternetAddress(o);
-			}
-			catch (Exception e) {}
-		}
-		if (from != null) client.setFrom(from);
+		if (o != null) client.setFrom(MailUtil.toInternetAddress(o));
+
+		// TO
+		o = sct.get(KeyConstants._to, null);
+		if (o != null) client.setTos(MailUtil.toInternetAddresses(o));
+
+		// BCC
+		o = sct.get(BCC, null);
+		if (o != null) client.setBCCs(MailUtil.toInternetAddresses(o));
+
+		// replyto
+		o = sct.get(FAILTO, null);
+		if (o != null) client.setFailTos(MailUtil.toInternetAddresses(o));
+
+		// replyto
+		o = sct.get(REPLYTO, null);
+		if (o != null) client.setReplyTos(MailUtil.toInternetAddresses(o));
+
+		// subject
+		o = sct.get(KeyConstants._subject, null);
+		if (o != null) client.setSubject(StringUtil.collapseWhitespace(Caster.toString(o)));
 
 	}
 

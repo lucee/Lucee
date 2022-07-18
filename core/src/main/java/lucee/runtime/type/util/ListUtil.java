@@ -20,6 +20,7 @@ package lucee.runtime.type.util;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -176,7 +177,8 @@ public final class ListUtil {
 			}
 			if (last <= len) array.append(list.substring(last));
 		}
-		catch (PageException e) {}
+		catch (PageException e) {
+		}
 		return array;
 	}
 
@@ -237,6 +239,40 @@ public final class ListUtil {
 		return array;
 	}
 
+	public static String listRemoveEmpty(String list, String delimiter) {
+		if (delimiter.length() == 1) return listRemoveEmpty(list, delimiter.charAt(0));
+		if (delimiter.length() == 0) return list;
+		int len = list.length();
+
+		if (len == 0) return "";
+		StringBuilder sb = new StringBuilder();
+
+		int last = 0;
+
+		char[] del = delimiter.toCharArray();
+		char c;
+		boolean first = true;
+		for (int i = 0; i < len; i++) {
+			c = list.charAt(i);
+			for (int y = 0; y < del.length; y++) {
+				if (c == del[y]) {
+					if (last < i) {
+						if (first) first = false;
+						else sb.append(delimiter);
+						sb.append(list.substring(last, i));
+					}
+					last = i + 1;
+					break;
+				}
+			}
+		}
+		if (last < len) {
+			if (!first) sb.append(delimiter);
+			sb.append(list.substring(last));
+		}
+		return sb.toString();
+	}
+
 	/**
 	 * casts a list to Array object remove Empty Elements
 	 * 
@@ -259,6 +295,30 @@ public final class ListUtil {
 		if (last < len) array.appendEL(list.substring(last));
 
 		return array;
+	}
+
+	public static String listRemoveEmpty(String list, char delimiter) {
+		int len = list.length();
+		if (len == 0) return "";
+
+		StringBuilder sb = new StringBuilder();
+		int last = 0;
+		boolean first = true;
+		for (int i = 0; i < len; i++) {
+			if (list.charAt(i) == delimiter) {
+				if (last < i) {
+					if (first) first = false;
+					else sb.append(delimiter);
+					sb.append(list.substring(last, i));
+				}
+				last = i + 1;
+			}
+		}
+		if (last < len) {
+			if (!first) sb.append(delimiter);
+			sb.append(list.substring(last));
+		}
+		return sb.toString();
 	}
 
 	public static List<String> toListRemoveEmpty(String list, char delimiter) {
@@ -621,7 +681,7 @@ public final class ListUtil {
 	 * @return position in list (0-n) or -1
 	 */
 	public static int listFindNoCase(String list, String value, String delimiter, boolean trim) {
-		Array arr = trim ? listToArrayTrim(list, delimiter) : listToArray(list, delimiter);
+		Array arr = listToArray(list, delimiter);
 		int len = arr.size();
 		for (int i = 1; i <= len; i++) {
 			if (((String) arr.get(i, "")).equalsIgnoreCase(value)) return i - 1;
@@ -727,7 +787,7 @@ public final class ListUtil {
 	 * @return position in list or 0
 	 */
 	public static int listFind(String list, String value, String delimiter) {
-		Array arr = listToArrayTrim(list, delimiter);
+		Array arr = listToArray(list, delimiter);
 		int len = arr.size();
 		for (int i = 1; i <= len; i++) {
 			if (arr.get(i, "").equals(value)) return i - 1;
@@ -1034,6 +1094,16 @@ public final class ListUtil {
 		return array;
 	}
 
+	public static Array trim(Array array) {
+		while (array.size() > 0 && Caster.toString(array.get(1, ""), "").isEmpty()) {
+			array.removeEL(1);
+		}
+		while (array.size() > 0 && Caster.toString(array.get(array.size(), ""), "").isEmpty()) {
+			array.removeEL(array.size());
+		}
+		return array;
+	}
+
 	/**
 	 * trims a string list, remove all empty delimiter at start and the end
 	 * 
@@ -1171,7 +1241,7 @@ public final class ListUtil {
 	}
 
 	/**
-	 * cast a Object Array to a String Array
+	 * cast an Object Array to a String Array
 	 * 
 	 * @param array
 	 * @return String Array
@@ -1186,7 +1256,7 @@ public final class ListUtil {
 	}
 
 	/**
-	 * cast a Object Array to a String Array
+	 * cast an Object Array to a String Array
 	 * 
 	 * @param array
 	 * @return String Array
@@ -1209,7 +1279,7 @@ public final class ListUtil {
 	}
 
 	/**
-	 * cast a Object Array to a String Array
+	 * cast an Object Array to a String Array
 	 * 
 	 * @param array
 	 * @param defaultValue
@@ -1225,7 +1295,7 @@ public final class ListUtil {
 	}
 
 	/**
-	 * cast a Object Array to a String Array and trim all values
+	 * cast an Object Array to a String Array and trim all values
 	 * 
 	 * @param array
 	 * @return String Array
@@ -1348,7 +1418,7 @@ public final class ListUtil {
 	 */
 	public static int len(String list, char delimiter, boolean ignoreEmpty) {
 		int len = StringUtil.length(list);
-		if (len == 0) return 0;
+		if (len == 0 && ignoreEmpty) return 0;
 
 		int count = 0;
 		int last = 0;
@@ -1374,7 +1444,7 @@ public final class ListUtil {
 		if (delimiter.length() == 1) return len(list, delimiter.charAt(0), ignoreEmpty);
 		char[] del = delimiter.toCharArray();
 		int len = StringUtil.length(list);
-		if (len == 0) return 0;
+		if (len == 0 && ignoreEmpty) return 0;
 
 		int count = 0;
 		int last = 0;
@@ -1395,7 +1465,7 @@ public final class ListUtil {
 	}
 
 	/*
-	 * * cast a int into a char
+	 * * cast an int into a char
 	 * 
 	 * @param i int to cast
 	 * 
@@ -1446,7 +1516,7 @@ public final class ListUtil {
 	}
 
 	/**
-	 * get a elemnt at a specified position in list
+	 * get an element at a specified position in list
 	 * 
 	 * @param list list to cast
 	 * @param delimiter delimter of the list
@@ -1546,7 +1616,7 @@ public final class ListUtil {
 				}
 			}
 		}
-		if (last <= len) set.add(list.substring(last));
+		if (last <= len) set.add(trim ? list.substring(last).trim() : list.substring(last));
 		return set;
 	}
 
@@ -1564,7 +1634,7 @@ public final class ListUtil {
 				last = i + 1;
 			}
 		}
-		if (last <= len) set.add(list.substring(last));
+		if (last <= len) set.add(trim ? list.substring(last).trim() : list.substring(last));
 		return set;
 	}
 
@@ -1708,6 +1778,14 @@ public final class ListUtil {
 			list.add(Caster.toString(it.next()));
 		}
 		return list;
+	}
+
+	public static Iterator<String> toIterator(Enumeration<String> input) {
+		List<String> output = new ArrayList<String>();
+		while (input.hasMoreElements()) {
+			output.add(input.nextElement());
+		}
+		return output.iterator();
 	}
 
 }

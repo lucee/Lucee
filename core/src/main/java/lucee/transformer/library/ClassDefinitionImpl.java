@@ -33,6 +33,7 @@ import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.config.Identification;
 import lucee.runtime.db.ClassDefinition;
+import lucee.runtime.listener.JavaSettingsImpl;
 import lucee.runtime.osgi.OSGiUtil;
 
 public class ClassDefinitionImpl<T> implements ClassDefinition<T>, Externalizable {
@@ -79,7 +80,8 @@ public class ClassDefinitionImpl<T> implements ClassDefinition<T>, Externalizabl
 	/**
 	 * only used by deserializer!
 	 */
-	public ClassDefinitionImpl() {}
+	public ClassDefinitionImpl() {
+	}
 
 	@Override
 	public void writeExternal(ObjectOutput out) throws IOException {
@@ -100,12 +102,16 @@ public class ClassDefinitionImpl<T> implements ClassDefinition<T>, Externalizabl
 
 	@Override
 	public Class<T> getClazz() throws ClassException, BundleException {
-		if (clazz != null) return clazz;
+		return getClazz(false);
+	}
+
+	public Class<T> getClazz(boolean forceLoadingClass) throws ClassException, BundleException {
+		if (!forceLoadingClass && clazz != null) return clazz;
 
 		// regular class definition
 		if (name == null) return clazz = ClassUtil.loadClass(className);
 
-		return clazz = ClassUtil.loadClassByBundle(className, name, version, id);
+		return clazz = ClassUtil.loadClassByBundle(className, name, version, id, JavaSettingsImpl.getBundleDirectories(null));
 	}
 
 	@Override

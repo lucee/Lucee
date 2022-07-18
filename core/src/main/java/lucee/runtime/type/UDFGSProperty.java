@@ -51,8 +51,8 @@ public abstract class UDFGSProperty extends MemberSupport implements UDFPlus {
 
 	private static final long serialVersionUID = 285652503901488683L;
 
-	private static final Collection.Key MIN_LENGTH = KeyImpl.intern("minLength");
-	private static final Collection.Key MAX_LENGTH = KeyImpl.intern("maxLength");
+	private static final Collection.Key MIN_LENGTH = KeyImpl.getInstance("minLength");
+	private static final Collection.Key MAX_LENGTH = KeyImpl.getInstance("maxLength");
 
 	protected final FunctionArgument[] arguments;
 	protected final String name;
@@ -204,7 +204,7 @@ public abstract class UDFGSProperty extends MemberSupport implements UDFPlus {
 
 	@Override
 	public Struct getMetaData(PageContext pc) throws PageException {
-		return ComponentUtil.getMetaData(pc, properties);
+		return ComponentUtil.getMetaData(pc, properties, null);
 	}
 
 	final Object cast(PageContext pc, FunctionArgument arg, Object value, int index) throws PageException {
@@ -243,7 +243,7 @@ public abstract class UDFGSProperty extends MemberSupport implements UDFPlus {
 		else if (validate.equals("regex")) {
 			String pattern = Caster.toString(validateParams.get(KeyConstants._pattern, null), null);
 			String value = Caster.toString(obj);
-			if (!StringUtil.isEmpty(pattern, true) && !IsValid.regex(value, pattern))
+			if (!StringUtil.isEmpty(pattern, true) && !IsValid.regex(ThreadLocalPageContext.get(), value, pattern))
 				throw new ExpressionException("the string [" + value + "] does not match the regular expression pattern [" + pattern + "]");
 		}
 	}

@@ -108,6 +108,7 @@ ACTIONS --->
 				requesttimeout="#form.timeout#"
 				username="#nullIfEmpty(form.username)#"
 				schedulePassword="#nullIfEmpty(form.password)#"
+				userAgent="#nullIfEmpty(form.userAgent)#"
 				proxyserver="#nullIfEmpty(form.proxyserver)#"
 				proxyport="#form.proxyport#"
 				proxyuser="#nullIfEmpty(form.proxyuser)#"
@@ -227,6 +228,13 @@ Error Output--->
 						<div class="comment">#stText.Schedule.PasswordDescription#</div>
 					</td>
 				</tr>
+				<tr>
+					<th scope="row">#stText.Schedule.UserAgent#</th>
+					<td>
+						<cfinputClassic type="text" name="useragent" value="#task.useragent#" class="large" required="no">
+						<div class="comment">#stText.Schedule.UserAgentDescription#</div>
+					</td>
+				</tr>
 			</tbody>
 		</table>
 
@@ -311,7 +319,7 @@ Error Output--->
 			<br />
 			#stText.Schedule.CurrentDateTime#&nbsp;
 			#dateFormat(now(),'mmmm dd yyyy')# #timeFormat(now(),'HH:mm:ss')# <!---(mmmm dd yyyy HH:mm:ss)--->
-		</div><cfset css="color:white;background-color:#request.adminType EQ "web"?'##39c':'##c00'#;">
+		</div><cfset css="color:white;background-color:#request.adminType EQ "web"?'##0f75a8':'##c00'#;">
 
 			<input style="margin-left:0px;#iif(task.interval EQ 'once','css',de(''))#"
 					type="submit" class="bl button submit" name="interval" value="once">
@@ -576,8 +584,8 @@ Error Output--->
 			<tfoot>
 				<tr>
 					<td colspan="2">
-						<input onclick="window.location='#request.self#?action=#url.action#';" type="button" class="bl button cancel" name="cancel" value="#stText.Buttons.Cancel#">
-						<input type="submit" class="br button submit" name="run" value="#stText.Buttons.Update#">
+						<input type="submit" class="bl button submit" name="run" value="#stText.Buttons.Update#">
+						<input onclick="window.location='#request.self#?action=#url.action#';" type="button" class="br button cancel" name="cancel" value="#stText.Buttons.Cancel#">
 					</td>
 				</tr>
 			</tfoot>

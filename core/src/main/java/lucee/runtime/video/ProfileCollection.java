@@ -37,7 +37,6 @@ import lucee.commons.io.IOUtil;
 import lucee.commons.io.res.Resource;
 import lucee.loader.util.Util;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
@@ -55,7 +54,7 @@ public class ProfileCollection {
 
 	private void init(Config config, boolean initProfiles) throws ApplicationException {
 		// get the video directory
-		Resource dir = ((ConfigImpl) config).getVideoDirectory();
+		Resource dir = config.getVideoDirectory();
 
 		// get the video.xml
 		Resource xml = dir.getRealResource("video.xml");
@@ -203,11 +202,11 @@ public class ProfileCollection {
 
 	private static String[] toArray(String str) {
 		StringTokenizer st = new StringTokenizer(str, ",");
-		ArrayList list = new ArrayList();
+		ArrayList<String> list = new ArrayList<String>();
 		while (st.hasMoreTokens()) {
 			list.add(str = st.nextToken());
 		}
-		return (String[]) list.toArray(new String[list.size()]);
+		return list.toArray(new String[list.size()]);
 	}
 
 	/**
@@ -242,7 +241,7 @@ public class ProfileCollection {
 			return loadDocument(is = xmlFile.getInputStream());
 		}
 		finally {
-			IOUtil.closeEL(is);
+			IOUtil.close(is);
 		}
 	}
 
@@ -252,7 +251,7 @@ public class ProfileCollection {
 			return XMLUtil.parse(source, null, false);
 		}
 		finally {
-			IOUtil.closeEL(is);
+			IOUtil.close(is);
 		}
 	}
 }

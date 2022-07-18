@@ -1,4 +1,13 @@
 component extends="org.lucee.cfml.test.LuceeTestCase"{
+
+	function beforeAll(){
+		setLocale("en_us");
+	}
+
+	function afterAll(){
+		setLocale("en_us");
+	}
+
 	function run( testResults , testBox ) {
 		describe( title="Test suite for LSparseDateTime()", body=function() {
 			it(title="checking LSparseDateTime() function", body = function( currentSpec ) {
@@ -432,7 +441,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 
 				try {
 					lsparseDateTime(str);
-					fail("must throw a error!")
+					fail("must throw an error!")
 				} catch ( any e){}
 
 

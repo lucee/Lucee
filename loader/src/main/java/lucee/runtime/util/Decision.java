@@ -23,7 +23,7 @@ import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
 
 /**
- * Object to test if a Object is a specific type
+ * Object to test if an Object is a specific type
  */
 public interface Decision {
 
@@ -54,13 +54,18 @@ public interface Decision {
 	public boolean isNumber(String str);
 
 	/**
-	 * @deprecated use insteas isNumber
+	 * @param value value to test
+	 * @return is value numeric
+	 * @deprecated use instead isNumber
 	 */
 	@Deprecated
 	public boolean isNumeric(Object value);
 
 	/**
-	 * @deprecated use insteas isNumber
+	 * 
+	 * @param str value to test
+	 * @return is value numeric
+	 * @deprecated use instead isNumber
 	 */
 	@Deprecated
 	public boolean isNumeric(String str);
@@ -109,15 +114,15 @@ public interface Decision {
 	/**
 	 * tests if object is a struct
 	 * 
-	 * @param o
+	 * @param o Object
 	 * @return is struct or not
 	 */
 	public boolean isStruct(Object o);
 
 	/**
-	 * tests if object is a array
+	 * tests if object is an array
 	 * 
-	 * @param o
+	 * @param o Object
 	 * @return is array or not
 	 */
 	public boolean isArray(Object o);
@@ -125,7 +130,7 @@ public interface Decision {
 	/**
 	 * tests if object is a native java array
 	 * 
-	 * @param o
+	 * @param o Object
 	 * @return is a native (java) array
 	 */
 	public boolean isNativeArray(Object o);
@@ -133,7 +138,7 @@ public interface Decision {
 	/**
 	 * tests if object is a binary
 	 * 
-	 * @param object
+	 * @param object Object
 	 * @return boolean
 	 */
 	public boolean isBinary(Object object);
@@ -141,7 +146,7 @@ public interface Decision {
 	/**
 	 * tests if object is a Component
 	 * 
-	 * @param object
+	 * @param object Object
 	 * @return boolean
 	 */
 	public boolean isComponent(Object object);
@@ -149,7 +154,7 @@ public interface Decision {
 	/**
 	 * tests if object is a Query
 	 * 
-	 * @param object
+	 * @param object Object
 	 * @return boolean
 	 */
 	public boolean isQuery(Object object);
@@ -157,7 +162,7 @@ public interface Decision {
 	/**
 	 * tests if object is a binary
 	 * 
-	 * @param object
+	 * @param object Object
 	 * @return boolean
 	 */
 	public boolean isUserDefinedFunction(Object object);
@@ -211,13 +216,13 @@ public interface Decision {
 	public boolean isXMLRootElement(Object o);
 
 	/**
-	 * @param string
+	 * @param string string
 	 * @return returns if string represent a variable name
 	 */
 	public boolean isVariableName(String string);
 
 	/**
-	 * @param string
+	 * @param string string
 	 * @return returns if string represent a variable name
 	 */
 	public boolean isSimpleVariableName(String string);
@@ -232,7 +237,7 @@ public interface Decision {
 
 	/**
 	 * 
-	 * @param str
+	 * @param str string
 	 * @return return if a String is "Empty", that means NULL or String with length 0 (whitespaces will
 	 *         not counted)
 	 */
@@ -240,8 +245,8 @@ public interface Decision {
 
 	/**
 	 * 
-	 * @param str
-	 * @param trim
+	 * @param str string
+	 * @param trim trim
 	 * @return return if a String is "Empty", that means NULL or String with length 0 (whitespaces will
 	 *         not counted)
 	 */
@@ -254,8 +259,8 @@ public interface Decision {
 	/**
 	 * Checks if number is valid (not infinity or NaN)
 	 * 
-	 * @param dbl
-	 * @return
+	 * @param dbl double
+	 * @return Returns if the number is valid.
 	 */
 	public boolean isValid(double dbl);
 
@@ -289,9 +294,9 @@ public interface Decision {
 
 	/**
 	 * 
-	 * @param type
-	 * @param o
-	 * @return
+	 * @param type type
+	 * @param o object
+	 * @return Returns if Object is the Type.
 	 * @throws PageException when type is unknown
 	 */
 	public boolean is(String type, Object o) throws PageException;

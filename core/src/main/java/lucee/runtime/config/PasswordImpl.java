@@ -21,14 +21,15 @@ import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 
 import org.osgi.framework.BundleException;
-import org.w3c.dom.Element;
-import org.xml.sax.SAXException;
 
 import lucee.commons.digest.Hash;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
+import lucee.runtime.converter.ConverterException;
 import lucee.runtime.crypt.BlowfishEasy;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.op.Caster;
+import lucee.runtime.type.Struct;
 
 public class PasswordImpl implements Password {
 
@@ -46,7 +47,7 @@ public class PasswordImpl implements Password {
 		this.origin = origin;
 	}
 
-	private PasswordImpl(int origin, String rawPassword, String salt) {
+	PasswordImpl(int origin, String rawPassword, String salt) {
 		this.rawPassword = rawPassword;
 		this.password = hash(rawPassword, salt);
 		this.salt = salt;
@@ -76,8 +77,7 @@ public class PasswordImpl implements Password {
 
 	@Override
 	public Password isEqual(Config config, String other) {
-
-		// a already hashed password that matches
+		// an already hashed password that matches
 		if (password.equals(other)) return this;
 
 		// current password is only hashed
@@ -123,20 +123,14 @@ public class PasswordImpl implements Password {
 		}
 	}
 
-	/**
-	 * reads the password defined in the Lucee configuration, this can also in older formats (only
-	 * hashed or encrypted)
-	 * 
-	 * @param el
-	 * @param salt
-	 * @param isDefault
-	 * @return
-	 */
-	public static Password readFromXML(Element el, String salt, boolean isDefault) {
-		String prefix = isDefault ? "default-" : "";
+	public static Password readFromStruct(Struct data, String salt, boolean isDefault) {
+		String prefix = isDefault ? "adminDefault" : "admin";
+		String prefixOlder = isDefault ? "default" : "";
 
 		// first we look for the hashed and salted password
-		String pw = el.getAttribute(prefix + "hspw");
+		// preferred adminDefaultHSPW adminHSPW
+		String pw = ConfigWebFactory.getAttr(data, prefix + "hspw");
+		if (StringUtil.isEmpty(pw, true)) pw = ConfigWebFactory.getAttr(data, prefixOlder + "hspw");
 		if (!StringUtil.isEmpty(pw, true)) {
 			// password is only of use when there is a salt as well
 			if (salt == null) return null;
@@ -144,13 +138,18 @@ public class PasswordImpl implements Password {
 		}
 
 		// fall back to password that is hashed but not salted
-		pw = el.getAttribute(prefix + "pw");
+		// preferred adminDefaultPW adminPW
+		pw = ConfigWebFactory.getAttr(data, prefix + "pw");
+		if (StringUtil.isEmpty(pw, true)) pw = ConfigWebFactory.getAttr(data, prefixOlder + "pw");
 		if (!StringUtil.isEmpty(pw, true)) {
 			return new PasswordImpl(ORIGIN_HASHED, pw, null, HASHED);
 		}
 
 		// fall back to encrypted password
-		String pwEnc = el.getAttribute(prefix + "password");
+		// preferred adminDefaultPassword adminPassword
+		String pwEnc = ConfigWebFactory.getAttr(data, prefix + "Password");
+		if (StringUtil.isEmpty(pwEnc, true)) pwEnc = ConfigWebFactory.getAttr(data, prefixOlder + "Password");
+		if (isDefault && StringUtil.isEmpty(pwEnc, true)) pwEnc = ConfigWebFactory.getAttr(data, "adminPasswordDefault");
 		if (!StringUtil.isEmpty(pwEnc, true)) {
 			String rawPassword = new BlowfishEasy("tpwisgh").decryptString(pwEnc);
 			return new PasswordImpl(ORIGIN_ENCRYPTED, rawPassword, salt);
@@ -158,58 +157,58 @@ public class PasswordImpl implements Password {
 		return null;
 	}
 
-	public static Password writeToXML(Element el, String passwordRaw, boolean isDefault) {
+	public static Password writeToStruct(Struct el, String passwordRaw, boolean isDefault) {
 		// salt
 		String salt = getSalt(el);
 
 		Password pw = new PasswordImpl(ORIGIN_UNKNOW, passwordRaw, salt);
-		writeToXML(el, pw, isDefault);
+		writeToStruct(el, pw, isDefault);
 		return pw;
 	}
 
-	private static String getSalt(Element el) {
-		String salt = el.getAttribute("salt");
+	private static String getSalt(Struct data) {
+		String salt = Caster.toString(data.get("salt", null), null);
+		if (StringUtil.isEmpty(salt, true)) salt = Caster.toString(data.get("adminsalt", null), null);
 		if (StringUtil.isEmpty(salt, true)) throw new RuntimeException("missing salt!");// this should never happen
 		return salt.trim();
-
 	}
 
-	public static void writeToXML(Element el, Password pw, boolean isDefault) {
+	public static void writeToStruct(Struct data, Password pw, boolean isDefault) {
 		String prefix = isDefault ? "default-" : "";
 		if (pw == null) {
-			if (el.hasAttribute(prefix + "hspw")) el.removeAttribute(prefix + "hspw");
-			if (el.hasAttribute(prefix + "pw")) el.removeAttribute(prefix + "pw");
-			if (el.hasAttribute(prefix + "password")) el.removeAttribute(prefix + "password");
+			if (data.containsKey(prefix + "hspw")) data.remove(prefix + "hspw");
+			if (data.containsKey(prefix + "pw")) data.remove(prefix + "pw");
+			if (data.containsKey(prefix + "password")) data.remove(prefix + "password");
 		}
 		else {
 			// remove backward compatibility
-			if (el.hasAttribute(prefix + "pw")) el.removeAttribute(prefix + "pw");
-			if (el.hasAttribute(prefix + "password")) el.removeAttribute(prefix + "password");
+			if (data.containsKey(prefix + "pw")) data.remove(prefix + "pw");
+			if (data.containsKey(prefix + "password")) data.remove(prefix + "password");
 
-			if (pw.getType() == HASHED_SALTED) el.setAttribute(prefix + "hspw", pw.getPassword());
+			if (pw.getType() == HASHED_SALTED) data.setEL(prefix + "hspw", pw.getPassword());
 			// password is not hashed and salted
 			else {
 				PasswordImpl pwi;
 				if (pw instanceof PasswordImpl && (pwi = ((PasswordImpl) pw)).rawPassword != null) {
-					el.setAttribute(prefix + "hspw", hash(pwi.rawPassword, getSalt(el)));
+					data.setEL(prefix + "hspw", hash(pwi.rawPassword, getSalt(data)));
 				}
 				else {
-					el.setAttribute(prefix + "pw", pw.getPassword());// this should never happen
+					data.setEL(prefix + "pw", pw.getPassword());// this should never happen
 				}
 			}
 		}
 	}
 
-	public static void removeFromXML(Element root, boolean isDefault) {
-		writeToXML(root, (Password) null, isDefault);
+	public static void removeFromStruct(Struct root, boolean isDefault) {
+		writeToStruct(root, (Password) null, isDefault);
 	}
 
-	public static Password updatePasswordIfNecessary(ConfigImpl config, Password passwordOld, String strPasswordNew) {
+	public static Password updatePasswordIfNecessary(ConfigPro config, Password passwordOld, String strPasswordNew) {
 
 		try {
 			// is the server context default password used
 			boolean defPass = false;
-			if (config instanceof ConfigWebImpl) defPass = ((ConfigWebImpl) config).isDefaultPassword();
+			if (config instanceof ConfigWebPro) defPass = ((ConfigWebPro) config).isDefaultPassword();
 
 			int origin = config.getPasswordOrigin();
 
@@ -244,8 +243,9 @@ public class PasswordImpl implements Password {
 	 * @throws SAXException
 	 * @throws PageException
 	 * @throws BundleException
+	 * @throws ConverterException
 	 */
-	public static void updatePassword(ConfigImpl config, String strPasswordOld, String strPasswordNew) throws SAXException, IOException, PageException, BundleException {
+	public static void updatePassword(ConfigPro config, String strPasswordOld, String strPasswordNew) throws IOException, PageException, BundleException, ConverterException {
 
 		// old salt
 		int pwType = config.getPasswordType(); // get type from password
@@ -267,17 +267,17 @@ public class PasswordImpl implements Password {
 
 	}
 
-	public static void updatePassword(ConfigImpl config, Password passwordOld, Password passwordNew) throws SAXException, IOException, PageException, BundleException {
+	public static void updatePassword(ConfigPro config, Password passwordOld, Password passwordNew) throws IOException, PageException, BundleException, ConverterException {
 		if (!config.hasPassword()) {
 			config.setPassword(passwordNew);
-			XMLConfigAdmin admin = XMLConfigAdmin.newInstance(config, passwordNew);
+			ConfigAdmin admin = ConfigAdmin.newInstance(config, passwordNew);
 			admin.setPassword(passwordNew);
 			admin.storeAndReload();
 		}
 		else {
 			ConfigWebUtil.checkPassword(config, "write", passwordOld);
 			ConfigWebUtil.checkGeneralWriteAccess(config, passwordOld);
-			XMLConfigAdmin admin = XMLConfigAdmin.newInstance(config, passwordOld);
+			ConfigAdmin admin = ConfigAdmin.newInstance(config, passwordOld);
 			admin.setPassword(passwordNew);
 			admin.storeAndReload();
 		}
@@ -285,7 +285,7 @@ public class PasswordImpl implements Password {
 
 	public static Password passwordToCompare(ConfigWeb cw, boolean server, String rawPassword) {
 		if (StringUtil.isEmpty(rawPassword, true)) return null;
-		ConfigWebImpl cwi = (ConfigWebImpl) cw;
+		ConfigWebPro cwi = (ConfigWebPro) cw;
 		int pwType;
 		String pwSalt;
 		if (server) {

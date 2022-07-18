@@ -20,7 +20,10 @@ package lucee.runtime.interpreter;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Arrays;
+import java.util.*;
 
+import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.CFTypes;
 import lucee.commons.lang.ParserString;
 import lucee.loader.engine.CFMLEngine;
@@ -28,11 +31,13 @@ import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.MappingImpl;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageSource;
-import lucee.runtime.config.ConfigImpl;
-import lucee.runtime.config.ConfigWebImpl;
+import lucee.runtime.config.ConfigPro;
+import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.TemplateException;
+import lucee.runtime.functions.arrays.JsonArray;
+import lucee.runtime.functions.struct.JsonStruct;
 import lucee.runtime.interpreter.ref.Ref;
 import lucee.runtime.interpreter.ref.Set;
 import lucee.runtime.interpreter.ref.cast.Casting;
@@ -83,6 +88,7 @@ import lucee.runtime.interpreter.ref.var.DynAssign;
 import lucee.runtime.interpreter.ref.var.Variable;
 import lucee.runtime.type.scope.Scope;
 import lucee.runtime.type.scope.ScopeSupport;
+import lucee.transformer.library.ClassDefinitionImpl;
 import lucee.transformer.library.function.FunctionLib;
 import lucee.transformer.library.function.FunctionLibFunction;
 import lucee.transformer.library.function.FunctionLibFunctionArg;
@@ -170,15 +176,13 @@ public class CFMLExpressionInterpreter {
 	protected short mode = 0;
 
 	protected ParserString cfml;
-	// protected Document doc;
-	// protected FunctionLib[] fld;
 	protected PageContext pc;
 	private FunctionLib fld;
 	protected boolean allowNullConstant = false;
 	private boolean preciseMath;
 	private final boolean isJson;
 	private final boolean limited;
-	private ConfigImpl config;
+	private ConfigPro config;
 
 	public CFMLExpressionInterpreter() {
 		this(true);
@@ -197,12 +201,31 @@ public class CFMLExpressionInterpreter {
 		this.cfml = new ParserString(str);
 		this.preciseMath = preciseMath;
 		init(pc);
-
-		if (LITERAL_ARRAY == null) LITERAL_ARRAY = fld.getFunction("_literalArray");
-		if (LITERAL_STRUCT == null) LITERAL_STRUCT = fld.getFunction("_literalStruct");
-		if (JSON_ARRAY == null) JSON_ARRAY = fld.getFunction("_jsonArray");
-		if (JSON_STRUCT == null) JSON_STRUCT = fld.getFunction("_jsonStruct");
-		if (LITERAL_ORDERED_STRUCT == null) LITERAL_ORDERED_STRUCT = fld.getFunction("_literalOrderedStruct");
+		if (fld != null) {
+			if (LITERAL_ARRAY == null) LITERAL_ARRAY = fld.getFunction("_literalArray");
+			if (LITERAL_STRUCT == null) LITERAL_STRUCT = fld.getFunction("_literalStruct");
+			if (JSON_ARRAY == null) JSON_ARRAY = fld.getFunction("_jsonArray");
+			if (JSON_STRUCT == null) JSON_STRUCT = fld.getFunction("_jsonStruct");
+			if (LITERAL_ORDERED_STRUCT == null) LITERAL_ORDERED_STRUCT = fld.getFunction("_literalOrderedStruct");
+		}
+		else {
+			if (JSON_ARRAY == null) {
+				// TODO read from FLD
+				JSON_ARRAY = new FunctionLibFunction(true);
+				JSON_ARRAY.setName("_jsonArray");
+				JSON_ARRAY.setFunctionClass(new ClassDefinitionImpl<>(JsonArray.class));
+				JSON_ARRAY.setArgType(FunctionLibFunction.ARG_DYNAMIC);
+				JSON_ARRAY.setReturn("array");
+			}
+			if (JSON_STRUCT == null) {
+				// TODO read from FLD
+				JSON_STRUCT = new FunctionLibFunction(true);
+				JSON_STRUCT.setName("_jsonStruct");
+				JSON_STRUCT.setFunctionClass(new ClassDefinitionImpl<>(JsonStruct.class));
+				JSON_STRUCT.setArgType(FunctionLibFunction.ARG_DYNAMIC);
+				JSON_STRUCT.setReturn("struct");
+			}
+		}
 
 		cfml.removeSpace();
 		Ref ref = assignOp();
@@ -212,6 +235,8 @@ public class CFMLExpressionInterpreter {
 			// data.put(str+":"+preciseMath,ref);
 			return ref.getValue(pc);
 		}
+		if (cfml.toString().length() > 1024) throw new InterpreterException("Syntax Error, invalid Expression", "[" + cfml.toString().substring(0, 1024) + "]");
+
 		throw new InterpreterException("Syntax Error, invalid Expression [" + cfml.toString() + "]");
 	}
 
@@ -220,19 +245,21 @@ public class CFMLExpressionInterpreter {
 
 		int dialect = CFMLEngine.DIALECT_CFML;
 		if (this.pc != null) {
-			this.config = (ConfigImpl) this.pc.getConfig();
+			this.config = (ConfigPro) this.pc.getConfig();
 			dialect = this.pc.getCurrentTemplateDialect();
 		}
 		else {
-			this.config = (ConfigImpl) ThreadLocalPageContext.getConfig();
+			this.config = (ConfigPro) ThreadLocalPageContext.getConfig();
 			if (config == null) {
+
 				try {
-					config = (ConfigImpl) CFMLEngineFactory.getInstance().createConfig(null, "localhost", "/index.cfm");// TODO set a context root
+					config = (ConfigPro) CFMLEngineFactory.getInstance().createConfig(null, "localhost", "/index.cfm");// TODO set a context root
 				}
-				catch (Exception e) {}
+				catch (Exception e) {
+				}
 			}
 		}
-		fld = config.getCombinedFLDs(dialect);
+		fld = config == null ? null : config.getCombinedFLDs(dialect);
 	}
 
 	/*
@@ -995,12 +1022,29 @@ public class CFMLExpressionInterpreter {
 
 	protected Ref json(FunctionLibFunction flf, char start, char end) throws PageException {
 		if (!cfml.isCurrent(start)) return null;
+		/*
+		String[] str = cfml.toString().split(",");
+		if(cfml.getCurrent() == '{' && cfml.getNext() != '}' && str.length >1) {
+			outer:for(int i=0; i<str.length; i++) {
+				String strr = str[i].toString();
+				if(str[i].charAt(0) == '{') strr = new StringBuilder(strr).deleteCharAt(0).toString();
+				String[] strsplit = strr.split("[:]");
+				if((strsplit[1].charAt(0) == '{' || strsplit[1].charAt(0) == '[') && strsplit[0].charAt(0) == '"') {
+					str = strsplit[1].toString().split(",");
+					continue outer;
+				}
+				else if(strsplit[0].charAt(0) != '"' || (strsplit[1].charAt(0) != '"' && !Character.isDigit(strsplit[1].charAt(0)) && strsplit[1].charAt(0) != '[')) {
+					throw new TemplateException("Invalid json value" +cfml);
+				}
+			}
+		}
+		*/
 
 		if (cfml.forwardIfCurrent('[', ':', ']') || cfml.forwardIfCurrent('[', '=', ']')) {
 			return new BIFCall(LITERAL_ORDERED_STRUCT, new Ref[0]);
 		}
 
-		Ref[] args = functionArg(flf.getName(), false, flf, end);
+		Ref[] args = flf == null ? null : functionArg(flf.getName(), false, flf, end);
 		if (args != null && args.length > 0 && flf == LITERAL_ARRAY) {
 			if (args[0] instanceof LFunctionValue) {
 				for (int i = 1; i < args.length; i++) {
@@ -1301,7 +1345,7 @@ public class CFMLExpressionInterpreter {
 		if (name != null) {
 			StringBuilder fullName = new StringBuilder();
 			fullName.append(name);
-			// Loop over addional identifier
+			// Loop over additional identifier
 			while (cfml.isValidIndex()) {
 				if (cfml.forwardIfCurrent('.')) {
 					cfml.removeSpace();
@@ -1383,7 +1427,7 @@ public class CFMLExpressionInterpreter {
 		boolean doUpper;
 		PageSource ps = pc == null ? null : pc.getCurrentPageSource();
 		if (ps != null) doUpper = !isJson && ps.getDialect() == CFMLEngine.DIALECT_CFML && ((MappingImpl) ps.getMapping()).getDotNotationUpperCase();
-		else doUpper = !isJson && ((ConfigWebImpl) config).getDotNotationUpperCase(); // MUST .lucee should not be upper case
+		else doUpper = !isJson && ((ConfigWebPro) config).getDotNotationUpperCase(); // MUST .lucee should not be upper case
 
 		StringBuilder sb = new StringBuilder();
 		sb.append(doUpper ? cfml.getCurrentUpper() : cfml.getCurrent());
@@ -1454,7 +1498,7 @@ public class CFMLExpressionInterpreter {
 
 			if (checkLibrary && !isDynamic) {
 				// current attribues from library
-				FunctionLibFunctionArg funcLibAtt = (FunctionLibFunctionArg) arrFuncLibAtt.get(count);
+				FunctionLibFunctionArg funcLibAtt = arrFuncLibAtt.get(count);
 				short type = CFTypes.toShort(funcLibAtt.getTypeAsString(), false, CFTypes.TYPE_UNKNOW);
 				if (type == CFTypes.TYPE_VARIABLE_STRING) {
 					arr.add(functionArgDeclarationVarString());
@@ -1483,7 +1527,7 @@ public class CFMLExpressionInterpreter {
 		if (checkLibrary && flf.getArgMin() > count) throw new InterpreterException("to less Attributes in function [" + name + "]");
 
 		cfml.removeSpace();
-		return (Ref[]) arr.toArray(new Ref[arr.size()]);
+		return arr.toArray(new Ref[arr.size()]);
 	}
 
 	private boolean isDynamic(FunctionLibFunction flf) {

@@ -33,11 +33,11 @@ public final class QueryReduce extends BIF {
 	private static final long serialVersionUID = 5904086243389763661L;
 
 	public static Object call(PageContext pc, Query qry, UDF udf) throws PageException {
-		return Reduce._call(pc, qry, udf, null, ClosureFunc.TYPE_QUERY);
+		return Reduce.call(pc, qry, udf, null, ClosureFunc.TYPE_QUERY);
 	}
 
 	public static Object call(PageContext pc, Query qry, UDF udf, Object initValue) throws PageException {
-		return Reduce._call(pc, qry, udf, initValue, ClosureFunc.TYPE_QUERY);
+		return Reduce.call(pc, qry, udf, initValue, ClosureFunc.TYPE_QUERY);
 	}
 
 	@Override

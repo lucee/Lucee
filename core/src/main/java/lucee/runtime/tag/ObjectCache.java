@@ -151,11 +151,11 @@ public final class ObjectCache extends TagImpl {
 			}
 		}
 		else if (type == TYPE_OBJECT) {
-			// throws a exception if not explicitly defined
+			// throws an exception if not explicitly defined
 			cache = CacheUtil.getDefault(pageContext, Config.CACHE_TYPE_OBJECT);
 		}
 		else if (type == TYPE_TEMPLATE) {
-			// throws a exception if not explicitly defined
+			// throws an exception if not explicitly defined
 			cache = CacheUtil.getDefault(pageContext, Config.CACHE_TYPE_TEMPLATE);
 		}
 

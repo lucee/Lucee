@@ -181,7 +181,7 @@ list all mappings and display necessary edit fields --->
 		<cfset QuerySetCell(srcGlobal,"openConnections",datasources.openConnections)>
 		<cfset QuerySetCell(srcGlobal,"readonly",datasources.readonly)>
 		<cfset QuerySetCell(srcGlobal,"storage",datasources.storage)>
-		<cfset QuerySetCell(srcGlobal,"storage",datasources.storage)>
+		<cfset QuerySetCell(srcGlobal,"host",datasources.host?:'')>
 		<cfset QuerySetCell(srcGlobal,"port",datasources.port?:'')>
 	</cfif>
 </cfloop>
@@ -218,7 +218,7 @@ list all mappings and display necessary edit fields --->
 								#srcGlobal.name#
 							</td>
 							<td>#getDbDriverTypeName(srcGlobal.ClassName,srcGlobal.dsn)#</td>
-							<td>#listCompact("#srcLocal.host?:''#:#srcLocal.port?:''#",":")#</td>							
+							<td>#listCompact("#srcGlobal.host?:''#:#srcGlobal.port?:''#",":")#</td>							
 							<td>#srcGlobal.openConnections#</td>
 							<td>#yesNoFormat(srcGlobal.storage)#</td>
 							<td>
@@ -242,8 +242,8 @@ list all mappings and display necessary edit fields --->
 				<tfoot>
 					<tr>
 						<td colspan="5">
-							<input type="submit" class="button submit" name="mainAction" value="#stText.Buttons.Verify#">
-							<input type="reset" class="reset" name="cancel" value="#stText.Buttons.Cancel#">
+							<input type="submit" class="button submit enablebutton" name="mainAction" value="#stText.Buttons.Verify#">
+							<input type="reset" class="reset enablebutton" id="clickCancel" name="cancel" value="#stText.Buttons.Cancel#">
 						 </td>
 					</tr>
 				</tfoot>
@@ -328,9 +328,9 @@ list all mappings and display necessary edit fields --->
 					<tr>
 						<td colspan="6">
 
-							<input type="submit" class="bl button submit" name="mainAction" value="#stText.Buttons.Verify#">
-							<input type="reset" class="bm reset" name="cancel" value="#stText.Buttons.Cancel#">
-							<input type="submit" class="br button submit" name="mainAction" value="#stText.Buttons.Delete#">
+							<input type="submit" class="bl button submit enablebutton" name="mainAction" value="#stText.Buttons.Verify#">
+							<input type="reset" class="bm reset enablebutton" id="clickCancel" name="cancel" value="#stText.Buttons.Cancel#">
+							<input type="submit" class="br button submit enablebutton" name="mainAction" value="#stText.Buttons.Delete#">
 						 </td>
 					</tr>
 				</tfoot>

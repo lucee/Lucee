@@ -77,7 +77,7 @@ public final class DateTimeFormat extends BIF {
 		DateTime datetime = Caster.toDate(object, true, tz, null);
 		if (datetime == null) {
 			if (object.toString().trim().length() == 0) return "";
-			throw new ExpressionException("can't convert value " + object + " to a datetime value");
+			throw new ExpressionException("Can't convert value [" + object + "] to a datetime value");
 		}
 		return invoke(datetime, mask, locale, tz);
 	}
@@ -91,7 +91,17 @@ public final class DateTimeFormat extends BIF {
 		else if ("medium".equalsIgnoreCase(mask)) format = java.text.DateFormat.getDateTimeInstance(java.text.DateFormat.MEDIUM, java.text.DateFormat.MEDIUM, locale);
 		else if ("long".equalsIgnoreCase(mask)) format = java.text.DateFormat.getDateTimeInstance(java.text.DateFormat.LONG, java.text.DateFormat.LONG, locale);
 		else if ("full".equalsIgnoreCase(mask)) format = java.text.DateFormat.getDateTimeInstance(java.text.DateFormat.FULL, java.text.DateFormat.FULL, locale);
-		else if ("iso8601".equalsIgnoreCase(mask)) format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
+		else if ("iso8601".equalsIgnoreCase(mask) || "iso".equalsIgnoreCase(mask)) format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX");
+		else if ("epoch".equalsIgnoreCase(mask)) {
+			String gettime = String.valueOf(datetime.getTime() / 1000);
+			String epoch = gettime.toString();
+			return epoch;
+		}
+		else if ("epochms".equalsIgnoreCase(mask)) {
+			String gettime = String.valueOf(datetime.getTime());
+			String epoch = gettime.toString();
+			return epoch;
+		}
 		else {
 			SimpleDateFormat sdf;
 			format = sdf = new SimpleDateFormat(convertMask(mask), locale);
@@ -115,7 +125,7 @@ public final class DateTimeFormat extends BIF {
 	public static String convertMask(String mask) {
 
 		if (mask == null) return DEFAULT_MASK;
-		else if ("iso8601".equalsIgnoreCase(mask)) mask = "yyyy-MM-dd'T'HH:mm:ssZ";
+		else if ("iso8601".equalsIgnoreCase(mask) || "iso".equalsIgnoreCase(mask)) mask = "yyyy-MM-dd'T'HH:mm:ssXXX";
 
 		mask = StringUtil.replace(mask, "''", ZEROZERO, false);
 		boolean inside = false;

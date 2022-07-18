@@ -16,26 +16,20 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  * 
  ---><cfscript>
-component extends="org.lucee.cfml.test.LuceeTestCase"	{
-	/**
-	@comment_annotation 1
-	*/
-	private function annotationtest1() inline_annotation=1 {}
-
-	/**
-	@comment_annotation 1
-	*/
-	private function annotationtest2() inline_annotation=1 {}
-	
-	
-
+component extends="org.lucee.cfml.test.LuceeTestCase" skip = true{
 	public void function testAnnotations(){
-		var udfs=getMetaData(this).functions;
-		loop array="#udfs#" item="local.udf" {
-			if(!find('annotationtest',udf.name)) continue;
-			assertEquals(true,isDefined('udf.inline_annotation'));
-			assertEquals(true,isDefined('udf.comment_annotation'));
+		try {
+			var udfs = getComponentMetadata("jira2854.test").functions;
+			var res = "";
+			loop array="#udfs#" item="local.udf" {
+				res &= structKeyExists(udf, 'inline_annotation') & ",";
+				res &= structKeyExists(udf, 'comment_annotation') & ",";
+			}
 		}
+		catch(any e) {
+			res = e.type;
+		}
+		expect(res).tobe("true,true,true,true,");
 	}
 } 
 </cfscript>

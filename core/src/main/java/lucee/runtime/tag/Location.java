@@ -22,12 +22,15 @@ import java.io.IOException;
 
 import javax.servlet.http.HttpServletResponse;
 
+import lucee.commons.io.log.Log;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.net.HTTPUtil;
 import lucee.runtime.exp.Abort;
 import lucee.runtime.exp.ApplicationException;
+import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.tag.TagImpl;
+import lucee.runtime.functions.system.CallStackGet;
 import lucee.runtime.listener.ApplicationContext;
 import lucee.runtime.net.http.ReqRspUtil;
 import lucee.runtime.op.Caster;
@@ -46,12 +49,15 @@ public final class Location extends TagImpl {
 
 	private int statuscode = 302;
 
+	private boolean abort = false;
+
 	@Override
 	public void release() {
 		super.release();
-		addtoken = true;
+		addtoken = false;
 		url = "";
 		statuscode = 302;
+		abort = false;
 		encode=true;
 	}
 
@@ -78,7 +84,16 @@ public final class Location extends TagImpl {
 	}
 
 	/**
-	* set the value Encode true or false.
+	 * if set to true then the request will be aborted instead of redirected to allow developers to
+	 * troubleshoot code that contains redirects
+	 * 
+	 * @param abort
+	 */
+	public void setAbort(boolean abort) {
+		this.abort = abort;
+	}
+  
+  * set the value Encode true or false.
 	* 
 	* @param encode value to set
 	**/
@@ -131,6 +146,16 @@ public final class Location extends TagImpl {
 					url += "&" + arr[i];
 			}
 			url = ReqRspUtil.encodeRedirectURLEL(rsp, url);
+		}
+
+		Log log = pageContext.getConfig().getLog("trace");
+		if (abort) {
+			if (log != null && log.getLogLevel() <= Log.LEVEL_ERROR)
+				log.log(Log.LEVEL_ERROR, "cftrace", "abort redirect to " + url + " at " + CallStackGet.call(pageContext, "text"));
+			throw new ExpressionException("abort redirect to " + url);
+		}
+		else {
+			if (log != null && log.getLogLevel() <= Log.LEVEL_INFO) log.log(Log.LEVEL_INFO, "cftrace", "redirect to " + url + " at " + CallStackGet.call(pageContext, "text"));
 		}
 
 		rsp.setHeader("Connection", "close"); // IE unter IIS6, Win2K3 und Resin

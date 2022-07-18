@@ -1,4 +1,4 @@
-<cfcontent type="text/javascript"><cfsetting showdebugoutput="no">
+<cfcontent type="text/javascript"><cfheader name="Expires" value="#getHttpTimeString( now() + 0.01 )#"><cfsetting showdebugoutput="no">
 /**
 * represent a cfform 
 */
@@ -49,7 +49,7 @@ function LuceeForms(form,onError) {
 	prv.errors=[];
 			
 	/*
-	* adds a input definition to the for Object
+	* adds an input definition to the for Object
 	*/
 	pub.addInput=function(name,required,type,validate,pattern,message,onerror,onvalidate,rangeMin,rangeMax,maxLength,validateCFC) {
 		if((rangeMin || rangeMax) && validate!=pub.VALIDATE_FLOAT && validate!=pub.VALIDATE_INTEGER)validate=pub.VALIDATE_FLOAT;
@@ -333,7 +333,7 @@ function LuceeForms(form,onError) {
 			} 
         } 
 		if(el.message && el.message.length>0)prv.addError(el,el.message);
-		else prv.addError(el,'value ('+value+') of field '+el.name+' doesn\'t contain a euro date value'); 
+		else prv.addError(el,'value ('+value+') of field '+el.name+' doesn\'t contain an euro date value'); 
 	}
 
 	/*
@@ -430,7 +430,7 @@ function LuceeForms(form,onError) {
 	}
 	
 	/*
-	* check if value contains a int value or not
+	* check if value contains an int value or not
 	* @param el Element with all data to the input field
 	* @param value value from input field
 	*/
@@ -438,7 +438,7 @@ function LuceeForms(form,onError) {
 		var nbr=Number(value);
 		if(isNaN(nbr) || nbr!=parseInt(nbr)) {
 			if(el.message && el.message.length>0)prv.addError(el,el.message);
-			else prv.addError(el,'value ('+value+') of field '+el.name+' doesn\'t contain a integer');
+			else prv.addError(el,'value ('+value+') of field '+el.name+' doesn\'t contain an integer');
 		}
 		else {
 			if(el.rangeMin && el.rangeMin>nbr || el.rangeMax && el.rangeMax<nbr) {

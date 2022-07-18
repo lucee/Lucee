@@ -30,7 +30,7 @@ public interface CacheItem {
 	/**
 	 * execution time in nano seconds
 	 * 
-	 * @return
+	 * @return Returns the execution time.
 	 */
 	public long getExecutionTime();
 }

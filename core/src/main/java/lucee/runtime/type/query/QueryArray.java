@@ -1,5 +1,6 @@
 package lucee.runtime.type.query;
 
+import lucee.commons.io.SystemUtil.TemplateLine;
 import lucee.commons.lang.FormatUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
@@ -20,17 +21,17 @@ public class QueryArray extends ArrayImpl implements QueryResult {
 
 	private final SQL sql;
 	private long executionTime;
-	private final String template;
+	private final TemplateLine templateLine;
 	private final String name;
 
 	private String cacheType;
 	private int updateCount;
 	private Key[] columnNames;
 
-	public QueryArray(String name, SQL sql, String template) {
+	public QueryArray(String name, SQL sql, TemplateLine templateLine) {
 		this.name = name;
 		this.sql = sql;
-		this.template = template;
+		this.templateLine = templateLine;
 	}
 
 	@Override
@@ -40,8 +41,8 @@ public class QueryArray extends ArrayImpl implements QueryResult {
 		StringBuilder comment = new StringBuilder();
 
 		// table.appendRow(1, new SimpleDumpData("SQL"), new SimpleDumpData(sql.toString()));
-		String template = getTemplate();
-		if (!StringUtil.isEmpty(template)) comment.append("Template: ").append(template).append("\n");
+		TemplateLine tl = getTemplateLine();
+		if (tl != null) comment.append("Template: ").append(tl.toString(pageContext, true)).append("\n");
 
 		int top = dp.getMaxlevel();
 
@@ -66,7 +67,7 @@ public class QueryArray extends ArrayImpl implements QueryResult {
 
 	@Override
 	public Collection duplicate(boolean deepCopy) {
-		QueryArray qa = new QueryArray(name, sql, template);
+		QueryArray qa = new QueryArray(name, sql, templateLine);
 		qa.cacheType = cacheType;
 		qa.columnNames = columnNames;
 		qa.executionTime = executionTime;
@@ -74,14 +75,17 @@ public class QueryArray extends ArrayImpl implements QueryResult {
 		return duplicate(qa, deepCopy);
 	}
 
+	@Override
 	public SQL getSql() {
 		return sql;
 	}
 
+	@Override
 	public void setCacheType(String cacheType) {
 		this.cacheType = cacheType;
 	}
 
+	@Override
 	public String getCacheType() {
 		return cacheType;
 	}
@@ -91,18 +95,27 @@ public class QueryArray extends ArrayImpl implements QueryResult {
 		return cacheType != null;
 	}
 
+	@Override
 	public long getExecutionTime() {
 		return executionTime;
 	}
 
+	@Override
 	public void setExecutionTime(long executionTime) {
 		this.executionTime = executionTime;
 	}
 
+	@Override
 	public String getTemplate() {
-		return template;
+		return templateLine == null ? null : templateLine.template;
 	}
 
+	@Override
+	public TemplateLine getTemplateLine() {
+		return templateLine;
+	}
+
+	@Override
 	public String getName() {
 		return name;
 	}
@@ -137,8 +150,9 @@ public class QueryArray extends ArrayImpl implements QueryResult {
 		this.columnNames = columnNames;
 	}
 
-	public static QueryArray toQueryArray(lucee.runtime.type.Query q) throws PageException {
-		QueryArray qa = new QueryArray(q.getName(), q.getSql(), q.getTemplate());
+	public static QueryArray toQueryArray(lucee.runtime.type.QueryImpl q) throws PageException {
+
+		QueryArray qa = new QueryArray(q.getName(), q.getSql(), q.getTemplateLine());
 		qa.setCacheType(q.getCacheType());
 		qa.setColumnNames(q.getColumnNames());
 		qa.setExecutionTime(q.getExecutionTime());
@@ -150,7 +164,7 @@ public class QueryArray extends ArrayImpl implements QueryResult {
 
 		Struct tmp;
 		for (int r = 1; r <= rows; r++) {
-			qa.add(tmp = new StructImpl());
+			qa.add(tmp = new StructImpl(Struct.TYPE_LINKED));
 			for (Key c: columns) {
 				tmp.set(c, q.getAt(c, r, null));
 			}

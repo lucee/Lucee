@@ -64,15 +64,19 @@ import lucee.runtime.type.scope.ClusterEntry;
 public interface Creation {
 
 	/**
-	 * creates and returns a array instance
+	 * creates and returns an array instance
 	 * 
 	 * @return array
 	 */
 	public abstract Array createArray();
 
 	/**
-	 * creates and returns a array based on a string list
+	 * creates and returns an array based on a string list
 	 * 
+	 * @param list string list
+	 * @param delimiter delimiter
+	 * @param removeEmptyItem remove Empty Item
+	 * @param trim trim
 	 * @return array
 	 */
 	public abstract Array createArray(String list, String delimiter, boolean removeEmptyItem, boolean trim);
@@ -80,7 +84,7 @@ public interface Creation {
 	/**
 	 * creates and returns a DateTime instance
 	 * 
-	 * @param time
+	 * @param time time
 	 * @return DateTime
 	 */
 	public abstract DateTime createDateTime(long time);
@@ -88,21 +92,22 @@ public interface Creation {
 	/**
 	 * creates and returns a DateTime instance
 	 * 
-	 * @param year
-	 * @param month
-	 * @param day
-	 * @param hour
-	 * @param minute
-	 * @param seond
-	 * @param millis
+	 * @param year year
+	 * @param month month
+	 * @param day day
+	 * @param hour hour
+	 * @param minute minute
+	 * @param seond second
+	 * @param millis milliseconds
 	 * @return DateTime
+	 * @throws PageException Page Exception
 	 */
 	public abstract DateTime createDateTime(int year, int month, int day, int hour, int minute, int seond, int millis) throws PageException;
 
 	/**
 	 * creates and returns a Date instance
 	 * 
-	 * @param time
+	 * @param time time
 	 * @return DateTime
 	 */
 	public abstract Date createDate(long time);
@@ -110,17 +115,18 @@ public interface Creation {
 	/**
 	 * creates and returns a Date instance
 	 * 
-	 * @param year
-	 * @param month
-	 * @param day
+	 * @param year year
+	 * @param month month
+	 * @param day day
 	 * @return DateTime
+	 * @throws PageException Page Exception
 	 */
 	public abstract Date createDate(int year, int month, int day) throws PageException;
 
 	/**
 	 * creates and returns a Time instance
 	 * 
-	 * @param time
+	 * @param time time
 	 * @return DateTime
 	 */
 	public abstract Time createTime(long time);
@@ -128,10 +134,10 @@ public interface Creation {
 	/**
 	 * creates and returns a Time instance
 	 * 
-	 * @param hour
-	 * @param minute
-	 * @param second
-	 * @param millis
+	 * @param hour hour
+	 * @param minute minute
+	 * @param second second
+	 * @param millis millis
 	 * @return DateTime
 	 */
 	public abstract Time createTime(int hour, int minute, int second, int millis);
@@ -139,20 +145,20 @@ public interface Creation {
 	/**
 	 * creates and returns a TimeSpan instance
 	 * 
-	 * @param day
-	 * @param hour
-	 * @param minute
-	 * @param second
+	 * @param day day
+	 * @param hour hour
+	 * @param minute minute
+	 * @param second second
 	 * @return TimeSpan
 	 */
 	public abstract TimeSpan createTimeSpan(int day, int hour, int minute, int second);
 
 	/**
-	 * creates and returns a array instance
+	 * creates and returns an array instance
 	 * 
-	 * @param dimension
+	 * @param dimension Array dimension
 	 * @return array
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 */
 	public abstract Array createArray(int dimension) throws PageException;
 
@@ -175,9 +181,9 @@ public interface Creation {
 	/**
 	 * creates a query object with given data
 	 * 
-	 * @param columns
-	 * @param rows
-	 * @param name
+	 * @param columns Query Columns
+	 * @param rows rows
+	 * @param name name
 	 * @return created query Object
 	 * @deprecated use instead <code>createQuery(Collection.Key[] columns, int rows, String name)</code>
 	 */
@@ -187,20 +193,23 @@ public interface Creation {
 	/**
 	 * creates a query object with given data
 	 * 
-	 * @param columns
-	 * @param rows
-	 * @param name
+	 * @param columns Query Columns
+	 * @param rows rows
+	 * @param name name
 	 * @return created query Object
+	 * @throws PageException Page Exception
 	 */
 	public abstract Query createQuery(Collection.Key[] columns, int rows, String name) throws PageException;
 
 	/**
 	 * creates a query object with given data
 	 * 
-	 * @param columns
-	 * @param rows
-	 * @param name
+	 * @param columns Query Columns
+	 * @param types Column Types
+	 * @param rows rows
+	 * @param name name
 	 * @return created query Object
+	 * @throws PageException Page Exception
 	 * @deprecated use instead
 	 *             <code>createQuery(Collection.Key[] columns, String[] types, int rows, String name)</code>
 	 */
@@ -210,10 +219,12 @@ public interface Creation {
 	/**
 	 * creates a query object with given data
 	 * 
-	 * @param columns
-	 * @param rows
-	 * @param name
+	 * @param columns Query columns
+	 * @param types Column Types
+	 * @param rows rows
+	 * @param name name
 	 * @return created query Object
+	 * @throws PageException Page Exception
 	 */
 	public abstract Query createQuery(Collection.Key[] columns, String[] types, int rows, String name) throws PageException;
 
@@ -221,18 +232,19 @@ public interface Creation {
 	 * @param dc Connection to a database
 	 * @param sql sql to execute
 	 * @param maxrow maxrow for the resultset
-	 * @param fetchsize
+	 * @param fetchsize fetch size
 	 * @param timeout in seconds
-	 * @param name
+	 * @param name name
 	 * @return created Query
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 */
 	public abstract Query createQuery(DatasourceConnection dc, SQL sql, int maxrow, int fetchsize, int timeout, String name) throws PageException;
 
 	/**
 	 * creates a collection Key out of a String
 	 * 
-	 * @param key
+	 * @param key key
+	 * @return key
 	 */
 	public abstract Collection.Key createKey(String key);
 
@@ -258,19 +270,19 @@ public interface Creation {
 	 * @param pc Pagecontext for loading the CFC
 	 * @param fullName full name of the cfc example:lucee.extensions.net.HTTPUtil
 	 * @return loaded cfc
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 */
 	public abstract Component createComponentFromName(PageContext pc, String fullName) throws PageException;
 
 	/**
-	 * creates a component object from a absolute local path, for example
+	 * creates a component object from an absolute local path, for example
 	 * /Users/susi/Projects/Sorglos/wwwrooot/lucee/extensions/net/HTTPUtil.cfc
 	 * 
 	 * @param pc Pagecontext for loading the CFC
 	 * @param path path of the cfc example:/Users/susi/Projects/Sorglos/wwwrooot/
 	 *            lucee/extensions/net/HTTPUtil.cfc
 	 * @return loaded cfc
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 */
 	public abstract Component createComponentFromPath(PageContext pc, String path) throws PageException;
 

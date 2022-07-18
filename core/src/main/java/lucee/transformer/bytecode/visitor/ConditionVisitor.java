@@ -32,7 +32,8 @@ public final class ConditionVisitor {
 		end = new Label();
 	}
 
-	public void visitWhenBeforeExpr() {}
+	public void visitWhenBeforeExpr() {
+	}
 
 	public void visitWhenAfterExprBeforeBody(BytecodeContext bc) {
 		endIf = new Label();
@@ -44,9 +45,11 @@ public final class ConditionVisitor {
 		bc.getAdapter().visitLabel(endIf);
 	}
 
-	public void visitOtherviseBeforeBody() {}
+	public void visitOtherviseBeforeBody() {
+	}
 
-	public void visitOtherviseAfterBody() {}
+	public void visitOtherviseAfterBody() {
+	}
 
 	public void visitAfter(BytecodeContext bc) {
 		bc.getAdapter().visitLabel(end);

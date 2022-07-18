@@ -57,7 +57,8 @@ public final class ProcessingDirective extends BodyTagTryCatchFinallyImpl {
 	/**
 	 * constructor for the tag class
 	 **/
-	public ProcessingDirective() {}
+	public ProcessingDirective() {
+	}
 
 	/**
 	 * set the value pageencoding A string literal; the character encoding to use to read the page. The
@@ -65,11 +66,14 @@ public final class ProcessingDirective extends BodyTagTryCatchFinallyImpl {
 	 * 
 	 * @param pageencoding value to set
 	 **/
-	public void setPageencoding(String pageencoding) {}
+	public void setPageencoding(String pageencoding) {
+	}
 
-	public void setExecutionlog(boolean executionlog) {}
+	public void setExecutionlog(boolean executionlog) {
+	}
 
-	public void setPreservecase(boolean b) {}
+	public void setPreservecase(boolean b) {
+	}
 
 	/**
 	 * set the value suppresswhitespace Boolean indicating whether to suppress the white space and other
@@ -84,14 +88,15 @@ public final class ProcessingDirective extends BodyTagTryCatchFinallyImpl {
 	@Override
 	public int doStartTag() throws ApplicationException {
 		if (suppresswhitespace != null && !hasBody) {
-			throw new ApplicationException("for suppressing whitespaces you must define a end tag for tag [cfprocessingdirective]");
+			throw new ApplicationException("To suppress whitespace, an end tag [cfprocessingdirective] is also required");
 		}
 		if (suppresswhitespace != null) return EVAL_BODY_BUFFERED;
 		return EVAL_BODY_INCLUDE;
 	}
 
 	@Override
-	public void doInitBody() {}
+	public void doInitBody() {
+	}
 
 	@Override
 	public int doAfterBody() {

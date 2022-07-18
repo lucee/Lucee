@@ -36,13 +36,16 @@ public abstract class AppListenerSupport implements ApplicationListener {
 	}
 
 	@Override
-	public void onServerStart() throws PageException {}
+	public void onServerStart() throws PageException {
+	}
 
 	@Override
-	public void onServerEnd() throws PageException {}
+	public void onServerEnd() throws PageException {
+	}
 
 	@Override
-	public void onTimeout(PageContext pc) {}
+	public void onTimeout(PageContext pc) {
+	}
 
 	// FUTURE add to interface
 	public abstract void onSessionStart(PageContext pc, Session session) throws PageException;

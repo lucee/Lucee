@@ -32,6 +32,7 @@ import lucee.runtime.type.dt.DateTime;
 
 public class JREDateTimeUtil extends DateTimeUtil {
 
+	private static final long SEVEN_DAYS = 604800000L;
 	private static CalendarThreadLocal _calendar = new CalendarThreadLocal();
 	private static CalendarThreadLocal calendar = new CalendarThreadLocal();
 	private static LocaleCalendarThreadLocal _localeCalendar = new LocaleCalendarThreadLocal();
@@ -165,12 +166,11 @@ public class JREDateTimeUtil extends DateTimeUtil {
 		Calendar c = _getThreadCalendar(locale, tz);
 		c.setTimeInMillis(dt.getTime());
 		int week = c.get(Calendar.WEEK_OF_YEAR);
-
+		// alreay counted as week of next year
 		if (week == 1 && c.get(Calendar.MONTH) == Calendar.DECEMBER) {
-			if (isLeapYear(c.get(Calendar.YEAR)) && c.get(Calendar.DAY_OF_WEEK) == 1) {
-				return 54;
-			}
-			return 53;
+			// seven days before plus one
+			c.setTimeInMillis(dt.getTime() - SEVEN_DAYS);
+			return c.get(Calendar.WEEK_OF_YEAR) + 1;
 		}
 		return week;
 	}
@@ -294,7 +294,7 @@ public class JREDateTimeUtil extends DateTimeUtil {
 	}
 
 	/*
-	 * internally we use a other instance to avoid conflicts
+	 * internally we use another instance to avoid conflicts
 	 */
 	private static Calendar _getThreadCalendar(PageContext pc, TimeZone tz) {
 		Calendar c = _calendar.get();
@@ -305,7 +305,7 @@ public class JREDateTimeUtil extends DateTimeUtil {
 	}
 
 	/*
-	 * internally we use a other instance to avoid conflicts
+	 * internally we use another instance to avoid conflicts
 	 */
 	private static Calendar _getThreadCalendar(Locale l, TimeZone tz) {
 		Calendar c = _localeCalendar.get(tz, l);

@@ -48,6 +48,9 @@ string function getid(){
 	return "lucee-classic"; 
 }
 
+string function readDebug(struct custom, struct debugging, string context){
+	output(argumentcollection=arguments);
+}
 
 void function onBeforeUpdate(struct custom){
 	throwWhenEmpty(custom,"color");
@@ -55,8 +58,6 @@ void function onBeforeUpdate(struct custom){
 	throwWhenNotNumeric(custom,"minimal");
 	throwWhenNotNumeric(custom,"highlight");
 }
-
-
 
 private void function throwWhenEmpty(struct custom, string name){
 	if(!structKeyExists(custom,name) or len(trim(custom[name])) EQ 0)
@@ -73,7 +74,6 @@ private function isColumnEmpty(query query, string columnName){
 	return !len(ArrayToList(QueryColumnData(query,columnName),'')); 
 }
 
-
 </cfscript>   
     
     
@@ -81,56 +81,81 @@ private function isColumnEmpty(query query, string columnName){
     	<cfargument name="custom" type="struct" required="yes">
 		<cfargument name="debugging" required="true" type="struct">
 		<cfargument name="context" type="string" default="web"><cfsilent>
-<cfset time=getTickCount()>
-<cfset var _cgi=structKeyExists(debugging,'cgi')?debugging.cgi:cgi>
+<cfscript>
+	var time=getTickCount();
+	var _cgi = arguments?.debugging?.scope?.cgi ?: cgi;
 
-<cfset pages=debugging.pages>
-<cfset queries=debugging.queries>
-<cfif not isDefined('debugging.timers')>
-	<cfset debugging.timers=queryNew('label,time,template')>
-</cfif>
-<cfif not isDefined('debugging.traces')>
-	<cfset debugging.traces=queryNew('type,category,text,template,line,var,total,trace')>
-</cfif>
-<cfset timers=debugging.timers>
-<cfset traces=debugging.traces>
+	if(isNull(arguments.debugging.pages)) 
+		local.pages=queryNew('id,count,min,max,avg,app,load,query,total,src');
+	else local.pages=arguments.debugging.pages;
+
+	var hasQueries=!isNull(arguments.debugging.queries);
+	if(!hasQueries) 
+		local.queries=queryNew('name,time,sql,src,line,count,datasource,usage,cacheTypes');
+	else local.queries=arguments.debugging.queries;
+
+	if(isNull(arguments.debugging.exceptions)) 
+		local.exceptions=[];
+	else local.exceptions=arguments.debugging.exceptions;
+
+	if(isNull(arguments.debugging.timers)) 
+		local.timers=queryNew('label,time,template');
+	else local.timers=arguments.debugging.timers;
+
+	if(isNull(arguments.debugging.traces)) 
+		local.traces=queryNew('type,category,text,template,line,var,total,trace');
+	else local.traces=arguments.debugging.traces;
+
+	if(isNull(arguments.debugging.dumps)) 
+		local.dumps=queryNew('output,template,line');
+	else local.dumps=arguments.debugging.dumps;
+
+	if(isNull(arguments.debugging.implicitAccess)) 
+		local.implicitAccess=queryNew('template,line,scope,count,name');
+	else local.implicitAccess=arguments.debugging.implicitAccess;
+
+	if(isNull(arguments.debugging.dumps)) 
+		local.dumps=queryNew('output,template,line');
+	else local.dumps=arguments.debugging.dumps;
+
+	local.times=arguments.debugging.times;
+</cfscript>
 <cfset querySort(pages,"avg","desc")>
-<cfset implicitAccess=debugging.implicitAccess>
 <cfset querySort(implicitAccess,"template,line,count","asc,asc,desc")>
 
-<cfparam name="custom.unit" default="millisecond">
-<cfparam name="custom.color" default="black">
-<cfparam name="custom.bgcolor" default="white">
-<cfparam name="custom.font" default="Times New Roman">
-<cfparam name="custom.size" default="medium">
+<cfparam name="arguments.custom.unit" default="millisecond">
+<cfparam name="arguments.custom.color" default="black">
+<cfparam name="arguments.custom.bgcolor" default="white">
+<cfparam name="arguments.custom.font" default="Times New Roman">
+<cfparam name="arguments.custom.size" default="medium">
 
-<cfset unit={
+<cfset var unit={
 millisecond:"ms"
-,microsecond:"�s"
+,microsecond:"μs"
 ,nanosecond:"ns"
 
 }>
 
 
 
-</cfsilent><cfif context EQ "web"></td></td></td></th></th></th></tr></tr></tr></table></table></table></a></abbrev></acronym></address></applet></au></b></banner></big></blink></blockquote></bq></caption></center></cite></code></comment></del></dfn></dir></div></div></dl></em></fig></fn></font></form></frame></frameset></h1></h2></h3></h4></h5></h6></head></i></ins></kbd></listing></map></marquee></menu></multicol></nobr></noframes></noscript></note></ol></p></param></person></plaintext></pre></q></s></samp></script></select></small></strike></strong></sub></sup></table></td></textarea></th></title></tr></tt></u></ul></var></wbr></xmp></cfif>
+</cfsilent><cfif arguments.context EQ "web"></td></td></td></th></th></th></tr></tr></tr></table></table></table></a></abbrev></acronym></address></applet></au></b></banner></big></blink></blockquote></bq></caption></center></cite></code></comment></del></dfn></dir></div></div></dl></em></fig></fn></font></form></frame></frameset></h1></h2></h3></h4></h5></h6></head></i></ins></kbd></listing></map></marquee></menu></multicol></nobr></noframes></noscript></note></ol></p></param></person></plaintext></pre></q></s></samp></script></select></small></strike></strong></sub></sup></table></td></textarea></th></title></tr></tt></u></ul></var></wbr></xmp></cfif>
 <style type="text/css">
 <cfoutput>
-.cfdebug {color:#custom.color#;background-color:#custom.bgcolor#;font-family:"#custom.font#";
-	font-size:<cfif custom.size EQ "small">smaller<cfelseif custom.size EQ "medium">small<cfelse>medium</cfif>;}
-.cfdebuglge {color:#custom.color#;background-color:#custom.bgcolor#;font-family:#custom.font#;
-	font-size:<cfif custom.size EQ "small">small<cfelseif custom.size EQ "medium">medium<cfelse>large</cfif>;}
+.cfdebug {color:#arguments.custom.color#;background-color:#arguments.custom.bgcolor#;font-family:"#arguments.custom.font#";
+	font-size:<cfif arguments.custom.size EQ "small">smaller<cfelseif arguments.custom.size EQ "medium">small<cfelse>medium</cfif>;}
+.cfdebuglge {color:#arguments.custom.color#;background-color:#arguments.custom.bgcolor#;font-family:#arguments.custom.font#;
+	font-size:<cfif arguments.custom.size EQ "small">small<cfelseif arguments.custom.size EQ "medium">medium<cfelse>large</cfif>;}
 
-.template_overage {	color: red; background-color: #custom.bgcolor#; font-family:#custom.font#; font-weight: bold;
-	font-size:<cfif custom.size EQ "small">smaller<cfelseif custom.size EQ "medium">small<cfelse>medium</cfif>; }
+.template_overage {	color: red; background-color: #arguments.custom.bgcolor#; font-family:#arguments.custom.font#; font-weight: bold;
+	font-size:<cfif arguments.custom.size EQ "small">smaller<cfelseif arguments.custom.size EQ "medium">small<cfelse>medium</cfif>; }
 </style>
  
 
-<table class="cfdebug" bgcolor="#custom.bgcolor#" style="border-color:#custom.color#">
+<table class="cfdebug" bgcolor="#arguments.custom.bgcolor#" style="border-color:#arguments.custom.color#">
 <tr>
+    <cfif isEnabled(arguments.custom,"general")>
 	<td>
  <!--- General --->
-    <cfif structKeyExists(custom,"general") and custom.general>
 		<p class="cfdebug"><hr/>
 		<b class="cfdebuglge"><a name="cfdebug_top">Debugging Information</a></b>
 		<table class="cfdebug">
@@ -145,7 +170,7 @@ millisecond:"ms"
 		</tr>
 		<tr>
 			<td class="cfdebug" nowrap> Template </td>
-			<td class="cfdebug">#HTMLEditFormat(_cgi.SCRIPT_NAME)# (#HTMLEditFormat(expandPath(_cgi.SCRIPT_NAME))#)</td>
+			<td class="cfdebug">#encodeForHtml(_cgi.REQUEST_URL)# <br> #encodeForHtml(expandPath(_cgi.SCRIPT_NAME))#</td>
 		</tr>
 		<tr>
 			<td class="cfdebug" nowrap> Time Stamp </td>
@@ -177,59 +202,73 @@ millisecond:"ms"
 		</tr></cfif>
 		</table>
 		</p>
-	</cfif>
 <!--- Execution Time --->
 	<p class="cfdebug"><hr/><b class="cfdebuglge"><a name="cfdebug_execution">Execution Time</a></b></p>
 	<a name="cfdebug_templates">
 		<table border="1" cellpadding="2" cellspacing="0" class="cfdebug">
+		<cfif pages.recordcount>
 		<tr>
 			<td class="cfdebug" align="center"><b>Total Time</b></td>
 			<td class="cfdebug" align="center"><b>Avg Time</b></td>
 			<td class="cfdebug" align="center"><b>Count</b></td>
 			<td class="cfdebug"><b>Template</b></td>
-		</tr>
-<cfset loa=0>
-<cfset tot=0>
-<cfset q=0>
+		</tr></cfif>
+<cfset var loa=0>
+<cfset var tot=0>
+<cfset var q=0>
+<cfparam name="arguments.custom.minimal" default="0">
+<cfparam name="arguments.custom.highlight" default="250000">
 <cfloop query="pages">
 		<cfset tot=tot+pages.total><cfset q=q+pages.query>
-		<cfif pages.avg LT custom.minimal*1000><cfcontinue></cfif>
-		<cfset bad=pages.avg GTE custom.highlight*1000><cfset loa=loa+pages.load>
+		<cfif pages.avg LT arguments.custom.minimal*1000><cfcontinue></cfif>
+		<cfset var bad=pages.avg GTE arguments.custom.highlight*1000><cfset loa=loa+pages.load>
 		<tr>
-			<td align="right" class="cfdebug" nowrap><cfif bad><font color="red"><span class="template_overage"></cfif>#formatUnit(custom.unit, pages.total-pages.load)#<cfif bad></span></font></cfif></td>
-			<td align="right" class="cfdebug" nowrap><cfif bad><font color="red"><span class="template_overage"></cfif>#formatUnit(custom.unit, pages.avg)#<cfif bad></span></font></cfif></td>
+			<td align="right" class="cfdebug" nowrap><cfif bad><font color="red"><span class="template_overage"></cfif>#formatUnit(arguments.custom.unit, pages.total-pages.load)#<cfif bad></span></font></cfif></td>
+			<td align="right" class="cfdebug" nowrap><cfif bad><font color="red"><span class="template_overage"></cfif>#formatUnit(arguments.custom.unit, pages.avg)#<cfif bad></span></font></cfif></td>
 			<td align="center" class="cfdebug" nowrap>#pages.count#</td>
 			<td align="left" class="cfdebug" nowrap><cfif bad><font color="red"><span class="template_overage"></cfif>#pages.src#<cfif bad></span></font></cfif></td>
 		</tr>
 </cfloop>                
-            
+<cfscript>
+if(!pages.recordcount || !hasQueries) {
+	tot=arguments.debugging.times.total;
+	q=arguments.debugging.times.query;
+	loa=0;
+		
+}
+</cfscript>     
+<cfif pages.recordcount>
+	
 <tr>
-	<td align="right" class="cfdebug" nowrap><i>#formatUnit(custom.unit, loa)#</i></td><td colspan=2>&nbsp;</td>
+	<td align="right" class="cfdebug" nowrap><i>#formatUnit(arguments.custom.unit, loa)#</i></td><cfif pages.recordcount><td colspan=2>&nbsp;</td></cfif>
 	<td align="left" class="cfdebug"><i>STARTUP, PARSING, COMPILING, LOADING, &amp; SHUTDOWN</i></td>
 </tr>
+</cfif>
 <tr>
-	<td align="right" class="cfdebug" nowrap><i>#formatUnit(custom.unit, tot-q-loa)#</i></td><td colspan=2>&nbsp;</td>
+	<td align="right" class="cfdebug" nowrap><i>#formatUnit(arguments.custom.unit, tot-q-loa)#</i></td><cfif pages.recordcount><td colspan=2>&nbsp;</td></cfif>
 	<td align="left" class="cfdebug"><i>APPLICATION EXECUTION TIME</i></td>
 </tr>
+<cfif listfirst(formatUnit(arguments.custom.unit, q)," ") gt 0>
+	<tr>
+		<td align="right" class="cfdebug" nowrap><i>#formatUnit(arguments.custom.unit, q)#</i></td><cfif pages.recordcount><td colspan=2>&nbsp;</td></cfif>
+		<td align="left" class="cfdebug"><i>QUERY EXECUTION TIME</i></td>
+	</tr>
+</cfif>	
 <tr>
-	<td align="right" class="cfdebug" nowrap><i>#formatUnit(custom.unit, q)#</i></td><td colspan=2>&nbsp;</td>
-	<td align="left" class="cfdebug"><i>QUERY EXECUTION TIME</i></td>
-</tr>
-<tr>
-	<td align="right" class="cfdebug" nowrap><i><b>#formatUnit(custom.unit, tot)#</i></b></td><td colspan=2>&nbsp;</td>
+	<td align="right" class="cfdebug" nowrap><i><b>#formatUnit(arguments.custom.unit, tot)#</i></b></td><cfif pages.recordcount><td colspan=2>&nbsp;</td></cfif>
 	<td align="left" class="cfdebug"><i><b>TOTAL EXECUTION TIME</b></i></td>
 </tr>
 </table>
-<font color="red"><span class="template_overage">red = over #formatUnit(custom.unit,custom.highlight*1000)# average execution time</span></font>
+<font color="red"><span class="template_overage">red = over #formatUnit(arguments.custom.unit,arguments.custom.highlight*1000)# average execution time</span></font>
 </a>
 
 
 
 <!--- Exceptions --->
-<cfif structKeyExists(debugging,"exceptions")  and arrayLen(debugging.exceptions)>
-	<cfset exceptions=debugging.exceptions>
+<cfif structKeyExists(arguments.debugging,"exceptions")  and arrayLen(arguments.debugging.exceptions)>
+	<cfset var exceptions=arguments.debugging.exceptions>
     
-	<p class="cfdebug"><hr/><b class="cfdebuglge">Caught Exceptions</b></p>
+	<p class="cfdebug"><hr/><b class="cfdebuglge">Exceptions</b></p>
 		<table border="1" cellpadding="2" cellspacing="0" class="cfdebug">
 		<tr>
 			<td class="cfdebug"><b>Type</b></td>
@@ -237,6 +276,7 @@ millisecond:"ms"
 			<td class="cfdebug"><b>Detail</b></td>
 			<td class="cfdebug"><b>Template</b></td>
 		</tr>
+<cfset var exp="">
 <cfloop array="#exceptions#" index="exp">
 		<tr>
 			<td class="cfdebug" nowrap>#exp.type#</td>
@@ -279,7 +319,7 @@ millisecond:"ms"
 			<td class="cfdebug"><b>Var</b></td>
 			<td class="cfdebug"><b>Count</b></td>
 		</tr>
-<cfset total=0>
+<cfset var total=0>
 <cfloop query="implicitAccess">
 		<tr>
 			<td align="left" class="cfdebug" nowrap>#implicitAccess.scope#</td>
@@ -294,8 +334,8 @@ millisecond:"ms"
 
 <!--- Traces --->
 <cfif traces.recordcount>
-	<cfset hasAction=!isColumnEmpty(traces,'action')>
-	<cfset hasCategory=!isColumnEmpty(traces,'category')>
+	<cfset var hasAction=!isColumnEmpty(traces,'action')>
+	<cfset var hasCategory=!isColumnEmpty(traces,'category')>
 	<p class="cfdebug"><hr/><b class="cfdebuglge">Trace Points</b></p>
 		<table border="1" cellpadding="2" cellspacing="0" class="cfdebug">
 		<tr>
@@ -333,8 +373,8 @@ millisecond:"ms"
 <cfif queries.recordcount>
 <p class="cfdebug"><hr/><b class="cfdebuglge"><a name="cfdebug_sql">SQL Queries</a></b></p>
 <cfloop query="queries">	
-<code><b>#queries.name#</b> (Datasource=#queries.datasource#, Time=#formatUnit(custom.unit, queries.time)#, Records=#queries.count#) in <cfif len(queries.src)>#queries.src#:#queries.line#</cfif></code><br />
-<cfif ListFindNoCase(queries.columnlist,'usage') and IsStruct(queries.usage)><cfset usage=queries.usage><cfset lstNeverRead="">
+<code><b>#queries.name#</b> (Datasource=#queries.datasource#, Time=#formatUnit(arguments.custom.unit, queries.time)#, Records=#queries.count#) in <cfif len(queries.src)>#queries.src#:#queries.line#</cfif></code><br />
+<cfif ListFindNoCase(queries.columnlist,'usage') and IsStruct(queries.usage)><cfset var usage=queries.usage><cfset var lstNeverRead="">
 <cfloop collection="#usage#" index="local.item" item="local._val"><cfif not _val><cfset lstNeverRead=ListAppend(lstNeverRead,item,', ')></cfif></cfloop>
 <cfif len(lstNeverRead)><font color="red">the following colum(s) are never read within the request:#lstNeverRead#</font><br /></cfif>
 </cfif>
@@ -343,14 +383,15 @@ millisecond:"ms"
 
 
 <!--- Scopes --->
-<cfset scopes="Application,CGI,Client,Cookie,Form,Request,Server,Session,URL">
-<cfif not structKeyExists(custom,"scopes")><cfset custom.scopes=""></cfif>
-<cfif len(custom.scopes)>
+<cfset var scopes="Application,CGI,Client,Cookie,Form,Request,Server,Session,URL">
+<cfif not structKeyExists(arguments.custom,"scopes")><cfset arguments.custom.scopes=""></cfif>
+<cfif len(arguments.custom.scopes)>
 <p class="cfdebug"><hr/><b class="cfdebuglge"><a name="cfdebug_scopevars">Scope Variables</a></b></p>
-<cfloop list="#scopes#" index="name"><cfif not ListFindNoCase(custom.scopes,name)><cfcontinue></cfif>
-<cfset doPrint=true>
+<cfset var name= "">
+<cfloop list="#scopes#" index="name"><cfif not ListFindNoCase(arguments.custom.scopes,name)><cfcontinue></cfif>
+<cfset var doPrint=true>
 <cftry>
-	<cfset scp=evaluate(name)>
+	<cfset var scp=evaluate(name)>
     <cfcatch><cfset doPrint=false></cfcatch>
 </cftry>
 
@@ -366,8 +407,9 @@ millisecond:"ms"
 </cfif>
 </cfloop>
 </cfif>
-<font size="-1" class="cfdebug"><i>Debug Rendering Time: #formatUnit(custom.unit, getTickCount()-time)#</i></font><br />
+<font size="-1" class="cfdebug"><i>Debug Rendering Time: #formatUnit(arguments.custom.unit, getTickCount()-time)#</i></font><br />
 	</td>
+	</cfif>
 </tr>
 </table>
 </cfoutput>
@@ -378,18 +420,18 @@ millisecond:"ms"
 	<cfargument name="unit" type="string" required="yes">
 	<cfargument name="time" type="numeric" required="yes">
     
-    <cfif time GTE 100000000><!--- 1000ms --->
-    	<cfreturn int(time/1000000)&" ms">
-    <cfelseif time GTE 10000000><!--- 100ms --->
-    	<cfreturn (int(time/100000)/10)&" ms">
-    <cfelseif time GTE 1000000><!--- 10ms --->
-    	<cfreturn (int(time/10000)/100)&" ms">
+    <cfif arguments.time GTE 100000000><!--- 1000ms --->
+    	<cfreturn int(arguments.time/1000000)&" ms">
+    <cfelseif arguments.time GTE 10000000><!--- 100ms --->
+    	<cfreturn (int(arguments.time/100000)/10)&" ms">
+    <cfelseif arguments.time GTE 1000000><!--- 10ms --->
+    	<cfreturn (int(arguments.time/10000)/100)&" ms">
     <cfelse><!--- 0ms --->
-    	<cfreturn (int(time/1000)/1000)&" ms">
+    	<cfreturn (int(arguments.time/1000)/1000)&" ms">
     </cfif>
     
     
-    <cfreturn (time/1000000)&" ms">
+    <cfreturn (arguments.time/1000000)&" ms">
 </cffunction>   
 <!---<cffunction name="formatUnit2" output="no" returntype="string">
 	<cfargument name="unit" type="string" required="yes">

@@ -377,7 +377,8 @@ public class DumpUtil {
 						try {
 							ox = arr.getE(i);
 						}
-						catch (Exception e) {}
+						catch (Exception e) {
+						}
 						htmlBox.appendRow(1, new SimpleDumpData(i), toDumpData(ox, pageContext, maxlevel, props));
 					}
 					return setId(id, htmlBox);
@@ -606,7 +607,7 @@ public class DumpUtil {
 						Struct sct = new StructImpl();
 						sct.setEL(KeyConstants._id, b.getBundleId());
 						sct.setEL(KeyConstants._name, b.getSymbolicName());
-						sct.setEL("location", b.getLocation());
+						sct.setEL(KeyConstants._location, b.getLocation());
 						sct.setEL(KeyConstants._version, b.getVersion().toString());
 
 						DumpTable bd = new DumpTable("#6289a3", "#dee3e9", "#000000");
@@ -618,7 +619,8 @@ public class DumpUtil {
 						table.appendRow(1, new SimpleDumpData("bundle-info"), bd);
 					}
 				}
-				catch (NoSuchMethodError e) {}
+				catch (NoSuchMethodError e) {
+				}
 			}
 
 			return setId(id, table);

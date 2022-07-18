@@ -25,7 +25,7 @@ import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigWebImpl;
+import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
@@ -72,8 +72,9 @@ public final class SystemCacheClear implements Function {
 			functionCache(pc);
 		}
 		else throw new FunctionException(pc, "cacheClear", 1, "cacheName",
-				ExceptionUtil.similarKeyMessage(new Collection.Key[] { KeyConstants._all, KeyConstants._template, KeyConstants._component, KeyImpl.init("customtag"),
-						KeyConstants._query, KeyConstants._tag, KeyConstants._function }, cacheName, "cache name", "cache names", null, true));
+				ExceptionUtil.similarKeyMessage(new Collection.Key[] { KeyConstants._all, KeyConstants._template, KeyConstants._component, KeyImpl.getInstance("customtag"),
+						KeyConstants._query, KeyConstants._tag, KeyConstants._function }, cacheName, "cache name", "cache names", null, true)+ " " +ExceptionUtil.similarKeyMessage(new Collection.Key[] { KeyConstants._all, KeyConstants._template, KeyConstants._component, KeyImpl.getInstance("customtag"),
+						KeyConstants._query, KeyConstants._tag, KeyConstants._function }, cacheName, "cache names", null, true));
 
 		return null;
 	}
@@ -84,13 +85,13 @@ public final class SystemCacheClear implements Function {
 	}
 
 	private static void tagCache(PageContext pc) {
-		ConfigWebImpl config = (ConfigWebImpl) pc.getConfig();
+		ConfigWebPro config = (ConfigWebPro) pc.getConfig();
 		PagePoolClear.clear(config, config.getServerTagMappings(), false);
 		PagePoolClear.clear(config, config.getTagMappings(), false);
 	}
 
 	private static void functionCache(PageContext pc) {
-		ConfigWebImpl config = (ConfigWebImpl) pc.getConfig();
+		ConfigWebPro config = (ConfigWebPro) pc.getConfig();
 		config.clearFunctionCache();
 		PagePoolClear.clear(config, config.getServerFunctionMappings(), false);
 		PagePoolClear.clear(config, config.getFunctionMappings(), false);

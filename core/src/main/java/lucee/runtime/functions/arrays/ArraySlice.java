@@ -40,6 +40,8 @@ public final class ArraySlice extends BIF {
 	public static Array call(PageContext pc, Array arr, double offset, double length) throws PageException {
 
 		int len = arr.size();
+		if (len == 0) throw new FunctionException(pc, "arraySlice", 1, "array", "Array cannot be empty");
+		
 		if (offset > 0) {
 			if (len < offset) throw new FunctionException(pc, "arraySlice", 2, "offset", "Offset cannot be greater than size of the array");
 
@@ -60,7 +62,7 @@ public final class ArraySlice extends BIF {
 		else throw new FunctionException(pc, "ArraySlice", 2, 3, args.length);
 	}
 
-	private static Array get(Array arr, int from, int to) throws PageException {
+	public static Array get(Array arr, int from, int to) throws PageException {
 		Array rtn = ArrayUtil.getInstance(arr.getDimension());
 		int[] keys = arr.intKeys();
 		for (int i = 0; i < keys.length; i++) {

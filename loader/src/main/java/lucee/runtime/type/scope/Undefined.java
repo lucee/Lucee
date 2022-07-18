@@ -69,7 +69,7 @@ public interface Undefined extends Scope {
 	public abstract QueryStack getQueryStack();
 
 	/**
-	 * sets a individual query stack to the undefined scope
+	 * sets an individual query stack to the undefined scope
 	 * 
 	 * @param qryStack Query stack
 	 */
@@ -90,9 +90,9 @@ public interface Undefined extends Scope {
 	/**
 	 * return value matching key, if value is from Query return a QueryColumn
 	 * 
-	 * @param key
+	 * @param key key
 	 * @return return matched value
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 * @deprecated use instead <code>{@link #getCollection(lucee.runtime.type.Collection.Key)}</code>
 	 */
 	@Deprecated
@@ -103,9 +103,9 @@ public interface Undefined extends Scope {
 	/**
 	 * return value matching key, if value is from Query return a QueryColumn
 	 * 
-	 * @param key
+	 * @param key key
 	 * @return return matched value
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 */
 	public abstract Object getCollection(Collection.Key key) throws PageException;
 
@@ -124,6 +124,7 @@ public interface Undefined extends Scope {
 	 * gets a key from all cascaded scopes, but not from variables scope
 	 * 
 	 * @param key key to get
+	 * @param defaultValue default value
 	 * @return matching value or null
 	 */
 	public Object getCascading(Collection.Key key, Object defaultValue);
@@ -131,7 +132,7 @@ public interface Undefined extends Scope {
 	/**
 	 * change the variable scope
 	 * 
-	 * @param scope
+	 * @param scope scope
 	 */
 	public abstract void setVariableScope(Variables scope);
 

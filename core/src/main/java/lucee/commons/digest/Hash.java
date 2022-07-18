@@ -55,7 +55,7 @@ public class Hash {
 			return DigestUtils.md5Hex(is);
 		}
 		finally {
-			IOUtil.closeEL(is);
+			IOUtil.close(is);
 		}
 	}
 
@@ -143,7 +143,8 @@ public class Hash {
 			}
 			return str;
 		}
-		catch (CloneNotSupportedException e) {}
+		catch (CloneNotSupportedException e) {
+		}
 
 		// if not possible to clone the MessageDigest create always a new instance
 		for (int i = 0; i < numIterations; i++) {

@@ -20,14 +20,14 @@ package lucee.commons.io.res.util;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.lang.ref.SoftReference;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-
-import org.apache.commons.collections4.map.ReferenceMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 import lucee.commons.digest.MD5;
 import lucee.commons.io.res.Resource;
@@ -41,7 +41,7 @@ import lucee.runtime.type.util.ArrayUtil;
 public final class ResourceClassLoader extends URLClassLoader implements Closeable {
 
 	private List<Resource> resources = new ArrayList<Resource>();
-	private Map<String, ResourceClassLoader> customCLs;
+	private Map<String, SoftReference<ResourceClassLoader>> customCLs;
 
 	/**
 	 * Constructor of the class
@@ -94,7 +94,8 @@ public final class ResourceClassLoader extends URLClassLoader implements Closeab
 	}
 
 	@Override
-	public void close() {}
+	public void close() {
+	}
 
 	/*
 	 * public synchronized void addResources(Resource[] reses) throws IOException { for(int
@@ -107,28 +108,30 @@ public final class ResourceClassLoader extends URLClassLoader implements Closeab
 		if (ArrayUtil.isEmpty(resources)) return this;
 
 		String key = hash(resources);
-		ResourceClassLoader rcl = (customCLs == null) ? null : customCLs.get(key);
+		SoftReference<ResourceClassLoader> tmp = customCLs == null ? null : customCLs.get(key);
+		ResourceClassLoader rcl = tmp == null ? null : tmp.get();
 
 		if (rcl != null) return rcl;
 
 		resources = ResourceUtil.merge(this.getResources(), resources);
 		rcl = new ResourceClassLoader(resources, getParent());
 
-		if (customCLs == null) customCLs = new ReferenceMap<String, ResourceClassLoader>();
+		if (customCLs == null) customCLs = new ConcurrentHashMap<String, SoftReference<ResourceClassLoader>>();
 
-		customCLs.put(key, rcl);
+		customCLs.put(key, new SoftReference<ResourceClassLoader>(rcl));
 		return rcl;
 	}
 
 	public ResourceClassLoader getCustomResourceClassLoader2(Resource[] resources) throws IOException {
 		if (ArrayUtil.isEmpty(resources)) return this;
 		String key = hash(resources);
-		ResourceClassLoader rcl = customCLs == null ? null : customCLs.get(key);
+		SoftReference<ResourceClassLoader> tmp = customCLs == null ? null : customCLs.get(key);
+		ResourceClassLoader rcl = tmp == null ? null : tmp.get();
 		if (rcl != null) return rcl;
 
 		rcl = new ResourceClassLoader(resources, this);
-		if (customCLs == null) customCLs = new ReferenceMap<String, ResourceClassLoader>();
-		customCLs.put(key, rcl);
+		if (customCLs == null) customCLs = new ConcurrentHashMap<String, SoftReference<ResourceClassLoader>>();
+		customCLs.put(key, new SoftReference<ResourceClassLoader>(rcl));
 		return rcl;
 	}
 

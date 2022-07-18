@@ -32,14 +32,14 @@ import lucee.runtime.Component;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.component.Property;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.Constants;
 import lucee.runtime.db.DataSource;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
+import lucee.runtime.op.OpUtil;
 import lucee.runtime.op.Decision;
-import lucee.runtime.op.Operator;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
@@ -59,7 +59,7 @@ public class ORMUtil {
 	}
 
 	public static ORMEngine getEngine(PageContext pc) throws PageException {
-		ConfigImpl config = (ConfigImpl) pc.getConfig();
+		ConfigPro config = (ConfigPro) pc.getConfig();
 		return config.getORMEngine(pc);
 	}
 
@@ -70,7 +70,7 @@ public class ORMUtil {
 	 * @throws PageException
 	 */
 	public static void resetEngine(PageContext pc, boolean force) throws PageException {
-		ConfigImpl config = (ConfigImpl) pc.getConfig();
+		ConfigPro config = (ConfigPro) pc.getConfig();
 		config.resetORMEngine(pc, force);
 	}
 
@@ -124,7 +124,7 @@ public class ORMUtil {
 		}
 
 		try {
-			return Operator.equals(left, right, false);
+			return OpUtil.equals(ThreadLocalPageContext.get(), left, right, false);
 		}
 		catch (PageException e) {
 			return false;
@@ -212,7 +212,7 @@ public class ORMUtil {
 
 		for (int i = 0; i < props.length; i++) {
 			if (!props[i].getName().equalsIgnoreCase(name)) continue;
-			return cfc.getComponentScope().get(KeyImpl.getInstance(name), null);
+			return cfc.getComponentScope().get(KeyImpl.init(name), null);
 		}
 		return defaultValue;
 	}
@@ -281,7 +281,7 @@ public class ORMUtil {
 
 		if (StringUtil.isEmpty(o)) {
 			boolean isCFML = pc.getRequestDialect() == CFMLEngine.DIALECT_CFML;
-			throw ORMExceptionUtil.createException((ORMSession) null/* no session here, otherwise we get a infinity loop */, null,
+			throw ORMExceptionUtil.createException((ORMSession) null/* no session here, otherwise we get an infinite loop */, null,
 					"missing datasource definition in " + (isCFML ? Constants.CFML_APPLICATION_EVENT_HANDLER : Constants.LUCEE_APPLICATION_EVENT_HANDLER) + "/"
 							+ (isCFML ? Constants.CFML_APPLICATION_TAG_NAME : Constants.LUCEE_APPLICATION_TAG_NAME),
 					null);
@@ -385,7 +385,8 @@ public class ORMUtil {
 				return datasourceName.trim();
 			}
 		}
-		catch (PageException e) {}
+		catch (PageException e) {
+		}
 
 		DataSource ds = getDefaultDataSource(pc, null);
 		if (ds != null) return ds.getName();

@@ -2,16 +2,19 @@
 
 	
     <cfset fields=array(
-		field("Directory","directory","",true,"The directory you want to watch","text")
-		,field("Watch subdirectories","recurse","true",true,"Should we watch the directory and all subdirectories too","checkbox")
-		,field("Interval (ms)","interval","60000",true,"The interval between checks, in miliseconds","text")
-		,field("File filter","extensions","*",true,"The comma separated list of file filters to match (* = all files). Examples: *user*,*.gif,2010*,myfilename.txt","text")
+		field("Directory", "directory", "", true, "The directory you want to watch", "text")
+		, field("Watch subdirectories", "recurse", "true", true, "Watch the directory and all subdirectories too", "checkbox")
+		, field("Use Java WatchService", "useNIOWatcher","true",true,"Use the Java WatchService (only works with local filesystem)", "checkbox")
+		, field("Verbose logging", "verboseLogging", "true",true,"Enable verbose logging for debugging", "checkbox")
+		, field("Interval (ms)", "interval", "60000",true,"The interval between checks, in milliseconds", "text")
+		, field("File filter","extensions","*",true,"The comma separated list of file filters to match (* = all files). Examples: *user*,*.gif,2010*,myfilename.txt","text")
 
-		,group("CFC Listener Function Definition","Definition for the CFC Listener Functions, when empty no listener is called",3)
+		, group("CFC Listener Function Definition", "Definition for the CFC Listener Functions, when empty no listener is called", 3)
 
-		,field("Change","changeFunction","onChange",true,"called when a file change","text")
-		,field("Add","addFunction","onAdd",true,"called when a file is added","text")
-		,field("Delete","deleteFunction","onDelete",true,"called when a file is removed","text")
+		, field("Change", "changeFunction", "onChange", false,"Function to be called when a File changes", "text")
+		, field("Add", "addFunction", "onAdd", false, "Function to be called when a File is added", "text")
+		, field("Delete", "deleteFunction", "onDelete", false, "Function to be called when a File is removed", "text")
+		, field("Changes", "changesFunction", "onChanges", false, "Function to be called once with all changes", "text")
 	)>
 
 	<cffunction name="getClass" returntype="string">
@@ -25,7 +28,7 @@
     	<cfreturn "Directory Watcher">
     </cffunction>
 	<cffunction name="getDescription" returntype="string" output="no">
-    	<cfreturn "Watch a certain directory for changes">
+    	<cfreturn "Watch a directory for changes">
     </cffunction>
     
 	<cffunction name="onBeforeUpdate" returntype="void" output="false">

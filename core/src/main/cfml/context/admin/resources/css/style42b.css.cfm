@@ -97,7 +97,7 @@ pre {
 
 /* site main layout */
 #layout {
-	height: 100%;
+	min-height: 100%;
 	max-width: 100%;
 	width: 1000px;
 	margin:0px auto;
@@ -393,7 +393,7 @@ div.error, div.warning, div.message {
 }
 div.warning {
 	border-color: #FC6;
-	color:#000;
+	color:#C93;
 }
 div.message {
 	border-color: #0C0;
@@ -433,6 +433,7 @@ div.ok {
 .coding-tip code {
 
 	white-space: pre-wrap;
+	word-wrap: break-word;
 	tab-size: 4;
 	margin: 0.5em;
 	padding: 0.5em;

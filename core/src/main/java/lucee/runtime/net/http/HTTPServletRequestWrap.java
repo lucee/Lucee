@@ -19,8 +19,10 @@
 package lucee.runtime.net.http;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
@@ -52,6 +54,8 @@ import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
+import lucee.commons.lang.types.RefBoolean;
+import lucee.commons.lang.types.RefBooleanImpl;
 import lucee.commons.net.URLItem;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
@@ -71,10 +75,11 @@ import lucee.runtime.type.scope.URLImpl;
 import lucee.runtime.type.scope.UrlFormImpl;
 import lucee.runtime.type.scope.util.ScopeUtil;
 import lucee.runtime.type.util.ArrayUtil;
+import lucee.runtime.type.util.ListUtil;
 import lucee.runtime.util.EnumerationWrapper;
 
 /**
- * extends a existing {@link HttpServletRequest} with the possibility to reread the input as many
+ * extends an existing {@link HttpServletRequest} with the possibility to reread the input as many
  * you want.
  */
 public final class HTTPServletRequestWrap implements HttpServletRequest, Serializable {
@@ -82,10 +87,10 @@ public final class HTTPServletRequestWrap implements HttpServletRequest, Seriali
 	private static final long serialVersionUID = 7286638632320246809L;
 
 	private boolean firstRead = true;
-	private byte[] barr;
-	private static final int MIN_STORAGE_SIZE = 1 * 1024 * 1024;
-	private static final int MAX_STORAGE_SIZE = 50 * 1024 * 1024;
-	private static final int SPACIG = 1024 * 1024;
+	private byte[] bytes;
+	private File file;
+
+	private static final int MAX_MEMORY_SIZE = 1024 * 1024;
 
 	private String servlet_path;
 	private String request_uri;
@@ -176,8 +181,13 @@ public final class HTTPServletRequestWrap implements HttpServletRequest, Seriali
 
 	@Override
 	public StringBuffer getRequestURL() {
-		return new StringBuffer(isSecure() ? "https" : "http").append("://").append(getServerName()).append(':').append(getServerPort())
-				.append(request_uri.startsWith("/") ? request_uri : "/" + request_uri);
+		if (String.valueOf(getServerPort()).equals("80") || String.valueOf(getServerPort()).equals("443")) {
+			return new StringBuffer(isSecure() ? "https" : "http").append("://").append(getServerName()).append(request_uri.startsWith("/") ? request_uri : "/" + request_uri);
+		}
+		else {
+			return new StringBuffer(isSecure() ? "https" : "http").append("://").append(getServerName()).append(':').append(getServerPort())
+					.append(request_uri.startsWith("/") ? request_uri : "/" + request_uri);
+		}
 	}
 
 	@Override
@@ -217,10 +227,6 @@ public final class HTTPServletRequestWrap implements HttpServletRequest, Seriali
 		else req.setAttribute(name, value);
 	}
 
-	/*
-	 * public void setAttributes(Request request) { this._request=request; }
-	 */
-
 	@Override
 	public synchronized Object getAttribute(String name) {
 		if (disconnected) return disconnectData.attributes.get(name);
@@ -233,14 +239,14 @@ public final class HTTPServletRequestWrap implements HttpServletRequest, Seriali
 			return new EnumerationWrapper(disconnectData.attributes.keySet().toArray());
 		}
 		return req.getAttributeNames();
-
 	}
 
 	@Override
 	public ServletInputStream getInputStream() throws IOException {
-		if (barr == null) {
+		if (bytes == null && file == null) {
 			if (!firstRead) {
-				if (barr != null) return new ServletInputStreamDummy(barr);
+				if (bytes != null) return new ServletInputStreamDummy(bytes);
+				if (file != null) return new ServletInputStreamDummy(file);
 
 				PageContext pc = ThreadLocalPageContext.get();
 				if (pc != null) return pc.formScope().getInputStream();
@@ -249,23 +255,53 @@ public final class HTTPServletRequestWrap implements HttpServletRequest, Seriali
 			}
 
 			firstRead = false;
+			// keep the content in memory
+			storeEL();
+		}
+		if (file != null) return new ServletInputStreamDummy(file);
+		if (bytes != null) return new ServletInputStreamDummy(bytes);
+		return new ServletInputStreamDummy(new byte[] {});
+	}
 
-			if (isToBig(getContentLength())) {
-				return req.getInputStream();
+	private void storeEL() {
+		ServletInputStream is = null;
+		RefBoolean maxReached = new RefBooleanImpl();
+		try {
+			{
+				try {
+					is = req.getInputStream();
+					bytes = IOUtil.toBytesMax(is, MAX_MEMORY_SIZE, maxReached);
+
+					if (!maxReached.toBooleanValue()) {
+						return;
+					}
+				}
+				catch (Exception e) {
+				}
 			}
-			InputStream is = null;
+			FileOutputStream fos = null;
 			try {
-				barr = IOUtil.toBytes(is = req.getInputStream());
+				file = File.createTempFile("upload", ".tmp");
+				fos = new FileOutputStream(file);
+				// first we store what we did already load
+				if (maxReached.toBooleanValue()) {
+					IOUtil.copy(new ByteArrayInputStream(bytes), fos, true, false);
+					bytes = null;
+				}
+				if (is == null) is = req.getInputStream();
+				// now we store the rest
+				IOUtil.copy(is, fos, 0xfffff, true, true);
+				file.deleteOnExit();
 			}
 			catch (Exception e) {
-				barr = null;
-				return new ServletInputStreamDummy(new byte[] {});
 			}
 			finally {
-				IOUtil.closeEL(is);
+				IOUtil.closeEL(fos);
 			}
 		}
-		return new ServletInputStreamDummy(barr);
+		finally {
+			IOUtil.closeEL(is);
+		}
 	}
 
 	@Override
@@ -273,7 +309,6 @@ public final class HTTPServletRequestWrap implements HttpServletRequest, Seriali
 		PageContext pc = ThreadLocalPageContext.get();
 		FormImpl form = _form(pc);
 		URLImpl url = _url(pc);
-
 		return ScopeUtil.getParameterMap(new URLItem[][] { form.getRaw(), url.getRaw() }, new String[] { form.getEncoding(), url.getEncoding() });
 	}
 
@@ -318,27 +353,8 @@ public final class HTTPServletRequestWrap implements HttpServletRequest, Seriali
 		pc = ThreadLocalPageContext.get(pc);
 		FormImpl form = _form(pc);
 		URLImpl url = _url(pc);
-
 		return ScopeUtil.getParameterValues(new URLItem[][] { form.getRaw(), url.getRaw() }, new String[] { form.getEncoding(), url.getEncoding() }, name);
 	}
-
-	private boolean isToBig(int contentLength) {
-		if (contentLength < MIN_STORAGE_SIZE) return false;
-		if (contentLength > MAX_STORAGE_SIZE) return true;
-		Runtime rt = Runtime.getRuntime();
-		long av = rt.maxMemory() - rt.totalMemory() + rt.freeMemory();
-		return (av - SPACIG) < contentLength;
-	}
-
-	/*
-	 * * with this method it is possibiliy to rewrite the input as many you want
-	 * 
-	 * @return input stream from request
-	 * 
-	 * @throws IOException / public ServletInputStream getStoredInputStream() throws IOException {
-	 * if(firstRead || barr!=null) return getInputStream(); return new ServletInputStreamDummy(new
-	 * byte[]{}); }
-	 */
 
 	@Override
 	public BufferedReader getReader() throws IOException {
@@ -360,22 +376,22 @@ public final class HTTPServletRequestWrap implements HttpServletRequest, Seriali
 
 		// attributes
 		{
-			Enumeration<String> attrNames = req.getAttributeNames();
+			Iterator<String> it = ListUtil.toIterator(req.getAttributeNames());
 			disconnectData.attributes = MapFactory.getConcurrentMap();
 			String k;
-			while (attrNames.hasMoreElements()) {
-				k = attrNames.nextElement();
+			while (it.hasNext()) {
+				k = it.next();
 				if (!StringUtil.isEmpty(k)) disconnectData.attributes.put(k, req.getAttribute(k));
 			}
 		}
 
 		// headers
 		{
-			Enumeration headerNames = req.getHeaderNames();
+			Enumeration<String> headerNames = req.getHeaderNames();
 			disconnectData.headers = MapFactory.getConcurrentMap();// new ConcurrentHashMap<Collection.Key, LinkedList<String>>();
 
 			String k;
-			Enumeration e;
+			Enumeration<String> e;
 			while (headerNames.hasMoreElements()) {
 				k = headerNames.nextElement().toString();
 				e = req.getHeaders(k);
@@ -422,11 +438,8 @@ public final class HTTPServletRequestWrap implements HttpServletRequest, Seriali
 
 		disconnectData.userPrincipal = req.getUserPrincipal();
 
-		if (barr == null) {
-			try {
-				barr = IOUtil.toBytes(req.getInputStream(), true);
-			}
-			catch (IOException e) {}
+		if (bytes == null || file == null) {
+			storeEL();
 		}
 		disconnected = true;
 		// req=null;
@@ -848,5 +861,13 @@ public final class HTTPServletRequestWrap implements HttpServletRequest, Seriali
 	public <T extends HttpUpgradeHandler> T upgrade(Class<T> arg0) throws IOException, ServletException {
 		if (!disconnected) return req.upgrade(arg0);
 		throw new RuntimeException("not supported!");
+	}
+
+	public void close() {
+		if (file != null) {
+			if (!file.delete()) file.deleteOnExit();
+			file = null;
+		}
+		bytes = null;
 	}
 }

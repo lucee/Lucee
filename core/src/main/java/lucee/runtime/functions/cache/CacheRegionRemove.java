@@ -19,9 +19,8 @@ package lucee.runtime.functions.cache;
 
 import lucee.runtime.PageContext;
 import lucee.runtime.cache.CacheUtil;
-import lucee.runtime.config.ConfigWebImpl;
 import lucee.runtime.config.Password;
-import lucee.runtime.config.XMLConfigAdmin;
+import lucee.runtime.config.ConfigAdmin;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
@@ -45,7 +44,7 @@ public class CacheRegionRemove extends BIF {
 	static String _call(PageContext pc, String cacheName, String strWebAdminPassword) throws PageException {
 		Password webAdminPassword = CacheUtil.getPassword(pc, strWebAdminPassword, false);
 		try {
-			XMLConfigAdmin adminConfig = XMLConfigAdmin.newInstance((ConfigWebImpl) pc.getConfig(), webAdminPassword);
+			ConfigAdmin adminConfig = ConfigAdmin.newInstance(pc.getConfig(), webAdminPassword);
 			adminConfig.removeCacheConnection(cacheName);
 			adminConfig.storeAndReload();
 		}

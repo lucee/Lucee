@@ -49,8 +49,9 @@ import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
 import lucee.runtime.PageSourceImpl;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigWebImpl;
+import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.config.Constants;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.functions.system.ExpandPath;
@@ -177,7 +178,7 @@ public final class ResourceUtil {
 	// private static Magic mimeTypeParser;
 
 	/**
-	 * cast a String (argument destination) to a File Object, if destination is not a absolute, file
+	 * cast a String (argument destination) to a File Object, if destination is not an absolute, file
 	 * object will be relative to current position (get from PageContext) file must exist otherwise
 	 * throw exception
 	 * 
@@ -212,9 +213,9 @@ public final class ResourceUtil {
 		}
 		if (StringUtil.startsWith(path, '/')) {
 			PageContextImpl pci = (PageContextImpl) pc;
-			ConfigWebImpl cwi = (ConfigWebImpl) pc.getConfig();
-			PageSource[] sources = cwi.getPageSources(pci, ExpandPath.mergeMappings(pc.getApplicationContext().getMappings(), pc.getApplicationContext().getComponentMappings()),
-					path, false, pci.useSpecialMappings(), true);
+			ConfigWeb cw = pc.getConfig();
+			PageSource[] sources = cw.getPageSources(pci, ExpandPath.mergeMappings(pc.getApplicationContext().getMappings(), pc.getApplicationContext().getComponentMappings()),
+					path, false, pci.useSpecialMappings(), true, false);
 			if (!ArrayUtil.isEmpty(sources)) {
 
 				for (int i = 0; i < sources.length; i++) {
@@ -229,7 +230,10 @@ public final class ResourceUtil {
 
 	public static Resource toResourceExisting(Config config, String path) throws ExpressionException {
 		path = path.replace('\\', '/');
-		Resource res = config.getResource(path);
+		config = ThreadLocalPageContext.getConfig(config);
+		Resource res;
+		if (config == null) res = ResourcesImpl.getFileResourceProvider().getResource(path);
+		else res = config.getResource(path);
 
 		if (res.exists()) return res;
 		throw new ExpressionException("file or directory [" + path + "] does not exist");
@@ -237,7 +241,10 @@ public final class ResourceUtil {
 
 	public static Resource toResourceExisting(Config config, String path, Resource defaultValue) {
 		path = path.replace('\\', '/');
-		Resource res = config.getResource(path);
+		config = ThreadLocalPageContext.getConfig(config);
+		Resource res;
+		if (config == null) res = ResourcesImpl.getFileResourceProvider().getResource(path);
+		else res = config.getResource(path);
 
 		if (res.exists()) return res;
 		return defaultValue;
@@ -251,7 +258,7 @@ public final class ResourceUtil {
 	}
 
 	/**
-	 * cast a String (argument destination) to a File Object, if destination is not a absolute, file
+	 * cast a String (argument destination) to a File Object, if destination is not an absolute, file
 	 * object will be relative to current position (get from PageContext) at least parent must exist
 	 * 
 	 * @param pc Page Context to the current position in filesystem
@@ -282,8 +289,8 @@ public final class ResourceUtil {
 
 		if (StringUtil.startsWith(destination, '/')) {
 			PageContextImpl pci = (PageContextImpl) pc;
-			ConfigWebImpl cwi = (ConfigWebImpl) pc.getConfig();
-			PageSource[] sources = cwi.getPageSources(pci, ExpandPath.mergeMappings(pc.getApplicationContext().getMappings(), pc.getApplicationContext().getComponentMappings()),
+			ConfigWeb cw = pc.getConfig();
+			PageSource[] sources = cw.getPageSources(pci, ExpandPath.mergeMappings(pc.getApplicationContext().getMappings(), pc.getApplicationContext().getComponentMappings()),
 					destination, false, pci.useSpecialMappings(), true);
 			if (!ArrayUtil.isEmpty(sources)) {
 				for (int i = 0; i < sources.length; i++) {
@@ -302,7 +309,7 @@ public final class ResourceUtil {
 	}
 
 	/**
-	 * cast a String (argument destination) to a File Object, if destination is not a absolute, file
+	 * cast a String (argument destination) to a File Object, if destination is not an absolute, file
 	 * object will be relative to current position (get from PageContext) existing file is preferred but
 	 * dont must exist
 	 * 
@@ -327,8 +334,8 @@ public final class ResourceUtil {
 		boolean isUNC;
 		if (!(isUNC = isUNCPath(destination)) && StringUtil.startsWith(destination, '/')) {
 			PageContextImpl pci = (PageContextImpl) pc;
-			ConfigWebImpl cwi = (ConfigWebImpl) pc.getConfig();
-			PageSource[] sources = cwi.getPageSources(pci, ExpandPath.mergeMappings(pc.getApplicationContext().getMappings(), pc.getApplicationContext().getComponentMappings()),
+			ConfigWeb cw = pc.getConfig();
+			PageSource[] sources = cw.getPageSources(pci, ExpandPath.mergeMappings(pc.getApplicationContext().getMappings(), pc.getApplicationContext().getComponentMappings()),
 					destination, false, pci.useSpecialMappings(), SystemUtil.isWindows(), checkComponentMappings);
 			if (!ArrayUtil.isEmpty(sources)) {
 				for (int i = 0; i < sources.length; i++) {
@@ -367,10 +374,10 @@ public final class ResourceUtil {
 	}
 
 	/**
-	 * translate the path of the file to a existing file path by changing case of letters Works only on
+	 * translate the path of the file to an existing file path by changing case of letters Works only on
 	 * Linux, because
 	 * 
-	 * Example Unix: we have a existing file with path "/usr/virtual/myFile.txt" now you call this
+	 * Example Unix: we have an existing file with path "/usr/virtual/myFile.txt" now you call this
 	 * method with path "/Usr/Virtual/myfile.txt" the result of the method will be
 	 * "/usr/virtual/myFile.txt"
 	 * 
@@ -812,7 +819,7 @@ public final class ResourceUtil {
 	}
 
 	/**
-	 * return diffrents of one file to a other if first is child of second otherwise return null
+	 * return diffrents of one file to another if first is child of second otherwise return null
 	 * 
 	 * @param file file to search
 	 * @param dir directory to search
@@ -860,6 +867,10 @@ public final class ResourceUtil {
 		return strFileName.substring(0, pos);
 	}
 
+	public static String getName(Resource res) {
+		return getName(res.getName());
+	}
+
 	/**
 	 * split a FileName in Parts
 	 * 
@@ -884,10 +895,8 @@ public final class ResourceUtil {
 	public static Resource changeExtension(Resource file, String newExtension) {
 		String ext = getExtension(file, null);
 		if (ext == null) return file.getParentResource().getRealResource(file.getName() + '.' + newExtension);
-		// new File(file.getParentFile(),file.getName()+'.'+newExtension);
 		String name = file.getName();
 		return file.getParentResource().getRealResource(name.substring(0, name.length() - ext.length()) + newExtension);
-		// new File(file.getParentFile(),name.substring(0,name.length()-ext.length())+newExtension);
 	}
 
 	/**
@@ -901,13 +910,16 @@ public final class ResourceUtil {
 	public static void _deleteContent(Resource src, ResourceFilter filter, boolean deleteDirectories) {
 		if (src.isDirectory()) {
 			Resource[] files = filter == null ? src.listResources() : src.listResources(filter);
-			for (int i = 0; i < files.length; i++) {
-				_deleteContent(files[i], filter, true);
-				if (deleteDirectories) {
-					try {
-						src.remove(false);
+			if (files != null) {
+				for (int i = 0; i < files.length; i++) {
+					_deleteContent(files[i], filter, true);
+					if (deleteDirectories) {
+						try {
+							src.remove(false);
+						}
+						catch (IOException e) {
+						}
 					}
-					catch (IOException e) {}
 				}
 			}
 
@@ -1038,23 +1050,26 @@ public final class ResourceUtil {
 		try {
 			res.createFile(force);
 		}
-		catch (IOException e) {}
+		catch (IOException e) {
+		}
 	}
 
 	public static void createDirectoryEL(Resource res, boolean force) {
 		try {
 			res.createDirectory(force);
 		}
-		catch (IOException e) {}
+		catch (IOException e) {
+		}
 	}
 
 	public static ContentType getContentType(Resource resource) {
-		// TODO make this part of a interface
+		// TODO make this part of an interface
 		if (resource instanceof HTTPResource) {
 			try {
 				return ((HTTPResource) resource).getContentType();
 			}
-			catch (IOException e) {}
+			catch (IOException e) {
+			}
 		}
 		InputStream is = null;
 		try {
@@ -1074,7 +1089,8 @@ public final class ResourceUtil {
 			try {
 				return ((HTTPResource) resource).getContentType();
 			}
-			catch (IOException e) {}
+			catch (IOException e) {
+			}
 		}
 		InputStream is = null;
 		try {
@@ -1108,8 +1124,10 @@ public final class ResourceUtil {
 		else {
 			if (!dest.exists()) dest.createDirectory(false);
 			Resource[] children = src.listResources();
-			for (int i = 0; i < children.length; i++) {
-				moveTo(children[i], dest.getRealResource(children[i].getName()), useResourceMethod);
+			if (children != null) {
+				for (int i = 0; i < children.length; i++) {
+					moveTo(children[i], dest.getRealResource(children[i].getName()), useResourceMethod);
+				}
 			}
 			src.remove(false);
 		}
@@ -1141,8 +1159,10 @@ public final class ResourceUtil {
 		else if (res.isDirectory()) {
 			long size = 0;
 			Resource[] children = filter == null ? res.listResources() : res.listResources(filter);
-			for (int i = 0; i < children.length; i++) {
-				size += getRealSize(children[i]);
+			if (children != null) {
+				for (int i = 0; i < children.length; i++) {
+					size += getRealSize(children[i]);
+				}
 			}
 			return size;
 		}
@@ -1161,8 +1181,10 @@ public final class ResourceUtil {
 		else if (res.isDirectory()) {
 			int size = 0;
 			Resource[] children = filter == null ? res.listResources() : res.listResources(filter);
-			for (int i = 0; i < children.length; i++) {
-				size += getChildCount(children[i]);
+			if (children != null) {
+				for (int i = 0; i < children.length; i++) {
+					size += getChildCount(children[i]);
+				}
 			}
 			return size;
 		}
@@ -1171,8 +1193,8 @@ public final class ResourceUtil {
 	}
 
 	/**
-	 * return if Resource is empty, means is directory and has no children or a empty file, if not exist
-	 * return false.
+	 * return if Resource is empty, means is directory and has no children or an empty file, if not
+	 * exist return false.
 	 * 
 	 * @param res
 	 * @return
@@ -1253,8 +1275,10 @@ public final class ResourceUtil {
 		}
 		else if (res.isDirectory()) {
 			Resource[] children = filter == null ? res.listResources() : res.listResources(filter);
-			for (int i = 0; i < children.length; i++) {
-				deleteFileOlderThan(children[i], date, filter);
+			if (children != null) {
+				for (int i = 0; i < children.length; i++) {
+					deleteFileOlderThan(children[i], date, filter);
+				}
 			}
 		}
 	}
@@ -1347,7 +1371,7 @@ public final class ResourceUtil {
 	}
 
 	/**
-	 * check if getting a inputstream of the file is ok with the rules for the Resource interface, to
+	 * check if getting an inputstream of the file is ok with the rules for the Resource interface, to
 	 * not change this rules.
 	 * 
 	 * @param resource
@@ -1361,7 +1385,7 @@ public final class ResourceUtil {
 	}
 
 	/**
-	 * check if getting a outputstream of the file is ok with the rules for the Resource interface, to
+	 * check if getting an outputstream of the file is ok with the rules for the Resource interface, to
 	 * not change this rules.
 	 * 
 	 * @param resource
@@ -1392,8 +1416,10 @@ public final class ResourceUtil {
 	public static void deleteEmptyFolders(Resource res) throws IOException {
 		if (res.isDirectory()) {
 			Resource[] children = res.listResources();
-			for (int i = 0; i < children.length; i++) {
-				deleteEmptyFolders(children[i]);
+			if (children != null) {
+				for (int i = 0; i < children.length; i++) {
+					deleteEmptyFolders(children[i]);
+				}
 			}
 			if (res.listResources().length == 0) {
 				res.remove(false);
@@ -1402,7 +1428,7 @@ public final class ResourceUtil {
 	}
 
 	/**
-	 * if the pageSource is based on a archive, translate the source to a zip:// Resource
+	 * if the pageSource is based on an archive, translate the source to a zip:// Resource
 	 * 
 	 * @return return the Resource matching this PageSource
 	 * @param pc the Page Context Object
@@ -1509,6 +1535,11 @@ public final class ResourceUtil {
 
 	public static String checksum(Resource res) throws NoSuchAlgorithmException, IOException {
 		return Hash.md5(res);
+	}
+
+	public static File toFile(Resource res) throws IOException {
+		if (res instanceof File) return (File) res;
+		throw new IOException("cannot convert [" + res + "] to a local file from type [" + res.getResourceProvider().getScheme() + "]");
 	}
 
 }

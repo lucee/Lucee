@@ -241,30 +241,32 @@ list all mappings and display necessary edit fields --->
 				<tfoot>
 					<tr>
 						<td colspan="5">
-							<input type="submit" class="bl button submit" name="mainAction" value="#stText.Buttons.save#">
-							<input type="reset" class="bm button reset" name="cancel" value="#stText.Buttons.Cancel#">
-							<input type="submit" class="br button submit" name="mainAction" value="#stText.Buttons.Delete#">
+							<input type="submit" class="bl button submit enablebutton" name="mainAction" value="#stText.Buttons.save#">
+							<input type="reset" class="bm button reset enablebutton" id="clickCancel" name="cancel" value="#stText.Buttons.Cancel#">
+							<input type="submit" class="br button submit enablebutton" name="mainAction" value="#stText.Buttons.Delete#">
 						</td>
 					</tr>
 				</tfoot>
 			</cfif>
 		</table>
+	</cfformClassic>
 
-		<cfif hasAccess>
-			<h2>Create new mapping</h2>
+	<cfif hasAccess>
+		<h2>Create new mapping</h2>
+		<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
 			<table class="maintbl">
 				<tbody>
 					<tr>
 						<th scope="row">#stText.rest.VirtualHead#</th>
 						<td>
 							<input type="hidden" name="row_#rest.recordcount+1#" value="#rest.recordcount+1#">
-							<cfinputClassic type="text" name="virtual_#rest.recordcount+1#" value="" required="no" class="medium" />
+							<cfinputClassic type="text" name="virtual_#rest.recordcount+1#" value="" required="yes" class="medium" message="#stText.mapping.virtual#"/>
 						</td>
 					</tr>
 					<tr>
 						<th scope="row">#stText.rest.PhysicalHead#</th>
 						<td>
-							<cfinputClassic type="text" name="physical_#rest.recordcount+1#" value="" required="no" class="large">
+							<cfinputClassic type="text" name="physical_#rest.recordcount+1#" value="" required="yes" class="large"  message="#stText.mapping.physical#">
 						</td>
 					</tr>
 					<tr>
@@ -282,6 +284,6 @@ list all mappings and display necessary edit fields --->
 					</tr>
 				</tfoot>
 			</table>
-		</cfif>
-	</cfformClassic>
+		</cfformClassic>
+	</cfif>
 </cfoutput>

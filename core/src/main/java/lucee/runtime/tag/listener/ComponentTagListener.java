@@ -27,4 +27,19 @@ public class ComponentTagListener extends TagListenerSupport {
 		else if (component.get("listen", null) instanceof UDF) return Caster.toStruct(component.callWithNamedValues(pc, "listen", args), null);
 		return null;
 	}
+
+	@Override
+	public boolean hasError() {
+		return component.get("error", null) instanceof UDF;
+	}
+
+	@Override
+	public Struct error(PageContext pc, Struct args) throws PageException {
+		if (component.get("error", null) instanceof UDF) return Caster.toStruct(component.callWithNamedValues(pc, "error", args), null);
+		return null;
+	}
+
+	public Object getComponent() {
+		return component;
+	}
 }

@@ -1,8 +1,5 @@
 component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	
-	
-	//public function afterTests(){}
-	
 	public function setUp(){
 		
 	}
@@ -22,6 +19,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		}
 	}
 
+	private void function testNull(){
+		query name="local.qry" {
+			echo("SELECT null as _null");
+		}
+		assertTrue(isNull(qry._null));
+	}
+
 	private void function defineDatasource(required bundle,version=""){
 		var ds={
 	  		class: 'org.h2.Driver'
@@ -32,5 +36,20 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 			ds['bundleVersion']=arguments.version;
 
 		application action="update" datasource=ds;
+	}
+
+	public function afterTests() {
+		var javaIoFile=createObject("java","java.io.File");
+		loop array=DirectoryList(
+			path=getDirectoryFromPath(getCurrentTemplatePath()), 
+			recurse=true, filter="*.db") item="local.path"  {
+			fileDeleteOnExit(javaIoFile,path);
+		}
+	}
+
+	private function fileDeleteOnExit(required javaIoFile, required string path) {
+		var file=javaIoFile.init(arguments.path);
+		if(!file.isFile())file=javaIoFile.init(expandPath(arguments.path));
+		if(file.isFile()) file.deleteOnExit();
 	}
 }

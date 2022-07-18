@@ -94,29 +94,25 @@
 <cfset printError(error)>
 
 <cfadmin 
-	action="getExtensionProviders"
-	type="#request.adminType#"
-	password="#session["password"&request.adminType]#"
-	returnVariable="classicProviders">
-	
-
-
-<cfadmin 
 	action="getRHExtensionProviders"
 	type="#request.adminType#"
 	password="#session["password"&request.adminType]#"
 	returnVariable="providers">
 
 
-
-<cfset hasAccess=true>
-
-
-
-<cfset datas=getProvidersInfo(queryColumnData(providers,'url'))>
+<cfscript>
+	hasAccess=true;
+	thread name="provider:data" {
+		thread.datas=getProvidersInfo(providers:queryColumnData(providers,'url'));
+	}
+	thread action="join" name="provider:data" timeout=100;
+	datas=isNull(cfthread["provider:data"].datas)?{}:cfthread["provider:data"].datas;
+	
+</cfscript>
 
 
 <!--- 
+
 list all mappings and display necessary edit fields --->
 
 <cfoutput>
@@ -218,9 +214,9 @@ list all mappings and display necessary edit fields --->
 				<tfoot>
 					 <tr>
 						<td colspan="#columns#">
-							<input type="submit" class="button submit" name="mainAction" value="#stText.Buttons.verify#">
-							<input type="submit" class="button submit" name="mainAction" value="#stText.Buttons.Delete#">
-							<input type="reset" class="reset" name="cancel" value="#stText.Buttons.Cancel#">
+							<input type="submit" class="button submit enablebutton" name="mainAction" value="#stText.Buttons.verify#">
+							<input type="submit" class="button submit enablebutton" name="mainAction" value="#stText.Buttons.Delete#">
+							<input type="reset" class="reset enablebutton" name="cancel" id="clickCancel" value="#stText.Buttons.Cancel#">
 						</td>	
 					</tr>
 				</tfoot>
@@ -240,7 +236,7 @@ list all mappings and display necessary edit fields --->
 						</th>
 						<td>
 							<cfinputClassic onKeyDown="checkTheBox(this)" type="text" 
-							name="url" value="" required="yes" class="xlarge">
+							name="url_1" value="" required="yes" class="xlarge">
 							<div class="comment">#stText.ext.prov.hostDesc#</div>
 						</td>
 					</tr>

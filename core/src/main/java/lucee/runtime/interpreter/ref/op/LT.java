@@ -23,7 +23,7 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.interpreter.InterpreterException;
 import lucee.runtime.interpreter.ref.Ref;
 import lucee.runtime.interpreter.ref.RefSupport;
-import lucee.runtime.op.Operator;
+import lucee.runtime.op.OpUtil;
 
 /**
  * imp operation
@@ -49,7 +49,7 @@ public final class LT extends RefSupport implements Ref {
 	@Override
 	public Object getValue(PageContext pc) throws PageException {
 		if (limited) throw new InterpreterException("invalid syntax, boolean operations are not supported in a json string.");
-		return Operator.compare(left.getValue(pc), right.getValue(pc)) < 0 ? Boolean.TRUE : Boolean.FALSE;
+		return OpUtil.compare(pc, left.getValue(pc), right.getValue(pc)) < 0 ? Boolean.TRUE : Boolean.FALSE;
 	}
 
 	@Override

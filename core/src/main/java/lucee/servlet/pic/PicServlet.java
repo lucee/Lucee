@@ -81,10 +81,12 @@ public final class PicServlet extends HttpServlet {
 				os.write(buf, 0, nread);
 			}
 		}
-		catch (FileNotFoundException e) {}
-		catch (IOException e) {}
+		catch (FileNotFoundException e) {
+		}
+		catch (IOException e) {
+		}
 		finally {
-			IOUtil.closeEL(is, os);
+			IOUtil.close(is, os);
 		}
 	}
 

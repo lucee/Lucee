@@ -62,23 +62,42 @@ public final class LogUtil {
 		return defaultValue;
 	}
 
+	public static boolean isAlreadyInLog() {
+		StackTraceElement[] stes = Thread.currentThread().getStackTrace();
+		if (stes != null) {
+			String str;
+			for (StackTraceElement ste: stes) {
+				str = ste.getClassName();
+				if (str.indexOf("org.apache.log4j.") == 0 || str.indexOf("org.apache.logging.log4j.") == 0 || str.indexOf("lucee.commons.io.log.log4j") == 0) return true;
+			}
+		}
+		return false;
+	}
+
 	public static void log(Config config, int level, String type, String msg) {
 		log(config, level, "application", type, msg);
 	}
 
-	public static void log(Config config, String type, Exception e) {
-		log(config, "application", type, e);
+	public static void log(Config config, String type, Throwable t) {
+		log(config, "application", type, t);
 	}
 
-	public static void log(Config config, String logName, String type, Exception e) {
+	public static void log(Config config, String logName, String type, Throwable t) {
+		log(config, logName, type, t, Log.LEVEL_ERROR);
+	}
+
+	public static void log(Config config, String logName, String type, Throwable t, int logLevel) {
 		config = ThreadLocalPageContext.getConfig(config);
 		Log log = null;
 		if (config != null) {
 			log = config.getLog(logName);
 		}
 
-		if (log != null) log.error(type, e);
-		else logGlobal(config, Log.LEVEL_ERROR, type, ExceptionUtil.getStacktrace(e, true));
+		if (log != null) {
+			if (Log.LEVEL_ERROR == logLevel) log.error(type, t);
+			else log.log(logLevel, type, t);
+		}
+		else logGlobal(config, logLevel, type, ExceptionUtil.getStacktrace(t, true));
 	}
 
 	public static void log(Config config, int level, String logName, String type, String msg) {
@@ -102,7 +121,7 @@ public final class LogUtil {
 		try {
 			CFMLEngine engine = ConfigWebUtil.getEngine(config);
 			File root = engine.getCFMLEngineFactory().getResourceRoot();
-			File flog = new File(root, "context/logs/global.log");
+			File flog = new File(root, "context/logs/" + (level > Log.LEVEL_DEBUG ? "err" : "out") + ".log");
 			Resource log = ResourceUtil.toResource(flog);
 			if (!log.isFile()) {
 				log.getParentResource().mkdirs();
@@ -115,7 +134,7 @@ public final class LogUtil {
 		}
 	}
 
-	public static void logGlobal(Config config, String type, Exception e) {
-		logGlobal(config, Log.LEVEL_ERROR, type, ExceptionUtil.getStacktrace(e, true));
+	public static void logGlobal(Config config, String type, Throwable t) {
+		logGlobal(config, Log.LEVEL_ERROR, type, ExceptionUtil.getStacktrace(t, true));
 	}
 }

@@ -172,10 +172,20 @@ public final class XMLUtilImpl implements XMLUtil {
 
 	@Override
 	public TransformerFactory getTransformerFactory() {
+		return transformerFactory();
+	}
+
+	public static TransformerFactory transformerFactory() {
 		if (transformerFactory == null) {
-			transformerFactory = TransformerFactory.newInstance();
+			try {
+				Class<?> clazz = CFMLEngineFactory.getInstance().getClassUtil().loadClass("lucee.runtime.text.xml.XMLUtil");
+				transformerFactory = (TransformerFactory) clazz.getMethod("getTransformerFactory", new Class[0]).invoke(null, new Object[0]);
+			}
+			catch (Exception e) {
+				e.printStackTrace();
+				transformerFactory = TransformerFactory.newInstance();
+			}
 		}
-		// if(transformerFactory==null)transformerFactory=new TransformerFactoryImpl();
 		return transformerFactory;
 	}
 
@@ -185,9 +195,10 @@ public final class XMLUtilImpl implements XMLUtil {
 	 * @param xml XML InputSource
 	 * @param isHtml is a HTML or XML Object
 	 * @return parsed Document
-	 * @throws SAXException
-	 * @throws IOException
+	 * @throws SAXException SAX Exception
+	 * @throws IOException IO Exception
 	 */
+	@Override
 	public final Document parse(InputSource xml, InputSource validator, boolean isHtml) throws SAXException, IOException {
 
 		if (!isHtml) {
@@ -416,9 +427,9 @@ public final class XMLUtilImpl implements XMLUtil {
 	/**
 	 * returns the Node Type As String
 	 * 
-	 * @param node
-	 * @param cftype
-	 * @return
+	 * @param node node
+	 * @param cftype CF Type
+	 * @return Returns the Node type.
 	 */
 	public String getTypeAsString(Node node, boolean cftype) {
 		String suffix = cftype ? "" : "_NODE";
@@ -485,7 +496,7 @@ public final class XMLUtilImpl implements XMLUtil {
 			return new InputSource(new StringReader(str));
 		}
 		if (value instanceof File) {
-			String str = io.toString(engine.getCastUtil().toResource(((File) value)), (Charset) null);
+			String str = io.toString(engine.getCastUtil().toResource((value)), (Charset) null);
 			return new InputSource(new StringReader(str));
 		}
 		if (value instanceof InputStream) {
@@ -511,7 +522,7 @@ public final class XMLUtilImpl implements XMLUtil {
 		if (value instanceof byte[]) {
 			return new InputSource(new ByteArrayInputStream((byte[]) value));
 		}
-		throw engine.getExceptionUtil().createXMLException("can't cast object of type [" + value + "] to a Input for xml parser");
+		throw engine.getExceptionUtil().createXMLException("can't cast object of type [" + value + "] to an Input for xml parser");
 	}
 
 	public InputSource toInputSource(PageContext pc, String xml) throws IOException, PageException {
@@ -607,7 +618,7 @@ public final class XMLUtilImpl implements XMLUtil {
 		if (value instanceof byte[]) {
 			return new InputSource(new ByteArrayInputStream((byte[]) value));
 		}
-		throw CFMLEngineFactory.getInstance().getExceptionUtil().createExpressionException("can't cast object of type [" + value + "] to a Input for xml parser");
+		throw CFMLEngineFactory.getInstance().getExceptionUtil().createExpressionException("can't cast object of type [" + value + "] to an Input for xml parser");
 	}
 
 	@Override
@@ -627,6 +638,7 @@ public final class XMLUtilImpl implements XMLUtil {
 		}
 	}
 
+	@Override
 	public void writeTo(Node node, Result res, boolean omitXMLDecl, boolean indent, String publicId, String systemId, String encoding) throws PageException {
 		try {
 			Transformer t = getTransformerFactory().newTransformer();
@@ -816,5 +828,4 @@ public final class XMLUtilImpl implements XMLUtil {
 			if (throwWarning) throw new SAXException(e);
 		}
 	}
-
 }

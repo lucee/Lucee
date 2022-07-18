@@ -61,7 +61,7 @@ public interface Mapping extends Serializable {
 	public abstract Resource getArchive();
 
 	/**
-	 * @return returns if mapping has a archive
+	 * @return returns if mapping has an archive
 	 */
 	public abstract boolean hasArchive();
 
@@ -78,14 +78,14 @@ public interface Mapping extends Serializable {
 	/**
 	 * pagesource matching given realpath
 	 * 
-	 * @param realPath
+	 * @param realPath path
 	 * @return matching pagesource
 	 */
 	public abstract PageSource getPageSource(String realPath);
 
 	/**
-	 * @param path
-	 * @param isOut
+	 * @param path path
+	 * @param isOut is out
 	 * @return matching pagesource
 	 */
 	public abstract PageSource getPageSource(String path, boolean isOut);
@@ -146,12 +146,16 @@ public interface Mapping extends Serializable {
 	/**
 	 * mapping can have a specific listener mode to overwrite the listener mode coming from the
 	 * Application Context
+	 * 
+	 * @return Listener mode
 	 */
 	public int getListenerMode();
 
 	/**
 	 * mapping can have a specific listener type to overwrite the listener mode coming from the
 	 * Application Context
+	 * 
+	 * @return Listener type
 	 */
 	public int getListenerType();
 

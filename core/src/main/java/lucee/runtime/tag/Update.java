@@ -25,7 +25,7 @@ import java.util.ArrayList;
 import lucee.commons.io.log.Log;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.db.DataSource;
 import lucee.runtime.db.DataSourceManager;
 import lucee.runtime.db.DatasourceConnection;
@@ -197,7 +197,7 @@ public final class Update extends TagImpl {
 
 				if (pageContext.getConfig().debug()) {
 					String dsn = ds instanceof DataSource ? ((DataSource) ds).getName() : Caster.toString(ds);
-					boolean logdb = ((ConfigImpl) pageContext.getConfig()).hasDebugOptions(ConfigImpl.DEBUG_DATABASE);
+					boolean logdb = ((ConfigPro) pageContext.getConfig()).hasDebugOptions(ConfigPro.DEBUG_DATABASE);
 					if (logdb) {
 						boolean debugUsage = DebuggerUtil.debugQueryUsage(pageContext, query);
 						DebuggerImpl di = (DebuggerImpl) pageContext.getDebugger();

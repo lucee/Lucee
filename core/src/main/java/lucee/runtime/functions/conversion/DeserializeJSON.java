@@ -22,6 +22,7 @@ import java.util.Iterator;
 
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
+import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.interpreter.JSONExpressionInterpreter;
@@ -42,13 +43,14 @@ import lucee.runtime.type.util.ListUtil;
  */
 public final class DeserializeJSON implements Function {
 
-	private static final Key ROWCOUNT = KeyImpl.intern("ROWCOUNT");
+	private static final Key ROWCOUNT = KeyImpl.getInstance("ROWCOUNT");
 
 	public static Object call(PageContext pc, String JSONVar) throws PageException {
 		return call(pc, JSONVar, true);
 	}
 
 	public static Object call(PageContext pc, String JSONVar, boolean strictMapping) throws PageException {
+		if (StringUtil.isEmpty(JSONVar, true)) throw new FunctionException(pc, "DeserializeJSON", 1,"JSONVar" , "input value cannot be empty string.", "Must be the valid JSON string");
 		Object result = new JSONExpressionInterpreter().interpret(pc, JSONVar);
 		if (!strictMapping) return toQuery(result);
 		return result;

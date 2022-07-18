@@ -52,13 +52,13 @@ import lucee.runtime.type.util.StructSupport;
 public class ThreadsImpl extends StructSupport implements lucee.runtime.type.scope.Threads {
 
 	private static final Key KEY_ERROR = KeyConstants._ERROR;
-	private static final Key KEY_ELAPSEDTIME = KeyImpl.intern("ELAPSEDTIME");
+	private static final Key KEY_ELAPSEDTIME = KeyImpl.getInstance("ELAPSEDTIME");
 	private static final Key KEY_OUTPUT = KeyConstants._OUTPUT;
-	private static final Key KEY_PRIORITY = KeyImpl.intern("PRIORITY");
-	private static final Key KEY_STARTTIME = KeyImpl.intern("STARTTIME");
+	private static final Key KEY_PRIORITY = KeyImpl.getInstance("PRIORITY");
+	private static final Key KEY_STARTTIME = KeyImpl.getInstance("STARTTIME");
 	private static final Key KEY_STATUS = KeyConstants._STATUS;
 	private static final Key KEY_STACKTRACE = KeyConstants._STACKTRACE;
-	private static final Key KEY_CHILD_THREADS = KeyImpl.intern("childThreads");
+	private static final Key KEY_CHILD_THREADS = KeyImpl.getInstance("childThreads");
 
 	private static final Key[] DEFAULT_KEYS = new Key[] { KEY_ELAPSEDTIME, KeyConstants._NAME, KEY_OUTPUT, KEY_PRIORITY, KEY_STARTTIME, KEY_STATUS, KEY_STACKTRACE,
 			KEY_CHILD_THREADS };
@@ -107,7 +107,8 @@ public class ThreadsImpl extends StructSupport implements lucee.runtime.type.sco
 	}
 
 	@Override
-	public void release(PageContext pc) {}
+	public void release(PageContext pc) {
+	}
 
 	@Override
 	public void clear() {
@@ -133,7 +134,7 @@ public class ThreadsImpl extends StructSupport implements lucee.runtime.type.sco
 	}
 
 	private Object getMeta(Key key, Object defaultValue) {
-		if (KEY_ELAPSEDTIME.equalsIgnoreCase(key)) return new Double(System.currentTimeMillis() - ct.getStartTime());
+		if (KEY_ELAPSEDTIME.equalsIgnoreCase(key)) return (String) getState() == "TERMINATED" ? 0 : new Double(ct.getEndTime() - ct.getStartTime());
 		if (KeyConstants._NAME.equalsIgnoreCase(key)) return ct.getTagName();
 		if (KEY_OUTPUT.equalsIgnoreCase(key)) return getOutput();
 		if (KEY_PRIORITY.equalsIgnoreCase(key)) return ThreadUtil.toStringPriority(ct.getPriority());
