@@ -90,8 +90,9 @@ class ExecutionThread extends Thread {
 		if (StringUtil.isEmpty(userAgent))
 			userAgent = Constants.NAME + " Scheduler";
 			//userAgent = "CFSCHEDULE"; this old userAgent string is on block listslists
-		
-		Header[] headers = new Header[] { HTTPEngine.header("User-Agent", userAgent) };
+
+		ArrayList<Header> headers = new ArrayList<Header>();
+		headers.add( HTTPEngine.header("User-Agent", userAgent));
 
 		// method.setRequestHeader("User-Agent","CFSCHEDULE");
 
