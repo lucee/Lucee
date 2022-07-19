@@ -3014,7 +3014,7 @@ public final class ConfigAdmin {
 		if (queryUsage != null) root.setEL("debuggingQueryUsage", queryUsage.booleanValue());
 		else rem(root, "debuggingQueryUsage");
 
-		if (queryUsage != null) root.setEL("debuggingThread", thread.booleanValue());
+		if (thread != null) root.setEL("debuggingThread", thread.booleanValue());
 		else rem(root, "debuggingThread");
 	}
 
