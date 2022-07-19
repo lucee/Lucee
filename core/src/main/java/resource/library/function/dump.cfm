@@ -15,6 +15,8 @@
     name="metainfo" type="boolean" required="no" hint="Includes information about the query in the cfdump results."><cfargument 
     name="output" type="string" required="no" hint="Where to send the results:
 - console: the result is written to the console (System.out).
+- debug: the result is written to the debugging logs, when debug is enabled.
+- false: output will not be written, effectively disabling the dump.
 - browser (default): the result is written the the browser response stream."><cfargument 
 	name="show" type="string" required="no" hint="show column or keys."><cfargument 
     name="showUDFs" type="boolean" required="no" hint="show UDFs in cfdump output."><cfargument 
