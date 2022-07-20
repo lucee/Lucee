@@ -11,6 +11,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				catch(any e){
 					var result = e.message;
 				}
+				systemOutput(result,1,1);
 				expect(findNoCase(testFile, result)).toBeGT(0);
 			});
 		});
