@@ -113,37 +113,48 @@
 				<cfif not arrayIsEmpty(logs)>
 					<tbody>
 						<cfloop from="#arrayLen(logs)#" to="1" index="i" step="-1">
-							<cfset el=logs[i]>
-							<cfset _total=0>
-							<cfset _query=0>
-							<cfset _app=0>
-							<cfif structKeyExists(el, "pages")>
-								<cfloop query="el.pages"><cfset _total+=el.pages.total></cfloop>
-								<cfloop query="el.pages"><cfset _query+=el.pages.query></cfloop>
-								<cfloop query="el.pages"><cfset _app+=el.pages.app></cfloop>	
-							<cfelse>
-								<cfset _total+=el.times.total>
-								<cfset _query+=el.times.query>
-								<cfset _app+= _total-_query>
-							</cfif>
-							<cfset _path=el.scope.cgi.SCRIPT_NAME& (len(el.scope.cgi.QUERY_STRING)?"?"& el.scope.cgi.QUERY_STRING:"")>
-							<cfif 
-								doFilter(session.debugFilter.path,_path,false) and 
-								doFilterMin(session.debugFilter.query,_query) and 
-								doFilterMin(session.debugFilter.app,_app) and 
-								doFilterMin(session.debugFilter.total,_total)> 
-								<tr>
-									<td><a href="#request.self#?action=#url.action#&action2=detail&id=#hash(el.id&":"&el.startTime)#">#_path#</a></td>
-									<td>#LSDateFormat(el.starttime)# #LSTimeFormat(el.starttime)#</td>
-									<td nowrap align="right"><cfif listFirst(formatUnit(_query)," ") gt 0>#formatUnit(_query)#<cfelse>-</cfif></td>
-									<td nowrap align="right">#formatUnit(_app)#</td>
-									<td nowrap align="right">#formatUnit(_total)#</td>
-								</tr>
-							</cfif>
+							<cftry>
+								<cfset el=logs[i]>
+								<cfset _total=0>
+								<cfset _query=0>
+								<cfset _app=0>
+								<cfif structKeyExists(el, "pages")>
+									<cfloop query="el.pages"><cfset _total+=el.pages.total></cfloop>
+									<cfloop query="el.pages"><cfset _query+=el.pages.query></cfloop>
+									<cfloop query="el.pages"><cfset _app+=el.pages.app></cfloop>	
+								<cfelse>
+									<cfset _total+=el.times.total>
+									<cfset _query+=el.times.query>
+									<cfset _app+= _total-_query>
+								</cfif>
+								<cfset _path=el.scope.cgi.SCRIPT_NAME& (len(el.scope.cgi.QUERY_STRING)?"?"& el.scope.cgi.QUERY_STRING:"")>
+								<cfif 
+									doFilter(session.debugFilter.path,_path,false) and 
+									doFilterMin(session.debugFilter.query,_query) and 
+									doFilterMin(session.debugFilter.app,_app) and 
+									doFilterMin(session.debugFilter.total,_total)> 
+									<tr>
+										<td><a href="#request.self#?action=#url.action#&action2=detail&id=#hash(el.id&":"&el.startTime)#">#_path#</a></td>
+										<td>#LSDateFormat(el.starttime)# #LSTimeFormat(el.starttime)#</td>
+										<td nowrap align="right"><cfif listFirst(formatUnit(_query)," ") gt 0>#formatUnit(_query)#<cfelse>-</cfif></td>
+										<td nowrap align="right">#formatUnit(_app)#</td>
+										<td nowrap align="right">#formatUnit(_total)#</td>
+									</tr>
+								</cfif>
+								<cfcatch>
+									<cfset error.message = cfcatch.message>
+									<cfset error.detail = cfcatch.Detail>
+									<cfset error.exception = cfcatch>
+									<cfset error.cfcatch = cfcatch>
+								</cfcatch>
+							</cftry>
 						</cfloop>
 					</tbody>
 				</cfif>
 			</table>
 		</cfformClassic>
+		<cfif !isNull(error)>
+			<cfset printError(error)>
+		</cfif>
 	</cfif>
 </cfoutput>
