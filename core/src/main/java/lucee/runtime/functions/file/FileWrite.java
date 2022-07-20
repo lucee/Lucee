@@ -46,8 +46,8 @@ public class FileWrite {
 				else {
 					close = true;
 					Resource res = Caster.toResource(pc, obj, false);
-					Resource parent = res.getParentResource();
 					pc.getConfig().getSecurityManager().checkFileLocation(res);
+					Resource parent = res.getParentResource();
 					if (parent != null && !parent.exists())  throw new FunctionException(pc, "FileWrite", 1, "source", "parent directory for [" + res + "] doesn't exist");
 					fsw = new FileStreamWrapperWrite(res, charset, false, false);
 				}
