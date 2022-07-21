@@ -1,4 +1,4 @@
-name: Test with Java 8
+name: Build with Java 8
 
 on: [workflow_dispatch]
 

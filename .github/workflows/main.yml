@@ -9,7 +9,7 @@ on:
       LUCEE_BUILD_JAVA_VERSION:
         required: true
         type: string
-        default: 8
+        default: '8'
   push: 
   pull_request:
   workflow_dispatch:
@@ -62,7 +62,7 @@ jobs:
       with:
         timezoneLinux: "UTC"
     - uses: actions/checkout@v2
-    - name: Set up Test Java Version
+    - name: Set up Test Java Version ${{ inputs.LUCEE_TEST_JAVA_VERSION }}
       uses: actions/setup-java@v2
       if: ${{ inputs.LUCEE_TEST_JAVA_VERSION != '' }}
       with:
@@ -73,8 +73,15 @@ jobs:
       run: echo "LUCEE_TEST_JAVA_EXEC=${{ env.JAVA_HOME }}/bin/java" >> $GITHUB_ENV
     - name: Set up JDK '${{ inputs.LUCEE_BUILD_JAVA_VERSION }}'
       uses: actions/setup-java@v2
+      if: ${{ inputs.LUCEE_TEST_JAVA_VERSION != '' }}
       with:
         java-version: '${{ inputs.LUCEE_BUILD_JAVA_VERSION }}'
+        distribution: 'temurin'
+    - name: Set up JDK 8 (Lucee default)
+      uses: actions/setup-java@v2
+      if: ${{ inputs.LUCEE_TEST_JAVA_VERSION == '' }} && ${{ inputs.LUCEE_TEST_JAVA_VERSION != 8 }}
+      with:
+        java-version: '8'
         distribution: 'temurin'
     - name: Cache Lucee extensions
       uses: actions/cache@v2
