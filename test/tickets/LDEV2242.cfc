@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" {
+component extends="org.lucee.cfml.test.LuceeTestCase" skip=true {
     function run( testResults , testBox ) {
         describe( "test case for LDEV-2242", function() {
             it( title="implict getters properties returnType with getMetadata()", body=function( currentSpec ) {
