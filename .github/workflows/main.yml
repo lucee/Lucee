@@ -73,7 +73,7 @@ jobs:
       run: echo "LUCEE_TEST_JAVA_EXEC=${{ env.JAVA_HOME }}/bin/java" >> $GITHUB_ENV
     - name: Set up build JDK '${{ inputs.LUCEE_BUILD_JAVA_VERSION }}'
       uses: actions/setup-java@v2
-      if: ${{ inputs.LUCEE_BUILD_JAVA_VERSION != '' }}
+      if: ${{ inputs.LUCEE_BUILD_JAVA_VERSION != '' && inputs.LUCEE_TEST_JAVA_VERSION != inputs.LUCEE_BUILD_JAVA_VERSION }}
       with:
         java-version: '${{ inputs.LUCEE_BUILD_JAVA_VERSION }}'
         distribution: 'temurin'
