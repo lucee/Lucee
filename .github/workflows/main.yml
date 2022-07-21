@@ -6,6 +6,10 @@ on:
       LUCEE_TEST_JAVA_VERSION:
         required: true
         type: string
+      LUCEE_BUILD_JAVA_VERSION:
+        required: true
+        type: string
+        default: 8
   push: 
   pull_request:
   workflow_dispatch:
@@ -67,10 +71,10 @@ jobs:
     - name: Stash Test Java Version Home
       if: ${{ inputs.LUCEE_TEST_JAVA_VERSION != '' }}
       run: echo "LUCEE_TEST_JAVA_EXEC=${{ env.JAVA_HOME }}/bin/java" >> $GITHUB_ENV
-    - name: Set up JDK 8
+    - name: Set up JDK '${{ inputs.LUCEE_BUILD_JAVA_VERSION }}'
       uses: actions/setup-java@v2
       with:
-        java-version: '8'
+        java-version: '${{ inputs.LUCEE_BUILD_JAVA_VERSION }}'
         distribution: 'temurin'
     - name: Cache Lucee extensions
       uses: actions/cache@v2
