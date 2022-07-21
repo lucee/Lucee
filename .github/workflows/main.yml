@@ -71,13 +71,13 @@ jobs:
     - name: Stash Test Java Version Home
       if: ${{ inputs.LUCEE_TEST_JAVA_VERSION != '' }}
       run: echo "LUCEE_TEST_JAVA_EXEC=${{ env.JAVA_HOME }}/bin/java" >> $GITHUB_ENV
-    - name: Set up JDK '${{ inputs.LUCEE_BUILD_JAVA_VERSION }}'
+    - name: Set up build JDK '${{ inputs.LUCEE_BUILD_JAVA_VERSION }}'
       uses: actions/setup-java@v2
-      if: ${{ inputs.LUCEE_TEST_JAVA_VERSION != '' }}
+      if: ${{ inputs.LUCEE_BUILD_JAVA_VERSION != '' }}
       with:
         java-version: '${{ inputs.LUCEE_BUILD_JAVA_VERSION }}'
         distribution: 'temurin'
-    - name: Set up JDK 8 (Lucee default)
+    - name: Set up build JDK 8 (Lucee default)
       uses: actions/setup-java@v2
       if: ${{ inputs.LUCEE_TEST_JAVA_VERSION == '' && inputs.LUCEE_TEST_JAVA_VERSION != 8 }}
       with:
