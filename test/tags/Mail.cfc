@@ -75,16 +75,16 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 	private struct function headerToStruct(Required string str) localmode=true {
 		a = reMatchNoCase("\s([a-zA-Z-]+\:)",str);
 
-        keyWithComma = arrayToList(a,"|").listmap((e)=>{
-            return "," & e;
-        },"|");
+		keyWithComma = arrayToList(a,"|").listmap((e)=>{
+			return "," & e;
+		},"|");
 
-        l = replaceListNocase(str, arrayToList(a), keyWithComma, ",", "|");
+		l = replaceListNocase(str, arrayToList(a), keyWithComma, ",", "|");
 
-        sct = {};
-        loop list="#l#" item="e" index="i" {
-            sct[trim(listFirst(e,":"))] = trim(listLast(e,":"));
-        }
+		sct = {};
+		loop list="#l#" item="e" index="i" {
+			sct[trim(listFirst(e,":"))] = trim(listLast(e,":"));
+		}
 		return sct;
 	}
 
