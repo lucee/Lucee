@@ -23,7 +23,7 @@ jobs:
 
     runs-on: ubuntu-latest
     env:
-      DO_DEPLOY: "${{ github.event_name == 'push' && github.ref == 'refs/heads/6.0' }}"
+      DO_DEPLOY: "${{ github.event_name == 'push' && github.ref == 'refs/heads/6.0' }}" # also only publish builds with Java 8, see below
     services:
       sql-server:
         # Docker Hub image
@@ -79,10 +79,13 @@ jobs:
         distribution: 'temurin'
     - name: Set up JDK 8 (Lucee default)
       uses: actions/setup-java@v2
-      if: ${{ inputs.LUCEE_TEST_JAVA_VERSION == '' }} && ${{ inputs.LUCEE_TEST_JAVA_VERSION != 8 }}
+      if: ${{ inputs.LUCEE_TEST_JAVA_VERSION == '' && inputs.LUCEE_TEST_JAVA_VERSION != 8 }}
       with:
         java-version: '8'
         distribution: 'temurin'
+    - name: Disable DEPLOY if not building with Java 8 (Lucee default)
+      if: ${{ inputs.LUCEE_TEST_JAVA_VERSION == '' && inputs.LUCEE_TEST_JAVA_VERSION != 8 }}
+      run: echo "DO_DEPLOY=false" >> $GITHUB_ENV
     - name: Cache Lucee extensions
       uses: actions/cache@v2
       with:
