@@ -3298,6 +3298,21 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</return>
 	</function>
 	
+	<!-- ExtensionInfo -->
+	<function>
+		<name>ExtensionInfo</name>
+		<class>lucee.runtime.functions.system.ExtensionInfo</class>
+		<description>Returns the detailed info about the extension.</description>
+		<argument>
+			<name>id</name>
+			<type>string</type>
+			<required>Yes</required>
+			<description>Id of the extension</description>
+		</argument>
+		<return>
+			<type>struct</type>
+		</return>
+	</function>
 	
 	<!-- ExtensionExists -->	
 	<function>
