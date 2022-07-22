@@ -24,7 +24,9 @@ component {
 	then add an ENV var pointing to the .json file
 	
 	LUCEE_BUILD_ENV=c:\work\lucee_build_env.json"
-	
+
+	You can also pass "-DLUCEE_BUILD_ENV=c:/work/lucee_build_env.json" directly to ANT
+	to have it passed to the JVM.
 	*/
 
 	public function init (){
