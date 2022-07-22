@@ -1479,7 +1479,7 @@ public final class ConfigAdmin {
 		if (!StringUtil.isEmpty(id)) el.setEL(KeyConstants._id, id);
 		else if (el.containsKey(KeyConstants._id)) el.removeEL(KeyConstants._id);
 
-		if (username.length() > 0) el.setEL(KeyConstants._username, username);
+		el.setEL(KeyConstants._username, username);
 		el.setEL(KeyConstants._password, ConfigWebUtil.encrypt(password));
 
 		el.setEL("host", host);
