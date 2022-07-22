@@ -42,12 +42,12 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				request.hasError4 = "";
 				thread name="w1" action="run"{
 					thread name="w1.1" action="run"{
-						sleep(100);
+						sleep(200);
 					}
 				}
 				thread name="w2" action="run"{
 					thread name="w2.1" action="run"{
-						sleep(1);
+						sleep(100);
 						try{
 							thread action="join" name="w1.1" timeout="5000";
 						} catch( any e){
@@ -62,20 +62,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 			it(title = "Checking cfthread action = 'join', from a grand child thread", body = function( currentSpec ) {
 				request.hasError2 = "";
 				thread name="TT1" action="run"{
-					thread name="TT1.1" action="run"{
+					thread name="TT1.1" action="run" {
 						sleep(100);
 					}
 				}
-				sleep(5);
+				sleep(50);
 
-				try{
-					thread action="join" name="TT1.1" timeout="5000";
-				} catch( any e){
-					request.hasError2 = e.message;
-				}
-				sleep(400);
-
-				expect(request.hasError2).toBe("");
+				thread action="join" name="TT1.1" timeout="5000";
 			});
 
 

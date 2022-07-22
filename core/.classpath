@@ -32,6 +32,6 @@
 			<attribute name="module" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry combineaccessrules="false" kind="src" path="/loader"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/Lucee loader"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>

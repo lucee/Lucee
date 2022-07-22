@@ -99,7 +99,9 @@
 			<type>string</type>
 			<required>no</required>
 			<default></default>
-			<description>type of the array created, if set the array does not have any specific type.</description>
+			<description>Type of the elements that the array can store.
+
+If set, attempting to add an element that can not be cast to the specified type, will throw an exception.</description>
     	</argument>
     	<argument>
 			<name>synchronized</name>
@@ -1560,6 +1562,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 	<function>
 		<name>numberFormat</name>
 		<class>lucee.runtime.functions.displayFormatting.NumberFormat</class>
+		<member-name>numberFormat</member-name>
 		<keywords>number,string,formatting</keywords>
 		<description>Creates a custom-formatted number value. For international
         number formatting use LSNumberFormat.

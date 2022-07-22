@@ -1,9 +1,7 @@
 <cfscript>
 	hasAccess=true;
-	timer label="getExternalData"{
-		external = getExternalData(providerURLs,true);
-	}
-	existing = {};
+	external=getExternalData(providerURLs,true);
+	existing={};
 
 	function getLatestVersion(id) {
 		loop query=external {
@@ -23,6 +21,11 @@
 		return {'vs':"",'v':""};
 	}
 
+	admin
+		action="getLocalExtensions"
+		type="#request.adminType#"
+		password="#session["password"&request.adminType]#"
+		returnVariable="LocalExtensions" ;
 </cfscript>
 <!--- if user declined the agreement, show a msg --->
 <cfif structKeyExists(session, "extremoved")>
@@ -99,8 +102,10 @@
 						}
 					}
 					dn=getDumpNail(img,130,50);
-					</cfscript>
-					<div class="extensionthumb">
+					</cfscript><div class="extensionthumb">
+
+					
+
 						<a <cfif _type=="web">href="#link#"<cfelse>style="border-color: ##E0E0E0;"</cfif> title="#_extensions.name#
 Categories:<cfif isArray(cat)>#arrayToList(cat)#<cfelse>#cat#</cfif>
 Installed version: #_extensions.version#<cfif hasUpdates>
@@ -141,109 +146,129 @@ Latest version: #latest.v#</cfif>"><cfif hasUpdates>
 	<h2>#stText.ext.notInstalled#</h2>
 	<div class="itemintro">#stText.ext.notInstalleddesc#</div>
 <cfif external.recordcount eq extensions.recordcount>
-	<cfset app_error.message = stText.services.update.installExtns>
+	<cfset app_error.message = #stText.services.update.installExtns#>
 	<cfset printerror(app_error)>
-<cfelseif external.recordcount lt extensions.recordcount>
-	<cfset app_error.message = stText.services.update.chkInternet>
+<cfelseif external.recordcount lt extensions.recordcount OR external.recordcount eq LocalExtensions.recordcount>
+	<cfset app_error.message = #stText.services.update.chkInternet#>
 	<cfset printerror(app_error)>
 <cfelse>
 
-	<cfscript>
-		existingIds = StructKeyArray(existing);
-		availableExt = duplicate(external);
-		for(row = availableExt.recordcount ; row >= 1; row-- ) {
-			rt = availableExt.releaseType[row];
-			id = availableExt.id[row];
-			// not for this admin type
-			if( !isnull(rt) and !isEmpty(rt) and rt != "all" and rt != request.adminType) {
-				QueryDeleteRow( availableExt , row );
-			}
-			// remove if already installed
-			if(ArrayFindNoCase( existingIds, id )) {
-				QueryDeleteRow( availableExt, row );
+<cfscript>
+	existingIds = structKeyArray(existing);
+	unInstalledExt=external;
+
+	for(row=unInstalledExt.recordcount;row>=1;row--) {
+
+		rt = unInstalledExt.releaseType[row];
+		id = unInstalledExt.id[row];
+		// not for this admin type
+		if(!isnull(rt) and !isEmpty(rt) and rt != "all" and rt != request.adminType and rt != "both") {
+			queryDeleteRow(unINstalledExt,row);
+		}
+		// remove if already installed
+		if(arrayFindNoCase(existingIds,id)) {
+			queryDeleteRow(unINstalledExt,row);
+		}
+	}
+
+</cfscript>
+
+
+<!--- FILTER --->
+	<cfif unInstalledExt.recordcount GT 30>
+
+	<div class="filterform">
+		<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
+			<ul>
+				<li>
+					<label for="filter2">#stText.search.searchterm#:</label>
+					<input type="text" name="filter2" id="filter2" class="txt" value="#session.extFilter.filter2#" />
+				</li>
+				<li>
+					<input type="submit" class="button submit" name="mainAction" value="#stText.buttons.filter#" />
+				</li>
+			</ul>
+			<div class="clear"></div>
+		</cfformClassic>
+	</div><br>
+</cfif>
+
+<cfscript>
+	VersionStr = {
+		'pre_release':queryNew(unInstalledExt.columnlist),
+		'snapshot':queryNew(unInstalledExt.columnlist),
+		'release':queryNew(unInstalledExt.columnlist)
+	};
+
+	loop query=unInstalledExt {
+		versions = duplicate(unInstalledExt.otherVersions);
+		if(isSimpleValue(versions) && isEmpty(versions))  versions=[];
+		ArrayPrepend(versions, unInstalledExt.version);
+		t = { snap: 0, pre: 0, rel: 0 };
+		loop array=versions item="variables.v" {
+			if(findNoCase("-ALPHA", v) || findNoCase("-BETA", v) || findNoCase("-RC", v)) {
+				t.pre++;
+			} else if(findNoCase("-SNAPSHOT", v)) {
+				t.snap++;
+			} else {
+				t.rel++;
 			}
 		}
-	</cfscript>
+		if ( t.rel > 0 )
+			addRow( unInstalledExt, VersionStr.release, unInstalledExt.currentrow );
+		else if ( t.pre > 0 )
+			addRow( unInstalledExt, VersionStr.pre_release, unInstalledExt.currentrow );
+		else
+			addRow( unInstalledExt, VersionStr.snapshot, unInstalledExt.currentrow );
+	}
 
-	<!--- FILTER --->
-	<cfif availableExt.recordcount GT 30>
-		<div class="filterform">
-			<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
-				<ul>
-					<li>
-						<label for="filter2">#stText.search.searchterm#:</label>
-						<input type="text" name="filter2" id="filter2" class="txt" value="#session.extFilter.filter2#" />
-					</li>
-					<li>
-						<input type="submit" class="button submit" name="mainAction" value="#stText.buttons.filter#" />
-					</li>
-				</ul>
-				<div class="clear"></div>
-			</cfformClassic>
-		</div><br>
-	</cfif>
+	function addRow(src,trg,srcRow) {
+		var trgRow=queryAddRow(arguments.trg);
+		loop array=queryColumnArray(arguments.src) item="local.col" {
+			querySetCell(arguments.trg,col,queryGetCell(arguments.src,col,arguments.srcRow),trgRow);
+		}
+	}
 
-	<cfscript>
-		VersionStr = {
-			'pre_release': QueryNew( availableExt.columnlist ),
-			'snapshot': QueryNew( availableExt.columnlist ),
-			'release': QueryNew( availableExt.columnlist )
-		};
+	private function toVersionSortable(required string version) localMode=true {
+		version=unwrap(version.trim());
+		arr=listToArray(arguments.version,'.');
+		
+		// OSGi compatible version
+		if(arr.len()==4 && isNumeric(arr[1]) && isNumeric(arr[2]) && isNumeric(arr[3])) {
+			try{ return toOSGiVersion(version).sortable; }catch(local.e){};
+		}
 
-		loop query=availableExt {
-			if(findNoCase("-ALPHA",availableExt.version) || findNoCase("-BETA",availableExt.version) || findNoCase("-RC",availableExt.version)) 
-				addRow(availableExt,VersionStr.pre_release,availableExt.currentrow);
-			else if(findNoCase("-SNAPSHOT",availableExt.version)) 
-				addRow(availableExt,VersionStr.snapshot,availableExt.currentrow);
+		rtn="";
+		loop array=arr index="i" item="v" {
+			if(len(v)<5)
+			 rtn&="."&repeatString("0",5-len(v))&v;
 			else
-				addRow(availableExt,VersionStr.release,availableExt.currentrow);
-		}
+				rtn&="."&v;
+		} 
+		return 	rtn;
+	}
 
-		function addRow( src, trg, srcRow ) {
-			var trgRow = queryAddRow( arguments.trg );
-			loop array=queryColumnArray(arguments.src) item="local.col" {
-				querySetCell(arguments.trg, col, QueryGetCell( arguments.src, col, arguments.srcRow ), trgRow );
-			}
-		}
 
-		private function toVersionSortable(required string version) localMode=true {
-			version = unwrap(arguments.version.trim());
-			arr = listToArray(arguments.version,'.');
-			
-			// OSGi compatible version
-			if(arr.len()==4 && isNumeric(arr[1]) && isNumeric(arr[2]) && isNumeric(arr[3])) {
-				try{ 
-					return toOSGiVersion(version).sortable; }
-				catch(local.e){};
-			}
+</cfscript>
 
-			rtn="";
-			loop array=arr index="i" item="v" {
-				if(len(v)<5)
-				rtn&="."&repeatString("0",5-len(v))&v;
-				else
-					rtn&="."&v;
-			} 
-			return rtn;	
-		}
 
-		noneLasCounter = 0;
-	</cfscript>
-<cfif isQuery(external)>
+<cfset noneLasCounter=0>
+ <cfif isQuery(external)>
 	<cfset hiddenFormContents = "" >
 	<cfset count = 1>
-	<div class="version-selector">
-		<cfloop list="Release,Pre_Release,SnapShot" index="key">
-			<span><input 
-				<cfif count EQ 1>class="bl btn button" <cfelseif count EQ 3> class="br btn button" <cfelse> class="bm btn button" </cfif>
-				style="width:180px"
-				name="changeConnection" 
-				id="btn_#UcFirst(Lcase(key))#" 
-				value="#stText.services.update.short[key]# (#versionStr[key].RecordCount#)" 
-				onclick="enableVersion('#UcFirst(Lcase(key))#');"  
-				type="button"></span>
-			<cfsavecontent variable="tmpContent">
-				
+
+	<cfloop list="Release,Pre_Release,SnapShot" index="key">
+		<span><input 
+			<cfif count EQ 1>class="bl button" <cfelseif count EQ 3> class="br button" <cfelse> class="bm button" </cfif>
+			style="width:180px"
+			name="changeConnection" 
+			id="btn_#UcFirst(Lcase(key))#" 
+			value="#stText.services.update.short[key]# (#versionStr[key].RecordCount#)" 
+			onclick="enableVersion('#UcFirst(Lcase(key))#');"  
+			type="button"></span>
+		<cfsavecontent variable="tmpContent">
+			<div id="div_#UcFirst(Lcase(key))#" >
+
 				<cfloop query="#versionStr[key]#" group="id">
 					<cfif  (
 						session.extFilter.filter2 eq ""
@@ -252,52 +277,47 @@ Latest version: #latest.v#</cfif>"><cfif hasUpdates>
 						or doFilter(session.extFilter.filter2,info.title?:'',false)
 					)
 					>
-						<cfscript>
-							link="?action=#url.action#&action2=detail&id=#versionStr[key].id#";
-							latest=getLatestVersion(versionStr[key].id);
-							dn=getDumpNail(versionStr[key].image,130,50);
-						</cfscript>
-							<div class="extensionthumb" data-release-type="#UcFirst(Lcase(key))#">
+							<cfset link="#request.self#?action=#url.action#&action2=detail&id=#versionStr[key].id#">
+							<cfset dn=getDumpNail(versionStr[key].image,130,50)>
+							<div class="extensionthumb">
 								<cfset lasProvider=(versionStr[key].provider?:"")=="local" || findNoCase("lucee.org",versionStr[key].provider) GT 0>
 								<cfif not lasProvider><cfset noneLasCounter++></cfif>
-								<a <cfif not lasProvider> style="border-color: ###(lasProvider?'9C9':'FC6')#;"</cfif> href="#link#" 
-									title="#versionStr[key].name#
-#arrayToList(cat)# 
-Latest version: #latest.v#
-">
+								<a <cfif not lasProvider> style="border-color: ###(lasProvider?'9C9':'FC6')#;"</cfif> href="#link#" title="#stText.ext.viewdetails#">
 									<div class="extimg">
 										<cfif len(dn)>
-											<img src="#dn#" style="max-width:130px;max-height:50px"  alt="#stText.ext.extThumbnail#" />
+
+											 <img src="#dn#" style="max-width:130px;max-height:50px"  alt="#stText.ext.extThumbnail#" />
 										</cfif>
 									</div>
 									<cfset listnotinstalled = listnotinstalled+1>
 									<b title="#versionStr[key].name#">#cut(versionStr[key].name,30)#</b><br />
 									<!------>
-									<cfif structKeyExists(versionStr[key],"price") and versionStr[key].price GT 0>#versionStr[key].price# 
-										<cfif structKeyExists(versionStr[key],"currency")>#versionStr[key].currency#<cfelse>USD</cfif><cfelse>#stText.ext.free#</cfif>
+									<cfif structKeyExists(versionStr[key],"price") and versionStr[key].price GT 0>#versionStr[key].price# <cfif structKeyExists(versionStr[key],"currency")>#versionStr[key].currency#<cfelse>USD</cfif><cfelse>#stText.ext.free#</cfif>
 								</a>
 							</div>
 						</cfif>
 				</cfloop>
-				</cfsavecontent>
-				<cfset hiddenFormContents &= tmpContent>
-				<cfset count = count+1>
-		</cfloop>
-	</div>
+			</div>
+			</cfsavecontent>
+			<cfset hiddenFormContents &= tmpContent>
+			<cfset count = count+1>
+	</cfloop>
+
 	<div id="extList" class="extensionlist topBottomSpace">
 		#hiddenFormContents#
 		<div class="clear"></div>
 	</div>
 	
 </cfif>
-	<cfif listnotinstalled eq 0 and availableExt.recordcount gt 30>
+	<cfif listnotinstalled eq 0 and unInstalledExt.recordcount gt 30>
 		<b>#stText.ext.searchbox# [#session.extFilter.filter2#]</b>
 	</cfif>
-	<cfif noneLasCounter>
-		<div class="message" style="border-color: ##FC6;color:##C93;">
-			Extensions with a yellow border are not provided by the Lucee Association Switzerland and do not neccessarily follow our guidelines. These extensions are not reviewed by the Lucee Association Switzerland.
-		</div>
-	</cfif>
+
+<cfif noneLasCounter>
+	<div class="message" style="border-color: ##FC6;color:##C93;">
+		Extensions with a yellow border are not provided by the Lucee Association Switzerland and do not neccessarily follow our guidelines. These extensions are not reviewed by the Lucee Association Switzerland.
+	</div>
+</cfif>
 </cfif>
 
 <!--- upload own extension --->
@@ -332,44 +352,53 @@ Latest version: #latest.v#
 				</tr>
 			</tfoot>
 		</table>
-	</cfformClassic>	
+	</cfformClassic>
+
+	
 
 <cfhtmlbody>
-	<script type="text/javascript">
-	
-	function enableVersion(v){
-		var $pre =  $("##btn_Pre_release");
-		var $snap = $("##btn_Snapshot");
-		var $rel = $("##btn_Release");
+<script type="text/javascript">
+	$(document).ready(function(){
+		var version = 'Release';
+		enableVersion(version, "intial");
+		$("##btn_"+version).addClass("btn");
+	});
 
-		switch (v){
-			case "Release":
-				$pre.removeClass('btn');
-				$snap.removeClass('btn');
-				$rel.addClass('btn');
-				break;
-			case "Pre_release":
-				$rel.removeClass('btn');
-				$snap.removeClass('btn');
-				$pre.addClass('btn');
-				break;
-			case "Snapshot":
-				$rel.removeClass('btn');
-				$pre.removeClass('btn');
-				$snap.addClass('btn');
-				break;
-			default:
-				throw new Error("unknown: " + v);
-		}
-
-		$("##extList .extensionthumb").each(
-			function () {
-				$(this).toggle( $(this).data('release-type') == v);
+	function enableVersion(v, i){
+		$("##extList").find('div').each(function(index) {
+			var xx = $(this).attr('id');
+			if(i== 'intial'){
+				$('##'+xx).show();
+				if("div_"+v != xx){
+					$('##'+xx).hide();
+				}
+				$(".btn").removeClass('btn');
+				$("##btn_"+v).addClass("btn");
+			} else {
+				if("div_"+v == xx){
+					if($('##'+xx).is(':visible')){
+						$('##'+xx).hide();
+						$("##btn_"+v).removeClass('btn');
+					} else {
+						$('##'+xx).show();
+						$("##btn_"+v).addClass("btn");
+					}
+					if(!$('##div_Release').is(':visible') && !$('##div_Pre_release').is(':visible') && !$('##div_Snapshot').is(':visible')){
+						$('##'+xx).show();
+						$("##btn_"+v).addClass("btn")
+					}
+				}
 			}
-		);
+		});
 	}
 	</script>
-</cfhtmlbody>
+	<style>
+		.btn {
+			color:white;
+			background-color:##CC0000;
+		}
+	</style>
+	</cfhtmlbody>
 </cfoutput>
 <cfif structKeyExists(request, "refresh") && request.refresh EQ true>
 	<script type="text/javascript">

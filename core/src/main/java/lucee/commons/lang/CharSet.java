@@ -35,7 +35,8 @@ public final class CharSet implements Externalizable {
 	/**
 	 * NEVER USE THIS CONSTRUCTOR DIRECTLY, THIS IS FOR Externalizable ONLY
 	 */
-	public CharSet() {}
+	public CharSet() {
+	}
 
 	public CharSet(String charsetName) {
 		this.charset = java.nio.charset.Charset.forName(charsetName);

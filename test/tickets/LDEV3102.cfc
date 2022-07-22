@@ -1,4 +1,4 @@
-component extends = "org.lucee.cfml.test.LuceeTestCase" {
+component extends = "org.lucee.cfml.test.LuceeTestCase" labels="mssql" {
 	function beforeAll(){
 		variables.uri = createURI( "LDEV3102" );
 
@@ -403,40 +403,18 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 
 
 	private boolean function hasCredentials() {
-		return structCount(getCredentials());
+		var mssql = getCredentials();
+
+		var enabled = server._getSystemPropOrEnvVars( "lucee.datasource.mssql.modern", "", false);
+		if (! ( structCount( enabled ) eq 1 && enabled["lucee.datasource.mssql.modern"] eq "true") ){
+			//systemOutput("lucee.datasource.mssql.modern not set", true);
+			return false;
+		}
+		return structCount(mssql);
 	}
 
 	private struct function getCredentials() {
-		// parses a scope fo the credentials
-		var parseCredentials = function (struct scope){
-			var results = {};
-
-			if(
-				!isNull(arguments.scope.MSSQL_SERVER) && 
-				!isNull(arguments.scope.MSSQL_USERNAME) && 
-				!isNull(arguments.scope.MSSQL_PASSWORD) && 
-				!isNull(arguments.scope.MSSQL_PORT) && 
-				!isNull(arguments.scope.MSSQL_DATABASE)
-			) {
-				results.server=arguments.scope.MSSQL_SERVER;
-				results.username=arguments.scope.MSSQL_USERNAME;
-				results.password=arguments.scope.MSSQL_PASSWORD;
-				results.port=arguments.scope.MSSQL_PORT;
-				results.database=arguments.scope.MSSQL_DATABASE;
-			}
-
-			return results;
-		}
-
-		// check the credentials in the enviroment variables
-		var msSQL = parseCredentials(server.system.environment);
-
-		// if not found in the environment varialbes, check in the system variables
-		if( !structCount(msSQL) ){
-			msSQL = parseCredentials(server.system.properties);
-		}
-
-		return msSQL;
+		return server._getSystemPropOrEnvVars( "SERVER, USERNAME, PASSWORD, PORT, DATABASE", "MSSQL_");
 	}
 
 	private struct function getDatasource(required string type){
@@ -447,17 +425,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 		var credentials = getCredentials();
 
 		if( arguments.type == "mssql" ){
-			return {
-					class: 'com.microsoft.sqlserver.jdbc.SQLServerDriver'
-				, bundleName: 'com.microsoft.sqlserver.mssql-jdbc'
-				, bundleVersion: '7.0.0'
-				, connectionString: 'jdbc:sqlserver://' & credentials.server & ':' & credentials.port & ';databaseName=' & credentials.database & ';sendStringParametersAsUnicode=true;selectMethod=direct'
-				, username: credentials.username
-				, password: credentials.password
-				, blob:true
-				, clob:true
-				, validate:false
-			};
+			return server.getDatasource("mssql");
 		} else if( arguments.type == "jtds" ){
 			return {
 					class: 'net.sourceforge.jtds.jdbc.Driver'

@@ -99,7 +99,7 @@ public final class Login extends BodyTagImpl {
 						String encoded = strAuth.substring(pos + 1);
 						String dec;
 						try {
-							dec = Base64Coder.decodeToString(encoded, "UTF-8");
+							dec = Base64Coder.decodeToString(encoded, "UTF-8", true);
 						}
 						catch (IOException e) {
 							throw Caster.toPageException(e);

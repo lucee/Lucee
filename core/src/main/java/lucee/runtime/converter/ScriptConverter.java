@@ -77,7 +77,8 @@ public final class ScriptConverter extends ConverterSupport {
 	/**
 	 * constructor of the class
 	 */
-	public ScriptConverter() {}
+	public ScriptConverter() {
+	}
 
 	public ScriptConverter(boolean ignoreRemotingFetch) {
 		this.ignoreRemotingFetch = ignoreRemotingFetch;

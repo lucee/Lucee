@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase"	{
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="s3,zip" {
 	
 	//public function beforeTests(){}
 	
@@ -482,7 +482,7 @@ private function assertEqualPaths(string path1, string path2) {
 
 	private void function test(string label,string root){
 		var start=getTickCount();
-		var dir=arguments.root&"test-#createUniqueId()#-res/";
+		var dir=arguments.root&"lucee-res-#lcase(hash(CreateGUID()))#/";
 		
 		// make sure there are no data from a previous run 
 		if(directoryExists(dir)) {
@@ -507,13 +507,6 @@ private function assertEqualPaths(string path1, string path2) {
 		assertFalse(DirectoryExists(dir));
 
 	}
-
-	private struct function getCredentials() {
-		// getting the credentials from the environment variables
-		return server.getTestService("s3");
-	}
-
-	
 
 	private void function addMapping(required string virtual, required string path){
 		var mappings=getApplicationSettings().mappings;
@@ -575,6 +568,11 @@ private function assertEqualPaths(string path1, string path2) {
 		finally {
 			fileDelete(file);
 		}
+	}
+
+	private struct function getCredentials() {
+		// getting the credetials from the enviroment variables
+		return server.getTestService("s3");
 	}
 
 	public void function testS3() localmode=true{

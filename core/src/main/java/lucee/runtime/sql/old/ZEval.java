@@ -28,7 +28,8 @@ import java.util.Vector;
 
 public final class ZEval {
 
-	public ZEval() {}
+	public ZEval() {
+	}
 
 	public boolean eval(ZTuple ztuple, ZExp zexp) throws SQLException {
 		if (ztuple == null || zexp == null) throw new SQLException("ZEval.eval(): null argument or operator");

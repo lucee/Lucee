@@ -58,6 +58,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import lucee.commons.db.DBUtil;
 import lucee.commons.io.IOUtil;
+import lucee.commons.io.SystemUtil;
 import lucee.commons.io.SystemUtil.TemplateLine;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
@@ -124,6 +125,8 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	public static final Collection.Key GENERATED_KEYS = KeyImpl.getInstance("GENERATED_KEYS");
 	public static final Collection.Key GENERATEDKEYS = KeyImpl.getInstance("GENERATEDKEYS");
 
+	private static boolean useMSSQLModern;
+
 	private boolean populating;
 
 	private QueryColumnImpl[] columns;
@@ -141,7 +144,10 @@ public class QueryImpl implements Query, Objects, QueryResult {
 
 	private Collection.Key indexName;
 	private Map<Collection.Key, Integer> indexes;// = new
-	// ConcurrentHashMap<Collection.Key,Integer>();
+
+	static {
+		useMSSQLModern = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.datasource.mssql.modern", null), false);
+	}
 
 	@Override
 	public String getTemplate() {
@@ -247,7 +253,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 			boolean allowToCachePreperadeStatement, QueryImpl qry, QueryResult qr, Collection.Key keyName) throws PageException {
 
 		// MSSQL is handled separatly
-		if (DataSourceUtil.isMSSQLDriver(dc)) {
+		if (useMSSQLModern && DataSourceUtil.isMSSQLDriver(dc)) {
 			executeMSSQL(pc, dc, sql, maxrow, fetchsize, timeout, createUpdateData, allowToCachePreperadeStatement, qry, qr, keyName);
 			return;
 		}
@@ -1131,8 +1137,8 @@ public class QueryImpl implements Query, Objects, QueryResult {
 			if (key.equals(KeyConstants._CURRENTROW)) return new Double(row);
 			if (key.equals(KeyConstants._COLUMNLIST)) return getColumnlist(getKeyCase(ThreadLocalPageContext.get()));
 		}
-		throw new DatabaseException("Column [" + key + "] not found in query", 
-			"available columns are [" + getColumnlist(getKeyCase(ThreadLocalPageContext.get()),", ") + "]", sql, null);
+		throw new DatabaseException("Column [" + key + "] not found in query", "available columns are [" + getColumnlist(getKeyCase(ThreadLocalPageContext.get()), ", ") + "]", sql,
+				null);
 	}
 
 	@Override
@@ -1170,9 +1176,9 @@ public class QueryImpl implements Query, Objects, QueryResult {
 		if (removed == null) {
 			if (key.equals(KeyConstants._RECORDCOUNT) || key.equals(KeyConstants._CURRENTROW) || key.equals(KeyConstants._COLUMNLIST))
 				throw new DatabaseException("Cannot remove [" + key + "], it is not a column",
-						"available columns are [" + getColumnlist(getKeyCase(ThreadLocalPageContext.get()),", ") + "]", null, null);
+						"available columns are [" + getColumnlist(getKeyCase(ThreadLocalPageContext.get()), ", ") + "]", null, null);
 			throw new DatabaseException("Cannot remove column [" + key + "], it doesn't exist",
-					"available columns are [" + getColumnlist(getKeyCase(ThreadLocalPageContext.get()),", ") + "]", null, null);
+					"available columns are [" + getColumnlist(getKeyCase(ThreadLocalPageContext.get()), ", ") + "]", null, null);
 		}
 		return removed;
 	}
@@ -1247,7 +1253,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 		if (index != -1) {
 			return columns[index].set(row, value, trustType);
 		}
-		throw new DatabaseException("Column [" + key + "] does not exist", "columns are [" + getColumnlist(getKeyCase(ThreadLocalPageContext.get()),", ") + "]", sql, null);
+		throw new DatabaseException("Column [" + key + "] does not exist", "columns are [" + getColumnlist(getKeyCase(ThreadLocalPageContext.get()), ", ") + "]", sql, null);
 	}
 
 	@Override
@@ -1325,7 +1331,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	/*
 	 * public String getColumnlist() { return getColumnlist(true); }
 	 */
-	
+
 	public boolean go(int index) {
 		return go(index, getPid());
 	}
@@ -1524,8 +1530,8 @@ public class QueryImpl implements Query, Objects, QueryResult {
 			if (key.equals(KeyConstants._CURRENTROW)) return new QueryColumnRef(this, key, Types.INTEGER);
 			if (key.equals(KeyConstants._COLUMNLIST)) return new QueryColumnRef(this, key, Types.INTEGER);
 		}
-		throw new DatabaseException("Column [" + key.getString() + "] not found in query, Columns are [" + getColumnlist(getKeyCase(ThreadLocalPageContext.get()), ", ") + "]", null, sql,
-				null);
+		throw new DatabaseException("Column [" + key.getString() + "] not found in query, Columns are [" + getColumnlist(getKeyCase(ThreadLocalPageContext.get()), ", ") + "]",
+				null, sql, null);
 	}
 
 	private void renameEL(Collection.Key src, Collection.Key trg) {

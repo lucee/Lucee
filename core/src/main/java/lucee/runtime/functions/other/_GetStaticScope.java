@@ -29,7 +29,7 @@ public class _GetStaticScope implements Function {
 
 	public static Struct call(PageContext pc, String componentPath) throws PageException {
 
-		return ComponentLoader.searchComponent(pc, null, componentPath, null, null, false, false).staticScope();
+		return ComponentLoader.getStaticScope(pc, null, componentPath, null, null);
 	}
 
 }

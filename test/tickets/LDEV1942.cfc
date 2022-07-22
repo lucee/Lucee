@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase"{
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="mysql" {
 	function beforeAll(){
 		variables.uri = createURI("LDEV1942");
 	}
@@ -44,6 +44,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 	}
 
 	private boolean function hasCredentials() {
-		return structCount(server.getDatasource("mysql"));
+		return (structCount(server.getDatasource("mysql")) gt 0);
 	}
 }

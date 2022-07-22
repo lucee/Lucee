@@ -61,7 +61,8 @@ public final class DBUtil {
 		try {
 			if (conn != null) conn.setTransactionIsolation(level);
 		}
-		catch (Exception e) {}
+		catch (Exception e) {
+		}
 	}
 
 	public static void closeEL(Statement stat) {

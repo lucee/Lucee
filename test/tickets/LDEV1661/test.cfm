@@ -10,6 +10,10 @@
 			SELECT * FROM users
 			WHERE sNo = 345
 		</cfquery>
+		<!--- <cfquery name="chkConfig">
+			SELECT @@global.time_zone, @@session.time_zone
+		</cfquery>
+		#systemOutput(chkConfig, true)# --->
 		#selectRecord.myTimestamp#
 	<cfelseif FORM.Scene EQ 2>
 		<!--- update timestamp using createOdbcDateTime() --->

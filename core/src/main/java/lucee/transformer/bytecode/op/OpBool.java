@@ -94,15 +94,17 @@ public final class OpBool extends ExpressionBase implements ExprBoolean {
 		}
 		else if (operation == Factory.OP_BOOL_EQV) {
 
-			left.writeOut(bc, MODE_VALUE);
-			right.writeOut(bc, MODE_VALUE);
-			adapter.invokeStatic(Types.OPERATOR, Methods_Operator.OPERATOR_EQV_BV_BV);
+			adapter.loadArg(0);
+			left.writeOut(bc, MODE_REF);
+			right.writeOut(bc, MODE_REF);
+			adapter.invokeStatic(Types.OP_UTIL, Methods_Operator.OPERATOR_EQV_PC_B_B);
 		}
 		else if (operation == Factory.OP_BOOL_IMP) {
 
-			left.writeOut(bc, MODE_VALUE);
-			right.writeOut(bc, MODE_VALUE);
-			adapter.invokeStatic(Types.OPERATOR, Methods_Operator.OPERATOR_IMP_BV_BV);
+			adapter.loadArg(0);
+			left.writeOut(bc, MODE_REF);
+			right.writeOut(bc, MODE_REF);
+			adapter.invokeStatic(Types.OP_UTIL, Methods_Operator.OPERATOR_IMP_PC_B_B);
 		}
 		return Types.BOOLEAN_VALUE;
 

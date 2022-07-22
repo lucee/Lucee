@@ -698,13 +698,14 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 				+ (id == null ? "?" : "&") + "allowRedirect=true&jv=" + System.getProperty("java.version")
 
 		);
-		log(Logger.LOG_WARNING, "Downloading bundle [" + symbolicName + ":" + symbolicVersion + "] from " + updateUrl + " and copying to " + jar);
+		log(Logger.LOG_INFO, "Downloading bundle [" + symbolicName + ":" + symbolicVersion + "] from " + updateUrl + " and copying to " + jar);
 
 		int code;
 		HttpURLConnection conn;
 		try {
 			conn = (HttpURLConnection) updateUrl.openConnection();
 			conn.setRequestMethod("GET");
+			conn.setConnectTimeout(10000);
 			conn.connect();
 			code = conn.getResponseCode();
 		}
@@ -730,6 +731,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 				try {
 					conn = (HttpURLConnection) url.openConnection();
 					conn.setRequestMethod("GET");
+					conn.setConnectTimeout(10000);
 					conn.connect();
 					code = conn.getResponseCode();
 				}
@@ -904,10 +906,10 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 
 		final URL infoUrl = new URL(updateProvider, "/rest/update/provider/update-for/" + version.toString() + (id != null ? id.toQueryString() : ""));
 
-		log(Logger.LOG_DEBUG, "Check for update at " + updateProvider);
+		log(Logger.LOG_DEBUG, "Checking for core update at [" + updateProvider + "]");
 
 		String strAvailableVersion = toString((InputStream) infoUrl.getContent()).trim();
-		log(Logger.LOG_DEBUG, "Received available update versions from update provider (" + strAvailableVersion + ") ");
+		log(Logger.LOG_DEBUG, "Update provider reports an updated core version available [" + strAvailableVersion + "] ");
 
 		strAvailableVersion = CFMLEngineFactorySupport.removeQuotes(strAvailableVersion, true);
 
@@ -916,11 +918,11 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 			return null;
 		}
 
-		log(Logger.LOG_DEBUG, "Found a newer Version \n - current Version [" + version.toString() + "]\n - available Version [" + strAvailableVersion + "]");
+		log(Logger.LOG_INFO, "Found a newer Version \n - current Version [" + version.toString() + "]\n - available Version [" + strAvailableVersion + "]");
 
 		final URL updateUrl = new URL(updateProvider,
 				"/rest/update/provider/download/" + strAvailableVersion + (id != null ? id.toQueryString() : "") + (id == null ? "?" : "&") + "allowRedirect=true");
-		log(Logger.LOG_DEBUG, "download update from " + updateUrl);
+		log(Logger.LOG_INFO, "Downloading core update from [" + updateUrl + "]");
 
 		// local resource
 		final File patchDir = getPatchDirectory();
@@ -932,6 +934,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 		try {
 			conn = (HttpURLConnection) updateUrl.openConnection();
 			conn.setRequestMethod("GET");
+			conn.setConnectTimeout(10000);
 			conn.connect();
 			code = conn.getResponseCode();
 		}
@@ -956,6 +959,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 				try {
 					conn = (HttpURLConnection) url.openConnection();
 					conn.setRequestMethod("GET");
+					conn.setConnectTimeout(10000);
 					conn.connect();
 					code = conn.getResponseCode();
 				}

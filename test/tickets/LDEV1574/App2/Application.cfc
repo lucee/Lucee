@@ -3,4 +3,8 @@ component {
 	this.setclientcookies = true;
 	this.clientmanagement = true;
 	this.sessionmanagement = true;
+
+	public function onRequestStart() {
+		setting requesttimeout=10;
+	}
 }

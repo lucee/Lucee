@@ -93,7 +93,7 @@ public final class LDAPClient {
 	 * @param port
 	 * @param binaryColumns
 	 */
-	public LDAPClient(String server, int port, String[] binaryColumns) {
+	public LDAPClient(String server, int port, int timeout, String[] binaryColumns) {
 
 		env.put("java.naming.factory.initial", "com.sun.jndi.ldap.LdapCtxFactory");
 		env.put("java.naming.provider.url", "ldap://" + server + ":" + port);
@@ -104,6 +104,9 @@ public final class LDAPClient {
 
 		// Referral
 		env.put("java.naming.referral", "ignore");
+
+		// timeout
+		env.put("com.sun.jndi.ldap.read.timeout", timeout);		
 	}
 
 	/**
@@ -348,7 +351,8 @@ public final class LDAPClient {
 						try {
 							value = attributesRow.get(name).get();
 						}
-						catch (Exception e) {}
+						catch (Exception e) {
+						}
 
 						qry.setAtEL("name", len, name);
 						qry.setAtEL("value", len, value);
