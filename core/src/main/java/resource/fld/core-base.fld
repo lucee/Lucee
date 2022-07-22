@@ -6836,6 +6836,7 @@ Default list delimiter: comma character.</description>
 		<name>hash</name>
 		<class>lucee.runtime.functions.string.Hash</class>
 		<member-name>hash</member-name>
+		<member-type>string</member-type>
 		<description>Converts a variable-length string to a 32-byte, hexadecimal
         string, using the MD5 algorithm. (It is not possible to convert
         the hash result back to the source string.)
@@ -6845,8 +6846,8 @@ Default list delimiter: comma character.</description>
 			<alias>string</alias>
 			<type>any</type>
 			<required>Yes</required>
-		<description>String or byte array to hash.</description>
-    </argument>
+			<description>String or byte array to hash.</description>
+    	</argument>
 		<argument>
 			<name>algorithm</name>
 			<type>string</type>
@@ -6859,7 +6860,7 @@ Default list delimiter: comma character.</description>
 - SHA-256: Generates a 44-character string using the SHA-256 algorithm specified by FIPS-180-2.
 - SHA-384: Generates a 64-character string using the SHA-384 algorithm specified by FIPS-180-2.
 - SHA-512: Generates an 88-character string using the SHA-1 algorithm specified by FIPS-180-2.</description>
-    </argument>
+    	</argument>
 		<argument>
 			<name>encoding</name>
 			<type>string</type>
@@ -13640,6 +13641,7 @@ _- asc (default): ascending (a to z) sort order
 		<name>toBase64</name>
 		<class>lucee.runtime.functions.string.ToBase64</class>
 		<member-name>toBase64</member-name>
+		<member-type>string</member-type>
 		<description>Calculates the Base64 representation of a string or binary
         object. The Base64 format uses printable characters, allowing
         binary data to be sent in forms and e-mail, and stored in a
@@ -13649,15 +13651,15 @@ _- asc (default): ascending (a to z) sort order
 			<alias>string,BinaryData</alias>
 			<type>any</type>
 			<required>Yes</required>
-		<description>A string, the name of a string, or a binary object.</description>
-    </argument>
+			<description>A string, the name of a string, or a binary object.</description>
+    	</argument>
 		<argument>
 			<name>encoding</name>
 			<type>string</type>
 			<required>No</required>
-		<description>For a string, defines how characters are represented in a
+			<description>For a string, defines how characters are represented in a
             byte array.</description>
-    </argument>
+    	</argument>
 		<return>
 			<type>string</type>
 		</return>
