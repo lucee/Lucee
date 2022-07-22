@@ -1,4 +1,4 @@
-name: Build with Java 8
+name: Test with Java 8
 
 on: [workflow_dispatch]
 
@@ -7,4 +7,3 @@ jobs:
     uses: ./.github/workflows/main.yml
     with:
       LUCEE_TEST_JAVA_VERSION: '8'
-      LUCEE_BUILD_JAVA_VERSION: '8'

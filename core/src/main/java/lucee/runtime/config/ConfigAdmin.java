@@ -1479,7 +1479,7 @@ public final class ConfigAdmin {
 		if (!StringUtil.isEmpty(id)) el.setEL(KeyConstants._id, id);
 		else if (el.containsKey(KeyConstants._id)) el.removeEL(KeyConstants._id);
 
-		if (username.length() > 0) el.setEL(KeyConstants._username, username);
+		el.setEL(KeyConstants._username, username);
 		el.setEL(KeyConstants._password, ConfigWebUtil.encrypt(password));
 
 		el.setEL("host", host);
@@ -3014,7 +3014,7 @@ public final class ConfigAdmin {
 		if (queryUsage != null) root.setEL("debuggingQueryUsage", queryUsage.booleanValue());
 		else rem(root, "debuggingQueryUsage");
 
-		if (queryUsage != null) root.setEL("debuggingThread", thread.booleanValue());
+		if (thread != null) root.setEL("debuggingThread", thread.booleanValue());
 		else rem(root, "debuggingThread");
 	}
 

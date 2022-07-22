@@ -6,6 +6,10 @@ on:
       LUCEE_TEST_JAVA_VERSION:
         required: true
         type: string
+      LUCEE_BUILD_JAVA_VERSION:
+        required: true
+        type: string
+        default: '8'
   push: 
   pull_request:
   workflow_dispatch:
@@ -19,7 +23,7 @@ jobs:
 
     runs-on: ubuntu-latest
     env:
-      DO_DEPLOY: "${{ github.event_name == 'push' && github.ref == 'refs/heads/6.0' }}"
+      DO_DEPLOY: "${{ github.event_name == 'push' && github.ref == 'refs/heads/6.0' }}" # also only publish builds with Java 8, see below
     services:
       sql-server:
         # Docker Hub image
@@ -58,7 +62,7 @@ jobs:
       with:
         timezoneLinux: "UTC"
     - uses: actions/checkout@v2
-    - name: Set up Test Java Version
+    - name: Set up Test Java Version ${{ inputs.LUCEE_TEST_JAVA_VERSION }}
       uses: actions/setup-java@v2
       if: ${{ inputs.LUCEE_TEST_JAVA_VERSION != '' }}
       with:
@@ -67,11 +71,21 @@ jobs:
     - name: Stash Test Java Version Home
       if: ${{ inputs.LUCEE_TEST_JAVA_VERSION != '' }}
       run: echo "LUCEE_TEST_JAVA_EXEC=${{ env.JAVA_HOME }}/bin/java" >> $GITHUB_ENV
-    - name: Set up JDK 8
+    - name: Set up build JDK '${{ inputs.LUCEE_BUILD_JAVA_VERSION }}'
       uses: actions/setup-java@v2
+      if: ${{ inputs.LUCEE_BUILD_JAVA_VERSION != '' && inputs.LUCEE_TEST_JAVA_VERSION != inputs.LUCEE_BUILD_JAVA_VERSION }}
+      with:
+        java-version: '${{ inputs.LUCEE_BUILD_JAVA_VERSION }}'
+        distribution: 'temurin'
+    - name: Set up build JDK 8 (Lucee default)
+      uses: actions/setup-java@v2
+      if: ${{ inputs.LUCEE_TEST_JAVA_VERSION == '' && inputs.LUCEE_TEST_JAVA_VERSION != 8 }}
       with:
         java-version: '8'
         distribution: 'temurin'
+    - name: Disable DEPLOY if not building with Java 8 (Lucee default)
+      if: ${{ inputs.LUCEE_TEST_JAVA_VERSION == '' && inputs.LUCEE_TEST_JAVA_VERSION != 8 }}
+      run: echo "DO_DEPLOY=false" >> $GITHUB_ENV
     - name: Cache Lucee extensions
       uses: actions/cache@v2
       with:
