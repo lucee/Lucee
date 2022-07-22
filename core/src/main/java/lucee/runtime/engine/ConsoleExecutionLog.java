@@ -47,12 +47,13 @@ public class ConsoleExecutionLog extends ExecutionLogSupport {
 	protected void _log(int startPos, int endPos, long startTime, long endTime) {
 
 		long diff = endTime - startTime;
-		LogUtil.log(ThreadLocalPageContext.getConfig(pc), Log.LEVEL_INFO, Controler.class.getName(),
+		LogUtil.log(ThreadLocalPageContext.getConfig(pc), Log.LEVEL_TRACE, Controler.class.getName(),
 				pc.getId() + ":" + pc.getCurrentPageSource().getDisplayPath() + ":" + positons(startPos, endPos) + " > " + timeLongToString(diff));
 	}
 
 	@Override
-	protected void _release() {}
+	protected void _release() {
+	}
 
 	private static String positons(int startPos, int endPos) {
 		if (startPos == endPos) return startPos + "";

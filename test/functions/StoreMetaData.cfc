@@ -17,32 +17,25 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  * 
  ---><cfscript>
-component extends="org.lucee.cfml.test.LuceeTestCase"	{
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="s3"	{
 	
 	//public function beforeTests(){}
 	
 	//public function afterTests(){}
 
 
-	private struct function getCredencials() {
-		// getting the credetials from the enviroment variables
-		var s3={};
-		if(!isNull(server.system.environment.S3_ACCESS_ID) && !isNull(server.system.environment.S3_SECRET_KEY)) {
-			s3.accessKeyId=server.system.environment.S3_ACCESS_ID;
-			s3.awsSecretKey=server.system.environment.S3_SECRET_KEY;
-		}
-		// getting the credetials from the system variables
-		else if(!isNull(server.system.properties.S3_ACCESS_ID) && !isNull(server.system.properties.S3_SECRET_KEY)) {
-			s3.accessKeyId=server.system.properties.S3_ACCESS_ID;
-			s3.awsSecretKey=server.system.properties.S3_SECRET_KEY;
-		}
-		return s3;
+	private struct function getCredentials() {
+		// getting the credentials from the environment variables
+		return server.getTestService("s3");
 	}
 	  
 	public function setUp(){
-		var s3=getCredencials();
-		if(!isNull(s3.accessKeyId)) {
-			application action="update" s3=s3; 
+		var s3=getCredentials();
+		if(!isNull(s3.ACCESS_KEY_ID)) {
+			application action="update" s3={
+				accessKeyId: s3.ACCESS_KEY_ID,
+				awsSecretKey: s3.SECRET_KEY
+			}; 
 			variables.s3Supported=true;
 		}
 		else 

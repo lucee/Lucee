@@ -230,12 +230,13 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 			ThreadLocalPageContext.register(pc);
 			tmpRegister = true;
 		}
-		boolean releaseFailed = false;
+		boolean reuse = true;
 		try {
+			reuse = !pc.hasFamily(); // we do not recycle when still referenced by child threads
 			pc.release();
 		}
 		catch (Exception e) {
-			releaseFailed = true;
+			reuse = false;
 			config.getLog("application").error("release page context", e);
 		}
 		if (tmpRegister) ThreadLocalPageContext.register(beforePC);
@@ -245,7 +246,7 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 		if (isChild) {
 			runningChildPcs.remove(Integer.valueOf(pc.getId()));
 		}
-		if (pcs.size() < 100 && ((PageContextImpl) pc).getTimeoutStackTrace() == null && !releaseFailed)// not more than 100 PCs
+		if (pcs.size() < 100 && ((PageContextImpl) pc).getTimeoutStackTrace() == null && reuse)// not more than 100 PCs
 			pcs.push((PageContextImpl) pc);
 
 		if (runningPcs.size() > MAX_SIZE) clean(runningPcs);
@@ -307,7 +308,7 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 					else {
 						if (log != null) {
 							PageContext root = pc.getRootPageContext();
-							log.log(Log.LEVEL_ERROR, "controller", "reach request timeout with " + (root != null && root != pc ? "thread" : "request") + " [" + pc.getId()
+							log.log(Log.LEVEL_WARN, "controller", "reach request timeout with " + (root != null && root != pc ? "thread" : "request") + " [" + pc.getId()
 									+ "], but the request is not killed because we did not reach all thresholds set. ATM we have " + getActiveRequests() + " active request(s) and "
 									+ getActiveThreads() + " active cfthreads " + getPath(pc) + "." + MonitorState.getBlockedThreads(pc) + RequestTimeoutException.locks(pc),
 									ExceptionUtil.toThrowable(pc.getThread().getStackTrace()));
@@ -319,7 +320,7 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 					Log log = pc.getConfig().getLog("requesttimeout");
 					if (log != null) {
 						PageContext root = pc.getRootPageContext();
-						log.log(Log.LEVEL_WARN, "controller", "downgrade priority of the a " + (root != null && root != pc ? "thread" : "request") + " at " + getPath(pc) + ". "
+						log.log(Log.LEVEL_INFO, "controller", "downgrade priority of the a " + (root != null && root != pc ? "thread" : "request") + " at " + getPath(pc) + ". "
 								+ MonitorState.getBlockedThreads(pc) + RequestTimeoutException.locks(pc), ExceptionUtil.toThrowable(pc.getThread().getStackTrace()));
 					}
 					try {
@@ -515,12 +516,14 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 			try {
 				if (pc.getConfig().debug()) data.setEL("debugger", pc.getDebugger().getDebuggingData(pc));
 			}
-			catch (PageException e2) {}
+			catch (PageException e2) {
+			}
 
 			try {
 				data.setEL(KeyConstants._id, Hash.call(pc, pc.getId() + ":" + pc.getStartTime()));
 			}
-			catch (PageException e1) {}
+			catch (PageException e1) {
+			}
 
 			data.setEL(KeyConstants._hash, cw.getHash());
 			data.setEL("contextId", cw.getIdentification().getId());
@@ -533,17 +536,20 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 			try {
 				scopes.setEL(KeyConstants._application, pc.applicationScope());
 			}
-			catch (PageException pe) {}
+			catch (PageException pe) {
+			}
 
 			try {
 				scopes.setEL(KeyConstants._session, pc.sessionScope());
 			}
-			catch (PageException pe) {}
+			catch (PageException pe) {
+			}
 
 			try {
 				scopes.setEL(KeyConstants._client, pc.clientScope());
 			}
-			catch (PageException pe) {}
+			catch (PageException pe) {
+			}
 			scopes.setEL(KeyConstants._cookie, pc.cookieScope());
 			scopes.setEL(KeyConstants._variables, pc.variablesScope());
 			if (!(pc.localScope() instanceof LocalNotSupportedScope)) {
@@ -581,7 +587,8 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 					break;
 				}
 			}
-			catch (PageException e1) {}
+			catch (PageException e1) {
+			}
 
 		}
 		// }

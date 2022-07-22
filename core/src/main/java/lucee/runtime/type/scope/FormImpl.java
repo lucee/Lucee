@@ -26,6 +26,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.UUID;
 
 import javax.servlet.ServletInputStream;
 import javax.servlet.http.HttpServletRequest;
@@ -228,10 +229,10 @@ public final class FormImpl extends ScopeSupport implements Form, ScriptProtecte
 		}
 	}
 
-	public static synchronized String getFileName() {
-		count++;
-		if (count < 0) count = 1;
-		return "tmp-" + Long.toString(count, Character.MAX_RADIX) + ".upload";
+	private static String getFileName() {
+		UUID uuid = UUID.randomUUID();
+		String setUUID = uuid.toString();
+		return "tmp-" + setUUID + ".upload";
 	}
 
 	/*
@@ -366,7 +367,8 @@ public final class FormImpl extends ScopeSupport implements Form, ScriptProtecte
 				key = ListUtil.arrayToList(array, ".").trim();
 			}
 		}
-		catch (PageException e) {}
+		catch (PageException e) {
+		}
 		return key;
 	}
 
@@ -409,7 +411,7 @@ public final class FormImpl extends ScopeSupport implements Form, ScriptProtecte
 		this.raw = nr;
 
 		if (!isInitalized()) return;
-		fillDecodedEL(this.raw, encoding, isScriptProtected(), ac.getSameFieldAsArray(SCOPE_FORM));
+		fillDecodedEL(this.raw, encoding, isScriptProtected(), ac != null ? ac.getSameFieldAsArray(SCOPE_FORM) : false);
 		setFieldNames();
 	}
 
@@ -485,7 +487,8 @@ public final class FormImpl extends ScopeSupport implements Form, ScriptProtecte
 			try {
 				raw[i] = new ByteNameValuePair(items[i].getName().getBytes("iso-8859-1"), items[i].getValue().getBytes("iso-8859-1"), items[i].isUrlEncoded());
 			}
-			catch (UnsupportedEncodingException e) {}
+			catch (UnsupportedEncodingException e) {
+			}
 		}
 
 		int size = 0;

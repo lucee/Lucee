@@ -32,19 +32,20 @@ public interface QueryCache {
 
 	/**
 	 * clear expired queries from cache
-	 * 
-	 * @throws IOException
+	 * @param pc page context
+	 * @throws IOException IO Exception
 	 */
 	public abstract void clearUnused(PageContext pc) throws IOException;
 
 	/**
 	 * returns a Query from Query Cache or null if no match found
 	 * 
-	 * @param sql
-	 * @param datasource
-	 * @param username
-	 * @param password
-	 * @param cacheAfter
+	 * @param pc page context
+	 * @param sql sql
+	 * @param datasource datasource
+	 * @param username username
+	 * @param password password
+	 * @param cacheAfter cache after
 	 * @return Query
 	 */
 	public abstract Query getQuery(PageContext pc, SQL sql, String datasource, String username, String password, Date cacheAfter);
@@ -52,37 +53,39 @@ public interface QueryCache {
 	/**
 	 * sets a Query to Cache
 	 * 
-	 * @param sql
-	 * @param datasource
-	 * @param username
-	 * @param password
-	 * @param value
-	 * @param cacheBefore
+	 * @param pc page context
+	 * @param sql sql
+	 * @param datasource datasource
+	 * @param username username
+	 * @param password password
+	 * @param value value
+	 * @param cacheBefore cache before
 	 */
 	public abstract void set(PageContext pc, SQL sql, String datasource, String username, String password, Object value, Date cacheBefore);
 
 	/**
 	 * clear the cache
 	 * 
-	 * @param pc
+	 * @param pc page context
 	 */
 	public abstract void clear(PageContext pc);
 
 	/**
 	 * clear the cache
 	 * 
-	 * @param filter
+	 * @param pc page context
+	 * @param filter filter
 	 */
 	public abstract void clear(PageContext pc, QueryCacheFilter filter);
 
 	/**
 	 * removes query from cache
 	 * 
-	 * @param pc
-	 * @param sql
-	 * @param datasource
-	 * @param username
-	 * @param password
+	 * @param pc page context
+	 * @param sql sql
+	 * @param datasource datasource
+	 * @param username username
+	 * @param password password
 	 */
 	public abstract void remove(PageContext pc, SQL sql, String datasource, String username, String password);
 

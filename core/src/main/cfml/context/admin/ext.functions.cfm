@@ -4,21 +4,31 @@
 		<cfreturn RandRange(1,0)>
 	</cffunction>
 
-	<cffunction name="updateAvailable" output="no">
+	<cffunction name="updateAvailable" output="no" localmode="true">
 		<cfargument name="data" required="yes" type="struct">
 		<cfargument name="extensions" required="yes" type="query">
 		<cfset var result=variables.getdataByid(arguments.data.id,arguments.extensions)>
 
-		<cfif result.count()==0><cfreturn false></cfif>
-		<cfif arguments.data.version LT result.version>
-			<cfreturn true>
+		<cfset local.sort = []>
+		<cfset local.sortversion= ""> <!--- not even used --->
+		<cfloop list="#Arraytolist(result.otherVersions)#" index="local.i">
+			<cfif !listcontainsnocase(i,"-")>
+				<cfset sortversion = arrayappend(sort, variables.toVersionSortable(i))>
+			</cfif>
+		</cfloop>
+		<cfif !listContainsNoCase(result.version,"-SNAPSHOT")>
+			<cfset sortversion = arrayAppend(sort, variables.toVersionSortable(result.version))>
 		</cfif>
-
+		<cfset latest = arraySort(sort,"text","desc")>
+		<cfset getInstalledVersion = listfirst(trim(arguments.data.version),"-")>
+		<cfif result.count()==0><cfreturn false></cfif>
+		<cfif arrayIndexExists(sort,1)>
+			<cfif sort[1] gt variables.toVersionSortable(getInstalledVersion)>
+				<cfreturn true>
+			</cfif>
+		</cfif>
 		<cfreturn false>
 	</cffunction>
-
-
-
 
 	<cffunction name="doFilter" returntype="string" output="false">
 		<cfargument name="filter" required="yes" type="string">
@@ -35,24 +45,13 @@
 		</cfif>
 	</cffunction>
 
-
-
-
-
-
-
-<cfscript>
-
-</cfscript>
 	<cffunction name="loadCFC" returntype="struct" output="yes">
 		<cfargument name="provider" required="yes" type="string">
 		<cfset systemOutput("deprecated function call:<print-stack-trace>",true,true)>
 		<cfreturn createObject('component',"ExtensionProviderProxy").init(arguments.provider)>
 	</cffunction>
 
-
 	<cfset request.loadCFC=loadCFC>
-
 
 	<cffunction name="getDetail" returntype="struct" output="yes">
 		<cfargument name="hashProvider" required="yes" type="string">
@@ -62,6 +61,8 @@
 		<cfloop query="providers">
 			<cfif hash(providers.url) EQ arguments.hashProvider>
 				<cfset detail.provider=loadCFC(providers.url)>
+				<cfdump var=#detail.provider#>
+				<cfabort>
 				<cfset var apps=detail.provider.listApplications()>
 				<cfset detail.info=detail.provider.getInfo()>
 				<cfset detail.url=providers.url>
@@ -101,11 +102,8 @@
 
 </cfscript>
 	<cffunction name="getInstalledById" returntype="struct" output="yes">
-
 		<cfreturn tmp>
 	</cffunction>
-
-
 
 	<cffunction name="getDownloadDetails" returntype="struct" output="yes">
 		<cfargument name="hashProvider" required="yes" type="string">
@@ -123,8 +121,8 @@
 		</cfloop>
 		<cfreturn struct()>
 	</cffunction>
-	<cfset request.getDownloadDetails=getDownloadDetails>
 
+	<cfset request.getDownloadDetails=getDownloadDetails>
 
 	<cffunction name="getDetailFromExtension" returntype="struct" output="yes">
 		<cfargument name="hashProvider" required="yes" type="string">
@@ -152,7 +150,7 @@
 		<cfreturn detail>
 	</cffunction>
 
-	<cffunction name="getDumpNail" localmode=true>
+	<cffunction name="getDumpNail" localmode=true output="false">
 		<cfargument name="src" required="yes" type="string">
 		<cfargument name="width" required="yes" type="number" default="80">
 		<cfargument name="height" required="yes" type="number" default="40">
@@ -176,6 +174,10 @@
 					<cfset ext="png"><!--- base64 encoded binary --->
 				</cfif>
 			</cfif>
+			<cfif !StructKeyExists(mimetypes, ext)>
+				<cfset ext="png">
+			</cfif>
+
 			<cfset cache=true>
 			<cfset serversideDN=true>
 
@@ -184,45 +186,53 @@
 			<cfif !directoryExists(tmpdir)>
 				<cfset directoryCreate(tmpdir)>
 			</cfif>
-			<cfset local.tmpfile=tmpdir&"__"&id&"."&ext>
+			<cfset local.tmpfile = tmpdir & "/extLogo__" & id & "." & ext>
 			<cfset local.fileName = id&"."&ext>
 
-			<!--- already in cache --->
+			<!--- already in cache 
+				TODO cache busting?????
+			--->
 			<cfif cache && fileExists(tmpfile)>
 				<cfreturn "data:image/png;base64,#toBase64(fileReadBinary(tmpfile))#">
 			</cfif>
-
 			
-			<cfif len(arguments.src)<500 && (isValid("URL", arguments.src) || fileExists(arguments.src))>
-				<cfset local.data=fileReadBinary(arguments.src)>
+			<cfif (isValid("URL", arguments.src)) || fileExists(arguments.src)>
+				<!--- fetching from an url can be slow, over 1s --->
+				<cfset local.data=FileReadBinary(arguments.src)>
 			<cfelse>
-				<cfset local.data=toBinary(src)>
+				<cfset local.data=toBinary(arguments.src)>
 			</cfif>
 			
 			<!--- is the image extension installed? --->
 			<cfif serversideDN && extensionExists("B737ABC4-D43F-4D91-8E8E973E37C40D1B")> 
-				<cfset local.img=imageRead(data)>
-				<!--- shrink images if needed --->
-				<cfif  (img.width*img.height) GT 1000000 && (img.height GT arguments.height or img.width GT arguments.width)>
-					<cfif img.height GT arguments.height >
-						<cfset imageResize(img,"",arguments.height)>
+				<cfif isImage(data)>
+					<cfset local.img=imageRead(data)>
+					<!--- shrink images if needed --->
+					<cfif  (img.width*img.height) GT 1000000 && (img.height GT arguments.height or img.width GT arguments.width)>
+						<cfif img.height GT arguments.height >
+							<cfset imageResize(img,"",arguments.height)>
+						</cfif>
+						<cfif img.width GT arguments.width>
+							<cfset imageResize(img,arguments.width,"")>
+						</cfif>
 					</cfif>
-					<cfif img.width GT arguments.width>
-						<cfset imageResize(img,arguments.width,"")>
-					</cfif>
-					<!--- we go this way to influence the quality of the image --->
+					<!--- we go this way to influence the quality of the image 
+						and cache the local file
+
+					--->
 					<cfset imagewrite(image:img,destination:tmpfile)>
 					<cfset local.b64=toBase64(fileReadBinary(tmpfile))>
 				</cfif>
 			</cfif>	
 
-			<cfif isNull(local.b64)>
+			<cfif isNull(local.b64) && isBinary(data)>
+				<!--- cache it anyway as it's a slow download --->
+				<cfset FileWrite(tmpfile, data)>
 				<cfset local.b64=toBase64(data)>
-			</cfif>
-				
+			</cfif>				
 
 			<cfcatch>
-			<cfset systemOutput(cfcatch,1,1)>
+				<cflog text="Error parsing extension logo, #cfcatch.message#, [#arguments.src#]" type="error">
 				<cfset local.b64=local.empty>
 			</cfcatch>
 		</cftry>
@@ -249,8 +259,7 @@
 	* get information from specific ExtensionProvider, if an extension is provided by multiple providers only the for the newest (version) is returned
 	*/
 	function getExternalData(required string[] providers, boolean forceReload=false, numeric timeSpan=60, boolean useLocalProvider=true) {
-		var datas={};
-
+		var datas={};		
 		providers.each(parallel:true,closure:function(value){
 				var data=getProviderInfo(arguments.value,forceReload,timespan);
 				datas[arguments.value]=data;
@@ -316,7 +325,12 @@
 	    dump(q);*/
 
 		loop struct="#datas#" index="local.provider" item="local.data" {
-			if(structKeyExists(data,"error")) continue;
+			if (structKeyExists(data,"error")){
+				var err = "getExternalData() #local.provider# #data.error#";
+				trace text="#err#";
+				WriteLog(type="ERROR", text=err);
+				continue;
+			}
 
 			// rename older to otherVersions
 
@@ -427,17 +441,14 @@
     	return datas;
 	}
 
-
-
 	function getProviderInfoAsync(required string provider){
 		thread args=arguments {
 			getProviderInfo(args.provider, true, 60, 50);
 		}
 	}
 
-
 	function getProviderInfo(required string provider, boolean forceReload=false, numeric timeSpan=60, timeout=10){
-		if(provider=="local" || provider=="") {
+		if(arguments.provider=="local" || arguments.provider=="") {
 			local.provider={};
 			provider.meta.title="Local Extension Provider";
 			provider.meta.description="Extensions located at: ";
@@ -447,13 +458,13 @@
 		}
 
     	// request (within request we only try once to load the data)
-        if(!forceReload and
+        if(!arguments.forceReload and
 			StructKeyExists(request,"rhproviders") and
 			StructKeyExists(request.rhproviders,provider) and
 			isStruct(request.rhproviders[provider]))
         		return request.rhproviders[provider];
         // from session
-        if(!forceReload and
+        if(!arguments.forceReload and
         	  StructKeyExists(session,"rhproviders") and
 			  StructKeyExists(session.rhproviders,provider) and
 			  StructKeyExists(session.rhproviders[provider],'lastModified') and
@@ -568,10 +579,12 @@
 			if(!isNull(http.status_code) && http.status_code==200) {
 				return http.fileContent;
 			}
-			throw http.fileContent;
+			var errorMessage = "Error: Download extension returned #http.status_code# for #uri#";
+			writeLog(type="ERROR", text=errorMessage, log="deploy");
+			writeLog(type="ERROR", text=http.fileContent, log="deploy"); // log the actual error response out for debugging
+			throw encodeForHtml(errorMessage); // rather not encode here, but this is hits a generic error handler
 		}
 	}
-
 
 	function toVersionSortable(required string version) localMode=true {
 		version=variables.unwrap(arguments.version.trim());
@@ -592,7 +605,6 @@
 		}
 		return 	rtn;
 	}
-
 
 	struct function toOSGiVersion(required string version, boolean ignoreInvalidVersion=false){
 		local.arr=listToArray(arguments.version,'.');
@@ -633,13 +645,10 @@
 					&"."&repeatString("0",3-len(sct.minor))&sct.minor
 					&"."&repeatString("0",3-len(sct.micro))&sct.micro
 					&"."&repeatString("0",4-len(sct.qualifier))&sct.qualifier
+					& #sct.keyExists("qualifier_appendix1") && isNumeric(sct.qualifier_appendix1)? "."&repeatString("0",4-len(sct.qualifier_appendix1))&sct.qualifier_appendix1  : ""#
 					&"."&repeatString("0",3-len(sct.qualifier_appendix_nbr))&sct.qualifier_appendix_nbr;
 
-
-
 		return sct;
-
-
 	}
 
 	function unwrap(String str) {

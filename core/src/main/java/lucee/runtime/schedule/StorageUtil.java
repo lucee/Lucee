@@ -22,24 +22,17 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
-import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.security.Credentials;
 import lucee.commons.security.CredentialsImpl;
 import lucee.runtime.config.Config;
 import lucee.runtime.engine.InfoImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
-import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.date.DateCaster;
-import lucee.runtime.text.xml.XMLCaster;
+import lucee.runtime.type.Struct;
 import lucee.runtime.type.dt.Date;
 import lucee.runtime.type.dt.DateImpl;
 import lucee.runtime.type.dt.DateTime;
@@ -76,83 +69,14 @@ public final class StorageUtil {
 	}
 
 	/**
-	 * return XML Element matching name
-	 * 
-	 * @param list source node list
-	 * @param key key to compare
-	 * @param value value to compare
-	 * @return matching XML Element
-	 */
-	public Element getElement(NodeList list, String key, String value) {
-		int len = list.getLength();
-		for (int i = 0; i < len; i++) {
-			Node n = list.item(i);
-			if (n instanceof Element) {
-				Element el = (Element) n;
-				if (el.getAttribute(key).equalsIgnoreCase(value)) return el;
-			}
-		}
-		return null;
-	}
-
-	/**
-	 * store loaded data to xml file
-	 * 
-	 * @param doc
-	 * @param file
-	 * @throws IOException
-	 */
-	public void store(Document doc, File file) throws IOException {
-		store(doc, ResourceUtil.toResource(file));
-	}
-
-	/**
-	 * store loaded data to xml file
-	 * 
-	 * @param doc
-	 * @param res
-	 * @throws IOException
-	 */
-	public void store(Document doc, Resource res) throws IOException {
-		try {
-			XMLCaster.writeTo(doc, res);
-		}
-		catch (PageException e) {
-			throw ExceptionUtil.toIOException(e);
-		}
-
-		/*
-		 * OutputFormat format = new OutputFormat(doc, null, true); format.setLineSeparator("\r\n");
-		 * format.setLineWidth(72);
-		 * 
-		 * OutputStream os=null; try { XMLSerializer serializer = new
-		 * XMLSerializer(os=res.getOutputStream(), format); serializer.serialize(doc.getDocumentElement());
-		 * } finally { IOUtil.closeEL(os); }
-		 */
-	}
-
-	/**
 	 * reads a XML Element Attribute ans cast it to a String
 	 * 
 	 * @param el XML Element to read Attribute from it
 	 * @param attributeName Name of the Attribute to read
 	 * @return Attribute Value
 	 */
-	public String toString(Element el, String attributeName) {
-		return el.getAttribute(attributeName);
-	}
-
-	/**
-	 * reads a XML Element Attribute ans cast it to a String
-	 * 
-	 * @param el XML Element to read Attribute from it
-	 * @param attributeName Name of the Attribute to read
-	 * @param defaultValue if attribute doesn't exist return default value
-	 * @return Attribute Value
-	 */
-	public String toString(Element el, String attributeName, String defaultValue) {
-		String value = el.getAttribute(attributeName);
-		return (value == null) ? defaultValue : value;
+	public String toString(Struct data, String name) {
+		return Caster.toString(data.get(name, null), "");
 	}
 
 	/**
@@ -162,8 +86,8 @@ public final class StorageUtil {
 	 * @param attributeName Name of the Attribute to read
 	 * @return Attribute Value
 	 */
-	public Resource toResource(Config config, Element el, String attributeName) {
-		String attributeValue = el.getAttribute(attributeName);
+	public Resource toResource(Config config, Struct el, String attributeName) {
+		String attributeValue = Caster.toString(el.get(attributeName, null), null);
 		if (attributeValue == null || attributeValue.trim().length() == 0) return null;
 		return config.getResource(attributeValue);
 	}
@@ -175,8 +99,8 @@ public final class StorageUtil {
 	 * @param attributeName Name of the Attribute to read
 	 * @return Attribute Value
 	 */
-	public boolean toBoolean(Element el, String attributeName) {
-		return Caster.toBooleanValue(el.getAttribute(attributeName), false);
+	public boolean toBoolean(Struct data, String name) {
+		return Caster.toBooleanValue(data.get(name, null), false);
 	}
 
 	/**
@@ -187,8 +111,8 @@ public final class StorageUtil {
 	 * @param defaultValue if attribute doesn't exist return default value
 	 * @return Attribute Value
 	 */
-	public boolean toBoolean(Element el, String attributeName, boolean defaultValue) {
-		String value = el.getAttribute(attributeName);
+	public boolean toBoolean(Struct el, String attributeName, boolean defaultValue) {
+		String value = Caster.toString(el.get(attributeName, null), null);
 		if (value == null) return defaultValue;
 		return Caster.toBooleanValue(value, false);
 	}
@@ -200,12 +124,12 @@ public final class StorageUtil {
 	 * @param attributeName Name of the Attribute to read
 	 * @return Attribute Value
 	 */
-	public int toInt(Element el, String attributeName) {
-		return Caster.toIntValue(el.getAttribute(attributeName), Integer.MIN_VALUE);
+	public int toInt(Struct el, String attributeName) {
+		return Caster.toIntValue(el.get(attributeName, null), Integer.MIN_VALUE);
 	}
 
-	public long toLong(Element el, String attributeName) {
-		return Caster.toLongValue(el.getAttribute(attributeName), Long.MIN_VALUE);
+	public long toLong(Struct data, String name) {
+		return Caster.toLongValue(data.get(name, null), Long.MIN_VALUE);
 	}
 
 	/**
@@ -216,8 +140,8 @@ public final class StorageUtil {
 	 * @param defaultValue if attribute doesn't exist return default value
 	 * @return Attribute Value
 	 */
-	public int toInt(Element el, String attributeName, int defaultValue) {
-		String value = el.getAttribute(attributeName);
+	public int toInt(Struct el, String attributeName, int defaultValue) {
+		String value = Caster.toString(el.get(attributeName, null), null);
 		if (value == null) return defaultValue;
 		int intValue = Caster.toIntValue(value, Integer.MIN_VALUE);
 		if (intValue == Integer.MIN_VALUE) return defaultValue;
@@ -232,8 +156,8 @@ public final class StorageUtil {
 	 * @param attributeName Name of the Attribute to read
 	 * @return Attribute Value
 	 */
-	public DateTime toDateTime(Config config, Element el, String attributeName) {
-		String str = el.getAttribute(attributeName);
+	public DateTime toDateTime(Config config, Struct el, String attributeName) {
+		String str = Caster.toString(el.get(attributeName, null), null);
 		if (str == null) return null;
 		return DateCaster.toDateAdvanced(str, ThreadLocalPageContext.getTimeZone(config), null);
 	}
@@ -246,9 +170,8 @@ public final class StorageUtil {
 	 * @param defaultValue if attribute doesn't exist return default value
 	 * @return Attribute Value
 	 */
-	public DateTime toDateTime(Element el, String attributeName, DateTime defaultValue) {
-
-		String value = el.getAttribute(attributeName);
+	public DateTime toDateTime(Struct el, String attributeName, DateTime defaultValue) {
+		String value = Caster.toString(el.get(attributeName, null), null);
 		if (value == null) return defaultValue;
 		DateTime dtValue = Caster.toDate(value, false, null, null);
 		if (dtValue == null) return defaultValue;
@@ -262,7 +185,7 @@ public final class StorageUtil {
 	 * @param attributeName Name of the Attribute to read
 	 * @return Attribute Value
 	 */
-	public Date toDate(Config config, Element el, String attributeName) {
+	public Date toDate(Config config, Struct el, String attributeName) {
 		DateTime dt = toDateTime(config, el, attributeName);
 		if (dt == null) return null;
 		return new DateImpl(dt);
@@ -276,7 +199,7 @@ public final class StorageUtil {
 	 * @param defaultValue if attribute doesn't exist return default value
 	 * @return Attribute Value
 	 */
-	public Date toDate(Element el, String attributeName, Date defaultValue) {
+	public Date toDate(Struct el, String attributeName, Date defaultValue) {
 		return new DateImpl(toDateTime(el, attributeName, defaultValue));
 	}
 
@@ -288,7 +211,7 @@ public final class StorageUtil {
 	 * @param attributeName Name of the Attribute to read
 	 * @return Attribute Value
 	 */
-	public Time toTime(Config config, Element el, String attributeName) {
+	public Time toTime(Config config, Struct el, String attributeName) {
 		DateTime dt = toDateTime(config, el, attributeName);
 		if (dt == null) return null;
 		return new TimeImpl(dt);
@@ -302,7 +225,7 @@ public final class StorageUtil {
 	 * @param defaultValue if attribute doesn't exist return default value
 	 * @return Attribute Value
 	 */
-	public Time toTime(Element el, String attributeName, Time defaultValue) {
+	public Time toTime(Struct el, String attributeName, Time defaultValue) {
 		return new TimeImpl(toDateTime(el, attributeName, defaultValue));
 	}
 
@@ -314,9 +237,9 @@ public final class StorageUtil {
 	 * @param attributePassword Name of the password Attribute to read
 	 * @return Attribute Value
 	 */
-	public Credentials toCredentials(Element el, String attributeUser, String attributePassword) {
-		String user = el.getAttribute(attributeUser);
-		String pass = el.getAttribute(attributePassword);
+	public Credentials toCredentials(Struct el, String attributeUser, String attributePassword) {
+		String user = Caster.toString(el.get(attributeUser, null), null);
+		String pass = Caster.toString(el.get(attributePassword, null), null);
 		if (user == null) return null;
 		if (pass == null) pass = "";
 		return CredentialsImpl.toCredentials(user, pass);
@@ -331,94 +254,11 @@ public final class StorageUtil {
 	 * @param defaultCredentials
 	 * @return Attribute Value
 	 */
-	public Credentials toCredentials(Element el, String attributeUser, String attributePassword, Credentials defaultCredentials) {
-		String user = el.getAttribute(attributeUser);
-		String pass = el.getAttribute(attributePassword);
+	public Credentials toCredentials(Struct el, String attributeUser, String attributePassword, Credentials defaultCredentials) {
+		String user = Caster.toString(el.get(attributeUser, null), null);
+		String pass = Caster.toString(el.get(attributePassword, null), null);
 		if (user == null) return defaultCredentials;
 		if (pass == null) pass = "";
 		return CredentialsImpl.toCredentials(user, pass);
-	}
-
-	/**
-	 * sets a string value to a XML Element
-	 * 
-	 * @param el Element to set value on it
-	 * @param key key to set
-	 * @param value value to set
-	 */
-	public void setString(Element el, String key, String value) {
-		if (value != null) el.setAttribute(key, value);
-	}
-
-	/**
-	 * sets a file value to a XML Element
-	 * 
-	 * @param el Element to set value on it
-	 * @param key key to set
-	 * @param value value to set
-	 */
-	public void setFile(Element el, String key, File value) {
-		setFile(el, key, ResourceUtil.toResource(value));
-	}
-
-	/**
-	 * sets a file value to a XML Element
-	 * 
-	 * @param el Element to set value on it
-	 * @param key key to set
-	 * @param value value to set
-	 */
-	public void setFile(Element el, String key, Resource value) {
-		if (value != null && value.toString().length() > 0) el.setAttribute(key, value.getAbsolutePath());
-	}
-
-	/**
-	 * sets a boolean value to a XML Element
-	 * 
-	 * @param el Element to set value on it
-	 * @param key key to set
-	 * @param value value to set
-	 */
-	public void setBoolean(Element el, String key, boolean value) {
-		el.setAttribute(key, String.valueOf(value));
-	}
-
-	/**
-	 * sets an int value to a XML Element
-	 * 
-	 * @param el Element to set value on it
-	 * @param key key to set
-	 * @param value value to set
-	 */
-	public void setInt(Element el, String key, int value) {
-		el.setAttribute(key, String.valueOf(value));
-	}
-
-	/**
-	 * sets a datetime value to a XML Element
-	 * 
-	 * @param el Element to set value on it
-	 * @param key key to set
-	 * @param value value to set
-	 */
-	public void setDateTime(Element el, String key, DateTime value) {
-		if (value != null) {
-			String str = value.castToString(null);
-			if (str != null) el.setAttribute(key, str);
-		}
-	}
-
-	/**
-	 * sets a Credentials to a XML Element
-	 * 
-	 * @param el
-	 * @param username
-	 * @param password
-	 * @param credentials
-	 */
-	public void setCredentials(Element el, String username, String password, Credentials c) {
-		if (c == null) return;
-		if (c.getUsername() != null) el.setAttribute(username, c.getUsername());
-		if (c.getPassword() != null) el.setAttribute(password, c.getPassword());
 	}
 }

@@ -53,15 +53,16 @@ class JavaRegex implements Regex {
 	}
 
 	@Override
-	public Array indexOfAll(String strPattern, String strInput, int offset, boolean caseSensitive, boolean multiLine) throws PageException {
+	public Object indexOfAll(String strPattern, String strInput, int offset, boolean caseSensitive, boolean multiLine) throws PageException {
 		try {
 			Matcher matcher = toPattern(strPattern, caseSensitive, multiLine).matcher(strInput);
 
-			ArrayImpl arr = new ArrayImpl();
+			ArrayImpl arr = null;
 			while (matcher.find()) {
+				if (arr == null) arr = new ArrayImpl();
 				arr.append(matcher.start() + 1);
 			}
-			return arr;
+			return arr == null ? 0 : arr;
 		}
 		catch (Exception e) {
 			throw Caster.toPageException(e);
@@ -90,6 +91,7 @@ class JavaRegex implements Regex {
 			while (matcher.find()) {
 				arr.append(toStruct(matcher, strInput));
 			}
+			if (arr.isEmpty()) arr.add(findEmpty());
 			return arr;
 		}
 		catch (Exception e) {

@@ -379,7 +379,8 @@ public final class TagLibFactory extends DefaultHandler {
 				try {
 					lib.setUri(value);
 				}
-				catch (URISyntaxException e) {}
+				catch (URISyntaxException e) {
+				}
 			}
 			else if (inside.equals("description")) lib.setDescription(value);
 

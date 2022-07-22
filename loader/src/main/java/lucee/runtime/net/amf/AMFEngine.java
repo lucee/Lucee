@@ -34,17 +34,20 @@ public interface AMFEngine {
 	/**
 	 * method to initialize the engine
 	 * 
+	 * @param config config
+	 * @param arguments arguments
+	 * @throws IOException IO Exception
 	 */
 	public void init(ConfigWeb config, Map<String, String> arguments) throws IOException;
 
 	/**
 	 * Main entry point for the AMF (Flex) Engine
 	 * 
-	 * @param servlet
-	 * @param req
-	 * @param rsp
+	 * @param servlet Sevlet
+	 * @param req request
+	 * @param rsp response
 	 *
-	 * @throws IOException
+	 * @throws IOException IO Exception
 	 */
 	public void service(HttpServlet servlet, HttpServletRequest req, HttpServletResponse rsp) throws IOException;
 }

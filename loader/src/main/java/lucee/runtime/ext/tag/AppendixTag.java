@@ -32,7 +32,7 @@ public interface AppendixTag extends Tag {
 	/**
 	 * sets the appendix of the tag
 	 * 
-	 * @param appendix
+	 * @param appendix appendix
 	 */
 	public void setAppendix(String appendix);
 }

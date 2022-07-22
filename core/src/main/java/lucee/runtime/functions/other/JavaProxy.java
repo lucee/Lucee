@@ -22,6 +22,9 @@
 package lucee.runtime.functions.other;
 
 import java.util.ArrayList;
+import java.util.Iterator;
+
+import org.osgi.framework.BundleException;
 
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.filter.ResourceNameFilter;
@@ -40,7 +43,12 @@ import lucee.runtime.ext.function.Function;
 import lucee.runtime.java.JavaObject;
 import lucee.runtime.listener.JavaSettingsImpl;
 import lucee.runtime.op.Caster;
+import lucee.runtime.op.Decision;
+import lucee.runtime.osgi.OSGiUtil.BundleDefinition;
 import lucee.runtime.security.SecurityManager;
+import lucee.runtime.type.Array;
+import lucee.runtime.type.Struct;
+import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.ListUtil;
 
 public final class JavaProxy implements Function {
@@ -48,23 +56,48 @@ public final class JavaProxy implements Function {
 	private static final long serialVersionUID = 2696152022196556309L;
 
 	public static Object call(PageContext pc, String className) throws PageException {
-		return call(pc, className, null, null);
+		return call(pc, className, null, null, null);
 	}
 
 	public static Object call(PageContext pc, String className, Object pathOrName) throws PageException {
-		return call(pc, className, pathOrName, null);
+		return call(pc, className, pathOrName, null, null);
 	}
 
 	public static Object call(PageContext pc, String className, Object pathOrName, String delimiterOrVersion) throws PageException {
-		checkAccess(pc);
-		return new JavaObject((pc).getVariableUtil(), loadClass(pc, className, pathOrName, delimiterOrVersion));
+		return call(pc, className, pathOrName, delimiterOrVersion, null);
 	}
 
-	public static Class<?> loadClass(PageContext pc, String className, Object pathOrName, String delimiterOrVersion) throws PageException {
+	public static Object call(PageContext pc, String className, Object pathOrName, String delimiterOrVersion, Array relatedBundles) throws PageException {
+		checkAccess(pc);
+		return new JavaObject((pc).getVariableUtil(), loadClass(pc, className, pathOrName, delimiterOrVersion, relatedBundles));
+	}
+
+	public static Class<?> loadClass(PageContext pc, String className, Object pathOrName, String delimiterOrVersion, Array aRelatedBundles) throws PageException {
 
 		if (StringUtil.isEmpty(pathOrName)) return loadClassByPath(pc, className, null);
 
 		String str = Caster.toString(pathOrName, null);
+		BundleDefinition[] relatedBundles = null;
+		if (aRelatedBundles != null) {
+			try {
+				relatedBundles = new BundleDefinition[aRelatedBundles.size()];
+				int index = 0;
+				Object obj;
+				Struct sct;
+				Iterator<Object> it = aRelatedBundles.valueIterator();
+				while (it.hasNext()) {
+					obj = it.next();
+					if (Decision.isSimpleValue(obj)) relatedBundles[index++] = new BundleDefinition(Caster.toString(obj));
+					else {
+						sct = Caster.toStruct(obj);
+						relatedBundles[index++] = new BundleDefinition(Caster.toString(sct.get(KeyConstants._name)), Caster.toString(sct.get(KeyConstants._version)));
+					}
+				}
+			}
+			catch (BundleException be) {
+				throw Caster.toPageException(be);
+			}
+		}
 
 		// String input
 		if (str != null) {
@@ -72,7 +105,12 @@ public final class JavaProxy implements Function {
 			// Bundle Name?
 			if (!str.contains("/") && !str.contains("\\") && !str.endsWith(".jar")) {
 				try {
-					return ClassUtil.loadClassByBundle(className, str, delimiterOrVersion, pc.getConfig().getIdentification(), JavaSettingsImpl.getBundleDirectories(pc));
+					return ClassUtil.loadClassByBundle(className, new BundleDefinition(str, delimiterOrVersion), relatedBundles, pc.getConfig().getIdentification(),
+							JavaSettingsImpl.getBundleDirectories(pc));
+
+					// public static Class<?> loadClassByBundle(String className, String name, String strVersion,
+					// Identification id, List<Resource> addionalDirectories)
+
 				}
 				catch (Throwable t) {
 					ExceptionUtil.rethrowIfNecessary(t);

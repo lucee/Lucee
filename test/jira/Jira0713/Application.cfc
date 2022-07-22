@@ -22,4 +22,8 @@ component {
     request.baseURL="http://#cgi.HTTP_HOST##GetDirectoryFromPath(cgi.SCRIPT_NAME)#";
 	request.currentPath=GetDirectoryFromPath(getCurrentTemplatePath());
 
+	public function onRequestStart() {
+		setting requesttimeout=10;
+	}
+
 }

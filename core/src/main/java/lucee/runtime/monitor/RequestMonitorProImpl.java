@@ -23,7 +23,8 @@ public class RequestMonitorProImpl implements RequestMonitorPro {
 		try {
 			init = monitor.getClass().getDeclaredMethod("init", new Class[] { PageContext.class });
 		}
-		catch (Exception e) {}
+		catch (Exception e) {
+		}
 	}
 
 	@Override

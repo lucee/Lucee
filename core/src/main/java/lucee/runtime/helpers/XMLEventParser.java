@@ -179,7 +179,8 @@ public final class XMLEventParser extends DefaultHandler {
 			pc = ThreadLocalPageContext.get(pc);
 			error.call(pc, new Object[] { pe.getCatchBlock(pc.getConfig()) }, false);
 		}
-		catch (PageException e) {}
+		catch (PageException e) {
+		}
 	}
 
 	/**

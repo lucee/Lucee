@@ -40,6 +40,7 @@ public class EnvClassLoader extends URLClassLoader {
 
 	private Config config;
 	private Map<String, SoftReference<Object[]>> callerCache = new ConcurrentHashMap<String, SoftReference<Object[]>>();
+	private Log trace;
 
 	private static final short CLASS = 1;
 	private static final short URL = 2;
@@ -59,9 +60,19 @@ public class EnvClassLoader extends URLClassLoader {
 		}
 	};
 
+	private static final EnvClassLoader NULL_INSTANCE = new EnvClassLoader(null);
+
+	public static EnvClassLoader getInstance(ConfigPro config) {
+		config = (ConfigPro) ThreadLocalPageContext.getConfig(config);
+		if (config != null) return (EnvClassLoader) config.getClassLoaderEnv();
+
+		return NULL_INSTANCE;
+	}
+
 	public EnvClassLoader(ConfigPro config) {
 		super(new URL[0], config != null ? config.getClassLoaderCore() : new lucee.commons.lang.ClassLoaderHelper().getClass().getClassLoader());
 		this.config = config;
+		this.trace = log(Log.LEVEL_TRACE);
 	}
 
 	@Override
@@ -71,37 +82,75 @@ public class EnvClassLoader extends URLClassLoader {
 
 	@Override
 	public URL getResource(String name) {
-		log("get resource [" + name + "]", 0);
-		return (java.net.URL) load(name, URL, true, null, true);
+		if (trace == null) {
+			return (java.net.URL) load(name, URL, true, null, true);
+		}
+		double start = SystemUtil.millis();
+		try {
+			return (java.net.URL) load(name, URL, true, null, true);
+		}
+		finally {
+			trace.trace("EnvClassLoader", "EnvClassLoader.getResource(" + name + "):" + (SystemUtil.millis() - start));
+		}
+
 	}
 
 	@Override
 	public InputStream getResourceAsStream(String name) {
-		log("get resource [" + name + "]", 0);
-		return (InputStream) load(name, STREAM, true, null, true);
+		if (trace == null) {
+			return (InputStream) load(name, STREAM, true, null, true);
+		}
+		double start = SystemUtil.millis();
+		try {
+			return (InputStream) load(name, STREAM, true, null, true);
+		}
+		finally {
+			trace.trace("EnvClassLoader", "EnvClassLoader.getResourceAsStream(" + name + "):" + (SystemUtil.millis() - start));
+		}
 	}
 
 	@Override
 	public Enumeration<URL> getResources(String name) throws IOException {
-		log("get resource [" + name + "]", 0);
 
-		List<URL> list = new ArrayList<URL>();
-		URL url = (URL) load(name, URL, false, null, true);
-		if (url != null) list.add(url);
-		return new E<URL>(list.iterator());
+		if (trace == null) {
+			List<URL> list = new ArrayList<URL>();
+			URL url = (URL) load(name, URL, false, null, true);
+			if (url != null) list.add(url);
+			return new E<URL>(list.iterator());
+		}
+		double start = SystemUtil.millis();
+		try {
+			List<URL> list = new ArrayList<URL>();
+			URL url = (URL) load(name, URL, false, null, true);
+			if (url != null) list.add(url);
+			return new E<URL>(list.iterator());
+		}
+		finally {
+			trace.trace("EnvClassLoader", "EnvClassLoader.getResources(" + name + "):" + (SystemUtil.millis() - start));
+		}
 	}
 
 	@Override
 	protected synchronized Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
-		// First, check if the class has already been loaded
-		// if ("RandomEntity".equals(name))
-		log("check for class [" + name + "]", 0);
+		if (trace == null) {
+			Class<?> c = findLoadedClass(name);
+			if (c == null) c = (Class<?>) load(name, CLASS, true, null, true);
+			if (c == null) c = findClass(name);
+			if (resolve) resolveClass(c);
+			return c;
+		}
+		double start = SystemUtil.millis();
+		try {
+			Class<?> c = findLoadedClass(name);
+			if (c == null) c = (Class<?>) load(name, CLASS, true, null, true);
+			if (c == null) c = findClass(name);
+			if (resolve) resolveClass(c);
+			return c;
+		}
+		finally {
+			trace.trace("EnvClassLoader", "EnvClassLoader.loadClass(" + name + "):" + (SystemUtil.millis() - start));
+		}
 
-		Class<?> c = findLoadedClass(name);
-		if (c == null) c = (Class<?>) load(name, CLASS, true, null, true);
-		if (c == null) c = findClass(name);
-		if (resolve) resolveClass(c);
-		return c;
 	}
 
 	private synchronized Object load(String name, short type, boolean doLog, List<ClassLoader> listContext, boolean useCache) {
@@ -149,7 +198,8 @@ public class EnvClassLoader extends URLClassLoader {
 						}
 					}
 				}
-				catch (IOException e) {}
+				catch (IOException e) {
+				}
 				finally {
 					inside.set(Boolean.FALSE);
 				}
@@ -161,7 +211,8 @@ public class EnvClassLoader extends URLClassLoader {
 				ClassLoader loader = CFMLEngineFactory.class.getClassLoader();
 				obj = _load(loader, name, type);
 				if (obj != null) {
-					log("found [" + name + "] in loader ClassLoader", start);
+					if (trace != null) trace.trace("EnvClassLoader", "found [" + name + "] in loader ClassLoader");
+					if (useCache) callerCache.put(id.toString(), new SoftReference<Object[]>(new Object[] { obj }));
 					return obj;
 				}
 			}
@@ -176,21 +227,29 @@ public class EnvClassLoader extends URLClassLoader {
 			for (ClassLoader cl: listContext) {
 				obj = _load(cl, name, type);
 				if (obj != null) {
-					if (cl instanceof BundleReference) log("found [" + name + "] in bundle [" + (((BundleReference) cl).getBundle().getSymbolicName()) + ":"
-							+ (((BundleReference) cl).getBundle().getVersion()) + "]", start);
-					else log("found [" + name + "] in System ClassLoader " + cl, start);
+					if (cl instanceof BundleReference) {
+						if (trace != null) trace.trace("EnvClassLoader", "found [" + name + "] in bundle [" + (((BundleReference) cl).getBundle().getSymbolicName()) + ":"
+								+ (((BundleReference) cl).getBundle().getVersion()) + "]");
+					}
+					else {
+						if (trace != null) trace.trace("EnvClassLoader", "found [" + name + "] in System ClassLoader " + cl);
+					}
 					if (useCache) callerCache.put(id.toString(), new SoftReference<Object[]>(new Object[] { obj }));
 					return obj;
 				}
 				else {
-					if (cl instanceof BundleReference) log("not found [" + name + "] in bundle [" + (((BundleReference) cl).getBundle().getSymbolicName()) + ":"
-							+ (((BundleReference) cl).getBundle().getVersion()) + "]", start);
-					else log("not found [" + name + "] in System ClassLoader " + cl, start);
+					if (cl instanceof BundleReference) {
+						if (trace != null) trace.trace("EnvClassLoader", "not found [" + name + "] in bundle [" + (((BundleReference) cl).getBundle().getSymbolicName()) + ":"
+								+ (((BundleReference) cl).getBundle().getVersion()) + "]");
+					}
+					else {
+						if (trace != null) trace.trace("EnvClassLoader", "not found [" + name + "] in System ClassLoader " + cl);
+					}
 
 				}
 			}
 			// print.ds("4:" + (SystemUtil.millis() - start) + ":" + name);
-			log("not found [" + name + "] ", start);
+			if (trace != null) trace.trace("EnvClassLoader", "not found [" + name + "] ");
 			if (useCache) callerCache.put(id.toString(), new SoftReference<Object[]>(new Object[] { null }));
 			return null;
 		}
@@ -232,7 +291,8 @@ public class EnvClassLoader extends URLClassLoader {
 				if (b != null)
 					notFound.put(new SoftReference<String>(new StringBuilder(b.getSymbolicName()).append(':').append(b.getVersion()).append(':').append(name).toString()), EMPTY);
 			}
-			catch (Exception e) {}
+			catch (Exception e) {
+			}
 
 		}
 		return obj;
@@ -282,13 +342,10 @@ public class EnvClassLoader extends URLClassLoader {
 		return getResources(name);
 	}
 
-	private void log(String msg, double start) {
-		Config c = ThreadLocalPageContext.getConfig(config);
-		if (c == null) return;
-		Log log = c.getLog("application");
-		if (log == null) return;
-		// print.e("--------- " + (start == 0 ? "" : "" + (SystemUtil.millis() - start)) + " -------->" +
-		// msg);
-		log.log(Log.LEVEL_TRACE, EnvClassLoader.class.getName(), msg);
+	private Log log(int logLevel) {
+		if (config == null) return null;
+		Log log = config.getLog("application");
+		if (log == null || log.getLogLevel() > logLevel) return null;
+		return log;
 	}
 }

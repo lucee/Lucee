@@ -58,6 +58,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import lucee.commons.db.DBUtil;
 import lucee.commons.io.IOUtil;
+import lucee.commons.io.SystemUtil;
 import lucee.commons.io.SystemUtil.TemplateLine;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
@@ -124,6 +125,8 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	public static final Collection.Key GENERATED_KEYS = KeyImpl.getInstance("GENERATED_KEYS");
 	public static final Collection.Key GENERATEDKEYS = KeyImpl.getInstance("GENERATEDKEYS");
 
+	private static boolean useMSSQLModern;
+
 	private boolean populating;
 
 	private QueryColumnImpl[] columns;
@@ -141,7 +144,10 @@ public class QueryImpl implements Query, Objects, QueryResult {
 
 	private Collection.Key indexName;
 	private Map<Collection.Key, Integer> indexes;// = new
-	// ConcurrentHashMap<Collection.Key,Integer>();
+
+	static {
+		useMSSQLModern = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.datasource.mssql.modern", null), false);
+	}
 
 	@Override
 	public String getTemplate() {
@@ -190,7 +196,8 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	/**
 	 * Constructor of the class only for internal usage (cloning/deserialize)
 	 */
-	public QueryImpl() {}
+	public QueryImpl() {
+	}
 
 	public QueryImpl(ResultSet result, String name, TimeZone tz) throws PageException {
 		this.name = name;
@@ -244,6 +251,12 @@ public class QueryImpl implements Query, Objects, QueryResult {
 
 	private static void execute(PageContext pc, DatasourceConnection dc, SQL sql, int maxrow, int fetchsize, TimeSpan timeout, boolean createUpdateData,
 			boolean allowToCachePreperadeStatement, QueryImpl qry, QueryResult qr, Collection.Key keyName) throws PageException {
+
+		// MSSQL is handled separatly
+		if (useMSSQLModern && DataSourceUtil.isMSSQLDriver(dc)) {
+			executeMSSQL(pc, dc, sql, maxrow, fetchsize, timeout, createUpdateData, allowToCachePreperadeStatement, qry, qr, keyName);
+			return;
+		}
 
 		TimeZone tz = ThreadLocalPageContext.getTimeZone(pc);
 
@@ -331,6 +344,180 @@ public class QueryImpl implements Query, Objects, QueryResult {
 
 	}
 
+	private static void executeMSSQL(PageContext pc, DatasourceConnection dc, SQL sql, int maxrow, int fetchsize, TimeSpan timeout, boolean createUpdateData,
+			boolean allowToCachePreperadeStatement, QueryImpl qry, QueryResult qr, Collection.Key keyName) throws PageException {
+
+		TimeZone tz = ThreadLocalPageContext.getTimeZone(pc);
+
+		// check if datasource support Generated Keys
+		boolean createGeneratedKeys = createUpdateData;
+		if (createUpdateData) {
+			if (!dc.supportsGetGeneratedKeys()) createGeneratedKeys = false;
+		}
+
+		// check SQL Restrictions
+		if (dc.getDatasource().hasSQLRestriction()) {
+			QueryUtil.checkSQLRestriction(dc, sql);
+		}
+
+		Statement stat = null;
+		// Stopwatch stopwatch=new Stopwatch();
+		long start = System.nanoTime();
+		// stopwatch.start();
+		boolean hasResult = false;
+		boolean hasPossibleGeneratedKeys = false;
+		// boolean closeStatement=true;
+		try {
+			SQLItem[] items = sql.getItems();
+			if (items.length == 0) {
+				stat = dc.getConnection().createStatement();
+				setAttributes(stat, maxrow, fetchsize, timeout);
+				// some driver do not support second argument
+				// hasResult=createGeneratedKeys?stat.execute(sql.getSQLString(),Statement.RETURN_GENERATED_KEYS):stat.execute(sql.getSQLString());
+				hasResult = QueryUtil.execute(pc, stat, createGeneratedKeys, sql);
+			}
+			else {
+				// some driver do not support second argument
+				PreparedStatement preStat = dc.getPreparedStatement(sql, createGeneratedKeys, allowToCachePreperadeStatement);
+				// closeStatement=false;
+				stat = preStat;
+				setAttributes(preStat, maxrow, fetchsize, timeout);
+				setItems(pc, ThreadLocalPageContext.getTimeZone(pc), preStat, items);
+				hasResult = QueryUtil.execute(pc, preStat);
+			}
+			int uc;
+			int resultsetCount = 0;
+			// ResultSet res;
+			do {
+				resultsetCount++;
+
+				if (hasResult) {
+
+					if (fillResult(qry, qr, keyName, dc, stat.getResultSet(), maxrow, true, createGeneratedKeys, tz)) {
+						/*
+						 * Some SQL implementations (e.g. SQL Server) allow both a resultset *and* keys to be generated in a
+						 * single statement. For example:
+						 * 
+						 * insert into XXXX (col1, col2) OUTPUT INSERTED.* values (1, 'a'), (2, 'b'), (3, 'c')
+						 * 
+						 * In the above, the "OUTPUT INSERTED.*" will return a recordset of all the changes.
+						 */
+						if (resultsetCount == 1 && !hasPossibleGeneratedKeys) {
+							// we need to attempt to get the generated keys, because an exception might be getting throw
+							try {
+								/*
+								 * The Microsoft SQL Server driver can advance the resultset when the getGeneratedKeys() method is
+								 * called. If the next resultset happens to have an exception, we have to be able to track that
+								 * exception so we can report it.
+								 */
+								ResultSet rs = stat.getGeneratedKeys();
+								/*
+								 * We should check for any generated keys now, because in the MSSQL driver if we have a single
+								 * resultset (INSERT or UPDATE) that has an OUTPUT clause, the generated keys are only available
+								 * right now.
+								 * 
+								 * If we get back false, then an exception happened. However, we will still want to check back later
+								 * in care there are other statements executed later that could return a resultset.
+								 */
+								if (qry != null) {
+									hasPossibleGeneratedKeys = qry != null && !qry.setGeneratedKeys(dc, rs, tz);
+								}
+							}
+							catch (SQLException se) {
+								/*
+								 * We can ignore when SQL Server driver throws the "statement must be executed" message as this is
+								 * the standard exception which happens when there are no keys available.
+								 * 
+								 * However, we should report other exceptions because they could becoming from a RAISERROR or other
+								 * exception being generated by SQL Server.
+								 */
+								// TODO we need a change here that less depends on the actual MSSQL JDBC driver
+								if (se.getMessage() != "The statement must be executed before any results can be obtained.") {
+									throw se;
+								}
+								else {
+									hasPossibleGeneratedKeys = true;
+								}
+							}
+						}
+						/*
+						 * When using the MSSQL driver, we need to make sure to go through all the recordset objects because
+						 * there may be exceptions or additional SQL recordsets that need to be processed.
+						 */
+						while (stat.getMoreResults()) {
+							// we just need to advance through all the resultsets, we can ignore
+							// the results since we only return the first resultset
+						}
+						break;
+					}
+				}
+				else if ((uc = setUpdateCount(qry != null ? qry : qr, stat)) != -1) {
+					if (uc > 0) {
+						// since we had some updates, we need to flag that the generated keys need to be checked
+						hasPossibleGeneratedKeys = true;
+					}
+				}
+				else break;
+
+				// try {
+				// hasResult=stat.getMoreResults(Statement.CLOSE_CURRENT_RESULT);
+				hasResult = stat.getMoreResults();
+				// }
+				// catch (SQLException e) {
+				/*
+				 * The JTDS driver (and possibly other drivers) throw exceptions as soon as the query is executed,
+				 * however the MSSQL driver will delay throwing the execution until you try to request the
+				 * recordset.
+				 * 
+				 * So we need to check if a SQLException is being thrown and if so, we need to rethrow it.
+				 * 
+				 */
+				// if (DataSourceUtil.isMSSQLDriver(dc)) {
+				// throw e;
+				// }
+				// break;
+				// }
+			}
+			while (true);
+		}
+		catch (SQLException e) {
+			throw new DatabaseException(e, sql, dc);
+		}
+		catch (Throwable e) {
+			ExceptionUtil.rethrowIfNecessary(e);
+			throw Caster.toPageException(e);
+		}
+		finally {
+			// we need to look for any possible generated keys from the query
+			if (createGeneratedKeys && hasPossibleGeneratedKeys && qry != null) {
+				/*
+				 * The MSSQL driver recommends always checking for generated keys after all recordsets have been
+				 * parsed. This will prevent the Statement.getGeneratedKeys() from advancing the recordset.
+				 * 
+				 * See the following link for more information:
+				 * https://social.technet.microsoft.com/Forums/ie/en-US/a91f8aa2-6ec0-447d-8b95-9e99e1da56fb/the-
+				 * statement-must-be-executed-before-any-results-can-be-obtained-error-with-jdbc-20?forum=
+				 * sqldataaccess
+				 */
+				qry.setGeneratedKeys(dc, stat, tz);
+			}
+			// if(closeStatement)
+			DBUtil.closeEL(stat);
+		}
+		if (qry != null) {
+			qry.exeTime = System.nanoTime() - start;
+
+			if (qry.columncount == 0) {
+				if (qry.columnNames == null) qry.columnNames = new Collection.Key[0];
+				if (qry.columns == null) qry.columns = new QueryColumnImpl[0];
+			}
+		}
+		else {
+			qr.setExecutionTime(System.nanoTime() - start);
+		}
+
+	}
+
 	private static int setUpdateCount(QueryResult qr, Statement stat) {
 		try {
 			int uc = stat.getUpdateCount();
@@ -348,8 +535,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	private boolean setGeneratedKeys(DatasourceConnection dc, Statement stat, TimeZone tz) {
 		try {
 			ResultSet rs = stat.getGeneratedKeys();
-			setGeneratedKeys(dc, rs, tz);
-			return true;
+			return setGeneratedKeys(dc, rs, tz);
 		}
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
@@ -357,15 +543,33 @@ public class QueryImpl implements Query, Objects, QueryResult {
 		}
 	}
 
-	private void setGeneratedKeys(DatasourceConnection dc, ResultSet rs, TimeZone tz) throws PageException {
-		generatedKeys = new QueryImpl(rs, "", tz);
+	private boolean setGeneratedKeys(DatasourceConnection dc, ResultSet rs, TimeZone tz) throws PageException {
+		if (DataSourceUtil.isMSSQL(dc)) {
+			QueryImpl results = new QueryImpl(rs, "", tz);
+			int columnCount = results.getColumnCount();
+			// ACF compatibility action
+			if (columnCount == 1) {
+				results.renameEL(GENERATED_KEYS, KeyConstants._IDENTITYCOL);
+				results.renameEL(GENERATEDKEYS, KeyConstants._IDENTITYCOL);
+				results.renameEL(KeyConstants._ID, KeyConstants._IDENTITYCOL);
+			}
+			if (DataSourceUtil.isMSSQLDriver(dc) && ((columnCount > 1) || results.getIndexFromKey(KeyConstants._IDENTITYCOL) == -1)) {
+				return false;
+			}
+			/*
+			 * The SQL Server driver can end up advancing to a new recordset that is not part of the resultset
+			 * for a INSERT/UPDATE operation. So if we do not find the identity column or we have more than once
+			 * column, we should just ignore the results.
+			 */
 
-		// ACF compatibility action
-		if (generatedKeys.getColumnCount() == 1 && DataSourceUtil.isMSSQL(dc)) {
-			generatedKeys.renameEL(GENERATED_KEYS, KeyConstants._IDENTITYCOL);
-			generatedKeys.renameEL(GENERATEDKEYS, KeyConstants._IDENTITYCOL);
-			generatedKeys.renameEL(KeyConstants._ID, KeyConstants._IDENTITYCOL);
+			// save the results
+			generatedKeys = results;
 		}
+		else {
+			generatedKeys = new QueryImpl(rs, "", tz);
+		}
+
+		return true;
 	}
 
 	private static void setItems(PageContext pc, TimeZone tz, PreparedStatement preStat, SQLItem[] items) throws DatabaseException, PageException, SQLException {
@@ -516,7 +720,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 					if (maxrow > -1 && recordcount >= maxrow) {
 						break;
 					}
-					sct = new StructImpl();
+					sct = new StructImpl(Struct.TYPE_LINKED);
 					Object val;
 
 					for (int i = 0; i < usedColumns.length; i++) {
@@ -686,16 +890,16 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	 * @param arrColumns columns for the resultset
 	 * @param rowNumber count of rows to generate (empty fields)
 	 * @param name
-	 * @throws DatabaseException
+	 * @throws PageException
 	 */
-	public QueryImpl(Array arrColumns, int rowNumber, String name) throws DatabaseException {
+	public QueryImpl(Array arrColumns, int rowNumber, String name) throws PageException {
 		this.name = name;
 		columncount = arrColumns.size();
 		recordcount = rowNumber;
 		columnNames = new Collection.Key[columncount];
 		columns = new QueryColumnImpl[columncount];
 		for (int i = 0; i < columncount; i++) {
-			columnNames[i] = KeyImpl.init(arrColumns.get(i + 1, "").toString().trim());
+			columnNames[i] = KeyImpl.init(Caster.toString(arrColumns.get(i + 1, "")).trim());
 			columns[i] = new QueryColumnImpl(this, columnNames[i], Types.OTHER, recordcount);
 		}
 		validateColumnNames(columnNames);
@@ -933,7 +1137,8 @@ public class QueryImpl implements Query, Objects, QueryResult {
 			if (key.equals(KeyConstants._CURRENTROW)) return new Double(row);
 			if (key.equals(KeyConstants._COLUMNLIST)) return getColumnlist(getKeyCase(ThreadLocalPageContext.get()));
 		}
-		throw new DatabaseException("column [" + key + "] not found in query, columns are [" + getColumnlist(getKeyCase(ThreadLocalPageContext.get())) + "]", null, sql, null);
+		throw new DatabaseException("Column [" + key + "] not found in query", "available columns are [" + getColumnlist(getKeyCase(ThreadLocalPageContext.get()), ", ") + "]", sql,
+				null);
 	}
 
 	@Override
@@ -970,10 +1175,10 @@ public class QueryImpl implements Query, Objects, QueryResult {
 		QueryColumn removed = removeColumnEL(key);
 		if (removed == null) {
 			if (key.equals(KeyConstants._RECORDCOUNT) || key.equals(KeyConstants._CURRENTROW) || key.equals(KeyConstants._COLUMNLIST))
-				throw new DatabaseException("can't remove " + key + " this is not a column",
-						"existing columns are [" + getColumnlist(getKeyCase(ThreadLocalPageContext.get())) + "]", null, null);
-			throw new DatabaseException("can't remove column [" + key + "], this column doesn't exist",
-					"existing columns are [" + getColumnlist(getKeyCase(ThreadLocalPageContext.get())) + "]", null, null);
+				throw new DatabaseException("Cannot remove [" + key + "], it is not a column",
+						"available columns are [" + getColumnlist(getKeyCase(ThreadLocalPageContext.get()), ", ") + "]", null, null);
+			throw new DatabaseException("Cannot remove column [" + key + "], it doesn't exist",
+					"available columns are [" + getColumnlist(getKeyCase(ThreadLocalPageContext.get()), ", ") + "]", null, null);
 		}
 		return removed;
 	}
@@ -1048,7 +1253,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 		if (index != -1) {
 			return columns[index].set(row, value, trustType);
 		}
-		throw new DatabaseException("column [" + key + "] does not exist", "columns are [" + getColumnlist(getKeyCase(ThreadLocalPageContext.get())) + "]", sql, null);
+		throw new DatabaseException("Column [" + key + "] does not exist", "columns are [" + getColumnlist(getKeyCase(ThreadLocalPageContext.get()), ", ") + "]", sql, null);
 	}
 
 	@Override
@@ -1110,13 +1315,18 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	 * 
 	 * @return string list
 	 */
+
 	public String getColumnlist(boolean upperCase) {
+		return getColumnlist(upperCase, ",");
+	}
+
+	public String getColumnlist(boolean upperCase, String delim) {
 		StringBuilder sb = new StringBuilder();
 		for (int i = 0; i < columnNames.length; i++) {
-			if (i > 0) sb.append(',');
-			sb.append(upperCase ? columnNames[i].getUpperString() : columnNames[i].getString());
+			if (i > 0) sb.append(delim);
+			sb.append(columnNames[i].getString());
 		}
-		return sb.toString();
+		return (upperCase ? sb.toString().toUpperCase() : sb.toString());
 	}
 	/*
 	 * public String getColumnlist() { return getColumnlist(true); }
@@ -1182,7 +1392,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	}
 
 	public void sort(int[] rows) throws PageException {
-		if (rows.length != getRecordcount()) throw new ApplicationException("row count is invalid");
+		if (rows.length != getRecordcount()) throw new ApplicationException("Query Sort row count is invalid, [" + rows.length + "] is not [" + getRecordcount() + "]");
 		for (int i = 0; i < columns.length; i++) {
 			columns[i].sort(rows);
 		}
@@ -1243,7 +1453,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 		if (content == null) content = new ArrayImpl();
 		else content = (Array) Duplicator.duplicate(content, false);
 
-		if (getIndexFromKey(columnName) != -1) throw new DatabaseException("column name [" + columnName.getString() + "] already exist", null, sql, null);
+		if (getIndexFromKey(columnName) != -1) throw new DatabaseException("Column name [" + columnName.getString() + "] already exists", null, sql, null);
 		if (content.size() != getRecordcount()) {
 			// throw new DatabaseException("array for the new column has not the same size like the
 			// query
@@ -1320,8 +1530,8 @@ public class QueryImpl implements Query, Objects, QueryResult {
 			if (key.equals(KeyConstants._CURRENTROW)) return new QueryColumnRef(this, key, Types.INTEGER);
 			if (key.equals(KeyConstants._COLUMNLIST)) return new QueryColumnRef(this, key, Types.INTEGER);
 		}
-		throw new DatabaseException("key [" + key.getString() + "] not found in query, columns are [" + getColumnlist(getKeyCase(ThreadLocalPageContext.get())) + "]", null, sql,
-				null);
+		throw new DatabaseException("Column [" + key.getString() + "] not found in query, Columns are [" + getColumnlist(getKeyCase(ThreadLocalPageContext.get()), ", ") + "]",
+				null, sql, null);
 	}
 
 	private void renameEL(Collection.Key src, Collection.Key trg) {
@@ -1336,7 +1546,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	public synchronized void rename(Collection.Key columnName, Collection.Key newColumnName) throws ExpressionException {
 		int index = getIndexFromKey(columnName);
 		if (index == -1) {
-			throw new ExpressionException("Cannot rename column [" + columnName.getString() + "] to [" + newColumnName.getString() + "], original column doesn't exist");
+			throw new ExpressionException("Cannot rename Column [" + columnName.getString() + "] to [" + newColumnName.getString() + "], original column doesn't exist");
 		}
 		columnNames[index] = newColumnName;
 		columns[index].setKey(newColumnName);

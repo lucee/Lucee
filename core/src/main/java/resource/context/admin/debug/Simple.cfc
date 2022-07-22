@@ -101,9 +101,10 @@
 		<cfif !structKeyExists(arguments.custom,'scopes')><cfset arguments.custom.scopes=false></cfif>
 		<cfif !structKeyExists(arguments.custom,'general')><cfset arguments.custom.general="Enabled"></cfif>
 
-		<cfset var time=getTickCount() />
-		<cfset var _cgi=structKeyExists(arguments.debugging,'cgi')?arguments.debugging.cgi:cgi />
 		<cfscript>
+			var time=getTickCount();
+			var _cgi = arguments?.debugging?.scope?.cgi ?: cgi
+
 			if(isNull(arguments.debugging.pages)) 
 				local.pages=queryNew('id,count,min,max,avg,app,load,query,total,src');
 			else local.pages=arguments.debugging.pages;
@@ -251,7 +252,7 @@
 						<cfset isOpen = this.isSectionOpen( sectionId )>
 						<table>
 
-							<cfset renderSectionHeadTR( sectionId, "Template:", "#HTMLEditFormat(_cgi.SCRIPT_NAME)# (#HTMLEditFormat(expandPath(_cgi.SCRIPT_NAME))#)" )>
+							<cfset renderSectionHeadTR( sectionId, "Template:", "#encodeForHtml(_cgi.REQUEST_URL)#<br>#encodeForHtml(expandPath(_cgi.SCRIPT_NAME))#" )>
 
 							<tr>
 								<td class="pad label">User Agent:</td>
@@ -414,7 +415,7 @@
 						<cfset sectionId = "Exceptions">
 						<cfset isOpen = this.isSectionOpen( sectionId )>
 
-						<div class="section-title">Caught Exceptions</div>
+						<div class="section-title">Exceptions</div>
 						<table>
 
 							<cfset renderSectionHeadTR( sectionId, "#arrayLen(exceptions)# Exception#arrayLen( exceptions ) GT 1 ? 's' : ''# Caught" )>

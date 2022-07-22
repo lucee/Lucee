@@ -27,7 +27,6 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
-//import org.objectweb.asm.Type;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Version;
 import org.xml.sax.Attributes;
@@ -661,7 +660,8 @@ public final class TagLibTag {
 			if (method == null) return false;
 			return method.getReturnType() == void.class;
 		}
-		catch (Exception e) {}
+		catch (Exception e) {
+		}
 		return false;
 	}
 
@@ -767,7 +767,7 @@ public final class TagLibTag {
 		Iterator<String> it = attributes.keySet().iterator();
 		StringBuffer sb = new StringBuffer();
 		while (it.hasNext()) {
-			if (sb.length() > 0) sb.append(",");
+			if (sb.length() > 0) sb.append(", ");
 			sb.append(it.next());
 		}
 		return sb.toString();

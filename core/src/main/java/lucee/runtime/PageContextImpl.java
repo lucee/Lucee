@@ -60,6 +60,7 @@ import lucee.commons.db.DBUtil;
 import lucee.commons.io.BodyContentStack;
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.IOUtil;
+import lucee.commons.io.SystemUtil;
 import lucee.commons.io.cache.exp.CacheException;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
@@ -133,6 +134,7 @@ import lucee.runtime.listener.ClassicApplicationContext;
 import lucee.runtime.listener.JavaSettingsImpl;
 import lucee.runtime.listener.ModernAppListener;
 import lucee.runtime.listener.ModernAppListenerException;
+import lucee.runtime.listener.NoneAppListener;
 import lucee.runtime.listener.SessionCookieData;
 import lucee.runtime.listener.SessionCookieDataImpl;
 import lucee.runtime.monitor.RequestMonitor;
@@ -144,11 +146,10 @@ import lucee.runtime.net.mail.ServerImpl;
 import lucee.runtime.net.proxy.ProxyData;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
-import lucee.runtime.op.Operator;
+import lucee.runtime.op.OpUtil;
 import lucee.runtime.orm.ORMConfiguration;
 import lucee.runtime.orm.ORMEngine;
 import lucee.runtime.orm.ORMSession;
-import lucee.runtime.osgi.OSGiUtil;
 import lucee.runtime.regex.Regex;
 import lucee.runtime.rest.RestRequestListener;
 import lucee.runtime.rest.RestUtil;
@@ -327,6 +328,8 @@ public final class PageContextImpl extends PageContext {
 	private Map<Key, Threads> allThreads;
 	private boolean hasFamily = false;
 	private PageContextImpl parent = null;
+	private PageSource caller = null;
+	private PageSource callerTemplate = null;
 	private PageContextImpl root = null;
 
 	private List<String> parentTags;
@@ -339,6 +342,7 @@ public final class PageContextImpl extends PageContext {
 	private ORMSession ormSession;
 	private boolean isChild;
 	private boolean gatewayContext;
+	private boolean listenerContext;
 	private Password serverPassword;
 
 	private PageException pe;
@@ -355,6 +359,8 @@ public final class PageContextImpl extends PageContext {
 	private StackTraceElement[] timeoutStacktrace;
 
 	private boolean fullNullSupport;
+
+	private static final boolean READ_CFID_FROM_URL = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.read.cfid.from.url", "true"), true);
 
 	/**
 	 * default Constructor
@@ -427,6 +433,8 @@ public final class PageContextImpl extends PageContext {
 	public PageContextImpl initialize(HttpServlet servlet, HttpServletRequest req, HttpServletResponse rsp, String errorPageURL, boolean needsSession, int bufferSize,
 			boolean autoFlush, boolean isChild, boolean ignoreScopes, PageContextImpl tmplPC) {
 		parent = null;
+		caller = null;
+		callerTemplate = null;
 		root = null;
 
 		boolean clone = tmplPC != null;
@@ -524,6 +532,7 @@ public final class PageContextImpl extends PageContext {
 		if (clone) {
 			this._psq = tmplPC._psq;
 			this.gatewayContext = tmplPC.gatewayContext;
+			this.listenerContext = tmplPC.listenerContext;
 		}
 		else {
 			_psq = null;
@@ -553,6 +562,8 @@ public final class PageContextImpl extends PageContext {
 			tmplPC.hasFamily = true;
 
 			this.parent = tmplPC;
+			this.caller = tmplPC.getCurrentPageSource();
+			this.callerTemplate = tmplPC.getCurrentTemplatePageSource();
 			this.root = tmplPC.root == null ? tmplPC : tmplPC.root;
 			this.tagName = tmplPC.tagName;
 			this.parentTags = tmplPC.parentTags == null ? null : (List) ((ArrayList) tmplPC.parentTags).clone();
@@ -574,7 +585,6 @@ public final class PageContextImpl extends PageContext {
 				this.pathList.add(it.next());
 			}
 		}
-
 		return this;
 	}
 
@@ -588,7 +598,9 @@ public final class PageContextImpl extends PageContext {
 		}
 
 		if (config.debug()) {
-			if (!gatewayContext && !isChild) config.getDebuggerPool().store(this, debugger);
+			boolean skipLogThread = isChild;
+			if (skipLogThread && config.hasDebugOptions(ConfigPro.DEBUG_THREAD)) skipLogThread = false;
+			if (!gatewayContext && !skipLogThread) config.getDebuggerPool().store(this, debugger);
 			debugger.reset();
 		}
 		else debugger.resetTraces(); // traces can alo be used when debugging is off
@@ -597,6 +609,8 @@ public final class PageContextImpl extends PageContext {
 
 		// boolean isChild=parent!=null; // isChild is defined in the class outside this method
 		parent = null;
+		caller = null;
+		callerTemplate = null;
 		root = null;
 		// Attention have to be before close
 		if (client != null) {
@@ -655,7 +669,7 @@ public final class PageContextImpl extends PageContext {
 
 		cookie.release(this);
 		application = null;// not needed at the moment -> application.releaseAfterRequest();
-		applicationContext = null;
+		applicationContext = null;// do not release may used by child threads
 
 		// Properties
 		requestTimeout = -1;
@@ -682,8 +696,10 @@ public final class PageContextImpl extends PageContext {
 			lazyStats = null;
 		}
 
-		pathList.clear();
-		includePathList.clear();
+		if (!hasFamily) {
+			pathList.clear();
+			includePathList.clear();
+		}
 		executionTime = 0;
 
 		bodyContentStack.release();
@@ -712,6 +728,7 @@ public final class PageContextImpl extends PageContext {
 		activeUDF = null;
 
 		gatewayContext = false;
+		listenerContext = false;
 
 		manager.release();
 		includeOnce.clear();
@@ -721,7 +738,16 @@ public final class PageContextImpl extends PageContext {
 		tagName = null;
 		parentTags = null;
 		_psq = null;
+		dummy = false;
 		listenSettings = false;
+
+		if (ormSession != null) {
+			try {
+				releaseORM();
+			}
+			catch (Exception e) {
+			}
+		}
 	}
 
 	private void releaseORM() throws PageException {
@@ -791,7 +817,8 @@ public final class PageContextImpl extends PageContext {
 		try {
 			getOut().flush();
 		}
-		catch (IOException e) {}
+		catch (IOException e) {
+		}
 	}
 
 	@Override
@@ -847,8 +874,11 @@ public final class PageContextImpl extends PageContext {
 
 	public PageSource[] getRelativePageSources(String realPath) {
 		if (StringUtil.startsWith(realPath, '/')) return getPageSources(realPath);
-		if (pathList.size() == 0) return null;
-		return new PageSource[] { pathList.getLast().getRealPage(realPath) };
+
+		PageSource ps = getCurrentPageSource(null);
+		if (ps == null) return null;
+
+		return new PageSource[] { ps.getRealPage(realPath) };
 	}
 
 	public PageSource getPageSource(String realPath) {
@@ -1077,8 +1107,10 @@ public final class PageContextImpl extends PageContext {
 	@Override
 	public PageSource getCurrentPageSource() {
 		if (pathList.isEmpty()) {
-			if (parent != null && parent != this) // second comparision should not be necesary, just in case ...
+			if (parent != null && parent != this && parent.isInitialized()) { // second comparision should not be necesary, just in case ...
 				return parent.getCurrentPageSource();
+			}
+			else if (caller != null) return caller;
 			return null;
 		}
 		return pathList.getLast();
@@ -1087,8 +1119,10 @@ public final class PageContextImpl extends PageContext {
 	@Override
 	public PageSource getCurrentPageSource(PageSource defaultvalue) {
 		if (pathList.isEmpty()) {
-			if (parent != null && parent != this) // second comparision should not be necesary, just in case ...
+			if (parent != null && parent != this && parent.isInitialized()) { // second comparision should not be necesary, just in case ...
 				return parent.getCurrentPageSource(defaultvalue);
+			}
+			else if (caller != null) return caller;
 			return defaultvalue;
 		}
 		return pathList.getLast();
@@ -1100,8 +1134,10 @@ public final class PageContextImpl extends PageContext {
 	@Override
 	public PageSource getCurrentTemplatePageSource() {
 		if (includePathList.isEmpty()) {
-			if (parent != null && parent != this) // second comparision should not be necesary, just in case ...
+			if (parent != null && parent != this && parent.isInitialized()) { // second comparision should not be necesary, just in case ...
 				return parent.getCurrentTemplatePageSource();
+			}
+			else if (callerTemplate != null) return callerTemplate;
 			return null;
 		}
 		return includePathList.getLast();
@@ -1246,7 +1282,7 @@ public final class PageContextImpl extends PageContext {
 		if (application == null) {
 			if (!applicationContext.hasName())
 				throw new ExpressionException("there is no application context defined for this application", hintAplication("you can define an application context"));
-			application = scopeContext.getApplicationScope(this, DUMMY_BOOL);
+			application = scopeContext.getApplicationScope(this, true, DUMMY_BOOL);
 		}
 		return application;
 	}
@@ -1254,7 +1290,7 @@ public final class PageContextImpl extends PageContext {
 	private String hintAplication(String prefix) {
 		boolean isCFML = getRequestDialect() == CFMLEngine.DIALECT_CFML;
 		return prefix + " with the tag " + (isCFML ? lucee.runtime.config.Constants.CFML_APPLICATION_TAG_NAME : lucee.runtime.config.Constants.LUCEE_APPLICATION_TAG_NAME)
-				+ "or with the " + (isCFML ? lucee.runtime.config.Constants.CFML_APPLICATION_EVENT_HANDLER : lucee.runtime.config.Constants.LUCEE_APPLICATION_EVENT_HANDLER);
+				+ " or with the " + (isCFML ? lucee.runtime.config.Constants.CFML_APPLICATION_EVENT_HANDLER : lucee.runtime.config.Constants.LUCEE_APPLICATION_EVENT_HANDLER);
 
 	}
 
@@ -1593,10 +1629,10 @@ public final class PageContextImpl extends PageContext {
 				if (!hasMin && !hasMax) throw new ExpressionException("you need to define one of the following attributes [min,max], when type is set to [range]");
 
 				if (hasMin && number < min)
-					throw new ExpressionException("The number [" + Caster.toString(number) + "] is too small, the number must be at least [" + Caster.toString(min) + "]");
+					throw new ExpressionException("The number [" + Caster.toString(number) + "] is to small, the number must be at least [" + Caster.toString(min) + "]");
 
 				if (hasMax && number > max)
-					throw new ExpressionException("The number [" + Caster.toString(number) + "] is too big, the number cannot be bigger than [" + Caster.toString(max) + "]");
+					throw new ExpressionException("The number [" + Caster.toString(number) + "] is to big, the number cannot be bigger than [" + Caster.toString(max) + "]");
 
 				setVariable(name, Caster.toDouble(number));
 			}
@@ -1793,7 +1829,8 @@ public final class PageContextImpl extends PageContext {
 			if (value == null) removeVariable(name);
 			else setVariable(name, value);
 		}
-		catch (PageException e) {}
+		catch (PageException e) {
+		}
 	}
 
 	@Override
@@ -2076,7 +2113,8 @@ public final class PageContextImpl extends PageContext {
 				if (!Abort.isSilentAbort(pe))
 					forceWrite(getConfig().getDefaultDumpWriter(DumpWriter.DEFAULT_RICH).toString(this, pe.toDumpData(this, 9999, DumpUtil.toDumpProperties()), true));
 			}
-			catch (Exception e) {}
+			catch (Exception e) {
+			}
 		}
 	}
 
@@ -2223,7 +2261,8 @@ public final class PageContextImpl extends PageContext {
 					pathInfo = path.substring(srvPath.length());
 				}
 			}
-			catch (Exception e) {}
+			catch (Exception e) {
+			}
 
 			// Service mapping
 			if (StringUtil.isEmpty(pathInfo) || pathInfo.equals("/")) {// ToDo
@@ -2433,9 +2472,13 @@ public final class PageContextImpl extends PageContext {
 	}
 
 	private final void execute(PageSource ps, boolean throwExcpetion, boolean onlyTopLevel) throws PageException {
-		ApplicationListener listener = getRequestDialect() == CFMLEngine.DIALECT_CFML
-				? (gatewayContext ? config.getApplicationListener() : ((MappingImpl) ps.getMapping()).getApplicationListener())
-				: ModernAppListener.getInstance();
+		ApplicationListener listener;
+		// if a listener is called (Web.cfc/Server.cfc we don't wanna any Application.cfc to be executed)
+		if (listenerContext) listener = new NoneAppListener();
+		else if (getRequestDialect() == CFMLEngine.DIALECT_LUCEE) listener = ModernAppListener.getInstance();
+		else if (gatewayContext) listener = config.getApplicationListener();
+		else listener = ((MappingImpl) ps.getMapping()).getApplicationListener();
+
 		Throwable _t = null;
 		try {
 			initallog();
@@ -2447,6 +2490,14 @@ public final class PageContextImpl extends PageContext {
 			log(false);
 		}
 		catch (Throwable t) {
+			if (ormSession != null) {
+				try {
+					releaseORM();
+					removeLastPageSource(true);
+				}
+				catch (Exception e) {
+				}
+			}
 			PageException pe;
 			if (t instanceof ThreadDeath && getTimeoutStackTrace() != null) {
 				t = pe = new RequestTimeoutException(this, (ThreadDeath) t);
@@ -2548,7 +2599,8 @@ public final class PageContextImpl extends PageContext {
 			// print.o(getOut().getClass().getName());
 			getOut().clear();
 		}
-		catch (IOException e) {}
+		catch (IOException e) {
+		}
 	}
 
 	@Override
@@ -2583,7 +2635,7 @@ public final class PageContextImpl extends PageContext {
 	public String getURLToken() {
 		if (getConfig().getSessionType() == Config.SESSION_TYPE_JEE) {
 			HttpSession s = getSession();
-			return "CFID=" + getCFID() + "&CFTOKEN=" + getCFToken() + "&jsessionid=" + (s != null ? getSession().getId() : "");
+			return "CFID=" + getCFID() + "&CFTOKEN=" + getCFToken() + "&jsessionid=" + (s != null ? s.getId() : "");
 		}
 		return "CFID=" + getCFID() + "&CFTOKEN=" + getCFToken();
 	}
@@ -2602,8 +2654,8 @@ public final class PageContextImpl extends PageContext {
 	private void initIdAndToken() {
 		boolean setCookie = true;
 		// From URL
-		Object oCfid = urlScope().get(KeyConstants._cfid, null);
-		Object oCftoken = urlScope().get(KeyConstants._cftoken, null);
+		Object oCfid = READ_CFID_FROM_URL ? urlScope().get(KeyConstants._cfid, null) : null;
+		Object oCftoken = READ_CFID_FROM_URL ? urlScope().get(KeyConstants._cftoken, null) : null;
 
 		// if CFID comes from URL, we only accept if already exists
 		if (oCfid != null) {
@@ -2676,7 +2728,12 @@ public final class PageContextImpl extends PageContext {
 	}
 
 	private boolean isValidCfToken(String value) {
-		return Operator.compare(value, "0") == 0;
+		try {
+			return OpUtil.compare(this, value, "0") == 0;
+		}
+		catch (PageException e) {
+			return value.equals("0");
+		}
 	}
 
 	public void resetIdAndToken() {
@@ -2920,7 +2977,8 @@ public final class PageContextImpl extends PageContext {
 		try {
 			sessionScope().removeEL(KeyImpl.init(name));
 		}
-		catch (PageException e) {}
+		catch (PageException e) {
+		}
 
 	}
 
@@ -2976,7 +3034,7 @@ public final class PageContextImpl extends PageContext {
 			else {
 				(u.getCheckArguments() ? u.localScope() : u).setEL(KeyConstants._cfcatch, pe.getCatchBlock(config));
 				if (name != null && !StringUtil.isEmpty(name, true)) (u.getCheckArguments() ? u.localScope() : u).setEL(KeyImpl.getInstance(name.trim()), pe.getCatchBlock(config));
-				if (!gatewayContext && config.debug() && config.hasDebugOptions(ConfigPro.DEBUG_EXCEPTION) && caught) {
+				if (!gatewayContext && config.debug() && config.hasDebugOptions(ConfigPro.DEBUG_EXCEPTION)) {
 					/*
 					 * print.e("-----------------------"); print.e("msg:" + pe.getMessage()); print.e("caught:" +
 					 * caught); print.e("store:" + store); print.e("signal:" + signal); print.e("outer:" + outer);
@@ -3061,7 +3119,12 @@ public final class PageContextImpl extends PageContext {
 		session = null;
 		application = null;
 		client = null;
-		this.applicationContext = (ApplicationContextSupport) applicationContext;
+
+		if (applicationContext != null) this.applicationContext = (ApplicationContextSupport) applicationContext;
+		else applicationContext = this.applicationContext;
+
+		if (applicationContext == null) return;
+
 		setFullNullSupport();
 		int scriptProtect = applicationContext.getScriptProtect();
 
@@ -3090,22 +3153,19 @@ public final class PageContextImpl extends PageContext {
 		// AppListenerSupport listener = (AppListenerSupport) config.get ApplicationListener();
 		KeyLock<String> lock = config.getContextLock();
 		String name = StringUtil.emptyIfNull(applicationContext.getName());
-		String token = name + ":" + getCFID();
 
-		Lock tokenLock = lock.lock(token, getRequestTimeout());
-		// print.o("outer-lock :"+token);
-		try {
-			// check session before executing any code
-			initSession = applicationContext.isSetSessionManagement() && listener.hasOnSessionStart(this) && !scopeContext.hasExistingSessionScope(this);
-
-			// init application
-
+		// Application
+		application = scopeContext.getApplicationScope(this, false, null);// this is needed that the
+		// application scope is initilized
+		if (application == null || !application.isInitalized()) {
+			// because we had no lock so far, it could be that we more than one thread here at the same time
 			Lock nameLock = lock.lock(name, getRequestTimeout());
-			// print.o("inner-lock :"+token);
 			try {
 				RefBoolean isNew = new RefBooleanImpl(false);
-				application = scopeContext.getApplicationScope(this, isNew);// this is needed that the application scope is initilized
+				application = scopeContext.getApplicationScope(this, true, isNew);
+				// now within the lock, we get the application
 				if (isNew.toBooleanValue()) {
+
 					try {
 						if (!((AppListenerSupport) listener).onApplicationStart(this, application)) {
 							scopeContext.removeApplicationScope(this);
@@ -3116,22 +3176,36 @@ public final class PageContextImpl extends PageContext {
 						scopeContext.removeApplicationScope(this);
 						throw pe;
 					}
+					finally {
+						if (application != null) application.initialize(this);
+					}
 				}
 			}
 			finally {
 				// print.o("inner-unlock:"+token);
 				lock.unlock(nameLock);
 			}
-
-			// init session
-			if (initSession) {
-				// session must be initlaized here
-				((AppListenerSupport) listener).onSessionStart(this, scopeContext.getSessionScope(this, DUMMY_BOOL));
-			}
 		}
-		finally {
-			// print.o("outer-unlock:"+token);
-			lock.unlock(tokenLock);
+
+		// Session
+		initSession = applicationContext.isSetSessionManagement() && listener.hasOnSessionStart(this) && !scopeContext.hasExistingSessionScope(this);
+		if (initSession) {
+			String token = name + ":" + getCFID();
+			Lock tokenLock = lock.lock(token, getRequestTimeout());
+			try {
+				// we need to check it again within the lock, to make sure the call is exclusive
+				initSession = applicationContext.isSetSessionManagement() && listener.hasOnSessionStart(this) && !scopeContext.hasExistingSessionScope(this);
+
+				// init session
+				if (initSession) {
+					// session must be initlaized here
+					((AppListenerSupport) listener).onSessionStart(this, scopeContext.getSessionScope(this, DUMMY_BOOL));
+				}
+			}
+			finally {
+				// print.o("outer-unlock:"+token);
+				lock.unlock(tokenLock);
+			}
 		}
 		return true;
 	}
@@ -3392,6 +3466,7 @@ public final class PageContextImpl extends PageContext {
 
 	private String tagName;
 
+	private boolean dummy;
 	private boolean listenSettings;
 
 	public boolean isTrusted(Page page) {
@@ -3445,7 +3520,7 @@ public final class PageContextImpl extends PageContext {
 		JavaSettingsImpl js = (JavaSettingsImpl) applicationContext.getJavaSettings();
 
 		if (js != null) {
-			Resource[] jars = OSGiUtil.extractAndLoadBundles(this, js.getResourcesTranslated());
+			Resource[] jars = js.getResourcesTranslated();
 			if (jars.length > 0) return config.getResourceClassLoader().getCustomResourceClassLoader(jars);
 		}
 		return config.getResourceClassLoader();
@@ -3459,7 +3534,7 @@ public final class PageContextImpl extends PageContext {
 		JavaSettingsImpl js = (JavaSettingsImpl) applicationContext.getJavaSettings();
 		ClassLoader cl = config.getRPCClassLoader(reload, parents);
 		if (js != null) {
-			Resource[] jars = OSGiUtil.extractAndLoadBundles(this, js.getResourcesTranslated());
+			Resource[] jars = js.getResourcesTranslated();
 			if (jars.length > 0) return ((PhysicalClassLoader) cl).getCustomClassLoader(jars, reload);
 		}
 		return cl;
@@ -3485,6 +3560,10 @@ public final class PageContextImpl extends PageContext {
 	 */
 	public void setGatewayContext(boolean gatewayContext) {
 		this.gatewayContext = gatewayContext;
+	}
+
+	public void setListenerContext(boolean listenerContext) {
+		this.listenerContext = listenerContext;
 	}
 
 	public void setServerPassword(Password serverPassword) {
@@ -3695,7 +3774,7 @@ public final class PageContextImpl extends PageContext {
 		return config.getLog(name);
 	}
 
-	public Log getLog(String name, boolean createIfNecessary) {
+	public Log getLog(String name, boolean createIfNecessary) throws PageException {
 		if (applicationContext != null) {
 			Log log = applicationContext.getLog(name);
 			if (log != null) return log;
@@ -3703,7 +3782,7 @@ public final class PageContextImpl extends PageContext {
 		return config.getLog(name, createIfNecessary);
 	}
 
-	public java.util.Collection<String> getLogNames() {
+	public java.util.Collection<String> getLogNames() throws PageException {
 		java.util.Collection<String> cnames = config.getLoggers().keySet();
 		if (applicationContext != null) {
 			java.util.Collection<Collection.Key> anames = applicationContext.getLogNames();
@@ -3750,6 +3829,15 @@ public final class PageContextImpl extends PageContext {
 			if (parentTags == null) parentTags = new ArrayList<String>();
 			parentTags.add(tagName);
 		}
+	}
+
+	public boolean isDummy() {
+		return dummy;
+	}
+
+	public PageContextImpl setDummy(boolean dummy) {
+		this.dummy = dummy;
+		return this;
 	}
 
 	public TimeSpan getCachedAfterTimeRange() { // FUTURE add to interface

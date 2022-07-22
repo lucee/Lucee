@@ -36,6 +36,7 @@ public interface Gateway {
 	 * @param id the id of the gateway
 	 * @param cfcPath the path to the listener component
 	 * @param config the configuration as map
+	 * @throws IOException IO Exception
 	 */
 	public void init(GatewayEngine engine, String id, String cfcPath, Map<String, String> config) throws IOException;
 
@@ -49,8 +50,9 @@ public interface Gateway {
 	/**
 	 * sends a message based on given data
 	 * 
-	 * @param data
+	 * @param data data
 	 * @return answer from gateway
+	 * @throws IOException IO Exception
 	 */
 	public String sendMessage(Map<?, ?> data) throws IOException;
 
@@ -64,21 +66,21 @@ public interface Gateway {
 	/**
 	 * starts the gateway
 	 * 
-	 * @throws IOException
+	 * @throws IOException IO Exception
 	 */
 	public void doStart() throws IOException;
 
 	/**
 	 * stop the gateway
 	 * 
-	 * @throws IOException
+	 * @throws IOException IO Exception
 	 */
 	public void doStop() throws IOException;
 
 	/**
 	 * restart the gateway
 	 * 
-	 * @throws IOException
+	 * @throws IOException IO Exception
 	 */
 	public void doRestart() throws IOException;
 

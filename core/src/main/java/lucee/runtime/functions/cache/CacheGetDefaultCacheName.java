@@ -39,7 +39,7 @@ public final class CacheGetDefaultCacheName extends BIF {
 	public static String call(PageContext pc, String strType) throws PageException {
 		int type = CacheUtil.toType(strType, Config.CACHE_TYPE_NONE);
 		if (type == Config.CACHE_TYPE_NONE)
-			throw new FunctionException(pc, "CacheGetDefaultCacheName", 1, "type", "invalid type definition [" + strType + "], valid types are [object,resource,template,query]");
+			throw new FunctionException(pc, "CacheGetDefaultCacheName", 1, "type", "invalid type definition [" + strType + "], valid types are [object, template, query, resource, function, include, http, file, webservice]");
 
 		ConfigPro config = (ConfigPro) pc.getConfig();
 		CacheConnection conn = config.getCacheDefaultConnection(type);

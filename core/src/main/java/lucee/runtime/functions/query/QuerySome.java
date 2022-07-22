@@ -45,7 +45,7 @@ public class QuerySome extends BIF {
 	}
 
 	private static boolean _call(PageContext pc, Query qry, UDF udf, boolean parallel, int maxThreads) throws PageException {
-		return Some._call(pc, qry, udf, parallel, maxThreads, ClosureFunc.TYPE_QUERY);
+		return Some.call(pc, qry, udf, parallel, maxThreads, ClosureFunc.TYPE_QUERY);
 	}
 
 	@Override

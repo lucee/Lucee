@@ -38,12 +38,14 @@ import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
-import lucee.runtime.op.Operator;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayClassic;
 import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.ArrayPro;
+import lucee.runtime.type.ArrayTyped;
 import lucee.runtime.type.QueryColumn;
+import lucee.runtime.type.Struct;
+import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.comparator.SortRegister;
 
 /**
@@ -68,7 +70,7 @@ public final class ArrayUtil {
 	 * @param arr
 	 * @return trimmed array
 	 */
-	public static String[] trim(String[] arr) {
+	public static String[] trimItems(String[] arr) {
 		for (int i = 0; i < arr.length; i++) {
 			arr[i] = arr[i].trim();
 		}
@@ -165,9 +167,10 @@ public final class ArrayUtil {
 		for (int i = 1; i <= len; i++) {
 			Object tmp = array.get(i, null);
 			try {
-				if (tmp != null && Operator.compare(object, tmp) == 0) return i;
+				if (tmp != null && lucee.runtime.op.OpUtil.compare(ThreadLocalPageContext.get(), object, tmp) == 0) return i;
 			}
-			catch (PageException e) {}
+			catch (PageException e) {
+			}
 		}
 		return 0;
 	}
@@ -1015,5 +1018,13 @@ public final class ArrayUtil {
 	public static ArrayPro toArrayPro(Array array) {
 		if (array instanceof ArrayPro) return (ArrayPro) array;
 		return new ArrayAsArrayPro(array);
+	}
+
+	public static Struct getMetaData(Array arr) throws PageException {
+		Struct sct = new StructImpl();
+		sct.set(KeyConstants._type, arr instanceof ArrayImpl && ((ArrayImpl) arr).sync() ? "synchronized" : "unsynchronized");
+		sct.set("dimensions", arr.getDimension());
+		sct.set("datatype", arr instanceof ArrayTyped ? ((ArrayTyped) arr).getTypeAsString() : "any");
+		return sct;
 	}
 }

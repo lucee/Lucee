@@ -26,10 +26,10 @@ public interface Caller extends Scope {
 	/**
 	 * sets the scopes
 	 * 
-	 * @param variablesScope
-	 * @param localScope
-	 * @param argumentsScope
-	 * @param checkArgs
+	 * @param variablesScope variables scope
+	 * @param localScope local scope
+	 * @param argumentsScope arguments scope
+	 * @param checkArgs check arguments
 	 */
 	public abstract void setScope(Variables variablesScope, Local localScope, Argument argumentsScope, boolean checkArgs);
 

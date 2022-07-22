@@ -10,28 +10,46 @@
 	returnVariable="component">
 <cfset setting.component={
 	compatibility:{
-		baseComponentTemplate:component.strBaseComponentTemplate,
+		baseComponentTemplate:component.strBaseComponentTemplateCFML,
 		componentDumpTemplate:component.strComponentDumpTemplate,
 		
 		componentDataMemberDefaultAccess:'public',
 		triggerDataMember:false,
-		useShadow:true
+		useShadow:true,
+		componentLocalSearch:false,
+		componentPathCache:false,
+		deepSearch:false,
+		baseComponentTemplateCFML:component.strBaseComponentTemplateCFML,
+		baseComponentTemplateLucee:component.baseComponentTemplateLucee,
+		componentDefaultImport:component.ComponentDefaultImport
 	},
 	strict:{
-		baseComponentTemplate:component.strBaseComponentTemplate,
+		baseComponentTemplate:component.strBaseComponentTemplateCFML,
 		componentDumpTemplate:component.strComponentDumpTemplate,
 		
 		componentDataMemberDefaultAccess:'private',
 		triggerDataMember:false,
-		useShadow:false
+		useShadow:false,
+		componentLocalSearch:false,
+		componentPathCache:false,
+		deepSearch:false,
+		baseComponentTemplateCFML:component.strBaseComponentTemplateCFML,
+		baseComponentTemplateLucee:component.baseComponentTemplateLucee,
+		componentDefaultImport:component.ComponentDefaultImport
 	},
 	speed:{
-		baseComponentTemplate:component.strBaseComponentTemplate,
+		baseComponentTemplate:component.strBaseComponentTemplateCFML,
 		componentDumpTemplate:component.strComponentDumpTemplate,
 		
 		componentDataMemberDefaultAccess:'private',
 		triggerDataMember:false,
-		useShadow:false
+		useShadow:false,
+		componentLocalSearch:false,
+		componentPathCache:false,
+		deepSearch:false,
+		baseComponentTemplateCFML:component.strBaseComponentTemplateCFML,
+		baseComponentTemplateLucee:component.baseComponentTemplateLucee,
+		componentDefaultImport:component.ComponentDefaultImport
 	}
 }>
 
@@ -74,6 +92,10 @@
 		clientManagement:scope.clientManagement,
 		clientCookies:scope.clientCookies,
 		domaincookies:scope.domaincookies,
+		clientTimeout:scope.clientTimeout,
+		clientStorage:scope.clientStorage,
+		sessionStorage:scope.sessionStorage,
+		cgiReadonly:scope.cgiReadonly,
 				
 		localMode:'update',
 		scopeCascadingType:'standard',
@@ -88,6 +110,10 @@
 		clientManagement:scope.clientManagement,
 		clientCookies:scope.clientCookies,
 		domaincookies:scope.domaincookies,
+		clientTimeout:scope.clientTimeout,
+		clientStorage:scope.clientStorage,
+		sessionStorage:scope.sessionStorage,
+		cgiReadonly:scope.cgiReadonly,
 				
 		localMode:'update',
 		scopeCascadingType:'strict',
@@ -102,6 +128,10 @@
 		clientManagement:scope.clientManagement,
 		clientCookies:scope.clientCookies,
 		domaincookies:scope.domaincookies,
+		clientTimeout:scope.clientTimeout,
+		clientStorage:scope.clientStorage,
+		sessionStorage:scope.sessionStorage,
+		cgiReadonly:scope.cgiReadonly,
 				
 		localMode:'always',
 		scopeCascadingType:'strict',
@@ -138,17 +168,21 @@
 	compatibility:{
 		deepSearch:true,
 		localSearch:true,
-		extensions="cfm,cfml"
+		extensions="cfm,cfml",
+		customTagPathCache:false
+
 	},
 	strict:{
 		deepSearch:false,
 		localSearch:false,
-		extensions="cfc,cfm"
+		extensions="cfc,cfm",
+		customTagPathCache:false
 	},
 	speed:{
 		deepSearch:false,
 		localSearch:false,
-		extensions="cfc,cfm"
+		extensions="cfc,cfm",
+		customTagPathCache:false
 	}
 }>
 

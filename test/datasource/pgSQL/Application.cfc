@@ -1,19 +1,13 @@
 component {
 
-	pgSQL = getCredencials();
+	pgSQL = getCredentials();
 
-	this.name = "luceetest";
-	this.datasources["pgSQL_DSN"] = {
-		  class: 'org.postgresql.Driver'
-		, bundleName: 'org.postgresql.jdbc42'
-		, bundleVersion: '9.4.1212'
-		, connectionString: 'jdbc:postgresql://localhost:5432/test'
-		, username: #pgSQL.username#
-		, password: #pgSQL.password#
-	};
+	this.name = "lucee_postgres2";
+	this.datasources["pgSQL_DSN"] = pgSQL;
 	this.datasource = "pgSQL_DSN";
 
-	public function onRequestStart(){
+	public function onRequestStart() {
+		setting requesttimeout=10;
 		query{
 			echo("DROP TABLE IF EXISTS test_pgSQL");
 		}
@@ -22,34 +16,8 @@ component {
 		}
 	}
 	
-	private struct function getCredencials() {
-		var pgSQL={};
-		if(
-			!isNull(server.system.environment.POSTGRES_SERVER) && 
-			!isNull(server.system.environment.POSTGRES_USERNAME) && 
-			!isNull(server.system.environment.POSTGRES_PASSWORD) && 
-			!isNull(server.system.environment.POSTGRES_PORT) && 
-			!isNull(server.system.environment.POSTGRES_DATABASE)) {
-			pgSQL.server=server.system.environment.POSTGRES_SERVER;
-			pgSQL.username=server.system.environment.POSTGRES_USERNAME;
-			pgSQL.password=server.system.environment.POSTGRES_PASSWORD;
-			pgSQL.port=server.system.environment.POSTGRES_PORT;
-			pgSQL.database=server.system.environment.POSTGRES_DATABASE;
-		}
-
-		else if(
-			!isNull(server.system.properties.POSTGRES_SERVER) && 
-			!isNull(server.system.properties.POSTGRES_USERNAME) && 
-			!isNull(server.system.properties.POSTGRES_PASSWORD) && 
-			!isNull(server.system.properties.POSTGRES_PORT) && 
-			!isNull(server.system.properties.POSTGRES_DATABASE)) {
-			pgSQL.server=server.system.properties.POSTGRES_SERVER;
-			pgSQL.username=server.system.properties.POSTGRES_USERNAME;
-			pgSQL.password=server.system.properties.POSTGRES_UPASSWORD;
-			pgSQL.port=server.system.properties.POSTGRES_PORT;
-			pgSQL.database=server.system.properties.POSTGRES_DATABASE;
-		}
-		return pgSQL;
+	private struct function getCredentials() {
+		return server.getDatasource("postgres");
 	}
 
 	public function onRequestEnd(){

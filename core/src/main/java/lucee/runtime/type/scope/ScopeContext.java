@@ -55,14 +55,10 @@ import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
-import lucee.runtime.type.scope.client.ClientCache;
 import lucee.runtime.type.scope.client.ClientCookie;
-import lucee.runtime.type.scope.client.ClientDatasource;
 import lucee.runtime.type.scope.client.ClientFile;
 import lucee.runtime.type.scope.client.ClientMemory;
-import lucee.runtime.type.scope.session.SessionCache;
 import lucee.runtime.type.scope.session.SessionCookie;
-import lucee.runtime.type.scope.session.SessionDatasource;
 import lucee.runtime.type.scope.session.SessionFile;
 import lucee.runtime.type.scope.session.SessionMemory;
 import lucee.runtime.type.scope.storage.IKHandlerCache;
@@ -86,11 +82,6 @@ public final class ScopeContext {
 	private static final int MINUTE = 60 * 1000;
 	private static final long CLIENT_MEMORY_TIMESPAN = 5 * MINUTE;
 	private static final long SESSION_MEMORY_TIMESPAN = 5 * MINUTE;
-	private static final boolean INVIDUAL_STORAGE_KEYS;
-
-	static {
-		INVIDUAL_STORAGE_KEYS = true;// Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("individualStorageKeys", null),false);
-	}
 
 	private Map<String, Map<String, Scope>> cfSessionContexts = MapFactory.<String, Map<String, Scope>>getConcurrentMap();
 	private Map<String, Map<String, Scope>> cfClientContexts = MapFactory.<String, Map<String, Scope>>getConcurrentMap();
@@ -104,7 +95,6 @@ public final class ScopeContext {
 	private StorageScopeEngine client;
 	private StorageScopeEngine session;
 	private CFMLFactoryImpl factory;
-	private Log log;
 
 	public ScopeContext(CFMLFactoryImpl factory) {
 		this.factory = factory;
@@ -114,11 +104,7 @@ public final class ScopeContext {
 	 * @return the log
 	 */
 	private Log getLog() {
-		if (log == null) {
-			this.log = factory.getConfig().getLog("scope");
-
-		}
-		return log;
+		return factory.getConfig().getLog("scope");
 	}
 
 	public void debug(String msg) {
@@ -262,31 +248,11 @@ public final class ScopeContext {
 			else {
 				DataSource ds = pc.getDataSource(storage, null);
 				if (ds != null) {
-					if (INVIDUAL_STORAGE_KEYS) {
-						try {
-							client = (Client) IKStorageScopeSupport.getInstance(Scope.SCOPE_CLIENT, new IKHandlerDatasource(), appContext.getName(), storage, pc, existing,
-									getLog());
-						}
-						catch (PageException pe) {
-							// code above could fail when an old scope is loaded, remember client scope can be easy be
-							// 180 days old
-							client = ClientDatasource.getInstance(storage, pc, getLog());
-						}
-					}
-					else client = ClientDatasource.getInstance(storage, pc, getLog());
+					client = (Client) IKStorageScopeSupport.getInstance(Scope.SCOPE_CLIENT, new IKHandlerDatasource(), appContext.getName(), storage, pc, existing, getLog());
 				}
 				else {
-					if (INVIDUAL_STORAGE_KEYS) {
-						try {
-							client = (Client) IKStorageScopeSupport.getInstance(Scope.SCOPE_CLIENT, new IKHandlerCache(), appContext.getName(), storage, pc, existing, getLog());
-						}
-						catch (PageException pe) {
-							// code above could fail when an old scope is loaded, remember client scope can be easy be
-							// 180 days old
-							client = ClientCache.getInstance(storage, appContext.getName(), pc, existing, getLog(), null);
-						}
-					}
-					else client = ClientCache.getInstance(storage, appContext.getName(), pc, existing, getLog(), null);
+					client = (Client) IKStorageScopeSupport.getInstance(Scope.SCOPE_CLIENT, new IKHandlerCache(), appContext.getName(), storage, pc, existing, getLog());
+
 				}
 
 				if (client == null) {
@@ -308,7 +274,7 @@ public final class ScopeContext {
 			client.setStorage(storage);
 			context.put(pc.getCFID(), client);
 		}
-		else getLog().log(Log.LEVEL_DEBUG, "scope-context", "use existing client scope for " + appContext.getName() + "/" + pc.getCFID() + " from storage " + storage);
+		else getLog().log(Log.LEVEL_INFO, "scope-context", "use existing client scope for " + appContext.getName() + "/" + pc.getCFID() + " from storage " + storage);
 
 		client.touchBeforeRequest(pc);
 		return client;
@@ -485,7 +451,7 @@ public final class ScopeContext {
 		if (httpSession == null) return false;
 
 		Session session = (Session) httpSession.getAttribute(pc.getApplicationContext().getName());
-		return session instanceof JSession;
+		return session instanceof JSession && !session.isExpired();
 	}
 
 	private boolean hasExistingCFSessionScope(PageContext pc, String cfid) {
@@ -528,15 +494,9 @@ public final class ScopeContext {
 			else {
 				DataSource ds = pc.getConfig().getDataSource(storage, null);
 				if (ds != null && ds.isStorage()) {
-					if (INVIDUAL_STORAGE_KEYS) {
-						return IKStorageScopeSupport.hasInstance(Scope.SCOPE_SESSION, new IKHandlerDatasource(), appContext.getName(), storage, pc);
-					}
-					else {
-						if (SessionDatasource.hasInstance(storage, pc)) return true;
-					}
+					return IKStorageScopeSupport.hasInstance(Scope.SCOPE_SESSION, new IKHandlerDatasource(), appContext.getName(), storage, pc);
 				}
-				if (INVIDUAL_STORAGE_KEYS) return IKStorageScopeSupport.hasInstance(Scope.SCOPE_SESSION, new IKHandlerCache(), appContext.getName(), storage, pc);
-				return SessionCache.hasInstance(storage, appContext.getName(), pc);
+				return IKStorageScopeSupport.hasInstance(Scope.SCOPE_SESSION, new IKHandlerCache(), appContext.getName(), storage, pc);
 			}
 		}
 		return true;
@@ -601,29 +561,11 @@ public final class ScopeContext {
 			else {
 				DataSource ds = pc.getDataSource(storage, null);
 				if (ds != null && ds.isStorage()) {
-					if (INVIDUAL_STORAGE_KEYS) {
-						try {
-							session = (Session) IKStorageScopeSupport.getInstance(Scope.SCOPE_SESSION, new IKHandlerDatasource(), appContext.getName(), storage, pc, existing,
-									getLog());
-						}
-						catch (PageException pe) {
-							pc.getConfig().getLog("application").error("session-storage", pe);
-							session = SessionDatasource.getInstance(storage, pc, getLog(), null);
-						}
-					}
-					else session = SessionDatasource.getInstance(storage, pc, getLog(), null);
+					session = (Session) IKStorageScopeSupport.getInstance(Scope.SCOPE_SESSION, new IKHandlerDatasource(), appContext.getName(), storage, pc, existing, getLog());
+
 				}
 				else {
-					if (INVIDUAL_STORAGE_KEYS) {
-						try {
-							session = (Session) IKStorageScopeSupport.getInstance(Scope.SCOPE_SESSION, new IKHandlerCache(), appContext.getName(), storage, pc, existing, getLog());
-						}
-						catch (PageException pe) {
-							pc.getConfig().getLog("application").error("session-storage", pe);
-							session = SessionCache.getInstance(storage, appContext.getName(), pc, existing, getLog(), null);
-						}
-					}
-					else session = SessionCache.getInstance(storage, appContext.getName(), pc, existing, getLog(), null);
+					session = (Session) IKStorageScopeSupport.getInstance(Scope.SCOPE_SESSION, new IKHandlerCache(), appContext.getName(), storage, pc, existing, getLog());
 				}
 
 				if (session == null) {
@@ -646,7 +588,7 @@ public final class ScopeContext {
 			isNew.setValue(true);
 		}
 		else {
-			getLog().log(Log.LEVEL_DEBUG, "scope-context", "use existing session scope for " + appContext.getName() + "/" + pc.getCFID() + " from storage " + storage);
+			getLog().log(Log.LEVEL_INFO, "scope-context", "use existing session scope for " + appContext.getName() + "/" + pc.getCFID() + " from storage " + storage);
 		}
 		session.touchBeforeRequest(pc);
 		return session;
@@ -725,9 +667,11 @@ public final class ScopeContext {
 			jSession = (JSession) session;
 			try {
 				if (jSession.isExpired()) {
-					jSession.touch();
+					if (httpSession == null) jSession.touch();
+					else jSession = createNewJSession(pc, httpSession, isNew);
+
 				}
-				debug(getLog(), "use existing JSession for " + appContext.getName() + "/" + pc.getCFID());
+				info(getLog(), "use existing JSession for " + appContext.getName() + "/" + pc.getCFID());
 
 			}
 			catch (ClassCastException cce) {
@@ -743,15 +687,20 @@ public final class ScopeContext {
 		else {
 			// if there is no HTTPSession
 			if (httpSession == null) return getCFSessionScope(pc, isNew);
-
-			debug(getLog(), "create new JSession for " + appContext.getName() + "/" + pc.getCFID());
-			jSession = new JSession();
-			httpSession.setAttribute(appContext.getName(), jSession);
-			isNew.setValue(true);
-			Map<String, Scope> context = getSubMap(cfSessionContexts, appContext.getName());
-			context.put(pc.getCFID(), jSession);
+			jSession = createNewJSession(pc, httpSession, isNew);
 		}
 		jSession.touchBeforeRequest(pc);
+		return jSession;
+	}
+
+	private JSession createNewJSession(PageContext pc, HttpSession httpSession, RefBoolean isNew) {
+		ApplicationContext appContext = pc.getApplicationContext();
+		debug(getLog(), "create new JSession for " + appContext.getName() + "/" + pc.getCFID());
+		JSession jSession = new JSession();
+		httpSession.setAttribute(appContext.getName(), jSession);
+		isNew.setValue(true);
+		Map<String, Scope> context = getSubMap(cfSessionContexts, appContext.getName());
+		context.put(pc.getCFID(), jSession);
 		return jSession;
 	}
 
@@ -763,7 +712,7 @@ public final class ScopeContext {
 	 * @return session matching the context
 	 * @throws PageException
 	 */
-	public Application getApplicationScope(PageContext pc, RefBoolean isNew) {
+	public Application getApplicationScope(PageContext pc, boolean createUpdateIfNotExist, RefBoolean isNew) {
 		ApplicationContext appContext = pc.getApplicationContext();
 		// getApplication Scope from Context
 		ApplicationImpl application;
@@ -771,11 +720,13 @@ public final class ScopeContext {
 		if (objApp != null) {
 			application = (ApplicationImpl) objApp;
 			if (application.isExpired()) {
+				if (!createUpdateIfNotExist) return null;
 				application.release(pc);
 				isNew.setValue(true);
 			}
 		}
 		else {
+			if (!createUpdateIfNotExist) return null;
 			application = new ApplicationImpl();
 			applicationContexts.put(appContext.getName(), application);
 			isNew.setValue(true);
@@ -812,6 +763,7 @@ public final class ScopeContext {
 					// ,new CacheStorageScopeCleaner(Scope.SCOPE_CLIENT, null) //Cache storage need no control, if
 					// there is no listener
 					});
+
 			// store session/client scope and remove from memory
 			storeUnusedStorageScope(factory, Scope.SCOPE_CLIENT);
 			storeUnusedStorageScope(factory, Scope.SCOPE_SESSION);
@@ -906,7 +858,7 @@ public final class ScopeContext {
 					StorageScope scope = (StorageScope) o;
 					if (scope.lastVisit() + timespan < now && !(scope instanceof MemoryScope)) {
 						getLog().log(Log.LEVEL_INFO, "scope-context",
-								"remove from memory " + strType + " scope for " + applicationName + "/" + cfid + " from storage " + scope.getStorage());
+								"remove from memory [" + strType + "] scope for [" + applicationName + "/" + cfid + "] from storage [" + scope.getStorage() + "]");
 
 						fhm.remove(arrClients[y]);
 						count--;
@@ -924,7 +876,6 @@ public final class ScopeContext {
 	private void clearUnusedMemoryScope(CFMLFactoryImpl cfmlFactory, int type) {
 		Map<String, Map<String, Scope>> contexts = type == Scope.SCOPE_CLIENT ? cfClientContexts : cfSessionContexts;
 		if (contexts.size() == 0) return;
-
 		Object[] arrContexts = contexts.keySet().toArray();
 		ApplicationListener listener = cfmlFactory.getConfig().getApplicationListener();
 		Object applicationName, cfid, o;
@@ -933,10 +884,10 @@ public final class ScopeContext {
 		for (int i = 0; i < arrContexts.length; i++) {
 			applicationName = arrContexts[i];
 			fhm = contexts.get(applicationName);
-
 			if (fhm.size() > 0) {
 				Object[] cfids = fhm.keySet().toArray();
 				int count = cfids.length;
+
 				for (int y = 0; y < cfids.length; y++) {
 					cfid = cfids[y];
 					o = fhm.get(cfid);
@@ -954,7 +905,9 @@ public final class ScopeContext {
 						}
 						scope.touch();
 						try {
-							if (type == Scope.SCOPE_SESSION) listener.onSessionEnd(cfmlFactory, (String) applicationName, (String) cfid);
+							if (type == Scope.SCOPE_SESSION) {
+								listener.onSessionEnd(cfmlFactory, (String) applicationName, (String) cfid);
+							}
 						}
 						catch (Throwable t) {
 							ExceptionUtil.rethrowIfNecessary(t);
@@ -965,7 +918,7 @@ public final class ScopeContext {
 							fhm.remove(cfids[y]);
 							scope.release(ThreadLocalPageContext.get());
 							getLog().log(Log.LEVEL_INFO, "scope-context",
-									"remove memory based " + VariableInterpreter.scopeInt2String(type) + " scope for " + applicationName + "/" + cfid);
+									"remove memory based " + VariableInterpreter.scopeInt2String(type) + " scope for [" + applicationName + "/" + cfid + "]");
 							count--;
 						}
 					}

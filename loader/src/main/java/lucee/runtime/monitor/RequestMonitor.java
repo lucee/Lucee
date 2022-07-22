@@ -32,10 +32,10 @@ public interface RequestMonitor extends Monitor {
 	/**
 	 * returns data for a single context
 	 * 
-	 * @param config
-	 * @param arguments
-	 * @return
-	 * @throws PageException
+	 * @param config config
+	 * @param arguments arguments
+	 * @return Returns a query.
+	 * @throws PageException Page Exception
 	 */
 	public Query getData(ConfigWeb config, Map<String, Object> arguments) throws PageException;
 }

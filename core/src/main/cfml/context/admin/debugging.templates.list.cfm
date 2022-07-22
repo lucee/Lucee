@@ -124,7 +124,7 @@ Redirtect to entry --->
 							<tr>
 								<cfif isWeb>
 									<td>
-										<input type="checkbox" class="checkbox" name="row_#qry.currentrow#" value="#qry.currentrow#">
+										<input type="checkbox" class="checkbox" name="row_#qry.currentrow#" id="clickCheckbox" value="#qry.currentrow#">
 									</td>
 								</cfif>
 								<td>
@@ -147,8 +147,8 @@ Redirtect to entry --->
 						<tfoot>
 							<tr>
 								<td colspan="#isWeb?5:3#">
-									<input type="submit" class="bl button submit" name="mainAction" value="#stText.Buttons.delete#">
-									<input type="reset" class="br button reset" name="cancel" value="#stText.Buttons.Cancel#">
+									<input type="submit" class="bl button submit enablebutton" name="mainAction" value="#stText.Buttons.delete#" disabled style="opacity:0.5">
+									<input type="reset" class="br button reset enablebutton" id="clickCancel" name="cancel" value="#stText.Buttons.Cancel#" disabled style="opacity:0.5">
 								</td>	
 							</tr>
 						</tfoot>

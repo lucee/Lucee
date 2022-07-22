@@ -99,7 +99,8 @@ public final class Div extends BodyTagImpl {
 	}
 
 	@Override
-	public void doInitBody() {}
+	public void doInitBody() {
+	}
 
 	@Override
 	public int doAfterBody() {
@@ -111,5 +112,6 @@ public final class Div extends BodyTagImpl {
 	 * 
 	 * @param hasBody
 	 */
-	public void hasBody(boolean hasBody) {}
+	public void hasBody(boolean hasBody) {
+	}
 }

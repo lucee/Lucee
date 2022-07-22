@@ -448,6 +448,7 @@ public class KeyConstants {
 	public static final Key _java = KeyImpl._const("java");
 	public static final Key _javaLoader = KeyImpl._const("javaLoader");
 	public static final Key _jsessionid = KeyImpl._const("jsessionid");
+	public static final Key _JSESSIONID = KeyImpl._const("JSESSIONID");
 	public static final Key _key = KeyImpl._const("key");
 	public static final Key _keys = KeyImpl._const("keys");
 	public static final Key _label = KeyImpl._const("label");
@@ -490,6 +491,7 @@ public class KeyConstants {
 	public static final Key _moduleName = KeyImpl._const("moduleName");
 	public static final Key _myFusebox = KeyImpl._const("myFusebox");
 	public static final Key _name = KeyImpl._const("name");
+	public static final Key _subname = KeyImpl._const("subname");
 	public static final Key _needssetup = KeyImpl._const("needssetup");
 	public static final Key _next = KeyImpl._const("next");
 	public static final Key _nosetup = KeyImpl._const("nosetup");
@@ -946,17 +948,19 @@ public class KeyConstants {
 	public static final Key _serializeQueryAs = KeyImpl._const("serializeQueryAs");
 	public static final Key _structMetaData = KeyImpl._const("structMetaData");
 	public static final Key _STACKTRACE = KeyImpl._const("STACKTRACE");
-
 	public static final Key _callback = KeyImpl._const("callback");
 	public static final Key _udf = KeyImpl._const("udf");
 	public static final Key _params = KeyImpl._const("params");
 	public static final Key _param = KeyImpl._const("param");
 	public static final Key _stacktrace = KeyImpl._const("stacktrace");
 	public static final Key _interface = KeyImpl._const("interface");
+	public static final Key _interfaces = KeyImpl._const("interfaces");
 	public static final Key _proxy = KeyImpl._const("proxy");
 	public static final Key _offset = KeyImpl._const("offset");
 	public static final Key _shortName = KeyImpl._const("shortName");
 	public static final Key _connectionString = KeyImpl._const("connectionString");
+	public static final Key _implementsjava = KeyImpl._const("implementsjava");
+	public static final Key _extendsjava = KeyImpl._const("extendsjava");
 	public static final Key _priority = KeyImpl._const("priority");
 	public static final Key _setOut = KeyImpl._const("setOut");
 	public static final Key _options = KeyImpl._const("options");
@@ -1027,6 +1031,15 @@ public class KeyConstants {
 	public static final Key _bundles = KeyImpl._const("bundles");
 	public static final Key _bundleDirectory = KeyImpl._const("bundleDirectory");
 	public static final Key _bundleDirectories = KeyImpl._const("bundleDirectories");
+	public static final Key _virtual = KeyImpl._const("virtual");
+	public static final Key _clientMaxAge = KeyImpl._const("clientMaxAge");
+	public static final Key _new = KeyImpl._const("new");
+	public static final Key _NEW = KeyImpl._const("NEW");
+	public static final Key _COLUMNNAMES = KeyImpl._const("COLUMNNAMES");
+	public static final Key _COLUMNTYPES = KeyImpl._const("COLUMNTYPES");
+	public static final Key _columnNames = KeyImpl._const("columnNames");
+	public static final Key _columnTypes = KeyImpl._const("columnTypes");
+	public static final Key _remoteclients = KeyImpl._const("remoteclients");
 
 	private static Map<String, Key> _____keys;
 

@@ -644,7 +644,15 @@ public class VariableImpl extends ExpressionBase implements Variable {
 			}
 		}
 
-		if (member.getSafeNavigated()) adapter.loadArg(0);
+		// LDEV3496
+		// subsequent logic will conditionally require a PageContext be pushed onto the stack, as part of a call to resolve a save-nav expression member
+		// But, we only want to push it if it will be consumed
+		// root cause of LDEV3496 was this was pushed in cases where it would not be consumed, and an extra unanticpated stack variable would break during class verification
+		// (jvm would report "expected a stackmap frame", javassist would report "InvocationTargetException: Operand stacks could not be merged, they are different sizes!")
+		final boolean needsAndWillConsumePageContextForSafeNavigationResolution = member.getSafeNavigated() && !doOnlyScope;
+		if (needsAndWillConsumePageContextForSafeNavigationResolution) {
+			adapter.loadArg(0);
+		}
 
 		// collection
 		Type rtn;
@@ -744,7 +752,7 @@ public class VariableImpl extends ExpressionBase implements Variable {
 		String type = flfa.getTypeAsString();
 		if (defaultValue == null) {
 			if (type.equals("boolean") || type.equals("bool")) return new VT(factory.FALSE(), type, -1);
-			if (type.equals("number") || type.equals("numeric") || type.equals("double")) return new VT(factory.DOUBLE_ZERO(), type, -1);
+			if (type.equals("number") || type.equals("numeric") || type.equals("double")) return new VT(factory.NUMBER_ONE(), type, -1);
 			return new VT(null, type, -1);
 		}
 		return new VT(factory.toExpression(factory.createLitString(defaultValue), type), type, -1);
@@ -792,11 +800,13 @@ public class VariableImpl extends ExpressionBase implements Variable {
 	private static boolean isNamed(String funcName, Argument[] args) throws TransformerException {
 		if (ArrayUtil.isEmpty(args)) return false;
 		boolean named = false;
+		boolean unNamed = false;
 		for (int i = 0; i < args.length; i++) {
 			if (args[i] instanceof NamedArgument) named = true;
-			else if (named) throw new TransformerException("invalid argument for function " + funcName + ", you can not mix named and unnamed arguments", args[i].getStart());
+			else unNamed = true;
+			if (named && unNamed)
+				throw new TransformerException("Invalid argument for function [ " + funcName + " ], You can't mix named and unNamed arguments", args[i].getStart());
 		}
-
 		return named;
 	}
 

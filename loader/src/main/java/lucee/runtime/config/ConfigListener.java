@@ -23,8 +23,8 @@ public interface ConfigListener {
 	/**
 	 * this method will be called when a web context will be loaded
 	 * 
-	 * @param cServer
-	 * @param wConfig
+	 * @param cServer config server
+	 * @param wConfig config web
 	 */
 	public void onLoadWebContext(ConfigServer cServer, ConfigWeb wConfig);
 }

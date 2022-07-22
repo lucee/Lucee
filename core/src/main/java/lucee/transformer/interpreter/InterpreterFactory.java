@@ -1,44 +1,50 @@
 package lucee.transformer.interpreter;
 
+import java.math.BigDecimal;
+
 import lucee.runtime.config.Config;
+import lucee.runtime.engine.ThreadLocalPageContext;
+import lucee.runtime.exp.PageException;
+import lucee.runtime.op.Caster;
 import lucee.transformer.Context;
+import lucee.transformer.Factory;
 import lucee.transformer.FactoryBase;
 import lucee.transformer.Position;
 import lucee.transformer.TransformerException;
-import lucee.transformer.bytecode.cast.CastOther;
 import lucee.transformer.expression.ExprBoolean;
-import lucee.transformer.expression.ExprDouble;
-import lucee.transformer.expression.ExprFloat;
 import lucee.transformer.expression.ExprInt;
+import lucee.transformer.expression.ExprNumber;
 import lucee.transformer.expression.ExprString;
 import lucee.transformer.expression.Expression;
 import lucee.transformer.expression.literal.LitBoolean;
-import lucee.transformer.expression.literal.LitDouble;
-import lucee.transformer.expression.literal.LitFloat;
 import lucee.transformer.expression.literal.LitInteger;
 import lucee.transformer.expression.literal.LitLong;
+import lucee.transformer.expression.literal.LitNumber;
 import lucee.transformer.expression.literal.LitString;
 import lucee.transformer.expression.var.DataMember;
 import lucee.transformer.expression.var.Variable;
 import lucee.transformer.interpreter.cast.CastBoolean;
-import lucee.transformer.interpreter.cast.CastDouble;
-import lucee.transformer.interpreter.cast.CastFloat;
 import lucee.transformer.interpreter.cast.CastInt;
+import lucee.transformer.interpreter.cast.CastNumber;
+import lucee.transformer.interpreter.cast.CastOther;
 import lucee.transformer.interpreter.cast.CastString;
 import lucee.transformer.interpreter.expression.var.EmptyArray;
 import lucee.transformer.interpreter.expression.var.EmptyStruct;
 import lucee.transformer.interpreter.literal.Empty;
 import lucee.transformer.interpreter.literal.LitBooleanImpl;
-import lucee.transformer.interpreter.literal.LitDoubleImpl;
-import lucee.transformer.interpreter.literal.LitFloatImpl;
 import lucee.transformer.interpreter.literal.LitIntegerImpl;
 import lucee.transformer.interpreter.literal.LitLongImpl;
+import lucee.transformer.interpreter.literal.LitNumberImpl;
 import lucee.transformer.interpreter.literal.LitStringImpl;
 import lucee.transformer.interpreter.literal.Null;
 import lucee.transformer.interpreter.literal.NullConstant;
 import lucee.transformer.interpreter.op.OpBool;
+import lucee.transformer.interpreter.op.OpContional;
 import lucee.transformer.interpreter.op.OpDecision;
-import lucee.transformer.interpreter.op.OpDouble;
+import lucee.transformer.interpreter.op.OpElvis;
+import lucee.transformer.interpreter.op.OpNegate;
+import lucee.transformer.interpreter.op.OpNegateNumber;
+import lucee.transformer.interpreter.op.OpNumber;
 import lucee.transformer.interpreter.op.OpString;
 
 public class InterpreterFactory extends FactoryBase {
@@ -47,17 +53,24 @@ public class InterpreterFactory extends FactoryBase {
 	private final LitBoolean FALSE;
 	private final LitString EMPTY;
 	private final LitString NULL;
-	private final LitDouble DOUBLE_ZERO;
-	private final LitDouble DOUBLE_ONE;
+	private final LitNumber NUMBER_ZERO;
+	private final LitNumber NUMBER_ONE;
 	private Config config;
+
+	private static InterpreterFactory instance;
+
+	public static Factory getInstance(Config config) {
+		if (instance == null) instance = new InterpreterFactory(config == null ? ThreadLocalPageContext.getConfig() : config);
+		return instance;
+	}
 
 	public InterpreterFactory(Config config) {
 		TRUE = createLitBoolean(true);
 		FALSE = createLitBoolean(false);
 		EMPTY = createLitString("");
 		NULL = createLitString("NULL");
-		DOUBLE_ZERO = createLitDouble(0);
-		DOUBLE_ONE = createLitDouble(1);
+		NUMBER_ZERO = createLitNumber(0);
+		NUMBER_ONE = createLitNumber(1);
 		this.config = config;
 	}
 
@@ -77,13 +90,13 @@ public class InterpreterFactory extends FactoryBase {
 	}
 
 	@Override
-	public LitDouble DOUBLE_ZERO() {
-		return DOUBLE_ZERO;
+	public LitNumber NUMBER_ZERO() {
+		return NUMBER_ZERO;
 	}
 
 	@Override
-	public LitDouble DOUBLE_ONE() {
-		return DOUBLE_ONE;
+	public LitNumber NUMBER_ONE() {
+		return NUMBER_ONE;
 	}
 
 	@Override
@@ -112,23 +125,33 @@ public class InterpreterFactory extends FactoryBase {
 	}
 
 	@Override
-	public LitDouble createLitDouble(double d) {
-		return new LitDoubleImpl(this, d, null, null);
+	public LitNumber createLitNumber(String number) throws PageException {
+		return createLitNumber(number, null, null);
 	}
 
 	@Override
-	public LitDouble createLitDouble(double d, Position start, Position end) {
-		return new LitDoubleImpl(this, d, start, end);
+	public LitNumber createLitNumber(String number, Position start, Position end) throws PageException {
+		return new LitNumberImpl(this, Caster.toBigDecimal(number), start, end);
 	}
 
 	@Override
-	public LitFloat createLitFloat(float f) {
-		return new LitFloatImpl(this, f, null, null);
+	public LitNumber createLitNumber(BigDecimal bd) {
+		return createLitNumber(bd, null, null);
 	}
 
 	@Override
-	public LitFloat createLitFloat(float f, Position start, Position end) {
-		return new LitFloatImpl(this, f, start, end);
+	public LitNumber createLitNumber(BigDecimal bd, Position start, Position end) {
+		return new LitNumberImpl(this, bd, start, end);
+	}
+
+	@Override
+	public LitNumber createLitNumber(Number n) {
+		return createLitNumber(n, null, null);
+	}
+
+	@Override
+	public LitNumber createLitNumber(Number n, Position start, Position end) {
+		return new LitNumberImpl(this, n, start, end);
 	}
 
 	@Override
@@ -205,8 +228,8 @@ public class InterpreterFactory extends FactoryBase {
 	}
 
 	@Override
-	public ExprDouble toExprDouble(Expression expr) {
-		return CastDouble.toExprDouble(expr);
+	public ExprNumber toExprNumber(Expression expr) {
+		return CastNumber.toExprNumber(expr);
 	}
 
 	@Override
@@ -222,11 +245,6 @@ public class InterpreterFactory extends FactoryBase {
 	@Override
 	public ExprInt toExprInt(Expression expr) {
 		return CastInt.toExprInt(expr);
-	}
-
-	@Override
-	public ExprFloat toExprFloat(Expression expr) {
-		return CastFloat.toExprFloat(expr);
 	}
 
 	@Override
@@ -250,31 +268,33 @@ public class InterpreterFactory extends FactoryBase {
 	}
 
 	@Override
-	public ExprDouble opDouble(Expression left, Expression right, int operation) {
-		return OpDouble.toExprDouble(left, right, operation);
+	public ExprNumber opNumber(Expression left, Expression right, int operation) {
+		return OpNumber.toExprNumber(left, right, operation);
 	}
 
 	@Override
-	public ExprDouble opUnary(Variable var, Expression value, short type, int operation, Position start, Position end) {
+	public ExprNumber opUnaryNumber(Variable var, Expression value, short type, int operation, Position start, Position end) {
+		return null;
+	}
+
+	@Override
+	public ExprString opUnaryString(Variable var, Expression value, short type, int operation, Position start, Position end) {
 		return null;
 	}
 
 	@Override
 	public Expression opNegate(Expression expr, Position start, Position end) {
-		// TODO Auto-generated method stub
-		return null;
+		return OpNegate.toExprBoolean(expr, start, end);
 	}
 
 	@Override
-	public ExprDouble opNegateNumber(Expression expr, int operation, Position start, Position end) {
-		// TODO Auto-generated method stub
-		return null;
+	public ExprNumber opNegateNumber(Expression expr, int operation, Position start, Position end) {
+		return OpNegateNumber.toExprNumber(expr, operation, start, end);
 	}
 
 	@Override
 	public Expression opContional(Expression cont, Expression left, Expression right) {
-		// TODO Auto-generated method stub
-		return null;
+		return OpContional.toExpr(cont, left, right);
 	}
 
 	@Override
@@ -284,8 +304,7 @@ public class InterpreterFactory extends FactoryBase {
 
 	@Override
 	public Expression opElvis(Variable left, Expression right) {
-		// TODO Auto-generated method stub
-		return null;
+		return OpElvis.toExpr(left, right);
 	}
 
 	@Override

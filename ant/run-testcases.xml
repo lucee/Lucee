@@ -2,14 +2,14 @@
 <project default="run" basedir="." name="Lucee">
 
 <macrodef name="echots">
-    <attribute name="message"/>
-    <sequential>
-      <local name="timestamp" />
-      <tstamp>
-        <format property="timestamp" pattern="yyyy-MM-dd HH:mm:ss" />
-      </tstamp>
-      <echo message="---------- ${timestamp} - @{message} ----------" />
-    </sequential>
+	<attribute name="message"/>
+	<sequential>
+	  <local name="timestamp" />
+	  <tstamp>
+		<format property="timestamp" pattern="yyyy-MM-dd HH:mm:ss" />
+	  </tstamp>
+	  <echo message="---------- ${timestamp} - @{message} ----------" />
+	</sequential>
   </macrodef>
 
 <target name="run">
@@ -24,44 +24,21 @@
 ]]></echo>
 <echots message="start TestBox testcases"/>
 
-
+<!-- TODO this is hard to debug, any errors, it just fails with zero feedback -->
 <script language="CFML">
 <![CDATA[
-encodeForHTML("abc"); // test if ESAPI extension exist right away
-if (execute) {
+	encodeForHTML("abc"); // test if ESAPI extension exist right away
+	systemOutput("---------- #DateTimeFormat(now(),'yyyy-mm-dd HH:nn:ss')# - Lucee Started ----------", true);
 
-request.basedir = basedir;
-request.srcall = srcall;
-request.WEBADMINPASSWORD = "webweb";
-request.SERVERADMINPASSWORD = "webweb";
-server.WEBADMINPASSWORD = request.WEBADMINPASSWORD;
-server.SERVERADMINPASSWORD = request.SERVERADMINPASSWORD;
+	// doing the bare minimum here, all the action happends in /test/run-tests.cfm
+	// this code is also in /test/bootstrap-tests.cfm
 
-NL = "
-";
-TAB = "	";
+	request.WEBADMINPASSWORD = "webweb";
+	request.SERVERADMINPASSWORD = "webweb";
+	server.WEBADMINPASSWORD = request.WEBADMINPASSWORD;
+	server.SERVERADMINPASSWORD = request.SERVERADMINPASSWORD;
 
-fixCase = {};
-for (el in ["bundleId", "debugBuffer", "endTime", "error", "failMessage", "failOrigin", "globalException", "name", "parentId", "path", "specStats", "startTime", "status", "suiteId", "suiteStats", "totalDuration", "totalError", "totalFail", "totalPass", "totalSkipped", "totalSpecs", "totalSuites"
-]) {
-	fixCase[ucase(el)] = el;
-}
-
-failedTestCases = [];
-
-try {
-
-function mem(type) {
-    var qry = getMemoryUsage(type);
-    loop query=qry {
-        var perc = int(100 / qry.max * qry.used);
-        if(qry.max<0 || qry.used<0 || perc<90)
-        	continue;
-        systemOutput(TAB & replace(ucFirst(type), '_', ' ') & " " & qry.name & ": " & perc & "%", true);
-    }
-}
-
-// set a password for the admin
+	// set a password for the admin
 	try {
 		admin
 			action="updatePassword"
@@ -80,21 +57,6 @@ function mem(type) {
 	}
 	catch(e){}	// may exist from previous execution
 
-	systemOutput("set password #dateTimeFormat(now())#", true);
-
-	// output deploy log
-	pc=getPageContext();
-	config=pc.getConfig();
-	configDir=config.getConfigServerDir();
-	logsDir=configDir&server.separator.file&"logs";
-	deployLog=logsDir&server.separator.file&"deploy.log";
-	dump(deployLog);
-	content=fileRead(deployLog);
-	systemOutput("-------------- Deploy Log ------------",true);
-	systemOutput(content,true);
-	systemOutput("--------------------------------------",true);
-
-
 	// create "/test" mapping
 	admin
 		action="updateMapping"
@@ -107,237 +69,7 @@ function mem(type) {
 		primary="physical"
 		trusted="no";
 
-	systemOutput("set /test mapping #dateTimeFormat(now())#", true);
-
-
-	// set the testbox mapping
-	application
-		action="update"
-		componentpaths = "#[{archive:testboxArchive}]#";
-
-	systemOutput("update componentpaths #dateTimeFormat(now())#", true);
-
-	// load testbox
-	SystemOut=createObject("java", "lucee.commons.lang.SystemOut");
-	out=SystemOut.setOut(nullValue());
-	//err=SystemOut.setErr(nullValue());
-
-	silent {
-		try {
-
-			dir = {
-				 mapping : "/test"
-				,recurse : true
-				,filter  : function(path){
-		//			echo(arguments.path&"
-		//");
-					var name=listLast(arguments.path,"\/");
-
-					// get parent
-					var p = getDirectoryFromPath(arguments.path);
-					p = left(p, p.len() - 1);
-					p = listTrim(p, "\/");
-
-					// get grand parent
-					var pp = getDirectoryFromPath(p);
-					pp = left(pp, pp.len() - 1);
-					pp = listTrim(pp, "\/");
-
-					// only testcases in sub directory of "test" are allowed
-					var _test = listTrim(test,"\/");
-					return (_test == pp || _test == p) && left(name, 1) != "_";
-				}
-			};
-
-			tb = new testbox.system.TestBox(directory=dir, reporter="console");
-
-			// execute
-			report = tb.run(callbacks=
-{
-	 onBundleStart = function(cfc, testResults){
-		var meta = getComponentMetadata(cfc);
-		SystemOut.setOut(out);
-		//SystemOut.setErr(err);
-		systemOutput("=============================================================" & NL & meta.name, false);
-		SystemOut.setOut(nullValue());
-		//SystemOut.setErr(nullValue());
-	} // onBundleStart = function
-	,onBundleEnd = function(cfc, testResults){
-		var bundle = arrayLast(testResults.getBundleStats());
-		try {
-			SystemOut.setOut(out);
-			//SystemOut.setErr(err);
-
-			systemOutput(" (#bundle.totalPass# tests passed in #LSNumberFormat(bundle.totalDuration, ',')# ms)",true);
-			//mem("non_heap");
-			//mem("heap");
-
-		// we have an error
-		if ((bundle.totalFail + bundle.totalError) > 0) {
-
-			systemOutput("	Suites/Specs: #bundle.totalSuites#/#bundle.totalSpecs#
-	Failures: #bundle.totalFail#
-	Errors:   #bundle.totalError#
-	Pass:     #bundle.totalPass#
-	Skipped:  #bundle.totalSkipped#"
-			, true);
-
-			if (!isNull(bundle.suiteStats)) {
-				loop array=bundle.suiteStats item="local.suiteStat" {
-					if (!isNull(suiteStat.specStats)) {
-						loop array=suiteStat.specStats item="local.specStat" {
-
-							if (!isNull(specStat.failMessage) && len(trim(specStat.failMessage))) {
-
-								var failedTestCase = {
-									 type       : "Failed"
-									,bundle     : bundle.name
-									,testCase   : specStat.name
-									,errMessage : specStat.failMessage
-									,stackTrace : []
-								};
-								failedTestCases.append(failedTestCase);
-
-								systemOutput(NL & TAB & "Failed: " & specStat.name & " --> " & specStat.failMessage, true);
-
-								if (!isNull(specStat.failOrigin) && !isEmpty(specStat.failOrigin)){
-
-									var rawStackTrace = specStat.failOrigin;
-									var testboxPath = getDirectoryFromPath(rawStackTrace[1].template);
-
-									systemOutput(TAB & TAB & "at", true);
-
-									loop array=rawStackTrace item="local.st" {
-
-										if (!st.template.hasPrefix(testboxPath)){
-											var frame = st.template & ":" & st.line;
-											failedTestCase.stackTrace.append(frame);
-											systemOutput(TAB & frame, true);
-										}
-									}
-								}
-							} // if !isNull
-
-							if (!isNull(specStat.error) && !isEmpty(specStat.error)){
-
-								var failedTestCase = {
-									 type       : "Errored"
-									,bundle     : bundle.name
-									,testCase   : specStat.name
-									,errMessage : specStat.error.Message
-									,stackTrace : []
-								};
-								failedTestCases.append(failedTestCase);
-
-								systemOutput(NL & TAB & "Errored: " & specStat.name & " --> " & specStat.error.Message, true);
-
-								if (!isNull(specStat.error.TagContext) && !isEmpty(specStat.error.TagContext)){
-
-									var rawStackTrace = specStat.error.TagContext;
-
-									systemOutput(TAB & TAB & "at", true);
-
-									loop array=rawStackTrace item="local.st" {
-
-										var frame = st.template & ":" & st.line;
-										failedTestCase.stackTrace.append(frame);
-										systemOutput(TAB & frame, true);
-									}
-								}
-
-							//	systemOutput(NL & serialize(specStat.error), true);
-
-							} // if !isNull
-						}
-					}
-				}
-			}
-
-			systemOutput(NL & replace(serialize(bundle), fixCase), true);
-		}
-
-	// exceptions
-	if (!isSimpleValue(bundle.globalException)) {
-		systemOutput("Global Bundle Exception
-		#bundle.globalException.type#
-		#bundle.globalException.message#
-		#bundle.globalException.detail#
-=============================================================
-Begin Stack Trace
-=============================================================
-#bundle.globalException.stacktrace#
-=============================================================
-  End Stack Trace
-=============================================================", true);
-	}
-
-//systemOutput("=============================================================",true);
-		} // try
-		finally {
-			SystemOut.setOut(nullValue());
-			//SystemOut.setErr(nullValue());
-		} // finally
-	} // onBundleEnd = function
-	/*,onSuiteStart 	= function( bundle, testResults, suite ){}
-	,onSuiteEnd		= function( bundle, testResults, suite ){}
-	,onSpecStart		= function( bundle, testResults, suite, spec ){}
-	,onSpecEnd 		= function( bundle, testResults, suite, spec ){}*/
-} // callbacks
-			); // report = tb.run
-
-	 		// get the result
-	 		result = tb.getResult();
- 		}
- 		finally {
- 			//SystemOut.setOut(out);
- 			//SystemOut.setErr(err);
- 		} // try
-	} // silent
-
-
-	echo("=============================================================" & NL);
-	echo("TestBox Version: #tb.getVersion()#" & NL);
-	echo("Lucee Version: #server.lucee.version#" & NL);
-	echo("Java Version: #server.java.version#" & NL);
-	echo("Global Stats (#result.getTotalDuration()# ms)" & NL);
-	echo("=============================================================" & NL);
-	echo("->[Bundles/Suites/Specs: #result.getTotalBundles()#/#result.getTotalSuites()#/#result.getTotalSpecs()#]" & NL);
-	echo("->[Pass:     #result.getTotalPass()#]" & NL);
-	echo("->[Skipped:  #result.getTotalSkipped()#]" & NL);
-	echo("->[Failures: #result.getTotalFail()#]" & NL);
-	echo("->[Errors:   #result.getTotalError()#]" & NL);
-
-		if (!isEmpty(failedTestCases)){
-
-			echo(NL);
-			for (el in failedTestCases){
-				echo(TAB & el.type & ": " & el.bundle & "." & el.testCase & " ---> " & el.errMessage & NL);
-				if (!isEmpty(el.stackTrace)){
-
-					echo(TAB & TAB & "at" & NL);
-					for (frame in el.stackTrace){
-						echo(TAB & TAB & frame & NL);
-					}
-				}
-				echo(NL);
-			}
-			echo(NL);
-		}
-
- 		if ((result.getTotalFail() + result.getTotalError()) > 0) {
- 			throw "TestBox could not successfully execute all testcases: #result.getTotalFail()# tests failed; #result.getTotalError()# tests errored.";
- 		}
-	}
-	catch(e){
-		echo("-------------------------------------------------------" & NL);
-		echo("Testcase failed:" & NL);
-		echo(e.message & NL);
-		echo(serialize(e) & NL);
-		echo("-------------------------------------------------------" & NL);
-		rethrow;
-	}
-
-} // if (execute)
+	 include template="/test/run-tests.cfm";
 ]]>
   </script>
 

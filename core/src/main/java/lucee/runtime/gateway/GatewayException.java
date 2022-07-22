@@ -27,7 +27,7 @@ public class GatewayException extends IOException {
 	/**
 	 * Constructor of the class
 	 * 
-	 * @param message
+	 * @param message message
 	 */
 	public GatewayException(String message) {
 		super(message);

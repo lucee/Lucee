@@ -11,7 +11,7 @@ component {
 
 	// DATASOPURCE CONFIG
 	dbname	= 'testdb8';
-	dbpath	= expandPath("/data/#dbname#");
+	dbpath	= expandPath("#getTempDirectory()#/data/#dbname#");
 
 	this.datasources[dbname] = {
 		  class: 'org.h2.Driver'
@@ -35,5 +35,8 @@ component {
 	this.ormsettings.dialect				= "mysql";
 	this.ormsettings.useDBForMapping		= false;					// false = do not walk the db on startup trying to create ORM definitions
 
+	public function onRequestStart() {
+		setting requesttimeout=10;
+	}
 
 }

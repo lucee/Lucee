@@ -45,23 +45,6 @@ public final class SerializeJSON implements Function {
 		return _call(pc, var, "", pc.getWebCharset(), false);
 	}
 
-	// FUTURE remove, this methods are only used by compiled code in archives older than 5.2.3
-	public static String call(PageContext pc, Object var, boolean serializeQueryByColumns) throws PageException {
-		return _call(pc, var, serializeQueryByColumns, pc.getWebCharset(), false);
-	}
-
-	// FUTURE remove, this methods are only used by compiled code in archives older than 5.2.3
-	public static String call(PageContext pc, Object var, boolean serializeQueryByColumns, String strCharset) throws PageException {
-		Charset cs = StringUtil.isEmpty(strCharset) ? pc.getWebCharset() : CharsetUtil.toCharset(strCharset);
-		return _call(pc, var, serializeQueryByColumns, cs, false);
-	}
-
-	// FUTURE remove, this methods are only used by compiled code in archives older than 5.2.3
-	public static String call(PageContext pc, Object var, Object options, String strCharset) throws PageException {
-		Charset cs = StringUtil.isEmpty(strCharset) ? pc.getWebCharset() : CharsetUtil.toCharset(strCharset);
-		return _call(pc, var, options, cs, false);
-	}
-
 	public static String call(PageContext pc, Object var, Object queryFormat) throws PageException {
 		return _call(pc, var, queryFormat, pc.getWebCharset(), false);
 	}

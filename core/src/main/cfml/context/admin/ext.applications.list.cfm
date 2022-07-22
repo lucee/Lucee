@@ -21,6 +21,11 @@
 		return {'vs':"",'v':""};
 	}
 
+	admin
+		action="getLocalExtensions"
+		type="#request.adminType#"
+		password="#session["password"&request.adminType]#"
+		returnVariable="LocalExtensions" ;
 </cfscript>
 <!--- if user declined the agreement, show a msg --->
 <cfif structKeyExists(session, "extremoved")>
@@ -102,7 +107,7 @@
 					
 
 						<a <cfif _type=="web">href="#link#"<cfelse>style="border-color: ##E0E0E0;"</cfif> title="#_extensions.name#
-Categories: #arrayToList(cat)# 
+Categories:<cfif isArray(cat)>#arrayToList(cat)#<cfelse>#cat#</cfif>
 Installed version: #_extensions.version#<cfif hasUpdates>
 Latest version: #latest.v#</cfif>"><cfif hasUpdates>
        <div class="ribbon-wrapper" <cfif _type=="server">style="border-color:##bf4f36"</cfif>><div class="ribbon" <cfif _type=="server">style="background-color:##bf4f36"</cfif>>UPDATE ME!</div></div>
@@ -143,7 +148,7 @@ Latest version: #latest.v#</cfif>"><cfif hasUpdates>
 <cfif external.recordcount eq extensions.recordcount>
 	<cfset app_error.message = #stText.services.update.installExtns#>
 	<cfset printerror(app_error)>
-<cfelseif external.recordcount lt extensions.recordcount>
+<cfelseif external.recordcount lt extensions.recordcount OR external.recordcount eq LocalExtensions.recordcount>
 	<cfset app_error.message = #stText.services.update.chkInternet#>
 	<cfset printerror(app_error)>
 <cfelse>
@@ -157,7 +162,7 @@ Latest version: #latest.v#</cfif>"><cfif hasUpdates>
 		rt = unInstalledExt.releaseType[row];
 		id = unInstalledExt.id[row];
 		// not for this admin type
-		if(!isnull(rt) and !isEmpty(rt) and rt != "all" and rt != request.adminType) {
+		if(!isnull(rt) and !isEmpty(rt) and rt != "all" and rt != request.adminType and rt != "both") {
 			queryDeleteRow(unINstalledExt,row);
 		}
 		// remove if already installed
@@ -196,12 +201,25 @@ Latest version: #latest.v#</cfif>"><cfif hasUpdates>
 	};
 
 	loop query=unInstalledExt {
-		if(findNoCase("-ALPHA",unInstalledExt.version) || findNoCase("-BETA",unInstalledExt.version) || findNoCase("-RC",unInstalledExt.version)) 
-			addRow(unInstalledExt,VersionStr.pre_release,unInstalledExt.currentrow);
-		else if(findNoCase("-SNAPSHOT",unInstalledExt.version)) 
-			addRow(unInstalledExt,VersionStr.snapshot,unInstalledExt.currentrow);
+		versions = duplicate(unInstalledExt.otherVersions);
+		if(isSimpleValue(versions) && isEmpty(versions))  versions=[];
+		ArrayPrepend(versions, unInstalledExt.version);
+		t = { snap: 0, pre: 0, rel: 0 };
+		loop array=versions item="variables.v" {
+			if(findNoCase("-ALPHA", v) || findNoCase("-BETA", v) || findNoCase("-RC", v)) {
+				t.pre++;
+			} else if(findNoCase("-SNAPSHOT", v)) {
+				t.snap++;
+			} else {
+				t.rel++;
+			}
+		}
+		if ( t.rel > 0 )
+			addRow( unInstalledExt, VersionStr.release, unInstalledExt.currentrow );
+		else if ( t.pre > 0 )
+			addRow( unInstalledExt, VersionStr.pre_release, unInstalledExt.currentrow );
 		else
-			addRow(unInstalledExt,VersionStr.release,unInstalledExt.currentrow);
+			addRow( unInstalledExt, VersionStr.snapshot, unInstalledExt.currentrow );
 	}
 
 	function addRow(src,trg,srcRow) {
@@ -211,7 +229,7 @@ Latest version: #latest.v#</cfif>"><cfif hasUpdates>
 		}
 	}
 
-		private function toVersionSortable(required string version) localMode=true {
+	private function toVersionSortable(required string version) localMode=true {
 		version=unwrap(version.trim());
 		arr=listToArray(arguments.version,'.');
 		

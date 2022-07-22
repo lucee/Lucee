@@ -68,10 +68,14 @@ public abstract class DataSourceSupport implements DataSourcePro, Cloneable, Ser
 	private final boolean requestExclusive;
 	private final boolean literalTimestampWithTSOffset;
 	private final boolean alwaysResetConnections;
+	private final int minIdle;
+	private final int maxIdle;
+	private final int maxTotal;
+	private Boolean mssql;
 
 	public DataSourceSupport(Config config, String name, ClassDefinition cd, String username, String password, TagListener listener, boolean blob, boolean clob,
-			int connectionLimit, int idleTimeout, int liveTimeout, long metaCacheTimeout, TimeZone timezone, int allow, boolean storage, boolean readOnly, boolean validate,
-			boolean requestExclusive, boolean alwaysResetConnections, boolean literalTimestampWithTSOffset, Log log) {
+			int connectionLimit, int idleTimeout, int liveTimeout, int minIdle, int maxIdle, int maxTotal, long metaCacheTimeout, TimeZone timezone, int allow, boolean storage,
+			boolean readOnly, boolean validate, boolean requestExclusive, boolean alwaysResetConnections, boolean literalTimestampWithTSOffset, Log log) {
 		this.name = name;
 		this.cd = cd;// _initializeCD(null, cd, config);
 		this.blob = blob;
@@ -92,6 +96,9 @@ public abstract class DataSourceSupport implements DataSourcePro, Cloneable, Ser
 		this.alwaysResetConnections = alwaysResetConnections;
 		this.log = log;
 		this.literalTimestampWithTSOffset = literalTimestampWithTSOffset;
+		this.minIdle = minIdle;
+		this.maxIdle = maxIdle;
+		this.maxTotal = maxTotal;
 	}
 
 	@Override
@@ -147,7 +154,8 @@ public abstract class DataSourceSupport implements DataSourcePro, Cloneable, Ser
 			if (transactionIsolation == Connection.TRANSACTION_READ_UNCOMMITTED) return Connection.TRANSACTION_READ_UNCOMMITTED;
 			if (transactionIsolation == Connection.TRANSACTION_REPEATABLE_READ) return Connection.TRANSACTION_REPEATABLE_READ;
 		}
-		catch (Exception e) {}
+		catch (Exception e) {
+		}
 		return defaultValue;
 	}
 
@@ -293,6 +301,21 @@ public abstract class DataSourceSupport implements DataSourcePro, Cloneable, Ser
 	}
 
 	@Override
+	public int getMinIdle() {
+		return minIdle;
+	}
+
+	@Override
+	public int getMaxIdle() {
+		return maxIdle;
+	}
+
+	@Override
+	public int getMaxTotal() {
+		return maxTotal;
+	}
+
+	@Override
 	public final boolean validate() {
 		return validate;
 	}
@@ -310,6 +333,16 @@ public abstract class DataSourceSupport implements DataSourcePro, Cloneable, Ser
 	// FUTURE add to interface
 	public final boolean getLiteralTimestampWithTSOffset() {
 		return literalTimestampWithTSOffset;
+	}
+
+	@Override
+	public final Boolean isMSSQL() {
+		return mssql;
+	}
+
+	@Override
+	public final void setMSSQL(boolean isMSSQL) {
+		mssql = isMSSQL ? Boolean.TRUE : Boolean.FALSE;
 	}
 
 	@Override
