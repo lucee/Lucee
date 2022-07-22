@@ -37,6 +37,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 					template: folder
 					,url: { "appName": appName }
 				).filecontent;
+				systemOutput( "thread key list: " & structKeyList(thread), true );
 				systemOutput( "thread.result: " & thread.result, true );
 			}
 		}
