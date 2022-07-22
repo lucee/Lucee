@@ -79,6 +79,8 @@
     <property name="testDebug" value=""/>
     <!-- allow running tests with a different java version (ant needs the exe not java home)  -->
     <property name="testJavaVersionExec" value=""/>
+    <!-- specify the build file to use  -->
+    <property name="LUCEE_BUILD_ENV" value=""/>
     
     <property name="temp" location="${rootDir}/temp"/>
     <property name="loader" location="${temp}/loader"/>
@@ -587,6 +589,7 @@
       <jvmarg value="-Dlucee.extensions.install=true"/>
       <jvmarg value="-Dlucee.full.null.support=false"/>
       <jvmarg value="-Dlucee.cli.printExpections=true"/>
+      <jvmarg value="-DLUCEE_BUILD_ENV=${LUCEE_BUILD_ENV}"/>
       <!--
       <jvmarg value="-XX:StartFlightRecording=disk=true,dumponexit=true,filename=${temp}/../lucee-testcases.jfr,maxsize=1024m,maxage=1d,settings=profile,path-to-gc-roots=true"/>
       <jvmarg value="-Dlucee.system.out=file:.../out.txt"/>
