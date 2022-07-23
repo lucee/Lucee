@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase"{
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="syntax" skip=true {
 	function run( testResults , testBox ) {
 		describe( "test suite for LDEV-1882", function() {
 			it(title = "checking cfcontinue within script", body = function( currentSpec ) {
