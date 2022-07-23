@@ -1,7 +1,7 @@
-component extends="org.lucee.cfml.test.LuceeTestCase"{
+component extends="org.lucee.cfml.test.LuceeTestCase" skip="true" labels="syntax" {
 	function run( testResults , testBox ) {
 		describe( "Test suite for LDEV-285", function() {
-			it(title="checking Lucee parsing, with coldfusion tag in commented line before 'cfscript' tag", body = function( currentSpec ) {
+			it(title="Check parsing, with coldfusion tag in commented out before 'cfscript' tag", body = function( currentSpec ) {
 				var uri=createURI("LDEV0285/App1.cfc");
 				var result = _InternalRequest(
 					template:uri
@@ -9,7 +9,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				expect(result.filecontent.trim()).toBe("");
 			});
 
-			it(title="checking Lucee parsing, with coldfusion tag in commented line inside 'cfscript' tag", body = function( currentSpec ) {
+			it(title="Check parsing, with coldfusion tag in commented out inside 'cfscript' tag", body = function( currentSpec ) {
 				var uri=createURI("LDEV0285/App2.cfc");
 				var result = _InternalRequest(
 					template:uri
@@ -17,10 +17,18 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				expect(result.filecontent.trim()).toBe("");
 			});
 
-			it(title="checking Lucee parsing, with coldfusion tag in commented line in tag based component", body = function( currentSpec ) {
+			it(title="Check parsing, with coldfusion tag in commented out in tag based component", body = function( currentSpec ) {
 				var uri=createURI("LDEV0285/App3.cfc");
 				var result = _InternalRequest(
-				template:uri
+					template:uri
+				);
+				expect(result.filecontent.trim()).toBe("");
+			});
+
+			it(title="Check parsing, with cfargument tag commented out in a script based component", body = function( currentSpec ) {
+				var uri=createURI("LDEV0285/App4.cfc");
+				var result = _InternalRequest(
+					template:uri
 				);
 				expect(result.filecontent.trim()).toBe("");
 			});
