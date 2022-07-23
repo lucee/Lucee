@@ -84,7 +84,7 @@ jobs:
         java-version: '8'
         distribution: 'temurin'
     - name: Disable DEPLOY if not building with Java 8 (Lucee default)
-      if: ${{ inputs.LUCEE_TEST_JAVA_VERSION == '' && inputs.LUCEE_TEST_JAVA_VERSION != 8 }}
+      if: ${{ inputs.LUCEE_BUILD_JAVA_VERSION != 8 }}
       run: echo "DO_DEPLOY=false" >> $GITHUB_ENV
     - name: Cache Lucee extensions
       uses: actions/cache@v2
@@ -95,7 +95,9 @@ jobs:
     - name: Cache Maven packages
       uses: actions/cache@v2
       with:
-        path: ~/.m2/repository
+        path: |
+          ~/.m2/repository
+          !~/.m2/repository/org/lucee/lucee/
         key: ${{ runner.os }}-maven-${{ hashFiles('loader/pom.xml','core/pom.xml') }}
         restore-keys: |
           ${{ runner.os }}-maven-
