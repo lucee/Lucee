@@ -244,7 +244,7 @@ public class BIF extends MemberSupport implements UDFPlus {
 
 	@Override
 	public int getReturnFormat() {
-		return UDF.RETURN_FORMAT_WDDX;
+		return UDF.RETURN_FORMAT_JSON;
 	}
 
 	@Override

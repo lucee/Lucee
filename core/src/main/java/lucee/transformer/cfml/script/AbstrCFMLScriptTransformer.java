@@ -1135,7 +1135,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 				}
 
 				// returnFormat
-				int returnFormat = UDF.RETURN_FORMAT_WDDX;
+				int returnFormat = UDF.RETURN_FORMAT_JSON;
 				lit = extract(attrs, "returnformat");
 				if (lit != null) {
 					returnFormat = UDFUtil.toReturnFormat(lit.getString(), returnFormat);

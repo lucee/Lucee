@@ -81,12 +81,12 @@ public class UDFPropertiesLight extends UDFPropertiesBase {
 
 	@Override
 	public int getReturnFormat() {
-		return UDF.RETURN_FORMAT_WDDX;
+		return UDF.RETURN_FORMAT_JSON;
 	}
 
 	@Override
 	public String getReturnFormatAsString() {
-		return "wddx";
+		return "json";
 	}
 
 	@Override

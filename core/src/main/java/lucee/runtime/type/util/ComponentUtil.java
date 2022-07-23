@@ -808,9 +808,9 @@ public final class ComponentUtil {
 		}
 
 		int format = udf.getReturnFormat();
-		if (format < 0 || format == UDF.RETURN_FORMAT_WDDX) func.set(KeyConstants._returnFormat, "wddx");
+		if (format < 0 || format == UDF.RETURN_FORMAT_JSON) func.set(KeyConstants._returnFormat, "json");
 		else if (format == UDF.RETURN_FORMAT_PLAIN) func.set(KeyConstants._returnFormat, "plain");
-		else if (format == UDF.RETURN_FORMAT_JSON) func.set(KeyConstants._returnFormat, "json");
+		else if (format == UDF.RETURN_FORMAT_WDDX) func.set(KeyConstants._returnFormat, "wddx");
 		else if (format == UDF.RETURN_FORMAT_SERIALIZE) func.set(KeyConstants._returnFormat, "cfml");
 
 		FunctionArgument[] args = udf.getFunctionArguments();

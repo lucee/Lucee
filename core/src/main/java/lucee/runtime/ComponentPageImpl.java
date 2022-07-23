@@ -752,7 +752,7 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 		if (isValid(urlReturnFormat)) props.format = urlReturnFormat;
 		else if (isValid(udfReturnFormat)) props.format = udfReturnFormat;
 		else if (isValid(headerReturnFormat)) props.format = headerReturnFormat;
-		else props.format = UDF.RETURN_FORMAT_WDDX;
+		else props.format = UDF.RETURN_FORMAT_JSON;
 
 		// return type XML ignore WDDX
 		if (props.type == CFTypes.TYPE_XML) {
@@ -1032,7 +1032,7 @@ class Props {
 	public String strType = "any";
 	public boolean secureJson;
 	public int type = CFTypes.TYPE_ANY;
-	public int format = UDF.RETURN_FORMAT_WDDX;
+	public int format = UDF.RETURN_FORMAT_JSON;
 	public boolean output = true;
 
 }

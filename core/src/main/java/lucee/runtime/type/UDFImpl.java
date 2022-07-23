@@ -530,7 +530,7 @@ public class UDFImpl extends MemberSupport implements UDFPlus, Externalizable {
 
 	@Override
 	public int getReturnFormat() {
-		if (properties.getReturnFormat() < 0) return UDF.RETURN_FORMAT_WDDX;
+		if (properties.getReturnFormat() < 0) return UDF.RETURN_FORMAT_JSON;
 		return properties.getReturnFormat();
 	}
 
