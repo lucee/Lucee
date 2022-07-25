@@ -17,6 +17,9 @@
   <property name="extMongo"       value="E6634E1A-4CC5-4839-A83C67549ECA8D5B"/>
   <property name="extH2"          value="465E1E35-2425-4F4E-8B3FAB638BD7280A"/>
   <property name="extOracle"          value="D4EDFDBD-A9A3-E9AF-597322D767E0C949"/>
+  <property name="extLucene"          value="EFDEB172-F52E-4D84-9CD1A1F561B3DFC8;version=2.4.2.4"/>
+  <property name="extAxis"          value="DF28D0A4-6748-44B9-A2FDC12E4E2E4D38;version=1.4.0.35"/>
+  <property name="extChart"          value="D46B46A9-A0E3-44E1-D972A04AC3A8DC10;version=1.0.19.24"/>
 
   <property name="stableLoader" value="lucee-5.3.7.48"/>
   <property name="cdnUrl" value="https://cdn.lucee.org/"/>
@@ -96,9 +99,6 @@
     <fail message="Missing data from [Require-Extension] inside ${coreManifest}">
     <condition>
         <or>
-        <!-- Lucene -->
-        <not><isset property="extLucene"/></not>
-        <not><isset property="extLuceneVersion"/></not>
         <!-- Hibernate -->
         <not><isset property="extHibernate"/></not>
         <not><isset property="extHibernateVersion"/></not>
@@ -111,9 +111,6 @@
         <!-- EHCache -->
         <not><isset property="extEHCache"/></not>
         <not><isset property="extEHCacheVersion"/></not>
-        <!-- Chart -->
-        <not><isset property="extChart"/></not>
-        <not><isset property="extChartVersion"/></not>
         <!-- MySQL -->
         <not><isset property="extMySQL"/></not>
         <not><isset property="extMySQLVersion"/></not>
@@ -132,12 +129,6 @@
         <!-- Doc -->
         <not><isset property="extDoc"/></not>
         <not><isset property="extDocVersion"/></not>
-        <!-- Form -->
-        <not><isset property="extForm"/></not>
-        <not><isset property="extFormVersion"/></not>
-        <!-- Webservice -->
-        <not><isset property="extAxis"/></not>
-        <not><isset property="extAxisVersion"/></not>
         <!-- Image -->
         <not><isset property="extImage"/></not>
         <not><isset property="extImageVersion"/></not>
@@ -235,7 +226,7 @@
         </sequential>
     </macrodef>
 
-    <target name="check" depends="check-mysql,check-mssql,check-postgre,check-jdts,check-chart,check-s3,check-ehcache,check-hibernate,check-lucene,check-pdf,check-admin,check-doc,check-form,check-axis,check-image,check-esapi,check-ajax,check-compress,check-testbox,check-lucee-loader-jar,download-lucee-loader-jar">
+    <target name="check" depends="check-mysql,check-mssql,check-postgre,check-jdts,check-s3,check-ehcache,check-hibernate,check-pdf,check-admin,check-doc,check-image,check-esapi,check-ajax,check-compress,check-testbox,check-lucee-loader-jar,download-lucee-loader-jar">
       <mkdir dir="${temp}/loader/extensions/"/>
     </target> 
 
@@ -585,7 +576,7 @@
       <jvmarg value="-DindividualStorageKeys=false"/>
       <jvmarg value="-Dlucee.base.dir=${temp}/archive/base"/>
       <jvmarg value="-Dlucee.web.dir=${temp}/archive/webroot"/>
-      <jvmarg value="-Dlucee-extensions=${extH2},${extMongo},${extOracle}"/>
+      <jvmarg value="-Dlucee-extensions=${extH2},${extMongo},${extOracle},${extLucene},${extAxis},${extChart}"/>
       <jvmarg value="-Dlucee.enable.dialect=true"/>
       <jvmarg value="-Dlucee.extensions.install=true"/>
       <jvmarg value="-Dlucee.full.null.support=false"/>
