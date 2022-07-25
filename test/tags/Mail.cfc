@@ -41,6 +41,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mail" {
 	}
 
 	public function afterTests(){
+		if(isNull(creds.smtp.SERVER)) return;
 		admin 
 			action="removeMailServer"
 			type="web"
