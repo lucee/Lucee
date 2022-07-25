@@ -94,7 +94,7 @@ jobs:
         distribution: 'temurin'
 
     - name: Disable DEPLOY if not building with Java 8 (Lucee default)
-      if: ${{ (env.LUCEE_TEST_JAVA_VERSION != env.LUCEE_BUILD_JAVA_VERSION ) || env.LUCEE_BUILD_JAVA_VERSION != '8' }}
+      if: ${{ env.LUCEE_BUILD_JAVA_VERSION != '8' }}
       run: echo "DO_DEPLOY=false" >> $GITHUB_ENV
 
     - name: Cache Lucee extensions
