@@ -135,9 +135,6 @@
         <!-- Esapi -->
         <not><isset property="extEsapi"/></not>
         <not><isset property="extEsapiVersion"/></not>
-        <!-- Ajax -->
-        <not><isset property="extAjax"/></not>
-        <not><isset property="extAjaxVersion"/></not>
         <!-- Compress -->
         <not><isset property="extCompress"/></not>
         <not><isset property="extCompressVersion"/></not>
@@ -226,7 +223,7 @@
         </sequential>
     </macrodef>
 
-    <target name="check" depends="check-mysql,check-mssql,check-postgre,check-jdts,check-s3,check-ehcache,check-hibernate,check-pdf,check-admin,check-doc,check-image,check-esapi,check-ajax,check-compress,check-testbox,check-lucee-loader-jar,download-lucee-loader-jar">
+    <target name="check" depends="check-mysql,check-mssql,check-postgre,check-jdts,check-s3,check-ehcache,check-hibernate,check-pdf,check-admin,check-doc,check-image,check-esapi,check-compress,check-testbox,check-lucee-loader-jar,download-lucee-loader-jar">
       <mkdir dir="${temp}/loader/extensions/"/>
     </target> 
 
