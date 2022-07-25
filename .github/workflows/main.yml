@@ -75,26 +75,26 @@ jobs:
         timezoneLinux: "UTC"
     - uses: actions/checkout@v2
 
-    - name: Set up Test Java Version ${{ LUCEE_TEST_JAVA_VERSION }}
+    - name: Set up Test Java Version ${{ env.LUCEE_TEST_JAVA_VERSION }}
       uses: actions/setup-java@v2
-      if: ${{ LUCEE_TEST_JAVA_VERSION != '' }}
+      if: ${{ env.LUCEE_TEST_JAVA_VERSION != '' }}
       with:
-        java-version: ${{ LUCEE_TEST_JAVA_VERSION }}
+        java-version: ${{ env.LUCEE_TEST_JAVA_VERSION }}
         distribution: 'temurin'
 
     - name: Stash Test Java Version Home
-      if: ${{ LUCEE_TEST_JAVA_VERSION != '' }}
+      if: ${{ env.LUCEE_TEST_JAVA_VERSION != '' }}
       run: echo "LUCEE_TEST_JAVA_EXEC=${{ env.JAVA_HOME }}/bin/java" >> $GITHUB_ENV
 
-    - name: Set up build JDK '${{ LUCEE_BUILD_JAVA_VERSION }}'
+    - name: Set up build JDK '${{ env.LUCEE_BUILD_JAVA_VERSION }}'
       uses: actions/setup-java@v2
-      if: ${{ LUCEE_TEST_JAVA_VERSION != LUCEE_BUILD_JAVA_VERSION }}
+      if: ${{ env.LUCEE_TEST_JAVA_VERSION != env.LUCEE_BUILD_JAVA_VERSION }}
       with:
-        java-version: '${{ LUCEE_BUILD_JAVA_VERSION }}'
+        java-version: '${{ env.LUCEE_BUILD_JAVA_VERSION }}'
         distribution: 'temurin'
 
     - name: Disable DEPLOY if not building with Java 8 (Lucee default)
-      if: ${{ (LUCEE_TEST_JAVA_VERSION != LUCEE_BUILD_JAVA_VERSION ) || LUCEE_BUILD_JAVA_VERSION != '8') }}
+      if: ${{ (env.LUCEE_TEST_JAVA_VERSION != env.LUCEE_BUILD_JAVA_VERSION ) || env.LUCEE_BUILD_JAVA_VERSION != '8') }}
       run: echo "DO_DEPLOY=false" >> $GITHUB_ENV
 
     - name: Cache Lucee extensions
