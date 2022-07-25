@@ -14,6 +14,8 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" labels="thread" {
                     sleep( 200 );
                 }
                 
+                sleep(20);
+
                 // checking running threads ELAPSEDTIME should be greater than 0
                 expect(cfthread["#threadName#_one"].ELAPSEDTIME).toBeGT(0);
                 expect(cfthread["#threadName#_two"].ELAPSEDTIME).toBeGT(0);

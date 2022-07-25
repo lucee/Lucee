@@ -3298,6 +3298,21 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</return>
 	</function>
 	
+	<!-- ExtensionInfo -->
+	<function>
+		<name>ExtensionInfo</name>
+		<class>lucee.runtime.functions.system.ExtensionInfo</class>
+		<description>Returns the detailed info about the extension.</description>
+		<argument>
+			<name>id</name>
+			<type>string</type>
+			<required>Yes</required>
+			<description>Id of the extension</description>
+		</argument>
+		<return>
+			<type>struct</type>
+		</return>
+	</function>
 	
 	<!-- ExtensionExists -->	
 	<function>
@@ -6836,6 +6851,7 @@ Default list delimiter: comma character.</description>
 		<name>hash</name>
 		<class>lucee.runtime.functions.string.Hash</class>
 		<member-name>hash</member-name>
+		<member-type>string</member-type>
 		<description>Converts a variable-length string to a 32-byte, hexadecimal
         string, using the MD5 algorithm. (It is not possible to convert
         the hash result back to the source string.)
@@ -6845,8 +6861,8 @@ Default list delimiter: comma character.</description>
 			<alias>string</alias>
 			<type>any</type>
 			<required>Yes</required>
-		<description>String or byte array to hash.</description>
-    </argument>
+			<description>String or byte array to hash.</description>
+    	</argument>
 		<argument>
 			<name>algorithm</name>
 			<type>string</type>
@@ -6859,7 +6875,7 @@ Default list delimiter: comma character.</description>
 - SHA-256: Generates a 44-character string using the SHA-256 algorithm specified by FIPS-180-2.
 - SHA-384: Generates a 64-character string using the SHA-384 algorithm specified by FIPS-180-2.
 - SHA-512: Generates an 88-character string using the SHA-1 algorithm specified by FIPS-180-2.</description>
-    </argument>
+    	</argument>
 		<argument>
 			<name>encoding</name>
 			<type>string</type>
@@ -9846,6 +9862,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<class>lucee.runtime.functions.query.QueryAddColumn</class>
 		<keywords>query</keywords>
 		<member-name>addColumn</member-name>
+		<member-chaining>true</member-chaining>
 		<description>Adds a column to a query and populates its rows with the
         contents of a one-dimensional array. Pads query columns,
         if necessary, to ensure that all columns have the same number
@@ -9885,6 +9902,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<name>queryAddRow</name>
 		<class>lucee.runtime.functions.query.QueryAddRow</class>
 		<member-name>addRow</member-name>
+		<member-chaining>true</member-chaining>
 		<keywords>query</keywords>
 		<description>Adds a specified number of empty rows to a query.</description>
 		<argument>
@@ -10361,6 +10379,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<name>QueryDeleteColumn</name>
 		<class>lucee.runtime.functions.query.QueryDeleteColumn</class>
 		<member-name>deleteColumn</member-name>
+		<member-chaining>true</member-chaining>
 		<keywords>query</keywords>
 		<description>
 		removes a row from a query and return removed row as array
@@ -10386,6 +10405,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<name>QueryDeleteRow</name>
 		<class>lucee.runtime.functions.query.QueryDeleteRow</class>
 		<member-name>deleteRow</member-name>
+		<member-chaining>true</member-chaining>
 		<keywords>query</keywords>
 		<description>Deletes the row within a query object. Modifies the original query object</description>
 		<argument>
@@ -13640,6 +13660,7 @@ _- asc (default): ascending (a to z) sort order
 		<name>toBase64</name>
 		<class>lucee.runtime.functions.string.ToBase64</class>
 		<member-name>toBase64</member-name>
+		<member-type>string</member-type>
 		<description>Calculates the Base64 representation of a string or binary
         object. The Base64 format uses printable characters, allowing
         binary data to be sent in forms and e-mail, and stored in a
@@ -13649,15 +13670,15 @@ _- asc (default): ascending (a to z) sort order
 			<alias>string,BinaryData</alias>
 			<type>any</type>
 			<required>Yes</required>
-		<description>A string, the name of a string, or a binary object.</description>
-    </argument>
+			<description>A string, the name of a string, or a binary object.</description>
+    	</argument>
 		<argument>
 			<name>encoding</name>
 			<type>string</type>
 			<required>No</required>
-		<description>For a string, defines how characters are represented in a
+			<description>For a string, defines how characters are represented in a
             byte array.</description>
-    </argument>
+    	</argument>
 		<return>
 			<type>string</type>
 		</return>
@@ -14407,6 +14428,23 @@ You can find a list of all available timezones in the Lucee administrator (Setti
     		<type>boolean</type>
     	</return>
     </function>
+    
+	<!-- isFileObject -->
+	<function>
+		<name>isFileObject</name>
+		<class>lucee.runtime.functions.decision.IsFileObject</class>
+		<keywords>decision</keywords>
+		<description>Determines whether a value is an file object. True, if the value represents a file object.</description>
+		<argument>
+			<name>value</name>
+			<type>any</type>
+			<required>Yes</required>
+			<description>A value, typically the name of a file object variable.</description>
+		</argument>
+		<return>
+			<type>boolean</type>
+		</return>
+	</function>
     
 	<!-- StringSort -->
     <function>

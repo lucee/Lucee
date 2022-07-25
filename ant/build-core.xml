@@ -17,7 +17,6 @@
   <property name="extMongo"       value="E6634E1A-4CC5-4839-A83C67549ECA8D5B"/>
   <property name="extH2"          value="465E1E35-2425-4F4E-8B3FAB638BD7280A"/>
   <property name="extOracle"          value="D4EDFDBD-A9A3-E9AF-597322D767E0C949"/>
-  <property name="extJson"          value="A03F4335-BDEF-44DE-946FB16C47802F96"/>
 
   <property name="stableLoader" value="lucee-5.3.7.48"/>
   <property name="cdnUrl" value="https://cdn.lucee.org/"/>
@@ -78,6 +77,8 @@
     <property name="testSkip" value=""/>
     <!-- enable debug output from tests (i.e tests which crash are normally silently skipped)  -->
     <property name="testDebug" value=""/>
+    <!-- allow restricting which test services are enabled  -->
+    <property name="testServices" value=""/>
     <!-- allow running tests with a different java version (ant needs the exe not java home)  -->
     <property name="testJavaVersionExec" value=""/>
     
@@ -574,6 +575,7 @@
       <jvmarg value="-DtestAdditional=${testAdditional}"/>
       <jvmarg value="-DtestSkip=${testSkip}"/>
       <jvmarg value="-DtestDebug=${testDebug}"/>
+      <jvmarg value="-DtestServices=${testServices}"/>
       <jvmarg value="-Dtemp=${temp}"/>
       <jvmarg value="-Dbasedir=${baseDir}"/>
       <jvmarg value="-Dsrcall=${srcAll}"/>
@@ -583,7 +585,7 @@
       <jvmarg value="-DindividualStorageKeys=false"/>
       <jvmarg value="-Dlucee.base.dir=${temp}/archive/base"/>
       <jvmarg value="-Dlucee.web.dir=${temp}/archive/webroot"/>
-      <jvmarg value="-Dlucee-extensions=${extH2},${extMongo},${extOracle},${extJson}"/>
+      <jvmarg value="-Dlucee-extensions=${extH2},${extMongo},${extOracle}"/>
       <jvmarg value="-Dlucee.enable.dialect=true"/>
       <jvmarg value="-Dlucee.extensions.install=true"/>
       <jvmarg value="-Dlucee.full.null.support=false"/>

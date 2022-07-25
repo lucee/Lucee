@@ -6,7 +6,7 @@ Minor-Name-Explanation: https://en.wikipedia.org/wiki/Gelert
 State: beta
 Bundle-Name: Lucee Core
 Multi-Release: true
-Require-Bundle-Fragment: slf4j.nop;bundle-version=1.7.12
+Require-Bundle-Fragment: slf4j.nop;bundle-version=1.7.36
 Bundle-ManifestVersion: 2
 Bundle-SymbolicName: lucee.core
 Import-Package: coldfusion.xml.rpc,com.allaire.cfx,
@@ -346,7 +346,7 @@ Require-Bundle: org.apache.commons.commons-codec;bundle-version=1.15.0,
  org.apache.tika.core;bundle-version=1.27.0,
  org.objectweb.asm.all;bundle-version=4.2,
  org.lucee.xml.resolver;bundle-version=1.2.0,
- slf4j.api;bundle-version=1.7.12,
+ slf4j.api;bundle-version=1.7.36,
  ss.css2;bundle-version=0.9.4,
  stax.api;bundle-version=1.0.1.0002L,
  sun.jndi.ldap;bundle-version=1.2.4,

@@ -936,13 +936,12 @@ public final class ConfigAdmin {
 		}
 	}
 
-	private void _removeScheduledTask(String name) throws SecurityException {
-		checkWriteAccess();
-
+	private void _removeScheduledTask(String name) throws SecurityException, ExpressionException {
 		Array tasks = ConfigWebUtil.getAsArray("scheduledTasks", root);
 		Key[] keys = tasks.keys();
 		Struct data;
 		String n;
+		Boolean exist = false;
 		for (int i = keys.length - 1; i >= 0; i--) {
 			Key key = keys[i];
 			data = Caster.toStruct(tasks.get(key, null), null);
@@ -950,9 +949,11 @@ public final class ConfigAdmin {
 			n = Caster.toString(data.get(KeyConstants._name, null), null);
 
 			if (name.equals(n)) {
+				exist = true;
 				tasks.removeEL(key);
 			}
 		}
+		if (!exist) throw new ExpressionException("can't delete schedule task [ " + name + " ], task doesn't exist");
 	}
 
 	public void removeComponentMapping(String virtual) throws SecurityException {
@@ -1478,8 +1479,8 @@ public final class ConfigAdmin {
 		if (!StringUtil.isEmpty(id)) el.setEL(KeyConstants._id, id);
 		else if (el.containsKey(KeyConstants._id)) el.removeEL(KeyConstants._id);
 
-		if (username.length() > 0) el.setEL(KeyConstants._username, username);
-		if (password.length() > 0) el.setEL(KeyConstants._password, ConfigWebUtil.encrypt(password));
+		el.setEL(KeyConstants._username, username);
+		el.setEL(KeyConstants._password, ConfigWebUtil.encrypt(password));
 
 		el.setEL("host", host);
 		if (!StringUtil.isEmpty(timezone)) el.setEL("timezone", timezone);
@@ -2232,14 +2233,12 @@ public final class ConfigAdmin {
 		if (name.equalsIgnoreCase(Caster.toString(parent.get("defaultResource", null), null))) rem(parent, "defaultResource");
 
 		// remove element
-		Array children = ConfigWebUtil.getAsArray("connection", parent);
+		Struct children = ConfigWebUtil.getAsStruct("caches", root);
 		Key[] keys = children.keys();
-		for (int i = keys.length - 1; i >= 0; i--) {
-			Key key = keys[i];
+		for (Key key: keys) {
 			Struct tmp = Caster.toStruct(children.get(key, null), null);
 			if (tmp == null) continue;
-
-			String n = ConfigWebUtil.getAsString("name", tmp, "");
+			String n = key.getString();
 			if (n != null && n.equalsIgnoreCase(name)) {
 				Map<String, CacheConnection> conns = config.getCacheConnections();
 				CacheConnection cc = conns.get(n.toLowerCase());
@@ -3015,7 +3014,7 @@ public final class ConfigAdmin {
 		if (queryUsage != null) root.setEL("debuggingQueryUsage", queryUsage.booleanValue());
 		else rem(root, "debuggingQueryUsage");
 
-		if (queryUsage != null) root.setEL("debuggingThread", thread.booleanValue());
+		if (thread != null) root.setEL("debuggingThread", thread.booleanValue());
 		else rem(root, "debuggingThread");
 	}
 

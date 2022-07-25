@@ -31,16 +31,12 @@ import java.net.SocketTimeoutException;
 import java.net.URI;
 import java.net.URL;
 import java.nio.charset.Charset;
-import java.security.KeyStore;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.zip.GZIPInputStream;
-
-import javax.net.ssl.KeyManagerFactory;
-import javax.net.ssl.SSLContext;
 
 import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpHost;
@@ -55,12 +51,7 @@ import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.methods.HttpTrace;
 import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.config.Registry;
-import org.apache.http.config.RegistryBuilder;
 import org.apache.http.config.SocketConfig;
-import org.apache.http.conn.socket.ConnectionSocketFactory;
-import org.apache.http.conn.socket.PlainConnectionSocketFactory;
-import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.entity.mime.FormBodyPart;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
@@ -70,7 +61,6 @@ import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.DefaultRedirectStrategy;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
@@ -112,9 +102,6 @@ import lucee.runtime.ext.tag.BodyTagImpl;
 import lucee.runtime.functions.system.CallStackGet;
 import lucee.runtime.net.http.MultiPartResponseUtils;
 import lucee.runtime.net.http.ReqRspUtil;
-import lucee.runtime.net.http.sni.DefaultHostnameVerifierImpl;
-import lucee.runtime.net.http.sni.DefaultHttpClientConnectionOperatorImpl;
-import lucee.runtime.net.http.sni.SSLConnectionSocketFactoryImpl;
 import lucee.runtime.net.proxy.ProxyData;
 import lucee.runtime.net.proxy.ProxyDataImpl;
 import lucee.runtime.op.Caster;
@@ -209,12 +196,6 @@ public final class Http extends BodyTagImpl {
 	public static final short ENCODED_AUTO = HTTPUtil.ENCODED_AUTO;
 	public static final short ENCODED_YES = HTTPUtil.ENCODED_YES;
 	public static final short ENCODED_NO = HTTPUtil.ENCODED_NO;
-
-	static {
-		// Protocol myhttps = new Protocol("https", new EasySSLProtocolSocketFactory(), 443);
-		// Protocol.registerProtocol("https", new Protocol("https", new EasySSLProtocolSocketFactory(),
-		// 443));
-	}
 
 	private ArrayList<HttpParamBean> params = new ArrayList<HttpParamBean>();
 
@@ -335,11 +316,12 @@ public final class Http extends BodyTagImpl {
 
 	private Object cachedWithin;
 
+	private boolean usePool = true;
+
 	/** The full path to a PKCS12 format file that contains the client certificate for the request. */
 	private String clientCert;
 	/** Password used to decrypt the client certificate. */
 	private String clientCertPassword;
-	private static SSLConnectionSocketFactoryImpl defaultSSLConnectionSocketFactoryImpl;
 
 	@Override
 	public void release() {
@@ -384,6 +366,7 @@ public final class Http extends BodyTagImpl {
 		clientCert = null;
 		clientCertPassword = null;
 		cachedWithin = null;
+		usePool = true;
 	}
 
 	/**
@@ -664,6 +647,11 @@ public final class Http extends BodyTagImpl {
 		this.cachedWithin = cachedwithin;
 	}
 
+
+	public void setPooling(boolean usePool) {
+		this.usePool = usePool;
+	}
+
 	@Override
 	public int doStartTag() throws PageException {
 		if (addtoken) {
@@ -709,7 +697,7 @@ public final class Http extends BodyTagImpl {
 		boolean safeToMemory = !StringUtil.isEmpty(result, true);
 
 		HttpClientBuilder builder = HTTPEngine4Impl.getHttpClientBuilder();
-		ssl(builder);
+		HTTPEngine4Impl.setConnectionManager(builder, this.usePool,  this.clientCert, this.clientCertPassword);
 
 		// redirect
 		if (redirect) builder.setRedirectStrategy(DefaultRedirectStrategy.INSTANCE);
@@ -1446,44 +1434,6 @@ public final class Http extends BodyTagImpl {
 			str = new URLResolver().transform(str, e.response.getTargetURL(), false);
 		}
 		return str;
-	}
-
-	private void ssl(HttpClientBuilder builder) throws PageException {
-		final SSLConnectionSocketFactory sslsf;
-		try {
-			// SSLContext sslcontext = SSLContexts.createSystemDefault();
-			SSLContext sslcontext = SSLContext.getInstance("TLS");
-			if (!StringUtil.isEmpty(this.clientCert)) {
-				if (this.clientCertPassword == null) this.clientCertPassword = "";
-				File ksFile = new File(this.clientCert);
-				KeyStore clientStore = KeyStore.getInstance("PKCS12");
-				clientStore.load(new FileInputStream(ksFile), this.clientCertPassword.toCharArray());
-
-				KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-				kmf.init(clientStore, this.clientCertPassword.toCharArray());
-
-				sslcontext.init(kmf.getKeyManagers(), null, new java.security.SecureRandom());
-				sslsf = new SSLConnectionSocketFactoryImpl(sslcontext, new DefaultHostnameVerifierImpl());
-			}
-			else {
-				sslcontext.init(null, null, new java.security.SecureRandom());
-				if (defaultSSLConnectionSocketFactoryImpl == null)
-					defaultSSLConnectionSocketFactoryImpl = new SSLConnectionSocketFactoryImpl(sslcontext, new DefaultHostnameVerifierImpl());
-				sslsf = defaultSSLConnectionSocketFactoryImpl;
-			}
-
-			builder.setSSLSocketFactory(sslsf);
-			Registry<ConnectionSocketFactory> reg = RegistryBuilder.<ConnectionSocketFactory>create().register("http", PlainConnectionSocketFactory.getSocketFactory())
-					.register("https", sslsf).build();
-			PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager(new DefaultHttpClientConnectionOperatorImpl(reg), null, -1, TimeUnit.MILLISECONDS); // TODO
-			// review
-			// -1
-			// setting
-			builder.setConnectionManager(cm);
-		}
-		catch (Exception e) {
-			throw Caster.toPageException(e);
-		}
 	}
 
 	private TimeSpan checkRemainingTimeout() throws RequestTimeoutException {
