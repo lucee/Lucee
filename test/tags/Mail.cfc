@@ -14,177 +14,160 @@
  * You should have received a copy of the GNU Lesser General Public 
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  */
-component extends="org.lucee.cfml.test.LuceeTestCase" {
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="mail" {
 
-	variables.PORT=2526;
 	variables.from="susi@sorglos.de";
 	variables.to="geisse@peter.ch";
 
 	public function beforeTests(){
+		variables.creds = getCredentials();
+
+		if (structCount(creds.smtp) == 0 || structCount(creds.pop) == 0) return;
+
 		admin 
 			action="updateMailServer"
 			type="web"
 			password="#request.WEBADMINPASSWORD#"
-			hostname="localhost"
-			dbusername=""
+			hostname="#creds.smtp.SERVER#"
+			dbusername="#creds.smtp.USERNAME#"
 			dbpassword=""
 			life="1"
 			idle="1"
-			port="#PORT#"
+			port="#creds.smtp.PORT_INSECURE#"
 			id="123"
-			tls="false"
+			tls="true"
 			ssl="false"
 			reuseConnection=false;
-
 	}
+
 	public function afterTests(){
+		if(isNull(creds.smtp.SERVER)) return;
 		admin 
 			action="removeMailServer"
 			type="web"
 			password="#request.WEBADMINPASSWORD#"
-			hostname="localhost";
-
+			hostname="#creds.smtp.SERVER#";
 	}
 
-
-	private array function getMails(smtpServer) localmode=true{
-		arr=[];
-		it=smtpServer.getReceivedEmail();
-		while(it.hasNext()) {
-			email=it.next();
-			names=email.getHeaderNames();
-			sct={};
-			while(names.hasNext()) {
-				name=names.next();
-				sct[name]=email.getHeaderValue(name);
-			}
-			if(StructCount(sct)){
-				sct["body"]=email.getBody();
-				arrayAppend(arr,sct);
-			}
+	private function getCredentials() {
+		return {
+			smtp : server.getTestService("smtp"),
+			pop : server.getTestService("pop")
 		}
-		return arr;
 	}
 
-	private function start() {
-		return createObject("java","com.dumbster.smtp.SimpleSmtpServer","smtp.dumbster","1.6.0").start(PORT);
+	public boolean function notHasServices() {
+		return structCount(server.getTestService("smtp")) == 0 || structCount(server.getTestService("pop")) == 0;
 	}
 
+	private struct function getMails() localmode=true {
+		pop action="getAll" name="local.inboxemails" server="#creds.pop.server#" password="#creds.pop.password#" port="#creds.pop.PORT_INSECURE#" secure="no" username="#variables.to#";
 
-	public function testSimpleMail() localmode="true"{
-		try { 
-			smtpServer=start();
-			mail to=variables.to from=variables.from subject="test mail1" spoolEnable=false {
-				echo("This is a text email!");
-			}
+		sct = queryGetRow(inboxemails,queryRecordCount(inboxemails));
+
+		// delete inbox mails after getting mail for the test So the inbox always have one mail and getting mail will take less time
+		pop action="delete" server="#creds.pop.server#" password="#creds.pop.password#" port="#creds.pop.PORT_INSECURE#" secure="no" username="#variables.to#";
+
+		sct.header = headerToStruct(sct.header);	
+		return sct;
+	}
+
+	// converts the header string to struct
+	private struct function headerToStruct(Required string str) localmode=true {
+		a = reMatchNoCase("\s([a-zA-Z-]+\:)",str);
+
+		keyWithComma = arrayToList(a,"|").listmap((e)=>{
+			return "," & e;
+		},"|");
+
+		l = replaceListNocase(str, arrayToList(a), keyWithComma, ",", "|");
+
+		sct = {};
+		loop list="#l#" item="e" index="i" {
+			sct[trim(listFirst(e,":"))] = trim(listLast(e,":"));
 		}
-		finally {
-			smtpServer.stop();
+		return sct;
+	}
+
+
+	// tests
+	public function testSimpleMail() localmode="true" skip="notHasServices" {
+
+		mail to=variables.to from=variables.from subject="test mail1" spoolEnable=false {
+			echo("This is a text email!");
 		}
 		
-		mails=getMails(smtpServer);
+		mails=getMails();
 
-		assertEquals(1,mails.len());
-		assertEquals("test mail1",mails[1].subject);
-		assertEquals("This is a text email!",mails[1]["body"]);
-		assertEquals(variables.from,mails[1]["from"]);
-		assertEquals(variables.to,mails[1]["to"]);
-		assertEquals("text/plain; charset=UTF-8",mails[1]["content-type"]);
+		assertEquals("test mail1",mails.subject);
+		assertEquals("This is a text email!",mails["body"].trim());
+		assertEquals(variables.from,mails["from"]);
+		assertEquals(variables.to,mails["to"]);
+		assertEquals("text/plain; charset=UTF-8",mails.header["content-type"]);
 	}
 
 
-	public function testHTMLMail() localmode="true"{
-		try { 
-			smtpServer=start();
-			mail type="html" to=variables.to from=variables.from subject="test mail1" spoolEnable=false {
-				echo("This is a HTML email!");
-			}
+	public function testHTMLMail() localmode="true" skip="notHasServices" {
+		mail type="html" to=variables.to from=variables.from subject="test mail1" spoolEnable=false {
+			echo("This is a HTML email!");
 		}
-		finally {
-			smtpServer.stop();
-		}
-		mails=getMails(smtpServer);
+		mails=getMails();
 
-		assertEquals("text/html; charset=UTF-8",mails[1]["content-type"]);
+		assertEquals("text/html; charset=UTF-8",mails.header["content-type"]);
+		assertEquals(variables.from,mails["from"]);
+		assertEquals(variables.to,mails["to"]);
 	}
 
-	public function testTextMail() localmode="true"{
-		try { 
-			smtpServer=start();
-			mail type="plain" to=variables.to from=variables.from subject="test mail1" spoolEnable=false {
+	public function testTextMail() localmode="true" skip="notHasServices" {
+		mail type="plain" to=variables.to from=variables.from subject="test mail1" spoolEnable=false {
+			echo("This is a text email!");
+		}
+		mails=getMails();
+
+		assertEquals("text/plain; charset=UTF-8",mails.header["content-type"]);
+		assertEquals(variables.from,mails["from"]);
+		assertEquals(variables.to,mails["to"]);
+	}
+
+	public function testTextMailPart() localmode="true" skip="notHasServices" {
+		mail to=variables.to from=variables.from subject="test mail1" spoolEnable=false {
+			mailpart type="text" {
 				echo("This is a text email!");
 			}
 		}
-		finally {
-			smtpServer.stop();
-		}
-		mails=getMails(smtpServer);
+		mails=getMails();
 
-		assertEquals("text/plain; charset=UTF-8",mails[1]["content-type"]);
+		assertEquals("test mail1",mails.subject);
+		assertEquals("This is a text email!",mails["body"].trim());
+		assertEquals(variables.from,mails["from"]);
+		assertEquals(variables.to,mails["to"]);
+		assertEquals("text/plain; charset=UTF-8",mails.header["content-type"]);
 	}
 
-	public function testTextMailPart() localmode="true"{
-		try { 
-			smtpServer=start();
-			mail to=variables.to from=variables.from subject="test mail1" spoolEnable=false {
-				mailpart type="text" {
-	                echo("This is a text email!");
-				}
+
+	public function testHTMLMailPart() localmode="true" skip="notHasServices" {
+		mail to=variables.to from=variables.from subject="test mail1" spoolEnable=false {
+			mailpart type="html" {
+				echo("This is a html email!");
 			}
 		}
-		finally {
-			smtpServer.stop();
-		}
-		mails=getMails(smtpServer);
+		mails=getMails();
 
-		assertEquals(1,mails.len());
-		assertEquals("test mail1",mails[1].subject);
-		assertEquals("This is a text email!",mails[1]["body"]);
-		assertEquals(variables.from,mails[1]["from"]);
-		assertEquals(variables.to,mails[1]["to"]);
-		assertEquals("text/plain; charset=UTF-8",mails[1]["content-type"]);
+		assertEquals("text/html; charset=UTF-8",mails.header["content-type"]);
 	}
 
-
-	public function testHTMLMailPart() localmode="true"{
-		try { 
-			smtpServer=start();
-			mail to=variables.to from=variables.from subject="test mail1" spoolEnable=false {
-				mailpart type="html" {
-	                echo("This is a html email!");
-				}
+	public function testMultiMailPart() localmode="true" skip="notHasServices" {
+		mail to=variables.to from=variables.from subject="test mail1" spoolEnable=false {
+			mailpart type="html" {
+				echo("This is a html email!");
+			}
+			mailpart type="text" {
+				echo("This is a text email!");
 			}
 		}
-		finally {
-			smtpServer.stop(); 
-		}
-		mails=getMails(smtpServer);
+		mails=getMails();
 
-		assertEquals(1,mails.len());
-		// dump(mails);
+		expect(findNoCase("multipart/alternative;", mails.header["Content-Type"])).toBeGT(0);
 	}
-
-	public function testMultiMailPart() localmode="true"{
-		try { 
-			smtpServer=start();
-			mail to=variables.to from=variables.from subject="test mail1" spoolEnable=false {
-				mailpart type="html" {
-	                echo("This is a html email!");
-				}
-				mailpart type="text" {
-	                echo("This is a text email!");
-				}
-			}
-		}
-		finally {
-			smtpServer.stop();
-		}
-		mails=getMails(smtpServer);
-
-		assertEquals(1,mails.len());
-		// dump(mails);
-	}
-
-
 
 }

@@ -35,7 +35,7 @@ public final class ColorCaster {
 	 * 
 	 * @param left
 	 * @param right
-	 * @return a int between 0 (badest) and 510 (best)
+	 * @return an int between 0 (badest) and 510 (best)
 	 * @throws ServletException
 	 */
 	public static int contrast(Color left, Color right) throws ServletException {

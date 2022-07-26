@@ -18,12 +18,11 @@
 package lucee.commons.lang;
 
 import java.io.IOException;
-import java.lang.instrument.ClassDefinition;
 import java.lang.instrument.UnmodifiableClassException;
 
 import lucee.commons.io.SystemUtil;
 import lucee.runtime.config.Config;
-import lucee.runtime.instrumentation.InstrumentationFactory;
+import lucee.transformer.bytecode.util.ClassRenamer;
 
 /**
  * ClassLoader that loads classes in memory that are not stored somewhere physically
@@ -53,22 +52,25 @@ public final class MemoryClassLoader extends ExtendableClassLoader {
 	}
 
 	@Override
-	protected synchronized Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
-		// First, check if the class has already been loaded
-		Class<?> c = findLoadedClass(name);
-		if (c == null) {
-			try {
-				c = pcl.loadClass(name);// if(name.indexOf("sub")!=-1)print.ds(name);
+	protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
+		synchronized (getClassLoadingLock(name)) {
+
+			// First, check if the class has already been loaded
+			Class<?> c = findLoadedClass(name);
+			if (c == null) {
+				try {
+					c = pcl.loadClass(name);// if(name.indexOf("sub")!=-1)print.ds(name);
+				}
+				catch (Throwable t) {
+					ExceptionUtil.rethrowIfNecessary(t);
+					c = findClass(name);
+				}
 			}
-			catch (Throwable t) {
-				ExceptionUtil.rethrowIfNecessary(t);
-				c = findClass(name);
+			if (resolve) {
+				resolveClass(c);
 			}
+			return c;
 		}
-		if (resolve) {
-			resolveClass(c);
-		}
-		return c;
 	}
 
 	@Override
@@ -77,29 +79,38 @@ public final class MemoryClassLoader extends ExtendableClassLoader {
 	}
 
 	@Override
-	public synchronized Class<?> loadClass(String name, byte[] barr) throws UnmodifiableClassException {
-		Class<?> clazz = null;
-		try {
-			clazz = loadClass(name);
-		}
-		catch (ClassNotFoundException cnf) {}
+	public Class<?> loadClass(String name, byte[] barr) throws UnmodifiableClassException {
+		synchronized (getClassLoadingLock(name)) {
 
-		// if class already exists
-		if (clazz != null) {
+			Class<?> clazz = null;
 			try {
-				InstrumentationFactory.getInstrumentation(config).redefineClasses(new ClassDefinition(clazz, barr));
+				clazz = loadClass(name);
 			}
-			catch (ClassNotFoundException e) {
-				// the documentation clearly sais that this exception only exists for backward compatibility and
-				// never happen
+			catch (ClassNotFoundException cnf) {
 			}
-			return clazz;
+
+			// if class already exists
+			if (clazz != null) {
+				// first we try to update the class what needs instrumentation object
+				/*
+				 * try { InstrumentationFactory.getInstrumentation(config).redefineClasses(new
+				 * ClassDefinition(clazz, barr)); return clazz; } catch (Exception e) { LogUtil.log(null,
+				 * "compilation", e); }
+				 */
+				// in case instrumentation fails, we rename it
+				return rename(clazz, barr);
+			}
+			// class not exists yet
+			return _loadClass(name, barr);
 		}
-		// class not exists yet
-		return _loadClass(name, barr);
 	}
 
-	private synchronized Class<?> _loadClass(String name, byte[] barr) {
+	private Class<?> rename(Class<?> clazz, byte[] barr) {
+		String newName = clazz.getName() + "$" + PhysicalClassLoader.uid();
+		return _loadClass(newName, ClassRenamer.rename(barr, newName));
+	}
+
+	private Class<?> _loadClass(String name, byte[] barr) {
 		size += barr.length;
 		// class not exists yet
 		try {

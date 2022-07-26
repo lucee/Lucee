@@ -121,7 +121,8 @@ public final class ZUtils {
 
 	}
 
-	public ZUtils() {}
+	public ZUtils() {
+	}
 
 	public static void addCustomFunction(String s, int i) {
 		if (fcts_ == null) fcts_ = new Hashtable();

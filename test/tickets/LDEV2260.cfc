@@ -1,10 +1,12 @@
 component extends="org.lucee.cfml.test.LuceeTestCase"{
 	function beforeAll(){
 		application action="update" 
-			datasource={
-	  		class: 'org.hsqldb.jdbcDriver'
-			, bundleName: "org.hsqldb.hsqldb"
-			, connectionString: 'jdbc:hsqldb:file:#getDirectoryFromPath(getCurrentTemplatePath())#/datasource/db'
+				datasource={
+			class: 'org.h2.Driver'
+			, bundleName: 'org.h2'
+			, bundleVersion: '1.3.172'
+			, connectionString: 'jdbc:h2:#getDirectoryFromPath(getCurrentTemplatePath())#/datasource/db;MODE=MySQL'
+			, connectionLimit:100 // default:-1
 		};
 
 		try{
@@ -34,6 +36,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				}
 			}
 			catch(local.e){}
+			afterTests();
 		}
 
 	function run( testResults , testBox ) {
@@ -51,6 +54,19 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 		});
 	}
 		
+	private function afterTests() {
+		var javaIoFile=createObject("java","java.io.File");
+		loop array=DirectoryList(
+			path=getDirectoryFromPath(getCurrentTemplatePath()), 
+			recurse=true, filter="*.db") item="local.path"  {
+			fileDeleteOnExit(javaIoFile,path);
+		}
+	}
 
+	private function fileDeleteOnExit(required javaIoFile, required string path) {
+		var file=javaIoFile.init(arguments.path);
+		if(!file.isFile())file=javaIoFile.init(expandPath(arguments.path));
+		if(file.isFile()) file.deleteOnExit();
+	}
 
 }

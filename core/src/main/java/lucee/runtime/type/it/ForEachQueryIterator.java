@@ -18,10 +18,12 @@
  **/
 package lucee.runtime.type.it;
 
+import java.sql.SQLException;
 import java.util.Iterator;
 
 import lucee.runtime.PageContext;
 import lucee.runtime.config.NullSupportHelper;
+import lucee.runtime.exp.DatabaseException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.type.Collection.Key;
@@ -29,6 +31,7 @@ import lucee.runtime.type.Query;
 import lucee.runtime.type.Resetable;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
+import lucee.runtime.type.query.SimpleQuery;
 
 public class ForEachQueryIterator implements Iterator, Resetable {
 
@@ -55,7 +58,7 @@ public class ForEachQueryIterator implements Iterator, Resetable {
 	public Object next() {
 		try {
 			if (qry.go(++current, pid)) {
-				Struct sct = new StructImpl();
+				Struct sct = new StructImpl(Struct.TYPE_LINKED);
 				Object empty = NullSupportHelper.full(pcMayNull) ? null : "";
 				for (int i = 0; i < names.length; i++) {
 					sct.setEL(names[i], qry.get(names[i], empty));
@@ -82,6 +85,18 @@ public class ForEachQueryIterator implements Iterator, Resetable {
 	@Override
 	public void reset() throws PageException {
 		qry.go(start, pid);
+		if (qry instanceof SimpleQuery) {
+			SimpleQuery sq = (SimpleQuery) qry;
+			try {
+				if (!sq.isClosed()) {
+					sq.close();
+				}
+			}
+			catch (SQLException e) {
+				throw new DatabaseException(e, sq.getDc());
+			}
+
+		}
 	}
 
 }

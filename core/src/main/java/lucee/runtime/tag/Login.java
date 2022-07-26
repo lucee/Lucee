@@ -39,7 +39,7 @@ import lucee.runtime.type.util.ListUtil;
  */
 public final class Login extends BodyTagImpl {
 
-	private static final Key CFLOGIN = KeyImpl.intern("cflogin");
+	private static final Key CFLOGIN = KeyImpl.getInstance("cflogin");
 	private int idletimeout = 1800;
 	private String applicationtoken;
 	private String cookiedomain;
@@ -99,7 +99,7 @@ public final class Login extends BodyTagImpl {
 						String encoded = strAuth.substring(pos + 1);
 						String dec;
 						try {
-							dec = Base64Coder.decodeToString(encoded, "UTF-8");
+							dec = Base64Coder.decodeToString(encoded, "UTF-8", true);
 						}
 						catch (IOException e) {
 							throw Caster.toPageException(e);

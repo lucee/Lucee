@@ -50,6 +50,7 @@ public class LoggerImpl extends Logger {
 	@SuppressWarnings("rawtypes")
 	@Override
 	protected void doLog(final Bundle bundle, final ServiceReference sr, final int level, final String msg, Throwable throwable) {
+		if (level > getLogLevel()) return;
 		String s = "";
 		if (sr != null) s = s + "SvcRef " + sr + " ";
 		else if (bundle != null) s = s + "Bundle " + bundle.toString() + " ";
@@ -75,7 +76,8 @@ public class LoggerImpl extends Logger {
 	}
 
 	private void _log(final int level, final String msg) {
-		// TODO better impl
+		if (level > getLogLevel()) return;
+
 		BufferedWriter bw = null;
 		try {
 			bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(logFile, true)));

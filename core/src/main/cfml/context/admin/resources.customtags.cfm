@@ -1,10 +1,10 @@
 <cfset stText.CustomTags.name="Name">
 <cfset stText.CustomTags.nameMissing="Missing the name for the new Mapping, this name is used when you deploy a Lucee Archive (.lar) based on this Mapping.">
-<cfset stText.CustomTags.nameDesc="The name is used as identifier when you automaticly import a Lucee Archive build based on this Mapping.">
+<cfset stText.CustomTags.nameDesc="The name is used as identifier when you automatically import a Lucee Archive build based on this Mapping.">
 <cfset stText.CustomTags.PhysicalDesc="Directory path where the custom tags are located.">
 <cfset stText.CustomTags.archiveDesc="File path to a custom tag Lucee Archive (.lar).">
-<cfset stText.CustomTags.PrimaryDesc="Defines where Lucee does looks first for a requested custom tags">
-<cfset stText.CustomTags.trustedDesc="When does Lucee checks for changes in the source file for a already loaded custom tags">
+<cfset stText.CustomTags.PrimaryDesc="Defines where Lucee looks first for a requested custom tags">
+<cfset stText.CustomTags.trustedDesc="When does Lucee checks for changes in the source file for an already loaded custom tags">
 
 
 <!--- <cfif isDefined("form")>
@@ -103,7 +103,7 @@
 						addNonCFMLFiles="#data.addNonCFMLFiles[idx]#"
 						append="#not doDownload#"
 						remoteClients="#request.getRemoteClients()#">
-						<cfif doDownload><CFHEADER NAME="Content-Disposition" VALUE="inline; filename=#filename#"><!--- 
+						<cfif doDownload><cfheader name="Content-Disposition" value="inline; filename=#filename#"><!---
 						 ---><cfcontent file="#target#" deletefile="yes" type="application/unknow"></cfif>
 					</cfif>
 				</cfloop>

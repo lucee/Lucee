@@ -31,6 +31,7 @@ import lucee.runtime.converter.JSONConverter;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
+import lucee.runtime.functions.arrays.ArraySlice;
 import lucee.runtime.listener.SerializationSettings;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Array;
@@ -48,7 +49,7 @@ import lucee.runtime.type.util.KeyConstants;
 public final class CallStackGet implements Function {
 
 	private static final long serialVersionUID = -5853145189662102420L;
-	static final Collection.Key LINE_NUMBER = KeyImpl.init("LineNumber");
+	static final Collection.Key LINE_NUMBER = KeyImpl.getInstance("LineNumber");
 
 	public static Object call(PageContext pc) {
 		Array arr = new ArrayImpl();
@@ -57,7 +58,22 @@ public final class CallStackGet implements Function {
 	}
 
 	public static Object call(PageContext pc, String type) throws PageException {
+		return call(pc, type, 0.0, 0.0);
+	}
+
+	public static Object call(PageContext pc, String type, double offset) throws PageException {
+		return call(pc, type, offset, 0.0);
+	}
+
+	public static Object call(PageContext pc, String type, double offset, double maxFrames) throws PageException {
 		Array arr = (Array) call(pc);
+
+		if (offset > 0 || maxFrames > 0) {
+			int sliceFrom = (int) offset + 1;
+			int sliceTo = (maxFrames > 0) ? (int) (maxFrames + offset) : 0;
+			arr = ArraySlice.get(arr, sliceFrom, sliceTo);
+		}
+
 		if (type.equalsIgnoreCase("array")) return arr;
 
 		if (type.equalsIgnoreCase("json")) {
@@ -137,7 +153,7 @@ public final class CallStackGet implements Function {
 			line = trace.getLineNumber();
 			item.setEL(KeyConstants._function, functionName);
 			/*
-			 * template is now a absolute path try { template=ExpandPath.call(pc, template); } catch
+			 * template is now an absolute path try { template=ExpandPath.call(pc, template); } catch
 			 * (PageException e) {}
 			 */
 			item.setEL(KeyConstants._template, abs((PageContextImpl) pc, template));

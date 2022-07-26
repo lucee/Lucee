@@ -83,7 +83,8 @@ public class CustomClassloaderJavaFileManager extends ForwardingJavaFileManager<
 			binaryName = binaryName + ".java";
 		}
 		CustomJavaFileObject cjfo = fileMap.get(binaryName);
-		if (cjfo == null) {}
+		if (cjfo == null) {
+		}
 		return cjfo;
 	}
 

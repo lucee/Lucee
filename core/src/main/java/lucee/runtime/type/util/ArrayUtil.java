@@ -24,13 +24,11 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
-import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
 
 import lucee.commons.lang.ArrayUtilException;
 import lucee.commons.lang.ComparatorUtil;
-import lucee.commons.lang.SizeOf;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.math.MathUtil;
 import lucee.runtime.PageContext;
@@ -40,11 +38,14 @@ import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
-import lucee.runtime.op.Operator;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayClassic;
 import lucee.runtime.type.ArrayImpl;
+import lucee.runtime.type.ArrayPro;
+import lucee.runtime.type.ArrayTyped;
 import lucee.runtime.type.QueryColumn;
+import lucee.runtime.type.Struct;
+import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.comparator.SortRegister;
 
 /**
@@ -55,8 +56,12 @@ public final class ArrayUtil {
 	public static final Object[] OBJECT_EMPTY = new Object[] {};
 
 	public static Array getInstance(int dimension) throws ExpressionException {
+		return getInstance(dimension, false);
+	}
+
+	public static Array getInstance(int dimension, boolean _synchronized) throws ExpressionException {
 		if (dimension > 1) return new ArrayClassic(dimension);
-		return new ArrayImpl();
+		return new ArrayImpl(ArrayImpl.DEFAULT_CAP, _synchronized);
 	}
 
 	/**
@@ -65,7 +70,7 @@ public final class ArrayUtil {
 	 * @param arr
 	 * @return trimmed array
 	 */
-	public static String[] trim(String[] arr) {
+	public static String[] trimItems(String[] arr) {
 		for (int i = 0; i < arr.length; i++) {
 			arr[i] = arr[i].trim();
 		}
@@ -151,7 +156,7 @@ public final class ArrayUtil {
 	}
 
 	/**
-	 * find a object in array
+	 * find an object in array
 	 * 
 	 * @param array
 	 * @param object object to find
@@ -162,9 +167,10 @@ public final class ArrayUtil {
 		for (int i = 1; i <= len; i++) {
 			Object tmp = array.get(i, null);
 			try {
-				if (tmp != null && Operator.compare(object, tmp) == 0) return i;
+				if (tmp != null && lucee.runtime.op.OpUtil.compare(ThreadLocalPageContext.get(), object, tmp) == 0) return i;
 			}
-			catch (PageException e) {}
+			catch (PageException e) {
+			}
 		}
 		return 0;
 	}
@@ -182,7 +188,7 @@ public final class ArrayUtil {
 	}
 
 	/**
-	 * sum of all values of a array, only work when all values are numeric
+	 * sum of all values of an array, only work when all values are numeric
 	 * 
 	 * @param array Array
 	 * @return sum of all values
@@ -429,7 +435,7 @@ public final class ArrayUtil {
 	}
 
 	/**
-	 * gets a value of a array at defined index
+	 * gets a value of an array at defined index
 	 * 
 	 * @param o
 	 * @param index
@@ -439,11 +445,11 @@ public final class ArrayUtil {
 	public static Object get(Object o, int index) throws ArrayUtilException {
 		o = get(o, index, null);
 		if (o != null) return o;
-		throw new ArrayUtilException("Object is not a array, or index is invalid");
+		throw new ArrayUtilException("Object is not an array, or index is invalid");
 	}
 
 	/**
-	 * gets a value of a array at defined index
+	 * gets a value of an array at defined index
 	 * 
 	 * @param o
 	 * @param index
@@ -491,7 +497,7 @@ public final class ArrayUtil {
 	}
 
 	/**
-	 * sets a value to a array at defined index
+	 * sets a value to an array at defined index
 	 * 
 	 * @param o
 	 * @param index
@@ -586,7 +592,7 @@ public final class ArrayUtil {
 			}
 			throw invalidIndex(index, arr.length);
 		}
-		throw new ArrayUtilException("Object [" + Caster.toClassName(o) + "] is not a Array");
+		throw new ArrayUtilException("Object [" + Caster.toClassName(o) + "] is not an Array");
 	}
 
 	private static ArrayUtilException invalidIndex(int index, int length) {
@@ -594,7 +600,7 @@ public final class ArrayUtil {
 	}
 
 	/**
-	 * sets a value to a array at defined index
+	 * sets a value to an array at defined index
 	 * 
 	 * @param o
 	 * @param index
@@ -841,24 +847,6 @@ public final class ArrayUtil {
 		return map.values().toArray();
 	}
 
-	public static long sizeOf(List list) {
-		ListIterator it = list.listIterator();
-		long size = 0;
-		while (it.hasNext()) {
-			size += SizeOf.size(it.next());
-		}
-		return size;
-	}
-
-	public static long sizeOf(Array array) {
-		Iterator it = array.valueIterator();
-		long size = 0;
-		while (it.hasNext()) {
-			size += SizeOf.size(it.next());
-		}
-		return size;
-	}
-
 	/**
 	 * creates a native array out of the input list, if all values are from the same type, this type is
 	 * used for the array, otherwise object
@@ -965,6 +953,20 @@ public final class ArrayUtil {
 		return ret;
 	}
 
+	public static String[] toArray(String[] arr1, String[] arr2, String[] arr3) {
+		String[] ret = new String[arr1.length + arr2.length + arr3.length];
+		for (int i = 0; i < arr1.length; i++) {
+			ret[i] = arr1[i];
+		}
+		for (int i = 0; i < arr2.length; i++) {
+			ret[arr1.length + i] = arr2[i];
+		}
+		for (int i = 0; i < arr3.length; i++) {
+			ret[arr1.length + arr2.length + i] = arr3[i];
+		}
+		return ret;
+	}
+
 	public static String[] toArray(String[] arr, String str) {
 		String[] ret = new String[arr.length + 1];
 		for (int i = 0; i < arr.length; i++) {
@@ -1011,5 +1013,18 @@ public final class ArrayUtil {
 		for (int i = 0; i < arr.length; i++) {
 			list.add(arr[i]);
 		}
+	}
+
+	public static ArrayPro toArrayPro(Array array) {
+		if (array instanceof ArrayPro) return (ArrayPro) array;
+		return new ArrayAsArrayPro(array);
+	}
+
+	public static Struct getMetaData(Array arr) throws PageException {
+		Struct sct = new StructImpl();
+		sct.set(KeyConstants._type, arr instanceof ArrayImpl && ((ArrayImpl) arr).sync() ? "synchronized" : "unsynchronized");
+		sct.set("dimensions", arr.getDimension());
+		sct.set("datatype", arr instanceof ArrayTyped ? ((ArrayTyped) arr).getTypeAsString() : "any");
+		return sct;
 	}
 }

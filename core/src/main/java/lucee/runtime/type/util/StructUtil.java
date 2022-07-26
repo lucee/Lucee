@@ -30,13 +30,9 @@ import java.util.Set;
 import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentHashMap;
 
-import lucee.commons.collection.LinkedHashMapPro;
-import lucee.commons.collection.MapPro;
-import lucee.commons.collection.MapProWrapper;
-import lucee.commons.collection.SyncMap;
-import lucee.commons.collection.WeakHashMapPro;
+import org.apache.commons.collections4.map.ReferenceMap;
+
 import lucee.commons.digest.HashUtil;
-import lucee.commons.lang.SizeOf;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.dump.DumpProperties;
@@ -211,24 +207,6 @@ public final class StructUtil {
 		return sct;
 	}
 
-	/**
-	 * return the size of given struct, size of values + keys
-	 * 
-	 * @param sct
-	 * @return
-	 */
-	public static long sizeOf(Struct sct) {
-		Iterator<Entry<Key, Object>> it = sct.entryIterator();
-		Entry<Key, Object> e;
-		long size = 0;
-		while (it.hasNext()) {
-			e = it.next();
-			size += SizeOf.size(e.getKey());
-			size += SizeOf.size(e.getValue());
-		}
-		return size;
-	}
-
 	public static void setELIgnoreWhenNull(Struct sct, String key, Object value) {
 		setELIgnoreWhenNull(sct, KeyImpl.init(key), value);
 	}
@@ -266,22 +244,11 @@ public final class StructUtil {
 		return sct;
 	}
 
-	public static int getType(MapPro m) {
-		if (m instanceof SyncMap) return ((SyncMap) m).getType();
-
-		if (m instanceof LinkedHashMapPro) return Struct.TYPE_LINKED;
-		if (m instanceof WeakHashMapPro) return Struct.TYPE_WEAKED;
-		// if(map instanceof SyncMap) return TYPE_SYNC;
-		if (m instanceof MapProWrapper) return Struct.TYPE_SOFT;
-		return Struct.TYPE_REGULAR;
-	}
-
 	public static int getType(Map m) {
-		if (m instanceof MapPro) return getType(m);
-
 		if (m instanceof LinkedHashMap) return Struct.TYPE_LINKED;
 		if (m instanceof WeakHashMap) return Struct.TYPE_WEAKED;
 		if (m instanceof ConcurrentHashMap) return Struct.TYPE_SYNC;
+		if (m instanceof ReferenceMap) return Struct.TYPE_SOFT;
 
 		return Struct.TYPE_REGULAR;
 	}
@@ -290,10 +257,8 @@ public final class StructUtil {
 		if (Struct.TYPE_LINKED == type) return "ordered";
 		if (Struct.TYPE_WEAKED == type) return "weak";
 		if (Struct.TYPE_REGULAR == type) return "regular";
-		if (Struct.TYPE_REGULAR == type) return "regular";
 		if (Struct.TYPE_SOFT == type) return "soft";
 		if (Struct.TYPE_SYNC == type) return "synchronized";
-		if (Struct.TYPE_UNDEFINED == type) return "undefined";
 
 		return defaultValue;
 	}
@@ -313,5 +278,15 @@ public final class StructUtil {
 			sb.append(keys[i].getString()).append(';');
 		}
 		return Long.toString(HashUtil.create64BitHash(sb), Character.MAX_RADIX);
+	}
+
+	public static Struct getMetaData(Struct sct) throws PageException {
+		Struct res = new StructImpl();
+		if (sct instanceof StructImpl) {
+			int type = ((StructImpl) sct).getType();
+			res.set(KeyConstants._type, toType(type, "unsynchronized"));
+			res.set("ordered", type == Struct.TYPE_LINKED ? "ordered" : "unordered");
+		}
+		return res;
 	}
 }

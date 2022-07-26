@@ -24,11 +24,9 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import lucee.commons.io.DevNullOutputStream;
 import lucee.runtime.Component;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.ConfigWeb;
-import lucee.runtime.config.Constants;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
@@ -37,10 +35,12 @@ import lucee.runtime.op.Decision;
 import lucee.runtime.thread.ThreadUtil;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.Collection;
+import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Query;
 import lucee.runtime.type.QueryColumn;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
+import lucee.runtime.type.UDF;
 import lucee.runtime.type.util.ArrayUtil;
 
 /**
@@ -56,12 +56,32 @@ public class JavaProxy {
 			pc = ThreadLocalPageContext.get();
 			// create PageContext if necessary
 			if (pc == null) {
-				pc = ThreadUtil.createPageContext(config, DevNullOutputStream.DEV_NULL_OUTPUT_STREAM, Constants.NAME, "/", "", null, null, null, null, null, true, -1);
+				pc = ThreadUtil.createDummyPageContext(config);
 				unregister = true;
 				pc.addPageSource(cfc.getPageSource(), true);
 			}
-
 			return cfc.call(pc, methodName, arguments);
+		}
+		catch (PageException pe) {
+			throw new PageRuntimeException(pe);
+		}
+		finally {
+			if (unregister) config.getFactory().releaseLuceePageContext(pc, true);
+		}
+	}
+
+	public static Object call(ConfigWeb config, UDF udf, String methodName, Object[] arguments) {
+		boolean unregister = false;
+		PageContext pc = null;
+		try {
+			pc = ThreadLocalPageContext.get();
+			// create PageContext if necessary
+			if (pc == null) {
+				pc = ThreadUtil.createDummyPageContext(config);
+				unregister = true;
+				// pc.addPageSource(udf.getPageSource(), true);
+			}
+			return udf.call(pc, KeyImpl.init(methodName), arguments, true);
 		}
 		catch (PageException pe) {
 			throw new PageRuntimeException(pe);

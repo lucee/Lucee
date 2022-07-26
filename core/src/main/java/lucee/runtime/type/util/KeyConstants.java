@@ -19,9 +19,9 @@
 package lucee.runtime.type.util;
 
 import java.lang.reflect.Field;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
-import lucee.commons.collection.MapPro;
-import lucee.commons.collection.concurrent.ConcurrentHashMapPro;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
@@ -214,6 +214,7 @@ public class KeyConstants {
 	public static final Key _Raw_Trace = KeyImpl._const("Raw_Trace");
 	public static final Key _Referer = KeyImpl._const("Referer");
 	public static final Key _Roulette = KeyImpl._const("Roulette");
+	public static final Key _SameSite = KeyImpl._const("SameSite");
 	public static final Key _SCOPE = KeyImpl._const("SCOPE");
 	public static final Key _SCT = KeyImpl._const("SCT");
 	public static final Key _SELECT = KeyImpl._const("SELECT");
@@ -447,6 +448,7 @@ public class KeyConstants {
 	public static final Key _java = KeyImpl._const("java");
 	public static final Key _javaLoader = KeyImpl._const("javaLoader");
 	public static final Key _jsessionid = KeyImpl._const("jsessionid");
+	public static final Key _JSESSIONID = KeyImpl._const("JSESSIONID");
 	public static final Key _key = KeyImpl._const("key");
 	public static final Key _keys = KeyImpl._const("keys");
 	public static final Key _label = KeyImpl._const("label");
@@ -489,6 +491,7 @@ public class KeyConstants {
 	public static final Key _moduleName = KeyImpl._const("moduleName");
 	public static final Key _myFusebox = KeyImpl._const("myFusebox");
 	public static final Key _name = KeyImpl._const("name");
+	public static final Key _subname = KeyImpl._const("subname");
 	public static final Key _needssetup = KeyImpl._const("needssetup");
 	public static final Key _next = KeyImpl._const("next");
 	public static final Key _nosetup = KeyImpl._const("nosetup");
@@ -567,6 +570,7 @@ public class KeyConstants {
 	public static final Key _separator = KeyImpl._const("separator");
 	public static final Key _server = KeyImpl._const("server");
 	public static final Key _servlet = KeyImpl._const("servlet");
+	public static final Key _servlets = KeyImpl._const("servlets");
 	public static final Key _sessionid = KeyImpl._const("sessionid");
 	public static final Key _set = KeyImpl._const("set");
 	public static final Key _setEL = KeyImpl._const("setEL");
@@ -624,6 +628,7 @@ public class KeyConstants {
 	public static final Key _traces = KeyImpl._const("traces");
 	public static final Key _dump = KeyImpl._const("dump");
 	public static final Key _dumps = KeyImpl._const("dumps");
+	public static final Key _times = KeyImpl._const("times");
 	public static final Key _transfer = KeyImpl._const("transfer");
 	public static final Key _tree = KeyImpl._const("tree");
 	public static final Key _type = KeyImpl._const("type");
@@ -691,6 +696,7 @@ public class KeyConstants {
 	public static final Key _task = KeyImpl._const("task");
 	public static final Key _port = KeyImpl._const("port");
 	public static final Key _timecreated = KeyImpl._const("timecreated");
+	public static final Key _csrf_token = KeyImpl._const("csrf_token");
 	public static final Key _hash = KeyImpl._const("hash");
 	public static final Key _root = KeyImpl._const("root");
 	public static final Key _sourcename = KeyImpl._const("sourcename");
@@ -942,19 +948,100 @@ public class KeyConstants {
 	public static final Key _serializeQueryAs = KeyImpl._const("serializeQueryAs");
 	public static final Key _structMetaData = KeyImpl._const("structMetaData");
 	public static final Key _STACKTRACE = KeyImpl._const("STACKTRACE");
-
 	public static final Key _callback = KeyImpl._const("callback");
 	public static final Key _udf = KeyImpl._const("udf");
 	public static final Key _params = KeyImpl._const("params");
 	public static final Key _param = KeyImpl._const("param");
 	public static final Key _stacktrace = KeyImpl._const("stacktrace");
 	public static final Key _interface = KeyImpl._const("interface");
+	public static final Key _interfaces = KeyImpl._const("interfaces");
 	public static final Key _proxy = KeyImpl._const("proxy");
 	public static final Key _offset = KeyImpl._const("offset");
 	public static final Key _shortName = KeyImpl._const("shortName");
 	public static final Key _connectionString = KeyImpl._const("connectionString");
+	public static final Key _implementsjava = KeyImpl._const("implementsjava");
+	public static final Key _extendsjava = KeyImpl._const("extendsjava");
+	public static final Key _priority = KeyImpl._const("priority");
+	public static final Key _setOut = KeyImpl._const("setOut");
+	public static final Key _options = KeyImpl._const("options");
+	public static final Key _testbox = KeyImpl._const("testbox");
+	public static final Key _modifier = KeyImpl._const("modifier");
+	public static final Key _position = KeyImpl._const("position");
+	public static final Key _DESCRIBE = KeyImpl._const("DESCRIBE");
+	public static final Key _ASSERTEQUALS = KeyImpl._const("ASSERTEQUALS");
+	public static final Key _UPDATE = KeyImpl._const("UPDATE");
+	public static final Key _TMP = KeyImpl._const("TMP");
+	public static final Key _ADMINTYPE = KeyImpl._const("ADMINTYPE");
+	public static final Key _FLUSH = KeyImpl._const("FLUSH");
+	public static final Key _spec = KeyImpl._const("spec");
+	public static final Key _totalpass = KeyImpl._const("totalpass");
+	public static final Key _assert = KeyImpl._const("assert");
+	public static final Key _mockbox = KeyImpl._const("mockbox");
+	public static final Key _readOnly = KeyImpl._const("readOnly");
+	public static final Key _listenerCfcPath = KeyImpl._const("listenerCfcPath");
+	public static final Key _cfcPath = KeyImpl._const("cfcPath");
+	public static final Key _startupMode = KeyImpl._const("startupMode");
+	public static final Key _dsn = KeyImpl._const("dsn");
+	public static final Key _dsnTranslated = KeyImpl._const("dsnTranslated");
+	public static final Key _passwordEncrypted = KeyImpl._const("passwordEncrypted");
+	public static final Key _enctype = KeyImpl._const("enctype");
+	public static final Key _accept = KeyImpl._const("accept");
+	public static final Key _target = KeyImpl._const("target");
+	public static final Key _style = KeyImpl._const("style");
+	public static final Key _align = KeyImpl._const("align");
+	public static final Key _alt = KeyImpl._const("alt");
+	public static final Key _border = KeyImpl._const("border");
+	public static final Key _multiple = KeyImpl._const("multiple");
+	public static final Key _step = KeyImpl._const("step");
+	public static final Key _disabled = KeyImpl._const("disabled");
+	public static final Key _location = KeyImpl._const("location");
+	public static final Key _browser = KeyImpl._const("browser");
+	public static final Key _IT = KeyImpl._const("IT");
+	public static final Key _it = KeyImpl._const("it");
+	public static final Key _acl = KeyImpl._const("acl");
+	public static final Key _PARENT = KeyImpl._const("PARENT");
+	public static final Key _SOURCE = KeyImpl._const("SOURCE");
+	public static final Key _onError = KeyImpl._const("onError");
+	public static final Key _onFinally = KeyImpl._const("onFinally");
+	public static final Key _onStartTag = KeyImpl._const("onStartTag");
+	public static final Key _onEndTag = KeyImpl._const("onEndTag");
+	public static final Key _GENERATEDCONTENT = KeyImpl._const("GENERATEDCONTENT");
+	public static final Key _EXECUTIONMODE = KeyImpl._const("EXECUTIONMODE");
+	public static final Key _EXECUTEBODY = KeyImpl._const("EXECUTEBODY");
+	public static final Key _rootCause = KeyImpl._const("rootCause");
+	public static final Key _cause = KeyImpl._const("cause");
+	public static final Key _available = KeyImpl._const("available");
+	public static final Key _Mapping = KeyImpl._const("Mapping");
+	public static final Key _match = KeyImpl._const("match");
+	public static final Key _catalog = KeyImpl._const("catalog");
+	public static final Key _dialect = KeyImpl._const("dialect");
+	public static final Key _schema = KeyImpl._const("schema");
+	public static final Key _closed = KeyImpl._const("closed");
+	public static final Key _ITEMS = KeyImpl._const("ITEMS");
+	public static final Key _ENTRY = KeyImpl._const("ENTRY");
+	public static final Key _Documentation = KeyImpl._const("Documentation");
+	public static final Key _sameformfieldsasarray = KeyImpl._const("sameformfieldsasarray");
+	public static final Key _sameurlfieldsasarray = KeyImpl._const("sameurlfieldsasarray");
+	public static final Key _DatabaseName = KeyImpl._const("DatabaseName");
+	public static final Key _DatabaseVersion = KeyImpl._const("DatabaseVersion");
+	public static final Key _DriverName = KeyImpl._const("DriverName");
+	public static final Key _DriverVersion = KeyImpl._const("DriverVersion");
+	public static final Key _loadPaths = KeyImpl._const("loadPaths");
+	public static final Key _bundlePaths = KeyImpl._const("bundlePaths");
+	public static final Key _bundles = KeyImpl._const("bundles");
+	public static final Key _bundleDirectory = KeyImpl._const("bundleDirectory");
+	public static final Key _bundleDirectories = KeyImpl._const("bundleDirectories");
+	public static final Key _virtual = KeyImpl._const("virtual");
+	public static final Key _clientMaxAge = KeyImpl._const("clientMaxAge");
+	public static final Key _new = KeyImpl._const("new");
+	public static final Key _NEW = KeyImpl._const("NEW");
+	public static final Key _COLUMNNAMES = KeyImpl._const("COLUMNNAMES");
+	public static final Key _COLUMNTYPES = KeyImpl._const("COLUMNTYPES");
+	public static final Key _columnNames = KeyImpl._const("columnNames");
+	public static final Key _columnTypes = KeyImpl._const("columnTypes");
+	public static final Key _remoteclients = KeyImpl._const("remoteclients");
 
-	private static MapPro<String, Key> _____keys;
+	private static Map<String, Key> _____keys;
 
 	public static String getFieldName(String key) {
 		init();
@@ -971,7 +1058,7 @@ public class KeyConstants {
 	public static void init() {
 		if (_____keys == null) {
 			Field[] fields = KeyConstants.class.getFields();
-			_____keys = new ConcurrentHashMapPro<String, Key>();
+			_____keys = new ConcurrentHashMap<String, Key>();
 			for (int i = 0; i < fields.length; i++) {
 				if (fields[i].getType() != Key.class || !fields[i].getName().startsWith("_")) continue;
 				try {

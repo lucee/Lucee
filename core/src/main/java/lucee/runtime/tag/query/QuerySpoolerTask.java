@@ -1,6 +1,7 @@
 package lucee.runtime.tag.query;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 
 import lucee.commons.io.DevNullOutputStream;
 import lucee.commons.io.SystemUtil.TemplateLine;
@@ -13,9 +14,8 @@ import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.config.ConfigWeb;
-import lucee.runtime.config.ConfigWebImpl;
+import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.Abort;
 import lucee.runtime.exp.PageException;
@@ -99,10 +99,11 @@ public class QuerySpoolerTask extends SpoolerTaskSupport {
 			}
 			// task
 			else {
-				ConfigWebImpl cwi = (ConfigWebImpl) config;
+				ConfigWebPro cwi = (ConfigWebPro) config;
+				HttpSession session = oldPc != null && oldPc.getSessionType() == Config.SESSION_TYPE_JEE ? oldPc.getSession() : null;
 				DevNullOutputStream os = DevNullOutputStream.DEV_NULL_OUTPUT_STREAM;
 				pc = ThreadUtil.createPageContext(cwi, os, serverName, requestURI, queryString, SerializableCookie.toCookies(cookies), headers, null, parameters, attributes, true,
-						-1);
+						-1, session);
 				pc.setRequestTimeout(requestTimeout);
 				PageSource ps = UDFPropertiesImpl.toPageSource(pc, cwi, mapping == null ? null : mapping.toMapping(), relPath, relPathwV);
 				pc.addPageSource(ps, true);
@@ -114,11 +115,8 @@ public class QuerySpoolerTask extends SpoolerTaskSupport {
 			catch (Exception e) {
 				if (!Abort.isSilentAbort(e)) {
 					ConfigWeb c = pc.getConfig();
-					if (c instanceof ConfigImpl) {
-						ConfigImpl ci = (ConfigImpl) c;
-						Log log = ci.getLog("application");
-						if (log != null) log.log(Log.LEVEL_ERROR, "query", e);
-					}
+					Log log = c.getLog("application");
+					if (log != null) log.log(Log.LEVEL_ERROR, "query", e);
 					PageException pe = Caster.toPageException(e);
 					// if(!serializable)catchBlock=pe.getCatchBlock(pc.getConfig());
 					return pe;

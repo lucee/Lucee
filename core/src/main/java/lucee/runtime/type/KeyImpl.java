@@ -26,11 +26,12 @@ import java.util.Date;
 
 import lucee.commons.digest.WangJenkins;
 import lucee.commons.lang.StringUtil;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.CasterException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Castable;
 import lucee.runtime.op.Caster;
-import lucee.runtime.op.Operator;
+import lucee.runtime.op.OpUtil;
 import lucee.runtime.op.date.DateCaster;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.dt.DateTime;
@@ -192,7 +193,8 @@ public class KeyImpl implements Collection.Key, Castable, Comparable, Externaliz
 			return key.equalsIgnoreCase((String) other);
 		}
 		if (other instanceof Key) {
-			return ucKey.equalsIgnoreCase(((Key) other).getUpperString());
+			// Both strings are guaranteed to be upper case
+			return ucKey.equals(((Key) other).getUpperString());
 		}
 		return false;
 	}
@@ -258,28 +260,28 @@ public class KeyImpl implements Collection.Key, Castable, Comparable, Externaliz
 
 	@Override
 	public int compareTo(boolean b) throws PageException {
-		return Operator.compare(key, b);
+		return OpUtil.compare(ThreadLocalPageContext.get(), key, b ? Boolean.TRUE : Boolean.FALSE);
 	}
 
 	@Override
 	public int compareTo(DateTime dt) throws PageException {
-		return Operator.compare(key, (Date) dt);
+		return OpUtil.compare(ThreadLocalPageContext.get(), key, (Date) dt);
 	}
 
 	@Override
 	public int compareTo(double d) throws PageException {
-		return Operator.compare(key, d);
+		return OpUtil.compare(ThreadLocalPageContext.get(), key, Double.valueOf(d));
 	}
 
 	@Override
 	public int compareTo(String str) throws PageException {
-		return Operator.compare(key, str);
+		return OpUtil.compare(ThreadLocalPageContext.get(), key, str);
 	}
 
 	@Override
 	public int compareTo(Object o) {
 		try {
-			return Operator.compare(key, o);
+			return OpUtil.compare(ThreadLocalPageContext.get(), key, o);
 		}
 		catch (PageException e) {
 			ClassCastException cce = new ClassCastException(e.getMessage());

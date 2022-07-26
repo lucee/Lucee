@@ -4,7 +4,7 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.TemplateException;
 import lucee.runtime.interpreter.InterpreterException;
 import lucee.runtime.op.Caster;
-import lucee.runtime.op.Operator;
+import lucee.runtime.op.OpUtil;
 import lucee.transformer.Factory;
 import lucee.transformer.expression.ExprBoolean;
 import lucee.transformer.expression.Expression;
@@ -42,11 +42,11 @@ public final class OpBool extends ExpressionBase implements ExprBoolean {
 		}
 		// EQV
 		else if (operation == Factory.OP_BOOL_EQV) {
-			res = (Operator.eqv(ic.getValueAsBooleanValue(left), ic.getValueAsBooleanValue(right)));
+			res = (OpUtil.eqv(ic.getPageContext(), ic.getValueAsBooleanValue(left), ic.getValueAsBooleanValue(right)));
 		}
 		// IMP
 		else if (operation == Factory.OP_BOOL_IMP) {
-			res = (Operator.imp(ic.getValueAsBooleanValue(left), ic.getValueAsBooleanValue(right)));
+			res = (OpUtil.imp(ic.getPageContext(), ic.getValueAsBooleanValue(left), ic.getValueAsBooleanValue(right)));
 		}
 		else throw new InterpreterException("invalid operatior:" + operation);
 
@@ -61,7 +61,7 @@ public final class OpBool extends ExpressionBase implements ExprBoolean {
 	}
 
 	/**
-	 * Create a String expression from a Expression
+	 * Create a String expression from an Expression
 	 * 
 	 * @param left
 	 * @param right

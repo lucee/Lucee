@@ -86,12 +86,14 @@ public interface DataSource extends Cloneable {
 
 	/**
 	 * @deprecated use instead <code>getConnectionString()</code>
+	 * @return orginal DSN
 	 */
 	@Deprecated
 	public abstract String getDsnOriginal();
 
 	/**
 	 * @deprecated use instead <code>getConnectionStringTranslated()</code>
+	 * @return DSN Translated
 	 */
 	@Deprecated
 	public abstract String getDsnTranslated();
@@ -129,7 +131,7 @@ public interface DataSource extends Cloneable {
 	public abstract boolean isReadOnly();
 
 	/**
-	 * @param allow
+	 * @param allow allow
 	 * @return returns if given allow exists
 	 */
 	public abstract boolean hasAllow(int allow);
@@ -181,14 +183,18 @@ public interface DataSource extends Cloneable {
 	public abstract int getConnectionLimit();
 
 	/**
-	 * @return Returns the connectionTimeout.
+	 * @return Returns the connection idle timeout.
 	 */
+	// FUTURE @Deprecated
 	public abstract int getConnectionTimeout();
+
+	// FUTURE public abstract int getIdleTimeout();
+	// FUTURE public abstract int getLiveTimeout();
 
 	/**
 	 * network timeout in seconds
 	 * 
-	 * @return
+	 * @return Returns the network timeout.
 	 */
 	public abstract int getNetworkTimeout();
 
@@ -197,7 +203,7 @@ public interface DataSource extends Cloneable {
 	public TimeZone getTimeZone();
 
 	/**
-	 * @param key
+	 * @param key key
 	 * @return Returns matching custom value or null if not exist.
 	 */
 	public abstract String getCustomValue(String key);

@@ -2,11 +2,12 @@ package lucee.runtime.type.scope.storage;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.util.Map;
 
-import lucee.commons.collection.MapPro;
 import lucee.commons.io.IOUtil;
 import lucee.commons.lang.NumberUtil;
 import lucee.runtime.exp.PageException;
@@ -18,15 +19,16 @@ public class IKStorageValue implements Serializable {
 	private static final long serialVersionUID = 2728185742217909233L;
 	private static final byte[] EMPTY = new byte[0];
 
-	transient MapPro<Collection.Key, IKStorageScopeItem> value;
+	transient Map<Collection.Key, IKStorageScopeItem> value;
 	final long lastModified;
 	final byte[] barr;
 
-	public IKStorageValue(MapPro<Collection.Key, IKStorageScopeItem> value) throws PageException {
+	public IKStorageValue(Map<Collection.Key, IKStorageScopeItem> value) throws PageException {
 		this(value, serialize(value), System.currentTimeMillis());
 	}
 
-	public IKStorageValue(MapPro<Collection.Key, IKStorageScopeItem> value, byte[] barr, long lastModified) {
+	// DO NOT CHANGE, USED BY REDIS EXTENSION
+	public IKStorageValue(Map<Collection.Key, IKStorageScopeItem> value, byte[] barr, long lastModified) {
 		this.value = value;
 		this.barr = barr;
 		this.lastModified = lastModified;
@@ -37,7 +39,7 @@ public class IKStorageValue implements Serializable {
 		this.lastModified = toLong(barrr[1]);
 	}
 
-	public static byte[][] toByteRepresentation(MapPro<Collection.Key, IKStorageScopeItem> value) throws PageException {
+	public static byte[][] toByteRepresentation(Map<Collection.Key, IKStorageScopeItem> value) throws PageException {
 		return new byte[][] { serialize(value), NumberUtil.longToByteArray(System.currentTimeMillis()) };
 	}
 
@@ -53,7 +55,7 @@ public class IKStorageValue implements Serializable {
 		return NumberUtil.byteArrayToLong(barr);
 	}
 
-	public MapPro<Collection.Key, IKStorageScopeItem> getValue() throws PageException {
+	public Map<Collection.Key, IKStorageScopeItem> getValue() throws PageException {
 		if (value == null) {
 			if (barr.length == 0) return null;
 			value = deserialize(barr);
@@ -61,25 +63,30 @@ public class IKStorageValue implements Serializable {
 		return value;
 	}
 
-	public static MapPro<Collection.Key, IKStorageScopeItem> deserialize(byte[] barr) throws PageException {
+	public static Map<Collection.Key, IKStorageScopeItem> deserialize(byte[] barr) throws PageException {
 		if (barr == null || barr.length == 0) return null;
 
 		ObjectInputStream ois = null;
-		MapPro<Collection.Key, IKStorageScopeItem> data = null;
+		Map<Collection.Key, IKStorageScopeItem> data = null;
 		try {
 			ois = new ObjectInputStream(new ByteArrayInputStream(barr));
-			data = (MapPro<Collection.Key, IKStorageScopeItem>) ois.readObject();
+			data = (Map<Collection.Key, IKStorageScopeItem>) ois.readObject();
 		}
 		catch (Exception e) {
 			throw Caster.toPageException(e);
 		}
 		finally {
-			IOUtil.closeEL(ois);
+			try {
+				IOUtil.close(ois);
+			}
+			catch (IOException e) {
+				throw Caster.toPageException(e);
+			}
 		}
 		return data;
 	}
 
-	static byte[] serialize(MapPro<Collection.Key, IKStorageScopeItem> data) throws PageException {
+	static byte[] serialize(Map<Collection.Key, IKStorageScopeItem> data) throws PageException {
 		if (data == null) return EMPTY;
 
 		ByteArrayOutputStream os = new ByteArrayOutputStream();
@@ -92,7 +99,12 @@ public class IKStorageValue implements Serializable {
 			throw Caster.toPageException(e);
 		}
 		finally {
-			IOUtil.closeEL(oos);
+			try {
+				IOUtil.close(oos);
+			}
+			catch (IOException e) {
+				throw Caster.toPageException(e);
+			}
 		}
 		return os.toByteArray();
 	}

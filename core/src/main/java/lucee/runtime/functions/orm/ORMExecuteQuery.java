@@ -57,8 +57,16 @@ public class ORMExecuteQuery {
 		return _call(pc, hql, paramsOrUnique, false, Caster.toStruct(uniqueOrQueryOptions));
 	}
 
-	public static Object call(PageContext pc, String hql, Object params, Object unique, Object queryOptions) throws PageException {
-		return _call(pc, hql, params, Caster.toBooleanValue(unique), Caster.toStruct(queryOptions));
+	public static Object call(PageContext pc, String hql, Object params, Object oUnique, Object oQueryOptions) throws PageException {
+		boolean unique;
+		if (StringUtil.isEmpty(oUnique)) unique = false;
+		else unique = Caster.toBooleanValue(oUnique);
+
+		Struct queryOptions;
+		if (oQueryOptions == null) queryOptions = null;
+		else queryOptions = Caster.toStruct(oQueryOptions);
+
+		return _call(pc, hql, params, unique, queryOptions);
 	}
 
 	private static Object _call(PageContext pc, String hql, Object params, boolean unique, Struct queryOptions) throws PageException {
@@ -72,7 +80,7 @@ public class ORMExecuteQuery {
 		else if (Decision.isArray(params)) return toCFML(session.executeQuery(pc, dsn, hql, Caster.toArray(params), unique, queryOptions));
 		else if (Decision.isCastableToStruct(params)) return toCFML(session.executeQuery(pc, dsn, hql, Caster.toStruct(params), unique, queryOptions));
 		else if (Decision.isCastableToArray(params)) return toCFML(session.executeQuery(pc, dsn, hql, Caster.toArray(params), unique, queryOptions));
-		else throw new FunctionException(pc, "ORMExecuteQuery", 2, "params", "cannot convert the params to a array or a struct");
+		else throw new FunctionException(pc, "ORMExecuteQuery", 2, "params", "cannot convert the params to an array or a struct");
 
 	}
 

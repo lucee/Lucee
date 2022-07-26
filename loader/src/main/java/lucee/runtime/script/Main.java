@@ -32,7 +32,7 @@ public class Main {
 		System.out.println(factory.getScriptEngine().eval(code));
 
 		final ScriptEngine engine = new ScriptEngineManager().getEngineByName(lang);
-		if (engine == null) System.out.println("could not load a engine with the name:" + lang);
+		if (engine == null) System.out.println("could not load an engine with the name:" + lang);
 		else System.out.println(engine.eval(code));
 
 	}

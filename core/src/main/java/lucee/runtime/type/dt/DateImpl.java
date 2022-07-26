@@ -18,6 +18,7 @@
  **/
 package lucee.runtime.type.dt;
 
+import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.Locale;
 
@@ -29,7 +30,7 @@ import lucee.runtime.dump.DumpTable;
 import lucee.runtime.dump.SimpleDumpData;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
-import lucee.runtime.op.Operator;
+import lucee.runtime.op.OpUtil;
 import lucee.runtime.type.SimpleValue;
 
 /**
@@ -125,21 +126,21 @@ public final class DateImpl extends Date implements SimpleValue {
 
 	@Override
 	public int compareTo(boolean b) {
-		return Operator.compare(castToDoubleValue(), b ? 1D : 0D);
+		return OpUtil.compare(ThreadLocalPageContext.get(), (java.util.Date) this, (Number) (b ? BigDecimal.ONE : BigDecimal.ZERO));
 	}
 
 	@Override
 	public int compareTo(DateTime dt) throws PageException {
-		return Operator.compare((java.util.Date) this, (java.util.Date) dt);
+		return OpUtil.compare(ThreadLocalPageContext.get(), (java.util.Date) this, (java.util.Date) dt);
 	}
 
 	@Override
 	public int compareTo(double d) throws PageException {
-		return Operator.compare(castToDoubleValue(), d);
+		return OpUtil.compare(ThreadLocalPageContext.get(), (java.util.Date) this, Double.valueOf(d));
 	}
 
 	@Override
-	public int compareTo(String str) {
-		return Operator.compare(castToString(), str);
+	public int compareTo(String str) throws PageException {
+		return OpUtil.compare(ThreadLocalPageContext.get(), castToString(), str);
 	}
 }

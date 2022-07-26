@@ -19,6 +19,7 @@
 package lucee.runtime.net.ldap;
 
 import java.io.IOException;
+import java.security.Provider;
 import java.security.Security;
 import java.util.Enumeration;
 import java.util.Hashtable;
@@ -92,7 +93,7 @@ public final class LDAPClient {
 	 * @param port
 	 * @param binaryColumns
 	 */
-	public LDAPClient(String server, int port, String[] binaryColumns) {
+	public LDAPClient(String server, int port, int timeout, String[] binaryColumns) {
 
 		env.put("java.naming.factory.initial", "com.sun.jndi.ldap.LdapCtxFactory");
 		env.put("java.naming.provider.url", "ldap://" + server + ":" + port);
@@ -103,6 +104,9 @@ public final class LDAPClient {
 
 		// Referral
 		env.put("java.naming.referral", "ignore");
+
+		// timeout
+		env.put("com.sun.jndi.ldap.read.timeout", timeout);		
 	}
 
 	/**
@@ -134,9 +138,14 @@ public final class LDAPClient {
 		if (secureLevel == SECURE_CFSSL_BASIC) {
 			env.put("java.naming.security.protocol", "ssl");
 			env.put("java.naming.ldap.factory.socket", "javax.net.ssl.SSLSocketFactory");
-			ClassUtil.loadClass("com.sun.net.ssl.internal.ssl.Provider");
+			Class clazz = ClassUtil.loadClass("com.sun.net.ssl.internal.ssl.Provider");
 
-			Security.addProvider(new com.sun.net.ssl.internal.ssl.Provider());
+			try {
+				Security.addProvider((Provider) ClassUtil.newInstance(clazz));
+			}
+			catch (Exception e) {
+				throw new RuntimeException(e);
+			}
 
 		}
 		else if (secureLevel == SECURE_CFSSL_CLIENT_AUTH) {
@@ -342,7 +351,8 @@ public final class LDAPClient {
 						try {
 							value = attributesRow.get(name).get();
 						}
-						catch (Exception e) {}
+						catch (Exception e) {
+						}
 
 						qry.setAtEL("name", len, name);
 						qry.setAtEL("value", len, value);

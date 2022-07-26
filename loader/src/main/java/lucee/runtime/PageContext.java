@@ -78,7 +78,7 @@ public abstract class PageContext extends javax.servlet.jsp.PageContext {
 	 * 
 	 * @return scope matching to defined scope definition
 	 * @param type type of scope (Scope.xx)
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 */
 	public abstract Scope scope(int type) throws PageException;
 
@@ -119,7 +119,7 @@ public abstract class PageContext extends javax.servlet.jsp.PageContext {
 
 	/**
 	 * @return application scope
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 */
 	public abstract Application applicationScope() throws PageException;
 
@@ -153,7 +153,7 @@ public abstract class PageContext extends javax.servlet.jsp.PageContext {
 
 	/**
 	 * @return session scope
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 */
 	public abstract Session sessionScope() throws PageException;
 
@@ -161,7 +161,7 @@ public abstract class PageContext extends javax.servlet.jsp.PageContext {
 
 	/**
 	 * @return server scope
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 */
 	public abstract Server serverScope() throws PageException;
 
@@ -172,7 +172,7 @@ public abstract class PageContext extends javax.servlet.jsp.PageContext {
 
 	/**
 	 * @return cookie scope
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 */
 	public abstract Client clientScope() throws PageException;
 
@@ -180,7 +180,7 @@ public abstract class PageContext extends javax.servlet.jsp.PageContext {
 
 	/**
 	 * @return cluster scope
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 */
 	public abstract Cluster clusterScope() throws PageException;
 
@@ -189,7 +189,7 @@ public abstract class PageContext extends javax.servlet.jsp.PageContext {
 	 * 
 	 * @param create return null when false and scope does not exist
 	 * @return cluster scope or null
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 */
 	public abstract Cluster clusterScope(boolean create) throws PageException;
 
@@ -200,7 +200,7 @@ public abstract class PageContext extends javax.servlet.jsp.PageContext {
 	 * @param key key of the new value
 	 * @param value new Value
 	 * @return value setted
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 */
 	public abstract Object set(Object coll, Collection.Key key, Object value) throws PageException;
 
@@ -210,7 +210,7 @@ public abstract class PageContext extends javax.servlet.jsp.PageContext {
 	 * @param coll Collection Object
 	 * @param key key to touch
 	 * @return Property
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 */
 	public abstract Object touch(Object coll, Collection.Key key) throws PageException;
 
@@ -220,7 +220,7 @@ public abstract class PageContext extends javax.servlet.jsp.PageContext {
 	 * @param coll Collection Object
 	 * @param key key to touch
 	 * @return Property or QueryColumn
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 * @deprecated use instead
 	 *             <code>{@link #getCollection(Object, lucee.runtime.type.Collection.Key, Object)}</code>
 	 */
@@ -233,7 +233,7 @@ public abstract class PageContext extends javax.servlet.jsp.PageContext {
 	 * @param coll Collection Object
 	 * @param key key to touch
 	 * @return Property or QueryColumn
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 */
 	public abstract Object getCollection(Object coll, Collection.Key key) throws PageException;
 
@@ -242,6 +242,7 @@ public abstract class PageContext extends javax.servlet.jsp.PageContext {
 	 * 
 	 * @param coll Collection Object
 	 * @param key key to touch
+	 * @param defaultValue default value
 	 * @return Property or QueryColumn
 	 * @deprecated use instead
 	 *             <code>{@link #getCollection(Object, lucee.runtime.type.Collection.Key, Object)}</code>
@@ -254,6 +255,7 @@ public abstract class PageContext extends javax.servlet.jsp.PageContext {
 	 * 
 	 * @param coll Collection Object
 	 * @param key key to touch
+	 * @param defaultValue default value
 	 * @return Property or QueryColumn
 	 */
 	public abstract Object getCollection(Object coll, Collection.Key key, Object defaultValue);
@@ -263,7 +265,7 @@ public abstract class PageContext extends javax.servlet.jsp.PageContext {
 	 * @param coll Collection to get value
 	 * @param key key of the value
 	 * @return return value of a Collection, throws Exception if value doesn't exist
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 * @deprecated use instead <code>{@link #get(Object, lucee.runtime.type.Collection.Key)}</code>
 	 */
 	@Deprecated
@@ -274,7 +276,7 @@ public abstract class PageContext extends javax.servlet.jsp.PageContext {
 	 * @param coll Collection to get value
 	 * @param key key of the value
 	 * @return return value of a Collection, throws Exception if value doesn't exist
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 */
 	public abstract Object get(Object coll, Collection.Key key) throws PageException;
 
@@ -283,7 +285,7 @@ public abstract class PageContext extends javax.servlet.jsp.PageContext {
 	 * @param coll Collection to get value
 	 * @param key key of the value
 	 * @return return value of a Collection, throws Exception if value doesn't exist
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 * @deprecated use instead
 	 *             <code>{@link #getReference(Object, lucee.runtime.type.Collection.Key)}</code>
 	 */
@@ -295,7 +297,7 @@ public abstract class PageContext extends javax.servlet.jsp.PageContext {
 	 * @param coll Collection to get value
 	 * @param key key of the value
 	 * @return return value of a Collection, throws Exception if value doesn't exist
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 */
 	public abstract Reference getReference(Object coll, Collection.Key key) throws PageException;
 
@@ -485,6 +487,7 @@ public abstract class PageContext extends javax.servlet.jsp.PageContext {
 	 * 
 	 * @param coll Collection to get value
 	 * @param key key of the value
+	 * @param defaultValue default value
 	 * @return return value of a Collection, return null if value not exist
 	 * @deprecated use instead
 	 *             <code>{@link #get(Object, lucee.runtime.type.Collection.Key, Object)}</code>
@@ -496,6 +499,7 @@ public abstract class PageContext extends javax.servlet.jsp.PageContext {
 	 * 
 	 * @param coll Collection to get value
 	 * @param key key of the value
+	 * @param defaultValue default value
 	 * @return return value of a Collection, return null if value not exist
 	 */
 	public abstract Object get(Object coll, Collection.Key key, Object defaultValue);
@@ -506,7 +510,7 @@ public abstract class PageContext extends javax.servlet.jsp.PageContext {
 	 * @param var Variable String name to set
 	 * @param value value to set
 	 * @return setted value
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 */
 	public abstract Object setVariable(String var, Object value) throws PageException;
 
@@ -514,7 +518,7 @@ public abstract class PageContext extends javax.servlet.jsp.PageContext {
 	 * 
 	 * @param var variable name to get
 	 * @return return a value by string syntax ("scopename.key.key" "url.name")
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 **/
 	public abstract Object getVariable(String var) throws PageException;
 
@@ -523,7 +527,7 @@ public abstract class PageContext extends javax.servlet.jsp.PageContext {
 	 * 
 	 * @param expression expression to evaluate
 	 * @return return value generated by expression or null
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 **/
 	public abstract Object evaluate(String expression) throws PageException;
 
@@ -533,7 +537,7 @@ public abstract class PageContext extends javax.servlet.jsp.PageContext {
 	 * 
 	 * @param var variable name to get
 	 * @return return a value by string syntax ("scopename.key.key" "url.name")
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 */
 	public abstract Object removeVariable(String var) throws PageException;
 
@@ -542,7 +546,7 @@ public abstract class PageContext extends javax.servlet.jsp.PageContext {
 	 * 
 	 * @param key Variable Name to get
 	 * @return Query
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 */
 	public abstract Query getQuery(String key) throws PageException;
 
@@ -595,7 +599,7 @@ public abstract class PageContext extends javax.servlet.jsp.PageContext {
 
 	/**
 	 * @param strLocale The locale to set as String.
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 * @deprecated use instead <code>{@link #setLocale(Locale)}</code>
 	 */
 	@Deprecated
@@ -637,8 +641,8 @@ public abstract class PageContext extends javax.servlet.jsp.PageContext {
 	/**
 	 * Writes a String to the Response Buffer
 	 * 
-	 * @param str
-	 * @throws IOException
+	 * @param str string
+	 * @throws IOException IO Exception
 	 */
 	public abstract void write(String str) throws IOException;
 
@@ -646,8 +650,8 @@ public abstract class PageContext extends javax.servlet.jsp.PageContext {
 	 * Writes a String to the Response Buffer,also when cfoutputonly is true and execution is outside of
 	 * a cfoutput
 	 * 
-	 * @param str
-	 * @throws IOException
+	 * @param str string
+	 * @throws IOException IO Exception
 	 */
 	public abstract void forceWrite(String str) throws IOException;
 
@@ -655,9 +659,9 @@ public abstract class PageContext extends javax.servlet.jsp.PageContext {
 	 * Writes a String to the Response Buffer,also when cfoutputonly is true and execution is outside of
 	 * a cfoutput
 	 * 
-	 * @param o
-	 * @throws IOException
-	 * @throws PageException
+	 * @param o object
+	 * @throws IOException IO Exception
+	 * @throws PageException Page Exception
 	 */
 	public abstract void writePSQ(Object o) throws IOException, PageException;
 
@@ -665,9 +669,11 @@ public abstract class PageContext extends javax.servlet.jsp.PageContext {
 	 * @return the current template PageSource
 	 * @deprecated use instead {@link #getCurrentPageSource(PageSource)}
 	 */
+	@Deprecated
 	public abstract PageSource getCurrentPageSource();
 
 	/**
+	 * @param defaultValue default value
 	 * @return the current template PageSource
 	 */
 	public abstract PageSource getCurrentPageSource(PageSource defaultValue);
@@ -716,7 +722,7 @@ public abstract class PageContext extends javax.servlet.jsp.PageContext {
 
 	/**
 	 * @return Returns the remoteUser.
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 */
 	public abstract Credential getRemoteUser() throws PageException;
 
@@ -734,7 +740,7 @@ public abstract class PageContext extends javax.servlet.jsp.PageContext {
 	 * array of current template stack
 	 * 
 	 * @return array
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 */
 	public abstract Array getTemplatePath() throws PageException;
 
@@ -758,26 +764,26 @@ public abstract class PageContext extends javax.servlet.jsp.PageContext {
 	public abstract PageSource toPageSource(Resource res, PageSource defaultValue);
 
 	/**
-	 * set a other variable scope
+	 * set another variable scope
 	 * 
-	 * @param scope
+	 * @param scope scope
 	 */
 	public abstract void setVariablesScope(Variables scope);
 
 	/**
-	 * includes a path from a absolute path
+	 * includes a path from an absolute path
 	 * 
 	 * @param source absolute path as file object
 	 * @param runOnce include only once per request
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 */
 	public abstract void doInclude(PageSource[] source, boolean runOnce) throws PageException;
 
 	/**
-	 * includes a path from a absolute path
+	 * includes a path from an absolute path
 	 * 
 	 * @param source absolute path as file object
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 * @deprecated used <code> doInclude(String source, boolean runOnce)</code> instead. Still used by
 	 *             extensions ...
 	 */
@@ -785,11 +791,11 @@ public abstract class PageContext extends javax.servlet.jsp.PageContext {
 	public abstract void doInclude(String source) throws PageException;
 
 	/**
-	 * includes a path from a absolute path
+	 * includes a path from an absolute path
 	 * 
 	 * @param source absolute path as file object
 	 * @param runOnce include only once per request
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 */
 	public abstract void doInclude(String source, boolean runOnce) throws PageException;
 
@@ -811,7 +817,7 @@ public abstract class PageContext extends javax.servlet.jsp.PageContext {
 	/**
 	 * sets state of cfoutput only
 	 * 
-	 * @param boolEnablecfoutputonly
+	 * @param boolEnablecfoutputonly enable cfoutput only
 	 */
 	public abstract void setCFOutputOnly(boolean boolEnablecfoutputonly);
 
@@ -830,8 +836,8 @@ public abstract class PageContext extends javax.servlet.jsp.PageContext {
 	/**
 	 * adds a PageSource
 	 * 
-	 * @param ps
-	 * @param alsoInclude
+	 * @param ps page source
+	 * @param alsoInclude also include
 	 */
 	public abstract void addPageSource(PageSource ps, boolean alsoInclude);
 
@@ -843,20 +849,20 @@ public abstract class PageContext extends javax.servlet.jsp.PageContext {
 	/**
 	 * execute a request to the PageConext
 	 * 
-	 * @param realPath
+	 * @param realPath path
 	 * @param throwException catch or throw exceptions
 	 * @param onlyTopLevel only check top level mappings for the matching realpath
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 */
 	public abstract void execute(String realPath, boolean throwException, boolean onlyTopLevel) throws PageException;
 
 	/**
 	 * execute a request to the PageConext form CFML
 	 * 
-	 * @param realPath
+	 * @param realPath path
 	 * @param throwException catch or throw exceptions
 	 * @param onlyTopLevel only check top level mappings for the matching realpath
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 */
 	public abstract void executeCFML(String realPath, boolean throwException, boolean onlyTopLevel) throws PageException;
 
@@ -874,7 +880,7 @@ public abstract class PageContext extends javax.servlet.jsp.PageContext {
 	 * @param key name of the function
 	 * @param args arguments to call the function
 	 * @return return value of the function
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 */
 	public abstract Object getFunction(Object coll, String key, Object[] args) throws PageException;
 
@@ -885,7 +891,7 @@ public abstract class PageContext extends javax.servlet.jsp.PageContext {
 	 * @param key name of the function
 	 * @param args arguments to call the function
 	 * @return return value of the function
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 */
 	public abstract Object getFunction(Object coll, Collection.Key key, Object[] args) throws PageException;
 
@@ -896,7 +902,7 @@ public abstract class PageContext extends javax.servlet.jsp.PageContext {
 	 * @param key name of the function
 	 * @param args arguments to call the function
 	 * @return return value of the function
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 */
 	public abstract Object getFunctionWithNamedValues(Object coll, String key, Object[] args) throws PageException;
 
@@ -907,16 +913,16 @@ public abstract class PageContext extends javax.servlet.jsp.PageContext {
 	 * @param key name of the function
 	 * @param args arguments to call the function
 	 * @return return value of the function
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 */
 	public abstract Object getFunctionWithNamedValues(Object coll, Collection.Key key, Object[] args) throws PageException;
 
 	/**
-	 * get variable from string definition and cast it to a Iterator Object
+	 * get variable from string definition and cast it to an Iterator Object
 	 * 
 	 * @param key Variable Name to get
 	 * @return Iterator
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 */
 	public abstract Iterator getIterator(String key) throws PageException;
 
@@ -964,15 +970,15 @@ public abstract class PageContext extends javax.servlet.jsp.PageContext {
 	/**
 	 * remove the last PageSource
 	 * 
-	 * @param alsoInclude
+	 * @param alsoInclude also include
 	 */
 	public abstract void removeLastPageSource(boolean alsoInclude);
 
 	/**
-	 * sets a exception
+	 * sets an exception
 	 * 
-	 * @param t
-	 * @return PageExcption
+	 * @param t throwable
+	 * @return PageException
 	 */
 	public abstract PageException setCatch(Throwable t);
 
@@ -989,14 +995,14 @@ public abstract class PageContext extends javax.servlet.jsp.PageContext {
 	/**
 	 * sets state of cfoutput only
 	 * 
-	 * @param enablecfoutputonly
+	 * @param enablecfoutputonly enable cfoutput flag
 	 */
 	public abstract void setCFOutputOnly(short enablecfoutputonly);
 
 	/**
 	 * sets the error page
 	 * 
-	 * @param ep
+	 * @param ep error page
 	 */
 	public abstract void setErrorPage(ErrorPage ep);
 
@@ -1008,9 +1014,9 @@ public abstract class PageContext extends javax.servlet.jsp.PageContext {
 	public abstract void setPsq(boolean psq);
 
 	/**
-	 * return throwed exception
+	 * return thrown exception
 	 * 
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 */
 	public abstract void throwCatch() throws PageException;
 
@@ -1022,8 +1028,8 @@ public abstract class PageContext extends javax.servlet.jsp.PageContext {
 	/**
 	 * compile a CFML Template
 	 * 
-	 * @param templatePath
-	 * @throws PageException
+	 * @param templatePath path
+	 * @throws PageException Page Exception
 	 * @deprecated use instead <code>compile(PageSource pageSource)</code>
 	 */
 	@Deprecated
@@ -1032,58 +1038,61 @@ public abstract class PageContext extends javax.servlet.jsp.PageContext {
 	/**
 	 * compile a CFML Template
 	 * 
-	 * @param pageSource
-	 * @throws PageException
+	 * @param pageSource page source
+	 * @throws PageException Page Exception
 	 */
 	public abstract void compile(PageSource pageSource) throws PageException;
 
 	/**
 	 * init body of a tag
 	 * 
-	 * @param bodyTag
-	 * @param state
-	 * @throws JspException
+	 * @param bodyTag body tag
+	 * @param state state
+	 * @throws JspException JSP Exception
 	 */
 	public abstract void initBody(BodyTag bodyTag, int state) throws JspException;
 
 	/**
 	 * release body of a tag
 	 * 
-	 * @param bodyTag
-	 * @param state
+	 * @param bodyTag body tag
+	 * @param state state
 	 */
 	public abstract void releaseBody(BodyTag bodyTag, int state);
 
 	/**
-	 * @param type
-	 * @param name
-	 * @param defaultValue
-	 * @throws PageException
+	 * @param type type
+	 * @param name name
+	 * @param defaultValue default value
+	 * @throws PageException Page Exception
 	 */
 	public abstract void param(String type, String name, Object defaultValue) throws PageException;
 
 	/**
-	 * @param type
-	 * @param name
-	 * @param defaultValue
-	 * @param maxLength
-	 * @throws PageException
+	 * @param type type
+	 * @param name name
+	 * @param defaultValue default value
+	 * @param maxLength max length
+	 * @throws PageException Page Exception
 	 */
 	public abstract void param(String type, String name, Object defaultValue, int maxLength) throws PageException;
 
 	/**
-	 * @param type
-	 * @param name
-	 * @param defaultValue
-	 * @throws PageException
+	 * @param type type
+	 * @param name name
+	 * @param defaultValue default value
+	 * @param pattern pattern
+	 * @throws PageException Page Exception
 	 */
 	public abstract void param(String type, String name, Object defaultValue, String pattern) throws PageException;
 
 	/**
-	 * @param type
-	 * @param name
-	 * @param defaultValue
-	 * @throws PageException
+	 * @param type type
+	 * @param name name
+	 * @param defaultValue default value
+	 * @param min min value
+	 * @param max max value
+	 * @throws PageException Page Exception
 	 */
 	public abstract void param(String type, String name, Object defaultValue, double min, double max) throws PageException;
 
@@ -1098,7 +1107,8 @@ public abstract class PageContext extends javax.servlet.jsp.PageContext {
 	public abstract PageContext getParentPageContext();
 
 	/**
-	 * @param name
+	 * @param name thread scope name
+	 * @return thread scope name
 	 * @deprecated use instead <code>setThreadScope(Collection.Key name,Threads t)</code>
 	 */
 	@Deprecated
@@ -1109,8 +1119,8 @@ public abstract class PageContext extends javax.servlet.jsp.PageContext {
 	/**
 	 * set a thread to the context
 	 * 
-	 * @param name
-	 * @param t
+	 * @param name thread scope name
+	 * @param t threads
 	 * @deprecated use instead <code>setThreadScope(Collection.Key name,Threads t)</code>
 	 */
 	@Deprecated
@@ -1119,7 +1129,7 @@ public abstract class PageContext extends javax.servlet.jsp.PageContext {
 	public abstract void setThreadScope(Collection.Key name, Threads t);
 
 	/**
-	 * @return return a Array with names off all threads running.
+	 * @return return an Array with names off all threads running.
 	 */
 	public abstract String[] getThreadScopeNames();
 
@@ -1166,7 +1176,8 @@ public abstract class PageContext extends javax.servlet.jsp.PageContext {
 
 	/**
 	 * @param create if set to true, lucee creates a session when not exist
-	 * @throws PageException
+	 * @return ORM Session
+	 * @throws PageException Page Exception
 	 */
 	public abstract ORMSession getORMSession(boolean create) throws PageException;
 
@@ -1175,6 +1186,8 @@ public abstract class PageContext extends javax.servlet.jsp.PageContext {
 	/**
 	 * if set to true Lucee ignores all scope names and handles them as regular keys for the undefined
 	 * scope
+	 * 
+	 * @return Ignore Scopes
 	 */
 	public abstract boolean ignoreScopes();
 }

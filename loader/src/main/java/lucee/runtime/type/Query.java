@@ -39,7 +39,7 @@ public interface Query extends Collection, Iterator, com.allaire.cfx.Query {
 	public static final int ORDER_DESC = 2;
 
 	/**
-	 * @return return how many lines are affected by a update/insert
+	 * @return return how many lines are affected by an update/insert
 	 */
 	public int getUpdateCount();
 
@@ -166,7 +166,7 @@ public interface Query extends Collection, Iterator, com.allaire.cfx.Query {
 	 * adds a new column to the resultset
 	 * 
 	 * @param columnName name of the new column
-	 * @param content content of the new column inside a array (must have same size like query has
+	 * @param content content of the new column inside an array (must have same size like query has
 	 *            records)
 	 * @return if column is added return true otherwise false (always true, throw error when false)
 	 * @throws PageException exception thrown when not able to add the column
@@ -179,7 +179,7 @@ public interface Query extends Collection, Iterator, com.allaire.cfx.Query {
 	 * adds a new column to the resultset
 	 * 
 	 * @param columnName name of the new column
-	 * @param content content of the new column inside a array (must have same size like query has
+	 * @param content content of the new column inside an array (must have same size like query has
 	 *            records)
 	 * @return if column is added return true otherwise false (always true, throw error when false)
 	 * @throws PageException exception thrown when not able to add the column
@@ -190,7 +190,7 @@ public interface Query extends Collection, Iterator, com.allaire.cfx.Query {
 	 * adds a new column to the resultset
 	 * 
 	 * @param columnName name of the new column
-	 * @param content content of the new column inside a array (must have same size like query has
+	 * @param content content of the new column inside an array (must have same size like query has
 	 *            records)
 	 * @param type data type from (java.sql.Types)
 	 * @return if column is added return true otherwise false (always true, throw error when false)
@@ -205,7 +205,7 @@ public interface Query extends Collection, Iterator, com.allaire.cfx.Query {
 	 * adds a new column to the resultset
 	 * 
 	 * @param columnName name of the new column
-	 * @param content content of the new column inside a array (must have same size like query has
+	 * @param content content of the new column inside an array (must have same size like query has
 	 *            records)
 	 * @param type data type from (java.sql.Types)
 	 * @return if column is added return true otherwise false (always true, throw error when false)

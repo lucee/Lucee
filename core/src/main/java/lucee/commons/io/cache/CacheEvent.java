@@ -19,7 +19,7 @@
 package lucee.commons.io.cache;
 
 /**
- * A optional interface a Cache can implement. You can register CacheEventListener to a Cache, this
+ * An optional interface a Cache can implement. You can register CacheEventListener to a Cache, this
  * CacheEventListener are invoked when a certain event occur.
  */
 public interface CacheEvent {

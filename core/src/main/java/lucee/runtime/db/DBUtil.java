@@ -20,7 +20,7 @@ package lucee.runtime.db;
 
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.osgi.OSGiUtil;
 import lucee.transformer.library.ClassDefinitionImpl;
 
@@ -76,7 +76,7 @@ public class DBUtil {
 		}
 		if ("oracle".equals(type)) {
 			if (ORACLE == null) {
-				JDBCDriver jdbc = getJDBCDriver(config, "oracle", "oracle.jdbc.driver.OracleDriver", "ojdbc7", "12.1.0.2L0001",
+				JDBCDriver jdbc = getJDBCDriver(config, "oracle", "oracle.jdbc.driver.OracleDriver", "odjbc6", "11.2.0.4",
 						"jdbc:oracle:{drivertype}:@{host}:{port}:{database}");
 				ORACLE = new DataSourceDefintion(jdbc.cd, jdbc.connStr, 1521);
 			}
@@ -84,7 +84,7 @@ public class DBUtil {
 		}
 		if ("postgresql".equals(type) || "postgre".equals(type)) {
 			if (POSTGRESQL == null) {
-				JDBCDriver jdbc = getJDBCDriver(config, "postgresql", "org.postgresql.Driver", "org.postgresql.jdbc42", "9.4.1212", "jdbc:postgresql://{host}:{port}/{database}");
+				JDBCDriver jdbc = getJDBCDriver(config, "postgresql", "org.postgresql.Driver", "org.postgresql.jdbc", "42.2.20", "jdbc:postgresql://{host}:{port}/{database}");
 				POSTGRESQL = new DataSourceDefintion(jdbc.cd, jdbc.connStr, 5432);
 			}
 			return POSTGRESQL;
@@ -101,7 +101,7 @@ public class DBUtil {
 
 	private static JDBCDriver getJDBCDriver(Config config, String id, String className, String bundleName, String bundleVersion, String connStr) {
 		// FUTURE remove the hardcoded fallback
-		ConfigImpl ci = (ConfigImpl) config;
+		ConfigPro ci = (ConfigPro) config;
 		JDBCDriver jdbc = ci.getJDBCDriverById(id, null);
 		if (jdbc != null) return improve(jdbc, connStr);
 

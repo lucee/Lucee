@@ -28,12 +28,13 @@ import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourcesImpl.ResourceProviderFactory;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.StringUtil;
+import lucee.runtime.Mapping;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigWeb;
-import lucee.runtime.config.ConfigWebImpl;
+import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
@@ -60,8 +61,9 @@ public final class ExpandPath implements Function {
 		if (StringUtil.startsWith(relPath, '/')) {
 
 			PageContextImpl pci = (PageContextImpl) pc;
-			ConfigWebImpl cwi = (ConfigWebImpl) config;
-			PageSource[] sources = cwi.getPageSources(pci, pc.getApplicationContext().getMappings(), relPath, false, pci.useSpecialMappings(), true);
+			ConfigWebPro cwi = (ConfigWebPro) config;
+			PageSource[] sources = cwi.getPageSources(pci, mergeMappings(pc.getApplicationContext().getMappings(), pc.getApplicationContext().getComponentMappings()), relPath,
+					false, pci.useSpecialMappings(), true);
 
 			if (!ArrayUtil.isEmpty(sources)) {
 				// first check for existing
@@ -112,6 +114,22 @@ public final class ExpandPath implements Function {
 
 	}
 
+	public static Mapping[] mergeMappings(Mapping[] l, Mapping[] r) {
+		Mapping[] arr = new Mapping[(l == null ? 0 : l.length) + (r == null ? 0 : r.length)];
+		int index = 0;
+		if (l != null) {
+			for (Mapping m: l) {
+				arr[index++] = m;
+			}
+		}
+		if (r != null) {
+			for (Mapping m: r) {
+				arr[index++] = m;
+			}
+		}
+		return arr;
+	}
+
 	private static String toReturnValue(String realPath, Resource res) {
 		String path;
 		char pathChar = '/';
@@ -150,7 +168,7 @@ public final class ExpandPath implements Function {
 		// virtual file system path
 		int index = path.indexOf("://");
 		if (index != -1) {
-			ResourceProviderFactory[] factories = ((ConfigImpl) pc.getConfig()).getResourceProviderFactories();
+			ResourceProviderFactory[] factories = ((ConfigPro) pc.getConfig()).getResourceProviderFactories();
 			String scheme = path.substring(0, index).toLowerCase().trim();
 			for (int i = 0; i < factories.length; i++) {
 				if (scheme.equalsIgnoreCase(factories[i].getScheme())) return scheme + "://" + StringUtil.replace(path.substring(index + 3), "//", "/", false);

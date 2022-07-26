@@ -25,7 +25,7 @@ import lucee.runtime.interpreter.ref.Ref;
 public final class RefUtil {
 
 	/**
-	 * transalte a Ref array to a Object array
+	 * transalte a Ref array to an Object array
 	 * 
 	 * @param refs
 	 * @return objects

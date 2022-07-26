@@ -26,7 +26,7 @@ import lucee.commons.lang.StringUtil;
 import lucee.runtime.Component;
 import lucee.runtime.PageContext;
 import lucee.runtime.com.COMObject;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.FunctionNotSupported;
@@ -150,12 +150,12 @@ public final class CreateObject implements Function {
 
 	public static Object doWebService(PageContext pc, String wsdlUrl) throws PageException {
 		// TODO CF8 impl. all new attributes for wsdl
-		return ((ConfigImpl) ThreadLocalPageContext.getConfig(pc)).getWSHandler().getWSClient(wsdlUrl, null, null, null);
+		return ((ConfigWebPro) ThreadLocalPageContext.getConfig(pc)).getWSHandler().getWSClient(wsdlUrl, null, null, null);
 	}
 
 	public static Object doWebService(PageContext pc, String wsdlUrl, String username, String password, ProxyData proxy) throws PageException {
 		// TODO CF8 impl. all new attributes for wsdl
-		return ((ConfigImpl) ThreadLocalPageContext.getConfig(pc)).getWSHandler().getWSClient(wsdlUrl, username, password, proxy);
+		return ((ConfigWebPro) ThreadLocalPageContext.getConfig(pc)).getWSHandler().getWSClient(wsdlUrl, username, password, proxy);
 	}
 
 	public static Object doHTTP(PageContext pc, String httpUrl) throws PageException {

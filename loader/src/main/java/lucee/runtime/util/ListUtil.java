@@ -75,10 +75,12 @@ public interface ListUtil {
 	 * to info
 	 * 
 	 * @param list list to cast
-	 * @param pos
+	 * @param pos position
+	 * @param value value
 	 * @param delimiter delimiter of the list
+	 * @param ignoreEmpty ignore empty
 	 * @return Array Object
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 */
 	public String insertAt(String list, int pos, String value, String delimiter, boolean ignoreEmpty) throws PageException;
 
@@ -170,6 +172,8 @@ public interface ListUtil {
 	 * @param list list to search in
 	 * @param value value to search
 	 * @param delimiter delimiter of the list
+	 * @param includeEmptyFields include empty fields
+	 * @param multiCharacterDelimiter multi character delimiter
 	 * @return position in list or 0
 	 */
 	public int containsNoCase(String list, String value, String delimiter, boolean includeEmptyFields, boolean multiCharacterDelimiter);
@@ -180,6 +184,9 @@ public interface ListUtil {
 	 * @param list list to search in
 	 * @param value value to search
 	 * @param delimiter delimiter of the list
+	 * @param includeEmptyFields include empty fields
+	 * @param multiCharacterDelimiter multi character delimiter
+	 
 	 * @return position in list or 0
 	 */
 	public int contains(String list, String value, String delimiter, boolean includeEmptyFields, boolean multiCharacterDelimiter);
@@ -207,10 +214,10 @@ public interface ListUtil {
 	/**
 	 * convert Array Object to string list
 	 * 
-	 * @param array array to convert
+	 * @param array Array to convert
 	 * @param delimiter delimiter for the new list
-	 * @return list generated from string array
-	 * @throws PageException
+	 * @return list generated from string Array
+	 * @throws PageException Page Exception
 	 */
 	public String toList(Array array, String delimiter) throws PageException;
 
@@ -219,9 +226,9 @@ public interface ListUtil {
 	/**
 	 * input is already a String List, so no casting necessary
 	 * 
-	 * @param list
-	 * @param delimiter
-	 * @return
+	 * @param list List
+	 * @param delimiter delimiter of the list
+	 * @return Returns a list.
 	 */
 	public String toListEL(java.util.List<String> list, String delimiter);
 
@@ -252,7 +259,7 @@ public interface ListUtil {
 	 * @param sortOrder sort order (asc,desc)
 	 * @param delimiter list delimiter
 	 * @return sorted list
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 */
 	public String sortIgnoreEmpty(String list, String sortType, String sortOrder, String delimiter) throws PageException;
 
@@ -264,16 +271,16 @@ public interface ListUtil {
 	 * @param sortOrder sort order (asc,desc)
 	 * @param delimiter list delimiter
 	 * @return sorted list
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 */
 	public String sort(String list, String sortType, String sortOrder, String delimiter) throws PageException;
 
 	/**
-	 * cast a Object Array to a String Array
+	 * cast an Object Array to a String Array
 	 * 
-	 * @param array
+	 * @param array Array to be casted
 	 * @return String Array
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 */
 	public String[] toStringArray(Array array) throws PageException;
 
@@ -282,29 +289,29 @@ public interface ListUtil {
 	public String[] toStringArray(List<String> list);
 
 	/**
-	 * cast a Object Array to a String Array
+	 * cast an Object Array to a String Array
 	 * 
-	 * @param array
-	 * @param defaultValue
+	 * @param array Array
+	 * @param defaultValue default Value
 	 * @return String Array
 	 */
 	public String[] toStringArray(Array array, String defaultValue);
 
 	/**
-	 * cast a Object Array to a String Array and trim all values
+	 * cast an Object Array to a String Array and trim all values
 	 * 
-	 * @param array
+	 * @param array Array
 	 * @return String Array
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 */
 	public String[] toStringArrayTrim(Array array) throws PageException;
 
 	/**
 	 * return last element of the list
 	 * 
-	 * @param list
-	 * @param delimiter
-	 * @param ignoreEmpty
+	 * @param list List
+	 * @param delimiter delimiter of the list
+	 * @param ignoreEmpty ignore empty
 	 * @return returns the last Element of a list
 	 */
 	public String last(String list, String delimiter, boolean ignoreEmpty);
@@ -312,8 +319,9 @@ public interface ListUtil {
 	/**
 	 * returns count of items in the list
 	 * 
-	 * @param list
-	 * @param delimiter
+	 * @param list List
+	 * @param delimiter delimiter of the list
+	 * @param ignoreEmpty ignore empty
 	 * @return list len
 	 */
 	public int len(String list, String delimiter, boolean ignoreEmpty);
@@ -323,7 +331,9 @@ public interface ListUtil {
 	 * 
 	 * @param list list to cast
 	 * @param delimiter delimiter of the list
-	 * @param position
+	 * @param position position
+	 * @param ignoreEmpty ignore empty
+	 * @param defaultValue default Value
 	 * @return Array Object
 	 */
 	public String getAt(String list, String delimiter, int position, boolean ignoreEmpty, String defaultValue);
@@ -331,19 +341,19 @@ public interface ListUtil {
 	public String[] toStringArray(String list, String delimiter);
 
 	/**
-	 * trim every single item of the array
+	 * trim every single item of the Array
 	 * 
-	 * @param arr
-	 * @return
+	 * @param arr Array
+	 * @return Returns a trimmed list.
 	 */
 	public String[] trimItems(String[] arr);
 
 	/**
-	 * trim every single item of the array
+	 * trim every single item of the Array
 	 * 
-	 * @param arr
-	 * @return
-	 * @throws PageException
+	 * @param arr Array
+	 * @return Returns a trimmed list.
+	 * @throws PageException Page Exception
 	 */
 	public Array trimItems(Array arr) throws PageException;
 
@@ -362,10 +372,11 @@ public interface ListUtil {
 	/**
 	 * returns the 0-based delimiter position for the specified item
 	 * 
-	 * @param list
-	 * @param itemPos
-	 * @param ignoreEmpty
-	 * @return
+	 * @param list List
+	 * @param itemPos Item Position
+	 * @param delims delimiters of the list
+	 * @param ignoreEmpty Ignore Empty
+	 * @return Returns the delimiter position.
 	 */
 	public int getDelimIndex(String list, int itemPos, char[] delims, boolean ignoreEmpty);
 

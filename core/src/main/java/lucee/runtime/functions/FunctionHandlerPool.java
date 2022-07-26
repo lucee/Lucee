@@ -24,6 +24,7 @@ import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
+import lucee.runtime.listener.JavaSettingsImpl;
 import lucee.runtime.op.Caster;
 import lucee.runtime.reflection.Reflector;
 
@@ -54,11 +55,12 @@ public final class FunctionHandlerPool {
 		try {
 			Class<?> clazz;
 			// OSGi bundle
-			if (!StringUtil.isEmpty(bundleName)) clazz = ClassUtil.loadClassByBundle(className, bundleName, bundleVersion, pc.getConfig().getIdentification());
+			if (!StringUtil.isEmpty(bundleName))
+				clazz = ClassUtil.loadClassByBundle(className, bundleName, bundleVersion, pc.getConfig().getIdentification(), JavaSettingsImpl.getBundleDirectories(pc));
 			// JAR
 			else clazz = ClassUtil.loadClass(className);
 
-			if (Reflector.isInstaneOf(clazz, BIF.class, false)) bif = (BIF) clazz.newInstance();
+			if (Reflector.isInstaneOf(clazz, BIF.class, false)) bif = (BIF) ClassUtil.newInstance(clazz);
 			else bif = new BIFProxy(clazz);
 		}
 		catch (Exception e) {

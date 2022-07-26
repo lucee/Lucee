@@ -24,7 +24,7 @@ import lucee.runtime.Mapping;
 import lucee.runtime.Page;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageSource;
-import lucee.runtime.config.ConfigWebImpl;
+import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
@@ -116,13 +116,13 @@ public class CFFunction {
 	}
 
 	public static UDF loadUDF(PageContext pc, String filename, String mappingName, Collection.Key name, boolean isweb) throws PageException {
-		ConfigWebImpl config = (ConfigWebImpl) pc.getConfig();
+		ConfigWebPro config = (ConfigWebPro) pc.getConfig();
 		Mapping mapping = isweb ? config.getFunctionMapping(mappingName) : config.getServerFunctionMapping(mappingName);
 		return loadUDF(pc, mapping.getPageSource(filename), name, isweb, true);
 	}
 
 	public static UDF loadUDF(PageContext pc, PageSource ps, Collection.Key name, boolean isweb, boolean cache) throws PageException {
-		ConfigWebImpl config = (ConfigWebImpl) pc.getConfig();
+		ConfigWebPro config = (ConfigWebPro) pc.getConfig();
 		String key = isweb ? name.getString() + config.getIdentification().getId() : name.getString();
 		UDF udf = cache ? config.getFromFunctionCache(key) : null;
 		if (udf != null) return udf;
@@ -131,7 +131,7 @@ public class CFFunction {
 
 		// execute page
 		Variables old = pc.variablesScope();
-		pc.setVariablesScope(VAR);
+		if (old != VAR) pc.setVariablesScope(VAR);
 		boolean wasSilent = pc.setSilent();
 		try {
 			p.call(pc);
@@ -148,7 +148,7 @@ public class CFFunction {
 			throw Caster.toPageException(t);
 		}
 		finally {
-			pc.setVariablesScope(old);
+			if (old != VAR) pc.setVariablesScope(old);
 			if (!wasSilent) pc.unsetSilent();
 		}
 	}

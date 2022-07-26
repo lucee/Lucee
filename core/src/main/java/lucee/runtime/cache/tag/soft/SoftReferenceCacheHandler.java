@@ -8,14 +8,13 @@ import java.util.Map;
 
 import org.apache.commons.collections4.map.ReferenceMap;
 
-import lucee.commons.collection.HashMapPro;
 import lucee.runtime.cache.tag.CacheItem;
 import lucee.runtime.cache.tag.MapCacheHandler;
 import lucee.runtime.op.Caster;
 
 public class SoftReferenceCacheHandler extends MapCacheHandler {
 
-	private static Map<String, CacheItem> map = Collections.synchronizedMap(new ReferenceMap<String, CacheItem>(HARD, SOFT, HashMapPro.DEFAULT_INITIAL_CAPACITY, 0.75f));
+	private static Map<String, CacheItem> map = Collections.synchronizedMap(new ReferenceMap<String, CacheItem>(HARD, SOFT, 32, 0.75f));
 
 	@Override
 	protected Map<String, CacheItem> map() {

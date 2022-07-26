@@ -53,8 +53,8 @@ public final class EvaluateComponent {
 		try {
 			comp = pc.loadComponent(name);
 			if (!ComponentUtil.md5(comp).equals(md5)) {
-				LogUtil.log(ThreadLocalPageContext.getConfig(pc), Log.LEVEL_ERROR, EvaluateComponent.class.getName(), "component [" + name
-						+ "] in this enviroment has not the same interface as the component to load, it is possible that one off the components has Functions added dynamicly.");
+				LogUtil.log(ThreadLocalPageContext.getConfig(pc), Log.LEVEL_INFO, EvaluateComponent.class.getName(), "component [" + name
+						+ "] in this environment has not the same interface as the component to load, it is possible that one off the components has Functions added dynamically.");
 			}
 		}
 		catch (Exception e) {

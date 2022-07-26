@@ -62,9 +62,24 @@ public abstract class StructSupport implements Map, Struct {
 			if (k.equals(key)) return new ExpressionException("the value from key [" + key.getString() + "] " + appendix + " is NULL, which is the same as not existing in CFML");
 		}
 		config = ThreadLocalPageContext.getConfig(config);
-		if (config != null && config.debug()) return new ExpressionException(ExceptionUtil.similarKeyMessage(sct, key.getString(), "key", "keys", in, true));
+		String msg = ExceptionUtil.similarKeyMessage(sct, key.getString(), "key", "keys", in, true);
+		String detail = ExceptionUtil.similarKeyMessage(sct, key.getString(), "keys", in, true);
+		if (config != null && config.debug()) return new ExpressionException(msg, detail);
 
 		return new ExpressionException("key [" + key.getString() + "] doesn't exist" + appendix);
+	}
+
+	public static PageException invalidKey(Map<?, ?> map, Object key, boolean remove) {
+		StringBuilder sb = new StringBuilder();
+		Iterator<?> it = map.keySet().iterator();
+		Object k;
+		while (it.hasNext()) {
+			k = it.next();
+			if (sb.length() > 0) sb.append(", ");
+			sb.append(k.toString());
+		}
+		return new ExpressionException(
+				(remove ? "cannot remove key [" + key + "] from struct, key doesn't exist" : "key [" + key + "] doesn't exist") + " (existing keys: [" + sb.toString() + "])");
 	}
 
 	@Override

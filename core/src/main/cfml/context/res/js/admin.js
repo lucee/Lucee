@@ -18,6 +18,16 @@ $(function(){
 			enableBtnsWhenChecked(btns, cbs);
 		}
 	});
+	
+	$('#selectAll').on('click',function(){
+		$(this).parents('table:first').find('tbody tr td:first-child input:checkbox').prop('checked',$(this).prop('checked'))
+		.filter(':first').triggerHandler('change');
+		if($(this).prop('checked')){
+			$('.enablebutton').removeAttr('disabled').css('opacity',1)
+		}else{
+			$('.enablebutton').attr('disabled',true).css('opacity',0.5)
+		}
+	})
 
 	scrollToEl('div.error,div.warning:not(.nofocus)');
 });
@@ -53,6 +63,19 @@ function initMenu() {
 		}
 	);
 }
+
+$("#clickCheckbox").change(function() {
+	set = $("#clickCheckbox")[0].checked;
+	if(set == true) {
+		$(".enablebutton").attr({disabled:false,style:"opacity:1"});
+	}
+	else if(set == false) {
+		$(".enablebutton").attr({disabled:true,style:"opacity:0.5"});
+	}
+});
+$("#clickCancel").click(function() {
+	$(".enablebutton").attr({disabled:true,style:"opacity:0.5"});
+});
 
 function initMenu2() {
 	$('#menu ul').hide();
@@ -128,7 +151,8 @@ function createWaitBlockUI(msg)
 					color: '#fff' ,
 					fontSize : "18pt"
 				},
-				fadeIn: 1000
+				fadeIn: 0,
+				fadeOut: 0
 			});
 		}
 	}
@@ -237,6 +261,20 @@ function createTooltip(element, text, x, y, mouseAction )
 		return false;
 	})
 }
+
+disableBlockUI=false;
+function validatePass() {
+	var passDefault = document.getElementById("passEmpty").value;
+	if(passDefault.length == 0) {
+		$("#passEmpty").focus();
+		$("#passEmpty").style.backgroundColor = "#ffeeee";
+		$("#messagePass").innerHTML = "This field not to be empty";
+		$("#messagePass").style.color = "#bf4f36";
+		disableBlockUI=true;
+		return false;
+	}
+}
+
 function initTooltips()
 {
 	// lookup all elements with a class "tooltipMe" and add a tooltip to them.

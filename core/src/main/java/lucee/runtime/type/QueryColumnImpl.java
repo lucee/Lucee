@@ -40,7 +40,6 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Duplicator;
-import lucee.runtime.op.Operator;
 import lucee.runtime.op.ThreadLocalDuplication;
 import lucee.runtime.op.date.DateCaster;
 import lucee.runtime.reflection.Reflector;
@@ -116,7 +115,8 @@ public class QueryColumnImpl implements QueryColumnPro, Objects {
 	/**
 	 * Constructor of the class for internal usage only
 	 */
-	public QueryColumnImpl() {}
+	public QueryColumnImpl() {
+	}
 
 	@Override
 	public int size() {
@@ -152,6 +152,7 @@ public class QueryColumnImpl implements QueryColumnPro, Objects {
 
 	@Override
 	public Object remove(int row) throws DatabaseException {
+		query.disableIndex();
 		// query.disconnectCache();
 		resetTypeSync();
 		return set(row, "");
@@ -159,6 +160,7 @@ public class QueryColumnImpl implements QueryColumnPro, Objects {
 
 	@Override
 	public Object removeEL(Collection.Key key) {
+		query.disableIndex();
 		// query.disconnectCache();
 		resetTypeSync();
 		return setEL(Caster.toIntValue(key.getString(), -1), "");
@@ -166,6 +168,7 @@ public class QueryColumnImpl implements QueryColumnPro, Objects {
 
 	@Override
 	public Object removeEL(int row) {
+		query.disableIndex();
 		// query.disconnectCache();
 		resetTypeSync();
 		return setEL(row, "");
@@ -173,6 +176,7 @@ public class QueryColumnImpl implements QueryColumnPro, Objects {
 
 	@Override
 	public void clear() {
+		query.disableIndex();
 		synchronized (sync) {
 			resetType();
 			data = new Object[CAPACITY];
@@ -317,14 +321,22 @@ public class QueryColumnImpl implements QueryColumnPro, Objects {
 
 	@Override
 	public Object set(int row, Object value) throws DatabaseException {
+		return set(row, value, false);
+	}
+
+	// Pass trustType=true to optimize operations such as QoQ where lots of values are being moved
+	// around between query objects but we know the types are already fine and don't need to
+	// redefine them every time
+	public Object set(int row, Object value, boolean trustType) throws DatabaseException {
+		query.disableIndex();
 		// query.disconnectCache();
 		if (row < 1) throw new DatabaseException("invalid row number [" + row + "]", "valid row numbers a greater or equal to one", null, null);
 		if (row > size) {
-			if (size == 0) throw new DatabaseException("cannot set a value to a empty query, you first have to add a row", null, null, null);
+			if (size == 0) throw new DatabaseException("cannot set a value to an empty query, you first have to add a row", null, null, null);
 			throw new DatabaseException("invalid row number [" + row + "]", "valid row numbers goes from 1 to " + size, null, null);
 		}
 		synchronized (sync) {
-			value = reDefineType(value);
+			if (!trustType) value = reDefineType(value);
 			data[row - 1] = value;
 			return value;
 		}
@@ -347,6 +359,7 @@ public class QueryColumnImpl implements QueryColumnPro, Objects {
 
 	@Override
 	public Object setEL(int row, Object value) {
+		query.disableIndex();
 		// query.disconnectCache();
 		if (row < 1 || row > size) return value;
 		synchronized (sync) {
@@ -358,6 +371,7 @@ public class QueryColumnImpl implements QueryColumnPro, Objects {
 
 	@Override
 	public void add(Object value) {
+		query.disableIndex();
 		synchronized (sync) {
 			// query.disconnectCache();
 			if (data.length <= size) growTo(size);
@@ -374,6 +388,7 @@ public class QueryColumnImpl implements QueryColumnPro, Objects {
 
 	@Override
 	public void addRow(int count) {
+		query.disableIndex();
 		synchronized (sync) {
 			if (data.length < (size + count)) growTo(size + count);
 			for (int i = 0; i < count; i++)
@@ -383,6 +398,7 @@ public class QueryColumnImpl implements QueryColumnPro, Objects {
 
 	@Override
 	public Object removeRow(int row) throws DatabaseException {
+		query.disableIndex();
 		// query.disconnectCache();
 		if (row < 1 || row > size) throw new DatabaseException("invalid row number [" + row + "]", "valid rows goes from 1 to " + size, null, null);
 		synchronized (sync) {
@@ -454,6 +470,7 @@ public class QueryColumnImpl implements QueryColumnPro, Objects {
 
 	@Override
 	public void setKey(Collection.Key key) {
+		query.disableIndex();
 		this.key = key;
 	}
 
@@ -551,22 +568,22 @@ public class QueryColumnImpl implements QueryColumnPro, Objects {
 
 	@Override
 	public int compareTo(boolean b) throws PageException {
-		return Operator.compare(castToBooleanValue(), b);
+		return lucee.runtime.op.OpUtil.compare(ThreadLocalPageContext.get(), castToBooleanValue() ? Boolean.TRUE : Boolean.FALSE, b ? Boolean.TRUE : Boolean.FALSE);
 	}
 
 	@Override
 	public int compareTo(DateTime dt) throws PageException {
-		return Operator.compare((Date) castToDateTime(), (Date) dt);
+		return lucee.runtime.op.OpUtil.compare(ThreadLocalPageContext.get(), (Date) castToDateTime(), (Date) dt);
 	}
 
 	@Override
 	public int compareTo(double d) throws PageException {
-		return Operator.compare(castToDoubleValue(), d);
+		return lucee.runtime.op.OpUtil.compare(ThreadLocalPageContext.get(), Double.valueOf(castToDoubleValue()), Double.valueOf(d));
 	}
 
 	@Override
 	public int compareTo(String str) throws PageException {
-		return Operator.compare(castToString(), str);
+		return lucee.runtime.op.OpUtil.compare(ThreadLocalPageContext.get(), castToString(), str);
 	}
 
 	@Override
@@ -599,8 +616,10 @@ public class QueryColumnImpl implements QueryColumnPro, Objects {
 			trg.size = this.size;
 			trg.type = this.type;
 			trg.key = this.key;
+			if (trg.query != null) trg.query.disableIndex();
 
-			// we first get data local, because length of the object cannot be changed, the safes us from
+			// we first get data local, because length of the object cannot be changed, the safes us
+			// from
 			// modifications from outside
 			Object[] data = this.data;
 			trg.data = new Object[data.length];
@@ -739,9 +758,10 @@ public class QueryColumnImpl implements QueryColumnPro, Objects {
 	public int indexOf(Object o) {
 		for (int i = 0; i < size; i++) {
 			try {
-				if (Operator.compare(o, data[i]) == 0) return i;
+				if (lucee.runtime.op.OpUtil.compare(ThreadLocalPageContext.get(), o, data[i]) == 0) return i;
 			}
-			catch (PageException e) {}
+			catch (PageException e) {
+			}
 		}
 		return -1;
 	}
@@ -749,9 +769,10 @@ public class QueryColumnImpl implements QueryColumnPro, Objects {
 	public int lastIndexOf(Object o) {
 		for (int i = size - 1; i >= 0; i--) {
 			try {
-				if (Operator.compare(o, data[i]) == 0) return i;
+				if (lucee.runtime.op.OpUtil.compare(ThreadLocalPageContext.get(), o, data[i]) == 0) return i;
 			}
-			catch (PageException e) {}
+			catch (PageException e) {
+			}
 		}
 		return -1;
 	}
@@ -876,6 +897,7 @@ public class QueryColumnImpl implements QueryColumnPro, Objects {
 	}
 
 	protected void sort(int[] rows) throws PageException {
+		query.disableIndex();
 		Object[] tmp = new Object[data.length];
 		for (int i = 0; i < size; i++) {
 			tmp[i] = data[rows[i] - 1];

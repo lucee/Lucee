@@ -24,9 +24,11 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Member;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.lang.reflect.Parameter;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
@@ -38,7 +40,6 @@ import java.util.Set;
 import java.util.TimeZone;
 import java.util.Vector;
 
-import lucee.commons.io.SystemUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.ExceptionUtil;
@@ -46,8 +47,8 @@ import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.types.RefInteger;
 import lucee.commons.lang.types.RefIntegerImpl;
 import lucee.runtime.Component;
-import lucee.runtime.PageContextImpl;
-import lucee.runtime.PageSource;
+import lucee.runtime.JF;
+import lucee.runtime.PageContext;
 import lucee.runtime.config.Constants;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
@@ -55,16 +56,18 @@ import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.exp.SecurityException;
+import lucee.runtime.functions.conversion.DeserializeJSON;
 import lucee.runtime.java.JavaObject;
 import lucee.runtime.op.Caster;
+import lucee.runtime.op.OpUtil;
 import lucee.runtime.op.Decision;
 import lucee.runtime.op.Duplicator;
-import lucee.runtime.op.Operator;
 import lucee.runtime.reflection.pairs.ConstructorInstance;
 import lucee.runtime.reflection.pairs.MethodInstance;
 import lucee.runtime.reflection.storage.SoftMethodStorage;
 import lucee.runtime.reflection.storage.WeakConstructorStorage;
 import lucee.runtime.reflection.storage.WeakFieldStorage;
+import lucee.runtime.util.ObjectIdentityHashSet;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
@@ -73,24 +76,28 @@ import lucee.runtime.type.ObjectWrap;
 import lucee.runtime.type.Pojo;
 import lucee.runtime.type.Query;
 import lucee.runtime.type.Struct;
+import lucee.runtime.type.UDF;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.CollectionUtil;
+import lucee.runtime.type.util.KeyConstants;
+import lucee.runtime.type.util.ListUtil;
 import lucee.runtime.type.util.Type;
+import lucee.transformer.bytecode.util.JavaProxyFactory;
 
 /**
  * Class to reflect on Objects and classes
  */
 public final class Reflector {
 
-	private static final Collection.Key SET_ACCESSIBLE = KeyImpl.intern("setAccessible");
-	private static final Collection.Key EXIT = KeyImpl.intern("exit");
+	private static final Collection.Key SET_ACCESSIBLE = KeyImpl.getInstance("setAccessible");
+	private static final Collection.Key EXIT = KeyImpl.getInstance("exit");
 
 	private static WeakConstructorStorage cStorage = new WeakConstructorStorage();
 	private static WeakFieldStorage fStorage = new WeakFieldStorage();
 	private static SoftMethodStorage mStorage = new SoftMethodStorage();
 
 	/**
-	 * check if Class is instanceof a a other Class
+	 * check if Class is instanceof another Class
 	 * 
 	 * @param srcClassName Class name to check
 	 * @param trg is Class of?
@@ -103,7 +110,7 @@ public final class Reflector {
 	}
 
 	/**
-	 * check if Class is instanceof a a other Class
+	 * check if Class is instanceof another Class
 	 * 
 	 * @param srcClassName Class name to check
 	 * @param trgClassName is Class of?
@@ -116,7 +123,7 @@ public final class Reflector {
 	}
 
 	/**
-	 * check if Class is instanceof a a other Class
+	 * check if Class is instanceof another Class
 	 * 
 	 * @param src is Class of?
 	 * @param trgClassName Class name to check
@@ -170,7 +177,7 @@ public final class Reflector {
 	}
 
 	/**
-	 * check if Class is instanceof a a other Class
+	 * check if Class is instanceof another Class
 	 * 
 	 * @param src Class to check
 	 * @param trg is Class of?
@@ -228,7 +235,7 @@ public final class Reflector {
 	}
 
 	/**
-	 * get all Classes from a Object Array
+	 * get all Classes from an Object Array
 	 * 
 	 * @param objs Objects to get
 	 * @return classes from Objects
@@ -300,7 +307,7 @@ public final class Reflector {
 	 */
 	public static Object convert(Object src, Class trgClass, RefInteger rating) throws PageException {
 		if (rating != null) {
-			Object trg = _convert(src, trgClass);
+			Object trg = _convert(src, trgClass, rating);
 			if (src == trg) {
 				rating.plus(10);
 				return trg;
@@ -348,7 +355,7 @@ public final class Reflector {
 
 			// CF Equal
 			try {
-				if (Operator.equals(src, trg, false, true)) {
+				if (OpUtil.equals(ThreadLocalPageContext.get(), src, trg, false, true)) {
 					rating.plus(3);
 					return trg;
 				}
@@ -359,10 +366,10 @@ public final class Reflector {
 
 			return trg;
 		}
-		return _convert(src, trgClass);
+		return _convert(src, trgClass, rating);
 	}
 
-	public static Object _convert(Object src, Class trgClass) throws PageException {
+	public static Object _convert(Object src, final Class trgClass, RefInteger rating) throws PageException {
 		if (src == null) {
 			if (trgClass.isPrimitive()) throw new ApplicationException("can't convert [null] to [" + trgClass.getName() + "]");
 			return null;
@@ -372,8 +379,29 @@ public final class Reflector {
 
 		if (src instanceof ObjectWrap) {
 			src = ((ObjectWrap) src).getEmbededObject();
-			return _convert(src, trgClass);
+			return _convert(src, trgClass, rating);
 		}
+
+		// component as class
+		PageContext pc;
+		if (src instanceof Component && trgClass.isInterface() && (pc = ThreadLocalPageContext.get()) != null) {
+			return componentToClass(pc, (Component) src, trgClass, rating);
+		}
+
+		// UDF as @FunctionalInterface
+		if (src instanceof UDF && (pc = ThreadLocalPageContext.get()) != null) {
+			FunctionalInterface fi = (FunctionalInterface) trgClass.getAnnotation(FunctionalInterface.class);
+			if (fi != null) {
+				try {
+					return JavaProxyFactory.createProxy(pc, (UDF) src, trgClass);
+				}
+				catch (Exception e) {
+					throw Caster.toPageException(e);
+				}
+			}
+		}
+
+		// java.lang.String
 		if (className.startsWith("java.lang.")) {
 			if (trgClass == Boolean.class) return Caster.toBoolean(src);
 			if (trgClass == Integer.class) return Caster.toInteger(src);
@@ -421,7 +449,7 @@ public final class Reflector {
 		else if (Reflector.isInstaneOf(trgClass, Pojo.class, true) && src instanceof Map) {
 			Struct sct = Caster.toStruct(src);
 			try {
-				Pojo pojo = (Pojo) trgClass.newInstance();
+				Pojo pojo = (Pojo) ClassUtil.newInstance(trgClass);
 				if (sct instanceof Component) return Caster.toPojo(pojo, (Component) sct, new HashSet<Object>());
 				return Caster.toPojo(pojo, sct, new HashSet<Object>());
 			}
@@ -431,9 +459,167 @@ public final class Reflector {
 		}
 		if (trgClass.isPrimitive()) {
 			// return convert(src,srcClass,toReferenceClass(trgClass));
-			return _convert(src, toReferenceClass(trgClass));
+			return _convert(src, toReferenceClass(trgClass), rating);
 		}
 		throw new ApplicationException("can't convert [" + Caster.toClassName(src) + "] to [" + Caster.toClassName(trgClass) + "]");
+	}
+
+	public static Object componentToClass(PageContext pc, Component src, Class trgClass) throws PageException {
+		return componentToClass(pc, src, trgClass, null);
+	}
+
+	private static Object componentToClass(PageContext pc, Component src, Class trgClass, RefInteger rating) throws PageException {
+
+		try {
+			JavaAnnotation ja = getJavaAnnotation(pc, trgClass.getClassLoader(), src);
+			Class<?> _extends = ja != null && ja.extend != null ? ja.extend : null;
+
+			return JavaProxyFactory.createProxy(pc, src, _extends, extractImplements(pc, src, ja, trgClass, rating));
+		}
+		catch (Exception e) {
+			throw Caster.toPageException(e);
+		}
+	}
+
+	private static Class<?>[] extractImplements(PageContext pc, Component cfc, JavaAnnotation ja, Class<?> trgClass, RefInteger rating) throws PageException {
+		Struct md = cfc.getMetaData(pc);
+		Object implementsjavaObj = md.get(KeyConstants._implementsjava, null);
+		Class<?>[] implementsjava = null;
+		if (implementsjavaObj != null) {
+			Object[] arr = null;
+			if (Decision.isArray(implementsjavaObj)) {
+				arr = Caster.toNativeArray(implementsjavaObj);
+			}
+			else if (Decision.isCastableToString(implementsjavaObj)) {
+				arr = ListUtil.listToStringArray(Caster.toString(md.get(KeyConstants._implementsjava), null), ',');
+			}
+			rating.plus(0);
+			if (arr != null) {
+				List<Class<?>> list = new ArrayList<Class<?>>();
+				Class<?> tmp;
+				for (int i = 0; i < arr.length; i++) {
+					tmp = ClassUtil.loadClass(Caster.toString(md.get(KeyConstants._implementsjava), null), null);
+					if (tmp != null) {
+						list.add(tmp);
+						if (isInstaneOf(tmp, trgClass, true)) rating.plus(6);
+						else if (isInstaneOf(tmp, trgClass, false)) rating.plus(5);
+					}
+				}
+				implementsjava = list.toArray(new Class[list.size()]);
+			}
+		}
+
+		Class<?>[] _implements = ja != null && ja.interfaces != null ? ja.interfaces : new Class[] { trgClass };
+		if (implementsjava != null) {
+			_implements = merge(_implements, implementsjava);
+		}
+		return _implements;
+	}
+
+	private static Class<?>[] merge(Class<?>[] left, Class<?>[] right) {
+		Map<String, Class<?>> map = new HashMap<>();
+		if (left != null) {
+			for (Class tmp: left) {
+				map.put(tmp.getName(), tmp);
+			}
+		}
+		if (right != null) {
+			for (Class tmp: right) {
+				map.put(tmp.getName(), tmp);
+			}
+		}
+		return map.values().toArray(new Class<?>[map.size()]);
+	}
+
+	public static Object udfToClass(PageContext pc, UDF src, Class trgClass) throws PageException {
+		// it already is a java Function
+		if (src instanceof JF && Reflector.isInstaneOf(src.getClass(), trgClass, true)) {
+			return src;
+		}
+		try {
+
+			// JavaAnnotation ja = getJavaAnnotation(pc, trgClass.getClassLoader(), src);
+			// return JavaProxyFactory.createProxy(pc, src, ja != null && ja.extend != null ? ja.extend :
+			// null,ja != null && ja.interfaces != null ? ja.interfaces : new Class[] { trgClass });
+			return JavaProxyFactory.createProxy(pc, src, trgClass);
+		}
+		catch (Exception e) {
+			throw Caster.toPageException(e);
+		}
+	}
+
+	private static JavaAnnotation getJavaAnnotation(PageContext pc, ClassLoader cl, Component src) {
+		Struct md = null;
+		try {
+			md = src.getMetaData(pc);
+		}
+		catch (PageException pe) {
+		}
+
+		String str;
+		JavaAnnotation ja = null;
+		if (md != null && (str = Caster.toString(md.get(KeyConstants._java, null), null)) != null) {
+			Struct sct = null;
+			try {
+				sct = Caster.toStruct(DeserializeJSON.call(pc, str), null);
+			}
+			catch (Exception e) {
+			}
+			if (sct == null) return null;
+
+			// interfaces
+			Object o = sct.get(KeyConstants._interface, null);
+			if (o == null) o = sct.get(KeyConstants._interfaces, null);
+			if (o != null) {
+				Array arr = null;
+				if (Decision.isArray(o)) {
+					arr = Caster.toArray(o, null);
+				}
+				else {
+					str = Caster.toString(o, null);
+					if (!StringUtil.isEmpty(str)) arr = ListUtil.listToArray(str, ",");
+				}
+				if (arr != null && arr.size() > 0) {
+					List<Class<?>> _interfaces = new ArrayList<>();
+					Iterator<?> it = arr.getIterator();
+					while (it.hasNext()) {
+						str = Caster.toString(it.next(), null);
+						if (!StringUtil.isEmpty(str, true)) _interfaces.add(ClassUtil.loadClass(cl, str, null));
+					}
+					if (ja == null) ja = new JavaAnnotation();
+					ja.interfaces = _interfaces.toArray(new Class<?>[_interfaces.size()]);
+				}
+			}
+
+			// extends
+			o = sct.get(KeyConstants._extends, null);
+			if (o != null) {
+				if (ja == null) ja = new JavaAnnotation();
+				str = Caster.toString(o, null);
+				if (!StringUtil.isEmpty(str, true)) ja.extend = ClassUtil.loadClass(cl, str, null);
+			}
+		}
+
+		return ja;
+	}
+
+	public static class JavaAnnotation {
+		private Class<?> extend;
+		private Class<?>[] interfaces;
+
+		@Override
+		public String toString() {
+			StringBuilder sb = new StringBuilder();
+			if (interfaces != null && interfaces.length > 0) {
+				for (Class<?> clazz: interfaces) {
+					if (sb.length() > 0) sb.append(',');
+					sb.append(clazz.getName());
+				}
+			}
+			else sb.append("null");
+
+			return "extends:" + (extend == null ? "null" : extend.getName()) + "; interfaces:" + sb;
+		}
 	}
 
 	/**
@@ -513,16 +699,15 @@ public final class Reflector {
 	 * Class Of the Method to get @param methodName Name of the Method to get @param args Arguments of
 	 * the Method to get @return return Matching Method @throws
 	 */
-	public static MethodInstance getMethodInstanceEL(Object objMaybeNull, Class clazz, Collection.Key methodName, Object[] args) {
+	public static MethodInstance getMethodInstanceEL(Object objMaybeNull, Class clazz, final Collection.Key methodName, Object[] args) {
 		checkAccessibility(objMaybeNull, clazz, methodName);
 		args = cleanArgs(args);
-
 		Method[] methods = mStorage.getMethods(clazz, methodName, args.length);// getDeclaredMethods(clazz);
 
 		if (methods != null) {
 			Class[] clazzArgs = getClasses(args);
 			// exact comparsion
-			// print.e("exact:"+methodName);
+			// print.e("exact:" + methodName);
 			outer: for (int i = 0; i < methods.length; i++) {
 				if (methods[i] != null) {
 					Class[] parameterTypes = methods[i].getParameterTypes();
@@ -534,7 +719,7 @@ public final class Reflector {
 			}
 			// like comparsion
 			// MethodInstance mi=null;
-			// print.e("like:"+methodName);
+			// print.e("like:" + methodName);
 			outer: for (int i = 0; i < methods.length; i++) {
 				if (methods[i] != null) {
 					Class[] parameterTypes = methods[i].getParameterTypes();
@@ -546,7 +731,7 @@ public final class Reflector {
 			}
 
 			// convert comparsion
-			// print.e("convert:"+methodName);
+			// print.e("convert:" + methodName);
 			MethodInstance mi = null;
 			int _rating = 0;
 			outer: for (int i = 0; i < methods.length; i++) {
@@ -575,16 +760,16 @@ public final class Reflector {
 	}
 
 	private static Object[] cleanArgs(Object[] args) {
-		Set<Object> done = new HashSet<Object>();
 		if (args == null) return args;
 
+		ObjectIdentityHashSet done = new ObjectIdentityHashSet();
 		for (int i = 0; i < args.length; i++) {
 			args[i] = _clean(done, args[i]);
 		}
 		return args;
 	}
 
-	private static Object _clean(Set<Object> done, Object obj) {
+	private static Object _clean(ObjectIdentityHashSet done, Object obj) {
 		if (done.contains(obj)) return obj;
 		done.add(obj);
 		try {
@@ -607,7 +792,7 @@ public final class Reflector {
 		return obj;
 	}
 
-	private static Object _clean(Set<Object> done, Collection coll) {
+	private static Object _clean(ObjectIdentityHashSet done, Collection coll) {
 		Iterator<Object> vit = coll.valueIterator();
 		Object v;
 		boolean change = false;
@@ -630,7 +815,7 @@ public final class Reflector {
 		return coll;
 	}
 
-	private static Object _clean(Set<Object> done, Map map) {
+	private static Object _clean(ObjectIdentityHashSet done, Map map) {
 		Iterator vit = map.values().iterator();
 		Object v;
 		boolean change = false;
@@ -654,7 +839,7 @@ public final class Reflector {
 		return map;
 	}
 
-	private static Object _clean(Set<Object> done, List list) {
+	private static Object _clean(ObjectIdentityHashSet done, List list) {
 		Iterator it = list.iterator();
 		Object v;
 		boolean change = false;
@@ -676,7 +861,7 @@ public final class Reflector {
 		return list;
 	}
 
-	private static Object _clean(Set<Object> done, Object[] src) {
+	private static Object _clean(ObjectIdentityHashSet done, Object[] src) {
 		boolean change = false;
 		for (int i = 0; i < src.length; i++) {
 			if (src[i] != _clean(done, src[i])) {
@@ -704,8 +889,8 @@ public final class Reflector {
 	 * @throws NoSuchMethodException
 	 * @throws PageException
 	 */
-	public static MethodInstance getMethodInstance(Object obj, Class clazz, String methodName, Object[] args) throws NoSuchMethodException {
-		MethodInstance mi = getMethodInstanceEL(obj, clazz, KeyImpl.getInstance(methodName), args);
+	public static MethodInstance getMethodInstance(Object obj, Class clazz, Collection.Key methodName, Object[] args) throws NoSuchMethodException {
+		MethodInstance mi = getMethodInstanceEL(obj, clazz, methodName, args);
 		if (mi != null) return mi;
 
 		Class[] classes = getClasses(args);
@@ -720,7 +905,7 @@ public final class Reflector {
 				ci = Reflector.getConstructorInstance(c, new Object[0], null);
 				if (ci == null) {
 
-					throw new NoSuchMethodException("The " + pos(i + 1) + " parameter of " + methodName + "(" + getDspMethods(classes) + ") ia a object created "
+					throw new NoSuchMethodException("The " + pos(i + 1) + " parameter of " + methodName + "(" + getDspMethods(classes) + ") ia an object created "
 							+ "by the createObject function (JavaObject/JavaProxy). This object has not been instantiated because it does not have a constructor "
 							+ "that takes zero arguments. " + Constants.NAME
 							+ " cannot instantiate it for you, please use the .init(...) method to instantiate it with the correct parameters first");
@@ -767,7 +952,7 @@ public final class Reflector {
 	}
 
 	public static String[] getPropertyKeys(Class clazz) {
-		Set keys = new HashSet();
+		Set<String> keys = new HashSet<String>();
 		Field[] fields = clazz.getFields();
 		Field field;
 		Method[] methods = clazz.getMethods();
@@ -791,7 +976,7 @@ public final class Reflector {
 			}
 		}
 
-		return (String[]) keys.toArray(new String[keys.size()]);
+		return keys.toArray(new String[keys.size()]);
 	}
 
 	public static boolean hasPropertyIgnoreCase(Class clazz, String name) {
@@ -858,7 +1043,7 @@ public final class Reflector {
 	}
 
 	/**
-	 * calls a Method of a Objct
+	 * calls a Method of an Object
 	 * 
 	 * @param obj Object to call Method on it
 	 * @param methodName Name of the Method to get
@@ -867,7 +1052,7 @@ public final class Reflector {
 	 * @throws PageException
 	 */
 	public static Object callMethod(Object obj, String methodName, Object[] args) throws PageException {
-		return callMethod(obj, KeyImpl.getInstance(methodName), args);
+		return callMethod(obj, KeyImpl.init(methodName), args);
 	}
 
 	public static Object callMethod(Object obj, Collection.Key methodName, Object[] args) throws PageException {
@@ -886,27 +1071,7 @@ public final class Reflector {
 
 	private static void checkAccessibility(Object objMaybeNull, Class clazz, Key methodName) {
 		if (methodName.equals(EXIT) && (clazz == System.class || clazz == Runtime.class)) { // TODO better implementation
-			// System.exit() is only allowed from Server.cfc@onServerStart() with the System property
-			// lucee.enable.warmup=true
-			boolean isWarmup = false;
-			PageContextImpl pc = (PageContextImpl) ThreadLocalPageContext.get();
-			if (pc != null) {
-				PageSource ps = pc.getCurrentPageSource();
-				if (ps != null && ps.getComponentName().equalsIgnoreCase("lucee-server.Server") && ps.getMapping().getStrPhysical().equalsIgnoreCase("{lucee-server}/context/")) {
-					if (SystemUtil.getSystemPropOrEnvVar("lucee.enable.warmup", "").equalsIgnoreCase("true")) {
-						isWarmup = true;
-						System.out.println("Server warm-up completed");
-					}
-					else {
-						System.out.println(
-								"Server warm-up is disabled. You can enable it by setting the System property lucee.enable.warmup or the environment variable LUCEE_ENABLE_WARMUP to true.");
-					}
-				}
-			}
-
-			if (!isWarmup) {
-				throw new PageRuntimeException(new SecurityException("Calling the exit method is not allowed"));
-			}
+			throw new PageRuntimeException(new SecurityException("Calling the exit method is not allowed"));
 		}
 
 		// change the accessibility of Lucee methods is not allowed
@@ -918,7 +1083,7 @@ public final class Reflector {
 				if (cls != null) {
 					String name = cls.getName();
 					if (name != null && name.startsWith("lucee.")) {
-						throw new PageRuntimeException(new SecurityException("Changing the accessibility of an object's members in the Lucee.* package is not allowed"));
+						throw new PageRuntimeException(new SecurityException("Changing the accessibility of an object's members in the lucee.* package is not allowed"));
 					}
 				}
 
@@ -969,7 +1134,7 @@ public final class Reflector {
 	 * @return return return value of the called Method
 	 * @throws PageException
 	 */
-	public static Object callStaticMethod(Class clazz, String methodName, Object[] args) throws PageException {
+	public static Object callStaticMethod(Class clazz, Collection.Key methodName, Object[] args) throws PageException {
 		try {
 			return getMethodInstance(null, clazz, methodName, args).invoke(null);
 		}
@@ -984,7 +1149,7 @@ public final class Reflector {
 	}
 
 	/**
-	 * to get a Getter Method of a Object
+	 * to get a Getter Method of an Object
 	 * 
 	 * @param clazz Class to invoke method from
 	 * @param prop Name of the Method without get
@@ -994,11 +1159,11 @@ public final class Reflector {
 	 */
 	public static MethodInstance getGetter(Class clazz, String prop) throws PageException, NoSuchMethodException {
 		String getterName = "get" + StringUtil.ucFirst(prop);
-		MethodInstance mi = getMethodInstanceEL(null, clazz, KeyImpl.getInstance(getterName), ArrayUtil.OBJECT_EMPTY);
+		MethodInstance mi = getMethodInstanceEL(null, clazz, KeyImpl.init(getterName), ArrayUtil.OBJECT_EMPTY);
 
 		if (mi == null) {
 			String isName = "is" + StringUtil.ucFirst(prop);
-			mi = getMethodInstanceEL(null, clazz, KeyImpl.getInstance(isName), ArrayUtil.OBJECT_EMPTY);
+			mi = getMethodInstanceEL(null, clazz, KeyImpl.init(isName), ArrayUtil.OBJECT_EMPTY);
 			if (mi != null) {
 				Method m = mi.getMethod();
 				Class rtn = m.getReturnType();
@@ -1016,7 +1181,7 @@ public final class Reflector {
 	}
 
 	/**
-	 * to get a Getter Method of a Object
+	 * to get a Getter Method of an Object
 	 * 
 	 * @param clazz Class to invoke method from
 	 * @param prop Name of the Method without get
@@ -1024,14 +1189,14 @@ public final class Reflector {
 	 */
 	public static MethodInstance getGetterEL(Class clazz, String prop) {
 		prop = "get" + StringUtil.ucFirst(prop);
-		MethodInstance mi = getMethodInstanceEL(null, clazz, KeyImpl.getInstance(prop), ArrayUtil.OBJECT_EMPTY);
+		MethodInstance mi = getMethodInstanceEL(null, clazz, KeyImpl.init(prop), ArrayUtil.OBJECT_EMPTY);
 		if (mi == null) return null;
 		if (mi.getMethod().getReturnType() == void.class) return null;
 		return mi;
 	}
 
 	/**
-	 * to invoke a getter Method of a Object
+	 * to invoke a getter Method of an Object
 	 * 
 	 * @param obj Object to invoke method from
 	 * @param prop Name of the Method without get
@@ -1053,7 +1218,7 @@ public final class Reflector {
 	}
 
 	/**
-	 * to invoke a setter Method of a Object
+	 * to invoke a setter Method of an Object
 	 * 
 	 * @param obj Object to invoke method from
 	 * @param prop Name of the Method without get
@@ -1064,7 +1229,7 @@ public final class Reflector {
 	 */
 	public static MethodInstance getSetter(Object obj, String prop, Object value) throws NoSuchMethodException {
 		prop = "set" + StringUtil.ucFirst(prop);
-		MethodInstance mi = getMethodInstance(obj, obj.getClass(), prop, new Object[] { value });
+		MethodInstance mi = getMethodInstance(obj, obj.getClass(), KeyImpl.init(prop), new Object[] { value });
 		Method m = mi.getMethod();
 
 		if (m.getReturnType() != void.class)
@@ -1073,7 +1238,7 @@ public final class Reflector {
 	}
 
 	/*
-	 * to invoke a setter Method of a Object
+	 * to invoke a setter Method of an Object
 	 * 
 	 * @param obj Object to invoke method from
 	 * 
@@ -1088,14 +1253,14 @@ public final class Reflector {
 	 * 
 	 * public static MethodInstance getSetterEL(Object obj, String prop,Object value) {
 	 * prop="set"+StringUtil.ucFirst(prop); MethodInstance mi =
-	 * getMethodInstanceEL(obj.getClass(),KeyImpl.getInstance(prop),new Object[]{value}); if(mi==null)
-	 * return null; Method m=mi.getMethod();
+	 * getMethodInstanceEL(obj.getClass(),KeyImpl.init(prop),new Object[]{value}); if(mi==null) return
+	 * null; Method m=mi.getMethod();
 	 * 
 	 * if(m.getReturnType()!=void.class) return null; return mi; }
 	 */
 
 	/**
-	 * to invoke a setter Method of a Object
+	 * to invoke a setter Method of an Object
 	 * 
 	 * @param obj Object to invoke method from
 	 * @param prop Name of the Method without get
@@ -1104,7 +1269,7 @@ public final class Reflector {
 	 */
 	public static MethodInstance getSetter(Object obj, String prop, Object value, MethodInstance defaultValue) {
 		prop = "set" + StringUtil.ucFirst(prop);
-		MethodInstance mi = getMethodInstanceEL(obj, obj.getClass(), KeyImpl.getInstance(prop), new Object[] { value });
+		MethodInstance mi = getMethodInstanceEL(obj, obj.getClass(), KeyImpl.init(prop), new Object[] { value });
 		if (mi == null) return defaultValue;
 		Method m = mi.getMethod();
 
@@ -1113,7 +1278,7 @@ public final class Reflector {
 	}
 
 	/**
-	 * to invoke a setter Method of a Object
+	 * to invoke a setter Method of an Object
 	 * 
 	 * @param obj Object to invoke method from
 	 * @param prop Name of the Method without get
@@ -1158,7 +1323,7 @@ public final class Reflector {
 	}
 
 	/**
-	 * to get a visible Field of a object
+	 * to get a visible Field of an object
 	 * 
 	 * @param obj Object to invoke
 	 * @param prop property to call
@@ -1195,7 +1360,7 @@ public final class Reflector {
 	}
 
 	/**
-	 * assign a value to a visible Field of a object
+	 * assign a value to a visible Field of an object
 	 * 
 	 * @param obj Object to assign value to his property
 	 * @param prop name of property
@@ -1226,7 +1391,8 @@ public final class Reflector {
 					fields[i].set(obj, convert(value, toReferenceClass(fields[i].getType()), null));
 					return true;
 				}
-				catch (PageException e) {}
+				catch (PageException e) {
+				}
 			}
 		}
 		catch (Exception e) {
@@ -1236,7 +1402,7 @@ public final class Reflector {
 	}
 
 	/**
-	 * to get a visible Propety (Field or Getter) of a object
+	 * to get a visible Propety (Field or Getter) of an object
 	 * 
 	 * @param obj Object to invoke
 	 * @param prop property to call
@@ -1254,7 +1420,7 @@ public final class Reflector {
 	}
 
 	/**
-	 * to get a visible Propety (Field or Getter) of a object
+	 * to get a visible Propety (Field or Getter) of an object
 	 * 
 	 * @param obj Object to invoke
 	 * @param prop property to call
@@ -1286,7 +1452,7 @@ public final class Reflector {
 	}
 
 	/**
-	 * assign a value to a visible Property (Field or Setter) of a object
+	 * assign a value to a visible Property (Field or Setter) of an object
 	 * 
 	 * @param obj Object to assign value to his property
 	 * @param prop name of property
@@ -1305,7 +1471,7 @@ public final class Reflector {
 	}
 
 	/**
-	 * assign a value to a visible Property (Field or Setter) of a object
+	 * assign a value to a visible Property (Field or Setter) of an object
 	 * 
 	 * @param obj Object to assign value to his property
 	 * @param prop name of property
@@ -1473,22 +1639,22 @@ public final class Reflector {
 	 */
 	public static Method[] getDeclaredMethods(Class clazz) {
 		Method[] methods = clazz.getMethods();
-		ArrayList list = new ArrayList();
+		ArrayList<Method> list = new ArrayList<Method>();
 		for (int i = 0; i < methods.length; i++) {
 			if (methods[i].getDeclaringClass() == clazz) list.add(methods[i]);
 		}
 		if (list.size() == 0) return new Method[0];
-		return (Method[]) list.toArray(new Method[list.size()]);
+		return list.toArray(new Method[list.size()]);
 	}
 
 	public static Method[] getSetters(Class clazz) {
 		Method[] methods = clazz.getMethods();
-		ArrayList list = new ArrayList();
+		ArrayList<Method> list = new ArrayList<Method>();
 		for (int i = 0; i < methods.length; i++) {
 			if (isSetter(methods[i])) list.add(methods[i]);
 		}
 		if (list.size() == 0) return new Method[0];
-		return (Method[]) list.toArray(new Method[list.size()]);
+		return list.toArray(new Method[list.size()]);
 	}
 
 	public static Method[] getGetters(Class clazz) {
@@ -1558,6 +1724,18 @@ public final class Reflector {
 		catch (Exception e) {
 			return defaultValue;
 		}
+	}
+
+	public static Constructor getConstructor(Class clazz, Class[] args, Constructor defaultValue) {
+		outer: for (Constructor c: clazz.getConstructors()) {
+			Parameter[] params = c.getParameters();
+			if (params.length != args.length) continue;
+			for (int i = 0; i < params.length; i++) {
+				if (!isInstaneOf(args[i], params[i].getType(), true)) continue outer;
+			}
+			return c;
+		}
+		return defaultValue;
 	}
 
 }

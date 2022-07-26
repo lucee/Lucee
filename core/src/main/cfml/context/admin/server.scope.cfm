@@ -232,7 +232,7 @@ Error Output --->
 					This feature is experimental (set to "writable").
 					If you have any problems while using this functionality,
 					please post the bugs and errors in our
-					<a href="http://issues.lucee.org" target="_blank">bugtracking system</a>. 
+					<a href="https://issues.lucee.org" target="_blank">bugtracking system</a>. 
 				</div>---><div class="comment">#stText.scopes.cgiReadOnlyDesc#</div>
 						<cfif hasAccess>
 							<ul class="radiolist">
@@ -256,8 +256,8 @@ Error Output --->
 							</ul>
 						<cfelse>
 							<input type="hidden" name="cgiReadonly" value="#scope.cgiReadonly#">
-							<b>#stText.Scopes["cgiReadOnly"& scope.LocalMode]#</b><br />
-							<div class="comment">#stText.Scopes["cgiReadOnly"& scope.LocalMode&"desc"]#</div>
+							<b>#stText.Scopes["cgiReadOnly"& scope.cgiReadonly]#</b><br />
+							<div class="comment">#stText.Scopes["cgiReadOnly"& scope.cgiReadonly&"desc"]#</div>
 						</cfif>
 						
 						<cfsavecontent variable="codeSample">
@@ -575,6 +575,12 @@ function test() localMode="#scope.LocalMode#" {}
 							<b>#iif(scope.allowImplicidQueryCall,de('Yes'),de('No'))#</b>
 						</cfif>
 						<div class="comment">#stText.Scopes.CascadeToResultSetDescription#</div>
+
+
+						<cfsavecontent variable="codeSample">
+							this.searchResults = #trueFalseFormat(scope.allowImplicidQueryCall)#;
+						</cfsavecontent>
+						<cfset renderCodingTip( codeSample)>
 					</td>
 				</tr>
 				

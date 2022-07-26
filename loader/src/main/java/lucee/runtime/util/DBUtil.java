@@ -42,6 +42,9 @@ public interface DBUtil {
 	/**
 	 * 
 	 * converts the value defined inside a SQLItem to the type defined in stat item
+	 * @param item item 
+	 * @return Object
+	 * @throws PageException Page Exception
 	 */
 
 	public Object toSqlType(SQLItem item) throws PageException;
@@ -51,20 +54,21 @@ public interface DBUtil {
 
 	/**
 	 * fill a SQLItem to into a PreparedStatement
-	 * 
-	 * @param tz
-	 * @param stat
-	 * @param parameterIndex
-	 * @param item
-	 * @throws PageException
-	 * @throws SQLException
+	 *
+	 * @param pc Page Context
+	 * @param tz timezone
+	 * @param stat statement
+	 * @param parameterIndex parameter index
+	 * @param item item 
+	 * @throws PageException Page Exception
+	 * @throws SQLException SQL Exception
 	 */
 	public void setValue(PageContext pc, TimeZone tz, PreparedStatement stat, int parameterIndex, SQLItem item) throws PageException, SQLException;
 
 	/**
 	 * Cast a SQL Item to a String (Display) Value
 	 * 
-	 * @param item
+	 * @param item Item
 	 * @return String Value
 	 */
 	public String toString(SQLItem item);
@@ -72,48 +76,48 @@ public interface DBUtil {
 	/**
 	 * cast a type defined in java.sql.Types to String SQL Type
 	 * 
-	 * @param type
+	 * @param type SQL Type
 	 * @return SQL Type as String
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 */
 	public String toStringType(int type) throws PageException;
 
 	/**
 	 * cast a String SQL Type to type defined in java.sql.Types
 	 * 
-	 * @param strType
+	 * @param strType String SQL Type
 	 * @return SQL Type as int
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 */
 	public int toSQLType(String strType) throws PageException;
 
 	/**
-	 * create a blog Object
+	 * create a Blob Object
 	 * 
-	 * @param conn
-	 * @param value
-	 * @return
-	 * @throws PageException
-	 * @throws SQLException
+	 * @param conn Connection
+	 * @param value value
+	 * @return Returns a Blob Object.
+	 * @throws PageException Page Exception
+	 * @throws SQLException SQL Exception
 	 */
 	public Blob toBlob(Connection conn, Object value) throws PageException, SQLException;
 
 	/**
-	 * create a clob Object
+	 * create a Clob Object
 	 * 
-	 * @param conn
-	 * @param value
-	 * @return
-	 * @throws PageException
-	 * @throws SQLException
+	 * @param conn Connection
+	 * @param value value
+	 * @return Returns a Clob Object.
+	 * @throws PageException Page Exception
+	 * @throws SQLException SQL Exception
 	 */
 	public Clob toClob(Connection conn, Object value) throws PageException, SQLException;
 
 	/**
-	 * checks if this is a oracle connection
+	 * checks if this is an oracle connection
 	 * 
-	 * @param conn
-	 * @return
+	 * @param conn Connection
+	 * @return Returns a Boolean.
 	 */
 	public boolean isOracle(Connection conn);
 
@@ -122,21 +126,21 @@ public interface DBUtil {
 	/**
 	 * close silently a SQL Statement
 	 * 
-	 * @param stat
+	 * @param stat SQL statement
 	 */
 	public void closeSilent(Statement stat);
 
 	/**
 	 * close silently a SQL Connection
 	 * 
-	 * @param conn
+	 * @param conn Connection
 	 */
 	public void closeSilent(Connection conn);
 
 	/**
 	 * close silently a SQL ResultSet
 	 * 
-	 * @param rs
+	 * @param rs Result set
 	 */
 	public void closeSilent(ResultSet rs);
 

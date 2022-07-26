@@ -42,7 +42,7 @@ public interface Collection extends Dumpable, Iteratorable, Cloneable, Serializa
 	public Collection.Key[] keys();
 
 	/**
-	 * removes value from collection and return it when it exists, otherwise throws a exception
+	 * removes value from collection and return it when it exists, otherwise throws an exception
 	 * 
 	 * @param key key of the collection
 	 * @return removed Object
@@ -94,17 +94,18 @@ public interface Collection extends Dumpable, Iteratorable, Cloneable, Serializa
 	public Object get(Collection.Key key) throws PageException;
 
 	/**
-	 * return a value from the collection, if key doesn't exist, dont throw a exception, returns null
+	 * return a value from the collection, if key doesn't exist, dont throw an exception, returns null
 	 * 
 	 * @param key key of the value to get
 	 * @param defaultValue value returned when no value exists for given key
 	 * @return value on key position or null
 	 * @deprecated use instead <code>{@link #get(lucee.runtime.type.Collection.Key, Object)}</code>
 	 */
+	@Deprecated
 	public Object get(String key, Object defaultValue);
 
 	/**
-	 * return a value from the collection, if key doesn't exist, dont throw a exception, returns null
+	 * return a value from the collection, if key doesn't exist, dont throw an exception, returns null
 	 * 
 	 * @param key key of the value to get
 	 * @param defaultValue value returned when no value exists for given key
@@ -135,7 +136,7 @@ public interface Collection extends Dumpable, Iteratorable, Cloneable, Serializa
 	public Object set(Collection.Key key, Object value) throws PageException;
 
 	/**
-	 * sets a value to the collection, if key doesn't exist, dont throw a exception, returns null
+	 * sets a value to the collection, if key doesn't exist, dont throw an exception, returns null
 	 * 
 	 * @param key key of the value to get
 	 * @param value value to set
@@ -146,7 +147,7 @@ public interface Collection extends Dumpable, Iteratorable, Cloneable, Serializa
 	public Object setEL(String key, Object value);
 
 	/**
-	 * sets a value to the collection, if key doesn't exist, dont throw a exception, returns null
+	 * sets a value to the collection, if key doesn't exist, dont throw an exception, returns null
 	 * 
 	 * @param key key of the value to get
 	 * @param value value to set
@@ -183,23 +184,26 @@ public interface Collection extends Dumpable, Iteratorable, Cloneable, Serializa
 
 		/**
 		 * return key as String
+		 * @return string
 		 */
 		public String getString();
 
 		/**
 		 * return key as lower case String
+		 * @return lower case string
 		 */
 		public String getLowerString();
 
 		/**
 		 * return key as upper case String
+		 * @return upper case string
 		 */
 		public String getUpperString();
 
 		/**
 		 * return char at given position
 		 * 
-		 * @param index
+		 * @param index index
 		 * @return character at given position
 		 */
 		public char charAt(int index);
@@ -207,7 +211,7 @@ public interface Collection extends Dumpable, Iteratorable, Cloneable, Serializa
 		/**
 		 * return lower case char a given position
 		 * 
-		 * @param index
+		 * @param index index
 		 * @return lower case char from given position
 		 */
 		public char lowerCharAt(int index);
@@ -215,7 +219,7 @@ public interface Collection extends Dumpable, Iteratorable, Cloneable, Serializa
 		/**
 		 * return upper case char a given position
 		 * 
-		 * @param index
+		 * @param index index
 		 * @return upper case char from given position
 		 */
 		public char upperCharAt(int index);
@@ -223,7 +227,7 @@ public interface Collection extends Dumpable, Iteratorable, Cloneable, Serializa
 		/**
 		 * compare to object, ignore case of input
 		 * 
-		 * @param key
+		 * @param key key
 		 * @return is equal to given key?
 		 */
 		public boolean equalsIgnoreCase(Collection.Key key);

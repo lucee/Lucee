@@ -54,7 +54,7 @@ public final class SMTPVerifier {
 			if (!StringUtil.isEmpty(username)) {
 				try {
 					_verify(host, null, null, port);
-					throw new SMTPExceptionImpl("can't connect to mail server, authentication settings are invalid");
+					throw new SMTPExceptionImpl("Cannot connect to mail server, authentication settings are invalid");
 				}
 				catch (MessagingException e1) {
 
@@ -64,9 +64,10 @@ public final class SMTPVerifier {
 			if (port > 0 && port != 25) {
 				try {
 					_verify(host, null, null, 25);
-					throw new SMTPExceptionImpl("can't connect to mail server, port definition is invalid");
+					throw new SMTPExceptionImpl("Cannot connect to mail server, port definition is invalid");
 				}
-				catch (MessagingException e1) {}
+				catch (MessagingException e1) {
+				}
 			}
 
 			throw new SMTPExceptionImpl("can't connect to mail server");

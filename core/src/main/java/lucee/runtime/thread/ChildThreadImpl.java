@@ -25,6 +25,7 @@ import java.util.Iterator;
 import java.util.Map.Entry;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 
 import lucee.commons.io.DevNullOutputStream;
 import lucee.commons.io.log.Log;
@@ -35,9 +36,8 @@ import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSourceImpl;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.config.ConfigWeb;
-import lucee.runtime.config.ConfigWebImpl;
+import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.Abort;
 import lucee.runtime.exp.PageException;
@@ -48,7 +48,6 @@ import lucee.runtime.op.Caster;
 import lucee.runtime.op.Duplicator;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
-import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.scope.Argument;
@@ -63,7 +62,7 @@ public class ChildThreadImpl extends ChildThread implements Serializable {
 
 	private static final long serialVersionUID = -8902836175312356628L;
 
-	private static final Collection.Key KEY_ATTRIBUTES = KeyImpl.intern("attributes");
+	private static final Collection.Key KEY_ATTRIBUTES = KeyConstants._attributes;
 
 	// private static final Set EMPTY = new HashSet();
 
@@ -72,6 +71,7 @@ public class ChildThreadImpl extends ChildThread implements Serializable {
 	// PageContextImpl pc =null;
 	private final String tagName;
 	private long start;
+	private long endTime;
 	private Threads scope;
 
 	// accesible from scope
@@ -159,12 +159,13 @@ public class ChildThreadImpl extends ChildThread implements Serializable {
 			}
 			// task
 			else {
-				ConfigWebImpl cwi;
+				ConfigWebPro cwi;
 				try {
-					cwi = (ConfigWebImpl) config;
+					cwi = (ConfigWebPro) config;
 					DevNullOutputStream os = DevNullOutputStream.DEV_NULL_OUTPUT_STREAM;
+					HttpSession session = oldPc != null && oldPc.getSessionType() == Config.SESSION_TYPE_JEE ? oldPc.getSession() : null;
 					pc = ThreadUtil.createPageContext(cwi, os, serverName, requestURI, queryString, SerializableCookie.toCookies(cookies), headers, null, parameters, attributes,
-							true, -1);
+							true, -1, session);
 					pc.setRequestTimeout(requestTimeout);
 					p = PageSourceImpl.loadPage(pc, cwi.getPageSources(oldPc == null ? pc : oldPc, null, template, false, false, true));
 					// p=cwi.getPageSources(oldPc,null, template, false,false,true).loadPage(cwi);
@@ -175,7 +176,7 @@ public class ChildThreadImpl extends ChildThread implements Serializable {
 				pc.addPageSource(p.getPageSource(), true);
 			}
 
-			threadScope = pc.getThreadScope(KeyConstants._cfthread, null);
+			threadScope = pc.getCFThreadScope();
 			pc.setCurrentThreadScope(new ThreadsImpl(this));
 			pc.setThread(Thread.currentThread());
 
@@ -208,11 +209,8 @@ public class ChildThreadImpl extends ChildThread implements Serializable {
 				ExceptionUtil.rethrowIfNecessary(t);
 				if (!Abort.isSilentAbort(t)) {
 					ConfigWeb c = pc.getConfig();
-					if (c instanceof ConfigImpl) {
-						ConfigImpl ci = (ConfigImpl) c;
-						Log log = ci.getLog("thread");
-						if (log != null) log.log(Log.LEVEL_ERROR, this.getName(), t);
-					}
+					Log log = c.getLog("thread");
+					if (log != null) log.log(Log.LEVEL_ERROR, this.getName(), t);
 					PageException pe = Caster.toPageException(t);
 					if (!serializable) catchBlock = pe.getCatchBlock(pc.getConfig());
 					return pe;
@@ -237,6 +235,7 @@ public class ChildThreadImpl extends ChildThread implements Serializable {
 			}
 		}
 		finally {
+			endTime = System.currentTimeMillis();
 			pc.getConfig().getFactory().releaseLuceePageContext(pc, true);
 			pc = null;
 			if (oldPc != null) ThreadLocalPageContext.register(oldPc);
@@ -257,6 +256,11 @@ public class ChildThreadImpl extends ChildThread implements Serializable {
 	/*
 	 * public Threads getThreadScopeX() { if(scope==null) scope=new ThreadsImpl(this); return scope; }
 	 */
+
+	public long getEndTime() {
+		if (endTime == 0) return System.currentTimeMillis(); // endTime = 0 means the thread is still running
+		return endTime;
+	}
 
 	public Object getThreads() {
 		return threadScope;

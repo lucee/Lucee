@@ -34,6 +34,7 @@ import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.java.JavaObject;
+import lucee.runtime.listener.JavaSettingsImpl;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.type.Struct;
@@ -57,7 +58,7 @@ public class CreateDynamicProxy implements Function {
 	public static Object _call(PageContext pc, Object oCFC, Object oInterfaces) throws PageException, IOException, BundleException {
 
 		if (SystemUtil.getLoaderVersion() < 5.9D) throw new ApplicationException(
-				"You need to update your lucee.jar to execute the function [createDynamicProxy], you can download the latest jar from http://download.lucee.org.");
+				"You need to update your lucee.jar to execute the function [createDynamicProxy], you can download the latest jar from https://download.lucee.org.");
 
 		// Component
 		Component cfc;
@@ -92,6 +93,11 @@ public class CreateDynamicProxy implements Function {
 		}
 		else throw new FunctionException(pc, "CreateDynamicProxy", 2, "interfaces", "invalid type [" + Caster.toClassName(oInterfaces) + "] for class definition");
 
+		return _call(pc, cfc, interfaces);
+	}
+
+	public static Object _call(PageContext pc, Component cfc, Class[] interfaces) throws PageException, IOException, BundleException {
+
 		// check if all classes are interfaces
 		for (int i = 0; i < interfaces.length; i++) {
 			if (!interfaces[i].isInterface())
@@ -113,7 +119,7 @@ public class CreateDynamicProxy implements Function {
 		if (StringUtil.isEmpty(bundleName)) {
 			return ClassUtil.loadClass(cl, className);
 		}
-		return ClassUtil.loadClass(className, bundleName, bundleVersion, pc.getConfig().getIdentification());
+		return ClassUtil.loadClass(className, bundleName, bundleVersion, pc.getConfig().getIdentification(), JavaSettingsImpl.getBundleDirectories(pc));
 	}
 
 }

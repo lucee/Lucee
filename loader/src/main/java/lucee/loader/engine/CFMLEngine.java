@@ -89,40 +89,16 @@ public interface CFMLEngine {
 
 	public abstract CFMLFactory getCFMLFactory(ServletConfig srvConfig, HttpServletRequest req) throws ServletException;
 
-	/**
-	 * adds a servlet config
-	 */
 	public abstract void addServletConfig(ServletConfig config) throws ServletException;
 
-	/**
-	 * method to invoke the engine for a regular Lucee call
-	 */
 	public void service(HttpServlet servlet, HttpServletRequest req, HttpServletResponse rsp) throws IOException, ServletException;
 
-	/**
-	 * method to invoke the engine for CFML
-	 */
 	public void serviceCFML(HttpServlet servlet, HttpServletRequest req, HttpServletResponse rsp) throws IOException, ServletException;
 
-	/**
-	 * method to invoke the engine for AMF
-	 */
 	public void serviceAMF(HttpServlet servlet, HttpServletRequest req, HttpServletResponse rsp) throws ServletException, IOException;
 
-	/**
-	 * method to invoke the engine for a simple file
-	 */
 	public void serviceFile(HttpServlet servlet, HttpServletRequest req, HttpServletResponse rsp) throws ServletException, IOException;
 
-	/**
-	 * method to invoke the engine for a Rest Requests
-	 * 
-	 * @param servlet
-	 * @param req
-	 * @param rsp
-	 * @throws ServletException
-	 * @throws IOException
-	 */
 	public abstract void serviceRest(HttpServlet servlet, HttpServletRequest req, HttpServletResponse rsp) throws ServletException, IOException;
 
 	public Info getInfo();
@@ -133,11 +109,6 @@ public interface CFMLEngine {
 	 */
 	@Deprecated
 	public String getVersion();
-
-	/**
-	 * @return returns the state of the version (alpha,beta,rc,final)
-	 * @deprecated use instead getInfo()
-	 */
 
 	/**
 	 * @return returns how this engine will be updated (auto, manual)
@@ -155,7 +126,7 @@ public interface CFMLEngine {
 	 * checks if process has the right to do was given with type, the engine with given password
 	 * 
 	 * @param type restart type (CFMLEngine.CAN_UPDATE, CFMLEngine.CAN_RESTART)
-	 * @param password
+	 * @param password password for the env
 	 * @return has right
 	 */
 	public boolean can(int type, Password password);
@@ -171,7 +142,9 @@ public interface CFMLEngine {
 	public void reset();
 
 	/**
-	 * reset the engine
+	 * reset a specific config
+	 * 
+	 * @param configId id of the config to reset
 	 */
 	public void reset(String configId);
 
@@ -279,17 +252,23 @@ public interface CFMLEngine {
 	/**
 	 * create and register a PageContext, use releasePageContext when done
 	 * 
+	 * @param contextRoot context root
+	 * @param host host name
+	 * @param scriptName script name
+	 * @param queryString query string
+	 * @param cookies cookies
+	 * @param headers header elements
+	 * @param parameters parameters
+	 * @param attributes attributes
+	 * @param os output stream to write response body
+	 * @param timeout timeout for the thread
+	 * @param register register to thread or not
 	 * @return PageContext Object created
-	 * @throws ServletException
+	 * @throws ServletException in case the PC cannot be created
 	 */
 	public PageContext createPageContext(File contextRoot, String host, String scriptName, String queryString, Cookie[] cookies, Map<String, Object> headers,
 			Map<String, String> parameters, Map<String, Object> attributes, OutputStream os, long timeout, boolean register) throws ServletException;
 
-	/**
-	 * 
-	 * @param pc
-	 * @param unregister
-	 */
 	public void releasePageContext(PageContext pc, boolean unregister);
 
 	public ConfigWeb createConfig(File contextRoot, String host, String scriptName) throws ServletException;

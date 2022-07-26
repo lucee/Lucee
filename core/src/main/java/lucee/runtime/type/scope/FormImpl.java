@@ -20,11 +20,13 @@ package lucee.runtime.type.scope;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.UUID;
 
 import javax.servlet.ServletInputStream;
 import javax.servlet.http.HttpServletRequest;
@@ -45,7 +47,6 @@ import lucee.commons.lang.ByteNameValuePair;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.net.URLItem;
 import lucee.runtime.PageContext;
-import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.listener.ApplicationContext;
@@ -76,7 +77,7 @@ public final class FormImpl extends ScopeSupport implements Form, ScriptProtecte
 	private static final URLItem[] empty = new URLItem[0];
 	// private static final ResourceFilter FILTER = new ExtensionResourceFilter(".upload",false);
 	private URLItem[] raw = empty;
-	private static int count = 1;
+	private static long count = 1;
 
 	private static final int HEADER_TYPE_UNKNOWN = -1;
 	private static final int HEADER_TEXT_PLAIN = 0;
@@ -155,7 +156,7 @@ public final class FormImpl extends ScopeSupport implements Form, ScriptProtecte
 
 	private void initializeMultiPart(PageContext pc, boolean scriptProteced) {
 		// get temp directory
-		Resource tempDir = ((ConfigImpl) pc.getConfig()).getTempDirectory();
+		Resource tempDir = pc.getConfig().getTempDirectory();
 		Resource tempFile;
 
 		// Create a new file upload handler
@@ -205,7 +206,7 @@ public final class FormImpl extends ScopeSupport implements Form, ScriptProtecte
 							list.add(new URLItem(item.getFieldName(), new String(IOUtil.toBytes(is), encoding), false));
 						}
 						finally {
-							IOUtil.closeEL(is);
+							IOUtil.close(is);
 							tempFile.delete();
 						}
 					}
@@ -229,7 +230,9 @@ public final class FormImpl extends ScopeSupport implements Form, ScriptProtecte
 	}
 
 	private static String getFileName() {
-		return "tmp-" + (count++) + ".upload";
+		UUID uuid = UUID.randomUUID();
+		String setUUID = uuid.toString();
+		return "tmp-" + setUUID + ".upload";
 	}
 
 	/*
@@ -282,7 +285,13 @@ public final class FormImpl extends ScopeSupport implements Form, ScriptProtecte
 			initException = e;
 		}
 		finally {
-			IOUtil.closeEL(reader);
+			try {
+				IOUtil.close(reader);
+			}
+			catch (IOException e) {
+				Log log = ThreadLocalPageContext.getConfig(pc).getLog("application");
+				if (log != null) log.error("form.scope", e);
+			}
 		}
 	}
 
@@ -358,7 +367,8 @@ public final class FormImpl extends ScopeSupport implements Form, ScriptProtecte
 				key = ListUtil.arrayToList(array, ".").trim();
 			}
 		}
-		catch (PageException e) {}
+		catch (PageException e) {
+		}
 		return key;
 	}
 
@@ -401,7 +411,7 @@ public final class FormImpl extends ScopeSupport implements Form, ScriptProtecte
 		this.raw = nr;
 
 		if (!isInitalized()) return;
-		fillDecodedEL(this.raw, encoding, isScriptProtected(), ac.getSameFieldAsArray(SCOPE_FORM));
+		fillDecodedEL(this.raw, encoding, isScriptProtected(), ac != null ? ac.getSameFieldAsArray(SCOPE_FORM) : false);
 		setFieldNames();
 	}
 
@@ -477,7 +487,8 @@ public final class FormImpl extends ScopeSupport implements Form, ScriptProtecte
 			try {
 				raw[i] = new ByteNameValuePair(items[i].getName().getBytes("iso-8859-1"), items[i].getValue().getBytes("iso-8859-1"), items[i].isUrlEncoded());
 			}
-			catch (UnsupportedEncodingException e) {}
+			catch (UnsupportedEncodingException e) {
+			}
 		}
 
 		int size = 0;

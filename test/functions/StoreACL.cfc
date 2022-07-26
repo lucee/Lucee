@@ -23,20 +23,20 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	
 	//public function afterTests(){}
 
+	private function isNewS3(){
+		qry=  extensionlist(false);
+		isNewS3=false;
+		loop query=qry {
+			if(qry.id=="17AB52DE-B300-A94B-E058BD978511E39E") {
+				if(left(qry.version,1)>=2) return true;
+			}
+		}
+		return false;
+	}
+
 
 	private struct function getCredencials() {
-		// getting the credetials from the enviroment variables
-		var s3={};
-		if(!isNull(server.system.environment.S3_ACCESS_ID) && !isNull(server.system.environment.S3_SECRET_KEY)) {
-			s3.accessKeyId=server.system.environment.S3_ACCESS_ID;
-			s3.awsSecretKey=server.system.environment.S3_SECRET_KEY;
-		}
-		// getting the credetials from the system variables
-		else if(!isNull(server.system.properties.S3_ACCESS_ID) && !isNull(server.system.properties.S3_SECRET_KEY)) {
-			s3.accessKeyId=server.system.properties.S3_ACCESS_ID;
-			s3.awsSecretKey=server.system.properties.S3_SECRET_KEY;
-		}
-		return s3;
+		return server.getTestService("s3");
 	}
 	
 	public function setUp(){
@@ -52,10 +52,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	public function testStoreAddACLBucket() localMode=true {
 		if(variables.s3Supported) {
 			try{
-				testStoreACL("s3://teststoreaddaclbucket",true,true);
+				testStoreACL("s3://lucee-testsuite-addaclbucket",true,true);
 			}
 			finally {
-	    		directoryDelete("s3://teststoreaddaclbucket",true);
+	    		directoryDelete("s3://lucee-testsuite-addaclbucket",true);
 	    	}
 		}
 	}
@@ -63,10 +63,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	public function testStoreSetACLBucket() localMode=true {
 		if(variables.s3Supported) {
 			try{
-				testStoreACL("s3://teststoresetaclbucket2",true,false);
+				testStoreACL("s3://lucee-testsuite-setaclbucket2",true,false);
 			}
 			finally {
-	    		directoryDelete("s3://teststoresetaclbucket2",true);
+	    		directoryDelete("s3://lucee-testsuite-setaclbucket2",true);
 	    	}
 		}
 	}
@@ -74,10 +74,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	public function testStoreAddACLObject() localMode=true {
 		if(variables.s3Supported) {
 			try{
-				testStoreACL("s3://teststoreaddaclobject/sub12234",false,true);
+				testStoreACL("s3://lucee-testsuite-addaclobject/sub12234",false,true);
 			}
 			finally {
-	    		directoryDelete("s3://teststoreaddaclobject",true);
+	    		directoryDelete("s3://lucee-testsuite-addaclobject",true);
 	    	}
 		}
 	}
@@ -85,10 +85,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	public function testStoreSetACLObject() localMode=true {
 		if(variables.s3Supported) {
 			try{
-				testStoreACL("s3://teststoresetaclobject2/sub12234",false,false);
+				testStoreACL("s3://lucee-testsuite-setaclobject2/sub12234",false,false);
 			}
 			finally {
-	    		directoryDelete("s3://teststoresetaclobject2",true);
+	    		directoryDelete("s3://lucee-testsuite-setaclobject2",true);
 	    	}
 		}
 	}
@@ -103,7 +103,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		    
 		    // check inital data
 			var acl=StoreGetACL(dir);
-			if(bucket) {
+			if(bucket || isNewS3()) {// newer S3 extension no longer set public read by default for objects
 				assertEquals(1,acl.len());
 				assertEquals("FULL_CONTROL",toList(acl,"permission"));
 				assertEquals("info",toList(acl,"displayName"));
@@ -125,7 +125,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 			    // test output
 			    var acl=StoreGetACL(dir);
 			    
-			    if(bucket) {
+			    if(bucket || isNewS3()) {// newer S3 extension no longer set public read by default for objects
 			    	assertEquals(2,acl.len());
 					assertEquals("FULL_CONTROL,WRITE",toList(acl,"permission"));
 					assertEquals("authenticated",toList(acl,"group"));

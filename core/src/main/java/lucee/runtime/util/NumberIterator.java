@@ -20,7 +20,7 @@ package lucee.runtime.util;
 
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.PageException;
-import lucee.runtime.op.Operator;
+import lucee.runtime.op.OpUtil;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Query;
 
@@ -157,7 +157,7 @@ public final class NumberIterator {
 	private static int pointer = 0;
 
 	/**
-	 * load a iterator
+	 * load an iterator
 	 * 
 	 * @param from
 	 * @param to iterate to
@@ -220,7 +220,7 @@ public final class NumberIterator {
 
 		Object startValue = query.get(KeyImpl.init(groupName));
 		while (ni.hasNext(true)) {
-			if (!Operator.equals(startValue, query.getAt(groupName, ni.next()), caseSensitive)) {
+			if (!OpUtil.equals(pc, startValue, query.getAt(groupName, ni.next()), caseSensitive)) {
 
 				ni.previous();
 				return _load(startIndex, ni.current());

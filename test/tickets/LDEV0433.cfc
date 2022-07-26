@@ -9,6 +9,14 @@
         return arr[1];
     }
 
+	function beforeAll(){
+		variables.original = getLocale();
+	}
+
+	function afterAll(){
+		setLocale(variables.original);
+	}
+
 	function run(){
 		describe( title="Test suite for LDEV-433", body=function(){
 			it(title="Checking lsNumberFormat with german locale", body=function(){
@@ -41,9 +49,8 @@
 				// formating rounded number to swiss locale
 				numberFormatObj = createObject("java", "java.text.NumberFormat");
 				numberFormatObj = numberFormatObj.getNumberInstance(localeObj.getDefault());
-				if(getJavaVersion()>=11) {
+				if( getJavaVersion() >= 11 ) {
 					expect(numberFormatObj.format(roundedVal)).toBe("12’346");
-
 				}
 				else {	
 					expect(numberFormatObj.format(roundedVal)).toBe("12'346");

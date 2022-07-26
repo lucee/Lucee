@@ -10,7 +10,7 @@
 	<data key="general.dialect.cfmlDesc">The following settings are specific to the CFML dialect. This settings have no influence on the Lucee dialect.</data>
 
 	<data key="services.update.type_manually">Manual</data>
-	<data key="services.update.locdesc">Define the URL where Lucee gets its updates. Typically &quot;http://www.lucee.ch&quot;</data>
+	<data key="services.update.locdesc">Define the URL where Lucee gets its updates. Typically &quot;https://www.lucee.org&quot;</data>
 	<data key="services.update.location">URL</data>
 	<data key="services.update.settitle">Properties</data>
 	<data key="services.update.type">Type</data>
@@ -63,9 +63,12 @@
 	<data key="services.update.downup">Upgrade / Downgrade</data>
 	<data key="services.update.downupBtn">Execute</data>
 	<data key="services.update.noUpdateDesc">There are currently no {type} available for your version.</data>
-	<data key="services.update.titleDesc">Upgrade (or Downgrade) your Lucee version ({version}) to any version * you like.</data>
+	<!-- <data key="services.update.titleDesc">Upgrade (or Downgrade) your Lucee version ({version}) to any version * you like.</data> -->
+	<data key="services.update.titleDesc">Upgrade or Downgrade the version by selecting from the drop-down box below.</data>
 	<data key="services.update.titleDesc2">You cannot downgrade below {min-version} because your lucee.jar has bundled this version. To go below this version you need to replace your lucee.jar with an older version.</data>
 	<data key="services.update.downgradeVersion">To downgrade your version below {minVersion} you need to replace your lucee.jar with an older version one you can download {url}. This is because the lucee.jars always bundles a version itself and it will always use at least that version.</data>
+	<data key="services.update.installExtns">All of the extensions are installed / Unable to connect to the update server to get the list of Available Extensions. Please check your Internet Connection.</data>
+	<data key="services.update.chkInternet">Unable to connect to the update server to get the list of Available Extensions. Please check your Internet Connection</data>
 
 	<data key="services.certificate.desc">List SSL Certificates for a specific Host or install them.</data>
 	<data key="services.certificate.host">Host</data>
@@ -114,6 +117,8 @@
 	<data key="mappings.trustedhead">Inspect</data>
 	<data key="mappings.introtext">Please note, that only pages processed by Lucee are aware of these mappings (cfm, cfml, cfc). If you want to use files not processed by Lucee for these special mapping directories, you have to add virtual mappings to these directories to your application server.</data>
 	<data key="mappings.physicalheaddescription">Path of the resource to map (absolute or relative to the webroot)</data>
+	<data key="mappings.archiveAlert">Make sure the File exist or not</data>
+	<data key="mappings.physicalAlert">Make sure the Directory exist or not</data>
 	<data key="customtags.physical">Resource</data>
 	<data key="customtags.archive">Archive</data>
 	<data key="customtags.primary">Primary</data>
@@ -144,7 +149,7 @@
 	<data key="CustomTags.PhysicalDesc">Directory path where the custom tags are located.</data>
 	<data key="CustomTags.archiveDesc">File path to a custom tag Lucee Archive (.ra or .ras).</data>
 	<data key="CustomTags.PrimaryDesc">Defines where Lucee does looks first for a requested custom tags</data>
-	<data key="CustomTags.trustedDesc">When does Lucee checks for changes in the source file for a already loaded custom tags</data>
+	<data key="CustomTags.trustedDesc">When does Lucee checks for changes in the source file for an already loaded custom tags</data>
 
 	<data key="security.customtagdescription">The custom tag settings can be changed in the &quot;web administrator&quot;</data>
 	<data key="security.tagobject">Tag CFObject / &lt;br/&gt;function CreateObject</data>
@@ -226,6 +231,7 @@
 	<data key="menu.server.regional">Regional</data>
 	<data key="overview.langPerf">Performance/Language</data>
 	<data key="menu.server.compiler">Language/Compiler</data>
+	<data key="menu.server.regex">Regex</data>
 	<data key="menu.server.security">Security</data>
 	<data key="menu.server.charset">Charset</data>
 	<data key="menu.server.scope">Scope</data>
@@ -235,6 +241,7 @@
 	<data key="menu.server.error">Error</data>
 	<data key="menu.server.logging">Logging</data>
 	<data key="menu.server.export">Export</data>
+	<data key="menu.server.proxy">Proxy</data>
 	<data key="menu.services.label">Services</data>
 	<data key="menu.services.gateway">Event Gateway</data>
 	<data key="menu.services.cache">Cache</data>
@@ -263,6 +270,7 @@
 	<data key="menu.debugging.logs">Logs</data>
 	<data key="menu.debugging.templates">Templates</data>
 	<data key="menu.debugging.settings">Settings</data>
+	<data key="menu.regex.label">Regex</data>
 	<data key="menu.security.label">Security</data>
 	<data key="menu.security.access">Access</data>
 	<data key="menu.security.password">Password</data>
@@ -305,6 +313,7 @@
 	<data key="ext.version">Version</data>
 	<data key="ext.appupdate">Update</data>
 	<data key="ext.created">Release Date</data>
+	<data key="ext.releaseStatus">Release Status</data>
 	<data key="ext.notinstalled">Not installed</data>
 	<data key="ext.codename">Code Name</data>
 	<data key="ext.stepof">Step {current} of {total}</data>
@@ -323,9 +332,12 @@
 	<data key="ext.uninstalldone">uninstall completed</data>
 	<data key="ext.provider">Provider</data>
 	<data key="ext.documentation">Documentation</data>
+	<data key="ext.projectUrl">Homepage</data>
+	<data key="ext.sourceUrl">Source Code</data>
+	<data key="ext.documentationUrl">Documentation</data>	
 	<data key="ext.installeddesc">These applications are already installed on the system.</data>
 	<data key="ext.installedServer">Installed in Server Administrator</data>
-	<data key="ext.installedServerDesc">This Extension is already installed in the Server Administrator, you have 2 options, you can overwrite it for the current web context by installing it here as well or you can change it in the Server Administrator what will affect all Web Contexts.</data>
+	<data key="ext.installedServerDesc">This Extension is already installed in the Server Administrator, you have 2 options, you can overwrite it for the current web context by installing it here as well or you can change it in the Server Administrator that will affect all Web Contexts.</data>
 	<data key="ext.free">Free</data>
 	<data key="ext.price">Price</data>
 	<data key="ext.licenseagreement">License agreement</data>
@@ -335,7 +347,7 @@
 	<data key="ext.nofileuploaded">You have not uploaded a file!&lt;br&gt;Please first choose a file.</data>
 	<data key="ext.extThumbnail">Extension thumbnail</data>
 	<data key="ext.msgAfterNotAgreed">Because you did not agree with the license, the extension was not installed.&lt;br&gt;In case you installed the extension before, you will need to uninstall it, if you do not wish to agree with it's license anymore.</data>
-	<data key="ext.extzipfile">Extension zip file</data>
+	<data key="ext.extzipfile">Extension file (.lex)</data>
 	<data key="ext.viewdetails">View details</data>
 	<data key="ext.theError">The error</data>
 	<data key="ext.errorFileUpload">The file could not be uploaded.</data>
@@ -367,6 +379,8 @@
 	<data key="ext.installDesc">Choose the version you would like to install.</data>
 	<data key="ext.upDownDesc">Update or downgrade your already installed version.</data>
 	<data key="ext.uninstallDesc">Uninstall this version</data>
+	<data key="ext.searchbox">There is no extension available with name</data>
+	<data key="ext.providerWarning">This extension is not provided by the Lucee Association Switzerland and does not neccessarily follow our guidelines. This extension is not reviewed by the Lucee Association Switzerland. For any sugestion to improve the Extension or any issue you encounter, please contact the author of the extension directly.</data>
 	<data key="Buttons.go">go</data>
 	<data key="Buttons.upDown">update / downgrade</data>
 
@@ -394,7 +408,7 @@
 	<data key="remote.adminpassworddesc.server">Password for the access to the remote Lucee Server Administrator</data>
 	<data key="remote.urlpath">Path</data>
 	<data key="remote.urlmissing">The remote client URL is missing</data>
-	<data key="remote.urlserverdesc">Remote Client Server (e.g. http://lucee.org)</data>
+	<data key="remote.urlserverdesc">Remote Client Server (e.g. https://lucee.org)</data>
 	<data key="remote.proxyport">Port</data>
 	<data key="remote.labelmissing">The label for the remote client is missing</data>
 	<data key="remote.proxypassword">Password</data>
@@ -635,7 +649,7 @@
 	<data key="Components.PhysicalDesc">Directory path where the components are located, this path should not include the package.</data>
 	<data key="Components.archiveDesc">File path to a components Lucee Archive (.lar).</data>
 	<data key="Components.PrimaryDesc">Defines where Lucee does looks first for a requested component</data>
-	<data key="Components.trustedDesc">When does Lucee checks for changes in the source file for a already loaded component</data>
+	<data key="Components.trustedDesc">When does Lucee checks for changes in the source file for an already loaded component</data>
 
 
 	<data key="login.passwordmissing">Please enter a value for the field password</data>
@@ -714,6 +728,8 @@ you can see the log result at the end of every request, if a debug template is d
 	<data key="debug.memorylogger">Memory logger</data>
 	<data key="debug.settings.queryUsage">Query Usage</data>
 	<data key="debug.settings.queryUsageDesc">Select this option to log the query usage information.</data>
+	<data key="debug.settings.template">Template</data>
+	<data key="debug.settings.templateDesc">Select this option log template activity for all cfm and cfc templates.</data>
 	<data key="debug.settings.database">Database Activity</data>
 	<data key="debug.settings.databaseDesc">Select this option to log the database activity for the SQL Query events and Stored Procedure events.</data>
 	<data key="debug.settings.exception"> Exceptions </data>
@@ -728,6 +744,9 @@ you can see the log result at the end of every request, if a debug template is d
 	<data key="debug.settings.timerDesc">Select this option to show timer event information. Timers let a developer track the execution time of the code between the start and end tags of the CFTIMER tag.</data>
 	<data key="debug.settings.implicitAccess">Implicit variable Access</data>
 	<data key="debug.settings.implicitAccessDesc">Select this option to log all accesses to scopes, queries and threads that happens implicit (cascaded).</data>
+	<data key="debug.settings.thread">Debug Threads</data>
+	<data key="debug.settings.threadDesc">Select this option to also log threads.</data>
+	<data key="debug.settings.threadAlert">Depending on your application, this may produce a large volume of debug entries.</data>
 
 	<!-- debugging.logs -->
 	<data key="debug.path">Path</data>
@@ -742,7 +761,7 @@ you can see the log result at the end of every request, if a debug template is d
 	<data key="debug.pathRestriction">Path Restriction</data>
 	<data key="debug.pathRestrictionDesc">Path that should not be outputted, seperated path by line break.</data>
 	<data key="debug.settingTitle">Settings</data>
-	<data key="debug.settingDesc">Define how Lucee Log the debugging information.</data>
+	<data key="debug.settingDesc">Configure the size of the debug logs.</data>
 	<data key="debug.outputTitle">Output</data>
 	<data key="debug.outputDesc">Debugging information logged by Lucee.</data>
 	<data key="debug.filter">Filter</data>
@@ -750,9 +769,15 @@ you can see the log result at the end of every request, if a debug template is d
 	<data key="debug.filterPath">Only Outputs records where the path match the following pattern.</data>
 	<data key="debug.detailTitle">Detail</data>
 	<data key="debug.detailDesc">Detailed information about a single Request</data>
+	<data key="debug.switchTemplate">Switch Debug Template</data>
+	<data key="debug.selectDebugTemplate">Select Debug Template</data>
 
 	<!-- debugging.settings.cfm -->
 	<data key="debug.settings.desc">Enable certain logging options for Lucee</data>
+
+	<!-- resources.rest.cfm -->
+	<data key="mapping.virtual">You need to enter the virtual name</data>
+	<data key="mapping.physical">You need to enter the physical path</data>
 
 	<!-- debugging.templates.cfm -->
 	<data key="debug.label">Label</data>
@@ -766,7 +791,7 @@ you can see the log result at the end of every request, if a debug template is d
 	- a single ip, like ""127.0.0.1"" or ""0:0:0:0:0:0:0:1%0""
 	- an ip with wildcards like ""127.0.0.*"", in this case all ips between ""127.0.0.0"" and ""127.0.0.255"" are valid
 	- an ip range like ""127.0.0.1-127.0.0.10"", in this case all ips between ""127.0.0.1"" and ""127.0.0.10"" are valid
-	You can define IPv4 or IPv6 IPs, a IPv4 can not be converted to a IPv6 and visa versa.</data>
+	You can define IPv4 or IPv6 IPs, an IPv4 can not be converted to an IPv6 and visa versa.</data>
 	<data key="debug.ipRangeMIssing">Missing IP Range definition</data>
 	<data key="debug.addMyIp">Add my IP</data>
 	<data key="debug.list.serverTitle">Readonly Debug Templates</data>
@@ -822,7 +847,7 @@ you can see the log result at the end of every request, if a debug template is d
 	<data key="scopes.sessiontimeoutdescription">Sets the amount of time Lucee will keep the session scope alive. This behaviour can be overridden by the tag cfapplication.</data>
 	<data key="scopes.sessiontype_application">Application</data>
 	<data key="scopes.clientcookies">Client cookies</data>
-	<data key="scopes.timeoutendvalue">timeout must have a Integer Value</data>
+	<data key="scopes.timeoutendvalue">timeout must have an Integer Value</data>
 	<data key="scopes.mergeurlformdescription">This setting defines if the scopes URL and Form will be merged together (CFML Default is false). If a key already exists in Form and URL Scopes, the value from the Form Scope is used.</data>
 	<data key="scopes.timeoutminutesvalue">Value minutes for </data>
 	<data key="scopes.applicationtimeoutdescription">Sets the amount of time Lucee will keep the application scope alive. This behaviour can be overridden by the tag cfapplication.</data>
@@ -888,6 +913,7 @@ you can see the log result at the end of every request, if a debug template is d
 	<data key="compiler.nullSupportPartial">Partial Support (CFML Default)</data>
 	<data key="compiler.nullSupportPartialDesc">Lucee has only a partial null support.</data>
 
+	<data key="setting.regex">Lucee regular expression (regex) settings.</data>
 	<data key="setting.compiler">Lucee compiler settings, this affects how the Lucee Compiler parses the source code. Changing this settings flushes all existing class files and triggers a recompilation.</data>
 	<data key="setting.dotNotation">Key case</data>
 	<!-- server.compiler.cfm -->
@@ -994,6 +1020,7 @@ sct[""bracketNotation""] --> keyname: "bracketNotation"</data>
 	<data key="buttons.agree">agree</data>
 	<data key="buttons.dontagree">I do not agree</data>
 	<data key="buttons.submit">submit</data>
+	<data key="buttons.reload">reload</data>
 	<data key="buttons.stop">stop</data>
 	<data key="buttons.purge">purge</data>
 	<data key="buttons.ok">OK</data>
@@ -1105,6 +1132,8 @@ sct[""bracketNotation""] --> keyname: "bracketNotation"</data>
 	<data key="schedule.executiondesconce">This task is executed only once at a specific date and time.</data>
 	<data key="schedule.usernamedescription">Username to access the URL if it is protected by authentication</data>
 	<data key="schedule.startdatedesc">Defines the date when the task should be executed the first time.</data>
+	<data key="schedule.useragent">User Agent</data>
+	<data key="schedule.useragentdescription">Custom User Agent for the http(s) request (some firewalls block the CFSCHEDULE user agent)</data>
 	<data key="settings.datasourcesettings">Settings</data>
 	<data key="settings.datasource.databaseName">Database (Name/Version)</data>
 	<data key="settings.datasource.driverName">Driver (Name/Version)</data>
@@ -1145,13 +1174,20 @@ sct[""bracketNotation""] --> keyname: "bracketNotation"</data>
 	<data key="settings.dbValidateDesc">Validate the connection before use (only works with JDBC 4.0 Drivers)</data>
 	<data key="settings.dbconnlimit">Connection limit (max)</data>
 	<data key="settings.dbconntimeoutdesc">Define a time in minutes for how long a connection is kept alive before it will be closed</data>
+
+	<data key="settings.dbidletimeout">Connection idle timeout (in minutes)</data>
+	<data key="settings.dbidletimeoutdesc">Define how long an idle connection will be kept alive, before being closed</data>
+		
+	<data key="settings.dblivetimeout">Connection timeout</data>
+	<data key="settings.dblivetimeoutdesc">Define how long a connection will be kept alive, before being closed</data>
+
 	<data key="settings.dbportdesc">The port to connect the database</data>
 	<data key="settings.dbconnlimitdesc">Restricts the maximum number of simultaneous connections at one time</data>
 	<data key="settings.listdatasourcesdescserver">Datasources created here are available for ALL web contexts to use. The settings for these datasources can only be modified in this Server Administrator area.</data>
 	<data key="settings.dballowed">Allowed operations</data>
 	<data key="Settings.dbStorage">Storage</data>
 	<data key="Settings.openConn">Open Connections</data>
-	<data key="Settings.dbStorageDesc">Allow to use this datasource as client/session storage.</data>
+	<data key="Settings.dbStorageDesc">Allow using this datasource for client/session/log storage.</data>
 	<data key="settings.dbport">Port</data>
 	<data key="settings.preservesinglequotesdescription">Preserve single quotes (&quot;) in the SQL defined with the tag cfquery</data>
 	<data key="settings.dbconntimeout">Connection timeout (in minutes)</data>
@@ -1263,6 +1299,7 @@ If the timezone of your Lucee instance and your database is different, this can 
 	<data key="overview.Docs">Documentation</data>
 	<data key="overview.DocsDesc">If you have any questions about Lucee please take a look at the documentation in the first instance.</data>
 	<data key="overview.onlineDocsLink">Online Documentation</data>
+	<data key="overview.installDocsLink">Click to install - Lucee Documentation Extension</data>
 	<data key="overview.localRefLink">Local Reference</data>
 	<data key="overview.issuetracker">Issue Tracker</data>
 	<data key="overview.issuetrackerDesc">If you think you've found a bug, please take the time to report it via our bug tracking system.</data>
@@ -1287,11 +1324,11 @@ If the timezone of your Lucee instance and your database is different, this can 
 	<data key="overview.mailinglist">Mailing list</data>
 	<data key="overview.mailinglistDesc">The mailing list is the focus of our community support program - help for users by users. </data>
 
-	<data key="overview.warning.warningMsg">The REST Servlet is not configured in your enviroment!</data>	
+	<data key="overview.warning.warningMsg">The REST Servlet is not configured in your environment!</data>	
 	<data key="overview.warning.JavaVersion">You are running Lucee with Java</data>	
 	<data key="overview.warning.JavaVersionNotSupport"> Lucee does not formally support this version of Java. Consider updating to the latest Java version for security and performance reasons.</data>
 	<data key="overview.warning.Java7NotSupport">Java 7 has been End-of-Life'd since April 2015.</data>
-	<data key="overview.contexts.desc">You can label your web contexts here, so they are more clear distinguishable for use with extensions etc. </data>
+	<data key="overview.contexts.desc">You can label your web contexts here, so they are more clear distinguishable for use with extensions etc. The default label of a web context is the MD5 hash of its webroot.</data>
 
 	<data key="overview.professional">Professional Support</data>
 	<data key="overview.professionalDesc">For many organizations and individuals, the security of a formal paid support contract is a necessity and we're pleased to offer four standard packages as well as the flexibility to create a custom package should your needs go beyond our standard offerings.</data>
@@ -1539,6 +1576,7 @@ If the timezone of your Lucee instance and your database is different, this can 
 	<data key="settings.gateway.startupModeDisabled">Disabled</data>
 
 	<data key="setting.general.web">Hier sehen Sie eine Übersicht alle Settings welche Einfluss auf das Verhalten von Lucee haben, sie können diese nach vordefinierten kriterien anpassen</data>
+	<data key="setting.general.server">Here you see an overview of all settings that have an influence on the behavior of Lucee, you can adjust them according to predefined criteria</data>
 	<data key="setting.general.compatibility">Compatibility</data>
 	<data key="setting.general.compatibilityDesc">Mit diesem Wert werden alle Settings so gesetzt, dass sie möglichst dem CFML2009 Standard entsprechen und mit Implementationen anderer Hersteller kombatibel sind.</data>
 	<data key="setting.general.strict">Strict</data>

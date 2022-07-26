@@ -17,16 +17,15 @@
  */
 package lucee.runtime.osgi;
 
-import static org.apache.commons.collections4.map.AbstractReferenceMap.ReferenceStrength.SOFT;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.ref.SoftReference;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.jar.JarFile;
 
-import org.apache.commons.collections4.map.ReferenceMap;
 import org.osgi.framework.BundleException;
 
 import lucee.commons.io.IOUtil;
@@ -36,8 +35,8 @@ public class BundleFile extends BundleInfo {
 
 	private static final long serialVersionUID = -7094382262249367193L;
 	private File file;
-	private static Map<String, BundleFile> files = new ReferenceMap<String, BundleFile>(SOFT, SOFT);
-	private Map<String, Boolean> classes = new ReferenceMap<String, Boolean>(SOFT, SOFT);
+	private static Map<String, SoftReference<BundleFile>> files = new ConcurrentHashMap<String, SoftReference<BundleFile>>();
+	private Map<String, SoftReference<Boolean>> classes = new ConcurrentHashMap<String, SoftReference<Boolean>>();
 
 	public static BundleFile getInstance(Resource file, boolean onlyValidBundles) throws IOException, BundleException {
 		BundleFile bi = getInstance(toFileResource(file));
@@ -45,15 +44,25 @@ public class BundleFile extends BundleInfo {
 		return bi;
 	}
 
+	public static BundleFile getInstance(Resource file, BundleFile defaultValue) {
+		try {
+			return getInstance(toFileResource(file));
+		}
+		catch (Exception e) {
+			return defaultValue;
+		}
+	}
+
 	public static BundleFile getInstance(Resource file) throws IOException, BundleException {
 		return getInstance(toFileResource(file));
 	}
 
 	public static BundleFile getInstance(File file) throws IOException, BundleException {
-		BundleFile bi = files.get(file.getAbsolutePath());
+		SoftReference<BundleFile> tmp = files.get(file.getAbsolutePath());
+		BundleFile bi = tmp == null ? null : tmp.get();
 		if (bi == null) {
 			bi = new BundleFile(file);
-			files.put(file.getAbsolutePath(), bi);
+			files.put(file.getAbsolutePath(), new SoftReference<BundleFile>(bi));
 		}
 		return bi;
 	}
@@ -73,12 +82,13 @@ public class BundleFile extends BundleInfo {
 
 	public boolean hasClass(String className) throws IOException {
 		className = className.replace('.', '/') + ".class";
-		Boolean b = classes.get(className);
+		SoftReference<Boolean> tmp = classes.get(className);
+		Boolean b = tmp == null ? null : tmp.get();
 		if (b != null) return b.booleanValue();
 		JarFile jar = new JarFile(file);
 		try {
 			b = jar.getEntry(className) != null;
-			classes.put(className, b);
+			classes.put(className, new SoftReference<Boolean>(b));
 			return b.booleanValue();
 		}
 		finally {
@@ -87,12 +97,12 @@ public class BundleFile extends BundleInfo {
 	}
 
 	/**
-	 * only return a instance if the Resource is a valid bundle, otherwise it returns null
+	 * only return an instance if the Resource is a valid bundle, otherwise it returns null
 	 * 
 	 * @param res
 	 * @return
 	 * 
-	 * 		public static BundleFile newInstance(Resource res) {
+	 *         public static BundleFile newInstance(Resource res) {
 	 * 
 	 *         try { BundleFile bf = new BundleFile(res); if (bf.isBundle()) return bf; } catch
 	 *         (Throwable t) { ExceptionUtil.rethrowIfNecessary(t); }

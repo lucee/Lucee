@@ -34,7 +34,7 @@ public interface RequestListener {
 	 * @param pc page context of the current request
 	 * @param requestedPage original requested pagesource
 	 * @return pagesource that should be use by the ApplicationListener
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 */
 	public PageSource execute(PageContext pc, PageSource requestedPage) throws PageException;
 

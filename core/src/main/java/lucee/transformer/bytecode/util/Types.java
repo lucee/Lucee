@@ -50,6 +50,7 @@ import lucee.runtime.PageSource;
 import lucee.runtime.component.ImportDefintion;
 import lucee.runtime.component.ImportDefintionImpl;
 import lucee.runtime.component.Member;
+import lucee.runtime.component.StaticStruct;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.config.Identification;
@@ -63,7 +64,7 @@ import lucee.runtime.functions.FunctionHandlerPool;
 import lucee.runtime.interpreter.VariableInterpreter;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Constants;
-import lucee.runtime.op.Operator;
+import lucee.runtime.op.OpUtil;
 import lucee.runtime.security.SecurityManager;
 import lucee.runtime.tag.TagUtil;
 import lucee.runtime.type.Array;
@@ -100,17 +101,18 @@ public final class Types {
 
 	// TODO muss wohl alle Prim typen sein plus Object
 	public static final int _BOOLEAN = 1;
-	public static final int _DOUBLE = 2;
+	public static final int _NUMBER = 2;
 	private static final int _SHORT = 7;
 
 	public static final int _OBJECT = 0;
 	public static final int _STRING = 3;
 
-	private static final int _CHAR = _DOUBLE;
-	private static final int _FLOAT = _DOUBLE;
-	private static final int _LONG = _DOUBLE;
-	private static final int _INT = _DOUBLE;
-	private static final int _BYTE = _DOUBLE;
+	private static final int _CHAR = _NUMBER;
+	private static final int _FLOAT = _NUMBER;
+	private static final int _LONG = _NUMBER;
+	private static final int _INT = _NUMBER;
+	private static final int _BYTE = _NUMBER;
+	private static final int _DOUBLE = _NUMBER;
 
 	// public static final int SIZE_INT_TYPES=10;
 
@@ -145,6 +147,7 @@ public final class Types {
 
 	public static final Type SHORT = Type.getType(Short.class);
 	public static final Type SHORT_VALUE = Type.getType(short.class);
+	public static final Type NUMBER = Type.getType(Number.class);
 
 	public static final Type COMPONENT = Type.getType(lucee.runtime.Component.class);
 
@@ -200,8 +203,7 @@ public final class Types {
 	public static final Type STRUCT = Type.getType(lucee.runtime.type.Struct.class);
 	public static final Type STRUCT_IMPL = Type.getType(lucee.runtime.type.StructImpl.class);
 
-	public static final Type OPERATOR = Type.getType(Operator.class);
-
+	public static final Type OP_UTIL = Type.getType(OpUtil.class);
 	public static final Type CONFIG = Type.getType(Config.class);
 	public static final Type CONFIG_WEB = Type.getType(ConfigWeb.class);
 
@@ -274,6 +276,7 @@ public final class Types {
 	public static final Type BIF = Type.getType(lucee.runtime.ext.function.BIF.class);
 	public static final Type DATA_MEMBER = Type.getType(lucee.runtime.component.DataMember.class);
 	public static final Type EXPRESSION_EXCEPTION = Type.getType(ExpressionException.class);
+	public static final Type STATIC_STRUCT = Type.getType(StaticStruct.class);
 
 	/**
 	 * translate sString classname to a real type
@@ -429,25 +432,6 @@ public final class Types {
 		if ("byte".equals(className)) return true;
 
 		return false;
-	}
-
-	public static int getType(Type type) {
-		String className = type.getClassName();
-		if (className.indexOf('.') != -1) {
-			if ("java.lang.String".equalsIgnoreCase(className)) return _STRING;
-			return _OBJECT;
-		}
-
-		if ("boolean".equals(className)) return _BOOLEAN;
-		if ("short".equals(className)) return _SHORT;
-		if ("float".equals(className)) return _FLOAT;
-		if ("long".equals(className)) return _LONG;
-		if ("double".equals(className)) return _DOUBLE;
-		if ("char".equals(className)) return _CHAR;
-		if ("int".equals(className)) return _INT;
-		if ("byte".equals(className)) return _BYTE;
-
-		return _OBJECT;
 	}
 
 	public static Type toRefType(Type type) {

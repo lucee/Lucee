@@ -18,11 +18,9 @@
  */
 package lucee.runtime.video;
 
-import static org.apache.commons.collections4.map.AbstractReferenceMap.ReferenceStrength.SOFT;
-
+import java.lang.ref.SoftReference;
 import java.util.Map;
-
-import org.apache.commons.collections4.map.ReferenceMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.type.file.FileResource;
@@ -40,10 +38,11 @@ import lucee.runtime.op.Caster;
 
 public class VideoUtilImpl implements VideoUtil {
 
-	private static Map<String, int[]> sizes = new ReferenceMap<String, int[]>(SOFT, SOFT);
+	private static Map<String, SoftReference<int[]>> sizes = new ConcurrentHashMap<String, SoftReference<int[]>>();
 	private static VideoUtilImpl instance = new VideoUtilImpl();
 
-	private VideoUtilImpl() {}
+	private VideoUtilImpl() {
+	}
 
 	public static VideoUtilImpl getInstance() {
 		return instance;
@@ -189,7 +188,8 @@ public class VideoUtilImpl implements VideoUtil {
 		// get from casche
 		String key = Hash.call(pc, sb.toString());
 
-		int[] ci = (int[]) sizes.get(key);
+		SoftReference<int[]> tmp = sizes.get(key);
+		int[] ci = tmp == null ? null : tmp.get();
 		if (ci != null) {
 			return ci;
 		}
@@ -224,7 +224,8 @@ public class VideoUtilImpl implements VideoUtil {
 		else {
 			width = procent2pixel(strWidth, w);
 			height = procent2pixel(strHeight, h);
-			if (width != -1 && height != -1) {}
+			if (width != -1 && height != -1) {
+			}
 			else if (width == -1 && height == -1) {
 				width = w;
 				height = h;
@@ -233,7 +234,8 @@ public class VideoUtilImpl implements VideoUtil {
 			else width = calucalteFromOther(w, h, height);
 
 		}
-		sizes.put(key, rtn = new int[] { width, height });
+		rtn = new int[] { width, height };
+		sizes.put(key, new SoftReference<int[]>(rtn));
 		return rtn;
 	}
 

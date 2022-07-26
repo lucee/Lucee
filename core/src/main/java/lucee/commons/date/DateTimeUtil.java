@@ -119,20 +119,20 @@ public abstract class DateTimeUtil {
 		tz = ThreadLocalPageContext.getTimeZone(tz);
 		year = toYear(year);
 
-		if (month < 1) throw new DateTimeException("month number [" + month + "] must be at least 1");
-		if (month > 12) throw new DateTimeException("month number [" + month + "] can not be greater than 12");
-		if (day < 1) throw new DateTimeException("day number [" + day + "] must be at least 1");
-		if (hour < 0) throw new DateTimeException("hour number [" + hour + "] must be at least 0");
-		if (minute < 0) throw new DateTimeException("minute number [" + minute + "] must be at least 0");
-		if (second < 0) throw new DateTimeException("second number [" + second + "] must be at least 0");
-		if (milliSecond < 0) throw new DateTimeException("milli second number [" + milliSecond + "] must be at least 0");
+		if (month < 1) throw new DateTimeException("Month number [" + month + "] must be at least 1");
+		if (month > 12) throw new DateTimeException("Month number [" + month + "] can not be greater than 12");
+		if (day < 1) throw new DateTimeException("Day number [" + day + "] must be at least 1");
+		if (hour < 0) throw new DateTimeException("Hour number [" + hour + "] must be at least 0");
+		if (minute < 0) throw new DateTimeException("Minute number [" + minute + "] must be at least 0");
+		if (second < 0) throw new DateTimeException("Second number [" + second + "] must be at least 0");
+		if (milliSecond < 0) throw new DateTimeException("Milli second number [" + milliSecond + "] must be at least 0");
 
-		if (hour > 24) throw new DateTimeException("hour number [" + hour + "] can not be greater than 24");
-		if (minute > 59) throw new DateTimeException("minute number [" + minute + "] can not be greater than 59");
-		if (second > 59) throw new DateTimeException("second number [" + second + "] can not be greater than 59");
+		if (hour > 24) throw new DateTimeException("Hour number [" + hour + "] can not be greater than 24");
+		if (minute > 59) throw new DateTimeException("Minute number [" + minute + "] can not be greater than 59");
+		if (second > 59) throw new DateTimeException("Second number [" + second + "] can not be greater than 59");
 
 		if (daysInMonth(year, month) < day)
-			throw new DateTimeException("day number [" + day + "] can not be greater than " + daysInMonth(year, month) + " when month is " + month + " and year " + year);
+			throw new DateTimeException("Day number [" + day + "] can not be greater than " + daysInMonth(year, month) + " when month is " + month + " and year " + year);
 
 		return _toTime(tz, year, month, day, hour, minute, second, milliSecond);
 	}
@@ -197,7 +197,7 @@ public abstract class DateTimeUtil {
 	 * @throws ExpressionException
 	 */
 	public boolean toBooleanValue(DateTime dateTime) throws DateTimeException {
-		throw new DateTimeException("can't cast Date [" + DateTimeUtil.toHTTPTimeString(dateTime, false) + "] to boolean value");
+		throw new DateTimeException("Can't cast Date [" + DateTimeUtil.toHTTPTimeString(dateTime, false) + "] to boolean value");
 	}
 
 	public double toDoubleValue(DateTime dateTime) {

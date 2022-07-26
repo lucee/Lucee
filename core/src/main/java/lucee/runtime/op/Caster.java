@@ -42,6 +42,7 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
@@ -53,6 +54,7 @@ import java.util.TimeZone;
 import java.util.Vector;
 import java.util.concurrent.ExecutionException;
 
+import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
@@ -78,6 +80,7 @@ import lucee.runtime.ComponentSpecificAccess;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.coder.Base64Coder;
+import lucee.runtime.coder.CoderException;
 import lucee.runtime.component.Member;
 import lucee.runtime.component.Property;
 import lucee.runtime.component.PropertyImpl;
@@ -92,6 +95,7 @@ import lucee.runtime.exp.NativeException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageExceptionBox;
 import lucee.runtime.exp.PageRuntimeException;
+import lucee.runtime.exp.RequestTimeoutException;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.functions.file.FileStreamWrapper;
 import lucee.runtime.i18n.LocaleFactory;
@@ -99,6 +103,7 @@ import lucee.runtime.image.ImageUtil;
 import lucee.runtime.interpreter.CFMLExpressionInterpreter;
 import lucee.runtime.interpreter.VariableInterpreter;
 import lucee.runtime.java.JavaObject;
+import lucee.runtime.listener.AppListenerUtil;
 import lucee.runtime.op.date.DateCaster;
 import lucee.runtime.op.validators.ValidateCreditCard;
 import lucee.runtime.reflection.Reflector;
@@ -126,6 +131,7 @@ import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.UDF;
 import lucee.runtime.type.dt.DateTime;
 import lucee.runtime.type.dt.DateTimeImpl;
+import lucee.runtime.type.dt.Time;
 import lucee.runtime.type.dt.TimeSpan;
 import lucee.runtime.type.dt.TimeSpanImpl;
 import lucee.runtime.type.scope.ObjectStruct;
@@ -139,10 +145,11 @@ import lucee.runtime.type.wrap.StructAsArray;
 import lucee.runtime.util.ForEachUtil;
 
 /**
- * This class can cast object of one type to a other by CFML rules
+ * This class can cast object of one type to another by CFML rules
  */
 public final class Caster {
-	private Caster() {}
+	private Caster() {
+	}
 	// static Map calendarsMap=new ReferenceMap(ReferenceMap.SOFT,ReferenceMap.SOFT);
 
 	private static final int NUMBERS_MIN = 0;
@@ -201,7 +208,7 @@ public final class Caster {
 	}
 
 	/**
-	 * cast a int value to a boolean value (primitive value type)
+	 * cast an int value to a boolean value (primitive value type)
 	 * 
 	 * @param i int value to cast
 	 * @return casted boolean value
@@ -230,6 +237,10 @@ public final class Caster {
 		return d != 0;
 	}
 
+	public static boolean toBooleanValue(Number n) {
+		return n.intValue() != 0;
+	}
+
 	/**
 	 * cast a double value to a boolean value (primitive value type)
 	 * 
@@ -241,7 +252,7 @@ public final class Caster {
 	}
 
 	/**
-	 * cast a Object to a boolean value (primitive value type)
+	 * cast an Object to a boolean value (primitive value type)
 	 * 
 	 * @param o Object to cast
 	 * @return casted boolean value
@@ -268,7 +279,7 @@ public final class Caster {
 	}
 
 	/**
-	 * cast a Object to a boolean value (primitive value type)
+	 * cast an Object to a boolean value (primitive value type)
 	 * 
 	 * @param str String to cast
 	 * @return casted boolean value
@@ -292,23 +303,23 @@ public final class Caster {
 	}
 
 	/**
-	 * cast a Object to a Double Object (reference Type)
+	 * cast an Object to a Double Object (reference Type)
 	 * 
 	 * @param f Object to cast
 	 * @return casted Double Object
 	 * @throws PageException
 	 */
 	public static Double toDouble(float f) {
-		return new Double(f);
+		return Double.valueOf(f);
 
 	}
 
 	public static Double toDouble(Float f) {
-		return new Double(f.doubleValue());
+		return Double.valueOf(f.doubleValue());
 	}
 
 	/**
-	 * cast a Object to a Double Object (reference Type)
+	 * cast an Object to a Double Object (reference Type)
 	 * 
 	 * @param o Object to cast
 	 * @return casted Double Object
@@ -316,12 +327,48 @@ public final class Caster {
 	 */
 	public static Double toDouble(Object o) throws PageException {
 		if (o instanceof Double) return (Double) o;
-		return new Double(toDoubleValue(o));
+		return Double.valueOf(toDoubleValue(o));
 
 	}
 
+	public static Number toNumber(PageContext pc, Object o) throws PageException {
+		if (o instanceof Number) return (Number) o;
+		if (AppListenerUtil.getPreciseMath(pc, null)) return toBigDecimal(o);
+		return Double.valueOf(toDoubleValue(o));
+
+	}
+
+	public static Number toNumber(Object o) throws PageException {
+		if (o instanceof Number) return (Number) o;
+		if (AppListenerUtil.getPreciseMath(null, null)) return toBigDecimal(o);
+		return Double.valueOf(toDoubleValue(o));
+
+	}
+
+	public static Number toNumber(boolean b) throws PageException {
+		if (AppListenerUtil.getPreciseMath(null, null)) return b ? BigDecimal.ONE : BigDecimal.ZERO;
+		return Double.valueOf(b ? 1d : 0d);
+
+	}
+
+	public static Number toNumber(double d) throws PageException {
+		if (AppListenerUtil.getPreciseMath(null, null)) return BigDecimal.valueOf(d);
+		return Double.valueOf(d);
+
+	}
+
+	public static Number toNumber(String str) throws PageException {
+		if (AppListenerUtil.getPreciseMath(null, null)) return toBigDecimal(str);
+		return toDouble(str);
+	}
+
+	public static Number toNumber(PageContext pc, String str) throws PageException {
+		if (AppListenerUtil.getPreciseMath(pc, null)) return toBigDecimal(str);
+		return toDouble(str);
+	}
+
 	/**
-	 * cast a Object to a Double Object (reference Type)
+	 * cast an Object to a Double Object (reference Type)
 	 * 
 	 * @param str string to cast
 	 * @return casted Double Object
@@ -333,7 +380,7 @@ public final class Caster {
 	}
 
 	/**
-	 * cast a Object to a Double Object (reference Type)
+	 * cast an Object to a Double Object (reference Type)
 	 * 
 	 * @param o Object to cast
 	 * @param defaultValue
@@ -358,7 +405,7 @@ public final class Caster {
 	private static final Object DEFAULT = new Object();
 	static {
 		for (int i = 0; i < MAX_SMALL_DOUBLE; i++)
-			smallDoubles[i] = new Double(i);
+			smallDoubles[i] = Double.valueOf(i);
 	}
 
 	public static Double toDouble(double d) {
@@ -366,7 +413,11 @@ public final class Caster {
 			int i;
 			if ((i = ((int) d)) == d) return smallDoubles[i];
 		}
-		return new Double(d);
+		return Double.valueOf(d);
+	}
+
+	public static Double toDouble(Number n) {
+		return n.doubleValue();
 	}
 
 	/**
@@ -376,11 +427,15 @@ public final class Caster {
 	 * @return casted Double Object
 	 */
 	public static Double toDouble(boolean b) {
-		return new Double(b ? 1 : 0);
+		return Double.valueOf(b ? 1 : 0);
+	}
+
+	public static Double toDouble(Boolean b) {
+		return Double.valueOf(b ? 1 : 0);
 	}
 
 	/**
-	 * cast a Object to a double value (primitive value Type)
+	 * cast an Object to a double value (primitive value Type)
 	 * 
 	 * @param o Object to cast
 	 * @return casted double value
@@ -408,7 +463,7 @@ public final class Caster {
 	}
 
 	/**
-	 * cast a Object to a double value (primitive value Type)
+	 * cast an Object to a double value (primitive value Type)
 	 * 
 	 * @param str String to cast
 	 * @return casted double value
@@ -494,7 +549,10 @@ public final class Caster {
 			else {
 				rtn *= 10;
 				rtn += toDigit(curr);
-				if (hasDot) deep *= 10;
+				if (hasDot) {
+					deep *= 10;
+					if (deep > 1000000000000000000000D) return Double.parseDouble(str); // patch for LDEV-2654
+				}
 
 			}
 		}
@@ -523,7 +581,7 @@ public final class Caster {
 	}
 
 	/**
-	 * cast a Object to a double value (primitive value Type)
+	 * cast an Object to a double value (primitive value Type)
 	 * 
 	 * @param o Object to cast
 	 * @param defaultValue if can't cast return this value
@@ -532,7 +590,7 @@ public final class Caster {
 	 */
 
 	/**
-	 * cast a Object to a double value (primitive value Type)
+	 * cast an Object to a double value (primitive value Type)
 	 * 
 	 * @param o Object to cast
 	 * @param defaultValue if can't cast return this value
@@ -555,7 +613,7 @@ public final class Caster {
 	}
 
 	/**
-	 * cast a Object to a double value (primitive value Type), if can't return Double.NaN
+	 * cast an Object to a double value (primitive value Type), if can't return Double.NaN
 	 * 
 	 * @param str String to cast
 	 * @param defaultValue if can't cast return this value
@@ -657,6 +715,10 @@ public final class Caster {
 		return d;
 	}
 
+	public static double toDoubleValue(Number n) {
+		return n.doubleValue();
+	}
+
 	public static double toDoubleValue(float f) {
 		return f;
 	}
@@ -675,6 +737,10 @@ public final class Caster {
 		return b ? 1 : 0;
 	}
 
+	public static double toDoubleValue(Boolean b) {
+		return b ? 1 : 0;
+	}
+
 	/**
 	 * cast a char value to a double value (primitive value type)
 	 * 
@@ -686,7 +752,7 @@ public final class Caster {
 	}
 
 	/**
-	 * cast a Object to a int value (primitive value type)
+	 * cast an Object to an int value (primitive value type)
 	 * 
 	 * @param o Object to cast
 	 * @return casted int value
@@ -709,7 +775,7 @@ public final class Caster {
 	}
 
 	/**
-	 * cast a Object to a int value (primitive value type)
+	 * cast an Object to an int value (primitive value type)
 	 * 
 	 * @param o Object to cast
 	 * @param defaultValue
@@ -738,7 +804,7 @@ public final class Caster {
 	}
 
 	/**
-	 * cast a String to a int value (primitive value type)
+	 * cast a String to an int value (primitive value type)
 	 * 
 	 * @param str String to cast
 	 * @return casted int value
@@ -749,7 +815,7 @@ public final class Caster {
 	}
 
 	/**
-	 * cast a Object to a double value (primitive value Type), if can't return Integer.MIN_VALUE
+	 * cast an Object to a double value (primitive value Type), if can't return Integer.MIN_VALUE
 	 * 
 	 * @param str String to cast
 	 * @param defaultValue
@@ -760,7 +826,7 @@ public final class Caster {
 	}
 
 	/**
-	 * cast a double value to a int value (primitive value type)
+	 * cast a double value to an int value (primitive value type)
 	 * 
 	 * @param d double value to cast
 	 * @return casted int value
@@ -769,8 +835,12 @@ public final class Caster {
 		return (int) d;
 	}
 
+	public static int toIntValue(Number n) {
+		return n.intValue();
+	}
+
 	/**
-	 * cast a int value to a int value (do nothing)
+	 * cast an int value to an int value (do nothing)
 	 * 
 	 * @param i int value to cast
 	 * @return casted int value
@@ -780,7 +850,7 @@ public final class Caster {
 	}
 
 	/**
-	 * cast a boolean value to a int value (primitive value type)
+	 * cast a boolean value to an int value (primitive value type)
 	 * 
 	 * @param b boolean value to cast
 	 * @return casted int value
@@ -789,8 +859,12 @@ public final class Caster {
 		return b ? 1 : 0;
 	}
 
+	public static int toIntValue(Boolean b) {
+		return b ? 1 : 0;
+	}
+
 	/**
-	 * cast a char value to a int value (primitive value type)
+	 * cast a char value to an int value (primitive value type)
 	 * 
 	 * @param c char value to cast
 	 * @return casted int value
@@ -821,6 +895,10 @@ public final class Caster {
 		return toDecimal(Caster.toDoubleValue(value));
 	}
 
+	public static String toDecimal(Object value, boolean separator) throws PageException {
+		return toDecimal(Caster.toDoubleValue(value), separator);
+	}
+
 	/**
 	 * cast a double to a decimal value (String:xx.xx)
 	 * 
@@ -830,6 +908,10 @@ public final class Caster {
 	 */
 	public static String toDecimal(String value) throws PageException {
 		return toDecimal(Caster.toDoubleValue(value));
+	}
+
+	public static String toDecimal(String value, boolean separator) throws PageException {
+		return toDecimal(Caster.toDoubleValue(value), separator);
 	}
 
 	/**
@@ -845,14 +927,24 @@ public final class Caster {
 		return toDecimal(res);
 	}
 
+	public static String toDecimal(Object value, boolean separator, String defaultValue) {
+		double res = toDoubleValue(value, true, Double.NaN);
+		if (Double.isNaN(res)) return defaultValue;
+		return toDecimal(res, separator);
+	}
+
 	/**
-	 * cast a Oject to a decimal value (String:xx.xx)
+	 * cast an Object to a decimal value (String:xx.xx)
 	 * 
 	 * @param value Object to cast
 	 * @return casted decimal value
 	 */
 	public static String toDecimal(double value) {
 		return toDecimal(value, '.', ',');
+	}
+
+	public static String toDecimal(double value, boolean separator) {
+		return toDecimal(value, '.', separator ? ',' : ((char) 0));
 	}
 
 	private static String toDecimal(double value, char decDel, char thsDel) {
@@ -881,13 +973,12 @@ public final class Caster {
 			int i;
 			for (i = leftValueLen - 3; i > 0; i -= 3) {
 				tmp.insert(0, leftValue.substring(i, i + 3));
-				if (i != ends) tmp.insert(0, thsDel);
+				if (i != ends && thsDel > ((char) 0)) tmp.insert(0, thsDel);
 			}
 			tmp.insert(0, leftValue.substring(0, i + 3));
 			leftValue = tmp.toString();
 
 		}
-
 		return leftValue + decDel + rightValue;
 	}
 
@@ -901,6 +992,10 @@ public final class Caster {
 		return b ? Boolean.TRUE : Boolean.FALSE;
 	}
 
+	public static Boolean toBoolean(Boolean b) {
+		return b;
+	}
+
 	/**
 	 * cast a char value to a Boolean Object(reference type)
 	 * 
@@ -912,13 +1007,17 @@ public final class Caster {
 	}
 
 	/**
-	 * cast a int value to a Boolean Object(reference type)
+	 * cast an int value to a Boolean Object(reference type)
 	 * 
 	 * @param i int value to cast
 	 * @return casted Boolean Object
 	 */
 	public static Boolean toBoolean(int i) {
 		return i != 0 ? Boolean.TRUE : Boolean.FALSE;
+	}
+
+	public static Boolean toBoolean(Number n) {
+		return n.intValue() != 0 ? Boolean.TRUE : Boolean.FALSE;
 	}
 
 	/**
@@ -942,7 +1041,7 @@ public final class Caster {
 	}
 
 	/**
-	 * cast a Object to a Boolean Object(reference type)
+	 * cast an Object to a Boolean Object(reference type)
 	 * 
 	 * @param o Object to cast
 	 * @return casted Boolean Object
@@ -955,7 +1054,7 @@ public final class Caster {
 	}
 
 	/**
-	 * cast a Object to a Boolean Object(reference type)
+	 * cast an Object to a Boolean Object(reference type)
 	 * 
 	 * @param str String to cast
 	 * @return casted Boolean Object
@@ -967,7 +1066,7 @@ public final class Caster {
 	}
 
 	/**
-	 * cast a Object to a boolean value (primitive value type), Exception Less
+	 * cast an Object to a boolean value (primitive value type), Exception Less
 	 * 
 	 * @param o Object to cast
 	 * @param defaultValue
@@ -993,7 +1092,7 @@ public final class Caster {
 	}
 
 	/**
-	 * cast a Object to a boolean value (refrence type), Exception Less
+	 * cast an Object to a boolean value (refrence type), Exception Less
 	 * 
 	 * @param o Object to cast
 	 * @param defaultValue default value
@@ -1032,6 +1131,10 @@ public final class Caster {
 		return (char) (b ? 1 : 0);
 	}
 
+	public static char toCharValue(Boolean b) {
+		return (char) (b.booleanValue() ? 1 : 0);
+	}
+
 	/**
 	 * cast a double value to a char value (primitive value type)
 	 * 
@@ -1040,6 +1143,10 @@ public final class Caster {
 	 */
 	public static char toCharValue(double d) {
 		return (char) d;
+	}
+
+	public static char toCharValue(Number n) {
+		return (char) n.intValue();
 	}
 
 	/**
@@ -1053,7 +1160,7 @@ public final class Caster {
 	}
 
 	/**
-	 * cast a Object to a char value (primitive value type)
+	 * cast an Object to a char value (primitive value type)
 	 * 
 	 * @param o Object to cast
 	 * @return casted char value
@@ -1078,7 +1185,7 @@ public final class Caster {
 	}
 
 	/**
-	 * cast a Object to a char value (primitive value type)
+	 * cast an Object to a char value (primitive value type)
 	 * 
 	 * @param str Object to cast
 	 * @return casted char value
@@ -1090,7 +1197,7 @@ public final class Caster {
 	}
 
 	/**
-	 * cast a Object to a char value (primitive value type)
+	 * cast an Object to a char value (primitive value type)
 	 * 
 	 * @param o Object to cast
 	 * @param defaultValue
@@ -1121,7 +1228,11 @@ public final class Caster {
 	 * @return casted Character Object
 	 */
 	public static Character toCharacter(boolean b) {
-		return new Character(toCharValue(b));
+		return Character.valueOf(toCharValue(b));
+	}
+
+	public static Character toCharacter(Boolean b) {
+		return Character.valueOf(toCharValue(b));
 	}
 
 	/**
@@ -1144,8 +1255,12 @@ public final class Caster {
 		return new Character(toCharValue(d));
 	}
 
+	public static Character toCharacter(Number n) {
+		return new Character(toCharValue(n));
+	}
+
 	/**
-	 * cast a Object to a Character Object(reference type)
+	 * cast an Object to a Character Object(reference type)
 	 * 
 	 * @param o Object to cast
 	 * @return casted Character Object
@@ -1158,7 +1273,7 @@ public final class Caster {
 	}
 
 	/**
-	 * cast a Object to a Character Object(reference type)
+	 * cast an Object to a Character Object(reference type)
 	 * 
 	 * @param str Object to cast
 	 * @return casted Character Object
@@ -1170,7 +1285,7 @@ public final class Caster {
 	}
 
 	/**
-	 * cast a Object to a Character Object(reference type)
+	 * cast an Object to a Character Object(reference type)
 	 * 
 	 * @param o Object to cast
 	 * @param defaultValue
@@ -1195,6 +1310,10 @@ public final class Caster {
 		return (byte) (b ? 1 : 0);
 	}
 
+	public static byte toByteValue(Boolean b) {
+		return (byte) (b.booleanValue() ? 1 : 0);
+	}
+
 	/**
 	 * cast a double value to a byte value (primitive value type)
 	 * 
@@ -1203,6 +1322,10 @@ public final class Caster {
 	 */
 	public static byte toByteValue(double d) {
 		return (byte) d;
+	}
+
+	public static byte toByteValue(Number n) {
+		return n.byteValue();
 	}
 
 	/**
@@ -1216,7 +1339,7 @@ public final class Caster {
 	}
 
 	/**
-	 * cast a Object to a byte value (primitive value type)
+	 * cast an Object to a byte value (primitive value type)
 	 * 
 	 * @param o Object to cast
 	 * @return casted byte value
@@ -1236,7 +1359,7 @@ public final class Caster {
 	}
 
 	/**
-	 * cast a Object to a byte value (primitive value type)
+	 * cast an Object to a byte value (primitive value type)
 	 * 
 	 * @param str Object to cast
 	 * @return casted byte value
@@ -1248,7 +1371,7 @@ public final class Caster {
 	}
 
 	/**
-	 * cast a Object to a byte value (primitive value type)
+	 * cast an Object to a byte value (primitive value type)
 	 * 
 	 * @param o Object to cast
 	 * @param defaultValue
@@ -1273,7 +1396,11 @@ public final class Caster {
 	 * @return casted Byte Object
 	 */
 	public static Byte toByte(boolean b) {
-		return new Byte(toByteValue(b));
+		return Byte.valueOf(toByteValue(b));
+	}
+
+	public static Byte toByte(Boolean b) {
+		return Byte.valueOf(toByteValue(b));
 	}
 
 	/**
@@ -1293,11 +1420,15 @@ public final class Caster {
 	 * @return casted Byte Object
 	 */
 	public static Byte toByte(double d) {
-		return new Byte(toByteValue(d));
+		return Byte.valueOf(toByteValue(d));
+	}
+
+	public static Byte toByte(Number n) {
+		return Byte.valueOf(toByteValue(n));
 	}
 
 	/**
-	 * cast a Object to a Byte Object(reference type)
+	 * cast an Object to a Byte Object(reference type)
 	 * 
 	 * @param o Object to cast
 	 * @return casted Byte Object
@@ -1310,7 +1441,7 @@ public final class Caster {
 	}
 
 	/**
-	 * cast a Object to a Byte Object(reference type)
+	 * cast an Object to a Byte Object(reference type)
 	 * 
 	 * @param str String to cast
 	 * @return casted Byte Object
@@ -1322,7 +1453,7 @@ public final class Caster {
 	}
 
 	/**
-	 * cast a Object to a Byte Object(reference type)
+	 * cast an Object to a Byte Object(reference type)
 	 * 
 	 * @param o Object to cast
 	 * @param defaultValue
@@ -1346,6 +1477,10 @@ public final class Caster {
 		return (b ? 1L : 0L);
 	}
 
+	public static long toLongValue(Boolean b) {
+		return (b ? 1L : 0L);
+	}
+
 	/**
 	 * cast a double value to a long value (primitive value type)
 	 * 
@@ -1354,6 +1489,10 @@ public final class Caster {
 	 */
 	public static long toLongValue(double d) {
 		return (long) d;
+	}
+
+	public static long toLongValue(Number n) {
+		return n.longValue();
 	}
 
 	/**
@@ -1367,7 +1506,7 @@ public final class Caster {
 	}
 
 	/**
-	 * cast a Object to a long value (primitive value type)
+	 * cast an Object to a long value (primitive value type)
 	 * 
 	 * @param o Object to cast
 	 * @return casted long value
@@ -1393,7 +1532,7 @@ public final class Caster {
 	}
 
 	/**
-	 * cast a Object to a long value (primitive value type)
+	 * cast an Object to a long value (primitive value type)
 	 * 
 	 * @param str Object to cast
 	 * @return casted long value
@@ -1443,7 +1582,7 @@ public final class Caster {
 	}
 
 	/**
-	 * cast a Object to a long value (primitive value type)
+	 * cast an Object to a long value (primitive value type)
 	 * 
 	 * @param o Object to cast
 	 * @param defaultValue
@@ -1473,6 +1612,10 @@ public final class Caster {
 		return Long.valueOf(toLongValue(b));
 	}
 
+	public static Long toLong(Boolean b) {
+		return Long.valueOf(toLongValue(b.booleanValue()));
+	}
+
 	/**
 	 * cast a char value to a Long Object(reference type)
 	 * 
@@ -1493,8 +1636,12 @@ public final class Caster {
 		return Long.valueOf(toLongValue(d));
 	}
 
+	public static Long toLong(Number n) {
+		return Long.valueOf(n.longValue());
+	}
+
 	/**
-	 * cast a Object to a Long Object(reference type)
+	 * cast an Object to a Long Object(reference type)
 	 * 
 	 * @param o Object to cast
 	 * @return casted Long Object
@@ -1507,7 +1654,7 @@ public final class Caster {
 	}
 
 	/**
-	 * cast a Object to a Long Object(reference type)
+	 * cast an Object to a Long Object(reference type)
 	 * 
 	 * @param str Object to cast
 	 * @return casted Long Object
@@ -1530,7 +1677,7 @@ public final class Caster {
 	}
 
 	/**
-	 * cast a Object to a Long Object(reference type)
+	 * cast an Object to a Long Object(reference type)
 	 * 
 	 * @param o Object to cast
 	 * @param defaultValue
@@ -1552,7 +1699,11 @@ public final class Caster {
 	 * @return casted Float Object
 	 */
 	public static Float toFloat(boolean b) {
-		return new Float(toFloatValue(b));
+		return Float.valueOf(toFloatValue(b));
+	}
+
+	public static Float toFloat(Boolean b) {
+		return Float.valueOf(toFloatValue(b.booleanValue()));
 	}
 
 	/**
@@ -1562,7 +1713,7 @@ public final class Caster {
 	 * @return casted Float Object
 	 */
 	public static Float toFloat(char c) {
-		return new Float(toFloatValue(c));
+		return Float.valueOf(toFloatValue(c));
 	}
 
 	/**
@@ -1572,11 +1723,19 @@ public final class Caster {
 	 * @return casted Float Object
 	 */
 	public static Float toFloat(double d) {
-		return new Float(toFloatValue(d));
+		return Float.valueOf(toFloatValue(d));
+	}
+
+	public static Float toFloat(Number n) {
+		return n.floatValue();
+	}
+
+	public static float toFloatValue(Number n) {
+		return Float.valueOf(n.floatValue());
 	}
 
 	/**
-	 * cast a Object to a Float Object(reference type)
+	 * cast an Object to a Float Object(reference type)
 	 * 
 	 * @param o Object to cast
 	 * @return casted Float Object
@@ -1588,7 +1747,7 @@ public final class Caster {
 	}
 
 	/**
-	 * cast a Object to a Float Object(reference type)
+	 * cast an Object to a Float Object(reference type)
 	 * 
 	 * @param str Object to cast
 	 * @return casted Float Object
@@ -1599,7 +1758,7 @@ public final class Caster {
 	}
 
 	/**
-	 * cast a Object to a Float Object(reference type)
+	 * cast an Object to a Float Object(reference type)
 	 * 
 	 * @param o Object to cast
 	 * @param defaultValue
@@ -1624,6 +1783,10 @@ public final class Caster {
 		return (b ? 1F : 0F);
 	}
 
+	public static float toFloatValue(Boolean b) {
+		return (b ? 1F : 0F);
+	}
+
 	/**
 	 * cast a double value to a long value (primitive value type)
 	 * 
@@ -1645,7 +1808,7 @@ public final class Caster {
 	}
 
 	/**
-	 * cast a Object to a long value (primitive value type)
+	 * cast an Object to a long value (primitive value type)
 	 * 
 	 * @param o Object to cast
 	 * @return casted long value
@@ -1663,7 +1826,7 @@ public final class Caster {
 	}
 
 	/**
-	 * cast a Object to a long value (primitive value type)
+	 * cast an Object to a long value (primitive value type)
 	 * 
 	 * @param str Object to cast
 	 * @return casted long value
@@ -1674,7 +1837,7 @@ public final class Caster {
 	}
 
 	/**
-	 * cast a Object to a float value (primitive value type)
+	 * cast an Object to a float value (primitive value type)
 	 * 
 	 * @param o Object to cast
 	 * @param defaultValue
@@ -1705,6 +1868,10 @@ public final class Caster {
 		return (short) (b ? 1 : 0);
 	}
 
+	public static short toShortValue(Boolean b) {
+		return (short) (b ? 1 : 0);
+	}
+
 	/**
 	 * cast a double value to a short value (primitive value type)
 	 * 
@@ -1713,6 +1880,10 @@ public final class Caster {
 	 */
 	public static short toShortValue(double d) {
 		return (short) d;
+	}
+
+	public static short toShortValue(Number n) {
+		return n.shortValue();
 	}
 
 	/**
@@ -1726,7 +1897,7 @@ public final class Caster {
 	}
 
 	/**
-	 * cast a Object to a short value (primitive value type)
+	 * cast an Object to a short value (primitive value type)
 	 * 
 	 * @param o Object to cast
 	 * @return casted short value
@@ -1745,7 +1916,7 @@ public final class Caster {
 	}
 
 	/**
-	 * cast a Object to a short value (primitive value type)
+	 * cast an Object to a short value (primitive value type)
 	 * 
 	 * @param str Object to cast
 	 * @return casted short value
@@ -1756,7 +1927,7 @@ public final class Caster {
 	}
 
 	/**
-	 * cast a Object to a short value (primitive value type)
+	 * cast an Object to a short value (primitive value type)
 	 * 
 	 * @param o Object to cast
 	 * @param defaultValue
@@ -1787,6 +1958,10 @@ public final class Caster {
 		return Short.valueOf(toShortValue(b));
 	}
 
+	public static Short toShort(Boolean b) {
+		return Short.valueOf(toShortValue(b.booleanValue()));
+	}
+
 	/**
 	 * cast a char value to a Short Object(reference type)
 	 * 
@@ -1807,8 +1982,12 @@ public final class Caster {
 		return Short.valueOf(toShortValue(d));
 	}
 
+	public static Short toShort(Number n) {
+		return Short.valueOf(n.shortValue());
+	}
+
 	/**
-	 * cast a Object to a Byte Object(reference type)
+	 * cast an Object to a Byte Object(reference type)
 	 * 
 	 * @param o Object to cast
 	 * @return casted Byte Object
@@ -1821,7 +2000,7 @@ public final class Caster {
 	}
 
 	/**
-	 * cast a Object to a Byte Object(reference type)
+	 * cast an Object to a Byte Object(reference type)
 	 * 
 	 * @param str Object to cast
 	 * @return casted Byte Object
@@ -1833,7 +2012,7 @@ public final class Caster {
 	}
 
 	/**
-	 * cast a Object to a Byte Object(reference type)
+	 * cast an Object to a Byte Object(reference type)
 	 * 
 	 * @param o Object to cast
 	 * @param defaultValue
@@ -1888,7 +2067,7 @@ public final class Caster {
 	}
 
 	/**
-	 * cast a Object to a String
+	 * cast an Object to a String
 	 * 
 	 * @param o Object to cast
 	 * @return casted String
@@ -1916,7 +2095,12 @@ public final class Caster {
 				throw Caster.toPageException(e);
 			}
 			finally {
-				IOUtil.closeEL(r);
+				try {
+					IOUtil.close(r);
+				}
+				catch (IOException e) {
+					throw Caster.toPageException(e);
+				}
 			}
 		}
 		else if (o instanceof Throwable) {
@@ -1932,7 +2116,12 @@ public final class Caster {
 				throw Caster.toPageException(e);
 			}
 			finally {
-				IOUtil.closeEL(r);
+				try {
+					IOUtil.close(r);
+				}
+				catch (IOException e) {
+					throw Caster.toPageException(e);
+				}
 			}
 		}
 		else if (o instanceof byte[]) {
@@ -1986,7 +2175,8 @@ public final class Caster {
 	}
 
 	/**
-	 * cast a Object to a String dont throw a exception, if can't cast to a string return a empty string
+	 * cast an Object to a String dont throw an exception, if can't cast to a string return an empty
+	 * string
 	 * 
 	 * @param o Object to cast
 	 * @param defaultValue
@@ -2096,7 +2286,7 @@ public final class Caster {
 
 	private static DecimalFormat df = (DecimalFormat) DecimalFormat.getInstance(Locale.US);// ("#.###########");
 	static {
-		df.applyLocalizedPattern("#.############");
+		df.applyLocalizedPattern("#.########################");
 	}
 
 	public static String toString(double d) {
@@ -2110,6 +2300,7 @@ public final class Caster {
 	}
 
 	public static String toString(Number n) {
+		if (n instanceof BigDecimal) return df.format(n);
 		double d = n.doubleValue();
 		long l = (long) d;
 		if (l == d) return toString(l);
@@ -2120,6 +2311,10 @@ public final class Caster {
 		if (n instanceof Double) return toString(n.doubleValue());
 		return n.toString();
 		// return df.format(d);
+	}
+
+	public static String toString(BigDecimal bd) {
+		return df.format(bd);
 	}
 
 	/**
@@ -2136,7 +2331,7 @@ public final class Caster {
 	}
 
 	/**
-	 * cast a int value to a String
+	 * cast an int value to a String
 	 * 
 	 * @param i int value to cast
 	 * @return casted String
@@ -2153,6 +2348,10 @@ public final class Caster {
 	 * @return casted String
 	 */
 	public static String toString(boolean b) {
+		return b ? "true" : "false";
+	}
+
+	public static String toString(Boolean b) {
 		return b ? "true" : "false";
 	}
 
@@ -2175,7 +2374,7 @@ public final class Caster {
 	}
 
 	/**
-	 * cast a Object to a Array Object
+	 * cast an Object to an Array Object
 	 * 
 	 * @param o Object to cast
 	 * @return casted Array
@@ -2186,7 +2385,7 @@ public final class Caster {
 	}
 
 	/**
-	 * cast a Object to a Array Object
+	 * cast an Object to an Array Object
 	 * 
 	 * @param o Object to cast
 	 * @param defaultValue
@@ -2197,7 +2396,7 @@ public final class Caster {
 	}
 
 	/**
-	 * cast a Object to a Array Object
+	 * cast an Object to an Array Object
 	 * 
 	 * @param o Object to cast
 	 * @param duplicate
@@ -2214,7 +2413,7 @@ public final class Caster {
 	}
 
 	/**
-	 * cast a Object to a Array Object
+	 * cast an Object to an Array Object
 	 * 
 	 * @param o Object to cast
 	 * @param duplicate
@@ -2270,6 +2469,15 @@ public final class Caster {
 			return toList(((ObjectWrap) o).getEmbededObject());
 		}
 		else if (o instanceof Struct) {
+			if (o instanceof Component) {
+				try {
+					Object tmp = Reflector.componentToClass(ThreadLocalPageContext.get(), (Component) o, List.class);
+					if (tmp instanceof List) return (List) tmp;
+				}
+				catch (PageException e) {
+				}
+			}
+
 			Struct sct = (Struct) o;
 			ArrayList arr = new ArrayList();
 
@@ -2300,7 +2508,7 @@ public final class Caster {
 	}
 
 	/**
-	 * cast a Object to a Array Object
+	 * cast an Object to an Array Object
 	 * 
 	 * @param o Object to cast
 	 * @return casted Array
@@ -2315,7 +2523,6 @@ public final class Caster {
 			return ListAsArray.toArray((List) o);// new ArrayImpl(((List) o).toArray());
 		}
 		else if (o instanceof Set) {
-
 			return toArray(((Set) o).toArray());// new ArrayImpl(((List) o).toArray());
 		}
 		else if (o instanceof XMLStruct) {
@@ -2467,7 +2674,7 @@ public final class Caster {
 				}
 			}
 			catch (ExpressionException ee) {
-				throw new ExpressionException("can't cast struct to a array, key [" + e.getKey() + "] is not a number");
+				throw new ExpressionException("can't cast struct to an array, key [" + e.getKey() + "] is not a number");
 			}
 			return toNativeArray(arr);
 		}
@@ -2484,7 +2691,7 @@ public final class Caster {
 	}
 
 	/**
-	 * cast a Object to a Array Object
+	 * cast an Object to an Array Object
 	 * 
 	 * @param o Object to cast
 	 * @param defaultValue
@@ -2534,7 +2741,7 @@ public final class Caster {
 	}
 
 	/**
-	 * cast a Object to a Map Object
+	 * cast an Object to a Map Object
 	 * 
 	 * @param o Object to cast
 	 * @return casted Struct
@@ -2545,7 +2752,7 @@ public final class Caster {
 	}
 
 	/**
-	 * cast a Object to a Map Object
+	 * cast an Object to a Map Object
 	 * 
 	 * @param o Object to cast
 	 * @param defaultValue
@@ -2556,7 +2763,7 @@ public final class Caster {
 	}
 
 	/**
-	 * cast a Object to a Map Object
+	 * cast an Object to a Map Object
 	 * 
 	 * @param o Object to cast
 	 * @param duplicate
@@ -2573,7 +2780,7 @@ public final class Caster {
 	}
 
 	/**
-	 * cast a Object to a Map Object
+	 * cast an Object to a Map Object
 	 * 
 	 * @param o Object to cast
 	 * @param duplicate
@@ -2582,6 +2789,14 @@ public final class Caster {
 	 */
 	public static Map toMap(Object o, boolean duplicate) throws PageException {
 		if (o instanceof Struct) {
+			if (o instanceof Component) {
+				try {
+					Object tmp = Reflector.componentToClass(ThreadLocalPageContext.get(), (Component) o, Map.class);
+					if (tmp instanceof Map) return (Map) tmp;
+				}
+				catch (PageException e) {
+				}
+			}
 			if (duplicate) return (Map) Duplicator.duplicate(o, false);
 			return ((Struct) o);
 		}
@@ -2611,7 +2826,7 @@ public final class Caster {
 	}
 
 	/**
-	 * cast a Object to a Struct Object
+	 * cast an Object to a Struct Object
 	 * 
 	 * @param o Object to cast
 	 * @param defaultValue
@@ -2631,7 +2846,7 @@ public final class Caster {
 	}
 
 	/**
-	 * cast a Object to a Struct Object
+	 * cast an Object to a Struct Object
 	 * 
 	 * @param o Object to cast
 	 * @return casted Struct
@@ -2673,7 +2888,7 @@ public final class Caster {
 	 */
 
 	/**
-	 * cast a Object to a Binary
+	 * cast an Object to a Binary
 	 * 
 	 * @param o Object to cast
 	 * @return casted Binary
@@ -2710,22 +2925,32 @@ public final class Caster {
 				return IOUtil.toBytes(is);
 			}
 			catch (Exception e) {
-				throw new ExpressionException(e.getMessage());
+				throw Caster.toPageException(e);
 			}
 			finally {
-				IOUtil.closeEL(is);
+				try {
+					IOUtil.close(is);
+				}
+				catch (IOException e) {
+					throw Caster.toPageException(e);
+				}
 			}
 		}
 		try {
-			return Base64Encoder.decode(toString(o));
+			return Base64Encoder.decode(toString(o), false);
 		}
 		catch (PageException e) {
 			throw new CasterException(o, "binary");
 		}
+		catch (CoderException e) {
+			CasterException ce = new CasterException(e.getMessage());
+			ce.initCause(e);
+			throw ce;
+		}
 	}
 
 	/**
-	 * cast a Object to a Binary
+	 * cast an Object to a Binary
 	 * 
 	 * @param o Object to cast
 	 * @param defaultValue
@@ -2760,7 +2985,7 @@ public final class Caster {
 	}
 
 	/**
-	 * cast a Object to a Base64 value
+	 * cast an Object to a Base64 value
 	 * 
 	 * @param o Object to cast
 	 * @return to Base64 String
@@ -2773,7 +2998,7 @@ public final class Caster {
 	}
 
 	/**
-	 * cast a Object to a Base64 value
+	 * cast an Object to a Base64 value
 	 * 
 	 * @param o Object to cast
 	 * @param defaultValue
@@ -2839,6 +3064,10 @@ public final class Caster {
 		return DateCaster.toDateSimple(b, tz);
 	}
 
+	public static DateTime toDate(Boolean b, TimeZone tz) {
+		return DateCaster.toDateSimple(b, tz);
+	}
+
 	/**
 	 * cast a char to a DateTime Object
 	 * 
@@ -2861,8 +3090,12 @@ public final class Caster {
 		return DateCaster.toDateSimple(d, tz);
 	}
 
+	public static DateTime toDate(Number n, TimeZone tz) {
+		return DateCaster.toDateSimple(n.doubleValue(), tz);
+	}
+
 	/**
-	 * cast a Object to a DateTime Object
+	 * cast an Object to a DateTime Object
 	 * 
 	 * @param o Object to cast
 	 * @param tz
@@ -2874,7 +3107,7 @@ public final class Caster {
 	}
 
 	/**
-	 * cast a Object to a DateTime Object
+	 * cast an Object to a DateTime Object
 	 * 
 	 * @param str String to cast
 	 * @param tz
@@ -2885,8 +3118,12 @@ public final class Caster {
 		return DateCaster.toDateAdvanced(str, tz);
 	}
 
+	public static DateTime toDate(Object o) throws PageException {
+		return DateCaster.toDateAdvanced(o, DateCaster.CONVERTING_TYPE_OFFSET, ThreadLocalPageContext.getTimeZone());
+	}
+
 	/**
-	 * cast a Object to a DateTime Object
+	 * cast an Object to a DateTime Object
 	 * 
 	 * @param o Object to cast
 	 * @param alsoNumbers define if also numbers will casted to a datetime value
@@ -2899,7 +3136,7 @@ public final class Caster {
 	}
 
 	/**
-	 * cast a Object to a DateTime Object
+	 * cast an Object to a DateTime Object
 	 * 
 	 * @param o Object to cast
 	 * @param alsoNumbers define if also numbers will casted to a datetime value
@@ -2912,7 +3149,7 @@ public final class Caster {
 	}
 
 	/**
-	 * cast a Object to a DateTime Object
+	 * cast an Object to a DateTime Object
 	 * 
 	 * @param str String to cast
 	 * @param alsoNumbers define if also numbers will casted to a datetime value
@@ -2925,7 +3162,7 @@ public final class Caster {
 	}
 
 	/**
-	 * cast a Object to a DateTime Object
+	 * cast an Object to a DateTime Object
 	 * 
 	 * @param o Object to cast
 	 * @param tz
@@ -2937,7 +3174,7 @@ public final class Caster {
 	}
 
 	/**
-	 * cast a Object to a DateTime Object (alias for toDateTime)
+	 * cast an Object to a DateTime Object (alias for toDateTime)
 	 * 
 	 * @param o Object to cast
 	 * @param tz
@@ -2949,7 +3186,7 @@ public final class Caster {
 	}
 
 	/**
-	 * cast a Object to a Query Object
+	 * cast an Object to a Query Object
 	 * 
 	 * @param o Object to cast
 	 * @return casted Query Object
@@ -2975,7 +3212,7 @@ public final class Caster {
 	}
 
 	/**
-	 * converts a object to a QueryColumn, if possible
+	 * converts an Object to a QueryColumn, if possible
 	 * 
 	 * @param o
 	 * @return
@@ -2992,7 +3229,7 @@ public final class Caster {
 	}
 
 	/**
-	 * converts a object to a QueryColumn, if possible, also variable declarations are allowed. this
+	 * converts an Object to a QueryColumn, if possible, also variable declarations are allowed. this
 	 * method is used within the generated bytecode
 	 * 
 	 * @param o
@@ -3011,7 +3248,7 @@ public final class Caster {
 	}
 
 	/**
-	 * cast a Object to a Query Object
+	 * cast an Object to a Query Object
 	 * 
 	 * @param o Object to cast
 	 * @param defaultValue
@@ -3026,7 +3263,7 @@ public final class Caster {
 	}
 
 	/**
-	 * cast a Object to a Query Object
+	 * cast an Object to a Query Object
 	 * 
 	 * @param o Object to cast
 	 * @param duplicate duplicate the object or not
@@ -3043,7 +3280,7 @@ public final class Caster {
 	}
 
 	/**
-	 * cast a Object to a Query Object
+	 * cast an Object to a Query Object
 	 * 
 	 * @param o Object to cast
 	 * @param duplicate duplicate the object or not
@@ -3086,7 +3323,7 @@ public final class Caster {
 	}
 
 	/**
-	 * cast a Object to a UUID
+	 * cast an Object to a UUID
 	 * 
 	 * @param o Object to cast
 	 * @return casted Query Object
@@ -3099,7 +3336,7 @@ public final class Caster {
 	}
 
 	/**
-	 * cast a Object to a UUID
+	 * cast an Object to a UUID
 	 * 
 	 * @param o Object to cast
 	 * @param defaultValue
@@ -3114,7 +3351,7 @@ public final class Caster {
 	}
 
 	/**
-	 * cast a Object to a GUID
+	 * cast an Object to a GUID
 	 * 
 	 * @param o Object to cast
 	 * @return casted Query Object
@@ -3127,7 +3364,7 @@ public final class Caster {
 	}
 
 	/**
-	 * cast a Object to a GUID
+	 * cast an Object to a GUID
 	 * 
 	 * @param o Object to cast
 	 * @param defaultValue
@@ -3142,7 +3379,7 @@ public final class Caster {
 	}
 
 	/**
-	 * cast a Object to a Variable Name
+	 * cast an Object to a Variable Name
 	 * 
 	 * @param o Object to cast
 	 * @return casted Variable Name
@@ -3155,7 +3392,7 @@ public final class Caster {
 	}
 
 	/**
-	 * cast a Object to a Variable Name
+	 * cast an Object to a Variable Name
 	 * 
 	 * @param o Object to cast
 	 * @param defaultValue
@@ -3169,7 +3406,7 @@ public final class Caster {
 	}
 
 	/**
-	 * cast a Object to a TimeSpan Object
+	 * cast an Object to a TimeSpan Object
 	 * 
 	 * @param o Object to cast
 	 * @return casted TimeSpan Object
@@ -3180,7 +3417,7 @@ public final class Caster {
 	}
 
 	/**
-	 * cast a Object to a TimeSpan Object (alias for toTimeSpan)
+	 * cast an Object to a TimeSpan Object (alias for toTimeSpan)
 	 * 
 	 * @param o Object to cast
 	 * @param defaultValue
@@ -3198,7 +3435,8 @@ public final class Caster {
 					}
 					return new TimeSpanImpl(values[0], values[1], values[2], values[3]);
 				}
-				catch (ExpressionException e) {}
+				catch (ExpressionException e) {
+				}
 			}
 		}
 		else if (o instanceof ObjectWrap) {
@@ -3214,7 +3452,7 @@ public final class Caster {
 	}
 
 	/**
-	 * cast a Object to a TimeSpan Object (alias for toTimeSpan)
+	 * cast an Object to a TimeSpan Object (alias for toTimeSpan)
 	 * 
 	 * @param o Object to cast
 	 * @return casted TimeSpan Object
@@ -3243,29 +3481,42 @@ public final class Caster {
 	}
 
 	public static PageException toPageException(Throwable t, boolean rethrowIfNecessary) {
-		if (t instanceof PageException) return (PageException) t;
-		else if (t instanceof PageExceptionBox) return ((PageExceptionBox) t).getPageException();
-		else if (t instanceof InvocationTargetException) {
+		if (t instanceof PageException) {
+			return (PageException) t;
+		}
+		if (t instanceof PageExceptionBox) {
+			return ((PageExceptionBox) t).getPageException();
+		}
+		if (t instanceof InvocationTargetException) {
 			return toPageException(((InvocationTargetException) t).getTargetException());
 		}
-		else if (t instanceof ExceptionInInitializerError) {
+		if (t instanceof ExceptionInInitializerError) {
 			return toPageException(((ExceptionInInitializerError) t).getCause());
 		}
-		else if (t instanceof ExecutionException) {
+		if (t instanceof ExecutionException) {
 			return toPageException(((ExecutionException) t).getCause());
 		}
-		else {
-			if (t instanceof OutOfMemoryError) {
-				ThreadLocalPageContext.getConfig().checkPermGenSpace(true);
+		if (t instanceof InterruptedException) {
+			PageContext pc = ThreadLocalPageContext.get();
+			if (pc instanceof PageContextImpl) {
+				PageContextImpl pci = (PageContextImpl) pc;
+				StackTraceElement[] tst = pci.getTimeoutStackTrace();
+				if (tst != null) {
+					return new RequestTimeoutException(pc, tst);
+				}
 			}
-			// Throwable cause = t.getCause();
-			// if(cause!=null && cause!=t) return toPageException(cause);
-			return NativeException.newInstance(t, rethrowIfNecessary);
+
 		}
+		if (t instanceof OutOfMemoryError) {
+			ThreadLocalPageContext.getConfig().checkPermGenSpace(true);
+		}
+		// Throwable cause = t.getCause();
+		// if(cause!=null && cause!=t) return toPageException(cause);
+		return NativeException.newInstance(t, rethrowIfNecessary);
 	}
 
 	/**
-	 * return the type name of a object (string, boolean, int aso.), type is not same like class name
+	 * return the type name of an object (string, boolean, int aso.), type is not same like class name
 	 * 
 	 * @param o Object to get type from
 	 * @return type of the object
@@ -3316,7 +3567,8 @@ public final class Caster {
 			try {
 				return toClassName(((ObjectWrap) o).getEmbededObject());
 			}
-			catch (PageException e) {}
+			catch (PageException e) {
+			}
 		}
 		return toClassName(o.getClass());
 	}
@@ -3474,6 +3726,10 @@ public final class Caster {
 		}
 	}
 
+	public static Object castTo(String type, Object o) throws PageException {
+		return castTo(ThreadLocalPageContext.get(), type, o, false);
+	}
+
 	/**
 	 * cast a value to a value defined by type argument
 	 * 
@@ -3484,174 +3740,178 @@ public final class Caster {
 	 * @throws PageException
 	 */
 	public static Object castTo(PageContext pc, String type, Object o, boolean alsoPattern) throws PageException {
-		type = StringUtil.toLowerCase(type).trim();
-		if (type.length() > 2) {
-			char first = type.charAt(0);
+		type = type.trim();
+		String lctype = StringUtil.toLowerCase(type);
+		if (lctype.length() > 2) {
+			char first = lctype.charAt(0);
 			switch (first) {
 			case 'a':
-				if (type.equals("any")) {
+				if (lctype.equals("any")) {
 					return o;
 				}
-				else if (type.equals("array")) {
+				else if (lctype.equals("array")) {
 					return toArray(o);
 				}
 				break;
 			case 'b':
-				if (type.equals("boolean") || type.equals("bool")) {
+				if (lctype.equals("boolean") || lctype.equals("bool")) {
 					return toBoolean(o);
 				}
-				else if (type.equals("binary")) {
+				else if (lctype.equals("binary")) {
 					return toBinary(o);
 				}
-				else if (type.equals("byte[]")) {
+				else if (lctype.equals("byte[]")) {
 					return toBinary(o);
 				}
-				else if (type.equals("base64")) {
+				else if (lctype.equals("base64")) {
 					return toBase64(o, null);
 				}
-				else if (type.equals("bigdecimal") || type.equals("big_decimal")) {
+				else if (lctype.equals("bigdecimal") || lctype.equals("big_decimal")) {
 					return toBigDecimal(o);
 				}
-				else if (type.equals("biginteger") || type.equals("big_integer")) {
+				else if (lctype.equals("biginteger") || lctype.equals("big_integer")) {
 					return toBigInteger(o);
 				}
 				break;
 			case 'c':
-				if (alsoPattern && type.equals("creditcard")) {
+				if (alsoPattern && lctype.equals("creditcard")) {
 					return toCreditCard(o);
 				}
 				break;
 			case 'd':
-				if (type.equals("date")) {
+				if (lctype.equals("date")) {
 					return DateCaster.toDateAdvanced(o, pc.getTimeZone());
 				}
-				else if (type.equals("datetime")) {
+				else if (lctype.equals("datetime")) {
 					return DateCaster.toDateAdvanced(o, pc.getTimeZone());
 				}
-				else if (type.equals("double")) {
+				else if (lctype.equals("double")) {
 					return toDouble(o);
 				}
-				else if (type.equals("decimal")) {
+				else if (lctype.equals("decimal")) {
 					return toDecimal(o);
 				}
 				break;
 			case 'e':
-				if (type.equals("eurodate")) {
+				if (lctype.equals("eurodate")) {
 					return DateCaster.toEuroDate(o, pc.getTimeZone());
 				}
-				else if (alsoPattern && type.equals("email")) {
+				else if (alsoPattern && lctype.equals("email")) {
 					return toEmail(o);
 				}
 				break;
 			case 'f':
-				if (type.equals("float")) {
+				if (lctype.equals("float")) {
 					return toDouble(o);
 				}
-				else if (type.equals("function")) {
+				else if (lctype.equals("function")) {
 					return toFunction(o);
 				}
 				break;
 			case 'g':
-				if (type.equals("guid")) {
+				if (lctype.equals("guid")) {
 					return toGUId(o);
 				}
 				break;
 			case 'i':
-				if (type.equals("integer") || type.equals("int")) {
+				if (lctype.equals("integer") || lctype.equals("int")) {
 					return toInteger(o);
 				}
 				break;
 			case 'l':
-				if (type.equals("long")) {
+				if (lctype.equals("long")) {
 					return toLong(o);
 				}
 				break;
 			case 'n':
-				if (type.equals("numeric")) {
+				if (lctype.equals("numeric")) {
 					return toDouble(o);
 				}
-				else if (type.equals("number")) {
+				else if (lctype.equals("number")) {
 					return toDouble(o);
 				}
-				else if (type.equals("node")) {
+				else if (lctype.equals("node")) {
 					return toXML(o);
 				}
 				break;
 			case 'o':
-				if (type.equals("object")) {
+				if (lctype.equals("object")) {
 					return o;
 				}
-				else if (type.equals("other")) {
+				else if (lctype.equals("other")) {
 					return o;
+				}
+				else if (lctype.equals("org.w3c.dom.element")) {
+					return toElement(o);
 				}
 				break;
 			case 'p':
-				if (alsoPattern && type.equals("phone")) {
+				if (alsoPattern && lctype.equals("phone")) {
 					return toPhone(o);
 				}
 				break;
 			case 'q':
-				if (type.equals("query")) {
+				if (lctype.equals("query")) {
 					return toQuery(o);
 				}
 				break;
 			case 's':
-				if (type.equals("string")) {
+				if (lctype.equals("string")) {
 					return toString(o);
 				}
-				else if (type.equals("struct")) {
+				else if (lctype.equals("struct")) {
 					return toStruct(o);
 				}
-				else if (type.equals("short")) {
+				else if (lctype.equals("short")) {
 					return toShort(o);
 				}
-				else if (alsoPattern && (type.equals("ssn") || type.equals("social_security_number"))) {
+				else if (alsoPattern && (lctype.equals("ssn") || lctype.equals("social_security_number"))) {
 					return toSSN(o);
 				}
 				break;
 			case 't':
-				if (type.equals("timespan")) {
+				if (lctype.equals("timespan")) {
 					return toTimespan(o);
 				}
-				if (type.equals("time")) {
+				if (lctype.equals("time")) {
 					return DateCaster.toDateAdvanced(o, pc.getTimeZone());
 				}
-				if (alsoPattern && type.equals("telephone")) {
+				if (alsoPattern && lctype.equals("telephone")) {
 					return toPhone(o);
 				}
 				break;
 			case 'u':
-				if (type.equals("uuid")) {
+				if (lctype.equals("uuid")) {
 					return toUUId(o);
 				}
-				if (alsoPattern && type.equals("url")) {
+				if (alsoPattern && lctype.equals("url")) {
 					return toURL(o);
 				}
-				if (type.equals("usdate")) {
+				if (lctype.equals("usdate")) {
 					return DateCaster.toUSDate(o, pc.getTimeZone());
 					// return DateCaster.toDate(o,pc.getTimeZone());
 				}
 				break;
 			case 'v':
-				if (type.equals("variablename")) {
+				if (lctype.equals("variablename")) {
 					return toVariableName(o);
 				}
-				else if (type.equals("void")) {
+				else if (lctype.equals("void")) {
 					return toVoid(o);
 				}
-				else if (type.equals("variable_name")) {
+				else if (lctype.equals("variable_name")) {
 					return toVariableName(o);
 				}
-				else if (type.equals("variable-name")) {
+				else if (lctype.equals("variable-name")) {
 					return toVariableName(o);
 				}
 				break;
 			case 'x':
-				if (type.equals("xml")) {
+				if (lctype.equals("xml")) {
 					return toXML(o);
 				}
 			case 'z':
-				if (alsoPattern && (type.equals("zip") || type.equals("zipcode"))) {
+				if (alsoPattern && (lctype.equals("zip") || lctype.equals("zipcode"))) {
 					return toZip(o);
 				}
 				break;
@@ -3659,8 +3919,8 @@ public final class Caster {
 		}
 
 		// <type>[]
-		if (type.endsWith("[]")) {
-			String componentType = type.substring(0, type.length() - 2);
+		if (lctype.endsWith("[]")) {
+			String componentType = lctype.substring(0, lctype.length() - 2);
 			Object[] src = toNativeArray(o);
 			Array trg = new ArrayImpl();
 			for (int i = 0; i < src.length; i++) {
@@ -3693,7 +3953,7 @@ public final class Caster {
 		if (Decision.isURL(str)) return str;
 
 		try {
-			return HTTPUtil.toURL(str, true).toExternalForm();
+			return HTTPUtil.toURL(str, HTTPUtil.ENCODED_AUTO).toExternalForm();
 		}
 		catch (MalformedURLException e) {
 			throw new ExpressionException("can't cast value [" + str + "] to a URL", e.getMessage());
@@ -3705,7 +3965,7 @@ public final class Caster {
 		if (str == null) return defaultValue;
 		if (Decision.isURL(str)) return str;
 		try {
-			return HTTPUtil.toURL(str, true).toExternalForm();
+			return HTTPUtil.toURL(str, HTTPUtil.ENCODED_AUTO).toExternalForm();
 		}
 		catch (MalformedURLException e) {
 			return defaultValue;
@@ -3741,7 +4001,7 @@ public final class Caster {
 	public static String toEmail(Object o) throws PageException {
 		String str = toString(o);
 		if (Decision.isEmail(str)) return str;
-		throw new ExpressionException("can't cast value [" + str + "] to a E-Mail Address");
+		throw new ExpressionException("can't cast value [" + str + "] to an E-Mail Address");
 	}
 
 	public static String toEmail(Object o, String defaultValue) {
@@ -3826,8 +4086,31 @@ public final class Caster {
 		if (o instanceof Component) {
 			Component comp = ((Component) o);
 			if (comp.instanceOf(strType)) return o;
+
+			try {
+				Class<?> trgClass = ClassUtil.loadClass(strType);
+				if (trgClass.isInterface()) {
+					return Reflector.componentToClass(pc, comp, trgClass);
+				}
+			}
+			catch (ClassException ce) {
+				throw Caster.toPageException(ce);
+			}
+
 			throw new ExpressionException("can't cast Component of Type [" + comp.getAbsName() + "] to [" + strType + "]");
 		}
+		if (o instanceof UDF) {
+			try {
+				Class<?> trgClass = ClassUtil.loadClass(strType);
+				if (trgClass.isInterface()) {
+					return Reflector.udfToClass(pc, (UDF) o, trgClass);
+				}
+			}
+			catch (ClassException ce) {
+				throw Caster.toPageException(ce);
+			}
+		}
+
 		if (o instanceof Pojo) {
 			Component cfc = toComponent(pc, ((Pojo) o), strType, null);
 			if (cfc != null) return cfc;
@@ -3868,7 +4151,7 @@ public final class Caster {
 			lucee.runtime.net.rpc.PojoIterator it = new lucee.runtime.net.rpc.PojoIterator(pojo);
 			// only when the same amount of properties
 			if (props.length == it.size()) {
-				Map<Collection.Key, Property> propMap = toMap(props);
+				Map<Collection.Key, Property> propMap = propToMap(props);
 				Property p;
 				lucee.commons.lang.Pair<Collection.Key, Object> pair;
 				ComponentScope scope = cfc.getComponentScope();
@@ -3880,7 +4163,8 @@ public final class Caster {
 					try {
 						val = Caster.castTo(pc, p.getType(), pair.getValue(), false);
 					}
-					catch (PageException e) {}
+					catch (PageException e) {
+					}
 
 					// store in variables and this scope
 					scope.setEL(pair.getName(), val);
@@ -3889,8 +4173,17 @@ public final class Caster {
 				return cfc;
 			}
 		}
-		catch (PageException e) {}
+		catch (PageException e) {
+		}
 		return defaultValue;
+	}
+
+	private static Map<Key, Property> propToMap(Property[] props) {
+		Map<Collection.Key, Property> map = new HashMap<>();
+		for (Property p: props) {
+			map.put(KeyImpl.init(p.getName()), p);
+		}
+		return map;
 	}
 
 	/**
@@ -3959,8 +4252,8 @@ public final class Caster {
 	}
 
 	/**
-	 * cast a Object to a reference type (Object), in that case this method to nothing, because a Object
-	 * is already a reference type
+	 * cast an Object to a reference type (Object), in that case this method to nothing, because an
+	 * Object is already a reference type
 	 * 
 	 * @param o Object to cast
 	 * @return casted Object
@@ -4022,7 +4315,7 @@ public final class Caster {
 	}
 
 	/**
-	 * cast a int value to his (CFML) reference type Integer
+	 * cast an int value to his (CFML) reference type Integer
 	 * 
 	 * @param i int to cast
 	 * @return casted Integer
@@ -4058,7 +4351,7 @@ public final class Caster {
 	 * @return casted Double
 	 */
 	public static Double toRef(double d) {
-		return new Double(d);
+		return Double.valueOf(d);
 	}
 
 	/**
@@ -4072,7 +4365,7 @@ public final class Caster {
 	}
 
 	/**
-	 * cast a Object to a Iterator or get Iterator from Object
+	 * cast an Object to an Iterator or get Iterator from Object
 	 * 
 	 * @param o Object to cast
 	 * @return casted Collection
@@ -4083,7 +4376,7 @@ public final class Caster {
 	}
 
 	/**
-	 * cast a Object to a Collection
+	 * cast an Object to a Collection
 	 * 
 	 * @param o Object to cast
 	 * @return casted Collection
@@ -4092,13 +4385,21 @@ public final class Caster {
 	public static Collection toCollection(Object o) throws PageException {
 		if (o instanceof Collection) return (Collection) o;
 		else if (o instanceof Node) return XMLCaster.toXMLStruct((Node) o, false);
+		else if (o instanceof Component) {
+			try {
+				Object tmp = Reflector.componentToClass(ThreadLocalPageContext.get(), (Component) o, Collection.class);
+				if (tmp instanceof Collection) return (Collection) tmp;
+			}
+			catch (PageException e) {
+			}
+		}
 		else if (o instanceof Map) {
 			return MapAsStruct.toStruct((Map) o, true);// StructImpl((Map)o);
 		}
 		else if (o instanceof ObjectWrap) {
 			return toCollection(((ObjectWrap) o).getEmbededObject());
 		}
-		else if (Decision.isArray(o)) {
+		else if (Decision.isCastableToArray(o)) {
 			return toArray(o);
 		}
 		throw new CasterException(o, "collection");
@@ -4110,7 +4411,7 @@ public final class Caster {
 	}
 
 	/**
-	 * cast a Object to a Component
+	 * cast an Object to a Component
 	 * 
 	 * @param o Object to cast
 	 * @return casted Component
@@ -4133,7 +4434,7 @@ public final class Caster {
 	}
 
 	/**
-	 * cast a Object to a Collection, if not returns null
+	 * cast an Object to a Collection, if not returns null
 	 * 
 	 * @param o Object to cast
 	 * @param defaultValue
@@ -4142,6 +4443,14 @@ public final class Caster {
 	public static Collection toCollection(Object o, Collection defaultValue) {
 		if (o instanceof Collection) return (Collection) o;
 		else if (o instanceof Node) return XMLCaster.toXMLStruct((Node) o, false);
+		else if (o instanceof Component) {
+			try {
+				Object tmp = Reflector.componentToClass(ThreadLocalPageContext.get(), (Component) o, Collection.class);
+				if (tmp instanceof Collection) return (Collection) tmp;
+			}
+			catch (PageException e) {
+			}
+		}
 		else if (o instanceof Map) {
 			return MapAsStruct.toStruct((Map) o, true);
 		}
@@ -4160,7 +4469,7 @@ public final class Caster {
 	}
 
 	/**
-	 * convert a object to a File
+	 * convert an object to a File
 	 * 
 	 * @param obj
 	 * @return File
@@ -4172,7 +4481,7 @@ public final class Caster {
 	}
 
 	/**
-	 * convert a object to a File
+	 * convert an object to a File
 	 * 
 	 * @param obj
 	 * @param defaultValue
@@ -4186,7 +4495,7 @@ public final class Caster {
 	}
 
 	/**
-	 * convert a object array to a HashMap filled with Function value Objects
+	 * convert an object array to a HashMap filled with Function value Objects
 	 * 
 	 * @param args Object array to convert
 	 * @return hashmap containing Function values
@@ -4272,7 +4581,7 @@ public final class Caster {
 	}
 
 	/**
-	 * casts a Object to a Node List
+	 * casts an Object to a Node List
 	 * 
 	 * @param o Object to Cast
 	 * @return NodeList from Object
@@ -4290,7 +4599,7 @@ public final class Caster {
 	}
 
 	/**
-	 * casts a Object to a Node List
+	 * casts an Object to a Node List
 	 * 
 	 * @param o Object to Cast
 	 * @param defaultValue
@@ -4308,7 +4617,7 @@ public final class Caster {
 	}
 
 	/**
-	 * casts a Object to a XML Node
+	 * casts an Object to a XML Node
 	 * 
 	 * @param o Object to Cast
 	 * @return Node from Object
@@ -4326,7 +4635,7 @@ public final class Caster {
 	}
 
 	/**
-	 * casts a Object to a XML Node
+	 * casts an Object to a XML Node
 	 * 
 	 * @param o Object to Cast
 	 * @param defaultValue
@@ -4344,7 +4653,20 @@ public final class Caster {
 	}
 
 	/**
-	 * casts a boolean to a Integer
+	 * casts an Object to a XML Element
+	 * 
+	 * @param o Object to Cast
+	 * @return Element from Object
+	 * @throws PageException
+	 */
+
+	public static Element toElement(Object o) throws PageException {
+		if (o instanceof Element) return (Element) o;
+		throw new CasterException(o, "org.w3c.dom.Element");
+	}
+
+	/**
+	 * casts a boolean to an Integer
 	 * 
 	 * @param b
 	 * @return Integer from boolean
@@ -4353,8 +4675,12 @@ public final class Caster {
 		return b ? Constants.INTEGER_1 : Constants.INTEGER_0;
 	}
 
+	public static Integer toInteger(Boolean b) {
+		return b ? Constants.INTEGER_1 : Constants.INTEGER_0;
+	}
+
 	/**
-	 * casts a char to a Integer
+	 * casts a char to an Integer
 	 * 
 	 * @param c
 	 * @return Integer from char
@@ -4364,7 +4690,7 @@ public final class Caster {
 	}
 
 	/**
-	 * casts a double to a Integer
+	 * casts a double to an Integer
 	 * 
 	 * @param d
 	 * @return Integer from double
@@ -4373,8 +4699,12 @@ public final class Caster {
 		return Integer.valueOf((int) d);
 	}
 
+	public static Integer toInteger(Number n) {
+		return Integer.valueOf(n.intValue());
+	}
+
 	/**
-	 * casts a Object to a Integer
+	 * casts an Object to an Integer
 	 * 
 	 * @param o Object to cast to Integer
 	 * @return Integer from Object
@@ -4385,7 +4715,7 @@ public final class Caster {
 	}
 
 	/**
-	 * casts a Object to a Integer
+	 * casts an Object to an Integer
 	 * 
 	 * @param str Object to cast to Integer
 	 * @return Integer from Object
@@ -4401,7 +4731,7 @@ public final class Caster {
 	}
 
 	/**
-	 * casts a Object to a Integer
+	 * casts an Object to an Integer
 	 * 
 	 * @param o Object to cast to Integer
 	 * @param defaultValue
@@ -4415,7 +4745,7 @@ public final class Caster {
 	}
 
 	/**
-	 * casts a Object to null
+	 * casts an Object to null
 	 * 
 	 * @param value
 	 * @return to null from Object
@@ -4429,7 +4759,7 @@ public final class Caster {
 	}
 
 	/**
-	 * casts a Object to null
+	 * casts an Object to null
 	 * 
 	 * @param value
 	 * @param defaultValue
@@ -4491,7 +4821,8 @@ public final class Caster {
 				return new ScriptConverter().serialize(value);
 			}
 		}
-		catch (ConverterException e) {}
+		catch (ConverterException e) {
+		}
 		return defaultValue;
 	}
 
@@ -4569,7 +4900,7 @@ public final class Caster {
 					return IOUtil.toBytes(is);
 				}
 				finally {
-					IOUtil.closeEL(is);
+					IOUtil.close(is);
 				}
 			}
 		}
@@ -4633,7 +4964,15 @@ public final class Caster {
 
 		if (Reflector.isInstaneOf(obj.getClass(), trgClass, false)) return obj;
 
-		return Caster.castTo(pc, Caster.toClassName(trgClass), obj, false);
+		if (obj instanceof Component) {
+			if (trgClass == Component.class) return obj;
+			Component comp = ((Component) obj);
+			if (trgClass.isInterface()) { // TODO allow not only intefaces
+				return Reflector.componentToClass(pc, comp, trgClass);
+			}
+		}
+
+		return castTo(pc, Caster.toClassName(trgClass), obj, false);
 	}
 
 	public static Objects toObjects(PageContext pc, Object obj) throws PageException {
@@ -4645,7 +4984,7 @@ public final class Caster {
 	public static BigDecimal toBigDecimal(Object o) throws PageException {
 		if (o instanceof BigDecimal) return (BigDecimal) o;
 		if (o instanceof Number) {
-			return new BigDecimal(((Number) o).toString());
+			return BigDecimal.valueOf(((Number) o).doubleValue());
 		}
 		else if (o instanceof Boolean) return new BigDecimal(((Boolean) o).booleanValue() ? 1 : 0);
 		else if (o instanceof CharSequence) return new BigDecimal(o.toString());
@@ -4654,6 +4993,24 @@ public final class Caster {
 		else if (o == null) return BigDecimal.ZERO;
 		else if (o instanceof ObjectWrap) return toBigDecimal(((ObjectWrap) o).getEmbededObject());
 		throw new CasterException(o, "number");
+	}
+
+	public static BigDecimal toBigDecimal(Number n) {
+		if (n instanceof BigDecimal) return (BigDecimal) n;
+		return BigDecimal.valueOf(n.doubleValue());
+	}
+
+	public static BigDecimal toBigDecimal(String str) throws CasterException {
+		return new BigDecimal(str);
+	}
+
+	public static BigDecimal toBigDecimal(String str, BigDecimal defaultValue) {
+		try {
+			return new BigDecimal(str);
+		}
+		catch (Exception e) {
+		}
+		return defaultValue;
 	}
 
 	public static BigInteger toBigInteger(Object o) throws PageException {
@@ -4695,11 +5052,28 @@ public final class Caster {
 
 	public static CharSequence toCharSequence(Object obj) throws PageException {
 		if (obj instanceof CharSequence) return (CharSequence) obj;
+		if (obj instanceof Component) {
+			try {
+				Object tmp = Reflector.componentToClass(ThreadLocalPageContext.get(), (Component) obj, CharSequence.class);
+				if (tmp instanceof CharSequence) return (CharSequence) tmp;
+			}
+			catch (PageException pe) {
+			}
+		}
 		return Caster.toString(obj);
 	}
 
 	public static CharSequence toCharSequence(Object obj, CharSequence defaultValue) {
 		if (obj instanceof CharSequence) return (CharSequence) obj;
+		if (obj instanceof Component) {
+			try {
+				Object tmp = Reflector.componentToClass(ThreadLocalPageContext.get(), (Component) obj, CharSequence.class);
+				if (tmp instanceof CharSequence) return (CharSequence) tmp;
+			}
+			catch (PageException pe) {
+			}
+		}
+
 		String str = Caster.toString(obj, null);
 		if (str == null) return defaultValue;
 		return str;
@@ -4821,5 +5195,25 @@ public final class Caster {
 				Reflector.callSetter(pojo, p.getName().toLowerCase(), v);
 			}
 		}
+	}
+
+	public static long toTime(lucee.runtime.type.dt.Date date, Time time, TimeZone tz) {
+		if (time == null) return date.getTime();
+		tz = ThreadLocalPageContext.getTimeZone(tz);
+		Calendar c = JREDateTimeUtil.getThreadCalendar(tz);
+		c.setTimeInMillis(date.getTime());
+		int y = c.get(Calendar.YEAR);
+		int m = c.get(Calendar.MONTH);
+		int d = c.get(Calendar.DAY_OF_MONTH);
+		c.setTimeInMillis(time.getTime());
+		c.set(Calendar.YEAR, y);
+		c.set(Calendar.MONTH, m);
+		c.set(Calendar.DAY_OF_MONTH, d);
+		return c.getTimeInMillis();
+	}
+
+	public static Number negate(Number n) {
+		if (n instanceof BigDecimal) return ((BigDecimal) n).negate();
+		return Double.valueOf(-n.doubleValue());
 	}
 }

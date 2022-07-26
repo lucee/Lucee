@@ -322,7 +322,7 @@ public class VariableImpl extends ExpressionBase implements Variable {
 	}
 
 	/**
-	 * outputs a empty Variable, only scope Example: pc.formScope();
+	 * outputs an empty Variable, only scope Example: pc.formScope();
 	 * 
 	 * @param adapter
 	 * @throws TemplateException
@@ -644,7 +644,15 @@ public class VariableImpl extends ExpressionBase implements Variable {
 			}
 		}
 
-		if (member.getSafeNavigated()) adapter.loadArg(0);
+		// LDEV3496
+		// subsequent logic will conditionally require a PageContext be pushed onto the stack, as part of a call to resolve a save-nav expression member
+		// But, we only want to push it if it will be consumed
+		// root cause of LDEV3496 was this was pushed in cases where it would not be consumed, and an extra unanticpated stack variable would break during class verification
+		// (jvm would report "expected a stackmap frame", javassist would report "InvocationTargetException: Operand stacks could not be merged, they are different sizes!")
+		final boolean needsAndWillConsumePageContextForSafeNavigationResolution = member.getSafeNavigated() && !doOnlyScope;
+		if (needsAndWillConsumePageContextForSafeNavigationResolution) {
+			adapter.loadArg(0);
+		}
 
 		// collection
 		Type rtn;
@@ -708,7 +716,7 @@ public class VariableImpl extends ExpressionBase implements Variable {
 	private static VT getMatchingValueAndType(Factory factory, FunctionLibFunctionArg flfa, NamedArgument[] nargs, String[] names, Position line) throws TransformerException {
 		String flfan = flfa.getName();
 
-		// first search if a argument match
+		// first search if an argument match
 		for (int i = 0; i < nargs.length; i++) {
 			if (names[i] != null && names[i].equalsIgnoreCase(flfan)) {
 				nargs[i].setValue(nargs[i].getRawValue(), flfa.getTypeAsString());
@@ -716,7 +724,7 @@ public class VariableImpl extends ExpressionBase implements Variable {
 			}
 		}
 
-		// then check if a alias match
+		// then check if an alias match
 		String alias = flfa.getAlias();
 		if (!StringUtil.isEmpty(alias)) {
 			// String[] arrAlias =
@@ -744,7 +752,7 @@ public class VariableImpl extends ExpressionBase implements Variable {
 		String type = flfa.getTypeAsString();
 		if (defaultValue == null) {
 			if (type.equals("boolean") || type.equals("bool")) return new VT(factory.FALSE(), type, -1);
-			if (type.equals("number") || type.equals("numeric") || type.equals("double")) return new VT(factory.DOUBLE_ZERO(), type, -1);
+			if (type.equals("number") || type.equals("numeric") || type.equals("double")) return new VT(factory.NUMBER_ONE(), type, -1);
 			return new VT(null, type, -1);
 		}
 		return new VT(factory.toExpression(factory.createLitString(defaultValue), type), type, -1);
@@ -752,7 +760,7 @@ public class VariableImpl extends ExpressionBase implements Variable {
 
 	private static String getName(Expression expr) throws TransformerException {
 		String name = ASMUtil.toString(expr);
-		if (name == null) throw new TransformerException("cannot extract a string from a object of type [" + expr.getClass().getName() + "]", null);
+		if (name == null) throw new TransformerException("cannot extract a string from an object of type [" + expr.getClass().getName() + "]", null);
 		return name;
 	}
 
@@ -765,7 +773,7 @@ public class VariableImpl extends ExpressionBase implements Variable {
 	}
 
 	/**
-	 * translate a array of arguments to a araay of NamedArguments, attention no check if the elements
+	 * translate an array of arguments to an array of NamedArguments, attention no check if the elements
 	 * are really named arguments
 	 * 
 	 * @param args
@@ -781,7 +789,7 @@ public class VariableImpl extends ExpressionBase implements Variable {
 	}
 
 	/**
-	 * check if the arguments are named arguments or regular arguments, throws a exception when mixed
+	 * check if the arguments are named arguments or regular arguments, throws an exception when mixed
 	 * 
 	 * @param funcName
 	 * @param args
@@ -792,11 +800,13 @@ public class VariableImpl extends ExpressionBase implements Variable {
 	private static boolean isNamed(String funcName, Argument[] args) throws TransformerException {
 		if (ArrayUtil.isEmpty(args)) return false;
 		boolean named = false;
+		boolean unNamed = false;
 		for (int i = 0; i < args.length; i++) {
 			if (args[i] instanceof NamedArgument) named = true;
-			else if (named) throw new TransformerException("invalid argument for function " + funcName + ", you can not mix named and unnamed arguments", args[i].getStart());
+			else unNamed = true;
+			if (named && unNamed)
+				throw new TransformerException("Invalid argument for function [ " + funcName + " ], You can't mix named and unNamed arguments", args[i].getStart());
 		}
-
 		return named;
 	}
 

@@ -298,7 +298,7 @@ public final class ArrayImplNS extends ArraySupport implements Array {
 				if (((Array) value).getDimension() != dimension - 1) throw new ExpressionException("You can only Append an Array with " + (dimension - 1) + " Dimension",
 						"array has wrong dimension, now is " + (((Array) value).getDimension()) + " but it must be " + (dimension - 1));
 			}
-			else throw new ExpressionException("You can only Append an Array with " + (dimension - 1) + " Dimension", "now is a object of type " + Caster.toClassName(value));
+			else throw new ExpressionException("You can only Append an Array with " + (dimension - 1) + " Dimension", "now is an object of type " + Caster.toClassName(value));
 		}
 		return value;
 	}
@@ -381,14 +381,38 @@ public final class ArrayImplNS extends ArraySupport implements Array {
 
 	@Override
 	public Object removeEL(int key) {
-		if (key > size || key < 1) return null;
-		Object obj = get(key, null);
+		return remove(key, null);
+	}
+
+	public Object remove(int key, Object defaultValue) {
+		if (key > size || key < 1) return defaultValue;
+		Object obj = get(key, defaultValue);
 
 		for (int i = (offset + key) - 1; i < (offset + size) - 1; i++) {
 			arr[i] = arr[i + 1];
 		}
 		size--;
 		return obj;
+	}
+
+	@Override
+	public Object pop() throws ExpressionException {
+		return removeE(size());
+	}
+
+	@Override
+	public Object pop(Object defaultValue) {
+		return remove(size(), defaultValue);
+	}
+
+	@Override
+	public Object shift() throws ExpressionException {
+		return removeE(1);
+	}
+
+	@Override
+	public Object shift(Object defaultValue) {
+		return remove(1, defaultValue);
 	}
 
 	@Override
@@ -553,7 +577,8 @@ public final class ArrayImplNS extends ArraySupport implements Array {
 			try {
 				o = getE(i);
 			}
-			catch (Exception e) {}
+			catch (Exception e) {
+			}
 			table.appendRow(1, new SimpleDumpData(i), DumpUtil.toDumpData(o, pageContext, maxlevel, dp));
 		}
 		return table;
@@ -596,7 +621,8 @@ public final class ArrayImplNS extends ArraySupport implements Array {
 				else arr.set(e.getKey(), e.getValue());
 			}
 		}
-		catch (ExpressionException ee) {}
+		catch (ExpressionException ee) {
+		}
 		finally {
 			if (!inside) ThreadLocalDuplication.reset();
 		}

@@ -71,7 +71,11 @@ public class Map extends BIF implements ClosureFunc {
 		return _call(pc, obj, udf, parallel, (int) maxThreads, null, TYPE_UNDEFINED);
 	}
 
-	public static Collection _call(PageContext pc, Object obj, UDF udf, boolean parallel, int maxThreads, Query resQry, short type) throws PageException {
+	public static Object call(PageContext pc, Object obj, UDF udf, boolean parallel, int maxThreads, Query resQry, short type) throws PageException {
+		return _call(pc, obj, udf, parallel, maxThreads, resQry, type);
+	}
+
+	private static Collection _call(PageContext pc, Object obj, UDF udf, boolean parallel, int maxThreads, Query resQry, short type) throws PageException {
 
 		ExecutorService execute = null;
 		List<Future<Data<Object>>> futures = null;

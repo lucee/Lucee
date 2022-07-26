@@ -19,9 +19,10 @@
 package lucee.runtime.text.xml;
 
 import java.io.IOException;
-import java.io.OutputStream;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.io.Writer;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -45,6 +46,7 @@ import org.w3c.dom.NodeList;
 import org.w3c.dom.Text;
 import org.xml.sax.InputSource;
 
+import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.ExceptionUtil;
@@ -132,7 +134,7 @@ public final class XMLCaster {
 			return new Text[] { toText(doc, o) };
 		}
 		catch (ExpressionException e) {
-			throw new XMLException("can't cast Object of type " + Caster.toClassName(o) + " to a XML Text Array");
+			throw new XMLException("can't cast Object of type " + Caster.toClassName(o) + " to a XML Text Array", e);
 		}
 	}
 
@@ -202,7 +204,7 @@ public final class XMLCaster {
 			return new Attr[] { toAttr(doc, o) };
 		}
 		catch (ExpressionException e) {
-			throw new XMLException("can't cast Object of type " + Caster.toClassName(o) + " to a XML Attributes Array");
+			throw new XMLException("can't cast Object of type " + Caster.toClassName(o) + " to a XML Attributes Array", e);
 		}
 	}
 
@@ -258,7 +260,7 @@ public final class XMLCaster {
 			return new Comment[] { toComment(doc, o) };
 		}
 		catch (ExpressionException e) {
-			throw new XMLException("can't cast Object of type " + Caster.toClassName(o) + " to a XML Comment Array");
+			throw new XMLException("can't cast Object of type " + Caster.toClassName(o) + " to a XML Comment Array", e);
 		}
 	}
 
@@ -314,7 +316,7 @@ public final class XMLCaster {
 			return new Element[] { toElement(doc, o) };
 		}
 		catch (ExpressionException e) {
-			throw new XMLException("can't cast Object of type " + Caster.toClassName(o) + " to a XML Element Array");
+			throw new XMLException("can't cast Object of type " + Caster.toClassName(o) + " to a XML Element Array", e);
 		}
 	}
 
@@ -389,7 +391,7 @@ public final class XMLCaster {
 			return new Node[] { toNode(doc, o, false) };
 		}
 		catch (ExpressionException e) {
-			throw new XMLException("can't cast Object of type " + Caster.toClassName(o) + " to a XML Node Array");
+			throw new XMLException("can't cast Object of type " + Caster.toClassName(o) + " to a XML Node Array", e);
 		}
 	}
 
@@ -515,17 +517,28 @@ public final class XMLCaster {
 	 * @throws PageException
 	 */
 	public static void writeTo(Node node, Resource file) throws PageException {
-		OutputStream os = null;
+		writeTo(node, file, null);
+	}
+
+	public static void writeTo(Node node, Resource file, Charset charset) throws PageException {
+		if (charset == null) charset = CharsetUtil.UTF8;
+		Writer w = null;
 		try {
-			os = IOUtil.toBufferedOutputStream(file.getOutputStream());
-			writeTo(node, new StreamResult(os), false, false, null, null, null);
-			os.flush();
+			// os = IOUtil.toBufferedOutputStream(file.getOutputStream());
+			w = IOUtil.getWriter(file, charset);
+			writeTo(node, new StreamResult(w), false, false, null, null, null);
+			w.flush();
 		}
 		catch (IOException ioe) {
 			throw Caster.toPageException(ioe);
 		}
 		finally {
-			IOUtil.closeEL(os);
+			try {
+				IOUtil.close(w);
+			}
+			catch (IOException ioe) {
+				throw Caster.toPageException(ioe);
+			}
 		}
 	}
 
@@ -535,7 +548,12 @@ public final class XMLCaster {
 			writeTo(node, new StreamResult(sw), false, false, null, null, null);
 		}
 		finally {
-			IOUtil.closeEL(sw);
+			try {
+				IOUtil.close(sw);
+			}
+			catch (IOException e) {
+				throw Caster.toPageException(e);
+			}
 		}
 		return sw.getBuffer().toString();
 	}
@@ -546,7 +564,12 @@ public final class XMLCaster {
 			writeTo(node, new StreamResult(sw), omitXMLDecl, indent, null, null, null);
 		}
 		finally {
-			IOUtil.closeEL(sw);
+			try {
+				IOUtil.close(sw);
+			}
+			catch (IOException ioe) {
+				throw Caster.toPageException(ioe);
+			}
 		}
 		return sw.getBuffer().toString();
 	}
@@ -557,7 +580,12 @@ public final class XMLCaster {
 			writeTo(node, new StreamResult(sw), omitXMLDecl, indent, publicId, systemId, encoding);
 		}
 		finally {
-			IOUtil.closeEL(sw);
+			try {
+				IOUtil.close(sw);
+			}
+			catch (IOException ioe) {
+				throw Caster.toPageException(ioe);
+			}
 		}
 		return sw.getBuffer().toString();
 	}
@@ -571,7 +599,12 @@ public final class XMLCaster {
 			}
 		}
 		finally {
-			IOUtil.closeEL(sw);
+			try {
+				IOUtil.close(sw);
+			}
+			catch (IOException ioe) {
+				throw Caster.toPageException(ioe);
+			}
 		}
 		return sw.getBuffer().toString();
 	}

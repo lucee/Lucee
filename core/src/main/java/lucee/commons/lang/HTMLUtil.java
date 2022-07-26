@@ -91,7 +91,8 @@ public final class HTMLUtil {
 					try {
 						urls.add(new URL(url, value.toString()));
 					}
-					catch (MalformedURLException e) {}
+					catch (MalformedURLException e) {
+					}
 					cfml.next();
 				}
 				else {
@@ -134,13 +135,14 @@ public final class HTMLUtil {
 		String lcValue = value.toLowerCase();
 		try {
 			if (lcValue.startsWith("http://") || lcValue.startsWith("news://") || lcValue.startsWith("goopher://") || lcValue.startsWith("javascript:"))
-				list.add(HTTPUtil.toURL(value, true));
+				list.add(HTTPUtil.toURL(value, HTTPUtil.ENCODED_AUTO));
 			else {
 
 				list.add(new URL(baseURL, value.toString()));
 			}
 		}
-		catch (MalformedURLException mue) {}
+		catch (MalformedURLException mue) {
+		}
 		// print.err(list.get(list.size()-1));
 	}
 

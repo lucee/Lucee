@@ -7,7 +7,7 @@
 		,field("User Name","username","",false,"the username to access the server","text")
 		,field("Password","password","",false,"the password to access the server","password")
 		,field("Attachment path","attachmentpath",expandPath('{temp-directory}/mailwatcher-attachments'),false,"a directory in which to save any attachments","text")
-		,field("Interval (ms)","interval","60000",true,"The interval between checks, in miliseconds","text")
+		,field("Interval (ms)","interval","60000",true,"The interval between checks, in milliseconds","text")
 		
 		,group("CFC Listener Function Definition","Definition for the CFC Listener Function, when empty no listener is called",3)
 		

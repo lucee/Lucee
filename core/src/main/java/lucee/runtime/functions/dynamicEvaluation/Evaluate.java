@@ -44,7 +44,7 @@ public final class Evaluate implements Function {
 	}
 
 	public static Object call(PageContext pc, Object[] objs, boolean preciseMath) throws PageException {
-		// define a ohter enviroment for the function
+		// define another environment for the function
 		if (objs.length > 1 && objs[objs.length - 1] instanceof Scope) {
 
 			// Variables Scope
@@ -63,7 +63,7 @@ public final class Evaluate implements Function {
 
 			if (var != null) {
 				Variables cVar = pc.variablesScope();
-				pc.setVariablesScope(var);
+				if (cVar != var) pc.setVariablesScope(var);
 				if (lcl != null && !(lcl instanceof LocalNotSupportedScope)) {
 					cLcl = pc.localScope();
 					cArg = pc.argumentsScope();
@@ -73,7 +73,7 @@ public final class Evaluate implements Function {
 					return _call(pc, objs, objs.length - 1, preciseMath);
 				}
 				finally {
-					pc.setVariablesScope(cVar);
+					if (cVar != var) pc.setVariablesScope(cVar);
 					if (cLcl != null) pc.setFunctionScopes(cLcl, cArg);
 				}
 			}
@@ -87,14 +87,14 @@ public final class Evaluate implements Function {
 				Variables orgVar = pc.variablesScope();
 				Argument orgArgs = pc.argumentsScope();
 				Local orgLocal = pc.localScope();
-
-				pci.setVariablesScope(undefined.variablesScope());
+				Variables us = undefined.variablesScope();
+				if (us != orgVar) pci.setVariablesScope(us);
 				if (check) pci.setFunctionScopes(undefined.localScope(), undefined.argumentsScope());
 				try {
 					return _call(pc, objs, objs.length - 1, preciseMath);
 				}
 				finally {
-					pc.setVariablesScope(orgVar);
+					if (us != orgVar) pc.setVariablesScope(orgVar);
 					if (check) pci.setFunctionScopes(orgLocal, orgArgs);
 				}
 

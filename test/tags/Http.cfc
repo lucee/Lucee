@@ -28,18 +28,24 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 
 			
 	public void function testDefaultHTTPParamType(){
-		http url="http://snapshot.lucee.org/rest/update/provider/echoGet" result="local.res" method="get"{
+		http url="https://update.lucee.org/rest/update/provider/echoGet" result="local.res" method="get"{
 			httpparam name="susi" value="Sorglos";
 		}
 		res=evaluate(res.filecontent);
 
 		assertEquals("Sorglos",res.url.susi);
 	}
-			
+
+	public void function testPatch(){
+		http url="https://update.lucee.org/rest/update/provider/echoGet" result="local.res" method="patch"{
+			httpparam name="susi" value="Sorglos";
+		}
+	}
+
 	public void function testImplicit(){
 		var data=chr(228)&chr(246)&chr(252); // äöü
 		data="{aaa:'#data#'}";
-		http url="http://snapshot.lucee.org/rest/update/provider/echoPut" result="local.res" method="put" throwonerror="no" charset="utf-8"{
+		http url="https://update.lucee.org/rest/update/provider/echoPut" result="local.res" method="put" throwonerror="no" charset="utf-8"{
 			httpparam type="body" value=data;
 		}
 		res=evaluate(res.filecontent);
@@ -49,13 +55,29 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 	public void function testExplicit(){
 		var data=chr(228)&chr(246)&chr(252); // äöü
 		data="{aaa:'#data#'}";
-		http url="http://snapshot.lucee.org/rest/update/provider/echoPut" result="local.res" method="put" throwonerror="no" charset="utf-8"{
+		http url="https://update.lucee.org/rest/update/provider/echoPut" result="local.res" method="put" throwonerror="no" charset="utf-8"{
 			httpparam type="body" mimetype="text/plain; charset=UTF-8" value=data;
 		}
 		res=evaluate(res.filecontent);
 		assertEquals(data,res.httpRequestData.content);
 	}
 
-
-
+	public void function testCheckTLSVersion(){
+		http url="https://www.howsmyssl.com/a/check" result="local.res";
+		expect(isJson(res.filecontent)).toBeTrue();
+		var tlsReport = DeserializeJson(res.filecontent);
+		SystemOutput("", true);
+		SystemOutput("CFHTTP is using [#tlsReport.tls_version#] (jvm default)", true);
+	}
+	public void function testCachedHttpRequest(){
+		http url="https://update.lucee.org/rest/update/provider/echoGet" result="local.res" method="get" cachedWithin="request"{
+			httpparam name="susi" value="Sorglos";
+		}
+		http url="https://update.lucee.org/rest/update/provider/echoGet" result="local.res2" method="get" cachedWithin="request"{
+			httpparam name="susi" value="Sorglos";
+		}
+		res = evaluate( res.filecontent );
+		res2 = evaluate( res2.filecontent );
+		expect( res.url.susi ).toBe( res2.url.susi );
+	}
 }

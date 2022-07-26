@@ -45,7 +45,6 @@ import lucee.transformer.bytecode.Body;
 import lucee.transformer.bytecode.BytecodeContext;
 import lucee.transformer.bytecode.ConstrBytecodeContext;
 import lucee.transformer.bytecode.Page;
-import lucee.transformer.bytecode.Root;
 import lucee.transformer.bytecode.statement.Argument;
 import lucee.transformer.bytecode.statement.HasBody;
 import lucee.transformer.bytecode.statement.IFunction;
@@ -81,6 +80,7 @@ public abstract class Function extends StatementBaseNoFinal implements Opcodes, 
 	static final Method SET_KEY = new Method("set", Types.OBJECT, new Type[] { Types.COLLECTION_KEY, Types.OBJECT });
 
 	static final Method REG_UDF_KEY = new Method("registerUDF", Types.VOID, new Type[] { Types.COLLECTION_KEY, Types.UDF_PROPERTIES });
+	static final Method REG_STATIC_UDF_KEY = new Method("registerStaticUDF", Types.VOID, new Type[] { Types.COLLECTION_KEY, Types.UDF_PROPERTIES });
 
 	// private static final ExprString ANY = LitString.toExprString("any");
 
@@ -146,9 +146,9 @@ public abstract class Function extends StatementBaseNoFinal implements Opcodes, 
 	private Literal cachedWithin;
 	private int modifier;
 	protected JavaFunction jf;
-	private final Root root;
+	// private final Root root;
 
-	public Function(Root root, String name, int access, int modifier, String returnType, Body body, Position start, Position end) {
+	public Function(String name, int access, int modifier, String returnType, Body body, Position start, Position end) {
 		super(body.getFactory(), start, end);
 		this.name = body.getFactory().createLitString(name);
 		this.access = access;
@@ -160,10 +160,9 @@ public abstract class Function extends StatementBaseNoFinal implements Opcodes, 
 		output = body.getFactory().TRUE();
 		displayName = body.getFactory().EMPTY();
 		hint = body.getFactory().EMPTY();
-		this.root = root;
 	}
 
-	public Function(Root root, Expression name, Expression returnType, Expression returnFormat, Expression output, Expression bufferOutput, int access, Expression displayName,
+	public Function(Expression name, Expression returnType, Expression returnFormat, Expression output, Expression bufferOutput, int access, Expression displayName,
 			Expression description, Expression hint, Expression secureJson, Expression verifyClient, Expression localMode, Literal cachedWithin, int modifier, Body body,
 			Position start, Position end) {
 		super(body.getFactory(), start, end);
@@ -182,16 +181,15 @@ public abstract class Function extends StatementBaseNoFinal implements Opcodes, 
 		this.cachedWithin = cachedWithin;
 		this.modifier = modifier;
 		this.localMode = toLocalMode(localMode, null);
-		this.root = root;
 		this.body = body;
 		body.setParent(this);
 
 	}
 
-	public void register() {
+	public void register(Page page) {
 		if (valueIndex != -1) throw new RuntimeException("you can register only once!"); // just to be safe
 
-		int[] indexes = root.addFunction(this);
+		int[] indexes = page.addFunction(this);
 		valueIndex = indexes[VALUE_INDEX];
 		arrayIndex = indexes[ARRAY_INDEX];
 	}
@@ -209,6 +207,7 @@ public abstract class Function extends StatementBaseNoFinal implements Opcodes, 
 
 	@Override
 	public final void writeOut(BytecodeContext bc, int type) throws TransformerException {
+		// register(bc.getPage());
 		ExpressionUtil.visitLine(bc, getStart());
 		_writeOut(bc, type);
 		ExpressionUtil.visitLine(bc, getEnd());
@@ -216,6 +215,7 @@ public abstract class Function extends StatementBaseNoFinal implements Opcodes, 
 
 	@Override
 	public final void _writeOut(BytecodeContext bc) throws TransformerException {
+		// register(bc.getPage());
 		_writeOut(bc, PAGE_TYPE_REGULAR);
 	}
 
@@ -543,7 +543,7 @@ public abstract class Function extends StatementBaseNoFinal implements Opcodes, 
 		String name = attr.getName().toLowerCase();
 		// name
 		if ("name".equals(name)) {
-			throw new TransformerException("name cannot be defined twice", getStart());
+			throw new TransformerException("Name cannot be defined twice", getStart());
 		}
 		else if ("returntype".equals(name)) {
 			this.returnType = toLitString(name, attr.getValue());
@@ -553,7 +553,7 @@ public abstract class Function extends StatementBaseNoFinal implements Opcodes, 
 			LitString ls = toLitString(name, attr.getValue());
 			String strAccess = ls.getString();
 			int acc = ComponentUtil.toIntAccess(strAccess, -1);
-			if (acc == -1) throw new TransformerException("invalid access type [" + strAccess + "], access types are remote, public, package, private", getStart());
+			if (acc == -1) throw new TransformerException("Invalid access type [" + strAccess + "], access types are (remote, public, package, private)", getStart());
 			access = acc;
 
 		}
@@ -573,7 +573,7 @@ public abstract class Function extends StatementBaseNoFinal implements Opcodes, 
 				if (!StringUtil.isEmpty(str)) {
 					int mode = AppListenerUtil.toLocalMode(str, -1);
 					if (mode != -1) this.localMode = v.getFactory().createLitInteger(mode);
-					else throw new TransformerException("Attribute localMode of the Tag Function, must be a literal value (modern, classic, true or false)", getStart());
+					else throw new TransformerException("Attribute [localMode] of the tag [Function], must be a literal value (modern, classic, true or false)", getStart());
 				}
 			}
 		}
@@ -604,19 +604,19 @@ public abstract class Function extends StatementBaseNoFinal implements Opcodes, 
 
 	private final LitString toLitString(String name, Expression value) throws TransformerException {
 		ExprString es = value.getFactory().toExprString(value);
-		if (!(es instanceof LitString)) throw new TransformerException("value of attribute [" + name + "] must have a literal/constant value", getStart());
+		if (!(es instanceof LitString)) throw new TransformerException("Value of attribute [" + name + "] must have a literal/constant value", getStart());
 		return (LitString) es;
 	}
 
 	private final LitBoolean toLitBoolean(String name, Expression value) throws TransformerException {
 		ExprBoolean eb = value.getFactory().toExprBoolean(value);
-		if (!(eb instanceof LitBoolean)) throw new TransformerException("value of attribute [" + name + "] must have a literal/constant value", getStart());
+		if (!(eb instanceof LitBoolean)) throw new TransformerException("Value of attribute [" + name + "] must have a literal/constant value", getStart());
 		return (LitBoolean) eb;
 	}
 
 	private final ExprInt toLitInt(String name, Expression value) throws TransformerException {
 		ExprInt eb = value.getFactory().toExprInt(value);
-		if (!(eb instanceof Literal)) throw new TransformerException("value of attribute [" + name + "] must have a literal/constant value", getStart());
+		if (!(eb instanceof Literal)) throw new TransformerException("Value of attribute [" + name + "] must have a literal/constant value", getStart());
 		return eb;
 	}
 

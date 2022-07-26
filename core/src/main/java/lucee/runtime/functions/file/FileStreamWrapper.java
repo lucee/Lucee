@@ -43,16 +43,11 @@ public abstract class FileStreamWrapper extends StructSupport implements Struct 
 	public static final String STATE_OPEN = "open";
 	public static final String STATE_CLOSE = "close";
 
-	protected Resource res;
+	protected final Resource res;
 	private String status = STATE_OPEN;
-	private StructImpl info;
-	private long lastModifed;
-	private long length;
 
 	public FileStreamWrapper(Resource res) {
 		this.res = res;
-		this.lastModifed = System.currentTimeMillis();
-		this.length = res.length();
 	}
 
 	public final String getFilename() {
@@ -76,7 +71,7 @@ public abstract class FileStreamWrapper extends StructSupport implements Struct 
 	}
 
 	public final Date getLastmodified() {
-		return new DateTimeImpl(lastModifed, false);
+		return new DateTimeImpl(res.lastModified(), false);
 	}
 
 	public Object getMetadata() {
@@ -84,16 +79,13 @@ public abstract class FileStreamWrapper extends StructSupport implements Struct 
 	}
 
 	public Struct info() {
-		if (info == null) {
-			info = new StructImpl();
-			info.setEL(KeyConstants._mode, getMode());
-			info.setEL(KeyConstants._name, res.getName());
-			info.setEL(KeyConstants._path, res.getParent());
-			info.setEL(KeyConstants._status, getStatus());
-			info.setEL(KeyConstants._size, getSize() + " bytes");
-			info.setEL(KeyConstants._lastmodified, getLastmodified());
-		}
-
+		StructImpl info = new StructImpl();
+		info.setEL(KeyConstants._mode, getMode());
+		info.setEL(KeyConstants._name, res.getName());
+		info.setEL(KeyConstants._path, res.getParent());
+		info.setEL(KeyConstants._status, getStatus());
+		info.setEL(KeyConstants._size, getSize() + " bytes");
+		info.setEL(KeyConstants._lastmodified, getLastmodified());
 		return info;
 	}
 
@@ -102,7 +94,7 @@ public abstract class FileStreamWrapper extends StructSupport implements Struct 
 	}
 
 	public long getSize() {
-		return length;
+		return res.length();
 	}
 
 	public void write(Object obj) throws IOException {
@@ -287,7 +279,7 @@ public abstract class FileStreamWrapper extends StructSupport implements Struct 
 
 	@Override
 	public int compareTo(DateTime dt) throws PageException {
-		return info.compareTo(dt);
+		return info().compareTo(dt);
 	}
 
 	@Override

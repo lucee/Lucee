@@ -84,6 +84,12 @@ public class UDFImpl extends MemberSupport implements UDFPlus, Externalizable {
 		this.properties = (UDFPropertiesBase) properties;
 	}
 
+	public UDFImpl(UDFProperties properties, Component owner) {
+		super(properties.getAccess(), properties.getModifier());
+		this.properties = (UDFPropertiesBase) properties;
+		setOwnerComponent(owner);
+	}
+
 	public UDF duplicate(Component cfc) {
 		UDFImpl udf = new UDFImpl(properties);
 		udf.ownerComponent = cfc;
@@ -107,8 +113,10 @@ public class UDFImpl extends MemberSupport implements UDFPlus, Externalizable {
 	}
 
 	private final Object castToAndClone(PageContext pc, FunctionArgument arg, Object value, int index) throws PageException {
+		if (value == null && ((PageContextImpl) pc).getFullNullSupport()) return value;
+
 		if (!((PageContextImpl) pc).getTypeChecking() || Decision.isCastableTo(pc, arg.getType(), arg.getTypeAsString(), value))
-			return arg.isPassByReference() ? value : Duplicator.duplicate(value, false);
+			return arg.isPassByReference() ? value : Duplicator.duplicate(value, true);
 		throw new UDFCasterException(this, arg, value, index);
 	}
 
@@ -132,7 +140,7 @@ public class UDFImpl extends MemberSupport implements UDFPlus, Externalizable {
 				Object d = getDefaultValue(pc, i, _null);
 				if (d == _null) {
 					if (funcArgs[i].isRequired()) {
-						throw new ExpressionException("The parameter " + funcArgs[i].getName() + " to function " + getFunctionName() + " is required but was not passed in.");
+						throw new ExpressionException("The parameter [" + funcArgs[i].getName() + "] to function [" + getFunctionName() + "] is required but was not passed in.");
 					}
 					if (!fns) newArgs.setEL(funcArgs[i].getName(), Argument.NULL);
 				}
@@ -172,7 +180,7 @@ public class UDFImpl extends MemberSupport implements UDFPlus, Externalizable {
 			Object defaultValue = getDefaultValue(pageContext, i, _null);// funcArgs[i].getDefaultValue();
 			if (defaultValue == _null) {
 				if (funcArgs[i].isRequired()) {
-					throw new ExpressionException("The parameter " + funcArgs[i].getName() + " to function " + getFunctionName() + " is required but was not passed in.");
+					throw new ExpressionException("The parameter [" + funcArgs[i].getName() + "] to function [" + getFunctionName() + "] is required but was not passed in.");
 				}
 				if (pageContext.getCurrentTemplateDialect() == CFMLEngine.DIALECT_CFML && !pageContext.getConfig().getFullNullSupport()) newArgs.set(name, Argument.NULL);
 			}
@@ -408,7 +416,7 @@ public class UDFImpl extends MemberSupport implements UDFPlus, Externalizable {
 
 	@Override
 	public Struct getMetaData(PageContext pc) throws PageException {
-		return ComponentUtil.getMetaData(pc, properties);
+		return ComponentUtil.getMetaData(pc, properties, null);
 		// return getMetaData(pc, this);
 	}
 

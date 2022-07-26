@@ -117,8 +117,14 @@ public final class ArgumentImpl extends ScopeSupport implements Argument, ArrayP
 		Object o = super.g(key, Null.NULL);
 		if (o != Null.NULL) return o;
 
-		o = get(Caster.toIntValue(key.getString(), -1), Null.NULL);
-		if (o != Null.NULL) return o;
+		if (key.length() > 0) {
+			char c = key.charAt(0);
+			if ((c >= '0' && c <= '9') || c == '+') {
+				o = get(Caster.toIntValue(key.getString(), -1), Null.NULL);
+				if (o != Null.NULL) return o;
+			}
+		}
+
 		return defaultValue;
 	}
 
@@ -128,10 +134,15 @@ public final class ArgumentImpl extends ScopeSupport implements Argument, ArrayP
 		Object o = super.g(key, Null.NULL);
 		if (o != Null.NULL) return o;
 
-		o = get(Caster.toIntValue(key.getString(), -1), Null.NULL);
-		if (o != Null.NULL) return o;
+		if (key.length() > 0) {
+			char c = key.charAt(0);
+			if ((c >= '0' && c <= '9') || c == '+') {
+				o = get(Caster.toIntValue(key.getString(), -1), Null.NULL);
+				if (o != Null.NULL) return o;
+			}
+		}
 
-		throw new ExpressionException("key [" + key.getString() + "] doesn't exist in argument scope. existing keys are ["
+		throw new ExpressionException("The key [" + key.getString() + "] doesn't exist in the arguments scope. The existing keys are ["
 				+ lucee.runtime.type.util.ListUtil.arrayToList(CollectionUtil.keys(this), ", ") + "]");
 	}
 
@@ -249,7 +260,7 @@ public final class ArgumentImpl extends ScopeSupport implements Argument, ArrayP
 	public boolean insert(int index, String key, Object value) throws ExpressionException {
 		int len = size();
 		if (index < 1 || index > len) throw new ExpressionException("invalid index to insert a value to argument scope",
-				len == 0 ? "can't insert in a empty argument scope" : "valid index goes from 1 to " + (len - 1));
+				len == 0 ? "can't insert in an empty argument scope" : "valid index goes from 1 to " + (len - 1));
 
 		// remove all upper
 		LinkedHashMap lhm = new LinkedHashMap();
@@ -350,8 +361,8 @@ public final class ArgumentImpl extends ScopeSupport implements Argument, ArrayP
 		throw new ExpressionException("can not overwrite arguments scope");
 	}
 
-	public ArrayList toArrayList() {
-		ArrayList list = new ArrayList();
+	public ArrayList<Object> toArrayList() {
+		ArrayList<Object> list = new ArrayList<Object>();
 		Object[] arr = toArray();
 		for (int i = 0; i < arr.length; i++) {
 			list.add(arr[i]);
@@ -372,13 +383,37 @@ public final class ArgumentImpl extends ScopeSupport implements Argument, ArrayP
 
 	@Override
 	public Object removeEL(int intKey) {
+		return remove(intKey, null);
+	}
+
+	public Object remove(int intKey, Object defaultValue) {
 		Key[] keys = keys();
 		for (int i = 0; i < keys.length; i++) {
 			if ((i + 1) == intKey) {
 				return super.removeEL(keys[i]);
 			}
 		}
-		return null;
+		return defaultValue;
+	}
+
+	@Override
+	public Object pop() throws PageException {
+		return removeE(size());
+	}
+
+	@Override
+	public synchronized Object pop(Object defaultValue) {
+		return remove(size(), defaultValue);
+	}
+
+	@Override
+	public Object shift() throws PageException {
+		return removeE(1);
+	}
+
+	@Override
+	public synchronized Object shift(Object defaultValue) {
+		return remove(1, defaultValue);
 	}
 
 	@Override
@@ -431,7 +466,7 @@ public final class ArgumentImpl extends ScopeSupport implements Argument, ArrayP
 	 */
 
 	/**
-	 * converts a argument scope to a regular struct
+	 * converts an argument scope to a regular struct
 	 * 
 	 * @param arg argument scope to convert
 	 * @return resulting struct
@@ -443,7 +478,7 @@ public final class ArgumentImpl extends ScopeSupport implements Argument, ArrayP
 	}
 
 	/**
-	 * converts a argument scope to a regular array
+	 * converts an argument scope to a regular array
 	 * 
 	 * @param arg argument scope to convert
 	 * @return resulting array

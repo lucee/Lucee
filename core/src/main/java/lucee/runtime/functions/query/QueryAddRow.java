@@ -43,7 +43,7 @@ public final class QueryAddRow extends BIF {
 			query.addRow(Caster.toIntValue(numberOrData));
 		}
 		else {
-			QueryNew.populate(pc, query, numberOrData);
+			QueryNew.populate(pc, query, numberOrData, false);
 		}
 		return query.getRecordcount();
 	}

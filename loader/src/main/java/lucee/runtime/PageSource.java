@@ -32,28 +32,31 @@ public interface PageSource extends Serializable {
 	/**
 	 * loads a page
 	 * 
-	 * @param pc
-	 * @param forceReload
-	 * @throws PageException throws a exception when compilation fails or page does not exist
+	 * @param pc page context
+	 * @param forceReload force reload
+	 * @return page source
+	 * @throws PageException throws an exception when compilation fails or page does not exist
 	 */
 	public Page loadPage(PageContext pc, boolean forceReload) throws PageException;
 
 	/**
 	 * loads a page
 	 * 
-	 * @param pc
-	 * @param forceReload
-	 * @param defaultValue
-	 * @throws PageException throws a exception when compilation fails
+	 * @param pc page context
+	 * @param forceReload force reload
+	 * @param defaultValue default value
+	 * @return page source
+	 * @throws PageException throws an exception when compilation fails
 	 */
 	public Page loadPageThrowTemplateException(PageContext pc, boolean forceReload, Page defaultValue) throws PageException;
 
 	/**
 	 * loads a page
 	 * 
-	 * @param pc
-	 * @param forceReload
-	 * @param defaultValue
+	 * @param pc page context
+	 * @param forceReload force reload
+	 * @param defaultValue default value
+	 * @return page source
 	 */
 	public Page loadPage(PageContext pc, boolean forceReload, Page defaultValue);
 
@@ -77,7 +80,7 @@ public interface PageSource extends Serializable {
 	public abstract String getFileName();
 
 	/**
-	 * if the pageSource is based on a archive, Lucee returns the ra:// path if the mapping physical
+	 * if the pageSource is based on an archive, Lucee returns the ra:// path if the mapping physical
 	 * path and archive is invalid or not defined, it is possible this method returns null
 	 * 
 	 * @return return the Resource matching this PageSource
@@ -85,10 +88,11 @@ public interface PageSource extends Serializable {
 	public abstract Resource getResource();
 
 	/**
-	 * if the pageSource is based on a archive, translate the source to a zip:// Resource
+	 * if the pageSource is based on an archive, translate the source to a zip:// Resource
 	 * 
 	 * @return return the Resource matching this PageSource
 	 * @param pc the Page Context Object
+	 * @throws PageException Page Exception
 	 */
 	public abstract Resource getResourceTranslated(PageContext pc) throws PageException;
 
@@ -122,14 +126,14 @@ public interface PageSource extends Serializable {
 
 	/**
 	 * @return return the source of the file as String array
-	 * @throws IOException
+	 * @throws IOException IO Exception
 	 */
 	public abstract String[] getSource() throws IOException;
 
 	/**
 	 * get an new Pagesource from realpath
 	 * 
-	 * @param realPath
+	 * @param realPath path
 	 * @return new Pagesource
 	 */
 	public abstract PageSource getRealPage(String realPath);
@@ -173,6 +177,8 @@ public interface PageSource extends Serializable {
 
 	/**
 	 * returns true if the page source can be executed, means the source exists or is trusted and loaded
+	 * 
+	 * @return is the page source can be executed
 	 */
 	public boolean executable();
 

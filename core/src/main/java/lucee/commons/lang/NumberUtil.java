@@ -18,6 +18,8 @@
  **/
 package lucee.commons.lang;
 
+import java.util.concurrent.ThreadLocalRandom;
+
 import lucee.runtime.exp.ExpressionException;
 
 public class NumberUtil {
@@ -31,6 +33,7 @@ public class NumberUtil {
 	}
 
 	public static int hexToInt(String s) throws ExpressionException {
+		s = s.toLowerCase();
 		int[] n = new int[s.length()];
 		char c;
 		int sum = 0;
@@ -116,6 +119,6 @@ public class NumberUtil {
 	}
 
 	public static int randomRange(int min, int max) {
-		return min + (int) (Math.random() * ((max - min) + 1));
+		return min + (int) (ThreadLocalRandom.current().nextInt(max-min+1));
 	}
 }

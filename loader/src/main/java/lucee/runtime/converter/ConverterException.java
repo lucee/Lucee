@@ -19,7 +19,7 @@
 package lucee.runtime.converter;
 
 /**
- * Exception throwed by a Converter
+ * Exception thrown by a Converter
  */
 public final class ConverterException extends Exception {
 
@@ -28,7 +28,7 @@ public final class ConverterException extends Exception {
 	/**
 	 * constructor of the Exception
 	 * 
-	 * @param message
+	 * @param message message
 	 */
 	public ConverterException(final String message) {
 		super(message);

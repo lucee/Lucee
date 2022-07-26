@@ -183,7 +183,7 @@ component {
 			cfmlWriter="#arguments.cfmlWriter#"
 			suppressContent=isNull(arguments.suppressContent) || isEmpty(arguments.suppressContent) ? existing.suppressContent : arguments.suppressContent
 			allowCompression=isNull(arguments.allowCompression) || isEmpty(arguments.allowCompression) ? existing.allowCompression : arguments.allowCompression
-			bufferOutput=isNull(arguments.bufferOutput) || isEmpty(arguments.bufferOutput) ? existing.bufferOutput : arguments.allowCompression
+			bufferOutput=isNull(arguments.bufferOutput) || isEmpty(arguments.bufferOutput) ? existing.bufferOutput : arguments.bufferOutput
 			contentLength=""
 
 			remoteClients="#variables.remoteClients#";
@@ -369,6 +369,7 @@ component {
 		boolean allowedCreate=false,
 		boolean allowedGrant=false,
 
+		struct custom={},
 		boolean customUseUnicode=false,
 		string customCharacterEncoding=false,
 		boolean customUseOldAliasMetadataBehavior=false,
@@ -386,19 +387,23 @@ component {
 		driverNames=ComponentListPackageAsStruct("dbdriver",driverNames);
 
 		var driver=createObject("component", drivernames[ arguments.type ]);
-		var custom=structNew();
-		loop collection="#arguments#" item="key"{
-			if(findNoCase("custom",key) EQ 1){
-				l=len(key);
-				custom[mid(key,7,l-7+1)]=arguments[key];
+		// var custom=structNew();
+		loop collection="#arguments#" item="local.key"{
+			if( key != "custom" && findNoCase("custom",key) EQ 1){
+				local.l=len(key);
+				arguments.custom[mid(key,7,l-7+1)]=arguments[key];
 			}
 		}
 
+		if( arguments.type == "MSSQL" ){
+			arguments.custom["databaseName"] = arguments.database;
+		}
 		admin
 			action="updateDatasource"
 			type="#variables.type#"
 			password="#variables.password#"
 
+			id="#isNull(driver.getId)?'':driver.getId()#"
 			classname="#driver.getClass()#"
 			dsn="#driver.getDSN()#"
 			customParameterSyntax="#isNull(driver.customParameterSyntax)?nullValue():driver.customParameterSyntax()#"
@@ -418,22 +423,22 @@ component {
 			connectionLimit="#arguments.connectionLimit#"
 			connectionTimeout="#arguments.connectionTimeout#"
 			metaCacheTimeout="#arguments.metaCacheTimeout#"
-			blob="#getArguments('blob',false)#"
-			clob="#getArguments('clob',false)#"
-			validate="#getArguments('validate',false)#"
-			storage="#getArguments('storage',false)#"
+			blob="#getArguments(arguments, 'blob',false)#"
+			clob="#getArguments(arguments, 'clob',false)#"
+			validate="#getArguments(arguments, 'validate',false)#"
+			storage="#getArguments(arguments, 'storage',false)#"
 
-			allowed_select="#getArguments('allowedSelect',false)#"
-			allowed_insert="#getArguments('allowedInsert',false)#"
-			allowed_update="#getArguments('allowedUpdate',false)#"
-			allowed_delete="#getArguments('allowedDelete',false)#"
-			allowed_alter="#getArguments('allowedAlter',false)#"
-			allowed_drop="#getArguments('allowedDrop',false)#"
-			allowed_revoke="#getArguments('allowedRevoke',false)#"
-			allowed_create="#getArguments('allowedCreate',false)#"
-			allowed_grant="#getArguments('allowedGrant',false)#"
+			allowed_select="#getArguments(arguments, 'allowedSelect',false)#"
+			allowed_insert="#getArguments(arguments, 'allowedInsert',false)#"
+			allowed_update="#getArguments(arguments, 'allowedUpdate',false)#"
+			allowed_delete="#getArguments(arguments, 'allowedDelete',false)#"
+			allowed_alter="#getArguments(arguments, 'allowedAlter',false)#"
+			allowed_drop="#getArguments(arguments, 'allowedDrop',false)#"
+			allowed_revoke="#getArguments(arguments, 'allowedRevoke',false)#"
+			allowed_create="#getArguments(arguments, 'allowedCreate',false)#"
+			allowed_grant="#getArguments(arguments, 'allowedGrant',false)#"
 			verify="#arguments.verify#"
-			custom="#custom#"
+			custom="#arguments.custom#"
 			dbdriver="#arguments.type#"
 			remoteClients="#variables.remoteClients#";
 	}
@@ -507,11 +512,11 @@ component {
 
 		var mailServers = getMailservers();
 		if( structKeyExists(arguments, 'username') && arguments.username == ''  ){
-			query name="existing" dbtype="query"{
+			query name="local.existing" dbtype="query"{
 				echo("SELECT * FROM mailservers WHERE hostName = '#arguments.host#' and port = '#arguments.port#' ")
 			}
 		} else{
-			query name="existing" dbtype="query"{
+			query name="local.existing" dbtype="query"{
 				echo("SELECT * FROM mailservers WHERE hostName = '#arguments.host#' and port = '#arguments.port#' and username = '#arguments.username#' ")
 			}
 		}
@@ -649,19 +654,43 @@ component {
 	* @primary type of mapping ( physical/archive )
 	* @inspect type of inspection for the mapping(never/once/always/"").
 	*/
-	public void function updateMapping(required string virtual, string physical="", string archive="", string primary="", string inspect="") {
+	public void function updateMapping(required string virtual, string physical=nullValue(), 
+		string archive=nullValue(), string primary=nullValue(), string inspect=nullValue()) {
+		
+		// get default values
+		if(isNull(data.physical) || isNull(data.archive) || isNull(data.primary) || isNull(data.inspect)) {
+			var done=false;
+			try {
+				var mapping = getMapping(arguments.virtual);
+				if(isNull(arguments.physical))arguments.physical=mapping.physical;
+				if(isNull(arguments.archive))arguments.archive=mapping.archive;
+				if(isNull(arguments.primary))arguments.primary=mapping.primary;
+				if(isNull(arguments.inspect))arguments.inspect=mapping.inspect;
+				done=true;
+			}
+			catch(e) { // throws an exception when not exist yet
+			}
+		}
+			
+		if(!done) { // throws an exception when not exist yet
+			if(isNull(arguments.physical))arguments.physical="";
+			if(isNull(arguments.archive))arguments.archive="";
+			if(isNull(arguments.primary))arguments.physical="";
+			if(isNull(arguments.inspect))arguments.inspect="";
+		}
+		
 		admin
 			action="updateMapping"
-			type="#variables.type#"
-			password="#variables.password#"
+			type=variables.type
+			password=variables.password
 
-			virtual="#arguments.virtual#"
-			physical="#arguments.physical#"
-			archive=isNull(arguments.physical) || isEmpty(arguments.physical) ? existing.physical : arguments.physical
-			primary=isNull(arguments.primary) || isEmpty(arguments.primary) ? existing.primary : arguments.primary
-			inspect=isNull(arguments.inspect) || isEmpty(arguments.inspect) ? existing.inspect : arguments.inspect
-			toplevel="yes"
-			remoteClients="#variables.remoteClients#";
+			virtual=arguments.virtual
+			physical=arguments.physical
+			archive=arguments.archive
+			primary=arguments.primary
+			inspect=arguments.inspect
+			toplevel=true
+			remoteClients=variables.remoteClients;
 	}
 
 	/**
@@ -802,7 +831,7 @@ component {
 	* @version version of the extension
 	*/
 	public void function updateExtension(required string id , string version ) {
-		if(isValid('uuid',id)) {
+		if(isValid('uuid',arguments.id)) {
 			if(!isNull(arguments.version) && !isEmpty(arguments.version)) {
 				admin
 					action="updateRHExtension"
@@ -1095,7 +1124,7 @@ component {
 	* @physical specifies directory path where the components are located, this path should not include the package
 	* @primary type of mapping, resource/archive
 	* @archive specifies file path to a components Lucee Archive (.lar).
-	* @inspect checks for changes in the source file for a already loaded component
+	* @inspect checks for changes in the source file for an already loaded component
 	*/
 	public void function updateComponentMapping(required string virtual, required string physical, required string archive, string inspect="never"){
 		admin
@@ -1167,7 +1196,7 @@ component {
 		boolean storage
 	){
 		var connections =  getCacheConnections()
-		query name="existing" dbtype="query"{
+		query name="local.existing" dbtype="query"{
 			echo("SELECT * FROM connections WHERE class = '#arguments.class#' and name = '#arguments.name#' ")
 		}
 
@@ -1327,7 +1356,7 @@ component {
 	public query function getGatewayEntries( type ){
 		admin
 			action="getGatewayEntries"
-			type="#variables.type#"
+			type="#arguments.type#"
 			password="#variables.password#"
 			returnVariable="local.rtn";
 		return rtn;
@@ -1358,7 +1387,7 @@ component {
 	*/
 	public void function updateGatewayEntry( required string id, required string startupMode, string class, string cfcPath, string listenerCfcPath,  struct custom ){
 		var getGatewayEntries = getGatewayEntries();
-		query name="existing" dbtype="query"{
+		query name="local.existing" dbtype="query"{
 			echo("SELECT * FROM getGatewayEntries WHERE id = '#arguments.id#' and startupMode = '#arguments.startupMode#' ")
 		}
 		admin
@@ -1480,7 +1509,7 @@ component {
 		var driver=drivers[trim(arguments.type)];
 		var meta=getMetaData(driver);
 		var debugEntry = getDebugEntry();
-		query name="existing" dbtype="query"{
+		query name="local.existing" dbtype="query"{
 			echo("SELECT * FROM debugEntry WHERE label = '#arguments.label#' ");
 		}
 		admin
@@ -1570,8 +1599,9 @@ component {
 	* @dump this option sets to enable output produced with help of the tag cfdump and send to debugging.
 	* @timer this option sets to show timer event information.
 	* @implicitAccess this option sets to log all accesses to scopes, queries and threads that happens implicit (cascaded).
+	* @thread this option sets to log all child threads 
 	*/
-	public void function updateDebug( boolean debug, boolean database, boolean queryUsage, boolean exception, boolean tracing, boolean dump, boolean timer, boolean implicitAccess ){
+	public void function updateDebug( boolean debug, boolean database, boolean queryUsage, boolean exception, boolean tracing, boolean dump, boolean timer, boolean implicitAccess, boolean thread ){
 		var existing = getDebug();
 		admin
 			action="updateDebug"
@@ -1586,7 +1616,7 @@ component {
 			timer=isNull(arguments.timer) || isEmpty(arguments.timer) ? existing.timer : arguments.timer
 			implicitAccess=isNull(arguments.implicitAccess) || isEmpty(arguments.implicitAccess) ? existing.implicitAccess : arguments.implicitAccess
 			queryUsage=isNull(arguments.queryUsage) || isEmpty(arguments.queryUsage) ? existing.queryUsage : arguments.queryUsage
-
+			thread=isNull(arguments.thread) || isEmpty(arguments.thread) ? existing.thread : arguments.thread
 			debugTemplate=""
 			remoteClients="#variables.remoteClients#";
 	}
@@ -1608,7 +1638,8 @@ component {
 			timer=""
 			implicitAccess=""
 			queryUsage=""
-
+			thread=""
+			
 			debugTemplate=""
 			remoteClients="#variables.remoteClients#";
 	}
@@ -1658,7 +1689,7 @@ component {
 	*/
 	public query function getContextes(){
 		admin
-			action="getContextes"
+			action="getContexts"
 			type="#variables.type#"
 			password="#variables.password#"
 			returnVariable="local.contextes";
@@ -1948,7 +1979,7 @@ component {
 		,          struct layoutArgs={}
 	){
 		var LogSettings = getLogSettings();
-		query name="existing" dbtype="query"{
+		query name="local.existing" dbtype="query"{
 			echo("SELECT * FROM LogSettings WHERE name = '#arguments.name#' ");
 		}
 
@@ -2359,11 +2390,11 @@ component {
 
 	/**
 	* @hint update exiting custom tag
-	* @virtual The name is used as identifier when you automaticly import a Lucee Archive build based on this Mapping.
+	* @virtual The name is used as identifier when you automatically import a Lucee Archive build based on this Mapping.
 	* @physical Directory path where the custom tags are located.
 	* @archive File path to a custom tag Lucee Archive (.lar).
-	* @primary Defines where Lucee does looks first for a requested custom tags
-	* @inspect When does Lucee checks for changes in the source file for a already loaded custom tags.
+	* @primary Defines where Lucee looks first for a requested custom tags
+	* @inspect When does Lucee checks for changes in the source file for an already loaded custom tags.
 	*/
 	public void function updateCustomTag( required string virtual, required string physical, required string archive, string primary="Resource", string inspect="" ) {
 		admin
@@ -2381,7 +2412,7 @@ component {
 
 	/**
 	* @hint update exiting custom tag
-	* @virtual The name is used as identifier when you automaticly import a Lucee Archive build based on this Mapping.
+	* @virtual The name is used as identifier when you automatically import a Lucee Archive build based on this Mapping.
 	*/
 	public any function removecustomtag( required string virtual ) {
 		admin
@@ -2448,7 +2479,7 @@ component {
 			password="#variables.password#"
 			secType="#arguments.secType#"
 			secvalue="#arguments.secvalue#"
-			returnVariable="access";
+			returnVariable="local.access";
 
 		return access;
 	}
@@ -2585,7 +2616,7 @@ component {
 			action="getDefaultSecurityManager"
 			type="#variables.type#"
 			password="#variables.password#"
-			returnVariable="access";
+			returnVariable="local.access";
 
 		return access;
 	}
@@ -2887,25 +2918,124 @@ component {
 			password="#variables.password#";
 	}
 
+
+	/**
+	 * Takes a config JSON string that may contain environment varialbes or system properties
+	 * and returns a JSONstring that replaces the variables with their values or defaults if exist
+	 */
+	public string function resolveConfigVars(required string config) localMode=true {
+
+		parts = splitConfigString(arguments.config);
+
+		resolvedParts = parts.map((e) => {
+			return resolveConfigArg(e);
+		});
+
+		return resolvedParts.toList("");
+	}
+
 	/* Private functions */
+
+	/**
+	 * splits a config string to an array separating the literal text from variables
+	 * in the format ${VARIABLE_NAME:default}, e.g. the input string
+	 * "/prefix${VARIABLE_NAME:default}/suffix" will return the array
+	 * [ "/prefix", "${VARIABLE_NAME:default}", "/suffix" ]
+	 */
+	private array function splitConfigString(string conf) localMode=true {
+
+		arr = [];
+		pos = 0;
+
+		do {
+			last = pos + 1;
+			pos  = find("${", arguments.conf, last);
+			if (pos > 0) {
+				part = substring(arguments.conf, last, pos - 1);
+				arr.append(part);
+
+				close = find("}", arguments.conf, pos);
+				if (close > 0) {
+					part = substring(arguments.conf, pos , close);
+					arr.append(part);
+					pos = close;
+				}
+			}
+		} while (pos > 0);
+
+		part = mid(arguments.conf, last);
+		arr.append(part);
+
+		return arr;
+	}
+
+
+	/**
+	 * resolves a single config arg wrapped with ${...} and returns the environment variable
+	 * or system property with that name if exists, a default if set using the colon notation,
+	 * or the arg name itself if neither exist
+	 */
+	private string function resolveConfigArg(required string input) localMode=true {
+
+		arg = arguments.input;
+
+		if (!arg.hasPrefix("${") || !arg.hasSuffix("}"))
+			return arg;
+
+		// strip ${} by removing the first two, and the last, characters
+		arg = left(right(arg, -2), -1);
+
+		numParts = listLen(arg, ":");
+
+		name    = arg;
+		default = "";
+		if (numParts == 2) {
+			name    = listFirst(arg, ":");
+			default = listLast(arg, ":");
+		}
+
+		if (Server.system.environment.keyExists(name)) {
+			return Server.system.environment[name];
+		}
+
+		if (Server.system.properties.keyExists(name)) {
+			return Server.system.properties[name];
+		}
+
+		if (!isEmpty(default))
+			return default;
+
+		// return input if not found and no default
+		return arguments.input;
+	}
+
+
+	/**
+	 * helper function for substring from-to, as opposed to mid's from-count
+	 */
+	private string function substring(input, from, to) localMode=true {
+		return mid(arguments.input, arguments.from, arguments.to + 1 - arguments.from);
+	}
+
+
 	private struct function ComponentListPackageAsStruct(string package, cfcNames=structnew("linked")){
 		try{
-			local._cfcNames=ComponentListPackage(package);
-			loop array="#_cfcNames#" index="i" item="el" {
-				cfcNames[el]=package&"."&el;
+			local._cfcNames=ComponentListPackage(arguments.package);
+			loop array="#_cfcNames#" index="local.i" item="local.el" {
+				arguments.cfcNames[el]=arguments.package&"."&el;
 			}
 		}
 		catch(e){}
-		return cfcNames;
+		return arguments.cfcNames;
 	}
 
-	private function getArguments(Key, default) {
-		if(not structKeyExists(arguments,Key)) return default;
-		return arguments[Key];
+	private function getArguments(args, Key, default) {
+		if(not structKeyExists(arguments.args, arguments.Key)) return arguments.default;
+		return arguments.args[arguments.Key];
 	}
 
 	private function downloadFull(required string provider,required string id , string version){
-		return _download("full",provider,id,version);
+		return _download("full",arguments.provider,arguments.id,arguments.version);
 	}
 
 	private function _download(String type,required string provider,required string id, string version){
@@ -2916,9 +3046,9 @@ component {
 			action="getAPIKey"
 			type=variables.type
 			password=variables.password
-			returnVariable="apiKey";
+			returnVariable="local.apiKey";
 
-		var uri=provider&"/rest/extension/provider/"&type&"/"&id;
+		var uri=arguments.provider&"/rest/extension/provider/"&arguments.type&"/"&arguments.id;
 
 		if(provider=="local") { // TODO use version from argument scope
 			admin

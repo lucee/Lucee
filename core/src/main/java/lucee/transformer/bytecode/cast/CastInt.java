@@ -35,7 +35,7 @@ import lucee.transformer.expression.Expression;
 import lucee.transformer.expression.literal.Literal;
 
 /**
- * cast a Expression to a Double
+ * cast an Expression to a Double
  */
 public final class CastInt extends ExpressionBase implements ExprInt, Cast {
 
@@ -47,7 +47,7 @@ public final class CastInt extends ExpressionBase implements ExprInt, Cast {
 	}
 
 	/**
-	 * Create a String expression from a Expression
+	 * Create a String expression from an Expression
 	 * 
 	 * @param expr
 	 * @return String expression
@@ -56,8 +56,8 @@ public final class CastInt extends ExpressionBase implements ExprInt, Cast {
 	public static ExprInt toExprInt(Expression expr) {
 		if (expr instanceof ExprInt) return (ExprInt) expr;
 		if (expr instanceof Literal) {
-			Double dbl = ((Literal) expr).getDouble(null);
-			if (dbl != null) return expr.getFactory().createLitInteger((int) dbl.doubleValue(), expr.getStart(), expr.getEnd());
+			Number n = ((Literal) expr).getNumber(null);
+			if (n != null) return expr.getFactory().createLitInteger(n.intValue(), expr.getStart(), expr.getEnd());
 		}
 		return new CastInt(expr);
 	}
@@ -82,7 +82,7 @@ public final class CastInt extends ExpressionBase implements ExprInt, Cast {
 					adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_INT_VALUE);
 				}
 				else if (Types.BOOLEAN_VALUE.equals(rtn)) {
-					adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_INT_VALUE_FROM_BOOLEAN);
+					adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_INT_VALUE_FROM_BOOLEAN_VALUE);
 				}
 				else if (Types.SHORT_VALUE.equals(rtn)) {
 					// No Cast needed
@@ -106,12 +106,13 @@ public final class CastInt extends ExpressionBase implements ExprInt, Cast {
 				return Types.INT_VALUE;
 
 			}
+			// TODOX other number types?
 			else if (Types.isPrimitiveType(rtn)) {
 				if (Types.DOUBLE_VALUE.equals(rtn)) {
-					adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_INTEGER_FROM_DOUBLE);
+					adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_INTEGER_FROM_DOUBLE_VALUE);
 				}
 				else if (Types.BOOLEAN_VALUE.equals(rtn)) {
-					adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_INTEGER_FROM_BOOLEAN);
+					adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_INTEGER_FROM_BOOLEAN_VALUE);
 				}
 				else {
 					adapter.invokeStatic(Types.CASTER, new Method("toRef", Types.toRefType(rtn), new Type[] { rtn }));

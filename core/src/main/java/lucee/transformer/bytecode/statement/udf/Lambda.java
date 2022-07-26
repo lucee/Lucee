@@ -30,13 +30,13 @@ public final class Lambda extends Function {
 	public Lambda(Root root, Expression name, Expression returnType, Expression returnFormat, Expression output, Expression bufferOutput, int access, Expression displayName,
 			Expression description, Expression hint, Expression secureJson, Expression verifyClient, Expression localMode, Literal cachedWithin, int modifier, Body body,
 			Position start, Position end) {
-		super(root, name, returnType, returnFormat, output, bufferOutput, access, displayName, description, hint, secureJson, verifyClient, localMode, cachedWithin, modifier, body,
+		super(name, returnType, returnFormat, output, bufferOutput, access, displayName, description, hint, secureJson, verifyClient, localMode, cachedWithin, modifier, body,
 				start, end);
 
 	}
 
 	public Lambda(Root root, String name, int access, int modifier, String returnType, Body body, Position start, Position end) {
-		super(root, name, access, modifier, returnType, body, start, end);
+		super(name, access, modifier, returnType, body, start, end);
 	}
 
 	@Override

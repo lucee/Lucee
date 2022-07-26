@@ -50,7 +50,8 @@ public final class ResponseImpl implements Response {
 		try {
 			pc.setVariable(name, query);
 		}
-		catch (PageException e) {}
+		catch (PageException e) {
+		}
 		return new QueryWrap(query);
 	}
 
@@ -59,7 +60,8 @@ public final class ResponseImpl implements Response {
 		try {
 			pc.setVariable(key, value);
 		}
-		catch (PageException e) {}
+		catch (PageException e) {
+		}
 	}
 
 	@Override

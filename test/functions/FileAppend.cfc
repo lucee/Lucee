@@ -2,6 +2,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 	function beforeAll(){
 		variables.name=ListFirst(ListLast(getCurrentTemplatePath(),"\/"),".");
 		variables.dir=getDirectoryFromPath(getCurrentTemplatePath())&name&"/";
+		if(directoryExists(dir)){
+			afterAll();
+		}
 		cfdirectory(directory="#dir#" action="create" mode="777");
 	}
 
@@ -12,6 +15,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				fileWrite(_file,"ABC");
 				fileAppend(_file,"DEF","UTF-8");
 				assertEquals("ABCDEF",trim(fileRead(_file)));
+				_fileResource = fileOpen(dir&"test.txt", "write");
+				fileAppend(_fileResource, "ABCDEFGHI", "UTF-8");
+				assertEquals("ABCDEFGHI", trim(fileRead(_fileResource)));
 			});
 		});
 	}

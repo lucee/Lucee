@@ -3,6 +3,7 @@
 <cfparam name="session.debugFilter.query" default="">
 <cfparam name="session.debugFilter.app" default="">
 <cfparam name="session.debugFilter.total" default="">
+<cfparam name="session.debugFilter.scope" default="">
 
 
 <cffunction name="doFilter" returntype="string" output="false">
@@ -11,14 +12,14 @@
 	<cfargument name="exact" required="no" type="boolean" default="false">
 	
 	<cfset arguments.filter=replace(arguments.filter,'*','',"all")>
-    <cfset filter=trim(filter)>
-	<cfif not len(filter)>
+    <cfset arguments.filter=trim(arguments.filter)>
+	<cfif not len(arguments.filter)>
 		<cfreturn true>
 	</cfif>
 	<cfif exact>
-		<cfreturn filter EQ value>
+		<cfreturn arguments.filter EQ arguments.value>
 	<cfelse>
-		<cfreturn FindNoCase(filter,value)>
+		<cfreturn FindNoCase(arguments.filter, arguments.value)>
 	</cfif>
 </cffunction>
 
@@ -27,11 +28,11 @@
 	<cfargument name="filter" required="yes" type="string">
 	<cfargument name="value" required="yes" type="string">
 	
-    <cfset filter=trim(filter)>
-	<cfif not isNumeric(filter) or filter LTE 0>
+    <cfset arguments.filter=trim(arguments.filter)>
+	<cfif not isNumeric(arguments.filter) or arguments.filter LTE 0>
 		<cfreturn true>
 	</cfif>
-	<cfreturn filter*1000000 LTE value>
+	<cfreturn arguments.filter*1000000 LTE arguments.value>
 </cffunction>
 
 <cfset error.message="">
@@ -75,19 +76,26 @@
 			<cfadmin 
 				action="updateDebugSetting"
 				type="#request.adminType#"
-				password="#session["password"&request.adminType]#"
-				
+				password="#session["password"&request.adminType]#"				
                 maxLogs="#form.maxLogs#"
 				remoteClients="#request.getRemoteClients()#">
 			
 		</cfcase>
+	<!--- CLEAR DEBUG POOL OF LOGS --->
+	<cfcase value="#stText.Buttons.Purge#">
+		<cfadmin 
+			action="PurgeDebugPool"
+			type="#request.adminType#"
+			password="#session["password"&request.adminType]#"
+			remoteClients="#request.getRemoteClients()#">
+		<cfset logs = []>
+	</cfcase>
 	<!--- reset to server setting --->
 		<cfcase value="#stText.Buttons.resetServerAdmin#">
 			<cfadmin 
 				action="updateDebugSetting"
 				type="#request.adminType#"
-				password="#session["password"&request.adminType]#"
-				
+				password="#session["password"&request.adminType]#"				
                 maxLogs=""
 				remoteClients="#request.getRemoteClients()#">
 			
@@ -109,7 +117,8 @@
             <cfif isNumeric(trim(form.query))><cfset session.debugFilter.query=form.query><cfelse><cfset session.debugFilter.query=""></cfif>
             <cfif isNumeric(trim(form.app))><cfset session.debugFilter.app=form.app><cfelse><cfset session.debugFilter.app=""></cfif>
             <cfif isNumeric(trim(form.total))><cfset session.debugFilter.total=form.total><cfelse><cfset session.debugFilter.total=""></cfif>
-			</cfcase>
+            <cfif isNumeric(trim(form.scope))><cfset session.debugFilter.scope=form.scope><cfelse><cfset session.debugFilter.scope=""></cfif>
+		</cfcase>
         
         #stText.Debug.filter#
 	</cfswitch>
@@ -127,26 +136,32 @@ Redirtect to entry --->
 <cffunction name="formatUnit" output="no" returntype="string">
 	<cfargument name="time" type="numeric" required="yes">
     
-    <cfif time GTE 100000000><!--- 1000ms --->
-    	<cfreturn int(time/1000000)&" ms">
-    <cfelseif time GTE 10000000><!--- 100ms --->
-    	<cfreturn (int(time/100000)/10)&" ms">
-    <cfelseif time GTE 1000000><!--- 10ms --->
-    	<cfreturn (int(time/10000)/100)&" ms">
+    <cfif arguments.time GTE 100000000><!--- 1000ms --->
+    	<cfreturn int(arguments.time/1000000)&" ms">
+    <cfelseif arguments.time GTE 10000000><!--- 100ms --->
+    	<cfreturn (int(arguments.time/100000)/10)&" ms">
+    <cfelseif arguments.time GTE 1000000><!--- 10ms --->
+    	<cfreturn (int(arguments.time/10000)/100)&" ms">
     <cfelse><!--- 0ms --->
-    	<cfreturn (int(time/1000)/1000)&" ms">
+    	<cfreturn (int(arguments.time/1000)/1000)&" ms">
     </cfif>
     
     
-    <cfreturn (time/1000000)&" ms">
+    <cfreturn (arguments.time/1000000)&" ms">
 </cffunction> 
-    
+<cfscript>
+	param name="url.action2" default="list";
+	param name="url.format" default="";
 
-
-<cfparam name="url.action2" default="list">
-
-<cfif url.action2 EQ "list">
-	<cfinclude template="debugging.logs.list.cfm">
-<cfelse>
-	<cfinclude template="debugging.logs.detail.cfm">
-</cfif>
+	if (url.action2 EQ "list") {
+		if (url.format eq "json") {
+			setting showdebugoutput="false";
+			content reset="yes" type="application/json";
+			echo(serializeJson(logs));
+			abort;		
+		}
+		include template="debugging.logs.list.cfm";
+	} else {
+		include template="debugging.logs.detail.cfm";
+	}
+</cfscript>

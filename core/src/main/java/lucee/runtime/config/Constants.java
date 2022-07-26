@@ -22,14 +22,12 @@ import java.net.MalformedURLException;
 import java.net.URL;
 
 import lucee.commons.lang.StringUtil;
-import lucee.commons.lang.SystemOut;
 import lucee.commons.net.HTTPUtil;
-import lucee.runtime.extension.ExtensionProvider;
-import lucee.runtime.extension.ExtensionProviderImpl;
 import lucee.runtime.extension.RHExtensionProvider;
 import lucee.runtime.type.util.ArrayUtil;
 
 public class Constants {
+	private static final String CFML_SCRIPT_EXTENSION = "cfs";
 	private static final String CFML_COMPONENT_EXTENSION = "cfc";
 	private static final String LUCEE_COMPONENT_EXTENSION = "lucee";
 
@@ -67,18 +65,15 @@ public class Constants {
 	public static URL DEFAULT_UPDATE_URL;
 	static {
 		try {
-			DEFAULT_UPDATE_URL = new URL("http://update.lucee.org");
+			DEFAULT_UPDATE_URL = new URL("https://update.lucee.org");
 		}
-		catch (MalformedURLException e) {}
+		catch (MalformedURLException e) {
+		}
 	}
 
-	// old
-	public static final ExtensionProvider[] CLASSIC_EXTENSION_PROVIDERS = new ExtensionProviderImpl[] {
-			new ExtensionProviderImpl("http://extension.lucee.org/ExtensionProvider.cfc", true) };
-
 	public static final RHExtensionProvider[] RH_EXTENSION_PROVIDERS = new RHExtensionProvider[] {
-			new RHExtensionProvider(HTTPUtil.toURL("http://extension.lucee.org", false, null), true),
-			new RHExtensionProvider(HTTPUtil.toURL("https://www.forgebox.io", false, null), true) };
+			new RHExtensionProvider(HTTPUtil.toURL("https://extension.lucee.org", HTTPUtil.ENCODED_NO, null), true),
+			new RHExtensionProvider(HTTPUtil.toURL("https://www.forgebox.io", HTTPUtil.ENCODED_NO, null), true) };
 
 	public static final String CFML_SCRIPT_TAG_NAME = "script";
 	public static final String LUCEE_SCRIPT_TAG_NAME = "script";
@@ -106,6 +101,10 @@ public class Constants {
 		return lte;
 	}
 
+	public static String getCFMLScriptExtension() {
+		return CFML_SCRIPT_EXTENSION;
+	}
+
 	public static String getCFMLComponentExtension() {
 		return CFML_COMPONENT_EXTENSION;
 	}
@@ -115,6 +114,10 @@ public class Constants {
 	}
 
 	// merge methods above
+	public static String[] getScriptExtensions() {
+		return new String[] { getCFMLScriptExtension() };
+	}
+
 	public static String[] getTemplateExtensions() {
 		return ArrayUtil.toArray(getCFMLTemplateExtensions(), getLuceeTemplateExtensions());
 	}
@@ -132,13 +135,19 @@ public class Constants {
 	}
 
 	public static String[] getExtensions() {
-		return ArrayUtil.toArray(getComponentExtensions(), getTemplateExtensions());
+		return ArrayUtil.toArray(getComponentExtensions(), getTemplateExtensions(), getScriptExtensions());
 	}
 
 	public static boolean isCFMLComponentExtension(String extension) {
 		if (StringUtil.isEmpty(extension)) return false;
 		if (extension.startsWith(".")) extension = extension.substring(1);
 		return getCFMLComponentExtension().trim().equalsIgnoreCase(extension);
+	}
+
+	public static boolean isCFMLScriptExtension(String extension) {
+		if (StringUtil.isEmpty(extension)) return false;
+		if (extension.startsWith(".")) extension = extension.substring(1);
+		return getCFMLScriptExtension().trim().equalsIgnoreCase(extension);
 	}
 
 	public static boolean isLuceeComponentExtension(String extension) {

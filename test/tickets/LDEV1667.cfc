@@ -1,4 +1,10 @@
 component extends="org.lucee.cfml.test.LuceeTestCase"{
+
+
+	function beforeAll(){
+		setLocale("en_us");
+	}
+
  	function run( testResults , testBox ) {
  		describe( title="Test suite for LDEV-1667", body=function() {
  			it(title="Checking numberFormat() with mask value '9,9' ", body = function( currentSpec ) {

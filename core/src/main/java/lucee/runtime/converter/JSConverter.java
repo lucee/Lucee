@@ -101,9 +101,8 @@ public final class JSConverter extends ConverterSupport {
 		// Number
 		if (object instanceof Number) {
 			sb.append(goIn());
-			sb.append("\"");
 			sb.append(Caster.toString(((Number) object)));
-			sb.append("\";");
+			sb.append(';');
 			return;
 		}
 		// Date
@@ -166,7 +165,7 @@ public final class JSConverter extends ConverterSupport {
 	}
 
 	/**
-	 * serialize a Array
+	 * serialize an Array
 	 * 
 	 * @param name
 	 * @param array Array to serialize

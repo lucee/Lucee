@@ -42,8 +42,9 @@ public interface UDF extends Function, Dumpable, Member, Cloneable {
 	/**
 	 * abstract method for the function Body
 	 * 
-	 * @param pageContext
-	 * @throws Throwable
+	 * @param pageContext Page Context
+	 * @return Object
+	 * @throws Throwable Throwable
 	 */
 	public abstract Object implementation(PageContext pageContext) throws Throwable;
 
@@ -57,10 +58,10 @@ public interface UDF extends Function, Dumpable, Member, Cloneable {
 	/**
 	 * @deprecated use instead
 	 *             <code> getDefaultValue(PageContext pc, int index, Object defaultValue)</code>
-	 * @param pc
-	 * @param index
+	 * @param pc Page Context
+	 * @param index index
 	 * @return default value
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 */
 	@Deprecated
 	public Object getDefaultValue(PageContext pc, int index) throws PageException;
@@ -88,9 +89,10 @@ public interface UDF extends Function, Dumpable, Member, Cloneable {
 
 	/**
 	 * 
+	 * @return return format
 	 * @deprecated use instead
-	 * @see #getReturnFormat(int)
 	 */
+	@Deprecated
 	public int getReturnFormat();
 
 	public int getReturnFormat(int defaultFormat);
@@ -119,22 +121,22 @@ public interface UDF extends Function, Dumpable, Member, Cloneable {
 	/**
 	 * call user defined Function with a hashmap of named values
 	 * 
-	 * @param pageContext
+	 * @param pageContext Page Context
 	 * @param values named values
-	 * @param doIncludePath
+	 * @param doIncludePath do include path
 	 * @return return value of the function
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 */
 	public abstract Object callWithNamedValues(PageContext pageContext, Struct values, boolean doIncludePath) throws PageException;
 
 	/**
 	 * call user defined Function with parameters as Object Array
 	 * 
-	 * @param pageContext
+	 * @param pageContext Page Context
 	 * @param args parameters for the function
-	 * @param doIncludePath
+	 * @param doIncludePath do include path
 	 * @return return value of the function
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 */
 	public abstract Object call(PageContext pageContext, Object[] args, boolean doIncludePath) throws PageException;
 
@@ -168,29 +170,31 @@ public interface UDF extends Function, Dumpable, Member, Cloneable {
 	/**
 	 * call user defined Function with a struct
 	 * 
-	 * @param pageContext
+	 * @param pageContext Page Context
+	 * @param calledName called Name
 	 * @param values named values
-	 * @param doIncludePath
+	 * @param doIncludePath do include path
 	 * @return return value of the function
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 */
 	public abstract Object callWithNamedValues(PageContext pageContext, Collection.Key calledName, Struct values, boolean doIncludePath) throws PageException;
 
 	/**
 	 * call user defined Function with parameters as Object Array
 	 * 
-	 * @param pageContext
+	 * @param pageContext Page Context
+	 * @param calledName called Name
 	 * @param args parameters for the function
-	 * @param doIncludePath
+	 * @param doIncludePath do include path
 	 * @return return value of the function
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 */
 	public abstract Object call(PageContext pageContext, Collection.Key calledName, Object[] args, boolean doIncludePath) throws PageException;
 
 	/**
 	 * unique identifier for the function
 	 * 
-	 * @return
+	 * @return Returns the unique identifier.
 	 */
 	public abstract String id();
 

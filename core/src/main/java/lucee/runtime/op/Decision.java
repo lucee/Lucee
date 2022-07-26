@@ -31,6 +31,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.TimeZone;
 import java.util.regex.Pattern;
 
@@ -40,6 +41,8 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import lucee.commons.date.DateTimeUtil;
+import lucee.commons.io.res.Resource;
+import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.i18n.FormatUtil;
 import lucee.commons.lang.CFTypes;
 import lucee.commons.lang.StringUtil;
@@ -74,7 +77,7 @@ import lucee.runtime.type.UDF;
 import lucee.runtime.type.dt.DateTime;
 
 /**
- * Object to test if a Object is a specific type
+ * Object to test if an Object is a specific type
  */
 public final class Decision {
 
@@ -91,28 +94,13 @@ public final class Decision {
 	 * @return is value a simple value
 	 */
 	public static boolean isSimpleValue(Object value) {
-		return (value instanceof Number) || (value instanceof Locale) || (value instanceof TimeZone) || (value instanceof String) || (value instanceof Boolean)
-				|| (value instanceof Date) || ((value instanceof Castable) && !(value instanceof Objects) && !(value instanceof Collection));
+		return (value instanceof Number) || (value instanceof Locale) || (value instanceof TimeZone) || (value instanceof String) || (value instanceof Character)
+				|| (value instanceof Boolean) || (value instanceof Date) || ((value instanceof Castable) && !(value instanceof Objects) && !(value instanceof Collection));
 	}
 
 	public static boolean isSimpleValueLimited(Object value) {
 		return (value instanceof Number) || (value instanceof Locale) || (value instanceof TimeZone) || (value instanceof String) || (value instanceof Boolean)
 				|| (value instanceof Date);
-	}
-
-	/**
-	 * tests if value is Numeric
-	 * 
-	 * @param value value to test
-	 * @return is value numeric
-	 */
-	public static boolean isNumber(Object value) {
-		if (value instanceof Number) return true;
-		else if (value instanceof CharSequence || value instanceof Character) {
-			return isNumber(value.toString());
-		}
-
-		else return false;
 	}
 
 	public static boolean isCastableToNumeric(Object o) {
@@ -155,6 +143,21 @@ public final class Decision {
 	}
 
 	/**
+	 * tests if value is Numeric
+	 * 
+	 * @param value value to test
+	 * @return is value numeric
+	 */
+	public static boolean isNumber(Object value) {
+		if (value instanceof Number) return true;
+		else if (value instanceof CharSequence || value instanceof Character) {
+			return isNumber(value.toString());
+		}
+
+		else return false;
+	}
+
+	/**
 	 * tests if String value is Numeric
 	 * 
 	 * @param str value to test
@@ -167,8 +170,9 @@ public final class Decision {
 		int pos = 0;
 		int len = str.length();
 		if (len == 0) return false;
-		char curr = str.charAt(pos);
+		char curr = str.charAt(pos), nxt;
 
+		// +/- at beginning
 		if (curr == '+' || curr == '-') {
 			if (len == ++pos) return false;
 			curr = str.charAt(pos);
@@ -187,7 +191,18 @@ public final class Decision {
 			}
 			else if (curr > '9') {
 				if (curr == 'e' || curr == 'E') {
+					// is it follow by +/-, that is fine
+					if (pos + 1 < len) {
+						nxt = str.charAt(pos + 1);
+						if (nxt == '+' || nxt == '-') {
+							curr = nxt;
+							pos++;
+						}
+					}
+
+					// e cannot be azt the end and not more than once
 					if (pos + 1 >= len || hasExp) return false;
+
 					hasExp = true;
 					hasDot = true;
 				}
@@ -212,7 +227,8 @@ public final class Decision {
 	}
 
 	public static boolean isInteger(Object value, boolean alsoBooleans) {
-		if (!alsoBooleans && value instanceof Boolean) return false;
+		if (!alsoBooleans && isBoolean(value)) return false;
+
 		double dbl = Caster.toDoubleValue(value, false, Double.NaN);
 		if (!Decision.isValid(dbl)) return false;
 		int i = (int) dbl;
@@ -243,17 +259,6 @@ public final class Decision {
 	 * 
 	 * @param obj value to test
 	 * @return is value numeric
-	 * @deprecated use instead <code>isUUId(Object obj)</code>
-	 */
-	public static boolean isUUID(Object obj) {
-		return isUUId(obj);
-	}
-
-	/**
-	 * tests if String value is UUID Value
-	 * 
-	 * @param obj value to test
-	 * @return is value numeric
 	 */
 	public static boolean isUUId(Object obj) {
 		String str = Caster.toString(obj, null);
@@ -265,15 +270,6 @@ public final class Decision {
 		}
 		else if (str.length() == 32) return Decision.isHex(str);
 		return false;
-	}
-
-	/**
-	 * @param obj
-	 * @return
-	 * @deprecated use instead <code>isGUId(Object)</code>
-	 */
-	public static boolean isGUID(Object obj) {
-		return isGUId(obj);
 	}
 
 	public static boolean isGUId(Object obj) {
@@ -379,7 +375,6 @@ public final class Decision {
 	}
 
 	public static boolean isDateSimple(Object value, boolean alsoNumbers, boolean alsoMonthString) {
-
 		// return DateCaster.toDateEL(value)!=null;
 		if (value instanceof DateTime) return true;
 		else if (value instanceof Date) return true;
@@ -486,7 +481,7 @@ public final class Decision {
 	}
 
 	/**
-	 * can this type be casted to a array
+	 * can this type be casted to an array
 	 * 
 	 * @param o
 	 * @return
@@ -494,7 +489,7 @@ public final class Decision {
 	 */
 	public static boolean isCastableToArray(Object o) {
 		if (isArray(o)) return true;
-		// else if(o instanceof XMLStruct) return true;
+		else if (o instanceof Set) return true;
 		else if (o instanceof Struct) {
 			Struct sct = (Struct) o;
 			Iterator<Key> it = sct.keyIterator();
@@ -508,7 +503,7 @@ public final class Decision {
 	}
 
 	/**
-	 * tests if object is a array
+	 * tests if object is an array
 	 * 
 	 * @param o
 	 * @return is array or not
@@ -810,8 +805,8 @@ public final class Decision {
 	 * @return is or not
 	 */
 	public static boolean isObject(Object o) {
+		if (o == null) return false;
 		return isComponent(o)
-
 				|| (!isArray(o) && !isQuery(o) && !isSimpleValue(o) && !isStruct(o) && !isUserDefinedFunction(o) && !isXML(o));
 	}
 
@@ -831,6 +826,7 @@ public final class Decision {
 	 * @return return if a String is "Empty", that means NULL or String with length 0 (whitespaces will
 	 *         not counted)
 	 */
+	@Deprecated
 	public static boolean isEmpty(String str) {
 		return StringUtil.isEmpty(str);
 	}
@@ -842,6 +838,7 @@ public final class Decision {
 	 * @return return if a String is "Empty", that means NULL or String with length 0 (whitespaces will
 	 *         not counted)
 	 */
+	@Deprecated
 	public static boolean isEmpty(String str, boolean trim) {
 		return StringUtil.isEmpty(str, trim);
 	}
@@ -857,7 +854,7 @@ public final class Decision {
 	}
 
 	/**
-	 * returns if given object is a email
+	 * returns if given object is an email
 	 * 
 	 * @param value
 	 * @return
@@ -935,7 +932,7 @@ public final class Decision {
 					int len = path.length();
 					for (int i = 0; i < len; i++) {
 
-						if ("?<>:*|\"".indexOf(path.charAt(i)) > -1) return false;
+						if ("?<>*|\"".indexOf(path.charAt(i)) > -1) return false;
 					}
 				}
 			}
@@ -1012,6 +1009,7 @@ public final class Decision {
 			if ("email".equals(type)) return isEmail(value);
 			break;
 		case 'f':
+			if ("fileobject".equals(type)) return isFileObject(value);
 			if ("float".equals(type)) return isNumber(value, true);
 			if ("function".equals(type)) return isFunction(value);
 			break;
@@ -1130,7 +1128,7 @@ public final class Decision {
 					return isCastableToNumeric(o);
 				}
 				else if (alsoAlias && type.equals("decimal")) {
-					return Caster.toDecimal(o, null) != null;
+					return Caster.toDecimal(o, true, null) != null;
 				}
 				break;
 			case 'e':
@@ -1445,5 +1443,13 @@ public final class Decision {
 
 	public static boolean isWrapped(Object o) {
 		return o instanceof JavaObject || o instanceof ObjectWrap;
+	}
+
+	public static boolean isFileObject(Object source) {
+		PageContext pc = ThreadLocalPageContext.get();
+		if (source instanceof String) return false;
+		Resource file = ResourceUtil.toResourceNotExisting(pc, source.toString());
+		if (file.isFile()) return true;
+		return false;
 	}
 }

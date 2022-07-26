@@ -68,4 +68,28 @@ public class OperationN extends ExpressionSupport implements Operation {
 	public String getOperator() {
 		return operator;
 	}
+
+	@Override
+	public void reset() {
+		Iterator it = operants.iterator();
+		while (it.hasNext()) {
+			Expression exp = (Expression) it.next();
+			exp.reset();
+		}
+	}
+
+	@Override
+	public boolean hasAggregate() {
+		Iterator it = operants.iterator();
+		while (it.hasNext()) {
+			Expression exp = (Expression) it.next();
+			if (exp instanceof OperationAggregate) {
+				return true;
+			}
+			if (exp instanceof Operation && ((Operation) exp).hasAggregate()) {
+				return true;
+			}
+		}
+		return false;
+	}
 }

@@ -23,4 +23,8 @@ component {
 	request.currentPath=GetDirectoryFromPath(getCurrentTemplatePath());
 	this.locale="de_de";
 	this.searchImplicitScopes=url.searchImplicitScopes;
+
+	public function onRequestStart() {
+		setting requesttimeout=10;
+	}
 }

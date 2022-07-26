@@ -1,7 +1,4 @@
 <cfscript>
-
-
-
 	function toOrderedArray(array arr, boolean desc=false) {
 		arraySort(arr,function(l,r) {
 			if(desc) {
@@ -23,10 +20,9 @@
 		}
 	}
 
-
-available=getDataByid(url.id,getExternalData(providerURLs));
-installed=getDataByid(url.id,extensions);
-isInstalled=installed.count() GT 0;
+	available=getDataByid(url.id,getExternalData(providerURLs));
+	installed=getDataByid(url.id,extensions);
+	isInstalled=installed.count() GT 0;
 
 
 // all version that can be installed
@@ -34,8 +30,7 @@ isInstalled=installed.count() GT 0;
 	// other Versions
 	if(!isNull(available.otherVersions) && !isSimpleValue(available.otherVersions)) {
 		all=duplicate(available.otherVersions);
-	}
-	else {
+	} else {
 		all=[];
 	}
 		
@@ -49,13 +44,14 @@ isInstalled=installed.count() GT 0;
 	
 	// order
 	toOrderedArray(all,true);
-	versionStr = {};
-	versionStr.snapShot = [];
-	versionStr.pre_release = [];
-	versionStr.release = [];
+	versionStr = {
+		snapShot: [],
+		pre_release: [],
+		release: []
+	};
 	if(len(all)){
 		for(versions in all ){
-			if(FindNoCase("SNAPSHOT", versions)){
+			if(FindNoCase("SNAPSHOT", versions) || FindNoCase("SNAPHOT", versions)){  // checks SNAPHOT too due to LDEV-3876
 				arrayprepend(versionStr.snapShot, versions)
 			}else if(FindNoCase("ALPHA", versions) || FindNoCase("BETA", versions) || FindNoCase("RC", versions)){
 				arrayprepend(versionStr.pre_release, versions);
@@ -64,6 +60,15 @@ isInstalled=installed.count() GT 0;
 			}
 		}
 	}
+	if (arrayLen(versionStr.release) gt 0)
+		ext_status="Released";
+	else if (arrayLen(versionStr.pre_release))
+		ext_status="Pre Release";
+	else if (arrayLen(versionStr.snapshot))
+		ext_status="Snapshot";
+	else 
+		ext_status="Not Available";
+
 </cfscript>
 
 
@@ -91,19 +96,22 @@ isInstalled=installed.count() GT 0;
 <cfelse>
 	<cfset app=installed>
 </cfif>
-
-<cfoutput>
+<cfset lasProvider=(app.provider?:"")=="local" || findNoCase("lucee.org",app.provider?:'') GT 0>
+<cfoutput encodeFor="html">
 	<!--- title and description --->
 	<div class="modheader">
 		<h2>#app.name# (<cfif isInstalled>#stText.ext.installed#<cfelseif isServerInstalled>#stText.ext.installedServer#<cfelse>#stText.ext.notInstalled#</cfif>)</h2>
+				
+		<cfif !lasProvider>
+		<div class="warning" style="color:##C93">#stText.ext.providerWarning#</div>
+		</cfif>
+
 		<cfif !isInstalled && isServerInstalled><div class="error">#stText.ext.installedServerDesc#</div></cfif>
 
 		#replace(replace(trim(app.description),'<','&lt;',"all"), chr(10),"<br />","all")#
 		<br /><br />
 	</div>
 
-	
-					
 	<table class="contentlayout">
 		<tbody>
 			<tr>
@@ -111,14 +119,19 @@ isInstalled=installed.count() GT 0;
 				<td valign="top" style="width:200px;">
 					<cfif !isNull(app.image)>
 						<cfset dn=getDumpNail(app.image,400,400)>
+
 						<div style="width:100%;overflow:auto;">
-							<img src="#dn#" alt="#stText.ext.extThumbnail#" />
+							<img width="400" src="#dn#" alt="#stText.ext.extThumbnail#" />
 						</div>
 					</cfif>
 				</td>
 				<td valign="top">
 					<table class="maintbl">
 						<tbody>
+							<tr class="extension">
+								<th scope="row">#stText.ext.releaseStatus#</th>
+								<td class="extension-status">#ext_status#</td>
+							</tr>
 							<!--- Extension Version --->
 							<cfif isInstalled>
 								<tr>
@@ -135,13 +148,19 @@ isInstalled=installed.count() GT 0;
 									<th scope="row">Type</th>
 									<td>#installed.trial?"Trial":"Full"# Version</td>
 								</tr>
-
+								<cfif arrayLen(installed.categories)>
+									<tr>
+										<th scope="row">#stText.ext.category#</th>
+										<td>#arrayToList(installed.categories,', ')#</td>
+									</tr>
+								</cfif>
 							<cfelse>
 								<tr>
 									<th scope="row">#stText.ext.availableVersion#</th>
 									<td>#arrayToList(all,', ')#</td>
 								</tr>
 							</cfif>
+						
 							
 							<!--- price --->
 							<cfif !isNull(available.price) && len(trim(available.price))>
@@ -155,6 +174,11 @@ isInstalled=installed.count() GT 0;
 								<tr>
 									<th scope="row">#stText.ext.category#</th>
 									<td>#available.category#</td>
+								</tr>
+							<cfelseif structKeyExists(installed, "categories") and arrayLen(installed.categories)>
+								<tr>
+									<th scope="row">#stText.ext.category#</th>
+									<td>#arrayToList(installed.categories,', ')#</td>
 								</tr>
 							</cfif>
 							<!--- author --->
@@ -181,7 +205,7 @@ isInstalled=installed.count() GT 0;
 							<cfif !isNull(provider.title) && len(trim(provider.title))>
 								<tr>
 									<th scope="row">#stText.ext.provider#</th>
-									<td><cfif !isNull(provider.url)><a href="#provider.url#" target="_blank"></cfif>#provider.title#<cfif !isNull(provider.url)></a></cfif></td>
+									<td><cfif !isNull(provider.url)><a href="#provider.url#" target="_blank" rel="noopener"></cfif>#provider.title#<cfif !isNull(provider.url)></a></cfif></td>
 								</tr>
 							</cfif>
 							<!--- bundles --->
@@ -196,6 +220,15 @@ isInstalled=installed.count() GT 0;
 									</td>
 								</tr>
 							</cfif>
+							<!--- extension urls --->
+							<cfloop list="projectUrl,sourceUrl,documentionUrl" item="u">							
+								<cfif !isNull(app[u]) && len(trim(app[u]))>
+									<tr>
+										<th scope="row">#stText.ext[u]#</th>
+										<td><a href="#app[u]#" target="_blank" rel="noopener">#app.u#</a></td>
+									</tr>
+								</cfif>
+							</cfloop>
 							
 						</tbody>
 					</table>
@@ -222,7 +255,7 @@ if(isInstalled) installedVersion=toVersionSortable(installed.version);
 			<input type="hidden" name="mainAction_" value="#isInstalled?stText.Buttons.upDown:stText.Buttons.install#">
 			<input type="hidden" name="provider" value="#isNull(available.provider)?"":available.provider#">
 			
-		<table class="maintbl autowidth">
+		<table class="maintbl autowidth version-selector">
 		<tbody>
 		<cfset types="Release,Pre_Release,SnapShot">
 		<cfif arrayLen(all)>
@@ -259,13 +292,13 @@ if(isInstalled) installedVersion=toVersionSortable(installed.version);
 											}
 											options='<option value="#v#" class="td_#UcFirst(Lcase(key))#" >#btn# #v#</option>'&options;
 										}
+										writeOutput(options);
 										</cfscript>
-										#options#
 								</optgroup>
 							</cfif>
 						</cfloop>
 					</select>
-					<input type="button" class="button submit" onclick="versionSelected(this, version)"  value="#isInstalled?stText.Buttons.upDown:stText.Buttons.install#">
+					<input type="button" class="button" onclick="versionSelected(this, version)"  value="#isInstalled?stText.Buttons.upDown:stText.Buttons.install#">
 				</td>
 			</tr>
 		</cfif>
@@ -321,17 +354,11 @@ if(isInstalled) installedVersion=toVersionSortable(installed.version);
 	function versionSelected(v, i){
 		var version = $("##versions").val();
 		if(version == "")
-			$( ".msg" ).append( "<div class='error'>Please Choose any version</div>" );
+			$( ".msg" ).empty().append( "<div class='error'>Please Choose any version</div>" );
 		else
 			$( "##versionForm" ).submit();
 	}
-	</script>
-	<style>
-		.btn {
-			color:white;
-			background-color:##CC0000;
-		}
-	</style>
+	</script>	
 </cfhtmlbody>
 
 

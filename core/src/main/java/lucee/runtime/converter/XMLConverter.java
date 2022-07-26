@@ -64,7 +64,7 @@ import lucee.runtime.type.util.KeyConstants;
  * class to serialize and desirilize WDDX Packes
  */
 public final class XMLConverter extends ConverterSupport {
-	private static final Collection.Key REMOTING_FETCH = KeyImpl.intern("remotingFetch");
+	private static final Collection.Key REMOTING_FETCH = KeyImpl.getInstance("remotingFetch");
 
 	private int deep = 1;
 	private char del = '"';
@@ -126,7 +126,7 @@ public final class XMLConverter extends ConverterSupport {
 	}
 
 	/**
-	 * serialize a Array
+	 * serialize an Array
 	 * 
 	 * @param array Array to serialize
 	 * @param done
@@ -334,7 +334,7 @@ public final class XMLConverter extends ConverterSupport {
 	}
 
 	/**
-	 * serialize a Object to his xml Format represenation
+	 * serialize an Object to it's xml Format represenation
 	 * 
 	 * @param object Object to serialize
 	 * @param done
@@ -363,7 +363,7 @@ public final class XMLConverter extends ConverterSupport {
 		}
 		// Number
 		if (object instanceof Number) {
-			rtn = goIn() + ((Number) object).doubleValue();
+			rtn = goIn() + Caster.toString((Number) object);
 			deep--;
 			type = "NUMBER";
 			return rtn;
@@ -454,7 +454,7 @@ public final class XMLConverter extends ConverterSupport {
 	}
 
 	/**
-	 * serialize a Object to his xml Format represenation and create a valid wddx representation
+	 * serialize an Object to his xml Format represenation and create a valid wddx representation
 	 * 
 	 * @param object Object to serialize
 	 * @return serialized wddx package
@@ -535,7 +535,7 @@ public final class XMLConverter extends ConverterSupport {
 				throw toConverterException(e);
 			}
 		}
-		else throw new ConverterException("can't deserialize Element of type [" + nodeName + "] to a Object representation");
+		else throw new ConverterException("can't deserialize Element of type [" + nodeName + "] to an Object representation");
 
 	}
 
@@ -635,7 +635,7 @@ public final class XMLConverter extends ConverterSupport {
 			comp = pc.loadComponent(name);
 			if (!ComponentUtil.md5(comp).equals(md5)) {
 				throw new ConverterException("component [" + name
-						+ "] in this enviroment has not the same interface as the component to load, it is possible that one off the components has Functions added dynamicly.");
+						+ "] in this environment has not the same interface as the component to load, it is possible that one off the components has Functions added dynamically.");
 			}
 		}
 		catch (ConverterException e) {
@@ -726,7 +726,7 @@ public final class XMLConverter extends ConverterSupport {
 	}
 
 	/**
-	 * return fitst child Element of a Element, if there are no child Elements return null
+	 * return fitst child Element of an Element, if there are no child Elements return null
 	 * 
 	 * @param parent parent node
 	 * @return child Element

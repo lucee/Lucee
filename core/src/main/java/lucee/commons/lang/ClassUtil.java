@@ -30,8 +30,11 @@ import java.net.URLClassLoader;
 import java.net.URLDecoder;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Version;
@@ -41,14 +44,16 @@ import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.FileUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
+import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceClassLoader;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.Identification;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.osgi.OSGiUtil;
+import lucee.runtime.osgi.OSGiUtil.BundleDefinition;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.util.ListUtil;
 
@@ -134,26 +139,37 @@ public final class ClassUtil {
 		return defaultValue;
 	}
 
-	public static Class<?> loadClassByBundle(String className, String name, String strVersion, Identification id) throws ClassException, BundleException {
+	public static Class<?> loadClassByBundle(String className, String name, String strVersion, Identification id, List<Resource> addional) throws ClassException, BundleException {
 		// version
 		Version version = null;
 		if (!StringUtil.isEmpty(strVersion, true)) {
 			version = OSGiUtil.toVersion(strVersion.trim(), null);
 			if (version == null) throw new ClassException("Version definition [" + strVersion + "] is invalid.");
 		}
-		return loadClassByBundle(className, name, version, id);
+		return loadClassByBundle(className, new BundleDefinition(name, version), null, id, addional);
 	}
 
-	public static Class loadClassByBundle(String className, String name, Version version, Identification id) throws BundleException, ClassException {
+	public static Class loadClassByBundle(String className, String name, Version version, Identification id, List<Resource> addional) throws BundleException, ClassException {
+		return loadClassByBundle(className, new BundleDefinition(name, version), null, id, addional);
+	}
+
+	public static Class<?> loadClassByBundle(String className, BundleDefinition bundle, BundleDefinition[] relatedBundles, Identification id, List<Resource> addional)
+			throws BundleException, ClassException {
 		try {
-			return OSGiUtil.loadBundle(name, version, id, true).loadClass(className);
+			if (relatedBundles != null) {
+				for (BundleDefinition rb: relatedBundles) {
+					rb.getBundle(id, addional, true);
+				}
+			}
+			return bundle.getBundle(id, addional, true).loadClass(className);
 		}
 		catch (ClassNotFoundException e) {
 			String appendix = "";
 			if (!StringUtil.isEmpty(e.getMessage(), true)) appendix = " " + e.getMessage();
-			if (version == null) throw new ClassException("In the OSGi Bundle with the name [" + name + "] was no class with name [" + className + "] found." + appendix);
-			throw new ClassException(
-					"In the OSGi Bundle with the name [" + name + "] and the version [" + version + "] was no class with name [" + className + "] found." + appendix);
+			if (bundle.getVersion() == null)
+				throw new ClassException("In the OSGi Bundle with the name [" + bundle.getName() + "] was no class with name [" + className + "] found." + appendix);
+			throw new ClassException("In the OSGi Bundle with the name [" + bundle.getName() + "] and the version [" + bundle.getVersion() + "] was no class with name ["
+					+ className + "] found." + appendix);
 		}
 	}
 
@@ -371,13 +387,24 @@ public final class ClassUtil {
 	 */
 	public static Object loadInstance(Class clazz) throws ClassException {
 		try {
-			return clazz.newInstance();
+			return newInstance(clazz);
 		}
 		catch (InstantiationException e) {
 			throw new ClassException("the specified class object [" + clazz.getName() + "()] cannot be instantiated");
 		}
 		catch (IllegalAccessException e) {
-			throw new ClassException("can't load class because the currently executing method does not have access to the definition of the specified class");
+			throw new ClassException(
+					"can't load class [" + clazz.getName() + "] because the currently executing method does not have access to the definition of the specified class");
+		}
+		catch (Exception e) {
+			String message = "";
+			if (e.getMessage() != null) {
+				message = e.getMessage() + " ";
+			}
+			message += e.getClass().getName() + " while creating an instance of " + clazz.getName();
+			ClassException ce = new ClassException(message);
+			ce.setStackTrace(e.getStackTrace());
+			throw ce;
 		}
 	}
 
@@ -397,7 +424,7 @@ public final class ClassUtil {
 	 */
 	public static Object loadInstance(Class clazz, Object defaultValue) {
 		try {
-			return clazz.newInstance();
+			return newInstance(clazz);
 		}
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
@@ -441,7 +468,7 @@ public final class ClassUtil {
 
 		}
 		catch (SecurityException e) {
-			throw new ClassException("there is a security violation (throwed by security manager)");
+			throw new ClassException("there is a security violation (thrown by security manager)");
 		}
 		catch (NoSuchMethodException e) {
 
@@ -454,7 +481,7 @@ public final class ClassUtil {
 			}
 			sb.append(')');
 
-			throw new ClassException("there is no constructor with this [" + sb + "] signature for the class [" + clazz.getName() + "]");
+			throw new ClassException("there is no constructor with the [" + sb + "] signature for the class [" + clazz.getName() + "]");
 		}
 		catch (IllegalArgumentException e) {
 			throw new ClassException("has been passed an illegal or inappropriate argument");
@@ -532,7 +559,8 @@ public final class ClassUtil {
 				if (file.exists()) try {
 					pathes.put(file.getCanonicalPath(), "");
 				}
-				catch (IOException e) {}
+				catch (IOException e) {
+				}
 			}
 		}
 
@@ -540,8 +568,8 @@ public final class ClassUtil {
 		getClassPathesFromLoader(new ClassUtil().getClass().getClassLoader(), pathes);
 		getClassPathesFromLoader(config.getClassLoader(), pathes);
 
-		Set set = pathes.keySet();
-		return (String[]) set.toArray(new String[set.size()]);
+		Set<String> set = pathes.keySet();
+		return set.toArray(new String[set.size()]);
 	}
 
 	/**
@@ -565,7 +593,8 @@ public final class ClassUtil {
 			if (file.exists()) try {
 				pathes.put(file.getCanonicalPath(), "");
 			}
-			catch (IOException e) {}
+			catch (IOException e) {
+			}
 		}
 	}
 
@@ -586,6 +615,8 @@ public final class ClassUtil {
 
 	private static final byte BCF = (byte) ICF;// CF
 	private static final byte B33 = (byte) I33;// 33
+	private static final Class[] EMPTY_CLASS = new Class[0];
+	private static final Object[] EMPTY_OBJ = new Object[0];
 
 	/**
 	 * check if given stream is a bytecode stream, if yes remove bytecode mark
@@ -697,7 +728,7 @@ public final class ClassUtil {
 	}
 
 	/**
-	 * return a array class based on the given class (opposite from Class.getComponentType())
+	 * return an array class based on the given class (opposite from Class.getComponentType())
 	 * 
 	 * @param clazz
 	 * @return
@@ -734,6 +765,49 @@ public final class ClassUtil {
 		}
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
+		}
+
+		return defaultValue;
+	}
+
+	public static byte[] getBytesForClass(Class clazz, byte[] defaultValue) {
+		InputStream is = null;
+		try {
+			ClassLoader cl = clazz.getClassLoader();
+			if (cl == null) cl = ClassLoader.getSystemClassLoader();
+			is = cl.getResourceAsStream(clazz.getName().replace('.', '/') + ".class");
+			return IOUtil.toBytes(is);
+		}
+		catch (Exception e) {
+		}
+
+		is = null;
+		ZipFile zf = null;
+		try {
+			String path = getSourcePathForClass(clazz, null);
+			if (path == null) return defaultValue;
+
+			File file = new File(path);
+			// zip
+			if (file.isFile()) {
+				zf = new ZipFile(file);
+				ZipEntry ze = zf.getEntry(clazz.getName().replace('.', '/') + ".class");
+				if (ze == null) ze = zf.getEntry(clazz.getName().replace('.', '\\') + ".class");
+				is = zf.getInputStream(ze);
+				return IOUtil.toBytes(is);
+			}
+			// directory
+			else if (file.isDirectory()) {
+				File f = new File(file, clazz.getName().replace('.', '/') + ".class");
+				if (!f.isFile()) f = new File(file, clazz.getName().replace('.', '\\') + ".class");
+				if (f.isFile()) return IOUtil.toBytes(f);
+			}
+		}
+		catch (Exception e) {
+		}
+		finally {
+			IOUtil.closeEL(is);
+			IOUtil.closeELL(zf);
 		}
 
 		return defaultValue;
@@ -796,9 +870,9 @@ public final class ClassUtil {
 	 * @throws ClassException
 	 * @throws BundleException
 	 */
-	public static Class loadClass(String className, String bundleName, String bundleVersion, Identification id) throws ClassException, BundleException {
+	public static Class loadClass(String className, String bundleName, String bundleVersion, Identification id, List<Resource> addional) throws ClassException, BundleException {
 		if (StringUtil.isEmpty(bundleName)) return loadClass(className);
-		return loadClassByBundle(className, bundleName, bundleVersion, id);
+		return loadClassByBundle(className, bundleName, bundleVersion, id, addional);
 	}
 
 	private static interface ClassLoading {
@@ -869,9 +943,14 @@ public final class ClassUtil {
 		if (cl != null) return cl;
 
 		Config config = ThreadLocalPageContext.getConfig();
-		if (config instanceof ConfigImpl) {
-			return ((ConfigImpl) config).getClassLoaderCore();
+		if (config instanceof ConfigPro) {
+			return ((ConfigPro) config).getClassLoaderCore();
 		}
 		return new lucee.commons.lang.ClassLoaderHelper().getClass().getClassLoader();
+	}
+
+	public static Object newInstance(Class clazz)
+			throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+		return clazz.getConstructor(EMPTY_CLASS).newInstance(EMPTY_OBJ);
 	}
 }

@@ -23,7 +23,8 @@ import lucee.runtime.config.ConfigServer;
 public final class ClusterRemoteNotSupported implements ClusterRemote {
 
 	@Override
-	public void addEntry(ClusterEntry entry) {}
+	public void addEntry(ClusterEntry entry) {
+	}
 
 	@Override
 	public void broadcastEntries() {
@@ -41,6 +42,7 @@ public final class ClusterRemoteNotSupported implements ClusterRemote {
 	}
 
 	@Override
-	public void init(ConfigServer configServer, Cluster cluster) {}
+	public void init(ConfigServer configServer, Cluster cluster) {
+	}
 
 }

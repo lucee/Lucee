@@ -21,17 +21,14 @@ package lucee.commons.lang;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.instrument.ClassDefinition;
 import java.lang.instrument.UnmodifiableClassException;
+import java.lang.ref.SoftReference;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-
-import org.apache.commons.collections4.map.ReferenceMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 import lucee.commons.digest.HashUtil;
 import lucee.commons.io.IOUtil;
@@ -39,9 +36,9 @@ import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceClassLoader;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigImpl;
-import lucee.runtime.instrumentation.InstrumentationFactory;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.type.util.ArrayUtil;
+import lucee.transformer.bytecode.util.ClassRenamer;
 
 /**
  * Directory ClassLoader
@@ -53,13 +50,31 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 	}
 
 	private Resource directory;
-	private ConfigImpl config;
+	private ConfigPro config;
 	private final ClassLoader[] parents;
 
-	private Set<String> loadedClasses = new HashSet<>();
-	private Set<String> unavaiClasses = new HashSet<>();
+	private Map<String, String> loadedClasses = new ConcurrentHashMap<String, String>();
+	private Map<String, String> allLoadedClasses = new ConcurrentHashMap<String, String>(); // this includes all renames
+	private Map<String, String> unavaiClasses = new ConcurrentHashMap<String, String>();
 
-	private Map<String, PhysicalClassLoader> customCLs;
+	private Map<String, SoftReference<PhysicalClassLoader>> customCLs;
+
+	private static long counter = 0L;
+	private static long _start = 0L;
+	private static String start = Long.toString(_start, Character.MAX_RADIX);
+	private static Object countToken = new Object();
+
+	public static String uid() {
+		synchronized (countToken) {
+			counter++;
+			if (counter < 0) {
+				counter = 1;
+				start = Long.toString(++_start, Character.MAX_RADIX);
+			}
+			if (_start == 0L) return Long.toString(counter, Character.MAX_RADIX);
+			return start + "_" + Long.toString(counter, Character.MAX_RADIX);
+		}
+	}
 
 	/**
 	 * Constructor of the class
@@ -74,7 +89,7 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 
 	public PhysicalClassLoader(Config c, Resource directory, ClassLoader[] parentClassLoaders, boolean includeCoreCL) throws IOException {
 		super(parentClassLoaders == null || parentClassLoaders.length == 0 ? c.getClassLoader() : parentClassLoaders[0]);
-		config = (ConfigImpl) c;
+		config = (ConfigPro) c;
 
 		// ClassLoader resCL = parent!=null?parent:config.getResourceClassLoader(null);
 
@@ -94,16 +109,14 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 
 		// check directory
 		if (!directory.exists()) directory.mkdirs();
-		if (!directory.isDirectory()) throw new IOException("resource " + directory + " is not a directory");
-		if (!directory.canRead()) throw new IOException("no access to " + directory + " directory");
+		if (!directory.isDirectory()) throw new IOException("Resource [" + directory + "] is not a directory");
+		if (!directory.canRead()) throw new IOException("Access denied to [" + directory + "] directory");
 		this.directory = directory;
 	}
 
 	@Override
 	public Class<?> loadClass(String name) throws ClassNotFoundException {
-		synchronized (getClassLoadingLock(name)) {
-			return loadClass(name, false);
-		}
+		return loadClass(name, false);
 	}
 
 	@Override
@@ -114,10 +127,6 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 	}
 
 	private Class<?> loadClass(String name, boolean resolve, boolean loadFromFS) throws ClassNotFoundException {
-		if (loadedClasses.contains(name) || unavaiClasses.contains(name)) {
-			return super.loadClass(name, false); // Use default CL cache
-		}
-
 		// First, check if the class has already been loaded
 		Class<?> c = findLoadedClass(name);
 		if (c == null) {
@@ -126,7 +135,8 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 					c = p.loadClass(name);
 					break;
 				}
-				catch (Exception e) {}
+				catch (Exception e) {
+				}
 			}
 			if (c == null) {
 				if (loadFromFS) c = findClass(name);
@@ -147,18 +157,18 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 				IOUtil.copy(res, baos, false);
 			}
 			catch (IOException e) {
-				this.unavaiClasses.add(name);
-				throw new ClassNotFoundException("class " + name + " is invalid or doesn't exist");
+				this.unavaiClasses.put(name, "");
+				throw new ClassNotFoundException("Class [" + name + "] is invalid or doesn't exist", e);
 			}
 
 			byte[] barr = baos.toByteArray();
 			IOUtil.closeEL(baos);
-			return _loadClass(name, barr);
+			return _loadClass(name, barr, false);
 		}
 	}
 
 	@Override
-	public synchronized Class<?> loadClass(String name, byte[] barr) throws UnmodifiableClassException {
+	public Class<?> loadClass(String name, byte[] barr) throws UnmodifiableClassException {
 		Class<?> clazz = null;
 
 		synchronized (getClassLoadingLock(name)) {
@@ -167,26 +177,32 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 			try {
 				clazz = loadClass(name, false, false); // we do not load existing class from disk
 			}
-			catch (ClassNotFoundException cnf) {}
-			if (clazz == null) return _loadClass(name, barr);
+			catch (ClassNotFoundException cnf) {
+			}
+			if (clazz == null) return _loadClass(name, barr, false);
 
-			// update
-			try {
-				InstrumentationFactory.getInstrumentation(config).redefineClasses(new ClassDefinition(clazz, barr));
-			}
-			catch (ClassNotFoundException e) {
-				// the documentation clearly sais that this exception only exists for backward compatibility and
-				// never happen
-				throw new RuntimeException(e);
-			}
-			return clazz;
+			// first we try to update the class what needs instrumentation object
+			/*
+			 * try { InstrumentationFactory.getInstrumentation(config).redefineClasses(new
+			 * ClassDefinition(clazz, barr)); return clazz; } catch (Exception e) { LogUtil.log(null,
+			 * "compilation", e); }
+			 */
+			// in case instrumentation fails, we rename it
+			return rename(clazz, barr);
 		}
 	}
 
-	private Class<?> _loadClass(String name, byte[] barr) {
+	private Class<?> rename(Class<?> clazz, byte[] barr) {
+		String newName = clazz.getName() + "$" + uid();
+		return _loadClass(newName, ClassRenamer.rename(barr, newName), true);
+	}
+
+	private Class<?> _loadClass(String name, byte[] barr, boolean rename) {
 		Class<?> clazz = defineClass(name, barr, 0, barr.length);
 		if (clazz != null) {
-			loadedClasses.add(name);
+			if (!rename) loadedClasses.put(name, "");
+			allLoadedClasses.put(name, "");
+
 			resolveClass(clazz);
 		}
 		return clazz;
@@ -197,8 +213,8 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 		return null;
 	}
 
-	public int getSize() {
-		return loadedClasses.size();
+	public int getSize(boolean includeAllRenames) {
+		return includeAllRenames ? allLoadedClasses.size() : loadedClasses.size();
 	}
 
 	@Override
@@ -211,7 +227,8 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 			try {
 				return IOUtil.toBufferedInputStream(f.getInputStream());
 			}
-			catch (IOException e) {}
+			catch (IOException e) {
+			}
 		}
 		return null;
 	}
@@ -253,11 +270,12 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 
 		if (reload && customCLs != null) customCLs.remove(key);
 
-		PhysicalClassLoader pcl = customCLs == null ? null : customCLs.get(key);
+		SoftReference<PhysicalClassLoader> tmp = customCLs == null ? null : customCLs.get(key);
+		PhysicalClassLoader pcl = tmp == null ? null : tmp.get();
 		if (pcl != null) return pcl;
 		pcl = new PhysicalClassLoader(config, getDirectory(), new ClassLoader[] { new ResourceClassLoader(resources, getParent()) }, true);
-		if (customCLs == null) customCLs = new ReferenceMap<String, PhysicalClassLoader>();
-		customCLs.put(key, pcl);
+		if (customCLs == null) customCLs = new ConcurrentHashMap<String, SoftReference<PhysicalClassLoader>>();
+		customCLs.put(key, new SoftReference<PhysicalClassLoader>(pcl));
 		return pcl;
 	}
 
@@ -273,6 +291,7 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 
 	public void clear() {
 		this.loadedClasses.clear();
+		this.allLoadedClasses.clear();
 		this.unavaiClasses.clear();
 	}
 }

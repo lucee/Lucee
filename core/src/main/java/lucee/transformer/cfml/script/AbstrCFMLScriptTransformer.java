@@ -19,8 +19,10 @@
 package lucee.transformer.cfml.script;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -238,13 +240,15 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		else if ((child = returnStatement(data)) != null) parent.addStatement(child);
 		else if ((child = switchStatement(data)) != null) parent.addStatement(child);
 		else if ((child = tryStatement(data)) != null) parent.addStatement(child);
-		else if (islandStatement(data, parent)) {}
+		else if (islandStatement(data, parent)) {
+		}
 		// else if(staticStatement(data,parent)) ; // do nothing, happen already inside the method
 		else if ((child = staticStatement(data, parent)) != null) parent.addStatement(child);
 		else if ((child = componentStatement(data, parent)) != null) parent.addStatement(child);
 		else if ((child = tagStatement(data, parent)) != null) parent.addStatement(child);
 		else if ((child = cftagStatement(data, parent)) != null) parent.addStatement(child);
-		else if (block(data, parent)) {}
+		else if (block(data, parent)) {
+		}
 
 		else parent.addStatement(expressionStatement(data, parent));
 		data.docComment = null;
@@ -696,7 +700,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 			Body prior = data.setParent(body);
 			statement(data, body, CTX_FOR);
 
-			// performance improvment in special constellation
+			// performance improvement in special combination
 			// TagLoop loop = asLoop(data.factory,left,cont,update,body,line,data.srcCode.getPosition(),id);
 			// if(loop!=null) return loop;
 
@@ -719,59 +723,10 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 
 			if (!(left instanceof Variable)) throw new TemplateException(data.srcCode, "invalid syntax in for statement, left value is invalid");
 
-			// if(!(value instanceof Variable))
-			// throw new TemplateException(data.srcCode,"invalid syntax in for statement, right value is
-			// invalid");
 			return new ForEach((Variable) left, value, body, line, data.srcCode.getPosition(), id);
 		}
 		else throw new TemplateException(data.srcCode, "invalid syntax in for statement");
 	}
-
-	/*
-	 * private TagLoop asLoop(Factory factory, Expression expLeft, Expression expMiddle, Expression
-	 * expRight, Body body, Position start, Position end, String label) {
-	 * 
-	 * // LEFT // left must be an assignment if(!(expLeft instanceof Assign)) return null; Assign
-	 * left=(Assign) expLeft; String leftVarName=toVariableName(left.getVariable());
-	 * if(leftVarName==null) return null; if(!"susi".equalsIgnoreCase(leftVarName)) return null;
-	 * 
-	 * // MIDDLE // midfdle must be an operation if(!(expMiddle instanceof OPDecision)) return null;
-	 * OPDecision middle=(OPDecision) expMiddle;
-	 * 
-	 * // middle must be an operation LT or LTE boolean isLT=middle.getOperation()==OPDecision.LT;
-	 * if(!isLT && middle.getOperation()!=OPDecision.LTE) return null;
-	 * 
-	 * // middle variable need to be the same as the left variable
-	 * if(!leftVarName.equals(toVariableName(middle.getLeft()))) return null;
-	 * 
-	 * // RIGHT // right need to be an assignment (i=i+1 what is the same as i++) if(!(expRight
-	 * instanceof Assign)) return null; Assign right=(Assign) expRight;
-	 * 
-	 * // increment need to be a literal number if(!(right.getValue() instanceof OpDouble)) return null;
-	 * OpDouble opRight=(OpDouble) right.getValue();
-	 * 
-	 * // must be an increment of the same variable (i on both sides)
-	 * if(!leftVarName.equals(toVariableName(right.getVariable()))) return null;
-	 * if(!leftVarName.equals(toVariableName(opRight.getLeft()))) return null;
-	 * 
-	 * // must be a literal number if(!(opRight.getRight() instanceof LitDouble)) return null; LitDouble
-	 * rightIncValue=(LitDouble) opRight.getRight(); if(opRight.getOperation()!=Factory.OP_DBL_PLUS)
-	 * return null;
-	 * 
-	 * // create loop tag TagLoop tl=new TagLoop(factory, start, end); tl.setBody(body);
-	 * tl.setType(TagLoop.TYPE_FROM_TO);
-	 * 
-	 * // id tl.addAttribute( new Attribute( false, "index",
-	 * factory.createLitString(leftVarName,right.getVariable().getStart(),right.getVariable().getEnd()),
-	 * "string" ) ); // from tl.addAttribute( new Attribute( false, "from",
-	 * factory.toExprDouble(left.getValue()), "number" ) ); // to ExprDouble val = isLT?
-	 * factory.opDouble(middle.getLeft(), factory.createLitDouble(1),
-	 * Factory.OP_DBL_MINUS):factory.toExprDouble(middle.getLeft()); tl.addAttribute( new Attribute(
-	 * false, "to", val, "number" ) ); // step tl.addAttribute( new Attribute( false, "step",
-	 * factory.toExprDouble(rightIncValue), "number" ) );
-	 * 
-	 * return tl; }
-	 */
 
 	private String toVariableName(Expression variable) {
 		if (!(variable instanceof Variable)) return null;
@@ -1068,8 +1023,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 	@Override
 	protected final Function closurePart(Data data, String id, int access, int modifier, String rtnType, Position line, boolean closure) throws TemplateException {
 		Body body = new FunctionBody(data.factory);
-		Function func = closure ? new Closure(data.root, id, access, modifier, rtnType, body, line, null)
-				: new FunctionImpl(data.root, id, access, modifier, rtnType, body, line, null);
+		Function func = closure ? new Closure(id, access, modifier, rtnType, body, line, null) : new FunctionImpl(id, access, modifier, rtnType, body, line, null);
 
 		comments(data);
 		if (!data.srcCode.forwardIfCurrent('(')) throw new TemplateException(data.srcCode, "invalid syntax in function head, missing begin [(]");
@@ -1218,7 +1172,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 						verifyClient, localMode));
 			}
 			else {
-				func.register();
+				func.register(data.page);
 				statement(data, body, CTX_FUNCTION);
 			}
 			data.setParent(prior);
@@ -1273,9 +1227,6 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 			throw new TemplateException(data.srcCode, e.getMessage());
 		}
 
-		// print.e("+++++++++++++++++++++++++++++++++++");
-		// print.e(fd);
-
 		PageSourceCode psc = (PageSourceCode) data.srcCode;// TODO get PS in an other way
 		PageSource ps = psc.getPageSource();
 
@@ -1285,7 +1236,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		Position end = sc.getPosition();
 		String javaCode = sc.substring(start.pos, end.pos - start.pos);
 		try {
-			String id = data.root.registerJavaFunctionName(functionName);
+			String id = data.page.registerJavaFunctionName(functionName);
 
 			JavaFunction jf = JavaCCompiler.compile(ps, fd.createSourceCode(ps, javaCode, id, functionName, access, modifier, hint, args, output, bufferOutput, displayName,
 					description, returnFormat, secureJson, verifyClient, localMode));
@@ -1360,8 +1311,8 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 	@Override
 	protected final Function lambdaPart(Data data, String id, int access, int modifier, String rtnType, Position line, ArrayList<Argument> args) throws TemplateException {
 		Body body = new FunctionBody(data.factory);
-		Function func = new Lambda(data.root, id, access, modifier, rtnType, body, line, null);
-		func.register();// TODO may add support for java functions
+		Function func = new Lambda(data.page, id, access, modifier, rtnType, body, line, null);
+		func.register(data.page);
 		comments(data);
 
 		// add arguments
@@ -1414,7 +1365,6 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 
 	private Statement tagStatement(Data data, Body parent) throws TemplateException {
 		Statement child;
-
 		for (int i = 0; i < data.scriptTags.length; i++) {
 			// single
 			if (data.scriptTags[i].getScript().getType() == TagLibTagScript.TYPE_SINGLE) {
@@ -1450,20 +1400,37 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 
 	private final Tag __multiAttrStatement(Body parent, Data data, TagLibTag tlt) throws TemplateException {
 		if (data.ep == null) return null;
+		int pos = data.srcCode.getPos();
 		String type = tlt.getName();
+		String appendix = null;
 		if (data.srcCode.forwardIfCurrent(type) ||
+
 		// lucee dialect support component as alias for class
 				(data.srcCode.getDialect() == CFMLEngine.DIALECT_LUCEE && type.equalsIgnoreCase(Constants.LUCEE_COMPONENT_TAG_NAME)
 						&& data.srcCode.forwardIfCurrent(Constants.CFML_COMPONENT_TAG_NAME))) {
 
+			if (tlt.hasAppendix()) {
+				appendix = CFMLTransformer.identifier(data.srcCode, false, true);
+				if (StringUtil.isEmpty(appendix)) {
+					data.srcCode.setPos(pos);
+					return null;
+				}
+
+			}
+
 			boolean isValid = (data.srcCode.isCurrent(' ') || (tlt.getHasBody() && data.srcCode.isCurrent('{')));
+			if (isValid && (data.srcCode.isCurrent(" ", "=") || data.srcCode.isCurrent(" ", "("))) { // simply avoid a later exception
+				isValid = false;
+			}
 			if (!isValid) {
-				data.srcCode.setPos(data.srcCode.getPos() - type.length());
+				data.srcCode.setPos(pos);
+				// data.srcCode.setPos(data.srcCode.getPos() - type.length());
 				return null;
 			}
 		}
 		else return null;
-		Position line = data.srcCode.getPosition();
+
+		Position line = data.srcCode.getPosition(pos);
 
 		TagLibTagScript script = tlt.getScript();
 		// TagLibTag tlt = CFMLTransformer.getTLT(data.srcCode,type);
@@ -1473,6 +1440,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		Tag tag = getTag(data, parent, tlt, line, null);
 		tag.setTagLibTag(tlt);
 		tag.setScriptBase(true);
+		if (!StringUtil.isEmpty(appendix)) tag.setAppendix(appendix);
 
 		// add component meta data
 		if (data.isCFC) {
@@ -1544,7 +1512,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 			// print.e("appendix:"+tlt);
 
 			if (tlt == null) {
-				// if(tagLib.getIgnoreUnknowTags()){ if we do this a expression like the following no longer work
+				// if(tagLib.getIgnoreUnknowTags()){ if we do this an expression like the following no longer work
 				// cfwhatever=1;
 				data.srcCode.setPos(start);
 				return null;
@@ -2192,7 +2160,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 	 */
 	private Statement expressionStatement(Data data, Body parent) throws TemplateException {
 
-		// first we check if we have a access modifier
+		// first we check if we have an access modifier
 		int pos = data.srcCode.getPos();
 		int access = -1;
 		boolean _final = false;
@@ -2427,14 +2395,14 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 
 	private final Attribute[] attributes(Tag tag, TagLibTag tlt, Data data, EndCondition endCond, Expression defaultValue, Object oAllowExpression, String ignoreAttrReqFor,
 			boolean allowTwiceAttr, char attributeSeparator, boolean allowColonAsNameValueSeparator) throws TemplateException {
-		ArrayList<Attribute> attrs = new ArrayList<Attribute>();
+		Map<String, Attribute> attrs = new LinkedHashMap<String, Attribute>(); // need to be linked hashmap to keep the right order
 		ArrayList<String> ids = new ArrayList<String>();
 		while (data.srcCode.isValidIndex()) {
 			data.srcCode.removeSpace();
 			// if no more attributes break
 			if (endCond.isEnd(data)) break;
 			Attribute attr = attribute(tlt, data, ids, defaultValue, oAllowExpression, allowTwiceAttr, allowColonAsNameValueSeparator);
-			attrs.add(attr);
+			attrs.put(attr.getName().toLowerCase(), attr);
 
 			// seperator
 			if (attributeSeparator > 0) {
@@ -2447,7 +2415,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		// not defined attributes
 		if (tlt != null) {
 			boolean hasAttributeCollection = false;
-			Iterator<Attribute> iii = attrs.iterator();
+			Iterator<Attribute> iii = attrs.values().iterator();
 			while (iii.hasNext()) {
 				if ("attributecollection".equalsIgnoreCase(iii.next().getName())) {
 					hasAttributeCollection = true;
@@ -2463,7 +2431,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 				while (it.hasNext()) {
 					e = it.next();
 					TagLibTagAttr att = e.getValue();
-					if (att.isRequired() && !contains(attrs, att) && att.getDefaultValue() == null && !att.getName().equals(ignoreAttrReqFor)) {
+					if (att.isRequired() && !contains(attrs.values(), att) && att.getDefaultValue() == null && !att.getName().equals(ignoreAttrReqFor)) {
 						if (!hasAttributeCollection)
 							throw new TemplateException(data.srcCode, "attribute [" + att.getName() + "] is required for statement [" + tlt.getName() + "]");
 						if (tag != null) tag.addMissingAttribute(att);
@@ -2471,10 +2439,28 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 				}
 			}
 		}
-		return attrs.toArray(new Attribute[attrs.size()]);
+
+		// set default values
+		if (tlt != null && tlt.hasDefaultValue()) {
+			Map<String, TagLibTagAttr> hash = tlt.getAttributes();
+			Iterator<TagLibTagAttr> it = hash.values().iterator();
+			TagLibTagAttr att;
+			while (it.hasNext()) {
+				att = it.next();
+				if (!attrs.containsKey(att.getName().toLowerCase()) && att.hasDefaultValue()) {
+
+					Attribute attr = new Attribute(tlt.getAttributeType() == TagLibTag.ATTRIBUTE_TYPE_DYNAMIC, att.getName(),
+							data.factory.toExpression(data.factory.createLitString(Caster.toString(att.getDefaultValue(), null)), att.getType()), att.getType());
+					attr.setDefaultAttribute(true);
+					attrs.put(att.getName().toLowerCase(), attr);
+				}
+			}
+		}
+
+		return attrs.values().toArray(new Attribute[attrs.size()]);
 	}
 
-	private final boolean contains(ArrayList<Attribute> attrs, TagLibTagAttr attr) {
+	private final boolean contains(Collection<Attribute> attrs, TagLibTagAttr attr) {
 
 		Iterator<Attribute> it = attrs.iterator();
 		String name;
@@ -2558,7 +2544,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 					String names = tag.getAttributeNames();
 					if (StringUtil.isEmpty(names)) throw new TemplateException(cfml, "Attribute [" + idOC + "] is not allowed for tag [" + tag.getFullName() + "]");
 
-					throw new TemplateException(cfml, "Attribute [" + idOC + "] is not allowed for statement [" + tag.getName() + "]", "valid attribute names are [" + names + "]");
+					throw new TemplateException(cfml, "Attribute [" + idOC + "] is not allowed for statement [" + tag.getName() + "]", "Valid Attribute names are [" + names + "]");
 				}
 				dynamic.setValue(true);
 

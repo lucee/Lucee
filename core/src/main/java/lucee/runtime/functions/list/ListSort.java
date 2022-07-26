@@ -32,6 +32,10 @@ public final class ListSort extends BIF {
 
 	private static final long serialVersionUID = -1153055612742304078L;
 
+	public static String call(PageContext pc, String list) throws PageException {
+		return call(pc, list, "textnocase", "asc", ",", false);
+	}
+
 	public static String call(PageContext pc, String list, String sortType) throws PageException {
 		return call(pc, list, sortType, "asc", ",", false);
 	}

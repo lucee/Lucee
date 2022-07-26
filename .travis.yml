@@ -1,8 +1,15 @@
 language: java
 
+# cache the maven dependancies
+# cache lucee extension cache
+cache:
+  directories:
+    - $HOME/.m2
+    - $HOME/build/lucee/Lucee/cache/
+
 jdk:
-  - oraclejdk8
-#   - openjdk11
+#  - oraclejdk9
+  - openjdk8
 # build only commits to branch master or where pattern matches "n.n" (where n is a number), e.g. 5.2
 branches:
   only:
@@ -20,7 +27,7 @@ before_install:
 ### for more see https://docs.travis-ci.com/user/database-setup
 services:
   - mysql # server:"127.0.0.1"; user:"root"; password:""
-  - postgresql "9.6" # server:"127.0.0.1"; user:"postgres"; password:""
+  - postgresql # server:"127.0.0.1"; user:"postgres"; password:""
   - mongodb #  server:"127.0.0.1" user/pass see below
   - memcached # Memcached uses the default configuration and binds to localhost.
 
@@ -90,7 +97,8 @@ notifications:
 
 after_success:
 # - version=$(mvn org.apache.maven.plugins:maven-help-plugin:2.1.1:evaluate -Dexpression=project.version | egrep -v '^\[|Downloading:' | tr -d ' \n')
-- curl "http://stable.lucee.org/rest/update/provider/buildLatest"
+- curl "https://update.lucee.org/rest/update/provider/buildLatest"
+- curl "https://extension.lucee.org/rest/extension/provider/reset"
 - curl "https://download.lucee.org/?type=snapshots&reset=force"
 
 - chmod +x travis-docker-build.sh && ./travis-docker-build.sh

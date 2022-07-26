@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project default="run" basedir="." name="LuceeUploadToS3">
+
+<macrodef name="echots">
+	<attribute name="message"/>
+	<sequential>
+	  <local name="timestamp" />
+	  <tstamp>
+		<format property="timestamp" pattern="yyyy-MM-dd HH:mm:ss" />
+	  </tstamp>
+	  <echo message="---------- ${timestamp} - @{message} ----------" />
+	</sequential>
+  </macrodef>
+
+<target name="run">
+	<echots message="within run of upload s3"/>
+
+<script language="CFML">
+<![CDATA[
+	SystemOutput( "inside upload-to-s3.xml", 1, 1 );
+
+	request.WEBADMINPASSWORD = "webweb";
+	request.SERVERADMINPASSWORD = "webweb";
+	
+	// set a password for the admin
+	try {
+		admin
+			action="updatePassword"
+			type="web"
+			oldPassword=""
+			newPassword="#request.WEBADMINPASSWORD#";
+	}
+	catch(e){}	// may exist from previous execution
+
+	try {
+		admin
+			action="updatePassword"
+			type="server"
+			oldPassword=""
+			newPassword="#request.SERVERADMINPASSWORD#";
+	}
+	catch(e){}	// may exist from previous execution
+
+	// create "/upload" mapping
+	admin
+		action="updateMapping"
+		type="web"
+		password="#request.WEBADMINPASSWORD#"
+		virtual="/upload"
+		physical="#antdir#"
+		toplevel="true"
+		archive=""
+		primary="physical"
+		trusted="no";
+
+	// do all the actual processing inside an include file so we get useful error messages
+	include ( template="/upload/upload_to_s3.cfm" );
+
+]]>
+  </script>
+
+</target>
+</project>
