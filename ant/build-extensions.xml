@@ -374,4 +374,33 @@
 		<get src="${cdnUrl}${stableLoader}.jar" dest="${cache}/${stableLoader}.jar"/>
 	</target>
 
+	<scriptdef name="copyExtensions" language="javascript" loaderRef="sharedbuild-loaderRef">
+		<attribute name="source" />
+		<attribute name="target" />
+		<attribute name="extensions" />
+		<![CDATA[
+
+			var sourceDir = attributes.get( "source" );
+			var targetDir = attributes.get( "target" );
+			var extensions = attributes.get( "extensions" ).split(",");
+			if (extensions.length == 0 )
+				throw ( "copyExtensions: no extensions specified?" );
+
+			var copy = project.createTask( "copy" );
+			var echo = project.createTask( "echo" );
+
+			// echo.setMessage( "copying Extensions to : " + targetDir );
+			// echo.perform();	
+
+			for (var e in extensions){
+				var extFile = extensions[e].split(";").join("-") + ".lex";
+				// echo.setMessage( "copy Extension: " + sourceDir + "/" + extFile );
+				// echo.perform();	
+				copy.setFile( new java.io.File( sourceDir + "/" + extFile ) );
+				copy.setTofile( new java.io.File( targetDir + "/" + extFile ) );
+				copy.perform();
+			}
+		]]>
+	</scriptdef>
+
 </project>
