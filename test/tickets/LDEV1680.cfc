@@ -6,7 +6,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" labels="mssql" {
 				var result = _internalRequest(
 					template = "#createURI("LDEV1680")#/LDEV1680.cfm"
 				)
-				arr = listToArray(result.filecontent,"|");
+				var arr = listToArray(result.filecontent,"|");
 				expect(arr[1].trim()).toBetrue();
 				expect(arr[2].trim()).toBe("01/01/2022 10:10:10");
 			});
