@@ -6,6 +6,10 @@ on:
       LUCEE_TEST_JAVA_VERSION:
         required: true
         type: string
+      LUCEE_BUILD_JAVA_VERSION:
+        required: true
+        type: string
+        default: '8'
   push: 
   pull_request:
   workflow_dispatch:
@@ -18,7 +22,10 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
-
+    env:
+      DO_DEPLOY: "${{ github.event_name == 'push' && github.ref == 'refs/heads/5.3' }}"
+      LUCEE_BUILD_JAVA_VERSION: 8
+      LUCEE_TEST_JAVA_VERSION: ''
     services:
       sql-server:
         image: mcr.microsoft.com/mssql/server:2019-latest
@@ -30,24 +37,43 @@ jobs:
           - 1433:1433
         options: --health-cmd="/opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P ${SA_PASSWORD} -Q 'SELECT 1' || exit 1"  --health-interval 10s --health-timeout 5s --health-retries 5
     steps:
+    # when workflow is run via a workflow_call, these vars are found under input, which doesn't exist otherwise
+    # so lets copy them over to the normal env vars
+    - name: Configure Build Java Version
+      if: ${{ inputs.LUCEE_BUILD_JAVA_VERSION != '' }}
+      run: echo "LUCEE_BUILD_JAVA_VERSION=${{ inputs.LUCEE_BUILD_JAVA_VERSION }}" >> $GITHUB_ENV
+
+    - name: Configure Test Java Version
+      if: ${{ inputs.LUCEE_TEST_JAVA_VERSION != '' }}
+      run: echo "LUCEE_TEST_JAVA_VERSION=${{ inputs.LUCEE_TEST_JAVA_VERSION }}" >> $GITHUB_ENV
+
     - uses: szenius/set-timezone@v1.0
       with:
         timezoneLinux: "UTC"
     - uses: actions/checkout@v2
-    - name: Set up Test Java Version
+
+    - name: Set up Test Java Version ${{ env.LUCEE_TEST_JAVA_VERSION }}
       uses: actions/setup-java@v2
-      if: ${{ inputs.LUCEE_TEST_JAVA_VERSION != '' }}
+      if: ${{ env.LUCEE_TEST_JAVA_VERSION != '' }}
       with:
-        java-version: ${{ inputs.LUCEE_TEST_JAVA_VERSION }}
+        java-version: ${{ env.LUCEE_TEST_JAVA_VERSION }}
         distribution: 'temurin'
+
     - name: Stash Test Java Version Home
-      if: ${{ inputs.LUCEE_TEST_JAVA_VERSION != '' }}
+      if: ${{ env.LUCEE_TEST_JAVA_VERSION != '' }}
       run: echo "LUCEE_TEST_JAVA_EXEC=${{ env.JAVA_HOME }}/bin/java" >> $GITHUB_ENV
-    - name: Set up JDK 8
+
+    - name: Set up build JDK '${{ env.LUCEE_BUILD_JAVA_VERSION }}'
       uses: actions/setup-java@v2
+      if: ${{ env.LUCEE_TEST_JAVA_VERSION != env.LUCEE_BUILD_JAVA_VERSION }}
       with:
-        java-version: '8'
+        java-version: '${{ env.LUCEE_BUILD_JAVA_VERSION }}'
         distribution: 'temurin'
+
+    - name: Disable DEPLOY if not building with Java 8 (Lucee default)
+      if: ${{ env.LUCEE_BUILD_JAVA_VERSION != '8' }}
+      run: echo "DO_DEPLOY=false" >> $GITHUB_ENV
+
     - name: Cache Lucee extensions
       uses: actions/cache@v2
       with:
@@ -57,7 +83,9 @@ jobs:
     - name: Cache Maven packages
       uses: actions/cache@v2
       with:
-        path: ~/.m2/repository
+        path: |
+          ~/.m2/repository
+          !~/.m2/repository/org/lucee/lucee/
         key: ${{ runner.os }}-maven-${{ hashFiles('loader/pom.xml','core/pom.xml') }}
         restore-keys: |
           ${{ runner.os }}-maven-
@@ -103,7 +131,7 @@ jobs:
         MSSQL_DATABASE: master
         S3_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_ID_TEST }}
         S3_SECRET_KEY: ${{ secrets.S3_SECRET_KEY_TEST }}
-        DO_DEPLOY: ${{ github.event_name == 'push' }}
+        # DO_DEPLOY: ${{ github.event_name == 'push' }}
         # for uploading successful builds
         S3_ACCESS_ID_DOWNLOAD: ${{ secrets.S3_ACCESS_ID_DOWNLOAD }}
         S3_SECRET_KEY_DOWNLOAD: ${{ secrets.S3_SECRET_KEY_DOWNLOAD }}
@@ -114,11 +142,11 @@ jobs:
         LUCEE_DOCKER_FILES_PAT_TOKEN: ${{ secrets.LUCEE_DOCKER_FILES_PAT_TOKEN }}
       #run: ant -noinput -buildfile loader/build.xml
       run: |
-        if [ "${{ github.event_name == 'push' }}" == "true" ]; then
+        if [ "${{ env.DO_DEPLOY }}" == "true" ]; then
           echo "------- Maven Deploy on ${{ github.event_name }} -------";
           mvn -B -e -f loader/pom.xml clean deploy --settings travis-settings.xml -DtestJavaVersionExec="${{ env.LUCEE_TEST_JAVA_EXEC }}";
         else
-          echo "------- Maven Install on ${{ github.event_name }} ---------"
+          echo "------- Maven Install on ${{ github.event_name }} ---------";
           mvn -B -e -f loader/pom.xml clean install -DtestJavaVersionExec="${{ env.LUCEE_TEST_JAVA_EXEC }}"
         fi
     - name: Publish Test Results
