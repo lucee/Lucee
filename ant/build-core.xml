@@ -431,54 +431,8 @@
       jarfile="${temp}/lucee.jar" 
       manifest="${srcLoader}/META-INF/MANIFEST.MF"/>
 
-  </target>
-
-
-<target name="test_stable_loader">
-    <!-- no we copy the extension in place otherwise, Lucee downloads them as well  -->
-    <echots message="copy extensions in place"/>
-    <copy todir="${temp}/stable/base/lucee-server/context/extensions/available" flatten="true">
-      <fileset dir="${cache}">
-        <include name="**/*.lex"/>
-      </fileset>
-    </copy>
-
-    <!-- make a copy of the stable fat jar  -->
-    <copy file="${cache}/${stableLoader}.jar" tofile="${temp}/stable/loader.jar"/>
-    <copy file="${trgLoader}/${version}.lco" tofile="${temp}/stable/temp/core/core.lco"/>
-    <!-- update the fat jar with the current core .lco -->
-    <jar destfile="${temp}/stable/loader.jar" update="true">
-       <fileset dir="${temp}/stable/temp"/>
-    </jar>
-
-
-    <echots message="try running the new core build with an older stable loader"/>
-    <!-- build the lucee-context.lar -->
-    <java classname="org.apache.tools.ant.launch.Launcher" dir="${ant}" fork="true" failonerror="true" errorproperty="exc">
-      <classpath path="${java.class.path}">
-          <pathelement location="${temp}/stable/loader.jar"/>
-          <pathelement path="${runtime_classpath}"/>
-      </classpath>
-
-      <arg value="-f"/>
-      <arg value="${ant}/build-test-stable-loader.xml"/>
-
-      <jvmarg value="-DstableLoader=${stableLoader}"/>
-      <jvmarg value="-Dlucee.base.dir=${temp}/stable/base"/>
-      <jvmarg value="-Dlucee.web.dir=${temp}/stable/webroot"/>
-      <jvmarg value="-Dlucee.enable.dialect=true"/>
-      <jvmarg value="-Dlucee.extensions.install=true"/>
-      <jvmarg value="-Dlucee.full.null.support=false"/>
-      <!-- older loader can dynamically download required bundles from the update provider -->
-      <jvmarg value="-Dlucee.enable.bundle.download=true"/>
-      <jvmarg value="-Dlucee.cli.printExpections=true"/>
-      <!--
-      <jvmarg value="-Xdebug"/>
-      <jvmarg value="-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5000"/>
-      -->
-    </java>
-    <outputTrimmedString str="${exc}"/>
 </target>
+
 
 <target name="__build_archives" depends="buildJars,__extract_testbox">
     <!-- first we copy the jars in place otherwise, Lucee downloads them  -->
@@ -490,11 +444,11 @@
 
     <!-- no we copy the extension in place otherwise, Lucee downloads them as well  -->
     <echots message="copy extensions in place"/>
-    <copy todir="${temp}/archive/base/lucee-server/context/extensions/available" flatten="true">
-      <fileset dir="${cache}">
-        <include name="**/*.lex"/>
-      </fileset>
-    </copy>
+    <copyExtensions
+      source="${cache}"
+      target="${temp}/archive/base/lucee-server/context/extensions/available"
+      extensions="${reqExt.data}">
+    </copyExtensions>
 
     <echots message="building different archives that get bundled (admin,doc) with help of the temporary generated lucee.jar"/>
     <!-- build the lucee-context.lar -->
@@ -602,7 +556,7 @@
       basedir="${outputDir}/" 
       jarfile="${trgLoader}/lucee-${version}.jar" 
       manifest="${goal}/META-INF/MANIFEST.MF"/>
-    <echots message="build-jar-man:${goal}/META-INF/MANIFEST.MF"/>    
+    <echots message="build-jar-man:${goal}/META-INF/MANIFEST.MF"/>
 
     <listDirectory directory="${test}/lib" delimiter=":" returnvalue="test_jars"/>
     <echots message="upload to S3"/>
@@ -637,16 +591,10 @@
 </target>
 
 <target name="test_warmup" if="testcases">
-    <jar 
-      basedir="${outputDir}/" 
-      jarfile="${trgLoader}/lucee-${version}.jar" 
-      manifest="${goal}/META-INF/MANIFEST.MF"/>
-    <echots message="build-jar-man:${goal}/META-INF/MANIFEST.MF"/>
-
     <echots message="Testing LUCEE_ENABLE_WARMUP"/>
-    
+    <mkdir dir="${temp}/warmup"/>
     <!-- Test Lucee Warmup -->
-    <java classname="org.apache.tools.ant.launch.Launcher" dir="${ant}" fork="true" failonerror="true" errorproperty="exc4">
+    <java classname="org.apache.tools.ant.launch.Launcher" dir="${temp}/warmup" fork="true" failonerror="true" errorproperty="exc4" jvm="${testJavaVersionExec}">
       <classpath path="${java.class.path}">
           <pathelement location="${trgLoader}/lucee-${version}.jar"/>
           <pathelement path="${runtime_classpath}"/>
@@ -656,20 +604,59 @@
       <arg value="${ant}/build-warmup-test.xml"/>
 
       <jvmarg value="-Dbasedir=${baseDir}"/>
-      <jvmarg value="-Dlucee.base.dir=${temp}/archive/base"/>
-      <jvmarg value="-Dlucee.web.dir=${temp}/archive/webroot"/>
-      <!-- <jvmarg value="-Dlucee-extensions=${extS3}"/> -->
-      <jvmarg value="-Dlucee.extensions.install=true"/>
-      <jvmarg value="-Dlucee.full.null.support=false"/>
+      <jvmarg value="-Dlucee.base.dir=${temp}/warmup/base"/>
+      <jvmarg value="-Dlucee.web.dir=${temp}/warmup/webroot"/>
       <jvmarg value="-Dlucee.enable.warmup=true"/>
-      <jvmarg value="-Dluceejar=${trgLoader}/lucee-${version}.jar"/>
-      <jvmarg value="-DluceeCore=${trgLoader}/${version}.lco"/>
-      <jvmarg value="-DtrgLoader=${trgLoader}"/>
-
     </java>
     <echo>${exc4}</echo>
-
 </target>
+
+<target name="test_stable_loader">
+    <!-- no we copy the extension in place otherwise, Lucee downloads them as well  -->
+    <echots message="copy extensions in place"/>
+    <copyExtensions
+      source="${cache}"
+      target="${temp}/stable/base/lucee-server/context/extensions/available"
+      extensions="${reqExt.data}">
+    </copyExtensions>
+
+    <!-- make a copy of the stable fat jar  -->
+    <copy file="${cache}/${stableLoader}.jar" tofile="${temp}/stable/loader.jar"/>
+    <copy file="${trgLoader}/${version}.lco" tofile="${temp}/stable/temp/core/core.lco"/>
+    <!-- update the fat jar with the current core .lco -->
+    <jar destfile="${temp}/stable/loader.jar" update="true">
+       <fileset dir="${temp}/stable/temp"/>
+    </jar>
+
+
+    <echots message="try running the new core build with an older stable loader"/>
+    <!-- build the lucee-context.lar -->
+    <java classname="org.apache.tools.ant.launch.Launcher" dir="${ant}" fork="true" failonerror="true" errorproperty="exc">
+      <classpath path="${java.class.path}">
+          <pathelement location="${temp}/stable/loader.jar"/>
+          <pathelement path="${runtime_classpath}"/>
+      </classpath>
+
+      <arg value="-f"/>
+      <arg value="${ant}/build-test-stable-loader.xml"/>
+
+      <jvmarg value="-DstableLoader=${stableLoader}"/>
+      <jvmarg value="-Dlucee.base.dir=${temp}/stable/base"/>
+      <jvmarg value="-Dlucee.web.dir=${temp}/stable/webroot"/>
+      <jvmarg value="-Dlucee.enable.dialect=true"/>
+      <jvmarg value="-Dlucee.extensions.install=true"/>
+      <jvmarg value="-Dlucee.full.null.support=false"/>
+      <!-- older loader can dynamically download required bundles from the update provider -->
+      <jvmarg value="-Dlucee.enable.bundle.download=true"/>
+      <jvmarg value="-Dlucee.cli.printExpections=true"/>
+      <!--
+      <jvmarg value="-Xdebug"/>
+      <jvmarg value="-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5000"/>
+      -->
+    </java>
+    <outputTrimmedString str="${exc}"/>
+</target>
+
 
 
   <target name="__build" depends="__build_archives,__build_testbox">
