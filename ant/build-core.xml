@@ -476,7 +476,7 @@
       <jvmarg value="-Dlucee.full.null.support=false"/>
       <!-- this checks to see that all the required bundles are provided, so that none are missing -->
       <jvmarg value="-Dlucee.enable.bundle.download=false"/>
-      <jvmarg value="-Dlucee.cli.printExpections=true"/>
+      <jvmarg value="-Dlucee.cli.printExceptions=true"/>
     </java>
     <outputTrimmedString str="${exc}"/>
 </target>
@@ -531,7 +531,7 @@
       <jvmarg value="-Dlucee.enable.dialect=true"/>
       <jvmarg value="-Dlucee.extensions.install=true"/>
       <jvmarg value="-Dlucee.full.null.support=false"/>
-      <jvmarg value="-Dlucee.cli.printExpections=true"/>
+      <jvmarg value="-Dlucee.cli.printExceptions=true"/>
       <!--
       <jvmarg value="-XX:StartFlightRecording=disk=true,dumponexit=true,filename=${temp}/../lucee-testcases.jfr,maxsize=1024m,maxage=1d,settings=profile,path-to-gc-roots=true"/>
       <jvmarg value="-Dlucee.system.out=file:.../out.txt"/>
@@ -648,7 +648,7 @@
       <jvmarg value="-Dlucee.full.null.support=false"/>
       <!-- older loader can dynamically download required bundles from the update provider -->
       <jvmarg value="-Dlucee.enable.bundle.download=true"/>
-      <jvmarg value="-Dlucee.cli.printExpections=true"/>
+      <jvmarg value="-Dlucee.cli.printExceptions=true"/>
       <!--
       <jvmarg value="-Xdebug"/>
       <jvmarg value="-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5000"/>
