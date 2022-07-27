@@ -64,11 +64,11 @@ jobs:
     # so lets copy them over to the normal env vars
     - name: Configure Build Java Version
       if: ${{ inputs.LUCEE_BUILD_JAVA_VERSION != '' }}
-      run: echo "LUCEE_BUILD_JAVA_VERSION=${{ inputs.LUCEE_BUILD_JAVA_VERSION }}/bin/java" >> $GITHUB_ENV
+      run: echo "LUCEE_BUILD_JAVA_VERSION=${{ inputs.LUCEE_BUILD_JAVA_VERSION }}" >> $GITHUB_ENV
 
-    - name: Configur Test Java Version
+    - name: Configure Test Java Version
       if: ${{ inputs.LUCEE_TEST_JAVA_VERSION != '' }}
-      run: echo "LUCEE_TEST_JAVA_VERSION=${{ inputs.LUCEE_TEST_JAVA_VERSION }}/bin/java" >> $GITHUB_ENV
+      run: echo "LUCEE_TEST_JAVA_VERSION=${{ inputs.LUCEE_TEST_JAVA_VERSION }}" >> $GITHUB_ENV
 
     - uses: szenius/set-timezone@v1.0
       with:
@@ -184,7 +184,7 @@ jobs:
         LUCEE_DOCKER_FILES_PAT_TOKEN: ${{ secrets.LUCEE_DOCKER_FILES_PAT_TOKEN }}
       #run: ant -noinput -buildfile loader/build.xml
       run: |
-        if [ "${DO_DEPLOY}" == "true" ]; then
+        if [ "${{ env.DO_DEPLOY }}" == "true" ]; then
           echo "------- Maven Deploy on ${{ github.event_name }} -------";
           mvn -B -e -f loader/pom.xml clean deploy --settings travis-settings.xml -DtestJavaVersionExec="${{ env.LUCEE_TEST_JAVA_EXEC }}";
         else
