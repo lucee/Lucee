@@ -62,7 +62,7 @@ function mem(type) {
 	configDir=config.getConfigServerDir();
 	logsDir=configDir&server.separator.file&"logs";
 	deployLog=logsDir&server.separator.file&"deploy.log";
-	dump(deployLog);
+	// dump(deployLog);  // causes NPE sometimes https://luceeserver.atlassian.net/browse/LDEV-3616
 	content=fileRead(deployLog);
 	systemOutput("-------------- Deploy Log ------------",true);
 	systemOutput(content,true);
@@ -92,6 +92,20 @@ function mem(type) {
 		componentpaths = "#[{archive:testboxArchive}]#";
 
 	systemOutput("update componentpaths #dateTimeFormat(now())#", true);
+
+	admin
+		action="getMappings"
+		type="web"
+		password="#request.WEBADMINPASSWORD#"
+		returnVariable="mappings";
+
+	systemOutput("-------------- Mappings --------------", true);
+	loop query="mappings" {
+		systemOutput("#mappings.virtual# #TAB# #mappings.strPhysical# "
+			& (len(mappings.strArchive) ? "[#mappings.strArchive#] " : "")
+			& (len(mappings.inspect) ? "(#mappings.inspect#)" : ""), true);
+	}
+	systemOutput("", true);
 
 	// load testbox
 	SystemOut=createObject("java", "lucee.commons.lang.SystemOut");

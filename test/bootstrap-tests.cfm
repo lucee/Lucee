@@ -65,7 +65,7 @@
 		trusted="no";
 
 	// reset the webroot to be empty, to avoid any conflicting mappings
-	empty_webroot = "#getTempDirectory()#\empty_webroot";
+	empty_webroot = "#getTempDirectory()#empty_webroot";
 	DirectoryCreate(empty_webroot);
 	admin
 		action="updateMapping"
