@@ -1,34 +1,7 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<project default="run" basedir="." name="Lucee">
+<cfscript>
+<!---  TODO this currently just duplicates run-testcases.xml https://luceeserver.atlassian.net/browse/LDEV-4114 --->
 
-<macrodef name="echots">
-    <attribute name="message"/>
-    <sequential>
-      <local name="timestamp" />
-      <tstamp>
-        <format property="timestamp" pattern="yyyy-MM-dd HH:mm:ss" />
-      </tstamp>
-      <echo message="---------- ${timestamp} - @{message} ----------" />
-    </sequential>
-  </macrodef>
-
-<target name="run">
-
-<echo><![CDATA[
-  _____         _   ____
- |_   _|__  ___| |_| __ )  _____  __
-   | |/ _ \/ __| __|  _ \ / _ \ \/ /
-   | |  __/\__ \ |_| |_) | (_) >  <
-   |_|\___||___/\__|____/ \___/_/\_\
-
-]]></echo>
-<echots message="start TestBox testcases"/>
-
-
-<script language="CFML">
-<![CDATA[
-<!---  TODO move this code to /tests/run-tests https://luceeserver.atlassian.net/browse/LDEV-4114 --->
-encodeForHTML("abc"); // test if ESAPI extension exist right away
+    encodeForHTML("abc"); // test if ESAPI extension exist right away
 if (execute) {
 
 request.basedir = basedir;
@@ -376,8 +349,4 @@ Begin Stack Trace
 	}
 
 } // if (execute)
-]]>
-  </script>
-
-</target>
-</project>
+</cfscript>
