@@ -491,8 +491,8 @@ component {
 						return oracle;
 					return {
 						class: 'oracle.jdbc.OracleDriver'
-						, bundleName: 'ojdbc7'
-						, bundleVersion: server.getDefaultBundleVersion( 'ojdbc7', '11.2.0.4' )
+						, bundleName: 'org.lucee.oracle'
+						, bundleVersion: server.getDefaultBundleVersion( 'org.lucee.oracle', '19.12.0.0000L' )
 						, connectionString: 'jdbc:oracle:thin:@#oracle.server#:#oracle.port#/#oracle.database#'
 						, username: oracle.username
 						, password: oracle.password
