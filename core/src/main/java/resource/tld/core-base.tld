@@ -4888,14 +4888,14 @@ Permits searching collections by title or displaying a separate title from the k
 			<name>text</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>an exception to log.</description>
+			<description>The message text to log.</description>
 		</attribute>
 		<attribute>
 			<type>any</type>
 			<name>exception</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>The message text to log.</description>
+			<description>The exception to log.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
