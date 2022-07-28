@@ -290,7 +290,7 @@ public class DeployHandler {
 
 					url = new URL(url, "/rest/extension/provider/info/" + ed.getId() + qs);
 					if (log != null) log.info("extension", "Check for a newer version at [" + url + "]");
-					rsp = HTTPEngine.get(url, null, null, -1, false, "UTF-8", "", null, new Header[] { new HeaderImpl("accept", "application/json") });
+					rsp = HTTPEngine.get(url, null, null, 5000, false, "UTF-8", "", null, new Header[] { new HeaderImpl("accept", "application/json") });
 
 					if (rsp.getStatusCode() != 200) continue;
 
@@ -374,7 +374,7 @@ public class DeployHandler {
 				url = new URL(url, "/rest/extension/provider/full/" + ed.getId() + qs);
 				if (log != null) log.info("main", "Check for extension at [" + url + "]");
 
-				rsp = HTTPEngine.get(url, null, null, -1, true, "UTF-8", "", null, new Header[] { new HeaderImpl("accept", "application/cfml") });
+				rsp = HTTPEngine.get(url, null, null, 5000, true, "UTF-8", "", null, new Header[] { new HeaderImpl("accept", "application/cfml") });
 
 				// If status code indicates success
 				if (rsp.getStatusCode() >= 200 && rsp.getStatusCode() < 300) {

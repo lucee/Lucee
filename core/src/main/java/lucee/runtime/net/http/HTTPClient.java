@@ -171,7 +171,7 @@ public class HTTPClient implements Objects, Iteratorable {
 			InputStream is = null;
 			HTTPResponse rsp = null;
 			try {
-				rsp = HTTPEngine.get(metaURL, username, password, -1, false, "UTF-8", createUserAgent(pc), proxyData, null);
+				rsp = HTTPEngine.get(metaURL, username, password, 5000, false, "UTF-8", createUserAgent(pc), proxyData, null);
 				MimeType mt = getMimeType(rsp, null);
 				int format = MimeType.toFormat(mt, -1);
 				if (format == -1) throw new ApplicationException("cannot convert response with mime type [" + mt + "] to a CFML Object");
