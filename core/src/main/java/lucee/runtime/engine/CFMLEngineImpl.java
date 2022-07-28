@@ -287,7 +287,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		if (installExtensions && updateInfo.updateType != ConfigFactory.NEW_NONE) {
 			int count = deployBundledExtension(cs, false);
 			LogUtil.log(null, Log.LEVEL_INFO, "deploy", "controller",
-					count == 0 ? "no new extension available to add  to local extension directory" : "copied [" + count + "] bundled extension(s) to local extension directory");
+					count == 0 ? "No new extension available to add to local extension directory" : "Copied [" + count + "] bundled extension(s) to local extension directory");
 		}
 		// required extensions
 
@@ -298,7 +298,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		if (installExtensions && (updateInfo.updateType == ConfigFactory.NEW_FRESH || updateInfo.updateType == ConfigFactory.NEW_FROM4)) {
 			List<ExtensionDefintion> ext = info.getRequiredExtension();
 			extensions = toSet(null, ext);
-			LogUtil.log(null, Log.LEVEL_INFO, "deploy", "controller", "detected Extensions to install (new;" + updateInfo.getUpdateTypeAsString() + "):" + toList(extensions));
+			LogUtil.log(null, Log.LEVEL_INFO, "deploy", "controller", "Found Extensions to install (new;" + updateInfo.getUpdateTypeAsString() + "):" + toList(extensions));
 		}
 		// if we have an update we update the extension that re installed and we have an older version as
 		// defined in the manifest
@@ -325,13 +325,13 @@ public final class CFMLEngineImpl implements CFMLEngine {
 						Version since = ed.getSince();
 						if (since == null || updateInfo.oldVersion == null || !Util.isNewerThan(since, updateInfo.oldVersion)) continue; // not installed we do not update
 
-						LogUtil.log(null, Log.LEVEL_INFO, "deploy", "controller", "detected newer [" + since + ":" + updateInfo.oldVersion + "] Extension version [" + ed + "]");
+						LogUtil.log(null, Log.LEVEL_INFO, "deploy", "controller", "Detected newer [" + since + ":" + updateInfo.oldVersion + "] Extension version [" + ed + "]");
 						extensions.add(ed);
 					}
 					else rheVersion = OSGiUtil.toVersion(rhe.getVersion(), null);
 					// if the installed is older than the one defined in the manifest we update (if possible)
 					if (rheVersion != null && OSGiUtil.isNewerThan(edVersion, rheVersion)) { // TODO do none OSGi version number comparsion
-						LogUtil.log(null, Log.LEVEL_INFO, "deploy", "controller", "detected newer [" + edVersion + ":" + rheVersion + "] Extension version [" + ed + "]");
+						LogUtil.log(null, Log.LEVEL_INFO, "deploy", "controller", "Detected newer [" + edVersion + ":" + rheVersion + "] Extension version [" + ed + "]");
 						extensions.add(ed);
 					}
 				}
@@ -342,11 +342,11 @@ public final class CFMLEngineImpl implements CFMLEngine {
 			}
 			if (!extensions.isEmpty()) {
 				LogUtil.log(null, Log.LEVEL_INFO, "deploy", "controller",
-						"detected Extensions to install (minor;" + updateInfo.getUpdateTypeAsString() + "):" + toList(extensions));
+						"Detected Extensions to install (minor;" + updateInfo.getUpdateTypeAsString() + "):" + toList(extensions));
 			}
 		}
 		else {
-			LogUtil.log(null, Log.LEVEL_INFO, "deploy", "controller", "no extension to add/install");
+			LogUtil.log(null, Log.LEVEL_INFO, "deploy", "controller", "No extension(s) found to add/install");
 
 			extensions = new HashSet<ExtensionDefintion>();
 		}
@@ -358,7 +358,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		this.envExt = null;
 		if (!StringUtil.isEmpty(extensionIds, true)) {
 			this.envExt = extensionIds;
-			LogUtil.log(null, Log.LEVEL_INFO, "deploy", "controller", "extensions to install defined in env variable or system property:" + extensionIds);
+			LogUtil.log(null, Log.LEVEL_INFO, "deploy", "controller", "Extensions to install defined in env variable or system property:" + extensionIds);
 			List<ExtensionDefintion> _extensions = RHExtension.toExtensionDefinitions(extensionIds);
 			extensions = toSet(extensions, _extensions);
 
@@ -374,7 +374,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 				sucess = false;
 			}
 			if (sucess && configDir != null) ConfigFactory.updateRequiredExtension(this, configDir, null);
-			LogUtil.log(null, Log.LEVEL_INFO, "deploy", "controller", (sucess ? "successfully" : "unsuccessfully") + " installed extensions :" + toList(extensions));
+			LogUtil.log(null, Log.LEVEL_INFO, "deploy", "controller", (sucess ? "Successfully" : "Unsuccessfully") + " installed extensions :" + toList(extensions));
 		}
 		else if (configDir != null) ConfigFactory.updateRequiredExtension(this, configDir, null);
 
@@ -386,8 +386,8 @@ public final class CFMLEngineImpl implements CFMLEngine {
 			}
 			if (!extensionsToRemove.isEmpty()) {
 				// remove extension that are not valid (to new for current version)
-				LogUtil.log(null, Log.LEVEL_ERROR, "deploy", ConfigWebFactory.class.getName(), "uninstall extensions ["
-						+ lucee.runtime.type.util.ListUtil.toList(extensionsToRemove, ", ") + "] because it is not supported for the current Lucee version.");
+				LogUtil.log(null, Log.LEVEL_ERROR, "deploy", ConfigWebFactory.class.getName(), "Uninstall extension(s) ["
+						+ lucee.runtime.type.util.ListUtil.toList(extensionsToRemove, ", ") + "] because they are not supported for the current Lucee version.");
 				try {
 					ConfigAdmin.removeRHExtensions(null, null, lucee.runtime.type.util.ListUtil.toStringArray(extensionsToRemove), false);
 					if (configDir != null) ConfigFactory.updateRequiredExtension(this, configDir, null);
@@ -409,7 +409,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		}
 
 		touchMonitor(cs);
-		LogUtil.log(cs, Log.LEVEL_INFO, "startup", "touched monitors");
+		LogUtil.log(cs, Log.LEVEL_INFO, "startup", "Touched monitors");
 		this.uptime = System.currentTimeMillis();
 
 		// check deploy folder
@@ -463,11 +463,11 @@ public final class CFMLEngineImpl implements CFMLEngine {
 						if (ed != null) {
 							extensionsToInstall.add(ed);
 							LogUtil.log(null, Log.LEVEL_INFO, "debug", "check-invalid-extension",
-									"installed extension [" + ext + "] is invalid and get removed and replaced by [" + ed + "]");
+									"Installed extension [" + ext + "] is invalid and get removed and replaced by [" + ed + "]");
 						}
 						else {
 							extensionsToRemove.add(ext.toExtensionDefinition().getId());
-							LogUtil.log(null, Log.LEVEL_INFO, "debug", "check-invalid-extension", "installed extension [" + ext + "] is invalid and get removed.");
+							LogUtil.log(null, Log.LEVEL_INFO, "debug", "check-invalid-extension", "Installed extension [" + ext + "] is invalid and was removed.");
 
 						}
 					}
@@ -565,7 +565,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		if (is == null) is = SystemUtil.getResourceAsStream(null, "/extensions/.index");
 
 		if (is == null) {
-			log.error("extract-extension", "could not found [/extensions/.index] defined in the index in the lucee.jar");
+			log.error("extract-extension", "Could not find [/extensions/.index] defined in the index of the lucee.jar");
 			return count;
 		}
 
@@ -591,18 +591,18 @@ public final class CFMLEngineImpl implements CFMLEngine {
 				if (existingMap.containsKey(name)) {
 					continue;
 				}
-				log.info("extract-extension", "extract the extension [" + name + "] from the lucee.jar to the local extension folder [" + dir + "]");
+				log.info("extract-extension", "Extract the extension [" + name + "] from the lucee.jar to the local extension folder [" + dir + "]");
 
 				is = cl.getResourceAsStream("extensions/" + name);
 				if (is == null) is = cl.getResourceAsStream("/extensions/" + name);
 				if (is == null) {
-					log.error("extract-extension", "could not found extension [" + name + "] defined in the index in the lucee.jar");
+					log.error("extract-extension", "Could not find extension [" + name + "] defined in the index in the lucee.jar");
 					continue;
 				}
 
 				try {
 					temp = SystemUtil.getTempDirectory().getRealResource(name);
-					log.info("extract-extension", "copy extension [" + name + "] to temp directory [" + temp + "]");
+					log.info("extract-extension", "Copy extension [" + name + "] to temp directory [" + temp + "]");
 					ResourceUtil.touch(temp);
 					Util.copy(is, temp.getOutputStream(), false, true);
 					rhe = new RHExtension(cs, temp, false);
@@ -621,14 +621,14 @@ public final class CFMLEngineImpl implements CFMLEngine {
 					if (alreadyExists == null) {
 						temp.moveTo(dir.getRealResource(trgName));
 						count++;
-						log.info("extract-extension", "added [" + name + "] to [" + dir + "]");
+						log.debug("extract-extension", "Added [" + name + "] to [" + dir + "]");
 					}
 					else if (!alreadyExists.getSource().getName().equals(trgName)) {
-						log.info("extract-extension", "rename [" + alreadyExists.getSource() + "] to [" + trgName + "]");
+						log.debug("extract-extension", "Rename [" + alreadyExists.getSource() + "] to [" + trgName + "]");
 						alreadyExists.getSource().moveTo(alreadyExists.getSource().getParentResource().getRealResource(trgName));
 					}
 					else {
-						log.info("extract-extension", "extension  [" + name + "] already exists in local extension directory");
+						log.info("extract-extension", "Extension  [" + name + "] already exists in local extension directory");
 					}
 
 					// now we check all extension name (for extension no longer delivered by lucee)
@@ -638,7 +638,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 						trgName = exist.getId() + "-" + exist.getVersion() + ".lex";
 						if (!trgName.equals(exist.getSource().getName())) {
 							exist.getSource().moveTo(exist.getSource().getParentResource().getRealResource(trgName));
-							log.info("extract-extension", "rename [" + exist.getSource() + "] to [" + trgName + "]");
+							log.debug("extract-extension", "Rename [" + exist.getSource() + "] to [" + trgName + "]");
 
 						}
 					}
@@ -928,7 +928,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 	private CFMLFactoryImpl loadJSPFactory(ConfigServerImpl configServer, ServletConfig sg, int countExistingContextes) throws ServletException {
 		try {
 			CFMLFactoryImpl factory = new CFMLFactoryImpl(this, sg);
-			if (ConfigWebFactory.LOG) LogUtil.log(configServer, Log.LEVEL_INFO, "startup", "init factory");
+			if (ConfigWebFactory.LOG) LogUtil.log(configServer, Log.LEVEL_INFO, "startup", "Init factory");
 
 			boolean multi = configServer.getAdminMode() == ConfigImpl.ADMINMODE_MULTI;
 			ConfigWebPro config;
@@ -941,7 +941,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 				config = ConfigWebFactory.newInstanceSingle(this, factory, configServer, sg);
 			}
 
-			if (ConfigWebFactory.LOG) LogUtil.log(configServer, Log.LEVEL_INFO, "startup", "loaded config");
+			if (ConfigWebFactory.LOG) LogUtil.log(configServer, Log.LEVEL_INFO, "startup", "Loaded config");
 			factory.setConfig(config);
 			return factory;
 		}
@@ -979,7 +979,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 
 		// static path is not allowed
 		if (countExistingContextes > 1 && strConfig != null && strConfig.indexOf('{') == -1) {
-			String text = "static path [" + strConfig + "] for servlet init param [lucee-web-directory] is not allowed, path must use a web-context specific placeholder.";
+			String text = "Static path [" + strConfig + "] for servlet init param [lucee-web-directory] is not allowed, path must use a web-context specific placeholder.";
 			LogUtil.log(configServer, Log.LEVEL_ERROR, CFMLEngineImpl.class.getName(), text);
 			throw new PageServletException(new ApplicationException(text));
 		}
@@ -1315,7 +1315,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		if (!controlerState.active()) return;
 
 		try {
-			LogUtil.log(configServer, Log.LEVEL_INFO, "startup", "reset CFML Engine");
+			LogUtil.log(configServer, Log.LEVEL_INFO, "startup", "Reset CFML Engine");
 
 			RetireOutputStreamFactory.close();
 
@@ -1562,7 +1562,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 
 		// webroot
 		String strWebroot = config.get("webroot");
-		if (StringUtil.isEmpty(strWebroot, true)) throw new IOException("missing webroot configuration");
+		if (StringUtil.isEmpty(strWebroot, true)) throw new IOException("Missing webroot configuration");
 		Resource root = ResourcesImpl.getFileResourceProvider().getResource(strWebroot);
 		root.mkdirs();
 
@@ -1572,7 +1572,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 
 		// uri
 		String strUri = config.get("uri");
-		if (StringUtil.isEmpty(strUri, true)) throw new IOException("missing uri configuration");
+		if (StringUtil.isEmpty(strUri, true)) throw new IOException("Missing uri configuration");
 		URI uri;
 		try {
 			uri = lucee.commons.net.HTTPUtil.toURI(strUri);
@@ -1596,7 +1596,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 				entry = it.next();
 				c = ReqRspUtil.toCookie(entry.getKey(), entry.getValue(), null);
 				if (c != null) cookies[index++] = c;
-				else throw new IOException("cookie name [" + entry.getKey() + "] is invalid");
+				else throw new IOException("Cookie name [" + entry.getKey() + "] is invalid");
 			}
 		}
 
