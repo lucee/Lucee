@@ -78,7 +78,7 @@ public abstract class MailClient implements PoolItem {
 
 	@Override
 	public boolean isValid() {
-		if (_store == null && !_store.isConnected()) {
+		if (_store != null && !_store.isConnected()) {
 			// goal is to be valid if requested so we try to be
 			try {
 				start();
