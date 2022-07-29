@@ -600,17 +600,41 @@ public class OSGiUtil {
 		catch (IOException e) {
 		}
 
-		if (versionsFound.length() > 0) throw new BundleException("The OSGi Bundle with name [" + name + "] is not available in version [" + version + "] locally" + localDir
-				+ " or from the update provider" + upLoc + ", the following versions are available locally [" + versionsFound + "].");
-		if (version != null) throw new BundleException(
-				"The OSGi Bundle with name [" + name + "] in version [" + version + "] is not available locally" + localDir + " or from the update provider" + upLoc + ".");
-		throw new BundleException("The OSGi Bundle with name [" + name + "] is not available locally" + localDir + " or from the update provider" + upLoc + ".");
+		String bundleError = "";
+		if (versionsFound.length() > 0){
+			bundleError = "The OSGi Bundle with name [" + name + "] is not available in version ["
+				+ version + "] locally [" + localDir + "] or from the update provider [" + upLoc
+				+ "], the following versions are available locally [" + versionsFound + "].";
+		} else if (version != null){
+			bundleError = "The OSGi Bundle with name [" + name + "] in version [" + version
+				+ "] is not available locally [" + localDir + "] or from the update provider" + upLoc + ".";
+			throw new BundleException(bundleError);
+		} else {
+			bundleError = "The OSGi Bundle with name [" + name + "] is not available locally [" + localDir
+				+ "] or from the update provider [" + upLoc + "].";
+		}
+
+		boolean printExceptions = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.cli.printExceptions", null), false);
+		try {
+			throw new BundleException(bundleError);
+		} catch (BundleException be){
+			if (printExceptions) be.printStackTrace();
+			throw be;
+		}
 	}
 
 	private static Resource downloadBundle(CFMLEngineFactory factory, final String symbolicName, String symbolicVersion, Identification id) throws IOException, BundleException {
 		if (!Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.enable.bundle.download", null), true)) {
-			throw (new RuntimeException("Lucee is missing the Bundle jar [" + symbolicName + ":" + symbolicVersion
-					+ "], and has been prevented from downloading it. If this jar is not a core jar, it will need to be manually downloaded and placed in the {{lucee-server}}/context/bundles directory."));
+			boolean printExceptions = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.cli.printExceptions", null), false);
+			String bundleError = "Lucee is missing the Bundle jar [" + symbolicName + ":" + symbolicVersion
+				+ "], and has been prevented from downloading it. If this jar is not a core jar,"
+				+ " it will need to be manually downloaded and placed in the {{lucee-server}}/context/bundles directory.";
+			try {
+				throw new RuntimeException(bundleError);
+			} catch (RuntimeException re){
+				if (printExceptions) re.printStackTrace();
+				throw re;
+			}
 		}
 
 		final Resource jarDir = ResourceUtil.toResource(factory.getBundleDirectory());
