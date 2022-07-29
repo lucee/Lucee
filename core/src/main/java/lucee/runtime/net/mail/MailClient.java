@@ -264,7 +264,15 @@ public abstract class MailClient implements PoolItem {
 		}
 
 		if (TYPE_IMAP == getType()) {
-			properties.setProperty("mail.imap.partialfetch", "false");
+			if (secure){
+				properties.put("mail.store.protocol", "imaps");
+				properties.put("mail.imaps.partialfetch", "false");
+				properties.put("mail.imaps.fetchsize", "1048576");
+			} else {
+				properties.put("mail.store.protocol", "imap");
+				properties.put("mail.imap.partialfetch", "false");
+				properties.put("mail.imap.fetchsize", "1048576");
+			} 
 		}
 		// if(TYPE_POP3==getType()){}
 		_session = username != null ? Session.getInstance(properties, new _Authenticator(username, password)) : Session.getInstance(properties);
