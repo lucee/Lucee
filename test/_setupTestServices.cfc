@@ -152,7 +152,11 @@ component {
 
 			"REDIS_SERVER": "localhost",
 			// "REDIS_PORT": 6379 // DON'T COMMIT
-			
+			"LDAP_SERVER": "localhost"
+			// "LDAP_USERNAME":
+			// "LDAP_PASSWORD":
+			// "LDAP_PORT":  10389 // DON't COMMMIT
+			// "LDAP_BASE_DN": "dc=example"
 
 		};
 	}
@@ -160,7 +164,7 @@ component {
 	public void function loadServiceConfig() localmode=true {
 		systemOutput( "", true) ;		
 		systemOutput("-------------- Test Services ------------", true );
-		services = ListToArray("oracle,MySQL,MSsql,postgres,h2,mongoDb,smtp,pop,imap,s3,s3_custom,s3_google,ftp,sftp,memcached,redis");
+		services = ListToArray("oracle,MySQL,MSsql,postgres,h2,mongoDb,smtp,pop,imap,s3,s3_custom,s3_google,ftp,sftp,memcached,redis,ldap");
 		// can take a while, so we check them them in parallel
 		services.each( function( service ) localmode=true {
 			if (! isTestServiceAllowed( arguments.service )){
@@ -212,6 +216,9 @@ component {
 							break;
 						case "redis":
 							verify = verifyRedis(cfg);
+							break;
+						case "ldap":
+							verify = verifyLDAP(cfg);
 							break;
 						default:
 							verify = verifyDatasource(cfg);
@@ -356,7 +363,25 @@ component {
 			return "configured (not tested)";
 		}	
 		throw "not configured";
-	}	
+	}
+
+	public function verifyLDAP ( ldap ) localmode=true {
+		if ( structCount( LDAP ) eq 5 ){
+			systemOutput( ldap, true );
+			cfldap( server=ldap.server,
+				port=ldap.port,
+				timeout=5,
+				username=ldap.username,
+				password=ldap.password,
+				action="query",
+				name="local.results",
+				start=ldap.base_dn,
+				attributes="cn,ou" );
+			systemOutput( results, true );
+			return "configured";
+		}	
+		throw "not configured";
+	}
 
 	public function addSupportFunctions() {
 		server._getSystemPropOrEnvVars = function ( string props="", string prefix="", boolean stripPrefix=true, boolean allowEmpty=false ) localmode=true{
@@ -533,6 +558,12 @@ component {
 				redis = server._getSystemPropOrEnvVars( "SERVER, PORT", "REDIS_" );
 				if ( redis.count() eq 2 ){
 					return redis;
+				}
+				break;
+			case "ldap":
+				ldap = server._getSystemPropOrEnvVars( "SERVER, PORT, USERNAME, PASSWORD, BASE_DN", "LDAP_" );
+				if ( ldap.count() eq 5 ){
+					return ldap;
 				}
 				break;
 			default:
