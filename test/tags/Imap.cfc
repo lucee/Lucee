@@ -139,7 +139,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="imap" {
 						action="open" 
 						server = imapCfg.SERVER
 						username = imapCfg.USERNAME
-						port = imapCfg.PORT_INSECURE,
+						port = imapCfg.PORT_INSECURE
 						secure="no" 
 						password = imapCfg.PASSWORD
 						connection = "newsmasterbm";
