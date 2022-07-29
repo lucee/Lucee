@@ -601,23 +601,27 @@ public class OSGiUtil {
 		}
 
 		String bundleError = "";
+		String parentBundle = String.join(",", parents);
 		if (versionsFound.length() > 0){
-			bundleError = "The OSGi Bundle with name [" + name + "] is not available in version ["
+			bundleError = "The OSGi Bundle with name [" + name + "] for [" + parentBundle + "] is not available in version ["
 				+ version + "] locally [" + localDir + "] or from the update provider [" + upLoc
 				+ "], the following versions are available locally [" + versionsFound + "].";
-		} else if (version != null){
+		} 
+		else if (version != null){
 			bundleError = "The OSGi Bundle with name [" + name + "] in version [" + version
-				+ "] is not available locally [" + localDir + "] or from the update provider" + upLoc + ".";
+				+ "] for [" + parentBundle + "] is not available locally [" + localDir + "] or from the update provider" + upLoc + ".";
 			throw new BundleException(bundleError);
-		} else {
-			bundleError = "The OSGi Bundle with name [" + name + "] is not available locally [" + localDir
+		} 
+		else {
+			bundleError = "The OSGi Bundle with name [" + name + "] for [" + parentBundle + "] is not available locally [" + localDir
 				+ "] or from the update provider [" + upLoc + "].";
 		}
 
 		boolean printExceptions = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.cli.printExceptions", null), false);
 		try {
 			throw new BundleException(bundleError);
-		} catch (BundleException be){
+		} 
+		catch (BundleException be){
 			if (printExceptions) be.printStackTrace();
 			throw be;
 		}
@@ -631,7 +635,8 @@ public class OSGiUtil {
 				+ " it will need to be manually downloaded and placed in the {{lucee-server}}/context/bundles directory.";
 			try {
 				throw new RuntimeException(bundleError);
-			} catch (RuntimeException re){
+			} 
+			catch (RuntimeException re){
 				if (printExceptions) re.printStackTrace();
 				throw re;
 			}
