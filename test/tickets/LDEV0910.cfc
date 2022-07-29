@@ -9,10 +9,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="pop,imap" {
 			it(title="checking cfpop tag with secure access", body = function( currentSpec ) {
 				cfpop(
 					action="getAll",
-					username="#creds.pop.username#",
-					password="#creds.pop.password#",
-					server="#creds.POP.server#",
-					port="#creds.POP.port_secure#",
+					username=creds.pop.username,
+					password=creds.pop.password,
+					server=creds.pop.server,
+					port=creds.pop.port_secure,
 					secure="true",
 					name="local.result",
 					maxrows = "10"
@@ -24,10 +24,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="pop,imap" {
 			it(title="checking cfpop tag with insecure access", body = function( currentSpec ) {
 				cfpop(
 					action="getAll",
-					username="#creds.POP.username#",
-					password="#creds.POP.password#",
-					server="#creds.POP.server#",
-					port="#creds.POP.port_insecure#",
+					username=creds.pop.username,
+					password=creds.pop.password,
+					server=creds.pop.server,
+					port=creds.pop.port_insecure,
 					secure="false",
 					name="local.result",
 					maxrows = "10"
@@ -39,10 +39,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="pop,imap" {
 			it(title="checking cfimap tag with secure access", body = function( currentSpec ) {
 				cfimap(
 					action="getAll",
-					username="#creds.IMAP.username#",
-					password="#creds.IMAP.password#",
-					server="#creds.IMAP.server#",
-					port="#creds.IMAP.Port_secure#",
+					username=creds.imap.username,
+					password=creds.imap.password,
+					server=creds.imap.server,
+					port=creds.imap.Port_secure,
 					secure="true",
 					name="local.result",
 					maxrows = "10"
@@ -54,10 +54,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="pop,imap" {
 			it(title="checking cfimap tag with insecure access", body = function( currentSpec ) {
 				cfimap(
 					action="getAll",
-					username="#creds.IMAP.username#",
-					password="#creds.IMAP.password#",
-					server="#creds.IMAP.server#",
-					port="#creds.IMAP.port_insecure#",
+					username=creds.imap.username,
+					password=creds.imap.password,
+					server=creds.imap.server,
+					port=creds.imap.port_insecure,
 					secure="false",
 					name="local.result",
 					maxrows = "10"

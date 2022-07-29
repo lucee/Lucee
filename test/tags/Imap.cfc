@@ -1,14 +1,16 @@
 component extends="org.lucee.cfml.test.LuceeTestCase" labels="imap" {
 	variables.isSupported = false;
-	variables.imapSettings = getCredentials();
-	if(!structIsEmpty(imapSettings))
+	variables.imapCfg = getCredentials();
+	if(!structIsEmpty(imapCfg))
 		variables.isSupported=true;
 
 	function run( testResults , testBox ) {
 		describe( title="Test suite for CFIMAP Actions",  body=function() {
-			describe(title="checking cfimap tag with secure access", skip=isNotSupported(!variables.isSupported), body = function( currentSpec ) {
+			describe(title="checking cfimap tag with secure access", 
+					skip=isNotSupported(!variables.isSupported), 
+					body = function( currentSpec ) {
 				it(title="Checking cfimap action = 'ListAllFolders' ", body = function( currentSpec ) {
-					var result = ListAllFolders("Inbox", "SECUREPORT");
+					var result = ListAllFolders("Inbox", "PORT_SECURE");
 					expect(result).toBe(1);
 				});
 
@@ -18,25 +20,25 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="imap" {
 						cfimap(
 							action = "DeleteFolder",
 							folder="NewFolderFromIMAP123",
-							server = "#imapSettings.Imap.SERVER#",
-							port = "#imapSettings.Imap.SECUREPORT#",
-							username = "#imapSettings.USERNAME#",
-							password = "#imapSettings.PASSWORD#",
+							server = imapCfg.SERVER,
+							port = imapCfg.PORT_SECURE,
+							username = imapCfg.USERNAME,
+							password = imapCfg.PASSWORD,
 							secure = true
 						);
 					}catch(ee) {}
 
 					cfimap(
 						action = "CreateFolder",
-						server = "#imapSettings.Imap.SERVER#",
-						port = "#imapSettings.Imap.SECUREPORT#",
-						username = "#imapSettings.USERNAME#",
-						password = "#imapSettings.PASSWORD#",
+						server = imapCfg.SERVER,
+						port = imapCfg.PORT_SECURE,
+						username = imapCfg.USERNAME,
+						password = imapCfg.PASSWORD,
 						secure = true,
 						folder = "NewFolderFromIMAP123"
 					);
 
-					var result = ListAllFolders("NewFolderFromIMAP123", "SECUREPORT");
+					var result = ListAllFolders("NewFolderFromIMAP123", "PORT_SECURE");
 					expect(result).toBe(1);
 				});
 
@@ -45,14 +47,14 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="imap" {
 						action = "RenameFolder",
 						folder="NewFolderFromIMAP123",
 						newFolder="RenameFolderFromIMAP",
-						server = "#imapSettings.Imap.SERVER#",
-						port = "#imapSettings.Imap.SECUREPORT#",
-						username = "#imapSettings.USERNAME#",
-						password = "#imapSettings.PASSWORD#",
+						server = imapCfg.SERVER,
+						port = imapCfg.PORT_SECURE,
+						username = imapCfg.USERNAME,
+						password = imapCfg.PASSWORD,
 						secure = true
 					);
 
-					var result = ListAllFolders("RenameFolderFromIMAP", "SECUREPORT");
+					var result = ListAllFolders("RenameFolderFromIMAP", "PORT_SECURE");
 					expect(result).toBe(1);
 				});
 
@@ -60,14 +62,14 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="imap" {
 					cfimap(
 						action = "DeleteFolder",
 						folder="RenameFolderFromIMAP",
-						server = "#imapSettings.Imap.SERVER#",
-						port = "#imapSettings.Imap.SECUREPORT#",
-						username = "#imapSettings.USERNAME#",
-						password = "#imapSettings.PASSWORD#",
+						server = imapCfg.SERVER,
+						port = imapCfg.PORT_SECURE,
+						username = imapCfg.USERNAME,
+						password = imapCfg.PASSWORD,
 						secure = true
 					);
 
-					var result = ListAllFolders("RenameFolderFromIMAP", "SECUREPORT");
+					var result = ListAllFolders("RenameFolderFromIMAP", "PORT_SECURE");
 					expect(result).toBe(0);
 				});
 
@@ -75,10 +77,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="imap" {
 					cfimap(
 						action = "open",
 						connection="openConnc",
-						server = "#imapSettings.Imap.SERVER#",
-						port = "#imapSettings.Imap.SECUREPORT#",
-						username = "#imapSettings.USERNAME#",
-						password = "#imapSettings.PASSWORD#",
+						server = imapCfg.SERVER,
+						port = imapCfg.PORT_SECURE,
+						username = imapCfg.USERNAME,
+						password = imapCfg.PASSWORD,
 						secure = true
 					);
 
@@ -119,10 +121,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="imap" {
 					try {
 						cfimap(
 							action = "MarkRead",
-							server = "#imapSettings.Imap.SERVER#",
-							port = "#imapSettings.Imap.SECUREPORT#",
-							username = "#imapSettings.USERNAME#",
-							password = "#imapSettings.PASSWORD#",
+							server = imapCfg.SERVER,
+							port = imapCfg.PORT_SECURE,
+							username = imapCfg.USERNAME,
+							password = imapCfg.PASSWORD,
 							secure = true
 						);
 					} catch ( any e ){
@@ -133,12 +135,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="imap" {
 
 				it(title="Checking cfimap with a specific syntax", body = function( currentSpec ) {
 					
-					imap 
+					imap
 						action="open" 
-						server = imapSettings.Imap.SERVER
-						username = imapSettings.USERNAME 
+						server = imapCfg.SERVER
+						username = imapCfg.USERNAME
+						port = imapCfg.PORT_INSECURE,
 						secure="no" 
-						password = imapSettings.PASSWORD
+						password = imapCfg.PASSWORD
 						connection = "newsmasterbm";
 
 					imap name="local.MyFolders" action="listallfolders" connection="newsmasterbm";
@@ -150,22 +153,22 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="imap" {
 
 			describe(title="checking cfimap tag without secure access", skip=isNotSupported(!variables.isSupported), body = function( currentSpec ) {
 				it(title="Checking cfimap action = 'ListAllFolders' ", body = function( currentSpec ) {
-					var result = ListAllFolders("Inbox", "INSECUREPORT");
+					var result = ListAllFolders("Inbox", "PORT_INSECURE");
 					expect(result).toBe(1);
 				});
 
 				it(title="Checking cfimap action = 'CreateFolder' ", body = function( currentSpec ) {
 					cfimap(
 						action = "CreateFolder",
-						server = "#imapSettings.Imap.SERVER#",
+						server = imapCfg.SERVER,
 						folder = "NewFolderFromIMAP123"
-						port = "#imapSettings.Imap.INSECUREPORT#",
-						username = "#imapSettings.USERNAME#",
-						password = "#imapSettings.PASSWORD#",
+						port = imapCfg.PORT_INSECURE,
+						username = imapCfg.USERNAME,
+						password = imapCfg.PASSWORD,
 						secure = false
 					);
 
-					var result = ListAllFolders("NewFolderFromIMAP123", "INSECUREPORT");
+					var result = ListAllFolders("NewFolderFromIMAP123", "PORT_INSECURE");
 					expect(result).toBe(1);
 				});
 
@@ -174,14 +177,14 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="imap" {
 						action = "RenameFolder",
 						folder="NewFolderFromIMAP123"
 						newFolder="RenameFolderFromIMAP",
-						server = "#imapSettings.Imap.SERVER#",
-						port = "#imapSettings.Imap.INSECUREPORT#",
-						username = "#imapSettings.USERNAME#",
-						password = "#imapSettings.PASSWORD#",
+						server = imapCfg.SERVER,
+						port = imapCfg.PORT_INSECURE,
+						username = imapCfg.USERNAME,
+						password = imapCfg.PASSWORD,
 						secure = false
 					);
 
-					var result = ListAllFolders("RenameFolderFromIMAP", "INSECUREPORT");
+					var result = ListAllFolders("RenameFolderFromIMAP", "PORT_INSECURE");
 					expect(result).toBe(1);
 				});
 
@@ -189,14 +192,14 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="imap" {
 					cfimap(
 						action = "DeleteFolder",
 						folder="RenameFolderFromIMAP"
-						server = "#imapSettings.Imap.SERVER#",
-						port = "#imapSettings.Imap.INSECUREPORT#",
-						username = "#imapSettings.USERNAME#",
-						password = "#imapSettings.PASSWORD#",
+						server = imapCfg.SERVER,
+						port = imapCfg.PORT_INSECURE,
+						username = imapCfg.USERNAME,
+						password = imapCfg.PASSWORD,
 						secure = false
 					);
 
-					var result = ListAllFolders("RenameFolderFromIMAP", "INSECUREPORT");
+					var result = ListAllFolders("RenameFolderFromIMAP", "PORT_INSECURE");
 					expect(result).toBe(0);
 				});
 
@@ -204,10 +207,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="imap" {
 					cfimap(
 						action = "open",
 						connection="openConnc",
-						server = "#imapSettings.Imap.SERVER#",
-						port = "#imapSettings.Imap.INSECUREPORT#",
-						username = "#imapSettings.USERNAME#",
-						password = "#imapSettings.PASSWORD#",
+						server = imapCfg.SERVER,
+						port = imapCfg.PORT_INSECURE,
+						username = imapCfg.USERNAME,
+						password = imapCfg.PASSWORD,
 						secure = false
 					);
 
@@ -248,10 +251,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="imap" {
 					try {
 						cfimap(
 							action = "MarkRead",
-							server = "#imapSettings.Imap.SERVER#",
-							port = "#imapSettings.Imap.INSECUREPORT#",
-							username = "#imapSettings.USERNAME#",
-							password = "#imapSettings.PASSWORD#",
+							server = imapCfg.SERVER,
+							port = imapCfg.PORT_INSECURE,
+							username = imapCfg.USERNAME,
+							password = imapCfg.PASSWORD,
 							secure = false
 						);
 					} catch ( any e ){
@@ -271,10 +274,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="imap" {
 	private string function ListAllFolders(string a1, string port){
 		cfimap(
 			action = "ListAllFolders",
-			server = "#imapSettings.Imap.SERVER#",
-			port = "#imapSettings.Imap[arguments.port]#",
-			username = "#imapSettings.USERNAME#",
-			password = "#imapSettings.PASSWORD#",
+			server = imapCfg.SERVER,
+			port = imapCfg[arguments.port],
+			username = imapCfg.USERNAME,
+			password = imapCfg.PASSWORD,
 			secure = true,
 			name = "local.Folder"
 		);
