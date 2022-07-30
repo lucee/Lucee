@@ -610,7 +610,6 @@ public class OSGiUtil {
 		else if (version != null){
 			bundleError = "The OSGi Bundle with name [" + name + "] in version [" + version
 				+ "] for [" + parentBundle + "] is not available locally [" + localDir + "] or from the update provider" + upLoc + ".";
-			throw new BundleException(bundleError);
 		} 
 		else {
 			bundleError = "The OSGi Bundle with name [" + name + "] for [" + parentBundle + "] is not available locally [" + localDir
