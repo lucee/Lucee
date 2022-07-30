@@ -393,7 +393,6 @@ component {
 
 	public function verifyLDAP ( ldap ) localmode=true {
 		if ( structCount( LDAP ) eq 5 ){
-			systemOutput( ldap, true );
 			cfldap( server=ldap.server,
 				port=ldap.port,
 				timeout=5000,
@@ -404,7 +403,6 @@ component {
 				start=ldap.base_dn,
 				filter="(objectClass=inetOrgPerson)",
 				attributes="cn" );
-			systemOutput( results, true );
 			return "configured";
 		}	
 		throw "not configured";
