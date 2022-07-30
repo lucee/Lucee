@@ -4649,6 +4649,14 @@ Permits searching collections by title or displaying a separate title from the k
 			<description>Port defaults to the standard LDAP port, 389.</description>
 		</attribute>
 		<attribute>
+			<type>boolean</type>
+			<name>usetls</name>
+			<required>false</required>
+			<default-value>false</default-value>
+			<rtexprvalue>true</rtexprvalue>
+			<description>use a secure connection. (but try secure="CFSSL_BASIC" instead)</description>
+		</attribute>
+		<attribute>
 			<type>string</type>
 			<name>username</name>
 			<required>false</required>
