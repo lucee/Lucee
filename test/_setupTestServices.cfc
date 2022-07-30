@@ -228,7 +228,7 @@ component {
 					server.test_services[arguments.service].valid = true;
 				} catch (e) {
 					systemOutput( "ERROR Service [ #arguments.service# ] threw [ #cfcatch.message# ]", true);
-					if ( cfcatch.message contains "NullPointerException" || request.testDebug )
+					//if ( cfcatch.message contains "NullPointerException" || request.testDebug )
 						systemOutput(cfcatch, true);
 				}
 			}
@@ -370,13 +370,14 @@ component {
 			systemOutput( ldap, true );
 			cfldap( server=ldap.server,
 				port=ldap.port,
-				timeout=5,
+				timeout=5000,
 				username=ldap.username,
 				password=ldap.password,
 				action="query",
 				name="local.results",
 				start=ldap.base_dn,
-				attributes="cn,ou" );
+				filter="(objectClass=inetOrgPerson)",
+				attributes="cn" );
 			systemOutput( results, true );
 			return "configured";
 		}	
