@@ -4,6 +4,11 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ldap"	{
 
 	public function beforeAll(){
 		variables.ldap = server.getTestService( "ldap" );
+		cleanup();
+	}
+
+	public function afterAll(){
+		cleanup();
 	}
 
 	function isDisabled(){
@@ -30,6 +35,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ldap"	{
 				var results = ldapQuery( start=ldap.base_dn, filter="(cn=Lucee Dev)" );
 				expect( results.recordcount ).toBe( 1 );
 				expect( results.cn ).toBe( "Lucee Dev" );
+
+				// cleanup
+				ldapDelete( dn="uid=ralio,ou=people,#ldap.base_dn#" );
 			});
 
 			it (title="ldap action=modifyDN", skip=true, body = function( currentSpec ) {
@@ -48,6 +56,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ldap"	{
 				// check user is renamed
 				var results = ldapQuery(start=ldap.base_dn,	filter="(cn=Lucee)" );
 				expect( results.cn ).toBe( "Lucee" );
+
+				// cleanup
+				ldapDelete( dn="uid=cfml,ou=people,#ldap.base_dn#" );
 
 			});
 
@@ -70,6 +81,28 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ldap"	{
 
 			});
 		});
+	}
+
+	private function cleanup(){
+		if ( isDisabled() )
+			return;
+		try {
+			ldapDelete( dn="uid=ralio,ou=people,#ldap.base_dn#" );
+		} catch (e) { 
+			// ignore 
+		}
+
+		try {
+			ldapDelete( dn="uid=cfml,ou=people,#ldap.base_dn#" );
+		} catch (e) { 
+			// ignore 
+		}
+
+		try {
+			ldapDelete( dn="uid=lucee,ou=people,#ldap.base_dn#" );
+		} catch (e) { 
+			// ignore 
+		}
 	}
 	
 	private function ldapQuery(
