@@ -182,6 +182,10 @@ component {
 			};
 			if ( StructCount(cfg) eq 0 ){
 				systemOutput( "Service [ #arguments.service# ] not configured", true) ;
+				if ( len( request.testServices) gt 0 ){
+					systemOutput( "Requested Test Service [ #arguments.service# ] not available", true);
+					throw "Requested Test Service [ #arguments.service# ] not available";
+				}
 			} else {
 				// validate the cfg
 				verify = "configured, but not tested";
@@ -197,6 +201,7 @@ component {
 							verify = verifyS3Custom(cfg);
 							break;
 						case "imap":
+							verify = verifyImap(cfg);
 							break;
 						case "pop":
 							break;
@@ -228,8 +233,13 @@ component {
 					server.test_services[arguments.service].valid = true;
 				} catch (e) {
 					systemOutput( "ERROR Service [ #arguments.service# ] threw [ #cfcatch.message# ]", true);
-					//if ( cfcatch.message contains "NullPointerException" || request.testDebug )
+					if ( cfcatch.message contains "NullPointerException" || request.testDebug )
 						systemOutput(cfcatch, true);
+					if ( len( request.testServices) gt 0 ){
+						systemOutput( "Requested Test Service [ #arguments.service# ] not available", true);
+						systemOutput(cfcatch, true);
+						throw "Requested Test Service [ #arguments.service# ] not available";
+					}
 				}
 			}
 		}, true, 4);
@@ -363,6 +373,22 @@ component {
 			return "configured (not tested)";
 		}	
 		throw "not configured";
+	}
+
+	public function verifyImap ( imap ) localmode=true{
+		imap
+			action="open" 
+			server = imap.SERVER
+			username = imap.USERNAME
+			port = imap.PORT_INSECURE
+			secure="no"
+			password = imap.PASSWORD
+			connection = "testImap";
+		imap
+			action = "close",
+			connection="testImap";
+			
+		return "configured";
 	}
 
 	public function verifyLDAP ( ldap ) localmode=true {
