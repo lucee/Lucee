@@ -40,22 +40,22 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ldap"	{
 				ldapDelete( dn="uid=ralio,ou=people,#ldap.base_dn#" );
 			});
 
-			it (title="ldap action=modifyDN", skip=true, body = function( currentSpec ) {
+			it (title="ldap action=modifyDN", skip=isDisabled(), body = function( currentSpec ) {
 				// add user
 				ldapAdd( dn="uid=cfml,ou=people,#ldap.base_dn#", 
 					attributes=ldapAddAttributes( cn="Cold Fusion", sn="Fusion", uid="cfml" ) );
 
 				// check user exists
-				var results = ldapQuery(start=ldap.base_dn, filter="(cn=cfml)");
+				var results = ldapQuery(start=ldap.base_dn, filter="(uid=cfml)");
 				expect( results.recordcount ).toBe( 1 );
 				expect( results.cn ).toBe( "Cold fusion" );
 
 				// rename user
-				ldapRename( dn="uid=cfml,ou=people,#ldap.base_dn#", attributes="cn=Lucee");
+				ldapRename( dn="uid=cfml,ou=people,#ldap.base_dn#", attributes="uid=Lucee");
 
 				// check user is renamed
-				var results = ldapQuery(start=ldap.base_dn,	filter="(cn=Lucee)" );
-				expect( results.cn ).toBe( "Lucee" );
+				var results = ldapQuery(start=ldap.base_dn,	filter="(uid=Lucee)" );
+				expect( results.uid ).toBe( "Lucee" );
 
 				// cleanup
 				ldapDelete( dn="uid=cfml,ou=people,#ldap.base_dn#" );
@@ -64,19 +64,19 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ldap"	{
 
 			it (title="ldap action=add then delete", skip=isDisabled(), body = function( currentSpec ) {
 				// add user
-				ldapAdd( dn="uid=Lucee,ou=people,#ldap.base_dn#",
-					attributes=ldapAddAttributes( cn="Lucee", sn="6.0", uid="Lucee" ) );
+				ldapAdd( dn="uid=ACF,ou=people,#ldap.base_dn#",
+					attributes=ldapAddAttributes( cn="ACF", sn="6.0", uid="ACF" ) );
 
 				// check user exists
-				var results = ldapQuery(start=ldap.base_dn, filter="(cn=lucee)");
+				var results = ldapQuery(start=ldap.base_dn, filter="(uid=ACF)");
 				expect( results.recordcount ).toBe( 1 );
-				expect( results.cn ).toBe( "Lucee" );
+				expect( results.cn ).toBe( "ACF" );
 
 				// delete user
-				ldapDelete( dn="uid=lucee,ou=people,#ldap.base_dn#" );
+				ldapDelete( dn="uid=ACF,ou=people,#ldap.base_dn#" );
 				
 				// check user no longer exists
-				var results = ldapQuery(start=ldap.base_dn, filter="(cn=lucee)");
+				var results = ldapQuery(start=ldap.base_dn, filter="(uid=ACF)");
 				expect( results.recordcount ).toBe( 0 );
 
 			});
@@ -86,24 +86,35 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ldap"	{
 	private function cleanup(){
 		if ( isDisabled() )
 			return;
+		ldapQuery( start=ldap.base_dn );
 		try {
 			ldapDelete( dn="uid=ralio,ou=people,#ldap.base_dn#" );
 		} catch (e) { 
+			// systemOutput(e.message, true);
 			// ignore 
 		}
 
 		try {
 			ldapDelete( dn="uid=cfml,ou=people,#ldap.base_dn#" );
 		} catch (e) { 
+			//systemOutput(e.message, true);
 			// ignore 
 		}
 
 		try {
 			ldapDelete( dn="uid=lucee,ou=people,#ldap.base_dn#" );
 		} catch (e) { 
+			//systemOutput(e.message, true);
 			// ignore 
 		}
-	}
+		try {
+			ldapDelete( dn="uid=ACF,ou=people,#ldap.base_dn#" );
+		} catch (e) { 
+			//systemOutput(e.message, true);
+			// ignore 
+		}
+		ldapQuery( start=ldap.base_dn );
+	}	
 	
 	private function ldapQuery(
 			string start=ldap.base_dn, 
@@ -118,6 +129,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ldap"	{
 			start=arguments.start,
 			filter=arguments.filter,
 			attributes=arguments.attributes);
+		// systemOutput( arguments, true );
 		// systemOutput( results, true );
 		return results;
 	}
