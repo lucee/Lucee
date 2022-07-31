@@ -86,35 +86,11 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ldap"	{
 	private function cleanup(){
 		if ( isDisabled() )
 			return;
-		ldapQuery( start=ldap.base_dn );
-		try {
-			ldapDelete( dn="uid=ralio,ou=people,#ldap.base_dn#" );
-		} catch (e) { 
-			// systemOutput(e.message, true);
-			// ignore 
-		}
-
-		try {
-			ldapDelete( dn="uid=cfml,ou=people,#ldap.base_dn#" );
-		} catch (e) { 
-			//systemOutput(e.message, true);
-			// ignore 
-		}
-
-		try {
-			ldapDelete( dn="uid=lucee,ou=people,#ldap.base_dn#" );
-		} catch (e) { 
-			//systemOutput(e.message, true);
-			// ignore 
-		}
-		try {
-			ldapDelete( dn="uid=ACF,ou=people,#ldap.base_dn#" );
-		} catch (e) { 
-			//systemOutput(e.message, true);
-			// ignore 
-		}
-		ldapQuery( start=ldap.base_dn );
-	}	
+		ldapDelete( dn="uid=ralio,ou=people,#ldap.base_dn#" );
+		ldapDelete( dn="uid=cfml,ou=people,#ldap.base_dn#" );
+		ldapDelete( dn="uid=lucee,ou=people,#ldap.base_dn#" );
+		ldapDelete( dn="uid=ACF,ou=people,#ldap.base_dn#" );
+	}
 	
 	private function ldapQuery(
 			string start=ldap.base_dn, 

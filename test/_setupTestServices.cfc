@@ -392,20 +392,17 @@ component {
 	}
 
 	public function verifyLDAP ( ldap ) localmode=true {
-		if ( structCount( LDAP ) eq 5 ){
-			cfldap( server=ldap.server,
-				port=ldap.port,
-				timeout=5000,
-				username=ldap.username,
-				password=ldap.password,
-				action="query",
-				name="local.results",
-				start=ldap.base_dn,
-				filter="(objectClass=inetOrgPerson)",
-				attributes="cn" );
-			return "configured";
-		}	
-		throw "not configured";
+		cfldap( server=ldap.server,
+			port=ldap.port,
+			timeout=5000,
+			username=ldap.username,
+			password=ldap.password,
+			action="query",
+			name="local.results",
+			start=ldap.base_dn,
+			filter="(objectClass=inetOrgPerson)",
+			attributes="cn" );
+		return "configured";
 	}
 
 	public function addSupportFunctions() {
