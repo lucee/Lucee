@@ -247,24 +247,37 @@ public abstract class MailClient implements PoolItem {
 	public void start() throws MessagingException {
 		Properties properties = new Properties();
 		String type = getTypeAsString();
-		properties.put("mail." + type + ".host", server);
-		properties.put("mail." + type + ".port", new Double(port));
-		properties.put("mail." + type + ".connectiontimeout", String.valueOf(timeout));
-		properties.put("mail." + type + ".timeout", String.valueOf(timeout));
-		// properties.put("mail.mime.charset", "UTF-8");
+		properties.setProperty("mail." + type + ".host", server);
+		properties.setProperty("mail." + type + ".port", String.valueOf(port));
+		properties.setProperty("mail." + type + ".connectiontimeout", String.valueOf(timeout));
+		properties.setProperty("mail." + type + ".timeout", String.valueOf(timeout));
+		// properties.setProperty("mail.mime.charset", "UTF-8");
 		if (secure) {
-			properties.put("mail." + type + ".ssl.enable", "true");
-			// properties.put("mail."+type+".starttls.enable", "true" );
+			properties.setProperty("mail." + type + ".ssl.enable", "true");
+			// properties.setProperty("mail."+type+".starttls.enable", "true" );
+			// allow using untrusted certs, good for CI
+			if (!Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.ssl.checkserveridentity", null), true)){
+				properties.setProperty("mail." + type + ".ssl.trust", "*");
+				properties.setProperty("mail." + type + ".ssl.checkserveridentity", "false");
+			}
 		}
 
 		if (TYPE_IMAP == getType()) {
-			properties.put("mail.imap.partialfetch", "false");
+			properties.setProperty("mail.imap.partialfetch", "false");
 		}
 		// if(TYPE_POP3==getType()){}
 		_session = username != null ? Session.getInstance(properties, new _Authenticator(username, password)) : Session.getInstance(properties);
-		_store = _session.getStore(type);
-		if (!StringUtil.isEmpty(username)) _store.connect(server, port, username, password);
-		else _store.connect();
+
+		Thread t =  Thread.currentThread();
+		ClassLoader ccl = t.getContextClassLoader();
+		t.setContextClassLoader(_session.getClass().getClassLoader());		
+		try {
+			_store = _session.getStore(type);
+			if (!StringUtil.isEmpty(username)) _store.connect(server, port, username, password);
+			else _store.connect();
+		} finally {
+			t.setContextClassLoader(ccl);
+		}
 	}
 
 	protected abstract String getTypeAsString();
