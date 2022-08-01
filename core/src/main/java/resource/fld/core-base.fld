@@ -6135,7 +6135,6 @@ The returned number of unallocated bytes is a hint, but not a guarantee, that it
     <function>
         <name>getHTTPRequestHeaders</name>
         <class>lucee.runtime.functions.other.GetHTTPRequestHeaders</class>
-		<status>hidden</status>
         <description>Returns a Struct with HTTP Request Headers</description>
         <return>
             <type>struct</type>
