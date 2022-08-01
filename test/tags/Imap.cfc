@@ -275,7 +275,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="imap" {
 		cfimap(
 			action = "ListAllFolders",
 			server = imapCfg.SERVER,
-			port = imapCfg[arguments.port],
+			port = imapCfg.port_secure,
 			username = imapCfg.USERNAME,
 			password = imapCfg.PASSWORD,
 			secure = true,
