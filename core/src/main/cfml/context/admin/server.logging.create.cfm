@@ -102,6 +102,7 @@ Redirtect to entry --->
 	<cfloop query="logs" >
 		<cfif hash(logs.name) EQ url.name>
 			<cfset log=querySlice(logs,logs.currentrow,1)>
+			<cfset logLayoutClass = log.layoutClass> 
 			<cfset layout=layouts[log.layoutClass]?:nullValue()>
 			<cfset appender=appenders[log.appenderClass]?:nullValue()>
 		</cfif>
@@ -173,6 +174,8 @@ function showLayout() {
 </cfhtmlbody>
 
 
+	<cfset hasMissingLayout = false>
+	<cfset MissinglayoutClass = "">
 	<h1>Log "#log.name#"</h1>
 	<div class="pageintro">#stText.Settings.logging.detailDesc#</div>
 	<cfformClassic onerror="customError" action="#request.self#?action=#url.action#&action2=create#iif(isDefined('url.name'),de('&name=##url.name##'),de(''))#" method="post">
@@ -217,7 +220,19 @@ function showLayout() {
 		
 		<div id="allgroup_#_name#" <cfif disable>style="display: none;"</cfif>> 
 		<cfset drivers=variables[_name&"s"]>
-		<cfset _driver=isNull(variables[_name])?drivers[structKeyArray(drivers)[1]]:variables[_name]>
+		<cfif _name == "layout">
+			<cfif isNull(variables[_name])> <!--- to handle the missing layout --->
+				<cfset hasMissingLayout = true>
+				<cfset MissingLayoutName = replaceNoCase(listLast(logLayoutClass, ".") ,"Layout", "")>
+				<cfset MissinglayoutClass = logLayoutClass>
+				<cfset _driver = nullValue()>
+				<cfset drivers[logLayoutClass] = "">
+			<cfelse>
+				<cfset _driver=variables[_name]>
+			</cfif>
+		<cfelse>
+			<cfset _driver=isNull(variables[_name])?drivers[structKeyArray(drivers)[1]]:variables[_name]>
+		</cfif>
 		<!--- <cfif !arrayLen(driver.getCustomFields())><cfbreak></cfif>--->
 		<br />
 		
@@ -237,9 +252,10 @@ function showLayout() {
 				type="button"
 				class="#orientation# button submit"
 				name="change#_name#"
-				<cfif !isNull(_driver) && driver.getClass() EQ _driver.getClass()> style="color:white;background-color:#request.adminType=="web"?'##39c':'##c00'#;"</cfif>
-				value="#driver.getLabel()#">
-		</cfloop>
+				<cfif !isNull(_driver) && driver.getClass() EQ _driver.getClass() || hasMissingLayout && driverClass EQ MissinglayoutClass> style="color:white;background-color:#request.adminType=='web'?'##39c':'##c00'#;"
+				</cfif>
+				value="#hasMissingLayout && driverClass EQ MissinglayoutClass ? MissingLayoutName:driver.getLabel()#">
+			</cfloop>
 		<div id="group_#_name#">
 		<cfset cnt=0>
 		<cfloop collection="#drivers#" index="driverClass" item="driver">
@@ -247,7 +263,11 @@ function showLayout() {
 			<cfset id="#_name#_#hash(driver.getClass(),'quick')#">
 			<cfset active=!isNull(_driver) && driver.getClass() EQ _driver.getClass()>
 		<div id="div_#id#">
-			
+		<cfif hasMissingLayout && driverClass EQ MissinglayoutClass>
+			<input type="hidden" name="#_name#Class" value="#MissinglayoutClass#">
+			</div>
+			<cfcontinue>
+		</cfif>
 		<input type="hidden" name="#_name#Class" value="#driver.getClass()#">
 		<input type="hidden" name="#_name#BundleName" 
 			value="#structKeyExists(driver,'getBundleName')?driver.getBundleName():''#">
@@ -406,7 +426,7 @@ function showLayout() {
 		<script>
 			<cfloop collection="#drivers#" index="driverClass" item="driver">
 				<cfset id="#_name#_#hash(driver.getClass(),'quick')#">
-				<cfset active=!isNull(_driver) && driver.getClass() EQ _driver.getClass()>
+				<cfset active=!isNull(_driver) && driver.getClass() EQ _driver.getClass() || hasMissingLayout && driverClass EQ MissinglayoutClass >
 
 			<cfif !active>
 			$(document).ready(function(){
