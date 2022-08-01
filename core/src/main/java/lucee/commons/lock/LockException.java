@@ -35,12 +35,12 @@ public final class LockException extends ApplicationException {
 	 */
 	public LockException(int type, String name, long timeout) {
 		// A timeout occurred while attempting to lock lockname
-		super("a timeout occurred on a " + toString(type) + " lock with name [" + name + "] after " + (timeout / 1000) + " seconds");
+		super("A timeout occurred on a [" + toString(type) + "] lock with name [" + name + "] after [" + (timeout / 1000) + "] seconds");
 	}
 
 	public LockException(Long timeout) {
 
-		super("a timeout occurred after " + toTime(timeout));
+		super("A timeout occurred after [" + toTime(timeout) + "]");
 	}
 
 	public LockException(String text) {
