@@ -10,7 +10,9 @@ on:
         required: true
         type: string
         default: '8'
-  push: 
+  push:
+    branches:
+      - '**' # thus ignoring tagging
   pull_request:
   workflow_dispatch:
 
