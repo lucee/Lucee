@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase"{
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="metadata" {
     function run( testResults, testBox ){
         describe(title="Testcase for LDEV-3560", body=function( currentSpec ) {
             it(title="getComponentMetadata() with abstract Component", body=function( currentSpec )  {
