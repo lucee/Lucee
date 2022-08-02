@@ -7750,6 +7750,8 @@ The following things are considered to be empty:
 			- float or numeric: a numeric value; equivalent to the IsNumeric function.
 			- guid: a Universally Unique Identifier of the form "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX" where X is a hexadecimal number.
 			- integer: an integer.
+			- json: a valid JSON; equivalent to the IsJSON function.
+			- object: a value is an object; equivalent to the IsObject function.
 			- query: a query object; equivalent to the IsQuery function.
 			- range: a numeric range, specified by the min and max attributes.
 			- regex or regular_expression: matches input against pattern attribute.

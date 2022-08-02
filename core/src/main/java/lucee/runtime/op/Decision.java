@@ -48,6 +48,7 @@ import lucee.commons.lang.CFTypes;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.Component;
 import lucee.runtime.PageContext;
+import lucee.runtime.PageContextImpl;
 import lucee.runtime.coder.Base64Util;
 import lucee.runtime.converter.WDDXConverter;
 import lucee.runtime.engine.ThreadLocalPageContext;
@@ -75,6 +76,7 @@ import lucee.runtime.type.QueryColumn;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.UDF;
 import lucee.runtime.type.dt.DateTime;
+import lucee.runtime.functions.conversion.IsJSON;
 
 /**
  * Object to test if an Object is a specific type
@@ -981,6 +983,7 @@ public final class Decision {
 	}
 
 	public static boolean isValid(String type, Object value) throws ExpressionException {
+		PageContext pc = ThreadLocalPageContext.get();
 		type = StringUtil.toLowerCase(type.trim());
 		char first = type.charAt(0);
 		switch (first) {
@@ -1020,6 +1023,9 @@ public final class Decision {
 			if ("integer".equals(type)) return isInteger(value, false);
 			if ("image".equals(type)) return ImageUtil.isImage(value);
 			break;
+		case 'j':
+			if ("json".equals(type)) return IsJSON.call(pc, value);
+			break;
 		case 'l':
 			if ("lambda".equals(type)) return isLambda(value);
 			break;
@@ -1028,7 +1034,9 @@ public final class Decision {
 			if ("number".equals(type)) return isCastableToNumeric(value);
 			if ("node".equals(type)) return isXML(value);
 			break;
-
+		case 'o':
+			if ("object".equals(type)) return isObject(value);
+			break;
 		case 'p':
 			if ("phone".equals(type)) return isPhone(value);
 			break;
