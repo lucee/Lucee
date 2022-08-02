@@ -4428,13 +4428,13 @@ public final class ConfigAdmin {
 
 				// flds
 				if (!entry.isDirectory() && startsWith(path, type, "flds") && (StringUtil.endsWithIgnoreCase(path, ".fld") || StringUtil.endsWithIgnoreCase(path, ".fldx"))) {
-					logger.log(Log.LEVEL_INFO, "extension", "Deploy fld [" + fileName + "]");
+					logger.log(Log.LEVEL_DEBUG, "extension", "Deploy fld [" + fileName + "]");
 					updateFLD(zis, fileName, false);
 					reloadNecessary = true;
 				}
 				// tlds
 				if (!entry.isDirectory() && startsWith(path, type, "tlds") && (StringUtil.endsWithIgnoreCase(path, ".tld") || StringUtil.endsWithIgnoreCase(path, ".tldx"))) {
-					logger.log(Log.LEVEL_INFO, "extension", "Deploy tld/tldx [" + fileName + "]");
+					logger.log(Log.LEVEL_DEBUG, "extension", "Deploy tld/tldx [" + fileName + "]");
 					updateTLD(zis, fileName, false);
 					reloadNecessary = true;
 				}
@@ -4442,7 +4442,7 @@ public final class ConfigAdmin {
 				// tags
 				if (!entry.isDirectory() && startsWith(path, type, "tags")) {
 					String sub = subFolder(entry);
-					logger.log(Log.LEVEL_INFO, "extension", "Deploy tag [" + sub + "]");
+					logger.log(Log.LEVEL_DEBUG, "extension", "Deploy tag [" + sub + "]");
 					updateTag(zis, sub, false);
 					// clearTags=true;
 					reloadNecessary = true;
@@ -4451,7 +4451,7 @@ public final class ConfigAdmin {
 				// functions
 				if (!entry.isDirectory() && startsWith(path, type, "functions")) {
 					String sub = subFolder(entry);
-					logger.log(Log.LEVEL_INFO, "extension", "Deploy function [" + sub + "]");
+					logger.log(Log.LEVEL_DEBUG, "extension", "Deploy function [" + sub + "]");
 					updateFunction(zis, sub, false);
 					// clearFunction=true;
 					reloadNecessary = true;
@@ -4460,7 +4460,7 @@ public final class ConfigAdmin {
 				// mappings
 				if (!entry.isDirectory() && (startsWith(path, type, "archives") || startsWith(path, type, "mappings"))) {
 					String sub = subFolder(entry);
-					logger.log(Log.LEVEL_INFO, "extension", "deploy mapping " + sub);
+					logger.log(Log.LEVEL_DEBUG, "extension", "deploy mapping " + sub);
 					updateArchive(zis, sub, false);
 					reloadNecessary = true;
 					// clearFunction=true;
@@ -4471,7 +4471,7 @@ public final class ConfigAdmin {
 						&& (StringUtil.endsWithIgnoreCase(path, "." + Constants.getCFMLComponentExtension())
 								|| StringUtil.endsWithIgnoreCase(path, "." + Constants.getLuceeComponentExtension()))) {
 					String sub = subFolder(entry);
-					logger.log(Log.LEVEL_INFO, "extension", "Deploy event-gateway [" + sub + "]");
+					logger.log(Log.LEVEL_DEBUG, "extension", "Deploy event-gateway [" + sub + "]");
 					updateEventGateway(zis, sub, false);
 				}
 
@@ -4479,7 +4479,7 @@ public final class ConfigAdmin {
 				String realpath;
 				if (!entry.isDirectory() && startsWith(path, type, "context") && !StringUtil.startsWith(fileName(entry), '.')) {
 					realpath = path.substring(8);
-					logger.log(Log.LEVEL_INFO, "extension", "Deploy context [" + realpath + "]");
+					logger.log(Log.LEVEL_DEBUG, "extension", "Deploy context [" + realpath + "]");
 					updateContext(zis, realpath, false, false);
 				}
 				// web contextS
@@ -4487,7 +4487,7 @@ public final class ConfigAdmin {
 				if (!entry.isDirectory() && ((first = startsWith(path, type, "webcontexts")) || startsWith(path, type, "web.contexts"))
 						&& !StringUtil.startsWith(fileName(entry), '.')) {
 					realpath = path.substring(first ? 12 : 13);
-					logger.log(Log.LEVEL_INFO, "extension", "Deploy webcontext [" + realpath + "]");
+					logger.log(Log.LEVEL_DEBUG, "extension", "Deploy webcontext [" + realpath + "]");
 					updateWebContexts(zis, realpath, false, false);
 				}
 				// applications
@@ -4499,19 +4499,19 @@ public final class ConfigAdmin {
 					else index = 4; // web
 
 					realpath = path.substring(index);
-					logger.log(Log.LEVEL_INFO, "extension", "Deploy application [" + realpath + "]");
+					logger.log(Log.LEVEL_DEBUG, "extension", "Deploy application [" + realpath + "]");
 					updateApplication(zis, realpath, false);
 				}
 				// configs
 				if (!entry.isDirectory() && (startsWith(path, type, "config")) && !StringUtil.startsWith(fileName(entry), '.')) {
 					realpath = path.substring(7);
-					logger.log(Log.LEVEL_INFO, "extension", "Deploy config [" + realpath + "]");
+					logger.log(Log.LEVEL_DEBUG, "extension", "Deploy config [" + realpath + "]");
 					updateConfigs(zis, realpath, false, false);
 				}
 				// components
 				if (!entry.isDirectory() && (startsWith(path, type, "components")) && !StringUtil.startsWith(fileName(entry), '.')) {
 					realpath = path.substring(11);
-					logger.log(Log.LEVEL_INFO, "extension", "Deploy component [" + realpath + "]");
+					logger.log(Log.LEVEL_DEBUG, "extension", "Deploy component [" + realpath + "]");
 					updateComponent(zis, realpath, false, false);
 				}
 
@@ -4708,7 +4708,7 @@ public final class ConfigAdmin {
 					_updateMapping(virtual, physical, archive, primary, inspect, toplevel, lmode, ltype, readonly);
 					reloadNecessary = true;
 
-					logger.info("extension", "Update Mapping [" + virtual + "]");
+					logger.debug("extension", "Update Mapping [" + virtual + "]");
 				}
 			}
 

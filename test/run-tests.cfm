@@ -254,6 +254,14 @@ try {
 	if ( ( result.getTotalFail() + result.getTotalError() ) > 0 ) {
 		throw "TestBox could not successfully execute all testcases: #result.getTotalFail()# tests failed; #result.getTotalError()# tests errored.";
 	}
+
+	if ( ( result.getTotalError() + result.getTotalFail() + result.getTotalPass() ) eq 0 ){
+		systemOutput( "", true );
+		systemOutput( "ERROR: No tests were run", true );
+		systemOutput( "", true );
+		throw "ERROR: No tests were run";
+	}
+
 } catch( e ){
 	systemOutput( "-------------------------------------------------------", true );
 	systemOutput( "Testcase failed:", true );

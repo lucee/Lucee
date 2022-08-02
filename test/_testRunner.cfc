@@ -190,6 +190,12 @@ component {
 				for ( b in tb.getBundles() )
 					SystemOutput( b, true );
 			}
+
+			if ( len( bundles ) eq 0 ){
+				SystemOutput( "Error no tests found to run, aborting", true );
+				throw "Error no tests found to run, aborting";
+			}
+
 			// formatting is odd, because we are outputting to the console and whitespace matters
 			// execute
 			tb.run(callbacks=

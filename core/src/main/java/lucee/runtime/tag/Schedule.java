@@ -594,7 +594,11 @@ public final class Schedule extends TagImpl {
 		if (qs == null) qs = "";
 		else if (qs.length() > 0) qs = "?" + qs;
 
-		String str = url.getProtocol() + "://" + url.getHost() + url.getPath() + qs;
+		String protocol = url.getProtocol();
+		int port = HTTPUtil.getPort(url);
+		boolean isNonStandardPort = ("https".equalsIgnoreCase(protocol) && port != 443) || ("http".equalsIgnoreCase(protocol) && port != 80);
+
+		String str = protocol + "://" + url.getHost() + (isNonStandardPort ? ":" + port : "") + url.getPath() + qs; 
 		return str;
 	}
 
