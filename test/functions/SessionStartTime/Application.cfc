@@ -23,4 +23,8 @@ component {
 	request.currentPath=GetDirectoryFromPath(getCurrentTemplatePath());
 	this.clientmanagement=true;
 	this.sessionmanagement=true;
+
+	public function onRequestStart() {
+		setting requesttimeout=10;
+	}
 }

@@ -40,7 +40,6 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Duplicator;
-import lucee.runtime.op.Operator;
 import lucee.runtime.op.ThreadLocalDuplication;
 import lucee.runtime.op.date.DateCaster;
 import lucee.runtime.reflection.Reflector;
@@ -569,22 +568,22 @@ public class QueryColumnImpl implements QueryColumnPro, Objects {
 
 	@Override
 	public int compareTo(boolean b) throws PageException {
-		return Operator.compare(castToBooleanValue(), b);
+		return lucee.runtime.op.OpUtil.compare(ThreadLocalPageContext.get(), castToBooleanValue() ? Boolean.TRUE : Boolean.FALSE, b ? Boolean.TRUE : Boolean.FALSE);
 	}
 
 	@Override
 	public int compareTo(DateTime dt) throws PageException {
-		return Operator.compare((Date) castToDateTime(), (Date) dt);
+		return lucee.runtime.op.OpUtil.compare(ThreadLocalPageContext.get(), (Date) castToDateTime(), (Date) dt);
 	}
 
 	@Override
 	public int compareTo(double d) throws PageException {
-		return Operator.compare(castToDoubleValue(), d);
+		return lucee.runtime.op.OpUtil.compare(ThreadLocalPageContext.get(), Double.valueOf(castToDoubleValue()), Double.valueOf(d));
 	}
 
 	@Override
 	public int compareTo(String str) throws PageException {
-		return Operator.compare(castToString(), str);
+		return lucee.runtime.op.OpUtil.compare(ThreadLocalPageContext.get(), castToString(), str);
 	}
 
 	@Override
@@ -759,7 +758,7 @@ public class QueryColumnImpl implements QueryColumnPro, Objects {
 	public int indexOf(Object o) {
 		for (int i = 0; i < size; i++) {
 			try {
-				if (Operator.compare(o, data[i]) == 0) return i;
+				if (lucee.runtime.op.OpUtil.compare(ThreadLocalPageContext.get(), o, data[i]) == 0) return i;
 			}
 			catch (PageException e) {
 			}
@@ -770,7 +769,7 @@ public class QueryColumnImpl implements QueryColumnPro, Objects {
 	public int lastIndexOf(Object o) {
 		for (int i = size - 1; i >= 0; i--) {
 			try {
-				if (Operator.compare(o, data[i]) == 0) return i;
+				if (lucee.runtime.op.OpUtil.compare(ThreadLocalPageContext.get(), o, data[i]) == 0) return i;
 			}
 			catch (PageException e) {
 			}

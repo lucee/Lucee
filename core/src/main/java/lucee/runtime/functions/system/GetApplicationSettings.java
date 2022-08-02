@@ -33,6 +33,7 @@ import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.cache.CacheConnection;
 import lucee.runtime.config.Config;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.db.ClassDefinition;
@@ -120,6 +121,9 @@ public class GetApplicationSettings extends BIF {
 			sct.setEL("searchImplicitScopes", ac.getScopeCascading() == Config.SCOPE_STANDARD);
 		}
 
+		// adminMode
+		sct.setEL("singleContext", ConfigWebUtil.toAdminMode(((ConfigPro) pc.getConfig()).getAdminMode(), "single") == "single");
+
 		Struct cs = new StructImpl(Struct.TYPE_LINKED);
 		cs.setEL("web", pc.getWebCharset().name());
 		cs.setEL("resource", ((PageContextImpl) pc).getResourceCharset().name());
@@ -194,6 +198,10 @@ public class GetApplicationSettings extends BIF {
 				_logs.setEL(name, acs.getLogMetaData(name.getString()));
 			}
 		}
+
+		Struct log4j = new StructImpl(Struct.TYPE_LINKED);
+		log4j.setEL(KeyConstants._version, ((ConfigWebPro) pc.getConfig()).getLogEngine().getVersion());
+		sct.setEL("log4j", log4j);
 
 		// mails
 		Array _mails = new ArrayImpl();

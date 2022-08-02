@@ -90,11 +90,11 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 
 		// member function
-		res=list.some(function(value ){return value =='b';},',',false,true,parallel);
+		res=list.listSome(function(value ){return value =='b';},',',false,true,parallel);
 		assertEquals(true,res);
 
 		var list3 = "I,love,lucee,";
-		var result2 = list3.some(function(item){
+		var result2 = list3.listSome(function(item){
 			return item=="testcase";
 		});
 		assertEquals(false, result2);

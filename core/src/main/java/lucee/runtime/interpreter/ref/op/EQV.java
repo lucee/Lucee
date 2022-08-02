@@ -23,7 +23,7 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.interpreter.InterpreterException;
 import lucee.runtime.interpreter.ref.Ref;
 import lucee.runtime.interpreter.ref.RefSupport;
-import lucee.runtime.op.Operator;
+import lucee.runtime.op.OpUtil;
 
 /**
  * eqv operation
@@ -49,7 +49,7 @@ public final class EQV extends RefSupport implements Ref {
 	@Override
 	public Object getValue(PageContext pc) throws PageException {
 		if (limited) throw new InterpreterException("invalid syntax, boolean operations are not supported in a json string.");
-		return Operator.eqv(left.getValue(pc), right.getValue(pc)) ? Boolean.TRUE : Boolean.FALSE;
+		return OpUtil.eqv(pc, left.getValue(pc), right.getValue(pc)) ? Boolean.TRUE : Boolean.FALSE;
 	}
 
 	@Override

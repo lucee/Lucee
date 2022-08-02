@@ -52,7 +52,7 @@ public final class ArrayFilter extends BIF {
 		if (type != CFTypes.TYPE_BOOLEAN && type != CFTypes.TYPE_ANY)
 			throw new ExpressionException("invalid return type [" + filter.getReturnTypeAsString() + "] for UDF Filter; valid return types are [boolean,any]");
 
-		return (Array) Filter._call(pc, array, filter, parallel, maxThreads, Filter.TYPE_ARRAY);
+		return (Array) Filter.call(pc, array, filter, parallel, maxThreads, Filter.TYPE_ARRAY);
 
 	}
 

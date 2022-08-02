@@ -1297,7 +1297,7 @@ Example:
 	<tag>
 		<name>Execute</name>
 		<tag-class>lucee.runtime.tag.Execute</tag-class>
-		<body-content>must</body-content>
+		<body-content>free</body-content>
 		<body-rtexprvalue>false</body-rtexprvalue>
 		<script>
 			<type>multiple</type>
@@ -3760,6 +3760,14 @@ Use POST to send information to a server page or a CGI program for processing. P
 			<description>Password used to decrypt the client certificate.</description>
 		</attribute>
 		<attribute>
+			<type>boolean</type>
+			<name>pooling</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<introduced>6.0.0.96</introduced>
+			<description>Flag allowing to disable connection reuse on one off requests.</description>
+		</attribute>
+		<attribute>
 			<type>object</type>
 			<name>cachedWithin</name>
 			<required>false</required>
@@ -4680,8 +4688,8 @@ Permits searching collections by title or displaying a separate title from the k
 			<name>timeout</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>Specifies the maximum amount of time, in seconds, to wait for LDAP processing. Defaults to
-		60 seconds.</description>
+			<description>Specifies the maximum amount of time, in milliseconds, to wait for LDAP processing. Defaults to
+		60000 ms (60 seconds).</description>
 		</attribute>
 		<attribute>
 			<type>number</type>
@@ -4838,6 +4846,14 @@ Permits searching collections by title or displaying a separate title from the k
 
 		Default is false (since Lucee 6, previously was true)
 		</description>
+		</attribute>
+		<attribute>
+			<type>boolean</type>
+			<name>abort</name>
+			<required>false</required>
+			<rtexprvalue>false</rtexprvalue>
+			<description>if set to true then the request will be aborted instead of redirected to allow developers
+		to troubleshoot code that contains redirects</description>
 		</attribute>
 		<attribute>
 			<type>number</type>
@@ -6553,7 +6569,7 @@ possible values are:
 String "request": If original query was created within the current request, cached query data is used.
 a timeSpan (created with function CreateTimeSpan): If original query date falls within the time span, cached query data is used.
 
-To use cached data, the current query must use the same SQL statement, data source, query name, user name, and password.</description>
+To use cached data, the current query must use the same SQL statement, data source, query name, maxrows, user name, and password.</description>
     	</attribute>
 		<attribute>
 			<type>string</type>
@@ -6787,8 +6803,11 @@ To use cached data, the current query must use the same SQL statement, data sour
 			<name>list</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>Yes or No. Indicates that the parameter value of the value attribute is a list of values,
-	separated by a separator character. The default is No</description>
+			<description>true, false or not set. 
+			If set to true this indicates that the parameter value of the value attribute is a list of values and is handled as such,
+			if set to false it is handled as a simple value.
+			if not set lucee will automatically detect if it is an array or not.
+			</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -7242,6 +7261,13 @@ To use cached data, the current query must use the same SQL statement, data sour
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Password to provide to the proxy server.</description>
+		</attribute>
+		<attribute>
+			<type>string</type>
+			<name>userAgent</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>User agent request header.</description>
 		</attribute>
 		<attribute>
 			<type>boolean</type>
@@ -7839,6 +7865,52 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
             even if you specify a page timeout. (optional, default=0)</description>
 		</attribute>
 	</tag>
+	
+	
+	<!-- Timeout -->
+	<tag>
+		<name>Timeout</name>
+		<tag-class>lucee.runtime.tag.Timeout</tag-class>
+		<ttt-class>lucee.transformer.bytecode.statement.tag.TagTimeout</ttt-class>
+		<tte-class>lucee.transformer.cfml.evaluator.impl.TagTimeout</tte-class>
+		<body-content>free</body-content>
+		<body-rtexprvalue>false</body-rtexprvalue>
+		<script>
+			<type>multiple</type>
+			<rtexprvalue>true</rtexprvalue>
+		</script>
+		<description></description>
+		<attribute-type>fixed</attribute-type>
+		<attribute>
+			<type>object</type>
+			<name>timespan</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>Specifies the maximum amount of time, in seconds, to wait for execution of this tag.</description>
+		</attribute>
+		<attribute>
+			<type>any</type>
+			<name>onTimeout</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description></description>
+		</attribute>
+		<attribute>
+			<type>any</type>
+			<name>onError</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description></description>
+		</attribute>
+		<attribute>
+			<type>boolean</type>
+			<name>forcestop</name>
+			<required>false</required>
+			<default>false</default>
+			<rtexprvalue>true</rtexprvalue>
+			<description></description>
+		</attribute>
+	</tag>
 
 	<!-- Throw -->
 	<tag>
@@ -7941,6 +8013,7 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
               is cftimer.
             - debug: displays timing information in the debug output
               under the heading CFTimer Times.
+            - console: displays timing information in the console output. The default label is CFTimer.
             Default: debug</description>
 		</attribute>
 		<attribute>
@@ -8009,6 +8082,14 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>ODBC lock type.</description>
+		</attribute>
+		<attribute>
+			<type>string</type>
+			<name>savepoint</name>
+			<required>false</required>
+			<status>hidden</status>
+			<rtexprvalue>true</rtexprvalue>
+			<description>optional savepoint name, used with action "setsavepoint" and "rollback".</description>
 		</attribute>
 	</tag>
 
@@ -8179,636 +8260,6 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 		in the form are included in the operation.</description>
 		</attribute>
 	</tag>
-
-
-	<!-- videoPlayer -->
-	<tag>
-		<name>videoPlayer</name>
-		<tag-class>lucee.runtime.tag.VideoPlayerJW</tag-class>
-		<body-content>free</body-content>
-		<body-rtexprvalue>false</body-rtexprvalue>
-		<description>The tag CFVIDEOPLAYER allows you to display a video in flash (flv) format.
-		It includes the complete functionality to display the player with the necessary html code. Read more on the multimedia functionality.</description>
-
-		<!-- JW -->
-		<attribute>
-			<type>struct</type>
-			<name>passThrough</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>attribute to pass natively vales to player</description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>preview</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>set this to the path of a preview image.</description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>id</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description></description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>video</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>path to Movie File (flv/mp4)</description>
-		</attribute>
-		<attribute>
-			<type>boolean</type>
-			<name>autostart</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>Set this to true in the player to automatically start playing when the page loads</description>
-		</attribute>
-
-		<attribute>
-			<type>boolean</type>
-			<name>group</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>if multiple video are defined, you have to define if this videos should be break a part or played as a single video</description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>playlist</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>define if and where the playlist will be displayed</description>
-		</attribute>
-		<attribute>
-			<type>number</type>
-			<name>playlistSize</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>size of the playlist, if playlist is right of display this is the width otherwise the height</description>
-		</attribute>
-		<attribute>
-			<type>boolean</type>
-			<name>playlistThumbnails</name>
-			<alias>thumbs,thumbnails</alias>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>using Thumbnails in playlist or not</description>
-		</attribute>
-
-
-		<attribute>
-			<type>string</type>
-			<name>showPlay</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description></description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>showPause</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description></description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>showTimeline</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description></description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>width</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description></description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>height</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description></description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>foreGroundColor</name>
-			<alias>foreGroundColour</alias>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>alias for fgColor</description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>foreground</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>alias for fgColor</description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>fgColor</name>
-			<alias>fgColour</alias>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>foreground color</description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>bgColor</name>
-			<alias>bgColour</alias>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>background color</description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>backGroundColor</name>
-			<alias>backGroundColour</alias>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>alias for bgColor</description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>background</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>alias for bgColor</description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>screenColor</name>
-			<alias>screenColour</alias>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description></description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>lightColor</name>
-			<alias>lightColour</alias>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description></description>
-		</attribute>
-		<attribute>
-			<type>boolean</type>
-			<name>debug</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description></description>
-		</attribute>
-		<attribute>
-			<type>boolean</type>
-			<name>allowFullScreen</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description></description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>linkTarget</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description></description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>target</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description></description>
-		</attribute>
-		<attribute>
-			<type>boolean</type>
-			<name>linkFromDisplay</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description></description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>overstretch</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>Sets how to stretch images/movies to make them fit the display. Set this to true to stretch them proportionally to fill the display, fit to stretch them disproportionally and none to keep original dimensions</description>
-		</attribute>
-		<attribute>
-			<type>boolean</type>
-			<name>download</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>Set this to true to show a download button in the player control bar</description>
-		</attribute>
-	</tag>
-
-	<!-- videoPlayerParam -->
-	<tag>
-		<name>videoPlayerParam</name>
-		<tag-class>lucee.runtime.tag.VideoPlayerParam</tag-class>
-		<body-content>empty</body-content>
-		<body-rtexprvalue>false</body-rtexprvalue>
-		<description>play a video</description>
-		<attribute-type>fixed</attribute-type>
-		<attribute>
-			<type>string</type>
-			<name>video</name>
-			<required>no</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>Path to the FLV file. Can be a URL or local file.</description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>flash</name>
-			<required>no</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>Path to the SWF file. Can be a URL or local file.</description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>show</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>Defines whether the video should be displayed or not.</description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>title</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>Title of the video. Displayed in the playlist as the title.</description>
-		</attribute>
-		<attribute>
-			<type>number</type>
-			<name>index</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>Layer in which the video is displayed. (not supported yet)</description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>preview</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>Path to a preview image for playlist and main video display. Can be URL or local file.</description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>image</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>This is just an alias for the attribute preview.</description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>link</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>Displays a tiny image and allows linking to any target. (HTML link, Ajax etc.)</description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>author</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>Name of the author.</description>
-		</attribute>
-	</tag>
-
-
-	<!-- videoPlayer
-	<tag>
-		<name>videoPlayer</name>
-		<tag-class>lucee.runtime.tag.VideoPlayerJW</tag-class>
-		<body-content>free</body-content>
-		<body-rtexprvalue>false</body-rtexprvalue>
-		<description>play a video</description>
-		<attribute-type>fixed</attribute-type>
-
-		<attribute>
-			<type>string</type>
-			<name>video</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>path to FLV File</description>
-		</attribute>
-		<attribute>
-			<type>boolean</type>
-			<name>autostart</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description></description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>showPlay</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description></description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>showPause</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description></description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>showTimeline</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description></description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>width</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description></description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>height</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description></description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>fgColor</name>
-			<alias>fgColour</alias>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description></description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>bgColor</name>
-			<alias>bgColour</alias>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description></description>
-		</attribute>
-		<attribute>
-			<type>boolean</type>
-			<name>debug</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description></description>
-		</attribute>
-	</tag>
-	-->
-
-	<!-- video -->
-	<tag>
-		<name>video</name>
-		<tag-class>lucee.runtime.tag.Video</tag-class>
-		<body-content>empty</body-content>
-		<body-rtexprvalue>false</body-rtexprvalue>
-		<description>play a video</description>
-		<attribute-type>fixed</attribute-type>
-		<attribute>
-			<type>string</type>
-			<name>execution</name>
-			<required>no</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>values can be "quality" or "performance"</description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>action</name>
-			<values>concat,convert,cutImage,info,install,uninstall</values>
-			<required>yes</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>Type of video manipulation that the tag performs.</description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>source</name>
-			<required>no</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>source video to read in</description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>source1</name>
-			<required>no</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>"left" source video to read in for concatenation</description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>source2</name>
-			<required>no</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>"right" source video to read in for concatenation</description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>destination</name>
-			<required>no</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>directory of the destination video to create</description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>name</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>name of the destination video</description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>nameConflict</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>Action to take if filename is the same as that of a file in the directory. (error,skip,overwrite,makeUnique)</description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>width</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>width of destination video</description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>height</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>height of destination video</description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>debug</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description></description>
-		</attribute>
-		<attribute>
-			<type>number</type>
-			<name>bufferSize</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description></description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>profile</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>standard profile definition (declared in video.xml)</description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>quality</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>alias for profile</description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>audioBitrate</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>audio bitrate, default same as input or part of defined quality (example: 10kbps, 10mbps, 10bps)</description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>audioSampleRate</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>audio sampling rate, default same as input or part of defined quality</description>
-		</attribute>
-
-		<attribute>
-			<type>string</type>
-			<name>aspectRatio</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>aspect ratio (16:9,4:3)</description>
-		</attribute>
-		<attribute>
-			<type>number</type>
-			<name>fps</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>how many frames are used per second</description>
-		</attribute>
-		<attribute>
-			<type>number</type>
-			<name>frameRate</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>how many frames are used per second (alias for fps)</description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>videoBitrate</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>video bitrate, default same as input or part of defined quality (example: 10kbps, 10mbps, 10bps)</description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>videoBitrateMin</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>minimal video bitrate of variable bitrate, default same as input or part of defined quality  (example: 10kbps, 10mbps, 10bps)</description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>videoBitrateMax</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>maximum video bitrate of variable bitrate, default same as input or part of defined quality (example: 10kbps, 10mbps, 10bps)</description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>videoBitrateTolerance</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>video bitrate tolerance of variable bitrate, default same as input or part of defined quality (example: 10kbps, 10mbps, 10bps)</description>
-		</attribute>
-
-		<attribute>
-			<type>string</type>
-			<name>author</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>author meta data of the destination video</description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>title</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>title meta data of the destination video</description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>comment</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>comment meta data of the destination video</description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>copyright</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>copyright meta data of the destination video</description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>max</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>maximum length of destination video, you can defines max frame (10f) or max time (1145ms,3.123s)</description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>start</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>offset of destination video based on source, you can defines frames (10f) or time (1145ms,3.123s)</description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>result</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>name of struct that hold action info (default:cfvideo)</description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>videoCodec</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>force video codec</description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>audioCodec</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>force audio codec</description>
-		</attribute>
-		<attribute>
-			<type>struct</type>
-			<name>data</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>for internal use only</description>
-		</attribute>
-
-	</tag>
-
 
 	<!-- Wddx -->
 	<tag>
@@ -10094,6 +9545,15 @@ Valid only for cfinput type="text".</description>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>HTML attribute: Specifies the legal number intervals for the input field</description>
+		</attribute>
+		<attribute>
+			<type>boolean</type>
+			<name>encodeValue</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>By default the value parameter is automatically html encoded, but not using ESAPI encodeForHtmlAttribute() for historical reasons. Default is true.
+			Set to false to disable the encoding and handle the encoding yourself.
+			</description>
 		</attribute>
 	</tag>
 

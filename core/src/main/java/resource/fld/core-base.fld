@@ -93,6 +93,7 @@
 	<function>
 		<name>ApplicationPathCacheClear</name>
 		<class>lucee.runtime.functions.other.ApplicationPathCacheClear</class>
+		<introduced>5.3.8.149</introduced>
 		<description>flush the application.[cfc|cfm] path cache</description>
 		<return>
 			<type>void</type>
@@ -456,7 +457,7 @@ All elements in the array must contain values that can be converted to numeric.<
 	<function>
 		<name>listEach</name>
 		<class>lucee.runtime.functions.list.ListEach</class>
-		<member-name>listEach,each</member-name>
+		<member-name>listEach</member-name>
 		<keywords>list,string,iterator</keywords>
 		<description>call the given UDF/Closure with every value in the string list.</description>
 		<argument>
@@ -790,7 +791,7 @@ Remember CFML arrays start at 1 not 0.</description>
 	<function>
 		<name>listMap</name>
 		<class>lucee.runtime.functions.list.ListMap</class>
-		<member-name>listMap,map</member-name>
+		<member-name>listMap</member-name>
 		<keywords>string,list,iterator</keywords>
 		<description>Calls the given closure with every element in the given list.
 		The function returns a list that contains all values returned by the closure.</description>
@@ -1077,6 +1078,7 @@ Remember CFML arrays start at 1 not 0.</description>
 	<function>
 		<name>arrayPop</name>
 		<class>lucee.runtime.functions.arrays.ArrayPop</class>
+		<introduced>5.3.8.104</introduced>
 		<member-name>pop</member-name>
 		<member-chaining>false</member-chaining>
 		<keywords>array</keywords>
@@ -1103,6 +1105,7 @@ Remember CFML arrays start at 1 not 0.</description>
 	<function>
 		<name>arrayPush</name>
 		<class>lucee.runtime.functions.arrays.ArrayPush</class>
+		<introduced>5.3.8.104</introduced>
 		<member-name>push</member-name>
 		<member-chaining>false</member-chaining>
 		<keywords>array</keywords>
@@ -1214,6 +1217,7 @@ Remember CFML arrays start at 1 not 0.</description>
 	<function>
 		<name>arrayShift</name>
 		<class>lucee.runtime.functions.arrays.ArrayShift</class>
+		<introduced>5.3.8.104</introduced>
 		<member-name>shift</member-name>
 		<member-chaining>false</member-chaining>
 		<keywords>array</keywords>
@@ -1432,6 +1436,8 @@ sort direction:
 		<name>arrayUnShift</name>
 		<class>lucee.runtime.functions.arrays.ArrayUnShift</class>
 		<member-name>unShift</member-name>
+		<introduced>5.3.8.104</introduced>
+		<member-name>unshift</member-name>
 		<member-chaining>false</member-chaining>
 		<keywords>array</keywords>
 		<description>Adds an element at the beginning of the array and shifts the rest of the elements to the right.</description>
@@ -1492,8 +1498,8 @@ sort direction:
 			<name>array</name>
 			<type>array</type>
 			<required>Yes</required>
-			<description>array to translate</description>
-		</argument>
+		<description>array to translate</description>
+    </argument>
 		<argument>
 			<name>valueAsKey</name>
 			<type>boolean</type>
@@ -1590,6 +1596,13 @@ sort direction:
 - hex: characters 0-9 and A-F represent the hexadecimal value of each byte
 - UU: data is encoded using the UNIX UUencode algorithm
 - base64: data is encoded using the Base64 algorithm</description>
+    </argument>
+    <argument>
+			<name>precise</name>
+			<type>boolean</type>
+			<required>no</required>
+			<default>false</default>
+		<description>if set to true the input must follow the rule for that encoding a 100%, the decryptor will not try to interpret inputs that are not a 100% correct. This should be used to avoud false positives.</description>
     </argument>
 		<return>
 			<type>binary</type>
@@ -2028,7 +2041,7 @@ sort direction:
 			<name>type</name>
 			<type>string</type>
 			<required>yes</required>
-			<description>cache type, valid values are [object,resource,template,query]</description>
+			<description>cache type, valid values are [object, template, query, resource, function, include, http, file, webservice]</description>
 		</argument>
 		<return>
 			<type>string</type>
@@ -2419,7 +2432,7 @@ sort direction:
 	<function>
 		<name>ctCacheClear</name>
 		<class>lucee.runtime.functions.other.CTCacheClear</class>
-		<description>flush the customTag path cache</description>
+		<description>flush the custom tag path cache</description>
 		<return>
 			<type>void</type>
 		</return>
@@ -2428,11 +2441,77 @@ sort direction:
 	<function>
 		<name>ctCacheList</name>
 		<class>lucee.runtime.functions.other.CTCacheList</class>
-		<description>list elements in the customTag path cache</description>
+		<description>list elements in the custom tag path cache</description>
 		<return>
 			<type>struct</type>
 		</return>
 	</function>
+	<!-- ConfigImport -->
+	<function>
+		<name>ConfigImport</name>
+		<class>lucee.runtime.functions.system.ConfigImport</class>
+		<description>
+			Imports a configuration based on the "CFConfig" format. 
+			This configuration can be provided as a path (String) to a JSON based file or as a Struct.
+			The values inside the provided configuration can use placeholders following this pattern ${key:default}.
+			The function will check for the actual values for this placeholders in 3 places (in this order):
+			- function argument "params" (if provided)
+			- system properties
+			- enviroment variables
+		</description>
+		<argument>
+			<name>path</name>
+			<type>any</type>
+			<alias>path,data</alias>
+			<required>Yes</required>
+			<description>
+			Path to the .CFConfig.json file or the data itself as a Struct. 
+			</description>
+		</argument>
+		<argument>
+			<name>type</name>
+			<type>string</type>
+			<required>no</required>
+			<default>server</default>
+			<values>server,web</values>
+			<description>
+				Config Context to manipulate, server or web context.
+			</description>
+		</argument>
+		<argument>
+			<name>password</name>
+			<type>string</type>
+			<required>no</required>
+			<description>
+				password to access the configuration, depending on the value set for the attribute type. 
+				If not set Lucee will check in the following places for the password (replace {type} with the actual type choosen for the attribute type).
+				Enviroment variable "LUCEE_{type}_ADMIN_PASSWORD" or system property "lucee.{type}.admin.password".
+			</description>
+		</argument>
+		<argument>
+			<name>params</name>
+			<type>struct</type>
+			<required>no</required>
+			<description>
+				placeholder parameters to use as actual data for the placeholders inside the configuration, see main description of this function for more details.
+			</description>
+		</argument>
+		<argument>
+			<name>charset</name>
+			<type>string</type>
+			<required>no</required>
+			<description>
+				charset to use to read the .CFConfig file, if not defined, Lucee will use the default resource charset.
+			</description>
+		</argument>
+		
+		<return>
+			<type>struct</type>
+		</return>
+	</function>
+	
+	
+	
 	<!-- compress -->
 	<function>
 		<name>compress</name>
@@ -2974,7 +3053,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<name>dateDiff</name>
 		<class>lucee.runtime.functions.dateTime.DateDiff</class>
 		<member-name>diff</member-name>
-		<member-position>2</member-position>
+		<member-position>3</member-position>
 		<description>Determines the number of given date parts between two different dates</description>
 		<argument>
 			<name>datePart</name>
@@ -3219,6 +3298,21 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</return>
 	</function>
 	
+	<!-- ExtensionInfo -->
+	<function>
+		<name>ExtensionInfo</name>
+		<class>lucee.runtime.functions.system.ExtensionInfo</class>
+		<description>Returns the detailed info about the extension.</description>
+		<argument>
+			<name>id</name>
+			<type>string</type>
+			<required>Yes</required>
+			<description>Id of the extension</description>
+		</argument>
+		<return>
+			<type>struct</type>
+		</return>
+	</function>
 	
 	<!-- ExtensionExists -->	
 	<function>
@@ -3247,6 +3341,12 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<name>ExtensionList</name>
 		<class>lucee.runtime.functions.system.ExtensionList</class>
 		<description>Checks if a certain extension exists or not.</description>
+		<argument>
+			<name>imageObject</name>
+			<type>boolean</type>
+			<required>false</required>
+			<description>If set to true means extension image shows as imageObject instead of base64 string.</description>
+		</argument>
 		<return>
 			<type>query</type>
 		</return>
@@ -4409,7 +4509,7 @@ EntitySave(entity, [forceInsert])</description>
     	<function>
     		<name>QueryLazy</name>
     		<class>lucee.runtime.functions.query.QueryLazy</class>
-    		<keywords>query</keywords>
+			<keywords>query</keywords>
 			<description>Executes a SQL query without loading the data entirely to memory. Instead it calls the given Function with every single row</description>
     		<argument>
     			<name>sql</name>
@@ -4652,7 +4752,7 @@ EntitySave(entity, [forceInsert])</description>
 			<alias>path,filepath,source</alias>
 			<type>string</type>
 			<required>Yes</required>
-		<description>a file path</description>
+		<description>a file/resource path</description>
     </argument>
 		<argument>
 			<name>mode</name>
@@ -5553,17 +5653,6 @@ Example Values:
 			<type>struct</type>
 		</return>
 	</function>
-	<!-- GetConfigSettings -->
-	<function>
-		<name>GetConfigSettings</name>
-		<class>lucee.runtime.functions.system.GetConfigSettings</class>
-		<description></description>
-		<status>hidden</status>
-		<return>
-			<type>struct</type>
-		</return>
-	</function>
-
 	<!-- getBaseTagData -->
 	<function>
 		<name>getBaseTagData</name>
@@ -6593,27 +6682,27 @@ if this attribute is not provided all types are returned.</description>
 		<name>getTempFile</name>
 		<class>lucee.runtime.functions.system.GetTempFile</class>
 		<description>Creates a temporary file in a directory whose name starts with
-        (at most) the first three characters of prefix.</description>
+        (at most) the first three characters of prefix, with an optional extension, default is .tmp.</description>
 		<argument>
 			<name>dir</name>
 			<type>string</type>
 			<required>Yes</required>
-		<description>Directory name</description>
-    </argument>
+			<description>Directory name</description>
+		</argument>
 		<argument>
 			<name>prefix</name>
 			<type>string</type>
 			<required>Yes</required>
-		<description>Prefix of a temporary file to create in the dir directory</description>
-    </argument>
-	<argument>
-    		<name>extension</name>
+			<description>Prefix of a temporary file to create in the dir directory</description>
+		</argument>
+		<argument>
+			<name>extension</name>
 			<alias>ext</alias>
-    		<type>string</type>
+			<type>string</type>
 			<required>No</required>
 			<Default>tmp</Default>
 		<description>Creates temporary files with user defined extension, default is .tmp</description>
-	</argument>
+		</argument>
 		<return>
 			<type>string</type>
 		</return>
@@ -6621,8 +6710,11 @@ if this attribute is not provided all types are returned.</description>
 	<!-- getTemplatePath -->
 	<function>
 		<name>getTemplatePath</name>
+		<status>deprecated</status>
 		<class>lucee.runtime.functions.system.GetTemplatePath</class>
-		<description></description>
+		<description>This function is deprecated.
+
+Use the GetBaseTemplatePath() function instead.</description>
 		<return>
 			<type>any</type>
 		</return>
@@ -6651,7 +6743,7 @@ if this attribute is not provided all types are returned.</description>
 		<name>getTimeZoneInfo</name>
 		<class>lucee.runtime.functions.international.GetTimeZoneInfo</class>
 		<member-name>info</member-name>
-		<description>Returns back a structure regarding the current timezone; isDSTon, DSTOffset, id, name, shortName, nameDST, shortNameDST, utcHourOffset, offset, utcTotalOffset, utcMinuteOffset</description>
+		<description>Returns back a structure regarding the current timezone; isDSTon, DSTOffset, id, timezone, name, shortName, nameDST, shortNameDST, utcHourOffset, offset, utcTotalOffset, utcMinuteOffset</description>
 		<argument>
 			<name>timezone</name>
 			<type>timezone</type>
@@ -6759,6 +6851,7 @@ Default list delimiter: comma character.</description>
 		<name>hash</name>
 		<class>lucee.runtime.functions.string.Hash</class>
 		<member-name>hash</member-name>
+		<member-type>string</member-type>
 		<description>Converts a variable-length string to a 32-byte, hexadecimal
         string, using the MD5 algorithm. (It is not possible to convert
         the hash result back to the source string.)
@@ -6768,8 +6861,8 @@ Default list delimiter: comma character.</description>
 			<alias>string</alias>
 			<type>any</type>
 			<required>Yes</required>
-		<description>String or byte array to hash.</description>
-    </argument>
+			<description>String or byte array to hash.</description>
+    	</argument>
 		<argument>
 			<name>algorithm</name>
 			<type>string</type>
@@ -6782,7 +6875,7 @@ Default list delimiter: comma character.</description>
 - SHA-256: Generates a 44-character string using the SHA-256 algorithm specified by FIPS-180-2.
 - SHA-384: Generates a 64-character string using the SHA-384 algorithm specified by FIPS-180-2.
 - SHA-512: Generates an 88-character string using the SHA-1 algorithm specified by FIPS-180-2.</description>
-    </argument>
+    	</argument>
 		<argument>
 			<name>encoding</name>
 			<type>string</type>
@@ -7182,10 +7275,10 @@ The following things are considered to be empty:
 	</function>
 	
 	
-	<!-- InternalRequest -->
+	<!-- InternalRequest - this return the cookies as a query as the tag http does -->
 	<function>
-		<name>_InternalRequest</name>
-		<class>lucee.runtime.functions.system.InternalRequest</class>
+		<name>InternalRequest</name>
+		<class>lucee.runtime.functions.system.InternalRequestPublic</class>
 		<description>Makes a request to the CFML Engine internally.</description>
 		<status>hidden</status>
 		<argument>
@@ -7204,16 +7297,16 @@ The following things are considered to be empty:
 		<argument>
 			<name>urls</name>
 			<alias>url</alias>
-			<type>struct</type>
+			<type>any</type>
 			<required>no</required>
-			<description>URL scope passed to the request (query string).</description>
+			<description>URL scope passed to the request (query string). This can be a struct or a string following this format [name1=value1&amp;name2=value2].</description>
     	</argument>
 		<argument>
 			<name>forms</name>
 			<alias>form</alias>
-			<type>struct</type>
+			<type>any</type>
 			<required>no</required>
-			<description>FORM scope passed to the request.</description>
+			<description>FORM scope passed to the request.This can be a struct or a string following this format [name1=value1&amp;name2=value2].</description>
     	</argument>
 		<argument>
 			<name>cookies</name>
@@ -7248,6 +7341,95 @@ The following things are considered to be empty:
 			<required>no</required>
 			<description>if yes add urlToken as cookie</description>
     	</argument>
+		<argument>
+			<name>throwonerror</name>
+			<type>boolean</type>
+			<default>true</default>
+			<required>no</required>
+			<description>if true (default) and the called age throws an exception, that exception is clso thrown within the caller request. If false itis catched and only reported in he resulting struct.</description>
+    	</argument>
+    	
+		<return>
+			<type>struct</type>
+		</return>
+	</function>
+	
+	
+	
+	<!-- InternalRequest -->
+	<function>
+		<name>_InternalRequest</name>
+		<class>lucee.runtime.functions.system.InternalRequest</class>
+		<description>Makes a request to the CFML Engine internally.</description>
+		<status>hidden</status>
+		<argument>
+			<name>template</name>
+			<type>string</type>
+			<required>Yes</required>
+			<description>Template path (script name) for the request (example:/test/index.cfm).</description>
+    	</argument>
+		<argument>
+			<name>method</name>
+			<type>string</type>
+			<required>no</required>
+			<default>get</default>
+			<description>method of the request (GET,POST,PUT,DELETE ...)</description>
+    	</argument>
+		<argument>
+			<name>urls</name>
+			<alias>url</alias>
+			<type>any</type>
+			<required>no</required>
+			<description>URL scope passed to the request (query string). This can be a struct or a string following this format [name1=value1&amp;name2=value2].</description>
+    	</argument>
+		<argument>
+			<name>forms</name>
+			<alias>form</alias>
+			<type>any</type>
+			<required>no</required>
+			<description>FORM scope passed to the request.This can be a struct or a string following this format [name1=value1&amp;name2=value2].</description>
+    	</argument>
+		<argument>
+			<name>cookies</name>
+			<alias>cookie</alias>
+			<type>struct</type>
+			<required>no</required>
+			<description>Cookie scope passed to the request</description>
+    	</argument>
+		<argument>
+			<name>headers</name>
+			<alias>header</alias>
+			<type>struct</type>
+			<required>no</required>
+			<description>Request header entries passed to the request</description>
+    	</argument>
+		<argument>
+			<name>body</name>
+			<type>any</type>
+			<required>no</required>
+			<description>body to send with the request</description>
+    	</argument>
+		<argument>
+			<name>charset</name>
+			<type>string</type>
+			<required>no</required>
+			<description>charset used for the request, if not set the web charset is used.</description>
+    	</argument>
+		<argument>
+			<name>addToken</name>
+			<type>boolean</type>
+			<default>false</default>
+			<required>no</required>
+			<description>if yes add urlToken as cookie</description>
+    	</argument>
+		<argument>
+			<name>throwonerror</name>
+			<type>boolean</type>
+			<default>true</default>
+			<required>no</required>
+			<description>if true (default) and the called age throws an exception, that exception is clso thrown within the caller request. If false itis catched and only reported in he resulting struct.</description>
+    	</argument>
+    	
 		<return>
 			<type>struct</type>
 		</return>
@@ -7568,6 +7750,8 @@ The following things are considered to be empty:
 			- float or numeric: a numeric value; equivalent to the IsNumeric function.
 			- guid: a Universally Unique Identifier of the form "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX" where X is a hexadecimal number.
 			- integer: an integer.
+			- json: a valid JSON; equivalent to the IsJSON function.
+			- object: a value is an object; equivalent to the IsObject function.
 			- query: a query object; equivalent to the IsQuery function.
 			- range: a numeric range, specified by the min and max attributes.
 			- regex or regular_expression: matches input against pattern attribute.
@@ -7618,6 +7802,18 @@ The following things are considered to be empty:
 			<required>Yes</required>
 		<description>A WDDX packet</description>
     </argument>
+		<return>
+			<type>boolean</type>
+		</return>
+	</function>
+	
+	<!-- IsWithinTransaction -->
+	<function>
+		<name>isWithinTransaction</name>
+		<class>lucee.runtime.functions.query.IsWithinTransaction</class>
+		<introduced>5.3.9.4</introduced>
+		<keywords>decision,query,datasource</keywords>
+		<description>Determines whether the current thread is within a transaction block or not.</description>
 		<return>
 			<type>boolean</type>
 		</return>
@@ -9078,6 +9274,43 @@ The following things are considered to be empty:
 			<type>number</type>
 		</return>
 	</function>
+
+
+	
+	<!-- MarkdownToHTML -->
+	<function>
+		<name>MarkdownToHTML</name>
+		<member-name>MarkdownToHTML</member-name>
+		<class>lucee.runtime.functions.string.MarkdownToHTML</class>
+	<keywords>string</keywords>
+		<description>Transforms Markdown formatted String into HTML.</description>
+		<argument>
+			<name>string</name>
+			<alias>markdown</alias>
+			<type>string</type>
+			<required>Yes</required>
+			<description>A Markdown formatted string or a path to a file containf a markdown formatted string to convert to HTML</description>
+		</argument>
+		<argument>
+			<name>safeMode</name>
+			<type>boolean</type>
+			<alias>safe</alias>
+			<default>false</default>
+			<required>No</required>
+			<description>If set to true it does escape unsafe HTML tags</description>
+		</argument>
+		<argument>
+			<name>encoding</name>
+			<type>string</type>
+			<alias>charset</alias>
+			<required>No</required>
+			<description>Charset, only used in case the argument markdown contains a file path</description>
+		</argument>
+		<return>
+			<type>string</type>
+		</return>
+	</function>
+
 	
 	<!-- metaphone -->
 	<function>
@@ -9631,6 +9864,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<class>lucee.runtime.functions.query.QueryAddColumn</class>
 		<keywords>query</keywords>
 		<member-name>addColumn</member-name>
+		<member-chaining>true</member-chaining>
 		<description>Adds a column to a query and populates its rows with the
         contents of a one-dimensional array. Pads query columns,
         if necessary, to ensure that all columns have the same number
@@ -9670,6 +9904,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<name>queryAddRow</name>
 		<class>lucee.runtime.functions.query.QueryAddRow</class>
 		<member-name>addRow</member-name>
+		<member-chaining>true</member-chaining>
 		<keywords>query</keywords>
 		<description>Adds a specified number of empty rows to a query.</description>
 		<argument>
@@ -10041,6 +10276,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
     	<function>
     		<name>queryRowByIndex</name>
     		<class>lucee.runtime.functions.query.QueryRowByIndex</class>
+			<introduced>5.3.4.34</introduced>
     		<member-name>rowByIndex</member-name>
     		<keywords>query</keywords>
 			<description></description>
@@ -10071,6 +10307,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
     	<function>
     		<name>queryRowDataByIndex</name>
     		<class>lucee.runtime.functions.query.QueryRowDataByIndex</class>
+			<introduced>5.3.4.34</introduced>
     		<member-name>rowDataByIndex</member-name>
     		<keywords>query</keywords>
 			<description></description>
@@ -10144,6 +10381,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<name>QueryDeleteColumn</name>
 		<class>lucee.runtime.functions.query.QueryDeleteColumn</class>
 		<member-name>deleteColumn</member-name>
+		<member-chaining>true</member-chaining>
 		<keywords>query</keywords>
 		<description>
 		removes a row from a query and return removed row as array
@@ -10169,6 +10407,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<name>QueryDeleteRow</name>
 		<class>lucee.runtime.functions.query.QueryDeleteRow</class>
 		<member-name>deleteRow</member-name>
+		<member-chaining>true</member-chaining>
 		<keywords>query</keywords>
 		<description>Deletes the row within a query object. Modifies the original query object</description>
 		<argument>
@@ -10222,6 +10461,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 	<function>
 		<name>queryGetCellByIndex</name>
 		<class>lucee.runtime.functions.query.QueryGetCellByIndex</class>
+		<introduced>5.3.4.34</introduced>
 		<member-name>getCellByIndex</member-name>
 		<keywords>query</keywords>
 		<description>return the value of a specific query cell</description>
@@ -10351,6 +10591,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
     	<function>
     		<name>querySetRow</name>
     		<class>lucee.runtime.functions.query.QuerySetRow</class>
+			<introduced>5.3.8.120</introduced>
     		<member-name>setRow</member-name>
     		<keywords>query</keywords>
 			<description>Adds a row to a query, either by struct or array</description>
@@ -12595,7 +12836,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 	<function>
 		<name>ListSome</name>
 		<class>lucee.runtime.functions.list.ListSome</class>
-		<member-name>listSome,some</member-name>
+		<member-name>listSome</member-name>
 		<keywords>list,iterator</keywords>
 		<description>This function calls a given closure/function with every element in a given string list and returns true, if one of the closure calls returns true.</description>
 		<argument>
@@ -12817,7 +13058,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 	<function>
 		<name>listEvery</name>
 		<class>lucee.runtime.functions.list.ListEvery</class>
-		<member-name>listEvery,every</member-name>
+		<member-name>listEvery</member-name>
 		<keywords>list,string,iterator</keywords>
 		<description>This function calls a given closure/function with every element in a given string list and returns true, if all of the closure calls returns true.</description>
 		<argument>
@@ -13408,6 +13649,7 @@ _- asc (default): ascending (a to z) sort order
 	<function>
 		<name>ThreadData</name>
 		<class>lucee.runtime.functions.thread.ThreadData</class>
+		<introduced>5.3.6.19</introduced>
 		<keywords>threading</keywords>
 		<description>returns the root cfthread scope.</description>
 		<return>
@@ -13420,6 +13662,7 @@ _- asc (default): ascending (a to z) sort order
 		<name>toBase64</name>
 		<class>lucee.runtime.functions.string.ToBase64</class>
 		<member-name>toBase64</member-name>
+		<member-type>string</member-type>
 		<description>Calculates the Base64 representation of a string or binary
         object. The Base64 format uses printable characters, allowing
         binary data to be sent in forms and e-mail, and stored in a
@@ -13429,15 +13672,15 @@ _- asc (default): ascending (a to z) sort order
 			<alias>string,BinaryData</alias>
 			<type>any</type>
 			<required>Yes</required>
-		<description>A string, the name of a string, or a binary object.</description>
-    </argument>
+			<description>A string, the name of a string, or a binary object.</description>
+    	</argument>
 		<argument>
 			<name>encoding</name>
 			<type>string</type>
 			<required>No</required>
-		<description>For a string, defines how characters are represented in a
+			<description>For a string, defines how characters are represented in a
             byte array.</description>
-    </argument>
+    	</argument>
 		<return>
 			<type>string</type>
 		</return>
@@ -14125,6 +14368,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
     <function>
 		<name>GenerateArgon2Hash</name>
 		<class>lucee.runtime.functions.other.GenerateArgon2Hash</class>
+		<introduced>5.3.8.18</introduced>
 		<description>Returns hash of input using Argon2.</description>
     	<argument>
 			<name>input</name>
@@ -14168,6 +14412,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
     <function>
 		<name>Argon2CheckHash</name>
 		<class>lucee.runtime.functions.other.Argon2CheckHash</class>
+		<introduced>5.3.8.43</introduced>
 		<description>Returns hash of input using Argon2.</description>
     	<argument>
 			<name>input</name>
@@ -14186,9 +14431,28 @@ You can find a list of all available timezones in the Lucee administrator (Setti
     	</return>
     </function>
     
+	<!-- isFileObject -->
+	<function>
+		<name>isFileObject</name>
+		<class>lucee.runtime.functions.decision.IsFileObject</class>
+		<keywords>decision</keywords>
+		<description>Determines whether a value is an file object. True, if the value represents a file object.</description>
+		<argument>
+			<name>value</name>
+			<type>any</type>
+			<required>Yes</required>
+			<description>A value, typically the name of a file object variable.</description>
+		</argument>
+		<return>
+			<type>boolean</type>
+		</return>
+	</function>
+    
+	<!-- StringSort -->
     <function>
 		<name>StringSort</name>
 		<class>lucee.runtime.functions.string.StringSort</class>
+		<member-name>sort</member-name>
 		<description>Returns a string containing the sorted characters from the input.</description>
     	<argument>
 			<name>inputString</name>
@@ -14200,4 +14464,199 @@ You can find a list of all available timezones in the Lucee administrator (Setti
     		<type>string</type>
     	</return>
     </function>
+
+  <!-- StringEvery -->  
+    <function>
+    		<name>StringEvery</name>
+    		<member-name>every</member-name>
+    		<class>lucee.runtime.functions.string.StringEvery</class>
+    		<description>Determines if all elements of a string satisfy a given condition.</description>
+        	<argument>
+    			<name>string</name>
+    			<type>string</type>
+    			<alias>inputString,object</alias>
+    			<required>Yes</required>
+    			<description>Input string.</description>
+        	</argument>
+        	<argument>
+    			<name>closure</name>
+    			<type>function</type>
+    			<alias>function,callback,udf</alias>
+    			<required>Yes</required>
+    			<description> Closure or a function reference that will be called for each of the iteration.</description>
+    		</argument>
+        	<return>
+        		<type>boolean</type>
+        	</return>
+        </function>
+  <!-- StringEach -->    
+  <function>
+    		<name>StringEach</name>
+    		<!-- breaking-change:  overwrites each from ListEach -->
+    		<member-name>each</member-name>
+    		<class>lucee.runtime.functions.string.StringEach</class>
+    		<description>Iterates over a string and runs the closure function for each element in the string.</description>
+        	<argument>
+    			<name>string</name>
+    			<type>string</type>
+    			<alias>inputString,object</alias>
+    			<required>Yes</required>
+    			<description>Input string.</description>
+        	</argument>
+        	<argument>
+    			<name>closure</name>
+    			<type>function</type>
+    			<alias>function,callback,udf</alias>
+    			<required>Yes</required>
+    			<description> Closure or a function reference that will be called for each of the iteration.</description>
+    		</argument>
+        	<return>
+        		<type>void</type>
+        	</return>
+        </function>
+	<!-- StringFilter -->
+      <function>
+    		<name>StringFilter</name>
+    		<member-name>filter</member-name>
+    		<class>lucee.runtime.functions.string.StringFilter</class>
+    		<description>Filters a string to its elements for which the callback function returns true.</description>
+        	<argument>
+    			<name>string</name>
+    			<type>string</type>
+    			<alias>inputString,object</alias>
+    			<required>Yes</required>
+    			<alias>string</alias>
+    			<description>Input string.</description>
+        	</argument>
+        	<argument>
+    			<name>closure</name>
+    			<type>function</type>
+    			<alias>function,callback,udf</alias>
+    			<required>Yes</required>
+    			<description> Closure or a function reference that will be called for each of the iteration.</description>
+    		</argument>
+        	<return>
+        		<type>string</type>
+        	</return>
+        </function>
+	<!-- StringMap -->
+      <function>
+    		<name>StringMap</name>
+    		<member-name>map</member-name>
+    		<class>lucee.runtime.functions.string.StringMap</class>
+    		<description>Iterates over every entry of the string and calls the closure function to work on the element of the string. </description>
+        	<argument>
+    			<name>string</name>
+    			<type>string</type>
+    			<required>Yes</required>
+    			<alias>inputString,object</alias>
+    			<description>Input string.</description>
+        	</argument>
+        	<argument>
+    			<name>closure</name>
+    			<type>function</type>
+    			<alias>function,callback,udf</alias>
+    			<required>no</required>
+    			<alias>callback</alias>
+    			<description> Closure or a function reference that will be called for each of the iteration.</description>
+    		</argument>
+        	<return>
+        		<type>string</type>
+        	</return>
+        </function>
+	<!-- StringReduce -->
+    <function>
+    		<name>StringReduce</name>
+    		<member-name>reduce</member-name>
+    		<class>lucee.runtime.functions.string.StringReduce</class>
+    		<description>Iterates over every element of the string and calls the closure to work on the elements of the string. This function will reduce the string to a single value and will return the value.</description>
+        <argument>
+    			<name>string</name>
+    			<type>string</type>
+    			<alias>inputString,object</alias>
+    			<required>Yes</required>
+    			<description>Input string.</description>
+       </argument>
+       <argument>
+    			<name>closure</name>
+    			<type>function</type>
+				<alias>function,callback,udf</alias>
+    			<required>Yes</required>
+    			<description> Closure or a function reference that will be called for each of the iteration.</description>
+    		</argument>
+	    	<argument>
+	    		<name>initialVal</name>
+				<alias>initial,initalValue</alias>
+	    		<type>any</type>
+	    		<required>No</required>
+	    		<description> Initial value that will be used for the reduce operation.</description>
+	    	</argument>
+        	<return>
+        		<type>any</type>
+        	</return>
+        </function>
+	<!-- StringSome -->
+      <function>
+    		<name>StringSome</name>
+    		<class>lucee.runtime.functions.string.StringSome</class>
+			<member-name>some</member-name>
+    		<description>This function calls a given closure/function with every element in a given string and returns true, if one of the closure calls returns true.</description>
+        	<argument>
+    			<name>string</name>
+    			<type>string</type>
+    			<alias>inputString,object</alias>
+    			<required>Yes</required>
+    			<description>Input string.</description>
+        	</argument>
+        	<argument>
+    			<name>closure</name>
+    			<type>function</type>
+    			<alias>function,callback,udf</alias>
+    			<required>No</required>
+    			<description>The value to find or a closure/function that gets every value of the array as input and returns true if the given value is right.</description>
+    		</argument>
+        	<return>
+        		<type>boolean</type>
+        	</return>
+        </function>
+	<!-- ArrayRemoveDuplicates -->
+	<function>
+		<name>ArrayRemoveDuplicates</name>
+		<class>lucee.runtime.functions.arrays.ArrayRemoveDuplicates</class>
+		<keywords>array</keywords>
+		<member-name>removeDuplicates</member-name>
+		<description>Removes duplicate values from array.</description>
+		<argument>
+			<name>array</name>
+			<type>array</type>
+			<required>Yes</required>
+			<description>A array to Removes duplicate</description>
+		</argument>
+		<argument>
+			<name>ignoreCase</name>
+			<type>boolean</type>
+			<required>no</required>
+			<description>if set to true, the duplicate value will not be case sensitive</description>
+		</argument>
+		<return>
+			<type>array</type>
+		</return>
+	</function>
+	<!-- QueryIsEmpty -->
+	<function>
+		<name>QueryIsEmpty</name>
+		<member-name>isEmpty</member-name>
+		<class>lucee.runtime.functions.query.QueryIsEmpty</class>
+		<keywords>query</keywords>
+		<description>returns query empty or not</description>
+		<argument>
+			<name>query</name>
+			<type>query</type>
+			<required>Yes</required>
+			<description></description>
+		</argument>
+		<return>
+			<type>boolean</type>
+		</return>
+	</function>
 </func-lib>

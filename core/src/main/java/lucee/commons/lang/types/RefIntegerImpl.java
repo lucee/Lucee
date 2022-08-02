@@ -20,10 +20,11 @@ package lucee.commons.lang.types;
 
 import java.util.Date;
 
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Castable;
 import lucee.runtime.op.Caster;
-import lucee.runtime.op.Operator;
+import lucee.runtime.op.OpUtil;
 import lucee.runtime.type.dt.DateTime;
 
 /**
@@ -144,21 +145,21 @@ public class RefIntegerImpl implements RefInteger, Castable {
 
 	@Override
 	public int compareTo(String other) throws PageException {
-		return Operator.compare(castToString(), other);
+		return OpUtil.compare(ThreadLocalPageContext.get(), castToString(), other);
 	}
 
 	@Override
 	public int compareTo(boolean other) throws PageException {
-		return Operator.compare(castToBooleanValue(), other);
+		return OpUtil.compare(ThreadLocalPageContext.get(), castToBooleanValue() ? Boolean.TRUE : Boolean.FALSE, other ? Boolean.TRUE : Boolean.FALSE);
 	}
 
 	@Override
 	public int compareTo(double other) throws PageException {
-		return Operator.compare(castToDoubleValue(), other);
+		return OpUtil.compare(ThreadLocalPageContext.get(), Double.valueOf(castToDoubleValue()), Double.valueOf(other));
 	}
 
 	@Override
 	public int compareTo(DateTime other) throws PageException {
-		return Operator.compare((Date) castToDateTime(), (Date) other);
+		return OpUtil.compare(ThreadLocalPageContext.get(), (Date) castToDateTime(), (Date) other);
 	}
 }

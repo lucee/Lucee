@@ -80,6 +80,7 @@ public abstract class Function extends StatementBaseNoFinal implements Opcodes, 
 	static final Method SET_KEY = new Method("set", Types.OBJECT, new Type[] { Types.COLLECTION_KEY, Types.OBJECT });
 
 	static final Method REG_UDF_KEY = new Method("registerUDF", Types.VOID, new Type[] { Types.COLLECTION_KEY, Types.UDF_PROPERTIES });
+	static final Method REG_STATIC_UDF_KEY = new Method("registerStaticUDF", Types.VOID, new Type[] { Types.COLLECTION_KEY, Types.UDF_PROPERTIES });
 
 	// private static final ExprString ANY = LitString.toExprString("any");
 
@@ -206,7 +207,7 @@ public abstract class Function extends StatementBaseNoFinal implements Opcodes, 
 
 	@Override
 	public final void writeOut(BytecodeContext bc, int type) throws TransformerException {
-		register(bc.getPage());
+		// register(bc.getPage());
 		ExpressionUtil.visitLine(bc, getStart());
 		_writeOut(bc, type);
 		ExpressionUtil.visitLine(bc, getEnd());
@@ -214,7 +215,7 @@ public abstract class Function extends StatementBaseNoFinal implements Opcodes, 
 
 	@Override
 	public final void _writeOut(BytecodeContext bc) throws TransformerException {
-		register(bc.getPage());
+		// register(bc.getPage());
 		_writeOut(bc, PAGE_TYPE_REGULAR);
 	}
 

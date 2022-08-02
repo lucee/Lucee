@@ -33,4 +33,9 @@ component {
 		this.ormsettings.secondarycacheenabled	= true;						// use secondary cache
 		this.ormsettings.cacheProvider			= 'ehcache';
 	}
+	
+	public function onRequestStart() {
+		setting requesttimeout=10;
+	}
+
 }

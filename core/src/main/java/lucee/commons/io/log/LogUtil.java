@@ -65,8 +65,10 @@ public final class LogUtil {
 	public static boolean isAlreadyInLog() {
 		StackTraceElement[] stes = Thread.currentThread().getStackTrace();
 		if (stes != null) {
+			String str;
 			for (StackTraceElement ste: stes) {
-				if (ste.getClassName().indexOf("org.apache.log4j.") == 0) return true;
+				str = ste.getClassName();
+				if (str.indexOf("org.apache.log4j.") == 0 || str.indexOf("org.apache.logging.log4j.") == 0 || str.indexOf("lucee.commons.io.log.log4j") == 0) return true;
 			}
 		}
 		return false;

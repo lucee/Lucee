@@ -36,7 +36,8 @@ component {
 	this.ormSettings.eventHandling = true;
 	//this.ormSettings.dbcreate = 'dropcreate' ;
 	
-	public any function onRequestStart() {
+	public function onRequestStart() {
+		setting requesttimeout=10;
 		ormReload();
 	}
 	

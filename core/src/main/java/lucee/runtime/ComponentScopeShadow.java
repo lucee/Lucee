@@ -145,9 +145,12 @@ public class ComponentScopeShadow extends StructSupport implements ComponentScop
 		if (key.equalsIgnoreCase(KeyConstants._STATIC)) return component.staticScope();
 
 		Object val = shadow.getOrDefault(key, CollectionUtil.NULL);
-		if (val == CollectionUtil.NULL) return defaultValue;
-		if (val == null && !NullSupportHelper.full(pc)) return defaultValue;
-		return val;
+		if (val != CollectionUtil.NULL && (NullSupportHelper.full(pc) || val != null)) return val;
+
+		val = component.staticScope().getOrDefault(key, CollectionUtil.NULL);
+		if (val != CollectionUtil.NULL && (NullSupportHelper.full(pc) || val != null)) return val;
+
+		return defaultValue;
 	}
 
 	@Override

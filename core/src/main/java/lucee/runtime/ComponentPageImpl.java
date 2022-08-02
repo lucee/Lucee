@@ -95,6 +95,8 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 
 	private long lastCheck = -1;
 
+	private StaticScope staticScope;
+
 	public abstract ComponentImpl newInstance(PageContext pc, String callPath, boolean isRealPath, boolean isExtendedComponent, boolean executeConstr)
 			throws lucee.runtime.exp.PageException;
 
@@ -245,15 +247,16 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 			}
 
 			// DUMP
-			// TODO component.setAccess(pc,Component.ACCESS_PUBLIC);
-			String cdf = pc.getConfig().getComponentDumpTemplate();
+			if (!req.getServletPath().equalsIgnoreCase("/Web." + (pc.getRequestDialect() == CFMLEngine.DIALECT_CFML ? lucee.runtime.config.Constants.getCFMLComponentExtension()
+					: lucee.runtime.config.Constants.getLuceeComponentExtension()))) {
+				String cdf = pc.getConfig().getComponentDumpTemplate();
 
-			if (cdf != null && cdf.trim().length() > 0) {
-				pc.variablesScope().set(KeyConstants._component, component);
-				pc.doInclude(cdf, false);
+				if (cdf != null && cdf.trim().length() > 0) {
+					pc.variablesScope().set(KeyConstants._component, component);
+					pc.doInclude(cdf, false);
+				}
+				else pc.write(pc.getConfig().getDefaultDumpWriter(DumpWriter.DEFAULT_RICH).toString(pc, component.toDumpData(pc, 9999, DumpUtil.toDumpProperties()), true));
 			}
-			else pc.write(pc.getConfig().getDefaultDumpWriter(DumpWriter.DEFAULT_RICH).toString(pc, component.toDumpData(pc, 9999, DumpUtil.toDumpProperties()), true));
-
 		}
 		catch (Throwable t) {
 			throw Caster.toPageException(t);// Exception Handler.castAnd
@@ -1012,6 +1015,14 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 	public String getComponentName() {
 		if (getSubname() != null) return getPageSource().getComponentName() + "$" + getSubname();
 		return getPageSource().getComponentName();
+	}
+
+	public StaticScope getStaticScope() {
+		return staticScope;
+	}
+
+	public void setStaticScope(StaticScope staticScope) {
+		this.staticScope = staticScope;
 	}
 
 }

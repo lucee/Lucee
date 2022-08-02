@@ -99,10 +99,9 @@ import lucee.runtime.functions.system.ExpandPath;
 import lucee.runtime.net.http.ReqRspUtil;
 import lucee.runtime.op.Castable;
 import lucee.runtime.op.Caster;
-import lucee.runtime.op.Operator;
+import lucee.runtime.op.OpUtil;
 import lucee.runtime.op.date.DateCaster;
 import lucee.runtime.osgi.OSGiUtil;
-import lucee.runtime.thread.ThreadUtil;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.KeyImpl;
@@ -1320,7 +1319,9 @@ public final class SystemUtil {
 	}
 
 	public static void stop(PageContext pc, Thread thread) {
-		if (thread == null || !thread.isAlive() || thread == Thread.currentThread() || ThreadUtil.isInNativeMethod(thread, false)) return;
+		// if (thread == null || !thread.isAlive() || thread == Thread.currentThread() ||
+		// ThreadUtil.isInNativeMethod(thread, false)) return;
+		if (thread == null || !thread.isAlive() || thread == Thread.currentThread()) return;
 		Log log = null;
 		// in case it is the request thread
 		if (pc instanceof PageContextImpl && thread == pc.getThread()) {
@@ -1836,22 +1837,22 @@ class MacAddressWrap implements ObjectWrap, Castable, Serializable {
 
 	@Override
 	public int compareTo(String str) throws PageException {
-		return Operator.compare(toString(), str);
+		return OpUtil.compare(ThreadLocalPageContext.get(), toString(), str);
 	}
 
 	@Override
 	public int compareTo(boolean b) throws PageException {
-		return Operator.compare(castToBooleanValue(), b);
+		return OpUtil.compare(ThreadLocalPageContext.get(), castToBooleanValue() ? Boolean.TRUE : Boolean.FALSE, b ? Boolean.TRUE : Boolean.FALSE);
 	}
 
 	@Override
 	public int compareTo(double d) throws PageException {
-		return Operator.compare(castToDoubleValue(), d);
+		return OpUtil.compare(ThreadLocalPageContext.get(), Double.valueOf(castToDoubleValue()), Double.valueOf(d));
 	}
 
 	@Override
 	public int compareTo(DateTime dt) throws PageException {
-		return Operator.compare(toString(), dt.castToString());
+		return OpUtil.compare(ThreadLocalPageContext.get(), toString(), dt.castToString());
 	}
 
 	public static long size(Class clazz) throws URISyntaxException, ZipException, IOException {

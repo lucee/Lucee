@@ -363,7 +363,7 @@ public final class XMLConverter extends ConverterSupport {
 		}
 		// Number
 		if (object instanceof Number) {
-			rtn = goIn() + ((Number) object).doubleValue();
+			rtn = goIn() + Caster.toString((Number) object);
 			deep--;
 			type = "NUMBER";
 			return rtn;

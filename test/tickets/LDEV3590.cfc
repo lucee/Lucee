@@ -43,7 +43,6 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 			}
 		}
 		thread action="join" name=names;
-		systemOutput(cfthread,1,1);
 		var results="";
 		loop struct=cfthread index="local.name" item="local.thread" {
 			if(listFind(names, thread.name)==0) continue;
