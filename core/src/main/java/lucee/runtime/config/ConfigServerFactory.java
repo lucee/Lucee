@@ -71,7 +71,8 @@ public final class ConfigServerFactory extends ConfigFactory {
 	 * @throws BundleException
 	 * @throws ConverterException
 	 */
-	public static ConfigServerImpl newInstance(CFMLEngineImpl engine, Map<String, CFMLFactory> initContextes, Map<String, CFMLFactory> contextes, Resource configDir)
+	public static ConfigServerImpl newInstance(CFMLEngineImpl engine, Map<String, CFMLFactory> initContextes, Map<String, CFMLFactory> contextes, Resource configDir,
+			ConfigServerImpl existing, boolean essentialOnly)
 			throws SAXException, ClassException, PageException, IOException, TagLibException, FunctionLibException, BundleException, ConverterException {
 
 		boolean isCLI = SystemUtil.isCLICall();
@@ -109,7 +110,7 @@ public final class ConfigServerFactory extends ConfigFactory {
 		if (!hasConfigNew) {
 			hasConfigOld = configFileOld.exists() && configFileOld.length() > 0;
 		}
-		ConfigServerImpl config = new ConfigServerImpl(engine, initContextes, contextes, configDir, configFileNew, ui);
+		ConfigServerImpl config = existing != null ? existing : new ConfigServerImpl(engine, initContextes, contextes, configDir, configFileNew, ui, essentialOnly);
 
 		// translate to new
 		if (!hasConfigNew) {
@@ -124,14 +125,16 @@ public final class ConfigServerFactory extends ConfigFactory {
 		}
 
 		Struct root = loadDocumentCreateIfFails(configFileNew, "server");
-		double version = ConfigWebUtil.getAsDouble("version", root, 1.0d);
-		boolean cleanupDatasources = version < 5.0D;
 
-		load(config, root, false, doNew);
+		load(config, root, false, doNew, essentialOnly);
 
-		createContextFiles(configDir, config, doNew, cleanupDatasources);
+		if (!essentialOnly) {
+			double version = ConfigWebUtil.getAsDouble("version", root, 1.0d);
+			boolean cleanupDatasources = version < 5.0D;
+			createContextFiles(configDir, config, doNew, cleanupDatasources);
+			((CFMLEngineImpl) ConfigWebUtil.getEngine(config)).onStart(config, false);
+		}
 
-		((CFMLEngineImpl) ConfigWebUtil.getEngine(config)).onStart(config, false);
 		return config;
 	}
 
@@ -156,7 +159,7 @@ public final class ConfigServerFactory extends ConfigFactory {
 		}
 		int iDoNew = getNew(engine, configServer.getConfigDir(), false, UpdateInfo.NEW_NONE).updateType;
 		boolean doNew = iDoNew != NEW_NONE;
-		load(configServer, loadDocument(configFile), true, doNew);
+		load(configServer, loadDocument(configFile), true, doNew, false);
 		((CFMLEngineImpl) ConfigWebUtil.getEngine(configServer)).onStart(configServer, true);
 	}
 
@@ -174,10 +177,10 @@ public final class ConfigServerFactory extends ConfigFactory {
 	 * @throws PageException
 	 * @throws BundleException
 	 */
-	static void load(ConfigServerImpl configServer, Struct root, boolean isReload, boolean doNew)
+	static void load(ConfigServerImpl configServer, Struct root, boolean isReload, boolean doNew, boolean essentialOnly)
 			throws ClassException, PageException, IOException, TagLibException, FunctionLibException, BundleException {
 		ConfigBase.onlyFirstMatch = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.mapping.first", null), false);
-		ConfigWebFactory.load(null, configServer, root, isReload, doNew);
+		ConfigWebFactory.load(null, configServer, root, isReload, doNew, essentialOnly);
 		loadLabel(configServer, root);
 	}
 
@@ -241,8 +244,7 @@ public final class ConfigServerFactory extends ConfigFactory {
 		// Gateway Drivers
 		Resource gDir = adminDir.getRealResource("gdriver");
 		create("/resource/context/admin/gdriver/",
-				new String[] { "TaskGatewayDriver.cfc", "AsynchronousEvents.cfc", 
-					"DirectoryWatcher.cfc", "MailWatcher.cfc", "Gateway.cfc", "Field.cfc", "Group.cfc" }, gDir,
+				new String[] { "TaskGatewayDriver.cfc", "AsynchronousEvents.cfc", "DirectoryWatcher.cfc", "MailWatcher.cfc", "Gateway.cfc", "Field.cfc", "Group.cfc" }, gDir,
 				doNew);
 
 		// Logging/appender
@@ -259,12 +261,11 @@ public final class ConfigServerFactory extends ConfigFactory {
 		Resource secDir = configDir.getRealResource("security");
 		if (!secDir.exists()) secDir.mkdirs();
 		Resource res = create("/resource/security/", "cacerts", secDir, false);
-		if (SystemUtil.getSystemPropOrEnvVar("lucee.use.lucee.SSL.TrustStore", "").equalsIgnoreCase("true"))
-			System.setProperty("javax.net.ssl.trustStore", res.toString());
+		if (SystemUtil.getSystemPropOrEnvVar("lucee.use.lucee.SSL.TrustStore", "").equalsIgnoreCase("true")) System.setProperty("javax.net.ssl.trustStore", res.toString());
 		// Allow using system proxies
-		if (!SystemUtil.getSystemPropOrEnvVar("lucee.disable.systemProxies", "").equalsIgnoreCase("true"))
-			System.setProperty("java.net.useSystemProxies", "true"); // it defaults to false
-		
+		if (!SystemUtil.getSystemPropOrEnvVar("lucee.disable.systemProxies", "").equalsIgnoreCase("true")) System.setProperty("java.net.useSystemProxies", "true"); // it defaults
+																																									// to false
+
 		// Jacob
 		if (SystemUtil.isWindows()) {
 

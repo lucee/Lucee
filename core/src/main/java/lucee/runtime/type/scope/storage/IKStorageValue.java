@@ -27,6 +27,7 @@ public class IKStorageValue implements Serializable {
 		this(value, serialize(value), System.currentTimeMillis());
 	}
 
+	// DO NOT CHANGE, USED BY REDIS EXTENSION
 	public IKStorageValue(Map<Collection.Key, IKStorageScopeItem> value, byte[] barr, long lastModified) {
 		this.value = value;
 		this.barr = barr;

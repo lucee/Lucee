@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project default="run" basedir="." name="LuceeTestWarmup">
+
+<macrodef name="echots">
+    <attribute name="message"/>
+    <sequential>
+      <local name="timestamp" />
+      <tstamp>
+        <format property="timestamp" pattern="yyyy-MM-dd HH:mm:ss" />
+      </tstamp>
+      <echo message="---------- ${timestamp} - @{message} ----------" />
+    </sequential>
+  </macrodef>
+
+<target name="run">
+	<echots message="within run of build-warmup-test.xml"/>
+
+    <script language="CFML">
+    <![CDATA[
+        systemOutput("---------- #DateTimeFormat(now(),'yyyy-mm-dd HH:nn:ss')# - Lucee Started (LUCEE_ENABLE_WARMUP=true) ----------", true);
+        systemOutput("Lucee should automatically exit with 0, within 30s", true);
+        sleep(30*1000);
+        systemOutput("WARNING! After 30s, Lucee still hasn't automatically exited with 0, after deploying", true);
+        // throw "WARNING! After 30s, Lucee still hasn't automatically exited with 0";
+    ]]>
+    </script>
+  <echots message="finished run of build-warmup-test.xml"/>
+</target>
+</project>

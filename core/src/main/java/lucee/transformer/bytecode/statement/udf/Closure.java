@@ -22,22 +22,21 @@ import lucee.transformer.Position;
 import lucee.transformer.TransformerException;
 import lucee.transformer.bytecode.Body;
 import lucee.transformer.bytecode.BytecodeContext;
-import lucee.transformer.bytecode.Root;
 import lucee.transformer.expression.Expression;
 import lucee.transformer.expression.literal.Literal;
 
 public final class Closure extends Function {
 
-	public Closure(Root root, Expression name, Expression returnType, Expression returnFormat, Expression output, Expression bufferOutput, int access, Expression displayName,
+	public Closure(Expression name, Expression returnType, Expression returnFormat, Expression output, Expression bufferOutput, int access, Expression displayName,
 			Expression description, Expression hint, Expression secureJson, Expression verifyClient, Expression localMode, Literal cachedWithin, int modifier, Body body,
 			Position start, Position end) {
-		super(root, name, returnType, returnFormat, output, bufferOutput, access, displayName, description, hint, secureJson, verifyClient, localMode, cachedWithin, modifier, body,
+		super(name, returnType, returnFormat, output, bufferOutput, access, displayName, description, hint, secureJson, verifyClient, localMode, cachedWithin, modifier, body,
 				start, end);
 
 	}
 
-	public Closure(Root root, String name, int access, int modifier, String returnType, Body body, Position start, Position end) {
-		super(root, name, access, modifier, returnType, body, start, end);
+	public Closure(String name, int access, int modifier, String returnType, Body body, Position start, Position end) {
+		super(name, access, modifier, returnType, body, start, end);
 	}
 
 	@Override

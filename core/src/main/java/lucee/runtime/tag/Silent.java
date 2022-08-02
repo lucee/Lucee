@@ -57,7 +57,8 @@ public final class Silent extends BodyTagTryCatchFinallyImpl {
 			try {
 				bc.flush();
 			}
-			catch (IOException e) {}
+			catch (IOException e) {
+			}
 			pageContext.popBody();
 			bc = null;
 		}
@@ -80,7 +81,7 @@ public final class Silent extends BodyTagTryCatchFinallyImpl {
 	public void release() {
 		super.release();
 		bc = null;
-		this.bufferOutput = null;
+		this.bufferOutput = true;
 	}
 
 }

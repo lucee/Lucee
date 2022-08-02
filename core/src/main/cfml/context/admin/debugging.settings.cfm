@@ -159,8 +159,8 @@ Redirtect to entry --->
 													<input type="hidden" name="#item#" value="#_debug[item]#">
 												</cfif>
 												<cfif structKeyExists(stText.debug.settings, item&"Alert")>
-													<div>
-														<b class="comment" style="color:##bf4f36">#stText.debug.settings[item&"Alert"]#</b>
+													<div class="comment">
+														<b style="color:##bf4f36">#stText.debug.settings[item&"Alert"]#</b>
 													</div>
 												</cfif>
 												<div class="comment">#stText.debug.settings[item&"Desc"]#</div>

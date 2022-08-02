@@ -2,11 +2,12 @@ component {
 
 	pgSQL = getCredentials();
 
-	this.name = "luceetest";
+	this.name = "lucee_postgres2";
 	this.datasources["pgSQL_DSN"] = pgSQL;
 	this.datasource = "pgSQL_DSN";
 
-	public function onRequestStart(){
+	public function onRequestStart() {
+		setting requesttimeout=10;
 		query{
 			echo("DROP TABLE IF EXISTS test_pgSQL");
 		}

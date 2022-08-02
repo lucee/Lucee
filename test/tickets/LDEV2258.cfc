@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase"{
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="image" {
 	function beforeAll(){
 
 		variables.path = getDirectoryFromPath(getCurrentTemplatePath())&"LDEV2258/logo";

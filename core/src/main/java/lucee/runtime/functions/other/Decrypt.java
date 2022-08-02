@@ -56,9 +56,9 @@ public final class Decrypt implements Function {
 	public static String invoke(String input, String key, String algorithm, String encoding, Object ivOrSalt, int iterations) throws PageException {
 		try {
 			if ("RSA".equalsIgnoreCase(algorithm)) {
-				return new String(RSA.decrypt(Coder.decode(encoding, input), RSA.toKey(key), 0), Cryptor.DEFAULT_CHARSET);
+				return new String(RSA.decrypt(Coder.decode(encoding, input, false), RSA.toKey(key), 0), Cryptor.DEFAULT_CHARSET);
 			}
-			else if (CFMXCompat.isCfmxCompat(algorithm)) return new String(invoke(Coder.decode(encoding, input), key, algorithm, null, 0), Cryptor.DEFAULT_CHARSET);
+			else if (CFMXCompat.isCfmxCompat(algorithm)) return new String(invoke(Coder.decode(encoding, input, false), key, algorithm, null, 0), Cryptor.DEFAULT_CHARSET);
 			byte[] baIVS = null;
 			if (ivOrSalt instanceof String) baIVS = ((String) ivOrSalt).getBytes(Cryptor.DEFAULT_CHARSET);
 			else if (ivOrSalt != null) baIVS = Caster.toBinary(ivOrSalt);

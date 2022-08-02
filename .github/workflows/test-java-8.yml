@@ -1,0 +1,9 @@
+name: Test with Java 8
+
+on: [workflow_dispatch]
+
+jobs:
+  build:
+    uses: ./.github/workflows/main.yml
+    with:
+      LUCEE_TEST_JAVA_VERSION: '8'

@@ -69,7 +69,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 		// member function
 		savecontent variable="c" {
-			res="a".Each(function(){
+			res="a".listEach(function(){
 							echo(serialize(arguments));
  							return true;
  

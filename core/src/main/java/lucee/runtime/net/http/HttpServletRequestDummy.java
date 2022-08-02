@@ -101,7 +101,8 @@ public final class HttpServletRequestDummy implements HttpServletRequest, Serial
 			DEFAULT_REMOTE_ADDR = DEFAULT_REMOTE.getHostAddress();
 			DEFAULT_REMOTE_HOST = DEFAULT_REMOTE.getHostName();
 		}
-		catch (UnknownHostException e) {}
+		catch (UnknownHostException e) {
+		}
 	}
 	// private InetAddress remoteq=DEFAULT_REMOTE;
 	private String remoteAddr = DEFAULT_REMOTE_ADDR;
@@ -694,10 +695,12 @@ public final class HttpServletRequestDummy implements HttpServletRequest, Serial
 		try {
 			inputData = IOUtil.toBytes(req.getInputStream(), true, null);
 		}
-		catch (IOException e) {}
+		catch (IOException e) {
+		}
 
 		HttpServletRequestDummy dest = new HttpServletRequestDummy(rootDirectory, req.getServerName(), req.getRequestURI(), req.getQueryString(),
-				HttpUtil.cloneCookies(config, req), HttpUtil.cloneHeaders(req), HttpUtil.cloneParameters(req), HttpUtil.getAttributesAsStruct(req), getSessionEL(req), inputData);
+				HttpUtil.cloneCookies(config, req), HttpUtil.cloneHeaders(req), HttpUtil.cloneParameters(req), HttpUtil.getAttributesAsStruct(req), getSessionEL(req, false),
+				inputData);
 
 		try {
 			dest.setCharacterEncoding(req.getCharacterEncoding());
@@ -718,13 +721,13 @@ public final class HttpServletRequestDummy implements HttpServletRequest, Serial
 		dest.setRequestedSessionId(req.getRequestedSessionId());
 		dest.setScheme(req.getScheme());
 		dest.setServerPort(req.getServerPort());
-		dest.setSession(getSessionEL(req));
+		dest.setSession(getSessionEL(req, false));
 		return dest;
 	}
 
-	private static HttpSession getSessionEL(HttpServletRequest req) {
+	private static HttpSession getSessionEL(HttpServletRequest req, boolean createIfNecessary) {
 		try {
-			return req.getSession(false);
+			return req.getSession(createIfNecessary);
 		}
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);

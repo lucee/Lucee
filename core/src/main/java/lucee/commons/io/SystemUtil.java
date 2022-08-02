@@ -99,7 +99,7 @@ import lucee.runtime.functions.system.ExpandPath;
 import lucee.runtime.net.http.ReqRspUtil;
 import lucee.runtime.op.Castable;
 import lucee.runtime.op.Caster;
-import lucee.runtime.op.Operator;
+import lucee.runtime.op.OpUtil;
 import lucee.runtime.op.date.DateCaster;
 import lucee.runtime.osgi.OSGiUtil;
 import lucee.runtime.type.Array;
@@ -439,7 +439,8 @@ public final class SystemUtil {
 		try {
 			return frp.getResource(".").getCanonicalResource();
 		}
-		catch (IOException e) {}
+		catch (IOException e) {
+		}
 		URL url = InfoImpl.class.getClassLoader().getResource(".");
 		try {
 			return frp.getResource(FileUtil.URLToFile(url).getAbsolutePath());
@@ -578,7 +579,8 @@ public final class SystemUtil {
 			try {
 				return StringUtil.replace(file.getCanonicalPath(), dir.getCanonicalPath(), placeholder, true);
 			}
-			catch (IOException e) {}
+			catch (IOException e) {
+			}
 		}
 		return null;
 	}
@@ -649,7 +651,8 @@ public final class SystemUtil {
 		try {
 			id = MD5.getDigestAsString(ReqRspUtil.getRootPath(sc));
 		}
-		catch (IOException e) {}
+		catch (IOException e) {
+		}
 		return id;
 	}
 
@@ -677,35 +680,40 @@ public final class SystemUtil {
 		try {
 			Thread.sleep(time);
 		}
-		catch (InterruptedException e) {}
+		catch (InterruptedException e) {
+		}
 	}
 
 	public static void sleep(long time) {
 		try {
 			Thread.sleep(time);
 		}
-		catch (InterruptedException e) {}
+		catch (InterruptedException e) {
+		}
 	}
 
 	public static void join(Thread t) {
 		try {
 			t.join();
 		}
-		catch (InterruptedException e) {}
+		catch (InterruptedException e) {
+		}
 	}
 
 	public static void resumeEL(Thread t) {
 		try {
 			t.resume();
 		}
-		catch (Exception e) {}
+		catch (Exception e) {
+		}
 	}
 
 	public static void suspendEL(Thread t) {
 		try {
 			t.suspend();
 		}
-		catch (Exception e) {}
+		catch (Exception e) {
+		}
 	}
 
 	/**
@@ -721,7 +729,8 @@ public final class SystemUtil {
 				lock.wait(timeout);
 			}
 		}
-		catch (InterruptedException e) {}
+		catch (InterruptedException e) {
+		}
 	}
 
 	public static void wait(Object lock, int timeout) {
@@ -730,7 +739,8 @@ public final class SystemUtil {
 				lock.wait(timeout);
 			}
 		}
-		catch (InterruptedException e) {}
+		catch (InterruptedException e) {
+		}
 	}
 
 	/**
@@ -745,7 +755,8 @@ public final class SystemUtil {
 				lock.wait();
 			}
 		}
-		catch (InterruptedException e) {}
+		catch (InterruptedException e) {
+		}
 	}
 
 	/**
@@ -1009,7 +1020,8 @@ public final class SystemUtil {
 				pc = ThreadLocalPageContext.get(pc);
 				if (pc != null) template = ExpandPath.call(pc, template);
 			}
-			catch (PageException e) {} // optional step, so in case it fails we are still fine
+			catch (PageException e) {
+			} // optional step, so in case it fails we are still fine
 
 			return new TemplateLine(template, line);
 		}
@@ -1307,6 +1319,8 @@ public final class SystemUtil {
 	}
 
 	public static void stop(PageContext pc, Thread thread) {
+		// if (thread == null || !thread.isAlive() || thread == Thread.currentThread() ||
+		// ThreadUtil.isInNativeMethod(thread, false)) return;
 		if (thread == null || !thread.isAlive() || thread == Thread.currentThread()) return;
 		Log log = null;
 		// in case it is the request thread
@@ -1671,7 +1685,8 @@ public final class SystemUtil {
 				booted = Caster.toBoolean(m.invoke(null, EMPTY_OBJ));
 				return booted.booleanValue();
 			}
-			catch (Exception e) {}
+			catch (Exception e) {
+			}
 		}
 		return true;
 	}
@@ -1703,7 +1718,8 @@ public final class SystemUtil {
 				Method m = clazz.getMethod("getJavaObjectInputStreamAccess", EMPTY_CLASS);
 				joisa = m.invoke(null, EMPTY_OBJ);
 			}
-			catch (Exception e) {}
+			catch (Exception e) {
+			}
 		}
 
 		if (joisa != null) {
@@ -1713,7 +1729,8 @@ public final class SystemUtil {
 				m.invoke(joisa, new Object[] { s, class1, cap });
 				return true;
 			}
-			catch (Exception e) {}
+			catch (Exception e) {
+			}
 		}
 		return false;
 	}
@@ -1820,22 +1837,22 @@ class MacAddressWrap implements ObjectWrap, Castable, Serializable {
 
 	@Override
 	public int compareTo(String str) throws PageException {
-		return Operator.compare(toString(), str);
+		return OpUtil.compare(ThreadLocalPageContext.get(), toString(), str);
 	}
 
 	@Override
 	public int compareTo(boolean b) throws PageException {
-		return Operator.compare(castToBooleanValue(), b);
+		return OpUtil.compare(ThreadLocalPageContext.get(), castToBooleanValue() ? Boolean.TRUE : Boolean.FALSE, b ? Boolean.TRUE : Boolean.FALSE);
 	}
 
 	@Override
 	public int compareTo(double d) throws PageException {
-		return Operator.compare(castToDoubleValue(), d);
+		return OpUtil.compare(ThreadLocalPageContext.get(), Double.valueOf(castToDoubleValue()), Double.valueOf(d));
 	}
 
 	@Override
 	public int compareTo(DateTime dt) throws PageException {
-		return Operator.compare(toString(), dt.castToString());
+		return OpUtil.compare(ThreadLocalPageContext.get(), toString(), dt.castToString());
 	}
 
 	public static long size(Class clazz) throws URISyntaxException, ZipException, IOException {

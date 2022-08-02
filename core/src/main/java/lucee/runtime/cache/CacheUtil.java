@@ -137,6 +137,7 @@ public class CacheUtil {
 		}
 	}
 
+	// USED in extension
 	public static CacheConnection getCacheConnection(PageContext pc, String cacheName) throws IOException {
 		pc = ThreadLocalPageContext.get(pc);
 		if (pc != null) return ((PageContextImpl) pc).getCacheConnection(cacheName);
@@ -290,7 +291,8 @@ public class CacheUtil {
 		try {
 			release(cc);
 		}
-		catch (IOException e) {}
+		catch (IOException e) {
+		}
 	}
 
 	public static void release(CacheConnection cc) throws IOException {

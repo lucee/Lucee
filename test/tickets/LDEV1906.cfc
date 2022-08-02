@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase"{
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="image" {
 	function run( testResults , testBox ) {
 		describe( "test suite for LDEV-1906()", function() {
 			it(title = "checking the duplicate() with image", body = function( currentSpec ) {

@@ -34,11 +34,12 @@ import lucee.runtime.net.proxy.ProxyData;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.dt.Date;
 import lucee.runtime.type.dt.Time;
+import lucee.runtime.schedule.ScheduleTaskPro;
 
 /**
  * Define a single schedule Task
  */
-public final class ScheduleTaskImpl implements ScheduleTask {
+public final class ScheduleTaskImpl implements ScheduleTaskPro {
 
 	public static final int INTERVAL_EVEREY = -1;
 	public static final int INTERVAL_YEAR = 4;
@@ -54,6 +55,7 @@ public final class ScheduleTaskImpl implements ScheduleTask {
 	private long timeout;
 	private Credentials credentials;
 	private ProxyData proxy;
+	private String userAgent;
 	private boolean resolveURL;
 
 	private long nextExecution;
@@ -88,6 +90,7 @@ public final class ScheduleTaskImpl implements ScheduleTask {
 	 * @param proxyHost
 	 * @param proxyPort
 	 * @param proxyCredentials proxy username and password
+	 * @param userAgent
 	 * @param resolveURL resolve links in the output page to absolute references or not
 	 * @param publish
 	 * @throws IOException
@@ -95,24 +98,43 @@ public final class ScheduleTaskImpl implements ScheduleTask {
 	 */
 	public ScheduleTaskImpl(Scheduler scheduler, String task, Resource file, Date startDate, Time startTime, Date endDate, Time endTime, String url, int port, String interval,
 			long timeout, Credentials credentials, ProxyData proxy, boolean resolveURL, boolean publish, boolean hidden, boolean readonly, boolean paused, boolean autoDelete,
-			boolean unique) throws IOException, ScheduleException {
+			boolean unique, String userAgent) throws IOException, ScheduleException {
 
 		this.scheduler = scheduler;
 		String md5 = task.toLowerCase() + file + startDate + startTime + endDate + endTime + url + port + interval + timeout + credentials + proxy + resolveURL + publish + hidden
-				+ readonly + paused + unique;
+				+ readonly + paused + unique + userAgent;
 		md5 = Md5.getDigestAsString(md5);
 		this.md5 = md5;
 
 		if (file != null && file.toString().trim().length() > 0) {
-			Resource parent = file.getParentResource();
-			if (parent == null || !parent.exists()) throw new IOException("Directory for output file [" + file + "] doesn't exist");
-			if (file.exists() && !file.isFile()) throw new IOException("output file [" + file + "] is not a file");
+			// is it a file?
+			if (file.exists() && !file.isFile()) {
+				((SchedulerImpl) scheduler).getConfig().getLog("scheduler").error("scheduler", "Output file [" + file + "] is not a file");
+				file = null;
+			}
+
+			if (file != null) {
+				// cgeck parent directory
+				Resource parent = file.getParentResource();
+				if (parent != null) {
+					if (!parent.exists()) {
+						Resource grandParent = parent.getParentResource();
+						if (grandParent != null && grandParent.exists()) parent.mkdir();
+						else parent = null;
+					}
+				}
+				// no parent directory
+				if (parent == null) {
+					((SchedulerImpl) scheduler).getConfig().getLog("scheduler").error("scheduler", "Directory for output file [" + file + "] doesn't exist");
+					file = null;
+				}
+			}
 		}
 		if (timeout < 1) {
-			throw new ScheduleException("value timeout must be greater than 0");
+			throw new ScheduleException("Value for [timeout] must be greater than 0");
 		}
-		if (startDate == null) throw new ScheduleException("start date is required");
-		if (startTime == null) throw new ScheduleException("start time is required");
+		if (startDate == null) throw new ScheduleException("Start date is required");
+		if (startTime == null) throw new ScheduleException("Start time is required");
 		// if(endTime==null)endTime=new Time(23,59,59,999);
 
 		this.task = task.trim();
@@ -127,6 +149,7 @@ public final class ScheduleTaskImpl implements ScheduleTask {
 		this.timeout = timeout;
 		this.credentials = credentials;
 		this.proxy = proxy;
+		this.userAgent = userAgent;
 		this.resolveURL = resolveURL;
 		this.publish = publish;
 		this.hidden = hidden;
@@ -155,10 +178,10 @@ public final class ScheduleTaskImpl implements ScheduleTask {
 			else if (interval.equals("month")) return INTERVAL_MONTH;
 			else if (interval.equals("weekly")) return INTERVAL_WEEK;
 			else if (interval.equals("week")) return INTERVAL_WEEK;
-			throw new ScheduleException("invalid interval definition [" + interval + "], valid values are [once,daily,monthly,weekly or number]");
+			throw new ScheduleException("invalid interval definition [" + interval + "], valid values are [once, daily, monthly, weekly or number]");
 		}
-		if (i < 10) {
-			throw new ScheduleException("interval must be at least 10");
+		if (i < 1) {
+			throw new ScheduleException("interval must be at least 1");
 		}
 		return i;
 	}
@@ -205,6 +228,11 @@ public final class ScheduleTaskImpl implements ScheduleTask {
 	@Override
 	public ProxyData getProxyData() {
 		return proxy;
+	}
+
+	@Override
+	public String getUserAgent() {
+		return userAgent;
 	}
 
 	@Override
@@ -333,6 +361,10 @@ public final class ScheduleTaskImpl implements ScheduleTask {
 		this.unique = unique;
 	}
 
+	public void setUserAgent(String userAgent) {
+		this.userAgent = userAgent;
+	}
+
 	public String md5() {
 		return md5;
 	}
@@ -348,7 +380,7 @@ public final class ScheduleTaskImpl implements ScheduleTask {
 					return; // existing is still fine, so nothing to start
 				}
 			}
-			((SchedulerImpl) scheduler).getConfig().getLog("scheduler").info("scheduler", "thread needs a restart (" + thread.getState().name() + ")");
+			((SchedulerImpl) scheduler).getConfig().getLog("scheduler").info("scheduler", "Thread needs a restart (" + thread.getState().name() + ")");
 
 		}
 		this.thread = new ScheduledTaskThread(engine, scheduler, this);

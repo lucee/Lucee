@@ -31,6 +31,7 @@ import lucee.transformer.bytecode.expression.ExpressionBase;
 import lucee.transformer.bytecode.expression.var.VariableImpl;
 import lucee.transformer.bytecode.expression.var.VariableString;
 import lucee.transformer.bytecode.util.Methods_Caster;
+import lucee.transformer.bytecode.util.Methods_Operator;
 import lucee.transformer.bytecode.util.Types;
 import lucee.transformer.cast.Cast;
 import lucee.transformer.expression.Expression;
@@ -67,12 +68,14 @@ public final class CastOther extends ExpressionBase implements Cast {
 			if ("boolean".equals(type) || "bool".equals(lcType)) return expr.getFactory().toExprBoolean(expr);
 			break;
 		case 'd':
-			if ("double".equals(type)) return expr.getFactory().toExprDouble(expr);
+			if ("double".equals(type)) return expr.getFactory().toExprNumber(expr);
 			break;
 		case 'i':
 			if ("int".equals(lcType)) return expr.getFactory().toExprInt(expr);
 		case 'n':
-			if ("number".equals(lcType) || "numeric".equals(lcType)) return expr.getFactory().toExprDouble(expr);
+			if ("number".equals(lcType) || "numeric".equals(lcType)) {
+				return expr.getFactory().toExprNumber(expr);
+			}
 			break;
 		case 'o':
 			if ("object".equals(lcType)) {
@@ -152,13 +155,13 @@ public final class CastOther extends ExpressionBase implements Cast {
 				return Types.BYTE_VALUE_ARRAY;
 			}
 			if ("byte".equals(type)) {
-				rtn = expr.writeOutAsType(bc, MODE_VALUE);
-				if (!rtn.equals(Types.BYTE_VALUE)) adapter.invokeStatic(Types.CASTER, Methods_Caster.TO_BYTE_VALUE[Types.getType(rtn)]);
+				rtn = expr.writeOutAsType(bc, MODE_REF);
+				if (!rtn.equals(Types.BYTE_VALUE)) adapter.invokeStatic(Types.CASTER, Methods_Caster.TO_BYTE_VALUE[Methods_Operator.getType(rtn)]);
 				return Types.BYTE_VALUE;
 			}
 			if ("byte".equals(lcType)) {
 				rtn = expr.writeOutAsType(bc, MODE_REF);
-				if (!rtn.equals(Types.BYTE)) adapter.invokeStatic(Types.CASTER, Methods_Caster.TO_BYTE[Types.getType(rtn)]);
+				if (!rtn.equals(Types.BYTE)) adapter.invokeStatic(Types.CASTER, Methods_Caster.TO_BYTE[Methods_Operator.getType(rtn)]);
 				return Types.BYTE;
 			}
 			if ("boolean".equals(lcType)) {
@@ -167,13 +170,13 @@ public final class CastOther extends ExpressionBase implements Cast {
 			break;
 		case 'c':
 			if ("char".equals(lcType)) {
-				rtn = expr.writeOutAsType(bc, MODE_VALUE);
-				if (!rtn.equals(Types.CHAR)) adapter.invokeStatic(Types.CASTER, Methods_Caster.TO_CHAR_VALUE[Types.getType(rtn)]);
+				rtn = expr.writeOutAsType(bc, MODE_REF);
+				if (!rtn.equals(Types.CHAR)) adapter.invokeStatic(Types.CASTER, Methods_Caster.TO_CHAR_VALUE[Methods_Operator.getType(rtn)]);
 				return Types.CHAR;
 			}
 			if ("character".equals(lcType)) {
 				rtn = expr.writeOutAsType(bc, MODE_REF);
-				if (!rtn.equals(Types.CHARACTER)) adapter.invokeStatic(Types.CASTER, Methods_Caster.TO_CHARACTER[Types.getType(rtn)]);
+				if (!rtn.equals(Types.CHARACTER)) adapter.invokeStatic(Types.CASTER, Methods_Caster.TO_CHARACTER[Methods_Operator.getType(rtn)]);
 				return Types.CHARACTER;
 			}
 			if ("collection".equals(lcType)) {
@@ -189,14 +192,14 @@ public final class CastOther extends ExpressionBase implements Cast {
 			break;
 		case 'd':
 			if ("double".equals(lcType)) {
-				return ((ExpressionBase) bc.getFactory().toExprDouble(expr)).writeOutAsType(bc, MODE_REF);
+				return ((ExpressionBase) bc.getFactory().toExprNumber(expr)).writeOutAsType(bc, MODE_REF);
 			}
 			if ("date".equals(lcType) || "datetime".equals(lcType)) {
 				// First Arg
 				rtn = expr.writeOutAsType(bc, MODE_REF);
 				if (rtn.equals(Types.DATE_TIME)) return Types.DATE_TIME;
 
-				int type = Types.getType(rtn);
+				int type = Methods_Operator.getType(rtn);
 
 				// Second Arg
 				adapter.loadArg(0);
@@ -209,7 +212,7 @@ public final class CastOther extends ExpressionBase implements Cast {
 			}
 			if ("decimal".equals(lcType)) {
 				rtn = expr.writeOutAsType(bc, MODE_REF);
-				adapter.invokeStatic(Types.CASTER, Methods_Caster.TO_DECIMAL[Types.getType(rtn)]);
+				adapter.invokeStatic(Types.CASTER, Methods_Caster.TO_DECIMAL[Methods_Operator.getType(rtn)]);
 				return Types.STRING;
 			}
 			break;
@@ -226,25 +229,25 @@ public final class CastOther extends ExpressionBase implements Cast {
 				return Types.FILE;
 			}
 			if ("float".equals(type)) {
-				rtn = expr.writeOutAsType(bc, MODE_VALUE);
-				if (!rtn.equals(Types.FLOAT_VALUE)) adapter.invokeStatic(Types.CASTER, Methods_Caster.TO_FLOAT_VALUE[Types.getType(rtn)]);
+				rtn = expr.writeOutAsType(bc, MODE_REF);
+				if (!rtn.equals(Types.FLOAT_VALUE)) adapter.invokeStatic(Types.CASTER, Methods_Caster.TO_FLOAT_VALUE[Methods_Operator.getType(rtn)]);
 				return Types.FLOAT_VALUE;
 			}
 			if ("float".equals(lcType)) {
 				rtn = expr.writeOutAsType(bc, MODE_REF);
-				if (!rtn.equals(Types.FLOAT)) adapter.invokeStatic(Types.CASTER, Methods_Caster.TO_FLOAT[Types.getType(rtn)]);
+				if (!rtn.equals(Types.FLOAT)) adapter.invokeStatic(Types.CASTER, Methods_Caster.TO_FLOAT[Methods_Operator.getType(rtn)]);
 				return Types.FLOAT;
 			}
 			break;
 		case 'i':
 			if ("int".equals(lcType)) {
-				rtn = expr.writeOutAsType(bc, MODE_VALUE);
-				if (!rtn.equals(Types.INT_VALUE)) adapter.invokeStatic(Types.CASTER, Methods_Caster.TO_INT_VALUE[Types.getType(rtn)]);
+				rtn = expr.writeOutAsType(bc, MODE_REF);
+				if (!rtn.equals(Types.INT_VALUE)) adapter.invokeStatic(Types.CASTER, Methods_Caster.TO_INT_VALUE[Methods_Operator.getType(rtn)]);
 				return Types.INT_VALUE;
 			}
 			if ("integer".equals(lcType)) {
 				rtn = expr.writeOutAsType(bc, MODE_REF);
-				if (!rtn.equals(Types.INTEGER)) adapter.invokeStatic(Types.CASTER, Methods_Caster.TO_INTEGER[Types.getType(rtn)]);
+				if (!rtn.equals(Types.INTEGER)) adapter.invokeStatic(Types.CASTER, Methods_Caster.TO_INTEGER[Methods_Operator.getType(rtn)]);
 				return Types.INTEGER;
 			}
 			/*
@@ -259,7 +262,7 @@ public final class CastOther extends ExpressionBase implements Cast {
 				return ((ExpressionBase) bc.getFactory().toExprBoolean(expr)).writeOutAsType(bc, MODE_REF);
 			}
 			if ("java.lang.double".equals(lcType)) {
-				return ((ExpressionBase) bc.getFactory().toExprDouble(expr)).writeOutAsType(bc, MODE_REF);
+				return ((ExpressionBase) bc.getFactory().toExprNumber(expr)).writeOutAsType(bc, MODE_REF);
 			}
 			if ("java.lang.string".equals(lcType)) {
 				return ((ExpressionBase) bc.getFactory().toExprString(expr)).writeOutAsType(bc, MODE_REF);
@@ -271,32 +274,32 @@ public final class CastOther extends ExpressionBase implements Cast {
 			}
 			if ("java.lang.byte".equals(lcType)) {
 				rtn = expr.writeOutAsType(bc, MODE_REF);
-				if (!rtn.equals(Types.BYTE)) adapter.invokeStatic(Types.CASTER, Methods_Caster.TO_BYTE[Types.getType(rtn)]);
+				if (!rtn.equals(Types.BYTE)) adapter.invokeStatic(Types.CASTER, Methods_Caster.TO_BYTE[Methods_Operator.getType(rtn)]);
 				return Types.BYTE;
 			}
 			if ("java.lang.character".equals(lcType)) {
 				rtn = expr.writeOutAsType(bc, MODE_REF);
-				if (!rtn.equals(Types.CHARACTER)) adapter.invokeStatic(Types.CASTER, Methods_Caster.TO_CHARACTER[Types.getType(rtn)]);
+				if (!rtn.equals(Types.CHARACTER)) adapter.invokeStatic(Types.CASTER, Methods_Caster.TO_CHARACTER[Methods_Operator.getType(rtn)]);
 				return Types.CHARACTER;
 			}
 			if ("java.lang.short".equals(lcType)) {
 				rtn = expr.writeOutAsType(bc, MODE_REF);
-				if (!rtn.equals(Types.SHORT)) adapter.invokeStatic(Types.CASTER, Methods_Caster.TO_SHORT[Types.getType(rtn)]);
+				if (!rtn.equals(Types.SHORT)) adapter.invokeStatic(Types.CASTER, Methods_Caster.TO_SHORT[Methods_Operator.getType(rtn)]);
 				return Types.SHORT;
 			}
 			if ("java.lang.integer".equals(lcType)) {
 				rtn = expr.writeOutAsType(bc, MODE_REF);
-				if (!rtn.equals(Types.INTEGER)) adapter.invokeStatic(Types.CASTER, Methods_Caster.TO_INTEGER[Types.getType(rtn)]);
+				if (!rtn.equals(Types.INTEGER)) adapter.invokeStatic(Types.CASTER, Methods_Caster.TO_INTEGER[Methods_Operator.getType(rtn)]);
 				return Types.INTEGER;
 			}
 			if ("java.lang.long".equals(lcType)) {
 				rtn = expr.writeOutAsType(bc, MODE_REF);
-				if (!rtn.equals(Types.LONG)) adapter.invokeStatic(Types.CASTER, Methods_Caster.TO_LONG[Types.getType(rtn)]);
+				if (!rtn.equals(Types.LONG)) adapter.invokeStatic(Types.CASTER, Methods_Caster.TO_LONG[Methods_Operator.getType(rtn)]);
 				return Types.LONG;
 			}
 			if ("java.lang.float".equals(lcType)) {
 				rtn = expr.writeOutAsType(bc, MODE_REF);
-				if (!rtn.equals(Types.FLOAT)) adapter.invokeStatic(Types.CASTER, Methods_Caster.TO_FLOAT[Types.getType(rtn)]);
+				if (!rtn.equals(Types.FLOAT)) adapter.invokeStatic(Types.CASTER, Methods_Caster.TO_FLOAT[Methods_Operator.getType(rtn)]);
 				return Types.FLOAT;
 			}
 			if ("java.io.file".equals(lcType)) {
@@ -319,19 +322,19 @@ public final class CastOther extends ExpressionBase implements Cast {
 				// adapter.invokeVirtual(Types.CONFIG_WEB,GET_TIMEZONE);
 				adapter.invokeVirtual(Types.PAGE_CONTEXT, GET_TIMEZONE);
 
-				adapter.invokeStatic(Types.CASTER, Methods_Caster.TO_DATE[Types.getType(rtn)]);
+				adapter.invokeStatic(Types.CASTER, Methods_Caster.TO_DATE[Methods_Operator.getType(rtn)]);
 				return Types.DATE_TIME;
 			}
 			break;
 		case 'l':
 			if ("long".equals(type)) {
-				rtn = expr.writeOutAsType(bc, MODE_VALUE);
-				if (!rtn.equals(Types.LONG_VALUE)) adapter.invokeStatic(Types.CASTER, Methods_Caster.TO_LONG_VALUE[Types.getType(rtn)]);
+				rtn = expr.writeOutAsType(bc, MODE_REF);
+				if (!rtn.equals(Types.LONG_VALUE)) adapter.invokeStatic(Types.CASTER, Methods_Caster.TO_LONG_VALUE[Methods_Operator.getType(rtn)]);
 				return Types.LONG_VALUE;
 			}
 			else if ("long".equals(lcType)) {
 				rtn = expr.writeOutAsType(bc, MODE_REF);
-				if (!rtn.equals(Types.LONG)) adapter.invokeStatic(Types.CASTER, Methods_Caster.TO_LONG[Types.getType(rtn)]);
+				if (!rtn.equals(Types.LONG)) adapter.invokeStatic(Types.CASTER, Methods_Caster.TO_LONG[Methods_Operator.getType(rtn)]);
 				return Types.LONG;
 			}
 			else if ("locale".equals(lcType)) {
@@ -378,13 +381,13 @@ public final class CastOther extends ExpressionBase implements Cast {
 				return Types.STRUCT;
 			}
 			if ("short".equals(type)) {
-				rtn = expr.writeOutAsType(bc, MODE_VALUE);
-				if (!rtn.equals(Types.SHORT_VALUE)) adapter.invokeStatic(Types.CASTER, Methods_Caster.TO_SHORT_VALUE[Types.getType(rtn)]);
+				rtn = expr.writeOutAsType(bc, MODE_REF);
+				if (!rtn.equals(Types.SHORT_VALUE)) adapter.invokeStatic(Types.CASTER, Methods_Caster.TO_SHORT_VALUE[Methods_Operator.getType(rtn)]);
 				return Types.SHORT_VALUE;
 			}
 			if ("short".equals(lcType)) {
 				rtn = expr.writeOutAsType(bc, MODE_REF);
-				if (!rtn.equals(Types.SHORT)) adapter.invokeStatic(Types.CASTER, Methods_Caster.TO_SHORT[Types.getType(rtn)]);
+				if (!rtn.equals(Types.SHORT)) adapter.invokeStatic(Types.CASTER, Methods_Caster.TO_SHORT[Methods_Operator.getType(rtn)]);
 				return Types.SHORT;
 			}
 			if ("stringbuffer".equals(lcType)) {
