@@ -20,4 +20,7 @@ component {
 	
 	this.name = "componenttest";
 
+	public function onRequestStart() {
+		setting requesttimeout=10;
+	}
 }

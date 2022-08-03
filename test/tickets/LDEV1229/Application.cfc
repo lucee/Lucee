@@ -19,7 +19,9 @@ component {
 		,flushAtRequestEnd = false
 		,dialect = "MySQLwithInnoDB"
 	};
-	function onRequestStart(){
+	
+	public function onRequestStart() {
+		setting requesttimeout=10;
 		if(url.db=='mysql') {
 			query {
 		        echo("SET FOREIGN_KEY_CHECKS=0");

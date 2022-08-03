@@ -13,4 +13,9 @@ component {
 		, bundleVersion: '1.3.172'
 		, connectionString: 'jdbc:h2:'&getDirectoryFromPath(getCurrenttemplatepath())&'test'&'\testTimezone;MODE=MySQL'
 	};
+	
+	public function onRequestStart() {
+		setting requesttimeout=10;
+	}
+
 }

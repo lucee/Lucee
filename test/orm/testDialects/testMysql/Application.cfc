@@ -6,4 +6,8 @@ component {
     this.ormSettings.dialect = "mysql";
 
     this.datasource = server.getDatasource("mysql");
+
+	public function onRequestStart() {
+		setting requesttimeout=10;
+	}
 }

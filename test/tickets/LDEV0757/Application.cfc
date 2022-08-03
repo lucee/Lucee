@@ -23,5 +23,7 @@ component {
 			, connectionString: 'jdbc:h2:#getDirectoryFromPath(getCurrentTemplatePath())#/datasource/jira306;MODE=MySQL'
 		};
 	
-
+		public function onRequestStart() {
+			setting requesttimeout=10;
+		}
 } 

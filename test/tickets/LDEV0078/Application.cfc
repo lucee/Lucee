@@ -13,8 +13,9 @@ component {
 		flushAtRequestEnd = false
 	};
 
-	function onRequestStart(){
-		setting showdebugOutput=false;
+	
+	public function onRequestStart() {
+		setting requesttimeout=10 showdebugOutput=false;
 		// init the table used
 		query {
 	        echo("SET FOREIGN_KEY_CHECKS=0");

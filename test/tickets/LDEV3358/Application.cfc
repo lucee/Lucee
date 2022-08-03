@@ -12,7 +12,9 @@ component {
 	};
 	this.datasource = "LDEV3358";
 	
-	public function onRequestStart(){
+	
+	public function onRequestStart() {
+		setting requesttimeout=10;
 		query{
 			echo('DROP TABLE IF EXISTS LDEV3358');
 		}

@@ -106,7 +106,7 @@ public final class LDAPClient {
 		env.put("java.naming.referral", "ignore");
 
 		// timeout
-		env.put("com.sun.jndi.ldap.read.timeout", timeout);		
+		env.put("com.sun.jndi.ldap.read.timeout", String.valueOf(timeout));
 	}
 
 	/**

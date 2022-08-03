@@ -3,7 +3,9 @@ component {
     this.name = "LDEV-3487";
     this.datasources["LDEV_3487"] = mySQL;
     this.datasource = "LDEV_3487";
-    public function onRequestStart(){
+
+	public function onRequestStart() {
+		setting requesttimeout=10;
         if( StructIsEmpty(mySQL) ){
             writeoutput("Datasource credentials was not available"); // Datasource credentials was not available means need to skip the iteration.
         abort;
