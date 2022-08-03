@@ -147,20 +147,14 @@
 		<available file="${cache}/${extMSSQL}-${extMSSQLVersion}.lex" property="mssql.present"/>
 		<available file="${cache}/${extPostgreSQL}-${extPostgreSQLVersion}.lex" property="postgre.present"/>
 		<available file="${cache}/${extJDTsSQL}-${extJDTsSQLVersion}.lex" property="jdts.present"/>
-
-		<available file="${cache}/${extChart}-${extChartVersion}.lex" property="chart.present"/>
 		<available file="${cache}/${extS3}-${extS3Version}.lex" property="s3.present"/>
 		<available file="${cache}/${extEHCache}-${extEHCacheVersion}.lex" property="ehcache.present"/>
 		<available file="${cache}/${extAdmin}-${extAdminVersion}.lex" property="admin.present"/>
 		<available file="${cache}/${extDoc}-${extDocVersion}.lex" property="doc.present"/>
 		<available file="${cache}/${extHibernate}-${extHibernateVersion}.lex" property="hibernate.present"/>
-		<available file="${cache}/${extLucene}-${extLuceneVersion}.lex" property="lucene.present"/>
 		<available file="${cache}/${extPDF}-${extPDFVersion}.lex" property="pdf.present"/>
-		<available file="${cache}/${extForm}-${extFormVersion}.lex" property="form.present"/>
-		<available file="${cache}/${extAxis}-${extAxisVersion}.lex" property="axis.present"/>
 		<available file="${cache}/${extImage}-${extImageVersion}.lex" property="image.present"/>
 		<available file="${cache}/${extEsapi}-${extEsapiVersion}.lex" property="esapi.present"/>
-		<available file="${cache}/${extAjax}-${extAjaxVersion}.lex" property="ajax.present"/>
 		<available file="${cache}/${extCompress}-${extCompressVersion}.lex" property="compress.present"/>
 	</target>
 
@@ -176,9 +170,6 @@
 	<target name="check-jdts" depends="check-cache" unless="jdts.present">
 		<get src="${extURL}${extJDTsSQL}?version=${extJDTsSQLVersion}" dest="${cache}/${extJDTsSQL}-${extJDTsSQLVersion}.lex"/>
 	</target>
-	<target name="check-chart" depends="check-cache" unless="chart.present">
-		<get src="${extURL}${extChart}?version=${extChartVersion}" dest="${cache}/${extChart}-${extChartVersion}.lex"/>
-	</target>
 	<target name="check-s3" depends="check-cache" unless="s3.present">
 		<get src="${extURL}${extS3}?version=${extS3Version}" dest="${cache}/${extS3}-${extS3Version}.lex"/>
 	</target>
@@ -187,9 +178,6 @@
 	</target>
 	<target name="check-hibernate" depends="check-cache" unless="hibernate.present">
 		<get src="${extURL}${extHibernate}?version=${extHibernateVersion}" dest="${cache}/${extHibernate}-${extHibernateVersion}.lex"/>
-	</target>
-	<target name="check-lucene" depends="check-cache" unless="lucene.present">
-		<get src="${extURL}${extLucene}?version=${extLuceneVersion}" dest="${cache}/${extLucene}-${extLuceneVersion}.lex"/>
 	</target>
 	<target name="check-pdf" depends="check-cache" unless="pdf.present">
 		<get src="${extURL}${extPDF}?version=${extPDFVersion}" dest="${cache}/${extPDF}-${extPDFVersion}.lex"/>
@@ -200,20 +188,11 @@
 	<target name="check-doc" depends="check-cache" unless="doc.present">
 		<get src="${extURL}${extDoc}?version=${extDocVersion}" dest="${cache}/${extDoc}-${extDocVersion}.lex"/>
 	</target>
-	<target name="check-form" depends="check-cache" unless="form.present">
-		<get src="${extURL}${extForm}?version=${extFormVersion}" dest="${cache}/${extForm}-${extFormVersion}.lex"/>
-	</target>
-	<target name="check-axis" depends="check-cache" unless="axis.present">
-		<get src="${extURL}${extAxis}?version=${extAxisVersion}" dest="${cache}/${extAxis}-${extAxisVersion}.lex"/>
-	</target>
 	<target name="check-image" depends="check-cache" unless="image.present">
 		<get src="${extURL}${extImage}?version=${extImageVersion}" dest="${cache}/${extImage}-${extImageVersion}.lex"/>
 	</target>
 	<target name="check-esapi" depends="check-cache" unless="esapi.present">
 		<get src="${extURL}${extEsapi}?version=${extEsapiVersion}" dest="${cache}/${extEsapi}-${extEsapiVersion}.lex"/>
-	</target>
-	<target name="check-ajax" depends="check-cache" unless="ajax.present">
-		<get src="${extURL}${extAjax}?version=${extAjaxVersion}" dest="${cache}/${extAjax}-${extAjaxVersion}.lex"/>
 	</target>
 	<target name="check-compress" depends="check-cache" unless="compress.present">
 		<get src="${extURL}${extCompress}?version=${extCompressVersion}" dest="${cache}/${extCompress}-${extCompressVersion}.lex"/>
@@ -275,19 +254,7 @@
 			tofile="${goal}/extensions/${ext_jdts.filename}"/>
 		<echo>add:${goal}/extensions/${ext_jdts.filename}</echo>
 		<echo file="${goal}/extensions/.index" append="true">${ext_jdts.filename};</echo>
-		
-		<!-- add extension Chart -->
-		<loadmf jar="${cache}/${extChart}-${extChartVersion}.lex" prefix="ext_chart."/>
-		<toFileName id="${ext_chart.id}" name="${ext_chart.name}" version="${ext_chart.version}" property="ext_chart.filename"/>
-		<copy 
-			file="${cache}/${extChart}-${extChartVersion}.lex" 
-			todir="${goal}/extensions/"/>
-		<move 
-			file="${goal}/extensions/${extChart}-${extChartVersion}.lex" 
-			tofile="${goal}/extensions/${ext_chart.filename}"/>
-		<echo>add:${goal}/extensions/${ext_chart.filename}</echo>
-		<echo file="${goal}/extensions/.index" append="true">${ext_chart.filename};</echo>
-		
+
 		<!-- add extension S3 -->
 		<loadmf jar="${cache}/${extS3}-${extS3Version}.lex" prefix="ext_s3."/>
 		<toFileName id="${ext_s3.id}" name="${ext_s3.name}" version="${ext_s3.version}" property="ext_s3.filename"/>
@@ -323,19 +290,7 @@
 			tofile="${goal}/extensions/${ext_hibernate.filename}"/>
 		<echo>add:${goal}/extensions/${ext_hibernate.filename}</echo>
 		<echo file="${goal}/extensions/.index" append="true">${ext_hibernate.filename};</echo>
-		
-		<!-- add extension Lucene -->
-		<loadmf jar="${cache}/${extLucene}-${extLuceneVersion}.lex" prefix="ext_lucene."/>
-		<toFileName id="${ext_lucene.id}" name="${ext_lucene.name}" version="${ext_lucene.version}" property="ext_lucene.filename"/>
-		<copy 
-			file="${cache}/${extLucene}-${extLuceneVersion}.lex" 
-			todir="${goal}/extensions/"/>
-		<move 
-			file="${goal}/extensions/${extLucene}-${extLuceneVersion}.lex" 
-			tofile="${goal}/extensions/${ext_lucene.filename}"/>
-		<echo>add:${goal}/extensions/${ext_lucene.filename}</echo>
-		<echo file="${goal}/extensions/.index" append="true">${ext_lucene.filename};</echo>
-		
+
 		<!-- add extension PDF -->
 		<loadmf jar="${cache}/${extPDF}-${extPDFVersion}.lex" prefix="ext_pdf."/>
 		<toFileName id="${ext_pdf.id}" name="${ext_pdf.name}" version="${ext_pdf.version}" property="ext_pdf.filename"/>
@@ -371,30 +326,6 @@
 			tofile="${goal}/extensions/${ext_doc.filename}"/>
 		<echo>add:${goal}/extensions/${ext_doc.filename}</echo>
 		<echo file="${goal}/extensions/.index" append="true">${ext_doc.filename};</echo>
-		
-		<!-- add extension Form -->
-		<loadmf jar="${cache}/${extForm}-${extFormVersion}.lex" prefix="ext_form."/>
-		<toFileName id="${ext_form.id}" name="${ext_form.name}" version="${ext_form.version}" property="ext_form.filename"/>
-		<copy 
-			file="${cache}/${extForm}-${extFormVersion}.lex" 
-			todir="${goal}/extensions/"/>
-		<move 
-			file="${goal}/extensions/${extForm}-${extFormVersion}.lex" 
-			tofile="${goal}/extensions/${ext_form.filename}"/>
-		<echo>add:${goal}/extensions/${ext_form.filename}</echo>
-		<echo file="${goal}/extensions/.index" append="true">${ext_form.filename};</echo>
-		
-		<!-- add extension Webservice -->
-		<loadmf jar="${cache}/${extAxis}-${extAxisVersion}.lex" prefix="ext_axis."/>
-		<toFileName id="${ext_axis.id}" name="${ext_axis.name}" version="${ext_axis.version}" property="ext_axis.filename"/>
-		<copy 
-			file="${cache}/${extAxis}-${extAxisVersion}.lex" 
-			todir="${goal}/extensions/"/>
-		<move 
-			file="${goal}/extensions/${extAxis}-${extAxisVersion}.lex" 
-			tofile="${goal}/extensions/${ext_axis.filename}"/>
-		<echo>add:${goal}/extensions/${ext_axis.filename}</echo>
-		<echo file="${goal}/extensions/.index" append="true">${ext_axis.filename};</echo>
 
 		<!-- add extension Image -->
 		<loadmf jar="${cache}/${extImage}-${extImageVersion}.lex" prefix="ext_image."/>
@@ -420,18 +351,6 @@
 		<echo>add:${goal}/extensions/${ext_esapi.filename}</echo>
 		<echo file="${goal}/extensions/.index" append="true">${ext_esapi.filename};</echo>
 
-		<!-- add extension Ajax -->
-		<loadmf jar="${cache}/${extAjax}-${extAjaxVersion}.lex" prefix="ext_ajax."/>
-		<toFileName id="${ext_ajax.id}" name="${ext_ajax.name}" version="${ext_ajax.version}" property="ext_ajax.filename"/>
-		<copy 
-			file="${cache}/${extAjax}-${extAjaxVersion}.lex" 
-			todir="${goal}/extensions/"/>
-		<move 
-			file="${goal}/extensions/${extAjax}-${extAjaxVersion}.lex" 
-			tofile="${goal}/extensions/${ext_ajax.filename}"/>
-		<echo>add:${goal}/extensions/${ext_ajax.filename}</echo>
-		<echo file="${goal}/extensions/.index" append="true">${ext_ajax.filename};</echo>
-
 		<!-- add extension Compress -->
 		<loadmf jar="${cache}/${extCompress}-${extCompressVersion}.lex" prefix="ext_compress."/>
 		<toFileName id="${ext_compress.id}" name="${ext_compress.name}" version="${ext_compress.version}" property="ext_compress.filename"/>
@@ -454,5 +373,34 @@
 		<mkdir dir="${cache}"/>
 		<get src="${cdnUrl}${stableLoader}.jar" dest="${cache}/${stableLoader}.jar"/>
 	</target>
+
+	<scriptdef name="copyExtensions" language="javascript" loaderRef="sharedbuild-loaderRef">
+		<attribute name="source" />
+		<attribute name="target" />
+		<attribute name="extensions" />
+		<![CDATA[
+
+			var sourceDir = attributes.get( "source" );
+			var targetDir = attributes.get( "target" );
+			var extensions = attributes.get( "extensions" ).split(",");
+			if (extensions.length == 0 )
+				throw ( "copyExtensions: no extensions specified?" );
+
+			var copy = project.createTask( "copy" );
+			var echo = project.createTask( "echo" );
+
+			// echo.setMessage( "copying Extensions to : " + targetDir );
+			// echo.perform();	
+
+			for (var e in extensions){
+				var extFile = extensions[e].split(";").join("-") + ".lex";
+				// echo.setMessage( "copy Extension: " + sourceDir + "/" + extFile );
+				// echo.perform();	
+				copy.setFile( new java.io.File( sourceDir + "/" + extFile ) );
+				copy.setTofile( new java.io.File( targetDir + "/" + extFile ) );
+				copy.perform();
+			}
+		]]>
+	</scriptdef>
 
 </project>

@@ -11,11 +11,14 @@ import org.apache.logging.log4j.core.LogEvent;
 import org.apache.logging.log4j.core.appender.AbstractAppender;
 import org.apache.logging.log4j.status.StatusLogger;
 
+import lucee.commons.io.log.Log;
+import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.retirement.RetireListener;
 import lucee.commons.io.retirement.RetireOutputStream;
 import lucee.commons.lang.SerializableObject;
 import lucee.commons.lang.StringUtil;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.op.Caster;
 
 public class ResourceAppender extends AbstractAppender {
@@ -64,7 +67,7 @@ public class ResourceAppender extends AbstractAppender {
 						rollOver();
 					}
 					catch (IOException e) {
-						error("rollover failed for" + res, event, e);
+						LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), Log.LEVEL_ERROR, "log-loading", "rollover failed for" + res);
 					}
 				}
 			}
@@ -80,12 +83,16 @@ public class ResourceAppender extends AbstractAppender {
 			}
 		}
 		catch (Exception e) {
-			error("Unable to write to" + res, event, e);
+			LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), Log.LEVEL_ERROR, "log-loading", "Unable to write to" + res);
 			closeFile();
 		}
 		finally {
 
 		}
+	}
+
+	public Resource getResource() {
+		return res;
 	}
 
 	/**

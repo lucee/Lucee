@@ -58,7 +58,7 @@ public class ScriptEngineImpl implements ScriptEngine {
 	@Override
 	public Object eval(String script, ScriptContext context) throws ScriptException {
 		if (context == null) context = getContext();
-		boolean printExpections = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.cli.printExceptions", null), false);
+		boolean printExceptions = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.cli.printExceptions", null), false);
 		PageContext oldPC = ThreadLocalPageContext.get();
 		PageContext pc = getPageContext(context);
 		try {
@@ -66,19 +66,19 @@ public class ScriptEngineImpl implements ScriptEngine {
 			return res.getValue();
 		}
 		catch (PageException pe) {
-			if (printExpections){
+			if (printExceptions){
 				pe.printStackTrace();
 			}
 			throw toScriptException(pe);
 		}
 		catch (RuntimeException re) {
-			if (printExpections){
+			if (printExceptions){
 				re.printStackTrace();
 			}
 			throw re;
 		}
 		catch (Throwable t) {
-			if (printExpections){
+			if (printExceptions){
 				if (t instanceof ThreadDeath) throw (ThreadDeath) t;
 				t.printStackTrace();
 			}

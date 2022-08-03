@@ -1,10 +1,11 @@
 component {
-	this.name = "LDEV-2862";
+    this.name = "LDEV-2862";
     this.ormEnabled = "true";
     this.ormSettings = {
-        dbCreate = "update"
+        dbCreate = "dropcreate"
     }
-    this.datasource = server.getDatasource("h2");
+
+    this.datasource = server.getDatasource("h2", "#getDirectoryFromPath(getCurrentTemplatePath())#/datasource/db");
 
     public function onRequestStart() {
         query result="test"{
@@ -17,15 +18,19 @@ component {
             echo("INSERT INTO okok(testid, id) VALUES( #test.GENERATEDKEY#, #test2.GENERATEDKEY# )");
         }
     }
-    public function onRequestEnd() {
-        query {
-            echo("DROP TABLE test");
+
+    function onRequestEnd() {
+        var javaIoFile=createObject("java","java.io.File");
+        loop array=DirectoryList(
+            path=getDirectoryFromPath(getCurrentTemplatePath()), 
+            recurse=true, filter="*.db") item="local.path"  {
+            fileDeleteOnExit(javaIoFile,path);
         }
-        query {
-            echo("DROP TABLE test2");
-        }
-        query {
-            echo("DROP TABLE okok");
-        }
+    }
+
+    private function fileDeleteOnExit(required javaIoFile, required string path) {
+        var file=javaIoFile.init(arguments.path);
+        if(!file.isFile())file=javaIoFile.init(expandPath(arguments.path));
+        if(file.isFile()) file.deleteOnExit();
     }
 }
