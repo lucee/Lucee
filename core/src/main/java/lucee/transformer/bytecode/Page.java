@@ -71,6 +71,7 @@ import lucee.transformer.bytecode.statement.HasBodies;
 import lucee.transformer.bytecode.statement.HasBody;
 import lucee.transformer.bytecode.statement.IFunction;
 import lucee.transformer.bytecode.statement.NativeSwitch;
+import lucee.transformer.bytecode.statement.tag.ATagThread;
 import lucee.transformer.bytecode.statement.tag.Attribute;
 import lucee.transformer.bytecode.statement.tag.Tag;
 import lucee.transformer.bytecode.statement.tag.TagCIObject;
@@ -78,7 +79,6 @@ import lucee.transformer.bytecode.statement.tag.TagComponent;
 import lucee.transformer.bytecode.statement.tag.TagImport;
 import lucee.transformer.bytecode.statement.tag.TagInterface;
 import lucee.transformer.bytecode.statement.tag.TagOther;
-import lucee.transformer.bytecode.statement.tag.TagThread;
 import lucee.transformer.bytecode.statement.udf.Function;
 import lucee.transformer.bytecode.statement.udf.FunctionImpl;
 import lucee.transformer.bytecode.util.ASMConstants;
@@ -249,7 +249,7 @@ public final class Page extends BodyBase implements Root {
 	// private boolean isInterface;
 
 	private ArrayList<IFunction> functions = new ArrayList<IFunction>();
-	private ArrayList<TagThread> threads = new ArrayList<TagThread>();
+	private ArrayList<ATagThread> threads = new ArrayList<ATagThread>();
 	private Resource staticTextLocation;
 	private int off;
 	private int methodCount = 0;
@@ -560,7 +560,7 @@ public final class Page extends BodyBase implements Root {
 		}
 
 		// threadCall
-		TagThread[] threads = getThreads();
+		ATagThread[] threads = getThreads();
 		if (true) {
 			adapter = new GeneratorAdapter(Opcodes.ACC_PUBLIC + Opcodes.ACC_FINAL, THREAD_CALL, null, new Type[] { Types.THROWABLE }, cw);
 			if (threads.length > 0) writeOutThreadCallInner(
@@ -906,7 +906,7 @@ public final class Page extends BodyBase implements Root {
 		ns._writeOut(bc);
 	}
 
-	private void writeOutThreadCallInner(BytecodeContext bc, TagThread[] threads, int offset, int length) throws TransformerException {
+	private void writeOutThreadCallInner(BytecodeContext bc, ATagThread[] threads, int offset, int length) throws TransformerException {
 		GeneratorAdapter adapter = bc.getAdapter();
 		ConditionVisitor cv = new ConditionVisitor();
 		DecisionIntVisitor div;
@@ -1239,12 +1239,12 @@ public final class Page extends BodyBase implements Root {
 		return funcs;
 	}
 
-	private TagThread[] getThreads() {
-		TagThread[] threads = new TagThread[this.threads.size()];
-		Iterator it = this.threads.iterator();
+	private ATagThread[] getThreads() {
+		ATagThread[] threads = new ATagThread[this.threads.size()];
+		Iterator<ATagThread> it = this.threads.iterator();
 		int count = 0;
 		while (it.hasNext()) {
-			threads[count++] = (TagThread) it.next();
+			threads[count++] = it.next();
 		}
 		return threads;
 	}
@@ -1725,7 +1725,7 @@ public final class Page extends BodyBase implements Root {
 		return tmp;
 	}
 
-	public int addThread(TagThread thread) {
+	public int addThread(ATagThread thread) {
 		threads.add(thread);
 		return threads.size() - 1;
 	}

@@ -3,7 +3,7 @@
 
   <groupId>org.lucee</groupId>
   <artifactId>lucee</artifactId>
-  <version>6.0.0.174-SNAPSHOT</version>
+  <version>6.0.0.224-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>Lucee Loader Build</name>
@@ -296,7 +296,7 @@
   <dependency>
     <groupId>org.apache.felix</groupId>
     <artifactId>org.apache.felix.framework</artifactId>
-    <version>6.0.5</version><!-- 4.6.1 -->
+    <version>7.0.5</version><!-- 4.6.1 -->
     <scope>compile</scope>
   </dependency>
   <dependency>
@@ -488,12 +488,14 @@
     <version>2.2.0</version>
     <scope>provided</scope>
   </dependency>
+  <!--
   <dependency>
     <groupId>org.lucee</groupId>
     <artifactId>oswego-concurrent</artifactId>
     <version>1.3.4</version>
     <scope>provided</scope>
   </dependency>
+  -->
   <dependency>
     <groupId>org.lucee</groupId>
     <artifactId>jta</artifactId>
@@ -569,13 +571,13 @@
   <dependency>
     <groupId>org.slf4j</groupId>
     <artifactId>slf4j-api</artifactId>
-    <version>1.7.12</version>
+    <version>1.7.36</version>
     <scope>provided</scope>
   </dependency>
   <dependency>
     <groupId>org.slf4j</groupId>
     <artifactId>slf4j-nop</artifactId>
-    <version>1.7.12</version>
+    <version>1.7.36</version>
     <scope>provided</scope>
   </dependency>
   <dependency>

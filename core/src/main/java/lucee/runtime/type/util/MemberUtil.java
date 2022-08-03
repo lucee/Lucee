@@ -174,7 +174,9 @@ public class MemberUtil {
 		}
 		String msg = ExceptionUtil.similarKeyMessage(keys.toArray(new Key[keys.size()]), methodName.getString(), "function", "functions",
 				types.length == 1 && types[0] != CFTypes.TYPE_ANY ? StringUtil.ucFirst(CFTypes.toString(types[0], "Object")) : "Object", true);
-		throw new ExpressionException(msg);
+		String detail = ExceptionUtil.similarKeyMessage(keys.toArray(new Key[keys.size()]), methodName.getString(), "functions",
+				types.length == 1 && types[0] != CFTypes.TYPE_ANY ? StringUtil.ucFirst(CFTypes.toString(types[0], "Object")) : "Object", true);
+		throw new ExpressionException(msg, detail);
 	}
 
 	private static Object callMethod(Object obj, Collection.Key methodName, Object[] args) throws PageException {

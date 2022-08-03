@@ -16,7 +16,7 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  * 
  ---><cfscript>
-component extends="org.lucee.cfml.test.LuceeTestCase" labels="cache,ehCache" {
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="cache,ehCache,orm" {
 
 	//public function setUp(){}
 
@@ -25,7 +25,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="cache,ehCache" {
 		FAILSAFE_CLASSPATH_CONFIGURATION_FILE = "/ehcache-failsafe.xml";
 		_url = ConfigurationFactory.getClass().getResource(FAILSAFE_CLASSPATH_CONFIGURATION_FILE);
 		assertTrue(!isNull(_url));
-
 	}
 
 	public void function testUsingSecondaryCache(){
@@ -33,9 +32,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="cache,ehCache" {
 		local.result=_InternalRequest(uri);
 		assertEquals("",result.filecontent.trim());
 	}
-
-
-
 
 	private string function createURI(string calledName){
 		var baseURI="/test/#listLast(getDirectoryFromPath(getCurrenttemplatepath()),"\/")#/";
