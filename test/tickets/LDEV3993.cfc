@@ -1,4 +1,4 @@
-component extends = "org.lucee.cfml.test.LuceeTestCase"{
+component extends = "org.lucee.cfml.test.LuceeTestCase" {
     function run( testResults , testBox ) {
         describe( "Test case for LDEV-3993", function() {
             it(title="checking toString( CreateODBCTime() )", body=function( currentSpec ) {
