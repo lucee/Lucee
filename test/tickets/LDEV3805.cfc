@@ -1,5 +1,5 @@
 component extends="org.lucee.cfml.test.LuceeTestCase" labels="duplicate" {
-	function run( testResults,testBox ){
+	function run( testResults, testBox ){
 		describe("Testcase for LDEV-3805", function(){
 			it( title="Duplicate the MAP instanceOf Serializable class with deepCopy true", body=function( currentSpec ){
 				var syncMap = createObject( 'java', 'java.util.Collections' ).synchronizedMap({"test":{}});
