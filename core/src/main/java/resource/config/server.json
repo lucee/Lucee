@@ -131,7 +131,7 @@
 		,"deploy":{
 			"appender":"resource"
 			,"appenderArguments":"path:{lucee-config}/logs/deploy.log"
-			,"level":"error"
+			,"level":"info"
 			,"layout":"classic"
 		}
 		,"thread":{

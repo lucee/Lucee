@@ -77,11 +77,16 @@ public class ThreadUtil {
 	 *            from the context is used
 	 * @return
 	 */
-	// used in Websocket extension
 	public static PageContextImpl createPageContext(ConfigWeb config, OutputStream os, String serverName, String requestURI, String queryString, Cookie[] cookies, Pair[] headers,
 			byte[] body, Pair[] parameters, Struct attributes, boolean register, long timeout) {
+		return createPageContext(config, os, serverName, requestURI, queryString, cookies, headers, body, parameters, attributes, register, timeout, null);
+	}
+
+	public static PageContextImpl createPageContext(ConfigWeb config, OutputStream os, String serverName, String requestURI, String queryString, Cookie[] cookies, Pair[] headers,
+			byte[] body, Pair[] parameters, Struct attributes, boolean register, long timeout, HttpSession session) {
 		CFMLFactory factory = config.getFactory();
-		HttpServletRequest req = new HttpServletRequestDummy(config.getRootDirectory(), serverName, requestURI, queryString, cookies, headers, parameters, attributes, null, body);
+		HttpServletRequest req = new HttpServletRequestDummy(config.getRootDirectory(), serverName, requestURI, queryString, cookies, headers, parameters, attributes, session,
+				body);
 
 		req = new HTTPServletRequestWrap(req);
 		HttpServletResponse rsp = createHttpServletResponse(os);
@@ -91,7 +96,7 @@ public class ThreadUtil {
 	}
 
 	public static PageContextImpl createDummyPageContext(ConfigWeb config) {
-		return createPageContext(config, DevNullOutputStream.DEV_NULL_OUTPUT_STREAM, Constants.NAME, "/", "", null, null, null, null, null, true, -1).setDummy(true);
+		return createPageContext(config, DevNullOutputStream.DEV_NULL_OUTPUT_STREAM, Constants.NAME, "/", "", null, null, null, null, null, true, -1, null).setDummy(true);
 	}
 
 	/**

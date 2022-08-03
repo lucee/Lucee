@@ -236,8 +236,9 @@ public final class UndefinedImpl extends StructSupport implements Undefined, Obj
 				}
 			}
 		}
-
-		if (pc.getConfig().debug()) throw new ExpressionException(ExceptionUtil.similarKeyMessage(this, key.getString(), "key", "keys", null, false));
+		String msg = ExceptionUtil.similarKeyMessage(this, key.getString(), "key", "keys", null, false);
+		String detail = ExceptionUtil.similarKeyMessage(this, key.getString(), "keys", null, false);
+		if (pc.getConfig().debug()) throw new ExpressionException(msg, detail);
 
 		throw new ExpressionException("variable [" + key.getString() + "] doesn't exist");
 	}

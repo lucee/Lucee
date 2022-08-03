@@ -893,7 +893,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<alias>cfcInstance,obj,value,variable</alias>
 			<type>any</type>
 			<required>Yes</required>
-			<description>a component, struct or scope that holds a function, can also be the name of a component, in this case the component get loaded.</description>
+			<description>a component, struct or scope that holds a function, can also be the name of a component, in this case the component get loaded. it can be empty string, in this case the method invokes from the same cfm page or component</description>
 	    </argument>
 		<argument>
 			<name>name</name>

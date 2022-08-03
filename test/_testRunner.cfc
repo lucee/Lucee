@@ -5,7 +5,7 @@ component {
 
 	// testbox doesn't always sort the order of tests, so we do it manually LDEV-3541
 	public array function getBundles( testMapping, testDirectory ){
-		var srcBundles = directoryList( path=arguments.testMapping, recurse=true, listInfo="path", filter="*.cfc" );
+		var srcBundles = directoryList( path="#expandPath(arguments.testMapping)#", recurse=true, listInfo="path", filter="*.cfc" );
 		var testDirectoryLen = len( arguments.testDirectory );
 		var mapping = ListChangeDelims( arguments.testMapping, "", "/\" );
 		var bundles = [];
@@ -190,6 +190,12 @@ component {
 				for ( b in tb.getBundles() )
 					SystemOutput( b, true );
 			}
+
+			if ( len( bundles ) eq 0 ){
+				SystemOutput( "Error no tests found to run, aborting", true );
+				throw "Error no tests found to run, aborting";
+			}
+
 			// formatting is odd, because we are outputting to the console and whitespace matters
 			// execute
 			tb.run(callbacks=
@@ -223,12 +229,23 @@ component {
 	Pass:     #bundle.totalPass#
 	Skipped:  #bundle.totalSkipped#"
 			, true );
-
+			
 			if ( !isNull( bundle.suiteStats ) ) {
 				loop array=bundle.suiteStats item="local.suiteStat" {
-					if ( !isNull( suiteStat.specStats ) ) {
-						loop array=suiteStat.specStats item="local.specStat" {
+					local.specStats = duplicate(suiteStat.specStats);
+					// spec stats are also nested 
+					loop array=suiteStat.suiteStats item="local.nestedSuiteStats" {
+						if ( !isEmpty( local.nestedSuiteStats.specStats ) ) {
+							loop array=local.nestedSuiteStats.specStats item="local.nestedSpecStats" {
+								arrayAppend( local.specStats, local.nestedspecStats );
+							}
+						}
+					}
 
+					if ( isEmpty( local.specStats ) ) {
+						systemOutput( "WARNING: suiteStat for [#bundle.name#] was empty?", true );
+					} else {
+						loop array=local.specStats item="local.specStat" {
 							if ( !isNull( specStat.failMessage ) && len( trim( specStat.failMessage ) ) ) {
 
 								var failedTestCase = {
@@ -312,6 +329,8 @@ component {
 						}
 					}
 				}
+			} else {
+				systemOutput( "WARNING: bundle.suiteStats was null?", true );
 			}
 			//systemOutput(serializeJson(bundle.suiteStats));
 		}

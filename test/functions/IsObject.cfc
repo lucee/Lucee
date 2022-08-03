@@ -15,6 +15,16 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  */
 component extends="org.lucee.cfml.test.LuceeTestCase"	{
+
+	function testIsObject() {
+        assertTrue(isObject( createObject("java", "java.lang.System") ));
+        assertTrue(isObject( createObject("component","org.lucee.cfml.test.LuceeTestCase") ));
+        assertFalse(isObject("string"));
+        assertFalse(isObject(1));
+        assertFalse(isObject(true));
+        assertFalse(isObject({}));
+        assertFalse(isObject([]));
+    }
 	
 	function testNull() {
 		expect( isObject( javacast( 'null', '' ) ) ).toBe( false );
