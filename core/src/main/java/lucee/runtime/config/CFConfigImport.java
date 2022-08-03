@@ -229,7 +229,7 @@ public class CFConfigImport {
 			optimizeExtensions(config, json);
 			setGroup(pc, json, "updateRHExtension", "extensions", new String[] {}, new Item("source"), new Item("id"), new Item("version"));
 
-			set(pc, json, "updateFilesystem", "fileSystem", new Item("fldDefaultDirectory"), new Item("functionDefaultDirectory"), new Item("tagDefaultDirectory"),
+			set(pc, json, "updateFilesystem", "filesystem", new Item("fldDefaultDirectory"), new Item("functionDefaultDirectory"), new Item("tagDefaultDirectory"),
 					new Item("tldDefaultDirectory"), new Item("functionAddionalDirectory"), new Item("tagAddionalDirectory"));
 
 			// need to be at the end
@@ -427,7 +427,7 @@ public class CFConfigImport {
 		Cast cast = engine.getCastUtil();
 
 		Struct group = cast.toStruct(json.get(cast.toKey(srcGroupName), null), null);
-		set(pc, group, trgActionName, items);
+		if (group != null) set(pc, group, trgActionName, items);
 	}
 
 	private static class Item {
