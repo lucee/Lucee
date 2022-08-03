@@ -5,9 +5,14 @@ component hint="logs out any orm events"  {
 		return this;
 	}
 
+	// Currently not implemented
 	function preFlush(  entity ){
 		eventLog( arguments );
 	}
+	function onFlush( entity ) {
+		eventLog( arguments );
+	}
+	// Currently not implemented
 	function postFlush( entity ){
 		eventLog( arguments );
 	}
@@ -26,7 +31,7 @@ component hint="logs out any orm events"  {
 		eventLog( arguments );
 	}
 
-	function preUpdate( entity, Struct oldData ){
+	function preUpdate( entity ){
 		eventLog( arguments );
 	}
 	function postUpdate( entity ){
@@ -36,7 +41,23 @@ component hint="logs out any orm events"  {
 	function preDelete( entity ){
 		eventLog( arguments );
 	}	
+	function onDelete( entity ) {
+		eventLog( arguments );
+	}
 	function postDelete( entity ) {
+		eventLog( arguments );
+	}
+
+	function onEvict() {
+		eventLog( arguments );
+	}
+	function onClear( entity ) {
+		eventLog( arguments );
+	}
+	function onDirtyCheck( entity ) {
+		eventLog( arguments );
+	}
+	function onAutoFlush( entity ) {
 		eventLog( arguments );
 	}
 

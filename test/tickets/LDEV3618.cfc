@@ -1,4 +1,4 @@
-component extends = "org.lucee.cfml.test.LuceeTestCase" skip=true{
+component extends = "org.lucee.cfml.test.LuceeTestCase" labels="html"{
 
     function beforeAll(){
         variables.uri = createURI("LDEV3618");
@@ -27,6 +27,30 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" skip=true{
                 local.result = _InternalRequest(
                     template : "#uri#\test.cfm",
                     forms : {scene = 3}
+                );
+                expect(trim(result.filecontent)).toBe("Text-content, Body-content");
+            });
+
+            it( title = "cfhtmlbody only with body-Content", body = function( currentSpec ){
+                local.result = _InternalRequest(
+                    template : "#uri#\test.cfm",
+                    forms : {scene = 4}
+                );
+                expect(trim(result.filecontent)).toBe("Body-content without text attribute");
+            });
+
+            it( title = "cfhtmlbody only with text attribute", body = function( currentSpec ){
+                local.result = _InternalRequest(
+                    template : "#uri#\test.cfm",
+                    forms : {scene = 5}
+                );
+                expect(trim(result.filecontent)).toBe("Text without body-content");
+            });
+
+            it( title = "cfhtmlbody with both text attribute and body-content", body = function( currentSpec ){
+                local.result = _InternalRequest(
+                    template : "#uri#\test.cfm",
+                    forms : {scene = 6}
                 );
                 expect(trim(result.filecontent)).toBe("Text-content, Body-content");
             });

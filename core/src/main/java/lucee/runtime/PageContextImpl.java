@@ -134,6 +134,7 @@ import lucee.runtime.listener.ClassicApplicationContext;
 import lucee.runtime.listener.JavaSettingsImpl;
 import lucee.runtime.listener.ModernAppListener;
 import lucee.runtime.listener.ModernAppListenerException;
+import lucee.runtime.listener.NoneAppListener;
 import lucee.runtime.listener.SessionCookieData;
 import lucee.runtime.listener.SessionCookieDataImpl;
 import lucee.runtime.monitor.RequestMonitor;
@@ -149,7 +150,6 @@ import lucee.runtime.op.OpUtil;
 import lucee.runtime.orm.ORMConfiguration;
 import lucee.runtime.orm.ORMEngine;
 import lucee.runtime.orm.ORMSession;
-import lucee.runtime.osgi.OSGiUtil;
 import lucee.runtime.regex.Regex;
 import lucee.runtime.rest.RestRequestListener;
 import lucee.runtime.rest.RestUtil;
@@ -342,6 +342,7 @@ public final class PageContextImpl extends PageContext {
 	private ORMSession ormSession;
 	private boolean isChild;
 	private boolean gatewayContext;
+	private boolean listenerContext;
 	private Password serverPassword;
 
 	private PageException pe;
@@ -531,6 +532,7 @@ public final class PageContextImpl extends PageContext {
 		if (clone) {
 			this._psq = tmplPC._psq;
 			this.gatewayContext = tmplPC.gatewayContext;
+			this.listenerContext = tmplPC.listenerContext;
 		}
 		else {
 			_psq = null;
@@ -726,6 +728,7 @@ public final class PageContextImpl extends PageContext {
 		activeUDF = null;
 
 		gatewayContext = false;
+		listenerContext = false;
 
 		manager.release();
 		includeOnce.clear();
@@ -2469,9 +2472,13 @@ public final class PageContextImpl extends PageContext {
 	}
 
 	private final void execute(PageSource ps, boolean throwExcpetion, boolean onlyTopLevel) throws PageException {
-		ApplicationListener listener = getRequestDialect() == CFMLEngine.DIALECT_CFML
-				? (gatewayContext ? config.getApplicationListener() : ((MappingImpl) ps.getMapping()).getApplicationListener())
-				: ModernAppListener.getInstance();
+		ApplicationListener listener;
+		// if a listener is called (Web.cfc/Server.cfc we don't wanna any Application.cfc to be executed)
+		if (listenerContext) listener = new NoneAppListener();
+		else if (getRequestDialect() == CFMLEngine.DIALECT_LUCEE) listener = ModernAppListener.getInstance();
+		else if (gatewayContext) listener = config.getApplicationListener();
+		else listener = ((MappingImpl) ps.getMapping()).getApplicationListener();
+
 		Throwable _t = null;
 		try {
 			initallog();
@@ -2628,7 +2635,7 @@ public final class PageContextImpl extends PageContext {
 	public String getURLToken() {
 		if (getConfig().getSessionType() == Config.SESSION_TYPE_JEE) {
 			HttpSession s = getSession();
-			return "CFID=" + getCFID() + "&CFTOKEN=" + getCFToken() + "&jsessionid=" + (s != null ? getSession().getId() : "");
+			return "CFID=" + getCFID() + "&CFTOKEN=" + getCFToken() + "&jsessionid=" + (s != null ? s.getId() : "");
 		}
 		return "CFID=" + getCFID() + "&CFTOKEN=" + getCFToken();
 	}
@@ -3513,7 +3520,7 @@ public final class PageContextImpl extends PageContext {
 		JavaSettingsImpl js = (JavaSettingsImpl) applicationContext.getJavaSettings();
 
 		if (js != null) {
-			Resource[] jars = OSGiUtil.extractAndLoadBundles(this, js.getResourcesTranslated());
+			Resource[] jars = js.getResourcesTranslated();
 			if (jars.length > 0) return config.getResourceClassLoader().getCustomResourceClassLoader(jars);
 		}
 		return config.getResourceClassLoader();
@@ -3527,7 +3534,7 @@ public final class PageContextImpl extends PageContext {
 		JavaSettingsImpl js = (JavaSettingsImpl) applicationContext.getJavaSettings();
 		ClassLoader cl = config.getRPCClassLoader(reload, parents);
 		if (js != null) {
-			Resource[] jars = OSGiUtil.extractAndLoadBundles(this, js.getResourcesTranslated());
+			Resource[] jars = js.getResourcesTranslated();
 			if (jars.length > 0) return ((PhysicalClassLoader) cl).getCustomClassLoader(jars, reload);
 		}
 		return cl;
@@ -3553,6 +3560,10 @@ public final class PageContextImpl extends PageContext {
 	 */
 	public void setGatewayContext(boolean gatewayContext) {
 		this.gatewayContext = gatewayContext;
+	}
+
+	public void setListenerContext(boolean listenerContext) {
+		this.listenerContext = listenerContext;
 	}
 
 	public void setServerPassword(Password serverPassword) {

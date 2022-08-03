@@ -20,6 +20,10 @@ component {
 
 	public function onRequestStart() {
 		setting requesttimeout=10;
+		application.ormEventLog = [];
+		if ( url.keyExists( "flushcache" ) ){
+			componentCacheClear();
+		}
 	}
 
 	function onRequestEnd() {
