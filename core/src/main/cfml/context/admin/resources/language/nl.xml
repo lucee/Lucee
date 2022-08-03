@@ -535,9 +535,10 @@ Wanneer aangevinkt zal elk opgevraagd bestand slechts eenmaal in een request voo
 	<data key="locale">engels (verenigd koninkrijk)</data>
 	<data key="proxy.portdescription">Poort voor de proxy server (standaard:80)</data>
 	<data key="proxy.port">Poort</data>
+	<data key="proxy.serverName">Server</data>
 	<data key="proxy.usernamedescription">Gebruikersnaam voor de proxy</data>
 	<data key="proxy.settings">Proxy instellingen</data>
-	<data key="proxy.server">Server</data>
+	<data key="proxy.server">Definieer een globale proxy, die standaard in verschillende tags wordt gebruikt (cfhttp,cfftp,cfmail ...)	</data>
 	<data key="proxy.passworddescription">Wachtwoord voor de proxy</data>
 	<data key="proxy.disable">Geen proxy gebruiken</data>
 	<data key="proxy.username">Gebruikersnaam</data>
