@@ -17,7 +17,12 @@
   <property name="extMongo"       value="E6634E1A-4CC5-4839-A83C67549ECA8D5B"/>
   <property name="extH2"          value="465E1E35-2425-4F4E-8B3FAB638BD7280A"/>
   <property name="extOracle"          value="D4EDFDBD-A9A3-E9AF-597322D767E0C949"/>
-  <property name="extJson"          value="A03F4335-BDEF-44DE-946FB16C47802F96"/>
+  <property name="extLucene"          value="EFDEB172-F52E-4D84-9CD1A1F561B3DFC8;version=2.4.2.4"/>
+  <property name="extAxis"          value="DF28D0A4-6748-44B9-A2FDC12E4E2E4D38;version=1.4.0.35"/>
+  <property name="extChart"          value="D46B46A9-A0E3-44E1-D972A04AC3A8DC10;version=1.0.19.24"/>
+
+  <property name="stableLoader" value="lucee-5.3.7.48"/>
+  <property name="cdnUrl" value="https://cdn.lucee.org/"/>
   
   <import file="../ant/build-utils.xml"/>
   <import file="../ant/build-extensions.xml"/>
@@ -63,10 +68,27 @@
     <property name="srcInst" location="${rootDir}/instrumentation/src/main/java"/> 
     <property name="ant" location="${rootDir}/ant"/>
     <property name="test" location="${rootDir}/test"/>
+    <!-- free text filter, comma delimitered to filter tests based on path -->
     <property name="testFilter" value=""/>
+    <!-- list of labels to filter tests by, comma delimitered -->
+    <property name="testLabels" value=""/>
+    <!-- a local directory to install additional extensions -->
+    <property name="testExtensions" value=""/>
+    <!-- a local directory to run additional tests  -->
+    <property name="testAdditional" value=""/>
+    <!-- enable running disabled tests (either via _ prefix or skip=true)  -->
+    <property name="testSkip" value=""/>
+    <!-- enable debug output from tests (i.e tests which crash are normally silently skipped)  -->
+    <property name="testDebug" value=""/>
+    <!-- allow restricting which test services are enabled  -->
+    <property name="testServices" value=""/>
+    <!-- allow running tests with a different java version (ant needs the exe not java home)  -->
+    <property name="testJavaVersionExec" value=""/>
+    
     <property name="temp" location="${rootDir}/temp"/>
     <property name="loader" location="${temp}/loader"/>
     <property name="core" location="${temp}/core"/>
+    <property name="tmpContext" location="${temp}/context"/>
     <property name="deployLco" value=""/>    
     <!-- <property file="${rootDir}/build.properties"/> -->
 
@@ -77,9 +99,6 @@
     <fail message="Missing data from [Require-Extension] inside ${coreManifest}">
     <condition>
         <or>
-        <!-- Lucene -->
-        <not><isset property="extLucene"/></not>
-        <not><isset property="extLuceneVersion"/></not>
         <!-- Hibernate -->
         <not><isset property="extHibernate"/></not>
         <not><isset property="extHibernateVersion"/></not>
@@ -92,9 +111,6 @@
         <!-- EHCache -->
         <not><isset property="extEHCache"/></not>
         <not><isset property="extEHCacheVersion"/></not>
-        <!-- Chart -->
-        <not><isset property="extChart"/></not>
-        <not><isset property="extChartVersion"/></not>
         <!-- MySQL -->
         <not><isset property="extMySQL"/></not>
         <not><isset property="extMySQLVersion"/></not>
@@ -113,21 +129,12 @@
         <!-- Doc -->
         <not><isset property="extDoc"/></not>
         <not><isset property="extDocVersion"/></not>
-        <!-- Form -->
-        <not><isset property="extForm"/></not>
-        <not><isset property="extFormVersion"/></not>
-        <!-- Webservice -->
-        <not><isset property="extAxis"/></not>
-        <not><isset property="extAxisVersion"/></not>
         <!-- Image -->
         <not><isset property="extImage"/></not>
         <not><isset property="extImageVersion"/></not>
         <!-- Esapi -->
         <not><isset property="extEsapi"/></not>
         <not><isset property="extEsapiVersion"/></not>
-        <!-- Ajax -->
-        <not><isset property="extAjax"/></not>
-        <not><isset property="extAjaxVersion"/></not>
         <!-- Compress -->
         <not><isset property="extCompress"/></not>
         <not><isset property="extCompressVersion"/></not>
@@ -175,24 +182,28 @@
     </echo>
 
     <echo message="${version}"/>
+    <!-- used for docker build -->
+    <echo file="${rootDir}/buildVersionNumber.txt" message="${version}" append="false"/>
     <!-- <echo message="${name}"/>
     <echo message="${name.explanation}"/> -->
     <echo message="Root: ${rootDir}"/>
     <echo message="Required-Extensions: ${reqExt.labels}"/>
-    <echo message="Java: ${java.version}" />       
-    <echo message="Java: ${java.home}" />       
-                    
-    
+    <echo message="Java: ${java.version}" />
+    <echo message="Java: ${java.home}" />
+    <echo message="Optional Java Version for tests: ${testJavaVersionExec}" />
+
     <!-- Create the time stamp -->
     <tstamp/>
-    
+
     <delete dir="${temp}"/>
-    
+
     <!-- Create the  directory structure needed -->
     <mkdir dir="${core}"/>
     <mkdir dir="${loader}"/>
     <mkdir dir="${temp}/agent"/>
     <mkdir dir="${cache}"/>
+    <mkdir dir="${tmpContext}"/>
+    <mkdir dir="${tmpContext}/cfml"/>
 
   </target>
 
@@ -212,32 +223,40 @@
         </sequential>
     </macrodef>
 
-    <target name="check" depends="check-mysql,check-mssql,check-postgre,check-jdts,check-chart,check-s3,check-ehcache,check-hibernate,check-lucene,check-pdf,check-admin,check-doc,check-form,check-axis,check-image,check-esapi,check-ajax,check-compress,check-testbox">
+    <target name="check" depends="check-mysql,check-mssql,check-postgre,check-jdts,check-s3,check-ehcache,check-hibernate,check-pdf,check-admin,check-doc,check-image,check-esapi,check-compress,check-testbox,check-lucee-loader-jar,download-lucee-loader-jar">
       <mkdir dir="${temp}/loader/extensions/"/>
     </target> 
 
   <target name="copyDeployFiles" depends="init,check" description="copy files from source/cfml to source/java/core/src/resource">
-    <echots message="copy files from source/cfml to source/java/core/src/resource"/>
+    <echots message="copying files from ${srcCFML} and ${srcCore}/resource to ${tmpContext}/cfml"/>
 
-    <copy todir="${srcCore}/resource/context/" overwrite="true">
-      <fileset dir="${srcCFML}/context/">
-        <include name="*.cfm"/>
-        <include name="*.cfc"/>
-        <include name="*.lucee"/>
-        <include name="*.xml"/>
+    <!-- context files are both under cfml and java, merge them in a temp directory, avoid duplicated files  -->
+
+    <copy todir="${tmpContext}/context" overwrite="true">
+      <fileset dir="${srcCore}/resource/">
+        <include name="**/*"/>
       </fileset>
     </copy>
 
-    <copy todir="${srcCore}/resource/context/admin/resources/language/" overwrite="true">
+    <copy todir="${tmpContext}/cfml" overwrite="true">
+      <fileset dir="${srcCFML}/context">
+        <include name="**/*"/>
+      </fileset>
+    </copy>
+    
+    <copy todir="${tmpContext}/cfml/doc" overwrite="true">
+      <fileset dir="${srcCFML}/context/doc">
+        <include name="**/*"/>
+      </fileset>
+    </copy>
+
+    <copy todir="${tmpContext}/context/admin/resources/language/" overwrite="true">
       <fileset dir="${srcCFML}/context/admin/resources/language/">
-        <include name="*.cfm"/>
-        <include name="*.cfc"/>
-        <include name="*.lucee"/>
         <include name="*.xml"/>
       </fileset>
     </copy>
 
-    <copy todir="${srcCore}/resource/context/gateway"  overwrite="true">
+    <copy todir="${tmpContext}/cfml/gateway"  overwrite="true">
       <fileset dir="${srcCFML}/context/gateway">
         <include name="*.cfm"/>
         <include name="*.cfc"/>
@@ -246,7 +265,7 @@
       </fileset>
     </copy>
 
-    <copy todir="${srcCore}/resource/context/templates/error"  overwrite="true">
+    <copy todir="${tmpContext}/cfml/templates/error"  overwrite="true">
       <fileset dir="${srcCFML}/context/templates/error">
         <include name="*.cfm"/>
         <include name="*.cfc"/>
@@ -255,7 +274,7 @@
       </fileset>
     </copy>
 
-    <copy todir="${srcCore}/resource/context/admin/plugin"  overwrite="true">
+    <copy todir="${tmpContext}/context/admin/plugin"  overwrite="true">
       <fileset dir="${srcCFML}/context/admin/plugin">
         <include name="**/*.cfm"/>
         <include name="**/*.cfc"/>
@@ -263,6 +282,31 @@
         <include name="**/*.xml"/>
       </fileset>
     </copy>
+
+    <!--  separate the lucee context from the admin and docs -->
+    <copy todir="${tmpContext}/cfml-context">
+      <fileset dir="${tmpContext}/cfml/">
+        <include name="**/*"/>
+        <exclude name="admin/**"/>
+        <exclude name="doc/**"/>
+      </fileset>
+    </copy>
+
+    <copy todir="${tmpContext}/cfml-context/admin/resources/language/" overwrite="true">
+      <fileset dir="${srcCFML}/context/admin/resources/language/">
+        <include name="*.xml"/>
+      </fileset>
+    </copy>
+
+    <copy todir="${tmpContext}/cfml-context/admin/plugin"  overwrite="true">
+      <fileset dir="${srcCFML}/context/admin/plugin">
+        <include name="**/*.cfm"/>
+        <include name="**/*.cfc"/>
+        <include name="**/*.lucee"/>
+        <include name="**/*.xml"/>
+      </fileset>
+    </copy>
+
   </target>
 
   <target name="agent" depends="copyDeployFiles" description="create external-agent  jar used as backup when dynamic agent fails" >
@@ -331,13 +375,24 @@
        <classpath refid="classpath" />
     </javac>
 
-    <!-- copy all non java files -->
+    <!-- copy all non java files from src -->
     <copy todir="${core}">
       <fileset dir="${srcCore}">
         <exclude name="**/*.java"/>
         <exclude name=".*"/>
       </fileset>
     </copy>
+
+    <!-- copy all non java files from temp context -->
+    <copy todir="${core}/resource/context">
+      <fileset dir="${tmpContext}/cfml-context">
+        <exclude name="**/*.java"/>
+        <exclude name="**/*.js"/>        
+        <exclude name="debug/**"/>
+        <exclude name=".*"/>
+      </fileset>
+    </copy>
+
 
     <!-- set date in default properties -->
     <loadfile property="defprop"
@@ -370,13 +425,14 @@
         manifest="${core}/META-INF/MANIFEST.MF"/> 
 
 
-    <!-- genrates the jar from the loader -->
+    <!-- generates the jar from the loader -->
     <jar 
       basedir="${temp}/loader" 
       jarfile="${temp}/lucee.jar" 
       manifest="${srcLoader}/META-INF/MANIFEST.MF"/>
 
-  </target>
+</target>
+
 
 <target name="__build_archives" depends="buildJars,__extract_testbox">
     <!-- first we copy the jars in place otherwise, Lucee downloads them  -->
@@ -388,11 +444,11 @@
 
     <!-- no we copy the extension in place otherwise, Lucee downloads them as well  -->
     <echots message="copy extensions in place"/>
-    <copy todir="${temp}/archive/base/lucee-server/context/extensions/available" flatten="true">
-      <fileset dir="${cache}">
-        <include name="**/*.lex"/>
-      </fileset>
-    </copy>
+    <copyExtensions
+      source="${cache}"
+      target="${temp}/archive/base/lucee-server/context/extensions/available"
+      extensions="${reqExt.data}">
+    </copyExtensions>
 
     <echots message="building different archives that get bundled (admin,doc) with help of the temporary generated lucee.jar"/>
     <!-- build the lucee-context.lar -->
@@ -409,7 +465,7 @@
       <jvmarg value="-XX:StartFlightRecording=disk=true,dumponexit=true,filename=${temp}/../lucee-compile.jfr,maxsize=1024m,maxage=1d,settings=profile,path-to-gc-roots=true"/>
       -->
 
-      <jvmarg value="-Dsrc=${srcCFML}/context"/>
+      <jvmarg value="-Dsrc=${tmpContext}"/>
       <jvmarg value="-Dtemp=${temp}/archive"/>
       <jvmarg value="-Dtestbox=${temp}/testbox/testbox"/>
       <jvmarg value="-DcompileTestBox=${compileTestBox}"/>
@@ -418,9 +474,11 @@
       <jvmarg value="-Dlucee.enable.dialect=true"/>
       <jvmarg value="-Dlucee.extensions.install=true"/>
       <jvmarg value="-Dlucee.full.null.support=false"/>
+      <!-- this checks to see that all the required bundles are provided, so that none are missing -->
+      <jvmarg value="-Dlucee.enable.bundle.download=false"/>
+      <jvmarg value="-Dlucee.cli.printExceptions=true"/>
     </java>
-    <echo>${exc}</echo>
-
+    <outputTrimmedString str="${exc}"/>
 </target>
 
 <target name="__extract_testbox" if="testcases">
@@ -435,10 +493,15 @@
 </target>
 
 <target name="__build_testbox" if="testcases">
+    <!-- optionally install test lucee extensions from a directory -->
+    <deployTestExtensions
+      srcdir="${testExtensions}" 
+      deploydir="${temp}/archive/base/lucee-server/deploy/"/>
+
     <listDirectory directory="${test}/lib" delimiter=":" returnvalue="test_jars"/>
-    <echots message="execute testcases ${testcases}"/>
+    <echots message="execute testcases ${testcases} with java ${testJavaVersionExec}"/>
     <!-- execute CFML testcases -->
-    <java classname="org.apache.tools.ant.launch.Launcher" dir="${ant}" fork="true" failonerror="true" errorproperty="exc2">
+    <java classname="org.apache.tools.ant.launch.Launcher" dir="${ant}" fork="true" failonerror="true" errorproperty="exc2" jvm="${testJavaVersionExec}">
       <classpath path="${java.class.path}">
           <pathelement location="${temp}/lucee.jar"/>
           <pathelement path="${runtime_classpath}"/>
@@ -450,6 +513,11 @@
 
       <jvmarg value="-Dtest=${test}"/>
       <jvmarg value="-DtestFilter=${testFilter}"/>
+      <jvmarg value="-DtestLabels=${testLabels}"/>
+      <jvmarg value="-DtestAdditional=${testAdditional}"/>
+      <jvmarg value="-DtestSkip=${testSkip}"/>
+      <jvmarg value="-DtestDebug=${testDebug}"/>
+      <jvmarg value="-DtestServices=${testServices}"/>
       <jvmarg value="-Dtemp=${temp}"/>
       <jvmarg value="-Dbasedir=${baseDir}"/>
       <jvmarg value="-Dsrcall=${srcAll}"/>
@@ -459,14 +527,20 @@
       <jvmarg value="-DindividualStorageKeys=false"/>
       <jvmarg value="-Dlucee.base.dir=${temp}/archive/base"/>
       <jvmarg value="-Dlucee.web.dir=${temp}/archive/webroot"/>
-      <jvmarg value="-Dlucee-extensions=${extH2},${extMongo},${extOracle},${extJson}"/>
+      <jvmarg value="-Dlucee-extensions=${extH2},${extMongo},${extOracle},${extLucene},${extAxis},${extChart}"/>
       <jvmarg value="-Dlucee.enable.dialect=true"/>
       <jvmarg value="-Dlucee.extensions.install=true"/>
       <jvmarg value="-Dlucee.full.null.support=false"/>
+      <jvmarg value="-Dlucee.cli.printExceptions=true"/>
+      <jvmarg value="-Dlucee.ssl.checkserveridentity=false"/>
       <!--
       <jvmarg value="-XX:StartFlightRecording=disk=true,dumponexit=true,filename=${temp}/../lucee-testcases.jfr,maxsize=1024m,maxage=1d,settings=profile,path-to-gc-roots=true"/>
       <jvmarg value="-Dlucee.system.out=file:.../out.txt"/>
       <jvmarg value="-Dlucee.system.err=file:.../err.txt"/>
+      -->
+      <!--
+      <jvmarg value="-Xdebug"/>
+      <jvmarg value="-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5000"/>
       -->
 
       <!--
@@ -475,8 +549,7 @@
     -->
 
     </java>
-    <echo>${exc2}</echo>
-
+    <outputTrimmedString str="${exc2}"/>
 </target>
 
 <target name="upload_to_s3">
@@ -484,12 +557,12 @@
       basedir="${outputDir}/" 
       jarfile="${trgLoader}/lucee-${version}.jar" 
       manifest="${goal}/META-INF/MANIFEST.MF"/>
-    <echots message="build-jar-man:${goal}/META-INF/MANIFEST.MF"/>    
+    <echots message="build-jar-man:${goal}/META-INF/MANIFEST.MF"/>
 
     <listDirectory directory="${test}/lib" delimiter=":" returnvalue="test_jars"/>
     <echots message="upload to S3"/>
     <echots message="${test_jars}"/>
-    
+
     <!-- Upload to S3 -->
     <java classname="org.apache.tools.ant.launch.Launcher" dir="${ant}" fork="true" failonerror="true" errorproperty="exc3">
       <classpath path="${java.class.path}">
@@ -501,6 +574,7 @@
       <arg value="-f"/>
       <arg value="${ant}/upload-to-s3.xml"/>
 
+      <jvmarg value="-Dantdir=${ant}"/>
       <jvmarg value="-Dbasedir=${baseDir}"/>
       <jvmarg value="-Dlucee.base.dir=${temp}/archive/base"/>
       <jvmarg value="-Dlucee.web.dir=${temp}/archive/webroot"/>
@@ -510,11 +584,80 @@
       <jvmarg value="-Dluceejar=${trgLoader}/lucee-${version}.jar"/>
       <jvmarg value="-DluceeCore=${trgLoader}/${version}.lco"/>
       <jvmarg value="-DtrgLoader=${trgLoader}"/>
+      <jvmarg value="-DluceeVersion=${version}"/>
 
     </java>
-    <echo>${exc3}</echo>
+    <outputTrimmedString str="${exc3}"/>
 
 </target>
+
+<target name="test_warmup" if="testcases">
+    <echots message="Testing LUCEE_ENABLE_WARMUP"/>
+    <mkdir dir="${temp}/warmup"/>
+    <!-- Test Lucee Warmup -->
+    <java classname="org.apache.tools.ant.launch.Launcher" dir="${temp}/warmup" fork="true" failonerror="true" errorproperty="exc4" jvm="${testJavaVersionExec}">
+      <classpath path="${java.class.path}">
+          <pathelement location="${trgLoader}/lucee-${version}.jar"/>
+          <pathelement path="${runtime_classpath}"/>
+      </classpath>
+
+      <arg value="-f"/>
+      <arg value="${ant}/build-warmup-test.xml"/>
+
+      <jvmarg value="-Dbasedir=${baseDir}"/>
+      <jvmarg value="-Dlucee.base.dir=${temp}/warmup/base"/>
+      <jvmarg value="-Dlucee.web.dir=${temp}/warmup/webroot"/>
+      <jvmarg value="-Dlucee.enable.warmup=true"/>
+    </java>
+    <echo>${exc4}</echo>
+</target>
+
+<target name="test_stable_loader">
+    <!-- no we copy the extension in place otherwise, Lucee downloads them as well  -->
+    <echots message="copy extensions in place"/>
+    <copyExtensions
+      source="${cache}"
+      target="${temp}/stable/base/lucee-server/context/extensions/available"
+      extensions="${reqExt.data}">
+    </copyExtensions>
+
+    <!-- make a copy of the stable fat jar  -->
+    <copy file="${cache}/${stableLoader}.jar" tofile="${temp}/stable/loader.jar"/>
+    <copy file="${trgLoader}/${version}.lco" tofile="${temp}/stable/temp/core/core.lco"/>
+    <!-- update the fat jar with the current core .lco -->
+    <jar destfile="${temp}/stable/loader.jar" update="true">
+       <fileset dir="${temp}/stable/temp"/>
+    </jar>
+
+
+    <echots message="try running the new core build with an older stable loader"/>
+    <!-- build the lucee-context.lar -->
+    <java classname="org.apache.tools.ant.launch.Launcher" dir="${ant}" fork="true" failonerror="true" errorproperty="exc">
+      <classpath path="${java.class.path}">
+          <pathelement location="${temp}/stable/loader.jar"/>
+          <pathelement path="${runtime_classpath}"/>
+      </classpath>
+
+      <arg value="-f"/>
+      <arg value="${ant}/build-test-stable-loader.xml"/>
+
+      <jvmarg value="-DstableLoader=${stableLoader}"/>
+      <jvmarg value="-Dlucee.base.dir=${temp}/stable/base"/>
+      <jvmarg value="-Dlucee.web.dir=${temp}/stable/webroot"/>
+      <jvmarg value="-Dlucee.enable.dialect=true"/>
+      <jvmarg value="-Dlucee.extensions.install=true"/>
+      <jvmarg value="-Dlucee.full.null.support=false"/>
+      <!-- older loader can dynamically download required bundles from the update provider -->
+      <jvmarg value="-Dlucee.enable.bundle.download=true"/>
+      <jvmarg value="-Dlucee.cli.printExceptions=true"/>
+      <!--
+      <jvmarg value="-Xdebug"/>
+      <jvmarg value="-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5000"/>
+      -->
+    </java>
+    <outputTrimmedString str="${exc}"/>
+</target>
+
 
 
   <target name="__build" depends="__build_archives,__build_testbox">
@@ -617,7 +760,7 @@
     <echots message="build-jar-ant:${goal}/META-INF/MANIFEST.MF"/>  
   </target>
 
-  <target name="_buildLoaderMaven" depends="__build,setMvnEnv,addExtensions,addBundles,addFelix,createCore,createLoader" description="generate the loader jar">
+  <target name="_buildLoaderMaven" depends="__build,setMvnEnv,addExtensions,addBundles,addFelix,createCore,createLoader,test_warmup,test_stable_loader" description="generate the loader jar">
     <!-- version -->
     <currentTime property="ct" />
     <echo file="${outputDir}/lucee/version" message="${version}:${ct}" encoding="UTF-8"/>
@@ -633,7 +776,7 @@
     <echo>after:${goal}</echo>  
   </target>
 
-  <target name="buildLoaderAnt" depends="__build,setAntEnv,addExtensions,addBundles,addFelix,createCore,createLoader" description="generate the loader jar" >
+  <target name="buildLoaderAnt" depends="__build,setAntEnv,addExtensions,addBundles,addFelix,createCore,createLoader,test_warmup,test_stable_loader" description="generate the loader jar" >
     <!-- version -->
     <currentTime property="ct" />
     <echo file="${temp}/loader/lucee/version" message="${version}:${ct}" encoding="UTF-8"/>

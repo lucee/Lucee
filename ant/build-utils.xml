@@ -104,6 +104,18 @@
       project.setProperty(attributes.get("property"), new Date().getTime());
      ]]>
   </scriptdef>
+
+  <scriptdef name="outputTrimmedString" language="javascript" loaderRef="sharedbuild-loaderRef">
+     <attribute name="str" />
+     <![CDATA[
+        var trimmed = String( attributes.get( "str" ) ).trim();
+        if ( trimmed.length > 0 ){
+          var echo = project.createTask( "echo" );
+          echo.setMessage( trimmed );
+          echo.perform();
+        }
+     ]]>
+  </scriptdef>
   
   <scriptdef name="deployLco" language="javascript" loaderRef="sharedbuild-loaderRef">
      <attribute name="srcdir" />
@@ -125,6 +137,42 @@
             echo.perform();
 
             copy.perform();
+          }
+     ]]>
+  </scriptdef>
+
+  <scriptdef name="deployTestExtensions" language="javascript" loaderRef="sharedbuild-loaderRef">
+     <attribute name="srcdir" />
+     <attribute name="deploydir" />
+     <![CDATA[
+          var srcDir = attributes.get("srcdir");
+          var deployDir = attributes.get("deploydir");
+          var echo = project.createTask( "echo" );
+          var copy = project.createTask( "copy" );
+
+          if ( srcDir && srcDir.length > 0 ){
+            var dir = new java.io.File( srcDir );
+            var deployDir = new java.io.File( deployDir );
+            var exts = dir.listFiles();
+            
+            if (exts != null )
+              if ( !deployDir.exists() )
+                deployDir.mkdirs();
+              echo.setMessage( "Adding test extensions (*.lex) from: [" + srcDir +"]");
+              echo.perform();
+              for(var i = 0 ; i < exts.length ; i++ ) {
+                var path = exts[i].getPath();
+                if ( !path.endsWith( ".lex" ) ) 
+                  continue;
+                copy.setFile( new java.io.File( path ) );
+                copy.setTofile( new java.io.File( deployDir + "/" + exts[i].getName() ) );
+                echo.setMessage( "Deploying test extension: [" + path + "] to [" + deployDir + "/" + exts[i].getName() + "]" );
+                echo.perform();
+                copy.perform();
+            }
+          } else {
+                echo.setMessage( "WARNING: deployTestExtensions: srcDir [" + srcDir + "] was empty?" );
+                echo.perform();
           }
      ]]>
   </scriptdef>

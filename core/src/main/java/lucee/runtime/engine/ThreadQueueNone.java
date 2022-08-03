@@ -9,13 +9,16 @@ public class ThreadQueueNone implements ThreadQueue {
 	public static final ThreadQueue instance = new ThreadQueueNone();
 
 	@Override
-	public void enter(PageContext pc) throws IOException {}
+	public void enter(PageContext pc) throws IOException {
+	}
 
 	@Override
-	public void exit(PageContext pc) {}
+	public void exit(PageContext pc) {
+	}
 
 	@Override
-	public void clear() {}
+	public void clear() {
+	}
 
 	@Override
 	public int size() {

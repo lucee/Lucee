@@ -23,4 +23,8 @@ component {
 	request.currentPath=GetDirectoryFromPath(getCurrentTemplatePath());
 
 	if(!isNull(url.readonly))this.cgiReadOnly=url.readonly;
+
+	public function onRequestStart() {
+		setting requesttimeout=10;
+	}
 }

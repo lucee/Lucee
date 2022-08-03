@@ -15,7 +15,7 @@
 	<data key="services.update.patch">Installierte Patches</data>
 	<data key="services.update.type_auto">Automatisch</data>
 	<data key="services.update.removerun">Patches entfernen</data>
-	<data key="services.update.exedesc">Spielen Sie die aktuellsten Pacthes für Ihre Version ein. Nach einem erfolgten Update, müssen Sie sich neu in den Administrator einloggen.</data>
+	<data key="services.update.exedesc">Spielen Sie die aktuellsten Patches für Ihre Version ein. Nach einem erfolgten Update, müssen Sie sich neu in den Administrator einloggen.</data>
 	<data key="services.update.update">Für Ihre Version steht ein Patch zur Verfügung, Sie haben die Version {current} installiert, die aktuell verfügbare Version ist {available}</data>
 	<data key="services.update.infotitle">Info</data>
 	<data key="services.update.restartdesc">Hier können Sie Lucee neu starten.</data>

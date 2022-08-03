@@ -30,6 +30,7 @@ import javax.script.SimpleScriptContext;
 
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
+import lucee.commons.lang.SerializableObject;
 import lucee.runtime.PageContext;
 import lucee.runtime.compiler.Renderer;
 import lucee.runtime.compiler.Renderer.Result;
@@ -45,18 +46,19 @@ public class ScriptEngineImpl implements ScriptEngine {
 
 	private ScriptEngineFactoryImpl factory;
 	private ScriptContext context;
-	private PageContext pc;
+	private PageContext _pc;
+	private Object token = new SerializableObject();
 
 	public ScriptEngineImpl(ScriptEngineFactoryImpl factory) {
 		this.factory = factory;
-		pc = createPageContext();
+		_getPageContext(false);
 
 	}
 
 	@Override
 	public Object eval(String script, ScriptContext context) throws ScriptException {
 		if (context == null) context = getContext();
-
+		boolean printExceptions = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.cli.printExceptions", null), false);
 		PageContext oldPC = ThreadLocalPageContext.get();
 		PageContext pc = getPageContext(context);
 		try {
@@ -64,7 +66,23 @@ public class ScriptEngineImpl implements ScriptEngine {
 			return res.getValue();
 		}
 		catch (PageException pe) {
+			if (printExceptions){
+				pe.printStackTrace();
+			}
 			throw toScriptException(pe);
+		}
+		catch (RuntimeException re) {
+			if (printExceptions){
+				re.printStackTrace();
+			}
+			throw re;
+		}
+		catch (Throwable t) {
+			if (printExceptions){
+				if (t instanceof ThreadDeath) throw (ThreadDeath) t;
+				t.printStackTrace();
+			}
+			throw new RuntimeException(t);
 		}
 		finally {
 			releasePageContext(pc, oldPC);
@@ -148,9 +166,28 @@ public class ScriptEngineImpl implements ScriptEngine {
 	}
 
 	private PageContext getPageContext(ScriptContext context) {
+		PageContext pc = _getPageContext(true);
 		pc.setVariablesScope(toVariables(context.getBindings(ScriptContext.ENGINE_SCOPE)));
 		ThreadLocalPageContext.register(pc);
 		return pc;
+	}
+
+	private PageContext _getPageContext(boolean throwOnError) {
+		if (_pc == null) {
+			synchronized (token) {
+				if (_pc == null) {
+					try {
+						File root = new File(factory.engine.getCFMLEngineFactory().getResourceRoot(), "jsr223-webroot");
+						_pc = PageContextUtil.getPageContext(null, null, root, "localhost", "/index.cfm", "", null, null, null, null, CFMLEngineImpl.CONSOLE_OUT, false,
+								Long.MAX_VALUE, Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.ignore.scopes", null), false));
+					}
+					catch (Exception e) {
+						if (throwOnError) throw new RuntimeException(e);
+					}
+				}
+			}
+		}
+		return _pc;
 	}
 
 	private void releasePageContext(PageContext pc, PageContext oldPC) {
@@ -164,17 +201,6 @@ public class ScriptEngineImpl implements ScriptEngine {
 		RuntimeException t = new RuntimeException("not supported! " + bindings.getClass().getName());
 		throw t;
 		// return new BindingsAsVariables(bindings);
-	}
-
-	private PageContext createPageContext() {
-		try {
-			File root = new File(factory.engine.getCFMLEngineFactory().getResourceRoot(), "jsr223-webroot");
-			return PageContextUtil.getPageContext(null, null, root, "localhost", "/index.cfm", "", null, null, null, null, CFMLEngineImpl.CONSOLE_OUT, false, Long.MAX_VALUE,
-					Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.ignore.scopes", null), false));
-		}
-		catch (Exception e) {
-			throw new RuntimeException(e);
-		}
 	}
 
 	///////////// calling other methods of the same class /////////////////

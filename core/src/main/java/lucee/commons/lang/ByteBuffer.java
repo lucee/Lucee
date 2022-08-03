@@ -182,7 +182,8 @@ public class ByteBuffer {
 		try {
 			writeOut(baos);
 		}
-		catch (IOException e) {}
+		catch (IOException e) {
+		}
 		return baos.toByteArray();
 	}
 

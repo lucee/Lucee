@@ -1,4 +1,13 @@
 component extends="org.lucee.cfml.test.LuceeTestCase"{
+
+	function beforeAll(){
+		setLocale("en_us");
+	}
+
+	function afterAll(){
+		setLocale("en_us");
+	}
+
 	function run( testResults , testBox ) {
 		describe( title="Test suite for LSCurrencyFormat()", body=function() {
 			it(title="checking LSCurrencyFormat() function", body = function( currentSpec ) {
@@ -25,7 +34,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				German (Swiss) --->
 				setLocale("German (Swiss)");
 				if(getJavaVersion()>=9) {
-					if(getJavaVersion()>=11) assertEquals("CHF 100’000.00", "#LSCurrencyFormat(100000,"local")#");
+					if(getJavaVersion()>=11) assertEquals("CHF 100#chr(8217)#000.00", "#LSCurrencyFormat(100000,"local")#");
 					else assertEquals("CHF 100'000.00", "#LSCurrencyFormat(100000,"local")#");
 					assertEquals("CHF 1.00", "#LSCurrencyFormat(1)#");
 					assertEquals("CHF 1.20", "#LSCurrencyFormat(1.2)#");
@@ -39,8 +48,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				}
 
 				if(getJavaVersion()>=11) {
-					assertEquals("CHF100’000.00", "#replace(LSCurrencyFormat(100000,"international"),' ','')#");
-					assertEquals("100’000.00", "#LSCurrencyFormat(100000,"none")#");
+					assertEquals("CHF100#chr(8217)#000.00", "#replace(LSCurrencyFormat(100000,"international"),' ','')#");
+					assertEquals("100#chr(8217)#000.00", "#LSCurrencyFormat(100000,"none")#");
 				}
  				else {
 					assertEquals("CHF100'000.00", "#replace(LSCurrencyFormat(100000,"international"),' ','')#");

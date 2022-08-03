@@ -2,6 +2,9 @@
 <cfparam name="application.pluginLanguage.de" default="#struct()#">
 <cfparam name="application.pluginLanguage.en" default="#struct()#">
 <cfparam name="url.pluginAction" default="overview">
+<cfif url.pluginAction.len() EQ 0>
+	<cfset url.pluginAction = "overview">
+</cfif>
 <cfif not structKeyExists(url,"plugin")>
 	<cflocation url="#request.self#" addtoken="no">
 </cfif>
@@ -60,7 +63,7 @@
 	<cfset rtnAction= plugin.component._action(url.pluginAction,lang,app,req)>    
 	<!--- cfset rtnAction= plugin.component[url.pluginAction](lang,app,req)--->
 </cfif>
-<cfif not isDefined('rtnAction')>
+<cfif (rtnAction?:"").len() EQ 0>
 	<cfset rtnAction=url.pluginAction>
 </cfif>
 

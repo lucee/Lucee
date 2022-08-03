@@ -16,4 +16,9 @@
 		, custom: {'timeToIdleSeconds':'0','timeToLiveSeconds':'0'}
 		, default: ''
 	}>
+<cfscript>
+	public function onRequestStart() {
+		setting requesttimeout=10;
+	}
+</cfscript>
 </cfcomponent>

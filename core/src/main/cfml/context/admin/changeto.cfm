@@ -12,3 +12,4 @@
 		<cfset echo(cfcatch.message)>
 	</cfcatch>
 </cftry>
+<cfabort>

@@ -415,7 +415,7 @@
 						<cfset sectionId = "Exceptions">
 						<cfset isOpen = this.isSectionOpen( sectionId )>
 
-						<div class="section-title">Caught Exceptions</div>
+						<div class="section-title">Exceptions</div>
 						<table>
 
 							<cfset renderSectionHeadTR( sectionId, "#arrayLen(exceptions)# Exception#arrayLen( exceptions ) GT 1 ? 's' : ''# Caught" )>

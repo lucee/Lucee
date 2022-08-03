@@ -218,7 +218,8 @@ public final class CredentialImpl implements Credential {
 				IOUtil.write(rolesDir.getRealResource(md5), raw, CharsetUtil.UTF8, false);
 				return encrypt(username + ONE + password + ONE + "md5:" + md5, privateKey, salt, iter);
 			}
-			catch (IOException e) {}
+			catch (IOException e) {
+			}
 		}
 		try {
 			return encrypt(username + ONE + password + ONE + raw, privateKey, salt, iter);
@@ -241,7 +242,7 @@ public final class CredentialImpl implements Credential {
 	private static String decrypt(Object input, String privateKey, byte[] salt, int iter) throws PageException {
 		if (StringUtil.isEmpty(privateKey, true)) {
 			try {
-				return Base64Coder.decodeToString(Caster.toString(input), "UTF-8");
+				return Base64Coder.decodeToString(Caster.toString(input), "UTF-8", true);
 			}
 			catch (Exception e) {
 				throw Caster.toPageException(e);

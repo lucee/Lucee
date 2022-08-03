@@ -268,7 +268,7 @@ if(!pages.recordcount || !hasQueries) {
 <cfif structKeyExists(arguments.debugging,"exceptions")  and arrayLen(arguments.debugging.exceptions)>
 	<cfset var exceptions=arguments.debugging.exceptions>
     
-	<p class="cfdebug"><hr/><b class="cfdebuglge">Caught Exceptions</b></p>
+	<p class="cfdebug"><hr/><b class="cfdebuglge">Exceptions</b></p>
 		<table border="1" cellpadding="2" cellspacing="0" class="cfdebug">
 		<tr>
 			<td class="cfdebug"><b>Type</b></td>

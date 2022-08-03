@@ -7,4 +7,8 @@ component {
 	this.ormSettings = {
 		dbcreate = "dropcreate"
 	};
+
+	public function onRequestStart() {
+		setting requesttimeout=10;
+	}
 }

@@ -5,7 +5,7 @@ component {
 
 	mySQL = getCredentials();
 	if(mySQL.count()!=0){
-		this.datasource = mySQL;
+		this.datasource ="#server.getDatasource("mysql")#";
 	}
 
 	// ORM settings
@@ -13,7 +13,9 @@ component {
 	this.ormSettings = {
 		dialect = "MySQLwithInnoDB"
 	};
-	function onRequestStart(){
+
+	public function onRequestStart() {
+		setting requesttimeout=10;
 
 		query {
 	        echo("SET FOREIGN_KEY_CHECKS=0");

@@ -18,7 +18,8 @@ component {
 	this.ormsettings.dbcreate = "none"; // this applicable for default datasource
 	this.ormsettings.flushatrequestend = true;	// we are going to manually commit all transactions
 
-	function onApplicationStart(){
+	public function onRequestStart() {
+		setting requesttimeout=10;
 		query{
 			echo("IF EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'mssql') BEGIN DROP TABLE mssql END");
    		}

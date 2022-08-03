@@ -770,6 +770,10 @@ public final class ComponentUtil {
 	}
 
 	public static Struct getMetaData(PageContext pc, UDFPropertiesBase udf) throws PageException {
+		return getMetaData(pc, udf, false);
+	}
+
+	public static Struct getMetaData(PageContext pc, UDFPropertiesBase udf, Boolean isStatic) throws PageException {
 		StructImpl func = new StructImpl();
 		pc = ThreadLocalPageContext.get(pc);
 		// TODO func.set("roles", value);
@@ -790,6 +794,8 @@ public final class ComponentUtil {
 		func.set(KeyConstants._returntype, udf.getReturnTypeAsString());
 		func.set(KeyConstants._modifier, udf.getModifier() == Component.MODIFIER_NONE ? "" : ComponentUtil.toModifier(udf.getModifier(), ""));
 		func.set(KeyConstants._description, udf.getDescription());
+		if (isStatic != null) func.set(KeyConstants._static, isStatic);
+
 		if (udf.getLocalMode() != null) func.set("localMode", AppListenerUtil.toLocalMode(udf.getLocalMode().intValue(), ""));
 
 		if (udf.getPageSource() != null) func.set(KeyConstants._owner, udf.getPageSource().getDisplayPath());

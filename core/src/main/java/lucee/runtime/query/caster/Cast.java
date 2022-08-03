@@ -39,6 +39,7 @@ public interface Cast {
 	public static final Cast TIME_NOTZ = new TimeCast(false);
 	public static final Cast TIMESTAMP_NOTZ = new TimestampCast(false);
 	public static final Cast DATE_NOTZ = new DateCast(false);
+	public static final Cast SQLXML = new SQLXMLCast();
 
 	public static final Cast ORACLE_BLOB = new OracleBlobCast();
 	public static final Cast ORACLE_CLOB = new OracleClobCast();

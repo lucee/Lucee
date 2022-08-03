@@ -107,7 +107,8 @@ public class ThreadsImpl extends StructSupport implements lucee.runtime.type.sco
 	}
 
 	@Override
-	public void release(PageContext pc) {}
+	public void release(PageContext pc) {
+	}
 
 	@Override
 	public void clear() {
@@ -133,7 +134,7 @@ public class ThreadsImpl extends StructSupport implements lucee.runtime.type.sco
 	}
 
 	private Object getMeta(Key key, Object defaultValue) {
-		if (KEY_ELAPSEDTIME.equalsIgnoreCase(key)) return new Double(System.currentTimeMillis() - ct.getStartTime());
+		if (KEY_ELAPSEDTIME.equalsIgnoreCase(key)) return (String) getState() == "TERMINATED" ? 0 : new Double(ct.getEndTime() - ct.getStartTime());
 		if (KeyConstants._NAME.equalsIgnoreCase(key)) return ct.getTagName();
 		if (KEY_OUTPUT.equalsIgnoreCase(key)) return getOutput();
 		if (KEY_PRIORITY.equalsIgnoreCase(key)) return ThreadUtil.toStringPriority(ct.getPriority());

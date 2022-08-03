@@ -23,6 +23,7 @@ import java.sql.Connection;
 import javax.servlet.jsp.JspException;
 
 import lucee.commons.lang.ExceptionUtil;
+import lucee.commons.lang.StringUtil;
 import lucee.runtime.db.DataSourceManager;
 import lucee.runtime.db.DatasourceManagerImpl;
 import lucee.runtime.exp.DatabaseException;
@@ -51,6 +52,8 @@ public final class Transaction extends BodyTagTryCatchFinallyImpl {
 
 	private boolean ignore = false;
 
+	private String savepoint;
+
 	@Override
 	public void release() {
 		// hasBody=false;
@@ -58,6 +61,7 @@ public final class Transaction extends BodyTagTryCatchFinallyImpl {
 		action = ACTION_NONE;
 		innerTag = false;
 		ignore = false;
+		savepoint = null;
 		super.release();
 	}
 
@@ -93,6 +97,15 @@ public final class Transaction extends BodyTagTryCatchFinallyImpl {
 				null);
 	}
 
+	/**
+	 * @param isolation The isolation to set.
+	 * @throws DatabaseException
+	 */
+	public void setSavepoint(String savepoint) throws DatabaseException {
+		if (StringUtil.isEmpty(savepoint, true)) this.savepoint = null;
+		else this.savepoint = savepoint.trim().toLowerCase();
+	}
+
 	@Override
 	public int doStartTag() throws PageException {
 		DataSourceManager manager = pageContext.getDataSourceManager();
@@ -122,10 +135,10 @@ public final class Transaction extends BodyTagTryCatchFinallyImpl {
 			manager.commit();
 			break;
 		case ACTION_ROLLBACK:
-			manager.rollback();
+			((DatasourceManagerImpl) manager).rollback(savepoint);
 			break;
 		case ACTION_SET_SAVEPOINT:
-			((DatasourceManagerImpl) manager).savepoint();
+			((DatasourceManagerImpl) manager).savepoint(savepoint);
 			break;
 		}
 

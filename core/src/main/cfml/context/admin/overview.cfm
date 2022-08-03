@@ -439,8 +439,7 @@ Error Output --->
 			<cfhtmlbody>
 				<script type="text/javascript">
 					$( function() {
-
-						$('##updateInfoDesc').load('update.cfm?#session.urltoken#&adminType=#request.admintype#');
+						$('##updateInfoDesc').load('?action=update&adminType=#request.admintype#');
 					} );
 				</script>
 			</cfhtmlbody>
@@ -789,7 +788,7 @@ Error Output --->
 							<td>
 								<cfif Listfind(valueList(docsServer.name),"Lucee Documentation") eq 0 && Listfind(valueList(docsWeb.name),"Lucee Documentation") eq 0>
 									<a href="#cgi.script_name#?action=ext.applications" title="#stText.overview.installDocsLink#">
-										#stText.Overview.localRefLink#</a>
+										#stText.overview.installDocsLink#</a>
 								<cfelse>
 									<a href="../doc/index.cfm" target="_blank">#stText.Overview.localRefLink#</a>
 								</cfif>

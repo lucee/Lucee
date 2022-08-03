@@ -3,13 +3,14 @@ component {
 	this.name	=	Hash( GetCurrentTemplatePath() );
 	this.sessionManagement 	= false;
 
-	mySQL=getCredencials();
+	mySQL=getCredentials();
 
 	this.datasources["sample"] = mySQL;
 	this.datasource = "sample";
 
-	function onRequestStart(){
-		setting showdebugOutput=false;
+
+	public function onRequestStart() {
+		setting requesttimeout=10 showdebugOutput=false;
 		// init the table used
 		query {
 	        echo("SET FOREIGN_KEY_CHECKS=0");
@@ -27,7 +28,7 @@ component {
 		}
 	}
 
-	private struct function getCredencials() {
+	private struct function getCredentials() {
 		return server.getDatasource("mysql");
 	}
 

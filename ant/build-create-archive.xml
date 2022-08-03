@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project default="all" basedir="." name="Lucee">
 
-	<property name="srcCFML" location="${temp}/context"/>
-	<property name="srcAdmin" location="${src}/admin"/>
-	<property name="srcDoc" location="${src}/doc"/>
+	<property name="srcCFML" location="${src}"/>
+	<property name="srcAdmin" location="${src}/cfml/admin"/>
+	<property name="srcDoc" location="${src}/cfml/doc"/>
 	<property name="srcTB" location="${testbox}"/>
 
 	<macrodef name="echots">
@@ -19,24 +19,19 @@
 
 <target name="all">
 
-	<!-- first we need to separate the lucee context from the admin  -->
-	<copy todir="${srcCFML}">
-		<fileset dir="${src}">
-			<include name="**/*"/>
-			<exclude name="admin/**"/>
-			<exclude name="doc/**"/>
-		</fileset>
-	</copy>
-
 	<echots message="Starting Lucee"/>
 	<script language="CFML">
 	<![CDATA[
 	systemOutput("---------- #DateTimeFormat(now(),'yyyy-mm-dd HH:nn:ss')# - Lucee Started ----------", true);
 
+	SystemOutput("srcCFML: #srcCFML#", true);
+	SystemOutput("srcAdmin: #srcAdmin#", true);
+	SystemOutput("srcDoc: #srcDoc#", true);
+
 	try {
 
 // set a password for the admin
-	if(getConfigSettings().mode!="single") {
+	if(!server.lucee.singleContext) {
 		admin 
 			action="updatePassword"
 			type="web"
@@ -61,7 +56,7 @@
 		type="web"
 		password="webweb"
 		virtual="/context"
-		physical="#srcCFML#"
+		physical="#srcCFML#/cfml-context"
 		toplevel="true"
 		archive=""
 		primary="physical"

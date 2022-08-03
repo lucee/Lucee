@@ -1,12 +1,14 @@
 component {
 
-	mySQL=getCredencials();
+	mySQL=getCredentials();
 	this.name = "ldev3091";
 	this.datasources["ldev3091"] = mySQL;
 	this.datasource = "ldev3091";
 	
 
-	public function onRequestStart(){
+	
+	public function onRequestStart() {
+		setting requesttimeout=10;
 		query{
 			echo("DROP TABLE IF EXISTS ldev3091");
 		}
@@ -15,7 +17,7 @@ component {
 		}
 	}	
 
-	private struct function getCredencials() {
+	private struct function getCredentials() {
 		return server.getDatasource("mysql");
 	}
 

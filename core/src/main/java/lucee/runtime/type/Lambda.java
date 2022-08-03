@@ -35,7 +35,7 @@ public class Lambda extends EnvUDF {
 
 	@Override
 	public Struct _getMetaData(PageContext pc) throws PageException {
-		Struct meta = ComponentUtil.getMetaData(pc, properties);
+		Struct meta = ComponentUtil.getMetaData(pc, properties, null);
 		meta.setEL(KeyConstants._closure, Boolean.TRUE);// MUST move this to class UDFProperties
 		meta.setEL("ANONYMOUSLAMBDA", Boolean.TRUE);// MUST move this to class UDFProperties
 		return meta;

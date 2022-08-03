@@ -85,7 +85,7 @@ public class IKHandlerDatasource implements IKHandler {
 
 		try {
 			IKStorageValue data = (IKStorageValue) JavaConverter.deserialize(str);
-			ScopeContext.debug(log, "load existing data from [" + name + "." + PREFIX + "_" + strType + "_data] to create " + strType + " scope for "
+			ScopeContext.info(log, "load existing data from [" + name + "." + PREFIX + "_" + strType + "_data] to create " + strType + " scope for "
 					+ pc.getApplicationContext().getName() + "/" + pc.getCFID());
 			return data;
 		}
@@ -118,7 +118,7 @@ public class IKHandlerDatasource implements IKHandler {
 	}
 
 	@Override
-	public void store(IKStorageScopeSupport storageScope, PageContext pc, String appName, final String name, String cfid, Map<Key, IKStorageScopeItem> data, Log log) {
+	public void store(IKStorageScopeSupport storageScope, PageContext pc, String appName, final String name, Map<Key, IKStorageScopeItem> data, Log log) {
 		DatasourceConnection dc = null;
 		ConfigPro ci = (ConfigPro) ThreadLocalPageContext.getConfig(pc);
 		try {
@@ -133,10 +133,10 @@ public class IKHandlerDatasource implements IKHandler {
 
 			if (storeEmpty || storageScope.hasContent()) {
 				IKStorageValue sv = new IKStorageValue(IKStorageScopeSupport.prepareToStore(data, existingVal, storageScope.lastModified()));
-				executor.update(ci, cfid, appName, dc, storageScope.getType(), sv, storageScope.getTimeSpan(), log);
+				executor.update(ci, pc.getCFID(), appName, dc, storageScope.getType(), sv, storageScope.getTimeSpan(), log);
 			}
 			else if (existingVal != null) {
-				executor.delete(ci, cfid, appName, dc, storageScope.getType(), log);
+				executor.delete(ci, pc.getCFID(), appName, dc, storageScope.getType(), log);
 			}
 		}
 		catch (Exception e) {
@@ -148,7 +148,7 @@ public class IKHandlerDatasource implements IKHandler {
 	}
 
 	@Override
-	public void unstore(IKStorageScopeSupport storageScope, PageContext pc, String appName, String name, String cfid, Log log) {
+	public void unstore(IKStorageScopeSupport storageScope, PageContext pc, String appName, String name, Log log) {
 		ConfigPro ci = (ConfigPro) ThreadLocalPageContext.getConfig(pc);
 		DatasourceConnection dc = null;
 
@@ -160,7 +160,7 @@ public class IKHandlerDatasource implements IKHandler {
 			DatasourceConnPool pool = ci.getDatasourceConnectionPool(ds, null, null);
 			dc = pool.borrowObject();
 			SQLExecutor executor = SQLExecutionFactory.getInstance(dc);
-			executor.delete(ci, cfid, appName, dc, storageScope.getType(), log);
+			executor.delete(ci, pc.getCFID(), appName, dc, storageScope.getType(), log);
 		}
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);

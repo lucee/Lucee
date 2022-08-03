@@ -178,7 +178,6 @@
 <cfinclude template="resources/text.cfm">
 <cfinclude template="web_functions.cfm">
 
-
 <cfif !structKeyExists(application, "adminfunctions") or (structKeyExists(session, "alwaysNew") && session.alwaysNew)>
 	<cfset application.adminfunctions = new adminfunctions() />
 </cfif>
@@ -207,7 +206,7 @@
 			<cfset language.__position=structKeyExists(xml.xmlRoot.XmlAttributes,"position")?xml.xmlRoot.XmlAttributes.position:0>
 		</cfif>
 		<cftry>
-				<cfset xml = XmlSearch(xml, "/languages/language[@key='#lCase(trim(arguments.lang))#']")[1]>
+			<cfset xml = XmlSearch(xml, "/languages/language[@key='#lCase(trim(arguments.lang))#']")[1]>
 			<cfcatch>
 				<!--- fallback to english --->
 				<cfset xml = XmlSearch(xml, "/languages/language[@key='en']")[1]>
@@ -505,7 +504,7 @@
 	</cfif>
 <cfelse>
 	<cfsavecontent variable="content">
-		<cfif !findOneOf("\/",current.action)>
+		<cfif !findOneOf("\/",current.action) && fileExists("#current.action#.cfm")>
 			<cfinclude template="#current.action#.cfm">
 		<cfelse>
 			<cfset current.label = "Error">
@@ -543,7 +542,7 @@
 		</cfmodule>
 	</cfif>
 </cfif>
-<cfif (current.action != "overview" || current.action != "chartAjax") && current.action != "services.restart">
+<cfif (current.action != "changeto" || current.action != "overview" || current.action != "chartAjax" || current.action != "update") && current.action != "services.restart">
 	<cfcookie name="lucee_admin_lastpage" value="overview" expires="NEVER">
 <cfelseif current.action == "services.restart">
 	<cfcookie name="lucee_admin_lastpage" value="services.restart" expires="NEVER">

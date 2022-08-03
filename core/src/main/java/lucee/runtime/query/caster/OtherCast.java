@@ -22,6 +22,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
 import java.util.TimeZone;
+import java.util.UUID;
+import java.net.InetAddress;
 
 public class OtherCast implements Cast {
 
@@ -33,21 +35,38 @@ public class OtherCast implements Cast {
 
 	@Override
 	public Object toCFType(TimeZone tz, ResultSet rst, int columnIndex) throws SQLException {
-		if (type != Types.SMALLINT) return rst.getObject(columnIndex);
+		if (type != Types.SMALLINT) {
+			Object value = rst.getObject(columnIndex);
+			
+			// Drivers like Postgres like to return java.util.UUID instances instead of the string GUID 
+			if( value instanceof UUID ) {
+				return ((UUID)value).toString();
+			}
 
-		try {
-			return rst.getObject(columnIndex);
-		}
-		// workaround for MSSQL Driver, in some situation getObject throws a cast exception using getString
-		// avoids this
-		catch (SQLException e) {
+			// Drivers like Postgres have a custom type that returns java.net.InetAddress 
+			if( value instanceof InetAddress ) {
+				return ((InetAddress)value).toString();
+			}
+			
+			return value;
+				
+		} else {
+
 			try {
-				return rst.getString(columnIndex);
+				return rst.getObject(columnIndex);
 			}
-			catch (SQLException e2) {
-				throw e;
+			// workaround for MSSQL Driver, in some situation getObject throws a cast exception using getString
+			// avoids this
+			catch (SQLException e) {
+				try {
+					return rst.getString(columnIndex);
+				}
+				catch (SQLException e2) {
+					throw e;
+				}
 			}
 		}
+
 	}
 
 }

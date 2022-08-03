@@ -61,6 +61,8 @@
 		<cfloop query="providers">
 			<cfif hash(providers.url) EQ arguments.hashProvider>
 				<cfset detail.provider=loadCFC(providers.url)>
+				<cfdump var=#detail.provider#>
+				<cfabort>
 				<cfset var apps=detail.provider.listApplications()>
 				<cfset detail.info=detail.provider.getInfo()>
 				<cfset detail.url=providers.url>
@@ -148,7 +150,7 @@
 		<cfreturn detail>
 	</cffunction>
 
-	<cffunction name="getDumpNail" localmode=true>
+	<cffunction name="getDumpNail" localmode=true output="false">
 		<cfargument name="src" required="yes" type="string">
 		<cfargument name="width" required="yes" type="number" default="80">
 		<cfargument name="height" required="yes" type="number" default="40">
@@ -230,7 +232,7 @@
 			</cfif>				
 
 			<cfcatch>
-				<cfset systemOutput(cfcatch,1,1)>
+				<cflog text="Error parsing extension logo, #cfcatch.message#, [#arguments.src#]" type="error">
 				<cfset local.b64=local.empty>
 			</cfcatch>
 		</cftry>
@@ -273,12 +275,12 @@
 			    returnVariable="local.locals" ;
 			// add column if necessary
 			loop list="#locals.columnlist()#" item="local.k" {
-                if(!qry.columnExists(k)) qry.addColumn(k,[]);
+                if(!qry.columnExists(k)) queryAddColumn(qry,k,[]);
             }
-            qry.addColumn('otherVersions',[]);
+           queryAddColumn(qry,'otherVersions',[]);
 
 			loop query="#locals#" {
-				var row=qry.addrow();
+				var row=queryAddRow(qry);
 				qry.setCell("provider","local",row);
 				loop list="#locals.columnlist()#" item="local.k" {
             		qry.setCell(k,locals[k],row);
@@ -307,7 +309,7 @@
 					arrayAppend(ov,older);
 					qry.otherVersions[row]=ov;
 				}
-				qry.deleteRow(row+1);
+				queryDeleteRow(qry,row+1);
 			}
 
 
@@ -333,14 +335,14 @@
 			// rename older to otherVersions
 
 			if(queryColumnExists(data.extensions,"older") || !queryColumnExists(data.extensions,"otherVersions")) {
-				data.extensions.addColumn("otherVersions",data.extensions.columnData('older'));
-				data.extensions.deleteColumn("older");
+				queryAddColumn(data.extensions,"otherVersions",data.extensions.columnData('older'));
+				queryDeleteColumn(data.extensions,"older");
 				//QuerySetColumn(data.extensions,"older","otherVersions");
 			}
 
 			// add missing columns
 			loop list="#data.extensions.columnlist()#" item="local.k" {
-                if(!qry.ColumnExists(k)) qry.addColumn(k,[]);
+                if(!qry.ColumnExists(k)) queryAddColumn(qry,k,[]);
             }
 
 			// add Extensions data
@@ -408,7 +410,7 @@
 
             	}
 				else {
-					row=qry.addRow();
+					row=queryAddRow(qry);
 					qry.setCell("provider",provider,row);
 					qry.setCell("lastModified",data.lastModified,row);
 	            	loop list="#data.extensions.columnlist()#" item="local.k" {
@@ -643,6 +645,7 @@
 					&"."&repeatString("0",3-len(sct.minor))&sct.minor
 					&"."&repeatString("0",3-len(sct.micro))&sct.micro
 					&"."&repeatString("0",4-len(sct.qualifier))&sct.qualifier
+					& #sct.keyExists("qualifier_appendix1") && isNumeric(sct.qualifier_appendix1)? "."&repeatString("0",4-len(sct.qualifier_appendix1))&sct.qualifier_appendix1  : ""#
 					&"."&repeatString("0",3-len(sct.qualifier_appendix_nbr))&sct.qualifier_appendix_nbr;
 
 		return sct;

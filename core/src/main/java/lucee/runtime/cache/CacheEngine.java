@@ -77,7 +77,8 @@ public class CacheEngine {
 			else keys = cache.keys(new WildCardFilter(filter, false));
 			return Caster.toArray(keys);
 		}
-		catch (Exception e) {}
+		catch (Exception e) {
+		}
 		return new ArrayImpl();
 	}
 

@@ -13,7 +13,7 @@
  * You should have received a copy of the GNU Lesser General Public 
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  * 
- --->
+ ---> 
 <cfsetting showdebugoutput="false">
 <cftry>
 	<cfparam name="session.alwaysNew" default="true" type="boolean">
@@ -109,9 +109,9 @@
 					<cfset uid=extensions.id>
 					<cfset link="">
 					<cfset dn="">
-					<cfset link="#self#?action=ext.applications&action2=detail&id=#uid#">
+					<cfset link="?action=ext.applications&action2=detail&id=#uid#">
 					<cfoutput>
-						<a href="#link#" style="color:red;text-decoration:none;">- #extensions.name#</a><br>
+						<a href="#link#" style="color:red;text-decoration:none;">- #extensions.name#</a> #extensions.version#<br>
 					</cfoutput>
 				</cfloop>
 			</cfsavecontent>
@@ -207,3 +207,5 @@
 		</cfoutput>
 	</cfcatch>
 </cftry>
+<!-- no updates available -->
+<cfabort>

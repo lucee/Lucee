@@ -79,6 +79,10 @@ import lucee.runtime.type.util.ListUtil;
  */
 public final class CFMLFactoryImpl extends CFMLFactory {
 
+	private static final int MAX_NORMAL_PRIORITY = 1;
+	private static final int MAX_NO_SLEEP = 2;
+	private static final int SLEEP_TIME = 100;
+
 	private static final long MAX_AGE = 5 * 60000; // 5 minutes
 	private static final int MAX_SIZE = 10000;
 	private static JspEngineInfo info = new JspEngineInfoImpl("1.0");
@@ -168,8 +172,44 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 	public PageContextImpl getPageContextImpl(HttpServlet servlet, HttpServletRequest req, HttpServletResponse rsp, String errorPageURL, boolean needsSession, int bufferSize,
 			boolean autoflush, boolean register2Thread, boolean isChild, long timeout, boolean register2RunningThreads, boolean ignoreScopes, boolean createNew,
 			PageContextImpl tmplPC) {
-		PageContextImpl pc;
 
+		if (!isChild) {
+			String ra = req.getRemoteAddr();
+			String tmp;
+			if (ra != null) {
+				boolean resetToNormPrio = true;
+				int count = 0;
+				for (PageContextImpl opc: runningPcs.values()) {
+					tmp = opc.getHttpServletRequest().getRemoteAddr();
+					if (ra.equals(tmp)) count++;
+				}
+				// has already running requests?
+				if (count > 0) {
+
+					// reached max amount of request for norm prio
+					int maxNormPrio = Caster.toIntValue(SystemUtil.getSystemPropOrEnvVar("lucee.request.limit.concurrent.maxnormprio", null), MAX_NORMAL_PRIORITY);
+					if (maxNormPrio > 0 && count >= maxNormPrio) {
+						for (PageContextImpl opc: runningPcs.values()) {
+							opc.getThread().setPriority(Thread.MIN_PRIORITY);
+						}
+						Thread.currentThread().setPriority(Thread.MIN_PRIORITY);
+						resetToNormPrio = false;
+					}
+
+					// reached max amount of request allowed in without a nap
+					int maxNoSleep = Caster.toIntValue(SystemUtil.getSystemPropOrEnvVar("lucee.request.limit.concurrent.maxnosleep", null), MAX_NO_SLEEP);
+					if (maxNoSleep > 0 && count >= maxNoSleep) {
+						int ms = Caster.toIntValue(SystemUtil.getSystemPropOrEnvVar("lucee.request.limit.concurrent.sleeptime", null), SLEEP_TIME);
+						if (ms > 0) {
+							SystemUtil.sleep(ms);
+						}
+					}
+				}
+				if (resetToNormPrio && Thread.currentThread().getPriority() != Thread.NORM_PRIORITY) Thread.currentThread().setPriority(Thread.NORM_PRIORITY);
+			}
+		}
+
+		PageContextImpl pc;
 		if (createNew || pcs.isEmpty()) {
 			pc = null;
 		}
@@ -230,12 +270,13 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 			ThreadLocalPageContext.register(pc);
 			tmpRegister = true;
 		}
-		boolean releaseFailed = false;
+		boolean reuse = true;
 		try {
+			reuse = !pc.hasFamily(); // we do not recycle when still referenced by child threads
 			pc.release();
 		}
 		catch (Exception e) {
-			releaseFailed = true;
+			reuse = false;
 			config.getLog("application").error("release page context", e);
 		}
 		if (tmpRegister) ThreadLocalPageContext.register(beforePC);
@@ -245,7 +286,7 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 		if (isChild) {
 			runningChildPcs.remove(Integer.valueOf(pc.getId()));
 		}
-		if (pcs.size() < 100 && ((PageContextImpl) pc).getTimeoutStackTrace() == null && !releaseFailed)// not more than 100 PCs
+		if (pcs.size() < 100 && ((PageContextImpl) pc).getTimeoutStackTrace() == null && reuse)// not more than 100 PCs
 			pcs.push((PageContextImpl) pc);
 
 		if (runningPcs.size() > MAX_SIZE) clean(runningPcs);

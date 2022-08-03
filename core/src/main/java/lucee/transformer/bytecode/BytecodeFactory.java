@@ -17,12 +17,15 @@
  */
 package lucee.transformer.bytecode;
 
+import java.math.BigDecimal;
+
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.Method;
 
 import lucee.runtime.config.Config;
 import lucee.runtime.engine.ThreadLocalPageContext;
+import lucee.runtime.exp.CasterException;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.transformer.Context;
 import lucee.transformer.Factory;
@@ -30,9 +33,8 @@ import lucee.transformer.FactoryBase;
 import lucee.transformer.Position;
 import lucee.transformer.TransformerException;
 import lucee.transformer.bytecode.cast.CastBoolean;
-import lucee.transformer.bytecode.cast.CastDouble;
-import lucee.transformer.bytecode.cast.CastFloat;
 import lucee.transformer.bytecode.cast.CastInt;
+import lucee.transformer.bytecode.cast.CastNumber;
 import lucee.transformer.bytecode.cast.CastOther;
 import lucee.transformer.bytecode.cast.CastString;
 import lucee.transformer.bytecode.expression.var.DataMemberImpl;
@@ -41,34 +43,32 @@ import lucee.transformer.bytecode.expression.var.EmptyStruct;
 import lucee.transformer.bytecode.expression.var.VariableImpl;
 import lucee.transformer.bytecode.literal.Empty;
 import lucee.transformer.bytecode.literal.LitBooleanImpl;
-import lucee.transformer.bytecode.literal.LitDoubleImpl;
-import lucee.transformer.bytecode.literal.LitFloatImpl;
 import lucee.transformer.bytecode.literal.LitIntegerImpl;
 import lucee.transformer.bytecode.literal.LitLongImpl;
+import lucee.transformer.bytecode.literal.LitNumberImpl;
 import lucee.transformer.bytecode.literal.LitStringImpl;
 import lucee.transformer.bytecode.literal.Null;
 import lucee.transformer.bytecode.literal.NullConstant;
 import lucee.transformer.bytecode.op.OpBool;
 import lucee.transformer.bytecode.op.OpContional;
 import lucee.transformer.bytecode.op.OpDecision;
-import lucee.transformer.bytecode.op.OpDouble;
 import lucee.transformer.bytecode.op.OpElvis;
 import lucee.transformer.bytecode.op.OpNegate;
 import lucee.transformer.bytecode.op.OpNegateNumber;
+import lucee.transformer.bytecode.op.OpNumber;
 import lucee.transformer.bytecode.op.OpString;
-import lucee.transformer.bytecode.op.OpUnary;
+import lucee.transformer.bytecode.op.OpUnaryNumber;
+import lucee.transformer.bytecode.op.OpUnaryString;
 import lucee.transformer.bytecode.util.Types;
 import lucee.transformer.expression.ExprBoolean;
-import lucee.transformer.expression.ExprDouble;
-import lucee.transformer.expression.ExprFloat;
 import lucee.transformer.expression.ExprInt;
+import lucee.transformer.expression.ExprNumber;
 import lucee.transformer.expression.ExprString;
 import lucee.transformer.expression.Expression;
 import lucee.transformer.expression.literal.LitBoolean;
-import lucee.transformer.expression.literal.LitDouble;
-import lucee.transformer.expression.literal.LitFloat;
 import lucee.transformer.expression.literal.LitInteger;
 import lucee.transformer.expression.literal.LitLong;
+import lucee.transformer.expression.literal.LitNumber;
 import lucee.transformer.expression.literal.LitString;
 import lucee.transformer.expression.literal.Literal;
 import lucee.transformer.expression.var.DataMember;
@@ -90,8 +90,8 @@ public class BytecodeFactory extends FactoryBase {
 	private final LitBoolean FALSE;
 	private final LitString EMPTY;
 	private final LitString NULL;
-	private final LitDouble DOUBLE_ZERO;
-	private final LitDouble DOUBLE_ONE;
+	private final LitNumber NUMBER_ZERO;
+	private final LitNumber NUMBER_ONE;
 
 	private final Config config;
 
@@ -100,8 +100,8 @@ public class BytecodeFactory extends FactoryBase {
 		FALSE = createLitBoolean(false);
 		EMPTY = createLitString("");
 		NULL = createLitString("NULL");
-		DOUBLE_ZERO = createLitDouble(0);
-		DOUBLE_ONE = createLitDouble(1);
+		NUMBER_ZERO = createLitNumber(0);
+		NUMBER_ONE = createLitNumber(1);
 		this.config = config;
 	}
 
@@ -126,23 +126,33 @@ public class BytecodeFactory extends FactoryBase {
 	}
 
 	@Override
-	public LitDouble createLitDouble(double d) {
-		return new LitDoubleImpl(this, d, null, null);
+	public LitNumber createLitNumber(String number) throws CasterException {
+		return createLitNumber(number, null, null);
 	}
 
 	@Override
-	public LitDouble createLitDouble(double d, Position start, Position end) {
-		return new LitDoubleImpl(this, d, start, end);
+	public LitNumber createLitNumber(String number, Position start, Position end) throws CasterException {
+		return new LitNumberImpl(this, number, start, end);
 	}
 
 	@Override
-	public LitFloat createLitFloat(float f) {
-		return new LitFloatImpl(this, f, null, null);
+	public LitNumber createLitNumber(BigDecimal bd) {
+		return createLitNumber(bd, null, null);
 	}
 
 	@Override
-	public LitFloat createLitFloat(float f, Position start, Position end) {
-		return new LitFloatImpl(this, f, start, end);
+	public LitNumber createLitNumber(BigDecimal bd, Position start, Position end) {
+		return new LitNumberImpl(this, bd, start, end);
+	}
+
+	@Override
+	public LitNumber createLitNumber(Number n) {
+		return createLitNumber(n, null, null);
+	}
+
+	@Override
+	public LitNumber createLitNumber(Number n, Position start, Position end) {
+		return new LitNumberImpl(this, n instanceof BigDecimal ? (BigDecimal) n : BigDecimal.valueOf(n.doubleValue()), start, end);
 	}
 
 	@Override
@@ -211,13 +221,13 @@ public class BytecodeFactory extends FactoryBase {
 	}
 
 	@Override
-	public LitDouble DOUBLE_ZERO() {
-		return DOUBLE_ZERO;
+	public LitNumber NUMBER_ZERO() {
+		return NUMBER_ZERO;
 	}
 
 	@Override
-	public LitDouble DOUBLE_ONE() {
-		return DOUBLE_ONE;
+	public LitNumber NUMBER_ONE() {
+		return NUMBER_ONE;
 	}
 
 	@Override
@@ -226,8 +236,8 @@ public class BytecodeFactory extends FactoryBase {
 	}
 
 	@Override
-	public ExprDouble toExprDouble(Expression expr) {
-		return CastDouble.toExprDouble(expr);
+	public ExprNumber toExprNumber(Expression expr) {
+		return CastNumber.toExprNumber(expr);
 	}
 
 	@Override
@@ -243,11 +253,6 @@ public class BytecodeFactory extends FactoryBase {
 	@Override
 	public ExprInt toExprInt(Expression expr) {
 		return CastInt.toExprInt(expr);
-	}
-
-	@Override
-	public ExprFloat toExprFloat(Expression expr) {
-		return CastFloat.toExprFloat(expr);
 	}
 
 	@Override
@@ -281,8 +286,8 @@ public class BytecodeFactory extends FactoryBase {
 	}
 
 	@Override
-	public ExprDouble opDouble(Expression left, Expression right, int operation) {
-		return OpDouble.toExprDouble(left, right, operation);
+	public ExprNumber opNumber(Expression left, Expression right, int operation) {
+		return OpNumber.toExprNumber(left, right, operation);
 	}
 
 	@Override
@@ -354,8 +359,13 @@ public class BytecodeFactory extends FactoryBase {
 	}
 
 	@Override
-	public ExprDouble opUnary(Variable var, Expression value, short type, int operation, Position start, Position end) {
-		return new OpUnary(var, value, type, operation, start, end);
+	public ExprNumber opUnaryNumber(Variable var, Expression value, short type, int operation, Position start, Position end) {
+		return new OpUnaryNumber(var, value, type, operation, start, end);
+	}
+
+	@Override
+	public ExprString opUnaryString(Variable var, Expression value, short type, int operation, Position start, Position end) {
+		return new OpUnaryString(var, value, type, operation, start, end);
 	}
 
 	@Override
@@ -374,7 +384,7 @@ public class BytecodeFactory extends FactoryBase {
 	}
 
 	@Override
-	public ExprDouble opNegateNumber(Expression expr, int operation, Position start, Position end) {
-		return OpNegateNumber.toExprDouble(expr, operation, start, end);
+	public ExprNumber opNegateNumber(Expression expr, int operation, Position start, Position end) {
+		return OpNegateNumber.toExprNumber(expr, operation, start, end);
 	}
 }

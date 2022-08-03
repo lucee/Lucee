@@ -653,7 +653,8 @@ public final class SMTPClient implements Serializable {
 				if (!personal.equals(ia.getPersonal())) ia.setPersonal(personal);
 			}
 		}
-		catch (UnsupportedEncodingException e) {}
+		catch (UnsupportedEncodingException e) {
+		}
 	}
 
 	/**
@@ -725,7 +726,8 @@ public final class SMTPClient implements Serializable {
 			try {
 				fileName = MimeUtility.encodeText(fileName, "UTF-8", null);
 			}
-			catch (UnsupportedEncodingException e) {} // that should never happen!
+			catch (UnsupportedEncodingException e) {
+			} // that should never happen!
 		}
 		mbp.setFileName(fileName);
 		if (!StringUtil.isEmpty(att.getType())) mbp.setHeader("Content-Type", att.getType());
@@ -895,8 +897,8 @@ public final class SMTPClient implements Serializable {
 						if (i + 1 == servers.length) {
 
 							listener(config, server, log, e, System.nanoTime() - start);
-							MailException me = new MailException(server.getHostName() + " " + ExceptionUtil.getStacktrace(e, true) + ":" + i);
-							me.setStackTrace(e.getStackTrace());
+							MailException me = new MailException(server.getHostName() + " " + e.getMessage() + ":" + i);
+							me.initCause((e.getCause()));
 
 							throw me;
 						}
@@ -910,7 +912,7 @@ public final class SMTPClient implements Serializable {
 	}
 
 	private void listener(ConfigWeb config, Server server, Log log, Exception e, long exe) {
-		if (e == null) log.info("mail", "mail sent (subject:" + subject + "from:" + toString(from) + "; to:" + toString(tos) + "; cc:" + toString(ccs) + "; bcc:" + toString(bccs)
+		if (e == null) log.info("mail", "mail sent (subject:" + subject + "; server:" + server.getHostName() + "; port:" + server.getPort() + "; from:" + toString(from) + "; to:" + toString(tos) + "; cc:" + toString(ccs) + "; bcc:" + toString(bccs)
 				+ "; ft:" + toString(fts) + "; rt:" + toString(rts) + ")");
 		else log.log(Log.LEVEL_ERROR, "mail", e);
 
@@ -959,7 +961,7 @@ public final class SMTPClient implements Serializable {
 		return timeout > 0 ? timeout : config.getMailTimeout() * 1000L;
 	}
 
-	// remove all atttachements that are marked to remove
+	// remove any attachments that are marked to remove after sending
 	private static void clean(Config config, Attachment[] attachmentz) {
 		if (attachmentz != null) for (int i = 0; i < attachmentz.length; i++) {
 			if (attachmentz[i].isRemoveAfterSend()) {

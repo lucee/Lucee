@@ -619,7 +619,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 
 			if (useCache) {
 
-				cacheId = CacheHandlerCollectionImpl.createId(sqlQuery, data.datasource != null ? data.datasource.getName() : null, data.username, data.password, data.returntype);
+				cacheId = CacheHandlerCollectionImpl.createId(sqlQuery, data.datasource != null ? data.datasource.getName() : null, data.username, data.password, data.returntype, data.maxrows);
 
 				CacheHandlerCollectionImpl coll = (CacheHandlerCollectionImpl) pageContext.getConfig().getCacheHandlerCollection(Config.CACHE_TYPE_QUERY, null);
 				cacheHandler = coll.getInstanceMatchingObject(data.cachedWithin, null);

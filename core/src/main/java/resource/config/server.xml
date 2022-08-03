@@ -402,7 +402,7 @@ A flexible layout configurable with pattern string.
 - pattern: This is the string which controls formatting and consists of a mix of literal content and conversion specifiers. for more details see: http://logging.apache.org/log4j/1.2/apidocs/org/apache/log4j/PatternLayout.html
 
 <layout-class>:
-A full class path to a Layout class available in the enviroment with an empty constructor.
+A full class path to a Layout class available in the environment with an empty constructor.
 for every argument defined lucee tries to call a matching setter method
 
 
@@ -421,7 +421,7 @@ Logs error to a resource (locale file, ftp, zip, ...)
 - maxfilesize (default:1024*1024*10): the maxial size of a log file created
 
 <appender-class>:
-A full class path to an Appender class available in the enviroment with an empty constructor.
+A full class path to an Appender class available in the environment with an empty constructor.
 for every argument defined lucee tries to call a matching setter method
 
  -->
@@ -439,7 +439,7 @@ for every argument defined lucee tries to call a matching setter method
 		<logger appender="resource" appender-arguments="path:{lucee-config}/logs/exception.log" level="error" layout="classic" name="exception"/>
 		<logger appender="resource" appender-arguments="path:{lucee-config}/logs/trace.log" level="error" layout="classic" name="trace"/>
 		<logger appender="resource" appender-arguments="path:{lucee-config}/logs/thread.log" level="error" layout="classic" name="thread"/>
-		<logger appender="resource" appender-arguments="path:{lucee-config}/logs/deploy.log" level="error" layout="classic" name="deploy"/>
+		<logger appender="resource" appender-arguments="path:{lucee-config}/logs/deploy.log" level="info" layout="classic" name="deploy"/>
 		<logger appender="resource" appender-arguments="path:{lucee-config}/logs/requesttimeout.log" level="error" layout="classic" name="requesttimeout"/>
 		<logger appender="resource" appender-arguments="path:{lucee-config}/logs/memory.log" level="error" layout="classic" name="memory"/>
 		<logger appender="resource" appender-arguments="path:{lucee-config}/logs/datasource.log" level="error" layout="classic" name="datasource"/>

@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase"	{
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="s3,zip" {
 	
 	//public function beforeTests(){}
 	
@@ -482,7 +482,7 @@ private function assertEqualPaths(string path1, string path2) {
 
 	private void function test(string label,string root){
 		var start=getTickCount();
-		var dir=arguments.root&"test-#createUniqueId()#-res/";
+		var dir=arguments.root&"lucee-res-#lcase(hash(CreateGUID()))#/";
 		
 		// make sure there are no data from a previous run 
 		if(directoryExists(dir)) {
@@ -507,13 +507,6 @@ private function assertEqualPaths(string path1, string path2) {
 		assertFalse(DirectoryExists(dir));
 
 	}
-
-	private struct function getCredencials() {
-		// getting the credetials from the enviroment variables
-		return server.getTestService("s3");
-	}
-
-	
 
 	private void function addMapping(required string virtual, required string path){
 		var mappings=getApplicationSettings().mappings;
@@ -577,20 +570,29 @@ private function assertEqualPaths(string path1, string path2) {
 		}
 	}
 
-
+	private struct function getCredentials() {
+		// getting the credetials from the enviroment variables
+		return server.getTestService("s3");
+	}
 
 	public void function testS3() localmode=true{
-		var s3=getCredencials();
-		if(!isNull(s3.ACCESS_KEY_ID)) {
-			application action="update" s3=s3; 
+		var s3 = getCredentials();
+		if( !isNull( s3.ACCESS_KEY_ID ) ) {
+			application action="update" s3={
+				accessKeyId: s3.ACCESS_KEY_ID,
+				awsSecretKey: s3.SECRET_KEY
+			}; 
 			test("s3","s3:///");
 		}
 	}
 
 	public void function testS3AsMapping() localmode=true{
-		var s3=getCredencials();
-		if(!isNull(s3.ACCESS_KEY_ID)) {
-			application action="update" s3=s3; 
+		var s3 = getCredentials();
+		if( !isNull( s3.ACCESS_KEY_ID ) ) {
+			application action="update" s3={
+				accessKeyId: s3.ACCESS_KEY_ID,
+				awsSecretKey: s3.SECRET_KEY
+			}; 
 			addMapping("/testress3","s3:///");
 			test("s3","/testress3/");
 		}
