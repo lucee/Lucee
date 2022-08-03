@@ -15,7 +15,8 @@ component {
 	this.ormSettings.savemapping = true;
 	this.ormSettings.eventHandling = true;
 	
-	public any function onRequestStart() {
+	public function onRequestStart() {
+		setting requesttimeout=10;
 		ormReload();
 	}
 

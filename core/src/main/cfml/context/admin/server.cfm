@@ -1,5 +1,5 @@
 <cfscript>
-if(getConfigSettings().mode=="single") {
+if(getApplicationSettings().singleContext) {
 	location url="index.cfm" addtoken=false;
 }
 else {

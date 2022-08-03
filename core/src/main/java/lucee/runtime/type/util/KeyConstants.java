@@ -130,6 +130,7 @@ public class KeyConstants {
 	public static final Key _FILENAME = KeyImpl._const("FILENAME");
 	public static final Key _FILE = KeyImpl._const("FILE");
 	public static final Key _FILES = KeyImpl._const("FILES");
+	public static final Key _final = KeyImpl._const("final");
 	public static final Key _FROM = KeyImpl._const("FROM");
 	public static final Key _FUSEBOX = KeyImpl._const("FUSEBOX");
 	public static final Key _FUSEQ = KeyImpl._const("FUSEQ");
@@ -448,6 +449,7 @@ public class KeyConstants {
 	public static final Key _java = KeyImpl._const("java");
 	public static final Key _javaLoader = KeyImpl._const("javaLoader");
 	public static final Key _jsessionid = KeyImpl._const("jsessionid");
+	public static final Key _JSESSIONID = KeyImpl._const("JSESSIONID");
 	public static final Key _key = KeyImpl._const("key");
 	public static final Key _keys = KeyImpl._const("keys");
 	public static final Key _label = KeyImpl._const("label");
@@ -734,6 +736,7 @@ public class KeyConstants {
 	public static final Key _mappedSuperClass = KeyImpl._const("mappedSuperClass");
 	public static final Key _persistent = KeyImpl._const("persistent");
 	public static final Key _accessors = KeyImpl._const("accessors");
+	public static final Key _abstract = KeyImpl._const("abstract");
 	public static final Key _synchronized = KeyImpl._const("synchronized");
 	public static final Key _queryFormat = KeyImpl._const("queryFormat");
 	public static final Key _Hint = KeyImpl._const("Hint");

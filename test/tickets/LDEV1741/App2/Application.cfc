@@ -21,7 +21,6 @@ component {
 		, connectionLimit:100 // default:-1
 	};
 
-
 	// ORM CONFIG
 	this.defaultDatasource					= "#dbname#";
 	this.ormenabled							= true;						// turnm ORM on or this application
@@ -35,4 +34,7 @@ component {
 	this.ormsettings.dialect				= "mysql";
 	this.ormsettings.useDBForMapping		= false;					// false = do not walk the db on startup trying to create ORM definitions
 
+	public function onRequestStart() {
+		setting requesttimeout=10;
+	}
 }

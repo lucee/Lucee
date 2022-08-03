@@ -1355,10 +1355,10 @@ component {
 	/**
 	* @hint returns the list of gateway entries
 	*/
-	public query function getGatewayEntries( type ){
+	public query function getGatewayEntries(){
 		admin
 			action="getGatewayEntries"
-			type="#arguments.type#"
+			type="#variables.type#"
 			password="#variables.password#"
 			returnVariable="local.rtn";
 		return rtn;

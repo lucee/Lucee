@@ -12,7 +12,9 @@ component {
 		dbcreate = "dropcreate"
 	};
 
-
+	public function onRequestStart() {
+		setting requesttimeout=10;
+	}
 
 	function onRequestEnd() {
 		var javaIoFile=createObject("java","java.io.File");

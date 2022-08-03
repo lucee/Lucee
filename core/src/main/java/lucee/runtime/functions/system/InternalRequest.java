@@ -8,9 +8,12 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Map.Entry;
 
+import javax.servlet.http.HttpSession;
+
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.CharSet;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.mimetype.ContentType;
 import lucee.commons.net.HTTPUtil;
@@ -21,7 +24,9 @@ import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.CFMLFactoryImpl;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
+import lucee.runtime.config.Config;
 import lucee.runtime.engine.ThreadLocalPageContext;
+import lucee.runtime.exp.Abort;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
@@ -31,11 +36,14 @@ import lucee.runtime.net.http.HttpServletResponseDummy;
 import lucee.runtime.net.http.ReqRspUtil;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
+import lucee.runtime.tag.Http;
 import lucee.runtime.thread.ThreadUtil;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
+import lucee.runtime.type.Query;
+import lucee.runtime.type.QueryImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.scope.Argument;
@@ -50,13 +58,14 @@ public class InternalRequest implements Function {
 
 	private static final long serialVersionUID = -8163856691035353577L;
 
+	public static boolean cookieAsQuery = false;
 	public static final Key FILECONTENT_BYNARY = KeyImpl.getInstance("filecontent_binary");
 	public static final Key STATUS_CODE = KeyImpl.getInstance("status_code");
 
 	private static final Key CONTENT_TYPE = KeyImpl.getInstance("content-type");
 
 	public static Struct call(final PageContext pc, String template, String method, Object oUrls, Object oForms, Struct cookies, Struct headers, Object body, String strCharset,
-			boolean addToken) throws PageException {
+			boolean addToken, boolean throwonerror) throws PageException {
 		Struct urls = toStruct(oUrls);
 		Struct forms = toStruct(oForms);
 
@@ -111,20 +120,32 @@ public class InternalRequest implements Function {
 
 		PageContextImpl _pc = createPageContext(pc, template, urls, cookies, headers, _barr, reqCharset, baos);
 		fillForm(_pc, forms, reqCharset);
-		Collection cookie, request, session = null;
+		Collection request, session = null;
 		int status;
 		long exeTime;
 		boolean isText = false;
 		Charset _charset = null;
+		PageException pe = null;
+		Object rspCookies = cookieAsQuery ? new QueryImpl(new String[] { "name", "value", "path", "domain", "expires", "secure", "httpOnly", "samesite" }, 0, "cookies")
+				: new StructImpl(Struct.TYPE_LINKED);
+
 		try {
 
 			if (CFMLEngine.DIALECT_LUCEE == dialect) _pc.execute(template, true, false);
 			else _pc.executeCFML(template, true, false);
-
+			HttpSession s;
+			if (_pc.getSessionType() == Config.SESSION_TYPE_JEE && (s = _pc.getSession()) != null) _pc.cookieScope().set(KeyConstants._JSESSIONID, s.getId());
+		}
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+			if (!(t instanceof Abort)) {
+				if (throwonerror) throw Caster.toPageException(t);
+				pe = Caster.toPageException(t);
+			}
 		}
 		finally {
 			_pc.flush();
-			cookie = _pc.cookieScope().duplicate(false);
+			// cookie = _pc.cookieScope().duplicate(false);
 			request = _pc.requestScope().duplicate(false);
 			session = sessionEnabled(_pc) ? _pc.sessionScope().duplicate(false) : null;
 			exeTime = System.currentTimeMillis() - pc.getStartTime();
@@ -141,6 +162,15 @@ public class InternalRequest implements Function {
 				name = KeyImpl.init(it.next());
 				values = rsp.getHeaders(name.getString());
 				if (values == null || values.size() == 0) continue;
+				if (name.equals("Set-Cookie")) {
+					String cs = _pc.getWebCharset().name();
+					for (String v: values) {
+
+						if (cookieAsQuery) Http.parseCookie((Query) rspCookies, v, cs);
+						else Http.parseCookie((Struct) rspCookies, v, cs);
+					}
+
+				}
 
 				if (values.size() > 1) headers.set(name, Caster.toArray(values));
 				else headers.set(name, values.iterator().next());
@@ -150,7 +180,7 @@ public class InternalRequest implements Function {
 			status = rsp.getStatus();
 			ContentType ct = HTTPUtil.toContentType(rsp.getContentType(), null);
 			if (ct != null) {
-				isText = HTTPUtil.isTextMimeType(ct.getMimeType());
+				isText = HTTPUtil.isTextMimeType(ct.getMimeType()) == Boolean.TRUE;
 				if (ct.getCharset() != null) _charset = CharsetUtil.toCharset(ct.getCharset(), null);
 			}
 			releasePageContext(_pc, pc);
@@ -161,7 +191,7 @@ public class InternalRequest implements Function {
 		byte[] barr = baos.toByteArray();
 		if (isText) rst.set(KeyConstants._filecontent, new String(barr, _charset == null ? reqCharset : _charset));
 		else rst.set(FILECONTENT_BYNARY, barr);
-		rst.set(KeyConstants._cookies, cookie);
+		rst.set(KeyConstants._cookies, rspCookies);
 		rst.set(KeyConstants._request, request);
 		if (session != null) rst.set(KeyConstants._session, session);
 		rst.set(KeyConstants._headers, headers);
@@ -169,6 +199,7 @@ public class InternalRequest implements Function {
 		rst.set(KeyConstants._executionTime, new Double(exeTime));
 		rst.set(KeyConstants._status, new Double(status));
 		rst.set(STATUS_CODE, new Double(status));
+		if (pe != null) rst.set(KeyConstants._error, pe.getCatchBlock(pc.getConfig()));
 		return rst;
 	}
 
@@ -257,9 +288,12 @@ public class InternalRequest implements Function {
 
 	private static PageContextImpl createPageContext(PageContext pc, String template, Struct urls, Struct cookies, Struct headers, byte[] body, Charset charset, OutputStream os)
 			throws PageException {
+
+		HttpSession session = pc.getSessionType() == Config.SESSION_TYPE_JEE ? pc.getSession() : null;
+
 		return ThreadUtil.createPageContext(pc.getConfig(), os, pc.getHttpServletRequest().getServerName(), template, toQueryString(urls, charset),
 				CreatePageContext.toCookies(cookies), CreatePageContext.toPair(headers, true), body, CreatePageContext.toPair(new StructImpl(), true),
-				CreatePageContext.castValuesToString(new StructImpl()), true, -1);
+				CreatePageContext.castValuesToString(new StructImpl()), true, -1, session);
 	}
 
 	private static String toQueryString(Struct urls, Charset charset) throws PageException {
@@ -313,4 +347,5 @@ public class InternalRequest implements Function {
 			throw Caster.toPageException(uee);
 		}
 	}
+
 }

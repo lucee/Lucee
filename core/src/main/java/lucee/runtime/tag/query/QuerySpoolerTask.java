@@ -1,6 +1,7 @@
 package lucee.runtime.tag.query;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 
 import lucee.commons.io.DevNullOutputStream;
 import lucee.commons.io.SystemUtil.TemplateLine;
@@ -99,9 +100,10 @@ public class QuerySpoolerTask extends SpoolerTaskSupport {
 			// task
 			else {
 				ConfigWebPro cwi = (ConfigWebPro) config;
+				HttpSession session = oldPc != null && oldPc.getSessionType() == Config.SESSION_TYPE_JEE ? oldPc.getSession() : null;
 				DevNullOutputStream os = DevNullOutputStream.DEV_NULL_OUTPUT_STREAM;
 				pc = ThreadUtil.createPageContext(cwi, os, serverName, requestURI, queryString, SerializableCookie.toCookies(cookies), headers, null, parameters, attributes, true,
-						-1);
+						-1, session);
 				pc.setRequestTimeout(requestTimeout);
 				PageSource ps = UDFPropertiesImpl.toPageSource(pc, cwi, mapping == null ? null : mapping.toMapping(), relPath, relPathwV);
 				pc.addPageSource(ps, true);

@@ -196,9 +196,9 @@ public class CacheHandlerCollectionImpl implements CacheHandlerCollection {
 		}
 	}
 
-	public static String createId(SQL sql, String datasource, String username, String password, int returnType) throws PageException {
+	public static String createId(SQL sql, String datasource, String username, String password, int returnType, int maxRows) throws PageException {
 		try {
-			return CacheUtil.key(KeyGenerator.createKey(sql.toHashString() + datasource + username + password + returnType));
+			return CacheUtil.key(KeyGenerator.createKey(sql.toHashString() + datasource + username + password + returnType + maxRows));
 		}
 		catch (IOException e) {
 			throw Caster.toPageException(e);
