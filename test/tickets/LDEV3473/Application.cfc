@@ -19,4 +19,7 @@ component {
 		, validate:false // default: false
 	};
 
+	public function onRequestStart() {
+		setting requesttimeout=10;
+	}
 }

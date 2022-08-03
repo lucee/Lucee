@@ -24,5 +24,10 @@ component {
 		//systemOutput("#now()# session ended #cgi.SCRIPT_NAME# #sessionScope.sessionid#", true);
 		server.LDEV3264_endedSessions[ arguments.sessionScope.sessionid ] = now();
 	}
+	
+	public function onRequestStart() {
+		setting requesttimeout=10;
+	}
+
 
 }

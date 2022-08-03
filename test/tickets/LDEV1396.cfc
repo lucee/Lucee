@@ -71,6 +71,17 @@
 		private struct function getCredentials() {
 			return server.getTestService("s3");
 		}
+
+		private function isNewS3(){
+			qry=  extensionlist(false);
+			isNewS3=false;
+			loop query=qry {
+				if(qry.id=="17AB52DE-B300-A94B-E058BD978511E39E") {
+					if(left(qry.version,1)>=2) return true;
+				}
+			}
+			return false;
+		}
 	</cfscript>
 </cfcomponent>
 

@@ -47,12 +47,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				loadJDBCDriverClass("org.lucee.exasol","7.1.2");
 			});
 
+			/* orcalc eitself does not like when we load more than one driver! 
 			it( title='Oracle',body=function( currentSpec ) {
 				loadJDBCDriverClass("ojdbc6","11.2.0.4L0001");
 				loadJDBCDriverClass("ojdbc7","12.1.0.2L0001");
 				loadJDBCDriverClass("org.lucee.oracle","19.12.0.0000L");
 				loadJDBCDriverClass("org.lucee.oracle","21.3.0.0000L");
-			});
+			});*/
 
 			it( title='H2',body=function( currentSpec ) {
 				loadJDBCDriverClass("org.h2","1.3.172");

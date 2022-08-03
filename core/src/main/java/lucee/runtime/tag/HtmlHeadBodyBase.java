@@ -120,11 +120,15 @@ public abstract class HtmlHeadBodyBase extends BodyTagTryCatchFinallyImpl {
 	@Override
 	public int doAfterBody() throws PageException {
 
-		if (StringUtil.isEmpty(text) && bodyContent != null) {
-			text = bodyContent.getString();
+		if (bodyContent != null) {
+			if (!StringUtil.isEmpty(text)) {
+				text = new StringBuilder(text).append(bodyContent.getString()).toString(); // appends text and body content
+			}
+			else {
+				text = bodyContent.getString();
+			}
+			bodyContent.clearBody();
 		}
-		if (bodyContent != null) bodyContent.clearBody();
-
 		return SKIP_BODY;
 	}
 

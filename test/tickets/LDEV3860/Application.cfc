@@ -10,7 +10,8 @@ component {
         ,dialect="MicrosoftSQLServer"
     }
 
-    public function onRequestStart() {
+	public function onRequestStart() {
+		setting requesttimeout=10;
         if (StructIsEmpty(mssql)) {
             writeoutput("Datasource credentials not available");
             return false;

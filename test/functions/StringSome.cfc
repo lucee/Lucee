@@ -30,7 +30,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
     	callback=(x)=>x >= 'a';
     	assertEquals(true, StringSome(myString, callback));
     	callback_1=(x)=>x >= 'z';
-    	assertEquals(false, StringSome(myString, callback_1));
+    	assertEquals(false, myString.some(callback_1));
 	}
 } 
 </cfscript>

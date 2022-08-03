@@ -79,12 +79,17 @@ public class ComponentLoader {
 	 */
 	public static ComponentImpl searchComponent(PageContext pc, PageSource loadingLocation, String rawPath, Boolean searchLocal, Boolean searchRoot, boolean isExtendedComponent)
 			throws PageException {
-		return (ComponentImpl) _search(pc, loadingLocation, rawPath, searchLocal, searchRoot, true, RETURN_TYPE_COMPONENT, isExtendedComponent);
+		return (ComponentImpl) _search(pc, loadingLocation, rawPath, searchLocal, searchRoot, true, RETURN_TYPE_COMPONENT, isExtendedComponent, true);
 	}
 
 	public static ComponentImpl searchComponent(PageContext pc, PageSource loadingLocation, String rawPath, Boolean searchLocal, Boolean searchRoot,
 			final boolean isExtendedComponent, boolean executeConstr) throws PageException {
-		return (ComponentImpl) _search(pc, loadingLocation, rawPath, searchLocal, searchRoot, executeConstr, RETURN_TYPE_COMPONENT, isExtendedComponent);
+		return (ComponentImpl) _search(pc, loadingLocation, rawPath, searchLocal, searchRoot, executeConstr, RETURN_TYPE_COMPONENT, isExtendedComponent, true);
+	}
+
+	public static ComponentImpl searchComponent(PageContext pc, PageSource loadingLocation, String rawPath, Boolean searchLocal, Boolean searchRoot,
+			final boolean isExtendedComponent, boolean executeConstr, boolean validate) throws PageException {
+		return (ComponentImpl) _search(pc, loadingLocation, rawPath, searchLocal, searchRoot, executeConstr, RETURN_TYPE_COMPONENT, isExtendedComponent, validate);
 	}
 
 	public static StaticScope getStaticScope(PageContext pc, PageSource loadingLocation, String rawPath, Boolean searchLocal, Boolean searchRoot) throws PageException {
@@ -102,7 +107,12 @@ public class ComponentLoader {
 	}
 
 	public static ComponentPageImpl searchComponentPage(PageContext pc, PageSource loadingLocation, String rawPath, Boolean searchLocal, Boolean searchRoot) throws PageException {
-		Object obj = _search(pc, loadingLocation, rawPath, searchLocal, searchRoot, false, RETURN_TYPE_PAGE, false);
+		return searchComponentPage(pc, loadingLocation, rawPath, searchLocal, searchRoot, true);
+	}
+
+	public static ComponentPageImpl searchComponentPage(PageContext pc, PageSource loadingLocation, String rawPath, Boolean searchLocal, Boolean searchRoot, boolean validate)
+			throws PageException {
+		Object obj = _search(pc, loadingLocation, rawPath, searchLocal, searchRoot, false, RETURN_TYPE_PAGE, false, validate);
 
 		if (obj instanceof ComponentPageImpl) return (ComponentPageImpl) obj;
 		int dialect = pc.getCurrentTemplateDialect();
@@ -110,20 +120,28 @@ public class ComponentLoader {
 				"invalid " + toStringType(RETURN_TYPE_PAGE, dialect) + " definition, can't find " + toStringType(RETURN_TYPE_PAGE, dialect) + " [" + rawPath + "]");
 	}
 
-	public static InterfaceImpl searchInterface(PageContext pc, PageSource loadingLocation, String rawPath, boolean executeConstr) throws PageException {
-		return (InterfaceImpl) _search(pc, loadingLocation, rawPath, Boolean.TRUE, Boolean.TRUE, executeConstr, RETURN_TYPE_INTERFACE, false);
+	public static InterfaceImpl searchInterface(PageContext pc, PageSource loadingLocation, String rawPath) throws PageException {
+		return (InterfaceImpl) _search(pc, loadingLocation, rawPath, Boolean.TRUE, Boolean.TRUE, true, RETURN_TYPE_INTERFACE, false, true);
 	}
 
-	public static InterfaceImpl searchInterface(PageContext pc, PageSource loadingLocation, String rawPath) throws PageException {
-		return (InterfaceImpl) _search(pc, loadingLocation, rawPath, Boolean.TRUE, Boolean.TRUE, true, RETURN_TYPE_INTERFACE, false);
+	public static InterfaceImpl searchInterface(PageContext pc, PageSource loadingLocation, String rawPath, boolean executeConstr) throws PageException {
+		return (InterfaceImpl) _search(pc, loadingLocation, rawPath, Boolean.TRUE, Boolean.TRUE, executeConstr, RETURN_TYPE_INTERFACE, false, true);
+	}
+
+	public static InterfaceImpl searchInterface(PageContext pc, PageSource loadingLocation, String rawPath, boolean executeConstr, boolean validate) throws PageException {
+		return (InterfaceImpl) _search(pc, loadingLocation, rawPath, Boolean.TRUE, Boolean.TRUE, executeConstr, RETURN_TYPE_INTERFACE, false, validate);
 	}
 
 	public static Page searchPage(PageContext pc, PageSource child, String rawPath, Boolean searchLocal, Boolean searchRoot) throws PageException {
-		return (Page) _search(pc, child, rawPath, searchLocal, searchRoot, false, RETURN_TYPE_PAGE, false);
+		return (Page) _search(pc, child, rawPath, searchLocal, searchRoot, false, RETURN_TYPE_PAGE, false, true);
+	}
+
+	public static Page searchPage(PageContext pc, PageSource child, String rawPath, Boolean searchLocal, Boolean searchRoot, boolean validate) throws PageException {
+		return (Page) _search(pc, child, rawPath, searchLocal, searchRoot, false, RETURN_TYPE_PAGE, false, validate);
 	}
 
 	private static Object _search(PageContext pc, PageSource loadingLocation, String rawPath, Boolean searchLocal, Boolean searchRoot, boolean executeConstr, short returnType,
-			final boolean isExtendedComponent) throws PageException {
+			final boolean isExtendedComponent, boolean validate) throws PageException {
 		PageSource currPS = pc.getCurrentPageSource(null);
 
 		ImportDefintion[] importDefintions = null;
@@ -140,11 +158,11 @@ public class ComponentLoader {
 
 		int dialect = currPS == null ? pc.getCurrentTemplateDialect() : currPS.getDialect();
 		// first try for the current dialect
-		Object obj = _search(pc, loadingLocation, rawPath, searchLocal, searchRoot, executeConstr, returnType, currPS, importDefintions, dialect, isExtendedComponent);
+		Object obj = _search(pc, loadingLocation, rawPath, searchLocal, searchRoot, executeConstr, returnType, currPS, importDefintions, dialect, isExtendedComponent, validate);
 		// then we try the opposite dialect
 		if (obj == null && ((ConfigPro) pc.getConfig()).allowLuceeDialect()) { // only when the lucee dialect is enabled we have to check the opposite
 			obj = _search(pc, loadingLocation, rawPath, searchLocal, searchRoot, executeConstr, returnType, currPS, importDefintions,
-					dialect == CFMLEngine.DIALECT_CFML ? CFMLEngine.DIALECT_LUCEE : CFMLEngine.DIALECT_CFML, isExtendedComponent);
+					dialect == CFMLEngine.DIALECT_CFML ? CFMLEngine.DIALECT_LUCEE : CFMLEngine.DIALECT_CFML, isExtendedComponent, validate);
 		}
 
 		if (obj == null)
@@ -153,7 +171,7 @@ public class ComponentLoader {
 	}
 
 	private static Object _search(PageContext pc, PageSource loadingLocation, String rawPath, Boolean searchLocal, Boolean searchRoot, boolean executeConstr, short returnType,
-			PageSource currPS, ImportDefintion[] importDefintions, int dialect, final boolean isExtendedComponent) throws PageException {
+			PageSource currPS, ImportDefintion[] importDefintions, int dialect, final boolean isExtendedComponent, boolean validate) throws PageException {
 		ConfigPro config = (ConfigPro) pc.getConfig();
 
 		if (dialect == CFMLEngine.DIALECT_LUCEE && !config.allowLuceeDialect()) PageContextImpl.notSupported();
@@ -192,7 +210,8 @@ public class ComponentLoader {
 				page = toCIPage(ps.loadPageThrowTemplateException(pc, false, (Page) null));
 				if (page != null) {
 
-					return returnType == RETURN_TYPE_PAGE ? page : load(pc, page, trim(path.replace('/', '.')), sub, isRealPath, returnType, isExtendedComponent, executeConstr);
+					return returnType == RETURN_TYPE_PAGE ? page
+							: load(pc, page, trim(path.replace('/', '.')), sub, isRealPath, returnType, isExtendedComponent, executeConstr, validate);
 				}
 			}
 		}
@@ -208,8 +227,8 @@ public class ComponentLoader {
 			localCacheName = localCacheName.substring(0, localCacheName.lastIndexOf('/') + 1).concat(pathWithCFC);
 			if (doCache) {
 				page = config.getCachedPage(pc, localCacheName);
-				if (page != null)
-					return returnType == RETURN_TYPE_PAGE ? page : load(pc, page, trim(path.replace('/', '.')), sub, isRealPath, returnType, isExtendedComponent, executeConstr);
+				if (page != null) return returnType == RETURN_TYPE_PAGE ? page
+						: load(pc, page, trim(path.replace('/', '.')), sub, isRealPath, returnType, isExtendedComponent, executeConstr, validate);
 			}
 		}
 
@@ -223,7 +242,7 @@ public class ComponentLoader {
 				if (impDef.isWildcard() || impDef.getName().equalsIgnoreCase(path)) {
 					page = config.getCachedPage(pc, "import:" + impDef.getPackageAsPath() + pathWithCFC);
 					if (page != null) return returnType == RETURN_TYPE_PAGE ? page
-							: load(pc, page, trim(path.replace('/', '.')), sub, isRealPath, returnType, isExtendedComponent, executeConstr);
+							: load(pc, page, trim(path.replace('/', '.')), sub, isRealPath, returnType, isExtendedComponent, executeConstr, validate);
 				}
 				impDef = ++i < impDefs.length ? impDefs[i] : null;
 			}
@@ -233,8 +252,8 @@ public class ComponentLoader {
 		if (doCache) {
 			// check global in cache
 			page = config.getCachedPage(pc, pathWithCFC);
-			if (page != null)
-				return returnType == RETURN_TYPE_PAGE ? page : load(pc, page, trim(path.replace('/', '.')), sub, isRealPath, returnType, isExtendedComponent, executeConstr);
+			if (page != null) return returnType == RETURN_TYPE_PAGE ? page
+					: load(pc, page, trim(path.replace('/', '.')), sub, isRealPath, returnType, isExtendedComponent, executeConstr, validate);
 		}
 
 		// SEARCH
@@ -245,7 +264,8 @@ public class ComponentLoader {
 			page = toCIPage(PageSourceImpl.loadPage(pc, arr, null));
 			if (page != null) {
 				if (doCache) config.putCachedPageSource(localCacheName, page.getPageSource());
-				return returnType == RETURN_TYPE_PAGE ? page : load(pc, page, trim(path.replace('/', '.')), sub, isRealPath, returnType, isExtendedComponent, executeConstr);
+				return returnType == RETURN_TYPE_PAGE ? page
+						: load(pc, page, trim(path.replace('/', '.')), sub, isRealPath, returnType, isExtendedComponent, executeConstr, validate);
 			}
 		}
 
@@ -272,7 +292,7 @@ public class ComponentLoader {
 						if (page != null) {
 							if (doCache) config.putCachedPageSource("import:" + impDef.getPackageAsPath() + pathWithCFC, page.getPageSource());
 							return returnType == RETURN_TYPE_PAGE ? page
-									: load(pc, page, trim(path.replace('/', '.')), sub, isRealPath, returnType, isExtendedComponent, executeConstr);
+									: load(pc, page, trim(path.replace('/', '.')), sub, isRealPath, returnType, isExtendedComponent, executeConstr, validate);
 						}
 					}
 
@@ -282,7 +302,7 @@ public class ComponentLoader {
 						String key = impDef.getPackageAsPath() + pathWithCFC;
 						if (doCache && !((MappingImpl) page.getPageSource().getMapping()).isAppMapping()) config.putCachedPageSource("import:" + key, page.getPageSource());
 						return returnType == RETURN_TYPE_PAGE ? page
-								: load(pc, page, trim(path.replace('/', '.')), sub, isRealPath, returnType, isExtendedComponent, executeConstr);
+								: load(pc, page, trim(path.replace('/', '.')), sub, isRealPath, returnType, isExtendedComponent, executeConstr, validate);
 					}
 
 					// search application component mappings
@@ -297,7 +317,7 @@ public class ComponentLoader {
 								if (page != null) {
 									if (doCache && z > 0) config.putCachedPageSource("import:" + impDef.getPackageAsPath() + pathWithCFC, page.getPageSource());
 									return returnType == RETURN_TYPE_PAGE ? page
-											: load(pc, page, trim(path.replace('/', '.')), sub, isRealPath, returnType, isExtendedComponent, executeConstr);
+											: load(pc, page, trim(path.replace('/', '.')), sub, isRealPath, returnType, isExtendedComponent, executeConstr, validate);
 								}
 							}
 						}
@@ -319,7 +339,7 @@ public class ComponentLoader {
 		if (page != null) {
 			String key = pathWithCFC;
 			if (doCache && !((MappingImpl) page.getPageSource().getMapping()).isAppMapping()) config.putCachedPageSource(key, page.getPageSource());
-			return returnType == RETURN_TYPE_PAGE ? page : load(pc, page, trim(path.replace('/', '.')), sub, isRealPath, returnType, isExtendedComponent, executeConstr);
+			return returnType == RETURN_TYPE_PAGE ? page : load(pc, page, trim(path.replace('/', '.')), sub, isRealPath, returnType, isExtendedComponent, executeConstr, validate);
 		}
 
 		// search component mappings
@@ -344,7 +364,7 @@ public class ComponentLoader {
 					if (page != null) {
 						if (doCache && y > 0) config.putCachedPageSource(pathWithCFC, page.getPageSource());
 						return returnType == RETURN_TYPE_PAGE ? page
-								: load(pc, page, trim(path.replace('/', '.')), sub, isRealPath, returnType, isExtendedComponent, executeConstr);
+								: load(pc, page, trim(path.replace('/', '.')), sub, isRealPath, returnType, isExtendedComponent, executeConstr, validate);
 					}
 				}
 			}
@@ -364,7 +384,7 @@ public class ComponentLoader {
 
 					if (page != null) {
 						return returnType == RETURN_TYPE_PAGE ? page
-								: load(pc, page, trim(path.replace('/', '.')), sub, isRealPath, returnType, isExtendedComponent, executeConstr);
+								: load(pc, page, trim(path.replace('/', '.')), sub, isRealPath, returnType, isExtendedComponent, executeConstr, validate);
 					}
 				}
 			}
@@ -373,7 +393,7 @@ public class ComponentLoader {
 		if (StringUtil.startsWithIgnoreCase(rawPath, "cfide.")) {
 			String rpm = Constants.DEFAULT_PACKAGE + "." + rawPath.substring(6);
 			try {
-				return _search(pc, loadingLocation, rpm, searchLocal, searchRoot, executeConstr, returnType, currPS, importDefintions, dialect, false);
+				return _search(pc, loadingLocation, rpm, searchLocal, searchRoot, executeConstr, returnType, currPS, importDefintions, dialect, false, validate);
 			}
 			catch (ExpressionException ee) {
 				return null;
@@ -398,32 +418,42 @@ public class ComponentLoader {
 	}
 
 	public static ComponentImpl loadComponent(PageContext pc, PageSource ps, String callPath, boolean isRealPath, boolean silent) throws PageException {
-		return _loadComponent(pc, toCIPage(ps.loadPage(pc, false), callPath), callPath, isRealPath, false, true);
+		return _loadComponent(pc, toCIPage(ps.loadPage(pc, false), callPath), callPath, isRealPath, false, true, true);
 	}
 
 	public static ComponentImpl loadComponent(PageContext pc, PageSource ps, String callPath, boolean isRealPath, boolean silent, boolean executeConstr) throws PageException {
-		return _loadComponent(pc, toCIPage(ps.loadPage(pc, false), callPath), callPath, isRealPath, false, executeConstr);
+		return _loadComponent(pc, toCIPage(ps.loadPage(pc, false), callPath), callPath, isRealPath, false, executeConstr, true);
+	}
+
+	public static ComponentImpl loadComponent(PageContext pc, PageSource ps, String callPath, boolean isRealPath, boolean silent, boolean executeConstr, boolean validate)
+			throws PageException {
+		return _loadComponent(pc, toCIPage(ps.loadPage(pc, false), callPath), callPath, isRealPath, false, executeConstr, validate);
 	}
 
 	// do not change, method is used in flex extension
 	public static ComponentImpl loadComponent(PageContext pc, Page page, String callPath, boolean isRealPath, boolean silent, boolean isExtendedComponent, boolean executeConstr)
 			throws PageException {
+		return loadComponent(pc, page, callPath, isRealPath, silent, isExtendedComponent, executeConstr, true);
+	}
+
+	public static ComponentImpl loadComponent(PageContext pc, Page page, String callPath, boolean isRealPath, boolean silent, boolean isExtendedComponent, boolean executeConstr,
+			boolean validate) throws PageException {
 		CIPage cip = toCIPage(page, callPath);
 		if (silent) {
 			// TODO is there a more direct way
 			BodyContent bc = pc.pushBody();
 			try {
-				return _loadComponent(pc, cip, callPath, isRealPath, isExtendedComponent, executeConstr);
+				return _loadComponent(pc, cip, callPath, isRealPath, isExtendedComponent, executeConstr, validate);
 			}
 			finally {
 				BodyContentUtil.clearAndPop(pc, bc);
 			}
 		}
-		return _loadComponent(pc, cip, callPath, isRealPath, isExtendedComponent, executeConstr);
+		return _loadComponent(pc, cip, callPath, isRealPath, isExtendedComponent, executeConstr, validate);
 	}
 
 	private static CIObject load(PageContext pc, Page page, String callPath, String sub, boolean isRealPath, short returnType, final boolean isExtendedComponent,
-			boolean executeConstr) throws PageException {
+			boolean executeConstr, boolean validate) throws PageException {
 		CIPage cip = toCIPage(page, callPath);
 		// String subName = null;
 		if (sub != null) {
@@ -433,7 +463,7 @@ public class ComponentLoader {
 			if (returnType != RETURN_TYPE_COMPONENT)
 				throw new ApplicationException("the component [" + cip.getPageSource().getComponentName() + "] cannot be used as an interface.");
 
-			return _loadComponent(pc, cip, callPath, isRealPath, isExtendedComponent, executeConstr);
+			return _loadComponent(pc, cip, callPath, isRealPath, isExtendedComponent, executeConstr, validate);
 		}
 
 		if (returnType != RETURN_TYPE_INTERFACE) throw new ApplicationException("the interface [" + cip.getPageSource().getComponentName() + "] cannot be used as a component.");
@@ -487,8 +517,8 @@ public class ComponentLoader {
 		}
 	}
 
-	private static ComponentImpl _loadComponent(PageContext pc, CIPage page, String callPath, boolean isRealPath, final boolean isExtendedComponent, boolean executeConstr)
-			throws PageException {
+	private static ComponentImpl _loadComponent(PageContext pc, CIPage page, String callPath, boolean isRealPath, final boolean isExtendedComponent, boolean executeConstr,
+			boolean validate) throws PageException {
 		ComponentImpl rtn = null;
 		if (pc.getConfig().debug() && ((ConfigPro) pc.getConfig()).hasDebugOptions(ConfigPro.DEBUG_TEMPLATE)) {
 			DebugEntryTemplate debugEntry = pc.getDebugger().getEntry(pc, page.getPageSource());
@@ -500,7 +530,7 @@ public class ComponentLoader {
 			try {
 				debugEntry.updateFileLoadTime((int) (System.nanoTime() - time));
 				exeTime = System.nanoTime();
-				rtn = initComponent(pc, page, callPath, isRealPath, isExtendedComponent, executeConstr);
+				rtn = initComponent(pc, page, callPath, isRealPath, isExtendedComponent, executeConstr, validate);
 
 			}
 			finally {
@@ -515,7 +545,7 @@ public class ComponentLoader {
 		else {
 			pc.addPageSource(page.getPageSource(), true);
 			try {
-				rtn = initComponent(pc, page, callPath, isRealPath, isExtendedComponent, executeConstr);
+				rtn = initComponent(pc, page, callPath, isRealPath, isExtendedComponent, executeConstr, validate);
 			}
 			finally {
 				if (rtn != null) rtn.setLoaded(true);
@@ -569,21 +599,23 @@ public class ComponentLoader {
 		return i;
 	}
 
-	private static ComponentImpl initComponent(PageContext pc, CIPage page, String callPath, boolean isRealPath, final boolean isExtendedComponent, boolean executeConstr)
-			throws PageException {
+	private static ComponentImpl initComponent(PageContext pc, CIPage page, String callPath, boolean isRealPath, final boolean isExtendedComponent, boolean executeConstr,
+			boolean validate) throws PageException {
 		// is not a component, then it has to be an interface
-		if (!(page instanceof ComponentPageImpl)) throw new ApplicationException("you cannot instantiate the interface [" + page.getPageSource().getDisplayPath()
+		if (validate && !(page instanceof ComponentPageImpl)) throw new ApplicationException("you cannot instantiate the interface [" + page.getPageSource().getDisplayPath()
 				+ "] as a component (" + page.getClass().getName() + "" + (page instanceof InterfacePageImpl) + ")");
 
 		ComponentPageImpl cp = (ComponentPageImpl) page;
 		ComponentImpl c = cp.newInstance(pc, callPath, isRealPath, isExtendedComponent, executeConstr);
 		// abstract/final check
-		if (!isExtendedComponent) {
-			if (c.getModifier() == Component.MODIFIER_ABSTRACT) throw new ApplicationException(
-					"you cannot instantiate an abstract component [" + page.getPageSource().getDisplayPath() + "], this component can only be extended by other components");
+		if (validate) {
+			if (!isExtendedComponent) {
+				if (c.getModifier() == Component.MODIFIER_ABSTRACT) throw new ApplicationException(
+						"you cannot instantiate an abstract component [" + page.getPageSource().getDisplayPath() + "], this component can only be extended by other components");
+			}
+			else if (c.getModifier() == Component.MODIFIER_FINAL)
+				throw new ApplicationException("you cannot extend a final component [" + page.getPageSource().getDisplayPath() + "]");
 		}
-		else if (c.getModifier() == Component.MODIFIER_FINAL) throw new ApplicationException("you cannot extend a final component [" + page.getPageSource().getDisplayPath() + "]");
-
 		c.setInitalized(true);
 		return c;
 
