@@ -103,15 +103,23 @@
 			if(index gt 0) ArrayDeleteAt( acl, index );
 		}
 
-		// Private functions
 		private struct function getCredentials() {
 			return server.getTestService("s3");
 		}
 
-
 		private string function createURI(string calledName){
 			var baseURI="/test/#listLast(getDirectoryFromPath(getCurrenttemplatepath()),"\/")#/";
 			return baseURI&""&calledName;
+		}
+
+		private function isNewS3(){
+			qry=  extensionlist(false);
+			loop query=qry {
+				if(qry.id=="17AB52DE-B300-A94B-E058BD978511E39E") {
+					if(left(qry.version,1)>=2) return true;
+				}
+			}
+			return false;
 		}
 	</cfscript>
 </cfcomponent>

@@ -40,6 +40,7 @@ import javax.mail.Part;
 import javax.mail.PasswordAuthentication;
 import javax.mail.Session;
 import javax.mail.Store;
+import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 import javax.mail.internet.MimeUtility;
 
@@ -77,7 +78,7 @@ public abstract class MailClient implements PoolItem {
 
 	@Override
 	public boolean isValid() {
-		if (_store == null && !_store.isConnected()) {
+		if (_store != null && !_store.isConnected()) {
 			// goal is to be valid if requested so we try to be
 			try {
 				start();
@@ -246,24 +247,37 @@ public abstract class MailClient implements PoolItem {
 	public void start() throws MessagingException {
 		Properties properties = new Properties();
 		String type = getTypeAsString();
-		properties.put("mail." + type + ".host", server);
-		properties.put("mail." + type + ".port", new Double(port));
-		properties.put("mail." + type + ".connectiontimeout", String.valueOf(timeout));
-		properties.put("mail." + type + ".timeout", String.valueOf(timeout));
-		// properties.put("mail.mime.charset", "UTF-8");
+		properties.setProperty("mail." + type + ".host", server);
+		properties.setProperty("mail." + type + ".port", String.valueOf(port));
+		properties.setProperty("mail." + type + ".connectiontimeout", String.valueOf(timeout));
+		properties.setProperty("mail." + type + ".timeout", String.valueOf(timeout));
+		// properties.setProperty("mail.mime.charset", "UTF-8");
 		if (secure) {
-			properties.put("mail." + type + ".ssl.enable", "true");
-			// properties.put("mail."+type+".starttls.enable", "true" );
+			properties.setProperty("mail." + type + ".ssl.enable", "true");
+			// properties.setProperty("mail."+type+".starttls.enable", "true" );
+			// allow using untrusted certs, good for CI
+			if (!Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.ssl.checkserveridentity", null), true)){
+				properties.setProperty("mail." + type + ".ssl.trust", "*");
+				properties.setProperty("mail." + type + ".ssl.checkserveridentity", "false");
+			}
 		}
 
 		if (TYPE_IMAP == getType()) {
-			properties.put("mail.imap.partialfetch", "false");
+			properties.setProperty("mail.imap.partialfetch", "false");
 		}
 		// if(TYPE_POP3==getType()){}
 		_session = username != null ? Session.getInstance(properties, new _Authenticator(username, password)) : Session.getInstance(properties);
-		_store = _session.getStore(type);
-		if (!StringUtil.isEmpty(username)) _store.connect(server, username, password);
-		else _store.connect();
+
+		Thread t =  Thread.currentThread();
+		ClassLoader ccl = t.getContextClassLoader();
+		t.setContextClassLoader(_session.getClass().getClassLoader());		
+		try {
+			_store = _session.getStore(type);
+			if (!StringUtil.isEmpty(username)) _store.connect(server, port, username, password);
+			else _store.connect();
+		} finally {
+			t.setContextClassLoader(ccl);
+		}
 	}
 
 	protected abstract String getTypeAsString();
@@ -576,6 +590,10 @@ public abstract class MailClient implements PoolItem {
 
 				cids.setEL(KeyImpl.init(filename), cid);
 			}
+			else if((content = bodypart.getContent()) instanceof MimeMessage) {
+				content = getConent(bodypart);
+				if (body.length() == 0) body.append(content);
+			}
 		}
 	}
 
@@ -607,12 +625,19 @@ public abstract class MailClient implements PoolItem {
 		InputStream is = null;
 
 		try {
-			return getContent(is = bp.getInputStream(), CharsetUtil.toCharset(getCharsetFromContentType(bp.getContentType())));
+			if((bp.getContent()) instanceof MimeMessage) {
+				MimeMessage mimeContent = (MimeMessage) bp.getContent();
+				is = mimeContent.getInputStream();
+			}
+			else {
+				is = bp.getInputStream();
+			}
+			return getContent(is, CharsetUtil.toCharset(getCharsetFromContentType(bp.getContentType())));
 		}
 		catch (IOException mie) {
 			IOUtil.closeEL(is);
 			try {
-				return getContent(is = bp.getInputStream(), SystemUtil.getCharset());
+				return getContent(is, SystemUtil.getCharset());
 			}
 			catch (IOException e) {
 				return "Cannot read body of this message: " + e.getMessage();

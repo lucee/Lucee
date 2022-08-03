@@ -22,7 +22,9 @@ jobs:
     - name: Cache Maven packages
       uses: actions/cache@v2
       with:
-        path: ~/.m2
+        path: |
+          ~/.m2/repository/*
+          !~/.m2/repository/org/lucee/lucee/
         key: ${{ runner.os }}-m2
     - name: Build Lucee with Maven
       run: ant -noinput -buildfile loader/build.xml quick 

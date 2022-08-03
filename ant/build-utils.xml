@@ -170,6 +170,9 @@
                 echo.perform();
                 copy.perform();
             }
+          } else {
+                echo.setMessage( "WARNING: deployTestExtensions: srcDir [" + srcDir + "] was empty?" );
+                echo.perform();
           }
      ]]>
   </scriptdef>

@@ -127,29 +127,36 @@ component {
 			"S3_GOOGLE_SECRET_KEY": "", // DON'T COMMIT
 			"S3_GOOGLE_HOST": "storage.googleapis.com",
 
-			"MAIL_USERNAME": "lucee",
-			"MAIL_PASSWORD": "", // DON'T COMMIT
-
 			// imap, pop and smtp rely on MAIL_PASSWORD being defined
 
 			"IMAP_SERVER": "localhost",
 			"IMAP_PORT_SECURE": 993,
 			"IMAP_PORT_INSECURE": 143,
+			"IMAP_USERNAME": "lucee",
+			"IMAP_PASSWORD": "", // DON'T COMMIT
 
 			"POP_SERVER": "localhost",
 			"POP_PORT_SECURE": 995,
 			"POP_PORT_INSECURE": 110,
+			"POP_USERNAME": "lucee",
+			"POP_PASSWORD": "", // DON'T COMMIT
 
 			"SMTP_SERVER": "localhost",
 			"SMTP_PORT_SECURE": 25,
 			"SMTP_PORT_INSECURE": 587,
+			"SMTP_USERNAME": "lucee",
+			"SMTP_PASSWORD": "", // DON'T COMMIT
 
 			"MEMCACHED_SERVER": "localhost",
 			// "MEMCACHED_PORT": 11211 // DON'T COMMIT
 
 			"REDIS_SERVER": "localhost",
 			// "REDIS_PORT": 6379 // DON'T COMMIT
-			
+			"LDAP_SERVER": "localhost"
+			// "LDAP_USERNAME":
+			// "LDAP_PASSWORD":
+			// "LDAP_PORT":  10389 // DON't COMMMIT
+			// "LDAP_BASE_DN": "dc=example"
 
 		};
 	}
@@ -157,7 +164,7 @@ component {
 	public void function loadServiceConfig() localmode=true {
 		systemOutput( "", true) ;		
 		systemOutput("-------------- Test Services ------------", true );
-		services = ListToArray("oracle,MySQL,MSsql,postgres,h2,mongoDb,smtp,pop,imap,s3,s3_custom,s3_google,ftp,sftp,memcached,redis");
+		services = ListToArray("oracle,MySQL,MSsql,postgres,h2,mongoDb,smtp,pop,imap,s3,s3_custom,s3_google,ftp,sftp,memcached,redis,ldap");
 		// can take a while, so we check them them in parallel
 		services.each( function( service ) localmode=true {
 			if (! isTestServiceAllowed( arguments.service )){
@@ -175,6 +182,10 @@ component {
 			};
 			if ( StructCount(cfg) eq 0 ){
 				systemOutput( "Service [ #arguments.service# ] not configured", true) ;
+				if ( len( request.testServices) gt 0 ){
+					systemOutput( "Requested Test Service [ #arguments.service# ] not available", true);
+					throw "Requested Test Service [ #arguments.service# ] not available";
+				}
 			} else {
 				// validate the cfg
 				verify = "configured, but not tested";
@@ -190,6 +201,7 @@ component {
 							verify = verifyS3Custom(cfg);
 							break;
 						case "imap":
+							verify = verifyImap(cfg);
 							break;
 						case "pop":
 							break;
@@ -210,6 +222,9 @@ component {
 						case "redis":
 							verify = verifyRedis(cfg);
 							break;
+						case "ldap":
+							verify = verifyLDAP(cfg);
+							break;
 						default:
 							verify = verifyDatasource(cfg);
 							break;
@@ -220,6 +235,11 @@ component {
 					systemOutput( "ERROR Service [ #arguments.service# ] threw [ #cfcatch.message# ]", true);
 					if ( cfcatch.message contains "NullPointerException" || request.testDebug )
 						systemOutput(cfcatch, true);
+					if ( len( request.testServices) gt 0 ){
+						systemOutput( "Requested Test Service [ #arguments.service# ] not available", true);
+						systemOutput(cfcatch, true);
+						throw "Requested Test Service [ #arguments.service# ] not available";
+					}
 				}
 			}
 		}, true, 4);
@@ -353,7 +373,37 @@ component {
 			return "configured (not tested)";
 		}	
 		throw "not configured";
-	}	
+	}
+
+	public function verifyImap ( imap ) localmode=true{
+		imap
+			action="open" 
+			server = imap.SERVER
+			username = imap.USERNAME
+			port = imap.PORT_INSECURE
+			secure="no"
+			password = imap.PASSWORD
+			connection = "testImap";
+		imap
+			action = "close",
+			connection="testImap";
+			
+		return "configured";
+	}
+
+	public function verifyLDAP ( ldap ) localmode=true {
+		cfldap( server=ldap.server,
+			port=ldap.port,
+			timeout=5000,
+			username=ldap.username,
+			password=ldap.password,
+			action="query",
+			name="local.results",
+			start=ldap.base_dn,
+			filter="(objectClass=inetOrgPerson)",
+			attributes="cn" );
+		return "configured";
+	}
 
 	public function addSupportFunctions() {
 		server._getSystemPropOrEnvVars = function ( string props="", string prefix="", boolean stripPrefix=true, boolean allowEmpty=false ) localmode=true{
@@ -394,7 +444,7 @@ component {
 		server.getDefaultBundleVersion = getDefaultBundleVersion;  
 		server.getBundleVersions = getBundleVersions;
 	}
-	public struct function getTestService( required string service, string dbFile="", boolean verify=false ) localmode=true {
+	public struct function getTestService( required string service, string dbFile="", boolean verify=false, boolean onlyConfig=false ) localmode=true {
 
 		if ( StructKeyExists( server.test_services, arguments.service ) ){
 			if ( !server.test_services[ arguments.service ].valid ){
@@ -409,6 +459,8 @@ component {
 			case "mssql":
 				mssql = server._getSystemPropOrEnvVars( "SERVER, USERNAME, PASSWORD, PORT, DATABASE", "MSSQL_" );
 				if ( structCount( msSql ) gt 0){
+					if ( arguments.onlyConfig )
+						return msSql;
 					return {
 						class: 'com.microsoft.sqlserver.jdbc.SQLServerDriver'
 						, bundleName: 'org.lucee.mssql'
@@ -422,6 +474,8 @@ component {
 			case "mysql":
 				mysql = server._getSystemPropOrEnvVars( "SERVER, USERNAME, PASSWORD, PORT, DATABASE", "MYSQL_" );	
 				if ( structCount( mySql ) gt 0 ){
+					if ( arguments.onlyConfig )
+						return mySql;
 					return {
 						class: 'com.mysql.cj.jdbc.Driver'
 						, bundleName: 'com.mysql.cj'
@@ -435,6 +489,8 @@ component {
 			case "postgres":
 				pgsql = server._getSystemPropOrEnvVars( "SERVER, USERNAME, PASSWORD, PORT, DATABASE", "POSTGRES_" );	
 				if ( structCount( pgsql ) gt 0 ){
+					if ( arguments.onlyConfig )
+						return pgsql;
 					return {
 						class: 'org.postgresql.Driver'
 						, bundleName: 'org.postgresql.jdbc'
@@ -478,10 +534,12 @@ component {
 			case "oracle":
 				oracle = server._getSystemPropOrEnvVars( "SERVER, USERNAME, PASSWORD, PORT, DATABASE", "ORACLE_" );	
 				if ( structCount( oracle ) gt 0 ){
+					if ( arguments.onlyConfig )
+						return oracle;
 					return {
 						class: 'oracle.jdbc.OracleDriver'
-						, bundleName: 'ojdbc7'
-						, bundleVersion: server.getDefaultBundleVersion( 'ojdbc7', '11.2.0.4' )
+						, bundleName: 'org.lucee.oracle'
+						, bundleVersion: server.getDefaultBundleVersion( 'org.lucee.oracle', '19.12.0.0000L' )
 						, connectionString: 'jdbc:oracle:thin:@#oracle.server#:#oracle.port#/#oracle.database#'
 						, username: oracle.username
 						, password: oracle.password
@@ -494,30 +552,15 @@ component {
 			case "sftp":
 				sftp = server._getSystemPropOrEnvVars( "SERVER, USERNAME, PASSWORD, PORT, BASE_PATH", "SFTP_");
 				return sftp;
-			case "mail":
-				mail = server._getSystemPropOrEnvVars( "USERNAME, PASSWORD", "MAIL_" );
-				return mail;
 			case "smtp":
-				mail = server._getSystemPropOrEnvVars( "USERNAME, PASSWORD", "MAIL_" );
-				if ( mail.count() gt 0 ){
-					smtp = server._getSystemPropOrEnvVars( "SERVER, PORT_SECURE, PORT_INSECURE", "SMTP_" );
-					return smtp;
-				}
-				break;
+				smtp = server._getSystemPropOrEnvVars( "SERVER, PORT_SECURE, PORT_INSECURE, USERNAME, PASSWORD", "SMTP_" );
+				return smtp;
 			case "imap":
-				mail = server._getSystemPropOrEnvVars( "USERNAME, PASSWORD", "MAIL_" );
-				if ( mail.count() gt 0 ){
-					imap = server._getSystemPropOrEnvVars( "SERVER, PORT_SECURE, PORT_INSECURE", "IMAP_" );
-					return imap;
-				}
-				break;
+				imap = server._getSystemPropOrEnvVars( "SERVER, PORT_SECURE, PORT_INSECURE, USERNAME, PASSWORD", "IMAP_" );
+				return imap;
 			case "pop":
-				mail = server._getSystemPropOrEnvVars( "USERNAME, PASSWORD", "MAIL_" );
-				if ( mail.count() gt 0 ){
-					pop = server._getSystemPropOrEnvVars( "SERVER, PORT_SECURE, PORT_INSECURE", "POP_" );
-					return pop;
-				}
-				break;
+				pop = server._getSystemPropOrEnvVars( "SERVER, PORT_SECURE, PORT_INSECURE, USERNAME, PASSWORD", "POP_" );
+				return pop;
 			case "s3":
 				s3 = server._getSystemPropOrEnvVars( "ACCESS_KEY_ID, SECRET_KEY", "S3_" );
 				return s3;
@@ -537,6 +580,12 @@ component {
 				redis = server._getSystemPropOrEnvVars( "SERVER, PORT", "REDIS_" );
 				if ( redis.count() eq 2 ){
 					return redis;
+				}
+				break;
+			case "ldap":
+				ldap = server._getSystemPropOrEnvVars( "SERVER, PORT, USERNAME, PASSWORD, BASE_DN", "LDAP_" );
+				if ( ldap.count() eq 5 ){
+					return ldap;
 				}
 				break;
 			default:
