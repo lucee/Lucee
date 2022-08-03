@@ -286,7 +286,6 @@ public final class ThreadTag extends BodyTagImpl implements DynamicAttributes {
 	@Override
 	public int doEndTag() throws PageException {
 		this.pc = pageContext;
-		// if(ACTION_RUN==action) doRun();
 		return EVAL_PAGE;
 	}
 

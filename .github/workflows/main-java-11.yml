@@ -1,4 +1,4 @@
-name: Test with Java 11
+name: Build with Java 11
 
 on: [workflow_dispatch]
 
@@ -7,3 +7,4 @@ jobs:
     uses: ./.github/workflows/main.yml
     with:
       LUCEE_TEST_JAVA_VERSION: '11'
+      LUCEE_BUILD_JAVA_VERSION: '11'
