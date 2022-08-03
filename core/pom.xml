@@ -69,7 +69,7 @@
     <dependency>
       <groupId>org.apache.felix</groupId>
       <artifactId>org.apache.felix.framework</artifactId>
-      <version>6.0.5</version><!-- 4.6.1 -->
+      <version>7.0.5</version><!-- 4.6.1 -->
       <scope>compile</scope>
     </dependency>
     <dependency>
@@ -345,13 +345,13 @@
     <dependency>
     	<groupId>org.slf4j</groupId>
     	<artifactId>slf4j-api</artifactId>
-    	<version>1.7.12</version>
+    	<version>1.7.36</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
     	<groupId>org.slf4j</groupId>
     	<artifactId>slf4j-nop</artifactId>
-    	<version>1.7.12</version>
+    	<version>1.7.36</version>
       <scope>provided</scope>
     </dependency>
     <dependency>

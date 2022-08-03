@@ -66,10 +66,25 @@ public final class LoggerAndSourceData {
 		this.level = level;
 		this.readOnly = readOnly;
 		this.dyn = dyn;
+		init();
 	}
 
 	public String id() {
 		return id;
+	}
+
+	private void init() {
+		if (_log == null) {
+			config = ThreadLocalPageContext.getConfig(config);
+			try {
+				layout = eng().getLayout(cdLayout, layoutArgs, cdAppender, name);
+				_appender = eng().getAppender(config, layout, name, cdAppender, appenderArgs);
+				_log = eng().getLogger(config, _appender, name, level);
+			}
+			catch (Throwable t) {
+				ExceptionUtil.rethrowIfNecessary(t);
+			}
+		}
 	}
 
 	public String getName() {

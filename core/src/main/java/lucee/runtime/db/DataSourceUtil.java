@@ -28,63 +28,27 @@ import lucee.commons.lang.StringUtil;
 public class DataSourceUtil {
 
 	public static boolean isHSQLDB(DatasourceConnection dc) {
-		try {
-			if (dc.getConnection().getMetaData().getDatabaseProductName().indexOf("HSQL") != -1) return true;
-		}
-		catch (SQLException e) {
-			String className = dc.getDatasource().getClassDefinition().getClassName();
-			if (className.equals("org.hsqldb.jdbcDriver")) return true;
-		}
-		return false;
+		return is(dc, "HSQL", false, "org.hsqldb.jdbcDriver");
 	}
 
 	public static boolean isOracle(DatasourceConnection dc) {
-		try {
-			if (dc.getConnection().getMetaData().getDatabaseProductName().indexOf("Oracle") != -1) return true;
-		}
-		catch (SQLException e) {
-			String className = dc.getDatasource().getClassDefinition().getClassName();
-			if (className.indexOf("OracleDriver") != -1) return true;
-		}
-		return false;
+		return is(dc, "Oracle", true, "OracleDriver");
 	}
 
 	public static boolean isPostgres(DatasourceConnection dc) {
-		try {
-			if (dc.getConnection().getMetaData().getDatabaseProductName().indexOf("PostgreSQL") != -1) return true;
-		}
-		catch (SQLException e) {
-			String className = dc.getDatasource().getClassDefinition().getClassName();
-			if (className.indexOf("postgresql") != -1) return true;
-		}
-		return false;
+		return is(dc, "PostgreSQL", true, "postgresql");
 	}
 
 	public static boolean isMySQL(DatasourceConnection dc) {
-		try {
-			if (dc.getConnection().getMetaData().getDatabaseProductName().indexOf("MySQL") != -1) return true;
-		}
-		catch (SQLException e) {
-			String className = dc.getDatasource().getClassDefinition().getClassName();
-			if (className.equals("org.gjt.mm.mysql.Driver")) return true;
-		}
-		return false;
+		return is(dc, "MySQL", false, "org.gjt.mm.mysql.Driver");
 	}
 
 	public static boolean isMSSQL(DatasourceConnection dc) {
-		try {
-			if (dc.getConnection().getMetaData().getDatabaseProductName().indexOf("Microsoft") != -1) return true;
-		}
-		catch (SQLException e) {
-			String className = dc.getDatasource().getClassDefinition().getClassName();
-			if (className.equals("com.microsoft.jdbc.sqlserver.SQLServerDriver") || className.equals("com.microsoft.sqlserver.jdbc.SQLServerDriver")
-					|| className.equals("net.sourceforge.jtds.jdbc.Driver"))
-				return true;
-		}
-		return false;
+		return is(dc, "Microsoft", false, "com.microsoft.jdbc.sqlserver.SQLServerDriver", "com.microsoft.sqlserver.jdbc.SQLServerDriver", "net.sourceforge.jtds.jdbc.Driver");
 	}
 
 	public static boolean isMSSQLDriver(DatasourceConnection dc) {
+		if (dc == null) return false;
 		DataSourcePro dsp = (DataSourcePro) dc.getDatasource();
 
 		if (dsp.isMSSQL() == null) {
@@ -103,6 +67,28 @@ public class DataSourceUtil {
 			return isMSSQL;
 		}
 		else return dsp.isMSSQL();
+	}
+
+	private static boolean is(DatasourceConnection dc, String keyword, boolean doIndexOf, String... classNames) {
+		if (dc == null) return false;
+		try {
+			if (dc.getConnection().getMetaData().getDatabaseProductName().indexOf(keyword) != -1) return true;
+		}
+		catch (Exception e) {
+			String className = dc.getDatasource().getClassDefinition().getClassName();
+			if (doIndexOf) {
+				for (String cn: classNames) {
+					if (className.indexOf(cn) != -1) return true;
+				}
+			}
+			else {
+				for (String cn: classNames) {
+					if (className.equals(cn)) return true;
+				}
+			}
+
+		}
+		return false;
 	}
 
 	public static boolean isValid(DatasourceConnection dc, int timeout) throws SQLException {
