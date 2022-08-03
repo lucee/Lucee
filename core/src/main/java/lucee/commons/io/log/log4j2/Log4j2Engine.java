@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.felix.framework.BundleWiringImpl.BundleClassLoader;
 import org.apache.logging.log4j.Level;
@@ -26,6 +27,7 @@ import org.osgi.framework.Bundle;
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogEngine;
+import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.log.log4j2.appender.ConsoleAppender;
 import lucee.commons.io.log.log4j2.appender.DatasourceAppender;
 import lucee.commons.io.log.log4j2.appender.ResourceAppender;
@@ -57,8 +59,10 @@ public class Log4j2Engine extends LogEngine {
 
 	private static final String DEFAULT_PATTERN = "%d{dd.MM.yyyy HH:mm:ss,SSS} %-5p [%c] %m%n";
 
+	private static Map<String, LogAdapter> loggers = new ConcurrentHashMap<>();
 	private Config config;
 	private String version;
+	private static Appender fallback;
 
 	public Log4j2Engine(Config config) {
 		this.config = config;
@@ -70,9 +74,9 @@ public class Log4j2Engine extends LogEngine {
 		PrintWriter pw = errorStream ? config.getErrWriter() : config.getOutWriter();
 		if (pw == null) pw = new PrintWriter(errorStream ? System.err : System.out);
 
-		return new LogAdapter(_getLogger(config,
+		return _getLogger(config,
 				getConsoleAppender(createFullName(ThreadLocalPageContext.getConfig(), name), pw, PatternLayout.newBuilder().withPattern(DEFAULT_PATTERN).build(), true), name,
-				level));
+				level);
 	}
 
 	@Override
@@ -82,7 +86,7 @@ public class Log4j2Engine extends LogEngine {
 		if (async) {
 			a = new TaskAppender(config, a);
 		}
-		return new LogAdapter(_getLogger(config, a, name, level));
+		return _getLogger(config, a, name, level);
 	}
 
 	@Override
@@ -245,7 +249,6 @@ public class Log4j2Engine extends LogEngine {
 				// MUST that will no longer work that way
 				Object obj = ClassUtil.loadInstance(cd.getClazz(null), null, null);
 				if (obj instanceof Layout) {
-
 					Reflector.callSetter(obj, "name", name);
 					Reflector.callSetter(obj, "layout", toLayout(layout));
 					Iterator<Entry<String, String>> it = layoutArgs.entrySet().iterator();
@@ -270,7 +273,7 @@ public class Log4j2Engine extends LogEngine {
 	}
 
 	@Override
-	public final Object getAppender(Config config, Object layout, String name, ClassDefinition cd, Map<String, String> appenderArgs) throws PageException {
+	public final Object getAppender(Config config, Object layout, String name, ClassDefinition cd, Map<String, String> appenderArgs) {
 		if (appenderArgs == null) appenderArgs = new HashMap<String, String>();
 		// Appender
 		Appender appender = null;
@@ -296,7 +299,15 @@ public class Log4j2Engine extends LogEngine {
 					if (config.getOutWriter() == null) pw = new PrintWriter(System.out);
 					else pw = config.getOutWriter();
 				}
-				appender = getConsoleAppender(createFullName(config, name), pw, toLayout(layout), true);
+				Layout l;
+				try {
+					l = toLayout(layout);
+				}
+				catch (Exception e) {
+					LogUtil.logGlobal(config, "loading-log", e);
+					l = new ClassicLayout();
+				}
+				appender = getConsoleAppender(createFullName(config, name), pw, l, true);
 			}
 			else if (DatasourceAppender.class.getName().equalsIgnoreCase(cd.getClassName())) {
 				// datasource
@@ -330,8 +341,13 @@ public class Log4j2Engine extends LogEngine {
 				if (!StringUtil.isEmpty(custom, true)) custom = custom.trim();
 				else custom = null;
 				appenderArgs.put("custom", custom);
-
-				appender = getDatasourceAppender(config, createFullName(config, name), dsn, user, pass, table, custom, true);
+				// load appender
+				try {
+					appender = getDatasourceAppender(config, createFullName(config, name), dsn, user, pass, table, custom, true);
+				}
+				catch (Exception e) {
+					LogUtil.logGlobal(config, "loading-log", e);
+				}
 			}
 			else if (ResourceAppender.class.getName().equalsIgnoreCase(cd.getClassName())) {
 
@@ -368,31 +384,42 @@ public class Log4j2Engine extends LogEngine {
 				// timeout
 				int timeout = Caster.toIntValue(appenderArgs.get("timeout"), 60); // timeout in seconds
 				appenderArgs.put("timeout", Caster.toString(timeout));
-				appender = toResourceAppender(createFullName(config, name), res, toLayout(layout), charset, maxfiles, maxfilesize, timeout, true);
+				try {
+					appender = toResourceAppender(createFullName(config, name), res, toLayout(layout), charset, maxfiles, maxfilesize, timeout, true);
+				}
+				catch (Exception e) {
+					LogUtil.logGlobal(config, "loading-log", e);
+				}
 
 			}
 			// class definition
 			else {
-				Object obj = ClassUtil.loadInstance(cd.getClazz(null), null, null);
+				try {
+					Object obj = ClassUtil.loadInstance(cd.getClazz(null), null, null);
 
-				if (obj instanceof Appender) {
-					Appender a = (Appender) obj;
-					Reflector.callSetter(obj, "name", name);
-					Reflector.callSetter(obj, "layout", toLayout(layout));
-					Iterator<Entry<String, String>> it = appenderArgs.entrySet().iterator();
-					Entry<String, String> entry;
-					while (it.hasNext()) {
-						entry = it.next();
-						MethodInstance mi = Reflector.getSetter(obj, entry.getKey(), entry.getValue(), null);
-						if (mi != null) {
-							try {
-								mi.invoke(obj);
-							}
-							catch (Exception e) {
-								throw Caster.toPageException(e);
+					if (obj instanceof Appender) {
+						appender = (Appender) obj;
+						Reflector.callSetter(obj, "name", name);
+						Reflector.callSetter(obj, "layout", toLayout(layout));
+						Iterator<Entry<String, String>> it = appenderArgs.entrySet().iterator();
+						Entry<String, String> entry;
+						while (it.hasNext()) {
+							entry = it.next();
+							MethodInstance mi = Reflector.getSetter(obj, entry.getKey(), entry.getValue(), null);
+							if (mi != null) {
+								try {
+									mi.invoke(obj);
+								}
+								catch (Exception e) {
+									throw Caster.toPageException(e);
+								}
 							}
 						}
 					}
+				}
+				catch (Exception e) {
+					LogUtil.logGlobal(config, "loading-log", e);
+					appender = null;
 				}
 			}
 		}
@@ -403,7 +430,16 @@ public class Log4j2Engine extends LogEngine {
 			PrintWriter pw;
 			if (config.getOutWriter() == null) pw = new PrintWriter(System.out);
 			else pw = config.getOutWriter();
-			appender = getConsoleAppender(createFullName(config, name), pw, toLayout(layout), true);
+			Layout l;
+			try {
+				l = toLayout(layout);
+			}
+			catch (Exception e) {
+				LogUtil.logGlobal(config, "loading-log", e);
+				appender = null;
+				l = new ClassicLayout();
+			} // l = new ClassicLayout();
+			appender = getConsoleAppender(createFullName(config, name), pw, l, true);
 		}
 
 		return appender;
@@ -411,11 +447,11 @@ public class Log4j2Engine extends LogEngine {
 
 	@Override
 	public Log getLogger(Config config, Object appender, String name, int level) throws ApplicationException {
-		return new LogAdapter(_getLogger(config, toAppender(appender), name, level));
+		return _getLogger(config, toAppender(appender), name, level);
 	}
 
-	private static final Logger _getLogger(Config config, Appender appender, String name, int level) {
-
+	private static final LogAdapter _getLogger(Config config, Appender appender, String name, int level) {
+		Level le = LogAdapter.toLevel(level);
 		if (!(LogManager.getFactory() instanceof org.apache.logging.log4j.core.impl.Log4jContextFactory)) {
 			init();
 		}
@@ -424,20 +460,13 @@ public class Log4j2Engine extends LogEngine {
 
 		// fullname
 
-		Logger l;
-		if (LogManager.exists(fullname)) {
-			l = LogManager.getLogger(fullname);
-			if (l instanceof org.apache.logging.log4j.core.Logger) {
-				org.apache.logging.log4j.core.Logger cl = (org.apache.logging.log4j.core.Logger) l;
-				for (Appender a: cl.getAppenders().values()) {
-					cl.removeAppender(a);
-				}
-			}
-		}
-		else l = LogManager.getLogger(fullname);
-
+		Logger l = LogManager.getLogger(fullname);
 		if (l instanceof org.apache.logging.log4j.core.Logger) {
 			org.apache.logging.log4j.core.Logger cl = (org.apache.logging.log4j.core.Logger) l;
+			for (Appender a: cl.getAppenders().values()) {
+				cl.removeAppender(a);
+			}
+
 			cl.setAdditive(false);
 			cl.addAppender(appender);
 			cl.setLevel(LogAdapter.toLevel(level));
@@ -445,12 +474,15 @@ public class Log4j2Engine extends LogEngine {
 		else {
 			l.atLevel(LogAdapter.toLevel(level));
 		}
+		LogAdapter la = new LogAdapter(l, le);
+		loggers.put(fullname, la);
 
-		//
-		//
-		//
+		// rest the log level of all existing new, because they get lost when creating a new one
+		for (LogAdapter tmp: loggers.values()) {
+			tmp.validate();
+		}
 
-		return l;
+		return la;
 	}
 
 	private static String createFullName(Config config, String name) {
@@ -498,7 +530,7 @@ public class Log4j2Engine extends LogEngine {
 	private static Appender getDatasourceAppender(Config config, String name, String dsn, String user, String pass, String table, String custom, boolean start)
 			throws PageException {
 
-		DatasourceAppender appender = new DatasourceAppender(config, name, null, dsn, user, pass, table, custom);
+		DatasourceAppender appender = new DatasourceAppender(config, getFallback(config), name, null, dsn, user, pass, table, custom);
 
 		if (start) appender.start();
 		return appender;
@@ -560,4 +592,14 @@ public class Log4j2Engine extends LogEngine {
 		return version;
 	}
 
+	private static Appender getFallback(Config config) {
+		if (fallback == null) {
+			PrintWriter pw;
+			if (config.getErrWriter() == null) pw = new PrintWriter(System.err);
+			else pw = config.getErrWriter();
+			fallback = getConsoleAppender(createFullName(ThreadLocalPageContext.getConfig(), "fallback"), pw, PatternLayout.newBuilder().withPattern(DEFAULT_PATTERN).build(),
+					true);
+		}
+		return fallback;
+	}
 }

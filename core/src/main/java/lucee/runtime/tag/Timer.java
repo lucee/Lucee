@@ -21,6 +21,7 @@ package lucee.runtime.tag;
 import java.io.IOException;
 
 import lucee.runtime.PageSource;
+import lucee.runtime.engine.CFMLEngineImpl;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.tag.BodyTagImpl;
@@ -33,6 +34,7 @@ public final class Timer extends BodyTagImpl {
 	private static final int TYPE_INLINE = 1;
 	private static final int TYPE_OUTLINE = 2;
 	private static final int TYPE_COMMENT = 3;
+	private static final int TYPE_CONSOLE = 4;
 
 	private static final int UNIT_NANO = 1;
 	private static final int UNIT_MILLI = 2;
@@ -72,10 +74,11 @@ public final class Timer extends BodyTagImpl {
 	public void setType(String strType) throws ApplicationException {
 		strType = strType.toLowerCase().trim();
 		if ("comment".equals(strType)) type = TYPE_COMMENT;
+		else if ("console".equals(strType)) type = TYPE_CONSOLE;
 		else if ("debug".equals(strType)) type = TYPE_DEBUG;
 		else if ("inline".equals(strType)) type = TYPE_INLINE;
 		else if ("outline".equals(strType)) type = TYPE_OUTLINE;
-		else throw new ApplicationException("Tag [timer] has an invalid value [" + strType + "] for attribute [type], valid values are [comment, debug, inline, outline]");
+		else throw new ApplicationException("Tag [timer] has an invalid value [" + strType + "] for attribute [type], valid values are [comment, console, debug, inline, outline]");
 	}
 
 	/**
@@ -160,13 +163,13 @@ public final class Timer extends BodyTagImpl {
 		if (!StringUtil.isEmpty(variable, true)) pageContext.setVariable(variable, exe);
 
 		if (TYPE_INLINE == type) {
-			pageContext.write("" + label + ": " + time + unitDesc + "");
+			pageContext.write("" + label + ": " + exe + unitDesc + "");
 		}
 		else if (TYPE_OUTLINE == type) {
-			pageContext.write("<legend align=\"top\">" + label + ": " + time + unitDesc + "</legend></fieldset>");
+			pageContext.write("<legend align=\"top\">" + label + ": " + exe + unitDesc + "</legend></fieldset>");
 		}
 		else if (TYPE_COMMENT == type) {
-			pageContext.write("<!-- " + label + ": " + time + unitDesc + " -->");
+			pageContext.write("<!-- " + label + ": " + exe + unitDesc + " -->");
 		}
 		else if (TYPE_DEBUG == type) {
 			if (pageContext.getConfig().debug()) {
@@ -174,6 +177,12 @@ public final class Timer extends BodyTagImpl {
 				// TODO need to include unitDesc?
 				pageContext.getDebugger().addTimer(label, exe, curr == null ? "unknown template" : curr.getDisplayPath());
 			}
+		}
+		else if (TYPE_CONSOLE == type) {
+			PageSource curr = pageContext.getCurrentTemplatePageSource();
+			String currTemplate = curr != null ? " from  template: "+ curr.getDisplayPath() : "";
+			if (StringUtil.isEmpty(label, true)) label = "CFTimer";
+			CFMLEngineImpl.CONSOLE_OUT.println("" + label + ": " + exe + unitDesc + currTemplate + "");	
 		}
 	}
 

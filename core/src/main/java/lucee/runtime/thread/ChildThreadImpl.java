@@ -25,6 +25,7 @@ import java.util.Iterator;
 import java.util.Map.Entry;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 
 import lucee.commons.io.DevNullOutputStream;
 import lucee.commons.io.log.Log;
@@ -70,6 +71,7 @@ public class ChildThreadImpl extends ChildThread implements Serializable {
 	// PageContextImpl pc =null;
 	private final String tagName;
 	private long start;
+	private long endTime;
 	private Threads scope;
 
 	// accesible from scope
@@ -161,8 +163,9 @@ public class ChildThreadImpl extends ChildThread implements Serializable {
 				try {
 					cwi = (ConfigWebPro) config;
 					DevNullOutputStream os = DevNullOutputStream.DEV_NULL_OUTPUT_STREAM;
+					HttpSession session = oldPc != null && oldPc.getSessionType() == Config.SESSION_TYPE_JEE ? oldPc.getSession() : null;
 					pc = ThreadUtil.createPageContext(cwi, os, serverName, requestURI, queryString, SerializableCookie.toCookies(cookies), headers, null, parameters, attributes,
-							true, -1);
+							true, -1, session);
 					pc.setRequestTimeout(requestTimeout);
 					p = PageSourceImpl.loadPage(pc, cwi.getPageSources(oldPc == null ? pc : oldPc, null, template, false, false, true));
 					// p=cwi.getPageSources(oldPc,null, template, false,false,true).loadPage(cwi);
@@ -232,6 +235,7 @@ public class ChildThreadImpl extends ChildThread implements Serializable {
 			}
 		}
 		finally {
+			endTime = System.currentTimeMillis();
 			pc.getConfig().getFactory().releaseLuceePageContext(pc, true);
 			pc = null;
 			if (oldPc != null) ThreadLocalPageContext.register(oldPc);
@@ -252,6 +256,11 @@ public class ChildThreadImpl extends ChildThread implements Serializable {
 	/*
 	 * public Threads getThreadScopeX() { if(scope==null) scope=new ThreadsImpl(this); return scope; }
 	 */
+
+	public long getEndTime() {
+		if (endTime == 0) return System.currentTimeMillis(); // endTime = 0 means the thread is still running
+		return endTime;
+	}
 
 	public Object getThreads() {
 		return threadScope;
