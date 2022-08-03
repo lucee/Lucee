@@ -1671,4 +1671,8 @@ public class SingleContextConfigWeb extends ConfigBase implements ConfigWebPro {
 	public TimeSpan getApplicationPathhCacheTimeout() {
 		return cs.getApplicationPathhCacheTimeout();
 	}
+
+	@Override
+	public void resetServerFunctionMappings() {
+	}
 }

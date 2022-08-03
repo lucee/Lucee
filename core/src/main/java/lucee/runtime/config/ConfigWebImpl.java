@@ -293,6 +293,10 @@ public class ConfigWebImpl extends ConfigImpl implements ServletConfig, ConfigWe
 		return serverFunctionMappings.values();
 	}
 
+	public void resetServerFunctionMappings() {
+		serverFunctionMappings = null;
+	}
+
 	@Override
 	public Mapping getServerFunctionMapping(String mappingName) {
 		getServerFunctionMappings();// call this to make sure it exists

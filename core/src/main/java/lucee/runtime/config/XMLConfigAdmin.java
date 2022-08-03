@@ -4880,8 +4880,9 @@ public final class XMLConfigAdmin {
 					if (cd != null && cd.isBundle()) {
 						_updateCache(cd);
 						reloadNecessary = true;
-						logger.info("extension", "Update Cache [" + cd + "] from extension " + extName );
-					} else {
+						logger.info("extension", "Update Cache [" + cd + "] from extension " + extName);
+					}
+					else {
 						logger.error("extension", "Unsupported config, failed to update Cache [" + cd + "] from extension " + extName);
 					}
 				}
@@ -4899,7 +4900,8 @@ public final class XMLConfigAdmin {
 						_updateCacheHandler(_id, cd);
 						reloadNecessary = true;
 						logger.info("extension", "Update Cache Handler [" + cd + "] from extension " + extName);
-					} else {
+					}
+					else {
 						logger.error("extension", "Unsupported config, failed to update Cache Handler [" + cd + "] from extension " + extName);
 					}
 				}
@@ -4916,7 +4918,8 @@ public final class XMLConfigAdmin {
 						_updateAMFEngine(cd, map.get("caster"), map.get("configuration"));
 						reloadNecessary = true;
 						logger.info("extension", "Update AMF engine [" + cd + "] from extension " + extName);
-					} else {
+					}
+					else {
 						logger.error("extension", "Unsupported config, failed to update AMF engine [" + cd + "] from extension " + extName);
 					}
 				}
@@ -4933,7 +4936,8 @@ public final class XMLConfigAdmin {
 						_updateSearchEngine(cd);
 						reloadNecessary = true;
 						logger.info("extension", "Update Search Engine [" + cd + "] from extension " + extName);
-					} else {
+					}
+					else {
 						logger.error("extension", "Unsupported config, failed to update Search Engine [" + cd + "] from extension " + extName);
 					}
 				}
@@ -4954,7 +4958,8 @@ public final class XMLConfigAdmin {
 						_updateResourceProvider(scheme, cd, args);
 						reloadNecessary = true;
 						logger.info("extension", "Update Resource Provider [" + scheme + "] from extension " + extName);
-					} else{
+					}
+					else {
 						logger.error("extension", "Unsupported config, failed to update Resource Provider [" + scheme + "] from extension " + extName);
 					}
 				}
@@ -4972,7 +4977,8 @@ public final class XMLConfigAdmin {
 						_updateORMEngine(cd);
 						reloadNecessary = true;
 						logger.info("extension", "Update ORM engine [" + cd + "] from extension " + extName);
-					} else {
+					}
+					else {
 						logger.error("extension", "Unsupported config, failed to update ORM engine [" + cd + "] from extension " + extName);
 					}
 				}
@@ -4990,7 +4996,8 @@ public final class XMLConfigAdmin {
 						_updateWebserviceHandler(cd);
 						reloadNecessary = true;
 						logger.info("extension", "Update Webservice Handler [" + cd + "] from extension " + extName);
-					} else {
+					}
+					else {
 						logger.error("extension", "Unsupported config, failed to update Webservice Handler [" + cd + "] from extension " + extName);
 					}
 				}
@@ -5008,7 +5015,8 @@ public final class XMLConfigAdmin {
 						_updateMonitor(cd, map.get("type"), map.get("name"), true);
 						reloadNecessary = true;
 						logger.info("extension", "Update Monitor Engine [" + cd + "] from extension " + extName);
-					} else {
+					}
+					else {
 						logger.error("extension", "Unsupported config, failed to update Monitor Engine [" + cd + "] from extension " + extName);
 					}
 				}
@@ -5027,7 +5035,8 @@ public final class XMLConfigAdmin {
 						_updateJDBCDriver(_label, _id, cd);
 						reloadNecessary = true;
 						logger.info("extension", "Update JDBC Driver [" + _label + ":" + cd + "] from extension " + extName);
-					} else {
+					}
+					else {
 						logger.error("extension", "Unsupported config, failed to update JDBC Driver [" + _label + ":" + cd + "] from extension " + extName);
 					}
 				}
@@ -5044,7 +5053,8 @@ public final class XMLConfigAdmin {
 						_updateStartupHook(cd);
 						reloadNecessary = true;
 						logger.info("extension", "Update Startup Hook [" + cd + "] from extension " + extName);
-					} else {
+					}
+					else {
 						logger.error("extension", "Unsupported config, failed to update Startup Hook [" + cd + "] from extension " + extName);
 					}
 				}
@@ -5113,7 +5123,8 @@ public final class XMLConfigAdmin {
 					if (!StringUtil.isEmpty(id) && (!StringUtil.isEmpty(cfcPath) || (cd != null && cd.hasClass()))) {
 						_updateGatewayEntry(id, cd, cfcPath, listenerCfcPath, startupMode, custom, readOnly);
 						logger.info("extension", "Update Event Gateway entry [" + id + "] from extension " + extName);
-					} else {
+					}
+					else {
 						logger.error("extension", "Unsupported config, failed to update Event Gateway entry [" + id + "] from extension " + extName);
 					}
 				}
@@ -5528,6 +5539,41 @@ public final class XMLConfigAdmin {
 		}
 	}
 
+	public void updateFilesystem(String fldDefaultDirectory, String functionDefaultDirectory, String tagDefaultDirectory, String tldDefaultDirectory,
+			String functionAddionalDirectory, String tagAddionalDirectory) throws SecurityException {
+		checkWriteAccess();
+
+		Element fs = _getRootElement("file-system");
+		if (!StringUtil.isEmpty(fldDefaultDirectory, true)) {
+			fs.setAttribute("fld-default-directory", fldDefaultDirectory);
+			fs.removeAttribute("fld-directory");
+		}
+		if (!StringUtil.isEmpty(functionDefaultDirectory, true)) {
+			fs.setAttribute("function-default-directory", functionDefaultDirectory);
+			fs.removeAttribute("function-directory");
+		}
+		if (!StringUtil.isEmpty(tagDefaultDirectory, true)) {
+			fs.setAttribute("tag-default-directory", tagDefaultDirectory);
+			fs.removeAttribute("tag-directory");
+		}
+		if (!StringUtil.isEmpty(tldDefaultDirectory, true)) {
+			fs.setAttribute("tld-default-directory", tldDefaultDirectory);
+			fs.removeAttribute("tld-directory");
+		}
+		if (!StringUtil.isEmpty(functionAddionalDirectory, true)) {
+			fs.setAttribute("function-addional-directory", functionAddionalDirectory);
+		}
+		if (!StringUtil.isEmpty(tagAddionalDirectory, true)) {
+			fs.setAttribute("tag-addional-directory", tagAddionalDirectory);
+		}
+	}
+
+	public void updateAddionalFunctionDirectory(Resource dir) throws SecurityException {
+		checkWriteAccess();
+		Element fs = _getRootElement("file-system");
+		fs.setAttribute("function-addional-directory", Caster.toString(dir, ""));
+	}
+
 	void updateTLD(InputStream is, String name, boolean closeStream) throws IOException {
 		write(config.getTldFile(), is, name, closeStream);
 	}
@@ -5589,7 +5635,7 @@ public final class XMLConfigAdmin {
 		if (ArrayUtil.isEmpty(relpath)) return;
 		Resource file = config.getDefaultFunctionMapping().getPhysical();
 		for (int i = 0; i < relpath.length; i++) {
-			logger.log(Log.LEVEL_INFO, "extension", "Remove Function [" + relpath[i] +"]");
+			logger.log(Log.LEVEL_INFO, "extension", "Remove Function [" + relpath[i] + "]");
 			removeFromDirectory(file, relpath[i]);
 		}
 	}
@@ -5604,7 +5650,8 @@ public final class XMLConfigAdmin {
 			ZipEntry entry = file.getEntry("META-INF/MANIFEST.MF");
 
 			// no manifest
-			if (entry == null) throw new ApplicationException("Cannot remove [" + Constants.NAME + "] Archive [" + archive + "], file is too old, the file does not have a MANIFEST.");
+			if (entry == null)
+				throw new ApplicationException("Cannot remove [" + Constants.NAME + "] Archive [" + archive + "], file is too old, the file does not have a MANIFEST.");
 
 			is = file.getInputStream(entry);
 			Manifest manifest = new Manifest(is);

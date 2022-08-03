@@ -229,11 +229,16 @@ public class CFConfigImport {
 			optimizeExtensions(config, json);
 			setGroup(pc, json, "updateRHExtension", "extensions", new String[] {}, new Item("source"), new Item("id"), new Item("version"));
 
+			set(pc, json, "updateFilesystem", "fileSystem", new Item("fldDefaultDirectory"), new Item("functionDefaultDirectory"), new Item("tagDefaultDirectory"),
+					new Item("tldDefaultDirectory"), new Item("functionAddionalDirectory"), new Item("tagAddionalDirectory"));
+
 			// need to be at the end
 			set(pc, json, "updateScope", new Item("sessiontype"), new Item("sessionmanagement"), new Item("setdomaincookies", "domaincookies"), new Item("allowimplicidquerycall"),
 					new Item("setclientcookies", "clientcookies"), new Item("mergeformandurl"), new Item("localScopeMode", "localmode"),
 					new Item("cgiScopeReadonly", "cgireadonly"), new Item("scopecascadingtype"), new Item("sessiontimeout"), new Item("clienttimeout"), new Item("clientstorage"),
 					new Item("clientmanagement"), new Item("applicationtimeout"), new Item("sessionstorage"));
+
+			((ConfigWebPro) pc.getConfig()).resetServerFunctionMappings();
 
 			return json;
 			// TODO cacheDefaultQuery
@@ -415,6 +420,14 @@ public class CFConfigImport {
 		finally {
 			tag.release();
 		}
+	}
+
+	private void set(PageContext pc, final Struct json, String trgActionName, String srcGroupName, Item... items) throws JspException {
+		setPasswordIfNecessary(pc.getConfig());
+		Cast cast = engine.getCastUtil();
+
+		Struct group = cast.toStruct(json.get(cast.toKey(srcGroupName), null), null);
+		set(pc, group, trgActionName, items);
 	}
 
 	private static class Item {
