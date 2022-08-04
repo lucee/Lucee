@@ -1,13 +1,13 @@
-component extends="org.lucee.cfml.test.LuceeTestCase"{
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="testsss" {
 	function beforeAll(){
 		variables.mySQL = getCredentials();
+		variables.adm = new Administrator('server', request.SERVERADMINPASSWORD?:server.SERVERADMINPASSWORD);
 	}
 
 	function run( testResults,testBox ){
 		describe("Testcase for LDEV-3803", function(){
-			it( title="Create datasource for MySQL with liveTimeout and connectionTimeout", body=function( currentSpec ){
-				adm = new Administrator('server', request.SERVERADMINPASSWORD?:server.SERVERADMINPASSWORD);
-				adm.updateDatasource(
+			it( title="Create datasource for MySQL with liveTimeout and connectionTimeout", skip="#notHasMysql()#", body=function( currentSpec ){
+				variables.adm.updateDatasource(
 					name: 'LDEV3803',
 					newname: 'LDEV3803',
 					type: 'MYSQL',
@@ -23,7 +23,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					clob: true
 				);
 
-				local.rtn = adm.getdatasource(
+				local.rtn = variables.adm.getdatasource(
 					name: 'LDEV3803'		
 				);
 				expect(local.rtn.connectionTimeout).toBe(15);
@@ -35,36 +35,16 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 	private struct function getCredentials() {
 		// getting the credentials from the environment variables
 		var mySQL = {};
-		if (
-			!isNull(server.system.environment.MYSQL_SERVER) &&
-			!isNull(server.system.environment.MYSQL_USERNAME) &&
-			!isNull(server.system.environment.MYSQL_PASSWORD) &&
-			!isNull(server.system.environment.MYSQL_PORT) &&
-			!isNull(server.system.environment.MYSQL_DATABASE)) {
-			mySQL.server=server.system.environment.MYSQL_SERVER;
-			mySQL.username=server.system.environment.MYSQL_USERNAME;
-			mySQL.password=server.system.environment.MYSQL_PASSWORD;
-			mySQL.port=server.system.environment.MYSQL_PORT;
-			mySQL.database=server.system.environment.MYSQL_DATABASE;
-		}
-		// getting the credentials from the system variables
-		else if (
-			!isNull(server.system.properties.MYSQL_SERVER) &&
-			!isNull(server.system.properties.MYSQL_USERNAME) &&
-			!isNull(server.system.properties.MYSQL_PASSWORD) &&
-			!isNull(server.system.properties.MYSQL_PORT) &&
-			!isNull(server.system.properties.MYSQL_DATABASE)) {
-			mySQL.server=server.system.properties.MYSQL_SERVER;
-			mySQL.username=server.system.properties.MYSQL_USERNAME;
-			mySQL.password=server.system.properties.MYSQL_PASSWORD;
-			mySQL.port=server.system.properties.MYSQL_PORT;
-			mySQL.database=server.system.properties.MYSQL_DATABASE;
-		}
-		return mysql;
+		mySQL = server.getDatasource(service="mysql", onlyConfig=true);
+		return mySQL;
+	}
+
+	private boolean function notHasMysql() {
+		return structCount(server.getDatasource(service="mysql", onlyConfig=true)) == 0;
 	}
 
 	function afterAll(){
-		adm.removeDatasource(
+		variables.adm.removeDatasource(
 			dsn: 'LDEV3803',
 			remoteClients: "arrayOfClients"
 		);
