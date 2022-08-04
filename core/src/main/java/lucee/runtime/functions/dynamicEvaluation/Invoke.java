@@ -18,6 +18,7 @@
  **/
 package lucee.runtime.functions.dynamicEvaluation;
 
+import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
@@ -40,7 +41,11 @@ public class Invoke implements Function {
 		if (arguments == null) arguments = EMPTY;
 
 		if (obj instanceof String) {
-			obj = pc.loadComponent(Caster.toString(obj));
+			if (StringUtil.isEmpty((String) obj)) {
+				if (pc.getActiveComponent() != null) obj = pc.getActiveComponent();
+				else obj = pc.variablesScope();
+			}
+			else obj = pc.loadComponent(Caster.toString(obj));
 		}
 
 		if (Decision.isStruct(arguments)) {

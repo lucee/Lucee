@@ -48,6 +48,7 @@ import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Version;
 import org.w3c.dom.DOMException;
+import org.xml.sax.SAXException;
 
 import com.allaire.cfx.CustomTag;
 
@@ -583,10 +584,15 @@ public final class ConfigAdmin {
 
 		data.setEL(KeyConstants._name, task.getTask());
 		if (task.getResource() != null) data.setEL(KeyConstants._file, task.getResource().getAbsolutePath());
+		else if (data.containsKey(KeyConstants._file)) data.removeEL(KeyConstants._file);
+
 		if (task.getStartDate() != null) data.setEL("startDate", task.getStartDate().castToString(null));
 		if (task.getStartTime() != null) data.setEL("startTime", task.getStartTime().castToString(null));
 		if (task.getEndDate() != null) data.setEL("endDate", task.getEndDate().castToString(null));
+		else if (data.containsKey("endDate")) rem(data, "endDate");
 		if (task.getEndTime() != null) data.setEL("endTime", task.getEndTime().castToString(null));
+		else if (data.containsKey("endTime")) rem(data, "endTime");
+
 		data.setEL(KeyConstants._url, task.getUrl().toExternalForm());
 		data.setEL(KeyConstants._port, task.getUrl().getPort());
 		data.setEL(KeyConstants._interval, task.getIntervalAsString());
@@ -596,12 +602,26 @@ public final class ConfigAdmin {
 			if (c.getUsername() != null) data.setEL("username", c.getUsername());
 			if (c.getPassword() != null) data.setEL("password", c.getPassword());
 		}
+		else {
+			if (data.containsKey("username")) rem(data, "username");
+			if (data.containsKey("password")) rem(data, "password");
+		}
 		ProxyData pd = task.getProxyData();
 		if (pd != null) {
 			if (!StringUtil.isEmpty(pd.getServer(), true)) data.setEL("proxyHost", pd.getServer());
+			else if (data.containsKey("proxyHost")) rem(data, "proxyHost");
 			if (!StringUtil.isEmpty(pd.getUsername(), true)) data.setEL("proxyUser", pd.getUsername());
+			else if (data.containsKey("proxyUser")) rem(data, "proxyUser");
 			if (!StringUtil.isEmpty(pd.getPassword(), true)) data.setEL("proxyPassword", pd.getPassword());
+			else if (data.containsKey("proxyPassword")) rem(data, "proxyPassword");
 			if (pd.getPort() > 0) data.setEL("proxyPort", pd.getPort());
+			else if (data.containsKey("proxyPort")) rem(data, "proxyPort");
+		}
+		else {
+			if (data.containsKey("proxyHost")) rem(data, "proxyHost");
+			if (data.containsKey("proxyUser")) rem(data, "proxyUser");
+			if (data.containsKey("proxyPassword")) rem(data, "proxyPassword");
+			if (data.containsKey("proxyPort")) rem(data, "proxyPort");
 		}
 		data.setEL("resolveUrl", task.isResolveURL());
 		data.setEL("publish", task.isPublish());
@@ -609,6 +629,8 @@ public final class ConfigAdmin {
 		data.setEL("readonly", ((ScheduleTaskImpl) task).isReadonly());
 		data.setEL("autoDelete", ((ScheduleTaskImpl) task).isAutoDelete());
 		data.setEL("unique", ((ScheduleTaskImpl) task).unique());
+		if (((ScheduleTaskImpl) task).getUserAgent() != null) data.setEL("userAgent", ((ScheduleTaskImpl) task).getUserAgent());
+		else if (data.containsKey("userAgent")) rem(data, "userAgent");
 	}
 
 	public static void pauseScheduledTask(ConfigPro config, String name, boolean pause, boolean throwWhenNotExist, boolean reload)
@@ -915,13 +937,12 @@ public final class ConfigAdmin {
 		}
 	}
 
-	private void _removeScheduledTask(String name) throws SecurityException {
-		checkWriteAccess();
-
+	private void _removeScheduledTask(String name) throws SecurityException, ExpressionException {
 		Array tasks = ConfigWebUtil.getAsArray("scheduledTasks", root);
 		Key[] keys = tasks.keys();
 		Struct data;
 		String n;
+		Boolean exist = false;
 		for (int i = keys.length - 1; i >= 0; i--) {
 			Key key = keys[i];
 			data = Caster.toStruct(tasks.get(key, null), null);
@@ -929,9 +950,11 @@ public final class ConfigAdmin {
 			n = Caster.toString(data.get(KeyConstants._name, null), null);
 
 			if (name.equals(n)) {
+				exist = true;
 				tasks.removeEL(key);
 			}
 		}
+		if (!exist) throw new ExpressionException("can't delete schedule task [ " + name + " ], task doesn't exist");
 	}
 
 	public void removeComponentMapping(String virtual) throws SecurityException {
@@ -1457,14 +1480,14 @@ public final class ConfigAdmin {
 		if (!StringUtil.isEmpty(id)) el.setEL(KeyConstants._id, id);
 		else if (el.containsKey(KeyConstants._id)) el.removeEL(KeyConstants._id);
 
-		if (username.length() > 0) el.setEL(KeyConstants._username, username);
-		if (password.length() > 0) el.setEL(KeyConstants._password, ConfigWebUtil.encrypt(password));
+		el.setEL(KeyConstants._username, username);
+		el.setEL(KeyConstants._password, ConfigWebUtil.encrypt(password));
 
 		el.setEL("host", host);
 		if (!StringUtil.isEmpty(timezone)) el.setEL("timezone", timezone);
 		el.setEL("database", database);
 		if (port > -1) el.setEL("port", Caster.toString(port));
-		if (connectionLimit > -1) el.setEL("connectionLimit", Caster.toString(connectionLimit));
+		el.setEL("connectionLimit", Caster.toString(connectionLimit));
 		if (idleTimeout > -1) el.setEL("connectionTimeout", Caster.toString(idleTimeout));
 		if (liveTimeout > -1) el.setEL("liveTimeout", Caster.toString(liveTimeout));
 		if (metaCacheTimeout > -1) el.setEL("metaCacheTimeout", Caster.toString(metaCacheTimeout));
@@ -2211,14 +2234,12 @@ public final class ConfigAdmin {
 		if (name.equalsIgnoreCase(Caster.toString(parent.get("defaultResource", null), null))) rem(parent, "defaultResource");
 
 		// remove element
-		Array children = ConfigWebUtil.getAsArray("connection", parent);
+		Struct children = ConfigWebUtil.getAsStruct("caches", root);
 		Key[] keys = children.keys();
-		for (int i = keys.length - 1; i >= 0; i--) {
-			Key key = keys[i];
+		for (Key key: keys) {
 			Struct tmp = Caster.toStruct(children.get(key, null), null);
 			if (tmp == null) continue;
-
-			String n = ConfigWebUtil.getAsString("name", tmp, "");
+			String n = key.getString();
 			if (n != null && n.equalsIgnoreCase(name)) {
 				Map<String, CacheConnection> conns = config.getCacheConnections();
 				CacheConnection cc = conns.get(n.toLowerCase());
@@ -2994,7 +3015,7 @@ public final class ConfigAdmin {
 		if (queryUsage != null) root.setEL("debuggingQueryUsage", queryUsage.booleanValue());
 		else rem(root, "debuggingQueryUsage");
 
-		if (queryUsage != null) root.setEL("debuggingThread", thread.booleanValue());
+		if (thread != null) root.setEL("debuggingThread", thread.booleanValue());
 		else rem(root, "debuggingThread");
 	}
 
@@ -3496,6 +3517,7 @@ public final class ConfigAdmin {
 		try {
 			conn = (HttpURLConnection) updateUrl.openConnection();
 			conn.setRequestMethod("GET");
+			conn.setConnectTimeout(10000);
 			conn.connect();
 			code = conn.getResponseCode();
 		}
@@ -3523,6 +3545,7 @@ public final class ConfigAdmin {
 				try {
 					conn = (HttpURLConnection) url.openConnection();
 					conn.setRequestMethod("GET");
+					conn.setConnectTimeout(10000);
 					conn.connect();
 					code = conn.getResponseCode();
 				}
@@ -4042,10 +4065,12 @@ public final class ConfigAdmin {
 		updateExtensionProvider(strUrl);
 	}
 
-	public void updateExtensionProvider(String strUrl) throws PageException {
+	public void updateExtensionProvider(String strUrl) throws MalformedURLException, PageException {
 		Array children = ConfigWebUtil.getAsArray("extensionProviders", root);
-
 		strUrl = strUrl.trim();
+
+		URL _url = HTTPUtil.toURL(strUrl, HTTPUtil.ENCODED_NO);
+		strUrl = _url.toExternalForm();
 
 		// Update
 		String url;
@@ -4320,17 +4345,17 @@ public final class ConfigAdmin {
 		}
 	}
 
-	public static void _updateRHExtension(ConfigPro config, Resource ext, boolean reload) throws PageException {
+	public static void _updateRHExtension(ConfigPro config, Resource ext, boolean reload, boolean force) throws PageException {
 		try {
 			ConfigAdmin admin = new ConfigAdmin(config, null);
-			admin.updateRHExtension(config, ext, reload);
+			admin.updateRHExtension(config, ext, reload, force);
 		}
 		catch (Exception e) {
 			throw Caster.toPageException(e);
 		}
 	}
 
-	public void updateRHExtension(Config config, Resource ext, boolean reload) throws PageException {
+	public void updateRHExtension(Config config, Resource ext, boolean reload, boolean force) throws PageException {
 		RHExtension rhext;
 		try {
 			rhext = new RHExtension(config, ext, true);
@@ -4341,10 +4366,20 @@ public final class ConfigAdmin {
 			DeployHandler.moveToFailedFolder(ext.getParentResource(), ext);
 			throw Caster.toPageException(t);
 		}
-		updateRHExtension(config, rhext, reload);
+		updateRHExtension(config, rhext, reload, force);
 	}
 
-	public void updateRHExtension(Config config, RHExtension rhext, boolean reload) throws PageException {
+	public void updateRHExtension(Config config, RHExtension rhext, boolean reload, boolean force) throws PageException {
+
+		try {
+			if (!force && ConfigAdmin.hasRHExtensions((ConfigPro) config, rhext.toExtensionDefinition()) != null) {
+				throw new ApplicationException("the extension " + rhext.getName() + " (id: " + rhext.getId() + ") in version " + rhext.getVersion() + " is already installed");
+			}
+		}
+		catch (Exception e) {
+			throw Caster.toPageException(e);
+		}
+
 		ConfigPro ci = (ConfigPro) config;
 		Log logger = ci.getLog("deploy");
 		String type = ci instanceof ConfigWeb ? "web" : "server";
@@ -4394,13 +4429,13 @@ public final class ConfigAdmin {
 
 				// flds
 				if (!entry.isDirectory() && startsWith(path, type, "flds") && (StringUtil.endsWithIgnoreCase(path, ".fld") || StringUtil.endsWithIgnoreCase(path, ".fldx"))) {
-					logger.log(Log.LEVEL_INFO, "extension", "Deploy fld [" + fileName + "]");
+					logger.log(Log.LEVEL_DEBUG, "extension", "Deploy fld [" + fileName + "]");
 					updateFLD(zis, fileName, false);
 					reloadNecessary = true;
 				}
 				// tlds
 				if (!entry.isDirectory() && startsWith(path, type, "tlds") && (StringUtil.endsWithIgnoreCase(path, ".tld") || StringUtil.endsWithIgnoreCase(path, ".tldx"))) {
-					logger.log(Log.LEVEL_INFO, "extension", "Deploy tld/tldx [" + fileName + "]");
+					logger.log(Log.LEVEL_DEBUG, "extension", "Deploy tld/tldx [" + fileName + "]");
 					updateTLD(zis, fileName, false);
 					reloadNecessary = true;
 				}
@@ -4408,7 +4443,7 @@ public final class ConfigAdmin {
 				// tags
 				if (!entry.isDirectory() && startsWith(path, type, "tags")) {
 					String sub = subFolder(entry);
-					logger.log(Log.LEVEL_INFO, "extension", "Deploy tag [" + sub + "]");
+					logger.log(Log.LEVEL_DEBUG, "extension", "Deploy tag [" + sub + "]");
 					updateTag(zis, sub, false);
 					// clearTags=true;
 					reloadNecessary = true;
@@ -4417,7 +4452,7 @@ public final class ConfigAdmin {
 				// functions
 				if (!entry.isDirectory() && startsWith(path, type, "functions")) {
 					String sub = subFolder(entry);
-					logger.log(Log.LEVEL_INFO, "extension", "Deploy function [" + sub + "]");
+					logger.log(Log.LEVEL_DEBUG, "extension", "Deploy function [" + sub + "]");
 					updateFunction(zis, sub, false);
 					// clearFunction=true;
 					reloadNecessary = true;
@@ -4426,7 +4461,7 @@ public final class ConfigAdmin {
 				// mappings
 				if (!entry.isDirectory() && (startsWith(path, type, "archives") || startsWith(path, type, "mappings"))) {
 					String sub = subFolder(entry);
-					logger.log(Log.LEVEL_INFO, "extension", "deploy mapping " + sub);
+					logger.log(Log.LEVEL_DEBUG, "extension", "deploy mapping " + sub);
 					updateArchive(zis, sub, false);
 					reloadNecessary = true;
 					// clearFunction=true;
@@ -4437,7 +4472,7 @@ public final class ConfigAdmin {
 						&& (StringUtil.endsWithIgnoreCase(path, "." + Constants.getCFMLComponentExtension())
 								|| StringUtil.endsWithIgnoreCase(path, "." + Constants.getLuceeComponentExtension()))) {
 					String sub = subFolder(entry);
-					logger.log(Log.LEVEL_INFO, "extension", "Deploy event-gateway [" + sub + "]");
+					logger.log(Log.LEVEL_DEBUG, "extension", "Deploy event-gateway [" + sub + "]");
 					updateEventGateway(zis, sub, false);
 				}
 
@@ -4445,7 +4480,7 @@ public final class ConfigAdmin {
 				String realpath;
 				if (!entry.isDirectory() && startsWith(path, type, "context") && !StringUtil.startsWith(fileName(entry), '.')) {
 					realpath = path.substring(8);
-					logger.log(Log.LEVEL_INFO, "extension", "Deploy context [" + realpath + "]");
+					logger.log(Log.LEVEL_DEBUG, "extension", "Deploy context [" + realpath + "]");
 					updateContext(zis, realpath, false, false);
 				}
 				// web contextS
@@ -4453,7 +4488,7 @@ public final class ConfigAdmin {
 				if (!entry.isDirectory() && ((first = startsWith(path, type, "webcontexts")) || startsWith(path, type, "web.contexts"))
 						&& !StringUtil.startsWith(fileName(entry), '.')) {
 					realpath = path.substring(first ? 12 : 13);
-					logger.log(Log.LEVEL_INFO, "extension", "Deploy webcontext [" + realpath + "]");
+					logger.log(Log.LEVEL_DEBUG, "extension", "Deploy webcontext [" + realpath + "]");
 					updateWebContexts(zis, realpath, false, false);
 				}
 				// applications
@@ -4465,19 +4500,19 @@ public final class ConfigAdmin {
 					else index = 4; // web
 
 					realpath = path.substring(index);
-					logger.log(Log.LEVEL_INFO, "extension", "Deploy application [" + realpath + "]");
+					logger.log(Log.LEVEL_DEBUG, "extension", "Deploy application [" + realpath + "]");
 					updateApplication(zis, realpath, false);
 				}
 				// configs
 				if (!entry.isDirectory() && (startsWith(path, type, "config")) && !StringUtil.startsWith(fileName(entry), '.')) {
 					realpath = path.substring(7);
-					logger.log(Log.LEVEL_INFO, "extension", "Deploy config [" + realpath + "]");
+					logger.log(Log.LEVEL_DEBUG, "extension", "Deploy config [" + realpath + "]");
 					updateConfigs(zis, realpath, false, false);
 				}
 				// components
 				if (!entry.isDirectory() && (startsWith(path, type, "components")) && !StringUtil.startsWith(fileName(entry), '.')) {
 					realpath = path.substring(11);
-					logger.log(Log.LEVEL_INFO, "extension", "Deploy component [" + realpath + "]");
+					logger.log(Log.LEVEL_DEBUG, "extension", "Deploy component [" + realpath + "]");
 					updateComponent(zis, realpath, false, false);
 				}
 
@@ -4674,7 +4709,7 @@ public final class ConfigAdmin {
 					_updateMapping(virtual, physical, archive, primary, inspect, toplevel, lmode, ltype, readonly);
 					reloadNecessary = true;
 
-					logger.info("extension", "Update Mapping [" + virtual + "]");
+					logger.debug("extension", "Update Mapping [" + virtual + "]");
 				}
 			}
 
@@ -4727,7 +4762,7 @@ public final class ConfigAdmin {
 			ExceptionUtil.rethrowIfNecessary(t);
 			DeployHandler.moveToFailedFolder(rhext.getExtensionFile().getParentResource(), rhext.getExtensionFile());
 			try {
-				ConfigAdmin.removeRHExtensions((ConfigPro) config, new String[] { rhext.getId() }, false);
+				ConfigAdmin.removeRHExtensions((ConfigPro) config, config.getLog("deploy"), new String[] { rhext.getId() }, false);
 			}
 			catch (Throwable t2) {
 				ExceptionUtil.rethrowIfNecessary(t2);
@@ -5012,7 +5047,7 @@ public final class ConfigAdmin {
 			ExceptionUtil.rethrowIfNecessary(t);
 			// failed to uninstall, so we install it again
 			try {
-				updateRHExtension(config, rhe.getExtensionFile(), true);
+				updateRHExtension(config, rhe.getExtensionFile(), true, true);
 				// RHExtension.install(config, rhe.getExtensionFile());
 			}
 			catch (Throwable t2) {
@@ -5087,6 +5122,31 @@ public final class ConfigAdmin {
 		Resource file = dir.getRealResource(res.getName());
 		if (file.length() != res.length()) {
 			ResourceUtil.copy(res, file);
+		}
+	}
+
+	public void updateFilesystem(String fldDefaultDirectory, String functionDefaultDirectory, String tagDefaultDirectory, String tldDefaultDirectory,
+			String functionAddionalDirectory, String tagAddionalDirectory) throws SecurityException {
+		checkWriteAccess();
+
+		Struct fs = ConfigWebUtil.getAsStruct("fileSystem", root);
+		if (!StringUtil.isEmpty(fldDefaultDirectory, true)) {
+			fs.setEL(KeyImpl.init("fldDefaultDirectory"), fldDefaultDirectory);
+		}
+		if (!StringUtil.isEmpty(functionDefaultDirectory, true)) {
+			fs.setEL(KeyImpl.init("functionDefaultDirectory"), functionDefaultDirectory);
+		}
+		if (!StringUtil.isEmpty(tagDefaultDirectory, true)) {
+			fs.setEL(KeyImpl.init("tagDefaultDirectory"), tagDefaultDirectory);
+		}
+		if (!StringUtil.isEmpty(tldDefaultDirectory, true)) {
+			fs.setEL(KeyImpl.init("tldDefaultDirectory"), tldDefaultDirectory);
+		}
+		if (!StringUtil.isEmpty(functionAddionalDirectory, true)) {
+			fs.setEL(KeyImpl.init("functionAddionalDirectory"), functionAddionalDirectory);
+		}
+		if (!StringUtil.isEmpty(tagAddionalDirectory, true)) {
+			fs.setEL(KeyImpl.init("tagAddionalDirectory"), tagAddionalDirectory);
 		}
 	}
 
@@ -5807,7 +5867,8 @@ public final class ConfigAdmin {
 		if (trg.exists()) trg.remove(true);
 	}
 
-	public static void removeRHExtensions(ConfigPro config, String[] extensionIDs, boolean removePhysical) throws IOException, PageException, BundleException, ConverterException {
+	public static void removeRHExtensions(ConfigPro config, Log log, String[] extensionIDs, boolean removePhysical)
+			throws IOException, PageException, BundleException, ConverterException {
 		ConfigAdmin admin = new ConfigAdmin(config, null);
 
 		Map<String, BundleDefinition> oldMap = new HashMap<>();
@@ -5823,7 +5884,7 @@ public final class ConfigAdmin {
 				}
 			}
 			catch (Exception e) {
-				LogUtil.log(config, "deploy", ConfigAdmin.class.getName(), e);
+				log.log(Log.LEVEL_ERROR, ConfigAdmin.class.getName(), e);
 			}
 		}
 
@@ -5837,7 +5898,7 @@ public final class ConfigAdmin {
 					admin._storeAndReload((ConfigPro) webs[i]);
 				}
 				catch (Exception e) {
-					LogUtil.log(config, "deploy", ConfigAdmin.class.getName(), e);
+					log.log(Log.LEVEL_ERROR, ConfigAdmin.class.getName(), e);
 				}
 			}
 		}

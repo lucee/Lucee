@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase"{
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="image" {
 	function run( testResults , testBox ) {
 		describe( "test case for LDEV-1476", function() {
 			it(title = "checking image data from tobase64() function", body = function( currentSpec ) {

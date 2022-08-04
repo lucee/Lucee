@@ -280,57 +280,12 @@ public class ScheduledTaskThread extends Thread {
 		exeThreads = list;
 	}
 
-	public static void test(int day, int month) {
-		int inter = ScheduleTaskImpl.INTERVAL_DAY;
-		TimeZone tz = TimeZone.getTimeZone("CET");
-
-		Calendar s = JREDateTimeUtil.getThreadCalendar(tz);
-		s.set(Calendar.YEAR, 2020);
-		s.set(Calendar.MONTH, 9);
-		s.set(Calendar.DAY_OF_MONTH, 12);
-		s.set(Calendar.HOUR, 20);
-		s.set(Calendar.MINUTE, 45);
-		s.set(Calendar.SECOND, 0);
-		s.set(Calendar.MILLISECOND, 0);
-		long start = s.getTimeInMillis();
-
-		Calendar c = JREDateTimeUtil.getThreadCalendar(tz);
-		c.set(Calendar.YEAR, 2020);
-		c.set(Calendar.MONTH, 9);
-		c.set(Calendar.DAY_OF_MONTH, 12);
-		c.set(Calendar.HOUR, 20);
-		c.set(Calendar.MINUTE, 50);
-		c.set(Calendar.SECOND, 54);
-		c.set(Calendar.MILLISECOND, 0);
-
-		// print.e("-----------------------");
-		// print.e("srt:" + new Date(start));
-		// print.e("now:" + c.getTime());
-
-		DateTimeUtil util = DateTimeUtil.getInstance();
-
-		long endTime = 17 * 60 * 60 * 1000;
-		boolean notNow = false;
-		long res = calculateNextExecutionNotEvery(util, c.getTimeInMillis(), notNow, tz, start, inter);
-		// long res = calculateNextExecutionEvery(util, c.getTimeInMillis(), notNow, tz, start, endTime,
-		// 33);
-
-		// print.e("res:" + new Date(res));
-	}
-
 	private long calculateNextExecution(long now, boolean notNow) {
 		if (intervall == ScheduleTaskImpl.INTERVAL_EVEREY) return calculateNextExecutionEvery(util, now, notNow, timeZone, start, endTime, amount);
 		return calculateNextExecutionNotEvery(util, now, notNow, timeZone, start, intervall);
 	}
 
-	private static long calculateNextExecutionNotEvery(DateTimeUtil util, long now, boolean notNow, TimeZone timeZone, long start, int intervall) {
-
-		/*
-		 * print.e("---- calculateNextExecutionNotEvery(" + intervall + ") ----"); print.e("- now:" + new
-		 * Date(now)); print.e("- notNow:" + notNow); print.e("- timeZone:" + timeZone.getDisplayName());
-		 * print.e("- start:" + new Date(start)); print.e("- intervall:" + (intervall));
-		 */
-
+	public static long calculateNextExecutionNotEvery(DateTimeUtil util, long now, boolean notNow, TimeZone timeZone, long start, int intervall) {
 		int intType = 0;
 		if (intervall == ScheduleTaskImpl.INTERVAL_DAY) intType = Calendar.DAY_OF_MONTH;
 		else if (intervall == ScheduleTaskImpl.INTERVAL_WEEK) intType = Calendar.WEEK_OF_YEAR;
@@ -346,13 +301,52 @@ public class ScheduledTaskThread extends Thread {
 
 		// extract the time in day info (we do not seconds in day to avoid DST issues)
 		c.setTimeInMillis(start);
-		c.set(Calendar.YEAR, nowYear);
+		int startDOW = c.get(Calendar.DAY_OF_WEEK);
+		int startDOM = c.get(Calendar.DAY_OF_MONTH);
+		int startMonth = c.get(Calendar.MONTH);
+		if (c.get(Calendar.YEAR) < nowYear) {
+			c.set(Calendar.YEAR, nowYear);
+			c.set(Calendar.MONTH, 0);
+			c.set(Calendar.DAY_OF_MONTH, 1);
+		}
 		int startHour = c.get(Calendar.HOUR_OF_DAY);
 		int startMinute = c.get(Calendar.MINUTE);
 		int startSecond = c.get(Calendar.SECOND);
 		int startMilliSecond = c.get(Calendar.MILLISECOND);
-
 		long next = c.getTimeInMillis();
+
+		// weekly
+		if (intervall == ScheduleTaskImpl.INTERVAL_WEEK) {
+			boolean update = false;
+			while (c.get(Calendar.DAY_OF_WEEK) != startDOW) {
+				c.add(Calendar.DAY_OF_YEAR, 1);
+				update = true;
+			}
+			if (update) next = c.getTimeInMillis();
+		}
+		// montly
+		else if (intervall == ScheduleTaskImpl.INTERVAL_MONTH) {
+			boolean update = false;
+			while (c.get(Calendar.DAY_OF_MONTH) != startDOM) {
+				c.add(Calendar.DAY_OF_YEAR, 1);
+				update = true;
+			}
+			if (update) next = c.getTimeInMillis();
+		}
+		// yearly
+		else if (intervall == ScheduleTaskImpl.INTERVAL_YEAR) {
+			boolean update = false;
+			while (c.get(Calendar.MONTH) != startMonth) {
+				c.add(Calendar.MONTH, 1);
+				update = true;
+			}
+			while (c.get(Calendar.DAY_OF_MONTH) != startDOM) {
+				c.add(Calendar.DAY_OF_YEAR, 1);
+				update = true;
+			}
+
+			if (update) next = c.getTimeInMillis();
+		}
 
 		// is it already in the future or we want not now
 		while (next <= now) {
@@ -363,11 +357,6 @@ public class ScheduledTaskThread extends Thread {
 			}
 
 			c.add(intType, 1);
-			// if (intervall == ScheduleTaskImpl.INTERVAL_DAY) c.add(Calendar.DAY_OF_MONTH, 1);
-			// else if (intervall == ScheduleTaskImpl.INTERVAL_WEEK) c.add(Calendar.WEEK_OF_YEAR, 1);
-			// else if (intervall == ScheduleTaskImpl.INTERVAL_MONTH) c.add(Calendar.MONTH, 1);
-			// else if (intervall == ScheduleTaskImpl.INTERVAL_YEAR) c.add(Calendar.YEAR, 1);
-
 			c.set(Calendar.HOUR_OF_DAY, startHour);
 			c.set(Calendar.MINUTE, startMinute);
 			c.set(Calendar.SECOND, startSecond);
@@ -387,19 +376,27 @@ public class ScheduledTaskThread extends Thread {
 		return next;
 	}
 
-	//
-	//
-	/*
-	 * public static void main(String[] args) {
-	 * 
-	 * for (long now: new long[] { 1616806800000L, 1616893200000L, 1616976000000L, 1635120000000L }) {
-	 * calculateNextExecutionEvery(DateTimeUtil.getInstance(), now, false, TimeZone.getDefault(),
-	 * 1556319600000L, 72000000L, 21600 * 2); }
-	 * 
-	 * }
-	 */
+	// public static void main(String[] args) {
+	// long start = 1604217661000L; // Sunday, November 1, 2020 9:01:01 AM CET
+	// long now = 1610704861000L; // Friday, January 1, 2021 11:01:01 AM CET
+	// long end = 4759891261000L; // Friday, January 1, 2021 11:01:01 AM CET
 
-	private static long calculateNextExecutionEvery(DateTimeUtil util, long now, boolean notNow, TimeZone timeZone, long start, long endTime, int amount) {
+	// long next = calculateNextExecutionNotEvery(DateTimeUtil.getInstance(), now, true,
+	// TimeZone.getDefault(), start, ScheduleTaskImpl.INTERVAL_HOUR);
+
+	// long next = calculateNextExecutionEvery(DateTimeUtil.getInstance(), now, true,
+	// TimeZone.getDefault(), start, end, 30);
+
+	// print.e("start: " + java.text.DateFormat.getDateTimeInstance(java.text.DateFormat.FULL,
+	// java.text.DateFormat.FULL, Locale.getDefault()).format(new Date(start)));
+	// print.e("now: " + java.text.DateFormat.getDateTimeInstance(java.text.DateFormat.FULL,
+	// java.text.DateFormat.FULL, Locale.getDefault()).format(new Date(now)));
+	// print.e("next: " + java.text.DateFormat.getDateTimeInstance(java.text.DateFormat.FULL,
+	// java.text.DateFormat.FULL, Locale.getDefault()).format(new Date(next)));
+	// print.e(next);
+	// }
+
+	public static long calculateNextExecutionEvery(DateTimeUtil util, long now, boolean notNow, TimeZone timeZone, long start, long endTime, int amount) {
 		Calendar c = JREDateTimeUtil.getThreadCalendar(timeZone);
 		// print.e("----------------------------------");
 		// print.e("now:" + new Date(now));

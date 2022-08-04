@@ -38,7 +38,6 @@ import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
-import lucee.runtime.op.Operator;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayClassic;
 import lucee.runtime.type.ArrayImpl;
@@ -71,7 +70,7 @@ public final class ArrayUtil {
 	 * @param arr
 	 * @return trimmed array
 	 */
-	public static String[] trim(String[] arr) {
+	public static String[] trimItems(String[] arr) {
 		for (int i = 0; i < arr.length; i++) {
 			arr[i] = arr[i].trim();
 		}
@@ -168,7 +167,7 @@ public final class ArrayUtil {
 		for (int i = 1; i <= len; i++) {
 			Object tmp = array.get(i, null);
 			try {
-				if (tmp != null && Operator.compare(object, tmp) == 0) return i;
+				if (tmp != null && lucee.runtime.op.OpUtil.compare(ThreadLocalPageContext.get(), object, tmp) == 0) return i;
 			}
 			catch (PageException e) {
 			}

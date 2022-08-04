@@ -85,7 +85,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="memcached" {
 		var memcached = server.getDatasource("memcached");
 		if ( isEmpty( memcached ) )
 			return false;
-		try {
+		//try {
 			application action="update" 
 				caches="#{memcached:{
 						  class: 'org.lucee.extension.io.cache.memcache.MemCacheRaw'
@@ -113,8 +113,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="memcached" {
 					}}#";
 			cachePut(id='abcd', value=1234, cacheName=variables.cacheName);
 			return !isNull(cacheget(id:'abcd', cacheName:variables.cacheName));
-		}
-		catch(e) {}
+		//}
+		//catch(e) {}
 		return false;
 	}
 

@@ -79,11 +79,11 @@ import lucee.transformer.bytecode.util.SourceNameClassVisitor.SourceInfo;
 import lucee.transformer.cast.Cast;
 import lucee.transformer.cfml.Data;
 import lucee.transformer.cfml.evaluator.EvaluatorException;
-import lucee.transformer.expression.ExprDouble;
+import lucee.transformer.expression.ExprNumber;
 import lucee.transformer.expression.ExprString;
 import lucee.transformer.expression.Expression;
 import lucee.transformer.expression.literal.LitBoolean;
-import lucee.transformer.expression.literal.LitDouble;
+import lucee.transformer.expression.literal.LitNumber;
 import lucee.transformer.expression.literal.LitString;
 import lucee.transformer.expression.literal.Literal;
 import lucee.transformer.expression.var.DataMember;
@@ -724,7 +724,10 @@ public final class ASMUtil {
 	 * @param mode
 	 */
 	public static void pop(GeneratorAdapter adapter, Expression expr, int mode) {
-		if (mode == Expression.MODE_VALUE && (expr instanceof ExprDouble)) adapter.pop2();
+
+		if (mode == Expression.MODE_VALUE && (expr instanceof ExprNumber)) {
+			adapter.pop2();
+		}
 		else adapter.pop();
 	}
 
@@ -822,7 +825,7 @@ public final class ASMUtil {
 				strType = " boolean";
 				break;
 			case TYPE_NUMERIC:
-				if (tag.getFactory().toExprDouble(attr.getValue()) instanceof LitDouble) return true;
+				if (tag.getFactory().toExprNumber(attr.getValue()) instanceof LitNumber) return true;
 				strType = " numeric";
 				break;
 			case TYPE_STRING:
@@ -957,9 +960,9 @@ public final class ASMUtil {
 			Literal l = (Literal) val;
 
 			// double == days
-			Double d = l.getDouble(null);
-			if (d != null) {
-				return val.getFactory().createLitLong(TimeSpanImpl.fromDays(d.doubleValue()).getMillis(), null, null);
+			Number n = l.getNumber(null);
+			if (n != null) {
+				return val.getFactory().createLitLong(TimeSpanImpl.fromDays(n.doubleValue()).getMillis(), null, null);
 			}
 			return l;
 		}
@@ -995,10 +998,10 @@ public final class ASMUtil {
 
 	private static double toDouble(Expression e) throws EvaluatorException {
 		if (!(e instanceof Literal)) throw new EvaluatorException("Paremeters of the function createTimeSpan have to be literal numeric values in this context");
-		Double d = ((Literal) e).getDouble(null);
-		if (d == null) throw new EvaluatorException("Paremeters of the function createTimeSpan have to be literal numeric values in this context");
+		Number n = ((Literal) e).getNumber(null);
+		if (n == null) throw new EvaluatorException("Paremeters of the function createTimeSpan have to be literal numeric values in this context");
 
-		return d.doubleValue();
+		return n.doubleValue();
 	}
 
 	public static void visitLabel(GeneratorAdapter ga, Label label) {

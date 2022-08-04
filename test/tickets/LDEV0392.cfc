@@ -1,4 +1,4 @@
-<cfcomponent extends="org.lucee.cfml.test.LuceeTestCase">
+<cfcomponent extends="org.lucee.cfml.test.LuceeTestCase" labels="image" >
 	<cffunction name="testcfimage">
 		<cftry>
 			<cfset currDir = getDIRECTORYFROMPATH(getCurrentTemplatePath()) & "LDEV0392">

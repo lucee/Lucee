@@ -18,6 +18,14 @@ component {
 		application.ormEventLog = [];
 	}
 
+	public function onRequestStart() {
+		setting requesttimeout=10;
+		application.ormEventLog = [];
+		if ( url.keyExists( "flushcache" ) ){
+			componentCacheClear();
+		}
+	}
+
 	function onRequestEnd() {
 		var javaIoFile=createObject("java","java.io.File");
 		loop array = DirectoryList(

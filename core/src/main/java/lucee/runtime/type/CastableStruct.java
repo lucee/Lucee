@@ -26,10 +26,11 @@ import lucee.runtime.dump.DumpProperties;
 import lucee.runtime.dump.DumpTable;
 import lucee.runtime.dump.DumpUtil;
 import lucee.runtime.dump.SimpleDumpData;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
+import lucee.runtime.op.OpUtil;
 import lucee.runtime.op.Duplicator;
-import lucee.runtime.op.Operator;
 import lucee.runtime.op.date.DateCaster;
 import lucee.runtime.type.dt.DateTime;
 
@@ -119,25 +120,25 @@ public final class CastableStruct extends StructImpl {
 	@Override
 	public int compareTo(boolean b) throws PageException {
 		if (value == null) return super.compareTo(b);
-		return Operator.compare(value, b);
+		return OpUtil.compare(ThreadLocalPageContext.get(), value, b ? Boolean.TRUE : Boolean.FALSE);
 	}
 
 	@Override
 	public int compareTo(DateTime dt) throws PageException {
 		if (value == null) return super.compareTo(dt);
-		return Operator.compare(value, (Date) dt);
+		return OpUtil.compare(ThreadLocalPageContext.get(), value, (Date) dt);
 	}
 
 	@Override
 	public int compareTo(double d) throws PageException {
 		if (value == null) return super.compareTo(d);
-		return Operator.compare(value, d);
+		return OpUtil.compare(ThreadLocalPageContext.get(), value, Double.valueOf(d));
 	}
 
 	@Override
 	public int compareTo(String str) throws PageException {
 		if (value == null) return super.compareTo(str);
-		return Operator.compare(value, str);
+		return OpUtil.compare(ThreadLocalPageContext.get(), value, str);
 	}
 
 	@Override

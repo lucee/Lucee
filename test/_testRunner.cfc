@@ -5,9 +5,9 @@ component {
 
 	// testbox doesn't always sort the order of tests, so we do it manually LDEV-3541
 	public array function getBundles( testMapping, testDirectory ){
-		var srcBundles = directoryList( path=arguments.testMapping, recurse=true, listInfo="path", filter="*.cfc" );
+		var srcBundles = directoryList( path="#expandPath(arguments.testMapping)#", recurse=true, listInfo="path", filter="*.cfc" );
 		var testDirectoryLen = len( arguments.testDirectory );
-		var mapping = ListChangeDelims( arguments.testMapping, "", "/\" ); 
+		var mapping = ListChangeDelims( arguments.testMapping, "", "/\" );
 		var bundles = [];
 		ArrayEach( array=srcBundles, closure=function( el, idx, arr ){
 			if ( testFilter( arguments.el, testDirectory, testMapping ) ) {
@@ -42,11 +42,20 @@ component {
 					break;
 			};
 			var meta = getTestMeta( arguments.path );
-			if ( !isStruct( meta ) ){
-				// TODO bad cfc tickets get ignored
-				if ( request.testDebug )
-					SystemOutput( "ERROR: [" & arguments.path & "] threw " & meta, true );
-				return meta;
+			if ( structKeyExists( meta, "_exception" ) ) {
+				if ( request.testDebug ){
+					SystemOutput( "ERROR: [" & arguments.path & "] threw " & meta._exception.message, true );
+				} else { //} if ( !request.testSkip ){
+					if ( fileRead( arguments.path ) contains "org.lucee.cfml.test.LuceeTestCase" ){
+						// throw an error on bad cfc test cases
+						// but ignore errors when using any labels, as some extensions might not be installed, causing compile syntax errors
+						if ( len( request.testLabels ) eq 0 ) {
+							SystemOutput( "ERROR: [" & arguments.path & "] threw " & meta._exception.message, true );
+							throw( object=meta._exception );
+						}
+					}
+				}
+				return meta._exception.message;
 			}
 
 			if (request.testSkip && structKeyExists(meta, "skip") && meta.skip ?: false)
@@ -55,8 +64,8 @@ component {
 			var extends = checkExtendsTestCase( meta, arguments.path );
 			if ( extends neq "org.lucee.cfml.test.LuceeTestCase" )
 				return "test doesn't extend Lucee Test Case (#extends#)";
-			
-			return checkTestLabels( meta, arguments.path );
+
+			return checkTestLabels( meta, arguments.path, request.testLabels );
 		};
 
 		var checkTestFilter = function ( string path ){
@@ -80,7 +89,11 @@ component {
 					var meta = GetComponentMetaData( cfcPath );
 				}
 			} catch ( e ){
-				return cfcatch.message;
+				if ( request.testDebug )
+					systemOutput( cfcatch, true );
+				return {
+					"_exception": cfcatch
+				}
 			}
 			return meta;
 		};
@@ -89,19 +102,37 @@ component {
 			return meta.extends.fullname ?: "";
 		};
 
-		/* testbox mixes label and skip, which is confusing, skip false should always mean skip, so we check it manually */
-		var checkTestLabels = function (any meta, string path ){
-			if ( arrayLen (request.testLabels) eq 0 )
-				return "";
-			var labels = meta.labels ?: "";
-			loop array="#request.testLabels#" item="local.f" {
-				if ( FindNoCase( f, labels ) gt 0 )
-					return "";
+		/* testbox mixes labels and skip, which is confusing, skip false should always mean skip, so we check it manually */
+		var checkTestLabels = function ( required any meta, required string path, required array requiredTestLabels ){
+			if ( arrayLen ( arguments.requiredTestLabels ) eq 0 )
+				return ""; // no labels to filter by
+			var testLabels = meta.labels ?: "";
+			var labelsMatched = [];
+
+			// TODO allow any of syntax, orm|cache
+			loop array="#arguments.requiredTestLabels#" item="local.f" {
+				if ( ListFindNoCase( testLabels, f ) gt 0 )
+					ArrayAppend( labelsMatched, f );
 			}
-			return "no matching labels";
+			var matched = false;
+
+			if ( ArrayLen( labelsMatched ) eq arrayLen( arguments.requiredTestLabels ) )
+				matched = true; // matched all the required labels
+			if ( matched and listLen( testLabels ) neq ArrayLen( labelsMatched ) )
+				matched = false; // but we didn't match all the specified labels for the test
+
+			var matchStatus = "#path# [#testLabels#] matched required label(s) #serializeJson(arguments.requiredTestLabels)#,"
+				& " only #serializeJson( labelsMatched )# matched";
+			if ( !matched ){
+				// systemOutput( "FAILED: " & matchStatus, true );
+				return matchStatus;
+			} else {
+				// systemOutput( "OK: " & matchStatus  , true);
+				return ""; //ok
+			}
 		};
 
-		allowed = isValidTestCase( arguments.path );
+		var allowed = isValidTestCase( arguments.path );
 		//SystemOutput( arguments.path & " :: " & allowed, true );
 		if ( allowed != "" ){
 			if ( request.testDebug )
@@ -123,7 +154,7 @@ component {
 		// strips off the stack trace to exclude testbox and back to the first .cfc call in the stack
 		function printStackTrace( st ){
 			local.i = find( "/testbox/", arguments.st );
-			if ( i eq 0 ){ // dump it all out
+			if ( request.testDebug || i eq 0 ){ // dump it all out
 				systemOutput( TAB & arguments.st, true );
 				return;
 			}
@@ -159,6 +190,12 @@ component {
 				for ( b in tb.getBundles() )
 					SystemOutput( b, true );
 			}
+
+			if ( len( bundles ) eq 0 ){
+				SystemOutput( "Error no tests found to run, aborting", true );
+				throw "Error no tests found to run, aborting";
+			}
+
 			// formatting is odd, because we are outputting to the console and whitespace matters
 			// execute
 			tb.run(callbacks=
@@ -192,12 +229,23 @@ component {
 	Pass:     #bundle.totalPass#
 	Skipped:  #bundle.totalSkipped#"
 			, true );
-
+			
 			if ( !isNull( bundle.suiteStats ) ) {
 				loop array=bundle.suiteStats item="local.suiteStat" {
-					if ( !isNull( suiteStat.specStats ) ) {
-						loop array=suiteStat.specStats item="local.specStat" {
+					local.specStats = duplicate(suiteStat.specStats);
+					// spec stats are also nested 
+					loop array=suiteStat.suiteStats item="local.nestedSuiteStats" {
+						if ( !isEmpty( local.nestedSuiteStats.specStats ) ) {
+							loop array=local.nestedSuiteStats.specStats item="local.nestedSpecStats" {
+								arrayAppend( local.specStats, local.nestedspecStats );
+							}
+						}
+					}
 
+					if ( isEmpty( local.specStats ) ) {
+						systemOutput( "WARNING: suiteStat for [#bundle.name#] was empty?", true );
+					} else {
+						loop array=local.specStats item="local.specStat" {
 							if ( !isNull( specStat.failMessage ) && len( trim( specStat.failMessage ) ) ) {
 
 								var failedTestCase = {
@@ -281,6 +329,8 @@ component {
 						}
 					}
 				}
+			} else {
+				systemOutput( "WARNING: bundle.suiteStats was null?", true );
 			}
 			//systemOutput(serializeJson(bundle.suiteStats));
 		}
@@ -295,7 +345,7 @@ component {
 				}
 			}
 		}
-		
+
 	// exceptions
 	if ( !isSimpleValue( bundle.globalException ) ) {
 		systemOutput( "Global Bundle Exception
@@ -337,7 +387,7 @@ Begin Stack Trace
 		result: tb.getResult(),
 		failedTestCases: failedTestCases,
 		tb: tb
-	};	
+	};
 	return testResults;
 }
 

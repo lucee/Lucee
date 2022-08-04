@@ -66,7 +66,7 @@ public class RSA {
 	}
 
 	private static byte[] toBytes(String str) throws CoderException {
-		return Base64Coder.decode(str);
+		return Base64Coder.decode(str, true);
 	}
 
 	public static KeyPair createKeyPair() throws NoSuchAlgorithmException {

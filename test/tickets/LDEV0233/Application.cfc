@@ -16,6 +16,8 @@ component output="false" {
 	};
 
 	public function onRequestStart() {
+
+		setting requesttimeout=10;
 		oRMReload();
 		saveData = EntityNew('ContentType');
 		saveData.setid(1);
