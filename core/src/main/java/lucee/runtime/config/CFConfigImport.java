@@ -34,6 +34,7 @@ import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.tag.DynamicAttributes;
 import lucee.runtime.interpreter.JSONExpressionInterpreter;
+import lucee.runtime.op.Caster;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
@@ -62,6 +63,8 @@ public class CFConfigImport {
 	private ConfigPro config;
 	private Struct placeHolderData;
 	private Struct data;
+	private boolean pwCheckedServer = false;
+	private boolean pwCheckedWeb = false;
 
 	public CFConfigImport(Config config, Resource file, Charset charset, String password, String type, Struct placeHolderData) throws PageException {
 		this.file = file;
@@ -84,7 +87,11 @@ public class CFConfigImport {
 		this.engine = CFMLEngineFactory.getInstance();
 		if ("web".equalsIgnoreCase(type) && !(config instanceof ConfigWeb))
 			throw engine.getExceptionUtil().createApplicationException("cannot manipulate a web context when you pass in a server config to the constructor!");
-		this.config = (ConfigPro) ("server".equalsIgnoreCase(type) && config instanceof ConfigWeb ? config.getConfigServer(password) : config);
+		if ("server".equalsIgnoreCase(type) && config instanceof ConfigWeb) {
+			setPasswordIfNecessary((ConfigWeb) config);
+			this.config = (ConfigPro) config.getConfigServer(password);
+		}
+		else this.config = (ConfigPro) config;
 	}
 
 	public Struct execute() throws PageException {
@@ -222,11 +229,16 @@ public class CFConfigImport {
 			optimizeExtensions(config, json);
 			setGroup(pc, json, "updateRHExtension", "extensions", new String[] {}, new Item("source"), new Item("id"), new Item("version"));
 
+			set(pc, json, "updateFilesystem", "filesystem", new Item("fldDefaultDirectory"), new Item("functionDefaultDirectory"), new Item("tagDefaultDirectory"),
+					new Item("tldDefaultDirectory"), new Item("functionAddionalDirectory"), new Item("tagAddionalDirectory"));
+
 			// need to be at the end
 			set(pc, json, "updateScope", new Item("sessiontype"), new Item("sessionmanagement"), new Item("setdomaincookies", "domaincookies"), new Item("allowimplicidquerycall"),
 					new Item("setclientcookies", "clientcookies"), new Item("mergeformandurl"), new Item("localScopeMode", "localmode"),
 					new Item("cgiScopeReadonly", "cgireadonly"), new Item("scopecascadingtype"), new Item("sessiontimeout"), new Item("clienttimeout"), new Item("clientstorage"),
 					new Item("clientmanagement"), new Item("applicationtimeout"), new Item("sessionstorage"));
+
+			((ConfigWebPro) pc.getConfig()).resetServerFunctionMappings();
 
 			return json;
 			// TODO cacheDefaultQuery
@@ -362,7 +374,28 @@ public class CFConfigImport {
 		}
 	}
 
+	private void setPasswordIfNecessary(ConfigWeb config) throws PageException {
+		boolean isServer = "server".equalsIgnoreCase(type);
+		if ((isServer && !pwCheckedServer) || (!isServer && !pwCheckedWeb)) {
+			boolean hasPassword = isServer ? config.hasServerPassword() : config.hasPassword();
+			if (!hasPassword) {
+				// create password
+				try {
+					((ConfigWebPro) config).updatePassword(isServer, null, password);
+				}
+				catch (Exception e) {
+					throw Caster.toPageException(e);
+				}
+			}
+			if (isServer) pwCheckedServer = true;
+			else pwCheckedWeb = true;
+		}
+
+	}
+
 	private void set(PageContext pc, final Struct json, String trgActionName, Item... items) throws JspException {
+		setPasswordIfNecessary(pc.getConfig());
+
 		Object val;
 		try {
 			tag.setPageContext(pc);
@@ -387,6 +420,14 @@ public class CFConfigImport {
 		finally {
 			tag.release();
 		}
+	}
+
+	private void set(PageContext pc, final Struct json, String trgActionName, String srcGroupName, Item... items) throws JspException {
+		setPasswordIfNecessary(pc.getConfig());
+		Cast cast = engine.getCastUtil();
+
+		Struct group = cast.toStruct(json.get(cast.toKey(srcGroupName), null), null);
+		if (group != null) set(pc, group, trgActionName, items);
 	}
 
 	private static class Item {

@@ -1839,4 +1839,9 @@ public class SingleContextConfigWeb extends ConfigBase implements ConfigWebPro {
 	public boolean getPreciseMath() {
 		return cs.getPreciseMath();
 	}
+
+	@Override
+	public void resetServerFunctionMappings() {
+
+	}
 }

@@ -48,6 +48,7 @@ import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Version;
 import org.w3c.dom.DOMException;
+import org.xml.sax.SAXException;
 
 import com.allaire.cfx.CustomTag;
 
@@ -5121,6 +5122,31 @@ public final class ConfigAdmin {
 		Resource file = dir.getRealResource(res.getName());
 		if (file.length() != res.length()) {
 			ResourceUtil.copy(res, file);
+		}
+	}
+
+	public void updateFilesystem(String fldDefaultDirectory, String functionDefaultDirectory, String tagDefaultDirectory, String tldDefaultDirectory,
+			String functionAddionalDirectory, String tagAddionalDirectory) throws SecurityException {
+		checkWriteAccess();
+
+		Struct fs = ConfigWebUtil.getAsStruct("fileSystem", root);
+		if (!StringUtil.isEmpty(fldDefaultDirectory, true)) {
+			fs.setEL(KeyImpl.init("fldDefaultDirectory"), fldDefaultDirectory);
+		}
+		if (!StringUtil.isEmpty(functionDefaultDirectory, true)) {
+			fs.setEL(KeyImpl.init("functionDefaultDirectory"), functionDefaultDirectory);
+		}
+		if (!StringUtil.isEmpty(tagDefaultDirectory, true)) {
+			fs.setEL(KeyImpl.init("tagDefaultDirectory"), tagDefaultDirectory);
+		}
+		if (!StringUtil.isEmpty(tldDefaultDirectory, true)) {
+			fs.setEL(KeyImpl.init("tldDefaultDirectory"), tldDefaultDirectory);
+		}
+		if (!StringUtil.isEmpty(functionAddionalDirectory, true)) {
+			fs.setEL(KeyImpl.init("functionAddionalDirectory"), functionAddionalDirectory);
+		}
+		if (!StringUtil.isEmpty(tagAddionalDirectory, true)) {
+			fs.setEL(KeyImpl.init("tagAddionalDirectory"), tagAddionalDirectory);
 		}
 	}
 
