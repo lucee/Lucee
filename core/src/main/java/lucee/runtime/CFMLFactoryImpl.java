@@ -79,8 +79,8 @@ import lucee.runtime.type.util.ListUtil;
  */
 public final class CFMLFactoryImpl extends CFMLFactory {
 
-	private static final int MAX_NORMAL_PRIORITY = 1;
-	private static final int MAX_NO_SLEEP = 2;
+	private static final int MAX_NORMAL_PRIORITY = 5;
+	private static final int MAX_NO_SLEEP = 0;
 	private static final int SLEEP_TIME = 100;
 
 	private static final long MAX_AGE = 5 * 60000; // 5 minutes
