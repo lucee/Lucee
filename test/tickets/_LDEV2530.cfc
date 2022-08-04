@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase"{
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="qoq"{
 	function run( testResults , testBox ) {
 		describe( "test suite for LDEV-2530", function() {
 			it(title = "Query returns single column instead of multiple columns", body = function( currentSpec ) {

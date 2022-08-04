@@ -23,12 +23,12 @@ import static lucee.runtime.tag.util.FileUtil.NAMECONFLICT_UNDEFINED;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Date;
 import java.nio.file.Files;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.nio.file.attribute.FileTime;
+import java.util.Date;
 
 import lucee.commons.io.ModeUtil;
+import lucee.commons.io.SystemUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourceMetaData;
 import lucee.commons.io.res.filter.AndResourceFilter;
@@ -52,7 +52,6 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
 import lucee.runtime.ext.tag.TagImpl;
 import lucee.runtime.op.Caster;
-import lucee.runtime.op.Decision;
 import lucee.runtime.reflection.Reflector;
 import lucee.runtime.security.SecurityManager;
 import lucee.runtime.tag.util.FileUtil;
@@ -62,10 +61,10 @@ import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.Query;
 import lucee.runtime.type.QueryImpl;
 import lucee.runtime.type.Struct;
-import lucee.runtime.type.UDF;
-import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.StructImpl;
+import lucee.runtime.type.UDF;
 import lucee.runtime.type.dt.DateTimeImpl;
+import lucee.runtime.type.util.KeyConstants;
 
 /**
  * Handles interactions with directories.
@@ -518,11 +517,10 @@ public final class Directory extends TagImpl {
 	}
 
 	public static Struct getInfo(PageContext pc, Resource directory, String serverPassword) throws PageException {
-			
+
 		SecurityManager securityManager = pc.getConfig().getSecurityManager();
 		securityManager.checkFileLocation(pc.getConfig(), directory, serverPassword);
 
-			
 		if (!directory.exists()) throw new ApplicationException("directory [" + directory.toString() + "] doesn't exist");
 		if (!directory.isDirectory()) throw new ApplicationException("[" + directory.toString() + "] isn't a directory");
 		if (!directory.canRead()) throw new ApplicationException("no access to read directory [" + directory.toString() + "]");
@@ -534,6 +532,7 @@ public final class Directory extends TagImpl {
 		sct.setEL("isReadable", directory.isReadable());
 		sct.setEL(KeyConstants._path, directory.getAbsolutePath());
 		sct.setEL("dateLastModified", new DateTimeImpl(pc.getConfig()));
+		if (SystemUtil.isUnix()) sct.setEL(KeyConstants._mode, new ModeObjectWrap(directory));
 		File file = new File(Caster.toString(directory));
 		BasicFileAttributes attr;
 		try {
@@ -630,7 +629,7 @@ public final class Directory extends TagImpl {
 		if (list == null || list.length == 0) return count;
 		for (int i = 0; i < list.length; i++) {
 			if (filter == null || filter.accept(list[i])) {
-				arr.appendEL(onlyName ? list[i].getName() : list[i].getAbsolutePath() );
+				arr.appendEL(onlyName ? list[i].getName() : list[i].getAbsolutePath());
 				count++;
 
 			}
@@ -715,14 +714,8 @@ public final class Directory extends TagImpl {
 			if (acl != null) {
 				try {
 					// old way
-					if (Decision.isString(acl)) {
-						Reflector.callMethod(res, "setACL", new Object[] { improveACL(Caster.toString(acl)) });
-					}
-					// new way
-					else {
-						BIF bif = CFMLEngineFactory.getInstance().getClassUtil().loadBIF(pc, "StoreSetACL");
-						bif.invoke(pc, new Object[] { res.getAbsolutePath(), acl });
-					}
+					BIF bif = CFMLEngineFactory.getInstance().getClassUtil().loadBIF(pc, "StoreSetACL");
+					bif.invoke(pc, new Object[] { res.getAbsolutePath(), acl });
 				}
 				catch (Exception e) {
 					throw Caster.toPageException(e);
@@ -776,8 +769,9 @@ public final class Directory extends TagImpl {
 
 		// check directory is empty
 		Resource[] dirList = dir.listResources();
-		if (dirList != null && dirList.length > 0 && forceDelete == false) throw new ApplicationException("directory [" + dir.toString() + "] is not empty","set recurse=true to delete sub-directories and files too");
-		
+		if (dirList != null && dirList.length > 0 && forceDelete == false)
+			throw new ApplicationException("directory [" + dir.toString() + "] is not empty", "set recurse=true to delete sub-directories and files too");
+
 		// delete directory
 		try {
 			dir.remove(forceDelete);
@@ -822,7 +816,7 @@ public final class Directory extends TagImpl {
 		}
 
 		// set S3 stuff
-		setS3Attrs(pc, directory, acl, storage);
+		setS3Attrs(pc, newdirectory, acl, storage);
 		return newdirectory.toString();
 
 	}
@@ -876,7 +870,7 @@ public final class Directory extends TagImpl {
 		}
 
 		// set S3 stuff
-		setS3Attrs(pc, directory, acl, storage);
+		setS3Attrs(pc, newdirectory, acl, storage);
 
 	}
 

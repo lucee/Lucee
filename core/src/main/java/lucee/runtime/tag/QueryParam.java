@@ -83,7 +83,7 @@ public final class QueryParam extends TagImpl {
 	 * Yes or No. Indicates that the parameter value of the value attribute is a list of values,
 	 * separated by a separator character. The default is No
 	 */
-	private boolean list;
+	private Boolean list = null;
 
 	/**
 	 * Maximum length of the parameter. The default value is the length of the string specified in the
@@ -96,7 +96,7 @@ public final class QueryParam extends TagImpl {
 	@Override
 	public void release() {
 		separator = ",";
-		list = false;
+		list = null;
 		maxlength = -1;
 		item = new SQLItemImpl();
 		charset = null;
@@ -194,7 +194,7 @@ public final class QueryParam extends TagImpl {
 			if (!item.isNulls() && !item.isValueSet()) throw new ApplicationException("Attribute [value] from tag [queryparam] is required when attribute [null] is false");
 
 			Object value = item.getValue();
-			if (list || (Decision.isArray(value) && ARRAY_TYPES.contains(item.getType()))) {
+			if (Boolean.TRUE.equals(list) || (list == null && (Decision.isArray(value) && ARRAY_TYPES.contains(item.getType())))) {
 
 				Array arr;
 

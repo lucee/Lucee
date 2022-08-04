@@ -45,7 +45,7 @@ public class StructEvery extends BIF {
 	}
 
 	private static boolean _call(PageContext pc, Struct sct, UDF udf, boolean parallel, int maxThreads) throws PageException {
-		return Every._call(pc, sct, udf, parallel, maxThreads, ClosureFunc.TYPE_STRUCT);
+		return Every.call(pc, sct, udf, parallel, maxThreads, ClosureFunc.TYPE_STRUCT);
 	}
 
 	@Override

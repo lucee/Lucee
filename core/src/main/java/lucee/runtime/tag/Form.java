@@ -47,7 +47,7 @@ public final class Form extends BodyTagImpl {
 	public static final int FORMAT_HTML = 0;
 	public static final int FORMAT_FLASH = 1;
 	public static final int FORMAT_XML = 2;
-	private static final String DEFAULT_ARCHIVE = "/lucee/lucee-applet.cfm";
+	private static final String DEFAULT_ARCHIVE = "";
 
 	private static final int WMODE_WINDOW = 0;
 	private static final int WMODE_TRANSPARENT = 1;
@@ -417,9 +417,6 @@ public final class Form extends BodyTagImpl {
 	private int _doStartTag() throws PageException, IOException {
 		String contextPath = pageContext.getHttpServletRequest().getContextPath();
 		if (contextPath == null) contextPath = "";
-		if (archive == null) {
-			archive = contextPath + DEFAULT_ARCHIVE;
-		}
 		count = IDGenerator.intId();
 
 		if (name == null) {

@@ -37,7 +37,9 @@ component {
 	this.ormsettings.useDBForMapping		= false;					// false = do not walk the db on startup trying to create ORM definitions 
 
 	// request start
-	public boolean function onRequestStart( String targetPage ){
+	
+	public function onRequestStart() {
+		setting requesttimeout=10;
 
 		return true;
 	}

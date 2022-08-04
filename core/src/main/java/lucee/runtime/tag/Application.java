@@ -153,6 +153,7 @@ public final class Application extends TagImpl implements DynamicAttributes {
 	private Boolean searchQueries = null;
 	private Boolean suppress;
 	private Boolean cgiReadOnly = null;
+	private Boolean preciseMath = null;
 	private SessionCookieData sessionCookie;
 	private AuthCookieData authCookie;
 	private Object functionpaths;
@@ -224,6 +225,7 @@ public final class Application extends TagImpl implements DynamicAttributes {
 
 		triggerDataMember = null;
 		cgiReadOnly = null;
+		preciseMath = null;
 
 		cacheFunction = null;
 		cacheQuery = null;
@@ -668,6 +670,10 @@ public final class Application extends TagImpl implements DynamicAttributes {
 		this.cgiReadOnly = cgiReadOnly;
 	}
 
+	public void setPrecisemath(boolean preciseMath) {
+		this.preciseMath = preciseMath;
+	}
+
 	public void setXmlfeatures(Struct xmlFeatures) {
 		this.xmlFeatures = xmlFeatures;
 	}
@@ -866,6 +872,7 @@ public final class Application extends TagImpl implements DynamicAttributes {
 		if (clientCluster != null) ac.setClientCluster(clientCluster.booleanValue());
 		if (sessionCluster != null) ac.setSessionCluster(sessionCluster.booleanValue());
 		if (cgiReadOnly != null) ac.setCGIScopeReadonly(cgiReadOnly.booleanValue());
+		if (preciseMath != null) ((ApplicationContextSupport) ac).setPreciseMath(preciseMath.booleanValue());
 		if (s3 != null) ac.setS3(AppListenerUtil.toS3(s3));
 		if (ftp != null) ((ApplicationContextSupport) ac).setFTP(AppListenerUtil.toFTP(ftp));
 

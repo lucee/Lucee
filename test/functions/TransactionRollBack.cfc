@@ -16,7 +16,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 
 	public void function testRollBack(){
-		_test("sp0",0);
 		_test("sp1",1);
 		_test("sp2",2);
 	}
@@ -27,20 +26,20 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 			echo("delete from testTransactionRollBack");
 		}
 
+		var count=0;
 		transaction { 
 
-			transaction action="SetSavePoint" savepoint="sp0"; 
-	
+			
 			query name="qry" {
 				echo("insert into testTransactionRollBack(id,title,author,submission_date)
-					values(#++application.test#,'test #getTickCount()#','Michael',#CreateODBCDate(now())#)");
+					values(#++count#,'test #getTickCount()#','Michael',#CreateODBCDate(now())#)");
 			}
 	
 			transaction action="SetSavePoint" savepoint="sp1"; 
 	
 			query name="qry" {
 				echo("insert into testTransactionRollBack(id,title,author,submission_date)
-					values(#++application.test#,'test #getTickCount()#','Michael',#CreateODBCDate(now())#)");
+					values(#++count#,'test #getTickCount()#','Michael',#CreateODBCDate(now())#)");
 			}
 	
 			//transaction action="SetSavePoint" savepoint="sp2"; 
@@ -48,7 +47,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	
 			query name="qry" {
 				echo("insert into testTransactionRollBack(id,title,author,submission_date)
-					values(#++application.test#,'test #getTickCount()#','Michael',#CreateODBCDate(now())#)");
+					values(#++count#,'test #getTickCount()#','Michael',#CreateODBCDate(now())#)");
 			}
 	
 			//transaction action="rollback" savepoint="sp2";

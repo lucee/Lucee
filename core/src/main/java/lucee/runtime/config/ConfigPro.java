@@ -152,7 +152,7 @@ public interface ConfigPro extends Config {
 
 	public TimeSpan getCachedAfterTimeRange();
 
-	public Log getLog(String name, boolean createIfNecessary);
+	public Log getLog(String name, boolean createIfNecessary) throws PageException;
 
 	public Map<String, LoggerAndSourceData> getLoggers();
 
@@ -344,4 +344,6 @@ public interface ConfigPro extends Config {
 	public void putApplicationPageSource(String path, PageSource ps, String filename, int mode, boolean isCFC);
 
 	public long getApplicationPathCacheTimeout();
+
+	public boolean getPreciseMath();
 }

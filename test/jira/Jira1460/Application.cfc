@@ -23,4 +23,8 @@ component {
 	request.currentPath=GetDirectoryFromPath(getCurrentTemplatePath());
 	
 	this.typeChecking=url.typeChecking;
+
+	public function onRequestStart() {
+		setting requesttimeout=10;
+	}
 }

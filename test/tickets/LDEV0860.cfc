@@ -77,5 +77,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="oracle"	{
 		return true;
 	}
 
+	private struct function getCredencials() {
+		return server.getDatasource("oracle");
+	}
+
 } 
 </cfscript>

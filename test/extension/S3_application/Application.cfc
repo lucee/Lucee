@@ -39,5 +39,9 @@ component {
 		//systemOutput( vfs, true );
 		return vfs;
 	}
+	
+	public function onRequestStart() {
+		setting requesttimeout=10;
+	}
 
 }

@@ -18,4 +18,9 @@
  **/
 component {
 		this.name=getCurrentTemplatePath();
+	
+		public function onRequestStart() {
+			setting requesttimeout=10;
+		}
+	
 } 

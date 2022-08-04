@@ -114,7 +114,7 @@ public class Cryptor {
 				params = new PBEParameterSpec(ivOrSalt, iterations > 0 ? iterations : DEFAULT_ITERATIONS); // set Salt and Iterations for PasswordBasedEncryption
 			}
 			else {
-				secretKey = new SecretKeySpec(Coder.decode(Coder.ENCODING_BASE64, key), algo);
+				secretKey = new SecretKeySpec(Coder.decode(Coder.ENCODING_BASE64, key, true), algo);
 				if (isFBM) params = new IvParameterSpec(ivOrSalt); // set Initialization Vector for non-ECB Feedback Mode
 			}
 
@@ -191,7 +191,7 @@ public class Cryptor {
 			if (charset == null) charset = DEFAULT_CHARSET;
 			if (encoding == null) encoding = DEFAULT_ENCODING;
 
-			byte[] baInput = Coder.decode(encoding, input);
+			byte[] baInput = Coder.decode(encoding, input, true);
 			byte[] decrypted = decrypt(baInput, key, algorithm, ivOrSalt, iterations);
 
 			return new String(decrypted, charset);

@@ -59,14 +59,15 @@ import lucee.runtime.exp.SecurityException;
 import lucee.runtime.functions.conversion.DeserializeJSON;
 import lucee.runtime.java.JavaObject;
 import lucee.runtime.op.Caster;
+import lucee.runtime.op.OpUtil;
 import lucee.runtime.op.Decision;
 import lucee.runtime.op.Duplicator;
-import lucee.runtime.op.Operator;
 import lucee.runtime.reflection.pairs.ConstructorInstance;
 import lucee.runtime.reflection.pairs.MethodInstance;
 import lucee.runtime.reflection.storage.SoftMethodStorage;
 import lucee.runtime.reflection.storage.WeakConstructorStorage;
 import lucee.runtime.reflection.storage.WeakFieldStorage;
+import lucee.runtime.util.ObjectIdentityHashSet;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
@@ -354,7 +355,7 @@ public final class Reflector {
 
 			// CF Equal
 			try {
-				if (Operator.equals(src, trg, false, true)) {
+				if (OpUtil.equals(ThreadLocalPageContext.get(), src, trg, false, true)) {
 					rating.plus(3);
 					return trg;
 				}
@@ -552,7 +553,8 @@ public final class Reflector {
 		try {
 			md = src.getMetaData(pc);
 		}
-		catch (PageException pe) {}
+		catch (PageException pe) {
+		}
 
 		String str;
 		JavaAnnotation ja = null;
@@ -561,7 +563,8 @@ public final class Reflector {
 			try {
 				sct = Caster.toStruct(DeserializeJSON.call(pc, str), null);
 			}
-			catch (Exception e) {}
+			catch (Exception e) {
+			}
 			if (sct == null) return null;
 
 			// interfaces
@@ -759,14 +762,14 @@ public final class Reflector {
 	private static Object[] cleanArgs(Object[] args) {
 		if (args == null) return args;
 
-		Set<Object> done = new HashSet<Object>();
+		ObjectIdentityHashSet done = new ObjectIdentityHashSet();
 		for (int i = 0; i < args.length; i++) {
 			args[i] = _clean(done, args[i]);
 		}
 		return args;
 	}
 
-	private static Object _clean(Set<Object> done, Object obj) {
+	private static Object _clean(ObjectIdentityHashSet done, Object obj) {
 		if (done.contains(obj)) return obj;
 		done.add(obj);
 		try {
@@ -789,7 +792,7 @@ public final class Reflector {
 		return obj;
 	}
 
-	private static Object _clean(Set<Object> done, Collection coll) {
+	private static Object _clean(ObjectIdentityHashSet done, Collection coll) {
 		Iterator<Object> vit = coll.valueIterator();
 		Object v;
 		boolean change = false;
@@ -812,7 +815,7 @@ public final class Reflector {
 		return coll;
 	}
 
-	private static Object _clean(Set<Object> done, Map map) {
+	private static Object _clean(ObjectIdentityHashSet done, Map map) {
 		Iterator vit = map.values().iterator();
 		Object v;
 		boolean change = false;
@@ -836,7 +839,7 @@ public final class Reflector {
 		return map;
 	}
 
-	private static Object _clean(Set<Object> done, List list) {
+	private static Object _clean(ObjectIdentityHashSet done, List list) {
 		Iterator it = list.iterator();
 		Object v;
 		boolean change = false;
@@ -858,7 +861,7 @@ public final class Reflector {
 		return list;
 	}
 
-	private static Object _clean(Set<Object> done, Object[] src) {
+	private static Object _clean(ObjectIdentityHashSet done, Object[] src) {
 		boolean change = false;
 		for (int i = 0; i < src.length; i++) {
 			if (src[i] != _clean(done, src[i])) {

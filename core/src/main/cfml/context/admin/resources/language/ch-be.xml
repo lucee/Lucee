@@ -572,8 +572,9 @@ When checked, any requested files will be inspected only once for potential upda
 	<data key="locale">german (standard)</data>
 	<data key="proxy.portdescription">Port für den Proxy Server (Vorgabe:80)</data>
 	<data key="proxy.port">Port</data>
+	<data key="proxy.serverName">Server</data>
 	<data key="proxy.usernamedescription">Benutzername für den Proxy</data>
-	<data key="proxy.server">Server</data>
+	<data key="proxy.server">Definieren Sie einen globalen Proxy, der standardmäßig in mehreren Tags verwendet wird (cfhttp,cfftp,cfmail ...)</data>
 	<data key="proxy.settings">Proxy Einstellungen</data>
 	<data key="proxy.enableproxydescription">URL eines Proxy Server im Stil &apos;http://myproxyserver.org/&apos;</data>
 	<data key="proxy.enableproxy">Proxy verwenden</data>

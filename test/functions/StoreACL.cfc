@@ -17,144 +17,147 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  * 
  ---><cfscript>
-	component extends="org.lucee.cfml.test.LuceeTestCase" labels="s3"	{
+component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	
-		//public function beforeTests(){}
-		
-		//public function afterTests(){}
+	//public function beforeTests(){}
 	
-	
-		private struct function getCredentials(service) {
-			// getting the credentials from the environment variables
-			return server.getTestService( arguments.service );
-		}
-		
-		public function setUp(){
-			var s3=getCredentials("s3");
-			if (!isNull(s3.ACCESS_KEY_ID)) {
-				var creds = {
-					accessKeyId: s3.ACCESS_KEY_ID,
-					awsSecretKey: s3.SECRET_KEY
-				};
-				if ( structKeyExists(s3, "host") )
-					creds.host = s3.host;
-				application action="update" s3=creds; 
-				variables.s3Supported=true;
-				variables.s3_bucket_hash = lcase( hash( CreateGUID() ) ); // always use a unique bucket name
-			}
-			else 
-				variables.s3Supported=false;
-		}
-	
-		public function testStoreAddACLBucket() localMode=true {
-			if (variables.s3Supported) {
-				try{
-					testStoreACL("s3://lucee-#s3_bucket_hash#-addaclbucket",true,true);
-				}
-				finally {
-					directoryDelete("s3://lucee-#s3_bucket_hash#-addaclbucket",true);
-				}
+	//public function afterTests(){}
+
+	private function isNewS3(){
+		qry=  extensionlist(false);
+		isNewS3=false;
+		loop query=qry {
+			if(qry.id=="17AB52DE-B300-A94B-E058BD978511E39E") {
+				if(left(qry.version,1)>=2) return true;
 			}
 		}
+		return false;
+	}
+
+
+	private struct function getCredencials() {
+		return server.getTestService("s3");
+	}
 	
-		public function testStoreSetACLBucket() localMode=true {
-			if (variables.s3Supported) {
-				try{
-					testStoreACL("s3://lucee-#s3_bucket_hash#-setaclbucket2",true,false);
+	public function setUp(){
+		var s3=getCredencials();
+		if(!isNull(s3.accessKeyId)) {
+			application action="update" s3=s3; 
+			variables.s3Supported=true;
+		}
+		else 
+			variables.s3Supported=false;
+	}
+
+	public function testStoreAddACLBucket() localMode=true {
+		if(variables.s3Supported) {
+			try{
+				testStoreACL("s3://lucee-testsuite-addaclbucket",true,true);
+			}
+			finally {
+	    		directoryDelete("s3://lucee-testsuite-addaclbucket",true);
+	    	}
+		}
+	}
+
+	public function testStoreSetACLBucket() localMode=true {
+		if(variables.s3Supported) {
+			try{
+				testStoreACL("s3://lucee-testsuite-setaclbucket2",true,false);
+			}
+			finally {
+	    		directoryDelete("s3://lucee-testsuite-setaclbucket2",true);
+	    	}
+		}
+	}
+
+	public function testStoreAddACLObject() localMode=true {
+		if(variables.s3Supported) {
+			try{
+				testStoreACL("s3://lucee-testsuite-addaclobject/sub12234",false,true);
+			}
+			finally {
+	    		directoryDelete("s3://lucee-testsuite-addaclobject",true);
+	    	}
+		}
+	}
+
+	public function testStoreSetACLObject() localMode=true {
+		if(variables.s3Supported) {
+			try{
+				testStoreACL("s3://lucee-testsuite-setaclobject2/sub12234",false,false);
+			}
+			finally {
+	    		directoryDelete("s3://lucee-testsuite-setaclobject2",true);
+	    	}
+		}
+	}
+
+	private function testStoreACL(required dir, required boolean bucket, required boolean add) localMode=true {
+		    start=getTickCount();
+		    
+		    if(DirectoryExists(dir)) directoryDelete(dir,true);
+
+		    assertFalse(DirectoryExists(dir));
+			directoryCreate(dir);
+		    
+		    // check inital data
+			var acl=StoreGetACL(dir);
+			if(bucket || isNewS3()) {// newer S3 extension no longer set public read by default for objects
+				assertEquals(1,acl.len());
+				assertEquals("FULL_CONTROL",toList(acl,"permission"));
+				assertEquals("info",toList(acl,"displayName"));
+				//var id=acl[1].id;
+			}
+			else {
+				assertEquals(2,acl.len());
+				assertEquals("FULL_CONTROL,READ",toList(acl,"permission"));
+				assertEquals("all",toList(acl,"group"));
+				assertEquals("info",toList(acl,"displayName"));
+			}
+
+
+			// add ACL
+			if(add) {
+			    arr=[{'group':"authenticated",'permission':"WRITE"}];
+			    StoreAddACL(dir,arr); 
+
+			    // test output
+			    var acl=StoreGetACL(dir);
+			    
+			    if(bucket || isNewS3()) {// newer S3 extension no longer set public read by default for objects
+			    	assertEquals(2,acl.len());
+					assertEquals("FULL_CONTROL,WRITE",toList(acl,"permission"));
+					assertEquals("authenticated",toList(acl,"group"));
 				}
-				finally {
-					directoryDelete("s3://lucee-#s3_bucket_hash#-setaclbucket2",true);
+				else {
+					assertEquals(3,acl.len());
+					assertEquals("FULL_CONTROL,READ,WRITE",toList(acl,"permission"));
+					assertEquals("all,authenticated",toList(acl,"group"));
 				}
 			}
-		}
-	
-		public function testStoreAddACLObject() localMode=true {
-			if (variables.s3Supported) {
-				try{
-					testStoreACL("s3://lucee-#s3_bucket_hash#-addaclobject/sub12234",false,true);
-				}
-				finally {
-					directoryDelete("s3://lucee-#s3_bucket_hash#-addaclobject",true);
-				}
-			}
-		}
-	
-		public function testStoreSetACLObject() localMode=true {
-			if (variables.s3Supported) {
-				try{
-					testStoreACL("s3://lucee-#s3_bucket_hash#-setaclobject2/sub12234",false,false);
-				}
-				finally {
-					directoryDelete("s3://lucee-#s3_bucket_hash#-setaclobject2",true);
-				}
-			}
-		}
-	
-		private function testStoreACL(required dir, required boolean bucket, required boolean add) localMode=true {
-				start=getTickCount();
-				
-				if (DirectoryExists(dir)) directoryDelete(dir,true);
-	
-				assertFalse(DirectoryExists(dir));
-				directoryCreate(dir);
-				
-				// check inital data
-				var acl=StoreGetACL(dir);
-				if (bucket) {
+			// set ACL 
+			else {
+				arr=[{'group':"authenticated",'permission':"WRITE"}];
+			    StoreSetACL(dir,arr); 
+
+				// test output
+			    var acl=StoreGetACL(dir);
+			    
 					assertEquals(1,acl.len());
-					assertEquals("FULL_CONTROL",toList(acl,"permission"));
-					assertEquals("info",toList(acl,"displayName"));
-					//var id=acl[1].id;
-				}
-				else {
-					assertEquals(2,acl.len());
-					assertEquals("FULL_CONTROL,READ",toList(acl,"permission"));
-					assertEquals("all",toList(acl,"group"));
-					assertEquals("info",toList(acl,"displayName"));
-				}
-	
-	
-				// add ACL
-				if (add) {
-					arr=[{'group':"authenticated",'permission':"WRITE"}];
-					StoreAddACL(dir,arr); 
-	
-					// test output
-					var acl=StoreGetACL(dir);
-					
-					if (bucket) {
-						assertEquals(2,acl.len());
-						assertEquals("FULL_CONTROL,WRITE",toList(acl,"permission"));
-						assertEquals("authenticated",toList(acl,"group"));
-					}
-					else {
-						assertEquals(3,acl.len());
-						assertEquals("FULL_CONTROL,READ,WRITE",toList(acl,"permission"));
-						assertEquals("all,authenticated",toList(acl,"group"));
-					}
-				}
-				// set ACL 
-				else {
-					arr=[{'group':"authenticated",'permission':"WRITE"}];
-					StoreSetACL(dir,arr); 
-	
-					// test output
-					var acl=StoreGetACL(dir);
-					
-						assertEquals(1,acl.len());
-						assertEquals("WRITE",toList(acl,"permission"));
-						assertEquals("authenticated",toList(acl,"group"));
-				}
-		}
-	
-	
-		private function toList(arr,key){
-			var rtn="";
-			loop array=arr item="local.sct" {
-				if (!isNull(sct[key]))rtn=listAppend(rtn,sct[key]);
+					assertEquals("WRITE",toList(acl,"permission"));
+					assertEquals("authenticated",toList(acl,"group"));
 			}
-			return listSort(rtn,"textnoCase");
-		 }
-	
-	} 
-	</cfscript>
+	}
+
+
+	private function toList(arr,key){
+		var rtn="";
+		loop array=arr item="local.sct" {
+			if(!isNull(sct[key]))rtn=listAppend(rtn,sct[key]);
+		}
+		return listSort(rtn,"textnoCase");
+ 	}
+
+} 
+</cfscript>

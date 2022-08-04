@@ -22,6 +22,8 @@ for (el in ["bundleId", "debugBuffer", "endTime", "error", "failMessage", "failO
 	fixCase[ucase(el)] = el;
 }
 
+systemOutput("Running tests with Java: #server.java.version#", true);
+
 try {
 
 	// create "/test" mapping
@@ -35,11 +37,23 @@ try {
 		archive=""
 		primary="physical"
 		trusted="no";
+	
+	systemOutput("set /test mapping #dateTimeFormat(now())#", true);
+
+	param name="testDebug" default="false";
+	if ( len( testDebug ) eq 0 )
+		testDebug = false;	
+	request.testDebug = testDebug;
+	if ( request.testDebug )
+		SystemOutput( "Test Debugging enabled", true );
+
+	param name="testServices" default="";
+	request.testServices = testServices;
+	if ( len( request.testServices ) )
+		SystemOutput( "Test Services restricted to [#request.testServices#]", true );
 
 	// you can also provide a json file with your environment variables, i.e. just set LUCEE_BUILD_ENV="c:\work\lucee\loader\env.json"
 	setupTestServices = new test._setupTestServices().setup();
-
-	systemOutput("set /test mapping #dateTimeFormat(now())#", true);
 
 	function mem(type) {
 		var qry = getMemoryUsage(type);
@@ -86,9 +100,9 @@ try {
 	}
 	request.testFilter = ListToArray( trim( request.testFilter ) );
 	if ( Arraylen( request.testFilter ) gt 0 )
-		systemOutput( NL & "Filtering only tests containing: " & request.testFilter.toJson() & NL, true );
+		systemOutput( NL & "Filtering only tests with filenames containing: " & request.testFilter.toJson() & NL, true );
 	else
-		systemOutput( NL & 'Running all tests, to run a subset of test(s), use the parameter -DtestFilter="image,orm,etc"', true );
+		systemOutput( NL & 'Running all tests, to run a subset of test(s) by FILENAME, use the parameter -DtestFilter="image,orm,etc"', true );
 
 	param name="testLabels" default="";
 	request.testLabels = testLabels;
@@ -101,9 +115,9 @@ try {
 	}
 	request.testLabels = ListToArray( trim( request.testLabels ) );
 	if ( ArrayLen( request.testLabels ) )
-		SystemOutput( "Filtering tests with the following label(s) #request.testLabels.toJson()#", true );
+		SystemOutput( "Filtering tests with the following label(s): #request.testLabels.toJson()#", true );
 	else
-		systemOutput( NL & 'Running all tests, to run a subset of test(s), use the parameter -DtestLabels="s3,oracle"', true );
+		systemOutput( NL & 'Running all tests, to run a subset of test(s) by LABEL, use the parameter -DtestLabels="s3,oracle"', true );
 
 	
 	param name="testSkip" default="true";
@@ -114,15 +128,6 @@ try {
 	if ( !request.testSkip )
 		SystemOutput( "Force running tests marked skip=true or prefixed with an _", true );
 	
-	param name="testDebug" default="false";
-	if ( len(testDebug) eq 0)
-		testDebug = false;
-	request.testDebug = testDebug;
-
-	if ( request.testDebug )
-		SystemOutput( "Test Debugging enabled", true );
-	
-
 	param name="testAdditional" default="";	
 	request.testAdditional = testAdditional;
 
@@ -249,6 +254,14 @@ try {
 	if ( ( result.getTotalFail() + result.getTotalError() ) > 0 ) {
 		throw "TestBox could not successfully execute all testcases: #result.getTotalFail()# tests failed; #result.getTotalError()# tests errored.";
 	}
+
+	if ( ( result.getTotalError() + result.getTotalFail() + result.getTotalPass() ) eq 0 ){
+		systemOutput( "", true );
+		systemOutput( "ERROR: No tests were run", true );
+		systemOutput( "", true );
+		throw "ERROR: No tests were run";
+	}
+
 } catch( e ){
 	systemOutput( "-------------------------------------------------------", true );
 	systemOutput( "Testcase failed:", true );

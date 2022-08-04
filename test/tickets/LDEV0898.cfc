@@ -16,7 +16,7 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  * 
  ---><cfscript>
-component extends="org.lucee.cfml.test.LuceeTestCase"	{
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="image" {
 
 	public void function test() {
 		var dir=GetDirectoryFromPath(GetCurrentTemplatePath());
@@ -34,7 +34,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 			fileCopy(src,trg);
 
 			var img=imageRead(trg);
-			assertEquals(2448,ImageGetHeight(img));
+			assertEquals(3264,ImageGetHeight(img));
+			assertEquals(2448,ImageGetWidth(img));
 
 			imageScaleTofit(img,"",50);
 			imageWrite(img);

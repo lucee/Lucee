@@ -36,4 +36,9 @@ component {
 	this.ormsettings.useDBForMapping		= false;					// false = do not walk the db on startup trying to create ORM definitions
 	this.ormsettings.cacheconfig = "ehcache.xml"
 
+	
+	public function onRequestStart() {
+		setting requesttimeout=10;
+	}
+
 }

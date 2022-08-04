@@ -49,7 +49,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="s3"{
 				local.result = {};
 				for(x=1;x<=5;x++){
 					local.result["key#x#"] = _InternalRequest(
-						template:uri
+						template:uri,
+						url: { bucketName: bucketname}
 					);
 					expect(local.result["key#x#"].fileContent).toBe("0|0|0|0|0");
 					sleep(3000);
