@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" labels="testsss" {
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="administrator" {
 	function beforeAll(){
 		variables.mySQL = getCredentials();
 		variables.adm = new Administrator('server', request.SERVERADMINPASSWORD?:server.SERVERADMINPASSWORD);
