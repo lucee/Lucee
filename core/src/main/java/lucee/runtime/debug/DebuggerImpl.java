@@ -32,6 +32,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.SystemUtil.TemplateLine;
+import lucee.commons.io.log.Log;
 import lucee.commons.io.res.util.ResourceSnippet;
 import lucee.commons.io.res.util.ResourceSnippetsMap;
 import lucee.commons.lang.ExceptionUtil;
@@ -197,7 +198,6 @@ public final class DebuggerImpl implements Debugger {
 		else {
 			partEntries = new HashMap<String, DebugEntryTemplatePartImpl>();
 		}
-
 		ResourceSnippet snippet = snippetsMap.getSnippet(source, startPos, endPos, ((PageContextImpl) pc).getResourceCharset().name());
 		de = new DebugEntryTemplatePartImpl(source, startPos, endPos, snippet.getStartLine(), snippet.getEndLine(), snippet.getContent());
 		partEntries.put(src, de);
@@ -516,24 +516,23 @@ public final class DebuggerImpl implements Debugger {
 		int qrySize = 0;
 		Query qryPart = null;
 		if (hasParts) {
-			qryPart = new QueryImpl(PAGE_PART_COLUMNS, qrySize, "query");
-			debugging.setEL(PAGE_PARTS, qryPart);
 			String slowestTemplate = arrPages.get(0).getPath();
 			List<DebugEntryTemplatePart> filteredPartEntries = new ArrayList();
 			java.util.Collection<DebugEntryTemplatePartImpl> col = partEntries.values();
 			for (DebugEntryTemplatePart detp: col) {
-
 				if (detp.getPath().equals(slowestTemplate)) filteredPartEntries.add(detp);
 			}
 			qrySize = Math.min(filteredPartEntries.size(), MAX_PARTS);
 
 			int row = 0;
 			Collections.sort(filteredPartEntries, DEBUG_ENTRY_TEMPLATE_PART_COMPARATOR);
-
 			DebugEntryTemplatePart[] parts = new DebugEntryTemplatePart[qrySize];
 
 			if (filteredPartEntries.size() > MAX_PARTS) parts = filteredPartEntries.subList(0, MAX_PARTS).toArray(parts);
 			else parts = filteredPartEntries.toArray(parts);
+
+			qryPart = new QueryImpl(PAGE_PART_COLUMNS, qrySize, "query");
+			debugging.setEL(PAGE_PARTS, qryPart);
 
 			try {
 				DebugEntryTemplatePart de;
@@ -553,7 +552,6 @@ public final class DebuggerImpl implements Debugger {
 					qryPart.setAt(KeyConstants._path, row, de.getPath());
 
 					if (de instanceof DebugEntryTemplatePartImpl) {
-
 						qryPart.setAt(KeyConstants._startLine, row, _toDouble(((DebugEntryTemplatePartImpl) de).getStartLine()));
 						qryPart.setAt(KeyConstants._endLine, row, _toDouble(((DebugEntryTemplatePartImpl) de).getEndLine()));
 						qryPart.setAt(KeyConstants._snippet, row, ((DebugEntryTemplatePartImpl) de).getSnippet());
@@ -561,6 +559,8 @@ public final class DebuggerImpl implements Debugger {
 				}
 			}
 			catch (PageException dbe) {
+				Log log = pc.getConfig().getLog("application");
+				if (log != null) log.error("debugging", dbe);
 			}
 		}
 
