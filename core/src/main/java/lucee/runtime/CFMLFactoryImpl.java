@@ -81,8 +81,8 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 
 	private static final long MAX_AGE = 5 * 60000; // 5 minutes
 	private static final int MAX_SIZE = 10000;
-	private static final int MAX_NORMAL_PRIORITY = 1;
-	private static final int MAX_NO_SLEEP = 2;
+	private static final int MAX_NORMAL_PRIORITY = 5;
+	private static final int MAX_NO_SLEEP = 0;
 	private static final int SLEEP_TIME = 100;
 	private static JspEngineInfo info = new JspEngineInfoImpl("1.0");
 	private ConfigWebPro config;
