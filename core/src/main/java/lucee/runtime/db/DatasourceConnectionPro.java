@@ -18,4 +18,10 @@ public interface DatasourceConnectionPro extends DatasourceConnection {
 	public DatasourceConnection using() throws PageException;
 
 	public void release();
+
+	public boolean validate();
+
+	public void setManaged(boolean managed);
+
+	public boolean isManaged();
 }

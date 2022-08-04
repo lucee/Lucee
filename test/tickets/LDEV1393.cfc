@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase"{
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="image" {
 	function beforeAll(){
 		variables.path ="#getDirectoryFromPath(getCurrenttemplatepath())#LDEV1393\";
 		cffile(action = "read" , file = "#path#image_code.base64",  variable = "variables.base64");

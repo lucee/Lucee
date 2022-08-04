@@ -5,4 +5,8 @@ component {
 		loadPaths = [request.currentPath&"commons-codec-1.9.jar"],
 		loadColdFusionClassPath = true
 	};
+
+	public function onRequestStart() {
+		setting requesttimeout=10;
+	}
 }

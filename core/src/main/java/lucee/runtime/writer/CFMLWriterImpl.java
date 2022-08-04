@@ -405,7 +405,7 @@ public class CFMLWriterImpl extends CFMLWriter {
 		if (allowCompression) {
 
 			String encodings = ReqRspUtil.getHeader(request, "Accept-Encoding", "");
-			if (encodings.indexOf("gzip") != -1) {
+			if (encodings != null && encodings.indexOf("gzip") != -1) {
 				boolean inline = HttpServletResponseWrap.get();
 				if (!inline) {
 					ServletOutputStream os = response.getOutputStream();

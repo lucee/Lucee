@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase"{
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="image" {
 	function run( testResults , testBox ) {
 		describe( "Testing imageResize()", function() {
 			it('Testing imageResize() with blank height',  function( currentSpec ) {

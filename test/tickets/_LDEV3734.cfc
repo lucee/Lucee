@@ -1,4 +1,4 @@
-component extends = "org.lucee.cfml.test.LuceeTestCase" skip=true{
+component extends = "org.lucee.cfml.test.LuceeTestCase" skip=true labels="qoq"{
     function run( testResults, textbox ) {
         describe("testcase for LDEV-3734", function(){
             it(title="Arithmetic operation with NULL in QoQ", body=function( currentSpec ){

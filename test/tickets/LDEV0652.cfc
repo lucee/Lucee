@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase"{
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="image" {
 	function run( testResults , testBox ) {
 		describe( "Test suite for LDEV-652", function() {
 			it(title="checking EXIF data from ImageGetExifMetadata function", body = function( currentSpec ) {

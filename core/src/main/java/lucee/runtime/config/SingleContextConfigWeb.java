@@ -1181,7 +1181,7 @@ public class SingleContextConfigWeb extends ConfigBase implements ConfigWebPro {
 	}
 
 	@Override
-	public Log getLog(String name, boolean createIfNecessary) {
+	public Log getLog(String name, boolean createIfNecessary) throws PageException {
 		return cs.getLog(name, createIfNecessary);
 	}
 
@@ -1838,5 +1838,10 @@ public class SingleContextConfigWeb extends ConfigBase implements ConfigWebPro {
 	@Override
 	public boolean getPreciseMath() {
 		return cs.getPreciseMath();
+	}
+
+	@Override
+	public void resetServerFunctionMappings() {
+
 	}
 }

@@ -64,7 +64,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" labels="mssql"{
 
 	private boolean function hasCredentials() {
 		var enabled = server._getSystemPropOrEnvVars( "lucee.datasource.mssql.modern", "", false);
-		systemOutput(enabled, true);
+		// systemOutput(enabled, true);
 		if (! ( structCount( enabled ) eq 1 && enabled["lucee.datasource.mssql.modern"] eq "true") ){
 			//systemOutput("lucee.datasource.mssql.modern not enabled", true);
 			return false;

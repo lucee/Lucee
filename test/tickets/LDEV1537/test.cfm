@@ -1,10 +1,11 @@
 <cftry>
-	<cfset hasError = false>
-    <cfmail from="" to="xxx@yy.com" subject="mail test" server="localhost">
-    	Dummy email
-    </cfmail>
+	<!--- will throw missing / invalid from address --->
+	<cfmail from="" to="xxx@yy.com" subject="mail test">
+		Dummy email
+	</cfmail>
 	<cfcatch>
-		<cfset hasError = true>
+		<cfoutput>#cfcatch.message#</cfoutput>
+		<cfabort>
 	</cfcatch>
 </cftry>
-<cfoutput>#hasError#</cfoutput>
+<cfoutput>ok</cfoutput>

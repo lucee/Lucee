@@ -15,6 +15,10 @@ component {
 		}
 	}
 	
+	public function onRequestStart() {
+		setting requesttimeout=10;
+	}
+	
 	public function onRequestEnd(){
 		query{
 			echo("DROP TABLE IF EXISTS test_table");

@@ -19,6 +19,10 @@ component {
 
 	if(!isNull(url.flushAtRequestEnd)) this.ormSettings.flushAtRequestEnd=url.flushAtRequestEnd;
 	if(!isNull(url.autoManageSession)) this.ormSettings.autoManageSession=url.autoManageSession;
+	
+	public function onRequestStart() {
+		setting requesttimeout=10;
+	}
 
 	function onRequestEnd() {
 		var javaIoFile=createObject("java","java.io.File");

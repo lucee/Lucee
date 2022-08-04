@@ -16,6 +16,11 @@ component {
 		secondaryCacheEnabled = false,
 		eventhandling = true
 	};
+	
+	public function onRequestStart() {
+		setting requesttimeout=10;
+	}
+
 	function onRequestEnd() {
 		var javaIoFile=createObject("java","java.io.File");
 		loop array=DirectoryList(

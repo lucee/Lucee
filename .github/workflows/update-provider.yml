@@ -1,0 +1,32 @@
+# This workflow will build a Java project with Ant
+# For more information see: https://help.github.com/actions/language-and-framework-guides/building-and-testing-java-with-ant
+
+name: Update Provider
+
+on: [workflow_dispatch]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    env:
+      luceeVersion: light-6.0.0.152-SNAPSHOT
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up JDK 11
+      uses: actions/setup-java@v2
+      with:
+        java-version: '11'
+        distribution: 'adopt'
+    - name: Cache Maven packages
+      uses: actions/cache@v2
+      with:
+        path: ~/.m2
+        key: lucee-script-runner-maven-cache
+    - name: Trigger Lucee Update Providers
+      uses: lucee/script-runner@main
+      with:
+        webroot: ${{ github.workspace }}/test
+        execute: /update-provider.cfm
+        luceeVersion: ${{ env.luceeVersion }}
