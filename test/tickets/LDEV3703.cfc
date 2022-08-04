@@ -1,4 +1,4 @@
-component extends = "org.lucee.cfml.test.LuceeTestCase" labels="regex"{
+component extends = "org.lucee.cfml.test.LuceeTestCase" labels="regex" {
 	function run( testResults, textbox ) {
 		describe("testcase for LDEV-3703", function(){
 			it(title="Checking reMatchNoCase() with pattern '.*' in regex perl engine", body=function( currentSpec ){
