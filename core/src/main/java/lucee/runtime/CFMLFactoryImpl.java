@@ -194,6 +194,7 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 						}
 						Thread.currentThread().setPriority(Thread.MIN_PRIORITY);
 						resetToNormPrio = false;
+						LogUtil.log(config, Log.LEVEL_INFO, "application", "cfml-factory", "reduce priority for user [" + ra + "]");
 					}
 
 					// reached max amount of request allowed in without a nap
@@ -202,6 +203,7 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 						int ms = Caster.toIntValue(SystemUtil.getSystemPropOrEnvVar("lucee.request.limit.concurrent.sleeptime", null), SLEEP_TIME);
 						if (ms > 0) {
 							SystemUtil.sleep(ms);
+							LogUtil.log(config, Log.LEVEL_INFO, "application", "cfml-factory", "force a nap for request from user [" + ra + "]");
 						}
 					}
 				}
