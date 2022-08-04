@@ -4667,7 +4667,6 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			throw Caster.toPageException(e);
 		}
 		store();
-		((ConfigWebPro) pageContext.getConfig()).resetServerFunctionMappings();
 	}
 
 	private void doUpdateFilesystem() throws PageException {
@@ -4693,6 +4692,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			throw Caster.toPageException(e);
 		}
 		store();
+		((ConfigWebPro) pageContext.getConfig()).resetServerFunctionMappings();
 	}
 
 	private void doUpdateJar() throws PageException {
