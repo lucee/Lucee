@@ -6,7 +6,9 @@ on:
       LUCEE_TEST_JAVA_VERSION:
         required: true
         type: string
-  push: 
+  push:
+    branches:
+      - '**' # thus ignoring tagging
   pull_request:
   workflow_dispatch:
 
@@ -57,7 +59,9 @@ jobs:
     - name: Cache Maven packages
       uses: actions/cache@v2
       with:
-        path: ~/.m2/repository
+        path: |
+          ~/.m2/repository
+          !~/.m2/repository/org/lucee/lucee/
         key: ${{ runner.os }}-maven-${{ hashFiles('loader/pom.xml','core/pom.xml') }}
         restore-keys: |
           ${{ runner.os }}-maven-
