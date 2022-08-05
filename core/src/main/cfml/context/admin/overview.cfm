@@ -1,8 +1,7 @@
 <!---
 Defaults --->
 
-<cfif structKeyExists(form,"adminMode")>
-		
+<cfif structKeyExists(form,"adminMode")>		
 	<cfadmin
 		action="updateAdminMode"
 		type="#request.adminType#"
