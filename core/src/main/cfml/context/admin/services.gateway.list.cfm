@@ -3,6 +3,7 @@
 	type="#request.adminType#"
 	password="#session["password"&request.adminType]#"
 	returnVariable="entriesevent">
+	
 <cftry>
 	<cfset stVeritfyMessages = StructNew()>
 	<cfswitch expression="#form.mainAction#">
