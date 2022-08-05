@@ -13,7 +13,7 @@
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  *
- ---><cfcomponent extends="org.lucee.cfml.test.LuceeTestCase">
+ ---><cfcomponent extends="org.lucee.cfml.test.LuceeTestCase" labels="postgres">
 	<cfscript>
 
 	//public function afterTests(){}
@@ -29,16 +29,9 @@
 	}
 
 	private boolean function defineDatasource(){
-		var pgsql=getCredencials();
+		var pgsql=getCredentials();
 		if(pgsql.count()==0) return false;
-		application action="update"
-			datasource="#{
-	  class: 'org.postgresql.Driver'
-	, bundleName: 'org.postgresql.jdbc'
-	, connectionString: 'jdbc:postgresql://#pgsql.server#:#pgsql.port#/#pgsql.database#'
-	, username: pgsql.username
-	, password: pgsql.password
-}#";
+		application action="update" datasource="#pgsql#";
 /*
 	, bundleName: 'org.lucee.postgresql'
 	, bundleVersion: '8.3.0.jdbc4'
@@ -47,12 +40,10 @@
 	}
 
 
-	private struct function getCredencials() {
-		// getting the credetials from the environment variables
-		return server._getSystemPropOrEnvVars( "SERVER, USERNAME, PASSWORD, PORT, DATABASE", "POSTGRES_");
+	private struct function getCredentials() {
+		// getting the credentials from the environment variables
+		return server.getDatasource("postgres");
 	}
-
-
 
 </cfscript>
 	<cffunction name="test"  skip="isNotSupported">

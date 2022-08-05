@@ -552,16 +552,22 @@ public final class MappingImpl implements Mapping {
 
 	@Override
 	public String toString() {
-		return "StrPhysical:" + getStrPhysical() + ";" + "StrArchive:" + getStrArchive() + ";" + "Virtual:" + getVirtual() + ";" + "Archive:" + getArchive() + ";" + "Physical:"
-				+ getPhysical() + ";" + "topLevel:" + topLevel + ";" + "inspect:" + ConfigWebUtil.inspectTemplate(getInspectTemplateRaw(), "") + ";" + "physicalFirst:"
-				+ physicalFirst + ";" + "readonly:" + readonly + ";" + "hidden:" + hidden + ";";
+		return toString(false);
+	}
+
+	private String toString(boolean forCompare) {
+		return new StringBuilder().append("StrPhysical:").append(getStrPhysical()).append(";StrArchive:").append(getStrArchive()).append(";Virtual:").append(getVirtual())
+				.append(";Archive:").append(getArchive()).append(";Physical:").append(getPhysical()).append(";topLevel:").append(topLevel).append(";inspect:")
+				.append(ConfigWebUtil.inspectTemplate(getInspectTemplateRaw(), "")).append(";physicalFirst:").append(physicalFirst).append(";hidden:").append(hidden)
+				.append(";readonly:").append(forCompare ? "" : readonly).append(";").toString();
+
 	}
 
 	@Override
 	public boolean equals(Object o) {
 		if (o == this) return true;
 		if (!(o instanceof MappingImpl)) return false;
-		return ((MappingImpl) o).toString().equals(toString());
+		return ((MappingImpl) o).toString(true).equals(toString(true));
 	}
 
 	public ApplicationListener getApplicationListener() {

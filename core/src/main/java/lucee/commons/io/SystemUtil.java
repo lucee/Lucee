@@ -99,7 +99,7 @@ import lucee.runtime.functions.system.ExpandPath;
 import lucee.runtime.net.http.ReqRspUtil;
 import lucee.runtime.op.Castable;
 import lucee.runtime.op.Caster;
-import lucee.runtime.op.Operator;
+import lucee.runtime.op.OpUtil;
 import lucee.runtime.op.date.DateCaster;
 import lucee.runtime.osgi.OSGiUtil;
 import lucee.runtime.type.Array;
@@ -1837,22 +1837,22 @@ class MacAddressWrap implements ObjectWrap, Castable, Serializable {
 
 	@Override
 	public int compareTo(String str) throws PageException {
-		return Operator.compare(toString(), str);
+		return OpUtil.compare(ThreadLocalPageContext.get(), toString(), str);
 	}
 
 	@Override
 	public int compareTo(boolean b) throws PageException {
-		return Operator.compare(castToBooleanValue(), b);
+		return OpUtil.compare(ThreadLocalPageContext.get(), castToBooleanValue() ? Boolean.TRUE : Boolean.FALSE, b ? Boolean.TRUE : Boolean.FALSE);
 	}
 
 	@Override
 	public int compareTo(double d) throws PageException {
-		return Operator.compare(castToDoubleValue(), d);
+		return OpUtil.compare(ThreadLocalPageContext.get(), Double.valueOf(castToDoubleValue()), Double.valueOf(d));
 	}
 
 	@Override
 	public int compareTo(DateTime dt) throws PageException {
-		return Operator.compare(toString(), dt.castToString());
+		return OpUtil.compare(ThreadLocalPageContext.get(), toString(), dt.castToString());
 	}
 
 	public static long size(Class clazz) throws URISyntaxException, ZipException, IOException {

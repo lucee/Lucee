@@ -15,7 +15,7 @@
 	<data key="services.update.patch">Installierte Patches</data>
 	<data key="services.update.type_auto">Automatisch</data>
 	<data key="services.update.removerun">Patches entfernen</data>
-	<data key="services.update.exedesc">Spielen Sie die aktuellsten Pacthes für Ihre Version ein. Nach einem erfolgten Update, müssen Sie sich neu in den Administrator einloggen.</data>
+	<data key="services.update.exedesc">Spielen Sie die aktuellsten Patches für Ihre Version ein. Nach einem erfolgten Update, müssen Sie sich neu in den Administrator einloggen.</data>
 	<data key="services.update.update">Für Ihre Version steht ein Patch zur Verfügung, Sie haben die Version {current} installiert, die aktuell verfügbare Version ist {available}</data>
 	<data key="services.update.infotitle">Info</data>
 	<data key="services.update.restartdesc">Hier können Sie Lucee neu starten.</data>
@@ -670,9 +670,13 @@ Diese werden dann am Ende eines Request ausgegeben, falls sie ein Debug Template
 	<data key="debug.settings.timerDesc">Select this option to show timer event information. Timers let a developer track the execution time of the code between the start and end tags of the CFTIMER tag.</data>
 	<data key="debug.settings.implicitAccess">Implicit variable Access</data>
 	<data key="debug.settings.implicitAccessDesc">Select this option to log all accesses to scopes, queries and threads that happens implicit (cascaded).</data>
+	<data key="debug.scopeLoookups">Scope Lookups</data>
+	<data key="debug.settings.thread">Debug Threads</data>
+	<data key="debug.settings.threadDesc">Select this option to also log out individual threads.</data>
+	<data key="debug.settings.threadAlert">Depending on your application, this may produce a large volume of debug entries.</data>
 	<data key="debug.switchTemplate">Switch Debug Template</data>
 	<data key="debug.selectDebugTemplate">Select Debug Template</data>
-
+  
 	<data key="general.enabled">Enabled</data>
 
 	<data key="compiler.nullSupport">Null Support</data>
@@ -811,8 +815,9 @@ When checked, any requested files will be inspected only once for potential upda
 	<data key="locale">german (standard)</data>
 	<data key="proxy.portdescription">Port für den Proxy Server (Vorgabe:80)</data>
 	<data key="proxy.port">Port</data>
+	<data key="proxy.serverName">Server</data>
 	<data key="proxy.usernamedescription">Benutzername für den Proxy</data>
-	<data key="proxy.server">Server</data>
+	<data key="proxy.server">Definieren Sie einen globalen Proxy, der standardmäßig in mehreren Tags verwendet wird (cfhttp, cfftp, cfmail ...)</data>
 	<data key="proxy.settings">Proxy Einstellungen</data>
 	<data key="proxy.enableproxydescription">URL eines Proxy Server im Stil &apos;http://myproxyserver.org/&apos;</data>
 	<data key="proxy.enableproxy">Proxy verwenden</data>

@@ -28,7 +28,7 @@ public final class CFXTagException extends Exception {
 	/**
 	 * Constructor of the Exception
 	 * 
-	 * @param message
+	 * @param message exception message
 	 */
 	public CFXTagException(final String message) {
 		super(message);
@@ -37,7 +37,7 @@ public final class CFXTagException extends Exception {
 	/**
 	 * Constructor of the Exception
 	 * 
-	 * @param e
+	 * @param e exception
 	 */
 	public CFXTagException(final Throwable e) {
 		super(e.getClass().getName() + ":" + e.getMessage());

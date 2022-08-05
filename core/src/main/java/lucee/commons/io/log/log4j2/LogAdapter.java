@@ -12,9 +12,18 @@ import lucee.commons.lang.StringUtil;
 public class LogAdapter implements Log {
 
 	private Logger logger;
+	private Level level;
 
-	public LogAdapter(Logger logger) {
+	public LogAdapter(Logger logger, Level level) {
 		this.logger = logger;
+		this.level = level;
+	}
+
+	public void validate() {
+		if (logger instanceof org.apache.logging.log4j.core.Logger && !logger.getLevel().equals(level)) {
+			org.apache.logging.log4j.core.Logger cl = (org.apache.logging.log4j.core.Logger) logger;
+			cl.setLevel(level);
+		}
 	}
 
 	@Override
@@ -85,7 +94,13 @@ public class LogAdapter implements Log {
 
 	@Override
 	public void setLogLevel(int level) {
-		// MUSTMUST logger.setLevel(toLevel(level));
+		if (logger instanceof org.apache.logging.log4j.core.Logger) {
+			org.apache.logging.log4j.core.Logger cl = (org.apache.logging.log4j.core.Logger) logger;
+			cl.setLevel(LogAdapter.toLevel(level));
+		}
+		else {
+			logger.atLevel(LogAdapter.toLevel(level));
+		}
 	}
 
 	public Logger getLogger() {

@@ -355,7 +355,7 @@ public abstract class ApplicationContextSupport implements ApplicationContext {
 						las = addLogger(name, level, cdApp, appArgs, cdLay, layArgs, readOnly);
 					}
 					else las = addLogger(name, level, cdApp, appArgs, null, null, readOnly);
-					rtn.put(name, new Pair<Log, Struct>(las.getLog(), v));
+					rtn.put(name, new Pair<Log, Struct>(las.getLog(false), v));
 				}
 			}
 		}
@@ -415,11 +415,11 @@ public abstract class ApplicationContextSupport implements ApplicationContext {
 
 	public abstract void setLoggers(Map<Key, Pair<Log, Struct>> logs);
 
-	public abstract java.util.Collection<Collection.Key> getLogNames();
+	public abstract java.util.Collection<Collection.Key> getLogNames() throws PageException;
 
-	public abstract Log getLog(String name);
+	public abstract Log getLog(String name) throws PageException;
 
-	public abstract Struct getLogMetaData(String string);
+	public abstract Struct getLogMetaData(String string) throws PageException;
 
 	public abstract Object getMailListener();
 
@@ -480,5 +480,9 @@ public abstract class ApplicationContextSupport implements ApplicationContext {
 	public abstract Regex getRegex();
 
 	public abstract void setRegex(Regex regex);
+
+	public abstract boolean getPreciseMath();
+
+	public abstract void setPreciseMath(boolean preciseMath);
 
 }

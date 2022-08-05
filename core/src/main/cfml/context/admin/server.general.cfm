@@ -10,28 +10,46 @@
 	returnVariable="component">
 <cfset setting.component={
 	compatibility:{
-		baseComponentTemplate:component.strBaseComponentTemplate,
+		baseComponentTemplate:component.strBaseComponentTemplateCFML,
 		componentDumpTemplate:component.strComponentDumpTemplate,
 		
 		componentDataMemberDefaultAccess:'public',
 		triggerDataMember:false,
-		useShadow:true
+		useShadow:true,
+		componentLocalSearch:false,
+		componentPathCache:false,
+		deepSearch:false,
+		baseComponentTemplateCFML:component.strBaseComponentTemplateCFML,
+		baseComponentTemplateLucee:component.baseComponentTemplateLucee,
+		componentDefaultImport:component.ComponentDefaultImport
 	},
 	strict:{
-		baseComponentTemplate:component.strBaseComponentTemplate,
+		baseComponentTemplate:component.strBaseComponentTemplateCFML,
 		componentDumpTemplate:component.strComponentDumpTemplate,
 		
 		componentDataMemberDefaultAccess:'private',
 		triggerDataMember:false,
-		useShadow:false
+		useShadow:false,
+		componentLocalSearch:false,
+		componentPathCache:false,
+		deepSearch:false,
+		baseComponentTemplateCFML:component.strBaseComponentTemplateCFML,
+		baseComponentTemplateLucee:component.baseComponentTemplateLucee,
+		componentDefaultImport:component.ComponentDefaultImport
 	},
 	speed:{
-		baseComponentTemplate:component.strBaseComponentTemplate,
+		baseComponentTemplate:component.strBaseComponentTemplateCFML,
 		componentDumpTemplate:component.strComponentDumpTemplate,
 		
 		componentDataMemberDefaultAccess:'private',
 		triggerDataMember:false,
-		useShadow:false
+		useShadow:false,
+		componentLocalSearch:false,
+		componentPathCache:false,
+		deepSearch:false,
+		baseComponentTemplateCFML:component.strBaseComponentTemplateCFML,
+		baseComponentTemplateLucee:component.baseComponentTemplateLucee,
+		componentDefaultImport:component.ComponentDefaultImport
 	}
 }>
 
@@ -74,6 +92,10 @@
 		clientManagement:scope.clientManagement,
 		clientCookies:scope.clientCookies,
 		domaincookies:scope.domaincookies,
+		clientTimeout:scope.clientTimeout,
+		clientStorage:scope.clientStorage,
+		sessionStorage:scope.sessionStorage,
+		cgiReadonly:scope.cgiReadonly,
 				
 		localMode:'update',
 		scopeCascadingType:'standard',
@@ -88,6 +110,10 @@
 		clientManagement:scope.clientManagement,
 		clientCookies:scope.clientCookies,
 		domaincookies:scope.domaincookies,
+		clientTimeout:scope.clientTimeout,
+		clientStorage:scope.clientStorage,
+		sessionStorage:scope.sessionStorage,
+		cgiReadonly:scope.cgiReadonly,
 				
 		localMode:'update',
 		scopeCascadingType:'strict',
@@ -102,6 +128,10 @@
 		clientManagement:scope.clientManagement,
 		clientCookies:scope.clientCookies,
 		domaincookies:scope.domaincookies,
+		clientTimeout:scope.clientTimeout,
+		clientStorage:scope.clientStorage,
+		sessionStorage:scope.sessionStorage,
+		cgiReadonly:scope.cgiReadonly,
 				
 		localMode:'always',
 		scopeCascadingType:'strict',
@@ -138,17 +168,21 @@
 	compatibility:{
 		deepSearch:true,
 		localSearch:true,
-		extensions="cfm,cfml"
+		extensions="cfm,cfml",
+		customTagPathCache:false
+
 	},
 	strict:{
 		deepSearch:false,
 		localSearch:false,
-		extensions="cfc,cfm"
+		extensions="cfc,cfm",
+		customTagPathCache:false
 	},
 	speed:{
 		deepSearch:false,
 		localSearch:false,
-		extensions="cfc,cfm"
+		extensions="cfc,cfm",
+		customTagPathCache:false
 	}
 }>
 
@@ -270,7 +304,7 @@ Create Datasource --->
 
 <cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
 
-<table class="tbl" width="700">
+<table class="maintbl" width="700">
 <!---- data member default access --->
 
         <tr>
@@ -309,7 +343,7 @@ Create Datasource --->
 ------------------------------->
 <h2>#stText.setting.general.component#</h2>
 #stText.Components[request.adminType]#
-<table class="tbl" width="700">
+<table class="maintbl" width="700">
 <!---- data member default access --->
 <cfset access=component.componentDataMemberDefaultAccess>
 <tr>
@@ -348,7 +382,7 @@ Create Datasource --->
 <h2>#stText.setting.general.charset#</h2>
 #stText.charset[request.adminType]#
 
-<table class="tbl" width="700">
+<table class="maintbl" width="700">
 <!--- Template --->
 <tr>
 	<th scope="row">#stText.charset.templateCharset#</th>
@@ -386,7 +420,7 @@ Create Datasource --->
 <h2>#stText.setting.general.scope#</h2>
 #stText.scopes[request.adminType]#
 
-<table class="tbl" width="700">
+<table class="maintbl" width="700">
 <!--- scope cascading --->
 <tr>
 	<th scope="row">#stText.Scopes.Cascading#</th>
@@ -429,7 +463,7 @@ Create Datasource --->
 ------------------------------->
 <h2>#stText.setting.general.datasource#</h2>
 #stText.Settings.DatasourceSettings#
-<table class="tbl" width="700">
+<table class="maintbl" width="700">
 <!--- PSQ --->
 <tr>
 	<th scope="row">#stText.Settings.PreserveSingleQuotes#</th>
@@ -449,7 +483,7 @@ Create Datasource --->
 ------------------------------->
 <h2>#stText.setting.general.customtag#</h2>
 #stText.CustomTags.CustomtagSetting#
-<table class="tbl" width="700">
+<table class="maintbl" width="700">
 <!--- Deep Search --->
 <tr>
 	<th scope="row">#stText.CustomTags.customTagDeepSearch#</th>

@@ -1,8 +1,15 @@
-component extends="org.lucee.cfml.test.LuceeTestCase"{
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="s3"{
 	// skip closure
 	function isNotSupported() {
 		variables.s3Details=getCredentials();
-		return structIsEmpty(s3Details);
+		if(structIsEmpty(s3Details)) return true;
+		if(!isNull(variables.s3Details.ACCESS_KEY_ID) && !isNull(variables.s3Details.SECRET_KEY)) {
+			variables.supported = true;
+		}
+		else
+			variables.supported = false;
+
+		return !variables.supported;
 	}
 
 	function beforeAll() skip="isNotSupported"{

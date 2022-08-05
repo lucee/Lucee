@@ -17,20 +17,21 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  * 
  ---><cfscript>
-component extends="org.lucee.cfml.test.LuceeTestCase"	{
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="s3"	{
 	
 	//public function beforeTests(){}
 	
 	//public function afterTests(){}
 
 
-	private struct function getCredencials() {
+	private struct function getCredentials() {
+		// getting the credentials from the environment variables
 		return server.getTestService("s3");
 	}
 	  
 	public function setUp(){
-		var s3=getCredencials();
-		if(!isNull(s3.accessKeyId)) {
+		var s3=getCredentials();
+		if(!isNull(s3.ACCESS_KEY_ID)) {
 			application action="update" s3={
 				accessKeyId: s3.ACCESS_KEY_ID,
 				awsSecretKey: s3.SECRET_KEY

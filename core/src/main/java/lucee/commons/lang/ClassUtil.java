@@ -53,6 +53,7 @@ import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.osgi.OSGiUtil;
+import lucee.runtime.osgi.OSGiUtil.BundleDefinition;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.util.ListUtil;
 
@@ -138,33 +139,37 @@ public final class ClassUtil {
 		return defaultValue;
 	}
 
-	public static Class<?> loadClassByBundle(String className, String name, String strVersion, Identification id, List<Resource> addionalDirectories)
-			throws ClassException, BundleException {
+	public static Class<?> loadClassByBundle(String className, String name, String strVersion, Identification id, List<Resource> addional) throws ClassException, BundleException {
 		// version
 		Version version = null;
 		if (!StringUtil.isEmpty(strVersion, true)) {
 			version = OSGiUtil.toVersion(strVersion.trim(), null);
 			if (version == null) throw new ClassException("Version definition [" + strVersion + "] is invalid.");
 		}
-		return loadClassByBundle(className, name, version, id, addionalDirectories);
+		return loadClassByBundle(className, new BundleDefinition(name, version), null, id, addional);
 	}
 
-	public static Class loadClassByBundle(String className, String name, Version version, Identification id, List<Resource> addionalDirectories)
+	public static Class loadClassByBundle(String className, String name, Version version, Identification id, List<Resource> addional) throws BundleException, ClassException {
+		return loadClassByBundle(className, new BundleDefinition(name, version), null, id, addional);
+	}
+
+	public static Class<?> loadClassByBundle(String className, BundleDefinition bundle, BundleDefinition[] relatedBundles, Identification id, List<Resource> addional)
 			throws BundleException, ClassException {
 		try {
-			return OSGiUtil.loadBundle(name, version, id, addionalDirectories, true).loadClass(className);
+			if (relatedBundles != null) {
+				for (BundleDefinition rb: relatedBundles) {
+					rb.getBundle(id, addional, true);
+				}
+			}
+			return bundle.getBundle(id, addional, true).loadClass(className);
 		}
 		catch (ClassNotFoundException e) {
 			String appendix = "";
 			if (!StringUtil.isEmpty(e.getMessage(), true)) appendix = " " + e.getMessage();
-
-			ClassException ce;
-			if (version == null) ce = new ClassException("In the OSGi Bundle with the name [" + name + "] was no class with name [" + className + "] found." + appendix);
-			else ce = new ClassException(
-					"In the OSGi Bundle with the name [" + name + "] and the version [" + version + "] was no class with name [" + className + "] found." + appendix);
-
-			ce.initCause(e);
-			throw ce;
+			if (bundle.getVersion() == null)
+				throw new ClassException("In the OSGi Bundle with the name [" + bundle.getName() + "] was no class with name [" + className + "] found." + appendix);
+			throw new ClassException("In the OSGi Bundle with the name [" + bundle.getName() + "] and the version [" + bundle.getVersion() + "] was no class with name ["
+					+ className + "] found." + appendix);
 		}
 	}
 
@@ -865,10 +870,9 @@ public final class ClassUtil {
 	 * @throws ClassException
 	 * @throws BundleException
 	 */
-	public static Class loadClass(String className, String bundleName, String bundleVersion, Identification id, List<Resource> addionalDirectories)
-			throws ClassException, BundleException {
+	public static Class loadClass(String className, String bundleName, String bundleVersion, Identification id, List<Resource> addional) throws ClassException, BundleException {
 		if (StringUtil.isEmpty(bundleName)) return loadClass(className);
-		return loadClassByBundle(className, bundleName, bundleVersion, id, addionalDirectories);
+		return loadClassByBundle(className, bundleName, bundleVersion, id, addional);
 	}
 
 	private static interface ClassLoading {

@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase"{
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="image" {
 	function run( testResults , testBox ) {
 		describe( "test case for ImageGetEXIFTag", function() {
 			it(title = "Checking with ImageGetEXIFTag", body = function( currentSpec ) {

@@ -1,12 +1,12 @@
 component {
 
-	msSQL = getcredentials();
-
-	this.name = "luceetest-sqlserver";
+	this.name = "luceetest";
 	this.datasources["ldev3102_DSN"] = server.getDatasource("mssql");
 	this.datasource = "ldev3102_DSN";
 
-	public function onRequestStart(){
+	
+	public function onRequestStart() {
+		setting requesttimeout=10;
 		query{
 			echo("DROP TABLE IF EXISTS ldev3102");
 		}
@@ -17,11 +17,6 @@ component {
 			echo("INSERT INTO ldev3102 VALUES( 1,'testcase' )");
 		}	
 	}	
-
-	private struct function getcredentials() {
-		// getting the credentials from the environment variables
-		return server._getSystemPropOrEnvVars( "SERVER, USERNAME, PASSWORD, PORT, DATABASE", "MSSQL_");
-	}
 
 	public function onRequestEnd(){
 		query{

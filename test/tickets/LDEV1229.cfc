@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase"{
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="mysql,orm" {
 	function run( testResults , testBox ) {
 
 		describe( title="Test suite for LDEV-1229 with mysql",  skip=checkMySqlEnvVarsAvailable(), body=function() {
@@ -32,22 +32,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 	}
 
 	private boolean function checkMySqlEnvVarsAvailable() {
-		// getting the credentials from the environment variables
-		return (structCount(server.getDatasource("mysql")) eq 0);
-	}
-
-	private function afterTests() {
-		var javaIoFile=createObject("java","java.io.File");
-		loop array=DirectoryList(
-			path=getDirectoryFromPath(getCurrentTemplatePath()), 
-			recurse=true, filter="*.db") item="local.path"  {
-			fileDeleteOnExit(javaIoFile,path);
-		}
-	}
-
-	private function fileDeleteOnExit(required javaIoFile, required string path) {
-		var file=javaIoFile.init(arguments.path);
-		if(!file.isFile())file=javaIoFile.init(expandPath(arguments.path));
-		if(file.isFile()) file.deleteOnExit();
+		var mysql = server.getDatasource("mysql");
+		return structIsEmpty(mySQL);
 	}
 }

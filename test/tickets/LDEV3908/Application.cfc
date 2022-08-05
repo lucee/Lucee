@@ -2,7 +2,9 @@ component {
 	this.name = "test";
 	this.datasource = server.getDatasource("mssql");
 
-	function onRequestStart() {
+	
+	public function onRequestStart() {
+		setting requesttimeout=10;
 		query {
 			echo("drop procedure if exists spThrowException");
 		}

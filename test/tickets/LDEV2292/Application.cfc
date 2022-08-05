@@ -4,7 +4,7 @@ component {
 	this.sessionManagement 	= false;
 
 	dbname	= 'LDEV2292';
-	dbpath	= expandPath("/data/#dbname#");
+	dbpath	= expandPath("#getTempDirectory()#/data/#dbname#");
 
 	this.datasources[dbname] = {
 		  class: 'org.h2.Driver'
@@ -15,7 +15,8 @@ component {
 	};
 	this.datasource = dbname;
 
-	public function onRequestStart(){
+	public function onRequestStart() {
+		setting requesttimeout=10;
 		query{
 			echo("DROP TABLE IF EXISTS LDEV2292");
 		}

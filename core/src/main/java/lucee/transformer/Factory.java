@@ -17,18 +17,19 @@
  */
 package lucee.transformer;
 
+import java.math.BigDecimal;
+
 import lucee.runtime.config.Config;
+import lucee.runtime.exp.PageException;
 import lucee.transformer.expression.ExprBoolean;
-import lucee.transformer.expression.ExprDouble;
-import lucee.transformer.expression.ExprFloat;
 import lucee.transformer.expression.ExprInt;
+import lucee.transformer.expression.ExprNumber;
 import lucee.transformer.expression.ExprString;
 import lucee.transformer.expression.Expression;
 import lucee.transformer.expression.literal.LitBoolean;
-import lucee.transformer.expression.literal.LitDouble;
-import lucee.transformer.expression.literal.LitFloat;
 import lucee.transformer.expression.literal.LitInteger;
 import lucee.transformer.expression.literal.LitLong;
+import lucee.transformer.expression.literal.LitNumber;
 import lucee.transformer.expression.literal.LitString;
 import lucee.transformer.expression.literal.Literal;
 import lucee.transformer.expression.var.DataMember;
@@ -80,9 +81,9 @@ public abstract class Factory {
 
 	public abstract LitString EMPTY();
 
-	public abstract LitDouble DOUBLE_ZERO();
+	public abstract LitNumber NUMBER_ZERO();
 
-	public abstract LitDouble DOUBLE_ONE();
+	public abstract LitNumber NUMBER_ONE();
 
 	public abstract LitString NULL();
 
@@ -95,13 +96,17 @@ public abstract class Factory {
 
 	public abstract LitBoolean createLitBoolean(boolean b, Position start, Position end);
 
-	public abstract LitDouble createLitDouble(double d);
+	public abstract LitNumber createLitNumber(String number) throws PageException;
 
-	public abstract LitDouble createLitDouble(double d, Position start, Position end);
+	public abstract LitNumber createLitNumber(String number, Position start, Position end) throws PageException;
 
-	public abstract LitFloat createLitFloat(float f);
+	public abstract LitNumber createLitNumber(Number n);
 
-	public abstract LitFloat createLitFloat(float f, Position start, Position end);
+	public abstract LitNumber createLitNumber(Number n, Position start, Position end);
+
+	public abstract LitNumber createLitNumber(BigDecimal bd);
+
+	public abstract LitNumber createLitNumber(BigDecimal bd, Position start, Position end);
 
 	public abstract LitLong createLitLong(long l);
 
@@ -139,15 +144,13 @@ public abstract class Factory {
 	public abstract Expression createArray();
 
 	// CASTING
-	public abstract ExprDouble toExprDouble(Expression expr);
+	public abstract ExprNumber toExprNumber(Expression expr);
 
 	public abstract ExprString toExprString(Expression expr);
 
 	public abstract ExprBoolean toExprBoolean(Expression expr);
 
 	public abstract ExprInt toExprInt(Expression expr);
-
-	public abstract ExprFloat toExprFloat(Expression expr);
 
 	public abstract Expression toExpression(Expression expr, String type);
 
@@ -158,13 +161,15 @@ public abstract class Factory {
 
 	public abstract ExprBoolean opBool(Expression left, Expression right, int operation);
 
-	public abstract ExprDouble opDouble(Expression left, Expression right, int operation);
+	public abstract ExprNumber opNumber(Expression left, Expression right, int operation);
 
-	public abstract ExprDouble opUnary(Variable var, Expression value, short type, int operation, Position start, Position end);
+	public abstract ExprNumber opUnaryNumber(Variable var, Expression value, short type, int operation, Position start, Position end);
+
+	public abstract ExprString opUnaryString(Variable var, Expression value, short type, int operation, Position start, Position end);
 
 	public abstract Expression opNegate(Expression expr, Position start, Position end);
 
-	public abstract ExprDouble opNegateNumber(Expression expr, int operation, Position start, Position end);
+	public abstract ExprNumber opNegateNumber(Expression expr, int operation, Position start, Position end);
 
 	public abstract Expression opContional(Expression cont, Expression left, Expression right);
 

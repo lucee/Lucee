@@ -40,6 +40,7 @@ public interface SearchData {
 
 	/**
 	 * return the records searched
+	 * @return number of records searched
 	 */
 	public int getRecordsSearched();
 }

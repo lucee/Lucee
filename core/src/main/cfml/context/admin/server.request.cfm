@@ -54,7 +54,6 @@ Defaults --->
 					scriptProtect="#form.scriptProtect#"
 					AllowURLRequestTimeout="#structKeyExists(form,'AllowURLRequestTimeout') and form.AllowURLRequestTimeout#"
 					requestTimeout="#CreateTimeSpan(form.request_days,form.request_hours,form.request_minutes,form.request_seconds)#"
-					applicationPathTimeout="#CreateTimeSpan(form.apppath_days?:0,form.apppath_hours?:0,form.apppath_minutes?:0,form.apppath_seconds?:0)#"
 					remoteClients="#request.getRemoteClients()#">
 
 				<cfif request.admintype =="server">
@@ -93,7 +92,8 @@ Defaults --->
 					scriptProtect=""
 					AllowURLRequestTimeout=""
 					requestTimeout=""
-
+					applicationPathTimeout=""
+					
 					remoteClients="#request.getRemoteClients()#">
 				<cfif request.admintype =="server">
 					<cfadmin
@@ -121,6 +121,8 @@ Defaults --->
 
 					listenerType="#form.type#"
 					listenerMode="#form.mode#"
+					applicationPathTimeout="#CreateTimeSpan(form.apppath_days?:0,form.apppath_hours?:0,form.apppath_minutes?:0,form.apppath_seconds?:0)#"
+					
 					remoteClients="#request.getRemoteClients()#">
 
 			</cfcase>
@@ -134,6 +136,7 @@ Defaults --->
 
 					listenerType=""
 					listenerMode=""
+					applicationPathTimeout=""
 
 					remoteClients="#request.getRemoteClients()#">
 
@@ -569,12 +572,9 @@ Error Output --->
 						</cfif>
 					</td>
 				</tr>
-
-<!--- 
-
-<cfset stText.application.appPathEnvVar="This can also be defined int the enviroment variables as follows">
+<cfset stText.application.appPathEnvVar="This can also be defined using an environment variable as follows">
 <cfset stText.application.appPathTimeout="Timeout for the Application Path Cache">
-<cfset stText.application.appPathTimeoutDesc="If set to greater than 0 Lucee will cache the Path to the Application.[cfc|cfm] file to use for that time. So Lucee does not serach the Application.cfc with every request. If set to 0 the cache is disabled. ">
+<cfset stText.application.appPathTimeoutDesc="If set to greater than 0 Lucee will cache the Path to the Application.[cfc|cfm] file to use for that time. So Lucee does not search the Application.cfc with every request. If set to 0 the cache is disabled. ">
 
 
 				<tr>
@@ -627,15 +627,6 @@ Error Output --->
 
 					</td>
 				</tr>
-
-
-
-
-
-
-
---->
-
 
 
 

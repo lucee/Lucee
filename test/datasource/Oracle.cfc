@@ -16,8 +16,8 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  * 
  ---><cfscript>
-component extends="org.lucee.cfml.test.LuceeTestCase"	{
-	
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="oracle"	{
+	// ZAC is that version correct? i simply took what comes from 6.0
 	
 	//public function afterTests(){}
 	
@@ -26,7 +26,22 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	variables.TABLE="testOracleTbl";
 
 	public function setUp(){
-		variables.has=defineDatasource();		
+		variables.has=defineDatasource();
+	}
+
+	private boolean function defineDatasource(){
+		var orcl = server.getDatasource("oracle");
+		if(orcl.count()==0) return false;
+
+		// otherwise we get the following on travis ORA-00604: error occurred at recursive SQL level 1 / ORA-01882: timezone region not found
+		var tz=getTimeZone();
+		//var d1=tz.getDefault();
+		tz.setDefault(tz);
+		//throw d1&":"&tz.getDefault();
+
+		application action="update" datasource="#orcl#";
+	
+		return true;
 	}
 
 	private boolean function defineDatasource(){
@@ -108,7 +123,43 @@ END;
 		
 	}
 
+	// LDEV-2543
+	public void function testStoredProcXmlType() localmode=true skip=true {
+		if(!variables.has) return;
 
+		```
+		<cfquery name="qry">
+			CREATE OR REPLACE PROCEDURE SP_XMLTEST_BUG(
+				cur_XMLOut OUT sys_refcursor
+			) AS
+				BEGIN
+				OPEN cur_XMLOut FOR
+					SELECT XMLSerialize(DOCUMENT XMLELEMENT("SystemDate",to_char(sysdate,'YYYYMMDD'))) AS xml
+					FROM DUAL;
+				END;
+		</cfquery>
+		```
+		storedproc procedure="SP_XMLTEST_BUG" {
+			procresult name="qTest";
+		}
+		expect ( qTest.xml ).toInclude( "<SystemDate>" ); // works due to XMLSerialize
+		
+		```
+		<cfquery name="qry">
+			CREATE OR REPLACE PROCEDURE SP_XMLTEST_BUG( cur_XMLOut OUT sys_refcursor) AS
+				BEGIN
+				  OPEN cur_XMLOut FOR
+					SELECT XMLELEMENT("SystemDate",to_char(sysdate,'YYYYMMDD')) AS xml
+					FROM DUAL;
+				END;
+		</cfquery>
+		```
+		storedproc procedure="SP_XMLTEST_BUG" {
+			procresult name="qTest";
+		}
+		//systemOutput( "-----222-----[" & qTest.toString() & "]", true );
+		expect ( qTest ).toInclude( "<SystemDate>" ); // fails, an empty string is returned
+	}
 
 	public void function testConnection(){
 		if(!variables.has) return;

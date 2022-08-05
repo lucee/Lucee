@@ -21,6 +21,12 @@ public interface DataSourcePro extends DataSource {
 
 	public int getLiveTimeout();
 
+	public int getMinIdle();
+
+	public int getMaxIdle();
+
+	public int getMaxTotal();
+
 	public Boolean isMSSQL();
 
 	public void setMSSQL(boolean ismssql);

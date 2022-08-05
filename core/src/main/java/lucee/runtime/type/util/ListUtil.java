@@ -681,7 +681,7 @@ public final class ListUtil {
 	 * @return position in list (0-n) or -1
 	 */
 	public static int listFindNoCase(String list, String value, String delimiter, boolean trim) {
-		Array arr = trim ? listToArrayTrim(list, delimiter) : listToArray(list, delimiter);
+		Array arr = listToArray(list, delimiter);
 		int len = arr.size();
 		for (int i = 1; i <= len; i++) {
 			if (((String) arr.get(i, "")).equalsIgnoreCase(value)) return i - 1;
@@ -787,7 +787,7 @@ public final class ListUtil {
 	 * @return position in list or 0
 	 */
 	public static int listFind(String list, String value, String delimiter) {
-		Array arr = listToArrayTrim(list, delimiter);
+		Array arr = listToArray(list, delimiter);
 		int len = arr.size();
 		for (int i = 1; i <= len; i++) {
 			if (arr.get(i, "").equals(value)) return i - 1;
@@ -1418,7 +1418,7 @@ public final class ListUtil {
 	 */
 	public static int len(String list, char delimiter, boolean ignoreEmpty) {
 		int len = StringUtil.length(list);
-		if (len == 0) return 0;
+		if (len == 0 && ignoreEmpty) return 0;
 
 		int count = 0;
 		int last = 0;
@@ -1444,7 +1444,7 @@ public final class ListUtil {
 		if (delimiter.length() == 1) return len(list, delimiter.charAt(0), ignoreEmpty);
 		char[] del = delimiter.toCharArray();
 		int len = StringUtil.length(list);
-		if (len == 0) return 0;
+		if (len == 0 && ignoreEmpty) return 0;
 
 		int count = 0;
 		int last = 0;

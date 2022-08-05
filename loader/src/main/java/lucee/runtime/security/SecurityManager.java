@@ -158,29 +158,29 @@ public interface SecurityManager {
 	public final static short NUMBER_OFFSET = 10;
 
 	/**
-	 * @param access
+	 * @param access access
 	 * @return return access value (all,local,none ...) for given type (cfx,file ...)
 	 */
 	public abstract short getAccess(int access);
 
 	/**
-	 * @param access
+	 * @param access access
 	 * @return return access value (all,local,none ...) for given type (cfx,file ...)
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 */
 	public abstract short getAccess(String access) throws PageException;
 
 	/**
-	 * @param res
-	 * @throws PageException
+	 * @param res Resource
+	 * @throws PageException Page Exception
 	 */
 	public abstract void checkFileLocation(Resource res) throws PageException;
 
 	/**
-	 * @param config
-	 * @param res
-	 * @param serverPassword
-	 * @throws PageException
+	 * @param config config
+	 * @param res resource
+	 * @param serverPassword server password
+	 * @throws PageException Page Exception
 	 */
 	public abstract void checkFileLocation(ConfigWeb config, Resource res, String serverPassword) throws PageException;
 

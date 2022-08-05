@@ -62,6 +62,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 		assertEquals(data,res.httpRequestData.content);
 	}
 
+	public void function testCheckTLSVersion(){
+		http url="https://www.howsmyssl.com/a/check" result="local.res";
+		expect(isJson(res.filecontent)).toBeTrue();
+		var tlsReport = DeserializeJson(res.filecontent);
+		SystemOutput("", true);
+		SystemOutput("CFHTTP is using [#tlsReport.tls_version#] (jvm default)", true);
+	}
 	public void function testCachedHttpRequest(){
 		http url="https://update.lucee.org/rest/update/provider/echoGet" result="local.res" method="get" cachedWithin="request"{
 			httpparam name="susi" value="Sorglos";
@@ -73,6 +80,4 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 		res2 = evaluate( res2.filecontent );
 		expect( res.url.susi ).toBe( res2.url.susi );
 	}
-
-
 }

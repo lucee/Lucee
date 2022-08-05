@@ -16,7 +16,7 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  *
  ---><cfscript>
-component extends="org.lucee.cfml.test.LuceeTestCase"	{
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="postgres"	{
 
 
 	//public function afterTests(){}
@@ -28,13 +28,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	public void function testConnection(){
 		_testConnection(defineDatasource());
 	}
-	public void function testConnection83(){
+	public void function testConnection83() skip=true { // no longer works with postgres 14 on github actions
 		_testConnection(defineDatasource83());
 	}
-	public void function testConnection94() skip=true{
+	public void function testConnection94() skip=true { // no longer works with postgres 14 on github actions
 		_testConnection(defineDatasource94());
 	}
-	public void function testConnection42(){
+	public void function testConnection42() skip=true { // no longer works with postgres 14 on github actions
 		_testConnection(defineDatasource42());
 	}
 	private void function _testConnection(has){
@@ -95,70 +95,51 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 		assertEquals("2016-11-08", qry.election_date);
 	}
+
 	private boolean function defineDatasource42(){
-		var pgsql=getCredencials();
+		var pgsql = getCredentials();
 		if(pgsql.count()==0) return false;
-		application action="update"
-			datasource="#{
-	  class: 'org.postgresql.Driver'
-	, bundleName: 'org.postgresql.jdbc'
-	, bundleVersion: '42.2.20'
-	, connectionString: 'jdbc:postgresql://#pgsql.server#:#pgsql.port#/#pgsql.database#'
-	, username: pgsql.username
-	, password: pgsql.password
-}#";
-	return true;
+
+		pgsql.bundleName = 'org.postgresql.jdbc';
+		pgsql.bundleVersion = '42.2.18';
+		application action="update" datasource="#pgSQL#";
+		return true;
 	}
 
 	private boolean function defineDatasource94(){
-		var pgsql=getCredencials();
+		var pgsql = getCredentials();
 		if(pgsql.count()==0) return false;
-		application action="update"
-			datasource="#{
-	  class: 'org.postgresql.Driver'
-	, bundleName: 'org.postgresql.jdbc42'
-	, bundleVersion: '9.4.1212'
-	, connectionString: 'jdbc:postgresql://#pgsql.server#:#pgsql.port#/#pgsql.database#'
-	, username: pgsql.username
-	, password: pgsql.password
-}#";
-	return true;
+
+		pgsql.bundleName = 'org.postgresql.jdbc42';
+		pgsql.bundleVersion = '9.4.1212';
+		application action="update" datasource="#pgSQL#";
+		return true;
 	}
 
-
 	private boolean function defineDatasource83(){
-		var pgsql=getCredencials();
+		var pgsql = getCredentials();
 		if(pgsql.count()==0) return false;
-		application action="update"
-			datasource="#{
-	  class: 'org.postgresql.Driver'
-	, bundleName: 'org.lucee.postgresql'
-	, bundleVersion: '8.3.0.jdbc4'
-	, connectionString: 'jdbc:postgresql://#pgsql.server#:#pgsql.port#/#pgsql.database#'
-	, username: pgsql.username
-	, password: pgsql.password
-}#";
-	return true;
+
+		pgsql.bundleName = 'org.lucee.postgresql';
+		pgsql.bundleVersion = '8.3.0.jdbc4';
+		application action="update" datasource="#pgSQL#";
+		return true;
 	}
 
 	// bundled version
 	private boolean function defineDatasource(){
-		var pgsql=getCredencials();
+		var pgsql = getCredentials();
 		if(pgsql.count()==0) return false;
-		application action="update"
-			datasource="#{
-	  class: 'org.postgresql.Driver'
-	, connectionString: 'jdbc:postgresql://#pgsql.server#:#pgsql.port#/#pgsql.database#'
-	, username: pgsql.username
-	, password: pgsql.password
-}#";
-	return true;
+
+		structDelete(pgsql, "bundleName");
+		structDelete(pgsql, "bundleVersion");
+		application action="update" datasource="#pgsql#";
+		return true;
 	}
 
-	private struct function getCredencials() {
-		// getting the credetials from the environment variables
-		return server._getSystemPropOrEnvVars( "SERVER, USERNAME, PASSWORD, PORT, DATABASE", "POSTGRES_");
+	private struct function getCredentials() {
+		// getting the credentials from the environment variables
+		return server.getDatasource("postgres");
 	}
-
 }
 </cfscript>

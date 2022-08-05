@@ -16,7 +16,7 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  * 
  ---><cfscript>
-component extends="org.lucee.cfml.test.LuceeTestCase"	{
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="oracle"	{
 	
 	
 	//public function afterTests(){}
@@ -84,8 +84,8 @@ END;
 	}
 
 	private boolean function defineDatasource(){
-		var orc=getCredencials();
-		if(orc.count()==0) return false;
+		var orcl = server.getDatasource("oracle");
+		if(orcl.count()==0) return false;
 
 		// otherwise we get the following on travis ORA-00604: error occurred at recursive SQL level 1 / ORA-01882: timezone region not found
 		var tz=getTimeZone();
@@ -93,15 +93,8 @@ END;
 		tz.setDefault(tz);
 		//throw d1&":"&tz.getDefault();
 
-		application action="update" 
-
-			datasource="#server.getDatasource("oracle")#";
-	
-	return true;
-	}
-
-	private struct function getCredencials() {
-		return server.getDatasource("oracle");
+		application action="update" datasource="#orcl#";	
+		return true;
 	}
 
 } 

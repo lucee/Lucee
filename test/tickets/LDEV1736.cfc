@@ -3,7 +3,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 	function run( testResults , testBox ) {
 		describe( "Test suite for LDEV-1736", function() {
 			it( title='serialize server scope', body=function( currentSpec ) {
-				systemOutput("", true);
 				loop collection=server item="local.p" {
 					if(left(p,1)=="_") continue;
 					local.res=serialize( server[local.p] );

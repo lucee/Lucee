@@ -35,6 +35,8 @@ public interface SharedScope extends Scope {
 
 	/**
 	 * release scope only for current request, scope will be used again
+	 * 
+	 * @param pc Page Context
 	 */
 	public void touchAfterRequest(PageContext pc);
 }

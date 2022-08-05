@@ -127,7 +127,8 @@ public class BundleUtil {
 			try {
 				Thread.sleep(1);
 			}
-			catch (InterruptedException e) {} // take a nap, before trying again
+			catch (InterruptedException e) {
+			} // take a nap, before trying again
 		}
 	}
 

@@ -51,6 +51,7 @@ import lucee.runtime.CFMLFactory;
 import lucee.runtime.CFMLFactoryImpl;
 import lucee.runtime.Mapping;
 import lucee.runtime.MappingImpl;
+import lucee.runtime.config.ConfigFactory.UpdateInfo;
 import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.engine.CFMLEngineImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
@@ -125,6 +126,8 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 	final FunctionLib cfmlCoreFLDs;
 	final FunctionLib luceeCoreFLDs;
 
+	private final UpdateInfo updateInfo;
+
 	/**
 	 * @param engine
 	 * @param srvConfig
@@ -132,11 +135,12 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 	 * @param contextes
 	 * @param configDir
 	 * @param configFile
+	 * @param updateInfo
 	 * @throws TagLibException
 	 * @throws FunctionLibException
 	 */
-	protected ConfigServerImpl(CFMLEngineImpl engine, Map<String, CFMLFactory> initContextes, Map<String, CFMLFactory> contextes, Resource configDir, Resource configFile)
-			throws TagLibException, FunctionLibException {
+	protected ConfigServerImpl(CFMLEngineImpl engine, Map<String, CFMLFactory> initContextes, Map<String, CFMLFactory> contextes, Resource configDir, Resource configFile,
+			UpdateInfo updateInfo, boolean essentialOnly) throws TagLibException, FunctionLibException {
 		super(configDir, configFile);
 		this.cfmlCoreTLDs = TagLibFactory.loadFromSystem(CFMLEngine.DIALECT_CFML, id);
 		this.luceeCoreTLDs = TagLibFactory.loadFromSystem(CFMLEngine.DIALECT_LUCEE, id);
@@ -144,11 +148,16 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 		this.luceeCoreFLDs = FunctionLibFactory.loadFromSystem(CFMLEngine.DIALECT_LUCEE, id);
 
 		this.engine = engine;
-		engine.setConfigServerImpl(this);
+		if (!essentialOnly) engine.setConfigServerImpl(this);
 		this.initContextes = initContextes;
 		// this.contextes=contextes;
 		this.rootDir = configDir;
 		// instance=this;
+		this.updateInfo = updateInfo;
+	}
+
+	public UpdateInfo getUpdateInfo() {
+		return updateInfo;
 	}
 
 	/**
@@ -674,6 +683,8 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 
 	private Map<String, GatewayEntry> gatewayEntries;
 
+	private short adminMode = ADMINMODE_SINGLE;
+
 	public String[] getAuthenticationKeys() {
 		return authKeys == null ? new String[0] : authKeys;
 	}
@@ -889,13 +900,25 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 		CFMLEngine engine = ConfigWebUtil.getEngine(this);
 		ConfigWeb[] webs = getConfigWebs();
 		try {
-			XMLConfigServerFactory.reloadInstance(engine, this);
-			for (int i = 0; i < webs.length; i++) {
-				XMLConfigWebFactory.reloadInstance(engine, this, (ConfigWebImpl) webs[i], true);
+			ConfigServerFactory.reloadInstance(engine, this);
+			for (ConfigWeb web: webs) {
+				if (web instanceof ConfigWebImpl) ConfigWebFactory.reloadInstance(engine, this, (ConfigWebImpl) web, true);
+				else if (web instanceof SingleContextConfigWeb) ((SingleContextConfigWeb) web).reload();
 			}
+
 		}
 		catch (Exception e) {
 			throw Caster.toPageException(e);
 		}
+
+	}
+
+	public void setAdminMode(short adminMode) {
+		this.adminMode = adminMode;
+	}
+
+	@Override
+	public short getAdminMode() {
+		return adminMode;
 	}
 }

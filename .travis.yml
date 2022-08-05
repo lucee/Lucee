@@ -1,7 +1,7 @@
 language: java
 
 # cache the maven dependancies
-# cache lucee extensions from provider
+# cache lucee extension cache
 cache:
   directories:
     - $HOME/.m2

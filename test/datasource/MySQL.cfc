@@ -17,10 +17,19 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  * 
  ---><cfscript>
-component extends="org.lucee.cfml.test.LuceeTestCase"	{
+component extends="org.lucee.cfml.test.LuceeTestCase"  labels="mysql" 	{
 	
+
+	public function beforeTests(){
+		// stash system timezone
+		variables.timezone = getApplicationSettings().timezone;
+	}
 	
-	//public function afterTests(){}
+	public function afterTests(){
+		// pop system timezone
+		application action="update" timezone="#variables.timezone#";
+		setTimeZone(variables.timezone);
+	}
 	
 	public function setUp(){
 		variables.has=defineDatasource();
@@ -43,10 +52,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 			application action="update" timezone="#tz1#";
 			setTimeZone(tz2);
 		}
-		//assertEquals("","");
-		
+		//assertEquals("","");		
 	}
-
 
 	public void function testTransactionCommit(){
 		if(!variables.has) return;
@@ -252,31 +259,17 @@ END
 
 
 	private struct function getDatasource(){
-			var mySQL=getCredencials();
-			if(mySQL.count()==0) return {};
-			
-			return server.getDatasource("mysql");
-	}
-
-	private struct function getDatasource2(){
-			var mySQL=getCredencials();
-			if(mySQL.count()==0 || isEmpty(mySQL.server?:"")) return {};
-			
-			return {
-			  type= 'mysql'
-			, host=mySQL.server
-			, port=mySQL.port
-			, database=mySQL.database
-			, username= mySQL.username
-			, password= mySQL.password
-		 	, custom= { useUnicode:true }
-			};
-
-	}
-
-	private struct function getCredencials() {
 		return server.getDatasource("mysql");
 	}
 
+	private struct function getDatasource2(){
+		var mySQL = server.getDatasource("mysql");
+		if(mySQL.count()==0) 
+			return {};
+		
+		mysql.custom= { useUnicode:true };
+		mysql.type= 'mysql';
+		return mysql
+	}	
 } 
 </cfscript>

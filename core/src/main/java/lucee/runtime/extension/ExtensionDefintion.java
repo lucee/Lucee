@@ -12,6 +12,7 @@ import org.osgi.framework.Version;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.config.Config;
+import lucee.runtime.converter.ConverterException;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.osgi.OSGiUtil;
@@ -126,7 +127,7 @@ public class ExtensionDefintion {
 		this.source = source;
 	}
 
-	public RHExtension toRHExtension() throws PageException, IOException, BundleException {
+	public RHExtension toRHExtension() throws PageException, IOException, BundleException, ConverterException {
 		if (rhe != null) return rhe;
 
 		if (source == null) {

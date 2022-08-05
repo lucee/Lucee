@@ -18,7 +18,7 @@
 				local.index=i;
 			
 		}
-		if(index>0)ArrayDeleteAt( acl, index );
+		if(index gt 0) ArrayDeleteAt( acl, index );
 	}
 
 	private struct function getCredentials() {

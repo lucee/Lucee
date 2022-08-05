@@ -684,12 +684,12 @@ public final class ComponentUtil {
 
 			Collection.Key[] other = c.keys(access);
 
-			if (other.length == 0) return new ExpressionException("component [" + c.getCallName() + "] has no " + strAccess + " function with name [" + key + "]");
+			if (other.length == 0) return new ExpressionException("Component [" + c.getCallName() + "] has no " + strAccess + " function with name [" + key + "]");
 
-			return new ExpressionException("component [" + c.getCallName() + "] has no " + strAccess + " function with name [" + key + "]",
-					"accessible functions are [" + ListUtil.arrayToList(other, ",") + "]");
+			return new ExpressionException("Component [" + c.getCallName() + "] has no " + strAccess + " function with name [" + key + "]",
+					"Accessible functions are [" + ListUtil.arrayToList(other, ", ") + "]");
 		}
-		return new ExpressionException("member [" + key + "] of component [" + c.getCallName() + "] is not a function", "Member is of type [" + Caster.toTypeName(member) + "]");
+		return new ExpressionException("Member [" + key + "] of component [" + c.getCallName() + "] is not a function", "Member is of type [" + Caster.toTypeName(member) + "]");
 	}
 
 	public static Property[] getProperties(Component c, boolean onlyPeristent, boolean includeBaseProperties, boolean preferBaseProperties, boolean inheritedMappedSuperClassOnly) {
@@ -712,7 +712,7 @@ public final class ComponentUtil {
 
 	public static Component toComponent(Object obj) throws ExpressionException {
 		if (obj instanceof Component) return (Component) obj;
-		throw new ExpressionException("can't cast class [" + Caster.toClassName(obj) + "] to a class of type Component");
+		throw new ExpressionException("Can't cast class [" + Caster.toClassName(obj) + "] to a class of type [Component]");
 	}
 
 	public static PageSource getPageSource(Component cfc) {
@@ -767,6 +767,10 @@ public final class ComponentUtil {
 			sct.setEL(KeyImpl.getInstance(props[i].getName()), props[i]);
 		}
 		return sct;
+	}
+
+	public static Struct getMetaData(PageContext pc, UDFPropertiesBase udf) throws PageException {
+		return getMetaData(pc, udf, false);
 	}
 
 	public static Struct getMetaData(PageContext pc, UDFPropertiesBase udf, Boolean isStatic) throws PageException {

@@ -1,4 +1,4 @@
-component extends = "org.lucee.cfml.test.LuceeTestCase" {
+component extends = "org.lucee.cfml.test.LuceeTestCase" labels="image" {
 
 	function beforeAll() {
 		variables.path = "/test/#listLast(getDirectoryFromPath(getCurrenttemplatepath()),"\/")#/" &"imageClearRect/";
@@ -11,15 +11,15 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 		describe( title = "Test suite for imageClearRect", body = function() {
 
 			it( title = 'Checking with imageClearRect()',body = function( currentSpec ) {
-				img = imageread("https://dev.lucee.org/uploads/default/original/2X/1/140e7bb0f8069e4f7f073b6d01f55c496bbd42e3.png");
+				var img = imageNew("", 400, 400);
 				ImageClearRect(img,100,100,100,100);
 				cfimage(action = "write", source = img, destination = path&".\rect.png", overwrite = "yes");
 				assertEquals(fileexists(path&".\rect.png"),"true");
 			});
 
 			it( title = 'Checking with image.ClearRect()', body = function( currentSpec ) {
-				img1 = imageread("https://dev.lucee.org/uploads/default/original/2X/1/140e7bb0f8069e4f7f073b6d01f55c496bbd42e3.png");
-				img1.ClearRect(100,100,100,100);
+				var img = imageNew("", 400, 400);
+				img.ClearRect(100,100,100,100);
 				cfimage(action = "write", source = img, destination = path&".\rect1.png", overwrite = "yes");
 				assertEquals(fileexists(path&".\rect1.png"),"true");
 			});

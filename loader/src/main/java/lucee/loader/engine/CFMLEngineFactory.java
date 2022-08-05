@@ -705,6 +705,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 		try {
 			conn = (HttpURLConnection) updateUrl.openConnection();
 			conn.setRequestMethod("GET");
+			conn.setConnectTimeout(10000);
 			conn.connect();
 			code = conn.getResponseCode();
 		}
@@ -730,6 +731,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 				try {
 					conn = (HttpURLConnection) url.openConnection();
 					conn.setRequestMethod("GET");
+					conn.setConnectTimeout(10000);
 					conn.connect();
 					code = conn.getResponseCode();
 				}
@@ -1085,10 +1087,10 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 	 * method to initialize an update of the CFML Engine. checks if there is a new Version and update it
 	 * when a new version is available
 	 *
-	 * @param password
+	 * @param password password
 	 * @return has updated
-	 * @throws IOException
-	 * @throws ServletException
+	 * @throws IOException io exception
+	 * @throws ServletException servlet exception
 	 */
 	public boolean removeUpdate(final Password password) throws IOException, ServletException {
 		if (!singelton.can(CFMLEngine.CAN_UPDATE, password)) throw new IOException("Access denied to update CFMLEngine");
@@ -1113,8 +1115,8 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 	 * updates the engine when an update is available
 	 *
 	 * @return has updated
-	 * @throws IOException
-	 * @throws ServletException
+	 * @throws IOException io exception
+	 * @throws ServletException servlet exception
 	 */
 	private boolean removeUpdate() throws IOException, ServletException {
 		final File patchDir = getPatchDirectory();

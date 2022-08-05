@@ -7,7 +7,7 @@
 		)>
     
 	<cffunction name="getClass" returntype="string" output="false">
-    	<cfreturn "lucee.commons.io.log.log4j2.layout.XMLLayout">
+    	<cfreturn "xml">
     </cffunction>
     
 	<cffunction name="getLabel" returntype="string" output="false">

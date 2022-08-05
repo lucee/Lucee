@@ -16,7 +16,7 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  * 
  ---><cfscript>
-component extends="org.lucee.cfml.test.LuceeTestCase"	{
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="mysql" 	{
 	
 	//public function beforeTests(){}
 	
@@ -37,12 +37,12 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		objectcache action="clear";
 	}
 
-	private string function defineDatasource(){
-		var mySQL=server.getDatasource("mysql");
-		if (mySQL.count()==0) return false;
-		application action="update" 
-			datasource="#server.getDatasource("mysql")#";
+	private boolean function defineDatasource(){
+		var mySQL = server.getDatasource("mysql");
+		if ( mySQL.count()  eq 0 ) return false;
+
+		application action="update" datasource="#mysql#";	
 		return true;
 	}
-} 
+}
 </cfscript>

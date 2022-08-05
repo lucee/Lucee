@@ -25,7 +25,11 @@ WEB-INF
 *.iml
 *.ipr
 *.iws
+*.jfr
 
+/.vscode
+/.idea
+loader/env.json
 .idea/
 buildVersionNumber.txt
 /test/reports

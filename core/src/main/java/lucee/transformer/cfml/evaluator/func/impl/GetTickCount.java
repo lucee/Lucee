@@ -39,10 +39,10 @@ public class GetTickCount implements FunctionEvaluator {
 		Expression value = arg.getValue();
 		if (value instanceof LitString) {
 			String unit = ((LitString) value).getString();
-			if ("nano".equalsIgnoreCase(unit)) arg.setValue(bif.getFactory().createLitDouble(lucee.runtime.functions.other.GetTickCount.UNIT_NANO), "number");
-			else if ("milli".equalsIgnoreCase(unit)) arg.setValue(bif.getFactory().createLitDouble(lucee.runtime.functions.other.GetTickCount.UNIT_MILLI), "number");
-			else if ("micro".equalsIgnoreCase(unit)) arg.setValue(bif.getFactory().createLitDouble(lucee.runtime.functions.other.GetTickCount.UNIT_MICRO), "number");
-			else if ("second".equalsIgnoreCase(unit)) arg.setValue(bif.getFactory().createLitDouble(lucee.runtime.functions.other.GetTickCount.UNIT_SECOND), "number");
+			if ("nano".equalsIgnoreCase(unit)) arg.setValue(bif.getFactory().createLitNumber(lucee.runtime.functions.other.GetTickCount.UNIT_NANO), "number");
+			else if ("milli".equalsIgnoreCase(unit)) arg.setValue(bif.getFactory().createLitNumber(lucee.runtime.functions.other.GetTickCount.UNIT_MILLI), "number");
+			else if ("micro".equalsIgnoreCase(unit)) arg.setValue(bif.getFactory().createLitNumber(lucee.runtime.functions.other.GetTickCount.UNIT_MICRO), "number");
+			else if ("second".equalsIgnoreCase(unit)) arg.setValue(bif.getFactory().createLitNumber(lucee.runtime.functions.other.GetTickCount.UNIT_SECOND), "number");
 		}
 	}
 

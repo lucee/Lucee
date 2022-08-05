@@ -116,6 +116,8 @@
 	<data key="mappings.archivemissing">Please enter a value for the archive name (row </data>
 	<data key="mappings.trustedhead">Inspect</data>
 	<data key="mappings.introtext">Please note, that only pages processed by Lucee are aware of these mappings (cfm, cfml, cfc). If you want to use files not processed by Lucee for these special mapping directories, you have to add virtual mappings to these directories to your application server.</data>
+	<data key="mappings.archiveAlert">Make sure the File exist or not</data>
+	<data key="mappings.physicalAlert">Make sure the Directory exist or not</data>	
 	<data key="mappings.physicalheaddescription">Path of the resource to map (absolute or relative to the webroot)</data>
 	<data key="customtags.physical">Resource</data>
 	<data key="customtags.archive">Archive</data>
@@ -311,6 +313,7 @@
 	<data key="ext.version">Version</data>
 	<data key="ext.appupdate">Update</data>
 	<data key="ext.created">Release Date</data>
+	<data key="ext.releaseStatus">Release Status</data>
 	<data key="ext.notinstalled">Not installed</data>
 	<data key="ext.codename">Code Name</data>
 	<data key="ext.stepof">Step {current} of {total}</data>
@@ -741,6 +744,9 @@ you can see the log result at the end of every request, if a debug template is d
 	<data key="debug.settings.timerDesc">Select this option to show timer event information. Timers let a developer track the execution time of the code between the start and end tags of the CFTIMER tag.</data>
 	<data key="debug.settings.implicitAccess">Implicit variable Access</data>
 	<data key="debug.settings.implicitAccessDesc">Select this option to log all accesses to scopes, queries and threads that happens implicit (cascaded).</data>
+	<data key="debug.settings.thread">Debug Threads</data>
+	<data key="debug.settings.threadDesc">Select this option to also log threads.</data>
+	<data key="debug.settings.threadAlert">Depending on your application, this may produce a large volume of debug entries.</data>
 
 	<!-- debugging.logs -->
 	<data key="debug.path">Path</data>
@@ -984,8 +990,9 @@ sct[""bracketNotation""] --> keyname: "bracketNotation"</data>
 	<data key="locale">english (united kingdom)</data>
 	<data key="proxy.portdescription">Port for the proxy server (default:80)</data>
 	<data key="proxy.port">Port</data>
+	<data key="proxy.serverName">Server</data>
 	<data key="proxy.usernamedescription">Username for the proxy</data>
-	<data key="proxy.server">Server</data>
+	<data key="proxy.server">Define a global proxy, that will be used in several tags by default (cfhttp,cfftp,cfmail ...)</data>
 	<data key="proxy.settings">Proxy settings</data>
 	<data key="proxy.passworddescription">Password for the proxy</data>
 	<data key="proxy.username">Username</data>
@@ -1126,6 +1133,8 @@ sct[""bracketNotation""] --> keyname: "bracketNotation"</data>
 	<data key="schedule.executiondesconce">This task is executed only once at a specific date and time.</data>
 	<data key="schedule.usernamedescription">Username to access the URL if it is protected by authentication</data>
 	<data key="schedule.startdatedesc">Defines the date when the task should be executed the first time.</data>
+	<data key="schedule.useragent">User Agent</data>
+	<data key="schedule.useragentdescription">Custom User Agent for the http(s) request (some firewalls block the CFSCHEDULE user agent)</data>
 	<data key="settings.datasourcesettings">Settings</data>
 	<data key="settings.datasource.databaseName">Database (Name/Version)</data>
 	<data key="settings.datasource.driverName">Driver (Name/Version)</data>
@@ -1291,6 +1300,7 @@ If the timezone of your Lucee instance and your database is different, this can 
 	<data key="overview.Docs">Documentation</data>
 	<data key="overview.DocsDesc">If you have any questions about Lucee please take a look at the documentation in the first instance.</data>
 	<data key="overview.onlineDocsLink">Online Documentation</data>
+	<data key="overview.installDocsLink">Click to install - Lucee Documentation Extension</data>
 	<data key="overview.localRefLink">Local Reference</data>
 	<data key="overview.issuetracker">Issue Tracker</data>
 	<data key="overview.issuetrackerDesc">If you think you've found a bug, please take the time to report it via our bug tracking system.</data>
@@ -1567,6 +1577,7 @@ If the timezone of your Lucee instance and your database is different, this can 
 	<data key="settings.gateway.startupModeDisabled">Disabled</data>
 
 	<data key="setting.general.web">Hier sehen Sie eine Übersicht alle Settings welche Einfluss auf das Verhalten von Lucee haben, sie können diese nach vordefinierten kriterien anpassen</data>
+	<data key="setting.general.server">Here you see an overview of all settings that have an influence on the behavior of Lucee, you can adjust them according to predefined criteria</data>
 	<data key="setting.general.compatibility">Compatibility</data>
 	<data key="setting.general.compatibilityDesc">Mit diesem Wert werden alle Settings so gesetzt, dass sie möglichst dem CFML2009 Standard entsprechen und mit Implementationen anderer Hersteller kombatibel sind.</data>
 	<data key="setting.general.strict">Strict</data>

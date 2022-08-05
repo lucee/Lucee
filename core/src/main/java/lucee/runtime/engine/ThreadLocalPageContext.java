@@ -172,5 +172,4 @@ public final class ThreadLocalPageContext {
 		if (pc != null) return pc.getThread().getId();
 		return Thread.currentThread().getId();
 	}
-
 }

@@ -5,7 +5,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 			it(title="checking listReduce() function", body=function( currentSpec ) {
 				assertEquals( "hello there lucee", listReduce(list, function(value1,value2) { return (value1 & " " & value2)}, "hello"));
 			});
-			it(title="checking list.Reduce() member function", body=function( currentSpec ) {
+			it(title="checking list.listReduce() member function", body=function( currentSpec ) {
 				assertEquals( "hello there lucee", list.listReduce(function(value1,value2) { return (value1 & " " & value2)}, "hello"));
 			});
 		});

@@ -6,7 +6,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 	function run( testResults, testBox ) { 
 		describe( "testcase for LDEV-2902", function(){
 			it(title="Checking datasource configured with timezone",body=function( currentSpec ){
-				if(!hasCredencials()) return;
+				if(!hasCredentials()) return;
 				local.result = _InternalRequest(
 					template : "#uri#\test.cfm",
 					forms : {Scene = 1}
@@ -15,7 +15,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 			});
 
 			it(title="Checking datasource configured without timezone",body=function( currentSpec ){
-				if(!hasCredencials()) return;
+				if(!hasCredentials()) return;
 				local.result = _InternalRequest(
 					template : "#uri#\test.cfm",
 					forms : {Scene = 2}
@@ -24,7 +24,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 			});
 
 			it(title="Checking datasource configured Empty timezone",body=function( currentSpec ){
-				if(!hasCredencials()) return;
+				if(!hasCredentials()) return;
 				local.result = _InternalRequest(
 					template : "#uri#\test.cfm",
 					forms : {Scene = 3}
@@ -39,23 +39,8 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 		return baseURI&""&calledName;
 	}
 
-	private boolean function hasCredencials() {
-		if(
-			!isNull(server.system.environment.MSSQL_SERVER) && 
-			!isNull(server.system.environment.MSSQL_USERNAME) && 
-			!isNull(server.system.environment.MSSQL_PASSWORD) && 
-			!isNull(server.system.environment.MSSQL_PORT) && 
-			!isNull(server.system.environment.MSSQL_DATABASE)) {
-			return true;
-		}
-		else if(
-			!isNull(server.system.properties.MSSQL_SERVER) && 
-			!isNull(server.system.properties.MSSQL_USERNAME) && 
-			!isNull(server.system.properties.MSSQL_PASSWORD) && 
-			!isNull(server.system.properties.MSSQL_PORT) && 
-			!isNull(server.system.properties.MSSQL_DATABASE)) {
-			return true;
-		}
+	private boolean function hasCredentials() {
+		msSQL
 		return false;
 	}
 }

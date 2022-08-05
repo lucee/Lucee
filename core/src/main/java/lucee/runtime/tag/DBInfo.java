@@ -114,6 +114,7 @@ public final class DBInfo extends TagImpl {
 	private String procedure;
 	private String username;
 	private String strType;
+	private String filter;
 
 	@Override
 	public void release() {
@@ -127,7 +128,7 @@ public final class DBInfo extends TagImpl {
 		table = null;
 		procedure = null;
 		username = null;
-
+		filter = null;
 	}
 
 	/**
@@ -168,6 +169,7 @@ public final class DBInfo extends TagImpl {
 		else if ("tables".equals(strType)) this.type = TYPE_TABLES;
 		else if ("table".equals(strType)) this.type = TYPE_TABLES;
 		else if ("columns".equals(strType)) this.type = TYPE_TABLE_COLUMNS;
+		else if ("columns_minimal".equals(strType)) this.type = TYPE_TABLE_COLUMNS;
 		else if ("column".equals(strType)) this.type = TYPE_TABLE_COLUMNS;
 		else if ("version".equals(strType)) this.type = TYPE_VERSION;
 		else if ("procedures".equals(strType)) this.type = TYPE_PROCEDURES;
@@ -246,6 +248,13 @@ public final class DBInfo extends TagImpl {
 		this.username = username;
 	}
 
+	/**
+	 * @param username the username to set
+	 */
+	public void setFilter(String filter) {
+		this.filter = filter;
+	}
+
 	@Override
 	public int doStartTag() throws PageException {
 		Object ds = getDatasource(pageContext, datasource);
@@ -294,11 +303,12 @@ public final class DBInfo extends TagImpl {
 			table = table.substring(index + 1);
 		}
 
-		checkTable(metaData, _dbName);
-
 		Query qry = new QueryImpl(metaData.getColumns(_dbName, schema, table, StringUtil.isEmpty(pattern) ? "%" : pattern), "query", pageContext.getTimeZone());
 
 		int len = qry.getRecordcount();
+
+		if (len == 0)
+			checkTable(metaData, _dbName); // only check if no columns get returned, otherwise it exists
 
 		if (qry.getColumn(COLUMN_DEF, null) != null) qry.rename(COLUMN_DEF, COLUMN_DEFAULT_VALUE);
 		else if (qry.getColumn(COLUMN_DEFAULT, null) != null) qry.rename(COLUMN_DEFAULT, COLUMN_DEFAULT_VALUE);
@@ -313,72 +323,72 @@ public final class DBInfo extends TagImpl {
 			qry.addColumn(DECIMAL_DIGITS, arr);
 		}
 
-		// add is primary
-		Map<String, Set<String>> primaries = new HashMap<>();
-		Array isPrimary = new ArrayImpl();
-		Set<String> set;
-		Object o;
-		String tblCat, tblScheme, tblName;
-		for (int i = 1; i <= len; i++) {
+		if (!"columns_minimal".equals(this.strType)){
+			// add is primary
+			Map<String, Set<String>> primaries = new HashMap<>();
+			Array isPrimary = new ArrayImpl();
+			Set<String> set;
+			Object o;
+			String tblCat, tblScheme, tblName;
+			for (int i = 1; i <= len; i++) {
 
-			// decimal digits
-			o = qry.getAt(DECIMAL_DIGITS, i, null);
-			if (o == null) qry.setAtEL(DECIMAL_DIGITS, i, lucee.runtime.op.Constants.DOUBLE_ZERO);
+				// decimal digits
+				o = qry.getAt(DECIMAL_DIGITS, i, null);
+				if (o == null) qry.setAtEL(DECIMAL_DIGITS, i, lucee.runtime.op.Constants.DOUBLE_ZERO);
 
-			tblCat = StringUtil.emptyAsNull(Caster.toString(qry.getAt(TABLE_CAT, i), null), true);
-			tblScheme = StringUtil.emptyAsNull(Caster.toString(qry.getAt(TABLE_SCHEM, i), null), true);
-			tblName = StringUtil.emptyAsNull(Caster.toString(qry.getAt(TABLE_NAME, i), null), true);
+				tblCat = StringUtil.emptyAsNull(Caster.toString(qry.getAt(TABLE_CAT, i), null), true);
+				tblScheme = StringUtil.emptyAsNull(Caster.toString(qry.getAt(TABLE_SCHEM, i), null), true);
+				tblName = StringUtil.emptyAsNull(Caster.toString(qry.getAt(TABLE_NAME, i), null), true);
 
-			set = primaries.get(tblName);
-			if (set == null) {
-				try {
-					set = toSet(metaData.getPrimaryKeys(tblCat, tblScheme, tblName), true, "COLUMN_NAME");
-					primaries.put(tblName, set);
+				set = primaries.get(tblName);
+				if (set == null) {
+					try {
+						set = toSet(metaData.getPrimaryKeys(tblCat, tblScheme, tblName), true, "COLUMN_NAME");
+						primaries.put(tblName, set);
+					}
+					catch (Exception e) {}
 				}
-				catch (Exception e) {
+				isPrimary.append(set != null && set.contains(qry.getAt(COLUMN_NAME, i)) ? "YES" : "NO");
+			}
+
+			qry.addColumn(IS_PRIMARYKEY, isPrimary);
+
+			// add is foreignkey
+			Map foreigns = new HashMap();
+			Array isForeign = new ArrayImpl();
+			Array refPrim = new ArrayImpl();
+			Array refPrimTbl = new ArrayImpl();
+			// Map map,inner;
+			Map<String, Map<String, SVArray>> map;
+			Map<String, SVArray> inner;
+			for (int i = 1; i <= len; i++) {
+
+				tblCat = StringUtil.emptyAsNull(Caster.toString(qry.getAt(TABLE_CAT, i), null), true);
+				tblScheme = StringUtil.emptyAsNull(Caster.toString(qry.getAt(TABLE_SCHEM, i), null), true);
+				tblName = StringUtil.emptyAsNull(Caster.toString(qry.getAt(TABLE_NAME, i), null), true);
+
+				map = (Map) foreigns.get(tblName);
+				if (map == null) {
+					map = toMap(metaData.getImportedKeys(tblCat, tblScheme, tblName), true, "FKCOLUMN_NAME", new String[] { "PKCOLUMN_NAME", "PKTABLE_NAME" });
+					foreigns.put(tblName, map);
+				}
+				inner = map.get(qry.getAt(COLUMN_NAME, i));
+				if (inner != null) {
+					isForeign.append("YES");
+					refPrim.append(inner.get("PKCOLUMN_NAME"));
+					refPrimTbl.append(inner.get("PKTABLE_NAME"));
+				}
+				else {
+					isForeign.append("NO");
+					refPrim.append("N/A");
+					refPrimTbl.append("N/A");
 				}
 			}
-			isPrimary.append(set != null && set.contains(qry.getAt(COLUMN_NAME, i)) ? "YES" : "NO");
+
+			qry.addColumn(IS_FOREIGNKEY, isForeign);
+			qry.addColumn(REFERENCED_PRIMARYKEY, refPrim);
+			qry.addColumn(REFERENCED_PRIMARYKEY_TABLE, refPrimTbl);
 		}
-
-		qry.addColumn(IS_PRIMARYKEY, isPrimary);
-
-		// add is foreignkey
-		Map foreigns = new HashMap();
-		Array isForeign = new ArrayImpl();
-		Array refPrim = new ArrayImpl();
-		Array refPrimTbl = new ArrayImpl();
-		// Map map,inner;
-		Map<String, Map<String, SVArray>> map;
-		Map<String, SVArray> inner;
-		for (int i = 1; i <= len; i++) {
-
-			tblCat = StringUtil.emptyAsNull(Caster.toString(qry.getAt(TABLE_CAT, i), null), true);
-			tblScheme = StringUtil.emptyAsNull(Caster.toString(qry.getAt(TABLE_SCHEM, i), null), true);
-			tblName = StringUtil.emptyAsNull(Caster.toString(qry.getAt(TABLE_NAME, i), null), true);
-
-			map = (Map) foreigns.get(tblName);
-			if (map == null) {
-				map = toMap(metaData.getImportedKeys(tblCat, tblScheme, tblName), true, "FKCOLUMN_NAME", new String[] { "PKCOLUMN_NAME", "PKTABLE_NAME" });
-				foreigns.put(tblName, map);
-			}
-			inner = map.get(qry.getAt(COLUMN_NAME, i));
-			if (inner != null) {
-				isForeign.append("YES");
-				refPrim.append(inner.get("PKCOLUMN_NAME"));
-				refPrimTbl.append(inner.get("PKTABLE_NAME"));
-			}
-			else {
-				isForeign.append("NO");
-				refPrim.append("N/A");
-				refPrimTbl.append("N/A");
-			}
-		}
-
-		qry.addColumn(IS_FOREIGNKEY, isForeign);
-		qry.addColumn(REFERENCED_PRIMARYKEY, refPrim);
-		qry.addColumn(REFERENCED_PRIMARYKEY_TABLE, refPrimTbl);
-
 		qry.setExecutionTime(stopwatch.time());
 
 		pageContext.setVariable(name, qry);
@@ -628,7 +638,8 @@ public final class DBInfo extends TagImpl {
 		stopwatch.start();
 
 		pattern = setCase(metaData, pattern);
-		lucee.runtime.type.Query qry = new QueryImpl(metaData.getTables(dbname(conn), null, StringUtil.isEmpty(pattern) ? "%" : pattern, null), "query", pageContext.getTimeZone());
+		lucee.runtime.type.Query qry = new QueryImpl(metaData.getTables(dbname(conn), null, StringUtil.isEmpty(pattern) ? "%" : pattern, 
+			StringUtil.isEmpty(filter) ? null : new String[] { filter }), "query", pageContext.getTimeZone());
 		qry.setExecutionTime(stopwatch.time());
 
 		pageContext.setVariable(name, qry);

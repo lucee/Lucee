@@ -32,7 +32,7 @@ import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.DatabaseException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
-import lucee.runtime.op.Operator;
+import lucee.runtime.op.OpUtil;
 import lucee.runtime.op.date.DateCaster;
 import lucee.runtime.type.dt.DateTime;
 import lucee.runtime.type.it.EntryIterator;
@@ -300,22 +300,22 @@ public final class QueryColumnRef implements QueryColumn {
 
 	@Override
 	public int compareTo(boolean b) throws PageException {
-		return Operator.compare(castToBooleanValue(), b);
+		return OpUtil.compare(ThreadLocalPageContext.get(), castToBooleanValue() ? Boolean.TRUE : Boolean.FALSE, b ? Boolean.TRUE : Boolean.FALSE);
 	}
 
 	@Override
 	public int compareTo(DateTime dt) throws PageException {
-		return Operator.compare((Date) castToDateTime(), (Date) dt);
+		return OpUtil.compare(ThreadLocalPageContext.get(), (Date) castToDateTime(), (Date) dt);
 	}
 
 	@Override
 	public int compareTo(double d) throws PageException {
-		return Operator.compare(castToDoubleValue(), d);
+		return OpUtil.compare(ThreadLocalPageContext.get(), Double.valueOf(castToDoubleValue()), Double.valueOf(d));
 	}
 
 	@Override
 	public int compareTo(String str) throws PageException {
-		return Operator.compare(castToString(), str);
+		return OpUtil.compare(ThreadLocalPageContext.get(), castToString(), str);
 	}
 
 	@Override
@@ -411,7 +411,7 @@ public final class QueryColumnRef implements QueryColumn {
 	 */
 	public Array listToArray() throws PageException {
 
-		if (this.query instanceof QueryImpl) return ListUtil.listToArray(((QueryImpl) this.query).getColumnlist(false), ",");
+		if (this.query instanceof QueryImpl) return ListUtil.listToArray(((QueryImpl) this.query).getColumnlist(false, ", "), ",");
 
 		throw new ApplicationException("Query is not of type QueryImpl. Use instead Query.columnArray() or Query.columnList().listToArray().");
 	}

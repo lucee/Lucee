@@ -64,35 +64,8 @@
 		}
 	}
 
-
 	private struct function getCredentials() {
-		// getting the credetials from the enviroment variables
-		var msSQL={};
-		if(
-			!isNull(server.system.environment.MsSQL_SERVER) && 
-			!isNull(server.system.environment.MsSQL_USERNAME) && 
-			!isNull(server.system.environment.MsSQL_PASSWORD) && 
-			!isNull(server.system.environment.MsSQL_PORT) && 
-			!isNull(server.system.environment.MsSQL_DATABASE)) {
-			msSQL.server=server.system.environment.MsSQL_SERVER;
-			msSQL.username=server.system.environment.MsSQL_USERNAME;
-			msSQL.password=server.system.environment.MsSQL_PASSWORD;
-			msSQL.port=server.system.environment.MsSQL_PORT;
-			msSQL.database=server.system.environment.MsSQL_DATABASE;
-		}
-		// getting the credetials from the system variables
-		else if(
-			!isNull(server.system.properties.MsSQL_SERVER) && 
-			!isNull(server.system.properties.MsSQL_USERNAME) && 
-			!isNull(server.system.properties.MsSQL_PASSWORD) && 
-			!isNull(server.system.properties.MsSQL_PORT) && 
-			!isNull(server.system.properties.MsSQL_DATABASE)) {
-			msSQL.server=server.system.properties.MsSQL_SERVER;
-			msSQL.username=server.system.properties.MsSQL_USERNAME;
-			msSQL.password=server.system.properties.MsSQL_PASSWORD;
-			msSQL.port=server.system.properties.MsSQL_PORT;
-			msSQL.database=server.system.properties.MsSQL_DATABASE;
-		}
-		return msSql;
+		// getting the credentials from the environment variables		
+		return server._getSystemPropOrEnvVars( "SERVER, USERNAME, PASSWORD, PORT, DATABASE", "MSSQL_");;
 	}
 </cfscript>

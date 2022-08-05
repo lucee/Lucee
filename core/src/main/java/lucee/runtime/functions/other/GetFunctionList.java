@@ -21,6 +21,8 @@
  */
 package lucee.runtime.functions.other;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -57,7 +59,7 @@ public final class GetFunctionList implements Function {
 
 	private static lucee.runtime.type.Struct _call(PageContext pc, int dialect) throws PageException {
 
-		Struct sct = new StructImpl();
+		Struct sct = new StructImpl(StructImpl.TYPE_LINKED);
 		// synchronized(sct) {
 		// hasSet=true;
 		FunctionLib[] flds;
@@ -66,6 +68,7 @@ public final class GetFunctionList implements Function {
 		Map<String, FunctionLibFunction> _functions;
 		Iterator<Entry<String, FunctionLibFunction>> it;
 		Entry<String, FunctionLibFunction> e;
+		ArrayList<String> tagList = new ArrayList<>();
 		for (int i = 0; i < flds.length; i++) {
 			_functions = flds[i].getFunctions();
 			it = _functions.entrySet().iterator();
@@ -73,7 +76,14 @@ public final class GetFunctionList implements Function {
 			while (it.hasNext()) {
 				e = it.next();
 				func = e.getValue();
-				if (func.getStatus() != TagLib.STATUS_HIDDEN && func.getStatus() != TagLib.STATUS_UNIMPLEMENTED) sct.set(e.getKey(), "");
+				if (func.getStatus() != TagLib.STATUS_HIDDEN && func.getStatus() != TagLib.STATUS_UNIMPLEMENTED) {
+					// sct.set(e.getKey(), "");
+					tagList.add(e.getKey());
+				}
+			}
+			Collections.sort(tagList);
+			for (String t: tagList) {
+				sct.put(t, "");
 			}
 		}
 		return sct;

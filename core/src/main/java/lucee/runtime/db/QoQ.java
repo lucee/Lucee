@@ -38,7 +38,7 @@ import lucee.runtime.exp.DatabaseException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
-import lucee.runtime.op.Operator;
+import lucee.runtime.op.OpUtil;
 import lucee.runtime.sql.QueryPartitions;
 import lucee.runtime.sql.Select;
 import lucee.runtime.sql.SelectParser;
@@ -164,22 +164,26 @@ public final class QoQ {
 	 * @param sql
 	 * @throws PageException
 	 */
-	private static void order( PageContext pc, Query target, Expression[] columns, boolean isUnion, SQL sql) throws PageException {
+	private static void order(PageContext pc, Query target, Expression[] columns, boolean isUnion, SQL sql) throws PageException {
 		Expression col;
 		// Looping backwards over columns so they order correctly
 		for (int i = columns.length - 1; i >= 0; i--) {
 			col = columns[i];
 			if (!isUnion) {
 				Integer ordinalIndex;
-				if (col instanceof Literal ) {
-					if( col instanceof ValueNumber && ( ordinalIndex = Caster.toInteger( ((Literal)col).getValue(), null ) ) != null && ordinalIndex > 0 && ordinalIndex <= target.getColumnNames().length ) {
+				if (col instanceof Literal) {
+					if (col instanceof ValueNumber && (ordinalIndex = Caster.toInteger(((Literal) col).getValue(), null)) != null && ordinalIndex > 0
+							&& ordinalIndex <= target.getColumnNames().length) {
 						// Sort the column referenced by the ordinal position
-						target.sort(target.getColumnNames()[ ordinalIndex-1 ], col.isDirectionBackward() ? Query.ORDER_DESC : Query.ORDER_ASC);	
-					} else {
-						// All other non-integer literals are invalid.
-						throw new DatabaseException("ORDER BY item [" + col.toString(true) + "] in position " + (i+1) + " cannot be a literal value unless it is an integer matching a select column's ordinal position.", null, sql, null);
+						target.sort(target.getColumnNames()[ordinalIndex - 1], col.isDirectionBackward() ? Query.ORDER_DESC : Query.ORDER_ASC);
 					}
-				} else {
+					else {
+						// All other non-integer literals are invalid.
+						throw new DatabaseException("ORDER BY item [" + col.toString(true) + "] in position " + (i + 1)
+								+ " cannot be a literal value unless it is an integer matching a select column's ordinal position.", null, sql, null);
+					}
+				}
+				else {
 					// order by ? -- ignore this as well
 					if (col instanceof Column && ((Column) col).getColumn().equals(paramKey)) continue;
 
@@ -306,7 +310,7 @@ public final class QoQ {
 		Collection.Key[] previousColKeys = previous.getColumnNames();
 		Collection.Key[] targetColKeys = target.getColumnNames();
 
-		if( previousColKeys.length != targetColKeys.length ) {
+		if (previousColKeys.length != targetColKeys.length) {
 			throw new DatabaseException("Cannot perform union as number of columns in selects do not match.", null, sql, null);
 		}
 
@@ -335,11 +339,11 @@ public final class QoQ {
 	private Query doUnionDistinct(PageContext pc, Query previous, Query target, SQL sql) throws PageException {
 		Collection.Key[] previousColKeys = previous.getColumnNames();
 		Collection.Key[] targetColKeys = target.getColumnNames();
-		
-		if( previousColKeys.length != targetColKeys.length ) {
+
+		if (previousColKeys.length != targetColKeys.length) {
 			throw new DatabaseException("Cannot perform union as number of columns in selects do not match.", null, sql, null);
 		}
-		
+
 		Expression[] selectExpressions = new Expression[previousColKeys.length];
 		// We want the exact columns from the previous query, but not necessarily all the data. Make
 		// a new target and copy the columns
@@ -506,13 +510,13 @@ public final class QoQ {
 		// For a non-grouping query with aggregates where no records matched the where clause
 		// SELECT count(1) FROM qry WHERE 1=0
 		// then we need to add a single empty partition so our final select will have a single row.
-		if (hasAggregateSelect && select.getGroupbys().length == 0 && queryPartitions.getPartitions().size() == 0 ) {
-			queryPartitions.addEmptyPartition( source, target ); 
+		if (hasAggregateSelect && select.getGroupbys().length == 0 && queryPartitions.getPartitions().size() == 0) {
+			queryPartitions.addEmptyPartition(source, target);
 		}
-		
+
 		// Add first row of each group of partitioned data into final result
 		for (Query sourcePartition: queryPartitions.getPartitions().values()) {
-			
+
 			target.addRow(1);
 			for (int cell = 0; cell < headers.length; cell++) {
 
@@ -810,11 +814,11 @@ public final class QoQ {
 				if (op.equals("cast")) {
 					// Cast is a single operand operator, but it gets the type from the alias of the single operand
 					// i.e. cast( col1 as date )
-					// If there is no alias, throw an exception. 
-					if( !operators[0].hasAlias() ) {
+					// If there is no alias, throw an exception.
+					if (!operators[0].hasAlias()) {
 						throw new DatabaseException("No type provided to cast to. [" + opn.toString(true) + "] ", null, sql, null);
 					}
-					return executeCast( pc, value, Caster.toString( operators[0].getAlias() ) );
+					return executeCast(pc, value, Caster.toString(operators[0].getAlias()));
 				}
 				if (op.equals("coalesce")) return executeCoalesce(pc, sql, source, operators, row);
 				break;
@@ -915,22 +919,24 @@ public final class QoQ {
 				if (op.equals("atan2")) return new Double(Math.atan2(Caster.toDoubleValue(left), Caster.toDoubleValue(right)));
 				break;
 			case 'b':
-				if (op.equals("bitand")) return new Double(Operator.bitand(Caster.toDoubleValue(left), Caster.toDoubleValue(right)));
-				if (op.equals("bitor")) return new Double(Operator.bitor(Caster.toDoubleValue(left), Caster.toDoubleValue(right)));
+				if (op.equals("bitand")) return OpUtil.bitand(pc, Caster.toDoubleValue(left), Caster.toDoubleValue(right));
+				if (op.equals("bitor")) return OpUtil.bitor(pc, Caster.toDoubleValue(left), Caster.toDoubleValue(right));
 				break;
 			case 'c':
 				if (op.equals("concat")) return Caster.toString(left).concat(Caster.toString(right));
 				if (op.equals("count")) return executeCount(pc, sql, source, operators);
 				if (op.equals("coalesce")) return executeCoalesce(pc, sql, source, operators, row);
 				if (op.equals("convert")) {
-					// If the user does convert( col1, 'string' ) it will be a ValueExpression and we can use it directly;
-					// If the user does convert( col1, string ) it will be a ColumnExpressin and we just want to use the column name ("string" in this case).
+					// If the user does convert( col1, 'string' ) it will be a ValueExpression and we can use it
+					// directly;
+					// If the user does convert( col1, string ) it will be a ColumnExpressin and we just want to use the
+					// column name ("string" in this case).
 					// convert() is the binary version of the unary operator cast()
 					// i.e. convert( col1, string ) is the same as cast( col1 as string )
-					if( operators[1] instanceof ColumnExpression ) {
-						right = ((ColumnExpression)operators[1]).getColumnName(); 
-					} 
-					return executeCast( pc, left, Caster.toString( right ) );
+					if (operators[1] instanceof ColumnExpression) {
+						right = ((ColumnExpression) operators[1]).getColumnName();
+					}
+					return executeCast(pc, left, Caster.toString(right));
 				}
 				break;
 			case 'i':
@@ -939,20 +945,20 @@ public final class QoQ {
 			case 'm':
 				if (op.equals("mod")) {
 					// The result of any mathmatical operation involving a null is null
-					if( left == null || right == null ) {
+					if (left == null || right == null) {
 						return null;
 					}
-					
-					return new Double( castForMathDouble(left) % castForMathDouble(right) );
+
+					return new Double(castForMathDouble(left) % castForMathDouble(right));
 				}
 				break;
 			case 'p':
 				if (op.equals("power")) {
 					// The result of any mathmatical operation involving a null is null
-					if( left == null || right == null ) {
+					if (left == null || right == null) {
 						return null;
 					}
-					return Math.pow(castForMathDouble(left), castForMathDouble(right));	
+					return Math.pow(castForMathDouble(left), castForMathDouble(right));
 				}
 				break;
 
@@ -1012,13 +1018,10 @@ public final class QoQ {
 		return null;
 	}
 
-	
-
-	private Object executeCast( PageContext pc, Object value, String type ) throws PageException {
+	private Object executeCast(PageContext pc, Object value, String type) throws PageException {
 		return Caster.castTo(pc, CFTypes.toShort(type, true, CFTypes.TYPE_UNKNOW), type, value);
 	}
-	
-	
+
 	/*
 	 * *
 	 * 
@@ -1187,24 +1190,24 @@ public final class QoQ {
 	 */
 	private int executeCompare(PageContext pc, SQL sql, Query source, Operation2 op, int row) throws PageException {
 		// print.e(op.getLeft().getClass().getName());
-		return Operator.compare(executeExp(pc, sql, source, op.getLeft(), row), executeExp(pc, sql, source, op.getRight(), row));
+		return OpUtil.compare(pc, executeExp(pc, sql, source, op.getLeft(), row), executeExp(pc, sql, source, op.getRight(), row));
 	}
 
 	private Object executeMod(PageContext pc, SQL sql, Query source, Operation2 expression, int row) throws PageException {
 		Object left = executeExp(pc, sql, source, expression.getLeft(), row);
 		Object right = executeExp(pc, sql, source, expression.getRight(), row);
-		
+
 		// The result of any mathmatical operation involving a null is null
-		if( left == null || right == null ) {
+		if (left == null || right == null) {
 			return null;
 		}
-		
-		Double rightDouble = castForMathDouble(right);		
-		if( rightDouble == 0 ) {
-			throw new DatabaseException("Divide by zero not allowed.  Encountered while evaluating ["  + expression.toString( true ) + "] in row " + row, null, sql, null);
+
+		Double rightDouble = castForMathDouble(right);
+		if (rightDouble == 0) {
+			throw new DatabaseException("Divide by zero not allowed.  Encountered while evaluating [" + expression.toString(true) + "] in row " + row, null, sql, null);
 		}
-		
-		return new Double( castForMathDouble(left) % rightDouble );
+
+		return new Double(castForMathDouble(left) % rightDouble);
 	}
 
 	/**
@@ -1223,36 +1226,37 @@ public final class QoQ {
 		Object left = executeExp(pc, sql, source, operators[0], row);
 
 		for (int i = 1; i < operators.length; i++) {
-			if (Operator.compare(left, executeExp(pc, sql, source, operators[i], row)) == 0) return isNot ? Boolean.FALSE : Boolean.TRUE;
+			if (OpUtil.compare(pc, left, executeExp(pc, sql, source, operators[i], row)) == 0) return isNot ? Boolean.FALSE : Boolean.TRUE;
 		}
 		return isNot ? Boolean.TRUE : Boolean.FALSE;
 	}
 
 	/**
 	 * Cast value to Double, accounting for logic such as turning empty strings into zero.
+	 * 
 	 * @param value Value for casting. Must be non-null
 	 * @return Value cast to a Double
 	 */
-	private Double castForMathDouble( Object value ) throws PageException {
-		if( Caster.toString( value ).equals( "" ) ) {
+	private Double castForMathDouble(Object value) throws PageException {
+		if (Caster.toString(value).equals("")) {
 			return Double.valueOf(0);
 		}
 		return Caster.toDoubleValue(value);
 	}
 
-
 	/**
 	 * Cast value to Int, accounting for logic such as turning empty strings into zero.
+	 * 
 	 * @param value Value for casting. Must be non-null
 	 * @return Value cast to a Int
 	 */
-	private Integer castForMathInt( Object value ) throws PageException {
-		if( Caster.toString( value ).equals( "" ) ) {
+	private Integer castForMathInt(Object value) throws PageException {
+		if (Caster.toString(value).equals("")) {
 			return Integer.valueOf(0);
 		}
 		return Caster.toIntValue(value);
 	}
-	
+
 	/**
 	 * 
 	 * execute a minus operation
@@ -1267,13 +1271,13 @@ public final class QoQ {
 	private Object executeMinus(PageContext pc, SQL sql, Query source, Operation2 expression, int row) throws PageException {
 		Object left = executeExp(pc, sql, source, expression.getLeft(), row);
 		Object right = executeExp(pc, sql, source, expression.getRight(), row);
-		
+
 		// The result of any mathmatical operation involving a null is null
-		if( left == null || right == null ) {
+		if (left == null || right == null) {
 			return null;
 		}
-		
-		return new Double( castForMathDouble(left) - castForMathDouble(right) );
+
+		return new Double(castForMathDouble(left) - castForMathDouble(right));
 	}
 
 	/**
@@ -1290,18 +1294,18 @@ public final class QoQ {
 	private Object executeDivide(PageContext pc, SQL sql, Query source, Operation2 expression, int row) throws PageException {
 		Object left = executeExp(pc, sql, source, expression.getLeft(), row);
 		Object right = executeExp(pc, sql, source, expression.getRight(), row);
-		
+
 		// The result of any mathmatical operation involving a null is null
-		if( left == null || right == null ) {
+		if (left == null || right == null) {
 			return null;
 		}
 
 		Double rightDouble = castForMathDouble(right);
-		if( rightDouble == 0 ) {
-			throw new DatabaseException("Divide by zero not allowed.  Encountered while evaluating ["  + expression.toString( true ) + "] in row " + row, null, sql, null);
+		if (rightDouble == 0) {
+			throw new DatabaseException("Divide by zero not allowed.  Encountered while evaluating [" + expression.toString(true) + "] in row " + row, null, sql, null);
 		}
-		
-		return new Double( castForMathDouble(left) / rightDouble );
+
+		return new Double(castForMathDouble(left) / rightDouble);
 	}
 
 	/**
@@ -1318,13 +1322,13 @@ public final class QoQ {
 	private Object executeMultiply(PageContext pc, SQL sql, Query source, Operation2 expression, int row) throws PageException {
 		Object left = executeExp(pc, sql, source, expression.getLeft(), row);
 		Object right = executeExp(pc, sql, source, expression.getRight(), row);
-		
+
 		// The result of any mathmatical operation involving a null is null
-		if( left == null || right == null ) {
+		if (left == null || right == null) {
 			return null;
 		}
-		
-		return new Double( castForMathDouble(left) * castForMathDouble(right) );
+
+		return new Double(castForMathDouble(left) * castForMathDouble(right));
 	}
 
 	/**
@@ -1341,12 +1345,12 @@ public final class QoQ {
 	private Object executeBitwise(PageContext pc, SQL sql, Query source, Operation2 expression, int row) throws PageException {
 		Object left = executeExp(pc, sql, source, expression.getLeft(), row);
 		Object right = executeExp(pc, sql, source, expression.getRight(), row);
-		
+
 		// The result of any mathmatical operation involving a null is null
-		if( left == null || right == null ) {
+		if (left == null || right == null) {
 			return null;
 		}
-		
+
 		return Integer.valueOf(castForMathInt(left) ^ castForMathInt(right));
 	}
 
@@ -1370,14 +1374,15 @@ public final class QoQ {
 			Double dRight = Caster.toDoubleValue(right);
 
 			// The result of any mathmatical operation involving a null is null
-			if( left == null || right == null ) {
+			if (left == null || right == null) {
 				return null;
 			}
-			
-			return new Double( dLeft + dRight );
-		// If casting fails, we assume the inputs are strings and concat instead
-		// Unlike SQL, we're not going to return null for a null string concat
-		} catch (PageException e) {
+
+			return new Double(dLeft + dRight);
+			// If casting fails, we assume the inputs are strings and concat instead
+			// Unlike SQL, we're not going to return null for a null string concat
+		}
+		catch (PageException e) {
 			return Caster.toString(left) + Caster.toString(right);
 		}
 	}
@@ -1400,7 +1405,7 @@ public final class QoQ {
 		// print.out(left+" between "+right1+" and "+right2
 		// +" = "+((Operator.compare(left,right1)>=0)+" && "+(Operator.compare(left,right2)<=0)));
 
-		return ((Operator.compare(left, right1) >= 0) && (Operator.compare(left, right2) <= 0)) ? Boolean.TRUE : Boolean.FALSE;
+		return ((OpUtil.compare(pc, left, right1) >= 0) && (OpUtil.compare(pc, left, right2) <= 0)) ? Boolean.TRUE : Boolean.FALSE;
 	}
 
 	private Object executeLike(PageContext pc, SQL sql, Query source, Operation3 expression, int row) throws PageException {

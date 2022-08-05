@@ -16,7 +16,7 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  * 
  ---><cfscript>
-component extends="org.lucee.cfml.test.LuceeTestCase"	{
+component extends="org.lucee.cfml.test.LuceeTestCase"  labels="mysql" {
 	
 	public function setUp(){
 		variables.has=defineDatasource();
@@ -56,16 +56,12 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	}
 
 	private string function defineDatasource(){
-		var mySQL=getCredencials();
+		var mySQL=server.getDatasource("mysql");
 		if(mySQL.count()==0) return false;
-		application action="update" 
-			datasource="#server.getDatasource("mysql")#";
-	
+		
+		mySQL.connectionLimit = 100; // default:-1
+		application action="update" datasource="#mySql#";
 		return true;
-	}
-
-	private struct function getCredencials() {
-		return server.getDatasource("mysql");
-	}
+	}	
 } 
 </cfscript>

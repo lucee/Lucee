@@ -93,10 +93,15 @@ public class CreateDynamicProxy implements Function {
 		}
 		else throw new FunctionException(pc, "CreateDynamicProxy", 2, "interfaces", "invalid type [" + Caster.toClassName(oInterfaces) + "] for class definition");
 
+		return _call(pc, cfc, interfaces);
+	}
+
+	public static Object _call(PageContext pc, Component cfc, Class[] interfaces) throws PageException, IOException, BundleException {
+
 		// check if all classes are interfaces
 		for (int i = 0; i < interfaces.length; i++) {
 			if (!interfaces[i].isInterface())
-				throw new FunctionException(pc, "CreateDynamicProxy", 2, "interfaces", "definition [" + interfaces[i].getClass() + "] is a class and not an interface");
+				throw new FunctionException(pc, "CreateDynamicProxy", 2, "interfaces", "definition [" + interfaces[i].getClass() + "] is a class and not a interface");
 		}
 
 		return JavaProxyFactory.createProxy(pc, cfc, null, interfaces);

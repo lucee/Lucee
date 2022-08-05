@@ -314,7 +314,7 @@ public final class PageSourceImpl implements PageSource {
 		// Page exists
 		if (page != null) {
 			// if(page!=null && !recompileAlways) {
-			if (srcLastModified != page.getSourceLastModified()) {
+			if (srcLastModified != page.getSourceLastModified() || (page instanceof PagePro && ((PagePro) page).getSourceLength() != srcFile.length())) {
 				// same size, maybe the content has not changed?
 				boolean same = false;
 				if (page instanceof PagePro && ((PagePro) page).getSourceLength() == srcFile.length()) {

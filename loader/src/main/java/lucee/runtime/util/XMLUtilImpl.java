@@ -195,8 +195,8 @@ public final class XMLUtilImpl implements XMLUtil {
 	 * @param xml XML InputSource
 	 * @param isHtml is a HTML or XML Object
 	 * @return parsed Document
-	 * @throws SAXException
-	 * @throws IOException
+	 * @throws SAXException SAX Exception
+	 * @throws IOException IO Exception
 	 */
 	@Override
 	public final Document parse(InputSource xml, InputSource validator, boolean isHtml) throws SAXException, IOException {
@@ -427,9 +427,9 @@ public final class XMLUtilImpl implements XMLUtil {
 	/**
 	 * returns the Node Type As String
 	 * 
-	 * @param node
-	 * @param cftype
-	 * @return
+	 * @param node node
+	 * @param cftype CF Type
+	 * @return Returns the Node type.
 	 */
 	public String getTypeAsString(Node node, boolean cftype) {
 		String suffix = cftype ? "" : "_NODE";

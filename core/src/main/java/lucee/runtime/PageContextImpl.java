@@ -134,6 +134,7 @@ import lucee.runtime.listener.ClassicApplicationContext;
 import lucee.runtime.listener.JavaSettingsImpl;
 import lucee.runtime.listener.ModernAppListener;
 import lucee.runtime.listener.ModernAppListenerException;
+import lucee.runtime.listener.NoneAppListener;
 import lucee.runtime.listener.SessionCookieData;
 import lucee.runtime.listener.SessionCookieDataImpl;
 import lucee.runtime.monitor.RequestMonitor;
@@ -145,11 +146,10 @@ import lucee.runtime.net.mail.ServerImpl;
 import lucee.runtime.net.proxy.ProxyData;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
-import lucee.runtime.op.Operator;
+import lucee.runtime.op.OpUtil;
 import lucee.runtime.orm.ORMConfiguration;
 import lucee.runtime.orm.ORMEngine;
 import lucee.runtime.orm.ORMSession;
-import lucee.runtime.osgi.OSGiUtil;
 import lucee.runtime.regex.Regex;
 import lucee.runtime.rest.RestRequestListener;
 import lucee.runtime.rest.RestUtil;
@@ -342,6 +342,7 @@ public final class PageContextImpl extends PageContext {
 	private ORMSession ormSession;
 	private boolean isChild;
 	private boolean gatewayContext;
+	private boolean listenerContext;
 	private Password serverPassword;
 
 	private PageException pe;
@@ -531,6 +532,7 @@ public final class PageContextImpl extends PageContext {
 		if (clone) {
 			this._psq = tmplPC._psq;
 			this.gatewayContext = tmplPC.gatewayContext;
+			this.listenerContext = tmplPC.listenerContext;
 		}
 		else {
 			_psq = null;
@@ -596,7 +598,9 @@ public final class PageContextImpl extends PageContext {
 		}
 
 		if (config.debug()) {
-			if (!gatewayContext && !isChild) config.getDebuggerPool().store(this, debugger);
+			boolean skipLogThread = isChild;
+			if (skipLogThread && config.hasDebugOptions(ConfigPro.DEBUG_THREAD)) skipLogThread = false;
+			if (!gatewayContext && !skipLogThread) config.getDebuggerPool().store(this, debugger);
 			debugger.reset();
 		}
 		else debugger.resetTraces(); // traces can alo be used when debugging is off
@@ -665,7 +669,7 @@ public final class PageContextImpl extends PageContext {
 
 		cookie.release(this);
 		application = null;// not needed at the moment -> application.releaseAfterRequest();
-		applicationContext = null;
+		applicationContext = null;// do not release may used by child threads
 
 		// Properties
 		requestTimeout = -1;
@@ -724,6 +728,7 @@ public final class PageContextImpl extends PageContext {
 		activeUDF = null;
 
 		gatewayContext = false;
+		listenerContext = false;
 
 		manager.release();
 		includeOnce.clear();
@@ -733,6 +738,7 @@ public final class PageContextImpl extends PageContext {
 		tagName = null;
 		parentTags = null;
 		_psq = null;
+		dummy = false;
 		listenSettings = false;
 
 		if (ormSession != null) {
@@ -1284,7 +1290,7 @@ public final class PageContextImpl extends PageContext {
 	private String hintAplication(String prefix) {
 		boolean isCFML = getRequestDialect() == CFMLEngine.DIALECT_CFML;
 		return prefix + " with the tag " + (isCFML ? lucee.runtime.config.Constants.CFML_APPLICATION_TAG_NAME : lucee.runtime.config.Constants.LUCEE_APPLICATION_TAG_NAME)
-				+ "or with the " + (isCFML ? lucee.runtime.config.Constants.CFML_APPLICATION_EVENT_HANDLER : lucee.runtime.config.Constants.LUCEE_APPLICATION_EVENT_HANDLER);
+				+ " or with the " + (isCFML ? lucee.runtime.config.Constants.CFML_APPLICATION_EVENT_HANDLER : lucee.runtime.config.Constants.LUCEE_APPLICATION_EVENT_HANDLER);
 
 	}
 
@@ -1623,10 +1629,10 @@ public final class PageContextImpl extends PageContext {
 				if (!hasMin && !hasMax) throw new ExpressionException("you need to define one of the following attributes [min,max], when type is set to [range]");
 
 				if (hasMin && number < min)
-					throw new ExpressionException("The number [" + Caster.toString(number) + "] is too small, the number must be at least [" + Caster.toString(min) + "]");
+					throw new ExpressionException("The number [" + Caster.toString(number) + "] is to small, the number must be at least [" + Caster.toString(min) + "]");
 
 				if (hasMax && number > max)
-					throw new ExpressionException("The number [" + Caster.toString(number) + "] is too big, the number cannot be bigger than [" + Caster.toString(max) + "]");
+					throw new ExpressionException("The number [" + Caster.toString(number) + "] is to big, the number cannot be bigger than [" + Caster.toString(max) + "]");
 
 				setVariable(name, Caster.toDouble(number));
 			}
@@ -2466,9 +2472,13 @@ public final class PageContextImpl extends PageContext {
 	}
 
 	private final void execute(PageSource ps, boolean throwExcpetion, boolean onlyTopLevel) throws PageException {
-		ApplicationListener listener = getRequestDialect() == CFMLEngine.DIALECT_CFML
-				? (gatewayContext ? config.getApplicationListener() : ((MappingImpl) ps.getMapping()).getApplicationListener())
-				: ModernAppListener.getInstance();
+		ApplicationListener listener;
+		// if a listener is called (Web.cfc/Server.cfc we don't wanna any Application.cfc to be executed)
+		if (listenerContext) listener = new NoneAppListener();
+		else if (getRequestDialect() == CFMLEngine.DIALECT_LUCEE) listener = ModernAppListener.getInstance();
+		else if (gatewayContext) listener = config.getApplicationListener();
+		else listener = ((MappingImpl) ps.getMapping()).getApplicationListener();
+
 		Throwable _t = null;
 		try {
 			initallog();
@@ -2625,7 +2635,7 @@ public final class PageContextImpl extends PageContext {
 	public String getURLToken() {
 		if (getConfig().getSessionType() == Config.SESSION_TYPE_JEE) {
 			HttpSession s = getSession();
-			return "CFID=" + getCFID() + "&CFTOKEN=" + getCFToken() + "&jsessionid=" + (s != null ? getSession().getId() : "");
+			return "CFID=" + getCFID() + "&CFTOKEN=" + getCFToken() + "&jsessionid=" + (s != null ? s.getId() : "");
 		}
 		return "CFID=" + getCFID() + "&CFTOKEN=" + getCFToken();
 	}
@@ -2718,7 +2728,12 @@ public final class PageContextImpl extends PageContext {
 	}
 
 	private boolean isValidCfToken(String value) {
-		return Operator.compare(value, "0") == 0;
+		try {
+			return OpUtil.compare(this, value, "0") == 0;
+		}
+		catch (PageException e) {
+			return value.equals("0");
+		}
 	}
 
 	public void resetIdAndToken() {
@@ -3019,7 +3034,7 @@ public final class PageContextImpl extends PageContext {
 			else {
 				(u.getCheckArguments() ? u.localScope() : u).setEL(KeyConstants._cfcatch, pe.getCatchBlock(config));
 				if (name != null && !StringUtil.isEmpty(name, true)) (u.getCheckArguments() ? u.localScope() : u).setEL(KeyImpl.getInstance(name.trim()), pe.getCatchBlock(config));
-				if (!gatewayContext && config.debug() && config.hasDebugOptions(ConfigPro.DEBUG_EXCEPTION) && caught) {
+				if (!gatewayContext && config.debug() && config.hasDebugOptions(ConfigPro.DEBUG_EXCEPTION)) {
 					/*
 					 * print.e("-----------------------"); print.e("msg:" + pe.getMessage()); print.e("caught:" +
 					 * caught); print.e("store:" + store); print.e("signal:" + signal); print.e("outer:" + outer);
@@ -3104,7 +3119,12 @@ public final class PageContextImpl extends PageContext {
 		session = null;
 		application = null;
 		client = null;
-		this.applicationContext = (ApplicationContextSupport) applicationContext;
+
+		if (applicationContext != null) this.applicationContext = (ApplicationContextSupport) applicationContext;
+		else applicationContext = this.applicationContext;
+
+		if (applicationContext == null) return;
+
 		setFullNullSupport();
 		int scriptProtect = applicationContext.getScriptProtect();
 
@@ -3446,6 +3466,7 @@ public final class PageContextImpl extends PageContext {
 
 	private String tagName;
 
+	private boolean dummy;
 	private boolean listenSettings;
 
 	public boolean isTrusted(Page page) {
@@ -3499,7 +3520,7 @@ public final class PageContextImpl extends PageContext {
 		JavaSettingsImpl js = (JavaSettingsImpl) applicationContext.getJavaSettings();
 
 		if (js != null) {
-			Resource[] jars = OSGiUtil.extractAndLoadBundles(this, js.getResourcesTranslated());
+			Resource[] jars = js.getResourcesTranslated();
 			if (jars.length > 0) return config.getResourceClassLoader().getCustomResourceClassLoader(jars);
 		}
 		return config.getResourceClassLoader();
@@ -3513,7 +3534,7 @@ public final class PageContextImpl extends PageContext {
 		JavaSettingsImpl js = (JavaSettingsImpl) applicationContext.getJavaSettings();
 		ClassLoader cl = config.getRPCClassLoader(reload, parents);
 		if (js != null) {
-			Resource[] jars = OSGiUtil.extractAndLoadBundles(this, js.getResourcesTranslated());
+			Resource[] jars = js.getResourcesTranslated();
 			if (jars.length > 0) return ((PhysicalClassLoader) cl).getCustomClassLoader(jars, reload);
 		}
 		return cl;
@@ -3539,6 +3560,10 @@ public final class PageContextImpl extends PageContext {
 	 */
 	public void setGatewayContext(boolean gatewayContext) {
 		this.gatewayContext = gatewayContext;
+	}
+
+	public void setListenerContext(boolean listenerContext) {
+		this.listenerContext = listenerContext;
 	}
 
 	public void setServerPassword(Password serverPassword) {
@@ -3757,7 +3782,7 @@ public final class PageContextImpl extends PageContext {
 		return config.getLog(name, createIfNecessary);
 	}
 
-	public java.util.Collection<String> getLogNames() {
+	public java.util.Collection<String> getLogNames() throws PageException {
 		java.util.Collection<String> cnames = config.getLoggers().keySet();
 		if (applicationContext != null) {
 			java.util.Collection<Collection.Key> anames = applicationContext.getLogNames();
@@ -3804,6 +3829,15 @@ public final class PageContextImpl extends PageContext {
 			if (parentTags == null) parentTags = new ArrayList<String>();
 			parentTags.add(tagName);
 		}
+	}
+
+	public boolean isDummy() {
+		return dummy;
+	}
+
+	public PageContextImpl setDummy(boolean dummy) {
+		this.dummy = dummy;
+		return this;
 	}
 
 	public TimeSpan getCachedAfterTimeRange() { // FUTURE add to interface

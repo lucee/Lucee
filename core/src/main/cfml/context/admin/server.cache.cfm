@@ -381,13 +381,6 @@ Create Datasource --->
 							applicationPathCacheClear();
 						</cfsavecontent>
 						<cfset renderCodingTip( codeSample, stText.settings.codetip )>
-
-						<div class="warning nofocus">
-							This feature is experimental.
-							If you have any problems while using this functionality,
-							please post the bugs and errors in our
-							<a href="https://issues.lucee.org" target="_blank">bugtracking system</a>. 
-						</div>
 					</td>
 				</tr>
 				

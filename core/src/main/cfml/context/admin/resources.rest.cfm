@@ -241,9 +241,9 @@ list all mappings and display necessary edit fields --->
 				<tfoot>
 					<tr>
 						<td colspan="5">
-							<input type="submit" class="bl button submit" name="mainAction" value="#stText.Buttons.save#">
-							<input type="reset" class="bm button reset" name="cancel" value="#stText.Buttons.Cancel#">
-							<input type="submit" class="br button submit" name="mainAction" value="#stText.Buttons.Delete#">
+							<input type="submit" class="bl button submit enablebutton" name="mainAction" value="#stText.Buttons.save#">
+							<input type="reset" class="bm button reset enablebutton" id="clickCancel" name="cancel" value="#stText.Buttons.Cancel#">
+							<input type="submit" class="br button submit enablebutton" name="mainAction" value="#stText.Buttons.Delete#">
 						</td>
 					</tr>
 				</tfoot>

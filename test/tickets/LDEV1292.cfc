@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase"{
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="mysql" {
 	// skip closure
 	function isNotSupported() {
 		var mySql = getCredentials();
@@ -44,7 +44,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 	// private Function//
 	private string function createURI(string calledName){
 		var baseURI="/test/#listLast(getDirectoryFromPath(getCurrenttemplatepath()),"\/")#/";
-		return baseURI&""&calledName;
+		return baseURI&""&calledNasme;
 	}
 
 	private struct function getCredentials() {
@@ -54,7 +54,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 
 	private string function defineDatasource(){
 		var mySql = getCredentials();
-		application action="update"  datasource="#mysq#";
+		application action="update" datasource=mySQL;
 	}
 
 	private function createTable() {

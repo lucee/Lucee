@@ -361,8 +361,8 @@ public final class ArgumentImpl extends ScopeSupport implements Argument, ArrayP
 		throw new ExpressionException("can not overwrite arguments scope");
 	}
 
-	public ArrayList toArrayList() {
-		ArrayList list = new ArrayList();
+	public ArrayList<Object> toArrayList() {
+		ArrayList<Object> list = new ArrayList<Object>();
 		Object[] arr = toArray();
 		for (int i = 0; i < arr.length; i++) {
 			list.add(arr[i]);

@@ -22,7 +22,7 @@ import lucee.runtime.exp.TemplateException;
 import lucee.transformer.bytecode.expression.var.Argument;
 import lucee.transformer.bytecode.expression.var.BIF;
 import lucee.transformer.bytecode.op.OpBigDecimal;
-import lucee.transformer.bytecode.op.OpDouble;
+import lucee.transformer.bytecode.op.OpNumber;
 import lucee.transformer.cfml.evaluator.EvaluatorException;
 import lucee.transformer.cfml.evaluator.FunctionEvaluator;
 import lucee.transformer.expression.Expression;
@@ -37,17 +37,17 @@ public class PrecisionEvaluate implements FunctionEvaluator {
 
 		for (Argument arg: args) {
 			Expression value = arg.getValue();
-			if (value instanceof OpDouble) {
-				arg.setValue(value.getFactory().toExprString(toOpBigDecimal(((OpDouble) value))), "any");
+			if (value instanceof OpNumber) {
+				arg.setValue(value.getFactory().toExprString(toOpBigDecimal(((OpNumber) value))), "any");
 			}
 		}
 	}
 
-	private OpBigDecimal toOpBigDecimal(OpDouble op) {
+	private OpBigDecimal toOpBigDecimal(OpNumber op) {
 		Expression left = op.getLeft();
 		Expression right = op.getRight();
-		if (left instanceof OpDouble) left = toOpBigDecimal((OpDouble) left);
-		if (right instanceof OpDouble) right = toOpBigDecimal((OpDouble) right);
+		if (left instanceof OpNumber) left = toOpBigDecimal((OpNumber) left);
+		if (right instanceof OpNumber) right = toOpBigDecimal((OpNumber) right);
 		return new OpBigDecimal(left, right, op.getOperation());
 	}
 

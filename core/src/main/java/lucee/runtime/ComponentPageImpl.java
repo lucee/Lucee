@@ -1013,6 +1013,7 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 	}
 
 	public String getComponentName() {
+		if (getSubname() != null) return getPageSource().getComponentName() + "$" + getSubname();
 		return getPageSource().getComponentName();
 	}
 

@@ -1,4 +1,4 @@
-component extends = "org.lucee.cfml.test.LuceeTestCase" {
+component extends = "org.lucee.cfml.test.LuceeTestCase" labels="mssql"{
 
 	function beforeAll() {
 		variables.uri = createURI("LDEV2549");
@@ -30,24 +30,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 	}
 
 	private boolean function isNotSupported() {
-		// getting the credetials from the enviroment variables
-		if(
-			!isNull(server.system.environment.MSSQL_SERVER) && 
-			!isNull(server.system.environment.MSSQL_USERNAME) && 
-			!isNull(server.system.environment.MSSQL_PASSWORD) && 
-			!isNull(server.system.environment.MSSQL_PORT) && 
-			!isNull(server.system.environment.MSSQL_DATABASE)) {
-			return false;
-		}
-		// getting the credetials from the system variables
-		else if(
-			!isNull(server.system.properties.MSSQL_SERVER) && 
-			!isNull(server.system.properties.MSSQL_USERNAME) && 
-			!isNull(server.system.properties.MSSQL_PASSWORD) && 
-			!isNull(server.system.properties.MSSQL_PORT) && 
-			!isNull(server.system.properties.MSSQL_DATABASE)) {
-			return false;
-		}
-		return true;
+		// getting the credentials from the environment variables
+		return ( structCount(server.getDatasource("mssql")) eq 0 );		
 	}
 }

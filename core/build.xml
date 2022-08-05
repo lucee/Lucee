@@ -22,6 +22,6 @@
       <property name="baseDir" location="."/>
   </target>
 
-	  <target name="core" depends="setEnv" description="build only Lucee itself"> </target>
+	  <target name="core,build" depends="setEnv" description="build only Lucee itself"> </target>
 	   
 </project>

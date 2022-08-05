@@ -164,7 +164,7 @@ public class QueryArray extends ArrayImpl implements QueryResult {
 
 		Struct tmp;
 		for (int r = 1; r <= rows; r++) {
-			qa.add(tmp = new StructImpl());
+			qa.add(tmp = new StructImpl(Struct.TYPE_LINKED));
 			for (Key c: columns) {
 				tmp.set(c, q.getAt(c, r, null));
 			}

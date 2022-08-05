@@ -78,8 +78,6 @@ public final class TagFunction extends TagBase implements IFunction {
 		RefBoolean isStatic = new RefBooleanImpl();
 		Function func = createFunction(bc.getPage(), functionBody, isStatic, bc.getOutput());
 
-		// ScriptBody sb=new ScriptBody(bc.getFactory());
-
 		func.setParent(getParent());
 
 		List<Statement> statements = getBody().getStatements();
@@ -273,9 +271,9 @@ public final class TagFunction extends TagBase implements IFunction {
 		int acc = ComponentUtil.toIntAccess(strAccess, -1);
 		if (acc == -1) throw new TransformerException("invalid access type [" + strAccess + "], access types are remote, public, package, private", getStart());
 
-		Function func = new FunctionImpl(page, name, returnType, returnFormat, output, bufferOutput, acc, displayname, description, hint, secureJson, verifyClient, localMode,
+		Function func = new FunctionImpl(name, returnType, returnFormat, output, bufferOutput, acc, displayname, description, hint, secureJson, verifyClient, localMode,
 				cachedWithin, modifier, body, getStart(), getEnd());
-		func.register();
+		func.register(page);
 		// %**%
 		Map attrs = getAttributes();
 		Iterator it = attrs.entrySet().iterator();

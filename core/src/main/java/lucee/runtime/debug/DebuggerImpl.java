@@ -30,6 +30,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
+import javax.servlet.http.HttpServletResponse;
+
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.SystemUtil.TemplateLine;
 import lucee.commons.io.res.util.ResourceSnippet;
@@ -45,6 +47,7 @@ import lucee.runtime.PageSourceImpl;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigWebPro;
+import lucee.runtime.config.DatasourceConnPool;
 import lucee.runtime.db.SQL;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
@@ -164,6 +167,7 @@ public final class DebuggerImpl implements Debugger {
 		return getEntry(pc, source, null);
 	}
 
+	// add pages entry
 	@Override
 	public DebugEntryTemplate getEntry(PageContext pc, PageSource source, String key) {
 		lastEntry = System.currentTimeMillis();
@@ -183,6 +187,7 @@ public final class DebuggerImpl implements Debugger {
 		return de;
 	}
 
+	// add page parts entry
 	@Override
 	public DebugEntryTemplatePart getEntry(PageContext pc, PageSource source, int startPos, int endPos) {
 		String src = DebugEntryTemplatePartImpl.getSrc(source == null ? "" : source.getDisplayPath(), startPos, endPos);
@@ -403,7 +408,7 @@ public final class DebuggerImpl implements Debugger {
 		Struct debugging = new StructImpl();
 
 		// datasources
-		debugging.setEL(KeyConstants._datasources, ((ConfigPro) pc.getConfig()).getDatasourceConnectionPool().meta());
+		debugging.setEL(KeyConstants._datasources, DatasourceConnPool.meta(((ConfigPro) pc.getConfig()).getDatasourceConnectionPools()));
 
 		ConfigPro ci = (ConfigPro) ThreadLocalPageContext.getConfig(pc);
 		//////////////////////////////////////////
@@ -516,8 +521,6 @@ public final class DebuggerImpl implements Debugger {
 		int qrySize = 0;
 		Query qryPart = null;
 		if (hasParts) {
-			qryPart = new QueryImpl(PAGE_PART_COLUMNS, qrySize, "query");
-			debugging.setEL(PAGE_PARTS, qryPart);
 			String slowestTemplate = arrPages.get(0).getPath();
 			List<DebugEntryTemplatePart> filteredPartEntries = new ArrayList();
 			java.util.Collection<DebugEntryTemplatePartImpl> col = partEntries.values();
@@ -526,6 +529,9 @@ public final class DebuggerImpl implements Debugger {
 				if (detp.getPath().equals(slowestTemplate)) filteredPartEntries.add(detp);
 			}
 			qrySize = Math.min(filteredPartEntries.size(), MAX_PARTS);
+
+			qryPart = new QueryImpl(PAGE_PART_COLUMNS, qrySize, "query");
+			debugging.setEL(PAGE_PARTS, qryPart);
 
 			int row = 0;
 			Collections.sort(filteredPartEntries, DEBUG_ENTRY_TEMPLATE_PART_COMPARATOR);
@@ -756,6 +762,11 @@ public final class DebuggerImpl implements Debugger {
 			scopes.setEL(KeyConstants._cgi, pc.cgiScope());
 			debugging.setEL(KeyConstants._scope, scopes);
 		}
+
+		HttpServletResponse rsp = pc.getHttpServletResponse();
+		debugging.setEL(KeyImpl.getInstance("statusCode"), rsp.getStatus());
+		debugging.setEL(KeyImpl.getInstance("contentType"), rsp.getContentType());
+		// TODO ContentLength ReqRspUtil?
 
 		debugging.setEL(KeyImpl.getInstance("starttime"), new DateTimeImpl(starttime, false));
 		debugging.setEL(KeyConstants._id, pci.getRequestId() + "-" + pci.getId());

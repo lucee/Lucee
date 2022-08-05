@@ -26,14 +26,14 @@ public interface DebugEntryTemplatePart extends DebugEntry {
 	/**
 	 * start position (0 offset) on this Entry
 	 * 
-	 * @return
+	 * @return Returns the start position.
 	 */
 	public int getStartPosition();
 
 	/**
 	 * end position (0 offset) on this Entry
 	 * 
-	 * @return
+	 * @return Returns the end position.
 	 */
 	public int getEndPosition();
 

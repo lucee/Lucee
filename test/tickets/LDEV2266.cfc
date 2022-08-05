@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase"	{
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="mysql" {
 	
 	
 	//public function afterTests(){}
@@ -45,17 +45,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		var ds={};
 
 		// H2
-		var ds['h2']={
-	  		class: 'org.h2.Driver'
-	  		,bundleName:"org.h2"
-	  		, connectionString: 'jdbc:h2:#getDirectoryFromPath(getCurrentTemplatePath())#/datasource/dbh2;MODE=MySQL'
-		};
+		var ds['h2'] = server.getDatasource("h2", "#getDirectoryFromPath(getCurrentTemplatePath())#/datasource/dbh2" );
 		
 		// MySQL
-		var mySQL=getCredencials();
+		var mySQL=getCredentials();
 		var has=false;
 		if(mySQL.count()>0) {
-			var ds['mysql']=server.getDatasource("mysql");
+			var ds['mysql']=mySQL;
 			has=true;
 		}
 
@@ -64,22 +60,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		return has;
 	}
 
-	private struct function getCredencials() {
+	private struct function getCredentials() {
 		return server.getDatasource("mysql");
-	}
-
-	function afterTests() {
-		var javaIoFile=createObject("java","java.io.File");
-		loop array=DirectoryList(
-			path=getDirectoryFromPath(getCurrentTemplatePath()), 
-			recurse=true, filter="*.db") item="local.path"  {
-			fileDeleteOnExit(javaIoFile,path);
-		}
-	}
-
-	private function fileDeleteOnExit(required javaIoFile, required string path) {
-		var file=javaIoFile.init(arguments.path);
-		if(!file.isFile())file=javaIoFile.init(expandPath(arguments.path));
-		if(file.isFile()) file.deleteOnExit();
 	}
 } 

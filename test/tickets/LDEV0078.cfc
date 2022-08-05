@@ -16,25 +16,25 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  * 
  ---><cfscript>
-component extends="org.lucee.cfml.test.LuceeTestCase"	{
+component extends="org.lucee.cfml.test.LuceeTestCase"  labels="mysql,orm" {
 
 
 	public void function test1(){
-		if(!hasCredencials()) return;
+		if(!hasCredentials()) return;
 		local.uri=createURI("LDEV0078/test1.cfm");
 		local.result=_InternalRequest(uri);
 		assertEquals("true",trim(result.filecontent));
 	}
 
 	public void function test2(){
-		if(!hasCredencials()) return;
+		if(!hasCredentials()) return;
 		local.uri=createURI("LDEV0078/test2.cfm");
 		local.result=_InternalRequest(uri);
 		assertEquals("true",trim(result.filecontent));
 	}
 
 	public void function test3(){
-		if(!hasCredencials()) return;
+		if(!hasCredentials()) return;
 		local.uri=createURI("LDEV0078/test3.cfm");
 		local.result=_InternalRequest(uri);
 		assertEquals("true",trim(result.filecontent));
@@ -45,8 +45,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		return baseURI&""&calledName;
 	}
 
-	private boolean function hasCredencials() {
-		return (structCount(server.getDatasource("mysql")) gt 0);
+	private boolean function hasCredentials() {
+		return structCount(server.getDatasource("mysql"));
 	}
 	
 } 

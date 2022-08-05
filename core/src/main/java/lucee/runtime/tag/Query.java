@@ -72,6 +72,7 @@ import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.orm.ORMSession;
 import lucee.runtime.orm.ORMUtil;
+import lucee.runtime.spooler.SpoolerEngineImpl;
 import lucee.runtime.tag.listener.ComponentTagListener;
 import lucee.runtime.tag.listener.TagListener;
 import lucee.runtime.tag.listener.UDFTagListener;
@@ -558,8 +559,8 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 
 		if (data.async) {
 			PageSource ps = getPageSource();
-			((ConfigPro) pageContext.getConfig()).getSpoolerEngine()
-					.add(new QuerySpoolerTask(pageContext, data, strSQL, toTemplateLine(pageContext.getConfig(), sourceTemplate, ps), ps));
+			((SpoolerEngineImpl) ((ConfigPro) pageContext.getConfig()).getSpoolerEngine()).add(pageContext.getConfig(),
+					new QuerySpoolerTask(pageContext, data, strSQL, toTemplateLine(pageContext.getConfig(), sourceTemplate, ps), ps));
 		}
 		else {
 			_doEndTag(pageContext, data, strSQL, toTemplateLine(pageContext.getConfig(), sourceTemplate, getPageSource()), true); // when
@@ -618,7 +619,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 
 			if (useCache) {
 
-				cacheId = CacheHandlerCollectionImpl.createId(sqlQuery, data.datasource != null ? data.datasource.getName() : null, data.username, data.password, data.returntype);
+				cacheId = CacheHandlerCollectionImpl.createId(sqlQuery, data.datasource != null ? data.datasource.getName() : null, data.username, data.password, data.returntype, data.maxrows);
 
 				CacheHandlerCollectionImpl coll = (CacheHandlerCollectionImpl) pageContext.getConfig().getCacheHandlerCollection(Config.CACHE_TYPE_QUERY, null);
 				cacheHandler = coll.getInstanceMatchingObject(data.cachedWithin, null);
@@ -893,14 +894,12 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 		 * Iterator<Entry<String, TagLibTagAttr>> it = tlt.getAttributes().entrySet().iterator();
 		 * Entry<String, TagLibTagAttr> e; while(it.hasNext()) { e=it.next(); e.getValue().get(this); }
 		 */
-
 		set(args, "cachedAfter", data.cachedAfter);
 		set(args, "cachedWithin", data.cachedWithin);
 		if (data.columnName != null) set(args, "columnName", data.columnName.getString());
 		set(args, KeyConstants._datasource, data.rawDatasource);
 		set(args, "dbtype", data.dbtype);
 		set(args, KeyConstants._debug, data.debug);
-		set(args, "lazy", data.lazy);
 		if (data.maxrows >= 0) set(args, "maxrows", data.maxrows);
 		set(args, KeyConstants._name, data.name);
 		set(args, "ormoptions", data.ormoptions);

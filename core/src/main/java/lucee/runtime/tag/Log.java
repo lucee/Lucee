@@ -227,20 +227,24 @@ public final class Log extends TagImpl {
 					while (it.hasNext()) {
 						keys[index++] = KeyImpl.init(it.next());
 					}
-
-					throw new ApplicationException(ExceptionUtil.similarKeyMessage(keys, log, "attribute log", "log names", null, true));
+					String msg = ExceptionUtil.similarKeyMessage(keys, log, "attribute log", "log names", null, true);
+					String detail = ExceptionUtil.similarKeyMessage(keys, log, "log names", null, true);
+					throw new ApplicationException(msg, detail);
 				}
 			}
 		}
 		else {
 			logger = getFileLog(pageContext, file, charset, async);
 		}
-
 		String contextName = pageContext.getApplicationContext().getName();
 		if (contextName == null || !application) contextName = "";
 		if (exception != null) {
-			if (StringUtil.isEmpty(text)) logger.log(type, contextName, exception);
-			else logger.log(type, contextName, text, exception);
+			if (StringUtil.isEmpty(text)) {
+				logger.log(type, contextName, exception);
+			}
+			else {
+				logger.log(type, contextName, text, exception);
+			}
 		}
 		else if (!StringUtil.isEmpty(text)) {
 			logger.log(type, contextName, text);
@@ -256,16 +260,22 @@ public final class Log extends TagImpl {
 		Resource logDir = config.getLogDirectory();
 		Resource res = logDir.getRealResource(file);
 		lucee.commons.io.log.Log log = FileLogPool.instance.get(res, CharsetUtil.toCharset(charset));
-		if (log != null) return log;
+		if (log != null) {
+			log.setLogLevel(lucee.commons.io.log.Log.LEVEL_TRACE);
+			return log;
+		}
 		synchronized (FileLogPool.instance) {
 			log = FileLogPool.instance.get(res, CharsetUtil.toCharset(charset));
-			if (log != null) return log;
-
+			if (log != null) {
+				log.setLogLevel(lucee.commons.io.log.Log.LEVEL_TRACE);
+				return log;
+			}
 			if (charset == null) charset = CharsetUtil.toCharSet(((PageContextImpl) pc).getResourceCharset());
 
 			log = config.getLogEngine().getResourceLog(res, CharsetUtil.toCharset(charset), "cflog." + FileLogPool.toKey(file, CharsetUtil.toCharset(charset)),
 					lucee.commons.io.log.Log.LEVEL_TRACE, 5, new Listener(FileLogPool.instance, res, charset), async);
 			FileLogPool.instance.put(res, CharsetUtil.toCharset(charset), log);
+
 			return log;
 		}
 	}

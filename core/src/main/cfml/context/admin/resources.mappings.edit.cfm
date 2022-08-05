@@ -15,6 +15,11 @@
 	<cfformClassic onerror="customError" action="#request.self#?virtual=#mapping.virtual#&action=#url.action#&action2=#url.action2#" method="post">
 		<input type="hidden" name="mainAction" value="#stText.Buttons.save#">
 		<input type="hidden"  name="row_#mapping.id#" value="#mapping.id#">
+		<cfif !isEmpty(mapping.strArchive) && isEmpty(mapping.archive)>
+			<div class="error"><p style="color:red"><b>#stText.mappings.archiveAlert#</b></p></div>
+		<cfelseif !isempty(mapping.strPhysical) && isempty(mapping.physical)>
+			<div class="error"><p style="color:red" class="error"><b>#stText.mappings.physicalAlert#</b></p></div>
+		</cfif>
 		<table class="maintbl">
 			<tbody>
 				<tr>

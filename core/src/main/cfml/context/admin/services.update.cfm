@@ -43,7 +43,15 @@
 		<cfset error.cfcatch=cfcatch>
 	</cfcatch>
 </cftry>
- <cfif request.admintype EQ "web"><cflocation url="#request.self#" addtoken="no"></cfif>
+<cfif request.admintype EQ "web"><cflocation url="#request.self#" addtoken="no"></cfif>
+
+<!--- only available for server --->
+<cfadmin
+    action="getloaderinfo"
+    type="#request.adminType#"
+    password="#session["password"&request.adminType]#"
+    returnVariable="loaderInfo">
+
 <cfset error.message="">
 <cfset error.detail="">
 
@@ -401,7 +409,7 @@
 			});
 		</script>
 	</cfhtmlbody>
-
-	<p class="comment">* #replace(stText.services.update.titleDesc2,'{min-version}',"<b>"&minVersion&"</b>") #</p>
+	<cfset stText.services.update.titleDesc2 = replaceListNoCase(stText.services.update.titleDesc2,'{min-version},{server.lucee.loaderPath}','<b>#minVersion#</b>,<b>#listDeleteAt(loaderInfo.LoaderPath,listlen(loaderInfo.LoaderPath,"\/"),"\/")#</b>')>
+	<p class="comment">* #replace(stText.services.update.titleDesc2,'{context}',"<b class='error'>"&#expandPath("{lucee-server}\patches")#&"</b>") #</p>
 	
 </cfoutput>

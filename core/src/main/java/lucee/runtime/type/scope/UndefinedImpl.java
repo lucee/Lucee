@@ -236,8 +236,9 @@ public final class UndefinedImpl extends StructSupport implements Undefined, Obj
 				}
 			}
 		}
-
-		if (pc.getConfig().debug()) throw new ExpressionException(ExceptionUtil.similarKeyMessage(this, key.getString(), "key", "keys", null, false));
+		String msg = ExceptionUtil.similarKeyMessage(this, key.getString(), "key", "keys", null, false);
+		String detail = ExceptionUtil.similarKeyMessage(this, key.getString(), "keys", null, false);
+		if (pc.getConfig().debug()) throw new ExpressionException(msg, detail);
 
 		throw new ExpressionException("variable [" + key.getString() + "] doesn't exist");
 	}
@@ -670,7 +671,7 @@ public final class UndefinedImpl extends StructSupport implements Undefined, Obj
 
 	@Override
 	public final boolean containsKey(Key key) {
-		return get(key, null) != null;
+		return get(pc, key, null) != null;
 	}
 
 	@Override
@@ -799,7 +800,7 @@ public final class UndefinedImpl extends StructSupport implements Undefined, Obj
 
 	@Override
 	public Object callWithNamedValues(PageContext pc, Key methodName, Struct args) throws PageException {
-		Object obj = get(methodName, null);
+		Object obj = get(pc, methodName, null);
 		if (obj instanceof UDF) {
 			return ((UDF) obj).callWithNamedValues(pc, methodName, args, false);
 		}

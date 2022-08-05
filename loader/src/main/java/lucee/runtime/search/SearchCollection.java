@@ -48,54 +48,56 @@ public interface SearchCollection extends Serializable {
 	/**
 	 * create a collection
 	 * 
-	 * @throws SearchException
+	 * @throws SearchException Search Exception
 	 */
 	public abstract void create() throws SearchException;
 
 	/**
 	 * optimize a Collection
 	 * 
-	 * @throws SearchException
+	 * @throws SearchException Search Exception
 	 */
 	public abstract void optimize() throws SearchException;
 
 	/**
 	 * map a Collection
 	 * 
-	 * @param path
-	 * @throws SearchException
+	 * @param path path
+	 * @throws SearchException Search Exception
 	 */
 	public abstract void map(Resource path) throws SearchException;
 
 	/**
 	 * repair a Collection
 	 * 
-	 * @throws SearchException
+	 * @throws SearchException Search Exception
 	 */
 	public abstract void repair() throws SearchException;
 
 	/**
 	 * updates an index of a collection
 	 * 
-	 * @param pc
-	 * @param key
-	 * @param type
-	 * @param urlpath
-	 * @param title
-	 * @param body
-	 * @param language
-	 * @param extensions
-	 * @param query
-	 * @param recurse
-	 * @param categoryTree
-	 * @param categories
-	 * @param custom1
-	 * @param custom2
-	 * @param custom3
-	 * @param custom4
-	 * @throws PageException
-	 * @throws MalformedURLException
-	 * @throws SearchException
+	 * @param pc Page Context
+	 * @param key Key
+	 * @param type Type 
+	 * @param urlpath Query Name
+	 * @param title title
+	 * @param body body
+	 * @param language language
+	 * @param extensions extensions
+	 * @param query query
+	 * @param recurse recure
+	 * @param categoryTree category tree
+	 * @param categories categories
+	 * @param timeout timeout
+	 * @param custom1 custom1
+	 * @param custom2 custom2
+	 * @param custom3 custom3
+	 * @param custom4 custom4
+	 * @return Index Result
+	 * @throws PageException Page Exception
+	 * @throws MalformedURLException Malformed URL Exception
+	 * @throws SearchException Search Exception
 	 */
 	public abstract IndexResult index(PageContext pc, String key, short type, String urlpath, String title, String body, String language, String[] extensions, String query,
 			boolean recurse, String categoryTree, String[] categories, long timeout, String custom1, String custom2, String custom3, String custom4)
@@ -104,53 +106,59 @@ public interface SearchCollection extends Serializable {
 	/**
 	 * updates a collection with a file
 	 * 
-	 * @param id
-	 * @param title
-	 * @param file
-	 * @param language
-	 * @throws SearchException
+	 * @param id id
+	 * @param title Title
+	 * @param file file
+	 * @param language language
+	 * @return Index Result
+	 * @throws SearchException Search Exception
 	 */
 	public abstract IndexResult indexFile(String id, String title, Resource file, String language) throws SearchException;
 
 	/**
 	 * updates a collection with a path
 	 * 
-	 * @param id
-	 * @param title
-	 * @param dir
-	 * @param recurse
-	 * @param extensions
-	 * @param language
-	 * @throws SearchException
+	 * @param id id
+	 * @param title Title
+	 * @param dir Directory
+	 * @param recurse recurse
+	 * @param extensions extensions
+	 * @param language language
+	 * @return Index Result
+	 * @throws SearchException Search Exception
 	 */
 	public abstract IndexResult indexPath(String id, String title, Resource dir, String[] extensions, boolean recurse, String language) throws SearchException;
 
 	/**
 	 * updates a collection with an url
 	 * 
-	 * @param id
-	 * @param title
-	 * @param recurse
-	 * @param extensions
-	 * @param url
-	 * @param language
-	 * @throws SearchException
+	 * @param id id
+	 * @param title Title
+	 * @param recurse Recurse
+	 * @param extensions extensions
+	 * @param url url
+	 * @param language language
+	 * @param timeout timeout
+	 * @return Index Result
+	 * @throws SearchException Search Exception
 	 */
 	public abstract IndexResult indexURL(String id, String title, URL url, String[] extensions, boolean recurse, String language, long timeout) throws SearchException;
 
 	/**
 	 * updates a collection with a custom
 	 * 
-	 * @param id
+	 * @param id id
 	 * @param title Title for the Index
 	 * @param keyColumn Key Column
 	 * @param bodyColumns Body Column Array
 	 * @param language Language for index
-	 * @param custom1
-	 * @param custom2
-	 * @param custom3
-	 * @param custom4
-	 * @throws SearchException
+	 * @param custom1 custom1
+	 * @param custom2 custom2
+	 * @param custom3 custom3
+	 * @param custom4 custom4
+	 * @return Index Result
+	 * @throws SearchException Search Exception
+	 * 
 	 */
 	public abstract IndexResult indexCustom(String id, QueryColumn title, QueryColumn keyColumn, QueryColumn[] bodyColumns, String language, QueryColumn custom1,
 			QueryColumn custom2, QueryColumn custom3, QueryColumn custom4) throws SearchException;
@@ -158,16 +166,16 @@ public interface SearchCollection extends Serializable {
 	/**
 	 * updates a collection with a custom
 	 * 
-	 * @param id
+	 * @param id id
 	 * @param title Title for the Index
 	 * @param keyColumn Key Column
 	 * @param bodyColumns Body Column Array
 	 * @param language Language for index
-	 * @param urlpath
-	 * @param custom1
-	 * @param custom2
-	 * @param custom3
-	 * @param custom4
+	 * @param urlpath Url Path
+	 * @param custom1 custom1
+	 * @param custom2 custom2
+	 * @param custom3 custom3
+	 * @param custom4 custom4
 	 * @throws SearchException FUTURE add public abstract IndexResult indexCustom(String id, QueryColumn
 	 *             title, QueryColumn keyColumn, QueryColumn[] bodyColumns, String language,QueryColumn
 	 *             urlpath, QueryColumn custom1, QueryColumn custom2, QueryColumn custom3,QueryColumn
@@ -182,25 +190,28 @@ public interface SearchCollection extends Serializable {
 	/**
 	 * purge a collection
 	 * 
-	 * @throws SearchException
+	 * @return Index Result
+	 * @throws SearchException Search Exception
 	 */
 	public abstract IndexResult purge() throws SearchException;
 
 	/**
 	 * delete the collection
 	 * 
-	 * @throws SearchException
+	 * @return Index Result
+	 * @throws SearchException Search Exception
 	 */
 	public abstract IndexResult delete() throws SearchException;
 
 	/**
 	 * delete an Index from collection
 	 * 
-	 * @param pc
-	 * @param key
-	 * @param type
-	 * @param queryName
-	 * @throws SearchException
+	 * @param pc Page Context
+	 * @param key Key
+	 * @param type Type 
+	 * @param queryName Query Name
+	 * @return Index Result
+	 * @throws SearchException Search Exception
 	 */
 	public abstract IndexResult deleteIndex(PageContext pc, String key, short type, String queryName) throws SearchException;
 
@@ -244,18 +255,18 @@ public interface SearchCollection extends Serializable {
 	/**
 	 * search the collection
 	 * 
-	 * @param data
+	 * @param data data
 	 * @param qry Query to append results
-	 * @param criteria
-	 * @param language
+	 * @param criteria Search Criteria
+	 * @param language Language
 	 * @param type SEARCH_TYPE_EXPLICIT or SEARCH_TYPE_SIMPLE
-	 * @param startrow
-	 * @param maxrow
-	 * @param categoryTree
-	 * @param category
+	 * @param startrow start row
+	 * @param maxrow max rows
+	 * @param categoryTree catgeory Tree
+	 * @param category catgeory
 	 * @return new startrow
-	 * @throws SearchException
-	 * @throws PageException
+	 * @throws SearchException Search Exception
+	 * @throws PageException Page Exception
 	 */
 	public abstract int search(SearchData data, Query qry, String criteria, String language, short type, int startrow, int maxrow, String categoryTree, String[] category)
 			throws SearchException, PageException;
@@ -263,14 +274,14 @@ public interface SearchCollection extends Serializable {
 	/**
 	 * search the collection
 	 * 
-	 * @param data
-	 * @param criteria
-	 * @param language
+	 * @param data data
+	 * @param criteria Search Criteria
+	 * @param language Language
 	 * @param type SEARCH_TYPE_EXPLICIT or SEARCH_TYPE_SIMPLE
-	 * @param categoryTree
-	 * @param category
+	 * @param categoryTree catgeory Tree
+	 * @param category catgeory
 	 * @return Result as SearchRecord Array
-	 * @throws SearchException
+	 * @throws SearchException Search Exception
 	 */
 	public abstract SearchResulItem[] _search(SearchData data, String criteria, String language, short type, String categoryTree, String[] category) throws SearchException;
 

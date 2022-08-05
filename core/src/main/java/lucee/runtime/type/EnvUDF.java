@@ -24,18 +24,22 @@ import java.io.ObjectOutput;
 
 import lucee.runtime.Component;
 import lucee.runtime.PageContext;
+import lucee.runtime.PageContextImpl;
 import lucee.runtime.dump.DumpData;
 import lucee.runtime.dump.DumpProperties;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.listener.ApplicationContext;
 import lucee.runtime.type.scope.ClosureScope;
 import lucee.runtime.type.scope.Variables;
 
+// implements Supplier, BooleanSupplier, DoubleSupplier, IntSupplier, LongSupplier
 public abstract class EnvUDF extends UDFImpl {
 
 	private static final long serialVersionUID = -7200106903813254844L; // do not change
 
 	protected Variables variables;
+	protected ApplicationContext applicationContext;
 
 	public EnvUDF() {// needed for externalize
 		super();
@@ -51,6 +55,7 @@ public abstract class EnvUDF extends UDFImpl {
 			this.variables = pc.variablesScope();
 			variables.setBind(true);
 		}
+		this.applicationContext = pc.getApplicationContext();
 	}
 
 	EnvUDF(UDFProperties properties, Variables variables) {
@@ -68,48 +73,72 @@ public abstract class EnvUDF extends UDFImpl {
 	@Override
 	public Object callWithNamedValues(PageContext pc, Collection.Key calledName, Struct values, boolean doIncludePath) throws PageException {
 		Variables parent = pc.variablesScope();
+		ApplicationContext orgAC = null;
+		if (((PageContextImpl) pc).isDummy()) {
+			orgAC = pc.getApplicationContext();
+			pc.setApplicationContext(applicationContext);
+		}
 		try {
 			if (parent != variables) pc.setVariablesScope(variables);
 			return super.callWithNamedValues(pc, calledName, values, doIncludePath);
 		}
 		finally {
 			if (parent != variables) pc.setVariablesScope(parent);
+			if (orgAC != null) pc.setApplicationContext(orgAC);
 		}
 	}
 
 	@Override
 	public Object callWithNamedValues(PageContext pc, Struct values, boolean doIncludePath) throws PageException {
 		Variables parent = pc.variablesScope();
+		ApplicationContext orgAC = null;
+		if (((PageContextImpl) pc).isDummy()) {
+			orgAC = pc.getApplicationContext();
+			pc.setApplicationContext(applicationContext);
+		}
 		try {
 			if (parent != variables) pc.setVariablesScope(variables);
 			return super.callWithNamedValues(pc, values, doIncludePath);
 		}
 		finally {
 			if (parent != variables) pc.setVariablesScope(parent);
+			if (orgAC != null) pc.setApplicationContext(orgAC);
 		}
 	}
 
 	@Override
 	public Object call(PageContext pc, Collection.Key calledName, Object[] args, boolean doIncludePath) throws PageException {
 		Variables parent = pc.variablesScope();
+		ApplicationContext orgAC = null;
+		if (((PageContextImpl) pc).isDummy()) {
+			orgAC = pc.getApplicationContext();
+			pc.setApplicationContext(applicationContext);
+		}
 		try {
 			if (parent != variables) pc.setVariablesScope(variables);
 			return super.call(pc, calledName, args, doIncludePath);
 		}
 		finally {
 			if (parent != variables) pc.setVariablesScope(parent);
+			if (orgAC != null) pc.setApplicationContext(orgAC);
 		}
 	}
 
 	@Override
 	public Object call(PageContext pc, Object[] args, boolean doIncludePath) throws PageException {
 		Variables parent = pc.variablesScope();
+		ApplicationContext orgAC = null;
+		if (((PageContextImpl) pc).isDummy()) {
+			orgAC = pc.getApplicationContext();
+			pc.setApplicationContext(applicationContext);
+		}
 		try {
 			if (parent != variables) pc.setVariablesScope(variables);
 			return super.call(pc, args, doIncludePath);
 		}
 		finally {
 			if (parent != variables) pc.setVariablesScope(parent);
+			if (orgAC != null) pc.setApplicationContext(orgAC);
 		}
 	}
 
@@ -138,4 +167,5 @@ public abstract class EnvUDF extends UDFImpl {
 	}
 
 	public abstract Struct _getMetaData(PageContext pc) throws PageException;
+
 }

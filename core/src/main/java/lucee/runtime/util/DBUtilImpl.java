@@ -34,6 +34,7 @@ import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.db.DataSource;
 import lucee.runtime.db.DataSourceUtil;
 import lucee.runtime.db.DatasourceConnection;
+import lucee.runtime.db.DatasourceConnectionPro;
 import lucee.runtime.db.DatasourceManagerImpl;
 import lucee.runtime.db.SQL;
 import lucee.runtime.db.SQLCaster;
@@ -139,8 +140,7 @@ public class DBUtilImpl implements DBUtil {
 			manager.releaseConnection(pc, dc);
 			return;
 		}
-		ConfigWebPro ci = (ConfigWebPro) ThreadLocalPageContext.getConfig(ThreadLocalPageContext.getConfig(pc));
-		ci.getDatasourceConnectionPool().releaseDatasourceConnection(dc);
+		if (dc != null) ((DatasourceConnectionPro) dc).release();
 	}
 
 	@Override

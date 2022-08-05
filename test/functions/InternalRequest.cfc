@@ -1,62 +1,115 @@
-component extends="org.lucee.cfml.test.LuceeTestCase"{
-	
-	function beforeAll(){
-		variables.uri = createURI("InternalRequest");
-	}
-	
-	function run( testResults , testBox ) {
-		describe( "test case for InternalRequest", function() {
-			it(title = "checking url scope as string", body = function( currentSpec ) {
-				local.result = _InternalRequest (
-					template : "#uri#\index.cfm",
-					urls : "test=1"
-				);
-			 	expect(result.filecontent).toBe('{"test":"1"}{}')
-			});
-			it(title = "checking url scope as struct", body = function( currentSpec ) {
-				local.result = _InternalRequest (
-					template : "#uri#\index.cfm",
-					urls : {'test':1}
-				);
-			 	expect(result.filecontent).toBe('{"test":"1"}{}')
-			});
+<!--- 
+ *
+ * Copyright (c) 2014, the Railo Company LLC. All rights reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either 
+ * version 2.1 of the License, or (at your option) any later version.
+ * 
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Lesser General Public 
+ * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
+ * 
+ ---><cfscript>
+    component extends="org.lucee.cfml.test.LuceeTestCase"	{
+    
+        public void function testUrlStruct() localmode=true {
+            uri = createURI("internalRequest/echo.cfm");
+            result =_InternalRequest(
+                template: uri,
+                url: {test=1}
+            );
+            expect( result.filecontent ).toBe( '{"FORM":{},"URL":{"TEST":"1"}}' );
+        }
 
-			it(title = "checking url scope as string multiple times same name as list", body = function( currentSpec ) {
-				local.result = _InternalRequest (
-					template : "#uri#\index.cfm",
-					urls : "test=1&test=2&test=3"
-				);
-			 	expect(result.filecontent).toBe('{"test":"1,2,3"}{}')
-			});
+        public void function testUrlQueryString() localmode=true {
+            uri = createURI("internalRequest/echo.cfm");
+            result =_InternalRequest(
+                template: uri,
+                url: "test=1"
+            );
+            expect( result.filecontent ).toBe( '{"FORM":{},"URL":{"TEST":"1"}}' );
+        }
 
-			it(title = "checking url scope as string multiple times same name as array", body = function( currentSpec ) {
-				local.result = _InternalRequest (
-					template : "#uri#\index.cfm",
-					urls : "test=1&test=2&test=3&sameURLFieldsAsArray=true"
-				);
-			 	expect(result.filecontent).toBe('{"test":["1","2","3"],"sameURLFieldsAsArray":"true"}{}')
-			});
-			it(title = "checking form scope as string multiple times same name as list", body = function( currentSpec ) {
-				local.result = _InternalRequest (
-					template : "#uri#\index.cfm",
-					forms : "test=1&test=2&test=3"
-				);
-			 	expect(result.filecontent).toBe('{}{"test":"1,2,3","fieldnames":"test"}')
-			});
+        public void function testFormStruct() localmode=true {
+            uri = createURI("internalRequest/echo.cfm");
+            result = _InternalRequest(
+                template: uri,
+                form: {test=1}
+            );
+            var json=deserializeJSON(result.filecontent);
+            expect(json.form.test).toBe( "1" );
+            expect(json.form.fieldnames).toBe( "TEST" );
+            expect( structCount(json.url) ).toBe( 0 );
+        }
+        
+        public void function testFormQueryString() localmode=true {
+            uri = createURI("internalRequest/echo.cfm");
+            result =_InternalRequest(
+                template: uri,
+                form: "test=1"
+            );
+            var json=deserializeJSON(result.filecontent);
+            expect(json.form.test).toBe( "1" );
+            expect(json.form.fieldnames).toBe( "TEST" );
+            expect( structCount(json.url) ).toBe( 0 );
+        }
 
-			it(title = "checking form scope as string multiple times same name as array", body = function( currentSpec ) {
-				local.result = _InternalRequest (
-					template : "#uri#\index.cfm",
-					forms : "test=1&test=2&test=3&sameFormFieldsAsArray=true"
-				);
-			 	expect(result.filecontent).toBe('{}{"test":"1,2,3","sameFormFieldsAsArray":"true","fieldnames":"test,sameFormFieldsAsArray"}')
-			});
-		});	
-	}
+        /*
+        TODO throws
+        lucee.runtime.exp.Abort: Page request is aborted
+        [java]    [script]         at lucee.runtime.tag.Abort.doStartTag(Abort.java:69)
+        */
+
+        public void function testAbort() localmode=true skip=true {
+            uri = createURI("internalRequest/abort.cfm");
+            result = _InternalRequest(
+                template: uri,
+                form: {test=1}
+            );
+            expect( result.filecontent ).toBe( '{"FORM":{"TEST":1},"URL":{}}' );
+        }
+
+        /*
+        TODO throws
+        lucee.runtime.exp.Abort: Page request is aborted
+        [java]    [script]         at lucee.runtime.tag.Abort.doStartTag(Abort.java:69)
+        */
 
 
-	private string function createURI(string calledName){
-		var baseURI="/test/#listLast(getDirectoryFromPath(getCurrenttemplatepath()),"\/")#/";
-		return baseURI&""&calledName;
-	}
-}
+        public void function testContent() localmode=true skip=true {
+            uri = createURI("internalRequest/cfcontent.cfm");
+            result = _InternalRequest(
+                template: uri,
+                form: {test=1}
+            );
+            expect( result.filecontent ).toBe( '{"FORM":{"TEST":1},"URL":{}}' );
+        }
+
+        /*
+        TODO throws
+        lucee.runtime.exp.Abort: Page request is aborted
+        [java]    [script]         at lucee.runtime.tag.Abort.doStartTag(Abort.java:69)
+        */
+
+        public void function testContentFile() localmode=true skip=true {
+            uri = createURI("internalRequest/cfcontent-file.cfm");
+            result = _InternalRequest(
+                template: uri,
+                form: {test=1}
+            );
+            expect( result.filecontent ).toContain( 'getCurrentTemplatePath()' );
+        }
+    
+        private string function createURI(string calledName){
+            var baseURI="/test/#listLast(getDirectoryFromPath(getCurrentTemplatePath()),"\/")#/";
+            return baseURI&""&calledName;
+        }
+        
+    } 
+    </cfscript>

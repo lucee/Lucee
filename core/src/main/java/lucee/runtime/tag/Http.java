@@ -31,16 +31,12 @@ import java.net.SocketTimeoutException;
 import java.net.URI;
 import java.net.URL;
 import java.nio.charset.Charset;
-import java.security.KeyStore;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.zip.GZIPInputStream;
-
-import javax.net.ssl.KeyManagerFactory;
-import javax.net.ssl.SSLContext;
 
 import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpHost;
@@ -49,17 +45,13 @@ import org.apache.http.NameValuePair;
 import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
 import org.apache.http.client.methods.HttpHead;
 import org.apache.http.client.methods.HttpOptions;
+import org.apache.http.client.methods.HttpPatch;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.methods.HttpTrace;
 import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.config.Registry;
-import org.apache.http.config.RegistryBuilder;
 import org.apache.http.config.SocketConfig;
-import org.apache.http.conn.socket.ConnectionSocketFactory;
-import org.apache.http.conn.socket.PlainConnectionSocketFactory;
-import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.entity.mime.FormBodyPart;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
@@ -69,7 +61,6 @@ import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.DefaultRedirectStrategy;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
@@ -89,7 +80,6 @@ import lucee.commons.net.URLEncoder;
 import lucee.commons.net.http.Header;
 import lucee.commons.net.http.httpclient.CachingGZIPInputStream;
 import lucee.commons.net.http.httpclient.HTTPEngine4Impl;
-import lucee.commons.net.http.httpclient.HTTPPatchFactory;
 import lucee.commons.net.http.httpclient.HTTPResponse4Impl;
 import lucee.commons.net.http.httpclient.ResourceBody;
 import lucee.runtime.PageContext;
@@ -112,9 +102,6 @@ import lucee.runtime.ext.tag.BodyTagImpl;
 import lucee.runtime.functions.system.CallStackGet;
 import lucee.runtime.net.http.MultiPartResponseUtils;
 import lucee.runtime.net.http.ReqRspUtil;
-import lucee.runtime.net.http.sni.DefaultHostnameVerifierImpl;
-import lucee.runtime.net.http.sni.DefaultHttpClientConnectionOperatorImpl;
-import lucee.runtime.net.http.sni.SSLConnectionSocketFactoryImpl;
 import lucee.runtime.net.proxy.ProxyData;
 import lucee.runtime.net.proxy.ProxyDataImpl;
 import lucee.runtime.op.Caster;
@@ -197,6 +184,7 @@ public final class Http extends BodyTagImpl {
 	private static final Key STATUS_CODE = KeyImpl.getInstance("status_code");
 	private static final Key STATUS_TEXT = KeyImpl.getInstance("status_text");
 	private static final Key HTTP_VERSION = KeyImpl.getInstance("http_version");
+	private static final Key LOCATIONS = KeyImpl.getInstance("locations");
 
 	private static final Key EXPLANATION = KeyImpl.getInstance("explanation");
 	private static final Key RESPONSEHEADER = KeyImpl.getInstance("responseheader");
@@ -208,12 +196,6 @@ public final class Http extends BodyTagImpl {
 	public static final short ENCODED_AUTO = HTTPUtil.ENCODED_AUTO;
 	public static final short ENCODED_YES = HTTPUtil.ENCODED_YES;
 	public static final short ENCODED_NO = HTTPUtil.ENCODED_NO;
-
-	static {
-		// Protocol myhttps = new Protocol("https", new EasySSLProtocolSocketFactory(), 443);
-		// Protocol.registerProtocol("https", new Protocol("https", new EasySSLProtocolSocketFactory(),
-		// 443));
-	}
 
 	private ArrayList<HttpParamBean> params = new ArrayList<HttpParamBean>();
 
@@ -334,11 +316,12 @@ public final class Http extends BodyTagImpl {
 
 	private Object cachedWithin;
 
+	private boolean usePool = true;
+
 	/** The full path to a PKCS12 format file that contains the client certificate for the request. */
 	private String clientCert;
 	/** Password used to decrypt the client certificate. */
 	private String clientCertPassword;
-	private static SSLConnectionSocketFactoryImpl defaultSSLConnectionSocketFactoryImpl;
 
 	@Override
 	public void release() {
@@ -383,6 +366,7 @@ public final class Http extends BodyTagImpl {
 		clientCert = null;
 		clientCertPassword = null;
 		cachedWithin = null;
+		usePool = true;
 	}
 
 	/**
@@ -663,6 +647,11 @@ public final class Http extends BodyTagImpl {
 		this.cachedWithin = cachedwithin;
 	}
 
+
+	public void setPooling(boolean usePool) {
+		this.usePool = usePool;
+	}
+
 	@Override
 	public int doStartTag() throws PageException {
 		if (addtoken) {
@@ -708,7 +697,7 @@ public final class Http extends BodyTagImpl {
 		boolean safeToMemory = !StringUtil.isEmpty(result, true);
 
 		HttpClientBuilder builder = HTTPEngine4Impl.getHttpClientBuilder();
-		ssl(builder);
+		HTTPEngine4Impl.setConnectionManager(builder, this.usePool,  this.clientCert, this.clientCertPassword);
 
 		// redirect
 		if (redirect) builder.setRedirectStrategy(DefaultRedirectStrategy.INSTANCE);
@@ -845,7 +834,7 @@ public final class Http extends BodyTagImpl {
 			}
 			else if (this.method == METHOD_PATCH) {
 				isBinary = true;
-				eeReq = HTTPPatchFactory.getHTTPPatch(url);
+				eeReq = new HttpPatch(url);
 				req = (HttpRequestBase) eeReq;
 			}
 			else {
@@ -1153,6 +1142,8 @@ public final class Http extends BodyTagImpl {
 			cfhttp.set(STATUS_CODE, new Double(statCode = rsp.getStatusCode()));
 			cfhttp.set(STATUS_TEXT, (rsp.getStatusText()));
 			cfhttp.set(HTTP_VERSION, (rsp.getProtocolVersion()));
+			Array locations = rsp.getLocations();
+			if (locations != null) cfhttp.set(LOCATIONS, locations);
 
 			// responseHeader
 			lucee.commons.net.http.Header[] headers = rsp.getAllHeaders();
@@ -1169,7 +1160,7 @@ public final class Http extends BodyTagImpl {
 				raw.append(header.toString() + " ");
 				if (header.getName().equalsIgnoreCase("Set-Cookie")) {
 					setCookie.append(header.getValue());
-					parseCookie(cookies, header.getValue());
+					parseCookie(cookies, header.getValue(), charset);
 				}
 				else {
 					// print.ln(header.getName()+"-"+header.getValue());
@@ -1445,44 +1436,6 @@ public final class Http extends BodyTagImpl {
 		return str;
 	}
 
-	private void ssl(HttpClientBuilder builder) throws PageException {
-		final SSLConnectionSocketFactory sslsf;
-		try {
-			// SSLContext sslcontext = SSLContexts.createSystemDefault();
-			SSLContext sslcontext = SSLContext.getInstance("TLS");
-			if (!StringUtil.isEmpty(this.clientCert)) {
-				if (this.clientCertPassword == null) this.clientCertPassword = "";
-				File ksFile = new File(this.clientCert);
-				KeyStore clientStore = KeyStore.getInstance("PKCS12");
-				clientStore.load(new FileInputStream(ksFile), this.clientCertPassword.toCharArray());
-
-				KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-				kmf.init(clientStore, this.clientCertPassword.toCharArray());
-
-				sslcontext.init(kmf.getKeyManagers(), null, new java.security.SecureRandom());
-				sslsf = new SSLConnectionSocketFactoryImpl(sslcontext, new DefaultHostnameVerifierImpl());
-			}
-			else {
-				sslcontext.init(null, null, new java.security.SecureRandom());
-				if (defaultSSLConnectionSocketFactoryImpl == null)
-					defaultSSLConnectionSocketFactoryImpl = new SSLConnectionSocketFactoryImpl(sslcontext, new DefaultHostnameVerifierImpl());
-				sslsf = defaultSSLConnectionSocketFactoryImpl;
-			}
-
-			builder.setSSLSocketFactory(sslsf);
-			Registry<ConnectionSocketFactory> reg = RegistryBuilder.<ConnectionSocketFactory>create().register("http", PlainConnectionSocketFactory.getSocketFactory())
-					.register("https", sslsf).build();
-			PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager(new DefaultHttpClientConnectionOperatorImpl(reg), null, -1, TimeUnit.MILLISECONDS); // TODO
-			// review
-			// -1
-			// setting
-			builder.setConnectionManager(cm);
-		}
-		catch (Exception e) {
-			throw Caster.toPageException(e);
-		}
-	}
-
 	private TimeSpan checkRemainingTimeout() throws RequestTimeoutException {
 		TimeSpan remaining = PageContextUtil.remainingTime(pageContext, true);
 		if (this.timeout == null || ((int) this.timeout.getSeconds()) <= 0 || timeout.getSeconds() > remaining.getSeconds()) { // not set
@@ -1496,7 +1449,28 @@ public final class Http extends BodyTagImpl {
 				proxypassword, useragent);
 	}
 
-	private void parseCookie(Query cookies, String raw) {
+	public static void parseCookie(Struct cookies, String raw, String charset) {
+		String[] arr = ListUtil.trimItems(ListUtil.trim(ListUtil.listToStringArray(raw, ';')));
+		if (arr.length == 0) return;
+		String item;
+
+		int index;
+		String n, v;
+		// name/value
+		if (arr.length > 0) {
+			item = arr[0];
+			index = item.indexOf('=');
+			if (index == -1) {
+				cookies.setEL(dec(item, charset), "");
+			}
+			else { // name and value
+				cookies.setEL(dec(item.substring(0, index), charset), dec(item.substring(index + 1), charset));
+			}
+
+		}
+	}
+
+	public static void parseCookie(Query cookies, String raw, String charset) {
 		String[] arr = ListUtil.trimItems(ListUtil.trim(ListUtil.listToStringArray(raw, ';')));
 		if (arr.length == 0) return;
 		int row = cookies.addRow();
@@ -1508,10 +1482,10 @@ public final class Http extends BodyTagImpl {
 			item = arr[0];
 			index = item.indexOf('=');
 			if (index == -1) // only name
-				cookies.setAtEL(KeyConstants._name, row, dec(item));
+				cookies.setAtEL(KeyConstants._name, row, dec(item, charset));
 			else { // name and value
-				cookies.setAtEL(KeyConstants._name, row, dec(item.substring(0, index)));
-				cookies.setAtEL(KeyConstants._value, row, dec(item.substring(index + 1)));
+				cookies.setAtEL(KeyConstants._name, row, dec(item.substring(0, index), charset));
+				cookies.setAtEL(KeyConstants._value, row, dec(item.substring(index + 1), charset));
 			}
 
 		}
@@ -1522,10 +1496,10 @@ public final class Http extends BodyTagImpl {
 			item = arr[i];
 			index = item.indexOf('=');
 			if (index == -1) // only name
-				cookies.setAtEL(dec(item), row, Boolean.TRUE);
+				cookies.setAtEL(dec(item, charset), row, Boolean.TRUE);
 			else { // name and value
-				n = dec(item.substring(0, index));
-				v = dec(item.substring(index + 1));
+				n = dec(item.substring(0, index), charset);
+				v = dec(item.substring(index + 1), charset);
 				if (n.equalsIgnoreCase("expires")) {
 					DateTime d = Caster.toDate(v, false, null, null);
 
@@ -1536,11 +1510,14 @@ public final class Http extends BodyTagImpl {
 				}
 				cookies.setAtEL(n, row, v);
 			}
-
 		}
 	}
 
 	public String dec(String str) {
+		return dec(str, charset);
+	}
+
+	public static String dec(String str, String charset) {
 		return ReqRspUtil.decode(str, charset, false);
 	}
 

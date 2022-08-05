@@ -2,6 +2,7 @@ package lucee.runtime.config;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.Serializable;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.Collection;
@@ -13,31 +14,35 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TimeZone;
 
+import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.jsp.JspWriter;
 
-import org.osgi.framework.BundleException;
 import org.osgi.framework.Version;
-import org.xml.sax.SAXException;
 
+import lucee.commons.collection.MapFactory;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogEngine;
 import lucee.commons.io.log.LoggerAndSourceData;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourceProvider;
+import lucee.commons.io.res.ResourcesImpl;
 import lucee.commons.io.res.ResourcesImpl.ResourceProviderFactory;
 import lucee.commons.io.res.type.compress.Compress;
 import lucee.commons.io.res.util.ResourceClassLoader;
+import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.CharSet;
 import lucee.commons.lang.ClassException;
 import lucee.commons.lang.types.RefBoolean;
 import lucee.commons.lock.KeyLock;
 import lucee.runtime.CFMLFactory;
+import lucee.runtime.CFMLFactoryImpl;
 import lucee.runtime.CIPage;
 import lucee.runtime.Mapping;
+import lucee.runtime.MappingImpl;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageSource;
 import lucee.runtime.cache.CacheConnection;
@@ -49,7 +54,6 @@ import lucee.runtime.component.ImportDefintion;
 import lucee.runtime.customtag.InitFile;
 import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.db.DataSource;
-import lucee.runtime.db.DatasourceConnectionPool;
 import lucee.runtime.db.JDBCDriver;
 import lucee.runtime.debug.DebuggerPool;
 import lucee.runtime.dump.DumpWriter;
@@ -59,6 +63,7 @@ import lucee.runtime.exp.DatabaseException;
 import lucee.runtime.exp.DeprecatedException;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.exp.SecurityException;
 import lucee.runtime.exp.TemplateException;
 import lucee.runtime.extension.Extension;
@@ -74,9 +79,11 @@ import lucee.runtime.monitor.ActionMonitorCollector;
 import lucee.runtime.monitor.IntervallMonitor;
 import lucee.runtime.monitor.RequestMonitor;
 import lucee.runtime.net.amf.AMFEngine;
+import lucee.runtime.net.http.ReqRspUtil;
 import lucee.runtime.net.mail.Server;
 import lucee.runtime.net.proxy.ProxyData;
 import lucee.runtime.net.rpc.WSHandler;
+import lucee.runtime.op.Caster;
 import lucee.runtime.orm.ORMConfiguration;
 import lucee.runtime.orm.ORMEngine;
 import lucee.runtime.osgi.OSGiUtil.BundleDefinition;
@@ -101,10 +108,33 @@ public class SingleContextConfigWeb extends ConfigBase implements ConfigWebPro {
 	private ConfigServerImpl cs;
 	protected Password password;
 	private final ConfigWebHelper helper;
+	private final ServletConfig config;
+	private final CFMLFactoryImpl factory;
+	private SCCWIdentificationWeb id;
+	private Resource rootDir;
+	private Mapping[] mappings;
+	// private Resource remoteClientDirectory;
+	// private SpoolerEngineImpl spoolerEngine;
 
-	public SingleContextConfigWeb(ConfigServerImpl cs) {
+	public SingleContextConfigWeb(CFMLFactoryImpl factory, ConfigServerImpl cs, ServletConfig config) {
+		factory.setConfig(this);
+		this.factory = factory;
 		this.cs = cs;
+		this.config = config;
+
+		ResourceProvider frp = ResourcesImpl.getFileResourceProvider();
+		this.rootDir = frp.getResource(ReqRspUtil.getRootPath(config.getServletContext()));
+
+		// Fix for tomcat
+		if (this.rootDir.getName().equals(".") || this.rootDir.getName().equals("..")) this.rootDir = this.rootDir.getParentResource();
+
 		helper = new ConfigWebHelper(cs, this);
+
+		reload();
+	}
+
+	public ConfigServerImpl getConfigServerImpl() {
+		return cs;
 	}
 
 	@Override
@@ -319,7 +349,12 @@ public class SingleContextConfigWeb extends ConfigBase implements ConfigWebPro {
 
 	@Override
 	public Mapping[] getMappings() {
-		return cs.getMappings();
+		if (mappings == null) {
+			synchronized (this) {
+				if (mappings == null) createMapping();
+			}
+		}
+		return mappings;// cs.getMappings();
 	}
 
 	@Override
@@ -329,44 +364,44 @@ public class SingleContextConfigWeb extends ConfigBase implements ConfigWebPro {
 
 	@Override
 	public PageSource getPageSource(Mapping[] mappings, String realPath, boolean onlyTopLevel) {
-		return cs.getPageSource(mappings, realPath, onlyTopLevel);
+		throw new PageRuntimeException(new DeprecatedException("method not supported"));
 	}
 
 	@Override
 	public PageSource getPageSourceExisting(PageContext pc, Mapping[] mappings, String realPath, boolean onlyTopLevel, boolean useSpecialMappings, boolean useDefaultMapping,
 			boolean onlyPhysicalExisting) {
-		return cs.getPageSourceExisting(pc, mappings, realPath, onlyTopLevel, useSpecialMappings, useDefaultMapping, onlyPhysicalExisting);
+		return ConfigWebUtil.getPageSourceExisting(pc, this, mappings, realPath, onlyTopLevel, useSpecialMappings, useDefaultMapping, onlyPhysicalExisting);
 	}
 
 	@Override
 	public PageSource[] getPageSources(PageContext pc, Mapping[] mappings, String realPath, boolean onlyTopLevel, boolean useSpecialMappings, boolean useDefaultMapping) {
-		return cs.getPageSources(pc, mappings, realPath, onlyTopLevel, useSpecialMappings, useDefaultMapping);
+		return ConfigWebUtil.getPageSources(pc, this, mappings, realPath, onlyTopLevel, useSpecialMappings, useDefaultMapping, false, onlyFirstMatch);
 	}
 
 	@Override
 	public PageSource[] getPageSources(PageContext pc, Mapping[] mappings, String realPath, boolean onlyTopLevel, boolean useSpecialMappings, boolean useDefaultMapping,
 			boolean useComponentMappings) {
-		return cs.getPageSources(pc, mappings, realPath, onlyTopLevel, useSpecialMappings, useDefaultMapping, useComponentMappings);
+		return ConfigWebUtil.getPageSources(pc, this, mappings, realPath, onlyTopLevel, useSpecialMappings, useDefaultMapping, useComponentMappings, onlyFirstMatch);
 	}
 
 	@Override
 	public Resource getPhysical(Mapping[] mappings, String realPath, boolean alsoDefaultMapping) {
-		return cs.getPhysical(mappings, realPath, alsoDefaultMapping);
+		throw new PageRuntimeException(new DeprecatedException("method not supported"));
 	}
 
 	@Override
 	public Resource[] getPhysicalResources(PageContext pc, Mapping[] mappings, String realPath, boolean onlyTopLevel, boolean useSpecialMappings, boolean useDefaultMapping) {
-		return cs.getPhysicalResources(pc, mappings, realPath, onlyTopLevel, useSpecialMappings, useDefaultMapping);
+		throw new PageRuntimeException(new DeprecatedException("method not supported"));
 	}
 
 	@Override
 	public Resource getPhysicalResourceExisting(PageContext pc, Mapping[] mappings, String realPath, boolean onlyTopLevel, boolean useSpecialMappings, boolean useDefaultMapping) {
-		return cs.getPhysicalResourceExisting(pc, mappings, realPath, onlyTopLevel, useSpecialMappings, useDefaultMapping);
+		throw new PageRuntimeException(new DeprecatedException("method not supported"));
 	}
 
 	@Override
 	public PageSource toPageSource(Mapping[] mappings, Resource res, PageSource defaultValue) {
-		return cs.toPageSource(mappings, res, defaultValue);
+		return ConfigWebUtil.toPageSource(this, mappings, res, defaultValue);
 	}
 
 	@Override
@@ -496,7 +531,7 @@ public class SingleContextConfigWeb extends ConfigBase implements ConfigWebPro {
 
 	@Override
 	public Resource getRootDirectory() {
-		return null;
+		return rootDir;
 	}
 
 	@Override
@@ -710,8 +745,13 @@ public class SingleContextConfigWeb extends ConfigBase implements ConfigWebPro {
 	}
 
 	@Override
-	public DatasourceConnectionPool getDatasourceConnectionPool() {
-		return cs.getDatasourceConnectionPool();
+	public DatasourceConnPool getDatasourceConnectionPool(DataSource ds, String user, String pass) {
+		return cs.getDatasourceConnectionPool(ds, user, pass);
+	}
+
+	@Override
+	public Collection<DatasourceConnPool> getDatasourceConnectionPools() {
+		return cs.getDatasourceConnectionPools();
 	}
 
 	@Override
@@ -767,11 +807,22 @@ public class SingleContextConfigWeb extends ConfigBase implements ConfigWebPro {
 	@Override
 	public SpoolerEngine getSpoolerEngine() {
 		return cs.getSpoolerEngine();
+		/*
+		 * if (spoolerEngine == null) { Resource dir = getRemoteClientDirectory(); if (dir != null &&
+		 * !dir.exists()) dir.mkdirs(); SpoolerEngineImpl se = (SpoolerEngineImpl) cs.getSpoolerEngine();
+		 * spoolerEngine = new SpoolerEngineImpl(this, dir, "Remote Client Spooler", getLog("remoteclient"),
+		 * se.getMaxThreads()); } return spoolerEngine;
+		 */
 	}
 
 	@Override
 	public Resource getRemoteClientDirectory() {
 		return cs.getRemoteClientDirectory();
+		/*
+		 * if (remoteClientDirectory == null) { return remoteClientDirectory =
+		 * ConfigWebUtil.getFile(getRootDirectory(), "client-task", "client-task", getConfigDir(),
+		 * FileUtil.TYPE_DIR, this); } return remoteClientDirectory;
+		 */
 	}
 
 	@Override
@@ -1276,12 +1327,22 @@ public class SingleContextConfigWeb extends ConfigBase implements ConfigWebPro {
 
 	@Override
 	public RHExtension[] getServerRHExtensions() {
-		return cs.getServerRHExtensions();
+		return cs.getRHExtensions();
 	}
 
 	@Override
 	public Cluster createClusterScope() throws PageException {
 		return cs.createClusterScope();
+	}
+
+	@Override
+	public PageSource getApplicationPageSource(PageContext pc, String path, String filename, int mode, RefBoolean isCFC) {
+		return cs.getApplicationPageSource(pc, path, filename, mode, isCFC);
+	}
+
+	@Override
+	public void putApplicationPageSource(String path, PageSource ps, String filename, int mode, boolean isCFC) {
+		cs.putApplicationPageSource(path, ps, filename, mode, isCFC);
 	}
 
 	@Override
@@ -1326,12 +1387,12 @@ public class SingleContextConfigWeb extends ConfigBase implements ConfigWebPro {
 
 	@Override
 	public ConfigServer getConfigServer(String arg0) throws PageException {
-		return getConfigServer(arg0);
+		return cs.getConfigServer(arg0);
 	}
 
 	@Override
 	public ConfigServer getConfigServer(String arg0, long arg1) throws PageException {
-		return getConfigServer(arg0, arg1);
+		return cs.getConfigServer(arg0, arg1);
 	}
 
 	@Override
@@ -1341,8 +1402,8 @@ public class SingleContextConfigWeb extends ConfigBase implements ConfigWebPro {
 
 	@Override
 	public IdentificationWeb getIdentification() {
-		// TODO Auto-generated method stub
-		return null;
+		if (id == null) id = new SCCWIdentificationWeb(cs.getIdentification());
+		return id;
 	}
 
 	@Override
@@ -1407,122 +1468,119 @@ public class SingleContextConfigWeb extends ConfigBase implements ConfigWebPro {
 
 	@Override
 	public AMFEngine getAMFEngine() {
-		// TODO Auto-generated method stub
-		return null;
+		return helper.getAMFEngine();
 	}
 
 	@Override
-	public ConfigServer getConfigServer(Password arg0) throws PageException {
-		// TODO Auto-generated method stub
-		return null;
+	public ConfigServer getConfigServer(Password password) throws PageException {
+		cs.checkAccess(password);
+		return cs;
 	}
 
 	@Override
 	public Resource getConfigServerDir() {
-		// TODO Auto-generated method stub
-		return null;
+		return cs.getConfigDir();
 	}
 
 	@Override
 	public CFMLFactory getFactory() {
-		// TODO Auto-generated method stub
-		return null;
+		return factory;
 	}
 
 	@Override
 	public String getLabel() {
-		// TODO Auto-generated method stub
-		return null;
+		return helper.getLabel();
 	}
 
 	@Override
 	public LockManager getLockManager() {
-		// TODO Auto-generated method stub
-		return null;
+		return helper.getLockManager();
 	}
 
 	@Override
-	public SearchEngine getSearchEngine(PageContext arg0) throws PageException {
-		// TODO Auto-generated method stub
-		return null;
+	public SearchEngine getSearchEngine(PageContext pc) throws PageException {
+		return helper.getSearchEngine(pc);
 	}
 
 	@Override
-	public JspWriter getWriter(PageContext arg0, HttpServletRequest arg1, HttpServletResponse arg2) {
-		// TODO Auto-generated method stub
-		return null;
+	public JspWriter getWriter(PageContext pc, HttpServletRequest req, HttpServletResponse rsp) {
+		return getCFMLWriter(pc, req, rsp);
 	}
 
 	@Override
-	public String getInitParameter(String arg0) {
-		// TODO Auto-generated method stub
-		return null;
+	public String getInitParameter(String name) {
+		return config.getInitParameter(name);
 	}
 
 	@Override
 	public Enumeration<String> getInitParameterNames() {
-		// TODO Auto-generated method stub
-		return null;
+		return config.getInitParameterNames();
 	}
 
 	@Override
 	public ServletContext getServletContext() {
-		// TODO Auto-generated method stub
-		return null;
+		return config.getServletContext();
+	}
+
+	@Override
+	public long getApplicationPathCacheTimeout() {
+		return cs.getApplicationPathCacheTimeout();
 	}
 
 	@Override
 	public String getServletName() {
-		// TODO Auto-generated method stub
-		return null;
+		return config.getServletName();
 	}
 
 	@Override
 	public Mapping getDefaultServerTagMapping() {
-		// TODO Auto-generated method stub
-		return null;
+		return cs.defaultTagMapping;
+	}
+
+	// FYI used by Extensions, do not remove
+	public Mapping getApplicationMapping(String virtual, String physical) {
+		return getApplicationMapping("application", virtual, physical, null, true, false);
 	}
 
 	@Override
 	public Mapping getApplicationMapping(String type, String virtual, String physical, String archive, boolean physicalFirst, boolean ignoreVirtual) {
-		// TODO Auto-generated method stub
-		return null;
+		return getApplicationMapping(type, virtual, physical, archive, physicalFirst, ignoreVirtual, true, true);
 	}
 
 	@Override
 	public Collection<Mapping> getServerFunctionMappings() {
-		// TODO Auto-generated method stub
-		return null;
+		return helper.getServerFunctionMappings();
 	}
 
 	@Override
 	public Mapping getServerFunctionMapping(String mappingName) {
-		// TODO Auto-generated method stub
-		return null;
+		return helper.getServerFunctionMapping(mappingName);
 	}
 
 	@Override
 	public Collection<Mapping> getServerTagMappings() {
-		// TODO Auto-generated method stub
-		return null;
+		return helper.getServerTagMappings();
 	}
 
 	@Override
 	public Mapping getServerTagMapping(String mappingName) {
-		// TODO Auto-generated method stub
-		return null;
+		return helper.getServerTagMapping(mappingName);
 	}
 
 	@Override
 	public Map<String, String> getAllLabels() {
-		// TODO Auto-generated method stub
-		return null;
+		return cs.getLabels();
 	}
 
 	@Override
 	public boolean isDefaultPassword() {
-		// TODO Auto-generated method stub
+		// TODO no sure about this
 		return false;
+	}
+
+	@Override
+	public short getAdminMode() {
+		return cs.getAdminMode();
 	}
 
 	@Override
@@ -1542,14 +1600,12 @@ public class SingleContextConfigWeb extends ConfigBase implements ConfigWebPro {
 
 	@Override
 	public GatewayEngine getGatewayEngine() {
-		// TODO Auto-generated method stub
-		return null;
+		return helper.getGatewayEngineImpl();
 	}
 
 	@Override
 	public WSHandler getWSHandler() throws PageException {
-		// TODO Auto-generated method stub
-		return null;
+		return helper.getWSHandler();
 	}
 
 	@Override
@@ -1625,16 +1681,18 @@ public class SingleContextConfigWeb extends ConfigBase implements ConfigWebPro {
 	}
 
 	@Override
-	public void updatePassword(boolean server, String passwordOld, String passwordNew) throws PageException, IOException, SAXException, BundleException {
-		PasswordImpl.updatePassword(server ? cs : this, passwordOld, passwordNew);
+	public void updatePassword(boolean server, String passwordOld, String passwordNew) throws PageException {
+		try {
+			PasswordImpl.updatePassword(cs, passwordOld, passwordNew);
+		}
+		catch (Exception e) {
+			throw Caster.toPageException(e);
+		}
 	}
 
 	@Override
 	public Password updatePasswordIfNecessary(boolean server, String passwordRaw) {
-		if (server) {
-			return PasswordImpl.updatePasswordIfNecessary(cs, cs.password, passwordRaw);
-		}
-		return PasswordImpl.updatePasswordIfNecessary(this, password, passwordRaw);
+		return PasswordImpl.updatePasswordIfNecessary(cs, cs.password, passwordRaw);
 	}
 
 	@Override
@@ -1644,12 +1702,12 @@ public class SingleContextConfigWeb extends ConfigBase implements ConfigWebPro {
 
 	@Override
 	public boolean hasIndividualSecurityManager() {
-		return helper.hasIndividualSecurityManager(this);
+		return false;
 	}
 
 	@Override
 	public short getPasswordSource() {
-		return helper.getPasswordSource();
+		return ConfigWebImpl.PASSWORD_ORIGIN_SERVER;
 	}
 
 	@Override
@@ -1658,17 +1716,132 @@ public class SingleContextConfigWeb extends ConfigBase implements ConfigWebPro {
 	}
 
 	@Override
-	public PageSource getApplicationPageSource(PageContext pc, String path, String filename, int mode, RefBoolean isCFC) {
-		return cs.getApplicationPageSource(pc, path, filename, mode, isCFC);
+	public void setPassword(Password pw) {
+		cs.setPassword(pw);
+	}
+
+	private static class SCCWIdentificationWeb implements IdentificationWeb, Serializable {
+
+		private static final long serialVersionUID = -9020697769127921035L;
+
+		private IdentificationServer id;
+
+		public SCCWIdentificationWeb(IdentificationServer id) {
+			this.id = id;
+		}
+
+		@Override
+		public String getApiKey() {
+			return id.getApiKey();
+		}
+
+		@Override
+		public String getId() {
+			return id.getId();
+		}
+
+		@Override
+		public String getSecurityKey() {
+			return id.getSecurityKey();
+		}
+
+		@Override
+		public String getSecurityToken() {
+			return id.getSecurityToken();
+		}
+
+		@Override
+		public String toQueryString() {
+			return id.toQueryString();
+		}
+
+		@Override
+		public IdentificationServer getServerIdentification() {
+			return id;
+		}
+	}
+
+	public void reload() {
+		synchronized (this) {
+			createMapping();
+		}
+	}
+
+	private void createMapping() {
+
+		Map<String, Mapping> existing = getExistingMappings();
+
+		// Mapping
+		Map<String, Mapping> mappings = MapFactory.<String, Mapping>getConcurrentMap();
+		Mapping tmp;
+		boolean finished = false;
+		Mapping ex;
+		Mapping[] sm = cs.getMappings();
+		if (sm != null) {
+			for (int i = 0; i < sm.length; i++) {
+				if (!sm[i].isHidden()) {
+					if ("/".equals(sm[i].getVirtual())) finished = true;
+					ex = existing.get(sm[i].getVirtualLowerCase());
+					if (ex != null && ex.equals(sm[i])) {
+						mappings.put(ex.getVirtualLowerCase(), ex);
+					}
+					else if (sm[i] instanceof MappingImpl) {
+						tmp = ((MappingImpl) sm[i]).cloneReadOnly(this);
+						mappings.put(tmp.getVirtualLowerCase(), tmp);
+
+					}
+					else {
+						tmp = sm[i];
+						mappings.put(tmp.getVirtualLowerCase(), tmp);
+					}
+				}
+			}
+		}
+		if (!finished) {
+			Mapping m;
+			if (ResourceUtil.isUNCPath(getRootDirectory().getPath())) {
+				m = new MappingImpl(this, "/", getRootDirectory().getPath(), null, ConfigPro.INSPECT_UNDEFINED, true, true, true, true, false, false, null, -1, -1);
+			}
+			else {
+				m = new MappingImpl(this, "/", "/", null, ConfigPro.INSPECT_UNDEFINED, true, true, true, true, false, false, null, -1, -1, true, true);
+			}
+			ex = existing.get("/");
+			if (ex != null && ex.equals(m)) {
+				m = ex;
+			}
+			mappings.put("/", m);
+		}
+		this.mappings = ConfigWebUtil.sort(mappings.values().toArray(new Mapping[mappings.size()]));
+	}
+
+	private Map<String, Mapping> getExistingMappings() {
+		Map<String, Mapping> mappings = MapFactory.<String, Mapping>getConcurrentMap();
+
+		if (this.mappings != null) {
+			for (Mapping m: this.mappings) {
+				mappings.put(m.getVirtualLowerCase(), m);
+			}
+		}
+		return mappings;
 	}
 
 	@Override
-	public void putApplicationPageSource(String path, PageSource ps, String filename, int mode, boolean isCFC) {
-		cs.putApplicationPageSource(path, ps, filename, mode, isCFC);
+	public void removeDatasourceConnectionPool(DataSource ds) {
+		cs.removeDatasourceConnectionPool(ds);
 	}
 
 	@Override
-	public TimeSpan getApplicationPathhCacheTimeout() {
-		return cs.getApplicationPathhCacheTimeout();
+	public MockPool getDatasourceConnectionPool() {
+		return cs.getDatasourceConnectionPool();
+	}
+
+	@Override
+	public boolean getPreciseMath() {
+		return cs.getPreciseMath();
+	}
+
+	@Override
+	public void resetServerFunctionMappings() {
+
 	}
 }

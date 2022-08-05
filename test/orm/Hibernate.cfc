@@ -17,7 +17,7 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  * 	
  ---><cfscript>
-component extends="org.lucee.cfml.test.LuceeTestCase"	{
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm" {
 
 	//public function setUp(){}
 
@@ -51,7 +51,15 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		assertTrue(isValid('component',code));
 		assertEquals(1,code.getId());
 		assertEquals("a",code.getCode());
+	}
 
+	public void function testEvents() skip="isHibernate54"{
+		local.uri=createURI("events/index.cfm");
+		systemOutput( "", true ); 
+		local.result=_InternalRequest(uri);
+		systemOutput( "", true ); 
+		expect( result.status ).toBe( 200 );
+		expect( trim( result.fileContent ) ).toBe( 24 );
 	}
 
 	public void function testMany2Many() {
@@ -135,6 +143,11 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 	public boolean function notHasPostgres() {
 		return structCount(server.getDatasource("postgres")) == 0;
+	}
+
+	public boolean function isHibernate54() {
+		var version = extensionList().filter( function(row){ return row.name contains "hibernate" }).version;
+		return left(version,3) eq "5.4";
 	}
 } 
 </cfscript>

@@ -222,6 +222,8 @@ public final class SecurityManagerImpl implements Cloneable, SecurityManager {
 	 * @return return int access value (VALUE_ALL,VALUE_LOCAL,VALUE_NO,VALUE_NONE,VALUE_YES)
 	 */
 	public static short toShortAccessValue(String accessValue, short defaultValue) {
+		if (accessValue == null) return defaultValue;
+
 		accessValue = accessValue.trim().toLowerCase();
 		if (accessValue.equals("no")) return VALUE_NO;
 		else if (accessValue.equals("yes")) return VALUE_YES;

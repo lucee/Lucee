@@ -8,8 +8,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				var myJSON = '{"lat":20.12283319000001}';
 				var decoded = deserializeJSON( myJSON );
 				expect( numberFormat( decoded.lat, "99.99999999999999" ) ).toBe( "20.12283319000001" )
-				// FUTURE Lucee 6 expect( serializeJSON( decoded ) ).toBe( myJSON );
-				// FUTURE Lucee 6 expect( getMetadata(decoded.lat).name ).toBe( "java.lang.Double" );
+				expect( serializeJSON( decoded ) ).toBe( myJSON );
+				expect( getMetadata(decoded.lat).name ).notToBe( "java.lang.String" );
 				
 			});
 
