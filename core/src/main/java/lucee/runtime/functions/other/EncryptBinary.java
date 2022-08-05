@@ -30,18 +30,22 @@ import lucee.runtime.op.Caster;
 public final class EncryptBinary implements Function {
 
 	public static Object call(PageContext pc, Object oBytes, String key) throws PageException {
-		return call(pc, oBytes, key, CFMXCompat.ALGORITHM_NAME);
+		return Encrypt.invoke(Caster.toBinary(oBytes), key, CFMXCompat.ALGORITHM_NAME, null, 0, false);
 	}
 
 	public static Object call(PageContext pc, Object oBytes, String key, String algorithm) throws PageException {
-		return Encrypt.invoke(Caster.toBinary(oBytes), key, algorithm, null, 0);
+		return Encrypt.invoke(Caster.toBinary(oBytes), key, algorithm, null, 0, false);
 	}
 
 	public static Object call(PageContext pc, Object oBytes, String key, String algorithm, Object ivOrSalt) throws PageException {
-		return Encrypt.invoke(Caster.toBinary(oBytes), key, algorithm, Caster.toBinary(ivOrSalt), 0);
+		return Encrypt.invoke(Caster.toBinary(oBytes), key, algorithm, Caster.toBinary(ivOrSalt), 0, false);
 	}
 
 	public static Object call(PageContext pc, Object oBytes, String key, String algorithm, Object ivOrSalt, double iterations) throws PageException {
-		return Encrypt.invoke(Caster.toBinary(oBytes), key, algorithm, Caster.toBinary(ivOrSalt), Caster.toInteger(iterations));
+		return Encrypt.invoke(Caster.toBinary(oBytes), key, algorithm, Caster.toBinary(ivOrSalt), Caster.toInteger(iterations), false);
+	}
+
+	public static Object call(PageContext pc, Object oBytes, String key, String algorithm, Object ivOrSalt, double iterations, boolean precise) throws PageException {
+		return Encrypt.invoke(Caster.toBinary(oBytes), key, algorithm, Caster.toBinary(ivOrSalt), Caster.toInteger(iterations), precise);
 	}
 }
