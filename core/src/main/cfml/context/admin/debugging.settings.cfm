@@ -41,7 +41,6 @@
 						password="#session["password"&request.adminType]#"
 						id="#data.ids[idx]#"
 						remoteClients="#request.getRemoteClients()#">
-					
 				</cfif>
 			</cfloop>
 		</cfcase>
