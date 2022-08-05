@@ -1,6 +1,11 @@
 name: Java CI
 
-on: [push, pull_request, workflow_dispatch]
+on: 
+  push:
+    branches:
+      - '**' # thus ignoring tagging
+  pull_request:
+  workflow_dispatch:
 
 #concurrency:
 #  group: lucee-build
@@ -40,11 +45,12 @@ jobs:
     - name: Cache Maven packages
       uses: actions/cache@v2
       with:
-        path: ~/.m2
-        key: ${{ runner.os }}-m2-${{ hashFiles('loader/pom.xml','core/pom.xml') }}
+        path: |
+          ~/.m2/repository
+          !~/.m2/repository/org/lucee/lucee/
+        key: ${{ runner.os }}-maven-${{ hashFiles('loader/pom.xml','core/pom.xml') }}
         restore-keys: |
-          ${{ runner.os }}-m2
-          maven-cache
+          ${{ runner.os }}-maven-
     - name: Set up MySQL (local)
       run: |
         sudo systemctl start mysql
