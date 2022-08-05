@@ -195,7 +195,7 @@ public class Cryptor {
 			if (charset == null) charset = DEFAULT_CHARSET;
 			if (encoding == null) encoding = DEFAULT_ENCODING;
 
-			byte[] baInput = Coder.decode(encoding, input, true);
+			byte[] baInput = Coder.decode(encoding, input, precise);
 			byte[] decrypted = decrypt(baInput, key, algorithm, ivOrSalt, iterations, precise);
 
 			return new String(decrypted, charset);
