@@ -210,7 +210,7 @@ public final class ServerImpl implements Server, Serializable {
 			result.add(arr1[i]);
 		}
 
-		// now we fill the second array, but only the one not existing yet
+		// Now we fill the second array, but only the one not existing yet
 		for (int i = 0; i < arr2.length; i++) {
 			if (!result.contains(arr2[i])) result.add(arr2[i]);
 		}
