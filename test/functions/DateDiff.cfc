@@ -258,7 +258,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 
 
 
-
 				local.date1 = CreateDate(2008,03,30);
 				local.date2 = createDate(2038,03,31);
 
