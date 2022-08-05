@@ -2954,14 +2954,14 @@ public final class PageContextImpl extends PageContext {
 				if (hasCFSession()) {
 					Object auth = sessionScope().get(name, null);
 					if (auth != null) {
-						remoteUser = CredentialImpl.decode(auth, roles);
+						remoteUser = CredentialImpl.decode(auth, roles, true);
 					}
 				}
 			}
 			else if (applicationContext.getLoginStorage() == Scope.SCOPE_COOKIE) {
 				Object auth = cookieScope().get(name, null);
 				if (auth != null) {
-					remoteUser = CredentialImpl.decode(auth, roles);
+					remoteUser = CredentialImpl.decode(auth, roles, true);
 				}
 			}
 		}
