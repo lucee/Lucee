@@ -78,6 +78,6 @@ public final class Decrypt implements Function {
 
 	public static byte[] invoke(byte[] input, String key, String algorithm, byte[] ivOrSalt, int iterations, boolean precise) throws PageException {
 		if (CFMXCompat.isCfmxCompat(algorithm)) return new CFMXCompat().transformString(key, input);
-		return Cryptor.decrypt(input, key, algorithm, ivOrSalt, iterations, true);
+		return Cryptor.decrypt(input, key, algorithm, ivOrSalt, iterations, precise);
 	}
 }
