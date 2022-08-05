@@ -35,5 +35,8 @@ component {
 	this.ormsettings.dialect				= "mysql";
 	this.ormsettings.useDBForMapping		= false;					// false = do not walk the db on startup trying to create ORM definitions
 
+	public function onRequestStart() {
+		setting requesttimeout=10;
+	}
 
 }

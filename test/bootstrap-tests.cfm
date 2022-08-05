@@ -1,6 +1,8 @@
 <cfscript>
-	encodeForHTML("abc"); // test if ESAPI extension exist right away
+	//encodeForHTML("abc"); // test if ESAPI extension exist right away
 	systemOutput("---------- #DateTimeFormat(now(),'yyyy-mm-dd HH:nn:ss')# - Lucee Started ----------", true);
+
+	setting requesttimeout = 10*60; // 10 mins, for when running via script-runner and _internalRequest
 
 	// doing the bare minimum here, all the action happends in /test/run-tests.cfm
 	// this duplicates the boostrap code in run-testcases.xml
@@ -9,8 +11,8 @@
 	param name="testFilter" default="";
 	param name="srcAll" default="../core/src/main/"; // used for compiling
 
-	param name="testBoxArchive" default=""; 
-	
+	param name="testBoxArchive" default="";
+
 	if (len(test) eq 0){
 		test = GetDirectoryFromPath(GetCurrentTemplatePath());
 		test =left(test, len(test)-1);
@@ -86,7 +88,8 @@
 
 		fileWrite( testboxArchive, FileReadBinary( testboxUrl ) );
 		testboxDir = "#getTempDirectory()#testbox";
-		zip action="unzip" file="#testboxArchive#" destination="#getTempDirectory()#";
+
+		extract( format="zip", source=testboxArchive, target=getTempDirectory() );
 		testboxArchive = testboxDir;
 
 		admin

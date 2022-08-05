@@ -359,8 +359,8 @@ Redirtect to entry --->
 			<tfoot>
 				<tr>
 					<td colspan="2">
-						<input type="reset" class="bl button reset" name="cancel" value="#stText.Buttons.Cancel#">
-						<input type="submit" class="br button submit" name="run" value="#stText.Buttons.Create#">
+						<input type="submit" class="bl button submit" name="run" value="#stText.Buttons.Create#">
+						<input type="reset" class="br button reset" name="cancel" value="#stText.Buttons.Cancel#">
 					</td>
 				</tr>
 			</tfoot>

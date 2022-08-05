@@ -250,6 +250,10 @@ public class ConfigWebImpl extends ConfigImpl implements ServletConfig, ConfigWe
 		return helper.getServerFunctionMappings();
 	}
 
+	public void resetServerFunctionMappings() {
+		helper.resetServerFunctionMappings();
+	}
+
 	@Override
 	public Mapping getServerFunctionMapping(String mappingName) {
 		return helper.getServerFunctionMapping(mappingName);

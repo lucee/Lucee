@@ -23,6 +23,7 @@ public class IKStorageScopeItem implements Serializable, ObjectWrap, Castable {
 		this(value, System.currentTimeMillis());
 	}
 
+	// DO NOT CHANGE, USED BY REDIS EXTENSION
 	public IKStorageScopeItem(Object value, long lastModified) {
 		this.value = value;
 		this.lastModifed = lastModified;

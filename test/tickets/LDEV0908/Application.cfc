@@ -24,6 +24,11 @@ component {
 		}
 	}
 
+	
+	public function onRequestStart() {
+		setting requesttimeout=10;
+	}
+
 	/*private struct function getCredentials() {
 		return server.getDatasource("mysql");
 	}*/

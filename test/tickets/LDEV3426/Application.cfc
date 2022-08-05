@@ -3,7 +3,9 @@ component {
     this.name = "test3426";
     this.datasources["LDEV_3426"] = pgSQL;
     this.datasource = "LDEV_3426"
-    public function onRequestStart(){
+
+	public function onRequestStart() {
+		setting requesttimeout=10;
         if( StructIsEmpty(pgSQL) ){
             writeoutput("Datasource credentials was not available"); // Datasource credentials was not available means need to stop the iterations.
             abort;

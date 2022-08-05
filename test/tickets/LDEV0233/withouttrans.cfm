@@ -1,4 +1,5 @@
 <cfscript>
+	setting requesttimeout=10;
 	local.res = true;
 	try {
 		saveData = EntityNew('Attribute');

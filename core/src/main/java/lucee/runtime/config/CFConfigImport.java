@@ -14,8 +14,17 @@ import javax.servlet.http.Cookie;
 import javax.servlet.jsp.JspException;
 import javax.servlet.jsp.tagext.Tag;
 
+import org.apache.logging.log4j.core.layout.HtmlLayout;
+import org.apache.logging.log4j.core.layout.PatternLayout;
+
 import lucee.commons.io.DevNullOutputStream;
 import lucee.commons.io.SystemUtil;
+import lucee.commons.io.log.log4j2.appender.ConsoleAppender;
+import lucee.commons.io.log.log4j2.appender.DatasourceAppender;
+import lucee.commons.io.log.log4j2.appender.ResourceAppender;
+import lucee.commons.io.log.log4j2.layout.ClassicLayout;
+import lucee.commons.io.log.log4j2.layout.DataDogLayout;
+import lucee.commons.io.log.log4j2.layout.XMLLayout;
 import lucee.commons.io.res.Resource;
 import lucee.loader.engine.CFMLEngine;
 import lucee.loader.engine.CFMLEngineFactory;
@@ -25,6 +34,7 @@ import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.tag.DynamicAttributes;
 import lucee.runtime.interpreter.JSONExpressionInterpreter;
+import lucee.runtime.op.Caster;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
@@ -53,6 +63,8 @@ public class CFConfigImport {
 	private ConfigPro config;
 	private Struct placeHolderData;
 	private Struct data;
+	private boolean pwCheckedServer = false;
+	private boolean pwCheckedWeb = false;
 
 	public CFConfigImport(Config config, Resource file, Charset charset, String password, String type, Struct placeHolderData) throws PageException {
 		this.file = file;
@@ -75,7 +87,11 @@ public class CFConfigImport {
 		this.engine = CFMLEngineFactory.getInstance();
 		if ("web".equalsIgnoreCase(type) && !(config instanceof ConfigWeb))
 			throw engine.getExceptionUtil().createApplicationException("cannot manipulate a web context when you pass in a server config to the constructor!");
-		this.config = (ConfigPro) ("server".equalsIgnoreCase(type) && config instanceof ConfigWeb ? config.getConfigServer(password) : config);
+		if ("server".equalsIgnoreCase(type) && config instanceof ConfigWeb) {
+			setPasswordIfNecessary((ConfigWeb) config);
+			this.config = (ConfigPro) config.getConfigServer(password);
+		}
+		else this.config = (ConfigPro) config;
 	}
 
 	public Struct execute() throws PageException {
@@ -213,11 +229,16 @@ public class CFConfigImport {
 			optimizeExtensions(config, json);
 			setGroup(pc, json, "updateRHExtension", "extensions", new String[] {}, new Item("source"), new Item("id"), new Item("version"));
 
+			set(pc, json, "updateFilesystem", "filesystem", new Item("fldDefaultDirectory"), new Item("functionDefaultDirectory"), new Item("tagDefaultDirectory"),
+					new Item("tldDefaultDirectory"), new Item("functionAddionalDirectory"), new Item("tagAddionalDirectory"));
+
 			// need to be at the end
 			set(pc, json, "updateScope", new Item("sessiontype"), new Item("sessionmanagement"), new Item("setdomaincookies", "domaincookies"), new Item("allowimplicidquerycall"),
 					new Item("setclientcookies", "clientcookies"), new Item("mergeformandurl"), new Item("localScopeMode", "localmode"),
 					new Item("cgiScopeReadonly", "cgireadonly"), new Item("scopecascadingtype"), new Item("sessiontimeout"), new Item("clienttimeout"), new Item("clientstorage"),
 					new Item("clientmanagement"), new Item("applicationtimeout"), new Item("sessionstorage"));
+
+			((ConfigWebPro) pc.getConfig()).resetServerFunctionMappings();
 
 			return json;
 			// TODO cacheDefaultQuery
@@ -353,7 +374,28 @@ public class CFConfigImport {
 		}
 	}
 
+	private void setPasswordIfNecessary(ConfigWeb config) throws PageException {
+		boolean isServer = "server".equalsIgnoreCase(type);
+		if ((isServer && !pwCheckedServer) || (!isServer && !pwCheckedWeb)) {
+			boolean hasPassword = isServer ? config.hasServerPassword() : config.hasPassword();
+			if (!hasPassword) {
+				// create password
+				try {
+					((ConfigWebPro) config).updatePassword(isServer, null, password);
+				}
+				catch (Exception e) {
+					throw Caster.toPageException(e);
+				}
+			}
+			if (isServer) pwCheckedServer = true;
+			else pwCheckedWeb = true;
+		}
+
+	}
+
 	private void set(PageContext pc, final Struct json, String trgActionName, Item... items) throws JspException {
+		setPasswordIfNecessary(pc.getConfig());
+
 		Object val;
 		try {
 			tag.setPageContext(pc);
@@ -378,6 +420,14 @@ public class CFConfigImport {
 		finally {
 			tag.release();
 		}
+	}
+
+	private void set(PageContext pc, final Struct json, String trgActionName, String srcGroupName, Item... items) throws JspException {
+		setPasswordIfNecessary(pc.getConfig());
+		Cast cast = engine.getCastUtil();
+
+		Struct group = cast.toStruct(json.get(cast.toKey(srcGroupName), null), null);
+		if (group != null) set(pc, group, trgActionName, items);
 	}
 
 	private static class Item {
@@ -481,9 +531,9 @@ public class CFConfigImport {
 			if (val != null) return val;
 			val = getValue(json, "appender");
 
-			if ("console".equalsIgnoreCase(val)) return "lucee.commons.io.log.log4j.appender.ConsoleAppender";
-			if ("resource".equalsIgnoreCase(val)) return "lucee.commons.io.log.log4j.appender.RollingResourceAppender";
-			if ("datasource".equalsIgnoreCase(val)) return "lucee.commons.io.log.log4j.appender.DatasourceAppender";
+			if ("console".equalsIgnoreCase(val)) return ConsoleAppender.class.getName();
+			if ("resource".equalsIgnoreCase(val)) return ResourceAppender.class.getName();
+			if ("datasource".equalsIgnoreCase(val)) return DatasourceAppender.class.getName();
 
 			return val;
 		}
@@ -498,11 +548,13 @@ public class CFConfigImport {
 			if (val != null) return val;
 			val = getValue(json, "layout");
 
-			if ("classic".equalsIgnoreCase(val)) return "lucee.commons.io.log.log4j.layout.ClassicLayout";
-			if ("datasource".equalsIgnoreCase(val)) return "lucee.commons.io.log.log4j.layout.DatasourceLayout";
-			if ("html".equalsIgnoreCase(val)) return "org.apache.log4j.HTMLLayout";
-			if ("xml".equalsIgnoreCase(val)) return "org.apache.log4j.xml.XMLLayout";
-			if ("pattern".equalsIgnoreCase(val)) return "org.apache.log4j.PatternLayout";
+			if ("classic".equalsIgnoreCase(val)) return ClassicLayout.class.getName();
+			;
+			if ("datasource".equalsIgnoreCase(val)) return ClassicLayout.class.getName();
+			if ("html".equalsIgnoreCase(val)) return HtmlLayout.class.getName();
+			if ("xml".equalsIgnoreCase(val)) return XMLLayout.class.getName();
+			if ("pattern".equalsIgnoreCase(val)) return PatternLayout.class.getName();
+			if ("datadog".equalsIgnoreCase(val)) return DataDogLayout.class.getName();
 
 			return val;
 		}

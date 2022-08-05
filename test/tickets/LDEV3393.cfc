@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" skip=true {
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="syntax" skip=true {
     function beforeAll(){
         variables.uri = createURI("LDEV3393");
     }
@@ -46,6 +46,18 @@ component extends="org.lucee.cfml.test.LuceeTestCase" skip=true {
                     result.fileContent = e.message;
                 }
                 expect(trim(result.fileContent)).tobe(serializeJSON(arr));
+            });
+
+            it( title="Compiler NPE crash with CFFinally block LDEV-2456", body=function( currentSpec ){
+                try {
+                    local.result = _InternalRequest(
+                        template : "#uri#\testFinallyBlock.cfm"
+                    );
+                }
+                catch(any e){
+                    result.fileContent = e.message;
+                }
+                expect(trim(result.fileContent)).notToInclude("java.lang.NullPointerException");
             });
         });
     }

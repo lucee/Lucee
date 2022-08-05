@@ -7,7 +7,6 @@ import java.nio.charset.Charset;
 
 import com.github.rjeschke.txtmark.Processor;
 
-import lucee.print;
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.res.Resource;
@@ -66,7 +65,8 @@ public class MarkdownToHTML extends BIF implements Function {
 		return Processor.process(markdown, safeMode);
 	}
 
-	public static void main(String[] args) {
-		print.e(Processor.process("This is ***TXTMARK***", false));
-	}
+	/*
+	 * public static void main(String[] args) { print.e(Processor.process("This is ***TXTMARK***",
+	 * false)); }
+	 */
 }

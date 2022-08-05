@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase"{
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="qoq"{
     function run( testResults, testBox ){
         describe("Testcase for LDEV3511", function(){
             var qry = queryNew( 'col1,col2,col3', 'integer,integer,integer', [[1,2,3],[4,5,6]] )

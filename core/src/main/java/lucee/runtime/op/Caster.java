@@ -54,6 +54,7 @@ import java.util.TimeZone;
 import java.util.Vector;
 import java.util.concurrent.ExecutionException;
 
+import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
@@ -2936,7 +2937,7 @@ public final class Caster {
 			}
 		}
 		try {
-			return Base64Encoder.decode(toString(o));
+			return Base64Encoder.decode(toString(o), false);
 		}
 		catch (PageException e) {
 			throw new CasterException(o, "binary");
@@ -3840,6 +3841,9 @@ public final class Caster {
 				else if (lctype.equals("other")) {
 					return o;
 				}
+				else if (lctype.equals("org.w3c.dom.element")) {
+					return toElement(o);
+				}
 				break;
 			case 'p':
 				if (alsoPattern && lctype.equals("phone")) {
@@ -4646,6 +4650,19 @@ public final class Caster {
 		 * } catch (Exception e) { return defaultValue; } } else if(o instanceof ObjectWrap) { return
 		 * toNode(((ObjectWrap)o).getEmbededObject(defaultValue),defaultValue); } return defaultValue;
 		 */
+	}
+
+	/**
+	 * casts an Object to a XML Element
+	 * 
+	 * @param o Object to Cast
+	 * @return Element from Object
+	 * @throws PageException
+	 */
+
+	public static Element toElement(Object o) throws PageException {
+		if (o instanceof Element) return (Element) o;
+		throw new CasterException(o, "org.w3c.dom.Element");
 	}
 
 	/**
