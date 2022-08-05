@@ -5,8 +5,8 @@
 	#-lucee-err td 		{ border: 0px solid #350606; color: #930; background-color: #FC0; line-height: 1.35; }
 	#-lucee-err td.label	{ background-color: #F90; font-weight: bold; white-space: nowrap; vertical-align: top; }
 
-	#-lucee-err .collapsed	{ display: none; white-space:pre;line-height:75%;}
-	#-lucee-err .expanded 	{ display: block; white-space:pre;line-height:75%;}
+	#-lucee-err .collapsed	{ display: none; white-space:pre;line-height:75%; }
+	#-lucee-err .expanded 	{ display: block; white-space:pre;line-height:75%; }
 
 	.-lucee-icon-plus 	{ background: url(data:image/gif;base64,R0lGODlhCQAJAIABAAAAAP///yH5BAEAAAEALAAAAAAJAAkAAAIRhI+hG7bwoJINIktzjizeUwAAOw==)
     					no-repeat left center; padding: 4px 0 4px 16px; }
