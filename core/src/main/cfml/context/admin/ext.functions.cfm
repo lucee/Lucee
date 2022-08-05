@@ -429,7 +429,7 @@
 
 
 
-	function getProviderInfoAsync(required string provider){
+	function getProviderInfoAsync(required string provider) {
 		sleep(5000);
 		thread args=arguments {
 			getProviderInfo(args.provider, true, 60, 50);
