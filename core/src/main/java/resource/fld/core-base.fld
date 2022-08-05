@@ -3417,6 +3417,13 @@ You may also specify other algorithm names as well as the feedback mode and padd
             <required>no</required>
             <description>number of Iterations for Password Based Encryption algorithms (ignored for all other algorithms). NIST recommends a minimum value of 1000.</description>
         </argument>
+		<argument>
+			<name>precise</name>
+			<type>boolean</type>
+			<required>no</required>
+			<default>false</default>
+			<description>if set to true the input must follow the rule for that encoding a 100%, the decryptor will not try to interpret inputs that are not a 100% correct. This should be used to avoid false positives.</description>
+    	</argument>
 		<return>
 			<type>any</type>
 		</return>
@@ -3430,15 +3437,8 @@ You may also specify other algorithm names as well as the feedback mode and padd
 			<name>name</name>
 			<type>string</type>
 			<required>Yes</required>
-		<description>Name of a client variable to delete, surrounded by double-quotation marks</description>
-    </argument>
-		<argument>
-			<name>precise</name>
-			<type>boolean</type>
-			<required>no</required>
-			<default>false</default>
-			<description>if set to true the input must follow the rule for that encoding a 100%, the decryptor will not try to interpret inputs that are not a 100% correct. This should be used to avoud false positives.</description>
-    	</argument>
+			<description>Name of a client variable to delete, surrounded by double-quotation marks</description>
+		</argument>
 		<return>
 			<type>boolean</type>
 		</return>
@@ -3997,7 +3997,7 @@ You may also specify other algorithm names as well as the feedback mode and padd
 			<type>boolean</type>
 			<required>no</required>
 			<default>false</default>
-			<description>if set to true the input must follow the rule for that encoding a 100%, the decryptor will not try to interpret inputs that are not a 100% correct. This should be used to avoud false positives.</description>
+			<description>if set to true the input must follow the rule for that encoding a 100%, the decryptor will not try to interpret inputs that are not a 100% correct. This should be used to avoid false positives.</description>
     	</argument>
 		<return>
 			<type>string</type>
@@ -4055,7 +4055,7 @@ You may also specify other algorithm names as well as the feedback mode and padd
 			<type>boolean</type>
 			<required>no</required>
 			<default>false</default>
-			<description>if set to true the input must follow the rule for that encoding a 100%, the decryptor will not try to interpret inputs that are not a 100% correct. This should be used to avoud false positives.</description>
+			<description>if set to true the input must follow the rule for that encoding a 100%, the decryptor will not try to interpret inputs that are not a 100% correct. This should be used to avoid false positives.</description>
     	</argument>
 		<return>
 			<type>any</type>
