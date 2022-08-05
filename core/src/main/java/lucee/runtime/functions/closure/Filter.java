@@ -189,7 +189,6 @@ public class Filter extends BIF implements ClosureFunc {
 
 	private static Collection invoke(PageContext pc, char[] chars, UDF udf, ExecutorService es, List<Future<Data<Pair<Object, Object>>>> futures)
 			throws CasterException, PageException {
-
 		Array rtn = new ArrayImpl();
 		boolean async = es != null;
 		Object res;
