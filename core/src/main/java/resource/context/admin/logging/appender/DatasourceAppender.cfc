@@ -34,7 +34,7 @@
 	</cffunction>
 	
 	<cffunction name="getClass" returntype="string" output="false">
-		<cfreturn "datasource">
+		<cfreturn "lucee.commons.io.log.log4j2.appender.DatasourceAppender">
 	</cffunction>
 	
 	<cffunction name="getLabel" returntype="string" output="false">

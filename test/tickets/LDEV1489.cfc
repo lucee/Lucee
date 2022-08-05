@@ -85,7 +85,9 @@
 					cffile (action="write", file=baseWithBucketName & "/test6.txt", output="Sample s3 text");
 					var acl = StoreGetACL( baseWithBucketName & "/test6.txt" );
 					removeFullControl(acl);
-					expect(acl[1].permission).toBe('READ');
+
+					if(isNewS3())expect(len(acl)).toBe(0);
+					else expect(acl[1].permission).toBe('READ');
 				});
 
 
@@ -101,15 +103,23 @@
 			if(index gt 0) ArrayDeleteAt( acl, index );
 		}
 
-		// Private functions
 		private struct function getCredentials() {
 			return server.getTestService("s3");
 		}
 
-
 		private string function createURI(string calledName){
 			var baseURI="/test/#listLast(getDirectoryFromPath(getCurrenttemplatepath()),"\/")#/";
 			return baseURI&""&calledName;
+		}
+
+		private function isNewS3(){
+			qry=  extensionlist(false);
+			loop query=qry {
+				if(qry.id=="17AB52DE-B300-A94B-E058BD978511E39E") {
+					if(left(qry.version,1)>=2) return true;
+				}
+			}
+			return false;
 		}
 	</cfscript>
 </cfcomponent>

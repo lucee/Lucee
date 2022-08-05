@@ -11,7 +11,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mysql,orm" {
 				else throw result.fileContent.trim()
 			});
 
-			it(title="Checking ORM without cftransaction", body=function(){
+			/*it(title="Checking ORM without cftransaction", body=function(){
 				
 				
 
@@ -77,7 +77,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mysql,orm" {
 				if(isBoolean(result.fileContent.trim()))
 					expect(result.fileContent.trim()).toBeTrue();
 				else throw result.fileContent.trim()
-			});
+			});*/
 		});
 	}
 

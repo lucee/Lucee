@@ -733,6 +733,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		else if (check("updateMonitorEnabled", ACCESS_NOT_WHEN_WEB) && check2(ACCESS_WRITE)) doUpdateMonitorEnabled();
 		else if (check("updateTLD", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateTLD();
 		else if (check("updateFLD", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateFLD();
+		else if (check("updateFilesystem", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateFilesystem();
 		else if (check("updateregional", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateRegional();
 		else if (check("updateApplicationListener", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateApplicationListener();
 		else if (check("updateCachedWithin", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateCachedWithin();
@@ -4692,6 +4693,32 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		store();
 	}
 
+	private void doUpdateFilesystem() throws PageException {
+		try {
+
+			admin.updateFilesystem(
+
+					StringUtil.emptyAsNull(getString("fldDefaultDirectory", null), true)
+
+					, StringUtil.emptyAsNull(getString("functionDefaultDirectory", null), true)
+
+					, StringUtil.emptyAsNull(getString("tagDefaultDirectory", null), true)
+
+					, StringUtil.emptyAsNull(getString("tldDefaultDirectory", null), true)
+
+					, StringUtil.emptyAsNull(getString("functionAddionalDirectory", null), true)
+
+					, StringUtil.emptyAsNull(getString("tagAddionalDirectory", null), true)
+
+			);
+		}
+		catch (Exception e) {
+			throw Caster.toPageException(e);
+		}
+		store();
+		((ConfigWebPro) pageContext.getConfig()).resetServerFunctionMappings();
+	}
+
 	private void doUpdateJar() throws PageException {
 		try {
 			Resource resJar = ResourceUtil.toResourceExisting(pageContext, getString("admin", action, "jar"));
@@ -5233,7 +5260,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		pageContext.setVariable(getString("admin", action, "returnVariable"), sct);
 		sct.set("resourceCharset", config.getResourceCharset().name());
 		sct.set("templateCharset", config.getTemplateCharset().name());
-		sct.set("webCharset", ((PageContextImpl) pageContext).getWebCharset().name());
+		sct.set("webCharset", config.getWebCharset().name());
 		sct.set("jreCharset", SystemUtil.getCharset().name());
 	}
 

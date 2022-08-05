@@ -33,7 +33,7 @@ import lucee.transformer.bytecode.Page;
 import lucee.transformer.bytecode.util.ASMUtil;
 import lucee.transformer.bytecode.util.Types;
 
-public final class TagThread extends TagBaseNoFinal {
+public final class TagThread extends TagBaseNoFinal implements ATagThread {
 
 	public static final Type THREAD_TAG = Type.getType(ThreadTag.class);
 
@@ -92,6 +92,7 @@ public final class TagThread extends TagBaseNoFinal {
 		return new BodyBase(getFactory());
 	}
 
+	@Override
 	public Body getRealBody() {
 		return super.getBody();
 	}

@@ -304,7 +304,7 @@ Create Datasource --->
 
 <cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
 
-<table class="tbl" width="700">
+<table class="maintbl" width="700">
 <!---- data member default access --->
 
         <tr>
@@ -343,7 +343,7 @@ Create Datasource --->
 ------------------------------->
 <h2>#stText.setting.general.component#</h2>
 #stText.Components[request.adminType]#
-<table class="tbl" width="700">
+<table class="maintbl" width="700">
 <!---- data member default access --->
 <cfset access=component.componentDataMemberDefaultAccess>
 <tr>
@@ -382,7 +382,7 @@ Create Datasource --->
 <h2>#stText.setting.general.charset#</h2>
 #stText.charset[request.adminType]#
 
-<table class="tbl" width="700">
+<table class="maintbl" width="700">
 <!--- Template --->
 <tr>
 	<th scope="row">#stText.charset.templateCharset#</th>
@@ -420,7 +420,7 @@ Create Datasource --->
 <h2>#stText.setting.general.scope#</h2>
 #stText.scopes[request.adminType]#
 
-<table class="tbl" width="700">
+<table class="maintbl" width="700">
 <!--- scope cascading --->
 <tr>
 	<th scope="row">#stText.Scopes.Cascading#</th>
@@ -463,7 +463,7 @@ Create Datasource --->
 ------------------------------->
 <h2>#stText.setting.general.datasource#</h2>
 #stText.Settings.DatasourceSettings#
-<table class="tbl" width="700">
+<table class="maintbl" width="700">
 <!--- PSQ --->
 <tr>
 	<th scope="row">#stText.Settings.PreserveSingleQuotes#</th>
@@ -483,7 +483,7 @@ Create Datasource --->
 ------------------------------->
 <h2>#stText.setting.general.customtag#</h2>
 #stText.CustomTags.CustomtagSetting#
-<table class="tbl" width="700">
+<table class="maintbl" width="700">
 <!--- Deep Search --->
 <tr>
 	<th scope="row">#stText.CustomTags.customTagDeepSearch#</th>
