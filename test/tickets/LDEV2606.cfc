@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" labels="mysql"{
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="mysql" {
 
 	function beforeAll() {
 		variables.uri = createURI("LDEV2606");
