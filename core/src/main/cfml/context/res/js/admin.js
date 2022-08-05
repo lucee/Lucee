@@ -1,5 +1,5 @@
 /* init functions */
-$(function(){
+$(function() {
 	$('#resizewin').click(resizelayout);
 
 	initTooltips();
