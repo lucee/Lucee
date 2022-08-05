@@ -230,7 +230,7 @@ public class CFConfigImport {
 			setGroup(pc, json, "updateRHExtension", "extensions", new String[] {}, new Item("source"), new Item("id"), new Item("version"));
 
 			set(pc, json, "updateFilesystem", "filesystem", new Item("fldDefaultDirectory"), new Item("functionDefaultDirectory"), new Item("tagDefaultDirectory"),
-					new Item("tldDefaultDirectory"), new Item("functionAddionalDirectory"), new Item("tagAddionalDirectory"));
+					new Item("tldDefaultDirectory"), new Item("functionAdditionalDirectory"), new Item("tagAdditionalDirectory"));
 
 			// need to be at the end
 			set(pc, json, "updateScope", new Item("sessiontype"), new Item("sessionmanagement"), new Item("setdomaincookies", "domaincookies"), new Item("allowimplicidquerycall"),

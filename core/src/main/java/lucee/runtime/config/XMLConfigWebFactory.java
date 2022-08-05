@@ -3123,8 +3123,8 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 				if (StringUtil.isEmpty(strDefaultFLDDirectory)) strDefaultFLDDirectory = ConfigWebUtil.translateOldPath(fileSystem.getAttribute("fld-default-directory"));
 				if (StringUtil.isEmpty(strDefaultTagDirectory)) strDefaultTagDirectory = ConfigWebUtil.translateOldPath(fileSystem.getAttribute("tag-default-directory"));
 				if (StringUtil.isEmpty(strDefaultFuncDirectory)) strDefaultFuncDirectory = ConfigWebUtil.translateOldPath(fileSystem.getAttribute("function-default-directory"));
-				if (StringUtil.isEmpty(strTagDirectory)) strTagDirectory = ConfigWebUtil.translateOldPath(fileSystem.getAttribute("tag-addional-directory"));
-				if (StringUtil.isEmpty(strFuncDirectory)) strFuncDirectory = ConfigWebUtil.translateOldPath(fileSystem.getAttribute("function-addional-directory"));
+				if (StringUtil.isEmpty(strTagDirectory)) strTagDirectory = ConfigWebUtil.translateOldPath(fileSystem.getAttribute("tag-additional-directory"));
+				if (StringUtil.isEmpty(strFuncDirectory)) strFuncDirectory = ConfigWebUtil.translateOldPath(fileSystem.getAttribute("function-additional-directory"));
 			}
 
 			// set default directories if necessary

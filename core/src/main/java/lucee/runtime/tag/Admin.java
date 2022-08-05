@@ -4682,9 +4682,9 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 					, StringUtil.emptyAsNull(getString("tldDefaultDirectory", null), true)
 
-					, StringUtil.emptyAsNull(getString("functionAddionalDirectory", null), true)
+					, StringUtil.emptyAsNull(getString("functionAdditionalDirectory", null), true)
 
-					, StringUtil.emptyAsNull(getString("tagAddionalDirectory", null), true)
+					, StringUtil.emptyAsNull(getString("tagAdditionalDirectory", null), true)
 
 			);
 		}

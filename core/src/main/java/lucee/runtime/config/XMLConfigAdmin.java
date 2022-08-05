@@ -5540,7 +5540,7 @@ public final class XMLConfigAdmin {
 	}
 
 	public void updateFilesystem(String fldDefaultDirectory, String functionDefaultDirectory, String tagDefaultDirectory, String tldDefaultDirectory,
-			String functionAddionalDirectory, String tagAddionalDirectory) throws SecurityException {
+			String functionAdditionalDirectory, String tagAdditionalDirectory) throws SecurityException {
 		checkWriteAccess();
 
 		Element fs = _getRootElement("file-system");
@@ -5560,18 +5560,18 @@ public final class XMLConfigAdmin {
 			fs.setAttribute("tld-default-directory", tldDefaultDirectory);
 			fs.removeAttribute("tld-directory");
 		}
-		if (!StringUtil.isEmpty(functionAddionalDirectory, true)) {
-			fs.setAttribute("function-addional-directory", functionAddionalDirectory);
+		if (!StringUtil.isEmpty(functionAdditionalDirectory, true)) {
+			fs.setAttribute("function-additional-directory", functionAdditionalDirectory);
 		}
-		if (!StringUtil.isEmpty(tagAddionalDirectory, true)) {
-			fs.setAttribute("tag-addional-directory", tagAddionalDirectory);
+		if (!StringUtil.isEmpty(tagAdditionalDirectory, true)) {
+			fs.setAttribute("tag-additional-directory", tagAdditionalDirectory);
 		}
 	}
 
-	public void updateAddionalFunctionDirectory(Resource dir) throws SecurityException {
+	public void updateAdditionalFunctionDirectory(Resource dir) throws SecurityException {
 		checkWriteAccess();
 		Element fs = _getRootElement("file-system");
-		fs.setAttribute("function-addional-directory", Caster.toString(dir, ""));
+		fs.setAttribute("function-additional-directory", Caster.toString(dir, ""));
 	}
 
 	void updateTLD(InputStream is, String name, boolean closeStream) throws IOException {
