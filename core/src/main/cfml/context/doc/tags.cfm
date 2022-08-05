@@ -319,6 +319,7 @@
 						SELECT tags FROM qryAllItems  WHERE tags LIKE ?;
 					</cfquery>
 				</cfif>
+				
 				<div class="tile tile-collapse tile-collapse-full">
 					<div class="tile-toggle" data-target="##function-#lCase(i)#" data-toggle="tile">
 						<div class="tile-inner">
