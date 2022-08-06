@@ -96,6 +96,10 @@
 <cfelse>
 	<cfset app=installed>
 </cfif>
+<cfif structCount(app) eq 0>
+	<cfheader statuscode="404">
+	<cfthrow message="Extension [#url.id#] not found">
+</cfif>
 <cfset lasProvider=(app.provider?:"")=="local" || findNoCase("lucee.org",app.provider?:'') GT 0>
 <cfoutput encodeFor="html">
 	<!--- title and description --->
