@@ -42,7 +42,11 @@ class JavaRegex implements Regex {
 	@Override
 	public int indexOf(String strPattern, String strInput, int offset, boolean caseSensitive, boolean multiLine) throws PageException {
 		try {
+			int strLen = strInput.length();
+			if (offset > strLen) return 0;
+
 			Matcher matcher = toPattern(strPattern, caseSensitive, multiLine).matcher(strInput);
+			if (offset > 1) matcher.region(offset-1, strLen);
 			if (!matcher.find()) return 0;
 
 			return matcher.start() + 1;
@@ -55,7 +59,11 @@ class JavaRegex implements Regex {
 	@Override
 	public Object indexOfAll(String strPattern, String strInput, int offset, boolean caseSensitive, boolean multiLine) throws PageException {
 		try {
+			int strLen = strInput.length();
+			if (offset > strLen) return 0;
+
 			Matcher matcher = toPattern(strPattern, caseSensitive, multiLine).matcher(strInput);
+			if (offset > 1) matcher.region(offset-1, strLen);
 
 			ArrayImpl arr = null;
 			while (matcher.find()) {
@@ -72,7 +80,11 @@ class JavaRegex implements Regex {
 	@Override
 	public Struct find(String strPattern, String strInput, int offset, boolean caseSensitive, boolean multiLine) throws PageException {
 		try {
+			int strLen = strInput.length();
+			if (offset > strLen) return findEmpty();
+
 			Matcher matcher = toPattern(strPattern, caseSensitive, multiLine).matcher(strInput);
+			if (offset > 1) matcher.region(offset-1, strLen);
 			if (!matcher.find()) return findEmpty();
 
 			return toStruct(matcher, strInput);
@@ -85,9 +97,17 @@ class JavaRegex implements Regex {
 	@Override
 	public Array findAll(String strPattern, String strInput, int offset, boolean caseSensitive, boolean multiLine) throws PageException {
 		try {
-			Matcher matcher = toPattern(strPattern, caseSensitive, multiLine).matcher(strInput);
-
 			ArrayImpl arr = new ArrayImpl();
+			
+			int strLen = strInput.length();
+			if (offset > strLen){
+				arr.add(findEmpty());
+				return arr;	
+			}
+
+			Matcher matcher = toPattern(strPattern, caseSensitive, multiLine).matcher(strInput);
+			if (offset > 1 ) matcher.region(offset-1, strLen);
+			
 			while (matcher.find()) {
 				arr.append(toStruct(matcher, strInput));
 			}
@@ -164,24 +184,26 @@ class JavaRegex implements Regex {
 
 	private Struct toStruct(Matcher matcher, String input) {
 		Struct sct = new StructImpl();
-		Array a = new ArrayImpl();
-		a.appendEL(matcher.end() - matcher.start());
-		sct.setEL(LEN, a);
+		Array lenArray = new ArrayImpl();
+		Array posArray = new ArrayImpl();
+		Array matchArray = new ArrayImpl();
 
-		a = new ArrayImpl();
-		a.appendEL(matcher.start() + 1);
-		sct.setEL(POS, a);
+		for(int i=0; i<=matcher.groupCount();i++) {
+			lenArray.appendEL(matcher.end(i) - matcher.start(i));
+			posArray.appendEL(matcher.start(i) + 1);
+			matchArray.appendEL(matcher.group(i));
+		}
 
-		a = new ArrayImpl();
-		a.appendEL(input.substring(matcher.start(), matcher.end()));
-		sct.setEL(MATCH, a);
+		sct.setEL(POS, posArray);
+		sct.setEL(LEN, lenArray);
+		sct.setEL(MATCH, matchArray);
 		return sct;
 	}
 
 	private Pattern toPattern(String strPattern, boolean caseSensitive, boolean multiLine) {
 		int flags = 0;
-		if (!caseSensitive) flags &= Pattern.CASE_INSENSITIVE;
-		if (multiLine) flags &= Pattern.MULTILINE;
+		if (!caseSensitive) flags += Pattern.CASE_INSENSITIVE;
+		if (multiLine) flags += Pattern.MULTILINE;
 		return Pattern.compile(strPattern, flags);
 	}
 
@@ -189,4 +211,5 @@ class JavaRegex implements Regex {
 	public String getTypeName() {
 		return "java";
 	}
+
 }

@@ -46,18 +46,19 @@ public final class ListRest extends BIF {
 
 	public static String call(PageContext pc, String list, String delimiter, boolean includeEmptyFields, double offset) throws FunctionException {
 
-		if (offset < 1) throw new FunctionException(pc, "ListFirst", 4, "offset", "Argument offset must be a positive value greater than 0");
+		if (offset < 1) throw new FunctionException(pc, "ListRest", 4, "offset", "Argument offset must be a positive value greater than 0");
 
 		return ListUtil.rest(list, delimiter, !includeEmptyFields, (int) offset);
 	}
 
 	@Override
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
-		if (args.length == 1) return call(pc, Caster.toString(args[0]));
-		if (args.length == 2) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]));
-		if (args.length == 3) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toBooleanValue(args[2]));
+		if (args.length == 1) return call(pc, Caster.toString(args[0]), ",", false, 1);
+		if (args.length == 2) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), false, 1);
+		if (args.length == 3) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toBooleanValue(args[2]), 1);
+		if (args.length == 4) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toBooleanValue(args[2]), Caster.toDoubleValue(args[3]));
 
-		throw new FunctionException(pc, "ListRemoveDuplicates", 2, 5, args.length);
+		throw new FunctionException(pc, "ListRest", 1, 4, args.length);
 	}
 
 }

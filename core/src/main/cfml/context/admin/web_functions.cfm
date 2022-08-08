@@ -32,11 +32,22 @@ function printError(error,boolean longversion=false) {
 	
 
 	if(StructKeyExists(arguments.error,'message') and arguments.error.message NEQ "") {
+		header statuscode="500";
+		param name="url.rawError" default="false";
+		if ( url.rawError ){
+			echo( arguments.error.message & chr(10) );
+			if ( len(arguments.error.detail) )
+				echo( arguments.error.detail & chr(10) );
+			if (!isNull(arguments.error.exception.StackTrace) && !isEmpty(arguments.error.exception.StackTrace)) {
+				echo(arguments.error.exception.StackTrace);
+			}
+			abort;
+		} 
 		writeOutput('<div class="error">');
 		writeOutput(br(arguments.error.message));
+		
 
 		if (!isNull(arguments.error.exception.StackTrace) && !isEmpty(arguments.error.exception.StackTrace)) {
-
 			echo('<p>
 			<button id="error-details">Show Details</button>
 			<div id="stack-trace" style="display: none;">#arguments.error.exception.StackTrace#</div>');

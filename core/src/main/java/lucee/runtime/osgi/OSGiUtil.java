@@ -601,7 +601,7 @@ public class OSGiUtil {
 		}
 
 		String bundleError = "";
-		String parentBundle = String.join(",", parents);
+		String parentBundle = parents == null ? " " :  String.join(",", parents);
 		if (versionsFound.length() > 0){
 			bundleError = "The OSGi Bundle with name [" + name + "] for [" + parentBundle + "] is not available in version ["
 				+ version + "] locally [" + localDir + "] or from the update provider [" + upLoc
