@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" skip=true labels="threads" {
+component extends="org.lucee.cfml.test.LuceeTestCase" skip=false labels="threads" {
 	function setup(){
 		variables.errors = [];
 		variables.qColumnsCopy = evaluate( 'query(
