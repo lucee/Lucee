@@ -136,12 +136,10 @@ public final class ReqRspUtil {
 	public static Cookie[] getCookies(HttpServletRequest req, Charset charset) {
 		Cookie[] cookies = req.getCookies();
 		if (cookies != null) {
-			Cookie cookie;
 			String tmp;
-			for (int i = 0; i < cookies.length; i++) {
-				cookie = cookies[i];
+			for (Cookie cookie: cookies) {
 				// value (is decoded by the servlet engine with iso-8859-1)
-				if (!StringUtil.isAscii(cookie.getValue())) {
+				if (cookie != null && !StringUtil.isAscii(cookie.getValue())) {
 					tmp = encode(cookie.getValue(), "iso-8859-1");
 					cookie.setValue(decode(tmp, charset.name(), false));
 				}
@@ -153,7 +151,7 @@ public final class ReqRspUtil {
 			java.util.Map<String, Cookie> map = new HashMap<String, Cookie>();
 			if (cookies != null) {
 				for (Cookie cookie: cookies) {
-					map.put(cookie.getName().toUpperCase(), cookie);
+					if (cookie != null) map.put(cookie.getName().toUpperCase(), cookie);
 				}
 			}
 
