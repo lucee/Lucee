@@ -32,8 +32,8 @@ import lucee.runtime.op.Caster;
  */
 public final class LNumber implements Literal {
 
-	public static final LNumber ZERO = new LNumber(new Double(0));
-	public static final LNumber ONE = new LNumber(new Double(1));
+	public static final LNumber ZERO = new LNumber(Double.valueOf(0));
+	public static final LNumber ONE = new LNumber(Double.valueOf(1));
 
 	private Object literal;
 
@@ -89,7 +89,7 @@ public final class LNumber implements Literal {
 
 	@Override
 	public String toString() {
-		return literal instanceof String ? (String) literal : Caster.toString((Double) literal);
+		return literal instanceof String ? (String) literal : Caster.toString((Number) literal);
 	}
 
 	@Override
