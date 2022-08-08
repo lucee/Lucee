@@ -62,7 +62,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				assertEquals("soft",meta.type);
 			});
 
-			it( "Checking UDFs", () => {
+			it( title = "Checking UDFs", body = () => {
 				var metaA = getMetadata( exampleFunctionWithDescriptionInAnnotation );
 				expect( metaA ).toBeStruct();
 				expect( metaA ).toHaveKey( "description" );
@@ -72,7 +72,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				expect( metaB ).toBeStruct();
 				expect( metaB ).toHaveKey( "description" );
 				expect( metaB.description ).toBe( "Description does not show up." );
-			} );
+			}, labels = [ "metadata" ], skip = true );
 
 		});
 
