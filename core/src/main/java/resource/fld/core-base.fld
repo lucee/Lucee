@@ -5625,12 +5625,12 @@ Example Values:
 	<function>
 		<name>GetBuiltInFunction</name>
 		<class>lucee.runtime.functions.system.GetBuiltInFunction</class>
-		<description>return a build in function as an object, matching the given name, throws an exception when the function does not exist.</description>
+		<description>Returns a built in function as an object, matching the given name, throws an exception when the function does not exist.</description>
 		<argument>
 			<name>name</name>
 			<type>string</type>
 			<required>yes</required>
-			<description>name of the build in function, for example "StructKeyExists"</description>
+			<description>name of the built in function, for example "StructKeyExists"</description>
 		</argument>
 		<return>
 			<type>any</type>
