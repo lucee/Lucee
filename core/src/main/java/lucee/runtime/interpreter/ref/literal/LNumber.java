@@ -87,7 +87,7 @@ public final class LNumber implements Literal {
 
 	@Override
 	public String toString() {
-		return literal instanceof String ? (String) literal : Caster.toString((Double) literal);
+		return literal instanceof String ? (String) literal : Caster.toString((Number) literal);
 	}
 
 	@Override
