@@ -136,7 +136,7 @@ public class SpoolerEngineImpl implements SpoolerEngine {
 			if (task instanceof Task) start(config, (Task) task);
 			else {
 				start(config, new TaskWrap(task));
-				log.error("spooler", "make class " + task.getClass().getName() + " a Task class");
+				//log.error("spooler", "make class " + task.getClass().getName() + " a Task class");
 			}
 			return;
 		}
