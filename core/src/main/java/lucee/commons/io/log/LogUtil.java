@@ -137,4 +137,8 @@ public final class LogUtil {
 	public static void logGlobal(Config config, String type, Throwable t) {
 		logGlobal(config, Log.LEVEL_ERROR, type, ExceptionUtil.getStacktrace(t, true));
 	}
+
+	public static void logGlobal(Config config, String type, String msg, Throwable t) {
+		logGlobal(config, Log.LEVEL_ERROR, type, msg + ";" + ExceptionUtil.getStacktrace(t, true));
+	}
 }
