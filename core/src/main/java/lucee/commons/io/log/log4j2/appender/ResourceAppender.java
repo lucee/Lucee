@@ -11,7 +11,6 @@ import org.apache.logging.log4j.core.LogEvent;
 import org.apache.logging.log4j.core.appender.AbstractAppender;
 import org.apache.logging.log4j.status.StatusLogger;
 
-import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.retirement.RetireListener;
@@ -67,7 +66,7 @@ public class ResourceAppender extends AbstractAppender {
 						rollOver();
 					}
 					catch (IOException e) {
-						LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), Log.LEVEL_ERROR, "resource-appender", "rollover failed for" + res, e);
+						LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), "resource-appender", "rollover failed for" + res, e);
 					}
 				}
 			}
