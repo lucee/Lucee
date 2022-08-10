@@ -189,6 +189,8 @@ public class CFConfigImport {
 					new Item(new String[] { "debuggingQueryUsage" }, "queryusage", null), new Item(new String[] { "debuggingTemplate" }, "template", null),
 					new Item(new String[] { "debuggingDatabase" }, "database", null), new Item(new String[] { "debuggingDump" }, "dump", null), new Item("debugtemplate"),
 					new Item(new String[] { "debuggingEnabled" }, "debug", null), new Item(new String[] { "debuggingTimer" }, "timer", null));
+			setGroup(pc, json, "updateDebugEntry", "debugging", new String[] {}, new Item("label"), new Item("type", "debugtype"), new Item("iprange"), new Item("fullname"),
+					new Item("path"), new Item("custom"));
 
 			setGroup(pc, json, "updateMapping", "mappings", new String[] { "virtual" }, new Item("virtual"), new Item("inspect"), new Item("physical"), new Item("primary"),
 					new Item("toplevel"), new Item("archive"));
