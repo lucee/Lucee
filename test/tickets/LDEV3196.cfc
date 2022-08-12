@@ -34,7 +34,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="s3"{
 	public function run( testResults , testBox ) {
 		describe( title="Testcase for LDEV-3196", body=function() {
 
-			it(title="checking unzip a file from s3 bucket to s3 bucket", skip=isNotSupported() body=function( currentSpec ) {
+			it(title="checking unzip a file from s3 bucket to s3 bucket", skip=isNotSupported(), body=function( currentSpec ) {
 				filemove("#path#/ziptest.zip",baseWithBucketName);
 				cfzip(action="unzip", file="#baseWithBucketName#/ziptest.zip", destination="#baseWithBucketName#\");
 
