@@ -1539,6 +1539,7 @@ sort direction:
     </argument>
 		<argument>
 			<name>precise</name>
+			<introduced>5.3.9.41</introduced>
 			<type>boolean</type>
 			<required>no</required>
 			<default>false</default>
