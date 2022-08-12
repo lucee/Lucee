@@ -1138,6 +1138,7 @@ When checked, any requested files will be inspected only once for potential upda
 	<data key="doc.depAttr">This Attribute is deprecated</data>
 	<data key="doc.depArg">This Argument is deprecated</data>
 	<data key="doc.example">Beispiel</data>
+	<data key="doc.introduced">Introduced</data>
 	<data key="doc.chooseTag">Choose a tag</data>
 	<data key="doc.chooseFunction">Choose a function</data>
 	<data key="doc.category">Kategorie</data>

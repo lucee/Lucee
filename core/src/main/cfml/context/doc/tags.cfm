@@ -245,6 +245,8 @@
 </pre>
 	</cfif>
 
+		<cfif structKeyExists(data, "introduced")><br><b>#stText.doc.introduced#:</b> #data.introduced#</cfif>
+
 		<!--- Attributes --->
 		<h2>#stText.doc.attrTitle#</h2>
 		<cfif data.attributeType == "fixed" && !arrayLen( arrAttrNames )>
@@ -262,6 +264,7 @@
 				</cfif>
 			</div>
 		</cfif>
+		<Cfdump var=#data#>
 		<cfset isdefault = Findnocase('defaultValue', serializeJSON(data))>
 		<cfif ( data.attributeType == "fixed" || data.attributeType == "mixed" ) && arrayLen( arrAttrNames )>
 			<table class="table maintbl">
@@ -283,7 +286,7 @@
 							<td><cfif attr.type EQ "object">any<cfelse>#attr.type#</cfif></td>
 							<td>#YesNoFormat(attr.required)#</td>
 							<cfif val(isdefault)><td><cfif structKeyExists(attr, "defaultValue")>#attr.defaultValue#</cfif></td></cfif>
-							<td><cfif attr.status EQ "deprecated"><b class="error">#stText.doc.depAttr#</b><cfelse>#Application.objects.utils.formatAttrDesc( attr.description )#</cfif>&nbsp;</td>
+							<td><cfif attr.status EQ "deprecated"><b class="error">#stText.doc.depAttr#</b><cfelse>#Application.objects.utils.formatAttrDesc( attr.description )#</cfif>&nbsp;<cfif structKeyExists(attr, "Introduced")><br><b>#stText.doc.Introduced#:</b> #attr.Introduced#</cfif></td>
 						</tr>
 					</cfloop>
 				</tbody>

@@ -1397,6 +1397,7 @@ If the timezone of your Lucee instance and your database is different, this can 
 	<data key="doc.depTag">This Tag is deprecated</data>
 	<data key="doc.depAttr">This Attribute is deprecated</data>
 	<data key="doc.depArg">This Argument is deprecated</data>
+	<data key="doc.introduced">Introduced</data>
 	<data key="doc.example">Example</data>
 	<data key="doc.chooseTag">Choose a tag</data>
 	<data key="doc.chooseFunction">Choose a function</data>

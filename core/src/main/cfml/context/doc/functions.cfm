@@ -118,6 +118,8 @@
 			</cfif>
 		</div>
 
+		<cfif structKeyExists(data, "introduced")><br><b>#stText.doc.introduced#:</b> #data.introduced#</cfif>
+
 		<cfset first=true>
 		<cfset optCount=0>
 		<h2>#stText.doc.example#</h2>
@@ -179,6 +181,7 @@
 									#Application.objects.utils.formatAttrDesc( attr.description )#
 								</cfif>
 								&nbsp;
+								<cfif structKeyExists(attr, "introduced")><br><b>#stText.doc.introduced#:</b> #attr.introduced#</cfif>
 								</td>
 						</tr>
 					</cfloop>
