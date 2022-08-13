@@ -983,7 +983,7 @@ public final class Page extends BodyBase implements Root {
 			ga.newInstance(Types.STATIC_STRUCT);
 			ga.dup();
 			ga.invokeConstructor(Types.STATIC_STRUCT, CONSTR_STATIC_STRUCT);
-			ga.putStatic(Type.getType(name), "staticStruct", Types.STATIC_STRUCT);
+			ga.putStatic(Type.getType("(" + name), "staticStruct", Types.STATIC_STRUCT);
 			ga.returnValue();
 			ga.endMethod();
 		}
@@ -991,7 +991,7 @@ public final class Page extends BodyBase implements Root {
 		// public StaticStruct getStaticStruct() {return _static;}
 		{
 			final GeneratorAdapter ga = new GeneratorAdapter(Opcodes.ACC_PUBLIC + Opcodes.ACC_FINAL, GET_STATIC_STRUCT, null, null, cw);
-			ga.getStatic(Type.getType(name), "staticStruct", Types.STATIC_STRUCT);
+			ga.getStatic(Type.getType("(" + name), "staticStruct", Types.STATIC_STRUCT);
 			ga.returnValue();
 			ga.endMethod();
 		}
