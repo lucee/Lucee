@@ -978,6 +978,7 @@ A return value from the CreateTimeSpan function, for example, "#CreateTimeSpan(0
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>It will help to prevent Cross-Site Request Forgeries. Enabling this attribute on the cookie will instruct the browser to afford this cookie certain protections.</description>
+			<introduced>5.3.7.33</introduced>
 		</attribute>
 	</tag>
 	<!-- DBInfo -->
@@ -1376,6 +1377,7 @@ Example:
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>The working directory in which to execute the command</description>
+			<introduced>5.3.8.1</introduced>
 		</attribute>
 	</tag>
 	<!-- Exit -->
@@ -1439,6 +1441,7 @@ Example:
             and the columns of the feed format, as described in the Query attribute section.
             The key for each field must be a column name listed in the Query columns section. The value of the field must be
             the name of the corresponding column in the query object used as input to the create action. </description>
+			<introduced>5.3.8.127</introduced>
     </attribute>
 		<attribute>
 			<type>string</type>
@@ -1781,6 +1784,7 @@ To use cached data, the tag must be called with the exact same arguments. Only u
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>String list or string array of extensions allowed, this overwrites any other setting including the attribute [blockedExtensions] and settings done for example in the Application.cfc. </description>
+			<introduced>5.3.8.107</introduced>
 		</attribute>
 		<attribute>
 			<type>any</type>
@@ -1789,6 +1793,7 @@ To use cached data, the tag must be called with the exact same arguments. Only u
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>String list or string array of extensions blocked, this overwrites any setting done for example in the Application.cfc.</description>
+			<introduced>5.3.8.107</introduced>
 		</attribute>
 	</tag>
 	<!-- Flush -->
@@ -4854,6 +4859,7 @@ Permits searching collections by title or displaying a separate title from the k
 			<rtexprvalue>false</rtexprvalue>
 			<description>if set to true then the request will be aborted instead of redirected to allow developers
 		to troubleshoot code that contains redirects</description>
+			<introduced>6.0.0.114</introduced>
 		</attribute>
 		<attribute>
 			<type>number</type>
@@ -6782,6 +6788,7 @@ To use cached data, the current query must use the same SQL statement, data sour
 			<description>This attribute is used for 2 things:
 			- it checks if the given value is compatible with that charset
 			- to check the binary length of the value (see attribute maxLength).</description>
+			<introduced>5.3.8.25</introduced>
 		</attribute>
 		<attribute>
 			<type>number</type>
@@ -7268,6 +7275,7 @@ To use cached data, the current query must use the same SQL statement, data sour
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>User agent request header.</description>
+			<introduced>6.0.0.172</introduced>
 		</attribute>
 		<attribute>
 			<type>boolean</type>
@@ -7530,6 +7538,7 @@ To use cached data, the current query must use the same SQL statement, data sour
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>name of variable created for all information for this tag.</description>
+			<introduced>5.3.4.22</introduced>
 		</attribute>
 		<attribute>
 			<type>boolean</type>
@@ -7537,6 +7546,7 @@ To use cached data, the current query must use the same SQL statement, data sour
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>do log all action, so it can report more detail with info.</description>
+			<introduced>5.3.4.22</introduced>
 		</attribute>
 		<attribute>
 			<type>boolean</type>
@@ -7873,6 +7883,7 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 		<tag-class>lucee.runtime.tag.Timeout</tag-class>
 		<ttt-class>lucee.transformer.bytecode.statement.tag.TagTimeout</ttt-class>
 		<tte-class>lucee.transformer.cfml.evaluator.impl.TagTimeout</tte-class>
+		<introduced>6.0.0.192</introduced>
 		<body-content>free</body-content>
 		<body-rtexprvalue>false</body-rtexprvalue>
 		<script>
@@ -8024,7 +8035,7 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 			<description>Label to display with timing information.
             Default: " "</description>
 		</attribute>
-			<attribute>
+		<attribute>
 			<name>unit</name>
 			<type>string</type>
 			<required>No</required>
@@ -8035,6 +8046,7 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 - micro : micro seconds
 - milli: milli seconds (default)
 - second: seconds</description>
+			<introduced>6.0.0.98</introduced>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -8042,6 +8054,7 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>The name of the variable in which to save the timer exection time itno.</description>
+			<introduced>6.0.0.98</introduced>
 		</attribute>
 
 	</tag>
@@ -8090,6 +8103,7 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 			<status>hidden</status>
 			<rtexprvalue>true</rtexprvalue>
 			<description>optional savepoint name, used with action "setsavepoint" and "rollback".</description>
+			<introduced>5.3.9.0</introduced>
 		</attribute>
 	</tag>
 
@@ -8380,6 +8394,7 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>if set to true, the parser is more lenient and forgives invalid XML and does the best to interpret it.</description>
+			<introduced>5.3.8.135</introduced>
 		</attribute>
 	</tag>
 	<!-- x_ -->
