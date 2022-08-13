@@ -528,6 +528,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 				Additional related bundles required by the main bundle. Must be an array of structs that looks like this:
 				[{name:bundle-name,version:bundle-version}]
 			</description>
+			<introduced>5.3.8.142</introduced>
 		</argument>
 		<return>
 			<type>any</type>
