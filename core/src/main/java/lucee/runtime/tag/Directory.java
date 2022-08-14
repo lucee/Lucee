@@ -24,6 +24,7 @@ import static lucee.runtime.tag.util.FileUtil.NAMECONFLICT_UNDEFINED;
 import java.io.File;
 import java.io.IOException;
 import java.util.Date;
+import java.util.Comparator;
 
 import lucee.commons.io.ModeUtil;
 import lucee.commons.io.res.Resource;
@@ -52,6 +53,7 @@ import lucee.runtime.op.Caster;
 import lucee.runtime.reflection.Reflector;
 import lucee.runtime.security.SecurityManager;
 import lucee.runtime.tag.util.FileUtil;
+import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.Collection.Key;
@@ -454,6 +456,19 @@ public final class Directory extends TagImpl {
 			if (namesOnly) {
 				if (typeArray) {
 					_fillArrayPathOrName(array, directory, filter, 0, recurse, namesOnly);
+					if (sort != null ) {
+						String[] arr = sort.toLowerCase().split(" ");
+						String order = "asc";
+						if ( ! (arr[0].toLowerCase().trim().equals("name") 
+								|| arr[0].toLowerCase().trim().equals("path"))  )
+							throw new ApplicationException("Invalid sort column [" + sort + "], only [path, name] supported");
+
+						if (arr.length == 2) order = arr[1];
+						else if (arr.length > 2) throw new ApplicationException("Invalid sort [" + sort + "]");
+
+						Comparator comp = ArrayUtil.toComparator(null, "text", order, false); 
+						array.sortIt(comp);
+					}
 					return array;
 				}
 
