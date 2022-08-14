@@ -765,6 +765,7 @@ Depending on this setting Lucee scans certain scopes to find a variable called f
 	- watchInterval - interval it checks for changes with the jar files
 	- watchExtensions - extension of the files read
 			</description>
+			<introduced>5.3.3.37</introduced>
 		</attribute>
 		<attribute>
 			<name>xmlFeatures</name>
@@ -775,6 +776,7 @@ Depending on this setting Lucee scans certain scopes to find a variable called f
 	- disallowDoctypeDecl (true / false) 
 	- externalGeneralEntities (true/false)
 	 - secure (true/false)</description>
+	 		<introduced>5.3.4.51</introduced>
 		</attribute>
 		<attribute>
 			<name>regex</name>
