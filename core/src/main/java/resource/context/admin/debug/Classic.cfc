@@ -419,20 +419,38 @@ if(!pages.recordcount || !hasQueries) {
 <cffunction name="formatUnit" output="no" returntype="string">
 	<cfargument name="unit" type="string" required="yes">
 	<cfargument name="time" type="numeric" required="yes">
-    
-    <cfif arguments.time GTE 100000000><!--- 1000ms --->
-    	<cfreturn int(arguments.time/1000000)&" ms">
-    <cfelseif arguments.time GTE 10000000><!--- 100ms --->
-    	<cfreturn (int(arguments.time/100000)/10)&" ms">
-    <cfelseif arguments.time GTE 1000000><!--- 10ms --->
-    	<cfreturn (int(arguments.time/10000)/100)&" ms">
-    <cfelse><!--- 0ms --->
-    	<cfreturn (int(arguments.time/1000)/1000)&" ms">
-    </cfif>
-    
-    
-    <cfreturn (arguments.time/1000000)&" ms">
-</cffunction>   
+	<cfscript>
+		var _unit = arguments.unit;
+		switch (unit){
+			case "seconds":	
+				_unit = "s"
+				break;
+			case "millisecond":
+				_unit = "ms";
+				break;
+			default:
+				break;
+		}
+		var n = 0;
+		
+		if ( arguments.time >= 100000000 ){ 
+			// display 0 digits right to the point when more or equal to 100ms
+			n = int( arguments.time / 1000000 );		
+		} else if ( arguments.time >=  10000000 ) {
+			// display 1 digit right to the point when more or equal to 10ms
+			n = ( int( arguments.time / 100000 ) / 100 );		
+		} else if ( arguments.time >=   1000000 ) {
+			// display 2 digits right to the point when more or equal to 1ms
+			n = ( int( arguments.time / 10000 ) / 100 );
+		} else {
+			// display 3 digits right to the point
+			n = ( int( arguments.time / 1000 ) / 1000 );
+		}
+
+		return DecimalFormat(n) & _unit;
+	</cfscript>
+</cffunction>
+
 <!---<cffunction name="formatUnit2" output="no" returntype="string">
 	<cfargument name="unit" type="string" required="yes">
 	<cfargument name="time" type="numeric" required="yes">
