@@ -9,9 +9,7 @@ import org.apache.logging.log4j.core.Filter;
 import org.apache.logging.log4j.core.Layout;
 import org.apache.logging.log4j.core.LogEvent;
 import org.apache.logging.log4j.core.appender.AbstractAppender;
-import org.apache.logging.log4j.status.StatusLogger;
 
-import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.retirement.RetireListener;
@@ -71,7 +69,7 @@ public class ResourceAppender extends AbstractAppender {
 						rollOver();
 					}
 					catch (IOException e) {
-						LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), Log.LEVEL_ERROR, "log-loading", "rollover failed for" + res);
+						LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), "log-loading", "rollover failed for" + res, e);
 					}
 				}
 			}
@@ -87,6 +85,7 @@ public class ResourceAppender extends AbstractAppender {
 			}
 		}
 		catch (Exception e) {
+			LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), "log-loading", "Unable to write to" + res, e);
 			error("Unable to write to" + res, event, e);
 			closeFile();
 		}
@@ -113,7 +112,6 @@ public class ResourceAppender extends AbstractAppender {
 	 */
 	protected void setFile(boolean append) throws IOException {
 		synchronized (sync) {
-			StatusLogger.getLogger().debug("setFile called: " + res + ", " + append);
 			reset();
 			Resource parent = res.getParentResource();
 			if (!parent.exists()) parent.createDirectory(true);
@@ -127,7 +125,6 @@ public class ResourceAppender extends AbstractAppender {
 				writer.flush();
 				// TODO new line?
 			}
-			StatusLogger.getLogger().debug("setFile ended");
 		}
 	}
 
@@ -157,7 +154,6 @@ public class ResourceAppender extends AbstractAppender {
 				file = parent.getRealResource(res.getName() + "." + i + ".bak");
 				if (file.exists()) {
 					target = parent.getRealResource(res.getName() + "." + (i + 1) + ".bak");
-					StatusLogger.getLogger().debug("Renaming file " + file + " to " + target);
 					renameSucceeded = file.renameTo(target);
 				}
 			}
@@ -167,7 +163,6 @@ public class ResourceAppender extends AbstractAppender {
 				target = parent.getRealResource(res.getName() + ".1.bak");
 
 				file = res;
-				StatusLogger.getLogger().debug("Renaming file " + file + " to " + target);
 				renameSucceeded = file.renameTo(target);
 
 				// if file rename failed, reopen file with append = true
@@ -177,7 +172,7 @@ public class ResourceAppender extends AbstractAppender {
 						this.setFile(true);
 					}
 					catch (IOException e) {
-						StatusLogger.getLogger().error("setFile(" + res + ", true) call failed.", e);
+						LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), "log-loading", "setFile(" + res + ", true) call failed.", e);
 					}
 				}
 			}
@@ -192,7 +187,7 @@ public class ResourceAppender extends AbstractAppender {
 				this.setFile(false);
 			}
 			catch (IOException e) {
-				StatusLogger.getLogger().error("setFile(" + res + ", false) call failed.", e);
+				LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), "log-loading", "setFile(" + res + ", false) call failed.", e);
 			}
 		}
 	}
@@ -211,9 +206,7 @@ public class ResourceAppender extends AbstractAppender {
 				writer = null;
 			}
 			catch (java.io.IOException e) {
-				// Exceptionally, it does not make sense to delegate to an
-				// ErrorHandler. Since a closed appender is basically dead.
-				StatusLogger.getLogger().error("Could not close " + res, e);
+				LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), "log-loading", "Could not close " + res, e);
 			}
 		}
 	}
