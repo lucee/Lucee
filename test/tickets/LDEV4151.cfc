@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" {
+component extends="org.lucee.cfml.test.LuceeTestCase" skip="true" {
 	function run( testResults , testBox ) {
 		describe( "Test suite for LDEV-4151", function() {
 			it( title="concatenation operator(&) in finally without local scope prefix", body = function( currentSpec ) {
