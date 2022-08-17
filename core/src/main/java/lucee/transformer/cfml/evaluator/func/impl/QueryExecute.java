@@ -1,6 +1,7 @@
 package lucee.transformer.cfml.evaluator.func.impl;
 
 import lucee.commons.io.log.LogUtil;
+import lucee.runtime.PageContext;
 import lucee.runtime.exp.TemplateException;
 import lucee.transformer.TransformerException;
 import lucee.transformer.bytecode.expression.var.Argument;
@@ -31,7 +32,7 @@ public class QueryExecute implements FunctionEvaluator {
 					addArgument(bif, str);
 				}
 				catch (TransformerException e) {
-					LogUtil.log(null, QueryExecute.class.getName(), e);
+					LogUtil.log((PageContext) null, QueryExecute.class.getName(), e);
 				}
 			}
 		}

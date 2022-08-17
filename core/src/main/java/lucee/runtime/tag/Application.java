@@ -37,6 +37,7 @@ import lucee.runtime.PageSource;
 import lucee.runtime.cache.CacheConnection;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigWebUtil;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
@@ -313,11 +314,11 @@ public final class Application extends TagImpl implements DynamicAttributes {
 	 * @throws PageException
 	 */
 	public void setDatasource(Object datasource) throws PageException {
-		this.datasource = AppListenerUtil.toDefaultDatasource(pageContext.getConfig(), datasource, pageContext.getConfig().getLog("application"));
+		this.datasource = AppListenerUtil.toDefaultDatasource(pageContext.getConfig(), datasource, ThreadLocalPageContext.getLog(pageContext, "application"));
 	}
 
 	public void setDefaultdatasource(Object defaultdatasource) throws PageException {
-		this.defaultdatasource = AppListenerUtil.toDefaultDatasource(pageContext.getConfig(), defaultdatasource, pageContext.getConfig().getLog("application"));
+		this.defaultdatasource = AppListenerUtil.toDefaultDatasource(pageContext.getConfig(), defaultdatasource, ThreadLocalPageContext.getLog(pageContext, "application"));
 	}
 
 	public void setDatasources(Struct datasources) {
@@ -755,7 +756,7 @@ public final class Application extends TagImpl implements DynamicAttributes {
 		if (!StringUtil.isEmpty(defaultdatasource)) ac.setDefDataSource(defaultdatasource);
 		if (datasources != null) {
 			try {
-				ac.setDataSources(AppListenerUtil.toDataSources(pageContext.getConfig(), datasources, pageContext.getConfig().getLog("application")));
+				ac.setDataSources(AppListenerUtil.toDataSources(pageContext.getConfig(), datasources, ThreadLocalPageContext.getLog(pageContext, "application")));
 			}
 			catch (Exception e) {
 				throw Caster.toPageException(e);

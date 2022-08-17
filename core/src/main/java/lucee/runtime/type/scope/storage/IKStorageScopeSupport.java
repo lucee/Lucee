@@ -193,7 +193,7 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 
 	public static boolean hasInstance(int scope, IKHandler handler, String appName, String name, PageContext pc) {
 		try {
-			Log log = ThreadLocalPageContext.getConfig(pc).getLog("scope");
+			Log log = ThreadLocalPageContext.getLog(pc, "scope");
 			if (Scope.SCOPE_SESSION == scope) return handler.loadData(pc, appName, name, "session", Scope.SCOPE_SESSION, log) != null;
 			else if (Scope.SCOPE_CLIENT == scope) return handler.loadData(pc, appName, name, "client", Scope.SCOPE_CLIENT, log) != null;
 			return false;
@@ -459,11 +459,11 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 	}
 
 	public void store(PageContext pc) { // FUTURE add to interface
-		handler.store(this, pc, appName, name, data0, ThreadLocalPageContext.getConfig(pc).getLog("scope"));
+		handler.store(this, pc, appName, name, data0, ThreadLocalPageContext.getLog(pc, "scope"));
 	}
 
 	public void unstore(PageContext pc) {
-		handler.unstore(this, pc, appName, name, ThreadLocalPageContext.getConfig(pc).getLog("scope"));
+		handler.unstore(this, pc, appName, name, ThreadLocalPageContext.getLog(pc, "scope"));
 	}
 
 	@Override

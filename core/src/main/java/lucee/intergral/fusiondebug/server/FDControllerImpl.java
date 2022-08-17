@@ -31,7 +31,9 @@ import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
 import lucee.runtime.CFMLFactory;
 import lucee.runtime.CFMLFactoryImpl;
+import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
+import lucee.runtime.config.Config;
 import lucee.runtime.config.Constants;
 import lucee.runtime.engine.CFMLEngineImpl;
 import lucee.runtime.op.Caster;
@@ -89,7 +91,7 @@ public class FDControllerImpl implements IFDController {
 	@Override
 	public String getLicenseInformation(String key) {
 		if (!isEnterprise) {
-			LogUtil.log(null, Log.LEVEL_ERROR, "integral",
+			LogUtil.log((Config) null, Log.LEVEL_ERROR, "integral",
 					"FD Server Licensing does not work with the Open Source Version of Lucee or Enterprise Version of Lucee that is not enabled");
 			return null;
 		}
@@ -98,7 +100,7 @@ public class FDControllerImpl implements IFDController {
 
 	@Override
 	public void output(String message) {
-		LogUtil.log(null, Log.LEVEL_INFO, "integral", message);
+		LogUtil.log((PageContext) null, Log.LEVEL_INFO, "integral", message);
 	}
 
 	@Override
@@ -125,7 +127,7 @@ public class FDControllerImpl implements IFDController {
 				pc.getThread().wait();
 			}
 			catch (InterruptedException e) {
-				LogUtil.log(null, "integral", e);
+				LogUtil.log((PageContext) null, "integral", e);
 			}
 			threads.add(new FDThreadImpl(this, factory, name, pc));
 		}

@@ -15,8 +15,7 @@ public class LogListener implements Listener {
 	private long index;
 
 	public LogListener(Config config, String logName) {
-		config = ThreadLocalPageContext.getConfig(config);
-		this.log = config.getLog(logName);
+		this.log = ThreadLocalPageContext.getLog(logName);
 	}
 
 	public LogListener(Log log) {

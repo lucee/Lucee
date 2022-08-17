@@ -48,6 +48,7 @@ import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.StringUtil;
 import lucee.loader.util.Util;
+import lucee.runtime.PageContext;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.ListUtil;
@@ -563,6 +564,6 @@ public class BundleBuilderFactory {
 	}
 
 	public void log(String str) {
-		LogUtil.log(null, Log.LEVEL_INFO, BundleBuilderFactory.class.getName(), str);
+		LogUtil.log((PageContext) null, Log.LEVEL_INFO, BundleBuilderFactory.class.getName(), str);
 	}
 }

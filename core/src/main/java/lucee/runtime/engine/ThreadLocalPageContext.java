@@ -21,6 +21,7 @@ package lucee.runtime.engine;
 import java.util.Locale;
 import java.util.TimeZone;
 
+import lucee.commons.io.log.Log;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.config.Config;
@@ -146,6 +147,51 @@ public final class ThreadLocalPageContext {
 
 	public static TimeZone getTimeZone() {
 		return getTimeZone((PageContext) null);
+	}
+
+	public static Log getLog(PageContext pc, String logName) {
+		// pc
+		pc = get(pc);
+		if (pc instanceof PageContextImpl) {
+			return ((PageContextImpl) pc).getLog(logName);
+		}
+
+		// config
+		Config config = getConfig(pc);
+		if (config != null) {
+			return config.getLog(logName);
+		}
+		return null;
+	}
+
+	public static Log getLog(Config config, String logName) {
+		// pc
+		PageContext pc = get(config);
+		if (pc instanceof PageContextImpl) {
+			return ((PageContextImpl) pc).getLog(logName);
+		}
+
+		// config
+		config = getConfig(config);
+		if (config != null) {
+			return config.getLog(logName);
+		}
+		return null;
+	}
+
+	public static Log getLog(String logName) {
+		// pc
+		PageContext pc = get();
+		if (pc instanceof PageContextImpl) {
+			return ((PageContextImpl) pc).getLog(logName);
+		}
+
+		// config
+		Config config = getConfig();
+		if (config != null) {
+			return config.getLog(logName);
+		}
+		return null;
 	}
 
 	public static PageContext get(PageContext pc) {

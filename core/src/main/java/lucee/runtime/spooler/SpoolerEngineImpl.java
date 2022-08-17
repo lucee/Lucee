@@ -198,7 +198,7 @@ public class SpoolerEngineImpl implements SpoolerEngine {
 			task = (SpoolerTask) ois.readObject();
 		}
 		catch (Exception e) {
-			LogUtil.log(ThreadLocalPageContext.getConfig(), SpoolerEngineImpl.class.getName(), e);
+			LogUtil.log(ThreadLocalPageContext.get(), SpoolerEngineImpl.class.getName(), e);
 			IOUtil.closeEL(is);
 			IOUtil.closeEL(ois);
 			res.delete();
@@ -217,14 +217,14 @@ public class SpoolerEngineImpl implements SpoolerEngine {
 			oos.writeObject(task);
 		}
 		catch (IOException e) {
-			LogUtil.log(ThreadLocalPageContext.getConfig(), SpoolerEngineImpl.class.getName(), e);
+			LogUtil.log(ThreadLocalPageContext.get(), SpoolerEngineImpl.class.getName(), e);
 		}
 		finally {
 			try {
 				IOUtil.close(oos);
 			}
 			catch (IOException e) {
-				LogUtil.log(ThreadLocalPageContext.getConfig(), SpoolerEngineImpl.class.getName(), e);
+				LogUtil.log(ThreadLocalPageContext.get(), SpoolerEngineImpl.class.getName(), e);
 			}
 		}
 	}

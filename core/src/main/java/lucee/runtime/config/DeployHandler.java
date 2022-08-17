@@ -91,7 +91,7 @@ public class DeployHandler {
 					else if (config instanceof ConfigServer && "lco".equalsIgnoreCase(ext)) XMLConfigAdmin.updateCore((ConfigServerImpl) config, child, true);
 				}
 				catch (Exception e) {
-					Log log = config.getLog("deploy");
+					Log log = ThreadLocalPageContext.getLog(config, "deploy");
 					log.error("Extension", e);
 				}
 			}
@@ -106,14 +106,14 @@ public class DeployHandler {
 						engine.setEnvExt(extensionIds);
 						List<ExtensionDefintion> extensions = RHExtension.toExtensionDefinitions(extensionIds);
 						Resource configDir = CFMLEngineImpl.getSeverContextConfigDirectory(engine.getCFMLEngineFactory());
-						Log log = config != null ? config.getLog("deploy") : null;
+						Log log = config != null ? ThreadLocalPageContext.getLog(config, "deploy") : null;
 						boolean sucess = DeployHandler.deployExtensions(config, extensions.toArray(new ExtensionDefintion[extensions.size()]), log, force, false);
 						if (sucess && configDir != null) XMLConfigFactory.updateRequiredExtension(engine, configDir, log);
 						LogUtil.log(config, Log.LEVEL_INFO, "deploy", "controller",
 								(sucess ? "sucessfully" : "unsucessfully") + " installed extensions:" + ListUtil.listToList(extensions, ", "));
 					}
 					catch (Exception e) {
-						Log log = config.getLog("deploy");
+						Log log = ThreadLocalPageContext.getLog(config, "deploy");
 						log.error("Extension", e);
 					}
 				}
@@ -170,7 +170,7 @@ public class DeployHandler {
 				catch (PageException e) {
 					if (throwOnError) throw e;
 					if (log != null) log.error("deploy-extension", e);
-					else LogUtil.log(null, null, "deploy-extension", e);
+					else LogUtil.log((Config) null, null, "deploy-extension", e);
 					sucess = false;
 				}
 				if (!sucess) allSucessfull = false;
@@ -196,7 +196,7 @@ public class DeployHandler {
 				catch (PageException e) {
 					if (throwOnError) throw e;
 					if (log != null) log.error("deploy-extension", e);
-					else LogUtil.log(null, null, "deploy-extension", e);
+					else LogUtil.log((Config) null, null, "deploy-extension", e);
 					sucess = false;
 				}
 				if (!sucess) allSucessfull = false;
@@ -226,7 +226,7 @@ public class DeployHandler {
 		catch (Exception e) {
 			if (throwOnError) throw Caster.toPageException(e);
 			if (log != null) log.error("extension", e);
-			else LogUtil.log(null, null, "extension", e);
+			else LogUtil.log((Config) null, null, "extension", e);
 		}
 
 		// check if a local extension is matching our id
@@ -268,7 +268,7 @@ public class DeployHandler {
 					}
 
 					ext = null;
-					LogUtil.log(ThreadLocalPageContext.getConfig(config), DeployHandler.class.getName(), e);
+					LogUtil.log(config, DeployHandler.class.getName(), e);
 				}
 			}
 			break;

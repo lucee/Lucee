@@ -838,12 +838,12 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 					}
 					catch (Exception e) {
 						ed = null;
-						LogUtil.log(ThreadLocalPageContext.getConfig(this), ConfigServerImpl.class.getName(), e);
+						LogUtil.log(this, ConfigServerImpl.class.getName(), e);
 						try {
 							if (!IsZipFile.invoke(locReses[i])) locReses[i].remove(true);
 						}
 						catch (Exception ee) {
-							LogUtil.log(ThreadLocalPageContext.getConfig(this), ConfigServerImpl.class.getName(), ee);
+							LogUtil.log(this, ConfigServerImpl.class.getName(), ee);
 						}
 					}
 				}

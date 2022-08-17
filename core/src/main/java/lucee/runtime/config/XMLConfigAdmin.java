@@ -1050,7 +1050,7 @@ public final class XMLConfigAdmin {
 		if (_bf != null) return _bf;
 
 		ConfigPro ci = ((ConfigPro) config);
-		Log logger = ci.getLog("deploy");
+		Log logger = ThreadLocalPageContext.getLog(ci, "deploy");
 		logger.log(Log.LEVEL_INFO, "extension", "Install Bundle [" + bf.getSymbolicName() + "-" + bf.getVersion().toString() + ".jar" + "]");
 
 		CFMLEngine engine = CFMLEngineFactory.getInstance();
@@ -4593,7 +4593,7 @@ public final class XMLConfigAdmin {
 	}
 
 	public void updateArchive(Config config, Resource archive) throws PageException {
-		Log logger = config.getLog("deploy");
+		Log logger = ThreadLocalPageContext.getLog(config, "deploy");
 		String type = null, virtual = null, name = null;
 		boolean readOnly, topLevel, hidden, physicalFirst;
 		short inspect;
@@ -4708,7 +4708,7 @@ public final class XMLConfigAdmin {
 		}
 
 		ConfigPro ci = (ConfigPro) config;
-		Log logger = ci.getLog("deploy");
+		Log logger = ThreadLocalPageContext.getLog(ci, "deploy");
 		String type = ci instanceof ConfigWeb ? "web" : "server";
 		// load already installed previous version and uninstall the parts no longer needed
 
@@ -5175,7 +5175,7 @@ public final class XMLConfigAdmin {
 	 */
 	private void removeRHExtension(Config config, RHExtension rhe, RHExtension replacementRH, boolean deleteExtension) throws PageException {
 		ConfigPro ci = ((ConfigPro) config);
-		Log logger = ci.getLog("deploy");
+		Log logger = ThreadLocalPageContext.getLog(ci, "deploy");
 
 		// MUST check replacementRH everywhere
 		String extName = "[" + rhe.getName() + ":" + rhe.getVersion() + "]";
@@ -5641,7 +5641,7 @@ public final class XMLConfigAdmin {
 	}
 
 	public void removeArchive(Resource archive) throws IOException, PageException {
-		Log logger = config.getLog("deploy");
+		Log logger = ThreadLocalPageContext.getLog(config, "deploy");
 		String virtual = null, type = null;
 		InputStream is = null;
 		ZipFile file = null;
@@ -6327,7 +6327,7 @@ public final class XMLConfigAdmin {
 				}
 			}
 			catch (Exception e) {
-				LogUtil.log(config, "deploy", XMLConfigAdmin.class.getName(), e);
+				LogUtil.log(ThreadLocalPageContext.get(config), "deploy", XMLConfigAdmin.class.getName(), e);
 			}
 		}
 
@@ -6341,7 +6341,7 @@ public final class XMLConfigAdmin {
 					admin._storeAndReload((ConfigPro) webs[i]);
 				}
 				catch (Exception e) {
-					LogUtil.log(config, "deploy", XMLConfigAdmin.class.getName(), e);
+					LogUtil.log(ThreadLocalPageContext.get(config), "deploy", XMLConfigAdmin.class.getName(), e);
 				}
 			}
 		}
@@ -6360,7 +6360,7 @@ public final class XMLConfigAdmin {
 		String[] arr;
 		boolean storeChildren = false;
 		BundleDefinition[] bundles;
-		Log log = config.getLog("deploy");
+		Log log = ThreadLocalPageContext.getLog(config, "deploy");
 		for (int i = 0; i < children.length; i++) {
 			el = children[i];
 			id = el.getAttribute("id");
@@ -6772,7 +6772,7 @@ public final class XMLConfigAdmin {
 					}
 				}
 				catch (Exception e) {
-					LogUtil.log(ThreadLocalPageContext.getConfig(config), XMLConfigAdmin.class.getName(), e);
+					LogUtil.log(ThreadLocalPageContext.get(config), XMLConfigAdmin.class.getName(), e);
 				}
 			}
 		}

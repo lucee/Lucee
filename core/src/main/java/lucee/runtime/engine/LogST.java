@@ -49,14 +49,14 @@ public class LogST extends Thread {
 			}
 		}
 		catch (IOException e) {
-			LogUtil.log(ThreadLocalPageContext.getConfig(), LogST.class.getName(), e);
+			LogUtil.log(ThreadLocalPageContext.get(), LogST.class.getName(), e);
 		}
 		finally {
 			try {
 				IOUtil.close(ps);
 			}
 			catch (IOException e) {
-				LogUtil.log(ThreadLocalPageContext.getConfig(), LogST.class.getName(), e);
+				LogUtil.log(ThreadLocalPageContext.get(), LogST.class.getName(), e);
 			}
 
 		}

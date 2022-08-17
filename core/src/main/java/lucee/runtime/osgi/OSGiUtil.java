@@ -68,6 +68,7 @@ import lucee.loader.engine.CFMLEngineFactory;
 import lucee.loader.osgi.BundleCollection;
 import lucee.loader.osgi.BundleUtil;
 import lucee.loader.util.Util;
+import lucee.runtime.PageContext;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.config.Identification;
@@ -543,7 +544,7 @@ public class OSGiUtil {
 				b = _loadBundle(bc, bf.getFile());
 			}
 			catch (IOException e) {
-				LogUtil.log(ThreadLocalPageContext.getConfig(), OSGiUtil.class.getName(), e);
+				LogUtil.log(ThreadLocalPageContext.get(), OSGiUtil.class.getName(), e);
 			}
 			if (b != null) {
 				if (startIfNecessary) {
@@ -603,26 +604,25 @@ public class OSGiUtil {
 		String bundleError = "";
 		String parentBundle = "";
 		if (parents != null) parentBundle = String.join(",", parents);
-		
-		if (versionsFound.length() > 0){
-			bundleError = "The OSGi Bundle with name [" + name + "] for [" + parentBundle + "] is not available in version ["
-				+ version + "] locally [" + localDir + "] or from the update provider [" + upLoc
-				+ "], the following versions are available locally [" + versionsFound + "].";
-		} 
-		else if (version != null){
-			bundleError = "The OSGi Bundle with name [" + name + "] in version [" + version
-				+ "] for [" + parentBundle + "] is not available locally [" + localDir + "] or from the update provider" + upLoc + ".";
-		} 
+
+		if (versionsFound.length() > 0) {
+			bundleError = "The OSGi Bundle with name [" + name + "] for [" + parentBundle + "] is not available in version [" + version + "] locally [" + localDir
+					+ "] or from the update provider [" + upLoc + "], the following versions are available locally [" + versionsFound + "].";
+		}
+		else if (version != null) {
+			bundleError = "The OSGi Bundle with name [" + name + "] in version [" + version + "] for [" + parentBundle + "] is not available locally [" + localDir
+					+ "] or from the update provider" + upLoc + ".";
+		}
 		else {
-			bundleError = "The OSGi Bundle with name [" + name + "] for [" + parentBundle + "] is not available locally [" + localDir
-				+ "] or from the update provider [" + upLoc + "].";
+			bundleError = "The OSGi Bundle with name [" + name + "] for [" + parentBundle + "] is not available locally [" + localDir + "] or from the update provider [" + upLoc
+					+ "].";
 		}
 
 		boolean printExceptions = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.cli.printExceptions", null), false);
 		try {
 			throw new BundleException(bundleError);
-		} 
-		catch (BundleException be){
+		}
+		catch (BundleException be) {
 			if (printExceptions) be.printStackTrace();
 			throw be;
 		}
@@ -632,12 +632,12 @@ public class OSGiUtil {
 		if (!Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.enable.bundle.download", null), true)) {
 			boolean printExceptions = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.cli.printExceptions", null), false);
 			String bundleError = "Lucee is missing the Bundle jar [" + symbolicName + ":" + symbolicVersion
-				+ "], and has been prevented from downloading it. If this jar is not a core jar,"
-				+ " it will need to be manually downloaded and placed in the {{lucee-server}}/context/bundles directory.";
+					+ "], and has been prevented from downloading it. If this jar is not a core jar,"
+					+ " it will need to be manually downloaded and placed in the {{lucee-server}}/context/bundles directory.";
 			try {
 				throw new RuntimeException(bundleError);
-			} 
-			catch (RuntimeException re){
+			}
+			catch (RuntimeException re) {
 				if (printExceptions) re.printStackTrace();
 				throw re;
 			}
@@ -673,7 +673,7 @@ public class OSGiUtil {
 				// just in case we check invalid names
 				if (location == null) location = conn.getHeaderField("location");
 				if (location == null) location = conn.getHeaderField("LOCATION");
-				LogUtil.log(null, Log.LEVEL_INFO, OSGiUtil.class.getName(), "Download redirected: " + location); // MUST remove
+				LogUtil.log((PageContext) null, Log.LEVEL_INFO, OSGiUtil.class.getName(), "Download redirected: " + location); // MUST remove
 
 				conn.disconnect();
 				URL url = new URL(location);
@@ -1829,24 +1829,22 @@ public class OSGiUtil {
 
 	private static void log(int level, String msg) {
 		try {
-			Config config = ThreadLocalPageContext.getConfig();
-			Log log = config != null ? config.getLog("application") : null;
+			Log log = ThreadLocalPageContext.getLog("application");
 			if (log != null) log.log(level, "OSGi", msg);
 		}
 		catch (Exception t) {
-			LogUtil.log(null, level, BundleBuilderFactory.class.getName(), msg);
+			LogUtil.log((PageContext) null, level, BundleBuilderFactory.class.getName(), msg);
 		}
 	}
 
 	private static void log(Throwable t) {
 		try {
-			Config config = ThreadLocalPageContext.getConfig();
-			Log log = config != null ? config.getLog("application") : null;
+			Log log = ThreadLocalPageContext.getLog("application");
 			if (log != null) log.log(Log.LEVEL_ERROR, "OSGi", t);
 		}
 		catch (Exception _t) {
 			/* this can fail when called from an old loader */
-			LogUtil.log(null, OSGiUtil.class.getName(), _t);
+			LogUtil.log((PageContext) null, OSGiUtil.class.getName(), _t);
 		}
 	}
 

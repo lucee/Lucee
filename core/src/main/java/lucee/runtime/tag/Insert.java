@@ -35,6 +35,7 @@ import lucee.runtime.db.SQLImpl;
 import lucee.runtime.db.SQLItem;
 import lucee.runtime.db.SQLItemImpl;
 import lucee.runtime.debug.DebuggerImpl;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.DatabaseException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.tag.TagImpl;
@@ -207,7 +208,7 @@ public final class Insert extends TagImpl {
 				}
 
 				// log
-				Log log = pageContext.getConfig().getLog("datasource");
+				Log log = ThreadLocalPageContext.getLog(pageContext, "datasource");
 				if (log.getLogLevel() >= Log.LEVEL_INFO) {
 					log.info("insert tag", "executed [" + sql.toString().trim() + "] in " + DecimalFormat.call(pageContext, query.getExecutionTime() / 1000000D) + " ms");
 				}
@@ -215,7 +216,7 @@ public final class Insert extends TagImpl {
 			return EVAL_PAGE;
 		}
 		catch (PageException pe) {
-			pageContext.getConfig().getLog("datasource").error("insert tag", pe);
+			ThreadLocalPageContext.getLog(pageContext, "datasource").error("insert tag", pe);
 			throw pe;
 		}
 		finally {

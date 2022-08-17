@@ -134,7 +134,7 @@ public final class JSONConverter extends ConverterSupport {
 				sct.setEL(field.getName(), testRecusrion(test, field.get(obj)));
 			}
 			catch (Exception e) {
-				LogUtil.log(ThreadLocalPageContext.getConfig(pc), Controler.class.getName(), e);
+				LogUtil.log(pc, Controler.class.getName(), e);
 			}
 		}
 		if (obj != null) {

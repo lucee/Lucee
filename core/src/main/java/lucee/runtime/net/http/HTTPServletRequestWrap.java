@@ -885,7 +885,7 @@ public final class HTTPServletRequestWrap implements HttpServletRequest, Seriali
 		// now we can safely delete the file
 		if (file != null) {
 			if (!file.delete()) {
-				LogUtil.log(null, Log.LEVEL_WARN, HTTPServletRequestWrap.class.getName(),
+				LogUtil.log((Config) null, Log.LEVEL_WARN, HTTPServletRequestWrap.class.getName(),
 						"was not able to delete the file [" + file + "], will delete it when properly exit the application.");
 				file.deleteOnExit();
 			}

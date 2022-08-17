@@ -923,9 +923,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	private void doChangeVersionTo() throws PageException {
 		try {
 			Version version = OSGiUtil.toVersion(getString("admin", "changeVersionTo", "version"));
-			admin.changeVersionTo(version, password
-			// ,pageContext.getConfig().getLog("Application")
-					, pageContext.getConfig().getIdentification());
+			admin.changeVersionTo(version, password, pageContext.getConfig().getIdentification());
 			adminSync.broadcast(attributes, config);
 		}
 		catch (BundleException e) {
@@ -1123,7 +1121,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 					// pageContext.compile(ps);
 				}
 				catch (PageException pe) {
-					LogUtil.log(ThreadLocalPageContext.getConfig(pageContext), Admin.class.getName(), pe);
+					LogUtil.log(pageContext, Admin.class.getName(), pe);
 					String template = ps.getDisplayPath();
 					StringBuilder msg = new StringBuilder(pe.getMessage());
 					msg.append(", Error Occurred in File [");
@@ -1163,7 +1161,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			admin.removePassword(getString("contextPath", null));
 		}
 		catch (Exception e) {
-			LogUtil.log(ThreadLocalPageContext.getConfig(pageContext), Admin.class.getName(), e);
+			LogUtil.log(ThreadLocalPageContext.get(pageContext), Admin.class.getName(), e);
 		}
 		store();
 	}
@@ -1338,7 +1336,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		ConfigServerImpl server = (ConfigServerImpl) config;
 
 		try {
-			admin.removeContext(server, true, config.getLog("deploy"), strRealpath);
+			admin.removeContext(server, true, ThreadLocalPageContext.getLog(config, "deploy"), strRealpath);
 		}
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
@@ -2704,7 +2702,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		try {
 			ds = new DataSourceImpl(config, name, cd, host, dsn, database, port, username, password, null, connLimit, idleTimeout, liveTimeout, metaCacheTimeout, blob, clob, allow,
 					custom, false, validate, storage, null, dbdriver, ps, literalTimestampWithTSOffset, alwaysSetTimeout, requestExclusive, alwaysResetConnections,
-					config.getLog("application"));
+					ThreadLocalPageContext.getLog(config, "application"));
 		}
 		catch (Exception e) {
 			throw Caster.toPageException(e);
@@ -4310,7 +4308,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			String version = getString("version", null);
 			if (!StringUtil.isEmpty(version, true) && !"latest".equalsIgnoreCase(version)) ed = new ExtensionDefintion(id, version);
 			else ed = RHExtension.toExtensionDefinition(id);
-			DeployHandler.deployExtension(config, ed, config == null ? null : config.getLog("application"), true, true, true);
+			DeployHandler.deployExtension(config, ed, ThreadLocalPageContext.getLog(config, "application"), true, true, true);
 			return;
 		}
 
@@ -4865,7 +4863,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			relatedPackages = JarUtil.getExternalImports(jar, new String[0]);// OSGiUtil.getBootdelegation()
 		}
 		catch (IOException e1) {
-			LogUtil.log(ThreadLocalPageContext.getConfig(pageContext), Admin.class.getName(), e1);
+			LogUtil.log(pageContext, Admin.class.getName(), e1);
 		}
 		if (relatedPackages == null) relatedPackages = new HashSet<String>();
 

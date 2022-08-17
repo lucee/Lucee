@@ -97,7 +97,7 @@ public class UDFCaller2<P> implements Callable<Data<P>> {
 				str = IOUtil.toString((new ByteArrayInputStream(baos.toByteArray())), cs); // TODO add support for none string content
 			}
 			catch (Exception e) {
-				LogUtil.log(ThreadLocalPageContext.getConfig(pc), "loading", e);
+				LogUtil.log(pc, "loading", e);
 			}
 		}
 		return new Data<P>(str, result, passed);

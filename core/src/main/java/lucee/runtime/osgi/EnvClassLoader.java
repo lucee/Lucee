@@ -344,7 +344,7 @@ public class EnvClassLoader extends URLClassLoader {
 
 	private Log log(int logLevel) {
 		if (config == null) return null;
-		Log log = config.getLog("application");
+		Log log = ThreadLocalPageContext.getLog(config, "application");
 		if (log == null || log.getLogLevel() > logLevel) return null;
 		return log;
 	}

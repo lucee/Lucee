@@ -154,7 +154,7 @@ public abstract class StorageScopeCache extends StorageScopeImpl {
 			}
 		}
 		catch (Exception pe) {
-			Log log = ThreadLocalPageContext.getConfig(pc).getLog("scope");
+			Log log = ThreadLocalPageContext.getLog(pc, "scope");
 			ScopeContext.error(log, pe);
 			// LogUtil.log(ThreadLocalPageContext.getConfig(pc), StorageScopeCache.class.getName(), pe);
 		}
@@ -170,7 +170,7 @@ public abstract class StorageScopeCache extends StorageScopeImpl {
 			}
 		}
 		catch (Exception pe) {
-			Log log = ThreadLocalPageContext.getConfig(pc).getLog("scope");
+			Log log = ThreadLocalPageContext.getLog(pc, "scope");
 			ScopeContext.error(log, pe);
 			// LogUtil.log(ThreadLocalPageContext.getConfig(pc), StorageScopeCache.class.getName(), pe);
 		}

@@ -75,7 +75,7 @@ public final class Hash implements Function {
 		else algorithm = algorithm.trim().toLowerCase();
 		if ("cfmx_compat".equals(algorithm)) algorithm = "md5";
 		else if ("quick".equals(algorithm)) {
-			if (numIterations > 1) LogUtil.log(ThreadLocalPageContext.getConfig(config), Log.LEVEL_INFO, Hash.class.getName(),
+			if (numIterations > 1) LogUtil.log(ThreadLocalPageContext.get(config), Log.LEVEL_INFO, Hash.class.getName(),
 					"for algorithm [quick], argument numIterations makes no sense, because this algorithm has no security in mind");
 			return HashUtil.create64BitHashAsString(Caster.toString(input), 16);
 		}

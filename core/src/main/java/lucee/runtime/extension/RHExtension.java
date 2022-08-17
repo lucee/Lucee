@@ -403,7 +403,7 @@ public class RHExtension implements Serializable {
 	private void readManifestConfig(Manifest manifest, String label, String _img) throws ApplicationException {
 		boolean isWeb = config instanceof ConfigWeb;
 		type = isWeb ? "web" : "server";
-		Log logger = config.getLog("deploy");
+		Log logger = ThreadLocalPageContext.getLog(config, "deploy");
 		Info info = ConfigWebUtil.getEngine(config).getInfo();
 
 		Attributes attr = manifest.getMainAttributes();
@@ -444,7 +444,7 @@ public class RHExtension implements Serializable {
 		boolean isWeb = config instanceof ConfigWeb;
 		type = isWeb ? "web" : "server";
 
-		Log logger = config.getLog("deploy");
+		Log logger = ThreadLocalPageContext.getLog(config, "deploy");
 		Info info = ConfigWebUtil.getEngine(config).getInfo();
 
 		readSymbolicName(label, el.getAttribute("symbolic-name"));
@@ -939,7 +939,7 @@ public class RHExtension implements Serializable {
 	}
 
 	public static Query toQuery(Config config, List<RHExtension> children, Query qry) throws PageException {
-		Log log = config.getLog("deploy");
+		Log log = ThreadLocalPageContext.getLog(config, "deploy");
 		if (qry == null) qry = createQuery();
 		Iterator<RHExtension> it = children.iterator();
 		while (it.hasNext()) {
@@ -955,7 +955,7 @@ public class RHExtension implements Serializable {
 	}
 
 	public static Query toQuery(Config config, RHExtension[] children, Query qry) throws PageException {
-		Log log = config.getLog("deploy");
+		Log log = ThreadLocalPageContext.getLog(config, "deploy");
 		if (qry == null) qry = createQuery();
 		if (children != null) {
 			for (int i = 0; i < children.length; i++) {
@@ -972,7 +972,7 @@ public class RHExtension implements Serializable {
 	}
 
 	public static Query toQuery(Config config, Element[] children) throws PageException {
-		Log log = config.getLog("deploy");
+		Log log = ThreadLocalPageContext.getLog(config, "deploy");
 		Query qry = createQuery();
 		for (int i = 0; i < children.length; i++) {
 			try {

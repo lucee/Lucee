@@ -57,7 +57,6 @@ import lucee.runtime.cfx.CFXTagPool;
 import lucee.runtime.compiler.CFMLCompilerImpl;
 import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.debug.DebuggerPool;
-import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.engine.ThreadQueue;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.ExpressionException;
@@ -293,6 +292,7 @@ public class ConfigWebImpl extends ConfigImpl implements ServletConfig, ConfigWe
 		return serverFunctionMappings.values();
 	}
 
+	@Override
 	public void resetServerFunctionMappings() {
 		serverFunctionMappings = null;
 	}
@@ -368,7 +368,7 @@ public class ConfigWebImpl extends ConfigImpl implements ServletConfig, ConfigWe
 			getGatewayEngineImpl().addEntries(this, gatewayEntries);
 		}
 		catch (Exception e) {
-			LogUtil.log(ThreadLocalPageContext.getConfig(this), ConfigWebImpl.class.getName(), e);
+			LogUtil.log(this, ConfigWebImpl.class.getName(), e);
 		}
 	}
 

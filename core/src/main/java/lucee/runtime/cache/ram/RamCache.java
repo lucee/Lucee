@@ -34,6 +34,7 @@ import lucee.commons.io.cache.CacheEntry;
 import lucee.commons.io.cache.CachePro;
 import lucee.commons.io.cache.exp.CacheException;
 import lucee.commons.io.log.LogUtil;
+import lucee.runtime.PageContext;
 import lucee.runtime.cache.CacheSupport;
 import lucee.runtime.cache.ram.ref.HardRef;
 import lucee.runtime.cache.ram.ref.Ref;
@@ -235,7 +236,7 @@ public class RamCache extends CacheSupport {
 					_run();
 				}
 				catch (Exception e) {
-					LogUtil.log(null, "application", e);
+					LogUtil.log((PageContext) null, "application", e);
 				}
 			}
 		}

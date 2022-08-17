@@ -25,6 +25,7 @@ import java.lang.reflect.Modifier;
 
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.lang.ClassUtil;
+import lucee.runtime.PageContext;
 
 /**
  * A {@code Method} provides information about, and access to, a single method on a class or
@@ -132,7 +133,7 @@ public abstract class ASMMethod {
 			returnType = m.getReturnType();
 		}
 		catch (Exception e) {
-			LogUtil.log(null, ASMMethod.class.getName(), e);
+			LogUtil.log((PageContext) null, ASMMethod.class.getName(), e);
 		}
 
 	}

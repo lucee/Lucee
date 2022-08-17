@@ -81,7 +81,7 @@ public final class SchedulerImpl implements Scheduler {
 		}
 		catch (Exception e) {
 			if (newFile) rethrow(e);
-			config.getLog("scheduler").log(Log.LEVEL_FATAL, "startup", "could not load " + schedulerFile, e);
+			ThreadLocalPageContext.getLog(config, "scheduler").log(Log.LEVEL_FATAL, "startup", "could not load " + schedulerFile, e);
 			reinitFile(schedulerDir);
 			doc = XMLUtil.createDocument(schedulerFile, false);
 		}
@@ -203,7 +203,7 @@ public final class SchedulerImpl implements Scheduler {
 			return st;
 		}
 		catch (Exception e) {
-			LogUtil.log(ThreadLocalPageContext.getConfig(config), SchedulerImpl.class.getName(), e);
+			LogUtil.log(ThreadLocalPageContext.get(config), SchedulerImpl.class.getName(), e);
 			throw Caster.toPageException(e);
 		}
 	}

@@ -107,6 +107,7 @@ import lucee.runtime.debug.DebuggerImpl;
 import lucee.runtime.dump.DumpUtil;
 import lucee.runtime.dump.DumpWriter;
 import lucee.runtime.engine.ExecutionLog;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.err.ErrorPage;
 import lucee.runtime.err.ErrorPageImpl;
 import lucee.runtime.err.ErrorPagePool;
@@ -824,7 +825,7 @@ public final class PageContextImpl extends PageContext {
 	}
 
 	public PageSource getRelativePageSource(String realPath) {
-		LogUtil.log(config, Log.LEVEL_INFO, PageContextImpl.class.getName(), "method getRelativePageSource is deprecated");
+		LogUtil.log(this, Log.LEVEL_INFO, PageContextImpl.class.getName(), "method getRelativePageSource is deprecated");
 		if (StringUtil.startsWith(realPath, '/')) return PageSourceImpl.best(getPageSources(realPath));
 		if (pathList.size() == 0) return null;
 		return pathList.getLast().getRealPage(realPath);
@@ -2390,7 +2391,7 @@ public final class PageContextImpl extends PageContext {
 
 			if (mapping == null || mapping.getPhysical() == null) {
 				RestUtil.setStatus(this, 404, "no rest service for [" + HTMLEntities.escapeHTML(pathInfo) + "] found");
-				getConfig().getLog("rest").error("REST", "no rest service for [" + pathInfo + "] found");
+				ThreadLocalPageContext.getLog(this, "rest").error("REST", "no rest service for [" + pathInfo + "] found");
 			}
 			else {
 				base = config.toPageSource(null, mapping.getPhysical(), null);
@@ -3257,7 +3258,7 @@ public final class PageContextImpl extends PageContext {
 
 	@Override
 	public void compile(String realPath) throws PageException {
-		LogUtil.log(config, Log.LEVEL_INFO, PageContextImpl.class.getName(), "method PageContext.compile(String) should no longer be used!");
+		LogUtil.log(this, Log.LEVEL_INFO, PageContextImpl.class.getName(), "method PageContext.compile(String) should no longer be used!");
 		compile(PageSourceImpl.best(getRelativePageSources(realPath)));
 	}
 
@@ -3756,6 +3757,10 @@ public final class PageContextImpl extends PageContext {
 	}
 
 	public Log getLog(String name) {
+		if (applicationContext != null) {
+			Log log = applicationContext.getLog(name);
+			if (log != null) return log;
+		}
 		return config.getLog(name);
 	}
 

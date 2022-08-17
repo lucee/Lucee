@@ -193,7 +193,7 @@ public final class ConfigWebUtil {
 
 		CFMLEngine engine = ConfigWebUtil.getEngine(config);
 		BundleContext bc = engine.getBundleContext();
-		Log log = config.getLog("application");
+		Log log = ThreadLocalPageContext.getLog(config, "application");
 		BundleFile bf;
 		List<Resource> list = new ArrayList<Resource>();
 		for (int i = 0; i < libs.length; i++) {

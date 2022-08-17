@@ -262,7 +262,7 @@ public class DatasourceConnectionPool {
 
 		}
 		catch (Exception e) {
-			LogUtil.log(ThreadLocalPageContext.getConfig(), "datasource", "connection", e, Log.LEVEL_INFO);
+			LogUtil.log(ThreadLocalPageContext.get(), "datasource", "connection", e, Log.LEVEL_INFO);
 		} // not all driver support this, because of that we ignore an error
 			// here, also protect from java 5
 

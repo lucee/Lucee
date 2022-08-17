@@ -327,7 +327,7 @@ public abstract class DataSourceSupport implements DataSourcePro, Cloneable, Ser
 	@Override
 	public Log getLog() {
 		// can be null if deserialized
-		if (log == null) log = ThreadLocalPageContext.getConfig().getLog("application");
+		if (log == null) log = ThreadLocalPageContext.getLog("application");
 		return log;
 	}
 

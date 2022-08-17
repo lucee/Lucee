@@ -63,6 +63,7 @@ import lucee.runtime.db.ProcMetaCollection;
 import lucee.runtime.db.SQLCaster;
 import lucee.runtime.db.SQLImpl;
 import lucee.runtime.db.SQLItemImpl;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.DatabaseException;
 import lucee.runtime.exp.PageException;
@@ -784,7 +785,7 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 	}
 
 	private Log getLog() {
-		return pageContext.getConfig().getLog("datasource");
+		return ThreadLocalPageContext.getLog(pageContext, "datasource");
 	}
 
 	private String getParamTypesPassed() {

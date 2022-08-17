@@ -102,6 +102,7 @@ import lucee.runtime.cache.tag.http.HTTPCacheItem;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.config.Constants;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.HTTPException;
@@ -1636,7 +1637,7 @@ public final class Http extends BodyTagImpl {
 	}
 
 	private static void logHttpRequest(PageContext pc, Struct data, String url, String method, long executionTimeNS, boolean cached) throws PageException {
-		Log log = pc.getConfig().getLog("trace");
+		Log log = ThreadLocalPageContext.getLog(pc, "trace");
 		if (log != null && log.getLogLevel() <= Log.LEVEL_INFO) log.log(Log.LEVEL_INFO, "cftrace", "httpRequest [" + method + "] to [" + url + "], returned ["
 				+ data.get(STATUSCODE) + "] in " + (executionTimeNS / 1000000) + "ms, " + (cached ? "(cached response)" : "") + " at " + CallStackGet.call(pc, "text"));
 	}

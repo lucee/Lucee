@@ -236,7 +236,7 @@ public class JavaSettingsImpl implements JavaSettings {
 					if (res != null) list.add(res);
 				}
 				catch (Exception e) {
-					LogUtil.log(ThreadLocalPageContext.getConfig(), ModernApplicationContext.class.getName(), e);
+					LogUtil.log(ThreadLocalPageContext.get(), ModernApplicationContext.class.getName(), e);
 				}
 			}
 			return list;

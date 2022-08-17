@@ -37,6 +37,7 @@ import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
 import lucee.loader.engine.CFMLEngine;
+import lucee.runtime.PageContext;
 import lucee.runtime.engine.InfoImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.osgi.OSGiUtil;
@@ -138,7 +139,7 @@ public abstract class XMLConfigFactory {
 		}
 		catch (Exception e) {
 			if (log != null) log.error("required-extension", e);
-			else LogUtil.log(null, "required-extension", e);
+			else LogUtil.log((PageContext) null, "required-extension", e);
 		}
 		return false;
 	}
@@ -176,7 +177,7 @@ public abstract class XMLConfigFactory {
 			if (configFile.exists()) {
 				LogUtil.log(ThreadLocalPageContext.getConfig(), Log.LEVEL_INFO, XMLConfigFactory.class.getName(),
 						"Config file [" + configFile + "] was not valid and has been replaced");
-				LogUtil.log(ThreadLocalPageContext.getConfig(), XMLConfigFactory.class.getName(), e);
+				LogUtil.log(ThreadLocalPageContext.get(), XMLConfigFactory.class.getName(), e);
 				int count = 1;
 				Resource bugFile;
 				Resource configDir = configFile.getParentResource();

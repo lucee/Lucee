@@ -559,7 +559,7 @@ public final class DebuggerImpl implements Debugger {
 				}
 			}
 			catch (PageException dbe) {
-				Log log = pc.getConfig().getLog("application");
+				Log log = ThreadLocalPageContext.getLog(pc, "application");
 				if (log != null) log.error("debugging", dbe);
 			}
 		}
