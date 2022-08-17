@@ -23,7 +23,12 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.Appender;
+
 import lucee.commons.io.CharsetUtil;
+import lucee.commons.io.log.log4j2.LogAdapter;
+import lucee.commons.io.log.log4j2.appender.ResourceAppender;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.retirement.RetireListener;
 import lucee.commons.io.retirement.RetireOutputStream;
@@ -234,7 +239,30 @@ public final class Log extends TagImpl {
 			}
 		}
 		else {
-			logger = getFileLog(pageContext, file, charset, async);
+			logger = null;
+			// if we do have a log with the same name, we use the log
+			String tmpName = file.toLowerCase();
+			if (tmpName.endsWith(".log")) tmpName = tmpName.substring(0, tmpName.length() - 4);
+			lucee.commons.io.log.Log tmp = pci.getLog(tmpName, false);
+
+			// it has to be a resource appender
+			if (tmp instanceof LogAdapter) {
+				LogAdapter la = (LogAdapter) tmp;
+				Logger ll = la.getLogger();
+				if (ll instanceof org.apache.logging.log4j.core.Logger) {
+					Map<String, Appender> appenders = ((org.apache.logging.log4j.core.Logger) ll).getAppenders();
+					if (appenders != null) {
+						for (Appender a: appenders.values()) {
+							if (a instanceof ResourceAppender) {
+								logger = tmp;
+								break;
+							}
+						}
+					}
+				}
+
+			}
+			if (logger == null) logger = getFileLog(pageContext, file, charset, async);
 		}
 		String contextName = pageContext.getApplicationContext().getName();
 		if (contextName == null || !application) contextName = "";
