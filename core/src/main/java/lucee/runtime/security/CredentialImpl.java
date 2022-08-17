@@ -256,6 +256,10 @@ public final class CredentialImpl implements Credential {
 		}
 	}
 
+	public static Credential decode(Object encoded, Resource rolesDir) {
+		return decode(encoded, rolesDir, false);
+	}
+
 	public static Credential decode(Object encoded, Resource rolesDir, boolean precise) {
 		try {
 			return decode(encoded, rolesDir, null, null, 0, precise);
