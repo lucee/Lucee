@@ -5,7 +5,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 		if( directoryExists( base ) ){
 			directoryDelete (base, true );
 		}
-		directoryCreate( base );
+ 		directoryCreate( base );
 
 		var dirList = "b,n";
 		dirlist.each(function( index ){
@@ -50,16 +50,17 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 			it(title = "directorylist() with attribute listinfo = 'path', sort directory ASC", body = function( currentSpec ) {
 				var dirList = directorylist( base, true, 'path', '*.txt', 'directory ASC');
 				loop array=dirList item="local.dir" index="local.i" {
-					dirList[ local.i ] =  listlast( dir, "LDEV2152" );
-				}expect( dirList ).toBe( [ '\a.txt', '\c.txt','\j.txt','\b\e.txt','\b\d\g.txt','\b\d\p.txt','\n\h.txt','\n\o.txt' ] );
+					dirList[ local.i ] =  replace( listlast( dir, "LDEV2152" ), "\", "/", "all" );
+				}
+				expect( dirList ).toBe( [ '/a.txt', '/c.txt','/j.txt','/b/e.txt','/b/d/g.txt','/b/d/p.txt','/n/h.txt','/n/o.txt' ] );
 			});
 
-			it(title = "directorylist() with attribute listinfo = 'path',sort = 'directory desc'", body = function( currentSpec ) {
+			it(title = "directorylist() with attribute listinfo = 'path',sort = 'directory desc'",  body = function( currentSpec ) {
 				var dirList = directorylist( base, true, 'path', '*.txt', 'directory DESC');
 				loop array=dirList item="local.dir" index="local.i" {
-					dirList[ local.i ] =  listlast( dir, "LDEV2152" );
+					dirList[ local.i ] =  replace( listlast( dir, "LDEV2152" ), "\", "/", "all" );
 				}
-				expect ( dirList ).toBe( ['\n\h.txt','\n\o.txt','\b\d\g.txt', '\b\d\p.txt', '\b\e.txt', '\a.txt', '\c.txt', '\j.txt'] );
+				expect ( dirList ).toBe( ['/n/h.txt','/n/o.txt','/b/d/g.txt', '/b/d/p.txt', '/b/e.txt', '/a.txt', '/c.txt', '/j.txt'] );
 			});
 
 			// fails 5.3
