@@ -4266,7 +4266,7 @@ public final class ConfigAdmin {
 	}
 
 	public void updateArchive(Config config, Resource archive) throws PageException {
-		Log logger = config.getLog("deploy");
+		Log logger = ThreadLocalPageContext.getLog(config, "deploy");
 		String type = null, virtual = null, name = null;
 		boolean readOnly, topLevel, hidden, physicalFirst;
 		short inspect;
@@ -4381,7 +4381,7 @@ public final class ConfigAdmin {
 		}
 
 		ConfigPro ci = (ConfigPro) config;
-		Log logger = ci.getLog("deploy");
+		Log logger = ThreadLocalPageContext.getLog(ci, "deploy");
 		String type = ci instanceof ConfigWeb ? "web" : "server";
 		// load already installed previous version and uninstall the parts no longer needed
 		RHExtension existingRH = getRHExtension(ci, rhext.getId(), null);
@@ -4762,7 +4762,7 @@ public final class ConfigAdmin {
 			ExceptionUtil.rethrowIfNecessary(t);
 			DeployHandler.moveToFailedFolder(rhext.getExtensionFile().getParentResource(), rhext.getExtensionFile());
 			try {
-				ConfigAdmin.removeRHExtensions((ConfigPro) config, config.getLog("deploy"), new String[] { rhext.getId() }, false);
+				ConfigAdmin.removeRHExtensions((ConfigPro) config, ThreadLocalPageContext.getLog(config, "deploy"), new String[] { rhext.getId() }, false);
 			}
 			catch (Throwable t2) {
 				ExceptionUtil.rethrowIfNecessary(t2);
@@ -4796,7 +4796,7 @@ public final class ConfigAdmin {
 	 */
 	private void removeRHExtension(Config config, RHExtension rhe, RHExtension replacementRH, boolean deleteExtension) throws PageException {
 		ConfigPro ci = ((ConfigPro) config);
-		Log logger = ci.getLog("deploy");
+		Log logger = ThreadLocalPageContext.getLog(ci, "deploy");
 
 		// MUST check replacementRH everywhere
 
@@ -5217,7 +5217,7 @@ public final class ConfigAdmin {
 	}
 
 	public void removeArchive(Resource archive) throws IOException, PageException {
-		Log logger = config.getLog("deploy");
+		Log logger = ThreadLocalPageContext.getLog(config, "deploy");
 		String virtual = null, type = null;
 		InputStream is = null;
 		ZipFile file = null;
@@ -5919,7 +5919,7 @@ public final class ConfigAdmin {
 		String[] arr;
 		boolean storeChildren = false;
 		BundleDefinition[] bundles;
-		Log log = config.getLog("deploy");
+		Log log = ThreadLocalPageContext.getLog(config, "deploy");
 		int key;
 		for (int i = keys.length - 1; i >= 0; i--) {
 			key = keys[i];

@@ -33,6 +33,7 @@ import lucee.runtime.CFMLFactoryImpl;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.transformer.bytecode.util.ASMUtil;
 
 public class FDThreadImpl implements IFDThread {
@@ -65,7 +66,7 @@ public class FDThreadImpl implements IFDThread {
 
 	@Override
 	public void stop() {
-		Log log = pc.getConfig().getLog("application");
+		Log log = ThreadLocalPageContext.getLog(pc, "application");
 		SystemUtil.stop(pc, true);
 	}
 

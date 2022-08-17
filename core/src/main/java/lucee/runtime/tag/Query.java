@@ -58,6 +58,7 @@ import lucee.runtime.db.SQLImpl;
 import lucee.runtime.db.SQLItem;
 import lucee.runtime.db.SQLItemImpl;
 import lucee.runtime.debug.DebuggerImpl;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.CasterException;
 import lucee.runtime.exp.CatchBlockImpl;
@@ -245,7 +246,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 
 	public static DataSource toDatasource(PageContext pageContext, Object datasource) throws PageException {
 		if (Decision.isStruct(datasource)) {
-			return AppListenerUtil.toDataSource(pageContext.getConfig(), "__temp__", Caster.toStruct(datasource), pageContext.getConfig().getLog("application"));
+			return AppListenerUtil.toDataSource(pageContext.getConfig(), "__temp__", Caster.toStruct(datasource), ThreadLocalPageContext.getLog(pageContext, "application"));
 		}
 		else if (Decision.isString(datasource)) {
 			return pageContext.getDataSource(Caster.toString(datasource));
@@ -619,7 +620,8 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 
 			if (useCache) {
 
-				cacheId = CacheHandlerCollectionImpl.createId(sqlQuery, data.datasource != null ? data.datasource.getName() : null, data.username, data.password, data.returntype, data.maxrows);
+				cacheId = CacheHandlerCollectionImpl.createId(sqlQuery, data.datasource != null ? data.datasource.getName() : null, data.username, data.password, data.returntype,
+						data.maxrows);
 
 				CacheHandlerCollectionImpl coll = (CacheHandlerCollectionImpl) pageContext.getConfig().getCacheHandlerCollection(Config.CACHE_TYPE_QUERY, null);
 				cacheHandler = coll.getInstanceMatchingObject(data.cachedWithin, null);
@@ -636,7 +638,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 						}
 						catch (PageException pe) {
 							cacheItem = null;
-							LogUtil.log(pageContext.getConfig(), "query", pe);
+							LogUtil.log(pageContext, "query", pe);
 						}
 						if (cacheItem instanceof QueryResultCacheItem) queryResult = ((QueryResultCacheItem) cacheItem).getQueryResult();
 					}
@@ -648,7 +650,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 						}
 						catch (PageException pe) {
 							cacheItem = null;
-							LogUtil.log(pageContext.getConfig(), "query", pe);
+							LogUtil.log(pageContext, "query", pe);
 						}
 
 						if (cacheItem instanceof QueryResultCacheItem) {
@@ -735,7 +737,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 							cacheHandler.set(pageContext, cacheId, data.cachedWithin, cacheItem);
 						}
 						catch (PageException pe) {
-							LogUtil.log(pageContext.getConfig(), "query", pe);
+							LogUtil.log(pageContext, "query", pe);
 						}
 					}
 				}
@@ -776,7 +778,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 			}
 
 			// log
-			Log log = pageContext.getConfig().getLog("datasource");
+			Log log = ThreadLocalPageContext.getLog(pageContext, "datasource");
 			if (log.getLogLevel() >= Log.LEVEL_INFO) {
 				log.info("query tag", "executed [" + sqlQuery.toString().trim() + "] in " + DecimalFormat.call(pageContext, exe / 1000000D) + " ms");
 			}

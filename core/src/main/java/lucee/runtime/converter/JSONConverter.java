@@ -63,7 +63,6 @@ import lucee.runtime.op.Decision;
 import lucee.runtime.orm.ORMUtil;
 import lucee.runtime.reflection.Reflector;
 import lucee.runtime.text.xml.XMLCaster;
-import lucee.runtime.util.ObjectIdentityHashSet;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
@@ -79,6 +78,7 @@ import lucee.runtime.type.dt.TimeSpan;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.CollectionUtil;
 import lucee.runtime.type.util.ComponentUtil;
+import lucee.runtime.util.ObjectIdentityHashSet;
 
 /**
  * class to serialize and desirilize WDDX Packes
@@ -157,7 +157,7 @@ public final class JSONConverter extends ConverterSupport {
 				sct.setEL(field.getName(), testRecursion(test, field.get(obj)));
 			}
 			catch (Exception e) {
-				LogUtil.log(ThreadLocalPageContext.getConfig(pc), Controler.class.getName(), e);
+				LogUtil.log(pc, Controler.class.getName(), e);
 			}
 		}
 		if (obj != null) {
@@ -283,7 +283,8 @@ public final class JSONConverter extends ConverterSupport {
 	 * @param done
 	 * @throws ConverterException
 	 */
-	public void _serializeStruct(PageContext pc, Set test, Struct struct, StringBuilder sb, int queryFormat, boolean addUDFs, ObjectIdentityHashSet done) throws ConverterException {
+	public void _serializeStruct(PageContext pc, Set test, Struct struct, StringBuilder sb, int queryFormat, boolean addUDFs, ObjectIdentityHashSet done)
+			throws ConverterException {
 
 		// preserve case by default for Struct
 		boolean preserveCase = getPreserveCase(pc, false);

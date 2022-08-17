@@ -39,6 +39,7 @@ import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.DatasourceConnPool;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.DatabaseException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
@@ -276,11 +277,10 @@ public final class HSQLDBHandler {
 			qoqException = e;
 		}
 
-		
-		if (qoqException != null){
+		if (qoqException != null) {
 			// Debugging option to to log all QoQ that fall back on hsqldb in the datasource log
 			if (hsqldbDebug) {
-				pc.getConfig().getLog("datasource").error("QoQ [" + sql.getSQLString() + "] errored and is falling back to HyperSQL.", qoqException);
+				ThreadLocalPageContext.getLog(pc, "datasource").error("QoQ [" + sql.getSQLString() + "] errored and is falling back to HyperSQL.", qoqException);
 			}
 
 			// Log an exception if debugging is enabled
@@ -289,7 +289,7 @@ public final class HSQLDBHandler {
 			}
 
 			// Debugging option to completely disable HyperSQL for testing
-			if ( hsqldbDisable) {
+			if (hsqldbDisable) {
 				throw Caster.toPageException(qoqException);
 			}
 		}

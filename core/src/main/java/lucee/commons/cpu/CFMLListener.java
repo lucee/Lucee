@@ -42,7 +42,7 @@ public abstract class CFMLListener implements Listener {
 			_listen(pc, list);
 		}
 		catch (PageException pe) {
-			LogUtil.log(config, "application", "cpu", pe);
+			LogUtil.log(pc, "application", "cpu", pe);
 		}
 		finally {
 			if (release) {

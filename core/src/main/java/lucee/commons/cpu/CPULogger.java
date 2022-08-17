@@ -98,7 +98,7 @@ public class CPULogger {
 
 				}
 				catch (Exception e) {
-					LogUtil.log(null, "application", "cpu", e);
+					LogUtil.log("application", "cpu", e);
 				}
 			}
 		}

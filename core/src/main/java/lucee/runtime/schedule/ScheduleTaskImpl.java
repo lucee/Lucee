@@ -30,11 +30,11 @@ import lucee.commons.lang.Md5;
 import lucee.commons.net.HTTPUtil;
 import lucee.commons.security.Credentials;
 import lucee.runtime.engine.CFMLEngineImpl;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.net.proxy.ProxyData;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.dt.Date;
 import lucee.runtime.type.dt.Time;
-import lucee.runtime.schedule.ScheduleTaskPro;
 
 /**
  * Define a single schedule Task
@@ -109,7 +109,7 @@ public final class ScheduleTaskImpl implements ScheduleTaskPro {
 		if (file != null && file.toString().trim().length() > 0) {
 			// is it a file?
 			if (file.exists() && !file.isFile()) {
-				((SchedulerImpl) scheduler).getConfig().getLog("scheduler").error("scheduler", "Output file [" + file + "] is not a file");
+				ThreadLocalPageContext.getLog(((SchedulerImpl) scheduler).getConfig(), "scheduler").error("scheduler", "Output file [" + file + "] is not a file");
 				file = null;
 			}
 
@@ -125,7 +125,8 @@ public final class ScheduleTaskImpl implements ScheduleTaskPro {
 				}
 				// no parent directory
 				if (parent == null) {
-					((SchedulerImpl) scheduler).getConfig().getLog("scheduler").error("scheduler", "Directory for output file [" + file + "] doesn't exist");
+					ThreadLocalPageContext.getLog(((SchedulerImpl) scheduler).getConfig(), "scheduler").error("scheduler",
+							"Directory for output file [" + file + "] doesn't exist");
 					file = null;
 				}
 			}
@@ -373,14 +374,14 @@ public final class ScheduleTaskImpl implements ScheduleTaskPro {
 		if (thread != null) {
 			if (thread.isAlive()) {
 				if (thread.getState() == State.BLOCKED) {
-					((SchedulerImpl) scheduler).getConfig().getLog("scheduler").info("scheduler", "thread is blocked");
+					ThreadLocalPageContext.getLog(((SchedulerImpl) scheduler).getConfig(), "scheduler").info("scheduler", "thread is blocked");
 					SystemUtil.stop(thread);
 				}
 				else if (thread.getState() != State.TERMINATED) {
 					return; // existing is still fine, so nothing to start
 				}
 			}
-			((SchedulerImpl) scheduler).getConfig().getLog("scheduler").info("scheduler", "Thread needs a restart (" + thread.getState().name() + ")");
+			ThreadLocalPageContext.getLog(((SchedulerImpl) scheduler).getConfig(), "scheduler").info("scheduler", "Thread needs a restart (" + thread.getState().name() + ")");
 
 		}
 		this.thread = new ScheduledTaskThread(engine, scheduler, this);
@@ -389,7 +390,7 @@ public final class ScheduleTaskImpl implements ScheduleTaskPro {
 	}
 
 	public void stop() {
-		Log log = ((SchedulerImpl) scheduler).getConfig().getLog("scheduler");
+		Log log = ThreadLocalPageContext.getLog(((SchedulerImpl) scheduler).getConfig(), "scheduler");
 		log.info("scheduler", "stopping task [" + getTask() + "]");
 		if (thread == null || !thread.isAlive()) {
 			log.info("scheduler", "task [" + getTask() + "] was not running");
@@ -408,11 +409,11 @@ public final class ScheduleTaskImpl implements ScheduleTaskPro {
 
 	public void log(int level, String msg) {
 		String logName = "schedule task:" + task;
-		((SchedulerImpl) scheduler).getConfig().getLog("scheduler").log(level, logName, msg);
+		ThreadLocalPageContext.getLog(((SchedulerImpl) scheduler).getConfig(), "scheduler").log(level, logName, msg);
 	}
 
 	public void log(int level, String msg, Throwable t) {
 		String logName = "schedule task:" + task;
-		((SchedulerImpl) scheduler).getConfig().getLog("scheduler").log(level, logName, msg, t);
+		ThreadLocalPageContext.getLog(((SchedulerImpl) scheduler).getConfig(), "scheduler").log(level, logName, msg, t);
 	}
 }

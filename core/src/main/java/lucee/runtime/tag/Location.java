@@ -25,6 +25,7 @@ import javax.servlet.http.HttpServletResponse;
 import lucee.commons.io.log.Log;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.net.HTTPUtil;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.Abort;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.ExpressionException;
@@ -132,7 +133,7 @@ public final class Location extends TagImpl {
 			url = ReqRspUtil.encodeRedirectURLEL(rsp, url);
 		}
 
-		Log log = pageContext.getConfig().getLog("trace");
+		Log log = ThreadLocalPageContext.getLog(pageContext, "trace");
 		if (abort) {
 			if (log != null && log.getLogLevel() <= Log.LEVEL_ERROR)
 				log.log(Log.LEVEL_ERROR, "cftrace", "abort redirect to " + url + " at " + CallStackGet.call(pageContext, "text"));

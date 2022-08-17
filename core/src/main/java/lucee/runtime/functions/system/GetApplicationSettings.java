@@ -168,7 +168,7 @@ public class GetApplicationSettings extends BIF {
 		}
 		catch (Exception e) {
 		} // in case the extension is not loaded this will fail // TODO check if the extension is installed
-		// query
+			// query
 		{
 			Struct query = new StructImpl(Struct.TYPE_LINKED);
 			query.setEL("varusage", AppListenerUtil.toVariableUsage(acs.getQueryVarUsage(), "ignore"));
@@ -341,7 +341,7 @@ public class GetApplicationSettings extends BIF {
 				}
 			}
 			catch (PageException e) {
-				LogUtil.log(ThreadLocalPageContext.getConfig(pc), GetApplicationSettings.class.getName(), e);
+				LogUtil.log(pc, GetApplicationSettings.class.getName(), e);
 			}
 		}
 		// application tag custom attributes

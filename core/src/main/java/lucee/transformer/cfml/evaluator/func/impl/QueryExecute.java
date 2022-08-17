@@ -31,7 +31,7 @@ public class QueryExecute implements FunctionEvaluator {
 					addArgument(bif, str);
 				}
 				catch (TransformerException e) {
-					LogUtil.log(null, QueryExecute.class.getName(), e);
+					LogUtil.log(QueryExecute.class.getName(), e);
 				}
 			}
 		}

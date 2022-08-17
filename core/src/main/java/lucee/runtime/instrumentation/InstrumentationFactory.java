@@ -65,7 +65,7 @@ public class InstrumentationFactory {
 
 	public static synchronized Instrumentation getInstrumentation(final Config config) {
 
-		final Log log = config.getLog("application");
+		final Log log = ThreadLocalPageContext.getLog(config, "application");
 		// final CFMLEngine engine = ConfigWebUtil.getEngine(config);
 		Instrumentation instr = _getInstrumentation(log, config);
 
@@ -135,7 +135,7 @@ public class InstrumentationFactory {
 								+ (agentJar) + "\"] " + (allowAttachSelf ? "." : "or supply -Djdk.attach.allowAttachSelf as system property.")));
 			}
 			catch (IOException ioe) {
-				LogUtil.log(ThreadLocalPageContext.getConfig(config), InstrumentationFactory.class.getName(), ioe);
+				LogUtil.log((config), InstrumentationFactory.class.getName(), ioe);
 			}
 		}
 		return instr;

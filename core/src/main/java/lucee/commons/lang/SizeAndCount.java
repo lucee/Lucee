@@ -70,7 +70,7 @@ public class SizeAndCount {
 				raw = toNode.invoke(obj, new Object[0]);
 			}
 			catch (Exception e) {
-				LogUtil.log(null, "lang", e);
+				LogUtil.log("lang", e);
 			}
 		}
 

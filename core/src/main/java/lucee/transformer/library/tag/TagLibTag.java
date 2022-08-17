@@ -787,7 +787,7 @@ public final class TagLibTag {
 			setter = m.getName();
 		}
 		catch (Exception e) {
-			LogUtil.log(null, TagLibTag.class.getName(), e);
+			LogUtil.log(TagLibTag.class.getName(), e);
 		}
 		setters.put(attr.getName(), setter);
 		return setter;

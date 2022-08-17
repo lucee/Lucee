@@ -789,7 +789,7 @@ public final class SMTPClient implements Serializable {
 		try {
 
 			Proxy.start(proxyData);
-			Log log = config.getLog("mail");
+			Log log = ThreadLocalPageContext.getLog(config, "mail");
 			// Server
 			// Server[] servers = config.getMailServers();
 			if (host != null) {
@@ -912,8 +912,8 @@ public final class SMTPClient implements Serializable {
 	}
 
 	private void listener(ConfigWeb config, Server server, Log log, Exception e, long exe) {
-		if (e == null) log.info("mail", "mail sent (subject:" + subject + "; server:" + server.getHostName() + "; port:" + server.getPort() + "; from:" + toString(from) + "; to:" + toString(tos) + "; cc:" + toString(ccs) + "; bcc:" + toString(bccs)
-				+ "; ft:" + toString(fts) + "; rt:" + toString(rts) + ")");
+		if (e == null) log.info("mail", "mail sent (subject:" + subject + "; server:" + server.getHostName() + "; port:" + server.getPort() + "; from:" + toString(from) + "; to:"
+				+ toString(tos) + "; cc:" + toString(ccs) + "; bcc:" + toString(bccs) + "; ft:" + toString(fts) + "; rt:" + toString(rts) + ")");
 		else log.log(Log.LEVEL_ERROR, "mail", e);
 
 		// listener

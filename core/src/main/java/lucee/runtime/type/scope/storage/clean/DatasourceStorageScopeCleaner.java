@@ -28,6 +28,7 @@ import lucee.runtime.config.DatasourceConnPool;
 import lucee.runtime.db.DataSource;
 import lucee.runtime.db.DatasourceConnection;
 import lucee.runtime.db.DatasourceConnectionPro;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.type.scope.storage.StorageScopeEngine;
 import lucee.runtime.type.scope.storage.StorageScopeListener;
@@ -72,7 +73,7 @@ public class DatasourceStorageScopeCleaner extends StorageScopeCleanerSupport {
 		try {
 			DatasourceConnPool pool = cwi.getDatasourceConnectionPool(dataSource, null, null);
 			dc = pool.borrowObject();
-			Log log = config.getLog("scope");
+			Log log = ThreadLocalPageContext.getLog(config, "scope");
 			SQLExecutor executor = SQLExecutionFactory.getInstance(dc);
 			executor.clean(config, dc, type, engine, this, listener, log);
 		}

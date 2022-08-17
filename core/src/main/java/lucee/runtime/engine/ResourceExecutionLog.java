@@ -164,10 +164,10 @@ public class ResourceExecutionLog extends ExecutionLogSupport {
 	}
 
 	private void err(PageContext pc, String msg) {
-		LogUtil.log(ThreadLocalPageContext.getConfig(pc), Log.LEVEL_ERROR, ResourceExecutionLog.class.getName(), msg);
+		LogUtil.log(pc, Log.LEVEL_ERROR, ResourceExecutionLog.class.getName(), msg);
 	}
 
 	private void err(PageContext pc, Exception e) {
-		LogUtil.log(ThreadLocalPageContext.getConfig(pc), ResourceExecutionLog.class.getName(), e);
+		LogUtil.log(pc, ResourceExecutionLog.class.getName(), e);
 	}
 }

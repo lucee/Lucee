@@ -456,7 +456,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 			if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_DEBUG, ConfigWebFactory.class.getName(), "loaded constants");
 		}
 		_loadLoggers(cs, config, root, isReload);
-		Log log = config.getLog("application");
+		Log log = ThreadLocalPageContext.getLog(config, "application");
 		// loadServerLibDesc(cs, config, doc,log);
 		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_DEBUG, ConfigWebFactory.class.getName(), "loaded loggers");
 
@@ -1376,7 +1376,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 
 		f = contextDir.getRealResource("wddx." + TEMPLATE_EXTENSION);
 		if (!f.exists()) createFileFromResourceEL("/resource/context/wddx." + TEMPLATE_EXTENSION, f);
-		
+
 		// f=new BinaryFile(contextDir,"lucee_context.ra");
 		// if(!f.exists())createFileFromResource("/resource/context/lucee_context.ra",f);
 
@@ -1891,7 +1891,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 	}
 
 	private static AMFEngine toAMFEngine(Config config, ClassDefinition<AMFEngine> cd, AMFEngine defaultValue) {
-		Log log = config.getLog("application");
+		Log log = ThreadLocalPageContext.getLog(config, "application");
 		try {
 			Class<AMFEngine> clazz = cd.getClazz(null);
 			if (clazz != null) {
@@ -2692,7 +2692,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 				new DataSourceImpl(config, datasourceName, cd, server, dsn, databasename, port, user, pass, listener, connectionLimit, idleTimeout, liveTimeout, minIdle, maxIdle,
 						maxTotal, metaCacheTimeout, blob, clob, allow, custom, false, validate, storage,
 						StringUtil.isEmpty(timezone, true) ? null : TimeZoneUtil.toTimeZone(timezone, null), dbdriver, ps, literalTimestampWithTSOffset, alwaysSetTimeout,
-						requestExclusive, alwaysResetConnections, config.getLog("application")));
+						requestExclusive, alwaysResetConnections, ThreadLocalPageContext.getLog(config, "application")));
 
 	}
 
@@ -3343,7 +3343,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 			log(config, log, t);
 		}
 	}
-	
+
 	/**
 	 * @param configServer
 	 * @param config
@@ -3528,10 +3528,10 @@ public final class ConfigWebFactory extends ConfigFactory {
 
 			SpoolerEngineImpl se = (SpoolerEngineImpl) config.getSpoolerEngine();
 			if (se == null) {
-				config.setSpoolerEngine(se = new SpoolerEngineImpl(dir, "Remote Client Spooler", config.getLog("remoteclient"), maxThreads));
+				config.setSpoolerEngine(se = new SpoolerEngineImpl(dir, "Remote Client Spooler", ThreadLocalPageContext.getLog(config, "remoteclient"), maxThreads));
 			}
 			else {
-				se.setLog(config.getLog("remoteclient"));
+				se.setLog(ThreadLocalPageContext.getLog(config, "remoteclient"));
 				se.setPersisDirectory(dir);
 				se.setMaxThreads(maxThreads);
 			}

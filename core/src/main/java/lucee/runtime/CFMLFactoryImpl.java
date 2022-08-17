@@ -277,7 +277,7 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 		}
 		catch (Exception e) {
 			reuse = false;
-			config.getLog("application").error("release page context", e);
+			ThreadLocalPageContext.getLog(config, "application").error("release page context", e);
 		}
 		if (tmpRegister) ThreadLocalPageContext.register(beforePC);
 		if (unregisterFromThread) ThreadLocalPageContext.release();
@@ -331,7 +331,7 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 				long timeout = pc.getRequestTimeout();
 				// reached timeout
 				if (pc.getStartTime() + timeout < System.currentTimeMillis() && Long.MAX_VALUE != timeout) {
-					Log log = pc.getConfig().getLog("requesttimeout");
+					Log log = ThreadLocalPageContext.getLog(pc, "requesttimeout");
 					if (reachedConcurrentReqThreshold() && reachedMemoryThreshold() && reachedCPUThreshold()) {
 						if (log != null) {
 							PageContext root = pc.getRootPageContext();
@@ -357,7 +357,7 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 				}
 				// after 10 seconds downgrade priority of the thread
 				else if (pc.getStartTime() + 10000 < System.currentTimeMillis() && pc.getThread().getPriority() != Thread.MIN_PRIORITY) {
-					Log log = pc.getConfig().getLog("requesttimeout");
+					Log log = ThreadLocalPageContext.getLog(pc, "requesttimeout");
 					if (log != null) {
 						PageContext root = pc.getRootPageContext();
 						log.log(Log.LEVEL_INFO, "controller", "downgrade priority of the a " + (root != null && root != pc ? "thread" : "request") + " at " + getPath(pc) + ". "

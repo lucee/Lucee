@@ -342,7 +342,7 @@ public final class Controler extends Thread {
 
 				// deploy extensions, archives ...
 				try {
-					DeployHandler.deploy(config, config.getLog("deploy"), false);
+					DeployHandler.deploy(config, ThreadLocalPageContext.getLog(config, "deploy"), false);
 				}
 				catch (Throwable t) {
 					ExceptionUtil.rethrowIfNecessary(t);

@@ -235,7 +235,7 @@ public class RamCache extends CacheSupport {
 					_run();
 				}
 				catch (Exception e) {
-					LogUtil.log(null, "application", e);
+					LogUtil.log("application", e);
 				}
 			}
 		}

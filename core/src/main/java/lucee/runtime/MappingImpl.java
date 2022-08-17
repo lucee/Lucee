@@ -181,7 +181,7 @@ public final class MappingImpl implements Mapping {
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
 			archMod = archive.lastModified();
-			config.getLog("application").log(Log.LEVEL_ERROR, "OSGi", t);
+			ThreadLocalPageContext.getLog(config, "application").log(Log.LEVEL_ERROR, "OSGi", t);
 			archive = null;
 		}
 	}

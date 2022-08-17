@@ -51,7 +51,7 @@ public final class Monitor extends Thread {
 				sleep(INTERVALL);
 			}
 			catch (InterruptedException e) {
-				LogUtil.log(ThreadLocalPageContext.getConfig(configServer), Monitor.class.getName(), e);
+				LogUtil.log((configServer), Monitor.class.getName(), e);
 			}
 
 			if (!configServer.isMonitoringEnabled()) return;
@@ -65,7 +65,7 @@ public final class Monitor extends Thread {
 						monitors[i].log();
 					}
 					catch (Exception e) {
-						LogUtil.log(ThreadLocalPageContext.getConfig(configServer), Monitor.class.getName(), e);
+						LogUtil.log((configServer), Monitor.class.getName(), e);
 					}
 				}
 			}

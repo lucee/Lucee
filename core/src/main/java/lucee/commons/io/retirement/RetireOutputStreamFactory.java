@@ -80,11 +80,11 @@ public class RetireOutputStreamFactory {
 					if (close) break;
 				}
 				catch (InterruptedException ie) {
-					LogUtil.log(null, "file", ie);
+					LogUtil.log("file", ie);
 					break;
 				}
 				catch (Exception e) {
-					LogUtil.log(null, "file", e);
+					LogUtil.log("file", e);
 				}
 			}
 			thread = null;

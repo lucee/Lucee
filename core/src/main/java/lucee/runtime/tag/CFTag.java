@@ -721,7 +721,7 @@ public class CFTag extends BodyTagTryCatchFinallyImpl implements DynamicAttribut
 				source = initFile(pageContext);
 			}
 			catch (PageException e) {
-				LogUtil.log(ThreadLocalPageContext.getConfig(pageContext), CFTag.class.getName(), e);
+				LogUtil.log((pageContext), CFTag.class.getName(), e);
 			}
 		}
 		return source;

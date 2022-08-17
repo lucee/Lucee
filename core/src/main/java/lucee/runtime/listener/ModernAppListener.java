@@ -373,7 +373,7 @@ public class ModernAppListener extends AppListenerSupport {
 			}
 		}
 		catch (Throwable t) {
-			LogUtil.log(null, "application", t);
+			LogUtil.log("application", t);
 		}
 	}
 

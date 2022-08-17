@@ -373,7 +373,7 @@ public class VariableImpl extends ExpressionBase implements Variable {
 			clazz = bifCD.getClazz();
 		}
 		catch (Exception e) {
-			LogUtil.log(null, VariableImpl.class.getName(), e);
+			LogUtil.log(VariableImpl.class.getName(), e);
 		}
 		Type rtnType = Types.toType(bif.getReturnType());
 		if (rtnType == Types.VOID) rtnType = Types.STRING;
@@ -557,7 +557,7 @@ public class VariableImpl extends ExpressionBase implements Variable {
 			}
 		}
 		catch (Exception e) {
-			LogUtil.log(null, VariableImpl.class.getName(), e);
+			LogUtil.log(VariableImpl.class.getName(), e);
 			return null;
 		}
 	}
@@ -645,10 +645,13 @@ public class VariableImpl extends ExpressionBase implements Variable {
 		}
 
 		// LDEV3496
-		// subsequent logic will conditionally require a PageContext be pushed onto the stack, as part of a call to resolve a save-nav expression member
+		// subsequent logic will conditionally require a PageContext be pushed onto the stack, as part of a
+		// call to resolve a save-nav expression member
 		// But, we only want to push it if it will be consumed
-		// root cause of LDEV3496 was this was pushed in cases where it would not be consumed, and an extra unanticpated stack variable would break during class verification
-		// (jvm would report "expected a stackmap frame", javassist would report "InvocationTargetException: Operand stacks could not be merged, they are different sizes!")
+		// root cause of LDEV3496 was this was pushed in cases where it would not be consumed, and an extra
+		// unanticpated stack variable would break during class verification
+		// (jvm would report "expected a stackmap frame", javassist would report "InvocationTargetException:
+		// Operand stacks could not be merged, they are different sizes!")
 		final boolean needsAndWillConsumePageContextForSafeNavigationResolution = member.getSafeNavigated() && !doOnlyScope;
 		if (needsAndWillConsumePageContextForSafeNavigationResolution) {
 			adapter.loadArg(0);

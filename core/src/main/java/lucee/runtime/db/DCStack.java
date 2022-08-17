@@ -66,7 +66,7 @@ class DCStack {
 		Item test = item;
 		while (test != null) {
 			if (test.dc == dc) {
-				LogUtil.log(ThreadLocalPageContext.getConfig(), Log.LEVEL_INFO, DCStack.class.getName(), "a datasource connection was released twice!");
+				LogUtil.log(ThreadLocalPageContext.get(), Log.LEVEL_INFO, DCStack.class.getName(), "a datasource connection was released twice!");
 				return;
 			}
 			test = test.prev;

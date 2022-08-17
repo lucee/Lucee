@@ -486,7 +486,7 @@ public final class ReqRspUtil {
 				return obj;
 			}
 			catch (Exception e) {
-				pc.getConfig().getLog("application").error("request", e);
+				ThreadLocalPageContext.getLog(pc, "application").error("request", e);
 				return defaultValue;
 			}
 			finally {
@@ -494,7 +494,7 @@ public final class ReqRspUtil {
 					IOUtil.close(is);
 				}
 				catch (IOException e) {
-					pc.getConfig().getLog("application").error("request", e);
+					ThreadLocalPageContext.getLog(pc, "application").error("request", e);
 				}
 			}
 		}

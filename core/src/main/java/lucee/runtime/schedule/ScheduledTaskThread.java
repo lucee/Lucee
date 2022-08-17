@@ -92,7 +92,7 @@ public class ScheduledTaskThread extends Thread {
 
 	public void stopIt() {
 		setStop(true);
-		Log log = scheduler.getConfig().getLog("scheduler");
+		Log log = ThreadLocalPageContext.getLog(scheduler.getConfig(), "scheduler");
 		log.info("scheduler", "stopping task thread [" + task.getTask() + "]");
 
 		if (unique) {
@@ -210,7 +210,7 @@ public class ScheduledTaskThread extends Thread {
 	private void log(int level, String msg) {
 		try {
 			String logName = "schedule task:" + task.getTask();
-			scheduler.getConfig().getLog("scheduler").log(level, logName, msg);
+			ThreadLocalPageContext.getLog(scheduler.getConfig(), "scheduler").log(level, logName, msg);
 
 		}
 		catch (Exception e) {
@@ -222,7 +222,7 @@ public class ScheduledTaskThread extends Thread {
 	private void log(int level, Exception e) {
 		try {
 			String logName = "schedule task:" + task.getTask();
-			scheduler.getConfig().getLog("scheduler").log(level, logName, e);
+			ThreadLocalPageContext.getLog(scheduler.getConfig(), "scheduler").log(level, logName, e);
 
 		}
 		catch (Exception ee) {

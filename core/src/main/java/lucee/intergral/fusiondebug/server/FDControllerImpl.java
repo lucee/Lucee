@@ -89,8 +89,7 @@ public class FDControllerImpl implements IFDController {
 	@Override
 	public String getLicenseInformation(String key) {
 		if (!isEnterprise) {
-			LogUtil.log(null, Log.LEVEL_ERROR, "integral",
-					"FD Server Licensing does not work with the Open Source Version of Lucee or Enterprise Version of Lucee that is not enabled");
+			LogUtil.log(Log.LEVEL_ERROR, "integral", "FD Server Licensing does not work with the Open Source Version of Lucee or Enterprise Version of Lucee that is not enabled");
 			return null;
 		}
 		return FDLicense.getLicenseInformation(key);
@@ -98,7 +97,7 @@ public class FDControllerImpl implements IFDController {
 
 	@Override
 	public void output(String message) {
-		LogUtil.log(null, Log.LEVEL_INFO, "integral", message);
+		LogUtil.log(Log.LEVEL_INFO, "integral", message);
 	}
 
 	@Override
@@ -125,7 +124,7 @@ public class FDControllerImpl implements IFDController {
 				pc.getThread().wait();
 			}
 			catch (InterruptedException e) {
-				LogUtil.log(null, "integral", e);
+				LogUtil.log("integral", e);
 			}
 			threads.add(new FDThreadImpl(this, factory, name, pc));
 		}

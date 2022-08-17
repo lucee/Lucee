@@ -563,6 +563,6 @@ public class BundleBuilderFactory {
 	}
 
 	public void log(String str) {
-		LogUtil.log(null, Log.LEVEL_INFO, BundleBuilderFactory.class.getName(), str);
+		LogUtil.log(Log.LEVEL_INFO, BundleBuilderFactory.class.getName(), str);
 	}
 }

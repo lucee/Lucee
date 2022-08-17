@@ -39,7 +39,6 @@ import lucee.commons.net.http.HTTPResponse;
 import lucee.commons.net.http.Header;
 import lucee.commons.net.http.httpclient.HeaderImpl;
 import lucee.runtime.engine.CFMLEngineImpl;
-import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.extension.ExtensionDefintion;
@@ -167,7 +166,7 @@ public class DeployHandler {
 				catch (PageException e) {
 					if (throwOnError) throw e;
 					if (log != null) log.error("deploy-extension", e);
-					else LogUtil.log(null, "deploy-extension", e);
+					else LogUtil.log("deploy-extension", e);
 					sucess = false;
 				}
 				if (!sucess) allSucessfull = false;
@@ -193,7 +192,7 @@ public class DeployHandler {
 				catch (PageException e) {
 					if (throwOnError) throw e;
 					if (log != null) log.error("deploy-extension", e);
-					else LogUtil.log(null, null, "deploy-extension", e);
+					else LogUtil.log("deploy-extension", e);
 					sucess = false;
 				}
 				if (!sucess) allSucessfull = false;
@@ -223,7 +222,7 @@ public class DeployHandler {
 		catch (Exception e) {
 			if (throwOnError) throw Caster.toPageException(e);
 			if (log != null) log.error("extension", e);
-			else LogUtil.log(null, null, "extension", e);
+			else LogUtil.log("extension", e);
 		}
 
 		// check if a local extension is matching our id
@@ -265,7 +264,7 @@ public class DeployHandler {
 					}
 
 					ext = null;
-					LogUtil.log(ThreadLocalPageContext.getConfig(config), DeployHandler.class.getName(), e);
+					LogUtil.log((config), DeployHandler.class.getName(), e);
 				}
 			}
 			break;
