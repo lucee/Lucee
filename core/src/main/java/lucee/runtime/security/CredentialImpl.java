@@ -216,13 +216,13 @@ public final class CredentialImpl implements Credential {
 				if (!rolesDir.exists()) rolesDir.mkdirs();
 				String md5 = MD5.getDigestAsString(raw);
 				IOUtil.write(rolesDir.getRealResource(md5), raw, CharsetUtil.UTF8, false);
-				return encrypt(username + ONE + password + ONE + "md5:" + md5, privateKey, salt, iter, true);
+				return encrypt(username + ONE + password + ONE + "md5:" + md5, privateKey, salt, iter, false);
 			}
 			catch (IOException e) {
 			}
 		}
 		try {
-			return encrypt(username + ONE + password + ONE + raw, privateKey, salt, iter, true);
+			return encrypt(username + ONE + password + ONE + raw, privateKey, salt, iter, false);
 		}
 		catch (Exception e) {
 			throw Caster.toPageException(e);
@@ -257,8 +257,12 @@ public final class CredentialImpl implements Credential {
 	}
 
 	public static Credential decode(Object encoded, Resource rolesDir) {
+		return decode(encoded, rolesDir, false);
+	}
+
+	public static Credential decode(Object encoded, Resource rolesDir, boolean precise) {
 		try {
-			return decode(encoded, rolesDir, null, null, 0, true);
+			return decode(encoded, rolesDir, null, null, 0, precise);
 		}
 		catch (Exception e) {
 			return null;
