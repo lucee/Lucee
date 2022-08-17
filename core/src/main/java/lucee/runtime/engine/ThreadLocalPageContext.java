@@ -26,6 +26,7 @@ import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigPro;
+import lucee.runtime.config.ConfigWeb;
 
 /**
  * class to handle thread local PageContext, do use pagecontext in classes that have no method
@@ -166,9 +167,11 @@ public final class ThreadLocalPageContext {
 
 	public static Log getLog(Config config, String logName) {
 		// pc
-		PageContext pc = get(config);
-		if (pc instanceof PageContextImpl) {
-			return ((PageContextImpl) pc).getLog(logName);
+		if (config instanceof ConfigWeb) {
+			PageContext pc = get(config);
+			if (pc instanceof PageContextImpl) {
+				return ((PageContextImpl) pc).getLog(logName);
+			}
 		}
 
 		// config

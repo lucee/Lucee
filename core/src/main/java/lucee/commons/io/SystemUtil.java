@@ -1326,7 +1326,7 @@ public final class SystemUtil {
 		// in case it is the request thread
 		if (pc instanceof PageContextImpl && thread == pc.getThread()) {
 			((PageContextImpl) pc).setTimeoutStackTrace();
-			log = ((PageContextImpl) pc).getLog("requesttimeout");
+			log = ThreadLocalPageContext.getLog(pc, "requesttimeout");
 		}
 
 		// first we try to interupt, the we force a stop
