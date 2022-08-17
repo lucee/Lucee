@@ -678,6 +678,7 @@ Depending on this setting Lucee scans certain scopes to find a variable called f
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>When a variable has no scope defined (Example: #myVar# instead of #variables.myVar#), Lucee will also search available resultsets if this is set to true.</description>
+			<introduced>5.3.8.19</introduced>
 		</attribute>
 		<attribute>
 			<type>struct</type>
@@ -723,6 +724,7 @@ Depending on this setting Lucee scans certain scopes to find a variable called f
 			If set to true Lucee increases memory size for arithmetic operations and numbers. 
 			This improves the accuracy of floating point calculations.
 			</description>
+			<introduced>6.0.0.114</introduced>
 		</attribute>
 		<attribute>
 			<type>boolean</type>
@@ -763,6 +765,7 @@ Depending on this setting Lucee scans certain scopes to find a variable called f
 	- watchInterval - interval it checks for changes with the jar files
 	- watchExtensions - extension of the files read
 			</description>
+			<introduced>5.3.3.37</introduced>
 		</attribute>
 		<attribute>
 			<name>xmlFeatures</name>
@@ -773,6 +776,7 @@ Depending on this setting Lucee scans certain scopes to find a variable called f
 	- disallowDoctypeDecl (true / false) 
 	- externalGeneralEntities (true/false)
 	 - secure (true/false)</description>
+	 		<introduced>5.3.4.51</introduced>
 		</attribute>
 		<attribute>
 			<name>regex</name>
@@ -780,6 +784,7 @@ Depending on this setting Lucee scans certain scopes to find a variable called f
 			<required>false</required>
 			<description>allow to define a struct containing the configuration for regular expressions,
 			ATM only the key "engine" is supported, with the possible values [java,perl] to choose the regex dialect.</description>
+			<introduced>5.3.8.23</introduced>
 		</attribute>
 		<attribute>
 			<type>boolean</type>

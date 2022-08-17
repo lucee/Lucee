@@ -1341,6 +1341,7 @@ sort direction:
 			and puts the replacements starting from index position.
 			Return the removed elements.
 		</description>
+		<introduced>6.0.0.19</introduced>
 		<argument>
 			<name>array</name>
 			<type>array</type>
@@ -1506,6 +1507,7 @@ sort direction:
 			<required>No</required>
 			<default>false</default>
 			<description>use the value as the key of the struct, rather than the index</description>
+			<introduced>6.0.0.79</introduced>
 		</argument>
 		<return>
 			<type>struct</type>
@@ -2459,6 +2461,7 @@ sort direction:
 			- system properties
 			- enviroment variables
 		</description>
+		<introduced>5.3.9.6</introduced>
 		<argument>
 			<name>path</name>
 			<type>any</type>
@@ -3303,6 +3306,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<name>ExtensionInfo</name>
 		<class>lucee.runtime.functions.system.ExtensionInfo</class>
 		<description>Returns the detailed info about the extension.</description>
+		<introduced>6.0.0.210</introduced>
 		<argument>
 			<name>id</name>
 			<type>string</type>
@@ -3346,6 +3350,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>boolean</type>
 			<required>false</required>
 			<description>If set to true means extension image shows as imageObject instead of base64 string.</description>
+			<introduced>5.3.9.40</introduced>
 		</argument>
 		<return>
 			<type>query</type>
@@ -4007,6 +4012,7 @@ type of the result returned:
 		<name>DirectoryInfo</name>
 		<class>lucee.runtime.functions.file.DirectoryInfo</class>
 		<description>returns detailed info about the given directory.</description>
+		<introduced>6.0.0.151</introduced>
 		<argument>
 			<name>source</name>
 			<alias>Directory</alias>
@@ -4931,12 +4937,14 @@ The browser uses file extension to determine file type. </description>
 			<type>any</type>
 			<required>no</required>
 			<description>String list or string array of allowed extensions.</description>
+			<introduced>6.0.0.12</introduced>
     	</argument>
 		<argument>
 			<name>blockedExtensions</name>
 			<type>any</type>
 			<required>no</required>
 			<description>String list or string array of not allowed extensions.</description>
+			<introduced>6.0.0.12</introduced>
     	</argument>
 		<argument>
 			<name>mode</name>
@@ -4994,12 +5002,14 @@ The browser uses file extension to determine file type. </description>
 			<type>any</type>
 			<required>no</required>
 			<description>String list or string array of allowed extensions.</description>
+			<introduced>6.0.0.12</introduced>
     	</argument>
 		<argument>
 			<name>blockedExtensions</name>
 			<type>any</type>
 			<required>no</required>
 			<description>String list or string array of not allowed extensions.</description>
+			<introduced>6.0.0.12</introduced>
     	</argument>
 		<argument>
 			<name>mode</name>
@@ -5427,6 +5437,7 @@ Set the attribute to normal to make a file not read-only and not hidden.</descri
 		<keywords>string,find</keywords>
 		<description>Finds the last occurrence of a substring in a string, from a
         specified start position. The search is case-sensitive.</description>
+		<introduced>5.3.5.22</introduced>
 		<argument>
 			<name>substring</name>
 			<type>string</type>
@@ -5461,6 +5472,7 @@ Set the attribute to normal to make a file not read-only and not hidden.</descri
 		<description>Finds the last occurrence of a substring in a string, from a
         specified start position. If substring is not in string,
         returns zero. The search is case-insensitive.</description>
+		<introduced>5.3.5.22</introduced>
 		<argument>
 			<name>substring</name>
 			<type>string</type>
@@ -5808,6 +5820,7 @@ Example Values:
 		<name>getContextInfo</name>
 		<class>lucee.runtime.functions.system.GetContextInfo</class>
 		<description>Returns information to the current context.</description>
+		<introduced>5.3.1.7</introduced>
 		<return>
 			<type>struct</type>
 		</return>
@@ -5904,6 +5917,7 @@ Example Values:
             <required>false</required>
             <default>0</default>
             <description>the number of frames to skip, default is 0</description>
+			<introduced>5.3.8.130</introduced>
         </argument>
 		<argument>
             <name>maxFrames</name>
@@ -5911,6 +5925,7 @@ Example Values:
             <required>false</required>
             <default>0</default>
             <description>the maximum number of frames to return, default is 0 which means all</description>
+			<introduced>5.3.8.130</introduced>
         </argument>
 		<return>
 			<type>any</type>
@@ -6273,7 +6288,8 @@ The returned number of unallocated bytes is a hint, but not a guarantee, that it
         <name>getHTTPRequestHeaders</name>
         <class>lucee.runtime.functions.other.GetHTTPRequestHeaders</class>
 		<status>hidden</status>
-        <description>Returns a Struct with HTTP Request Headers</description>
+		<description>Returns a Struct with HTTP Request Headers</description>
+		<introduced>5.3.8.163</introduced>
         <return>
             <type>struct</type>
         </return>
@@ -6729,7 +6745,8 @@ if this attribute is not provided all types are returned.</description>
 			<type>string</type>
 			<required>No</required>
 			<Default>tmp</Default>
-		<description>Creates temporary files with user defined extension, default is .tmp</description>
+			<description>Creates temporary files with user defined extension, default is .tmp</description>
+			<introduced>5.3.9.72</introduced>
 		</argument>
 		<return>
 			<type>string</type>
@@ -6795,6 +6812,7 @@ Use the GetBaseTemplatePath() function instead.</description>
 		<name>clearTimeZone</name>
 		<class>lucee.runtime.functions.dateTime.ClearTimeZone</class>
 		<description>resets the timezone for the current request to Lucee default setting.</description>
+		<introduced>5.3.8.110</introduced>
 		<return>
 			<type>void</type>
 		</return>
@@ -7309,6 +7327,7 @@ The following things are considered to be empty:
 		<class>lucee.runtime.functions.system.InternalRequestPublic</class>
 		<description>Makes a request to the CFML Engine internally.</description>
 		<status>hidden</status>
+		<introduced>6.0.0.161</introduced>
 		<argument>
 			<name>template</name>
 			<type>string</type>
@@ -7456,6 +7475,7 @@ The following things are considered to be empty:
 			<default>true</default>
 			<required>no</required>
 			<description>if true (default) and the called age throws an exception, that exception is clso thrown within the caller request. If false itis catched and only reported in he resulting struct.</description>
+			<introduced>5.3.9.115</introduced>
     	</argument>
     	
 		<return>
@@ -8111,6 +8131,7 @@ The following things are considered to be empty:
 			<required>No</required>
 			<default>true</default>
 			<description>if false it cleans up empty fields.</description>
+			<introduced>5.3.5.17</introduced>
 		</argument>
 		<return>
 			<type>string</type>
@@ -8790,6 +8811,7 @@ The following things are considered to be empty:
 			<required>No</required>
 			<default>true</default>
 			<description>if false it cleans up empty fields.</description>
+			<introduced>5.3.5.17</introduced>
 		</argument>
 		<return>
 			<type>string</type>
@@ -8851,6 +8873,7 @@ The following things are considered to be empty:
 		<keywords>list,string,array</keywords>
 		<member-name>listQualifiedToArray</member-name>
 		<description>Copies the elements of a list to an array.</description>
+		<introduced>5.3.7.17</introduced>
 		<argument>
 			<name>list</name>
 			<type>string</type>
@@ -9312,6 +9335,7 @@ The following things are considered to be empty:
 		<class>lucee.runtime.functions.string.MarkdownToHTML</class>
 	<keywords>string</keywords>
 		<description>Transforms Markdown formatted String into HTML.</description>
+		<introduced>6.0.0.150</introduced>
 		<argument>
 			<name>string</name>
 			<alias>markdown</alias>
@@ -9966,6 +9990,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<member-name>append</member-name>
 		<keywords>query</keywords>
 		<description>Adds all values of one query to the end of another query. Both queries need to have the same columns.</description>
+		<introduced>6.0.0.15</introduced>
 		<argument>
 			<name>query1</name>
 			<type>query</type>
@@ -9990,6 +10015,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<member-name>prepend</member-name>
 		<keywords>query</keywords>
 		<description>Adds all values of one query the begin to another query. Both queries need to have the same columns.</description>
+		<introduced>6.0.0.15</introduced>
 		<argument>
 			<name>query1</name>
 			<type>query</type>
@@ -10014,6 +10040,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<member-name>insertAt</member-name>
 		<keywords>query</keywords>
 		<description>Adds data (query,struct or array) into query.</description>
+		<introduced>6.0.0.16</introduced>
 		<argument>
 			<name>query</name>
 			<type>query</type>
@@ -10044,6 +10071,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<member-name>rowSwap</member-name>
 		<keywords>query</keywords>
 		<description>swaps one row of a query with an other.</description>
+		<introduced>6.0.0.17</introduced>
 		<argument>
 			<name>query</name>
 			<type>query</type>
@@ -10077,6 +10105,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<member-name>reverse</member-name>
 		<keywords>query</keywords>
 		<description>reverse the row order of a complete query</description>
+		<introduced>6.0.0.18</introduced>
 		<argument>
 			<name>query</name>
 			<type>query</type>
@@ -10095,6 +10124,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<member-name>clear</member-name>
 		<keywords>query</keywords>
 		<description>Clears all rows from a query</description>
+		<introduced>6.0.0.15</introduced>
 		<argument>
 			<name>query</name>
 			<type>query</type>
@@ -10129,6 +10159,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<class>lucee.runtime.functions.query.QueryClose</class>
 		<keywords>query</keywords>
 		<description>When using lazy="true", it is important to close the resultSet during a request or it will continue to use heap memory.</description>
+		<introduced>5.3.4.38</introduced>
 		<argument>
 			<name>query</name>
 			<type>query</type>
@@ -10243,7 +10274,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<keywords>query</keywords>
 		<member-name>renameColumn</member-name>
 		<description>Rename a column</description>
-		<introduced>6.0.0</introduced>
+		<introduced>6.0.0.57</introduced>
 		<argument>
 			<name>query</name>
 			<type>query</type>
@@ -10294,6 +10325,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
     			<description>struct or array</description>
 				<default>struct</default>
 				<alias>returnFormat</alias>
+				<introduced>5.3.8.85</introduced>
     	    </argument>
     		<return>
     			<type>any</type>
@@ -10325,6 +10357,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 				<type>numeric</type>
 				<required>no</required>
 				<description>In case no matching index was found, this value is returned by the function, in case it is not set, the function will throw an exception.</description>
+				|<introduced>5.3.4.33</introduced>
 			</argument>
     		<return>
     			<type>numeric</type>
@@ -10356,6 +10389,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 				<type>struct</type>
 				<required>no</required>
 				<description>In case no matching index was found, this value is returned by the function, in case it is not set, the function will throw an exception.</description>
+				|<introduced>5.3.4.33</introduced>
 			</argument>
     		<return>
     			<type>struct</type>
@@ -10516,6 +10550,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>any</type>
 			<required>no</required>
 			<description>In case no matching index was found, this value is returned by the function, in case it is not set, the function will throw an exception.</description>
+			|<introduced>5.3.4.33</introduced>
 		</argument>
 		<return>
 			<type>any</type>
@@ -10836,6 +10871,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 				This option affects the interpretation of the ^ and $ metacharacters. 
 				When true the ^ metacharacter matches at the beginning of every line, and the $ metacharacter matches at the end of every line. 
 				Additionally the . metacharacter will not match newlines when true.</description>
+			<introduced>5.3.8.23</introduced>
 		</argument>
 		<return>
 			<type>any</type>
@@ -10903,6 +10939,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 				This option affects the interpretation of the ^ and $ metacharacters. 
 				When true the ^ metacharacter matches at the beginning of every line, and the $ metacharacter matches at the end of every line. 
 				Additionally the . metacharacter will not match newlines when true.</description>
+			<introduced>5.3.8.23</introduced>
 		</argument>
 		<return>
 			<type>any</type>
@@ -10939,6 +10976,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 				This option affects the interpretation of the ^ and $ metacharacters. 
 				When true the ^ metacharacter matches at the beginning of every line, and the $ metacharacter matches at the end of every line. 
 				Additionally the . metacharacter will not match newlines when true.</description>
+			<introduced>5.3.8.23</introduced>
 		</argument>
 		<return>
 			<type>array</type>
@@ -10975,6 +11013,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 				This option affects the interpretation of the ^ and $ metacharacters. 
 				When true the ^ metacharacter matches at the beginning of every line, and the $ metacharacter matches at the end of every line. 
 				Additionally the . metacharacter will not match newlines when true.</description>
+			<introduced>5.3.8.23</introduced>
 		</argument>
 		<return>
 			<type>array</type>
@@ -13527,6 +13566,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<description>
 			listener function that get invoked in case a request key does not exist.
 			</description>
+			<introduced>6.0.0.107</introduced>
 		</argument>
 		<return>
 			<type>struct</type>
@@ -13616,6 +13656,7 @@ _- asc (default): ascending (a to z) sort order
 		<member-name>valueArray</member-name>
 		<keywords>struct</keywords>
 		<description>Returns an Array with the values of the Struct</description>
+		<introduced>5.3.8.117</introduced>
 		<argument>
 			<name>struct</name>
 			<alias>structure,object</alias>
@@ -14177,6 +14218,7 @@ _- asc (default): ascending (a to z) sort order
 			<required>No</required>
 			<default>false</default>
 			<description>if set to true, the parser is more lenient and forgives invalid XML and does the best to interpret it.</description>
+			<introduced>5.3.8.135</introduced>
 		</argument>
 		<return>
 			<type>xml</type>
@@ -14410,6 +14452,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<required>No</required>
 			<default>argon2i</default>
 			<description>Either Argon2i, Argon2d or Argon2id</description>
+			<introduced>5.3.8.43</introduced>
     	</argument>
     	<argument>
 			<name>parallelismFactor</name>
@@ -14465,6 +14508,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<class>lucee.runtime.functions.decision.IsFileObject</class>
 		<keywords>decision</keywords>
 		<description>Determines whether a value is an file object. True, if the value represents a file object.</description>
+		<introduced>6.0.0.208</introduced>
 		<argument>
 			<name>value</name>
 			<type>any</type>
@@ -14499,6 +14543,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
     		<member-name>every</member-name>
     		<class>lucee.runtime.functions.string.StringEvery</class>
     		<description>Determines if all elements of a string satisfy a given condition.</description>
+			<introduced>6.0.0.105</introduced>
         	<argument>
     			<name>string</name>
     			<type>string</type>
@@ -14524,6 +14569,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
     		<member-name>each</member-name>
     		<class>lucee.runtime.functions.string.StringEach</class>
     		<description>Iterates over a string and runs the closure function for each element in the string.</description>
+			<introduced>6.0.0.105</introduced>
         	<argument>
     			<name>string</name>
     			<type>string</type>
@@ -14548,6 +14594,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
     		<member-name>filter</member-name>
     		<class>lucee.runtime.functions.string.StringFilter</class>
     		<description>Filters a string to its elements for which the callback function returns true.</description>
+			<introduced>6.0.0.105</introduced>
         	<argument>
     			<name>string</name>
     			<type>string</type>
@@ -14573,6 +14620,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
     		<member-name>map</member-name>
     		<class>lucee.runtime.functions.string.StringMap</class>
     		<description>Iterates over every entry of the string and calls the closure function to work on the element of the string. </description>
+			<introduced>6.0.0.105</introduced>
         	<argument>
     			<name>string</name>
     			<type>string</type>
@@ -14598,6 +14646,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
     		<member-name>reduce</member-name>
     		<class>lucee.runtime.functions.string.StringReduce</class>
     		<description>Iterates over every element of the string and calls the closure to work on the elements of the string. This function will reduce the string to a single value and will return the value.</description>
+			<introduced>6.0.0.105</introduced>
         <argument>
     			<name>string</name>
     			<type>string</type>
@@ -14629,6 +14678,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
     		<class>lucee.runtime.functions.string.StringSome</class>
 			<member-name>some</member-name>
     		<description>This function calls a given closure/function with every element in a given string and returns true, if one of the closure calls returns true.</description>
+			<introduced>6.0.0.126</introduced>
         	<argument>
     			<name>string</name>
     			<type>string</type>
@@ -14654,6 +14704,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<keywords>array</keywords>
 		<member-name>removeDuplicates</member-name>
 		<description>Removes duplicate values from array.</description>
+		<introduced>6.0.0.119</introduced>
 		<argument>
 			<name>array</name>
 			<type>array</type>
@@ -14677,6 +14728,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<class>lucee.runtime.functions.query.QueryIsEmpty</class>
 		<keywords>query</keywords>
 		<description>returns query empty or not</description>
+		<introduced>6.0.0.120</introduced>
 		<argument>
 			<name>query</name>
 			<type>query</type>

@@ -1541,6 +1541,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<required>No</required>
 			<default>true</default>
 			<description>On windows computer include Carriage Return.</description>
+			<introduced>5.3.1.43</introduced>
 	    </argument>
 		<return>
 			<type>string</type>
