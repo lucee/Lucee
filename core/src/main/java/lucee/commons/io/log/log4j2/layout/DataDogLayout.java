@@ -92,6 +92,7 @@ public class DataDogLayout extends AbstractStringLayout {
 			}
 
 			Struct sct = engine.getCreationUtil().createStruct();
+			sct.setEL("application", application);
 			sct.setEL("message", msg);
 			sct.setEL("stack", getStacktrace(t, false, true));
 			sct.setEL("kind", t.getClass().getName());
