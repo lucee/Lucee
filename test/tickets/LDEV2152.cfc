@@ -63,13 +63,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 
 			// fails 5.3
 			it(title = "recursive directorylist() with attribute listinfo = 'name', sort directory ASC", body = function( currentSpec ) {
-				var dirList = directorylist( base, true, 'name', '*.txt', 'directory ASC', 'file');
+				var dirList = directorylist( base, true, 'name', '*.txt', 'directory ASC' );
 				expect( dirList ).toBe( ['a.txt', 'c.txt', 'j.txt', 'e.txt', 'g.txt', 'p.txt', 'h.txt', 'o.txt'] );
 			});
 
 			// fails 5.3
 			it(title = "recursive directorylist() with attribute listinfo = 'name',sort = 'directory desc'", body = function( currentSpec ) {
-				var dirList = directorylist( base, true, 'name', '*.txt', 'directory DESC', 'file');
+				var dirList = directorylist( base, true, 'name', '*.txt', 'directory DESC' );
 				expect( dirList ).toBe( [ 'h.txt', 'o.txt', 'g.txt', 'p.txt', 'e.txt', 'a.txt', 'c.txt', 'j.txt' ] );
 			});
 		});
@@ -99,9 +99,33 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				}
 				expect( dirList ).toBe( ['p.txt', 'o.txt', 'j.txt', 'h.txt', 'g.txt', 'e.txt', 'c.txt', 'a.txt'] );
 			});
+
+			it(title = "check for compat", body = function( currentSpec ) {
+				systemOutput("============================================================", true);
+				var base = "#getDirectoryFromPath(getCurrentTemplatePath())#\files\";
+		
+				if (directoryExists(base)) directoryDelete(base, true);
+		
+				if (!directoryExists(base)) directoryCreate(base);
+		
+				var a = listToArray("a,b,c,d,aaaa,aaa,bb");
+		
+				for(var i=1;i<=a.len();i++ ) {
+					fileWrite("#base#/#a[i]#.txt",a[i]);
+				} 
+		
+				systemOutput(directoryList(base, true, "query", "", "Size"), true);
+				systemOutput(directoryList(base, true, "path", "", "Size"), true);
+				systemOutput(directoryList(base, true, "name", "", "Size"), true);
+		
+				if (directoryExists(base)) directoryDelete(base, true);
+				systemOutput("============================================================", true);
+			});
+		
 		});
 	}
 
+	
 	function afterAll(){
 		if ( directoryExists( base ) ){
 			directoryDelete( base, true) ;
