@@ -75,10 +75,20 @@ public class ResourceAppender extends AbstractAppender {
 		try {
 			final String str = Caster.toString(getLayout().toSerializable(event));
 			if (!StringUtil.isEmpty(str)) {
-				if (writer == null) setFile(append);
-				writer.write(str);
-				size += str.length();
-				writer.flush();
+				try {
+					if (writer == null) setFile(append);
+					writer.write(str);
+					size += str.length();
+					writer.flush();
+				}
+				catch (IOException ioe) {
+					LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), "log-loading", "Unable to write to" + res, ioe);
+					closeFile();
+					setFile(append);
+					writer.write(str);
+					size += str.length();
+					writer.flush();
+				}
 			}
 		}
 		catch (Exception e) {

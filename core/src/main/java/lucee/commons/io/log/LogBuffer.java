@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import lucee.runtime.config.Config;
+import lucee.runtime.engine.ThreadLocalPageContext;
 
 public class LogBuffer implements Log {
 
@@ -78,7 +79,7 @@ public class LogBuffer implements Log {
 	public void flush(Config config, String logName) {
 		Log log;
 		try {
-			log = config.getLog(logName);
+			log = ThreadLocalPageContext.getLog(config, logName);
 		}
 		catch (Exception e) {
 			return;
