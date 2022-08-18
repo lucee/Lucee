@@ -8,12 +8,12 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
  		directoryCreate( base );
 
 		var dirList = "b,n";
-		dirlist.each(function( index ){
+		dirlist.listEach(function( index ){
 			directorycreate( base & index );
 			if( index is "b" ){
 				directoryCreate (base & 'b\d' );
 			}
-		})
+		});
 		var fileList = "a.txt,c.txt,j.txt";
 		var fileList.listEach( function( index ){
 			fileWrite( base & index, "" );
@@ -47,17 +47,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 
 			it(title = "recursive directorylist() with attribute listinfo = 'path', sort directory ASC", body = function( currentSpec ) {
 				var dirList = directorylist( base, true, 'path', '*.txt', 'directory ASC');
-				loop array=dirList item="local.dir" index="local.i" {
-					dirList[ local.i ] =  replace( listlast( dir, "LDEV2152" ), "\", "/", "all" );
-				}
+				dirList = clearDirList( dirList );
 				expect( dirList ).toBe( [ '/a.txt', '/c.txt','/j.txt','/b/e.txt','/b/d/g.txt','/b/d/p.txt','/n/h.txt','/n/o.txt' ] );
 			});
 
 			it(title = "recursive directorylist() with attribute listinfo = 'path',sort = 'directory desc'", body = function( currentSpec ) {
 				var dirList = directorylist( base, true, 'path', '*.txt', 'directory DESC');
-				loop array=dirList item="local.dir" index="local.i" {
-					dirList[ local.i ] =  replace( listlast( dir, "LDEV2152" ), "\", "/", "all" );
-				}
+				dirList = clearDirList( dirList );
 				expect ( dirList ).toBe( ['/n/h.txt','/n/o.txt','/b/d/g.txt', '/b/d/p.txt', '/b/e.txt', '/a.txt', '/c.txt', '/j.txt'] );
 			});
 
@@ -100,7 +96,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				expect( dirList ).toBe( ['p.txt', 'o.txt', 'j.txt', 'h.txt', 'g.txt', 'e.txt', 'c.txt', 'a.txt'] );
 			});
 
-			it(title = "check for compat", body = function( currentSpec ) {
+			it(title = "recursive directorylist() sort='size'", body = function( currentSpec ) {
 				systemOutput("============================================================", true);
 				var base = "#getDirectoryFromPath(getCurrentTemplatePath())#\files\";
 		
@@ -108,24 +104,32 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 		
 				if (!directoryExists(base)) directoryCreate(base);
 		
-				var a = listToArray("a,b,c,d,aaaa,aaa,bb");
+				var a = listToArray( "a,b,c,d,aaaa,aaa,bb" );
 		
-				for(var i=1;i<=a.len();i++ ) {
-					fileWrite("#base#/#a[i]#.txt",a[i]);
+				for ( local.i = 1; i lte a.len(); i++ ) {
+					fileWrite( "#base#/#a[i]#.txt", a[ i ] );
 				} 
-		
-				systemOutput(directoryList(base, true, "query", "", "Size"), true);
-				systemOutput(directoryList(base, true, "path", "", "Size"), true);
-				systemOutput(directoryList(base, true, "name", "", "Size"), true);
+				systemOutput( 'directoryList(base, true, "query", "", "Size")', true );
+				systemOutput( directoryList(base, true, "query", "", "Size"), true );
+				systemOutput( 'directoryList(base, true, "path", "", "Size")', true );
+				systemOutput( directoryList(base, true, "path", "", "Size"), true );
+				systemOutput( 'directoryList(base, true, "name", "", "Size")', true );
+				systemOutput( directoryList(base, true, "name", "", "Size"), true );
 		
 				if (directoryExists(base)) directoryDelete(base, true);
 				systemOutput("============================================================", true);
 			});
-		
 		});
 	}
 
-	
+	private array function clearDirList( required array dirList ) {
+		var clean = [];
+		loop array=#arguments.dirList# item="local.dir" index="local.i" {
+			ArrayAppend(clean, replace( listLast( dir, "LDEV2152" ), "\", "/", "all" ) );
+		}
+		return clean;
+	}
+
 	function afterAll(){
 		if ( directoryExists( base ) ){
 			directoryDelete( base, true) ;

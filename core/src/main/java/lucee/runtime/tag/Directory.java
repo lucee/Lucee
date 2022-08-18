@@ -63,6 +63,7 @@ import lucee.runtime.type.QueryImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.UDF;
 import lucee.runtime.type.util.KeyConstants;
+import lucee.aprint;
 
 /**
  * Handles interactions with directories.
@@ -424,7 +425,7 @@ public final class Directory extends TagImpl {
 		}
 
 		boolean typeArray = (listInfo == LIST_INFO_ARRAY_NAME) || (listInfo == LIST_INFO_ARRAY_PATH);
-		boolean namesOnly = (listInfo == LIST_INFO_ARRAY_NAME) || (listInfo == LIST_INFO_QUERY_NAME);
+		boolean namesOnly = (listInfo == LIST_INFO_ARRAY_NAME) || (listInfo == LIST_INFO_QUERY_NAME) || (listInfo == LIST_INFO_ARRAY_PATH);
 		Array array = null;
 		Object rtn;
 
@@ -469,6 +470,8 @@ public final class Directory extends TagImpl {
 					canFastArraySort = false;  // fall back on query approach, then convert after complex sort to array
 			}
 		}
+
+		aprint.e("canFastArraySort: " + canFastArraySort);
 
 		try {
 			if (namesOnly) {
@@ -522,6 +525,7 @@ public final class Directory extends TagImpl {
 
 		if (typeArray) {
 			java.util.Iterator it = query.getIterator();
+			aprint.e("namesOnly: " + namesOnly);
 			while (it.hasNext()) {
 				Struct row = (Struct) it.next();
 				if (namesOnly) array.appendEL(row.get("name"));
