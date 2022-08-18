@@ -2590,6 +2590,11 @@ public final class ConfigAdmin {
 			return;
 		}
 
+		if ("smart".equalsIgnoreCase(writerType)) writerType = "white-space-pref";
+		else if (Decision.isBoolean(writerType)) {
+			writerType = Caster.toBooleanValue(writerType, false) ? "white-space" : "regular";
+		}
+
 		// update
 		if (!"white-space".equalsIgnoreCase(writerType) && !"white-space-pref".equalsIgnoreCase(writerType) && !"regular".equalsIgnoreCase(writerType))
 			throw new ApplicationException("invalid writer type definition [" + writerType + "], valid types are [white-space, white-space-pref, regular]");
