@@ -27,6 +27,7 @@ import java.util.Date;
 import java.util.Comparator;
 
 import lucee.commons.io.ModeUtil;
+import lucee.commons.io.SystemUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourceMetaData;
 import lucee.commons.io.res.filter.AndResourceFilter;
@@ -450,26 +451,39 @@ public final class Directory extends TagImpl {
 		}
 
 		long startNS = System.nanoTime();
+		boolean canFastArraySort = true;
+		String[] sortArr = null;
+		String[] arraySortCol = null;
+		if (sort != null) {
+			sortArr = sort.toLowerCase().split(",");
+			if (typeArray && sortArr.length > 1) {
+				canFastArraySort = false;
+			}
+			else if (typeArray) {
+				arraySortCol = sortArr[0].trim().split("\\s+");
+				// only "column sortOrder" supported
+				if (arraySortCol.length > 2) throw new ApplicationException("Invalid sort [" + sort + "]"); 
+				// check if sorting on just the array result
+				if ( ! (arraySortCol[0].toLowerCase().trim().equals("name") 
+						|| arraySortCol[0].toLowerCase().trim().equals("path"))  )
+					canFastArraySort = false;  // fall back on query approach, then convert after complex sort to array
+			}
+		}
 
 		try {
-
 			if (namesOnly) {
 				if (typeArray) {
-					_fillArrayPathOrName(array, directory, filter, 0, recurse, namesOnly);
-					if (sort != null ) {
-						String[] arr = sort.toLowerCase().split(" ");
-						String order = "asc";
-						if ( ! (arr[0].toLowerCase().trim().equals("name") 
-								|| arr[0].toLowerCase().trim().equals("path"))  )
-							throw new ApplicationException("Invalid sort column [" + sort + "], only [path, name] supported");
-
-						if (arr.length == 2) order = arr[1];
-						else if (arr.length > 2) throw new ApplicationException("Invalid sort [" + sort + "]");
-
-						Comparator comp = ArrayUtil.toComparator(null, "text", order, false); 
-						array.sortIt(comp);
+					if ( canFastArraySort ) {
+						_fillArrayPathOrName(array, directory, filter, 0, recurse, namesOnly);
+						if (sort != null ) { 
+							// this is fast path, only sorting on the result, otherwise fall back on the sorted query result
+							String sortOrder = "asc";
+							if (arraySortCol.length == 2) sortOrder = arraySortCol[1];
+							Comparator comp = ArrayUtil.toComparator(null, "text", sortOrder, false);
+							array.sortIt(comp);
+						}
+						return array;
 					}
-					return array;
 				}
 
 				// Query Name, available via the cfdirectory tag but not via directoryList()
@@ -487,10 +501,9 @@ public final class Directory extends TagImpl {
 
 		// sort
 		if (sort != null && query != null) {
-			String[] arr = sort.toLowerCase().split(",");
-			for (int i = arr.length - 1; i >= 0; i--) {
+			for (int i = sortArr.length - 1; i >= 0; i--) {
 				try {
-					String[] col = arr[i].trim().split("\\s+");
+					String[] col = sortArr[i].trim().split("\\s+");
 					if (col.length == 1) query.sort(col[0].trim());
 					else if (col.length == 2) {
 						String order = col[1].toLowerCase().trim();
@@ -514,6 +527,7 @@ public final class Directory extends TagImpl {
 				if (namesOnly) array.appendEL(row.get("name"));
 				else array.appendEL(row.get("directory") + lucee.commons.io.FileUtil.FILE_SEPERATOR_STRING + row.get("name"));
 			}
+			return array;
 		}
 
 		return rtn;
@@ -527,20 +541,24 @@ public final class Directory extends TagImpl {
 		// fill data to query
 		// query.addRow(list.length);
 		boolean isDir;
+		boolean modeSupported = directory.getResourceProvider().isModeSupported();
+		boolean isWindows = SystemUtil.isWindows();
 		for (int i = 0; i < list.length; i++) {
+			isDir = list[i].isDirectory();
 			if (filter == null || filter.accept(list[i])) {
 				query.addRow(1);
 				count++;
 				query.setAt(KeyConstants._name, count, list[i].getName());
-				isDir = list[i].isDirectory();
+				
 				query.setAt(KeyConstants._size, count, new Double(isDir ? 0 : list[i].length()));
 				query.setAt(KeyConstants._type, count, isDir ? "Dir" : "File");
-				if (directory.getResourceProvider().isModeSupported()) {
-
+				if (modeSupported) {
 					query.setAt(MODE, count, new ModeObjectWrap(list[i]));
 				}
-				query.setAt(DATE_LAST_MODIFIED, count, new Date(list[i].lastModified()));
-				query.setAt(ATTRIBUTES, count, getFileAttribute(list[i], true));
+				query.setAt(DATE_LAST_MODIFIED, count, new Date(list[i].lastModified()));				// this is slow as it fetches each the attributes one at a time
+				if (isWindows) {
+					query.setAt(ATTRIBUTES, count, getFileAttribute(list[i], true));
+				}
 
 				if (hasMeta) {
 					query.setAt(META, count, ((ResourceMetaData) list[i]).getMetaData());
@@ -548,7 +566,7 @@ public final class Directory extends TagImpl {
 
 				query.setAt(DIRECTORY, count, dir);
 			}
-			if (recurse && list[i].isDirectory()) count = _fillQueryAll(query, list[i], filter, count, hasMeta, recurse);
+			if (recurse && isDir) count = _fillQueryAll(query, list[i], filter, count, hasMeta, recurse);
 		}
 		return count;
 	}

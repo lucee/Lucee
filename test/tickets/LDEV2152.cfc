@@ -23,14 +23,12 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 			filewrite( base & 'n\h.txt', "" );
 			filewrite( base & 'n\o.txt', "" );
 		});
-		/*
 		systemOutput("----testdata -----", true );
 		var dirList = directorylist( base, true, 'path', '*.txt', 'directory ASC');
 		loop array=dirList item="local.dir" index="local.i" {
 			systemOutput( dir, true );
 		}
 		systemOutput("---------", true );
-		*/
 	}
 
 	function run( testResults , testBox ) {
@@ -47,7 +45,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				expect( names ).toBe(['h.txt','o.txt','g.txt','p.txt','e.txt','a.txt','c.txt','j.txt']);
 			});
 
-			it(title = "recursive directorylist() with attribute listinfo = 'path', sort directory ASC", skip=true, body = function( currentSpec ) {
+			it(title = "recursive directorylist() with attribute listinfo = 'path', sort directory ASC", body = function( currentSpec ) {
 				var dirList = directorylist( base, true, 'path', '*.txt', 'directory ASC');
 				loop array=dirList item="local.dir" index="local.i" {
 					dirList[ local.i ] =  replace( listlast( dir, "LDEV2152" ), "\", "/", "all" );
@@ -55,7 +53,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				expect( dirList ).toBe( [ '/a.txt', '/c.txt','/j.txt','/b/e.txt','/b/d/g.txt','/b/d/p.txt','/n/h.txt','/n/o.txt' ] );
 			});
 
-			it(title = "recursive directorylist() with attribute listinfo = 'path',sort = 'directory desc'", skip=true, body = function( currentSpec ) {
+			it(title = "recursive directorylist() with attribute listinfo = 'path',sort = 'directory desc'", body = function( currentSpec ) {
 				var dirList = directorylist( base, true, 'path', '*.txt', 'directory DESC');
 				loop array=dirList item="local.dir" index="local.i" {
 					dirList[ local.i ] =  replace( listlast( dir, "LDEV2152" ), "\", "/", "all" );
@@ -64,14 +62,14 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 			});
 
 			// fails 5.3
-			it(title = "recursive directorylist() with attribute listinfo = 'name', sort directory ASC", skip=true, body = function( currentSpec ) {
-				var dirList = directorylist( base, true, 'name', '*.txt', 'directory ASC');
+			it(title = "recursive directorylist() with attribute listinfo = 'name', sort directory ASC", body = function( currentSpec ) {
+				var dirList = directorylist( base, true, 'name', '*.txt', 'directory ASC', 'file');
 				expect( dirList ).toBe( ['a.txt', 'c.txt', 'j.txt', 'e.txt', 'g.txt', 'p.txt', 'h.txt', 'o.txt'] );
 			});
 
 			// fails 5.3
-			it(title = "recursive directorylist() with attribute listinfo = 'name',sort = 'directory desc'", skip=true, body = function( currentSpec ) {
-				var dirList = directorylist( base, true, 'name', '*.txt', 'directory DESC');
+			it(title = "recursive directorylist() with attribute listinfo = 'name',sort = 'directory desc'", body = function( currentSpec ) {
+				var dirList = directorylist( base, true, 'name', '*.txt', 'directory DESC', 'file');
 				expect( dirList ).toBe( [ 'h.txt', 'o.txt', 'g.txt', 'p.txt', 'e.txt', 'a.txt', 'c.txt', 'j.txt' ] );
 			});
 		});
