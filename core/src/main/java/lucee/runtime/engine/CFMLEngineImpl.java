@@ -1119,11 +1119,16 @@ public final class CFMLEngineImpl implements CFMLEngine {
 	}
 
 	@Override
+
 	public CFMLFactory getCFMLFactory(ServletConfig srvConfig, HttpServletRequest req) throws ServletException {
+		return getCFMLFactory(null, srvConfig, req);
+	}
+
+	public CFMLFactory getCFMLFactory(ConfigServerImpl cs, ServletConfig srvConfig, HttpServletRequest req) throws ServletException {
 		ServletContext srvContext = srvConfig.getServletContext();
 
 		String real = ReqRspUtil.getRootPath(srvContext);
-		ConfigServerImpl cs = getConfigServerImpl();
+		if (cs == null) cs = getConfigServerImpl();
 
 		// Load JspFactory
 

@@ -36,6 +36,7 @@ import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.loader.engine.CFMLEngine;
 import lucee.loader.engine.CFMLEngineFactory;
+import lucee.loader.engine.CFMLEngineWrapper;
 import lucee.runtime.CFMLFactory;
 import lucee.runtime.CFMLFactoryImpl;
 import lucee.runtime.Mapping;
@@ -45,7 +46,9 @@ import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigPro;
+import lucee.runtime.config.ConfigServerImpl;
 import lucee.runtime.config.ConfigWeb;
+import lucee.runtime.engine.CFMLEngineImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.RequestTimeoutException;
@@ -173,7 +176,13 @@ public class PageContextUtil {
 					if (servletConfig == null) servletConfig = configs[0];
 				}
 
-				factory = engine.getCFMLFactory(servletConfig, req);
+				CFMLEngine e = engine;
+				if (engine instanceof CFMLEngineWrapper) {
+					e = ((CFMLEngineWrapper) engine).getEngine();
+				}
+				if (e instanceof CFMLEngineImpl && config instanceof ConfigServerImpl) factory = ((CFMLEngineImpl) e).getCFMLFactory((ConfigServerImpl) config, servletConfig, req);
+				else factory = e.getCFMLFactory(servletConfig, req);
+
 				servlet = new HTTPServletImpl(servletConfig, servletConfig.getServletContext(), servletConfig.getServletName());
 			}
 

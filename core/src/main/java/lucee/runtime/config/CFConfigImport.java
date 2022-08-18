@@ -161,10 +161,8 @@ public class CFConfigImport {
 
 			set(pc, json, "updateSecurity", new Item("varusage"));
 
-			set(pc, json, "updateOutputSetting", new Item("allowcompression"), new Item("cfmlwriter"), new Item("suppresscontent"), new Item("bufferTagBodyOutput", "bufferoutput"),
-					new Item("showContentLength", "contentlength"));
-
-			set(pc, json, "updateError", new Item("template404"), new Item("errorStatusCode", "statuscode"), new Item("template500"));
+			set(pc, json, "updateOutputSetting", new Item("allowcompression"), new Item("whitespaceManagement", "cfmlwriter"), new Item("suppresscontent"),
+					new Item("bufferTagBodyOutput", "bufferoutput"), new Item("showContentLength", "contentlength"));
 
 			set(pc, json, "updateRegex", new Item("regextype"));
 
@@ -193,7 +191,14 @@ public class CFConfigImport {
 					new Item(new String[] { "debuggingImplicitAccess" }, "implicitaccess", null), new Item(new String[] { "debuggingTracing" }, "tracing", null),
 					new Item(new String[] { "debuggingQueryUsage" }, "queryusage", null), new Item(new String[] { "debuggingTemplate" }, "template", null),
 					new Item(new String[] { "debuggingDatabase" }, "database", null), new Item(new String[] { "debuggingDump" }, "dump", null), new Item("debugtemplate"),
-					new Item(new String[] { "debuggingEnabled" }, "debug", null), new Item(new String[] { "debuggingTimer" }, "timer", null));
+					new Item(new String[] { "debuggingEnable", "debuggingEnabled" }, "debug", null), new Item(new String[] { "debuggingTimer" }, "timer", null));
+
+			set(pc, json, "updatemailsetting", new Item(new String[] { "mailSpoolEnable", "mailSpoolEnabled" }, "spoolenable", null),
+					new Item(new String[] { "mailConnectionTimeout", "mailTimeout" }, "timeout", null),
+					new Item(new String[] { "maildefaultencoding", "mailencoding" }, "defaultencoding", null));
+
+			set(pc, json, "updateError", new Item(new String[] { "generalErrorTemplate" }, "template500", null),
+					new Item(new String[] { "missingErrorTemplate" }, "template404", null), new Item(new String[] { "errorStatusCode" }, "statuscode", null).setDefault(true));
 
 			setGroup(pc, json, "updateDatasource", "datasources", new String[] { "name", "databases" }, new Item("class", "classname"), new Item("bundleName"),
 					new Item("bundleVersion"), new Item("connectionlimit").setDefault(-1), new Item("connectiontimeout").setDefault(-1), new Item("livetimeout").setDefault(-1),
@@ -219,16 +224,16 @@ public class CFConfigImport {
 					new Item("idle").setDefault(10), new Item("username", "dbusername"), new Item(new String[] { "smtp", "host", "server" }, "hostname", null), new Item("id"),
 					new Item("port").setDefault(-1), new Item("password", "dbpassword"), new Item("ssl").setDefault(false));
 
-			setGroup(pc, json, "updateCustomTag", new String[] { "customTagMappings", "customTagPaths" }, new String[] {},
-					new Item("virtual", new CreateHashModifier(new String[] { "virtual", "name", "label" }, "physical")), new Item("inspect"), new Item("physical"),
-					new Item("primary"), new Item("archive"));
+			setGroup(pc, json, "updateMapping", new String[] { "mappings", "cfmappings" }, new String[] { "virtual" }, new Item("virtual"),
+					new Item("inspect").addName("inspectTemplate"), new Item("physical"), new Item("primary"), new Item("toplevel").setDefault(true), new Item("archive"));
 
-			setGroup(pc, json, "updateMapping", new String[] { "mappings", "cfmappings" }, new String[] { "virtual" }, new Item("virtual"), new Item("inspect"),
-					new Item("physical"), new Item("primary"), new Item("toplevel").setDefault(true), new Item("archive"));
+			setGroup(pc, json, "updateCustomTag", new String[] { "customTagMappings", "customTagPaths" }, new String[] { "virtual" },
+					new Item("virtual", new CreateHashModifier(new String[] { "virtual", "name", "label" }, "physical")), new Item("inspect").addName("inspectTemplate"),
+					new Item("physical"), new Item("primary"), new Item("archive"));
 
-			setGroup(pc, json, "updateComponentMapping", new String[] { "componentMappings", "componentPaths" }, new String[] {},
-					new Item("virtual", new CreateHashModifier(new String[] { "virtual", "name", "label" }, "physical")), new Item("inspect"), new Item("physical"),
-					new Item("primary"), new Item("archive"));
+			setGroup(pc, json, "updateComponentMapping", new String[] { "componentMappings", "componentPaths" }, new String[] { "virtual" },
+					new Item("virtual", new CreateHashModifier(new String[] { "virtual", "name", "label" }, "physical")), new Item("inspect").addName("inspectTemplate"),
+					new Item("physical"), new Item("primary"), new Item("archive"));
 
 			optimizeExtensions(config, json);
 			setGroup(pc, json, "updateRHExtension", "extensions", new String[] {}, new Item("source"), new Item("id"), new Item("version"));
@@ -372,8 +377,10 @@ public class CFConfigImport {
 				e = it.next();
 				data = cast.toStruct(e.getValue(), null);
 				if (data == null) continue;
-				for (String keyName: keyNames) {
-					data.set(cast.toKey(keyName), e.getKey().getString());
+				if (!(group instanceof Array)) {
+					for (String keyName: keyNames) {
+						data.set(cast.toKey(keyName), e.getKey().getString());
+					}
 				}
 				set(pc, data, trgActionName, items);
 			}
@@ -429,7 +436,7 @@ public class CFConfigImport {
 	}
 
 	private static class Item {
-		private final String[] srcKeyNames;
+		private String[] srcKeyNames;
 		private final String trgAttrName;
 		private CFMLEngine e;
 		private Modifier modifier;
@@ -466,6 +473,16 @@ public class CFConfigImport {
 
 		public Item setDefault(Object def) {
 			this.def = def;
+			return this;
+		}
+
+		public Item addName(String name) {
+			String[] tmp = new String[srcKeyNames.length + 1];
+			for (int i = 0; i < srcKeyNames.length; i++) {
+				tmp[i] = srcKeyNames[i];
+			}
+			tmp[tmp.length - 1] = name;
+			srcKeyNames = tmp;
 			return this;
 		}
 
