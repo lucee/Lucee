@@ -255,7 +255,8 @@ public final class ConfigServerFactory extends ConfigFactory {
 		// Logging/layout
 		Resource lay = adminDir.getRealResource("logging/layout");
 		create("/resource/context/admin/logging/layout/",
-				new String[] { "ClassicLayout.cfc", "HTMLLayout.cfc", "PatternLayout.cfc", "XMLLayout.cfc", "Layout.cfc", "Field.cfc", "Group.cfc" }, lay, doNew);
+				new String[] { "DatadogLayout.cfc", "ClassicLayout.cfc", "HTMLLayout.cfc", "PatternLayout.cfc", "XMLLayout.cfc", "Layout.cfc", "Field.cfc", "Group.cfc" }, lay,
+				doNew);
 
 		// Security / SSL
 		Resource secDir = configDir.getRealResource("security");
