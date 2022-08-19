@@ -97,6 +97,7 @@ public final class XMLConfigServerFactory extends XMLConfigFactory {
 		);
 
 		int iDoNew = getNew(engine, configDir, quick, UpdateInfo.NEW_NONE).updateType;
+
 		boolean doNew = iDoNew != NEW_NONE;
 		Resource configFile = configDir.getRealResource("lucee-server.xml");
 
@@ -239,7 +240,8 @@ public final class XMLConfigServerFactory extends XMLConfigFactory {
 		// Logging/layout
 		Resource lay = adminDir.getRealResource("logging/layout");
 		create("/resource/context/admin/logging/layout/",
-				new String[] { "ClassicLayout.cfc", "HTMLLayout.cfc", "PatternLayout.cfc", "XMLLayout.cfc", "Layout.cfc", "Field.cfc", "Group.cfc" }, lay, doNew);
+				new String[] { "DatadogLayout.cfc", "ClassicLayout.cfc", "HTMLLayout.cfc", "PatternLayout.cfc", "XMLLayout.cfc", "Layout.cfc", "Field.cfc", "Group.cfc" }, lay,
+				doNew);
 
 		// Security
 		Resource secDir = configDir.getRealResource("security");
