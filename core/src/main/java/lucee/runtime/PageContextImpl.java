@@ -361,6 +361,7 @@ public final class PageContextImpl extends PageContext {
 	private boolean fullNullSupport;
 
 	private static final boolean READ_CFID_FROM_URL = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.read.cfid.from.url", "true"), true);
+	private static int _idCounter = 1;
 
 	/**
 	 * default Constructor
@@ -371,7 +372,7 @@ public final class PageContextImpl extends PageContext {
 	 * @param id identity of the pageContext
 	 * @param servlet
 	 */
-	public PageContextImpl(ScopeContext scopeContext, ConfigWebPro config, int id, HttpServlet servlet, boolean jsr223) {
+	public PageContextImpl(ScopeContext scopeContext, ConfigWebPro config, HttpServlet servlet, boolean jsr223) {
 		// must be first because is used after
 		tagHandlerPool = config.getTagHandlerPool();
 		this.servlet = servlet;
@@ -387,7 +388,7 @@ public final class PageContextImpl extends PageContext {
 		server = ScopeContext.getServerScope(this, jsr223);
 		defaultApplicationContext = new ClassicApplicationContext(config, "", true, null);
 
-		this.id = id;
+		this.id = getIdCounter();
 	}
 
 	public boolean isInitialized() {
@@ -3848,5 +3849,11 @@ public final class PageContextImpl extends PageContext {
 	public Regex getRegex() {
 		if (applicationContext != null) return applicationContext.getRegex();
 		return config.getRegex();
+	}
+
+	private static synchronized int getIdCounter() {
+		_idCounter++;
+		if (_idCounter < 0) _idCounter = 1;
+		return _idCounter;
 	}
 }
