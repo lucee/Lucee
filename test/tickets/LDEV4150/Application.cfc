@@ -6,8 +6,4 @@ component {
 		dbcreate = "dropcreate",
 		dialect = "MicrosoftSQLServer"
 	};
-
-	function onRequestStart(){
-		ormReload();
-	}
 }
