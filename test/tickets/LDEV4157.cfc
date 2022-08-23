@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" labels="test" {
+component extends="org.lucee.cfml.test.LuceeTestCase" skip="true" {
 
 	function run( testResults , testBox ) {
 		describe( "Testcase for LDEV-4156", function() {
@@ -19,7 +19,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="test" {
 					var result = new LDEV4157.test4157().foo();
 				}
 				catch(any e) {
-					result = e.message;
+					var result = e.message;
 				}
 				expect( trim(result) ).toBe("thread and tag-island after the thread statement in cfc works");
 			})
