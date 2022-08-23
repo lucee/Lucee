@@ -218,6 +218,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 	private CFMLServletContextListener scl;
 	private Boolean asyncReqHandle;
 	private String envExt;
+	private boolean quick;
 
 	// private static CFMLEngineImpl engine=new CFMLEngineImpl();
 
@@ -278,7 +279,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 			throw Caster.toPageRuntimeException(e);
 		}
 		CFMLEngineFactory.registerInstance((this));// patch, not really good but it works
-		ConfigServerImpl cs = getConfigServerImpl(null, true);
+		ConfigServerImpl cs = getConfigServerImpl(null, quick = true);
 
 		boolean isRe = configDir == null ? false : ConfigFactory.isRequiredExtension(this, configDir, null);
 		boolean installExtensions = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.extensions.install", null), true);
@@ -397,7 +398,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 			}
 		}
 
-		cs = getConfigServerImpl(cs, false);
+		cs = getConfigServerImpl(cs, quick = false);
 		Log log = null;
 		if (cs != null) {
 			try {
@@ -1905,5 +1906,13 @@ public final class CFMLEngineImpl implements CFMLEngine {
 
 	public void setEnvExt(String envExt) {
 		this.envExt = envExt;
+	}
+
+	public static boolean quick(CFMLEngine engine) {
+		while (engine instanceof CFMLEngineWrapper) {
+			engine = ((CFMLEngineWrapper) engine).getEngine();
+		}
+		if (engine instanceof CFMLEngineImpl) return ((CFMLEngineImpl) engine).quick;
+		return false;
 	}
 }

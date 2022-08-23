@@ -152,14 +152,15 @@ public final class ConfigServerFactory extends ConfigFactory {
 	 */
 	public static void reloadInstance(CFMLEngine engine, ConfigServerImpl configServer)
 			throws ClassException, PageException, IOException, TagLibException, FunctionLibException, BundleException {
+		boolean quick = CFMLEngineImpl.quick(engine);
 		Resource configFile = configServer.getConfigFile();
 		if (configFile == null) return;
 		if (second(configServer.getLoadTime()) > second(configFile.lastModified())) {
 			if (!configServer.getConfigDir().getRealResource("password.txt").isFile()) return;
 		}
-		int iDoNew = getNew(engine, configServer.getConfigDir(), false, UpdateInfo.NEW_NONE).updateType;
+		int iDoNew = getNew(engine, configServer.getConfigDir(), quick, UpdateInfo.NEW_NONE).updateType;
 		boolean doNew = iDoNew != NEW_NONE;
-		load(configServer, loadDocument(configFile), true, doNew, false);
+		load(configServer, loadDocument(configFile), true, doNew, quick);
 		((CFMLEngineImpl) ConfigWebUtil.getEngine(configServer)).onStart(configServer, true);
 	}
 
