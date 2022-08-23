@@ -97,7 +97,6 @@ public final class XMLConfigServerFactory extends XMLConfigFactory {
 		);
 
 		int iDoNew = getNew(engine, configDir, quick, UpdateInfo.NEW_NONE).updateType;
-
 		boolean doNew = iDoNew != NEW_NONE;
 		Resource configFile = configDir.getRealResource("lucee-server.xml");
 
@@ -138,14 +137,15 @@ public final class XMLConfigServerFactory extends XMLConfigFactory {
 	 */
 	public static void reloadInstance(CFMLEngine engine, ConfigServerImpl configServer)
 			throws SAXException, ClassException, PageException, IOException, TagLibException, FunctionLibException, BundleException {
+		boolean quick = CFMLEngineImpl.quick(engine);
 		Resource configFile = configServer.getConfigFile();
 		if (configFile == null) return;
 		if (second(configServer.getLoadTime()) > second(configFile.lastModified())) {
 			if (!configServer.getConfigDir().getRealResource("password.txt").isFile()) return;
 		}
-		int iDoNew = getNew(engine, configServer.getConfigDir(), false, UpdateInfo.NEW_NONE).updateType;
+		int iDoNew = getNew(engine, configServer.getConfigDir(), quick, UpdateInfo.NEW_NONE).updateType;
 		boolean doNew = iDoNew != NEW_NONE;
-		load(configServer, loadDocument(configFile), true, doNew, false);
+		load(configServer, loadDocument(configFile), true, doNew, quick);
 		((CFMLEngineImpl) ConfigWebUtil.getEngine(configServer)).onStart(configServer, true);
 	}
 
