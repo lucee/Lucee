@@ -1372,16 +1372,9 @@ Reference Button
 															<span class="warning">None of the columns are used</span><br>
 														<cfelse>
 															<span class="bold">Query column usage</span><br>
-															<cfif lenUsed neq cols>
-																<span>
-																	used: <cfloop from="1" to="#lenUsed#" index="local.ii">
-																		<li>#usageRead[ ii ]#
-																		</cfloop>
-															</span><br>
-															</cfif>
 															<cfif lenNotUsed>
-															<span>
-																NOT used:
+															<span class="warning">
+																the following columns are NOT used:
 																<cfloop from="1" to="#lenNotUsed#" index="local.ii">
 																	<li>#usageNotRead[ ii ]#
 																</cfloop>
@@ -1829,4 +1822,6 @@ ldSelectTab(null,'-lucee-debugging');
 		}
 
 	</cfscript>
+
+
 </cfcomponent>
