@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" labels="session" {
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="session" skip="true" {
 
 	function beforeAll(){
 		server.LDEV4166_ended_CFML_Sessions = {};		
