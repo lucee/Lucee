@@ -25,6 +25,7 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -40,8 +41,12 @@ import lucee.runtime.type.util.ArrayUtil;
  */
 public final class ResourceClassLoader extends URLClassLoader implements Closeable {
 
-	private List<Resource> resources = new ArrayList<Resource>();
-	private Map<String, SoftReference<ResourceClassLoader>> customCLs;
+	static {
+		boolean res = registerAsParallelCapable();
+	}
+
+	private final List<Resource> resources;
+	private final Map<String, SoftReference<ResourceClassLoader>> customCLs = new ConcurrentHashMap<String, SoftReference<ResourceClassLoader>>();
 
 	/**
 	 * Constructor of the class
@@ -52,20 +57,24 @@ public final class ResourceClassLoader extends URLClassLoader implements Closeab
 	 */
 	public ResourceClassLoader(Resource[] resources, ClassLoader parent) throws IOException {
 		super(doURLs(resources), parent);
+
+		List<Resource> tmp = new ArrayList<>();
 		for (int i = 0; i < resources.length; i++) {
-			if (resources[i] != null) this.resources.add(resources[i]);
+			if (resources[i] != null) tmp.add(resources[i]);
 		}
+
+		this.resources = Collections.unmodifiableList(tmp);
 	}
 
-	public ResourceClassLoader(ClassLoader parent) {
-		super(new URL[0], parent);
+	public ResourceClassLoader(ClassLoader parent) throws IOException {
+		this(new Resource[0], parent);
 	}
 
 	/**
 	 * @return the resources
 	 */
 	public Resource[] getResources() {
-		return resources.toArray(new Resource[resources.size()]);
+		return resources.toArray(new Resource[0]);
 	}
 
 	public boolean isEmpty() {
@@ -97,26 +106,19 @@ public final class ResourceClassLoader extends URLClassLoader implements Closeab
 	public void close() {
 	}
 
-	/*
-	 * public synchronized void addResources(Resource[] reses) throws IOException { for(int
-	 * i=0;i<reses.length;i++){ if(!this.resources.contains(reses[i])){ this.resources.add(reses[i]);
-	 * addURL(doURL(reses[i])); } } }
-	 */
 
 	public ResourceClassLoader getCustomResourceClassLoader(Resource[] resources) throws IOException {
 
 		if (ArrayUtil.isEmpty(resources)) return this;
 
 		String key = hash(resources);
-		SoftReference<ResourceClassLoader> tmp = customCLs == null ? null : customCLs.get(key);
+		SoftReference<ResourceClassLoader> tmp = customCLs.get(key);
 		ResourceClassLoader rcl = tmp == null ? null : tmp.get();
 
 		if (rcl != null) return rcl;
 
 		resources = ResourceUtil.merge(this.getResources(), resources);
 		rcl = new ResourceClassLoader(resources, getParent());
-
-		if (customCLs == null) customCLs = new ConcurrentHashMap<String, SoftReference<ResourceClassLoader>>();
 
 		customCLs.put(key, new SoftReference<ResourceClassLoader>(rcl));
 		return rcl;
@@ -125,12 +127,12 @@ public final class ResourceClassLoader extends URLClassLoader implements Closeab
 	public ResourceClassLoader getCustomResourceClassLoader2(Resource[] resources) throws IOException {
 		if (ArrayUtil.isEmpty(resources)) return this;
 		String key = hash(resources);
-		SoftReference<ResourceClassLoader> tmp = customCLs == null ? null : customCLs.get(key);
+		SoftReference<ResourceClassLoader> tmp = customCLs.get(key);
 		ResourceClassLoader rcl = tmp == null ? null : tmp.get();
 		if (rcl != null) return rcl;
 
 		rcl = new ResourceClassLoader(resources, this);
-		if (customCLs == null) customCLs = new ConcurrentHashMap<String, SoftReference<ResourceClassLoader>>();
+
 		customCLs.put(key, new SoftReference<ResourceClassLoader>(rcl));
 		return rcl;
 	}
