@@ -73,6 +73,8 @@ import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.PhysicalClassLoader;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.net.HTTPUtil;
+import lucee.loader.engine.CFMLEngine;
+import lucee.loader.engine.CFMLEngineWrapper;
 import lucee.runtime.Component;
 import lucee.runtime.ComponentScope;
 import lucee.runtime.ComponentSpecificAccess;
@@ -86,6 +88,7 @@ import lucee.runtime.component.PropertyImpl;
 import lucee.runtime.config.Config;
 import lucee.runtime.converter.ConverterException;
 import lucee.runtime.converter.ScriptConverter;
+import lucee.runtime.engine.CFMLEngineImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.CasterException;
@@ -4946,5 +4949,15 @@ public final class Caster {
 		c.set(Calendar.MONTH, m);
 		c.set(Calendar.DAY_OF_MONTH, d);
 		return c.getTimeInMillis();
+	}
+
+	public static CFMLEngineImpl toCFMLEngineImpl(CFMLEngine engine) throws ApplicationException {
+		while (engine instanceof CFMLEngineWrapper) {
+			engine = ((CFMLEngineWrapper) engine).getEngine();
+		}
+		if (engine instanceof CFMLEngineImpl) return (CFMLEngineImpl) engine;
+		if (engine == null) throw new ApplicationException("value null cannot be converted to an instance from class [" + CFMLEngineImpl.class.getName() + "]");
+		throw new ApplicationException(
+				"instance from class [" + engine.getClass().getName() + "] cannot be converted to an instance from class [" + CFMLEngineImpl.class.getName() + "]");
 	}
 }

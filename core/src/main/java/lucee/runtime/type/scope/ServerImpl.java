@@ -27,7 +27,10 @@ import lucee.commons.io.SystemUtil;
 import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
+import lucee.loader.engine.CFMLEngine;
+import lucee.runtime.CFMLFactory;
 import lucee.runtime.PageContext;
+import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
@@ -108,9 +111,22 @@ public final class ServerImpl extends ScopeSupport implements Server, SharedScop
 	}
 
 	public void reload(PageContext pc, Boolean jsr223) {
-		Info info = pc.getConfig().getFactory().getEngine().getInfo();
+		Info info = null;
+		if (pc != null) {
+			ConfigWeb c = pc.getConfig();
+			if (c != null) {
+				CFMLFactory f = c.getFactory();
+				if (f != null) {
+					CFMLEngine e = f.getEngine();
+					if (e != null) {
+						info = e.getInfo();
+					}
+				}
+			}
+		}
+
 		ReadOnlyStruct coldfusion = new ReadOnlyStruct();
-		coldfusion.setEL(PRODUCT_LEVEL, info.getLevel());
+		if (info != null) coldfusion.setEL(PRODUCT_LEVEL, info.getLevel());
 		// coldfusion.setEL(PRODUCT_VERSION,"11,0,07,296330");
 		coldfusion.setEL(PRODUCT_VERSION, "2016,0,03,300357");
 		coldfusion.setEL(SERIAL_NUMBER, "0");
@@ -150,11 +166,13 @@ public final class ServerImpl extends ScopeSupport implements Server, SharedScop
 		super.setEL(KeyConstants._os, os);
 
 		ReadOnlyStruct lucee = new ReadOnlyStruct();
-		lucee.setEL(KeyConstants._version, info.getVersion().toString());
-		lucee.setEL(VERSION_NAME, info.getVersionName());
-		lucee.setEL(VERSION_NAME_EXPLANATION, info.getVersionNameExplanation());
-		lucee.setEL(KeyConstants._state, getStateAsString(info.getVersion()));
-		lucee.setEL(RELEASE_DATE, new DateTimeImpl(info.getRealeaseTime(), false));
+		if (info != null) {
+			lucee.setEL(KeyConstants._version, info.getVersion().toString());
+			lucee.setEL(VERSION_NAME, info.getVersionName());
+			lucee.setEL(VERSION_NAME_EXPLANATION, info.getVersionNameExplanation());
+			lucee.setEL(KeyConstants._state, getStateAsString(info.getVersion()));
+			lucee.setEL(RELEASE_DATE, new DateTimeImpl(info.getRealeaseTime(), false));
+		}
 		lucee.setEL(LOADER_VERSION, Caster.toDouble(SystemUtil.getLoaderVersion()));
 		lucee.setEL(LOADER_PATH, ClassUtil.getSourcePathForClass("lucee.loader.servlet.CFMLServlet", ""));
 		lucee.setEL(ENVIRONMENT, jsr223 != null && jsr223.booleanValue() ? "jsr223" : "servlet");

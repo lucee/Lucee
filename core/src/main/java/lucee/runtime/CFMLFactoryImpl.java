@@ -93,7 +93,7 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 	private ScopeContext scopeContext = new ScopeContext(this);
 	private HttpServlet _servlet;
 	private URL url = null;
-	private CFMLEngineImpl engine;
+	private final CFMLEngineImpl engine;
 	private ArrayList<String> cfmlExtensions;
 	private ArrayList<String> luceeExtensions;
 	private ServletConfig servletConfig;

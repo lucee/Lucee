@@ -164,6 +164,7 @@ public final class XMLConfigAdmin {
 	private ConfigPro config;
 	private Document doc;
 	private Password password;
+	private boolean optionalPW;
 
 	/**
 	 * 
@@ -177,12 +178,16 @@ public final class XMLConfigAdmin {
 		return new XMLConfigAdmin((ConfigPro) config, password);
 	}
 
+	public static XMLConfigAdmin newInstance(Config config, Password password, boolean optionalPW) throws XMLException, IOException {
+		return new XMLConfigAdmin((ConfigPro) config, password, optionalPW);
+	}
+
 	private void checkWriteAccess() throws SecurityException {
-		ConfigWebUtil.checkGeneralWriteAccess(config, password);
+		if (!optionalPW) ConfigWebUtil.checkGeneralWriteAccess(config, password);
 	}
 
 	private void checkReadAccess() throws SecurityException {
-		ConfigWebUtil.checkGeneralReadAccess(config, password);
+		if (!optionalPW) ConfigWebUtil.checkGeneralReadAccess(config, password);
 	}
 
 	/**
@@ -241,6 +246,13 @@ public final class XMLConfigAdmin {
 		this.config = config;
 		this.password = password;
 		doc = XMLUtil.createDocument(config.getConfigFile(), false);
+	}
+
+	private XMLConfigAdmin(ConfigPro config, Password password, boolean optionalPW) throws IOException, XMLException {
+		this.config = config;
+		this.password = password;
+		doc = XMLUtil.createDocument(config.getConfigFile(), false);
+		this.optionalPW = optionalPW;
 	}
 
 	public static void checkForChangesInConfigFile(Config config) {
@@ -322,7 +334,7 @@ public final class XMLConfigAdmin {
 				XMLConfigWebFactory.reloadInstance(engine, (ConfigServerImpl) config, (ConfigWebImpl) webs[i], true);
 			}
 		}
-		else {
+		else if (config instanceof ConfigWebImpl) {
 			ConfigServerImpl cs = ((ConfigWebImpl) config).getConfigServerImpl();
 			XMLConfigWebFactory.reloadInstance(engine, cs, (ConfigWebImpl) config, false);
 		}
@@ -1245,9 +1257,6 @@ public final class XMLConfigAdmin {
 				catch (IOException e) {
 					LogUtil.logGlobal(cs, "application", e);
 				}
-			}
-			else {
-				LogUtil.log(config, Log.LEVEL_ERROR, "application", "no password set and no password file found at [" + pwFile + "]");
 			}
 		}
 		return rtn;

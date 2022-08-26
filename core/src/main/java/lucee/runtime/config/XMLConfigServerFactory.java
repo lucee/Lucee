@@ -117,9 +117,11 @@ public final class XMLConfigServerFactory extends XMLConfigFactory {
 		config = csi != null ? csi : new ConfigServerImpl(engine, initContextes, contextes, configDir, configFile, quick);
 
 		load(config, doc, false, doNew, quick);
-		if (!quick) createContextFiles(configDir, config, doNew, cleanupDatasources);
-
-		if (!quick) ((CFMLEngineImpl) ConfigWebUtil.getEngine(config)).onStart(config, false);
+		if (!quick) {
+			createContextFiles(configDir, config, doNew, cleanupDatasources);
+			ConfigWebUtil.loadAddionalConfig(csi);
+			((CFMLEngineImpl) ConfigWebUtil.getEngine(config)).onStart(config, false);
+		}
 		return config;
 	}
 

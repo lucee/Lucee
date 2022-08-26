@@ -240,7 +240,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	private String action = null;
 	private short type;
 	private Password password;
-	private XMLConfigAdmin admin;
+	private XMLConfigAdmin admin = null;
 	private ConfigPro config;
 
 	private static final ResourceFilter FILTER_CFML_TEMPLATES = new OrResourceFilter(
@@ -252,6 +252,15 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	private static final Key USED_BY = KeyImpl.getInstance("usedBy");
 	private static final Key PATH = KeyConstants._path;
 	private AdminSync adminSync;
+	private boolean optionalPW;
+
+	public Admin() {
+
+	}
+
+	Admin(boolean optionalPW) {
+		this.optionalPW = optionalPW;
+	}
 
 	@Override
 	public void release() {
@@ -600,19 +609,22 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			else password = null;
 
 			// Config
-			if (type == TYPE_SERVER) config = (ConfigPro) pageContext.getConfig().getConfigServer(password);
+			if (type == TYPE_SERVER) {
+				config = (ConfigPro) (pageContext.getConfig()).getConfigServer(password);
+			}
 
 			adminSync = config.getAdminSync();
-			admin = XMLConfigAdmin.newInstance(config, password);
+			admin = XMLConfigAdmin.newInstance(config, password, optionalPW);
 		}
 		catch (Exception e) {
 			throw Caster.toPageException(e);
 		}
 
 		if (check("connect", ACCESS_FREE)) {
-			ConfigWebUtil.checkPassword(config, null, password);
-			ConfigWebUtil.checkGeneralReadAccess(config, password);
-
+			if (!optionalPW) {
+				ConfigWebUtil.checkPassword(config, null, password);
+				ConfigWebUtil.checkGeneralReadAccess(config, password);
+			}
 			try {
 				if (config instanceof ConfigServer) ((PageContextImpl) pageContext).setServerPassword(password);
 			}
@@ -878,16 +890,15 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	}
 
 	private boolean check2(short accessRW) throws SecurityException {
-		if (accessRW == ACCESS_READ) ConfigWebUtil.checkGeneralReadAccess(config, password);
-		else if (accessRW == ACCESS_WRITE) ConfigWebUtil.checkGeneralWriteAccess(config, password);
-		/*
-		 * else if(accessRW==CHECK_PW) { ConfigWebUtil.checkGeneralReadAccess(config,password);
-		 * ConfigWebUtil.checkPassword(config,null,password); }
-		 */
+		if (!optionalPW) {
+			if (accessRW == ACCESS_READ) ConfigWebUtil.checkGeneralReadAccess(config, password);
+			else if (accessRW == ACCESS_WRITE) ConfigWebUtil.checkGeneralWriteAccess(config, password);
+		}
 		return true;
 	}
 
 	private boolean check(String action, short access) throws ApplicationException {
+
 		if (this.action.equalsIgnoreCase(action)) {
 			if (access == ACCESS_FREE) {
 			}
@@ -5418,4 +5429,5 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			throw new ApplicationException("Action [" + action + "] is not available for Server Admin ( Web Admin only )");
 		}
 	}
+
 }

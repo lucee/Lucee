@@ -64,6 +64,7 @@ import lucee.runtime.osgi.BundleBuilderFactory;
 import lucee.runtime.osgi.BundleFile;
 import lucee.runtime.osgi.OSGiUtil;
 import lucee.runtime.security.SecurityManager;
+import lucee.runtime.tag.CFConfigImport;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.util.ArrayUtil;
@@ -630,7 +631,9 @@ public final class ConfigWebUtil {
 	}
 
 	public static CFMLEngine getEngine(Config config) {
-		if (config instanceof ConfigWeb) return ((ConfigWeb) config).getFactory().getEngine();
+		if (config instanceof ConfigWeb) {
+			return ((ConfigWeb) config).getFactory().getEngine();
+		}
 		if (config instanceof ConfigServer) return ((ConfigServer) config).getEngine();
 		return CFMLEngineFactory.getInstance();
 	}
@@ -750,5 +753,47 @@ public final class ConfigWebUtil {
 			this.isCFC = isCFC;
 		}
 
+	}
+
+	public static void loadAddionalConfig(final Config config) {
+		Resource configDir = config.getConfigDir();
+		Resource addConfDir1, addConfDir2 = null, addConfFile = null;
+		String strAddConfDir;
+
+		// get config dir
+		if (config instanceof ConfigServer) {
+			strAddConfDir = SystemUtil.getSystemPropOrEnvVar("lucee.addional.config.server.dir", null);
+			if (StringUtil.isEmpty(strAddConfDir)) strAddConfDir = SystemUtil.getSystemPropOrEnvVar("lucee.addional.config.dir", null);
+		}
+		else {
+			strAddConfDir = SystemUtil.getSystemPropOrEnvVar("lucee.addional.config.web.dir", null);
+		}
+
+		if (!StringUtil.isEmpty(strAddConfDir)) addConfDir1 = ResourceUtil.toResourceExisting(config, strAddConfDir, null);
+		else {
+			addConfDir1 = configDir;
+			if (config instanceof ConfigServer) addConfDir2 = configDir.getParentResource();
+		}
+
+		// get config file
+		if (addConfDir1 != null && addConfDir1.isDirectory()) {
+			addConfFile = addConfDir1.getRealResource(".CFConfig.json");
+			if (!addConfFile.isFile()) addConfFile = null;
+		}
+		if (addConfFile == null && addConfDir2 != null && addConfDir2.isDirectory()) {
+			addConfFile = addConfDir2.getRealResource(".CFConfig.json");
+			if (!addConfFile.isFile()) addConfFile = null;
+		}
+
+		// load addional data
+		if (addConfFile != null && config instanceof ConfigImpl) {
+			try {
+				new CFConfigImport(config, addConfFile, null, null, config instanceof ConfigServer ? "server" : "web", null, false, false).execute(false);
+			}
+			catch (Throwable t) {
+				ExceptionUtil.rethrowIfNecessary(t);
+				LogUtil.log(config, "config", t);
+			}
+		}
 	}
 }

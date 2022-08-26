@@ -46,14 +46,19 @@ import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigPro;
+import lucee.runtime.config.ConfigServer;
 import lucee.runtime.config.ConfigServerImpl;
 import lucee.runtime.config.ConfigWeb;
+import lucee.runtime.config.ConfigWebPro;
+import lucee.runtime.config.SingleContextConfigWeb;
 import lucee.runtime.engine.CFMLEngineImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.RequestTimeoutException;
 import lucee.runtime.listener.ApplicationListener;
 import lucee.runtime.net.http.ReqRspUtil;
+import lucee.runtime.net.http.ServletConfigDummy;
+import lucee.runtime.net.http.ServletContextDummy;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.CreationImpl;
 import lucee.runtime.type.dt.TimeSpan;
@@ -173,16 +178,36 @@ public class PageContextUtil {
 						}
 					}
 
-					if (servletConfig == null) servletConfig = configs[0];
+					if (servletConfig == null) {
+						if (configs == null || configs.length == 0) try {
+							servletConfig = new ServletConfigDummy(
+									new ServletContextDummy(config, Caster.toResource(config, rootDir, true), Caster.toStruct(attributes), Caster.toStruct(parameters), 0, 0),
+									"Lucee");
+							CFMLFactoryImpl fi = new CFMLFactoryImpl(Caster.toCFMLEngineImpl(engine), servletConfig);
+							factory = fi;
+
+							if (config instanceof ConfigServer) fi.setConfig(new SingleContextConfigWeb((ConfigServerImpl) config, factory));
+							else fi.setConfig(((ConfigWebPro) config));
+
+						}
+						catch (Exception e) {
+							throw new ServletException(e);
+							// TODO Auto-generated catch block
+						}
+						else servletConfig = configs[0];
+					}
+
 				}
 
 				CFMLEngine e = engine;
 				if (engine instanceof CFMLEngineWrapper) {
 					e = ((CFMLEngineWrapper) engine).getEngine();
 				}
-				if (e instanceof CFMLEngineImpl && config instanceof ConfigServerImpl) factory = ((CFMLEngineImpl) e).getCFMLFactory((ConfigServerImpl) config, servletConfig, req);
-				else factory = e.getCFMLFactory(servletConfig, req);
-
+				if (factory == null) {
+					if (e instanceof CFMLEngineImpl && config instanceof ConfigServerImpl)
+						factory = ((CFMLEngineImpl) e).getCFMLFactory((ConfigServerImpl) config, servletConfig, req);
+					else factory = e.getCFMLFactory(servletConfig, req);
+				}
 				servlet = new HTTPServletImpl(servletConfig, servletConfig.getServletContext(), servletConfig.getServletName());
 			}
 

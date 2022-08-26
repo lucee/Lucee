@@ -259,6 +259,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 
 		Resource configFile = configDir.getRealResource("lucee-web.xml." + TEMPLATE_EXTENSION);
 
+		// addional config
 		String strPath = servletConfig.getServletContext().getRealPath("/WEB-INF");
 		Resource path = ResourcesImpl.getFileResourceProvider().getResource(strPath);
 
@@ -278,10 +279,12 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		if (configDir.exists()) createHtAccess(configDir.getRealResource(".htaccess"));
 
 		createContextFiles(configDir, servletConfig, doNew);
-		ConfigWebImpl configWeb = new ConfigWebImpl(factory, configServer, servletConfig, configDir, configFile);
+		final ConfigWebImpl configWeb = new ConfigWebImpl(factory, configServer, servletConfig, configDir, configFile);
 
 		load(configServer, configWeb, doc, false, doNew, false);
 		createContextFilesPost(configDir, configWeb, servletConfig, false, doNew);
+
+		ConfigWebUtil.loadAddionalConfig(configWeb);
 
 		// call web.cfc for this context
 		((CFMLEngineImpl) ConfigWebUtil.getEngine(configWeb)).onStart(configWeb, false);
@@ -321,8 +324,8 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 	 */
 	public static void reloadInstance(CFMLEngine engine, ConfigServerImpl cs, ConfigWebImpl cw, boolean force)
 			throws SAXException, ClassException, PageException, IOException, TagLibException, FunctionLibException, BundleException {
-		Resource configFile = cw.getConfigFile();
 		Resource configDir = cw.getConfigDir();
+		Resource configFile = cw.getConfigFile();
 
 		int iDoNew = getNew(engine, configDir, false, UpdateInfo.NEW_NONE).updateType;
 		boolean doNew = iDoNew != NEW_NONE;
@@ -641,6 +644,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			TagUtil.addTagMetaData((ConfigWebImpl) config, log);
 			if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "added tag meta data");
 		}
+
 	}
 
 	private static Document reload(Document doc, ConfigImpl config, ConfigServerImpl cs) throws PageException, IOException {
