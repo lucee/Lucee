@@ -32,6 +32,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import lucee.commons.digest.HashUtil;
 import lucee.commons.io.IOUtil;
+import lucee.commons.io.SystemUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceClassLoader;
 import lucee.commons.io.res.util.ResourceUtil;
@@ -48,8 +49,6 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 	static {
 		boolean res = registerAsParallelCapable();
 	}
-	private static final ConcurrentHashMap<String, String> tokens = new ConcurrentHashMap<String, String>();
-
 	private Resource directory;
 	private ConfigPro config;
 	private final ClassLoader[] parents;
@@ -122,7 +121,7 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 
 	@Override
 	protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
-		synchronized (createToken(name)) {
+		synchronized (SystemUtil.createToken("PhysicalClassLoader", name)) {
 			return loadClass(name, resolve, true);
 		}
 	}
@@ -150,7 +149,7 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 
 	@Override
 	protected Class<?> findClass(String name) throws ClassNotFoundException {// if(name.indexOf("sub")!=-1)print.ds(name);
-		synchronized (createToken(name)) {
+		synchronized (SystemUtil.createToken("PhysicalClassLoader", name)) {
 			Resource res = directory.getRealResource(name.replace('.', '/').concat(".class"));
 
 			ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -172,7 +171,7 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 	public Class<?> loadClass(String name, byte[] barr) throws UnmodifiableClassException {
 		Class<?> clazz = null;
 
-		synchronized (createToken(name)) {
+		synchronized (SystemUtil.createToken("PhysicalClassLoader", name)) {
 
 			// new class , not in memory yet
 			try {
@@ -294,14 +293,5 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 		this.loadedClasses.clear();
 		this.allLoadedClasses.clear();
 		this.unavaiClasses.clear();
-	}
-
-	public static String createToken(String name) {
-		String str = "PhysicalClassLoader:" + name;
-		String lock = tokens.putIfAbsent(str, str);
-		if (lock == null) {
-			lock = str;
-		}
-		return lock;
 	}
 }

@@ -219,6 +219,7 @@ public final class SystemUtil {
 		else JAVA_VERSION = 0;
 	}
 
+	private static final ConcurrentHashMap<String, String> tokens = new ConcurrentHashMap<String, String>();
 	private static ClassLoader loaderCL;
 	private static ClassLoader coreCL;
 
@@ -1733,6 +1734,15 @@ public final class SystemUtil {
 			}
 		}
 		return false;
+	}
+
+	public static String createToken(String prefix, String name) {
+		String str = prefix + ":" + name;
+		String lock = tokens.putIfAbsent(str, str);
+		if (lock == null) {
+			lock = str;
+		}
+		return lock;
 	}
 }
 

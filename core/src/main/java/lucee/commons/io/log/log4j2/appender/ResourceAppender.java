@@ -3,7 +3,6 @@ package lucee.commons.io.log.log4j2.appender;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.nio.charset.Charset;
-import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.logging.log4j.core.Filter;
 import org.apache.logging.log4j.core.Layout;
@@ -11,6 +10,7 @@ import org.apache.logging.log4j.core.LogEvent;
 import org.apache.logging.log4j.core.appender.AbstractAppender;
 import org.apache.logging.log4j.status.StatusLogger;
 
+import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.retirement.RetireListener;
@@ -21,8 +21,6 @@ import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.op.Caster;
 
 public class ResourceAppender extends AbstractAppender {
-
-	private static final ConcurrentHashMap<String, String> tokens = new ConcurrentHashMap<String, String>();
 
 	public static final long DEFAULT_MAX_FILE_SIZE = 10 * 1024 * 1024;
 	public static final int DEFAULT_MAX_BACKUP_INDEX = 10;
@@ -52,7 +50,7 @@ public class ResourceAppender extends AbstractAppender {
 		this.maxFileSize = maxFileSize;
 		this.maxfiles = maxfiles;
 		setFile(append);
-		this.token = createToken(res);
+		this.token = SystemUtil.createToken("ResourceAppender", res.getAbsolutePath());
 	}
 
 	@Override
@@ -223,14 +221,5 @@ public class ResourceAppender extends AbstractAppender {
 				LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), "log-loading", "Could not close [" + res + "]", e);
 			}
 		}
-	}
-
-	public static String createToken(Resource res) {
-		String str = res.getAbsolutePath();
-		String lock = tokens.putIfAbsent(str, str);
-		if (lock == null) {
-			lock = str;
-		}
-		return lock;
 	}
 }
