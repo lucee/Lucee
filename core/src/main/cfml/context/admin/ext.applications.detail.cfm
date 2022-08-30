@@ -111,8 +111,9 @@
 		</cfif>
 
 		<cfif !isInstalled && isServerInstalled><div class="error">#stText.ext.installedServerDesc#</div></cfif>
-
-		#replace(replace(trim(app.description),'<','&lt;',"all"), chr(10),"<br />","all")#
+		<cfscript>
+			writeoutput(replace(replace(trim(app.description),'<','&lt;',"all"), chr(10),"<br />","all"));
+		</cfscript>
 		<br /><br />
 	</div>
 
