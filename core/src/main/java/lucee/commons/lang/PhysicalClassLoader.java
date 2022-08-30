@@ -123,7 +123,7 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 
 	@Override
 	protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
-		synchronized (createToken(name)) {
+		synchronized (createToken("PhysicalClassLoader", name)) {
 			return loadClass(name, resolve, true);
 		}
 	}
@@ -151,7 +151,7 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 
 	@Override
 	protected Class<?> findClass(String name) throws ClassNotFoundException {// if(name.indexOf("sub")!=-1)print.ds(name);
-		synchronized (createToken(name)) {
+		synchronized (createToken("PhysicalClassLoader", name)) {
 			Resource res = directory.getRealResource(name.replace('.', '/').concat(".class"));
 
 			ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -173,7 +173,7 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 	public Class<?> loadClass(String name, byte[] barr) throws UnmodifiableClassException {
 		Class<?> clazz = null;
 
-		synchronized (createToken(name)) {
+		synchronized (createToken("PhysicalClassLoader", name)) {
 
 			// new class , not in memory yet
 			try {
@@ -297,8 +297,8 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 		this.unavaiClasses.clear();
 	}
 
-	public static String createToken(String name) {
-		String str = "PhysicalClassLoader:" + name;
+	public static String createToken(String prefix, String name) {
+		String str = prefix + ":" + name;
 		String lock = tokens.putIfAbsent(str, str);
 		if (lock == null) {
 			lock = str;
