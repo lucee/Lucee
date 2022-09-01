@@ -198,9 +198,9 @@
 			<cfelse>
 				<cfset local.data=toBinary(src)>
 			</cfif>
-			
+
 			<!--- is the image extension installed? --->
-			<cfif serversideDN && extensionExists("B737ABC4-D43F-4D91-8E8E973E37C40D1B")> 
+			<cfif serversideDN  && !request.isHasBundleError && extensionExists("B737ABC4-D43F-4D91-8E8E973E37C40D1B")> 
 				<cfset local.img=imageRead(data)>
 				<!--- shrink images if needed --->
 				<cfif  (img.width*img.height) GT 1000000 && (img.height GT arguments.height or img.width GT arguments.width)>
@@ -219,10 +219,17 @@
 			<cfif isNull(local.b64)>
 				<cfset local.b64=toBase64(data)>
 			</cfif>
+
+			<!--- catch the bundle error and skip this process for every single extensions --->
+			<cfcatch type="org.osgi.framework.BundleException">
+				<cfset request.isHasBundleError = true>
 				
+				<cfif isNull(local.b64)> 
+					<cfset local.b64=toBase64(data)>
+				</cfif>
+			</cfcatch>
 
 			<cfcatch>
-				<cflog text="Error parsing extension logo, #cfcatch.message#, [#arguments.src#]" type="error">
 				<cfset local.b64=local.empty>
 			</cfcatch>
 		</cftry>

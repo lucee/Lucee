@@ -5,6 +5,7 @@
 <cfparam name="error" default="#struct(message:"",detail:"")#">
 <cfparam name="form.mainAction" default="none">
 <cfset error.message="">
+<cfset request.isHasBundleError = false>
 
 
 
