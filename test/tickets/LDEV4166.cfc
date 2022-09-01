@@ -21,7 +21,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="session" skip="tru
 				expect( len( cfmlSessionId.filecontent ) ).toBeGT( 0 );
 				// allow session to expire
 				sleep(1001);
-				// admin
+				admin
 					action="purgeExpiredSessions"
 					type="server"
 					password="#request.SERVERADMINPASSWORD#";
@@ -38,7 +38,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="session" skip="tru
 				expect( len( j2eeSessionId.filecontent ) ).toBeGT( 0 );
 				// allow session to expire
 				sleep(1001);
-				// admin
+				admin
 					action="purgeExpiredSessions"
 					type="server"
 					password="#request.SERVERADMINPASSWORD#";
