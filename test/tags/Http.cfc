@@ -18,19 +18,19 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 
 	public function testHTTP() localmode="true"{
 		http url="http://www.google.com";
-		expect( cfhttp.success ).toBe(  true );
+		expect( cfhttp.error ).toBe(  false );
 		expect( cfhttp.status_code ).toBe( 200 );
 	}
 
 	public function testHTTPs() localmode="true"{
 		http url="https://www.google.com";
 		expect( cfhttp.status_code ).toBe( 200 );
-		expect( cfhttp.success ).toBe( true );
+		expect( cfhttp.error ).toBe( false);
 	}
 
 	public function testInvalidHostName() localmode="true"{
 		http url="https://www.lucee.o1rg";
-		expect( cfhttp.success ).toBe( false );
+		expect( cfhttp.error ).toBe( true );
 		expect( cfhttp.status_code ).toBe( 0 );
 
 		expect( function(){
@@ -40,7 +40,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 
 	public function test404() localmode="true"{
 		http url="https://update.lucee.org/rest/update/provider/404";
-		expect( cfhttp.success ).toBe( false );
+		expect( cfhttp.error ).toBe( true );
 		expect( cfhttp.status_code ).toBe( 404 );
 		expect( function(){
 			http url="https://update.lucee.org/rest/update/provider/404" throwOnError=true;
@@ -79,7 +79,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 		http url="https://update.lucee.org/rest/update/provider/echoPut" result="local.res" method="put" throwonerror="no" charset="utf-8"{
 			httpparam type="body" mimetype="text/plain; charset=UTF-8" value=data;
 		}
-		res=evaluate(res.filecontent);
+		var res=evaluate(res.filecontent);
 		assertEquals(data,res.httpRequestData.content);
 	}
 

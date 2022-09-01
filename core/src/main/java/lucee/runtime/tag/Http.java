@@ -187,7 +187,7 @@ public final class Http extends BodyTagImpl {
 	private static final Key EXPLANATION = KeyImpl.getInstance("explanation");
 	private static final Key RESPONSEHEADER = KeyImpl.getInstance("responseheader");
 	private static final Key SET_COOKIE = KeyImpl.getInstance("set-cookie");
-	private static final Key SUCCESS = KeyImpl.getInstance("success");
+	private static final Key ERROR = KeyImpl.getInstance("error");
 
 	private static final short AUTH_TYPE_BASIC = 0;
 	private static final short AUTH_TYPE_NTLM = 1;
@@ -1199,7 +1199,7 @@ public final class Http extends BodyTagImpl {
 			String[] tmpCharset = HTTPUtil.splitMimeTypeAndCharset(mimetype, null);
 			rspCharset = tmpCharset != null ? tmpCharset[1] : null;
 
-			cfhttp.set(SUCCESS, Boolean.TRUE); // default
+			cfhttp.set(ERROR, Boolean.FALSE); // default
 			cfhttp.set(RESPONSEHEADER, responseHeader);
 			cfhttp.set(KeyConstants._cookies, cookies);
 			responseHeader.set(STATUS_CODE, Double.valueOf(statCode = rsp.getStatusCode()));
@@ -1326,7 +1326,7 @@ public final class Http extends BodyTagImpl {
 				if (throwonerror) {
 					throw new HTTPException(msg, null, rsp.getStatusCode(), rsp.getStatusText(), rsp.getURL());
 				}
-				cfhttp.setEL(SUCCESS, Boolean.FALSE);
+				cfhttp.setEL(ERROR, Boolean.TRUE);
 			}
 
 			// TODO: check if we can use statCode instead of rsp.getStatusCode() everywhere and cleanup the code
@@ -1563,7 +1563,7 @@ public final class Http extends BodyTagImpl {
 		cfhttp.setEL(STATUS_CODE, Double.valueOf(0));
 		cfhttp.setEL(STATUS_TEXT, "Connection Failure");
 		cfhttp.setEL(KeyConstants._text, Boolean.TRUE);
-		cfhttp.setEL(SUCCESS, Boolean.FALSE);
+		cfhttp.setEL(ERROR, Boolean.TRUE);
 	}
 
 	private void setRequestTimeout(Struct cfhttp) {
@@ -1577,7 +1577,7 @@ public final class Http extends BodyTagImpl {
 		cfhttp.setEL(STATUS_CODE, Double.valueOf(408));
 		cfhttp.setEL(STATUS_TEXT, "Request Time-out");
 		cfhttp.setEL(KeyConstants._text, Boolean.TRUE);
-		cfhttp.setEL(SUCCESS, Boolean.FALSE);
+		cfhttp.setEL(ERROR, Boolean.TRUE);
 	}
 
 	private static boolean hasHeaderIgnoreCase(HttpRequestBase req, String name) {
