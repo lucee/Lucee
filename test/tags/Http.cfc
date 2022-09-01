@@ -18,15 +18,36 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 
 	public function testHTTP() localmode="true"{
 		http url="http://www.google.com";
-		assertEquals(200,cfhttp.status_code);
+		expect( cfhttp.success ).toBe(  true );
+		expect( cfhttp.status_code ).toBe( 200 );
 	}
 
 	public function testHTTPs() localmode="true"{
 		http url="https://www.google.com";
-		assertEquals(200,cfhttp.status_code);
+		expect( cfhttp.status_code ).toBe( 200 );
+		expect( cfhttp.success ).toBe( true );
 	}
 
-			
+	public function testInvalidHostName() localmode="true"{
+		http url="https://www.lucee.o1rg";
+		expect( cfhttp.success ).toBe( false );
+		expect( cfhttp.status_code ).toBe( 0 );
+
+		expect( function(){
+			http url="https://www.lucee.o1rg" throwOnError=true;
+		}).toThrow();
+	}
+
+	public function test404() localmode="true"{
+		http url="https://update.lucee.org/rest/update/provider/404";
+		expect( cfhttp.success ).toBe( false );
+		expect( cfhttp.status_code ).toBe( 404 );
+		expect( function(){
+			http url="https://update.lucee.org/rest/update/provider/404" throwOnError=true;
+		}).toThrow();
+	}
+
+
 	public void function testDefaultHTTPParamType(){
 		http url="https://update.lucee.org/rest/update/provider/echoGet" result="local.res" method="get"{
 			httpparam name="susi" value="Sorglos";
