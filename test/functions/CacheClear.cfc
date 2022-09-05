@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" labels="mongodb" {
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="cache" {
 	
 	variables.cacheName="Test"&ListFirst(ListLast(getCurrentTemplatePath(),"\/"),".");
 
@@ -125,12 +125,25 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mongodb" {
 	}
 
 
+	
+	function testCacheClearMongoDB() {
+		if (!extensionExists("E6634E1A-4CC5-4839-A83C67549ECA8D5B")) 
+			return;
+		// TODO add mongodb test	
+		//createEHCache();
+		//testCacheClear();
+		//deleteCache();
+	}
+
 
 	function testCacheClearEHCache() {
+		if (!extensionExists("87FE44E5-179C-43A3-A87B3D38BEF4652E")) 
+			return;
 		createEHCache();
 		testCacheClear();
 		deleteCache();
 	}
+
 	function testCacheClearRAMCache() {
 		createRAMCache();
 		testCacheClear();
