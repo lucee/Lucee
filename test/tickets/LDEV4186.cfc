@@ -1,4 +1,4 @@
-component extends = "org.lucee.cfml.test.LuceeTestCase" labels="qoq" {
+component extends = "org.lucee.cfml.test.LuceeTestCase" labels="qoq" skip="true" {
 	function run( testResults, textbox ) {
 		describe("testcase for LDEV-4186", function() {
 			variables.myQuery = queryNew( "id,name","CF_SQL_integer,CF_SQL_varchar");
