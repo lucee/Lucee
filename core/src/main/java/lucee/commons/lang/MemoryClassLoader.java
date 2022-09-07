@@ -53,7 +53,7 @@ public final class MemoryClassLoader extends ExtendableClassLoader {
 
 	@Override
 	protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
-		synchronized (getClassLoadingLock(name)) {
+		synchronized (SystemUtil.createToken("MemoryClassLoader", name)) {
 
 			// First, check if the class has already been loaded
 			Class<?> c = findLoadedClass(name);
@@ -80,7 +80,7 @@ public final class MemoryClassLoader extends ExtendableClassLoader {
 
 	@Override
 	public Class<?> loadClass(String name, byte[] barr) throws UnmodifiableClassException {
-		synchronized (getClassLoadingLock(name)) {
+		synchronized (SystemUtil.createToken("MemoryClassLoader", name)) {
 
 			Class<?> clazz = null;
 			try {
