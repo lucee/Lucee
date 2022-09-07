@@ -68,6 +68,7 @@ public class CatchBlockImpl extends StructImpl implements CatchBlock, Castable, 
 
 	private final PageException exception;
 
+	// used in image extension
 	public CatchBlockImpl(PageException pe) {
 		this(pe, 0);
 	}
