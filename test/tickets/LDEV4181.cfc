@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" skip="true" {
+component extends="org.lucee.cfml.test.LuceeTestCase" skip="true" labels="qoq" {
 	function run( testResults , testBox ) {
 		describe( title="Testcase for LDEV-4181", body=function() {
 			it(title="Checking QoQ with numeric column", body = function( currentSpec ) {
