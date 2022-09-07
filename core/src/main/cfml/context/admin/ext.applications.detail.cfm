@@ -101,7 +101,7 @@
 	<cfthrow message="Extension [#url.id#] not found">
 </cfif>
 <cfset lasProvider=(app.provider?:"")=="local" || findNoCase("lucee.org",app.provider?:'') GT 0>
-<cfoutput encodeFor="html">
+<cfoutput>
 	<!--- title and description --->
 	<div class="modheader">
 		<h2>#app.name# (<cfif isInstalled>#stText.ext.installed#<cfelseif isServerInstalled>#stText.ext.installedServer#<cfelse>#stText.ext.notInstalled#</cfif>)</h2>
@@ -111,9 +111,12 @@
 		</cfif>
 
 		<cfif !isInstalled && isServerInstalled><div class="error">#stText.ext.installedServerDesc#</div></cfif>
-		<cfscript>
-			writeoutput(replace(replace(trim(app.description),'<','&lt;',"all"), chr(10),"<br />","all"));
-		</cfscript>
+		<cfset ESAPIExtension = getDataByid('37C61C0A-5D7E-4256-8572639BE0CF5838',extensions)>
+		<cfif structCount(ESAPIExtension) && toVersionSortable(ESAPIExtension.version) GTE toVersionSortable('2.2.4.5')>
+			#sanitizehtml( replace(replace(trim(app.description),'<','&lt;',"all"), chr(10),"<br />","all"), 'FORMATTING' )#
+		<cfelse>
+			#replace(replace(trim(app.description),'<','&lt;',"all"), chr(10),"<br />","all")#
+		</cfif>
 		<br /><br />
 	</div>
 
