@@ -61,7 +61,7 @@ import lucee.runtime.type.util.ComponentUtil;
 import lucee.runtime.type.util.KeyConstants;
 
 /**
- * class to serialize and desirilize WDDX Packes
+ * class to serialize and deserialize WDDX Packes
  */
 public final class XMLConverter extends ConverterSupport {
 	private static final Collection.Key REMOTING_FETCH = KeyImpl.getInstance("remotingFetch");
@@ -563,7 +563,7 @@ public final class XMLConverter extends ConverterSupport {
 	}
 
 	/**
-	 * Desirialize a Query Object
+	 * Deserialize a Query Object
 	 * 
 	 * @param recordset Query Object as XML Element
 	 * @return Query Object
@@ -592,7 +592,7 @@ public final class XMLConverter extends ConverterSupport {
 	}
 
 	/**
-	 * deserilize a single Field of a query WDDX Object
+	 * Deserialize a single Field of a query WDDX Object
 	 * 
 	 * @param query
 	 * @param field
@@ -614,7 +614,7 @@ public final class XMLConverter extends ConverterSupport {
 	}
 
 	/**
-	 * Desirialize a Component Object
+	 * Deserialize a Component Object
 	 * 
 	 * @param elComp Component Object as XML Element
 	 * @return Component Object
@@ -669,7 +669,7 @@ public final class XMLConverter extends ConverterSupport {
 	}
 
 	/**
-	 * Desirialize a Struct Object
+	 * Deserialize a Struct Object
 	 * 
 	 * @param elStruct Struct Object as XML Element
 	 * @return Struct Object
@@ -701,7 +701,7 @@ public final class XMLConverter extends ConverterSupport {
 	}
 
 	/**
-	 * Desirialize a Struct Object
+	 * Deserialize a Struct Object
 	 * 
 	 * @param el Struct Object as XML Element
 	 * @return Struct Object
