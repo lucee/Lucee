@@ -33,4 +33,3 @@ loader/env.json
 .idea/
 buildVersionNumber.txt
 /test/reports
-Lucee.code-workspace
