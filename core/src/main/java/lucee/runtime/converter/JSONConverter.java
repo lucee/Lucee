@@ -81,7 +81,7 @@ import lucee.runtime.type.util.ComponentUtil;
 import lucee.runtime.util.ObjectIdentityHashSet;
 
 /**
- * class to serialize and desirilize WDDX Packes
+ * class to serialize and deserialize WDDX Packes
  */
 public final class JSONConverter extends ConverterSupport {
 

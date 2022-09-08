@@ -78,7 +78,7 @@ public class IKHandlerCache implements IKHandler {
 	}
 
 	private static boolean deserializeIKStorageValueSupported(Cache cache) {
-		// FUTURE extend Cache interface to make sure it can handle serilasation
+		// FUTURE extend Cache interface to make sure it can handle serialazation
 		if (cache == null) return false;
 		Class<? extends Cache> clazz = cache.getClass();
 		String name = clazz.getName();

@@ -64,7 +64,7 @@ import lucee.runtime.type.util.ComponentUtil;
 import lucee.runtime.type.util.KeyConstants;
 
 /**
- * class to serialize and desirilize WDDX Packes
+ * class to serialize and deserialize WDDX Packes
  */
 public final class ScriptConverter extends ConverterSupport {
 	private static final Collection.Key REMOTING_FETCH = KeyImpl.getInstance("remotingFetch");
