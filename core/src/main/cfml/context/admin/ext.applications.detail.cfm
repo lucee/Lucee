@@ -113,7 +113,7 @@
 		<cfif !isInstalled && isServerInstalled><div class="error">#stText.ext.installedServerDesc#</div></cfif>
 		<cfset ESAPIExtension = getDataByid('37C61C0A-5D7E-4256-8572639BE0CF5838',extensions)>
 		<cfif structCount(ESAPIExtension) && toVersionSortable(ESAPIExtension.version) GTE toVersionSortable('2.2.4.5')>
-			#sanitizehtml( replace(replace(trim(app.description),'<','&lt;',"all"), chr(10),"<br />","all"), 'FORMATTING' )#
+			#sanitizehtml(replace(trim(app.description),chr(10),"<br />","all"),'FORMATTING')#
 		<cfelse>
 			#replace(replace(trim(app.description),'<','&lt;',"all"), chr(10),"<br />","all")#
 		</cfif>
