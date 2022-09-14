@@ -10,7 +10,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" labels="xml" {
 					template : "#uri#\LDEV1676.cfm",
 					forms :	{scene=1}
 				).filecontent;
-				expect(trim(result)).toBe("http://update.lucee.org/rest/update/provider/echoGet/cgi");
+				expect(trim(result)).toBe('Vulnerable to XXE and accept the external entity: "August, 24 2021 14:08:59 +0200"');
 			});
 
 			it( title="Check xmlFeatures externalGeneralEntities=false",body = function ( currentSpec ) {
