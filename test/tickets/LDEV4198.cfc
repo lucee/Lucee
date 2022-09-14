@@ -1,4 +1,13 @@
 component extends="org.lucee.cfml.test.LuceeTestCase" {
+	
+	function beforeAll() {
+		variables.tz = getTimeZone();
+		setTimeZone("CET");
+	}
+
+	function afterAll() {
+		setTimeZone(variables.tz);
+	}
 
 	function run( testResults, testBox ) {
 		describe("Testcase for LDEV4198", function() {
