@@ -108,7 +108,7 @@
 		}	
 	</cfscript>
 
-
+<cfset request.isHasBundleError = false>
 
 <cfsavecontent variable="inc"><cfinclude template="#url.action#.#url.action2#.cfm"/></cfsavecontent>
 	<cfcatch>
