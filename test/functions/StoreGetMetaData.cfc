@@ -25,7 +25,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="s3"	{
 
 
 	private struct function getCredentials() {
-		// getting the credentials from the environment variables
 		return server.getTestService("s3");
 	}
 
@@ -65,6 +64,28 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="s3"	{
 		finally {
 			if ( directoryExists( dir ) )
 				directoryDelete( dir, true );
+		}
+	}
+
+	private string function getTestBucketUrl() localmode=true {
+		s3Details = getCredentials();
+		bucketName = server.getTestService("s3").bucket_prefix & lcase("metadata2#lcase(hash(CreateGUID()))#");
+		return "s3://#s3Details.ACCESS_KEY_ID#:#s3Details.SECRET_KEY#@/#bucketName#";
+	}
+
+	public function testS3Url(){
+		if(!variables.s3Supported) return;
+		var bucket = getTestBucketUrl();
+		try {
+			expect( directoryExists( bucket ) ).toBeFalse();
+			directory action="create" directory="#bucket#";
+			expect( directoryExists( bucket ) ).toBeTrue();
+			var info = StoreGetMetadata( bucket );
+			expect( info ).toHaveKey( "region" );
+			expect( info.region ).toBe( "us-east-1" );
+		} finally {
+			if ( directoryExists( bucket ) )
+				directoryDelete( bucket );
 		}
 	}
 }
