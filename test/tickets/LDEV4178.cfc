@@ -25,11 +25,11 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="s3" {
 				}).toThrow();
 			} else {
 				directory action="create" directory="#bucket#" storelocation="#arguments.storelocation#";
+				expect( directoryExists( bucket ) ).toBeTrue();
+				var info = StoreGetMetadata( bucket );
+				expect( info ).toHaveKey( "region" );
+				expect( info.region ).toBe( arguments.storelocation );
 			}
-			expect( directoryExists( bucket ) ).toBeTrue();
-			var info = StoreGetMetadata( bucket );
-			expect( info ).toHaveKey( "region" );
-			expect( info.region ).toBe( arguments.storelocation );
 		} finally {
 			if ( directoryExists( bucket ) )
 				directoryDelete( bucket );
@@ -38,10 +38,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="s3" {
 
 	public function run( testResults , testBox ) {
 		describe( title="Test suite for LDEV-1489 ( checking s3 file operations )", body=function() {
-			it(title="Creating a new s3 bucket, valid region name [us]", skip=isNotSupported(), body=function( currentSpec ) {
-				createBucket( "us" );
-			});
-
 			it(title="Creating a new s3 bucket, valid region name [us-east-1]", skip=isNotSupported(), body=function( currentSpec ) {
 				createBucket( "us-east-1" );
 			});
