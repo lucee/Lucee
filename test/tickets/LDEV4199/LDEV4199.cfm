@@ -1,0 +1,1 @@
+<cfoutput>#CGI.REQUEST_METHOD#</cfoutput>
