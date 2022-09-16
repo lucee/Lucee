@@ -1535,7 +1535,7 @@ public final class Http extends BodyTagImpl {
 			he.setStackTrace(traces);
 			return he;
 		}
-		PageException pe = Caster.toPageException(t);
+		PageException pe = Caster.toPageException(new Exception(t));
 		if (pe instanceof NativeException) {
 			((NativeException) pe).setAdditional(KeyConstants._url, url);
 		}

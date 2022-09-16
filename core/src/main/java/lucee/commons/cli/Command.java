@@ -92,12 +92,12 @@ public class Command {
 			err.start();
 			if (p.waitFor() != 0) {
 				err.join();
-				if ((ioe = err.getException()) != null) throw ioe;
+				if ((ioe = err.getException()) != null) throw new IOException(ioe);
 				String str = err.getString();
 				if (!StringUtil.isEmpty(str)) throw new CommandException(str);
 			}
 			in.join();
-			if ((ioe = in.getException()) != null) throw ioe;
+			if ((ioe = in.getException()) != null) throw new IOException(ioe);
 
 			return new CommandResult(in.getString(), err.getString());
 		}

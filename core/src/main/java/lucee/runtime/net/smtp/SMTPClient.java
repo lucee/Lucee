@@ -867,7 +867,7 @@ public final class SMTPClient implements Serializable {
 
 						if (!sender.isSent()) {
 							Throwable t = sender.getThrowable();
-							if (t != null) throw Caster.toPageException(t);
+							if (t != null) throw Caster.toPageException(new Exception(t));
 
 							// stop when still running
 							try {
@@ -884,7 +884,7 @@ public final class SMTPClient implements Serializable {
 						}
 						// could have an exception but was send anyway
 						if (sender.getThrowable() != null) {
-							Throwable t = sender.getThrowable();
+							Throwable t = new Exception(sender.getThrowable());
 							if (log != null) log.log(Log.LEVEL_ERROR, "send mail", t);
 						}
 						clean(config, attachmentz);

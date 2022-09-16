@@ -212,6 +212,7 @@ public class ChildThreadImpl extends ChildThread implements Serializable {
 					Log log = ThreadLocalPageContext.getLog(c, "thread");
 					if (log != null) log.log(Log.LEVEL_ERROR, this.getName(), t);
 					PageException pe = Caster.toPageException(t);
+					// TODO log parent stacktrace as well
 					if (!serializable) catchBlock = pe.getCatchBlock(pc.getConfig());
 					return pe;
 				}

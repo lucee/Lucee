@@ -7,8 +7,9 @@ import java.io.PrintStream;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.LogUtil;
+import lucee.commons.lang.ParentThreasRefThread;
 
-public class LogST extends Thread {
+public class LogST extends ParentThreasRefThread {
 
 	private static final char NL = '\n';
 	private Thread thread;
@@ -49,6 +50,7 @@ public class LogST extends Thread {
 			}
 		}
 		catch (IOException e) {
+			addParentStacktrace(e);
 			LogUtil.log(ThreadLocalPageContext.get(), LogST.class.getName(), e);
 		}
 		finally {
@@ -56,6 +58,7 @@ public class LogST extends Thread {
 				IOUtil.close(ps);
 			}
 			catch (IOException e) {
+				addParentStacktrace(e);
 				LogUtil.log(ThreadLocalPageContext.get(), LogST.class.getName(), e);
 			}
 

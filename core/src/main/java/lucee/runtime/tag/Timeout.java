@@ -2,6 +2,7 @@ package lucee.runtime.tag;
 
 import lucee.commons.io.SystemUtil;
 import lucee.commons.lang.ExceptionUtil;
+import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.Page;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
@@ -113,7 +114,7 @@ public final class Timeout extends BodyTagImpl {
 	}
 
 	private void handleException(ThreadImpl thread2) throws PageException {
-		PageException ex = thread.getException();
+		PageException ex = CFMLEngineFactory.getInstance().getCastUtil().toPageException(new Exception(thread.getException()));
 		if (ex != null) {
 			if (onError != null) onError.call(pc, new Object[] { new CatchBlockImpl(ex) }, true);
 			else throw ex;
