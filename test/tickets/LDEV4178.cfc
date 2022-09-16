@@ -15,6 +15,14 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="s3" {
 		return "s3://#s3Details.ACCESS_KEY_ID#:#s3Details.SECRET_KEY#@/#bucketName#";
 	}
 
+	private numeric function checkS3Version(){
+		var s3Version = extensionList().filter(function(row){
+			return (row.name contains "s3");
+		}).version;
+		return listFirst( s3Version, "." ) ;
+	};
+
+
 	private function createBucket( required string storelocation, boolean invalid=false ){
 		var bucket = getTestBucketUrl();
 		try {
@@ -26,9 +34,11 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="s3" {
 			} else {
 				directory action="create" directory="#bucket#" storelocation="#arguments.storelocation#";
 				expect( directoryExists( bucket ) ).toBeTrue();
-				var info = StoreGetMetadata( bucket );
-				expect( info ).toHaveKey( "region" );
-				expect( info.region ).toBe( arguments.storelocation );
+				if ( checkS3Version() neq 0 ) {				
+					var info = StoreGetMetadata( bucket ); // only works with v2 due to https://luceeserver.atlassian.net/browse/LDEV-4202
+					expect( info ).toHaveKey( "region" );
+					expect( info.region ).toBe( arguments.storelocation );
+				}
 			}
 		} finally {
 			if ( directoryExists( bucket ) )
