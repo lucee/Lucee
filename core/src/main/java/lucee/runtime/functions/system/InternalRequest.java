@@ -67,7 +67,7 @@ public class InternalRequest implements Function {
 			boolean addToken, boolean throwonerror) throws PageException {
 
 		method = method.toUpperCase().trim();
-		if (methods.indexOf(method) < 0) throw new FunctionException(pc, "_InternalRequest", 2, "method", "invalid method type [" + method + "], valid types are [" + methods.toString() + "]");
+		if (methods.indexOf(method) < 0) throw new FunctionException(pc, "_InternalRequest", 2, "method", "invalid method type [" + method + "], valid types are [" + ListUtil.arrayToList(methods.toArray(new String[0]), ",") + "]");
 		
 		Struct urls = toStruct(oUrls);
 		Struct forms = toStruct(oForms);
@@ -89,7 +89,7 @@ public class InternalRequest implements Function {
 		String ext = ResourceUtil.getExtension(template, null);
 		// template
 		if (StringUtil.isEmpty(ext)) {
-			throw new FunctionException(pc, "_InternalRequest", 1, "template", "template path is invalid");
+			throw new FunctionException(pc, "InternalRequest", 1, "template", "template path is invalid");
 		}
 
 		// dialect
