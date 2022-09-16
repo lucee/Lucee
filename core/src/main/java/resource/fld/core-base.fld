@@ -3499,7 +3499,7 @@ You may also specify other algorithm names as well as the feedback mode and padd
 			<type>boolean</type>
 			<required>no</required>
 			<default>true</default>
-		<descriptionIf set to true the input must follow the rule for that, specific, encoding, 100%. The decryptor will not try to interpret inputs that are not 100% correct. This should be used to avoid false positives.</description>
+		<description>If set to true the input must follow the rule for that, specific, encoding, 100%. The decryptor will not try to interpret inputs that are not 100% correct. This should be used to avoid false positives.</description>
     </argument>
 		<return>
 			<type>any</type>
