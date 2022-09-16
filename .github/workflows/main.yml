@@ -28,6 +28,52 @@ jobs:
       DO_DEPLOY: "${{ github.event_name == 'push' && github.ref == 'refs/heads/6.0' }}"
       LUCEE_BUILD_JAVA_VERSION: 8
       LUCEE_TEST_JAVA_VERSION: ''
+      # test services
+      MYSQL_SERVER: localhost
+      MYSQL_USERNAME: lucee
+      MYSQL_PASSWORD: lucee
+      MYSQL_PORT: 3306
+      MYSQL_DATABASE: lucee
+      POSTGRES_SERVER: localhost
+      POSTGRES_USERNAME: lucee
+      POSTGRES_PASSWORD: lucee
+      POSTGRES_PORT: 5432
+      POSTGRES_DATABASE: lucee
+      MONGODB_SERVER: localhost
+      MONGODB_PORT: 27017
+      MONGODB_DB: lucee
+      MONGODB_DATABASE: lucee
+      MSSQL_SERVER: localhost
+      MSSQL_USERNAME: sa
+      MSSQL_PASSWORD: Lucee!1433
+      MSSQL_PORT: 1433
+      MSSQL_DATABASE: master
+      MEMCACHED_PORT: 11211
+      MEMCACHED_SERVER: localhost
+      REDIS_PORT: 6379
+      REDIS_SERVER: localhost
+      SMTP_PORT_INSECURE: 3025
+      SMTP_PORT_SECURE: 3465
+      SMTP_SERVER: localhost
+      SMTP_USERNAME: lucee
+      SMTP_PASSWORD: doesntmatter
+      IMAP_PORT_INSECURE: 3143
+      IMAP_PORT_SECURE: 3993
+      IMAP_SERVER: localhost
+      IMAP_USERNAME: lucee
+      # IMAP_PASSWORD: doesntmatter
+      POP_PORT_INSECURE: 3110
+      POP_PORT_SECURE: 3995
+      POP_SERVER: localhost
+      POP_USERNAME: lucee
+      POP_PASSWORD: doesntmatter
+      LDAP_SERVER: localhost
+      LDAP_PORT: 10389
+      LDAP_BASE_DN: dc=planetexpress,dc=com
+      LDAP_USERNAME: cn=admin,dc=planetexpress,dc=com
+      LDAP_PASSWORD: GoodNewsEveryone
+      S3_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_ID_TEST }}
+      S3_SECRET_KEY: ${{ secrets.S3_SECRET_KEY_TEST }}
     services:
       sql-server:
         # Docker Hub image
@@ -67,6 +113,11 @@ jobs:
          ports:
            - 10389:10389
            - 10636:10636
+      minio:
+        # used only for non push, i.e pull requests when secrets aren't available
+        image: fclairamb/minio-github-actions
+        ports:
+          - 9000:9000
     steps:
     # when workflow is run via a workflow_call, these vars are found under input, which doesn't exist otherwise
     # so lets copy them over to the normal env vars
@@ -139,55 +190,14 @@ jobs:
         mongodb-port: 27017
     - name: Setup Memcached (docker)
       uses: niden/actions-memcached@v7
+    - name: Set test service Environment variables for PR (i.e when no secrets available)
+      if: ${{ github.event_name != 'push' }
+      env:
+        LUCEE_S3_HOST: http://localhost:9000 
+        S3_CUSTOM_ACCESS_KEY_ID: "minioadmin"
+        S3_CUSTOM_SECRET_KEY: "minioadmin"
     - name: Build Lucee with Maven
       env:
-        MYSQL_SERVER: localhost
-        MYSQL_USERNAME: lucee
-        MYSQL_PASSWORD: lucee
-        MYSQL_PORT: 3306
-        MYSQL_DATABASE: lucee
-        POSTGRES_SERVER: localhost
-        POSTGRES_USERNAME: lucee
-        POSTGRES_PASSWORD: lucee
-        POSTGRES_PORT: 5432
-        POSTGRES_DATABASE: lucee
-        MONGODB_SERVER: localhost
-        MONGODB_PORT: 27017
-        MONGODB_DB: lucee
-        MONGODB_DATABASE: lucee
-        MSSQL_SERVER: localhost
-        MSSQL_USERNAME: sa
-        MSSQL_PASSWORD: Lucee!1433
-        MSSQL_PORT: 1433
-        MSSQL_DATABASE: master
-        MEMCACHED_PORT: 11211
-        MEMCACHED_SERVER: localhost
-        REDIS_PORT: 6379
-        REDIS_SERVER: localhost
-        SMTP_PORT_INSECURE: 3025
-        SMTP_PORT_SECURE: 3465
-        SMTP_SERVER: localhost
-        SMTP_USERNAME: lucee
-        SMTP_PASSWORD: doesntmatter
-        IMAP_PORT_INSECURE: 3143
-        IMAP_PORT_SECURE: 3993
-        IMAP_SERVER: localhost
-        IMAP_USERNAME: lucee
-        # IMAP_PASSWORD: doesntmatter
-        POP_PORT_INSECURE: 3110
-        POP_PORT_SECURE: 3995
-        POP_SERVER: localhost
-        POP_USERNAME: lucee
-        POP_PASSWORD: doesntmatter
-        LDAP_SERVER: localhost
-        LDAP_PORT: 10389
-        LDAP_BASE_DN: dc=planetexpress,dc=com
-        LDAP_USERNAME: cn=admin,dc=planetexpress,dc=com
-        LDAP_PASSWORD: GoodNewsEveryone
-        S3_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_ID_TEST }}
-        S3_SECRET_KEY: ${{ secrets.S3_SECRET_KEY_TEST }}
-        # DO_DEPLOY: ${{ github.event_name == 'push' }}
-        # for uploading successful builds
         S3_ACCESS_ID_DOWNLOAD: ${{ secrets.S3_ACCESS_ID_DOWNLOAD }}
         S3_SECRET_KEY_DOWNLOAD: ${{ secrets.S3_SECRET_KEY_DOWNLOAD }}
         # used by travis-settings.xml
