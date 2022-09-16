@@ -69,7 +69,16 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="s3"	{
 		return "s3://#s3Details.ACCESS_KEY_ID#:#s3Details.SECRET_KEY#@/#bucketName#";
 	}
 
+	private numeric function checkS3Version(){
+		var s3Version = extensionList().filter(function(row){
+			return (row.name contains "s3");
+		}).version;
+		return listFirst( s3Version, "." ) ;
+	};
+
 	public function testS3Url(){
+		if ( checkS3Version() eq 0 )
+			return; // only works with v2 due to https://luceeserver.atlassian.net/browse/LDEV-4202
 		var bucket = getTestBucketUrl();
 		try {
 			expect( directoryExists( bucket ) ).toBeFalse();
