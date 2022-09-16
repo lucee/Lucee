@@ -86,7 +86,7 @@ jobs:
       uses: actions/cache@v2
       with:
         path: |
-          ~/.m2/repository
+          ~/.m2/repository/*
           !~/.m2/repository/org/lucee/lucee/
         key: ${{ runner.os }}-maven-${{ hashFiles('loader/pom.xml','core/pom.xml') }}
         restore-keys: |
