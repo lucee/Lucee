@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" skip="true" labels="qoq" {
+component extends="org.lucee.cfml.test.LuceeTestCase" skip="false" labels="qoq" {
 	function run( testResults , testBox ) {
 		describe( title="Testcase for LDEV-4188", body=function() {
 			it(title="Checking BigDecimal serialize", body = function( currentSpec ) {
