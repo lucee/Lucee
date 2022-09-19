@@ -4,17 +4,17 @@
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either 
+ * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public 
+ *
+ * You should have received a copy of the GNU Lesser General Public
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  **/
 package lucee.runtime.db;
 
@@ -40,6 +40,7 @@ import lucee.runtime.PageContext;
 import lucee.runtime.config.ConfigPro;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.DatabaseException;
+import lucee.runtime.exp.IllegalQoQException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.date.DateCaster;
@@ -88,7 +89,7 @@ public final class HSQLDBHandler {
 
 	/**
 	 * adds a table to the memory database
-	 * 
+	 *
 	 * @param conn
 	 * @param pc
 	 * @param name name of the new table
@@ -201,7 +202,7 @@ public final class HSQLDBHandler {
 
 	/**
 	 * remove a table from the memory database
-	 * 
+	 *
 	 * @param conn
 	 * @param name
 	 * @throws DatabaseException
@@ -215,7 +216,7 @@ public final class HSQLDBHandler {
 
 	/**
 	 * remove all table inside the memory database
-	 * 
+	 *
 	 * @param conn
 	 */
 	private static void removeAll(Connection conn, ArrayList<String> usedTables) {
@@ -236,7 +237,7 @@ public final class HSQLDBHandler {
 
 	/**
 	 * executes a query on the queries inside the cfml environment
-	 * 
+	 *
 	 * @param pc Page Context
 	 * @param sql
 	 * @param maxrows
@@ -277,7 +278,8 @@ public final class HSQLDBHandler {
 		}
 
 		// Debugging option to completely disable HyperSQL for testing
-		if (qoqException != null && hsqldbDisable) {
+		// Or if it's an IllegalQoQException that means, stop trying and throw the original message.
+		if ( qoqException != null && ( hsqldbDisable || qoqException instanceof IllegalQoQException ) ) {
 			throw Caster.toPageException(qoqException);
 		}
 
