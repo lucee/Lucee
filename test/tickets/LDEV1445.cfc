@@ -33,9 +33,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 	private struct function getCredentials() {
 		// getting the credentials from the environment variables
 		mysql = server.getDatasource(service="mysql", onlyConfig=true);
-		systemOutput("---------------------",1,1);
-		systemOutput(mysql,1,1);
-		systemOutput("---------------------",1,1);
 		return mysql;
 	}
 
