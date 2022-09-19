@@ -4,17 +4,17 @@
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either 
+ * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public 
+ *
+ * You should have received a copy of the GNU Lesser General Public
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  **/
 package lucee.runtime.db;
 
@@ -88,7 +88,7 @@ public final class HSQLDBHandler {
 
 	/**
 	 * adds a table to the memory database
-	 * 
+	 *
 	 * @param conn
 	 * @param pc
 	 * @param name name of the new table
@@ -201,7 +201,7 @@ public final class HSQLDBHandler {
 
 	/**
 	 * remove a table from the memory database
-	 * 
+	 *
 	 * @param conn
 	 * @param name
 	 * @throws DatabaseException
@@ -215,7 +215,7 @@ public final class HSQLDBHandler {
 
 	/**
 	 * remove all table inside the memory database
-	 * 
+	 *
 	 * @param conn
 	 */
 	private static void removeAll(Connection conn, ArrayList<String> usedTables) {
@@ -236,7 +236,7 @@ public final class HSQLDBHandler {
 
 	/**
 	 * executes a query on the queries inside the cfml environment
-	 * 
+	 *
 	 * @param pc Page Context
 	 * @param sql
 	 * @param maxrows
@@ -256,12 +256,14 @@ public final class HSQLDBHandler {
 		try {
 			SelectParser parser = new SelectParser();
 			selects = parser.parse(sql.getSQLString());
-			QueryImpl q = (QueryImpl) qoq.execute(pc, sql, selects, maxrows);
+		QueryImpl q = (QueryImpl) qoq.execute(pc, sql, selects, maxrows);
 			q.setExecutionTime(stopwatch.time());
 			return q;
 		}
 		catch (SQLParserException spe) {
-			qoqException = spe;
+			if( spe.getCause() != null && spe.getCause() instanceof IllegalQoQException ) {
+				throw Caster.toPageException(spe);
+			}
 			prettySQL = SQLPrettyfier.prettyfie(sql.getSQLString());
 			try {
 				QueryImpl query = executer.execute(pc, sql, prettySQL, maxrows);
