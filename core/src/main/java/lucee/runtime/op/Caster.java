@@ -2148,7 +2148,7 @@ public final class Caster {
 	}
 
 	public static String toString(Number n) {
-		if (n instanceof BigDecimal) return n.toString();
+		if (n instanceof BigDecimal) return toString((BigDecimal) n);
 		double d = n.doubleValue();
 		long l = (long) d;
 		if (l == d) return toString(l);
@@ -2159,6 +2159,12 @@ public final class Caster {
 		if (n instanceof Double) return toString(n.doubleValue());
 		return n.toString();
 		// return df.format(d);
+	}
+
+	public static String toString(BigDecimal bd) {
+		String str = bd.toString();
+		if (str.endsWith(".0")) return str.substring(0, str.length() - 2);
+		return str;
 	}
 
 	public static String toStringPrecise(double d) {
@@ -2176,7 +2182,7 @@ public final class Caster {
 	}
 
 	public static String toStringPrecise(Number n) {
-		if (n instanceof BigDecimal) return n.toString();
+		if (n instanceof BigDecimal) return toString((BigDecimal) n);
 		double d = n.doubleValue();
 		long l = (long) d;
 		if (l == d) return toString(l);
