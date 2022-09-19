@@ -60,6 +60,7 @@ import lucee.runtime.listener.ModernAppListener;
 import lucee.runtime.listener.NoneAppListener;
 import lucee.runtime.monitor.Monitor;
 import lucee.runtime.net.http.ReqRspUtil;
+import lucee.runtime.op.Caster;
 import lucee.runtime.osgi.BundleBuilderFactory;
 import lucee.runtime.osgi.BundleFile;
 import lucee.runtime.osgi.OSGiUtil;
@@ -759,6 +760,9 @@ public final class ConfigWebUtil {
 		Resource configDir = config.getConfigDir();
 		Resource addConfDir1, addConfDir2 = null, addConfFile = null;
 		String strAddConfDir;
+
+		// do .CFConfig
+		if (!Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.addional.config", null), false)) return;
 
 		// get config dir
 		if (config instanceof ConfigServer) {

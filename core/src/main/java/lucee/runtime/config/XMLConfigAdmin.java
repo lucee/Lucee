@@ -3115,8 +3115,11 @@ public final class XMLConfigAdmin {
 		Element scope = _getRootElement("component");
 		// if(baseComponent.trim().length()>0)
 		scope.removeAttribute("base");
-		scope.setAttribute("base-cfml", baseComponentCFML);
-		scope.setAttribute("base-lucee", baseComponentLucee);
+		if (StringUtil.isEmpty(baseComponentCFML)) scope.removeAttribute("base-cfml");
+		else scope.setAttribute("base-cfml", baseComponentCFML);
+
+		if (StringUtil.isEmpty(baseComponentLucee)) scope.removeAttribute("base-lucee");
+		else scope.setAttribute("base-lucee", baseComponentLucee);
 	}
 
 	public void updateComponentDeepSearch(Boolean deepSearch) throws SecurityException {
@@ -3141,7 +3144,8 @@ public final class XMLConfigAdmin {
 		// config.resetBaseComponentPage();
 		Element scope = _getRootElement("component");
 		// if(baseComponent.trim().length()>0)
-		scope.setAttribute("component-default-import", componentDefaultImport);
+		if (StringUtil.isEmpty(componentDefaultImport)) scope.removeAttribute("component-default-import");
+		else scope.setAttribute("component-default-import", componentDefaultImport);
 	}
 
 	/**
@@ -3160,7 +3164,7 @@ public final class XMLConfigAdmin {
 		Element scope = _getRootElement("component");
 
 		if (StringUtil.isEmpty(strAccess)) {
-			scope.setAttribute("data-member-default-access", "");
+			scope.removeAttribute("data-member-default-access");
 		}
 		else {
 			scope.setAttribute("data-member-default-access", ComponentUtil.toStringAccess(ComponentUtil.toIntAccess(strAccess)));
@@ -3179,7 +3183,8 @@ public final class XMLConfigAdmin {
 		if (!hasAccess) throw new SecurityException("no access to update trigger-data-member");
 
 		Element scope = _getRootElement("component");
-		scope.setAttribute("trigger-data-member", Caster.toString(triggerDataMember, ""));
+		if (triggerDataMember != null) scope.setAttribute("trigger-data-member", Caster.toString(triggerDataMember, ""));
+		else scope.removeAttribute("trigger-data-member");
 	}
 
 	public void updateComponentUseShadow(Boolean useShadow) throws SecurityException {
@@ -3188,7 +3193,8 @@ public final class XMLConfigAdmin {
 		if (!hasAccess) throw new SecurityException("no access to update use-shadow");
 
 		Element scope = _getRootElement("component");
-		scope.setAttribute("use-shadow", Caster.toString(useShadow, ""));
+		if (useShadow != null) scope.setAttribute("use-shadow", Caster.toString(useShadow, ""));
+		else scope.removeAttribute("use-shadow");
 	}
 
 	public void updateComponentLocalSearch(Boolean componentLocalSearch) throws SecurityException {
@@ -3197,7 +3203,8 @@ public final class XMLConfigAdmin {
 		if (!hasAccess) throw new SecurityException("no access to update component Local Search");
 
 		Element scope = _getRootElement("component");
-		scope.setAttribute("local-search", Caster.toString(componentLocalSearch, ""));
+		if (componentLocalSearch != null) scope.setAttribute("local-search", Caster.toString(componentLocalSearch, ""));
+		else scope.removeAttribute("local-search");
 	}
 
 	public void updateComponentPathCache(Boolean componentPathCache) throws SecurityException {
@@ -3207,7 +3214,8 @@ public final class XMLConfigAdmin {
 
 		Element scope = _getRootElement("component");
 		if (!Caster.toBooleanValue(componentPathCache, false)) config.clearComponentCache();
-		scope.setAttribute("use-cache-path", Caster.toString(componentPathCache, ""));
+		if (componentPathCache != null) scope.setAttribute("use-cache-path", Caster.toString(componentPathCache, ""));
+		else scope.removeAttribute("use-cache-path");
 	}
 
 	public void updateCTPathCache(Boolean ctPathCache) throws SecurityException {
@@ -3216,7 +3224,8 @@ public final class XMLConfigAdmin {
 
 		if (!Caster.toBooleanValue(ctPathCache, false)) config.clearCTCache();
 		Element scope = _getRootElement("custom-tag");
-		scope.setAttribute("use-cache-path", Caster.toString(ctPathCache, ""));
+		if (ctPathCache != null) scope.setAttribute("use-cache-path", Caster.toString(ctPathCache, ""));
+		else scope.removeAttribute("use-cache-path");
 	}
 
 	public void updateSecurity(String varUsage) throws SecurityException {

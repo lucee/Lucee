@@ -4881,8 +4881,9 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 				// Base CFML
 				String strBase = getAttr(component, "base-cfml");
 				if (StringUtil.isEmpty(strBase, true)) strBase = getAttr(component, "base");
-				if (StringUtil.isEmpty(strBase, true) && configServer != null) {
-					strBase = configServer.getBaseComponentTemplate(CFMLEngine.DIALECT_CFML);
+				if (StringUtil.isEmpty(strBase, true)) {
+					if (configServer != null) strBase = configServer.getBaseComponentTemplate(CFMLEngine.DIALECT_CFML);
+					else strBase = "/lucee/Component.cfc";
 				}
 				config.setBaseComponentTemplate(CFMLEngine.DIALECT_CFML, strBase);
 
