@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" lables="query" skip=true {
+component extends="org.lucee.cfml.test.LuceeTestCase" lables="query,qoq" {
 
 	function beforeAll() {
 		variables.uri = createURI("LDEV4044");
@@ -66,7 +66,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" lables="query" skip=true {
 				).fileContent.trim();
 				expect(res).toBe("JDBC query with positional parameter and empty Params failed as expected");
 			});
-		}); 
+		});
 	}
 
 	private string function createURI(string calledName) {
