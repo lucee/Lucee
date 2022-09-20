@@ -16,7 +16,7 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  * 
  ---><cfscript>
-    component extends="org.lucee.cfml.test.LuceeTestCase"	{
+    component extends="org.lucee.cfml.test.LuceeTestCase" labels="internalRequest" {
     
         public void function testUrlStruct() localmode=true {
             uri = createURI("internalRequest/echo.cfm");
@@ -58,6 +58,16 @@
             expect(json.form.test).toBe( "1" );
             expect(json.form.fieldnames).toBe( "TEST" );
             expect( structCount(json.url) ).toBe( 0 );
+        }
+
+        // internalRequest public function
+        public void function testInternalRequestPublic() localmode=true {
+            uri = createURI("internalRequest/echo.cfm");
+            result = InternalRequest(
+                template: uri,
+                form: {test=1}
+            );
+            expect(result.cookies).toBeTypeOf("query");
         }
 
         /*
