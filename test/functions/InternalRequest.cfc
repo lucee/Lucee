@@ -61,7 +61,7 @@
         }
 
         // internalRequest public function
-        public void function testInternalRequestPublic() localmode=true {
+        public void function testInternalRequestPublic() localmode=true skip=true {
             uri = createURI("internalRequest/echo.cfm");
             result = InternalRequest(
                 template: uri,
