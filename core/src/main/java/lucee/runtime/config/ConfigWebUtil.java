@@ -762,15 +762,15 @@ public final class ConfigWebUtil {
 		String strAddConfDir;
 
 		// do .CFConfig
-		if (!Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.addional.config", null), false)) return;
+		if (!Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.additional.config", null), false)) return;
 
 		// get config dir
 		if (config instanceof ConfigServer) {
-			strAddConfDir = SystemUtil.getSystemPropOrEnvVar("lucee.addional.config.server.dir", null);
-			if (StringUtil.isEmpty(strAddConfDir)) strAddConfDir = SystemUtil.getSystemPropOrEnvVar("lucee.addional.config.dir", null);
+			strAddConfDir = SystemUtil.getSystemPropOrEnvVar("lucee.additional.config.server.dir", null);
+			if (StringUtil.isEmpty(strAddConfDir)) strAddConfDir = SystemUtil.getSystemPropOrEnvVar("lucee.additional.config.dir", null);
 		}
 		else {
-			strAddConfDir = SystemUtil.getSystemPropOrEnvVar("lucee.addional.config.web.dir", null);
+			strAddConfDir = SystemUtil.getSystemPropOrEnvVar("lucee.additional.config.web.dir", null);
 		}
 
 		if (!StringUtil.isEmpty(strAddConfDir)) addConfDir1 = ResourceUtil.toResourceExisting(config, strAddConfDir, null);
