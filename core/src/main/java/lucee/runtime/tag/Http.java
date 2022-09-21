@@ -635,17 +635,12 @@ public final class Http extends BodyTagImpl {
 	public void setMethod(String method) throws ApplicationException {
 		method = method.toUpperCase().trim();
 		short idx = (short) methods.indexOf(method);
-		if (idx < 0) throw new ApplicationException("invalid method type [" + method + "], valid types are [" + methods.toString() + "]");
+		if (idx < 0) throw new ApplicationException("invalid method type [" + method + "], valid types are [" + ListUtil.arrayToList(methods.toArray(new String[0]), ",") + "]");
 		this.method = idx;
 	}
 
 	private static String getMethodAsVerb(short method) throws ApplicationException {
-		if (method < 0 || method > methods.size() - 1) throw new ApplicationException("invalid method [" + method + "], valid types are [" + methods.toString() + "]"); // never
-																																										// will
-																																										// reach
-																																										// this, due
-																																										// to above
-
+		if (method < 0 || method > methods.size() - 1) throw new ApplicationException("invalid method [" + method + "], valid types are [" + ListUtil.arrayToList(methods.toArray(new String[0]), ",") + "]"); // never will reach this, due to above
 		return methods.get(method);
 	}
 
