@@ -311,7 +311,7 @@ public final class JSONConverter extends ConverterSupport {
 
 				}
 				Key key = KeyImpl.getInstance(props[i].getName());
-				value = scope.get(key, null);
+				value = comp.get(Component.ACCESS_PRIVATE, key, null);
 				if (!addUDFs && (value instanceof UDF || value == null)) continue;
 				if (doIt) sb.append(',');
 				doIt = true;
