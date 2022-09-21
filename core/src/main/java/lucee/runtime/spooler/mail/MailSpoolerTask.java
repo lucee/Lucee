@@ -22,6 +22,8 @@ import java.io.UnsupportedEncodingException;
 
 import javax.mail.internet.InternetAddress;
 
+import lucee.commons.io.CharsetUtil;
+import lucee.commons.lang.CharSet;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigWeb;
@@ -140,7 +142,13 @@ public class MailSpoolerTask extends SpoolerTaskSupport {
 	}
 
 	public void mod(Struct sct) throws UnsupportedEncodingException, PageException, MailException {
-		// MUST more
+
+		// charset
+		String str = Caster.toString(sct.get(KeyConstants._charset, null), null);
+		if (str != null) {
+			CharSet cs = CharsetUtil.toCharSet(str, null);
+			if (cs != null) client.setCharSet(cs);
+		}
 
 		// FROM
 		Object o = sct.get(KeyConstants._from, null);
@@ -150,11 +158,15 @@ public class MailSpoolerTask extends SpoolerTaskSupport {
 		o = sct.get(KeyConstants._to, null);
 		if (o != null) client.setTos(MailUtil.toInternetAddresses(o));
 
+		// CC
+		o = sct.get(CC, null);
+		if (o != null) client.setCCs(MailUtil.toInternetAddresses(o));
+
 		// BCC
 		o = sct.get(BCC, null);
 		if (o != null) client.setBCCs(MailUtil.toInternetAddresses(o));
 
-		// replyto
+		// failto
 		o = sct.get(FAILTO, null);
 		if (o != null) client.setFailTos(MailUtil.toInternetAddresses(o));
 
