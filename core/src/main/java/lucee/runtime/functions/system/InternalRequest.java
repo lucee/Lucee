@@ -62,13 +62,13 @@ public class InternalRequest implements Function {
 
 	private static final List<String> methods = Arrays.asList(new String[] { "GET", "POST", "HEAD", "PUT", "DELETE", "OPTIONS", "TRACE", "PATCH" });
 
-
 	public static Struct call(final PageContext pc, String template, String method, Object oUrls, Object oForms, Struct cookies, Struct headers, Object body, String strCharset,
 			boolean addToken, boolean throwonerror) throws PageException {
 
 		method = method.toUpperCase().trim();
-		if (methods.indexOf(method) < 0) throw new FunctionException(pc, "_InternalRequest", 2, "method", "invalid method type [" + method + "], valid types are [" + ListUtil.arrayToList(methods.toArray(new String[0]), ",") + "]");
-		
+		if (methods.indexOf(method) < 0) throw new FunctionException(pc, "_InternalRequest", 2, "method",
+				"invalid method type [" + method + "], valid types are [" + ListUtil.listToListEL(methods, ", ") + "]");
+
 		Struct urls = toStruct(oUrls);
 		Struct forms = toStruct(oForms);
 
@@ -279,8 +279,8 @@ public class InternalRequest implements Function {
 		trg.addRaw(null, list.toArray(new URLItem[list.size()]));
 	}
 
-	private static PageContextImpl createPageContext(PageContext pc, String template, Struct urls, Struct cookies, Struct headers, byte[] body, Charset charset, OutputStream os, String method)
-			throws PageException {
+	private static PageContextImpl createPageContext(PageContext pc, String template, Struct urls, Struct cookies, Struct headers, byte[] body, Charset charset, OutputStream os,
+			String method) throws PageException {
 		return ThreadUtil.createPageContext(pc.getConfig(), os, pc.getHttpServletRequest().getServerName(), template, toQueryString(urls, charset),
 				CreatePageContext.toCookies(cookies), CreatePageContext.toPair(headers, true), body, CreatePageContext.toPair(new StructImpl(), true),
 				CreatePageContext.castValuesToString(new StructImpl()), true, -1, method);
