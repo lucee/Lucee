@@ -64,6 +64,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
             });
         });
 
+        // testcase for LDEV-4211
         describe(title="Testcase for LDEV-4211", body=function() { 
              it( title="check error - using invalid entity name in entityNew() without transcation", skip="#isDatasourceNotConfigured()#", body=function( currentSpec ){
                 local.res = _InternalRequest(
