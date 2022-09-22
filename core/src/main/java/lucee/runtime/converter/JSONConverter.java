@@ -298,6 +298,7 @@ public final class JSONConverter extends ConverterSupport {
 			Component comp = (Component) struct;
 			boolean isPeristent = false;
 			isPeristent = comp.isPersistent();
+			boolean triggerDataMember = acs.getTriggerComponentDataMember();
 
 			Property[] props = comp.getProperties(false, true, false, false);
 			ComponentScope scope = comp.getComponentScope();
@@ -311,7 +312,10 @@ public final class JSONConverter extends ConverterSupport {
 
 				}
 				Key key = KeyImpl.getInstance(props[i].getName());
-				value = comp.get(Component.ACCESS_PRIVATE, key, null);
+
+				if(triggerDataMember) value = comp.get(Component.ACCESS_PRIVATE, key, null);
+				else value = scope.get(key, null);
+
 				if (!addUDFs && (value instanceof UDF || value == null)) continue;
 				if (doIt) sb.append(',');
 				doIt = true;
