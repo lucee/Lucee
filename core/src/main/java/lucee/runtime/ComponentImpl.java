@@ -98,7 +98,6 @@ import lucee.runtime.type.UDFPlus;
 import lucee.runtime.type.UDFProperties;
 import lucee.runtime.type.cfc.ComponentEntryIterator;
 import lucee.runtime.type.cfc.ComponentValueIterator;
-import lucee.runtime.type.comparator.ArrayOfStructComparator;
 import lucee.runtime.type.dt.DateTime;
 import lucee.runtime.type.it.ComponentIterator;
 import lucee.runtime.type.it.StringIterator;
@@ -412,10 +411,10 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 			// abstrCollection.implement(pageContext,getPageSource(),properties.implement);
 		}
 
-		/*
-		 * print.e("--------------------------------------"); print.e(_getPageSource().getDisplayPath());
-		 * print.e(abstrCollection.getUdfs());
-		 */
+		long indexBase = 0;
+		if (base != null) {
+			indexBase = base.cp.getStaticStruct().index();
+		}
 
 		// scope
 		useShadow = base == null ? (pageSource.getDialect() == CFMLEngine.DIALECT_CFML ? pageContext.getConfig().useComponentShadow() : false) : base.useShadow;
@@ -427,11 +426,11 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 			scope = new ComponentScopeThis(this);
 		}
 		initProperties();
-		StaticStruct ss = componentPage.getStaticStruct();
-		if (!ss.isInit()) {
+		StaticStruct ss = componentPage.getStaticStruct(); // this method get overwritten by the compiled componentpage
+		if (!ss.isInit() || indexBase > ss.index()) {
 			synchronized (ss) {
 				// invoke static constructor
-				if (!ss.isInit()) {
+				if (!ss.isInit() || indexBase > ss.index()) {
 					Map<String, Boolean> map = statConstr.get();
 					String id = "" + componentPage.getHash();
 					if (!Caster.toBooleanValue(map.get(id), false)) {

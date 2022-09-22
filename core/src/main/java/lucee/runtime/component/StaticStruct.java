@@ -24,17 +24,28 @@ import lucee.runtime.type.Collection.Key;
 public class StaticStruct extends ConcurrentHashMap<Key, Member> {
 
 	private static final long serialVersionUID = 4964717564860928637L;
-	private boolean init;
+	private static long counter = 1;
+	private long index = 0;
 
 	public StaticStruct() {
 	}
 
 	public boolean isInit() {
-		return init;
+		return index != 0;
+	}
+
+	public long index() {
+		return index;
 	}
 
 	public void setInit(boolean init) {
-		this.init = init;
+		if (init) this.index = createIndex();
+		else index = 0;
 	}
 
+	public static synchronized long createIndex() {
+		counter++;
+		if (counter < 0) counter = 1;
+		return counter;
+	}
 }
