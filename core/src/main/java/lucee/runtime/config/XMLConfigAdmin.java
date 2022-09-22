@@ -4695,20 +4695,20 @@ public final class XMLConfigAdmin {
 		}
 	}
 
-	public static void _updateRHExtension(ConfigPro config, Resource ext, boolean reload, boolean force) throws PageException {
+	public static void _updateRHExtension(ConfigPro config, Resource ext, boolean reload, boolean force, boolean keepOriginal) throws PageException {
 		try {
 			XMLConfigAdmin admin = new XMLConfigAdmin(config, null);
-			admin.updateRHExtension(config, ext, reload, force);
+			admin.updateRHExtension(config, ext, reload, force, keepOriginal);
 		}
 		catch (Exception e) {
 			throw Caster.toPageException(e);
 		}
 	}
 
-	public void updateRHExtension(Config config, Resource ext, boolean reload, boolean force) throws PageException {
+	public void updateRHExtension(Config config, Resource ext, boolean reload, boolean force, boolean keepOriginal) throws PageException {
 		RHExtension rhext;
 		try {
-			rhext = new RHExtension(config, ext, true);
+			rhext = new RHExtension(config, ext, true, keepOriginal);
 			rhext.validate();
 		}
 		catch (Throwable t) {
@@ -5467,7 +5467,7 @@ public final class XMLConfigAdmin {
 			ExceptionUtil.rethrowIfNecessary(t);
 			// failed to uninstall, so we install it again
 			try {
-				updateRHExtension(config, rhe.getExtensionFile(), true, true);
+				updateRHExtension(config, rhe.getExtensionFile(), true, true, false);
 				// RHExtension.install(config, rhe.getExtensionFile());
 			}
 			catch (Throwable t2) {

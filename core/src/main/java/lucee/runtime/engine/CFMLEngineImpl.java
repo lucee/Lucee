@@ -606,7 +606,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 					log.info("extract-extension", "copy extension [" + name + "] to temp directory [" + temp + "]");
 					ResourceUtil.touch(temp);
 					Util.copy(is, temp.getOutputStream(), false, true);
-					rhe = new RHExtension(cs, temp, false);
+					rhe = new RHExtension(cs, temp, false, false);
 					rhe.validate();
 					ExtensionDefintion alreadyExists = null;
 					it = existing.iterator();
@@ -688,7 +688,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 							temp = SystemUtil.getTempDirectory().getRealResource(name);
 							ResourceUtil.touch(temp);
 							Util.copy(zis, temp.getOutputStream(), false, true);
-							rhe = new RHExtension(cs, temp, false);
+							rhe = new RHExtension(cs, temp, false, false);
 							rhe.validate();
 							boolean alreadyExists = false;
 							it = existing.iterator();

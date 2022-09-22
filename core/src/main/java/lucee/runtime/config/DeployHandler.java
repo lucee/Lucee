@@ -85,7 +85,7 @@ public class DeployHandler {
 					}
 
 					// Lucee Extensions
-					else if ("lex".equalsIgnoreCase(ext)) XMLConfigAdmin._updateRHExtension((ConfigPro) config, child, true, force);
+					else if ("lex".equalsIgnoreCase(ext)) XMLConfigAdmin._updateRHExtension((ConfigPro) config, child, true, force, false);
 
 					// Lucee core
 					else if (config instanceof ConfigServer && "lco".equalsIgnoreCase(ext)) XMLConfigAdmin.updateCore((ConfigServerImpl) config, child, true);
@@ -170,7 +170,7 @@ public class DeployHandler {
 				catch (PageException e) {
 					if (throwOnError) throw e;
 					if (log != null) log.error("deploy-extension", e);
-					else LogUtil.log((Config) null, null, "deploy-extension", e);
+					else LogUtil.log((Config) null, "deploy", "deploy-extension", e);
 					sucess = false;
 				}
 				if (!sucess) allSucessfull = false;
@@ -251,7 +251,7 @@ public class DeployHandler {
 					res = SystemUtil.getTempDirectory().getRealResource(ed.getId() + "-" + ed.getVersion() + ".lex");
 					ResourceUtil.touch(res);
 					IOUtil.copy(ext.getSource(), res);
-					XMLConfigAdmin._updateRHExtension((ConfigPro) config, res, reload, force);
+					XMLConfigAdmin._updateRHExtension((ConfigPro) config, res, reload, force, false);
 					return true;
 				}
 				catch (Exception e) {
@@ -310,7 +310,7 @@ public class DeployHandler {
 						ResourceUtil.touch(res);
 
 						IOUtil.copy(ext.getSource(), res);
-						XMLConfigAdmin._updateRHExtension((ConfigPro) config, res, reload, force);
+						XMLConfigAdmin._updateRHExtension((ConfigPro) config, res, reload, force, false);
 						return true;
 					}
 				}
@@ -333,7 +333,7 @@ public class DeployHandler {
 				ResourceUtil.touch(res);
 
 				IOUtil.copy(ext.getSource(), res);
-				XMLConfigAdmin._updateRHExtension((ConfigPro) config, res, reload, force);
+				XMLConfigAdmin._updateRHExtension((ConfigPro) config, res, reload, force, false);
 				return true;
 			}
 			catch (Exception e) {
@@ -347,7 +347,7 @@ public class DeployHandler {
 		Resource res = downloadExtension(ci, ed, log);
 		if (res != null) {
 			try {
-				XMLConfigAdmin._updateRHExtension((ConfigPro) config, res, reload, force);
+				XMLConfigAdmin._updateRHExtension((ConfigPro) config, res, reload, force, false);
 				return true;
 			}
 			catch (Exception e) {

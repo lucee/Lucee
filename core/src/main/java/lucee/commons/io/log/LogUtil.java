@@ -28,6 +28,7 @@ import lucee.commons.io.IOUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ExceptionUtil;
+import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.SystemOut;
 import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.PageContext;
@@ -102,7 +103,7 @@ public final class LogUtil {
 	public static void log(Config config, String logName, String type, Throwable t, int logLevel) {
 		config = ThreadLocalPageContext.getConfig(config);
 		Log log = null;
-		if (config != null) {
+		if (config != null || !StringUtil.isEmpty(logName)) {
 			log = config.getLog(logName);
 		}
 

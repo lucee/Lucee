@@ -3720,7 +3720,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	}
 
 	private LoggerAndSourceData _getLoggerAndSourceData(String name, boolean createIfNecessary) throws PageException {
-		LoggerAndSourceData las = loggers.get(name.toLowerCase());
+		LoggerAndSourceData las = name == null ? null : loggers.get(name.toLowerCase());
 		if (las == null) {
 			if (!createIfNecessary) return null;
 			return addLogger(name, Log.LEVEL_ERROR, getLogEngine().appenderClassDefintion("console"), null, getLogEngine().layoutClassDefintion("pattern"), null, true, true);

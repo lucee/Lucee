@@ -4314,7 +4314,46 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 		// ID
 		String id = getString("id", null);
-		if (!StringUtil.isEmpty(id)) {
+
+		// this can be a binary that represent the extension, a string that is a path to the extension or a
+		// base64 base encoded string
+		Object obj = getObject("source", null);
+
+		boolean fromCfConfig = getBoolV("fromCFConfig", false);
+
+		if (obj != null) {
+			if (obj instanceof String) {
+				String str = (String) obj;
+				// we assume that when the string is more than 5000 it is a base64 encoded binary
+				if (str.length() > 5000) {
+					try {
+						obj = Base64Encoder.decode(str, true);
+					}
+					catch (CoderException e) {
+						CasterException ce = new CasterException(e.getMessage());
+						ce.initCause(e);
+						throw ce;
+					}
+				}
+			}
+
+			// path
+			if (obj instanceof String) {
+				Resource src = ResourceUtil.toResourceExisting(config, (String) obj);
+				XMLConfigAdmin._updateRHExtension(config, src, true, true, fromCfConfig);
+			}
+			else {
+				try {
+					Resource tmp = SystemUtil.getTempFile("lex", true);
+					IOUtil.copy(new ByteArrayInputStream(Caster.toBinary(obj)), tmp, true);
+					XMLConfigAdmin._updateRHExtension(config, tmp, true, true, fromCfConfig);
+				}
+				catch (IOException ioe) {
+					throw Caster.toPageException(ioe);
+				}
+			}
+		}
+		else if (!StringUtil.isEmpty(id)) {
 			ExtensionDefintion ed;
 			String version = getString("version", null);
 			if (!StringUtil.isEmpty(version, true) && !"latest".equalsIgnoreCase(version)) ed = new ExtensionDefintion(id, version);
@@ -4322,42 +4361,9 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			DeployHandler.deployExtension(config, ed, ThreadLocalPageContext.getLog(config, "application"), true, true, true);
 			return;
 		}
-
-		// this can be a binary that represent the extension, a string that is a path to the extension or a
-		// base64 base encoded string
-		Object obj = getObject("admin", "UpdateRHExtensions", "source");
-
-		if (obj instanceof String) {
-			String str = (String) obj;
-			// we assume that when the string is more than 5000 it is a base64 encoded binary
-			if (str.length() > 5000) {
-				try {
-					obj = Base64Encoder.decode(str, true);
-				}
-				catch (CoderException e) {
-					CasterException ce = new CasterException(e.getMessage());
-					ce.initCause(e);
-					throw ce;
-				}
-			}
-		}
-
-		// path
-		if (obj instanceof String) {
-			Resource src = ResourceUtil.toResourceExisting(config, (String) obj);
-			XMLConfigAdmin._updateRHExtension(config, src, true, true);
-		}
 		else {
-			try {
-				Resource tmp = SystemUtil.getTempFile("lex", true);
-				IOUtil.copy(new ByteArrayInputStream(Caster.toBinary(obj)), tmp, true);
-				XMLConfigAdmin._updateRHExtension(config, tmp, true, true);
-			}
-			catch (IOException ioe) {
-				throw Caster.toPageException(ioe);
-			}
+			throw new ApplicationException("cannot install extension, no source or id defined.");
 		}
-
 	}
 
 	private void doRemoveRHExtension() throws PageException {

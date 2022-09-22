@@ -208,24 +208,24 @@ public class RHExtension implements Serializable {
 				throw iv;
 			}
 			catch (ApplicationException ae) {
-				init(toResource(config, el), false);
+				init(toResource(config, el), false, false);
 				_softLoaded = false;
 			}
 			softLoaded = _softLoaded;
 		}
 		else {
-			init(toResource(config, el), false);
+			init(toResource(config, el), false, false);
 			softLoaded = false;
 		}
 	}
 
-	public RHExtension(Config config, Resource ext, boolean moveIfNecessary) throws PageException, IOException, BundleException {
+	public RHExtension(Config config, Resource ext, boolean moveIfNecessary, boolean keepOriginal) throws PageException, IOException, BundleException {
 		this.config = config;
-		init(ext, moveIfNecessary);
+		init(ext, moveIfNecessary, keepOriginal);
 		softLoaded = false;
 	}
 
-	private void init(Resource ext, boolean moveIfNecessary) throws PageException, IOException, BundleException {
+	private void init(Resource ext, boolean moveIfNecessary, boolean keepOriginal) throws PageException, IOException, BundleException {
 		// make sure the config is registerd with the thread
 		if (ThreadLocalPageContext.getConfig() == null) ThreadLocalConfig.register(config);
 
@@ -235,11 +235,11 @@ public class RHExtension implements Serializable {
 		load(ext);
 
 		this.extensionFile = ext;
-		if (moveIfNecessary) move(ext);
+		if (moveIfNecessary) move(ext, keepOriginal);
 	}
 
 	// copy the file to extension dir if it is not already there
-	private void move(Resource ext) throws PageException {
+	private void move(Resource ext, boolean keepOriginal) throws PageException {
 		Resource trg;
 		Resource trgDir;
 		try {
@@ -248,7 +248,8 @@ public class RHExtension implements Serializable {
 			trgDir.mkdirs();
 			if (!ext.getParentResource().equals(trgDir)) {
 				if (trg.exists()) trg.delete();
-				ResourceUtil.moveTo(ext, trg, true);
+				if (keepOriginal) ext.copyTo(trg, false);
+				else ResourceUtil.moveTo(ext, trg, true);
 				this.extensionFile = trg;
 			}
 		}
@@ -765,10 +766,10 @@ public class RHExtension implements Serializable {
 		if (resources == null || resources.length == 0) return;
 		RHExtension xmlExt;
 		for (int i = 0; i < resources.length; i++) {
-			ext = new RHExtension(config, resources[i], false);
+			ext = new RHExtension(config, resources[i], false, false);
 			xmlExt = xmlExtensions.get(ext.getId());
 			if (xmlExt != null && (xmlExt.getVersion() + "").equals(ext.getVersion() + "")) continue;
-			XMLConfigAdmin._updateRHExtension((ConfigPro) config, resources[i], true, true);
+			XMLConfigAdmin._updateRHExtension((ConfigPro) config, resources[i], true, true, false);
 		}
 
 	}
@@ -1477,7 +1478,7 @@ public class RHExtension implements Serializable {
 				if (!trg.isFile()) continue;
 
 				try {
-					return new RHExtension(c, trg, false).toExtensionDefinition();
+					return new RHExtension(c, trg, false, false).toExtensionDefinition();
 				}
 				catch (Exception e) {
 					e.printStackTrace();

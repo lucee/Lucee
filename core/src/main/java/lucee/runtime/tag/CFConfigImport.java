@@ -51,6 +51,7 @@ import lucee.runtime.util.PageContextUtil;
 
 public class CFConfigImport {
 
+	private static Key FROM_CFCONFIG;
 	private static Key ACTION;
 	private static Key TYPE;
 	private static Key PASSWORD;
@@ -145,6 +146,7 @@ public class CFConfigImport {
 			if (DATASOURCES == null) DATASOURCES = cast.toKey("datasources");
 			if (NAME == null) NAME = cast.toKey("name");
 			if (DATABASE == null) DATABASE = cast.toKey("database");
+			if (FROM_CFCONFIG == null) FROM_CFCONFIG = cast.toKey("fromCFConfig");
 
 			if (data != null) {
 				json = data;
@@ -340,7 +342,6 @@ public class CFConfigImport {
 			if (!trg.isFile()) {
 				engine.getIOUtil().copy(src, trg);
 			}
-			data.remove("source");
 			data.setEL("id", idAndVersion[0]);
 			data.setEL("version", idAndVersion[1]);
 		}
@@ -460,6 +461,7 @@ public class CFConfigImport {
 				tag.release();
 				return;
 			}
+			dynAttr.setDynamicAttribute(null, FROM_CFCONFIG, Boolean.TRUE);
 			dynAttr.setDynamicAttribute(null, ACTION, trgActionName);
 			dynAttr.setDynamicAttribute(null, TYPE, type);
 			dynAttr.setDynamicAttribute(null, PASSWORD, password);
