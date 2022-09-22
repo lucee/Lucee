@@ -412,11 +412,10 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 			// abstrCollection.implement(pageContext,getPageSource(),properties.implement);
 		}
 
-		/*
-		 * print.e("--------------------------------------"); print.e(_getPageSource().getDisplayPath());
-		 * print.e(abstrCollection.getUdfs());
-		 */
-
+		long indexBase = 0;
+		if (base != null) {
+			indexBase = base.cp.getStaticStruct().index();
+		}
 		// scope
 		useShadow = base == null ? (pageSource.getDialect() == CFMLEngine.DIALECT_CFML ? pageContext.getConfig().useComponentShadow() : false) : base.useShadow;
 		if (useShadow) {
@@ -428,10 +427,10 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 		}
 		initProperties();
 		StaticStruct ss = componentPage.getStaticStruct();
-		if (!ss.isInit()) {
+		if (!ss.isInit() || indexBase > ss.index()) {
 			synchronized (ss) {
 				// invoke static constructor
-				if (!ss.isInit()) {
+				if (!ss.isInit() || indexBase > ss.index()) {
 					Map<String, Boolean> map = statConstr.get();
 					String id = "" + componentPage.getHash();
 					if (!Caster.toBooleanValue(map.get(id), false)) {
