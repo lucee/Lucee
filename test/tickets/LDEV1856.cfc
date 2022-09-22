@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" labels="cfhttp"{
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="http" skip="true"{
 	
 	function run( testResults , testBox ) {
 		describe( title="Test suite for LDEV-1856", body=function() {
