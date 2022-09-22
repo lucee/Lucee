@@ -313,7 +313,7 @@ public final class JSONConverter extends ConverterSupport {
 				}
 				Key key = KeyImpl.getInstance(props[i].getName());
 
-				if(triggerDataMember) value = comp.get(Component.ACCESS_PRIVATE, key, null);
+				if(triggerDataMember) value = comp.get(pc, key, null);
 				else value = scope.get(key, null);
 
 				if (!addUDFs && (value instanceof UDF || value == null)) continue;
