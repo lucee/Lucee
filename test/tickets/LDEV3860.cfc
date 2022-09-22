@@ -10,7 +10,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 
     private function cleanUp(){
         if (!isDatasourceNotConfigured()){
-            queryExecute( sql="DROP TABLE IF EXISTS Persons", options: {
+            queryExecute( sql="DROP TABLE IF EXISTS testLDEV3680", options: {
                 datasource: server.getDatasource("mssql") 
              }); 
         }
@@ -23,7 +23,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
                         template : "#uri#\LDEV3860.cfm",
                         forms = {scene:1}
                     );
-                expect(trim(result.filecontent)).toBe("true");
+                expect(trim(result.filecontent)).toInclude("foo");
             });
             it( title="LDEV-3859 -- Checking the multiple transactions with ORM and query", skip="#isDatasourceNotConfigured()#", body=function( currentSpec ) {
                     local.result = _InternalRequest(
@@ -34,7 +34,38 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
         });
         // Testcase for LDEV3860 with some more cases ( disabled )
         describe(title="Testcase for LDEV-3860", body=function() {
-            it( title="check error - using invalid entity name in entityNew() without transcation", skip="#isDatasourceNotConfigured()#", body=function( currentSpec ){
+            it( title="check error - which occured before the ORM stuff inside transcation", skip="#isDatasourceNotConfigured()#", body=function( currentSpec ){
+                local.res = _InternalRequest(
+                    template="#variables.uri#\LDEV3860.cfm",
+                    forms = {scene:4}
+                );
+                expect( res.filecontent.trim() ).toInclude("foo");
+            });
+            it( title="check error - which occured after the ORM stuff inside transcation", skip="#isDatasourceNotConfigured()#", body=function( currentSpec ){
+                 local.res = _InternalRequest(
+                    template="#variables.uri#\LDEV3860.cfm",
+                    forms = {scene:5}
+                );
+                expect( res.filecontent.trim() ).toInclude("foo");
+            });
+            it( title="check error - which occured after the ORM stuff with datasource query inside transcation", skip="#isDatasourceNotConfigured()#", body=function( currentSpec ){
+                 local.res = _InternalRequest(
+                    template="#variables.uri#\LDEV3860.cfm",
+                    forms = {scene:6}
+                );
+                expect( res.filecontent.trim() ).toInclude("foo");
+            });
+            it( title="check error - which occured after the ormGetSession() with datasource query inside transaction", skip="#isDatasourceNotConfigured()#", body=function( currentSpec ){
+                 local.res = _InternalRequest(
+                    template="#variables.uri#\LDEV3860.cfm",
+                    forms = {scene:7}
+                );
+                expect( res.filecontent.trim() ).toInclude("foo");
+            });
+        });
+
+        describe(title="Testcase for LDEV-4211", body=function() { 
+             it( title="check error - using invalid entity name in entityNew() without transcation", skip="#isDatasourceNotConfigured()#", body=function( currentSpec ){
                 local.res = _InternalRequest(
                     template="#variables.uri#\LDEV3860.cfm",
                     forms = {scene:2}
@@ -45,36 +76,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
                 local.res = _InternalRequest(
                     template="#variables.uri#\LDEV3860.cfm",
                     forms = {scene:3}
-                );
-                expect( res.filecontent ).notToBe("true");
-            });
-            it( title="check error - which occured before the ORM stuff inside transcation", skip="#isDatasourceNotConfigured()#", body=function( currentSpec ){
-                local.res = _InternalRequest(
-                    template="#variables.uri#\LDEV3860.cfm",
-                    forms = {scene:4}
-                );
-                expect( res.filecontent.trim() ).notToBe("true");
-            });
-            it( title="check error - which occured after the ORM stuff inside transcation", skip="#isDatasourceNotConfigured()#", body=function( currentSpec ){
-                 local.res = _InternalRequest(
-                    template="#variables.uri#\LDEV3860.cfm",
-                    forms = {scene:5}
-                );
-                expect( res.filecontent.trim() ).notToBe("true");
-            });
-            it( title="check error - which occured after the ORM stuff with datasource query inside transcation", skip="#isDatasourceNotConfigured()#", body=function( currentSpec ){
-                 local.res = _InternalRequest(
-                    template="#variables.uri#\LDEV3860.cfm",
-                    forms = {scene:6}
-                );
-                expect( res.filecontent.trim() ).notToBe("true");
-            });
-            it( title="check error - which occured after the ormGetSession() with datasource query inside transaction", skip="#isDatasourceNotConfigured()#", body=function( currentSpec ){
-                 local.res = _InternalRequest(
-                    template="#variables.uri#\LDEV3860.cfm",
-                    forms = {scene:7}
-                );
-                expect( res.filecontent.trim() ).notToBe("true");
+                );  
+                expect( res.filecontent ).toInclude("no entity");
             });
         });
     }
