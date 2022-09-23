@@ -26,6 +26,7 @@
 	secValue="yes">
 <cfset hasAccess=access>
 
+<cfdump var="#_debug#">
 
 <cftry>
 	<cfset stVeritfyMessages = StructNew()>
@@ -45,6 +46,12 @@
 					queryUsage="#isDefined('form.queryUsage') && form.queryUsage#"
 					template="#isDefined('form.template') && form.template#"
 					thread="#isDefined('form.thread') && form.thread#"
+					threadThresholdMs= #form.threadThresholdMs#
+					pageParts="#isDefined('form.pageParts') && form.pageParts#"
+					snippetsEnabled="#isDefined('form.snippetsEnabled') && form.snippetsEnabled#"
+					debugLogs="#isDefined('form.debugLogs') && form.debugLogs#"
+					traceLog="#isDefined('form.traceLog') && form.traceLog#"
+					thresholdMs= #form.thresholdMs#
 
 
 					debugTemplate=""
@@ -64,6 +71,11 @@
 					implicitAccess=""
 					queryUsage=""
 					thread=""
+					pageParts=""
+					snippetsEnabled=""
+					debugLogs=""
+					traceLog=""
+					thresholdMs=""
 
 					debugTemplate=""
 					remoteClients="#request.getRemoteClients()#">
@@ -93,18 +105,22 @@ Redirtect to entry --->
 
 <cfhtmlbody>
 	<script type="text/javascript">
+		function makeReadonly() {
+			var iscustom = $('#sp_radio_debug')[0].checked;
+			return iscustom;
+		}
+		function selectOnChange() {
+			if ( $('#sp_radio_debug')[0].checked) $(this).next().val($(this).val());
+		}
 		function sp_clicked()
 		{
 			var iscustom = $('#sp_radio_debug')[0].checked;
-			var tbl = $('#debugoptionstbl').css('opacity', (iscustom ? 1:.5));
-			var inputs = $('input', tbl).prop('disabled', !iscustom);
-			if (!iscustom)
-			{
-				inputs.prop('checked', false);
-			}
+			$('#debugoptionstbl').css('opacity', (iscustom ? 1:.5)).find('select').attr("disabled", !iscustom);
 		}
-		$(function(){
+		$(function() {
 			$('#sp_options input.radio').bind('click change', sp_clicked);
+			$('#debugoptionstbl input').bind('click', makeReadonly);
+			$('#debugoptionstbl select').bind('change', selectOnChange);
 			sp_clicked();
 		});
 	</script>
@@ -146,7 +162,7 @@ Redirtect to entry --->
 									<div class="comment">#stText.debug.settings.generalYes#</div>
 									<table class="maintbl autowidth" id="debugoptionstbl">
 									<tbody>
-										<cfloop list="template,database,exception,tracing,dump,timer,implicitAccess,thread" item="item">
+										<cfloop list="template,database,exception,tracing,dump,timer,implicitAccess,thread,pageParts" item="item">
 										<tr>
 											<th scope="row">#stText.debug.settings[item]#</th>
 											<td>
@@ -165,23 +181,56 @@ Redirtect to entry --->
 												</cfif>
 												<div class="comment">#stText.debug.settings[item&"Desc"]#</div>
 
-												<cfif item EQ "database">
+												<cfif item EQ "database" OR item EQ "pageParts" OR item EQ "thread">
 												<table class="maintbl autowidth" id="debugoptionqutbl">
 												<tbody>
-													<tr>
-														<th scope="row">#stText.debug.settings.queryUsage#</th>
-														<td>
-															<cfset lbl = _debug.queryUsage ? stText.general.yes : stText.general.no>
-															<cfif hasAccess>
-																<label><input type="checkbox" name="queryUsage" value="true" #_debug.queryUsage ? 'checked="checked"' : ''#>
-																#stText.general.enabled#</label>
-															<cfelse>
-																<b>#_debug.queryUsage ? stText.general.yes : stText.general.no#</b>
-																<input type="hidden" name="queryUsage" value="#_debug.queryUsage#">
-															</cfif>
-															<div class="comment">#stText.debug.settings["queryUsageDesc"]#</div>
-														</td>
+													<cfif item EQ "database">
+														<cfset childList = "queryUsage">
+													<cfelseif item EQ "pageParts">
+														<cfset childList = "snippetsEnabled,debugLogs,traceLog,thresholdMs">
+													<cfelseif item EQ "thread">
+														<cfset childList = "threadThresholdMs">
+													</cfif>
+
+													<cfloop list="#childList#" item="childItem">
+														<cfset isThreadhold = childItem == "thresholdMs" || childItem == "threadThresholdMs">
+														<tr>
+															<th scope="row">#stText.debug.settings[childItem]#</th>
+															<td>
+																<cfset lbl = _debug.queryUsage ? stText.general.yes : stText.general.no>
+																<cfif hasAccess>
+																	<cfif isThreadhold>
+																		<select>
+																			<cfset selected=false>
+																			<cfloop list="0,10,20,50,100,200,500" index="idx">
+																				<option <cfif idx EQ _debug[childItem]><cfset selected=true>selected="selected"</cfif> value="#idx#">#idx#</option>
+																			</cfloop>
+																			<cfif !selected>
+																				<option selected="selected" value="#_debug[childItem]#">#_debug[childItem]#</option>
+																			</cfif>
+																		</select>
+																		<input type="hidden" name="#childItem#" value="#_debug[childItem]#">
+																	<cfelse>
+																		<label><input type="checkbox" name="#childItem#" value="true" #_debug[childItem] ? 'checked="checked"' : ''#>
+																		#stText.general.enabled#</label>
+																	</cfif>
+																<cfelse>
+																	<cfif isThreadhold>
+																		<input type="hidden" name="#childItem#" value="#_debug[childItem]#">
+																		<b>#_debug[childItem]#</b>
+																	<cfelse>
+																		<b>#_debug[childItem] ? stText.general.yes : stText.general.no#</b>
+																		<input type="hidden" name="#childItem#" value="#_debug[item]#">
+																	</cfif>
+																</cfif>
+																<div class="comment">#stText.debug.settings["#childItem#Desc"]#</div>
+															</td>
+														</tr>		
 													</tr>
+														</tr>		
+													</tr>
+														</tr>		
+													</cfloop>
 												</table>
 												</cfif>
 

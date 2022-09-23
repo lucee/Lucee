@@ -674,6 +674,19 @@ Diese werden dann am Ende eines Request ausgegeben, falls sie ein Debug Template
 	<data key="debug.settings.thread">Debug Threads</data>
 	<data key="debug.settings.threadDesc">Select this option to also log out individual threads.</data>
 	<data key="debug.settings.threadAlert">Depending on your application, this may produce a large volume of debug entries.</data>
+	<data key="debug.settings.pageParts">Debug page parts</data>
+	<data key="debug.settings.pagePartsDesc">Select this option to log the page parts datas.</data>
+	<data key="debug.settings.snippetsEnabled">code snippets</data>
+	<data key="debug.settings.snippetsEnabledDesc">Select this option to log the code snippets execution information.</data>
+	<data key="debug.settings.traceLog">traceLog</data>
+	<data key="debug.settings.traceLogDesc">Select this option to log trace log.</data>
+	<data key="debug.settings.thresholdMs">thresholdMs</data>
+	<data key="debug.settings.thresholdMsDesc">provide the thresholdMs</data>
+	<data key="debug.settings.threadThresholdMs">threadThresholdMs</data>
+	<data key="debug.settings.threadThresholdMsDesc">threadThresholdMsDesc</data>
+	<data key="debug.settings.debugLogs">debugLogs</data>
+	<data key="debug.settings.debugLogsDesc">Select this option to log trace log.</data>
+	
 	<data key="debug.switchTemplate">Switch Debug Template</data>
 	<data key="debug.selectDebugTemplate">Select Debug Template</data>
   

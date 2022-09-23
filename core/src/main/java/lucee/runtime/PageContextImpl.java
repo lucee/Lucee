@@ -108,6 +108,7 @@ import lucee.runtime.debug.Debugger;
 import lucee.runtime.debug.DebuggerImpl;
 import lucee.runtime.dump.DumpUtil;
 import lucee.runtime.dump.DumpWriter;
+import lucee.runtime.engine.DebugExecutionLog;
 import lucee.runtime.engine.ExecutionLog;
 import lucee.runtime.err.ErrorPage;
 import lucee.runtime.err.ErrorPageImpl;
@@ -543,7 +544,11 @@ public final class PageContextImpl extends PageContext {
 
 		fdEnabled = !config.allowRequestTimeout();
 
-		if (config.getExecutionLogEnabled()) this.execLog = config.getExecutionLogFactory().getInstance(this);
+		if (config.hasDebugOptions(ConfigPro.DEBUG_PAGE_PARTS)) {
+			this.execLog = new DebugExecutionLog();
+			this.execLog.init(this, new HashMap<String, String>());
+		}
+		else if (config.getExecutionLogEnabled()) this.execLog = config.getExecutionLogFactory().getInstance(this);
 		if (debugger != null) debugger.init(config);
 		undefined.initialize(this);
 		timeoutStacktrace = null;
@@ -601,7 +606,7 @@ public final class PageContextImpl extends PageContext {
 	public void release() {
 		config.releaseCacheHandlers(this);
 
-		if (config.getExecutionLogEnabled()) {
+		if (config.getExecutionLogEnabled() || config.hasDebugOptions(ConfigPro.DEBUG_PAGE_PARTS)) {
 			execLog.release();
 			execLog = null;
 		}

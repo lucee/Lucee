@@ -149,7 +149,7 @@ public final class CFMLTransformer {
 		Page p;
 		SourceCode sc;
 
-		boolean writeLog = config.getExecutionLogEnabled();
+		boolean writeLog = config.getExecutionLogEnabled() || config.hasDebugOptions(ConfigPro.DEBUG_PAGE_PARTS);
 
 		Charset charset = config.getTemplateCharset();
 		boolean dotUpper = ps.getDialect() == CFMLEngine.DIALECT_CFML && ((MappingImpl) ps.getMapping()).getDotNotationUpperCase();

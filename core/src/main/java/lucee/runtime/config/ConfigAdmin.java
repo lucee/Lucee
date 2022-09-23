@@ -2988,40 +2988,63 @@ public final class ConfigAdmin {
 	 * @throws SecurityException
 	 */
 	public void updateDebug(Boolean debug, Boolean template, Boolean database, Boolean exception, Boolean tracing, Boolean dump, Boolean timer, Boolean implicitAccess,
-			Boolean queryUsage, Boolean thread) throws SecurityException {
+			Boolean queryUsage, Boolean thread, Double threadThresholdMs,Boolean pageParts, Boolean snippetsEnabled, 
+			Boolean debugLogs ,Boolean traceLog, Double thresholdMs) throws SecurityException {
+
+		
 		checkWriteAccess();
 		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_DEBUGGING);
 		if (!hasAccess) throw new SecurityException("no access to change debugging settings");
 
-		if (debug != null) root.setEL("debuggingEnabled", debug.booleanValue());
-		else rem(root, "debuggingEnabled");
+		Struct debuggingSettings = _getRootElement("debuggingSettings");
 
-		if (database != null) root.setEL("debuggingDatabase", database.booleanValue());
-		else rem(root, "debuggingDatabase");
+		if (debug != null) debuggingSettings.setEL("enabled", debug.booleanValue());
+		else rem(debuggingSettings, "enabled");
 
-		if (template != null) root.setEL("debuggingTemplate", template.booleanValue());
-		else rem(root, "debuggingTemplate");
+		if (database != null) debuggingSettings.setEL("Database", database.booleanValue());
+		else rem(debuggingSettings, "Database");
 
-		if (exception != null) root.setEL("debuggingException", exception.booleanValue());
-		else rem(root, "debuggingException");
+		if (template != null) debuggingSettings.setEL("template", template.booleanValue());
+		else rem(debuggingSettings, "template");
 
-		if (tracing != null) root.setEL("debuggingTracing", tracing.booleanValue());
-		else rem(root, "debuggingTracing");
+		if (exception != null) debuggingSettings.setEL("exception", exception.booleanValue());
+		else rem(debuggingSettings, "exception");
 
-		if (dump != null) root.setEL("debuggingDump", dump.booleanValue());
-		else rem(root, "debuggingDump");
+		if (tracing != null) debuggingSettings.setEL("tracing", tracing.booleanValue());
+		else rem(debuggingSettings, "tracing");
 
-		if (timer != null) root.setEL("debuggingTimer", timer.booleanValue());
-		else rem(root, "debuggingTimer");
+		if (dump != null) debuggingSettings.setEL("dump", dump.booleanValue());
+		else rem(debuggingSettings, "dump");
 
-		if (implicitAccess != null) root.setEL("debuggingImplicitAccess", implicitAccess.booleanValue());
-		else rem(root, "debuggingImplicitAccess");
+		if (timer != null) debuggingSettings.setEL("timer", timer.booleanValue());
+		else rem(debuggingSettings, "timer");
 
-		if (queryUsage != null) root.setEL("debuggingQueryUsage", queryUsage.booleanValue());
-		else rem(root, "debuggingQueryUsage");
+		if (implicitAccess != null) debuggingSettings.setEL("implicitAccess", implicitAccess.booleanValue());
+		else rem(debuggingSettings, "implicitAccess");
 
-		if (thread != null) root.setEL("debuggingThread", thread.booleanValue());
-		else rem(root, "debuggingThread");
+		if (queryUsage != null) debuggingSettings.setEL("queryUsage", queryUsage.booleanValue());
+		else rem(debuggingSettings, "queryUsage");
+
+		if (thread != null) {
+			Struct sct = new StructImpl(Struct.TYPE_LINKED);
+			sct.setEL("enabled", thread.booleanValue());
+			sct.setEL("threadThresholdMs", threadThresholdMs != null ? threadThresholdMs.doubleValue() : "100");
+
+			debuggingSettings.setEL("thread", sct);
+		}
+		else rem(debuggingSettings, "thread");
+
+		if (pageParts != null) {
+			Struct sct = new StructImpl(Struct.TYPE_LINKED);
+			sct.setEL("enabled", pageParts.booleanValue());
+			sct.setEL("snippetsEnabled", snippetsEnabled != null ? snippetsEnabled.booleanValue() : false);
+			sct.setEL("debugLogs", debugLogs != null ? debugLogs.booleanValue() : false);
+			sct.setEL("traceLog", traceLog !=null ? traceLog.booleanValue() : false);
+			sct.setEL("thresholdMs", thresholdMs != null ? thresholdMs.doubleValue() : "100");
+
+			debuggingSettings.setEL("pageParts", sct);
+		}
+		else rem(debuggingSettings, "pageParts");
 	}
 
 	/**

@@ -1161,6 +1161,16 @@ public class SingleContextConfigWeb extends ConfigBase implements ConfigWebPro {
 	}
 
 	@Override
+	public long getDebugThreshold() {
+		return cs.getDebugThreshold();
+	}
+
+	@Override
+	public long getDebugThreadThreshold() {
+		return cs.getDebugThreadThreshold();
+	}
+	
+	@Override
 	public boolean checkForChangesInConfigFile() {
 		return cs.checkForChangesInConfigFile();
 	}
