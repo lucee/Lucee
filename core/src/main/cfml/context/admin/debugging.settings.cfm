@@ -26,8 +26,6 @@
 	secValue="yes">
 <cfset hasAccess=access>
 
-<cfdump var="#_debug#">
-
 <cftry>
 	<cfset stVeritfyMessages = StructNew()>
 	<cfswitch expression="#form.mainAction#">
