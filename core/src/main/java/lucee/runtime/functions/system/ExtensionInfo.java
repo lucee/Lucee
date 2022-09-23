@@ -1,5 +1,6 @@
 package lucee.runtime.functions.system;
 
+import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.exp.FunctionException;
@@ -41,8 +42,9 @@ public class ExtensionInfo extends BIF implements Function {
     private static final Key SYMBOLIC_NAME = KeyImpl.getInstance("symbolicName");
 
     public static Struct call(PageContext pc, String id) throws PageException {
-        Struct info = getInfo(id, ((ConfigWebPro) pc.getConfig()).getRHExtensions());
-        return info.size() > 0 ? info : getInfo(id, ((ConfigWebPro) pc.getConfig()).getServerRHExtensions());
+        if (StringUtil.isEmpty(id, true)) return new StructImpl();
+        Struct info = getInfo(id.trim(), ((ConfigWebPro) pc.getConfig()).getRHExtensions());
+        return info.size() > 0 ? info : getInfo(id.trim(), ((ConfigWebPro) pc.getConfig()).getServerRHExtensions());
     }
 
     private static Struct getInfo(String id, RHExtension[] extensions) throws PageException {
