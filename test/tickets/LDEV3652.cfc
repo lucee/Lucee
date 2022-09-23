@@ -9,7 +9,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				var result = _InternalRequest(
 					template:uri
 				);
-				expect(result.filecontent.trim()).toBe('{"name":"Test Name","age":20,"birthDate":"November, 20 1990 00:00:00 -0500","isCurrent":false}');
+				expect(result.filecontent.trim()).toBe('{"name":"Test Name","age":20,"birthDate":"1990-11-20","isCurrent":false}');
 			});
 			
 			it(title="Testing SerializeJSON() with a component that has a property with remotingFetch set to false", body = function( currentSpec ) {
@@ -78,7 +78,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				var result = _InternalRequest(
 					template:uri
 				);
-				expect(result.filecontent.trim()).toBe('{"name":"Test Name","age":20,"birthDate":"November, 20 1990 00:00:00 -0500","isCurrent":false}');
+				expect(result.filecontent.trim()).toBe('{"name":"Test Name","age":20,"birthDate":"1990-11-20","isCurrent":false}');
 			});
 			
 			it(title="Testing SerializeJSON() with a component that has a property with remotingFetch set to false", body = function( currentSpec ) {
