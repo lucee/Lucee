@@ -4,17 +4,17 @@
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either 
+ * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public 
+ *
+ * You should have received a copy of the GNU Lesser General Public
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  **/
 package lucee.runtime.db;
 
@@ -30,11 +30,14 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.stream.Stream;
 
+import lucee.runtime.util.DBUtilImpl;
+import lucee.runtime.tag.util.QueryParamConverter.NamedSQLItem;
 import lucee.commons.lang.CFTypes;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.math.MathUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.DatabaseException;
+import lucee.runtime.exp.IllegalQoQException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
@@ -56,6 +59,7 @@ import lucee.runtime.sql.exp.op.OperationAggregate;
 import lucee.runtime.sql.exp.op.OperationN;
 import lucee.runtime.sql.exp.value.Value;
 import lucee.runtime.sql.exp.value.ValueNumber;
+import lucee.runtime.functions.other.Dump;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.Collection;
@@ -68,14 +72,14 @@ import lucee.runtime.type.QueryImpl;
 import lucee.runtime.type.util.ArrayUtil;
 
 /**
- * 
+ *
  */
 public final class QoQ {
 	final static private Collection.Key paramKey = new KeyImpl("?");
 
 	/**
 	 * Execute a QofQ against a SQL object
-	 * 
+	 *
 	 * @param pc
 	 * @param sql
 	 * @param maxrows
@@ -157,7 +161,7 @@ public final class QoQ {
 
 	/**
 	 * Order the rows in a query
-	 * 
+	 *
 	 * @param target Query to order
 	 * @param columns Column expressions to order on
 	 * @param isUnion Is this a union
@@ -174,10 +178,10 @@ public final class QoQ {
 				if (col instanceof Literal ) {
 					if( col instanceof ValueNumber && ( ordinalIndex = Caster.toInteger( ((Literal)col).getValue(), null ) ) != null && ordinalIndex > 0 && ordinalIndex <= target.getColumnNames().length ) {
 						// Sort the column referenced by the ordinal position
-						target.sort(target.getColumnNames()[ ordinalIndex-1 ], col.isDirectionBackward() ? Query.ORDER_DESC : Query.ORDER_ASC);	
+						target.sort(target.getColumnNames()[ ordinalIndex-1 ], col.isDirectionBackward() ? Query.ORDER_DESC : Query.ORDER_ASC);
 					} else {
 						// All other non-integer literals are invalid.
-						throw new DatabaseException("ORDER BY item [" + col.toString(true) + "] in position " + (i+1) + " cannot be a literal value unless it is an integer matching a select column's ordinal position.", null, sql, null);
+						throw new IllegalQoQException("ORDER BY item [" + col.toString(true) + "] in position " + (i+1) + " cannot be a literal value unless it is an integer matching a select column's ordinal position.", null, sql, null);
 					}
 				} else {
 					// order by ? -- ignore this as well
@@ -194,7 +198,7 @@ public final class QoQ {
 				target.sort(c.getColumn(), col.isDirectionBackward() ? Query.ORDER_DESC : Query.ORDER_ASC);
 			}
 			else {
-				throw new DatabaseException("ORDER BY items must be a column name/alias from the first select list if the statement contains a UNION operator", null, sql, null);
+				throw new IllegalQoQException("ORDER BY items must be a column name/alias from the first select list if the statement contains a UNION operator", null, sql, null);
 			}
 		}
 	}
@@ -202,7 +206,7 @@ public final class QoQ {
 	/**
 	 * Process a single select statement. If this is a union, append it to the incoming "previous" Query
 	 * and return the new, combined query with all rows
-	 * 
+	 *
 	 * @param pc PageContext
 	 * @param select Select instance
 	 * @param source Source query to pull data from
@@ -291,7 +295,7 @@ public final class QoQ {
 
 	/**
 	 * Combine two queries while retaining all rows.
-	 * 
+	 *
 	 * @param previous Query from previous select to union
 	 * @param target New query to add into the previous
 	 * @return Combined Query with potential duplicate rows
@@ -307,7 +311,7 @@ public final class QoQ {
 		Collection.Key[] targetColKeys = target.getColumnNames();
 
 		if( previousColKeys.length != targetColKeys.length ) {
-			throw new DatabaseException("Cannot perform union as number of columns in selects do not match.", null, sql, null);
+			throw new IllegalQoQException("Cannot perform union as number of columns in selects do not match.", null, sql, null);
 		}
 
 		// Queries being joined need to have the same number of columns and the data is full
@@ -324,7 +328,7 @@ public final class QoQ {
 
 	/**
 	 * Combine two queries while removing duplicate rows
-	 * 
+	 *
 	 * @param pc PageContext
 	 * @param previous Query from previous select to union
 	 * @param target New query to add into the previous
@@ -335,11 +339,11 @@ public final class QoQ {
 	private Query doUnionDistinct(PageContext pc, Query previous, Query target, SQL sql) throws PageException {
 		Collection.Key[] previousColKeys = previous.getColumnNames();
 		Collection.Key[] targetColKeys = target.getColumnNames();
-		
+
 		if( previousColKeys.length != targetColKeys.length ) {
-			throw new DatabaseException("Cannot perform union as number of columns in selects do not match.", null, sql, null);
+			throw new IllegalQoQException("Cannot perform union as number of columns in selects do not match.", null, sql, null);
 		}
-		
+
 		Expression[] selectExpressions = new Expression[previousColKeys.length];
 		// We want the exact columns from the previous query, but not necessarily all the data. Make
 		// a new target and copy the columns
@@ -377,7 +381,7 @@ public final class QoQ {
 
 	/**
 	 * Process a single select that is not partitioned (grouped or distinct)
-	 * 
+	 *
 	 * @param pc PageContext
 	 * @param select Select instance
 	 * @param source Query we're select from
@@ -440,7 +444,7 @@ public final class QoQ {
 
 	/**
 	 * Process a single select that is partitioned (grouped)
-	 * 
+	 *
 	 * @param pc PageContext
 	 * @param select Select instance
 	 * @param source Query we're selecting from
@@ -507,12 +511,12 @@ public final class QoQ {
 		// SELECT count(1) FROM qry WHERE 1=0
 		// then we need to add a single empty partition so our final select will have a single row.
 		if (hasAggregateSelect && select.getGroupbys().length == 0 && queryPartitions.getPartitions().size() == 0 ) {
-			queryPartitions.addEmptyPartition( source, target ); 
+			queryPartitions.addEmptyPartition( source, target );
 		}
-		
+
 		// Add first row of each group of partitioned data into final result
 		for (Query sourcePartition: queryPartitions.getPartitions().values()) {
-			
+
 			target.addRow(1);
 			for (int cell = 0; cell < headers.length; cell++) {
 
@@ -547,7 +551,7 @@ public final class QoQ {
 
 	/**
 	 * Helper for adding a column to a query
-	 * 
+	 *
 	 * @param query
 	 * @param column
 	 * @param type
@@ -561,7 +565,7 @@ public final class QoQ {
 
 	/**
 	 * return value
-	 * 
+	 *
 	 * @param sql
 	 * @param querySource
 	 * @param row
@@ -577,7 +581,7 @@ public final class QoQ {
 
 	/**
 	 * return value
-	 * 
+	 *
 	 * @param sql
 	 * @param querySource
 	 * @param row
@@ -603,7 +607,7 @@ public final class QoQ {
 
 	/**
 	 * Executes a ZEXp
-	 * 
+	 *
 	 * @param sql
 	 * @param source Query Result
 	 * @param exp expression to execute
@@ -629,7 +633,7 @@ public final class QoQ {
 
 	/**
 	 * Accepts an expression which is the input to an aggregate operation.
-	 * 
+	 *
 	 * @param pc
 	 * @param sql
 	 * @param source
@@ -810,9 +814,9 @@ public final class QoQ {
 				if (op.equals("cast")) {
 					// Cast is a single operand operator, but it gets the type from the alias of the single operand
 					// i.e. cast( col1 as date )
-					// If there is no alias, throw an exception. 
+					// If there is no alias, throw an exception.
 					if( !operators[0].hasAlias() ) {
-						throw new DatabaseException("No type provided to cast to. [" + opn.toString(true) + "] ", null, sql, null);
+						throw new IllegalQoQException("No type provided to cast to. [" + opn.toString(true) + "] ", null, sql, null);
 					}
 					return executeCast( pc, value, Caster.toString( operators[0].getAlias() ) );
 				}
@@ -928,8 +932,8 @@ public final class QoQ {
 					// convert() is the binary version of the unary operator cast()
 					// i.e. convert( col1, string ) is the same as cast( col1 as string )
 					if( operators[1] instanceof ColumnExpression ) {
-						right = ((ColumnExpression)operators[1]).getColumnName(); 
-					} 
+						right = ((ColumnExpression)operators[1]).getColumnName();
+					}
 					return executeCast( pc, left, Caster.toString( right ) );
 				}
 				break;
@@ -942,7 +946,7 @@ public final class QoQ {
 					if( left == null || right == null ) {
 						return null;
 					}
-					
+
 					return new Double( castForMathDouble(left) % castForMathDouble(right) );
 				}
 				break;
@@ -952,7 +956,7 @@ public final class QoQ {
 					if( left == null || right == null ) {
 						return null;
 					}
-					return Math.pow(castForMathDouble(left), castForMathDouble(right));	
+					return Math.pow(castForMathDouble(left), castForMathDouble(right));
 				}
 				break;
 
@@ -982,9 +986,16 @@ public final class QoQ {
 		else if (inputList.size() > 1 && first instanceof Value && ((Value) first).getString().equals("distinct")) {
 			isDistinct = true;
 			inputList.remove(0);
+			// This would be count( DISTINCT col1, col2 )
+			// HSQLDB doesn't support this either
+			if (inputList.size() > 1) {
+				throw new IllegalQoQException("count( DISTINCT ... ) doesn't support more than one expression at this time", null, sql, null);
+			}
+
 		}
 		if (inputList.size() > 1) {
-			throw new DatabaseException("count() aggregate doesn't support more than one expression at this time", null, sql, null);
+			// HSQLDB doesn't support this either
+			throw new IllegalQoQException("count() only accepts one expression, but you provided " + inputList.size() + ".", null, sql, null);
 		}
 		Expression input = inputList.get(0);
 		// count(*), count(1), or count('asdf') just count the rows
@@ -997,7 +1008,7 @@ public final class QoQ {
 		}
 		else {
 			// I'm not sure if this would ever get hit.
-			throw new DatabaseException("count() function can only accept [*], a literal value, a column name, or an expression.", null, sql, null);
+			throw new IllegalQoQException("count() function can only accept [*], a literal value, a column name, or an expression.", null, sql, null);
 		}
 	}
 
@@ -1012,34 +1023,34 @@ public final class QoQ {
 		return null;
 	}
 
-	
+
 
 	private Object executeCast( PageContext pc, Object value, String type ) throws PageException {
 		return Caster.castTo(pc, CFTypes.toShort(type, true, CFTypes.TYPE_UNKNOW), type, value);
 	}
-	
-	
+
+
 	/*
 	 * *
-	 * 
+	 *
 	 * @param expression / private void print(ZExpression expression) {
 	 * print.ln("Operator:"+expression.getOperator().toLowerCase()); int len=expression.nbOperands();
 	 * for(int i=0;i<len;i++) { print.ln("	["+i+"]=	" +expression.getOperand(i)); } }/*
-	 * 
-	 * 
-	 * 
+	 *
+	 *
+	 *
 	 * /**
-	 * 
+	 *
 	 * execute an and operation
-	 * 
+	 *
 	 * @param source QueryResult to execute on it
-	 * 
+	 *
 	 * @param expression
-	 * 
+	 *
 	 * @param row row of resultset to execute
-	 * 
+	 *
 	 * @return
-	 * 
+	 *
 	 * @throws PageException
 	 */
 	private Object executeAnd(PageContext pc, SQL sql, Query source, Operation2 expression, int row) throws PageException {
@@ -1055,9 +1066,9 @@ public final class QoQ {
 	}
 
 	/**
-	 * 
+	 *
 	 * execute an and operation
-	 * 
+	 *
 	 * @param sql
 	 * @param source QueryResult to execute on it
 	 * @param expression
@@ -1085,9 +1096,9 @@ public final class QoQ {
 	}
 
 	/**
-	 * 
+	 *
 	 * execute an equal operation
-	 * 
+	 *
 	 * @param sql
 	 * @param source QueryResult to execute on it
 	 * @param expression
@@ -1100,9 +1111,9 @@ public final class QoQ {
 	}
 
 	/**
-	 * 
+	 *
 	 * execute a not equal operation
-	 * 
+	 *
 	 * @param sql
 	 * @param source QueryResult to execute on it
 	 * @param expression
@@ -1115,9 +1126,9 @@ public final class QoQ {
 	}
 
 	/**
-	 * 
+	 *
 	 * execute a less than operation
-	 * 
+	 *
 	 * @param sql
 	 * @param source QueryResult to execute on it
 	 * @param expression
@@ -1130,9 +1141,9 @@ public final class QoQ {
 	}
 
 	/**
-	 * 
+	 *
 	 * execute a less than or equal operation
-	 * 
+	 *
 	 * @param sql
 	 * @param source QueryResult to execute on it
 	 * @param expression
@@ -1145,9 +1156,9 @@ public final class QoQ {
 	}
 
 	/**
-	 * 
+	 *
 	 * execute a greater than operation
-	 * 
+	 *
 	 * @param sql
 	 * @param source QueryResult to execute on it
 	 * @param expression
@@ -1160,9 +1171,9 @@ public final class QoQ {
 	}
 
 	/**
-	 * 
+	 *
 	 * execute a greater than or equal operation
-	 * 
+	 *
 	 * @param sql
 	 * @param source QueryResult to execute on it
 	 * @param expression
@@ -1175,9 +1186,9 @@ public final class QoQ {
 	}
 
 	/**
-	 * 
+	 *
 	 * execute an equal operation
-	 * 
+	 *
 	 * @param sql
 	 * @param source QueryResult to execute on it
 	 * @param op
@@ -1193,24 +1204,24 @@ public final class QoQ {
 	private Object executeMod(PageContext pc, SQL sql, Query source, Operation2 expression, int row) throws PageException {
 		Object left = executeExp(pc, sql, source, expression.getLeft(), row);
 		Object right = executeExp(pc, sql, source, expression.getRight(), row);
-		
+
 		// The result of any mathmatical operation involving a null is null
 		if( left == null || right == null ) {
 			return null;
 		}
-		
-		Double rightDouble = castForMathDouble(right);		
+
+		Double rightDouble = castForMathDouble(right);
 		if( rightDouble == 0 ) {
-			throw new DatabaseException("Divide by zero not allowed.  Encountered while evaluating ["  + expression.toString( true ) + "] in row " + row, null, sql, null);
+			throw new IllegalQoQException("Divide by zero not allowed.  Encountered while evaluating ["  + expression.toString( true ) + "] in row " + row, null, sql, null);
 		}
-		
+
 		return new Double( castForMathDouble(left) % rightDouble );
 	}
 
 	/**
-	 * 
+	 *
 	 * execute a greater than or equal operation
-	 * 
+	 *
 	 * @param sql
 	 * @param source QueryResult to execute on it
 	 * @param expression
@@ -1252,11 +1263,11 @@ public final class QoQ {
 		}
 		return Caster.toIntValue(value);
 	}
-	
+
 	/**
-	 * 
+	 *
 	 * execute a minus operation
-	 * 
+	 *
 	 * @param sql
 	 * @param source QueryResult to execute on it
 	 * @param expression
@@ -1267,19 +1278,19 @@ public final class QoQ {
 	private Object executeMinus(PageContext pc, SQL sql, Query source, Operation2 expression, int row) throws PageException {
 		Object left = executeExp(pc, sql, source, expression.getLeft(), row);
 		Object right = executeExp(pc, sql, source, expression.getRight(), row);
-		
+
 		// The result of any mathmatical operation involving a null is null
 		if( left == null || right == null ) {
 			return null;
 		}
-		
+
 		return new Double( castForMathDouble(left) - castForMathDouble(right) );
 	}
 
 	/**
-	 * 
+	 *
 	 * execute a divide operation
-	 * 
+	 *
 	 * @param sql
 	 * @param source QueryResult to execute on it
 	 * @param expression
@@ -1290,7 +1301,7 @@ public final class QoQ {
 	private Object executeDivide(PageContext pc, SQL sql, Query source, Operation2 expression, int row) throws PageException {
 		Object left = executeExp(pc, sql, source, expression.getLeft(), row);
 		Object right = executeExp(pc, sql, source, expression.getRight(), row);
-		
+
 		// The result of any mathmatical operation involving a null is null
 		if( left == null || right == null ) {
 			return null;
@@ -1298,16 +1309,16 @@ public final class QoQ {
 
 		Double rightDouble = castForMathDouble(right);
 		if( rightDouble == 0 ) {
-			throw new DatabaseException("Divide by zero not allowed.  Encountered while evaluating ["  + expression.toString( true ) + "] in row " + row, null, sql, null);
+			throw new IllegalQoQException("Divide by zero not allowed.  Encountered while evaluating ["  + expression.toString( true ) + "] in row " + row, null, sql, null);
 		}
-		
+
 		return new Double( castForMathDouble(left) / rightDouble );
 	}
 
 	/**
-	 * 
+	 *
 	 * execute a multiply operation
-	 * 
+	 *
 	 * @param sql
 	 * @param source QueryResult to execute on it
 	 * @param expression
@@ -1318,19 +1329,19 @@ public final class QoQ {
 	private Object executeMultiply(PageContext pc, SQL sql, Query source, Operation2 expression, int row) throws PageException {
 		Object left = executeExp(pc, sql, source, expression.getLeft(), row);
 		Object right = executeExp(pc, sql, source, expression.getRight(), row);
-		
+
 		// The result of any mathmatical operation involving a null is null
 		if( left == null || right == null ) {
 			return null;
 		}
-		
+
 		return new Double( castForMathDouble(left) * castForMathDouble(right) );
 	}
 
 	/**
-	 * 
+	 *
 	 * execute a bitwise operation
-	 * 
+	 *
 	 * @param sql
 	 * @param source QueryResult to execute on it
 	 * @param expression
@@ -1341,19 +1352,19 @@ public final class QoQ {
 	private Object executeBitwise(PageContext pc, SQL sql, Query source, Operation2 expression, int row) throws PageException {
 		Object left = executeExp(pc, sql, source, expression.getLeft(), row);
 		Object right = executeExp(pc, sql, source, expression.getRight(), row);
-		
+
 		// The result of any mathmatical operation involving a null is null
 		if( left == null || right == null ) {
 			return null;
 		}
-		
+
 		return Integer.valueOf(castForMathInt(left) ^ castForMathInt(right));
 	}
 
 	/**
-	 * 
+	 *
 	 * execute a plus operation
-	 * 
+	 *
 	 * @param sql
 	 * @param source QueryResult to execute on it
 	 * @param expression
@@ -1373,7 +1384,7 @@ public final class QoQ {
 			if( left == null || right == null ) {
 				return null;
 			}
-			
+
 			return new Double( dLeft + dRight );
 		// If casting fails, we assume the inputs are strings and concat instead
 		// Unlike SQL, we're not going to return null for a null string concat
@@ -1383,9 +1394,9 @@ public final class QoQ {
 	}
 
 	/**
-	 * 
+	 *
 	 * execute a between operation
-	 * 
+	 *
 	 * @param sql
 	 * @param source QueryResult to execute on it
 	 * @param expression
@@ -1416,7 +1427,7 @@ public final class QoQ {
 
 	/**
 	 * Executes a constant value
-	 * 
+	 *
 	 * @param sql
 	 * @param source
 	 * @param column
@@ -1425,23 +1436,26 @@ public final class QoQ {
 	 * @throws PageException
 	 */
 	private Object executeColumn(PageContext pc, SQL sql, Query source, Column column, int row) throws PageException {
-		if (column.isParam()) {
-			int pos = column.getColumnIndex();
-			if (sql.getItems().length <= pos) throw new DatabaseException("invalid syntax for SQL Statement", null, sql, null);
-			// If null=true is used with query param
-			if (sql.getItems()[pos].isNulls()) return null;
-			return sql.getItems()[pos].getValueForCF();
-		}
-		return column.getValue(pc, source, row, null);
+		return executeColumn( pc, sql, source, column, row, null);
 	}
 
 	private Object executeColumn(PageContext pc, SQL sql, Query source, Column column, int row, Object defaultValue) throws PageException {
 		if (column.isParam()) {
 			int pos = column.getColumnIndex();
-			if (sql.getItems().length <= pos) throw new DatabaseException("invalid syntax for SQL Statement", null, sql, null);
+			if (sql.getItems().length <= pos) throw new IllegalQoQException("Invalid SQL Statement. Not enough parameters provided.", null, sql, null);
+			SQLItem param = sql.getItems()[pos];
 			// If null=true is used with query param
-			if (sql.getItems()[pos].isNulls()) return null;
-			return sql.getItems()[pos].getValueForCF();
+			if (param.isNulls()) return null;
+			try{
+				return param.getValueForCF();
+			} catch( PageException e ){
+				// Create best error message based on whether param was defined as ? or :name
+				if( param instanceof NamedSQLItem ) {
+					throw (IllegalQoQException)(new IllegalQoQException( "Parameter [:" + ((NamedSQLItem)param).getName() + "] is invalid.", e.getMessage(), sql, null).initCause( e ));
+				} else {
+					throw (IllegalQoQException)(new IllegalQoQException( new DBUtilImpl().toStringType( param.getType() ) + " parameter in position " + (pos+1) + " is invalid.", e.getMessage(), sql, null).initCause( e ));
+				}
+			}
 		}
 		return column.getValue(pc, source, row, defaultValue);
 	}
