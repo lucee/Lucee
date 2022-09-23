@@ -139,18 +139,28 @@ public final class ClassUtil {
 	}
 
 	public static Class<?> loadClassByBundle(String className, String name, String strVersion, Identification id, List<Resource> addional) throws ClassException, BundleException {
+		return loadClassByBundle(className, name, strVersion, id, addional, false);
+	}
+
+	public static Class<?> loadClassByBundle(String className, String name, String strVersion, Identification id, List<Resource> addional, boolean versionOnlyMattersForDownload)
+			throws ClassException, BundleException {
 		// version
 		Version version = null;
 		if (!StringUtil.isEmpty(strVersion, true)) {
 			version = OSGiUtil.toVersion(strVersion.trim(), null);
 			if (version == null) throw new ClassException("Version definition [" + strVersion + "] is invalid.");
 		}
-		return loadClassByBundle(className, name, version, id, addional);
+		return loadClassByBundle(className, name, version, id, addional, versionOnlyMattersForDownload);
 	}
 
-	public static Class loadClassByBundle(String className, String name, Version version, Identification id, List<Resource> addional) throws BundleException, ClassException {
+	public static Class loadClassByBundle(String className, String name, Version version, Identification id, List<Resource> addional) throws ClassException, BundleException {
+		return loadClassByBundle(className, name, version, id, addional, false);
+	}
+
+	public static Class loadClassByBundle(String className, String name, Version version, Identification id, List<Resource> addional, boolean versionOnlyMattersForDownload)
+			throws BundleException, ClassException {
 		try {
-			return OSGiUtil.loadBundle(name, version, id, addional, true).loadClass(className);
+			return OSGiUtil.loadBundle(name, version, id, addional, true, versionOnlyMattersForDownload).loadClass(className);
 		}
 		catch (ClassNotFoundException e) {
 			String appendix = "";
