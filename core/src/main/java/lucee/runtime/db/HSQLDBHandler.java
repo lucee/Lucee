@@ -262,7 +262,9 @@ public final class HSQLDBHandler {
 			return q;
 		}
 		catch (SQLParserException spe) {
-			qoqException = spe;
+			if( spe.getCause() != null && spe.getCause() instanceof IllegalQoQException ) {
+				throw Caster.toPageException(spe);
+			}
 			prettySQL = SQLPrettyfier.prettyfie(sql.getSQLString());
 			try {
 				QueryImpl query = executer.execute(pc, sql, prettySQL, maxrows);
