@@ -114,10 +114,12 @@ public final class Timeout extends BodyTagImpl {
 	}
 
 	private void handleException(ThreadImpl thread2) throws PageException {
-		PageException ex = CFMLEngineFactory.getInstance().getCastUtil().toPageException(new Exception(thread.getException()));
-		if (ex != null) {
-			if (onError != null) onError.call(pc, new Object[] { new CatchBlockImpl(ex) }, true);
-			else throw ex;
+		if (thread.getException() != null) {
+			PageException ex = CFMLEngineFactory.getInstance().getCastUtil().toPageException(new Exception(thread.getException()));
+			if (ex != null) {
+				if (onError != null) onError.call(pc, new Object[] { new CatchBlockImpl(ex) }, true);
+				else throw ex;
+			}
 		}
 	}
 

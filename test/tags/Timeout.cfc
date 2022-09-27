@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" {
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="timeout" {
 	
 	function run( testResults , testBox ) {
 		describe( title="Test suite for cftimeout Tag",  body=function() {
@@ -9,7 +9,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 							echo("timeout passing fine");
 						}
 					}
-					systemOutput(result&":timeout passing fine",1,1);
 					expect(result).toBe("timeout passing fine");
 				});
 				
@@ -23,7 +22,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 					catch(e) {
 						result=e.message;
 					}
-					systemOutput(result&":a timeout occurred within the tag timeout",1,1);
 					expect(result).toBe("a timeout occurred within the tag timeout");
 				});
 
@@ -35,7 +33,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 							sleep(1000);
 						}
 					}
-					systemOutput(result&":message from within timeout listener",1,1);
 					expect(result).toBe("message from within timeout listener");
 				});
 
@@ -51,7 +48,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 					catch(e) {
 						result=e.message;
 					}
-					systemOutput(result&":escalate the timeout",1,1);
 					expect(result).toBe("escalate the timeout");
 				});
 
@@ -63,7 +59,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 							throw "Ups!";
 						}
 					}
-					systemOutput(result&":message from within error listener",1,1);
 					expect(result).toBe("message from within error listener");
 				});
 
@@ -79,13 +74,12 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 					catch(e) {
 						result=e.message;
 					}
-					systemOutput(result&":escalate the error",1,1);
 					expect(result).toBe("escalate the error");
 				});
 
-				/*it(title="test forcestop=true", body = function( currentSpec ) {
+				it(title="test forcestop=true", body = function( currentSpec ) {
 					try {
-						timeout timespan=0.01 forcestop=false {
+						timeout timespan=0.01 forcestop=true {
 						   request.timeouttest="start";
 						   sleep(100);
 						   request.timeouttest="end";
@@ -93,7 +87,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 					}
 					catch(e) {}
 					sleep(100);
-					systemOutput(result&":start",1,1);
 					expect(request.timeouttest?:"").toBe("start");
 				});
 
@@ -107,9 +100,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 					}
 					catch(e) {}
 					sleep(100);
-					systemOutput(result&":end",1,1);
 					expect(request.timeouttest?:"").toBe("end");
-				});*/
+				});
 				
 				
 			});
