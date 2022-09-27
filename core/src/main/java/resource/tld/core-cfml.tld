@@ -2242,6 +2242,10 @@ dWord: creates a value of 0 (zero)</description>
 		<tte-class>lucee.transformer.cfml.evaluator.impl.Script</tte-class>
 		<body-content>tagdependent</body-content>
 		<body-rtexprvalue>false</body-rtexprvalue>
+		<script>
+			<type>none</type>
+			<rtexprvalue>false</rtexprvalue>
+		</script>
 		<description>Encloses a code segment containing cfscript.</description>
 		<attribute-type>fixed</attribute-type>
 		<attribute>
