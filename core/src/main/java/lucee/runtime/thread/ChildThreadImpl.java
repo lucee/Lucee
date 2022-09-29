@@ -41,6 +41,7 @@ import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.debug.DebugEntryTemplate;
+import lucee.runtime.debug.DebuggerImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.Abort;
 import lucee.runtime.exp.PageException;
@@ -182,8 +183,10 @@ public class ChildThreadImpl extends ChildThread implements Serializable {
 			}
 
 			ConfigImpl ci = (ConfigImpl) pc.getConfig();
-			if (!pc.isGatewayContext() && ci.debug() && ci.hasDebugOptions(ConfigPro.DEBUG_TEMPLATE)) 
-				debugEntry = pc.getDebugger().getEntry(pc, page.getPageSource());
+			if (!pc.isGatewayContext() && ci.debug()) {
+				((DebuggerImpl) pc.getDebugger()).setThreadName(tagName);
+				if (ci.hasDebugOptions(ConfigPro.DEBUG_TEMPLATE)) debugEntry = pc.getDebugger().getEntry(pc, page.getPageSource());
+			}
 
 			threadScope = pc.getCFThreadScope();
 			pc.setCurrentThreadScope(new ThreadsImpl(this));
