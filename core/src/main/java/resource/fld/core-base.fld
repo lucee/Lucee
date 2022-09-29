@@ -2210,6 +2210,7 @@ sort direction:
 			<type>string</type>
 		</return>
 	</function>
+	
 	<!-- cJustify -->
 	<function>
 		<name>cJustify</name>
