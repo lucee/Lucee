@@ -1,5 +1,5 @@
 component {
-	this.name = "test";
+	this.name = "LDEV-3559";
 
 	this.datasource = server.getDatasource("mssql");
 
