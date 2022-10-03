@@ -54,7 +54,15 @@ public abstract class CFMLSpoolerTaskListener extends SpoolerTaskListener {
 			args.set("created", new DateTimeImpl(pc, task.getCreation(), true));
 			args.set(KeyConstants._id, task.getId());
 			args.set(KeyConstants._type, task.getType());
-			args.set(KeyConstants._detail, task.detail());
+
+			Struct details = task.detail();
+			if (task instanceof MailSpoolerTask) {
+				details.set(KeyConstants._charset, ((MailSpoolerTask) task).getCharset());
+				details.set(KeyConstants._replyto, ((MailSpoolerTask) task).getReplyTos());
+				details.set("failto", ((MailSpoolerTask) task).getFailTos());
+			}
+			args.set(KeyConstants._detail, details);
+
 			args.set(KeyConstants._tries, task.tries());
 			args.set("remainingtries", e == null ? 0 : task.getPlans().length - task.tries());
 			args.set("closed", task.closed());
