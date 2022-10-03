@@ -158,7 +158,7 @@ public final class SchedulerImpl implements Scheduler {
 
 	private void addTask(ScheduleTaskImpl task) {
 		for (int i = 0; i < tasks.length; i++) {
-			if (!tasks[i].getTask().equals(task.getTask())) continue;
+			if (i >= tasks.length || !tasks[i].getTask().equals(task.getTask())) continue;
 			if (!tasks[i].md5().equals(task.md5())) {
 				tasks[i].log(Log.LEVEL_INFO, "invalidate task because the task is replaced with a new one");
 				tasks[i].setValid(false);
@@ -180,7 +180,7 @@ public final class SchedulerImpl implements Scheduler {
 	@Override
 	public ScheduleTask getScheduleTask(String name) throws ScheduleException {
 		for (int i = 0; i < tasks.length; i++) {
-			if (tasks[i].getTask().equalsIgnoreCase(name)) return tasks[i];
+			if (i < tasks.length && tasks[i].getTask().equalsIgnoreCase(name)) return tasks[i];
 		}
 		throw new ScheduleException("schedule task with name " + name + " doesn't exist");
 	}
@@ -188,7 +188,7 @@ public final class SchedulerImpl implements Scheduler {
 	@Override
 	public ScheduleTask getScheduleTask(String name, ScheduleTask defaultValue) {
 		for (int i = 0; i < tasks.length; i++) {
-			if (tasks[i] != null && tasks[i].getTask().equalsIgnoreCase(name)) return tasks[i];
+			if (i < tasks.length && tasks[i] != null && tasks[i].getTask().equalsIgnoreCase(name)) return tasks[i];
 		}
 		return defaultValue;
 	}
@@ -197,7 +197,7 @@ public final class SchedulerImpl implements Scheduler {
 	public ScheduleTask[] getAllScheduleTasks() {
 		ArrayList<ScheduleTask> list = new ArrayList<ScheduleTask>();
 		for (int i = 0; i < tasks.length; i++) {
-			if (!tasks[i].isHidden()) list.add(tasks[i]);
+			if (i < tasks.length && !tasks[i].isHidden()) list.add(tasks[i]);
 		}
 		return list.toArray(new ScheduleTask[list.size()]);
 	}
@@ -223,7 +223,7 @@ public final class SchedulerImpl implements Scheduler {
 		}
 
 		for (int i = 0; i < tasks.length; i++) {
-			if (tasks[i].getTask().equalsIgnoreCase(name)) {
+			if (i < tasks.length && tasks[i].getTask().equalsIgnoreCase(name)) {
 				tasks[i].setPaused(pause);
 			}
 		}
@@ -234,7 +234,7 @@ public final class SchedulerImpl implements Scheduler {
 		synchronized (sync) {
 			int pos = -1;
 			for (int i = 0; i < tasks.length; i++) {
-				if (tasks[i].getTask().equalsIgnoreCase(name)) {
+				if (i < tasks.length && tasks[i].getTask().equalsIgnoreCase(name)) {
 					tasks[i].log(Log.LEVEL_INFO, "task gets removed");
 					tasks[i].setValid(false);
 					pos = i;
@@ -244,7 +244,7 @@ public final class SchedulerImpl implements Scheduler {
 				ScheduleTaskImpl[] newTasks = new ScheduleTaskImpl[tasks.length - 1];
 				int count = 0;
 				for (int i = 0; i < tasks.length; i++) {
-					if (i != pos) newTasks[count++] = tasks[i];
+					if (i < tasks.length && i != pos) newTasks[count++] = tasks[i];
 
 				}
 				tasks = newTasks;
