@@ -1,7 +1,7 @@
 component extends = "org.lucee.cfml.test.LuceeTestCase" labels="xml" skip="true" {
 
 	function beforeAll() {
-		variables.xml=xmlparse('<?xml version="1.0" encoding="UTF-8"?>
+		variables.xml = xmlparse('<?xml version="1.0" encoding="UTF-8"?>
 		<note>
 			<to>Tove</to>
 			<from>Jani</from>
@@ -9,7 +9,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" labels="xml" skip="true"
 			<body>Do not forget me this weekend!</body>
 		</note>');
 
-		variables.schema='<?xml version="1.0"?>
+		variables.schema = '<?xml version="1.0"?>
 		<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
 
 		<xs:element name="note">
