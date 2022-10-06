@@ -437,7 +437,6 @@
 
 
 	function getProviderInfoAsync(required string provider) {
-		sleep(5000);
 		thread args=arguments {
 			getProviderInfo(args.provider, true, 60, 50);
 		}
@@ -488,8 +487,12 @@
 				}
 			}
 			catch(e) {
-				// call it in background
-				getProviderInfoAsync(arguments.provider);
+				if (!structKeyExists(request, "retryCount")) request.retryCount = 0;
+				request.retryCount++;
+
+				// call it in the background up to 10 times
+				if (request.retryCount < 10) getProviderInfoAsync(arguments.provider);
+				else writeLog("Provider calls to #arguments.provider# failed with #e.message# #e.stacktrace#" , "error");
 			}
 
 			if(isNull(http.status_code)){
