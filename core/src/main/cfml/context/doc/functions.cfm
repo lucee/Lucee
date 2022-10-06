@@ -105,7 +105,7 @@
 			<h2 style="text-align: center;">Lucee Functions</h2>
 		</cfif>
 
-		<h2>Function <em>#uCase( url.item )#</em></h2>
+		<h2><em>#data.name#()</em></h2>
 		<cfif data.status EQ "deprecated">
 			<div class="warning nofocus">#stText.doc.depFunction#</div>
 		</cfif>
@@ -117,6 +117,8 @@
 				#replace( replace( data.description, '	', '&nbsp;&nbsp;&nbsp;', 'all' ), chr(10), '<br>', 'all' )#
 			</cfif>
 		</div>
+
+		<cfif structKeyExists(data, "introduced")><br><b>#stText.doc.introduced#:</b> #data.introduced#</cfif>
 
 		<cfset first=true>
 		<cfset optCount=0>
@@ -179,6 +181,7 @@
 									#Application.objects.utils.formatAttrDesc( attr.description )#
 								</cfif>
 								&nbsp;
+								<cfif structKeyExists(attr, "introduced")><br><b>#stText.doc.introduced#:</b> #attr.introduced#</cfif>
 								</td>
 						</tr>
 					</cfloop>

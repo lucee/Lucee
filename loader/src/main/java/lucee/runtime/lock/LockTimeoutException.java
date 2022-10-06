@@ -32,7 +32,7 @@ public final class LockTimeoutException extends Exception {
 	 */
 	public LockTimeoutException(final int type, final String name, final int timeout) {
 		// A timeout occurred while attempting to lock lockname
-		super("a timeout occurred on a " + toString(type) + " lock with name [" + name + "] after " + getTime(timeout));
+		super("A timeout occurred on a [" + toString(type) + "] lock with name [" + name + "] after [" + getTime(timeout) + "]");
 	}
 
 	private static String getTime(final int timeout) {

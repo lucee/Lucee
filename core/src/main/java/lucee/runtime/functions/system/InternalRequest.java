@@ -5,12 +5,15 @@ import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map.Entry;
 
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.CharSet;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.mimetype.ContentType;
 import lucee.commons.net.HTTPUtil;
@@ -22,6 +25,7 @@ import lucee.runtime.CFMLFactoryImpl;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
+import lucee.runtime.exp.Abort;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
@@ -54,9 +58,17 @@ public class InternalRequest implements Function {
 	public static final Key STATUS_CODE = KeyImpl.getInstance("status_code");
 
 	private static final Key CONTENT_TYPE = KeyImpl.getInstance("content-type");
+	private static final Key CONTENT_LENGTH = KeyImpl.getInstance("content-length");
+
+	private static final List<String> methods = Arrays.asList(new String[] { "GET", "POST", "HEAD", "PUT", "DELETE", "OPTIONS", "TRACE", "PATCH" });
 
 	public static Struct call(final PageContext pc, String template, String method, Object oUrls, Object oForms, Struct cookies, Struct headers, Object body, String strCharset,
-			boolean addToken) throws PageException {
+			boolean addToken, boolean throwonerror) throws PageException {
+
+		method = method.toUpperCase().trim();
+		if (methods.indexOf(method) < 0) throw new FunctionException(pc, "_InternalRequest", 2, "method",
+				"invalid method type [" + method + "], valid types are [" + ListUtil.listToListEL(methods, ", ") + "]");
+
 		Struct urls = toStruct(oUrls);
 		Struct forms = toStruct(oForms);
 
@@ -75,9 +87,9 @@ public class InternalRequest implements Function {
 		Charset reqCharset = StringUtil.isEmpty(strCharset) ? pc.getWebCharset() : CharsetUtil.toCharset(strCharset);
 
 		String ext = ResourceUtil.getExtension(template, null);
-		// welcome files
+		// template
 		if (StringUtil.isEmpty(ext)) {
-			throw new FunctionException(pc, "Invoke", 1, "url", "welcome file listing not supported, please define the template name.");
+			throw new FunctionException(pc, "InternalRequest", 1, "template", "template path is invalid");
 		}
 
 		// dialect
@@ -109,18 +121,26 @@ public class InternalRequest implements Function {
 			_barr = str.getBytes(cs);
 		}
 
-		PageContextImpl _pc = createPageContext(pc, template, urls, cookies, headers, _barr, reqCharset, baos);
+		PageContextImpl _pc = createPageContext(pc, template, urls, cookies, headers, _barr, reqCharset, baos, method);
 		fillForm(_pc, forms, reqCharset);
 		Collection cookie, request, session = null;
 		int status;
 		long exeTime;
 		boolean isText = false;
 		Charset _charset = null;
+		PageException pe = null;
 		try {
 
 			if (CFMLEngine.DIALECT_LUCEE == dialect) _pc.execute(template, true, false);
 			else _pc.executeCFML(template, true, false);
 
+		}
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+			if (!(t instanceof Abort)) {
+				if (throwonerror) throw Caster.toPageException(t);
+				pe = Caster.toPageException(t);
+			}
 		}
 		finally {
 			_pc.flush();
@@ -146,11 +166,14 @@ public class InternalRequest implements Function {
 				else headers.set(name, values.iterator().next());
 			}
 
+			headers.set(CONTENT_TYPE, rsp.getContentType());
+			if (rsp.getContentLength() != -1) headers.set(CONTENT_LENGTH, rsp.getContentLength());
+
 			// status
 			status = rsp.getStatus();
 			ContentType ct = HTTPUtil.toContentType(rsp.getContentType(), null);
 			if (ct != null) {
-				isText = HTTPUtil.isTextMimeType(ct.getMimeType());
+				isText = HTTPUtil.isTextMimeType(ct.getMimeType()) == Boolean.TRUE;
 				if (ct.getCharset() != null) _charset = CharsetUtil.toCharset(ct.getCharset(), null);
 			}
 			releasePageContext(_pc, pc);
@@ -169,6 +192,7 @@ public class InternalRequest implements Function {
 		rst.set(KeyConstants._executionTime, new Double(exeTime));
 		rst.set(KeyConstants._status, new Double(status));
 		rst.set(STATUS_CODE, new Double(status));
+		if (pe != null) rst.set(KeyConstants._error, pe.getCatchBlock(pc.getConfig()));
 		return rst;
 	}
 
@@ -255,11 +279,11 @@ public class InternalRequest implements Function {
 		trg.addRaw(null, list.toArray(new URLItem[list.size()]));
 	}
 
-	private static PageContextImpl createPageContext(PageContext pc, String template, Struct urls, Struct cookies, Struct headers, byte[] body, Charset charset, OutputStream os)
-			throws PageException {
+	private static PageContextImpl createPageContext(PageContext pc, String template, Struct urls, Struct cookies, Struct headers, byte[] body, Charset charset, OutputStream os,
+			String method) throws PageException {
 		return ThreadUtil.createPageContext(pc.getConfig(), os, pc.getHttpServletRequest().getServerName(), template, toQueryString(urls, charset),
 				CreatePageContext.toCookies(cookies), CreatePageContext.toPair(headers, true), body, CreatePageContext.toPair(new StructImpl(), true),
-				CreatePageContext.castValuesToString(new StructImpl()), true, -1);
+				CreatePageContext.castValuesToString(new StructImpl()), true, -1, method);
 	}
 
 	private static String toQueryString(Struct urls, Charset charset) throws PageException {

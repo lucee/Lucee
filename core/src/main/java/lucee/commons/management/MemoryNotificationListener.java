@@ -28,6 +28,7 @@ import javax.management.openmbean.CompositeDataSupport;
 
 import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
+import lucee.runtime.PageContext;
 import lucee.runtime.config.Config;
 
 public class MemoryNotificationListener implements NotificationListener {
@@ -48,7 +49,7 @@ public class MemoryNotificationListener implements NotificationListener {
 			MemoryType type = types.get(poolName);
 			if (type == MemoryType.HEAP) {
 				// clear heap
-				LogUtil.log(null, Log.LEVEL_INFO, MemoryNotificationListener.class.getName(), "Clear heap!");
+				LogUtil.log((PageContext) null, Log.LEVEL_INFO, MemoryNotificationListener.class.getName(), "Clear heap!");
 			}
 			else if (type == MemoryType.NON_HEAP) {
 				// clear none-heap

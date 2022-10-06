@@ -412,13 +412,13 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 		// datasource
 		Object o = get(component, KeyConstants._datasource, null);
 		if (o != null) {
-			this.ormDatasource = this.defaultDataSource = AppListenerUtil.toDefaultDatasource(pc.getConfig(), o, pc.getConfig().getLog("application"));
+			this.ormDatasource = this.defaultDataSource = AppListenerUtil.toDefaultDatasource(pc.getConfig(), o, ThreadLocalPageContext.getLog(pc, "application"));
 		}
 
 		// default datasource
 		o = get(component, DEFAULT_DATA_SOURCE, null);
 		if (o != null) {
-			this.defaultDataSource = AppListenerUtil.toDefaultDatasource(pc.getConfig(), o, pc.getConfig().getLog("application"));
+			this.defaultDataSource = AppListenerUtil.toDefaultDatasource(pc.getConfig(), o, ThreadLocalPageContext.getLog(pc, "application"));
 		}
 
 		// ormenabled
@@ -960,7 +960,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 		try {
 			Method m = cd.getClazz().getMethod("init", new Class[] { Config.class, String[].class, Struct[].class });
 			if (Modifier.isStatic(m.getModifiers())) m.invoke(null, new Object[] { config, new String[] { cc.getName() }, new Struct[] { cc.getCustom() } });
-			else LogUtil.log(ThreadLocalPageContext.getConfig(config), Log.LEVEL_ERROR, ModernApplicationContext.class.getName(),
+			else LogUtil.log(ThreadLocalPageContext.get(config), Log.LEVEL_ERROR, ModernApplicationContext.class.getName(),
 					"method [init(Config,String[],Struct[]):void] for class [" + cd.toString() + "] is not static");
 		}
 		catch (Exception e) {
@@ -1241,7 +1241,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 			 * }
 			 */
 
-			if (o != null) dataSources = AppListenerUtil.toDataSources(config, o, dataSources, config.getLog("application"));
+			if (o != null) dataSources = AppListenerUtil.toDataSources(config, o, dataSources, ThreadLocalPageContext.getLog(config, "application"));
 
 			initDataSources = true;
 		}

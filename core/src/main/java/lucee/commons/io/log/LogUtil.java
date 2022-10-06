@@ -28,8 +28,10 @@ import lucee.commons.io.IOUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ExceptionUtil;
+import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.SystemOut;
 import lucee.loader.engine.CFMLEngine;
+import lucee.runtime.PageContext;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.engine.ThreadLocalPageContext;
@@ -78,18 +80,30 @@ public final class LogUtil {
 		log(config, level, "application", type, msg);
 	}
 
+	public static void log(PageContext pc, int level, String type, String msg) {
+		log(pc, level, "application", type, msg);
+	}
+
 	public static void log(Config config, String type, Throwable t) {
 		log(config, "application", type, t);
+	}
+
+	public static void log(PageContext pc, String type, Throwable t) {
+		log(pc, "application", type, t);
 	}
 
 	public static void log(Config config, String logName, String type, Throwable t) {
 		log(config, logName, type, t, Log.LEVEL_ERROR);
 	}
 
+	public static void log(PageContext pc, String logName, String type, Throwable t) {
+		log(pc, logName, type, t, Log.LEVEL_ERROR);
+	}
+
 	public static void log(Config config, String logName, String type, Throwable t, int logLevel) {
 		config = ThreadLocalPageContext.getConfig(config);
 		Log log = null;
-		if (config != null) {
+		if (config != null || !StringUtil.isEmpty(logName)) {
 			log = config.getLog(logName);
 		}
 
@@ -98,6 +112,16 @@ public final class LogUtil {
 			else log.log(logLevel, type, t);
 		}
 		else logGlobal(config, logLevel, type, ExceptionUtil.getStacktrace(t, true));
+	}
+
+	public static void log(PageContext pc, String logName, String type, Throwable t, int logLevel) {
+		Log log = ThreadLocalPageContext.getLog(pc, logName);
+
+		if (log != null) {
+			if (Log.LEVEL_ERROR == logLevel) log.error(type, t);
+			else log.log(logLevel, type, t);
+		}
+		else logGlobal(ThreadLocalPageContext.getConfig(pc), logLevel, type, ExceptionUtil.getStacktrace(t, true));
 	}
 
 	public static void log(Config config, int level, String logName, String type, String msg) {
@@ -110,10 +134,14 @@ public final class LogUtil {
 		if (log != null) log.log(level, type, msg);
 		else {
 			logGlobal(config, level, logName + ":" + type, msg);
-			// if (config == null) SystemOut.printDate(msg);
-			// else if (level == Log.LEVEL_ERROR || level == Log.LEVEL_FATAL)
-			// SystemOut.printDate(config.getErrWriter(), msg);
-			// else SystemOut.printDate(config.getOutWriter(), msg);
+		}
+	}
+
+	public static void log(PageContext pc, int level, String logName, String type, String msg) {
+		Log log = ThreadLocalPageContext.getLog(logName);
+		if (log != null) log.log(level, type, msg);
+		else {
+			logGlobal(ThreadLocalPageContext.getConfig(pc), level, logName + ":" + type, msg);
 		}
 	}
 
@@ -136,5 +164,9 @@ public final class LogUtil {
 
 	public static void logGlobal(Config config, String type, Throwable t) {
 		logGlobal(config, Log.LEVEL_ERROR, type, ExceptionUtil.getStacktrace(t, true));
+	}
+
+	public static void logGlobal(Config config, String type, String msg, Throwable t) {
+		logGlobal(config, Log.LEVEL_ERROR, type, msg + "; " + ExceptionUtil.getStacktrace(t, true));
 	}
 }

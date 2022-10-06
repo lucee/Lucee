@@ -22,6 +22,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
 import lucee.commons.io.log.LogUtil;
+import lucee.runtime.PageContext;
 
 /**
  * Class Hash produces a MessageDigest hash for a given string.
@@ -53,7 +54,7 @@ public final class Hash {
 			hashText = Hash.getHashText(this.plainText, this.algorithm);
 		}
 		catch (NoSuchAlgorithmException nsae) {
-			LogUtil.log(null, Hash.class.getName(), nsae);
+			LogUtil.log((PageContext) null, Hash.class.getName(), nsae);
 		}
 
 		return hashText;

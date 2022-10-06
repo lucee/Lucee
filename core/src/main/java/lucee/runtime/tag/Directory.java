@@ -49,7 +49,6 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
 import lucee.runtime.ext.tag.TagImpl;
 import lucee.runtime.op.Caster;
-import lucee.runtime.op.Decision;
 import lucee.runtime.reflection.Reflector;
 import lucee.runtime.security.SecurityManager;
 import lucee.runtime.tag.util.FileUtil;
@@ -239,7 +238,7 @@ public final class Directory extends TagImpl {
 		storage = improveStorage(storage, null);
 		if (storage != null) return storage;
 
-		throw new ApplicationException("invalid storage value, valid values are [eu,us,us-west]");
+		throw new ApplicationException("Invalid storage value, valid values are [eu, us, us-west]");
 	}
 
 	public static String improveStorage(String storage, String defaultValue) {
@@ -384,7 +383,7 @@ public final class Directory extends TagImpl {
 			}
 			actionCopy(pageContext, directory, destination, serverPassword, createPath, acl, storage, filter, recurse, nameconflict);
 		}
-		else throw new ApplicationException("invalid action [" + action + "] for the tag directory");
+		else throw new ApplicationException("Invalid action [" + action + "] for the tag [directory]");
 
 		return SKIP_BODY;
 	}
@@ -437,15 +436,15 @@ public final class Directory extends TagImpl {
 
 		if (!directory.exists()) {
 			if (directory instanceof FileResource) return rtn;
-			throw new ApplicationException("directory [" + directory.toString() + "] doesn't exist");
+			throw new ApplicationException("Directory [" + directory.toString() + "] doesn't exist");
 		}
 		if (!directory.isDirectory()) {
 			if (directory instanceof FileResource) return rtn;
-			throw new ApplicationException("file [" + directory.toString() + "] exists, but isn't a directory");
+			throw new ApplicationException("File [" + directory.toString() + "] exists, but isn't a directory");
 		}
 		if (!directory.isReadable()) {
 			if (directory instanceof FileResource) return rtn;
-			throw new ApplicationException("no access to read directory [" + directory.toString() + "]");
+			throw new ApplicationException("No access to read directory [" + directory.toString() + "]");
 		}
 
 		long startNS = System.nanoTime();
@@ -482,7 +481,7 @@ public final class Directory extends TagImpl {
 						String order = col[1].toLowerCase().trim();
 						if (order.equals("asc")) query.sort(col[0], lucee.runtime.type.Query.ORDER_ASC);
 						else if (order.equals("desc")) query.sort(col[0], lucee.runtime.type.Query.ORDER_DESC);
-						else throw new ApplicationException("invalid order type [" + col[1] + "]");
+						else throw new ApplicationException("Invalid order type [" + col[1] + "]");
 					}
 				}
 				catch (Throwable t) {
@@ -636,9 +635,9 @@ public final class Directory extends TagImpl {
 			if (directory.isDirectory()) {
 				if (nameConflict == NAMECONFLICT_SKIP) return;
 
-				throw new ApplicationException("directory [" + directory.toString() + "] already exists");
+				throw new ApplicationException("Directory [" + directory.toString() + "] already exists");
 			}
-			else if (directory.isFile()) throw new ApplicationException("can't create directory [" + directory.toString() + "], a file exists with the same name");
+			else if (directory.isFile()) throw new ApplicationException("Can't create directory [" + directory.toString() + "], a file exists with the same name");
 		}
 		// if(!directory.mkdirs()) throw new ApplicationException("can't create directory
 		// ["+directory.toString()+"]");
@@ -671,15 +670,8 @@ public final class Directory extends TagImpl {
 			// ACL
 			if (acl != null) {
 				try {
-					// old way
-					if (Decision.isString(acl)) {
-						Reflector.callMethod(res, "setACL", new Object[] { improveACL(Caster.toString(acl)) });
-					}
-					// new way
-					else {
-						BIF bif = CFMLEngineFactory.getInstance().getClassUtil().loadBIF(pc, "StoreSetACL");
-						bif.invoke(pc, new Object[] { res.getAbsolutePath(), acl });
-					}
+					BIF bif = CFMLEngineFactory.getInstance().getClassUtil().loadBIF(pc, "StoreSetACL");
+					bif.invoke(pc, new Object[] { res.getAbsolutePath(), acl });
 				}
 				catch (Exception e) {
 					throw Caster.toPageException(e);
@@ -708,7 +700,7 @@ public final class Directory extends TagImpl {
 		if ("authenticated_read".equals(acl)) return "authenticated-read";
 		if ("authenticatedread".equals(acl)) return "authenticated-read";
 
-		throw new ApplicationException("invalid acl value, valid values are [public-read, private, public-read-write, authenticated-read]");
+		throw new ApplicationException("Invalid acl value, valid values are [public-read, private, public-read-write, authenticated-read]");
 	}
 
 	/**
@@ -724,12 +716,12 @@ public final class Directory extends TagImpl {
 
 		// directory doesn't exist
 		if (!dir.exists()) {
-			if (dir.isDirectory()) throw new ApplicationException("directory [" + dir.toString() + "] doesn't exist");
-			else if (dir.isFile()) throw new ApplicationException("file [" + dir.toString() + "] doesn't exist and isn't a directory");
+			if (dir.isDirectory()) throw new ApplicationException("Directory [" + dir.toString() + "] doesn't exist");
+			else if (dir.isFile()) throw new ApplicationException("File [" + dir.toString() + "] doesn't exist and isn't a directory");
 		}
 
 		// check if file
-		if (dir.isFile()) throw new ApplicationException("can't delete [" + dir.toString() + "], it isn't a directory, it's a file");
+		if (dir.isFile()) throw new ApplicationException("Can't delete [" + dir.toString() + "], it isn't a directory, it's a file");
 
 		// delete directory
 		try {
@@ -751,17 +743,17 @@ public final class Directory extends TagImpl {
 		SecurityManager securityManager = pc.getConfig().getSecurityManager();
 		securityManager.checkFileLocation(pc.getConfig(), directory, serverPassword);
 
-		if (!directory.exists()) throw new ApplicationException("the directory [" + directory.toString() + "] doesn't exist");
-		if (!directory.isDirectory()) throw new ApplicationException("the file [" + directory.toString() + "] exists, but it isn't a directory");
-		if (!directory.canRead()) throw new ApplicationException("no access to read directory [" + directory.toString() + "]");
+		if (!directory.exists()) throw new ApplicationException("The directory [" + directory.toString() + "] doesn't exist");
+		if (!directory.isDirectory()) throw new ApplicationException("The file [" + directory.toString() + "] exists, but it isn't a directory");
+		if (!directory.canRead()) throw new ApplicationException("No access to read directory [" + directory.toString() + "]");
 
-		if (strNewdirectory == null) throw new ApplicationException("the attribute [newDirectory] is not defined");
+		if (strNewdirectory == null) throw new ApplicationException("The attribute [newDirectory] is not defined");
 
 		// real to source
 		Resource newdirectory = toDestination(pc, strNewdirectory, directory);
 
 		securityManager.checkFileLocation(pc.getConfig(), newdirectory, serverPassword);
-		if (newdirectory.exists()) throw new ApplicationException("new directory [" + newdirectory.toString() + "] already exists");
+		if (newdirectory.exists()) throw new ApplicationException("New directory [" + newdirectory.toString() + "] already exists");
 		if (createPath) {
 			newdirectory.getParentResource().mkdirs();
 
@@ -775,7 +767,7 @@ public final class Directory extends TagImpl {
 		}
 
 		// set S3 stuff
-		setS3Attrs(pc, directory, acl, storage);
+		setS3Attrs(pc, newdirectory, acl, storage);
 
 	}
 
@@ -785,16 +777,16 @@ public final class Directory extends TagImpl {
 		SecurityManager securityManager = pc.getConfig().getSecurityManager();
 		securityManager.checkFileLocation(pc.getConfig(), directory, serverPassword);
 
-		if (!directory.exists()) throw new ApplicationException("directory [" + directory.toString() + "] doesn't exist");
-		if (!directory.isDirectory()) throw new ApplicationException("file [" + directory.toString() + "] exists, but isn't a directory");
-		if (!directory.canRead()) throw new ApplicationException("no access to read directory [" + directory.toString() + "]");
+		if (!directory.exists()) throw new ApplicationException("Directory [" + directory.toString() + "] doesn't exist");
+		if (!directory.isDirectory()) throw new ApplicationException("File [" + directory.toString() + "] exists, but isn't a directory");
+		if (!directory.canRead()) throw new ApplicationException("No access to read directory [" + directory.toString() + "]");
 
-		if (StringUtil.isEmpty(strDestination)) throw new ApplicationException("attribute [destination] is not defined");
+		if (StringUtil.isEmpty(strDestination)) throw new ApplicationException("Attribute [destination] is not defined");
 
 		// real to source
 		Resource newdirectory = toDestination(pc, strDestination, directory);
 
-		if (nameconflict == NAMECONFLICT_ERROR && newdirectory.exists()) throw new ApplicationException("new directory [" + newdirectory.toString() + "] already exists");
+		if (nameconflict == NAMECONFLICT_ERROR && newdirectory.exists()) throw new ApplicationException("New directory [" + newdirectory.toString() + "] already exists");
 
 		securityManager.checkFileLocation(pc.getConfig(), newdirectory, serverPassword);
 
@@ -824,11 +816,11 @@ public final class Directory extends TagImpl {
 		}
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
-			throw new ApplicationException(t.getMessage());
+			throw Caster.toPageException(t);
 		}
 
 		// set S3 stuff
-		setS3Attrs(pc, directory, acl, storage);
+		setS3Attrs(pc, newdirectory, acl, storage);
 
 	}
 
@@ -858,7 +850,7 @@ public final class Directory extends TagImpl {
 		else if ("dir".equals(strType)) return TYPE_DIR;
 		else if ("directory".equals(strType)) return TYPE_DIR;
 		else if ("file".equals(strType)) return TYPE_FILE;
-		else throw new ApplicationException("invalid type [" + strType + "], valid types are [all,directory,file]");
+		else throw new ApplicationException("Invalid type [" + strType + "], valid types are [all, directory, file]");
 	}
 
 }

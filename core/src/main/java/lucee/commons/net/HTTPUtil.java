@@ -619,20 +619,27 @@ public final class HTTPUtil {
 		return rtn;
 	}
 
-	public static boolean isTextMimeType(String mimetype) {
+	public static Boolean isTextMimeType(String mimetype) {
 		if (mimetype == null) mimetype = "";
 		else mimetype = mimetype.trim().toLowerCase();
-		return StringUtil.startsWithIgnoreCase(mimetype, "text") || StringUtil.startsWithIgnoreCase(mimetype, "application/xml")
+
+		if (StringUtil.startsWithIgnoreCase(mimetype, "audio/") || StringUtil.startsWithIgnoreCase(mimetype, "image/") || StringUtil.startsWithIgnoreCase(mimetype, "video/"))
+			return false;
+
+		if (StringUtil.startsWithIgnoreCase(mimetype, "text") || StringUtil.startsWithIgnoreCase(mimetype, "application/xml")
 				|| StringUtil.startsWithIgnoreCase(mimetype, "application/atom+xml") || StringUtil.startsWithIgnoreCase(mimetype, "application/xhtml")
-				|| StringUtil.startsWithIgnoreCase(mimetype, "application/json") || StringUtil.startsWithIgnoreCase(mimetype, "application/cfml")
+				|| StringUtil.startsWithIgnoreCase(mimetype, "application/json") || StringUtil.startsWithIgnoreCase(mimetype, "application/ld-json")
+				|| StringUtil.startsWithIgnoreCase(mimetype, "application/cfml") || StringUtil.startsWithIgnoreCase(mimetype, "application/x-www-form-urlencoded")
+				|| StringUtil.startsWithIgnoreCase(mimetype, "application/EDIFACT") || StringUtil.startsWithIgnoreCase(mimetype, "application/javascript")
 				|| StringUtil.startsWithIgnoreCase(mimetype, "message") || StringUtil.indexOfIgnoreCase(mimetype, "xml") != -1
 				|| StringUtil.indexOfIgnoreCase(mimetype, "json") != -1 || StringUtil.indexOfIgnoreCase(mimetype, "rss") != -1
-				|| StringUtil.indexOfIgnoreCase(mimetype, "atom") != -1 || StringUtil.indexOfIgnoreCase(mimetype, "text") != -1;
-		// StringUtil.startsWithIgnoreCase(mimetype, "application/octet-stream") not really makes it a text
-		// "application/x-www-form-urlencoded" ???
+				|| StringUtil.indexOfIgnoreCase(mimetype, "atom") != -1 || StringUtil.indexOfIgnoreCase(mimetype, "text") != -1)
+			return true;
+
+		return null;
 	}
 
-	public static boolean isTextMimeType(MimeType mimetype) {
+	public static Boolean isTextMimeType(MimeType mimetype) {
 		if (mimetype == null) return false;
 		if (MimeType.APPLICATION_JSON.same(mimetype)) return true;
 		if (MimeType.APPLICATION_PLAIN.same(mimetype)) return true;

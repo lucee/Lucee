@@ -43,6 +43,10 @@ public final class ResourceClassLoader extends URLClassLoader implements Closeab
 	private List<Resource> resources = new ArrayList<Resource>();
 	private Map<String, SoftReference<ResourceClassLoader>> customCLs;
 
+	static {
+		boolean res = registerAsParallelCapable();
+	}
+
 	/**
 	 * Constructor of the class
 	 * 

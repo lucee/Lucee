@@ -101,9 +101,11 @@ public class SingleContextConfigWeb extends ConfigBase implements ConfigWebPro {
 	private ConfigServerImpl cs;
 	protected Password password;
 	private final ConfigWebHelper helper;
+	private final CFMLFactory factory;
 
-	public SingleContextConfigWeb(ConfigServerImpl cs) {
+	public SingleContextConfigWeb(ConfigServerImpl cs, CFMLFactory factory) {
 		this.cs = cs;
+		this.factory = factory;
 		helper = new ConfigWebHelper(cs, this);
 	}
 
@@ -1413,20 +1415,17 @@ public class SingleContextConfigWeb extends ConfigBase implements ConfigWebPro {
 
 	@Override
 	public ConfigServer getConfigServer(Password arg0) throws PageException {
-		// TODO Auto-generated method stub
-		return null;
+		return cs;
 	}
 
 	@Override
 	public Resource getConfigServerDir() {
-		// TODO Auto-generated method stub
-		return null;
+		return cs.getConfigDir();
 	}
 
 	@Override
 	public CFMLFactory getFactory() {
-		// TODO Auto-generated method stub
-		return null;
+		return factory;
 	}
 
 	@Override
@@ -1491,38 +1490,32 @@ public class SingleContextConfigWeb extends ConfigBase implements ConfigWebPro {
 
 	@Override
 	public Collection<Mapping> getServerFunctionMappings() {
-		// TODO Auto-generated method stub
-		return null;
+		return cs.getFunctionMappings();
 	}
 
 	@Override
 	public Mapping getServerFunctionMapping(String mappingName) {
-		// TODO Auto-generated method stub
-		return null;
+		return cs.getFunctionMapping(mappingName);
 	}
 
 	@Override
 	public Collection<Mapping> getServerTagMappings() {
-		// TODO Auto-generated method stub
-		return null;
+		return cs.getTagMappings();
 	}
 
 	@Override
 	public Mapping getServerTagMapping(String mappingName) {
-		// TODO Auto-generated method stub
-		return null;
+		return cs.getTagMapping(mappingName);
 	}
 
 	@Override
 	public Map<String, String> getAllLabels() {
-		// TODO Auto-generated method stub
-		return null;
+		return cs.getLabels();
 	}
 
 	@Override
 	public boolean isDefaultPassword() {
-		// TODO Auto-generated method stub
-		return false;
+		return true;
 	}
 
 	@Override
@@ -1670,5 +1663,13 @@ public class SingleContextConfigWeb extends ConfigBase implements ConfigWebPro {
 	@Override
 	public TimeSpan getApplicationPathhCacheTimeout() {
 		return cs.getApplicationPathhCacheTimeout();
+	}
+
+	@Override
+	public void resetServerFunctionMappings() {
+	}
+
+	public ConfigServerImpl getConfigServerImpl() {
+		return this.cs;
 	}
 }

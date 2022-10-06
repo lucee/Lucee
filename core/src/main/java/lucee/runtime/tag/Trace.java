@@ -28,6 +28,7 @@ import lucee.runtime.converter.ScriptConverter;
 import lucee.runtime.debug.DebugTrace;
 import lucee.runtime.debug.DebugTraceImpl;
 import lucee.runtime.debug.DebuggerImpl;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.Abort;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
@@ -237,7 +238,7 @@ public final class Trace extends BodyTagImpl {
 		}
 
 		// log
-		Log log = pageContext.getConfig().getLog("trace");
+		Log log = ThreadLocalPageContext.getLog(pageContext, "trace");
 		StringBuffer msg = new StringBuffer();
 		msg.append("[" + trace.getTime() + " ms " + total + "] ");
 		msg.append("[" + trace.getTemplate() + " @ line: " + trace.getLine() + "]");

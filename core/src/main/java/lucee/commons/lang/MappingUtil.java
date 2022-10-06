@@ -88,14 +88,14 @@ public class MappingUtil {
 				}
 			}
 			catch (IOException ioe) {
-				LogUtil.log(mapping.getConfig(), "mapping", ioe);
+				LogUtil.log(ThreadLocalPageContext.get(mapping.getConfig()), "mapping", ioe);
 			}
 			finally {
 				try {
 					IOUtil.close(zis);
 				}
 				catch (IOException ioe) {
-					LogUtil.log(mapping.getConfig(), "mapping", ioe);
+					LogUtil.log(ThreadLocalPageContext.get(mapping.getConfig()), "mapping", ioe);
 				}
 			}
 

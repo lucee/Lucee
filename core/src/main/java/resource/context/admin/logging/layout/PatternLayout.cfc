@@ -6,7 +6,7 @@
 		)>
     
 	<cffunction name="getClass" returntype="string" output="false">
-    	<cfreturn left(getConfigSettings().log4j.version,1)==1?"org.apache.log4j.PatternLayout":"org.apache.logging.log4j.core.layout.PatternLayout">
+    	<cfreturn "org.apache.logging.log4j.core.layout.PatternLayout">
     </cffunction>
     
 	<cffunction name="getLabel" returntype="string" output="false">

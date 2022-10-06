@@ -175,7 +175,7 @@ class ExecutionThread extends Thread {
 	}
 
 	private static Log getLog(Config config) {
-		return config.getLog("scheduler");
+		return ThreadLocalPageContext.getLog(config, "scheduler");
 	}
 
 	private static boolean isText(HTTPResponse rsp) {

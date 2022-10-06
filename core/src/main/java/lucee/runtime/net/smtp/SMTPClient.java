@@ -161,6 +161,8 @@ public final class SMTPClient implements Serializable {
 
 	private Object listener;
 
+	private boolean debug;
+
 	public static String getNow(TimeZone tz) {
 		tz = ThreadLocalPageContext.getTimeZone(tz);
 		SoftReference<SimpleDateFormat> tmp = formatters.get(tz);
@@ -184,6 +186,15 @@ public final class SMTPClient implements Serializable {
 	 */
 	public void setPort(int port) {
 		this.port = port;
+	}
+
+	/**
+	 * enable console logging of the mail session to console
+	 * 
+	 * @param debug
+	 */
+	public void setDebug(boolean debug) {
+		this.debug = debug;
 	}
 
 	/**
@@ -467,6 +478,8 @@ public final class SMTPClient implements Serializable {
 
 		SessionAndTransport sat = newConnection ? new SessionAndTransport(hash(props), props, auth, lifeTimesan, idleTimespan)
 				: SMTPConnectionPool.getSessionAndTransport(props, hash(props), auth, lifeTimesan, idleTimespan);
+
+		if (debug) sat.session.setDebug(true); // enable logging mail debug output to console
 
 		// Contacts
 		SMTPMessage msg = new SMTPMessage(sat.session);
@@ -788,7 +801,7 @@ public final class SMTPClient implements Serializable {
 		try {
 
 			Proxy.start(proxyData);
-			Log log = config.getLog("mail");
+			Log log = ThreadLocalPageContext.getLog(config, "mail");
 			// Server
 			// Server[] servers = config.getMailServers();
 			if (host != null) {
@@ -892,12 +905,12 @@ public final class SMTPClient implements Serializable {
 						break;
 					}
 					catch (Exception e) {
-						LogUtil.log(ThreadLocalPageContext.getConfig(config), SMTPClient.class.getName(), e);
+						LogUtil.log(ThreadLocalPageContext.get(config), SMTPClient.class.getName(), e);
 						if (i + 1 == servers.length) {
 
 							listener(config, server, log, e, System.nanoTime() - start);
-							MailException me = new MailException(server.getHostName() + " " + ExceptionUtil.getStacktrace(e, true) + ":" + i);
-							me.setStackTrace(e.getStackTrace());
+							MailException me = new MailException(server.getHostName() + " " + e.getMessage() + ":" + i);
+							me.initCause((e.getCause()));
 
 							throw me;
 						}
@@ -911,8 +924,8 @@ public final class SMTPClient implements Serializable {
 	}
 
 	private void listener(ConfigWeb config, Server server, Log log, Exception e, long exe) {
-		if (e == null) log.info("mail", "mail sent (subject:" + subject + "from:" + toString(from) + "; to:" + toString(tos) + "; cc:" + toString(ccs) + "; bcc:" + toString(bccs)
-				+ "; ft:" + toString(fts) + "; rt:" + toString(rts) + ")");
+		if (e == null) log.info("mail", "mail sent (subject:" + subject + "; server:" + server.getHostName() + "; port:" + server.getPort() + "; from:" + toString(from) + "; to:"
+				+ toString(tos) + "; cc:" + toString(ccs) + "; bcc:" + toString(bccs) + "; ft:" + toString(fts) + "; rt:" + toString(rts) + ")");
 		else log.log(Log.LEVEL_ERROR, "mail", e);
 
 		// listener

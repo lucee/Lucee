@@ -104,7 +104,7 @@ public class AsyncRequestMonitor implements RequestMonitorPro {
 				}
 				catch (IOException e) {
 					if (logEnabled) {
-						Log log = pc.getConfig().getLog("io");
+						Log log = ThreadLocalPageContext.getLog(pc, "io");
 						if (log != null) log.log(Log.LEVEL_ERROR, "io", e);
 					}
 				}

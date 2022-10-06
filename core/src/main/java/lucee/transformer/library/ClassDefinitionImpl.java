@@ -45,6 +45,7 @@ public class ClassDefinitionImpl<T> implements ClassDefinition<T>, Externalizabl
 	private String name;
 	private Version version;
 	private Identification id;
+	private boolean versionOnlyMattersWhenDownloading = false;
 
 	private transient Class<T> clazz;
 
@@ -83,6 +84,11 @@ public class ClassDefinitionImpl<T> implements ClassDefinition<T>, Externalizabl
 	public ClassDefinitionImpl() {
 	}
 
+	public ClassDefinitionImpl<T> setVersionOnlyMattersWhenDownloading(boolean versionOnlyMattersWhenDownloading) {
+		this.versionOnlyMattersWhenDownloading = versionOnlyMattersWhenDownloading;
+		return this;
+	}
+
 	@Override
 	public void writeExternal(ObjectOutput out) throws IOException {
 		out.writeObject(className);
@@ -107,7 +113,7 @@ public class ClassDefinitionImpl<T> implements ClassDefinition<T>, Externalizabl
 		// regular class definition
 		if (name == null) return clazz = ClassUtil.loadClass(className);
 
-		return clazz = ClassUtil.loadClassByBundle(className, name, version, id, JavaSettingsImpl.getBundleDirectories(null));
+		return clazz = ClassUtil.loadClassByBundle(className, name, version, id, JavaSettingsImpl.getBundles(null), versionOnlyMattersWhenDownloading);
 	}
 
 	@Override

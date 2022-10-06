@@ -35,6 +35,7 @@ import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.intergral.fusiondebug.server.type.FDVariable;
 import lucee.intergral.fusiondebug.server.util.FDCaster;
+import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
 import lucee.runtime.exp.PageException;
@@ -161,7 +162,7 @@ public class FDStackFrameImpl implements IFDStackFrame {
 				getVariables(this, pc, list, (String) it.next());
 			}
 			catch (FDLanguageException e) {
-				LogUtil.log(null, "integral", e);
+				LogUtil.log((PageContext) null, "integral", e);
 			}
 		}
 		return sort(list);

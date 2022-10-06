@@ -23,7 +23,12 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.Appender;
+
 import lucee.commons.io.CharsetUtil;
+import lucee.commons.io.log.log4j2.LogAdapter;
+import lucee.commons.io.log.log4j2.appender.ResourceAppender;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.retirement.RetireListener;
 import lucee.commons.io.retirement.RetireOutputStream;
@@ -233,7 +238,31 @@ public final class Log extends TagImpl {
 			}
 		}
 		else {
-			logger = getFileLog(pageContext, file, charset, async);
+			logger = null;
+			// if we do have a log with the same name, we use the log
+			String tmpName = file.toLowerCase();
+			if (tmpName.endsWith(".log")) tmpName = tmpName.substring(0, tmpName.length() - 4);
+			lucee.commons.io.log.Log tmp = pci.getLog(tmpName, false);
+
+			// it has to be a resource appender
+			if (tmp instanceof LogAdapter) {
+				LogAdapter la = (LogAdapter) tmp;
+				Logger ll = la.getLogger();
+				if (ll instanceof org.apache.logging.log4j.core.Logger) {
+					Map<String, Appender> appenders = ((org.apache.logging.log4j.core.Logger) ll).getAppenders();
+					if (appenders != null) {
+						for (Appender a: appenders.values()) {
+							if (a instanceof ResourceAppender) {
+								logger = tmp;
+								break;
+							}
+						}
+					}
+				}
+
+			}
+
+			if (logger == null) logger = getFileLog(pageContext, file, charset, async);
 		}
 
 		String contextName = pageContext.getApplicationContext().getName();
@@ -255,17 +284,23 @@ public final class Log extends TagImpl {
 		ConfigPro config = (ConfigPro) pc.getConfig();
 		Resource logDir = config.getLogDirectory();
 		Resource res = logDir.getRealResource(file);
-		lucee.commons.io.log.Log log = FileLogPool.instance.get(res, CharsetUtil.toCharset(charset));
-		if (log != null) return log;
+		lucee.commons.io.log.Log log = FileLogPool.instance.get(res);
+		if (log != null) {
+			log.setLogLevel(lucee.commons.io.log.Log.LEVEL_TRACE);
+			return log;
+		}
 		synchronized (FileLogPool.instance) {
-			log = FileLogPool.instance.get(res, CharsetUtil.toCharset(charset));
-			if (log != null) return log;
+			log = FileLogPool.instance.get(res);
+			if (log != null) {
+				log.setLogLevel(lucee.commons.io.log.Log.LEVEL_TRACE);
+				return log;
+			}
 
 			if (charset == null) charset = CharsetUtil.toCharSet(((PageContextImpl) pc).getResourceCharset());
 
 			log = config.getLogEngine().getResourceLog(res, CharsetUtil.toCharset(charset), "cflog." + FileLogPool.toKey(file, CharsetUtil.toCharset(charset)),
 					lucee.commons.io.log.Log.LEVEL_TRACE, 5, new Listener(FileLogPool.instance, res, charset), async);
-			FileLogPool.instance.put(res, CharsetUtil.toCharset(charset), log);
+			FileLogPool.instance.put(res, log);
 			return log;
 		}
 	}
@@ -288,11 +323,11 @@ public final class Log extends TagImpl {
 			logs.remove(res.getAbsolutePath());
 		}
 
-		public void put(Resource res, Charset charset, lucee.commons.io.log.Log log) {
+		public void put(Resource res, lucee.commons.io.log.Log log) {
 			logs.put(res.getAbsolutePath(), log);
 		}
 
-		public lucee.commons.io.log.Log get(Resource res, Charset charset) {
+		public lucee.commons.io.log.Log get(Resource res) {
 			lucee.commons.io.log.Log l = logs.get(res.getAbsolutePath());
 			return l;
 		}

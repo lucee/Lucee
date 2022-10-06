@@ -29,6 +29,7 @@ import lucee.commons.io.cache.CacheEntry;
 import lucee.commons.io.cache.exp.CacheException;
 import lucee.commons.io.log.LogUtil;
 import lucee.loader.util.Util;
+import lucee.runtime.PageContext;
 import lucee.runtime.cache.util.CacheKeyFilterAll;
 import lucee.runtime.cache.util.WildCardFilter;
 import lucee.runtime.op.Caster;
@@ -98,7 +99,7 @@ public class CacheEngine {
 			}
 		}
 		catch (Exception e) {
-			LogUtil.log(null, "cache", e);
+			LogUtil.log((PageContext) null, "cache", e);
 		}
 		return sct;
 	}

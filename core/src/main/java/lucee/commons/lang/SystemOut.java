@@ -47,10 +47,10 @@ public final class SystemOut {
 		pw.flush();
 	}
 
-	public static void printDate(PrintWriter pw, Exception e) {
+	public static void printDate(PrintWriter pw, Throwable t) {
 		long millis = System.currentTimeMillis();
 		pw.write(FORMAT.format(new Date(millis)) + "\n");
-		e.printStackTrace(pw);
+		t.printStackTrace(pw);
 		pw.write("\n");
 		pw.flush();
 	}
@@ -89,7 +89,7 @@ public final class SystemOut {
 		printDate(value, OUT);
 	}
 
-	public static void printDate(Exception e) {
+	public static void printDate(Throwable e) {
 		printDate(getPrinWriter(ERR), e);
 	}
 
@@ -97,7 +97,7 @@ public final class SystemOut {
 		printDate(getPrinWriter(type), value);
 	}
 
-	public static void printDate(Exception e, int type) {
+	public static void printDate(Throwable e, int type) {
 		printDate(getPrinWriter(type), e);
 	}
 

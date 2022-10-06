@@ -38,6 +38,7 @@ import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.DatabaseException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
+import lucee.runtime.osgi.OSGiUtil;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.util.ArrayUtil;
@@ -169,6 +170,7 @@ public class DatasourceConnectionPool {
 		if (dc == null) return;
 		if (!closeIt && dc.getDatasource().getConnectionTimeout() == 0) closeIt = true; // smaller than 0 is infiniti
 		if (closeIt) IOUtil.closeEL(dc.getConnection());
+
 		DCStack stack = getDCStack(dc.getDatasource(), dc.getUsername(), dc.getPassword());
 		synchronized (stack) {
 			if (!closeIt) stack.add(dc);
@@ -251,19 +253,18 @@ public class DatasourceConnectionPool {
 			return false;
 		}
 
+		if (!OSGiUtil.isValid(dc.getConnection())) return false;
+
 		try {
-			if (dc.getDatasource().validate() && !DataSourceUtil.isValid(dc, 1000)) return false;
+			if (((DatasourceConnectionPro) dc).validate() || dc.isLifecycleTimeout() || dc.isTimeout()) {
+				if (!DataSourceUtil.isValid(dc, 1000, true)) return false;
+			}
+
 		}
 		catch (Exception e) {
-			LogUtil.log(ThreadLocalPageContext.getConfig(), "datasource", "connection", e, Log.LEVEL_INFO);
+			LogUtil.log(ThreadLocalPageContext.get(), "datasource", "connection", e, Log.LEVEL_INFO);
 		} // not all driver support this, because of that we ignore an error
 			// here, also protect from java 5
-
-		/*
-		 * try { if (autoCommit != null && autoCommit.booleanValue() != dc.getAutoCommit())
-		 * dc.setAutoCommit(autoCommit.booleanValue()); } catch (Throwable t) {
-		 * ExceptionUtil.rethrowIfNecessary(t); return false; }
-		 */
 
 		return true;
 	}

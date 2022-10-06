@@ -33,6 +33,7 @@ import javax.servlet.ServletInputStream;
  */
 public final class ServletInputStreamDummy extends ServletInputStream {
 	private InputStream stream;
+	private boolean closed;
 
 	/**
 	 * @param data
@@ -71,6 +72,11 @@ public final class ServletInputStreamDummy extends ServletInputStream {
 	@Override
 	public void close() throws IOException {
 		stream.close();
+		closed = true;
+	}
+
+	public boolean isClosed() {
+		return closed;
 	}
 
 	@Override

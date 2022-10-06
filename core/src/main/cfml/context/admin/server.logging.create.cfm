@@ -40,25 +40,39 @@
 				</cfif>
 			</cfloop>
 
+			<cfif structKeyExists(form,'custom_2_appender_table') and !structKeyExists(form,'custom_2_appender_datasource')>
+				<cfset error.message = "No Datasource has been defined">
+			<cfelseif structKeyExists(form,"custom_3_appender_path")>
+				<cfset path = getDirectoryFromPath(form.custom_3_appender_path)>
+				<cfif findNoCase("{lucee-config}",path) NEQ 0>
+					<cfset path = "#expandpath(replaceNoCase(path,"{lucee-config}","{lucee-server}"))#">
+				</cfif>
+			
+				<cfif !directoryExists(path)>
+					<cfset error.message = "Path [#form.custom_3_appender_path#] doesn't exist">
+				</cfif>
+			</cfif>
+			
 			<cfset layoutClass=trim(form.appenderLayoutClass?:'')>
 			<cfif isEmpty(layoutClass)><cfset layoutClass=trim(form.layoutClass)></cfif>
 			
-			<cfadmin
-				action="updateLogSettings"
-				type="#request.adminType#"
-				password="#session["password"&request.adminType]#"
-				name="#trim(form._name)#"
-				level="#form.level#"
-				appenderClass="#trim(form.appenderClass)#"
-				appenderBundleName="#trim(form.appenderBundleName?:'')#"
-				appenderBundleVersion="#trim(form.appenderBundleVersion?:'')#"
-				appenderArgs="#appenderArgs#"
-				layoutClass="#layoutClass#"
-				layoutBundleName="#trim(form.layoutBundleName?:'')#"
-				layoutBundleVersion="#trim(form.layoutBundleVersion?:'')#"
-				layoutArgs="#(layoutArgs)#"
-
-				remoteClients="#request.getRemoteClients()#">
+			<cfif error.message EQ "">
+				<cfadmin
+					action="updateLogSettings"
+					type="#request.adminType#"
+					password="#session["password"&request.adminType]#"
+					name="#trim(form._name)#"
+					level="#form.level#"
+					appenderClass="#trim(form.appenderClass)#"
+					appenderBundleName="#trim(form.appenderBundleName?:'')#"
+					appenderBundleVersion="#trim(form.appenderBundleVersion?:'')#"
+					appenderArgs="#appenderArgs#"
+					layoutClass="#layoutClass#"
+					layoutBundleName="#trim(form.layoutBundleName?:'')#"
+					layoutBundleVersion="#trim(form.layoutBundleVersion?:'')#"
+					layoutArgs="#(layoutArgs)#"
+					remoteClients="#request.getRemoteClients()#">
+			</cfif>
 
 		</cfcase>
 	</cfswitch>
@@ -88,6 +102,7 @@ Redirtect to entry --->
 	<cfloop query="logs" >
 		<cfif hash(logs.name) EQ url.name>
 			<cfset log=querySlice(logs,logs.currentrow,1)>
+			<cfset logLayoutClass = log.layoutClass> 
 			<cfset layout=layouts[log.layoutClass]?:nullValue()>
 			<cfset appender=appenders[log.appenderClass]?:nullValue()>
 		</cfif>
@@ -159,6 +174,8 @@ function showLayout() {
 </cfhtmlbody>
 
 
+	<cfset hasMissingLayout = false>
+	<cfset MissinglayoutClass = "">
 	<h1>Log "#log.name#"</h1>
 	<div class="pageintro">#stText.Settings.logging.detailDesc#</div>
 	<cfformClassic onerror="customError" action="#request.self#?action=#url.action#&action2=create#iif(isDefined('url.name'),de('&name=##url.name##'),de(''))#" method="post">
@@ -203,7 +220,19 @@ function showLayout() {
 		
 		<div id="allgroup_#_name#" <cfif disable>style="display: none;"</cfif>> 
 		<cfset drivers=variables[_name&"s"]>
-		<cfset _driver=isNull(variables[_name])?drivers[structKeyArray(drivers)[1]]:variables[_name]>
+		<cfif _name == "layout">
+			<cfif isNull(variables[_name])> <!--- to handle the missing layout --->
+				<cfset hasMissingLayout = true>
+				<cfset MissingLayoutName = replaceNoCase(listLast(logLayoutClass, ".") ,"Layout", "")>
+				<cfset MissinglayoutClass = logLayoutClass>
+				<cfset _driver = nullValue()>
+				<cfset drivers[logLayoutClass] = "">
+			<cfelse>
+				<cfset _driver=variables[_name]>
+			</cfif>
+		<cfelse>
+			<cfset _driver=isNull(variables[_name])?drivers[structKeyArray(drivers)[1]]:variables[_name]>
+		</cfif>
 		<!--- <cfif !arrayLen(driver.getCustomFields())><cfbreak></cfif>--->
 		<br />
 		
@@ -223,9 +252,10 @@ function showLayout() {
 				type="button"
 				class="#orientation# button submit"
 				name="change#_name#"
-				<cfif !isNull(_driver) && driver.getClass() EQ _driver.getClass()> style="color:white;background-color:#request.adminType=="web"?'##39c':'##c00'#;"</cfif>
-				value="#driver.getLabel()#">
-		</cfloop>
+				<cfif !isNull(_driver) && driver.getClass() EQ _driver.getClass() || hasMissingLayout && driverClass EQ MissinglayoutClass> style="color:white;background-color:#request.adminType=='web'?'##39c':'##c00'#;"
+				</cfif>
+				value="#hasMissingLayout && driverClass EQ MissinglayoutClass ? MissingLayoutName:driver.getLabel()#">
+			</cfloop>
 		<div id="group_#_name#">
 		<cfset cnt=0>
 		<cfloop collection="#drivers#" index="driverClass" item="driver">
@@ -233,7 +263,11 @@ function showLayout() {
 			<cfset id="#_name#_#hash(driver.getClass(),'quick')#">
 			<cfset active=!isNull(_driver) && driver.getClass() EQ _driver.getClass()>
 		<div id="div_#id#">
-			
+		<cfif hasMissingLayout && driverClass EQ MissinglayoutClass>
+			<input type="hidden" name="#_name#Class" value="#MissinglayoutClass#">
+			</div>
+			<cfcontinue>
+		</cfif>
 		<input type="hidden" name="#_name#Class" value="#driver.getClass()#">
 		<input type="hidden" name="#_name#BundleName" 
 			value="#structKeyExists(driver,'getBundleName')?driver.getBundleName():''#">
@@ -392,7 +426,7 @@ function showLayout() {
 		<script>
 			<cfloop collection="#drivers#" index="driverClass" item="driver">
 				<cfset id="#_name#_#hash(driver.getClass(),'quick')#">
-				<cfset active=!isNull(_driver) && driver.getClass() EQ _driver.getClass()>
+				<cfset active=!isNull(_driver) && driver.getClass() EQ _driver.getClass() || hasMissingLayout && driverClass EQ MissinglayoutClass >
 
 			<cfif !active>
 			$(document).ready(function(){
@@ -414,7 +448,8 @@ function showLayout() {
 		<tfoot>
 				<tr>
 					<td colspan="2">
-						<input type="submit" class="button submit" name="mainAction" value="#stText.Buttons.submit#">
+						<input type="submit" class="bl button submit" name="mainAction" value="#stText.Buttons.submit#">
+						<input type="submit" class="br button submit" name="mainAction" value="#stText.Buttons.Cancel#">
 					</td>
 				</tr>
 			</tfoot>

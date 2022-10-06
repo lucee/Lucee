@@ -4888,14 +4888,14 @@ Permits searching collections by title or displaying a separate title from the k
 			<name>text</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>an exception to log.</description>
+			<description>The message text to log.</description>
 		</attribute>
 		<attribute>
 			<type>any</type>
 			<name>exception</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>The message text to log.</description>
+			<description>The exception to log.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -5469,12 +5469,19 @@ Lucee uses the number of characters in the file.</description>
 			<description>remove all attachments from filesystem after the mail is successfully sent</description>
 		</attribute>
 		<attribute>
-            <type>datetime</type>
-            <name>sendTime</name>
-            <required>false</required>
-            <rtexprvalue>true</rtexprvalue>
-            <description>Set a future date time to send an email in the future via the spooler.</description>
-        </attribute>
+			<type>datetime</type>
+			<name>sendTime</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>Set a future date time to send an email in the future via the spooler.</description>
+		</attribute>
+		<attribute>
+			<type>boolean</type>
+			<name>debug</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>Whether to enable detailed logging to console.</description>
+		</attribute>
 	</tag>
 	<!-- MailPart -->
 	<tag>
@@ -6404,15 +6411,6 @@ sct["bracketNotation"] --> keyname: "bracketNotation"
 			<description>This attribute has been deprecated and is non-functional.</description>
 		</attribute>
 		<attribute>
-			<type>any</type>
-			<name>tags</name>
-			<alias>tag</alias>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<status>hidden</status>
-			<description>tags stored with the cache.</description>
-		</attribute>
-		<attribute>
 			<type>string</type>
 			<name>connectString</name>
 			<required>false</required>
@@ -6478,6 +6476,14 @@ a timespan (created with function CreateTimeSpan): If original query date falls 
 
 To use cached data, the current query must use the same SQL statement, data source, query name, user name, and password.</description>
     	</attribute>
+		<attribute>
+			<type>any</type>
+			<name>tags</name>
+			<alias>tag</alias>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>tags stored with the cache.</description>
+		</attribute>
 		<attribute>
 			<type>string</type>
 			<name>provider</name>
@@ -6695,8 +6701,11 @@ To use cached data, the current query must use the same SQL statement, data sour
 			<name>list</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>Yes or No. Indicates that the parameter value of the value attribute is a list of values,
-	separated by a separator character. The default is No</description>
+			<description>true, false or not set. 
+			If set to true this indicates that the parameter value of the value attribute is a list of values and is handled as such,
+			if set to false it is handled as a simple value.
+			if not set lucee will automatically detect if it is an array or not.
+			</description>
 		</attribute>
 		<attribute>
 			<type>string</type>

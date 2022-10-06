@@ -33,6 +33,7 @@ import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageSource;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigWebUtil;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.TemplateException;
 import lucee.transformer.bytecode.statement.tag.Attribute;
 import lucee.transformer.bytecode.statement.tag.Tag;
@@ -211,7 +212,8 @@ public final class Import extends EvaluatorSupport {
 			byte[] barr;
 			while ((ze = zis.getNextEntry()) != null) {
 				if (!ze.isDirectory() && (StringUtil.endsWithIgnoreCase(ze.getName(), ".tld") || StringUtil.endsWithIgnoreCase(ze.getName(), ".tldx"))) {
-					LogUtil.log(c, lucee.commons.io.log.Log.LEVEL_INFO, Import.class.getName(), "found tld in file [" + jarFile + "] at position " + ze.getName());
+					LogUtil.log(ThreadLocalPageContext.get(c), lucee.commons.io.log.Log.LEVEL_INFO, Import.class.getName(),
+							"found tld in file [" + jarFile + "] at position " + ze.getName());
 					ByteArrayOutputStream baos = new ByteArrayOutputStream();
 					while ((bytes_read = zis.read(buffer)) != -1)
 						baos.write(buffer, 0, bytes_read);

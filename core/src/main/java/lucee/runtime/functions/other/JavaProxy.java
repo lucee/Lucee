@@ -72,7 +72,7 @@ public final class JavaProxy implements Function {
 			// Bundle Name?
 			if (!str.contains("/") && !str.contains("\\") && !str.endsWith(".jar")) {
 				try {
-					return ClassUtil.loadClassByBundle(className, str, delimiterOrVersion, pc.getConfig().getIdentification(), JavaSettingsImpl.getBundleDirectories(pc));
+					return ClassUtil.loadClassByBundle(className, str, delimiterOrVersion, pc.getConfig().getIdentification(), JavaSettingsImpl.getBundles(pc));
 				}
 				catch (Throwable t) {
 					ExceptionUtil.rethrowIfNecessary(t);

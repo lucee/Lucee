@@ -76,6 +76,7 @@ import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
+import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigPro;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ExpressionException;
@@ -260,7 +261,7 @@ public final class XMLUtil {
 			}
 		}
 		if (factory == null) return factory = TransformerFactory.newInstance();
-		LogUtil.log(null, Log.LEVEL_INFO, "application", "xml", factory.getClass().getName() + " is used as TransformerFactory");
+		LogUtil.log((Config) null, Log.LEVEL_INFO, "application", "xml", factory.getClass().getName() + " is used as TransformerFactory");
 
 		return factory;
 	}
@@ -408,7 +409,7 @@ public final class XMLUtil {
 			}
 			if (clazz != null) {
 				dbf = clazz;
-				LogUtil.log(null, Log.LEVEL_INFO, "application", "xml", clazz.getName() + " is used as DocumentBuilderFactory");
+				LogUtil.log((Config) null, Log.LEVEL_INFO, "application", "xml", clazz.getName() + " is used as DocumentBuilderFactory");
 			}
 		}
 		return dbf;

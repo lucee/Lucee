@@ -21,6 +21,14 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				assertEquals("1", "#listcontains("evaluate,,expression","expression",';,',false,true)#");
 				<!--- end old test code --->
 			});
+			it(title = "Checking with list.ListContains member function", body = function( currentSpec ) {
+				assertEquals("3", "#'a,b,abba,bcb'.ListContains('bb')#");
+				assertEquals("3", "#'abba,bb,AABBCC'.ListContains('BB')#");
+				assertEquals("0", "#',,,,,abba,bb,AABBCC,,,,'.ListContains('ZZ')#");
+				assertEquals("3", "#'abba,,,,,bb,AABBCC'.ListContains('BB')#");
+				assertEquals("3", "#'abba,,,,,bb,AABBCC'.ListContains('BB',';,.')#");
+				assertEquals("0", "#'evaluate,expression'.listcontains("")#");
+			});
 		});	
 	}
 }

@@ -79,8 +79,7 @@ public class StaticScope extends StructSupport implements Variables, Objects {
 			if (m.getModifier() == Member.MODIFIER_FINAL)
 				throw new ExpressionException("Cannot remove key [" + key + "] in static scope from component [" + cp.getComponentName() + "], that member is set to final");
 
-			if (!c.isAccessible(ThreadLocalPageContext.get(pc), m.getAccess()))
-				throw new ExpressionException("Component from type [" + cp.getComponentName() + "] has no accessible static Member with name [" + key + "]");
+			if (!c.isAccessible(ThreadLocalPageContext.get(pc), m.getAccess())) throw notExisting(key);
 			return ss.remove(key);
 		}
 		// if not the parent (inside the static constructor we do not remove keys from base static scopes)
@@ -140,8 +139,7 @@ public class StaticScope extends StructSupport implements Variables, Objects {
 
 		Member m = _get(ThreadLocalPageContext.get(pc), key, null);
 		if (m != null) return m.getValue();
-
-		throw new ExpressionException("Component from type [" + cp.getComponentName() + "] has no accessible static Member with name [" + key + "]");
+		throw notExisting(key);
 	}
 
 	@Override
@@ -181,8 +179,7 @@ public class StaticScope extends StructSupport implements Variables, Objects {
 		}
 
 		// check if user has access
-		if (!c.isAccessible(pc, existing != null ? existing.getAccess() : dataMemberDefaultAccess))
-			throw new ExpressionException("Component from type [" + cp.getComponentName() + "] has no accessible static Member with name [" + key + "]");
+		if (!c.isAccessible(pc, existing != null ? existing.getAccess() : dataMemberDefaultAccess)) throw notExisting(key);
 
 		// set
 		return cp.getStaticStruct().put(key,
@@ -297,8 +294,7 @@ public class StaticScope extends StructSupport implements Variables, Objects {
 		if (m instanceof UDF) {
 			return _call(pc, key, ((UDF) m), null, args);
 		}
-
-		throw new ExpressionException("Component from type [" + cp.getComponentName() + "] has no accessible static Member with name [" + key + "]");
+		throw notExisting(key);
 	}
 
 	@Override
@@ -307,8 +303,7 @@ public class StaticScope extends StructSupport implements Variables, Objects {
 		if (m instanceof UDF) {
 			return _call(pc, key, ((UDF) m), args, null);
 		}
-
-		throw new ExpressionException("Component from type [" + cp.getComponentName() + "] has no accessible static Member with name [" + key + "]");
+		throw notExisting(key);
 	}
 
 	Object _call(PageContext pc, Collection.Key calledName, UDF udf, Struct namedArgs, Object[] args) throws PageException {
@@ -325,12 +320,12 @@ public class StaticScope extends StructSupport implements Variables, Objects {
 			long time = System.nanoTime();
 
 			try {
-				parent = beforeStaticConstructor(pc, c, this);
+				parent = beforeStaticCall(pc, c, this);
 				if (args != null) rtn = udf.call(pc, calledName, args, true);
 				else rtn = udf.callWithNamedValues(pc, calledName, namedArgs, true);
 			}
 			finally {
-				afterStaticConstructor(pc, c, parent);
+				if (parent != null) afterStaticCall(pc, c, parent);
 				long diff = ((System.nanoTime() - time) - (pc.getExecutionTime() - currTime));
 				pc.setExecutionTime(pc.getExecutionTime() + diff);
 				debugEntry.updateExeTime(diff);
@@ -340,12 +335,12 @@ public class StaticScope extends StructSupport implements Variables, Objects {
 		// debug no
 		else { // this.cp._static
 			try {
-				parent = beforeStaticConstructor(pc, c, this);
+				parent = beforeStaticCall(pc, c, this);
 				if (args != null) rtn = udf.call(pc, calledName, args, true);
 				else rtn = udf.callWithNamedValues(pc, calledName, namedArgs, true);
 			}
 			finally {
-				afterStaticConstructor(pc, c, parent);
+				if (parent != null) afterStaticCall(pc, c, parent);
 			}
 		}
 		return rtn;
@@ -410,6 +405,9 @@ public class StaticScope extends StructSupport implements Variables, Objects {
 		accesses[Component.ACCESS_PUBLIC] = new DumpTable("#ffcc99", "#ffffcc", "#000000");
 		accesses[Component.ACCESS_PUBLIC].setTitle("public");
 		accesses[Component.ACCESS_PUBLIC].setWidth("100%");
+		accesses[Component.ACCESS_REMOTE] = new DumpTable("#ccffcc", "#ffffcc", "#000000");
+		accesses[Component.ACCESS_REMOTE].setTitle("remote");
+		accesses[Component.ACCESS_REMOTE].setWidth("100%");
 
 		Iterator<Entry<Key, Member>> it = all(new HashMap<Key, Member>()).entrySet().iterator();
 		Entry<Key, Member> e;
@@ -420,11 +418,16 @@ public class StaticScope extends StructSupport implements Variables, Objects {
 			DumpTable box = accesses[a];
 			Object o = e.getValue().getValue();
 
-			if (DumpUtil.keyValid(dp, maxlevel, e.getKey())) box.appendRow(1, new SimpleDumpData(e.getKey().getString()), DumpUtil.toDumpData(o, pc, maxlevel, dp));
+			if (DumpUtil.keyValid(dp, maxlevel, e.getKey())) {
+				box.appendRow(1, new SimpleDumpData(e.getKey() + ""), DumpUtil.toDumpData(o, pc, maxlevel, dp));
+			}
 		}
 
 		DumpTable table = new DumpTable("#ffffff", "#cccccc", "#000000");
 
+		if (!accesses[Component.ACCESS_REMOTE].isEmpty()) {
+			table.appendRow(0, accesses[Component.ACCESS_REMOTE]);
+		}
 		if (!accesses[Component.ACCESS_PUBLIC].isEmpty()) {
 			table.appendRow(0, accesses[Component.ACCESS_PUBLIC]);
 		}
@@ -449,13 +452,36 @@ public class StaticScope extends StructSupport implements Variables, Objects {
 	public static Variables beforeStaticConstructor(PageContext pc, ComponentImpl c, StaticScope ss) {
 		c.insideStaticConstrThread.set(Boolean.TRUE);
 		Variables parent = pc.variablesScope();
-		pc.setVariablesScope(ss);
-		return parent;
+		if (parent != ss) {
+			pc.setVariablesScope(ss);
+			return parent;
+		}
+		return null;
 	}
 
 	public static void afterStaticConstructor(PageContext pc, ComponentImpl c, Variables parent) {
 		c.insideStaticConstrThread.set(Boolean.FALSE);
+		if (parent != null) pc.setVariablesScope(parent);
+	}
+
+	public static Variables beforeStaticCall(PageContext pc, ComponentImpl c, StaticScope ss) {
+		Variables parent = pc.variablesScope();
+		// only if we are not already in that context
+		if (parent != ss) {
+			pc.setVariablesScope(ss);
+			return parent;
+		}
+		return null;
+
+	}
+
+	public static void afterStaticCall(PageContext pc, ComponentImpl c, Variables parent) {
 		pc.setVariablesScope(parent);
+	}
+
+	private ExpressionException notExisting(Collection.Key key) {
+		return new ExpressionException(
+				ExceptionUtil.similarKeyMessage(this, key.getString(), "static member", "static members", "Component [" + cp.getComponentName() + "]", true));
 	}
 
 }

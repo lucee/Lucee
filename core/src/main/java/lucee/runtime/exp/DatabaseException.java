@@ -4,17 +4,17 @@
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either 
+ * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public 
+ *
+ * You should have received a copy of the GNU Lesser General Public
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  **/
 package lucee.runtime.exp;
 
@@ -37,7 +37,7 @@ import lucee.runtime.type.util.KeyConstants;
  * Database Exception Object
  */
 
-public final class DatabaseException extends PageExceptionImpl {
+public class DatabaseException extends PageExceptionImpl {
 
 	private SQL sql;
 	private String sqlstate = "";
@@ -49,7 +49,7 @@ public final class DatabaseException extends PageExceptionImpl {
 
 		set(sqle);
 		set(dc);
-		initCause( sqle );
+		initCause(sqle);
 	}
 
 	public DatabaseException(String message, String detail, SQL sql, DatasourceConnection dc) {
@@ -62,7 +62,7 @@ public final class DatabaseException extends PageExceptionImpl {
 
 	/**
 	 * Constructor of the class
-	 * 
+	 *
 	 * @param message error message
 	 * @param detail detailed error message
 	 * @param sqle
@@ -81,7 +81,12 @@ public final class DatabaseException extends PageExceptionImpl {
 	private void set(SQL sql) {
 		this.sql = sql;
 		if (sql != null) {
-			setAdditional(KeyConstants._SQL, sql.toString());
+			try {
+				setAdditional(KeyConstants._SQL, sql.toString());
+			}
+			catch (Exception e) {
+				setAdditional(KeyConstants._SQL, sql.getSQLString());
+			}
 		}
 	}
 
@@ -127,18 +132,18 @@ public final class DatabaseException extends PageExceptionImpl {
 
 	/**
 	 * Constructor of the class
-	 * 
+	 *
 	 * @param message
 	 * @param sqle
 	 * @param sql
-	 * 
+	 *
 	 *            public DatabaseException(String message, SQLException sqle, SQL
 	 *            sql,DatasourceConnection dc) { this(message,null,sqle,sql,dc); }
 	 */
 
 	/**
 	 * Constructor of the class
-	 * 
+	 *
 	 * @param sqle
 	 * @param sql
 	 */
@@ -148,7 +153,7 @@ public final class DatabaseException extends PageExceptionImpl {
 
 	/**
 	 * Constructor of the class
-	 * 
+	 *
 	 * @param sqle
 	 */
 

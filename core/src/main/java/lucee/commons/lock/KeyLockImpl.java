@@ -30,7 +30,7 @@ public class KeyLockImpl<K> implements KeyLock<K> {
 
 	@Override
 	public Lock lock(K key, long timeout) throws LockException {
-		if (timeout <= 0) throw new LockException("timeout must be a positive number");
+		if (timeout <= 0) throw new LockException("Timeout must be a positive number");
 
 		SimpleLock<Token<K>> lock;
 		Token<K> token = new Token<K>(key);

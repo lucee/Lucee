@@ -355,7 +355,7 @@ public abstract class ApplicationContextSupport implements ApplicationContext {
 						las = addLogger(name, level, cdApp, appArgs, cdLay, layArgs, readOnly);
 					}
 					else las = addLogger(name, level, cdApp, appArgs, null, null, readOnly);
-					rtn.put(name, new Pair<Log, Struct>(las.getLog(), v));
+					rtn.put(name, new Pair<Log, Struct>(las.getLog(false), v));
 				}
 			}
 		}

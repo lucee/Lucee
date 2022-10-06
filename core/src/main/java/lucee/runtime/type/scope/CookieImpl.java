@@ -30,7 +30,6 @@ import javax.servlet.http.HttpServletResponse;
 import lucee.commons.date.DateTimeUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
-import lucee.commons.lang.HTMLEntities;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.Config;
 import lucee.runtime.engine.ThreadLocalPageContext;
@@ -203,8 +202,9 @@ public final class CookieImpl extends ScopeSupport implements Cookie, ScriptProt
 	}
 
 	// FUTURE add to interface
-	public void setCookie(Collection.Key key, Object value, Object expires, boolean secure, String path, String domain, boolean httpOnly, boolean preserveCase, boolean encode,
+	public void setCookie(Collection.Key key, Object value, Object expires, boolean secure, String path, String domain, boolean httpOnly, boolean preserveCase, Boolean encode,
 			short samesite) throws PageException {
+
 		int exp = EXPIRES_NULL;
 
 		// expires
@@ -228,7 +228,9 @@ public final class CookieImpl extends ScopeSupport implements Cookie, ScriptProt
 			throw new ExpressionException("invalid type [" + Caster.toClassName(expires) + "] for expires");
 		}
 
-		setCookie(key, value, exp, secure, path, domain, httpOnly, preserveCase, encode, samesite);
+		_addCookie(key, Caster.toString(value), exp, secure, path, domain, httpOnly, preserveCase, encode, samesite);
+		super.set(key, value);
+
 	}
 
 	@Override
@@ -259,13 +261,13 @@ public final class CookieImpl extends ScopeSupport implements Cookie, ScriptProt
 		super.setEL(key, value);
 	}
 
-	private void _addCookie(Key key, String value, int expires, boolean secure, String path, String domain, boolean httpOnly, boolean preserveCase, boolean encode,
+	private void _addCookie(Key key, String value, int expires, boolean secure, String path, String domain, boolean httpOnly, boolean preserveCase, Boolean encode,
 			short samesite) {
 		String name = preserveCase ? key.getString() : key.getUpperString();
 
 		// build the value
 		StringBuilder sb = new StringBuilder();
-		/* Name */ sb.append(enc(name)).append('=').append(enc(value, encode));
+		/* Name */ sb.append(enc(name)).append('=').append(encode == null ? enc(value) : enc(value, encode.booleanValue()));
 		/* Path */sb.append(";Path=").append(enc(path));
 		/* Domain */if (!StringUtil.isEmpty(domain)) sb.append(";Domain=").append(enc(domain));
 		/* Expires */if (expires != EXPIRES_NULL) sb.append(";Expires=").append(DateTimeUtil.toHTTPTimeString(System.currentTimeMillis() + (expires * 1000L), false));
@@ -371,12 +373,12 @@ public final class CookieImpl extends ScopeSupport implements Cookie, ScriptProt
 	}
 
 	public String enc(String str, boolean encode) {
-		if (encode) return HTMLEntities.escapeHTML(str, HTMLEntities.HTMLV20);
-		if (ReqRspUtil.needEncoding(str, false)) return ReqRspUtil.encode(str, charset);
+		if (encode) return ReqRspUtil.encode(str, charset);
 		return str;
 	}
 
 	public String enc(String str) {
+		if (ReqRspUtil.needEncoding(str, false)) return enc(str, true);
 		return enc(str, false);
 	}
 

@@ -181,7 +181,7 @@ public final class MappingImpl implements Mapping {
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
 			archMod = archive.lastModified();
-			config.getLog("application").log(Log.LEVEL_ERROR, "OSGi", t);
+			ThreadLocalPageContext.getLog(config, "application").log(Log.LEVEL_ERROR, "OSGi", t);
 			archive = null;
 		}
 	}
@@ -407,12 +407,12 @@ public final class MappingImpl implements Mapping {
 		}
 	}
 
-	/**
-	 * @return Returns the pageSourcePool.
-	 * 
-	 *         public PageSourcePool getPageSourcePoolX() { synchronized (pageSourcePoolX) { return
-	 *         pageSourcePoolX; } }
-	 */
+	// to not delete,used for argus monitor!
+	public PageSourcePool getPageSourcePool() {
+		synchronized (pageSourcePool) {
+			return pageSourcePool;
+		}
+	}
 
 	public Array getDisplayPathes(Array arr) throws PageException {
 		synchronized (pageSourcePool) {

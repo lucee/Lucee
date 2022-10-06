@@ -20,6 +20,7 @@ package lucee.runtime.interpreter.ref.literal;
 
 import java.math.BigDecimal;
 
+import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.interpreter.ref.Ref;
@@ -31,8 +32,8 @@ import lucee.runtime.op.Caster;
  */
 public final class LNumber implements Literal {
 
-	public static final LNumber ZERO = new LNumber(new Double(0));
-	public static final LNumber ONE = new LNumber(new Double(1));
+	public static final LNumber ZERO = new LNumber(Double.valueOf(0));
+	public static final LNumber ONE = new LNumber(Double.valueOf(1));
 
 	private Object literal;
 
@@ -55,7 +56,9 @@ public final class LNumber implements Literal {
 		this.literal = Caster.toDouble(literal);
 		// in theory this filter (>10) makes not really sense, just better for performance!!!
 		if (literal.length() > 10) {
-			if (!Caster.format(((Double) this.literal).doubleValue()).equals(literal)) this.literal = new BigDecimal(literal);
+			if (StringUtil.indexOfIgnoreCase(literal, "e") == -1 && !Caster.format(((Double) this.literal).doubleValue()).equals(literal)) {
+				this.literal = new BigDecimal(literal);
+			}
 		}
 	}
 
@@ -86,7 +89,7 @@ public final class LNumber implements Literal {
 
 	@Override
 	public String toString() {
-		return literal instanceof String ? (String) literal : Caster.toString((Double) literal);
+		return literal instanceof String ? (String) literal : Caster.toString((Number) literal);
 	}
 
 	@Override

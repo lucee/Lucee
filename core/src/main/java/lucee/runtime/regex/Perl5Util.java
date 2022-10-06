@@ -100,13 +100,11 @@ final class Perl5Util {
 		if (offset <= strInput.length()) input.setCurrentOffset(offset - 1);
 
 		Array rtn = new ArrayImpl();
-		if (offset <= strInput.length()) {
-			MatchResult result;
-			while (matcher.contains(input, pattern)) {
-				result = matcher.getMatch();
-				if (!matchAll) return result.toString();
-				rtn.appendEL(result.toString());
-			}
+		MatchResult result;
+		while (matcher.contains(input, pattern)) {
+			result = matcher.getMatch();
+			if (!matchAll) return result.toString();
+			rtn.appendEL(result.toString());
 		}
 		if (!matchAll) return "";
 		return rtn;

@@ -1,6 +1,20 @@
-name: Java CI
+name: Build 5.3
 
-on: [push, pull_request, workflow_dispatch]
+on: 
+  workflow_call:
+    inputs:
+      LUCEE_TEST_JAVA_VERSION:
+        required: true
+        type: string
+      LUCEE_BUILD_JAVA_VERSION:
+        required: true
+        type: string
+        default: '8'
+  push:
+    branches:
+      - '**' # thus ignoring tagging
+  pull_request:
+  workflow_dispatch:
 
 concurrency:
   group: lucee-build
@@ -10,27 +24,58 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
-
+    env:
+      DO_DEPLOY: "${{ github.event_name == 'push' && github.ref == 'refs/heads/5.3' }}"
+      LUCEE_BUILD_JAVA_VERSION: 8
+      LUCEE_TEST_JAVA_VERSION: ''
     services:
       sql-server:
         image: mcr.microsoft.com/mssql/server:2019-latest
         env:
           MSSQL_PID: Express
           ACCEPT_EULA: Y
-          SA_PASSWORD: Lucee!1433 # password must be complex or it won't start
+          SA_PASSWORD: Lucee!1433 # password must be complex or the service won't start
         ports:
           - 1433:1433
         options: --health-cmd="/opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P ${SA_PASSWORD} -Q 'SELECT 1' || exit 1"  --health-interval 10s --health-timeout 5s --health-retries 5
     steps:
+    # when workflow is run via a workflow_call, these vars are found under input, which doesn't exist otherwise
+    # so lets copy them over to the normal env vars
+    - name: Configure Build Java Version
+      if: ${{ inputs.LUCEE_BUILD_JAVA_VERSION != '' }}
+      run: echo "LUCEE_BUILD_JAVA_VERSION=${{ inputs.LUCEE_BUILD_JAVA_VERSION }}" >> $GITHUB_ENV
+
+    - name: Configure Test Java Version
+      if: ${{ inputs.LUCEE_TEST_JAVA_VERSION != '' }}
+      run: echo "LUCEE_TEST_JAVA_VERSION=${{ inputs.LUCEE_TEST_JAVA_VERSION }}" >> $GITHUB_ENV
+
     - uses: szenius/set-timezone@v1.0
       with:
         timezoneLinux: "UTC"
     - uses: actions/checkout@v2
-    - name: Set up JDK 8
+
+    - name: Set up Test Java Version ${{ env.LUCEE_TEST_JAVA_VERSION }}
       uses: actions/setup-java@v2
+      if: ${{ env.LUCEE_TEST_JAVA_VERSION != '' }}
       with:
-        java-version: '8'
-        distribution: 'adopt'
+        java-version: ${{ env.LUCEE_TEST_JAVA_VERSION }}
+        distribution: 'temurin'
+
+    - name: Stash Test Java Version Home
+      if: ${{ env.LUCEE_TEST_JAVA_VERSION != '' }}
+      run: echo "LUCEE_TEST_JAVA_EXEC=${{ env.JAVA_HOME }}/bin/java" >> $GITHUB_ENV
+
+    - name: Set up build JDK '${{ env.LUCEE_BUILD_JAVA_VERSION }}'
+      uses: actions/setup-java@v2
+      if: ${{ env.LUCEE_TEST_JAVA_VERSION != env.LUCEE_BUILD_JAVA_VERSION }}
+      with:
+        java-version: '${{ env.LUCEE_BUILD_JAVA_VERSION }}'
+        distribution: 'temurin'
+
+    - name: Disable DEPLOY if not building with Java 8 (Lucee default)
+      if: ${{ env.LUCEE_BUILD_JAVA_VERSION != '8' }}
+      run: echo "DO_DEPLOY=false" >> $GITHUB_ENV
+
     - name: Cache Lucee extensions
       uses: actions/cache@v2
       with:
@@ -40,11 +85,12 @@ jobs:
     - name: Cache Maven packages
       uses: actions/cache@v2
       with:
-        path: ~/.m2
-        key: ${{ runner.os }}-m2-${{ hashFiles('loader/pom.xml','core/pom.xml') }}
+        path: |
+          ~/.m2/repository/*
+          !~/.m2/repository/org/lucee/lucee/
+        key: ${{ runner.os }}-maven-${{ hashFiles('loader/pom.xml','core/pom.xml') }}
         restore-keys: |
-          ${{ runner.os }}-m2
-          maven-cache
+          ${{ runner.os }}-maven-
     - name: Set up MySQL (local)
       run: |
         sudo systemctl start mysql
@@ -87,7 +133,7 @@ jobs:
         MSSQL_DATABASE: master
         S3_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_ID_TEST }}
         S3_SECRET_KEY: ${{ secrets.S3_SECRET_KEY_TEST }}
-        DO_DEPLOY: ${{ github.event_name == 'push' }}
+        # DO_DEPLOY: ${{ github.event_name == 'push' }}
         # for uploading successful builds
         S3_ACCESS_ID_DOWNLOAD: ${{ secrets.S3_ACCESS_ID_DOWNLOAD }}
         S3_SECRET_KEY_DOWNLOAD: ${{ secrets.S3_SECRET_KEY_DOWNLOAD }}
@@ -95,14 +141,15 @@ jobs:
         CI_DEPLOY_USERNAME: ${{ secrets.CI_DEPLOY_USERNAME }}
         CI_DEPLOY_PASSWORD: ${{ secrets.CI_DEPLOY_PASSWORD }}
         CI_DEPLOY_PASSPHRASE: ${{ secrets.CI_DEPLOY_PASSPHRASE }}
+        LUCEE_DOCKER_FILES_PAT_TOKEN: ${{ secrets.LUCEE_DOCKER_FILES_PAT_TOKEN }}
       #run: ant -noinput -buildfile loader/build.xml
       run: |
-        if [ "${{ github.event_name == 'push' }}" == "true" ]; then
+        if [ "${{ env.DO_DEPLOY }}" == "true" ]; then
           echo "------- Maven Deploy on ${{ github.event_name }} -------";
-          mvn -B -e -f loader/pom.xml clean deploy --settings travis-settings.xml;
+          mvn -B -e -f loader/pom.xml clean deploy --settings travis-settings.xml -DtestJavaVersionExec="${{ env.LUCEE_TEST_JAVA_EXEC }}";
         else
           echo "------- Maven Install on ${{ github.event_name }} ---------";
-          mvn -B -e -f loader/pom.xml clean install
+          mvn -B -e -f loader/pom.xml clean install -DtestJavaVersionExec="${{ env.LUCEE_TEST_JAVA_EXEC }}"
         fi
     - name: Publish Test Results
       uses: EnricoMi/publish-unit-test-result-action@v1
@@ -110,18 +157,3 @@ jobs:
       with:
         files: test/reports/junit-test-results.xml
         check_name: "Test Results"
-    - name: Update Provider
-      if: ${{ github.event_name == 'push' }}
-      run: |
-        curl --no-progress-meter -sIXGET "https://update.lucee.org/rest/update/provider/buildLatest"
-        curl --no-progress-meter -sIXGET "https://extension.lucee.org/rest/extension/provider/reset"
-        curl --no-progress-meter -sIXGET "https://download.lucee.org/?type=snapshots&reset=force"
-    - name: Trigger Docker Build
-      if: ${{ github.event_name == 'push' }}
-      env:
-        TRAVIS_JOB_ID: ${{ github.run_id }}
-        TRAVIS_TOKEN: ${{ secrets.DOCKER_AUTH_TOKEN }} # not set up yet
-      run: |
-        echo "Trigger Docker Build on Travis https://travis-ci.com/github/lucee/lucee-dockerfiles"
-        chmod +x travis-docker-build.sh
-        ./travis-docker-build.sh

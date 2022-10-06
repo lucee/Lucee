@@ -113,7 +113,7 @@ public final class ScopeContext {
 	 * @return the log
 	 */
 	private Log getLog() {
-		return factory.getConfig().getLog("scope");
+		return ThreadLocalPageContext.getLog(factory.getConfig(), "scope");
 	}
 
 	public void debug(String msg) {
@@ -139,17 +139,17 @@ public final class ScopeContext {
 
 	public static void info(Log log, String msg) {
 		if (log != null) log.log(Log.LEVEL_INFO, "scope-context", msg);
-		else LogUtil.log(ThreadLocalPageContext.getConfig(), Log.LEVEL_INFO, "scope", "scope-context", msg);
+		else LogUtil.log(ThreadLocalPageContext.get(), Log.LEVEL_INFO, "scope", "scope-context", msg);
 	}
 
 	public static void error(Log log, String msg) {
 		if (log != null) log.log(Log.LEVEL_ERROR, "scope-context", msg);
-		else LogUtil.log(ThreadLocalPageContext.getConfig(), Log.LEVEL_ERROR, "scope", "scope-context", msg);
+		else LogUtil.log(ThreadLocalPageContext.get(), Log.LEVEL_ERROR, "scope", "scope-context", msg);
 	}
 
 	public static void error(Log log, Throwable t) {
 		if (log != null) log.log(Log.LEVEL_ERROR, "scope-context", ExceptionUtil.getStacktrace(t, true));
-		else LogUtil.log(ThreadLocalPageContext.getConfig(), "scope", "scope-context", t);
+		else LogUtil.log(ThreadLocalPageContext.get(), "scope", "scope-context", t);
 	}
 
 	/**
@@ -602,7 +602,7 @@ public final class ScopeContext {
 									getLog());
 						}
 						catch (PageException pe) {
-							pc.getConfig().getLog("application").error("session-storage", pe);
+							ThreadLocalPageContext.getLog(pc, "application").error("session-storage", pe);
 							session = SessionDatasource.getInstance(storage, pc, getLog(), null);
 						}
 					}
@@ -614,7 +614,7 @@ public final class ScopeContext {
 							session = (Session) IKStorageScopeSupport.getInstance(Scope.SCOPE_SESSION, new IKHandlerCache(), appContext.getName(), storage, pc, existing, getLog());
 						}
 						catch (PageException pe) {
-							pc.getConfig().getLog("application").error("session-storage", pe);
+							ThreadLocalPageContext.getLog(pc, "application").error("session-storage", pe);
 							session = SessionCache.getInstance(storage, appContext.getName(), pc, existing, getLog(), null);
 						}
 					}
@@ -816,6 +816,7 @@ public final class ScopeContext {
 					// ,new CacheStorageScopeCleaner(Scope.SCOPE_CLIENT, null) //Cache storage need no control, if
 					// there is no listener
 					});
+
 			// store session/client scope and remove from memory
 			storeUnusedStorageScope(factory, Scope.SCOPE_CLIENT);
 			storeUnusedStorageScope(factory, Scope.SCOPE_SESSION);
@@ -928,7 +929,6 @@ public final class ScopeContext {
 	private void clearUnusedMemoryScope(CFMLFactoryImpl cfmlFactory, int type) {
 		Map<String, Map<String, Scope>> contexts = type == Scope.SCOPE_CLIENT ? cfClientContexts : cfSessionContexts;
 		if (contexts.size() == 0) return;
-
 		Object[] arrContexts = contexts.keySet().toArray();
 		ApplicationListener listener = cfmlFactory.getConfig().getApplicationListener();
 		Object applicationName, cfid, o;
@@ -937,10 +937,10 @@ public final class ScopeContext {
 		for (int i = 0; i < arrContexts.length; i++) {
 			applicationName = arrContexts[i];
 			fhm = contexts.get(applicationName);
-
 			if (fhm.size() > 0) {
 				Object[] cfids = fhm.keySet().toArray();
 				int count = cfids.length;
+
 				for (int y = 0; y < cfids.length; y++) {
 					cfid = cfids[y];
 					o = fhm.get(cfid);
@@ -958,7 +958,9 @@ public final class ScopeContext {
 						}
 						scope.touch();
 						try {
-							if (type == Scope.SCOPE_SESSION) listener.onSessionEnd(cfmlFactory, (String) applicationName, (String) cfid);
+							if (type == Scope.SCOPE_SESSION) {
+								listener.onSessionEnd(cfmlFactory, (String) applicationName, (String) cfid);
+							}
 						}
 						catch (Throwable t) {
 							ExceptionUtil.rethrowIfNecessary(t);

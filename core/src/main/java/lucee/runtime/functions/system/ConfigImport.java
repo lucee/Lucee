@@ -9,11 +9,11 @@ import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
-import lucee.runtime.config.CFConfigImport;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
 import lucee.runtime.op.Caster;
+import lucee.runtime.tag.CFConfigImport;
 import lucee.runtime.type.Struct;
 
 public class ConfigImport extends BIF {
@@ -47,8 +47,8 @@ public class ConfigImport extends BIF {
 		// charset
 		Charset cs = StringUtil.isEmpty(charset, true) ? pc.getResourceCharset() : CharsetUtil.toCharset(charset);
 
-		return (res != null ? new CFConfigImport(pc.getConfig(), res, cs, password, type, placeHolderData)
-				: new CFConfigImport(pc.getConfig(), data, cs, password, type, placeHolderData)).execute();
+		return (res != null ? new CFConfigImport(pc.getConfig(), res, cs, password, type, placeHolderData, true, true)
+				: new CFConfigImport(pc.getConfig(), data, cs, password, type, placeHolderData, true, true)).execute(true);
 	}
 
 	@Override

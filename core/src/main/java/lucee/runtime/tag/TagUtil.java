@@ -337,7 +337,7 @@ public class TagUtil {
 	 */
 	public static Object invokeBIF(PageContext pc, Object[] args, String className, String bundleName, String bundleVersion) throws PageException {
 		try {
-			Class<?> clazz = ClassUtil.loadClassByBundle(className, bundleName, bundleVersion, pc.getConfig().getIdentification(), JavaSettingsImpl.getBundleDirectories(pc));
+			Class<?> clazz = ClassUtil.loadClassByBundle(className, bundleName, bundleVersion, pc.getConfig().getIdentification(), JavaSettingsImpl.getBundles(pc));
 			BIF bif;
 			if (Reflector.isInstaneOf(clazz, BIF.class, false)) bif = (BIF) ClassUtil.newInstance(clazz);
 			else bif = new BIFProxy(clazz);

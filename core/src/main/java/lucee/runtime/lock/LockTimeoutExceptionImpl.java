@@ -49,7 +49,7 @@ public final class LockTimeoutExceptionImpl extends Exception {
 	public static String createMessage(int type, String name, String scopeName, int timeout, Boolean readLocked, Boolean writeLocked) {
 		// if(LockManager.TYPE_EXCLUSIVE==type && readLocked==Boolean.TRUE && writeLocked==Boolean.FALSE)
 
-		StringBuilder sb = new StringBuilder().append("a timeout occurred after ").append(getTime(timeout)).append(" trying to acquire a ").append(toString(type));
+		StringBuilder sb = new StringBuilder().append("A timeout occurred after [").append(getTime(timeout)).append("], trying to acquire a [").append(toString(type) + "] lock.");
 
 		if (StringUtil.isEmpty(scopeName)) {
 			sb.append(" lock with name [").append(name).append("]");

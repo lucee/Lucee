@@ -103,5 +103,59 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		}
 		catch(local.exp){}*/
 	}
+	public void function testArrayAppendMemberFunction(){
+		var arr = arrayNew(1);
+		arr.append( 1 );
+		arr.append( 2 );
+		arr.append( 3 );
+		assertEquals(3,arrayLen(arr));
+
+		arr = arrayNew(1);
+		arr[1] = 1;
+		arr[7] = 7;
+		arr.append( 1 );
+		arr.append( 2 );
+		arr.append( 3 );
+		
+		assertEquals(10,arrayLen(arr));
+
+		arr = arrayNew(1);
+		ArrayResize(arr, 20);
+		arr.append( 1 );
+		arr.append( 2 );
+		arr.append( 3 );
+		assertEquals(23,arrayLen(arr));
+		
+
+		arr = arrayNew(2);
+		arr.append(arrayNew(1));
+		try{
+			arr.append( 1);
+			fail("must throw:Array dimension error");
+		}
+		catch(local.exp){}
+		
+		var sct = structNew();
+		sct.aaa = 1;
+		
+		try{
+			sct.append( "value" );
+			fail("must throw:cannot cast struct to an array, key [aaa] is not a number");
+		}
+		catch(local.exp){}
+		
+		arr = createObject('java','java.util.LinkedList').init();
+		arr.append( 1 );
+		arr.append( 2 );
+		arr.append( 3 );
+		assertEquals(3,arrayLen(arr));
+		
+		arr = arr.toArray();
+		arr = [1];
+		arr.append( [1,2,3] );
+		assertEquals(2,arrayLen(arr));
+		assertEquals(true,isArray(arr[2]));
+		assertEquals(3,arrayLen(arr[2]));
+	}
 } 
 </cfscript>

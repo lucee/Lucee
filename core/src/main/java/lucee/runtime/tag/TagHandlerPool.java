@@ -85,7 +85,7 @@ public final class TagHandlerPool {
 
 	private Tag loadTag(String className, String tagBundleName, String tagBundleVersion, Identification id) throws PageException {
 		try {
-			return (Tag) ClassUtil.newInstance(new ClassDefinitionImpl(className, tagBundleName, tagBundleVersion, id).getClazz());
+			return (Tag) ClassUtil.newInstance(new ClassDefinitionImpl(className, tagBundleName, tagBundleVersion, id).setVersionOnlyMattersWhenDownloading(true).getClazz());
 		}
 		catch (Exception e) {
 			throw Caster.toPageException(e);

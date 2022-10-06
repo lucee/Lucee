@@ -162,7 +162,7 @@ Latest version: #latest.v#</cfif>"><cfif hasUpdates>
 		rt = unInstalledExt.releaseType[row];
 		id = unInstalledExt.id[row];
 		// not for this admin type
-		if(!isnull(rt) and !isEmpty(rt) and rt != "all" and rt != request.adminType) {
+		if(!isnull(rt) and !isEmpty(rt) and rt != "all" and rt != request.adminType and rt != "both") {
 			queryDeleteRow(unINstalledExt,row);
 		}
 		// remove if already installed
@@ -202,6 +202,7 @@ Latest version: #latest.v#</cfif>"><cfif hasUpdates>
 
 	loop query=unInstalledExt {
 		versions = duplicate(unInstalledExt.otherVersions);
+		if(isSimpleValue(versions) && isEmpty(versions))  versions=[];
 		ArrayPrepend(versions, unInstalledExt.version);
 		t = { snap: 0, pre: 0, rel: 0 };
 		loop array=versions item="variables.v" {

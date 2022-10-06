@@ -68,6 +68,7 @@ public final class GetTimeZoneInfo implements Function {
 		struct.setEL(KeyConstants._shortName, tz.getDisplayName(Boolean.FALSE, TimeZone.SHORT, dspLocale));
 		struct.setEL("shortNameDST", tz.getDisplayName(Boolean.TRUE, TimeZone.SHORT, dspLocale));
 		struct.setEL(KeyConstants._id, tz.getID());
+		struct.setEL(KeyConstants._timezone, tz.getID()); 
 		struct.setEL(KeyConstants._offset, new Double(-total));
 		struct.setEL("DSTOffset", new Double(dstOffset / 1000));
 

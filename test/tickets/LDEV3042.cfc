@@ -58,10 +58,11 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 								yearsEmployed*sickDaysLeft as calc2,
 								yearsEmployed-sickDaysLeft as calc3,
 								yearsEmployed+sickDaysLeft as calc4
-							from employees",
+							from employees
+							where sickDaysLeft > 0",
 					options = { dbtype: 'query' }
 				);
-				expect( actual.recordcount ).toBe( 15 );
+				expect( actual.recordcount ).toBe( 14 );
 			});
 
 			it( 'Can select with functions that are aliased' , function() {				

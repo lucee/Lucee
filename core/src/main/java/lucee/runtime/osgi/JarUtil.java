@@ -77,14 +77,14 @@ public class JarUtil {
 			}
 		}
 		catch (IOException ioe) {
-			LogUtil.log(ThreadLocalPageContext.getConfig(), JarUtil.class.getName(), ioe);
+			LogUtil.log(ThreadLocalPageContext.get(), JarUtil.class.getName(), ioe);
 		}
 		finally {
 			try {
 				IOUtil.close(zis);
 			}
 			catch (IOException ioe) {
-				LogUtil.log(ThreadLocalPageContext.getConfig(), JarUtil.class.getName(), ioe);
+				LogUtil.log(ThreadLocalPageContext.get(), JarUtil.class.getName(), ioe);
 			}
 		}
 

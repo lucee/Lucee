@@ -416,7 +416,7 @@ public class UDFImpl extends MemberSupport implements UDFPlus, Externalizable {
 
 	@Override
 	public Struct getMetaData(PageContext pc) throws PageException {
-		return ComponentUtil.getMetaData(pc, properties);
+		return ComponentUtil.getMetaData(pc, properties, null);
 		// return getMetaData(pc, this);
 	}
 

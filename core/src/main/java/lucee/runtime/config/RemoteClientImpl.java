@@ -117,7 +117,7 @@ public class RemoteClientImpl implements RemoteClient {
 	@Override
 	public String getAdminPasswordEncrypted() {
 		try {
-			return Encrypt.invoke(getAdminPassword(), getSecurityKey(), CFMXCompat.ALGORITHM_NAME, "uu", null, 0);
+			return Encrypt.invoke(getAdminPassword(), getSecurityKey(), CFMXCompat.ALGORITHM_NAME, "uu", null, 0, false);
 		}
 		catch (PageException e) {
 			return null;

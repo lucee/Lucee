@@ -200,12 +200,11 @@ You can use this code in order to write the structs into an XML file correspondi
 <cffunction name="getAvailableLanguages" output="No" returntype="struct" 
 	hint="Returns a struct where the key is the language code and the value is the language's name.">
 
-	<cfdirectory name="local.qDir" directory="language" action="list" mode="listnames" filter="*.xml">
-    
+	<cfdirectory name="local.qDir" directory="#getDirectoryFromPath(getCurrentTemplatePath())#/language/" action="list" mode="listnames" filter="*.xml">
 	<cfset var result = {}>
 	<cfloop query="qDir">
 
-		<cffile action="read" file="language/#qDir.name#" charset="UTF-8" variable="local.sContent">
+		<cffile action="read" file="#qDir.directory#/#qDir.name#" charset="UTF-8" variable="local.sContent">
 		
 		<cfset var xml  = XMLParse(sContent)>
 		<cfset var lang = xml.language.XMLAttributes.Key>

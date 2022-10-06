@@ -91,11 +91,11 @@ public class ORMUtil {
 	}
 
 	private static void printError(Exception t, ORMEngine engine, String msg) {
-		if (engine != null) LogUtil.log(ThreadLocalPageContext.getConfig(), Log.LEVEL_ERROR, ORMUtil.class.getName(), "{" + engine.getLabel().toUpperCase() + "} - " + msg);
-		else LogUtil.log(ThreadLocalPageContext.getConfig(), Log.LEVEL_ERROR, ORMUtil.class.getName(), msg);
+		if (engine != null) LogUtil.log(ThreadLocalPageContext.get(), Log.LEVEL_ERROR, ORMUtil.class.getName(), "{" + engine.getLabel().toUpperCase() + "} - " + msg);
+		else LogUtil.log(ThreadLocalPageContext.get(), Log.LEVEL_ERROR, ORMUtil.class.getName(), msg);
 
 		if (t == null) t = new Exception();
-		LogUtil.log(ThreadLocalPageContext.getConfig(), ORMUtil.class.getName(), t);
+		LogUtil.log(ThreadLocalPageContext.get(), ORMUtil.class.getName(), t);
 	}
 
 	public static boolean equals(Object left, Object right) {

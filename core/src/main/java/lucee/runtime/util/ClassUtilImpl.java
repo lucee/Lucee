@@ -57,7 +57,7 @@ public class ClassUtilImpl implements ClassUtil {
 	@Override
 	public Class<?> loadClass(PageContext pc, String className, String bundleName, String bundleVersion) throws ClassException, BundleException {
 		Config config = ThreadLocalPageContext.getConfig(pc);
-		return lucee.commons.lang.ClassUtil.loadClassByBundle(className, bundleName, bundleVersion, config.getIdentification(), JavaSettingsImpl.getBundleDirectories(pc));
+		return lucee.commons.lang.ClassUtil.loadClassByBundle(className, bundleName, bundleVersion, config.getIdentification(), JavaSettingsImpl.getBundles(pc));
 	}
 
 	@Override
@@ -90,7 +90,7 @@ public class ClassUtilImpl implements ClassUtil {
 			BundleException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
 		// first of all we chek if itis a class
 		Class<?> res = lucee.commons.lang.ClassUtil.loadClassByBundle(name, bundleName, bundleVersion, pc.getConfig().getIdentification(),
-				JavaSettingsImpl.getBundleDirectories(pc));
+				JavaSettingsImpl.getBundles(pc));
 		if (res != null) {
 			if (Reflector.isInstaneOf(res, BIF.class, false)) {
 				return (BIF) lucee.commons.lang.ClassUtil.newInstance(res);
@@ -246,12 +246,12 @@ public class ClassUtilImpl implements ClassUtil {
 
 	@Override
 	public Class<?> loadClassByBundle(String className, String name, String strVersion, Identification id) throws IOException, BundleException {
-		return lucee.commons.lang.ClassUtil.loadClassByBundle(className, name, strVersion, id, JavaSettingsImpl.getBundleDirectories(null));
+		return lucee.commons.lang.ClassUtil.loadClassByBundle(className, name, strVersion, id, JavaSettingsImpl.getBundles(null));
 	}
 
 	@Override
 	public Class<?> loadClassByBundle(String className, String name, Version version, Identification id) throws BundleException, IOException {
-		return lucee.commons.lang.ClassUtil.loadClassByBundle(className, name, version, id, JavaSettingsImpl.getBundleDirectories(null));
+		return lucee.commons.lang.ClassUtil.loadClassByBundle(className, name, version, id, JavaSettingsImpl.getBundles(null));
 	}
 
 	@Override

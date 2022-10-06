@@ -23,6 +23,7 @@ import java.util.List;
 
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.LogUtil;
+import lucee.runtime.PageContext;
 
 public class RetireOutputStreamFactory {
 
@@ -80,11 +81,11 @@ public class RetireOutputStreamFactory {
 					if (close) break;
 				}
 				catch (InterruptedException ie) {
-					LogUtil.log(null, "file", ie);
+					LogUtil.log((PageContext) null, "file", ie);
 					break;
 				}
 				catch (Exception e) {
-					LogUtil.log(null, "file", e);
+					LogUtil.log((PageContext) null, "file", e);
 				}
 			}
 			thread = null;

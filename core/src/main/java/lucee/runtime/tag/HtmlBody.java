@@ -50,7 +50,6 @@ public final class HtmlBody extends HtmlHeadBodyBase {
 
 	@Override
 	public void actionReset() throws IOException {
-
 		((PageContextImpl) pageContext).getRootOut().resetHTMLBody();
 	}
 
@@ -63,9 +62,7 @@ public final class HtmlBody extends HtmlHeadBodyBase {
 
 	@Override
 	public void actionFlush() throws IOException {
-
 		PageContextImpl pci = (PageContextImpl) pageContext;
-
 		pci.write(pci.getRootOut().getHTMLBody());
 		pci.getRootOut().resetHTMLBody();
 	}

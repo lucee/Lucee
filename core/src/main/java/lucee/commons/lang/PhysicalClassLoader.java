@@ -49,6 +49,8 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 		boolean res = registerAsParallelCapable();
 	}
 
+	private static final ConcurrentHashMap<String, String> tokens = new ConcurrentHashMap<String, String>();
+
 	private Resource directory;
 	private ConfigPro config;
 	private final ClassLoader[] parents;
@@ -121,7 +123,7 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 
 	@Override
 	protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
-		synchronized (getClassLoadingLock(name)) {
+		synchronized (createToken("PhysicalClassLoader", name)) {
 			return loadClass(name, resolve, true);
 		}
 	}
@@ -149,7 +151,7 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 
 	@Override
 	protected Class<?> findClass(String name) throws ClassNotFoundException {// if(name.indexOf("sub")!=-1)print.ds(name);
-		synchronized (getClassLoadingLock(name)) {
+		synchronized (createToken("PhysicalClassLoader", name)) {
 			Resource res = directory.getRealResource(name.replace('.', '/').concat(".class"));
 
 			ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -171,7 +173,7 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 	public Class<?> loadClass(String name, byte[] barr) throws UnmodifiableClassException {
 		Class<?> clazz = null;
 
-		synchronized (getClassLoadingLock(name)) {
+		synchronized (createToken("PhysicalClassLoader", name)) {
 
 			// new class , not in memory yet
 			try {
@@ -293,5 +295,14 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 		this.loadedClasses.clear();
 		this.allLoadedClasses.clear();
 		this.unavaiClasses.clear();
+	}
+
+	public static String createToken(String prefix, String name) {
+		String str = prefix + ":" + name;
+		String lock = tokens.putIfAbsent(str, str);
+		if (lock == null) {
+			lock = str;
+		}
+		return lock;
 	}
 }

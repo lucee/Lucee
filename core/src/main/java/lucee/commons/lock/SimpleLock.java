@@ -33,7 +33,7 @@ public class SimpleLock<L> implements Lock {
 
 	@Override
 	public void lock(long timeout) throws LockException {
-		if (timeout <= 0) throw new LockException("timeout must be a positive number");
+		if (timeout <= 0) throw new LockException("Timeout must be a positive number");
 		long initialTimeout = timeout;
 		long start = System.currentTimeMillis();
 		do {

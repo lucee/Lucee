@@ -167,7 +167,7 @@
 		<cftry>
 			<cfset lt=driver.getValue('LiveTimeout')>
 			<cfcatch>
-				<cfset lt=60>
+				<cfset lt=15>
 			</cfcatch>
 		</cftry>
 		<cfset datasource.LiveTimeout = lt>

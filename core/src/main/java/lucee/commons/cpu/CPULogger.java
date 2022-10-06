@@ -14,6 +14,7 @@ import lucee.commons.io.log.LogUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.types.RefLong;
 import lucee.commons.lang.types.RefLongImpl;
+import lucee.runtime.PageContext;
 
 public class CPULogger {
 
@@ -98,7 +99,7 @@ public class CPULogger {
 
 				}
 				catch (Exception e) {
-					LogUtil.log(null, "application", "cpu", e);
+					LogUtil.log((PageContext) null, "application", "cpu", e);
 				}
 			}
 		}

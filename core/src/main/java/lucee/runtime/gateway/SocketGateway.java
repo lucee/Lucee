@@ -100,7 +100,7 @@ public class SocketGateway implements GatewaySupport {
 		catch (Exception e) {
 			state = FAILED;
 			error("Error in Socet Gateway [" + id + "]: " + e.getMessage());
-			LogUtil.log(ThreadLocalPageContext.getConfig(), SocketGateway.class.getName(), e);
+			LogUtil.log(ThreadLocalPageContext.get(), SocketGateway.class.getName(), e);
 		}
 	}
 
@@ -240,7 +240,7 @@ public class SocketGateway implements GatewaySupport {
 				}
 			}
 			catch (Exception e) {
-				LogUtil.log(ThreadLocalPageContext.getConfig(), SocketGateway.class.getName(), e);
+				LogUtil.log(ThreadLocalPageContext.get(), SocketGateway.class.getName(), e);
 				error("Failed to send message with exception: " + e.toString());
 				status = "EXCEPTION";
 			}

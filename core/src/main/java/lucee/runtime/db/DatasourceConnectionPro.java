@@ -16,4 +16,6 @@ public interface DatasourceConnectionPro extends DatasourceConnection {
 	public int getDefaultTransactionIsolation();
 
 	public DatasourceConnection using() throws PageException;
+
+	public boolean validate();
 }

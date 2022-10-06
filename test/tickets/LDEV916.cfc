@@ -24,12 +24,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		assertEquals("",cfhttp.errordetail);
 		assertEquals("200 OK",cfhttp.statuscode);
 	}
-	public void function mailgunTest(){
-		// Should be in our CA pack
-		cfhttp(url="https://mailgun.com");
-		assertEquals("",cfhttp.errordetail);
-		assertEquals("200 OK",cfhttp.statuscode);
-	}
+
 	public void function flickrTest(){
 		cfhttp(url="https://www.flickr.com/");
 		assertEquals("",cfhttp.errordetail);

@@ -38,6 +38,7 @@ import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.Md5;
 import lucee.commons.lang.StringUtil;
+import lucee.runtime.PageContext;
 import lucee.runtime.config.Identification;
 import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.op.Caster;
@@ -788,7 +789,7 @@ public final class TagLibTag {
 			setter = m.getName();
 		}
 		catch (Exception e) {
-			LogUtil.log(null, TagLibTag.class.getName(), e);
+			LogUtil.log((PageContext) null, TagLibTag.class.getName(), e);
 		}
 		setters.put(attr.getName(), setter);
 		return setter;

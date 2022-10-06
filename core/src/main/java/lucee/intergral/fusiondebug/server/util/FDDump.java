@@ -25,11 +25,12 @@ import com.intergral.fusiondebug.server.IFDVariable;
 
 import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
+import lucee.runtime.PageContext;
 
 public class FDDump {
 
 	public static void dump(IFDVariable var) {
-		LogUtil.log(null, Log.LEVEL_INFO, FDDump.class.getName(), toString(var));
+		LogUtil.log((PageContext) null, Log.LEVEL_INFO, FDDump.class.getName(), toString(var));
 	}
 
 	public static String toString(Object value) {

@@ -41,6 +41,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Version;
 
+import lucee.commons.digest.HashUtil;
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.FileUtil;
 import lucee.commons.io.SystemUtil;
@@ -166,10 +167,11 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 
 	private static final Extension[] EXTENSIONS_EMPTY = new Extension[0];
 	private static final RHExtension[] RHEXTENSIONS_EMPTY = new RHExtension[0];
+	private final ConcurrentHashMap<String, Object> tokens = new ConcurrentHashMap<String, Object>();
 
 	private int mode = MODE_CUSTOM;
 
-	private PhysicalClassLoader rpcClassLoader;
+	private final Map<String, PhysicalClassLoader> rpcClassLoaders = new ConcurrentHashMap<String, PhysicalClassLoader>();
 	private Map<String, DataSource> datasources = new HashMap<String, DataSource>();
 	private Map<String, CacheConnection> caches = new HashMap<String, CacheConnection>();
 
@@ -414,6 +416,8 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 
 	private long applicationPathhCacheTimeout = Caster.toLongValue(SystemUtil.getSystemPropOrEnvVar("lucee.application.path.cache.timeout", null), 0);
 	private ClassLoader envClassLoader;
+	private boolean fullNullSupport = false;
+	private static Object token = new Object();
 
 	/**
 	 * @return the allowURLRequestTimeout
@@ -2397,28 +2401,40 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 
 	@Override
 	public ClassLoader getRPCClassLoader(boolean reload) throws IOException {
-
-		if (rpcClassLoader != null && !reload) return rpcClassLoader;
-
-		Resource dir = getClassDirectory().getRealResource("RPC");
-		if (!dir.exists()) dir.createDirectory(true);
-		rpcClassLoader = new PhysicalClassLoader(this, dir, null, false);
-		return rpcClassLoader;
+		return getRPCClassLoader(reload, null);
 	}
 
 	@Override
 	public ClassLoader getRPCClassLoader(boolean reload, ClassLoader[] parents) throws IOException {
+		String key = toKey(parents);
+		PhysicalClassLoader rpccl = rpcClassLoaders.get(key);
+		if (rpccl == null || reload) {
+			synchronized (key) {
+				rpccl = rpcClassLoaders.get(key);
+				if (rpccl == null || reload) {
+					Resource dir = getClassDirectory().getRealResource("RPC/" + key);
+					if (!dir.exists()) {
+						ResourceUtil.createDirectoryEL(dir, true);
+					}
+					rpcClassLoaders.put(key, rpccl = new PhysicalClassLoader(this, dir, parents != null && parents.length == 0 ? null : parents, false));
+				}
+			}
+		}
+		return rpccl;
+	}
 
-		if (rpcClassLoader != null && !reload) return rpcClassLoader;
+	private String toKey(ClassLoader[] parents) {
+		if (parents == null || parents.length == 0) return "orphan";
 
-		Resource dir = getClassDirectory().getRealResource("RPC");
-		if (!dir.exists()) dir.createDirectory(true);
-		rpcClassLoader = new PhysicalClassLoader(this, dir, parents, false);
-		return rpcClassLoader;
+		StringBuilder sb = new StringBuilder();
+		for (ClassLoader parent: parents) {
+			sb.append(';').append(System.identityHashCode(parent));
+		}
+		return HashUtil.create64BitHashAsString(sb.toString());
 	}
 
 	public void resetRPCClassLoader() {
-		rpcClassLoader = null;
+		rpcClassLoaders.clear();
 	}
 
 	protected void setCacheDir(Resource cacheDir) {
@@ -3665,14 +3681,12 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 			Map<String, String> layoutArgs, boolean readOnly, boolean dyn) throws PageException {
 		LoggerAndSourceData existing = loggers.get(name.toLowerCase());
 		String id = LoggerAndSourceData.id(name.toLowerCase(), appender, appenderArgs, layout, layoutArgs, level, readOnly);
-
 		if (existing != null) {
 			if (existing.id().equals(id)) {
 				return existing;
 			}
 			existing.close();
 		}
-
 		LoggerAndSourceData las = new LoggerAndSourceData(this, id, name.toLowerCase(), appender, appenderArgs, layout, layoutArgs, level, readOnly, dyn);
 		loggers.put(name.toLowerCase(), las);
 		return las;
@@ -3702,11 +3716,11 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	public Log getLog(String name, boolean createIfNecessary) throws PageException {
 		LoggerAndSourceData lsd = _getLoggerAndSourceData(name, createIfNecessary);
 		if (lsd == null) return null;
-		return lsd.getLog();
+		return lsd.getLog(false);
 	}
 
 	private LoggerAndSourceData _getLoggerAndSourceData(String name, boolean createIfNecessary) throws PageException {
-		LoggerAndSourceData las = loggers.get(name.toLowerCase());
+		LoggerAndSourceData las = name == null ? null : loggers.get(name.toLowerCase());
 		if (las == null) {
 			if (!createIfNecessary) return null;
 			return addLogger(name, Log.LEVEL_ERROR, getLogEngine().appenderClassDefintion("console"), null, getLogEngine().layoutClassDefintion("pattern"), null, true, true);
@@ -3974,8 +3988,6 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		return cd == null || StringUtil.isEmpty(cd.getClassName());
 	}
 
-	private boolean fullNullSupport = false;
-
 	protected final void setFullNullSupport(boolean fullNullSupport) {
 		this.fullNullSupport = fullNullSupport;
 	}
@@ -3985,11 +3997,18 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		return fullNullSupport;
 	}
 
-	private LogEngine logEngine;
+	private static LogEngine logEngine;
 
 	@Override
 	public LogEngine getLogEngine() {
-		if (logEngine == null) logEngine = LogEngine.newInstance(this);
+		if (logEngine == null) {
+			synchronized (token) {
+				if (logEngine == null) {
+					logEngine = LogEngine.newInstance(this);
+				}
+			}
+
+		}
 		return logEngine;
 	}
 
@@ -4022,5 +4041,14 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	@Override
 	public TimeSpan getApplicationPathhCacheTimeout() {
 		return TimeSpanImpl.fromMillis(applicationPathhCacheTimeout);
+	}
+
+	private Object getToken(String className) {
+		Object newLock = new Object();
+		Object lock = tokens.putIfAbsent(className, newLock);
+		if (lock == null) {
+			lock = newLock;
+		}
+		return lock;
 	}
 }

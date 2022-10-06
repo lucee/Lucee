@@ -93,6 +93,7 @@
 	<function>
 		<name>ApplicationPathCacheClear</name>
 		<class>lucee.runtime.functions.other.ApplicationPathCacheClear</class>
+		<introduced>5.3.8.149</introduced>
 		<description>flush the application.[cfc|cfm] path cache</description>
 		<return>
 			<type>void</type>
@@ -1077,6 +1078,7 @@ Remember CFML arrays start at 1 not 0.</description>
 	<function>
 		<name>arrayPop</name>
 		<class>lucee.runtime.functions.arrays.ArrayPop</class>
+		<introduced>5.3.8.104</introduced>
 		<member-name>pop</member-name>
 		<member-chaining>false</member-chaining>
 		<keywords>array</keywords>
@@ -1103,6 +1105,7 @@ Remember CFML arrays start at 1 not 0.</description>
 	<function>
 		<name>arrayPush</name>
 		<class>lucee.runtime.functions.arrays.ArrayPush</class>
+		<introduced>5.3.8.104</introduced>
 		<member-name>push</member-name>
 		<member-chaining>false</member-chaining>
 		<keywords>array</keywords>
@@ -1214,6 +1217,7 @@ Remember CFML arrays start at 1 not 0.</description>
 	<function>
 		<name>arrayShift</name>
 		<class>lucee.runtime.functions.arrays.ArrayShift</class>
+		<introduced>5.3.8.104</introduced>
 		<member-name>shift</member-name>
 		<member-chaining>false</member-chaining>
 		<keywords>array</keywords>
@@ -1379,6 +1383,7 @@ sort direction:
 	<function>
 		<name>arrayUnShift</name>
 		<class>lucee.runtime.functions.arrays.ArrayUnShift</class>
+		<introduced>5.3.8.104</introduced>
 		<member-name>unshift</member-name>
 		<member-chaining>false</member-chaining>
 		<keywords>array</keywords>
@@ -1534,6 +1539,7 @@ sort direction:
     </argument>
 		<argument>
 			<name>precise</name>
+			<introduced>5.3.9.41</introduced>
 			<type>boolean</type>
 			<required>no</required>
 			<default>false</default>
@@ -1976,7 +1982,7 @@ sort direction:
 			<name>type</name>
 			<type>string</type>
 			<required>yes</required>
-			<description>cache type, valid values are [object,resource,template,query]</description>
+			<description>cache type, valid values are [object, template, query, resource, function, include, http, file, webservice]</description>
 		</argument>
 		<return>
 			<type>string</type>
@@ -2394,8 +2400,9 @@ sort direction:
 			The function will check for the actual values for this placeholders in 3 places (in this order):
 			- function argument "params" (if provided)
 			- system properties
-			- enviroment variables
+			- environment variables
 		</description>
+		<introduced>5.3.8.207</introduced>
 		<argument>
 			<name>path</name>
 			<type>any</type>
@@ -2421,8 +2428,8 @@ sort direction:
 			<required>no</required>
 			<description>
 				password to access the configuration, depending on the value set for the attribute type. 
-				If not set Lucee will check in the following places for the password (replace {type} with the actual type choosen for the attribute type).
-				Enviroment variable "LUCEE_{type}_ADMIN_PASSWORD" or system property "lucee.{type}.admin.password".
+				If not set Lucee will check in the following places for the password (replace {type} with the actual type chosen for the attribute type).
+				Environment variable "LUCEE_{type}_ADMIN_PASSWORD" or system property "lucee.{type}.admin.password".
 			</description>
 		</argument>
 		<argument>
@@ -3352,6 +3359,13 @@ You may also specify other algorithm names as well as the feedback mode and padd
             <required>no</required>
             <description>number of Iterations for Password Based Encryption algorithms (ignored for all other algorithms). NIST recommends a minimum value of 1000.</description>
         </argument>
+		<argument>
+			<name>precise</name>
+			<type>boolean</type>
+			<required>no</required>
+			<default>false</default>
+			<description>if set to true the input must follow the rule for that encoding a 100%, the decryptor will not try to interpret inputs that are not a 100% correct. This should be used to avoud false positives.</description>
+    	</argument>
 		<return>
 			<type>string</type>
 		</return>
@@ -3405,6 +3419,13 @@ You may also specify other algorithm names as well as the feedback mode and padd
             <required>no</required>
             <description>number of Iterations for Password Based Encryption algorithms (ignored for all other algorithms). NIST recommends a minimum value of 1000.</description>
         </argument>
+		<argument>
+			<name>precise</name>
+			<type>boolean</type>
+			<required>no</required>
+			<default>false</default>
+			<description>if set to true the input must follow the rule for that encoding a 100%, the decryptor will not try to interpret inputs that are not a 100% correct. This should be used to avoid false positives.</description>
+    	</argument>
 		<return>
 			<type>any</type>
 		</return>
@@ -3418,8 +3439,8 @@ You may also specify other algorithm names as well as the feedback mode and padd
 			<name>name</name>
 			<type>string</type>
 			<required>Yes</required>
-		<description>Name of a client variable to delete, surrounded by double-quotation marks</description>
-    </argument>
+			<description>Name of a client variable to delete, surrounded by double-quotation marks</description>
+		</argument>
 		<return>
 			<type>boolean</type>
 		</return>
@@ -3973,6 +3994,13 @@ You may also specify other algorithm names as well as the feedback mode and padd
             <required>no</required>
             <description>number of Iterations for Password Based Encryption algorithms (ignored for all other algorithms). NIST recommends a minimum value of 1000.</description>
         </argument>
+		<argument>
+			<name>precise</name>
+			<type>boolean</type>
+			<required>no</required>
+			<default>false</default>
+			<description>if set to true the input must follow the rule for that encoding a 100%, the decryptor will not try to interpret inputs that are not a 100% correct. This should be used to avoid false positives.</description>
+    	</argument>
 		<return>
 			<type>string</type>
 		</return>
@@ -4024,6 +4052,13 @@ You may also specify other algorithm names as well as the feedback mode and padd
             <required>no</required>
             <description>number of Iterations for Password Based Encryption algorithms (ignored for all other algorithms). NIST recommends a minimum value of 1000.</description>
         </argument>
+		<argument>
+			<name>precise</name>
+			<type>boolean</type>
+			<required>no</required>
+			<default>false</default>
+			<description>if set to true the input must follow the rule for that encoding a 100%, the decryptor will not try to interpret inputs that are not a 100% correct. This should be used to avoid false positives.</description>
+    	</argument>
 		<return>
 			<type>any</type>
 		</return>
@@ -5539,17 +5574,6 @@ Example Values:
 			<type>struct</type>
 		</return>
 	</function>
-	<!-- GetConfigSettings -->
-	<function>
-		<name>GetConfigSettings</name>
-		<class>lucee.runtime.functions.system.GetConfigSettings</class>
-		<status>hidden</status>
-		<description></description>
-		<return>
-			<type>struct</type>
-		</return>
-	</function>
-
 	<!-- getBaseTagData -->
 	<function>
 		<name>getBaseTagData</name>
@@ -5603,12 +5627,12 @@ Example Values:
 	<function>
 		<name>GetBuiltInFunction</name>
 		<class>lucee.runtime.functions.system.GetBuiltInFunction</class>
-		<description>return a build in function as an object, matching the given name, throws an exception when the function does not exist.</description>
+		<description>Returns a built in function as an object, matching the given name, throws an exception when the function does not exist.</description>
 		<argument>
 			<name>name</name>
 			<type>string</type>
 			<required>yes</required>
-			<description>name of the build in function, for example "StructKeyExists"</description>
+			<description>name of the built in function, for example "StructKeyExists"</description>
 		</argument>
 		<return>
 			<type>any</type>
@@ -6141,7 +6165,6 @@ The returned number of unallocated bytes is a hint, but not a guarantee, that it
     <function>
         <name>getHTTPRequestHeaders</name>
         <class>lucee.runtime.functions.other.GetHTTPRequestHeaders</class>
-		<status>hidden</status>
         <description>Returns a Struct with HTTP Request Headers</description>
         <return>
             <type>struct</type>
@@ -6577,19 +6600,27 @@ if this attribute is not provided all types are returned.</description>
 		<name>getTempFile</name>
 		<class>lucee.runtime.functions.system.GetTempFile</class>
 		<description>Creates a temporary file in a directory whose name starts with
-        (at most) the first three characters of prefix.</description>
+        (at most) the first three characters of prefix, with an optional extension, default is .tmp.</description>
 		<argument>
 			<name>dir</name>
 			<type>string</type>
 			<required>Yes</required>
-		<description>Directory name</description>
-    </argument>
+			<description>Directory name</description>
+		</argument>
 		<argument>
 			<name>prefix</name>
 			<type>string</type>
 			<required>Yes</required>
-		<description>Prefix of a temporary file to create in the dir directory</description>
-    </argument>
+			<description>Prefix of a temporary file to create in the dir directory</description>
+		</argument>
+		<argument>
+			<name>extension</name>
+			<alias>ext</alias>
+			<type>string</type>
+			<required>No</required>
+			<Default>tmp</Default>
+			<description>Extension for the temporary file, default is .tmp</description>
+		</argument>
 		<return>
 			<type>string</type>
 		</return>
@@ -6597,8 +6628,11 @@ if this attribute is not provided all types are returned.</description>
 	<!-- getTemplatePath -->
 	<function>
 		<name>getTemplatePath</name>
+		<status>deprecated</status>
 		<class>lucee.runtime.functions.system.GetTemplatePath</class>
-		<description></description>
+		<description>This function is deprecated.
+
+Use the GetBaseTemplatePath() function instead.</description>
 		<return>
 			<type>any</type>
 		</return>
@@ -6627,7 +6661,7 @@ if this attribute is not provided all types are returned.</description>
 		<name>getTimeZoneInfo</name>
 		<class>lucee.runtime.functions.international.GetTimeZoneInfo</class>
 		<member-name>info</member-name>
-		<description>Returns back a structure regarding the current timezone; isDSTon, DSTOffset, id, name, shortName, nameDST, shortNameDST, utcHourOffset, offset, utcTotalOffset, utcMinuteOffset</description>
+		<description>Returns back a structure regarding the current timezone; isDSTon, DSTOffset, id, timezone, name, shortName, nameDST, shortNameDST, utcHourOffset, offset, utcTotalOffset, utcMinuteOffset</description>
 		<argument>
 			<name>timezone</name>
 			<type>timezone</type>
@@ -7223,6 +7257,16 @@ The following things are considered to be empty:
 			<required>no</required>
 			<description>if yes add urltoken as cookie</description>
     	</argument>
+		<argument>
+			<name>throwonerror</name>
+			<type>boolean</type>
+			<default>true</default>
+			<required>no</required>
+			<description>if true (default) and the called template throws an exception, that exception is thrown within the caller request.
+            If false, an exception is caught and passed back in as part of the result struct.</description>
+    	</argument>
+    	
+    	
 		<return>
 			<type>struct</type>
 		</return>
@@ -7602,6 +7646,7 @@ The following things are considered to be empty:
 	<function>
 		<name>isWithinTransaction</name>
 		<class>lucee.runtime.functions.query.IsWithinTransaction</class>
+		<introduced>5.3.9.4</introduced>
 		<keywords>decision,query,datasource</keywords>
 		<description>Determines whether the current thread is within a transaction block or not.</description>
 		<return>
@@ -9704,6 +9749,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 	<function>
 		<name>queryClose</name>
 		<class>lucee.runtime.functions.query.QueryClose</class>
+		<introduced>5.3.6.19</introduced>
 		<keywords>query</keywords>
 		<description>When using lazy="true", it is important to close the resultset during a request or it will continue to use heap memory.</description>
 		<argument>
@@ -9849,6 +9895,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
     	<function>
     		<name>queryRowByIndex</name>
     		<class>lucee.runtime.functions.query.QueryRowByIndex</class>
+			<introduced>5.3.4.34</introduced>
     		<member-name>rowByIndex</member-name>
     		<keywords>query</keywords>
 			<description></description>
@@ -9879,6 +9926,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
     	<function>
     		<name>queryRowDataByIndex</name>
     		<class>lucee.runtime.functions.query.QueryRowDataByIndex</class>
+			<introduced>5.3.4.34</introduced>
     		<member-name>rowDataByIndex</member-name>
     		<keywords>query</keywords>
 			<description></description>
@@ -10030,6 +10078,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 	<function>
 		<name>queryGetCellByIndex</name>
 		<class>lucee.runtime.functions.query.QueryGetCellByIndex</class>
+		<introduced>5.3.4.34</introduced>
 		<member-name>getCellByIndex</member-name>
 		<keywords>query</keywords>
 		<description>return the value of a specific query cell</description>
@@ -10159,6 +10208,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
     	<function>
     		<name>querySetRow</name>
     		<class>lucee.runtime.functions.query.QuerySetRow</class>
+			<introduced>5.3.8.120</introduced>
     		<member-name>setRow</member-name>
     		<keywords>query</keywords>
 			<description>Adds a row to a query, either by struct or array</description>
@@ -11775,7 +11825,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<member-name>append</member-name>
 		<member-chaining>true</member-chaining>
 		<keywords>struct</keywords>
-		<description>Appends all the data from struct2 into struct2, replacing duplicate keys unless specified by the overwrite flag</description>
+		<description>Appends all the data from struct2 into struct1, replacing duplicate keys unless specified by the overwrite flag</description>
 		<argument>
 			<name>Struct1</name>
 			<type>struct</type>
@@ -13207,6 +13257,7 @@ _- asc (default): ascending (a to z) sort order
 	<function>
 		<name>ThreadData</name>
 		<class>lucee.runtime.functions.thread.ThreadData</class>
+		<introduced>5.3.6.19</introduced>
 		<keywords>threading</keywords>
 		<description>returns the root cfthread scope.</description>
 		<return>
@@ -13923,6 +13974,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
     <function>
 		<name>GenerateArgon2Hash</name>
 		<class>lucee.runtime.functions.other.GenerateArgon2Hash</class>
+		<introduced>5.3.8.18</introduced>
 		<description>Returns hash of input using Argon2.</description>
     	<argument>
 			<name>input</name>
@@ -13966,6 +14018,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
     <function>
 		<name>Argon2CheckHash</name>
 		<class>lucee.runtime.functions.other.Argon2CheckHash</class>
+		<introduced>5.3.8.43</introduced>
 		<description>Returns hash of input using Argon2.</description>
     	<argument>
 			<name>input</name>

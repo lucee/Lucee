@@ -45,7 +45,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				assertEquals(binaryDecode("String==", "base64",true)[1],74);
 			});
 
-
+			it(title="invalid characters with precise mode", body = function( currentSpec ) {
+				expect( function (){ binaryDecode("--------", "base64", true) }).toThrow();
+				expect( function (){ binaryDecode("@@@@@@@@", "base64", true) }).toThrow();
+				expect( function (){ binaryDecode("string_with_characters==", "base64", true) }).toThrow();
+				expect( function (){ binaryDecode("@@@@test", "base64", true) }).toThrow();
+			});
+			
 		});
 	}
 }

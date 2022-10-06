@@ -365,7 +365,7 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 					}
 				}
 				catch (PageException pe) {
-					pc.getConfig().getLog("rest").error("REST", pe);
+					ThreadLocalPageContext.getLog(pc, "rest").error("REST", pe);
 					throw pe;
 				}
 			}
@@ -373,15 +373,15 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 
 		if (status == 404) {
 			RestUtil.setStatus(pc, 404, "no rest service for [" + HTMLEntities.escapeHTML(path) + "] found");
-			pc.getConfig().getLog("rest").error("REST", "404; no rest service for [" + path + "] found");
+			ThreadLocalPageContext.getLog(pc, "rest").error("REST", "404; no rest service for [" + path + "] found");
 		}
 		else if (status == 405) {
 			RestUtil.setStatus(pc, 405, "Unsupported Media Type");
-			pc.getConfig().getLog("rest").error("REST", "405; Unsupported Media Type");
+			ThreadLocalPageContext.getLog(pc, "rest").error("REST", "405; Unsupported Media Type");
 		}
 		else if (status == 406) {
 			RestUtil.setStatus(pc, 406, "Not Acceptable");
-			pc.getConfig().getLog("rest").error("REST", "406; Not Acceptable");
+			ThreadLocalPageContext.getLog(pc, "rest").error("REST", "406; Not Acceptable");
 		}
 
 	}
@@ -444,7 +444,7 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 		}
 		catch (PageException e) {
 			RestUtil.setStatus(pc, 500, ExceptionUtil.getMessage(e));
-			pc.getConfig().getLog("rest").error("REST", e);
+			ThreadLocalPageContext.getLog(pc, "rest").error("REST", e);
 			throw e;
 		}
 		finally {

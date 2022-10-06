@@ -369,6 +369,7 @@ component {
 		boolean allowedCreate=false,
 		boolean allowedGrant=false,
 
+		struct custom={},
 		boolean customUseUnicode=false,
 		string customCharacterEncoding=false,
 		boolean customUseOldAliasMetadataBehavior=false,
@@ -386,16 +387,16 @@ component {
 		driverNames=ComponentListPackageAsStruct("dbdriver",driverNames);
 
 		var driver=createObject("component", drivernames[ arguments.type ]);
-		var custom=structNew();
-		loop collection="#arguments#" item="key"{
-			if(findNoCase("custom",key) EQ 1){
-				l=len(key);
-				custom[mid(key,8,l-8+1)]=arguments[key];
+		// var custom=structNew();
+		loop collection="#arguments#" item="local.key"{
+			if( key != "custom" && findNoCase("custom",key) EQ 1){
+				local.l=len(key);
+				arguments.custom[mid(key,7,l-7+1)]=arguments[key];
 			}
 		}
 
 		if( arguments.type == "MSSQL" ){
-			custom["databaseName"] = arguments.database;
+			arguments.custom["databaseName"] = arguments.database;
 		}
 
 		admin
@@ -438,7 +439,7 @@ component {
 			allowed_create="#getArguments(arguments, 'allowedCreate',false)#"
 			allowed_grant="#getArguments(arguments, 'allowedGrant',false)#"
 			verify="#arguments.verify#"
-			custom="#custom#"
+			custom="#arguments.custom#"
 			dbdriver="#arguments.type#"
 			remoteClients="#variables.remoteClients#";
 	}
@@ -512,11 +513,11 @@ component {
 
 		var mailServers = getMailservers();
 		if( structKeyExists(arguments, 'username') && arguments.username == ''  ){
-			query name="existing" dbtype="query"{
+			query name="local.existing" dbtype="query"{
 				echo("SELECT * FROM mailservers WHERE hostName = '#arguments.host#' and port = '#arguments.port#' ")
 			}
 		} else{
-			query name="existing" dbtype="query"{
+			query name="local.existing" dbtype="query"{
 				echo("SELECT * FROM mailservers WHERE hostName = '#arguments.host#' and port = '#arguments.port#' and username = '#arguments.username#' ")
 			}
 		}
@@ -831,7 +832,7 @@ component {
 	* @version version of the extension
 	*/
 	public void function updateExtension(required string id , string version ) {
-		if(isValid('uuid',id)) {
+		if(isValid('uuid',arguments.id)) {
 			if(!isNull(arguments.version) && !isEmpty(arguments.version)) {
 				admin
 					action="updateRHExtension"
@@ -1196,7 +1197,7 @@ component {
 		boolean storage
 	){
 		var connections =  getCacheConnections()
-		query name="existing" dbtype="query"{
+		query name="local.existing" dbtype="query"{
 			echo("SELECT * FROM connections WHERE class = '#arguments.class#' and name = '#arguments.name#' ")
 		}
 
@@ -1353,7 +1354,7 @@ component {
 	/**
 	* @hint returns the list of gateway entries
 	*/
-	public query function getGatewayEntries( type ){
+	public query function getGatewayEntries(){
 		admin
 			action="getGatewayEntries"
 			type="#variables.type#"
@@ -1387,7 +1388,7 @@ component {
 	*/
 	public void function updateGatewayEntry( required string id, required string startupMode, string class, string cfcPath, string listenerCfcPath,  struct custom ){
 		var getGatewayEntries = getGatewayEntries();
-		query name="existing" dbtype="query"{
+		query name="local.existing" dbtype="query"{
 			echo("SELECT * FROM getGatewayEntries WHERE id = '#arguments.id#' and startupMode = '#arguments.startupMode#' ")
 		}
 		admin
@@ -1509,7 +1510,7 @@ component {
 		var driver=drivers[trim(arguments.type)];
 		var meta=getMetaData(driver);
 		var debugEntry = getDebugEntry();
-		query name="existing" dbtype="query"{
+		query name="local.existing" dbtype="query"{
 			echo("SELECT * FROM debugEntry WHERE label = '#arguments.label#' ");
 		}
 		admin
@@ -1977,7 +1978,7 @@ component {
 		,          struct layoutArgs={}
 	){
 		var LogSettings = getLogSettings();
-		query name="existing" dbtype="query"{
+		query name="local.existing" dbtype="query"{
 			echo("SELECT * FROM LogSettings WHERE name = '#arguments.name#' ");
 		}
 
@@ -3012,28 +3013,28 @@ component {
 	 * helper function for substring from-to, as opposed to mid's from-count
 	 */
 	private string function substring(input, from, to) localMode=true {
-		return mid(arguments.input, from, arguments.to + 1 - arguments.from);
+		return mid(arguments.input, arguments.from, arguments.to + 1 - arguments.from);
 	}
 
 
 	private struct function ComponentListPackageAsStruct(string package, cfcNames=structnew("linked")){
 		try{
-			local._cfcNames=ComponentListPackage(package);
-			loop array="#_cfcNames#" index="i" item="el" {
-				cfcNames[el]=package&"."&el;
+			local._cfcNames=ComponentListPackage(arguments.package);
+			loop array="#_cfcNames#" index="local.i" item="local.el" {
+				arguments.cfcNames[el]=arguments.package&"."&el;
 			}
 		}
 		catch(e){}
-		return cfcNames;
+		return arguments.cfcNames;
 	}
 
 	private function getArguments(args, Key, default) {
-		if(not structKeyExists(args, Key)) return default;
-		return arguments.args[Key];
+		if(not structKeyExists(arguments.args, arguments.Key)) return arguments.default;
+		return arguments.args[arguments.Key];
 	}
 
 	private function downloadFull(required string provider,required string id , string version){
-		return _download("full",provider,id,version);
+		return _download("full",arguments.provider,arguments.id,arguments.version);
 	}
 
 	private function _download(String type,required string provider,required string id, string version){
@@ -3044,9 +3045,9 @@ component {
 			action="getAPIKey"
 			type=variables.type
 			password=variables.password
-			returnVariable="apiKey";
+			returnVariable="local.apiKey";
 
-		var uri=provider&"/rest/extension/provider/"&type&"/"&id;
+		var uri=arguments.provider&"/rest/extension/provider/"&arguments.type&"/"&arguments.id;
 
 		if(provider=="local") { // TODO use version from argument scope
 			admin

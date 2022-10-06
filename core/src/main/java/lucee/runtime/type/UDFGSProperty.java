@@ -204,7 +204,7 @@ public abstract class UDFGSProperty extends MemberSupport implements UDFPlus {
 
 	@Override
 	public Struct getMetaData(PageContext pc) throws PageException {
-		return ComponentUtil.getMetaData(pc, properties);
+		return ComponentUtil.getMetaData(pc, properties, null);
 	}
 
 	final Object cast(PageContext pc, FunctionArgument arg, Object value, int index) throws PageException {

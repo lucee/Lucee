@@ -29,6 +29,7 @@ import javax.servlet.http.HttpSessionBindingEvent;
 import javax.servlet.http.HttpSessionBindingListener;
 
 import lucee.commons.lang.ExceptionUtil;
+import lucee.runtime.Component;
 import lucee.runtime.PageContext;
 import lucee.runtime.listener.ApplicationContext;
 import lucee.runtime.type.Collection;
@@ -57,6 +58,7 @@ public final class JSession extends ScopeSupport implements Session, HttpSession
 	private long lastAccess;
 	private long created;
 	private final Struct _tokens = new StructImpl();
+	private Component component;
 
 	/**
 	 * constructor of the class
@@ -182,5 +184,13 @@ public final class JSession extends ScopeSupport implements Session, HttpSession
 	@Override
 	public boolean verifyToken(String token, String key) {
 		return ScopeUtil.verifyCsrfToken(_tokens, token, key);
+	}
+
+	public void setComponent(Component component) {
+		this.component = component;
+	}
+
+	public Component getComponent() {
+		return component;
 	}
 }

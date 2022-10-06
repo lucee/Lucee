@@ -81,17 +81,19 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 
 	private static final long MAX_AGE = 5 * 60000; // 5 minutes
 	private static final int MAX_SIZE = 10000;
+	private static final int MAX_NORMAL_PRIORITY = 0;
+	private static final int MAX_NO_SLEEP = 0;
+	private static final int SLEEP_TIME = 100;
 	private static JspEngineInfo info = new JspEngineInfoImpl("1.0");
 	private ConfigWebPro config;
 	ConcurrentLinkedDeque<PageContextImpl> pcs = new ConcurrentLinkedDeque<PageContextImpl>();
 	private final Map<Integer, PageContextImpl> runningPcs = new ConcurrentHashMap<Integer, PageContextImpl>();
 	private final Map<Integer, PageContextImpl> runningChildPcs = new ConcurrentHashMap<Integer, PageContextImpl>();
 
-	int idCounter = 1;
 	private ScopeContext scopeContext = new ScopeContext(this);
 	private HttpServlet _servlet;
 	private URL url = null;
-	private CFMLEngineImpl engine;
+	private final CFMLEngineImpl engine;
 	private ArrayList<String> cfmlExtensions;
 	private ArrayList<String> luceeExtensions;
 	private ServletConfig servletConfig;
@@ -170,6 +172,55 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 			PageContextImpl tmplPC) {
 		PageContextImpl pc;
 
+		if (!isChild) {
+			String ra = req.getRemoteAddr();
+			String tmp;
+			if (ra != null) {
+				boolean resetToNormPrio = true;
+				int count = 0;
+				for (PageContextImpl opc: runningPcs.values()) {
+					if (opc != null) {
+						HttpServletRequest tmpReq = opc.getHttpServletRequest();
+						if (tmpReq != null) {
+							tmp = tmpReq.getRemoteAddr();
+							if (ra.equals(tmp)) count++;
+						}
+					}
+
+				}
+				// has already running requests?
+				if (count > 0) {
+
+					// reached max amount of request for norm prio
+					int maxNormPrio = Caster.toIntValue(SystemUtil.getSystemPropOrEnvVar("lucee.request.limit.concurrent.maxnormprio", null), MAX_NORMAL_PRIORITY);
+					if (maxNormPrio > 0 && count >= maxNormPrio) {
+						for (PageContextImpl opc: runningPcs.values()) {
+							if (opc != null) {
+								Thread t = opc.getThread();
+								if (t != null) {
+									t.setPriority(Thread.MIN_PRIORITY);
+								}
+							}
+						}
+						Thread.currentThread().setPriority(Thread.MIN_PRIORITY);
+						resetToNormPrio = false;
+						LogUtil.log(config, Log.LEVEL_INFO, "application", "cfml-factory", "reduce priority for user [" + ra + "]");
+					}
+
+					// reached max amount of request allowed in without a nap
+					int maxNoSleep = Caster.toIntValue(SystemUtil.getSystemPropOrEnvVar("lucee.request.limit.concurrent.maxnosleep", null), MAX_NO_SLEEP);
+					if (maxNoSleep > 0 && count >= maxNoSleep) {
+						int ms = Caster.toIntValue(SystemUtil.getSystemPropOrEnvVar("lucee.request.limit.concurrent.sleeptime", null), SLEEP_TIME);
+						if (ms > 0) {
+							SystemUtil.sleep(ms);
+							LogUtil.log(config, Log.LEVEL_INFO, "application", "cfml-factory", "force a nap for request from user [" + ra + "]");
+						}
+					}
+				}
+				if (resetToNormPrio && Thread.currentThread().getPriority() != Thread.NORM_PRIORITY) Thread.currentThread().setPriority(Thread.NORM_PRIORITY);
+			}
+		}
+
 		if (createNew || pcs.isEmpty()) {
 			pc = null;
 		}
@@ -181,13 +232,13 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 				pc = null;
 			}
 		}
-		if (pc == null) pc = new PageContextImpl(scopeContext, config, idCounter++, servlet, ignoreScopes);
+
+		if (pc == null) pc = new PageContextImpl(scopeContext, config, servlet, ignoreScopes);
 
 		if (timeout > 0) pc.setRequestTimeout(timeout);
 		if (register2RunningThreads) {
 			runningPcs.put(Integer.valueOf(pc.getId()), pc);
 			if (isChild) runningChildPcs.put(Integer.valueOf(pc.getId()), pc);
-
 		}
 		this._servlet = servlet;
 		if (register2Thread) ThreadLocalPageContext.register(pc);
@@ -230,13 +281,14 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 			ThreadLocalPageContext.register(pc);
 			tmpRegister = true;
 		}
-		boolean releaseFailed = false;
+		boolean reuse = true;
 		try {
+			reuse = !pc.hasFamily(); // we do not recycle when still referenced by child threads
 			pc.release();
 		}
 		catch (Exception e) {
-			releaseFailed = true;
-			config.getLog("application").error("release page context", e);
+			reuse = false;
+			ThreadLocalPageContext.getLog(config, "application").error("release page context", e);
 		}
 		if (tmpRegister) ThreadLocalPageContext.register(beforePC);
 		if (unregisterFromThread) ThreadLocalPageContext.release();
@@ -245,7 +297,7 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 		if (isChild) {
 			runningChildPcs.remove(Integer.valueOf(pc.getId()));
 		}
-		if (pcs.size() < 100 && ((PageContextImpl) pc).getTimeoutStackTrace() == null && !releaseFailed)// not more than 100 PCs
+		if (pcs.size() < 100 && ((PageContextImpl) pc).getTimeoutStackTrace() == null && reuse)// not more than 100 PCs
 			pcs.push((PageContextImpl) pc);
 
 		if (runningPcs.size() > MAX_SIZE) clean(runningPcs);
@@ -290,7 +342,7 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 				long timeout = pc.getRequestTimeout();
 				// reached timeout
 				if (pc.getStartTime() + timeout < System.currentTimeMillis() && Long.MAX_VALUE != timeout) {
-					Log log = pc.getConfig().getLog("requesttimeout");
+					Log log = ThreadLocalPageContext.getLog(pc, "requesttimeout");
 					if (reachedConcurrentReqThreshold() && reachedMemoryThreshold() && reachedCPUThreshold()) {
 						if (log != null) {
 							PageContext root = pc.getRootPageContext();
@@ -316,7 +368,7 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 				}
 				// after 10 seconds downgrade priority of the thread
 				else if (pc.getStartTime() + 10000 < System.currentTimeMillis() && pc.getThread().getPriority() != Thread.MIN_PRIORITY) {
-					Log log = pc.getConfig().getLog("requesttimeout");
+					Log log = ThreadLocalPageContext.getLog(pc, "requesttimeout");
 					if (log != null) {
 						PageContext root = pc.getRootPageContext();
 						log.log(Log.LEVEL_INFO, "controller", "downgrade priority of the a " + (root != null && root != pc ? "thread" : "request") + " at " + getPath(pc) + ". "

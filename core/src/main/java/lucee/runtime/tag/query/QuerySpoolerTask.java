@@ -113,7 +113,7 @@ public class QuerySpoolerTask extends SpoolerTaskSupport {
 			catch (Exception e) {
 				if (!Abort.isSilentAbort(e)) {
 					ConfigWeb c = pc.getConfig();
-					Log log = c.getLog("application");
+					Log log = ThreadLocalPageContext.getLog(c, "application");
 					if (log != null) log.log(Log.LEVEL_ERROR, "query", e);
 					PageException pe = Caster.toPageException(e);
 					// if(!serializable)catchBlock=pe.getCatchBlock(pc.getConfig());

@@ -156,7 +156,7 @@ public final class Lock extends BodyTagTryCatchFinallyImpl {
 		else if (type.startsWith("read")) {
 			this.type = LockManager.TYPE_READONLY;
 		}
-		else throw new ApplicationException("invalid value [" + type + "] for attribute [type] from tag [lock]", "valid values are [exclusive,read-only]");
+		else throw new ApplicationException("Invalid value [" + type + "] for attribute [type] from tag [lock]", "Valid values are [exclusive, read-only]");
 	}
 
 	/**
@@ -173,7 +173,7 @@ public final class Lock extends BodyTagTryCatchFinallyImpl {
 		else if (scope.equals("application")) this.scope = SCOPE_APPLICATION;
 		else if (scope.equals("session")) this.scope = SCOPE_SESSION;
 		else if (scope.equals("request")) this.scope = SCOPE_REQUEST;
-		else throw new ApplicationException("invalid value [" + scope + "] for attribute [scope] from tag [lock]", "valid values are [server,application,session]");
+		else throw new ApplicationException("Invalid value [" + scope + "] for attribute [scope] from tag [lock]", "Valid values are [server, application, session]");
 	}
 
 	/**
@@ -196,7 +196,7 @@ public final class Lock extends BodyTagTryCatchFinallyImpl {
 	public void setName(String name) throws ApplicationException {
 		if (name == null) return;
 		this.name = name.trim();
-		if (name.length() == 0) throw new ApplicationException("invalid attribute definition", "attribute [name] can't be an empty string");
+		if (name.length() == 0) throw new ApplicationException("Invalid attribute definition", "Attribute [name] can't be an empty string");
 	}
 
 	public void setResult(String result) throws ApplicationException {
@@ -214,7 +214,7 @@ public final class Lock extends BodyTagTryCatchFinallyImpl {
 		manager = pageContext.getConfig().getLockManager();
 		// check attributes
 		if (name != null && scope != SCOPE_NONE) {
-			throw new LockException(LockException.OPERATION_CREATE, this.name, "invalid attribute combination", "attribute [name] and [scope] can't be used together");
+			throw new LockException(LockException.OPERATION_CREATE, this.name, "Invalid attribute combination", "Attribute [name] and [scope] can't be used together");
 		}
 		if (name == null && scope == SCOPE_NONE) {
 			name = "id-" + id;

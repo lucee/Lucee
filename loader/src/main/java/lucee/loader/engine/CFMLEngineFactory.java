@@ -447,6 +447,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 			else if ("debug".equalsIgnoreCase(strLogLevel) || "4".equalsIgnoreCase(strLogLevel)) logLevel = 4;
 		}
 		config.put("felix.log.level", "" + logLevel);
+
 		if (logger != null) {
 			if (logLevel == 2) logger.setLogLevel(Logger.LOG_WARNING);
 			else if (logLevel == 3) logger.setLogLevel(Logger.LOG_INFO);
@@ -464,35 +465,36 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 		// Allow felix.cache.locking to be overridden by env var (true/false)
 		// Enables or disables bundle cache locking, which is used to prevent concurrent access to the
 		// bundle cache.
-		String strCacheLocking = getSystemPropOrEnvVar("felix.cache.locking", null);
-		if (!Util.isEmpty(strCacheLocking)) {
-			config.put("felix.cache.locking", strCacheLocking);
-		}
 
-		// Allow FRAMEWORK_STORAGE_CLEAN to be overridden by env var
-		// The value can either be "none" or "onFirstInit", where "none" does not flush the bundle cache
-		// and "onFirstInit" flushes the bundle cache when the framework instance is first initialized.
-		String strStorageClean = getSystemPropOrEnvVar("felix.storage.clean", null);
-		if (!Util.isEmpty(strStorageClean)) {
-			config.put(Constants.FRAMEWORK_STORAGE_CLEAN, strStorageClean);
-		}
+		extend(config, "felix.cache.locking", null, false);
+		extend(config, "org.osgi.framework.executionenvironment", null, false);
+		extend(config, "org.osgi.framework.storage", null, false);
+		extend(config, "org.osgi.framework.storage.clean", Constants.FRAMEWORK_STORAGE_CLEAN_ONFIRSTINIT, false);
+		extend(config, Constants.FRAMEWORK_BUNDLE_PARENT, Constants.FRAMEWORK_BUNDLE_PARENT_FRAMEWORK, false);
 
-		// Default storage clean if not set above
-		final String storageClean = (String) config.get(Constants.FRAMEWORK_STORAGE_CLEAN);
-		if (Util.isEmpty(storageClean)) config.put(Constants.FRAMEWORK_STORAGE_CLEAN, Constants.FRAMEWORK_STORAGE_CLEAN_ONFIRSTINIT);
-
-		// parent classLoader
-		final String parentClassLoader = (String) config.get(Constants.FRAMEWORK_BUNDLE_PARENT);
-		if (Util.isEmpty(parentClassLoader)) config.put(Constants.FRAMEWORK_BUNDLE_PARENT, Constants.FRAMEWORK_BUNDLE_PARENT_FRAMEWORK);
-		else config.put(Constants.FRAMEWORK_BUNDLE_PARENT, BundleUtil.toFrameworkBundleParent(parentClassLoader));
-
-		// felix.cache.rootdir
 		boolean isNew = false;
-		if (!cacheRootDir.exists()) {
-			cacheRootDir.mkdirs();
-			isNew = true;
+		// felix.cache.rootdir
+		if (Util.isEmpty((String) config.get("felix.cache.rootdir"))) {
+			if (!cacheRootDir.exists()) {
+				cacheRootDir.mkdirs();
+				isNew = true;
+			}
+			if (cacheRootDir.isDirectory()) config.put("felix.cache.rootdir", cacheRootDir.getAbsolutePath());
 		}
-		if (cacheRootDir.isDirectory()) config.put("felix.cache.rootdir", cacheRootDir.getAbsolutePath());
+
+		extend(config, Constants.FRAMEWORK_BOOTDELEGATION, null, true);
+		extend(config, Constants.FRAMEWORK_SYSTEMPACKAGES, null, true);
+		extend(config, Constants.FRAMEWORK_SYSTEMPACKAGES_EXTRA, null, true);
+		extend(config, "felix.cache.filelimit", null, false);
+		extend(config, "felix.cache.bufsize", null, false);
+		extend(config, "felix.bootdelegation.implicit", null, false);
+		extend(config, "felix.systembundle.activators", null, false);
+		extend(config, "org.osgi.framework.startlevel.beginning", null, false);
+		extend(config, "felix.startlevel.bundle", null, false);
+		extend(config, "felix.service.urlhandlers", null, false);
+		extend(config, "felix.auto.deploy.dir", null, false);
+		extend(config, "felix.auto.deploy.action", null, false);
+		extend(config, "felix.shutdown.hook", null, false);
 
 		if (logger != null) config.put("felix.log.logger", logger);
 		// TODO felix.log.logger
@@ -532,6 +534,22 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 		}
 
 		return felix;
+	}
+
+	private static void extend(Map<String, Object> config, String name, String defaultValue, boolean add) {
+		String addional = getSystemPropOrEnvVar(name, null);
+		if (Util.isEmpty(addional, true)) {
+			if (Util.isEmpty(defaultValue, true)) return;
+			addional = defaultValue.trim();
+		}
+		if (add) {
+			String existing = (String) config.get(name);
+			if (!Util.isEmpty(existing, true)) config.put(name, existing.trim() + "," + addional.trim());
+			else config.put(name, addional.trim());
+		}
+		else {
+			config.put(name, addional.trim());
+		}
 	}
 
 	protected static String getSystemPropOrEnvVar(String name, String defaultValue) {
@@ -698,7 +716,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 				+ (id == null ? "?" : "&") + "allowRedirect=true&jv=" + System.getProperty("java.version")
 
 		);
-		log(Logger.LOG_WARNING, "Downloading bundle [" + symbolicName + ":" + symbolicVersion + "] from " + updateUrl + " and copying to " + jar);
+		log(Logger.LOG_INFO, "Downloading bundle [" + symbolicName + ":" + symbolicVersion + "] from " + updateUrl + " and copying to " + jar);
 
 		int code;
 		HttpURLConnection conn;
@@ -904,10 +922,10 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 
 		final URL infoUrl = new URL(updateProvider, "/rest/update/provider/update-for/" + version.toString() + (id != null ? id.toQueryString() : ""));
 
-		log(Logger.LOG_DEBUG, "Check for update at " + updateProvider);
+		log(Logger.LOG_DEBUG, "Checking for core update at [" + updateProvider + "]");
 
 		String strAvailableVersion = toString((InputStream) infoUrl.getContent()).trim();
-		log(Logger.LOG_DEBUG, "Received available update versions from update provider (" + strAvailableVersion + ") ");
+		log(Logger.LOG_DEBUG, "Update provider reports an updated core version available [" + strAvailableVersion + "] ");
 
 		strAvailableVersion = CFMLEngineFactorySupport.removeQuotes(strAvailableVersion, true);
 
@@ -916,11 +934,11 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 			return null;
 		}
 
-		log(Logger.LOG_DEBUG, "Found a newer Version \n - current Version [" + version.toString() + "]\n - available Version [" + strAvailableVersion + "]");
+		log(Logger.LOG_INFO, "Found a newer Version \n - current Version [" + version.toString() + "]\n - available Version [" + strAvailableVersion + "]");
 
 		final URL updateUrl = new URL(updateProvider,
 				"/rest/update/provider/download/" + strAvailableVersion + (id != null ? id.toQueryString() : "") + (id == null ? "?" : "&") + "allowRedirect=true");
-		log(Logger.LOG_DEBUG, "download update from " + updateUrl);
+		log(Logger.LOG_INFO, "Downloading core update from [" + updateUrl + "]");
 
 		// local resource
 		final File patchDir = getPatchDirectory();
@@ -932,6 +950,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 		try {
 			conn = (HttpURLConnection) updateUrl.openConnection();
 			conn.setRequestMethod("GET");
+			conn.setConnectTimeout(10000);
 			conn.connect();
 			code = conn.getResponseCode();
 		}
@@ -956,6 +975,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 				try {
 					conn = (HttpURLConnection) url.openConnection();
 					conn.setRequestMethod("GET");
+					conn.setConnectTimeout(10000);
 					conn.connect();
 					code = conn.getResponseCode();
 				}

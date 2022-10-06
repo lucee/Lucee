@@ -68,7 +68,7 @@ public final class ArrayUtil {
 	 * @param arr
 	 * @return trimmed array
 	 */
-	public static String[] trim(String[] arr) {
+	public static String[] trimItems(String[] arr) {
 		for (int i = 0; i < arr.length; i++) {
 			arr[i] = arr[i].trim();
 		}
