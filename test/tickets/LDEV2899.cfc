@@ -9,7 +9,6 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" skip="true" {
 				catch(any e) {
 					var result = e.message;
 				}
-				
 				expect(result).toBe("false");
 			});
 		});
