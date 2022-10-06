@@ -2,7 +2,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase" skip="true" {
 
 	function run( testResults , testBox ) {
 		describe( "Testcase for LDEV-3671", function() {
-
 			it(title = "Checking getMetaData()" , body = function( currentSpec ) {
 				var obj = new LDEV3671.test3671();
 
