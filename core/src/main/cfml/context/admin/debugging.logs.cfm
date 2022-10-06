@@ -40,7 +40,7 @@
 <cfparam name="url.action2" default="list">
 <cfparam name="form.mainAction" default="none">
 <cfparam name="form.subAction" default="none">
-<cfset isWeb=request.admintype EQ "web">
+<cfset isWeb = request.admintype EQ "web" OR getApplicationSettings().singleContext EQ true>
 
 <cfadmin 
 	action="securityManager"

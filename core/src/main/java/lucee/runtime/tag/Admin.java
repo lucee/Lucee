@@ -1511,6 +1511,11 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	}
 
 	private void doGetLoggedDebugData() throws PageException {
+		
+		// to get logged debugging data config should be a ConfigWebPro, 
+ 		// for singleMode config is always ConfigServer so config must be redefine if it was singleMode
+		if (singleMode) config = (ConfigPro) pageContext.getConfig();
+
 		if (config instanceof ConfigServer) return;
 
 		ConfigWebPro cw = (ConfigWebPro) config;
@@ -1535,6 +1540,9 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	}
 
 	private void doPurgeDebugPool() throws PageException {
+		// for singleMode config is always ConfigServer so config must be redefined if it was singleMode
+		if (singleMode) config = (ConfigPro) pageContext.getConfig();
+
 		if (config instanceof ConfigServer) return;
 		ConfigWebPro cw = (ConfigWebPro) config;
 		cw.getDebuggerPool().purge();
