@@ -485,7 +485,7 @@ public final class AppListenerUtil {
 	}
 
 	public static String toSessionType(short type, String defaultValue) {
-		if (type == Config.SESSION_TYPE_APPLICATION) return "application";
+		if (type == Config.SESSION_TYPE_APPLICATION) return "cfml";
 		if (type == Config.SESSION_TYPE_JEE) return "jee";
 		return defaultValue;
 	}
