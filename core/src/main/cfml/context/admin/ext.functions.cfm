@@ -487,12 +487,15 @@
 				}
 			}
 			catch(e) {
-				if (!structKeyExists(request, "retryCount")) request.retryCount = 0;
-				request.retryCount++;
+				writeLog("Provider calls to #arguments.provider# failed with #e.message# #e.stacktrace#" , "error");
 
-				// call it in the background up to 10 times
-				if (request.retryCount < 10) getProviderInfoAsync(arguments.provider);
-				else writeLog("Provider calls to #arguments.provider# failed with #e.message# #e.stacktrace#" , "error");
+				if (!structKeyExists(request, "providerRetryCount") || !structKeyExists(request.providerRetryCount, arguments.provider)) request.providerRetryCount[arguments.provider] = 0;
+
+				request.providerRetryCount[arguments.provider]++;
+
+				// call it in the background once per the provider
+				if (request.providerRetryCount[arguments.provider] <= 1) getProviderInfoAsync(arguments.provider);
+				
 			}
 
 			if(isNull(http.status_code)){
