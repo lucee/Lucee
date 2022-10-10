@@ -48,8 +48,8 @@ public abstract class _Mail extends TagImpl {
 	private String password;
 	private String action = "getheaderonly";
 	private String name;
-	private String[] messageNumber;
-	private String[] uid;
+	private String messageNumber;
+	private String uid;
 	private Resource attachmentPath;
 	private int timeout = 60;
 	private int startrow = 1;
@@ -161,8 +161,7 @@ public abstract class _Mail extends TagImpl {
 	 * @throws PageException
 	 */
 	public void setMessagenumber(String messageNumber) throws PageException {
-		this.messageNumber = ArrayUtil.trimItems(ListUtil.toStringArray(ListUtil.listToArrayRemoveEmpty(messageNumber, ',')));
-		if (this.messageNumber.length == 0) this.messageNumber = null;
+		this.messageNumber = messageNumber;
 	}
 
 	/**
@@ -170,8 +169,7 @@ public abstract class _Mail extends TagImpl {
 	 * @throws PageException
 	 */
 	public void setUid(String uid) throws PageException {
-		this.uid = ArrayUtil.trimItems(ListUtil.toStringArray(ListUtil.listToArrayRemoveEmpty(uid, ',')));
-		if (this.uid.length == 0) this.uid = null;
+		this.uid = uid;
 	}
 
 	/**

@@ -173,7 +173,7 @@ jobs:
         IMAP_PORT_SECURE: 3993
         IMAP_SERVER: localhost
         IMAP_USERNAME: lucee
-        # IMAP_PASSWORD: doesntmatter
+        IMAP_PASSWORD: doesntmatter
         POP_PORT_INSECURE: 3110
         POP_PORT_SECURE: 3995
         POP_SERVER: localhost

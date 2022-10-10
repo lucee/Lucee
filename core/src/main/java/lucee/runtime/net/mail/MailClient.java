@@ -32,6 +32,7 @@ import javax.mail.Authenticator;
 import javax.mail.BodyPart;
 import javax.mail.Flags;
 import javax.mail.Folder;
+import javax.mail.UIDFolder;
 import javax.mail.Header;
 import javax.mail.Message;
 import javax.mail.MessagingException;
@@ -293,12 +294,12 @@ public abstract class MailClient implements PoolItem {
 	 * @throws IOException
 	 * @throws PageException
 	 */
-	public void deleteMails(String as[], String as1[]) throws MessagingException, IOException, PageException {
+	public void deleteMails(String messageNumber, String uid) throws MessagingException, IOException, PageException {
 		Folder folder;
 		Message amessage[];
 		folder = _store.getFolder("INBOX");
 		folder.open(2);
-		Map<String, Message> map = getMessages(null, folder, as1, as, startrow, maxrows, false);
+		Map<String, Message> map = getMessages(null, folder, uid, messageNumber, startrow, maxrows, false);
 		Iterator<String> iterator = map.keySet().iterator();
 		amessage = new Message[map.size()];
 		int i = 0;
@@ -324,7 +325,7 @@ public abstract class MailClient implements PoolItem {
 	 * @throws IOException
 	 * @throws PageException
 	 */
-	public Query getMails(String[] messageNumbers, String[] uids, boolean all, String folderName) throws MessagingException, IOException, PageException {
+	public Query getMails(String messageNumbers, String uids, boolean all, String folderName) throws MessagingException, IOException, PageException {
 		Query qry = new QueryImpl(all ? _fldnew : _flddo, 0, "query");
 		if (StringUtil.isEmpty(folderName, true)) folderName = "INBOX";
 		else folderName = folderName.trim();
@@ -418,26 +419,42 @@ public abstract class MailClient implements PoolItem {
 	 * @throws MessagingException
 	 * @throws PageException
 	 */
-	private Map<String, Message> getMessages(Query qry, Folder folder, String[] uids, String[] messageNumbers, int startRow, int maxRow, boolean all)
+	private Map<String, Message> getMessages(Query qry, Folder folder, String uids, String messageNumbers, int startRow, int maxRow, boolean all)
 			throws MessagingException, PageException {
 
-		Message[] messages = folder.getMessages();
+		Message[] messages = null;
+		String[] uidsStringArray = null;
 		Map<String, Message> map = qry == null ? new HashMap<String, Message>() : null;
 		int k = 0;
 		if (uids != null || messageNumbers != null) {
 			startRow = 0;
 			maxRow = -1;
 		}
+		if (uids != null) {
+			if (getType() == TYPE_IMAP) {
+				messages = ((UIDFolder) folder).getMessagesByUID(ListUtil.listToLongArray(uids, ','));
+			}
+			else { // POP3 folder doesn't supports the getMessagesByUID method from UIDFolder
+				uidsStringArray = ArrayUtil.trimItems(ListUtil.toStringArray(ListUtil.listToArrayRemoveEmpty(uids, ',')));
+			}
+		}
+		else if (messageNumbers != null) {
+			messages = folder.getMessages(ListUtil.listToIntArrayWithMaxRange(messageNumbers, ',', folder.getMessageCount()));
+		}
+
+		if (messages == null) messages = folder.getMessages();
+
 		Message message;
 		for (int l = startRow; l < messages.length; l++) {
 			if (maxRow != -1 && k == maxRow) {
 				break;
 			}
 			message = messages[l];
-			int messageNumber = message.getMessageNumber();
+			if (message == null) continue; // because the message can be a null for non existing messageNumbers
+
 			String id = getId(folder, message);
 
-			if (uids == null ? messageNumbers == null || contains(messageNumbers, messageNumber) : contains(uids, id)) {
+			if (uidsStringArray == null || (uidsStringArray != null && contains(uidsStringArray, id))) {
 				k++;
 				if (qry != null) {
 					toQuery(qry, message, id, all);
@@ -786,7 +803,7 @@ public abstract class MailClient implements PoolItem {
 		return qry;
 	}
 
-	public void moveMail(String srcFolderName, String trgFolderName, String as[], String as1[]) throws MessagingException, PageException {
+	public void moveMail(String srcFolderName, String trgFolderName, String messageNumber, String uid) throws MessagingException, PageException {
 		if (StringUtil.isEmpty(srcFolderName, true)) srcFolderName = "INBOX";
 
 		Folder srcFolder = getFolder(srcFolderName, true, true, false);
@@ -796,7 +813,7 @@ public abstract class MailClient implements PoolItem {
 			srcFolder.open(2);
 			trgFolder.open(2);
 			Message amessage[];
-			Map<String, Message> map = getMessages(null, srcFolder, as1, as, startrow, maxrows, false);
+			Map<String, Message> map = getMessages(null, srcFolder, uid, messageNumber, startrow, maxrows, false);
 			Iterator<String> iterator = map.keySet().iterator();
 			amessage = new Message[map.size()];
 			int i = 0;
