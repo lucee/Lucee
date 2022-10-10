@@ -130,7 +130,6 @@ public class ComponentLoader {
 			ss = searchComponent(pc, loadingLocation, rawPath, searchLocal, searchRoot, false, false).staticScope();
 			cp.setStaticScope(ss);
 		}
-
 		return ss;
 	}
 
