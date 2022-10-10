@@ -303,7 +303,7 @@ public abstract class _Mail extends TagImpl {
 			}
 			else {
 				String actions = "getHeaderOnly,getAll,delete";
-				if (getType() == MailClient.TYPE_IMAP) actions += "open,close,markread,createfolder,deletefolder,renamefolder,listallfolders,movemail";
+				if (getType() == MailClient.TYPE_IMAP) actions += ",open,close,markread,createfolder,deletefolder,renamefolder,listallfolders,movemail";
 
 				throw new ApplicationException("Invalid value for attribute [action], valid values are [" + actions + "]");
 			}
