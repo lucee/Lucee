@@ -2402,6 +2402,7 @@ sort direction:
 			- system properties
 			- environment variables
 		</description>
+		<introduced>5.3.8.207</introduced>
 		<argument>
 			<name>path</name>
 			<type>any</type>
