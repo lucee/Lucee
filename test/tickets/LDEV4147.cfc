@@ -149,21 +149,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="imap" {
 
 		structDelete(server, "mailsErrorMessage");
 
-		if (!notHasServices()) { // delete all the inbox mails after the tests in the thread
-
-			// thread action="run" creds="#creds#" name="LDEV4147_#createUniqueID()#" {
-			// thread action="run" creds="#creds#" name="LDEV4147_11" {
-
-				imap action="delete" 
-					server="#creds.imap.SERVER#" 
-					password="#creds.imap.PASSWORD#" 
-					port="#creds.imap.PORT_INSECURE#" 
-					secure="no" 
-					username="luceeldev4147imap@localhost";
-
-			// }
-
-
+		if (!notHasServices()) { // delete all the inbox mails
+			imap action="delete" 
+				server="#creds.imap.SERVER#" 
+				password="#creds.imap.PASSWORD#" 
+				port="#creds.imap.PORT_INSECURE#" 
+				secure="no" 
+				username="#variables.username#";
 		} 
 	}
 
