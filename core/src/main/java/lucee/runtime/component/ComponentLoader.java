@@ -95,14 +95,42 @@ public class ComponentLoader {
 	public static StaticScope getStaticScope(PageContext pc, PageSource loadingLocation, String rawPath, Boolean searchLocal, Boolean searchRoot) throws PageException {
 		ComponentPageImpl cp = searchComponentPage(pc, loadingLocation, rawPath, searchLocal, searchRoot);
 		StaticScope ss = cp.getStaticScope();
+
+		// if there is no static scope stored yet, we need to load it
 		if (ss == null) {
 			synchronized (cp.getPageSource().getDisplayPath() + ":" + getToken(cp.getHash() + "")) {
 				ss = cp.getStaticScope();
 				if (ss == null) {
-					cp.setStaticScope(ss = searchComponent(pc, loadingLocation, rawPath, searchLocal, searchRoot, false, false).staticScope());
+					ss = searchComponent(pc, loadingLocation, rawPath, searchLocal, searchRoot, false, false).staticScope();
+					cp.setStaticScope(ss);
+					return ss;
 				}
 			}
 		}
+
+		// check if one of the base components did change
+		long index = cp.getIndex();
+		boolean reload = false;
+		ComponentImpl bc;
+		Component c = ss.getComponent();
+		while ((bc = (ComponentImpl) c.getBaseComponent()) != null) {
+			ComponentPageImpl bcp = (ComponentPageImpl) ((PageSourceImpl) bc._getPageSource()).loadPage(pc, false, null);
+			if (bcp.getStaticStruct() != null) {
+				long idx = bcp.getStaticStruct().index();
+				if (idx == 0 || idx > index) {
+					reload = true;
+					break;
+				}
+			}
+			c = bc;
+		}
+
+		// if we had changes we need to reload
+		if (reload) {
+			ss = searchComponent(pc, loadingLocation, rawPath, searchLocal, searchRoot, false, false).staticScope();
+			cp.setStaticScope(ss);
+		}
+
 		return ss;
 	}
 
