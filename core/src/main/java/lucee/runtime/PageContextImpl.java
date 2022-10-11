@@ -32,9 +32,11 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Queue;
 import java.util.Set;
 import java.util.Stack;
 import java.util.TimeZone;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import javax.el.ELContext;
 import javax.servlet.Servlet;
@@ -331,7 +333,7 @@ public final class PageContextImpl extends PageContext {
 	private PageContextImpl root = null;
 
 	private List<String> parentTags;
-	private List<PageContext> children = null;
+	private Queue<PageContext> children = null;
 	private List<Statement> lazyStats;
 	private boolean fdEnabled;
 	private ExecutionLog execLog;
@@ -560,7 +562,13 @@ public final class PageContextImpl extends PageContext {
 			this.tagName = tmplPC.tagName;
 			this.parentTags = tmplPC.parentTags == null ? null : (List) ((ArrayList) tmplPC.parentTags).clone();
 
-			if (tmplPC.children == null) tmplPC.children = new ArrayList<PageContext>();
+			if (tmplPC.children == null) {
+				synchronized (tmplPC) {
+					if (tmplPC.children == null) {
+						tmplPC.children = new ConcurrentLinkedQueue<PageContext>();
+					}
+				}
+			}
 			tmplPC.children.add(this);
 
 			this.applicationContext = tmplPC.applicationContext;
@@ -3316,7 +3324,7 @@ public final class PageContextImpl extends PageContext {
 		return root;
 	}
 
-	public List<PageContext> getChildPageContexts() {
+	public Queue<PageContext> getChildPageContexts() {
 		return children;
 	}
 
