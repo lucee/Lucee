@@ -5,8 +5,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="imap" {
 		variables.uri = createURI("LDEV4147"); 	
 		variables.creds = getCredentials();
 
-		systemOutput("credentials -- #serializeJSON(variables.creds)#",1,1);
-
 		if (notHasServices()) return;
 
 		variables.username = "luceeldev4147imap@localhost";
