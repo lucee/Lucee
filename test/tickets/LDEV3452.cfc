@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" {
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="http" skip="true" {
 
 	function beforeAll() {
 		variables.dir = "#getDirectoryFromPath(getCurrenttemplatepath())#LDEV3452"
