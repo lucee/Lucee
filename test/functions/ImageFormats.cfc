@@ -23,7 +23,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="image" {
 
 	private function doDynamicSuiteConfig() localmode=true {
 		try {
-			var imgFormats = imageFormats( true ); // v2
+			var imgFormats = evaluate("imageFormats( true )"); // v2, evaluate to bypass compile error with v1
 		} catch (e){
 			var imgFormats = imageFormats(); // v1
 		}
@@ -52,13 +52,14 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="image" {
 				}
 			}
 		}
+		/*
 		systemOutput("--------------", true);
 		systemOutput( imgFormats, true);
 		systemOutput( variables.readImageFormats, true);
 		systemOutput( variables.writeImageFormats, true);
 		systemOutput("--------------", true);
+		*/
 	}
-
 
 	function run( testResults, testBox ) localmode=true{
 		doDynamicSuiteConfig();
