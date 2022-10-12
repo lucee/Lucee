@@ -869,24 +869,23 @@ public abstract class MailClient implements PoolItem {
 			}
 			// max rows
 			if (maxrows > 0 && qry.getRecordcount() >= maxrows) break;
-			if ((f.getType() & Folder.HOLDS_MESSAGES) != 0) {
-				int row = qry.addRow();
+			if ((f.getType() & Folder.HOLDS_MESSAGES) == 0) continue;
+			int row = qry.addRow();
 
-				Folder p = null;
-				try {
-					p = f.getParent();
-				}
-				catch (MessagingException me) {
-				}
-
-				qry.setAt(KeyConstants._NAME, row, f.getName());
-				qry.setAt(FULLNAME, row, f.getFullName());
-				qry.setAt(UNREAD, row, Caster.toDouble(f.getUnreadMessageCount()));
-				qry.setAt(TOTALMESSAGES, row, Caster.toDouble(f.getMessageCount()));
-				qry.setAt(NEW, row, Caster.toDouble(f.getNewMessageCount()));
-				qry.setAt(PARENT, row, p != null ? p.getName() : null);
-				if (recurse) list(f, qry, recurse, startrow, maxrows, rowsMissed);
+			Folder p = null;
+			try {
+				p = f.getParent();
 			}
+			catch (MessagingException me) {
+			}
+
+			qry.setAt(KeyConstants._NAME, row, f.getName());
+			qry.setAt(FULLNAME, row, f.getFullName());
+			qry.setAt(UNREAD, row, Caster.toDouble(f.getUnreadMessageCount()));
+			qry.setAt(TOTALMESSAGES, row, Caster.toDouble(f.getMessageCount()));
+			qry.setAt(NEW, row, Caster.toDouble(f.getNewMessageCount()));
+			qry.setAt(PARENT, row, p != null ? p.getName() : null);
+			if (recurse) list(f, qry, recurse, startrow, maxrows, rowsMissed);
 		}
 	}
 
