@@ -17,13 +17,9 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" labels="application" {
 
 				thread action="join" name=threadNames;
 
-				systemOutput(threadNames,1,1);
-				systemOutput(serializeJSON(cfthread),1,1);
-
 				var results="";
 				cfloop (struct=cfthread, index="local.name", item="local.threads") {
-					systemOutput(serializeJSON(name),1,1);
-					systemOutput(serializeJSON(threads),1,1);
+					if(listFind(threadNames, threads.name)==0) continue;
 					results=listAppend(results,threads.result);
 				}
 				expect(results).toBe("success,success,success,success");
