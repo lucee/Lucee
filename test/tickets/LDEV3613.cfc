@@ -18,8 +18,8 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" labels="application" {
 				thread action="join" name=threadNames;
 
 				var results="";
-				cfloop (struct=cfthread, index="local.name", item="local.thread") {
-					results=listAppend(results,thread.result);
+				cfloop (struct=cfthread, index="local.name", item="local.threads") {
+					results=listAppend(results,threads.result);
 				}
 				expect(results).toBe("success,success,success,success");
 			});
