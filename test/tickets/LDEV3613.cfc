@@ -19,6 +19,8 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" labels="application" {
 
 				var results="";
 				cfloop (struct=cfthread, index="local.name", item="local.threads") {
+					systemOutput(serializeJSON(name),1,1);
+					systemOutput(serializeJSON(threads),1,1);
 					results=listAppend(results,threads.result);
 				}
 				expect(results).toBe("success,success,success,success");
