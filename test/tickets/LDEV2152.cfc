@@ -38,13 +38,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 			it(title = "directorylist() with attribute listinfo = 'query'", body = function( currentSpec ) {
 				var dirList = directorylist( base, true, 'query', '*.txt', 'directory ASC');
 				var names = queryColumnData( dirList, "name" );
-				expect( names ).toBe ( [ "a.txt", "c.txt", "j.txt", "e.txt", "g.txt", "p.txt", "h.txt", "o.txt" ] );
+				expect( names.sort("textnocase") ).toBe ( ["a.txt","c.txt","e.txt","g.txt","h.txt","j.txt","o.txt","p.txt"] );
 			});
 
 			it(title = "directorylist() with attribute listinfo = 'query',sort = 'desc'", body = function( currentSpec ) {
 				var dirList = directorylist( base, true, 'query', '*.txt', 'directory DESC');
 				var names = queryColumnData( dirList, "name" );
-				expect( names ).toBe(['h.txt','o.txt','g.txt','p.txt','e.txt','a.txt','c.txt','j.txt']);
+				expect( names.sort("textnocase") ).toBe(["a.txt","c.txt","e.txt","g.txt","h.txt","j.txt","o.txt","p.txt"]);
 			});
 
 			it(title = "directorylist() with attribute listinfo = 'path', sort directory ASC", body = function( currentSpec ) {
@@ -52,7 +52,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				loop array=dirList item="local.dir" index="local.i" {
 					dirList[ local.i ] =  replace( listlast( dir, "LDEV2152" ), "\", "/", "all" );
 				}
-				expect( dirList ).toBe( [ '/a.txt', '/c.txt','/j.txt','/b/e.txt','/b/d/g.txt','/b/d/p.txt','/n/h.txt','/n/o.txt' ] );
+				expect( dirList.sort("textnocase") ).toBe( ["/a.txt","/b/d/g.txt","/b/d/p.txt","/b/e.txt","/c.txt","/j.txt","/n/h.txt","/n/o.txt"] );
 			});
 
 			it(title = "directorylist() with attribute listinfo = 'path',sort = 'directory desc'",  body = function( currentSpec ) {
@@ -60,19 +60,19 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				loop array=dirList item="local.dir" index="local.i" {
 					dirList[ local.i ] =  replace( listlast( dir, "LDEV2152" ), "\", "/", "all" );
 				}
-				expect ( dirList ).toBe( ['/n/h.txt','/n/o.txt','/b/d/g.txt', '/b/d/p.txt', '/b/e.txt', '/a.txt', '/c.txt', '/j.txt'] );
+				expect ( dirList.sort("textnocase") ).toBe( ["/a.txt","/b/d/g.txt","/b/d/p.txt","/b/e.txt","/c.txt","/j.txt","/n/h.txt","/n/o.txt"] );
 			});
 
 			// fails 5.3
 			it(title = "directorylist() with attribute listinfo = 'name', sort directory ASC", skip=true, body = function( currentSpec ) {
 				var dirList = directorylist( base, true, 'name', '*.txt', 'directory ASC');
-				expect( dirList ).toBe( ['a.txt', 'c.txt', 'j.txt', 'e.txt', 'g.txt', 'p.txt', 'h.txt', 'o.txt'] );
+				expect( dirList.sort("textnocase") ).toBe( ["a.txt","c.txt","e.txt","g.txt","h.txt","j.txt","o.txt","p.txt"] );
 			});
 
 			// fails 5.3
 			it(title = "directorylist() with attribute listinfo = 'name',sort = 'directory desc'", skip=true, body = function( currentSpec ) {
 				var dirList = directorylist( base, true, 'name', '*.txt', 'directory DESC');
-				expect( dirList ).toBe( [ 'h.txt', 'o.txt', 'g.txt', 'p.txt', 'e.txt', 'a.txt', 'c.txt', 'j.txt' ] );
+				expect( dirList.sort("textnocase") ).toBe( ["a.txt","c.txt","e.txt","g.txt","h.txt","j.txt","o.txt","p.txt"]);
 			});
 		});
 	}

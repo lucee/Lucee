@@ -484,4 +484,8 @@ public class StaticScope extends StructSupport implements Variables, Objects {
 				ExceptionUtil.similarKeyMessage(this, key.getString(), "static member", "static members", "Component [" + cp.getComponentName() + "]", true));
 	}
 
+	public long index() {
+		return cp.getStaticStruct().index();
+	}
+
 }
