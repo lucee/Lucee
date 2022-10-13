@@ -2210,6 +2210,7 @@ sort direction:
 			<type>string</type>
 		</return>
 	</function>
+	
 	<!-- cJustify -->
 	<function>
 		<name>cJustify</name>
@@ -4828,6 +4829,7 @@ If you do not specify the mode, Lucee opens the file in read mode.</description>
    		</argument>
 		<argument>
 			<name>accept</name>
+			<alias>mimeType</alias>
 			<type>string</type>
 			<required>no</required>
 			<description>Limits the MIME types to accept. Comma-delimited list. For example, to permit JPG and Microsoft Word file uploads:
