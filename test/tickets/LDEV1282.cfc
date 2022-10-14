@@ -13,7 +13,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" skip="true"{
 				expect( "lucee" === "lucee").toBeTrue( "compare same values, inline" );
 
 				expect ( a === c ).toBeFalse( "compare same values, different case" );
-				expect( "lucee" === "Lucee").toBeFalse( "compare same values, different case, inline" );
+				expect( "lucee" === "Lucee").toBeTrue( "compare same values, different case, inline" ); // ACF compat, differs to JS
 			});
 
 			it( title = 'Test case for === operator with numbers',body = function( currentSpec ) localmode=true {
