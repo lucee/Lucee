@@ -12,8 +12,9 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" skip="true"{
 				expect ( a === b ).toBeTrue( "compare duplicated value, variables" );
 				expect( "lucee" === "lucee").toBeTrue( "compare same values, inline" );
 
-				expect ( a === c ).toBeFalse( "compare same values, different case" );
-				expect( "lucee" === "Lucee").toBeTrue( "compare same values, different case, inline" ); // ACF compat, differs to JS
+				// ACF compat, differs to JS, cfml is case insensitive
+				expect ( a === c ).toBeTrue( "compare same values, different case" );
+				expect( "lucee" === "Lucee").toBeTrue( "compare same values, different case, inline" );
 			});
 
 			it( title = 'Test case for === operator with numbers',body = function( currentSpec ) localmode=true {
