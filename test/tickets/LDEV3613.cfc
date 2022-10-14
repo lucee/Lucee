@@ -18,7 +18,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" labels="application" ski
 				thread action="join" name=threadNames;
 
 				var results="";
-				cfloop (struct=cfthread, index="local.name", item="local.threads") {
+				loop struct=cfthread index="local.name" item="local.threads" {
 					if(listFind(threadNames, threads.name)==0) continue;
 					results=listAppend(results,threads.result);
 				}
