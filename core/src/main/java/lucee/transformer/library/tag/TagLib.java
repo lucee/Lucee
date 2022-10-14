@@ -245,6 +245,10 @@ public class TagLib implements Cloneable, Lib {
 		this.ELClass = ClassDefinitionImpl.toClassDefinition(eLClass, id, attributes);
 	}
 
+	protected void setELClassWithMap(String eLClass, Identification id, Map<String, String> attributes) {
+		this.ELClass = ClassDefinitionImpl.toClassDefinition(eLClass, id, attributes);
+	}
+
 	protected void setELClassDefinition(ClassDefinition cd) {
 		this.ELClass = cd;
 	}

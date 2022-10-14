@@ -21,6 +21,7 @@ import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
+import java.util.Map;
 
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Version;
@@ -172,6 +173,22 @@ public class ClassDefinitionImpl<T> implements ClassDefinition<T>, Externalizabl
 	@Override
 	public int hashCode() {
 		return toString().hashCode();
+	}
+
+	public static ClassDefinition toClassDefinition(String className, Identification id, Map<String, String> attributes) {
+		if (StringUtil.isEmpty(className, true)) return null;
+
+		String bn = null, bv = null;
+		if (attributes != null) {
+			// name
+			bn = attributes.get("name");
+			if (StringUtil.isEmpty(bn)) bn = attributes.get("bundle-name");
+
+			// version
+			bv = attributes.get("version");
+			if (StringUtil.isEmpty(bv)) bv = attributes.get("bundle-version");
+		}
+		return new ClassDefinitionImpl(className, bn, bv, id);
 	}
 
 	public static ClassDefinition toClassDefinition(String className, Identification id, Attributes attributes) {

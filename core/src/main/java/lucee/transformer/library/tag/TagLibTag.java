@@ -291,6 +291,10 @@ public final class TagLibTag {
 		this.tagCD = ClassDefinitionImpl.toClassDefinition(tagClass, id, attributes);
 	}
 
+	public void setTagClassDefinitionWithMap(String tagClass, Identification id, Map<String, String> attributes) {
+		this.tagCD = ClassDefinitionImpl.toClassDefinition(tagClass, id, attributes);
+	}
+
 	public void setTagClassDefinition(ClassDefinition cd) {
 		this.tagCD = cd;
 	}
@@ -586,6 +590,10 @@ public final class TagLibTag {
 		this.tteCD = ClassDefinitionImpl.toClassDefinition(tteClass, id, attr);
 	}
 
+	protected void setTTEClassDefinitionWithMap(String tteClass, Identification id, Map<String, String> attr) {
+		this.tteCD = ClassDefinitionImpl.toClassDefinition(tteClass, id, attr);
+	}
+
 	protected void setTagEval(TagEvaluator eval) {
 		this.eval = eval;
 	}
@@ -601,6 +609,11 @@ public final class TagLibTag {
 		this.tttConstructor = null;
 	}
 
+	public void setTTTClassDefinitionWithMap(String tttClass, Identification id, Map<String, String> attr) {
+		this.tttCD = ClassDefinitionImpl.toClassDefinition(tttClass, id, attr);
+		this.tttConstructor = null;
+	}
+
 	/**
 	 * Setzt die implementierende Klassendefinition des TagDependentBodyTransformer. Diese Methode wird
 	 * durch die Klasse TagLibFactory verwendet.
@@ -608,6 +621,11 @@ public final class TagLibTag {
 	 * @param tdbtClass Klassendefinition der TagDependentBodyTransformer-Implementation.
 	 */
 	public void setTDBTClassDefinition(String tdbtClass, Identification id, Attributes attr) {
+		this.tdbtCD = ClassDefinitionImpl.toClassDefinition(tdbtClass, id, attr);
+		this.tdbt = null;
+	}
+
+	public void setTDBTClassDefinitionWithMap(String tdbtClass, Identification id, Map<String, String> attr) {
 		this.tdbtCD = ClassDefinitionImpl.toClassDefinition(tdbtClass, id, attr);
 		this.tdbt = null;
 	}
@@ -695,6 +713,10 @@ public final class TagLibTag {
 	 * @param value Name der AttributeEvaluator Klassse
 	 */
 	public void setAttributeEvaluatorClassDefinition(String className, Identification id, Attributes attr) {
+		cdAttributeEvaluator = ClassDefinitionImpl.toClassDefinition(className, id, attr);
+	}
+
+	public void setAttributeEvaluatorClassDefinitionWithMap(String className, Identification id, Map<String, String> attr) {
 		cdAttributeEvaluator = ClassDefinitionImpl.toClassDefinition(className, id, attr);
 	}
 
