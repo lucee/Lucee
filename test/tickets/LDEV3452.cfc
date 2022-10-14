@@ -37,6 +37,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="http" skip="true" 
 	}
 
 	function afterAll() { 
-		directorydelete(dir,true);
+		directorydelete(variables.dir,true);
 	}
 }
