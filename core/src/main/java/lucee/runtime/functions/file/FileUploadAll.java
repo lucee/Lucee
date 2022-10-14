@@ -79,7 +79,7 @@ public class FileUploadAll extends BIF implements Function {
 
 		// blocked extensions
 		ExtensionResourceFilter blockedFilter = null;
-		if (!StringUtil.isEmpty(blockedFilter)) {
+		if (!StringUtil.isEmpty(blockedExtensions)) {
 			blockedFilter = FileUtil.toExtensionFilter(blockedExtensions);
 		}
 
