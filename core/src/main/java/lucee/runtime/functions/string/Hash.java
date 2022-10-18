@@ -41,27 +41,27 @@ public final class Hash implements Function {
 
 	// function for old code in ra files calling this function
 	public static String call(PageContext pc, String input) throws PageException {
-		return invoke(pc.getConfig(), input, null, null, 1);
+		return invoke(pc.getConfig(), input, null, null, 0);
 	}
 
 	public static String call(PageContext pc, String input, String algorithm) throws PageException {
-		return invoke(pc.getConfig(), input, algorithm, null, 1);
+		return invoke(pc.getConfig(), input, algorithm, null, 0);
 	}
 
 	public static String call(PageContext pc, String input, String algorithm, String encoding) throws PageException {
-		return invoke(pc.getConfig(), input, algorithm, encoding, 1);
+		return invoke(pc.getConfig(), input, algorithm, encoding, 0);
 	}
 
 	public static String call(PageContext pc, Object input) throws PageException {
-		return invoke(pc.getConfig(), input, null, null, 1);
+		return invoke(pc.getConfig(), input, null, null, 0);
 	}
 
 	public static String call(PageContext pc, Object input, String algorithm) throws PageException {
-		return invoke(pc.getConfig(), input, algorithm, null, 1);
+		return invoke(pc.getConfig(), input, algorithm, null, 0);
 	}
 
 	public static String call(PageContext pc, Object input, String algorithm, String encoding) throws PageException {
-		return invoke(pc.getConfig(), input, algorithm, encoding, 1);
+		return invoke(pc.getConfig(), input, algorithm, encoding, 0);
 	}
 
 	public static String call(PageContext pc, Object input, String algorithm, String encoding, double numIterations) throws PageException {
@@ -69,7 +69,7 @@ public final class Hash implements Function {
 	}
 
 	public static String invoke(Config config, Object input, String algorithm, String encoding, int numIterations) throws PageException {
-		if (numIterations < 1) numIterations = 1;
+		if (numIterations < 1) numIterations = 0;
 
 		if (StringUtil.isEmpty(algorithm)) algorithm = "md5";
 		else algorithm = algorithm.trim().toLowerCase();
@@ -89,7 +89,7 @@ public final class Hash implements Function {
 
 			MessageDigest md = MessageDigest.getInstance(algorithm);
 			md.reset();
-			for (int i = 0; i < numIterations; i++) {
+			for (int i = 0; i <= numIterations; i++) {
 				data = md.digest(data);
 			}
 			return lucee.commons.digest.Hash.toHexString(data, true);
