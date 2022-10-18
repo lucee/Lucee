@@ -20,7 +20,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" skip="true" {
 
 			it( title="Using colon (:) in script syntax component function attribute", body=function( currentSpec ) {
 				try {
-					var res = new LDEV3963.test();
+					var res = new LDEV3963.test3963();
 					var result = structKeyExists(getMetadata(res).functions[2],"ACCESS:REMOTE")
 				}
 				catch(any e) {
@@ -31,7 +31,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" skip="true" {
 
 			it( title="Using equal(=) in script syntax component function attribute", body=function( currentSpec ) {
 				try {
-					var result = new LDEV3963.test().get();
+					var result = new LDEV3963.test3963().get();
 				}
 				catch(any e) {
 					var result = e.message;
