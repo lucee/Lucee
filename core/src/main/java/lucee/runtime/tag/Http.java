@@ -1100,6 +1100,7 @@ public final class Http extends BodyTagImpl {
 					if (!throwonerror) {
 						if (t instanceof SocketTimeoutException) setRequestTimeout(cfhttp);
 						else setUnknownHost(cfhttp, t);
+						logHttpRequest(pageContext, cfhttp, url, req.getMethod(), System.nanoTime() - start, false);
 						return;
 					}
 					throw toPageException(t, rsp);
@@ -1119,6 +1120,7 @@ public final class Http extends BodyTagImpl {
 				if (e.t != null) {
 					if (!throwonerror) {
 						setUnknownHost(cfhttp, e.t);
+						logHttpRequest(pageContext, cfhttp, url, req.getMethod(), System.nanoTime() - start, false);
 						return;
 					}
 					throw toPageException(e.t, rsp);
@@ -1130,6 +1132,7 @@ public final class Http extends BodyTagImpl {
 					req.abort();
 					if (throwonerror) throw new HTTPException("408 Request Time-out", "a timeout occurred in tag http", 408, "Time-out", rsp == null ? null : rsp.getURL());
 					setRequestTimeout(cfhttp);
+					logHttpRequest(pageContext, cfhttp, url, req.getMethod(), System.nanoTime() - start, false);
 					return;
 					// throw new ApplicationException("timeout");
 				}
