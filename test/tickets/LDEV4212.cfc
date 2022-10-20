@@ -61,7 +61,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="static" {
 
 
 	// this function is helps to write the cfc files/change the source code of the cfc files
-	private function writeComponentFile(required String fileName, required String staticKey, required String staticValue, boolean isChild = isChild=false) {
+	private function writeComponentFile(required String fileName, required String staticKey, required String staticValue, boolean isChild = false) {
 
 		extends = "";
 		if (isChild) extends = 'extends="parent"';
