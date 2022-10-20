@@ -7,9 +7,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				expect(EXIFdata.Make).toBE('Apple');
 				expect(EXIFdata.model).toBE('iPhone 5s');
 				expect(EXIFdata.Compression).toBE('6');
-				expect(EXIFdata.Flash).toBE('16');
-				expect(EXIFdata.Orientation).toBE('6');
-				expect(EXIFdata.Software).toBE('8.1.2');
+				expect(EXIFdata.Flash).toBE('24');
+				expect(EXIFdata.Orientation).toBE('1');
+				expect(EXIFdata.Software).toBE('9.3.5');
 			});
 		});
 	}
