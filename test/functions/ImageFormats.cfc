@@ -101,6 +101,38 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="image" {
 					}
 				});
 
+				it( title="test imageInfo() with format: [#name#]",
+						data={ imageFormat=_imageFormat },
+						body=function( data ) {
+					try {
+						var imageFormat = data.imageFormat;
+						// test if we can write a file in this image format (image format is based on file extension )
+						var testFile = getTempFile( getTempDirectory(), "image-info-test", imageFormat );
+						imageWrite ( variables.testImage, testFile );
+
+						expect( imageInfo( testFile ) ).toBeStruct( "Can read ImageInfo with the format [#imageFormat#]" );
+					} finally {
+						if ( fileExists( testFile ) )
+							fileDelete( testFile );
+					}
+				});
+
+				it( title="test ImageGetExifMetaData() with format: [#name#]",
+						data={ imageFormat=_imageFormat },
+						body=function( data ) {
+					try {
+						var imageFormat = data.imageFormat;
+						// test if we can write a file in this image format (image format is based on file extension )
+						var testFile = getTempFile( getTempDirectory(), "image-exif-test", imageFormat );
+						imageWrite ( variables.testImage, testFile );
+
+						expect( ImagegetExifMetaData( testFile ) ).toBeStruct( "Can read ImageGetExifMetaData() with the format [#imageFormat#]" );
+					} finally {
+						if ( fileExists( testFile ) )
+							fileDelete( testFile );
+					}
+				});
+
 				it( title="test imageRead() with format: [#name#]",
 						data={ imageFormat=_imageFormat },
 						body=function( data ) {
