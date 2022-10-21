@@ -1,6 +1,6 @@
 component extends="org.lucee.cfml.test.LuceeTestCase" labels="image" {
 	function beforeAll(){
-		variables.path ="#getDirectoryFromPath(getCurrenttemplatepath())#LDEV1388\";
+		variables.path ="#getTempDirectory()#LDEV1388\";
 		if(not directoryExists("#path#uploads")){
 			Directorycreate("#path#uploads");
 		}
