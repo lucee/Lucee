@@ -29,13 +29,16 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="image" {
 		}
 		variables.writeImageFormats = {};
 		variables.readImageFormats = {};
+		var excludedFormats = getExcludedFormats();
 		if ( isArray( imgFormats.decoder ) ){ // imageFormats(true) returns with 2.0 by codec
 			// v1
 			for ( local.format in ImageFormats().encoder ){
-				variables.writeImageFormats[ format ] = format;
+				if ( !structKeyExists( excludedFormats, format ) )
+					variables.writeImageFormats[ format ] = format;
 			}
 			for ( local.format in ImageFormats().decoder ){
-				variables.readImageFormats[ format ] = format;
+				if ( !structKeyExists( excludedFormats, format ) )
+					variables.readImageFormats[ format ] = format;
 			}
 		} else {
 			// v2
@@ -47,7 +50,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="image" {
 			}
 			loop collection=imgFormats.decoder key="local.codec" value="local.formats" {
 				for ( local.format in formats ){
-					variables.readImageFormatsCode[ codec & "-" & format ] = format;
+					variables.readImageFormatsCodec[ codec & "-" & format ] = format;
 					variables.readImageFormats[ format ] = format;
 				}
 			}
@@ -61,12 +64,26 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="image" {
 		*/
 	}
 
+	private struct function getExcludedFormats(){
+		var qry = extensionlist(false);
+		loop query=qry {
+			if(qry.id=="B737ABC4-D43F-4D91-8E8E973E37C40D1B") {
+				if(left(qry.version,1)>=2) return {};
+			}
+		}
+		return {
+			xbm: true,
+			pcx: true,
+			xpm: true
+		};
+	}
+
 	function run( testResults, testBox ) localmode=true{
 		doDynamicSuiteConfig();
-		variables.testImage = imageNew( "", 100, 100, "rgb", "yellow" );
+		variables.testImage = imageNew( "", 256, 256, "rgb", "yellow" );
 
 		loop collection=variables.writeImageFormats key="name" value="_imageFormat" {
-			systemOutput(name & " " & _imageFormat, true);
+			//systemOutput(name & " " & _imageFormat, true);
 			describe("test image format: [#name#]", function(){
 				it( title="test imageWrite() with format: [#name#], ",
 						data={ imageFormat=_imageFormat },
@@ -90,11 +107,12 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="image" {
 						body=function( data ) {
 					try {
 						var imageFormat = data.imageFormat;
-						// test if we can write a file in this image format (image format is based on file extension )
 						var testFile = getTempFile( getTempDirectory(), "image-write-test", imageFormat );
-						imageWrite ( variables.testImage, testFile );
+						if ( structKeyExists( variables.readImageFormats, imageFormat ) ){
+							imageWrite ( variables.testImage, testFile );
 
-						expect( isImageFile( testFile ) ).toBeTrue( "Can write an image with the format [#imageFormat#]" );
+							expect( isImageFile( testFile ) ).toBeTrue( "isImageFile with the format [#imageFormat#]" );
+						}
 					} finally {
 						if ( fileExists( testFile ) )
 							fileDelete( testFile );
@@ -106,11 +124,12 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="image" {
 						body=function( data ) {
 					try {
 						var imageFormat = data.imageFormat;
-						// test if we can write a file in this image format (image format is based on file extension )
 						var testFile = getTempFile( getTempDirectory(), "image-info-test", imageFormat );
-						imageWrite ( variables.testImage, testFile );
+						if ( structKeyExists( variables.readImageFormats, imageFormat ) ){
+							imageWrite ( variables.testImage, testFile );
 
-						expect( imageInfo( testFile ) ).toBeStruct( "Can read ImageInfo with the format [#imageFormat#]" );
+							expect( imageInfo( testFile ) ).toBeStruct( "Can read ImageInfo with the format [#imageFormat#]" );
+						}
 					} finally {
 						if ( fileExists( testFile ) )
 							fileDelete( testFile );
@@ -122,11 +141,12 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="image" {
 						body=function( data ) {
 					try {
 						var imageFormat = data.imageFormat;
-						// test if we can write a file in this image format (image format is based on file extension )
 						var testFile = getTempFile( getTempDirectory(), "image-exif-test", imageFormat );
-						imageWrite ( variables.testImage, testFile );
+						if ( structKeyExists( variables.readImageFormats, imageFormat ) ){
+							imageWrite ( variables.testImage, testFile );
 
-						expect( ImagegetExifMetaData( testFile ) ).toBeStruct( "Can read ImageGetExifMetaData() with the format [#imageFormat#]" );
+							expect( ImageGetExifMetaData( testFile ) ).toBeStruct( "Can read ImageGetExifMetaData() with the format [#imageFormat#]" );
+						}
 					} finally {
 						if ( fileExists( testFile ) )
 							fileDelete( testFile );
@@ -138,18 +158,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="image" {
 						body=function( data ) {
 					try {
 						var imageFormat = data.imageFormat;
-						// test if we can write a file in this image format (image format is based on file extension )
 						var testFile = getTempFile( getTempDirectory(), "image-write-test", imageFormat );
-
-						imageWrite ( variables.testImage, testFile );
-						expect( isImageFile( testFile ) ).toBeTrue( "Can write an image with the format [#imageFormat#]" );
-
-						if ( structKeyExists( variables.readImageFormats, imageFormat ) GT 0 ){
+						if ( structKeyExists( variables.readImageFormats, imageFormat ) ){
+							imageWrite ( variables.testImage, testFile );
 							// test if we can read a file in this image format (image format is based on file extension )
-							imageRead ( testFile );
-							expect( isImageFile( testFile ) ).toBeTrue( "Can write an image with the format [#imageFormat#]" );
+							var img = imageRead ( testFile );
+							expect( isImage( img ) ).toBeTrue( "Can read an image with the format [#imageFormat#]" );
 						}
-
 					} finally {
 						if ( fileExists( testFile ) )
 							fileDelete( testFile );
