@@ -265,7 +265,7 @@ body.server #contenttd {
 	color:#efede5;
 }
 .linkContext a {
-	color:#efede5;
+	color:#36c;
 	text-decoration:none;
 
 }
@@ -518,7 +518,7 @@ td.fieldPadded {
 
 .admin-single th .comment,
 .admin-single .extensionthumb .comment
-{color:#dea598;}
+{color:#333;}
 
 .important {
 	color:red !important;
