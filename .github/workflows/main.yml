@@ -77,13 +77,13 @@ jobs:
       run: echo "DO_DEPLOY=false" >> $GITHUB_ENV
 
     - name: Cache Lucee extensions
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         path: ~/work/Lucee/Lucee/cache/
         key: lucee-extensions
         restore-keys: lucee-extensions
     - name: Cache Maven packages
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         path: |
           ~/.m2/repository/*
