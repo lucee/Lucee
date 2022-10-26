@@ -230,12 +230,17 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 	public void function testAsynUDF() {
 		var udf=function (caller,args,result,meta) {
-				systemOutput("application.query_testAsynUDF=#application.query_testAsynUDF#",1,1);
+			try {
 				systemOutput("from the udf listener",1,1);
+				systemOutput("application.query_testAsynUDF=#application.query_testAsynUDF#",1,1);
 				arguments.args.sql="insert into QueryTestAsync(id,i,dec) values('6',1,1.0)"; // change SQL
 		        application.query_testAsynUDF=true;
 				systemOutput("application.query_testAsynUDF=#application.query_testAsynUDF#",1,1);
 				return arguments;
+			}
+			catch(e) {
+				systemOutput(e.message,1,1);
+			}
 		};
 		var tbl="QueryTestAsync";
 		application.query_testAsynUDF=false;
