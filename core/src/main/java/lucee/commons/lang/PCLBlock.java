@@ -31,7 +31,9 @@ import lucee.commons.io.res.Resource;
  * Directory ClassLoader
  */
 public final class PCLBlock extends ExtendableClassLoader {
-
+	static {
+		boolean res = registerAsParallelCapable();
+	}
 	private Resource directory;
 	private ClassLoader pcl;
 	private int size = 0;
