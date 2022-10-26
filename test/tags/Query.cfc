@@ -239,6 +239,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		var tbl="QueryTestAsync";
 		application.query_testAsynUDF=false;
 		testAsyn(udf,tbl,0);
+		systemOutput("application.query_testAsynUDF=#application.query_testAsynUDF#",1,1);
 		assertTrue(application.query_testAsynUDF);
 	}
 
