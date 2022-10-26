@@ -42,6 +42,7 @@ import lucee.commons.io.IOUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.filter.ExtensionResourceFilter;
 import lucee.commons.io.res.util.ResourceUtil;
+import lucee.commons.io.sax.SaxUtil;
 import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.config.Identification;
 import lucee.runtime.op.Caster;
@@ -68,7 +69,7 @@ public final class FunctionLibFactory extends DefaultHandler {
 	private FunctionLibFunction function;
 
 	private FunctionLibFunctionArg arg;
-	private Attributes attributes;
+	private Map<String, String> attributes;
 	private final Identification id;
 	private final boolean core;
 
@@ -170,7 +171,8 @@ public final class FunctionLibFactory extends DefaultHandler {
 	public void startElement(String uri, String name, String qName, Attributes atts) {
 		// Start Function
 		inside = qName;
-		this.attributes = atts;
+		this.attributes = SaxUtil.toMap(atts);
+		// print.e(attributes);
 
 		if (qName.equals("function")) startFunction();
 		else if (qName.equals("argument")) startArg();
@@ -290,7 +292,7 @@ public final class FunctionLibFactory extends DefaultHandler {
 				if (inside.equals("type")) function.setReturn(value);
 			}
 			else if (insideBundle) {
-				if (inside.equals("class")) function.setFunctionClass(value, id, attributes);
+				if (inside.equals("class")) function.setFunctionClassWithMap(value, id, attributes);
 				// if(inside.equals("name")) function.setBundleName(value);
 				// if(inside.equals("version")) function.setBundleVersion(value);
 			}
@@ -299,9 +301,9 @@ public final class FunctionLibFactory extends DefaultHandler {
 			else {
 				if (inside.equals("name")) function.setName(value);
 
-				else if (inside.equals("class")) function.setFunctionClass(value, id, attributes);
+				else if (inside.equals("class")) function.setFunctionClassWithMap(value, id, attributes);
 
-				else if (inside.equals("tte-class")) function.setTTEClass(value, id, attributes);
+				else if (inside.equals("tte-class")) function.setTTEClassWithMap(value, id, attributes);
 				if (inside.equals("keywords")) function.setKeywords(value);
 
 				else if (inside.equals("introduced")) function.setIntroduced(value);

@@ -21,6 +21,7 @@ package lucee.transformer.library.function;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.Map;
 
 import org.osgi.framework.Version;
 import org.xml.sax.Attributes;
@@ -274,6 +275,11 @@ public final class FunctionLibFunction {
 
 	}
 
+	public void setFunctionClassWithMap(String value, Identification id, Map<String, String> attrs) {
+		functionCD = ClassDefinitionImpl.toClassDefinition(value, id, attrs);
+
+	}
+
 	/**
 	 * Setzt die Beschreibung der Funktion.
 	 * 
@@ -349,6 +355,10 @@ public final class FunctionLibFunction {
 	}
 
 	public void setTTEClass(String tteClass, Identification id, Attributes attrs) {
+		this.tteCD = ClassDefinitionImpl.toClassDefinition(tteClass, id, attrs);
+	}
+
+	public void setTTEClassWithMap(String tteClass, Identification id, Map<String, String> attrs) {
 		this.tteCD = ClassDefinitionImpl.toClassDefinition(tteClass, id, attrs);
 	}
 

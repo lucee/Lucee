@@ -97,6 +97,8 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 
 	private StaticScope staticScope;
 
+	private long index;
+
 	public abstract ComponentImpl newInstance(PageContext pc, String callPath, boolean isRealPath, boolean isExtendedComponent, boolean executeConstr)
 			throws lucee.runtime.exp.PageException;
 
@@ -1020,8 +1022,13 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 		return staticScope;
 	}
 
+	public long getIndex() {
+		return index;
+	}
+
 	public void setStaticScope(StaticScope staticScope) {
 		this.staticScope = staticScope;
+		this.index = staticScope.index();
 	}
 
 }

@@ -39,6 +39,7 @@ import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.filter.ExtensionResourceFilter;
+import lucee.commons.io.sax.SaxUtil;
 import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.config.Identification;
 import lucee.runtime.op.Caster;
@@ -83,7 +84,7 @@ public final class TagLibFactory extends DefaultHandler {
 	private String inside;
 	private StringBuffer content = new StringBuffer();
 	private TagLibTagScript script;
-	private Attributes attributes;
+	private Map<String, String> attributes;
 	private final Identification id;
 	// System default tld
 	// private final static String TLD_1_0= "/resource/tld/web-cfmtaglibrary_1_0";
@@ -198,7 +199,7 @@ public final class TagLibFactory extends DefaultHandler {
 	public void startElement(String uri, String name, String qName, Attributes attributes) {
 
 		inside = qName;
-		this.attributes = attributes;
+		this.attributes = SaxUtil.toMap(attributes);
 		if (qName.equals("tag")) startTag();
 		else if (qName.equals("attribute")) startAtt();
 		else if (qName.equals("script")) startScript();
@@ -292,8 +293,8 @@ public final class TagLibFactory extends DefaultHandler {
 					tag.setName(value);
 				}
 				// TAG - Class
-				else if (inside.equals("tag-class")) tag.setTagClassDefinition(value, id, attributes);
-				else if (inside.equals("tagclass")) tag.setTagClassDefinition(value, id, attributes);
+				else if (inside.equals("tag-class")) tag.setTagClassDefinitionWithMap(value, id, attributes);
+				else if (inside.equals("tagclass")) tag.setTagClassDefinitionWithMap(value, id, attributes);
 				// status
 				else if (inside.equals("status")) tag.setStatus(toStatus(value));
 				// TAG - description
@@ -301,13 +302,13 @@ public final class TagLibFactory extends DefaultHandler {
 				else if (inside.equals("introduced")) tag.setIntroduced(value);
 				// TTE - Class
 				else if (inside.equals("tte")) tag.setTagEval(toTagEvaluator(value));
-				else if (inside.equals("tte-class")) tag.setTTEClassDefinition(value, id, attributes);
+				else if (inside.equals("tte-class")) tag.setTTEClassDefinitionWithMap(value, id, attributes);
 				// TTT - Class
-				else if (inside.equals("ttt-class")) tag.setTTTClassDefinition(value, id, attributes);
+				else if (inside.equals("ttt-class")) tag.setTTTClassDefinitionWithMap(value, id, attributes);
 				// TDBT - Class
-				else if (inside.equals("tdbt-class")) tag.setTDBTClassDefinition(value, id, attributes);
+				else if (inside.equals("tdbt-class")) tag.setTDBTClassDefinitionWithMap(value, id, attributes);
 				// TDBT - Class
-				else if (inside.equals("att-class")) tag.setAttributeEvaluatorClassDefinition(value, id, attributes);
+				else if (inside.equals("att-class")) tag.setAttributeEvaluatorClassDefinitionWithMap(value, id, attributes);
 				// Body Content
 				else if (inside.equals("body-content") || inside.equals("bodycontent")) {
 					tag.setBodyContent(value);
@@ -361,7 +362,7 @@ public final class TagLibFactory extends DefaultHandler {
 			}
 
 			// EL Class
-			else if (inside.equals("el-class")) lib.setELClass(value, id, attributes);
+			else if (inside.equals("el-class")) lib.setELClassWithMap(value, id, attributes);
 			// Name-Space
 			else if (inside.equals("name-space")) lib.setNameSpace(value);
 			// Name Space Sep
