@@ -106,13 +106,13 @@ jobs:
       run: echo "DO_DEPLOY=false" >> $GITHUB_ENV
 
     - name: Cache Lucee extensions
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         path: ~/work/Lucee/Lucee/cache/
         key: lucee-extensions
         restore-keys: lucee-extensions
     - name: Cache Maven packages
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         path: |
           ~/.m2/repository/*
@@ -205,10 +205,10 @@ jobs:
           mvn -B -e -f loader/pom.xml clean install -DtestJavaVersionExec="${{ env.LUCEE_TEST_JAVA_EXEC }}"
         fi
     - name: Publish Test Results
-      uses: EnricoMi/publish-unit-test-result-action@v1
+      uses: EnricoMi/publish-unit-test-result-action@v2
       if: always()
       with:
-        files: test/reports/junit-test-results.xml
+        junit_files: test/reports/junit-test-results.xml
         check_name: "Lucee Test Results"
     - name: Trigger Docker Build
       if: ${{ env.DO_DEPLOY == 'true' }}
