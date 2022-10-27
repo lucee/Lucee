@@ -1705,7 +1705,8 @@ If omitted, the file's attributes are maintained.</description>
 			<rtexprvalue>true</rtexprvalue>
 			<description>
    for action "upload" and "uploadAll":
-   if set to true (default), only mimetypes are supported.
+   true (default), only mimetypes are supported in the accept attribute.
+if set to false, it supports file extension/mimetypes in the accept attribute
    </description>
 		</attribute>
 		<attribute>
