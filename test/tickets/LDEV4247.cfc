@@ -69,7 +69,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="pop,imap" skip=tru
 				expect(result.trim()).tobe(4);
 			});
 
-			it( title="cfimap with delimiter and without uid attribute", skip="#notHasServices()#", body=function( currentSpec ) {
+			it( title="cfimap with delimiter and without uid attribute should throw error", skip="#notHasServices()#", body=function( currentSpec ) {
 				expect(
 					() => {
 						_internalRequest(
