@@ -28,14 +28,14 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="pop,imap" skip=tru
 			it( title="cfpop with delimiter attribute", skip="#notHasServices()#", body=function( currentSpec ) {
 				var uids = queryColumnData(variables.InitailInboxMails, "uid");
 				
-                var result = _internalRequest(
-                    template="#variables.uri#/LDEV4247.cfm",
-                    forms = {
-                        username: variables.username,
-                        uids = "#uids[1]#|#uids[2]#$#uids[3]#|$#uids[4]#",
-                        scene = 1
-                    }
-                ).filecontent;
+				var result = _internalRequest(
+					template="#variables.uri#/LDEV4247.cfm",
+					forms = {
+						username: variables.username,
+						uids = "#uids[1]#|#uids[2]#$#uids[3]#|$#uids[4]#",
+						scene = 1
+					}
+				).filecontent;
 
 				expect(result.trim()).tobe(4);
 			});
@@ -57,14 +57,14 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="pop,imap" skip=tru
 			it( title="cfimap with delimiter attribute", skip="#notHasServices()#", body=function( currentSpec ) {
 				var uids = queryColumnData(variables.InitailInboxMails, "uid");
 
-                var result = _internalRequest(
-                    template="#variables.uri#/LDEV4247.cfm",
-                    forms = {
-                        username: variables.username,
-                        uids = "#uids[1]#|#uids[2]#$#uids[3]#|$#uids[4]#",
-                        scene = 3
-                    }
-                ).filecontent;
+				var result = _internalRequest(
+					template="#variables.uri#/LDEV4247.cfm",
+					forms = {
+						username: variables.username,
+						uids = "#uids[1]#|#uids[2]#$#uids[3]#|$#uids[4]#",
+						scene = 3
+					}
+				).filecontent;
 
 				expect(result.trim()).tobe(4);
 			});
