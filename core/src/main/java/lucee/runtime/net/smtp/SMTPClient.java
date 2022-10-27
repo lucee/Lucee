@@ -736,7 +736,7 @@ public final class SMTPClient implements Serializable {
 		String fileName = att.getFileName();
 		if (!StringUtil.isAscii(fileName)) {
 			try {
-				fileName = MimeUtility.encodeText(fileName, "UTF-8", null);
+				fileName = MimeUtility.encodeText(fileName, "UTF-8", "B");
 			}
 			catch (UnsupportedEncodingException e) {
 			} // that should never happen!
