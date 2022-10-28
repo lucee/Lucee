@@ -92,6 +92,7 @@ public final class DateTimeFormat extends BIF {
 		else if ("long".equalsIgnoreCase(mask)) format = java.text.DateFormat.getDateTimeInstance(java.text.DateFormat.LONG, java.text.DateFormat.LONG, locale);
 		else if ("full".equalsIgnoreCase(mask)) format = java.text.DateFormat.getDateTimeInstance(java.text.DateFormat.FULL, java.text.DateFormat.FULL, locale);
 		else if ("iso8601".equalsIgnoreCase(mask) || "iso".equalsIgnoreCase(mask)) format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX");
+		else if ("isoms".equalsIgnoreCase(mask) || "isoMillis".equalsIgnoreCase(mask) || "javascript".equalsIgnoreCase(mask)) format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
 		else if ("epoch".equalsIgnoreCase(mask)) {
 			String gettime = String.valueOf(datetime.getTime() / 1000);
 			String epoch = gettime.toString();
@@ -126,6 +127,7 @@ public final class DateTimeFormat extends BIF {
 
 		if (mask == null) return DEFAULT_MASK;
 		else if ("iso8601".equalsIgnoreCase(mask) || "iso".equalsIgnoreCase(mask)) mask = "yyyy-MM-dd'T'HH:mm:ssXXX";
+		else if ("isoms".equalsIgnoreCase(mask) || "isoMillis".equalsIgnoreCase(mask) || "javascript".equalsIgnoreCase(mask)) return "yyyy-MM-dd'T'HH:mm:ss.SSSXXX";
 
 		mask = StringUtil.replace(mask, "''", ZEROZERO, false);
 		boolean inside = false;
