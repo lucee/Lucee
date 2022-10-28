@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" labels="syntax" {
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="syntax" skip="true" {
 	function run( testResults , testBox ) {
 		describe( "Testcase for LDEV-4250", function() {
 			it( title="break without a semicolon inside the script", body=function() {
