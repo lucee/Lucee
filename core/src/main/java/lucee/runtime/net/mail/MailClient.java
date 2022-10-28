@@ -869,7 +869,7 @@ public abstract class MailClient implements PoolItem {
 			}
 			// max rows
 			if (maxrows > 0 && qry.getRecordcount() >= maxrows) break;
-
+			if ((f.getType() & Folder.HOLDS_MESSAGES) == 0) continue;
 			int row = qry.addRow();
 
 			Folder p = null;
