@@ -663,7 +663,7 @@ public class OSGiUtil {
 	private static Resource downloadBundle(CFMLEngineFactory factory, final String symbolicName, String symbolicVersion, Identification id) throws IOException, BundleException {
 		if (!Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.enable.bundle.download", null), true)) {
 			boolean printExceptions = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.cli.printExceptions", null), false);
-			String bundleError = "Lucee is missing the Bundle jar [" + symbolicName + ":" + symbolicVersion
+			String bundleError = "Lucee is missing the Bundle jar [" + (symbolicVersion != null ? symbolicName + ":" + symbolicVersion : symbolicName)
 					+ "], and has been prevented from downloading it. If this jar is not a core jar,"
 					+ " it will need to be manually downloaded and placed in the {{lucee-server}}/context/bundles directory.";
 			try {
