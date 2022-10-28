@@ -114,6 +114,8 @@ public final class DebuggerImpl implements Debugger {
 
 	private long queryTime = 0;
 
+	private String threadName;
+
 	final static Comparator DEBUG_ENTRY_TEMPLATE_COMPARATOR = new DebugEntryTemplateComparator();
 	final static Comparator DEBUG_ENTRY_TEMPLATE_PART_COMPARATOR = new DebugEntryTemplatePartComparator();
 
@@ -157,6 +159,7 @@ public final class DebuggerImpl implements Debugger {
 		abort = null;
 		outputContext = null;
 		queryTime = 0;
+		threadName = null;
 	}
 
 	public DebuggerImpl() {
@@ -299,6 +302,10 @@ public final class DebuggerImpl implements Debugger {
 			this.outputContext = new ApplicationException("");
 		}
 	}
+
+	public void setThreadName(String threadName) {
+		this.threadName = threadName;
+	} 
 
 	// FUTURE add to inzerface
 	public boolean getOutput() {
@@ -762,6 +769,11 @@ public final class DebuggerImpl implements Debugger {
 			scopes.setEL(KeyConstants._cgi, pc.cgiScope());
 			debugging.setEL(KeyConstants._scope, scopes);
 		}
+
+		//////////////////////////////////////////
+		//////// THREAD NAME ////////////////////
+		//////////////////////////////////////////
+		if (threadName != null) debugging.setEL(KeyImpl.getInstance("threadName"), threadName);
 
 		HttpServletResponse rsp = pc.getHttpServletResponse();
 		debugging.setEL(KeyImpl.getInstance("statusCode"), rsp.getStatus());
