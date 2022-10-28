@@ -182,11 +182,14 @@ public class ChildThreadImpl extends ChildThread implements Serializable {
 				pc.addPageSource(p.getPageSource(), true);
 			}
 
+			/*
+			backed our due to regression LDEV-4217 LDEV-4216
 			ConfigImpl ci = (ConfigImpl) pc.getConfig();
 			if (!pc.isGatewayContext() && ci.debug()) {
 				((DebuggerImpl) pc.getDebugger()).setThreadName(tagName);
 				if (ci.hasDebugOptions(ConfigPro.DEBUG_TEMPLATE)) debugEntry = pc.getDebugger().getEntry(pc, page.getPageSource());
 			}
+			*/
 
 			threadScope = pc.getCFThreadScope();
 			pc.setCurrentThreadScope(new ThreadsImpl(this));
