@@ -4934,6 +4934,13 @@ The browser uses file extension to determine file type. </description>
 			<description>Action to take if filename is the same as that of a file in the directory.</description>
     	</argument>
 		<argument>
+			<name>strict</name>
+			<type>boolean</type>
+			<required>no</required>
+			<description>true (default), only mimetypes are supported in the accept attribute.
+if set to false, it supports file extension/mimetypes in the accept attribute</description>
+    	</argument>
+		<argument>
 			<name>allowedExtensions</name>
 			<type>any</type>
 			<required>no</required>
@@ -4997,6 +5004,13 @@ The browser uses file extension to determine file type. </description>
 			<type>string</type>
 			<required>no</required>
 			<description>Action to take if filename is the same as that of a file in the directory.</description>
+    	</argument>
+		<argument>
+			<name>strict</name>
+			<type>boolean</type>
+			<required>no</required>
+			<description>true (default), only mimetypes are supported in the accept attribute.
+if set to false, it supports file extension/mimetypes in the accept attribute</description>
     	</argument>
 		<argument>
 			<name>allowedExtensions</name>
