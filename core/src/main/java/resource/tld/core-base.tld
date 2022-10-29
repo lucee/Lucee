@@ -5385,7 +5385,7 @@ Lucee uses the number of characters in the file.</description>
 				This attribute overwrites any mail listener defined in the application.cfc/cfapplication.
 				
 				The "before" function can also modify some data, by returning a struct containing the following keys:
-				from, to, bcc, replyTo, failTo, subject
+				from, to, bcc, cc, replyTo, failTo, subject, charset
 				
 				the listener can be a component looking like this:
 				component {
