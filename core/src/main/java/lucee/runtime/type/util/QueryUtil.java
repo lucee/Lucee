@@ -255,6 +255,11 @@ public class QueryUtil {
 			comment.append("Cache Type: ").append(query.getCacheType()).append("\n");
 		}
 
+		if(query instanceof QueryImpl) {
+			String datasourceName = ((QueryImpl) query).getDatasourceName();
+			if(datasourceName != null) comment.append("Datasource: ").append(datasourceName).append("\n");
+		}
+
 		comment.append("Lazy: ").append(query instanceof SimpleQuery ? "Yes\n" : "No\n");
 
 		SQL sql = query.getSql();
