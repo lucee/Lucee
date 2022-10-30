@@ -89,7 +89,6 @@ try {
 	systemOutput("-------------- Test Filters and Labels", true);
 
 	param name="testFilter" default="";
-	testFilter="http";
 	request.testFilter = testFilter;
 
 	if ( len( request.testFilter ) eq 0 ){
@@ -265,7 +264,7 @@ try {
 						file_ref = replace( frame, server.system.environment.GITHUB_WORKSPACE, "" );
 						arrayAppend( results_md, 
 							"- [#file_ref#](#github_commit_base_href##replace(file_ref,":", "##L")#)"
-							& "[branch](#github_branch_base_href##replace(file_ref,":", "##L")#)" );
+							& " [branch](#github_branch_base_href##replace(file_ref,":", "##L")#)" );
 					}
 				}
 			}
