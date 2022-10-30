@@ -280,12 +280,11 @@ try {
 			systemOutput( server.system.environment.GITHUB_STEP_SUMMARY, true );
 			FileWrite( server.system.environment.GITHUB_STEP_SUMMARY, ArrayToList( results_md, NL ) );
 		}
-		/*
+		
 		loop collection=server.system.environment key="p" value="v" {
 			if ( p contains "GITHUB_")
 				systemOutput("#p#: #v##NL#");
 		}
-		*/
 	}
 	
 	if ( ( result.getTotalFail() + result.getTotalError() ) > 0 ) {
