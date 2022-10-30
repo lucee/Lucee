@@ -18,7 +18,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 
 	public function testHTTP() localmode="true"{
 		http url="http://www.google.com";
-		assertEquals(200,cfhttp.status_code);
+		assertEquals(201,cfhttp.status_code);
 	}
 
 	public function testHTTPs() localmode="true"{
