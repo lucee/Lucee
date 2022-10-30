@@ -282,16 +282,15 @@ try {
 		}
 		if ( structKeyExists( server.system.environment, "GITHUB_STEP_SUMMARY" ) ){
 			//systemOutput( server.system.environment.GITHUB_STEP_SUMMARY, true );
-			FileWrite( server.system.environment.GITHUB_STEP_SUMMARY, ArrayToList( results_md, NL ) );
+			fileWrite( server.system.environment.GITHUB_STEP_SUMMARY, ArrayToList( results_md, NL ) );
 		}
 		/*
 		loop collection=server.system.environment key="p" value="v" {
 			if ( p contains "GITHUB_")
 				systemOutput("#p#: #v##NL#");
-		}
 		*/
-	} else if ( structKeyExists( server.system.environment, "GITHUB_STEP_SUMMARY" ) ){{
-		FileWrite( server.system.environment.GITHUB_STEP_SUMMARY, "#### Tests Passed" );
+	} else if ( structKeyExists( server.system.environment, "GITHUB_STEP_SUMMARY" ) ){
+		fileWrite( server.system.environment.GITHUB_STEP_SUMMARY, "#### Tests Passed" );
 	}
 	
 	if ( ( result.getTotalFail() + result.getTotalError() ) > 0 ) {
