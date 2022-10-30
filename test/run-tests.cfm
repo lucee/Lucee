@@ -241,7 +241,9 @@ try {
 	results_md = [];
 
 	if ( structKeyExists( server.system.environment, "GITHUB_STEP_SUMMARY" ) ){
-		github_base_href=  "/" & server.system.environment.GITHUB_REPOSITORY 
+		github_commit_base_href=  "/" & server.system.environment.GITHUB_REPOSITORY
+			& "/blob/" & server.system.environment.GITHUB_SHA & "/";
+		github_branch_base_href=  "/" & server.system.environment.GITHUB_REPOSITORY
 			& "/blob/" & server.system.environment.GITHUB_REF_NAME & "/";
 	}
 
@@ -261,7 +263,9 @@ try {
 					arrayAppend( results, TAB & TAB & frame );
 					if ( structKeyExists( server.system.environment, "GITHUB_STEP_SUMMARY" ) ){
 						file_ref = replace( frame, server.system.environment.GITHUB_WORKSPACE, "" );
-						arrayAppend( results_md, "- [#file_ref#](#github_base_href##replace(file_ref,":", "##L")#)" );
+						arrayAppend( results_md, 
+							"- [#file_ref#](#github_commit_base_href##replace(file_ref,":", "##L")#)"
+							& "[branch](#github_branch_base_href##replace(file_ref,":", "##L")#)" );
 					}
 				}
 			}
