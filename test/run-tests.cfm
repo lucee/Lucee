@@ -281,7 +281,7 @@ try {
 			systemOutput( trim(resultLine), (resultLine neq NL) );
 		}
 		if ( structKeyExists( server.system.environment, "GITHUB_STEP_SUMMARY" ) ){
-			systemOutput( server.system.environment.GITHUB_STEP_SUMMARY, true );
+			//systemOutput( server.system.environment.GITHUB_STEP_SUMMARY, true );
 			FileWrite( server.system.environment.GITHUB_STEP_SUMMARY, ArrayToList( results_md, NL ) );
 		}
 		/*
@@ -290,6 +290,8 @@ try {
 				systemOutput("#p#: #v##NL#");
 		}
 		*/
+	} else if ( structKeyExists( server.system.environment, "GITHUB_STEP_SUMMARY" ) ){{
+		FileWrite( server.system.environment.GITHUB_STEP_SUMMARY, "#### Tests Passed" );
 	}
 	
 	if ( ( result.getTotalFail() + result.getTotalError() ) > 0 ) {
