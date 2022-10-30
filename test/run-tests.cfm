@@ -88,7 +88,7 @@ try {
 
 	systemOutput("-------------- Test Filters and Labels", true);
 
-	param name="testFilter" default="";	
+	param name="testFilter" default="";
 	request.testFilter = testFilter;
 
 	if ( len( request.testFilter ) eq 0 ){
@@ -235,22 +235,63 @@ try {
 		systemOutput ( s, true );
 	}
 
+	// load errors into an array, so we can dump them out to $GITHUB_STEP_SUMMARY
+	results = [];
+	results_md = [];
+
+	if ( structKeyExists( server.system.environment, "GITHUB_STEP_SUMMARY" ) ){
+		github_commit_base_href=  "/" & server.system.environment.GITHUB_REPOSITORY
+			& "/blob/" & server.system.environment.GITHUB_SHA & "/";
+		github_branch_base_href=  "/" & server.system.environment.GITHUB_REPOSITORY
+			& "/blob/" & server.system.environment.GITHUB_REF_NAME & "/";
+	}
+
 	if ( !isEmpty( failedTestCases ) ){
 		systemOutput( NL );
 		for ( el in failedTestCases ){
-			systemOutput( el.type & ": " & el.bundle & NL & TAB & el.testCase, true );
-			systemOutput( TAB & el.errMessage, true );
+			arrayAppend( results, el.type & ": " & el.bundle & NL & TAB & el.testCase );
+			arrayAppend( results, TAB & el.errMessage );
+			arrayAppend( results_md, "#### " & el.type & " " & el.bundle);
+			arrayAppend( results_md, "###### "  & el.testCase  );
+			arrayAppend( results_md, "" );
+			arrayAppend( results_md, el.errMessage );
+			
 			if ( !isEmpty( el.stackTrace ) ){
-				//systemOutput( TAB & TAB & "at", true);
+				//arrayAppend( results, TAB & TAB & "at", true);
 				for ( frame in el.stackTrace ){
-					systemOutput( TAB & TAB & frame, true );
+					arrayAppend( results, TAB & TAB & frame );
+					if ( structKeyExists( server.system.environment, "GITHUB_STEP_SUMMARY" ) ){
+						file_ref = replace( frame, server.system.environment.GITHUB_WORKSPACE, "" );
+						arrayAppend( results_md, 
+							"- [#file_ref#](#github_commit_base_href##replace(file_ref,":", "##L")#)"
+							& " [branch](#github_branch_base_href##replace(file_ref,":", "##L")#)" );
+					}
 				}
 			}
-			systemOutput( NL );
+			arrayAppend( results_md, "" );
+			arrayAppend( results, NL );
 		}
-		systemOutput( NL );
+		arrayAppend( results_md, "" );
+		arrayAppend( results, NL );
 	}
 
+	if ( len( results ) ) {
+		loop array=#results# item="resultLine" {
+			systemOutput( trim(resultLine), (resultLine neq NL) );
+		}
+		if ( structKeyExists( server.system.environment, "GITHUB_STEP_SUMMARY" ) ){
+			//systemOutput( server.system.environment.GITHUB_STEP_SUMMARY, true );
+			fileWrite( server.system.environment.GITHUB_STEP_SUMMARY, ArrayToList( results_md, NL ) );
+		}
+		/*
+		loop collection=server.system.environment key="p" value="v" {
+			if ( p contains "GITHUB_")
+				systemOutput("#p#: #v##NL#");
+		*/
+	} else if ( structKeyExists( server.system.environment, "GITHUB_STEP_SUMMARY" ) ){
+		fileWrite( server.system.environment.GITHUB_STEP_SUMMARY, "#### Tests Passed" );
+	}
+	
 	if ( ( result.getTotalFail() + result.getTotalError() ) > 0 ) {
 		throw "TestBox could not successfully execute all testcases: #result.getTotalFail()# tests failed; #result.getTotalError()# tests errored.";
 	}
