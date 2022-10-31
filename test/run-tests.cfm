@@ -251,7 +251,7 @@ try {
 		for ( el in failedTestCases ){
 			arrayAppend( results, el.type & ": " & el.bundle & NL & TAB & el.testCase );
 			arrayAppend( results, TAB & el.errMessage );
-			arrayAppend( results_md, "#### " & el.type & " " & el.bundle);
+			arrayAppend( results_md, "#### " & el.type & " " & el.bundle & " :x:");
 			arrayAppend( results_md, "###### "  & el.testCase  );
 			arrayAppend( results_md, "" );
 			arrayAppend( results_md, el.errMessage );
@@ -289,7 +289,7 @@ try {
 				systemOutput("#p#: #v##NL#");
 		*/
 	} else if ( structKeyExists( server.system.environment, "GITHUB_STEP_SUMMARY" ) ){
-		fileWrite( server.system.environment.GITHUB_STEP_SUMMARY, "#### Tests Passed" );
+		fileWrite( server.system.environment.GITHUB_STEP_SUMMARY, "#### Tests Passed :white_check_mark:" );
 	}
 	
 	if ( ( result.getTotalFail() + result.getTotalError() ) > 0 ) {
