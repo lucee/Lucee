@@ -52,7 +52,7 @@ jobs:
     - uses: szenius/set-timezone@v1.0
       with:
         timezoneLinux: "UTC"
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: Set up Test Java Version ${{ env.LUCEE_TEST_JAVA_VERSION }}
       uses: actions/setup-java@v3
