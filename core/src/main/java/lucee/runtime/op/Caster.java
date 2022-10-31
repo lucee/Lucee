@@ -2421,6 +2421,8 @@ public final class Caster {
 	 * @throws PageException
 	 */
 	public static List toList(Object o, boolean duplicate) throws PageException {
+		PageException ex = null;
+
 		if (o instanceof List) {
 			if (duplicate) {
 				List src = (List) o;
@@ -2475,6 +2477,7 @@ public final class Caster {
 					if (tmp instanceof List) return (List) tmp;
 				}
 				catch (PageException e) {
+					ex = e;
 				}
 			}
 
@@ -2502,7 +2505,7 @@ public final class Caster {
 		else if (o instanceof long[]) return toList(ArrayUtil.toReferenceType((long[]) o));
 		else if (o instanceof float[]) return toList(ArrayUtil.toReferenceType((float[]) o));
 		else if (o instanceof double[]) return toList(ArrayUtil.toReferenceType((double[]) o));
-
+		if (ex != null) throw ex;
 		throw new CasterException(o, "List");
 
 	}
