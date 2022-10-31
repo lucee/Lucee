@@ -479,6 +479,7 @@
       <!-- this checks to see that all the required bundles are provided, so that none are missing -->
       <jvmarg value="-Dlucee.enable.bundle.download=false"/>
       <jvmarg value="-Dlucee.cli.printExceptions=true"/>
+      <jvmarg value="-Dlucee.ssl.checkserveridentity=false"/>
     </java>
     <outputTrimmedString str="${exc}"/>
 </target>
@@ -533,7 +534,8 @@
       <jvmarg value="-Dlucee.enable.dialect=true"/>
       <jvmarg value="-Dlucee.extensions.install=true"/>
       <jvmarg value="-Dlucee.full.null.support=false"/>
-      <jvmarg value="-Dlucee.cli.printExpections=true"/>
+      <jvmarg value="-Dlucee.cli.printExceptions=true"/>
+      <jvmarg value="-Dlucee.ssl.checkserveridentity=false"/>
       <jvmarg value="-DLUCEE_BUILD_ENV=${LUCEE_BUILD_ENV}"/>
       <!--
       <jvmarg value="-XX:StartFlightRecording=disk=true,dumponexit=true,filename=${temp}/../lucee-testcases.jfr,maxsize=1024m,maxage=1d,settings=profile,path-to-gc-roots=true"/>
