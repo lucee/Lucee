@@ -24,7 +24,7 @@
                 template: uri,
                 url: {test=1}
             );
-            expect( result.filecontent ).toBe( '{"FORM":{},"URL":{"TEST":"1"}}' );
+            expect( result.filecontent.trim() ).toBe( '{"FORM":{},"URL":{"TEST":"1"}}' );
         }
 
         public void function testUrlQueryString() localmode=true {
@@ -33,7 +33,7 @@
                 template: uri,
                 url: "test=1"
             );
-            expect( result.filecontent ).toBe( '{"FORM":{},"URL":{"TEST":"1"}}' );
+            expect( result.filecontent.trim() ).toBe( '{"FORM":{},"URL":{"TEST":"1"}}' );
         }
 
         public void function testFormStruct() localmode=true {
