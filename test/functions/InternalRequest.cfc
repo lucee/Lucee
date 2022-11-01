@@ -19,7 +19,7 @@
     component extends="org.lucee.cfml.test.LuceeTestCase" labels="internalRequest" {
     
         public void function testUrlStruct() localmode=true {
-            uri = createURI("internalRequest/echo.cfm");
+            uri = createURI("InternalRequest/echo.cfm");
             result =_InternalRequest(
                 template: uri,
                 url: {test=1}
@@ -28,7 +28,7 @@
         }
 
         public void function testUrlQueryString() localmode=true {
-            uri = createURI("internalRequest/echo.cfm");
+            uri = createURI("InternalRequest/echo.cfm");
             result =_InternalRequest(
                 template: uri,
                 url: "test=1"
@@ -37,7 +37,7 @@
         }
 
         public void function testFormStruct() localmode=true {
-            uri = createURI("internalRequest/echo.cfm");
+            uri = createURI("InternalRequest/echo.cfm");
             result = _InternalRequest(
                 template: uri,
                 form: {test=1}
@@ -49,7 +49,7 @@
         }
         
         public void function testFormQueryString() localmode=true {
-            uri = createURI("internalRequest/echo.cfm");
+            uri = createURI("InternalRequest/echo.cfm");
             result =_InternalRequest(
                 template: uri,
                 form: "test=1"
@@ -62,7 +62,7 @@
 
         // internalRequest public function
         public void function testInternalRequestPublic() localmode=true skip=true {
-            uri = createURI("internalRequest/echo.cfm");
+            uri = createURI("InternalRequest/echo.cfm");
             result = InternalRequest(
                 template: uri,
                 form: {test=1}
@@ -77,7 +77,7 @@
         */
 
         public void function testAbort() localmode=true skip=true {
-            uri = createURI("internalRequest/abort.cfm");
+            uri = createURI("InternalRequest/abort.cfm");
             result = _InternalRequest(
                 template: uri,
                 form: {test=1}
@@ -93,7 +93,7 @@
 
 
         public void function testContent() localmode=true skip=true {
-            uri = createURI("internalRequest/cfcontent.cfm");
+            uri = createURI("InternalRequest/cfcontent.cfm");
             result = _InternalRequest(
                 template: uri,
                 form: {test=1}
@@ -108,7 +108,7 @@
         */
 
         public void function testContentFile() localmode=true skip=true {
-            uri = createURI("internalRequest/cfcontent-file.cfm");
+            uri = createURI("InternalRequest/cfcontent-file.cfm");
             result = _InternalRequest(
                 template: uri,
                 form: {test=1}
