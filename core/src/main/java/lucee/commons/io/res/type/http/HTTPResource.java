@@ -89,7 +89,7 @@ public class HTTPResource extends ReadOnlyResourceSupport {
 		try {
 			provider.read(this);
 			int code = getStatusCode();// getHttpMethod().getStatusCode();
-			return code != 404;
+			return code >= 200 && code <= 299;
 		}
 		catch (IOException e) {
 			return false;
