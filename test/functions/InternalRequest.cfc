@@ -61,7 +61,7 @@
         }
 
         public void function testContentTypeAndLength() localmode=true {
-            uri = createURI("internalRequest/content.cfm");
+            uri = createURI("InternalRequest/content.cfm");
             local.result = _InternalRequest (
 					template : "#uri#"
 				);
