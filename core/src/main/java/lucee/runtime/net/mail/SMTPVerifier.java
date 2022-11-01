@@ -87,6 +87,7 @@ public final class SMTPVerifier {
 		Authenticator auth = null;
 		if (hasAuth) auth = new DefaultAuthenticator(username, password);
 		Session session = Session.getInstance(props, auth);
+		session.setDebug(true); // enable logging mail debugging output to console
 
 		Transport transport = session.getTransport("smtp");
 		if (hasAuth) transport.connect(host, username, password);

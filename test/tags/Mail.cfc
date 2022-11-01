@@ -41,12 +41,18 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mail" {
 	}
 
 	public function afterTests(){
-		if(isNull(creds.smtp.SERVER)) return;
+		// skip clean up when no server configured
+		if (structCount(creds.smtp) == 0 || structCount(creds.pop) == 0) return;
+
 		admin 
 			action="removeMailServer"
 			type="web"
 			password="#request.WEBADMINPASSWORD#"
 			hostname="#creds.smtp.SERVER#";
+	}
+
+	function teardown( currentMethod ){
+		createObject("java", "java.lang.System").clearProperty("lucee.mail.use.7bit.transfer.encoding.for.html.parts");
 	}
 
 	private function getCredentials() {
@@ -60,44 +66,124 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mail" {
 		return structCount(server.getTestService("smtp")) == 0 || structCount(server.getTestService("pop")) == 0;
 	}
 
-	private struct function getMails() localmode=true {
+	private struct function getMails() {
 		pop action="getAll" name="local.inboxemails" server="#creds.pop.server#" password="#creds.pop.password#" port="#creds.pop.PORT_INSECURE#" secure="no" username="#variables.to#";
+	
+		sct = queryGetRow(inboxemails, queryRecordCount(inboxemails));
+	
+		// delete inbox mails after getting mail for the test So the inbox always have one mail and getting mail will take less time
+		removeAllMessages();
+	
+		sct.header = headerToStruct(sct.header);
+		return sct;
+	}
+	
+	private void function removeAllMessages() {
+		pop
+			action="delete"
+			server="#creds.pop.server#"
+			port="#creds.pop.PORT_INSECURE#"
+			secure="no"
+			username="#variables.to#"
+			password="#variables.to#"
+		;
+	}
+	
+	// converts the header string to struct
+	private struct function headerToStruct(Required string header) localmode=true {
+		var results = {};
+		var headerStream = createObject("java", "java.io.ByteArrayInputStream").init(javaCast("string", arguments.header).getBytes("UTF-8"));
+		var InternetHeaders = createObject("java", "javax.mail.internet.InternetHeaders").init(headerStream);
+		var headers = InternetHeaders.getAllHeaders();
 
-		sct = queryGetRow(inboxemails,queryRecordCount(inboxemails));
+		while( headers.hasMoreElements() ){
+			var headerEl = headers.nextElement();
+			// store the key/value pair
+			results[headerEl.getName()] = headerEl.getValue();
+		}
+
+		return results;
+	}
+
+	/*
+		For some tests, we need the raw message so we can inspect that the message
+		format was generated as expected.
+	*/
+	private any function getMailAsEML(){
+		var results = [];
+		var host = "#creds.pop.server#";
+		var user = "#variables.to#";
+		var password = "#variables.to#";
+
+		var properties = createObject("java", "java.lang.System").getProperties();
+		var mSession = createObject("java", "javax.mail.Session").getDefaultInstance(properties);
+		var store = mSession.getStore("pop3");
+
+		store.connect(host, javaCast("int", creds.pop.PORT_INSECURE), user, password);
+
+		try {
+			var folder = store.getFolder("inbox");
+			var mFolder = createObject("java", "javax.mail.Folder");
+			folder.open(mFolder.READ_ONLY);
+
+			var messages = folder.getMessages();
+
+			for( var message in messages ){
+				var messageDetails = {
+						"headers" = {}
+					, "content" = ""
+				};
+
+				// get the headers
+				var headers = message.getAllHeaders();
+
+				while( headers.hasMoreElements() ){
+					var header = headers.nextElement();
+					messageDetails.headers[header.getName()] = header.getValue();
+				}
+
+				// get the full body
+				var baos = createObject("java", "java.io.ByteArrayOutputStream").init();
+
+				// write the message to the output stream
+				try {
+					message.writeTo(baos);
+					// convert the output stream to a string
+					messageDetails.content = baos.toString();
+				} finally {
+					// close the output stream
+					baos.close();
+				}
+
+				results.append(messageDetails);
+			}
+		} finally {
+			folder.close(true);
+			store.close();
+		}
 
 		// delete inbox mails after getting mail for the test So the inbox always have one mail and getting mail will take less time
-		pop action="delete" server="#creds.pop.server#" password="#creds.pop.password#" port="#creds.pop.PORT_INSECURE#" secure="no" username="#variables.to#";
+		removeAllMessages();
 
-		sct.header = headerToStruct(sct.header);	
-		return sct;
+		return results;
 	}
 
-	// converts the header string to struct
-	private struct function headerToStruct(Required string str) localmode=true {
-		a = reMatchNoCase("\s([a-zA-Z-]+\:)",str);
+	private any function getFirstMailAsEML(){
+		var results = getMailAsEML();
 
-		keyWithComma = arrayToList(a,"|").listmap((e)=>{
-			return "," & e;
-		},"|");
-
-		l = replaceListNocase(str, arrayToList(a), keyWithComma, ",", "|");
-
-		sct = {};
-		loop list="#l#" item="e" index="i" {
-			sct[trim(listFirst(e,":"))] = trim(listLast(e,":"));
-		}
-		return sct;
+		return results.len() ? results[1] : "";
 	}
+
+
 
 
 	// tests
 	public function testSimpleMail() localmode="true" skip="notHasServices" {
-
 		mail to=variables.to from=variables.from subject="test mail1" spoolEnable=false {
 			echo("This is a text email!");
 		}
 		
-		mails=getMails();
+		var mails=getMails();
 
 		assertEquals("test mail1",mails.subject);
 		assertEquals("This is a text email!",mails["body"].trim());
@@ -111,7 +197,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mail" {
 		mail type="html" to=variables.to from=variables.from subject="test mail1" spoolEnable=false {
 			echo("This is a HTML email!");
 		}
-		mails=getMails();
+
+		var mails=getMails();
 
 		assertEquals("text/html; charset=UTF-8",mails.header["content-type"]);
 		assertEquals(variables.from,mails["from"]);
@@ -122,7 +209,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mail" {
 		mail type="plain" to=variables.to from=variables.from subject="test mail1" spoolEnable=false {
 			echo("This is a text email!");
 		}
-		mails=getMails();
+
+		var mails=getMails();
 
 		assertEquals("text/plain; charset=UTF-8",mails.header["content-type"]);
 		assertEquals(variables.from,mails["from"]);
@@ -135,7 +223,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mail" {
 				echo("This is a text email!");
 			}
 		}
-		mails=getMails();
+
+		var mails=getMails();
 
 		assertEquals("test mail1",mails.subject);
 		assertEquals("This is a text email!",mails["body"].trim());
@@ -151,7 +240,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mail" {
 				echo("This is a html email!");
 			}
 		}
-		mails=getMails();
+		
+		var mails=getMails();
 
 		assertEquals("text/html; charset=UTF-8",mails.header["content-type"]);
 	}
@@ -165,9 +255,93 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mail" {
 				echo("This is a text email!");
 			}
 		}
-		mails=getMails();
+
+		var mails=getMails();
 
 		expect(findNoCase("multipart/alternative;", mails.header["Content-Type"])).toBeGT(0);
+	}
+
+	public function testTextOnlyPartShouldUse7bitEncoding() localmode="true" skip="notHasServices" {
+		mail to=variables.to from=variables.from subject="test mail1" spoolEnable=false {
+			echo("This is a text email!");
+		}
+
+		var mails=getMails();
+		//debug(mails);
+
+		assertEquals("text/plain; charset=UTF-8", mails.header["Content-Type"]?:"");
+		// single parts store their encoding in the header
+		assertEquals("7bit", mails.header["Content-Transfer-Encoding"]?:"");
+	}
+
+	public function testHtmlOnlyPartShouldUseQuotedPrintableEncoding() localmode="true" skip="notHasServices" {
+		mail type="html" to=variables.to from=variables.from subject="test mail1" spoolEnable=false {
+			echo("<p>This is a text email!</p>#chr(10)#<p>another line</p>");
+		}
+
+		var mails=getMails();
+		//debug(mails);
+
+		assertEquals("text/html; charset=UTF-8", mails.header["Content-Type"]?:"");
+		// single parts store their encoding in the header
+		assertEquals("quoted-printable", mails.header["Content-Transfer-Encoding"]?:"");
+	}
+
+	public function testMultiMailPartShouldUse7bitEncodingForTextAndQuotedPrintableEncodingForHtml() localmode="true" skip="notHasServices" {
+		mail to=variables.to from=variables.from subject="test mail1" spoolEnable=false {
+			mailpart type="text" {
+				echo("This is a html email!");
+			}
+			mailpart type="html" {
+				echo("<p>This is a text email!</p>#chr(10)#<p>another line</p>");
+			}
+		}
+
+		var message=getFirstMailAsEML();
+		//debug(mails);
+
+		// since we have multiple parts, we need to check the parts in the body
+		assertTrue(reFindNoCase("(?m)^multipart/alternative;", message.headers["Content-Type"]?:""), "Expected multipart/alternative content type!");
+		assertTrue(reFindNoCase("\n------=[A-Z0-9._]+\r?\nContent-Type: text\/plain;[^\r\n]*\r?\nContent-Transfer-Encoding: 7bit\r?\n", message.content), "Wrong content encoding for Text part!");
+		assertTrue(reFindNoCase("\n------=[A-Z0-9._]+\r?\nContent-Type: text/html;[^\r\n]*\r?\nContent-Transfer-Encoding: quoted-printable\r?\n", message.content), "Wrong content encoding for HTML part!");
+	}
+
+	public function testHtmlOnlyPartShouldUse7bitEncodingWhenSystemPropertySet() localmode="true" skip="notHasServices" {
+		// fallback to the old behavior of using 7bit encoding
+		createObject("java", "java.lang.System").setProperty("lucee.mail.use.7bit.transfer.encoding.for.html.parts", "true");
+
+		mail type="html" to=variables.to from=variables.from subject="test mail1" spoolEnable=false {
+			echo("<p>This is a text email!</p>#chr(10)#<p>another line</p>");
+		}
+
+		var mails=getMails();
+		//debug(mails);
+
+		assertEquals("text/html; charset=UTF-8", mails.header["Content-Type"]?:"");
+		// single parts store their encoding in the header
+		assertEquals("7bit", mails.header["Content-Transfer-Encoding"]?:"");
+	}
+
+	public function testMultiMailPartShouldUse7bitEncodingForTextAnd7bitEncodingForHtmlWhenSystemPropertySet() localmode="true" skip="notHasServices" {
+		// fallback to the old behavior of using 7bit encoding
+		createObject("java", "java.lang.System").setProperty("lucee.mail.use.7bit.transfer.encoding.for.html.parts", "true");
+
+		mail to=variables.to from=variables.from subject="test mail1" spoolEnable=false {
+			mailpart type="text" {
+				echo("This is a html email!");
+			}
+			mailpart type="html" {
+				echo("<p>This is a text email!</p>#chr(10)#<p>another line</p>");
+			}
+		}
+
+		var message=getFirstMailAsEML();
+		//debug(mails);
+
+		// since we have multiple parts, we need to check the parts in the body
+		assertTrue(reFindNoCase("(?m)^multipart/alternative;", message.headers["Content-Type"]?:""), "Expected multipart/alternative content type!");
+		assertTrue(reFindNoCase("\n------=[A-Z0-9._]+\r?\nContent-Type: text\/plain;[^\r\n]*\r?\nContent-Transfer-Encoding: 7bit\r?\n", message.content), "Wrong content encoding for Text part!");
+		assertTrue(reFindNoCase("\n------=[A-Z0-9._]+\r?\nContent-Type: text/html;[^\r\n]*\r?\nContent-Transfer-Encoding: 7bit\r?\n", message.content), "Wrong content encoding for HTML part!");
 	}
 
 }
