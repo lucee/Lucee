@@ -78,7 +78,7 @@
 
         public void function testFormQueryStringAndSameAsList() localmode=true {
             result = _InternalRequest (
-                template : "#uri#\index.cfm",
+                template : "#variables.uri#\index.cfm",
                 forms : "test=1&test=2&test=3"
             );
             expect(result.filecontent.trim()).toBe('{}{"test":"1,2,3","fieldnames":"test"}')
@@ -86,12 +86,22 @@
 
         public void function testFormQueryStringAndSameAsArray() localmode=true {
             result = _InternalRequest (
-                template : "#uri#\index.cfm",
+                template : "#variables.uri#\index.cfm",
                 forms : "test=1&test=2&test=3",
                 urls : "sameFormFieldsAsArray=true"
             );
 
             expect(result.filecontent.trim()).toBe('{"sameFormFieldsAsArray":"true"}{"test":["1","2","3"],"fieldnames":"test"}')
+        }
+
+        // content type and content length
+        public void function testContentTypeAndLength() localmode=true {
+            result = _InternalRequest (
+                template : "#variables.uri#\content.cfm"
+            );
+
+            expect(result["headers"]["content-type"]).toBe("application/pdf");
+            expect(result["headers"]["content-length"]).toBeBetween(800,1000);
         }
 
         // internalRequest public function
