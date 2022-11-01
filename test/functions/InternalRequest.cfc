@@ -63,7 +63,7 @@
         public void function testContentTypeAndLength() localmode=true {
             uri = createURI("internalRequest/content.cfm");
             local.result = _InternalRequest (
-					template : uri
+					template : "#uri#"
 				);
 
             expect(result["headers"]["content-type"]).toBe("application/pdf");
