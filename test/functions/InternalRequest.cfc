@@ -60,6 +60,16 @@
             expect( structCount(json.url) ).toBe( 0 );
         }
 
+        public void function testContentTypeAndLength() localmode=true {
+            uri = createURI("internalRequest/content.cfm");
+            local.result = _InternalRequest (
+					template : uri
+				);
+
+            expect(result["headers"]["content-type"]).toBe("application/pdf");
+            expect(result["headers"]["content-length"]).toBe(975);
+        }
+
         // internalRequest public function
         public void function testInternalRequestPublic() localmode=true skip=true {
             uri = createURI("internalRequest/echo.cfm");
@@ -115,6 +125,7 @@
             );
             expect( result.filecontent ).toContain( 'getCurrentTemplatePath()' );
         }
+
     
         private string function createURI(string calledName){
             var baseURI="/test/#listLast(getDirectoryFromPath(getCurrentTemplatePath()),"\/")#/";
