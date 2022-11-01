@@ -1130,10 +1130,10 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 	 * @return return call path
 	 */
 	protected String getCallPath() {
+
 		if (StringUtil.isEmpty(top.properties.callPath)) return getName();
 		try {
-			return "(" + ListUtil.arrayToList(ListUtil.listToArrayTrim(top.properties.callPath.replace('/', '.').replace('\\', '.'), "."), ".")
-					+ (top.properties.subName == null ? "" : "$" + top.properties.subName) + ")";
+			return "(" + ListUtil.arrayToList(ListUtil.listToArrayTrim(top.properties.callPath.replace('/', '.').replace('\\', '.'), "."), ".") + ")";
 		}
 		catch (PageException e) {
 			return top.properties.callPath;
@@ -1732,6 +1732,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 	 * @deprecated injected is not used
 	 */
 	public void registerUDF(Key key, UDF udf, boolean useShadow, boolean injected) throws ApplicationException {
+
 		if (udf instanceof UDFPlus) ((UDFPlus) udf).setOwnerComponent(this);
 
 		if (insideStaticConstrThread.get()) {

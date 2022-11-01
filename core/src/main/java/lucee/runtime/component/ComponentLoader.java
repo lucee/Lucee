@@ -512,7 +512,18 @@ public class ComponentLoader {
 				return subs[i];
 			}
 		}
-		throw new ApplicationException("There is no Sub component [" + sub + "] in [" + page.getPageSource().getDisplayPath() + "]");
+
+		StringBuilder detail = new StringBuilder();
+		for (int i = 0; i < subs.length; i++) {
+			if (detail.length() > 0) detail.append(",");
+			detail.append(subs[i].getClass().getName());
+		}
+
+		StringBuilder msg = new StringBuilder("There is no Sub component [").append(sub).append("] in [").append(page.getPageSource().getDisplayPath()).append("]");
+
+		if (detail.length() > 0)
+			throw new ApplicationException(msg.toString(), "The following Sub Components are availble [" + detail + "] in [" + page.getPageSource().getDisplayPath() + "]");
+		else throw new ApplicationException(msg.toString(), "There are no Sub Components in [" + page.getPageSource().getDisplayPath() + "]");
 	}
 
 	public static Page loadPage(PageContext pc, PageSource ps, boolean forceReload) throws PageException {

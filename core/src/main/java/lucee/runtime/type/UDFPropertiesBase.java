@@ -5,6 +5,7 @@ import java.util.Set;
 import lucee.runtime.Page;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageSource;
+import lucee.runtime.SubPage;
 import lucee.runtime.engine.ThreadLocalPageSource;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
@@ -24,7 +25,7 @@ public abstract class UDFPropertiesBase implements UDFProperties {
 	}
 
 	public UDFPropertiesBase(Page page, PageSource ps, int startLine, int endLine) {
-		this.page = page;
+		this.page = (page instanceof SubPage) ? null : page; // MUST6 pass Page instead
 		psOrg = ps;
 
 		if (ps == null) {

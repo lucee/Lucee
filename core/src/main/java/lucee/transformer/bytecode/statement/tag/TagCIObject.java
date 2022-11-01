@@ -44,7 +44,7 @@ import lucee.transformer.util.SourceCode;
 
 public abstract class TagCIObject extends TagBase {
 
-	private boolean main = true;
+	private boolean main;
 	private String name;
 
 	@Override

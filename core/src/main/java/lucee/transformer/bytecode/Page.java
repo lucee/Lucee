@@ -51,6 +51,7 @@ import lucee.runtime.InterfacePageImpl;
 import lucee.runtime.Mapping;
 import lucee.runtime.PageImpl;
 import lucee.runtime.PageSource;
+import lucee.runtime.SubPage;
 import lucee.runtime.component.ImportDefintion;
 import lucee.runtime.component.ImportDefintionImpl;
 import lucee.runtime.config.Config;
@@ -327,13 +328,19 @@ public final class Page extends BodyBase implements Root {
 			className = getClassName();
 		}
 
+		boolean isSub = comp != null && !comp.isMain();
+
 		// parent
 		String parent = PageImpl.class.getName();// "lucee/runtime/Page";
-		if (isComponent(comp)) parent = ComponentPageImpl.class.getName();// "lucee/runtime/ComponentPage";
+		String[] interfaces = null;
+		if (isComponent(comp)) {
+			parent = ComponentPageImpl.class.getName();// "lucee/runtime/ComponentPage";
+			interfaces = new String[] { SubPage.class.getName().replace('.', '/') };
+		}
 		else if (isInterface(comp)) parent = InterfacePageImpl.class.getName();// "lucee/runtime/InterfacePage";
 		parent = parent.replace('.', '/');
 
-		cw.visit(Opcodes.V1_6, Opcodes.ACC_PUBLIC + Opcodes.ACC_FINAL, className, null, parent, null);
+		cw.visit(Opcodes.V1_6, Opcodes.ACC_PUBLIC + Opcodes.ACC_FINAL, className, null, parent, interfaces);
 		if (optionalPS != null) {
 			// we use full path when FD is enabled
 			String path = config.allowRequestTimeout() ? optionalPS.getRealpathWithVirtual() : optionalPS.getPhyscalFile().getAbsolutePath();
@@ -352,7 +359,7 @@ public final class Page extends BodyBase implements Root {
 		// StaticConstrBytecodeContext statConstr = null;//new
 		// BytecodeContext(null,null,this,externalizer,keys,cw,name,statConstrAdapter,STATIC_CONSTRUCTOR,writeLog(),suppressWSbeforeArg);
 
-		boolean isSub = comp != null && !comp.isMain();
+		/// boolean isSub = comp != null && !comp.isMain();
 
 		// constructor
 		GeneratorAdapter constrAdapter = new GeneratorAdapter(Opcodes.ACC_PUBLIC, CONSTRUCTOR_PS, null, null, cw);
@@ -641,9 +648,16 @@ public final class Page extends BodyBase implements Root {
 
 		String udfpropsClassName = Types.UDF_PROPERTIES_ARRAY.toString();
 
+		// MUST6 remove this
+		int len = -1;
+		for (Data data: udfProperties) {
+			if (len < data.valueIndex) len = data.valueIndex;
+		}
+		len++;
+
 		// new UDFProperties Array
 		constrAdapter.visitVarInsn(Opcodes.ALOAD, 0);
-		constrAdapter.push(udfProperties.size());
+		constrAdapter.push(len);
 		constrAdapter.newArray(Types.UDF_PROPERTIES);
 		constrAdapter.visitFieldInsn(Opcodes.PUTFIELD, getClassName(), "udfs", udfpropsClassName);
 
@@ -652,6 +666,7 @@ public final class Page extends BodyBase implements Root {
 			constrAdapter.visitVarInsn(Opcodes.ALOAD, 0);
 			constrAdapter.visitFieldInsn(Opcodes.GETFIELD, constr.getClassName(), "udfs", Types.UDF_PROPERTIES_ARRAY.toString());
 			constrAdapter.push(data.arrayIndex);
+			// constrAdapter.push(index);
 			data.function.createUDFProperties(constr, data.valueIndex, data.type);
 			constrAdapter.visitInsn(Opcodes.AASTORE);
 		}
@@ -710,9 +725,10 @@ public final class Page extends BodyBase implements Root {
 		GeneratorAdapter adapter = new GeneratorAdapter(Opcodes.ACC_PUBLIC + Opcodes.ACC_FINAL, GET_SUB_PAGES, null, null, cw);
 		Label endIF = new Label();
 
-		// adapter.visitVarInsn(Opcodes.ALOAD, 0);
-		// adapter.visitFieldInsn(Opcodes.GETFIELD, name, "subs", "[Llucee/runtime/CIPage;");
-		// adapter.visitJumpInsn(Opcodes.IFNONNULL, endIF);
+		adapter.visitVarInsn(Opcodes.ALOAD, 0);
+		adapter.visitFieldInsn(Opcodes.GETFIELD, name, "subs", "[Llucee/runtime/CIPage;");
+		adapter.visitJumpInsn(Opcodes.IFNONNULL, endIF);
+
 		adapter.visitVarInsn(Opcodes.ALOAD, 0);
 		ArrayVisitor av = new ArrayVisitor();
 		av.visitBegin(adapter, Types.CI_PAGE, subs.size());
@@ -737,7 +753,7 @@ public final class Page extends BodyBase implements Root {
 
 		adapter.visitFieldInsn(Opcodes.PUTFIELD, name, "subs", "[Llucee/runtime/CIPage;");
 
-		// adapter.visitLabel(endIF);
+		adapter.visitLabel(endIF);
 
 		adapter.visitVarInsn(Opcodes.ALOAD, 0);
 		adapter.visitFieldInsn(Opcodes.GETFIELD, name, "subs", "[Llucee/runtime/CIPage;");
