@@ -34,6 +34,8 @@ import lucee.runtime.type.util.UDFUtil;
 import lucee.transformer.Factory;
 import lucee.transformer.Position;
 import lucee.transformer.TransformerException;
+import lucee.transformer.bytecode.Body;
+import lucee.transformer.bytecode.expression.ComponentAsExpression;
 import lucee.transformer.bytecode.expression.ExpressionInvoker;
 import lucee.transformer.bytecode.expression.FunctionAsExpression;
 import lucee.transformer.bytecode.expression.var.Argument;
@@ -49,6 +51,8 @@ import lucee.transformer.bytecode.literal.Identifier;
 import lucee.transformer.bytecode.literal.Null;
 import lucee.transformer.bytecode.literal.NullConstant;
 import lucee.transformer.bytecode.op.OpVariable;
+import lucee.transformer.bytecode.statement.tag.Attribute;
+import lucee.transformer.bytecode.statement.tag.TagComponent;
 import lucee.transformer.bytecode.statement.udf.Function;
 import lucee.transformer.bytecode.util.ASMUtil;
 import lucee.transformer.cfml.Data;
@@ -953,6 +957,11 @@ public abstract class AbstrCFMLExprTransformer {
 			data.mode = STATIC;// (expr instanceof Literal)?STATIC:DYNAMIC;// STATIC
 			return expr;
 		}
+		// component
+		if ((expr = component(data)) != null) {
+			data.mode = DYNAMIC;
+			return expr;
+		}
 		// closure
 		if ((expr = closure(data)) != null) {
 			data.mode = DYNAMIC;
@@ -1316,6 +1325,18 @@ public abstract class AbstrCFMLExprTransformer {
 	}
 
 	protected abstract Function closurePart(Data data, String id, int access, int modifier, String rtnType, Position line, boolean closure) throws TemplateException;
+
+	private Expression component(Data data) throws TemplateException {
+		if (!data.srcCode.forwardIfCurrent("new", "component")) return null;
+		data.srcCode.setPos(data.srcCode.getPos() - 9); // go before "component"
+		TagComponent tc = componentStatement(data, data.getParent());
+		tc.setParent(data.getParent());
+		tc.setInline(true);
+		tc.addAttribute(new Attribute(false, "name", data.factory.createLitString("inlinecomponent_" + CreateUniqueId.invoke()), "string"));
+		return new ComponentAsExpression(tc);
+	}
+
+	protected abstract TagComponent componentStatement(Data data, Body parent) throws TemplateException;
 
 	private Expression lambda(Data data) throws TemplateException {
 		int pos = data.srcCode.getPos();

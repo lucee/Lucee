@@ -38,6 +38,7 @@ import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.GeneratorAdapter;
 import org.objectweb.asm.commons.Method;
 
+import lucee.print;
 import lucee.commons.digest.HashUtil;
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.IOUtil;
@@ -81,7 +82,6 @@ import lucee.transformer.bytecode.statement.tag.TagImport;
 import lucee.transformer.bytecode.statement.tag.TagInterface;
 import lucee.transformer.bytecode.statement.tag.TagOther;
 import lucee.transformer.bytecode.statement.udf.Function;
-import lucee.transformer.bytecode.statement.udf.FunctionImpl;
 import lucee.transformer.bytecode.util.ASMConstants;
 import lucee.transformer.bytecode.util.ASMUtil;
 import lucee.transformer.bytecode.util.ExpressionUtil;
@@ -335,7 +335,7 @@ public final class Page extends BodyBase implements Root {
 		String[] interfaces = null;
 		if (isComponent(comp)) {
 			parent = ComponentPageImpl.class.getName();// "lucee/runtime/ComponentPage";
-			interfaces = new String[] { SubPage.class.getName().replace('.', '/') };
+			if (isSub) interfaces = new String[] { SubPage.class.getName().replace('.', '/') };
 		}
 		else if (isInterface(comp)) parent = InterfacePageImpl.class.getName();// "lucee/runtime/InterfacePage";
 		parent = parent.replace('.', '/');
@@ -477,12 +477,28 @@ public final class Page extends BodyBase implements Root {
 			writeOutStaticConstructor(constr, keys, cw, comp, className);
 		}
 
+		List<Function> tmpFunctions = getFunctions();
+		if (false && _comp instanceof TagComponent) {
+			TagComponent tc;
+			List<Function> tmps = new ArrayList<>();
+			for (Function f: tmpFunctions) {
+				tc = ASMUtil.getAncestorComponent(f);
+				// function from another component
+				if (tc != null && tc != _comp) {
+					continue;
+				}
+				tmps.add(f);
+			}
+			tmpFunctions = tmps;
+		}
+		Function[] functions = tmpFunctions.toArray(new Function[tmpFunctions.size()]);
+
 		List<IFunction> funcs;
 		// newInstance/initComponent/call
 		if (isComponent()) {
 			writeOutGetStaticStruct(constr, keys, cw, comp, className);
 			writeOutNewComponent(constr, keys, cw, comp, className);
-			funcs = writeOutInitComponent(constr, keys, cw, comp, className);
+			writeOutInitComponent(constr, functions, keys, cw, comp, className);
 
 		}
 		else if (isInterface()) {
@@ -498,16 +514,17 @@ public final class Page extends BodyBase implements Root {
 		// writeUDFProperties(bc,funcs,pageType);
 
 		// udfCall
-		Function[] functions = getFunctions();// toArray(funcs);
 
 		ConditionVisitor cv;
 		DecisionIntVisitor div;
+		// Function[] functions = extractFunctions(constr.getUDFProperties());
 		// less/equal than 10 functions
 		if (isInterface()) {
 		}
 		else if (functions.length <= 10) {
 			adapter = new GeneratorAdapter(Opcodes.ACC_PUBLIC + Opcodes.ACC_FINAL, UDF_CALL, null, new Type[] { Types.THROWABLE }, cw);
 			BytecodeContext bc = new BytecodeContext(optionalPS, constr, this, keys, cw, className, adapter, UDF_CALL, writeLog(), suppressWSbeforeArg, output, returnValue);
+
 			if (functions.length == 0) {
 			}
 			else if (functions.length == 1) {
@@ -645,29 +662,29 @@ public final class Page extends BodyBase implements Root {
 
 		// CONSTRUCTOR
 		List<Data> udfProperties = constr.getUDFProperties();
-
 		String udfpropsClassName = Types.UDF_PROPERTIES_ARRAY.toString();
-
-		// MUST6 remove this
-		int len = -1;
-		for (Data data: udfProperties) {
-			if (len < data.valueIndex) len = data.valueIndex;
-		}
-		len++;
 
 		// new UDFProperties Array
 		constrAdapter.visitVarInsn(Opcodes.ALOAD, 0);
-		constrAdapter.push(len);
+		constrAdapter.push(functions.length);// MUST6 ATM the array is to big, it has empty spaces for every closure, this is not necessary
 		constrAdapter.newArray(Types.UDF_PROPERTIES);
 		constrAdapter.visitFieldInsn(Opcodes.PUTFIELD, getClassName(), "udfs", udfpropsClassName);
 
 		// set item
-		for (Data data: udfProperties) {
+		Data data;
+		int index = -1;
+		for (Function f: functions) {
+			index++;
+			data = getMatchingData(f, udfProperties);
+			if (data == null) continue;
+
+			// for (Data data: udfProperties) {
 			constrAdapter.visitVarInsn(Opcodes.ALOAD, 0);
 			constrAdapter.visitFieldInsn(Opcodes.GETFIELD, constr.getClassName(), "udfs", Types.UDF_PROPERTIES_ARRAY.toString());
-			constrAdapter.push(data.arrayIndex);
-			// constrAdapter.push(index);
-			data.function.createUDFProperties(constr, data.valueIndex, data.type);
+			// constrAdapter.push(data.arrayIndex);
+			constrAdapter.push(index);
+			// data.function.createUDFProperties(constr, data.valueIndex, data.type);
+			data.function.createUDFProperties(constr, index, data.type);
 			constrAdapter.visitInsn(Opcodes.AASTORE);
 		}
 
@@ -708,6 +725,19 @@ public final class Page extends BodyBase implements Root {
 		}
 		return cw.toByteArray();
 	}
+
+	private Data getMatchingData(Function func, List<Data> datas) {
+		for (Data d: datas) {
+			if (d.function == func) return d;
+		}
+		return null;
+	}
+
+	/*
+	 * private static Function[] extractFunctions(List<Data> udfProperties) { Function[] functions = new
+	 * Function[udfProperties.size()]; int index = 0; for (Data d: udfProperties) { functions[index++] =
+	 * d.function; } return functions; }
+	 */
 
 	public static String createSubClass(String name, String subName, int dialect) {
 		// TODO handle special characters
@@ -1066,7 +1096,8 @@ public final class Page extends BodyBase implements Root {
 		}
 	}
 
-	private List<IFunction> writeOutInitComponent(ConstrBytecodeContext constr, List<LitString> keys, ClassWriter cw, Tag component, String name) throws TransformerException {
+	private List<IFunction> writeOutInitComponent(ConstrBytecodeContext constr, Function[] functions, List<LitString> keys, ClassWriter cw, Tag component, String name)
+			throws TransformerException {
 		final GeneratorAdapter adapter = new GeneratorAdapter(Opcodes.ACC_PUBLIC + Opcodes.ACC_FINAL, INIT_COMPONENT3, null, new Type[] { Types.PAGE_EXCEPTION }, cw);
 		BytecodeContext bc = new BytecodeContext(null, constr, this, keys, cw, name, adapter, INIT_COMPONENT3, writeLog(), suppressWSbeforeArg, output, returnValue);
 		Label methodBegin = new Label();
@@ -1245,12 +1276,10 @@ public final class Page extends BodyBase implements Root {
 		cv.visitAfter(bc);
 	}
 
-	private Function[] getFunctions() {
-		Function[] funcs = new Function[functions.size()];
-		Iterator it = functions.iterator();
-		int count = 0;
-		while (it.hasNext()) {
-			funcs[count++] = (Function) it.next();
+	public List<Function> getFunctions() {
+		List<Function> funcs = new ArrayList<>();
+		for (IFunction f: functions) {
+			funcs.add((Function) f);
 		}
 		return funcs;
 	}
@@ -1538,6 +1567,7 @@ public final class Page extends BodyBase implements Root {
 	private List<IFunction> writeOutCallBody(BytecodeContext bc, Body body, int pageType) throws TransformerException {
 		List<IFunction> funcs = new ArrayList<IFunction>();
 		extractFunctions(bc, body, funcs, pageType);
+		print.e("len:" + funcs.size());
 		writeUDFProperties(bc, funcs, pageType);
 
 		// writeTags(bc, extractProperties(body));
@@ -1571,8 +1601,11 @@ public final class Page extends BodyBase implements Root {
 	private void writeUDFProperties(BytecodeContext bc, List<IFunction> funcs, int pageType) throws TransformerException {
 		// set items
 		Iterator<IFunction> it = funcs.iterator();
+		int index = 0;
+		IFunction f;
 		while (it.hasNext()) {
-			it.next().writeOut(bc, pageType);
+			f = it.next();
+			f.writeOut(bc, pageType);
 		}
 	}
 
@@ -1715,15 +1748,13 @@ public final class Page extends BodyBase implements Root {
 	}
 
 	@Override
-	public int[] addFunction(IFunction function) {
-		int[] indexes = new int[2];
-		Iterator<IFunction> it = functions.iterator();
-		while (it.hasNext()) {
-			if (it.next() instanceof FunctionImpl) indexes[IFunction.ARRAY_INDEX]++;
-		}
-		indexes[IFunction.VALUE_INDEX] = functions.size();
+	public int addFunction(IFunction function) {
 		functions.add(function);
-		return indexes;
+		return functions.size() - 1;
+	}
+
+	public void removeFunction(IFunction function) {
+		functions.remove(function);
 	}
 
 	@Override

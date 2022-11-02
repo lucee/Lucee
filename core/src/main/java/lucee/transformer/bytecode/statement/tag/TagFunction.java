@@ -48,6 +48,8 @@ import lucee.transformer.expression.literal.Literal;
 
 public final class TagFunction extends TagBase implements IFunction {
 
+	private int index;
+
 	@Override
 	public int getType() {
 		return TYPE_UDF;
@@ -77,7 +79,7 @@ public final class TagFunction extends TagBase implements IFunction {
 		Body functionBody = new BodyBase(bc.getFactory());
 		RefBoolean isStatic = new RefBooleanImpl();
 		Function func = createFunction(bc.getPage(), functionBody, isStatic, bc.getOutput());
-
+		func.setIndex(index);
 		func.setParent(getParent());
 
 		List<Statement> statements = getBody().getStatements();
@@ -291,4 +293,8 @@ public final class TagFunction extends TagBase implements IFunction {
 		return null;
 	}
 
+	@Override
+	public void setIndex(int index) {
+		this.index = index;
+	}
 }

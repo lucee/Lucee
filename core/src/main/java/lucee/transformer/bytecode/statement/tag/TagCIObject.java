@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import lucee.print;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.ExceptionUtil;
@@ -37,6 +38,7 @@ import lucee.transformer.bytecode.Page;
 import lucee.transformer.bytecode.Statement;
 import lucee.transformer.bytecode.StaticBody;
 import lucee.transformer.bytecode.statement.FlowControlFinal;
+import lucee.transformer.bytecode.statement.udf.Function;
 import lucee.transformer.bytecode.util.ASMUtil;
 import lucee.transformer.cfml.evaluator.EvaluatorException;
 import lucee.transformer.util.PageSourceCode;
@@ -64,6 +66,7 @@ public abstract class TagCIObject extends TagBase {
 	}
 
 	public void writeOut(Page parent) throws TransformerException {
+		List<Function> functions = parent.getFunctions();
 
 		// TODO better way to get this path?
 		PageSourceCode psc = (PageSourceCode) parent.getSourceCode();
@@ -71,6 +74,15 @@ public abstract class TagCIObject extends TagBase {
 		SourceCode sc = parent.getSourceCode().subCFMLString(getStart().pos, getEnd().pos - getStart().pos);
 		Page page = new Page(parent.getFactory(), parent.getConfig(), sc, this, CFMLEngineFactory.getInstance().getInfo().getFullVersionInfo(), parent.getLastModifed(),
 				parent.writeLog(), parent.getSupressWSbeforeArg(), parent.getOutput(), parent.returnValue(), parent.ignoreScopes);
+
+		// add functions from this component
+		for (Function f: functions) {
+			page.addFunction(f);
+			// if (ASMUtil.getAncestorComponent(f) == this) {
+			// page.addFunction(f);
+			// }
+		}
+
 		// page.setIsComponent(true); // MUST can be an interface as well
 		page.addStatement(this);
 
@@ -78,6 +90,7 @@ public abstract class TagCIObject extends TagBase {
 		byte[] barr = page.execute(className);
 
 		Resource classFile = psc.getPageSource().getMapping().getClassRootDirectory().getRealResource(page.getClassName() + ".class");
+		print.e("classfle:" + classFile);
 		try {
 			IOUtil.copy(new ByteArrayInputStream(barr), classFile, true);
 		}

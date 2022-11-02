@@ -47,8 +47,10 @@ public final class Property extends EvaluatorSupport {
 		try {
 			page = ASMUtil.getAncestorPage(tag);
 		}
-		catch (TransformerException e) {
-			throw new EvaluatorException(e.getMessage());
+		catch (TransformerException te) {
+			EvaluatorException ee = new EvaluatorException(te.getMessage());
+			ee.initCause(te);
+			throw ee;
 		}
 
 		String ns = tag.getTagLibTag().getTagLib().getNameSpaceAndSeparator();

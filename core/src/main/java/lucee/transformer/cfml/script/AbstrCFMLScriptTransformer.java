@@ -463,7 +463,8 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		return swit;
 	}
 
-	private final TagComponent componentStatement(Data data, Body parent) throws TemplateException {
+	@Override
+	protected final TagComponent componentStatement(Data data, Body parent) throws TemplateException {
 
 		int pos = data.srcCode.getPos();
 

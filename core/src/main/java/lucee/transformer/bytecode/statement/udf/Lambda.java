@@ -41,12 +41,11 @@ public final class Lambda extends Function {
 
 	@Override
 	public final void _writeOut(BytecodeContext bc, int pageType) throws TransformerException {
-		createFunction(bc, valueIndex, TYPE_LAMBDA);
+		createFunction(bc, index, TYPE_LAMBDA);
 	}
 
 	@Override
 	public int getType() {
 		return TYPE_LAMBDA;
 	}
-
 }

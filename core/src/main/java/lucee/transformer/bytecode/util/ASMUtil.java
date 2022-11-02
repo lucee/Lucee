@@ -306,6 +306,15 @@ public final class ASMUtil {
 		}
 	}
 
+	public static TagComponent getAncestorComponent(Statement stat) {
+		Statement parent = stat;
+		while (true) {
+			parent = parent.getParent();
+			if (parent == null) return null;
+			if (parent instanceof TagComponent) return (TagComponent) parent;
+		}
+	}
+
 	/**
 	 * extract the content of an attribute
 	 * 

@@ -37,4 +37,7 @@ public interface IFunction {
 	public void writeOut(BytecodeContext bc, int type) throws TransformerException;
 
 	public abstract int getType();
+
+	public abstract void setIndex(int index);
+
 }

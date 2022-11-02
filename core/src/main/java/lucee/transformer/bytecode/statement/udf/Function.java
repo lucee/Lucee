@@ -141,12 +141,12 @@ public abstract class Function extends StatementBaseNoFinal implements Opcodes, 
 	ExprBoolean secureJson;
 	ExprBoolean verifyClient;
 	ExprInt localMode;
-	protected int valueIndex = -1;
-	protected int arrayIndex = -1;
+	// protected int localIndex = -1;
 	private Literal cachedWithin;
 	private int modifier;
 	protected JavaFunction jf;
 	// private final Root root;
+	protected int index;
 
 	public Function(String name, int access, int modifier, String returnType, Body body, Position start, Position end) {
 		super(body.getFactory(), start, end);
@@ -187,11 +187,7 @@ public abstract class Function extends StatementBaseNoFinal implements Opcodes, 
 	}
 
 	public void register(Page page) {
-		if (valueIndex != -1) throw new RuntimeException("you can register only once!"); // just to be safe
-
-		int[] indexes = page.addFunction(this);
-		valueIndex = indexes[VALUE_INDEX];
-		arrayIndex = indexes[ARRAY_INDEX];
+		index = page.addFunction(this);
 	}
 
 	public static ExprInt toLocalMode(Expression expr, ExprInt defaultValue) {
@@ -221,14 +217,14 @@ public abstract class Function extends StatementBaseNoFinal implements Opcodes, 
 
 	public abstract void _writeOut(BytecodeContext bc, int pageType) throws TransformerException;
 
-	public final void loadUDFProperties(BytecodeContext bc, int valueIndex, int arrayIndex, int type) {
+	public final void loadUDFProperties(BytecodeContext bc, int index, int type) {
 		ConstrBytecodeContext constr = bc.getConstructor();
 		// GeneratorAdapter cga = constr.getAdapter();
 		GeneratorAdapter ga = bc.getAdapter();
 
 		// store to construction method
 
-		constr.addUDFProperty(this, arrayIndex, valueIndex, type);
+		constr.addUDFProperty(this, index, index, type);
 		/*
 		 * cga.visitVarInsn(ALOAD, 0); cga.visitFieldInsn(GETFIELD, bc.getClassName(), "udfs",
 		 * Types.UDF_PROPERTIES_ARRAY.toString()); cga.push(arrayIndex);
@@ -238,7 +234,7 @@ public abstract class Function extends StatementBaseNoFinal implements Opcodes, 
 		// load in execution method
 		ga.visitVarInsn(ALOAD, 0);
 		ga.visitFieldInsn(GETFIELD, bc.getClassName(), "udfs", Types.UDF_PROPERTIES_ARRAY.toString());
-		ga.push(arrayIndex);
+		ga.push(index);
 		ga.visitInsn(AALOAD);
 	}
 
@@ -622,5 +618,10 @@ public abstract class Function extends StatementBaseNoFinal implements Opcodes, 
 
 	public void setJavaFunction(JavaFunction jf) {
 		this.jf = jf;
+	}
+
+	@Override
+	public void setIndex(int index) {
+		this.index = index;
 	}
 }
