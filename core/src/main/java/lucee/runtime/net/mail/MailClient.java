@@ -155,6 +155,7 @@ public abstract class MailClient implements PoolItem {
 	private Resource attachmentDirectory = null;
 	private final boolean secure;
 	private static Pool pool = new Pool(60000, 100, 5000);
+	private String delimiter = ",";
 
 	public static MailClient getInstance(int type, String server, int port, String username, String password, boolean secure, String name, String id) throws Exception {
 		String uid;
@@ -196,6 +197,7 @@ public abstract class MailClient implements PoolItem {
 		timeout = 60000;
 		startrow = 0;
 		maxrows = -1;
+		delimiter = ",";
 		uniqueFilenames = false;
 		this.server = server;
 		this.port = port;
@@ -237,6 +239,13 @@ public abstract class MailClient implements PoolItem {
 	 */
 	public void setAttachmentDirectory(Resource attachmentDirectory) {
 		this.attachmentDirectory = attachmentDirectory;
+	}
+
+	/**
+	 * @param delimiter The delimiter to set.
+	 */
+	public void setDelimiter(String delimiter) {
+		this.delimiter = delimiter;
 	}
 
 	/**
@@ -440,10 +449,10 @@ public abstract class MailClient implements PoolItem {
 		}
 		if (uids != null) {
 			if (getType() == TYPE_IMAP) {
-				messages = ((UIDFolder) folder).getMessagesByUID(ListUtil.listToLongArray(uids, ','));
+				messages = ((UIDFolder) folder).getMessagesByUID(ListUtil.listToLongArray(uids, delimiter));
 			}
 			else { // POP3 folder doesn't supports the getMessagesByUID method from UIDFolder
-				uidsStringArray = ArrayUtil.trimItems(ListUtil.toStringArray(ListUtil.listToArrayRemoveEmpty(uids, ',')));
+				uidsStringArray = ArrayUtil.trimItems(ListUtil.toStringArray(ListUtil.listToArrayRemoveEmpty(uids, delimiter)));
 			}
 		}
 		else if (messageNumbers != null) {
