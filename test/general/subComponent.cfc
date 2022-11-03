@@ -73,7 +73,7 @@ component {
 
 component name="testSub" {
 
-     this.sub = "from sub component"
+    this.sub = "from sub component"
 
     static {
         subStatic = "from sub static";
