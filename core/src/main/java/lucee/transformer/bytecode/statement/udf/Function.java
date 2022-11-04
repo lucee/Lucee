@@ -620,8 +620,4 @@ public abstract class Function extends StatementBaseNoFinal implements Opcodes, 
 		this.jf = jf;
 	}
 
-	@Override
-	public void setIndex(int index) {
-		this.index = index;
-	}
 }

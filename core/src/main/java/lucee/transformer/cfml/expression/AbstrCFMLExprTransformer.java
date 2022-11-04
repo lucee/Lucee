@@ -1327,7 +1327,18 @@ public abstract class AbstrCFMLExprTransformer {
 	protected abstract Function closurePart(Data data, String id, int access, int modifier, String rtnType, Position line, boolean closure) throws TemplateException;
 
 	private Expression component(Data data) throws TemplateException {
+
+		int start = data.srcCode.getPos();
 		if (!data.srcCode.forwardIfCurrent("new", "component")) return null;
+
+		// exclude "new Component("
+		data.srcCode.removeSpace();
+		if (data.srcCode.isCurrent('(')) {
+			data.srcCode.setPos(start);
+			return null;
+		}
+		data.srcCode.revertRemoveSpace();
+
 		data.srcCode.setPos(data.srcCode.getPos() - 9); // go before "component"
 		TagComponent tc = componentStatement(data, data.getParent());
 		tc.setParent(data.getParent());

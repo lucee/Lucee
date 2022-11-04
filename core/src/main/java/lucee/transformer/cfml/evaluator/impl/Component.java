@@ -22,7 +22,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import lucee.print;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.PageSource;
@@ -108,7 +107,6 @@ public class Component extends EvaluatorSupport {
 		boolean main = isMainComponent(page, tc);
 
 		// is a full grown component or an inline component
-		print.e("inline:" + inline);
 		if (!inline && isInsideCITemplate(page) == Boolean.FALSE) {
 			throw new EvaluatorException("Wrong Context, [" + tlt.getFullName() + "] tag must be inside a file with the extension [" + Constants.getCFMLComponentExtension()
 					+ "] or [" + Constants.getLuceeComponentExtension() + "], only inline components are allowed outside ");

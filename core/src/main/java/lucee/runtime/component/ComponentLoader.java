@@ -556,6 +556,10 @@ public class ComponentLoader {
 		}
 	}
 
+	public static ComponentImpl loadInline(CIPage page, PageContext pc) throws PageException {
+		return _loadComponent(pc, page, null, true, true, true, true);
+	}
+
 	private static ComponentImpl _loadComponent(PageContext pc, CIPage page, String callPath, boolean isRealPath, final boolean isExtendedComponent, boolean executeConstr,
 			boolean validate) throws PageException {
 		ComponentImpl rtn = null;

@@ -38,7 +38,6 @@ import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.GeneratorAdapter;
 import org.objectweb.asm.commons.Method;
 
-import lucee.print;
 import lucee.commons.digest.HashUtil;
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.IOUtil;
@@ -498,7 +497,7 @@ public final class Page extends BodyBase implements Root {
 		if (isComponent()) {
 			writeOutGetStaticStruct(constr, keys, cw, comp, className);
 			writeOutNewComponent(constr, keys, cw, comp, className);
-			writeOutInitComponent(constr, functions, keys, cw, comp, className);
+			funcs = writeOutInitComponent(constr, functions, keys, cw, comp, className);
 
 		}
 		else if (isInterface()) {
@@ -1567,7 +1566,6 @@ public final class Page extends BodyBase implements Root {
 	private List<IFunction> writeOutCallBody(BytecodeContext bc, Body body, int pageType) throws TransformerException {
 		List<IFunction> funcs = new ArrayList<IFunction>();
 		extractFunctions(bc, body, funcs, pageType);
-		print.e("len:" + funcs.size());
 		writeUDFProperties(bc, funcs, pageType);
 
 		// writeTags(bc, extractProperties(body));
