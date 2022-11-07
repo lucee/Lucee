@@ -154,7 +154,8 @@ component {
 		// strips off the stack trace to exclude testbox and back to the first .cfc call in the stack
 		function printStackTrace( st ){
 			local.i = find( "/testbox/", arguments.st );
-			if ( true ){ // dump it all out
+			// if ( request.testDebug || i eq 0 ){ // dump it all out
+			if ( true ) {
 				systemOutput( TAB & arguments.st, true );
 				return;
 			}
@@ -167,6 +168,13 @@ component {
 				local.tmp = mid( local.tmp, 1, local.j );
 			}
 			systemOutput( TAB & local.tmp, true );
+			// now find any Caused By: and output them
+			local.tail = mid( arguments.st, local.j );
+			local.firstCausedBy = findNoCase( "Caused by:", tail );
+			if ( firstCausedBy gt 0 ) {
+				systemOutput( TAB & TAB & "... omitted verbose ant / pagecontext / testbox default stacktraces ... ", true );
+				systemOutput( mid( tail, firstCausedBy), true );
+			}
 		};
 
 		try {
@@ -319,6 +327,7 @@ component {
 									*/
 								}
 								if ( !isNull( specStat.error.StackTrace ) && !isEmpty( specStat.error.StackTrace ) ){
+									systemOutput( TAB & specStat.error.type, true );
 									printStackTrace( specStat.error.StackTrace );
 									systemOutput( NL );
 								}
