@@ -96,6 +96,9 @@ public abstract class TagCIObject extends TagBase {
 		byte[] barr = page.execute(className);
 
 		Resource classFile = ((PageSourceCode) psc).getPageSource().getMapping().getClassRootDirectory().getRealResource(page.getClassName() + ".class");
+		Resource classDir = classFile.getParentResource();
+		if (!classDir.isDirectory()) classDir.mkdirs();
+		if (classFile.isFile()) classFile.delete();
 		try {
 			IOUtil.copy(new ByteArrayInputStream(barr), classFile, true);
 		}
