@@ -229,7 +229,7 @@ public final class TagFunction extends TagBase implements IFunction {
 		// modifier
 		isStatic.setValue(false);
 		int modifier = Component.MODIFIER_NONE;
-		attr = removeAttribute("modifier");
+		attr = getAttribute("modifier");
 		if (attr != null) {
 			Expression val = attr.getValue();
 			if (val instanceof Literal) {
