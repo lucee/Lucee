@@ -154,7 +154,7 @@ component {
 		// strips off the stack trace to exclude testbox and back to the first .cfc call in the stack
 		function printStackTrace( st ){
 			local.i = find( "/testbox/", arguments.st );
-			if ( request.testDebug || i eq 0 ){ // dump it all out
+			if ( true ){ // dump it all out
 				systemOutput( TAB & arguments.st, true );
 				return;
 			}
