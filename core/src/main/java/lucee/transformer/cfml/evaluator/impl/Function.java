@@ -61,7 +61,7 @@ public final class Function extends EvaluatorSupport {
 
 		boolean isCI = true;
 		try {
-			isCI = ASMUtil.getAncestorPage(tag).isComponent() || ASMUtil.getAncestorPage(tag).isInterface();
+			isCI = ASMUtil.getAncestorPage(null, tag).isComponent() || ASMUtil.getAncestorPage(null, tag).isInterface();
 		}
 		catch (TransformerException e) {
 		}
@@ -115,7 +115,7 @@ public final class Function extends EvaluatorSupport {
 			Attribute attrLocalMode = tag.getAttribute("localmode");
 			if (attrLocalMode != null) {
 				Expression expr = attrLocalMode.getValue();
-				String str = ASMUtil.toString(expr, null);
+				String str = ASMUtil.toString(null, expr, null);
 				if (!StringUtil.isEmpty(str) && AppListenerUtil.toLocalMode(str, -1) == -1)
 					throw new EvaluatorException("Attribute localMode of the Tag Function, must be a literal value (modern, classic, true or false)");
 				// boolean output = ((LitBoolean)expr).getBooleanValue();

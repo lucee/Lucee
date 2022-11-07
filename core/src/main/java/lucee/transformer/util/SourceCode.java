@@ -39,14 +39,18 @@ public class SourceCode {
 	private final boolean writeLog;
 	private final int dialect;
 	private int hash;
+	private SourceCode parent;
 
 	/**
 	 * Constructor of the class
 	 * 
+	 * @param parent
+	 * 
 	 * @param text
 	 * @param charset
 	 */
-	public SourceCode(String strText, boolean writeLog, int dialect) {
+	public SourceCode(SourceCode parent, String strText, boolean writeLog, int dialect) {
+		this.parent = parent;
 		this.text = strText.toCharArray();
 		this.hash = strText.hashCode();
 		this.dialect = dialect;
@@ -75,6 +79,10 @@ public class SourceCode {
 		lines = arr.toArray(new Integer[arr.size()]);
 
 		this.writeLog = writeLog;
+	}
+
+	public SourceCode getParent() {
+		return parent;
 	}
 
 	public boolean hasPrevious() {
@@ -694,7 +702,7 @@ public class SourceCode {
 	 * @return subset of the SourceCode as new SourcCode
 	 */
 	public SourceCode subCFMLString(int start, int count) {
-		return new SourceCode(String.valueOf(text, start, count), writeLog, dialect);
+		return new SourceCode(this, String.valueOf(text, start, count), writeLog, dialect);
 
 	}
 

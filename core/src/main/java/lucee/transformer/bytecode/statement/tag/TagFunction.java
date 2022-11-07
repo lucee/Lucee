@@ -75,17 +75,21 @@ public final class TagFunction extends TagBase implements IFunction {
 	}
 
 	public void _writeOut(BytecodeContext bc, int type) throws TransformerException {
-		if (function == null) function = createFunction(bc.getFactory(), bc.getPage());
+		if (function == null) {
+			function = createFunction(bc, bc.getFactory(), bc.getPage());
+			index = bc.getPage().addFunction(function);
+			function.setIndex(index);
+		}
 		function._writeOut(bc, type);
 	}
 
-	private Function createFunction(Factory f, Page page) throws TransformerException {
+	private Function createFunction(BytecodeContext bc, Factory f, Page page) throws TransformerException {
 
 		// private static final Expression EMPTY = LitString.toExprString("");
 
 		Body functionBody = new BodyBase(f);
 		RefBoolean isStatic = new RefBooleanImpl();
-		Function func = _createFunction(page, functionBody, isStatic, page.getOutput());
+		Function func = _createFunction(bc, page, functionBody, isStatic, page.getOutput());
 		// func.setIndex(index);
 		func.setParent(getParent());
 
@@ -200,7 +204,7 @@ public final class TagFunction extends TagBase implements IFunction {
 
 	}
 
-	private Function _createFunction(Page page, Body body, RefBoolean isStatic, boolean defaultOutput) throws TransformerException {
+	private FunctionImpl _createFunction(BytecodeContext bc, Page page, Body body, RefBoolean isStatic, boolean defaultOutput) throws TransformerException {
 		Attribute attr;
 		LitString ANY = page.getFactory().createLitString("any");
 		LitString PUBLIC = page.getFactory().createLitString("public");
@@ -278,9 +282,9 @@ public final class TagFunction extends TagBase implements IFunction {
 		}
 		String strAccess = ((LitString) access).getString();
 		int acc = ComponentUtil.toIntAccess(strAccess, -1);
-		if (acc == -1) throw new TransformerException("invalid access type [" + strAccess + "], access types are remote, public, package, private", getStart());
+		if (acc == -1) throw new TransformerException(bc, "invalid access type [" + strAccess + "], access types are remote, public, package, private", getStart());
 
-		Function func = new FunctionImpl(name, returnType, returnFormat, output, bufferOutput, acc, displayname, description, hint, secureJson, verifyClient, localMode,
+		FunctionImpl func = new FunctionImpl(name, returnType, returnFormat, output, bufferOutput, acc, displayname, description, hint, secureJson, verifyClient, localMode,
 				cachedWithin, modifier, body, getStart(), getEnd());
 		Map<String, Attribute> attrs = getAttributes();
 		Iterator<Entry<String, Attribute>> it = attrs.entrySet().iterator();
@@ -303,7 +307,8 @@ public final class TagFunction extends TagBase implements IFunction {
 	 */
 
 	public void register(Factory factory, Page page) throws TransformerException {
-		function = createFunction(factory, page);
+		function = createFunction(null, factory, page);
 		index = page.addFunction(function);
+		function.setIndex(index);
 	}
 }

@@ -62,39 +62,45 @@ public abstract class TagCIObject extends TagBase {
 	@Override
 
 	protected void _writeOut(BytecodeContext bc, boolean doReuse, FlowControlFinal fcf) throws TransformerException {
-		writeOut(bc.getPage());
+		writeOut(bc, bc.getPage());
 	}
 
-	public void writeOut(Page parent) throws TransformerException {
+	public void writeOut(BytecodeContext bc, Page parent) throws TransformerException {
 		List<Function> functions = parent.getFunctions();
-
-		// TODO better way to get this path?
-		PageSourceCode psc = (PageSourceCode) parent.getSourceCode();
-
+		SourceCode psc = null;
+		{
+			SourceCode tmp;
+			psc = parent.getSourceCode();
+			while (true) {
+				tmp = psc.getParent();
+				if (tmp == null || tmp == psc) break;
+				psc = tmp;
+			}
+		}
 		SourceCode sc = parent.getSourceCode().subCFMLString(getStart().pos, getEnd().pos - getStart().pos);
+
 		Page page = new Page(parent.getFactory(), parent.getConfig(), sc, this, CFMLEngineFactory.getInstance().getInfo().getFullVersionInfo(), parent.getLastModifed(),
 				parent.writeLog(), parent.getSupressWSbeforeArg(), parent.getOutput(), parent.returnValue(), parent.ignoreScopes);
 
 		// add functions from this component
 		for (Function f: functions) {
-			page.addFunction(f);
-			// if (ASMUtil.getAncestorComponent(f) == this) {
-			// page.addFunction(f);
-			// }
+			if (ASMUtil.getAncestorComponent(f) == this) {
+				page.addFunction(f);
+			}
 		}
 
 		// page.setIsComponent(true); // MUST can be an interface as well
 		page.addStatement(this);
-
+		setParent(page);
 		String className = getSubClassName(parent);
 		byte[] barr = page.execute(className);
 
-		Resource classFile = psc.getPageSource().getMapping().getClassRootDirectory().getRealResource(page.getClassName() + ".class");
+		Resource classFile = ((PageSourceCode) psc).getPageSource().getMapping().getClassRootDirectory().getRealResource(page.getClassName() + ".class");
 		try {
 			IOUtil.copy(new ByteArrayInputStream(barr), classFile, true);
 		}
 		catch (IOException e) {
-			new TransformerException(ExceptionUtil.getMessage(e), getStart());
+			new TransformerException(bc, ExceptionUtil.getMessage(e), getStart());
 		}
 	}
 

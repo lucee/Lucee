@@ -146,7 +146,7 @@ public abstract class Function extends StatementBaseNoFinal implements Opcodes, 
 	private int modifier;
 	protected JavaFunction jf;
 	// private final Root root;
-	protected int index;
+	protected int index = -1;
 
 	public Function(String name, int access, int modifier, String returnType, Body body, Position start, Position end) {
 		super(body.getFactory(), start, end);
@@ -535,41 +535,41 @@ public abstract class Function extends StatementBaseNoFinal implements Opcodes, 
 		this.hint = factory.createLitString(hint);
 	}
 
-	public final void addAttribute(Attribute attr) throws TemplateException {
+	public final void addAttribute(BytecodeContext bc, Attribute attr) throws TemplateException {
 		String name = attr.getName().toLowerCase();
 		// name
 		if ("name".equals(name)) {
-			throw new TransformerException("Name cannot be defined twice", getStart());
+			throw new TransformerException(bc, "Name cannot be defined twice", getStart());
 		}
 		else if ("returntype".equals(name)) {
-			this.returnType = toLitString(name, attr.getValue());
+			this.returnType = toLitString(bc, name, attr.getValue());
 		}
 		else if ("access".equals(name)) {
 
-			LitString ls = toLitString(name, attr.getValue());
+			LitString ls = toLitString(bc, name, attr.getValue());
 			String strAccess = ls.getString();
 			int acc = ComponentUtil.toIntAccess(strAccess, -1);
-			if (acc == -1) throw new TransformerException("Invalid access type [" + strAccess + "], access types are (remote, public, package, private)", getStart());
+			if (acc == -1) throw new TransformerException(bc, "Invalid access type [" + strAccess + "], access types are (remote, public, package, private)", getStart());
 			access = acc;
 
 		}
 
-		else if ("output".equals(name)) this.output = toLitBoolean(name, attr.getValue());
-		else if ("bufferoutput".equals(name)) this.bufferOutput = toLitBoolean(name, attr.getValue());
-		else if ("displayname".equals(name)) this.displayName = toLitString(name, attr.getValue());
-		else if ("hint".equals(name)) this.hint = toLitString(name, attr.getValue());
-		else if ("description".equals(name)) this.description = toLitString(name, attr.getValue());
-		else if ("returnformat".equals(name)) this.returnFormat = toLitString(name, attr.getValue());
-		else if ("securejson".equals(name)) this.secureJson = toLitBoolean(name, attr.getValue());
-		else if ("verifyclient".equals(name)) this.verifyClient = toLitBoolean(name, attr.getValue());
+		else if ("output".equals(name)) this.output = toLitBoolean(bc, name, attr.getValue());
+		else if ("bufferoutput".equals(name)) this.bufferOutput = toLitBoolean(bc, name, attr.getValue());
+		else if ("displayname".equals(name)) this.displayName = toLitString(bc, name, attr.getValue());
+		else if ("hint".equals(name)) this.hint = toLitString(bc, name, attr.getValue());
+		else if ("description".equals(name)) this.description = toLitString(bc, name, attr.getValue());
+		else if ("returnformat".equals(name)) this.returnFormat = toLitString(bc, name, attr.getValue());
+		else if ("securejson".equals(name)) this.secureJson = toLitBoolean(bc, name, attr.getValue());
+		else if ("verifyclient".equals(name)) this.verifyClient = toLitBoolean(bc, name, attr.getValue());
 		else if ("localmode".equals(name)) {
 			Expression v = attr.getValue();
 			if (v != null) {
-				String str = ASMUtil.toString(v, null);
+				String str = ASMUtil.toString(bc, v, null);
 				if (!StringUtil.isEmpty(str)) {
 					int mode = AppListenerUtil.toLocalMode(str, -1);
 					if (mode != -1) this.localMode = v.getFactory().createLitInteger(mode);
-					else throw new TransformerException("Attribute [localMode] of the tag [Function], must be a literal value (modern, classic, true or false)", getStart());
+					else throw new TransformerException(bc, "Attribute [localMode] of the tag [Function], must be a literal value (modern, classic, true or false)", getStart());
 				}
 			}
 		}
@@ -592,32 +592,36 @@ public abstract class Function extends StatementBaseNoFinal implements Opcodes, 
 		}
 
 		else {
-			toLitString(name, attr.getValue());// needed for testing
+			toLitString(bc, name, attr.getValue());// needed for testing
 			if (metadata == null) metadata = new HashMap<String, Attribute>();
 			metadata.put(attr.getName(), attr);
 		}
 	}
 
-	private final LitString toLitString(String name, Expression value) throws TransformerException {
+	private final LitString toLitString(BytecodeContext bc, String name, Expression value) throws TransformerException {
 		ExprString es = value.getFactory().toExprString(value);
-		if (!(es instanceof LitString)) throw new TransformerException("Value of attribute [" + name + "] must have a literal/constant value", getStart());
+		if (!(es instanceof LitString)) throw new TransformerException(bc, "Value of attribute [" + name + "] must have a literal/constant value", getStart());
 		return (LitString) es;
 	}
 
-	private final LitBoolean toLitBoolean(String name, Expression value) throws TransformerException {
+	private final LitBoolean toLitBoolean(BytecodeContext bc, String name, Expression value) throws TransformerException {
 		ExprBoolean eb = value.getFactory().toExprBoolean(value);
-		if (!(eb instanceof LitBoolean)) throw new TransformerException("Value of attribute [" + name + "] must have a literal/constant value", getStart());
+		if (!(eb instanceof LitBoolean)) throw new TransformerException(bc, "Value of attribute [" + name + "] must have a literal/constant value", getStart());
 		return (LitBoolean) eb;
 	}
 
-	private final ExprInt toLitInt(String name, Expression value) throws TransformerException {
+	private final ExprInt toLitInt(BytecodeContext bc, String name, Expression value) throws TransformerException {
 		ExprInt eb = value.getFactory().toExprInt(value);
-		if (!(eb instanceof Literal)) throw new TransformerException("Value of attribute [" + name + "] must have a literal/constant value", getStart());
+		if (!(eb instanceof Literal)) throw new TransformerException(bc, "Value of attribute [" + name + "] must have a literal/constant value", getStart());
 		return eb;
 	}
 
 	public void setJavaFunction(JavaFunction jf) {
 		this.jf = jf;
+	}
+
+	public void setIndex(int index) {
+		this.index = index;
 	}
 
 }

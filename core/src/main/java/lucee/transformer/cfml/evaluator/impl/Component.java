@@ -61,7 +61,7 @@ public class Component extends EvaluatorSupport {
 
 		if (inline) {
 			try {
-				page = ASMUtil.getAncestorPage(tag);
+				page = ASMUtil.getAncestorPage(null, tag);
 			}
 			catch (TransformerException te) {
 				EvaluatorException ee = new EvaluatorException(te.getMessage());

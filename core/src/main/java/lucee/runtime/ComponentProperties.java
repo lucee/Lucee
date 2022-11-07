@@ -46,6 +46,7 @@ public class ComponentProperties implements Serializable {
 	final int modifier;
 	final String subName;
 	final String name;
+	public boolean inline;
 
 	public ComponentProperties(String name, String dspName, String extend, String implement, String hint, Boolean output, String callPath, boolean realPath, String subName,
 			boolean _synchronized, Class javaAccessClass, boolean persistent, boolean accessors, int modifier, Struct meta) {
@@ -70,6 +71,7 @@ public class ComponentProperties implements Serializable {
 		ComponentProperties cp = new ComponentProperties(name, dspName, extend, implement, hint, output, callPath, realPath, subName, _synchronized, javaAccessClass, persistent,
 				accessors, modifier, meta);
 		cp.properties = properties;
+		cp.inline = inline;
 		return cp;
 	}
 

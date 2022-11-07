@@ -236,7 +236,7 @@ public final class ASMUtil {
 			name = "retry";
 		}
 
-		if (fc == null) throw new TransformerException(name + " must be inside a loop (for,while,do-while,<cfloop>,<cfwhile> ...)", stat.getStart());
+		if (fc == null) throw new TransformerException(bc, name + " must be inside a loop (for,while,do-while,<cfloop>,<cfwhile> ...)", stat.getStart());
 
 		GeneratorAdapter adapter = bc.getAdapter();
 
@@ -501,12 +501,12 @@ public final class ASMUtil {
 		}
 	}
 
-	public static Page getAncestorPage(Statement stat) throws TransformerException {
+	public static Page getAncestorPage(BytecodeContext bc, Statement stat) throws TransformerException {
 		Statement parent = stat;
 		while (true) {
 			parent = parent.getParent();
 			if (parent == null) {
-				throw new TransformerException("missing parent Statement of Statement", stat.getStart());
+				throw new TransformerException(bc, "missing parent Statement of Statement", stat.getStart());
 				// return null;
 			}
 			if (parent instanceof Page) return (Page) parent;
@@ -765,21 +765,21 @@ public final class ASMUtil {
 		return expr instanceof LitString && !((LitString) expr).fromBracket();
 	}
 
-	public static String toString(Expression exp, String defaultValue) {
+	public static String toString(BytecodeContext bc, Expression exp, String defaultValue) {
 		try {
-			return toString(exp);
+			return toString(bc, exp);
 		}
 		catch (TransformerException e) {
 			return defaultValue;
 		}
 	}
 
-	public static String toString(Expression exp) throws TransformerException {
+	public static String toString(BytecodeContext bc, Expression exp) throws TransformerException {
 		if (exp instanceof Variable) {
-			return toString(VariableString.toExprString(exp));
+			return toString(bc, VariableString.toExprString(exp));
 		}
 		else if (exp instanceof VariableString) {
-			return ((VariableString) exp).castToString();
+			return ((VariableString) exp).castToString(bc);
 		}
 		else if (exp instanceof Literal) {
 			return ((Literal) exp).toString();
@@ -787,14 +787,14 @@ public final class ASMUtil {
 		return null;
 	}
 
-	public static Boolean toBoolean(Attribute attr, Position start) throws TransformerException {
-		if (attr == null) throw new TransformerException("attribute does not exist", start);
+	public static Boolean toBoolean(BytecodeContext bc, Attribute attr, Position start) throws TransformerException {
+		if (attr == null) throw new TransformerException(bc, "attribute does not exist", start);
 
 		if (attr.getValue() instanceof Literal) {
 			Boolean b = ((Literal) attr.getValue()).getBoolean(null);
 			if (b != null) return b;
 		}
-		throw new TransformerException("attribute [" + attr.getName() + "] must be a constant boolean value", start);
+		throw new TransformerException(bc, "attribute [" + attr.getName() + "] must be a constant boolean value", start);
 
 	}
 
