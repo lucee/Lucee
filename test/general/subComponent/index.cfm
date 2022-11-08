@@ -8,7 +8,7 @@
             writeoutput("#sub.sub#,#sub.subFunc()#");
         }
         else if (form.scene == 2) {
-            writeoutput(testComp$testSub::mainStatic)
+            writeoutput(testComp$testSub::subStatic)
         }
         else if (form.scene == 3) {
             writeoutput(sub.addiFunc())
