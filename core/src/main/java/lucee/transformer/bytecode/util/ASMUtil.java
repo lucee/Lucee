@@ -964,6 +964,15 @@ public final class ASMUtil {
 		return name.toString();
 	}
 
+	public static Literal cachedWithinValue(Expression val, Literal dv) {
+		try {
+			return cachedWithinValue(val);
+		}
+		catch (Exception e) {
+			return dv;
+		}
+	}
+
 	public static Literal cachedWithinValue(Expression val) throws EvaluatorException {
 		if (val instanceof Literal) {
 			Literal l = (Literal) val;

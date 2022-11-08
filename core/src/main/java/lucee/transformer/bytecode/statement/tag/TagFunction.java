@@ -42,6 +42,7 @@ import lucee.transformer.bytecode.statement.IFunction;
 import lucee.transformer.bytecode.statement.PrintOut;
 import lucee.transformer.bytecode.statement.udf.Function;
 import lucee.transformer.bytecode.statement.udf.FunctionImpl;
+import lucee.transformer.bytecode.util.ASMUtil;
 import lucee.transformer.expression.Expression;
 import lucee.transformer.expression.literal.LitBoolean;
 import lucee.transformer.expression.literal.LitString;
@@ -275,10 +276,9 @@ public final class TagFunction extends TagBase implements IFunction {
 
 		// cachedWithin
 		Literal cachedWithin = null;
-		attr = removeAttribute("cachedwithin");
+		attr = getAttribute("cachedwithin");
 		if (attr != null) {
-			Expression val = attr.getValue();
-			if (val instanceof Literal) cachedWithin = ((Literal) val);
+			cachedWithin = ASMUtil.cachedWithinValue(attr.getValue(), null);
 		}
 		String strAccess = ((LitString) access).getString();
 		int acc = ComponentUtil.toIntAccess(strAccess, -1);
