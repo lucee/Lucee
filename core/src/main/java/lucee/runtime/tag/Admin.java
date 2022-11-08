@@ -1511,9 +1511,9 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	}
 
 	private void doGetLoggedDebugData() throws PageException {
-		
-		// to get logged debugging data config should be a ConfigWebPro, 
- 		// for singleMode config is always ConfigServer so config must be redefine if it was singleMode
+
+		// to get logged debugging data config should be a ConfigWebPro,
+		// for singleMode config is always ConfigServer so config must be redefine if it was singleMode
 		if (singleMode) config = (ConfigPro) pageContext.getConfig();
 
 		if (config instanceof ConfigServer) return;
@@ -3157,7 +3157,8 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	private void doUpdateCompilerSettings() throws SecurityException, PageException {
 		admin.updateCompilerSettings(getBoolObject("admin", "UpdateCompilerSettings", "dotNotationUpperCase"),
 				getBoolObject("admin", "UpdateCompilerSettings", "suppressWSBeforeArg"), getBoolObject("admin", "UpdateCompilerSettings", "nullSupport"),
-				getBoolObject("admin", "UpdateCompilerSettings", "handleUnquotedAttrValueAsString"), getInteger("admin", "UpdateCompilerSettings", "externalizeStringGTE"));
+				getBoolObject("admin", "UpdateCompilerSettings", "handleUnquotedAttrValueAsString"), getInteger("admin", "UpdateCompilerSettings", "externalizeStringGTE"),
+				getBoolObject("admin", "UpdateCompilerSettings", "preciseMath"));
 		admin.updateTemplateCharset(getString("admin", action, "templateCharset"));
 
 		store();
@@ -3197,6 +3198,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		sct.set("handleUnquotedAttrValueAsString", config.getHandleUnQuotedAttrValueAsString() ? Boolean.TRUE : Boolean.FALSE);
 		sct.set("templateCharset", config.getTemplateCharset());
 		sct.set("externalizeStringGTE", Caster.toDouble(config.getExternalizeStringGTE()));
+		sct.set("preciseMath", config.getPreciseMath());
 
 	}
 
