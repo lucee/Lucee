@@ -125,7 +125,7 @@ public class Ansi92 extends SQLExecutorSupport {
 				new QueryImpl(pc, dc, sql, -1, -1, null, scopeName + "_storage");
 			}
 			catch (DatabaseException _de) {
-				DatabaseException exp = new DatabaseException("Failed to create unique index on " + tableName, null, sql, dc);
+				DatabaseException exp = new DatabaseException("Failed to create unique index on [" + tableName + "]", null, sql, dc);
 				exp.initCause(_de);
 				throw exp;
 			}
