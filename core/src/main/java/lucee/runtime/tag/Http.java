@@ -1130,7 +1130,6 @@ public final class Http extends BodyTagImpl {
 
 			/////////////////////////////////////////// EXECUTE
 			/////////////////////////////////////////// /////////////////////////////////////////////////
-			Charset responseCharset = CharsetUtil.toCharset(rsp.getCharset());
 			int statCode = 0;
 			// Write Response Scope
 			// String rawHeader=httpMethod.getStatusLine().toString();
@@ -1262,6 +1261,8 @@ public final class Http extends BodyTagImpl {
 			// filecontent
 
 			if (Boolean.TRUE == _isText && getAsBinary != GET_AS_BINARY_YES && safeToMemory) {
+				String tmp = rsp.getCharset();
+				Charset responseCharset = StringUtil.isEmpty(tmp, true) ? null : CharsetUtil.toCharset(tmp);
 				// store to memory
 				String str;
 				if (barr == null) str = contentAsString(rsp, responseCharset, contentEncoding, e);

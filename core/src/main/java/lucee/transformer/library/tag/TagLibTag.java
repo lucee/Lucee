@@ -780,7 +780,7 @@ public final class TagLibTag {
 		setter = "set" + StringUtil.ucFirst(attr.getName());
 		Class clazz;
 		try {
-			if (StringUtil.isEmpty(typeClassName)) typeClassName = CastOther.getType(attr.getType()).getClassName();
+			if (StringUtil.isEmpty(typeClassName)) typeClassName = CastOther.getType(null, attr.getType()).getClassName();
 			clazz = getTagClassDefinition().getClazz();
 			java.lang.reflect.Method m = ClassUtil.getMethodIgnoreCase(clazz, setter, new Class[] { ClassUtil.loadClass(typeClassName) });
 			setter = m.getName();

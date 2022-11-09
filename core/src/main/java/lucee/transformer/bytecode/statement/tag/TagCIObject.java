@@ -37,6 +37,7 @@ import lucee.transformer.bytecode.Page;
 import lucee.transformer.bytecode.Statement;
 import lucee.transformer.bytecode.StaticBody;
 import lucee.transformer.bytecode.statement.FlowControlFinal;
+import lucee.transformer.bytecode.statement.udf.Function;
 import lucee.transformer.bytecode.util.ASMUtil;
 import lucee.transformer.cfml.evaluator.EvaluatorException;
 import lucee.transformer.util.PageSourceCode;
@@ -46,6 +47,7 @@ public abstract class TagCIObject extends TagBase {
 
 	private boolean main;
 	private String name;
+	private String subClassName;
 
 	@Override
 	public void _writeOut(BytecodeContext bc) throws TransformerException {
@@ -60,30 +62,54 @@ public abstract class TagCIObject extends TagBase {
 	@Override
 
 	protected void _writeOut(BytecodeContext bc, boolean doReuse, FlowControlFinal fcf) throws TransformerException {
-		writeOut(bc.getPage());
+		writeOut(bc, bc.getPage());
 	}
 
-	public void writeOut(Page parent) throws TransformerException {
-
-		// TODO better way to get this path?
-		PageSourceCode psc = (PageSourceCode) parent.getSourceCode();
-
+	public void writeOut(BytecodeContext bc, Page parent) throws TransformerException {
+		List<Function> functions = parent.getFunctions();
+		SourceCode psc = null;
+		{
+			SourceCode tmp;
+			psc = parent.getSourceCode();
+			while (true) {
+				tmp = psc.getParent();
+				if (tmp == null || tmp == psc) break;
+				psc = tmp;
+			}
+		}
 		SourceCode sc = parent.getSourceCode().subCFMLString(getStart().pos, getEnd().pos - getStart().pos);
+
 		Page page = new Page(parent.getFactory(), parent.getConfig(), sc, this, CFMLEngineFactory.getInstance().getInfo().getFullVersionInfo(), parent.getLastModifed(),
 				parent.writeLog(), parent.getSupressWSbeforeArg(), parent.getOutput(), parent.returnValue(), parent.ignoreScopes);
+
+		// add functions from this component
+		for (Function f: functions) {
+			if (ASMUtil.getAncestorComponent(f) == this) {
+				page.addFunction(f);
+			}
+		}
+
 		// page.setIsComponent(true); // MUST can be an interface as well
 		page.addStatement(this);
-
-		String className = Page.createSubClass(parent.getClassName(), getName(), parent.getSourceCode().getDialect());
+		setParent(page);
+		String className = getSubClassName(parent);
 		byte[] barr = page.execute(className);
 
-		Resource classFile = psc.getPageSource().getMapping().getClassRootDirectory().getRealResource(page.getClassName() + ".class");
+		Resource classFile = ((PageSourceCode) psc).getPageSource().getMapping().getClassRootDirectory().getRealResource(page.getClassName() + ".class");
+		Resource classDir = classFile.getParentResource();
+		if (!classDir.isDirectory()) classDir.mkdirs();
+		if (classFile.isFile()) classFile.delete();
 		try {
 			IOUtil.copy(new ByteArrayInputStream(barr), classFile, true);
 		}
 		catch (IOException e) {
-			new TransformerException(ExceptionUtil.getMessage(e), getStart());
+			new TransformerException(bc, ExceptionUtil.getMessage(e), getStart());
 		}
+	}
+
+	public String getSubClassName(Page parent) {
+		if (subClassName == null) subClassName = Page.createSubClass(parent.getClassName(), getName(), parent.getSourceCode().getDialect());
+		return subClassName;
 	}
 
 	/**
@@ -138,5 +164,4 @@ public abstract class TagCIObject extends TagBase {
 		}
 		return list;
 	}
-
 }

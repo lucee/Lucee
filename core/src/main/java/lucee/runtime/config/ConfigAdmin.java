@@ -5525,7 +5525,7 @@ public final class ConfigAdmin {
 	}
 
 	public void updateCompilerSettings(Boolean dotNotationUpperCase, Boolean suppressWSBeforeArg, Boolean nullSupport, Boolean handleUnQuotedAttrValueAsString,
-			Integer externalizeStringGTE) throws PageException {
+			Integer externalizeStringGTE, Boolean preciseMath) throws PageException {
 
 		// Struct element = _getRootElement("compiler");
 
@@ -5568,6 +5568,13 @@ public final class ConfigAdmin {
 			root.setEL("handleUnquotedAttributeValueAsString", Caster.toString(handleUnQuotedAttrValueAsString));
 		}
 
+		// preciseMath
+		if (preciseMath == null) {
+			if (root.containsKey("preciseMath")) rem(root, "preciseMath");
+		}
+		else {
+			root.setEL("preciseMath", Caster.toString(preciseMath));
+		}
 	}
 
 	Resource[] updateWebContexts(InputStream is, String realpath, boolean closeStream, boolean store) throws PageException, IOException, BundleException, ConverterException {

@@ -1042,6 +1042,8 @@ public class KeyConstants {
 	public static final Key _columnNames = KeyImpl._const("columnNames");
 	public static final Key _columnTypes = KeyImpl._const("columnTypes");
 	public static final Key _remoteclients = KeyImpl._const("remoteclients");
+	public static final Key _inline = KeyImpl._const("inline");
+	public static final Key _sub = KeyImpl._const("sub");
 
 	private static Map<String, Key> _____keys;
 

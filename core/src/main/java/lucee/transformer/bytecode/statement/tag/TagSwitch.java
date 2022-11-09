@@ -83,7 +83,7 @@ public final class TagSwitch extends TagBaseNoFinal {
 					continue;
 				}
 				else if (tag.getTagLibTag().getTagClassDefinition().isClassNameEqualTo("lucee.runtime.tag.Defaultcase")) {
-					if (def != null) throw new TransformerException("multiple defaultcases are not allowed", getStart());
+					if (def != null) throw new TransformerException(bc, "multiple defaultcases are not allowed", getStart());
 					def = tag;
 					// setDefaultCase(bc,cv,tag);
 					// break;
