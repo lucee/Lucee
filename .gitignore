@@ -27,9 +27,8 @@ WEB-INF
 *.iws
 *.jfr
 
-/.vscode
-/.idea
+.vscode
 loader/env.json
-.idea/
+.idea
 buildVersionNumber.txt
 /test/reports
