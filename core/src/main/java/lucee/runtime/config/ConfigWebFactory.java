@@ -378,7 +378,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 		load(cs, cw, root, true, doNew, false);
 		createContextFilesPost(configDir, cw, null, false, doNew);
 
-		((CFMLEngineImpl) ConfigWebUtil.getEngine(cw)).onStart(cw, true);
+		// ((CFMLEngineImpl) ConfigWebUtil.getEngine(cw)).onStart(cw, true);
 
 		((GatewayEngineImpl) cw.getGatewayEngine()).autoStart();
 	}
