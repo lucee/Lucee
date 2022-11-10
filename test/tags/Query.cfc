@@ -230,23 +230,14 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 	public void function testAsynUDF() {
 		var udf=function (caller,args,result,meta) {
-			//try {
-				//("from the udf listener",1,1);
-				//systemOutput("application.query_testAsynUDF=#application.query_testAsynUDF#",1,1);
-				arguments.args.sql="insert into QueryTestAsync(id,i,dec) values('6',1,1.0)"; // change SQL
-		        application.query_testAsynUDF=true;
-				//systemOutput("application.query_testAsynUDF=#application.query_testAsynUDF#",1,1);
-				return arguments;
-			/*}
-			catch(e) {
-				systemOutput(e,1,1);
-			}*/
+			server.query_testAsynUDF=true;
+			return arguments;
 		};
 		var tbl="QueryTestAsync";
-		application.query_testAsynUDF=false;
+		server.query_testAsynUDF=false;
 		testAsyn(udf,tbl,0);
-		//systemOutput("application.query_testAsynUDF=#application.query_testAsynUDF#",1,1);
-		assertTrue(application.query_testAsynUDF);
+		//systemOutput("server.query_testAsynUDF=#server.query_testAsynUDF#",1,1);
+		assertTrue(server.query_testAsynUDF);
 	}
 
 	public void function testAsynStructUDF() {
@@ -277,8 +268,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 				echo("delete from "&tbl);
 			} 
 
-			query async=true name="local.qry" listener=listener {
-				echo("insert into QueryTestAsync(id,i,dec) values('0',1,1.0)");
+			query async=false name="local.qry" listener=listener {
+				echo("insert into "&tbl&"(id,i,dec) values('0',1,1.0)");
 			} 
 
 			sleep(500);
