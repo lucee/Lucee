@@ -264,7 +264,6 @@
 				</cfif>
 			</div>
 		</cfif>
-		<Cfdump var=#data#>
 		<cfset isdefault = Findnocase('defaultValue', serializeJSON(data))>
 		<cfif ( data.attributeType == "fixed" || data.attributeType == "mixed" ) && arrayLen( arrAttrNames )>
 			<table class="table maintbl">
