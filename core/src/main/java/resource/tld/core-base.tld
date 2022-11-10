@@ -4920,7 +4920,7 @@ Permits searching collections by title or displaying a separate title from the k
 			<required>false</required>
 			<status>deprecated</status>
 			<rtexprvalue>true</rtexprvalue>
-		<description>Define instead a log reference in the Lucee Administrator and use the name of the genrated log with the attribute log.
+		<description>Define instead a log reference in the Lucee Administrator and use the name of the generated log with the attribute log.
 		 Specify only the main part of the filename.
             For example, to log to the Testing.log file, specify
             "Testing".
