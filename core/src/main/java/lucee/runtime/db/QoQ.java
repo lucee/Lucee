@@ -184,11 +184,6 @@ public final class QoQ {
 						// All other non-integer literals are invalid.
 						throw new IllegalQoQException("ORDER BY item [" + col.toString(true) + "] in position " + (i+1) + " cannot be a literal value unless it is an integer matching a select column's ordinal position.", null, sql, null);
 					}
-					else {
-						// All other non-integer literals are invalid.
-						throw new DatabaseException("ORDER BY item [" + col.toString(true) + "] in position " + (i + 1)
-								+ " cannot be a literal value unless it is an integer matching a select column's ordinal position.", null, sql, null);
-					}
 				}
 				else {
 					// order by ? -- ignore this as well
