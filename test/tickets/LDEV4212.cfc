@@ -33,7 +33,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="static" {
 				expect(result[1]).toBe("child source code changed");
 				expect(result[2]).toBe("parent source code changed");
 			});
-			it(title="checking static scope after only the parent cfc file sourceCode changed", body=function( currentSpec ){
+			it(title="checking static scope after only the parent cfc file sourceCode changed", skip=false, body=function( currentSpec ){
 				// changes the parent cfc file source code only
 				writeComponentFile(fileName="parent.cfc", staticKey="fromParent", staticValue="parent source code only changed again", isChild=false);
 
