@@ -233,7 +233,13 @@ public final class Log extends TagImpl {
 			}
 		}
 		else {
-			logger = getFileLog(pageContext, file, charset, async);
+			logger = null;
+			// if we do have a log with the same name, we use the log
+			String tmpName = file.toLowerCase();
+			if (tmpName.endsWith(".log")) tmpName = tmpName.substring(0, tmpName.length() - 4);
+			logger = pci.getLog(tmpName, false);
+
+			if (logger == null) logger = getFileLog(pageContext, file, charset, async);
 		}
 
 		String contextName = pageContext.getApplicationContext().getName();
