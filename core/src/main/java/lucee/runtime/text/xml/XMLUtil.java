@@ -1529,8 +1529,8 @@ public final class XMLUtil {
 		return new InputSource(new StringReader(xml.trim()));
 	}
 
-	public static Struct validate(InputSource xml, InputSource[] schemas, String strSchema) throws XMLException {
-		return new XMLValidator(schemas, strSchema).validate(xml);
+	public static Struct validate(InputSource xml, InputSource schema, String strSchema, Struct result) throws XMLException {
+		return new XMLValidator(schema, strSchema).validate(xml, result);
 	}
 
 }

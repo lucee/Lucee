@@ -1028,6 +1028,9 @@ public class KeyConstants {
 	public static final Key _bundleDirectory = KeyImpl._const("bundleDirectory");
 	public static final Key _bundleDirectories = KeyImpl._const("bundleDirectories");
 	public static final Key _remoteclients = KeyImpl._const("remoteclients");
+	public static final Key _warnings = KeyImpl._const("warnings");
+	public static final Key _fatalerrors = KeyImpl._const("fatalerrors");
+	public static final Key _errors = KeyImpl._const("errors");
 
 	private static Map<String, Key> _____keys;
 
