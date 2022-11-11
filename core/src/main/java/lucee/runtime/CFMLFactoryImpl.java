@@ -181,8 +181,13 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 				boolean resetToNormPrio = true;
 				int count = 0;
 				for (PageContextImpl opc: runningPcs.values()) {
-					tmp = opc.getHttpServletRequest().getRemoteAddr();
-					if (ra.equals(tmp)) count++;
+					if (opc != null) {
+						HttpServletRequest tmpReq = opc.getHttpServletRequest();
+						if (tmpReq != null) {
+							tmp = tmpReq.getRemoteAddr();
+							if (ra.equals(tmp)) count++;
+						}
+					}
 				}
 				// has already running requests?
 				if (count > 0) {
@@ -191,7 +196,12 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 					int maxNormPrio = Caster.toIntValue(SystemUtil.getSystemPropOrEnvVar("lucee.request.limit.concurrent.maxnormprio", null), MAX_NORMAL_PRIORITY);
 					if (maxNormPrio > 0 && count >= maxNormPrio) {
 						for (PageContextImpl opc: runningPcs.values()) {
-							opc.getThread().setPriority(Thread.MIN_PRIORITY);
+							if (opc != null) {
+								Thread t = opc.getThread();
+								if (t != null) {
+									t.setPriority(Thread.MIN_PRIORITY);
+								}
+							}
 						}
 						Thread.currentThread().setPriority(Thread.MIN_PRIORITY);
 						resetToNormPrio = false;
