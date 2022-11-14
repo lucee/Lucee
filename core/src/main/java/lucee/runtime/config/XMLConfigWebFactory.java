@@ -340,8 +340,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		load(cs, cw, doc, true, doNew, false);
 		createContextFilesPost(configDir, cw, null, false, doNew);
 
-		// ((CFMLEngineImpl) ConfigWebUtil.getEngine(cw)).onStart(cw, true);
-
+		((CFMLEngineImpl) ConfigWebUtil.getEngine(cw)).onStart(cw, true);
 		((GatewayEngineImpl) cw.getGatewayEngine()).autoStart();
 	}
 
