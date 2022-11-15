@@ -44,6 +44,7 @@ import lucee.commons.io.res.util.ResourceClassLoader;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
+import lucee.commons.net.URLDecoder;
 import lucee.loader.engine.CFMLEngine;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.Mapping;
@@ -67,8 +68,11 @@ import lucee.runtime.osgi.OSGiUtil;
 import lucee.runtime.security.SecurityManager;
 import lucee.runtime.tag.CFConfigImport;
 import lucee.runtime.type.Collection.Key;
+import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
+import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.util.ArrayUtil;
+import lucee.runtime.type.util.ListUtil;
 import lucee.transformer.library.function.FunctionLib;
 import lucee.transformer.library.tag.TagLib;
 
@@ -78,6 +82,25 @@ import lucee.transformer.library.tag.TagLib;
 public final class ConfigWebUtil {
 
 	private static String enckey;
+
+	public static Struct toStruct(String str) {
+
+		Struct sct = new StructImpl();
+		try {
+			String[] arr = ListUtil.toStringArray(ListUtil.listToArrayRemoveEmpty(str, '&'));
+
+			String[] item;
+			for (int i = 0; i < arr.length; i++) {
+				item = ListUtil.toStringArray(ListUtil.listToArrayRemoveEmpty(arr[i], '='));
+				if (item.length == 2) sct.setEL(KeyImpl.init(URLDecoder.decode(item[0], true).trim()), URLDecoder.decode(item[1], true));
+				else if (item.length == 1) sct.setEL(KeyImpl.init(URLDecoder.decode(item[0], true).trim()), "");
+			}
+		}
+		catch (PageException ee) {
+		}
+
+		return sct;
+	}
 
 	/**
 	 * default encryption for configuration (not very secure)

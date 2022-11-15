@@ -351,7 +351,6 @@ public class DeployHandler {
 				return true;
 			}
 			catch (Exception e) {
-				e.printStackTrace();
 				if (log != null) log.error("extension", e);
 				else throw Caster.toPageException(e);
 			}

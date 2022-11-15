@@ -600,8 +600,9 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 		try {
 			// Password
-			String strPW = getString("password", "");
+			String strPW = ConfigWebUtil.decrypt(getString("password", ""));
 			Password tmp = type == TYPE_SERVER ? ((ConfigWebPro) config).isServerPasswordEqual(strPW) : config.isPasswordEqual(strPW); // hash password if
+
 			// necessary (for
 			// backward
 			// compatibility)
@@ -2273,9 +2274,9 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	 */
 	private void doUpdateMailServer() throws PageException {
 
-		admin.updateMailServer(getInt("id", -1), getString("admin", action, "hostname"), getString("admin", action, "dbusername"), getString("admin", action, "dbpassword"),
-				Caster.toIntValue(getString("admin", action, "port")), getBoolV("tls", false), getBoolV("ssl", false), toTimeout(getObject("life", null), 1000 * 60 * 5),
-				toTimeout(getObject("idle", null), 1000 * 60 * 5), getBoolV("reuseConnection", true)
+		admin.updateMailServer(getInt("id", -1), getString("admin", action, "hostname"), getString("admin", action, "dbusername"),
+				ConfigWebUtil.decrypt(getString("admin", action, "dbpassword")), Caster.toIntValue(getString("admin", action, "port")), getBoolV("tls", false),
+				getBoolV("ssl", false), toTimeout(getObject("life", null), 1000 * 60 * 5), toTimeout(getObject("idle", null), 1000 * 60 * 5), getBoolV("reuseConnection", true)
 
 		);
 		store();
@@ -2690,7 +2691,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		String name = getString("admin", action, "name");
 		String newName = getString("admin", action, "newName");
 		String username = getString("admin", action, "dbusername");
-		String password = getString("admin", action, "dbpassword");
+		String password = ConfigWebUtil.decrypt(getString("admin", action, "dbpassword"));
 		String host = getString("host", "");
 		String timezone = getString("timezone", "");
 		String database = getString("database", "");
@@ -2718,7 +2719,6 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		catch (Exception e) {
 			throw Caster.toPageException(e);
 		}
-
 		if (verify) _doVerifyDatasource(ds, username, password);
 		// print.out("limit:"+connLimit);
 		admin.updateDataSource(id, name, newName, cd, dsn, username, password, host, database, port, connLimit, idleTimeout, liveTimeout, metaCacheTimeout, blob, clob, allow,
@@ -2873,7 +2873,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 	private void doVerifyMailServer() throws PageException {
 		_doVerifyMailServer(getString("admin", action, "hostname"), getInt("admin", action, "port"), getString("admin", action, "mailusername"),
-				getString("admin", action, "mailpassword"));
+				ConfigWebUtil.decrypt(getString("admin", action, "mailpassword")));
 	}
 
 	private void _doVerifyMailServer(String host, int port, String user, String pass) throws PageException {
@@ -2896,10 +2896,10 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		String connStr = (String) attributes.get("connStr", null);
 		if (StringUtil.isEmpty(connStr)) connStr = (String) attributes.get("dsn", null);
 		if (cd.hasClass() && connStr != null) {
-			_doVerifyDatasource(cd, connStr, getString("admin", action, "dbusername"), getString("admin", action, "dbpassword"));
+			_doVerifyDatasource(cd, connStr, getString("admin", action, "dbusername"), ConfigWebUtil.decrypt(getString("admin", action, "dbpassword")));
 		}
 		else {
-			_doVerifyDatasource(getString("admin", action, "name"), getString("admin", action, "dbusername"), getString("admin", action, "dbpassword"));
+			_doVerifyDatasource(getString("admin", action, "name"), getString("admin", action, "dbusername"), ConfigWebUtil.decrypt(getString("admin", action, "dbpassword")));
 		}
 	}
 
@@ -4064,7 +4064,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 	private void _doSetCluster() throws PageException {
 
-		Struct entries = Caster.toStruct(getObject("admin", action, "entries"));
+		Struct entries = getStruct("admin", action, "entries");
 		Struct entry;
 		Iterator<Object> it = entries.valueIterator();
 		Cluster cluster = pageContext.clusterScope();
@@ -4749,8 +4749,8 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		ClassDefinition lcd = StringUtil.isEmpty(bundleName) ? eng.layoutClassDefintion(className)
 				: new ClassDefinitionImpl(className, bundleName, bundleVersion, config.getIdentification());
 
-		admin.updateLogSettings(getString("admin", "UpdateLogSettings", "name", true), l, acd, Caster.toStruct(getObject("admin", "UpdateLogSettings", "appenderArgs")), lcd,
-				Caster.toStruct(getObject("admin", "UpdateLogSettings", "layoutArgs")));
+		admin.updateLogSettings(getString("admin", "UpdateLogSettings", "name", true), l, acd, (getStruct("admin", "UpdateLogSettings", "appenderArgs")), lcd,
+				(getStruct("admin", "UpdateLogSettings", "layoutArgs")));
 		store();
 	}
 
@@ -5040,7 +5040,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 	private void doUpdateProxy() throws PageException {
 		admin.updateProxy(getBool("admin", action, "proxyenabled"), getString("admin", action, "proxyserver"), getInt("admin", action, "proxyport"),
-				getString("admin", action, "proxyusername"), getString("admin", action, "proxypassword"));
+				getString("admin", action, "proxyusername"), ConfigWebUtil.decrypt(getString("admin", action, "proxypassword")));
 		store();
 	}
 
@@ -5377,7 +5377,22 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		Object value = attributes.get(attributeName, null);
 		if (value == null)
 			throw new ApplicationException("Attribute [" + attributeName + "] for tag [" + tagName + "] is required if attribute action has the value [" + actionName + "]");
-		return Caster.toStruct(value);
+
+		try {
+			return Caster.toStruct(value);
+		}
+		catch (PageException pe) {
+			if (Decision.isString(value)) {
+				try {
+					return ConfigWebUtil.toStruct(Caster.toString(value));
+				}
+				catch (PageException pee) {
+				}
+
+			}
+			throw pe;
+		}
+
 	}
 
 	private Integer getInteger(String tagName, String actionName, String attributeName) throws PageException {

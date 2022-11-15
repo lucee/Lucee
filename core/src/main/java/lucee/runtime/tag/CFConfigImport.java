@@ -75,6 +75,7 @@ public class CFConfigImport {
 	private boolean pwCheckedWeb = false;
 	private final boolean setPasswordIfNecessary;
 	private final boolean validatePassword;
+	private JspException exd = null;
 
 	public CFConfigImport(Config config, Resource file, Charset charset, String password, String type, Struct placeHolderData, boolean setPasswordIfNecessary,
 			boolean validatePassword) throws PageException {
@@ -120,6 +121,7 @@ public class CFConfigImport {
 		boolean unregister = false;
 		PageContext pc = ThreadLocalPageContext.get();
 		Struct json = null;
+
 		try {
 			if (pc == null) {
 
@@ -161,65 +163,65 @@ public class CFConfigImport {
 
 			dynAttr = (DynamicAttributes) tag;
 
-			set(pc, json, "updateCharset", throwException, new Item("webcharset"), new Item("resourcecharset"), new Item("templatecharset"));
+			set(pc, json, "updateCharset", new Item("webcharset"), new Item("resourcecharset"), new Item("templatecharset"));
 
-			set(pc, json, "updateRegional", throwException, new Item("usetimeserver").setDefault(true), new Item("locale").setDefault(config.getLocale()),
+			set(pc, json, "updateRegional", new Item("usetimeserver").setDefault(true), new Item("locale").setDefault(config.getLocale()),
 					new Item("timeserver").setDefault(config.getTimeServer()), new Item("timezone").setDefault(config.getTimeZone()));
 
-			set(pc, json, "updateApplicationListener", throwException, new Item(new String[] { "applicationMode" }, "listenermode", null),
+			set(pc, json, "updateApplicationListener", new Item(new String[] { "applicationMode" }, "listenermode", null),
 					new Item(new String[] { "applicationListener", "applicationType", "listenertype" }, "listenertype", null)
 							.setDefault(config.getApplicationListener().getType()));
 
-			set(pc, json, "updatePerformanceSettings", throwException, new Item("inspecttemplate"), new Item("cachedafter"), new Item("typechecking"));
+			set(pc, json, "updatePerformanceSettings", new Item("inspecttemplate"), new Item("cachedafter"), new Item("typechecking"));
 
-			set(pc, json, "updateApplicationSetting", throwException, new Item("applicationpathtimeout"), new Item("requesttimeout"), new Item("scriptprotect"),
+			set(pc, json, "updateApplicationSetting", new Item("applicationpathtimeout"), new Item("requesttimeout"), new Item("scriptprotect"),
 					new Item("requestTimeoutInURL", "allowurlrequesttimeout"));
 
-			set(pc, json, "updateCompilerSettings", throwException, new Item("nullsupport"), new Item("handleunquotedattrvalueasstring"), new Item("externalizestringgte"),
+			set(pc, json, "updateCompilerSettings", new Item("nullsupport"), new Item("handleunquotedattrvalueasstring"), new Item("externalizestringgte"),
 					new Item("dotnotationuppercase", "dotNotationUpperCase"), new Item("suppressWhitespaceBeforeArgument", "suppresswsbeforearg"), new Item("templatecharset"));
 
-			set(pc, json, "updateSecurity", throwException, new Item("varusage"));
+			set(pc, json, "updateSecurity", new Item("varusage"));
 
-			set(pc, json, "updateOutputSetting", throwException, new Item("allowcompression"), new Item("whitespaceManagement", "cfmlwriter"), new Item("suppresscontent"),
+			set(pc, json, "updateOutputSetting", new Item("allowcompression"), new Item("whitespaceManagement", "cfmlwriter"), new Item("suppresscontent"),
 					new Item("bufferTagBodyOutput", "bufferoutput"), new Item("showContentLength", "contentlength"));
 
-			set(pc, json, "updateRegex", throwException, new Item("regextype"));
+			set(pc, json, "updateRegex", new Item("regextype"));
 
-			set(pc, json, "updateORMSetting", throwException, new Item("ormconfig"), new Item("ormsqlscript", "sqlscript"), new Item("ormusedbformapping", "usedbformapping"),
+			set(pc, json, "updateORMSetting", new Item("ormconfig"), new Item("ormsqlscript", "sqlscript"), new Item("ormusedbformapping", "usedbformapping"),
 					new Item("ormeventhandling", "eventhandling"), new Item("ormsecondarycacheenabled", "secondarycacheenabled"), new Item("ormautogenmap", "autogenmap"),
 					new Item("ormlogsql", "logsql"), new Item("ormcacheconfig", "cacheconfig"), new Item("ormsavemapping", "savemapping"), new Item("ormschema", "schema"),
 					new Item("ormdbcreate", "dbcreate"), new Item("ormcfclocation", "cfclocation"), new Item("ormflushatrequestend", "flushatrequestend"),
 					new Item("ormcacheprovider", "cacheprovider"), new Item("ormcatalog", "catalog"));
 
-			set(pc, json, "updateMailSetting", throwException, new Item(new String[] { "mailDefaultEncoding" }, "defaultencoding", null),
+			set(pc, json, "updateMailSetting", new Item(new String[] { "mailDefaultEncoding" }, "defaultencoding", null),
 					new Item(new String[] { "mailConnectionTimeout" }, "timeout", null), new Item("mailSpoolEnable", "spoolenable"));
 
-			set(pc, json, "updateRestSettings", throwException, new Item(new String[] { "Restlist" }, "list", null));
+			set(pc, json, "updateRestSettings", new Item(new String[] { "Restlist" }, "list", null));
 
-			set(pc, json, "updateComponent", throwException, new Item("componentUseVariablesScope", "useshadow"), new Item("componentdumptemplate"),
+			set(pc, json, "updateComponent", new Item("componentUseVariablesScope", "useshadow"), new Item("componentdumptemplate"),
 					new Item(new String[] { "componentDeepSearch" }, "deepsearch", null).setDefault(false), new Item("basecomponenttemplatelucee"), new Item("componentpathcache"),
 					new Item("componentdatamemberdefaultaccess"), new Item("basecomponenttemplatecfml"), new Item("componentlocalsearch"), new Item("componentdefaultimport"),
 					new Item("componentImplicitNotation", "triggerdatamember"));
 
-			set(pc, json, "updateCustomTagSetting", throwException, new Item(new String[] { "customTagLocalSearch" }, "localsearch", null).setDefault(config.doLocalCustomTag()),
+			set(pc, json, "updateCustomTagSetting", new Item(new String[] { "customTagLocalSearch" }, "localsearch", null).setDefault(config.doLocalCustomTag()),
 					new Item(new String[] { "customTagDeepSearch" }, "deepsearch", null).setDefault(config.doCustomTagDeepSearch()),
 					new Item(new String[] { "customTagExtensions" }, "extensions", null).setDefault(config.getCustomTagExtensions()),
 					new Item("customtagpathcache").setDefault(true));
 
-			set(pc, json, "updateDebug", throwException, new Item(new String[] { "debuggingException" }, "exception", null),
+			set(pc, json, "updateDebug", new Item(new String[] { "debuggingException" }, "exception", null),
 					new Item(new String[] { "debuggingImplicitAccess" }, "implicitaccess", null), new Item(new String[] { "debuggingTracing" }, "tracing", null),
 					new Item(new String[] { "debuggingQueryUsage" }, "queryusage", null), new Item(new String[] { "debuggingTemplate" }, "template", null),
 					new Item(new String[] { "debuggingDatabase" }, "database", null), new Item(new String[] { "debuggingDump" }, "dump", null), new Item("debugtemplate"),
 					new Item(new String[] { "debuggingEnable", "debuggingEnabled" }, "debug", null), new Item(new String[] { "debuggingTimer" }, "timer", null));
 
-			set(pc, json, "updatemailsetting", throwException, new Item(new String[] { "mailSpoolEnable", "mailSpoolEnabled" }, "spoolenable", null),
+			set(pc, json, "updatemailsetting", new Item(new String[] { "mailSpoolEnable", "mailSpoolEnabled" }, "spoolenable", null),
 					new Item(new String[] { "mailConnectionTimeout", "mailTimeout" }, "timeout", null),
 					new Item(new String[] { "maildefaultencoding", "mailencoding" }, "defaultencoding", null));
 
-			set(pc, json, "updateError", throwException, new Item(new String[] { "generalErrorTemplate" }, "template500", null),
+			set(pc, json, "updateError", new Item(new String[] { "generalErrorTemplate" }, "template500", null),
 					new Item(new String[] { "missingErrorTemplate" }, "template404", null), new Item(new String[] { "errorStatusCode" }, "statuscode", null).setDefault(true));
 
-			setGroup(pc, json, "updateDatasource", "datasources", new String[] { "name", "databases" }, throwException, new Item("class", "classname"), new Item("bundleName"),
+			setGroup(pc, json, "updateDatasource", "datasources", new String[] { "name", "databases" }, new Item("class", "classname"), new Item("bundleName"),
 					new Item("bundleVersion"), new Item("connectionlimit").setDefault(-1), new Item("connectiontimeout").setDefault(-1), new Item("livetimeout").setDefault(-1),
 					new Item("custom"), new Item("validate").setDefault(false), new Item("verify").setDefault(true), new Item("host"), new Item("port").setDefault(-1),
 					new Item("connectionString", "dsn"), new Item("username", "dbusername"), new Item("password", "dbpassword"), new Item("storage").setDefault(false),
@@ -229,37 +231,38 @@ public class CFConfigImport {
 					new Item("literaltimestampwithtsoffset").setDefault(false), new Item("newname")
 
 			);
-			setGroup(pc, json, "updateCacheConnection", "caches", new String[] { "name" }, throwException, new Item("bundlename"), new Item("default"),
-					new Item("storage").setDefault(false), new Item("bundleversion"), new Item("name"), new Item("custom"), new Item("class"));
-			setGroup(pc, json, "updateGatewayEntry", "gateways", new String[] { "id" }, throwException, new Item("startupmode"), new Item("listenercfcpath"), new Item("cfcpath"),
-					new Item("id"), new Item("custom"), new Item("class"));
+			setGroup(pc, json, "updateCacheConnection", "caches", new String[] { "name" }, new Item("bundlename"), new Item("default"), new Item("storage").setDefault(false),
+					new Item("bundleversion"), new Item("name"), new Item("custom"), new Item("class"));
+			setGroup(pc, json, "updateGatewayEntry", "gateways", new String[] { "id" }, new Item("startupmode"), new Item("listenercfcpath"), new Item("cfcpath"), new Item("id"),
+					new Item("custom"), new Item("class"));
 
-			setGroup(pc, json, "updateLogSettings", "loggers", new String[] { "name" }, throwException, new Item("layoutbundlename"), new Item("level"),
+			setGroup(pc, json, "updateLogSettings", "loggers", new String[] { "name" }, new Item("layoutbundlename"), new Item("level"),
 					new Item("appenderArguments", "appenderargs").setDefault(engine.getCreationUtil().createStruct()), new Item("name"),
 					new Item("layoutArguments", "layoutargs").setDefault(engine.getCreationUtil().createStruct()), new Item("appenderClass", new AppenderModifier()),
 					new Item("appender"), new Item("layoutClass", new LayoutModifier()), new Item("layout"));
 
-			setGroup(pc, json, "updateMailServer", "mailServers", new String[] {}, throwException, new Item("life").setDefault(60), new Item("tls").setDefault(false),
+			setGroup(pc, json, "updateMailServer", "mailServers", new String[] {}, new Item("life").setDefault(60), new Item("tls").setDefault(false),
 					new Item("idle").setDefault(10), new Item("username", "dbusername"), new Item(new String[] { "smtp", "host", "server" }, "hostname", null), new Item("id"),
 					new Item("port").setDefault(-1), new Item("password", "dbpassword"), new Item("ssl").setDefault(false));
 
-			setGroup(pc, json, "updateMapping", new String[] { "mappings", "cfmappings" }, new String[] { "virtual" }, throwException, new Item("virtual"),
+			setGroup(pc, json, "updateMapping", new String[] { "mappings", "cfmappings" }, new String[] { "virtual" }, new Item("virtual"),
 					new Item("inspect").addName("inspectTemplate"), new Item("physical"), new Item("primary"), new Item("toplevel").setDefault(true), new Item("archive"));
 
-			setGroup(pc, json, "updateCustomTag", new String[] { "customTagMappings", "customTagPaths" }, new String[] { "virtual" }, throwException,
+			setGroup(pc, json, "updateCustomTag", new String[] { "customTagMappings", "customTagPaths" }, new String[] { "virtual" },
 					new Item("virtual", new CreateHashModifier(new String[] { "virtual", "name", "label" }, "physical")), new Item("inspect").addName("inspectTemplate"),
 					new Item("physical"), new Item("primary"), new Item("archive"));
 
-			setGroup(pc, json, "updateComponentMapping", new String[] { "componentMappings", "componentPaths" }, new String[] { "virtual" }, throwException,
+			setGroup(pc, json, "updateComponentMapping", new String[] { "componentMappings", "componentPaths" }, new String[] { "virtual" },
 					new Item("virtual", new CreateHashModifier(new String[] { "virtual", "name", "label" }, "physical")), new Item("inspect").addName("inspectTemplate"),
 					new Item("physical"), new Item("primary"), new Item("archive"));
 
 			optimizeExtensions(config, json);
-			setGroup(pc, json, "updateRHExtension", "extensions", new String[] {}, throwException, new Item("source"), new Item("id"), new Item("version"));
+			setGroup(pc, json, "updateRHExtension", "extensions", new String[] {}, new Item("source").setDefault(null), new Item("id").setDefault(null),
+					new Item("version").setDefault(null));
 
 			// need to be at the end
-			set(pc, json, "updateScope", throwException, new Item("sessiontype"), new Item("sessionmanagement"), new Item("setdomaincookies", "domaincookies"),
-					new Item("allowimplicidquerycall"), new Item("setclientcookies", "clientcookies"), new Item("mergeformandurl"), new Item("localScopeMode", "localmode"),
+			set(pc, json, "updateScope", new Item("sessiontype"), new Item("sessionmanagement"), new Item("setdomaincookies", "domaincookies"), new Item("allowimplicidquerycall"),
+					new Item("setclientcookies", "clientcookies"), new Item("mergeformandurl"), new Item("localScopeMode", "localmode"),
 					new Item("cgiScopeReadonly", "cgireadonly"), new Item("scopecascadingtype"), new Item("sessiontimeout"), new Item("clienttimeout"), new Item("clientstorage"),
 					new Item("clientmanagement"), new Item("applicationtimeout"), new Item("sessionstorage"));
 
@@ -277,6 +280,7 @@ public class CFConfigImport {
 				pc.getConfig().getFactory().releaseLuceePageContext(pc, true);
 			}
 		}
+		if (throwException && exd != null) throw Caster.toPageException(exd);
 		return json;
 
 	}
@@ -382,13 +386,11 @@ public class CFConfigImport {
 		return null;
 	}
 
-	private void setGroup(PageContext pc, final Struct json, String trgActionName, String srcGroupName, String[] keyNames, boolean throwException, Item... items)
-			throws JspException {
-		setGroup(pc, json, trgActionName, new String[] { srcGroupName }, keyNames, throwException, items);
+	private void setGroup(PageContext pc, final Struct json, String trgActionName, String srcGroupName, String[] keyNames, Item... items) throws PageException {
+		setGroup(pc, json, trgActionName, new String[] { srcGroupName }, keyNames, items);
 	}
 
-	private void setGroup(PageContext pc, final Struct json, String trgActionName, String[] srcGroupNames, String[] keyNames, boolean throwException, Item... items)
-			throws JspException {
+	private void setGroup(PageContext pc, final Struct json, String trgActionName, String[] srcGroupNames, String[] keyNames, Item... items) throws PageException {
 		try {
 			Cast cast = engine.getCastUtil();
 			Collection group = null;
@@ -410,17 +412,15 @@ public class CFConfigImport {
 							data.set(cast.toKey(keyName), e.getKey().getString());
 						}
 					}
-					set(pc, data, trgActionName, throwException, items);
+					set(pc, data, trgActionName, items);
 				}
 			}
 		}
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
-			if (throwException) {
-				if (t instanceof JspException) throw (JspException) t;
-				throw Caster.toPageException(t);
-			}
-			else LogUtil.log(pc, "deploy", t);
+			LogUtil.log(pc, "deploy", t);
+			if (t instanceof JspException) exd = (JspException) t;
+			else exd = Caster.toPageException(t);
 		}
 	}
 
@@ -441,10 +441,9 @@ public class CFConfigImport {
 			if (isServer) pwCheckedServer = true;
 			else pwCheckedWeb = true;
 		}
-
 	}
 
-	private void set(PageContext pc, final Struct json, String trgActionName, boolean throwException, Item... items) throws JspException {
+	private void set(PageContext pc, final Struct json, String trgActionName, Item... items) throws PageException {
 		setPasswordIfNecessary(pc.getConfig());
 
 		Object val;
@@ -471,11 +470,10 @@ public class CFConfigImport {
 		}
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
-			if (throwException) {
-				if (t instanceof JspException) throw (JspException) t;
-				throw Caster.toPageException(t);
-			}
-			else LogUtil.log(pc, "deploy", t);
+			LogUtil.log(pc, "deploy", t);
+			if (t instanceof JspException) exd = (JspException) t;
+			else exd = Caster.toPageException(t);
+
 		}
 		finally {
 			tag.release();

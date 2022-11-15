@@ -2227,7 +2227,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 									idle, Caster.toIntValue(getAttr(dataSource, "liveTimeout"), defLive), Caster.toLongValue(getAttr(dataSource, "metaCacheTimeout"), 60000),
 									toBoolean(getAttr(dataSource, "blob"), true), toBoolean(getAttr(dataSource, "clob"), true),
 									Caster.toIntValue(getAttr(dataSource, "allow"), DataSource.ALLOW_ALL), toBoolean(getAttr(dataSource, "validate"), false),
-									toBoolean(getAttr(dataSource, "storage"), false), getAttr(dataSource, "timezone"), toStruct(getAttr(dataSource, "custom")),
+									toBoolean(getAttr(dataSource, "storage"), false), getAttr(dataSource, "timezone"), ConfigWebUtil.toStruct(getAttr(dataSource, "custom")),
 									getAttr(dataSource, "dbdriver"), ParamSyntax.toParamSyntax(dataSource, ParamSyntax.DEFAULT),
 									toBoolean(getAttr(dataSource, "literal-timestamp-with-tsoffset"), false), toBoolean(getAttr(dataSource, "always-set-timeout"), false),
 									toBoolean(getAttr(dataSource, "request-exclusive"), false), toBoolean(getAttr(dataSource, "always-reset-connections"), false)
@@ -2473,7 +2473,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 						}
 
 						{
-							Struct custom = toStruct(getAttr(eConnection, "custom"));
+							Struct custom = ConfigWebUtil.toStruct(getAttr(eConnection, "custom"));
 
 							// Workaround for old EHCache class definitions
 							if (cd.getClassName() != null && cd.getClassName().endsWith(".EHCacheLite")) {
@@ -2642,7 +2642,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 						id = getAttr(eConnection, "id").trim().toLowerCase();
 
 						ge = new GatewayEntryImpl(engine, id, getClassDefinition(eConnection, "", config.getIdentification()), eConnection.getAttribute("cfc-path"),
-								eConnection.getAttribute("listener-cfc-path"), getAttr(eConnection, "startup-mode"), toStruct(getAttr(eConnection, "custom")),
+								eConnection.getAttribute("listener-cfc-path"), getAttr(eConnection, "startup-mode"), ConfigWebUtil.toStruct(getAttr(eConnection, "custom")),
 								Caster.toBooleanValue(getAttr(eConnection, "read-only"), false));
 
 						if (!StringUtil.isEmpty(id)) {
@@ -2686,25 +2686,6 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			names[index++] = it.next().getName();
 		}
 		return names;
-	}
-
-	private static Struct toStruct(String str) {
-
-		Struct sct = new StructImpl();
-		try {
-			String[] arr = ListUtil.toStringArray(ListUtil.listToArrayRemoveEmpty(str, '&'));
-
-			String[] item;
-			for (int i = 0; i < arr.length; i++) {
-				item = ListUtil.toStringArray(ListUtil.listToArrayRemoveEmpty(arr[i], '='));
-				if (item.length == 2) sct.setEL(KeyImpl.init(URLDecoder.decode(item[0], true).trim()), URLDecoder.decode(item[1], true));
-				else if (item.length == 1) sct.setEL(KeyImpl.init(URLDecoder.decode(item[0], true).trim()), "");
-			}
-		}
-		catch (PageException ee) {
-		}
-
-		return sct;
 	}
 
 	private static void setDatasource(ConfigImpl config, Map<String, DataSource> datasources, String datasourceName, ClassDefinition cd, String server, String databasename,
@@ -3551,7 +3532,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			// usage
 			String strUsage = getAttr(_clients, "usage");
 			Struct sct;
-			if (!StringUtil.isEmpty(strUsage)) sct = toStruct(strUsage);// config.setRemoteClientUsage(toStruct(strUsage));
+			if (!StringUtil.isEmpty(strUsage)) sct = ConfigWebUtil.toStruct(strUsage);// config.setRemoteClientUsage(toStruct(strUsage));
 			else sct = new StructImpl();
 			// TODO make this generic
 			if (configServer != null) {
@@ -4570,7 +4551,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 				try {
 					id = getAttr(e, "id");
 					list.put(id, new DebugEntry(id, getAttr(e, "type"), getAttr(e, "iprange"), getAttr(e, "label"), e.getAttribute("path"), getAttr(e, "fullname"),
-							toStruct(getAttr(e, "custom"))));
+							ConfigWebUtil.toStruct(getAttr(e, "custom"))));
 				}
 				catch (Throwable th) {
 					ExceptionUtil.rethrowIfNecessary(th);
