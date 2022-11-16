@@ -106,7 +106,7 @@ If set, attempting to add an element that can not be cast to the specified type,
     	</argument>
     	<argument>
 			<name>synchronized</name>
-			<name>isSynchronized</alias>
+			<alias>isSynchronized</alias>
 			<type>boolean</type>
 			<required>no</required>
 			<default>true</default>
