@@ -61,21 +61,21 @@ public class SourceCode {
 		for (int i = 0; i < text.length; i++) {
 			pos = i;
 			if (text[i] == '\n') {
-				arr.add(new Integer(i));
+				arr.add(Integer.valueOf(i));
 				lcText[i] = ' ';
 			}
 			else if (text[i] == '\r') {
 				if (isNextRaw('\n')) {
 					lcText[i++] = ' ';
 				}
-				arr.add(new Integer(i));
+				arr.add(Integer.valueOf(i));
 				lcText[i] = ' ';
 			}
 			else if (text[i] == '\t') lcText[i] = ' ';
 			else lcText[i] = Character.toLowerCase(text[i]);
 		}
 		pos = 0;
-		arr.add(new Integer(text.length));
+		arr.add(Integer.valueOf(text.length));
 		lines = arr.toArray(new Integer[arr.size()]);
 
 		this.writeLog = writeLog;

@@ -1571,7 +1571,7 @@ public final class Caster {
 			// integer
 			BigInteger bi = new BigInteger(str);
 			int l = bi.bitLength();
-			if (l < 32) return new Integer(bi.intValue());
+			if (l < 32) return Integer.valueOf(bi.intValue());
 			if (l < 64) return new Long(bi.longValue());
 			return bi;
 		}
