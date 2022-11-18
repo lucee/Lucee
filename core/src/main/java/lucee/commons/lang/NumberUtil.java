@@ -105,7 +105,7 @@ public class NumberUtil {
 	public static byte[] longToByteArray(long l) {
 		byte[] ba = new byte[8];
 		for (int i = 0; i < 64; i += 8) {
-			ba[i >> 3] = new Long((l & (255L << i)) >> i).byteValue();
+			ba[i >> 3] = Long.valueOf((l & (255L << i)) >> i).byteValue();
 		}
 		return ba;
 	}
