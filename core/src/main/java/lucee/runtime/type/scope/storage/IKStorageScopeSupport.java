@@ -219,7 +219,7 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 		lastvisit = System.currentTimeMillis();
 
 		if (type == SCOPE_CLIENT) {
-			data0.put(KeyConstants._hitcount, new IKStorageScopeItem(new Double(hitcount++)));
+			data0.put(KeyConstants._hitcount, new IKStorageScopeItem(Double.valueOf(hitcount++)));
 		}
 		else {
 			data0.put(KeyConstants._sessionid, new IKStorageScopeItem(pc.getApplicationContext().getName() + "_" + pc.getCFID() + "_" + pc.getCFToken()));
@@ -275,7 +275,7 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 		data0.put(KeyConstants._timecreated, new IKStorageScopeItem(timecreated));
 
 		if (type == SCOPE_CLIENT) {
-			data0.put(KeyConstants._hitcount, new IKStorageScopeItem(new Double(hitcount)));
+			data0.put(KeyConstants._hitcount, new IKStorageScopeItem(Double.valueOf(hitcount)));
 		}
 		ApplicationContext ac = pc.getApplicationContext();
 		if (ac != null && (this.tokens == null || this.tokens.isEmpty()) && ac.getSessionCluster() && isSessionStorage(pc)) {

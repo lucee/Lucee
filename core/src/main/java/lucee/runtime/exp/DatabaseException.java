@@ -92,15 +92,17 @@ public final class DatabaseException extends PageExceptionImpl {
 
 	private void set(SQLException sqle, String detail) {
 		String sqleMessage = sqle != null ? sqle.getMessage() : "";
-		if (!StringUtil.isEmpty(sqleMessage)){
+		if (!StringUtil.isEmpty(sqleMessage)) {
 			if (detail != null) {
 				setDetail(detail + "\n" + sqleMessage);
-			} else {
+			}
+			else {
 				setDetail(detail);
 			}
-		} else {
+		}
+		else {
 			setDetail(detail);
-		}		
+		}
 	}
 
 	private void set(SQLException sqle) {
@@ -168,7 +170,7 @@ public final class DatabaseException extends PageExceptionImpl {
 		if (StringUtil.isEmpty(datasourceName)) datasourceName = Caster.toString(getAdditional().get("DataSource", ""), "");
 
 		CatchBlock sct = super.getCatchBlock(config);
-		sct.setEL("NativeErrorCode", new Double(errorcode));
+		sct.setEL("NativeErrorCode", Double.valueOf(errorcode));
 		sct.setEL("DataSource", datasourceName);
 		sct.setEL("SQLState", sqlstate);
 		sct.setEL("Sql", strSQL);

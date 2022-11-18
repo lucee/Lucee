@@ -795,10 +795,10 @@ public final class QoQ {
 			// Functions
 			switch (op.charAt(0)) {
 			case 'a':
-				if (op.equals("abs")) return new Double(MathUtil.abs(Caster.toDoubleValue(value)));
-				if (op.equals("acos")) return new Double(Math.acos(Caster.toDoubleValue(value)));
-				if (op.equals("asin")) return new Double(Math.asin(Caster.toDoubleValue(value)));
-				if (op.equals("atan")) return new Double(Math.atan(Caster.toDoubleValue(value)));
+				if (op.equals("abs")) return Double.valueOf(MathUtil.abs(Caster.toDoubleValue(value)));
+				if (op.equals("acos")) return Double.valueOf(Math.acos(Caster.toDoubleValue(value)));
+				if (op.equals("asin")) return Double.valueOf(Math.asin(Caster.toDoubleValue(value)));
+				if (op.equals("atan")) return Double.valueOf(Math.atan(Caster.toDoubleValue(value)));
 				if (op.equals("avg")) {
 					// If there are no non-null values, return empty
 					if (aggregateValues.length == 0) {
@@ -808,8 +808,8 @@ public final class QoQ {
 				}
 				break;
 			case 'c':
-				if (op.equals("ceiling")) return new Double(Math.ceil(Caster.toDoubleValue(value)));
-				if (op.equals("cos")) return new Double(Math.cos(Caster.toDoubleValue(value)));
+				if (op.equals("ceiling")) return Double.valueOf(Math.ceil(Caster.toDoubleValue(value)));
+				if (op.equals("cos")) return Double.valueOf(Math.cos(Caster.toDoubleValue(value)));
 				if (op.equals("count")) return executeCount(pc, sql, source, operators);
 				if (op.equals("cast")) {
 					// Cast is a single operand operator, but it gets the type from the alias of the single operand
@@ -823,10 +823,10 @@ public final class QoQ {
 				if (op.equals("coalesce")) return executeCoalesce(pc, sql, source, operators, row);
 				break;
 			case 'e':
-				if (op.equals("exp")) return new Double(Math.exp(Caster.toDoubleValue(value)));
+				if (op.equals("exp")) return Double.valueOf(Math.exp(Caster.toDoubleValue(value)));
 				break;
 			case 'f':
-				if (op.equals("floor")) return new Double(Math.floor(Caster.toDoubleValue(value)));
+				if (op.equals("floor")) return Double.valueOf(Math.floor(Caster.toDoubleValue(value)));
 				break;
 			case 'u':
 				if (op.equals("upper") || op.equals("ucase")) return Caster.toString(value).toUpperCase();
@@ -835,7 +835,7 @@ public final class QoQ {
 			case 'l':
 				if (op.equals("lower") || op.equals("lcase")) return Caster.toString(value).toLowerCase();
 				if (op.equals("ltrim")) return StringUtil.ltrim(Caster.toString(value), null);
-				if (op.equals("length")) return new Double(Caster.toString(value).length());
+				if (op.equals("length")) return Double.valueOf(Caster.toString(value).length());
 				break;
 			case 'm':
 				if (op.equals("max") || op.equals("min")) {
@@ -885,10 +885,10 @@ public final class QoQ {
 				if (op.equals("rtrim")) return StringUtil.rtrim(Caster.toString(value), null);
 				break;
 			case 's':
-				if (op.equals("sign")) return new Double(MathUtil.sgn(Caster.toDoubleValue(value)));
-				if (op.equals("sin")) return new Double(Math.sin(Caster.toDoubleValue(value)));
+				if (op.equals("sign")) return Double.valueOf(MathUtil.sgn(Caster.toDoubleValue(value)));
+				if (op.equals("sin")) return Double.valueOf(Math.sin(Caster.toDoubleValue(value)));
 				if (op.equals("soundex")) return StringUtil.soundex(Caster.toString(value));
-				if (op.equals("sin")) return new Double(Math.sqrt(Caster.toDoubleValue(value)));
+				if (op.equals("sin")) return Double.valueOf(Math.sqrt(Caster.toDoubleValue(value)));
 				if (op.equals("sum")) {
 					// If there are no non-null values, return empty
 					if (aggregateValues.length == 0) {
@@ -898,7 +898,7 @@ public final class QoQ {
 				}
 				break;
 			case 't':
-				if (op.equals("tan")) return new Double(Math.tan(Caster.toDoubleValue(value)));
+				if (op.equals("tan")) return Double.valueOf(Math.tan(Caster.toDoubleValue(value)));
 				if (op.equals("trim")) return Caster.toString(value).trim();
 				break;
 			}
@@ -916,7 +916,7 @@ public final class QoQ {
 			// Functions
 			switch (op.charAt(0)) {
 			case 'a':
-				if (op.equals("atan2")) return new Double(Math.atan2(Caster.toDoubleValue(left), Caster.toDoubleValue(right)));
+				if (op.equals("atan2")) return Double.valueOf(Math.atan2(Caster.toDoubleValue(left), Caster.toDoubleValue(right)));
 				break;
 			case 'b':
 				if (op.equals("bitand")) return OpUtil.bitand(pc, Caster.toDoubleValue(left), Caster.toDoubleValue(right));
@@ -949,7 +949,7 @@ public final class QoQ {
 						return null;
 					}
 
-					return new Double(castForMathDouble(left) % castForMathDouble(right));
+					return Double.valueOf(castForMathDouble(left) % castForMathDouble(right));
 				}
 				break;
 			case 'p':
@@ -1207,7 +1207,7 @@ public final class QoQ {
 			throw new DatabaseException("Divide by zero not allowed.  Encountered while evaluating [" + expression.toString(true) + "] in row " + row, null, sql, null);
 		}
 
-		return new Double(castForMathDouble(left) % rightDouble);
+		return Double.valueOf(castForMathDouble(left) % rightDouble);
 	}
 
 	/**
@@ -1277,7 +1277,7 @@ public final class QoQ {
 			return null;
 		}
 
-		return new Double(castForMathDouble(left) - castForMathDouble(right));
+		return Double.valueOf(castForMathDouble(left) - castForMathDouble(right));
 	}
 
 	/**
@@ -1305,7 +1305,7 @@ public final class QoQ {
 			throw new DatabaseException("Divide by zero not allowed.  Encountered while evaluating [" + expression.toString(true) + "] in row " + row, null, sql, null);
 		}
 
-		return new Double(castForMathDouble(left) / rightDouble);
+		return Double.valueOf(castForMathDouble(left) / rightDouble);
 	}
 
 	/**
@@ -1328,7 +1328,7 @@ public final class QoQ {
 			return null;
 		}
 
-		return new Double(castForMathDouble(left) * castForMathDouble(right));
+		return Double.valueOf(castForMathDouble(left) * castForMathDouble(right));
 	}
 
 	/**
@@ -1378,7 +1378,7 @@ public final class QoQ {
 				return null;
 			}
 
-			return new Double(dLeft + dRight);
+			return Double.valueOf(dLeft + dRight);
 			// If casting fails, we assume the inputs are strings and concat instead
 			// Unlike SQL, we're not going to return null for a null string concat
 		}

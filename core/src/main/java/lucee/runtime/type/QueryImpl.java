@@ -1120,8 +1120,8 @@ public class QueryImpl implements Query, Objects, QueryResult {
 			// return columns[index].get(row,defaultValue);
 		}
 		if (key.length() >= 10) {
-			if (key.equals(KeyConstants._RECORDCOUNT)) return new Double(getRecordcount());
-			if (key.equals(KeyConstants._CURRENTROW)) return new Double(row);
+			if (key.equals(KeyConstants._RECORDCOUNT)) return Double.valueOf(getRecordcount());
+			if (key.equals(KeyConstants._CURRENTROW)) return Double.valueOf(row);
 			if (key.equals(KeyConstants._COLUMNLIST)) return getColumnlist(getKeyCase(ThreadLocalPageContext.get()));
 		}
 		return defaultValue;
@@ -1141,8 +1141,8 @@ public class QueryImpl implements Query, Objects, QueryResult {
 			return NullSupportHelper.full() ? null : "";
 		}
 		if (key.length() >= 10) {
-			if (key.equals(KeyConstants._RECORDCOUNT)) return new Double(getRecordcount());
-			if (key.equals(KeyConstants._CURRENTROW)) return new Double(row);
+			if (key.equals(KeyConstants._RECORDCOUNT)) return Double.valueOf(getRecordcount());
+			if (key.equals(KeyConstants._CURRENTROW)) return Double.valueOf(row);
 			if (key.equals(KeyConstants._COLUMNLIST)) return getColumnlist(getKeyCase(ThreadLocalPageContext.get()));
 		}
 		throw new DatabaseException("Column [" + key + "] not found in query", "available columns are [" + getColumnlist(getKeyCase(ThreadLocalPageContext.get()), ", ") + "]", sql,

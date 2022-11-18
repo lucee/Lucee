@@ -375,7 +375,7 @@ public final class Caster {
 	 * @throws PageException
 	 */
 	public static Double toDouble(String str) throws PageException {
-		return new Double(toDoubleValue(str));
+		return Double.valueOf(toDoubleValue(str));
 
 	}
 
@@ -390,7 +390,7 @@ public final class Caster {
 		if (o instanceof Double) return (Double) o;
 		double dbl = toDoubleValue(o, true, Double.NaN);
 		if (Double.isNaN(dbl)) return defaultValue;
-		return new Double(dbl);
+		return Double.valueOf(dbl);
 
 	}
 
@@ -605,7 +605,7 @@ public final class Caster {
 
 		}
 		// else if(o == null) return defaultValue;
-		else if (o instanceof ObjectWrap) return toDoubleValue(((ObjectWrap) o).getEmbededObject(new Double(defaultValue)), true, defaultValue);
+		else if (o instanceof ObjectWrap) return toDoubleValue(((ObjectWrap) o).getEmbededObject(Double.valueOf(defaultValue)), true, defaultValue);
 		else if (o instanceof Date) return DateTimeUtil.getInstance().toDoubleValue(((Date) o).getTime());
 		else if (o instanceof Calendar) return DateTimeUtil.getInstance().toDoubleValue(((Calendar) o).getTimeInMillis());
 		else if (o instanceof Character) return (((Character) o).charValue());

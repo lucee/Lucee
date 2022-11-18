@@ -440,15 +440,15 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			schedule.setEnddate(getObject("endDate", null));
 			schedule.setEndtime(getObject("endTime", null));
 			schedule.setInterval(getString("interval", null));
-			schedule.setRequesttimeout(new Double(getDouble("requestTimeOut", -1)));
+			schedule.setRequesttimeout(Double.valueOf(getDouble("requestTimeOut", -1)));
 			schedule.setUsername(getString("username", null));
 			schedule.setPassword(getString("schedulePassword", null));
 			schedule.setProxyserver(getString("proxyServer", null));
 			schedule.setProxyuser(getString("proxyuser", null));
 			schedule.setProxypassword(getString("proxyPassword", null));
 			schedule.setResolveurl(getBoolV("resolveURL", false));
-			schedule.setPort(new Double(getDouble("port", -1)));
-			schedule.setProxyport(new Double(getDouble("proxyPort", 80)));
+			schedule.setPort(Double.valueOf(getDouble("port", -1)));
+			schedule.setProxyport(Double.valueOf(getDouble("proxyPort", 80)));
 			schedule.setUnique(getBoolV("unique", false));
 
 			String rtn = getString("returnvariable", null);
@@ -2411,9 +2411,9 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			configWeb.getConfigDir();
 			configWeb.getIdentification().getId();
 			configWeb.getConfigDir();
-			qry.setAt("Id", row, new Double(pc.getId()));
+			qry.setAt("Id", row, Double.valueOf(pc.getId()));
 			qry.setAt("Start", row, new DateTimeImpl(pc.getStartTime(), false));
-			qry.setAt("Timeout", row, new Double(pc.getRequestTimeout() / 1000));
+			qry.setAt("Timeout", row, Double.valueOf(pc.getRequestTimeout() / 1000));
 
 			PageContext root = pc.getRootPageContext();
 			qry.setAt("ThreadType", row, (root != null && root != pc) ? "main" : "child");

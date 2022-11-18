@@ -201,9 +201,9 @@ public class InternalRequest implements Function {
 		if (session != null) rst.set(KeyConstants._session, session);
 		rst.set(KeyConstants._headers, headers);
 		// rst.put(KeyConstants._debugging, debugging);
-		rst.set(KeyConstants._executionTime, new Double(exeTime));
-		rst.set(KeyConstants._status, new Double(status));
-		rst.set(STATUS_CODE, new Double(status));
+		rst.set(KeyConstants._executionTime, Double.valueOf(exeTime));
+		rst.set(KeyConstants._status, Double.valueOf(status));
+		rst.set(STATUS_CODE, Double.valueOf(status));
 		if (pe != null) rst.set(KeyConstants._error, pe.getCatchBlock(pc.getConfig()));
 		return rst;
 	}

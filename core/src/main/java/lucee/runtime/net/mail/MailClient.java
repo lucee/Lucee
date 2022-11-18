@@ -368,13 +368,13 @@ public abstract class MailClient implements PoolItem {
 
 		// size
 		try {
-			qry.setAtEL(SIZE, row, new Double(message.getSize()));
+			qry.setAtEL(SIZE, row, Double.valueOf(message.getSize()));
 		}
 		catch (MessagingException e) {
 		}
 
 		qry.setAtEL(FROM, row, toList(getHeaderEL(message, "from")));
-		qry.setAtEL(MESSAGE_NUMBER, row, new Double(message.getMessageNumber()));
+		qry.setAtEL(MESSAGE_NUMBER, row, Double.valueOf(message.getMessageNumber()));
 		qry.setAtEL(MESSAGE_ID, row, toList(getHeaderEL(message, "Message-ID")));
 		String s = toList(getHeaderEL(message, "reply-to"));
 		if (s.length() == 0) {

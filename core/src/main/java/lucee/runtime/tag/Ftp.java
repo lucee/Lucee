@@ -664,7 +664,7 @@ public final class Ftp extends TagImpl {
 		else pageContext.setVariable(result, cfftp);
 		if (client == null) {
 			cfftp.setEL(SUCCEEDED, Boolean.FALSE);
-			cfftp.setEL(ERROR_CODE, new Double(-1));
+			cfftp.setEL(ERROR_CODE, Double.valueOf(-1));
 			cfftp.setEL(ERROR_TEXT, "");
 			cfftp.setEL(RETURN_VALUE, "");
 			return cfftp;
@@ -672,7 +672,7 @@ public final class Ftp extends TagImpl {
 
 		int repCode = client.getReplyCode();
 		String repStr = client.getReplyString();
-		cfftp.setEL(ERROR_CODE, new Double(repCode));
+		cfftp.setEL(ERROR_CODE, Double.valueOf(repCode));
 		cfftp.setEL(ERROR_TEXT, repStr);
 
 		cfftp.setEL(SUCCEEDED, Caster.toBoolean(client.isPositiveCompletion()));

@@ -260,7 +260,7 @@ public final class DumpStruct implements Function {
 			for (int c = 1; c <= items.length; c++) {
 				qry.setAtEL("data" + c, r + 1, toCFML(items[c - 1], object, hasReference, colors));
 			}
-			qry.setAtEL("highlight", r + 1, new Double(dr.getHighlightType()));
+			qry.setAtEL("highlight", r + 1, Double.valueOf(dr.getHighlightType()));
 
 		}
 		if (qry != null) sct.setEL(KeyConstants._data, qry);

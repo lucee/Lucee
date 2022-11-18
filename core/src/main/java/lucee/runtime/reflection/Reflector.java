@@ -1592,7 +1592,7 @@ public final class Reflector {
 	private static Double[] toRefArray(double[] src) {
 		Double[] trg = new Double[src.length];
 		for (int i = 0; i < trg.length; i++) {
-			trg[i] = new Double(src[i]);
+			trg[i] = Double.valueOf(src[i]);
 		}
 		return trg;
 	}

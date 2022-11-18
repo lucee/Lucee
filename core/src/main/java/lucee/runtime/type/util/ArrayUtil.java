@@ -430,7 +430,7 @@ public final class ArrayUtil {
 	public static Double[] toReferenceType(double[] primArr) {
 		Double[] refArr = new Double[primArr.length];
 		for (int i = 0; i < primArr.length; i++)
-			refArr[i] = new Double(primArr[i]);
+			refArr[i] = Double.valueOf(primArr[i]);
 		return refArr;
 	}
 
@@ -491,7 +491,7 @@ public final class ArrayUtil {
 		}
 		else if (o instanceof double[]) {
 			double[] arr = ((double[]) o);
-			if (arr.length > index) return new Double(arr[index]);
+			if (arr.length > index) return Double.valueOf(arr[index]);
 		}
 		return defaultValue;
 	}
@@ -575,7 +575,7 @@ public final class ArrayUtil {
 			if (arr.length > index) {
 				double v = Caster.toDoubleValue(value, true, Double.NaN);
 				if (Decision.isValid(v)) {
-					return new Double(arr[index] = v);
+					return Double.valueOf(arr[index] = v);
 				}
 			}
 			throw invalidIndex(index, arr.length);

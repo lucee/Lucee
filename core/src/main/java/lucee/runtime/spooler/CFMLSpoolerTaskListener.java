@@ -72,7 +72,7 @@ public abstract class CFMLSpoolerTaskListener extends SpoolerTaskListener {
 			Struct curr = new StructImpl();
 			args.set("caller", curr);
 			curr.set("template", currTemplate.template);
-			curr.set("line", new Double(currTemplate.line));
+			curr.set("line", Double.valueOf(currTemplate.line));
 
 			Struct adv = new StructImpl();
 			args.set("advanced", adv);
