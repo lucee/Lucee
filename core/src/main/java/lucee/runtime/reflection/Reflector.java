@@ -1544,7 +1544,7 @@ public final class Reflector {
 	private static Byte[] toRefArray(byte[] src) {
 		Byte[] trg = new Byte[src.length];
 		for (int i = 0; i < trg.length; i++) {
-			trg[i] = new Byte(src[i]);
+			trg[i] = Byte.valueOf(src[i]);
 		}
 		return trg;
 	}

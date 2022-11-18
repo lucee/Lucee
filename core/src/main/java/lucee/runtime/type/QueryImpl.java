@@ -160,7 +160,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 		return templateLine;
 	}
 
-	public String getDatasourceName() { 
+	public String getDatasourceName() {
 		return datasourceName;
 	}
 
@@ -2809,12 +2809,12 @@ public class QueryImpl implements Query, Objects, QueryResult {
 
 	@Override
 	public void updateByte(int columnIndex, byte x) throws SQLException {
-		updateObject(columnIndex, new Byte(x));
+		updateObject(columnIndex, Byte.valueOf(x));
 	}
 
 	@Override
 	public void updateByte(String columnName, byte x) throws SQLException {
-		updateObject(columnName, new Byte(x));
+		updateObject(columnName, Byte.valueOf(x));
 	}
 
 	@Override

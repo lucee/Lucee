@@ -352,7 +352,7 @@ public final class ArrayUtil {
 	public static Byte[] toReferenceType(byte[] primArr) {
 		Byte[] refArr = new Byte[primArr.length];
 		for (int i = 0; i < primArr.length; i++)
-			refArr[i] = new Byte(primArr[i]);
+			refArr[i] = Byte.valueOf(primArr[i]);
 		return refArr;
 	}
 
@@ -467,7 +467,7 @@ public final class ArrayUtil {
 		}
 		else if (o instanceof byte[]) {
 			byte[] arr = ((byte[]) o);
-			if (arr.length > index) return new Byte(arr[index]);
+			if (arr.length > index) return Byte.valueOf(arr[index]);
 		}
 		else if (o instanceof char[]) {
 			char[] arr = ((char[]) o);
@@ -525,7 +525,7 @@ public final class ArrayUtil {
 			if (arr.length > index) {
 				double v = Caster.toDoubleValue(value, true, Double.NaN);
 				if (Decision.isValid(v)) {
-					return new Byte(arr[index] = (byte) v);
+					return Byte.valueOf(arr[index] = (byte) v);
 				}
 			}
 			throw invalidIndex(index, arr.length);

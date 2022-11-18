@@ -1410,7 +1410,7 @@ public final class Caster {
 	 * @return casted Byte Object
 	 */
 	public static Byte toByte(char c) {
-		return new Byte(toByteValue(c));
+		return Byte.valueOf(toByteValue(c));
 	}
 
 	/**
@@ -1436,7 +1436,7 @@ public final class Caster {
 	 */
 	public static Byte toByte(Object o) throws PageException {
 		if (o instanceof Byte) return (Byte) o;
-		return new Byte(toByteValue(o));
+		return Byte.valueOf(toByteValue(o));
 
 	}
 
@@ -1448,7 +1448,7 @@ public final class Caster {
 	 * @throws PageException
 	 */
 	public static Byte toByte(String str) throws PageException {
-		return new Byte(toByteValue(str));
+		return Byte.valueOf(toByteValue(str));
 
 	}
 
@@ -1461,10 +1461,10 @@ public final class Caster {
 	 */
 	public static Byte toByte(Object o, Byte defaultValue) {
 		if (o instanceof Byte) return (Byte) o;
-		if (defaultValue != null) return new Byte(toByteValue(o, defaultValue.byteValue()));
+		if (defaultValue != null) return Byte.valueOf(toByteValue(o, defaultValue.byteValue()));
 		byte res = toByteValue(o, Byte.MIN_VALUE);
 		if (res == Byte.MIN_VALUE) return defaultValue;
-		return new Byte(res);
+		return Byte.valueOf(res);
 	}
 
 	/**
@@ -4314,7 +4314,7 @@ public final class Caster {
 	 * @return casted Integer
 	 */
 	public static Byte toRef(byte b) {
-		return new Byte(b);
+		return Byte.valueOf(b);
 	}
 
 	/**

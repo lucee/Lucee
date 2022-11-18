@@ -235,7 +235,7 @@ public final class Invoker {
 				return Caster.toBoolean(parameter);
 			}
 			else if (trgClass.getName().equals("java.lang.Byte")) {
-				return new Byte(Caster.toString(parameter));
+				return Byte.valueOf(Caster.toString(parameter));
 			}
 			else if (trgClass.getName().equals("java.lang.Character")) {
 				String str = Caster.toString(parameter);
