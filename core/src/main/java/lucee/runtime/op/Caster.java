@@ -1743,7 +1743,7 @@ public final class Caster {
 	 */
 	public static Float toFloat(Object o) throws PageException {
 		if (o instanceof Float) return (Float) o;
-		return new Float(toFloatValue(o));
+		return Float.valueOf(toFloatValue(o));
 	}
 
 	/**
@@ -1754,7 +1754,7 @@ public final class Caster {
 	 * @throws PageException
 	 */
 	public static Float toFloat(String str) throws PageException {
-		return new Float(toFloatValue(str));
+		return Float.valueOf(toFloatValue(str));
 	}
 
 	/**
@@ -1766,11 +1766,11 @@ public final class Caster {
 	 */
 	public static Float toFloat(Object o, Float defaultValue) {
 		if (o instanceof Float) return (Float) o;
-		if (defaultValue != null) return new Float(toFloatValue(o, defaultValue.floatValue()));
+		if (defaultValue != null) return Float.valueOf(toFloatValue(o, defaultValue.floatValue()));
 
 		float res = toFloatValue(o, Float.MIN_VALUE);
 		if (res == Float.MIN_VALUE) return defaultValue;
-		return new Float(res);
+		return Float.valueOf(res);
 	}
 
 	/**
@@ -4334,7 +4334,7 @@ public final class Caster {
 	 * @return casted Float
 	 */
 	public static Float toRef(float f) {
-		return new Float(f);
+		return Float.valueOf(f);
 	}
 
 	/**

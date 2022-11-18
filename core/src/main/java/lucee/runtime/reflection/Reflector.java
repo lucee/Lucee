@@ -1584,7 +1584,7 @@ public final class Reflector {
 	private static Float[] toRefArray(float[] src) {
 		Float[] trg = new Float[src.length];
 		for (int i = 0; i < trg.length; i++) {
-			trg[i] = new Float(src[i]);
+			trg[i] = Float.valueOf(src[i]);
 		}
 		return trg;
 	}
