@@ -365,7 +365,7 @@ public final class ArrayUtil {
 	public static Character[] toReferenceType(char[] primArr) {
 		Character[] refArr = new Character[primArr.length];
 		for (int i = 0; i < primArr.length; i++)
-			refArr[i] = new Character(primArr[i]);
+			refArr[i] = Character.valueOf(primArr[i]);
 		return refArr;
 	}
 

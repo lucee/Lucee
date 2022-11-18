@@ -1242,7 +1242,7 @@ public final class Caster {
 	 * @return casted Character Object
 	 */
 	public static Character toCharacter(char c) {
-		return new Character(toCharValue(c));
+		return Character.valueOf(toCharValue(c));
 	}
 
 	/**
@@ -1252,11 +1252,11 @@ public final class Caster {
 	 * @return casted Character Object
 	 */
 	public static Character toCharacter(double d) {
-		return new Character(toCharValue(d));
+		return Character.valueOf(toCharValue(d));
 	}
 
 	public static Character toCharacter(Number n) {
-		return new Character(toCharValue(n));
+		return Character.valueOf(toCharValue(n));
 	}
 
 	/**
@@ -1268,7 +1268,7 @@ public final class Caster {
 	 */
 	public static Character toCharacter(Object o) throws PageException {
 		if (o instanceof Character) return (Character) o;
-		return new Character(toCharValue(o));
+		return Character.valueOf(toCharValue(o));
 
 	}
 
@@ -1280,7 +1280,7 @@ public final class Caster {
 	 * @throws PageException
 	 */
 	public static Character toCharacter(String str) throws PageException {
-		return new Character(toCharValue(str));
+		return Character.valueOf(toCharValue(str));
 
 	}
 
@@ -1293,11 +1293,11 @@ public final class Caster {
 	 */
 	public static Character toCharacter(Object o, Character defaultValue) {
 		if (o instanceof Character) return (Character) o;
-		if (defaultValue != null) return new Character(toCharValue(o, defaultValue.charValue()));
+		if (defaultValue != null) return Character.valueOf(toCharValue(o, defaultValue.charValue()));
 
 		char res = toCharValue(o, Character.MIN_VALUE);
 		if (res == Character.MIN_VALUE) return defaultValue;
-		return new Character(res);
+		return Character.valueOf(res);
 	}
 
 	/**
