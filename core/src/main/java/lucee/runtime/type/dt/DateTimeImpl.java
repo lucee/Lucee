@@ -79,6 +79,10 @@ public final class DateTimeImpl extends DateTime implements SimpleValue, Objects
 		this(date.getTime(), false);
 	}
 
+	public DateTimeImpl(Long t) {
+		this(t, false);
+	}
+
 	public DateTimeImpl(Calendar calendar) {
 		super(calendar.getTimeInMillis());
 		// this.timezone=ThreadLocalPageContext.getTimeZone(calendar.getTimeZone());
