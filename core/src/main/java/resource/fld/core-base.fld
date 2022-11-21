@@ -6079,12 +6079,12 @@ The returned number of unallocated bytes is a hint, but not a guarantee, that it
 	<function>
 		<name>getFunctionData</name>
 		<class>lucee.runtime.functions.other.GetFunctionData</class>
-		<description>returns information to a single function</description>
+		<description>Returns information about a built in function (BIF)</description>
 		<argument>
 			<name>functionName</name>
 			<type>string</type>
 			<required>Yes</required>
-			<description>name of the function getting information for</description>
+			<description>Name of the built in function to return information about</description>
 		</argument>
 		<return>
 			<type>struct</type>
