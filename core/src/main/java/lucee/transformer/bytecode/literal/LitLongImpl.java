@@ -54,7 +54,7 @@ public final class LitLongImpl extends ExpressionBase implements LitLong {
 
 	@Override
 	public Long getLong() {
-		return new Long(l);
+		return Long.valueOf(l);
 	}
 
 	@Override

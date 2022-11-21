@@ -150,7 +150,7 @@ public abstract class StorageScopeCache extends StorageScopeImpl {
 					StructUtil.copy(sct, trg, true);
 					sct = trg;
 				}
-				cache.put(key, new StorageValue(sct), new Long(getTimeSpan()), null);
+				cache.put(key, new StorageValue(sct), Long.valueOf(getTimeSpan()), null);
 			}
 		}
 		catch (Exception pe) {
