@@ -7,7 +7,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				// in the US Sunday is the first day of he week
 				expect(lsDayOfWeek(date,"EN_US","America/Los_Angeles")).toBe(1);
 				// in CH Sunday is the last day of he week
-				expect(lsDayOfWeek(date,"EN_US","America/Los_Angeles")).toBe(7);
+				expect(lsDayOfWeek(date,"DE_CH","Europe/Zurich")).toBe(7);
 			});
 			it(title="checking lsDayOfWeek() function for monday", body = function( currentSpec ) {
 				//UTC noon is the same day in the US and CH
@@ -15,7 +15,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				// in the US Monday is the second day of he week
 				expect(lsDayOfWeek(date,"EN_US","America/Los_Angeles")).toBe(2);
 				// in CH Monday is the first day of he week
-				expect(lsDayOfWeek(date,"EN_US","America/Los_Angeles")).toBe(1);
+				expect(lsDayOfWeek(date,"DE_CH","Europe/Zurich")).toBe(1);
 			});
 		});
 	}
