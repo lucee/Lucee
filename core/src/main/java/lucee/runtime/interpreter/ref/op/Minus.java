@@ -49,7 +49,7 @@ public final class Minus extends RefSupport implements Ref {
 	@Override
 	public Object getValue(PageContext pc) throws PageException {
 		if (limited) throw new InterpreterException("invalid syntax, math operations are not supported in a json string.");
-		return new Double(Caster.toDoubleValue(left.getValue(pc)) - Caster.toDoubleValue(right.getValue(pc)));
+		return Double.valueOf(Caster.toDoubleValue(left.getValue(pc)) - Caster.toDoubleValue(right.getValue(pc)));
 	}
 
 	@Override

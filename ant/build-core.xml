@@ -789,4 +789,15 @@
     <echots message="done"/>
   </target>
 
+  <target name="buildLoaderFast" depends="__build,setAntEnv,addExtensions,addBundles,addFelix,createCore,createLoader" 
+    description="quick/fast generate the loader jar" >
+    <!-- version -->
+    <currentTime property="ct" />
+    <echo file="${temp}/loader/lucee/version" message="${version}:${ct}" encoding="UTF-8"/>
+    
+    <delete dir="${temp}"/>
+    <echots message="done"/>
+  </target>
+
+
 </project>

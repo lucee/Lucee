@@ -1138,7 +1138,7 @@ public final class Http extends BodyTagImpl {
 
 			// status code
 			cfhttp.set(STATUSCODE, ((rsp.getStatusCode() + " " + rsp.getStatusText()).trim()));
-			cfhttp.set(STATUS_CODE, new Double(statCode = rsp.getStatusCode()));
+			cfhttp.set(STATUS_CODE, Double.valueOf(statCode = rsp.getStatusCode()));
 			cfhttp.set(STATUS_TEXT, (rsp.getStatusText()));
 			cfhttp.set(HTTP_VERSION, (rsp.getProtocolVersion()));
 			Array locations = rsp.getLocations();
@@ -1193,7 +1193,7 @@ public final class Http extends BodyTagImpl {
 			}
 			cfhttp.set(RESPONSEHEADER, responseHeader);
 			cfhttp.set(KeyConstants._cookies, cookies);
-			responseHeader.set(STATUS_CODE, new Double(statCode = rsp.getStatusCode()));
+			responseHeader.set(STATUS_CODE, Double.valueOf(statCode = rsp.getStatusCode()));
 			responseHeader.set(EXPLANATION, (rsp.getStatusText()));
 			if (setCookie.size() > 0) responseHeader.set(SET_COOKIE, setCookie);
 
@@ -1554,7 +1554,7 @@ public final class Http extends BodyTagImpl {
 		cfhttp.setEL(KeyConstants._mimetype, "Unable to determine MIME type of file.");
 		cfhttp.setEL(RESPONSEHEADER, new StructImpl());
 		cfhttp.setEL(STATUSCODE, "Connection Failure. Status code unavailable.");
-		cfhttp.setEL(STATUS_CODE, new Double(0));
+		cfhttp.setEL(STATUS_CODE, Double.valueOf(0));
 		cfhttp.setEL(STATUS_TEXT, "Connection Failure");
 		cfhttp.setEL(KeyConstants._text, Boolean.TRUE);
 	}
@@ -1567,7 +1567,7 @@ public final class Http extends BodyTagImpl {
 		cfhttp.setEL(KeyConstants._mimetype, "Unable to determine MIME type of file.");
 		cfhttp.setEL(RESPONSEHEADER, new StructImpl());
 		cfhttp.setEL(STATUSCODE, "408 Request Time-out");
-		cfhttp.setEL(STATUS_CODE, new Double(408));
+		cfhttp.setEL(STATUS_CODE, Double.valueOf(408));
 		cfhttp.setEL(STATUS_TEXT, "Request Time-out");
 		cfhttp.setEL(KeyConstants._text, Boolean.TRUE);
 	}

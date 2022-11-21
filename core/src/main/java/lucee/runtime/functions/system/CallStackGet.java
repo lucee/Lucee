@@ -157,7 +157,7 @@ public final class CallStackGet implements Function {
 			 * (PageException e) {}
 			 */
 			item.setEL(KeyConstants._template, abs((PageContextImpl) pc, template));
-			item.setEL(lineNumberName, new Double(line));
+			item.setEL(lineNumberName, Double.valueOf(line));
 			tagContext.appendEL(item);
 		}
 	}

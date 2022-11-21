@@ -413,7 +413,7 @@ public final class Reflector {
 			if (trgClass == Double.class) return Caster.toDouble(src);
 			if (trgClass == Character.class) {
 				String str = Caster.toString(src, null);
-				if (str != null && str.length() == 1) return new Character(str.charAt(0));
+				if (str != null && str.length() == 1) return Character.valueOf(str.charAt(0));
 			}
 		}
 
@@ -1544,7 +1544,7 @@ public final class Reflector {
 	private static Byte[] toRefArray(byte[] src) {
 		Byte[] trg = new Byte[src.length];
 		for (int i = 0; i < trg.length; i++) {
-			trg[i] = new Byte(src[i]);
+			trg[i] = Byte.valueOf(src[i]);
 		}
 		return trg;
 	}
@@ -1552,7 +1552,7 @@ public final class Reflector {
 	private static Character[] toRefArray(char[] src) {
 		Character[] trg = new Character[src.length];
 		for (int i = 0; i < trg.length; i++) {
-			trg[i] = new Character(src[i]);
+			trg[i] = Character.valueOf(src[i]);
 		}
 		return trg;
 	}
@@ -1584,7 +1584,7 @@ public final class Reflector {
 	private static Float[] toRefArray(float[] src) {
 		Float[] trg = new Float[src.length];
 		for (int i = 0; i < trg.length; i++) {
-			trg[i] = new Float(src[i]);
+			trg[i] = Float.valueOf(src[i]);
 		}
 		return trg;
 	}
@@ -1592,7 +1592,7 @@ public final class Reflector {
 	private static Double[] toRefArray(double[] src) {
 		Double[] trg = new Double[src.length];
 		for (int i = 0; i < trg.length; i++) {
-			trg[i] = new Double(src[i]);
+			trg[i] = Double.valueOf(src[i]);
 		}
 		return trg;
 	}

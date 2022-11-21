@@ -92,21 +92,21 @@ public class DatSourceDefImpl implements DataSourceDef {
 		for (int i = 0; i < names.length; i++) {
 			connprop.setEL(names[i], ds.getCustomValue(names[i]));
 		}
-		rtn.setEL("maxpooledstatements", new Double(1000));
+		rtn.setEL("maxpooledstatements", Double.valueOf(1000));
 		rtn.setEL("sid", "");
 		rtn.setEL("timestampasstring", Boolean.FALSE);
 		rtn.setEL("useTrustedConnection", Boolean.FALSE);
 		rtn.setEL("datasource", ds.getName());
-		rtn.setEL("_port", new Double(ds.getPort()));
-		rtn.setEL("port", new Double(ds.getPort()));
-		rtn.setEL("_logintimeout", new Double(30));
+		rtn.setEL("_port", Double.valueOf(ds.getPort()));
+		rtn.setEL("port", Double.valueOf(ds.getPort()));
+		rtn.setEL("_logintimeout", Double.valueOf(30));
 		rtn.setEL("args", "");
 		rtn.setEL("databaseFile", "");
 		rtn.setEL("defaultpassword", "");
 		rtn.setEL("defaultusername", "");
 		rtn.setEL("host", ds.getHost());
-		rtn.setEL("maxBufferSize", new Double(0));
-		rtn.setEL("pagetimeout", new Double(0));
+		rtn.setEL("maxBufferSize", Double.valueOf(0));
+		rtn.setEL("pagetimeout", Double.valueOf(0));
 		rtn.setEL("selectMethod", "direct");
 		rtn.setEL("sendStringParamterAsUnicode", Boolean.TRUE);
 		rtn.setEL("systemDatabaseFile", "");
