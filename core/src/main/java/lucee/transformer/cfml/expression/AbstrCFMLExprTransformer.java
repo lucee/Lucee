@@ -902,8 +902,11 @@ public abstract class AbstrCFMLExprTransformer {
 			if (data.srcCode.forwardIfCurrent('-')) {
 				comments(data);
 				Expression expr = clip(data);
-				return data.factory.opUnaryNumber((Variable) expr, data.factory.NUMBER_ONE(), Factory.OP_UNARY_PRE, Factory.OP_UNARY_MINUS, line, data.srcCode.getPosition());
 
+				if (expr instanceof Variable) {
+					return data.factory.opUnaryNumber((Variable) expr, data.factory.NUMBER_ONE(), Factory.OP_UNARY_PRE, Factory.OP_UNARY_MINUS, line, data.srcCode.getPosition());
+				}
+				return data.factory.opNumber(data.factory.toExprNumber(expr), data.factory.createLitNumber(1), Factory.OP_DBL_MINUS);
 			}
 			comments(data);
 			return data.factory.opNegateNumber(clip(data), Factory.OP_NEG_NBR_MINUS, line, data.srcCode.getPosition());
@@ -913,8 +916,10 @@ public abstract class AbstrCFMLExprTransformer {
 			if (data.srcCode.forwardIfCurrent('+')) {
 				comments(data);
 				Expression expr = clip(data);
-
-				return data.factory.opUnaryNumber((Variable) expr, data.factory.NUMBER_ONE(), Factory.OP_UNARY_PRE, Factory.OP_UNARY_PLUS, line, data.srcCode.getPosition());
+				if (expr instanceof Variable) {
+					return data.factory.opUnaryNumber((Variable) expr, data.factory.NUMBER_ONE(), Factory.OP_UNARY_PRE, Factory.OP_UNARY_PLUS, line, data.srcCode.getPosition());
+				}
+				return data.factory.opNumber(data.factory.toExprNumber(expr), data.factory.createLitNumber(1), Factory.OP_DBL_PLUS);
 			}
 			comments(data);
 			return data.factory.toExprNumber(clip(data));
