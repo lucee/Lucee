@@ -1,4 +1,4 @@
-component extends = "org.lucee.cfml.test.LuceeTestCase" labels="qoq" {
+component extends = "org.lucee.cfml.test.LuceeTestCase" labels="qoq" skip=false {
 
 	function run( testResults, textBox ) {
 		describe("Test case for LDEV-2541", function(){
@@ -16,16 +16,17 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" labels="qoq" {
 
 			it( title = "Checking query with rows order", body = function( currentSpec ){
 				cfquery( dbtype = "query", name = "testRow" ) {
-	    			writeOutput( 'SELECT * FROM qry1 UNION SELECT * FROM qry2' );
+					writeOutput( 'SELECT * FROM qry1 UNION SELECT * FROM qry2 order by id' );
 				}
-				expect(valueList(testRow.id)).toBe("1,2,3,4");
+				expect( valueList( testRow.id ) ).toBe( "1,2,3,4" ); 
 			});
 
 			it( title = "Checking query with maxrows", body = function( currentSpec ){
 				cfquery( dbtype = "query", name = "testMaxrow", maxrows = "2") {
-	    			writeOutput( 'SELECT * FROM qry1 UNION SELECT * FROM qry2' );
+					writeOutput( 'SELECT * FROM qry1 UNION SELECT * FROM qry2 order by id' );
 				}
-				expect(valueList(testMaxrow.name)).toBe("alex,john");
+				expect( testMaxrow.recordcount ).toBe( 2 ); 
+				expect( valueList(testMaxrow.name) ).toBe( "alex,john" ); 
 			});
 		});
 	}
