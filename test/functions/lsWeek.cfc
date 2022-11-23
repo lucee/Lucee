@@ -12,11 +12,11 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 			it(title="checking lsWeek() with locale and timezone argument", body = function( currentSpec ) {
 				var date = createDateTime(2022,01,17,12,0,0,0,"UTC"); 
 				// in CH Monday is the first day of the week
-				expect(lsWeek(date,"DE_CH","Europe/Zurich")).toBe(3);
+				expect(lsWeek(date, "DE_CH", "Europe/Zurich")).toBe(3);
 				// in Bagdad Monday is the third day of the week
-				expect(lsWeek(date,"ar_IQ","Asia/Baghdad")).toBe(3);
+				expect(lsWeek(date, "ar_IQ", "Asia/Baghdad")).toBe(3);
 				// in the US Monday is the second day of the week
-				expect(lsWeek(date,"EN_US","America/Los_Angeles")).toBe(4);
+				expect(lsWeek(date, "EN_US", "America/Los_Angeles")).toBe(4);
 			});
 		});
 	}
