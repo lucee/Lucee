@@ -17,7 +17,7 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  * 
  ---><cfscript>
-component extends="org.lucee.cfml.test.LuceeTestCase" labels="ftp,sftp"	{
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="ftp" {
 	
 	
 	//public function afterTests(){}
@@ -74,7 +74,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ftp,sftp"	{
 			assertTrue(pwd2==dir || pwd2&"/"==dir);
 
 			// we add a file
-			ftp action="putFile"  localfile=getCurrentTemplatePath() remoteFile=file connection= "conn";
+			ftp action="putFile"  localfile=getCurrentTemplatePath() remoteFile=file connection= "ftpConn";
 			ftp action="listdir" directory=dir connection="ftpConn" name="local.list3";  // passive not sticky LDEV-977;
 			assertEquals(list3.recordcount,1);
 			assertEquals(list3.name,fileName);
@@ -87,7 +87,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ftp,sftp"	{
 			var src=getCurrentTemplatePath();
 			var localFile=src&"."&getTickcount()&".rf";
 			try {
-				ftp action="getFile"  localfile=localFile remoteFile=file connection= "conn";
+				ftp action="getFile"  localfile=localFile remoteFile=file connection= "ftpConn";
 				var srcContent=fileRead(src);
 				var localFileContent=fileRead(localFile);
 				assertEquals(srcContent,localFileContent);
@@ -97,7 +97,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ftp,sftp"	{
 			}
 
 			// we rename the file
-			ftp action="rename"  existing=file new=file2 connection= "conn";
+			ftp action="rename"  existing=file new=file2 connection= "ftpConn";
 			ftp action="listdir" directory=dir connection="ftpConn" name="local.list4";
 			assertEquals(list4.recordcount,1);
 			assertEquals(list4.name,fileName2);
@@ -116,18 +116,17 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ftp,sftp"	{
 
 
 			// we delete the file again
-			ftp action="remove"  item=file2 connection= "conn";
+			ftp action="remove"  item=file2 connection= "ftpConn";
 			ftp action="listdir" directory=dir connection="ftpConn" name="local.list4";
 			assertEquals(list4.recordcount,0);
 
 			// we add again a file and directory to be sure we can delete a folder with content
 			ftp action="createdir" directory=subdir connection="ftpConn";
-			ftp action="putFile"  localfile=getCurrentTemplatePath() remoteFile=subfile connection="conn";
+			ftp action="putFile"  localfile=getCurrentTemplatePath() remoteFile=subfile connection="ftpConn";
+			ftp action="putFile"  localfile=getCurrentTemplatePath() remoteFile=subfile connection="ftpConn" transferMode="ASCII";
+			ftp action="putFile"  localfile=getCurrentTemplatePath() remoteFile=subfile connection="ftpConn" transferMode="auto"; // default
 			// LDEV-3528  transferMode=“binary” causes "Connection is not open" error
-			ftp action="putFile"  localfile=getCurrentTemplatePath() remoteFile=subfile connection="conn" transferMode="ASCII";
-			ftp action="putFile"  localfile=getCurrentTemplatePath() remoteFile=subfile connection="conn" transferMode="auto"; // default
-			ftp action="putFile"  localfile=getCurrentTemplatePath() remoteFile=subfile connection="conn" transferMode="binary";
-			
+			ftp action="putFile"  localfile=getCurrentTemplatePath() remoteFile=subfile connection="ftpConn" transferMode="binary";
 
 		}
 		finally {

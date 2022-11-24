@@ -2,19 +2,35 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ftp"	{
 		
     private void function _test(required boolean secure, required string host, required number port=21,
         required string user, required string pass, required string base, required boolean stopOnError){
-
-        systemOutput(arguments, true);
+            
+        var args = arguments;
 
         expect(function(){
+            systemOutput(args, true);
             ftp action = "open"
                 connection="ftpConn"
                 passive = "true"
-                secure = arguments.secure
-                username = arguments.user
-                password = arguments.pass
-                server = arguments.host
-                stopOnError = arguments.stopOnError
-                port = arguments.port;
+                timeout = 1
+                secure = args.secure
+                username = args.user
+                password = args.pass
+                server = args.host
+                stopOnError = args.stopOnError
+                port = args.port;
+        }).notToThrow();
+
+        expect(function(){
+            var ftpService = new ftp(
+                Username : args.user,
+                Password : args.pass,
+                Server : args.host,
+                Connection : 'myConn',
+                Port : args.port,
+                timeout : 5,
+                Secure : args.secure,
+                StopOnError : args.stopOnError
+            );
+            ftpService.open();
         }).notToThrow();
     }
 
@@ -42,7 +58,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ftp"	{
         );
     }
 
-    public function testSFTPstopOnError() {
+    public function testFTPstopOnError() {
         var ftp=getFTPCredentials();
         if(!structCount(ftp)) return;
         //return; //disable failing test
