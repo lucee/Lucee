@@ -1,6 +1,6 @@
 component extends="org.lucee.cfml.test.LuceeTestCase" {
 	function beforeAll() {
-		variables.path = "#getDirectoryFromPath(getCurrenttemplatepath())#LDEV3122";
+		variables.path = "#getDirectoryFromPath(getCurrentTemplatePath())#LDEV3122";
 		afterAll();
 		if(!directoryExists(path)) directoryCreate(path)
 	}
@@ -9,7 +9,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 
 		describe( "Testcase for LDEV-3122", function() {
 			it( title="checking cffile nameconflict=makeunique without file exists", body=function() {
-				filewrite("#path#\test.txt","LDEV-3122");
+				fileWrite("#path#\test.txt","LDEV-3122");
 				var newDir = "#path#\test_#createUniqueID()#";
 				directoryCreate(newDir)
 			
@@ -27,8 +27,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				file action="copy"  source="#newDir#\testmakeunique.txt" destination=newDir nameconflict="makeunique";
 				directory action="list" directory=newDir name="list" listinfo="name";
 
-				expect(find("testmakeunique_",serializejson(list))).tobeGT(0);
-				expect(list.recordcount).tobe("2");
+				expect(find("testmakeunique_",serializeJson(list))).toBeGT(0);
+				expect(list.recordcount).toBe("2");
 			});
 			
 			it( title="checking cffile nameconflict=forceunique without file exists", body=function() {
@@ -39,8 +39,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				file action="copy"  source="#path#\testforceunique.txt" destination=newDir nameconflict="forceunique";
 				directory action="list" directory=newDir name="list" listinfo="name";
 
-				expect(find("testforceunique_",serializejson(list))).tobeGT(0);
-				expect(list.recordcount).tobe("1");
+				expect(find("testforceunique_",serializejson(list))).toBeGT(0);
+				expect(list.recordcount).toBe("1");
 			});
 			
 			it( title="checking cffile nameconflict=forceunique with file exists", body=function() {
@@ -51,8 +51,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				file action="copy"  source="#newDir#\testfileforceunique.txt" destination=newDir nameconflict="forceunique";
 				directory action="list" directory=newDir name="list" listinfo="name";
 			
-				expect(find("testfileforceunique_",serializejson(list))).tobeGT(0);	
-				expect(list.recordcount).tobe("2");
+				expect(find("testfileforceunique_",serializejson(list))).toBeGT(0);	
+				expect(list.recordcount).toBe("2");
 			});
 		});
 
