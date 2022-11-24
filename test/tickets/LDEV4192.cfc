@@ -1,16 +1,15 @@
 component extends="org.lucee.cfml.test.LuceeTestCase" labels="ftp"	{
 		
     private void function _test(required boolean secure, required string host, required number port=21,
-        required string user, required string pass, required string base, required boolean stopOnError){
-            
+        required string user, required string pass, required string base, required boolean stopOnError, required boolean passive){
+
         var args = arguments;
 
         expect(function(){
-            systemOutput(args, true);
             ftp action = "open"
                 connection="ftpConn"
-                passive = "true"
-                timeout = 1
+                passive = args.passive
+                timeout = 5
                 secure = args.secure
                 username = args.user
                 password = args.pass
@@ -28,10 +27,12 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ftp"	{
                 Port : args.port,
                 timeout : 5,
                 Secure : args.secure,
+                passive = args.passive,
                 StopOnError : args.stopOnError
             );
             ftpService.open();
         }).notToThrow();
+        systemOutput("passed #args.toJson()#", true );
     }
 
     public function testSFTPstopOnError() {
@@ -45,7 +46,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ftp"	{
             pass: sftp.password,
             port: sftp.port,
             base: sftp.base_path,
-            stopOnError: true
+            stopOnError: true,
+            passive: true
         );
         _test(
             secure: true,
@@ -54,7 +56,28 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ftp"	{
             pass: sftp.password,
             port: sftp.port,
             base: sftp.base_path,
-            stopOnError: false
+            stopOnError: false,
+            passive: true
+        );
+        _test(
+            secure: true,
+            host: sftp.server,
+            user: sftp.username,
+            pass: sftp.password,
+            port: sftp.port,
+            base: sftp.base_path,
+            stopOnError: true,
+            passive: false
+        );
+        _test(
+            secure: true,
+            host: sftp.server,
+            user: sftp.username,
+            pass: sftp.password,
+            port: sftp.port,
+            base: sftp.base_path,
+            stopOnError: false,
+            passive: false
         );
     }
 
@@ -69,7 +92,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ftp"	{
             pass: ftp.password,
             port: ftp.port,
             base: ftp.base_path,
-            stopOnError: true
+            stopOnError: true,
+            passive: true
         );
         _test(
             secure: false,
@@ -78,7 +102,28 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ftp"	{
             pass: ftp.password,
             port: ftp.port,
             base: ftp.base_path,
-            stopOnError: false
+            stopOnError: false,
+            passive: true
+        );
+        _test(
+            secure: false,
+            host: ftp.server,
+            user: ftp.username,
+            pass: ftp.password,
+            port: ftp.port,
+            base: ftp.base_path,
+            stopOnError: true,
+            passive: false
+        );
+        _test(
+            secure: false,
+            host: ftp.server,
+            user: ftp.username,
+            pass: ftp.password,
+            port: ftp.port,
+            base: ftp.base_path,
+            stopOnError: false,
+            passive: false
         );
     }
 
