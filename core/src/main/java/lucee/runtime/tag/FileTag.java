@@ -619,8 +619,11 @@ public final class FileTag extends BodyTagImpl {
 		String name = ResourceUtil.getName(res);
 		String ext = ResourceUtil.getExtension(res, "");
 		if (!StringUtil.isEmpty(ext)) ext = "." + ext;
-		// forceunique always create a new name for fileUpload
-		res = res.getParentResource().getRealResource(name + "_" + HashUtil.create64BitHashAsString(CreateUUID.invoke(), Character.MAX_RADIX) + ext);
+		do {
+			// forceunique always create a new name for fileUpload
+			res = res.getParentResource().getRealResource(name + "_" + HashUtil.create64BitHashAsString(CreateUUID.invoke(), Character.MAX_RADIX) + ext);
+		}
+		while (res.exists());
 		return res;
 	}
 
