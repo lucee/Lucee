@@ -1761,7 +1761,6 @@ public final class CFMLEngineImpl implements CFMLEngine {
 
 		Resource listenerTemplateCFML = config.getConfigDir().getRealResource("context/" + context + "." + lucee.runtime.config.Constants.getCFMLComponentExtension());
 		Resource listenerTemplateLucee = config.getConfigDir().getRealResource("context/" + context + "." + lucee.runtime.config.Constants.getLuceeComponentExtension());
-
 		Resource listenerTemplateCFMLWebRoot = null;
 		Resource listenerTemplateLuceeWebRoot = null;
 		if (isWeb) {
@@ -1773,7 +1772,10 @@ public final class CFMLEngineImpl implements CFMLEngine {
 			catch (Exception e) {
 			}
 		}
-
+		else {
+			if (!listenerTemplateCFML.isFile())
+				listenerTemplateCFML = config.getConfigDir().getRealResource(context + "." + lucee.runtime.config.Constants.getCFMLComponentExtension());
+		}
 		// dialect
 		int dialect;
 		boolean inWebRoot;
@@ -1794,6 +1796,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 			dialect = CFMLEngine.DIALECT_LUCEE;
 		}
 		else return;
+
 		if (!StringUtil.emptyIfNull(Thread.currentThread().getName()).startsWith("on-start-")) {
 			long timeout = config.getRequestTimeout().getMillis();
 			if (timeout <= 0) timeout = 50000L;

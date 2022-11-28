@@ -300,28 +300,36 @@ public class CFConfigImport {
 
 	private static void replacePlaceHolder(Entry<Key, Object> e, Struct placeHolderData) {
 		String str = (String) e.getValue();
+		String res;
+		boolean modified = false;
+		int startIndex = -1;
+		while (true) {
+			startIndex = str.indexOf("${", startIndex + 1);
+			if (startIndex == -1) break;
+			int endIndex = str.indexOf("}", startIndex + 1);
+			if (endIndex == -1) break;
+			modified = true;
+			String content = str.substring(startIndex + 2, endIndex);
+			String envVarName, defaultValue = "";
+			int index = content.indexOf(':');
+			if (index == -1) {
+				envVarName = content;
+			}
+			else {
+				envVarName = content.substring(0, index);
+				defaultValue = content.substring(index + 1);
+			}
 
-		int startIndex = str.indexOf("${");
-		if (startIndex == -1) return;
-		int endIndex = str.indexOf("}", startIndex + 1);
-		if (endIndex == -1) return;
-		String content = str.substring(startIndex + 2, endIndex);
-		String envVarName, defaultValue = "";
-		int index = content.indexOf(':');
-		if (index == -1) {
-			envVarName = content;
+			Object val = null;
+			if (placeHolderData != null) val = placeHolderData.get(KeyImpl.init(envVarName), null);
+			if (val == null) val = SystemUtil.getSystemPropOrEnvVar(envVarName, null);
+
+			if (val != null) res = Caster.toString(val, "");
+			else res = defaultValue;
+
+			str = str.substring(0, startIndex) + res + str.substring(endIndex + 1);
 		}
-		else {
-			envVarName = content.substring(0, index);
-			defaultValue = content.substring(index + 1);
-		}
-
-		Object val = null;
-		if (placeHolderData != null) val = placeHolderData.get(KeyImpl.init(envVarName), null);
-		if (val == null) val = SystemUtil.getSystemPropOrEnvVar(envVarName, null);
-		if (val != null) e.setValue(val);
-		else e.setValue(defaultValue);
-
+		if (modified) e.setValue(str);
 	}
 
 	private void optimizeExtensions(Config config, Struct json) throws IOException {
