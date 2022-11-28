@@ -2,6 +2,7 @@
 
 ![GitHub](https://img.shields.io/github/license/lucee/Lucee)
 5.3 [![Java CI](https://github.com/lucee/Lucee/actions/workflows/main.yml/badge.svg?branch=5.3)](https://github.com/lucee/Lucee/actions/workflows/main.yml)
+5.4 [![Java CI](https://github.com/lucee/Lucee/actions/workflows/main.yml/badge.svg?branch=5.4)](https://github.com/lucee/Lucee/actions/workflows/main.yml)
 6.0 [![Java CI](https://github.com/lucee/Lucee/actions/workflows/main.yml/badge.svg?branch=6.0)](https://github.com/lucee/Lucee/actions/workflows/main.yml)
 [![Backers on Open Collective](https://opencollective.com/Lucee/backers/badge.svg)](#backers)
 [![Sponsors on Open Collective](https://opencollective.com/Lucee/sponsors/badge.svg)](#sponsors) 
