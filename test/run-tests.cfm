@@ -1,7 +1,5 @@
 <cfscript>
-<!---  TODO this currently just duplicates run-testcases.xml https://luceeserver.atlassian.net/browse/LDEV-4114 --->
-
-    encodeForHTML("abc"); // test if ESAPI extension exist right away
+ encodeForHTML("abc"); // test if ESAPI extension exist right away
 if (execute) {
 
 request.basedir = basedir;
@@ -186,93 +184,147 @@ function mem(type) {
 			SystemOut.setOut(out);
 			//SystemOut.setErr(err);
 
-			systemOutput(" (#bundle.totalPass# tests passed in #LSNumberFormat(bundle.totalDuration, ',')# ms)",true);
-			//mem("non_heap");
-			//mem("heap");
+			if ( bundle.totalPass eq 0 )
+			systemOutput( TAB & " (skipped)", true );
+		else
+			systemOutput( TAB & " (#bundle.totalPass# tests passed in #NumberFormat(bundle.totalDuration)# ms)", true );
+		//mem("non_heap");
+		//mem("heap");
+	// we have an error
+	if ( ( bundle.totalFail + bundle.totalError ) > 0 ) {
 
-		// we have an error
-		if ((bundle.totalFail + bundle.totalError) > 0) {
-
-			systemOutput("	Suites/Specs: #bundle.totalSuites#/#bundle.totalSpecs#
-	Failures: #bundle.totalFail#
-	Errors:   #bundle.totalError#
-	Pass:     #bundle.totalPass#
-	Skipped:  #bundle.totalSkipped#"
-			, true);
-
-			if (!isNull(bundle.suiteStats)) {
-				loop array=bundle.suiteStats item="local.suiteStat" {
-					if (!isNull(suiteStat.specStats)) {
-						loop array=suiteStat.specStats item="local.specStat" {
-
-							if (!isNull(specStat.failMessage) && len(trim(specStat.failMessage))) {
-
-								var failedTestCase = {
-									 type       : "Failed"
-									,bundle     : bundle.name
-									,testCase   : specStat.name
-									,errMessage : specStat.failMessage
-									,stackTrace : []
-								};
-								failedTestCases.append(failedTestCase);
-
-								systemOutput(NL & TAB & "Failed: " & specStat.name & " --> " & specStat.failMessage, true);
-
-								if (!isNull(specStat.failOrigin) && !isEmpty(specStat.failOrigin)){
-
-									var rawStackTrace = specStat.failOrigin;
-									var testboxPath = getDirectoryFromPath(rawStackTrace[1].template);
-
-									systemOutput(TAB & TAB & "at", true);
-
-									loop array=rawStackTrace item="local.st" {
-
-										if (!st.template.hasPrefix(testboxPath)){
-											var frame = st.template & ":" & st.line;
-											failedTestCase.stackTrace.append(frame);
-											systemOutput(TAB & frame, true);
-										}
-									}
-								}
-							} // if !isNull
-
-							if (!isNull(specStat.error) && !isEmpty(specStat.error)){
-
-								var failedTestCase = {
-									 type       : "Errored"
-									,bundle     : bundle.name
-									,testCase   : specStat.name
-									,errMessage : specStat.error.Message
-									,stackTrace : []
-								};
-								failedTestCases.append(failedTestCase);
-
-								systemOutput(NL & TAB & "Errored: " & specStat.name & " --> " & specStat.error.Message, true);
-
-								if (!isNull(specStat.error.TagContext) && !isEmpty(specStat.error.TagContext)){
-
-									var rawStackTrace = specStat.error.TagContext;
-
-									systemOutput(TAB & TAB & "at", true);
-
-									loop array=rawStackTrace item="local.st" {
-
-										var frame = st.template & ":" & st.line;
-										failedTestCase.stackTrace.append(frame);
-										systemOutput(TAB & frame, true);
-									}
-								}
-
-							//	systemOutput(NL & serialize(specStat.error), true);
-
-							} // if !isNull
+		systemOutput( "ERRORED" & NL & "	Suites/Specs: #bundle.totalSuites#/#bundle.totalSpecs#
+Failures: #bundle.totalFail#
+Errors:   #bundle.totalError#
+Pass:     #bundle.totalPass#
+Skipped:  #bundle.totalSkipped#"
+		, true );
+		
+		if ( !isNull( bundle.suiteStats ) ) {
+			loop array=bundle.suiteStats item="local.suiteStat" {
+				local.specStats = duplicate(suiteStat.specStats);
+				// spec stats are also nested 
+				loop array=suiteStat.suiteStats item="local.nestedSuiteStats" {
+					if ( !isEmpty( local.nestedSuiteStats.specStats ) ) {
+						loop array=local.nestedSuiteStats.specStats item="local.nestedSpecStats" {
+							arrayAppend( local.specStats, local.nestedspecStats );
 						}
 					}
 				}
-			}
 
-			systemOutput(NL & replace(serialize(bundle), fixCase), true);
+				if ( isEmpty( local.specStats ) ) {
+					systemOutput( "WARNING: suiteStat for [#bundle.name#] was empty?", true );
+				} else {
+					loop array=local.specStats item="local.specStat" {
+						if ( !isNull( specStat.failMessage ) && len( trim( specStat.failMessage ) ) ) {
+
+							var failedTestCase = {
+								 type       : "Failed"
+								,bundle     : bundle.name
+								,testCase   : specStat.name
+								,errMessage : specStat.failMessage
+								,cfmlStackTrace : []
+								,stackTrace : ""
+							};
+							if ( structKeyExists( specStat.error, "stackTrace" ) )
+								failedTestCase.stackTrace = specStat.error.stackTrace;
+
+							failedTestCases.append( failedTestCase );
+
+							systemOutput( NL & specStat.name );
+							systemOutput( NL & TAB & "Failed: " & specStat.failMessage, true );
+
+							if ( !isNull( specStat.failOrigin ) && !isEmpty( specStat.failOrigin ) ){
+
+								var rawStackTrace = specStat.failOrigin;
+								var testboxPath = getDirectoryFromPath( rawStackTrace[1].template );
+
+								//systemOutput(TAB & TAB & "at", true);
+
+								loop array=rawStackTrace item="local.st" index="local.i" {
+
+									if ( !st.template.hasPrefix( testboxPath ) ){
+										if ( local.i eq 1 or st.template does not contain "testbox" ){
+											var frame = st.template & ":" & st.line;
+											failedTestCase.cfmlStackTrace.append( frame );
+											systemOutput( TAB & frame, true );
+										}
+									}
+								}
+							}
+							systemOutput( NL );
+						} // if !isNull
+
+						if ( !isNull( specStat.error ) && !isEmpty( specStat.error ) ){
+
+							var failedTestCase = {
+								 type       : "Errored"
+								,bundle     : bundle.name
+								,testCase   : specStat.name
+								,errMessage : specStat.error.Message
+								,cfmlStackTrace : []
+								,stackTrace : ""
+							};
+							if ( structKeyExists( specStat.error, "stackTrace" ) )
+								failedTestCase.stackTrace = specStat.error.stackTrace;
+
+							failedTestCases.append( failedTestCase );
+
+							systemOutput( NL & specStat.name );
+							systemOutput( NL & TAB & "Errored: " & specStat.error.Message, true );
+							if ( len( specStat.error.Detail ) )
+								systemOutput( TAB & "Detail: " & specStat.error.Detail, true );
+
+							if ( !isNull( specStat.error.TagContext ) && !isEmpty( specStat.error.TagContext ) ){
+
+								var rawStackTrace = specStat.error.TagContext;
+
+								//systemOutput(TAB & TAB & "at", true);
+
+								loop array=rawStackTrace item="local.st" index="local.i" {
+									if ( local.i eq 1 or st.template does not contain "testbox" ){
+										var frame = st.template & ":" & st.line;
+										failedTestCase.cfmlStackTrace.append( frame );
+										systemOutput( TAB & frame, true );
+									}
+								}
+								systemOutput( NL );
+								/*
+								if (arrayLen(rawStackTrace) gt 0){
+									systemOutput(TAB & rawStackTrace[1].codePrintPlain, true);
+									systemOutput(NL);
+								}
+								*/
+							}
+							if ( !isNull( specStat.error.StackTrace ) && !isEmpty( specStat.error.StackTrace ) ){
+								systemOutput( TAB & specStat.error.type, true );
+								// printStackTrace( specStat.error.StackTrace );
+								systemOutput( TAB & specStat.error.StackTrace, true );
+								systemOutput( NL );
+							}
+
+						//	systemOutput(NL & serialize(specStat.error), true);
+
+						} // if !isNull
+					}
+				}
+			}
+		} else {
+			systemOutput( "WARNING: bundle.suiteStats was null?", true );
 		}
+		//systemOutput(serializeJson(bundle.suiteStats));
+	}
+	// report out any slow test specs, because for Lucee, slow performance is a bug (tm)
+	if ( !isNull( bundle.suiteStats ) ) {
+		loop array=bundle.suiteStats item="local.suiteStat" {
+			if ( !isNull( suiteStat.specStats ) ) {
+				loop array=suiteStat.specStats item="local.specStat" {
+					if ( specStat.totalDuration gt 5000 )
+						systemOutput( TAB & TAB & specStat.name & " took #numberFormat( specStat.totalDuration )#ms", true );
+				}
+			}
+		}
+	}
 
 	// exceptions
 	if (!isSimpleValue(bundle.globalException)) {
@@ -319,46 +371,101 @@ Begin Stack Trace
 	JUnitReportFile = resultPath & "junit-test-results.xml";
 	FileWrite( JUnitReportFile, jUnitReporter.runReport( results=result, testbox=tb, justReturn=true ) );	
 	
-	echo("=============================================================" & NL);
-	echo("TestBox Version: #tb.getVersion()#" & NL);
-	echo("Lucee Version: #server.lucee.version#" & NL);
-	echo("Java Version: #server.java.version#" & NL);
-	echo("Global Stats (#result.getTotalDuration()# ms)" & NL);
-	echo("=============================================================" & NL);
-	echo("->[Bundles/Suites/Specs: #result.getTotalBundles()#/#result.getTotalSuites()#/#result.getTotalSpecs()#]" & NL);
-	echo("->[Pass:     #result.getTotalPass()#]" & NL);
-	echo("->[Skipped:  #result.getTotalSkipped()#]" & NL);
-	echo("->[Failures: #result.getTotalFail()#]" & NL);
-	echo("->[Errors:   #result.getTotalError()#]" & NL);
-	echo("->[JUnitReport: #JUnitReportFile#]" & NL);
+	systemOutput("", true );
+	systemOutput("", true );
+	systemOutput("=============================================================", true );
+	systemOutput("TestBox Version: #tb.getVersion()#", true );
+	systemOutput("Lucee Version: #server.lucee.version#", true );
+	systemOutput("Java Version: #server.java.version#", true );
+	systemOutput("Global Stats (#result.getTotalDuration()# ms)", true );
+	systemOutput("=============================================================", true );
+	systemOutput("->[Bundles/Suites/Specs: #result.getTotalBundles()#/#result.getTotalSuites()#/#result.getTotalSpecs()#]",true);
+	systemOutput("->[Pass:     #result.getTotalPass()#]", true );
+	systemOutput("->[Skipped:  #result.getTotalSkipped()#]", true );
+	systemOutput("->[Failures: #result.getTotalFail()#]", true );
+	systemOutput("->[Errors:   #result.getTotalError()#]", true );
+	systemOutput("->[JUnitReport: #JUnitReportFile#]", true );
 
-		if (!isEmpty(failedTestCases)){
+	// load errors into an array, so we can dump them out to $GITHUB_STEP_SUMMARY
+	results = [];
+	results_md = [];
+	request.testDebug = false;
 
-			echo(NL);
-			for (el in failedTestCases){
-				echo(TAB & el.type & ": " & el.bundle & "." & el.testCase & " ---> " & el.errMessage & NL);
-				if (!isEmpty(el.stackTrace)){
+	if ( structKeyExists( server.system.environment, "GITHUB_STEP_SUMMARY" ) ){
+		github_commit_base_href=  "/" & server.system.environment.GITHUB_REPOSITORY
+			& "/blob/" & server.system.environment.GITHUB_SHA & "/";
+		github_branch_base_href=  "/" & server.system.environment.GITHUB_REPOSITORY
+			& "/blob/" & server.system.environment.GITHUB_REF_NAME & "/";
+	}
 
-					echo(TAB & TAB & "at" & NL);
-					for (frame in el.stackTrace){
-						echo(TAB & TAB & frame & NL);
+	if ( !isEmpty( failedTestCases ) ){
+		systemOutput( NL );
+		for ( el in failedTestCases ){
+			arrayAppend( results, el.type & ": " & el.bundle & NL & TAB & el.testCase );
+			arrayAppend( results, TAB & el.errMessage );
+			arrayAppend( results_md, "#### " & el.type & " " & el.bundle );
+			arrayAppend( results_md, "###### " & el.testCase );
+			arrayAppend( results_md, "" );
+			arrayAppend( results_md, el.errMessage );
+
+			if ( !isEmpty( el.cfmlStackTrace ) ){
+				//arrayAppend( results, TAB & TAB & "at", true);
+				for ( frame in el.cfmlStackTrace ){
+					arrayAppend( results, TAB & TAB & frame );
+					if ( structKeyExists( server.system.environment, "GITHUB_STEP_SUMMARY" ) ){
+						file_ref = replace( frame, server.system.environment.GITHUB_WORKSPACE, "" );
+						arrayAppend( results_md,
+							"- [#file_ref#](#github_commit_base_href##replace(file_ref,":", "##L")#)"
+							& " [branch](#github_branch_base_href##replace(file_ref,":", "##L")#)" );
 					}
 				}
-				echo(NL);
 			}
-			echo(NL);
+
+			if ( !isEmpty( el.StackTrace ) ){
+				arrayAppend( results_md, "" );
+				arrayAppend( results, NL );
+				arrStack = test._testRunner::trimJavaStackTrace( el.StackTrace );
+				for (s in arrStack) {
+					arrayAppend( results, s );
+					arrayAppend( results_md, s );
+				}
+			}
+
+			arrayAppend( results_md, "" );
+			arrayAppend( results, NL );
 		}
+		arrayAppend( results_md, "" );
+		arrayAppend( results, NL );
+	}
+
+	if ( len( results ) ) {
+		loop array=#results# item="resultLine" {
+			systemOutput( resultLine, (resultLine neq NL) );
+		}
+		if ( structKeyExists( server.system.environment, "GITHUB_STEP_SUMMARY" ) ){
+			//systemOutput( server.system.environment.GITHUB_STEP_SUMMARY, true );
+			fileWrite( server.system.environment.GITHUB_STEP_SUMMARY, ArrayToList( results_md, NL ) );
+		}
+		/*
+		loop collection=server.system.environment key="p" value="v" {
+			if ( p contains "GITHUB_")
+				systemOutput("#p#: #v##NL#");
+		*/
+	} else if ( structKeyExists( server.system.environment, "GITHUB_STEP_SUMMARY" ) ){
+		fileWrite( server.system.environment.GITHUB_STEP_SUMMARY, "#### Tests Passed :white_check_mark:" );
+	}
+
 
  		if ((result.getTotalFail() + result.getTotalError()) > 0) {
  			throw "TestBox could not successfully execute all testcases: #result.getTotalFail()# tests failed; #result.getTotalError()# tests errored.";
  		}
 	}
 	catch(e){
-		echo("-------------------------------------------------------" & NL);
-		echo("Testcase failed:" & NL);
-		echo(e.message & NL);
-		echo(serialize(e) & NL);
-		echo("-------------------------------------------------------" & NL);
+		systemOutput("-------------------------------------------------------", true );
+		systemOutput("Testcase failed:", true );
+		systemOutput( e.message, true );
+		systemOutput( serialize(e), true );
+		systemOutput("-------------------------------------------------------", true );
 		rethrow;
 	}
 
