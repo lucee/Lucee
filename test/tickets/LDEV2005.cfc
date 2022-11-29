@@ -10,7 +10,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 	public void function testGetTemplatePath(){
 		var arr=GetTemplatePath();
-		assertEquals("TestBox.cfc",listLast(arr[1],"\/"));
+		assertEquals("TestBox.cfc",listLast(arr[2],"\/"));
 		assertEquals("LDEV2005.cfc",listLast(arr[arr.len()],"\/"));
 	}
 } 
