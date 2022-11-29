@@ -779,7 +779,9 @@ public final class ConfigWebUtil {
 
 	}
 
-	public static void loadAddionalConfig(final Config config) {
+	public static void loadAddionalConfig(Config config) {
+		config = ThreadLocalPageContext.getConfig(config);
+		if (config == null) return;
 		Resource configDir = config.getConfigDir();
 		Resource addConfDir1, addConfDir2 = null, addConfFile = null;
 		String strAddConfDir;
