@@ -10,7 +10,7 @@
 	}
 	if( FORM.scene == 2 ) {
 		try {
-			res = isArray(entityLoad("test",{}));
+			res = isArray(entityLoad("test", {}));
 		}
 		catch(any e) {
 			res = e.message;
@@ -18,7 +18,7 @@
 	}
 	if( FORM.scene == 3 ) {
 		try {
-			res = isArray(entityLoad("test",{},""));
+			res = isArray(entityLoad("test", {}, ""));
 		}
 		catch(any e) {
 			res = e.message;
@@ -26,7 +26,7 @@
 	}
 	if( FORM.scene == 4 ) {
 		try {
-			res = isArray(entityLoad("test",{},"", {}));
+			res = isArray(entityLoad("test", {}, "", {}));
 		}
 		catch(any e) {
 			res = e.message;

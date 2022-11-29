@@ -1,7 +1,7 @@
 component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm" {
 	function beforeAll() {
 		variables.uri = createURI("LDEV4285");
-    }
+	}
 	function run( testResults, testBox ) {
 		describe("Testcase for LDEV-4285", function() {
 			it( title="entityLoad() with positional argument(name)", body=function( currentSpec ) {
