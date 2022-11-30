@@ -374,7 +374,7 @@ public class QueryColumnImpl implements QueryColumnPro, Objects {
 	public void add(Object value) {
 		query.disableIndex();
 		growTo(size()+1);
-		data[size.incrementAndGet()] = value;
+		data[size.incrementAndGet()-1] = value;
 	}
 
 	@Override
