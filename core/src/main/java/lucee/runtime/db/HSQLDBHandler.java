@@ -263,6 +263,7 @@ public final class HSQLDBHandler {
 			return q;
 		}
 		catch (SQLParserException spe) {
+			qoqException = spe;
 			if( spe.getCause() != null && spe.getCause() instanceof IllegalQoQException ) {
 				throw Caster.toPageException(spe);
 			}
