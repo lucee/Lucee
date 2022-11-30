@@ -18,6 +18,10 @@ component {
 			local.i = len( local.tmp )-i;
 			local.j = find( ")", local.tmp, local.i ); // find the end of the line
 			local.tmp = mid( local.tmp, 1, local.j );
+		} else { 
+			// no CFC reference found just, return the whole stack
+			arrayAppend( stack, TAB & arguments.st );
+			return stack;
 		}
 		arrayAppend( stack, TAB & local.tmp );
 		// now find any Caused By: and output them

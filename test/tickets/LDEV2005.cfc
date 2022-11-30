@@ -5,7 +5,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	}
 
 	public void function testGetBaseTemplatePath(){
-		assertEquals("TestBox.cfc",listLast(GetBaseTemplatePath(),"\/"));
+		assertEquals("run-tests.cfm",listLast(GetBaseTemplatePath(),"\/"));
 	}
 
 	public void function testGetTemplatePath(){
