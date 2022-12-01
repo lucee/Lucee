@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" labels="qoq" {
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="qoq" skip="true" {
 	function run( testResults , testBox ) {
 		describe( "testcase for LDEV-4300", function() {
 			it(title = "Checking QoQ HAVING clause in non-grouped aggregate select", body = function( currentSpec ) {
