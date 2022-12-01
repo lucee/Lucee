@@ -11045,20 +11045,20 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<name>string</name>
 			<type>string</type>
 			<required>Yes</required>
-		<description>String in which to search.</description>
-    </argument>
+			<description>String in which to search.</description>
+		</argument>
 		<argument>
 			<name>start</name>
 			<type>number</type>
 			<required>Yes</required>
-		<description></description>
-    </argument>
+			<description>Start position of search from the left.</description>
+		</argument>
 		<argument>
 			<name>count</name>
 			<type>number</type>
 			<required>Yes</required>
-		<description></description>
-    </argument>
+			<description>Count of characters to be removed.</description>
+		</argument>
 		<return>
 			<type>string</type>
 		</return>
