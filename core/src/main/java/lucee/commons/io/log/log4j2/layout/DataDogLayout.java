@@ -14,6 +14,7 @@ import org.apache.logging.log4j.core.LogEvent;
 import org.apache.logging.log4j.core.layout.AbstractStringLayout;
 
 import lucee.commons.io.CharsetUtil;
+import lucee.commons.io.log.LogUtil;
 import lucee.loader.engine.CFMLEngine;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.loader.util.Util;
@@ -36,6 +37,9 @@ public class DataDogLayout extends AbstractStringLayout {
 	private static Method getSpanId;
 	private BIF serializeJSONBIF;
 	private static Object[] ids;
+	private static long idsTimestamp;
+	private static int idsTries = 0;
+	private static boolean idsValid;
 
 	public DataDogLayout() {
 		super(CharsetUtil.UTF8, new byte[0], new byte[0]);
@@ -178,8 +182,18 @@ public class DataDogLayout extends AbstractStringLayout {
 
 	private static Object[] getCorrelationIdentifier() {
 
-		if (ids != null) return ids;
+		if (idsValid) return ids;
 
+		long now = System.currentTimeMillis();
+		if (ids != null) {
+			// if we have less than 300 tries, we try once a second (so for 5 minutes) after that every minute
+			if (idsTries < 300 && idsTimestamp + 1000 > now) return ids;
+			if (idsTries > 300 && idsTimestamp + 300000 > now) return ids;
+
+		}
+
+		idsTries++;
+		idsTimestamp = now;
 		try {
 			if (correlationIdentifierClass == null) {
 				getTraceId = null;
@@ -199,13 +213,19 @@ public class DataDogLayout extends AbstractStringLayout {
 
 			if (!"0".equals(tmp[0])) {
 				ids = tmp;
+				idsValid = true;
 				return ids;
 			}
 			return ids = new Object[] { "0", "0" };
 		}
 		catch (Exception e) {
 			// we cannot send this to a logger, because that could cause an infiniti loop
-			e.printStackTrace();
+			try {
+				LogUtil.logGlobal(null, "datadog", e);
+			}
+			catch (Exception ee) {
+				e.printStackTrace();
+			}
 		}
 
 		return ids = new Object[] { "-1", "-1" };
