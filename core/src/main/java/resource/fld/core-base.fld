@@ -10762,6 +10762,46 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</return>
 	</function>
 
+	<!-- queryToStruct -->
+	<function>
+		<name>queryToStruct</name>
+		<class>lucee.runtime.functions.query.QueryToStruct</class>
+		<member-name>ToStruct</member-name>
+		<keywords>query,struct</keywords>
+		<description>Copy the query columns data to struct by using the columnKey argument</description>
+		<argument>
+			<name>query</name>
+			<type>query</type>
+			<required>Yes</required>
+			<description>A query to copy to a struct</description>
+		</argument>
+		<argument>
+			<name>columnKey</name>
+			<alias>column,columnName</alias>
+			<type>string</type>
+			<required>Yes</required>
+			<description>Column name that values are used for struct key</description>
+		</argument>
+		<argument>
+			<name>structType</name>
+			<alias>type</alias>
+			<type>string</type>
+			<required>No</required>
+			<default>ordered</default>
+			<description>default:ordered, Struct type to created</description>
+		</argument>
+		<argument>
+			<name>valueRowNumber</name>
+			<alias>valueAsRowNumber</alias>
+			<type>boolean</type>
+			<required>No</required>
+			<description>default: false, the boolean value that indicates the struct values return as column data or row number</description>
+		</argument>
+		<return>
+			<type>struct</type>
+		</return>
+	</function>
+
 	<!-- randomize -->
 	<function>
 		<name>randomize</name>
