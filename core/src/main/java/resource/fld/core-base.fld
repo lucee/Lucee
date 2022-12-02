@@ -4758,7 +4758,7 @@ EntitySave(entity, [forceInsert])</description>
 		<description>Returns the mimetype of the given file</description>
 		<argument>
 			<name>file</name>
-			<alias>FilePath,source</alias>
+			<alias>FilePath,source,path,FileObject</alias>
 			<type>any</type>
 			<required>Yes</required>
 			<description>file path or object</description>
@@ -4769,7 +4769,12 @@ EntitySave(entity, [forceInsert])</description>
 			<type>boolean</type>
 			<required>No</required>
 			<default>true</default>
-			<description>if set to true, Lucee checks the header of the file, when set to false, Lucee only checks the extension.</description>
+			<description>if set to true, Lucee checks the header of the file, when set to false, Lucee only checks the extension.
+
+When true, an empty or non existent file will throw an error.
+
+Lucee uses Apache Tika for detection, but only the basic core version and does not include the full suite of tika parsers due to their size.
+			</description>
 		</argument>
 		<return>
 			<type>string</type>
