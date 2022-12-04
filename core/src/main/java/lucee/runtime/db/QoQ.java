@@ -417,7 +417,7 @@ public final class QoQ {
 		if( where != null ) {
 			stream = stream
 				.filter( throwingFilter(  row-> {
-					// The where clause is a single Operation expression that returns try or false.
+					// The where clause is a single Operation expression that returns true or false.
 					return Caster.toBooleanValue( executeExp( pc, sql, source, where, row ) );
 				} ) );
 		}
@@ -508,7 +508,7 @@ public final class QoQ {
 		if( where != null ) {
 			stream = stream
 				.filter( throwingFilter(  row-> {
-					// The where clause is a single Operation expression that returns try or false.
+					// The where clause is a single Operation expression that returns true or false.
 					return Caster.toBooleanValue(executeExp(pc, sql, source, where, row));
 				} ) );
 		}

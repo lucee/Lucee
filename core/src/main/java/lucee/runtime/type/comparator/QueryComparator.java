@@ -44,7 +44,7 @@ import lucee.runtime.type.Collection;
 import lucee.runtime.type.KeyImpl;
 
 /**
- * Implementation of a Comparator that will sort multuple rows of a query all at the same time
+ * Implementation of a Comparator that will sort multiple rows of a query all at the same time
  */
 public final class QueryComparator implements Comparator<Integer> {
 

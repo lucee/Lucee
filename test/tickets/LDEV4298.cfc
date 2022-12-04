@@ -6,10 +6,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="qoq" {
 		// 1 Million records
 		loop from=1 to=62500 index='local.i' {
 			employees.addRow( [
-				[ 'John Doe#i#',28,'John#i#@company.com','Acounting',false,2,4,createDate(2010,1,21),true,'sdf','red' ],
-				[ 'Jane Doe#i#',22,'Jane#i#@company.com','Acounting',false,0,8,createDate(2011,2,21),true,'hdfg','blue' ],
-				[ 'Bane Doe#i#',28,'Bane#i#@company.com','Acounting',true,3,2,createDate(2012,3,21),true,'sdsfsff','green' ],
-				[ 'Tom Smith#i#',25,'Tom#i#@company.com','Acounting',false,6,4,createDate(2013,4,21),false,'HDFG','yellow' ],
+				[ 'John Doe#i#',28,'John#i#@company.com','Accounting',false,2,4,createDate(2010,1,21),true,'sdf','red' ],
+				[ 'Jane Doe#i#',22,'Jane#i#@company.com','Accounting',false,0,8,createDate(2011,2,21),true,'hdfg','blue' ],
+				[ 'Bane Doe#i#',28,'Bane#i#@company.com','Accounting',true,3,2,createDate(2012,3,21),true,'sdsfsff','green' ],
+				[ 'Tom Smith#i#',25,'Tom#i#@company.com','Accounting',false,6,4,createDate(2013,4,21),false,'HDFG','yellow' ],
 				[ 'Harry Johnson#i#',38,'Harry#i#@company.com','IT',false,8,6,createDate(2014,5,21),true,'4ge','purple' ],
 				[ 'Jason Wood#i#',37,'Jason#i#@company.com','IT',false,19,4,createDate(2015,6,21),true,'ShrtDF','Red' ],
 				[ 'Doris Calhoun#i#',67,'Doris#i#@company.com','IT',true,3,6,createDate(2016,7,21),true,'sgsdg','Blue' ],
@@ -136,7 +136,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="qoq" {
 					options = { dbtype: 'query' }
 				);
 				expect( actual.recordcount ).toBe( 4 );
-				expect( actual.department[1] ).toBe( 'Acounting' );
+				expect( actual.department[1] ).toBe( 'Accounting' );
 				expect( actual.isActive[1] ).toBe( false );
 				expect( actual.count[1] ).toBe( 62500 );
 				expect( actual.minAge[1] ).toBe( 25 );

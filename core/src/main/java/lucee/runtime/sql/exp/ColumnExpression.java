@@ -155,7 +155,7 @@ public class ColumnExpression extends ExpressionSupport implements Column {
 	/**
 		Acquire the actual query column reference, taking caching into account
 		We cache the lookup of the column for basic selects because we run the same thing
-		over and over on the same query object.  But for partitioned selects, we have multuple query
+		over and over on the same query object.  But for partitioned selects, we have multiple query
 		objects we run this on, so we can't cache the column reference
 	 */
 	private QueryColumn getCol(Query qr) throws PageException {
