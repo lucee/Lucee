@@ -870,8 +870,8 @@ public final class FileTag extends BodyTagImpl {
 
 		/*
 		 * try { BufferedImage bi = ImageUtil.toBufferedImage(file, null); if(bi!=null) { Struct img =new
-		 * StructImpl(); img.setEL(KeyConstants._width,new Double(bi.getWidth()));
-		 * img.setEL(KeyConstants._height,new Double(bi.getHeight())); sct.setEL(KeyConstants._img,img); } }
+		 * StructImpl(); img.setEL(KeyConstants._width,Double.valueOf(bi.getWidth()));
+		 * img.setEL(KeyConstants._height,Double.valueOf(bi.getHeight())); sct.setEL(KeyConstants._img,img); } }
 		 * catch(Exception e) {}
 		 */
 		return sct;

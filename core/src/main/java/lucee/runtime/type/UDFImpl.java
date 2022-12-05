@@ -293,8 +293,6 @@ public class UDFImpl extends MemberSupport implements UDFPlus, Externalizable {
 	}
 
 	private Object _call(PageContext pc, Collection.Key calledName, Object[] args, Struct values, boolean doIncludePath) throws PageException {
-
-		// print.out(count++);
 		PageContextImpl pci = (PageContextImpl) pc;
 		Argument newArgs = pci.getScopeFactory().getArgumentInstance();
 		newArgs.setFunctionArgumentNames(properties.getArgumentsSet());

@@ -42,24 +42,29 @@ public final class XmlValidate implements Function {
 	}
 
 	public static Struct call(PageContext pc, String strXml, Object objValidator) throws PageException {
-		strXml = strXml.trim();
 		try {
-			InputSource xml = XMLUtil.toInputSource(pc, strXml);
-			InputSource[] validators;
-			if (StringUtil.isEmpty(objValidator)) validators = null;
-			else {
-				String[] strValidators;
-				if (Decision.isArray(objValidator)) strValidators = ListUtil.toStringArray(Caster.toArray(objValidator));
-				else strValidators = new String[] { Caster.toString(objValidator) };
-				// else strValidators = ListUtil.listToStringArray(Caster.toString(objValidator), ',');
 
-				validators = new InputSource[strValidators.length];
-				for (int i = 0; i < validators.length; i++) {
-					validators[i] = XMLUtil.toInputSource(pc, strValidators[i]);
-				}
+			// no validator
+			if (StringUtil.isEmpty(objValidator)) {
+				InputSource xml = XMLUtil.toInputSource(pc, strXml.trim());
+				return XMLUtil.validate(xml, null, null, null);
 			}
 
-			return XMLUtil.validate(xml, validators, null);
+			// single validator
+			if (!Decision.isArray(objValidator)) {
+				InputSource xml = XMLUtil.toInputSource(pc, strXml.trim());
+				String strValidator = Caster.toString(objValidator);
+				return XMLUtil.validate(xml, XMLUtil.toInputSource(pc, strValidator), strValidator, null);
+			}
+
+			// multiple validators
+			Struct result = null;
+			String[] strValidators = ListUtil.toStringArray(Caster.toArray(objValidator));
+			for (String strValidator: strValidators) {
+				InputSource xml = XMLUtil.toInputSource(pc, strXml.trim());
+				result = XMLUtil.validate(xml, XMLUtil.toInputSource(pc, strValidator), strValidator, result);
+			}
+			return result;
 		}
 		catch (Exception e) {
 			throw Caster.toPageException(e);

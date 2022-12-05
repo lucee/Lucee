@@ -1067,7 +1067,7 @@ public final class SystemUtil {
 		public Object toStruct() {
 			Struct caller = new StructImpl(Struct.TYPE_LINKED);
 			caller.setEL(KeyConstants._template, template);
-			caller.setEL(KeyConstants._line, new Double(line));
+			caller.setEL(KeyConstants._line, Double.valueOf(line));
 			return caller;
 		}
 	}

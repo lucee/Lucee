@@ -114,6 +114,8 @@ public final class DebuggerImpl implements Debugger {
 
 	private long queryTime = 0;
 
+	private String threadName;
+
 	final static Comparator DEBUG_ENTRY_TEMPLATE_COMPARATOR = new DebugEntryTemplateComparator();
 	final static Comparator DEBUG_ENTRY_TEMPLATE_PART_COMPARATOR = new DebugEntryTemplatePartComparator();
 
@@ -157,6 +159,7 @@ public final class DebuggerImpl implements Debugger {
 		abort = null;
 		outputContext = null;
 		queryTime = 0;
+		threadName = null;
 	}
 
 	public DebuggerImpl() {
@@ -298,6 +301,10 @@ public final class DebuggerImpl implements Debugger {
 		if (listen) {
 			this.outputContext = new ApplicationException("");
 		}
+	}
+
+	public void setThreadName(String threadName) {
+		this.threadName = threadName;
 	}
 
 	// FUTURE add to inzerface
@@ -675,7 +682,7 @@ public final class DebuggerImpl implements Debugger {
 						row++;
 						qryDumps.setAt(KeyConstants._output, row, dd.getOutput());
 						if (!StringUtil.isEmpty(dd.getTemplate())) qryDumps.setAt(KeyConstants._template, row, dd.getTemplate());
-						if (dd.getLine() > 0) qryDumps.setAt(KeyConstants._line, row, new Double(dd.getLine()));
+						if (dd.getLine() > 0) qryDumps.setAt(KeyConstants._line, row, Double.valueOf(dd.getLine()));
 					}
 				}
 				catch (PageException dbe) {
@@ -704,11 +711,11 @@ public final class DebuggerImpl implements Debugger {
 						if (!StringUtil.isEmpty(trace.getCategory())) qryTraces.setAt(KeyConstants._category, row, trace.getCategory());
 						if (!StringUtil.isEmpty(trace.getText())) qryTraces.setAt(KeyConstants._text, row, trace.getText());
 						if (!StringUtil.isEmpty(trace.getTemplate())) qryTraces.setAt(KeyConstants._template, row, trace.getTemplate());
-						if (trace.getLine() > 0) qryTraces.setAt(KeyConstants._line, row, new Double(trace.getLine()));
+						if (trace.getLine() > 0) qryTraces.setAt(KeyConstants._line, row, Double.valueOf(trace.getLine()));
 						if (!StringUtil.isEmpty(trace.getAction())) qryTraces.setAt(KeyConstants._action, row, trace.getAction());
 						if (!StringUtil.isEmpty(trace.getVarName())) qryTraces.setAt(KeyImpl.getInstance("varname"), row, trace.getVarName());
 						if (!StringUtil.isEmpty(trace.getVarValue())) qryTraces.setAt(KeyImpl.getInstance("varvalue"), row, trace.getVarValue());
-						qryTraces.setAt(KeyConstants._time, row, new Double(trace.getTime()));
+						qryTraces.setAt(KeyConstants._time, row, Double.valueOf(trace.getTime()));
 					}
 				}
 				catch (PageException dbe) {
@@ -732,9 +739,9 @@ public final class DebuggerImpl implements Debugger {
 						das = it.next();
 						row++;
 						qryImplicitAccesseses.setAt(KeyConstants._template, row, das.getTemplate());
-						qryImplicitAccesseses.setAt(KeyConstants._line, row, new Double(das.getLine()));
+						qryImplicitAccesseses.setAt(KeyConstants._line, row, Double.valueOf(das.getLine()));
 						qryImplicitAccesseses.setAt(KeyConstants._scope, row, das.getScope());
-						qryImplicitAccesseses.setAt(KeyConstants._count, row, new Double(das.getCount()));
+						qryImplicitAccesseses.setAt(KeyConstants._count, row, Double.valueOf(das.getCount()));
 						qryImplicitAccesseses.setAt(KeyConstants._name, row, das.getName());
 
 					}
@@ -750,7 +757,7 @@ public final class DebuggerImpl implements Debugger {
 		if (abort != null) {
 			Struct sct = new StructImpl();
 			sct.setEL(KeyConstants._template, abort.template);
-			sct.setEL(KeyConstants._line, new Double(abort.line));
+			sct.setEL(KeyConstants._line, Double.valueOf(abort.line));
 			debugging.setEL(KeyConstants._abort, sct);
 		}
 
@@ -762,6 +769,11 @@ public final class DebuggerImpl implements Debugger {
 			scopes.setEL(KeyConstants._cgi, pc.cgiScope());
 			debugging.setEL(KeyConstants._scope, scopes);
 		}
+
+		//////////////////////////////////////////
+		//////// THREAD NAME ////////////////////
+		//////////////////////////////////////////
+		if (threadName != null) debugging.setEL(KeyImpl.getInstance("threadName"), threadName);
 
 		HttpServletResponse rsp = pc.getHttpServletResponse();
 		debugging.setEL(KeyImpl.getInstance("statusCode"), rsp.getStatus());

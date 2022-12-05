@@ -3244,6 +3244,10 @@ public final class PageContextImpl extends PageContext {
 		return endTimeNS;
 	}
 
+	public void setEndTimeNS(long endTimeNS) {
+		this.endTimeNS = endTimeNS;
+	}
+
 	@Override
 	public Thread getThread() {
 		return thread;
