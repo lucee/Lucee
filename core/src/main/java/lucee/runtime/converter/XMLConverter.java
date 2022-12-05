@@ -493,7 +493,7 @@ public final class XMLConverter extends ConverterSupport {
 		else if (nodeName.equals("number")) {
 			try {
 				Node data = element.getFirstChild();
-				if (data == null) return new Double(0);
+				if (data == null) return Double.valueOf(0);
 				return Caster.toDouble(data.getNodeValue());
 			}
 			catch (Exception e) {

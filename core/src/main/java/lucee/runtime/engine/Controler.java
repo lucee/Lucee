@@ -34,6 +34,7 @@ import lucee.commons.io.res.filter.ExtensionResourceFilter;
 import lucee.commons.io.res.filter.ResourceFilter;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ExceptionUtil;
+import lucee.commons.lang.ParentThreasRefThread;
 import lucee.commons.net.http.httpclient.HTTPEngine4Impl;
 import lucee.runtime.CFMLFactoryImpl;
 import lucee.runtime.Mapping;
@@ -57,7 +58,7 @@ import lucee.runtime.type.util.ArrayUtil;
 /**
  * own thread how check the main thread and his data
  */
-public final class Controler extends Thread {
+public final class Controler extends ParentThreasRefThread {
 
 	private static final long TIMEOUT = 50 * 1000;
 
@@ -91,7 +92,7 @@ public final class Controler extends Thread {
 		// Runtime.getRuntime().addShutdownHook(shutdownHook);
 	}
 
-	private static class ControlerThread extends Thread {
+	private static class ControlerThread extends ParentThreasRefThread {
 		private Controler controler;
 		private CFMLFactoryImpl[] factories;
 		private boolean firstRun;
@@ -161,6 +162,7 @@ public final class Controler extends Thread {
 				}
 				// failed
 				else if (ct.t != null) {
+					addParentStacktrace(ct.t);
 					configServer.getLog("application").log(Log.LEVEL_ERROR, "controler", ct.t);
 					it.remove();
 				}

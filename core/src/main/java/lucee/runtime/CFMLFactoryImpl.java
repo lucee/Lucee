@@ -542,7 +542,7 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 
 			data.setEL("startTime", new DateTimeImpl(pc.getStartTime(), false));
 			data.setEL("endTime", new DateTimeImpl(pc.getStartTime() + pc.getRequestTimeout(), false));
-			data.setEL(KeyConstants._timeout, new Double(pc.getRequestTimeout()));
+			data.setEL(KeyConstants._timeout, Double.valueOf(pc.getRequestTimeout()));
 
 			// thread
 			sctThread.setEL(KeyConstants._name, thread.getName());

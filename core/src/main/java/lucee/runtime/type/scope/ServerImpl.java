@@ -143,7 +143,7 @@ public final class ServerImpl extends ScopeSupport implements Server, SharedScop
 		os.setEL(ARCH, System.getProperty("os.arch"));
 		os.setEL(MAC_ADDRESS, SystemUtil.getMacAddressAsWrap());
 		int arch = SystemUtil.getOSArch();
-		if (arch != SystemUtil.ARCH_UNKNOW) os.setEL(ARCH_MODEL, new Double(arch));
+		if (arch != SystemUtil.ARCH_UNKNOW) os.setEL(ARCH_MODEL, Double.valueOf(arch));
 		os.setEL(KeyConstants._version, System.getProperty("os.version"));
 		os.setEL(ADDITIONAL_INFORMATION, "");
 		os.setEL(BUILD_NUMBER, "");
@@ -179,11 +179,11 @@ public final class ServerImpl extends ScopeSupport implements Server, SharedScop
 		java.setEL(KeyConstants._version, System.getProperty("java.version"));
 		java.setEL(VENDOR, System.getProperty("java.vendor"));
 		arch = SystemUtil.getJREArch();
-		if (arch != SystemUtil.ARCH_UNKNOW) java.setEL(ARCH_MODEL, new Double(arch));
+		if (arch != SystemUtil.ARCH_UNKNOW) java.setEL(ARCH_MODEL, Double.valueOf(arch));
 		Runtime rt = Runtime.getRuntime();
-		java.setEL(FREE_MEMORY, new Double(rt.freeMemory()));
-		java.setEL(TOTAL_MEMORY, new Double(rt.totalMemory()));
-		java.setEL(MAX_MEMORY, new Double(rt.maxMemory()));
+		java.setEL(FREE_MEMORY, Double.valueOf(rt.freeMemory()));
+		java.setEL(TOTAL_MEMORY, Double.valueOf(rt.totalMemory()));
+		java.setEL(MAX_MEMORY, Double.valueOf(rt.maxMemory()));
 		java.setEL(JAVA_AGENT_SUPPORTED, Boolean.TRUE);
 
 		if (jep == null) {

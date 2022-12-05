@@ -33,6 +33,7 @@ import java.util.Map;
 
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.lang.ExceptionUtil;
+import lucee.commons.lang.ParentThreasRefThread;
 import lucee.loader.engine.CFMLEngine;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.engine.ThreadLocalPageContext;
@@ -148,7 +149,7 @@ public class SocketGateway implements GatewaySupport {
 		event.setEL(creator.createKey("originatorID"), originatorID);
 
 		event.setEL(creator.createKey("cfcMethod"), "onIncomingMessage");
-		event.setEL(creator.createKey("cfcTimeout"), new Double(10));
+		event.setEL(creator.createKey("cfcTimeout"), Double.valueOf(10));
 		event.setEL(creator.createKey("cfcPath"), cfcPath);
 
 		event.setEL(creator.createKey("gatewayType"), "Socket");
@@ -158,7 +159,7 @@ public class SocketGateway implements GatewaySupport {
 		else error("Failed to call Socket Gateway Listener [" + id + "]");
 	}
 
-	private class SocketServerThread extends Thread {
+	private class SocketServerThread extends ParentThreasRefThread {
 		private Socket socket;
 		private PrintWriter out;
 		private String _id;
@@ -185,6 +186,7 @@ public class SocketGateway implements GatewaySupport {
 			}
 			catch (Throwable t) {
 				ExceptionUtil.rethrowIfNecessary(t);
+				addParentStacktrace(t);
 				error("Failed to read from Socket Gateway [" + id + "]: " + t.getMessage());
 			}
 			finally {

@@ -50,7 +50,7 @@ public final class HTMLUtil {
 	public List<URL> getURLS(String html, URL url) {
 
 		List<URL> urls = new ArrayList<URL>();
-		SourceCode cfml = new SourceCode(html, false, CFMLEngine.DIALECT_CFML);
+		SourceCode cfml = new SourceCode(null, html, false, CFMLEngine.DIALECT_CFML);
 		while (!cfml.isAfterLast()) {
 			if (cfml.forwardIfCurrent('<')) {
 				for (int i = 0; i < tags.length; i++) {

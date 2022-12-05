@@ -117,6 +117,15 @@ public class JavaProxyFactory {
 	private static final org.objectweb.asm.commons.Method GET_JAVA_PROXY_UTIL = new org.objectweb.asm.commons.Method("getJavaProxyUtil", Types.OBJECT, // FUTURE change to JavaProxy
 			new Type[] {});
 
+	public static Object createProxy(Object defaultValue, PageContext pc, UDF udf, Class interf) {
+		try {
+			return createProxy(pc, udf, interf);
+		}
+		catch (Exception e) {
+			return defaultValue;
+		}
+	}
+
 	public static Object createProxy(PageContext pc, UDF udf, Class interf) throws PageException, IOException {
 		PageContextImpl pci = (PageContextImpl) pc;
 		ClassLoader parent = ClassUtil.getClassLoader(interf);
@@ -206,6 +215,15 @@ public class JavaProxyFactory {
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
 			throw Caster.toPageException(t);
+		}
+	}
+
+	public static Object createProxy(Object defaultValue, PageContext pc, Component cfc, Class extendz, Class... interfaces) {
+		try {
+			return createProxy(pc, cfc, extendz, interfaces);
+		}
+		catch (Exception e) {
+			return defaultValue;
 		}
 	}
 

@@ -334,7 +334,7 @@ public class TagGroupUtil {
 		else adapter.push(true);
 		adapter.storeLocal(groupCaseSensitive);
 
-		TagGroup parent = getParentTagGroupQuery(tag, tag.getType());
+		TagGroup parent = getParentTagGroupQuery(bc, tag, tag.getType());
 		tag.setNumberIterator(parent.getNumberIterator());
 		tag.setQuery(parent.getQuery());
 		// queryImpl = parent.getQueryImpl();
@@ -434,7 +434,7 @@ public class TagGroupUtil {
 	public static void writeOutTypeInnerGroup(TagGroup tag, BytecodeContext bc) throws TransformerException {
 		GeneratorAdapter adapter = bc.getAdapter();
 
-		TagGroup parent = getParentTagGroupQuery(tag, tag.getType());
+		TagGroup parent = getParentTagGroupQuery(bc, tag, tag.getType());
 		tag.setNumberIterator(parent.getNumberIterator());
 		tag.setQuery(parent.getQuery());
 		// queryImpl = parent.getQueryImpl();
@@ -510,7 +510,7 @@ public class TagGroupUtil {
 	public static void writeOutTypeInnerQuery(TagGroup tag, BytecodeContext bc) throws TransformerException {
 		GeneratorAdapter adapter = bc.getAdapter();
 		// if(tr ue)return ;
-		TagGroup parent = getParentTagGroupQuery(tag, tag.getType());
+		TagGroup parent = getParentTagGroupQuery(bc, tag, tag.getType());
 		tag.setNumberIterator(parent.getNumberIterator());
 		tag.setQuery(parent.getQuery());
 		tag.setPID(parent.getPID());
@@ -588,13 +588,13 @@ public class TagGroupUtil {
 		// adapter.pop();
 	}
 
-	public static TagGroup getParentTagGroupQuery(Statement st, short type) throws TransformerException {
+	public static TagGroup getParentTagGroupQuery(BytecodeContext bc, Statement st, short type) throws TransformerException {
 		Statement parent = st.getParent();
-		if (parent == null) throw new TransformerException("there is no parent output with query", null);
+		if (parent == null) throw new TransformerException(bc, "there is no parent output with query", null);
 		else if (parent instanceof TagGroup && type == ((TagGroup) parent).getType()) {
 			if (((TagGroup) parent).hasQuery()) return ((TagGroup) parent);
 		}
-		return getParentTagGroupQuery(parent, type);
+		return getParentTagGroupQuery(bc, parent, type);
 	}
 
 	private static void resetCurrentrow(GeneratorAdapter adapter, TagGroup tg, int current) {

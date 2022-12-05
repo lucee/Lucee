@@ -21,8 +21,6 @@ package lucee.transformer.library.tag;
 
 import java.util.Map;
 
-import org.xml.sax.Attributes;
-
 import lucee.runtime.config.Identification;
 import lucee.runtime.db.ClassDefinition;
 import lucee.transformer.cfml.ExprTransformer;
@@ -106,7 +104,7 @@ public final class ImportTagLib extends TagLib {
 	}
 
 	@Override
-	protected void setELClass(String eLClass, Identification id, Attributes attributes) {
+	protected void setELClass(String eLClass, Identification id, Map<String, String> attributes) {
 		super.setELClass(eLClass, id, attributes);
 	}
 

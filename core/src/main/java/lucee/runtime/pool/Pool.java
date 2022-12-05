@@ -4,6 +4,8 @@ import java.util.Iterator;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
+import lucee.commons.lang.ParentThreasRefThread;
+
 public class Pool {
 
 	private final long maxIdle;
@@ -115,7 +117,7 @@ public class Pool {
 		}
 	}
 
-	public class Controller extends Thread {
+	public class Controller extends ParentThreasRefThread {
 
 		private Pool pool;
 
@@ -123,6 +125,7 @@ public class Pool {
 			this.pool = pool;
 		}
 
+		@Override
 		public void run() { // TODO handle exceptions
 			while (true) {
 				try {
@@ -136,7 +139,7 @@ public class Pool {
 					pool.clean(false);
 				}
 				catch (Exception e) {
-					// TODO Auto-generated catch block
+					addParentStacktrace(e);
 					e.printStackTrace();
 				}
 				if (isInterrupted()) break;

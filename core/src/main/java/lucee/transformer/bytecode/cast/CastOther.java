@@ -420,14 +420,14 @@ public final class CastOther extends ExpressionBase implements Cast {
 				return Types.QUERY_COLUMN;
 			}
 		}
-		Type t = getType(type);
+		Type t = getType(bc, type);
 
 		expr.writeOut(bc, MODE_REF);
 		adapter.checkCast(t);
 		return t;
 	}
 
-	public static Type getType(String type) throws TransformerException {
+	public static Type getType(BytecodeContext bc, String type) throws TransformerException {
 		if (StringUtil.isEmpty(type)) return Types.OBJECT;
 
 		String lcType = StringUtil.toLowerCase(type);
@@ -531,7 +531,7 @@ public final class CastOther extends ExpressionBase implements Cast {
 			return Type.getType(ClassUtil.loadClass(type));
 		}
 		catch (ClassException e) {
-			throw new TransformerException(e.getMessage(), null);
+			throw new TransformerException(bc, e.getMessage(), null);
 		}
 
 	}

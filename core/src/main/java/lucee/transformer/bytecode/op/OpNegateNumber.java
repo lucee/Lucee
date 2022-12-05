@@ -20,6 +20,7 @@ package lucee.transformer.bytecode.op;
 
 import java.math.BigDecimal;
 
+import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.GeneratorAdapter;
 
@@ -75,6 +76,13 @@ public final class OpNegateNumber extends ExpressionBase implements ExprNumber {
 	@Override
 	public Type _writeOut(BytecodeContext bc, int mode) throws TransformerException {
 		GeneratorAdapter adapter = bc.getAdapter();
+
+		if (mode == MODE_VALUE) {
+			expr.writeOut(bc, MODE_VALUE);
+			adapter.visitInsn(Opcodes.DNEG);
+			return Types.DOUBLE_VALUE;
+		}
+
 		expr.writeOut(bc, MODE_REF);
 		adapter.invokeStatic(Types.CASTER, Methods.METHOD_NEGATE_NUMBER);
 		return Types.NUMBER;

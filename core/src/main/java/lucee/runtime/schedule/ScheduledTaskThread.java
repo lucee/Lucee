@@ -30,13 +30,14 @@ import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.lang.ExceptionUtil;
+import lucee.commons.lang.ParentThreasRefThread;
 import lucee.runtime.config.Config;
 import lucee.runtime.engine.CFMLEngineImpl;
 import lucee.runtime.engine.ThreadLocalConfig;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.op.Caster;
 
-public class ScheduledTaskThread extends Thread {
+public class ScheduledTaskThread extends ParentThreasRefThread {
 
 	private static final long DAY = 24 * 3600000;
 	// private Calendar calendar;
@@ -130,6 +131,7 @@ public class ScheduledTaskThread extends Thread {
 			_run();
 		}
 		catch (Exception e) {
+			addParentStacktrace(e);
 			log(Log.LEVEL_ERROR, e);
 			if (e instanceof RuntimeException) throw (RuntimeException) e;
 			throw new RuntimeException(e);

@@ -11,15 +11,18 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="image" {
 
 		variables.images = directoryList( base, true, "path" );
 		//for (var image in images) systemOutput( image, true);
-		variables.imageFormats = ArrayToStruct(array=listToArray( getWriteableImageFormats() ), valueAsKey=true);
-		// for (var format in imageFormats) systemOutput( format, true );
+		variables.readImageFormats = {};
+		loop array=listToArray( getReadableImageFormats() ) item="local.format" {
+			variables.readImageFormats[ format ] = true;
+		}
+		//for (var format in readImageFormats) systemOutput( format, true );
 	}
 
 	function testImageInfo(){
 		for (var imagePath in images){
 			if ( !fileExists( imagePath ) ) {
 				// directory!
-			} else if ( structKeyExists( imageFormats, listLast( imagePath, "." ) ) ) {
+			} else if ( structKeyExists( readImageFormats, listLast( imagePath, "." ) ) ) {
 				// systemOutput("ImageInfo  - #imagePath# ", true);
 				expect ( function(){
 					expect( imageInfo( imagePath ) ).toBeStruct( imagePath );
@@ -34,7 +37,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="image" {
 		for ( var imagePath in images ){
 			if ( !fileExists( imagePath ) ) {
 				// directory!
-			} else if ( structKeyExists( imageFormats, listLast( imagePath, "." ) ) ) {
+			} else if ( structKeyExists( readImageFormats, listLast( imagePath, "." ) ) ) {
 				// systemOutput("ImageRead - #imagePath# ", true);
 				expect ( function(){
 					expect( isImage( imageRead( imagePath ) ) ).toBeTrue( imagePath );

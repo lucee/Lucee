@@ -44,7 +44,7 @@ public final class Negate extends RefSupport implements Ref {
 
 	@Override
 	public Object getValue(PageContext pc) throws PageException {
-		return new Double(-Caster.toDoubleValue(ref.getValue(pc)));
+		return Double.valueOf(-Caster.toDoubleValue(ref.getValue(pc)));
 	}
 
 	@Override
