@@ -78,7 +78,7 @@ jobs:
       if: ${{ inputs.LUCEE_TEST_JAVA_VERSION != '' }}
       run: echo "LUCEE_TEST_JAVA_VERSION=${{ inputs.LUCEE_TEST_JAVA_VERSION }}" >> $GITHUB_ENV
 
-    - uses: szenius/set-timezone@v1.0
+    - uses: szenius/set-timezone@v1.1
       with:
         timezoneLinux: "UTC"
     - uses: actions/checkout@v3.1.0

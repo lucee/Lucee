@@ -38,7 +38,6 @@ import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.GeneratorAdapter;
 import org.objectweb.asm.commons.Method;
 
-import lucee.print;
 import lucee.commons.digest.HashUtil;
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.IOUtil;
@@ -498,7 +497,7 @@ public final class Page extends BodyBase implements Root {
 		if (isComponent()) {
 			writeOutGetStaticStruct(constr, keys, cw, comp, className);
 			writeOutNewComponent(constr, keys, cw, comp, className);
-			writeOutInitComponent(constr, functions, keys, cw, comp, className);
+			funcs = writeOutInitComponent(constr, functions, keys, cw, comp, className);
 
 		}
 		else if (isInterface()) {
@@ -697,9 +696,10 @@ public final class Page extends BodyBase implements Root {
 		constrAdapter.endMethod();
 
 		// INIT KEYS
+		BytecodeContext bcInit = null;
 		{
 			GeneratorAdapter aInit = new GeneratorAdapter(Opcodes.ACC_PRIVATE + Opcodes.ACC_FINAL, INIT_KEYS, null, null, cw);
-			BytecodeContext bcInit = new BytecodeContext(optionalPS, constr, this, keys, cw, className, aInit, INIT_KEYS, writeLog(), suppressWSbeforeArg, output, returnValue);
+			bcInit = new BytecodeContext(optionalPS, constr, this, keys, cw, className, aInit, INIT_KEYS, writeLog(), suppressWSbeforeArg, output, returnValue);
 			registerFields(bcInit, keys);
 			aInit.returnValue();
 			aInit.endMethod();
@@ -718,7 +718,7 @@ public final class Page extends BodyBase implements Root {
 				while (_it.hasNext()) {
 					tc = _it.next();
 
-					tc.writeOut(this);
+					tc.writeOut(bcInit, this);
 				}
 				writeGetSubPages(cw, className, subs, sourceCode.getDialect());
 			}
@@ -1373,14 +1373,14 @@ public final class Page extends BodyBase implements Root {
 		attr = component.removeAttribute("persistent");
 		boolean persistent = false;
 		if (attr != null) {
-			persistent = ASMUtil.toBoolean(attr, component.getStart()).booleanValue();
+			persistent = ASMUtil.toBoolean(constr, attr, component.getStart()).booleanValue();
 		}
 
 		// accessors
 		attr = component.removeAttribute("accessors");
 		boolean accessors = false;
 		if (attr != null) {
-			accessors = ASMUtil.toBoolean(attr, component.getStart()).booleanValue();
+			accessors = ASMUtil.toBoolean(constr, attr, component.getStart()).booleanValue();
 		}
 
 		// modifier
@@ -1567,7 +1567,6 @@ public final class Page extends BodyBase implements Root {
 	private List<IFunction> writeOutCallBody(BytecodeContext bc, Body body, int pageType) throws TransformerException {
 		List<IFunction> funcs = new ArrayList<IFunction>();
 		extractFunctions(bc, body, funcs, pageType);
-		print.e("len:" + funcs.size());
 		writeUDFProperties(bc, funcs, pageType);
 
 		// writeTags(bc, extractProperties(body));
@@ -1750,6 +1749,9 @@ public final class Page extends BodyBase implements Root {
 	@Override
 	public int addFunction(IFunction function) {
 		functions.add(function);
+		if (function instanceof Function) {
+			((Function) function).setIndex(functions.size() - 1);
+		}
 		return functions.size() - 1;
 	}
 

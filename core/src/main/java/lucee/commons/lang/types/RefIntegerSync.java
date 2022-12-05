@@ -86,7 +86,7 @@ public class RefIntegerSync implements RefInteger, Castable {
 	 */
 	@Override
 	public synchronized Double toDouble() {
-		return new Double(value);
+		return Double.valueOf(value);
 	}
 
 	@Override

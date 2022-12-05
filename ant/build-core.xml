@@ -366,7 +366,7 @@
     </path>
 
     <!-- <pathconvert property="classpathProp" refid="classpath"/> -->
-   
+   <echo message="Using Java version ${ant.java.version}."/>
     <!-- compile the core -->
     <javac 
       srcdir="${srcCore}" 
@@ -376,6 +376,19 @@
       debug="true" debuglevel="lines,vars,source">
        <classpath refid="classpath" />
     </javac>
+
+    <!--
+<javac 
+      fork="yes"
+      executable="/Library/Java/JavaVirtualMachines/jdk-17.0.5.jdk/Contents/Home/bin/javac"
+      srcdir="${srcCore}" 
+      destdir="${core}"
+      debug="true" debuglevel="lines,vars,source">
+       <classpath refid="classpath" />
+    </javac>
+
+    -->
+
 
     <!-- copy all non java files from src -->
     <copy todir="${core}">
@@ -788,5 +801,16 @@
     <delete dir="${temp}"/>
     <echots message="done"/>
   </target>
+
+  <target name="buildLoaderFast" depends="__build,setAntEnv,addExtensions,addBundles,addFelix,createCore,createLoader" 
+    description="quick/fast generate the loader jar" >
+    <!-- version -->
+    <currentTime property="ct" />
+    <echo file="${temp}/loader/lucee/version" message="${version}:${ct}" encoding="UTF-8"/>
+    
+    <delete dir="${temp}"/>
+    <echots message="done"/>
+  </target>
+
 
 </project>

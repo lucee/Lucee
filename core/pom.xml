@@ -97,9 +97,9 @@
       <scope>compile</scope>
     </dependency>
     <dependency>
-      <groupId>org.apache.tika</groupId>
+      <groupId>org.lucee</groupId>
       <artifactId>tika-core</artifactId>
-      <version>1.27</version>
+      <version>1.28.4</version>
       <scope>provided</scope>
     </dependency>
 	<dependency>

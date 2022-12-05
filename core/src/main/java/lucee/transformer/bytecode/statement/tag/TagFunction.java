@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.types.RefBoolean;
@@ -41,6 +42,7 @@ import lucee.transformer.bytecode.statement.IFunction;
 import lucee.transformer.bytecode.statement.PrintOut;
 import lucee.transformer.bytecode.statement.udf.Function;
 import lucee.transformer.bytecode.statement.udf.FunctionImpl;
+import lucee.transformer.bytecode.util.ASMUtil;
 import lucee.transformer.expression.Expression;
 import lucee.transformer.expression.literal.LitBoolean;
 import lucee.transformer.expression.literal.LitString;
@@ -49,6 +51,7 @@ import lucee.transformer.expression.literal.Literal;
 public final class TagFunction extends TagBase implements IFunction {
 
 	private int index;
+	private Function function;
 
 	@Override
 	public int getType() {
@@ -73,13 +76,22 @@ public final class TagFunction extends TagBase implements IFunction {
 	}
 
 	public void _writeOut(BytecodeContext bc, int type) throws TransformerException {
+		if (function == null) {
+			function = createFunction(bc, bc.getFactory(), bc.getPage());
+			index = bc.getPage().addFunction(function);
+			function.setIndex(index);
+		}
+		function._writeOut(bc, type);
+	}
+
+	private Function createFunction(BytecodeContext bc, Factory f, Page page) throws TransformerException {
 
 		// private static final Expression EMPTY = LitString.toExprString("");
 
-		Body functionBody = new BodyBase(bc.getFactory());
+		Body functionBody = new BodyBase(f);
 		RefBoolean isStatic = new RefBooleanImpl();
-		Function func = createFunction(bc.getPage(), functionBody, isStatic, bc.getOutput());
-		func.setIndex(index);
+		Function func = _createFunction(bc, page, functionBody, isStatic, page.getOutput());
+		// func.setIndex(index);
 		func.setParent(getParent());
 
 		List<Statement> statements = getBody().getStatements();
@@ -88,7 +100,7 @@ public final class TagFunction extends TagBase implements IFunction {
 
 		// suppress WS between cffunction and the last cfargument
 		Tag last = null;
-		if (bc.getSupressWSbeforeArg()) {
+		if (page.getSupressWSbeforeArg()) {
 			// check if there is a cfargument at all
 			Iterator<Statement> it = statements.iterator();
 			while (it.hasNext()) {
@@ -147,7 +159,7 @@ public final class TagFunction extends TagBase implements IFunction {
 			}
 			functionBody.addStatement(stat);
 		}
-		func._writeOut(bc, type);
+		return func;
 
 	}
 
@@ -193,7 +205,7 @@ public final class TagFunction extends TagBase implements IFunction {
 
 	}
 
-	private Function createFunction(Page page, Body body, RefBoolean isStatic, boolean defaultOutput) throws TransformerException {
+	private FunctionImpl _createFunction(BytecodeContext bc, Page page, Body body, RefBoolean isStatic, boolean defaultOutput) throws TransformerException {
 		Attribute attr;
 		LitString ANY = page.getFactory().createLitString("any");
 		LitString PUBLIC = page.getFactory().createLitString("public");
@@ -218,7 +230,7 @@ public final class TagFunction extends TagBase implements IFunction {
 		// modifier
 		isStatic.setValue(false);
 		int modifier = Component.MODIFIER_NONE;
-		attr = removeAttribute("modifier");
+		attr = getAttribute("modifier");
 		if (attr != null) {
 			Expression val = attr.getValue();
 			if (val instanceof Literal) {
@@ -264,24 +276,21 @@ public final class TagFunction extends TagBase implements IFunction {
 
 		// cachedWithin
 		Literal cachedWithin = null;
-		attr = removeAttribute("cachedwithin");
+		attr = getAttribute("cachedwithin");
 		if (attr != null) {
-			Expression val = attr.getValue();
-			if (val instanceof Literal) cachedWithin = ((Literal) val);
+			cachedWithin = ASMUtil.cachedWithinValue(attr.getValue(), null);
 		}
 		String strAccess = ((LitString) access).getString();
 		int acc = ComponentUtil.toIntAccess(strAccess, -1);
-		if (acc == -1) throw new TransformerException("invalid access type [" + strAccess + "], access types are remote, public, package, private", getStart());
+		if (acc == -1) throw new TransformerException(bc, "invalid access type [" + strAccess + "], access types are remote, public, package, private", getStart());
 
-		Function func = new FunctionImpl(name, returnType, returnFormat, output, bufferOutput, acc, displayname, description, hint, secureJson, verifyClient, localMode,
+		FunctionImpl func = new FunctionImpl(name, returnType, returnFormat, output, bufferOutput, acc, displayname, description, hint, secureJson, verifyClient, localMode,
 				cachedWithin, modifier, body, getStart(), getEnd());
-		func.register(page);
-		// %**%
-		Map attrs = getAttributes();
-		Iterator it = attrs.entrySet().iterator();
+		Map<String, Attribute> attrs = getAttributes();
+		Iterator<Entry<String, Attribute>> it = attrs.entrySet().iterator();
 		HashMap<String, Attribute> metadatas = new HashMap<String, Attribute>();
 		while (it.hasNext()) {
-			attr = (Attribute) ((Map.Entry) it.next()).getValue();
+			attr = it.next().getValue();
 			metadatas.put(attr.getName(), attr);
 		}
 		func.setMetaData(metadatas);
@@ -293,8 +302,13 @@ public final class TagFunction extends TagBase implements IFunction {
 		return null;
 	}
 
-	@Override
-	public void setIndex(int index) {
-		this.index = index;
+	/*
+	 * @Override public void setIndex(int index) { this.index = index; }
+	 */
+
+	public void register(Factory factory, Page page) throws TransformerException {
+		function = createFunction(null, factory, page);
+		index = page.addFunction(function);
+		function.setIndex(index);
 	}
 }

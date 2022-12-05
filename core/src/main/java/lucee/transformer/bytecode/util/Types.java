@@ -96,6 +96,7 @@ import lucee.runtime.util.PageContextUtil;
 import lucee.runtime.util.VariableUtilImpl;
 import lucee.runtime.writer.BodyContentUtil;
 import lucee.transformer.TransformerException;
+import lucee.transformer.bytecode.BytecodeContext;
 
 public final class Types {
 
@@ -285,7 +286,7 @@ public final class Types {
 	 * @return
 	 * @throws lucee.runtime.exp.TemplateExceptionption
 	 */
-	public static Type toType(String type) throws TransformerException {
+	public static Type toType(BytecodeContext bc, String type) throws TransformerException {
 		if (type == null) return OBJECT;
 		type = type.trim();
 		String lcType = StringUtil.toLowerCase(type);
@@ -396,7 +397,7 @@ public final class Types {
 			return Type.getType(ClassUtil.loadClass(type));
 		}
 		catch (ClassException e) {
-			throw new TransformerException(e, null);
+			throw new TransformerException(bc, e, null);
 		}
 	}
 

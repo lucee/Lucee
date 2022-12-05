@@ -61,7 +61,7 @@ public final class RefDoubleImpl implements RefDouble, Castable {
 
 	@Override
 	public Double toDouble() {
-		return new Double(value);
+		return Double.valueOf(value);
 	}
 
 	@Override

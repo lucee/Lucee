@@ -54,6 +54,7 @@ import lucee.transformer.Position;
 import lucee.transformer.TransformerException;
 import lucee.transformer.bytecode.Body;
 import lucee.transformer.bytecode.BodyBase;
+import lucee.transformer.bytecode.BytecodeContext;
 import lucee.transformer.bytecode.FunctionBody;
 import lucee.transformer.bytecode.ScriptBody;
 import lucee.transformer.bytecode.Statement;
@@ -729,10 +730,10 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		else throw new TemplateException(data.srcCode, "invalid syntax in for statement");
 	}
 
-	private String toVariableName(Expression variable) {
+	private String toVariableName(BytecodeContext bc, Expression variable) {
 		if (!(variable instanceof Variable)) return null;
 		try {
-			return VariableString.variableToString((Variable) variable, false);
+			return VariableString.variableToString(bc, (Variable) variable, false);
 		}
 		catch (TransformerException e) {
 			return null;
@@ -1064,7 +1065,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 				else throw new TemplateException(data.srcCode, "attribute type must be a literal string, ");
 			}
 
-			func.addAttribute(attr);
+			func.addAttribute(null, attr);
 		}
 
 		// body
@@ -2334,7 +2335,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 
 			Body b = new BodyBase(data.factory);
 			try {
-				tryCatchFinally.addCatch(type, name, b, line);
+				tryCatchFinally.addCatch(null, type, name, b, line);
 			}
 			catch (TransformerException e) {
 				throw new TemplateException(data.srcCode, e.getMessage());

@@ -1,4 +1,4 @@
-component extends = "org.lucee.cfml.test.LuceeTestCase" labels="xml" skip="true" {
+component extends = "org.lucee.cfml.test.LuceeTestCase" labels="xml" skip="false" {
 
 	function beforeAll() {
 		variables.xml = xmlparse('<?xml version="1.0" encoding="UTF-8"?>

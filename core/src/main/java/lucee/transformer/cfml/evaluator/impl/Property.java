@@ -45,7 +45,7 @@ public final class Property extends EvaluatorSupport {
 	public static String getComponentName(Tag tag) throws EvaluatorException {
 		Page page;
 		try {
-			page = ASMUtil.getAncestorPage(tag);
+			page = ASMUtil.getAncestorPage(null, tag);
 		}
 		catch (TransformerException te) {
 			EvaluatorException ee = new EvaluatorException(te.getMessage());

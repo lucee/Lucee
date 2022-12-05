@@ -113,7 +113,7 @@ public final class Each extends BIF implements ClosureFunc {
 			int index;
 			while (it.hasNext()) {
 				index = it.nextIndex();
-				_call(pc, udf, new Object[] { it.next(), new Double(index), obj }, execute, futures);
+				_call(pc, udf, new Object[] { it.next(), Double.valueOf(index), obj }, execute, futures);
 				// udf.call(pc, new Object[]{it.next()}, true);
 			}
 		}

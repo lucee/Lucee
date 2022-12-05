@@ -902,8 +902,11 @@ public abstract class AbstrCFMLExprTransformer {
 			if (data.srcCode.forwardIfCurrent('-')) {
 				comments(data);
 				Expression expr = clip(data);
-				return data.factory.opUnaryNumber((Variable) expr, data.factory.NUMBER_ONE(), Factory.OP_UNARY_PRE, Factory.OP_UNARY_MINUS, line, data.srcCode.getPosition());
 
+				if (expr instanceof Variable) {
+					return data.factory.opUnaryNumber((Variable) expr, data.factory.NUMBER_ONE(), Factory.OP_UNARY_PRE, Factory.OP_UNARY_MINUS, line, data.srcCode.getPosition());
+				}
+				return data.factory.opNumber(data.factory.toExprNumber(expr), data.factory.createLitNumber(1), Factory.OP_DBL_MINUS);
 			}
 			comments(data);
 			return data.factory.opNegateNumber(clip(data), Factory.OP_NEG_NBR_MINUS, line, data.srcCode.getPosition());
@@ -913,8 +916,10 @@ public abstract class AbstrCFMLExprTransformer {
 			if (data.srcCode.forwardIfCurrent('+')) {
 				comments(data);
 				Expression expr = clip(data);
-
-				return data.factory.opUnaryNumber((Variable) expr, data.factory.NUMBER_ONE(), Factory.OP_UNARY_PRE, Factory.OP_UNARY_PLUS, line, data.srcCode.getPosition());
+				if (expr instanceof Variable) {
+					return data.factory.opUnaryNumber((Variable) expr, data.factory.NUMBER_ONE(), Factory.OP_UNARY_PRE, Factory.OP_UNARY_PLUS, line, data.srcCode.getPosition());
+				}
+				return data.factory.opNumber(data.factory.toExprNumber(expr), data.factory.createLitNumber(1), Factory.OP_DBL_PLUS);
 			}
 			comments(data);
 			return data.factory.toExprNumber(clip(data));
@@ -1327,7 +1332,22 @@ public abstract class AbstrCFMLExprTransformer {
 	protected abstract Function closurePart(Data data, String id, int access, int modifier, String rtnType, Position line, boolean closure) throws TemplateException;
 
 	private Expression component(Data data) throws TemplateException {
+
+		int start = data.srcCode.getPos();
 		if (!data.srcCode.forwardIfCurrent("new", "component")) return null;
+
+		// component need to be followed by attributes (component test=1 {) or directly by a curly bracked
+		if (!data.srcCode.isCurrent(' ') && !data.srcCode.isCurrent('{')) {
+			data.srcCode.setPos(start);
+			return null;
+		}
+
+		// exclude "new Component("
+		/*
+		 * data.srcCode.removeSpace(); if (data.srcCode.isCurrent('(')) { data.srcCode.setPos(start); return
+		 * null; } data.srcCode.revertRemoveSpace();
+		 */
+
 		data.srcCode.setPos(data.srcCode.getPos() - 9); // go before "component"
 		TagComponent tc = componentStatement(data, data.getParent());
 		tc.setParent(data.getParent());
