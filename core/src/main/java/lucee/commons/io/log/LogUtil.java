@@ -31,19 +31,28 @@ import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.SystemOut;
 import lucee.loader.engine.CFMLEngine;
+import lucee.loader.util.Util;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.engine.ThreadLocalPageContext;
+import lucee.runtime.exp.ApplicationException;
 
 /**
  * Helper class for the logs
  */
 public final class LogUtil {
 
+	public static int toLevel(String strLevel) throws ApplicationException {
+		int l = toLevel(strLevel, -1);
+		if (l != -1) return l;
+		throw new ApplicationException("Invalid log level name [" + strLevel + "], valid log level names are [INFO,DEBUG,WARN,ERROR,FATAL,TRACE]");
+	}
+
 	public static int toLevel(String strLevel, int defaultValue) {
-		if (strLevel == null) return defaultValue;
+		strLevel = StringUtil.emptyIfNull(strLevel).toLowerCase().trim();
 		strLevel = strLevel.toLowerCase().trim();
+		if (Util.isEmpty(strLevel, true)) return Log.LEVEL_INFO;
 		if (strLevel.startsWith("info")) return Log.LEVEL_INFO;
 		if (strLevel.startsWith("debug")) return Log.LEVEL_DEBUG;
 		if (strLevel.startsWith("warn")) return Log.LEVEL_WARN;

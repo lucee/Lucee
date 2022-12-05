@@ -165,7 +165,7 @@ public class DeployHandler {
 				ed = eds[i];
 				if (StringUtil.isEmpty(ed.getId(), true)) continue;
 				try {
-					sucess = deployExtension(config, ed, log, i + 1 == eds.length, force, throwOnError);
+					sucess = deployExtension(config, ed, log, i + 1 == eds.length, force, throwOnError, null);
 				}
 				catch (PageException e) {
 					if (throwOnError) throw e;
@@ -191,7 +191,7 @@ public class DeployHandler {
 				ed = it.next();
 				if (StringUtil.isEmpty(ed.getId(), true)) continue;
 				try {
-					sucess = deployExtension(config, ed, log, count == eds.size(), force, throwOnError);
+					sucess = deployExtension(config, ed, log, count == eds.size(), force, throwOnError, null);
 				}
 				catch (PageException e) {
 					if (throwOnError) throw e;
@@ -216,7 +216,8 @@ public class DeployHandler {
 	 * @throws IOException
 	 * @throws PageException
 	 */
-	public static boolean deployExtension(Config config, ExtensionDefintion ed, Log log, boolean reload, boolean force, boolean throwOnError) throws PageException {
+	public static boolean deployExtension(Config config, ExtensionDefintion ed, Log log, boolean reload, boolean force, boolean throwOnError, XMLConfigAdmin admin)
+			throws PageException {
 		ConfigPro ci = (ConfigPro) config;
 
 		// is the extension already installed
@@ -251,7 +252,17 @@ public class DeployHandler {
 					res = SystemUtil.getTempDirectory().getRealResource(ed.getId() + "-" + ed.getVersion() + ".lex");
 					ResourceUtil.touch(res);
 					IOUtil.copy(ext.getSource(), res);
-					XMLConfigAdmin._updateRHExtension((ConfigPro) config, res, reload, force, false);
+					if (admin == null) XMLConfigAdmin._updateRHExtension((ConfigPro) config, res, reload, force, false);
+					else {
+						try {
+							admin.updateRHExtension(config, res, reload, force, false);
+						}
+						catch (Exception e) {
+							throw Caster.toPageException(e);
+						}
+
+					}
+
 					return true;
 				}
 				catch (Exception e) {
