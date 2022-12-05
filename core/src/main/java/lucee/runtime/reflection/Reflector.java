@@ -59,15 +59,14 @@ import lucee.runtime.exp.SecurityException;
 import lucee.runtime.functions.conversion.DeserializeJSON;
 import lucee.runtime.java.JavaObject;
 import lucee.runtime.op.Caster;
-import lucee.runtime.op.OpUtil;
 import lucee.runtime.op.Decision;
 import lucee.runtime.op.Duplicator;
+import lucee.runtime.op.OpUtil;
 import lucee.runtime.reflection.pairs.ConstructorInstance;
 import lucee.runtime.reflection.pairs.MethodInstance;
 import lucee.runtime.reflection.storage.SoftMethodStorage;
 import lucee.runtime.reflection.storage.WeakConstructorStorage;
 import lucee.runtime.reflection.storage.WeakFieldStorage;
-import lucee.runtime.util.ObjectIdentityHashSet;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
@@ -82,6 +81,7 @@ import lucee.runtime.type.util.CollectionUtil;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.ListUtil;
 import lucee.runtime.type.util.Type;
+import lucee.runtime.util.ObjectIdentityHashSet;
 import lucee.transformer.bytecode.util.JavaProxyFactory;
 
 /**
@@ -413,7 +413,7 @@ public final class Reflector {
 			if (trgClass == Double.class) return Caster.toDouble(src);
 			if (trgClass == Character.class) {
 				String str = Caster.toString(src, null);
-				if (str != null && str.length() == 1) return new Character(str.charAt(0));
+				if (str != null && str.length() == 1) return Character.valueOf(str.charAt(0));
 			}
 		}
 
@@ -469,11 +469,9 @@ public final class Reflector {
 	}
 
 	private static Object componentToClass(PageContext pc, Component src, Class trgClass, RefInteger rating) throws PageException {
-
 		try {
 			JavaAnnotation ja = getJavaAnnotation(pc, trgClass.getClassLoader(), src);
 			Class<?> _extends = ja != null && ja.extend != null ? ja.extend : null;
-
 			return JavaProxyFactory.createProxy(pc, src, _extends, extractImplements(pc, src, ja, trgClass, rating));
 		}
 		catch (Exception e) {
@@ -481,7 +479,7 @@ public final class Reflector {
 		}
 	}
 
-	private static Class<?>[] extractImplements(PageContext pc, Component cfc, JavaAnnotation ja, Class<?> trgClass, RefInteger rating) throws PageException {
+	private static Class<?>[] extractImplements(PageContext pc, Component cfc, JavaAnnotation ja, Class<?> trgClass, RefInteger ratings) throws PageException {
 		Struct md = cfc.getMetaData(pc);
 		Object implementsjavaObj = md.get(KeyConstants._implementsjava, null);
 		Class<?>[] implementsjava = null;
@@ -493,7 +491,7 @@ public final class Reflector {
 			else if (Decision.isCastableToString(implementsjavaObj)) {
 				arr = ListUtil.listToStringArray(Caster.toString(md.get(KeyConstants._implementsjava), null), ',');
 			}
-			rating.plus(0);
+			if (ratings != null) ratings.plus(0);
 			if (arr != null) {
 				List<Class<?>> list = new ArrayList<Class<?>>();
 				Class<?> tmp;
@@ -501,8 +499,8 @@ public final class Reflector {
 					tmp = ClassUtil.loadClass(Caster.toString(md.get(KeyConstants._implementsjava), null), null);
 					if (tmp != null) {
 						list.add(tmp);
-						if (isInstaneOf(tmp, trgClass, true)) rating.plus(6);
-						else if (isInstaneOf(tmp, trgClass, false)) rating.plus(5);
+						if (ratings != null && isInstaneOf(tmp, trgClass, true)) ratings.plus(6);
+						else if (ratings != null && isInstaneOf(tmp, trgClass, false)) ratings.plus(5);
 					}
 				}
 				implementsjava = list.toArray(new Class[list.size()]);
@@ -1546,7 +1544,7 @@ public final class Reflector {
 	private static Byte[] toRefArray(byte[] src) {
 		Byte[] trg = new Byte[src.length];
 		for (int i = 0; i < trg.length; i++) {
-			trg[i] = new Byte(src[i]);
+			trg[i] = Byte.valueOf(src[i]);
 		}
 		return trg;
 	}
@@ -1554,7 +1552,7 @@ public final class Reflector {
 	private static Character[] toRefArray(char[] src) {
 		Character[] trg = new Character[src.length];
 		for (int i = 0; i < trg.length; i++) {
-			trg[i] = new Character(src[i]);
+			trg[i] = Character.valueOf(src[i]);
 		}
 		return trg;
 	}
@@ -1586,7 +1584,7 @@ public final class Reflector {
 	private static Float[] toRefArray(float[] src) {
 		Float[] trg = new Float[src.length];
 		for (int i = 0; i < trg.length; i++) {
-			trg[i] = new Float(src[i]);
+			trg[i] = Float.valueOf(src[i]);
 		}
 		return trg;
 	}
@@ -1594,7 +1592,7 @@ public final class Reflector {
 	private static Double[] toRefArray(double[] src) {
 		Double[] trg = new Double[src.length];
 		for (int i = 0; i < trg.length; i++) {
-			trg[i] = new Double(src[i]);
+			trg[i] = Double.valueOf(src[i]);
 		}
 		return trg;
 	}

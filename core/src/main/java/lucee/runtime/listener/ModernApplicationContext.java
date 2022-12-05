@@ -356,6 +356,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 		this.javaSettings = new JavaSettingsImpl();
 		this.component = cfc;
 		this.regex = ci.getRegex();
+		this.preciseMath = ci.getPreciseMath();
 
 		initAntiSamyPolicyResource(pc);
 		if (antiSamyPolicyResource == null) this.antiSamyPolicyResource = ((ConfigPro) config).getAntiSamyPolicy();

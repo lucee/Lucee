@@ -24,6 +24,7 @@ import java.io.StringWriter;
 import java.util.ArrayList;
 
 import lucee.commons.cli.Command;
+import lucee.commons.lang.ParentThreasRefThread;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.functions.string.ParseNumber;
 import lucee.runtime.op.Caster;
@@ -187,7 +188,7 @@ public final class RegistryQuery {
 		return (RegistryEntry[]) array.toArray(new RegistryEntry[array.size()]);
 	}
 
-	static class StreamReader extends Thread {
+	static class StreamReader extends ParentThreasRefThread {
 		private InputStream is;
 		private StringWriter sw;
 
@@ -203,7 +204,8 @@ public final class RegistryQuery {
 				while ((c = is.read()) != -1)
 					sw.write(c);
 			}
-			catch (IOException e) {
+			catch (IOException e) {// TODO log parent stacktrace as well
+
 			}
 		}
 

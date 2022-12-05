@@ -28,6 +28,7 @@ public class QueryStruct extends StructImpl implements QueryResult {
 	private int updateCount;
 	private Key[] columnNames;
 	private boolean isSingleRecord = false;
+	private String datasourceName;
 
 	public QueryStruct(String name, SQL sql, TemplateLine templateLine) {
 		super(Struct.TYPE_LINKED);
@@ -58,6 +59,9 @@ public class QueryStruct extends StructImpl implements QueryResult {
 			comment.append("Cache Type: ").append(ct).append("\n");
 		}
 
+		String datasourceName = getDatasourceName();
+		if(datasourceName != null) comment.append("Datasource: ").append(datasourceName).append("\n");
+
 		SQL sql = getSql();
 		if (sql != null) comment.append("SQL: ").append("\n").append(StringUtil.suppressWhiteSpace(sql.toString().trim())).append("\n");
 
@@ -74,6 +78,7 @@ public class QueryStruct extends StructImpl implements QueryResult {
 		qa.columnNames = columnNames;
 		qa.executionTime = executionTime;
 		qa.updateCount = updateCount;
+		qa.datasourceName = datasourceName;
 		copy(this, qa, deepCopy);
 		return qa;
 	}
@@ -96,6 +101,14 @@ public class QueryStruct extends StructImpl implements QueryResult {
 	@Override
 	public boolean isCached() {
 		return cacheType != null;
+	}
+
+	public String getDatasourceName() {
+		return datasourceName;
+	}
+
+	public void setDatasourceName(String datasourceName) {
+		this.datasourceName = datasourceName;
 	}
 
 	@Override

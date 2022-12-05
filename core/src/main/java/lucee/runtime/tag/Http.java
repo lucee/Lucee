@@ -1090,6 +1090,7 @@ public final class Http extends BodyTagImpl {
 					if (!throwonerror) {
 						if (t instanceof SocketTimeoutException) setRequestTimeout(cfhttp);
 						else setUnknownHost(cfhttp, t);
+						logHttpRequest(pageContext, cfhttp, url, req.getMethod(), System.nanoTime() - start, false);
 						return;
 					}
 					throw toPageException(t, rsp);
@@ -1109,6 +1110,7 @@ public final class Http extends BodyTagImpl {
 				if (e.t != null) {
 					if (!throwonerror) {
 						setUnknownHost(cfhttp, e.t);
+						logHttpRequest(pageContext, cfhttp, url, req.getMethod(), System.nanoTime() - start, false);
 						return;
 					}
 					throw toPageException(e.t, rsp);
@@ -1120,6 +1122,7 @@ public final class Http extends BodyTagImpl {
 					req.abort();
 					if (throwonerror) throw new HTTPException("408 Request Time-out", "a timeout occurred in tag http", 408, "Time-out", rsp == null ? null : rsp.getURL());
 					setRequestTimeout(cfhttp);
+					logHttpRequest(pageContext, cfhttp, url, req.getMethod(), System.nanoTime() - start, false);
 					return;
 					// throw new ApplicationException("timeout");
 				}
@@ -1127,7 +1130,6 @@ public final class Http extends BodyTagImpl {
 
 			/////////////////////////////////////////// EXECUTE
 			/////////////////////////////////////////// /////////////////////////////////////////////////
-			Charset responseCharset = CharsetUtil.toCharset(rsp.getCharset());
 			int statCode = 0;
 			// Write Response Scope
 			// String rawHeader=httpMethod.getStatusLine().toString();
@@ -1136,7 +1138,7 @@ public final class Http extends BodyTagImpl {
 
 			// status code
 			cfhttp.set(STATUSCODE, ((rsp.getStatusCode() + " " + rsp.getStatusText()).trim()));
-			cfhttp.set(STATUS_CODE, new Double(statCode = rsp.getStatusCode()));
+			cfhttp.set(STATUS_CODE, Double.valueOf(statCode = rsp.getStatusCode()));
 			cfhttp.set(STATUS_TEXT, (rsp.getStatusText()));
 			cfhttp.set(HTTP_VERSION, (rsp.getProtocolVersion()));
 			Array locations = rsp.getLocations();
@@ -1191,7 +1193,7 @@ public final class Http extends BodyTagImpl {
 			}
 			cfhttp.set(RESPONSEHEADER, responseHeader);
 			cfhttp.set(KeyConstants._cookies, cookies);
-			responseHeader.set(STATUS_CODE, new Double(statCode = rsp.getStatusCode()));
+			responseHeader.set(STATUS_CODE, Double.valueOf(statCode = rsp.getStatusCode()));
 			responseHeader.set(EXPLANATION, (rsp.getStatusText()));
 			if (setCookie.size() > 0) responseHeader.set(SET_COOKIE, setCookie);
 
@@ -1259,6 +1261,8 @@ public final class Http extends BodyTagImpl {
 			// filecontent
 
 			if (Boolean.TRUE == _isText && getAsBinary != GET_AS_BINARY_YES && safeToMemory) {
+				String tmp = rsp.getCharset();
+				Charset responseCharset = StringUtil.isEmpty(tmp, true) ? null : CharsetUtil.toCharset(tmp);
 				// store to memory
 				String str;
 				if (barr == null) str = contentAsString(rsp, responseCharset, contentEncoding, e);
@@ -1535,7 +1539,7 @@ public final class Http extends BodyTagImpl {
 			he.setStackTrace(traces);
 			return he;
 		}
-		PageException pe = Caster.toPageException(t);
+		PageException pe = Caster.toPageException(new Exception(t));
 		if (pe instanceof NativeException) {
 			((NativeException) pe).setAdditional(KeyConstants._url, url);
 		}
@@ -1550,7 +1554,7 @@ public final class Http extends BodyTagImpl {
 		cfhttp.setEL(KeyConstants._mimetype, "Unable to determine MIME type of file.");
 		cfhttp.setEL(RESPONSEHEADER, new StructImpl());
 		cfhttp.setEL(STATUSCODE, "Connection Failure. Status code unavailable.");
-		cfhttp.setEL(STATUS_CODE, new Double(0));
+		cfhttp.setEL(STATUS_CODE, Double.valueOf(0));
 		cfhttp.setEL(STATUS_TEXT, "Connection Failure");
 		cfhttp.setEL(KeyConstants._text, Boolean.TRUE);
 	}
@@ -1563,7 +1567,7 @@ public final class Http extends BodyTagImpl {
 		cfhttp.setEL(KeyConstants._mimetype, "Unable to determine MIME type of file.");
 		cfhttp.setEL(RESPONSEHEADER, new StructImpl());
 		cfhttp.setEL(STATUSCODE, "408 Request Time-out");
-		cfhttp.setEL(STATUS_CODE, new Double(408));
+		cfhttp.setEL(STATUS_CODE, Double.valueOf(408));
 		cfhttp.setEL(STATUS_TEXT, "Request Time-out");
 		cfhttp.setEL(KeyConstants._text, Boolean.TRUE);
 	}

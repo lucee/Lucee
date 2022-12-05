@@ -4,17 +4,17 @@
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either 
+ * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public 
+ *
+ * You should have received a copy of the GNU Lesser General Public
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  **/
 package lucee.runtime.sql;
 
@@ -26,6 +26,7 @@ import java.util.Set;
 import lucee.commons.lang.ParserString;
 import lucee.commons.lang.types.RefBoolean;
 import lucee.commons.lang.types.RefBooleanImpl;
+import lucee.runtime.exp.IllegalQoQException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.sql.exp.Column;
@@ -42,6 +43,7 @@ import lucee.runtime.sql.exp.value.ValueDate;
 import lucee.runtime.sql.exp.value.ValueNull;
 import lucee.runtime.sql.exp.value.ValueNumber;
 import lucee.runtime.sql.exp.value.ValueString;
+import lucee.runtime.db.SQL;
 
 public class SelectParser {
 
@@ -542,6 +544,23 @@ public class SelectParser {
 		if (exp == null) exp = bracked(raw);
 		if (exp == null) exp = number(raw);
 		if (exp == null) exp = string(raw);
+
+		// If there is a random : laying around like :id where we expected a column or value, it's
+		// likley a named param and the user forgot to pass their params to the query.
+		if (exp == null && raw.isCurrent( ":" ) ) {
+			String name = "";
+			int pos = raw.getPos();
+			// Strip out the next word to show the user what was after their errant :
+			do {
+				if( raw.isCurrentWhiteSpace() || raw.isCurrent( ")" ) ) break;
+				name += raw.getCurrent();
+				raw.next();
+			} while( raw.isValidIndex() );
+			throw (SQLParserException)new SQLParserException("Unexpected token [" + name + "] found at position " + pos + ". Did you forget to specify all your named params?" )
+				// Need to sneak this past Java's checked exception types
+				.initCause( new IllegalQoQException("Unsupported SQL", "", null, null) );
+		}
+
 		return exp;
 	}
 

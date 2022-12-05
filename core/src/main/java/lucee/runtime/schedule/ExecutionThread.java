@@ -30,6 +30,7 @@ import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.ContentType;
 import lucee.commons.io.res.Resource;
+import lucee.commons.lang.ParentThreasRefThread;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.net.http.HTTPEngine;
 import lucee.commons.net.http.HTTPResponse;
@@ -45,7 +46,7 @@ import lucee.runtime.net.proxy.ProxyData;
 import lucee.runtime.net.proxy.ProxyDataImpl;
 import lucee.runtime.util.URLResolver;
 
-class ExecutionThread extends Thread {
+class ExecutionThread extends ParentThreasRefThread {
 
 	private Config config;
 	// private Log log;
@@ -61,10 +62,10 @@ class ExecutionThread extends Thread {
 	@Override
 	public void run() {
 		if (ThreadLocalPageContext.getConfig() == null && config != null) ThreadLocalConfig.register(config);
-		execute(config, task, charset);
+		execute(this, config, task, charset);
 	}
 
-	public static void execute(Config config, ScheduleTask task, String charset) {
+	public static void execute(ParentThreasRefThread ptrt, Config config, ScheduleTask task, String charset) {
 		Scheduler scheduler = ((ScheduleTaskImpl) task).getScheduler();
 		if (scheduler instanceof SchedulerImpl && !((SchedulerImpl) scheduler).active()) return;
 		Log log = getLog(config);
@@ -131,6 +132,11 @@ class ExecutionThread extends Thread {
 				log.log(Log.LEVEL_ERROR, logName, e);
 			}
 			catch (Exception ee) {
+				if (ptrt != null) {
+					ptrt.addParentStacktrace(e);
+					ptrt.addParentStacktrace(ee);
+				}
+				// TODO log parent stacktrace as well
 				LogUtil.logGlobal(config, "scheduler", e);
 				LogUtil.logGlobal(config, "scheduler", ee);
 			}

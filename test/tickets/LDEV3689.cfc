@@ -28,7 +28,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 					template : "#uri#/LDEV3689.cfm",
 					forms:{Scene=1}
 				);
-				sleep(100);
+				sleep(200);
 				expect(trim(fileread(file))).tobe("$55.00");
 			});
 			it(title="Checking include page inside long running thread", skip="false", body=function( currentSpec ) {
@@ -36,7 +36,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 					template : "#uri#/LDEV3689.cfm",
 					forms:{Scene=2}
 				);
-				sleep(100);
+				sleep(200);
 				expect(trim(fileread(file))).tobe("Page included");
 			});
 			it(title="Checking custom tag inside long running thread with Application", body=function( currentSpec ) { 
@@ -44,7 +44,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 					template : "#uri#/withApp/LDEV3689.cfm",
 					forms:{Scene=1}
 				);
-				sleep(100);
+				sleep(200);
 				expect(trim(fileread(file2))).tobe("$55.00");
 			});
 			it(title="Checking include page inside long running thread with Application", body=function( currentSpec ) {
@@ -52,7 +52,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 					template : "#uri#/withApp/LDEV3689.cfm",
 					forms:{Scene=2}
 				);
-				sleep(100);
+				sleep(200);
 				expect(trim(fileread(file2))).tobe("Page included");
 			});
 		});

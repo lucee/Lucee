@@ -41,6 +41,17 @@ public final class StringDataSource implements DataSource {
 	public final static char CR = (char) 13;
 	public final static char LF = (char) 10;
 
+	/*
+	 * Some types of transfer encoding such as "quoted-printable" and "base64"
+	 * do not require wrapping of lines, because it's handled automatically
+	 * in the encoding.
+	 */
+	public StringDataSource(String text, String ct, CharSet charset) {
+		this.text = text;
+		this.ct = ct;
+		this.charset = charset;
+	}
+
 	public StringDataSource(String text, String ct, CharSet charset, int maxLineLength) {
 
 		this.text = wrapText(text, maxLineLength);

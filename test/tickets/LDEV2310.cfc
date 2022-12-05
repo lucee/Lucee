@@ -26,7 +26,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="image" {
 	}
 	
 	function beforeAll(){
-		variables.path = "/test/#listLast(getDirectoryFromPath(getCurrenttemplatepath()),"\/")#/" &"LDEV2310/";
+		variables.path = getTempDirectory() & "LDEV2310/";
 		if(!directoryExists(path)){
 			directoryCreate(path)
 		}

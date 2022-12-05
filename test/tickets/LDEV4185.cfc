@@ -16,6 +16,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ORM" skip="true" {
 	}
 
 	private boolean function notHasH2() {
+		return true;
 		variables.dbfile = "#getDirectoryFromPath( getCurrentTemplatePath() )#LDEV4185/datasource/db";
 		return !structCount(server.getDatasource("h2", variables.dbfile));
 	}

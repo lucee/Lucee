@@ -92,7 +92,7 @@ public final class Break extends EvaluatorSupport {
 		if (value instanceof Variable) {
 			Variable var = (Variable) value;
 			try {
-				return VariableString.variableToString(var, true);
+				return VariableString.variableToString(null, var, true);
 			}
 			catch (Throwable t) {
 				ExceptionUtil.rethrowIfNecessary(t);

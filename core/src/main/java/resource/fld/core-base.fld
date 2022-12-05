@@ -4758,7 +4758,7 @@ EntitySave(entity, [forceInsert])</description>
 		<description>Returns the mimetype of the given file</description>
 		<argument>
 			<name>file</name>
-			<alias>FilePath,source</alias>
+			<alias>FilePath,source,path,FileObject</alias>
 			<type>any</type>
 			<required>Yes</required>
 			<description>file path or object</description>
@@ -4769,7 +4769,12 @@ EntitySave(entity, [forceInsert])</description>
 			<type>boolean</type>
 			<required>No</required>
 			<default>true</default>
-			<description>if set to true, Lucee checks the header of the file, when set to false, Lucee only checks the extension.</description>
+			<description>if set to true, Lucee checks the header of the file, when set to false, Lucee only checks the extension.
+
+When true, an empty or non existent file will throw an error.
+
+Lucee uses Apache Tika for detection, but only the basic core version and does not include the full suite of tika parsers due to their size.
+			</description>
 		</argument>
 		<return>
 			<type>string</type>
@@ -4919,6 +4924,7 @@ If you do not specify the mode, Lucee opens the file in read mode.</description>
    		</argument>
 		<argument>
 			<name>accept</name>
+			<alias>mimeType</alias>
 			<type>string</type>
 			<required>no</required>
 			<description>Limits the MIME types to accept. Comma-delimited list. For example, to permit JPG and Microsoft Word file uploads:
@@ -4931,6 +4937,13 @@ The browser uses file extension to determine file type. </description>
 			<type>string</type>
 			<required>no</required>
 			<description>Action to take if filename is the same as that of a file in the directory.</description>
+    	</argument>
+		<argument>
+			<name>strict</name>
+			<type>boolean</type>
+			<required>no</required>
+			<description>true (default), only mimetypes are supported in the accept attribute.
+if set to false, it supports file extension/mimetypes in the accept attribute</description>
     	</argument>
 		<argument>
 			<name>allowedExtensions</name>
@@ -4996,6 +5009,13 @@ The browser uses file extension to determine file type. </description>
 			<type>string</type>
 			<required>no</required>
 			<description>Action to take if filename is the same as that of a file in the directory.</description>
+    	</argument>
+		<argument>
+			<name>strict</name>
+			<type>boolean</type>
+			<required>no</required>
+			<description>true (default), only mimetypes are supported in the accept attribute.
+if set to false, it supports file extension/mimetypes in the accept attribute</description>
     	</argument>
 		<argument>
 			<name>allowedExtensions</name>
@@ -6064,12 +6084,12 @@ The returned number of unallocated bytes is a hint, but not a guarantee, that it
 	<function>
 		<name>getFunctionData</name>
 		<class>lucee.runtime.functions.other.GetFunctionData</class>
-		<description>returns information to a single function</description>
+		<description>Returns information about a built in function (BIF)</description>
 		<argument>
 			<name>functionName</name>
 			<type>string</type>
 			<required>Yes</required>
-			<description>name of the function getting information for</description>
+			<description>Name of the built in function to return information about</description>
 		</argument>
 		<return>
 			<type>struct</type>
@@ -10747,6 +10767,46 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</return>
 	</function>
 
+	<!-- queryToStruct -->
+	<function>
+		<name>queryToStruct</name>
+		<class>lucee.runtime.functions.query.QueryToStruct</class>
+		<member-name>ToStruct</member-name>
+		<keywords>query,struct</keywords>
+		<description>Copy the query columns data to struct by using the columnKey argument</description>
+		<argument>
+			<name>query</name>
+			<type>query</type>
+			<required>Yes</required>
+			<description>A query to copy to a struct</description>
+		</argument>
+		<argument>
+			<name>columnKey</name>
+			<alias>column,columnName</alias>
+			<type>string</type>
+			<required>Yes</required>
+			<description>Column name that values are used for struct key</description>
+		</argument>
+		<argument>
+			<name>structType</name>
+			<alias>type</alias>
+			<type>string</type>
+			<required>No</required>
+			<default>ordered</default>
+			<description>default:ordered, Struct type to created</description>
+		</argument>
+		<argument>
+			<name>valueRowNumber</name>
+			<alias>valueAsRowNumber</alias>
+			<type>boolean</type>
+			<required>No</required>
+			<description>default: false, the boolean value that indicates the struct values return as column data or row number</description>
+		</argument>
+		<return>
+			<type>struct</type>
+		</return>
+	</function>
+
 	<!-- randomize -->
 	<function>
 		<name>randomize</name>
@@ -11030,20 +11090,20 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<name>string</name>
 			<type>string</type>
 			<required>Yes</required>
-		<description>String in which to search.</description>
-    </argument>
+			<description>String in which to search.</description>
+		</argument>
 		<argument>
 			<name>start</name>
 			<type>number</type>
 			<required>Yes</required>
-		<description></description>
-    </argument>
+			<description>Start position of search from the left.</description>
+		</argument>
 		<argument>
 			<name>count</name>
 			<type>number</type>
 			<required>Yes</required>
-		<description></description>
-    </argument>
+			<description>Count of characters to be removed.</description>
+		</argument>
 		<return>
 			<type>string</type>
 		</return>

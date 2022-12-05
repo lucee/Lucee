@@ -60,7 +60,7 @@ public final class NamedArgument extends Argument {
 		int type = STRING;
 		if (name instanceof Variable && !((Variable) name).fromHash()) {
 			GeneratorAdapter adapter = bc.getAdapter();
-			String[] arr = VariableString.variableToStringArray((Variable) name, true);
+			String[] arr = VariableString.variableToStringArray(bc, (Variable) name, true);
 			if (arr.length > 1) {
 				form = ARRAY;
 				ArrayVisitor av = new ArrayVisitor();
@@ -74,7 +74,7 @@ public final class NamedArgument extends Argument {
 			}
 			else {
 				// VariableString.toExprString(name).writeOut(bc, MODE_REF);
-				String str = VariableString.variableToString((Variable) name, true);
+				String str = VariableString.variableToString(bc, (Variable) name, true);
 				name = bc.getFactory().createLitString(varKeyUpperCase ? str.toUpperCase() : str);
 				getFactory().registerKey(bc, VariableString.toExprString(name), false);
 				type = KEY;

@@ -52,7 +52,7 @@ public abstract class ExpressionBase implements Expression {
 			return Types.toClass(writeOutAsType(c, mode));
 		}
 		catch (ClassException e) {
-			throw new TransformerException(e, null);
+			throw new TransformerException(c, e, null);
 		}
 	}
 
