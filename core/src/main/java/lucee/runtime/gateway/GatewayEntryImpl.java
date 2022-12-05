@@ -163,6 +163,15 @@ public class GatewayEntryImpl implements GatewayEntry {
 		return defautValue;
 	}
 
+	public static int toStartup(String strMode) throws ApplicationException {
+		strMode = strMode.trim().toLowerCase();
+		if (StringUtil.isEmpty(strMode, true)) return STARTUP_MODE_MANUAL;
+		else if ("manual".equals(strMode)) return STARTUP_MODE_MANUAL;
+		else if ("disabled".equals(strMode)) return STARTUP_MODE_DISABLED;
+		else if ("automatic".equals(strMode)) return STARTUP_MODE_AUTOMATIC;
+		throw new ApplicationException("Invalid startup mode [" + strMode + "], valid values are [automatic,manual,disabled]");
+	}
+
 	public static int toStartup(String strMode, int defaultValue) {
 		strMode = strMode.trim().toLowerCase();
 		if ("manual".equals(strMode)) return STARTUP_MODE_MANUAL;

@@ -2881,7 +2881,7 @@ public final class XMLConfigAdmin {
 		else scope.removeAttribute("applicationtimeout");
 	}
 
-	public void updateApplicationListener(String type, String mode) throws SecurityException {
+	public void updateApplicationListenerType(String type) throws SecurityException {
 		checkWriteAccess();
 		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 
@@ -2889,6 +2889,15 @@ public final class XMLConfigAdmin {
 
 		Element scope = _getRootElement("application");
 		scope.setAttribute("listener-type", type.toLowerCase().trim());
+	}
+
+	public void updateApplicationListenerMode(String mode) throws SecurityException {
+		checkWriteAccess();
+		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
+
+		if (!hasAccess) throw new SecurityException("no access to update listener type");
+
+		Element scope = _getRootElement("application");
 		scope.setAttribute("listener-mode", mode.toLowerCase().trim());
 	}
 
@@ -3076,9 +3085,9 @@ public final class XMLConfigAdmin {
 	 * @param useTimeServer
 	 * @throws PageException
 	 */
-	public void updateTimeServer(String timeServer, Boolean useTimeServer) throws PageException {
+	public void updateTimeServer(String timeServer, boolean verify) throws PageException {
 		checkWriteAccess();
-		if (useTimeServer != null && useTimeServer.booleanValue() && !StringUtil.isEmpty(timeServer, true)) {
+		if (verify && !StringUtil.isEmpty(timeServer, true)) {
 			try {
 				new NtpClient(timeServer).getOffset();
 			}
@@ -3097,6 +3106,15 @@ public final class XMLConfigAdmin {
 
 		Element scope = _getRootElement("regional");
 		scope.setAttribute("timeserver", timeServer.trim());
+	}
+
+	public void updateUseTimeServer(Boolean useTimeServer) throws PageException {
+		checkWriteAccess();
+
+		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
+		if (!hasAccess) throw new SecurityException("no access to update regional setting");
+
+		Element scope = _getRootElement("regional");
 		if (useTimeServer != null) scope.setAttribute("use-timeserver", Caster.toString(useTimeServer));
 		else scope.removeAttribute("use-timeserver");
 	}
@@ -3245,8 +3263,7 @@ public final class XMLConfigAdmin {
 	 * @param debug if value is null server setting is used
 	 * @throws SecurityException
 	 */
-	public void updateDebug(Boolean debug, Boolean template, Boolean database, Boolean exception, Boolean tracing, Boolean dump, Boolean timer, Boolean implicitAccess,
-			Boolean queryUsage) throws SecurityException {
+	public void updateDebug(Boolean debug) throws SecurityException {
 		checkWriteAccess();
 		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_DEBUGGING);
 		if (!hasAccess) throw new SecurityException("no access to change debugging settings");
@@ -3254,27 +3271,83 @@ public final class XMLConfigAdmin {
 
 		if (debug != null) debugging.setAttribute("debug", Caster.toString(debug.booleanValue()));
 		else debugging.removeAttribute("debug");
+	}
 
-		if (database != null) debugging.setAttribute("database", Caster.toString(database.booleanValue()));
-		else debugging.removeAttribute("database");
+	public void updateDebugTemplate(Boolean template) throws SecurityException {
+		checkWriteAccess();
+		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_DEBUGGING);
+		if (!hasAccess) throw new SecurityException("no access to change debugging settings");
+		Element debugging = _getRootElement("debugging");
 
 		if (template != null) debugging.setAttribute("templenabled", Caster.toString(template.booleanValue()));
 		else debugging.removeAttribute("templenabled");
+	}
+
+	public void updateDebugDatabase(Boolean database) throws SecurityException {
+		checkWriteAccess();
+		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_DEBUGGING);
+		if (!hasAccess) throw new SecurityException("no access to change debugging settings");
+		Element debugging = _getRootElement("debugging");
+
+		if (database != null) debugging.setAttribute("database", Caster.toString(database.booleanValue()));
+		else debugging.removeAttribute("database");
+	}
+
+	public void updateDebugException(Boolean exception) throws SecurityException {
+		checkWriteAccess();
+		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_DEBUGGING);
+		if (!hasAccess) throw new SecurityException("no access to change debugging settings");
+		Element debugging = _getRootElement("debugging");
 
 		if (exception != null) debugging.setAttribute("exception", Caster.toString(exception.booleanValue()));
 		else debugging.removeAttribute("exception");
+	}
+
+	public void updateDebugTracing(Boolean tracing) throws SecurityException {
+		checkWriteAccess();
+		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_DEBUGGING);
+		if (!hasAccess) throw new SecurityException("no access to change debugging settings");
+		Element debugging = _getRootElement("debugging");
 
 		if (tracing != null) debugging.setAttribute("tracing", Caster.toString(tracing.booleanValue()));
 		else debugging.removeAttribute("tracing");
+	}
+
+	public void updateDebugDump(Boolean dump) throws SecurityException {
+		checkWriteAccess();
+		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_DEBUGGING);
+		if (!hasAccess) throw new SecurityException("no access to change debugging settings");
+		Element debugging = _getRootElement("debugging");
 
 		if (dump != null) debugging.setAttribute("dump", Caster.toString(dump.booleanValue()));
 		else debugging.removeAttribute("dump");
+	}
+
+	public void updateDebugTimer(Boolean timer) throws SecurityException {
+		checkWriteAccess();
+		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_DEBUGGING);
+		if (!hasAccess) throw new SecurityException("no access to change debugging settings");
+		Element debugging = _getRootElement("debugging");
 
 		if (timer != null) debugging.setAttribute("timer", Caster.toString(timer.booleanValue()));
 		else debugging.removeAttribute("timer");
+	}
+
+	public void updateDebugImplicitAccess(Boolean implicitAccess) throws SecurityException {
+		checkWriteAccess();
+		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_DEBUGGING);
+		if (!hasAccess) throw new SecurityException("no access to change debugging settings");
+		Element debugging = _getRootElement("debugging");
 
 		if (implicitAccess != null) debugging.setAttribute("implicit-access", Caster.toString(implicitAccess.booleanValue()));
 		else debugging.removeAttribute("implicit-access");
+	}
+
+	public void updateDebugQueryUsage(Boolean queryUsage) throws SecurityException {
+		checkWriteAccess();
+		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_DEBUGGING);
+		if (!hasAccess) throw new SecurityException("no access to change debugging settings");
+		Element debugging = _getRootElement("debugging");
 
 		if (queryUsage != null) debugging.setAttribute("query-usage", Caster.toString(queryUsage.booleanValue()));
 		else debugging.removeAttribute("query-usage");
@@ -5983,8 +6056,7 @@ public final class XMLConfigAdmin {
 		if (el.hasAttribute("layout")) el.removeAttribute("layout");
 	}
 
-	public void updateCompilerSettings(Boolean dotNotationUpperCase, Boolean suppressWSBeforeArg, Boolean nullSupport, Boolean handleUnQuotedAttrValueAsString,
-			Integer externalizeStringGTE) throws PageException {
+	public void updateCompilerSettingsDotNotationUpperCase(Boolean dotNotationUpperCase) throws PageException {
 
 		Element element = _getRootElement("compiler");
 
@@ -5995,6 +6067,13 @@ public final class XMLConfigAdmin {
 		else {
 			element.setAttribute("dot-notation-upper-case", Caster.toString(dotNotationUpperCase));
 		}
+	}
+
+	public void updateCompilerSettingsSuppressWSBeforeArg(Boolean suppressWSBeforeArg) throws PageException {
+
+		Element element = _getRootElement("compiler");
+
+		checkWriteAccess();
 
 		// remove old settings
 		if (element.hasAttribute("supress-ws-before-arg")) element.removeAttribute("supress-ws-before-arg");
@@ -6005,6 +6084,13 @@ public final class XMLConfigAdmin {
 		else {
 			element.setAttribute("suppress-ws-before-arg", Caster.toString(suppressWSBeforeArg));
 		}
+	}
+
+	public void updateCompilerSettingsNullSupport(Boolean nullSupport) throws PageException {
+
+		Element element = _getRootElement("compiler");
+
+		checkWriteAccess();
 
 		// full null support
 		if (nullSupport == null) {
@@ -6013,14 +6099,13 @@ public final class XMLConfigAdmin {
 		else {
 			element.setAttribute("full-null-support", Caster.toString(nullSupport));
 		}
+	}
 
-		// externalize-string-gte
-		if (externalizeStringGTE == null) {
-			if (element.hasAttribute("externalize-string-gte")) element.removeAttribute("externalize-string-gte");
-		}
-		else {
-			element.setAttribute("externalize-string-gte", Caster.toString(externalizeStringGTE));
-		}
+	public void updateCompilerSettingsHandleUnQuotedAttrValueAsString(Boolean handleUnQuotedAttrValueAsString) throws PageException {
+
+		Element element = _getRootElement("compiler");
+
+		checkWriteAccess();
 
 		// handle Unquoted Attribute Values As String
 		if (handleUnQuotedAttrValueAsString == null) {
@@ -6029,7 +6114,20 @@ public final class XMLConfigAdmin {
 		else {
 			element.setAttribute("handle-unquoted-attribute-value-as-string", Caster.toString(handleUnQuotedAttrValueAsString));
 		}
+	}
 
+	public void updateCompilerSettingsExternalizeStringGTE(Integer externalizeStringGTE) throws PageException {
+
+		Element element = _getRootElement("compiler");
+
+		checkWriteAccess();
+		// externalize-string-gte
+		if (externalizeStringGTE == null) {
+			if (element.hasAttribute("externalize-string-gte")) element.removeAttribute("externalize-string-gte");
+		}
+		else {
+			element.setAttribute("externalize-string-gte", Caster.toString(externalizeStringGTE));
+		}
 	}
 
 	Resource[] updateWebContexts(InputStream is, String realpath, boolean closeStream, boolean store) throws PageException, IOException, SAXException, BundleException {

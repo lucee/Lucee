@@ -17,6 +17,7 @@ import javax.servlet.jsp.tagext.Tag;
 import org.apache.logging.log4j.core.layout.HtmlLayout;
 import org.apache.logging.log4j.core.layout.PatternLayout;
 
+import lucee.commons.digest.HashUtil;
 import lucee.commons.io.DevNullOutputStream;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.LogUtil;
@@ -27,7 +28,11 @@ import lucee.commons.io.log.log4j2.layout.ClassicLayout;
 import lucee.commons.io.log.log4j2.layout.DataDogLayout;
 import lucee.commons.io.log.log4j2.layout.XMLLayout;
 import lucee.commons.io.res.Resource;
+import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ExceptionUtil;
+import lucee.commons.lang.StringUtil;
+import lucee.commons.lang.types.RefBoolean;
+import lucee.commons.lang.types.RefBooleanImpl;
 import lucee.loader.engine.CFMLEngine;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.loader.util.Util;
@@ -36,18 +41,33 @@ import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.config.ConfigWebPro;
+import lucee.runtime.config.ConfigWebUtil;
+import lucee.runtime.config.DeployHandler;
+import lucee.runtime.config.Password;
+import lucee.runtime.config.XMLConfigAdmin;
+import lucee.runtime.db.ClassDefinition;
+import lucee.runtime.db.ParamSyntax;
 import lucee.runtime.engine.ThreadLocalPageContext;
+import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.tag.DynamicAttributes;
+import lucee.runtime.extension.ExtensionDefintion;
+import lucee.runtime.extension.RHExtension;
+import lucee.runtime.gateway.GatewayEntryImpl;
 import lucee.runtime.interpreter.JSONExpressionInterpreter;
 import lucee.runtime.op.Caster;
+import lucee.runtime.op.Decision;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
+import lucee.runtime.type.StructImpl;
+import lucee.runtime.type.dt.TimeSpan;
+import lucee.runtime.type.dt.TimeSpanImpl;
 import lucee.runtime.util.Cast;
 import lucee.runtime.util.PageContextUtil;
+import lucee.transformer.library.ClassDefinitionImpl;
 
 public class CFConfigImport {
 
@@ -162,111 +182,1000 @@ public class CFConfigImport {
 			tag = new Admin(!validatePassword);
 
 			dynAttr = (DynamicAttributes) tag;
+			boolean isServer = "server".equalsIgnoreCase(type);
+			String strPW = ConfigWebUtil.decrypt(password);
+			Password pw; // hash password if
+			if (isServer && config instanceof ConfigWebPro) {
+				pw = ((ConfigWebPro) config).isServerPasswordEqual(strPW);
+			}
+			else {
+				pw = config.isPasswordEqual(strPW);
+			}
 
-			set(pc, json, "updateCharset", new Item("webcharset"), new Item("resourcecharset"), new Item("templatecharset"));
+			// Config
+			ConfigPro cp;
+			if (isServer) {
+				cp = (ConfigPro) (ThreadLocalPageContext.getConfig(config)).getConfigServer(password);
+			}
+			else cp = (ConfigPro) ThreadLocalPageContext.getConfig(config);
 
-			set(pc, json, "updateRegional", new Item("usetimeserver").setDefault(true), new Item("locale").setDefault(config.getLocale()),
-					new Item("timeserver").setDefault(config.getTimeServer()), new Item("timezone").setDefault(config.getTimeZone()));
+			XMLConfigAdmin admin = XMLConfigAdmin.newInstance(config, pw, !validatePassword);
+			Object obj;
+			String str;
+			Boolean bool;
+			Integer in;
+			RefBoolean empty = new RefBooleanImpl();
+			TimeSpan ts;
+			// TEST: applicationMode
 
-			set(pc, json, "updateApplicationListener", new Item(new String[] { "applicationMode" }, "listenermode", null),
-					new Item(new String[] { "applicationListener", "applicationType", "listenertype" }, "listenertype", null)
-							.setDefault(config.getApplicationListener().getType()));
+			// charset
+			str = getAsString(json, "resourcecharset");
+			if (str != null) {
+				try {
+					admin.updateResourceCharset(str);
+				}
+				catch (Throwable t) {
+					handleException(pc, t);
+				}
+			}
 
-			set(pc, json, "updatePerformanceSettings", new Item("inspecttemplate"), new Item("cachedafter"), new Item("typechecking"));
+			str = getAsString(json, "templateCharset");
+			if (str != null) {
+				try {
+					admin.updateTemplateCharset(str);
+				}
+				catch (Throwable t) {
+					handleException(pc, t);
+				}
+			}
 
-			set(pc, json, "updateApplicationSetting", new Item("applicationpathtimeout"), new Item("requesttimeout"), new Item("scriptprotect"),
-					new Item("requestTimeoutInURL", "allowurlrequesttimeout"));
+			str = getAsString(json, "webcharset");
+			if (str != null) {
+				try {
+					admin.updateWebCharset(str);
+				}
+				catch (Throwable t) {
+					handleException(pc, t);
+				}
+			}
 
-			set(pc, json, "updateCompilerSettings", new Item("nullsupport"), new Item("handleunquotedattrvalueasstring"), new Item("externalizestringgte"),
-					new Item("dotnotationuppercase", "dotNotationUpperCase"), new Item("suppressWhitespaceBeforeArgument", "suppresswsbeforearg"), new Item("templatecharset"));
+			// regional
+			str = getAsString(json, "locale");
+			if (str != null) {
+				try {
+					admin.updateLocale(str);
+				}
+				catch (Throwable t) {
+					handleException(pc, t);
+				}
+			}
 
-			set(pc, json, "updateSecurity", new Item("varusage"));
+			str = getAsString(json, "timezone");
+			if (str != null) {
+				try {
+					admin.updateTimeZone(str);
+				}
+				catch (Throwable t) {
+					handleException(pc, t);
+				}
+			}
 
-			set(pc, json, "updateOutputSetting", new Item("allowcompression"), new Item("whitespaceManagement", "cfmlwriter"), new Item("suppresscontent"),
-					new Item("bufferTagBodyOutput", "bufferoutput"), new Item("showContentLength", "contentlength"));
+			str = getAsString(json, "timeserver");
+			if (str != null) {
+				try {
+					admin.updateTimeServer(str, false);
+				}
+				catch (Throwable t) {
+					handleException(pc, t);
+				}
+			}
 
-			set(pc, json, "updateRegex", new Item("regextype"));
+			bool = getAsBoolean(json, empty, "usetimeserver");
+			if (bool != null) {
+				try {
+					admin.updateUseTimeServer(bool);
+				}
+				catch (Throwable t) {
+					handleException(pc, t);
+				}
+			}
 
-			set(pc, json, "updateORMSetting", new Item("ormconfig"), new Item("ormsqlscript", "sqlscript"), new Item("ormusedbformapping", "usedbformapping"),
-					new Item("ormeventhandling", "eventhandling"), new Item("ormsecondarycacheenabled", "secondarycacheenabled"), new Item("ormautogenmap", "autogenmap"),
-					new Item("ormlogsql", "logsql"), new Item("ormcacheconfig", "cacheconfig"), new Item("ormsavemapping", "savemapping"), new Item("ormschema", "schema"),
-					new Item("ormdbcreate", "dbcreate"), new Item("ormcfclocation", "cfclocation"), new Item("ormflushatrequestend", "flushatrequestend"),
-					new Item("ormcacheprovider", "cacheprovider"), new Item("ormcatalog", "catalog"));
+			// application listener
+			str = getAsString(json, "applicationListener", "applicationType", "listenertype");
+			if (str != null) {
+				try {
+					admin.updateApplicationListenerType(str);
+				}
+				catch (Throwable t) {
+					handleException(pc, t);
+				}
+			}
 
-			set(pc, json, "updateMailSetting", new Item(new String[] { "mailDefaultEncoding" }, "defaultencoding", null),
-					new Item(new String[] { "mailConnectionTimeout" }, "timeout", null), new Item("mailSpoolEnable", "spoolenable"));
+			// application mode
+			str = getAsString(json, "applicationMode", "listenerMode");
+			if (str != null) {
+				try {
+					admin.updateApplicationListenerMode(str);
+				}
+				catch (Throwable t) {
+					handleException(pc, t);
+				}
+			}
 
-			set(pc, json, "updateRestSettings", new Item(new String[] { "Restlist" }, "list", null));
+			// Performance Settings
+			str = getAsString(json, "inspecttemplate");
+			if (str != null) {
+				try {
+					admin.updateInspectTemplate(str);
+				}
+				catch (Throwable t) {
+					handleException(pc, t);
+				}
+			}
 
-			set(pc, json, "updateComponent", new Item("componentUseVariablesScope", "useshadow"), new Item("componentdumptemplate"),
-					new Item(new String[] { "componentDeepSearch" }, "deepsearch", null).setDefault(false), new Item("basecomponenttemplatelucee"), new Item("componentpathcache"),
-					new Item("componentdatamemberdefaultaccess"), new Item("basecomponenttemplatecfml"), new Item("componentlocalsearch"), new Item("componentdefaultimport"),
-					new Item("componentImplicitNotation", "triggerdatamember"));
+			bool = getAsBoolean(json, empty, "udftypechecking", "typechecking");
+			if (bool != null || empty.toBooleanValue()) {
+				try {
+					admin.updateTypeChecking(bool);
+				}
+				catch (Throwable t) {
+					handleException(pc, t);
+				}
+			}
 
-			set(pc, json, "updateCustomTagSetting", new Item(new String[] { "customTagLocalSearch" }, "localsearch", null).setDefault(config.doLocalCustomTag()),
-					new Item(new String[] { "customTagDeepSearch" }, "deepsearch", null).setDefault(config.doCustomTagDeepSearch()),
-					new Item(new String[] { "customTagExtensions" }, "extensions", null).setDefault(config.getCustomTagExtensions()),
-					new Item("customtagpathcache").setDefault(true));
+			// cached after
+			ts = getAsTimespan(json, empty, null, 1000, "querycachedafter", "cachedafter");
+			if (ts != null || empty.toBooleanValue()) {
+				try {
+					admin.updateCachedAfterTimeRange(ts);
+				}
+				catch (Throwable t) {
+					handleException(pc, t);
+				}
+			}
 
-			set(pc, json, "updateDebug", new Item(new String[] { "debuggingException" }, "exception", null),
-					new Item(new String[] { "debuggingImplicitAccess" }, "implicitaccess", null), new Item(new String[] { "debuggingTracing" }, "tracing", null),
-					new Item(new String[] { "debuggingQueryUsage" }, "queryusage", null), new Item(new String[] { "debuggingTemplate" }, "template", null),
-					new Item(new String[] { "debuggingDatabase" }, "database", null), new Item(new String[] { "debuggingDump" }, "dump", null), new Item("debugtemplate"),
-					new Item(new String[] { "debuggingEnable", "debuggingEnabled" }, "debug", null), new Item(new String[] { "debuggingTimer" }, "timer", null));
+			// ApplicationSetting
+			ts = getAsTimespan(json, empty, null, 1000, "requesttimeout");
+			if (ts != null || empty.toBooleanValue()) {
+				try {
+					admin.updateRequestTimeout(ts);
+				}
+				catch (Throwable t) {
+					handleException(pc, t);
+				}
+			}
+			str = getAsString(json, "scriptprotect");
+			if (str != null) {
+				try {
+					admin.updateScriptProtect(str);
+				}
+				catch (Throwable t) {
+					handleException(pc, t);
+				}
+			}
+			bool = getAsBoolean(json, empty, "allowurlrequesttimeout", "requestTimeoutInURL");
+			if (bool != null || empty.toBooleanValue()) {
+				try {
+					admin.updateAllowURLRequestTimeout(bool);
+				}
+				catch (Throwable t) {
+					handleException(pc, t);
+				}
+			}
 
-			set(pc, json, "updatemailsetting", new Item(new String[] { "mailSpoolEnable", "mailSpoolEnabled" }, "spoolenable", null),
-					new Item(new String[] { "mailConnectionTimeout", "mailTimeout" }, "timeout", null),
-					new Item(new String[] { "maildefaultencoding", "mailencoding" }, "defaultencoding", null));
+			// Compiler Settings
+			bool = getAsBoolean(json, empty, "dotnotationuppercase");
+			if (bool != null || empty.toBooleanValue()) {
+				try {
+					admin.updateCompilerSettingsDotNotationUpperCase(bool);
+				}
+				catch (Throwable t) {
+					handleException(pc, t);
+				}
+			}
+			in = getAsInteger(json, empty, "externalizestringgte");
+			if (in != null || empty.toBooleanValue()) {
+				try {
+					admin.updateCompilerSettingsExternalizeStringGTE(in);
+				}
+				catch (Throwable t) {
+					handleException(pc, t);
+				}
+			}
+			bool = getAsBoolean(json, empty, "handleunquotedattrvalueasstring");
+			if (bool != null || empty.toBooleanValue()) {
+				try {
+					admin.updateCompilerSettingsHandleUnQuotedAttrValueAsString(bool);
+				}
+				catch (Throwable t) {
+					handleException(pc, t);
+				}
+			}
+			bool = getAsBoolean(json, empty, "nullsupport");
+			if (bool != null || empty.toBooleanValue()) {
+				try {
+					admin.updateCompilerSettingsNullSupport(bool);
+				}
+				catch (Throwable t) {
+					handleException(pc, t);
+				}
+			}
+			bool = getAsBoolean(json, empty, "suppressWhitespaceBeforeArgument", "suppresswsbeforearg");
+			if (bool != null || empty.toBooleanValue()) {
+				try {
+					admin.updateCompilerSettingsSuppressWSBeforeArg(bool);
+				}
+				catch (Throwable t) {
+					handleException(pc, t);
+				}
+			}
+			str = getAsString(json, "templatecharset");
+			if (str != null) {
+				try {
+					admin.updateTemplateCharset(str);
+				}
+				catch (Throwable t) {
+					handleException(pc, t);
+				}
+			}
 
-			set(pc, json, "updateError", new Item(new String[] { "generalErrorTemplate" }, "template500", null),
-					new Item(new String[] { "missingErrorTemplate" }, "template404", null), new Item(new String[] { "errorStatusCode" }, "statuscode", null).setDefault(true));
+			// security
+			str = getAsString(json, "varusage");
+			if (str != null) {
+				try {
+					admin.updateSecurity(str);
+				}
+				catch (Throwable t) {
+					handleException(pc, t);
+				}
+			}
 
-			setGroup(pc, json, "updateDatasource", "datasources", new String[] { "name", "databases" }, new Item("class", "classname"), new Item("bundleName"),
-					new Item("bundleVersion"), new Item("connectionlimit").setDefault(-1), new Item("connectiontimeout").setDefault(-1), new Item("livetimeout").setDefault(-1),
-					new Item("custom"), new Item("validate").setDefault(false), new Item("verify").setDefault(true), new Item("host"), new Item("port").setDefault(-1),
-					new Item("connectionString", "dsn"), new Item("username", "dbusername"), new Item("password", "dbpassword"), new Item("storage").setDefault(false),
-					new Item("metacachetimeout").setDefault(60000), new Item("alwayssettimeout").setDefault(false), new Item("dbdriver"), new Item("database"),
-					new Item("blob").setDefault(false), new Item("name"), new Item("requestexclusive").setDefault(false), new Item("customparametersyntax"),
-					new Item("alwaysresetconnections").setDefault(false), new Item("timezone"), new Item("clob").setDefault(false),
-					new Item("literaltimestampwithtsoffset").setDefault(false), new Item("newname")
+			// output settings
+			str = getAsString(json, "whitespaceManagement", "cfmlwriter");
+			if (str != null) {
+				try {
+					admin.updateCFMLWriterType(str);
+				}
+				catch (Throwable t) {
+					handleException(pc, t);
+				}
+			}
+			bool = getAsBoolean(json, empty, "suppresscontent", "suppresscontentForCFCRemotimg");
+			if (bool != null || empty.toBooleanValue()) {
+				try {
+					admin.updateSuppressContent(bool);
+				}
+				catch (Throwable t) {
+					handleException(pc, t);
+				}
+			}
+			bool = getAsBoolean(json, empty, "allowcompression");
+			if (bool != null || empty.toBooleanValue()) {
+				try {
+					admin.updateAllowCompression(bool);
+				}
+				catch (Throwable t) {
+					handleException(pc, t);
+				}
+			}
+			bool = getAsBoolean(json, empty, "showContentLength", "contentlength");
+			if (bool != null || empty.toBooleanValue()) {
+				try {
+					admin.updateContentLength(bool);
+				}
+				catch (Throwable t) {
+					handleException(pc, t);
+				}
+			}
+			bool = getAsBoolean(json, empty, "bufferTagBodyOutput", "bufferoutput");
+			if (bool != null || empty.toBooleanValue()) {
+				try {
+					admin.updateBufferOutput(bool);
+				}
+				catch (Throwable t) {
+					handleException(pc, t);
+				}
+			}
 
-			);
-			setGroup(pc, json, "updateCacheConnection", "caches", new String[] { "name" }, new Item("bundlename"), new Item("default"), new Item("storage").setDefault(false),
-					new Item("bundleversion"), new Item("name"), new Item("custom"), new Item("class"));
-			setGroup(pc, json, "updateGatewayEntry", "gateways", new String[] { "id" }, new Item("startupmode"), new Item("listenercfcpath"), new Item("cfcpath"), new Item("id"),
-					new Item("custom"), new Item("class"));
+			// regex
+			str = getAsString(json, "regextype", "regex");
+			if (str != null) {
+				try {
+					admin.updateRegexType(str);
+				}
+				catch (Throwable t) {
+					handleException(pc, t);
+				}
+			}
 
-			setGroup(pc, json, "updateLogSettings", "loggers", new String[] { "name" }, new Item("layoutbundlename"), new Item("level"),
-					new Item("appenderArguments", "appenderargs").setDefault(engine.getCreationUtil().createStruct()), new Item("name"),
-					new Item("layoutArguments", "layoutargs").setDefault(engine.getCreationUtil().createStruct()), new Item("appenderClass", new AppenderModifier()),
-					new Item("appender"), new Item("layoutClass", new LayoutModifier()), new Item("layout"));
+			// ORM settings
+			/*
+			 * TODO set(pc, json, "updateORMSetting", new Item("ormconfig"), new Item("ormsqlscript",
+			 * "sqlscript"), new Item("ormusedbformapping", "usedbformapping"), new Item("ormeventhandling",
+			 * "eventhandling"), new Item("ormsecondarycacheenabled", "secondarycacheenabled"), new
+			 * Item("ormautogenmap", "autogenmap"), new Item("ormlogsql", "logsql"), new Item("ormcacheconfig",
+			 * "cacheconfig"), new Item("ormsavemapping", "savemapping"), new Item("ormschema", "schema"), new
+			 * Item("ormdbcreate", "dbcreate"), new Item("ormcfclocation", "cfclocation"), new
+			 * Item("ormflushatrequestend", "flushatrequestend"), new Item("ormcacheprovider", "cacheprovider"),
+			 * new Item("ormcatalog", "catalog"));
+			 */
 
-			setGroup(pc, json, "updateMailServer", "mailServers", new String[] {}, new Item("life").setDefault(60), new Item("tls").setDefault(false),
-					new Item("idle").setDefault(10), new Item("username", "dbusername"), new Item(new String[] { "smtp", "host", "server" }, "hostname", null), new Item("id"),
-					new Item("port").setDefault(-1), new Item("password", "dbpassword"), new Item("ssl").setDefault(false));
+			// mail
+			bool = getAsBoolean(json, empty, "mailSpoolEnable", "spoolenable");
+			if (bool != null || empty.toBooleanValue()) {
+				try {
+					admin.setMailSpoolEnable(bool);
+				}
+				catch (Throwable t) {
+					handleException(pc, t);
+				}
+			}
+			in = getAsInteger(json, empty, "mailConnectionTimeout", "mailTimeout");
+			if (in != null || empty.toBooleanValue()) {
+				try {
+					admin.setMailTimeout(in);
+				}
+				catch (Throwable t) {
+					handleException(pc, t);
+				}
+			}
+			else {
+				ts = getAsTimespan(json, empty, null, 1000, "mailConnectionTimeout", "mailTimeout");
+				if (ts != null || empty.toBooleanValue()) {
+					try {
+						admin.setMailTimeout((int) (ts.getMillis() / 1000));
+					}
+					catch (Throwable t) {
+						handleException(pc, t);
+					}
+				}
+			}
+			str = getAsString(json, "mailDefaultEncoding", "mailEncoding", "mailDefaultCharset", "mailCharset");
+			if (str != null) {
+				try {
+					admin.setMailDefaultCharset(str);
+				}
+				catch (Throwable t) {
+					handleException(pc, t);
+				}
+			}
 
-			setGroup(pc, json, "updateMapping", new String[] { "mappings", "cfmappings" }, new String[] { "virtual" }, new Item("virtual"),
-					new Item("inspect").addName("inspectTemplate"), new Item("physical"), new Item("primary"), new Item("toplevel").setDefault(true), new Item("archive"));
+			// rest
+			bool = getAsBoolean(json, empty, "Restlist");
+			if (bool != null || empty.toBooleanValue()) {
+				try {
+					admin.updateRestList(bool);
+				}
+				catch (Throwable t) {
+					handleException(pc, t);
+				}
+			}
 
-			setGroup(pc, json, "updateCustomTag", new String[] { "customTagMappings", "customTagPaths" }, new String[] { "virtual" },
-					new Item("virtual", new CreateHashModifier(new String[] { "virtual", "name", "label" }, "physical")), new Item("inspect").addName("inspectTemplate"),
-					new Item("physical"), new Item("primary"), new Item("archive"));
+			// component
+			bool = getAsBoolean(json, empty, "componentDeepSearch", "componentSearchSubdirectories");
+			if (bool != null || empty.toBooleanValue()) {
+				try {
+					admin.updateComponentDeepSearch(bool);
+				}
+				catch (Throwable t) {
+					handleException(pc, t);
+				}
+			}
+			str = getAsString(json, "basecomponenttemplatecfml", "basecomponenttemplate");
+			if (str != null) {
+				try {
+					admin.updateBaseComponent(str, null);
+				}
+				catch (Throwable t) {
+					handleException(pc, t);
+				}
+			}
+			str = getAsString(json, "componentdumptemplate");
+			if (str != null) {
+				try {
+					admin.updateComponentDumpTemplate(str);
+				}
+				catch (Throwable t) {
+					handleException(pc, t);
+				}
+			}
+			str = getAsString(json, "componentdatamemberdefaultaccess");
+			if (str != null) {
+				try {
+					admin.updateComponentDataMemberDefaultAccess(str);
+				}
+				catch (Throwable t) {
+					handleException(pc, t);
+				}
+			}
+			bool = getAsBoolean(json, empty, "componentImplicitNotation", "triggerdatamember", "componenttriggerdatamember");
+			if (bool != null || empty.toBooleanValue()) {
+				try {
+					admin.updateTriggerDataMember(bool);
+				}
+				catch (Throwable t) {
+					handleException(pc, t);
+				}
+			}
+			bool = getAsBoolean(json, empty, "componentUseVariablesScope", "useshadow");
+			if (bool != null || empty.toBooleanValue()) {
+				try {
+					admin.updateComponentUseShadow(bool);
+				}
+				catch (Throwable t) {
+					handleException(pc, t);
+				}
+			}
+			str = getAsString(json, "componentdefaultimport");
+			if (str != null) {
+				try {
+					admin.updateComponentDefaultImport(str);
+				}
+				catch (Throwable t) {
+					handleException(pc, t);
+				}
+			}
+			bool = getAsBoolean(json, empty, "componentlocalsearch");
+			if (bool != null || empty.toBooleanValue()) {
+				try {
+					admin.updateComponentLocalSearch(bool);
+				}
+				catch (Throwable t) {
+					handleException(pc, t);
+				}
+			}
+			bool = getAsBoolean(json, empty, "componentpathcache");
+			if (bool != null || empty.toBooleanValue()) {
+				try {
+					admin.updateComponentPathCache(bool);
+				}
+				catch (Throwable t) {
+					handleException(pc, t);
+				}
+			}
 
-			setGroup(pc, json, "updateComponentMapping", new String[] { "componentMappings", "componentPaths" }, new String[] { "virtual" },
-					new Item("virtual", new CreateHashModifier(new String[] { "virtual", "name", "label" }, "physical")), new Item("inspect").addName("inspectTemplate"),
-					new Item("physical"), new Item("primary"), new Item("archive"));
+			// custom tag
+			bool = getAsBoolean(json, empty, "customTagDeepSearch");
+			if (bool != null || empty.toBooleanValue()) {
+				try {
+					admin.updateCustomTagDeepSearch(bool);
+				}
+				catch (Throwable t) {
+					handleException(pc, t);
+				}
+			}
+			bool = getAsBoolean(json, empty, "customTagLocalSearch");
+			if (bool != null || empty.toBooleanValue()) {
+				try {
+					admin.updateCustomTagLocalSearch(bool);
+				}
+				catch (Throwable t) {
+					handleException(pc, t);
+				}
+			}
+			bool = getAsBoolean(json, empty, "customtagpathcache");
+			if (bool != null || empty.toBooleanValue()) {
+				try {
+					admin.updateCTPathCache(bool);
+				}
+				catch (Throwable t) {
+					handleException(pc, t);
+				}
+			}
+			str = getAsString(json, "customTagExtensions");
+			if (str != null) {
+				try {
+					admin.updateCustomTagExtensions(str);
+				}
+				catch (Throwable t) {
+					handleException(pc, t);
+				}
+			}
+			// debug
+			bool = getAsBoolean(json, empty, "debuggingEnable", "debuggingEnabled");
+			if (bool != null || empty.toBooleanValue()) {
+				try {
+					admin.updateDebug(bool);
+				}
+				catch (Throwable t) {
+					handleException(pc, t);
+				}
+			}
+			bool = getAsBoolean(json, empty, "debuggingDatabase");
+			if (bool != null || empty.toBooleanValue()) {
+				try {
+					admin.updateDebugDatabase(bool);
+				}
+				catch (Throwable t) {
+					handleException(pc, t);
+				}
+			}
+			bool = getAsBoolean(json, empty, "debuggingDump");
+			if (bool != null || empty.toBooleanValue()) {
+				try {
+					admin.updateDebugDump(bool);
+				}
+				catch (Throwable t) {
+					handleException(pc, t);
+				}
+			}
+			bool = getAsBoolean(json, empty, "debuggingException");
+			if (bool != null || empty.toBooleanValue()) {
+				try {
+					admin.updateDebugException(bool);
+				}
+				catch (Throwable t) {
+					handleException(pc, t);
+				}
+			}
+			bool = getAsBoolean(json, empty, "debuggingImplicitAccess");
+			if (bool != null || empty.toBooleanValue()) {
+				try {
+					admin.updateDebugImplicitAccess(bool);
+				}
+				catch (Throwable t) {
+					handleException(pc, t);
+				}
+			}
+			bool = getAsBoolean(json, empty, "debuggingQueryUsage");
+			if (bool != null || empty.toBooleanValue()) {
+				try {
+					admin.updateDebugQueryUsage(bool);
+				}
+				catch (Throwable t) {
+					handleException(pc, t);
+				}
+			}
+			bool = getAsBoolean(json, empty, "debuggingTemplate");
+			if (bool != null || empty.toBooleanValue()) {
+				try {
+					admin.updateDebugTemplate(bool);
+				}
+				catch (Throwable t) {
+					handleException(pc, t);
+				}
+			}
+			bool = getAsBoolean(json, empty, "debuggingTimer");
+			if (bool != null || empty.toBooleanValue()) {
+				try {
+					admin.updateDebugTimer(bool);
+				}
+				catch (Throwable t) {
+					handleException(pc, t);
+				}
+			}
+			bool = getAsBoolean(json, empty, "debuggingTracing");
+			if (bool != null || empty.toBooleanValue()) {
+				try {
+					admin.updateDebugTracing(bool);
+				}
+				catch (Throwable t) {
+					handleException(pc, t);
+				}
+			}
+			str = getAsString(json, "debugTemplate");
+			if (str != null) {
+				try {
+					admin.updateDebugTemplate(str);
+				}
+				catch (Throwable t) {
+					handleException(pc, t);
+				}
+			}
 
+			// error
+			str = getAsString(json, "generalErrorTemplate", "errortemplate500");
+			if (str != null) {
+				try {
+					admin.updateErrorTemplate(500, str);
+				}
+				catch (Throwable t) {
+					handleException(pc, t);
+				}
+			}
+			str = getAsString(json, "missingErrorTemplate", "errortemplate404");
+			if (str != null) {
+				try {
+					admin.updateErrorTemplate(404, str);
+				}
+				catch (Throwable t) {
+					handleException(pc, t);
+				}
+			}
+			bool = getAsBoolean(json, empty, "errorStatusCode");
+			if (bool != null || empty.toBooleanValue()) {
+				try {
+					admin.updateErrorStatusCode(bool);
+				}
+				catch (Throwable t) {
+					handleException(pc, t);
+				}
+			}
+
+			// datasources
+			Collection coll = getAsCollection(json, "datasources");
+			if (coll != null) {
+
+				if (coll instanceof Struct) {
+					Boolean psq = getAsBoolean((Struct) coll, empty, "psq", "preserveSingleQuote");
+					if (psq != null) admin.updatePSQ(psq);
+				}
+
+				Iterator<Entry<Key, Object>> it = coll.entryIterator();
+				Entry<Key, Object> e;
+				Struct data;
+				while (it.hasNext()) {
+					e = it.next();
+					data = cast.toStruct(e.getValue(), null);
+					if (data == null) continue;
+					try {
+						ParamSyntax ps = (data.containsKey("delimiter") && data.containsKey("separator")) ? ParamSyntax.toParamSyntax(data) : ParamSyntax.DEFAULT;
+
+						admin.updateDataSource(getAsString(data, "id"), e.getKey().getString(), getAsString(data, "newname"), getClassDefinition(data, null),
+								getAsString(data, "connectionString", "dsn"), getAsString(data, "username", "dbusername"), getAsString(data, "password", "dbpassword"),
+								getAsString(data, "host"), getAsString(data, "database"), getAsInt(data, empty, -1, "connectionString", "dsn"),
+								getAsInt(data, empty, -1, "connectionlimit"), getAsInt(data, empty, -1, "connectiontimeout", "idletimeout"),
+								getAsInt(data, empty, -1, "livetimeout"), getAsLong(data, empty, 60000L, "metacachetimeout"), getAsBoolean(data, empty, false, "blob"),
+								getAsBoolean(data, empty, false, "clob"), 0, getAsBoolean(data, empty, false, "validate"), getAsBoolean(data, empty, false, "storage"),
+								getAsString(data, "timezone"), getAsStruct(data, "custom"), getAsString(data, "dbdriver"), ps,
+								getAsBoolean(data, empty, false, "literalTimestampWithTSOffset"), getAsBoolean(data, empty, false, "alwaysSetTimeout"),
+								getAsBoolean(data, empty, false, "requestExclusive"), getAsBoolean(data, empty, false, "alwaysResetConnections"));
+						admin.updateErrorStatusCode(bool);
+					}
+					catch (Throwable t) {
+						handleException(pc, t);
+					}
+				}
+			}
+
+			// cache connections
+			coll = getAsCollection(json, "caches");
+			if (coll != null) {
+				Iterator<Entry<Key, Object>> it = coll.entryIterator();
+				Entry<Key, Object> e;
+				Struct data;
+				while (it.hasNext()) {
+					e = it.next();
+					data = cast.toStruct(e.getValue(), null);
+					if (data == null) continue;
+					try {
+						admin.updateCacheConnection(e.getKey().getString(), getClassDefinition(data, null),
+								Admin.toCacheConstant(getAsString(data, "default"), ConfigPro.CACHE_TYPE_NONE), getAsStruct(data, "custom"),
+								getAsBoolean(data, empty, false, "readOnly"), getAsBoolean(data, empty, false, "storage"));
+					}
+					catch (Throwable t) {
+						handleException(pc, t);
+					}
+				}
+			}
+
+			// gateways
+			coll = getAsCollection(json, "gateways");
+			if (coll != null) {
+				Iterator<Entry<Key, Object>> it = coll.entryIterator();
+				Entry<Key, Object> e;
+				Struct data;
+				while (it.hasNext()) {
+					e = it.next();
+					data = cast.toStruct(e.getValue(), null);
+					if (data == null) continue;
+					try {
+						// custom validation
+						Struct custom = getAsStruct(data, "custom");
+						if (custom != null) {
+							String path = Caster.toString(custom.get("directory", null), null);
+							if (!StringUtil.isEmpty(path)) { //
+								Resource dir = ResourceUtil.toResourceNotExisting(pc, path);
+								if (!dir.isDirectory()) throw new ApplicationException("Directory [" + path + " ] not exists ");
+							}
+						}
+						// to is id the key or is it an array?
+						admin.updateGatewayEntry(e.getKey().getString(), getClassDefinition(data, null), getAsString(data, "cfcPath"), getAsString(data, "listenerCfcPath"),
+								GatewayEntryImpl.toStartup(getAsString(data, "startupMode")), custom, getAsBoolean(data, empty, false, "readOnly")
+
+						);
+					}
+					catch (Throwable t) {
+						handleException(pc, t);
+					}
+				}
+			}
+
+			// log settings
+			coll = getAsCollection(json, "loggers");
+			if (coll != null) {
+				Iterator<Entry<Key, Object>> it = coll.entryIterator();
+				Entry<Key, Object> e;
+				Struct data;
+				while (it.hasNext()) {
+					e = it.next();
+					data = cast.toStruct(e.getValue(), null);
+					if (data == null) continue;
+					try {
+						admin.updateLogSettings(e.getKey().getString(), LogUtil.toLevel(getAsString(data, "level")), getClassDefinition(data, "appender"),
+								getAsStruct(data, "appenderArgs"), getClassDefinition(data, "layout"), (getAsStruct(data, "layoutArgs")));
+
+					}
+					catch (Throwable t) {
+						handleException(pc, t);
+					}
+				}
+			}
+
+			// mail servers
+			coll = getAsCollection(json, "mailServers");
+			if (coll != null) {
+				Iterator<Entry<Key, Object>> it = coll.entryIterator();
+				Entry<Key, Object> e;
+				Struct data;
+				while (it.hasNext()) {
+					e = it.next();
+					data = cast.toStruct(e.getValue(), null);
+					if (data == null) continue;
+					try {
+						admin.updateMailServer(getAsInt(data, empty, 0, "id"), getAsString(data, "smtp", "host", "server", "hostname"), getAsString(data, "username", "dbusername"),
+								ConfigWebUtil.decrypt(getAsString(data, "password", "dbpassword")), getAsInt(data, empty, -1, "port"), getAsBoolean(data, empty, false, "tls"),
+								getAsBoolean(data, empty, false, "ssl"), getAsTimespan(data, empty, TimeSpanImpl.fromMillis(1000 * 60 * 5), 0, "life").getMillis(),
+								getAsTimespan(data, empty, TimeSpanImpl.fromMillis(1000 * 60 * 5), 0, "idle").getMillis(), getAsBoolean(data, empty, true, "reuseConnection"));
+					}
+					catch (Throwable t) {
+						handleException(pc, t);
+					}
+				}
+			}
+
+			// mappings
+			coll = getAsCollection(json, "mappings", "cfmappings");
+			if (coll != null) {
+				Iterator<Entry<Key, Object>> it = coll.entryIterator();
+				Entry<Key, Object> e;
+				Struct data;
+				while (it.hasNext()) {
+					e = it.next();
+					data = cast.toStruct(e.getValue(), null);
+					if (data == null) continue;
+					try {
+						admin.updateMapping(e.getKey().getString(), getAsString(data, "physical"), getAsString(data, "archive"), getAsString("physical", data, "primary"),
+								ConfigWebUtil.inspectTemplate(getAsString(data, "inspect"), ConfigPro.INSPECT_UNDEFINED), getAsBoolean(data, empty, true, "toplevel"),
+								ConfigWebUtil.toListenerMode(getAsString(data, "listenerMode"), -1), ConfigWebUtil.toListenerType(getAsString(data, "listenerType"), -1),
+								getAsBoolean(data, empty, false, "readonly"));
+					}
+					catch (Throwable t) {
+						handleException(pc, t);
+					}
+				}
+			}
+
+			// custom tags mappings
+			coll = getAsCollection(json, "customTagMappings", "customTagPaths");
+			if (coll != null) {
+				Iterator<Entry<Key, Object>> it = coll.entryIterator();
+				Entry<Key, Object> e;
+				Struct data;
+				while (it.hasNext()) {
+					e = it.next();
+					data = cast.toStruct(e.getValue(), null);
+					if (data == null) continue;
+					try {
+						String p = getAsString(data, "physical");
+						String a = getAsString(data, "archive");
+
+						admin.updateCustomTag(getAsString(coll instanceof Array ? HashUtil.create64BitHashAsString(p + ":" + a) : e.getKey().getString(), data, "name", "id"), p, a,
+								getAsString("physical", data, "primary"), ConfigWebUtil.inspectTemplate(getAsString(data, "inspect"), ConfigPro.INSPECT_UNDEFINED));
+					}
+					catch (Throwable t) {
+						handleException(pc, t);
+					}
+				}
+			}
+
+			// custom tags mappings
+			coll = getAsCollection(json, "componentMappings", "componentPaths");
+			if (coll != null) {
+				Iterator<Entry<Key, Object>> it = coll.entryIterator();
+				Entry<Key, Object> e;
+				Struct data;
+				while (it.hasNext()) {
+					e = it.next();
+					data = cast.toStruct(e.getValue(), null);
+					if (data == null) continue;
+					try {
+						String p = getAsString(data, "physical");
+						String a = getAsString(data, "archive");
+						admin.updateComponentMapping(
+								getAsString(coll instanceof Array ? HashUtil.create64BitHashAsString(p + ":" + a) : e.getKey().getString(), data, "name", "id"), p, a,
+								getAsString("physical", data, "primary"), ConfigWebUtil.inspectTemplate(getAsString(data, "inspect"), ConfigPro.INSPECT_UNDEFINED));
+					}
+					catch (Throwable t) {
+						handleException(pc, t);
+					}
+				}
+			}
+
+			// extensions
 			optimizeExtensions(config, json);
-			setGroup(pc, json, "updateRHExtension", "extensions", new String[] {}, new Item("source").setDefault(null), new Item("id").setDefault(null),
-					new Item("version").setDefault(null));
+			coll = getAsCollection(json, "extensions");
+			if (coll != null) {
+				Iterator<Entry<Key, Object>> it = coll.entryIterator();
+				Entry<Key, Object> e;
+				Struct data;
+				while (it.hasNext()) {
+					e = it.next();
+					data = cast.toStruct(e.getValue(), null);
+					if (data == null) continue;
+					try {
 
-			// need to be at the end
-			set(pc, json, "updateScope", new Item("sessiontype"), new Item("sessionmanagement"), new Item("setdomaincookies", "domaincookies"), new Item("allowimplicidquerycall"),
-					new Item("setclientcookies", "clientcookies"), new Item("mergeformandurl"), new Item("localScopeMode", "localmode"),
-					new Item("cgiScopeReadonly", "cgireadonly"), new Item("scopecascadingtype"), new Item("sessiontimeout"), new Item("clienttimeout"), new Item("clientstorage"),
-					new Item("clientmanagement"), new Item("applicationtimeout"), new Item("sessionstorage"));
+						// ID
+						String id = getAsString(data, "id");
 
-			// TODO cacheDefaultQuery
+						// this can be a binary that represent the extension, a string that is a path to the extension or a
+						// base64 base encoded string
+						String strSrc = getAsString(data, "source");
+
+						// boolean fromCfConfig = getBoolV("fromCFConfig", false);
+
+						if (!StringUtil.isEmpty(strSrc)) {
+							// path
+							Resource src = ResourceUtil.toResourceExisting(config, strSrc);
+							admin.updateRHExtension(config, src, false, true, true);
+
+						}
+						else if (!StringUtil.isEmpty(id)) {
+							ExtensionDefintion ed;
+							String version = getAsString(data, "version");
+							if (!StringUtil.isEmpty(version, true) && !"latest".equalsIgnoreCase(version)) ed = new ExtensionDefintion(id, version);
+							else ed = RHExtension.toExtensionDefinition(id);
+							DeployHandler.deployExtension(config, ed, ThreadLocalPageContext.getLog(config, "deploy"), false, true, true, admin);
+						}
+						else {
+							throw new ApplicationException("cannot install extension, no source or id defined.");
+						}
+
+					}
+					catch (Throwable t) {
+						handleException(pc, t);
+					}
+				}
+			}
+
+			// scope (need to be at the end)
+			str = getAsString(json, "scopecascadingtype");
+			if (str != null) {
+				try {
+					admin.updateScopeCascadingType(str);
+				}
+				catch (Throwable t) {
+					handleException(pc, t);
+				}
+			}
+			bool = getAsBoolean(json, empty, "allowimplicidquerycall");
+			if (bool != null || empty.toBooleanValue()) {
+				try {
+					admin.updateAllowImplicidQueryCall(bool);
+				}
+				catch (Throwable t) {
+					handleException(pc, t);
+				}
+			}
+			bool = getAsBoolean(json, empty, "mergeformandurl", "mergeformandurlScope");
+			if (bool != null || empty.toBooleanValue()) {
+				try {
+					admin.updateMergeFormAndUrl(bool);
+				}
+				catch (Throwable t) {
+					handleException(pc, t);
+				}
+			}
+			bool = getAsBoolean(json, empty, "sessionManagement");
+			if (bool != null || empty.toBooleanValue()) {
+				try {
+					admin.updateSessionManagement(bool);
+				}
+				catch (Throwable t) {
+					handleException(pc, t);
+				}
+			}
+			bool = getAsBoolean(json, empty, "clientManagement");
+			if (bool != null || empty.toBooleanValue()) {
+				try {
+					admin.updateClientManagement(bool);
+				}
+				catch (Throwable t) {
+					handleException(pc, t);
+				}
+			}
+			bool = getAsBoolean(json, empty, "setdomaincookies", "domaincookies");
+			if (bool != null || empty.toBooleanValue()) {
+				try {
+					admin.updateDomaincookies(bool);
+				}
+				catch (Throwable t) {
+					handleException(pc, t);
+				}
+			}
+			bool = getAsBoolean(json, empty, "setclientcookies", "clientcookies");
+			if (bool != null || empty.toBooleanValue()) {
+				try {
+					admin.updateClientCookies(bool);
+				}
+				catch (Throwable t) {
+					handleException(pc, t);
+				}
+			}
+			ts = getAsTimespan(json, empty, null, -1, "clienttimeout");
+			if (ts != null || empty.toBooleanValue()) {
+				try {
+					admin.updateClientTimeout(ts);
+				}
+				catch (Throwable t) {
+					handleException(pc, t);
+				}
+			}
+			ts = getAsTimespan(json, empty, null, 1000, "sessiontimeout");
+			if (ts != null || empty.toBooleanValue()) {
+				try {
+					admin.updateSessionTimeout(ts);
+				}
+				catch (Throwable t) {
+					handleException(pc, t);
+				}
+			}
+			ts = getAsTimespan(json, empty, null, 1000, "applicationtimeout");
+			if (ts != null || empty.toBooleanValue()) {
+				try {
+					admin.updateApplicationTimeout(ts);
+				}
+				catch (Throwable t) {
+					handleException(pc, t);
+				}
+			}
+			str = getAsString(json, "clientstorage");
+			if (str != null) {
+				try {
+					admin.updateClientStorage(str);
+				}
+				catch (Throwable t) {
+					handleException(pc, t);
+				}
+			}
+			str = getAsString(json, "sessionstorage");
+			if (str != null) {
+				try {
+					admin.updateSessionStorage(str);
+				}
+				catch (Throwable t) {
+					handleException(pc, t);
+				}
+			}
+			str = getAsString(json, "sessiontype");
+			if (str != null) {
+				try {
+					admin.updateSessionType(str);
+				}
+				catch (Throwable t) {
+					handleException(pc, t);
+				}
+			}
+			str = getAsString(json, "localScopeMode", "localmode");
+			if (str != null) {
+				try {
+					admin.updateLocalMode(str);
+				}
+				catch (Throwable t) {
+					handleException(pc, t);
+				}
+			}
+			bool = getAsBoolean(json, empty, "cgiScopeReadonly", "cgireadonly");
+			if (bool != null || empty.toBooleanValue()) {
+				try {
+					admin.updateCGIReadonly(bool);
+				}
+				catch (Throwable t) {
+					handleException(pc, t);
+				}
+			}
+
+			admin.storeAndReload();
 		}
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
@@ -283,6 +1192,170 @@ public class CFConfigImport {
 		if (throwException && exd != null) throw Caster.toPageException(exd);
 		return json;
 
+	}
+
+	private ClassDefinition getClassDefinition(Struct data, String prefix) {
+		if (!StringUtil.isEmpty(prefix, true)) return new ClassDefinitionImpl(getAsString(data, prefix + "class", prefix + "classname"), getAsString(data, prefix + "bundleName"),
+				getAsString(data, prefix + "bundleVersion"), config.getIdentification());
+		return new ClassDefinitionImpl(getAsString(data, "class", "classname"), getAsString(data, "bundleName"), getAsString(data, "bundleVersion"), config.getIdentification());
+	}
+
+	private void handleException(PageContext pc, Throwable t) {
+		ExceptionUtil.rethrowIfNecessary(t);
+		LogUtil.log(pc, "deploy", t);
+		if (t instanceof JspException) exd = (JspException) t;
+		else exd = Caster.toPageException(t);
+	}
+
+	private static Struct getAsStruct(Struct data, String... names) {
+		Object val;
+		Struct sct;
+		for (String name: names) {
+			val = data.get(name, null);
+			if (val != null) {
+
+				sct = Caster.toStruct(val, null);
+				if (sct == null && Decision.isString(val)) {
+					try {
+						sct = ConfigWebUtil.toStruct(Caster.toString(val));
+					}
+					catch (PageException pee) {
+					}
+				}
+				if (sct != null) return sct;
+			}
+		}
+		return new StructImpl();
+	}
+
+	private static String getAsString(Struct data, String... names) {
+		return getAsString(null, data, names);
+	}
+
+	private static String getAsString(String defaultValue, Struct data, String... names) {
+		Object val;
+		String str;
+		for (String name: names) {
+			val = data.get(name, null);
+			if (val != null) {
+				str = Caster.toString(val, null);
+				if (str != null) return str;
+			}
+		}
+		return defaultValue;
+	}
+
+	private static Boolean getAsBoolean(Struct data, RefBoolean empty, String... names) {
+		Object val;
+		Boolean b;
+		empty.setValue(false);
+		for (String name: names) {
+			val = data.get(name, null);
+			if (val != null) {
+				b = Caster.toBoolean(val, null);
+				if (b != null) return b;
+				else if (StringUtil.isEmpty(val, true)) empty.setValue(true);
+			}
+		}
+		return null;
+	}
+
+	private static boolean getAsBoolean(Struct data, RefBoolean empty, boolean defaultValue, String... names) {
+		Object val;
+		Boolean b;
+		empty.setValue(false);
+		for (String name: names) {
+			val = data.get(name, null);
+			if (val != null) {
+				b = Caster.toBoolean(val, null);
+				if (b != null) return b;
+				else if (StringUtil.isEmpty(val, true)) empty.setValue(true);
+			}
+		}
+		return defaultValue;
+	}
+
+	private static Integer getAsInteger(Struct data, RefBoolean empty, String... names) {
+		Object val;
+		Integer i;
+		empty.setValue(false);
+		for (String name: names) {
+			val = data.get(name, null);
+			if (val != null) {
+				i = Caster.toInteger(val, null);
+				if (i != null) return i;
+				else if (StringUtil.isEmpty(val, true)) empty.setValue(true);
+			}
+		}
+		return null;
+	}
+
+	private static int getAsInt(Struct data, RefBoolean empty, int defaultValue, String... names) {
+		Object val;
+		Integer i;
+		empty.setValue(false);
+		for (String name: names) {
+			val = data.get(name, null);
+			if (val != null) {
+				i = Caster.toInteger(val, null);
+				if (i != null) return i;
+				else if (StringUtil.isEmpty(val, true)) empty.setValue(true);
+			}
+		}
+		return defaultValue;
+	}
+
+	private static long getAsLong(Struct data, RefBoolean empty, long defaultValue, String... names) {
+		Object val;
+		Long l;
+		empty.setValue(false);
+		for (String name: names) {
+			val = data.get(name, null);
+			if (val != null) {
+				l = Caster.toLong(val, null);
+				if (l != null) return l;
+				else if (StringUtil.isEmpty(val, true)) empty.setValue(true);
+			}
+		}
+		return defaultValue;
+	}
+
+	private static TimeSpan getAsTimespan(Struct data, RefBoolean empty, TimeSpan defaultValue, long milliThreashold, String... names) {
+		Object val;
+		TimeSpan ts;
+		empty.setValue(false);
+		for (String name: names) {
+			val = data.get(name, null);
+			if (val != null) {
+				ts = Caster.toTimespan(val, milliThreashold, null);
+				if (ts != null) return ts;
+				else if (StringUtil.isEmpty(val, true)) empty.setValue(true);
+			}
+		}
+		return defaultValue;
+	}
+
+	private static Object getAsObject(Struct data, String... names) {
+		Object val;
+		Boolean b;
+		for (String name: names) {
+			val = data.get(name, null);
+			if (val != null) return val;
+		}
+		return null;
+	}
+
+	private static Collection getAsCollection(Struct data, String... names) {
+		Object val;
+		Collection coll;
+		for (String name: names) {
+			val = data.get(name, null);
+			if (val != null) {
+				coll = Caster.toCollection(val, null);
+				if (coll != null) return coll;
+			}
+		}
+		return null;
 	}
 
 	private static void replacePlaceHolder(Collection coll, Struct placeHolderData) {

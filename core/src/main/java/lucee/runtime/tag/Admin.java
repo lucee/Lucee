@@ -1771,10 +1771,15 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	 * 
 	 */
 	private void doUpdateDebug() throws PageException {
-		admin.updateDebug(Caster.toBoolean(getString("debug", ""), null), Caster.toBoolean(getString("template", ""), null), Caster.toBoolean(getString("database", ""), null),
-				Caster.toBoolean(getString("exception", ""), null), Caster.toBoolean(getString("tracing", ""), null), Caster.toBoolean(getString("dump", ""), null),
-				Caster.toBoolean(getString("timer", ""), null), Caster.toBoolean(getString("implicitAccess", ""), null), Caster.toBoolean(getString("queryUsage", ""), null));
-
+		admin.updateDebug(Caster.toBoolean(getString("debug", ""), null));
+		admin.updateDebugDatabase(Caster.toBoolean(getString("database", ""), null));
+		admin.updateDebugDump(Caster.toBoolean(getString("dump", ""), null));
+		admin.updateDebugException(Caster.toBoolean(getString("exception", ""), null));
+		admin.updateDebugImplicitAccess(Caster.toBoolean(getString("implicitAccess", ""), null));
+		admin.updateDebugQueryUsage(Caster.toBoolean(getString("queryUsage", ""), null));
+		admin.updateDebugTemplate(Caster.toBoolean(getString("template", ""), null));
+		admin.updateDebugTimer(Caster.toBoolean(getString("timer", ""), null));
+		admin.updateDebugTracing(Caster.toBoolean(getString("tracing", ""), null));
 		admin.updateDebugTemplate(getString("admin", action, "debugTemplate"));
 		store();
 		adminSync.broadcast(attributes, config);
@@ -2731,8 +2736,8 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		ClassDefinition cd = new ClassDefinitionImpl(getString("admin", action, "class"), getString("bundleName", null), getString("bundleVersion", null),
 				config.getIdentification());
 
-		admin.updateCacheConnection(getString("admin", action, "name"), cd, toCacheConstant("default"), getStruct("admin", action, "custom"), getBoolV("readOnly", false),
-				getBoolV("storage", false)
+		admin.updateCacheConnection(getString("admin", action, "name"), cd, toCacheConstant(getString("default", null)), getStruct("admin", action, "custom"),
+				getBoolV("readOnly", false), getBoolV("storage", false)
 
 		);
 		store();
@@ -2740,9 +2745,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	}
 
 	private void doUpdateGatewayEntry() throws PageException {
-		String strStartupMode = getString("admin", action, "startupMode");
-		int startup = GatewayEntryImpl.toStartup(strStartupMode, -1);
-		if (startup == -1) throw new ApplicationException("Invalid startup mode [" + strStartupMode + "], valid values are [automatic,manual,disabled]");
+		int startup = GatewayEntryImpl.toStartup(getString("admin", action, "startupMode"));
 
 		// custom validation
 		Struct custom = getStruct("admin", action, "custom");
@@ -2753,16 +2756,6 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 				if (!dir.isDirectory()) throw new ApplicationException("Directory [" + path + " ] not exists ");
 			}
 		}
-		// listenerCfcPath validation
-		/*
-		 * String path = getString("admin", action, "listenerCfcPath"); if(!StringUtil.isEmpty(path,true)) {
-		 * path=path.trim().replace('\\','/'); if(path.indexOf("./")==-1)path=path.replace('.','/'); String
-		 * ext = "."+Constants.getCFMLComponentExtension(); if(!path.endsWith(ext)) path+=ext;
-		 * 
-		 * Resource listnerCFC = ResourceUtil.toResourceNotExisting(pageContext, path);
-		 * if(!listnerCFC.exists()) throw new ApplicationException("invalid [" + listnerCFC
-		 * +" ] listener CFC"); }
-		 */
 
 		ClassDefinition cd = new ClassDefinitionImpl(getString("admin", action, "class"), getString("bundleName", null), getString("bundleVersion", null),
 				config.getIdentification());
@@ -2774,22 +2767,27 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		adminSync.broadcast(attributes, config);
 	}
 
-	private int toCacheConstant(String name) throws ApplicationException {
-		String def = getString(name, null);
-		if (StringUtil.isEmpty(def)) return Config.CACHE_TYPE_NONE;
-		def = def.trim().toLowerCase();
+	public static int toCacheConstant(String val) throws ApplicationException {
+		int res = toCacheConstant(val, -1);
+		if (res != -1) return res;
+		throw new ApplicationException("Invalid default type [" + val + "], valid default types are [object,template,query,resource,function]");
+	}
 
-		if (def.equals("object")) return ConfigPro.CACHE_TYPE_OBJECT;
-		if (def.equals("template")) return ConfigPro.CACHE_TYPE_TEMPLATE;
-		if (def.equals("query")) return ConfigPro.CACHE_TYPE_QUERY;
-		if (def.equals("resource")) return ConfigPro.CACHE_TYPE_RESOURCE;
-		if (def.equals("function")) return ConfigPro.CACHE_TYPE_FUNCTION;
-		if (def.equals("include")) return ConfigPro.CACHE_TYPE_INCLUDE;
-		if (def.equals("http")) return ConfigPro.CACHE_TYPE_HTTP;
-		if (def.equals("file")) return ConfigPro.CACHE_TYPE_FILE;
-		if (def.equals("webservice")) return ConfigPro.CACHE_TYPE_WEBSERVICE;
+	public static int toCacheConstant(String val, int defaultValue) {
+		if (StringUtil.isEmpty(val)) return defaultValue;
+		val = val.trim().toLowerCase();
 
-		throw new ApplicationException("Invalid default type [" + def + "], valid default types are [object,template,query,resource,function]");
+		if (val.equals("object")) return ConfigPro.CACHE_TYPE_OBJECT;
+		if (val.equals("template")) return ConfigPro.CACHE_TYPE_TEMPLATE;
+		if (val.equals("query")) return ConfigPro.CACHE_TYPE_QUERY;
+		if (val.equals("resource")) return ConfigPro.CACHE_TYPE_RESOURCE;
+		if (val.equals("function")) return ConfigPro.CACHE_TYPE_FUNCTION;
+		if (val.equals("include")) return ConfigPro.CACHE_TYPE_INCLUDE;
+		if (val.equals("http")) return ConfigPro.CACHE_TYPE_HTTP;
+		if (val.equals("file")) return ConfigPro.CACHE_TYPE_FILE;
+		if (val.equals("webservice")) return ConfigPro.CACHE_TYPE_WEBSERVICE;
+
+		return defaultValue;
 	}
 
 	private void doUpdateCacheDefaultConnection() throws PageException {
@@ -3138,10 +3136,13 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	}
 
 	private void doUpdateCompilerSettings() throws SecurityException, PageException {
-		admin.updateCompilerSettings(getBoolObject("admin", "UpdateCompilerSettings", "dotNotationUpperCase"),
-				getBoolObject("admin", "UpdateCompilerSettings", "suppressWSBeforeArg"), getBoolObject("admin", "UpdateCompilerSettings", "nullSupport"),
-				getBoolObject("admin", "UpdateCompilerSettings", "handleUnquotedAttrValueAsString"), getInteger("admin", "UpdateCompilerSettings", "externalizeStringGTE"));
 		admin.updateTemplateCharset(getString("admin", action, "templateCharset"));
+
+		admin.updateCompilerSettingsDotNotationUpperCase(getBoolObject("admin", "UpdateCompilerSettings", "dotNotationUpperCase"));
+		admin.updateCompilerSettingsExternalizeStringGTE(getInteger("admin", "UpdateCompilerSettings", "externalizeStringGTE"));
+		admin.updateCompilerSettingsHandleUnQuotedAttrValueAsString(getBoolObject("admin", "UpdateCompilerSettings", "handleUnquotedAttrValueAsString"));
+		admin.updateCompilerSettingsNullSupport(getBoolObject("admin", "UpdateCompilerSettings", "nullSupport"));
+		admin.updateCompilerSettingsSuppressWSBeforeArg(getBoolObject("admin", "UpdateCompilerSettings", "suppressWSBeforeArg"));
 
 		store();
 		adminSync.broadcast(attributes, config);
@@ -4244,21 +4245,6 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		adminSync.broadcast(attributes, config);
 	}
 
-	/*
-	 * private void doUpdateUpdateLogSettings() throws PageException { int
-	 * level=LogUtil.toIntType(getString("admin", "updateUpdateLogSettings", "level"), -1); String
-	 * source=getString("admin", "updateUpdateLogSettings", "path"); if(source.indexOf("{")==-1){
-	 * Resource res = ResourceUtil.toResourceNotExisting(pageContext, source, false); String
-	 * tmp=SystemUtil.addPlaceHolder(res, config, null);
-	 * 
-	 * 
-	 * if(tmp!=null) source=tmp; else source=ContractPath.call(pageContext, source); }
-	 * 
-	 * admin.updateLogSettings( getString("admin", "updateUpdateLogSettings", "name"), level, source,
-	 * getInt("admin", "updateUpdateLogSettings", "maxfile"), getInt("admin", "updateUpdateLogSettings",
-	 * "maxfilesize") ); store(); adminSync.broadcast(attributes, config); }
-	 */
-
 	private void doUpdateMonitor() throws PageException {
 		ClassDefinition cd = new ClassDefinitionImpl(getString("admin", action, "class"), getString("bundleName", null), getString("bundleVersion", null),
 				config.getIdentification());
@@ -4358,7 +4344,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			String version = getString("version", null);
 			if (!StringUtil.isEmpty(version, true) && !"latest".equalsIgnoreCase(version)) ed = new ExtensionDefintion(id, version);
 			else ed = RHExtension.toExtensionDefinition(id);
-			DeployHandler.deployExtension(config, ed, ThreadLocalPageContext.getLog(config, "application"), true, true, true);
+			DeployHandler.deployExtension(config, ed, ThreadLocalPageContext.getLog(config, "application"), true, true, true, null);
 			return;
 		}
 		else {
@@ -4628,12 +4614,11 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	 * 
 	 */
 	private void doUpdateRegional() throws PageException {
-		Boolean useTimeServer = getBool("usetimeserver", null);
-
 		try {
 			admin.updateLocale(getString("admin", action, "locale"));
 			admin.updateTimeZone(getString("admin", action, "timezone"));
-			admin.updateTimeServer(getString("admin", action, "timeserver"), useTimeServer);
+			admin.updateTimeServer(getString("admin", action, "timeserver"), true);
+			admin.updateUseTimeServer(getBool("usetimeserver", null));
 		}
 		finally {
 			store();
@@ -4731,8 +4716,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 	private void doUpdateLogSettings() throws PageException {
 		String str = getString("admin", "UpdateLogSettings", "level", true);
-		int l = LogUtil.toLevel(str, -1);
-		if (l == -1) throw new ApplicationException("Invalid log level name [" + str + "], valid log level names are [INFO,DEBUG,WARN,ERROR,FATAL,TRACE]");
+		int l = LogUtil.toLevel(str);
 
 		LogEngine eng = config.getLogEngine();
 		// appender
@@ -5022,7 +5006,8 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	}
 
 	private void doUpdateApplicationListener() throws PageException {
-		admin.updateApplicationListener(getString("admin", action, "listenerType"), getString("admin", action, "listenerMode"));
+		admin.updateApplicationListenerType(getString("admin", action, "listenerType"));
+		admin.updateApplicationListenerMode(getString("admin", action, "listenerMode"));
 
 		store();
 		adminSync.broadcast(attributes, config);
