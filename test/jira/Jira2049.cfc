@@ -34,7 +34,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"  labels="mysql,orm" {
 
 		assertTrue(isQuery(res.author));
 		assertEquals(1,res.author.authorID);
-		assertEquals("Susi",res.author.authorName);
+		assertEquals("Susix",res.author.authorName); // see preInsert in test\jira\Jira2049\Author.cfc
 	}
 
 	public void function testH2_1(){
