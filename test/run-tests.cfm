@@ -128,6 +128,14 @@ try {
 	if ( !request.testSkip )
 		SystemOutput( "Force running tests marked skip=true or prefixed with an _", true );
 
+	param name="testRandomSort" default="false";
+	if ( len(testRandomSort) eq 0)
+		testRandomSort = false;
+	request.testRandomSort = testRandomSort;
+
+	if ( request.testRandomSort )
+		SystemOutput( "Using a randomn sort order for tests", true );
+
 	param name="testAdditional" default="";
 	request.testAdditional = testAdditional;
 

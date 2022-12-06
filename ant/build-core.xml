@@ -80,6 +80,8 @@
     <property name="testSkip" value=""/>
     <!-- enable debug output from tests (i.e tests which crash are normally silently skipped)  -->
     <property name="testDebug" value=""/>
+    <!-- use random sort order for running tests to expose any inter dependencies  -->
+    <property name="testRandomSort" value=""/>
     <!-- allow restricting which test services are enabled  -->
     <property name="testServices" value=""/>
     <!-- allow running tests with a different java version (ant needs the exe not java home)  -->
@@ -533,6 +535,7 @@
       <jvmarg value="-DtestAdditional=${testAdditional}"/>
       <jvmarg value="-DtestSkip=${testSkip}"/>
       <jvmarg value="-DtestDebug=${testDebug}"/>
+      <jvmarg value="-DtestRandomSort=${testRandomSort}"/>
       <jvmarg value="-DtestServices=${testServices}"/>
       <jvmarg value="-Dtemp=${temp}"/>
       <jvmarg value="-Dbasedir=${baseDir}"/>

@@ -15,7 +15,14 @@ component {
 				arrayAppend(bundles, mapping & "." & mid( clean, 1, len( clean ) - 4 ) ); // strip off .cfc
 			}
 		}, parallel=true );
-		ArraySort( bundles, "textnocase", "asc" );
+
+		if ( !request.testRandomSort ) {
+			arraySort( bundles, "textnocase", "asc" );
+		} else {
+			loop array=#bundles# index="local.idx" item="local.a" {
+				arraySwap(  bundles, local.idx, randRange( 1, arrayLen( bundles ) ) );
+			}
+		}
 		return bundles;
 	}
 
