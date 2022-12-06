@@ -17,10 +17,11 @@ component {
 		}, parallel=true );
 		arraySort( bundles, "textnocase", "asc" );
 		if ( request.testRandomSort neq "false" ) {
-			if ( isNumeric( request.testRandomSort ) ){
-				systemOutput("randomize( #request.testRandomSort# );", true);
-				randomize( request.testRandomSort, "SHA1PRNG" );
+			if ( !isNumeric( request.testRandomSort ) ){
+				request.testRandomSort = randRange( 1, 9999 ); // this way it's reproducible
 			}
+			systemOutput("randomize( #request.testRandomSort# );", true);
+			randomize( request.testRandomSort, "SHA1PRNG" );
 			loop array=#bundles# index="local.idx" item="local.a" {
 				arraySwap(  bundles, local.idx, randRange( 1, arrayLen( bundles ), "SHA1PRNG" ) );
 			}
