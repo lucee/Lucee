@@ -15,10 +15,8 @@ component {
 				arrayAppend(bundles, mapping & "." & mid( clean, 1, len( clean ) - 4 ) ); // strip off .cfc
 			}
 		}, parallel=true );
-
-		if ( request.testRandomSort eq "false" ) {
-			arraySort( bundles, "textnocase", "asc" );
-		} else {
+		arraySort( bundles, "textnocase", "asc" );
+		if ( request.testRandomSort neq "false" ) {
 			if ( isNumeric( request.testRandomSort ) ){
 				systemOutput("randomize( #request.testRandomSort# );", true);
 				randomize( request.testRandomSort, "SHA1PRNG" );
