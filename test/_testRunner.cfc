@@ -16,11 +16,15 @@ component {
 			}
 		}, parallel=true );
 
-		if ( !request.testRandomSort ) {
+		if ( request.testRandomSort eq "false" ) {
 			arraySort( bundles, "textnocase", "asc" );
 		} else {
+			if ( isNumeric( request.testRandomSort ) ){
+				systemOutput("randomize( #request.testRandomSort# );", true);
+				randomize( request.testRandomSort, "SHA1PRNG" );
+			}
 			loop array=#bundles# index="local.idx" item="local.a" {
-				arraySwap(  bundles, local.idx, randRange( 1, arrayLen( bundles ) ) );
+				arraySwap(  bundles, local.idx, randRange( 1, arrayLen( bundles ), "SHA1PRNG" ) );
 			}
 		}
 		return bundles;

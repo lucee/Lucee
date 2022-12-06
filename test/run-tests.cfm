@@ -133,8 +133,15 @@ try {
 		testRandomSort = false;
 	request.testRandomSort = testRandomSort;
 
-	if ( request.testRandomSort )
-		SystemOutput( "Using a randomn sort order for tests", true );
+	// i.e ant -DtestRandomSort="3" -DtestLabels="image"
+
+	if ( request.testRandomSort neq "false" ){
+		if ( isNumeric( request.testRandomSort ) ){
+			SystemOutput( "Using a randomized sort order for tests, randomize seed [#request.testRandomSort#]", true );
+		} else {
+			SystemOutput( "Using a random sort order for tests", true );
+		}
+	}
 
 	param name="testAdditional" default="";
 	request.testAdditional = testAdditional;
