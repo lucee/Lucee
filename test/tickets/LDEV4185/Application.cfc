@@ -1,7 +1,7 @@
 component {
 
 	this.name = "LDEV-4185" & hash( getCurrentTemplatePath() );
-	this.datasource= server.getDatasource("h2", "#getDirectoryFromPath(getCurrentTemplatePath())#/datasource/db" );
+	this.datasource= server.getDatasource("h2", server._getUniqueTempDir("LDEV4185") );
 	this.ormEnabled = true;
 	this.ormSettings = {
 		dbcreate = "dropcreate"
@@ -10,21 +10,6 @@ component {
 
 	public function onRequestStart() {
 		setting requesttimeout=10;
-	}
-
-	function onRequestEnd() {
-		var javaIoFile=createObject("java","java.io.File");
-		loop array=DirectoryList(
-			path=getDirectoryFromPath(getCurrentTemplatePath()), 
-			recurse=true, filter="*.db") item="local.path"  {
-			fileDeleteOnExit(javaIoFile,path);
-		}
-	}
-
-	private function fileDeleteOnExit(required javaIoFile, required string path) {
-		var file=javaIoFile.init(arguments.path);
-		if(!file.isFile())file=javaIoFile.init(expandPath(arguments.path));
-		if(file.isFile()) file.deleteOnExit();
 	}
 
 }

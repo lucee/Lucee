@@ -408,6 +408,17 @@ component {
 	}
 
 	public function addSupportFunctions() {
+		server._getUniqueTempDir = function ( string prefix="" ) localmode=true{
+			if ( len( arguments.prefix ) eq 0 ) {
+				local.dir = getTempDirectory() & createGUID();
+			} else {
+				local.dir = getTempDirectory() & arguments.prefix & "\#createGUID()#";
+			}
+			if ( directoryExists( dir ) )
+				directoryDelete( dir, true );
+			directoryCreate( dir, true );
+			return dir;
+		};
 		server._getSystemPropOrEnvVars = function ( string props="", string prefix="", boolean stripPrefix=true, boolean allowEmpty=false ) localmode=true{
 			st = [=];
 			keys = arguments.props.split( "," );

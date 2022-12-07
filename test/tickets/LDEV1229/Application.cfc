@@ -4,7 +4,7 @@ component {
 	this.sessionManagement 	= false;
 	
 	if (url.db=='h2') {
-		this.datasource = server.getDatasource("h2", "#getDirectoryFromPath(getCurrentTemplatePath())#/datasource/db" );
+		this.datasource = server.getDatasource("h2", server._getUniqueTempDir("LDEV1229") );
 	} else {
 		mySQL = getCredentials();
 		if(mySQL.count()!=0){

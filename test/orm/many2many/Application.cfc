@@ -2,9 +2,7 @@
 
 <cfscript>
 	this.name = hash(getCurrentTemplatePath()) & getTickCount();
- 	if(directoryExists("datasource"))directoryDelete("datasource",true);
-
- 	this.datasources.test = server.getDatasource("h2", "#getDirectoryFromPath(getCurrentTemplatePath())#/datasource/db" );
+ 	this.datasources.test = server.getDatasource("h2", server._getUniqueTempDir("orm-many2many") );
 	this.datasource = 'test'; 
 		
 	this.ormEnabled = true; 
