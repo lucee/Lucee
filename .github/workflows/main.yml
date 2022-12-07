@@ -204,6 +204,11 @@ jobs:
           echo "------- Maven Install on ${{ github.event_name }} ---------";
           mvn -B -e -f loader/pom.xml clean install -DtestJavaVersionExec="${{ env.LUCEE_TEST_JAVA_EXEC }}"
         fi
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: junit-test-results
+        path: test/reports/junit-test-results.xml
     - name: Publish Test Results
       uses: EnricoMi/publish-unit-test-result-action@v2
       if: always()
