@@ -153,8 +153,9 @@ jobs:
         fi
     - name: Upload Artifact (junit-test-results)
       uses: actions/upload-artifact@v3
+      if: always()
       with:
-        name: junit-test-results
+        name: Lucee-junit-test-results-${{ github.ref_name }}-${{ github.run_number }}
         path: test/reports/junit-test-results.xml
     - name: Publish Test Results
       uses: EnricoMi/publish-unit-test-result-action@v2
