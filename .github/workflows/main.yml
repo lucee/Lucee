@@ -209,12 +209,12 @@ jobs:
       if: always()
       with:
         name: Lucee-${{ github.ref_name }}-junit-test-results-${{ github.run_number }}
-        path: test/reports/junit-test-results.xml
+        path: test/reports/*.xml
     - name: Publish Test Results
       uses: EnricoMi/publish-unit-test-result-action@v2
       if: always()
       with:
-        junit_files: test/reports/junit-test-results.xml
+        junit_files: test/reports/*.xml
         check_name: "Lucee Test Results"
     - name: Trigger Docker Build
       if: ${{ env.DO_DEPLOY == 'true' }}

@@ -227,7 +227,7 @@ try {
 	resultPath = ExpandPath( "/test") & "/reports/";
 	if ( !DirectoryExists( resultPath ) )
 		DirectoryCreate( resultPath );
-	JUnitReportFile = resultPath & "junit-test-results.xml";
+	JUnitReportFile = resultPath & "junit-test-results-#server.lucee.version#.xml";
 	FileWrite( JUnitReportFile, jUnitReporter.runReport(results=result, testbox=tb, justReturn=true) );
 
 	systemOutput( NL & NL & "=============================================================", true );
@@ -254,7 +254,7 @@ try {
 
 	// load errors into an array, so we can dump them out to $GITHUB_STEP_SUMMARY
 	results = [];
-	results_md = [];
+	results_md = ["## Lucee #server.lucee.version#"];
 
 	if ( structKeyExists( server.system.environment, "GITHUB_STEP_SUMMARY" ) ){
 		github_commit_base_href=  "/" & server.system.environment.GITHUB_REPOSITORY
