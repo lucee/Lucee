@@ -135,7 +135,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 			catch(e){}
 			var start=getTickCount();
 			query {
-				echo(" insert into tcQuery(v) values('a#now()#') ");
+				echo(" insert into tcQuery(v) values(#now()#) ");
 			}
 			SystemOutput("insert:"&(getTickCount()-start),1,1);
 
