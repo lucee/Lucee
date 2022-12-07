@@ -126,47 +126,68 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 		application action="update" cachedAfter=createTimespan(0,0,0,1);
 		try{
-			try{
+
+			try {
 				query  {
 					echo("CREATE TABLE tcQuery ( id INT NOT NULL AUTO_INCREMENT PRIMARY KEY, v VARCHAR(100) )");
 				}
 			}
 			catch(e){}
-
+			var start=getTickCount();
 			query {
-				echo(" insert into tcQuery(v) values(#now()#) ");
+				echo(" insert into tcQuery(v) values('a#now()#') ");
 			}
+			SystemOutput("insert:"&(getTickCount()-start),1,1);
 
 			var n=now();
 			var ca=dateAdd("n",-1,n);
 			
+			var start=getTickCount();
 			query {
 				echo("update tcQuery set v=#now()#");
 			}
+			SystemOutput("update1:"&(getTickCount()-start),1,1);
+			
+			var start=getTickCount();
 			query name="local.q" cachedAfter=ca {
 				echo("select * from tcQuery");
 			}
 			var first=q.v;
-
+			SystemOutput("select1:"&(getTickCount()-start),1,1);
+			
+			var start=getTickCount();
 			sleep(500);
+			SystemOutput("sleep500:"&(getTickCount()-start),1,1);
 
+			var start=getTickCount();
 			query {
 				echo("update tcQuery set v=#now()#");
 			}
+			SystemOutput("update2:"&(getTickCount()-start),1,1);
+			
+			var start=getTickCount();
 			query name="local.q" cachedAfter=ca {
 				echo("select * from tcQuery");
 			}
+			SystemOutput("select2:"&(getTickCount()-start),1,1);
 			var second=q.v;
 
+			var start=getTickCount();
 			sleep(600);
+			SystemOutput("sleep600:"&(getTickCount()-start),1,1);
 
 
+			var start=getTickCount();
 			query {
 				echo("update tcQuery set v=#now()#");
 			}
+			SystemOutput("update2:"&(getTickCount()-start),1,1);
+
+			var start=getTickCount();
 			query name="local.q" cachedAfter=ca {
 				echo("select * from tcQuery");
 			}
+			SystemOutput("select3:"&(getTickCount()-start),1,1);
 			var third=q.v;
 
 			assertEquals(first,second);
