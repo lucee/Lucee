@@ -18,7 +18,7 @@
  ---><cfscript>
 component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
-	private void function testConnections(){
+	function testConnections(){
 		request.results757=[];
 		local.names="";
 		loop from=1 to=30 index="local.i" {

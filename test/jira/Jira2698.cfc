@@ -17,7 +17,7 @@
  * 
  **/
 component extends='org.lucee.cfml.test.LuceeTestCase' {
-	public void function trySavingLargeNestedStruct() {
+	public void function testTrySavingLargeNestedStruct() {
 		// Prove that it doesn't happen with nested structures
 		var nestedStruct = {};
 		var nestInMe = nestedStruct;
@@ -40,7 +40,7 @@ component extends='org.lucee.cfml.test.LuceeTestCase' {
 	}
 	
 	
-	public void function triggerUTFDataFormatException() {
+	public void function testTriggerUTFDataFormatException() skip="true" {
 		// Prove that it happens with objects nested deeply
 		objTest = new Jira2698.TestObject( 500 );
 		var res=ObjectSave(objTest);
