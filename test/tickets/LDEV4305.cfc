@@ -1,4 +1,4 @@
-component extends = "org.lucee.cfml.test.LuceeTestCase" skip=true" {
+component extends = "org.lucee.cfml.test.LuceeTestCase" skip="true" {
 	function run( testResults , testBox ) {
 		describe( title="Testcase for lsIsDate()", body=function() {
 			it(title='Checking lsIsDate() function with locale "english (uk)"', body=function( currentSpec ) {
