@@ -3269,10 +3269,6 @@ public final class Caster {
 		return toTimespan(o);
 	}
 
-	public static TimeSpan toTimespan(Object o, TimeSpan defaultValue) {
-		return toTimespan(o, -1, defaultValue);
-	}
-
 	/**
 	 * cast an Object to a TimeSpan Object (alias for toTimeSpan)
 	 * 
@@ -3280,7 +3276,7 @@ public final class Caster {
 	 * @param defaultValue
 	 * @return casted TimeSpan Object
 	 */
-	public static TimeSpan toTimespan(Object o, long milliThreshold, TimeSpan defaultValue) {
+	public static TimeSpan toTimespan(Object o, TimeSpan defaultValue) {
 		if (o instanceof TimeSpan) return (TimeSpan) o;
 		else if (o instanceof String) {
 			String[] arr = o.toString().split(",");
@@ -3303,12 +3299,6 @@ public final class Caster {
 		}
 
 		double dbl = toDoubleValue(o, true, Double.NaN);
-		if (Decision.isInteger(dbl)) {
-			long l = Caster.toLongValue(dbl);
-			if (milliThreshold > -1 && milliThreshold <= l) return TimeSpanImpl.fromMillis(l);
-
-		}
-
 		if (!Double.isNaN(dbl)) return TimeSpanImpl.fromDays(dbl);
 
 		return defaultValue;

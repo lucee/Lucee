@@ -324,7 +324,7 @@ public class CFConfigImport {
 			}
 
 			// cached after
-			ts = getAsTimespan(json, empty, null, 1000, "querycachedafter", "cachedafter");
+			ts = getAsTimespan(json, empty, false, false, null, "querycachedafter", "cachedafter");
 			if (ts != null || empty.toBooleanValue()) {
 				try {
 					admin.updateCachedAfterTimeRange(ts);
@@ -335,7 +335,7 @@ public class CFConfigImport {
 			}
 
 			// ApplicationSetting
-			ts = getAsTimespan(json, empty, null, 1000, "requesttimeout");
+			ts = getAsTimespan(json, empty, false, false, null, "requesttimeout");
 			if (ts != null || empty.toBooleanValue()) {
 				try {
 					admin.updateRequestTimeout(ts);
@@ -520,7 +520,7 @@ public class CFConfigImport {
 				}
 			}
 			else {
-				ts = getAsTimespan(json, empty, null, 1000, "mailConnectionTimeout", "mailTimeout");
+				ts = getAsTimespan(json, empty, false, true, null, "mailConnectionTimeout", "mailTimeout");
 				if (ts != null || empty.toBooleanValue()) {
 					try {
 						admin.setMailTimeout((int) (ts.getMillis() / 1000));
@@ -915,8 +915,9 @@ public class CFConfigImport {
 					try {
 						admin.updateMailServer(getAsInt(data, empty, 0, "id"), getAsString(data, "smtp", "host", "server", "hostname"), getAsString(data, "username", "dbusername"),
 								ConfigWebUtil.decrypt(getAsString(data, "password", "dbpassword")), getAsInt(data, empty, -1, "port"), getAsBoolean(data, empty, false, "tls"),
-								getAsBoolean(data, empty, false, "ssl"), getAsTimespan(data, empty, TimeSpanImpl.fromMillis(1000 * 60 * 5), 0, "life").getMillis(),
-								getAsTimespan(data, empty, TimeSpanImpl.fromMillis(1000 * 60 * 5), 0, "idle").getMillis(), getAsBoolean(data, empty, true, "reuseConnection"));
+								getAsBoolean(data, empty, false, "ssl"), getAsTimespan(data, empty, true, false, TimeSpanImpl.fromMillis(1000 * 60 * 5), "life").getMillis(),
+								getAsTimespan(data, empty, true, false, TimeSpanImpl.fromMillis(1000 * 60 * 5), "idle").getMillis(),
+								getAsBoolean(data, empty, true, "reuseConnection"));
 					}
 					catch (Throwable t) {
 						handleException(pc, t);
@@ -1102,7 +1103,7 @@ public class CFConfigImport {
 					handleException(pc, t);
 				}
 			}
-			ts = getAsTimespan(json, empty, null, -1, "clienttimeout");
+			ts = getAsTimespan(json, empty, false, false, null, "clienttimeout");
 			if (ts != null || empty.toBooleanValue()) {
 				try {
 					admin.updateClientTimeout(ts);
@@ -1111,7 +1112,7 @@ public class CFConfigImport {
 					handleException(pc, t);
 				}
 			}
-			ts = getAsTimespan(json, empty, null, 1000, "sessiontimeout");
+			ts = getAsTimespan(json, empty, false, false, null, "sessiontimeout");
 			if (ts != null || empty.toBooleanValue()) {
 				try {
 					admin.updateSessionTimeout(ts);
@@ -1120,7 +1121,7 @@ public class CFConfigImport {
 					handleException(pc, t);
 				}
 			}
-			ts = getAsTimespan(json, empty, null, 1000, "applicationtimeout");
+			ts = getAsTimespan(json, empty, false, false, null, "applicationtimeout");
 			if (ts != null || empty.toBooleanValue()) {
 				try {
 					admin.updateApplicationTimeout(ts);
@@ -1320,14 +1321,18 @@ public class CFConfigImport {
 		return defaultValue;
 	}
 
-	private static TimeSpan getAsTimespan(Struct data, RefBoolean empty, TimeSpan defaultValue, long milliThreashold, String... names) {
+	private static TimeSpan getAsTimespan(Struct data, RefBoolean empty, boolean nbrAsSeconds, boolean nbrAsMillis, TimeSpan defaultValue, String... names) {
 		Object val;
 		TimeSpan ts;
 		empty.setValue(false);
 		for (String name: names) {
 			val = data.get(name, null);
 			if (val != null) {
-				ts = Caster.toTimespan(val, milliThreashold, null);
+				if ((nbrAsSeconds || nbrAsMillis) && !(val instanceof TimeSpan) && Decision.isInteger(val, false)) {
+					int i = Caster.toIntValue(val, -1);
+					if (i != -1) return TimeSpanImpl.fromMillis(nbrAsMillis ? i : i * 1000L);
+				}
+				ts = Caster.toTimespan(val, null);
 				if (ts != null) return ts;
 				else if (StringUtil.isEmpty(val, true)) empty.setValue(true);
 			}
