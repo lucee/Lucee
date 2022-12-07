@@ -208,7 +208,7 @@ jobs:
       uses: actions/upload-artifact@v3
       if: always()
       with:
-        name: Lucee--${{ github.ref_name }}-junit-test-results-$${{ github.run_number }}
+        name: Lucee-${{ github.ref_name }}-junit-test-results-${{ github.run_number }}
         path: test/reports/junit-test-results.xml
     - name: Publish Test Results
       uses: EnricoMi/publish-unit-test-result-action@v2
