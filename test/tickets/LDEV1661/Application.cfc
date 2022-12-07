@@ -10,13 +10,13 @@ component {
 
 	function onApplicationStart(){
 		query{
-			echo("DROP TABLE IF EXISTS users");
+			echo("DROP TABLE IF EXISTS ldev1661_users");
 		}
 		query{
-			echo("CREATE TABLE users(sNo INT,datetimeField datetime,myTimestamp timestamp)");
+			echo("CREATE TABLE ldev1661_users(sNo INT,datetimeField datetime,myTimestamp timestamp)");
 		}
 		query{
-			echo("INSERT INTO users(sNo,datetimeField,myTimestamp)VALUES(123,'2018-04-10 02:50:30','2018-04-10 02:50:30'),(345,'2018-07-12 08:30:30','2018-03-03 04:50:30')");
+			echo("INSERT INTO ldev1661_users(sNo,datetimeField,myTimestamp)VALUES(123,'2018-04-10 02:50:30','2018-04-10 02:50:30'),(345,'2018-07-12 08:30:30','2018-03-03 04:50:30')");
 		}
 	}
 
