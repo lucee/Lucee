@@ -12285,8 +12285,8 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<name>string</name>
 			<type>string</type>
 			<required>Yes</required>
-		<description></description>
-    </argument>
+			<description>A string or a variable that contains one</description>
+		</argument>
 		<return>
 			<type>number</type>
 		</return>
@@ -12417,6 +12417,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>number</type>
 		</return>
 	</function>
+
 	<!-- structDelete -->
 	<function>
 		<name>structDelete</name>
@@ -12430,21 +12431,21 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<alias>structure,object</alias>
 			<type>struct</type>
 			<required>Yes</required>
-		<description>Structure contains element to remove.</description>
-    </argument>
+			<description>Structure contains element to remove.</description>
+		</argument>
 		<argument>
 			<name>key</name>
 			<type>string</type>
 			<required>Yes</required>
-		<description>Element to remove</description>
-    </argument>
+			<description>Element to remove</description>
+		</argument>
 		<argument>
 			<name>indicateNotExisting</name>
 			<alias>indicateExists</alias>
 			<type>boolean</type>
 			<required>No</required>
-		<description></description>
-    </argument>
+			<description>Whether to show an error if the key does not exist</description>
+		</argument>
 		<return>
 			<type>boolean</type>
 		</return>
@@ -13354,6 +13355,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>any</type>
 		</return>
 	</function>
+
 	<!-- structFindKey -->
 	<function>
 		<name>structFindKey</name>
@@ -13368,27 +13370,29 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<alias>struct</alias>
 			<type>struct</type>
 			<required>Yes</required>
-		<description>object from which to start search. This parameter requires an object, not a name of an object.</description>
-    </argument>
+			<description>object from which to start search. This parameter requires an object, not a name of an object.</description>
+		</argument>
 		<argument>
 			<name>Key</name>
 			<type>string</type>
 			<required>Yes</required>
-		<description></description>
-    </argument>
+			<description>Key for which to search.</description>
+		</argument>
 		<argument>
 			<name>Scope</name>
 			<type>string</type>
 			<required>No</required>
 			<default>one</default>
-		<description>
-- one (default): returns one matching key.
-- all: returns all matching keys</description>
-    </argument>
+			<description>
+			- one (default): returns one matching key.
+			- all: returns all matching keys
+			</description>
+		</argument>
 		<return>
 			<type>array</type>
 		</return>
 	</function>
+
 	<!-- structFindValue -->
 	<function>
 		<name>structFindValue</name>
@@ -13402,23 +13406,24 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<name>Top</name>
 			<type>struct</type>
 			<required>Yes</required>
-		<description>structure from which to start search. This parameter requires an object, not a name of an object.</description>
-    </argument>
+			<description>structure from which to start search. This parameter requires an object, not a name of an object.</description>
+		</argument>
 		<argument>
 			<name>Key</name>
 			<type>string</type>
 			<required>Yes</required>
-		<description></description>
-    </argument>
+			<description>Value for which to search</description>
+		</argument>
 		<argument>
 			<name>Scope</name>
 			<type>string</type>
 			<required>No</required>
 			<default>one</default>
-		<description>
-- one (default): function returns one matching key
-- all: function returns all matching keys</description>
-    </argument>
+			<description>
+			- one (default): function returns one matching key
+			- all: function returns all matching keys
+			</description>
+		</argument>
 		<return>
 			<type>array</type>
 		</return>
@@ -13577,8 +13582,8 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<alias>structure,object</alias>
 			<type>struct</type>
 			<required>Yes</required>
-		<description></description>
-    </argument>
+			<description>Structure to translate</description>
+		</argument>
 		<argument>
 			<name>deepTranslation</name>
 			<type>boolean</type>
@@ -13738,25 +13743,26 @@ _- asc (default): ascending (a to z) sort order
 			<name>obj</name>
 			<type>Object</type>
 			<required>Yes</required>
-		<description>Any kind of object. Lucee will serialize all complex objects passed in to a string. If you pass a string you can add &lt;print-stack-trace&gt;, 
-		Lucee will replace with a stacktrace of the current position.</description>
-    </argument>
+			<description>Any kind of object. Lucee will serialize all complex objects passed in to a string. If you pass a string you can add &lt;print-stack-trace&gt;, 
+			Lucee will replace with a stacktrace of the current position.</description>
+		</argument>
 		<argument>
 			<name>addNewLine</name>
 			<type>boolean</type>
 			<required>no</required>
-		<description></description>
-    </argument>
+			<description></description>
+		</argument>
 		<argument>
 			<name>doErrorStream</name>
 			<type>boolean</type>
 			<required>no</required>
-		<description></description>
-    </argument>
+			<description></description>
+		</argument>
 		<return>
 			<type>boolean</type>
 		</return>
 	</function>
+
 	<!-- tan -->
 	<function>
 		<name>tan</name>
@@ -14141,20 +14147,20 @@ _- asc (default): ascending (a to z) sort order
 			<alias>xmlNode,xmlObj,xmlDoc,xml</alias>
 			<type>xml</type>
 			<required>Yes</required>
-		<description>XML element within which to search.</description>
-    </argument>
+			<description>XML element within which to search.</description>
+		</argument>
 		<argument>
 			<name>childName</name>
 			<type>string</type>
 			<required>Yes</required>
-		<description>XML child element for which to search</description>
-    </argument>
+			<description>XML child element for which to search.</description>
+		</argument>
 		<argument>
 			<name>index</name>
 			<type>number</type>
 			<required>Yes</required>
-		<description></description>
-    </argument>
+			<description>Index of XMLchild element for which to search.</description>
+		</argument>
 		<return>
 			<type>number</type>
 		</return>
@@ -14284,6 +14290,7 @@ _- asc (default): ascending (a to z) sort order
 			<type>xml</type>
 		</return>
 	</function>
+	
 	<!-- htmlParse -->
 	<function>
 		<name>htmlParse</name>
@@ -14295,18 +14302,19 @@ _- asc (default): ascending (a to z) sort order
 			<alias>string,text</alias>
 			<type>string</type>
 			<required>Yes</required>
-		<description></description>
-    </argument>
+			<description>A string or a variable that contains one, with HTML to be parsed</description>
+		</argument>
 		<argument>
 			<name>caseSensitive</name>
 			<type>boolean</type>
 			<required>No</required>
-		<description></description>
-    </argument>
+			<description>Maintains the case of document elements and attributes</description>
+		</argument>
 		<return>
 			<type>xml</type>
 		</return>
 	</function>
+
 	<!-- xmlSearch -->
 	<function>
 		<name>xmlSearch</name>
@@ -14350,30 +14358,31 @@ _- asc (default): ascending (a to z) sort order
 			<alias>xmlNode,xmlObj,xmlDoc,node</alias>
 			<type>any</type>
 			<required>Yes</required>
-		<description>An XML document in string format, or an XML document object</description>
-    </argument>
+			<description>An XML document in string format, or an XML document object</description>
+		</argument>
 		<argument>
 			<name>xsl</name>
 			<alias>xslString,xslText</alias>
 			<type>string</type>
 			<required>Yes</required>
-		<description></description>
-    </argument>
+			<description>A string containing XSL text</description>
+		</argument>
 		<argument>
 			<name>parameters</name>
 			<alias>params</alias>
 			<type>struct</type>
 			<required>false</required>
 			<status>unimplemented</status>
-		<description>A structure containing XSL template parameter name-value
-            pairs to use in transforming the document. The XSL transform
-            defined in the xslString parameter uses these parameter values
-            in processing the xml.</description>
-    </argument>
+			<description>A structure containing XSL template parameter name-value
+				pairs to use in transforming the document. The XSL transform
+				defined in the xslString parameter uses these parameter values
+				in processing the xml.</description>
+		</argument>
 		<return>
 			<type>string</type>
 		</return>
 	</function>
+	
 	<!-- XmlValidate -->
 	<function>
 		<name>XmlValidate</name>
