@@ -151,11 +151,19 @@ jobs:
           echo "------- Maven Install on ${{ github.event_name }} ---------";
           mvn -B -e -f loader/pom.xml clean install -DtestJavaVersionExec="${{ env.LUCEE_TEST_JAVA_EXEC }}"
         fi
+    - name: clean github.ref_name
+      uses: mad9000/actions-find-and-replace-string@3
+      id: cleanrefname
+      if: always()
+      with:
+          source: ${{ github.ref_name }}
+          find: '/'
+          replace: '-'
     - name: Upload Artifact (junit-test-results)
       uses: actions/upload-artifact@v3
       if: always()
       with:
-        name: Lucee-junit-test-results-${{ github.ref_name }}-${{ github.run_number }}
+        name: Lucee-${{ steps.cleanrefname.outputs.value }}-junit-test-results-${{ github.run_number }}
         path: test/reports/*.xml
     - name: Publish Test Results
       uses: EnricoMi/publish-unit-test-result-action@v2
