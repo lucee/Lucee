@@ -3,15 +3,7 @@ component {
 	this.name	=	Hash( GetCurrentTemplatePath() ) & "2s";
 	this.sessionManagement 	= false;
 
-	
-	this.datasource = {
-		  class: 'org.h2.Driver'
-		, bundleName: 'org.h2'
-		, bundleVersion: '1.3.172'
-		, connectionString: 'jdbc:h2:#getDirectoryFromPath(getCurrentTemplatePath())#/datasource/db;MODE=MySQL'
-		, connectionLimit:100 // default:-1
-	};
-	
+	this.datasource =  server.getDatasource( "h2", server._getTempDir( "LDEV0374" ) );
 
 	// ORM settings
 	this.ormEnabled = true;
@@ -24,7 +16,7 @@ component {
 	function onApplicationStart(){
 		try{
 			query {
-			echo("DROP TABLE users");
+				echo("DROP TABLE users");
 			}
 		}
 		catch(local.e) {}
@@ -40,20 +32,5 @@ component {
 	
 	public function onRequestStart() {
 		setting requesttimeout=10 showdebugOutput=false;
-	}
-
-	function onRequestEnd() {
-		var javaIoFile=createObject("java","java.io.File");
-		loop array=DirectoryList(
-			path=getDirectoryFromPath(getCurrentTemplatePath()), 
-			recurse=true, filter="*.db") item="local.path"  {
-			fileDeleteOnExit(javaIoFile,path);
-		}
-	}
-
-	private function fileDeleteOnExit(required javaIoFile, required string path) {
-		var file=javaIoFile.init(arguments.path);
-		if(!file.isFile())file=javaIoFile.init(expandPath(arguments.path));
-		if(file.isFile()) file.deleteOnExit();
 	}
 }

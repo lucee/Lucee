@@ -7,10 +7,5 @@ component {
 		dialect = " MySQL"
 	}
 	this.datasource = "LDEV4285";
-	this.datasources["LDEV4285"] = {
-		class: 'org.h2.Driver'
-		, bundleName: 'org.h2'
-		, bundleVersion: '1.3.172'
-		, connectionString: 'jdbc:h2:'&getDirectoryFromPath(getCurrentTemplatePath())&'test'&'\testTimezone;MODE=MySQL'
-	};
+	this.datasources["LDEV4285"] = server.getDatasource( "h2", server._getTempDir( "LDEV4285" ) );
 }

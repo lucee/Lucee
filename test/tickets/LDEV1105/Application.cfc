@@ -21,11 +21,7 @@ component {
 	this.name = hash( getCurrentTemplatePath() );
     this.sessionmanagement="Yes" 
 	this.sessiontimeout=createTimeSpan(0,0,3,0);
-	this.datasources.test={
-	  	class: 'org.h2.Driver'
-		, connectionString: 'jdbc:h2:#getDirectoryFromPath(getCurrentTemplatePath())#/datasource/db;MODE=MySQL'
-		, storage: true
-	};
+	this.datasources.test = server.getDatasource(service="h2", dbFile=server._getTempDir("LDEV1105"), options={ storage:true } );
 
 	this.sessionStorage="test";
 	this.sessionCluster=true;

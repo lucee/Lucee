@@ -17,10 +17,7 @@
  * 
  ---><cfcomponent extends="org.lucee.cfml.test.LuceeTestCase">
 
-
-
 	<cffunction name="test" localmode="true">
-
 		<!--- not working in JSR223env --->
 		<cfif server.lucee.environment=="servlet">
 		
@@ -48,72 +45,41 @@
 			<cfset assertEquals(5,data.i)>
 			<cfset assertEquals(false,data.isNull)>
 
-	</cfif>
-
-
-
-
+		</cfif>
 	</cffunction>
+	<cfscript>
+		public function beforeTests(){
+			defineDatasource();
 
+			try{
+				query {
+					echo("drop TABLE TUpdateX");
+				}
+			}
+			catch(local.e){}
 
-
-<cfscript>
-	public function beforeTests(){
-		defineDatasource();
-
-		try{
-			query {
-				echo("drop TABLE TUpdateX");
+			query  {
+				echo("CREATE TABLE TUpdateX (");
+				echo("id INTEGER IDENTITY NOT NULL,");
+				echo("i int,");		
+				//echo("dec DECIMAL,");	
+				echo("PRIMARY KEY (id)");	
+				echo(") ");
 			}
 		}
-		catch(local.e){}
 
-		query  {
-			echo("CREATE TABLE TUpdateX (");
-			echo("id INTEGER IDENTITY NOT NULL,");
-			echo("i int,");		
-			//echo("dec DECIMAL,");	
-			echo("PRIMARY KEY (id)");	
-			echo(") ");
+		private string function defineDatasource(){
+			application action="update" 
+				datasource="#server.getDatasource( "h2", server._getTempDir( "updateClassic" ) )#";
 		}
-	}
 
-
-	private string function defineDatasource(){
-		application action="update" 
-			datasource="#{
-	  		class: 'org.h2.Driver'
-	  		, bundleName: 'org.h2'
-			, connectionString: 'jdbc:h2:#getDirectoryFromPath(getCurrentTemplatePath())#/datasource/update;MODE=MySQL'
-		}#";
-	}
-
-	public function afterTests(){
-		try{
-			query {
-				echo("drop TABLE TUpdateX");
+		public function afterTests(){
+			try{
+				query {
+					echo("drop TABLE TUpdateX");
+				}
 			}
+			catch(local.e){}
 		}
-		catch(local.e){}
-		end();
-	}
-
-	function end() {
-		var javaIoFile=createObject("java","java.io.File");
-		loop array=DirectoryList(
-			path=getDirectoryFromPath(getCurrentTemplatePath()), 
-			recurse=true, filter="*.db") item="local.path"  {
-			fileDeleteOnExit(javaIoFile,path);
-		}
-	}
-
-	private function fileDeleteOnExit(required javaIoFile, required string path) {
-		var file=javaIoFile.init(arguments.path);
-		if(!file.isFile())file=javaIoFile.init(expandPath(arguments.path));
-		if(file.isFile()) file.deleteOnExit();
-	}
-</cfscript>
-
-
-
+	</cfscript>
 </cfcomponent>

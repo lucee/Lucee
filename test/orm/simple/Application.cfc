@@ -1,7 +1,7 @@
 component {
 
 	this.name 				= "orm" & hash( getCurrentTemplatePath() );
-	this.datasource= server.getDatasource("h2", server._getUniqueTempDir("orm-simple") );
+	this.datasource= server.getDatasource("h2", server._getTempDir("orm-simple") );
 	this.ormEnabled = true;
 	this.ormSettings = {
 		dbcreate = "dropcreate"

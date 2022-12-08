@@ -9,7 +9,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="s3" skip="true"{
 		if(isNotSupported()) return;
 
 		variables.s3Details = getCredentials();
-		variables.path = "#getDirectoryFromPath(getCurrenttemplatepath())#LDEV3196";
+		variables.path = server._getTempDir( "LDEV3196" );
 		if(!directoryExists(path)) directoryCreate(path)
 
 		variables.bucketName = "lucee-ldev3196-#lcase(hash(CreateGUID()))#";

@@ -45,7 +45,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mysql" {
 		var ds={};
 
 		// H2
-		var ds['h2'] = server.getDatasource("h2", server._getUniqueTempDir("LDEV2266") );
+		var ds['h2'] = server.getDatasource("h2", server._getTempDir("LDEV2266") );
 		
 		// MySQL
 		var mySQL=getCredentials();

@@ -5,7 +5,7 @@ component {
         dbCreate = "dropcreate"
     }
 
-    this.datasource = server.getDatasource("h2", server._getUniqueTempDir("LDEV2862") );
+    this.datasource = server.getDatasource("h2", server._getTempDir("LDEV2862") );
 
     public function onRequestStart() {
         query result="test"{

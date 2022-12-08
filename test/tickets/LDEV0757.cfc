@@ -25,17 +25,24 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 			names=listAppend(names,"t757_#i#")
 			thread name="t757_#i#"  {
 				//http url=request.baseURL&"qry.cfm" result="res";
-				uri=createURI("LDEV0757/qry.cfm");
-				local.res=_InternalRequest(uri);
-				echo("%%%%"&serialize(res));
-				arrayAppend(request.results757,res.filecontent.trim());
+				var uri=createURI("LDEV0757/qry.cfm");
+				lock name='LDEV0757' timeout="5" type="exclusive" {
+					try {
+						local.res=_InternalRequest(uri);
+						echo("%%%%"&serialize(res));
+						arrayAppend( request.results757, res.filecontent.trim() );
+					} catch (e){
+						arrayAppend( request.results757, e.message.trim() );
+					}
+				}
 			}
 		}
 		thread action="join" name="#names#";
-		assertEquals("30",request.results757.len());
+		
 		loop array=request.results757 item="local.result" {
-			assertEquals(":ok:",left(result,4));
+			expect( left( result, 4 ) ).toBe(":ok:", result );
 		}
+		expect( request.results757.len() ).toBe( 30 );
 
 	}
 

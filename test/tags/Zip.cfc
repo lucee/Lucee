@@ -20,10 +20,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="zip" {
 
 	public function setUp() {
 		
-		variables.currFile=getCurrentTemplatePath();
-		variables.currDir=getDirectoryFromPath(currFile);
+		
+		variables.currDir=server._getTempDir( "tag-zip" );
 
-		variables.root=currDir & "zip/";
+		variables.root=currDir & "/zip/";
 		variables.dir=root & "a/b/c/";
 		variables.file1=dir & "a.txt"
 		variables.dir1=root & "a/";
@@ -103,8 +103,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="zip" {
 	}
 	
 	public function testInvalidEntryName() {
-		var curr = getDirectoryFromPath( getCurrentTemplatePath() );
-		var trg=curr & "zip/"
+		var curr = server._getTempDir( "tag-zip-invalid" );
+		var trg=curr & "/zip/"
 		trg2 = trg & "sub/sub/";
 		if ( directoryExists( trg ) ) 
 			directoryDelete( trg, true );
@@ -134,8 +134,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="zip" {
 
 		if ( isNotSupported() ) return;  // this is unix only
 
-		var curr = getDirectoryFromPath( getCurrentTemplatePath() );
-		var src = curr & "zip_exe";
+		var curr = var curr = server._getTempDir( "tag-zip-exe" );
+		var src = curr & "/zip_exe";
 		var dest = curr & "unzip_exe";
 
 		try {

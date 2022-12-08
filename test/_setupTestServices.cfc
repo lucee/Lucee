@@ -408,15 +408,14 @@ component {
 	}
 
 	public function addSupportFunctions() {
-		server._getUniqueTempDir = function ( string prefix="" ) localmode=true{
+		server._getTempDir = function ( string prefix="" ) localmode=true{
 			if ( len( arguments.prefix ) eq 0 ) {
-				local.dir = getTempDirectory() & createGUID();
+				local.dir = getTempDirectory() & "lucee-tests\" & createGUID();
 			} else {
-				local.dir = getTempDirectory() & arguments.prefix & "\#createGUID()#";
+				local.dir = getTempDirectory() & "lucee-tests\" & arguments.prefix;
 			}
-			if ( directoryExists( dir ) )
-				directoryDelete( dir, true );
-			directoryCreate( dir, true );
+			if ( !directoryExists( dir ) )
+				directoryCreate( dir, true );
 			return dir;
 		};
 		server._getSystemPropOrEnvVars = function ( string props="", string prefix="", boolean stripPrefix=true, boolean allowEmpty=false ) localmode=true{
@@ -457,7 +456,13 @@ component {
 		server.getDefaultBundleVersion = getDefaultBundleVersion;  
 		server.getBundleVersions = getBundleVersions;
 	}
-	public struct function getTestService( required string service, string dbFile="", boolean verify=false, boolean onlyConfig=false ) localmode=true {
+	public struct function getTestService( required string service, 
+			string dbFile="", 
+			boolean verify=false, 
+			boolean onlyConfig=false,
+			string connectionString="",
+			struct options={}
+		) localmode=true {
 
 		if ( StructKeyExists( server.test_services, arguments.service ) ){
 			if ( !server.test_services[ arguments.service ].valid ){
@@ -478,10 +483,10 @@ component {
 						class: 'com.microsoft.sqlserver.jdbc.SQLServerDriver'
 						, bundleName: 'org.lucee.mssql'
 						, bundleVersion: server.getDefaultBundleVersion( 'org.lucee.mssql', '4.0.2206.100' )
-						, connectionString: 'jdbc:sqlserver://#msSQL.SERVER#:#msSQL.PORT#;DATABASENAME=#msSQL.DATABASE#;sendStringParametersAsUnicode=true;SelectMethod=direct'
+						, connectionString: 'jdbc:sqlserver://#msSQL.SERVER#:#msSQL.PORT#;DATABASENAME=#msSQL.DATABASE#;sendStringParametersAsUnicode=true;SelectMethod=direct' & arguments.connectionString
 						, username: msSQL.username
 						, password: msSQL.password
-					};
+					}.append( arguments.options );
 				}
 				break;
 			case "mysql":
@@ -493,10 +498,10 @@ component {
 						class: 'com.mysql.cj.jdbc.Driver'
 						, bundleName: 'com.mysql.cj'
 						, bundleVersion: server.getDefaultBundleVersion( 'com.mysql.cj', '8.0.19' )
-						, connectionString: 'jdbc:mysql://#mySQL.server#:#mySQL.port#/#mySQL.database#?useUnicode=true&characterEncoding=UTF-8&useLegacyDatetimeCode=true&useSSL=false'
+						, connectionString: 'jdbc:mysql://#mySQL.server#:#mySQL.port#/#mySQL.database#?useUnicode=true&characterEncoding=UTF-8&useLegacyDatetimeCode=true&useSSL=false' & arguments.connectionString
 						, username: mySQL.username
 						, password: mySQL.password
-					};
+					}.append( arguments.options );
 				}
 				break;
 			case "postgres":
@@ -508,15 +513,15 @@ component {
 						class: 'org.postgresql.Driver'
 						, bundleName: 'org.postgresql.jdbc'
 						, bundleVersion: server.getDefaultBundleVersion( 'org.postgresql.jdbc', '42.2.20' )
-						, connectionString: 'jdbc:postgresql://#pgsql.server#:#pgsql.port#/#pgsql.database#'
+						, connectionString: 'jdbc:postgresql://#pgsql.server#:#pgsql.port#/#pgsql.database#' & arguments.connectionString
 						, username: pgsql.username
 						, password: pgsql.password
-					};
+					}.append( arguments.options );
 				}
 				break;
 			case "h2":
 				if ( arguments.verify ){
-					tempDb = "#getTempDirectory()#/#createUUID()#";
+					tempDb = server._getTempDir("h2-verify");
 					if (! DirectoryExists( tempDb ) )
 						DirectoryCreate( tempDb );
 					arguments.dbFile = tempDb;
@@ -526,8 +531,8 @@ component {
 						class: 'org.h2.Driver'
 						, bundleName: 'org.h2'
 						, bundleVersion: server.getDefaultBundleVersion( 'org.h2', '1.3.172' )
-						, connectionString: 'jdbc:h2:#arguments.dbFile#/datasource/db;MODE=MySQL'
-					};
+						, connectionString: 'jdbc:h2:#arguments.dbFile#/db;MODE=MySQL' & arguments.connectionString
+					}.append( arguments.options );
 				}
 				break;
 			case "mongoDB":
@@ -553,10 +558,10 @@ component {
 						class: 'oracle.jdbc.OracleDriver'
 						, bundleName: 'org.lucee.oracle'
 						, bundleVersion: server.getDefaultBundleVersion( 'org.lucee.oracle', '19.12.0.0000L' )
-						, connectionString: 'jdbc:oracle:thin:@#oracle.server#:#oracle.port#/#oracle.database#'
+						, connectionString: 'jdbc:oracle:thin:@#oracle.server#:#oracle.port#/#oracle.database#' & arguments.connectionString
 						, username: oracle.username
 						, password: oracle.password
-					};
+					}.append( arguments.options );
 				}
 				break;
 			case "ftp":
@@ -616,10 +621,10 @@ component {
 			//systemOutput(arguments.bundleName & " " & bundles[arguments.bundleName], true)
 			return bundles[ arguments.bundleName ];
 		} else {
-			systemOutput( "getDefaultBundleVersion: [" & arguments.bundleName & "] FALLLING BACK TO DEFAULT [" & arguments.fallbackVersion & "]", true );
+			//systemOutput( "getDefaultBundleVersion: [" & arguments.bundleName & "] FALLLING BACK TO DEFAULT [" & arguments.fallbackVersion & "]", true );
 			return arguments.fallbackVersion ;
 		}
-	}		
+	}
 
 	function getBundleVersions() cachedWithin="#createTimeSpan( 1, 0, 0, 0 )#"{
 		admin 
