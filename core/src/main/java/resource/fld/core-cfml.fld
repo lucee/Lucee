@@ -1155,35 +1155,59 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<name>date</name>
 			<type>any</type>
 			<required>Yes</required>
-		<description>date object</description>
-    </argument>
+			<description>date object</description>
+		</argument>
 		<argument>
 			<name>mask</name>
 			<type>string</type>
 			<required>No</required>
 			<default>medium</default>
-		<description></description>
-    </argument>
+			<description>
+			Characters that show how Lucee displays a date:
+			- d: Day of the month as digits; no leading zero for single-digit days.
+			- dd: Day of the month as digits; leading zero for single-digit days.
+			- ddd: Day of the week as a three-letter abbreviation.
+			- dddd: Day of the week as its full name.
+			- m: Month as digits; no leading zero for single-digit months.
+			- mm: Month as digits; leading zero for single-digit months.
+			- mmm: Month as a three-letter abbreviation.
+			- mmmm: Month as its full name.
+			- yy: Year as last two digits; leading zero for years less than 10.
+			- yyyy: Year represented by four digits.
+			- gg: Period/era string. Ignored. Reserved. The following masks tell how to format the full date and cannot be combined with other masks:
+			- z: Time zone in literal format, for example, IST
+			- Z: Time zone in hours of offset (RFC 822 TimeZone), for example, +0530
+			- X: Time zone in hours of offset in ISO 8601 format. The following are the three ways of using 'X':
+					X: +05
+					XX: +0530
+					XXX: +5:30
+
+			- short: equivalent to m/d/y
+			- medium: equivalent to mmm d, yyyy
+			- long: equivalent to mmmm d, yyyy
+			- full: equivalent to dddd, mmmm d, yyyy
+			</description>
+		</argument>
 		<argument>
 			<name>locale</name>
 			<type>locale</type>
 			<required>No</required>
-		<description>Locale to use instead of the locale of the page when processing the function</description>
-    </argument>
+			<description>Locale to use instead of the locale of the page when processing the function</description>
+		</argument>
 		<argument>
 			<name>timezone</name>
 			<type>timezone</type>
 			<required>No</required>
-		<description>
-A datetime object is independent of a specific timezone, it is only an offset in milliseconds from 1970-1-1 00.00:00 UTC (Coordinated Universal Time).
-This means that the timezone only comes into play when you need specific information like hours in a day, minutes in a hour or which day it is since those calculations depend on the timezone.
-For these calculations, a timezone must be specified in order to translate the date object to something else. If you do not provide the timezone in the function call, it will default to the timezone specified in the Lucee Administrator (Settings/Regional), or the timezone specified for the current request using the function setTimezone.
-You can find a list of all available timezones in the Lucee administrator (Settings/Regional). Some examples of valid timezones:
-       - AGT (for time in Argentina)
-       - Europe/Zurich (for time in Zurich/Switzerland)
-       - HST (Hawaiian Standard Time in the USA)
-		</description>
-    </argument>
+			<description>
+			A datetime object is independent of a specific timezone, it is only an offset in milliseconds from 1970-1-1 00.00:00 UTC (Coordinated Universal Time).
+			This means that the timezone only comes into play when you need specific information like hours in a day, minutes in a hour or which day it is since those calculations depend on the timezone.
+			For these calculations, a timezone must be specified in order to translate the date object to something else. If you do not provide the timezone in the function call, it will default to the timezone specified in the Lucee Administrator (Settings/Regional), or the timezone specified for the current request using the function setTimezone.
+			You can find a list of all available timezones in the Lucee administrator (Settings/Regional). Some examples of valid timezones:
+				- AGT (for time in Argentina)
+				- Europe/Zurich (for time in Zurich/Switzerland)
+				- HST (Hawaiian Standard Time in the USA)
+			</description>
+		</argument>
 		<return>
 			<type>string</type>
 		</return>
@@ -1237,20 +1261,19 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<alias>string,currency_number,currency</alias>
 			<type>string</type>
 			<required>Yes</required>
-		<description>A currency string</description>
-    </argument>
+			<description>A currency string</description>
+		</argument>
 		<argument>
 			<name>locale</name>
 			<type>locale</type>
 			<required>No</required>
-		<description></description>
-    </argument>
+			<description>Locale to use instead of the locale of the page when processing the function</description>
+		</argument>
 		<return>
 			<type>boolean</type>
 		</return>
 	</function>
-	
-	
+		
 	<!-- LSIsDate -->
 	<function>
 		<name>LSIsDate</name>
@@ -1324,24 +1347,37 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<name>number</name>
 			<type>any</type>
 			<required>Yes</required>
-		<description>Number to format</description>
-    </argument>
+			<description>Number to format</description>
+		</argument>
 		<argument>
 			<name>mask</name>
 			<type>string</type>
 			<required>No</required>
-		<description></description>
-    </argument>
+			<description>
+			Mask that has to be used for formatting number: dollar sign, comma, and dot are mapped to their locale-specific equivalents.
+			_,9 Digit placeholder; 
+			. decimal point; 
+			0 Pads with zeros;
+			( ) less than zero, puts parentheses around the mask
+			+ plus sign before positive number minus before negative
+			- a space before positive minus sign before negative
+			, Separates every third decimal place with a comma.
+			L,C Left-justifies or center-justifies number
+			$ dollar sign before formatted number.
+			^ Separates left and right formatting.
+			</description>
+		</argument>
 		<argument>
 			<name>locale</name>
 			<type>locale</type>
 			<required>No</required>
-		<description>Locale to use instead of the locale of the page when processing the function</description>
-    </argument>
+			<description>Locale to use instead of the locale of the page when processing the function</description>
+		</argument>
 		<return>
 			<type>string</type>
 		</return>
 	</function>
+
 	<!-- lSParseCurrency -->
 	<function>
 		<name>lSParseCurrency</name>
@@ -2031,22 +2067,22 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<name>string</name>
 			<type>string</type>
 			<required>Yes</required>
-		<description>A string or a variable that contains one</description>
-    </argument>
+			<description>A string or a variable that contains one</description>
+		</argument>
 		<argument>
 			<name>charset</name>
 			<type>string</type>
 			<required>No</required>
 			<default>utf-8</default>
-		<description>The character encoding in which the string is encoded.</description>
-    </argument>
+			<description>The character encoding in which the string is encoded.</description>
+		</argument>
 		<argument>
 			<name>force</name>
 			<type>boolean</type>
 			<required>No</required>
 			<default>true</default>
-		<description></description>
-    </argument>
+			<description>If false, then the string will not be encoded if it does not contain unsafe characters.</description>
+		</argument>
 		<return>
 			<type>string</type>
 		</return>
@@ -2065,8 +2101,8 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<name>query_column</name>
 			<type>queryColumn</type>
 			<required>Yes</required>
-		<description></description>
-    </argument>
+			<description>Name of an executed query and column. Separate query name and column name with a period.</description>
+		</argument>
 		<return>
 			<type>array</type>
 		</return>
@@ -2319,8 +2355,8 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<name>string</name>
 			<type>string</type>
 			<required>Yes</required>
-		<description></description>
-    </argument>
+			<description>A string or a variable that contains one</description>
+		</argument>
 		<return>
 			<type>any</type>
 		</return>
@@ -2442,8 +2478,8 @@ The following things are considered to be empty:
 			<alias>variableName,object</alias>
 			<type>variableString</type>
 			<required>Yes</required>
-			<description></description>
-    	</argument>
+			<description>Variable to check</description>
+		</argument>
 		<return>
 			<type>boolean</type>
 		</return>
