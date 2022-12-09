@@ -1191,6 +1191,9 @@ public final class Http extends BodyTagImpl {
 				}
 
 			}
+
+			String charset = HTTPUtil.splitMimeTypeAndCharset(mimetype, null)[1];
+			
 			cfhttp.set(RESPONSEHEADER, responseHeader);
 			cfhttp.set(KeyConstants._cookies, cookies);
 			responseHeader.set(STATUS_CODE, Double.valueOf(statCode = rsp.getStatusCode()));
@@ -1231,12 +1234,15 @@ public final class Http extends BodyTagImpl {
 				if (Boolean.TRUE == _isText) {
 					String[] types = HTTPUtil.splitMimeTypeAndCharset(mimetype, null);
 					if (types[0] != null) cfhttp.set(KeyConstants._mimetype, types[0]);
-					if (types[1] != null) cfhttp.set(CHARSET, types[1]);
+					if (types[1] != null) charset = types[1];
 
 				}
 				else cfhttp.set(KeyConstants._mimetype, mimetype);
 			}
 			else cfhttp.set(KeyConstants._mimetype, NO_MIMETYPE);
+
+			// charset
+			cfhttp.set(CHARSET, charset != null? charset : "");
 
 			// File
 			Resource file = null;
