@@ -359,10 +359,11 @@ Characters that show how Lucee displays a date:
          XX: +0530
          XXX: +5:30
 
-- short: equivalent to m/d/y
-- medium: equivalent to mmm d, yyyy
-- long: equivalent to mmmm d, yyyy
-- full: equivalent to dddd, mmmm d, yyyy</description>
+- short: equivalent to "m/d/y"
+- medium: equivalent to "mmm d, yyyy"
+- long: equivalent to "mmmm d, yyyy"
+- full: equivalent to "dddd, mmmm d, yyyy"
+- ISO8601/ISO: equivalent to "yyyy-mm-dd"</description>
     </argument>
 		<argument>
 			<name>timezone</name>
