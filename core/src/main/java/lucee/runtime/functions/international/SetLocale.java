@@ -31,9 +31,9 @@ public final class SetLocale implements Function {
 	private static final long serialVersionUID = -4941933470300726563L;
 
 	public static Locale call(PageContext pc, Locale locale) {
-		Locale old = pc.getLocale();
 		pc.setLocale(locale);
-		return old;
+		Locale newLocale = pc.getLocale();
+		return newLocale;
 
 	}
 }
