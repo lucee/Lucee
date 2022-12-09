@@ -1,7 +1,7 @@
 component {
 
 	this.name = "orm-events";
-	this.datasource= server.getDatasource("h2", server._getUniqueTempDir("orm-events") );
+	this.datasource= server.getDatasource("h2", server._getTempDir("orm-events") );
 	this.ormEnabled = true;
 	this.ormSettings = {
 		dbcreate: "dropcreate",

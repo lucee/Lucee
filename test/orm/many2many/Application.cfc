@@ -2,7 +2,7 @@
 
 <cfscript>
 	this.name = hash(getCurrentTemplatePath()) & getTickCount();
- 	this.datasources.test = server.getDatasource("h2", server._getUniqueTempDir("orm-many2many") );
+ 	this.datasources.test = server.getDatasource("h2", server._getTempDir("orm-many2many") );
 	this.datasource = 'test'; 
 		
 	this.ormEnabled = true; 

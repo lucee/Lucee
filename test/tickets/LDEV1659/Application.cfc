@@ -9,17 +9,10 @@ component {
 	this.mappings[ "/model" ] = getDirectoryFromPath( getCurrentTemplatePath() ) & 'model';
 
 
-	// DATASOPURCE CONFIG
+	// DATASOURCE CONFIG
 	dbname	= 'testdb8';
-	dbpath	= expandPath("#getTempDirectory()#/data/#dbname#");
 
-	this.datasources[dbname] = {
-		  class: 'org.h2.Driver'
-		, bundleName: 'org.h2'
-		, bundleVersion: '1.3.172'
-		, connectionString: 'jdbc:h2:#dbpath#;MODE=MySQL'
-		, connectionLimit:100 // default:-1
-	};
+	this.datasources[dbname] = server.getDatasource( "h2", server._getTempDir( "LDEV1659" ) );
 
 
 	// ORM CONFIG

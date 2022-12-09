@@ -21,7 +21,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="search" {
 	public void function testCreateIndexQuery() localmode=true {
 		
 
-		curr=getTempDirectory() & "tag-index-test\";
+		curr=server._getTempDir("tag-index-test-query");
 		path=curr&"_index/";
 		pathColl=path&"collections/"
 			
@@ -85,7 +85,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="search" {
 
 	public void function testCreateIndexFileHTML() localmode=true {
 
-		curr=getTempDirectory() & "tag-index-test\";
+		curr=server._getTempDir("tag-index-test-file");
 		path=curr&"_index2/";
 		pathColl=path&"collections/"
 			
@@ -139,7 +139,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="search" {
 
 	public void function testCreateIndexCustom() localmode=true {
 
-		curr=getTempDirectory() & "tag-index-test\";
+		curr=server._getTempDir("tag-index-test-custom");
 		path=curr&"_index3/";
 		pathColl=path&"collections/"
 			
@@ -209,7 +209,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="search" {
 
 	public void function testCreateIndexFilePDF() localmode=true {
 
-		curr=getTempDirectory() & "tag-index-test\";
+		curr=server._getTempDir("tag-index-test-pdf");
 		path=curr&"_index4/";
 		file=path&"test.pdf"
 

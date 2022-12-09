@@ -7,7 +7,7 @@ component {
 		savemapping=true
     };
     
-	this.datasource = server.getDatasource("h2", server._getUniqueTempDir("jira3049") );
+	this.datasource = server.getDatasource("h2", server._getTempDir("jira3049") );
 	
 	public function onRequestStart() {
 		setting requesttimeout=10;

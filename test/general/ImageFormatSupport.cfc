@@ -1,7 +1,7 @@
 component extends="org.lucee.cfml.test.LuceeTestCase" labels="image" {
 
 	function beforeAll(){
-		variables.base = GetTempDirectory() & "testImageFormats/";
+		variables.base = server._getTempDir( "imageFormatSupport" );
 		if( directoryExists( base ) ){
 			directoryDelete (base, true );
 		}

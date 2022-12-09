@@ -7,13 +7,8 @@ component {
 		dialect = " MySQL"
 	}
 	this.datasource = "LDEV3430";
-	this.datasources["LDEV3430"] = {
-		class: 'org.h2.Driver'
-		, bundleName: 'org.h2'
-		, bundleVersion: '1.3.172'
-		, connectionString: 'jdbc:h2:'&getDirectoryFromPath(getCurrenttemplatepath())&'test'&'\testTimezone;MODE=MySQL'
-	};
-	
+	this.datasources["LDEV3430"] = server.getDatasource( "h2", server._getTempDir( "LDEV3430" ) );
+		
 	public function onRequestStart() {
 		setting requesttimeout=10;
 	}
