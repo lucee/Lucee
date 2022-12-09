@@ -1703,9 +1703,8 @@ If omitted, the file's attributes are maintained.</description>
 			<name>strict</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>
-   for action "upload" and "uploadAll":
-   true (default), only mimetypes are supported in the accept attribute.
+			<description>for action "upload" and "uploadAll":
+true (default), only mimetypes are supported in the accept attribute.
 if set to false, it supports file extension/mimetypes in the accept attribute
    </description>
 		</attribute>
@@ -4051,6 +4050,14 @@ To use cached data, the tag must be called with the exact same arguments.</descr
 			<rtexprvalue>true</rtexprvalue>
 			<description></description>
 		</attribute>
+		<attribute>
+			<type>string</type>
+			<name>delimiter</name>
+			<alias>delimiters</alias>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>Character that separates uid list, The default value is comma(,).</description>
+		</attribute>
 	</tag>
 
 
@@ -6000,6 +6007,14 @@ Lucee uses the number of characters in the file.</description>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Boolean indicating whether to generate unique filenames for the files attached to an e-mail
 		message to avoid naming conflicts when the files are saved. Default is NO.</description>
+		</attribute>
+		<attribute>
+			<type>string</type>
+			<name>delimiter</name>
+			<alias>delimiters</alias>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>Character that separates uid list, The default value is comma(,).</description>
 		</attribute>
 	</tag>
 	<!-- ProcessingDirective -->
