@@ -115,9 +115,11 @@ component {
 			"SFTP_SERVER"="localhost",
 			"SFTP_USERNAME": "lucee",
 			"SFTP_PASSWORD": "",  // DON'T COMMIT
-			"SFTP_PORT": 990,
+			"SFTP_PORT": 22,
 			"SFTP_BASE_PATH": "/",
 			
+			//docker run -p 22:22 -d atmoz/sftp lucee:lucee:::upload
+
 			"S3_ACCESS_KEY_ID": "",
 			"S3_SECRET_KEY": "", // DON'T COMMIT
 

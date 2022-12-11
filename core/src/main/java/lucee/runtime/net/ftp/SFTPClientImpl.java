@@ -48,7 +48,7 @@ public class SFTPClientImpl extends AFTPClient {
 
 	static {
 		// set system property lucee.debug.jsch=true to enable debug output from JSch
-		if (Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.debug.jsch", ""), false)) {
+		if (Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.debug.jsch", ""), true)) {
 			JSch.setLogger(new com.jcraft.jsch.Logger() {
 				@Override
 				public boolean isEnabled(int i) {
@@ -57,7 +57,7 @@ public class SFTPClientImpl extends AFTPClient {
 
 				@Override
 				public void log(int i, String s) {
-					// System. out.println("JSch: " + s);
+					System. out.println("JSch: " + s);
 				}
 			});
 		}

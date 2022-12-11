@@ -16,7 +16,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ftp"	{
                 server = args.host
                 stopOnError = args.stopOnError
                 port = args.port;
-        }).notToThrow();
+            ftp action = "close"
+                connection="ftpConn";
+        }).notToThrow("args.stopOnError: #args.stopOnError#");
 
         expect(function(){
             var ftpService = new ftp(
@@ -31,100 +33,127 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ftp"	{
                 StopOnError : args.stopOnError
             );
             ftpService.open();
-        }).notToThrow();
-        systemOutput("passed #args.toJson()#", true );
+            ftpService.close();
+        }).notToThrow("args.stopOnError: #args.stopOnError#");
+        // systemOutput("passed #args.toJson()#", true );
     }
 
-    public function testSFTPstopOnError() {
+    function run( testResults, testBox ) {
         var sftp=getSFTPCredentials();
-        if(!structCount(sftp)) return;
-        //return; //disable failing test
-        _test(
-            secure: true,
-            host: sftp.server,
-            user: sftp.username,
-            pass: sftp.password,
-            port: sftp.port,
-            base: sftp.base_path,
-            stopOnError: true,
-            passive: true
-        );
-        _test(
-            secure: true,
-            host: sftp.server,
-            user: sftp.username,
-            pass: sftp.password,
-            port: sftp.port,
-            base: sftp.base_path,
-            stopOnError: false,
-            passive: true
-        );
-        _test(
-            secure: true,
-            host: sftp.server,
-            user: sftp.username,
-            pass: sftp.password,
-            port: sftp.port,
-            base: sftp.base_path,
-            stopOnError: true,
-            passive: false
-        );
-        _test(
-            secure: true,
-            host: sftp.server,
-            user: sftp.username,
-            pass: sftp.password,
-            port: sftp.port,
-            base: sftp.base_path,
-            stopOnError: false,
-            passive: false
-        );
+        if(structCount(sftp)) {
+            describe("Testcase for LDEV-4192, SFTP stopOnError", function() {
+                it(title="SFTP stopOnError: true, passive: true", body=function( currentSpec ){
+                    _test(
+                        secure: true,
+                        host: sftp.server,
+                        user: sftp.username,
+                        pass: sftp.password,
+                        port: sftp.port,
+                        base: sftp.base_path,
+                        stopOnError: true,
+                        passive: true
+                    );
+                });
+
+                it(title="SFTP stopOnError: false, passive: true", body=function( currentSpec ){
+                    _test(
+                        secure: true,
+                        host: sftp.server,
+                        user: sftp.username,
+                        pass: sftp.password,
+                        port: sftp.port,
+                        base: sftp.base_path,
+                        stopOnError: false,
+                        passive: true
+                    );
+                });
+
+                it(title="SFTP stopOnError: true, passive: false", body=function( currentSpec ){
+                    _test(
+                        secure: true,
+                        host: sftp.server,
+                        user: sftp.username,
+                        pass: sftp.password,
+                        port: sftp.port,
+                        base: sftp.base_path,
+                        stopOnError: true,
+                        passive: false
+                    );
+                });
+
+                it(title="SFTP stopOnError: false, passive: false", body=function( currentSpec ){
+                    _test(
+                        secure: true,
+                        host: sftp.server,
+                        user: sftp.username,
+                        pass: sftp.password,
+                        port: sftp.port,
+                        base: sftp.base_path,
+                        stopOnError: false,
+                        passive: false
+                    );
+                });
+            });
+
+        }
+            
+        var ftp=getFTPCredentials();
+        if(structCount(ftp)) {
+        describe("Testcase for LDEV-4192, FTP stopOnError", function() {
+            it(title="FTP stopOnError: true, passive: true", body=function( currentSpec ){
+                _test(
+                    secure: false,
+                    host: ftp.server,
+                    user: ftp.username,
+                    pass: ftp.password,
+                    port: ftp.port,
+                    base: ftp.base_path,
+                    stopOnError: true,
+                    passive: true
+                );
+            });
+
+            it(title="FTP stopOnError: false, passive: true", body=function( currentSpec ){
+                _test(
+                    secure: false,
+                    host: ftp.server,
+                    user: ftp.username,
+                    pass: ftp.password,
+                    port: ftp.port,
+                    base: ftp.base_path,
+                    stopOnError: false,
+                    passive: true
+                );
+            });
+
+            it(title="FTP stopOnError: true, passive: false", body=function( currentSpec ){
+                _test(
+                    secure: false,
+                    host: ftp.server,
+                    user: ftp.username,
+                    pass: ftp.password,
+                    port: ftp.port,
+                    base: ftp.base_path,
+                    stopOnError: true,
+                    passive: false
+                );
+            });
+            it(title="FTP stopOnError: false, passive: false", body=function( currentSpec ){
+                _test(
+                    secure: false,
+                    host: ftp.server,
+                    user: ftp.username,
+                    pass: ftp.password,
+                    port: ftp.port,
+                    base: ftp.base_path,
+                    stopOnError: false,
+                    passive: false
+                );
+            });
+        });
     }
 
-    public function testFTPstopOnError() {
-        var ftp=getFTPCredentials();
-        if(!structCount(ftp)) return;
-        //return; //disable failing test
-        _test(
-            secure: false,
-            host: ftp.server,
-            user: ftp.username,
-            pass: ftp.password,
-            port: ftp.port,
-            base: ftp.base_path,
-            stopOnError: true,
-            passive: true
-        );
-        _test(
-            secure: false,
-            host: ftp.server,
-            user: ftp.username,
-            pass: ftp.password,
-            port: ftp.port,
-            base: ftp.base_path,
-            stopOnError: false,
-            passive: true
-        );
-        _test(
-            secure: false,
-            host: ftp.server,
-            user: ftp.username,
-            pass: ftp.password,
-            port: ftp.port,
-            base: ftp.base_path,
-            stopOnError: true,
-            passive: false
-        );
-        _test(
-            secure: false,
-            host: ftp.server,
-            user: ftp.username,
-            pass: ftp.password,
-            port: ftp.port,
-            base: ftp.base_path,
-            stopOnError: false,
-            passive: false
-        );
+        
     }
 
     private struct function getFTPCredentials() {
