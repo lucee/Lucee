@@ -85,7 +85,7 @@ public class RefIntegerImpl implements RefInteger, Castable {
 	 */
 	@Override
 	public Double toDouble() {
-		return new Double(value);
+		return Double.valueOf(value);
 	}
 
 	@Override

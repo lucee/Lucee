@@ -1083,8 +1083,8 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 		}
 
 		// query options
-		if (data.maxrows != -1 && !ormoptions.containsKey(MAX_RESULTS)) ormoptions.setEL(MAX_RESULTS, new Double(data.maxrows));
-		if (data.timeout != null && ((int) data.timeout.getSeconds()) > 0 && !ormoptions.containsKey(TIMEOUT)) ormoptions.setEL(TIMEOUT, new Double(data.timeout.getSeconds()));
+		if (data.maxrows != -1 && !ormoptions.containsKey(MAX_RESULTS)) ormoptions.setEL(MAX_RESULTS, Double.valueOf(data.maxrows));
+		if (data.timeout != null && ((int) data.timeout.getSeconds()) > 0 && !ormoptions.containsKey(TIMEOUT)) ormoptions.setEL(TIMEOUT, Double.valueOf(data.timeout.getSeconds()));
 		/*
 		 * MUST offset: Specifies the start index of the resultset from where it has to start the retrieval.
 		 * cacheable: Whether the result of this query is to be cached in the secondary cache. Default is

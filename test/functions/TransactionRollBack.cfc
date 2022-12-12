@@ -29,7 +29,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		var count=0;
 		transaction { 
 
-			
 			query name="qry" {
 				echo("insert into testTransactionRollBack(id,title,author,submission_date)
 					values(#++count#,'test #getTickCount()#','Michael',#CreateODBCDate(now())#)");
@@ -52,8 +51,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	
 			//transaction action="rollback" savepoint="sp2";
 			TransactionRollBack(arguments.name);
-
-
 		} 
 
 		query name="local.qry" {
@@ -63,29 +60,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	}
 
 	private void function defineDatasource(required bundle,version=""){
-		var ds={
-	  		class: 'org.h2.Driver'
-	  		,bundleName:arguments.bundle
-	  		, connectionString: 'jdbc:h2:#getDirectoryFromPath(getCurrentTemplatePath())#/datasource/dbtrb#replace(arguments.version,'.','_','all')#;MODE=MySQL'
-		};
+		var ds= server.getDatasource( "h2", 
+			server._getTempDir( "transRollBack" & replace(arguments.version,'.','_','all') ) 
+		);
+		
 		if(!isEmpty(version))
 			ds['bundleVersion']=arguments.version;
 
 		application action="update" datasource=ds;
-	}
-
-	public function afterTests() {
-		var javaIoFile=createObject("java","java.io.File");
-		loop array=DirectoryList(
-			path=getDirectoryFromPath(getCurrentTemplatePath()), 
-			recurse=true, filter="*.db") item="local.path"  {
-			fileDeleteOnExit(javaIoFile,path);
-		}
-	}
-
-	private function fileDeleteOnExit(required javaIoFile, required string path) {
-		var file=javaIoFile.init(arguments.path);
-		if(!file.isFile())file=javaIoFile.init(expandPath(arguments.path));
-		if(file.isFile()) file.deleteOnExit();
 	}
 }

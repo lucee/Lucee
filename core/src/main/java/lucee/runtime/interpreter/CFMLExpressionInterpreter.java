@@ -158,8 +158,8 @@ import lucee.transformer.library.function.FunctionLibFunctionArg;
  */
 public class CFMLExpressionInterpreter {
 
-	private static final LNumber PLUS_ONE = new LNumber(new Double(1));
-	private static final LNumber MINUS_ONE = new LNumber(new Double(-1));
+	private static final LNumber PLUS_ONE = new LNumber(Double.valueOf(1));
+	private static final LNumber MINUS_ONE = new LNumber(Double.valueOf(-1));
 
 	protected static final short STATIC = 0;
 	private static final short DYNAMIC = 1;
@@ -924,7 +924,7 @@ public class CFMLExpressionInterpreter {
 			if (cfml.forwardIfCurrent('-')) {
 				cfml.removeSpace();
 				Ref expr = clip();
-				Ref res = preciseMath ? new BigMinus(expr, new LNumber(new Double(1)), limited) : new Minus(expr, new LNumber(new Double(1)), limited);
+				Ref res = preciseMath ? new BigMinus(expr, new LNumber(Double.valueOf(1)), limited) : new Minus(expr, new LNumber(Double.valueOf(1)), limited);
 				return new Assign(expr, res, limited);
 			}
 			cfml.removeSpace();
@@ -935,7 +935,7 @@ public class CFMLExpressionInterpreter {
 			if (cfml.forwardIfCurrent('+')) {
 				cfml.removeSpace();
 				Ref expr = clip();
-				Ref res = preciseMath ? new BigPlus(expr, new LNumber(new Double(1)), limited) : new Plus(expr, new LNumber(new Double(1)), limited);
+				Ref res = preciseMath ? new BigPlus(expr, new LNumber(Double.valueOf(1)), limited) : new Plus(expr, new LNumber(Double.valueOf(1)), limited);
 				return new Assign(expr, res, limited);
 			}
 			cfml.removeSpace();

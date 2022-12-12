@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" skip=true {
+component extends="org.lucee.cfml.test.LuceeTestCase" skip=false {
 
 	function beforeAll(){
 		variables.uri = createURI("LDEV4052");
@@ -7,7 +7,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" skip=true {
 	function testInvalidApplicationCFC() {
 		expect( function(){
 			_InternalRequest(
-			template:"#variables.uri#/index.cfm"
+				template:"#variables.uri#/index.cfm"
 			)
 		}).toThrow(); // should crash due to an invalid Application.cfc, in a browser it throws
 	}

@@ -141,6 +141,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	private int updateCount;
 	private QueryImpl generatedKeys;
 	private TemplateLine templateLine;
+	private String datasourceName;
 
 	private Collection.Key indexName;
 	private Map<Collection.Key, Integer> indexes;// = new
@@ -157,6 +158,10 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	@Override
 	public TemplateLine getTemplateLine() { // FUTURE add to interface
 		return templateLine;
+	}
+
+	public String getDatasourceName() {
+		return datasourceName;
 	}
 
 	public void setTemplateLine(TemplateLine templateLine) {
@@ -230,6 +235,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 			boolean createUpdateData, boolean allowToCachePreperadeStatement, Collection.Key indexName) throws PageException {
 		this.name = name;
 		this.templateLine = templateLine;
+		this.datasourceName = dc.getDatasource().getName();
 		this.indexName = indexName;
 		this.sql = sql;
 		execute(pc, dc, sql, maxrow, fetchsize, timeout, createUpdateData, allowToCachePreperadeStatement, this, null, null);
@@ -238,6 +244,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	public static QueryStruct toStruct(PageContext pc, DatasourceConnection dc, SQL sql, Collection.Key keyName, int maxrow, int fetchsize, TimeSpan timeout, String name,
 			TemplateLine templateLine, boolean createUpdateData, boolean allowToCachePreperadeStatement) throws PageException {
 		QueryStruct sct = new QueryStruct(name, sql, templateLine);
+		sct.setDatasourceName(dc.getDatasource().getName());
 		execute(pc, dc, sql, maxrow, fetchsize, timeout, createUpdateData, allowToCachePreperadeStatement, null, sct, keyName);
 		return sct;
 	}
@@ -245,6 +252,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	public static QueryArray toArray(PageContext pc, DatasourceConnection dc, SQL sql, int maxrow, int fetchsize, TimeSpan timeout, String name, TemplateLine templateLine,
 			boolean createUpdateData, boolean allowToCachePreperadeStatement) throws PageException {
 		QueryArray arr = new QueryArray(name, sql, templateLine);
+		arr.setDatasourceName(dc.getDatasource().getName());
 		execute(pc, dc, sql, maxrow, fetchsize, timeout, createUpdateData, allowToCachePreperadeStatement, null, arr, null);
 		return arr;
 	}
@@ -1112,8 +1120,8 @@ public class QueryImpl implements Query, Objects, QueryResult {
 			// return columns[index].get(row,defaultValue);
 		}
 		if (key.length() >= 10) {
-			if (key.equals(KeyConstants._RECORDCOUNT)) return new Double(getRecordcount());
-			if (key.equals(KeyConstants._CURRENTROW)) return new Double(row);
+			if (key.equals(KeyConstants._RECORDCOUNT)) return Double.valueOf(getRecordcount());
+			if (key.equals(KeyConstants._CURRENTROW)) return Double.valueOf(row);
 			if (key.equals(KeyConstants._COLUMNLIST)) return getColumnlist(getKeyCase(ThreadLocalPageContext.get()));
 		}
 		return defaultValue;
@@ -1133,8 +1141,8 @@ public class QueryImpl implements Query, Objects, QueryResult {
 			return NullSupportHelper.full() ? null : "";
 		}
 		if (key.length() >= 10) {
-			if (key.equals(KeyConstants._RECORDCOUNT)) return new Double(getRecordcount());
-			if (key.equals(KeyConstants._CURRENTROW)) return new Double(row);
+			if (key.equals(KeyConstants._RECORDCOUNT)) return Double.valueOf(getRecordcount());
+			if (key.equals(KeyConstants._CURRENTROW)) return Double.valueOf(row);
 			if (key.equals(KeyConstants._COLUMNLIST)) return getColumnlist(getKeyCase(ThreadLocalPageContext.get()));
 		}
 		throw new DatabaseException("Column [" + key + "] not found in query", "available columns are [" + getColumnlist(getKeyCase(ThreadLocalPageContext.get()), ", ") + "]", sql,
@@ -2801,12 +2809,12 @@ public class QueryImpl implements Query, Objects, QueryResult {
 
 	@Override
 	public void updateByte(int columnIndex, byte x) throws SQLException {
-		updateObject(columnIndex, new Byte(x));
+		updateObject(columnIndex, Byte.valueOf(x));
 	}
 
 	@Override
 	public void updateByte(String columnName, byte x) throws SQLException {
-		updateObject(columnName, new Byte(x));
+		updateObject(columnName, Byte.valueOf(x));
 	}
 
 	@Override
@@ -3356,6 +3364,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 			newResult.name = qry.getName();
 			newResult.exeTime = qry.getExecutionTime();
 			newResult.updateCount = qry.getUpdateCount();
+			if (qry instanceof QueryImpl) newResult.datasourceName = ((QueryImpl) qry).getDatasourceName();
 			if (qry.getGeneratedKeys() != null) cloneQuery(newResult.generatedKeys = ((QueryImpl) qry.getGeneratedKeys()), false);
 			return newResult;
 		}

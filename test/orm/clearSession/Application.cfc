@@ -1,7 +1,7 @@
 component {
 	this.name 				= "orm" & hash( getCurrentTemplatePath() );
 
-	this.datasource = server.getDatasource("h2", "#getDirectoryFromPath(getCurrentTemplatePath())#/datasource/db" );
+	this.datasource = server.getDatasource("h2", server._getTempDir("orm-clearsession") );
 
 	this.ormEnabled = true;
 	this.ormSettings = {

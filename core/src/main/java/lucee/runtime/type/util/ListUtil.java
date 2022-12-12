@@ -447,6 +447,79 @@ public final class ListUtil {
 	}
 
 	/**
+	 * casts a list to int array with max range its used in CFIMAP/CFPOP tag with messageNumber attribute
+	 * 
+	 * @param list list to cast
+	 * @param delimiter delimter of the list
+	 * @param maxRange maximum range that element can
+	 * @return int array
+	 */
+	public static int[] listToIntArrayWithMaxRange(String list, char delimiter, int maxRange) {
+		int len = list.length();
+		ArrayImpl array = new ArrayImpl();
+		if (len == 0) return new int[0];
+		int last = 0;
+		int l;
+
+		for (int i = 0; i < len; i++) {
+			if (list.charAt(i) == delimiter) {
+				l = Caster.toIntValue(list.substring(last, i).trim(), 0);
+				if (l > 0 && l <= maxRange) array.appendEL(l);
+				last = i + 1;
+			}
+		}
+		if (last < len) {
+			l = Caster.toIntValue(list.substring(last).trim(), 0);
+			if (l > 0 && l <= maxRange) array.appendEL(l);
+		}
+
+		int[] intArr = new int[array.size()];
+		for (int j = 0; j < intArr.length; j++) {
+			intArr[j] = (int) array.get(j);
+		}
+		return intArr;
+	}
+
+	/**
+	 * casts a list to Long array  --  its used in CFIMAP/CFPOP tag with uid attribute
+	 * 
+	 * @param list list to cast
+	 * @param delimiter delimter of the list
+	 * @return long array
+	 */
+	public static long[] listToLongArray(String list, String delimiter) {
+		int len = list.length();
+		ArrayImpl array = new ArrayImpl();
+		if (len == 0) return new long[0];
+		int last = 0;
+		long l;
+
+		char[] del = delimiter.toCharArray();
+		char c;
+		for (int i = 0; i < len; i++) {
+			c = list.charAt(i);
+			for (int y = 0; y < del.length; y++) {
+				if (c == del[y]) {
+					l = Caster.toLong(list.substring(last, i).trim(), 0L);
+					if (l > 0) array.appendEL(l);
+					last = i + 1;
+					break;
+				}
+			}
+		}
+		if (last < len) {
+			l = Caster.toLong(list.substring(last).trim(), 0L);
+			if (l > 0) array.appendEL(l);
+		}
+
+		long[] longArr = new long[array.size()];
+		for (int j = 0; j < longArr.length; j++) {
+			longArr[j] = (long) array.get(j);
+		}
+		return longArr;
+	}
+
+	/**
 	 * casts a list to Array object, remove all empty items at start and end of the list and store count
 	 * to info
 	 * 

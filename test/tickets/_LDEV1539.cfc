@@ -21,5 +21,21 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				}
 			});
 		});
+
+		describe( title="Test suite for LSparseDateTime()", body=function() { 
+			cfloop( list=#Server.Coldfusion.SupportedLocales#, index="locale"){
+				describe("test LSparseDateTime locale format: [#locale#]", function(){
+					it( title="test LSparseDateTime round trip with locale: [#locale#], ",
+							data={ locale=locale },
+							body=function( data ) {
+						var testDate = parseDateTime("{ts '2008-04-06 01:02:03'}");
+						expect (testDate).toBeDate();
+						setLocale(data.locale);
+						expect( lsParseDateTime( lsDateTimeFormat(testDate) ) ).toBe( testDate, "testing locale [#locale#]" );
+					});
+				});
+				
+			}
+		});
 	}
 }

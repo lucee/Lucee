@@ -1703,9 +1703,9 @@ If omitted, the file's attributes are maintained.</description>
 			<name>strict</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>
-   for action "upload" and "uploadAll":
-   if set to true (default), only mimetypes are supported.
+			<description>for action "upload" and "uploadAll":
+true (default), only mimetypes are supported in the accept attribute.
+if set to false, it supports file extension/mimetypes in the accept attribute
    </description>
 		</attribute>
 		<attribute>
@@ -4050,6 +4050,14 @@ To use cached data, the tag must be called with the exact same arguments.</descr
 			<rtexprvalue>true</rtexprvalue>
 			<description></description>
 		</attribute>
+		<attribute>
+			<type>string</type>
+			<name>delimiter</name>
+			<alias>delimiters</alias>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>Character that separates uid list, The default value is comma(,).</description>
+		</attribute>
 	</tag>
 
 
@@ -5384,7 +5392,7 @@ Lucee uses the number of characters in the file.</description>
 				This attribute overwrites any mail listener defined in the application.cfc/cfapplication.
 				
 				The "before" function can also modify some data, by returning a struct containing the following keys:
-				from, to, bcc, replyTo, failTo, subject
+				from, to, bcc, cc, replyTo, failTo, subject, charset
 				
 				the listener can be a component looking like this:
 				component {
@@ -5570,12 +5578,19 @@ Lucee uses the number of characters in the file.</description>
 			<description>remove all attachments from filesystem after the mail is successfully sent</description>
 		</attribute>
 		<attribute>
-            <type>datetime</type>
-            <name>sendTime</name>
-            <required>false</required>
-            <rtexprvalue>true</rtexprvalue>
-            <description>Set a future date time to send an email in the future via the spooler.</description>
-        </attribute>
+			<type>datetime</type>
+			<name>sendTime</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>Set a future date time to send an email in the future via the spooler.</description>
+		</attribute>
+		<attribute>
+			<type>boolean</type>
+			<name>debug</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>Whether to enable detailed logging to console.</description>
+		</attribute>
 	</tag>
 	<!-- MailPart -->
 	<tag>
@@ -5992,6 +6007,14 @@ Lucee uses the number of characters in the file.</description>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Boolean indicating whether to generate unique filenames for the files attached to an e-mail
 		message to avoid naming conflicts when the files are saved. Default is NO.</description>
+		</attribute>
+		<attribute>
+			<type>string</type>
+			<name>delimiter</name>
+			<alias>delimiters</alias>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>Character that separates uid list, The default value is comma(,).</description>
 		</attribute>
 	</tag>
 	<!-- ProcessingDirective -->

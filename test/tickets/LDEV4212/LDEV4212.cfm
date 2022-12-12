@@ -1,0 +1,1 @@
+<cfoutput>#child::fromChild#,#child::fromParent#</cfoutput>

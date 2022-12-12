@@ -5,15 +5,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm" skip="true"{
 
 	function afterAll() {
 		cleanup();
-
-		var list = DirectoryList(
-			path=getDirectoryFromPath(getCurrentTemplatePath()), 
-			recurse=true, filter="*.db");
-
-		var javaIoFile=createObject("java","java.io.File");
-		loop array=list item="local.path"  {
-			fileDeleteOnExit(javaIoFile,path);
-		}
 	}
 
 	private function cleanUp() {
@@ -34,13 +25,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm" skip="true"{
 			});
 		});
 	}
-
-	private function fileDeleteOnExit(required javaIoFile, required string path) {
-		var file=javaIoFile.init(arguments.path);
-		if(!file.isFile())file=javaIoFile.init(expandPath(arguments.path));
-		if(file.isFile()) file.deleteOnExit();
-	}
-	
 
 	private boolean function notHasH2() {
 		variables.dbfile = "#getDirectoryFromPath( getCurrentTemplatePath() )#/datasource/dbh2";

@@ -80,10 +80,14 @@
     <property name="testSkip" value=""/>
     <!-- enable debug output from tests (i.e tests which crash are normally silently skipped)  -->
     <property name="testDebug" value=""/>
+    <!-- use random sort order for running tests to expose any inter dependencies  -->
+    <property name="testRandomSort" value=""/>
     <!-- allow restricting which test services are enabled  -->
     <property name="testServices" value=""/>
     <!-- allow running tests with a different java version (ant needs the exe not java home)  -->
     <property name="testJavaVersionExec" value=""/>
+    <!-- specify the build file to use  -->
+    <property name="LUCEE_BUILD_ENV" value=""/>
     
     <property name="temp" location="${rootDir}/temp"/>
     <property name="loader" location="${temp}/loader"/>
@@ -364,7 +368,7 @@
     </path>
 
     <!-- <pathconvert property="classpathProp" refid="classpath"/> -->
-   
+   <echo message="Using Java version ${ant.java.version}."/>
     <!-- compile the core -->
     <javac 
       srcdir="${srcCore}" 
@@ -374,6 +378,19 @@
       debug="true" debuglevel="lines,vars,source">
        <classpath refid="classpath" />
     </javac>
+
+    <!--
+<javac 
+      fork="yes"
+      executable="/Library/Java/JavaVirtualMachines/jdk-17.0.5.jdk/Contents/Home/bin/javac"
+      srcdir="${srcCore}" 
+      destdir="${core}"
+      debug="true" debuglevel="lines,vars,source">
+       <classpath refid="classpath" />
+    </javac>
+
+    -->
+
 
     <!-- copy all non java files from src -->
     <copy todir="${core}">
@@ -477,6 +494,7 @@
       <!-- this checks to see that all the required bundles are provided, so that none are missing -->
       <jvmarg value="-Dlucee.enable.bundle.download=false"/>
       <jvmarg value="-Dlucee.cli.printExceptions=true"/>
+      <jvmarg value="-Dlucee.ssl.checkserveridentity=false"/>
     </java>
     <outputTrimmedString str="${exc}"/>
 </target>
@@ -517,6 +535,7 @@
       <jvmarg value="-DtestAdditional=${testAdditional}"/>
       <jvmarg value="-DtestSkip=${testSkip}"/>
       <jvmarg value="-DtestDebug=${testDebug}"/>
+      <jvmarg value="-DtestRandomSort=${testRandomSort}"/>
       <jvmarg value="-DtestServices=${testServices}"/>
       <jvmarg value="-Dtemp=${temp}"/>
       <jvmarg value="-Dbasedir=${baseDir}"/>
@@ -533,6 +552,7 @@
       <jvmarg value="-Dlucee.full.null.support=false"/>
       <jvmarg value="-Dlucee.cli.printExceptions=true"/>
       <jvmarg value="-Dlucee.ssl.checkserveridentity=false"/>
+      <jvmarg value="-DLUCEE_BUILD_ENV=${LUCEE_BUILD_ENV}"/>
       <!--
       <jvmarg value="-XX:StartFlightRecording=disk=true,dumponexit=true,filename=${temp}/../lucee-testcases.jfr,maxsize=1024m,maxage=1d,settings=profile,path-to-gc-roots=true"/>
       <jvmarg value="-Dlucee.system.out=file:.../out.txt"/>
@@ -784,5 +804,16 @@
     <delete dir="${temp}"/>
     <echots message="done"/>
   </target>
+
+  <target name="buildLoaderFast" depends="__build,setAntEnv,addExtensions,addBundles,addFelix,createCore,createLoader" 
+    description="quick/fast generate the loader jar" >
+    <!-- version -->
+    <currentTime property="ct" />
+    <echo file="${temp}/loader/lucee/version" message="${version}:${ct}" encoding="UTF-8"/>
+    
+    <delete dir="${temp}"/>
+    <echots message="done"/>
+  </target>
+
 
 </project>

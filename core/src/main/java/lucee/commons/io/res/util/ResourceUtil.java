@@ -373,6 +373,10 @@ public final class ResourceUtil {
 		return SystemUtil.isWindows() && (path.startsWith("//") || path.startsWith("\\\\"));
 	}
 
+	public static boolean isWindowsPath(String path) {
+		return SystemUtil.isWindows() && path.length() > 1 && path.charAt(1) == ':';
+	}
+
 	/**
 	 * translate the path of the file to an existing file path by changing case of letters Works only on
 	 * Linux, because
@@ -590,7 +594,7 @@ public final class ResourceUtil {
 		path = prettifyPath(path);
 
 		// begin
-		if (slashAdBegin) {
+		if (slashAdBegin && !isWindowsPath(path)) {
 			if (path.indexOf('/') != 0) path = '/' + path;
 		}
 		else {

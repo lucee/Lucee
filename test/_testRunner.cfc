@@ -15,7 +15,17 @@ component {
 				arrayAppend(bundles, mapping & "." & mid( clean, 1, len( clean ) - 4 ) ); // strip off .cfc
 			}
 		}, parallel=true );
-		ArraySort( bundles, "textnocase", "asc" );
+		arraySort( bundles, "textnocase", "asc" );
+		if ( request.testRandomSort neq "false" ) {
+			if ( !isNumeric( request.testRandomSort ) ){
+				request.testRandomSort = randRange( 1, 9999 ); // this way it's reproducible
+			}
+			systemOutput("randomize( #request.testRandomSort# );", true);
+			randomize( request.testRandomSort, "SHA1PRNG" );
+			loop array=#bundles# index="local.idx" item="local.a" {
+				arraySwap(  bundles, local.idx, randRange( 1, arrayLen( bundles ), "SHA1PRNG" ) );
+			}
+		}
 		return bundles;
 	}
 
@@ -143,6 +153,34 @@ component {
 		}
 	}
 
+	// strips off the stack trace to exclude testbox and back to the first .cfc call in the stack
+	public static array function trimJavaStackTrace( required string st ){
+		local.tab = chr( 9 );
+		local.stack = [];
+		local.i = find( "/testbox/", arguments.st );
+		if ( request.testDebug || i eq 0 ){ // dump it all out
+			arrayAppend( stack, TAB & arguments.st );
+			return stack;
+		}
+		local.tmp = mid( arguments.st, 1, i ); // strip out anything after testbox
+		local.tmp2 = reverse( local.tmp );
+		local.i = find( ":cfc.", local.tmp2 ); // find the first cfc line
+		if ( local.i gt 0 ){
+			local.i = len( local.tmp )-i;
+			local.j = find( ")", local.tmp, local.i ); // find the end of the line
+			local.tmp = mid( local.tmp, 1, local.j );
+		}
+		arrayAppend( stack, TAB & local.tmp );
+		// now find any Caused By: and output them
+		local.tail = mid( arguments.st, local.j );
+		local.firstCausedBy = findNoCase( "Caused by:", tail );
+		if ( firstCausedBy gt 0 ) {
+			arrayAppend( stack, TAB & TAB & TAB & "... omitted verbose (ant / pagecontext / testbox) default stacktraces ... " );
+			arrayAppend( stack, mid( tail, firstCausedBy) );
+		}
+		return stack;
+	}
+
 	public struct function runTests() localmode=true {
 		SystemOut = createObject( "java", "lucee.commons.lang.SystemOut" );
 		out = SystemOut.setOut( nullValue() );
@@ -150,24 +188,6 @@ component {
 		TAB = chr( 9 );
 		NL = chr( 10 ) & chr( 13 );
 		failedTestCases = [];
-
-		// strips off the stack trace to exclude testbox and back to the first .cfc call in the stack
-		function printStackTrace( st ){
-			local.i = find( "/testbox/", arguments.st );
-			if ( request.testDebug || i eq 0 ){ // dump it all out
-				systemOutput( TAB & arguments.st, true );
-				return;
-			}
-			local.tmp = mid( arguments.st, 1, i ); // strip out anything after testbox
-			local.tmp2 = reverse( local.tmp );
-			local.i = find( ":cfc.", local.tmp2 ); // find the first cfc line
-			if ( local.i gt 0 ){
-				local.i = len( local.tmp )-i;
-				local.j = find( ")", local.tmp, local.i ); // find the end of the line
-				local.tmp = mid( local.tmp, 1, local.j );
-			}
-			systemOutput( TAB & local.tmp, true );
-		};
 
 		try {
 			var filterTimer = getTickCount();
@@ -187,7 +207,7 @@ component {
 			}
 			if (false and Arraylen( request.testFilter )){
 				// dump matches by testFilter
-				for ( b in tb.getBundles() )
+				for ( var b in tb.getBundles() )
 					SystemOutput( b, true );
 			}
 
@@ -217,7 +237,10 @@ component {
 		try {
 			SystemOut.setOut( out );
 			//SystemOut.setErr(err);
-			systemOutput( TAB & " (#bundle.totalPass# tests passed in #NumberFormat(bundle.totalDuration)# ms)", true );
+			if ( bundle.totalPass eq 0 && ( bundle.totalFail + bundle.totalError ) eq 0 )
+				systemOutput( TAB & " (skipped)", true );
+			else
+				systemOutput( TAB & " (#bundle.totalPass# tests passed in #NumberFormat(bundle.totalDuration)# ms)", true );
 			//mem("non_heap");
 			//mem("heap");
 		// we have an error
@@ -253,8 +276,12 @@ component {
 									,bundle     : bundle.name
 									,testCase   : specStat.name
 									,errMessage : specStat.failMessage
-									,stackTrace : []
+									,cfmlStackTrace : []
+									,stackTrace : ""
 								};
+								if ( structKeyExists( specStat.error, "stackTrace" ) )
+									failedTestCase.stackTrace = specStat.error.stackTrace;
+
 								failedTestCases.append( failedTestCase );
 
 								systemOutput( NL & specStat.name );
@@ -272,7 +299,7 @@ component {
 										if ( !st.template.hasPrefix( testboxPath ) ){
 											if ( local.i eq 1 or st.template does not contain "testbox" ){
 												var frame = st.template & ":" & st.line;
-												failedTestCase.stackTrace.append( frame );
+												failedTestCase.cfmlStackTrace.append( frame );
 												systemOutput( TAB & frame, true );
 											}
 										}
@@ -288,8 +315,12 @@ component {
 									,bundle     : bundle.name
 									,testCase   : specStat.name
 									,errMessage : specStat.error.Message
-									,stackTrace : []
+									,cfmlStackTrace : []
+									,stackTrace : ""
 								};
+								if ( structKeyExists( specStat.error, "stackTrace" ) )
+									failedTestCase.stackTrace = specStat.error.stackTrace;
+
 								failedTestCases.append( failedTestCase );
 
 								systemOutput( NL & specStat.name );
@@ -306,7 +337,7 @@ component {
 									loop array=rawStackTrace item="local.st" index="local.i" {
 										if ( local.i eq 1 or st.template does not contain "testbox" ){
 											var frame = st.template & ":" & st.line;
-											failedTestCase.stackTrace.append( frame );
+											failedTestCase.cfmlStackTrace.append( frame );
 											systemOutput( TAB & frame, true );
 										}
 									}
@@ -319,7 +350,9 @@ component {
 									*/
 								}
 								if ( !isNull( specStat.error.StackTrace ) && !isEmpty( specStat.error.StackTrace ) ){
-									printStackTrace( specStat.error.StackTrace );
+									systemOutput( TAB & specStat.error.type, true );
+									// printStackTrace( specStat.error.StackTrace );
+									systemOutput( TAB & specStat.error.StackTrace, true );
 									systemOutput( NL );
 								}
 

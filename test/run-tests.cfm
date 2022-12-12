@@ -37,12 +37,12 @@ try {
 		archive=""
 		primary="physical"
 		trusted="no";
-	
+
 	systemOutput("set /test mapping #dateTimeFormat(now())#", true);
 
 	param name="testDebug" default="false";
 	if ( len( testDebug ) eq 0 )
-		testDebug = false;	
+		testDebug = false;
 	request.testDebug = testDebug;
 	if ( request.testDebug )
 		SystemOutput( "Test Debugging enabled", true );
@@ -88,7 +88,7 @@ try {
 
 	systemOutput("-------------- Test Filters and Labels", true);
 
-	param name="testFilter" default="";	
+	param name="testFilter" default="";
 	request.testFilter = testFilter;
 
 	if ( len( request.testFilter ) eq 0 ){
@@ -119,7 +119,7 @@ try {
 	else
 		systemOutput( NL & 'Running all tests, to run a subset of test(s) by LABEL, use the parameter -DtestLabels="s3,oracle"', true );
 
-	
+
 	param name="testSkip" default="true";
 	if ( len(testSkip) eq 0)
 		testSkip = true;
@@ -127,8 +127,23 @@ try {
 
 	if ( !request.testSkip )
 		SystemOutput( "Force running tests marked skip=true or prefixed with an _", true );
-	
-	param name="testAdditional" default="";	
+
+	param name="testRandomSort" default="false";
+	if ( len(testRandomSort) eq 0)
+		testRandomSort = false;
+	request.testRandomSort = testRandomSort;
+
+	// i.e ant -DtestRandomSort="3" -DtestLabels="image"
+
+	if ( request.testRandomSort neq "false" ){
+		if ( isNumeric( request.testRandomSort ) ){
+			SystemOutput( "Using a randomized sort order for tests, randomize seed [#request.testRandomSort#]", true );
+		} else {
+			SystemOutput( "Using a random sort order for tests", true );
+		}
+	}
+
+	param name="testAdditional" default="";
 	request.testAdditional = testAdditional;
 
 	if ( len( request.testAdditional ) eq 0 ){
@@ -137,7 +152,7 @@ try {
 			request.testAdditional = request.testAdditional.testAdditional;
 		else
 			request.testAdditional="";
-	}		
+	}
 	if ( len(request.testAdditional) ){
 		SystemOutput( "Adding additional tests from [#request.testAdditional#]", true );
 		if (!DirectoryExists( request.testAdditional )){
@@ -165,7 +180,7 @@ try {
 	deployLog = logsDir & server.separator.file & "deploy.log";
 	//dump(deployLog);
 	content = fileRead( deployLog );
-	
+
 	systemOutput("-------------- Deploy.Log ------------",true);
 	systemOutput( content, true );
 	systemOutput("--------------------------------------",true);
@@ -202,17 +217,19 @@ try {
 	silent {
 		testResults = new test._testRunner().runTests();
 	}
+
+
 	result = testResults.result;
 	failedTestcases = testResults.failedTestcases;
 	tb = testResults.tb;
 
-	jUnitReporter = new testbox.system.reports.JUnitReporter();	
+	jUnitReporter = new testbox.system.reports.JUnitReporter();
 	resultPath = ExpandPath( "/test") & "/reports/";
 	if ( !DirectoryExists( resultPath ) )
 		DirectoryCreate( resultPath );
-	JUnitReportFile = resultPath & "junit-test-results.xml";
-	FileWrite( JUnitReportFile, jUnitReporter.runReport(results=result, testbox=tb, justReturn=true) );	
-	
+	JUnitReportFile = resultPath & "junit-test-results-#server.lucee.version#.xml";
+	FileWrite( JUnitReportFile, jUnitReporter.runReport(results=result, testbox=tb, justReturn=true) );
+
 	systemOutput( NL & NL & "=============================================================", true );
 	systemOutput( "TestBox Version: #tb.getVersion()#", true );
 	systemOutput( "Lucee Version: #server.lucee.version#", true );
@@ -235,20 +252,72 @@ try {
 		systemOutput ( s, true );
 	}
 
+	// load errors into an array, so we can dump them out to $GITHUB_STEP_SUMMARY
+	results = [];
+	results_md = ["## Lucee #server.lucee.version#"];
+
+	if ( structKeyExists( server.system.environment, "GITHUB_STEP_SUMMARY" ) ){
+		github_commit_base_href=  "/" & server.system.environment.GITHUB_REPOSITORY
+			& "/blob/" & server.system.environment.GITHUB_SHA & "/";
+		github_branch_base_href=  "/" & server.system.environment.GITHUB_REPOSITORY
+			& "/blob/" & server.system.environment.GITHUB_REF_NAME & "/";
+	}
+
 	if ( !isEmpty( failedTestCases ) ){
 		systemOutput( NL );
 		for ( el in failedTestCases ){
-			systemOutput( el.type & ": " & el.bundle & NL & TAB & el.testCase, true );
-			systemOutput( TAB & el.errMessage, true );
-			if ( !isEmpty( el.stackTrace ) ){
-				//systemOutput( TAB & TAB & "at", true);
-				for ( frame in el.stackTrace ){
-					systemOutput( TAB & TAB & frame, true );
+			arrayAppend( results, el.type & ": " & el.bundle & NL & TAB & el.testCase );
+			arrayAppend( results, TAB & el.errMessage );
+			arrayAppend( results_md, "#### " & el.type & " " & el.bundle );
+			arrayAppend( results_md, "###### " & el.testCase );
+			arrayAppend( results_md, "" );
+			arrayAppend( results_md, el.errMessage );
+
+			if ( !isEmpty( el.cfmlStackTrace ) ){
+				//arrayAppend( results, TAB & TAB & "at", true);
+				for ( frame in el.cfmlStackTrace ){
+					arrayAppend( results, TAB & TAB & frame );
+					if ( structKeyExists( server.system.environment, "GITHUB_STEP_SUMMARY" ) ){
+						file_ref = replace( frame, server.system.environment.GITHUB_WORKSPACE, "" );
+						arrayAppend( results_md,
+							"- [#file_ref#](#github_commit_base_href##replace(file_ref,":", "##L")#)"
+							& " [branch](#github_branch_base_href##replace(file_ref,":", "##L")#)" );
+					}
 				}
 			}
-			systemOutput( NL );
+
+			if ( !isEmpty( el.StackTrace ) ){
+				arrayAppend( results_md, "" );
+				arrayAppend( results, NL );
+				arrStack = test._testRunner::trimJavaStackTrace( el.StackTrace );
+				for (s in arrStack) {
+					arrayAppend( results, s );
+					arrayAppend( results_md, s );
+				}
+			}
+
+			arrayAppend( results_md, "" );
+			arrayAppend( results, NL );
 		}
-		systemOutput( NL );
+		arrayAppend( results_md, "" );
+		arrayAppend( results, NL );
+	}
+
+	if ( len( results ) ) {
+		loop array=#results# item="resultLine" {
+			systemOutput( resultLine, (resultLine neq NL) );
+		}
+		if ( structKeyExists( server.system.environment, "GITHUB_STEP_SUMMARY" ) ){
+			//systemOutput( server.system.environment.GITHUB_STEP_SUMMARY, true );
+			fileWrite( server.system.environment.GITHUB_STEP_SUMMARY, ArrayToList( results_md, NL ) );
+		}
+		/*
+		loop collection=server.system.environment key="p" value="v" {
+			if ( p contains "GITHUB_")
+				systemOutput("#p#: #v##NL#");
+		*/
+	} else if ( structKeyExists( server.system.environment, "GITHUB_STEP_SUMMARY" ) ){
+		fileWrite( server.system.environment.GITHUB_STEP_SUMMARY, "#### Tests Passed :white_check_mark:" );
 	}
 
 	if ( ( result.getTotalFail() + result.getTotalError() ) > 0 ) {
@@ -264,7 +333,7 @@ try {
 
 } catch( e ){
 	systemOutput( "-------------------------------------------------------", true );
-	systemOutput( "Testcase failed:", true );
+	// systemOutput( "Testcase failed:", true );
 	systemOutput( e.message, true );
 	systemOutput( ReReplace( Serialize( e.stacktrace ), "[\r\n]\s*([\r\n]|\Z)", Chr( 10 ) , "ALL" ), true ); // avoid too much whitespace from dump
 	systemOutput( "-------------------------------------------------------", true );

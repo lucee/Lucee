@@ -1,5 +1,5 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" 
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
@@ -52,7 +52,7 @@
       <timezone>-8</timezone>
     </developer>
   </developers>
-   
+
 
     <build>
         <resources>
@@ -69,7 +69,7 @@
     <dependency>
       <groupId>org.apache.felix</groupId>
       <artifactId>org.apache.felix.framework</artifactId>
-      <version>7.0.5</version><!-- 4.6.1 -->
+      <version>7.0.5</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
@@ -97,9 +97,9 @@
       <scope>compile</scope>
     </dependency>
     <dependency>
-      <groupId>org.apache.tika</groupId>
+      <groupId>org.lucee</groupId>
       <artifactId>tika-core</artifactId>
-      <version>1.27</version>
+      <version>1.28.4</version>
       <scope>provided</scope>
     </dependency>
 	<dependency>
@@ -109,11 +109,10 @@
     	<scope>provided</scope>
   	</dependency>
   	<dependency>
-  		<groupId>org.lucee</groupId>
-  		<artifactId>jsch</artifactId>
-  		<version>0.1.55</version>
-    	<scope>provided</scope>
-  	</dependency>
+      <groupId>com.github.mwiede</groupId>
+      <artifactId>jsch</artifactId>
+      <version>0.2.5</version>
+    </dependency>
     <dependency>
       <groupId>commons-codec</groupId>
       <artifactId>commons-codec</artifactId>
@@ -132,14 +131,6 @@
   	  <version>1.9.0</version>
       <scope>provided</scope>
     </dependency>
-	  <!--Axis?
-    <dependency>
-		  <groupId>commons-discovery</groupId>
-		  <artifactId>commons-discovery</artifactId>
-		  <version>0.5</version>
-      <scope>provided</scope>
-	  </dependency>
-    -->
     <dependency>
       <groupId>org.lucee</groupId>
       <artifactId>commons-email</artifactId>
@@ -152,14 +143,6 @@
     	<version>1.3.2.L0001</version>
       <scope>provided</scope>
     </dependency>
-    <!--Axis?
-  	<dependency>
-  		<groupId>org.lucee</groupId>
-  		<artifactId>commons-httpclient</artifactId>
-  		<version>3.1.0</version>
-      <scope>provided</scope>
-  	</dependency>
-  -->
   	<dependency>
   		<groupId>org.lucee</groupId>
   		<artifactId>commons-io</artifactId>
@@ -217,32 +200,12 @@
       <artifactId>log4j-api</artifactId>
       <version>2.17.2.0001L</version>
     </dependency>
-    <!-- <dependency>
-    	<groupId>org.lucee</groupId>
-    	<artifactId>xalan</artifactId>
-    	<version>2.7.2</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-    	<groupId>org.lucee</groupId>
-    	<artifactId>xalan-serializer</artifactId>
-    	<version>2.7.2</version>
-      <scope>provided</scope>
-    </dependency>-->
     <dependency>
     	<groupId>org.lucee</groupId>
     	<artifactId>portlet</artifactId>
     	<version>1.0.0</version>
       <scope>provided</scope>
     </dependency>
-    <!--
-    <dependency>
-    	<groupId>org.lucee</groupId>
-    	<artifactId>xml-xerces</artifactId>
-    	<version>2.11.0</version>
-      <scope>provided</scope>
-    </dependency>
-    -->
     <dependency>
     	<groupId>org.lucee</groupId>
     	<artifactId>xml-apis</artifactId>
@@ -250,26 +213,11 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
-       <groupId>backport.util</groupId>
-       <artifactId>concurrent</artifactId>
-       <version>2.2.0</version>
-      <scope>provided</scope>
-    </dependency>
-    <!--
-    <dependency>
-      <groupId>org.lucee</groupId>
-      <artifactId>oswego-concurrent</artifactId>
-      <version>1.3.4</version>
-      <scope>provided</scope>
-    </dependency>
-    -->
-    <dependency>
     	<groupId>org.lucee</groupId>
     	<artifactId>jta</artifactId>
     	<version>1.1.0</version>
       <scope>provided</scope>
     </dependency>
-
     <dependency>
       <groupId>fusiondebug.api</groupId>
       <artifactId>server</artifactId>
@@ -366,30 +314,6 @@
       <version>1.0.1.0002L</version>
       <scope>provided</scope>
     </dependency>
-    <dependency>
-      <groupId>sun.jndi</groupId>
-      <artifactId>ldap</artifactId>
-      <version>1.2.4</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>sun.jndi</groupId>
-      <artifactId>ldapbp</artifactId>
-      <version>1.2.4</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>sun.jndi</groupId>
-      <artifactId>ldapsec</artifactId>
-      <version>1.2.4</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>sun.jndi</groupId>
-      <artifactId>providerutil</artifactId>
-      <version>1.2.4</version>
-      <scope>provided</scope>
-    </dependency>
 	  <dependency>
 		  <groupId>javax.mail</groupId>
 		  <artifactId>activation</artifactId>
@@ -420,19 +344,6 @@
       <version>5.10.0</version>
       <scope>provided</scope>
     </dependency>
-    <!-- <dependency>
-      <groupId>xdb</groupId>
-      <artifactId>xdb</artifactId>
-      <version>1.0.0</version>
-      <scope>provided</scope>
-    </dependency>
-    
-    <dependency>
-      <groupId>xmlparserv2</groupId>
-      <artifactId>xmlparserv2</artifactId>
-      <version>1.2.2</version>
-      <scope>provided</scope>
-    </dependency> -->
     <dependency>
       <groupId>xmpcore</groupId>
       <artifactId>xmpcore</artifactId>
@@ -466,7 +377,7 @@
         <url>https://oss.sonatype.org/content/repositories/releases/</url>
       </repository>
    </repositories>
-   
+
   <scm>
     <url>https://github.com/lucee/Lucee</url>
     <connection>scm:git:git://github.com/lucee/Lucee.git</connection>

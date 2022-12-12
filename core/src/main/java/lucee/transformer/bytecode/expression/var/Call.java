@@ -47,17 +47,17 @@ public class Call extends ExpressionBase implements Func {
 
 		ExpressionUtil.writeOutExpressionArray(bc, Types.OBJECT, args.toArray(new Expression[args.size()]));
 
-		ga.invokeStatic(Types.PAGE_CONTEXT_UTIL, namedArgs() ? GET_FUNCTION_WITH_NAMED_ARGS_KEY : GET_FUNCTION_KEY);
+		ga.invokeStatic(Types.PAGE_CONTEXT_UTIL, namedArgs(bc) ? GET_FUNCTION_WITH_NAMED_ARGS_KEY : GET_FUNCTION_KEY);
 
 		return Types.OBJECT;
 	}
 
-	private boolean namedArgs() throws TransformerException {
+	private boolean namedArgs(BytecodeContext bc) throws TransformerException {
 		if (args.isEmpty()) return false;
 		Iterator<Argument> it = args.iterator();
 		boolean named = it.next() instanceof NamedArgument;
 		while (it.hasNext()) {
-			if (named != (it.next() instanceof NamedArgument)) throw new TransformerException("You cannot mix named and unnamed arguments in function calls", getEnd());
+			if (named != (it.next() instanceof NamedArgument)) throw new TransformerException(bc, "You cannot mix named and unnamed arguments in function calls", getEnd());
 		}
 
 		return named;

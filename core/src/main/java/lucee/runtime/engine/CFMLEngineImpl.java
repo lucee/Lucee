@@ -1750,8 +1750,9 @@ public final class CFMLEngineImpl implements CFMLEngine {
 	public void onStart(ConfigPro config, boolean reload) {
 		boolean isWeb = config instanceof ConfigWeb;
 		String context = isWeb ? "Web" : "Server";
-
-		if (isWeb && SystemUtil.getSystemPropOrEnvVar("lucee.enable.warmup", "").equalsIgnoreCase("true")) {
+		
+		if ((isWeb || config.getAdminMode() == ConfigImpl.ADMINMODE_SINGLE) 
+				&& SystemUtil.getSystemPropOrEnvVar("lucee.enable.warmup", "").equalsIgnoreCase("true")) {
 			String msg = "Lucee warmup completed. Shutting down.";
 			CONSOLE_ERR.println(msg);
 			LogUtil.log(config, Log.LEVEL_ERROR, "application", msg);
@@ -1797,8 +1798,25 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		}
 		else return;
 
-		// we do not wait for this
-		new OnStart(config, dialect, context, reload, inWebRoot).start();
+		if (!StringUtil.emptyIfNull(Thread.currentThread().getName()).startsWith("on-start-")) {
+			long timeout = config.getRequestTimeout().getMillis();
+			if (timeout <= 0) timeout = 50000L;
+			OnStart thread = new OnStart(config, dialect, context, reload, inWebRoot);
+			thread.setName("on-start-" + CreateUniqueId.invoke());
+			long start = System.currentTimeMillis();
+			thread.start();
+			try {
+				thread.join(timeout);
+			}
+			catch (Exception e) {
+				LogUtil.log(config, "on-start", e);
+			}
+			if (thread.isAlive()) {
+				LogUtil.log(config, Log.LEVEL_ERROR, "on-start", "killing on-start");
+				SystemUtil.stop(thread);
+			}
+			LogUtil.log(config, Log.LEVEL_INFO, "on-start", "on-start executed in " + (System.currentTimeMillis() - start) + "ms");
+		}
 	}
 
 	/**

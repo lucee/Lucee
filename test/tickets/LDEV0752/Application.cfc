@@ -4,7 +4,7 @@ component {
 	this.sessionManagement 	= false;
 
 	mySQL = getCredentials();
-	request.has=!isNull(mySQL.server) && !isEmpty(mySQL.server);
+	request.has = ( len(mySQL) gt 0 );
 	
 	if(request.has) {
 		this.datasource = mySQL;

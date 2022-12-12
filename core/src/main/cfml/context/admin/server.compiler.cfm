@@ -35,6 +35,9 @@ Defaults --->
             <cfif not isDefined('form.nullSupport')>
             	<cfset form.nullSupport=false>
             </cfif>
+            <cfif not isDefined('form.preciseMath')>
+            	<cfset form.preciseMath=false>
+            </cfif>
 			<cfif not isDefined('form.handleUnquotedAttrValueAsString')>
             	<cfset form.handleUnquotedAttrValueAsString=false>
             </cfif>
@@ -50,6 +53,7 @@ Defaults --->
                 handleUnquotedAttrValueAsString="#form.handleUnquotedAttrValueAsString#"
 				templateCharset="#form.templateCharset#"
 				externalizeStringGTE="#form.externalizeStringGTE#"
+				preciseMath="#form.preciseMath#"
 				remoteClients="#request.getRemoteClients()#">
 	
 		</cfcase>
@@ -67,6 +71,7 @@ Defaults --->
 				templateCharset=""
 				handleUnquotedAttrValueAsString=""
 				externalizeStringGTE=""
+				preciseMath=""
 
 				remoteClients="#request.getRemoteClients()#">
 	
@@ -259,6 +264,25 @@ Redirtect to entry --->
 &lt;cfscript>processingdirective preserveCase="#!setting.DotNotationUpperCase#";&lt;/cfscript>
 						</cfsavecontent>
 						<cfset renderCodingTip( codeSample ,stText.settings.codetip)>
+					</td>
+				</tr>
+				
+				<!--- precise math --->
+				<cfset stText.setting.preciseMath="Precise Math">
+				<cfset stText.setting.preciseMathDesc="If enabled this improves the accuracy of floating point calculations, but makes them sligthly slower.">
+				<tr>
+					<th scope="row">#stText.setting.preciseMath#</th>
+					<td>
+						<cfif hasAccess>
+        					<input class="checkbox" type="checkbox" name="preciseMath" value="true" <cfif setting.preciseMath>checked="checked"</cfif> />
+						<cfelse>
+							<b>#yesNoFormat(setting.preciseMath)#</b><br /><input type="hidden" name="suppresspreciseMathWSBeforeArg" value="#setting.preciseMath#">
+						</cfif>
+						<div class="comment">#stText.setting.preciseMathDesc#</div>
+						<cfsavecontent variable="codeSample">
+							this.preciseMath = #setting.preciseMath#;
+						</cfsavecontent>
+						<cfset renderCodingTip( codeSample )>
 					</td>
 				</tr>
 				

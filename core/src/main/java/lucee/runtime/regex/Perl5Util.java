@@ -74,7 +74,7 @@ final class Perl5Util {
 			while (matcher.contains(input, pattern)) {
 				int match = matcher.getMatch().beginOffset(0) + 1;
 				if (!matchAll) {
-					return new Double(match);
+					return Double.valueOf(match);
 				}
 
 				matches.appendEL(match);
