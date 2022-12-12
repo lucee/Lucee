@@ -1558,7 +1558,6 @@ public final class XMLConfigAdmin {
 			int connectionLimit, int idleTimeout, int liveTimeout, long metaCacheTimeout, boolean blob, boolean clob, int allow, boolean validate, boolean storage, String timezone,
 			Struct custom, String dbdriver, ParamSyntax paramSyntax, boolean literalTimestampWithTSOffset, boolean alwaysSetTimeout, boolean requestExclusive,
 			boolean alwaysResetConnections) throws PageException {
-
 		checkWriteAccess();
 		SecurityManager sm = config.getSecurityManager();
 		short access = sm.getAccess(SecurityManager.TYPE_DATASOURCE);
@@ -2023,12 +2022,17 @@ public final class XMLConfigAdmin {
 			Class clazz;
 			if (cd.getClassName() != null && cd.getClassName().endsWith(".EHCacheLite"))
 				clazz = ClassUtil.loadClass(config.getClassLoader(), "org.lucee.extension.cache.eh.EHCache");
-			else clazz = ClassUtil.loadClass(config.getClassLoader(), cd.getClassName());
+			else {
+				clazz = cd.getClazz();
+			}
 
 			if (!Reflector.isInstaneOf(clazz, Cache.class, false)) throw new ExpressionException("class [" + clazz.getName() + "] is not of type [" + Cache.class.getName() + "]");
 		}
 		catch (ClassException e) {
-			throw new ExpressionException(e.getMessage());
+			throw Caster.toPageException(e);
+		}
+		catch (BundleException e) {
+			throw Caster.toPageException(e);
 		}
 
 		Element parent = _getRootElement("cache");
