@@ -956,6 +956,7 @@
       <jvmarg value="-DluceeCore=${trgLoader}/${version}.lco"/>
       <jvmarg value="-DtrgLoader=${trgLoader}"/>
       <jvmarg value="-DluceeVersion=${version}"/>
+      <jvmarg value="-Dlucee.cli.printExceptions=true"/>
 
     </java>
     <echo>${exc3}</echo>
