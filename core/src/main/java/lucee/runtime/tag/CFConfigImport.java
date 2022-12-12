@@ -768,6 +768,9 @@ public class CFConfigImport {
 			// error
 			str = getAsString(json, "generalErrorTemplate", "errortemplate500");
 			if (str != null) {
+				if (str.trim().equalsIgnoreCase("default")) {
+					str = "";
+				}
 				try {
 					admin.updateErrorTemplate(500, str);
 				}
@@ -777,6 +780,9 @@ public class CFConfigImport {
 			}
 			str = getAsString(json, "missingErrorTemplate", "errortemplate404");
 			if (str != null) {
+				if (str.trim().equalsIgnoreCase("default")) {
+					str = "";
+				}
 				try {
 					admin.updateErrorTemplate(404, str);
 				}
