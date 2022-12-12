@@ -20,6 +20,7 @@ import org.apache.logging.log4j.core.layout.PatternLayout;
 import lucee.commons.digest.HashUtil;
 import lucee.commons.io.DevNullOutputStream;
 import lucee.commons.io.SystemUtil;
+import lucee.commons.io.log.LogEngine;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.log.log4j2.appender.ConsoleAppender;
 import lucee.commons.io.log.log4j2.appender.DatasourceAppender;
@@ -893,8 +894,18 @@ public class CFConfigImport {
 					data = cast.toStruct(e.getValue(), null);
 					if (data == null) continue;
 					try {
-						admin.updateLogSettings(e.getKey().getString(), LogUtil.toLevel(getAsString(data, "level")), getClassDefinition(data, "appender"),
-								getAsStruct(data, "appenderArgs"), getClassDefinition(data, "layout"), (getAsStruct(data, "layoutArgs")));
+
+						LogEngine eng = config.getLogEngine();
+						// appender
+						ClassDefinition appender = getClassDefinition(data, "appender");
+						if (!appender.isBundle()) appender = eng.appenderClassDefintion(appender.getClassName());
+
+						// layout
+						ClassDefinition layout = getClassDefinition(data, "layout");
+						if (!layout.isBundle()) layout = eng.layoutClassDefintion(layout.getClassName());
+
+						admin.updateLogSettings(e.getKey().getString(), LogUtil.toLevel(getAsString(data, "level")), appender, getAsStruct(data, "appenderArgs"), layout,
+								getAsStruct(data, "layoutArgs"));
 
 					}
 					catch (Throwable t) {
