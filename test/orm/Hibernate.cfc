@@ -54,7 +54,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 	}
 
-	public void function testMany2Many() {
+	public void function testMany2Many() skip="true" {
 		local.uri=createURI("many2many/index.cfm");
 		local.result=_InternalRequest(uri);
 		assertEquals(200,result.status);
