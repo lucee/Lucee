@@ -246,6 +246,16 @@ component {
 		
 
 	public function addSupportFunctions() {
+		server._getTempDir = function ( string prefix="" ) localmode=true{
+			if ( len( arguments.prefix ) eq 0 ) {
+				local.dir = getTempDirectory() & "lucee-tests\" & createGUID();
+			} else {
+				local.dir = getTempDirectory() & "lucee-tests\" & arguments.prefix;
+			}
+			if ( !directoryExists( dir ) )
+				directoryCreate( dir, true );
+			return dir;
+		};
 		server._getSystemPropOrEnvVars = function ( string props="", string prefix="", boolean stripPrefix=true, boolean allowEmpty=false ) localmode=true{
 			st = [=];
 			keys = arguments.props.split( "," );
@@ -284,7 +294,11 @@ component {
 		server.getDefaultBundleVersion = getDefaultBundleVersion;  
 		server.getBundleVersions = getBundleVersions;
 	}
-	public struct function getTestService( required string service, string dbFile="", boolean verify=false, boolean onlyConfig=false ) localmode=true {
+	public struct function getTestService( required string service, 
+			string dbFile="", 
+			boolean verify=false, 
+			boolean onlyConfig=false 
+		) localmode=true {
 		if ( StructKeyExists( server.test_services, arguments.service ) ){
 			if ( !server.test_services[ arguments.service ].valid ){
 				//SystemOutput("Warning service: [ #arguments.service# ] is not available", true);
