@@ -46,6 +46,7 @@ import lucee.runtime.config.DeployHandler;
 import lucee.runtime.config.Password;
 import lucee.runtime.config.XMLConfigAdmin;
 import lucee.runtime.db.ClassDefinition;
+import lucee.runtime.db.DataSource;
 import lucee.runtime.db.ParamSyntax;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
@@ -816,8 +817,8 @@ public class CFConfigImport {
 								getAsString(data, "host"), getAsString(data, "database"), getAsInt(data, empty, -1, "connectionString", "dsn"),
 								getAsInt(data, empty, -1, "connectionlimit"), getAsInt(data, empty, -1, "connectiontimeout", "idletimeout"),
 								getAsInt(data, empty, -1, "livetimeout"), getAsLong(data, empty, 60000L, "metacachetimeout"), getAsBoolean(data, empty, false, "blob"),
-								getAsBoolean(data, empty, false, "clob"), 0, getAsBoolean(data, empty, false, "validate"), getAsBoolean(data, empty, false, "storage"),
-								getAsString(data, "timezone"), getAsStruct(data, "custom"), getAsString(data, "dbdriver"), ps,
+								getAsBoolean(data, empty, false, "clob"), DataSource.ALLOW_ALL, getAsBoolean(data, empty, false, "validate"),
+								getAsBoolean(data, empty, false, "storage"), getAsString(data, "timezone"), getAsStruct(data, "custom"), getAsString(data, "dbdriver"), ps,
 								getAsBoolean(data, empty, false, "literalTimestampWithTSOffset"), getAsBoolean(data, empty, false, "alwaysSetTimeout"),
 								getAsBoolean(data, empty, false, "requestExclusive"), getAsBoolean(data, empty, false, "alwaysResetConnections"));
 						admin.updateErrorStatusCode(bool);
