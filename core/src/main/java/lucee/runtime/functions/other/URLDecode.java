@@ -47,9 +47,5 @@ public final class URLDecode implements Function {
 				throw new ExpressionException(uee.getMessage());
 			}
 		}
-		/*
-		 * try { return URLDecoder.decode(str,encoding); } catch (UnsupportedEncodingException e) { throw
-		 * new ExpressionException(e.getMessage()); }
-		 */
 	}
 }

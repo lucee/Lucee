@@ -828,7 +828,6 @@ public class CFConfigImport {
 								getAsBoolean(data, empty, false, "storage"), getAsString(data, "timezone"), getAsStruct(data, "custom"), getAsString(data, "dbdriver"), ps,
 								getAsBoolean(data, empty, false, "literalTimestampWithTSOffset"), getAsBoolean(data, empty, false, "alwaysSetTimeout"),
 								getAsBoolean(data, empty, false, "requestExclusive"), getAsBoolean(data, empty, false, "alwaysResetConnections"));
-						admin.updateErrorStatusCode(bool);
 					}
 					catch (Throwable t) {
 						handleException(pc, t);
@@ -901,15 +900,22 @@ public class CFConfigImport {
 					if (data == null) continue;
 					try {
 						LogEngine eng = config.getLogEngine();
+
 						// appender
-						ClassDefinition appender = getClassDefinition(data, "appender");
-						if (!appender.isBundle()) appender = eng.appenderClassDefintion(appender.getClassName());
+						String className = getAsString(data, "appender", "appenderClass", "appenderClassName");
+						String bundleName = getAsString(data, "appenderBundleName");
+						String bundleVersion = getAsString(data, "appenderBundleVersion");
+						ClassDefinition acd = StringUtil.isEmpty(bundleName) ? eng.appenderClassDefintion(className)
+								: new ClassDefinitionImpl(className, bundleName, bundleVersion, config.getIdentification());
 
 						// layout
-						ClassDefinition layout = getClassDefinition(data, "layout");
-						if (!layout.isBundle()) layout = eng.layoutClassDefintion(layout.getClassName());
+						className = getAsString(data, "layout", "layoutClass", "layoutClassName");
+						bundleName = getAsString(data, "layoutBundleName");
+						bundleVersion = getAsString(data, "layoutBundleVersion");
+						ClassDefinition lcd = StringUtil.isEmpty(bundleName) ? eng.layoutClassDefintion(className)
+								: new ClassDefinitionImpl(className, bundleName, bundleVersion, config.getIdentification());
 
-						admin.updateLogSettings(e.getKey().getString(), LogUtil.toLevel(getAsString(data, "level")), appender, getAsStruct(data, "appenderArgs"), layout,
+						admin.updateLogSettings(e.getKey().getString(), LogUtil.toLevel(getAsString(data, "level")), acd, getAsStruct(data, "appenderArgs"), lcd,
 								getAsStruct(data, "layoutArgs"));
 
 					}
