@@ -268,6 +268,11 @@ public class ConfigWebImpl extends ConfigImpl implements ServletConfig, ConfigWe
 	}
 
 	@Override
+	public void resetServerTagMappings() {
+		serverTagMappings = null;
+	}
+
+	@Override
 	public Mapping getDefaultServerTagMapping() {
 		return getConfigServerImpl().defaultTagMapping;
 	}
@@ -300,6 +305,7 @@ public class ConfigWebImpl extends ConfigImpl implements ServletConfig, ConfigWe
 	@Override
 	public Mapping getServerFunctionMapping(String mappingName) {
 		getServerFunctionMappings();// call this to make sure it exists
+
 		return serverFunctionMappings.get(mappingName);
 	}
 

@@ -1669,6 +1669,10 @@ public class SingleContextConfigWeb extends ConfigBase implements ConfigWebPro {
 	public void resetServerFunctionMappings() {
 	}
 
+	@Override
+	public void resetServerTagMappings() {
+	}
+
 	public ConfigServerImpl getConfigServerImpl() {
 		return this.cs;
 	}

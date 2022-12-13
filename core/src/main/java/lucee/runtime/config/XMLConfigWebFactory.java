@@ -3163,6 +3163,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 				}
 			}
 			config.setTagDirectory(listTags);
+			if (config instanceof ConfigWebPro) ((ConfigWebPro) config).resetServerTagMappings();
 
 			// allow realpath
 			if (hasCS) {
@@ -3215,6 +3216,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 				}
 			}
 			config.setFunctionDirectory(listFuncs);
+			if (config instanceof ConfigWebPro) ((ConfigWebPro) config).resetServerFunctionMappings();
 		}
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);

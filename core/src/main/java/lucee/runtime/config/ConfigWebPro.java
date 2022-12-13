@@ -94,4 +94,6 @@ public interface ConfigWebPro extends ConfigWeb, ConfigPro {
 	public short getPasswordSource();
 
 	public void resetServerFunctionMappings();
+
+	public void resetServerTagMappings();
 }
