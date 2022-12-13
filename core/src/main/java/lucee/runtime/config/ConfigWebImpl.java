@@ -279,6 +279,11 @@ public class ConfigWebImpl extends ConfigImpl implements ServletConfig, ConfigWe
 	}
 
 	@Override
+	public void resetServerTagMappings() {
+		serverTagMappings = null;
+	}
+
+	@Override
 	public Collection<Mapping> getServerFunctionMappings() {
 		if (serverFunctionMappings == null) {
 			Iterator<Entry<String, Mapping>> it = getConfigServerImpl().functionMappings.entrySet().iterator();
