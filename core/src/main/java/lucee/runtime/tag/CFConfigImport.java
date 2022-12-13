@@ -1016,6 +1016,26 @@ public class CFConfigImport {
 				}
 			}
 
+			// debugging templates (array)
+			coll = getAsCollection(json, "debugTemplates", "debugging");
+			if (coll != null) {
+				Iterator<Entry<Key, Object>> it = coll.entryIterator();
+				Entry<Key, Object> e;
+				Struct data;
+				while (it.hasNext()) {
+					e = it.next();
+					data = cast.toStruct(e.getValue(), null);
+					if (data == null) continue;
+					try {
+						admin.updateDebugEntry(getAsString(data, "type", "debugtype"), getAsString(data, "iprange"), getAsString(data, "label"), getAsString(data, "path"),
+								getAsString(data, "fullname"), getAsStruct(data, "custom"));
+					}
+					catch (Throwable t) {
+						handleException(pc, t);
+					}
+				}
+			}
+
 			// extensions
 			optimizeExtensions(config, json);
 			coll = getAsCollection(json, "extensions");

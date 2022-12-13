@@ -5951,7 +5951,7 @@ public final class XMLConfigAdmin {
 		IPRange.getInstance(iprange);
 
 		String id = MD5.getDigestAsString(label.trim().toLowerCase());
-		type = type.trim();
+		type = StringUtil.emptyIfNull(type).trim();
 		iprange = iprange.trim();
 		label = label.trim();
 
