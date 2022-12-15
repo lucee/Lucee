@@ -26,8 +26,8 @@
 		driver=drivers[session.debug.template];
 		template=session.debug.template;		
 	} else if ( IsEmpty(entries.type) || !StructKeyExists(drivers, entries.type) ) {
-		driver=drivers["lucee-modern"];
-		template= "lucee-modern";
+		driver=drivers["lucee-simple"];
+		template= "lucee-simple";
 	} else {
 		driver=drivers["#entries.type#"];
 		template=entries.type;
