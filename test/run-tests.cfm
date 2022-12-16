@@ -143,7 +143,11 @@ try {
 		SystemOutput( "Running with custom BaseSpec [#testSuiteExtends#]", true );
 
 	param name="testDebugAbort" default="false";
-	request.testDebugAbort = testDebugAbort ?: false;
+	if ( len( testDebugAbort ) and testDebugAbort) {
+		request.testDebugAbort = true;
+	} else {
+		request.testDebugAbort = false;
+	}
 
 	// i.e ant -DtestRandomSort="3" -DtestLabels="image"
 
