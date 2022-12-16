@@ -12,7 +12,6 @@ import java.util.zip.ZipInputStream;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.jsp.JspException;
-import javax.servlet.jsp.tagext.Tag;
 
 import org.apache.logging.log4j.core.layout.HtmlLayout;
 import org.apache.logging.log4j.core.layout.PatternLayout;
@@ -52,7 +51,6 @@ import lucee.runtime.db.ParamSyntax;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
-import lucee.runtime.ext.tag.DynamicAttributes;
 import lucee.runtime.extension.ExtensionDefintion;
 import lucee.runtime.extension.RHExtension;
 import lucee.runtime.gateway.GatewayEntryImpl;
@@ -86,8 +84,8 @@ public class CFConfigImport {
 	private Resource file;
 	private Charset charset;
 	private String password;
-	private Tag tag;
-	private DynamicAttributes dynAttr;
+	// private Tag tag;
+	// private DynamicAttributes dynAttr;
 	private String type = "server";
 	private CFMLEngine engine;
 	private final ConfigPro config;
@@ -181,9 +179,8 @@ public class CFConfigImport {
 			}
 
 			replacePlaceHolder(json, placeHolderData);
-			tag = new Admin(!validatePassword);
 
-			dynAttr = (DynamicAttributes) tag;
+			// dynAttr = (DynamicAttributes) tag;
 			boolean isServer = "server".equalsIgnoreCase(type);
 			String strPW = ConfigWebUtil.decrypt(password);
 			Password pw; // hash password if
@@ -200,9 +197,8 @@ public class CFConfigImport {
 				cp = (ConfigPro) (ThreadLocalPageContext.getConfig(config)).getConfigServer(password);
 			}
 			else cp = (ConfigPro) ThreadLocalPageContext.getConfig(config);
-
-			XMLConfigAdmin admin = XMLConfigAdmin.newInstance(config, pw, !validatePassword);
-			Object obj;
+			boolean updated = setPasswordIfNecessary(config instanceof ConfigWebPro ? (ConfigWebPro) config : (ConfigWebPro) ThreadLocalPageContext.getConfig(config));
+			XMLConfigAdmin admin = XMLConfigAdmin.newInstance(config, pw, updated || !validatePassword);
 			String str;
 			Boolean bool;
 			Integer in;
@@ -326,7 +322,7 @@ public class CFConfigImport {
 			}
 
 			// cached after
-			ts = getAsTimespan(json, empty, false, false, null, "querycachedafter", "cachedafter");
+			ts = getAsTimespan(json, empty, null, 1000, "querycachedafter", "cachedafter");
 			if (ts != null || empty.toBooleanValue()) {
 				try {
 					admin.updateCachedAfterTimeRange(ts);
@@ -337,7 +333,7 @@ public class CFConfigImport {
 			}
 
 			// ApplicationSetting
-			ts = getAsTimespan(json, empty, false, false, null, "requesttimeout");
+			ts = getAsTimespan(json, empty, null, 1000, "requesttimeout");
 			if (ts != null || empty.toBooleanValue()) {
 				try {
 					admin.updateRequestTimeout(ts);
@@ -522,7 +518,7 @@ public class CFConfigImport {
 				}
 			}
 			else {
-				ts = getAsTimespan(json, empty, false, true, null, "mailConnectionTimeout", "mailTimeout");
+				ts = getAsTimespan(json, empty, null, 1000, "mailConnectionTimeout", "mailTimeout");
 				if (ts != null || empty.toBooleanValue()) {
 					try {
 						admin.setMailTimeout((int) (ts.getMillis() / 1000));
@@ -899,8 +895,8 @@ public class CFConfigImport {
 					data = cast.toStruct(e.getValue(), null);
 					if (data == null) continue;
 					try {
-
 						LogEngine eng = config.getLogEngine();
+
 						// appender
 						String className = getAsString(data, "appender", "appenderClass", "appenderClassName");
 						String bundleName = getAsString(data, "appenderBundleName");
@@ -938,9 +934,8 @@ public class CFConfigImport {
 					try {
 						admin.updateMailServer(getAsInt(data, empty, 0, "id"), getAsString(data, "smtp", "host", "server", "hostname"), getAsString(data, "username", "dbusername"),
 								ConfigWebUtil.decrypt(getAsString(data, "password", "dbpassword")), getAsInt(data, empty, -1, "port"), getAsBoolean(data, empty, false, "tls"),
-								getAsBoolean(data, empty, false, "ssl"), getAsTimespan(data, empty, true, false, TimeSpanImpl.fromMillis(1000 * 60 * 5), "life").getMillis(),
-								getAsTimespan(data, empty, true, false, TimeSpanImpl.fromMillis(1000 * 60 * 5), "idle").getMillis(),
-								getAsBoolean(data, empty, true, "reuseConnection"));
+								getAsBoolean(data, empty, false, "ssl"), getAsTimespan(data, empty, TimeSpanImpl.fromMillis(1000 * 60 * 5), 0, "life").getMillis(),
+								getAsTimespan(data, empty, TimeSpanImpl.fromMillis(1000 * 60 * 5), 0, "idle").getMillis(), getAsBoolean(data, empty, true, "reuseConnection"));
 					}
 					catch (Throwable t) {
 						handleException(pc, t);
@@ -1158,7 +1153,7 @@ public class CFConfigImport {
 					handleException(pc, t);
 				}
 			}
-			ts = getAsTimespan(json, empty, false, false, null, "clienttimeout");
+			ts = getAsTimespan(json, empty, null, -1, "clienttimeout");
 			if (ts != null || empty.toBooleanValue()) {
 				try {
 					admin.updateClientTimeout(ts);
@@ -1167,7 +1162,7 @@ public class CFConfigImport {
 					handleException(pc, t);
 				}
 			}
-			ts = getAsTimespan(json, empty, false, false, null, "sessiontimeout");
+			ts = getAsTimespan(json, empty, null, 1000, "sessiontimeout");
 			if (ts != null || empty.toBooleanValue()) {
 				try {
 					admin.updateSessionTimeout(ts);
@@ -1176,7 +1171,7 @@ public class CFConfigImport {
 					handleException(pc, t);
 				}
 			}
-			ts = getAsTimespan(json, empty, false, false, null, "applicationtimeout");
+			ts = getAsTimespan(json, empty, null, 1000, "applicationtimeout");
 			if (ts != null || empty.toBooleanValue()) {
 				try {
 					admin.updateApplicationTimeout(ts);
@@ -1376,17 +1371,13 @@ public class CFConfigImport {
 		return defaultValue;
 	}
 
-	private static TimeSpan getAsTimespan(Struct data, RefBoolean empty, boolean nbrAsSeconds, boolean nbrAsMillis, TimeSpan defaultValue, String... names) {
+	private static TimeSpan getAsTimespan(Struct data, RefBoolean empty, TimeSpan defaultValue, long milliThreashold, String... names) {
 		Object val;
 		TimeSpan ts;
 		empty.setValue(false);
 		for (String name: names) {
 			val = data.get(name, null);
 			if (val != null) {
-				if ((nbrAsSeconds || nbrAsMillis) && !(val instanceof TimeSpan) && Decision.isInteger(val, false)) {
-					int i = Caster.toIntValue(val, -1);
-					if (i != -1) return TimeSpanImpl.fromMillis(nbrAsMillis ? i : i * 1000L);
-				}
 				ts = Caster.toTimespan(val, null);
 				if (ts != null) return ts;
 				else if (StringUtil.isEmpty(val, true)) empty.setValue(true);
@@ -1527,46 +1518,8 @@ public class CFConfigImport {
 		return null;
 	}
 
-	private void setGroup(PageContext pc, final Struct json, String trgActionName, String srcGroupName, String[] keyNames, Item... items) throws PageException {
-		setGroup(pc, json, trgActionName, new String[] { srcGroupName }, keyNames, items);
-	}
-
-	private void setGroup(PageContext pc, final Struct json, String trgActionName, String[] srcGroupNames, String[] keyNames, Item... items) throws PageException {
-		try {
-			Cast cast = engine.getCastUtil();
-			Collection group = null;
-			for (String srcGroupName: srcGroupNames) {
-				group = cast.toCollection(json.get(cast.toKey(srcGroupName), null), null);
-				if (group != null) break;
-			}
-
-			if (group != null) {
-				Iterator<Entry<Key, Object>> it = group.entryIterator();
-				Entry<Key, Object> e;
-				Struct data;
-				while (it.hasNext()) {
-					e = it.next();
-					data = cast.toStruct(e.getValue(), null);
-					if (data == null) continue;
-					if (!(group instanceof Array)) {
-						for (String keyName: keyNames) {
-							data.set(cast.toKey(keyName), e.getKey().getString());
-						}
-					}
-					set(pc, data, trgActionName, items);
-				}
-			}
-		}
-		catch (Throwable t) {
-			ExceptionUtil.rethrowIfNecessary(t);
-			LogUtil.log(pc, "deploy", t);
-			if (t instanceof JspException) exd = (JspException) t;
-			else exd = Caster.toPageException(t);
-		}
-	}
-
-	private void setPasswordIfNecessary(ConfigWeb config) throws PageException {
-		if (!setPasswordIfNecessary) return;
+	private boolean setPasswordIfNecessary(ConfigWeb config) throws PageException {
+		if (!setPasswordIfNecessary) return false;
 		boolean isServer = "server".equalsIgnoreCase(type);
 		if ((isServer && !pwCheckedServer) || (!isServer && !pwCheckedWeb)) {
 			boolean hasPassword = isServer ? config.hasServerPassword() : config.hasPassword();
@@ -1574,6 +1527,7 @@ public class CFConfigImport {
 				// create password
 				try {
 					((ConfigWebPro) config).updatePassword(isServer, null, password);
+					return true;
 				}
 				catch (Exception e) {
 					throw Caster.toPageException(e);
@@ -1582,43 +1536,7 @@ public class CFConfigImport {
 			if (isServer) pwCheckedServer = true;
 			else pwCheckedWeb = true;
 		}
-	}
-
-	private void set(PageContext pc, final Struct json, String trgActionName, Item... items) throws PageException {
-		setPasswordIfNecessary(pc.getConfig());
-
-		Object val;
-		try {
-			tag.setPageContext(pc);
-			boolean empty = true;
-			for (Item item: items) {
-				val = item.getValue(json);
-				if (val != null) empty = false;
-				else val = item.getDefault();
-				dynAttr.setDynamicAttribute(null, item.getTargetAttrName(), val);
-			}
-			if (empty) {
-				tag.release();
-				return;
-			}
-			dynAttr.setDynamicAttribute(null, FROM_CFCONFIG, Boolean.TRUE);
-			dynAttr.setDynamicAttribute(null, ACTION, trgActionName);
-			dynAttr.setDynamicAttribute(null, TYPE, type);
-			dynAttr.setDynamicAttribute(null, PASSWORD, password);
-
-			tag.doStartTag();
-			tag.doEndTag();
-		}
-		catch (Throwable t) {
-			ExceptionUtil.rethrowIfNecessary(t);
-			LogUtil.log(pc, "deploy", t);
-			if (t instanceof JspException) exd = (JspException) t;
-			else exd = Caster.toPageException(t);
-
-		}
-		finally {
-			tag.release();
-		}
+		return false;
 	}
 
 	private static class Item {
