@@ -25,7 +25,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
 
 import org.apache.commons.fileupload.MultipartStream;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import lucee.commons.io.IOUtil;
 import lucee.commons.lang.StringUtil;
