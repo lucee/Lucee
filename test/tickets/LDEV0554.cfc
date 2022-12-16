@@ -29,26 +29,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 						255
 					);
 				}); 
-
-				xit( 'instantiate itself (lucee dialect)' , function() {
-					 
-					expect(
-						LDEV0554.Color2::RED.getRed()
-					).toBe(
-						255
-					);
-				});
-
-				xit( 'instantiate itself (lucee dialect)' , function() {
-					 
-					expect(
-						LDEV0554.Color2::BLUE.getRed()
-					).toBe(
-						0
-					);
-				});
-
-
+				
 				it( 'instantiate someone else (cfml dialect)' , function() {
 					 
 					expect(

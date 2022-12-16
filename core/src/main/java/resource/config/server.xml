@@ -293,7 +293,6 @@ Path placeholders:
 	-->
 	<component 
         base-cfml="/lucee/Component.cfc"
-		base-lucee="/lucee/Component.lucee"
 		data-member-default-access="public"
 		dump-template="/lucee/component-dump.cfm">
   		<mapping virtual="/default" physical="{lucee-web}/components/" primary="physical" inspect-template="never"/>
