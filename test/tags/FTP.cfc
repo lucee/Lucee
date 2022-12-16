@@ -79,7 +79,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ftp" {
 		var subfile=subdir&fileName;
 		
 		// list the inital state
-		ftp action="listdir" directory=base connection="ftpConn" name="local.initialState"; // passive not sticky LDEV-977
+		ftp action="listdir" directory=base connection="ftpConn" name="local.initialState" passive="true"; // passive not sticky LDEV-977
 		
 		// print working directory
 		ftp action="getcurrentdir" directory=base connection="ftpConn" result="local.pwd1";
@@ -91,7 +91,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ftp" {
 
 			// we create a directory
 			ftp action="createdir" directory=dir connection="ftpConn";
-			ftp action="listdir" directory=base connection="ftpConn" name="local.list2";
+			ftp action="listdir" directory=base connection="ftpConn" name="local.list2" passive="true";
 			assertEquals(initialState.recordcount+1,list2.recordcount);
 
 			// change working directory
@@ -102,7 +102,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ftp" {
 
 			// we add a file
 			ftp action="putFile"  localfile=getCurrentTemplatePath() remoteFile=file connection= "ftpConn";
-			ftp action="listdir" directory=dir connection="ftpConn" name="local.list3";  // passive not sticky LDEV-977;
+			ftp action="listdir" directory=dir connection="ftpConn" name="local.list3" passive="true";  // passive not sticky LDEV-977;
 			assertEquals(list3.recordcount,1);
 			assertEquals(list3.name,fileName);
 			assertEquals(list3.isDirectory,false);
@@ -125,7 +125,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ftp" {
 
 			// we rename the file
 			ftp action="rename"  existing=file new=file2 connection= "ftpConn";
-			ftp action="listdir" directory=dir connection="ftpConn" name="local.list4";
+			ftp action="listdir" directory=dir connection="ftpConn" name="local.list4" passive="true";
 			assertEquals(list4.recordcount,1);
 			assertEquals(list4.name,fileName2);
 
@@ -141,12 +141,12 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ftp" {
 			ftp action="existsfile" remotefile=file connection="ftpConn" result="local.exist4";
 			assertFalse(exist4.returnValue);
 
-			ftp action="listdir" directory=base connection="ftpConn" name="local.list22";
+			ftp action="listdir" directory=base connection="ftpConn" name="local.list22" passive="true";
 			debug(list22);
 
 			// we delete the file again
 			ftp action="remove"  item=file2 connection= "ftpConn";
-			ftp action="listdir" directory=dir connection="ftpConn" name="local.list4";
+			ftp action="listdir" directory=dir connection="ftpConn" name="local.list4" passive="true";
 			assertEquals(list4.recordcount,0);
 
 			// we add again a file and directory to be sure we can delete a folder with content
@@ -161,7 +161,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ftp" {
 
 		//}
 		//finally {
-			ftp action="listdir" directory=subdir connection="ftpConn" name="local.listSubdir" recurse=true;
+			ftp action="listdir" directory=subdir connection="ftpConn" name="local.listSubdir" recurse=true passive="true";
 			expect( listSubdir.recordcount ).toBe( arguments.secure? 4 : 3 );
 			
 			ftp action="removedir" directory=subdir connection="ftpConn" recurse=true;
@@ -170,7 +170,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ftp" {
 			
 			// delete the folder we did for testing
 			ftp action="removedir" directory=dir connection="ftpConn" recurse=true;
-			ftp action="listdir" directory=base connection="ftpConn" name="local.finalState";
+			ftp action="listdir" directory=base connection="ftpConn" name="local.finalState" passive="true";
 			expect( finalState.recordcount ) .toBe( initialState.recordcount );
 		//}
 
