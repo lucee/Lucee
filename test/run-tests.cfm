@@ -133,6 +133,18 @@ try {
 		testRandomSort = false;
 	request.testRandomSort = testRandomSort;
 
+	// allow using other/additional BaseSpecs like testbox.system.BaseSpec
+	param name="testSuiteExtends" default="";
+	if ( len( testSuiteExtends ) eq 0 )
+		request.testSuiteExtends= "org.lucee.cfml.test.LuceeTestCase";
+	else
+		request.testSuiteExtends = testSuiteExtends; 
+	if ( request.testSuiteExtends != "org.lucee.cfml.test.LuceeTestCase" )
+		SystemOutput( "Running with custom BaseSpec [#testSuiteExtends#]", true );
+
+	param name="testDebugAbort" default="false";
+	request.testDebugAbort = testDebugAbort ?: false;
+
 	// i.e ant -DtestRandomSort="3" -DtestLabels="image"
 
 	if ( request.testRandomSort neq "false" ){

@@ -9,12 +9,19 @@ component {
 		var testDirectoryLen = len( arguments.testDirectory );
 		var mapping = ListChangeDelims( arguments.testMapping, "", "/\" );
 		var bundles = [];
+		arraySort( srcBundles, "textnocase", "asc" ); // make testDebug output sorted
 		ArrayEach( array=srcBundles, closure=function( el, idx, arr ){
-			if ( testFilter( arguments.el, testDirectory, testMapping ) ) {
+			if ( listLast( arguments.el, "\/" ) eq "Application.cfc" ) {
+				// ignore 
+			} else if ( testFilter( arguments.el, testDirectory, testMapping ) ) {
 				var clean  = ListChangeDelims( mid( arguments.el, testDirectoryLen + 1  ), ".", "/\" ); // strip off dir prefix
 				arrayAppend(bundles, mapping & "." & mid( clean, 1, len( clean ) - 4 ) ); // strip off .cfc
 			}
 		}, parallel=true );
+
+		if ( request.testDebugAbort ){
+			throw "testDebugAbort was true, exiting";
+		}
 		arraySort( bundles, "textnocase", "asc" );
 		if ( request.testRandomSort neq "false" ) {
 			if ( !isNumeric( request.testRandomSort ) ){
@@ -47,7 +54,7 @@ component {
 				case ( FindNoCase( testDirectory, testDir ) neq 1 ):
 					return "not under test dir (#testDirectory#, #testDir#)";
 				case fileExists( testDir & "/Application.cfc" ):
-					return "test in directory with Application.cfc";
+					return "cfc in directory with Application.cfc";
 				default:
 					break;
 			};
@@ -72,8 +79,14 @@ component {
 				return "test suite has skip=true";
 
 			var extends = checkExtendsTestCase( meta, arguments.path );
-			if ( extends neq "org.lucee.cfml.test.LuceeTestCase" )
-				return "test doesn't extend Lucee Test Case (#extends#)";
+			
+			if ( extends eq "Lucee.component" ) {
+				return 'Not a test suite'; // plain old cfc, ignore
+			} else if ( listFindNoCase( request.testSuiteExtends, extends ) eq 0 ) {
+				// default is "org.lucee.cfml.test.LuceeTestCase"
+				return "Test extends wrong Base spec [#extends#] "
+					& "see ' -dtestSuiteExtends=""cfc.path"" ' ";
+			}
 
 			return checkTestLabels( meta, arguments.path, request.testLabels );
 		};
