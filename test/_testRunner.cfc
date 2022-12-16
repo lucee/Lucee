@@ -54,7 +54,13 @@ component {
 				case ( FindNoCase( testDirectory, testDir ) neq 1 ):
 					return "not under test dir (#testDirectory#, #testDir#)";
 				case fileExists( testDir & "/Application.cfc" ):
-					return "cfc in directory with Application.cfc";
+					var meta = getTestMeta( arguments.path, true );
+					var isTest = checkExtendsTestCase(meta, arguments.path );
+					if ( len( isTest) ){
+						return isTest;
+					} else {
+						return "Test in directory with Application.cfc";
+					}
 				default:
 					break;
 			};
@@ -79,15 +85,9 @@ component {
 				return "test suite has skip=true";
 
 			var extends = checkExtendsTestCase( meta, arguments.path );
+			if ( len(extends) )
+				return extends;
 			
-			if ( extends eq "Lucee.component" ) {
-				return 'Not a test suite'; // plain old cfc, ignore
-			} else if ( listFindNoCase( request.testSuiteExtends, extends ) eq 0 ) {
-				// default is "org.lucee.cfml.test.LuceeTestCase"
-				return "Test extends wrong Base spec [#extends#] "
-					& "see ' -dtestSuiteExtends=""cfc.path"" ' ";
-			}
-
 			return checkTestLabels( meta, arguments.path, request.testLabels );
 		};
 
@@ -101,7 +101,7 @@ component {
 			return true;
 		};
 
-		var getTestMeta = function (string path){
+		var getTestMeta = function (string path, boolean silent=false){
 			// finally only allow files which extend "org.lucee.cfml.test.LuceeTestCase"
 			var cfcPath = ListChangeDelims( testMapping & Mid( arguments.path, len( testDirectory ) + 1 ), ".", "/\" );
 			cfcPath = mid( cfcPath, 1, len( cfcPath ) - 4 ); // strip off ".cfc"
@@ -112,7 +112,7 @@ component {
 					var meta = GetComponentMetaData( cfcPath );
 				}
 			} catch ( e ){
-				if ( request.testDebug )
+				if ( request.testDebug && !arguments.silent )
 					systemOutput( cfcatch, true );
 				return {
 					"_exception": cfcatch
@@ -122,7 +122,16 @@ component {
 		};
 
 		var checkExtendsTestCase = function (any meta, string path){
-			return meta.extends.fullname ?: "";
+			var extends = arguments.meta.extends.fullname ?: "";
+			if ( extends eq "Lucee.component" or len(extends) eq 0 ) {
+				return 'Not a test suite'; // plain old cfc, ignore
+			} else if ( listFindNoCase( request.testSuiteExtends, extends ) eq 0 ) {
+				// default is "org.lucee.cfml.test.LuceeTestCase"
+				return "Test extends wrong Base spec [#extends#] "
+					& "see ' -dtestSuiteExtends=""cfc.path"" ' ";
+			} else {
+				return "";
+			}
 		};
 
 		/* testbox mixes labels and skip, which is confusing, skip false should always mean skip, so we check it manually */
