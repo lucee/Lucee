@@ -1580,9 +1580,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 	private static void doCheckChangesInLibraries(ConfigImpl config) {
 		// create current hash from libs
 		TagLib[] ctlds = config.getTLDs(CFMLEngine.DIALECT_CFML);
-		TagLib[] ltlds = config.getTLDs(CFMLEngine.DIALECT_LUCEE);
 		FunctionLib[] cflds = config.getFLDs(CFMLEngine.DIALECT_CFML);
-		FunctionLib[] lflds = config.getFLDs(CFMLEngine.DIALECT_LUCEE);
 
 		StringBuilder sb = new StringBuilder();
 
@@ -1631,16 +1629,10 @@ public final class ConfigWebFactory extends ConfigFactory {
 		// tld
 		for (int i = 0; i < ctlds.length; i++) {
 			sb.append(ctlds[i].getHash());
-		}
-		for (int i = 0; i < ltlds.length; i++) {
-			sb.append(ltlds[i].getHash());
-		}
+		}		
 		// fld
 		for (int i = 0; i < cflds.length; i++) {
 			sb.append(cflds[i].getHash());
-		}
-		for (int i = 0; i < lflds.length; i++) {
-			sb.append(lflds[i].getHash());
 		}
 
 		if (config instanceof MultiContextConfigWeb) {
@@ -3255,12 +3247,10 @@ public final class ConfigWebFactory extends ConfigFactory {
 			// init TLDS
 			if (hasCS) {
 				config.setTLDs(ConfigWebUtil.duplicate(configServer.getTLDs(CFMLEngine.DIALECT_CFML), false), CFMLEngine.DIALECT_CFML);
-				config.setTLDs(ConfigWebUtil.duplicate(configServer.getTLDs(CFMLEngine.DIALECT_LUCEE), false), CFMLEngine.DIALECT_LUCEE);
 			}
 			else {
 				ConfigServerImpl cs = (ConfigServerImpl) config;
 				config.setTLDs(ConfigWebUtil.duplicate(new TagLib[] { cs.cfmlCoreTLDs }, false), CFMLEngine.DIALECT_CFML);
-				config.setTLDs(ConfigWebUtil.duplicate(new TagLib[] { cs.luceeCoreTLDs }, false), CFMLEngine.DIALECT_LUCEE);
 			}
 
 			// TLD Dir
@@ -3325,12 +3315,10 @@ public final class ConfigWebFactory extends ConfigFactory {
 			// Init flds
 			if (hasCS) {
 				config.setFLDs(ConfigWebUtil.duplicate(configServer.getFLDs(CFMLEngine.DIALECT_CFML), false), CFMLEngine.DIALECT_CFML);
-				config.setFLDs(ConfigWebUtil.duplicate(configServer.getFLDs(CFMLEngine.DIALECT_LUCEE), false), CFMLEngine.DIALECT_LUCEE);
 			}
 			else {
 				ConfigServerImpl cs = (ConfigServerImpl) config;
 				config.setFLDs(ConfigWebUtil.duplicate(new FunctionLib[] { cs.cfmlCoreFLDs }, false), CFMLEngine.DIALECT_CFML);
-				config.setFLDs(ConfigWebUtil.duplicate(new FunctionLib[] { cs.luceeCoreFLDs }, false), CFMLEngine.DIALECT_LUCEE);
 			}
 
 			// FLDs
@@ -5028,7 +5016,6 @@ public final class ConfigWebFactory extends ConfigFactory {
 			}
 			else if (configServer != null) {
 				config.setBaseComponentTemplate(CFMLEngine.DIALECT_CFML, configServer.getBaseComponentTemplate(CFMLEngine.DIALECT_CFML));
-				config.setBaseComponentTemplate(CFMLEngine.DIALECT_LUCEE, configServer.getBaseComponentTemplate(CFMLEngine.DIALECT_LUCEE));
 				config.setComponentDumpTemplate(configServer.getComponentDumpTemplate());
 				if (mode == ConfigPro.MODE_STRICT) {
 					config.setComponentDataMemberDefaultAccess(Component.ACCESS_PRIVATE);

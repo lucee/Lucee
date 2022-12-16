@@ -90,7 +90,6 @@ public class TagUtil {
 
 			List<TagLib> allTlds = new ArrayList();
 			// allTlds.addAll(Arrays.asList(cw.getTLDs(CFMLEngine.DIALECT_CFML)));
-			// allTlds.addAll(Arrays.asList(cw.getTLDs(CFMLEngine.DIALECT_LUCEE)));
 			allTlds.addAll(Arrays.asList(cw.getTLDs(CFMLEngine.DIALECT_BOTH)));
 
 			for (TagLib tld: allTlds) {
@@ -252,10 +251,7 @@ public class TagUtil {
 		try {
 			ThreadLocalPageContext.register(pc);
 
-			// MUST MOST of them are the same, so this is a huge overhead
 			_addTagMetaData(pc, cw, CFMLEngine.DIALECT_CFML);
-			_addTagMetaData(pc, cw, CFMLEngine.DIALECT_LUCEE);
-
 		}
 		catch (Exception e) {
 			ConfigWebFactory.log(cw, log, e);

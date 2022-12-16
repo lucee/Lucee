@@ -70,7 +70,7 @@ public final class TagLibFactory extends DefaultHandler {
 	private XMLReader xmlReader;
 
 	private static Map<String, TagLib> hashLib = MapFactory.<String, TagLib>getConcurrentMap();
-	private static TagLib[] systemTLDs = new TagLib[2];
+	private static TagLib[] systemTLDs = new TagLib[2]; // TODO could be 1?
 	private final TagLib lib;
 
 	private TagLibTag tag;
@@ -528,9 +528,7 @@ public final class TagLibFactory extends DefaultHandler {
 
 		if (systemTLDs[CFMLEngine.DIALECT_CFML] == null) {
 			TagLib cfml = new TagLibFactory(null, TLD_BASE, id).getLib();
-			TagLib lucee = cfml.duplicate(false);
 			systemTLDs[CFMLEngine.DIALECT_CFML] = new TagLibFactory(cfml, TLD_CFML, id).getLib();
-			systemTLDs[CFMLEngine.DIALECT_LUCEE] = new TagLibFactory(lucee, TLD_LUCEE, id).getLib();
 		}
 		return systemTLDs;
 	}

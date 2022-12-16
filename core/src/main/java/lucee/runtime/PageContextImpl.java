@@ -689,8 +689,8 @@ public final class PageContextImpl extends PageContext {
 		timeZone = null;
 		url = null;
 		form = null;
-		currentTemplateDialect = CFMLEngine.DIALECT_LUCEE;
-		requestDialect = CFMLEngine.DIALECT_LUCEE;
+		currentTemplateDialect = CFMLEngine.DIALECT_CFML;
+		requestDialect = CFMLEngine.DIALECT_CFML;
 
 		// Pools
 		errorPagePool.clear();
@@ -1017,7 +1017,7 @@ public final class PageContextImpl extends PageContext {
 			long time = System.nanoTime();
 
 			Page currentPage = PageSourceImpl.loadPage(this, sources);
-			notSupported(config, currentPage.getPageSource());
+			// notSupported(config, currentPage.getPageSource());
 			if (runOnce && includeOnce.contains(currentPage.getPageSource())) return;
 			DebugEntryTemplate debugEntry = debugger.getEntry(this, currentPage.getPageSource());
 			try {
@@ -1051,7 +1051,7 @@ public final class PageContextImpl extends PageContext {
 		// no debug
 		else {
 			Page currentPage = PageSourceImpl.loadPage(this, sources);
-			notSupported(config, currentPage.getPageSource());
+			//notSupported(config, currentPage.getPageSource());
 			if (runOnce && includeOnce.contains(currentPage.getPageSource())) return;
 			try {
 				addPageSource(currentPage.getPageSource(), true);
@@ -1073,15 +1073,6 @@ public final class PageContextImpl extends PageContext {
 				removeLastPageSource(true);
 			}
 		}
-	}
-
-	public static void notSupported(Config config, PageSource ps) throws ApplicationException {
-		if (ps.getDialect() == CFMLEngine.DIALECT_LUCEE && config instanceof ConfigPro && !((ConfigPro) config).allowLuceeDialect()) notSupported();
-	}
-
-	public static void notSupported() throws ApplicationException {
-		throw new ApplicationException(
-				"The Lucee dialect is disabled, to enable the dialect set the environment variable or system property \"lucee.enable.dialect\" to \"true\" or set the attribute \"allow-lucee-dialect\" to \"true\" with the \"compiler\" tag inside the lucee-server.xml.");
 	}
 
 	@Override
@@ -2439,9 +2430,7 @@ public final class PageContextImpl extends PageContext {
 
 	@Override
 	public final void execute(String realPath, boolean throwExcpetion, boolean onlyTopLevel) throws PageException {
-		requestDialect = currentTemplateDialect = CFMLEngine.DIALECT_LUCEE;
-		setFullNullSupport();
-		_execute(realPath, throwExcpetion, onlyTopLevel);
+		throw new ApplicationException("Lucee dialect no longer supported since Lucee 6");
 	}
 
 	@Override
@@ -2484,7 +2473,6 @@ public final class PageContextImpl extends PageContext {
 		ApplicationListener listener;
 		// if a listener is called (Web.cfc/Server.cfc we don't wanna any Application.cfc to be executed)
 		if (listenerContext) listener = new NoneAppListener();
-		else if (getRequestDialect() == CFMLEngine.DIALECT_LUCEE) listener = ModernAppListener.getInstance();
 		else if (gatewayContext) listener = config.getApplicationListener();
 		else listener = ((MappingImpl) ps.getMapping()).getApplicationListener();
 

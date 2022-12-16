@@ -1172,16 +1172,6 @@ public final class CFMLEngineImpl implements CFMLEngine {
 	private void _service(HttpServlet servlet, HttpServletRequest req, HttpServletResponse rsp, short type) throws ServletException, IOException {
 		CFMLFactoryImpl factory = (CFMLFactoryImpl) getCFMLFactory(servlet.getServletConfig(), req);
 		// is Lucee dialect enabled?
-		if (type == Request.TYPE_LUCEE) {
-			if (!((ConfigPro) factory.getConfig()).allowLuceeDialect()) {
-				try {
-					PageContextImpl.notSupported();
-				}
-				catch (ApplicationException e) {
-					throw new PageServletException(e);
-				}
-			}
-		}
 		boolean exeReqAsync = exeRequestAsync();
 		PageContextImpl pc = factory.getPageContextImpl(servlet, req, rsp, null, false, -1, false, !exeReqAsync, false, -1, true, false, false, null);
 		try {
@@ -1763,15 +1753,12 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		if (!ThreadLocalPageContext.callOnStart.get()) return;
 
 		Resource listenerTemplateCFML = config.getConfigDir().getRealResource("context/" + context + "." + lucee.runtime.config.Constants.getCFMLComponentExtension());
-		Resource listenerTemplateLucee = config.getConfigDir().getRealResource("context/" + context + "." + lucee.runtime.config.Constants.getLuceeComponentExtension());
-
+		
 		Resource listenerTemplateCFMLWebRoot = null;
-		Resource listenerTemplateLuceeWebRoot = null;
 		if (isWeb) {
 			try {
 				Resource rootdir = config.getRootDirectory();
 				listenerTemplateCFMLWebRoot = rootdir.getRealResource(context + "." + lucee.runtime.config.Constants.getCFMLComponentExtension());
-				listenerTemplateLuceeWebRoot = rootdir.getRealResource(context + "." + lucee.runtime.config.Constants.getLuceeComponentExtension());
 			}
 			catch (Exception e) {
 			}
@@ -1784,17 +1771,9 @@ public final class CFMLEngineImpl implements CFMLEngine {
 			inWebRoot = true;
 			dialect = CFMLEngine.DIALECT_CFML;
 		}
-		else if (listenerTemplateLuceeWebRoot != null && listenerTemplateLuceeWebRoot.isFile()) {
-			inWebRoot = true;
-			dialect = CFMLEngine.DIALECT_LUCEE;
-		}
 		else if (listenerTemplateCFML.isFile()) {
 			inWebRoot = false;
 			dialect = CFMLEngine.DIALECT_CFML;
-		}
-		else if (listenerTemplateLucee.isFile()) {
-			inWebRoot = false;
-			dialect = CFMLEngine.DIALECT_LUCEE;
 		}
 		else return;
 
@@ -1844,8 +1823,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 
 			String id = CreateUniqueId.invoke();
 			final String requestURI = (inWebRoot ? "" : ("/" + (isWeb ? "lucee" : "lucee-server"))) + "/" + context + "."
-					+ (dialect == CFMLEngine.DIALECT_LUCEE ? lucee.runtime.config.Constants.getLuceeComponentExtension()
-							: lucee.runtime.config.Constants.getCFMLComponentExtension());
+					+ lucee.runtime.config.Constants.getCFMLComponentExtension();
 
 			// PageContext oldPC = ThreadLocalPageContext.get();
 			PageContext pc = null;
@@ -1880,8 +1858,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 							Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.ignore.scopes", null), false));
 				}
 				((PageContextImpl) pc).setListenerContext(true);
-				if (dialect == CFMLEngine.DIALECT_LUCEE) pc.execute(requestURI, true, false);
-				else pc.executeCFML(requestURI, true, false);
+				pc.executeCFML(requestURI, true, false);
 				((PageContextImpl) pc).setListenerContext(false);
 
 			}

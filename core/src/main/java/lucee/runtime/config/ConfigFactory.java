@@ -817,7 +817,7 @@ public abstract class ConfigFactory {
 
 		// TODO scope?
 		//////////////////// translate ////////////////////
-		// allowLuceeDialect,cacheDirectory,cacheDirectoryMaxSize,componentAutoImport,componentBase,componentBaseLuceeDialect,componentDeepSearch
+		// allowLuceeDialect,cacheDirectory,cacheDirectoryMaxSize,componentAutoImport,componentBase,componentDeepSearch
 		// ,componentDumpTemplate, componentDataMemberDefaultAccess,componentUseVariablesScope,
 		// componentLocalSearch,componentUseCachePath,componentMappings
 		// classicDateParsing,cacheClasses,cacheHandlers,cfx,defaultFunctionOutput,externalizeStringGte,handleUnquotedAttributeValueAsString,

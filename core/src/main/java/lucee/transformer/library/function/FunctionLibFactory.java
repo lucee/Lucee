@@ -64,7 +64,7 @@ public final class FunctionLibFactory extends DefaultHandler {
 	private StringBuilder content = new StringBuilder();
 
 	private static Map<String, FunctionLib> hashLib = new HashMap<String, FunctionLib>();
-	private static FunctionLib[] systemFLDs = new FunctionLib[2];
+	private static FunctionLib[] systemFLDs = new FunctionLib[2]; // TODO could be 1?
 	private final FunctionLib lib;
 	private FunctionLibFunction function;
 
@@ -76,7 +76,6 @@ public final class FunctionLibFactory extends DefaultHandler {
 	// private final static String FLD_1_0= "/resource/fld/web-cfmfunctionlibrary_1_0";
 	private final static String FLD_BASE = "/resource/fld/core-base.fld";
 	private final static String FLD_CFML = "/resource/fld/core-cfml.fld";
-	private final static String FLD_LUCEE = "/resource/fld/core-lucee.fld";
 
 	/**
 	 * Privater Konstruktor, der als Eingabe die FLD als InputStream erhaelt.
@@ -417,9 +416,7 @@ public final class FunctionLibFactory extends DefaultHandler {
 	public static FunctionLib[] loadFromSystem(Identification id) throws FunctionLibException {
 		if (systemFLDs[CFMLEngine.DIALECT_CFML] == null) {
 			FunctionLib cfml = new FunctionLibFactory(null, FLD_BASE, id, true).getLib();
-			FunctionLib lucee = cfml.duplicate(false);
 			systemFLDs[CFMLEngine.DIALECT_CFML] = new FunctionLibFactory(cfml, FLD_CFML, id, true).getLib();
-			systemFLDs[CFMLEngine.DIALECT_LUCEE] = new FunctionLibFactory(lucee, FLD_LUCEE, id, true).getLib();
 		}
 		return systemFLDs;
 	}

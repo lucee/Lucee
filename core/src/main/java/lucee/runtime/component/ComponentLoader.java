@@ -192,7 +192,7 @@ public class ComponentLoader {
 		// then we try the opposite dialect
 		if (obj == null && ((ConfigPro) pc.getConfig()).allowLuceeDialect()) { // only when the lucee dialect is enabled we have to check the opposite
 			obj = _search(pc, loadingLocation, rawPath, searchLocal, searchRoot, executeConstr, returnType, currPS, importDefintions,
-					dialect == CFMLEngine.DIALECT_CFML ? CFMLEngine.DIALECT_LUCEE : CFMLEngine.DIALECT_CFML, isExtendedComponent, validate);
+					CFMLEngine.DIALECT_CFML, isExtendedComponent, validate);
 		}
 
 		if (obj == null)
@@ -203,8 +203,6 @@ public class ComponentLoader {
 	private static Object _search(PageContext pc, PageSource loadingLocation, String rawPath, Boolean searchLocal, Boolean searchRoot, boolean executeConstr, short returnType,
 			PageSource currPS, ImportDefintion[] importDefintions, int dialect, final boolean isExtendedComponent, boolean validate) throws PageException {
 		ConfigPro config = (ConfigPro) pc.getConfig();
-
-		if (dialect == CFMLEngine.DIALECT_LUCEE && !config.allowLuceeDialect()) PageContextImpl.notSupported();
 
 		boolean doCache = config.useComponentPathCache();
 		String sub = null;
@@ -228,7 +226,7 @@ public class ComponentLoader {
 		CIPage page = null;
 
 		// MUSTMUST improve to handle different extensions
-		String pathWithCFC = path.concat("." + (dialect == CFMLEngine.DIALECT_CFML ? Constants.getCFMLComponentExtension() : Constants.getLuceeComponentExtension()));
+		String pathWithCFC = path.concat("." + Constants.getCFMLComponentExtension());
 
 		// no cache for per application pathes
 		Mapping[] acm = pc.getApplicationContext().getComponentMappings();
@@ -437,7 +435,7 @@ public class ComponentLoader {
 	}
 
 	private static String toStringType(short returnType, int dialect) {
-		if (RETURN_TYPE_COMPONENT == returnType) return dialect == CFMLEngine.DIALECT_LUCEE ? "class" : "component";
+		if (RETURN_TYPE_COMPONENT == returnType) return "component";
 		if (RETURN_TYPE_INTERFACE == returnType) return "interface";
 		return "component/interface";
 	}

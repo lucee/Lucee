@@ -28,9 +28,6 @@ public class Main {
 		final int dialect = CFMLEngine.DIALECT_CFML;
 		if (code == null) printUsage("-e is missing", System.err);
 
-		final LuceeScriptEngineFactory factory = new LuceeScriptEngineFactory();
-		System.out.println(factory.getScriptEngine().eval(code));
-
 		final ScriptEngine engine = new ScriptEngineManager().getEngineByName(lang);
 		if (engine == null) System.out.println("could not load an engine with the name:" + lang);
 		else System.out.println(engine.eval(code));

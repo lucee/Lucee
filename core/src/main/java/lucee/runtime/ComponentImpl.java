@@ -2403,9 +2403,6 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 	}
 
 	private boolean triggerDataMember(PageContext pc) {
-		// dialect Lucee always triggers data members
-		if (pageSource.getDialect() == CFMLEngine.DIALECT_LUCEE) return true;
-
 		// if(_triggerDataMember!=null) return _triggerDataMember.booleanValue();
 
 		if (pc != null && pc.getApplicationContext() != null) return pc.getApplicationContext().getTriggerComponentDataMember();

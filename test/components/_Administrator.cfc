@@ -611,7 +611,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				it(title="checking getComponent()", body=function( currentSpec ) {
 					var getComp = adminWeb.getComponent();
 					assertEquals(isstruct(getComp) ,true);
-					assertEquals(listSort(structKeyList(getComp),'textnocase'),'baseComponentTemplateCFML,baseComponentTemplateLucee,componentDataMemberDefaultAccess,ComponentDefaultImport,componentDumpTemplate,componentLocalSearch,componentPathCache,deepSearch,strBaseComponentTemplateCFML,strBaseComponentTemplateLucee,strComponentDumpTemplate,triggerDataMember,useShadow');
+					assertEquals(listSort(structKeyList(getComp),'textnocase'),'baseComponentTemplateCFML,componentDataMemberDefaultAccess,ComponentDefaultImport,componentDumpTemplate,componentLocalSearch,componentPathCache,deepSearch,strBaseComponentTemplateCFML,strComponentDumpTemplate,triggerDataMember,useShadow');
 				});
 
 				it(title="checking updateComponent()", body=function( currentSpec ) {

@@ -99,8 +99,7 @@ public class InternalRequest implements Function {
 		// dialect
 		int dialect = ((CFMLFactoryImpl) pc.getConfig().getFactory()).toDialect(ext, -1);
 		if (dialect == -1) dialect = pc.getCurrentTemplateDialect();
-		// CFMLEngine.DIALECT_LUCEE
-
+		
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
 		byte[] _barr = null;
@@ -138,8 +137,7 @@ public class InternalRequest implements Function {
 
 		try {
 
-			if (CFMLEngine.DIALECT_LUCEE == dialect) _pc.execute(template, true, false);
-			else _pc.executeCFML(template, true, false);
+			_pc.executeCFML(template, true, false);
 			HttpSession s;
 			if (_pc.getSessionType() == Config.SESSION_TYPE_JEE && (s = _pc.getSession()) != null) _pc.cookieScope().set(KeyConstants._JSESSIONID, s.getId());
 		}

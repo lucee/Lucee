@@ -672,7 +672,6 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 		if (ext == null) return defaultValue;
 		if (cfmlExtensions == null) _initExtensions();
 		if (cfmlExtensions.contains(ext = ext.toLowerCase())) return CFMLEngine.DIALECT_CFML;
-		if (luceeExtensions.contains(ext)) return CFMLEngine.DIALECT_LUCEE;
 		return defaultValue;
 	}
 

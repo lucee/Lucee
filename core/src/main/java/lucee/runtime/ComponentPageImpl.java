@@ -170,7 +170,7 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 
 			boolean isPost = pc.getHttpServletRequest().getMethod().equalsIgnoreCase("POST");
 
-			boolean suppressContent = pc.getRequestDialect() == CFMLEngine.DIALECT_LUCEE || ((PageContextImpl) pc).getSuppressContent();
+			boolean suppressContent = ((PageContextImpl) pc).getSuppressContent();
 			if (suppressContent) pc.clear();
 
 			if (fromRest) {

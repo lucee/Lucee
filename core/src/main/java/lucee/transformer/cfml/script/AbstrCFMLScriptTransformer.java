@@ -500,7 +500,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 	}
 
 	private String getComponentName(int dialect) {
-		return dialect == CFMLEngine.DIALECT_LUCEE ? Constants.LUCEE_COMPONENT_TAG_NAME : Constants.CFML_COMPONENT_TAG_NAME;
+		return Constants.CFML_COMPONENT_TAG_NAME;
 	}
 
 	/**
@@ -1410,11 +1410,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		int pos = data.srcCode.getPos();
 		String type = tlt.getName();
 		String appendix = null;
-		if (data.srcCode.forwardIfCurrent(type) ||
-
-		// lucee dialect support component as alias for class
-				(data.srcCode.getDialect() == CFMLEngine.DIALECT_LUCEE && type.equalsIgnoreCase(Constants.LUCEE_COMPONENT_TAG_NAME)
-						&& data.srcCode.forwardIfCurrent(Constants.CFML_COMPONENT_TAG_NAME))) {
+		if (data.srcCode.forwardIfCurrent(type) ) {
 
 			if (tlt.hasAppendix()) {
 				appendix = CFMLTransformer.identifier(data.srcCode, false, true);

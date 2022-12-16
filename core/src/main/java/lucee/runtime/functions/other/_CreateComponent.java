@@ -80,7 +80,7 @@ public class _CreateComponent {
 			}
 			rtn = c.call(pc, KeyConstants._init, args);
 		}
-		if (rtn == null || (c.getPageSource() != null && c.getPageSource().getDialect() == CFMLEngine.DIALECT_LUCEE)) return c;
+		if (rtn == null) return c;
 
 		return rtn;
 	}
