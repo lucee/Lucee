@@ -12,7 +12,6 @@ import java.util.zip.ZipInputStream;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.jsp.JspException;
-import javax.servlet.jsp.tagext.Tag;
 
 import org.apache.logging.log4j.core.layout.HtmlLayout;
 import org.apache.logging.log4j.core.layout.PatternLayout;
@@ -52,7 +51,6 @@ import lucee.runtime.db.ParamSyntax;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
-import lucee.runtime.ext.tag.DynamicAttributes;
 import lucee.runtime.extension.ExtensionDefintion;
 import lucee.runtime.extension.RHExtension;
 import lucee.runtime.gateway.GatewayEntryImpl;
@@ -86,8 +84,8 @@ public class CFConfigImport {
 	private Resource file;
 	private Charset charset;
 	private String password;
-	private Tag tag;
-	private DynamicAttributes dynAttr;
+	// private Tag tag;
+	// private DynamicAttributes dynAttr;
 	private String type = "server";
 	private CFMLEngine engine;
 	private final ConfigPro config;
@@ -181,9 +179,8 @@ public class CFConfigImport {
 			}
 
 			replacePlaceHolder(json, placeHolderData);
-			tag = new Admin(!validatePassword);
 
-			dynAttr = (DynamicAttributes) tag;
+			// dynAttr = (DynamicAttributes) tag;
 			boolean isServer = "server".equalsIgnoreCase(type);
 			String strPW = ConfigWebUtil.decrypt(password);
 			Password pw; // hash password if
@@ -200,9 +197,8 @@ public class CFConfigImport {
 				cp = (ConfigPro) (ThreadLocalPageContext.getConfig(config)).getConfigServer(password);
 			}
 			else cp = (ConfigPro) ThreadLocalPageContext.getConfig(config);
-
-			XMLConfigAdmin admin = XMLConfigAdmin.newInstance(config, pw, !validatePassword);
-			Object obj;
+			boolean updated = setPasswordIfNecessary(config instanceof ConfigWebPro ? (ConfigWebPro) config : (ConfigWebPro) ThreadLocalPageContext.getConfig(config));
+			XMLConfigAdmin admin = XMLConfigAdmin.newInstance(config, pw, updated || !validatePassword);
 			String str;
 			Boolean bool;
 			Integer in;
@@ -1522,46 +1518,8 @@ public class CFConfigImport {
 		return null;
 	}
 
-	private void setGroup(PageContext pc, final Struct json, String trgActionName, String srcGroupName, String[] keyNames, Item... items) throws PageException {
-		setGroup(pc, json, trgActionName, new String[] { srcGroupName }, keyNames, items);
-	}
-
-	private void setGroup(PageContext pc, final Struct json, String trgActionName, String[] srcGroupNames, String[] keyNames, Item... items) throws PageException {
-		try {
-			Cast cast = engine.getCastUtil();
-			Collection group = null;
-			for (String srcGroupName: srcGroupNames) {
-				group = cast.toCollection(json.get(cast.toKey(srcGroupName), null), null);
-				if (group != null) break;
-			}
-
-			if (group != null) {
-				Iterator<Entry<Key, Object>> it = group.entryIterator();
-				Entry<Key, Object> e;
-				Struct data;
-				while (it.hasNext()) {
-					e = it.next();
-					data = cast.toStruct(e.getValue(), null);
-					if (data == null) continue;
-					if (!(group instanceof Array)) {
-						for (String keyName: keyNames) {
-							data.set(cast.toKey(keyName), e.getKey().getString());
-						}
-					}
-					set(pc, data, trgActionName, items);
-				}
-			}
-		}
-		catch (Throwable t) {
-			ExceptionUtil.rethrowIfNecessary(t);
-			LogUtil.log(pc, "deploy", t);
-			if (t instanceof JspException) exd = (JspException) t;
-			else exd = Caster.toPageException(t);
-		}
-	}
-
-	private void setPasswordIfNecessary(ConfigWeb config) throws PageException {
-		if (!setPasswordIfNecessary) return;
+	private boolean setPasswordIfNecessary(ConfigWeb config) throws PageException {
+		if (!setPasswordIfNecessary) return false;
 		boolean isServer = "server".equalsIgnoreCase(type);
 		if ((isServer && !pwCheckedServer) || (!isServer && !pwCheckedWeb)) {
 			boolean hasPassword = isServer ? config.hasServerPassword() : config.hasPassword();
@@ -1569,6 +1527,7 @@ public class CFConfigImport {
 				// create password
 				try {
 					((ConfigWebPro) config).updatePassword(isServer, null, password);
+					return true;
 				}
 				catch (Exception e) {
 					throw Caster.toPageException(e);
@@ -1577,43 +1536,7 @@ public class CFConfigImport {
 			if (isServer) pwCheckedServer = true;
 			else pwCheckedWeb = true;
 		}
-	}
-
-	private void set(PageContext pc, final Struct json, String trgActionName, Item... items) throws PageException {
-		setPasswordIfNecessary(pc.getConfig());
-
-		Object val;
-		try {
-			tag.setPageContext(pc);
-			boolean empty = true;
-			for (Item item: items) {
-				val = item.getValue(json);
-				if (val != null) empty = false;
-				else val = item.getDefault();
-				dynAttr.setDynamicAttribute(null, item.getTargetAttrName(), val);
-			}
-			if (empty) {
-				tag.release();
-				return;
-			}
-			dynAttr.setDynamicAttribute(null, FROM_CFCONFIG, Boolean.TRUE);
-			dynAttr.setDynamicAttribute(null, ACTION, trgActionName);
-			dynAttr.setDynamicAttribute(null, TYPE, type);
-			dynAttr.setDynamicAttribute(null, PASSWORD, password);
-
-			tag.doStartTag();
-			tag.doEndTag();
-		}
-		catch (Throwable t) {
-			ExceptionUtil.rethrowIfNecessary(t);
-			LogUtil.log(pc, "deploy", t);
-			if (t instanceof JspException) exd = (JspException) t;
-			else exd = Caster.toPageException(t);
-
-		}
-		finally {
-			tag.release();
-		}
+		return false;
 	}
 
 	private static class Item {
