@@ -1,3 +1,3 @@
 <cfscript>
-    echo((getApplicationSettings().useJavaAsRegexEngine?:""));
+    echo( getApplicationSettings()[ url.check ] );
 </cfscript>

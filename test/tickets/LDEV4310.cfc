@@ -17,18 +17,44 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="regex" {
 				expect( result.filecontent.trim() ).toBe( '{"TYPE":"perl"}' );
 			});
 
-			it( title="useJavaAsRegexEngine_false", body=function( currentSpec ) {
+			it( title="useJavaAsRegexEngine_false check useJavaAsRegexEngine", body=function( currentSpec ) {
 				local.result = _InternalRequest(
-					template : contractPath("LDEV4310/useJavaAsRegexEngine_false/index.cfm" )
+					template : contractPath("LDEV4310/useJavaAsRegexEngine_false/index.cfm" ),
+					url: {
+						check: "useJavaAsRegexEngine"
+					}
 				);
-				expect( result.filecontent.trim() ).toBe( "false" ); // note: checking useJavaAsRegexEngine not regex
+				expect( result.filecontent.trim() ).toBe( "false" ); 
 			});
 
-			it( title="useJavaAsRegexEngine_true", body=function( currentSpec ) {
+			it( title="useJavaAsRegexEngine_true, check useJavaAsRegexEngine", body=function( currentSpec ) {
 				local.result = _InternalRequest(
-					template : contractPath("LDEV4310/useJavaAsRegexEngine_true/index.cfm" )
+					template : contractPath("LDEV4310/useJavaAsRegexEngine_true/index.cfm" ),
+					url: { 
+						check: "useJavaAsRegexEngine"
+					}
 				);
-				expect( result.filecontent.trim() ).toBe( "true" ); // note: checking useJavaAsRegexEngine not regex
+				expect( result.filecontent.trim() ).toBe( "true" ); 
+			});
+
+			it( title="useJavaAsRegexEngine_false, check regex", skip=true, body=function( currentSpec ) {
+				local.result = _InternalRequest(
+					template : contractPath("LDEV4310/useJavaAsRegexEngine_false/index.cfm" ),
+					url: { 
+						check: "regex"
+					}
+				);
+				expect( result.filecontent.trim() ).toBe( '{"TYPE":"perl"}' ); 
+			});
+
+			it( title="useJavaAsRegexEngine_true, check regex",  skip=true, body=function( currentSpec ){
+				local.result = _InternalRequest(
+					template : contractPath("LDEV4310/useJavaAsRegexEngine_true/index.cfm" ),
+					url: { 
+						check: "regex"
+					}
+				);
+				expect( result.filecontent.trim() ).toBe( '{"TYPE":"java"}' );
 			});
 
 		});
