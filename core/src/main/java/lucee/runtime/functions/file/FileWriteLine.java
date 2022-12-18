@@ -42,7 +42,7 @@ public class FileWriteLine {
 					pc.getConfig().getSecurityManager().checkFileLocation(res);
 					fsw = new FileStreamWrapperWrite(res, ((PageContextImpl) pc).getResourceCharset().name(), false, false);
 				}
-				fsw.write(text + "\n");
+				fsw.write(text + System.getProperty("line.separator"));
 			}
 			finally {
 				if (close && fsw != null) fsw.close();
