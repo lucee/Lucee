@@ -17,7 +17,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" skip="true" {
 					if ( !structKeyExists( stTests, func ) )
 						arrayAppend( missing, func );
 				}
-				expect( missing ).toBeEmpty( missing.toList(", ") );
+				expect( missing ).toBeEmpty( missing.sort("textnocase").toList(", ") );
 			});
 		});
 	};
