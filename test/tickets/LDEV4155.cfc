@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" skip=true {
+component extends="org.lucee.cfml.test.LuceeTestCase" {
 
 	function testReplaceNoCase(){
 		var input = 'aaa bbb & İkra';
