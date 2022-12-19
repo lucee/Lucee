@@ -1,3 +1,3 @@
 <cfscript>
-    echo( getApplicationSettings()[ url.check ] );
+    echo( serializeJSON(getApplicationSettings()[ url.check ] ));
 </cfscript>

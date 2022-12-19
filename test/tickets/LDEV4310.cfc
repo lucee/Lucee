@@ -24,7 +24,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="regex" {
 						check: "useJavaAsRegexEngine"
 					}
 				);
-				expect( result.filecontent.trim() ).toBe( "false" ); 
+				expect( result.filecontent.trim() ).toBe( serializeJSON("false") ); 
 			});
 
 			it( title="useJavaAsRegexEngine_true, check useJavaAsRegexEngine", body=function( currentSpec ) {
@@ -34,7 +34,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="regex" {
 						check: "useJavaAsRegexEngine"
 					}
 				);
-				expect( result.filecontent.trim() ).toBe( "true" ); 
+				expect( result.filecontent.trim() ).toBe( serializeJSON("true") ); 
 			});
 
 			it( title="useJavaAsRegexEngine_false, check regex", skip=true, body=function( currentSpec ) {
