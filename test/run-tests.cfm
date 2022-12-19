@@ -133,6 +133,22 @@ try {
 		testRandomSort = false;
 	request.testRandomSort = testRandomSort;
 
+	// allow using other/additional BaseSpecs like testbox.system.BaseSpec
+	param name="testSuiteExtends" default="";
+	if ( len( testSuiteExtends ) eq 0 )
+		request.testSuiteExtends= "org.lucee.cfml.test.LuceeTestCase";
+	else
+		request.testSuiteExtends = testSuiteExtends; 
+	if ( request.testSuiteExtends != "org.lucee.cfml.test.LuceeTestCase" )
+		SystemOutput( "Running with custom BaseSpec [#testSuiteExtends#]", true );
+
+	param name="testDebugAbort" default="false";
+	if ( len( testDebugAbort ) and testDebugAbort) {
+		request.testDebugAbort = true;
+	} else {
+		request.testDebugAbort = false;
+	}
+
 	// i.e ant -DtestRandomSort="3" -DtestLabels="image"
 
 	if ( request.testRandomSort neq "false" ){
@@ -230,31 +246,37 @@ try {
 	JUnitReportFile = resultPath & "junit-test-results-#server.lucee.version#.xml";
 	FileWrite( JUnitReportFile, jUnitReporter.runReport(results=result, testbox=tb, justReturn=true) );
 
-	systemOutput( NL & NL & "=============================================================", true );
-	systemOutput( "TestBox Version: #tb.getVersion()#", true );
-	systemOutput( "Lucee Version: #server.lucee.version#", true );
-	systemOutput( "Java Version: #server.java.version#", true );
-	systemOutput( "Total Execution time: (#NumberFormat( ( getTickCount()-request._start) / 1000 )# s)", true );
-	systemOutput( "Test Execution time: (#NumberFormat( result.getTotalDuration() /1000 )# s)", true );
-	systemOutput( "Average Test Overhead: (#NumberFormat( ArrayAvg( request.overhead ) )# ms)", true );
-	systemOutput( "Total Test Overhead: (#NumberFormat( ArraySum( request.overhead ) )# ms)", true );
+	// load errors into an array, so we can dump them out to $GITHUB_STEP_SUMMARY
+	results = [];
+	results_md = ["## Lucee #server.lucee.version#", ""];
 
-	systemOutput( "=============================================================" & NL, true );
-	systemOutput( "-> Bundles/Suites/Specs: #result.getTotalBundles()#/#result.getTotalSuites()#/#result.getTotalSpecs()#", true );
-	systemOutput( "-> Pass:     #result.getTotalPass()#", true );
-	systemOutput( "-> Skipped:  #result.getTotalSkipped()#", true );
-	systemOutput( "-> Failures: #result.getTotalFail()#", true );
-	systemOutput( "-> Errors:   #result.getTotalError()#", true );
-	SystemOutput( "-> JUnitReport: #JUnitReportFile#", true);
+	systemOutput( NL & NL & "=============================================================", true );
+	arrayAppend( results, "TestBox Version: #tb.getVersion()#");
+	arrayAppend( results, "Lucee Version: #server.lucee.version#");
+	arrayAppend( results, "Java Version: #server.java.version#");
+	arrayAppend( results, "Total Execution time: (#NumberFormat( ( getTickCount()-request._start) / 1000 )# s)");
+	arrayAppend( results, "Test Execution time: (#NumberFormat( result.getTotalDuration() /1000 )# s)");
+	arrayAppend( results, "Average Test Overhead: (#NumberFormat( ArrayAvg( request.overhead ) )# ms)");
+	arrayAppend( results, "Total Test Overhead: (#NumberFormat( ArraySum( request.overhead ) )# ms)");
+	arrayAppend( results, "");
+	arrayAppend( results, "=============================================================" & NL);
+	arrayAppend( results, "-> Bundles/Suites/Specs: #result.getTotalBundles()#/#result.getTotalSuites()#/#result.getTotalSpecs()#");
+	arrayAppend( results, "-> Pass:     #result.getTotalPass()#");
+	arrayAppend( results, "-> Skipped:  #result.getTotalSkipped()#");
+	arrayAppend( results, "-> Failures: #result.getTotalFail()#");
+	arrayAppend( results, "-> Errors:   #result.getTotalError()#");
+	arrayAppend( results, "-> JUnitReport: #JUnitReportFile#");
 
 	servicesReport = new test._setupTestServices().reportServiceSkipped();
 	for ( s in servicesReport ){
-		systemOutput ( s, true );
+		arrayAppend( results, s );
 	}
-
-	// load errors into an array, so we can dump them out to $GITHUB_STEP_SUMMARY
-	results = [];
-	results_md = ["## Lucee #server.lucee.version#"];
+	arrayAppend( results_md, "" );
+	loop array=results item="summary"{
+		systemOutput( summary, true );
+		arrayAppend( results_md, summary );
+	}
+	arrayAppend( results_md, "" );
 
 	if ( structKeyExists( server.system.environment, "GITHUB_STEP_SUMMARY" ) ){
 		github_commit_base_href=  "/" & server.system.environment.GITHUB_REPOSITORY

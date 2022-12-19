@@ -253,7 +253,7 @@ component {
 		for (s in server.test_services ){
 			service = server.test_services[s];
 			if ( !service.valid && service.missedTests gt 0 ){
-				ArrayAppend( skipped, "-> Service [#s#] #chr(9)# not available, #chr(9)# #service.missedTests# tests skipped" );
+				ArrayAppend( skipped, "-> Service [ #s# ] #chr(9)# not available, #chr(9)# #service.missedTests# tests skipped" );
 			}
 		}
 		return skipped;
