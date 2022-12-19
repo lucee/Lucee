@@ -5709,6 +5709,21 @@ Example Values:
 			<required>no</required>
 			<description>if true only data members from this scope are returned (no functions), default is false</description>
 		</argument>
+		<argument>
+			<name>onlySupported</name>
+			<type>boolean</type>
+			<required>no</required>
+			<description>If false (default), all supported Application settings, plus any other values defined in the Application.cfc constructor are returned.
+
+			If true
+			- Only Application settings for Lucee Core are returned
+			- Any settings for Extensions may not be returned (TBD)
+			- Any Application.cfc setting which has no effect on Lucee Core will be not returned
+
+			Note
+			- Settings defined using aliases are also returned under the default setting name (i.e settings may be duplicated)
+			</description>
+		</argument>
 		<return>
 			<type>struct</type>
 		</return>
