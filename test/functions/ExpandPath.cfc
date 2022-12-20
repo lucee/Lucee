@@ -17,7 +17,7 @@
  * 
  ---><cfscript>
 
-component extends="org.lucee.cfml.test.LuceeTestCase"   {
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="mappings" {
     /*try{
         dir=getDirectoryFromPath(GetBaseTemplatePath());
         dir=mid(dir,1,len(dir)-1);
