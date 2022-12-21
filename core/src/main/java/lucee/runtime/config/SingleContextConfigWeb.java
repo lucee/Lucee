@@ -1618,6 +1618,11 @@ public class SingleContextConfigWeb extends ConfigBase implements ConfigWebPro {
 	}
 
 	@Override
+	public void updatePassword(String passwordOld, String passwordNew) throws PageException, IOException, SAXException, BundleException {
+		PasswordImpl.updatePassword(this, passwordOld, passwordNew);
+	}
+
+	@Override
 	public void updatePassword(boolean server, String passwordOld, String passwordNew) throws PageException, IOException, SAXException, BundleException {
 		PasswordImpl.updatePassword(server ? cs : this, passwordOld, passwordNew);
 	}

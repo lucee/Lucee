@@ -112,7 +112,7 @@ public class CFConfigImport {
 			throw engine.getExceptionUtil().createApplicationException("cannot manipulate a web context when you pass in a server config to the constructor!");
 
 		if ("server".equalsIgnoreCase(type) && config instanceof ConfigWeb) {
-			setPasswordIfNecessary((ConfigWeb) config);
+			setPasswordIfNecessary((ConfigPro) config);
 			this.config = (ConfigPro) config.getConfigServer(password);
 		}
 		else this.config = (ConfigPro) config;
@@ -131,7 +131,7 @@ public class CFConfigImport {
 		if ("web".equalsIgnoreCase(type) && !(config instanceof ConfigWeb))
 			throw engine.getExceptionUtil().createApplicationException("cannot manipulate a web context when you pass in a server config to the constructor!");
 		if ("server".equalsIgnoreCase(type) && config instanceof ConfigWeb) {
-			setPasswordIfNecessary((ConfigWeb) config);
+			setPasswordIfNecessary((ConfigPro) config);
 			this.config = (ConfigPro) config.getConfigServer(password);
 		}
 		else this.config = (ConfigPro) config;
@@ -191,13 +191,7 @@ public class CFConfigImport {
 				pw = config.isPasswordEqual(strPW);
 			}
 
-			// Config
-			ConfigPro cp;
-			if (isServer) {
-				cp = (ConfigPro) (ThreadLocalPageContext.getConfig(config)).getConfigServer(password);
-			}
-			else cp = (ConfigPro) ThreadLocalPageContext.getConfig(config);
-			boolean updated = setPasswordIfNecessary(config instanceof ConfigWebPro ? (ConfigWebPro) config : (ConfigWebPro) ThreadLocalPageContext.getConfig(config));
+			boolean updated = setPasswordIfNecessary(config);
 			XMLConfigAdmin admin = XMLConfigAdmin.newInstance(config, pw, updated || !validatePassword);
 			String str;
 			Boolean bool;
@@ -1518,7 +1512,7 @@ public class CFConfigImport {
 		return null;
 	}
 
-	private boolean setPasswordIfNecessary(ConfigWeb config) throws PageException {
+	private boolean setPasswordIfNecessary(ConfigPro config) throws PageException {
 		if (!setPasswordIfNecessary) return false;
 		boolean isServer = "server".equalsIgnoreCase(type);
 		if ((isServer && !pwCheckedServer) || (!isServer && !pwCheckedWeb)) {
@@ -1526,7 +1520,8 @@ public class CFConfigImport {
 			if (!hasPassword) {
 				// create password
 				try {
-					((ConfigWebPro) config).updatePassword(isServer, null, password);
+					if (config instanceof ConfigWebPro && isServer) ((ConfigWebPro) config).updatePassword(isServer, null, password);
+					else config.updatePassword(null, password);
 					return true;
 				}
 				catch (Exception e) {
