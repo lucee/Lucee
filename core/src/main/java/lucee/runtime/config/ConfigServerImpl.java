@@ -31,6 +31,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import org.osgi.framework.BundleException;
+import org.xml.sax.SAXException;
+
 import lucee.commons.collection.LinkedHashMapMaxSize;
 import lucee.commons.collection.MapFactory;
 import lucee.commons.digest.Hash;
@@ -897,5 +900,10 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 		catch (Exception e) {
 			throw Caster.toPageException(e);
 		}
+	}
+
+	@Override
+	public void updatePassword(String passwordOld, String passwordNew) throws PageException, IOException, SAXException, BundleException {
+		PasswordImpl.updatePassword(this, passwordOld, passwordNew);
 	}
 }

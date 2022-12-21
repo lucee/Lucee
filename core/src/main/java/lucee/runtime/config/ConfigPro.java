@@ -7,7 +7,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.osgi.framework.BundleException;
 import org.osgi.framework.Version;
+import org.xml.sax.SAXException;
 
 import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogEngine;
@@ -332,4 +334,6 @@ public interface ConfigPro extends Config {
 	public void putApplicationPageSource(String path, PageSource ps, String filename, int mode, boolean isCFC);
 
 	public TimeSpan getApplicationPathhCacheTimeout();
+
+	public void updatePassword(String passwordOld, String passwordNew) throws PageException, IOException, SAXException, BundleException;
 }
