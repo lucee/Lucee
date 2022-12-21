@@ -1,4 +1,4 @@
-component persistent="true" table="test" {
+component persistent="true" table="testLDEV3680" {
 	property name="id" fieldType="id" ormType="integer" generator="native";
 	property name="name";
 }
