@@ -203,7 +203,7 @@
 			<cfset language.__position=structKeyExists(xml.xmlRoot.XmlAttributes,"position")?xml.xmlRoot.XmlAttributes.position:0>
 		</cfif>
 		<cftry>
-				<cfset xml = XmlSearch(xml, "/languages/language[@key='#lCase(trim(arguments.lang))#']")[1]>
+			<cfset xml = XmlSearch(xml, "/languages/language[@key='#lCase(trim(arguments.lang))#']")[1]>
 			<cfcatch>
 				<!--- fallback to english --->
 				<cfset xml = XmlSearch(xml, "/languages/language[@key='en']")[1]>
@@ -384,6 +384,7 @@
 	else current.action="overview";
 
 	strNav ="";
+	adminUrls = []; // track menu urls for automated testing
 	for(i=1;i lte arrayLen(navigation);i=i+1) {
 		stNavi = navigation[i];
 		hasChildren=structKeyExists(stNavi,"children");
@@ -415,6 +416,7 @@
 
 					isfavorite = application.adminfunctions.isfavorite(_action);
 					li = '<li' & (isfavorite ? ' class="favorite"':'') & '><a '&(isActive?'id="sprite" class="menu_active"':'class="menu_inactive"')&' href="' & request.self & '?action=' &ListCompact( _action,'.') & '"> ' & stCld.label & '</a></li>';
+					ArrayAppend(adminUrls, request.self & '?action=' &ListCompact( _action,'.'));
 					if (isfavorite)
 					{
 						favoriteLis &= '<li class="favorite"><a href="#request.self#?action=#_action#">#stNavi.label# - #stCld.label#</a></li>';
@@ -427,7 +429,10 @@
 		strNav = strNav &'';
 		hasChildren=hasChildren and len(subNav) GT 0;
 		if (!hasChildren) {
-			if (toBool(stNavi,"display"))strNav = strNav & '<li><a href="' & request.self & '?action=' & stNavi.action & '">' & stNavi.label & '</a></li>';
+			if (toBool(stNavi,"display")){
+				strNav = strNav & '<li><a href="' & request.self & '?action=' & stNavi.action & '">' & stNavi.label & '</a></li>';
+				ArrayAppend(adminUrls, request.self & '?action=' & stNavi.action);
+			}
 			//if (toBool(stNavi,"display"))strNav = strNav & '<div class="navtop"><a class="navtop" href="' & request.self & '?action=' & stNavi.action & '">' & stNavi.label & '</a></div>';
 		}
 		else {
@@ -460,6 +465,14 @@
 		return "nav_" & rereplace(arguments.value, "[^0-9a-zA-Z]", "_", "all");
 	}
 	request.getRemoteClients=getRemoteClients;
+
+	// used for automated testing of lucee admin via testbox
+	if (structKeyExists(url, "testUrls") && url.testUrls){
+		setting showdebugoutput="false";
+		content reset="yes" type="application/json";
+		echo(adminUrls.toJson()); abort;
+	}
+
 </cfscript>
 
 <cfif (!structKeyExists(session, "password" & request.adminType))>
@@ -492,8 +505,12 @@
 			<cfinclude template="./#current.action#.cfm">
 		<cfelse>
 			<cfset current.label = "Error">
+			<cfparam name="url.rawError" default="false">
 			<cfheader statuscode="404">
-			invalid action definition
+			requested action doesn't exist
+			<cfif url.rawError>
+				<cfabort>
+			</cfif>
 		</cfif>
 	</cfsavecontent>
 
