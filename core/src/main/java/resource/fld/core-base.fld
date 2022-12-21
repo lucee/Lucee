@@ -5721,8 +5721,9 @@ Example Values:
 			- Any Application.cfc setting which has no effect on Lucee Core will be not returned
 
 			Note
-			- Settings defined using aliases are also returned under the default setting name (i.e settings may be duplicated)
+			- When false, settings defined using aliases are also returned under the default setting name (i.e settings may be duplicated)
 			</description>
+			<introduced>6.0.0.317</introduced>
 		</argument>
 		<return>
 			<type>struct</type>
