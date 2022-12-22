@@ -4877,8 +4877,10 @@ Permits searching collections by title or displaying a separate title from the k
 			<description>statusCode used for the redirect (301 or 302)</description>
 		</attribute>
 		<attribute>
+			<!-- breaking-change:  by default do not encode -->
 			<type>boolean</type>
 			<name>encode</name>
+			<default>false</default>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Encode the given URL value</description>
