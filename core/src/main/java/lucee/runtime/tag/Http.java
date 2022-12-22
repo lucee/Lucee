@@ -1233,14 +1233,14 @@ public final class Http extends BodyTagImpl {
 				if (Boolean.TRUE == _isText) {
 					String[] types = HTTPUtil.splitMimeTypeAndCharset(mimetype, null);
 					if (types[0] != null) cfhttp.set(KeyConstants._mimetype, types[0]);
-					if (types[1] != null) rspCharset = types[1]; // only text types have charset 
+					if (types[1] != null) rspCharset = types[1]; // only text types have charset
 				}
 				else cfhttp.set(KeyConstants._mimetype, mimetype);
 			}
 			else cfhttp.set(KeyConstants._mimetype, NO_MIMETYPE);
 
 			// charset
-			cfhttp.set(CHARSET, rspCharset != null? rspCharset : "");
+			cfhttp.set(CHARSET, rspCharset != null ? rspCharset : "");
 
 			// File
 			Resource file = null;
@@ -1616,9 +1616,9 @@ public final class Http extends BodyTagImpl {
 	}
 
 	private static void logHttpRequest(PageContext pc, Struct data, String url, String method, long executionTimeNS, boolean cached) throws PageException {
-		Log log = ThreadLocalPageContext.getLog(pc, "trace");
-		if (log != null && log.getLogLevel() <= Log.LEVEL_INFO) log.log(Log.LEVEL_INFO, "cftrace", "httpRequest [" + method + "] to [" + url + "], returned ["
-				+ data.get(STATUSCODE) + "] in " + (executionTimeNS / 1000000) + "ms, " + (cached ? "(cached response)" : "") + " at " + CallStackGet.call(pc, "text"));
+		Log log = ThreadLocalPageContext.getLog(pc, "application");
+		if (log != null) log.log(Log.LEVEL_TRACE, "cftrace", "httpRequest [" + method + "] to [" + url + "], returned [" + data.get(STATUSCODE) + "] in "
+				+ (executionTimeNS / 1000000) + "ms, " + (cached ? "(cached response)" : "") + " at " + CallStackGet.call(pc, "text"));
 	}
 
 	@Override

@@ -133,14 +133,13 @@ public final class Location extends TagImpl {
 			url = ReqRspUtil.encodeRedirectURLEL(rsp, url);
 		}
 
-		Log log = ThreadLocalPageContext.getLog(pageContext, "trace");
+		Log log = ThreadLocalPageContext.getLog(pageContext, "application");
 		if (abort) {
-			if (log != null && log.getLogLevel() <= Log.LEVEL_ERROR)
-				log.log(Log.LEVEL_ERROR, "cftrace", "abort redirect to " + url + " at " + CallStackGet.call(pageContext, "text"));
+			if (log != null) log.log(Log.LEVEL_ERROR, "cftrace", "abort redirect to " + url + " at " + CallStackGet.call(pageContext, "text"));
 			throw new ExpressionException("abort redirect to " + url);
 		}
 		else {
-			if (log != null && log.getLogLevel() <= Log.LEVEL_INFO) log.log(Log.LEVEL_INFO, "cftrace", "redirect to " + url + " at " + CallStackGet.call(pageContext, "text"));
+			if (log != null) log.log(Log.LEVEL_TRACE, "cftrace", "redirect to " + url + " at " + CallStackGet.call(pageContext, "text"));
 		}
 
 		rsp.setHeader("Connection", "close"); // IE unter IIS6, Win2K3 und Resin
