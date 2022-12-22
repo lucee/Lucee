@@ -75,10 +75,14 @@ import lucee.runtime.type.util.ListUtil;
 public class GetApplicationSettings extends BIF {
 
 	public static Struct call(PageContext pc) throws PageException {
-		return call(pc, false);
+		return call(pc, false, false);
 	}
 
 	public static Struct call(PageContext pc, boolean suppressFunctions) throws PageException {
+		return call(pc, suppressFunctions, false);
+	}
+
+	public static Struct call(PageContext pc, boolean suppressFunctions, boolean onlySupported) throws PageException {
 		ApplicationContext ac = pc.getApplicationContext();
 		ApplicationContextSupport acs = (ApplicationContextSupport) ac;
 		Component cfc = null;
@@ -342,6 +346,7 @@ public class GetApplicationSettings extends BIF {
 					key = it.next();
 					value = cw.get(key);
 					if (suppressFunctions && value instanceof UDF) continue;
+					if (onlySupported) continue;
 					if (!sct.containsKey(key)) sct.setEL(key, value);
 				}
 			}
@@ -358,6 +363,7 @@ public class GetApplicationSettings extends BIF {
 				while (it.hasNext()) {
 					e = it.next();
 					if (suppressFunctions && e.getValue() instanceof UDF) continue;
+					if (onlySupported) continue;
 					if (!sct.containsKey(e.getKey())) sct.setEL(e.getKey(), e.getValue());
 				}
 			}
@@ -435,8 +441,9 @@ public class GetApplicationSettings extends BIF {
 
 	@Override
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
+		if (args.length == 2) return call(pc, Caster.toBooleanValue(args[0]), Caster.toBooleanValue(args[1]));
 		if (args.length == 1) return call(pc, Caster.toBooleanValue(args[0]));
 		if (args.length == 0) return call(pc);
-		throw new FunctionException(pc, "GetApplicationSettings", 0, 1, args.length);
+		throw new FunctionException(pc, "GetApplicationSettings", 0, 2, args.length);
 	}
 }
