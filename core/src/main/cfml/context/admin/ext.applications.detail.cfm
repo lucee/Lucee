@@ -91,6 +91,12 @@ isInstalled=installed.count() GT 0;
 <cfelse>
 	<cfset app=installed>
 </cfif>
+
+<cfif structCount(app) eq 0>
+	<cfheader statuscode="404">
+	<cfthrow message="Extension not found">
+</cfif>
+
 <cfset lasProvider=(app.provider?:"")=="local" || findNoCase("lucee.org",app.provider?:'') GT 0>
 <cfoutput>
 	<!--- title and description --->
