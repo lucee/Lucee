@@ -4883,7 +4883,8 @@ Permits searching collections by title or displaying a separate title from the k
 			<default>false</default>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>Encode the given URL value</description>
+			<description>Encode the given URL value (changed behavior in Lucee 6.0)</description>
+			<introduced>6.0.0.320</introduced>
 		</attribute>
 	</tag>
 
