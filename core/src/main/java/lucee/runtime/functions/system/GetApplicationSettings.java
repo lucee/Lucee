@@ -134,7 +134,11 @@ public class GetApplicationSettings extends BIF {
 		sct.setEL("charset", cs);
 
 		sct.setEL("sessionType", AppListenerUtil.toSessionType(((PageContextImpl) pc).getSessionType(), "application"));
-		// if (ac instanceof ModernApplicationContext) sct.setEL("regex", ((ModernApplicationContext) ac).getRegex().getTypeName());
+
+		Struct rt = new StructImpl(Struct.TYPE_LINKED);
+		if (ac instanceof ModernApplicationContext) rt.setEL("type", ((ModernApplicationContext) ac).getRegex().getTypeName());
+		sct.setEL("regex", rt);
+		
 		sct.setEL("serverSideFormValidation", Boolean.FALSE); // TODO impl
 
 		sct.setEL("clientCluster", Caster.toBoolean(ac.getClientCluster()));
