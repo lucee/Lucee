@@ -37,7 +37,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="regex" {
 				expect( result.filecontent.trim() ).toBe( serializeJSON("true") ); 
 			});
 
-			it( title="useJavaAsRegexEngine_false, check regex", skip=true, body=function( currentSpec ) {
+			it( title="useJavaAsRegexEngine_false, check regex", body=function( currentSpec ) {
 				local.result = _InternalRequest(
 					template : contractPath("LDEV4310/useJavaAsRegexEngine_false/index.cfm" ),
 					url: { 
@@ -47,7 +47,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="regex" {
 				expect( result.filecontent.trim() ).toBe( '{"TYPE":"perl"}' ); 
 			});
 
-			it( title="useJavaAsRegexEngine_true, check regex",  skip=true, body=function( currentSpec ){
+			it( title="useJavaAsRegexEngine_true, check regex", body=function( currentSpec ){
 				local.result = _InternalRequest(
 					template : contractPath("LDEV4310/useJavaAsRegexEngine_true/index.cfm" ),
 					url: { 
