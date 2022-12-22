@@ -2774,7 +2774,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	}
 
 	public static int toCacheConstant(String val, int defaultValue) {
-		if (StringUtil.isEmpty(val)) return defaultValue;
+		if (StringUtil.isEmpty(val)) return Config.CACHE_TYPE_NONE;
 		val = val.trim().toLowerCase();
 
 		if (val.equals("object")) return ConfigPro.CACHE_TYPE_OBJECT;
