@@ -2736,7 +2736,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		ClassDefinition cd = new ClassDefinitionImpl(getString("admin", action, "class"), getString("bundleName", null), getString("bundleVersion", null),
 				config.getIdentification());
 
-		admin.updateCacheConnection(getString("admin", action, "name"), cd, toCacheConstant(getString("default", null)), getStruct("admin", action, "custom"),
+		admin.updateCacheConnection(getString("admin", action, "name"), cd, toCacheConstant(getString("default", null), true), getStruct("admin", action, "custom"),
 				getBoolV("readOnly", false), getBoolV("storage", false)
 
 		);
@@ -2767,13 +2767,14 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		adminSync.broadcast(attributes, config);
 	}
 
-	public static int toCacheConstant(String val) throws ApplicationException {
-		int res = toCacheConstant(val, -1);
+	public static int toCacheConstant(String val, boolean allowEmpty) throws ApplicationException {
+		int res = toCacheConstant(val, allowEmpty, -1);
 		if (res != -1) return res;
 		throw new ApplicationException("Invalid default type [" + val + "], valid default types are [object,template,query,resource,function]");
 	}
 
-	public static int toCacheConstant(String val, int defaultValue) {
+	public static int toCacheConstant(String val, boolean allowEmpty, int defaultValue) {
+		if (StringUtil.isEmpty(val)) return allowEmpty ? Config.CACHE_TYPE_NONE : defaultValue;
 		if (StringUtil.isEmpty(val)) return defaultValue;
 		val = val.trim().toLowerCase();
 

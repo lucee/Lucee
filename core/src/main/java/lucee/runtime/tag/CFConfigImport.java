@@ -837,7 +837,7 @@ public class CFConfigImport {
 					if (data == null) continue;
 					try {
 						admin.updateCacheConnection(e.getKey().getString(), getClassDefinition(data, null),
-								Admin.toCacheConstant(getAsString(data, "default"), ConfigPro.CACHE_TYPE_NONE), getAsStruct(data, "custom"),
+								Admin.toCacheConstant(getAsString(data, "default"), false, ConfigPro.CACHE_TYPE_NONE), getAsStruct(data, "custom"),
 								getAsBoolean(data, empty, false, "readOnly"), getAsBoolean(data, empty, false, "storage"));
 					}
 					catch (Throwable t) {
