@@ -230,7 +230,7 @@ Create Datasource --->
 		<table class="maintbl" style="width:500px">
 			<tbody>
 				<tr>
-					<th scope="row" nowrap="nowrap">#stText.Overview.ServerTime#</th>
+					<th scope="row" nowrap="nowrap">#stText.Overview.ServerTime# (JVM)</th>
 					<td>#lsdateFormat(date:now(),timezone:"jvm")#
 						#lstimeFormat(time:now(),timezone:"jvm")# (#jvmTZ.isDSTon ? jvmTZ.nameDST : jvmTZ.name#)
 					</td>
