@@ -385,7 +385,7 @@ public abstract class PageExceptionImpl extends PageException {
 
 	@Override
 	public void addContext(PageSource ps, int line, int column, StackTraceElement element) {
-		if (line == -187) {
+		if (line == -187 && ps != null) {
 			sources.add(ps);
 			return;
 		}
@@ -393,8 +393,8 @@ public abstract class PageExceptionImpl extends PageException {
 		Struct struct = new StructImpl();
 		// print.out(pr.getDisplayPath());
 		try {
-			String[] content = ps.getSource();
-			struct.setEL(KeyConstants._template, ps.getDisplayPath());
+			String[] content = ps == null ? null : ps.getSource();
+			struct.setEL(KeyConstants._template, ps == null ? "" : ps.getDisplayPath());
 			struct.setEL(KeyConstants._line, Double.valueOf(line));
 			struct.setEL(KeyConstants._id, "??");
 			struct.setEL(KeyConstants._Raw_Trace, (element != null) ? element.toString() : "");
