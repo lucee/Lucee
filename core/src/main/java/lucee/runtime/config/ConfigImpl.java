@@ -2338,9 +2338,16 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 				pool = pools.get(id);
 				if (pool == null) {// TODO add config but from where?
 					DataSourcePro dsp = (DataSourcePro) ds;
+					// MUST merge ConnectionLimit and MaxTotal
+					int mt = 0;
+					if (dsp.getMaxTotal() > 0) mt = dsp.getMaxTotal();
+					else {
+						mt = dsp.getConnectionLimit();
+						if (mt <= 0) mt = Integer.MAX_VALUE;
+					}
 
 					pool = new DatasourceConnPool(this, ds, user, pass, "datasource",
-							DatasourceConnPool.createPoolConfig(null, null, null, dsp.getMinIdle(), dsp.getMaxIdle(), dsp.getMaxTotal(), 0, 0, 0, 0, 0, null));
+							DatasourceConnPool.createPoolConfig(null, null, null, dsp.getMinIdle(), dsp.getMaxIdle(), mt, 0, 0, 0, 0, 0, null));
 					pools.put(id, pool);
 				}
 			}
