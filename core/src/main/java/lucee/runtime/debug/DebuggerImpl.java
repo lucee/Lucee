@@ -179,14 +179,26 @@ public final class DebuggerImpl implements Debugger {
 		DebugEntryTemplateImpl de = entries.get(src);
 		if (de != null) {
 			de.countPP();
-			historyId.appendEL(de.getId());
-			historyLevel.appendEL(Caster.toInteger(pc.getCurrentLevel()));
+			try {
+				historyId.appendEL(Caster.toInteger(de.getId()));
+				historyLevel.appendEL(Caster.toInteger(pc.getCurrentLevel()));
+			}
+			catch(PageException e) {
+				historyId.appendEL(de.getId());
+				historyLevel.appendEL(pc.getCurrentLevel());
+			}
 			return de;
 		}
 		de = new DebugEntryTemplateImpl(source, key);
 		entries.put(src, de);
-		historyId.appendEL(de.getId());
-		historyLevel.appendEL(Caster.toInteger(pc.getCurrentLevel()));
+		try {
+			historyId.appendEL(Caster.toInteger(de.getId()));
+			historyLevel.appendEL(Caster.toInteger(pc.getCurrentLevel()));
+		}
+		catch(PageException e) {
+			historyId.appendEL(de.getId());
+			historyLevel.appendEL(pc.getCurrentLevel());
+		}
 		return de;
 	}
 
@@ -493,7 +505,7 @@ public final class DebuggerImpl implements Debugger {
 						de = arrPages.get(i);
 						// ps = de.getPageSource();
 						totalTime += de.getFileLoadTime() + de.getExeTime();
-						qryPage.setAt(KeyConstants._id, row, de.getId());
+						qryPage.setAt(KeyConstants._id, row, Caster.toInteger(de.getId()));
 						qryPage.setAt(KeyConstants._count, row, _toDouble(de.getCount()));
 						qryPage.setAt(KeyConstants._min, row, _toDouble(de.getMin()));
 						qryPage.setAt(KeyConstants._max, row, _toDouble(de.getMax()));
@@ -555,7 +567,7 @@ public final class DebuggerImpl implements Debugger {
 					row++;
 					de = parts[i];
 
-					qryPart.setAt(KeyConstants._id, row, de.getId());
+					qryPart.setAt(KeyConstants._id, row, Caster.toInteger(de.getId()));
 					qryPart.setAt(KeyConstants._count, row, _toDouble(de.getCount()));
 					qryPart.setAt(KeyConstants._min, row, _toDouble(de.getMin()));
 					qryPart.setAt(KeyConstants._max, row, _toDouble(de.getMax()));
