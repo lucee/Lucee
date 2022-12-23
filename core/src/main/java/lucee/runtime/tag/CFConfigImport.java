@@ -808,16 +808,15 @@ public class CFConfigImport {
 					if (data == null) continue;
 					try {
 						ParamSyntax ps = (data.containsKey("delimiter") && data.containsKey("separator")) ? ParamSyntax.toParamSyntax(data) : ParamSyntax.DEFAULT;
-
 						admin.updateDataSource(getAsString(data, "id"), e.getKey().getString(), getAsString(data, "newname"), getClassDefinition(data, null),
 								getAsString(data, "connectionString", "dsn"), getAsString(data, "username", "dbusername"), getAsString(data, "password", "dbpassword"),
-								getAsString(data, "host"), getAsString(data, "database"), getAsInt(data, empty, -1, "connectionString", "dsn"),
-								getAsInt(data, empty, -1, "connectionlimit"), getAsInt(data, empty, -1, "connectiontimeout", "idletimeout"),
-								getAsInt(data, empty, -1, "livetimeout"), getAsLong(data, empty, 60000L, "metacachetimeout"), getAsBoolean(data, empty, false, "blob"),
-								getAsBoolean(data, empty, false, "clob"), DataSource.ALLOW_ALL, getAsBoolean(data, empty, false, "validate"),
-								getAsBoolean(data, empty, false, "storage"), getAsString(data, "timezone"), getAsStruct(data, "custom"), getAsString(data, "dbdriver"), ps,
-								getAsBoolean(data, empty, false, "literalTimestampWithTSOffset"), getAsBoolean(data, empty, false, "alwaysSetTimeout"),
-								getAsBoolean(data, empty, false, "requestExclusive"), getAsBoolean(data, empty, false, "alwaysResetConnections"));
+								getAsString(data, "host"), getAsString(data, "database"), getAsInt(data, empty, -1, "port"), getAsInt(data, empty, -1, "connectionlimit"),
+								getAsInt(data, empty, -1, "connectiontimeout", "idletimeout"), getAsInt(data, empty, -1, "livetimeout"),
+								getAsLong(data, empty, 60000L, "metacachetimeout"), getAsBoolean(data, empty, false, "blob"), getAsBoolean(data, empty, false, "clob"),
+								DataSource.ALLOW_ALL, getAsBoolean(data, empty, false, "validate"), getAsBoolean(data, empty, false, "storage"), getAsString(data, "timezone"),
+								getAsStruct(data, "custom"), getAsString(data, "dbdriver"), ps, getAsBoolean(data, empty, false, "literalTimestampWithTSOffset"),
+								getAsBoolean(data, empty, false, "alwaysSetTimeout"), getAsBoolean(data, empty, false, "requestExclusive"),
+								getAsBoolean(data, empty, false, "alwaysResetConnections"));
 					}
 					catch (Throwable t) {
 						handleException(pc, t);
