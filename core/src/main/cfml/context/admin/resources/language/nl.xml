@@ -745,7 +745,7 @@ Wanneer aangevinkt zal elk opgevraagd bestand slechts eenmaal in een request voo
 	<data key="overview.introdesc.web">
 Lucee, de CFML engine - gratis, open source en gemakkelijk in gebruik. Deze Web Administrator wordt verstrekt zodat je jouw web context naar wens kunt aanpassen.</data>
 	<data key="overview.introdesc.server">De Server Administrator stelt je in staat om met één klik van de muis updates en patches voor jouw Lucee installatie te installeren en de engine te herstarten. Je kunt nieuwe web contexts alvast configureren en restricties en configuraties individueel per web context definiëren.</data>
-	<data key="overview.servertime">Server datum/tijd: </data>
+	<data key="overview.servertime">Server datum/tijd (JVM): </data>
 	<data key="overview.version">Versie</data>
 	<data key="overview.info">Info</data>
 	<data key="overview.featurerequest">Functionaliteit verzoek</data>
