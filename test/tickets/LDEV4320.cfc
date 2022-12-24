@@ -1,25 +1,13 @@
 component extends = "org.lucee.cfml.test.LuceeTestCase" labels="h2" {
 
 	function beforeAll(){
-		variables.dir="#getDirectoryFromPath(getCurrentTemplatePath())#h24320";
-   				if(!directoryExists(variables.dir)) directoryCreate(variables.dir);
-
-		application action="update" datasource = {
-				class: 'org.h2.Driver'
-			, bundleName: 'org.h2'
-			, connectionString: 'jdbc:h2:#variables.dir#;MODE=MySQL'
-			, username: 'root'
-			, password: "encrypted:bfc0a1c52d845676830d40bcbf6fedcf8801ab2dd37fdbc513ff3c9b9a3c77b3"
-			, connectionLimit:2 // THIS IS IMPORTANT, regular datasource provided does not have it
-			};
+		application action="update" datasource=server.getDatasource( 
+			service="h2",
+			dbFile=server._getTempDir( "h24320" ),
+			options={ connectionLimit:2 }
+		);
 	}
 	
-	function afterALL(){
-		if(directoryExists(variables.dir)){
-			directoryDelete(variables.dir,true);
-		}
-	}
-
 	function run( testResults , testBox ) {
 		describe( "Testcase for LDEV-4320", function() {
 			it(title="testing connection limit", body=function( currentSpec ) {
@@ -37,6 +25,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" labels="h2" {
 				var hasError=false;
 				loop struct=cfthread index="k" item="v" {
 					if(v.status!="completed"){
+						systemOutput(v, true);
 						hasError=true;
 						break;
 					}
