@@ -85,7 +85,8 @@ pre {
 .left { text-align:left; }
 .center { text-align:center }
 
-
+.disp-flex { display: flex; }
+.flex-pull-right { margin-left: auto; }
 
 
 
@@ -534,13 +535,17 @@ div.ok {
 .coding-tip {
 	display: none;
 	box-sizing: border-box;
-	margin: 0.25em;
-	padding: 0.5em;
-	border:1px solid #e8e7ec;
-	border-radius: 4px;
+	margin: 4rem 0.25rem 1rem 0.25rem;
+	padding: 0.5rem;
+	border: 0px;
+	border-radius: 0.5em;
 	max-width: 680px;
 	background-color: #f1f0f5;
 	color: #666;
+}
+
+.coding-tip .copy {
+	cursor: pointer;
 }
 
 .coding-tip.expanded {
@@ -548,7 +553,6 @@ div.ok {
 }
 
 .coding-tip code {
-
 	white-space: pre-wrap;
 	tab-size: 4;
 	margin: 0.5em;
@@ -556,8 +560,6 @@ div.ok {
 	background-color: #000;
 	color: #66ccff;
 	display: block;
-	cursor: pointer;
-	border-radius: 3px;
 }
 
 /* unorganized */
