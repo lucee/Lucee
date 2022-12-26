@@ -842,7 +842,7 @@ When checked, any requested files will be inspected only once for potential upda
 	<data key="overview.infomail">info@lucee.ch</data>
 	<data key="overview.introdesc.web">Lucee, die CFML engine. Schnell, preiswert und einfach zu bedienen. Mit Lucee haben sie sich für den performanten und qualitativ hochwertigen Weg von CFML entschieden. Passen Sie Ihren Webkontext nach Ihren Bedürfnissen und Wünschen an. Dafür steht Ihnen hier der Web Administrator zur Verfügung.</data>
 	<data key="overview.introdesc.server">Der Server Administrator ermöglicht Ihnen Updates und Patches für Ihre Lucee Edition vorzunehmen und die Engine per Mauklick neu zu starten. Zusätzlich können Sie in der Develop und Enterprise Edition die einzelnen Webkontexte vorkonfigurieren und diverse Beschränkungen und Konfigurationen individuell pro Webkontext einrichten.</data>
-	<data key="overview.servertime">Server Datum/Zeit: </data>
+	<data key="overview.servertime">Server Datum/Zeit (JVM): </data>
 	<data key="overview.version">Version</data>
 	<data key="overview.info">Info</data>
 	<data key="overview.featurerequest">Feature Anfragen</data>
