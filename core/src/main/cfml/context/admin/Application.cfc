@@ -33,6 +33,7 @@ this.sessionCookie.sameSite = "strict";
 this.sessionCookie.path = getAppFolderPath();  // the admin is always in a folder nested two directories deep
 this.tag.cookie.sameSite = "strict";
 this.tag.cookie.path = getAppFolderPath();
+this.tag.cookie.httpOnly = true; // prevent access to session cookies from javascript
 
 this.xmlFeatures = {
 	externalGeneralEntities: false,
