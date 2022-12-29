@@ -2904,16 +2904,24 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<class>lucee.runtime.functions.other.CreateUUID</class>
 		<description>Creates a Universally Unique Identifier (UUID). A UUID is a
         35-character string representation of a unique 128-bit integer
-        xxxxxxxx-xxxx-xxxx-xxxxxxxxxxxxxxxx : x is a hexadecimal digit</description>
+        xxxxxxxx-xxxx-xxxx-xxxxxxxxxxxxxxxx where x is a hexadecimal digit.</description>
 		<return>
 			<type>string</type>
 		</return>
 	</function>
+
 	<!-- CreateUniqueId -->
 	<function>
 		<name>CreateUniqueId</name>
 		<class>lucee.runtime.functions.other.CreateUniqueId</class>
-		<description>Creates a Unique Identifier. Only unique for this instance, but shorter than a UUId.</description>
+		<description>Creates a Unique Identifier.</description>
+		<argument>
+			<name>type</name>
+			<type>string</type>
+			<required>false</required>
+			<default></default>
+			<description>If the string "counter" is passed then then it's only unique for this instance in this lifecycle, otherwise the returned value will be a 22 character UUID, encoded as a URL-safe Base64.</description>
+		</argument>
 		<return>
 			<type>string</type>
 		</return>
@@ -2923,7 +2931,11 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 	<function>
 		<name>createGUID</name>
 		<class>lucee.runtime.functions.other.CreateGUID</class>
-		<description>A globally unique identifier or GUID is a special type of identifier used in software applications to provide a unique reference number. The value is represented as a 32 character hexadecimal string, such as {21EC2020-3AEA-1069-A2DD-08002B30309D} and usually stored as a 128 bit integer.</description>
+		<description>Creates a Globally Unique Identifier (GUID). A GUID is a
+        36-character string representation of a unique 128-bit integer
+        xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx where x is a hexadecimal digit.
+		A GUID is just a UUID with one extra dash.
+		</description>
 		<return>
 			<type>string</type>
 		</return>
