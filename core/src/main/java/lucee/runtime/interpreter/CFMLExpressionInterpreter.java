@@ -1017,7 +1017,7 @@ public class CFMLExpressionInterpreter {
 				str = "... " + str.substring(pos - 10, pos + 10) + " ...";
 			}
 		}
-		throw new InterpreterException("Syntax Error, Invalid Construct", "at position " + (pos + 1) + " in [" + str + "]");
+		throw new InterpreterException("Syntax Error, Invalid Construct", " at position " + (pos + 1) + " in [" + str + "]");
 	}
 
 	protected Ref json(FunctionLibFunction flf, char start, char end) throws PageException {
