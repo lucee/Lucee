@@ -1195,6 +1195,9 @@ public final class Http extends BodyTagImpl {
 
 			}
 
+			String[] tmpCharset = HTTPUtil.splitMimeTypeAndCharset(mimetype, null);
+			rspCharset = tmpCharset != null ? tmpCharset[1] : null;
+
 			cfhttp.set(RESPONSEHEADER, responseHeader);
 			cfhttp.set(KeyConstants._cookies, cookies);
 			responseHeader.set(STATUS_CODE, Double.valueOf(statCode = rsp.getStatusCode()));
