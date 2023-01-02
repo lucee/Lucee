@@ -59,13 +59,17 @@
 		type="#request.adminType#"
 		password="#session["password"&request.adminType]#"
 		returnVariable="entries">
-</cfif>    
+</cfif>
 <cfadmin 
 	action="getDebugSetting"
 	type="#request.adminType#"
 	password="#session["password"&request.adminType]#"
 	returnVariable="setting">
-    
+<cfadmin
+	action="getDebug"
+	type="#request.adminType#"
+	password="#session["password"&request.adminType]#"
+	returnVariable="_debug">
 
 <cftry>
 	<cfset stVeritfyMessages = StructNew()>
