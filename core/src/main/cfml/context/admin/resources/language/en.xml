@@ -724,7 +724,9 @@ you can see the log result at the end of every request, if a debug template is d
 	<data key="debug.logmemoryusagedescription">Sets whether the memory usage should be logged</data>
 	<data key="debug.debugtemplate">Debug template</data>
 	<data key="debug.timezone">Please enter a value for the timezone</data>
-	<data key="debug.enabledebugging">Enable debugging</data>
+	<data key="debug.enabledebugging">Enable debugging</data>	
+	<data key="debug.onlyWebContext">Debugging logs are only visible via the web context, or in single mode</data>
+	<data key="debug.debuggingDisabled">Debugging logs are currently disabled in settings</data>
 	<data key="debug.memorylogger">Memory logger</data>
 	<data key="debug.settings.queryUsage">Query Usage</data>
 	<data key="debug.settings.queryUsageDesc">Select this option to log the query usage information.</data>

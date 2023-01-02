@@ -45,7 +45,11 @@
 		</table>
 	</cfformClassic>
 	
-	<cfif isWeb>
+	<cfif !request.singleMode && !isWeb>
+		<p>#stText.Debug.onlyWebContext#</p>
+	<cfelseif !_debug.debug>
+		<p>#stText.Debug.debuggingDisabled#</p>
+	<cfelse>
 		<!---<h2>#stText.debug.filterTitle#</h2>
 		<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post" name="debug_settings">
 		<table class="tbl" width="740">
