@@ -1024,12 +1024,13 @@ public class CFConfigImport {
 				}
 			}
 
-			// addional function and tag directories
+			// additional function and tag directories
 			data = getAsStruct(json, "fileSystem");
 			if (data != null) {
 				try {
 					admin.updateFilesystem(getAsString(data, "fldDefaultDirectory"), getAsString(data, "functionDefaultDirectory"), getAsString(data, "tagDefaultDirectory"),
-							getAsString(data, "tldDefaultDirectory"), getAsString(data, "functionAddionalDirectory"), getAsString(data, "tagAddionalDirectory"));
+							getAsString(data, "tldDefaultDirectory"), getAsString(data, "functionAdditionalDirectory", "functionAddionalDirectory"),
+							getAsString(data, "tagAdditionalDirectory", "tagAddionalDirectory"));
 				}
 				catch (Throwable t) {
 					handleException(pc, t);
