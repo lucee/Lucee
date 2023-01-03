@@ -1030,7 +1030,8 @@ public class CFConfigImport {
 			if (data != null) {
 				try {
 					admin.updateFilesystem(getAsString(data, "fldDefaultDirectory"), getAsString(data, "functionDefaultDirectory"), getAsString(data, "tagDefaultDirectory"),
-							getAsString(data, "tldDefaultDirectory"), getAsString(data, "functionAddionalDirectory"), getAsString(data, "tagAddionalDirectory"));
+							getAsString(data, "tldDefaultDirectory"), getAsString(data, "functionAdditionalDirectory", "functionAddionalDirectory"),
+							getAsString(data, "tagAdditionalDirectory", "tagAddionalDirectory"));
 				}
 				catch (Throwable t) {
 					handleException(pc, t);
