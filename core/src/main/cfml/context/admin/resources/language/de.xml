@@ -652,7 +652,7 @@ Diese werden dann am Ende eines Request ausgegeben, falls sie ein Debug Template
 	<data key="debug.timezone">Bitte geben Sie einen Wert für die Zeitzone an.</data>
 	<data key="debug.enabledebugging">Debugging aktivieren</data>	
 	<data key="debug.onlyWebContext">Debugging-Logs sind nur über den Webkontext oder im Einzelmodus sichtbar.</data>
-	<data key="debug.debuggingDisabled">Debugging-Logd sind derzeit in den Einstellungen deaktiviert.</data>
+	<data key="debug.debuggingDisabled">Debugging-Logs sind derzeit in den Einstellungen deaktiviert.</data>
         <data key="debug.memorylogger">Memory Logger</data>
 	<data key="debug.settings.queryUsage">Query Usage</data>
 	<data key="debug.settings.queryUsageDesc">Select this option to log the query usage information.</data>
