@@ -84,7 +84,7 @@ public abstract class Factory {
 
 	public abstract LitDouble DOUBLE_ONE();
 
-	public abstract LitString NULL();
+	public abstract Expression NULL();
 
 	// CREATION
 	public abstract LitString createLitString(String str);
