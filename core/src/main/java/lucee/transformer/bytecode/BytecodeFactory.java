@@ -89,7 +89,7 @@ public class BytecodeFactory extends FactoryBase {
 	private final LitBoolean TRUE;
 	private final LitBoolean FALSE;
 	private final LitString EMPTY;
-	private final LitString NULL;
+	private final Expression NULL;
 	private final LitDouble DOUBLE_ZERO;
 	private final LitDouble DOUBLE_ONE;
 
@@ -99,7 +99,7 @@ public class BytecodeFactory extends FactoryBase {
 		TRUE = createLitBoolean(true);
 		FALSE = createLitBoolean(false);
 		EMPTY = createLitString("");
-		NULL = createLitString("NULL");
+		NULL = new Null(this, null, null);
 		DOUBLE_ZERO = createLitDouble(0);
 		DOUBLE_ONE = createLitDouble(1);
 		this.config = config;
@@ -221,7 +221,7 @@ public class BytecodeFactory extends FactoryBase {
 	}
 
 	@Override
-	public LitString NULL() {
+	public Expression NULL() {
 		return NULL;
 	}
 
