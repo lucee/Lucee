@@ -56,7 +56,6 @@ import lucee.transformer.bytecode.op.OpElvis;
 import lucee.transformer.bytecode.op.OpNegate;
 import lucee.transformer.bytecode.op.OpNegateNumber;
 import lucee.transformer.bytecode.op.OpString;
-import lucee.transformer.bytecode.op.OpUnary;
 import lucee.transformer.bytecode.util.Types;
 import lucee.transformer.expression.ExprBoolean;
 import lucee.transformer.expression.ExprDouble;
@@ -73,6 +72,7 @@ import lucee.transformer.expression.literal.LitString;
 import lucee.transformer.expression.literal.Literal;
 import lucee.transformer.expression.var.DataMember;
 import lucee.transformer.expression.var.Variable;
+import lucee.transformer.interpreter.op.OpUnary;
 
 public class BytecodeFactory extends FactoryBase {
 	private final static Method INIT = new Method("init", Types.COLLECTION_KEY, new Type[] { Types.STRING });
@@ -99,7 +99,7 @@ public class BytecodeFactory extends FactoryBase {
 		TRUE = createLitBoolean(true);
 		FALSE = createLitBoolean(false);
 		EMPTY = createLitString("");
-		NULL = new Null(this, null, null);
+		NULL = createLitString("NULL");
 		DOUBLE_ZERO = createLitDouble(0);
 		DOUBLE_ONE = createLitDouble(1);
 		this.config = config;
