@@ -99,7 +99,7 @@ public class BytecodeFactory extends FactoryBase {
 		TRUE = createLitBoolean(true);
 		FALSE = createLitBoolean(false);
 		EMPTY = createLitString("");
-		NULL = new Null(this, null, null);
+		NULL = Null.getSingleInstance(this); // createLitString("NULL");
 		DOUBLE_ZERO = createLitDouble(0);
 		DOUBLE_ONE = createLitDouble(1);
 		this.config = config;

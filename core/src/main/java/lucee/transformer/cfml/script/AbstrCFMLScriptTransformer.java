@@ -60,6 +60,7 @@ import lucee.transformer.bytecode.Statement;
 import lucee.transformer.bytecode.expression.FunctionAsExpression;
 import lucee.transformer.bytecode.expression.var.Assign;
 import lucee.transformer.bytecode.expression.var.VariableString;
+import lucee.transformer.bytecode.literal.Null;
 import lucee.transformer.bytecode.statement.Argument;
 import lucee.transformer.bytecode.statement.Condition;
 import lucee.transformer.bytecode.statement.Condition.Pair;
@@ -1728,13 +1729,14 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		// first fill all regular attribute -> name="value"
 		for (int i = attrs.length - 1; i >= 0; i--) {
 			attr = attrs[i];
-			if (!attr.getValue().equals(data.factory.NULL())) {
+			if (!isNull(attr.getValue())) {
 				if (attr.getName().equalsIgnoreCase("name")) {
 					hasName = true;
 				}
 				else if (attr.getName().equalsIgnoreCase("type")) {
 					hasType = true;
 				}
+
 				property.addAttribute(attr);
 			}
 		}
@@ -1743,7 +1745,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		String first = null, second = null;
 		for (int i = 0; i < attrs.length; i++) {
 			attr = attrs[i];
-			if (attr.getValue().equals(data.factory.NULL())) {
+			if (isNull(attr.getValue())) {
 				// type
 				if (first == null && ((!hasName && !hasType) || !hasName)) {
 					first = attr.getNameOC();
@@ -1785,6 +1787,13 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		property.setEnd(data.srcCode.getPosition());
 
 		return property;
+	}
+
+	private boolean isNull(Expression value) {
+		if (value == null) return true;
+		if (value instanceof Null) return true;
+		if (value instanceof Literal && ((Literal) value).getString() == null) return true;
+		return false;
 	}
 
 	private final Tag staticStatement(Data data, Body parent) throws TemplateException {
@@ -1901,7 +1910,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		boolean hasDynamic = false;
 		for (int i = attrs.length - 1; i >= 0; i--) {
 			attr = attrs[i];
-			if (!attr.getValue().equals(data.factory.NULL())) {
+			if (!isNull(attr.getValue())) {
 				if (attr.getName().equalsIgnoreCase("name")) {
 					hasName = true;
 					param.addAttribute(attr);
@@ -1926,7 +1935,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		for (int i = 0; i < attrs.length; i++) {
 			attr = attrs[i];
 
-			if (attr.getValue().equals(data.factory.NULL())) {
+			if (isNull(attr.getValue())) {
 				// type
 				if (first == null && (!hasName || !hasType)) {
 					first = attr.getName();

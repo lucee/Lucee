@@ -125,7 +125,7 @@ public class LitStringImpl extends ExpressionBase implements LitString, ExprStri
 	}
 
 	private static boolean toBig(String str) {
-		if (str.length() < (MAX_SIZE / 2)) return false; // a char is max 2 bytes
+		if (str == null || str.length() < (MAX_SIZE / 2)) return false; // a char is max 2 bytes
 		return str.getBytes(CharsetUtil.UTF8).length > MAX_SIZE;
 	}
 
