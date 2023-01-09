@@ -13,7 +13,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" labels="h2" {
 			it(title="testing connection limit", body=function( currentSpec ) {
 				var names="";
 				loop from=1 to=20 index="local.i" {
-					var name="twdasfd"&i;
+					var name=createUniqueID()&"-"&i;
 					names=listAppend(names, name);
 					thread name=name {
 						query {
