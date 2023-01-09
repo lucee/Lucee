@@ -1,4 +1,4 @@
-component extends = "org.lucee.cfml.test.LuceeTestCase" labels="h2" skip="true" {
+component extends = "org.lucee.cfml.test.LuceeTestCase" labels="h2" {
 
 	function beforeAll(){
 		application action="update" datasource=server.getDatasource( 
