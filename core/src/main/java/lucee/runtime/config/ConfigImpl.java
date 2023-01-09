@@ -84,6 +84,7 @@ import lucee.runtime.cfx.CFXTagPool;
 import lucee.runtime.cfx.customtag.CFXTagPoolImpl;
 import lucee.runtime.component.ImportDefintion;
 import lucee.runtime.component.ImportDefintionImpl;
+import lucee.runtime.config.ConfigWebFactory.Path;
 import lucee.runtime.config.ConfigWebUtil.CacheElement;
 import lucee.runtime.customtag.InitFile;
 import lucee.runtime.db.ClassDefinition;
@@ -964,20 +965,21 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		throw new RuntimeException("no core taglib found"); // this should never happen
 	}
 
-	protected void setTagDirectory(List<Resource> listTagDirectory) {
-		Iterator<Resource> it = listTagDirectory.iterator();
+	protected void setTagDirectory(List<Path> listTagDirectory) {
+		Iterator<Path> it = listTagDirectory.iterator();
 		int index = -1;
 		String mappingName;
-		Resource tagDirectory;
+		Path path;
 		Mapping m;
 		boolean isDefault;
 		while (it.hasNext()) {
-			tagDirectory = it.next();
+			path = it.next();
 			index++;
 			isDefault = index == 0;
 			mappingName = "/mapping-tag" + (isDefault ? "" : index) + "";
 
-			m = new MappingImpl(this, mappingName, tagDirectory.getAbsolutePath(), null, ConfigPro.INSPECT_NEVER, true, true, true, true, false, true, null, -1, -1);
+			m = new MappingImpl(this, mappingName, path.isValidDirectory() ? path.res.getAbsolutePath() : path.str, null, ConfigPro.INSPECT_NEVER, true, true, true, true, false,
+					true, null, -1, -1);
 			if (isDefault) defaultTagMapping = m;
 			tagMappings.put(mappingName, m);
 
@@ -985,9 +987,8 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 			TagLib tll = getCoreTagLib(CFMLEngine.DIALECT_LUCEE);
 
 			// now overwrite with new data
-			if (tagDirectory.isDirectory()) {
-				String[] files = tagDirectory
-						.list(new ExtensionResourceFilter(getMode() == ConfigPro.MODE_STRICT ? Constants.getComponentExtensions() : Constants.getExtensions()));
+			if (path.res.isDirectory()) {
+				String[] files = path.res.list(new ExtensionResourceFilter(getMode() == ConfigPro.MODE_STRICT ? Constants.getComponentExtensions() : Constants.getExtensions()));
 				for (int i = 0; i < files.length; i++) {
 					if (tlc != null) createTag(tlc, files[i], mappingName);
 					if (tll != null) createTag(tll, files[i], mappingName);
@@ -1052,19 +1053,19 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		tl.setTag(tlt);
 	}
 
-	protected void setFunctionDirectory(List<Resource> listFunctionDirectory) {
-		Iterator<Resource> it = listFunctionDirectory.iterator();
+	protected void setFunctionDirectory(List<Path> listFunctionDirectory) {
+		Iterator<Path> it = listFunctionDirectory.iterator();
 		int index = -1;
 		String mappingName;
-		Resource functionDirectory;
+		Path path;
 		boolean isDefault;
 		while (it.hasNext()) {
-			functionDirectory = it.next();
+			path = it.next();
 			index++;
 			isDefault = index == 0;
 			mappingName = "/mapping-function" + (isDefault ? "" : index) + "";
-			MappingImpl mapping = new MappingImpl(this, mappingName, functionDirectory.getAbsolutePath(), null, ConfigPro.INSPECT_NEVER, true, true, true, true, false, true, null,
-					-1, -1);
+			MappingImpl mapping = new MappingImpl(this, mappingName, (path.isValidDirectory() ? path.res.getAbsolutePath() : path.str), null, ConfigPro.INSPECT_NEVER, true, true,
+					true, true, false, true, null, -1, -1);
 			if (isDefault) defaultFunctionMapping = mapping;
 			this.functionMappings.put(mappingName, mapping);
 
@@ -1072,8 +1073,8 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 			FunctionLib fll = luceeFlds[luceeFlds.length - 1];
 
 			// now overwrite with new data
-			if (functionDirectory.isDirectory()) {
-				String[] files = functionDirectory.list(new ExtensionResourceFilter(Constants.getTemplateExtensions()));
+			if (path.res.isDirectory()) {
+				String[] files = path.res.list(new ExtensionResourceFilter(Constants.getTemplateExtensions()));
 
 				for (String file: files) {
 					if (flc != null) createFunction(flc, file, mappingName);

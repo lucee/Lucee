@@ -3128,11 +3128,11 @@ public final class ConfigWebFactory extends ConfigFactory {
 			}
 
 			// Tag Directory
-			List<Resource> listTags = new ArrayList<Resource>();
+			List<Path> listTags = new ArrayList<Path>();
 			if (!StringUtil.isEmpty(strDefaultTagDirectory)) {
 				Resource dir = ConfigWebUtil.getFile(config, configDir, strDefaultTagDirectory, FileUtil.TYPE_DIR);
 				createTagFiles(config, configDir, dir, doNew);
-				if (dir != null) listTags.add(dir);
+				if (dir != null) listTags.add(new Path(strDefaultTagDirectory, dir));
 			}
 			if (!StringUtil.isEmpty(strTagDirectory)) {
 				String[] arr = ListUtil.listToStringArray(strTagDirectory, ',');
@@ -3141,7 +3141,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 						str = str.trim();
 						if (StringUtil.isEmpty(str)) continue;
 						Resource dir = ConfigWebUtil.getFile(config, configDir, str, FileUtil.TYPE_DIR);
-						if (dir != null) listTags.add(dir);
+						if (dir != null) listTags.add(new Path(str, dir));
 					}
 					catch (Throwable t) {
 						ExceptionUtil.rethrowIfNecessary(t);
@@ -3179,11 +3179,11 @@ public final class ConfigWebFactory extends ConfigFactory {
 			}
 
 			// Function files (CFML)
-			List<Resource> listFuncs = new ArrayList<Resource>();
+			List<Path> listFuncs = new ArrayList<Path>();
 			if (!StringUtil.isEmpty(strDefaultFuncDirectory)) {
 				Resource dir = ConfigWebUtil.getFile(config, configDir, strDefaultFuncDirectory, FileUtil.TYPE_DIR);
 				createFunctionFiles(config, configDir, dir, doNew);
-				if (dir != null) listFuncs.add(dir);
+				if (dir != null) listFuncs.add(new Path(strDefaultFuncDirectory, dir));
 				// if (dir != null) config.setFunctionDirectory(dir);
 			}
 			if (!StringUtil.isEmpty(strFuncDirectory)) {
@@ -3193,7 +3193,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 						str = str.trim();
 						if (StringUtil.isEmpty(str)) continue;
 						Resource dir = ConfigWebUtil.getFile(config, configDir, str, FileUtil.TYPE_DIR);
-						if (dir != null) listFuncs.add(dir);
+						if (dir != null) listFuncs.add(new Path(str, dir));
 					}
 					catch (Throwable t) {
 						ExceptionUtil.rethrowIfNecessary(t);
@@ -5441,6 +5441,20 @@ public final class ConfigWebFactory extends ConfigFactory {
 			d = -1; // I don't think we need this?
 		}
 		return v;
+	}
+
+	public static class Path {
+		public final String str;
+		public final Resource res;
+
+		public Path(String str, Resource res) {
+			this.str = str;
+			this.res = res;
+		}
+
+		public boolean isValidDirectory() {
+			return res.isDirectory();
+		}
 	}
 
 	public static class MonitorTemp {
