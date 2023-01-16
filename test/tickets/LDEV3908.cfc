@@ -1,4 +1,4 @@
-component extends = "org.lucee.cfml.test.LuceeTestCase" skip=true {
+component extends = "org.lucee.cfml.test.LuceeTestCase" skip=true labels="mssql" {
 
 	function run( testResults , testBox ) {
 		describe( "Test case for LDEV-3908", function() {
