@@ -530,7 +530,7 @@ component {
 					return {
 						class: 'org.h2.Driver'
 						, bundleName: 'org.h2'
-						, bundleVersion: server.getDefaultBundleVersion( 'org.h2', '2.1.214.0001L' )
+						, bundleVersion: server.getDefaultBundleVersion( 'org.lucee.h2', '2.1.214.0001L' )
 						, connectionString: 'jdbc:h2:#arguments.dbFile#/db;MODE=MySQL' & arguments.connectionString
 					}.append( arguments.options );
 				}

@@ -15,7 +15,7 @@
   <property name="extURL" value="https://extension.lucee.org/rest/extension/provider/full/"/>
   
   <property name="extMongo"       value="E6634E1A-4CC5-4839-A83C67549ECA8D5B"/>
-  <property name="extH2"          value="465E1E35-2425-4F4E-8B3FAB638BD7280A"/>
+  <property name="extH2"          value="465E1E35-2425-4F4E-8B3FAB638BD7280A;version=2.1.214.0001L"/>
   <property name="extOracle"          value="D4EDFDBD-A9A3-E9AF-597322D767E0C949"/>
   <property name="extLucene"          value="EFDEB172-F52E-4D84-9CD1A1F561B3DFC8;version=2.4.2.4"/>
   <property name="extAxis"          value="DF28D0A4-6748-44B9-A2FDC12E4E2E4D38;version=1.4.0.35"/>
@@ -42,7 +42,7 @@
       <tstamp>
         <format property="timestamp" pattern="yyyy-MM-dd HH:mm:ss" />
       </tstamp>
-      <echo message="---------- ${timestamp} - @{message} ----------" />
+      <echo leveL="debug" message="---------- ${timestamp} - @{message} ----------" />
     </sequential>
   </macrodef>
 
@@ -151,7 +151,7 @@
     </condition>
     </fail>
 
-<echo>                                                              
+<echo leveL="debug">                                                              
            `@@@@                                                               
            @@@@@@                                                              
           ``#@@@@#                                                             
@@ -190,16 +190,16 @@
           In every job that must be done. There is an element of fun!                  
     </echo>
 
-    <echo message="${version}"/>
+    <echo leveL="debug" message="${version}"/>
     <!-- used for docker build -->
-    <echo file="${rootDir}/buildVersionNumber.txt" message="${version}" append="false"/>
+    <echo leveL="debug" file="${rootDir}/buildVersionNumber.txt" message="${version}" append="false"/>
     <!-- <echo message="${name}"/>
     <echo message="${name.explanation}"/> -->
-    <echo message="Root: ${rootDir}"/>
-    <echo message="Required-Extensions: ${reqExt.labels}"/>
-    <echo message="Java: ${java.version}" />
-    <echo message="Java: ${java.home}" />
-    <echo message="Optional Java Version for tests: ${testJavaVersionExec}" />
+    <echo leveL="debug" message="Root: ${rootDir}"/>
+    <echo leveL="debug" message="Required-Extensions: ${reqExt.labels}"/>
+    <echo leveL="debug" message="Java: ${java.version}" />
+    <echo leveL="debug" message="Java: ${java.home}" />
+    <echo leveL="debug" message="Optional Java Version for tests: ${testJavaVersionExec}" />
 
     <!-- Create the time stamp -->
     <tstamp/>
@@ -373,7 +373,7 @@
     </path>
 
     <!-- <pathconvert property="classpathProp" refid="classpath"/> -->
-   <echo message="Using Java version ${ant.java.version}."/>
+   <echo leveL="debug" message="Using Java version ${ant.java.version}."/>
     <!-- compile the core -->
     <javac 
       srcdir="${srcCore}" 
@@ -636,7 +636,7 @@
       <jvmarg value="-Dlucee.web.dir=${temp}/warmup/webroot"/>
       <jvmarg value="-Dlucee.enable.warmup=true"/>
     </java>
-    <echo>${exc4}</echo>
+    <echo leveL="debug">${exc4}</echo>
 </target>
 
 <target name="test_stable_loader">
@@ -798,9 +798,9 @@
   </target>
 
   <target name="setAntEnv" description="set the variable right for ant">
-    <echo>before:${goal}</echo>
+    <echo leveL="debug">before:${goal}</echo>
     <property name="goal" location="${temp}/loader"/>
-    <echo>after:${goal}</echo>  
+    <echo leveL="debug">after:${goal}</echo>  
   </target>
 
   <target name="buildLoaderAnt" depends="__build,setAntEnv,addExtensions,addBundles,addFelix,createCore,createLoader,test_warmup,test_stable_loader" description="generate the loader jar" >
