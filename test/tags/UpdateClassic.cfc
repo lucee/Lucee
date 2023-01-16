@@ -59,12 +59,7 @@
 			catch(local.e){}
 
 			query  {
-				echo("CREATE TABLE TUpdateX (");
-				echo("id INTEGER IDENTITY NOT NULL,");
-				echo("i int,");		
-				//echo("dec DECIMAL,");	
-				echo("PRIMARY KEY (id)");	
-				echo(") ");
+				echo("CREATE TABLE TUpdateX (i int) ");
 			}
 		}
 

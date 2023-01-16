@@ -69,17 +69,17 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="cache" {
 			before=arrayLen(idsBefore);
 			
 			query cachedwithin=createTimeSpan(0,0,1,0) name="qry1" datasource="cacheClear_1" tags=['tables'] {
-				echo('SELECT top 1 TABLE_NAME as tn,''cacheClear_1'' as ds FROM  INFORMATION_SCHEMA.TABLES');
+				echo('SELECT TABLE_NAME as tn,''cacheClear_1'' as ds FROM  INFORMATION_SCHEMA.TABLES');
 			}
 			query cachedwithin=createTimeSpan(0,0,1,0) name="qry1" datasource="cacheClear_2" tags=['tables'] {
-				echo('SELECT top 1 TABLE_NAME as tn,''cacheClear_2'' as ds FROM  INFORMATION_SCHEMA.TABLES');
+				echo('SELECT TABLE_NAME as tn,''cacheClear_2'' as ds FROM  INFORMATION_SCHEMA.TABLES');
 			}
 
 			query cachedwithin=createTimeSpan(0,0,1,0) name="qry1" datasource="cacheClear_1" tags=['tables2'] {
-				echo('SELECT top 1 TABLE_NAME as tn,''cacheClear_111'' as ds FROM  INFORMATION_SCHEMA.TABLES');
+				echo('SELECT TABLE_NAME as tn,''cacheClear_111'' as ds FROM  INFORMATION_SCHEMA.TABLES');
 			}
 			query cachedwithin=createTimeSpan(0,0,1,0) name="qry1" datasource="cacheClear_2" tags=['tables2'] {
-				echo('SELECT top 1 TABLE_NAME as tn,''cacheClear_222'' as ds FROM  INFORMATION_SCHEMA.TABLES');
+				echo('SELECT TABLE_NAME as tn,''cacheClear_222'' as ds FROM  INFORMATION_SCHEMA.TABLES');
 			}
 			idsAfter.a=cacheGetAllIds(cacheName:"_cacheClear"&id);
 			assertEquals(4,arrayLen(idsAfter.a)-before);
