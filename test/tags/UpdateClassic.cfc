@@ -22,23 +22,22 @@
 		<cfif server.lucee.environment=="servlet">
 		
 			<!--- insert --->
-			<cfset form.id=1>
-			<cfinsert tablename="TUpdateX" formfields="id">
+			<cfset form.i=1>
+			<cfinsert tablename="TUpdateX" formfields="i">
 
 			<cfquery  name="data" >
-			select id,i,i is null as isNUll from TUpdateX
+			select i,i is null as isNUll from TUpdateX
 			</cfquery>
 			<cfset assertEquals(1,data.recordcount)>
 			<cfset assertEquals(1,data.id)>
 			<cfset assertEquals("",data.i)>
 			<cfset assertEquals(true,data.isNull)>
 
-			<cfset form.id=1>
 			<cfset form.i=5>
-			<cfupdate tablename="TUpdateX" formfields="id,i,">
+			<cfupdate tablename="TUpdateX" formfields="i,">
 
 			<cfquery  name="data">
-			select id,i,i is null as isNUll from TUpdateX
+			select i,i is null as isNUll from TUpdateX
 			</cfquery>
 			<cfset assertEquals(1,data.recordcount)>
 			<cfset assertEquals(1,data.id)>
