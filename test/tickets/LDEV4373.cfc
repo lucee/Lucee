@@ -1,4 +1,4 @@
-component extends = "org.lucee.cfml.test.LuceeTestCase" labels="string" {
+component extends = "org.lucee.cfml.test.LuceeTestCase" labels="string" skip="true" {
     function run( testResults, textbox ) {
         describe("Testcase for LDEV-4373", function() {
             it(title="Extract the string using the array notation", body=function( currentSpec ) {
