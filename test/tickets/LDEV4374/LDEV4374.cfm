@@ -16,6 +16,6 @@
         }
     }
     catch(any e) {
-        writeoutput(e..message);
+        writeoutput(e.message);
     }
 </cfscript>
