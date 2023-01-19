@@ -4,16 +4,16 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 		try{
 			application action="update" NULLSupport=false;
 			query name="local.res" {
-				echo("SELECT null AS value");
+				echo("SELECT null AS val");
 			}
-			var r=res.value;
+			var r=res.val;
 			assertFalse(isNull(r));
 
 			application action="update" NULLSupport=true;
 			query name="local.res" {
-				echo("SELECT null AS value");
+				echo("SELECT null AS val");
 			}
-			var r=res.value;
+			var r=res.val;
 			assertTrue(isNull(r));
 		}
 		finally {
@@ -25,15 +25,15 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 		try{
 			application action="update" NULLSupport=false;
 			query name="local.res" returntype="array" {
-				echo("SELECT null AS value");
+				echo("SELECT null AS val");
 			}
-			assertFalse(isNull(res[1].value));
+			assertFalse(isNull(res[1].val));
 
 			application action="update" NULLSupport=true;
 			query name="local.res" returntype="array" {
-				echo("SELECT null AS value");
+				echo("SELECT null AS val");
 			}
-			assertTrue(isNull(res[1].value));
+			assertTrue(isNull(res[1].val));
 		}
 		finally {
 			application action="update" NULLSupport=false;
@@ -44,15 +44,15 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 		try{
 			application action="update" NULLSupport=false;
 			query name="local.res" returntype="struct" columnKey="id" {
-				echo("SELECT 'a' as id, null AS value");
+				echo("SELECT 'a' as id, null AS val");
 			}
-			assertFalse(isNull(res.a.value));
+			assertFalse(isNull(res.a.val));
 
 			application action="update" NULLSupport=true;
 			query name="local.res" returntype="struct" columnKey="id" {
-				echo("SELECT 'a' as id, null AS value");
+				echo("SELECT 'a' as id, null AS val");
 			}
-			assertTrue(isNull(res.a.value));
+			assertTrue(isNull(res.a.val));
 		}
 		finally {
 			application action="update" NULLSupport=false;

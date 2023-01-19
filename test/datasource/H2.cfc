@@ -4,10 +4,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		
 	}
 
-	public void function testConnection13(){
-		defineDatasource('org.h2','1.3.172');
-		testConnection();
-	}
 	public void function testConnectionLatest(){
 		defineDatasource('org.h2');
 		testConnection();

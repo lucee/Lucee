@@ -1,7 +1,7 @@
 component {
 	this.name 				= "LDEV1370" & hash( getCurrentTemplatePath() );
 
-	this.datasource = server.getDatasource(service="h2", dbFile=server._getTempDir("LDEV1370"), connectionString=";MVCC=true" );	
+	this.datasource = server.getDatasource(service="h2", dbFile=server._getTempDir("LDEV1370") );	
 
 	this.ormEnabled = true;
 	this.ormSettings = {

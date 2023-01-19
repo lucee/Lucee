@@ -1837,20 +1837,20 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<name>query</name>
 			<type>query</type>
 			<required>Yes</required>
-		<description>Name of the query whose data is returned.</description>
-    </argument>	
+			<description>Name of the query whose data is returned.</description>
+		</argument>	
 		<argument>
 			<name>page</name>
 			<type>number</type>
 			<required>Yes</required>
-		<description></description>
-    </argument>		
+			<description>The specific page of query data to be returned.</description>
+		</argument>		
 		<argument>
 			<name>pageSize</name>
 			<type>number</type>
 			<required>Yes</required>
-		<description></description>
-    </argument>	
+			<description>Number of rows of query data on a page.</description>
+		</argument>	
 		<return>
 			<type>struct</type>
 		</return>
