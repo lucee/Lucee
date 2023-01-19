@@ -912,14 +912,13 @@ Remember CFML arrays start at 1 not 0.</description>
 			<required>Yes</required>
 			<description>filter can be a function/closure that implements the following constructor [function(struct row[, number rowNumber, query query]):struct].
 			The returned struct is used to fill a single query row.</description>
-		
 		</argument>
 		<argument>
 			<name>resQuery</name>
 			<alias>resultingQuery</alias>
 			<type>query</type>
 			<required>no</required>
-			<description></description>
+			<description>Resulted query.</description>
     	</argument>
 		<argument>
 			<name>parallel</name>
@@ -9958,6 +9957,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>query</type>
 		</return>
 	</function>
+	
 	<!-- queryAddColumn -->
 	<function>
 		<name>queryAddColumn</name>
@@ -9974,31 +9974,32 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>query</type>
 			<required>Yes</required>
 		<description>Name of a query object.</description>
-    </argument>
+		</argument>
 		<argument>
 			<name>column</name>
 			<alias>columnName</alias>
 			<type>string</type>
 			<required>Yes</required>
-		<description></description>
-    </argument>
+			<description>Name of the new column.</description>
+		</argument>
 		<argument>
 			<name>datatype_or_array</name>
 			<alias>datatype</alias>
 			<type>any</type>
 			<required>no</required>
-		<description></description>
-    </argument>
+			<description>Column data type.</description>
+		</argument>
 		<argument>
 			<name>array</name>
 			<type>any</type>
 			<required>No</required>
-		<description></description>
-    </argument>
+			<description>Name of an array whose elements populate the new column.</description>
+		</argument>
 		<return>
 			<type>number</type>
 		</return>
 	</function>
+
 	<!-- queryAddRow -->
 	<function>
 		<name>queryAddRow</name>
@@ -10183,6 +10184,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>query</type>
 		</return>
 	</function>
+
 	<!-- queryColumnCount -->
 	<function>
 		<name>queryColumnCount</name>
@@ -10194,8 +10196,8 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<name>query</name>
 			<type>query</type>
 			<required>Yes</required>
-		<description></description>
-    </argument>	
+			<description>Query object to get data from.</description>
+		</argument>	
 		<return>
 			<type>number</type>
 		</return>
@@ -10212,7 +10214,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<name>query</name>
 			<type>query</type>
 			<required>Yes</required>
-			<description></description>
+			<description>Query object to close.</description>
 		</argument>
 		<return>
 			<type>boolean</type>
@@ -10230,13 +10232,13 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<name>query</name>
 			<type>query</type>
 			<required>Yes</required>
-			<description></description>
+			<description>Query object to check.</description>
     	</argument>	
 		<argument>
 			<name>column</name>
 			<type>string</type>
 			<required>Yes</required>
-			<description></description>
+			<description>Name of the column.</description>
     	</argument>	
 		<return>
 			<type>boolean</type>
@@ -10278,12 +10280,13 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<name>query</name>
 			<type>query</type>
 			<required>Yes</required>
-		<description></description>
-    </argument>	
+			<description>Query object to get data from.</description>
+		</argument>	
 		<return>
 			<type>array</type>
 		</return>
 	</function>
+
 	<!-- queryColumnData -->
 	<function>
 		<name>queryColumnData</name>
@@ -10334,13 +10337,13 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<alias>columnName</alias>
 			<type>string</type>
 			<required>Yes</required>
-			<description></description>
+			<description>Name of the column to rename.</description>
 		</argument>
 		<argument>
 			<name>newColumnName</name>
 			<type>string</type>
 			<required>Yes</required>
-			<description></description>
+			<description>New name of the column.</description>
 		</argument>
 		<return>
 			<type>void</type>
@@ -10398,7 +10401,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
     			<name>index</name>
     			<type>string</type>
     			<required>Yes</required>
-    			<description></description>
+    			<description>Name of the index.</description>
     	    </argument>
 			<argument>
 				<name>defaultValue</name>
@@ -10430,7 +10433,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
     			<name>index</name>
     			<type>string</type>
     			<required>Yes</required>
-    			<description></description>
+    			<description>Name of the index</description>
     	    </argument>
 			<argument>
 				<name>defaultValue</name>
@@ -10443,8 +10446,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
     			<type>struct</type>
     		</return>
     	</function>
-	
-	
+		
 	<!-- queryCurrentRow -->
 	<function>
 		<name>queryCurrentRow</name>
@@ -10462,6 +10464,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>numeric</type>
 		</return>
 	</function>
+
 	<!-- queryColumnList -->
 	<function>
 		<name>queryColumnList</name>
@@ -10473,19 +10476,20 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<name>query</name>
 			<type>query</type>
 			<required>Yes</required>
-		<description></description>
-    </argument>
+			<description>Query object to get data from.</description>
+		</argument>
 		<argument>
 			<name>delimiter</name>
 			<type>string</type>
 			<required>no</required>
 			<default>,</default>
-		<description>delimiter used to separate elements in list</description>
-    </argument>	
+			<description>Delimiter used to separate elements in list.</description>
+		</argument>	
 		<return>
 			<type>string</type>
 		</return>
 	</function>
+
 	<!-- QueryDeleteColumn -->
 	<function>
 		<name>QueryDeleteColumn</name>
@@ -10567,6 +10571,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>any</type>
 		</return>
 	</function>
+
 	<!-- queryGetCellByIndex -->
 	<function>
 		<name>queryGetCellByIndex</name>
@@ -10591,19 +10596,20 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<name>index</name>
 			<type>string</type>
 			<required>yes</required>
-			<description></description>
+			<description>Name of the index.</description>
 		</argument>
 		<argument>
 			<name>defaultValue</name>
 			<type>any</type>
 			<required>no</required>
 			<description>In case no matching index was found, this value is returned by the function, in case it is not set, the function will throw an exception.</description>
-			|<introduced>5.3.4.33</introduced>
+			<introduced>5.3.4.33</introduced>
 		</argument>
 		<return>
 			<type>any</type>
 		</return>
 	</function>
+
 	<!-- queryNew -->
 	<function>
 		<name>queryNew</name>
@@ -10639,6 +10645,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>query</type>
 		</return>
 	</function>
+
 	<!-- queryRecordCount -->
 	<function>
 		<name>queryRecordCount</name>
@@ -10650,12 +10657,13 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<name>query</name>
 			<type>query</type>
 			<required>Yes</required>
-		<description></description>
-    </argument>	
+			<description>Query object to get data from.</description>
+		</argument>	
 		<return>
 			<type>number</type>
 		</return>
 	</function>
+
 	<!-- querySetCell -->
 	<function>
 		<name>querySetCell</name>
@@ -14818,6 +14826,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>array</type>
 		</return>
 	</function>
+
 	<!-- QueryIsEmpty -->
 	<function>
 		<name>QueryIsEmpty</name>
@@ -14830,7 +14839,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<name>query</name>
 			<type>query</type>
 			<required>Yes</required>
-			<description></description>
+			<description>Query object to check.</description>
 		</argument>
 		<return>
 			<type>boolean</type>
