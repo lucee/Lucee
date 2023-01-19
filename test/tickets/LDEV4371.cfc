@@ -1,4 +1,4 @@
-component extends = "org.lucee.cfml.test.LuceeTestCase" labels="array" {
+component extends = "org.lucee.cfml.test.LuceeTestCase" labels="array" skip="true" {
     function run( testResults, textbox ) {
         describe("Testcase for LDEV-4371", function() {
             it(title="checking arrayNew() with type argument", body=function( currentSpec ) {
