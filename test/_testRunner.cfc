@@ -105,13 +105,33 @@ component {
 			// finally only allow files which extend "org.lucee.cfml.test.LuceeTestCase"
 			var cfcPath = ListChangeDelims( testMapping & Mid( arguments.path, len( testDirectory ) + 1 ), ".", "/\" );
 			cfcPath = mid( cfcPath, 1, len( cfcPath ) - 4 ); // strip off ".cfc"
+
+			if ( fileRead( arguments.path ) does not contain "org.lucee.cfml.test.LuceeTestCase" )
+				return { skip: true };
 			try {
 				// triggers a compile, which make the initial filter slower, but it would be compiled later anyway
 				// GetComponentMetaData leaks output https://luceeserver.atlassian.net/browse/LDEV-3582
 				silent {
 					var meta = GetComponentMetaData( cfcPath );
 				}
-			} catch ( e ){
+			} catch ( e ) {
+				// try and manually parse to see if there's a skip="true", if not throw
+				var isSkipped = sniffSkipFromBrokenCFC( arguments.path );
+				if ( isSkipped.skip eq false ) {
+					systemOutput( "ERROR: #cfcPath#", true );
+					systemOutput( chr(9) & cfcatch.message, true );
+					if (!isEmpty(cfcatch.tagContext)){
+						systemOutput( chr(9) & "at line: " 
+							& (cfcatch.tagContext[1].line ?: "unknown")
+							& ", column: " & (cfcatch.tagContext[1].column ?: "unknown")
+							, true 
+						);
+						systemOutput( cfcatch.tagContext[1].codePrintPlain, true );
+					}
+					abort;
+				} else {
+					return { skip: true };
+				}
 				if ( request.testDebug && !arguments.silent )
 					systemOutput( cfcatch, true );
 				return {
@@ -173,6 +193,48 @@ component {
 		} else {
 			return true;
 		}
+	}
+
+	// when a CFC won't compile, try and manually parse  meta data
+	public struct function sniffSkipFromBrokenCFC ( string cfcPath ) {
+		local.src = fileRead( arguments.cfcPath );
+		src = reReplace(src, "<!---.*?--->", "", "all"); // strip out cfml comments
+		src = reReplace(src, "/(\/\*[^*]*\*\/)|(\/\/[^*]*)/", "", "all"); // strip out script comments
+		src = trim(src);
+
+		local.isCfml = find( "<" & "cfcomponent", src );
+		local.isScript = find( "component", src );
+
+		if ( isCfml ==0 && isScript == 0 ){
+			throw "bad cfc [#arguments.cfcPath#], can't even find a component tag / statement";
+		} else if ( isCfml gt 0 ){
+			local.endStatement = find( ">", src, isCfml );
+		} else { // isScript
+			local.endStatement = find( "{", src, isScript );
+		}
+		if ( endStatement eq 0 ){
+			systemOutput(local, true);
+			systemOutput(left(src, 200), true);
+			throw "bad cfc [#arguments.cfcPath#], no closing statement";
+		} 
+
+		local.snip = mid(src, ((isCfml > 0) ? isCfml : isScript), endStatement);
+
+		//systemOutput(local.snip, true);
+		// so far, all we care about if finding a skip directive?
+		local.hasSkip = find( "skip", snip );
+		if ( hasSkip eq 0 )
+			return { skip: false };
+		
+		//systemOutput(local.hasSkip, true);
+		// hacky but all we are looking for is a skip true
+		local.hasTrue = find( "true", snip, local.hasSkip );
+		// systemOutput(local.hasTrue, true);
+		//systemOutput(local, true);
+		if ( hasTrue gt 0 and hasTrue lt (local.hasSkip + 7) )
+			return { skip: true };
+		else
+			return { skip: false };
 	}
 
 	// strips off the stack trace to exclude testbox and back to the first .cfc call in the stack
