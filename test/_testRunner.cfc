@@ -128,7 +128,6 @@ component {
 						);
 						systemOutput( cfcatch.tagContext[1].codePrintPlain, true );
 					}
-					abort;
 				} else {
 					return { skip: true };
 				}
