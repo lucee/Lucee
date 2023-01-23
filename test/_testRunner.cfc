@@ -9,11 +9,12 @@ component {
 		var testDirectoryLen = len( arguments.testDirectory );
 		var mapping = ListChangeDelims( arguments.testMapping, "", "/\" );
 		var bundles = [];
+		var testFilter = new _testFilter();
 		arraySort( srcBundles, "textnocase", "asc" ); // make testDebug output sorted
 		ArrayEach( array=srcBundles, closure=function( el, idx, arr ){
 			if ( listLast( arguments.el, "\/" ) eq "Application.cfc" ) {
 				// ignore 
-			} else if ( testFilter( arguments.el, testDirectory, testMapping ) ) {
+			} else if ( testFilter.filterTest( arguments.el, testDirectory, testMapping ) ) {
 				var clean  = ListChangeDelims( mid( arguments.el, testDirectoryLen + 1  ), ".", "/\" ); // strip off dir prefix
 				arrayAppend(bundles, mapping & "." & mid( clean, 1, len( clean ) - 4 ) ); // strip off .cfc
 			}
@@ -35,146 +36,7 @@ component {
 		}
 		return bundles;
 	}
-
-	public boolean function testFilter ( string path, string testDirectory, string testMapping ) localmode=true {
-		//systemOutput(arguments, true);
-		var isValidTestCase = function ( string path ){
-			// get parent
-			var testDir = getDirectoryFromPath( arguments.path );
-			testDir = listCompact( left( testDir, testDir.len() - 1 ), "\/" );
-			if ( left( arguments.path, 1 ) eq "/")
-				testDir = "/" & testDir; // avoid issues with non windows paths
-			var name = listLast( arguments.path, "\/" );
-			var testPath = Mid( arguments.path, len( testDirectory ) + 1); // otherwise "image" would match extension-image on CI
-			switch ( true ){
-				case ( left (name, 1 ) == "_" && request.testSkip):
-					return "test has _ prefix (#name#)";
-				case ( checkTestFilter( testPath ) ):
-					return "excluded by testFilter";
-				case ( FindNoCase( testDirectory, testDir ) neq 1 ):
-					return "not under test dir (#testDirectory#, #testDir#)";
-				case fileExists( testDir & "/Application.cfc" ):
-					var meta = getTestMeta( arguments.path, true );
-					var isTest = checkExtendsTestCase(meta, arguments.path );
-					if ( len( isTest) ){
-						return isTest;
-					} else {
-						return "Test in directory with Application.cfc";
-					}
-				default:
-					break;
-			};
-			var meta = getTestMeta( arguments.path );
-			if ( structKeyExists( meta, "_exception" ) ) {
-				if ( request.testDebug ){
-					SystemOutput( "ERROR: [" & arguments.path & "] threw " & meta._exception.message, true );
-				} else { //} if ( !request.testSkip ){
-					if ( fileRead( arguments.path ) contains "org.lucee.cfml.test.LuceeTestCase" ){
-						// throw an error on bad cfc test cases
-						// but ignore errors when using any labels, as some extensions might not be installed, causing compile syntax errors
-						if ( len( request.testLabels ) eq 0 ) {
-							SystemOutput( "ERROR: [" & arguments.path & "] threw " & meta._exception.message, true );
-							throw( object=meta._exception );
-						}
-					}
-				}
-				return meta._exception.message;
-			}
-
-			if (request.testSkip && structKeyExists(meta, "skip") && meta.skip ?: false)
-				return "test suite has skip=true";
-
-			var extends = checkExtendsTestCase( meta, arguments.path );
-			if ( len(extends) )
-				return extends;
-			
-			return checkTestLabels( meta, arguments.path, request.testLabels );
-		};
-
-		var checkTestFilter = function ( string path ){
-			if ( Arraylen( request.testFilter ) eq 0 )
-				return false;
-			loop array="#request.testFilter#" item="local.f" {
-				if ( FindNoCase( f, arguments.path ) gt 0 )
-					return false;
-			}
-			return true;
-		};
-
-		var getTestMeta = function (string path, boolean silent=false){
-			// finally only allow files which extend "org.lucee.cfml.test.LuceeTestCase"
-			var cfcPath = ListChangeDelims( testMapping & Mid( arguments.path, len( testDirectory ) + 1 ), ".", "/\" );
-			cfcPath = mid( cfcPath, 1, len( cfcPath ) - 4 ); // strip off ".cfc"
-			try {
-				// triggers a compile, which make the initial filter slower, but it would be compiled later anyway
-				// GetComponentMetaData leaks output https://luceeserver.atlassian.net/browse/LDEV-3582
-				silent {
-					var meta = GetComponentMetaData( cfcPath );
-				}
-			} catch ( e ){
-				if ( request.testDebug && !arguments.silent )
-					systemOutput( cfcatch, true );
-				return {
-					"_exception": cfcatch
-				}
-			}
-			return meta;
-		};
-
-		var checkExtendsTestCase = function (any meta, string path){
-			var extends = arguments.meta.extends.fullname ?: "";
-			if ( extends eq "Lucee.component" or len(extends) eq 0 ) {
-				return 'Not a test suite'; // plain old cfc, ignore
-			} else if ( listFindNoCase( request.testSuiteExtends, extends ) eq 0 ) {
-				// default is "org.lucee.cfml.test.LuceeTestCase"
-				return "Test extends wrong Base spec [#extends#] "
-					& "see ' -dtestSuiteExtends=""cfc.path"" ' ";
-			} else {
-				return "";
-			}
-		};
-
-		/* testbox mixes labels and skip, which is confusing, skip false should always mean skip, so we check it manually */
-		var checkTestLabels = function ( required any meta, required string path, required array requiredTestLabels ){
-			if ( arrayLen ( arguments.requiredTestLabels ) eq 0 )
-				return ""; // no labels to filter by
-			var testLabels = meta.labels ?: "";
-			var labelsMatched = [];
-
-			// TODO allow any of syntax, orm|cache
-			loop array="#arguments.requiredTestLabels#" item="local.f" {
-				if ( ListFindNoCase( testLabels, f ) gt 0 )
-					ArrayAppend( labelsMatched, f );
-			}
-			var matched = false;
-
-			if ( ArrayLen( labelsMatched ) eq arrayLen( arguments.requiredTestLabels ) )
-				matched = true; // matched all the required labels
-			if ( matched and listLen( testLabels ) neq ArrayLen( labelsMatched ) )
-				matched = false; // but we didn't match all the specified labels for the test
-
-			var matchStatus = "#path# [#testLabels#] matched required label(s) #serializeJson(arguments.requiredTestLabels)#,"
-				& " only #serializeJson( labelsMatched )# matched";
-			if ( !matched ){
-				// systemOutput( "FAILED: " & matchStatus, true );
-				return matchStatus;
-			} else {
-				// systemOutput( "OK: " & matchStatus  , true);
-				return ""; //ok
-			}
-		};
-
-		var allowed = isValidTestCase( arguments.path );
-		//SystemOutput( arguments.path & " :: " & allowed, true );
-		if ( allowed != "" ){
-			if ( request.testDebug )
-				SystemOutput( arguments.path & " :: " & allowed, true );
-			return false;
-		} else {
-			return true;
-		}
-	}
-
+	
 	// strips off the stack trace to exclude testbox and back to the first .cfc call in the stack
 	public static array function trimJavaStackTrace( required string st ){
 		local.tab = chr( 9 );
