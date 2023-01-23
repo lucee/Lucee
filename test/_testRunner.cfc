@@ -196,6 +196,13 @@ component {
 
 	// when a CFC won't compile, try and manually parse  meta data
 	public struct function sniffSkipFromBrokenCFC ( string cfcPath ) {
+
+		local.meta = {
+			skip: false,
+			extends: "",
+			labels: ""
+		};
+
 		local.src = fileRead( arguments.cfcPath );
 		src = reReplace(src, "<!---.*?--->", "", "all"); // strip out cfml comments
 		src = reReplace(src, "/(\/\*[^*]*\*\/)|(\/\/[^*]*)/", "", "all"); // strip out script comments
@@ -211,6 +218,7 @@ component {
 		} else { // isScript
 			local.endStatement = find( "{", src, isScript );
 		}
+
 		if ( endStatement eq 0 ){
 			systemOutput(local, true);
 			systemOutput(left(src, 200), true);
@@ -219,21 +227,53 @@ component {
 
 		local.snip = mid(src, ((isCfml > 0) ? isCfml : isScript), endStatement);
 
+		// first try creating a stub cfc and extracting the component metadata
+		try {
+			local.meta = extractMetadataFromStub( snip, ( isCfml > 0 ) );
+			if ( isNull( meta.skip ) )
+				meta.skip = false;
+			return meta;
+		} catch (e){
+			// ignore, try manual parsing
+		}
+
 		//systemOutput(local.snip, true);
 		// so far, all we care about if finding a skip directive?
 		local.hasSkip = find( "skip", snip );
-		if ( hasSkip eq 0 )
-			return { skip: false };
-		
-		//systemOutput(local.hasSkip, true);
-		// hacky but all we are looking for is a skip true
-		local.hasTrue = find( "true", snip, local.hasSkip );
-		// systemOutput(local.hasTrue, true);
-		//systemOutput(local, true);
-		if ( hasTrue gt 0 and hasTrue lt (local.hasSkip + 7) )
-			return { skip: true };
-		else
-			return { skip: false };
+		if ( hasSkip gt 0 ) {
+			//systemOutput(local.hasSkip, true);
+			// hacky but all we are looking for is a skip true
+			local.hasTrue = find( "true", snip, local.hasSkip );
+			// systemOutput(local.hasTrue, true);
+			//systemOutput(local, true);
+			if ( hasTrue gt 0 and hasTrue lt (local.hasSkip + 7) )
+				meta.skip = true;
+		}
+		return meta
+	}
+
+	// create a stub cfc to try and extract out just the component meatdata
+	private struct function extractMetadataFromStub( required string str, required boolean isCFml ){
+		if ( arguments.isCFml ){
+			local.src = arguments.str & '</c' & 'fcomponent">';
+		} else {
+			local.src = arguments.str & ' this.stubCFC=true; }';
+		}
+		// systemOutput( "SRC:" & src, true );
+		local.tempMapping = expandPath( "/test" ) & "/tempCFC/";
+		if ( !directoryExists( tempMapping ) )
+			directoryCreate( tempMapping )
+		local.tempCFC = getTempFile( tempMapping, "tempCFC", "cfc" );
+		fileWrite( tempCFC, src );
+		try {
+			local.meta = getComponentMetadata( "/test/tempCFC/" & listFirst( listLast( tempCFC, "/\" ), "." ) );
+		} catch(e){
+			fileDelete( tempCFC );
+			rethrow;	
+		};
+		fileDelete( tempCFC );
+		// systemOutput( meta, true );
+		return meta;
 	}
 
 	// strips off the stack trace to exclude testbox and back to the first .cfc call in the stack
