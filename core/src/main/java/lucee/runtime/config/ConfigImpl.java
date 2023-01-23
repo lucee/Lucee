@@ -1307,7 +1307,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		tl.setTag(tlt);
 	}
 
-	protected void setFunctionDirectory(List<XMLConfigWebFactory.Path> listFunctionDirectory) {
+	protected void setFunctionDirectory(List<Path> listFunctionDirectory) {
 		Iterator<Path> it = listFunctionDirectory.iterator();
 		int index = -1;
 		String mappingName;
