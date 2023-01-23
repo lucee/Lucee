@@ -325,18 +325,19 @@
 		loop struct="#datas#" index="local.provider" item="local.data" {
 			if(structKeyExists(data,"error")) continue;
 
-			// rename older to otherVersions
+			lock name="admin-extension-populate-cols" {
+				// rename older to otherVersions
+				if(queryColumnExists(data.extensions,"older") && !queryColumnExists(data.extensions,"otherVersions")) {
+					data.extensions.addColumn("otherVersions",data.extensions.columnData('older'));
+					data.extensions.deleteColumn("older");
+					//QuerySetColumn(data.extensions,"older","otherVersions");
+				}
 
-			if(queryColumnExists(data.extensions,"older") && !queryColumnExists(data.extensions,"otherVersions")) {
-				data.extensions.addColumn("otherVersions",data.extensions.columnData('older'));
-				data.extensions.deleteColumn("older");
-				//QuerySetColumn(data.extensions,"older","otherVersions");
+				// add missing columns
+				loop list="#data.extensions.columnlist()#" item="local.k" {
+					if(!qry.ColumnExists(k)) qry.addColumn(k,[]);
+				}
 			}
-
-			// add missing columns
-			loop list="#data.extensions.columnlist()#" item="local.k" {
-                if(!qry.ColumnExists(k)) qry.addColumn(k,[]);
-            }
 
 			// add Extensions data
 			var row=0;
