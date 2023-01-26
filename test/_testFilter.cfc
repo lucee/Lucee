@@ -33,21 +33,6 @@ component {
 					break;
 			};
 			var meta = getTestMeta( arguments.path );
-			if ( structKeyExists( meta, "_exception" ) ) {
-				if ( request.testDebug ){
-					SystemOutput( "ERROR: [" & arguments.path & "] threw " & meta._exception.message, true );
-				} else { //} if ( !request.testSkip ){
-					if ( fileRead( arguments.path ) contains "org.lucee.cfml.test.LuceeTestCase" ){
-						// throw an error on bad cfc test cases
-						// but ignore errors when using any labels, as some extensions might not be installed, causing compile syntax errors
-						if ( len( request.testLabels ) eq 0 ) {
-							SystemOutput( "ERROR: [" & arguments.path & "] threw " & meta._exception.message, true );
-							throw( object=meta._exception );
-						}
-					}
-				}
-				return meta._exception.message;
-			}
 
 			if (request.testSkip && structKeyExists(meta, "skip") && meta.skip ?: false)
 				return "test suite has skip=true";
@@ -56,7 +41,25 @@ component {
 			if ( len( extends ) )
 				return extends;
 			
-			return checkTestLabels( meta, arguments.path, request.testLabels );
+			var labelCheck =  checkTestLabels( meta, arguments.path, request.testLabels );
+			if ( len( labelCheck ) )
+				return labelCheck;
+
+			// only report an exception if all other filters have passed
+			if ( structKeyExists( meta, "_exception" ) ) {
+				if ( request.testDebug ){
+					if ( !meta.skip && request.testDebug ) {
+						printCompileException( arguments.path, meta._exception );
+					} 
+				} else { //} if ( !request.testSkip ){
+					// throw an error on bad cfc test cases
+					// but ignore errors when using any labels, as some extensions might not be installed, causing compile syntax errors
+					printCompileException( arguments.path, meta._exception );
+					throw( object=meta._exception );
+				}
+				return meta._exception.message;
+			}
+			return "";
 		};
 
 		var allowed = isValidTestCase( arguments.path );
@@ -80,10 +83,10 @@ component {
 		return true;
 	}
 
-	public string function checkExtendsTestCase ( any meta, string path ){
+	public string function checkExtendsTestCase ( required struct meta, required string path ){
 		var extends = arguments.meta.extends.fullname ?: "";
 		if ( extends eq "Lucee.component" or len( extends ) eq 0 ) {
-			return 'Not a test suite'; // plain old cfc, ignore
+			return 'Not a test suite [#(arguments.meta.extends?:{}).toJson()#]'; // plain old cfc, ignore
 		} else if ( listFindNoCase( request.testSuiteExtends, extends ) eq 0 ) {
 			// default is "org.lucee.cfml.test.LuceeTestCase"
 			return "Test extends wrong Base spec [#extends#] "
@@ -93,13 +96,13 @@ component {
 		}
 	}
 
-	public struct function getTestMeta ( required string path, boolean silent=false ){
+	public struct function getTestMeta ( required string path ){
 		// finally only allow files which extend "org.lucee.cfml.test.LuceeTestCase"
 		var cfcPath = ListChangeDelims( testMapping & Mid( arguments.path, len( testDirectory ) + 1 ), ".", "/\" );
 		cfcPath = mid( cfcPath, 1, len( cfcPath ) - 4 ); // strip off ".cfc"
 
-		if ( fileRead( arguments.path ) does not contain "org.lucee.cfml.test.LuceeTestCase" )
-			return { skip: true };
+		if ( fileRead( arguments.path ) does not contain "extends" )
+			return { skip: true, missingExtends: true };
 		try {
 			// triggers a compile, which make the initial filter slower, but it would be compiled later anyway
 			// GetComponentMetaData leaks output https://luceeserver.atlassian.net/browse/LDEV-3582
@@ -109,28 +112,23 @@ component {
 		} catch ( e ) {
 			// try and manually parse to see if there's a skip="true", if not throw
 			// TODO refactor, need to respect test labels (thus possible ignore)
-			var isSkipped = sniffSkipFromBrokenCFC( arguments.path );
-			if ( isSkipped.skip eq false ) {
-				systemOutput( "ERROR: #cfcPath#", true );
-				systemOutput( chr(9) & cfcatch.message, true );
-				if (!isEmpty(cfcatch.tagContext)){
-					systemOutput( chr(9) & "at line: " 
-						& (cfcatch.tagContext[1].line ?: "unknown")
-						& ", column: " & (cfcatch.tagContext[1].column ?: "unknown")
-						, true 
-					);
-					systemOutput( cfcatch.tagContext[1].codePrintPlain, true );
-				}
-			} else {
-				return { skip: true };
-			}
-			if ( request.testDebug && !arguments.silent )
-				systemOutput( cfcatch, true );
-			return {
-				"_exception": cfcatch
-			}
+			var meta = sniffMetaDataFromBrokenCFC( arguments.path );
+			meta['_exception'] = e;
 		}
 		return meta;
+	}
+
+	public function printCompileException( string cfcPath="", required struct cfcatch ){
+		systemOutput( "ERROR: #arguments.cfcPath#", true );
+		systemOutput( chr(9) & arguments.cfcatch.message, true );
+		if ( !isEmpty( arguments.cfcatch.tagContext ) ){
+			systemOutput( chr( 9 ) & "at line: " 
+				& ( arguments.cfcatch.tagContext[1].line ?: "unknown")
+				& ", column: " & ( arguments.cfcatch.tagContext[1].column ?: "unknown")
+				, true 
+			);
+			systemOutput( arguments.cfcatch.tagContext[1].codePrintPlain, true );
+		}
 	}
 
 	// testbox mixes labels and skip, which is confusing, skip false should always mean skip, so we check it manually
@@ -164,7 +162,7 @@ component {
 	}
 
 	// when a CFC won't compile, try and manually parse  meta data
-	public struct function sniffSkipFromBrokenCFC ( required string cfcPath ) {
+	public struct function sniffMetaDataFromBrokenCFC ( required string cfcPath ) {
 
 		local.meta = {
 			skip: false,
@@ -174,7 +172,7 @@ component {
 
 		local.src = fileRead( arguments.cfcPath );
 		src = reReplace(src, "<!---.*?--->", "", "all"); // strip out cfml comments
-		src = reReplace(src, "/(\/\*[^*]*\*\/)|(\/\/[^*]*)/", "", "all"); // strip out script comments
+		src = reReplace(src, "/\/\*[\s\S]*?\*\/|([^:]|^)\/\/.*$", "", "all"); // strip out script comments
 		src = trim(src);
 
 		local.isCfml = find( "<" & "cfcomponent", src );
@@ -195,6 +193,7 @@ component {
 		} 
 
 		local.snip = mid(src, ((isCfml > 0) ? isCfml : isScript), endStatement);
+		//systemOutput(local, true);
 
 		// first try creating a stub cfc and extracting the component metadata
 		try {
@@ -205,6 +204,8 @@ component {
 		} catch (e){
 			// ignore, try manual parsing
 		}
+
+		meta.manualParsing=true;
 
 		//systemOutput(local.snip, true);
 		// so far, all we care about if finding a skip directive?
@@ -228,6 +229,7 @@ component {
 		} else {
 			local.src = arguments.str & ' this.stubCFC=true; }';
 		}
+		// systemOutput( "SRC:" & str, true );
 		// systemOutput( "SRC:" & src, true );
 		local.tempMapping = expandPath( "/test" ) & "/tempCFC/";  // TODO this could be a mapping under the temp directory
 		if ( !directoryExists( tempMapping ) )
@@ -235,8 +237,11 @@ component {
 		local.tempCFC = getTempFile( tempMapping, "tempCFC", "cfc" );
 		fileWrite( tempCFC, src );
 		try {
-			local.meta = getComponentMetadata( "/test/tempCFC/" & listFirst( listLast( tempCFC, "/\" ), "." ) );
+			silent {
+				local.meta = getComponentMetadata( "/test/tempCFC/" & listFirst( listLast( tempCFC, "/\" ), "." ) );
+			}
 		} catch(e){
+			// systemOutput(e, true);
 			fileDelete( tempCFC );
 			rethrow;	
 		};
