@@ -9,9 +9,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase" skip="false" labels="qoq" 
 					arguments.spec.body();
 				} catch( any e ) {
 					// These should not be failing back to HSQLDB
-					expect( e.getPageException().getClass().getName() )
-						.toBe( 'lucee.runtime.exp.IllegalQoQException' );
-					return;
+					// The IllegalQoQException may be nested based on whether or not parallel streams were used in the QoQ
+					if( e.message contains 'IllegalQoQException' ) {
+						return;
+					}
+					if( e.getPageException().getClass().getName() == 'lucee.runtime.exp.IllegalQoQException' ) {
+						return;
+					}
 				}
 				fail( 'Test did not throw exception as expected' );
 			});

@@ -57,6 +57,7 @@ public class SelectParser {
 
 	private int columnIndex = 0;
 	private Set<String> allColumns = new HashSet<String>();
+	private boolean cachingColumn = true;
 
 	// select <select-statement> from <tables> where <where-statement>
 	public Selects parse(String sql) throws SQLParserException {
@@ -194,7 +195,9 @@ public class SelectParser {
 
 	private void havingExpressions(ParserString raw, Select select) throws SQLParserException {
 		raw.removeSpace();
+		cachingColumn = false;
 		Expression exp = expression(raw);
+		cachingColumn = true;
 		if (exp == null) throw new SQLParserException("missing having expression");
 		if (!(exp instanceof Operation)) throw new SQLParserException("invalid having expression");
 		select.setHaving((Operation) exp);
@@ -584,7 +587,7 @@ public class SelectParser {
 			if ("null".equalsIgnoreCase(name)) return new ValueNull();
 		}
 
-		ColumnExpression column = new ColumnExpression(name, name.equals("?") ? columnIndex++ : 0);
+		ColumnExpression column = new ColumnExpression(name, name.equals("?") ? columnIndex++ : 0, cachingColumn);
 		allColumns.add(column.getColumnName());
 		raw.removeSpace();
 		while (raw.forwardIfCurrent(".")) {
