@@ -1,5 +1,5 @@
 component extends="org.lucee.cfml.test.LuceeTestCase" {
-	function run( testResults , testBox ) {
+	function run( testResults, testBox ) {
 		describe( "Test suite for LDEV-1813", function() {
 			it( title='Array Slice Implementation', body=function( currentSpec ) {
 				var a = [1,2,3,4,5,6,7,8];
