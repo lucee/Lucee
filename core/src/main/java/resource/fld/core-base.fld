@@ -13711,10 +13711,11 @@ _- asc (default): ascending (a to z) sort order
     </argument>
 		<argument>
 			<name>pathToSubElement</name>
+			<alias>path</alias>
 			<type>string</type>
 			<required>No</required>
-		<description>String or a variable that contains one</description>
-    </argument>
+			<description>String or a variable that contains one</description>
+		</argument>
 		<return>
 			<type>array</type>
 		</return>
