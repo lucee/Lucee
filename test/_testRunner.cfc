@@ -48,17 +48,18 @@ component {
 
 		try {
 			var filterTimer = getTickCount();
-			var bundles = getBundles( "/test", request.testFolder, {
+			var testConfig = {
 				testFilter: request.testFilter,
 				testLabels: request.testLabels,
 				testSkip: request.testSkip,
 				testDebug: request.testDebug,
-				testSuiteExtends:  request.testSuiteExtends
-			} );
+				testSuiteExtends: request.testSuiteExtends
+			};
+			var bundles = getBundles( "/test", request.testFolder, testConfig );
 			//SystemOutput( bundles, true);
 			var additionalBundles = [];
 			if ( len( request.testAdditional ) ){
-				additionalBundles = getBundles( "/testAdditional", request.testAdditional );
+				additionalBundles = getBundles( "/testAdditional", request.testAdditional, testConfig );
 				// SystemOutput( additionalBundles, true );
 				bundles = ArrayMerge( bundles, additionalBundles );
 			}
