@@ -4,12 +4,13 @@ component {
 	}
 
 	// testbox doesn't always sort the order of tests, so we do it manually LDEV-3541
-	public array function getBundles( testMapping, testDirectory ){
+	public array function getBundles( required string testMapping, required string testDirectory, required struct testConfig ){
 		var srcBundles = directoryList( path="#expandPath(arguments.testMapping)#", recurse=true, listInfo="path", filter="*.cfc" );
 		var testDirectoryLen = len( arguments.testDirectory );
 		var mapping = ListChangeDelims( arguments.testMapping, "", "/\" );
 		var bundles = [];
-		var testFilter = new _testFilter();
+		var testFilter = new _testFilter( argumentCollection = arguments.testConfig );
+
 		arraySort( srcBundles, "textnocase", "asc" ); // make testDebug output sorted
 		ArrayEach( array=srcBundles, closure=function( el, idx, arr ){
 			if ( listLast( arguments.el, "\/" ) eq "Application.cfc" ) {
@@ -37,34 +38,6 @@ component {
 		return bundles;
 	}
 	
-	// strips off the stack trace to exclude testbox and back to the first .cfc call in the stack
-	public static array function trimJavaStackTrace( required string st ){
-		local.tab = chr( 9 );
-		local.stack = [];
-		local.i = find( "/testbox/", arguments.st );
-		if ( request.testDebug || i eq 0 ){ // dump it all out
-			arrayAppend( stack, TAB & arguments.st );
-			return stack;
-		}
-		local.tmp = mid( arguments.st, 1, i ); // strip out anything after testbox
-		local.tmp2 = reverse( local.tmp );
-		local.i = find( ":cfc.", local.tmp2 ); // find the first cfc line
-		if ( local.i gt 0 ){
-			local.i = len( local.tmp )-i;
-			local.j = find( ")", local.tmp, local.i ); // find the end of the line
-			local.tmp = mid( local.tmp, 1, local.j );
-		}
-		arrayAppend( stack, TAB & local.tmp );
-		// now find any Caused By: and output them
-		local.tail = mid( arguments.st, local.j );
-		local.firstCausedBy = findNoCase( "Caused by:", tail );
-		if ( firstCausedBy gt 0 ) {
-			arrayAppend( stack, TAB & TAB & TAB & "... omitted verbose (ant / pagecontext / testbox) default stacktraces ... " );
-			arrayAppend( stack, mid( tail, firstCausedBy) );
-		}
-		return stack;
-	}
-
 	public struct function runTests() localmode=true {
 		SystemOut = createObject( "java", "lucee.commons.lang.SystemOut" );
 		out = SystemOut.setOut( nullValue() );
@@ -75,7 +48,13 @@ component {
 
 		try {
 			var filterTimer = getTickCount();
-			var bundles = getBundles( "/test", request.testFolder );
+			var bundles = getBundles( "/test", request.testFolder, {
+				testFilter: request.testFilter,
+				testLabels: request.testLabels,
+				testSkip: request.testSkip,
+				testDebug: request.testDebug,
+				testSuiteExtends:  request.testSuiteExtends
+			} );
 			//SystemOutput( bundles, true);
 			var additionalBundles = [];
 			if ( len( request.testAdditional ) ){
@@ -307,5 +286,33 @@ Begin Stack Trace
 	};
 	return testResults;
 }
+
+	// strips off the stack trace to exclude testbox and back to the first .cfc call in the stack
+	public static array function trimJavaStackTrace( required string st ){
+		local.tab = chr( 9 );
+		local.stack = [];
+		local.i = find( "/testbox/", arguments.st );
+		if ( request.testDebug || i eq 0 ){ // dump it all out
+			arrayAppend( stack, TAB & arguments.st );
+			return stack;
+		}
+		local.tmp = mid( arguments.st, 1, i ); // strip out anything after testbox
+		local.tmp2 = reverse( local.tmp );
+		local.i = find( ":cfc.", local.tmp2 ); // find the first cfc line
+		if ( local.i gt 0 ){
+			local.i = len( local.tmp )-i;
+			local.j = find( ")", local.tmp, local.i ); // find the end of the line
+			local.tmp = mid( local.tmp, 1, local.j );
+		}
+		arrayAppend( stack, TAB & local.tmp );
+		// now find any Caused By: and output them
+		local.tail = mid( arguments.st, local.j );
+		local.firstCausedBy = findNoCase( "Caused by:", tail );
+		if ( firstCausedBy gt 0 ) {
+			arrayAppend( stack, TAB & TAB & TAB & "... omitted verbose (ant / pagecontext / testbox) default stacktraces ... " );
+			arrayAppend( stack, mid( tail, firstCausedBy) );
+		}
+		return stack;
+	}
 
 }

@@ -1,8 +1,19 @@
 component {
-	public function init (){
+	public function init (
+				array testFilter = [],
+				array testLabels = [],
+				boolean testSkip = true,
+				boolean testDebug = false,
+				string testSuiteExtends = "" 
+			){
+		variables.testFilter = arguments.testFilter;
+		variables.testLabels = arguments.testLabels;
+		variables.testSkip = arguments.testSkip;
+		variables.testDebug = arguments.testDebug;
+		variables.testSuiteExtends = arguments.testSuiteExtends
+		// systemOutput( arguments, true );
 		return this;
 	}
-
 	/* manually filter test suite based on naming conventions, labels, skip, etc */
 	public boolean function filterTest ( required string path, required string testDirectory, required string testMapping ) localmode=true {
 		//systemOutput(arguments, true);
@@ -15,7 +26,7 @@ component {
 			var name = listLast( arguments.path, "\/" );
 			var testPath = Mid( arguments.path, len( testDirectory ) + 1); // otherwise "image" would match extension-image on CI
 			switch ( true ){
-				case ( left( name, 1 ) == "_" && request.testSkip ):
+				case ( left( name, 1 ) == "_" && variables.testSkip ):
 					return "test has _ prefix (#name#)";
 				case ( checkTestFilter( testPath ) ):
 					return "excluded by testFilter";
@@ -34,24 +45,24 @@ component {
 			};
 			var meta = getTestMeta( arguments.path );
 
-			if (request.testSkip && structKeyExists(meta, "skip") && meta.skip ?: false)
+			if ( variables.testSkip && structKeyExists( meta, "skip" ) && meta.skip ?: false )
 				return "test suite has skip=true";
 
 			var extends = checkExtendsTestCase( meta, arguments.path ); // returns an empty string, unless error
 			if ( len( extends ) )
 				return extends;
 			
-			var labelCheck =  checkTestLabels( meta, arguments.path, request.testLabels );
+			var labelCheck =  checkTestLabels( meta, arguments.path, variables.testLabels );
 			if ( len( labelCheck ) )
 				return labelCheck;
 
 			// only report an exception if all other filters have passed
 			if ( structKeyExists( meta, "_exception" ) ) {
-				if ( request.testDebug ){
-					if ( !meta.skip && request.testDebug ) {
+				if ( variables.testDebug ){
+					if ( !meta.skip && variables.testDebug ) {
 						printCompileException( arguments.path, meta._exception );
 					} 
-				} else { //} if ( !request.testSkip ){
+				} else if ( !variables.testSkip ){
 					// throw an error on bad cfc test cases
 					// but ignore errors when using any labels, as some extensions might not be installed, causing compile syntax errors
 					printCompileException( arguments.path, meta._exception );
@@ -65,7 +76,7 @@ component {
 		var allowed = isValidTestCase( arguments.path );
 		//SystemOutput( arguments.path & " :: " & allowed, true );
 		if ( allowed != "" ){
-			if ( request.testDebug )
+			if ( variables.testDebug )
 				SystemOutput( arguments.path & " :: " & allowed, true );
 			return false;
 		} else {
@@ -74,9 +85,9 @@ component {
 	}
 
 	public boolean function checkTestFilter ( required string path ){
-		if ( Arraylen( request.testFilter ) eq 0 )
+		if ( Arraylen( variables.testFilter ) eq 0 )
 			return false;
-		loop array="#request.testFilter#" item="local.filter" {
+		loop array="#variables.testFilter#" item="local.filter" {
 			if ( FindNoCase( filter, arguments.path ) gt 0 )
 				return false;
 		}
@@ -87,7 +98,7 @@ component {
 		var extends = arguments.meta.extends.fullname ?: "";
 		if ( extends eq "Lucee.component" or len( extends ) eq 0 ) {
 			return 'Not a test suite [#(arguments.meta.extends?:{}).toJson()#]'; // plain old cfc, ignore
-		} else if ( listFindNoCase( request.testSuiteExtends, extends ) eq 0 ) {
+		} else if ( listFindNoCase( variables.testSuiteExtends, extends ) eq 0 ) {
 			// default is "org.lucee.cfml.test.LuceeTestCase"
 			return "Test extends wrong Base spec [#extends#] "
 				& "see ' -dtestSuiteExtends=""cfc.path"" ' ";
@@ -175,8 +186,8 @@ component {
 		src = reReplace(src, "/\/\*[\s\S]*?\*\/|([^:]|^)\/\/.*$", "", "all"); // strip out script comments
 		src = trim(src);
 
-		local.isCfml = find( "<" & "cfcomponent", src );
-		local.isScript = find( "component", src );
+		local.isCfml = findNoCase( "<" & "cf" & "component", src );
+		local.isScript = findNoCase( "component", src );
 
 		if ( isCfml == 0 && isScript == 0 ){
 			throw "bad cfc [#arguments.cfcPath#], can't even find a component tag / statement";
@@ -189,7 +200,7 @@ component {
 		if ( endStatement eq 0 ){
 			systemOutput(local, true);
 			systemOutput(left(src, 200), true);
-			throw "bad cfc [#arguments.cfcPath#], no closing statement";
+			throw "bad cfc [#arguments.cfcPath#], no closing statement ( '>'' or '{' ) for component";
 		} 
 
 		local.snip = mid(src, ((isCfml > 0) ? isCfml : isScript), endStatement);
