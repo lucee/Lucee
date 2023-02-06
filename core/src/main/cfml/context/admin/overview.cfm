@@ -267,7 +267,6 @@ Error Output --->
 		type="#request.adminType#"
 		password="#session["password"&request.adminType]#"
 		returnVariable="info">
-
 	<cfadmin
 		action="getAPIKey"
 		type="#request.adminType#"
@@ -330,7 +329,7 @@ Error Output --->
 
 
 	<!--- installed libs --->
-	<cfif request.adminType EQ "web">	
+	<cfif request.adminType EQ "web" or request.singlemode >	
 		<cfadmin
 			action="getTLDs"
 			type="#request.adminType#"
@@ -604,14 +603,14 @@ Error Output --->
 									<th nowrap="nowrap" scope="row">#stText.Overview.ReleaseDate#</th>
 									<td>#lsDateFormat(server.lucee['release-date'])#</td>
 								</tr>
-								<cfif !request.singleMode && request.adminType EQ "web">
+								<cfif request.singleMode or request.adminType EQ "web">
 								<tr>
 									<th nowrap="nowrap" scope="row">#stText.Overview.label#</th>
-									<td>#info.label#</td>
+									<td>#info.label?:""#</td>
 								</tr>
 								</cfif>
 
-								<cfif request.adminType EQ "web">
+								<cfif request.singlemode or  request.adminType EQ "web">
 								<tr>
 									<th nowrap="nowrap" scope="row">#stText.Overview.InstalledTLs#</th>
 									<td>
@@ -621,7 +620,7 @@ Error Output --->
 									</td>
 								</tr>
 								</cfif>
-								<cfif request.adminType EQ "web">
+								<cfif request.singlemode or request.adminType EQ "web">
 								<tr>
 									<th nowrap="nowrap" scope="row">#stText.Overview.InstalledFLs#</th>
 									<td>
@@ -673,10 +672,10 @@ Error Output --->
 									</cfif>
 									</td>
 								</tr>
-								<cfif !request.singleMode && request.adminType EQ "web">
+								<cfif request.singleMode or request.adminType EQ "web">
 									<tr>
 										<th scope="row">#stText.Overview.hash#</th>
-										<td>#info.hash#</td>
+										<td>#info.hash?:""#</td>
 									</tr>
 								</cfif>
 

@@ -1164,10 +1164,18 @@ public final class ConfigWebFactory extends ConfigFactory {
 			}
 
 			Struct security = ConfigWebUtil.getAsStruct("security", root);
+			int vu = ConfigImpl.QUERY_VAR_USAGE_UNDEFINED;
 			if (security != null) {
-				int vu = AppListenerUtil.toVariableUsage(getAttr(security, "variable-usage"), ConfigImpl.QUERY_VAR_USAGE_IGNORE);
-				config.setQueryVarUsage(vu);
+				vu = AppListenerUtil.toVariableUsage(getAttr(security, "variableUsage"), ConfigImpl.QUERY_VAR_USAGE_UNDEFINED);
+				if (vu == ConfigImpl.QUERY_VAR_USAGE_UNDEFINED) vu = AppListenerUtil.toVariableUsage(getAttr(security, "varUsage"), ConfigImpl.QUERY_VAR_USAGE_UNDEFINED);
 			}
+			if (vu == ConfigImpl.QUERY_VAR_USAGE_UNDEFINED) {
+				if (configServer != null) {
+					vu = configServer.getQueryVarUsage();
+				}
+				else vu = ConfigImpl.QUERY_VAR_USAGE_IGNORE;
+			}
+			config.setQueryVarUsage(vu);
 		}
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);

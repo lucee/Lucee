@@ -201,7 +201,7 @@
 						<td colspan="2">
 							<input class="bl button submit" type="submit" name="mainAction" value="#stText.Buttons.Update#">
 							<input type="reset" class="<cfif request.adminType EQ "web">bm<cfelse>br</cfif> button reset" name="cancel" value="#stText.Buttons.cancel#">
-							<cfif request.adminType EQ "web"><input class="br button submit" type="submit" name="mainAction" value="#stText.Buttons.resetServerAdmin#"></cfif>
+							<cfif not request.singleMode && request.adminType EQ "web"><input class="br button submit" type="submit" name="mainAction" value="#stText.Buttons.resetServerAdmin#"></cfif>
 						</td>
 					</tr>
 				</tfoot>

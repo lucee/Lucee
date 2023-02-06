@@ -54,8 +54,8 @@
 				request.hasRemoteClientUsage=true;
 		}
 
-		stText.menuStruct.web = createMenu( stText.menu, "web" );
-		stText.menuStruct.server = createMenu( stText.menu, "server" );
+		stText.menuStruct.web = createMenu( stText.menu, "web",request.singlemode);
+		stText.menuStruct.server = createMenu( stText.menu, "server",request.singlemode);
 
 	} else{
 		languages=application.languages;

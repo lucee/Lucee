@@ -75,6 +75,7 @@ public interface ConfigPro extends Config {
 	public static final String DEFAULT_STORAGE_SESSION = "memory";
 	public static final String DEFAULT_STORAGE_CLIENT = "cookie";
 
+	public static final int QUERY_VAR_USAGE_UNDEFINED = 0;
 	public static final int QUERY_VAR_USAGE_IGNORE = 1;
 	public static final int QUERY_VAR_USAGE_WARN = 2;
 	public static final int QUERY_VAR_USAGE_ERROR = 4;
