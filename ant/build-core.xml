@@ -16,7 +16,7 @@
   
   <property name="extMongo"       value="E6634E1A-4CC5-4839-A83C67549ECA8D5B"/>
   <property name="extH2"          value="465E1E35-2425-4F4E-8B3FAB638BD7280A;version=2.1.214.0001L"/>
-  <property name="extOracle"          value="D4EDFDBD-A9A3-E9AF-597322D767E0C949"/>
+  <property name="extOracle"          value="D4EDFDBD-A9A3-E9AF-597322D767E0C949;version=19.12.0.0-ojdbc8"/>
   <property name="extLucene"          value="EFDEB172-F52E-4D84-9CD1A1F561B3DFC8;version=2.4.2.4"/>
   <property name="extAxis"          value="DF28D0A4-6748-44B9-A2FDC12E4E2E4D38;version=1.4.0.37"/>
   <property name="extChart"          value="D46B46A9-A0E3-44E1-D972A04AC3A8DC10;version=1.0.19.24"/>
