@@ -681,38 +681,78 @@ Diese werden dann am Ende eines Request ausgegeben, falls sie ein Debug Template
   
 	<data key="general.enabled">Enabled</data>
 
-	<data key="compiler.nullSupport">Null Support</data>
+
+    <!-- *** server.compiler.cfm/partially in overview.cfm *** -->
+
+
+    <!-- template charset -->
+    <!-- uses key=charset.templatecharset, 
+         and key=charset.templateCharsetDescription-->
+	
+	<!-- Externalize strings -->
+	<data key="setting.externalizeStringGTE">Zeichenketten externalisieren</data>
+	<data key="setting.externalizeStringGTEDesc">Externalsiere Zeichenketten aus generierten Klassen-Dateien in gesonderte Dateien. Dies kann den Template-Speicherbedarf erheblich reduzieren, aber eine negative Auswirkung auf die Ausführungszeit haben. Ein geringerer "Breakpoint" wird eine langsamere Ausführungszeit benötigen als ein höherer Breakpoint.</data>
+	<data key="setting.externalizeString_1">keine Zeichenketten externalisieren</data>
+	<data key="setting.externalizeString10">externalisiere Zeichenketten mit mehr als 10 Zeichen</data>
+	<data key="setting.externalizeString100">externalisiere Zeichenketten mit mehr als 100 Zeichen</data>
+	<data key="setting.externalizeString1000">externalisiere Zeichenketten mit mehr als 1000 Zeichen</data>
+	<data key="setting.externalizeStringDisabled">deaktiviert</data>
+
+
+    <!-- Null Support -->
+    <data key="compiler.nullSupport">Null Support</data>
 	<data key="compiler.nullSupportOnlyServer">Diese Einstellung ist nur im Lucee Server Administrator möglich.</data>
 	<data key="compiler.nullSupportDesc">Definiert wie Lucee null unterstützt.</data>
 	<data key="compiler.nullSupportFull">Volle Unterstützung</data>
 	<data key="compiler.nullSupportFullDesc">Lucee hat volle Unterstützung für "null", dies beinhaltet "null" Literale. Im Lucee Wiki finden Sie mehr Details dazu.</data>
-	<data key="compiler.nullSupportPartial">Partial Support (CFML Default)</data>
-	<data key="compiler.nullSupportPartialDesc">Lucee has only a partial null support.</data>
+	<data key="compiler.nullSupportPartial">Partieller Support (CFML Standard)</data>
+	<data key="compiler.nullSupportPartialDesc">Lucee unterstützt null nur teilweise</data>
 
-
-	<data key="setting.compiler">Lucee Regular Expression (regex) Einstellungen.</data>
-	<data key="setting.compiler">Lucee Compiler Einstellungen, dies beeinflusst wie der Lucee Compiler den Source Code übersetzt. Das ändern dieser Einstellungen löscht alle existierenden Class Files.</data>
-	<data key="setting.dotNotation">Key case</data>
-
-
+  
+    <!-- Key Case -->
+    <data key="setting.dotNotation">Key case</data>
 	<data key="setting.dotNotationUpperCaseDesc">Konvertiert Struct Keys definiert mit "Dot Notation" als grossgeschrieben (CFML Standard).
-Beispiel:
-sct.dotNotation --> keyname: "DOTNOTATION"
-sct[""bracketNotation""] --> keyname: "bracketNotation"</data>
+        &lt;br&gt;
+        Beispiel:&lt;br&gt;
+        sct.dotNotation --&amp;gt; keyname: "DOTNOTATION"&lt;br&gt;
+        sct["bracketNotation"] --&gt; keyname: "bracketNotation"</data>
 
-<data key="setting.dotNotationOriginalCaseDesc">Belässt Struct Keys definiert mit "Dot Notation" wie sie sind (wie "Bracked Notation").
-
-Beispiel:
-sct.dotNotation --> keyname: "dotNotation"
-sct[""bracketNotation""] --> keyname: "bracketNotation"</data>
-
-
-	<data key="setting.dotNotationUpperCase">Übersetzt zu grossgeschrieben (CFML Standard)</data>
+        <data key="setting.dotNotationOriginalCaseDesc">Belässt Struct Keys definiert mit "Dot Notation" wie sie sind (wie "Bracked Notation").
+        &lt;br&gt;
+        Beispiel:&lt;br&gt;
+        sct.dotNotation --&amp;gt; keyname: "dotNotation"&lt;br&gt;
+        sct["bracketNotation"] --&amp;gt; keyname: "bracketNotation"</data>
+    <data key="setting.dotNotationUpperCase">Übersetzt zu grossgeschrieben (CFML Standard)</data>
 	<data key="setting.dotNotationOriginalCase">Behält die Keys wie sie sind (wie "Bracked Notation")</data>
-	<data key="setting.suppressWSBeforeArg">Unterdrückt White-Space vor cfargument</data>
+	
+    
+
+    <!-- precise math -->
+    <data key="setting.preciseMath">Präzise Mathematik</data>
+    <data key="setting.preciseMathDesc">Bei Aktivierung wird die Genauigkeit von Fließkommaberechnungen verbessert, macht sie aber auch etwas langsamer.</data>
+	
+	 <!-- WhiteSpace Management -->
+    <data key="setting.suppressWSBeforeArg">Unterdrückt White-Space vor cfargument</data>
 	<data key="setting.suppressWSBeforeArgDesc">Wenn gesetzt, unterdrückt Lucee White-Spaces definiert zwischen dem "cffunction" Starttag und dem letzten "cfargument" Tag.
 	Dieses Setting wird ignoriert wenn es zwischen den Tags ein andere Ausgabe als White-Spaces hat.</data>
-	<data key="setting.templatecache">Page Pool Cache</data>
+	
+
+    <!-- Handle unquoted Tag attribute values -->
+    <data key="setting.handleUnquotedAttrValueAsString">Tag-Attributwerte</data>
+    <data key="setting.handleUnquotedAttrValueAsStringDesc">Behandle Tag-Attributwerte, die nicht in Anführungszeichen gesetzt sind, als Zeichenketten.
+        &lt;br&gt;
+        Beispiel:&lt;br&gt;
+        &amp;lt;cfmail subject=sub from="#f#" to="#t#"/&amp;gt;&lt;br&gt;
+        Der Tag-Attributwert "subject" steht nicht in Anführungzeichen. 
+        Bei Aktivierung wird die Zeichenkette "sub" dem Tag übertragen.
+        Falls deaktiviert wird Lucee nach der Variablen "sub" suchen.</data>
+
+
+    
+    <data key="setting.compiler">Lucee Regular Expression (regex) Einstellungen.</data>
+	<data key="setting.compiler">Lucee Compiler Einstellungen, dies beeinflusst wie der Lucee Compiler den Source Code übersetzt. Das ändern dieser Einstellungen löscht alle existierenden Class Files.</data>
+	
+    <data key="setting.templatecache">Page Pool Cache</data>
 	<data key="setting.querycache">Query Cache</data>
 	<data key="setting.objectcache">Object Cache</data>
 	<data key="setting.web">Kontrolle der Ausgabe von Lucee</data>

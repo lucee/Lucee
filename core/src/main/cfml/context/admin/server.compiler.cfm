@@ -16,11 +16,6 @@ Defaults --->
 <cfparam name="form.mainAction" default="none">
 <cfparam name="form.subAction" default="none">
 
-<cfset stText.setting.handleUnquotedAttrValueAsStringDesc='Handle unquoted tag attribute values as strings.
-<br>Example:<br>
-&lt;cfmail subject=sub from="##f##" to="##t##"/><br>
-<br>The value from attribute "subject" is not quoted, in that case if enabled the string "sub" submitted to the tag, if not enabled Lucee looks for a variable "sub".'>
-
 <cftry>
 	<cfswitch expression="#form.mainAction#">
 	<!--- UPDATE --->
@@ -135,14 +130,6 @@ Redirtect to entry --->
 				</tr>
 
 				<!--- Externalize Strings --->
-				<cfset stText.settings.externalizeStringGTE="Externalize strings">
-				<cfset stText.settings.externalizeStringGTEDesc="Externalize strings from generated class files to separate files. This can drastically reduce the memory footprint for templates but can have a negative impact on execution times. A lower ""breakpoint"" will cause slower execution than a higher breakpoint.">
-
-				<cfset stText.settings.externalizeString_1="do not externalize any strings">
-				<cfset stText.settings.externalizeString10="externalize strings larger than 10 characters">
-				<cfset stText.settings.externalizeString100="externalize strings larger than 100 characters">
-				<cfset stText.settings.externalizeString1000="externalize strings larger than 1000 characters">
-				<cfset stText.settings.externalizeStringDisabled="disabled">
 				<cfscript>
 					if(setting.externalizeStringGTE < 10)setting.externalizeStringGTE=-1;
 					else if(setting.externalizeStringGTE < 100)setting.externalizeStringGTE=10;
@@ -151,7 +138,7 @@ Redirtect to entry --->
 				</cfscript>
 				
 				<tr>
-					<th scope="row">#stText.settings.externalizeStringGTE#</th>
+					<th scope="row">#stText.setting.externalizeStringGTE#</th>
 					<td>
 						<!---<div class="warning nofocus">
 					This feature is experimental.
@@ -170,7 +157,7 @@ Redirtect to entry --->
 									<li>
 										<label>
 											<input class="radio" type="radio" name="externalizeStringGTE" value="#val#"<cfif setting.externalizeStringGTE == val> checked="checked"</cfif>>
-											<b>#stText.settings["externalizeString"&replace(val,"-","_")]#</b>
+											<b>#stText.setting["externalizeString"&replace(val,"-","_")]#</b>
 										</label>
 									</li>
 								</cfloop>
@@ -179,9 +166,9 @@ Redirtect to entry --->
 							</ul>
 						<cfelse>
 							<input type="hidden" name="externalizeStringGTE" value="#setting.externalizeStringGTE#">
-							<b><cfif setting.externalizeStringGTE==-1>#yesNoFormat(false)#<cfelse>#stText.settings["externalizeString"&replace(setting.externalizeStringGTE,"-","_")]#</cfif></b>
+							<b><cfif setting.externalizeStringGTE==-1>#yesNoFormat(false)#<cfelse>#stText.setting["externalizeString"&replace(setting.externalizeStringGTE,"-","_")]#</cfif></b>
 						</cfif>
-						<div class="comment">#stText.settings.externalizeStringGTEDesc#</div>
+						<div class="comment">#stText.setting.externalizeStringGTEDesc#</div>
 						
 					</td>
 				</tr>
@@ -268,8 +255,6 @@ Redirtect to entry --->
 				</tr>
 				
 				<!--- precise math --->
-				<cfset stText.setting.preciseMath="Precise Math">
-				<cfset stText.setting.preciseMathDesc="If enabled this improves the accuracy of floating point calculations, but makes them sligthly slower.">
 				<tr>
 					<th scope="row">#stText.setting.preciseMath#</th>
 					<td>
