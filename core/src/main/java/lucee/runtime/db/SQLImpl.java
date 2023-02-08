@@ -102,7 +102,28 @@ public final class SQLImpl implements SQL, Serializable {
 		int index = 0;
 		for (int i = 0; i < sqlLen; i++) {
 			c = strSQL.charAt(i);
+			if (!inQuotes && sqlLen + 1 > i) {
+				// read multi line
+				if (c == '/' && strSQL.charAt(i + 1) == '*') {
+					int end = strSQL.indexOf("*/", i + 2);
+					if (end != -1) {
+						i = end + 2;
+						if (i == sqlLen) break;
+						c = strSQL.charAt(i);
+					}
+				}
 
+				// read single line
+				if (c == '-' && strSQL.charAt(i + 1) == '-') {
+					int end = strSQL.indexOf('\n', i + 1);
+					if (end != -1) {
+						i = end + 1;
+						if (i == sqlLen) break;
+						c = strSQL.charAt(i);
+					}
+					else break;
+				}
+			}
 			if (c == '"' || c == '\'') {
 				if (inQuotes) {
 					if (c == quoteType) {

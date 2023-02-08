@@ -144,7 +144,28 @@ public class QueryParamConverter {
 
 		for (int i = 0; i < sqlLen; i++) {
 			c = sql.charAt(i);
+			if (!inQuotes && sqlLen + 1 > i) {
+				// read multi line
+				if (c == '/' && sql.charAt(i + 1) == '*') {
+					int end = sql.indexOf("*/", i + 2);
+					if (end != -1) {
+						i = end + 2;
+						if (i == sqlLen) break;
+						c = sql.charAt(i);
+					}
+				}
 
+				// read single line
+				if (c == '-' && sql.charAt(i + 1) == '-') {
+					int end = sql.indexOf('\n', i + 1);
+					if (end != -1) {
+						i = end + 1;
+						if (i == sqlLen) break;
+						c = sql.charAt(i);
+					}
+					else break;
+				}
+			}
 			if (c == '"' || c == '\'') {
 				if (inQuotes) {
 					if (c == quoteType) {
