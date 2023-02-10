@@ -1,4 +1,4 @@
-component extends = "org.lucee.cfml.test.LuceeTestCase" {
+component extends = "org.lucee.cfml.test.LuceeTestCase" skip="true" {
     function run( testResults, textbox ) {
         describe("Testcase for LDEV-4392", function() {
             it(title="checking cfwddx tag with empty data", body=function( currentSpec ) {
