@@ -1,7 +1,8 @@
 component {
 	this.name =	"LDEV1740-" & Hash( GetCurrentTemplatePath() );
 	mySQL = getCredentials();
-	this.datasource = mySQL;
+	this.datasources["LDEV1740_dsn"] = mySQL;
+	this.datasource = "LDEV1740_dsn";
 
 	public function onRequestStart() {
 		setting requesttimeout=10 showdebugOutput=false;
