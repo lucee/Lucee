@@ -16,8 +16,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm" skip="true"{
 	}
 
 	function run( testResults, testBox ) {
-		describe("Testcase for LDEV-4121", function() {
-			it( title="checking default property value to overide NULL value on ORM Entity",skip="#notHasH2()#",   body=function( currentSpec ){
+		describe(title="Testcase for LDEV-4121", body=function() {
+			it( title="checking default property value to override NULL value on ORM Entity",skip="#notHasH2()#",   body=function( currentSpec ){
 				local.result = _InternalRequest(
 					template : "#uri#\LDEV4121.cfm"
 				);

@@ -3,7 +3,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" skip="true" {
 		variables.uri = createURI("LDEV3335");
 	}
 	function run( testResults, testBox ){
-        describe( "Testcase for LDEV3335", function(){
+        describe( title="Testcase for LDEV3335", body=function(){
             it( title="Check size of the component with no accessors", body=function( currentSpec ){
                 local.result = _InternalRequest(
 					template : "#uri#\test.cfm",
@@ -11,7 +11,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" skip="true" {
 				);
                 expect(trim(result.fileContent)).toBeLT(1000);
             });
-            it( title="Check size of the component with mannual setters/getters", body=function( currentSpec ){
+            it( title="Check size of the component with manual setters/getters", body=function( currentSpec ){
                 local.result = _InternalRequest(
                     template : "#uri#\test.cfm",
                     FORM : { scene : 2 }
