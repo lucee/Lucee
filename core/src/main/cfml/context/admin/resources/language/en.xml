@@ -761,7 +761,7 @@ you can see the log result at the end of every request, if a debug template is d
 	<data key="debug.minExeTime">Minimal Execution Time (ms)</data>
 	<data key="debug.minExeTimeDesc">Minimal Execution Time that Lucee outputs the debugger information of a request.</data>
 	<data key="debug.pathRestriction">Path Restriction</data>
-	<data key="debug.pathRestrictionDesc">Path that should not be outputted, seperated path by line break.</data>
+	<data key="debug.pathRestrictionDesc">Path that should not be outputted, separated path by line break.</data>
 	<data key="debug.settingTitle">Settings</data>
 	<data key="debug.settingDesc">Configure the size of the debug logs.</data>
 	<data key="debug.outputTitle">Output</data>

@@ -70,7 +70,7 @@ public final class WeakConstructorStorage {
 	}
 
 	/**
-	 * seperate and store the different arguments of one constructor
+	 * separate and store the different arguments of one constructor
 	 * 
 	 * @param constructor
 	 * @param conArgs
