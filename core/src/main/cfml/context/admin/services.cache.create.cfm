@@ -11,7 +11,19 @@
 		<cfif hash(connections.name) EQ url.name>
 			<cfset connection=querySlice(connections,connections.currentrow,1)>
 			<cfset driver=drivers[connections.class]>
-			<cfset btnClearCache = rePlace(stText.Settings.cache.clearCache,"{count}",cacheCount(cacheName=connection.name))>
+			<cftry>
+				<cfset validConnection = true> 
+				<cfadmin 
+				action="verifyCacheConnection"
+				type="#request.adminType#"
+				password="#session["password"&request.adminType]#"
+				name="#connection.name#">
+				<cfcatch>
+					<cfset validConnection = false>
+					<cfset error.message = cfcatch.message>
+				</cfcatch>
+			</cftry>
+			<cfset btnClearCache = replace(stText.Settings.cache.clearCache,"{count}", validConnection ? cacheCount(cacheName=connection.name) : "0")>
 		</cfif> 
 	</cfloop>
 <cfelse>
@@ -50,6 +62,7 @@
 						<cfset custom[mid(key,8,10000)]=form[key]>
 					</cfif>
 				</cfloop>
+				<cfset error.message = "">
 				<cfadmin 
 					action="updateCacheConnection"
 					type="#request.adminType#"
