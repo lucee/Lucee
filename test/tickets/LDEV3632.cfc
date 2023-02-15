@@ -15,9 +15,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="qoq" {
 
 	function run( testResults , testBox ) {
 
-		describe( 'QofQ Aggregation' , function(){
+		describe( title='QofQ Aggregation' , body=function(){
 
-			it( 'Can can aggregate unflitered rows' , function() {
+			it( title='Can can aggregate unfiltered rows' , body=function() {
 				actual = QueryExecute(
 					sql = "SELECT sum(num) as sum, count(*) as count, 4 as brad FROM q",
 					options = { dbtype: 'query' }
@@ -29,7 +29,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="qoq" {
 				expect( actual.brad ).toBe( 4 );
 			});
 
-			it( 'Can can aggregate some filtered rows' , function() {
+			it( title='Can can aggregate some filtered rows' , body=function() {
 				actual = QueryExecute(
 					sql = "SELECT sum(num) as sum, count(*) as count, 4 as brad FROM q WHERE type='test'",
 					options = { dbtype: 'query' }
@@ -41,7 +41,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="qoq" {
 				expect( actual.brad ).toBe( 4 );
 			});
 
-			it( 'Can can aggregate all flitered rows' , function() {
+			it( title='Can can aggregate all filtered rows' , body=function() {
 				actual = QueryExecute(
 					sql = "SELECT sum(num) as sum, count(*) as count, 4 as brad FROM q WHERE 1=0",
 					options = { dbtype: 'query' }
@@ -56,6 +56,5 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="qoq" {
 		});
 
 	}
-	
-	
-} 
+
+}
