@@ -66,7 +66,7 @@
 	error.detail="";
 </cfscript>
 
-<cfif request.adminType EQ "web">
+<cfif request.adminType EQ "web" OR request.singlemode>
 <!--- 
 Defaults --->
 <cfparam name="url.action2" default="list">
