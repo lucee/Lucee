@@ -1,14 +1,14 @@
 component extends="org.lucee.cfml.test.LuceeTestCase"{
 	function beforeAll(){
-		variables.orginal = getLocale();
+		variables.original = getLocale();
 	}
 
 	function afterAll(){
-		setLocale(variables.orginal);
+		setLocale(variables.original);
 	}
 
 	function run( testResults , testBox ) {
-		describe( "Test suite for LDEV-1539", function() {
+		describe( title="Test suite for LDEV-1539", body=function() {
 			it(title="checking locales", body = function( currentSpec ) {
 				cfloop( list = "#Server.Coldfusion.SupportedLocales#", index = "locale", delimiters = ","){
 					try{
@@ -24,7 +24,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 
 		describe( title="Test suite for LSparseDateTime()", body=function() { 
 			cfloop( list=#Server.Coldfusion.SupportedLocales#, index="locale"){
-				describe("test LSparseDateTime locale format: [#locale#]", function(){
+				describe(title="test LSparseDateTime locale format: [#locale#]", body=function(){
 					it( title="test LSparseDateTime round trip with locale: [#locale#], ",
 							data={ locale=locale },
 							body=function( data ) {

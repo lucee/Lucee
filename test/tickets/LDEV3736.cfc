@@ -3,7 +3,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" labels="qoq" {
 
     function run( testResults, textbox ) {
 
-        describe("testcase for LDEV-3736", function(){
+        describe(title="testcase for LDEV-3736", body=function(){
 
             it(title="Arithmetic addition with empty string in QoQ", body=function( currentSpec ){
                 qry = QueryNew('foo','integer',[[40]]);
@@ -83,7 +83,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" labels="qoq" {
 
             it(title="Arithmetic modulus empty string in QoQ", body=function( currentSpec ){
                 qry = QueryNew('foo','integer',[[40]]);
-                // Note % and mod() have different implemntations
+                // Note % and mod() have different implementations
                 var actual = queryExecute(
                     "SELECT 21%11 AS result,
                       ''%5 as result2,

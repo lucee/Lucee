@@ -143,7 +143,7 @@ und Optimierungen innerhalb ihrer Version einspielen.</data>
 	<data key="customtags.physicalmissing">Bitte geben Sie einen Wert für die Ressource an. (Zeile </data>
 	<data key="customtags.customtagmappings">Resourcen</data>
 	<data key="customtags.extensions">Extensions</data>
-	<data key="customtags.customtagmappingsdesc">Verzeichnisse, welche Lucee nach Custom tags überprüft.</data>
+	<data key="customtags.customtagmappingsdesc">Verzeichnisse, welche Lucee nach Custom-Tags überprüft.</data>
 	<data key="customtags.customtagsetting">Einstellungen</data>
 	<data key="customtags.extensionsdesc">Dies sind die Extensions welche für Customtags verwendet werden und die Rheinefolge in welcher sie gesucht werden.</data>
 	
@@ -204,7 +204,7 @@ und Optimierungen innerhalb ihrer Version einspielen.</data>
 	<data key="menu.documentation.tagRef">Tag Reference</data>
 	<data key="menu.documentation.funcRef">Function Reference</data>
 	<data key="menu.documentation.objRef">Object Reference</data>
-	<data key="security.customtagdescription">Custom tags können im &apos;Web Administrator&apos; hinzugefügt, gelöscht und geändert werden.</data>
+	<data key="security.customtagdescription">Custom-Tags können im &apos;Web Administrator&apos; hinzugefügt, gelöscht und geändert werden.</data>
 	<data key="security.tagobject">Tag CFObject / Funktion createObject</data>
 	<data key="security.debugging">Debugging</data>
 	<data key="security.mail">Mail</data>
@@ -246,7 +246,7 @@ und Optimierungen innerhalb ihrer Version einspielen.</data>
 	<data key="security.accessread">Lesezugriff</data>
 	<data key="security.tagregistry">Tag CFRegistry</data>
 	<data key="security.speclisttitle">Spzifische Web Kontexte</data>
-	<data key="security.cfxtags">CFX tags</data>
+	<data key="security.cfxtags">CFX Tags</data>
 	<data key="security.title">Standard Zugriffsrechte</data>
 	<data key="security.speclistwebcontext">Web Kontext</data>
 	<data key="security.cfxdescription">Die Einstellungen für die CFX Tags können geändert werden. Im &apos;Server Administrator&apos; global definierte Tags können auch verwendet werden.</data>
@@ -663,7 +663,7 @@ Diese werden dann am Ende eines Request ausgegeben, falls sie ein Debug Template
 	<data key="debug.settings.exception"> Exceptions </data>
 	<data key="debug.settings.exceptionDesc">Select this option to log all exceptions raised for the request.</data>
 	<data key="debug.settings.tracing"> Tracing </data>
-	<data key="debug.settings.tracingDesc">Select this option to log trace event information. Tracing lets a developer track program flow and efficiency through the use of the CFTRACE tag.</data>
+	<data key="debug.settings.tracingDesc">Select this option to log trace event information. Tracing lets a developer track program flow and efficiency through the use of the CFTRACE Tag.</data>
 	<data key="debug.settings.dump"> Dump </data>
 	<data key="debug.settings.dumpDesc">Select this option to enable output produced with help of the tag cfdump and send to debugging.</data>
 	<data key="debug.settings.timer"> Timer </data>
@@ -681,38 +681,78 @@ Diese werden dann am Ende eines Request ausgegeben, falls sie ein Debug Template
   
 	<data key="general.enabled">Enabled</data>
 
-	<data key="compiler.nullSupport">Null Support</data>
+
+    <!-- *** server.compiler.cfm/partially in overview.cfm *** -->
+
+
+    <!-- template charset -->
+    <!-- uses key=charset.templatecharset, 
+         and key=charset.templateCharsetDescription-->
+	
+	<!-- Externalize strings -->
+	<data key="setting.externalizeStringGTE">Zeichenketten externalisieren</data>
+	<data key="setting.externalizeStringGTEDesc">Externalsiere Zeichenketten aus generierten Klassen-Dateien in gesonderte Dateien. Dies kann den Template-Speicherbedarf erheblich reduzieren, aber eine negative Auswirkung auf die Ausführungszeit haben. Ein geringerer "Breakpoint" wird eine langsamere Ausführungszeit benötigen als ein höherer Breakpoint.</data>
+	<data key="setting.externalizeString_1">keine Zeichenketten externalisieren</data>
+	<data key="setting.externalizeString10">externalisiere Zeichenketten mit mehr als 10 Zeichen</data>
+	<data key="setting.externalizeString100">externalisiere Zeichenketten mit mehr als 100 Zeichen</data>
+	<data key="setting.externalizeString1000">externalisiere Zeichenketten mit mehr als 1000 Zeichen</data>
+	<data key="setting.externalizeStringDisabled">deaktiviert</data>
+
+
+    <!-- Null Support -->
+    <data key="compiler.nullSupport">Null Support</data>
 	<data key="compiler.nullSupportOnlyServer">Diese Einstellung ist nur im Lucee Server Administrator möglich.</data>
 	<data key="compiler.nullSupportDesc">Definiert wie Lucee null unterstützt.</data>
 	<data key="compiler.nullSupportFull">Volle Unterstützung</data>
 	<data key="compiler.nullSupportFullDesc">Lucee hat volle Unterstützung für "null", dies beinhaltet "null" Literale. Im Lucee Wiki finden Sie mehr Details dazu.</data>
-	<data key="compiler.nullSupportPartial">Partial Support (CFML Default)</data>
-	<data key="compiler.nullSupportPartialDesc">Lucee has only a partial null support.</data>
+	<data key="compiler.nullSupportPartial">Partieller Support (CFML Standard)</data>
+	<data key="compiler.nullSupportPartialDesc">Lucee unterstützt null nur teilweise</data>
 
-
-	<data key="setting.compiler">Lucee Regular Expression (regex) Einstellungen.</data>
-	<data key="setting.compiler">Lucee Compiler Einstellungen, dies beeinflusst wie der Lucee Compiler den Source Code übersetzt. Das ändern dieser Einstellungen löscht alle existierenden Class Files.</data>
-	<data key="setting.dotNotation">Key case</data>
-
-
+  
+    <!-- Key Case -->
+    <data key="setting.dotNotation">Key case</data>
 	<data key="setting.dotNotationUpperCaseDesc">Konvertiert Struct Keys definiert mit "Dot Notation" als grossgeschrieben (CFML Standard).
-Beispiel:
-sct.dotNotation --> keyname: "DOTNOTATION"
-sct[""bracketNotation""] --> keyname: "bracketNotation"</data>
+        &lt;br&gt;
+        Beispiel:&lt;br&gt;
+        sct.dotNotation --&amp;gt; keyname: "DOTNOTATION"&lt;br&gt;
+        sct["bracketNotation"] --&gt; keyname: "bracketNotation"</data>
 
-<data key="setting.dotNotationOriginalCaseDesc">Belässt Struct Keys definiert mit "Dot Notation" wie sie sind (wie "Bracked Notation").
-
-Beispiel:
-sct.dotNotation --> keyname: "dotNotation"
-sct[""bracketNotation""] --> keyname: "bracketNotation"</data>
-
-
-	<data key="setting.dotNotationUpperCase">Übersetzt zu grossgeschrieben (CFML Standard)</data>
+        <data key="setting.dotNotationOriginalCaseDesc">Belässt Struct Keys definiert mit "Dot Notation" wie sie sind (wie "Bracked Notation").
+        &lt;br&gt;
+        Beispiel:&lt;br&gt;
+        sct.dotNotation --&amp;gt; keyname: "dotNotation"&lt;br&gt;
+        sct["bracketNotation"] --&amp;gt; keyname: "bracketNotation"</data>
+    <data key="setting.dotNotationUpperCase">Übersetzt zu grossgeschrieben (CFML Standard)</data>
 	<data key="setting.dotNotationOriginalCase">Behält die Keys wie sie sind (wie "Bracked Notation")</data>
-	<data key="setting.suppressWSBeforeArg">Unterdrückt White-Space vor cfargument</data>
+	
+    
+
+    <!-- precise math -->
+    <data key="setting.preciseMath">Präzise Mathematik</data>
+    <data key="setting.preciseMathDesc">Bei Aktivierung wird die Genauigkeit von Fließkommaberechnungen verbessert, macht sie aber auch etwas langsamer.</data>
+	
+	 <!-- WhiteSpace Management -->
+    <data key="setting.suppressWSBeforeArg">Unterdrückt White-Space vor cfargument</data>
 	<data key="setting.suppressWSBeforeArgDesc">Wenn gesetzt, unterdrückt Lucee White-Spaces definiert zwischen dem "cffunction" Starttag und dem letzten "cfargument" Tag.
 	Dieses Setting wird ignoriert wenn es zwischen den Tags ein andere Ausgabe als White-Spaces hat.</data>
-	<data key="setting.templatecache">Page Pool Cache</data>
+	
+
+    <!-- Handle unquoted Tag attribute values -->
+    <data key="setting.handleUnquotedAttrValueAsString">Tag-Attributwerte</data>
+    <data key="setting.handleUnquotedAttrValueAsStringDesc">Behandle Tag-Attributwerte, die nicht in Anführungszeichen gesetzt sind, als Zeichenketten.
+        &lt;br&gt;
+        Beispiel:&lt;br&gt;
+        &amp;lt;cfmail subject=sub from="#f#" to="#t#"/&amp;gt;&lt;br&gt;
+        Der Tag-Attributwert "subject" steht nicht in Anführungzeichen. 
+        Bei Aktivierung wird die Zeichenkette "sub" dem Tag übertragen.
+        Falls deaktiviert wird Lucee nach der Variablen "sub" suchen.</data>
+
+
+    
+    <data key="setting.compiler">Lucee Regular Expression (regex) Einstellungen.</data>
+	<data key="setting.compiler">Lucee Compiler Einstellungen, dies beeinflusst wie der Lucee Compiler den Source Code übersetzt. Das ändern dieser Einstellungen löscht alle existierenden Class Files.</data>
+	
+    <data key="setting.templatecache">Page Pool Cache</data>
 	<data key="setting.querycache">Query Cache</data>
 	<data key="setting.objectcache">Object Cache</data>
 	<data key="setting.web">Kontrolle der Ausgabe von Lucee</data>
@@ -736,26 +776,32 @@ sct[""bracketNotation""] --> keyname: "bracketNotation"</data>
 	<data key="setting.cfmlWriterWS">Einfaches white space management, jeder white space welcher einem white space folgt witd ignoriert</data>
 	<data key="setting.cfmlWriterWSPref">Schlaues whitespace management, analog zu einfachem whitespace management, aber ignoriert zusätzlich white spaces in den folgenden Tags: code, pre and textarea</data>
 
-	<data key="setting.componentcache">Komponentenpfad Cache</data>
+	<data key="setting.memory">Speicher</data>
+    <data key="setting.memoryDesc">Speichernutzung durch die JVM, heap und non heap.</data>
+    <data key="setting.suppressContent">Inhalt für CFC-Remoting unterdrücken</data>
+    <data key="setting.suppressContentDescription">Unterdrückt den Inhalt, der in den Antwortstrom geschriebenen wurde, wenn eine Component aus der Ferne aufgerufen wird. Funktioniert nur, wenn der Inhalt nicht vorher geleert wurde.</data>
+    <data key="setting.task">Task Spooler</data>
+    <data key="setting.taskClose">Fehlgeschlagen</data>
+    <data key="setting.taskDesc">Aktive und fehlgeschlagene Tasks im Task Spooler. Das beinhaltet ebenfalls Email-Nachrichten. </data>
+    <data key="setting.taskOpen">Aktiv</data>
+    <data key="setting.info">System Metriken</data>
+            
+
+            
+    <data key="setting.componentcache">Komponentenpfad Cache</data>
 	<data key="setting.ctcache">Custom Tag Pfad Cache</data>
 	<data key="setting.inspecttemplateneverShort">Nie</data>
 	<data key="setting.inspecttemplatenever">Nie ( Beste Performance )</data>
 	<data key="setting.server">Kontrolle der Ausgabe von Lucee</data>
 	<data key="setting.inspecttemplateInherit">Erben</data>
 	<data key="setting.inspecttemplateInheritDesc">Erbt das Setting definiert in "Performance/Caching"</data>
-	<data key="setting.inspecttemplatealwaysdesc">
-When checked, any requested files found to currently reside in the template cache will always be inspected for potential updates. For sites where templates are updated during the life of the server or within request.
-</data>
-	<data key="setting.cacheclearcount">{name} Cache leeren ( {count} Element(e) )</data>
+	<data key="setting.inspecttemplatealwaysdesc">Bei erfolgter Aktivierung werden alle angeforderten Dateien, die sich derzeit im Template-Cache befinden, immer auf mögliche Aktualisierungen geprüft. Für Sites, bei denen Templates während der Lebensdauer des Servers oder innerhalb einer Anfrage aktualisiert werden.</data>
+    <data key="setting.cacheclearcount">{name} Cache leeren ( {count} Element(e) )</data>
 	<data key="setting.querycacheclearcount">Query Cache leeren</data>
-	<data key="setting.inspecttemplateneverdesc">
-When checked, any requested found to currently reside in the template cache will not be inspected for potential updates. For sites where templates are not updated during the life of the server, this minimizes file system overhead.
-</data>
+	<data key="setting.inspecttemplateneverdesc">Bei erfolgter Aktivierung, werden alle angeforderten Dateien, die sich derzeit im Template-Cache befinden, nicht auf mögliche Aktualisierungen geprüft. Für Sites deren Templates während der Lebensdauer des Servers nicht aktualisiert werden, minimiert dies den Dateisystem-Overhead.</data>
 	<data key="setting.inspecttemplateonceShort">Einmal</data>
 	<data key="setting.inspecttemplateonce">Einmal ( Gut )</data>
-	<data key="setting.inspecttemplateoncedesc">
-When checked, any requested files will be inspected only once for potential updates within a request. For sites where templates are not expected to reflect updates within the same request, this minimizes file system overhead.
-</data>
+	<data key="setting.inspecttemplateoncedesc">Bei erfolgter Aktivierung, werden alle angeforderten Dateien nur einmal auf mögliche Aktualisierungen innerhalb einer Anforderung geprüft. Für Sites, bei denen nicht erwartet wird, dass Template-Aktualisierungen innerhalb derselben Anforderung erfolgen, minimiert dies den Dateisystem-Overhead.</data>
 	<data key="setting.whitespace">Whitespace management</data>
 	<data key="setting.whitespacedescription">Unterdrückt alle Whitespace (Leerzeichen, Tabs und Zeilenumbrüche), die in der Ausgabe einem Whitespace folgen</data>
 	<data key="setting.templatecacheclearcount">Page Pool Cache leeren</data>
@@ -1027,15 +1073,15 @@ When checked, any requested files will be inspected only once for potential upda
 	<data key="settings.cache.defaulttypeWebservice">Webservice (SOAP,REST,HTTP)</data>
 	<data key="settings.cache.defaulttypeWebserviceDesc">Diese Cache Connection wird für für das cachen von SOAP,REST und HTTP Webservices verwendet.</data>
 
-	<data key="settings.cache.defaultDesc">Define the default cache connection for tempates (cfcache) and object (cacheGet, cachePut ...), this connection is used when no cache name is explicit defined</data>
-	<data key="settings.cache.Default">Default</data>
-	<data key="settings.cache.DefaultTitle">Default cache connection</data>
-	<data key="settings.cache.noDefault">no default cache</data>
-	<data key="settings.cache.noAccess">no access to create cache connections</data>
-	<data key="settings.cache.defaultDesc2">Define if this connection will be the default cache connection, the default cache connection is used when no cache name is explicit defined</data>
-	<data key="settings.cache.titleReadOnly">Readonly cache connections</data>
-	<data key="settings.cache.descReadOnly">Readonly cache connections are generated within the ""server administrator"" for all web instances and can not be modified by the ""web administrator"".</data>
-	<data key="settings.cache.Buttons.default">als default Wert</data>
+	<data key="settings.cache.defaultDesc">Definiert die Standard-Cache-Verbindung für Template (cfcache) und Objekte (cacheGet, cachePut ...). Diese Verbindung wird verwendet, wenn kein Cache-Name explizit definiert ist</data>
+	<data key="settings.cache.Default">Standard</data>
+	<data key="settings.cache.DefaultTitle">Standard-Cache Verbindung</data>
+	<data key="settings.cache.noDefault">kein Standard-Cache</data>
+	<data key="settings.cache.noAccess">kein Zugang für die Erstellung von Cache-Verbindungen</data>
+	<data key="settings.cache.defaultDesc2">Definiere diese Verbindung als Standard-Cache-Verbindung. Der Standard-Cache wird verwendet, wenn keine Cache-Name explizit definiert ist</data>
+	<data key="settings.cache.titleReadOnly">Schreibgeschützte Cache-Verbindungen</data>
+	<data key="settings.cache.descReadOnly">Schreibgeschützte Cache-Verbindungen werden im "Server Administrator" für alle Web-Instanzen erstellt und können nicht im "Web-Administrator" verändert werden.</data>
+	<data key="settings.cache.Buttons.default">als Standardwert</data>
 
 
 
@@ -1171,10 +1217,10 @@ When checked, any requested files will be inspected only once for potential upda
 	<data key="overview.licencedevelop">Develop</data>
 	<data key="overview.server_name">Host Name</data>
 	<data key="overview.twitter">Twitter</data>
-	<data key="overview.twitterDesc">Follow us on Twitter.</data>
+	<data key="overview.twitterDesc">Folgen Sie uns auf Twitter</data>
 	<data key="overview.blog">Blog</data>
-	<data key="overview.blogDesc"> The latest news from Lucee is always posted on our blog.</data>
-	<data key="overview.mailinglist">Mailinglist</data>
+	<data key="overview.blogDesc"> Die aktuellsten Nachrichten von und über Lucee wird immer auf unserem Blog veröffentlicht.</data>
+	<data key="overview.mailinglist">Mailingliste</data>
 	<data key="overview.mailinglistDesc">The mailing list is the focus of our community support program - help for users by users. </data>
 	<data key="overview.professional">Professional support</data>
 	<data key="overview.professionalDesc">For many organizations and individuals, the security of a formal paid support contract is a necessity and we're pleased to offer four standard packages as well as the flexibility to create a custom package should your needs go beyond our standard offerings.</data>
