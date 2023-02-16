@@ -5143,16 +5143,16 @@ public final class ConfigWebFactory extends ConfigFactory {
 			config.setFullNullSupport(fns);
 
 			// precise math
-			boolean pm = hasCS ? configServer.getPreciseMath() : false;
+			boolean pm = hasCS ? configServer.getPreciseMath() : true;
 			if (mode == ConfigPro.MODE_STRICT) {
-				pm = false;
+				pm = true;
 			}
 			else {
 				String str = getAttr(root, "preciseMath");
 				if (StringUtil.isEmpty(str, true)) str = SystemUtil.getSystemPropOrEnvVar("lucee.precise.math", null);
 
 				if (!StringUtil.isEmpty(str, true)) {
-					pm = Caster.toBooleanValue(str, hasCS ? configServer.getPreciseMath() : false);
+					pm = Caster.toBooleanValue(str, hasCS ? configServer.getPreciseMath() : true);
 				}
 			}
 			config.setPreciseMath(pm);
