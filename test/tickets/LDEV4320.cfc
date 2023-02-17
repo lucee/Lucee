@@ -1,4 +1,4 @@
-component extends = "org.lucee.cfml.test.LuceeTestCase" labels="h2" skip="true" {
+component extends = "org.lucee.cfml.test.LuceeTestCase" labels="h2" skip="false" {
 
 	function beforeAll(){
 		application action="update" datasource=server.getDatasource( 
@@ -13,7 +13,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" labels="h2" skip="true" 
 			it(title="testing connection limit", body=function( currentSpec ) {
 				var names="";
 				loop from=1 to=20 index="local.i" {
-					var name=createUniqueID()&"-"&i;
+					var name="LDEV4320-"&createUniqueID()&"-"&i;
 					names=listAppend(names, name);
 					thread name=name {
 						query {
@@ -23,7 +23,8 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" labels="h2" skip="true" 
 				}
 				thread action="join" name=names;
 				var hasError=false;
-				loop struct=cfthread index="k" item="v" {
+				loop array=listToArray(names) item="local.k" {
+					var v=cfthread[k];
 					if(v.status!="completed"){
 						systemOutput(v, true);
 						hasError=true;
