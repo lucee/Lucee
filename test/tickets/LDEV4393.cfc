@@ -8,7 +8,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="Directory" {
 	}
 
 	function run( testResults, testBox ) {
-		describe( "test case for LDEV-4393", function() {
+		describe( title="test case for LDEV-4393", body=function() {
 			it(title = "directoryList() UDF filter arguments", body = function( currentSpec ) {
 				var result = {};
 				filter = function() {
