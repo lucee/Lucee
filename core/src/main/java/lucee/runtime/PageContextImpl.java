@@ -601,7 +601,7 @@ public final class PageContextImpl extends PageContext {
 	public void release() {
 		config.releaseCacheHandlers(this);
 
-		if (config.getExecutionLogEnabled()) {
+		if (config.getExecutionLogEnabled() && execLog != null) {
 			execLog.release();
 			execLog = null;
 		}
