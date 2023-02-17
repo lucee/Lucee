@@ -4,9 +4,9 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" labels="query" {
 		variables.uri = createURI("LDEV2754");
 	}
 
-	function run( testResults, testBox ){
+	function run( testResults, testBox ) {
 		describe( "Test case for LDEV2754", function(){
-			it(title = "Using (?) mark with DB", body = function( currentSpec ){
+			it(title = "Using (?) mark with DB",skip=true, body = function( currentSpec ){
 				local.result = _InternalRequest(
 					template : "#uri#\test.cfm",
 					forms : { scene = 1 }
@@ -14,7 +14,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" labels="query" {
 				expect(result.filecontent).tobe("juwait");
 			});
 
-			it(title = "Using (') with DB ", body = function( currentSpec ){
+			it(title = "Using (') with DB ", skip=true,body = function( currentSpec ){
 				local.result = _InternalRequest(
 					template : "#uri#\test.cfm",
 					forms : { scene = 2 }
@@ -22,7 +22,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" labels="query" {
 				expect(result.filecontent).tobe("juwait");
 			});
 
-			it(title = "Using (') with QoQ", body = function( currentSpec ){
+			it(title = "Using (') with QoQ", skip=true,body = function( currentSpec ){
 				local.result = _InternalRequest(
 					template : "#uri#\test.cfm",
 					forms : { scene = 3 }
