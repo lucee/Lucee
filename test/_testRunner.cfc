@@ -303,15 +303,15 @@ Begin Stack Trace
 		if ( local.i gt 0 ){
 			local.i = len( local.tmp )-i;
 			local.j = find( ")", local.tmp, local.i ); // find the end of the line
-			local.tmp = mid( local.tmp, 1, local.j );
+			if ( local.j > 0 )
+				local.tmp = mid( local.tmp, 1, local.j );
 		}
 		arrayAppend( stack, TAB & local.tmp );
-		// now find any Caused By: and output them
-		local.tail = mid( arguments.st, local.j );
-		local.firstCausedBy = findNoCase( "Caused by:", tail );
+		
+		local.firstCausedBy = find( "Caused by:", arguments.st );
 		if ( firstCausedBy gt 0 ) {
 			arrayAppend( stack, TAB & TAB & TAB & "... omitted verbose (ant / pagecontext / testbox) default stacktraces ... " );
-			arrayAppend( stack, mid( tail, firstCausedBy) );
+			arrayAppend( stack, mid( arguments.st, firstCausedBy) );
 		}
 		return stack;
 	}
