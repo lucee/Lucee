@@ -134,7 +134,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	private Collection.Key[] columnNames;
 	private SQL sql;
 	private Map<Integer, Integer> currRow = new ConcurrentHashMap<Integer, Integer>();
-	private AtomicInteger recordcount = new AtomicInteger( 0 );
+	private AtomicInteger recordcount = new AtomicInteger(0);
 	private int columncount;
 	private long exeTime = 0;
 	private String cacheType = null;
@@ -775,7 +775,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 			if (qry != null) {
 				qry.populating = false;
 				qry.columncount = columncount;
-				qry.recordcount.set( recordcount );
+				qry.recordcount.set(recordcount);
 				qry.columnNames = columnNames;
 				qry.columns = columns;
 			}
@@ -815,7 +815,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	public QueryImpl(String[] strColumns, int rowNumber, String name) {
 		this.name = name;
 		columncount = strColumns.length;
-		recordcount.set( rowNumber );
+		recordcount.set(rowNumber);
 		columnNames = new Collection.Key[columncount];
 		columns = new QueryColumnImpl[columncount];
 		for (int i = 0; i < strColumns.length; i++) {
@@ -838,7 +838,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	public QueryImpl(Collection.Key[] columnKeys, int rowNumber, String name, SQL sql) throws DatabaseException {
 		this.name = name;
 		columncount = columnKeys.length;
-		recordcount.set( rowNumber );
+		recordcount.set(rowNumber);
 		columnNames = new Collection.Key[columncount];
 		columns = new QueryColumnImpl[columncount];
 		for (int i = 0; i < columnKeys.length; i++) {
@@ -862,7 +862,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 		this.name = name;
 		columncount = strColumns.length;
 		if (strTypes.length != columncount) throw new DatabaseException("columns and types has not the same count", null, null, null);
-		recordcount.set( rowNumber );
+		recordcount.set(rowNumber);
 		columnNames = new Collection.Key[columncount];
 		columns = new QueryColumnImpl[columncount];
 		for (int i = 0; i < strColumns.length; i++) {
@@ -885,7 +885,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 		this.columnNames = columnNames;
 		columncount = columnNames.length;
 		if (strTypes.length != columncount) throw new DatabaseException("columns and types has not the same count", null, null, null);
-		recordcount.set( rowNumber );
+		recordcount.set(rowNumber);
 		columns = new QueryColumnImpl[columncount];
 		for (int i = 0; i < columnNames.length; i++) {
 			columns[i] = new QueryColumnImpl(this, columnNames[i], SQLCaster.toSQLType(strTypes[i]), getRecordcount());
@@ -904,7 +904,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	public QueryImpl(Array arrColumns, int rowNumber, String name) throws PageException {
 		this.name = name;
 		columncount = arrColumns.size();
-		recordcount.set( rowNumber );
+		recordcount.set(rowNumber);
 		columnNames = new Collection.Key[columncount];
 		columns = new QueryColumnImpl[columncount];
 		for (int i = 0; i < columncount; i++) {
@@ -927,7 +927,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 		this.name = name;
 		columncount = arrColumns.size();
 		if (arrTypes.size() != columncount) throw new DatabaseException("columns and types has not the same count", null, null, null);
-		recordcount.set( rowNumber );
+		recordcount.set(rowNumber);
 		columnNames = new Collection.Key[columncount];
 		columns = new QueryColumnImpl[columncount];
 		for (int i = 0; i < columncount; i++) {
@@ -993,7 +993,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 		}
 
 		columncount = columns.length;
-		recordcount.set( len );
+		recordcount.set(len);
 		this.columnNames = columnNames;
 	}
 
@@ -1061,7 +1061,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 		for (int i = 0; i < columns.length; i++) {
 			columns[i].clear();
 		}
-		recordcount.set( 0 );
+		recordcount.set(0);
 	}
 
 	@Override
@@ -1308,6 +1308,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	public int getRecordcount() {
 		return recordcount.get();
 	}
+
 	protected AtomicInteger getRecordcountObj() {
 		return recordcount;
 	}
@@ -1442,12 +1443,12 @@ public class QueryImpl implements Query, Objects, QueryResult {
 		return addRowAndGet(1);
 	}
 
-	public int addRowAndGet( int count ) {
+	public int addRowAndGet(int count) {
 		for (int i = 0; i < columns.length; i++) {
 			QueryColumnPro column = columns[i];
 			column.addRow(count);
 		}
-		return recordcount.addAndGet( count );
+		return recordcount.addAndGet(count);
 	}
 
 	@Override
@@ -1764,7 +1765,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 				QueryColumn column = columns[i];
 				column.cutRowsTo(maxrows);
 			}
-			recordcount.set( maxrows );
+			recordcount.set(maxrows);
 			return true;
 		}
 		return false;
@@ -2172,22 +2173,22 @@ public class QueryImpl implements Query, Objects, QueryResult {
 
 	@Override
 	public BigDecimal getBigDecimal(int columnIndex) throws SQLException {
-		return new BigDecimal(getDouble(columnIndex));
+		return Caster.toBigDecimal(getDouble(columnIndex));
 	}
 
 	@Override
 	public BigDecimal getBigDecimal(String columnName) throws SQLException {
-		return new BigDecimal(getDouble(columnName));
+		return Caster.toBigDecimal(getDouble(columnName));
 	}
 
 	@Override
 	public BigDecimal getBigDecimal(int columnIndex, int scale) throws SQLException {
-		return new BigDecimal(getDouble(columnIndex));
+		return Caster.toBigDecimal(getDouble(columnIndex));
 	}
 
 	@Override
 	public BigDecimal getBigDecimal(String columnName, int scale) throws SQLException {
-		return new BigDecimal(getDouble(columnName));
+		return Caster.toBigDecimal(getDouble(columnName));
 	}
 
 	@Override
@@ -3363,7 +3364,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 			newResult.sql = qry.getSql();
 			if (qry instanceof QueryImpl) newResult.templateLine = ((QueryImpl) qry).getTemplateLine();
 			else newResult.templateLine = new TemplateLine(qry.getTemplate(), 0);
-			newResult.recordcount = ((QueryImpl)qry).recordcount;
+			newResult.recordcount = ((QueryImpl) qry).recordcount;
 			newResult.columncount = newResult.columnNames.length;
 			newResult.cacheType = qry.getCacheType();
 			newResult.name = qry.getName();

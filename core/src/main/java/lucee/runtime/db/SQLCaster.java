@@ -18,7 +18,6 @@
  */
 package lucee.runtime.db;
 
-import java.math.BigDecimal;
 import java.sql.Array;
 import java.sql.Blob;
 import java.sql.Clob;
@@ -97,7 +96,7 @@ public final class SQLCaster {
 				return new Date(Caster.toDate(value, null).getTime());
 			case Types.NUMERIC:
 			case Types.DECIMAL:
-				return new BigDecimal(Caster.toDouble(value).toString());
+				return Caster.toString(Caster.toBigDecimal(value));
 			case Types.DOUBLE:
 				return Caster.toDouble(value);
 			case Types.FLOAT:

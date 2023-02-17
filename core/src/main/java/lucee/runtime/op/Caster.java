@@ -32,6 +32,7 @@ import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.math.MathContext;
 import java.net.MalformedURLException;
 import java.nio.charset.Charset;
 import java.sql.Blob;
@@ -74,6 +75,7 @@ import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.PhysicalClassLoader;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.net.HTTPUtil;
+import lucee.loader.util.Util;
 import lucee.runtime.Component;
 import lucee.runtime.ComponentScope;
 import lucee.runtime.ComponentSpecificAccess;
@@ -949,7 +951,7 @@ public final class Caster {
 
 	private static String toDecimal(double value, char decDel, char thsDel) {
 		// TODO Caster toDecimal bessere impl.
-		String str = new BigDecimal((StrictMath.round(value * 100) / 100D)).toString();
+		String str = Caster.toBigDecimal((StrictMath.round(value * 100) / 100D)).toString();
 		// str=toDouble(value).toString();
 		String[] arr = str.split("\\.");
 
@@ -1566,7 +1568,7 @@ public final class Caster {
 		try {
 			// float
 			if (str.indexOf('.') != -1) {
-				return new BigDecimal(str);
+				return Caster.toBigDecimal(str);
 			}
 			// integer
 			BigInteger bi = new BigInteger(str);
@@ -4986,9 +4988,7 @@ public final class Caster {
 
 	public static BigDecimal toBigDecimal(Object o) throws PageException {
 		if (o instanceof BigDecimal) return (BigDecimal) o;
-		if (o instanceof Number) {
-			return BigDecimal.valueOf(((Number) o).doubleValue());
-		}
+		if (o instanceof Number) return toBigDecimal((Number) o);
 		else if (o instanceof Boolean) return new BigDecimal(((Boolean) o).booleanValue() ? 1 : 0);
 		else if (o instanceof CharSequence) return new BigDecimal(o.toString());
 		else if (o instanceof Character) return new BigDecimal((((Character) o).charValue()));
@@ -5003,13 +5003,23 @@ public final class Caster {
 		return BigDecimal.valueOf(n.doubleValue());
 	}
 
+	public static BigDecimal toBigDecimal(double d) {
+		return BigDecimal.valueOf(d);
+	}
+
 	public static BigDecimal toBigDecimal(String str) throws CasterException {
-		return new BigDecimal(str);
+		try {
+			if (Util.isEmpty(str, true)) throw new CasterException("cannot convert string[" + str + "] to a number, the string is empty");
+			return new BigDecimal(str.trim(), MathContext.DECIMAL128);
+		}
+		catch (NumberFormatException nfe) {
+			throw new CasterException("cannot convert string[" + str + "] to a number; " + nfe.getMessage());
+		}
 	}
 
 	public static BigDecimal toBigDecimal(String str, BigDecimal defaultValue) {
 		try {
-			return new BigDecimal(str);
+			return toBigDecimal(str);
 		}
 		catch (Exception e) {
 		}
