@@ -10,14 +10,13 @@
 
 	//structDelete(application, "stText");
 	//structDelete(application, "stWebHelp");
-
 	if ( structKeyExists( form, "lang" )
 			|| !structKeyExists( application, "languages" )
-			|| !structKeyExists( application.stText, session.lucee_admin_lang )
-			|| structKeyExists( url, "reinit" ) ){
+			|| !structKeyExists( application.stText, session.lucee_admin_lang ) 
+			|| isNull( application.stText[session.lucee_admin_lang].setting.externalizeStringGTE ) 
+			|| structKeyExists( url, "reinit" )){
 
 		cfinclude( template="menu.cfm" );
-
 		langData  = getAvailableLanguages();
 
 		languages = {};

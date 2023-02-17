@@ -138,7 +138,7 @@ Redirtect to entry --->
 				</cfscript>
 				
 				<tr>
-					<th scope="row">#stText.setting.externalizeStringGTE#</th>
+					<th scope="row">#stText.setting.externalizeStringGTE?:""#</th>
 					<td>
 						<!---<div class="warning nofocus">
 					This feature is experimental.
