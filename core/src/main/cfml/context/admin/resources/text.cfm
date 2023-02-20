@@ -52,9 +52,8 @@
 		} catch (e){
 				request.hasRemoteClientUsage=true;
 		}
-
-		stText.menuStruct.web = createMenu( stText.menu, "web",request.singlemode);
-		stText.menuStruct.server = createMenu( stText.menu, "server",request.singlemode);
+		stText.menuStruct.web = createMenu( stText.menu, "web",request.singlemode?:false);
+		stText.menuStruct.server = createMenu( stText.menu, "server",request.singlemode?:false);
 
 	} else{
 		languages=application.languages;
