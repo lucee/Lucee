@@ -186,11 +186,11 @@ component {
 		src = reReplace(src, "/\/\*[\s\S]*?\*\/|([^:]|^)\/\/.*$", "", "all"); // strip out script comments
 		src = trim(src);
 
-		local.isCfml = findNoCase( "<" & "cf" & "component", src );
-		local.isScript = findNoCase( "component", src );
+		local.isCfml = findNoCase( "<" & "cf" & "component", src ) || findNoCase( "<" & "cf" & "interface", src );
+		local.isScript = findNoCase( "component", src ) || findNoCase( "interface", src );
 
 		if ( isCfml == 0 && isScript == 0 ){
-			throw "bad cfc [#arguments.cfcPath#], can't even find a component tag / statement";
+			throw "bad cfc [#arguments.cfcPath#], can't even find a component/interface tag / statement";
 		} else if ( isCfml gt 0 ){
 			local.endStatement = find( ">", src, isCfml );
 		} else { // isScript
@@ -200,7 +200,7 @@ component {
 		if ( endStatement eq 0 ){
 			systemOutput(local, true);
 			systemOutput(left(src, 200), true);
-			throw "bad cfc [#arguments.cfcPath#], no closing statement ( '>'' or '{' ) for component";
+			throw "bad cfc [#arguments.cfcPath#], no closing statement ( '>'' or '{' ) for component/interface";
 		} 
 
 		local.snip = mid(src, ((isCfml > 0) ? isCfml : isScript), endStatement);

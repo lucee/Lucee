@@ -8085,7 +8085,7 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 			<name>variable</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>The name of the variable in which to save the timer exection time itno.</description>
+			<description>The name of the variable in which to save the timer exection time into.</description>
 			<introduced>6.0.0.98</introduced>
 		</attribute>
 
