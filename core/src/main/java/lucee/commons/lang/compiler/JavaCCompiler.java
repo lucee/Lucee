@@ -12,6 +12,7 @@ import javax.tools.ToolProvider;
 
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.PageSource;
+import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.osgi.OSGiUtil;
 
 /**
@@ -19,12 +20,17 @@ import lucee.runtime.osgi.OSGiUtil;
  */
 public class JavaCCompiler {
 
-	public static JavaFunction compile(PageSource parent, SourceCode sc) throws JavaCompilerException {
+	public static JavaFunction compile(PageSource parent, SourceCode sc) throws JavaCompilerException, ApplicationException {
 		ClassLoader cl = CFMLEngineFactory.getInstance().getCFMLEngineFactory().getClass().getClassLoader();
 		Collection<SourceCode> compilationUnits = new ArrayList<>();
 		compilationUnits.add(sc);
 		DynamicClassLoader dcl = new DynamicClassLoader(cl);
 		javax.tools.JavaCompiler javac = ToolProvider.getSystemJavaCompiler();
+		if (javac == null) {
+			throw new ApplicationException("Java compiling is not suppprted with your current JVM Enviroment (" + System.getProperty("java.vendor") + " "
+					+ System.getProperty("java.version")
+					+ "). Update to a newer version or add a tools.jar to the enviroment. Read more here: https://stackoverflow.com/questions/15513330/toolprovider-getsystemjavacompiler-returns-null-usable-with-only-jre-install");
+		}
 		List<String> options = new ArrayList<String>();
 
 		// TODO MUST better way to do this!!!
@@ -32,6 +38,7 @@ public class JavaCCompiler {
 		options.add(OSGiUtil.getClassPath());
 
 		DiagnosticCollector<JavaFileObject> collector = new DiagnosticCollector<>();
+
 		ExtendedStandardJavaFileManager fileManager = new ExtendedStandardJavaFileManager(javac.getStandardFileManager(null, null, null), dcl);
 		javax.tools.JavaCompiler.CompilationTask task = javac.getTask(null, fileManager, collector, options, null, compilationUnits);
 		boolean result = task.call();
