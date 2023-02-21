@@ -2,12 +2,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 	function run( testResults , testBox ) {
 		describe( title="Testcase for lsWeek()", body=function() {
 			it(title="checking lsWeek() with locale argument", body = function( currentSpec ) {
+				var date = createDateTime(2022,01,17,12,0,0,0,"UTC"); 
 				// in Arabic (Yemen) Saturday is the first day of the week
-				expect(lsWeek(date="{ts '2022-01-17 0:0:0'}", locale="Arabic (Yemen)")).tobe(3);
+				expect(lsWeek(date=date, locale="Arabic (Yemen)")).tobe(3);
 				// in Catalan Monday is the first day of the week
-				expect(lsWeek(date="{ts '2022-01-17 0:0:0'}", locale="Catalan")).tobe(3);
+				expect(lsWeek(date=date, locale="Catalan")).tobe(3);
 				// in English (Canada) Sunday is the first day of the week
-				expect(lsWeek(date="{ts '2022-01-17 0:0:0'}", locale="English (Canada)")).tobe(4);
+				expect(lsWeek(date=date, locale="English (Canada)")).tobe(4);
 			});
 			it(title="checking lsWeek() with locale and timezone argument", body = function( currentSpec ) {
 				var date = createDateTime(2022,01,17,12,0,0,0,"UTC"); 
