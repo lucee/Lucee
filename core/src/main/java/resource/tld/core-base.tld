@@ -6694,6 +6694,7 @@ To use cached data, the current query must use the same SQL statement, data sour
 		<attribute>
 			<type>boolean</type>
 			<name>lazy</name>
+			<status>deprecated</status>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>

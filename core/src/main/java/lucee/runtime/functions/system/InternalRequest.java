@@ -104,7 +104,7 @@ public class InternalRequest implements Function {
 			Charset cs = null;
 			// get charset
 			if (headers != null) {
-				String strCT = Caster.toString(headers.get(CONTENT_TYPE), null);
+				String strCT = Caster.toString(headers.get(CONTENT_TYPE, null), null);
 				if (strCT != null) {
 					ContentType ct = HTTPUtil.toContentType(strCT, null);
 					if (ct != null) {
