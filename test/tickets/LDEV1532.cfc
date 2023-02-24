@@ -48,7 +48,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				expect(local.result.filecontent.trim()).toBe('0');
 			});
 
-			it(title = "Checking cfqueryparam with datatype cf_sql_integer, null=true & value is null (datasource)", body = function( currentSpec ) {
+			it(title = "Checking cfqueryparam with datatype cf_sql_integer, null=false & value is null (datasource)", body = function( currentSpec ) {
 				local.result = _InternalRequest(
 					template:"#variables.uri#/test.cfm",
 					forms:{Scene=5}
