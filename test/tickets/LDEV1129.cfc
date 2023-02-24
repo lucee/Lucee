@@ -28,11 +28,11 @@
 		}
 
 		function afterAll() skip="isNotSupported"{
-			if (isNotSupported()) return;
 			if (directoryExists(baseWithBucketName) )
 			 	directoryDelete(baseWithBucketName, true);
 			if (directoryExists(testFolder) )
 			 	directoryDelete(testFolder, true);
+			if (isNotSupported()) return;
 		}
 
 		public function run( testResults , testBox ) {
