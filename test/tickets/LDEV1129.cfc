@@ -28,10 +28,13 @@
 		}
 
 		function afterAll() skip="isNotSupported"{
-			if (directoryExists(baseWithBucketName) )
-			 	directoryDelete(baseWithBucketName, true);
+			if (!isNull(baseWithBucketName) && directoryExists(baseWithBucketName) )
+					directoryDelete(baseWithBucketName, true);
+			if (!isNull(testFolder) && directoryExists(testFolder) )
+					directoryDelete(testFolder, true);
 			if (isNotSupported()) return;
 		}
+
 
 		public function run( testResults , testBox ) {
 			describe( title="Test suite for LDEV-1129 ( checking s3 file operations )", body=function() {
