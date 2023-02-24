@@ -6,10 +6,10 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" labels="s3" {
 
 	function run( testResults, testBox ){
 		describe( "Test case for LDEV4407", function(){
-			it(title = "only define S3.ACL in Application.cfc", skip=isNotSupported() body = function( currentSpec ){
+			it(title = "only define S3.ACL in Application.cfc", skip=isNotSupported(), body = function( currentSpec ){
 				local.result = _InternalRequest(
-					template : "#uri#\index.cfm",
-				)
+					template : "#uri#\index.cfm"
+				);
 				expect(result.filecontent).tobe("true");
 			});
 		});
