@@ -20,7 +20,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" labels="s3" {
 		return baseURI&""&calledName;
 	}
 	
-	private struct function isNotSupported() {
+	private boolean function isNotSupported() {
 		res= server.getTestService("s3");
 		return isNull(res) || len(res)==0;
 	}
