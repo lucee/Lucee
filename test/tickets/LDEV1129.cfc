@@ -9,12 +9,14 @@
 		function beforeAll() skip="isNotSupported"{
 			variables.bucketName = lcase("lucee-ldev1129-#CreateGUID()#");
 			var uri = createURI( variables.bucketName );
+			if ( isNotSupported() ) return;
+
 			if (not directoryExists(uri) ){
 				Directorycreate(uri);
 				Directorycreate("#uri#/test");
 				Directorycreate("#uri#/test2");
 			}
-			if ( isNotSupported() ) return;
+			
 			var s3Details = getCredentials();
 			
 			variables.base = "s3://#s3Details.ACCESS_KEY_ID#:#s3Details.SECRET_KEY#@";
@@ -26,9 +28,9 @@
 		}
 
 		function afterAll() skip="isNotSupported"{
-			if (isNotSupported()) return;
 			if (directoryExists(baseWithBucketName) )
 			 	directoryDelete(baseWithBucketName, true);
+			if (isNotSupported()) return;
 		}
 
 		public function run( testResults , testBox ) {
