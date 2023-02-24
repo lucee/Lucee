@@ -45,6 +45,8 @@
 	// test s3 access
 	SystemOutput( "Testing S3 Bucket Access", 1, 1 );
 	SystemOutput( "LEN:#len(server.system.environment.S3_ACCESS_ID_DOWNLOAD)#:#len(server.system.environment.S3_SECRET_KEY_DOWNLOAD)#", 1, 1 );
+	SystemOutput( "EXIST:#S3Exist(s3_bucket,"", server.system.environment.S3_ACCESS_ID_DOWNLOAD, server.system.environment.S3_SECRET_KEY_DOWNLOAD)#", 1, 1 );
+	
 	if (! DirectoryExists( trg.dir ) )
 		throw "DirectoryExists failed for s3 bucket [#s3_bucket#]"; // it usually will throw an error, rather than even reach this throw, if it fails
 
