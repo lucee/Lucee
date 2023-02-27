@@ -16,7 +16,6 @@
 			var res=storeGetACL(file);
 			if(!isNull(res)) {
 				loop array=res item="local.data" {
-					dump(data);
 					if((data.group?:"")=="all" && (data.permission?:"")=="READ") {
 						hasAllRead=true;
 						break;
