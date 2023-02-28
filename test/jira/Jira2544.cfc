@@ -19,7 +19,7 @@
 	<cffunction name="testCatch">
 		<cftry>
 		
-			<cfthrow type="Database" message="test excpetion" detail="this is a test">
+			<cfthrow type="Database" message="test exception" detail="this is a test">
 			<cfcatch type="database">
 				<cfset assertEquals(cfcatch.detail,'this is a test')>
 			</cfcatch>
