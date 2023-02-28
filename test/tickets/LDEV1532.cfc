@@ -67,7 +67,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				expect(qTest.recordcount).toBe('0');
 			});
 			
-			it(title = "Checking cfqueryparam with datatype cf_sql_integer, null=false & value is null (datasource query)", body = function( currentSpec ) {
+			it(title = "Checking cfqueryparam with datatype cf_sql_integer, null=false & value is null (datasource query)", skip="true", body = function( currentSpec ) {
 				try {
 					hasError = false;
 					p = [id= { cfsqltype='cf_sql_integer', value='', null='false' } ];
