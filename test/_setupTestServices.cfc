@@ -145,7 +145,7 @@ component {
 		systemOutput( "", true) ;		
 		systemOutput("-------------- Test Services ------------", true );
 
-		loop list="MySQL,MSsql,postgres,h2,oracle,mongoDb,smtp,pop,imap,s3,ftp,sftp" item="service" {
+		loop list="MySQL,MSsql,postgres,h2,oracle,mongoDb,smtp,pop,imap,s3,ftp,sftp,redis" item="service" {
 			cfg = server.getTestService( service=service, verify=true );
 			server.test_services[ service ]= {
 				valid: false,
@@ -175,6 +175,9 @@ component {
 							break;
 						case "mongoDb":
 							verify = verifyMongo(cfg);
+							break;
+						case "redis":
+							verify = verifyRedis(cfg, service);
 							break;
 						default:
 							verify = verifyDatasource(cfg);
@@ -243,7 +246,13 @@ component {
 		DirectoryExists( base );		
 		return "s3 Connection Verified";
 	}
-		
+
+	public function verifyRedis ( redis ) localmode=true{
+		if ( structCount( redis ) eq 2 ){
+			return "configured (not tested)";
+		}	
+		throw "not configured";
+	}
 
 	public function addSupportFunctions() {
 		server._getSystemPropOrEnvVars = function ( string props="", string prefix="", boolean stripPrefix=true, boolean allowEmpty=false ) localmode=true{
@@ -418,6 +427,12 @@ component {
 			case "s3":
 				s3 = server._getSystemPropOrEnvVars( "ACCESS_KEY_ID, SECRET_KEY", "S3_" );
 				return s3;
+			case "redis":
+				redis = server._getSystemPropOrEnvVars( "SERVER, PORT", "REDIS_" );
+				if ( redis.count() eq 2 ){
+					return redis;
+				}
+				break;
 			default:
 				break;
 		}
