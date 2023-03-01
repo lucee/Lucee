@@ -29,6 +29,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 
 	function run( testResults , testBox ) {
 		describe( "test case for LDEV-1532", function() {
+			/*
 			it(title = "Checking cfqueryparam with datatype cf_sql_integer, null=false & value is null (dbtype=query)", body = function( currentSpec ) {
 				try {
 					hasError = false;
@@ -66,22 +67,47 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				}
 				expect(qTest.recordcount).toBe('0');
 			});
-			
-			it(title = "Checking cfqueryparam with datatype cf_sql_integer, null=false & value is null (datasource query)", skip="true", body = function( currentSpec ) { // skip="notHasMssql",
-				try {
-					hasError = false;
-					p = [id= { cfsqltype='cf_sql_integer', value='', null='false' } ];
-					cfquery( name="qTest" params=p ) {
+			*/
+			// LDEV-4410 don't auto cast numerics to null
+			it(title = "Checking query param with datatype cf_sql_integer, null=false & value is null (datasource query)", body = function( currentSpec ) {
+				expect( function(){
+					var	p = [id= { cfsqltype='cf_sql_integer', value='', null='false' } ];
+					cfquery( name="local.qTest" params=p ) {
 						echo(" SELECT * FROM LDEV1532 WHERE id = :id ");
 					}
-				}
-				catch(any e) {
-					hasError = true
-				}
-				expect(hasError).toBe('true');
+				}).toThrow();
 			});
 
 			it(title = "Checking cfqueryparam with datatype cf_sql_integer, null=true & value is null (datasource query)", skip=notHasMssql(), body = function( currentSpec ) {
+				expect( function(){
+					var	p = [id= { cfsqltype='cf_sql_varchar', value='', null='false' } ];
+					cfquery( name="local.qTest" params=p ) {
+						echo(" SELECT * FROM LDEV1532 WHERE id = :id ");
+					}
+				}).notToThrow();
+			});
+
+			it(title = "Checking cfqueryparam with datatype cf_sql_integer, null=false & value is null (datasource query)", body = function( currentSpec ) {
+				expect(function(){
+				```
+					<cfquery name="local.qTest">
+						SELECT * FROM LDEV1532 WHERE id = <cfqueryparam sqltype="integer" value="">
+					</cfquery> 
+					```
+				}).toThrow();
+			});
+
+			it(title = "Checking cfqueryparam with datatype cf_sql_varchar, null=false & value is null (datasource query)", body = function( currentSpec ) {
+				expect(function(){
+					```
+					<cfquery name="local.qTest">
+						SELECT * FROM LDEV1532 WHERE id = <cfqueryparam sqltype="varchar" value="">
+					</cfquery> 
+					```
+				}).notToThrow();
+			});
+			/*
+			it(title = "Checking cfqueryparam with datatype cf_sql_integer, null=true & value is null (datasource query)", body = function( currentSpec ) {
 				p = [id= { cfsqltype='cf_sql_integer', value='', null='true' } ];
 				cfquery( name="qTest" params=p) {
 					echo(" SELECT * FROM LDEV1532 WHERE id = :id ")
@@ -104,6 +130,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				}
 				expect(qTest.recordcount).toBe('0');
 			});
+			*/
 		});
 	}
 

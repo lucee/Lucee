@@ -213,14 +213,14 @@ public final class QueryParam extends TagImpl {
 				int len = arr.size();
 				StringBuffer sb = new StringBuffer();
 				for (int i = 1; i <= len; i++) {
-					query.setParam(item.clone(check(arr.getE(i), item.getType(), (int) maxlength, charset)));
+					query.setParam(item.clone(check(arr.getE(i), item.getType(), (int) maxlength, charset,item.isNulls())));
 					if (i > 1) sb.append(',');
 					sb.append('?');
 				}
 				write(sb.toString());
 			}
 			else {
-				check(item.getValue(), item.getType(), (int) maxlength, charset);
+				check(item.getValue(), item.getType(), (int) maxlength, charset, item.isNulls());
 				query.setParam(item);
 				write("?");
 			}
@@ -231,8 +231,18 @@ public final class QueryParam extends TagImpl {
 		return SKIP_BODY;
 	}
 
-	public static Object check(Object value, int type, int maxlength, Charset charset) throws PageException {
-		if (maxlength != -1 || charset != null) {
+	public static Object check(Object value, int type, int maxlength, Charset charset, boolean nulls) throws PageException {
+
+		/* 
+		TODO, always checking casting when null eq false adds a lot of overhead here
+		we could conditionally only check when type is not numeric / bit...
+
+		that said, sqlcaster.setItem casts again, can we reuse?
+
+		also we don't check handle scale LDEV-4337
+		*/
+
+		if (maxlength != -1 || charset != null || !nulls) {
 
 			String str;
 			if (BIGINT == type || INTEGER == type || SMALLINT == type || TINYINT == type) {
