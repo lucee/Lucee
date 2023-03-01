@@ -22,7 +22,7 @@ for (el in ["bundleId", "debugBuffer", "endTime", "error", "failMessage", "failO
 	fixCase[ucase(el)] = el;
 }
 
-systemOutput("Running tests with Java: #server.java.version#", true);
+systemOutput("Running tests with Java: #server.java.version#, [#server.system.properties['java.home']#]", true);
 
 try {
 

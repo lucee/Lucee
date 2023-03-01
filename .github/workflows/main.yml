@@ -27,7 +27,7 @@ jobs:
     env:
       DO_DEPLOY: "${{ github.event_name == 'push' && github.ref == 'refs/heads/6.0' }}"
       LUCEE_BUILD_JAVA_VERSION: 8
-      LUCEE_TEST_JAVA_VERSION: ''
+      LUCEE_TEST_JAVA_VERSION: 8
     services:
       sql-server:
         # Docker Hub image
@@ -89,6 +89,7 @@ jobs:
       with:
         java-version: ${{ env.LUCEE_TEST_JAVA_VERSION }}
         distribution: 'temurin'
+        java-package: jre
 
     - name: Stash Test Java Version Home
       if: ${{ env.LUCEE_TEST_JAVA_VERSION != '' }}
@@ -96,10 +97,11 @@ jobs:
 
     - name: Set up build JDK '${{ env.LUCEE_BUILD_JAVA_VERSION }}'
       uses: actions/setup-java@v3
-      if: ${{ env.LUCEE_TEST_JAVA_VERSION != env.LUCEE_BUILD_JAVA_VERSION }}
+      #if: ${{ env.LUCEE_TEST_JAVA_VERSION != env.LUCEE_BUILD_JAVA_VERSION }}
       with:
         java-version: '${{ env.LUCEE_BUILD_JAVA_VERSION }}'
         distribution: 'temurin'
+        java-package: jdk
 
     - name: Disable DEPLOY if not building with Java 8 (Lucee default)
       if: ${{ env.LUCEE_BUILD_JAVA_VERSION != '8' }}
