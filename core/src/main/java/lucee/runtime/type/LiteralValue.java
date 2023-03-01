@@ -27,7 +27,7 @@ public class LiteralValue {
 
 	}
 
-	public static Number toNumber(PageContext pc, String nbr) throws CasterException {// excpetion is not expected to bi driggerd
+	public static Number toNumber(PageContext pc, String nbr) throws CasterException {// exception is not expected to bi driggerd
 		if (((ApplicationContextSupport) pc.getApplicationContext()).getPreciseMath()) return Caster.toBigDecimal(nbr);
 		else return Double.valueOf(nbr);
 	}
