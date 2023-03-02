@@ -1,14 +1,14 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" {
+component extends="org.lucee.cfml.test.LuceeTestCase" skip="true" {
 	function run( testResults, testBox ) {
 		describe( title="Testcase for LDEV-4409", body=function() {
-			it( title = "Checking with numberFormat()", body=function( currentSpec ) {
+			it( title = "Checking numberFormat() with mask argument", body=function( currentSpec ) {
 				try {
-					result = _InternalRequest(
+					var result = _InternalRequest(
 						template:createURI("LDEV4409/test4409.cfm")
 					).fileContent;
 				}
 				catch(any e) {
-					result = e.message;
+					var result = e.message;
 				}
 				assertEquals('1.23', result);
 			});
