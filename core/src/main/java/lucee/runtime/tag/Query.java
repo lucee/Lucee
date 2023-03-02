@@ -809,7 +809,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 		if (items == null) return;
 		for (SQLItem item: items) {
 			SQLItemImpl _item = (SQLItemImpl) item;
-			QueryParam.check(item.getValue(), item.getType(), _item.getMaxlength(), _item.getCharset(), _item.isNulls());
+			QueryParam.check(item.getValue(), item.getType(), _item.getMaxlength(), _item.getCharset());
 		}
 	}
 
