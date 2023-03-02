@@ -1,0 +1,21 @@
+component extends="org.lucee.cfml.test.LuceeTestCase" {
+	function run( testResults, testBox ) {
+		describe( title="Testcase for LDEV-4409", body=function() {
+			it( title = "Checking with numberFormat()", body=function( currentSpec ) {
+				try {
+					result = _InternalRequest(
+						template:createURI("LDEV4409/test4409.cfm")
+					).fileContent;
+				}
+				catch(any e) {
+					result = e.message;
+				}
+				assertEquals('1.23', result);
+			});
+		});
+	}
+	private string function createURI( string calledName ) {
+		var baseURI = "/test/#listLast(getDirectoryFromPath(getCurrenttemplatepath()), "\/")#/";
+		return baseURI & "" & calledName;
+	}
+}
