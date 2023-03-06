@@ -40,7 +40,7 @@ component {
 	
 	public struct function runTests() localmode=true {
 		SystemOut = createObject( "java", "lucee.commons.lang.SystemOut" );
-		out = SystemOut.setOut( nullValue() );
+		//out = SystemOut.setOut( nullValue() );
 		//err=SystemOut.setErr(nullValue());
 		TAB = chr( 9 );
 		NL = chr( 10 ) & chr( 13 );
@@ -63,7 +63,7 @@ component {
 				// SystemOutput( additionalBundles, true );
 				bundles = ArrayMerge( bundles, additionalBundles );
 			}
-			var tb = new testbox.system.TestBox( bundles=bundles, reporter="console" );
+			var tb = new testbox.system.TestBox( bundles=bundles, reporter="raw" );
 
 			SystemOutput( "Found #tb.getBundles().len()# tests to run, filter took #getTickCount()-filterTimer#ms", true );
 			if ( len( additionalBundles ) ){
@@ -86,11 +86,11 @@ component {
 {
 	 onBundleStart = function( cfc, testResults ){
 		var meta = getComponentMetadata( cfc );
-		SystemOut.setOut( out );
+		//SystemOut.setOut( out );
 		//SystemOut.setErr(err);
 		//"============================================================="
 		systemOutput( TAB & meta.name & " ", false );
-		SystemOut.setOut( nullValue() );
+		//SystemOut.setOut( nullValue() );
 		//SystemOut.setErr(nullValue());
 	} // onBundleStart = function
 	,onBundleEnd = function( cfc, testResults ){
@@ -99,7 +99,7 @@ component {
 		request._tick = getTickCount();
 		ArrayAppend( request.overhead, oh );
 		try {
-			SystemOut.setOut( out );
+			//SystemOut.setOut( out );
 			//SystemOut.setErr(err);
 			if ( bundle.totalPass eq 0 && ( bundle.totalFail + bundle.totalError ) eq 0 )
 				systemOutput( TAB & " (skipped)", true );
@@ -261,7 +261,7 @@ Begin Stack Trace
 //systemOutput("=============================================================",true);
 		} // try
 		finally {
-			SystemOut.setOut( nullValue() );
+			//SystemOut.setOut( nullValue() );
 			//SystemOut.setErr(nullValue());
 		} // finally
 	} // onBundleEnd = function

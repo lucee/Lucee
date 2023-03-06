@@ -210,7 +210,7 @@ try {
 
 	// load testbox
 	SystemOut = createObject( "java", "lucee.commons.lang.SystemOut" );
-	out = SystemOut.setOut( nullValue() );
+	//out = SystemOut.setOut( nullValue() );
 	//err = SystemOut.setErr( nullValue() );
 
 	request._tick = getTickCount();

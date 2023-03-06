@@ -5,14 +5,18 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.SocketException;
+import java.io.PrintWriter;
 
 import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPFile;
 import org.apache.commons.net.ftp.FTPReply;
+import org.apache.commons.net.PrintCommandListener;
 
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
+import lucee.runtime.op.Caster;
+import lucee.commons.io.SystemUtil;
 
 public class FTPClientImpl extends AFTPClient {
 
@@ -29,6 +33,9 @@ public class FTPClientImpl extends AFTPClient {
 
 	FTPClientImpl() {
 		this.client = new FTPClient();
+		if (Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.debug.ftp", ""), true)) {
+			this.client.addProtocolCommandListener(new PrintCommandListener(new PrintWriter(System.out), true));
+		}
 	}
 
 	@Override

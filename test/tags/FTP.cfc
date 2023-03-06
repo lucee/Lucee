@@ -17,24 +17,54 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  * 
  ---><cfscript>
-component extends="org.lucee.cfml.test.LuceeTestCase" labels="ftp,sftp"	{
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="ftp" {
 	
 	
 	//public function afterTests(){}
 	
-	public function setUp(){}
+	public function testSFTP() {
+		var sftp=getSFTPCredentials();
+		if(!structCount(sftp)) return;
+		//return; //disable failing test
+		_test(
+			secure: true,
+			host: sftp.server,
+			user: sftp.username,
+			pass: sftp.password,
+			port: sftp.port,
+			base: sftp.base_path
+		);
+	}
 
+	public function testFTP() {
+		var ftp=getFTPCredentials();
+		if(!structCount(ftp)) return;
+		//return; //disable failing test
+		_test(
+			secure: false,
+			host: ftp.server,
+			user: ftp.username,
+			pass: ftp.password,
+			port: ftp.port,
+			base: ftp.base_path
+		);
+	}
 
-	private function _test(required boolean secure,required string host,required number port=21,required string user,required string pass,required string base){
+	private void function _test(required boolean secure, required string host, required number port,
+		required string user, required string pass, required string base){
 
-		ftp action = "open" 
-			connection = "conn" 
-			secure=secure
-			username = user 
-			password = pass 
-			server = host
-			port=port;
-
+		//systemOutput(arguments, true);
+		
+		ftp action = "open"
+			connection="ftpConn"
+			passive = "true"
+			timeout = 5
+			secure = arguments.secure
+			username = arguments.user
+			password = arguments.pass
+			server = arguments.host
+			stopOnError = true
+			port = arguments.port;
 
 		var folderName="folder"&getTickCount();
 		if(right(base,1)!="/")base=base&"/";
@@ -49,44 +79,42 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ftp,sftp"	{
 		var subfile=subdir&fileName;
 		
 		// list the inital state
-		ftp action="listdir" directory=base connection = "conn" name="local.list1";
+		ftp action="listdir" directory=base connection="ftpConn" name="local.initialState" passive="true"; // passive not sticky LDEV-977
 		
 		// print working directory
-		ftp action="getcurrentdir" directory=base connection = "conn" result="local.pwd1";
+		ftp action="getcurrentdir" directory=base connection="ftpConn" result="local.pwd1";
 		pwd1=pwd1.returnValue;
 		///////// TODO does not work with sftp assertTrue(pwd1==base || pwd1&"/"==base);
 			
 		
-		try{
+		//try{
 
 			// we create a directory
-			ftp action="createdir" directory=dir connection = "conn";
-			ftp action="listdir" directory=base connection = "conn" name="local.list2";
-			assertEquals(list1.recordcount+1,list2.recordcount);
+			ftp action="createdir" directory=dir connection="ftpConn";
+			ftp action="listdir" directory=base connection="ftpConn" name="local.list2" passive="true";
+			assertEquals(initialState.recordcount+1,list2.recordcount);
 
 			// change working directory
-			ftp action="changedir" directory=dir connection = "conn";
-			ftp action="getcurrentdir" directory=base connection = "conn" result="local.pwd2";
+			ftp action="changedir" directory=dir connection="ftpConn";
+			ftp action="getcurrentdir" directory=base connection="ftpConn" result="local.pwd2";
 			pwd2=pwd2.returnValue;
 			assertTrue(pwd2==dir || pwd2&"/"==dir);
-		
-			
 
 			// we add a file
-			ftp action="putFile"  localfile=getCurrentTemplatePath() remoteFile=file connection= "conn";
-			ftp action="listdir" directory=dir connection = "conn" name="local.list3";
+			ftp action="putFile"  localfile=getCurrentTemplatePath() remoteFile=file connection= "ftpConn";
+			ftp action="listdir" directory=dir connection="ftpConn" name="local.list3" passive="true";  // passive not sticky LDEV-977;
 			assertEquals(list3.recordcount,1);
 			assertEquals(list3.name,fileName);
 			assertEquals(list3.isDirectory,false);
 			assertEquals(list3.name,fileName);
 			assertEquals(list3.path,file);
 			assertEquals(list3.type,"file");
-			
+
 			// we read the file
 			var src=getCurrentTemplatePath();
 			var localFile=src&"."&getTickcount()&".rf";
 			try {
-				ftp action="getFile"  localfile=localFile remoteFile=file connection= "conn";
+				ftp action="getFile"  localfile=localFile remoteFile=file connection= "ftpConn";
 				var srcContent=fileRead(src);
 				var localFileContent=fileRead(localFile);
 				assertEquals(srcContent,localFileContent);
@@ -96,70 +124,56 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ftp,sftp"	{
 			}
 
 			// we rename the file
-			ftp action="rename"  existing=file new=file2 connection= "conn";
-			ftp action="listdir" directory=dir connection = "conn" name="local.list4";
+			ftp action="rename"  existing=file new=file2 connection= "ftpConn";
+			ftp action="listdir" directory=dir connection="ftpConn" name="local.list4" passive="true";
 			assertEquals(list4.recordcount,1);
 			assertEquals(list4.name,fileName2);
 
 			// exists dir
-			ftp action="existsdir" directory=dir connection = "conn" result="local.exist1";
+			ftp action="existsdir" directory=dir connection="ftpConn" result="local.exist1";
 			assertTrue(exist1.returnValue);
-			ftp action="existsdir" directory=subdir connection = "conn" result="local.exist2";
+			ftp action="existsdir" directory=subdir connection="ftpConn" result="local.exist2";
 			assertFalse(exist2.returnValue);
 
 			//exists file
-			ftp action="existsfile" remotefile=file2 connection = "conn" result="local.exist3";
+			ftp action="existsfile" remotefile=file2 connection="ftpConn" result="local.exist3";
 			assertTrue(exist3.returnValue);
-			ftp action="existsfile" remotefile=file connection = "conn" result="local.exist4";
+			ftp action="existsfile" remotefile=file connection="ftpConn" result="local.exist4";
 			assertFalse(exist4.returnValue);
 
+			ftp action="listdir" directory=base connection="ftpConn" name="local.list22" passive="true";
+			debug(list22);
 
 			// we delete the file again
-			ftp action="remove"  item=file2 connection= "conn";
-			ftp action="listdir" directory=dir connection = "conn" name="local.list4";
+			ftp action="remove"  item=file2 connection= "ftpConn";
+			ftp action="listdir" directory=dir connection="ftpConn" name="local.list4" passive="true";
 			assertEquals(list4.recordcount,0);
 
 			// we add again a file and directory to be sure we can delete a folder with content
-			ftp action="createdir" directory=subdir connection = "conn";
-			ftp action="putFile"  localfile=getCurrentTemplatePath() remoteFile=subfile connection= "conn";
+			ftp action="createdir" directory=subdir connection="ftpConn";
+			ftp action="putFile"  localfile=getCurrentTemplatePath() remoteFile="#subfile#-normal" connection="ftpConn";
+			ftp action="putFile"  localfile=getCurrentTemplatePath() remoteFile="#subfile#-ascii" connection="ftpConn" transferMode="ASCII";
+			ftp action="putFile"  localfile=getCurrentTemplatePath() remoteFile="#subfile#-auto" connection="ftpConn" transferMode="auto"; // default
+			// LDEV-3528  transferMode=“binary” causes "Connection is not open" error with ftp
+			if ( arguments.secure )
+				ftp action="putFile"  localfile=getCurrentTemplatePath() remoteFile="#subfile#-binary" connection="ftpConn" transferMode="binary";
+			debug(cfftp);
+
+		//}
+		//finally {
+			ftp action="listdir" directory=subdir connection="ftpConn" name="local.listSubdir" recurse=true passive="true";
+			expect( listSubdir.recordcount ).toBe( arguments.secure? 4 : 3 );
 			
-
-		}
-		finally {
+			ftp action="removedir" directory=subdir connection="ftpConn" recurse=true;
+			ftp action="existsDir" directory=subdir connection="ftpConn" result="local.listSubdirExists";
+			expect( listSubdirExists.returnvalue ).toBeFalse();
+			
 			// delete the folder we did for testing
-			ftp action="removedir" directory=dir connection = "conn" recurse=true;
-			ftp action="listdir" directory=base connection = "conn" name="local.list20";
-			assertEquals(list1.recordcount,list20.recordcount);
-		}
+			ftp action="removedir" directory=dir connection="ftpConn" recurse=true;
+			ftp action="listdir" directory=base connection="ftpConn" name="local.finalState" passive="true";
+			expect( finalState.recordcount ) .toBe( initialState.recordcount );
+		//}
 
-	}
-
-	public function testSFTP() {
-		var sftp=getSFTPCredentials();
-		if(!structCount(sftp)) return;
-		return; //disable failing test
-		_test(
-			secure: true,
-			host: sftp.server,
-			user: sftp.username,
-			pass: sftp.password,
-			port: sftp.port,
-			base: sftp.base_path
-		);
-	}
-
-	public function testFTP() {
-		var ftp=getFTPCredentials();
-		if(!structCount(ftp)) return;
-		return; //disable failing test
-		_test(
-			secure: false,
-			host: ftp.server,
-			user: ftp.username,
-			pass: ftp.password,
-			port: ftp.port,
-			base: ftp.base_path
-		);
 	}
 
 	private struct function getFTPCredentials() {
@@ -167,7 +181,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ftp,sftp"	{
 	}
 
 	private struct function getSFTPCredentials() {
-		// getting the credentials from the environment variables
 		return server.getTestService("sftp");
 	}
 } 
