@@ -40,7 +40,7 @@ public class ConfigImport extends BIF {
 			password = SystemUtil.getSystemPropOrEnvVar("lucee." + type.toLowerCase() + ".admin.password", null);
 			if (StringUtil.isEmpty(password))
 				throw new FunctionException(pc, "ConfigFileImport", "third", "password", "There is no password defined as an argument for the function",
-						"You can define a password to access the " + type.toLowerCase() + " config in 3 ways. As an argument with this function, as enviroment variable [LUCEE_"
+						"You can define a password to access the " + type.toLowerCase() + " config in 3 ways. As an argument with this function, as environment variable [LUCEE_"
 								+ type.toUpperCase() + "_ADMIN_PASSWORD] or as system property [lucee." + type.toLowerCase() + ".admin.password]");
 		}
 
