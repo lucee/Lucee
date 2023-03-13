@@ -3,13 +3,13 @@ package lucee.commons.io.log.log4j2.appender;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.nio.charset.Charset;
-import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.logging.log4j.core.Filter;
 import org.apache.logging.log4j.core.Layout;
 import org.apache.logging.log4j.core.LogEvent;
 import org.apache.logging.log4j.core.appender.AbstractAppender;
 
+import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.retirement.RetireListener;
@@ -20,8 +20,6 @@ import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.op.Caster;
 
 public class ResourceAppender extends AbstractAppender {
-
-	private static final ConcurrentHashMap<String, String> tokens = new ConcurrentHashMap<String, String>();
 
 	public static final long DEFAULT_MAX_FILE_SIZE = 10 * 1024 * 1024;
 	public static final int DEFAULT_MAX_BACKUP_INDEX = 10;
@@ -51,11 +49,7 @@ public class ResourceAppender extends AbstractAppender {
 		this.maxFileSize = maxFileSize;
 		this.maxfiles = maxfiles;
 		setFile(append);
-		this.token = createToken(res);
-	}
-
-	public Resource getResource() {
-		return res;
+		this.token = SystemUtil.createToken("ResourceAppender", res.getAbsolutePath());
 	}
 
 	@Override
@@ -64,12 +58,12 @@ public class ResourceAppender extends AbstractAppender {
 		// check file length
 		if (size > maxFileSize) {
 			synchronized (token) {
-				if (res.length() > maxFileSize) { // we do not trust size to much because of multi threading issues we do not avoid setting this var
+				if (size > maxFileSize) { // we do not trust size to much because of multi threading issues we do not avoid setting this var
 					try {
 						rollOver();
 					}
 					catch (IOException e) {
-						LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), "log-loading", "rollover failed for" + res, e);
+						LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), "log-loading", "Log rollover failed for [" + res + "]", e);
 					}
 				}
 			}
@@ -95,12 +89,16 @@ public class ResourceAppender extends AbstractAppender {
 			}
 		}
 		catch (Exception e) {
-			LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), "log-loading", "Unable to write to" + res, e);
+			LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), "log-loading", "Unable to write to log [" + res + "]", e);
 			closeFile();
 		}
 		finally {
 
 		}
+	}
+
+	public Resource getResource() {
+		return res;
 	}
 
 	/**
@@ -181,7 +179,7 @@ public class ResourceAppender extends AbstractAppender {
 						this.setFile(true);
 					}
 					catch (IOException e) {
-						LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), "log-loading", "setFile(" + res + ", true) call failed.", e);
+						LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), "log-loading", "setFile([" + res + "], true) call failed.", e);
 					}
 				}
 			}
@@ -196,7 +194,7 @@ public class ResourceAppender extends AbstractAppender {
 				this.setFile(false);
 			}
 			catch (IOException e) {
-				LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), "log-loading", "setFile(" + res + ", false) call failed.", e);
+				LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), "log-loading", "setFile([" + res + "], false) call failed.", e);
 			}
 		}
 	}
@@ -215,17 +213,8 @@ public class ResourceAppender extends AbstractAppender {
 				writer = null;
 			}
 			catch (java.io.IOException e) {
-				LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), "log-loading", "Could not close " + res, e);
+				LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), "log-loading", "Could not close [" + res + "]", e);
 			}
 		}
-	}
-
-	public static String createToken(Resource res) {
-		String str = res.getAbsolutePath();
-		String lock = tokens.putIfAbsent(str, str);
-		if (lock == null) {
-			lock = str;
-		}
-		return lock;
 	}
 }

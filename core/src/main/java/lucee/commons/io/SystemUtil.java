@@ -184,6 +184,7 @@ public final class SystemUtil {
 	private static final int TYPE_BUNDLE = 1;
 	private static final int TYPE_SYSTEM = 2;
 	private static final int TYPE_BOOT_DELEGATION = 3;
+	private static final ConcurrentHashMap<String, String> tokens = new ConcurrentHashMap<String, String>();
 
 	static {
 		// OS
@@ -1733,6 +1734,15 @@ public final class SystemUtil {
 			}
 		}
 		return false;
+	}
+
+	public static String createToken(String prefix, String name) {
+		String str = prefix + ":" + name;
+		String lock = tokens.putIfAbsent(str, str);
+		if (lock == null) {
+			lock = str;
+		}
+		return lock;
 	}
 }
 
