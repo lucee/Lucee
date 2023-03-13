@@ -8,7 +8,6 @@ import org.apache.logging.log4j.core.Filter;
 import org.apache.logging.log4j.core.Layout;
 import org.apache.logging.log4j.core.LogEvent;
 import org.apache.logging.log4j.core.appender.AbstractAppender;
-import org.apache.logging.log4j.status.StatusLogger;
 
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.LogUtil;
@@ -59,7 +58,7 @@ public class ResourceAppender extends AbstractAppender {
 		// check file length
 		if (size > maxFileSize) {
 			synchronized (token) {
-				if (res.length() > maxFileSize) { // we do not trust size to much because of multi threading issues we do not avoid setting this var
+				if (size > maxFileSize) { // we do not trust size to much because of multi threading issues we do not avoid setting this var
 					try {
 						rollOver();
 					}
@@ -120,7 +119,6 @@ public class ResourceAppender extends AbstractAppender {
 	 */
 	protected void setFile(boolean append) throws IOException {
 		synchronized (sync) {
-			StatusLogger.getLogger().debug("setFile called: [" + res + "], " + append);
 			reset();
 			Resource parent = res.getParentResource();
 			if (!parent.exists()) parent.createDirectory(true);
@@ -134,7 +132,6 @@ public class ResourceAppender extends AbstractAppender {
 				writer.flush();
 				// TODO new line?
 			}
-			StatusLogger.getLogger().debug("setFile ended");
 		}
 	}
 
@@ -164,7 +161,6 @@ public class ResourceAppender extends AbstractAppender {
 				file = parent.getRealResource(res.getName() + "." + i + ".bak");
 				if (file.exists()) {
 					target = parent.getRealResource(res.getName() + "." + (i + 1) + ".bak");
-					StatusLogger.getLogger().debug("Renaming log file [" + file + "] to [" + target + "]");
 					renameSucceeded = file.renameTo(target);
 				}
 			}
@@ -174,7 +170,6 @@ public class ResourceAppender extends AbstractAppender {
 				target = parent.getRealResource(res.getName() + ".1.bak");
 
 				file = res;
-				StatusLogger.getLogger().debug("Renaming log file [" + file + "] to [" + target + "]");
 				renameSucceeded = file.renameTo(target);
 
 				// if file rename failed, reopen file with append = true
