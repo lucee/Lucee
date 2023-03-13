@@ -279,6 +279,7 @@ public final class SystemUtil {
 	private static double loaderVersion = 0D;
 	private static boolean hasMacAddress;
 	private static String macAddress;
+	private static final ConcurrentHashMap<String, String> tokens = new ConcurrentHashMap<String, String>();
 
 	/**
 	 * returns if the file system case sensitive or not
@@ -1733,6 +1734,15 @@ public final class SystemUtil {
 			}
 		}
 		return false;
+	}
+
+	public static String createToken(String prefix, String name) {
+		String str = prefix + ":" + name;
+		String lock = tokens.putIfAbsent(str, str);
+		if (lock == null) {
+			lock = str;
+		}
+		return lock;
 	}
 }
 
