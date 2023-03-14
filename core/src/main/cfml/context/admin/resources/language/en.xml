@@ -1394,7 +1394,7 @@ If the timezone of your Lucee instance and your database is different, this can 
 	<data key="overview.introdesc.web">Lucee, the CFML engine - free, open source and easy to use. This Web Administrator is provided in order to customize your web context.</data>
 	<data key="overview.introdesc.server">The Server Administrator allows you to install updates and patches for your Lucee installation and to restart the engine with a mouse click. You can configure new web contexts and define restrictions and configurations per web context individual.</data>
 	<data key="overview.infomail">info@lucee.ch</data>
-	<data key="overview.servertime">Server date/time (JVM): </data>
+	<data key="overview.servertime">Server date/time: </data>
 	<data key="overview.version">Version</data>
 	<data key="overview.Label">Label</data>
 	<data key="overview.Hash">Hash</data>
