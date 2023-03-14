@@ -6,6 +6,7 @@
     <cfreturn arguments.str>
 </cffunction>
 <cfset isNew=false>
+<cfset  cacheExtName="memcached.extension">
 <cfif StructKeyExists(url,'name')>
 	<cfloop query="connections" >
 		<cfif hash(connections.name) EQ url.name>
@@ -23,7 +24,7 @@
 					<cfset error.message = cfcatch.message>
 				</cfcatch>
 			</cftry>
-			<cfset btnClearCache = replace(stText.Settings.cache.clearCache,"{count}", validConnection ? cacheCount(cacheName=connection.name) : "0")>
+			<cfset btnClearCache = connection.bundleName != cacheExtName ? replace(stText.Settings.cache.clearCache,"{count}", validConnection ? cacheCount(cacheName=connection.name) : "0") : "Clear Cache" />
 		</cfif> 
 	</cfloop>
 <cfelse>
@@ -42,7 +43,7 @@
 	<cfif structKeyExists(form,"subAction") AND form.subAction == btnClearCache>
 	<!--- cache clear --->
 		<cfset cacheClear(cacheName=connection.name)>	
-		<cfset btnClearCache = rePlace(stText.Settings.cache.clearCache,"{count}",cacheCount(cacheName=connection.name))>
+		<cfset btnClearCache = connection.bundleName != cacheExtName ? replace(stText.Settings.cache.clearCache,"{count}", validConnection ? cacheCount(cacheName=connection.name) : "0") : "Clear Cache" />
 	<cfelse>
 		<cfswitch expression="#form.mainAction#">
 			<!--- UPDATE --->
