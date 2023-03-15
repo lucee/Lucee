@@ -50,7 +50,7 @@ public final class LogUtil {
 
 	public static int toLevel(String strLevel, int defaultValue) {
 		strLevel = StringUtil.emptyIfNull(strLevel).toLowerCase().trim();
-		if (StringUtil.isEmpty(strLevel, true)) return Log.LEVEL_INFO;
+		if (StringUtil.isEmpty(strLevel, true)) return Log.LEVEL_ERROR;
 		if (strLevel.startsWith("info")) return Log.LEVEL_INFO;
 		if (strLevel.startsWith("debug")) return Log.LEVEL_DEBUG;
 		if (strLevel.startsWith("warn")) return Log.LEVEL_WARN;
