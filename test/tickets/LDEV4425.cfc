@@ -43,7 +43,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" skip="true" {
 				try {
 					var result = _internalRequest(
 						template = "#variables.uri#/test4425.cfm",
-						forms = {scene:2}
+						forms = {scene:3}
 					).fileContent;
 				}
 				catch(any e) {
