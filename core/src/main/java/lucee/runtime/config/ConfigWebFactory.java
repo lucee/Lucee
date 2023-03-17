@@ -2649,11 +2649,15 @@ public final class ConfigWebFactory extends ConfigFactory {
 						log(config, log, t);
 					}
 				}
+				config.setGatewayEntries(mapGateways);
 			}
 			catch (Throwable t) {
 				ExceptionUtil.rethrowIfNecessary(t);
 				log(config, log, t);
 			}
+		}
+		else if (hasCS) {
+			((GatewayEngineImpl) ((ConfigWebPro) config).getGatewayEngine()).clear();
 		}
 	}
 
