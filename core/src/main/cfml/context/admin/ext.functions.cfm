@@ -47,7 +47,6 @@
 
 	<cffunction name="loadCFC" returntype="struct" output="yes">
 		<cfargument name="provider" required="yes" type="string">
-		<cfset systemOutput("deprecated function call:<print-stack-trace>",true,true)>
 		<cfreturn createObject('component',"ExtensionProviderProxy").init(arguments.provider)>
 	</cffunction>
 
