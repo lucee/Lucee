@@ -5796,7 +5796,7 @@ Lucee uses the number of characters in the file.</description>
 		<name>Param</name>
 		<tag-class>lucee.runtime.tag.Param</tag-class>
 		<ttt-class>lucee.transformer.bytecode.statement.tag.TagParam</ttt-class>
-		<body-content>empty</body-content>
+		<body-content>free</body-content>
 		<body-rtexprvalue>false</body-rtexprvalue>
 		<script>
 			<type>multiple</type>
