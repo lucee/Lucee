@@ -53,6 +53,7 @@ import lucee.commons.lang.types.RefIntegerImpl;
 import lucee.loader.util.Util;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigAdmin;
+import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.config.ConfigWebFactory;
@@ -671,6 +672,7 @@ public class RHExtension implements Serializable {
 	}
 
 	private void readReleaseType(String label, String str, boolean isWeb) throws ApplicationException {
+		if (((ConfigPro) ThreadLocalPageContext.getConfig(config)).getAdminMode() == ConfigImpl.ADMINMODE_SINGLE) return;
 		// release type
 		int rt = RELEASE_TYPE_ALL;
 		if (!Util.isEmpty(str)) {
