@@ -1411,15 +1411,21 @@ public final class ConfigAdmin {
 
 		Struct children = ConfigWebUtil.getAsStruct("dataSources", root);
 		Key[] keys = children.keys();
+
+		boolean isUpdate = false;
+		boolean isNameUpdate = !StringUtil.isEmpty(newName) && !newName.equals(name);
+		Struct el = new StructImpl(Struct.TYPE_LINKED);
+
 		for (Key key: keys) {
 
 			if (key.getString().equalsIgnoreCase(name)) {
 				Struct tmp = Caster.toStruct(children.get(key, null), null);
 				if (tmp == null) continue;
-				Struct el = tmp;
+				el = tmp;
+				isUpdate = true;
 				if (password.equalsIgnoreCase("****************")) password = ConfigWebUtil.getAsString("password", el, null);
 
-				if (!StringUtil.isEmpty(newName) && !newName.equals(name)) el.setEL("name", newName);
+				if (isNameUpdate) el.setEL("name", newName);
 				setClass(el, null, "", cd);
 
 				if (!StringUtil.isEmpty(id)) el.setEL(KeyConstants._id, id);
@@ -1464,15 +1470,21 @@ public final class ConfigAdmin {
 				if (alwaysResetConnections) el.setEL("alwaysResetConnections", "true");
 				else if (el.containsKey("alwaysResetConnections")) el.removeEL(KeyImpl.init("alwaysResetConnections"));
 
-				return;
+				break;
 			}
+		}
+		if (isUpdate) {
+			if (isNameUpdate) {
+				children.setEL(newName, el);
+				children.removeEL(KeyImpl.init(name));
+			}
+			return;
 		}
 
 		if (!hasInsertAccess) throw new SecurityException("Unable to add a datasource connection, the maximum count of [" + maxLength + "] datasources has been reached. "
 				+ " This can be configured in the Server Admin, under Security, Access");
 
 		// Insert
-		Struct el = new StructImpl(Struct.TYPE_LINKED);
 		children.setEL(!StringUtil.isEmpty(newName) ? newName : name, el);
 		setClass(el, null, "", cd);
 		el.setEL("dsn", dsn);
