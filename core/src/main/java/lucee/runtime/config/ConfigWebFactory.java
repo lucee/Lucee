@@ -1917,6 +1917,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 	}
 
 	private static void _loadLoggers(ConfigServerImpl configServer, ConfigImpl config, Struct root, boolean isReload) {
+		config.clearLoggers(Boolean.FALSE);
 		boolean hasCS = configServer != null;
 		Set<String> existing = new HashSet<>();
 		try {
