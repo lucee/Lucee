@@ -482,7 +482,7 @@ component {
 					return {
 						class: 'com.microsoft.sqlserver.jdbc.SQLServerDriver'
 						, bundleName: 'org.lucee.mssql'
-						, bundleVersion: server.getDefaultBundleVersion( 'org.lucee.mssql', '4.0.2206.100' )
+						, bundleVersion: server.getDefaultBundleVersion( 'org.lucee.mssql', '7.2.2.jre8' )
 						, connectionString: 'jdbc:sqlserver://#msSQL.SERVER#:#msSQL.PORT#;DATABASENAME=#msSQL.DATABASE#;sendStringParametersAsUnicode=true;SelectMethod=direct' & arguments.connectionString
 						, username: msSQL.username
 						, password: msSQL.password
