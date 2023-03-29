@@ -353,7 +353,6 @@ else if(structKeyExists(nonPrefixTags,form.search)) {
 
 
 	<cfcatch>
-		<cfset systemOutput(cfcatch,1,1)>
 		<cfset echo(cfcatch)>
 	</cfcatch>
 </cftry>

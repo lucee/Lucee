@@ -262,7 +262,7 @@
 
     <copy todir="${tmpContext}/context/admin/resources/language/" overwrite="true">
       <fileset dir="${srcCFML}/context/admin/resources/language/">
-        <include name="*.xml"/>
+        <include name="*.json"/>
       </fileset>
     </copy>
 
@@ -272,6 +272,7 @@
         <include name="*.cfc"/>
         <include name="*.lucee"/>
         <include name="*.xml"/>
+        <include name="*.json"/>
       </fileset>
     </copy>
 
@@ -281,6 +282,7 @@
         <include name="*.cfc"/>
         <include name="*.lucee"/>
         <include name="*.xml"/>
+        <include name="*.json"/>
       </fileset>
     </copy>
 
@@ -290,6 +292,7 @@
         <include name="**/*.cfc"/>
         <include name="**/*.lucee"/>
         <include name="**/*.xml"/>
+        <include name="**/*.json"/>
       </fileset>
     </copy>
 
@@ -304,7 +307,7 @@
 
     <copy todir="${tmpContext}/cfml-context/admin/resources/language/" overwrite="true">
       <fileset dir="${srcCFML}/context/admin/resources/language/">
-        <include name="*.xml"/>
+        <include name="*.json"/>
       </fileset>
     </copy>
 
@@ -314,6 +317,7 @@
         <include name="**/*.cfc"/>
         <include name="**/*.lucee"/>
         <include name="**/*.xml"/>
+        <include name="**/*.json"/>
       </fileset>
     </copy>
 

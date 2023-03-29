@@ -281,6 +281,8 @@ public final class ListUtil {
 	 * @return Array Object
 	 */
 	public static Array listToArrayRemoveEmpty(String list, char delimiter) {
+		if (StringUtil.isEmpty(list)) return new ArrayImpl();
+
 		int len = list.length();
 		ArrayImpl array = new ArrayImpl();
 		if (len == 0) return array;
@@ -447,7 +449,8 @@ public final class ListUtil {
 	}
 
 	/**
-	 * casts a list to int array with max range its used in CFIMAP/CFPOP tag with messageNumber attribute
+	 * casts a list to int array with max range its used in CFIMAP/CFPOP tag with messageNumber
+	 * attribute
 	 * 
 	 * @param list list to cast
 	 * @param delimiter delimter of the list
@@ -481,7 +484,7 @@ public final class ListUtil {
 	}
 
 	/**
-	 * casts a list to Long array  --  its used in CFIMAP/CFPOP tag with uid attribute
+	 * casts a list to Long array -- its used in CFIMAP/CFPOP tag with uid attribute
 	 * 
 	 * @param list list to cast
 	 * @param delimiter delimter of the list
