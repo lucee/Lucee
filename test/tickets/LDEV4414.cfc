@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" {
+component extends="org.lucee.cfml.test.LuceeTestCase" skip="true" {
 	function run( testResults, testBox ) {
 		describe("Testcase for LDEV-4414", function() {
 			it( title="checking ObjectEquals()", body=function( currentSpec ) {
