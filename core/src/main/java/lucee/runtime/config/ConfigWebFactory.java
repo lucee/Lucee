@@ -1427,8 +1427,9 @@ public final class ConfigWebFactory extends ConfigFactory {
 
 		// resources/language
 		Resource langDir = adminDir.getRealResource("resources/language");
-		create("/resource/context/admin/resources/language/", new String[] { "en.xml", "de.xml" }, langDir, doNew);
-
+		// create("/resource/context/admin/resources/language/", new String[] { "en.xml", "de.xml" },
+		// langDir, doNew);
+		if (langDir.exists()) langDir.remove(true);
 		// add Debug
 		Resource debug = adminDir.getRealResource("debug");
 		create("/resource/context/admin/debug/", new String[] { "Debug." + COMPONENT_EXTENSION, "Field." + COMPONENT_EXTENSION, "Group." + COMPONENT_EXTENSION }, debug, doNew);

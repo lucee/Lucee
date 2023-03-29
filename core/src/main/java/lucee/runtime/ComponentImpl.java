@@ -1551,7 +1551,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 		PageSource ps = comp.pageSource;
 		sct.set(KeyConstants._fullname, comp.properties.inline ? "" : comp.properties.name);
 		sct.set(KeyConstants._name, comp.properties.inline ? "" : comp.properties.name);
-		sct.set(KeyConstants._subname, comp.properties.inline ? "" : comp.properties.subName);
+		sct.set(KeyConstants._subname, comp.properties.inline || StringUtil.isEmpty(comp.properties.subName) ? "" : comp.properties.subName);
 		sct.set(KeyConstants._path, ps.getDisplayPath());
 		sct.set(KeyConstants._type, "component");
 		int dialect = comp.getPageSource().getDialect();
