@@ -71,7 +71,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="smtp" {
 		return emails;
 	}
 
-	private string function getHeaderFromMail( mail, header ){
+	private string function getHeaderFromMail( mails, header ){
 		var headers = listToArray( arguments.mails.header[ 1 ] , chr( 10 ) );
 		loop array=#headers# item="local.h" {
 			if ( listFirst( h, ":" ) eq arguments.header )
