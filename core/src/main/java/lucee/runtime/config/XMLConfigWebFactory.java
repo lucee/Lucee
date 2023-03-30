@@ -2385,11 +2385,17 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 
 				// first add the server drivers, so they can be overwritten
 				if (configServer != null) {
-					Iterator<ClassDefinition> it = configServer.getCacheDefinitions().values().iterator();
-					ClassDefinition cd;
-					while (it.hasNext()) {
-						cd = it.next();
-						map.put(cd.getClassName(), cd);
+					Map<String, ClassDefinition> cds = configServer.getCacheDefinitions();
+					if (cds != null) {
+						Collection<ClassDefinition> values = cds.values();
+						if (values != null) {
+							Iterator<ClassDefinition> it = values.iterator();
+							ClassDefinition cd;
+							while (it.hasNext()) {
+								cd = it.next();
+								map.put(cd.getClassName(), cd);
+							}
+						}
 					}
 				}
 
