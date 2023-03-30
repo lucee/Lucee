@@ -444,6 +444,7 @@ public final class SMTPClient implements Serializable {
 		props.put("mail.smtp.connectiontimeout", strTimeout);
 		props.put("mail.smtp.sendpartial", Caster.toString(sendPartial));
 		props.put("mail.smtp.userset", userset);
+		props.put("mail.mime.allowutf8", true);
 
 		if (port > 0) {
 			props.put("mail.smtp.port", Caster.toString(port));
