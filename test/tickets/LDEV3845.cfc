@@ -7,7 +7,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="smtp" {
 		describe( "test case for LDEV-3845", function() {
 
 			it(title = "Checking cfmail tag with a non-utf8 email address", skip=isNotAvailable(), body = function( currentSpec ) {
-				local.subject = "test-LDEV3845-2";
+				local.subject = "test-LDEV3845-non-utf8";
 				local.addr = "las@lucee.org";
 				local.result = _InternalRequest(
 					template:"#variables.uri#/index.cfm",
@@ -27,7 +27,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="smtp" {
 			});
 
 			it(title = "Checking cfmail tag with a utf8 email address", skip=isNotAvailable(), body = function( currentSpec ) {
-				local.subject = "test-LDEV3845-1";
+				local.subject = "test-LDEV3845-utf8";
 				local.addr = "läs@lucee.org";
 				local.result = _InternalRequest(
 					template:"#variables.uri#/index.cfm",
@@ -59,15 +59,17 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="smtp" {
 			port="#pop.PORT_INSECURE#"
 			secure="no"; // greenmail creates a mailbox based on the email address, password is the to address
 
+		/*
 		if ( len( arguments.subject ) > 0) {
 			// TODO filter by subject
 		}
+
 		systemOutput( "--------------- [ #arguments.username#] had #emails.recordcount# emails", true );
 		systemOutput( emails, true );
 		for ( local.email in emails )
 			systemOutput( email.header, true );
 		systemOutput( "---------------", true );
-
+		*/
 		return emails;
 	}
 
