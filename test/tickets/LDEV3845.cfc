@@ -5,21 +5,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="smtp" {
 
 	function run( testResults , testBox ) {
 		describe( "test case for LDEV-3845", function() {
-			it(title = "Checking cfmail tag with a utf8 email address", skip=isNotAvailable(), body = function( currentSpec ) {
-				local.subject = "test-LDEV3845-1";
-				local.addr = "läs@lucee.org";
-				local.result = _InternalRequest(
-					template:"#variables.uri#/index.cfm",
-					form: {
-						email: addr,
-						subject: subject,
-						charset: "utf-8"
-					}
-				);
-				expect( local.result.filecontent.trim() ).toBe( 'ok' );
-				fetchMails( addr, subject );
-
-			});
 
 			it(title = "Checking cfmail tag with a non-utf8 email address", skip=isNotAvailable(), body = function( currentSpec ) {
 				local.subject = "test-LDEV3845-2";
@@ -33,12 +18,38 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="smtp" {
 					}
 				);
 				expect( local.result.filecontent.trim() ).toBe( 'ok' );
-				fetchMails( addr, subject );
+				local.mails= fetchMails( addr, subject );
+				expect( mails.recordcount ).toBe( 1 );
+
+				local.to = getHeaderFromMail( mails, "to" );
+				expect( to ).toInclude( addr );
+				//expect( to ).toInclude( "=?utf-8?" );
 			});
+
+			it(title = "Checking cfmail tag with a utf8 email address", skip=isNotAvailable(), body = function( currentSpec ) {
+				local.subject = "test-LDEV3845-1";
+				local.addr = "läs@lucee.org";
+				local.result = _InternalRequest(
+					template:"#variables.uri#/index.cfm",
+					form: {
+						email: addr,
+						subject: subject,
+						charset: "utf-8"
+					}
+				);
+				expect( local.result.filecontent.trim() ).toBe( 'ok' );
+				local.mails = fetchMails( addr, subject );
+				expect( mails.recordcount ).toBe( 1 );
+				
+				local.to = getHeaderFromMail( mails, "to" );
+				expect( to ).toInclude( addr );
+				expect( to ).toInclude( "=?utf-8?" );
+			});
+
 		});
 	}
 
-	private function fetchMails( required string username, subject="" ){
+	private query function fetchMails( required string username, subject="" ){
 		var pop = server.getTestService("pop");
 		pop action="getAll"
 			name="local.emails"
@@ -49,7 +60,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="smtp" {
 			secure="no"; // greenmail creates a mailbox based on the email address, password is the to address
 
 		if ( len( arguments.subject ) > 0) {
-			// filter by subject
+			// TODO filter by subject
 		}
 		systemOutput( "--------------- [ #arguments.username#] had #emails.recordcount# emails", true );
 		systemOutput( emails, true );
@@ -58,6 +69,16 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="smtp" {
 		systemOutput( "---------------", true );
 
 		return emails;
+	}
+
+	private string function getHeaderFromMail( mail, header ){
+		var headers = listToArray( arguments.mails.header[ 1 ] , chr( 10 ) );
+		loop array=#headers# item="local.h" {
+			if ( listFirst( h, ":" ) eq arguments.header )
+				return trim( listRest( h, ":" ) );
+		}
+		systemOutput( headers, true );
+		return "";
 	}
 
 	private function isNotAvailable() {
