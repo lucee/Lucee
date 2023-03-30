@@ -15,7 +15,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="smtp" {
 						subject: subject
 					}
 				);
-				expect(local.result.filecontent.trim()).toBe('ok');
+				expect( local.result.filecontent.trim() ).toBe( 'ok' );
 				fetchMails( subject );
 
 			});
@@ -29,7 +29,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="smtp" {
 						subject: subject
 					}
 				);
-				expect(local.result.filecontent.trim()).toBe('ok');
+				expect( local.result.filecontent.trim() ).toBe( 'ok' );
 				fetchMails( subject );
 			});
 		});
@@ -48,16 +48,17 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="smtp" {
 		if ( len( arguments.subject ) > 0) {
 			// filter by subject
 		}
-		systemOutput( "---------------", true );
-		systemOutput( emails, true );
+		systemOutput( "--------------- [ #arguments.subject#]", true );
+		for ( local.email in emails )
+			systemOutput( email.header, true );
 		systemOutput( "---------------", true );
 
 		return emails;
 	}
 
-	private function isAvailable() {
-		return structCount( server.getTestService( "smtp" ) ) > 0
-			&& structCount( server.getTestService( "pop" ) ) > 0;
+	private function isNotAvailable() {
+		return structCount( server.getTestService( "smtp" ) ) = 0
+			&& structCount( server.getTestService( "pop" ) ) = 0;
 	}
 
 	private string function createURI(string calledName){
