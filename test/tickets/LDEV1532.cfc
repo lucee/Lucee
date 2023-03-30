@@ -67,7 +67,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				expect(qTest.recordcount).toBe('0');
 			});
 			
-			it(title = "Checking cfqueryparam with datatype cf_sql_integer, null=false & value is null (datasource query)", skip="true", body = function( currentSpec ) {
+			it(title = "Checking cfqueryparam with datatype cf_sql_integer, null=false & value is null (datasource query)", skip="true", body = function( currentSpec ) { // skip="notHasMssql",
 				try {
 					hasError = false;
 					p = [id= { cfsqltype='cf_sql_integer', value='', null='false' } ];
@@ -81,7 +81,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				expect(hasError).toBe('true');
 			});
 
-			it(title = "Checking cfqueryparam with datatype cf_sql_integer, null=true & value is null (datasource query)", body = function( currentSpec ) {
+			it(title = "Checking cfqueryparam with datatype cf_sql_integer, null=true & value is null (datasource query)", skip=notHasMssql(), body = function( currentSpec ) {
 				p = [id= { cfsqltype='cf_sql_integer', value='', null='true' } ];
 				cfquery( name="qTest" params=p) {
 					echo(" SELECT * FROM LDEV1532 WHERE id = :id ")
@@ -89,7 +89,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				expect(qTest.recordcount).toBe("0");
 			});
 			
-			it(title = "Checking cfqueryparam with datatype cf_sql_integer, null=false & value is not null (datasource query)", body = function( currentSpec ) {
+			it(title = "Checking cfqueryparam with datatype cf_sql_integer, null=false & value is not null (datasource query)", skip=notHasMssql(), body = function( currentSpec ) {
 				p = [id= { cfsqltype='cf_sql_integer', value='1', null='false' } ];
 				cfquery( name="qTest" params=p) {
 					echo(" SELECT * FROM LDEV1532 WHERE id = :id ")
@@ -97,7 +97,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				expect(qTest.recordcount).toBe("1");
 			});
 			
-			it(title = "Checking cfqueryparam with datatype cf_sql_integer, null=true & value is not null (datasource query)", body = function( currentSpec ) {
+			it(title = "Checking cfqueryparam with datatype cf_sql_integer, null=true & value is not null (datasource query)", skip=notHasMssql(), body = function( currentSpec ) {
 				p = [id= { cfsqltype='cf_sql_integer', value='1', null='true' } ];
 				cfquery( name="qTest" params=p) {
 					echo(" SELECT * FROM LDEV1532 WHERE id = :id ")
