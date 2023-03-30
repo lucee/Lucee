@@ -19,7 +19,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="smtp" {
 				);
 				expect( local.result.filecontent.trim() ).toBe( 'ok' );
 				local.mails= fetchMails( addr, subject );
-				expect( mails.recordcount ).toBe( 1 );
+				expect( mails.recordcount ).toBe( 1, "should return 1 email" );
 
 				local.to = getHeaderFromMail( mails, "to" );
 				expect( to ).toInclude( addr );
@@ -39,7 +39,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="smtp" {
 				);
 				expect( local.result.filecontent.trim() ).toBe( 'ok' );
 				local.mails = fetchMails( addr, subject );
-				expect( mails.recordcount ).toBe( 1 );
+				expect( mails.recordcount ).toBe( 1, "should return 1 email" );
 				
 				local.to = getHeaderFromMail( mails, "to" );
 				expect( to ).toInclude( addr );
