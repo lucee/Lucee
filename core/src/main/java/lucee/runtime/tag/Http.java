@@ -1433,13 +1433,7 @@ public final class Http extends BodyTagImpl {
 			throw Caster.toPageException(ioe);
 		}
 		finally {
-			try {
-				IOUtil.close(is);
-			}
-			catch (IOException ioe) {
-				throw Caster.toPageException(ioe);
-
-			}
+			IOUtil.closeEL(is); // in case of an exception in the try body this method can fail and supress the cause
 		}
 
 		if (str == null) str = "";
