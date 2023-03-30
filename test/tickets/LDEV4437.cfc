@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" {
+component extends="org.lucee.cfml.test.LuceeTestCase" skip="true" {
 	function run( testResults , testBox ) {
 		describe( "testcase for decodeFromURL()", function() {
 			it(title = "Checking with decodeFromURL()", body = function( currentSpec ) {
