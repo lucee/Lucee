@@ -5044,8 +5044,14 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 						boolean readonly = toBoolean(getAttr(cMapping, "readonly"), false);
 						boolean hidden = toBoolean(getAttr(cMapping, "hidden"), false);
 
-						int listMode = ConfigWebUtil.toListenerMode(getAttr(cMapping, "listener-mode"), -1);
-						int listType = ConfigWebUtil.toListenerType(getAttr(cMapping, "listener-type"), -1);
+						String strListType = getAttr(cMapping, "listener-type");
+						if (StringUtil.isEmpty(strListType)) strListType = getAttr(cMapping, "listenertype");
+						int listType = ConfigWebUtil.toListenerType(strListType, -1);
+
+						String strListMode = getAttr(cMapping, "listener-mode");
+						if (StringUtil.isEmpty(strListMode)) strListMode = getAttr(cMapping, "listenermode");
+						int listMode = ConfigWebUtil.toListenerMode(strListMode, -1);
+
 						short inspTemp = inspectTemplate(cMapping);
 						String virtual = XMLConfigAdmin.createVirtual(cMapping);
 
