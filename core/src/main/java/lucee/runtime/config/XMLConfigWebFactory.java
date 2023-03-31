@@ -1683,7 +1683,9 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 							String archive = el.getAttribute("archive");
 							String virtual = getAttr(el, "virtual");
 							String listType = getAttr(el, "listener-type");
+							if (StringUtil.isEmpty(listType)) listType = getAttr(el, "listenertype");
 							String listMode = getAttr(el, "listener-mode");
+							if (StringUtil.isEmpty(listMode)) listMode = getAttr(el, "listenermode");
 
 							boolean readonly = toBoolean(getAttr(el, "readonly"), false);
 							boolean hidden = toBoolean(getAttr(el, "hidden"), false);
