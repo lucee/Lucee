@@ -24,15 +24,15 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" skip=true labels="syntax
     }
 
 	function run ( testResults, testBox ){
-		describe( "This testcase suit for LDEV-3061", function(){
+		describe( title="This testcase suit for LDEV-3061", body=function(){
 
-			it( title="checking switch with normal default ", body = function ( currentSpec ) {
+			it( title="checking switch with normal default", body = function ( currentSpec ) {
 				expect(switchDefault(1)).toBe("item 1");
 				expect(switchDefault(2)).toBe("item 2");
 				expect(switchDefault(-1)).toBe("its default");
 			});
 
-			it( title="checing switch with seperate default ", body = function ( currentSpec ) {
+			it( title="checking switch with separate default", body = function ( currentSpec ) {
 				expect(switchCase(1)).toBe("case 1");
 				expect(switchCase(-1)).toBe("its default inside case 2");
 				expect(switchCase(3)).toBe("case 3");

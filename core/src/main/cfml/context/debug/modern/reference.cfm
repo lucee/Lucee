@@ -9,7 +9,7 @@ argtype.fixed="The arguments for this function are set. You can not use other ar
 argtype.dynamic="There is no restriction for this function regarding its arguments.";
 
 attrtype.noname="This tag only allows one attribute value (no name)";
-attrtype.mixed="This tag has a fixed definition of attributes (see below). In addition it allowes to use any additional attribute.";
+attrtype.mixed="This tag has a fixed definition of attributes (see below). In addition it allows to use any additional attribute.";
 attrtype.fixed="The attributes for this tag are fixed. Except for the following attributes no other attributes are allowed.";
 attrtype.dynamic="There is no restriction for attributes for this tag.";
 
@@ -353,7 +353,6 @@ else if(structKeyExists(nonPrefixTags,form.search)) {
 
 
 	<cfcatch>
-		<cfset systemOutput(cfcatch,1,1)>
 		<cfset echo(cfcatch)>
 	</cfcatch>
 </cftry>

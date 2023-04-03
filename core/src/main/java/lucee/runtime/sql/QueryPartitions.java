@@ -4,17 +4,17 @@
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either 
+ * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public 
+ *
+ * You should have received a copy of the GNU Lesser General Public
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  **/
 package lucee.runtime.sql;
 
@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -53,10 +54,10 @@ public class QueryPartitions {
 	// Group by expressions
 	private Expression[] groupbys;
 	// Target query for column references
-	private Query target;
+	private QueryImpl target;
 	// Mapof partitioned query data. Key is unique string representing grouped data, value is a
 	// Query object representing the matching rows in that group/partition
-	private HashMap<String, Query> partitions = new HashMap<String, Query>();
+	private ConcurrentHashMap<String, QueryImpl> partitions = new ConcurrentHashMap<String, QueryImpl>();
 	// Reference to QoQ instance
 	private QoQ qoQ;
 	// SQL instance
@@ -64,7 +65,7 @@ public class QueryPartitions {
 
 	/**
 	 * Constructor
-	 * 
+	 *
 	 * @param sql
 	 * @param columns
 	 * @param groupbys
@@ -73,7 +74,7 @@ public class QueryPartitions {
 	 * @param qoQ
 	 * @throws PageException
 	 */
-	public QueryPartitions(SQL sql, Expression[] columns, Expression[] groupbys, Query target, Set<String> additionalColumns, QoQ qoQ) throws PageException {
+	public QueryPartitions(SQL sql, Expression[] columns, Expression[] groupbys, QueryImpl target, Set<String> additionalColumns, QoQ qoQ) throws PageException {
 		this.sql = sql;
 		this.qoQ = qoQ;
 		this.columns = columns;
@@ -105,19 +106,19 @@ public class QueryPartitions {
 
 	/**
 	 * Adds empty partition for aggregating empty results
-	 * 
+	 *
 	 * @param source Source query to get data from
-	 * @param target target query (for column reference) 
+	 * @param target target query (for column reference)
 	 * @throws PageException
 	 */
-	public void addEmptyPartition( Query source, Query target ) throws PageException {
+	public void addEmptyPartition( QueryImpl source, QueryImpl target ) throws PageException {
 		partitions.put("default", createPartition(target, source, false));
 	}
 
 	/**
 	 * Call this to add a single row to the proper partition finaizedColumnVals is true when all data in
 	 * the source Query is fully realized and there are no expressions left to evaluate
-	 * 
+	 *
 	 * @param pc PageContext
 	 * @param source Source query to get data from
 	 * @param row Row to get data from
@@ -125,16 +126,19 @@ public class QueryPartitions {
 	 *            applies when distincting a result set after it's already been processed
 	 * @throws PageException
 	 */
-	public void addRow(PageContext pc, Query source, int row, boolean finalizedColumnVals) throws PageException {
+	public void addRow(PageContext pc, QueryImpl source, int row, boolean finalizedColumnVals) throws PageException {
 		// Generate unique key based on row data
 		String partitionKey = buildPartitionKey(pc, source, row, finalizedColumnVals);
 		// Create partition if necessary
-		if (!partitions.containsKey(partitionKey)) {
-			partitions.put(partitionKey, createPartition(target, source, finalizedColumnVals));
-		}
-		Query targetPartition = partitions.get(partitionKey);
+		QueryImpl targetPartition = partitions.computeIfAbsent(partitionKey, k -> {
+			try {
+				return createPartition(target, source, finalizedColumnVals);
+			} catch( Exception e ) {
+				throw new RuntimeException( e );
+			}
+		} );
 
-		targetPartition.addRow(1);
+		int newRow = targetPartition.addRow();
 
 		// If we're adding finalized data, just copy it across. Easy. This applies when distincting
 		// a result set after it's already been processed
@@ -142,7 +146,7 @@ public class QueryPartitions {
 			Collection.Key[] sourceColKeys = source.getColumnNames();
 			Collection.Key[] targetColKeys = targetPartition.getColumnNames();
 			for (int col = 0; col < targetColKeys.length; col++) {
-				((QueryImpl) targetPartition).setAt(targetColKeys[col], targetPartition.getRecordcount(), source.getColumn(sourceColKeys[col]).get(row, null), true);
+				targetPartition.setAt(targetColKeys[col], newRow, source.getColumn(sourceColKeys[col]).get(row, null), true);
 			}
 
 		}
@@ -150,17 +154,17 @@ public class QueryPartitions {
 		// be added later, but there's no use filling up the partition with place holders
 		else {
 			for (int cell = 0; cell < columns.length; cell++) {
-				
+
 				// Literal values
 				if (columns[cell] instanceof Value) {
 					Value v = (Value) columns[cell];
-					((QueryImpl) targetPartition).setAt(columnKeys[cell], targetPartition.getRecordcount(), v.getValue(), true);
+					targetPartition.setAt(columnKeys[cell], newRow, v.getValue(), true);
 				}
 				// A column expressions is set by column Key
 				else if (columns[cell] instanceof ColumnExpression) {
 					ColumnExpression ce = (ColumnExpression) columns[cell];
 
-					((QueryImpl) targetPartition).setAt(columnKeys[cell], targetPartition.getRecordcount(), ce.getValue(pc, source, row, null), true);
+					targetPartition.setAt(columnKeys[cell], newRow, ce.getValue(pc, source, row, null), true);
 				}
 
 			}
@@ -168,7 +172,7 @@ public class QueryPartitions {
 			// list above
 			for (Collection.Key col: additionalColumns) {
 				if (source.containsKey(col)) {
-					((QueryImpl) targetPartition).setAt(col, targetPartition.getRecordcount(), source.getColumn(col).get(row, null), true);
+					targetPartition.setAt(col, newRow, source.getColumn(col).get(row, null), true);
 				}
 			}
 		}
@@ -176,7 +180,7 @@ public class QueryPartitions {
 
 	/**
 	 * Generate a unique string that represents the column data being grouped on
-	 * 
+	 *
 	 * @param pc PageContext
 	 * @param source QueryImpl to get data from. Note, operations have not yet been processed
 	 * @param row Row to get data from
@@ -185,7 +189,7 @@ public class QueryPartitions {
 	 * @return unique string
 	 * @throws PageException
 	 */
-	public String buildPartitionKey(PageContext pc, Query source, int row, boolean finalizedColumnVals) throws PageException {
+	public String buildPartitionKey(PageContext pc, QueryImpl source, int row, boolean finalizedColumnVals) throws PageException {
 		String partitionKey = "";
 		for (int cell = 0; cell < groupbys.length; cell++) {
 			String value;
@@ -208,7 +212,7 @@ public class QueryPartitions {
 
 	/**
 	 * Helper function to turn column data into string
-	 * 
+	 *
 	 * @param value
 	 * @param col
 	 * @return
@@ -234,7 +238,7 @@ public class QueryPartitions {
 
 	/**
 	 * Get number of partitions
-	 * 
+	 *
 	 * @return
 	 */
 	public int getPartitionCount() {
@@ -243,16 +247,16 @@ public class QueryPartitions {
 
 	/**
 	 * Get partition Map
-	 * 
+	 *
 	 * @return
 	 */
-	public HashMap<String, Query> getPartitions() {
+	public ConcurrentHashMap<String, QueryImpl> getPartitions() {
 		return partitions;
 	}
 
 	/**
 	 * Get array of grouped Query objects
-	 * 
+	 *
 	 * @return
 	 */
 	public Query[] getPartitionArray() {
@@ -262,7 +266,7 @@ public class QueryPartitions {
 	/**
 	 * Create new Query for a partition. Needs to have all ColumnExpressions in the final select as well
 	 * as any additional columns required for operation expressions
-	 * 
+	 *
 	 * @param target Query for target data (for column refernces)
 	 * @param source source query we're getting data from
 	 * @param finalizedColumnVals If we're adding finalized data, just copy it
@@ -271,8 +275,8 @@ public class QueryPartitions {
 	 * @return Empty Query with all the needed columns
 	 * @throws PageException
 	 */
-	private Query createPartition(Query target, Query source, boolean finalizedColumnVals) throws PageException {
-		Query newTarget = new QueryImpl(new Collection.Key[0], 0, "query", sql);
+	private QueryImpl createPartition(QueryImpl target, QueryImpl source, boolean finalizedColumnVals) throws PageException {
+		QueryImpl newTarget = new QueryImpl(new Collection.Key[0], 0, "query", sql);
 
 		// If we're just distincting fully-realized data, this is just a simple lookup
 		if (finalizedColumnVals) {

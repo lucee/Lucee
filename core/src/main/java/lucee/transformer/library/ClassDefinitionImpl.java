@@ -21,10 +21,10 @@ import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
+import java.util.Map;
 
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Version;
-import org.xml.sax.Attributes;
 
 import lucee.commons.digest.HashUtil;
 import lucee.commons.lang.ClassException;
@@ -178,18 +178,18 @@ public class ClassDefinitionImpl<T> implements ClassDefinition<T>, Externalizabl
 		return toString().hashCode();
 	}
 
-	public static ClassDefinition toClassDefinition(String className, Identification id, Attributes attributes) {
+	public static ClassDefinition toClassDefinition(String className, Identification id, Map<String, String> attributes) {
 		if (StringUtil.isEmpty(className, true)) return null;
 
 		String bn = null, bv = null;
 		if (attributes != null) {
 			// name
-			bn = attributes.getValue("name");
-			if (StringUtil.isEmpty(bn)) bn = attributes.getValue("bundle-name");
+			bn = attributes.get("name");
+			if (StringUtil.isEmpty(bn)) bn = attributes.get("bundle-name");
 
 			// version
-			bv = attributes.getValue("version");
-			if (StringUtil.isEmpty(bv)) bv = attributes.getValue("bundle-version");
+			bv = attributes.get("version");
+			if (StringUtil.isEmpty(bv)) bv = attributes.get("bundle-version");
 		}
 		return new ClassDefinitionImpl(className, bn, bv, id);
 	}

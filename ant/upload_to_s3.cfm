@@ -124,13 +124,18 @@
 	body = {
 		"event_type": "forgebox_deploy"
 	};
-	http url="https://api.github.com/repos/Ortus-Lucee/forgebox-cfengine-publisher/dispatches" method="POST" result="result" timeout="90"{
-		httpparam type="header" name='authorization' value='Bearer #gha_pat_token#';
-		httpparam type="body" value='#body.toJson()#';
+	try {
+		http url="https://api.github.com/repos/Ortus-Lucee/forgebox-cfengine-publisher/dispatches" method="POST" result="result" timeout="90"{
+			httpparam type="header" name='authorization' value='Bearer #gha_pat_token#';
+			httpparam type="body" value='#body.toJson()#';
+			
+		}
+		systemOutput("Forgebox build triggered, #result.statuscode# (always returns a 204 no content, see https://github.com/Ortus-Lucee/forgebox-cfengine-publisher/actions for output)", true);
+	} catch (e){
+		systemOutput("Forgebox build ERRORED?", true);
+		echo(e);
 	}
-
-	systemOutput("Forgebox build triggered, #result.statuscode# (always returns a 204 no content, see https://github.com/Ortus-Lucee/forgebox-cfengine-publisher/actions for output)", true);
-
+	
 	// Lucee Docker builds
 
 	systemOutput("Trigger Lucee Docker builds", true);
@@ -142,13 +147,16 @@
 			"LUCEE_VERSION": server.system.properties.luceeVersion
 		} 
 	};
-	http url="https://api.github.com/repos/lucee/lucee-dockerfiles/dispatches" method="POST" result="result" timeout="90"{
-		httpparam type="header" name='authorization' value='Bearer #gha_pat_token#';
-		httpparam type="body" value='#body.toJson()#';
+	try {
+		http url="https://api.github.com/repos/lucee/lucee-dockerfiles/dispatches" method="POST" result="result" timeout="90"{
+			httpparam type="header" name='authorization' value='Bearer #gha_pat_token#';
+			httpparam type="body" value='#body.toJson()#';
+		}
+		systemOutput("Lucee Docker builds triggered, #result.statuscode# (always returns a 204 no content, see https://github.com/lucee/lucee-dockerfiles/actions for output)", true);
+	} catch (e){
+		systemOutput("Lucee Docker build ERRORED?", true);
+		echo(e);
 	}
-
-	systemOutput("Lucee Docker builds triggered, #result.statuscode# (always returns a 204 no content, see https://github.com/lucee/lucee-dockerfiles/actions for output)", true);
-
 
 	// express
 

@@ -44,6 +44,7 @@ import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
 import lucee.runtime.PageSourceImpl;
 import lucee.runtime.StaticScope;
+import lucee.runtime.SubPage;
 import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.Constants;
 import lucee.runtime.debug.DebugEntryTemplate;
@@ -512,7 +513,20 @@ public class ComponentLoader {
 				return subs[i];
 			}
 		}
-		throw new ApplicationException("There is no Sub component [" + sub + "] in [" + page.getPageSource().getDisplayPath() + "]");
+
+		StringBuilder detail = new StringBuilder();
+		for (int i = 0; i < subs.length; i++) {
+			if (subs[i] instanceof SubPage) {
+				if (detail.length() > 0) detail.append(",");
+				detail.append(((SubPage) subs[i]).getSubname());
+			}
+		}
+
+		StringBuilder msg = new StringBuilder("There is no Sub component [").append(sub).append("] in [").append(page.getPageSource().getDisplayPath()).append("]");
+
+		if (detail.length() > 0)
+			throw new ApplicationException(msg.toString(), "The following Sub Components are available [" + detail + "] in [" + page.getPageSource().getDisplayPath() + "]");
+		else throw new ApplicationException(msg.toString(), "There are no Sub Components in [" + page.getPageSource().getDisplayPath() + "]");
 	}
 
 	public static Page loadPage(PageContext pc, PageSource ps, boolean forceReload) throws PageException {
@@ -543,6 +557,10 @@ public class ComponentLoader {
 		finally {
 			pc.removeLastPageSource(true);
 		}
+	}
+
+	public static ComponentImpl loadInline(CIPage page, PageContext pc) throws PageException {
+		return _loadComponent(pc, page, null, true, true, true, true).setInline();
 	}
 
 	private static ComponentImpl _loadComponent(PageContext pc, CIPage page, String callPath, boolean isRealPath, final boolean isExtendedComponent, boolean executeConstr,

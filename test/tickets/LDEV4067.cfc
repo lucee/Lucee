@@ -68,22 +68,5 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm" skip=true{
 		var baseURI = "/test/#listLast(getDirectoryFromPath(getCurrenttemplatepath()),"\/")#/";
 		return baseURI&""&calledName;
 	}
-
-	function afterAll() {
-		var list = DirectoryList(
-			path=getDirectoryFromPath(getCurrentTemplatePath()), 
-			recurse=true, filter="*.db");
-
-		var javaIoFile=createObject("java","java.io.File");
-		loop array=list item="local.path"  {
-			fileDeleteOnExit(javaIoFile,path);
-		}
-	}
-
-	private function fileDeleteOnExit(required javaIoFile, required string path) {
-		var file=javaIoFile.init(arguments.path);
-		if(!file.isFile())file=javaIoFile.init(expandPath(arguments.path));
-		if(file.isFile()) file.deleteOnExit();
-	}
 	
 }

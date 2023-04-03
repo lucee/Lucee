@@ -23,6 +23,21 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				assertEquals("#Month(LsParseDateTime(x.sNewDate))#", "1");
 				SetLocale(l);
 			});
+			it(title = "Checking day() member function", body = function( currentSpec ) {
+				d1 = createDateTime(2001, 12, 1, 4, 10, 1);
+				assertEquals("1", "#d1.day()#");
+				x = struct();
+				x.sDate = "11/01/2009";
+				l = getLocale();
+				setLocale("portuguese (brazilian)");
+				assertEquals("#lsParseDateTime(x.sDate)#x", "{ts '2009-01-11 00:00:00'}x");
+				assertEquals("#parseDateTime(x.sDate)#x", "{ts '2009-11-01 00:00:00'}x");
+				x.sNewDate = lsDateFormat(lsParseDateTime(x.sDate), 'dd/mm/yyyy');
+				assertEquals("#x.sNewDate#x", "11/01/2009x");
+				assertEquals("#lsParseDateTime(x.sNewDate).day()#", "11");
+				assertEquals("#parseDateTime(x.sNewDate).day()#", "1");
+				setLocale(l);
+			});
 		});	
 	}
 }

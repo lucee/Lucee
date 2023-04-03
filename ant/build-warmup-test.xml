@@ -8,7 +8,7 @@
       <tstamp>
         <format property="timestamp" pattern="yyyy-MM-dd HH:mm:ss" />
       </tstamp>
-      <echo message="---------- ${timestamp} - @{message} ----------" />
+      <echo leveL="debug" message="---------- ${timestamp} - @{message} ----------" />
     </sequential>
   </macrodef>
 
@@ -21,7 +21,7 @@
         systemOutput("Lucee should automatically exit with 0, within 30s", true);
         sleep(30*1000);
         systemOutput("WARNING! After 30s, Lucee still hasn't automatically exited with 0, after deploying", true);
-        // throw "WARNING! After 30s, Lucee still hasn't automatically exited with 0";
+        throw "WARNING! After 30s, Lucee still hasn't automatically exited with 0";
     ]]>
     </script>
   <echots message="finished run of build-warmup-test.xml"/>

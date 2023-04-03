@@ -303,6 +303,7 @@ public final class Http extends BodyTagImpl {
 	private String result = "cfhttp";
 
 	private boolean addtoken = false;
+	private boolean encode = true;
 
 	private short authType = AUTH_TYPE_BASIC;
 	private String workStation = null;
@@ -354,6 +355,7 @@ public final class Http extends BodyTagImpl {
 		multiPartType = MULTIPART_FORM_DATA;
 		result = "cfhttp";
 		addtoken = false;
+		encode = true;
 
 		authType = AUTH_TYPE_BASIC;
 		workStation = null;
@@ -1090,6 +1092,7 @@ public final class Http extends BodyTagImpl {
 					if (!throwonerror) {
 						if (t instanceof SocketTimeoutException) setRequestTimeout(cfhttp);
 						else setUnknownHost(cfhttp, t);
+						logHttpRequest(pageContext, cfhttp, url, req.getMethod(), System.nanoTime() - start, false);
 						return;
 					}
 					throw toPageException(t, rsp);
@@ -1109,6 +1112,7 @@ public final class Http extends BodyTagImpl {
 				if (e.t != null) {
 					if (!throwonerror) {
 						setUnknownHost(cfhttp, e.t);
+						logHttpRequest(pageContext, cfhttp, url, req.getMethod(), System.nanoTime() - start, false);
 						return;
 					}
 					throw toPageException(e.t, rsp);
@@ -1120,6 +1124,7 @@ public final class Http extends BodyTagImpl {
 					req.abort();
 					if (throwonerror) throw new HTTPException("408 Request Time-out", "a timeout occurred in tag http", 408, "Time-out", rsp == null ? null : rsp.getURL());
 					setRequestTimeout(cfhttp);
+					logHttpRequest(pageContext, cfhttp, url, req.getMethod(), System.nanoTime() - start, false);
 					return;
 					// throw new ApplicationException("timeout");
 				}
@@ -1127,16 +1132,16 @@ public final class Http extends BodyTagImpl {
 
 			/////////////////////////////////////////// EXECUTE
 			/////////////////////////////////////////// /////////////////////////////////////////////////
-			Charset responseCharset = CharsetUtil.toCharset(rsp.getCharset());
 			int statCode = 0;
 			// Write Response Scope
 			// String rawHeader=httpMethod.getStatusLine().toString();
 			String mimetype = null;
 			String contentEncoding = null;
+			String rspCharset = null;
 
 			// status code
 			cfhttp.set(STATUSCODE, ((rsp.getStatusCode() + " " + rsp.getStatusText()).trim()));
-			cfhttp.set(STATUS_CODE, new Double(statCode = rsp.getStatusCode()));
+			cfhttp.set(STATUS_CODE, Double.valueOf(statCode = rsp.getStatusCode()));
 			cfhttp.set(STATUS_TEXT, (rsp.getStatusText()));
 			cfhttp.set(HTTP_VERSION, (rsp.getProtocolVersion()));
 			Array locations = rsp.getLocations();
@@ -1189,9 +1194,13 @@ public final class Http extends BodyTagImpl {
 				}
 
 			}
+
+			String[] tmpCharset = HTTPUtil.splitMimeTypeAndCharset(mimetype, null);
+			rspCharset = tmpCharset != null ? tmpCharset[1] : null;
+
 			cfhttp.set(RESPONSEHEADER, responseHeader);
 			cfhttp.set(KeyConstants._cookies, cookies);
-			responseHeader.set(STATUS_CODE, new Double(statCode = rsp.getStatusCode()));
+			responseHeader.set(STATUS_CODE, Double.valueOf(statCode = rsp.getStatusCode()));
 			responseHeader.set(EXPLANATION, (rsp.getStatusText()));
 			if (setCookie.size() > 0) responseHeader.set(SET_COOKIE, setCookie);
 
@@ -1229,12 +1238,14 @@ public final class Http extends BodyTagImpl {
 				if (Boolean.TRUE == _isText) {
 					String[] types = HTTPUtil.splitMimeTypeAndCharset(mimetype, null);
 					if (types[0] != null) cfhttp.set(KeyConstants._mimetype, types[0]);
-					if (types[1] != null) cfhttp.set(CHARSET, types[1]);
-
+					if (types[1] != null) rspCharset = types[1]; // only text types have charset
 				}
 				else cfhttp.set(KeyConstants._mimetype, mimetype);
 			}
 			else cfhttp.set(KeyConstants._mimetype, NO_MIMETYPE);
+
+			// charset
+			cfhttp.set(CHARSET, rspCharset != null ? rspCharset : "");
 
 			// File
 			Resource file = null;
@@ -1259,6 +1270,8 @@ public final class Http extends BodyTagImpl {
 			// filecontent
 
 			if (Boolean.TRUE == _isText && getAsBinary != GET_AS_BINARY_YES && safeToMemory) {
+				String tmp = rsp.getCharset();
+				Charset responseCharset = StringUtil.isEmpty(tmp, true) ? null : CharsetUtil.toCharset(tmp);
 				// store to memory
 				String str;
 				if (barr == null) str = contentAsString(rsp, responseCharset, contentEncoding, e);
@@ -1416,13 +1429,7 @@ public final class Http extends BodyTagImpl {
 			throw Caster.toPageException(ioe);
 		}
 		finally {
-			try {
-				IOUtil.close(is);
-			}
-			catch (IOException ioe) {
-				throw Caster.toPageException(ioe);
-
-			}
+			IOUtil.closeEL(is);
 		}
 
 		if (str == null) str = "";
@@ -1550,7 +1557,7 @@ public final class Http extends BodyTagImpl {
 		cfhttp.setEL(KeyConstants._mimetype, "Unable to determine MIME type of file.");
 		cfhttp.setEL(RESPONSEHEADER, new StructImpl());
 		cfhttp.setEL(STATUSCODE, "Connection Failure. Status code unavailable.");
-		cfhttp.setEL(STATUS_CODE, new Double(0));
+		cfhttp.setEL(STATUS_CODE, Double.valueOf(0));
 		cfhttp.setEL(STATUS_TEXT, "Connection Failure");
 		cfhttp.setEL(KeyConstants._text, Boolean.TRUE);
 	}
@@ -1563,7 +1570,7 @@ public final class Http extends BodyTagImpl {
 		cfhttp.setEL(KeyConstants._mimetype, "Unable to determine MIME type of file.");
 		cfhttp.setEL(RESPONSEHEADER, new StructImpl());
 		cfhttp.setEL(STATUSCODE, "408 Request Time-out");
-		cfhttp.setEL(STATUS_CODE, new Double(408));
+		cfhttp.setEL(STATUS_CODE, Double.valueOf(408));
 		cfhttp.setEL(STATUS_TEXT, "Request Time-out");
 		cfhttp.setEL(KeyConstants._text, Boolean.TRUE);
 	}
@@ -1608,9 +1615,9 @@ public final class Http extends BodyTagImpl {
 	}
 
 	private static void logHttpRequest(PageContext pc, Struct data, String url, String method, long executionTimeNS, boolean cached) throws PageException {
-		Log log = ThreadLocalPageContext.getLog(pc, "trace");
-		if (log != null && log.getLogLevel() <= Log.LEVEL_INFO) log.log(Log.LEVEL_INFO, "cftrace", "httpRequest [" + method + "] to [" + url + "], returned ["
-				+ data.get(STATUSCODE) + "] in " + (executionTimeNS / 1000000) + "ms, " + (cached ? "(cached response)" : "") + " at " + CallStackGet.call(pc, "text"));
+		Log log = ThreadLocalPageContext.getLog(pc, "application");
+		if (log != null) log.log(Log.LEVEL_TRACE, "cftrace", "httpRequest [" + method + "] to [" + url + "], returned [" + data.get(STATUSCODE) + "] in "
+				+ (executionTimeNS / 1000000) + "ms, " + (cached ? "(cached response)" : "") + " at " + CallStackGet.call(pc, "text"));
 	}
 
 	@Override
@@ -1683,6 +1690,13 @@ public final class Http extends BodyTagImpl {
 	 */
 	public void setAddtoken(boolean addtoken) {
 		this.addtoken = addtoken;
+	}
+
+	/**
+	 * @param encode encode the URL
+	 */
+	public void setEncode(boolean encode) {
+		this.encode = encode;
 	}
 
 	/**

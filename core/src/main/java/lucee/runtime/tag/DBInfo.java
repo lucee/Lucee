@@ -669,8 +669,8 @@ public final class DBInfo extends TagImpl {
 		qry.setAt(DATABASE_VERSION, 1, metaData.getDatabaseProductVersion());
 		qry.setAt(DRIVER_NAME, 1, metaData.getDriverName());
 		qry.setAt(DRIVER_VERSION, 1, metaData.getDriverVersion());
-		qry.setAt(JDBC_MAJOR_VERSION, 1, new Double(metaData.getJDBCMajorVersion()));
-		qry.setAt(JDBC_MINOR_VERSION, 1, new Double(metaData.getJDBCMinorVersion()));
+		qry.setAt(JDBC_MAJOR_VERSION, 1, Double.valueOf(metaData.getJDBCMajorVersion()));
+		qry.setAt(JDBC_MINOR_VERSION, 1, Double.valueOf(metaData.getJDBCMinorVersion()));
 
 		qry.setExecutionTime(stopwatch.time());
 

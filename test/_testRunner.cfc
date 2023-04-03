@@ -4,145 +4,40 @@ component {
 	}
 
 	// testbox doesn't always sort the order of tests, so we do it manually LDEV-3541
-	public array function getBundles( testMapping, testDirectory ){
+	public array function getBundles( required string testMapping, required string testDirectory, required struct testConfig ){
 		var srcBundles = directoryList( path="#expandPath(arguments.testMapping)#", recurse=true, listInfo="path", filter="*.cfc" );
 		var testDirectoryLen = len( arguments.testDirectory );
 		var mapping = ListChangeDelims( arguments.testMapping, "", "/\" );
 		var bundles = [];
+		var testFilter = new _testFilter( argumentCollection = arguments.testConfig );
+
+		arraySort( srcBundles, "textnocase", "asc" ); // make testDebug output sorted
 		ArrayEach( array=srcBundles, closure=function( el, idx, arr ){
-			if ( testFilter( arguments.el, testDirectory, testMapping ) ) {
+			if ( listLast( arguments.el, "\/" ) eq "Application.cfc" ) {
+				// ignore 
+			} else if ( testFilter.filterTest( arguments.el, testDirectory, testMapping ) ) {
 				var clean  = ListChangeDelims( mid( arguments.el, testDirectoryLen + 1  ), ".", "/\" ); // strip off dir prefix
 				arrayAppend(bundles, mapping & "." & mid( clean, 1, len( clean ) - 4 ) ); // strip off .cfc
 			}
 		}, parallel=true );
-		ArraySort( bundles, "textnocase", "asc" );
+
+		if ( request.testDebugAbort ){
+			throw "testDebugAbort was true, exiting";
+		}
+		arraySort( bundles, "textnocase", "asc" );
+		if ( request.testRandomSort neq "false" ) {
+			if ( !isNumeric( request.testRandomSort ) ){
+				request.testRandomSort = randRange( 1, 9999 ); // this way it's reproducible
+			}
+			systemOutput("randomize( #request.testRandomSort# );", true);
+			randomize( request.testRandomSort, "SHA1PRNG" );
+			loop array=#bundles# index="local.idx" item="local.a" {
+				arraySwap(  bundles, local.idx, randRange( 1, arrayLen( bundles ), "SHA1PRNG" ) );
+			}
+		}
 		return bundles;
 	}
-
-	public boolean function testFilter ( string path, string testDirectory, string testMapping ) localmode=true {
-		//systemOutput(arguments, true);
-		var isValidTestCase = function ( string path ){
-			// get parent
-			var testDir = getDirectoryFromPath( arguments.path );
-			testDir = listCompact( left( testDir, testDir.len() - 1 ), "\/" );
-			if ( left( arguments.path, 1 ) eq "/")
-				testDir = "/" & testDir; // avoid issues with non windows paths
-			var name = listLast( arguments.path, "\/" );
-			var testPath = Mid( arguments.path, len( testDirectory ) + 1); // otherwise "image" would match extension-image on CI
-			switch ( true ){
-				case ( left (name, 1 ) == "_" && request.testSkip):
-					return "test has _ prefix (#name#)";
-				case ( checkTestFilter( testPath ) ):
-					return "excluded by testFilter";
-				case ( FindNoCase( testDirectory, testDir ) neq 1 ):
-					return "not under test dir (#testDirectory#, #testDir#)";
-				case fileExists( testDir & "/Application.cfc" ):
-					return "test in directory with Application.cfc";
-				default:
-					break;
-			};
-			var meta = getTestMeta( arguments.path );
-			if ( structKeyExists( meta, "_exception" ) ) {
-				if ( request.testDebug ){
-					SystemOutput( "ERROR: [" & arguments.path & "] threw " & meta._exception.message, true );
-				} else { //} if ( !request.testSkip ){
-					if ( fileRead( arguments.path ) contains "org.lucee.cfml.test.LuceeTestCase" ){
-						// throw an error on bad cfc test cases
-						// but ignore errors when using any labels, as some extensions might not be installed, causing compile syntax errors
-						if ( len( request.testLabels ) eq 0 ) {
-							SystemOutput( "ERROR: [" & arguments.path & "] threw " & meta._exception.message, true );
-							throw( object=meta._exception );
-						}
-					}
-				}
-				return meta._exception.message;
-			}
-
-			if (request.testSkip && structKeyExists(meta, "skip") && meta.skip ?: false)
-				return "test suite has skip=true";
-
-			var extends = checkExtendsTestCase( meta, arguments.path );
-			if ( extends neq "org.lucee.cfml.test.LuceeTestCase" )
-				return "test doesn't extend Lucee Test Case (#extends#)";
-
-			return checkTestLabels( meta, arguments.path, request.testLabels );
-		};
-
-		var checkTestFilter = function ( string path ){
-			if ( Arraylen( request.testFilter ) eq 0 )
-				return false;
-			loop array="#request.testFilter#" item="local.f" {
-				if ( FindNoCase( f, arguments.path ) gt 0 )
-					return false;
-			}
-			return true;
-		};
-
-		var getTestMeta = function (string path){
-			// finally only allow files which extend "org.lucee.cfml.test.LuceeTestCase"
-			var cfcPath = ListChangeDelims( testMapping & Mid( arguments.path, len( testDirectory ) + 1 ), ".", "/\" );
-			cfcPath = mid( cfcPath, 1, len( cfcPath ) - 4 ); // strip off ".cfc"
-			try {
-				// triggers a compile, which make the initial filter slower, but it would be compiled later anyway
-				// GetComponentMetaData leaks output https://luceeserver.atlassian.net/browse/LDEV-3582
-				silent {
-					var meta = GetComponentMetaData( cfcPath );
-				}
-			} catch ( e ){
-				if ( request.testDebug )
-					systemOutput( cfcatch, true );
-				return {
-					"_exception": cfcatch
-				}
-			}
-			return meta;
-		};
-
-		var checkExtendsTestCase = function (any meta, string path){
-			return meta.extends.fullname ?: "";
-		};
-
-		/* testbox mixes labels and skip, which is confusing, skip false should always mean skip, so we check it manually */
-		var checkTestLabels = function ( required any meta, required string path, required array requiredTestLabels ){
-			if ( arrayLen ( arguments.requiredTestLabels ) eq 0 )
-				return ""; // no labels to filter by
-			var testLabels = meta.labels ?: "";
-			var labelsMatched = [];
-
-			// TODO allow any of syntax, orm|cache
-			loop array="#arguments.requiredTestLabels#" item="local.f" {
-				if ( ListFindNoCase( testLabels, f ) gt 0 )
-					ArrayAppend( labelsMatched, f );
-			}
-			var matched = false;
-
-			if ( ArrayLen( labelsMatched ) eq arrayLen( arguments.requiredTestLabels ) )
-				matched = true; // matched all the required labels
-			if ( matched and listLen( testLabels ) neq ArrayLen( labelsMatched ) )
-				matched = false; // but we didn't match all the specified labels for the test
-
-			var matchStatus = "#path# [#testLabels#] matched required label(s) #serializeJson(arguments.requiredTestLabels)#,"
-				& " only #serializeJson( labelsMatched )# matched";
-			if ( !matched ){
-				// systemOutput( "FAILED: " & matchStatus, true );
-				return matchStatus;
-			} else {
-				// systemOutput( "OK: " & matchStatus  , true);
-				return ""; //ok
-			}
-		};
-
-		var allowed = isValidTestCase( arguments.path );
-		//SystemOutput( arguments.path & " :: " & allowed, true );
-		if ( allowed != "" ){
-			if ( request.testDebug )
-				SystemOutput( arguments.path & " :: " & allowed, true );
-			return false;
-		} else {
-			return true;
-		}
-	}
-
+	
 	public struct function runTests() localmode=true {
 		SystemOut = createObject( "java", "lucee.commons.lang.SystemOut" );
 		out = SystemOut.setOut( nullValue() );
@@ -151,31 +46,20 @@ component {
 		NL = chr( 10 ) & chr( 13 );
 		failedTestCases = [];
 
-		// strips off the stack trace to exclude testbox and back to the first .cfc call in the stack
-		function printStackTrace( st ){
-			local.i = find( "/testbox/", arguments.st );
-			if ( request.testDebug || i eq 0 ){ // dump it all out
-				systemOutput( TAB & arguments.st, true );
-				return;
-			}
-			local.tmp = mid( arguments.st, 1, i ); // strip out anything after testbox
-			local.tmp2 = reverse( local.tmp );
-			local.i = find( ":cfc.", local.tmp2 ); // find the first cfc line
-			if ( local.i gt 0 ){
-				local.i = len( local.tmp )-i;
-				local.j = find( ")", local.tmp, local.i ); // find the end of the line
-				local.tmp = mid( local.tmp, 1, local.j );
-			}
-			systemOutput( TAB & local.tmp, true );
-		};
-
 		try {
 			var filterTimer = getTickCount();
-			var bundles = getBundles( "/test", request.testFolder );
+			var testConfig = {
+				testFilter: request.testFilter,
+				testLabels: request.testLabels,
+				testSkip: request.testSkip,
+				testDebug: request.testDebug,
+				testSuiteExtends: request.testSuiteExtends
+			};
+			var bundles = getBundles( "/test", request.testFolder, testConfig );
 			//SystemOutput( bundles, true);
 			var additionalBundles = [];
 			if ( len( request.testAdditional ) ){
-				additionalBundles = getBundles( "/testAdditional", request.testAdditional );
+				additionalBundles = getBundles( "/testAdditional", request.testAdditional, testConfig );
 				// SystemOutput( additionalBundles, true );
 				bundles = ArrayMerge( bundles, additionalBundles );
 			}
@@ -187,7 +71,7 @@ component {
 			}
 			if (false and Arraylen( request.testFilter )){
 				// dump matches by testFilter
-				for ( b in tb.getBundles() )
+				for ( var b in tb.getBundles() )
 					SystemOutput( b, true );
 			}
 
@@ -217,7 +101,10 @@ component {
 		try {
 			SystemOut.setOut( out );
 			//SystemOut.setErr(err);
-			systemOutput( TAB & " (#bundle.totalPass# tests passed in #NumberFormat(bundle.totalDuration)# ms)", true );
+			if ( bundle.totalPass eq 0 && ( bundle.totalFail + bundle.totalError ) eq 0 )
+				systemOutput( TAB & " (skipped)", true );
+			else
+				systemOutput( TAB & " (#bundle.totalPass# tests passed in #NumberFormat(bundle.totalDuration)# ms)", true );
 			//mem("non_heap");
 			//mem("heap");
 		// we have an error
@@ -253,8 +140,12 @@ component {
 									,bundle     : bundle.name
 									,testCase   : specStat.name
 									,errMessage : specStat.failMessage
-									,stackTrace : []
+									,cfmlStackTrace : []
+									,stackTrace : ""
 								};
+								if ( structKeyExists( specStat.error, "stackTrace" ) )
+									failedTestCase.stackTrace = specStat.error.stackTrace;
+
 								failedTestCases.append( failedTestCase );
 
 								systemOutput( NL & specStat.name );
@@ -272,7 +163,7 @@ component {
 										if ( !st.template.hasPrefix( testboxPath ) ){
 											if ( local.i eq 1 or st.template does not contain "testbox" ){
 												var frame = st.template & ":" & st.line;
-												failedTestCase.stackTrace.append( frame );
+												failedTestCase.cfmlStackTrace.append( frame );
 												systemOutput( TAB & frame, true );
 											}
 										}
@@ -288,8 +179,12 @@ component {
 									,bundle     : bundle.name
 									,testCase   : specStat.name
 									,errMessage : specStat.error.Message
-									,stackTrace : []
+									,cfmlStackTrace : []
+									,stackTrace : ""
 								};
+								if ( structKeyExists( specStat.error, "stackTrace" ) )
+									failedTestCase.stackTrace = specStat.error.stackTrace;
+
 								failedTestCases.append( failedTestCase );
 
 								systemOutput( NL & specStat.name );
@@ -306,7 +201,7 @@ component {
 									loop array=rawStackTrace item="local.st" index="local.i" {
 										if ( local.i eq 1 or st.template does not contain "testbox" ){
 											var frame = st.template & ":" & st.line;
-											failedTestCase.stackTrace.append( frame );
+											failedTestCase.cfmlStackTrace.append( frame );
 											systemOutput( TAB & frame, true );
 										}
 									}
@@ -319,7 +214,9 @@ component {
 									*/
 								}
 								if ( !isNull( specStat.error.StackTrace ) && !isEmpty( specStat.error.StackTrace ) ){
-									printStackTrace( specStat.error.StackTrace );
+									systemOutput( TAB & specStat.error.type, true );
+									// printStackTrace( specStat.error.StackTrace );
+									systemOutput( TAB & specStat.error.StackTrace, true );
 									systemOutput( NL );
 								}
 
@@ -390,5 +287,33 @@ Begin Stack Trace
 	};
 	return testResults;
 }
+
+	// strips off the stack trace to exclude testbox and back to the first .cfc call in the stack
+	public static array function trimJavaStackTrace( required string st ){
+		local.tab = chr( 9 );
+		local.stack = [];
+		local.i = find( "/testbox/", arguments.st );
+		if ( request.testDebug || i eq 0 ){ // dump it all out
+			arrayAppend( stack, TAB & arguments.st );
+			return stack;
+		}
+		local.tmp = mid( arguments.st, 1, i ); // strip out anything after testbox
+		local.tmp2 = reverse( local.tmp );
+		local.i = find( ":cfc.", local.tmp2 ); // find the first cfc line
+		if ( local.i gt 0 ){
+			local.i = len( local.tmp )-i;
+			local.j = find( ")", local.tmp, local.i ); // find the end of the line
+			if ( local.j > 0 )
+				local.tmp = mid( local.tmp, 1, local.j );
+		}
+		arrayAppend( stack, TAB & local.tmp );
+		
+		local.firstCausedBy = find( "Caused by:", arguments.st );
+		if ( firstCausedBy gt 0 ) {
+			arrayAppend( stack, TAB & TAB & TAB & "... omitted verbose (ant / pagecontext / testbox) default stacktraces ... " );
+			arrayAppend( stack, mid( arguments.st, firstCausedBy) );
+		}
+		return stack;
+	}
 
 }

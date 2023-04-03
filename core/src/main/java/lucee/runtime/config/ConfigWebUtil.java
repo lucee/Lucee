@@ -286,6 +286,15 @@ public final class ConfigWebUtil {
 		return file;
 	}
 
+	public static boolean hasPlaceholder(String str) {
+		if (StringUtil.isEmpty(str)) return false;
+		// TOD improve test
+		int index = str.indexOf('{');
+		if (index > -1 && index < str.indexOf('}')) return true;
+		return false;
+
+	}
+
 	// do not change, used in extension
 	public static String replacePlaceholder(String str, Config config) {
 		if (StringUtil.isEmpty(str)) return str;

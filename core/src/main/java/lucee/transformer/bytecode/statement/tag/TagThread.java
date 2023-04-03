@@ -51,7 +51,7 @@ public final class TagThread extends TagBaseNoFinal implements ATagThread {
 		// no body
 		if (!"run".equalsIgnoreCase(action)) return;
 
-		Page page = ASMUtil.getAncestorPage(this);
+		Page page = ASMUtil.getAncestorPage(null, this);
 		index = page.addThread(this);
 
 	}

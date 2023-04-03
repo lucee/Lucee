@@ -4,15 +4,15 @@
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either 
+ * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public 
+ *
+ * You should have received a copy of the GNU Lesser General Public
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  *
  **/
@@ -55,6 +55,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TimeZone;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import lucee.commons.db.DBUtil;
 import lucee.commons.io.IOUtil;
@@ -116,7 +117,7 @@ import lucee.runtime.type.util.StructSupport;
  * implementation of the query interface
  */
 /**
- * 
+ *
  */
 public class QueryImpl implements Query, Objects, QueryResult {
 
@@ -133,7 +134,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	private Collection.Key[] columnNames;
 	private SQL sql;
 	private Map<Integer, Integer> currRow = new ConcurrentHashMap<Integer, Integer>();
-	private int recordcount = 0;
+	private AtomicInteger recordcount = new AtomicInteger(0);
 	private int columncount;
 	private long exeTime = 0;
 	private String cacheType = null;
@@ -141,6 +142,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	private int updateCount;
 	private QueryImpl generatedKeys;
 	private TemplateLine templateLine;
+	private String datasourceName;
 
 	private Collection.Key indexName;
 	private Map<Collection.Key, Integer> indexes;// = new
@@ -159,6 +161,10 @@ public class QueryImpl implements Query, Objects, QueryResult {
 		return templateLine;
 	}
 
+	public String getDatasourceName() {
+		return datasourceName;
+	}
+
 	public void setTemplateLine(TemplateLine templateLine) {
 		this.templateLine = templateLine;
 	}
@@ -170,7 +176,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 
 	/**
 	 * create a QueryImpl from a SQL Resultset
-	 * 
+	 *
 	 * @param result SQL Resultset
 	 * @param maxrow
 	 * @param name
@@ -215,7 +221,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 
 	/**
 	 * constructor of the class, to generate a resultset from a sql query
-	 * 
+	 *
 	 * @param dc Connection to a database
 	 * @param name
 	 * @param sql sql to execute
@@ -230,6 +236,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 			boolean createUpdateData, boolean allowToCachePreperadeStatement, Collection.Key indexName) throws PageException {
 		this.name = name;
 		this.templateLine = templateLine;
+		this.datasourceName = dc.getDatasource().getName();
 		this.indexName = indexName;
 		this.sql = sql;
 		execute(pc, dc, sql, maxrow, fetchsize, timeout, createUpdateData, allowToCachePreperadeStatement, this, null, null);
@@ -238,6 +245,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	public static QueryStruct toStruct(PageContext pc, DatasourceConnection dc, SQL sql, Collection.Key keyName, int maxrow, int fetchsize, TimeSpan timeout, String name,
 			TemplateLine templateLine, boolean createUpdateData, boolean allowToCachePreperadeStatement) throws PageException {
 		QueryStruct sct = new QueryStruct(name, sql, templateLine);
+		sct.setDatasourceName(dc.getDatasource().getName());
 		execute(pc, dc, sql, maxrow, fetchsize, timeout, createUpdateData, allowToCachePreperadeStatement, null, sct, keyName);
 		return sct;
 	}
@@ -245,6 +253,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	public static QueryArray toArray(PageContext pc, DatasourceConnection dc, SQL sql, int maxrow, int fetchsize, TimeSpan timeout, String name, TemplateLine templateLine,
 			boolean createUpdateData, boolean allowToCachePreperadeStatement) throws PageException {
 		QueryArray arr = new QueryArray(name, sql, templateLine);
+		arr.setDatasourceName(dc.getDatasource().getName());
 		execute(pc, dc, sql, maxrow, fetchsize, timeout, createUpdateData, allowToCachePreperadeStatement, null, arr, null);
 		return arr;
 	}
@@ -397,9 +406,9 @@ public class QueryImpl implements Query, Objects, QueryResult {
 						/*
 						 * Some SQL implementations (e.g. SQL Server) allow both a resultset *and* keys to be generated in a
 						 * single statement. For example:
-						 * 
+						 *
 						 * insert into XXXX (col1, col2) OUTPUT INSERTED.* values (1, 'a'), (2, 'b'), (3, 'c')
-						 * 
+						 *
 						 * In the above, the "OUTPUT INSERTED.*" will return a recordset of all the changes.
 						 */
 						if (resultsetCount == 1 && !hasPossibleGeneratedKeys) {
@@ -415,7 +424,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 								 * We should check for any generated keys now, because in the MSSQL driver if we have a single
 								 * resultset (INSERT or UPDATE) that has an OUTPUT clause, the generated keys are only available
 								 * right now.
-								 * 
+								 *
 								 * If we get back false, then an exception happened. However, we will still want to check back later
 								 * in care there are other statements executed later that could return a resultset.
 								 */
@@ -427,7 +436,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 								/*
 								 * We can ignore when SQL Server driver throws the "statement must be executed" message as this is
 								 * the standard exception which happens when there are no keys available.
-								 * 
+								 *
 								 * However, we should report other exceptions because they could becoming from a RAISERROR or other
 								 * exception being generated by SQL Server.
 								 */
@@ -468,9 +477,9 @@ public class QueryImpl implements Query, Objects, QueryResult {
 				 * The JTDS driver (and possibly other drivers) throw exceptions as soon as the query is executed,
 				 * however the MSSQL driver will delay throwing the execution until you try to request the
 				 * recordset.
-				 * 
+				 *
 				 * So we need to check if a SQLException is being thrown and if so, we need to rethrow it.
-				 * 
+				 *
 				 */
 				// if (DataSourceUtil.isMSSQLDriver(dc)) {
 				// throw e;
@@ -493,7 +502,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 				/*
 				 * The MSSQL driver recommends always checking for generated keys after all recordsets have been
 				 * parsed. This will prevent the Statement.getGeneratedKeys() from advancing the recordset.
-				 * 
+				 *
 				 * See the following link for more information:
 				 * https://social.technet.microsoft.com/Forums/ie/en-US/a91f8aa2-6ec0-447d-8b95-9e99e1da56fb/the-
 				 * statement-must-be-executed-before-any-results-can-be-obtained-error-with-jdbc-20?forum=
@@ -766,7 +775,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 			if (qry != null) {
 				qry.populating = false;
 				qry.columncount = columncount;
-				qry.recordcount = recordcount;
+				qry.recordcount.set(recordcount);
 				qry.columnNames = columnNames;
 				qry.columns = columns;
 			}
@@ -795,7 +804,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 
 	/**
 	 * constructor of the class, to generate an empty resultset (no database execution)
-	 * 
+	 *
 	 * @param strColumns columns for the resultset
 	 * @param rowNumber count of rows to generate (empty fields)
 	 * @param name
@@ -806,18 +815,18 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	public QueryImpl(String[] strColumns, int rowNumber, String name) {
 		this.name = name;
 		columncount = strColumns.length;
-		recordcount = rowNumber;
+		recordcount.set(rowNumber);
 		columnNames = new Collection.Key[columncount];
 		columns = new QueryColumnImpl[columncount];
 		for (int i = 0; i < strColumns.length; i++) {
 			columnNames[i] = KeyImpl.init(strColumns[i].trim());
-			columns[i] = new QueryColumnImpl(this, columnNames[i], Types.OTHER, recordcount);
+			columns[i] = new QueryColumnImpl(this, columnNames[i], Types.OTHER, getRecordcount());
 		}
 	}
 
 	/**
 	 * constructor of the class, to generate an empty resultset (no database execution)
-	 * 
+	 *
 	 * @param strColumns columns for the resultset
 	 * @param rowNumber count of rows to generate (empty fields)
 	 * @param name
@@ -829,12 +838,12 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	public QueryImpl(Collection.Key[] columnKeys, int rowNumber, String name, SQL sql) throws DatabaseException {
 		this.name = name;
 		columncount = columnKeys.length;
-		recordcount = rowNumber;
+		recordcount.set(rowNumber);
 		columnNames = new Collection.Key[columncount];
 		columns = new QueryColumnImpl[columncount];
 		for (int i = 0; i < columnKeys.length; i++) {
 			columnNames[i] = columnKeys[i];
-			columns[i] = new QueryColumnImpl(this, columnNames[i], Types.OTHER, recordcount);
+			columns[i] = new QueryColumnImpl(this, columnNames[i], Types.OTHER, getRecordcount());
 		}
 		validateColumnNames(columnNames);
 		this.sql = sql;
@@ -842,7 +851,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 
 	/**
 	 * constructor of the class, to generate an empty resultset (no database execution)
-	 * 
+	 *
 	 * @param strColumns columns for the resultset
 	 * @param strTypes array of the types
 	 * @param rowNumber count of rows to generate (empty fields)
@@ -853,18 +862,18 @@ public class QueryImpl implements Query, Objects, QueryResult {
 		this.name = name;
 		columncount = strColumns.length;
 		if (strTypes.length != columncount) throw new DatabaseException("columns and types has not the same count", null, null, null);
-		recordcount = rowNumber;
+		recordcount.set(rowNumber);
 		columnNames = new Collection.Key[columncount];
 		columns = new QueryColumnImpl[columncount];
 		for (int i = 0; i < strColumns.length; i++) {
 			columnNames[i] = KeyImpl.init(strColumns[i].trim());
-			columns[i] = new QueryColumnImpl(this, columnNames[i], SQLCaster.toSQLType(strTypes[i]), recordcount);
+			columns[i] = new QueryColumnImpl(this, columnNames[i], SQLCaster.toSQLType(strTypes[i]), getRecordcount());
 		}
 	}
 
 	/**
 	 * constructor of the class, to generate an empty resultset (no database execution)
-	 * 
+	 *
 	 * @param strColumns columns for the resultset
 	 * @param strTypes array of the types
 	 * @param rowNumber count of rows to generate (empty fields)
@@ -876,17 +885,17 @@ public class QueryImpl implements Query, Objects, QueryResult {
 		this.columnNames = columnNames;
 		columncount = columnNames.length;
 		if (strTypes.length != columncount) throw new DatabaseException("columns and types has not the same count", null, null, null);
-		recordcount = rowNumber;
+		recordcount.set(rowNumber);
 		columns = new QueryColumnImpl[columncount];
 		for (int i = 0; i < columnNames.length; i++) {
-			columns[i] = new QueryColumnImpl(this, columnNames[i], SQLCaster.toSQLType(strTypes[i]), recordcount);
+			columns[i] = new QueryColumnImpl(this, columnNames[i], SQLCaster.toSQLType(strTypes[i]), getRecordcount());
 		}
 		validateColumnNames(columnNames);
 	}
 
 	/**
 	 * constructor of the class, to generate an empty resultset (no database execution)
-	 * 
+	 *
 	 * @param arrColumns columns for the resultset
 	 * @param rowNumber count of rows to generate (empty fields)
 	 * @param name
@@ -895,19 +904,19 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	public QueryImpl(Array arrColumns, int rowNumber, String name) throws PageException {
 		this.name = name;
 		columncount = arrColumns.size();
-		recordcount = rowNumber;
+		recordcount.set(rowNumber);
 		columnNames = new Collection.Key[columncount];
 		columns = new QueryColumnImpl[columncount];
 		for (int i = 0; i < columncount; i++) {
 			columnNames[i] = KeyImpl.init(Caster.toString(arrColumns.get(i + 1, "")).trim());
-			columns[i] = new QueryColumnImpl(this, columnNames[i], Types.OTHER, recordcount);
+			columns[i] = new QueryColumnImpl(this, columnNames[i], Types.OTHER, getRecordcount());
 		}
 		validateColumnNames(columnNames);
 	}
 
 	/**
 	 * constructor of the class, to generate an empty resultset (no database execution)
-	 * 
+	 *
 	 * @param arrColumns columns for the resultset
 	 * @param arrTypes type of the columns
 	 * @param rowNumber count of rows to generate (empty fields)
@@ -918,12 +927,12 @@ public class QueryImpl implements Query, Objects, QueryResult {
 		this.name = name;
 		columncount = arrColumns.size();
 		if (arrTypes.size() != columncount) throw new DatabaseException("columns and types has not the same count", null, null, null);
-		recordcount = rowNumber;
+		recordcount.set(rowNumber);
 		columnNames = new Collection.Key[columncount];
 		columns = new QueryColumnImpl[columncount];
 		for (int i = 0; i < columncount; i++) {
 			columnNames[i] = KeyImpl.init(arrColumns.get(i + 1, "").toString().trim());
-			columns[i] = new QueryColumnImpl(this, columnNames[i], SQLCaster.toSQLType(Caster.toString(arrTypes.get(i + 1, ""))), recordcount);
+			columns[i] = new QueryColumnImpl(this, columnNames[i], SQLCaster.toSQLType(Caster.toString(arrTypes.get(i + 1, ""))), getRecordcount());
 		}
 		validateColumnNames(columnNames);
 	}
@@ -959,7 +968,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	 * this.columns=columns; this.exeTime=exeTime; this.isCached=isCached; this.name=name;
 	 * this.columncount=columnNames.length; this.recordcount=columns.length==0?0:columns[0].size();
 	 * this.sql=sql;
-	 * 
+	 *
 	 * }
 	 */
 
@@ -984,13 +993,13 @@ public class QueryImpl implements Query, Objects, QueryResult {
 		}
 
 		columncount = columns.length;
-		recordcount = len;
+		recordcount.set(len);
 		this.columnNames = columnNames;
 	}
 
 	/**
 	 * constructor of the class
-	 * 
+	 *
 	 * @param columnList
 	 * @param data
 	 * @param name
@@ -1052,7 +1061,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 		for (int i = 0; i < columns.length; i++) {
 			columns[i].clear();
 		}
-		recordcount = 0;
+		recordcount.set(0);
 	}
 
 	@Override
@@ -1102,7 +1111,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 		if (index != -1) {
 			// we only return default value if row exists
 			// LDEV-1201
-			if (row > 0 && row <= recordcount) {
+			if (row > 0 && row <= getRecordcount()) {
 				Object val = columns[index].get(row, CollectionUtil.NULL);
 				if (val != CollectionUtil.NULL) return val;
 				return NullSupportHelper.full() ? null : "";
@@ -1112,8 +1121,8 @@ public class QueryImpl implements Query, Objects, QueryResult {
 			// return columns[index].get(row,defaultValue);
 		}
 		if (key.length() >= 10) {
-			if (key.equals(KeyConstants._RECORDCOUNT)) return new Double(getRecordcount());
-			if (key.equals(KeyConstants._CURRENTROW)) return new Double(row);
+			if (key.equals(KeyConstants._RECORDCOUNT)) return Double.valueOf(getRecordcount());
+			if (key.equals(KeyConstants._CURRENTROW)) return Double.valueOf(row);
 			if (key.equals(KeyConstants._COLUMNLIST)) return getColumnlist(getKeyCase(ThreadLocalPageContext.get()));
 		}
 		return defaultValue;
@@ -1133,8 +1142,8 @@ public class QueryImpl implements Query, Objects, QueryResult {
 			return NullSupportHelper.full() ? null : "";
 		}
 		if (key.length() >= 10) {
-			if (key.equals(KeyConstants._RECORDCOUNT)) return new Double(getRecordcount());
-			if (key.equals(KeyConstants._CURRENTROW)) return new Double(row);
+			if (key.equals(KeyConstants._RECORDCOUNT)) return Double.valueOf(getRecordcount());
+			if (key.equals(KeyConstants._CURRENTROW)) return Double.valueOf(row);
 			if (key.equals(KeyConstants._COLUMNLIST)) return getColumnlist(getKeyCase(ThreadLocalPageContext.get()));
 		}
 		throw new DatabaseException("Column [" + key + "] not found in query", "available columns are [" + getColumnlist(getKeyCase(ThreadLocalPageContext.get()), ", ") + "]", sql,
@@ -1148,7 +1157,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 		for (int i = 0; i < columns.length; i++) {
 			columns[i].removeRow(row);
 		}
-		return --recordcount;
+		return recordcount.decrementAndGet();
 	}
 
 	@Override
@@ -1159,7 +1168,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 			return removeRow(row);
 		}
 		catch (PageException e) {
-			return recordcount;
+			return getRecordcount();
 		}
 	}
 
@@ -1277,7 +1286,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 
 	@Override
 	public boolean next(int pid) {
-		if (recordcount >= (currRow.put(pid, currRow.getOrDefault(pid, 0) + 1))) {
+		if (getRecordcount() >= (currRow.put(pid, currRow.getOrDefault(pid, 0) + 1))) {
 			return true;
 		}
 		currRow.put(pid, 0);
@@ -1297,6 +1306,10 @@ public class QueryImpl implements Query, Objects, QueryResult {
 
 	@Override
 	public int getRecordcount() {
+		return recordcount.get();
+	}
+
+	protected AtomicInteger getRecordcountObj() {
 		return recordcount;
 	}
 
@@ -1312,7 +1325,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 
 	/**
 	 * return a string list of all columns
-	 * 
+	 *
 	 * @return string list
 	 */
 
@@ -1338,7 +1351,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 
 	@Override
 	public boolean go(int index, int pid) {
-		if (index > 0 && index <= recordcount) {
+		if (index > 0 && index <= getRecordcount()) {
 			currRow.put(pid, index);
 			return true;
 		}
@@ -1348,7 +1361,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 
 	@Override
 	public boolean isEmpty() {
-		return recordcount + columncount == 0;
+		return getRecordcount() + columncount == 0;
 	}
 
 	@Override
@@ -1358,7 +1371,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 
 	/**
 	 * sorts a query by a column
-	 * 
+	 *
 	 * @param column colun to sort
 	 * @throws PageException
 	 */
@@ -1374,7 +1387,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 
 	/**
 	 * sorts a query by a column
-	 * 
+	 *
 	 * @param strColumn column to sort
 	 * @param order sort type (Query.ORDER_ASC or Query.ORDER_DESC)
 	 * @throws PageException
@@ -1420,15 +1433,22 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	}
 
 	@Override
-	public synchronized boolean addRow(int count) {
-		// disconnectCache();
+	public boolean addRow(int count) {
+		addRowAndGet(count);
+		return true;
+	}
 
+	@Override
+	public int addRow() {
+		return addRowAndGet(1);
+	}
+
+	public int addRowAndGet(int count) {
 		for (int i = 0; i < columns.length; i++) {
 			QueryColumnPro column = columns[i];
 			column.addRow(count);
 		}
-		recordcount += count;
-		return true;
+		return recordcount.addAndGet(count);
 	}
 
 	@Override
@@ -1602,7 +1622,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 		sb.append(trenner.replace('-', '='));
 
 		// body
-		for (int i = 0; i < recordcount; i++) {
+		for (int i = 0; i < getRecordcount(); i++) {
 			for (int y = 0; y < keys.length; y++) {
 				try {
 					Object o = getAt(keys[y], i + 1);
@@ -1745,7 +1765,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 				QueryColumn column = columns[i];
 				column.cutRowsTo(maxrows);
 			}
-			recordcount = maxrows;
+			recordcount.set(maxrows);
 			return true;
 		}
 		return false;
@@ -1769,12 +1789,6 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	@Override
 	public boolean isCached() {
 		return cacheType != null;
-	}
-
-	@Override
-	public int addRow() {
-		addRow(1);
-		return getRecordcount();
 	}
 
 	public Key getColumnName(int columnIndex) {
@@ -2075,20 +2089,20 @@ public class QueryImpl implements Query, Objects, QueryResult {
 
 	@Override
 	public boolean absolute(int row) throws SQLException {
-		if (recordcount == 0) {
+		if (getRecordcount() == 0) {
 			if (row != 0) throw new SQLException("invalid row [" + row + "], query is Empty");
 			return false;
 		}
 		// row=row%recordcount;
 
 		if (row > 0) currRow.put(getPid(), row);
-		else currRow.put(getPid(), (recordcount + 1) + row);
+		else currRow.put(getPid(), (getRecordcount() + 1) + row);
 		return true;
 	}
 
 	@Override
 	public void afterLast() throws SQLException {
-		currRow.put(getPid(), recordcount + 1);
+		currRow.put(getPid(), getRecordcount() + 1);
 	}
 
 	@Override
@@ -2159,22 +2173,22 @@ public class QueryImpl implements Query, Objects, QueryResult {
 
 	@Override
 	public BigDecimal getBigDecimal(int columnIndex) throws SQLException {
-		return new BigDecimal(getDouble(columnIndex));
+		return Caster.toBigDecimal(getDouble(columnIndex));
 	}
 
 	@Override
 	public BigDecimal getBigDecimal(String columnName) throws SQLException {
-		return new BigDecimal(getDouble(columnName));
+		return Caster.toBigDecimal(getDouble(columnName));
 	}
 
 	@Override
 	public BigDecimal getBigDecimal(int columnIndex, int scale) throws SQLException {
-		return new BigDecimal(getDouble(columnIndex));
+		return Caster.toBigDecimal(getDouble(columnIndex));
 	}
 
 	@Override
 	public BigDecimal getBigDecimal(String columnName, int scale) throws SQLException {
-		return new BigDecimal(getDouble(columnName));
+		return Caster.toBigDecimal(getDouble(columnName));
 	}
 
 	@Override
@@ -2636,7 +2650,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 
 	@Override
 	public boolean isAfterLast() throws SQLException {
-		return getCurrentrow(ThreadLocalPageContext.get().getId()) > recordcount;
+		return getCurrentrow(ThreadLocalPageContext.get().getId()) > getRecordcount();
 	}
 
 	@Override
@@ -2651,12 +2665,12 @@ public class QueryImpl implements Query, Objects, QueryResult {
 
 	@Override
 	public boolean isLast() throws SQLException {
-		return currRow.getOrDefault(getPid(), 0) == recordcount;
+		return currRow.getOrDefault(getPid(), 0) == getRecordcount();
 	}
 
 	@Override
 	public boolean last() throws SQLException {
-		return absolute(recordcount);
+		return absolute(getRecordcount());
 	}
 
 	@Override
@@ -2801,12 +2815,12 @@ public class QueryImpl implements Query, Objects, QueryResult {
 
 	@Override
 	public void updateByte(int columnIndex, byte x) throws SQLException {
-		updateObject(columnIndex, new Byte(x));
+		updateObject(columnIndex, Byte.valueOf(x));
 	}
 
 	@Override
 	public void updateByte(String columnName, byte x) throws SQLException {
-		updateObject(columnName, new Byte(x));
+		updateObject(columnName, Byte.valueOf(x));
 	}
 
 	@Override
@@ -3350,12 +3364,13 @@ public class QueryImpl implements Query, Objects, QueryResult {
 			newResult.sql = qry.getSql();
 			if (qry instanceof QueryImpl) newResult.templateLine = ((QueryImpl) qry).getTemplateLine();
 			else newResult.templateLine = new TemplateLine(qry.getTemplate(), 0);
-			newResult.recordcount = qry.getRecordcount();
+			newResult.recordcount = ((QueryImpl) qry).recordcount;
 			newResult.columncount = newResult.columnNames.length;
 			newResult.cacheType = qry.getCacheType();
 			newResult.name = qry.getName();
 			newResult.exeTime = qry.getExecutionTime();
 			newResult.updateCount = qry.getUpdateCount();
+			if (qry instanceof QueryImpl) newResult.datasourceName = ((QueryImpl) qry).getDatasourceName();
 			if (qry.getGeneratedKeys() != null) cloneQuery(newResult.generatedKeys = ((QueryImpl) qry.getGeneratedKeys()), false);
 			return newResult;
 		}

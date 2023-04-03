@@ -187,7 +187,7 @@ Defaults --->
 						<td colspan="2">
 							<input class="bl button submit" type="submit" name="mainAction" value="#stText.Buttons.Update#">
 							<input class="<cfif request.adminType EQ "web">bm<cfelse>br</cfif> button reset" type="reset" name="cancel" value="#stText.Buttons.Cancel#">
-							<cfif request.adminType EQ "web"><input class="br button submit" type="submit" name="mainAction" value="#stText.Buttons.resetServerAdmin#"></cfif>
+							<cfif not request.singleMode and request.adminType EQ "web"><input class="br button submit" type="submit" name="mainAction" value="#stText.Buttons.resetServerAdmin#"></cfif>
 						</td>
 					</tr>
 				</tfoot>

@@ -107,6 +107,7 @@ import lucee.runtime.config.Password;
 import lucee.runtime.config.PasswordImpl;
 import lucee.runtime.config.RemoteClient;
 import lucee.runtime.config.RemoteClientImpl;
+import lucee.runtime.config.SingleContextConfigWeb;
 import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.db.DataSource;
 import lucee.runtime.db.DataSourceImpl;
@@ -248,7 +249,8 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	private boolean singleMode;
 	private Password password;
 	private ConfigAdmin admin;
-	private ConfigPro config;
+	private ConfigPro config = null;
+	private ConfigWebPro configWeb = null;
 
 	private static final ResourceFilter FILTER_CFML_TEMPLATES = new OrResourceFilter(
 			new ResourceFilter[] { new DirectoryResourceFilter(), new ExtensionResourceFilter(Constants.getExtensions()) });
@@ -278,7 +280,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 	@Override
 	public int doStartTag() throws PageException {
-		config = (ConfigPro) pageContext.getConfig();
+		config = configWeb = (ConfigWebPro) pageContext.getConfig();
 
 		// print();
 
@@ -440,15 +442,15 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			schedule.setEnddate(getObject("endDate", null));
 			schedule.setEndtime(getObject("endTime", null));
 			schedule.setInterval(getString("interval", null));
-			schedule.setRequesttimeout(new Double(getDouble("requestTimeOut", -1)));
+			schedule.setRequesttimeout(Double.valueOf(getDouble("requestTimeOut", -1)));
 			schedule.setUsername(getString("username", null));
 			schedule.setPassword(getString("schedulePassword", null));
 			schedule.setProxyserver(getString("proxyServer", null));
 			schedule.setProxyuser(getString("proxyuser", null));
 			schedule.setProxypassword(getString("proxyPassword", null));
 			schedule.setResolveurl(getBoolV("resolveURL", false));
-			schedule.setPort(new Double(getDouble("port", -1)));
-			schedule.setProxyport(new Double(getDouble("proxyPort", 80)));
+			schedule.setPort(Double.valueOf(getDouble("port", -1)));
+			schedule.setProxyport(Double.valueOf(getDouble("proxyPort", 80)));
 			schedule.setUnique(getBoolV("unique", false));
 
 			String rtn = getString("returnvariable", null);
@@ -539,7 +541,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	 * 
 	 */
 	private void _doStartTag() throws PageException, IOException {
-		config = (ConfigPro) pageContext.getConfig();
+		config = configWeb = (ConfigWebPro) pageContext.getConfig();
 
 		// getToken
 		if (action.equals("gettoken")) {
@@ -601,7 +603,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		try {
 			// Password
 			String strPW = getString("password", "");
-			Password tmp = type == TYPE_SERVER ? ((ConfigWebPro) config).isServerPasswordEqual(strPW) : config.isPasswordEqual(strPW); // hash password if
+			Password tmp = type == TYPE_SERVER ? configWeb.isServerPasswordEqual(strPW) : config.isPasswordEqual(strPW); // hash password if
 			// necessary (for
 			// backward
 			// compatibility)
@@ -1210,7 +1212,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	}
 
 	private void doListAuthKey() throws PageException {
-		ConfigServerImpl cs = (ConfigServerImpl) config;
+		ConfigServerImpl cs = config instanceof ConfigServer ? (ConfigServerImpl) config : (ConfigServerImpl) ConfigWebUtil.getConfigServer(config, password);
 		pageContext.setVariable(getString("admin", action, "returnVariable"), Caster.toArray(cs.getAuthenticationKeys()));
 	}
 
@@ -1340,7 +1342,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 	private void doRemoveContext() throws PageException {
 		String strRealpath = getString("admin", action, "destination");
-		ConfigServerImpl server = (ConfigServerImpl) config;
+		ConfigServerImpl server = config instanceof ConfigServer ? (ConfigServerImpl) config : (ConfigServerImpl) ConfigWebUtil.getConfigServer(config, password);
 
 		try {
 			admin.removeContext(server, true, ThreadLocalPageContext.getLog(pageContext, "deploy"), strRealpath);
@@ -1511,9 +1513,12 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	}
 
 	private void doGetLoggedDebugData() throws PageException {
-		if (config instanceof ConfigServer) return;
 
-		ConfigWebPro cw = (ConfigWebPro) config;
+		// to get logged debugging data config should be a ConfigWebPro,
+		// for singleMode config is always ConfigServer so config must be redefine if it was singleMode
+		if (singleMode) config = configWeb = (ConfigWebPro) pageContext.getConfig();
+
+		ConfigWebPro cw = configWeb;
 		String id = getString("id", null);
 		Array data = cw.getDebuggerPool().getData(pageContext);
 
@@ -1535,9 +1540,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	}
 
 	private void doPurgeDebugPool() throws PageException {
-		if (config instanceof ConfigServer) return;
-		ConfigWebPro cw = (ConfigWebPro) config;
-		cw.getDebuggerPool().purge();
+		configWeb.getDebuggerPool().purge();
 	}
 
 	private void doPurgeExpiredSessions() throws PageException {
@@ -1558,10 +1561,9 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	private void doGetInfo() throws PageException {
 		Struct sct = new StructImpl();
 		pageContext.setVariable(getString("admin", action, "returnVariable"), sct);
-
-		if (config instanceof ConfigWebPro) {
-			ConfigWebPro cw = (ConfigWebPro) config;
-			sct.setEL(KeyConstants._id, cw.getIdentification().getId());
+		if (config instanceof ConfigWebPro || configWeb instanceof SingleContextConfigWeb) {
+			ConfigWebPro cw = configWeb instanceof SingleContextConfigWeb ? configWeb : (ConfigWebPro) config;
+			sct.setEL(KeyConstants._id, config.getIdentification().getId());
 			sct.setEL(KeyConstants._label, cw.getLabel());
 			sct.setEL(KeyConstants._hash, cw.getHash());
 
@@ -1571,7 +1573,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		}
 		else {
 			sct.setEL("configServerDir", config.getConfigDir().getAbsolutePath());
-			sct.setEL("configWebDir", pageContext.getConfig().getConfigDir().getAbsolutePath());
+			sct.setEL("configWebDir", configWeb.getConfigDir().getAbsolutePath());
 		}
 
 		sct.setEL(KeyConstants._config, config.getConfigFile().getAbsolutePath());
@@ -1756,7 +1758,6 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	}
 
 	private void doUpdateSecurity() throws PageException {
-
 		admin.updateSecurity(getString("varUsage", ""));
 		store();
 		adminSync.broadcast(attributes, config);
@@ -2403,9 +2404,9 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			configWeb.getConfigDir();
 			configWeb.getIdentification().getId();
 			configWeb.getConfigDir();
-			qry.setAt("Id", row, new Double(pc.getId()));
+			qry.setAt("Id", row, Double.valueOf(pc.getId()));
 			qry.setAt("Start", row, new DateTimeImpl(pc.getStartTime(), false));
-			qry.setAt("Timeout", row, new Double(pc.getRequestTimeout() / 1000));
+			qry.setAt("Timeout", row, Double.valueOf(pc.getRequestTimeout() / 1000));
 
 			PageContext root = pc.getRootPageContext();
 			qry.setAt("ThreadType", row, (root != null && root != pc) ? "main" : "child");
@@ -3149,7 +3150,8 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	private void doUpdateCompilerSettings() throws SecurityException, PageException {
 		admin.updateCompilerSettings(getBoolObject("admin", "UpdateCompilerSettings", "dotNotationUpperCase"),
 				getBoolObject("admin", "UpdateCompilerSettings", "suppressWSBeforeArg"), getBoolObject("admin", "UpdateCompilerSettings", "nullSupport"),
-				getBoolObject("admin", "UpdateCompilerSettings", "handleUnquotedAttrValueAsString"), getInteger("admin", "UpdateCompilerSettings", "externalizeStringGTE"));
+				getBoolObject("admin", "UpdateCompilerSettings", "handleUnquotedAttrValueAsString"), getInteger("admin", "UpdateCompilerSettings", "externalizeStringGTE"),
+				getBoolObject("admin", "UpdateCompilerSettings", "preciseMath"));
 		admin.updateTemplateCharset(getString("admin", action, "templateCharset"));
 
 		store();
@@ -3189,6 +3191,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		sct.set("handleUnquotedAttrValueAsString", config.getHandleUnQuotedAttrValueAsString() ? Boolean.TRUE : Boolean.FALSE);
 		sct.set("templateCharset", config.getTemplateCharset());
 		sct.set("externalizeStringGTE", Caster.toDouble(config.getExternalizeStringGTE()));
+		sct.set("preciseMath", config.getPreciseMath());
 
 	}
 
@@ -3305,7 +3308,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	}
 
 	private void doGetGatewayEntries() throws PageException {
-		Map entries = ((GatewayEngineImpl) ((ConfigWebPro) config).getGatewayEngine()).getEntries();
+		Map entries = ((GatewayEngineImpl) (configWeb).getGatewayEngine()).getEntries();
 		Iterator it = entries.entrySet().iterator();
 		lucee.runtime.type.Query qry = new QueryImpl(
 				new String[] { "class", "bundleName", "bundleVersion", "id", "custom", "cfcPath", "listenerCfcPath", "startupMode", "state", "readOnly" }, 0, "entries");
@@ -3665,7 +3668,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	private void doGetGatewayEntry() throws PageException {
 
 		String id = getString("admin", action, "id");
-		Map entries = ((GatewayEngineImpl) ((ConfigWebPro) config).getGatewayEngine()).getEntries();
+		Map entries = ((GatewayEngineImpl) configWeb.getGatewayEngine()).getEntries();
 		Iterator it = entries.keySet().iterator();
 		GatewayEntry ge;
 		// Gateway g;
@@ -3698,7 +3701,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 		String id = getString("admin", action, "id");
 		String act = getString("admin", action, "gatewayAction").trim().toLowerCase();
-		GatewayEngineImpl eng = ((GatewayEngineImpl) ((ConfigWebPro) config).getGatewayEngine());
+		GatewayEngineImpl eng = ((GatewayEngineImpl) configWeb.getGatewayEngine());
 		if ("restart".equals(act)) eng.restart(id);
 		else if ("start".equals(act)) eng.start(id);
 		else if ("stop".equals(act)) eng.stop(id);

@@ -4,22 +4,14 @@
 **************************************************************************************
 */
 component {
-	this.name = "A TestBox Runner Suites " & hash( getCurrentTemplatePath() );
+	this.name = "LDEV1641" & hash( getCurrentTemplatePath() );
 	// any other application.cfc stuff goes below:
 	this.sessionManagement = true;
 
 	// any mappings go here, we create one that points to the root called test.
-	this.mappings[ "/tests" ] = getDirectoryFromPath( getCurrentTemplatePath() );
+	this.mappings[ "/tests" ] = getDirectoryFromPath( getCurrentTemplatePath() );	
+	this.datasources["testdb"] = server.getDatasource("h2", server._getTempDir("LDEV1641") );
 
-	dbpath = expandPath("#getTempDirectory()#/data/testdb");
-
-	this.datasources["testdb"] = {
-		  class: 'org.h2.Driver'
-		, bundleName: 'org.h2'
-		, bundleVersion: '1.3.172'
-		, connectionString: 'jdbc:h2:#dbpath#;MODE=MySQL'
-		, connectionLimit:100 // default:-1
-	};
 	// any orm definitions go here.
 
 	this.defaultDatasource = "testdb";

@@ -8,13 +8,13 @@
 	  <tstamp>
 		<format property="timestamp" pattern="yyyy-MM-dd HH:mm:ss" />
 	  </tstamp>
-	  <echo message="---------- ${timestamp} - @{message} ----------" />
+	  <echo leveL="debug" message="---------- ${timestamp} - @{message} ----------" />
 	</sequential>
   </macrodef>
 
 <target name="run">
 
-<echo><![CDATA[
+<echo leveL="debug"><![CDATA[
   _____         _   ____
  |_   _|__  ___| |_| __ )  _____  __
    | |/ _ \/ __| __|  _ \ / _ \ \/ /

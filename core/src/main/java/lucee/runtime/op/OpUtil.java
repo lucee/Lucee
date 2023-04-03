@@ -33,6 +33,7 @@ import java.util.TimeZone;
 import lucee.commons.date.DateTimeUtil;
 import lucee.commons.date.TimeZoneUtil;
 import lucee.commons.lang.CFTypes;
+import lucee.commons.math.MathUtil;
 import lucee.runtime.Component;
 import lucee.runtime.PageContext;
 import lucee.runtime.component.Member;
@@ -919,14 +920,14 @@ public final class OpUtil {
 	 */
 	public static double divide(PageContext pc, Object left, Object right) throws PageException {
 		if (AppListenerUtil.getPreciseMath(pc, null)) {
-			return Caster.toBigDecimal(left).divide(Caster.toBigDecimal(right)).doubleValue();
+			return MathUtil.divide(Caster.toBigDecimal(left), Caster.toBigDecimal(right)).doubleValue();
 		}
 		return Double.valueOf(Caster.toDoubleValue(left) / Caster.toDoubleValue(right));
 	}
 
 	public static double divide(PageContext pc, Number left, Number right) {
 		if (AppListenerUtil.getPreciseMath(pc, null)) {
-			return Caster.toBigDecimal(left).divide(Caster.toBigDecimal(right)).doubleValue();
+			return MathUtil.divide(Caster.toBigDecimal(left), Caster.toBigDecimal(right)).doubleValue();
 		}
 		return Double.valueOf(left.doubleValue() / right.doubleValue());
 	}
@@ -971,7 +972,7 @@ public final class OpUtil {
 		if (AppListenerUtil.getPreciseMath(pc, null)) {
 			BigDecimal bd = Caster.toBigDecimal(right);
 			if (bd.equals(BigDecimal.ZERO)) throw new ArithmeticException("Division by zero is not possible");
-			return Caster.toBigDecimal(left).divide(bd);
+			return MathUtil.divide(Caster.toBigDecimal(left), bd);
 		}
 
 		double r = Caster.toDoubleValue(right);
@@ -983,7 +984,7 @@ public final class OpUtil {
 		if (AppListenerUtil.getPreciseMath(pc, null)) {
 			BigDecimal bd = Caster.toBigDecimal(right);
 			if (bd.equals(BigDecimal.ZERO)) throw new ArithmeticException("Division by zero is not possible");
-			return Caster.toBigDecimal(left).divide(bd);
+			return MathUtil.divide(Caster.toBigDecimal(left), bd);
 		}
 
 		double r = Caster.toDoubleValue(right);

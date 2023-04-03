@@ -63,6 +63,7 @@ public class InternalRequest implements Function {
 	public static final Key STATUS_CODE = KeyImpl.getInstance("status_code");
 
 	private static final Key CONTENT_TYPE = KeyImpl.getInstance("content-type");
+	private static final Key CONTENT_LENGTH = KeyImpl.getInstance("content-length");
 
 	public static Struct call(final PageContext pc, String template, String method, Object oUrls, Object oForms, Struct cookies, Struct headers, Object body, String strCharset,
 			boolean addToken, boolean throwonerror) throws PageException {
@@ -103,7 +104,7 @@ public class InternalRequest implements Function {
 			Charset cs = null;
 			// get charset
 			if (headers != null) {
-				String strCT = Caster.toString(headers.get(CONTENT_TYPE), null);
+				String strCT = Caster.toString(headers.get(CONTENT_TYPE, null), null);
 				if (strCT != null) {
 					ContentType ct = HTTPUtil.toContentType(strCT, null);
 					if (ct != null) {
@@ -176,6 +177,10 @@ public class InternalRequest implements Function {
 				else headers.set(name, values.iterator().next());
 			}
 
+			// content type and length
+			headers.set(CONTENT_TYPE, rsp.getContentType());
+			if (rsp.getContentLength() != -1) headers.set(CONTENT_LENGTH, rsp.getContentLength());
+
 			// status
 			status = rsp.getStatus();
 			ContentType ct = HTTPUtil.toContentType(rsp.getContentType(), null);
@@ -196,9 +201,9 @@ public class InternalRequest implements Function {
 		if (session != null) rst.set(KeyConstants._session, session);
 		rst.set(KeyConstants._headers, headers);
 		// rst.put(KeyConstants._debugging, debugging);
-		rst.set(KeyConstants._executionTime, new Double(exeTime));
-		rst.set(KeyConstants._status, new Double(status));
-		rst.set(STATUS_CODE, new Double(status));
+		rst.set(KeyConstants._executionTime, Double.valueOf(exeTime));
+		rst.set(KeyConstants._status, Double.valueOf(status));
+		rst.set(STATUS_CODE, Double.valueOf(status));
 		if (pe != null) rst.set(KeyConstants._error, pe.getCatchBlock(pc.getConfig()));
 		return rst;
 	}

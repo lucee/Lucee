@@ -48,7 +48,7 @@ public final class Sprite extends EvaluatorSupport {
 	public void evaluate(Tag tag, TagLibTag tagLibTag, FunctionLib[] flibs) throws EvaluatorException {
 		String id = "sprite_" + IDGenerator.intId();
 		try {
-			Page page = ASMUtil.getAncestorPage(tag);
+			Page page = ASMUtil.getAncestorPage(null, tag);
 
 			SourceCode sc = page.getSourceCode();
 

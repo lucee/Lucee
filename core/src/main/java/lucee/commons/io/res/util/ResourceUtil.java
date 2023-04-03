@@ -50,6 +50,7 @@ import lucee.runtime.PageSource;
 import lucee.runtime.PageSourceImpl;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigWeb;
+import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.config.Constants;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ExpressionException;
@@ -373,6 +374,10 @@ public final class ResourceUtil {
 		return SystemUtil.isWindows() && (path.startsWith("//") || path.startsWith("\\\\"));
 	}
 
+	public static boolean isWindowsPath(String path) {
+		return SystemUtil.isWindows() && path.length() > 1 && path.charAt(1) == ':';
+	}
+
 	/**
 	 * translate the path of the file to an existing file path by changing case of letters Works only on
 	 * Linux, because
@@ -436,7 +441,7 @@ public final class ResourceUtil {
 
 		// Parent
 		Resource parent = res.getParentResource();
-		if (level >= LEVEL_PARENT_FILE && parent != null && parent.exists() && canRW(parent)) {
+		if (level >= LEVEL_PARENT_FILE && parent != null && parent.exists() && canRW(parent) && !ConfigWebUtil.hasPlaceholder(res.getAbsolutePath())) {
 			if (asDir) {
 				if (res.mkdirs()) return getCanonicalResourceEL(res);
 			}
@@ -449,7 +454,7 @@ public final class ResourceUtil {
 		// Grand Parent
 		if (level >= LEVEL_GRAND_PARENT_FILE && parent != null) {
 			Resource gparent = parent.getParentResource();
-			if (gparent != null && gparent.exists() && canRW(gparent)) {
+			if (gparent != null && gparent.exists() && canRW(gparent) && !ConfigWebUtil.hasPlaceholder(res.getAbsolutePath())) {
 				if (asDir) {
 					if (res.mkdirs()) return getCanonicalResourceEL(res);
 				}
@@ -590,7 +595,7 @@ public final class ResourceUtil {
 		path = prettifyPath(path);
 
 		// begin
-		if (slashAdBegin) {
+		if (slashAdBegin && !isWindowsPath(path)) {
 			if (path.indexOf('/') != 0) path = '/' + path;
 		}
 		else {

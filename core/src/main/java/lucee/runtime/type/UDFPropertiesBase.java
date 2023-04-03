@@ -2,6 +2,7 @@ package lucee.runtime.type;
 
 import java.util.Set;
 
+import lucee.commons.io.log.Log;
 import lucee.runtime.Page;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageSource;
@@ -24,9 +25,8 @@ public abstract class UDFPropertiesBase implements UDFProperties {
 	}
 
 	public UDFPropertiesBase(Page page, PageSource ps, int startLine, int endLine) {
-		this.page = page;
 		psOrg = ps;
-
+		this.page = page;
 		if (ps == null) {
 			ps = ThreadLocalPageSource.get();
 			if (ps == null && page != null) {
@@ -51,6 +51,8 @@ public abstract class UDFPropertiesBase implements UDFProperties {
 			catch (PageException e) {
 				pe = e;
 			}
+			Log log = pc.getConfig().getLog("application");
+			if (log != null) log.error("compiler", "UDFPropertiesBase does not have a page defintion for " + getPageSource().getDisplayPath());
 		}
 
 		if (pe != null) throw pe;
