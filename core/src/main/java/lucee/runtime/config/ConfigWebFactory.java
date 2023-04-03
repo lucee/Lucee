@@ -1711,7 +1711,12 @@ public final class ConfigWebFactory extends ConfigFactory {
 							String physical = getAttr(el, "physical");
 							String archive = getAttr(el, "archive");
 							String listType = getAttr(el, "listenerType");
+							if (StringUtil.isEmpty(listType)) listType = getAttr(el, "listener-type");
+							if (StringUtil.isEmpty(listType)) listType = getAttr(el, "listenertype");
+
 							String listMode = getAttr(el, "listenerMode");
+							if (StringUtil.isEmpty(listMode)) listMode = getAttr(el, "listener-mode");
+							if (StringUtil.isEmpty(listMode)) listMode = getAttr(el, "listenermode");
 
 							boolean readonly = toBoolean(getAttr(el, "readonly"), false);
 							boolean hidden = toBoolean(getAttr(el, "hidden"), false);
@@ -4930,8 +4935,16 @@ public final class ConfigWebFactory extends ConfigFactory {
 						boolean readonly = toBoolean(getAttr(cMapping, "readonly"), false);
 						boolean hidden = toBoolean(getAttr(cMapping, "hidden"), false);
 
-						int listMode = ConfigWebUtil.toListenerMode(getAttr(cMapping, "listenerMode"), -1);
-						int listType = ConfigWebUtil.toListenerType(getAttr(cMapping, "listenerType"), -1);
+						String strListMode = getAttr(cMapping, "listenerMode");
+						if (StringUtil.isEmpty(strListMode)) strListMode = getAttr(cMapping, "listener-mode");
+						if (StringUtil.isEmpty(strListMode)) strListMode = getAttr(cMapping, "listenermode");
+						int listMode = ConfigWebUtil.toListenerMode(strListMode, -1);
+
+						String strListType = getAttr(cMapping, "listenerType");
+						if (StringUtil.isEmpty(strListType)) strListMode = getAttr(cMapping, "listener-type");
+						if (StringUtil.isEmpty(strListType)) strListMode = getAttr(cMapping, "listenertype");
+						int listType = ConfigWebUtil.toListenerType(strListType, -1);
+
 						short inspTemp = inspectTemplate(cMapping);
 
 						String primary = getAttr(cMapping, "primary");
