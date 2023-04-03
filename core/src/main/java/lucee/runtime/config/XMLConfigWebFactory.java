@@ -1682,8 +1682,13 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 							String physical = el.getAttribute("physical");
 							String archive = el.getAttribute("archive");
 							String virtual = getAttr(el, "virtual");
-							String listType = getAttr(el, "listener-type");
-							String listMode = getAttr(el, "listener-mode");
+							String listMode = getAttr(el, "listenerMode");
+							if (StringUtil.isEmpty(listMode)) listMode = getAttr(el, "listener-mode");
+							if (StringUtil.isEmpty(listMode)) listMode = getAttr(el, "listenermode");
+
+							String listType = getAttr(el, "listenerType");
+							if (StringUtil.isEmpty(listType)) listType = getAttr(el, "listener-type");
+							if (StringUtil.isEmpty(listType)) listType = getAttr(el, "listenertype");
 
 							boolean readonly = toBoolean(getAttr(el, "readonly"), false);
 							boolean hidden = toBoolean(getAttr(el, "hidden"), false);
@@ -5043,8 +5048,16 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 						boolean readonly = toBoolean(getAttr(cMapping, "readonly"), false);
 						boolean hidden = toBoolean(getAttr(cMapping, "hidden"), false);
 
-						int listMode = ConfigWebUtil.toListenerMode(getAttr(cMapping, "listener-mode"), -1);
-						int listType = ConfigWebUtil.toListenerType(getAttr(cMapping, "listener-type"), -1);
+						String strListMode = getAttr(cMapping, "listener-mode");
+						if (StringUtil.isEmpty(strListMode)) strListMode = getAttr(cMapping, "listenermode");
+						if (StringUtil.isEmpty(strListMode)) strListMode = getAttr(cMapping, "listenerMode");
+						int listMode = ConfigWebUtil.toListenerMode(strListMode, -1);
+
+						String strListType = getAttr(cMapping, "listener-type");
+						if (StringUtil.isEmpty(strListType)) strListType = getAttr(cMapping, "listenertype");
+						if (StringUtil.isEmpty(strListType)) strListType = getAttr(cMapping, "listenerType");
+						int listType = ConfigWebUtil.toListenerType(strListType, -1);
+
 						short inspTemp = inspectTemplate(cMapping);
 						String virtual = XMLConfigAdmin.createVirtual(cMapping);
 
