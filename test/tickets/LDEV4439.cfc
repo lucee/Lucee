@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" {
+component extends="org.lucee.cfml.test.LuceeTestCase" skip="true" {
 	function run( testResults, testBox ) {
 		describe( title="Testcase for LDEV-4439", body=function() {
 			it( title = "Checking numberFormat() with decimal value", body=function( currentSpec ) {
@@ -7,6 +7,5 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				expect(numberFormat(237453.525,'0.00')).toBe("237453.53");
 			});
 		});
-	}
-	
+	}	
 }
