@@ -9423,12 +9423,13 @@ The following things are considered to be empty:
 			<name>str</name>
 			<type>string</type>
 			<required>Yes</required>
-		<description></description>
-    </argument>
+			<description>The input string</description>
+		</argument>
 		<return>
 			<type>string</type>
 		</return>
 	</function>
+
 	<!-- mid -->
 	<function>
 		<name>mid</name>
@@ -9678,32 +9679,33 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<name>hql</name>
 			<type>string</type>
 			<required>yes</required>
-		<description></description>
-    </argument>
+			<description>The HQL query that has to be executed</description>
+		</argument>
 		<argument>
 			<name>paramsOrUnique</name>
 			<alias>params</alias>
 			<type>any</type>
 			<required>no</required>
-		<description></description>
-    </argument>
+			<description>Object parameter for the entity</description>
+		</argument>
 		<argument>
 			<name>uniqueOrQueryOptions</name>
 			<alias>unique</alias>
 			<type>any</type>
 			<required>no</required>
-		<description></description>
-    </argument>
+			<description>Specifies if the object parameter is unique</description>
+		</argument>
 		<argument>
 			<name>queryOptions</name>
 			<type>any</type>
 			<required>no</required>
-		<description></description>
-    </argument>
+			<description>Options for the query</description>
+		</argument>
 		<return>
 			<type>any</type>
 		</return>
 	</function>
+
 	<!-- ORMClearSession -->
 	<function>
 		<name>ORMClearSession</name>
@@ -9743,60 +9745,59 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>void</type>
 		</return>
 	</function>
+
 	<!-- ORMEvictCollection -->
 	<function>
 		<name>ORMEvictCollection</name>
 		<class>lucee.runtime.functions.orm.ORMEvictCollection</class>
 		<description>This will remove all the entries with the specified relation/collection name in the specified component. 
 ormEvictCollection(componentName,relationName,[id])</description>
-		
 		<argument>
 			<name>entityName</name>
 			<type>String</type>
 			<required>yes</required>
-		<description></description>
-    </argument>
+			<description>Entity name</description>
+		</argument>
 		<argument>
 			<name>collectionName</name>
 			<type>String</type>
 			<required>yes</required>
-		<description></description>
-    </argument>
+			<description>Name of the collection in the component</description>
+		</argument>
 		<argument>
 			<name>primaryKey</name>
 			<type>String</type>
 			<required>no</required>
-		<description></description>
-    </argument>
-		
+			<description>Primary key of the collection or association data of the entity</description>
+		</argument>
 		<return>
 			<type>void</type>
 		</return>
 	</function>
+
 	<!-- ORMEvictEntity -->
 	<function>
 		<name>ORMEvictEntity</name>
 		<class>lucee.runtime.functions.orm.ORMEvictEntity</class>
 		<description>This will remove all the entries for the specified component name from the entity cache.
 ormEvictEntity(componentName,[id])</description>
-		
 		<argument>
 			<name>entityName</name>
 			<type>String</type>
 			<required>yes</required>
-		<description></description>
-    </argument>
+			<description>Entity name</description>
+		</argument>
 		<argument>
 			<name>primaryKey</name>
 			<type>String</type>
 			<required>no</required>
-		<description></description>
-    </argument>
-		
+			<description>Primary key value of the component</description>
+		</argument>
 		<return>
 			<type>void</type>
 		</return>
 	</function>
+
 	<!-- ORMEvictQueries -->
 	<function>
 		<name>ORMEvictQueries</name>
@@ -9809,18 +9810,19 @@ ormEvictQueries([cacheName])</description>
 			<alias>cache,region</alias>
 			<type>String</type>
 			<required>no</required>
-			<description></description>
+			<description>Name of the cache region that you want to evict</description>
     	</argument>
     	<argument>
 			<name>datasource</name>
 			<type>string</type>
 			<required>no</required>
-			<description>datasource used for the session, if nor defined the datasource defined in application.cfc/cfapplication is used.</description>
+			<description>datasource used for the session, if nor defined the datasource defined in application.cfc/cfapplication is used</description>
 		</argument>
 		<return>
 			<type>void</type>
 		</return>
 	</function>
+	
 	<!-- ORMFlush -->
 	<function>
 		<name>ORMFlush</name>
@@ -11628,18 +11630,16 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<alias>callback,udf,function</alias>
 			<type>object</type>
 			<required>yes</required>
-			<description></description>
+			<description>Closure function that returns a Future object, which holds the result.</description>
     	</argument>
     	<argument>
 			<name>timeout</name>
 			<type>number</type>
 			<required>No</required>
 			<default>0</default>
-		<description>timeout for the action</description>
+			<description>timeout for the action</description>
     	</argument>
-    
-    
-		<return>
+    	<return>
 			<type>object</type>
 		</return>
 	</function>
@@ -11984,6 +11984,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>string</type>
 		</return>
 	</function>
+
 	<!-- serialize -->
 	<function>
 		<name>serialize</name>
@@ -11993,8 +11994,8 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<name>object</name>
 			<type>any</type>
 			<required>Yes</required>
-		<description></description>
-    </argument>
+			<description>An object to be serialized.</description>
+		</argument>
 		<return>
 			<type>string</type>
 		</return>
@@ -12081,18 +12082,19 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<name>scope</name>
 			<type>string</type>
 			<required>Yes</required>
-		<description></description>
-    </argument>
+			<description>url, form</description>
+		</argument>
 		<argument>
 			<name>encoding</name>
 			<type>string</type>
 			<required>Yes</required>
-		<description></description>
-    </argument>
+			<description>The character encoding in which text in the scope variables is encoded</description>
+    	</argument>
 		<return>
 			<type>string</type>
 		</return>
 	</function>
+
 	<!-- setLocale -->
 	<function>
 		<name>setLocale</name>
@@ -12212,8 +12214,8 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<name>str</name>
 			<type>string</type>
 			<required>Yes</required>
-		<description></description>
-    </argument>
+			<description>A string or a variable that contains one</description>
+		</argument>
 		<return>
 			<type>String</type>
 		</return>
