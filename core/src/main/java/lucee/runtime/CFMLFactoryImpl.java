@@ -50,6 +50,8 @@ import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.SizeOf;
 import lucee.commons.lang.StringUtil;
 import lucee.loader.engine.CFMLEngine;
+import lucee.runtime.config.ConfigServer;
+import lucee.runtime.config.ConfigServerImpl;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.config.Constants;
@@ -101,6 +103,7 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 	private float memoryThreshold;
 	private float cpuThreshold;
 	private int concurrentReqThreshold;
+	private ConfigServerImpl configServer;
 
 	public CFMLFactoryImpl(CFMLEngineImpl engine, ServletConfig sg) {
 		this.engine = engine;
@@ -452,6 +455,10 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 		return config;
 	}
 
+	public ConfigServer getConfigServer() {
+		return configServer;
+	}
+
 	/**
 	 * @return Returns the scopeContext.
 	 */
@@ -493,7 +500,8 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 		return _servlet;
 	}
 
-	public void setConfig(ConfigWebPro config) {
+	public void setConfig(ConfigServerImpl configServer, ConfigWebPro config) {
+		this.configServer = configServer;
 		this.config = config;
 	}
 

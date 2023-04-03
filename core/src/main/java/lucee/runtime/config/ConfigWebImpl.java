@@ -102,7 +102,7 @@ public class ConfigWebImpl extends ConfigImpl implements ServletConfig, ConfigWe
 		this.configServer = configServer;
 		this.config = config;
 		this.factory = factory;
-		factory.setConfig(this);
+		factory.setConfig(configServer, this);
 		ResourceProvider frp = ResourcesImpl.getFileResourceProvider();
 
 		this.rootDir = frp.getResource(ReqRspUtil.getRootPath(config.getServletContext()));
