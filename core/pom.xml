@@ -109,9 +109,9 @@
     	<scope>provided</scope>
   	</dependency>
   	<dependency>
-  		<groupId>org.lucee</groupId>
+  		<groupId>com.github.mwiede</groupId>
   		<artifactId>jsch</artifactId>
-  		<version>0.1.55</version>
+  		<version>0.2.8</version>
     	<scope>provided</scope>
   	</dependency>
     <dependency>

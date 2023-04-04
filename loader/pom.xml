@@ -3,7 +3,7 @@
 
   <groupId>org.lucee</groupId>
   <artifactId>lucee</artifactId>
-  <version>5.4.0.40-SNAPSHOT</version>
+  <version>5.4.0.42-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>Lucee Loader Build</name>
@@ -340,9 +340,9 @@
     	<scope>provided</scope>
   	</dependency>
   	<dependency>
-  		<groupId>org.lucee</groupId>
+  		<groupId>com.github.mwiede</groupId>
   		<artifactId>jsch</artifactId>
-  		<version>0.1.55</version>
+  		<version>0.2.8</version>
     	<scope>provided</scope>
   	</dependency>
     <dependency>
