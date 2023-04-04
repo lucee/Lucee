@@ -1681,12 +1681,13 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<alias>param</alias>
 			<type>variableString</type>
 			<required>Yes</required>
-		<description></description>
-    </argument>
+			<description>Name of the string variable to test for.</description>
+		</argument>
 		<return>
 			<type>boolean</type>
 		</return>
 	</function>
+	
 	<!-- parseDateTime -->
 	<function>
 		<name>parseDateTime</name>
@@ -2374,16 +2375,16 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<alias>queryColumn</alias>
 			<type>queryColumn</type>
 			<required>Yes</required>
-		<description>Name of an executed query and column. Separate query name and column name with a period.</description>
-    </argument>
+			<description>Name of an executed query and column. Separate query name and column name with a period.</description>
+		</argument>
 		<argument>
 			<name>delimiter</name>
 			<alias>delimiters</alias>
 			<type>string</type>
 			<required>No</required>
 			<default>,</default>
-		<description></description>
-    </argument>
+			<description>Characters that separate list elements. The default value is comma.</description>
+		</argument>
 		<return>
 			<type>string</type>
 		</return>
