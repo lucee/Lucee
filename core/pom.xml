@@ -109,10 +109,11 @@
     	<scope>provided</scope>
   	</dependency>
   	<dependency>
-      <groupId>com.github.mwiede</groupId>
-      <artifactId>jsch</artifactId>
-      <version>0.2.5</version>
-    </dependency>
+  		<groupId>com.github.mwiede</groupId>
+  		<artifactId>jsch</artifactId>
+  		<version>0.2.8</version>
+    	<scope>provided</scope>
+  	</dependency>
     <dependency>
       <groupId>commons-codec</groupId>
       <artifactId>commons-codec</artifactId>
