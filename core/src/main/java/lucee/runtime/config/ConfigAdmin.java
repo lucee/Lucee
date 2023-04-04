@@ -4405,8 +4405,9 @@ public final class ConfigAdmin {
 			boolean reloadNecessary = false;
 
 			// store to xml
+			RHExtension.removeDuplicates(ConfigWebUtil.getAsArray("extensions", root));
 			BundleDefinition[] existing = _updateExtension(ci, rhext);
-			// _storeAndReload();
+
 			// this must happen after "store"
 			cleanBundles(rhext, ci, existing);// clean after populating the new ones
 			// ConfigWebAdmin.updateRHExtension(ci,rhext);
@@ -4703,14 +4704,19 @@ public final class ConfigAdmin {
 					physical = map.get("physical");
 					archive = map.get("archive");
 					primary = map.get("primary");
-
 					inspect = ConfigWebUtil.inspectTemplate(map.get("inspect"), Config.INSPECT_UNDEFINED);
-					lmode = ConfigWebUtil.toListenerMode(map.get("listener-mode"), -1);
-					ltype = ConfigWebUtil.toListenerType(map.get("listener-type"), -1);
+					String strLMode = map.get("listener-mode");
+					if (StringUtil.isEmpty(strLMode, true)) strLMode = map.get("listenermode");
+					if (StringUtil.isEmpty(strLMode, true)) strLMode = map.get("listenerMode");
+					lmode = ConfigWebUtil.toListenerMode(strLMode, -1);
+
+					String strLType = map.get("listener-type");
+					if (StringUtil.isEmpty(strLType, true)) strLType = map.get("listenertype");
+					if (StringUtil.isEmpty(strLType, true)) strLType = map.get("listenerType");
+					ltype = ConfigWebUtil.toListenerType(strLType, -1);
 
 					toplevel = Caster.toBooleanValue(map.get("toplevel"), false);
 					readonly = Caster.toBooleanValue(map.get("readonly"), false);
-
 					_updateMapping(virtual, physical, archive, primary, inspect, toplevel, lmode, ltype, readonly);
 					reloadNecessary = true;
 
@@ -6079,7 +6085,6 @@ public final class ConfigAdmin {
 	 */
 	public BundleDefinition[] _updateExtension(ConfigPro config, RHExtension ext) throws IOException, BundleException, PageException {
 		if (!Decision.isUUId(ext.getId())) throw new IOException("id [" + ext.getId() + "] is invalid, it has to be a UUID");
-
 		Array children = ConfigWebUtil.getAsArray("extensions", root);
 		int[] keys = children.intKeys();
 		int key;

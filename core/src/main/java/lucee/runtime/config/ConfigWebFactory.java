@@ -1710,13 +1710,13 @@ public final class ConfigWebFactory extends ConfigFactory {
 							String virtual = e.getKey().getString();
 							String physical = getAttr(el, "physical");
 							String archive = getAttr(el, "archive");
-							String listType = getAttr(el, "listenerType");
-							if (StringUtil.isEmpty(listType)) listType = getAttr(el, "listener-type");
-							if (StringUtil.isEmpty(listType)) listType = getAttr(el, "listenertype");
+							String strListType = getAttr(el, "listenerType");
+							if (StringUtil.isEmpty(strListType)) strListType = getAttr(el, "listener-type");
+							if (StringUtil.isEmpty(strListType)) strListType = getAttr(el, "listenertype");
 
-							String listMode = getAttr(el, "listenerMode");
-							if (StringUtil.isEmpty(listMode)) listMode = getAttr(el, "listener-mode");
-							if (StringUtil.isEmpty(listMode)) listMode = getAttr(el, "listenermode");
+							String strListMode = getAttr(el, "listenerMode");
+							if (StringUtil.isEmpty(strListMode)) strListMode = getAttr(el, "listener-mode");
+							if (StringUtil.isEmpty(strListMode)) strListMode = getAttr(el, "listenermode");
 
 							boolean readonly = toBoolean(getAttr(el, "readonly"), false);
 							boolean hidden = toBoolean(getAttr(el, "hidden"), false);
@@ -1728,13 +1728,13 @@ public final class ConfigWebFactory extends ConfigFactory {
 
 							// lucee
 							if (virtual.equalsIgnoreCase("/lucee/")) {
-								if (StringUtil.isEmpty(listType, true)) listType = "modern";
-								if (StringUtil.isEmpty(listMode, true)) listMode = "curr2root";
+								if (StringUtil.isEmpty(strListType, true)) strListType = "modern";
+								if (StringUtil.isEmpty(strListMode, true)) strListMode = "curr2root";
 								toplevel = true;
 							}
 
-							int listenerMode = ConfigWebUtil.toListenerMode(listMode, -1);
-							int listenerType = ConfigWebUtil.toListenerType(listType, -1);
+							int listenerMode = ConfigWebUtil.toListenerMode(strListMode, -1);
+							int listenerType = ConfigWebUtil.toListenerType(strListType, -1);
 							ApplicationListener listener = ConfigWebUtil.loadListener(listenerType, null);
 							if (listener != null || listenerMode != -1) {
 								// type
@@ -4693,6 +4693,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 	private static void _loadExtensionBundles(ConfigServerImpl cs, ConfigImpl config, Struct root, Log log) {
 		try {
 			Array children = ConfigWebUtil.getAsArray("extensions", root);
+			RHExtension.removeDuplicates(children);
 			String strBundles;
 			List<RHExtension> extensions = new ArrayList<RHExtension>();
 			RHExtension rhe;
