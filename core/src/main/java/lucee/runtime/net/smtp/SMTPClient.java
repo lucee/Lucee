@@ -1088,6 +1088,27 @@ public final class SMTPClient implements Serializable {
 		return ccs;
 	}
 
+	/**
+	 * @return the charset
+	 */
+	public String getCharset() {
+		return charset.toString();
+	}
+
+	/**
+	 * @return the replyTo
+	 */
+	public InternetAddress[] getReplyTos() {
+		return rts;
+	}
+
+	/**
+	 * @return the failTo
+	 */
+	public InternetAddress[] getFailTos() {
+		return fts;
+	}
+
 	public void setPart(MailPart part) {
 		if (parts == null) parts = new ArrayList<MailPart>();
 		parts.add(part);
