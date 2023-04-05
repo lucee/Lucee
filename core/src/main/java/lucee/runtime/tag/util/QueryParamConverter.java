@@ -188,7 +188,7 @@ public class QueryParamConverter {
 						continue;
 					}
 
-					if (++_qm > initialParamSize) throw new ApplicationException("there are more question marks in the SQL than params defined");
+					if (++_qm > initialParamSize) throw new ApplicationException("there are more question marks in the SQL than params defined"	, "SQL: " + sql + "");
 				}
 				else if (c == ':') {
 
@@ -209,7 +209,7 @@ public class QueryParamConverter {
 					if (name.length() > 0) {
 						i = y - 1;
 						c = '?';
-						items.add(qm, get(name.toString(), namedItems));
+						items.add(qm, get(name.toString(), namedItems, sql));
 					}
 				}
 			}
@@ -248,19 +248,19 @@ public class QueryParamConverter {
 		return false;
 	}
 
-	private static SQLItems<SQLItem> get(String name, List<SQLItems<NamedSQLItem>> items) throws ApplicationException {
+	private static SQLItems<SQLItem> get(String name, List<SQLItems<NamedSQLItem>> items, String sql) throws ApplicationException {
 		Iterator<SQLItems<NamedSQLItem>> it = items.iterator();
 		SQLItems<NamedSQLItem> item;
 		while (it.hasNext()) {
 			item = it.next();
 			if (item.isEmpty()) {
-				throw new ApplicationException("param [" + name + "] may not be empty");
+				throw new ApplicationException("param [" + name + "] may not be empty", "SQL: " + sql + "");
 			}
 			if (item.get(0).name.equalsIgnoreCase(name)) {
 				return item.convertToSQLItems();
 			}
 		}
-		throw new ApplicationException("param [" + name + "] not found");
+		throw new ApplicationException("param [" + name + "] not found", "SQL: " + sql + "");
 	}
 
 	private static boolean isParamNull(Struct param) throws PageException {
