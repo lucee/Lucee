@@ -3029,6 +3029,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 - n: Precise to the minute
 - h: Precise to the hour
 - d: Precise to the day
+- y: Precise to the day (same as d)
 - m: Precise to the month
 - yyyy: Precise to the year</description>
     </argument>
@@ -3036,6 +3037,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>number</type>
 		</return>
 	</function>
+	
 	<!-- dateConvert -->
 	<function>
 		<name>dateConvert</name>
@@ -3062,6 +3064,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>datetime</type>
 		</return>
 	</function>
+
 	<!-- dateDiff -->
 	<function>
 		<name>dateDiff</name>
@@ -3078,11 +3081,14 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 - q: Quarters
 - m: Months
 - y: Days of year (same as d)
-- d: Days
-- w: Weeks
+- d: Days (same as y)
+- w: Weeks (same as ww)
+- ww: Weeks (same as w)
+- wd: Weekdays 
 - h: Hours
 - n: Minutes
 - s: Seconds
+- l: MilliSeconds
 </description>
     </argument>
 		<argument>
