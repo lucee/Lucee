@@ -2172,7 +2172,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 		Mapping[] mappings = config.getMappings();
 		lucee.runtime.type.Query qry = new QueryImpl(
-				new String[] { "archive", "strarchive", "physical", "strphysical", "virtual", "hidden", "physicalFirst", "readonly", "inspect", "toplevel" }, mappings.length,
+				new String[] { "archive", "strarchive", "physical", "strphysical", "virtual", "hidden", "physicalFirst", "readonly", "inspect", "toplevel", "listenerType", "listenerMode" }, mappings.length,
 				"query");
 
 		for (int i = 0; i < mappings.length; i++) {
@@ -2188,6 +2188,8 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			qry.setAt("readonly", row, Caster.toBoolean(m.isReadonly()));
 			qry.setAt("inspect", row, ConfigWebUtil.inspectTemplate(m.getInspectTemplateRaw(), ""));
 			qry.setAt("toplevel", row, Caster.toBoolean(m.isTopLevel()));
+			qry.setAt("listenerType", row, ConfigWebUtil.toListenerType(m.getListenerType(), "inherit"));
+			qry.setAt("listenerMode", row, ConfigWebUtil.toListenerMode(m.getListenerMode(), "inherit"));
 		}
 		pageContext.setVariable(getString("admin", action, "returnVariable"), qry);
 	}
