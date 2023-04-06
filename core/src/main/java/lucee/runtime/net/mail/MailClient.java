@@ -135,13 +135,21 @@ public abstract class MailClient implements PoolItem {
 	private static final Collection.Key HTML_BODY = KeyImpl.getInstance("HTMLBody");
 	private static final Collection.Key ATTACHMENTS = KeyImpl.getInstance("attachments");
 	private static final Collection.Key ATTACHMENT_FILES = KeyImpl.getInstance("attachmentfiles");
+	private static final Collection.Key ANSWERED = KeyImpl.getInstance("answered");
+	private static final Collection.Key DELETED = KeyImpl.getInstance("deleted");
+	private static final Collection.Key DRAFT = KeyImpl.getInstance("draft");
+	private static final Collection.Key FLAGGED = KeyImpl.getInstance("flagged");
+	private static final Collection.Key RECENT = KeyImpl.getInstance("recent");
+	private static final Collection.Key SEEN = KeyImpl.getInstance("seen");
 
 	public static final int TYPE_POP3 = 0;
 	public static final int TYPE_IMAP = 1;
 
-	private String _flddo[] = { "date", "from", "messagenumber", "messageid", "replyto", "subject", "cc", "to", "size", "header", "uid" };
-	private String _fldnew[] = { "date", "from", "messagenumber", "messageid", "replyto", "subject", "cc", "to", "size", "header", "uid", "body", "textBody", "HTMLBody",
-			"attachments", "attachmentfiles", "cids" };
+	private String _flddo[] = { "date", "from", "messagenumber", "messageid", "replyto", "subject", "cc", "to", "size", "header", "uid",
+			"answered", "deleted", "draft", "flagged", "recent", "seen" };
+	private String _fldnew[] = { "date", "from", "messagenumber", "messageid", "replyto", "subject", "cc", "to", "size", "header", "uid",
+			"answered", "deleted", "draft", "flagged", "recent", "seen",
+			"body", "textBody", "HTMLBody", "attachments", "attachmentfiles", "cids"};
 	private String server = null;
 	private String username = null;
 	private String password = null;
@@ -394,6 +402,13 @@ public abstract class MailClient implements PoolItem {
 		qry.setAtEL(BCC, row, toList(getHeaderEL(message, "bcc")));
 		qry.setAtEL(TO, row, toList(getHeaderEL(message, "to")));
 		qry.setAtEL(UID, row, uid);
+		qry.setAtEL(ANSWERED, row, isSetEL(message, Flags.Flag.ANSWERED));
+		qry.setAtEL(DELETED, row, isSetEL(message, Flags.Flag.DELETED));
+		qry.setAtEL(DRAFT, row, isSetEL(message, Flags.Flag.DRAFT));
+		qry.setAtEL(FLAGGED, row, isSetEL(message, Flags.Flag.FLAGGED));
+		qry.setAtEL(RECENT, row, isSetEL(message, Flags.Flag.RECENT));
+		qry.setAtEL(SEEN, row, isSetEL(message, Flags.Flag.SEEN));
+
 		StringBuffer content = new StringBuffer();
 		try {
 			for (Enumeration enumeration = message.getAllHeaders(); enumeration.hasMoreElements(); content.append('\n')) {
@@ -418,6 +433,15 @@ public abstract class MailClient implements PoolItem {
 		}
 		catch (MessagingException e) {
 			return null;
+		}
+	}
+
+	private boolean isSetEL(Message message, Flags.Flag flag) {
+		try {
+			return message.isSet(flag);
+		}
+		catch (MessagingException e) {
+			return false;
 		}
 	}
 
