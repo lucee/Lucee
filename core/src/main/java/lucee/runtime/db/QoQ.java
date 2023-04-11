@@ -34,6 +34,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.IntConsumer;
 import java.util.function.IntPredicate;
+import java.util.Random;
 
 import lucee.runtime.util.DBUtilImpl;
 import lucee.runtime.tag.util.QueryParamConverter.NamedSQLItem;
@@ -227,12 +228,15 @@ public final class QoQ {
 		Expression[] expSelects = select.getSelects();
 		int selCount = expSelects.length;
 
-		Map<Collection.Key, Object> expSelectsMap = new HashMap<Collection.Key, Object>();
+		Collection.Key[] headers = new Collection.Key[selCount];
+		QueryColumnImpl[] trgColumns = new QueryColumnImpl[selCount];
+		Object[] trgValues = new Object[selCount];
 		// Build up the final columns we need in our target query
 		for (int i = 0; i < selCount; i++) {
 			Expression expSelect = expSelects[i];
 			Key alias = Caster.toKey(expSelect.getAlias());
-			expSelectsMap.put(alias, expSelect);
+			headers[i]=alias;
+			trgValues[i] = expSelect;
 			int type = Types.OTHER;
 			if (expSelect instanceof ColumnExpression) {
 				ColumnExpression ce = (ColumnExpression) expSelect;
@@ -242,16 +246,7 @@ public final class QoQ {
 				if (!ce.isParam()) type = source.getColumn(Caster.toKey(ce.getColumnName())).getType();
 			}
 			queryAddColumn(target, alias, type);
-		}
-
-		Collection.Key[] headers = expSelectsMap.keySet().toArray(new Collection.Key[expSelectsMap.size()]);
-
-		// get target columns
-		QueryColumnImpl[] trgColumns = new QueryColumnImpl[headers.length];
-		Object[] trgValues = new Object[headers.length];
-		for (int cell = 0; cell < headers.length; cell++) {
-			trgColumns[cell] = (QueryColumnImpl)target.getColumn(headers[cell]);
-			trgValues[cell] = expSelectsMap.get(headers[cell]);
+			trgColumns[i] = (QueryColumnImpl)target.getColumn(alias);
 		}
 
 		// If have a group by, a distinct, or this is part of a "union", or has aggregates in the
@@ -911,6 +906,7 @@ public final class QoQ {
 				break;
 			case 'r':
 				if (op.equals("rtrim")) return StringUtil.rtrim(Caster.toString(value), null);
+				if (op.equals("rand")) return executeRand( pc, value, sql, operation );
 				break;
 			case 's':
 				if (op.equals("sign")) return Double.valueOf(MathUtil.sgn(Caster.toDoubleValue(value)));
@@ -1001,6 +997,8 @@ public final class QoQ {
 
 		if (op.equals("count")) return executeCount(pc, sql, source, operators);
 
+		if (op.equals("rand")) return executeRand( pc, null, sql, operation ) ;
+
 		throw new DatabaseException("unsupported sql statement (" + op + ") ", null, sql, null);
 
 	}
@@ -1052,7 +1050,20 @@ public final class QoQ {
 		return null;
 	}
 
-
+	private Double executeRand( PageContext pc, Object seed, SQL sql, Operation operation ) throws PageException {
+		SQLImpl sqlImpl = (SQLImpl)sql;
+		Random rand = sqlImpl.getRand();
+		// rand() always returns a new random number unless a seed is used like rand(123), in which case
+		// all subsequent calls to rand() will use that seed for the duration of this query
+		if( seed != null ) {
+			try {
+				rand.setSeed( Caster.toLong( seed ) );
+			} catch( PageException e ) {
+				throw new IllegalQoQException("rand() seed cannot be cast to a Long.  Encountered while evaluating ["  + operation.toString( true ) + "]", null, sql, null);
+			}
+		}
+		return rand.nextDouble();
+	}
 
 	private Object executeCast( PageContext pc, Object value, String type ) throws PageException {
 		return Caster.castTo(pc, CFTypes.toShort(type, true, CFTypes.TYPE_UNKNOW), type, value);
