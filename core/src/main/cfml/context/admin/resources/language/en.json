@@ -1359,7 +1359,9 @@
         "defaulttypeFunction": "Function",
         "type": "Type",
         "title": "Cache",
-        "noDriver": "There is no Cache Driver Available"
+        "noDriver": "There is no Cache Driver Available",
+        "clearCacheTitle": "Clear cache",
+        "clearCache": "Clear cache ( {count} element(s) )"
       },
       "listdatasourcesdescweb": "",
       "exportAppCFC": "Export Application.cfc",

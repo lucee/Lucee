@@ -174,6 +174,14 @@ Redirtect to entry --->
 						<div class="comment">#stText.Settings.cache.storageDesc#</div>
 					</td>
 				</tr>
+				<cfif !isNew>
+					<tr>
+						<th scope="row">#stText.settings.cache.clearCacheTitle#</th>
+						<td>
+							<cfinputClassic type="submit" class="button submit" name="subAction" value="#btnClearCache#">
+						</td>
+					</tr>
+				</cfif>
 			</tbody>
 		</table>
 		<br />
@@ -329,6 +337,7 @@ Redirtect to entry --->
 				<tr>
 					<td colspan="2">
 						<input type="submit" class="bs button submit" name="mainAction" value="#stText.Buttons.submit#">
+						<input type="submit" class="br button submit" name="mainAction" value="#stText.Buttons.Cancel#">
 					</td>
 				</tr>
 			</tfoot>
