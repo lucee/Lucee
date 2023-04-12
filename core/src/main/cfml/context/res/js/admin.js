@@ -230,7 +230,7 @@ function createTooltip(element, text, x, y, mouseAction )
 		if (outerRight > containerRight)
 		{
 			oldXPos = xPos;
-			xPos = 	containerRight - $(element.tooltip).width();
+			xPos = 	outerRight - $(element.tooltip).width();
 			offset = oldXPos - xPos + 20;
 			$(element.tooltip).find('.arrow').css({
 				left: offset
@@ -252,7 +252,10 @@ function createTooltip(element, text, x, y, mouseAction )
 						element.prop('title', element.data('title'));
 					}
 				})
-				.click(function(e){ $(element.tooltip).toggleClass('stayput'); e.stopPropagation(); });
+				.click(function(e){ 
+					$(element.tooltip).remove()
+					$(element.tooltip).toggleClass('stayput'); e.stopPropagation(); 
+				});
 		} else if (mouseAction == 'click') {
 			var overlay = $('<div class="removeClickOverlay"></div>');
 			$('body').prepend(overlay);
