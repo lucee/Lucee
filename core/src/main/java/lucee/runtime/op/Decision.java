@@ -182,7 +182,7 @@ public final class Decision {
 			curr = str.charAt(pos);
 			if (curr < '0') {
 				if (curr == '.') {
-					if (pos + 1 >= len || hasDot) return false;
+					if (hasDot) return false;
 					hasDot = true;
 				}
 				else return false;
@@ -803,8 +803,7 @@ public final class Decision {
 	 */
 	public static boolean isObject(Object o) {
 		if (o == null) return false;
-		return isComponent(o)
-				|| (!isArray(o) && !isQuery(o) && !isSimpleValue(o) && !isStruct(o) && !isUserDefinedFunction(o) && !isXML(o));
+		return isComponent(o) || (!isArray(o) && !isQuery(o) && !isSimpleValue(o) && !isStruct(o) && !isUserDefinedFunction(o) && !isXML(o));
 	}
 
 	/**
