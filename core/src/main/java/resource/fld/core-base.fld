@@ -2511,9 +2511,7 @@ sort direction:
 			<type>struct</type>
 		</return>
 	</function>
-	
-	
-	
+		
 	<!-- compress -->
 	<function>
 		<name>compress</name>
@@ -2524,7 +2522,15 @@ sort direction:
 			<type>string</type>
 			<required>Yes</required>
 			<description>
-			Format to compress (bzip,gzip,tar,tbz (tar bzip),tgz (tar gzip) and zip)
+			Formats to compress the files:
+			- bzip
+			- bzip2
+			- gzip
+			- tar 
+			- tbz (same as tar.bz)
+			- tbz2
+			- tgz (same as tar.gz)
+			- zip
 			</description>
 		</argument>
 		<argument>
@@ -2532,7 +2538,8 @@ sort direction:
 			<type>string</type>
 			<required>Yes</required>
 			<description>
-			source file or directory to compress
+			Path (relative or absolute) to source file or directory to compress.
+			For **gzip / bzip / bzip2** (single file format) must use path including the name of the file
 			</description>
 		</argument>
 		<argument>
@@ -2540,7 +2547,7 @@ sort direction:
 			<type>string</type>
 			<required>Yes</required>
 			<description>
-			name of the target compressed file
+			Path (relative or absolute) including the name, where you want to save the compressed output-file
 			</description>
 		</argument>
 		<argument>
@@ -2549,7 +2556,7 @@ sort direction:
 			<required>No</required>
 			<default>true</default>
 			<description>
-			take the folder or only content of folder
+			Compress the directory or just the content of the directory
 			</description>
 		</argument>
 		<argument>
@@ -2558,13 +2565,14 @@ sort direction:
 			<required>no</required>
 			<default>777</default>
 			<description>
-			mode of the values
+			Mode of the values
 			</description>
 		</argument>
 		<return>
 			<type>boolean</type>
 		</return>
 	</function>
+
 	<!-- cos -->
 	<function>
 		<name>cos</name>
@@ -4687,17 +4695,26 @@ EntitySave(entity, [forceInsert])</description>
 			<type>string</type>
 		</return>
 	</function>
+
 	<!-- extract -->
 	<function>
 		<name>extract</name>
 		<class>lucee.runtime.functions.system.Extract</class>
-		<description>extract data out of a compressed file</description>
+		<description>Extract the data of a compressed file</description>
 		<argument>
 			<name>format</name>
 			<type>string</type>
 			<required>Yes</required>
 			<description>
-			Format to extract (bzip,gzip,tar,tbz (tar bzip),tgz (tar gzip) and zip)
+			Format of the compressed file:
+			- bzip
+			- bzip2
+			- gzip
+			- tar 
+			- tbz (same as tar.bz)
+			- tbz2
+			- tgz (same as tar.gz)
+			- zip
 			</description>
 		</argument>
 		<argument>
@@ -4705,7 +4722,7 @@ EntitySave(entity, [forceInsert])</description>
 			<type>string</type>
 			<required>Yes</required>
 			<description>
-			source file or directory with zip files to extract
+			Path (relative or absolute) to the source file or a directory with compressed files to extract
 			</description>
 		</argument>
 		<argument>
@@ -4713,13 +4730,15 @@ EntitySave(entity, [forceInsert])</description>
 			<type>string</type>
 			<required>Yes</required>
 			<description>
-			name of the target directory
+			Path (relative or absolute) to the directory, where you want to extract the data.
+			For **gzip / bzip / bzip2** (single file format) must use path including the name of the file
 			</description>
 		</argument>
 		<return>
 			<type>boolean</type>
 		</return>
 	</function>
+
 		<!-- FileAppend -->
 	<function>
 		<name>FileAppend</name>
