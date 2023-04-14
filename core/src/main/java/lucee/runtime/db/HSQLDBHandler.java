@@ -273,23 +273,46 @@ public final class HSQLDBHandler {
 				query.setExecutionTime(stopwatch.time());
 				return query;
 			}
-			catch (PageException ex) {
+			catch (Exception ex) {
 			}
 
 		}
-		catch (PageException e) {
+		catch (Exception e) {
 			qoqException = e;
 		}
 
-		// Debugging option to completely disable HyperSQL for testing
-		// Or if it's an IllegalQoQException that means, stop trying and throw the original message.
-		if (qoqException != null && (hsqldbDisable || qoqException instanceof IllegalQoQException)) {
-			throw Caster.toPageException(qoqException);
-		}
+		// If our first pass at the QoQ failed, lets look at the exception to see what we want to do with it.
+		if( qoqException != null  )	{
 
-		// Debugging option to to log all QoQ that fall back on hsqldb in the datasource log
-		if (qoqException != null && hsqldbDebug) {
-			ThreadLocalPageContext.getLog(pc, "datasource").error("QoQ [" + sql.getSQLString() + "] errored and is falling back to HyperSQL.", qoqException);
+			// Track the root cause
+			Exception rootCause = qoqException;
+
+			// Unwrap any RuntimeExceptions thrown from Java streams
+			if( qoqException instanceof RuntimeException && qoqException.getCause() != null && qoqException.getCause() instanceof Exception ) {
+				rootCause = (Exception)qoqException.getCause();
+				// Exceptions from an async Java stream will be wrapped in TWO RuntimeExceptions!
+				if( rootCause instanceof RuntimeException && rootCause.getCause() != null && rootCause.getCause() instanceof Exception ) {
+					rootCause = (Exception)rootCause.getCause();
+				}
+			}
+
+			// We don't need to catch these, so re-throw
+			if( rootCause instanceof RuntimeException ) {
+				// re-throw the original outer exception
+				throw new RuntimeException( qoqException );
+			}
+
+			// Debugging option to completely disable HyperSQL for testing
+			// Or if it's an IllegalQoQException that means, stop trying and throw the original message.
+			if (hsqldbDisable || rootCause instanceof IllegalQoQException) {
+				// re-throw the original outer exception
+				throw Caster.toPageException(qoqException);
+			}
+
+			// Debugging option to to log all QoQ that fall back on hsqldb in the datasource log
+			if (hsqldbDebug) {
+				ThreadLocalPageContext.getLog(pc, "datasource").error("QoQ [" + sql.getSQLString() + "] errored and is falling back to HyperSQL.", qoqException);
+			}
 		}
 
 		// SECOND Chance with hsqldb
