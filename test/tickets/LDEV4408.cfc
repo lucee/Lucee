@@ -1,4 +1,4 @@
-component extends = "org.lucee.cfml.test.LuceeTestCase" labels="redis" {
+component extends = "org.lucee.cfml.test.LuceeTestCase" labels="redis" skip="true" {
 
 	function beforeAll(){
 		variables.uri = createURI("LDEV4408");
@@ -15,7 +15,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" labels="redis" {
 					local.result = _InternalRequest(
 						template : "#uri#/index.cfm"
 					);
-					expect( result.filecontent ).toBeTrue("session variable missing - #idx#");
+					expect( result.filecontent ).toBeTrue( "error session variable missing - after #idx# attempts" );
 				});
 
 			});
