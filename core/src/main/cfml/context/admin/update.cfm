@@ -156,7 +156,7 @@
 				<!--- Core --->
 				<cfif adminType == "server" and hasUpdate>
 					<div class="error">
-						<a href="server.cfm?action=services.update" style="color:red;text-decoration:none;">
+						<a href="?action=services.update" style="color:red;text-decoration:none;">
 							<cfif server.lucee.state eq "SNAPSHOT" OR server.lucee.state eq "BETA">
 								#replace( stText.services.update.update, { '{available}': updateinfo.available, '{current}': curr } )#
 							<cfelse>	
