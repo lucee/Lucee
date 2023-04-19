@@ -151,16 +151,16 @@ public interface CFMLEngine {
 	/**
 	 * return the cast util
 	 * 
-	 * @return operaton util
+	 * @return operation util
 	 */
 	public Cast getCastUtil();
 
 	/**
 	 * return the operation util
 	 * 
-	 * @return operaton util
+	 * @return operation util
 	 */
-	public Operation getOperatonUtil();
+	public Operation getOperationUtil();
 
 	/**
 	 * returns the decision util

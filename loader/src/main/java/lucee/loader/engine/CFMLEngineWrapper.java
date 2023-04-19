@@ -170,8 +170,8 @@ public class CFMLEngineWrapper implements CFMLEngine {
 	}
 
 	@Override
-	public Operation getOperatonUtil() {
-		return engine.getOperatonUtil();
+	public Operation getOperationUtil() {
+		return engine.getOperationUtil();
 	}
 
 	@Override
