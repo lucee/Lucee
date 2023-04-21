@@ -1,10 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project default="core" basedir="." name="Lucee" xmlns:artifact="antlib:org.apache.maven.artifact.ant">
-
+  <!--
   <path id="maven-ant-tasks.classpath" path="ant/lib/maven-ant-tasks-2.1.3.jar" />
   <typedef resource="org/apache/maven/artifact/ant/antlib.xml"
            uri="antlib:org.apache.maven.artifact.ant"
            classpathref="maven-ant-tasks.classpath" />
+  -->
+  <path id="maven-ant-tasks.classpath" path="../ant/lib/maven-resolver-ant-tasks-1.4.0-uber.jar" />
+  <taskdef uri="antlib:org.apache.maven.resolver.ant"
+    resource="org/apache/maven/resolver/ant/antlib.xml"
+    classpathref="maven-ant-tasks.classpath" />
 
   <import file="ant/build-core.xml"/>
   

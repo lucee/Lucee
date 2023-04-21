@@ -1,14 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project default="core" basedir="." name="Lucee" xmlns:artifact="antlib:org.apache.maven.artifact.ant">
+<project default="core" basedir="." name="Lucee" 
+  xmlns:resolver="antlib:org.apache.maven.resolver.ant">
 
   <property name="version" value="6.0.0.376-SNAPSHOT"/>
 
+  <path id="maven-ant-tasks.classpath" path="../ant/lib/maven-resolver-ant-tasks-1.4.0-uber.jar" />
+  <taskdef uri="antlib:org.apache.maven.resolver.ant"
+    resource="org/apache/maven/resolver/ant/antlib.xml"
+    classpathref="maven-ant-tasks.classpath" />
+
+  <!--
   <path id="maven-ant-tasks.classpath" path="../ant/lib/maven-ant-tasks-2.1.3.jar" />
   <typedef resource="org/apache/maven/artifact/ant/antlib.xml"
-           uri="antlib:org.apache.maven.artifact.ant"
+           
            classpathref="maven-ant-tasks.classpath" />
-
+  -->
   <import file="../ant/build-core.xml"/>
+  <resolver:pom file="pom.xml" id="pom"/>
 
 
   <target name="withTestcases">
@@ -17,10 +25,14 @@
   </target>
 
   <target name="setEnv">
-      <artifact:pom id="pom" file="pom.xml" />
+      
 
       <!-- dependecies -->
-      <artifact:dependencies filesetId="mydeps" pomRefId="pom" />
+      <resolver:resolve>
+        <dependencies>
+          <pom refid="pom"/>
+        </dependencies>
+      </resolver:resolve>
       <pathconvert property="dependencies" refid="mydeps"/>
 
       <property name="runtime_classpath" value="${java.class.path}:${dependencies}"/>
