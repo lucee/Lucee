@@ -131,6 +131,7 @@ import lucee.runtime.search.SearchEngine;
 import lucee.runtime.security.SecurityManager;
 import lucee.runtime.security.SecurityManagerImpl;
 import lucee.runtime.security.SerialNumber;
+import lucee.runtime.tag.Schedule;
 import lucee.runtime.text.xml.XMLCaster;
 import lucee.runtime.text.xml.XMLUtil;
 import lucee.runtime.type.Array;
@@ -530,6 +531,49 @@ public final class XMLConfigAdmin {
 
 	}
 
+	public void updateScheduledTask(PageContext pc, String action, String name, boolean hidden, boolean readonly, String operation, String file, String path, Object startDate,
+			Object startTime, Object endDate, Object endTime, String url, boolean publish, String interval, long requestTimeOut, String username, String password,
+			String proxyServer, String proxyUser, String proxyPassword, int proxyPort, boolean resolveURL, int port, boolean unique, boolean autodelete, boolean paused)
+			throws PageException {
+		Schedule schedule = new Schedule();
+		try {
+			schedule.setPageContext(pc);
+			schedule.setAction(action);
+			schedule.setTask(name);
+			schedule.setHidden(hidden);
+			schedule.setReadonly(readonly);
+			schedule.setOperation(operation);
+			schedule.setFile(file);
+			schedule.setPath(path);
+			schedule.setStartdate(startDate);
+			schedule.setStarttime(startTime);
+			schedule.setUrl(url);
+			schedule.setPublish(publish);
+			schedule.setEnddate(endDate);
+			schedule.setEndtime(endTime);
+			schedule.setInterval(interval);
+			schedule.setRequesttimeout(requestTimeOut);
+			schedule.setUsername(username);
+			schedule.setPassword(password);
+			schedule.setProxyserver(proxyServer);
+			schedule.setProxyuser(proxyUser);
+			schedule.setProxypassword(proxyPassword);
+			schedule.setResolveurl(resolveURL);
+			schedule.setPort(port);
+			schedule.setProxyport(proxyPort);
+			schedule.setUnique(unique);
+			schedule.setAutodelete(autodelete);
+			schedule.setPaused(paused);
+
+			schedule.setResult("cfschedule_32452395u34034765");
+
+			schedule.doStartTag();
+		}
+		finally {
+			schedule.release();
+		}
+	}
+
 	/**
 	 * removes a mailserver from system
 	 * 
@@ -616,7 +660,6 @@ public final class XMLConfigAdmin {
 
 	private void _updateMapping(String virtual, String physical, String archive, String primary, short inspect, boolean toplevel, int listenerMode, int listenerType,
 			boolean readOnly) throws ExpressionException, SecurityException {
-
 		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_MAPPING);
 		virtual = virtual.trim();
 		if (physical == null) physical = "";

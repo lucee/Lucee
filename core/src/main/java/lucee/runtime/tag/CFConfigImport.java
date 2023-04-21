@@ -936,6 +936,33 @@ public class CFConfigImport {
 				}
 			}
 
+			// scheduler
+			coll = getAsCollection(json, "scheduledTasks");
+			if (coll != null) {
+				Iterator<Entry<Key, Object>> it = coll.entryIterator();
+				Entry<Key, Object> e;
+				Struct data;
+				while (it.hasNext()) {
+					e = it.next();
+					data = cast.toStruct(e.getValue(), null);
+					if (data == null) continue;
+					try {
+						admin.updateScheduledTask(pc, "update", getAsString(data, "name", "label", "task"), getAsBoolean(data, empty, false, "hidden"),
+								getAsBoolean(data, empty, false, "readonly"), getAsString(data, "operation"), getAsString(data, "file"), getAsString(data, "path"),
+								getAsObject(data, "startDate"), getAsObject(data, "startTime"), getAsObject(data, "endDate"), getAsObject(data, "endTime"),
+								getAsString(data, "url"), getAsBoolean(data, empty, false, "publish"), getAsString(data, "interval"),
+								getAsLong(data, empty, -1L, "requestTimeOut", "timeout"), getAsString(data, "username"), getAsString(data, "password"),
+								getAsString(data, "proxyServer", "proxyHost"), getAsString(data, "proxyUser", "proxyUsername"), getAsString(data, "proxyPassword"),
+								getAsInt(data, empty, 80, "proxyPort"), getAsBoolean(data, empty, false, "resolveURL"), getAsInt(data, empty, -1, "port"),
+								getAsBoolean(data, empty, false, "unique"), getAsBoolean(data, empty, false, "autodelete"), getAsBoolean(data, empty, false, "paused"));
+
+					}
+					catch (Throwable t) {
+						handleException(pc, t);
+					}
+				}
+			}
+
 			// mappings
 			coll = getAsCollection(json, "mappings", "cfmappings");
 			if (coll != null) {

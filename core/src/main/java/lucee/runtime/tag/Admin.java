@@ -460,7 +460,6 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		finally {
 			schedule.release();
 			adminSync.broadcast(attributes, config);
-			adminSync.broadcast(attributes, config);
 		}
 	}
 
