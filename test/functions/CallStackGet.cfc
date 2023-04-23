@@ -31,7 +31,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		expect( cs[ 2 ].function ).toBeWithCase( "testCallStackGetJSON" );
 	}
 
-	// using a wrapper here so we aren't dependant on testbox internals
+	// using a wrapper here so we aren't dependent on testbox internals
 	private function _callStackGet( type ){
 		return CallStackGet( type );
 	}

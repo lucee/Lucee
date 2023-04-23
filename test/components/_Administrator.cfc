@@ -69,14 +69,14 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				});
 
 				it(title="testResetRegional()", body=function( currentSpec ) {
-					var adminReginals=admin.getRegional();
+					var adminRegionals=admin.getRegional();
 					adminweb.resetRegional();
-					var adminWebReginals=adminweb.getRegional();
+					var adminWebRegionals=adminweb.getRegional();
 
-					assertEquals(adminWebReginals.locale EQ adminReginals.locale,true);
-					assertEquals(adminWebReginals.timeserver EQ adminReginals.timeserver,true);
-					assertEquals(adminWebReginals.timezone EQ adminReginals.timezone,true);
-					assertEquals(adminWebReginals.usetimeserver EQ adminReginals.usetimeserver,true);
+					assertEquals(adminWebRegionals.locale EQ adminRegionals.locale,true);
+					assertEquals(adminWebRegionals.timeserver EQ adminRegionals.timeserver,true);
+					assertEquals(adminWebRegionals.timezone EQ adminRegionals.timezone,true);
+					assertEquals(adminWebRegionals.usetimeserver EQ adminRegionals.usetimeserver,true);
 				});
 			});
 
@@ -927,9 +927,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				});
 
 				it(title="checking getDebugSetting()", body=function( currentSpec ) {
-					var deguggingListSetting = admin.getDebugSetting();
-					assertEquals(isstruct(deguggingListSetting) ,true);
-					assertEquals(listSort(structKeyList(deguggingListSetting),'textnocase'), 'maxLogs');
+					var debuggingListSetting = admin.getDebugSetting();
+					assertEquals(isstruct(debuggingListSetting) ,true);
+					assertEquals(listSort(structKeyList(debuggingListSetting),'textnocase'), 'maxLogs');
 				});
 
 				it(title="checking updateDebugSetting()", body=function( currentSpec ) {
@@ -1148,7 +1148,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				});
 			});
 
-			xdescribe( title="test log functions", body=function() {
+			describe( title="test log functions", body=function() {
 				it(title="checking getLogSettings()", body=function( currentSpec ) {
 					var logsettings = adminweb.getLogSettings();
 					assertEquals(isquery(logsettings) ,true);
