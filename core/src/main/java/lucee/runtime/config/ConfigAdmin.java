@@ -3881,10 +3881,6 @@ public final class ConfigAdmin {
 	}
 
 	private void merge(Collection server, Collection web) {
-
-		// prevents the hspw merged to server config
-		web.remove(KeyImpl.init("hspw"), null);
-
 		Key[] keys = web.keys();
 		Object exServer, exWeb;
 		for (Key key: keys) {
