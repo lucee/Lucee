@@ -158,7 +158,7 @@ public final class AppListenerUtil {
 	}
 
 	public static String toStringMode(int mode) {
-		if (mode == ApplicationListener.MODE_CURRENT) return "curr";
+		if (mode == ApplicationListener.MODE_CURRENT) return "current";
 		if (mode == ApplicationListener.MODE_ROOT) return "root";
 		if (mode == ApplicationListener.MODE_CURRENT2ROOT) return "curr2root";
 		if (mode == ApplicationListener.MODE_CURRENT_OR_ROOT) return "currorroot";

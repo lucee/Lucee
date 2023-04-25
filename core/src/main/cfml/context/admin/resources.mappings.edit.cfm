@@ -88,7 +88,7 @@
 					<td>
 						<cfif hasAccess>
 							<ul class="radiolist">
-								<cfloop index="key" list="curr2root,currorroot,root,curr,inherit">
+								<cfloop index="key" list="curr2root,currorroot,root,current,inherit">
 									<li>
 										<label>
 											<input type="radio" class="radio" name="listenermode_#mapping.id#" value="#key#" 
