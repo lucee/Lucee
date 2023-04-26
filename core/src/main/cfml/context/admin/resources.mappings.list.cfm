@@ -202,7 +202,7 @@ this.mappings=["#mappings.virtual#"]={<cfif len(mappings.strPhysical)>
 						<td>
 							<cfif hasAccess>
 								<ul class="radiolist">
-									<cfloop index="key" list="curr2root,currorroot,root,curr,inherit">
+									<cfloop index="key" list="curr2root,currorroot,root,current,inherit">
 										<li>
 											<label>
 												<input type="radio" class="radio" name="listenermode_1" value="#key#" <cfif key EQ "inherit">checked="checked"</cfif>>
