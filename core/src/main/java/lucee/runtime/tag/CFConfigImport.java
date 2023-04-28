@@ -904,8 +904,8 @@ public class CFConfigImport {
 						ClassDefinition lcd = StringUtil.isEmpty(bundleName) ? eng.layoutClassDefintion(className)
 								: new ClassDefinitionImpl(className, bundleName, bundleVersion, config.getIdentification());
 
-						admin.updateLogSettings(e.getKey().getString(), LogUtil.toLevel(getAsString(data, "level")), acd, getAsStruct(data, "appenderArgs"), lcd,
-								getAsStruct(data, "layoutArgs"));
+						admin.updateLogSettings(e.getKey().getString(), LogUtil.toLevel(getAsString(data, "level")), acd, getAsStruct(data, "appenderArgs", "appenderArguments"),
+								lcd, getAsStruct(data, "layoutArgs", "layoutArguments"));
 
 					}
 					catch (Throwable t) {
