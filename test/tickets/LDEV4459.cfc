@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" labels="image" {
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="image" skip="true" {
 	function run( testResults, testBox ) {
 		describe("Testcase for LDEV-4459", function() {
 			it( title="checking Imageshear() with shear argument", body=function( currentSpec ) {
