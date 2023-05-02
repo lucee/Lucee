@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2015, Lucee Assosication Switzerland
+ * Copyright (c) 2015, Lucee Association Switzerland
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
