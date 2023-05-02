@@ -27,6 +27,7 @@ import lucee.commons.io.res.filter.ExtensionResourceFilter;
 import lucee.commons.io.res.filter.OrResourceFilter;
 import lucee.commons.io.res.filter.ResourceFilter;
 import lucee.commons.lang.MappingUtil;
+import lucee.commons.lang.PhysicalClassLoader;
 import lucee.commons.lang.StringUtil;
 import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.CIObject;
@@ -207,7 +208,7 @@ public class ComponentLoader {
 
 		boolean doCache = config.useComponentPathCache();
 		String sub = null;
-		if (returnType != RETURN_TYPE_PAGE && rawPath.indexOf('$') != -1) {
+		if (rawPath.indexOf('$') != -1) {
 			int d = rawPath.lastIndexOf('$');
 			int s = rawPath.lastIndexOf('.');
 			if (d > s) {
@@ -504,12 +505,9 @@ public class ComponentLoader {
 		// TODO find a better way to create that class name
 		String subClassName = lucee.transformer.bytecode.Page.createSubClass(page.getPageSource().getClassName(), sub, page.getPageSource().getDialect());
 
-		// subClassName:sub.test_cfc$cf$1$sub1
-		// - sub.test_cfc$sub1$cf
-
 		CIPage[] subs = page.getSubPages();
 		for (int i = 0; i < subs.length; i++) {
-			if (subs[i].getClass().getName().equals(subClassName)) {
+			if (PhysicalClassLoader.substractAppendix(subs[i].getClass().getName()).equals(subClassName)) {
 				return subs[i];
 			}
 		}

@@ -38,6 +38,7 @@ import lucee.commons.io.res.util.ResourceClassLoader;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigPro;
+import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.transformer.bytecode.util.ClassRenamer;
 
@@ -293,5 +294,24 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 		this.loadedClasses.clear();
 		this.allLoadedClasses.clear();
 		this.unavaiClasses.clear();
+	}
+
+	/**
+	 * removes memory based appendix from class name, for example it translates
+	 * [test.test_cfc$sub2$cf$5] to [test.test_cfc$sub2$cf]
+	 * 
+	 * @param name
+	 * @return
+	 * @throws IOException
+	 */
+	public static String substractAppendix(String name) throws ApplicationException {
+		print.e("substractAppendix:" + name);
+		if (name.endsWith("$cf")) return name;
+		int index = name.lastIndexOf('$');
+		if (index != -1) {
+			name = name.substring(0, index);
+		}
+		if (name.endsWith("$cf")) return name;
+		throw new ApplicationException("could not remove appendix from [" + name + "]");
 	}
 }
