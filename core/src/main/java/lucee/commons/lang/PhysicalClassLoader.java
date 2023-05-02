@@ -305,7 +305,6 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 	 * @throws IOException
 	 */
 	public static String substractAppendix(String name) throws ApplicationException {
-		print.e("substractAppendix:" + name);
 		if (name.endsWith("$cf")) return name;
 		int index = name.lastIndexOf('$');
 		if (index != -1) {
