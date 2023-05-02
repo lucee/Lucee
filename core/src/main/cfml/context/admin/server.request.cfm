@@ -555,7 +555,7 @@ Error Output --->
 					<td>
 						<cfif hasAccess>
 							<ul class="radiolist">
-								<cfloop index="key" list="curr2root,currorroot,root,curr">
+								<cfloop index="key" list="curr2root,currorroot,root,current">
 									<li>
 										<label>
 											<input type="radio" class="radio" name="mode" value="#key#" <cfif listener.mode EQ key>checked="checked"</cfif>>
