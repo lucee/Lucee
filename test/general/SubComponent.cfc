@@ -41,7 +41,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				expect(res[1]).toBe("from sub component");
 				expect(res[2]).toBe("from sub function");
 			});
-			it(title="checking sub component static scope", skip=true, body=function( currentSpec ){
+			it(title="checking sub component static scope", body=function( currentSpec ){
 			   var res = _internalRequest(
 					template = "#variables.uri#/index.cfm",
 					forms = {scene:2}
@@ -49,7 +49,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 
 				expect(res).toBe("from sub static");
 			});
-			it(title="checking sub component after the code changed", skip=true, body=function( currentSpec ){
+			it(title="checking sub component after the code changed", body=function( currentSpec ){
 				writeComponentFileWithSubComponent(additionalFunction='function addiFunc() { return "from additional function";}');
 
 				var res = _internalRequest(
