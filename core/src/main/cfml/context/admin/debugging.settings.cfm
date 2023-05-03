@@ -22,7 +22,8 @@
 	type="#request.adminType#"
 	password="#session["password"&request.adminType]#"
 	returnVariable="access"
-	secType="debugging">
+	secType="debugging"
+	secValue="yes">
 <cfset hasAccess=access>
 
 
