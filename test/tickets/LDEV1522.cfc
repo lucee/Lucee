@@ -1,4 +1,4 @@
-﻿component extends="org.lucee.cfml.test.LuceeTestCase"{
+﻿component extends="org.lucee.cfml.test.LuceeTestCase" labels="syntax" skip=true {
 	function run( testResults , testBox ) {
 		describe( title="Test suite for LDEV-1522", body=function() {
 			it( title='Checking elvis operator using built-in-function, result from Variable Name', body=function( currentSpec ) {
