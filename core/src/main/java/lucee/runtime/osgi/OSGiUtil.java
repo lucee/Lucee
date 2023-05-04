@@ -1297,7 +1297,7 @@ public class OSGiUtil {
 	}
 
 	private static void loadPackages(final Set<String> parents, final Set<Bundle> loadedBundles, List<PackageQuery> listPackages, final Bundle bundle,
-			final List<PackageQuery> failedPD) {
+			final List<PackageQuery> failedPD) throws BundleException {
 		PackageQuery pq;
 		Iterator<PackageQuery> it = listPackages.iterator();
 		parents.add(toString(bundle));
@@ -1307,8 +1307,16 @@ public class OSGiUtil {
 				loadBundleByPackage(pq.getName(), pq.getVersionDefinitons(), loadedBundles, true, parents);
 			}
 			catch (Exception _be) {
+				boolean printExceptions = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.cli.printExceptions", null), false);
+				String bundleError = _be.getMessage() + " attempting to load for package [" + parents.toString() + "]";
 				failedPD.add(pq);
 				log(_be);
+				try {
+					throw new BundleException(bundleError);
+				}
+				catch (BundleException be2) {
+					if (printExceptions) be2.printStackTrace();
+				}
 			}
 		}
 	}
