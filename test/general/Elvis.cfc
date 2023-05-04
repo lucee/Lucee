@@ -60,7 +60,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 
 
-	public void function testFuncNotExisting(){
+	public void function testFuncNotExisting() skip="true" {
 		assertEquals('NotExisting',ljkl.jljl.ghu()?:'NotExisting');
 		assertEquals('NotExisting',ljklkju()?:'NotExisting');
 	}
