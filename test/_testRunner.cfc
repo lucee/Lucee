@@ -101,10 +101,12 @@ component {
 		try {
 			SystemOut.setOut( out );
 			//SystemOut.setErr(err);
-			if ( bundle.totalPass eq 0 && ( bundle.totalFail + bundle.totalError ) eq 0 )
+			if ( bundle.totalPass eq 0 && ( bundle.totalFail + bundle.totalError ) eq 0 ){
 				systemOutput( TAB & " (skipped)", true );
-			else
-				systemOutput( TAB & " (#bundle.totalPass# tests passed in #NumberFormat(bundle.totalDuration)# ms)", true );
+			} else {
+				var skippedSummary = (bundle.totalSkipped gt 0) ? ", #bundle.totalSkipped# skipped" : "";
+				systemOutput( TAB & " (#bundle.totalPass# tests passed in #NumberFormat(bundle.totalDuration)# ms#skippedSummary#)", true );
+			}
 			//mem("non_heap");
 			//mem("heap");
 		// we have an error
