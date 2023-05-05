@@ -3684,7 +3684,10 @@ Use POST to send information to a server page or a CGI program for processing. P
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Boolean indicating whether to throw an exception that can be caught by using the cftry and
-	cfcatch tags. The default is NO.</description>
+	cfcatch tags. The default is NO.
+	An error is thrown when a connection failure, lookup etc is encountered, or the response status code isn't between 200 and 299
+	The CFHTTP / RESULT struct always contains a key ERROR indicating if an error would be thrown, even if set to NO.
+</description>
 		</attribute>
 		<attribute>
 			<type>boolean</type>
