@@ -2458,7 +2458,7 @@ sort direction:
 			The function will check for the actual values for this placeholders in 3 places (in this order):
 			- function argument "params" (if provided)
 			- system properties
-			- enviroment variables
+			- environment variables
 		</description>
 		<introduced>5.3.9.6</introduced>
 		<argument>
@@ -2487,7 +2487,7 @@ sort direction:
 			<description>
 				password to access the configuration, depending on the value set for the attribute type. 
 				If not set Lucee will check in the following places for the password (replace {type} with the actual type choosen for the attribute type).
-				Enviroment variable "LUCEE_{type}_ADMIN_PASSWORD" or system property "lucee.{type}.admin.password".
+				Environment variable "LUCEE_{type}_ADMIN_PASSWORD" or system property "lucee.{type}.admin.password".
 			</description>
 		</argument>
 		<argument>
@@ -2511,9 +2511,7 @@ sort direction:
 			<type>struct</type>
 		</return>
 	</function>
-	
-	
-	
+		
 	<!-- compress -->
 	<function>
 		<name>compress</name>
@@ -2524,7 +2522,15 @@ sort direction:
 			<type>string</type>
 			<required>Yes</required>
 			<description>
-			Format to compress (bzip,gzip,tar,tbz (tar bzip),tgz (tar gzip) and zip)
+			Formats to compress the files:
+			- bzip
+			- bzip2
+			- gzip
+			- tar 
+			- tbz (same as tar.bz)
+			- tbz2
+			- tgz (same as tar.gz)
+			- zip
 			</description>
 		</argument>
 		<argument>
@@ -2532,7 +2538,8 @@ sort direction:
 			<type>string</type>
 			<required>Yes</required>
 			<description>
-			source file or directory to compress
+			Path (relative or absolute) to source file or directory to compress.
+			For **gzip / bzip / bzip2** (single file format) must use path including the name of the file
 			</description>
 		</argument>
 		<argument>
@@ -2540,7 +2547,7 @@ sort direction:
 			<type>string</type>
 			<required>Yes</required>
 			<description>
-			name of the target compressed file
+			Path (relative or absolute) including the name, where you want to save the compressed output-file
 			</description>
 		</argument>
 		<argument>
@@ -2549,7 +2556,7 @@ sort direction:
 			<required>No</required>
 			<default>true</default>
 			<description>
-			take the folder or only content of folder
+			Compress the directory or just the content of the directory
 			</description>
 		</argument>
 		<argument>
@@ -2558,13 +2565,14 @@ sort direction:
 			<required>no</required>
 			<default>777</default>
 			<description>
-			mode of the values
+			Mode of the values
 			</description>
 		</argument>
 		<return>
 			<type>boolean</type>
 		</return>
 	</function>
+
 	<!-- cos -->
 	<function>
 		<name>cos</name>
@@ -3029,6 +3037,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 - n: Precise to the minute
 - h: Precise to the hour
 - d: Precise to the day
+- y: Precise to the day (same as d)
 - m: Precise to the month
 - yyyy: Precise to the year</description>
     </argument>
@@ -3036,6 +3045,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>number</type>
 		</return>
 	</function>
+	
 	<!-- dateConvert -->
 	<function>
 		<name>dateConvert</name>
@@ -3062,6 +3072,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>datetime</type>
 		</return>
 	</function>
+
 	<!-- dateDiff -->
 	<function>
 		<name>dateDiff</name>
@@ -3078,11 +3089,14 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 - q: Quarters
 - m: Months
 - y: Days of year (same as d)
-- d: Days
-- w: Weeks
+- d: Days (same as y)
+- w: Weeks (same as ww)
+- ww: Weeks (same as w)
+- wd: Weekdays 
 - h: Hours
 - n: Minutes
 - s: Seconds
+- l: MilliSeconds
 </description>
     </argument>
 		<argument>
@@ -4681,17 +4695,26 @@ EntitySave(entity, [forceInsert])</description>
 			<type>string</type>
 		</return>
 	</function>
+
 	<!-- extract -->
 	<function>
 		<name>extract</name>
 		<class>lucee.runtime.functions.system.Extract</class>
-		<description>extract data out of a compressed file</description>
+		<description>Extract the data of a compressed file</description>
 		<argument>
 			<name>format</name>
 			<type>string</type>
 			<required>Yes</required>
 			<description>
-			Format to extract (bzip,gzip,tar,tbz (tar bzip),tgz (tar gzip) and zip)
+			Format of the compressed file:
+			- bzip
+			- bzip2
+			- gzip
+			- tar 
+			- tbz (same as tar.bz)
+			- tbz2
+			- tgz (same as tar.gz)
+			- zip
 			</description>
 		</argument>
 		<argument>
@@ -4699,7 +4722,7 @@ EntitySave(entity, [forceInsert])</description>
 			<type>string</type>
 			<required>Yes</required>
 			<description>
-			source file or directory with zip files to extract
+			Path (relative or absolute) to the source file or a directory with compressed files to extract
 			</description>
 		</argument>
 		<argument>
@@ -4707,13 +4730,15 @@ EntitySave(entity, [forceInsert])</description>
 			<type>string</type>
 			<required>Yes</required>
 			<description>
-			name of the target directory
+			Path (relative or absolute) to the directory, where you want to extract the data.
+			For **gzip / bzip / bzip2** (single file format) must use path including the name of the file
 			</description>
 		</argument>
 		<return>
 			<type>boolean</type>
 		</return>
 	</function>
+
 		<!-- FileAppend -->
 	<function>
 		<name>FileAppend</name>
@@ -6980,7 +7005,10 @@ Default list delimiter: comma character.</description>
 			<name>numIterations</name>
 			<type>number</type>
 			<required>No</required>
-			<description>number of iterations; default is 1.</description>
+			<description>The number of times to iterate hashing.
+			A greater number of iterations will result in a cryptographically stronger hash but will also take more time to generate that hash.
+			The default value is 1. 
+			For algorithm quick, only 1 is allowed </description>
 		</argument>
 		<return>
 			<type>string</type>
@@ -9420,12 +9448,13 @@ The following things are considered to be empty:
 			<name>str</name>
 			<type>string</type>
 			<required>Yes</required>
-		<description></description>
-    </argument>
+			<description>The input string</description>
+		</argument>
 		<return>
 			<type>string</type>
 		</return>
 	</function>
+
 	<!-- mid -->
 	<function>
 		<name>mid</name>
@@ -9675,32 +9704,33 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<name>hql</name>
 			<type>string</type>
 			<required>yes</required>
-		<description></description>
-    </argument>
+			<description>The HQL query that has to be executed</description>
+		</argument>
 		<argument>
 			<name>paramsOrUnique</name>
 			<alias>params</alias>
 			<type>any</type>
 			<required>no</required>
-		<description></description>
-    </argument>
+			<description>Object parameter for the entity</description>
+		</argument>
 		<argument>
 			<name>uniqueOrQueryOptions</name>
 			<alias>unique</alias>
 			<type>any</type>
 			<required>no</required>
-		<description></description>
-    </argument>
+			<description>Specifies if the object parameter is unique</description>
+		</argument>
 		<argument>
 			<name>queryOptions</name>
 			<type>any</type>
 			<required>no</required>
-		<description></description>
-    </argument>
+			<description>Options for the query</description>
+		</argument>
 		<return>
 			<type>any</type>
 		</return>
 	</function>
+
 	<!-- ORMClearSession -->
 	<function>
 		<name>ORMClearSession</name>
@@ -9740,60 +9770,59 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>void</type>
 		</return>
 	</function>
+
 	<!-- ORMEvictCollection -->
 	<function>
 		<name>ORMEvictCollection</name>
 		<class>lucee.runtime.functions.orm.ORMEvictCollection</class>
 		<description>This will remove all the entries with the specified relation/collection name in the specified component. 
 ormEvictCollection(componentName,relationName,[id])</description>
-		
 		<argument>
 			<name>entityName</name>
 			<type>String</type>
 			<required>yes</required>
-		<description></description>
-    </argument>
+			<description>Entity name</description>
+		</argument>
 		<argument>
 			<name>collectionName</name>
 			<type>String</type>
 			<required>yes</required>
-		<description></description>
-    </argument>
+			<description>Name of the collection in the component</description>
+		</argument>
 		<argument>
 			<name>primaryKey</name>
 			<type>String</type>
 			<required>no</required>
-		<description></description>
-    </argument>
-		
+			<description>Primary key of the collection or association data of the entity</description>
+		</argument>
 		<return>
 			<type>void</type>
 		</return>
 	</function>
+
 	<!-- ORMEvictEntity -->
 	<function>
 		<name>ORMEvictEntity</name>
 		<class>lucee.runtime.functions.orm.ORMEvictEntity</class>
 		<description>This will remove all the entries for the specified component name from the entity cache.
 ormEvictEntity(componentName,[id])</description>
-		
 		<argument>
 			<name>entityName</name>
 			<type>String</type>
 			<required>yes</required>
-		<description></description>
-    </argument>
+			<description>Entity name</description>
+		</argument>
 		<argument>
 			<name>primaryKey</name>
 			<type>String</type>
 			<required>no</required>
-		<description></description>
-    </argument>
-		
+			<description>Primary key value of the component</description>
+		</argument>
 		<return>
 			<type>void</type>
 		</return>
 	</function>
+
 	<!-- ORMEvictQueries -->
 	<function>
 		<name>ORMEvictQueries</name>
@@ -9806,18 +9835,19 @@ ormEvictQueries([cacheName])</description>
 			<alias>cache,region</alias>
 			<type>String</type>
 			<required>no</required>
-			<description></description>
+			<description>Name of the cache region that you want to evict</description>
     	</argument>
     	<argument>
 			<name>datasource</name>
 			<type>string</type>
 			<required>no</required>
-			<description>datasource used for the session, if nor defined the datasource defined in application.cfc/cfapplication is used.</description>
+			<description>datasource used for the session, if nor defined the datasource defined in application.cfc/cfapplication is used</description>
 		</argument>
 		<return>
 			<type>void</type>
 		</return>
 	</function>
+	
 	<!-- ORMFlush -->
 	<function>
 		<name>ORMFlush</name>
@@ -11625,18 +11655,16 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<alias>callback,udf,function</alias>
 			<type>object</type>
 			<required>yes</required>
-			<description></description>
+			<description>Closure function that returns a Future object, which holds the result.</description>
     	</argument>
     	<argument>
 			<name>timeout</name>
 			<type>number</type>
 			<required>No</required>
 			<default>0</default>
-		<description>timeout for the action</description>
+			<description>timeout for the action</description>
     	</argument>
-    
-    
-		<return>
+    	<return>
 			<type>object</type>
 		</return>
 	</function>
@@ -11981,6 +12009,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>string</type>
 		</return>
 	</function>
+
 	<!-- serialize -->
 	<function>
 		<name>serialize</name>
@@ -11990,8 +12019,8 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<name>object</name>
 			<type>any</type>
 			<required>Yes</required>
-		<description></description>
-    </argument>
+			<description>An object to be serialized.</description>
+		</argument>
 		<return>
 			<type>string</type>
 		</return>
@@ -12078,18 +12107,19 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<name>scope</name>
 			<type>string</type>
 			<required>Yes</required>
-		<description></description>
-    </argument>
+			<description>url, form</description>
+		</argument>
 		<argument>
 			<name>encoding</name>
 			<type>string</type>
 			<required>Yes</required>
-		<description></description>
-    </argument>
+			<description>The character encoding in which text in the scope variables is encoded</description>
+    	</argument>
 		<return>
 			<type>string</type>
 		</return>
 	</function>
+
 	<!-- setLocale -->
 	<function>
 		<name>setLocale</name>
@@ -12209,8 +12239,8 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<name>str</name>
 			<type>string</type>
 			<required>Yes</required>
-		<description></description>
-    </argument>
+			<description>A string or a variable that contains one</description>
+		</argument>
 		<return>
 			<type>String</type>
 		</return>

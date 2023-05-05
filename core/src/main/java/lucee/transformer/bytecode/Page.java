@@ -769,14 +769,12 @@ public final class Page extends BodyBase implements Root {
 			TagCIObject ci = it.next();
 			av.visitBeginItem(adapter, index++);
 			className = createSubClass(name, ci.getName(), dialect);
-			// ASMConstants.NULL(adapter);
-			adapter.visitTypeInsn(Opcodes.NEW, className);
-			adapter.visitInsn(Opcodes.DUP);
 
 			adapter.visitVarInsn(Opcodes.ALOAD, 0);
 			adapter.visitMethodInsn(Opcodes.INVOKEVIRTUAL, name, "getPageSource", "()Llucee/runtime/PageSource;");
+			adapter.push(className);
+			adapter.visitMethodInsn(Opcodes.INVOKESTATIC, "lucee/runtime/MappingImpl", "loadCIPage", "(Llucee/runtime/PageSource;Ljava/lang/String;)Llucee/runtime/CIPage;");
 
-			adapter.visitMethodInsn(Opcodes.INVOKESPECIAL, className, "<init>", "(Llucee/runtime/PageSource;)V");
 			av.visitEndItem(adapter);
 		}
 		av.visitEnd();

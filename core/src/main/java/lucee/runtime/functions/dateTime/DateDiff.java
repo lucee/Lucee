@@ -90,7 +90,7 @@ public final class DateDiff extends BIF {
 		else if ("ww".equals(datePart)) dp = DATEPART_WW; // weeks
 		else if ("wd".equals(datePart)) dp = DATEPART_WD; // weekdays
 		else if ("q".equals(datePart)) dp = DATEPART_Q;
-		else throw new FunctionException(pc, "dateDiff", 3, "datePart", "invalid value [" + datePart + "], valid values has to be [l,q,s,n,h,d,m,y,yyyy,w,ww]");
+		else throw new FunctionException(pc, "dateDiff", 3, "datePart", "invalid value [" + datePart + "], valid values has to be [l, q, s, n, h, d, m, y, yyyy, w, ww, wd]");
 
 		// dates
 		Calendar _cLeft = JREDateTimeUtil.getThreadCalendar(tz);

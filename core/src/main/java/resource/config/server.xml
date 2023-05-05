@@ -259,8 +259,8 @@ Path placeholders:
 			physical="{lucee-server}/context/"
 			archive=""
 			primary="physical"
-			listener-mode="modern"
-			listener-type="curr2root"
+			listener-mode="curr2root"
+			listener-type="modern"
 			inspect-template="once"/>
 		<mapping
 			readonly="yes"
@@ -268,8 +268,8 @@ Path placeholders:
 			physical="{lucee-config}/context/"
 			archive="{lucee-config}/context/lucee-context.lar"
 			primary="physical"
-			listener-mode="modern"
-			listener-type="curr2root"
+			listener-mode="curr2root"
+			listener-type="modern"
 			inspect-template="once"/>
 	</mappings>	
 	

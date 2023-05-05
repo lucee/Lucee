@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" lables="query,qoq" {
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="query,qoq" {
 
 	function beforeAll() {
 		variables.uri = createURI("LDEV4044");
@@ -6,7 +6,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" lables="query,qoq" {
 	}
 
 	function run( testResults, testBox ) {
-		describe("Testcase for LDEV-4044", function() {
+		describe(title="Testcase for LDEV-4044", body=function() {
 			it( title="QoQ with named parameter and without params defined", body=function( currentSpec ) {
 				expect( ()=> {
 					queryExecute(sql="SELECT name FROM qry WHERE id = :id"

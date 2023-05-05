@@ -60,7 +60,11 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				arr.append( javaCast( "boolean", 101 ) );
 				expect(serializeJSON(arr)).tobe("[true,true]");
 			});
+			it(title="checking arrayNew() with type argument(date)", body=function( currentSpec ) {
+				var myArray = arrayNew( dimension=1, type="date" );
+				myArray.append(now());
+				expect(myArray).tobe([now()]);
+			});
 		});
-
 	}
 }

@@ -117,7 +117,7 @@ public class SingleContextConfigWeb extends ConfigBase implements ConfigWebPro {
 	// private SpoolerEngineImpl spoolerEngine;
 
 	public SingleContextConfigWeb(CFMLFactoryImpl factory, ConfigServerImpl cs, ServletConfig config) {
-		factory.setConfig(this);
+		factory.setConfig(cs, this);
 		this.factory = factory;
 		this.cs = cs;
 		this.config = config;

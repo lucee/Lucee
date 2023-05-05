@@ -942,7 +942,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 			}
 
 			if (ConfigWebFactory.LOG) LogUtil.log(configServer, Log.LEVEL_INFO, "startup", "Loaded config");
-			factory.setConfig(config);
+			factory.setConfig(configServer, config);
 			return factory;
 		}
 		catch (Exception e) {
@@ -950,7 +950,6 @@ public final class CFMLEngineImpl implements CFMLEngine {
 			se.setStackTrace(e.getStackTrace());
 			throw se;
 		}
-
 	}
 
 	/**
@@ -1140,6 +1139,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 				factory = loadJSPFactory(cs, srvConfig, initContextes.size());
 				initContextes.put(real, factory);
 			}
+
 			contextes.put(real, factory);
 
 			try {
@@ -1750,9 +1750,8 @@ public final class CFMLEngineImpl implements CFMLEngine {
 	public void onStart(ConfigPro config, boolean reload) {
 		boolean isWeb = config instanceof ConfigWeb;
 		String context = isWeb ? "Web" : "Server";
-		
-		if ((isWeb || config.getAdminMode() == ConfigImpl.ADMINMODE_SINGLE) 
-				&& SystemUtil.getSystemPropOrEnvVar("lucee.enable.warmup", "").equalsIgnoreCase("true")) {
+
+		if ((isWeb || config.getAdminMode() == ConfigImpl.ADMINMODE_SINGLE) && SystemUtil.getSystemPropOrEnvVar("lucee.enable.warmup", "").equalsIgnoreCase("true")) {
 			String msg = "Lucee warmup completed. Shutting down.";
 			CONSOLE_ERR.println(msg);
 			LogUtil.log(config, Log.LEVEL_ERROR, "application", msg);

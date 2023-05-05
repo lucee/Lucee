@@ -34,6 +34,7 @@ import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 
 import lucee.commons.io.FileUtil;
+import lucee.commons.io.IOUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.ExceptionUtil;
@@ -50,6 +51,7 @@ import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.listener.ApplicationListener;
+import lucee.runtime.op.Caster;
 import lucee.runtime.osgi.OSGiUtil;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.util.ArrayUtil;
@@ -63,6 +65,8 @@ public final class MappingImpl implements Mapping {
 
 	private static final int MAX_SIZE_CFC = 3000;// 6783;
 	private static final int MAX_SIZE_CFM = 2000;// 6783;
+
+	private static final Class<PageSource> SUBPAGE_CONSTR = PageSource.class;
 
 	private String virtual;
 	private String lcVirtual;
@@ -625,6 +629,23 @@ public final class MappingImpl implements Mapping {
 		public Mapping toMapping() {
 			ConfigWebPro cwi = (ConfigWebPro) ThreadLocalPageContext.getConfig();
 			return cwi.getApplicationMapping(type, virtual, physical, archive, physicalFirst, ignoreVirtual);
+		}
+	}
+
+	public static CIPage loadCIPage(PageSource ps, String className) {
+		// TODO check if the sub class itself has changed or not, maybe just the main class has, if there is
+		// no change there is no need to load it new
+		try {
+			MappingImpl m = ((MappingImpl) ps.getMapping());
+			Resource res = m.getClassRootDirectory().getRealResource(className + ".class");
+			Class<?> clazz = m.touchPhysicalClassLoader(true).loadClass(className.replace('/', '.').replace('\\', '.'), IOUtil.toBytes(res));
+
+			return (CIPage) clazz.getConstructor(SUBPAGE_CONSTR).newInstance(ps);
+			// return (CIPage) ((Class<?>) ((MappingImpl)
+			// ps.getMapping()).loadClass(className)).getConstructor(SUBPAGE_CONSTR).newInstance(ps);
+		}
+		catch (Exception e) {
+			throw Caster.toPageRuntimeException(e);
 		}
 	}
 }

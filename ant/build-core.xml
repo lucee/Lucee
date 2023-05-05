@@ -20,6 +20,7 @@
   <property name="extLucene"          value="EFDEB172-F52E-4D84-9CD1A1F561B3DFC8;version=2.4.2.4"/>
   <property name="extAxis"          value="DF28D0A4-6748-44B9-A2FDC12E4E2E4D38;version=1.4.0.37"/>
   <property name="extChart"          value="D46B46A9-A0E3-44E1-D972A04AC3A8DC10;version=1.0.19.24"/>
+  <property name="extRedis"          value="60772C12-F179-D555-8E2CD2B4F7428718;version=3.0.0.48"/>
 
   <property name="stableLoader" value="lucee-5.3.7.48"/>
   <property name="cdnUrl" value="https://cdn.lucee.org/"/>
@@ -261,7 +262,7 @@
 
     <copy todir="${tmpContext}/context/admin/resources/language/" overwrite="true">
       <fileset dir="${srcCFML}/context/admin/resources/language/">
-        <include name="*.xml"/>
+        <include name="*.json"/>
       </fileset>
     </copy>
 
@@ -271,6 +272,7 @@
         <include name="*.cfc"/>
         <include name="*.lucee"/>
         <include name="*.xml"/>
+        <include name="*.json"/>
       </fileset>
     </copy>
 
@@ -280,6 +282,7 @@
         <include name="*.cfc"/>
         <include name="*.lucee"/>
         <include name="*.xml"/>
+        <include name="*.json"/>
       </fileset>
     </copy>
 
@@ -289,6 +292,7 @@
         <include name="**/*.cfc"/>
         <include name="**/*.lucee"/>
         <include name="**/*.xml"/>
+        <include name="**/*.json"/>
       </fileset>
     </copy>
 
@@ -303,7 +307,7 @@
 
     <copy todir="${tmpContext}/cfml-context/admin/resources/language/" overwrite="true">
       <fileset dir="${srcCFML}/context/admin/resources/language/">
-        <include name="*.xml"/>
+        <include name="*.json"/>
       </fileset>
     </copy>
 
@@ -313,6 +317,7 @@
         <include name="**/*.cfc"/>
         <include name="**/*.lucee"/>
         <include name="**/*.xml"/>
+        <include name="**/*.json"/>
       </fileset>
     </copy>
 
@@ -553,7 +558,8 @@
       <jvmarg value="-DindividualStorageKeys=false"/>
       <jvmarg value="-Dlucee.base.dir=${temp}/archive/base"/>
       <jvmarg value="-Dlucee.web.dir=${temp}/archive/webroot"/>
-      <jvmarg value="-Dlucee-extensions=${extH2},${extMongo},${extOracle},${extLucene},${extAxis},${extChart}"/>
+      <!-- TODO remove axis, lucene -->
+      <jvmarg value="-Dlucee-extensions=${extH2},${extMongo},${extOracle},${extLucene},${extAxis},${extChart},${extRedis}"/>
       <jvmarg value="-Dlucee.enable.dialect=true"/>
       <jvmarg value="-Dlucee.extensions.install=true"/>
       <jvmarg value="-Dlucee.full.null.support=false"/>

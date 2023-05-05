@@ -2,6 +2,7 @@
 <!--- language files are deployed to {lucee-web}/context/admin/resources/language by ConfigWebFactory.java and are read from there !--->
 
 <cfscript>
+	if(isNull(request.singlemode))request.singlemode=false;
 	sHelpURL = "https://www.lucee.org/help/stHelp.json";
 	param name="request.stLocalHelp" default="#structNew()#";
 	param name="request.stWebMediaHelp" default="#structNew()#";
@@ -10,39 +11,37 @@
 
 	//structDelete(application, "stText");
 	//structDelete(application, "stWebHelp");
-
 	if ( structKeyExists( form, "lang" )
 			|| !structKeyExists( application, "languages" )
-			|| !structKeyExists( application.stText, session.lucee_admin_lang )
-			|| structKeyExists( url, "reinit" ) ){
+			|| !structKeyExists( application.stText, session.lucee_admin_lang ) 
+			|| isNull( application.stText[session.lucee_admin_lang].setting.externalizeStringGTE ) 
+			|| structKeyExists( url, "reinit" )){
 
 		cfinclude( template="menu.cfm" );
-
 		langData  = getAvailableLanguages();
 
 		languages = {};
-		loop collection="#langData#" item="value" index="key" {
-			languages[key] = value.name;
+		loop collection=langData item="value" index="key" {
+			languages[key] = value.label;
 		}
 		application.languages = languages;
 
 		if ( !application.languages.keyExists( session.lucee_admin_lang ) ){
-			systemOutput("Admin language file for [#session.lucee_admin_lang#] was not found, defaulting to English", true);
 			session.lucee_admin_lang = "en";
 		}
-
-		application.stText.en = GetFromXMLNode( langData.en.xml.XMLRoot.XMLChildren );
+		application.stText.en = langData.en.data;
 		StructDelete( application, "notTranslated" );
 
 		//  now read the actual file when not english
 		if ( session.lucee_admin_lang != "en" ){
-			langXml = langData[ session.lucee_admin_lang ].xml;
 			// load the translation, using english as the fallback, thus allowing incomplete translations
-			application.stText[ session.lucee_admin_lang ] = GetFromXMLNode( langXml.XMLRoot.XMLChildren, application.stText.en );
+			tmp=application.stText[ session.lucee_admin_lang ] = langData[ session.lucee_admin_lang ].data;
+			loop struct=application.stText.en index="k" item="v" {
+				if(not structKeyExists(tmp,k)) tmp[ k ]=v;
+			}
 		}
-
 		stText = application.stText[ session.lucee_admin_lang ];
-
+		
 		// TODO why is this here??
 		try {
 			admin
@@ -54,8 +53,9 @@
 				request.hasRemoteClientUsage=true;
 		}
 
-		stText.menuStruct.web = createMenu( stText.menu, "web",request.singlemode);
-		stText.menuStruct.server = createMenu( stText.menu, "server",request.singlemode);
+		
+		stText.menuStruct.web = createMenu( stText.menu, "web",request.singlemode?:false);
+		stText.menuStruct.server = createMenu( stText.menu, "server",request.singlemode?:false);
 
 	} else{
 		languages=application.languages;
@@ -196,23 +196,14 @@ You can use this code in order to write the structs into an XML file correspondi
 </cffunction>
 
 <cffunction name="getAvailableLanguages" output="No" returntype="struct"
-	hint="Returns a struct where the key is the language code and the value is the language's name.">
-
-	<cfdirectory name="local.qDir" directory="language" action="list" mode="listnames" filter="*.xml">
-
+	hint="">
+	<cfdirectory name="local.qDir" directory="language" action="list" mode="listnames" filter="*.json">
 	<cfset var result = {}>
 	<cfloop query="qDir">
-
 		<cffile action="read" file="language/#qDir.name#" charset="UTF-8" variable="local.sContent">
-
-		<cfset var xml  = XMLParse(sContent)>
-		<cfset var lang = xml.language.XMLAttributes.Key>
-
-		<cfset result[lang] = {
-
-			name: xml.language.XMLAttributes.label
-			,xml: xml
-		}>
+		<cfset var json  = deserializeJson(sContent)>
+		<cfset var lang = json.key>
+		<cfset result[lang] = json>
 	</cfloop>
 	<cfreturn result>
 </cffunction>

@@ -31,8 +31,12 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="s3"{
 	
 	function afterAll() skip="isNotSupported"{
 		if (isNotSupported()) return;
-		if( directoryExists( baseWithBucketName ) )
-			directoryDelete( baseWithBucketName, true );
+		if( directoryExists( baseWithBucketName ) ){
+			try {
+				directoryDelete( baseWithBucketName, true );
+			}
+			catch(e) {}
+		}	
 	}
 
 	public function run( testResults , testBox ) {

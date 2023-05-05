@@ -48,7 +48,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mysql" {
 	}
 
 	private struct function getCredentials() {
-		// getting the credentials from the enviroment variables
+		// getting the credentials from the environment variables
 		return server.getDatasource("mysql");
 	}
 

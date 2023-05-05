@@ -6,6 +6,8 @@ import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.GeneratorAdapter;
 import org.objectweb.asm.commons.Method;
 
+import lucee.runtime.exp.CasterException;
+import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.LiteralValue;
 import lucee.transformer.Factory;
@@ -47,12 +49,22 @@ public class LitNumberImpl extends ExpressionBase implements LitNumber, ExprNumb
 
 	@Override
 	public Number getNumber() {
-		return getBigDecimal();
+		try {
+			return getBigDecimal();
+		}
+		catch (CasterException e) {
+			throw new PageRuntimeException(e);
+		}
 	}
 
 	@Override
 	public Number getNumber(Number defaultValue) {
-		return getBigDecimal();
+		try {
+			return getBigDecimal();
+		}
+		catch (CasterException e) {
+			return defaultValue;
+		}
 	}
 
 	@Override
@@ -62,11 +74,16 @@ public class LitNumberImpl extends ExpressionBase implements LitNumber, ExprNumb
 
 	@Override
 	public Boolean getBoolean(Boolean defaultValue) {
-		return getBigDecimal().compareTo(BigDecimal.ZERO) != 0;
+		try {
+			return getBigDecimal().compareTo(BigDecimal.ZERO) != 0;
+		}
+		catch (CasterException e) {
+			return defaultValue;
+		}
 	}
 
-	public BigDecimal getBigDecimal() {
-		if (bd == null) bd = new BigDecimal(number);
+	public BigDecimal getBigDecimal() throws CasterException {
+		if (bd == null) bd = Caster.toBigDecimal(number);
 		return bd;
 	}
 
@@ -75,7 +92,12 @@ public class LitNumberImpl extends ExpressionBase implements LitNumber, ExprNumb
 		GeneratorAdapter adapter = bc.getAdapter();
 
 		if (MODE_VALUE == mode) {
-			adapter.push(getBigDecimal().doubleValue());
+			try {
+				adapter.push(getBigDecimal().doubleValue());
+			}
+			catch (CasterException e) {
+				new TransformerException(bc, e, getStart());
+			}
 			// print.ds();
 			return Types.DOUBLE_VALUE;
 		}

@@ -4,21 +4,22 @@
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either 
+ * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public 
+ *
+ * You should have received a copy of the GNU Lesser General Public
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  **/
 package lucee.runtime.db;
 
 import java.io.Serializable;
+import java.util.Random;
 
 /**
  * represents a SQL Statement with his defined arguments for a prepared statement
@@ -28,10 +29,13 @@ public final class SQLImpl implements SQL, Serializable {
 	private String strSQL;
 	private SQLItem[] items;
 	private int position = 0;
+	// rand() always returns a new random number unless a seed is used like rand(123), in which case
+	// all subsequent calls to rand() will use that seed for the duration of this query
+	private Random rand;
 
 	/**
 	 * Constructor only with SQL String
-	 * 
+	 *
 	 * @param strSQL SQL String
 	 */
 	public SQLImpl(String strSQL) {
@@ -41,7 +45,7 @@ public final class SQLImpl implements SQL, Serializable {
 
 	/**
 	 * Constructor with SQL String and SQL Items
-	 * 
+	 *
 	 * @param strSQL SQL String
 	 * @param items SQL Items
 	 */
@@ -86,7 +90,7 @@ public final class SQLImpl implements SQL, Serializable {
 
 	/**
 	 * populates the SQL string with values from parameters
-	 * 
+	 *
 	 * @return
 	 */
 
@@ -177,6 +181,13 @@ public final class SQLImpl implements SQL, Serializable {
 		}
 
 		return rtn;
+	}
+
+	public Random getRand() {
+		if( this.rand == null ) {
+			this.rand = new Random();
+		}
+		return this.rand;
 	}
 
 }

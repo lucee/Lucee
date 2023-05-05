@@ -3274,7 +3274,7 @@ To use cached data, the tag must be called with the exact same arguments. Only u
 	<tag>
 		<name>Header</name>
 		<tag-class>lucee.runtime.tag.Header</tag-class>
-		<body-content>empty</body-content>
+		<body-content>free</body-content>
 		<body-rtexprvalue>false</body-rtexprvalue>
 		<script>
 			<type>multiple</type>
@@ -5796,7 +5796,7 @@ Lucee uses the number of characters in the file.</description>
 		<name>Param</name>
 		<tag-class>lucee.runtime.tag.Param</tag-class>
 		<ttt-class>lucee.transformer.bytecode.statement.tag.TagParam</ttt-class>
-		<body-content>empty</body-content>
+		<body-content>free</body-content>
 		<body-rtexprvalue>false</body-rtexprvalue>
 		<script>
 			<type>multiple</type>
@@ -6694,6 +6694,7 @@ To use cached data, the current query must use the same SQL statement, data sour
 		<attribute>
 			<type>boolean</type>
 			<name>lazy</name>
+			<status>deprecated</status>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>
@@ -8085,7 +8086,7 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 			<name>variable</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>The name of the variable in which to save the timer exection time itno.</description>
+			<description>The name of the variable in which to save the timer execution time into.</description>
 			<introduced>6.0.0.98</introduced>
 		</attribute>
 

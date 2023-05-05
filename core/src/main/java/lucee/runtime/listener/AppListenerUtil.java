@@ -158,7 +158,7 @@ public final class AppListenerUtil {
 	}
 
 	public static String toStringMode(int mode) {
-		if (mode == ApplicationListener.MODE_CURRENT) return "curr";
+		if (mode == ApplicationListener.MODE_CURRENT) return "current";
 		if (mode == ApplicationListener.MODE_ROOT) return "root";
 		if (mode == ApplicationListener.MODE_CURRENT2ROOT) return "curr2root";
 		if (mode == ApplicationListener.MODE_CURRENT_OR_ROOT) return "currorroot";
@@ -971,7 +971,12 @@ public final class AppListenerUtil {
 
 	public static boolean getPreciseMath(PageContext pc, Config config) {
 		pc = ThreadLocalPageContext.get(pc);
-		if (pc != null) return ((ApplicationContextSupport) pc.getApplicationContext()).getPreciseMath();
+		if (pc != null) {
+			ApplicationContext ac = pc.getApplicationContext();
+			if (ac != null) return ((ApplicationContextSupport) pc.getApplicationContext()).getPreciseMath();
+			if (config == null) config = pc.getConfig();
+
+		}
 		config = ThreadLocalPageContext.getConfig(config);
 		if (config != null) return ((ConfigPro) config).getPreciseMath();
 		return false;

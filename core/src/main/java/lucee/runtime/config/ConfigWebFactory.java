@@ -1427,8 +1427,9 @@ public final class ConfigWebFactory extends ConfigFactory {
 
 		// resources/language
 		Resource langDir = adminDir.getRealResource("resources/language");
-		create("/resource/context/admin/resources/language/", new String[] { "en.xml", "de.xml" }, langDir, doNew);
-
+		// create("/resource/context/admin/resources/language/", new String[] { "en.xml", "de.xml" },
+		// langDir, doNew);
+		if (langDir.exists()) langDir.remove(true);
 		// add Debug
 		Resource debug = adminDir.getRealResource("debug");
 		create("/resource/context/admin/debug/", new String[] { "Debug." + COMPONENT_EXTENSION, "Field." + COMPONENT_EXTENSION, "Group." + COMPONENT_EXTENSION }, debug, doNew);
@@ -1709,8 +1710,13 @@ public final class ConfigWebFactory extends ConfigFactory {
 							String virtual = e.getKey().getString();
 							String physical = getAttr(el, "physical");
 							String archive = getAttr(el, "archive");
-							String listType = getAttr(el, "listenerType");
-							String listMode = getAttr(el, "listenerMode");
+							String strListType = getAttr(el, "listenerType");
+							if (StringUtil.isEmpty(strListType)) strListType = getAttr(el, "listener-type");
+							if (StringUtil.isEmpty(strListType)) strListType = getAttr(el, "listenertype");
+
+							String strListMode = getAttr(el, "listenerMode");
+							if (StringUtil.isEmpty(strListMode)) strListMode = getAttr(el, "listener-mode");
+							if (StringUtil.isEmpty(strListMode)) strListMode = getAttr(el, "listenermode");
 
 							boolean readonly = toBoolean(getAttr(el, "readonly"), false);
 							boolean hidden = toBoolean(getAttr(el, "hidden"), false);
@@ -1722,13 +1728,13 @@ public final class ConfigWebFactory extends ConfigFactory {
 
 							// lucee
 							if (virtual.equalsIgnoreCase("/lucee/")) {
-								if (StringUtil.isEmpty(listType, true)) listType = "modern";
-								if (StringUtil.isEmpty(listMode, true)) listMode = "curr2root";
+								if (StringUtil.isEmpty(strListType, true)) strListType = "modern";
+								if (StringUtil.isEmpty(strListMode, true)) strListMode = "curr2root";
 								toplevel = true;
 							}
 
-							int listenerMode = ConfigWebUtil.toListenerMode(listMode, -1);
-							int listenerType = ConfigWebUtil.toListenerType(listType, -1);
+							int listenerMode = ConfigWebUtil.toListenerMode(strListMode, -1);
+							int listenerType = ConfigWebUtil.toListenerType(strListType, -1);
 							ApplicationListener listener = ConfigWebUtil.loadListener(listenerType, null);
 							if (listener != null || listenerMode != -1) {
 								// type
@@ -1916,6 +1922,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 	}
 
 	private static void _loadLoggers(ConfigServerImpl configServer, ConfigImpl config, Struct root, boolean isReload) {
+		config.clearLoggers(Boolean.FALSE);
 		boolean hasCS = configServer != null;
 		Set<String> existing = new HashSet<>();
 		try {
@@ -2348,11 +2355,17 @@ public final class ConfigWebFactory extends ConfigFactory {
 
 				// first add the server drivers, so they can be overwritten
 				if (configServer != null) {
-					Iterator<ClassDefinition> it = configServer.getCacheDefinitions().values().iterator();
-					ClassDefinition cd;
-					while (it.hasNext()) {
-						cd = it.next();
-						map.put(cd.getClassName(), cd);
+					Map<String, ClassDefinition> cds = configServer.getCacheDefinitions();
+					if (cds != null) {
+						Collection<ClassDefinition> values = cds.values();
+						if (values != null) {
+							Iterator<ClassDefinition> it = values.iterator();
+							ClassDefinition cd;
+							while (it.hasNext()) {
+								cd = it.next();
+								map.put(cd.getClassName(), cd);
+							}
+						}
 					}
 				}
 				ClassDefinition cd;
@@ -2643,11 +2656,15 @@ public final class ConfigWebFactory extends ConfigFactory {
 						log(config, log, t);
 					}
 				}
+				config.setGatewayEntries(mapGateways);
 			}
 			catch (Throwable t) {
 				ExceptionUtil.rethrowIfNecessary(t);
 				log(config, log, t);
 			}
+		}
+		else if (hasCS) {
+			((GatewayEngineImpl) ((ConfigWebPro) config).getGatewayEngine()).clear();
 		}
 	}
 
@@ -4676,6 +4693,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 	private static void _loadExtensionBundles(ConfigServerImpl cs, ConfigImpl config, Struct root, Log log) {
 		try {
 			Array children = ConfigWebUtil.getAsArray("extensions", root);
+			RHExtension.removeDuplicates(children);
 			String strBundles;
 			List<RHExtension> extensions = new ArrayList<RHExtension>();
 			RHExtension rhe;
@@ -4918,8 +4936,16 @@ public final class ConfigWebFactory extends ConfigFactory {
 						boolean readonly = toBoolean(getAttr(cMapping, "readonly"), false);
 						boolean hidden = toBoolean(getAttr(cMapping, "hidden"), false);
 
-						int listMode = ConfigWebUtil.toListenerMode(getAttr(cMapping, "listenerMode"), -1);
-						int listType = ConfigWebUtil.toListenerType(getAttr(cMapping, "listenerType"), -1);
+						String strListMode = getAttr(cMapping, "listenerMode");
+						if (StringUtil.isEmpty(strListMode)) strListMode = getAttr(cMapping, "listener-mode");
+						if (StringUtil.isEmpty(strListMode)) strListMode = getAttr(cMapping, "listenermode");
+						int listMode = ConfigWebUtil.toListenerMode(strListMode, -1);
+
+						String strListType = getAttr(cMapping, "listenerType");
+						if (StringUtil.isEmpty(strListType)) strListMode = getAttr(cMapping, "listener-type");
+						if (StringUtil.isEmpty(strListType)) strListMode = getAttr(cMapping, "listenertype");
+						int listType = ConfigWebUtil.toListenerType(strListType, -1);
+
 						short inspTemp = inspectTemplate(cMapping);
 
 						String primary = getAttr(cMapping, "primary");
@@ -5143,16 +5169,16 @@ public final class ConfigWebFactory extends ConfigFactory {
 			config.setFullNullSupport(fns);
 
 			// precise math
-			boolean pm = hasCS ? configServer.getPreciseMath() : false;
+			boolean pm = hasCS ? configServer.getPreciseMath() : true;
 			if (mode == ConfigPro.MODE_STRICT) {
-				pm = false;
+				pm = true;
 			}
 			else {
 				String str = getAttr(root, "preciseMath");
 				if (StringUtil.isEmpty(str, true)) str = SystemUtil.getSystemPropOrEnvVar("lucee.precise.math", null);
 
 				if (!StringUtil.isEmpty(str, true)) {
-					pm = Caster.toBooleanValue(str, hasCS ? configServer.getPreciseMath() : false);
+					pm = Caster.toBooleanValue(str, hasCS ? configServer.getPreciseMath() : true);
 				}
 			}
 			config.setPreciseMath(pm);
