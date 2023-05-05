@@ -1,22 +1,20 @@
-<cfcomponent >
-	<cffunction name="testtag">
+<cfcomponent>
+	<cffunction name="testTag">
 		<cfargument name="a" default="udf">
 		<cfset local.foo = function(a="argclosuretag"){return "closure-insidetag:"&arguments.a;}> <!---fine--->
 		<cfreturn "tag:"&foo()>
 	</cffunction>
 	
 	<cfscript>echo("constr");
-		function testscript() {
+		function testScript() {
 			local.foo = function(a="argclosurescript"){return "closure-insidescript:"&arguments.a;}
 			return "script:"&foo();
 		}
-		
 	</cfscript>
-
-
 </cfcomponent>
+
 <cfcomponent  name="sub">
-	<cffunction name="subtest">
+	<cffunction name="subTest">
 		<cfreturn "subito">
 	</cffunction>
 </cfcomponent>

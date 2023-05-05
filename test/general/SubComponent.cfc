@@ -1,9 +1,9 @@
 component extends="org.lucee.cfml.test.LuceeTestCase"{
 	function beforeAll() {
-		variables.cfcFile = getDirectoryFromPath(getCurrentTemplatePath()) & "cfc/testComp.cfc";
-		variables.uri = createURI("cfc")
+		variables.cfcFile = getDirectoryFromPath(getCurrentTemplatePath()) & "subComponent/testComp.cfc";
+		variables.uri = createURI("subComponent")
 
-		writeComponentFileWithSubComponent();
+		writeComponentFileWithsubComponent();
 	}
 
 	function afterAll() {
@@ -13,20 +13,20 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 	function run( testResults , testBox ) {
 		describe( "test sub component", function() {
 			it(title="tag based main component", body=function() {
-				var cfc=new cfc.TestSubTag();
+				var cfc=new subComponent.TestSubTag();
 				expect(cfc.testtag()).toBe("tag:closure-insidetag:argclosuretag");
 				expect(cfc.testscript()).toBe("script:closure-insidescript:argclosurescript");
 			});
 			it(title="tag based sub component", body=function() {
-				var cfc=new cfc.TestSubTag$sub();
+				var cfc=new subComponent.TestSubTag$sub();
 				expect(cfc.subtest()).toBe("subito");
 			});
 			it(title="script based main component", body=function() {
-				var cfc=new cfc.TestSubScript();
+				var cfc=new subComponent.TestSubScript();
 				expect(cfc.test()).toBe("main:closure-insidemain:argclosuremain");
 			});
 			it(title="script based sub component", body=function() {
-				var cfc=new cfc.TestSubScript$sub();
+				var cfc=new subComponent.TestSubScript$sub();
 				expect(cfc.test()).toBe("sub:closure-insidesub:argclosuresub");
 			});
 			it(title="checking sub component this scope", body=function( currentSpec ){
@@ -50,7 +50,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				expect(res).toBe("from sub static");
 			});
 			it(title="checking sub component after the code changed", body=function( currentSpec ){
-				writeComponentFileWithSubComponent(additionalFunction='function addiFunc() { return "from additional function";}');
+				writeComponentFileWithsubComponent(additionalFunction='function addiFunc() { return "from additional function";}');
 
 				var res = _internalRequest(
 					template = "#variables.uri#/index.cfm",
@@ -68,7 +68,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 	}
 
 	// this function is helps to write the cfc files/change the source code of the cfc files
-	private function writeComponentFileWithSubComponent(String additionalFunction="") {
+	private function writeComponentFileWithsubComponent(String additionalFunction="") {
 
 		cfcSourceCode = '
 component {
