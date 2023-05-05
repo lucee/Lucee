@@ -3,8 +3,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
     function run( testResults , testBox ) {
         describe( "test case for reReplaceNocase", function() {
 
-            var myQry=QueryNew("id,name","Integer,VarChar",[[1,'Lucee'],[2,'I love Lucee']]);
-
             it(title = "Test case for reReplaceNocase function", body = function( currentSpec ) {
                 assertEquals("xxdefxxabcxx",reReplaceNocase("xxabcxxabcxx","ABC","def"));
                 assertEquals("xxdefxxdefxx",reReplaceNocase("xxabcxxabcxx","ABC","def","all"));
