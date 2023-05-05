@@ -519,17 +519,22 @@ public final class WDDXConverter extends ConverterSupport {
 				if (node.getNodeName().equalsIgnoreCase("wddxPacket")) {
 					wddxPacket = node;
 					break;
+				} else {
+					throw new IllegalArgumentException("Invalid WDDX packet: root element is not wddxPacket.");
 				}
 			}
 
 			NodeList nl = wddxPacket.getChildNodes();
 			int n = nl.getLength();
 
+			if (n ==0) return null;
+
 			for (int i = 0; i < n; i++) {
 				Node data = nl.item(i);
 				if (data.getNodeName().equals("data")) {
 					NodeList list = data.getChildNodes();
 					len = list.getLength();
+					if (len ==0) return null;
 					for (int y = 0; y < len; y++) {
 						Node node = list.item(y);
 						if (node instanceof Element) return _deserialize((Element) node);
