@@ -53,7 +53,7 @@ public final class GetTempFile implements Function {
 		if (extension.charAt(0) != '.') { extension = "." + extension; }
 		do {
 			file = dir.getRealResource(prefix + pc.getId() + randomPart + extension);
-			fileCreated = file.createFile(false);
+			fileCreated = file.createNewFile();
 			if (fileCreated) {
 				try {
 					return file.getCanonicalPath();
