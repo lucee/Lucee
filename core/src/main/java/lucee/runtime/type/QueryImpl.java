@@ -132,6 +132,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 
 	private QueryColumnImpl[] columns;
 	private Collection.Key[] columnNames;
+	private ResultSetMetaData metadata;
 	private SQL sql;
 	private Map<Integer, Integer> currRow = new ConcurrentHashMap<Integer, Integer>();
 	private AtomicInteger recordcount = new AtomicInteger(0);
@@ -623,9 +624,10 @@ public class QueryImpl implements Query, Objects, QueryResult {
 		int recordcount = 0, columncount = 0;
 		Collection.Key[] columnNames = null;
 		QueryColumnImpl[] columns = null;
+		ResultSetMetaData meta = null;
 
 		try {
-			ResultSetMetaData meta = result.getMetaData();
+			meta = result.getMetaData();
 			columncount = meta.getColumnCount();
 
 			// set header arrays
@@ -778,6 +780,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 				qry.recordcount.set(recordcount);
 				qry.columnNames = columnNames;
 				qry.columns = columns;
+				qry.metadata = meta;
 			}
 			else {
 				qr.setColumnNames(columnNames);
@@ -3019,8 +3022,12 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	}
 
 	@Override
-	public ResultSetMetaData getMetaData() throws SQLException {
-		throw new SQLException("method is not implemented");
+	public ResultSetMetaData getMetaData() {
+		return this.metadata;
+	}
+
+	private void setMetaData(ResultSetMetaData metadata) {
+		this.metadata = metadata;
 	}
 
 	@Override
@@ -3056,6 +3063,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 			this.name = other.name;
 			this.recordcount = other.recordcount;
 			this.sql = other.sql;
+			this.metadata = other.metadata;
 			this.updateCount = other.updateCount;
 
 		}
@@ -3362,6 +3370,11 @@ public class QueryImpl implements Query, Objects, QueryResult {
 			}
 			newResult.currRow = new ConcurrentHashMap<Integer, Integer>();
 			newResult.sql = qry.getSql();
+			try {
+				newResult.metadata = qry.getMetaData();
+			} catch (SQLException e) {
+				// Do nothing on exception, falls back to null
+			}
 			if (qry instanceof QueryImpl) newResult.templateLine = ((QueryImpl) qry).getTemplateLine();
 			else newResult.templateLine = new TemplateLine(qry.getTemplate(), 0);
 			newResult.recordcount = ((QueryImpl) qry).recordcount;
