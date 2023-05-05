@@ -137,7 +137,7 @@ public final class SQLImpl implements SQL, Serializable {
 				sb.append(c);
 			}
 			else if (!inQuotes && c == '?') {
-				if ((index + 1) > items.length) throw new RuntimeException("there are more question marks in the SQL than params defined");
+				if ((index + 1) > items.length) throw new RuntimeException("there are more question marks in the SQL than params defined, in the SQL String: [" + strSQL +"]");
 				if (items[index].isNulls()) sb.append("null");
 				else sb.append(SQLCaster.toString(items[index]));
 				index++;
