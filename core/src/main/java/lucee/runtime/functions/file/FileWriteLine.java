@@ -20,6 +20,7 @@ package lucee.runtime.functions.file;
 
 import java.io.IOException;
 
+import lucee.commons.io.SystemUtil;
 import lucee.commons.io.res.Resource;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
@@ -42,7 +43,7 @@ public class FileWriteLine {
 					pc.getConfig().getSecurityManager().checkFileLocation(res);
 					fsw = new FileStreamWrapperWrite(res, ((PageContextImpl) pc).getResourceCharset().name(), false, false);
 				}
-				fsw.write(text + System.getProperty("line.separator"));
+				fsw.write(text + SystemUtil.lineSeparator());
 			}
 			finally {
 				if (close && fsw != null) fsw.close();
