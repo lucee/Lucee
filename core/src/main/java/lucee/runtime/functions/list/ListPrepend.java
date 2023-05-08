@@ -41,10 +41,11 @@ public final class ListPrepend extends BIF {
 	}
 
 	public static String call(PageContext pc, String list, String value, String delimiter, boolean includeEmptyFields) {
-		if (list.length() == 0) return value;
-		if (delimiter.length() == 0) return list;
-
+		if (delimiter.length() == 0) return value;
+		
 		char del = delimiter.charAt(0);
+		if (list.length() == 0) return includeEmptyFields? value : ListUtil.listRemoveEmpty(value, del);
+
 		if (!includeEmptyFields) {
 			list = ListUtil.listRemoveEmpty(list, del);
 			value = ListUtil.listRemoveEmpty(value, del);
