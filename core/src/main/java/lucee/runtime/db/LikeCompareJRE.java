@@ -49,7 +49,7 @@ class LikeCompareJRE {
 			char esc = 0;
 			if (!StringUtil.isEmpty(escape)) {
 				esc = escape.charAt(0);
-				if (escape.length() > 1) throw new DatabaseException("Invalid escape character [" + escape + "] has been specified in a LIKE conditional.  Escape char must be a single character.", null, sql, null)
+				if (escape.length() > 1) throw new DatabaseException("Invalid escape character [" + escape + "] has been specified in a LIKE conditional.  Escape char must be a single character.", null, sql, null);
 			}
 
 			StringBuilder sb = new StringBuilder(wildcard.length());
