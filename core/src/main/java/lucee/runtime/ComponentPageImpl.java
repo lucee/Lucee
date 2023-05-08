@@ -315,7 +315,7 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 
 					// check if http method match
 					String httpMethod = Caster.toString(meta.get(KeyConstants._httpmethod, null), null);
-					if (StringUtil.isEmpty(httpMethod) || !httpMethod.equalsIgnoreCase(method)) continue;
+					if (StringUtil.isEmpty(httpMethod) || StringUtil.indexOfIgnoreCase(httpMethod, method) == 0) continue;
 
 					// get consumes mimetype
 					MimeType[] consumes;
