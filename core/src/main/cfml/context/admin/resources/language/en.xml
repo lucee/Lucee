@@ -62,6 +62,7 @@
 	<data key="services.update.downUpDesc">Upgrade or downgrade your current version.</data>
 	<data key="services.update.downup">Upgrade / Downgrade</data>
 	<data key="services.update.downupBtn">Execute</data>
+	<data key="services.update.changeLogsSince">Change logs since current version</data>
 	<data key="services.update.noUpdateDesc">There are currently no {type} available for your version.</data>
 	<!-- <data key="services.update.titleDesc">Upgrade (or Downgrade) your Lucee version ({version}) to any version * you like.</data> -->
 	<data key="services.update.titleDesc">Upgrade or Downgrade the version by selecting from the drop-down box below.</data>
