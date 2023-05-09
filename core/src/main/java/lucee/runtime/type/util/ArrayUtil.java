@@ -352,7 +352,7 @@ public final class ArrayUtil {
 	public static Byte[] toReferenceType(byte[] primArr) {
 		Byte[] refArr = new Byte[primArr.length];
 		for (int i = 0; i < primArr.length; i++)
-			refArr[i] = new Byte(primArr[i]);
+			refArr[i] = Byte.valueOf(primArr[i]);
 		return refArr;
 	}
 
@@ -365,7 +365,7 @@ public final class ArrayUtil {
 	public static Character[] toReferenceType(char[] primArr) {
 		Character[] refArr = new Character[primArr.length];
 		for (int i = 0; i < primArr.length; i++)
-			refArr[i] = new Character(primArr[i]);
+			refArr[i] = Character.valueOf(primArr[i]);
 		return refArr;
 	}
 
@@ -417,7 +417,7 @@ public final class ArrayUtil {
 	public static Float[] toReferenceType(float[] primArr) {
 		Float[] refArr = new Float[primArr.length];
 		for (int i = 0; i < primArr.length; i++)
-			refArr[i] = new Float(primArr[i]);
+			refArr[i] = Float.valueOf(primArr[i]);
 		return refArr;
 	}
 
@@ -430,7 +430,7 @@ public final class ArrayUtil {
 	public static Double[] toReferenceType(double[] primArr) {
 		Double[] refArr = new Double[primArr.length];
 		for (int i = 0; i < primArr.length; i++)
-			refArr[i] = new Double(primArr[i]);
+			refArr[i] = Double.valueOf(primArr[i]);
 		return refArr;
 	}
 
@@ -467,7 +467,7 @@ public final class ArrayUtil {
 		}
 		else if (o instanceof byte[]) {
 			byte[] arr = ((byte[]) o);
-			if (arr.length > index) return new Byte(arr[index]);
+			if (arr.length > index) return Byte.valueOf(arr[index]);
 		}
 		else if (o instanceof char[]) {
 			char[] arr = ((char[]) o);
@@ -487,11 +487,11 @@ public final class ArrayUtil {
 		}
 		else if (o instanceof float[]) {
 			float[] arr = ((float[]) o);
-			if (arr.length > index) return new Float(arr[index]);
+			if (arr.length > index) return Float.valueOf(arr[index]);
 		}
 		else if (o instanceof double[]) {
 			double[] arr = ((double[]) o);
-			if (arr.length > index) return new Double(arr[index]);
+			if (arr.length > index) return Double.valueOf(arr[index]);
 		}
 		return defaultValue;
 	}
@@ -525,7 +525,7 @@ public final class ArrayUtil {
 			if (arr.length > index) {
 				double v = Caster.toDoubleValue(value, true, Double.NaN);
 				if (Decision.isValid(v)) {
-					return new Byte(arr[index] = (byte) v);
+					return Byte.valueOf(arr[index] = (byte) v);
 				}
 			}
 			throw invalidIndex(index, arr.length);
@@ -565,7 +565,7 @@ public final class ArrayUtil {
 			if (arr.length > index) {
 				double v = Caster.toDoubleValue(value, true, Double.NaN);
 				if (Decision.isValid(v)) {
-					return new Float(arr[index] = (float) v);
+					return Float.valueOf(arr[index] = (float) v);
 				}
 			}
 			throw invalidIndex(index, arr.length);
@@ -575,7 +575,7 @@ public final class ArrayUtil {
 			if (arr.length > index) {
 				double v = Caster.toDoubleValue(value, true, Double.NaN);
 				if (Decision.isValid(v)) {
-					return new Double(arr[index] = v);
+					return Double.valueOf(arr[index] = v);
 				}
 			}
 			throw invalidIndex(index, arr.length);

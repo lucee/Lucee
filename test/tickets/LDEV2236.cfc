@@ -4,16 +4,16 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 		try{
 			application action="update" NULLSupport=false;
 			query name="local.res" {
-				echo("SELECT null AS value");
+				echo("SELECT null AS val");
 			}
-			var r=res.value;
+			var r=res.val;
 			assertFalse(isNull(r));
 
 			application action="update" NULLSupport=true;
 			query name="local.res" {
-				echo("SELECT null AS value");
+				echo("SELECT null AS val");
 			}
-			var r=res.value;
+			var r=res.val;
 			assertTrue(isNull(r));
 		}
 		finally {
@@ -25,15 +25,15 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 		try{
 			application action="update" NULLSupport=false;
 			query name="local.res" returntype="array" {
-				echo("SELECT null AS value");
+				echo("SELECT null AS val");
 			}
-			assertFalse(isNull(res[1].value));
+			assertFalse(isNull(res[1].val));
 
 			application action="update" NULLSupport=true;
 			query name="local.res" returntype="array" {
-				echo("SELECT null AS value");
+				echo("SELECT null AS val");
 			}
-			assertTrue(isNull(res[1].value));
+			assertTrue(isNull(res[1].val));
 		}
 		finally {
 			application action="update" NULLSupport=false;
@@ -44,15 +44,15 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 		try{
 			application action="update" NULLSupport=false;
 			query name="local.res" returntype="struct" columnKey="id" {
-				echo("SELECT 'a' as id, null AS value");
+				echo("SELECT 'a' as id, null AS val");
 			}
-			assertFalse(isNull(res.a.value));
+			assertFalse(isNull(res.a.val));
 
 			application action="update" NULLSupport=true;
 			query name="local.res" returntype="struct" columnKey="id" {
-				echo("SELECT 'a' as id, null AS value");
+				echo("SELECT 'a' as id, null AS val");
 			}
-			assertTrue(isNull(res.a.value));
+			assertTrue(isNull(res.a.val));
 		}
 		finally {
 			application action="update" NULLSupport=false;
@@ -67,27 +67,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 	private string function defineDatasource(){
 		application 
 			action="update" 
-			datasource="#{
-		  		class: 'org.h2.Driver'
-		  		, bundleName: 'org.h2'
-				, connectionString: 'jdbc:h2:#getDirectoryFromPath(getCurrentTemplatePath())#/datasource/ldev2236;MODE=MySQL'
-			}#"
-		;
-	}
-
-	function afterTests() {
-		var javaIoFile=createObject("java","java.io.File");
-		loop array=DirectoryList(
-			path=getDirectoryFromPath(getCurrentTemplatePath()), 
-			recurse=true, filter="*.db") item="local.path"  {
-			fileDeleteOnExit(javaIoFile,path);
-		}
-	}
-
-	private function fileDeleteOnExit(required javaIoFile, required string path) {
-		var file=javaIoFile.init(arguments.path);
-		if(!file.isFile())file=javaIoFile.init(expandPath(arguments.path));
-		if(file.isFile()) file.deleteOnExit();
+			datasource="#server.getDatasource( "h2", server._getTempDir( "LDEV2236" ) )#";
 	}
 
 

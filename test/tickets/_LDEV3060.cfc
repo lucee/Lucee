@@ -6,7 +6,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 
 	function run( testresults , testbox ) {
 		describe( "testcase for LDEV-3054", function () {
-			it( title="comonent with sameline '{'",body = function ( currentSpec ){
+			it( title="component with sameline '{'",body = function ( currentSpec ){
 				local.result = _InternalRequest(
 					template : "#uri#\test.cfm",
 					forms :	{scene=1}
@@ -14,7 +14,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 				expect(trim(result.filecontent)).toBe("invalid syntax before [::]");
 			});
 
-			it( title="comonent with next line '{'",body= function ( currentSpec ){
+			it( title="component with next line '{'",body= function ( currentSpec ){
 				local.result = _InternalRequest(
 					template : "#uri#\test.cfm",
 					forms :	{scene=2}

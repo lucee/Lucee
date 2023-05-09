@@ -190,7 +190,7 @@ Error Output --->
 
 <cfif request.adminType EQ "server">
 	<cftry>
-		<cfset hasDefaultPW=true>
+		<cfset hasDefaultPW=!request.singlemode>
 		<cfadmin
 			action="getDefaultPassword"
 			type="#request.adminType#"
@@ -232,7 +232,7 @@ Error Output --->
 		</cfoutput>
 	</cfif>
 
-	<cfset hasContextes = true>
+	<cfset hasContextes = !request.singlemode>
 	<cftry>
 		<cfadmin
 			action="getContextes"

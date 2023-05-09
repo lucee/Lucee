@@ -1,16 +1,13 @@
 component extends="org.lucee.cfml.test.LuceeTestCase" {
-	
 	function run( testResults , testBox ) {
 		describe( title="Test suite for cftimeout Tag",  body=function() {
 			describe(title="checking cftimeout tag", body = function( currentSpec ) {
 				it(title="no attributes, no timeout", body = function( currentSpec ) {
-					savecontent variable="local.result" {
-						timeout timespan=1  {
-							echo("timeout passing fine");
-						}
-					}
-					systemOutput(result&":timeout passing fine",1,1);
+					savecontent variable="local.result" { timeout timespan=1  {echo("timeout passing fine");}}
+
+					//systemOutput(result&":timeout passing fine",1,1);
 					expect(result).toBe("timeout passing fine");
+				
 				});
 				
 				it(title="no attributes, with timeout", body = function( currentSpec ) {
@@ -23,7 +20,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 					catch(e) {
 						result=e.message;
 					}
-					systemOutput(result&":a timeout occurred within the tag timeout",1,1);
+					//systemOutput(result&":a timeout occurred within the tag timeout",1,1);
 					expect(result).toBe("a timeout occurred within the tag timeout");
 				});
 
@@ -35,7 +32,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 							sleep(1000);
 						}
 					}
-					systemOutput(result&":message from within timeout listener",1,1);
+					//systemOutput(result&":message from within timeout listener",1,1);
 					expect(result).toBe("message from within timeout listener");
 				});
 
@@ -51,7 +48,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 					catch(e) {
 						result=e.message;
 					}
-					systemOutput(result&":escalate the timeout",1,1);
+					//systemOutput(result&":escalate the timeout",1,1);
 					expect(result).toBe("escalate the timeout");
 				});
 
@@ -63,7 +60,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 							throw "Ups!";
 						}
 					}
-					systemOutput(result&":message from within error listener",1,1);
+					//systemOutput(result&":message from within error listener",1,1);
 					expect(result).toBe("message from within error listener");
 				});
 
@@ -79,7 +76,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 					catch(e) {
 						result=e.message;
 					}
-					systemOutput(result&":escalate the error",1,1);
+					//systemOutput(result&":escalate the error",1,1);
 					expect(result).toBe("escalate the error");
 				});
 

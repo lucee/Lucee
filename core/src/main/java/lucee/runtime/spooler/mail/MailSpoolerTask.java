@@ -100,6 +100,18 @@ public class MailSpoolerTask extends SpoolerTaskSupport {
 		return sct;
 	}
 
+	public String getCharset() {
+		return client.getCharset();
+	}
+
+	public String getReplyTos() {
+		return toString(client.getReplyTos());
+	}
+
+	public String getFailTos() {
+		return toString(client.getFailTos());
+	}
+
 	private static String toString(InternetAddress[] adresses) {
 		if (adresses == null) return "";
 

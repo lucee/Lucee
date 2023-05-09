@@ -35,12 +35,12 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	}
 
 
-	private struct function getCredencials() {
+	private struct function getCredentials() {
 		return server.getTestService("s3");
 	}
 	
 	public function setUp(){
-		var s3=getCredencials();
+		var s3=getCredentials();
 		if(!isNull(s3.accessKeyId)) {
 			application action="update" s3=s3; 
 			variables.s3Supported=true;

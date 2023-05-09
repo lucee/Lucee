@@ -27,6 +27,7 @@ import lucee.commons.io.res.filter.ExtensionResourceFilter;
 import lucee.commons.io.res.filter.OrResourceFilter;
 import lucee.commons.io.res.filter.ResourceFilter;
 import lucee.commons.lang.MappingUtil;
+import lucee.commons.lang.PhysicalClassLoader;
 import lucee.commons.lang.StringUtil;
 import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.CIObject;
@@ -44,6 +45,7 @@ import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
 import lucee.runtime.PageSourceImpl;
 import lucee.runtime.StaticScope;
+import lucee.runtime.SubPage;
 import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.Constants;
 import lucee.runtime.debug.DebugEntryTemplate;
@@ -95,14 +97,42 @@ public class ComponentLoader {
 	public static StaticScope getStaticScope(PageContext pc, PageSource loadingLocation, String rawPath, Boolean searchLocal, Boolean searchRoot) throws PageException {
 		ComponentPageImpl cp = searchComponentPage(pc, loadingLocation, rawPath, searchLocal, searchRoot);
 		StaticScope ss = cp.getStaticScope();
+
+		// if there is no static scope stored yet, we need to load it
 		if (ss == null) {
 			synchronized (cp.getPageSource().getDisplayPath() + ":" + getToken(cp.getHash() + "")) {
 				ss = cp.getStaticScope();
 				if (ss == null) {
-					cp.setStaticScope(ss = searchComponent(pc, loadingLocation, rawPath, searchLocal, searchRoot, false, false).staticScope());
+					ss = searchComponent(pc, loadingLocation, rawPath, searchLocal, searchRoot, false, false).staticScope();
+					cp.setStaticScope(ss);
+					return ss;
 				}
 			}
 		}
+
+		// check if one of the base components did change
+		long index = cp.getIndex();
+		boolean reload = false;
+		ComponentImpl bc;
+		Component c = ss.getComponent();
+		while ((bc = (ComponentImpl) c.getBaseComponent()) != null) {
+			ComponentPageImpl bcp = (ComponentPageImpl) ((PageSourceImpl) bc._getPageSource()).loadPage(pc, false, null);
+			if (bcp.getStaticStruct() != null) {
+				long idx = bcp.getStaticStruct().index();
+				if (idx == 0 || idx > index) {
+					reload = true;
+					break;
+				}
+			}
+			c = bc;
+		}
+
+		// if we had changes we need to reload
+		if (reload) {
+			ss = searchComponent(pc, loadingLocation, rawPath, searchLocal, searchRoot, false, false).staticScope();
+			cp.setStaticScope(ss);
+		}
+
 		return ss;
 	}
 
@@ -178,7 +208,7 @@ public class ComponentLoader {
 
 		boolean doCache = config.useComponentPathCache();
 		String sub = null;
-		if (returnType != RETURN_TYPE_PAGE && rawPath.indexOf('$') != -1) {
+		if (rawPath.indexOf('$') != -1) {
 			int d = rawPath.lastIndexOf('$');
 			int s = rawPath.lastIndexOf('.');
 			if (d > s) {
@@ -475,16 +505,26 @@ public class ComponentLoader {
 		// TODO find a better way to create that class name
 		String subClassName = lucee.transformer.bytecode.Page.createSubClass(page.getPageSource().getClassName(), sub, page.getPageSource().getDialect());
 
-		// subClassName:sub.test_cfc$cf$1$sub1
-		// - sub.test_cfc$sub1$cf
-
 		CIPage[] subs = page.getSubPages();
 		for (int i = 0; i < subs.length; i++) {
-			if (subs[i].getClass().getName().equals(subClassName)) {
+			if (PhysicalClassLoader.substractAppendix(subs[i].getClass().getName()).equals(subClassName)) {
 				return subs[i];
 			}
 		}
-		throw new ApplicationException("There is no Sub component [" + sub + "] in [" + page.getPageSource().getDisplayPath() + "]");
+
+		StringBuilder detail = new StringBuilder();
+		for (int i = 0; i < subs.length; i++) {
+			if (subs[i] instanceof SubPage) {
+				if (detail.length() > 0) detail.append(",");
+				detail.append(((SubPage) subs[i]).getSubname());
+			}
+		}
+
+		StringBuilder msg = new StringBuilder("There is no Sub component [").append(sub).append("] in [").append(page.getPageSource().getDisplayPath()).append("]");
+
+		if (detail.length() > 0)
+			throw new ApplicationException(msg.toString(), "The following Sub Components are available [" + detail + "] in [" + page.getPageSource().getDisplayPath() + "]");
+		else throw new ApplicationException(msg.toString(), "There are no Sub Components in [" + page.getPageSource().getDisplayPath() + "]");
 	}
 
 	public static Page loadPage(PageContext pc, PageSource ps, boolean forceReload) throws PageException {
@@ -515,6 +555,10 @@ public class ComponentLoader {
 		finally {
 			pc.removeLastPageSource(true);
 		}
+	}
+
+	public static ComponentImpl loadInline(CIPage page, PageContext pc) throws PageException {
+		return _loadComponent(pc, page, null, true, true, true, true).setInline();
 	}
 
 	private static ComponentImpl _loadComponent(PageContext pc, CIPage page, String callPath, boolean isRealPath, final boolean isExtendedComponent, boolean executeConstr,

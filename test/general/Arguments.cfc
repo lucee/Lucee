@@ -17,4 +17,17 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
     public function testArgs() {
         checkArgs( "aa" , "bb" , "cc" );
     }
+
+    public function testArgumentCollection() skip=true {
+        _testClosureArgumentCollection( a=1, b=2 );
+    }
+
+    private function _testClosureArgumentCollection( a , b ){
+        expect( arguments.a ).toBe( 1 );
+        expect( arguments.b ).toBe( 2 );
+        expect(function(argumentCollection=arguments){
+            expect( arguments.a ).toBe( 1 );
+            expect( arguments.b ).toBe( 2 );
+        }).notToThrow();
+    }
 }

@@ -60,18 +60,18 @@ public final class CacheGetMetadata extends BIF {
 			CacheEntry entry = cache.getCacheEntry(CacheUtil.key(id));
 
 			Struct info = new StructImpl();
-			info.set(CACHE_HITCOUNT, new Double(cache.hitCount()));
-			info.set(CACHE_MISSCOUNT, new Double(cache.missCount()));
+			info.set(CACHE_HITCOUNT, Double.valueOf(cache.hitCount()));
+			info.set(CACHE_MISSCOUNT, Double.valueOf(cache.missCount()));
 			info.set(CACHE_CUSTOM, cache.getCustomInfo());
 			info.set(KeyConstants._custom, entry.getCustomInfo());
 
 			info.set(CREATED_TIME, entry.created());
-			info.set(KeyConstants._hitcount, new Double(entry.hitCount()));
-			info.set(IDLE_TIME, new Double(entry.idleTimeSpan()));
+			info.set(KeyConstants._hitcount, Double.valueOf(entry.hitCount()));
+			info.set(IDLE_TIME, Double.valueOf(entry.idleTimeSpan()));
 			info.set(LAST_HIT, entry.lastHit());
 			info.set(LAST_UPDATED, entry.lastModified());
-			info.set(KeyConstants._size, new Double(entry.size()));
-			info.set(KeyConstants._timespan, new Double(entry.liveTimeSpan()));
+			info.set(KeyConstants._size, Double.valueOf(entry.size()));
+			info.set(KeyConstants._timespan, Double.valueOf(entry.liveTimeSpan()));
 			return info;
 		}
 		catch (IOException e) {

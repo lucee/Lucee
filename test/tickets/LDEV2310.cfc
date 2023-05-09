@@ -26,10 +26,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="image" {
 	}
 	
 	function beforeAll(){
-		variables.path = "/test/#listLast(getDirectoryFromPath(getCurrenttemplatepath()),"\/")#/" &"LDEV2310/";
+		variables.path = server._getTempDir( "LDEV2310" );
 		if(!directoryExists(path)){
 			directoryCreate(path)
 		}
-		filewrite(path&"imgbase64.txt",variables.b64);
+		filewrite(path&"/imgbase64.txt",variables.b64);
 	}
 }

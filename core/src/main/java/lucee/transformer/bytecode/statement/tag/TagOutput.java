@@ -41,13 +41,13 @@ public final class TagOutput extends TagGroup {
 		super(f, start, end);
 	}
 
-	public static TagOutput getParentTagOutputQuery(Statement stat) throws TransformerException {
+	public static TagOutput getParentTagOutputQuery(BytecodeContext bc, Statement stat) throws TransformerException {
 		Statement parent = stat.getParent();
-		if (parent == null) throw new TransformerException("there is no parent output with query", null);
+		if (parent == null) throw new TransformerException(bc, "there is no parent output with query", null);
 		else if (parent instanceof TagOutput) {
 			if (((TagOutput) parent).hasQuery()) return ((TagOutput) parent);
 		}
-		return getParentTagOutputQuery(parent);
+		return getParentTagOutputQuery(bc, parent);
 	}
 
 	public void setType(int type) {
@@ -87,7 +87,7 @@ public final class TagOutput extends TagGroup {
 			break;
 
 		default:
-			throw new TransformerException("invalid type", getStart());
+			throw new TransformerException(bc, "invalid type", getStart());
 		}
 	}
 

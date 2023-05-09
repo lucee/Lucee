@@ -1,7 +1,7 @@
 component extends = "org.lucee.cfml.test.LuceeTestCase" {
 	function run ( testResults , testbox ){
-		describe( "Testcase for LDEV-3167", function(){
-			it( title = "Check with invaild struct member function", body = function( currentSpec ){
+		describe( title="Testcase for LDEV-3167", body=function(){
+			it( title = "Check with invalid struct member function", body = function( currentSpec ){
 				str = { one : "one",two : "two" };
 				try{
 					errorMsg = str.tokey();

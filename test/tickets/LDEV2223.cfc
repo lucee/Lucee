@@ -1,7 +1,6 @@
 component extends="org.lucee.cfml.test.LuceeTestCase" labels="zip"	{
-	
-	variables.curr=getDirectoryFromPath(getCurrentTemplatePath());
-	variables.dir=curr&"LDEV2223/";
+		
+	variables.dir=server._getTempDir( "LDEV2223" ) & "/";
 	variables.trg=dir&"res/";
 	variables.file=dir&"susi.txt";
 	variables.trgFile=trg&"susi.txt";

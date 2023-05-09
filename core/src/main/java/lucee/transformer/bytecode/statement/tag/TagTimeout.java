@@ -29,7 +29,7 @@ public final class TagTimeout extends TagBaseNoFinal implements ATagThread {
 	}
 
 	public void init() throws TransformerException {
-		Page page = ASMUtil.getAncestorPage(this);
+		Page page = ASMUtil.getAncestorPage(null, this);
 		index = page.addThread(this);
 
 	}

@@ -1411,15 +1411,21 @@ public final class ConfigAdmin {
 
 		Struct children = ConfigWebUtil.getAsStruct("dataSources", root);
 		Key[] keys = children.keys();
+
+		boolean isUpdate = false;
+		boolean isNameUpdate = !StringUtil.isEmpty(newName) && !newName.equals(name);
+		Struct el = new StructImpl(Struct.TYPE_LINKED);
+
 		for (Key key: keys) {
 
 			if (key.getString().equalsIgnoreCase(name)) {
 				Struct tmp = Caster.toStruct(children.get(key, null), null);
 				if (tmp == null) continue;
-				Struct el = tmp;
+				el = tmp;
+				isUpdate = true;
 				if (password.equalsIgnoreCase("****************")) password = ConfigWebUtil.getAsString("password", el, null);
 
-				if (!StringUtil.isEmpty(newName) && !newName.equals(name)) el.setEL("name", newName);
+				if (isNameUpdate) el.setEL("name", newName);
 				setClass(el, null, "", cd);
 
 				if (!StringUtil.isEmpty(id)) el.setEL(KeyConstants._id, id);
@@ -1464,15 +1470,21 @@ public final class ConfigAdmin {
 				if (alwaysResetConnections) el.setEL("alwaysResetConnections", "true");
 				else if (el.containsKey("alwaysResetConnections")) el.removeEL(KeyImpl.init("alwaysResetConnections"));
 
-				return;
+				break;
 			}
+		}
+		if (isUpdate) {
+			if (isNameUpdate) {
+				children.setEL(newName, el);
+				children.removeEL(KeyImpl.init(name));
+			}
+			return;
 		}
 
 		if (!hasInsertAccess) throw new SecurityException("Unable to add a datasource connection, the maximum count of [" + maxLength + "] datasources has been reached. "
 				+ " This can be configured in the Server Admin, under Security, Access");
 
 		// Insert
-		Struct el = new StructImpl(Struct.TYPE_LINKED);
 		children.setEL(!StringUtil.isEmpty(newName) ? newName : name, el);
 		setClass(el, null, "", cd);
 		el.setEL("dsn", dsn);
@@ -4428,8 +4440,9 @@ public final class ConfigAdmin {
 			boolean reloadNecessary = false;
 
 			// store to xml
+			RHExtension.removeDuplicates(ConfigWebUtil.getAsArray("extensions", root));
 			BundleDefinition[] existing = _updateExtension(ci, rhext);
-			// _storeAndReload();
+
 			// this must happen after "store"
 			cleanBundles(rhext, ci, existing);// clean after populating the new ones
 			// ConfigWebAdmin.updateRHExtension(ci,rhext);
@@ -4726,14 +4739,19 @@ public final class ConfigAdmin {
 					physical = map.get("physical");
 					archive = map.get("archive");
 					primary = map.get("primary");
-
 					inspect = ConfigWebUtil.inspectTemplate(map.get("inspect"), Config.INSPECT_UNDEFINED);
-					lmode = ConfigWebUtil.toListenerMode(map.get("listener-mode"), -1);
-					ltype = ConfigWebUtil.toListenerType(map.get("listener-type"), -1);
+					String strLMode = map.get("listener-mode");
+					if (StringUtil.isEmpty(strLMode, true)) strLMode = map.get("listenermode");
+					if (StringUtil.isEmpty(strLMode, true)) strLMode = map.get("listenerMode");
+					lmode = ConfigWebUtil.toListenerMode(strLMode, -1);
+
+					String strLType = map.get("listener-type");
+					if (StringUtil.isEmpty(strLType, true)) strLType = map.get("listenertype");
+					if (StringUtil.isEmpty(strLType, true)) strLType = map.get("listenerType");
+					ltype = ConfigWebUtil.toListenerType(strLType, -1);
 
 					toplevel = Caster.toBooleanValue(map.get("toplevel"), false);
 					readonly = Caster.toBooleanValue(map.get("readonly"), false);
-
 					_updateMapping(virtual, physical, archive, primary, inspect, toplevel, lmode, ltype, readonly);
 					reloadNecessary = true;
 
@@ -5548,7 +5566,7 @@ public final class ConfigAdmin {
 	}
 
 	public void updateCompilerSettings(Boolean dotNotationUpperCase, Boolean suppressWSBeforeArg, Boolean nullSupport, Boolean handleUnQuotedAttrValueAsString,
-			Integer externalizeStringGTE) throws PageException {
+			Integer externalizeStringGTE, Boolean preciseMath) throws PageException {
 
 		// Struct element = _getRootElement("compiler");
 
@@ -5591,6 +5609,13 @@ public final class ConfigAdmin {
 			root.setEL("handleUnquotedAttributeValueAsString", Caster.toString(handleUnQuotedAttrValueAsString));
 		}
 
+		// preciseMath
+		if (preciseMath == null) {
+			if (root.containsKey("preciseMath")) rem(root, "preciseMath");
+		}
+		else {
+			root.setEL("preciseMath", Caster.toString(preciseMath));
+		}
 	}
 
 	Resource[] updateWebContexts(InputStream is, String realpath, boolean closeStream, boolean store) throws PageException, IOException, BundleException, ConverterException {
@@ -6095,7 +6120,6 @@ public final class ConfigAdmin {
 	 */
 	public BundleDefinition[] _updateExtension(ConfigPro config, RHExtension ext) throws IOException, BundleException, PageException {
 		if (!Decision.isUUId(ext.getId())) throw new IOException("id [" + ext.getId() + "] is invalid, it has to be a UUID");
-
 		Array children = ConfigWebUtil.getAsArray("extensions", root);
 		int[] keys = children.intKeys();
 		int key;

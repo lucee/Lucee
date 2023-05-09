@@ -140,28 +140,43 @@ public final class ClassUtil {
 	}
 
 	public static Class<?> loadClassByBundle(String className, String name, String strVersion, Identification id, List<Resource> addional) throws ClassException, BundleException {
+		return loadClassByBundle(className, name, strVersion, id, addional, false);
+	}
+
+	public static Class<?> loadClassByBundle(String className, String name, String strVersion, Identification id, List<Resource> addional, boolean versionOnlyMattersForDownload)
+			throws ClassException, BundleException {
 		// version
 		Version version = null;
 		if (!StringUtil.isEmpty(strVersion, true)) {
 			version = OSGiUtil.toVersion(strVersion.trim(), null);
 			if (version == null) throw new ClassException("Version definition [" + strVersion + "] is invalid.");
 		}
-		return loadClassByBundle(className, new BundleDefinition(name, version), null, id, addional);
+		return loadClassByBundle(className, new BundleDefinition(name, version), null, id, addional, versionOnlyMattersForDownload);
 	}
 
 	public static Class loadClassByBundle(String className, String name, Version version, Identification id, List<Resource> addional) throws BundleException, ClassException {
 		return loadClassByBundle(className, new BundleDefinition(name, version), null, id, addional);
 	}
 
+	public static Class loadClassByBundle(String className, String name, Version version, Identification id, List<Resource> addional, boolean versionOnlyMattersForDownload)
+			throws BundleException, ClassException {
+		return loadClassByBundle(className, new BundleDefinition(name, version), null, id, addional, versionOnlyMattersForDownload);
+	}
+
 	public static Class<?> loadClassByBundle(String className, BundleDefinition bundle, BundleDefinition[] relatedBundles, Identification id, List<Resource> addional)
 			throws BundleException, ClassException {
+		return loadClassByBundle(className, bundle, relatedBundles, id, addional, false);
+	}
+
+	public static Class<?> loadClassByBundle(String className, BundleDefinition bundle, BundleDefinition[] relatedBundles, Identification id, List<Resource> addional,
+			boolean versionOnlyMattersForDownload) throws BundleException, ClassException {
 		try {
 			if (relatedBundles != null) {
 				for (BundleDefinition rb: relatedBundles) {
 					rb.getBundle(id, addional, true);
 				}
 			}
-			return bundle.getBundle(id, addional, true).loadClass(className);
+			return bundle.getBundle(id, addional, true, versionOnlyMattersForDownload).loadClass(className);
 		}
 		catch (ClassNotFoundException e) {
 			String appendix = "";

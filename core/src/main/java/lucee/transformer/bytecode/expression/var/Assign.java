@@ -119,7 +119,7 @@ public class Assign extends ExpressionBase {
 
 			// UDF
 			else if (member instanceof UDF) {
-				if (last) throw new TransformerException("can't assign value to a user defined function", getStart());
+				if (last) throw new TransformerException(bc, "can't assign value to a user defined function", getStart());
 				UDF udf = (UDF) member;
 				getFactory().registerKey(bc, udf.getName(), false);
 				ExpressionUtil.writeOutExpressionArray(bc, Types.OBJECT, udf.getArguments());
@@ -152,11 +152,11 @@ public class Assign extends ExpressionBase {
 			// return Variable._writeOutFirstDataMember(adapter,(DataMember)member,variable.scope, last);
 		}
 		else if (member instanceof UDF) {
-			if (last) throw new TransformerException("can't assign value to a user defined function", getStart());
+			if (last) throw new TransformerException(bc, "can't assign value to a user defined function", getStart());
 			return VariableImpl._writeOutFirstUDF(bc, (UDF) member, variable.getScope(), doOnlyScope);
 		}
 		else {
-			if (last) throw new TransformerException("can't assign value to a built in function", getStart());
+			if (last) throw new TransformerException(bc, "can't assign value to a built in function", getStart());
 			return VariableImpl._writeOutFirstBIF(bc, (BIF) member, mode, last, getStart());
 		}
 	}

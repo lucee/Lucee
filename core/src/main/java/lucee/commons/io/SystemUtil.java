@@ -82,6 +82,7 @@ import lucee.commons.lang.types.RefInteger;
 import lucee.commons.lang.types.RefIntegerImpl;
 import lucee.loader.TP;
 import lucee.loader.engine.CFMLEngineFactory;
+import lucee.loader.util.Util;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
@@ -1067,7 +1068,7 @@ public final class SystemUtil {
 		public Object toStruct() {
 			Struct caller = new StructImpl(Struct.TYPE_LINKED);
 			caller.setEL(KeyConstants._template, template);
-			caller.setEL(KeyConstants._line, new Double(line));
+			caller.setEL(KeyConstants._line, Double.valueOf(line));
 			return caller;
 		}
 	}
@@ -1743,6 +1744,18 @@ public final class SystemUtil {
 			lock = str;
 		}
 		return lock;
+	}
+
+	public static String lineSeparator() {
+		if (Util.isEmpty(lineSeparator)) {
+			synchronized (createToken("line", "separator")) {
+				if (Util.isEmpty(lineSeparator)) {
+					lineSeparator = System.lineSeparator();
+					if (Util.isEmpty(lineSeparator)) lineSeparator = "\n";
+				}
+			}
+		}
+		return lineSeparator;
 	}
 }
 

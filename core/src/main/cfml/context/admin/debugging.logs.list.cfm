@@ -38,14 +38,18 @@
 						<input type="submit" class="bl button submit" name="mainAction" value="#stText.Buttons.Update#">
 						<input type="submit" class="bm button submit" name="mainAction" value="#stText.Buttons.Purge#">
 						<input type="reset" class="<cfif request.adminType EQ "web">bm<cfelse>br</cfif> button reset" name="cancel" value="#stText.Buttons.Cancel#">
-						<cfif request.adminType EQ "web"><input class="br button submit" type="submit" name="mainAction" value="#stText.Buttons.resetServerAdmin#"></cfif>
+						<cfif not request.singleMode && request.adminType EQ "web"><input class="br button submit" type="submit" name="mainAction" value="#stText.Buttons.resetServerAdmin#"></cfif>
 					</td>
 				</tr>
 			</tfoot>
 		</table>
 	</cfformClassic>
 	
-	<cfif isWeb>
+	<cfif !request.singleMode && !isWeb>
+		<p>#stText.Debug.onlyWebContext#</p>
+	<cfelseif !_debug.debug>
+		<p>#stText.Debug.debuggingDisabled#</p>
+	<cfelse>
 		<!---<h2>#stText.debug.filterTitle#</h2>
 		<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post" name="debug_settings">
 		<table class="tbl" width="740">
@@ -133,7 +137,7 @@
 								doFilterMin(session.debugFilter.app,_app) and 
 								doFilterMin(session.debugFilter.total,_total)> 
 								<tr>
-									<td><a href="#request.self#?action=#url.action#&action2=detail&id=#hash(el.id&":"&el.startTime)#">#_path#</a></td>
+									<td><a href="#request.self#?action=#url.action#&action2=detail&id=#hash(el.id&":"&el.startTime)#">#_path#</a>#structKeyExists(el, "threadName")?" (thread-#el.threadName#)":""#</td>
 									<td>#LSDateFormat(el.starttime)# #LSTimeFormat(el.starttime)#</td>
 									<td nowrap align="right"><cfif listFirst(formatUnit(_query)," ") gt 0>#formatUnit(_query)#<cfelse>-</cfif></td>
 									<td nowrap align="right">#formatUnit(_app)#</td>

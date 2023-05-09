@@ -2,6 +2,7 @@
 
 ![GitHub](https://img.shields.io/github/license/lucee/Lucee)
 5.3 [![Java CI](https://github.com/lucee/Lucee/actions/workflows/main.yml/badge.svg?branch=5.3)](https://github.com/lucee/Lucee/actions/workflows/main.yml)
+5.4 [![Java CI](https://github.com/lucee/Lucee/actions/workflows/main.yml/badge.svg?branch=5.4)](https://github.com/lucee/Lucee/actions/workflows/main.yml)
 6.0 [![Java CI](https://github.com/lucee/Lucee/actions/workflows/main.yml/badge.svg?branch=6.0)](https://github.com/lucee/Lucee/actions/workflows/main.yml)
 [![Backers on Open Collective](https://opencollective.com/Lucee/backers/badge.svg)](#backers)
 [![Sponsors on Open Collective](https://opencollective.com/Lucee/sponsors/badge.svg)](#sponsors) 
@@ -12,7 +13,7 @@
 
 [![docker pulls](https://img.shields.io/docker/pulls/lucee/lucee.svg?label=docker+pulls)](https://hub.docker.com/r/lucee/lucee/)
 [![Open Collective backers and sponsors](https://img.shields.io/opencollective/all/lucee)](https://opencollective.com/lucee#section-contributors)
-[![GitHub contributors](https://img.shields.io/github/contributors/lucee/Lucee)](https://github.com/lucee/Lucee)
+[![GitHub contributors](https://img.shields.io/github/contributors/lucee/Lucee)](https://github.com/lucee/Lucee/graphs/contributors)
 
 [![Website](https://img.shields.io/website?url=https%3A%2F%2Fdownload.lucee.org%2F)](https://download.lucee.org/)
 

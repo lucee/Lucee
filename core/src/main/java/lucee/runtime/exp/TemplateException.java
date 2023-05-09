@@ -57,7 +57,7 @@ public class TemplateException extends PageExceptionImpl {
 	 * @param message
 	 */
 	public TemplateException(PageSource ps, int line, int column, String message) {
-		super(message, "template");
+		super(ps != null ? "failure in " + ps.getDisplayPath() + ";" + message : message, "template");
 		// print.err(line+"+"+column);
 		addContext(ps, line, column, null);
 		this.line = line;

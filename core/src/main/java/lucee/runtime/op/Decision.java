@@ -41,20 +41,20 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import lucee.commons.date.DateTimeUtil;
+import lucee.commons.i18n.FormatUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
-import lucee.commons.i18n.FormatUtil;
 import lucee.commons.lang.CFTypes;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.Component;
 import lucee.runtime.PageContext;
-import lucee.runtime.PageContextImpl;
 import lucee.runtime.coder.Base64Util;
 import lucee.runtime.converter.WDDXConverter;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
+import lucee.runtime.functions.conversion.IsJSON;
 import lucee.runtime.image.ImageUtil;
 import lucee.runtime.java.JavaObject;
 import lucee.runtime.net.mail.MailUtil;
@@ -76,7 +76,6 @@ import lucee.runtime.type.QueryColumn;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.UDF;
 import lucee.runtime.type.dt.DateTime;
-import lucee.runtime.functions.conversion.IsJSON;
 
 /**
  * Object to test if an Object is a specific type
@@ -186,7 +185,7 @@ public final class Decision {
 			curr = str.charAt(pos);
 			if (curr < '0') {
 				if (curr == '.') {
-					if (pos + 1 >= len || hasDot) return false;
+					if (hasDot) return false;
 					hasDot = true;
 				}
 				else return false;
@@ -808,8 +807,7 @@ public final class Decision {
 	 */
 	public static boolean isObject(Object o) {
 		if (o == null) return false;
-		return isComponent(o)
-				|| (!isArray(o) && !isQuery(o) && !isSimpleValue(o) && !isStruct(o) && !isUserDefinedFunction(o) && !isXML(o));
+		return isComponent(o) || (!isArray(o) && !isQuery(o) && !isSimpleValue(o) && !isStruct(o) && !isUserDefinedFunction(o) && !isXML(o));
 	}
 
 	/**

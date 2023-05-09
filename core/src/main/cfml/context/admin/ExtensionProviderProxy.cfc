@@ -64,7 +64,6 @@
 	        <cfset attributes.sess.getInfo=attributes.req.getInfo>
 	        
 		</cfthread>
-		<!--- <cfset systemOutput('<print-stack-trace>',true,true)>--->
 		<cfif arguments.timeout GT 0>
 			<cfthread action="join" name="#name#" timeout="#arguments.timeout#"/>
 		</cfif>

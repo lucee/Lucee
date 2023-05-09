@@ -60,7 +60,7 @@ public final class Extract implements Function {
 		else if (strFormat.equals("tgz")) format = CompressUtil.FORMAT_TGZ;
 		else if (strFormat.equals("zip")) format = CompressUtil.FORMAT_ZIP;
 		else throw new FunctionException(pc, "extract", 1, "format",
-				"invalid format definition [" + strFormat + "]," + " valid formats are [bzip,gzip,tar,tbz (tar bzip),tgz (tar gzip) and zip]");
+				"invalid format definition [" + strFormat + "]," + " valid formats are [bzip, bzip2, gzip, tar, tbz (tar.bz), tbz2, tgz (tar.gz) and zip]");
 
 		String[] arrSources = ListUtil.toStringArrayEL(ListUtil.listToArrayRemoveEmpty(strSource, ","));
 

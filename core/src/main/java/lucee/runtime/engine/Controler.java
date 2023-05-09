@@ -218,11 +218,6 @@ public final class Controler extends ParentThreasRefThread {
 		// every 10 seconds
 		if (do10Seconds) {
 			// deploy extensions, archives ...
-			// try{DeployHandler.deploy(configServer);}catch(Throwable t){ExceptionUtil.rethrowIfNecessary(t);}
-		}
-		// every minute
-		if (doMinute) {
-			// deploy extensions, archives ...
 			try {
 				DeployHandler.deploy(configServer, configServer.getLog("deploy"), false);
 			}
@@ -230,6 +225,15 @@ public final class Controler extends ParentThreasRefThread {
 				ExceptionUtil.rethrowIfNecessary(t);
 				if (log != null) log.error("controler", t);
 			}
+		}
+		// every minute
+		if (doMinute) {
+			// deploy extensions, archives ...
+			/*
+			 * try { DeployHandler.deploy(configServer, configServer.getLog("deploy"), false); } catch
+			 * (Throwable t) { ExceptionUtil.rethrowIfNecessary(t); if (log != null) log.error("controler", t);
+			 * }
+			 */
 			try {
 				ConfigAdmin.checkForChangesInConfigFile(configServer);
 			}

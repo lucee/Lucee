@@ -215,7 +215,7 @@
 		<move 
 			file="${goal}/extensions/${extMySQL}-${extMySQLVersion}.lex" 
 			tofile="${goal}/extensions/${ext_mysql.filename}"/>
-		<echo>add:${goal}/extensions/${ext_mysql.filename}</echo>
+		<echo leveL="debug">add:${goal}/extensions/${ext_mysql.filename}</echo>
 		<echo file="${goal}/extensions/.index">${ext_mysql.filename};</echo>
 		
 
@@ -228,7 +228,7 @@
 		<move 
 			file="${goal}/extensions/${extMSSQL}-${extMSSQLVersion}.lex" 
 			tofile="${goal}/extensions/${ext_mssql.filename}"/>
-		<echo>add:${goal}/extensions/${ext_mssql.filename}</echo>
+		<echo leveL="debug">add:${goal}/extensions/${ext_mssql.filename}</echo>
 		<echo file="${goal}/extensions/.index" append="true">${ext_mssql.filename};</echo>
 		
 		<!-- add extension Postgre -->
@@ -240,7 +240,7 @@
 		<move 
 			file="${goal}/extensions/${extPostgreSQL}-${extPostgreSQLVersion}.lex" 
 			tofile="${goal}/extensions/${ext_postgre.filename}"/>
-		<echo>add:${goal}/extensions/${ext_postgre.filename}</echo>
+		<echo leveL="debug">add:${goal}/extensions/${ext_postgre.filename}</echo>
 		<echo file="${goal}/extensions/.index" append="true">${ext_postgre.filename};</echo>
 		
 		<!-- add extension JDTS -->
@@ -252,7 +252,7 @@
 		<move 
 			file="${goal}/extensions/${extJDTsSQL}-${extJDTsSQLVersion}.lex" 
 			tofile="${goal}/extensions/${ext_jdts.filename}"/>
-		<echo>add:${goal}/extensions/${ext_jdts.filename}</echo>
+		<echo leveL="debug">add:${goal}/extensions/${ext_jdts.filename}</echo>
 		<echo file="${goal}/extensions/.index" append="true">${ext_jdts.filename};</echo>
 
 		<!-- add extension S3 -->
@@ -264,7 +264,7 @@
 		<move 
 			file="${goal}/extensions/${extS3}-${extS3Version}.lex" 
 			tofile="${goal}/extensions/${ext_s3.filename}"/>
-		<echo>add:${goal}/extensions/${ext_s3.filename}</echo>
+		<echo leveL="debug">add:${goal}/extensions/${ext_s3.filename}</echo>
 		<echo file="${goal}/extensions/.index" append="true">${ext_s3.filename};</echo>
 		
 		<!-- add extension EHCache -->
@@ -276,7 +276,7 @@
 		<move 
 			file="${goal}/extensions/${extEHCache}-${extEHCacheVersion}.lex" 
 			tofile="${goal}/extensions/${ext_ehcache.filename}"/>
-		<echo>add:${goal}/extensions/${ext_ehcache.filename}</echo>
+		<echo leveL="debug">add:${goal}/extensions/${ext_ehcache.filename}</echo>
 		<echo file="${goal}/extensions/.index" append="true">${ext_ehcache.filename};</echo>
 		
 		<!-- add extension Hibernate -->
@@ -288,7 +288,7 @@
 		<move 
 			file="${goal}/extensions/${extHibernate}-${extHibernateVersion}.lex" 
 			tofile="${goal}/extensions/${ext_hibernate.filename}"/>
-		<echo>add:${goal}/extensions/${ext_hibernate.filename}</echo>
+		<echo leveL="debug">add:${goal}/extensions/${ext_hibernate.filename}</echo>
 		<echo file="${goal}/extensions/.index" append="true">${ext_hibernate.filename};</echo>
 
 		<!-- add extension PDF -->
@@ -300,7 +300,7 @@
 		<move 
 			file="${goal}/extensions/${extPDF}-${extPDFVersion}.lex" 
 			tofile="${goal}/extensions/${ext_pdf.filename}"/>
-		<echo>add:${goal}/extensions/${ext_pdf.filename}</echo>
+		<echo leveL="debug">add:${goal}/extensions/${ext_pdf.filename}</echo>
 		<echo file="${goal}/extensions/.index" append="true">${ext_pdf.filename};</echo>
 		
 		<!-- add extension Admin -->
@@ -312,7 +312,7 @@
 		<move 
 			file="${goal}/extensions/${extAdmin}-${extAdminVersion}.lex" 
 			tofile="${goal}/extensions/${ext_admin.filename}"/>
-		<echo>add:${goal}/extensions/${ext_admin.filename}</echo>
+		<echo leveL="debug">add:${goal}/extensions/${ext_admin.filename}</echo>
 		<echo file="${goal}/extensions/.index" append="true">${ext_admin.filename};</echo>
 		
 		<!-- add extension Doc -->
@@ -324,7 +324,7 @@
 		<move 
 			file="${goal}/extensions/${extDoc}-${extDocVersion}.lex" 
 			tofile="${goal}/extensions/${ext_doc.filename}"/>
-		<echo>add:${goal}/extensions/${ext_doc.filename}</echo>
+		<echo leveL="debug">add:${goal}/extensions/${ext_doc.filename}</echo>
 		<echo file="${goal}/extensions/.index" append="true">${ext_doc.filename};</echo>
 
 		<!-- add extension Image -->
@@ -336,7 +336,7 @@
 		<move 
 			file="${goal}/extensions/${extImage}-${extImageVersion}.lex" 
 			tofile="${goal}/extensions/${ext_image.filename}"/>
-		<echo>add:${goal}/extensions/${ext_image.filename}</echo>
+		<echo leveL="debug">add:${goal}/extensions/${ext_image.filename}</echo>
 		<echo file="${goal}/extensions/.index" append="true">${ext_image.filename};</echo>
 
 		<!-- add extension Esapi -->
@@ -348,7 +348,7 @@
 		<move 
 			file="${goal}/extensions/${extEsapi}-${extEsapiVersion}.lex" 
 			tofile="${goal}/extensions/${ext_esapi.filename}"/>
-		<echo>add:${goal}/extensions/${ext_esapi.filename}</echo>
+		<echo leveL="debug">add:${goal}/extensions/${ext_esapi.filename}</echo>
 		<echo file="${goal}/extensions/.index" append="true">${ext_esapi.filename};</echo>
 
 		<!-- add extension Compress -->
@@ -360,7 +360,7 @@
 		<move 
 			file="${goal}/extensions/${extCompress}-${extCompressVersion}.lex" 
 			tofile="${goal}/extensions/${ext_compress.filename}"/>
-		<echo>add:${goal}/extensions/${ext_compress.filename}</echo>
+		<echo leveL="debug">add:${goal}/extensions/${ext_compress.filename}</echo>
 		<echo file="${goal}/extensions/.index" append="true">${ext_compress.filename};</echo>
 
 	</target>

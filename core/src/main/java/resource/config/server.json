@@ -140,12 +140,6 @@
 			,"level":"error"
 			,"layout":"classic"
 		}
-		,"trace":{
-			"appender":"resource"
-			,"appenderArguments":"path:{lucee-config}/logs/trace.log"
-			,"level":"error"
-			,"layout":"classic"
-		}
 		,"exception":{
 			"appender":"resource"
 			,"appenderArguments":"path:{lucee-config}/logs/exception.log"

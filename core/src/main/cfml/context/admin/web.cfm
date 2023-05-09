@@ -1,4 +1,5 @@
 <cfscript>
+	request.singleMode=getApplicationSettings().singleContext;
 	
 	if(request.singleMode && right(cgi.script_name,9)!="index.cfm") {
 		location url="index.cfm" addtoken=false;

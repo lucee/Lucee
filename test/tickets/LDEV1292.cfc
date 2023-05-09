@@ -2,7 +2,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mysql" {
 	// skip closure
 	function isNotSupported() {
 		var mySql = getCredentials();
-		if(!isNull(mysql.server)){
+		if( len( mysql ) gt 0 ){
 			return false;
 		} else{
 			return true;
@@ -44,11 +44,11 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mysql" {
 	// private Function//
 	private string function createURI(string calledName){
 		var baseURI="/test/#listLast(getDirectoryFromPath(getCurrenttemplatepath()),"\/")#/";
-		return baseURI&""&calledNasme;
+		return baseURI&""&calledName;
 	}
 
 	private struct function getCredentials() {
-		// getting the credentials from the enviroment variables
+		// getting the credentials from the environment variables
 		return server.getDatasource("mysql");
 	}
 
