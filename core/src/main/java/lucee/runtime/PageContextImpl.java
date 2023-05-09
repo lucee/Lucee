@@ -606,7 +606,7 @@ public final class PageContextImpl extends PageContext {
 	public void release() {
 		config.releaseCacheHandlers(this);
 
-		if (config.getExecutionLogEnabled() || config.hasDebugOptions(ConfigPro.DEBUG_PAGE_PARTS)) {
+		if (config.getExecutionLogEnabled() && execLog != null || config.hasDebugOptions(ConfigPro.DEBUG_PAGE_PARTS)) {
 			execLog.release();
 			execLog = null;
 		}
@@ -3247,6 +3247,10 @@ public final class PageContextImpl extends PageContext {
 
 	public long getEndTimeNS() {
 		return endTimeNS;
+	}
+
+	public void setEndTimeNS(long endTimeNS) {
+		this.endTimeNS = endTimeNS;
 	}
 
 	@Override
