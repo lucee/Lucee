@@ -519,7 +519,7 @@ public final class WDDXConverter extends ConverterSupport {
 				if (node.getNodeName().equalsIgnoreCase("wddxPacket")) {
 					wddxPacket = node;
 					break;
-				} else {
+				} else if (node.getNodeType() != Node.COMMENT_NODE) {
 					throw new IllegalArgumentException("Invalid WDDX packet: root element is not wddxPacket.");
 				}
 			}
@@ -528,6 +528,8 @@ public final class WDDXConverter extends ConverterSupport {
 			int n = nl.getLength();
 
 			if (n ==0) return null;
+
+			int ignored = 0;
 
 			for (int i = 0; i < n; i++) {
 				Node data = nl.item(i);
@@ -540,8 +542,12 @@ public final class WDDXConverter extends ConverterSupport {
 						if (node instanceof Element) return _deserialize((Element) node);
 
 					}
+				} else if (data.getNodeType() != Node.ELEMENT_NODE) {
+					ignored++;
 				}
 			}
+
+			if (ignored == n) return null; // only whitespace or comments, thus empty
 
 			throw new IllegalArgumentException("Invalid WDDX Format: node 'data' not found in WDD packet");
 
