@@ -22,4 +22,9 @@ component {
 			class = 'lucee.runtime.cache.ram.RamCache'
 		};
 		this.cache.object="susi";
+	
+		public function onRequestStart() {
+			setting requesttimeout=10;
+		}
+	
 } 

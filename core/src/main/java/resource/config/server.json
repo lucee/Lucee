@@ -131,18 +131,12 @@
 		,"deploy":{
 			"appender":"resource"
 			,"appenderArguments":"path:{lucee-config}/logs/deploy.log"
-			,"level":"error"
+			,"level":"info"
 			,"layout":"classic"
 		}
 		,"thread":{
 			"appender":"resource"
 			,"appenderArguments":"path:{lucee-config}/logs/thread.log"
-			,"level":"error"
-			,"layout":"classic"
-		}
-		,"trace":{
-			"appender":"resource"
-			,"appenderArguments":"path:{lucee-config}/logs/trace.log"
 			,"level":"error"
 			,"layout":"classic"
 		}

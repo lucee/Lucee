@@ -23,10 +23,12 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
+import java.util.List;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.protocol.HttpContext;
 
@@ -35,6 +37,8 @@ import lucee.commons.lang.StringUtil;
 import lucee.commons.net.http.HTTPResponse;
 import lucee.commons.net.http.HTTPResponseSupport;
 import lucee.commons.net.http.Header;
+import lucee.runtime.type.Array;
+import lucee.runtime.type.ArrayImpl;
 
 public class HTTPResponse4Impl extends HTTPResponseSupport implements HTTPResponse {
 
@@ -88,6 +92,22 @@ public class HTTPResponse4Impl extends HTTPResponseSupport implements HTTPRespon
 		}
 	}
 
+	public Array getLocations() {
+		try {
+			List<URI> locations = ((HttpClientContext) context).getRedirectLocations();
+			if (locations != null) {
+				Array arr = new ArrayImpl();
+				for (URI loc: locations) {
+					arr.appendEL(loc.toString());
+				}
+				return arr;
+			}
+		}
+		catch (Exception e) {
+		}
+		return null;
+	}
+
 	@Override
 	public Header getLastHeader(String name) {
 		org.apache.http.Header header = rsp.getLastHeader(name);
@@ -136,7 +156,8 @@ public class HTTPResponse4Impl extends HTTPResponseSupport implements HTTPRespon
 		try {
 			_url = new URL(start.getProtocol(), start.getHost(), start.getPort(), path);
 		}
-		catch (MalformedURLException e) {}
+		catch (MalformedURLException e) {
+		}
 
 		return _url;
 	}

@@ -66,7 +66,8 @@ public class RestUtil {
 			try {
 				pc.forceWrite(msg);
 			}
-			catch (IOException e) {}
+			catch (IOException e) {
+			}
 		}
 		HttpServletResponse rsp = pc.getHttpServletResponse();
 		rsp.setHeader("Connection", "close"); // IE unter IIS6, Win2K3 und Resin

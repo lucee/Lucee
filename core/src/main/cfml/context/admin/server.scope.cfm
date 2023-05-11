@@ -256,8 +256,8 @@ Error Output --->
 							</ul>
 						<cfelse>
 							<input type="hidden" name="cgiReadonly" value="#scope.cgiReadonly#">
-							<b>#stText.Scopes["cgiReadOnly"& scope.LocalMode]#</b><br />
-							<div class="comment">#stText.Scopes["cgiReadOnly"& scope.LocalMode&"desc"]#</div>
+							<b>#stText.Scopes["cgiReadOnly"& scope.cgiReadonly]#</b><br />
+							<div class="comment">#stText.Scopes["cgiReadOnly"& scope.cgiReadonly&"desc"]#</div>
 						</cfif>
 						
 						<cfsavecontent variable="codeSample">
@@ -594,7 +594,7 @@ function test() localMode="#scope.LocalMode#" {}
 						<td colspan="2">
 							<input type="submit" class="bl button submit" name="mainAction" value="#stText.Buttons.Update#">
 							<input type="reset" class="<cfif request.adminType EQ "web">bm<cfelse>br</cfif> button reset" name="cancel" value="#stText.Buttons.Cancel#">
-							<cfif request.adminType EQ "web">
+							<cfif not request.singleMode and request.adminType EQ "web">
 								<input class="br button submit" type="submit" name="mainAction" value="#stText.Buttons.resetServerAdmin#">
 							</cfif>
 						</td>

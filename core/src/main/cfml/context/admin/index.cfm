@@ -1,8 +1,8 @@
 <cfscript>
-	if(getConfigSettings().mode=="single") {
+	if(getApplicationSettings().singleContext) {
 		include "web.cfm";
 	}
 	else {
-		location url="web.cfm" addtoken="no";
+		location url="web.cfm?reinit=true" addtoken="no";
 	}
 </cfscript>

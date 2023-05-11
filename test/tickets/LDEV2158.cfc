@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase"{
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="qoq"{
 	function run( testResults , testBox ) {
 		describe( "test case for LDEV-2158", function() {
 			it(title = "Query sorting ignores leading hyphen", body = function( currentSpec ) {

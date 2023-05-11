@@ -66,7 +66,7 @@ class DCStack {
 		Item test = item;
 		while (test != null) {
 			if (test.dc == dc) {
-				LogUtil.log(ThreadLocalPageContext.getConfig(), Log.LEVEL_INFO, DCStack.class.getName(), "a datasource connection was released twice!");
+				LogUtil.log(ThreadLocalPageContext.get(), Log.LEVEL_INFO, DCStack.class.getName(), "a datasource connection was released twice!");
 				return;
 			}
 			test = test.prev;
@@ -86,7 +86,8 @@ class DCStack {
 			}
 			return get();
 		}
-		catch (SQLException e) {}
+		catch (SQLException e) {
+		}
 		return null;
 	}
 
@@ -111,7 +112,8 @@ class DCStack {
 			try {
 				if (!i.dc.getConnection().isClosed()) count++;
 			}
-			catch (Exception e) {}
+			catch (Exception e) {
+			}
 			i = i.prev;
 		}
 		return count;
@@ -167,7 +169,8 @@ class DCStack {
 				try {
 					current.dc.close();
 				}
-				catch (Exception e) {}
+				catch (Exception e) {
+				}
 			}
 
 			// remove this connection from chain
@@ -183,7 +186,8 @@ class DCStack {
 			try {
 				if (!current.dc.getAutoCommit()) current.dc.setAutoCommit(true);
 			}
-			catch (SQLException e) {}
+			catch (SQLException e) {
+			}
 			clear(current.prev, current, force, validate);
 		}
 

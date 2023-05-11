@@ -60,6 +60,7 @@ public class ORMDatasourceConnection implements DatasourceConnectionPro {
 	private DataSource datasource;
 	private Connection connection;
 	private Boolean supportsGetGeneratedKeys;
+	private boolean managed;
 
 	public ORMDatasourceConnection(PageContext pc, ORMSession session, DataSource ds, int transactionIsolation) throws PageException {
 		datasource = ds;
@@ -421,5 +422,20 @@ public class ORMDatasourceConnection implements DatasourceConnectionPro {
 	@Override
 	public void release() {
 		IOUtil.closeEL(connection);
+	}
+
+	@Override
+	public boolean validate() {
+		return datasource.validate();
+	}
+
+	@Override
+	public boolean isManaged() {
+		return managed;
+	}
+
+	@Override
+	public void setManaged(boolean managed) {
+		this.managed = managed;
 	}
 }

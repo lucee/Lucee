@@ -119,7 +119,8 @@ public class SMTPConnectionPool {
 			try {
 				transport.close();
 			}
-			catch (MessagingException e) {}
+			catch (MessagingException e) {
+			}
 		}
 	}
 

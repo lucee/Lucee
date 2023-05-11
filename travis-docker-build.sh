@@ -1,11 +1,7 @@
 #!/bin/bash
 
-# read current job log after a short delay
-sleep 10s
-curl -m 30 -s "https://api.travis-ci.org/v3/job/${TRAVIS_JOB_ID}/log.txt?deansi=true" > travis_output.log
-
 # get lucee version
-LUCEE_VERSION=$(grep -oP "(?<=\[INFO\] Building Lucee Loader Build )(\d+\.\d+\.\d+\.\d+([-a-zA-Z]*))" travis_output.log)
+LUCEE_VERSION=$(<buildVersionNumber.txt)
 
 # build the travis request body
 function build_request {
@@ -29,10 +25,10 @@ EOF
 REQUEST_BODY=$(build_request)
 
 # trigger the lucee-dockerfiles travis job for this lucee version
-curl -m 30 -s -X POST \
+curl --no-progress-meter -S -m 30 -X POST \
   -H "Content-Type: application/json" \
   -H "Accept: application/json" \
   -H "Travis-API-Version: 3" \
   -H "Authorization: token ${TRAVIS_TOKEN}" \
   -d "${REQUEST_BODY}" \
-  https://api.travis-ci.org/repo/lucee%2Flucee-dockerfiles/requests
+  https://api.travis-ci.com/repo/lucee%2Flucee-dockerfiles/requests

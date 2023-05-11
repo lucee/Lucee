@@ -126,7 +126,8 @@ public final class CallerImpl extends StructSupport implements Caller {
 				try {
 					return pc.applicationScope();
 				}
-				catch (PageException e) {}
+				catch (PageException e) {
+				}
 			}
 			else if (checkArgs && KeyConstants._arguments.equalsIgnoreCase(key)) return argumentsScope;// pc.argumentsScope();
 		}
@@ -137,13 +138,15 @@ public final class CallerImpl extends StructSupport implements Caller {
 				try {
 					return pc.clientScope();
 				}
-				catch (PageException e) {}
+				catch (PageException e) {
+				}
 			}
 			if (KeyConstants._cluster.equalsIgnoreCase(key)) {
 				try {
 					return pc.clusterScope();
 				}
-				catch (PageException e) {}
+				catch (PageException e) {
+				}
 			}
 		}
 		else if ('f' == c) {
@@ -160,13 +163,15 @@ public final class CallerImpl extends StructSupport implements Caller {
 				try {
 					return pc.sessionScope();
 				}
-				catch (PageException e) {}
+				catch (PageException e) {
+				}
 			}
 			if (KeyConstants._server.equalsIgnoreCase(key)) {
 				try {
 					return pc.serverScope();
 				}
-				catch (PageException e) {}
+				catch (PageException e) {
+				}
 			}
 		}
 		else if ('u' == c) {

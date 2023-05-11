@@ -40,7 +40,7 @@
 <cfparam name="url.action2" default="list">
 <cfparam name="form.mainAction" default="none">
 <cfparam name="form.subAction" default="none">
-<cfset isWeb=request.admintype EQ "web">
+<cfset isWeb = request.admintype EQ "web" OR getApplicationSettings().singleContext>
 
 <cfadmin 
 	action="securityManager"
@@ -66,7 +66,11 @@
 	type="#request.adminType#"
 	password="#session["password"&request.adminType]#"
 	returnVariable="setting">
-    
+<cfadmin
+	action="getDebug"
+	type="#request.adminType#"
+	password="#session["password"&request.adminType]#"
+	returnVariable="_debug">
 
 <cftry>
 	<cfset stVeritfyMessages = StructNew()>

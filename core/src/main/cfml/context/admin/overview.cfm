@@ -1,8 +1,7 @@
 <!---
 Defaults --->
 
-<cfif structKeyExists(form,"adminMode")>
-		
+<cfif structKeyExists(form,"adminMode")>		
 	<cfadmin
 		action="updateAdminMode"
 		type="#request.adminType#"
@@ -150,7 +149,7 @@ Error Output --->
 		$.each(["heap","nonheap"], function(i, data){
 			window[data] = echarts.init(document.getElementById(data),'macarons'); // intialize echarts
 			window[data+"Chart"] = {
-				backgroundColor: ["#EFEDE5"],
+				backgroundColor: ["#ffffff"],
 				tooltip : {'trigger':'axis',
 					formatter : function (params) {
 						return 'Series' + "<br>" + params[0].seriesName + ": " + params[0].value + "%" + '<br>' +params[0].name ;
@@ -190,7 +189,7 @@ Error Output --->
 
 		var cpuSystem = echarts.init(document.getElementById('cpuSystem'),'macarons'); // intialize echarts
 		var cpuSystemChartOption = {
-			backgroundColor: ["#EFEDE5"],
+			backgroundColor: ["#ffffff"],
 			tooltip : {'trigger':'axis',
 				formatter : function (params) {
 					var series2 = "";
@@ -267,7 +266,6 @@ Error Output --->
 		type="#request.adminType#"
 		password="#session["password"&request.adminType]#"
 		returnVariable="info">
-
 	<cfadmin
 		action="getAPIKey"
 		type="#request.adminType#"
@@ -330,7 +328,7 @@ Error Output --->
 
 
 	<!--- installed libs --->
-	<cfif request.adminType EQ "web">	
+	<cfif request.adminType EQ "web" or request.singlemode >	
 		<cfadmin
 			action="getTLDs"
 			type="#request.adminType#"
@@ -377,8 +375,6 @@ Error Output --->
 
 
 <cfif request.adminType=="server">
-	
-		
 	<cfformClassic onerror="customError" action="#request.self#?action=overview" method="post">
 		<input type="hidden" name="adminMode" value="#request.singlemode?"multi":"single"#">
 		<h2>#stText.Overview[request.singlemode?"modeSingle":"modeMulti"]#</h2>
@@ -454,8 +450,8 @@ Error Output --->
 					<tbody>
 						<tr>
 							<th colspan="2" scope="row">
-								#stText.setting.memory#<br>
-								<span class="comment">#stText.setting.memoryDesc#</span>
+								<h3>#stText.setting.memory#</h3>
+								#stText.setting.memoryDesc#
 							</th>
 						</tr>
 						<tr>
@@ -475,8 +471,8 @@ Error Output --->
 					<tbody>
 							<tr>
 								<th colspan="2" scope="row">
-									#stText.setting.cpu#<br>
-									<span class="comment">#stText.setting.cpuDesc#</span>
+									<h3>#stText.setting.cpu#</h3>
+									#stText.setting.cpuDesc#
 								</th>
 							</tr>
 							<tr>
@@ -493,8 +489,8 @@ Error Output --->
 					<tbody>
 						<tr>
 							<th rowspan="3" scope="row" style="width:50%">
-								#stText.setting.scopes#<br>
-								<span class="comment">#stText.setting.scopesDesc#</span>
+								<h3>#stText.setting.scopes#</h3>
+								#stText.setting.scopesDesc#
 							</th>
 							<td style="width:35%"><b>#stText.setting.scopeApplication#</b></td>
 							<td align="right" style="width:15%">#systemInfo.applicationContextCount#</td>
@@ -516,8 +512,8 @@ Error Output --->
 
 						<tr>
 							<th rowspan="3" scope="row" style="width:50%">
-								#stText.setting.request#<br>
-								<span class="comment">#stText.setting.requestDesc#</span>
+								<h3>#stText.setting.request#</h3>
+								#stText.setting.requestDesc#
 							</th>
 							<td style="width:35%"><b>#stText.setting.req#</b></td>
 							<cfset nbr=systemInfo.activeRequests>
@@ -542,8 +538,8 @@ Error Output --->
 
 						<tr>
 							<th scope="row" style="width:50%">
-								#stText.setting.datasource#<br>
-								<span class="comment">#stText.setting.datasourceDesc#</span>
+								<h3>#stText.setting.datasource#</h3>
+								#stText.setting.datasourceDesc#
 							</th>
 							<cfset nbr=systemInfo.activeDatasourceConnections>
 							<td style="width:35%">&nbsp;</td>
@@ -558,8 +554,8 @@ Error Output --->
 
 						<tr>
 							<th rowspan="2" scope="row" style="width:50%">
-								#stText.setting.task#<br>
-								<span class="comment">#stText.setting.taskDesc#</span>
+								<h3>#stText.setting.task#</h3>
+								#stText.setting.taskDesc#
 							</th>
 							<td style="width:35%"><b>#stText.setting.taskOpen#</b></td>
 							<cfset nbr=systemInfo.tasksOpen>
@@ -606,14 +602,14 @@ Error Output --->
 									<th nowrap="nowrap" scope="row">#stText.Overview.ReleaseDate#</th>
 									<td>#lsDateFormat(server.lucee['release-date'])#</td>
 								</tr>
-								<cfif !request.singleMode && request.adminType EQ "web">
+								<cfif request.singleMode or request.adminType EQ "web">
 								<tr>
 									<th nowrap="nowrap" scope="row">#stText.Overview.label#</th>
-									<td>#info.label#</td>
+									<td>#info.label?:""#</td>
 								</tr>
 								</cfif>
 
-								<cfif request.adminType EQ "web">
+								<cfif request.singlemode or  request.adminType EQ "web">
 								<tr>
 									<th nowrap="nowrap" scope="row">#stText.Overview.InstalledTLs#</th>
 									<td>
@@ -623,7 +619,7 @@ Error Output --->
 									</td>
 								</tr>
 								</cfif>
-								<cfif request.adminType EQ "web">
+								<cfif request.singlemode or request.adminType EQ "web">
 								<tr>
 									<th nowrap="nowrap" scope="row">#stText.Overview.InstalledFLs#</th>
 									<td>
@@ -675,10 +671,10 @@ Error Output --->
 									</cfif>
 									</td>
 								</tr>
-								<cfif !request.singleMode && request.adminType EQ "web">
+								<cfif request.singleMode or request.adminType EQ "web">
 									<tr>
 										<th scope="row">#stText.Overview.hash#</th>
-										<td>#info.hash#</td>
+										<td>#info.hash?:""#</td>
 									</tr>
 								</cfif>
 
@@ -854,8 +850,8 @@ Error Output --->
 								<input type="text" style="width:99%" name="label_#rst.currentrow#" value="#rst.label#"/>
 							</td>
 							<td><cfif len(rst.url)><a target="_blank" href="#rst.url#/lucee/admin/web.cfm">#rst.url#</a></cfif></td>
-							<td><input type="text" class="xlarge" name="path_#rst.currentrow#" value="#rst.path#" readonly="readonly"/></td>
-							<td><input type="text" class="xlarge" style="width:99%" name="cf_#rst.currentrow#" value="#rst.config_file#" readonly="readonly"/></td>
+							<td>#rst.path#</td>
+							<td>#rst.config_file#</td>
 						</tr>
 
 						<cfset filesThreshold = 100000>

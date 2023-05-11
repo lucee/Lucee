@@ -1,10 +1,12 @@
 component {
 
-	this.name = "luceetest";
+	this.name = "ldev2754";
 	this.datasources["ldev2754_dsn"] = server.getDatasource("mssql");
 	this.datasource = "ldev2754_dsn";
 
-	public function onRequestStart(){
+	
+	public function onRequestStart() {
+		setting requesttimeout=10;
 		query{
 			echo("DROP TABLE IF EXISTS LDEV2754");
 		}

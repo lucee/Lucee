@@ -162,7 +162,7 @@ public abstract class StorageScopeImpl extends StructSupport implements StorageS
 		lastvisit = System.currentTimeMillis();
 
 		if (type == SCOPE_CLIENT) {
-			sct.setEL(HITCOUNT, new Double(hitcount++));
+			sct.setEL(HITCOUNT, Double.valueOf(hitcount++));
 		}
 		else {
 			sct.setEL(SESSION_ID, pc.getApplicationContext().getName() + "_" + pc.getCFID() + "_" + pc.getCFToken());
@@ -209,7 +209,7 @@ public abstract class StorageScopeImpl extends StructSupport implements StorageS
 		sct.setEL(TIMECREATED, timecreated);
 
 		if (type == SCOPE_CLIENT) {
-			sct.setEL(HITCOUNT, new Double(hitcount));
+			sct.setEL(HITCOUNT, Double.valueOf(hitcount));
 		}
 	}
 
@@ -405,9 +405,11 @@ public abstract class StorageScopeImpl extends StructSupport implements StorageS
 		unstore(ThreadLocalPageContext.get(config));
 	}
 
-	public void store(PageContext pc) {}
+	public void store(PageContext pc) {
+	}
 
-	public void unstore(PageContext pc) {}
+	public void unstore(PageContext pc) {
+	}
 
 	/**
 	 * @return the hasChanges

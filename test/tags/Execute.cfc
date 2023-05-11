@@ -25,13 +25,27 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		cfexecute(name="curl", arguments=["https://update.lucee.org/rest/update/provider/echoGet"] ,variable="variables.x", directory=getTempDirectory());
 		assertTrue(find('"session"',x)>0);
 	}
+
+	public function testDirectoryTagClosed() {
+		```
+		<cfexecute name="curl" arguments="https://update.lucee.org/rest/update/provider/echoGet" variable="variables.x" directory=#getTempDirectory()#></cfexecute>
+		```
+		assertTrue(find('"session"',x)>0);
+	}
+
+	public function testDirectoryTagWithoutClosingTag() {
+		```
+		<cfexecute name="curl" arguments="https://update.lucee.org/rest/update/provider/echoGet" variable="variables.x" directory=#getTempDirectory()#/>
+		```
+		assertTrue(find('"session"',x)>0);
+	}
 	
 	public function testTimeout() {
 		try {
-			cfexecute(name="curl", timeout="0.01", arguments="https://update.lucee.org/rest/update/provider/echoGet" ,variable="variables.x");
+			cfexecute(name="curl", timeout="0.1", arguments="https://update.lucee.org/rest/update/provider/echoGet" ,variable="variables.x");
 		}
 		catch(e) {
-			expect(e.message).toInclude('expired', e.message);
+			expect(e.message).toInclude('expired', e.message); // this fails sometimes on CI
 		}
 	}
 

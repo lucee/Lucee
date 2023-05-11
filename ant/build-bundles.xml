@@ -42,17 +42,6 @@
 		if ( reqBundleFrag != null )
 			reqBundleFrag = reqBundleFrag.split( "," );
 
-		/*
-		echo( "---------- Bundles -------------------" );
-		echo( bundles.join(",\n"), true );
-
-		echo( "---------- Require-Bundle -------------" );
-		echo( reqBundles.join(",\n"), true );
-		
-		echo( "---------- Require-Bundle-Fragment-----" );
-		echo( reqBundleFrag.join( ",\n" ), true );
-		*/
-
 		var availableBundles = {};
 
 		for ( var i = 0 ; i < bundles.length ; i++ ) {
@@ -64,10 +53,25 @@
 			var version = attrs.getValue( "Bundle-Version" );
 
 			availableBundles[ name + ";bundle-version=" + version ] = {
-			name: name,
-			version: version,
-			path: bundle
+				name: name,
+				version: version,
+				path: bundle
 			};
+		}
+
+		if (false) { // debug
+			echo( "---------- Bundles -------------------" );
+			echo( bundles.join(",\n"), true );
+
+			echo( "---------- Require-Bundle -------------" );
+			echo( reqBundles.join(",\n"), true );
+			
+			echo( "---------- Require-Bundle-Fragment-----" );
+			echo( reqBundleFrag.join( ",\n" ), true );
+
+			echo( "---------- Bundles -------------------" );
+			for (var b in availableBundles)
+				echo( JSON.stringify(b), true );
 		}
 
 		// treat Require-Bundle-Fragment as Require-Bundle
@@ -84,19 +88,19 @@
 			var reqBundle = reqBundles[ r ];
 
 			if ( !availableBundles.hasOwnProperty( reqBundle ) ){
-			missingBundles.push(" - " + reqBundle);
+				missingBundles.push(" - " + reqBundle);
 			} else {
-			var srcBundle = availableBundles[ reqBundle ];
-			// now we add the bundle
-			var jarName = srcBundle.name + "-" + srcBundle.version + ".jar";
-			var trgJar = new java.io.File( target+"/" + jarName );
-			var copy = project.createTask( "copy" );
-			copy.setFile( new java.io.File( srcBundle.path ) );
-			copy.setTofile( trgJar );
-			copy.perform();
-			echo( "- add " + jarName );
-			
-			usedBundles[ reqBundle ] = true;
+				var srcBundle = availableBundles[ reqBundle ];
+				// now we add the bundle
+				var jarName = srcBundle.name + "-" + srcBundle.version + ".jar";
+				var trgJar = new java.io.File( target+"/" + jarName );
+				var copy = project.createTask( "copy" );
+				copy.setFile( new java.io.File( srcBundle.path ) );
+				copy.setTofile( trgJar );
+				copy.perform();
+				echo( "- add " + jarName );
+				
+				usedBundles[ reqBundle ] = true;
 			}
 		}
 		echo( "" );
@@ -109,7 +113,7 @@
 				ignoredAvailable.push( " - " + b + "\t[" + availableBundles[b].path + "]" );
 		}
 		if ( ignoredAvailable.length ){
-			echo( "WARNING: pom.xml bundles not defined in MANIFEST.MF:" );
+			echo( "WARNING: these bundles defined in pom.xml where not referenced in MANIFEST.MF:" );
 			echo( ignoredAvailable.join("\n") );
 		}
 
@@ -117,10 +121,11 @@
 			if ( ignoredAvailable.length ){
 				echo( "" );
 			}
-			echo( "ERROR: Missing Required-Bundles from MANIFEST.MF:" );
-			echo( missingBundles.join("\n") );
-			// TODO once missing bundles are fixed
-			// throw "Missing Required Bundles: " + reqBundle; 
+			echo( "ERROR: Missing Required-Bundles from MANIFEST.MF:\n " + missingBundles.join("\n") );
+			if ( ignoredAvailable.length ){
+				echo( "\HINT: Perhaps the missing bundle(s) are listed above?");
+			}
+			throw "Missing Required Bundles: " + missingBundles.join("\n"); 
 		}
 		echo( "" );
 		//project.setProperty( prefix + "version", version );

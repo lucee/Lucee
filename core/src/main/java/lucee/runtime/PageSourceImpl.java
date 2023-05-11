@@ -267,7 +267,8 @@ public final class PageSourceImpl implements PageSource {
 				try {
 					page = loadPhysical(pc, page);
 				}
-				catch (TemplateException e) {}
+				catch (TemplateException e) {
+				}
 			}
 			if (page != null) return page;
 		}
@@ -301,7 +302,6 @@ public final class PageSourceImpl implements PageSource {
 	 */
 	private Page loadPhysical(PageContext pc, Page page) throws TemplateException {
 		if (!mapping.hasPhysical()) return null;
-
 		ConfigWeb config = pc.getConfig();
 		PageContextImpl pci = (PageContextImpl) pc;
 		if ((mapping.getInspectTemplate() == Config.INSPECT_NEVER || pci.isTrusted(page)) && isLoad(LOAD_PHYSICAL)) return page;
@@ -313,7 +313,7 @@ public final class PageSourceImpl implements PageSource {
 		// Page exists
 		if (page != null) {
 			// if(page!=null && !recompileAlways) {
-			if (srcLastModified != page.getSourceLastModified()) {
+			if (srcLastModified != page.getSourceLastModified() || (page instanceof PagePro && ((PagePro) page).getSourceLength() != srcFile.length())) {
 				// same size, maybe the content has not changed?
 				boolean same = false;
 				if (page instanceof PagePro && ((PagePro) page).getSourceLength() == srcFile.length()) {
@@ -321,11 +321,12 @@ public final class PageSourceImpl implements PageSource {
 					try {
 						same = pp.getHash() == PageSourceCode.toString(this, config.getTemplateCharset()).hashCode();
 					}
-					catch (IOException e) {}
+					catch (IOException e) {
+					}
 
 				}
 				if (!same) {
-					LogUtil.log(config, Log.LEVEL_DEBUG, "compile", "recompile [" + getDisplayPath() + "] because loaded page has changed");
+					LogUtil.log(pc, Log.LEVEL_DEBUG, "compile", "recompile [" + getDisplayPath() + "] because loaded page has changed");
 					pcn.set(page = compile(config, mapping.getClassRootDirectory(), page, false, pc.ignoreScopes()));
 					page.setPageSource(this);
 				}
@@ -339,7 +340,7 @@ public final class PageSourceImpl implements PageSource {
 			boolean isNew = false;
 			// new class
 			if (flush || !classFile.exists()) {
-				LogUtil.log(config, Log.LEVEL_DEBUG, "compile", "compile [" + getDisplayPath() + "] no previous class file or flush");
+				LogUtil.log(pc, Log.LEVEL_DEBUG, "compile", "compile [" + getDisplayPath() + "] no previous class file or flush");
 
 				pcn.set(page = compile(config, classRootDir, null, false, pc.ignoreScopes()));
 				flush = false;
@@ -349,27 +350,36 @@ public final class PageSourceImpl implements PageSource {
 			else {
 				try {
 					String cn = pcn.className;
+					boolean done = false;
 					if (cn != null) {
-						LogUtil.log(config, Log.LEVEL_DEBUG, "compile", "load class from ClassLoader  [" + getDisplayPath() + "]");
-						pcn.set(page = newInstance(mapping.getPhysicalClass(cn)));
+						try {
+							LogUtil.log(pc, Log.LEVEL_DEBUG, "compile", "load class from ClassLoader  [" + getDisplayPath() + "]");
+							pcn.set(page = newInstance(mapping.getPhysicalClass(cn)));
+							done = true;
+						}
+						catch (ClassNotFoundException cnfe) {
+							LogUtil.log(pc, "compile", cnfe);
+						}
 					}
-					else {
-						LogUtil.log(config, Log.LEVEL_DEBUG, "compile", "load class from binary  [" + getDisplayPath() + "]");
+					if (!done) {
+						LogUtil.log(pc, Log.LEVEL_DEBUG, "compile", "load class from binary  [" + getDisplayPath() + "]");
 						byte[] bytes = IOUtil.toBytes(classFile);
 						if (ClassUtil.isBytecode(bytes)) pcn.set(page = newInstance(mapping.getPhysicalClass(this.getClassName(), bytes)));
 					}
-				}
-				catch (Exception e) {
-					LogUtil.log(config, "compile", e);
-					pcn.reset();
+
 				}
 				catch (ClassFormatError cfe) {
-					LogUtil.log(config, Log.LEVEL_ERROR, "compile", "size of the class file:" + classFile.length());
-					LogUtil.log(config, "compile", cfe);
+					LogUtil.log(pc, Log.LEVEL_ERROR, "compile", "size of the class file:" + classFile.length());
+					LogUtil.log(pc, "compile", cfe);
+					pcn.reset();
+				}
+				catch (Throwable t) {
+					ExceptionUtil.rethrowIfNecessary(t);
+					LogUtil.log(pc, "compile", t);
 					pcn.reset();
 				}
 				if (page == null) {
-					LogUtil.log(config, Log.LEVEL_DEBUG, "compile", "compile  [" + getDisplayPath() + "] in case loading of the class fails");
+					LogUtil.log(pc, Log.LEVEL_DEBUG, "compile", "compile  [" + getDisplayPath() + "] in case loading of the class fails");
 					pcn.set(page = compile(config, classRootDir, null, false, pc.ignoreScopes()));
 					isNew = true;
 				}
@@ -378,7 +388,7 @@ public final class PageSourceImpl implements PageSource {
 			// check if version changed or lasMod
 			if (!isNew && (srcLastModified != page.getSourceLastModified() || page.getVersion() != pc.getConfig().getFactory().getEngine().getInfo().getFullVersionInfo())) {
 				isNew = true;
-				LogUtil.log(config, Log.LEVEL_DEBUG, "compile", "recompile [" + getDisplayPath() + "] because unloaded page has changed");
+				LogUtil.log(pc, Log.LEVEL_DEBUG, "compile", "recompile [" + getDisplayPath() + "] because unloaded page has changed");
 				pcn.set(page = compile(config, classRootDir, page, false, pc.ignoreScopes()));
 			}
 			page.setPageSource(this);
@@ -1051,7 +1061,7 @@ public final class PageSourceImpl implements PageSource {
 			return !(ps.loadPage(pc, false) instanceof CIPage);
 		}
 		catch (PageException e) {
-			LogUtil.log(ThreadLocalPageContext.getConfig(pc), PageSourceImpl.class.getName(), e);
+			LogUtil.log(pc, PageSourceImpl.class.getName(), e);
 			return defaultValue;
 		}
 	}

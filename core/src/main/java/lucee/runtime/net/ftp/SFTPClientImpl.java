@@ -22,7 +22,10 @@ import com.jcraft.jsch.SftpATTRS;
 import com.jcraft.jsch.SftpException;
 
 import lucee.commons.io.SystemUtil;
+import lucee.commons.io.log.Log;
+import lucee.commons.io.log.LogUtil;
 import lucee.commons.lang.StringUtil;
+import lucee.runtime.PageContext;
 import lucee.runtime.op.Caster;
 
 public class SFTPClientImpl extends AFTPClient {
@@ -122,6 +125,7 @@ public class SFTPClientImpl extends AFTPClient {
 	@Override
 	public boolean rename(String from, String to) throws IOException {
 		try {
+			if (channelSftp == null) connect();
 			channelSftp.rename(from, to);
 			handleSucess();
 			return true;
@@ -135,6 +139,7 @@ public class SFTPClientImpl extends AFTPClient {
 	@Override
 	public boolean removeDirectory(String pathname) throws IOException {
 		try {
+			if (channelSftp == null) connect();
 			channelSftp.rmdir(pathname);
 			handleSucess();
 			return true;
@@ -148,6 +153,7 @@ public class SFTPClientImpl extends AFTPClient {
 	@Override
 	public boolean makeDirectory(String pathname) throws IOException {
 		try {
+			if (channelSftp == null) connect();
 			channelSftp.mkdir(pathname);
 			handleSucess();
 			return true;
@@ -161,6 +167,7 @@ public class SFTPClientImpl extends AFTPClient {
 	@Override
 	public boolean directoryExists(String pathname) throws IOException {
 		try {
+			if (channelSftp == null) connect();
 			String pwd = channelSftp.pwd();
 			channelSftp.cd(pathname);
 			channelSftp.cd(pwd); // we change it back to what it was
@@ -175,6 +182,7 @@ public class SFTPClientImpl extends AFTPClient {
 	@Override
 	public boolean changeWorkingDirectory(String pathname) throws IOException {
 		try {
+			if (channelSftp == null) connect();
 			channelSftp.cd(pathname);
 			handleSucess();
 			return true;
@@ -188,6 +196,7 @@ public class SFTPClientImpl extends AFTPClient {
 	@Override
 	public String printWorkingDirectory() throws IOException {
 		try {
+			if (channelSftp == null) connect();
 			String pwd = channelSftp.pwd();
 			handleSucess();
 			return pwd;
@@ -201,6 +210,7 @@ public class SFTPClientImpl extends AFTPClient {
 	@Override
 	public boolean deleteFile(String pathname) throws IOException {
 		try {
+			if (channelSftp == null) connect();
 			channelSftp.rm(pathname);
 			handleSucess();
 			return true;
@@ -215,6 +225,7 @@ public class SFTPClientImpl extends AFTPClient {
 	public boolean retrieveFile(String remote, OutputStream local) throws IOException {
 		boolean success = false;
 		try {
+			if (channelSftp == null) connect();
 			channelSftp.get(remote, local);
 			handleSucess();
 			success = true;
@@ -228,7 +239,8 @@ public class SFTPClientImpl extends AFTPClient {
 	@Override
 	public boolean storeFile(String remote, InputStream local) throws IOException {
 		try {
-			this.channelSftp.put(local, remote); // TODO add progress monitor?
+			if (channelSftp == null) connect();
+			channelSftp.put(local, remote); // TODO add progress monitor?
 			handleSucess();
 			return true;
 		}
@@ -253,6 +265,7 @@ public class SFTPClientImpl extends AFTPClient {
 		pathname = cleanPath(pathname);
 		List<FTPFile> files = new ArrayList<FTPFile>();
 		try {
+			if (channelSftp == null) connect();
 			Vector list = channelSftp.ls(pathname);
 			Iterator<ChannelSftp.LsEntry> it = list.iterator();
 			ChannelSftp.LsEntry entry;
@@ -308,6 +321,7 @@ public class SFTPClientImpl extends AFTPClient {
 
 	@Override
 	public boolean isConnected() {
+		if (channelSftp == null) return false;
 		return channelSftp.isConnected();
 	}
 
@@ -332,7 +346,8 @@ public class SFTPClientImpl extends AFTPClient {
 			try {
 				session.setTimeout(timeout);
 			}
-			catch (JSchException e) {}
+			catch (JSchException e) {
+			}
 		}
 	}
 
@@ -378,5 +393,6 @@ public class SFTPClientImpl extends AFTPClient {
 			if (e instanceof IOException) throw (IOException) e;
 			throw new IOException(e);
 		}
+		else LogUtil.log((PageContext) null, "application", "ftp", e, Log.LEVEL_INFO);
 	}
 }

@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase"	{
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="mysql" {
 	
 	
 	//public function afterTests(){}
@@ -45,7 +45,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		var ds={};
 
 		// H2
-		var ds['h2'] = server.getDatasource("h2", "#getDirectoryFromPath(getCurrentTemplatePath())#/datasource/dbh2" );
+		var ds['h2'] = server.getDatasource("h2", server._getTempDir("LDEV2266") );
 		
 		// MySQL
 		var mySQL=getCredentials();

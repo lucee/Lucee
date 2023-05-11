@@ -45,7 +45,7 @@ public class StructMap extends BIF {
 	}
 
 	private static Struct _call(PageContext pc, Struct sct, UDF udf, boolean parallel, int maxThreads) throws PageException {
-		return (Struct) Map._call(pc, sct, udf, parallel, maxThreads, null, ClosureFunc.TYPE_STRUCT);
+		return (Struct) Map.call(pc, sct, udf, parallel, maxThreads, null, ClosureFunc.TYPE_STRUCT);
 	}
 
 	@Override

@@ -28,7 +28,7 @@ import lucee.transformer.bytecode.util.Methods;
 import lucee.transformer.bytecode.util.Types;
 import lucee.transformer.cast.Cast;
 import lucee.transformer.expression.ExprBoolean;
-import lucee.transformer.expression.ExprDouble;
+import lucee.transformer.expression.ExprNumber;
 import lucee.transformer.expression.ExprString;
 import lucee.transformer.expression.Expression;
 import lucee.transformer.expression.literal.Literal;
@@ -75,9 +75,9 @@ public final class CastString extends ExpressionBase implements ExprString, Cast
 			expr.writeOut(bc, MODE_VALUE);
 			adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_STRING_FROM_BOOLEAN);
 		}
-		else if (expr instanceof ExprDouble) {
-			expr.writeOut(bc, MODE_VALUE);
-			adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_STRING_FROM_DOUBLE);
+		else if (expr instanceof ExprNumber) {
+			expr.writeOut(bc, MODE_REF);
+			adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_STRING_FROM_NUMBER);
 		}
 		else {
 			Type rtn = ((ExpressionBase) expr).writeOutAsType(bc, MODE_REF);

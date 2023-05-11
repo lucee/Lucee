@@ -24,6 +24,10 @@ public class AlwaysThrow extends PageRuntimeException {
 		super(pe);
 	}
 
+	public AlwaysThrow(Throwable t) {
+		super(t);
+	}
+
 	public AlwaysThrow(String message) {
 		super(message);
 	}

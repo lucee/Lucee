@@ -56,11 +56,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 	private string function defineDatasource(){
 		application action="update" 
-			datasource={
-	  		class: 'org.h2.Driver'
-	  		, bundleName: 'org.h2'
-			, connectionString: 'jdbc:h2:#getDirectoryFromPath(getCurrentTemplatePath())#/datasource/update;MODE=MySQL'
-		};
+			datasource="#server.getDatasource( "h2", server._getTempDir( "tag-query" ) )#";
 	}
 
 	public void function testCachedWithinColumns() {
@@ -358,6 +354,5 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		}
 		catch(local.e){}
 	}
-
 } 
 </cfscript>

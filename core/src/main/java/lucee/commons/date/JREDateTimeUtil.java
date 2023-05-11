@@ -18,6 +18,8 @@
  */
 package lucee.commons.date;
 
+import java.time.DayOfWeek;
+import java.time.temporal.WeekFields;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Locale;
@@ -149,7 +151,15 @@ public class JREDateTimeUtil extends DateTimeUtil {
 
 	@Override
 	public synchronized int getDayOfWeek(Locale locale, TimeZone tz, DateTime dt) {
-		return _get(locale, tz, dt, Calendar.DAY_OF_WEEK);
+		// TODO improve for locale not starting the week with Sunday or Monday
+		WeekFields weekFields = WeekFields.of(locale);
+		DayOfWeek firstDay = weekFields.getFirstDayOfWeek();
+		int fd = firstDay.getValue();
+		if (fd == 7) fd = 0;
+		int raw = _get(locale, tz, dt, Calendar.DAY_OF_WEEK);
+		int result = raw - fd;
+		if (result < 1) return 7 + result;
+		return result;
 	}
 
 	@Override

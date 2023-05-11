@@ -140,7 +140,7 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 	 * @throws FunctionLibException
 	 */
 	protected ConfigServerImpl(CFMLEngineImpl engine, Map<String, CFMLFactory> initContextes, Map<String, CFMLFactory> contextes, Resource configDir, Resource configFile,
-			UpdateInfo updateInfo) throws TagLibException, FunctionLibException {
+			UpdateInfo updateInfo, boolean essentialOnly) throws TagLibException, FunctionLibException {
 		super(configDir, configFile);
 		this.cfmlCoreTLDs = TagLibFactory.loadFromSystem(CFMLEngine.DIALECT_CFML, id);
 		this.luceeCoreTLDs = TagLibFactory.loadFromSystem(CFMLEngine.DIALECT_LUCEE, id);
@@ -148,7 +148,7 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 		this.luceeCoreFLDs = FunctionLibFactory.loadFromSystem(CFMLEngine.DIALECT_LUCEE, id);
 
 		this.engine = engine;
-		engine.setConfigServerImpl(this);
+		if (!essentialOnly) engine.setConfigServerImpl(this);
 		this.initContextes = initContextes;
 		// this.contextes=contextes;
 		this.rootDir = configDir;

@@ -92,4 +92,6 @@ public interface ConfigWebPro extends ConfigWeb, ConfigPro {
 	public boolean hasIndividualSecurityManager();
 
 	public short getPasswordSource();
+
+	public void resetServerFunctionMappings();
 }

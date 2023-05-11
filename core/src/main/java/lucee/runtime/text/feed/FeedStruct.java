@@ -36,7 +36,8 @@ public class FeedStruct extends StructImpl {
 		this.uri = uri;
 	}
 
-	public FeedStruct() {}
+	public FeedStruct() {
+	}
 
 	/**
 	 * @return the uri

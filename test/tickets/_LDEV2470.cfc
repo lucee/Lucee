@@ -1,4 +1,4 @@
-component extends = "org.lucee.cfml.test.LuceeTestCase" {
+component extends = "org.lucee.cfml.test.LuceeTestCase" labels="qoq"{
 	function run(){
 		describe( "Test suite for LDEV-2470", function() {
 			it( title = "QoQ joins on columns with type integer does work", body = function( currentSpec ){

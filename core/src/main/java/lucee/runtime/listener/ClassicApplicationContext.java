@@ -156,6 +156,8 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 
 	private Regex regex;
 
+	private boolean preciseMath;
+
 	/**
 	 * constructor of the class
 	 * 
@@ -207,6 +209,8 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 		cgiScopeReadonly = ((ConfigPro) config).getCGIScopeReadonly();
 		this.antiSamyPolicy = ((ConfigPro) config).getAntiSamyPolicy();
 		this.regex = ((ConfigPro) config).getRegex();
+		this.preciseMath = ((ConfigPro) config).getPreciseMath();
+
 	}
 
 	/**
@@ -282,6 +286,7 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 		dbl.ormdatasource = ormdatasource;
 		dbl.sessionCluster = sessionCluster;
 		dbl.clientCluster = clientCluster;
+		dbl.preciseMath = preciseMath;
 		dbl.source = source;
 		dbl.cgiScopeReadonly = cgiScopeReadonly;
 		dbl.antiSamyPolicy = antiSamyPolicy;
@@ -1111,5 +1116,15 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 	@Override
 	public void setRegex(Regex regex) {
 		this.regex = regex;
+	}
+
+	@Override
+	public boolean getPreciseMath() {
+		return preciseMath;
+	}
+
+	@Override
+	public void setPreciseMath(boolean preciseMath) {
+		this.preciseMath = preciseMath;
 	}
 }

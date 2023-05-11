@@ -32,6 +32,7 @@ import javax.mail.Authenticator;
 import javax.mail.BodyPart;
 import javax.mail.Flags;
 import javax.mail.Folder;
+import javax.mail.UIDFolder;
 import javax.mail.Header;
 import javax.mail.Message;
 import javax.mail.MessagingException;
@@ -40,6 +41,7 @@ import javax.mail.Part;
 import javax.mail.PasswordAuthentication;
 import javax.mail.Session;
 import javax.mail.Store;
+import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 import javax.mail.internet.MimeUtility;
 
@@ -52,12 +54,13 @@ import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.Md5;
 import lucee.commons.lang.StringUtil;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.net.imap.ImapClient;
 import lucee.runtime.net.pop.PopClient;
 import lucee.runtime.op.Caster;
-import lucee.runtime.op.Operator;
+import lucee.runtime.op.OpUtil;
 import lucee.runtime.pool.Pool;
 import lucee.runtime.pool.PoolItem;
 import lucee.runtime.type.Array;
@@ -76,7 +79,7 @@ public abstract class MailClient implements PoolItem {
 
 	@Override
 	public boolean isValid() {
-		if (_store == null && !_store.isConnected()) {
+		if (_store != null && !_store.isConnected()) {
 			// goal is to be valid if requested so we try to be
 			try {
 				start();
@@ -152,6 +155,7 @@ public abstract class MailClient implements PoolItem {
 	private Resource attachmentDirectory = null;
 	private final boolean secure;
 	private static Pool pool = new Pool(60000, 100, 5000);
+	private String delimiter = ",";
 
 	public static MailClient getInstance(int type, String server, int port, String username, String password, boolean secure, String name, String id) throws Exception {
 		String uid;
@@ -193,6 +197,7 @@ public abstract class MailClient implements PoolItem {
 		timeout = 60000;
 		startrow = 0;
 		maxrows = -1;
+		delimiter = ",";
 		uniqueFilenames = false;
 		this.server = server;
 		this.port = port;
@@ -237,6 +242,13 @@ public abstract class MailClient implements PoolItem {
 	}
 
 	/**
+	 * @param delimiter The delimiter to set.
+	 */
+	public void setDelimiter(String delimiter) {
+		this.delimiter = delimiter;
+	}
+
+	/**
 	 * connects to pop server
 	 * 
 	 * @throws MessagingException
@@ -245,24 +257,45 @@ public abstract class MailClient implements PoolItem {
 	public void start() throws MessagingException {
 		Properties properties = new Properties();
 		String type = getTypeAsString();
-		properties.put("mail." + type + ".host", server);
-		properties.put("mail." + type + ".port", new Double(port));
-		properties.put("mail." + type + ".connectiontimeout", String.valueOf(timeout));
-		properties.put("mail." + type + ".timeout", String.valueOf(timeout));
-		// properties.put("mail.mime.charset", "UTF-8");
+		properties.setProperty("mail." + type + ".host", server);
+		properties.setProperty("mail." + type + ".port", String.valueOf(port));
+		properties.setProperty("mail." + type + ".connectiontimeout", String.valueOf(timeout));
+		properties.setProperty("mail." + type + ".timeout", String.valueOf(timeout));
+		// properties.setProperty("mail.mime.charset", "UTF-8");
 		if (secure) {
-			properties.put("mail." + type + ".ssl.enable", "true");
-			// properties.put("mail."+type+".starttls.enable", "true" );
+			properties.setProperty("mail." + type + ".ssl.enable", "true");
+			// properties.setProperty("mail."+type+".starttls.enable", "true" );
+			// allow using untrusted certs, good for CI
+			if (!Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.ssl.checkserveridentity", null), true)){
+				properties.setProperty("mail." + type + ".ssl.trust", "*");
+				properties.setProperty("mail." + type + ".ssl.checkserveridentity", "false");
+			}
 		}
 
 		if (TYPE_IMAP == getType()) {
-			properties.put("mail.imap.partialfetch", "false");
+			if (secure){
+				properties.put("mail.store.protocol", "imaps");
+				properties.put("mail.imaps.partialfetch", "false");
+				properties.put("mail.imaps.fetchsize", "1048576");
+			} else {
+				properties.put("mail.store.protocol", "imap");
+				properties.put("mail.imap.partialfetch", "false");
+				properties.put("mail.imap.fetchsize", "1048576");
+			} 
 		}
 		// if(TYPE_POP3==getType()){}
 		_session = username != null ? Session.getInstance(properties, new _Authenticator(username, password)) : Session.getInstance(properties);
-		_store = _session.getStore(type);
-		if (!StringUtil.isEmpty(username)) _store.connect(server, username, password);
-		else _store.connect();
+
+		Thread t =  Thread.currentThread();
+		ClassLoader ccl = t.getContextClassLoader();
+		t.setContextClassLoader(_session.getClass().getClassLoader());		
+		try {
+			_store = _session.getStore(type);
+			if (!StringUtil.isEmpty(username)) _store.connect(server, port, username, password);
+			else _store.connect();
+		} finally {
+			t.setContextClassLoader(ccl);
+		}
 	}
 
 	protected abstract String getTypeAsString();
@@ -276,13 +309,14 @@ public abstract class MailClient implements PoolItem {
 	 * @param uIds
 	 * @throws MessagingException
 	 * @throws IOException
+	 * @throws PageException
 	 */
-	public void deleteMails(String as[], String as1[]) throws MessagingException, IOException {
+	public void deleteMails(String messageNumber, String uid) throws MessagingException, IOException, PageException {
 		Folder folder;
 		Message amessage[];
 		folder = _store.getFolder("INBOX");
 		folder.open(2);
-		Map<String, Message> map = getMessages(null, folder, as1, as, startrow, maxrows, false);
+		Map<String, Message> map = getMessages(null, folder, uid, messageNumber, startrow, maxrows, false);
 		Iterator<String> iterator = map.keySet().iterator();
 		amessage = new Message[map.size()];
 		int i = 0;
@@ -306,8 +340,9 @@ public abstract class MailClient implements PoolItem {
 	 * @return all messages from inbox
 	 * @throws MessagingException
 	 * @throws IOException
+	 * @throws PageException
 	 */
-	public Query getMails(String[] messageNumbers, String[] uids, boolean all, String folderName) throws MessagingException, IOException {
+	public Query getMails(String messageNumbers, String uids, boolean all, String folderName) throws MessagingException, IOException, PageException {
 		Query qry = new QueryImpl(all ? _fldnew : _flddo, 0, "query");
 		if (StringUtil.isEmpty(folderName, true)) folderName = "INBOX";
 		else folderName = folderName.trim();
@@ -329,7 +364,8 @@ public abstract class MailClient implements PoolItem {
 		try {
 			qry.setAtEL(DATE, row, Caster.toDate(message.getSentDate(), true, null, null));
 		}
-		catch (MessagingException e) {}
+		catch (MessagingException e) {
+		}
 
 		// subject
 		try {
@@ -341,12 +377,13 @@ public abstract class MailClient implements PoolItem {
 
 		// size
 		try {
-			qry.setAtEL(SIZE, row, new Double(message.getSize()));
+			qry.setAtEL(SIZE, row, Double.valueOf(message.getSize()));
 		}
-		catch (MessagingException e) {}
+		catch (MessagingException e) {
+		}
 
 		qry.setAtEL(FROM, row, toList(getHeaderEL(message, "from")));
-		qry.setAtEL(MESSAGE_NUMBER, row, new Double(message.getMessageNumber()));
+		qry.setAtEL(MESSAGE_NUMBER, row, Double.valueOf(message.getMessageNumber()));
 		qry.setAtEL(MESSAGE_ID, row, toList(getHeaderEL(message, "Message-ID")));
 		String s = toList(getHeaderEL(message, "reply-to"));
 		if (s.length() == 0) {
@@ -366,7 +403,8 @@ public abstract class MailClient implements PoolItem {
 				content.append(header.getValue());
 			}
 		}
-		catch (MessagingException e) {}
+		catch (MessagingException e) {
+		}
 		qry.setAtEL(HEADER, row, content.toString());
 
 		if (all) {
@@ -396,26 +434,44 @@ public abstract class MailClient implements PoolItem {
 	 * @return
 	 * @return matching Messages
 	 * @throws MessagingException
+	 * @throws PageException
 	 */
-	private Map<String, Message> getMessages(Query qry, Folder folder, String[] uids, String[] messageNumbers, int startRow, int maxRow, boolean all) throws MessagingException {
+	private Map<String, Message> getMessages(Query qry, Folder folder, String uids, String messageNumbers, int startRow, int maxRow, boolean all)
+			throws MessagingException, PageException {
 
-		Message[] messages = folder.getMessages();
+		Message[] messages = null;
+		String[] uidsStringArray = null;
 		Map<String, Message> map = qry == null ? new HashMap<String, Message>() : null;
 		int k = 0;
 		if (uids != null || messageNumbers != null) {
 			startRow = 0;
 			maxRow = -1;
 		}
+		if (uids != null) {
+			if (getType() == TYPE_IMAP) {
+				messages = ((UIDFolder) folder).getMessagesByUID(ListUtil.listToLongArray(uids, delimiter));
+			}
+			else { // POP3 folder doesn't supports the getMessagesByUID method from UIDFolder
+				uidsStringArray = ArrayUtil.trimItems(ListUtil.toStringArray(ListUtil.listToArrayRemoveEmpty(uids, delimiter)));
+			}
+		}
+		else if (messageNumbers != null) {
+			messages = folder.getMessages(ListUtil.listToIntArrayWithMaxRange(messageNumbers, ',', folder.getMessageCount()));
+		}
+
+		if (messages == null) messages = folder.getMessages();
+
 		Message message;
 		for (int l = startRow; l < messages.length; l++) {
 			if (maxRow != -1 && k == maxRow) {
 				break;
 			}
 			message = messages[l];
-			int messageNumber = message.getMessageNumber();
+			if (message == null) continue; // because the message can be a null for non existing messageNumbers
+
 			String id = getId(folder, message);
 
-			if (uids == null ? messageNumbers == null || contains(messageNumbers, messageNumber) : contains(uids, id)) {
+			if (uidsStringArray == null || (uidsStringArray != null && contains(uidsStringArray, id))) {
 				k++;
 				if (qry != null) {
 					toQuery(qry, message, id, all);
@@ -477,13 +533,15 @@ public abstract class MailClient implements PoolItem {
 					try {
 						query.setAtEL(ATTACHMENTS, row, ListUtil.arrayToList(attachments, "\t"));
 					}
-					catch (PageException pageexception) {}
+					catch (PageException pageexception) {
+					}
 				}
 				if (attachmentFiles.size() > 0) {
 					try {
 						query.setAtEL(ATTACHMENT_FILES, row, ListUtil.arrayToList(attachmentFiles, "\t"));
 					}
-					catch (PageException pageexception1) {}
+					catch (PageException pageexception1) {
+					}
 				}
 
 			}
@@ -566,6 +624,10 @@ public abstract class MailClient implements PoolItem {
 
 				cids.setEL(KeyImpl.init(filename), cid);
 			}
+			else if((content = bodypart.getContent()) instanceof MimeMessage) {
+				content = getConent(bodypart);
+				if (body.length() == 0) body.append(content);
+			}
 		}
 	}
 
@@ -597,12 +659,19 @@ public abstract class MailClient implements PoolItem {
 		InputStream is = null;
 
 		try {
-			return getContent(is = bp.getInputStream(), CharsetUtil.toCharset(getCharsetFromContentType(bp.getContentType())));
+			if((bp.getContent()) instanceof MimeMessage) {
+				MimeMessage mimeContent = (MimeMessage) bp.getContent();
+				is = mimeContent.getInputStream();
+			}
+			else {
+				is = bp.getInputStream();
+			}
+			return getContent(is, CharsetUtil.toCharset(getCharsetFromContentType(bp.getContentType())));
 		}
 		catch (IOException mie) {
 			IOUtil.closeEL(is);
 			try {
-				return getContent(is = bp.getInputStream(), SystemUtil.getCharset());
+				return getContent(is, SystemUtil.getCharset());
 			}
 			catch (IOException e) {
 				return "Cannot read body of this message: " + e.getMessage();
@@ -645,10 +714,11 @@ public abstract class MailClient implements PoolItem {
 	 * @param ids
 	 * @param id
 	 * @return has element found or not
+	 * @throws PageException
 	 */
-	private boolean contains(String ids[], String id) {
+	private boolean contains(String ids[], String id) throws PageException {
 		for (int i = 0; i < ids.length; i++) {
-			if (Operator.compare(ids[i], id) == 0) return true;
+			if (OpUtil.compare(ThreadLocalPageContext.get(), ids[i], id) == 0) return true;
 		}
 		return false;
 	}
@@ -659,10 +729,11 @@ public abstract class MailClient implements PoolItem {
 	 * @param ids
 	 * @param id
 	 * @return has element found or not
+	 * @throws PageException
 	 */
-	private boolean contains(String ids[], int id) {
+	private boolean contains(String ids[], int id) throws PageException {
 		for (int i = 0; i < ids.length; i++) {
-			if (Operator.compare(ids[i], id) == 0) return true;
+			if (OpUtil.compare(ThreadLocalPageContext.get(), ids[i], id) == 0) return true;
 		}
 		return false;
 	}
@@ -686,7 +757,8 @@ public abstract class MailClient implements PoolItem {
 		try {
 			if (_store != null) _store.close();
 		}
-		catch (Exception exception) {}
+		catch (Exception exception) {
+		}
 	}
 
 	// IMAP only
@@ -748,7 +820,7 @@ public abstract class MailClient implements PoolItem {
 		return qry;
 	}
 
-	public void moveMail(String srcFolderName, String trgFolderName, String as[], String as1[]) throws MessagingException, ApplicationException {
+	public void moveMail(String srcFolderName, String trgFolderName, String messageNumber, String uid) throws MessagingException, PageException {
 		if (StringUtil.isEmpty(srcFolderName, true)) srcFolderName = "INBOX";
 
 		Folder srcFolder = getFolder(srcFolderName, true, true, false);
@@ -758,7 +830,7 @@ public abstract class MailClient implements PoolItem {
 			srcFolder.open(2);
 			trgFolder.open(2);
 			Message amessage[];
-			Map<String, Message> map = getMessages(null, srcFolder, as1, as, startrow, maxrows, false);
+			Map<String, Message> map = getMessages(null, srcFolder, uid, messageNumber, startrow, maxrows, false);
 			Iterator<String> iterator = map.keySet().iterator();
 			amessage = new Message[map.size()];
 			int i = 0;
@@ -831,14 +903,15 @@ public abstract class MailClient implements PoolItem {
 			}
 			// max rows
 			if (maxrows > 0 && qry.getRecordcount() >= maxrows) break;
-
+			if ((f.getType() & Folder.HOLDS_MESSAGES) == 0) continue;
 			int row = qry.addRow();
 
 			Folder p = null;
 			try {
 				p = f.getParent();
 			}
-			catch (MessagingException me) {}
+			catch (MessagingException me) {
+			}
 
 			qry.setAt(KeyConstants._NAME, row, f.getName());
 			qry.setAt(FULLNAME, row, f.getFullName());

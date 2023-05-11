@@ -1,11 +1,6 @@
 component {
 	this.name =	"LDEV-908";
-	this.datasource ={
-	  		class: 'org.h2.Driver'
-	  		, bundleName: 'org.h2'
-			, connectionString: 'jdbc:h2:#getDirectoryFromPath(getCurrentTemplatePath())#/datasource/db908;MODE=MySQL'
-		};
-
+	this.datasource = server.getDatasource( "h2", server._getTempDir( "LDEV0908" ) );
 
 	this.ormenabled= true ;
 
@@ -24,7 +19,13 @@ component {
 		}
 	}
 
+	
+	public function onRequestStart() {
+		setting requesttimeout=10;
+	}
+
 	/*private struct function getCredentials() {
 		return server.getDatasource("mysql");
 	}*/
+
 }

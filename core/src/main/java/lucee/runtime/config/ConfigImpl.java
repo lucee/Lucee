@@ -41,6 +41,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Version;
 
+import lucee.commons.digest.HashUtil;
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.FileUtil;
 import lucee.commons.io.SystemUtil;
@@ -49,7 +50,6 @@ import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogEngine;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.log.LoggerAndSourceData;
-import lucee.commons.io.log.log4j.layout.ClassicLayout;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourceProvider;
 import lucee.commons.io.res.Resources;
@@ -84,6 +84,7 @@ import lucee.runtime.cfx.CFXTagPool;
 import lucee.runtime.cfx.customtag.CFXTagPoolImpl;
 import lucee.runtime.component.ImportDefintion;
 import lucee.runtime.component.ImportDefintionImpl;
+import lucee.runtime.config.ConfigWebFactory.Path;
 import lucee.runtime.config.ConfigWebUtil.CacheElement;
 import lucee.runtime.customtag.InitFile;
 import lucee.runtime.db.ClassDefinition;
@@ -174,7 +175,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 
 	private int mode = MODE_CUSTOM;
 
-	private PhysicalClassLoader rpcClassLoader;
+	private final Map<String, PhysicalClassLoader> rpcClassLoaders = new ConcurrentHashMap<String, PhysicalClassLoader>();
 	private Map<String, DataSource> datasources = new HashMap<String, DataSource>();
 	private Map<String, CacheConnection> caches = new HashMap<String, CacheConnection>();
 
@@ -416,6 +417,9 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 
 	private long applicationPathCacheTimeout = Caster.toLongValue(SystemUtil.getSystemPropOrEnvVar("lucee.application.path.cache.timeout", null), 20000);
 	private ClassLoader envClassLoader;
+
+	private boolean preciseMath = true;
+	private static Object token = new Object();
 
 	/**
 	 * @return the allowURLRequestTimeout
@@ -961,20 +965,21 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		throw new RuntimeException("no core taglib found"); // this should never happen
 	}
 
-	protected void setTagDirectory(List<Resource> listTagDirectory) {
-		Iterator<Resource> it = listTagDirectory.iterator();
+	protected void setTagDirectory(List<Path> listTagDirectory) {
+		Iterator<Path> it = listTagDirectory.iterator();
 		int index = -1;
 		String mappingName;
-		Resource tagDirectory;
+		Path path;
 		Mapping m;
 		boolean isDefault;
 		while (it.hasNext()) {
-			tagDirectory = it.next();
+			path = it.next();
 			index++;
 			isDefault = index == 0;
 			mappingName = "/mapping-tag" + (isDefault ? "" : index) + "";
 
-			m = new MappingImpl(this, mappingName, tagDirectory.getAbsolutePath(), null, ConfigPro.INSPECT_NEVER, true, true, true, true, false, true, null, -1, -1);
+			m = new MappingImpl(this, mappingName, path.isValidDirectory() ? path.res.getAbsolutePath() : path.str, null, ConfigPro.INSPECT_NEVER, true, true, true, true, false,
+					true, null, -1, -1);
 			if (isDefault) defaultTagMapping = m;
 			tagMappings.put(mappingName, m);
 
@@ -982,9 +987,8 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 			TagLib tll = getCoreTagLib(CFMLEngine.DIALECT_LUCEE);
 
 			// now overwrite with new data
-			if (tagDirectory.isDirectory()) {
-				String[] files = tagDirectory
-						.list(new ExtensionResourceFilter(getMode() == ConfigPro.MODE_STRICT ? Constants.getComponentExtensions() : Constants.getExtensions()));
+			if (path.res.isDirectory()) {
+				String[] files = path.res.list(new ExtensionResourceFilter(getMode() == ConfigPro.MODE_STRICT ? Constants.getComponentExtensions() : Constants.getExtensions()));
 				for (int i = 0; i < files.length; i++) {
 					if (tlc != null) createTag(tlc, files[i], mappingName);
 					if (tll != null) createTag(tll, files[i], mappingName);
@@ -1049,19 +1053,19 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		tl.setTag(tlt);
 	}
 
-	protected void setFunctionDirectory(List<Resource> listFunctionDirectory) {
-		Iterator<Resource> it = listFunctionDirectory.iterator();
+	protected void setFunctionDirectory(List<Path> listFunctionDirectory) {
+		Iterator<Path> it = listFunctionDirectory.iterator();
 		int index = -1;
 		String mappingName;
-		Resource functionDirectory;
+		Path path;
 		boolean isDefault;
 		while (it.hasNext()) {
-			functionDirectory = it.next();
+			path = it.next();
 			index++;
 			isDefault = index == 0;
 			mappingName = "/mapping-function" + (isDefault ? "" : index) + "";
-			MappingImpl mapping = new MappingImpl(this, mappingName, functionDirectory.getAbsolutePath(), null, ConfigPro.INSPECT_NEVER, true, true, true, true, false, true, null,
-					-1, -1);
+			MappingImpl mapping = new MappingImpl(this, mappingName, (path.isValidDirectory() ? path.res.getAbsolutePath() : path.str), null, ConfigPro.INSPECT_NEVER, true, true,
+					true, true, false, true, null, -1, -1);
 			if (isDefault) defaultFunctionMapping = mapping;
 			this.functionMappings.put(mappingName, mapping);
 
@@ -1069,8 +1073,8 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 			FunctionLib fll = luceeFlds[luceeFlds.length - 1];
 
 			// now overwrite with new data
-			if (functionDirectory.isDirectory()) {
-				String[] files = functionDirectory.list(new ExtensionResourceFilter(Constants.getTemplateExtensions()));
+			if (path.res.isDirectory()) {
+				String[] files = path.res.list(new ExtensionResourceFilter(Constants.getTemplateExtensions()));
 
 				for (String file: files) {
 					if (flc != null) createFunction(flc, file, mappingName);
@@ -2143,28 +2147,40 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 
 	@Override
 	public ClassLoader getRPCClassLoader(boolean reload) throws IOException {
-
-		if (rpcClassLoader != null && !reload) return rpcClassLoader;
-
-		Resource dir = getClassDirectory().getRealResource("RPC");
-		if (!dir.exists()) dir.createDirectory(true);
-		rpcClassLoader = new PhysicalClassLoader(this, dir, null, false);
-		return rpcClassLoader;
+		return getRPCClassLoader(reload, null);
 	}
 
 	@Override
 	public ClassLoader getRPCClassLoader(boolean reload, ClassLoader[] parents) throws IOException {
+		String key = toKey(parents);
+		PhysicalClassLoader rpccl = rpcClassLoaders.get(key);
+		if (rpccl == null || reload) {
+			synchronized (key) {
+				rpccl = rpcClassLoaders.get(key);
+				if (rpccl == null || reload) {
+					Resource dir = getClassDirectory().getRealResource("RPC/" + key);
+					if (!dir.exists()) {
+						ResourceUtil.createDirectoryEL(dir, true);
+					}
+					rpcClassLoaders.put(key, rpccl = new PhysicalClassLoader(this, dir, parents != null && parents.length == 0 ? null : parents, false));
+				}
+			}
+		}
+		return rpccl;
+	}
 
-		if (rpcClassLoader != null && !reload) return rpcClassLoader;
+	private String toKey(ClassLoader[] parents) {
+		if (parents == null || parents.length == 0) return "orphan";
 
-		Resource dir = getClassDirectory().getRealResource("RPC");
-		if (!dir.exists()) dir.createDirectory(true);
-		rpcClassLoader = new PhysicalClassLoader(this, dir, parents, false);
-		return rpcClassLoader;
+		StringBuilder sb = new StringBuilder();
+		for (ClassLoader parent: parents) {
+			sb.append(';').append(System.identityHashCode(parent));
+		}
+		return HashUtil.create64BitHashAsString(sb.toString());
 	}
 
 	public void resetRPCClassLoader() {
-		rpcClassLoader = null;
+		rpcClassLoaders.clear();
 	}
 
 	protected void setCacheDir(Resource cacheDir) {
@@ -2323,9 +2339,16 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 				pool = pools.get(id);
 				if (pool == null) {// TODO add config but from where?
 					DataSourcePro dsp = (DataSourcePro) ds;
+					// MUST merge ConnectionLimit and MaxTotal
+					int mt = 0;
+					if (dsp.getMaxTotal() > 0) mt = dsp.getMaxTotal();
+					else {
+						mt = dsp.getConnectionLimit();
+						if (mt <= 0) mt = Integer.MAX_VALUE;
+					}
 
 					pool = new DatasourceConnPool(this, ds, user, pass, "datasource",
-							DatasourceConnPool.createPoolConfig(null, null, null, dsp.getMinIdle(), dsp.getMaxIdle(), dsp.getMaxTotal(), 0, 0, 0, 0, 0, null));
+							DatasourceConnPool.createPoolConfig(null, null, null, dsp.getMinIdle(), dsp.getMaxIdle(), mt, 0, 0, 0, 0, 0, null));
 					pools.put(id, pool);
 				}
 			}
@@ -3004,7 +3027,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		SoftReference<CacheElement> tmp = getApplicationPathCacheTimeout() <= 0 ? null : applicationPathCache.get(id);
 		if (tmp != null) {
 			CacheElement ce = tmp.get();
-			if ((ce.created + getApplicationPathCacheTimeout()) >= System.currentTimeMillis()) {
+			if (ce != null && (ce.created + getApplicationPathCacheTimeout()) >= System.currentTimeMillis()) {
 				if (ce.pageSource.loadPage(pc, false, (Page) null) != null) {
 					if (isCFC != null) isCFC.setValue(ce.isCFC);
 					return ce.pageSource;
@@ -3402,14 +3425,14 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		resourceLayouts.add(layout);
 	}
 
-	public Object[] getConsoleLayouts() {
+	public Object[] getConsoleLayouts() throws PageException {
 		if (consoleLayouts.isEmpty()) consoleLayouts.add(getLogEngine().getDefaultLayout());
 		return consoleLayouts.toArray(new Object[consoleLayouts.size()]);
 
 	}
 
-	public Object[] getResourceLayouts() {
-		if (resourceLayouts.isEmpty()) resourceLayouts.add(new ClassicLayout());
+	public Object[] getResourceLayouts() throws PageException {
+		if (resourceLayouts.isEmpty()) resourceLayouts.add(getLogEngine().getClassicLayout());
 		return resourceLayouts.toArray(new Object[resourceLayouts.size()]);
 	}
 
@@ -3441,7 +3464,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	}
 
 	protected LoggerAndSourceData addLogger(String name, int level, ClassDefinition appender, Map<String, String> appenderArgs, ClassDefinition layout,
-			Map<String, String> layoutArgs, boolean readOnly, boolean dyn) {
+			Map<String, String> layoutArgs, boolean readOnly, boolean dyn) throws PageException {
 		LoggerAndSourceData existing = loggers.get(name.toLowerCase());
 		String id = LoggerAndSourceData.id(name.toLowerCase(), appender, appenderArgs, layout, layoutArgs, level, readOnly);
 
@@ -3469,17 +3492,22 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 
 	@Override
 	public Log getLog(String name) {
-		return getLog(name, true);
+		try {
+			return getLog(name, true);
+		}
+		catch (PageException e) {
+			throw new PageRuntimeException(e);
+		}
 	}
 
 	@Override
-	public Log getLog(String name, boolean createIfNecessary) {
+	public Log getLog(String name, boolean createIfNecessary) throws PageException {
 		LoggerAndSourceData lsd = _getLoggerAndSourceData(name, createIfNecessary);
 		if (lsd == null) return null;
-		return lsd.getLog();
+		return lsd.getLog(false);
 	}
 
-	private LoggerAndSourceData _getLoggerAndSourceData(String name, boolean createIfNecessary) {
+	private LoggerAndSourceData _getLoggerAndSourceData(String name, boolean createIfNecessary) throws PageException {
 		LoggerAndSourceData las = loggers.get(name.toLowerCase());
 		if (las == null) {
 			if (!createIfNecessary) return null;
@@ -3759,11 +3787,18 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		return fullNullSupport;
 	}
 
-	private LogEngine logEngine;
+	private static LogEngine logEngine;
 
 	@Override
 	public LogEngine getLogEngine() {
-		if (logEngine == null) logEngine = LogEngine.getInstance(this);
+		if (logEngine == null) {
+			synchronized (token) {
+				if (logEngine == null) {
+					logEngine = LogEngine.newInstance(this);
+				}
+			}
+
+		}
 		return logEngine;
 	}
 
@@ -3793,4 +3828,12 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		this.regex = regex;
 	}
 
+	@Override
+	public boolean getPreciseMath() {
+		return preciseMath;
+	}
+
+	protected void setPreciseMath(boolean preciseMath) {
+		this.preciseMath = preciseMath;
+	}
 }

@@ -25,7 +25,8 @@ import java.util.Map;
 import java.util.Set;
 
 import lucee.commons.lang.ExceptionUtil;
-import lucee.runtime.op.Operator;
+import lucee.runtime.engine.ThreadLocalPageContext;
+import lucee.runtime.op.OpUtil;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
@@ -44,7 +45,7 @@ public class CollectionUtil {
 			r = right.get(k, NULL);
 			if (r == NULL) return false;
 			l = left.get(k, NULL);
-			if (!Operator.equalsEL(r, l, false, true)) return false;
+			if (!OpUtil.equalsEL(ThreadLocalPageContext.get(), r, l, false, true)) return false;
 		}
 		return true;
 	}

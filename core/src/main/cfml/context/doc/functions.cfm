@@ -105,7 +105,7 @@
 			<h2 style="text-align: center;">Lucee Functions</h2>
 		</cfif>
 
-		<h2>Function <em>#uCase( url.item )#</em></h2>
+		<h2><em>#data.name#()</em></h2>
 		<cfif data.status EQ "deprecated">
 			<div class="warning nofocus">#stText.doc.depFunction#</div>
 		</cfif>

@@ -23,11 +23,7 @@
 	THIS.SetClientCookies = true;
 	
 	// Datasource
-	this.datasource={
-  		class: 'org.h2.Driver'
-	  	, bundleName: 'org.h2'
-		, connectionString: 'jdbc:h2:#getDirectoryFromPath(getCurrentTemplatePath())#/datasource/db;MODE=MySQL'
-	};
+	this.datasource= server.getDatasource( "h2", server._getTempDir( "jira2275" ) );
 	/*this.datasource = server.getDatasource("mysql");*/
 	
 	// ORM Stuff
@@ -58,6 +54,7 @@
 	 
 	<cffunction name="OnRequestStart" access="public" returntype="boolean" output="false" hint="Fires at first part of page processing.">
 		<cfargument name="TargetPage" type="string" required="true" />
+		<cfsetting requesttimeout=10>
 		<cfreturn true />
 	</cffunction>
 	 
@@ -67,14 +64,7 @@
 		<cfinclude template="#ARGUMENTS.TargetPage#" />
 		<cfreturn />
 	</cffunction>
-	 
-	 
-	<cffunction name="OnRequestEnd" access="public" returntype="void" output="true" hint="Fires after the page processing is complete.">
-	 
-		<cfreturn />
-	</cffunction>
-	 
-	 
+
 	<cffunction name="OnSessionEnd" access="public" returntype="void" output="false" hint="Fires when the session is terminated.">
 		<cfargument	name="SessionScope"	type="struct" required="true" />
 		<cfargument name="ApplicationScope" type="struct" required="false" default="#StructNew()#" />

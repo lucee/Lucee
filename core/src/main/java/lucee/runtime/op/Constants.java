@@ -77,7 +77,7 @@ public final class Constants {
 	public static final short SHORT_VALUE_ZERO = (short) 0;
 	public static final Short SHORT_ZERO = Short.valueOf((short) 0);
 	public static final Long LONG_ZERO = Long.valueOf(0);
-	public static final Double DOUBLE_ZERO = new Double(0);
+	public static final Double DOUBLE_ZERO = Double.valueOf(0);
 
 	/**
 	 * return an Integer object with same value

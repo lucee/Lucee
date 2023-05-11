@@ -143,7 +143,8 @@ public class Hash {
 			}
 			return str;
 		}
-		catch (CloneNotSupportedException e) {}
+		catch (CloneNotSupportedException e) {
+		}
 
 		// if not possible to clone the MessageDigest create always a new instance
 		for (int i = 0; i < numIterations; i++) {

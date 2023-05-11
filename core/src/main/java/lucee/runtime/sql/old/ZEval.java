@@ -28,7 +28,8 @@ import java.util.Vector;
 
 public final class ZEval {
 
-	public ZEval() {}
+	public ZEval() {
+	}
 
 	public boolean eval(ZTuple ztuple, ZExp zexp) throws SQLException {
 		if (ztuple == null || zexp == null) throw new SQLException("ZEval.eval(): null argument or operator");
@@ -165,7 +166,7 @@ public final class ZEval {
 				Object obj1 = ztuple.getAttValue(zconstant.getValue());
 				if (obj1 == null) throw new SQLException("ZEval.evalExpValue(): unknown column " + zconstant.getValue());
 				try {
-					obj = new Double(obj1.toString());
+					obj = Double.valueOf(obj1.toString());
 				}
 				catch (NumberFormatException numberformatexception) {
 					obj = obj1;
@@ -173,7 +174,7 @@ public final class ZEval {
 				break;
 
 			case 2: // '\002'
-				obj = new Double(zconstant.getValue());
+				obj = Double.valueOf(zconstant.getValue());
 				break;
 
 			case 1: // '\001'
@@ -183,7 +184,7 @@ public final class ZEval {
 				break;
 			}
 		}
-		else if (zexp instanceof ZExpression) obj = new Double(evalNumericExp(ztuple, (ZExpression) zexp));
+		else if (zexp instanceof ZExpression) obj = Double.valueOf(evalNumericExp(ztuple, (ZExpression) zexp));
 		return obj;
 	}
 

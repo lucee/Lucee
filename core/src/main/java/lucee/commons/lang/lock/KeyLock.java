@@ -50,7 +50,8 @@ public final class KeyLock {
 				try {
 					token.wait();
 				}
-				catch (InterruptedException e) {}
+				catch (InterruptedException e) {
+				}
 			}
 		}
 	}

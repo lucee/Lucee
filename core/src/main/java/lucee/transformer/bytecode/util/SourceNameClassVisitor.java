@@ -120,7 +120,8 @@ public class SourceNameClassVisitor extends ClassVisitor {
 			try {
 				absolutePath = ExpandPath.call(pc, relativePath);
 			}
-			catch (Exception e) {}
+			catch (Exception e) {
+			}
 			return absolutePath;
 		}
 

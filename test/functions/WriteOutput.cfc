@@ -14,24 +14,20 @@
  * You should have received a copy of the GNU Lesser General Public 
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  * 
- ---><cfcomponent extends="org.lucee.cfml.test.LuceeTestCase">
+ ---><cfcomponent extends="org.lucee.cfml.test.LuceeTestCase" labels="esapi">
 
 	<cffunction name="testESAPIEncode" localMode="modern">
-
-<cfscript>
-	saveContent variable="c" {writeOutput('<script>','html');}
-	assertEquals('&lt;script&gt;',c);
-</cfscript>
+		<cfscript>
+			saveContent variable="c" {writeOutput('<script>','html');}
+			assertEquals('&lt;script&gt;',c);
+		</cfscript>
 	</cffunction>
 
-
 	<cffunction name="test" localMode="modern">
-
-<cfscript>
-	saveContent variable="c" {writeOutput('abc');}
-	assertEquals('abc',c);
-</cfscript>
-
+		<cfscript>
+			saveContent variable="c" {writeOutput('abc');}
+			assertEquals('abc',c);
+		</cfscript>
 	</cffunction>
 	
 </cfcomponent>

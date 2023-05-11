@@ -383,7 +383,7 @@ public final class WDDXConverter extends ConverterSupport {
 		}
 		// Number
 		if (object instanceof Number) {
-			rtn = goIn() + "<number>" + ((Number) object).doubleValue() + "</number>";
+			rtn = goIn() + "<number>" + Caster.toString((Number) object) + "</number>";
 			deep--;
 			return rtn;
 		}
@@ -519,17 +519,22 @@ public final class WDDXConverter extends ConverterSupport {
 				if (node.getNodeName().equalsIgnoreCase("wddxPacket")) {
 					wddxPacket = node;
 					break;
+				} else {
+					throw new IllegalArgumentException("Invalid WDDX packet: root element is not wddxPacket.");
 				}
 			}
 
 			NodeList nl = wddxPacket.getChildNodes();
 			int n = nl.getLength();
 
+			if (n ==0) return null;
+
 			for (int i = 0; i < n; i++) {
 				Node data = nl.item(i);
 				if (data.getNodeName().equals("data")) {
 					NodeList list = data.getChildNodes();
 					len = list.getLength();
+					if (len ==0) return null;
 					for (int y = 0; y < len; y++) {
 						Node node = list.item(y);
 						if (node instanceof Element) return _deserialize((Element) node);
@@ -575,7 +580,7 @@ public final class WDDXConverter extends ConverterSupport {
 		else if (nodeName.equals("number")) {
 			try {
 				Node data = element.getFirstChild();
-				if (data == null) return new Double(0);
+				if (data == null) return Double.valueOf(0);
 				return Caster.toDouble(data.getNodeValue());
 			}
 			catch (Exception e) {
@@ -682,7 +687,7 @@ public final class WDDXConverter extends ConverterSupport {
 		if (node instanceof CharacterData) {
 			String data = ((CharacterData) node).getData();
 			try {
-				return Base64Coder.decode(data);
+				return Base64Coder.decode(data, true);
 			}
 			catch (CoderException e) {
 				throw new ConverterException(e.getMessage());

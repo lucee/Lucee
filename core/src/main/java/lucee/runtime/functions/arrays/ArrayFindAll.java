@@ -19,13 +19,14 @@
 package lucee.runtime.functions.arrays;
 
 import lucee.runtime.PageContext;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.CasterException;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
 import lucee.runtime.op.Caster;
+import lucee.runtime.op.OpUtil;
 import lucee.runtime.op.Decision;
-import lucee.runtime.op.Operator;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.Closure;
@@ -76,7 +77,7 @@ public final class ArrayFindAll extends BIF {
 		Object o;
 		for (int i = 1; i <= len; i++) {
 			o = array.get(i, null);
-			if (o != null && Operator.equals(o, value, caseSensitive, !valueIsSimple)) {
+			if (o != null && OpUtil.equals(ThreadLocalPageContext.get(), o, value, caseSensitive, !valueIsSimple)) {
 				rtn.appendEL(Caster.toDouble(i));
 			}
 		}

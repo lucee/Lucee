@@ -162,6 +162,8 @@ public final class SMTPClient implements Serializable {
 
 	private Object listener;
 
+	private boolean debug;
+
 	public static String getNow(TimeZone tz) {
 		tz = ThreadLocalPageContext.getTimeZone(tz);
 		SoftReference<SimpleDateFormat> tmp = formatters.get(tz);
@@ -185,6 +187,15 @@ public final class SMTPClient implements Serializable {
 	 */
 	public void setPort(int port) {
 		this.port = port;
+	}
+
+	/**
+	 * enable console logging of the mail session to console
+	 * 
+	 * @param debug
+	 */
+	public void setDebug(boolean debug) {
+		this.debug = debug;
 	}
 
 	/**
@@ -469,6 +480,8 @@ public final class SMTPClient implements Serializable {
 		SessionAndTransport sat = newConnection ? new SessionAndTransport(hash(props), props, auth, lifeTimesan, idleTimespan)
 				: SMTPConnectionPool.getSessionAndTransport(props, hash(props), auth, lifeTimesan, idleTimespan);
 
+		if (debug) sat.session.setDebug(true); // enable logging mail debug output to console
+
 		// Contacts
 		SMTPMessage msg = new SMTPMessage(sat.session);
 		if (from == null) throw new MessagingException("A [from] email address is required to send an email");
@@ -653,7 +666,8 @@ public final class SMTPClient implements Serializable {
 				if (!personal.equals(ia.getPersonal())) ia.setPersonal(personal);
 			}
 		}
-		catch (UnsupportedEncodingException e) {}
+		catch (UnsupportedEncodingException e) {
+		}
 	}
 
 	/**
@@ -725,7 +739,8 @@ public final class SMTPClient implements Serializable {
 			try {
 				fileName = MimeUtility.encodeText(fileName, "UTF-8", null);
 			}
-			catch (UnsupportedEncodingException e) {} // that should never happen!
+			catch (UnsupportedEncodingException e) {
+			} // that should never happen!
 		}
 		mbp.setFileName(fileName);
 		if (!StringUtil.isEmpty(att.getType())) mbp.setHeader("Content-Type", att.getType());
@@ -787,7 +802,7 @@ public final class SMTPClient implements Serializable {
 		try {
 
 			Proxy.start(proxyData);
-			Log log = config.getLog("mail");
+			Log log = ThreadLocalPageContext.getLog(config, "mail");
 			// Server
 			// Server[] servers = config.getMailServers();
 			if (host != null) {
@@ -865,7 +880,7 @@ public final class SMTPClient implements Serializable {
 
 						if (!sender.isSent()) {
 							Throwable t = sender.getThrowable();
-							if (t != null) throw Caster.toPageException(t);
+							if (t != null) throw Caster.toPageException(new Exception(t));
 
 							// stop when still running
 							try {
@@ -882,7 +897,7 @@ public final class SMTPClient implements Serializable {
 						}
 						// could have an exception but was send anyway
 						if (sender.getThrowable() != null) {
-							Throwable t = sender.getThrowable();
+							Throwable t = new Exception(sender.getThrowable());
 							if (log != null) log.log(Log.LEVEL_ERROR, "send mail", t);
 						}
 						clean(config, attachmentz);
@@ -895,8 +910,8 @@ public final class SMTPClient implements Serializable {
 						if (i + 1 == servers.length) {
 
 							listener(config, server, log, e, System.nanoTime() - start);
-							MailException me = new MailException(server.getHostName() + " " + ExceptionUtil.getStacktrace(e, true) + ":" + i);
-							me.setStackTrace(e.getStackTrace());
+							MailException me = new MailException(server.getHostName() + " " + e.getMessage() + ":" + i);
+							me.initCause((e.getCause()));
 
 							throw me;
 						}
@@ -910,8 +925,8 @@ public final class SMTPClient implements Serializable {
 	}
 
 	private void listener(ConfigWeb config, Server server, Log log, Exception e, long exe) {
-		if (e == null) log.info("mail", "mail sent (subject:" + subject + "from:" + toString(from) + "; to:" + toString(tos) + "; cc:" + toString(ccs) + "; bcc:" + toString(bccs)
-				+ "; ft:" + toString(fts) + "; rt:" + toString(rts) + ")");
+		if (e == null) log.info("mail", "mail sent (subject:" + subject + "; server:" + server.getHostName() + "; port:" + server.getPort() + "; from:" + toString(from) + "; to:"
+				+ toString(tos) + "; cc:" + toString(ccs) + "; bcc:" + toString(bccs) + "; ft:" + toString(fts) + "; rt:" + toString(rts) + ")");
 		else log.log(Log.LEVEL_ERROR, "mail", e);
 
 		// listener
@@ -959,7 +974,7 @@ public final class SMTPClient implements Serializable {
 		return timeout > 0 ? timeout : config.getMailTimeout() * 1000L;
 	}
 
-	// remove all atttachements that are marked to remove
+	// remove any attachments that are marked to remove after sending
 	private static void clean(Config config, Attachment[] attachmentz) {
 		if (attachmentz != null) for (int i = 0; i < attachmentz.length; i++) {
 			if (attachmentz[i].isRemoveAfterSend()) {
@@ -975,10 +990,55 @@ public final class SMTPClient implements Serializable {
 		return html;
 	}
 
+	/*
+	 * Users can opt-in to the old Lucee behavior of allowing HTML emails to be sent using 7bit
+	 * encoding. When 7bit transfer encoding is used, content must be wrapped to less than 1,000
+	 * characters per line.
+	 * 
+	 * The new default behavior for sending HTML emails is to use "quoted-printable" encoding, encodings
+	 * non-ASCII characters and automatically wraps lines to 76 characters wide, but encodes word
+	 * breaks. This allows for strings longer than 1000 characters to be included in the output and
+	 * still have the output conform to the SMTP RFCs.
+	 * 
+	 * https://stackoverflow.com/questions/25710599/content-transfer-encoding-7bit-or-8-bit/28531705#
+	 * 28531705
+	 */
+	private boolean isUse7bitHtmlEncoding() {
+		try {
+			return Caster.toBoolean(SystemUtil.getSystemPropOrEnvVar("lucee.mail.use.7bit.transfer.encoding.for.html.parts", "false"));
+		}
+		catch (Throwable t) {
+			return false;
+		}
+	}
+
 	private void fillHTMLText(Config config, MimePart mp) throws MessagingException {
 		if (htmlTextCharset == null) htmlTextCharset = getMailDefaultCharset(config);
-		mp.setDataHandler(new DataHandler(new StringDataSource(htmlText, TEXT_HTML, htmlTextCharset, 998)));
-		mp.setHeader("Content-Transfer-Encoding", "7bit");
+
+		String transferEncoding;
+
+		/*
+		 * Set the "lucee.mail.use.7bit.transfer.encoding.for.html.parts" system property to "false" to
+		 * force the previous behavior of using 7bit transfer encoding.
+		 */
+		if (isUse7bitHtmlEncoding()) {
+			transferEncoding = "7bit";
+			// when using 7bit, we must always wrap lines
+			mp.setDataHandler(new DataHandler(new StringDataSource(htmlText, TEXT_HTML, htmlTextCharset, 998)));
+			/*
+			 * The default behavior is to using "quoted-printable" for HTML emails. This will force wrapping of
+			 * lines to 76 characters and encoded any non-ASCII characters.
+			 * 
+			 * ACF uses this encoded for all HTML parts.
+			 */
+		}
+		else {
+			transferEncoding = "quoted-printable";
+			mp.setDataHandler(new DataHandler(new StringDataSource(htmlText, TEXT_HTML, htmlTextCharset)));
+		}
+
+		// headers must always be set after data handler is set or the headers will be replaced
+		mp.setHeader("Content-Transfer-Encoding", transferEncoding);
 		mp.setHeader("Content-Type", TEXT_HTML + "; charset=" + htmlTextCharset);
 	}
 
@@ -991,6 +1051,7 @@ public final class SMTPClient implements Serializable {
 	private void fillPlainText(Config config, MimePart mp) throws MessagingException {
 		if (plainTextCharset == null) plainTextCharset = getMailDefaultCharset(config);
 		mp.setDataHandler(new DataHandler(new StringDataSource(plainText != null ? plainText : "", TEXT_PLAIN, plainTextCharset, 998)));
+		// headers must always be set after data handler is set or the headers will be replaced
 		mp.setHeader("Content-Transfer-Encoding", "7bit");
 		mp.setHeader("Content-Type", TEXT_PLAIN + "; charset=" + plainTextCharset);
 	}
@@ -999,9 +1060,20 @@ public final class SMTPClient implements Serializable {
 		CharSet cs = CharsetUtil.toCharSet(part.getCharset());
 		if (cs == null) cs = getMailDefaultCharset(config);
 		MimeBodyPart mbp = new MimeBodyPart();
-		mbp.setDataHandler(new DataHandler(new StringDataSource(part.getBody(), part.getType(), cs, 998)));
-		// mbp.setHeader("Content-Transfer-Encoding", "7bit");
-		// mbp.setHeader("Content-Type", TEXT_PLAIN+"; charset="+plainTextCharset);
+
+		StringDataSource partSource = null;
+		/*
+		 * HTML parts are encoded as "quoted-printable", which is automatically wrapped to 76 characters per
+		 * line, so we do not need to wrap these lines.
+		 */
+		if ((part.getType() == "text/html") && !isUse7bitHtmlEncoding()) {
+			partSource = new StringDataSource(part.getBody(), part.getType(), cs);
+		}
+		else {
+			partSource = new StringDataSource(part.getBody(), part.getType(), cs, 998);
+		}
+
+		mbp.setDataHandler(new DataHandler(partSource));
 		return mbp;
 	}
 
@@ -1072,6 +1144,27 @@ public final class SMTPClient implements Serializable {
 	 */
 	public InternetAddress[] getCcs() {
 		return ccs;
+	}
+
+	/**
+	 * @return the charset
+	 */
+	public String getCharset() {
+		return charset.toString();
+	}
+
+	/**
+	 * @return the replyTo
+	 */
+	public InternetAddress[] getReplyTos() {
+		return rts;
+	}
+
+	/**
+	 * @return the failTo
+	 */
+	public InternetAddress[] getFailTos() {
+		return fts;
 	}
 
 	public void setPart(MailPart part) {

@@ -75,6 +75,7 @@ public interface ConfigPro extends Config {
 	public static final String DEFAULT_STORAGE_SESSION = "memory";
 	public static final String DEFAULT_STORAGE_CLIENT = "cookie";
 
+	public static final int QUERY_VAR_USAGE_UNDEFINED = 0;
 	public static final int QUERY_VAR_USAGE_IGNORE = 1;
 	public static final int QUERY_VAR_USAGE_WARN = 2;
 	public static final int QUERY_VAR_USAGE_ERROR = 4;
@@ -152,7 +153,7 @@ public interface ConfigPro extends Config {
 
 	public TimeSpan getCachedAfterTimeRange();
 
-	public Log getLog(String name, boolean createIfNecessary);
+	public Log getLog(String name, boolean createIfNecessary) throws PageException;
 
 	public Map<String, LoggerAndSourceData> getLoggers();
 
@@ -344,4 +345,6 @@ public interface ConfigPro extends Config {
 	public void putApplicationPageSource(String path, PageSource ps, String filename, int mode, boolean isCFC);
 
 	public long getApplicationPathCacheTimeout();
+
+	public boolean getPreciseMath();
 }

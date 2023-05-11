@@ -16,7 +16,8 @@ component {
 	this.datasources["LDEV2859"] = msSql;
 	this.datasource = "LDEV2859";
 
-	public function onRequestStart(){
+	public function onRequestStart() {
+		setting requesttimeout=10;
 		query{
 			echo("DROP TABLE IF EXISTS test");
 		}

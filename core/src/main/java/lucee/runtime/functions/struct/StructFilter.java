@@ -53,7 +53,7 @@ public final class StructFilter extends BIF {
 		if (type != CFTypes.TYPE_BOOLEAN && type != CFTypes.TYPE_ANY)
 			throw new ExpressionException("invalid return type [" + filter.getReturnTypeAsString() + "] for UDF Filter, valid return types are [boolean,any]");
 
-		return (Struct) Filter._call(pc, sct, filter, parallel, maxThreads, Filter.TYPE_STRUCT);
+		return (Struct) Filter.call(pc, sct, filter, parallel, maxThreads, Filter.TYPE_STRUCT);
 	}
 
 	@Override

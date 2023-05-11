@@ -4,17 +4,17 @@
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either 
+ * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public 
+ *
+ * You should have received a copy of the GNU Lesser General Public
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  **/
 package lucee.runtime.sql;
 
@@ -26,6 +26,7 @@ import java.util.Set;
 import lucee.commons.lang.ParserString;
 import lucee.commons.lang.types.RefBoolean;
 import lucee.commons.lang.types.RefBooleanImpl;
+import lucee.runtime.exp.IllegalQoQException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.sql.exp.Column;
@@ -42,6 +43,7 @@ import lucee.runtime.sql.exp.value.ValueDate;
 import lucee.runtime.sql.exp.value.ValueNull;
 import lucee.runtime.sql.exp.value.ValueNumber;
 import lucee.runtime.sql.exp.value.ValueString;
+import lucee.runtime.db.SQL;
 
 public class SelectParser {
 
@@ -55,6 +57,7 @@ public class SelectParser {
 
 	private int columnIndex = 0;
 	private Set<String> allColumns = new HashSet<String>();
+	private boolean cachingColumn = true;
 
 	// select <select-statement> from <tables> where <where-statement>
 	public Selects parse(String sql) throws SQLParserException {
@@ -192,7 +195,9 @@ public class SelectParser {
 
 	private void havingExpressions(ParserString raw, Select select) throws SQLParserException {
 		raw.removeSpace();
+		cachingColumn = false;
 		Expression exp = expression(raw);
+		cachingColumn = true;
 		if (exp == null) throw new SQLParserException("missing having expression");
 		if (!(exp instanceof Operation)) throw new SQLParserException("invalid having expression");
 		select.setHaving((Operation) exp);
@@ -514,7 +519,7 @@ public class SelectParser {
 		// Modulus Operation
 		while (raw.forwardIfCurrent('^')) {
 			raw.removeSpace();
-			exp = new Operation2(exp, negateMinusOp(raw), Operation.OPERATION2_EXP);
+			exp = new Operation2(exp, negateMinusOp(raw), Operation.OPERATION2_BITWISE);
 		}
 		return exp;
 	}
@@ -542,6 +547,23 @@ public class SelectParser {
 		if (exp == null) exp = bracked(raw);
 		if (exp == null) exp = number(raw);
 		if (exp == null) exp = string(raw);
+
+		// If there is a random : laying around like :id where we expected a column or value, it's
+		// likley a named param and the user forgot to pass their params to the query.
+		if (exp == null && raw.isCurrent( ":" ) ) {
+			String name = "";
+			int pos = raw.getPos();
+			// Strip out the next word to show the user what was after their errant :
+			do {
+				if( raw.isCurrentWhiteSpace() || raw.isCurrent( ")" ) ) break;
+				name += raw.getCurrent();
+				raw.next();
+			} while( raw.isValidIndex() );
+			throw (SQLParserException)new SQLParserException("Unexpected token [" + name + "] found at position " + pos + ". Did you forget to specify all your named params?" )
+				// Need to sneak this past Java's checked exception types
+				.initCause( new IllegalQoQException("Unsupported SQL", "", null, null) );
+		}
+
 		return exp;
 	}
 
@@ -560,12 +582,12 @@ public class SelectParser {
 		String name = identifier(raw, hb);
 		if (name == null) return null;
 		if (!hb.toBooleanValue()) {
-			if ("true".equalsIgnoreCase(name)) return ValueBoolean.TRUE;
-			if ("false".equalsIgnoreCase(name)) return ValueBoolean.FALSE;
-			if ("null".equalsIgnoreCase(name)) return ValueNull.NULL;
+			if ("true".equalsIgnoreCase(name)) return new ValueBoolean(true);
+			if ("false".equalsIgnoreCase(name)) return new ValueBoolean(false);
+			if ("null".equalsIgnoreCase(name)) return new ValueNull();
 		}
 
-		ColumnExpression column = new ColumnExpression(name, name.equals("?") ? columnIndex++ : 0);
+		ColumnExpression column = new ColumnExpression(name, name.equals("?") ? columnIndex++ : 0, cachingColumn);
 		allColumns.add(column.getColumnName());
 		raw.removeSpace();
 		while (raw.forwardIfCurrent(".")) {
@@ -764,5 +786,6 @@ public class SelectParser {
 		return str;
 	}
 
-	public static void main(String[] args) {}
+	public static void main(String[] args) {
+	}
 }

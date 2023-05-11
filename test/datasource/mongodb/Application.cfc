@@ -33,6 +33,10 @@
 	this.clientTimeout = createTimeSpan( 0, 2, 0, 0 );
 	this.clientStorage = "perAppCacheMongo";
 
+	public function onRequestStart() {
+		setting requesttimeout=10;
+	}
+	
 	private struct function getCredentials() {
 		// getting the credentials from the environment variables
 		var mongoDB = server.getDatasource("mongoDB");

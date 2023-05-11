@@ -28,7 +28,8 @@ public class Request extends Thread {
 		try {
 			exe(pc, type, false, true);
 		}
-		catch (Throwable _t) {}
+		catch (Throwable _t) {
+		}
 		done = true;
 		SystemUtil.notify(parent);
 	}

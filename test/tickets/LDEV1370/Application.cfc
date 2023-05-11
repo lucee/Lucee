@@ -1,11 +1,7 @@
 component {
 	this.name 				= "LDEV1370" & hash( getCurrentTemplatePath() );
 
-	this.datasource={
-	  		class: 'org.h2.Driver'
-	  		, bundleName: 'org.h2'
-			, connectionString: 'jdbc:h2:#getDirectoryFromPath(getCurrentTemplatePath())#/datasource/db1370;MODE=MySQL;MVCC=true'
-		};
+	this.datasource = server.getDatasource(service="h2", dbFile=server._getTempDir("LDEV1370") );	
 
 	this.ormEnabled = true;
 	this.ormSettings = {
@@ -19,4 +15,8 @@ component {
 
 	if(!isNull(url.flushAtRequestEnd)) this.ormSettings.flushAtRequestEnd=url.flushAtRequestEnd;
 	if(!isNull(url.autoManageSession)) this.ormSettings.autoManageSession=url.autoManageSession;
+	
+	public function onRequestStart() {
+		setting requesttimeout=10;
+	}
 }

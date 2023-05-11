@@ -301,8 +301,8 @@ public class CFTag extends BodyTagTryCatchFinallyImpl implements DynamicAttribut
 	}
 
 	void doInclude() throws PageException {
-		Variables var = pageContext.variablesScope();
-		pageContext.setVariablesScope(ctVariablesScope);
+		final Variables var = pageContext.variablesScope();
+		if (ctVariablesScope != var) pageContext.setVariablesScope(ctVariablesScope);
 
 		QueryStack cs = null;
 		Undefined undefined = pageContext.undefinedScope();
@@ -325,7 +325,7 @@ public class CFTag extends BodyTagTryCatchFinallyImpl implements DynamicAttribut
 		finally {
 			undefined.setMode(oldMode);
 			// varScopeData=variablesScope.getMap();
-			pageContext.setVariablesScope(var);
+			if (ctVariablesScope != var) pageContext.setVariablesScope(var);
 			if (pageContext.getConfig().allowImplicidQueryCall()) {
 				undefined.setQueryStack(cs);
 			}
@@ -721,7 +721,7 @@ public class CFTag extends BodyTagTryCatchFinallyImpl implements DynamicAttribut
 				source = initFile(pageContext);
 			}
 			catch (PageException e) {
-				LogUtil.log(ThreadLocalPageContext.getConfig(pageContext), CFTag.class.getName(), e);
+				LogUtil.log((pageContext), CFTag.class.getName(), e);
 			}
 		}
 		return source;

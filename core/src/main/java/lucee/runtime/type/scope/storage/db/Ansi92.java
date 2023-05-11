@@ -49,7 +49,6 @@ import lucee.runtime.type.Query;
 import lucee.runtime.type.QueryImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.scope.ScopeContext;
-import lucee.runtime.type.scope.storage.StorageScopeDatasource;
 import lucee.runtime.type.scope.storage.StorageScopeEngine;
 import lucee.runtime.type.scope.storage.StorageScopeListener;
 import lucee.runtime.type.scope.storage.clean.DatasourceStorageScopeCleaner;
@@ -213,7 +212,7 @@ public class Ansi92 extends SQLExecutorSupport {
 
 			ScopeContext.info(log, "remove " + strType + "/" + name + "/" + cfid + " from datasource " + dc.getDatasource().getName());
 			engine.remove(type, name, cfid);
-			SQLImpl sql = new SQLImpl("DELETE FROM " + StorageScopeDatasource.PREFIX + "_" + strType + "_data WHERE cfid=? and name=?",
+			SQLImpl sql = new SQLImpl("DELETE FROM " + PREFIX + "_" + strType + "_data WHERE cfid=? and name=?",
 					new SQLItem[] { new SQLItemImpl(cfid, Types.VARCHAR), new SQLItemImpl(name, Types.VARCHAR) });
 			new QueryImpl(ThreadLocalPageContext.get(), dc, sql, -1, -1, null, strType + "_storage");
 

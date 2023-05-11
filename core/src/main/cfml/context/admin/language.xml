@@ -327,8 +327,9 @@
 		<custom key="proxy.password">Passwort</custom>
 		<custom key="proxy.passworddescription">Passwort für den Proxy</custom>
 		<custom key="proxy.port">Port</custom>
+		<custom key="proxy.serverName">Server</custom>
 		<custom key="proxy.portdescription">Port für den Proxy Server (Vorgabe:80)</custom>
-		<custom key="proxy.server">Server</custom>
+		<custom key="proxy.server">Definieren Sie einen globalen Proxy, der standardmäßig in mehreren Tags verwendet wird (cfhttp, cfftp, cfmail ...)</custom>
 		<custom key="proxy.serverdescription">URL eines Proxy Server im Stil 'http://myproxyserver.org/'</custom>
 	
 		<custom key="proxy.settings">Proxy Einstellungen</custom>
@@ -900,7 +901,7 @@
 		<custom key="doc.attr.required">Required</custom>
 		<custom key="doc.attr.type.dynamic">There is no restriction for attributes for this tag.</custom>
 		<custom key="doc.attr.type.fixed">The attributes for this tag are fixed. Except for the following attributes no other attributes are allowed.</custom>
-		<custom key="doc.attr.type.mixed">This tag has a fixed definition of attributes (see below). In addition it allowes to use any additional attribute.</custom>
+		<custom key="doc.attr.type.mixed">This tag has a fixed definition of attributes (see below). In addition it allows to use any additional attribute.</custom>
 		<custom key="doc.attr.type.noname">This tag only allows one attribute value (no name).</custom>
 	
 		<custom key="doc.attr.zero">This tag has no attributes</custom>
@@ -1068,7 +1069,7 @@
 		<custom key="proxy.port">Port</custom>
 		<custom key="proxy.portdescription">Port for the proxy server (default:80)</custom>
 	
-		<custom key="proxy.server">Server</custom>
+		<custom key="proxy.server">Define a global proxy, that will be used in several tags by default (cfhttp,cfftp,cfmail ...)</custom>
 		<custom key="proxy.serverdescription">URL of a proxy server eg.&quot;http://myproxyserver.org/&quot;</custom>
 		<custom key="proxy.settings">Proxy settings</custom>
 		<custom key="proxy.username">Username</custom>

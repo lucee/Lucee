@@ -101,9 +101,8 @@ public final class JSConverter extends ConverterSupport {
 		// Number
 		if (object instanceof Number) {
 			sb.append(goIn());
-			sb.append("\"");
 			sb.append(Caster.toString(((Number) object)));
-			sb.append("\";");
+			sb.append(';');
 			return;
 		}
 		// Date

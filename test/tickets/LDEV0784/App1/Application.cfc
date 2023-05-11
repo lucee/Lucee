@@ -11,4 +11,10 @@
 			this.SessionCluster = false;
 		</cfscript>
 	</cfsilent>
+<cfscript>
+
+	public function onRequestStart() {
+		setting requesttimeout=10;
+	}
+</cfscript>
 </cfcomponent>

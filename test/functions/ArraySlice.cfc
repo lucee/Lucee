@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase"{
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="array"{
 	function run( testResults , testBox ) {
 		describe( title="Test suite for ArraySlice()", body=function() {
 			it(title="checking ArraySlice() function", body = function( currentSpec ) {
@@ -14,6 +14,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 
 				assertEquals( "bbb,ccc,ddd,eee", ListCompact(ArrayToList(arraySlice(arr,2,0))));
 				assertEquals( "bbb,ccc,ddd", ListCompact(ArrayToList(arraySlice(arr,2,-1))));
+				assertEquals( "", ListCompact(ArrayToList(arraySlice(arr,0,-2))));
 			});
 		});
 	}

@@ -13,7 +13,7 @@
 			<tstamp>
 				<format property="timestamp" pattern="yyyy-MM-dd HH:mm:ss" />
 			</tstamp>
-			<echo message="---------- ${timestamp} - @{message} ----------" />
+			<echo leveL="debug" message="---------- ${timestamp} - @{message} ----------" />
 		</sequential>
 	</macrodef>
 
@@ -31,7 +31,7 @@
 	try {
 
 // set a password for the admin
-	if(getConfigSettings().mode!="single") {
+	if(!server.lucee.singleContext) {
 		admin 
 			action="updatePassword"
 			type="web"

@@ -59,13 +59,13 @@ public final class OpBigDecimal extends ExpressionBase {
 	 */
 	@Override
 	public Type _writeOut(BytecodeContext bc, int mode) throws TransformerException {
-		return writeOutDouble(bc, mode);
+		return writeOutNumber(bc, mode);
 	}
 
-	public Type writeOutDouble(BytecodeContext bc, int mode) throws TransformerException {
+	public Type writeOutNumber(BytecodeContext bc, int mode) throws TransformerException {
 
 		if (operation == Factory.OP_DBL_EXP) {
-			return new OpDouble(left, right, operation).writeOutDouble(bc, mode);
+			return new OpNumber(left, right, operation).writeOutNumber(bc, mode);
 		}
 
 		GeneratorAdapter adapter = bc.getAdapter();

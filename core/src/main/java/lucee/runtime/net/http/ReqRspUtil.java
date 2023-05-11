@@ -31,6 +31,7 @@ import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -134,40 +135,45 @@ public final class ReqRspUtil {
 
 	public static Cookie[] getCookies(HttpServletRequest req, Charset charset) {
 		Cookie[] cookies = req.getCookies();
-
 		if (cookies != null) {
-			Cookie cookie;
 			String tmp;
-			for (int i = 0; i < cookies.length; i++) {
-				cookie = cookies[i];
+			for (Cookie cookie: cookies) {
 				// value (is decoded by the servlet engine with iso-8859-1)
-				if (!StringUtil.isAscii(cookie.getValue())) {
+				if (cookie != null && !StringUtil.isAscii(cookie.getValue())) {
 					tmp = encode(cookie.getValue(), "iso-8859-1");
 					cookie.setValue(decode(tmp, charset.name(), false));
 				}
 			}
 		}
-		else {
 
-			String str = req.getHeader("Cookie");
-			if (str != null) {
-				try {
-					String[] arr = lucee.runtime.type.util.ListUtil.listToStringArray(str, ';'), tmp;
-					java.util.List<Cookie> list = new ArrayList<Cookie>();
+		Enumeration<String> values = req.getHeaders("Cookie");
+		if (values != null) {
+			java.util.Map<String, Cookie> map = new HashMap<String, Cookie>();
+			if (cookies != null) {
+				for (Cookie cookie: cookies) {
+					if (cookie != null) map.put(cookie.getName().toUpperCase(), cookie);
+				}
+			}
+
+			try {
+				String val;
+				while (values.hasMoreElements()) {
+					val = values.nextElement();
+					String[] arr = lucee.runtime.type.util.ListUtil.listToStringArray(val, ';'), tmp;
 					Cookie c;
 					for (int i = 0; i < arr.length; i++) {
 						tmp = lucee.runtime.type.util.ListUtil.listToStringArray(arr[i], '=');
 						if (tmp.length > 0) {
 							c = ReqRspUtil.toCookie(dec(tmp[0], charset.name(), false), tmp.length > 1 ? dec(tmp[1], charset.name(), false) : "", null);
-							if (c != null) list.add(c);
+							if (c != null) map.put(c.getName().toUpperCase(), c);
 						}
 					}
+				}
 
-					cookies = list.toArray(new Cookie[list.size()]);
-				}
-				catch (Throwable t) {
-					ExceptionUtil.rethrowIfNecessary(t);
-				}
+				cookies = map.values().toArray(new Cookie[map.size()]);
+			}
+			catch (Throwable t) {
+				ExceptionUtil.rethrowIfNecessary(t);
 			}
 		}
 
@@ -314,12 +320,12 @@ public final class ReqRspUtil {
 					char c1 = str.charAt(i + 1);
 					char c2 = str.charAt(i + 2);
 					if (!isHex(c1) || !isHex(c2)) return true;
-					Integer.parseInt(c1 + "" + c2, 16);
+					// Integer.parseInt(c1 + "" + c2, 16);
 				}
 				catch (NumberFormatException nfe) {
 					return true;
 				}
-				i += 3;
+				i += 2;
 				continue;
 			}
 			return true;
@@ -357,7 +363,7 @@ public final class ReqRspUtil {
 				catch (NumberFormatException nfe) {
 					return false;
 				}
-				i += 3;
+				i += 2;
 				need = true;
 				continue;
 			}
@@ -459,7 +465,8 @@ public final class ReqRspUtil {
 		String strContentType = contentType == MimeType.ALL ? null : contentType.toString();
 		Charset cs = getCharacterEncoding(pc, req);
 
-		boolean isBinary = !(strContentType == null || HTTPUtil.isTextMimeType(contentType) || strContentType.toLowerCase().startsWith("application/x-www-form-urlencoded"));
+		boolean isBinary = !(strContentType == null || HTTPUtil.isTextMimeType(contentType) == Boolean.TRUE
+				|| strContentType.toLowerCase().startsWith("application/x-www-form-urlencoded"));
 
 		if (req.getContentLength() > -1) {
 			ServletInputStream is = null;
@@ -479,7 +486,7 @@ public final class ReqRspUtil {
 				return obj;
 			}
 			catch (Exception e) {
-				pc.getConfig().getLog("application").error("request", e);
+				ThreadLocalPageContext.getLog(pc, "application").error("request", e);
 				return defaultValue;
 			}
 			finally {
@@ -487,7 +494,7 @@ public final class ReqRspUtil {
 					IOUtil.close(is);
 				}
 				catch (IOException e) {
-					pc.getConfig().getLog("application").error("request", e);
+					ThreadLocalPageContext.getLog(pc, "application").error("request", e);
 				}
 			}
 		}

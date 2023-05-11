@@ -47,13 +47,17 @@ public abstract class CoreSupport implements Core {
 		return JREDateTimeUtil.getThreadCalendar(ThreadLocalPageContext.getTimeZone());
 	}
 
-	public static void log(String s1) {}
+	public static void log(String s1) {
+	}
 
-	public static void log(String s1, String s2) {}
+	public static void log(String s1, String s2) {
+	}
 
-	public static void log(String s1, String s2, String s3) {}
+	public static void log(String s1, String s2, String s3) {
+	}
 
-	public static void log(String s1, String s2, String s3, String s4) {}
+	public static void log(String s1, String s2, String s3, String s4) {
+	}
 
 	PreparedStatement prepareStatement(DatasourceConnection dc, String sql) throws SQLException {
 		return dc.getPreparedStatement(new SQLImpl(sql), false, true);

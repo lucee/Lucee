@@ -27,6 +27,7 @@ import lucee.commons.digest.HashUtil;
 import lucee.commons.io.cache.Cache;
 import lucee.commons.io.cache.exp.CacheException;
 import lucee.commons.lang.ClassUtil;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.config.Config;
 import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.exp.PageRuntimeException;
@@ -35,6 +36,7 @@ import lucee.runtime.reflection.Reflector;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
+import lucee.transformer.library.ClassDefinitionImpl;
 
 public class CacheConnectionImpl implements CacheConnectionPlus {
 
@@ -61,7 +63,16 @@ public class CacheConnectionImpl implements CacheConnectionPlus {
 				Class<Cache> clazz = classDefinition.getClazz();
 				if (!Reflector.isInstaneOf(clazz, Cache.class, false))
 					throw new CacheException("class [" + clazz.getName() + "] does not implement interface [" + Cache.class.getName() + "]");
-				cache = (Cache) ClassUtil.loadInstance(clazz);
+				Object obj = ClassUtil.loadInstance(clazz);
+				
+				if (obj instanceof Exception) {
+					throw ExceptionUtil.toIOException((Exception) obj);
+				}
+				if (!(obj instanceof Cache)) {
+					clazz = ((ClassDefinitionImpl) classDefinition).getClazz(true);
+					obj = ClassUtil.loadInstance(clazz);
+				}
+				cache = (Cache) obj;
 
 			}
 			catch (BundleException be) {

@@ -108,7 +108,7 @@ public final class ExceptionUtil {
 	 * @param keyLabel
 	 * @return
 	 */
-	public static String similarKeyMessage(Collection.Key[] _keys, String keySearched, String keyLabel, String keyLabels, String in, boolean listAll) {
+	public static String similarKeyMessage(Collection.Key[] _keys, String keySearched, String keyLabels, String in, boolean listAll) {
 
 		String inThe = StringUtil.isEmpty(in, true) ? "" : " in the " + in;
 
@@ -132,25 +132,55 @@ public final class ExceptionUtil {
 
 				if (keySearched.equalsIgnoreCase(k)) continue; // must be a null value in a partial null-support environment
 
-				String appendix;
-				if (listAll) appendix = ". Here is a complete list of all available " + keyLabels + ": [" + list + "].";
-				else if (empty) appendix = ". The structure is empty";
-				else appendix = ".";
+				String appendix = "";
+				if (listAll) appendix = "Here is a complete list of all available " + keyLabels + " [ " + list + " ].";
+				else if (empty) appendix = "The structure is empty";
 
-				return "The " + keyLabel + " [" + keySearched + "] does not exist" + inThe + ", but there is a similar " + keyLabel + " with name [" + _keys[i].getString()
-						+ "] available" + appendix;
+				return appendix;
 			}
 		}
-		String appendix;
-		if (listAll) appendix = ", only the following " + keyLabels + " are available: [" + list + "].";
-		else if (empty) appendix = ", the structure is empty";
-		else appendix = ".";
+		String appendix = "";
+		if (listAll) appendix = "Only the following " + keyLabels + " are available [ " + list + " ].";
+		else if (empty) appendix = "The structure is empty";
+		return appendix;
+	}
 
-		return "The " + keyLabel + " [" + keySearched + "] does not exist" + inThe + appendix;
+	public static String similarKeyMessage(Collection.Key[] _keys, String keySearched, String keyLabel, String keyLabels, String in, boolean listAll) {
+		String inThe = StringUtil.isEmpty(in, true) ? "" : " in the " + in;
+
+		boolean empty = _keys.length == 0;
+		if (listAll && (_keys.length > 50 || empty)) {
+			listAll = false;
+		}
+
+		String list = null;
+		if (listAll) {
+			Arrays.sort(_keys);
+			list = ListUtil.arrayToList(_keys, ", ");
+		}
+
+		String keySearchedSoundex = StringUtil.soundex(keySearched);
+
+		for (int i = 0; i < _keys.length; i++) {
+
+			String k = _keys[i].getString();
+			if (StringUtil.soundex(k).equals(keySearchedSoundex)) {
+
+				if (keySearched.equalsIgnoreCase(k)) continue; // must be a null value in a partial null-support environment
+
+				return "The " + keyLabel + " [" + keySearched + "] does not exist" + inThe + ", but there is a similar " + keyLabel + " with name [" + _keys[i].getString()
+						+ "] available.";
+			}
+		}
+		return "The " + keyLabel + " [" + keySearched + "] does not exist" + inThe;
 	}
 
 	public static String similarKeyMessage(Collection coll, String keySearched, String keyLabel, String keyLabels, String in, boolean listAll) {
 		return similarKeyMessage(CollectionUtil.keys(coll), keySearched, keyLabel, keyLabels, in, listAll);
+	}
+
+	public static String similarKeyMessage(Collection coll, String keySearched, String keyLabels, String in, boolean listAll) {
+		return similarKeyMessage(CollectionUtil.keys(coll), keySearched, keyLabels, in, listAll);
 	}
 
 	public static IOException toIOException(Throwable t) {

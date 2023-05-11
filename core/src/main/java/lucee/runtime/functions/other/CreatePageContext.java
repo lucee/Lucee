@@ -27,10 +27,12 @@ import java.util.List;
 import java.util.Map.Entry;
 
 import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpSession;
 
 import lucee.commons.io.DevNullOutputStream;
 import lucee.commons.lang.Pair;
 import lucee.runtime.PageContext;
+import lucee.runtime.config.Config;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
@@ -66,8 +68,10 @@ public final class CreatePageContext implements Function {
 
 	public static Object call(PageContext pc, String serverName, String scriptName, String queryString, Struct cookies, Struct headers, Struct parameters, Struct attributes)
 			throws PageException {
+
+		HttpSession session = pc != null && pc.getSessionType() == Config.SESSION_TYPE_JEE ? pc.getSession() : null;
 		return ThreadUtil.createPageContext(pc.getConfig(), DevNullOutputStream.DEV_NULL_OUTPUT_STREAM, serverName, scriptName, queryString, toCookies(cookies),
-				toPair(headers, true), null, toPair(parameters, true), castValuesToString(attributes), true, -1);
+				toPair(headers, true), null, toPair(parameters, true), castValuesToString(attributes), true, -1, session);
 	}
 
 	public static Struct castValuesToString(Struct sct) throws PageException {

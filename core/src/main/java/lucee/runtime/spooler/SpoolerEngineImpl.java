@@ -136,7 +136,7 @@ public class SpoolerEngineImpl implements SpoolerEngine {
 			if (task instanceof Task) start(config, (Task) task);
 			else {
 				start(config, new TaskWrap(task));
-				log.error("spooler", "make class " + task.getClass().getName() + " a Task class");
+				// log.error("spooler", "make class " + task.getClass().getName() + " a Task class");
 			}
 			return;
 		}
@@ -205,7 +205,7 @@ public class SpoolerEngineImpl implements SpoolerEngine {
 			task = (SpoolerTask) ois.readObject();
 		}
 		catch (Exception e) {
-			LogUtil.log(ThreadLocalPageContext.getConfig(), SpoolerEngineImpl.class.getName(), e);
+			LogUtil.log(ThreadLocalPageContext.get(), SpoolerEngineImpl.class.getName(), e);
 			IOUtil.closeEL(is);
 			IOUtil.closeEL(ois);
 			res.delete();
@@ -224,14 +224,14 @@ public class SpoolerEngineImpl implements SpoolerEngine {
 			oos.writeObject(task);
 		}
 		catch (IOException e) {
-			LogUtil.log(ThreadLocalPageContext.getConfig(), SpoolerEngineImpl.class.getName(), e);
+			LogUtil.log(ThreadLocalPageContext.get(), SpoolerEngineImpl.class.getName(), e);
 		}
 		finally {
 			try {
 				IOUtil.close(oos);
 			}
 			catch (IOException e) {
-				LogUtil.log(ThreadLocalPageContext.getConfig(), SpoolerEngineImpl.class.getName(), e);
+				LogUtil.log(ThreadLocalPageContext.get(), SpoolerEngineImpl.class.getName(), e);
 			}
 		}
 	}
@@ -259,14 +259,16 @@ public class SpoolerEngineImpl implements SpoolerEngine {
 	}
 
 	private String createId(ConfigWeb config, SpoolerTask task) {
-		Resource dir = getPersisDirectory(config).getRealResource(task.closed() ? "closed" : "open");
-		dir.mkdirs();
+		Resource dirClosed = getPersisDirectory(config).getRealResource("closed");
+		Resource dirOpen = getPersisDirectory(config).getRealResource("open");
+		if (task.closed()) dirClosed.mkdirs();
+		else dirOpen.mkdirs();
 
 		String id = null;
 		do {
 			id = StringUtil.addZeros(++count, 8);
 		}
-		while (dir.getRealResource(id + ".tsk").exists());
+		while (dirOpen.getRealResource(id + ".tsk").exists() || dirClosed.getRealResource(id + ".tsk").exists());
 		return id;
 	}
 

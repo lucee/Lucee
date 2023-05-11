@@ -169,12 +169,12 @@ public class MapAsStruct extends StructSupport implements Struct {
 
 	@Override
 	public Object set(Collection.Key key, Object value) throws PageException {
-		return map.put(key.getString(), value);
+		return map.put(caseSensitive ? key.getString() : key, value);
 	}
 
 	@Override
 	public Object setEL(Collection.Key key, Object value) {
-		return map.put(key.getString(), value);
+		return map.put(caseSensitive ? key.getString() : key, value);
 	}
 
 	@Override

@@ -38,7 +38,6 @@ public final class MixedAppListener extends ModernAppListener {
 
 	@Override
 	public void onRequest(PageContext pc, PageSource requestedPage, RequestListener rl) throws PageException {
-
 		RefBoolean isCFC = new RefBooleanImpl(false);
 		Page appP = getApplicationPage(pc, requestedPage, mode, isCFC);
 
@@ -57,8 +56,7 @@ public final class MixedAppListener extends ModernAppListener {
 		if (res != null) {
 			ps = ((ConfigPro) pc.getConfig()).getApplicationPageSource(pc, res.getParent(), "Application.[cfc|cfm]", mode, isCFC);
 			if (ps != null) {
-				Page p = ps.loadPage(pc, false, null);
-				if (p != null) return p;
+				if (ps.exists()) return ps.loadPage(pc, false);
 			}
 		}
 
@@ -76,18 +74,16 @@ public final class MixedAppListener extends ModernAppListener {
 	private static Page getApplicationPageCurrent(PageContext pc, PageSource requestedPage, RefBoolean isCFC) throws PageException {
 		PageSource ps = requestedPage.getRealPage(Constants.CFML_APPLICATION_EVENT_HANDLER);
 		if (ps != null) {
-			Page p = ps.loadPage(pc, false, null);
+			Page p = null;
+			if (ps.exists()) p = ps.loadPage(pc, false);
 			if (p != null) {
 				isCFC.setValue(true);
 				return p;
 			}
 		}
 		ps = requestedPage.getRealPage(Constants.CFML_CLASSIC_APPLICATION_EVENT_HANDLER);
-		if (ps != null) {
-			Page p = ps.loadPage(pc, false, null);
-			if (p != null) {
-				return p;
-			}
+		if (ps != null && ps.exists()) {
+			return ps.loadPage(pc, false);
 		}
 		return null;
 	}
@@ -109,7 +105,8 @@ public final class MixedAppListener extends ModernAppListener {
 			path = sb.toString();
 			ps = ((PageContextImpl) pc).getPageSource(path.concat(Constants.CFML_APPLICATION_EVENT_HANDLER));
 			if (ps != null) {
-				p = ps.loadPage(pc, false, null);
+				p = null;
+				if (ps.exists()) p = ps.loadPage(pc, false);
 				if (p != null) {
 					isCFC.setValue(true);
 					return p;
@@ -117,7 +114,8 @@ public final class MixedAppListener extends ModernAppListener {
 			}
 			ps = ((PageContextImpl) pc).getPageSource(path.concat(Constants.CFML_CLASSIC_APPLICATION_EVENT_HANDLER));
 			if (ps != null) {
-				p = ps.loadPage(pc, false, null);
+				p = null;
+				if (ps.exists()) p = ps.loadPage(pc, false);
 				if (p != null) {
 					return p;
 				}
@@ -138,7 +136,8 @@ public final class MixedAppListener extends ModernAppListener {
 	private static Page getApplicationPageRoot(PageContext pc, RefBoolean isCFC) throws PageException {
 		PageSource ps = ((PageContextImpl) pc).getPageSource("/" + Constants.CFML_APPLICATION_EVENT_HANDLER);
 		if (ps != null) {
-			Page p = ps.loadPage(pc, false, null);
+			Page p = null;
+			if (ps.exists()) p = ps.loadPage(pc, false);
 			if (p != null) {
 				isCFC.setValue(true);
 				return p;
@@ -147,7 +146,8 @@ public final class MixedAppListener extends ModernAppListener {
 		}
 		ps = ((PageContextImpl) pc).getPageSource("/" + Constants.CFML_CLASSIC_APPLICATION_EVENT_HANDLER);
 		if (ps != null) {
-			Page p = ps.loadPage(pc, false, null);
+			Page p = null;
+			if (ps.exists()) p = ps.loadPage(pc, false);
 			if (p != null) {
 				return p;
 			}

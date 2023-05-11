@@ -24,17 +24,18 @@ import java.util.List;
 
 import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.Component;
-import lucee.runtime.exp.CasterException;
+import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.exp.TemplateException;
 import lucee.runtime.functions.other.CreateUniqueId;
-import lucee.runtime.op.Caster;
 import lucee.runtime.type.scope.Scope;
 import lucee.runtime.type.scope.ScopeSupport;
 import lucee.runtime.type.util.UDFUtil;
 import lucee.transformer.Factory;
 import lucee.transformer.Position;
 import lucee.transformer.TransformerException;
+import lucee.transformer.bytecode.Body;
+import lucee.transformer.bytecode.expression.ComponentAsExpression;
 import lucee.transformer.bytecode.expression.ExpressionInvoker;
 import lucee.transformer.bytecode.expression.FunctionAsExpression;
 import lucee.transformer.bytecode.expression.var.Argument;
@@ -50,17 +51,19 @@ import lucee.transformer.bytecode.literal.Identifier;
 import lucee.transformer.bytecode.literal.Null;
 import lucee.transformer.bytecode.literal.NullConstant;
 import lucee.transformer.bytecode.op.OpVariable;
+import lucee.transformer.bytecode.statement.tag.Attribute;
+import lucee.transformer.bytecode.statement.tag.TagComponent;
 import lucee.transformer.bytecode.statement.udf.Function;
 import lucee.transformer.bytecode.util.ASMUtil;
 import lucee.transformer.cfml.Data;
 import lucee.transformer.cfml.script.DocCommentTransformer;
 import lucee.transformer.cfml.tag.CFMLTransformer;
 import lucee.transformer.expression.ExprBoolean;
-import lucee.transformer.expression.ExprDouble;
+import lucee.transformer.expression.ExprNumber;
 import lucee.transformer.expression.ExprString;
 import lucee.transformer.expression.Expression;
 import lucee.transformer.expression.Invoker;
-import lucee.transformer.expression.literal.LitDouble;
+import lucee.transformer.expression.literal.LitNumber;
 import lucee.transformer.expression.literal.LitString;
 import lucee.transformer.expression.literal.Literal;
 import lucee.transformer.expression.var.DataMember;
@@ -711,7 +714,7 @@ public abstract class AbstrCFMLExprTransformer {
 				comments(data);
 				Expression value = assignOp(data);
 
-				expr = data.factory.opUnary((Variable) expr, value, Factory.OP_UNARY_PRE, Factory.OP_UNARY_CONCAT, expr.getStart(), data.srcCode.getPosition());
+				expr = data.factory.opUnaryString((Variable) expr, value, Factory.OP_UNARY_PRE, Factory.OP_UNARY_CONCAT, expr.getStart(), data.srcCode.getPosition());
 
 				// ExprString res = OpString.toExprString(expr, right);
 				// expr=new OpVariable((Variable)expr,res,data.cfml.getPosition());
@@ -754,17 +757,13 @@ public abstract class AbstrCFMLExprTransformer {
 			data.srcCode.next();
 			comments(data);
 			Expression value = assignOp(data);
-			// if(opr==OpDouble.MINUS) value=OpNegateNumber.toExprDouble(value, null, null);
 
-			expr = data.factory.opUnary((Variable) expr, value, Factory.OP_UNARY_PRE, opr, expr.getStart(), data.srcCode.getPosition());
-
-			// ExprDouble res = OpDouble.toExprDouble(expr, right,opr);
-			// expr=new OpVariable((Variable)expr,res,data.cfml.getPosition());
+			expr = data.factory.opUnaryNumber((Variable) expr, value, Factory.OP_UNARY_PRE, opr, expr.getStart(), data.srcCode.getPosition());
 		}
 
 		else {
 			comments(data);
-			expr = data.factory.opDouble(expr, modOp(data), opr);
+			expr = data.factory.opNumber(expr, modOp(data), opr);
 		}
 		return expr;
 	}
@@ -784,8 +783,6 @@ public abstract class AbstrCFMLExprTransformer {
 		// Modulus Operation
 		while (data.srcCode.forwardIfCurrent('%') || data.srcCode.forwardIfCurrentAndNoWordAfter("mod")) {
 			expr = _modOp(data, expr);
-			// comments(data);
-			// expr=OpDouble.toExprDouble(expr, divMultiOp(), OpDouble.MODULUS);
 		}
 		return expr;
 	}
@@ -795,11 +792,11 @@ public abstract class AbstrCFMLExprTransformer {
 			data.srcCode.next();
 			comments(data);
 			Expression right = assignOp(data);
-			ExprDouble res = data.factory.opDouble(expr, right, Factory.OP_DBL_MODULUS);
+			ExprNumber res = data.factory.opNumber(expr, right, Factory.OP_DBL_MODULUS);
 			return new OpVariable((Variable) expr, res, data.srcCode.getPosition());
 		}
 		comments(data);
-		return data.factory.opDouble(expr, expoOp(data), Factory.OP_DBL_MODULUS);
+		return data.factory.opNumber(expr, expoOp(data), Factory.OP_DBL_MODULUS);
 	}
 
 	/**
@@ -818,22 +815,16 @@ public abstract class AbstrCFMLExprTransformer {
 			// Multiply Operation
 			if (data.srcCode.forwardIfCurrent('*')) {
 				expr = _divMultiOp(data, expr, Factory.OP_DBL_MULTIPLY);
-				// comments(data);
-				// expr=OpDouble.toExprDouble(expr, expoOp(), OpDouble.MULTIPLY);
 			}
 			// Divide Operation
 			else if (data.srcCode.isCurrent('/') && (!data.srcCode.isCurrent('/', '>'))) {
 				data.srcCode.next();
 				expr = _divMultiOp(data, expr, Factory.OP_DBL_DIVIDE);
-				// comments(data);
-				// expr=OpDouble.toExprDouble(expr, expoOp(), OpDouble.DIVIDE);
 			}
 			// Divide Operation
 			else if (data.srcCode.isCurrent('\\')) {
 				data.srcCode.next();
 				expr = _divMultiOp(data, expr, Factory.OP_DBL_INTDIV);
-				// comments(data);
-				// expr=OpDouble.toExprDouble(expr, expoOp(), OpDouble.INTDIV);
 			}
 			else {
 				break;
@@ -849,13 +840,10 @@ public abstract class AbstrCFMLExprTransformer {
 			comments(data);
 			Expression value = assignOp(data);
 
-			return data.factory.opUnary((Variable) expr, value, Factory.OP_UNARY_PRE, iOp, expr.getStart(), data.srcCode.getPosition());
-
-			// ExprDouble res = OpDouble.toExprDouble(expr, right,iOp);
-			// return new OpVariable((Variable)expr,res,data.cfml.getPosition());
+			return data.factory.opUnaryNumber((Variable) expr, value, Factory.OP_UNARY_PRE, iOp, expr.getStart(), data.srcCode.getPosition());
 		}
 		comments(data);
-		return data.factory.opDouble(expr, expoOp(data), iOp);
+		return data.factory.opNumber(expr, expoOp(data), iOp);
 	}
 
 	/**
@@ -873,7 +861,7 @@ public abstract class AbstrCFMLExprTransformer {
 		// Modulus Operation
 		while (data.srcCode.forwardIfCurrent('^') || data.srcCode.forwardIfCurrentAndNoWordAfter("exp")) {
 			comments(data);
-			expr = data.factory.opDouble(expr, unaryOp(data), Factory.OP_DBL_EXP);
+			expr = data.factory.opNumber(expr, unaryOp(data), Factory.OP_DBL_EXP);
 		}
 		return expr;
 	}
@@ -895,12 +883,9 @@ public abstract class AbstrCFMLExprTransformer {
 			start = leftEnd;
 			end = new Position(leftEnd.line, leftEnd.column + 2, leftEnd.pos + 2);
 		}
-		return data.factory.opUnary((Variable) expr, data.factory.DOUBLE_ONE(), Factory.OP_UNARY_POST, op, start, end);
 
-		// ExprDouble res = OpDouble.toExprDouble(expr, LitDouble.toExprDouble(1D,start,end),opr);
-		// expr=new OpVariable((Variable)expr,res,data.cfml.getPosition());
-		// return OpDouble.toExprDouble(expr,LitDouble.toExprDouble(1D,start,end),opr==OpDouble.PLUS?
-		// OpDouble.MINUS:OpDouble.PLUS);
+		if (op == Factory.OP_UNARY_CONCAT) return data.factory.opUnaryString((Variable) expr, data.factory.NUMBER_ONE(), Factory.OP_UNARY_POST, op, start, end);
+		return data.factory.opUnaryNumber((Variable) expr, data.factory.NUMBER_ONE(), Factory.OP_UNARY_POST, op, start, end);
 	}
 
 	/**
@@ -917,11 +902,11 @@ public abstract class AbstrCFMLExprTransformer {
 			if (data.srcCode.forwardIfCurrent('-')) {
 				comments(data);
 				Expression expr = clip(data);
-				return data.factory.opUnary((Variable) expr, data.factory.DOUBLE_ONE(), Factory.OP_UNARY_PRE, Factory.OP_UNARY_MINUS, line, data.srcCode.getPosition());
 
-				// ExprDouble res = OpDouble.toExprDouble(expr, LitDouble.toExprDouble(1D),OpDouble.MINUS);
-				// return new OpVariable((Variable)expr,res,data.cfml.getPosition());
-
+				if (expr instanceof Variable) {
+					return data.factory.opUnaryNumber((Variable) expr, data.factory.NUMBER_ONE(), Factory.OP_UNARY_PRE, Factory.OP_UNARY_MINUS, line, data.srcCode.getPosition());
+				}
+				return data.factory.opNumber(data.factory.toExprNumber(expr), data.factory.createLitNumber(1), Factory.OP_DBL_MINUS);
 			}
 			comments(data);
 			return data.factory.opNegateNumber(clip(data), Factory.OP_NEG_NBR_MINUS, line, data.srcCode.getPosition());
@@ -931,11 +916,13 @@ public abstract class AbstrCFMLExprTransformer {
 			if (data.srcCode.forwardIfCurrent('+')) {
 				comments(data);
 				Expression expr = clip(data);
-
-				return data.factory.opUnary((Variable) expr, data.factory.DOUBLE_ONE(), Factory.OP_UNARY_PRE, Factory.OP_UNARY_PLUS, line, data.srcCode.getPosition());
+				if (expr instanceof Variable) {
+					return data.factory.opUnaryNumber((Variable) expr, data.factory.NUMBER_ONE(), Factory.OP_UNARY_PRE, Factory.OP_UNARY_PLUS, line, data.srcCode.getPosition());
+				}
+				return data.factory.opNumber(data.factory.toExprNumber(expr), data.factory.createLitNumber(1), Factory.OP_DBL_PLUS);
 			}
 			comments(data);
-			return data.factory.toExprDouble(clip(data));// OpNegateNumber.toExprDouble(clip(),OpNegateNumber.PLUS,line);
+			return data.factory.toExprNumber(clip(data));
 		}
 		return clip(data);
 	}
@@ -973,6 +960,11 @@ public abstract class AbstrCFMLExprTransformer {
 		if ((expr = number(data)) != null) {
 			expr = subDynamic(data, expr, false, false);
 			data.mode = STATIC;// (expr instanceof Literal)?STATIC:DYNAMIC;// STATIC
+			return expr;
+		}
+		// component
+		if ((expr = component(data)) != null) {
+			data.mode = DYNAMIC;
 			return expr;
 		}
 		// closure
@@ -1120,7 +1112,7 @@ public abstract class AbstrCFMLExprTransformer {
 	 * @return CFXD Element
 	 * @throws TemplateException
 	 */
-	private LitDouble number(Data data) throws TemplateException {
+	private LitNumber number(Data data) throws TemplateException {
 		// check first character is a number literal representation
 		if (!(data.srcCode.isCurrentBetween('0', '9') || data.srcCode.isCurrent('.'))) return null;
 
@@ -1175,10 +1167,10 @@ public abstract class AbstrCFMLExprTransformer {
 		comments(data);
 
 		try {
-			return data.factory.createLitDouble(Caster.toDoubleValue(rtn.toString()), line, data.srcCode.getPosition());
+			return data.factory.createLitNumber(rtn.toString(), line, data.srcCode.getPosition());
 		}
-		catch (CasterException e) {
-			throw new TemplateException(data.srcCode, e.getMessage());
+		catch (PageException e) {
+			throw new TemplateException(data.srcCode, e);
 		}
 
 	}
@@ -1338,6 +1330,33 @@ public abstract class AbstrCFMLExprTransformer {
 	}
 
 	protected abstract Function closurePart(Data data, String id, int access, int modifier, String rtnType, Position line, boolean closure) throws TemplateException;
+
+	private Expression component(Data data) throws TemplateException {
+
+		int start = data.srcCode.getPos();
+		if (!data.srcCode.forwardIfCurrent("new", "component")) return null;
+
+		// component need to be followed by attributes (component test=1 {) or directly by a curly bracked
+		if (!data.srcCode.isCurrent(' ') && !data.srcCode.isCurrent('{')) {
+			data.srcCode.setPos(start);
+			return null;
+		}
+
+		// exclude "new Component("
+		/*
+		 * data.srcCode.removeSpace(); if (data.srcCode.isCurrent('(')) { data.srcCode.setPos(start); return
+		 * null; } data.srcCode.revertRemoveSpace();
+		 */
+
+		data.srcCode.setPos(data.srcCode.getPos() - 9); // go before "component"
+		TagComponent tc = componentStatement(data, data.getParent());
+		tc.setParent(data.getParent());
+		tc.setInline(true);
+		tc.addAttribute(new Attribute(false, "name", data.factory.createLitString("inlinecomponent_" + CreateUniqueId.invoke()), "string"));
+		return new ComponentAsExpression(tc);
+	}
+
+	protected abstract TagComponent componentStatement(Data data, Body parent) throws TemplateException;
 
 	private Expression lambda(Data data) throws TemplateException {
 		int pos = data.srcCode.getPos();

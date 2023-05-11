@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase"	{
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="qoq"{
 
 	function beforeAll() {
 		variables.interestingNumbersAsAList = '3,4';

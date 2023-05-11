@@ -1,13 +1,7 @@
 component extends="org.lucee.cfml.test.LuceeTestCase"{
 	function beforeAll(){
 		application action="update" 
-				datasource={
-			class: 'org.h2.Driver'
-			, bundleName: 'org.h2'
-			, bundleVersion: '1.3.172'
-			, connectionString: 'jdbc:h2:#getDirectoryFromPath(getCurrentTemplatePath())#/datasource/db;MODE=MySQL'
-			, connectionLimit:100 // default:-1
-		};
+				datasource=#server.getDatasource( "h2", server._getTempDir( "LDEV2260" ) )#;
 
 		try{
 			query {
@@ -36,6 +30,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				}
 			}
 			catch(local.e){}
+			afterTests();
 		}
 
 	function run( testResults , testBox ) {
@@ -52,7 +47,5 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 			});
 		});
 	}
-		
-
 
 }

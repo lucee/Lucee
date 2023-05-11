@@ -59,7 +59,8 @@ public class ProxyDataImpl implements ProxyData, Serializable {
 		if (!StringUtil.isEmpty(password, true)) this.password = password;
 	}
 
-	public ProxyDataImpl() {}
+	public ProxyDataImpl() {
+	}
 
 	@Override
 	public void release() {

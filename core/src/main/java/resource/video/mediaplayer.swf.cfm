@@ -1,1 +1,0 @@
-<cfsetting showdebugoutput="no"><cfcontent type="application/x-shockwave-flash" file="mediaplayer.swf" reset="yes">

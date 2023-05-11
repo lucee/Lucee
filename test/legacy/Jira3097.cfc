@@ -59,11 +59,7 @@
 
 	private string function defineDatasource(){
 		application action="update" 
-			datasource="#{
-	  		class: 'org.h2.Driver'
-	  		, bundleName: 'org.h2'
-			, connectionString: 'jdbc:h2:#getDirectoryFromPath(getCurrentTemplatePath())#/datasource/jira3097;MODE=MySQL'
-		}#";
+			datasource="#server.getDatasource( "h2", server._getTempDir( "jira3097" ) )#";
 	}
 
 </cfscript>

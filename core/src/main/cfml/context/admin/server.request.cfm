@@ -285,7 +285,7 @@ Error Output --->
 						<td colspan="2">
 							<input type="submit" class="bl button submit" name="mainAction1" value="#stText.Buttons.Update#">
 							<input type="reset" class="<cfif request.adminType EQ "web">bm<cfelse>br</cfif> button reset" name="cancel" value="#stText.Buttons.Cancel#">
-							<cfif request.adminType EQ "web"><input class="br button submit" type="submit" name="mainAction1" value="#stText.Buttons.resetServerAdmin#"></cfif>
+							<cfif not request.singleMode and request.adminType EQ "web"><input class="br button submit" type="submit" name="mainAction1" value="#stText.Buttons.resetServerAdmin#"></cfif>
 						</td>
 					</tr>
 				</tfoot>
@@ -375,7 +375,7 @@ Error Output --->
 						<td colspan="2">
 							<input type="submit" class="bl button submit" name="mainAction1" value="#stText.Buttons.Update#">
 							<input type="reset" class="<cfif request.adminType EQ "web">bm<cfelse>br</cfif> button reset" name="cancel" value="#stText.Buttons.Cancel#">
-							<cfif request.adminType EQ "web"><input class="br button submit" type="submit" name="mainAction1" value="#stText.Buttons.resetServerAdmin#"></cfif>
+							<cfif not request.singleMode and request.adminType EQ "web"><input class="br button submit" type="submit" name="mainAction1" value="#stText.Buttons.resetServerAdmin#"></cfif>
 						</td>
 					</tr>
 				</tfoot>
@@ -498,7 +498,7 @@ Error Output --->
 						<td colspan="2">
 							<input type="submit" class="bl button submit" name="mainAction1" value="#stText.Buttons.Update#">
 							<input type="reset" class="<cfif request.adminType EQ "web">bm<cfelse>br</cfif> button reset" name="cancel" value="#stText.Buttons.Cancel#">
-							<cfif request.adminType EQ "web"><input class="br button submit" type="submit" name="mainAction1" value="#stText.Buttons.resetServerAdmin#"></cfif>
+							<cfif not request.singleMode and request.adminType EQ "web"><input class="br button submit" type="submit" name="mainAction1" value="#stText.Buttons.resetServerAdmin#"></cfif>
 						</td>
 					</tr>
 				</tfoot>
@@ -555,7 +555,7 @@ Error Output --->
 					<td>
 						<cfif hasAccess>
 							<ul class="radiolist">
-								<cfloop index="key" list="curr2root,currorroot,root,curr">
+								<cfloop index="key" list="curr2root,currorroot,root,current">
 									<li>
 										<label>
 											<input type="radio" class="radio" name="mode" value="#key#" <cfif listener.mode EQ key>checked="checked"</cfif>>
@@ -641,7 +641,7 @@ Error Output --->
 						<td colspan="2">
 							<input type="submit" class="bl button submit" name="mainAction2" value="#stText.Buttons.Update#">
 							<input type="reset" class="<cfif request.adminType EQ "web">bm<cfelse>br</cfif> button reset" name="cancel" value="#stText.Buttons.Cancel#">
-							<cfif request.adminType EQ "web"><input class="br button submit" type="submit" name="mainAction2" value="#stText.Buttons.resetServerAdmin#"></cfif>
+							<cfif not request.singleMode and request.adminType EQ "web"><input class="br button submit" type="submit" name="mainAction2" value="#stText.Buttons.resetServerAdmin#"></cfif>
 						</td>
 					</tr>
 				</tfoot>

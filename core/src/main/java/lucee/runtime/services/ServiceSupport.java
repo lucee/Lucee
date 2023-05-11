@@ -33,13 +33,16 @@ import lucee.runtime.exp.SecurityException;
 public class ServiceSupport implements Service {
 
 	@Override
-	public void start() throws ServiceException {}
+	public void start() throws ServiceException {
+	}
 
 	@Override
-	public void stop() throws ServiceException {}
+	public void stop() throws ServiceException {
+	}
 
 	@Override
-	public void restart() throws ServiceException {}
+	public void restart() throws ServiceException {
+	}
 
 	@Override
 	public int getStatus() {
@@ -57,7 +60,8 @@ public class ServiceSupport implements Service {
 	}
 
 	@Override
-	public void setProperty(String key, Object value) {}
+	public void setProperty(String key, Object value) {
+	}
 
 	@Override
 	public Map getResourceBundle() {

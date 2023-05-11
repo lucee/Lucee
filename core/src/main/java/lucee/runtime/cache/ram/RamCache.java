@@ -19,7 +19,6 @@
 package lucee.runtime.cache.ram;
 
 import java.io.IOException;
-import java.lang.ref.SoftReference;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -35,7 +34,11 @@ import lucee.commons.io.cache.CacheEntry;
 import lucee.commons.io.cache.CachePro;
 import lucee.commons.io.cache.exp.CacheException;
 import lucee.commons.io.log.LogUtil;
+import lucee.commons.lang.ParentThreasRefThread;
 import lucee.runtime.cache.CacheSupport;
+import lucee.runtime.cache.ram.ref.HardRef;
+import lucee.runtime.cache.ram.ref.Ref;
+import lucee.runtime.cache.ram.ref.SoftRef;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.engine.CFMLEngineImpl;
@@ -48,7 +51,7 @@ import lucee.runtime.type.Struct;
 public class RamCache extends CacheSupport {
 
 	public static final int DEFAULT_CONTROL_INTERVAL = 60;
-	private Map<String, SoftReference<RamCacheEntry>> entries = new ConcurrentHashMap<String, SoftReference<RamCacheEntry>>();
+	private Map<String, Ref<RamCacheEntry>> entries = new ConcurrentHashMap<String, Ref<RamCacheEntry>>();
 	private long missCount;
 	private int hitCount;
 
@@ -57,6 +60,7 @@ public class RamCache extends CacheSupport {
 	private int controlInterval = DEFAULT_CONTROL_INTERVAL * 1000;
 	private boolean decouple;
 	private Thread controller;
+	private boolean outOfMemory;
 
 	// this is used by the config by reflection
 	public RamCache() {
@@ -87,9 +91,7 @@ public class RamCache extends CacheSupport {
 		if (controller == null) throw new IOException("was not able to start controller");
 
 		// out of memory
-		boolean outOfMemory = Caster.toBooleanValue(arguments.get("outOfMemory", false), false);
-		if (outOfMemory) entries = new ConcurrentHashMap<String, SoftReference<RamCacheEntry>>();
-
+		this.outOfMemory = Caster.toBooleanValue(arguments.get("outOfMemory", false), false);
 		// until
 		long until = Caster.toLongValue(arguments.get("timeToLiveSeconds", Constants.LONG_ZERO), Constants.LONG_ZERO) * 1000;
 		long idleTime = Caster.toLongValue(arguments.get("timeToIdleSeconds", Constants.LONG_ZERO), Constants.LONG_ZERO) * 1000;
@@ -125,7 +127,7 @@ public class RamCache extends CacheSupport {
 
 	@Override
 	public CacheEntry getQuiet(String key, CacheEntry defaultValue) {
-		SoftReference<RamCacheEntry> tmp = entries.get(key);
+		Ref<RamCacheEntry> tmp = entries.get(key);
 		RamCacheEntry entry = tmp == null ? null : tmp.get();
 		if (entry == null) {
 			return defaultValue;
@@ -139,7 +141,7 @@ public class RamCache extends CacheSupport {
 	}
 
 	private CacheEntry _getQuiet(String key, CacheEntry defaultValue) {
-		SoftReference<RamCacheEntry> tmp = entries.get(key);
+		Ref<RamCacheEntry> tmp = entries.get(key);
 		RamCacheEntry entry = tmp == null ? null : tmp.get();
 		if (entry == null) {
 			return defaultValue;
@@ -177,8 +179,8 @@ public class RamCache extends CacheSupport {
 	public List<String> keys() {
 		List<String> list = new ArrayList<String>();
 
-		Iterator<Entry<String, SoftReference<RamCacheEntry>>> it = entries.entrySet().iterator();
-		SoftReference<RamCacheEntry> entry;
+		Iterator<Entry<String, Ref<RamCacheEntry>>> it = entries.entrySet().iterator();
+		Ref<RamCacheEntry> entry;
 		while (it.hasNext()) {
 			entry = it.next().getValue();
 			if (entry != null && valid(entry.get())) list.add(entry.get().getKey());
@@ -189,18 +191,18 @@ public class RamCache extends CacheSupport {
 	@Override
 	public void put(String key, Object value, Long idleTime, Long until) {
 
-		SoftReference<RamCacheEntry> tmp = entries.get(key);
+		Ref<RamCacheEntry> tmp = entries.get(key);
 		RamCacheEntry entry = tmp == null ? null : tmp.get();
 		if (entry == null) {
-			entries.put(key, new SoftReference<RamCacheEntry>(
-					new RamCacheEntry(key, decouple(value), idleTime == null ? this.idleTime : idleTime.longValue(), until == null ? this.until : until.longValue())));
+			RamCacheEntry e = new RamCacheEntry(key, decouple(value), idleTime == null ? this.idleTime : idleTime.longValue(), until == null ? this.until : until.longValue());
+			entries.put(key, outOfMemory ? new HardRef<RamCacheEntry>(e) : new SoftRef<RamCacheEntry>(e));
 		}
 		else entry.update(value);
 	}
 
 	@Override
 	public boolean remove(String key) {
-		SoftReference<RamCacheEntry> tmp = entries.remove(key);
+		Ref<RamCacheEntry> tmp = entries.remove(key);
 		RamCacheEntry entry = tmp == null ? null : tmp.get();
 		if (entry == null) {
 			return false;
@@ -216,7 +218,7 @@ public class RamCache extends CacheSupport {
 		return size;
 	}
 
-	public static class Controler extends Thread {
+	public static class Controler extends ParentThreasRefThread {
 
 		private RamCache ramCache;
 		private CFMLEngineImpl engine;
@@ -234,20 +236,21 @@ public class RamCache extends CacheSupport {
 					_run();
 				}
 				catch (Exception e) {
-					LogUtil.log(null, "application", e);
+					addParentStacktrace(e);
+					LogUtil.log("application", e);
 				}
 			}
 		}
 
 		private void _run() {
 			if (ramCache == null) return;
-			Map<String, SoftReference<RamCacheEntry>> e = ramCache.entries;
+			Map<String, Ref<RamCacheEntry>> e = ramCache.entries;
 			if (e == null) return;
-			Collection<SoftReference<RamCacheEntry>> v = e.values();
+			Collection<Ref<RamCacheEntry>> v = e.values();
 			if (v == null) return;
 
-			Iterator<SoftReference<RamCacheEntry>> it = v.iterator();
-			SoftReference<RamCacheEntry> sr;
+			Iterator<Ref<RamCacheEntry>> it = v.iterator();
+			Ref<RamCacheEntry> sr;
 			RamCacheEntry rce;
 			while (it.hasNext()) {
 				sr = it.next();
@@ -281,6 +284,10 @@ public class RamCache extends CacheSupport {
 		Struct info = super.getCustomInfo();
 		info.setEL("outOfMemoryHandling", entries instanceof ReferenceMap);
 		return info;
+	}
+
+	public boolean isObjectSerialisationSupported() {
+		return true;
 	}
 
 }

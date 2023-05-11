@@ -45,7 +45,7 @@ public class ArrayEvery extends BIF {
 	}
 
 	private static boolean _call(PageContext pc, Array array, UDF udf, boolean parallel, int maxThreads) throws PageException {
-		return Every._call(pc, array, udf, parallel, maxThreads, ClosureFunc.TYPE_ARRAY);
+		return Every.call(pc, array, udf, parallel, maxThreads, ClosureFunc.TYPE_ARRAY);
 	}
 
 	@Override

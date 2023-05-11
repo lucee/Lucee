@@ -24,6 +24,7 @@ import lucee.runtime.type.scope.Session;
 import lucee.runtime.type.scope.storage.IKHandler;
 import lucee.runtime.type.scope.storage.IKStorageScopeItem;
 import lucee.runtime.type.scope.storage.IKStorageScopeSupport;
+import lucee.runtime.type.util.StructUtil;
 
 public final class IKStorageScopeSession extends IKStorageScopeSupport implements Session {
 
@@ -33,17 +34,8 @@ public final class IKStorageScopeSession extends IKStorageScopeSupport implement
 		super(pc, handler, appName, name, "session", SCOPE_SESSION, data, lastModified, timeSpan);
 	}
 
-	/**
-	 * Constructor of the class, clone existing
-	 * 
-	 * @param other
-	 */
-	private IKStorageScopeSession(IKStorageScopeSupport other, boolean deepCopy) {
-		super(other, deepCopy);
-	}
-
 	@Override
 	public Collection duplicate(boolean deepCopy) {
-		return new IKStorageScopeSession(this, deepCopy);
+		return StructUtil.duplicate(this, deepCopy);
 	}
 }

@@ -82,7 +82,8 @@ public final class URLImpl extends ScopeSupport implements URL, ScriptProtected 
 				Caster.toDoubleValue(o, false, -1);
 			}
 		}
-		catch (Exception e) {}
+		catch (Exception e) {
+		}
 	}
 
 	@Override

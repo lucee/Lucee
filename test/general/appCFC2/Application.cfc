@@ -32,4 +32,9 @@ component {
 					,diskpersistent:true
 					,memoryevictionpolicy:"LRU"}
 		};
+
+
+	public function onRequestStart() {
+		setting requesttimeout=10;
+	}
 } 

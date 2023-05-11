@@ -5,17 +5,17 @@
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either 
+ * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public 
+ *
+ * You should have received a copy of the GNU Lesser General Public
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  **/
 package lucee.runtime.tag.util;
 
@@ -138,11 +138,34 @@ public class QueryParamConverter {
 
 		StringBuilder sb = new StringBuilder();
 		int sqlLen = sql.length(), initialParamSize = items.size();
-		char c, quoteType = 0;
+		char c, quoteType = 0, p = 0, pp = 0;
 		boolean inQuotes = false;
 		int qm = 0, _qm = 0;
+
 		for (int i = 0; i < sqlLen; i++) {
 			c = sql.charAt(i);
+			if (!inQuotes && sqlLen + 1 > i) {
+				// read multi line
+				if (c == '/' && sql.charAt(i + 1) == '*') {
+					int end = sql.indexOf("*/", i + 2);
+					if (end != -1) {
+						i = end + 2;
+						if (i == sqlLen) break;
+						c = sql.charAt(i);
+					}
+				}
+
+				// read single line
+				if (c == '-' && sql.charAt(i + 1) == '-') {
+					int end = sql.indexOf('\n', i + 1);
+					if (end != -1) {
+						i = end + 1;
+						if (i == sqlLen) break;
+						c = sql.charAt(i);
+					}
+					else break;
+				}
+			}
 
 			if (c == '"' || c == '\'') {
 				if (inQuotes) {
@@ -165,7 +188,7 @@ public class QueryParamConverter {
 						continue;
 					}
 
-					if (++_qm > initialParamSize) throw new ApplicationException("there are more question marks in the SQL than params defined");
+					if (++_qm > initialParamSize) throw new ApplicationException("there are more question marks in the SQL than params defined", "SQL: " + sql + "");
 				}
 				else if (c == ':') {
 
@@ -186,12 +209,12 @@ public class QueryParamConverter {
 					if (name.length() > 0) {
 						i = y - 1;
 						c = '?';
-						items.add(qm, get(name.toString(), namedItems));
+						items.add(qm, get(name.toString(), namedItems, sql));
 					}
 				}
 			}
 
-			if (c == '?') {
+			if (c == '?' && !inQuotes) {
 				int len = items.get(qm).size();
 				for (int j = 1; j <= len; j++) {
 					if (j > 1) sb.append(',');
@@ -202,10 +225,10 @@ public class QueryParamConverter {
 			else {
 				sb.append(c);
 			}
+			pp = p;
+			p = c;
 		}
-
 		SQLItems<SQLItem> finalItems = flattenItems(items);
-
 		return new SQLImpl(sb.toString(), finalItems.toArray(new SQLItem[finalItems.size()]));
 	}
 
@@ -225,19 +248,19 @@ public class QueryParamConverter {
 		return false;
 	}
 
-	private static SQLItems<SQLItem> get(String name, List<SQLItems<NamedSQLItem>> items) throws ApplicationException {
+	private static SQLItems<SQLItem> get(String name, List<SQLItems<NamedSQLItem>> items, String sql) throws ApplicationException {
 		Iterator<SQLItems<NamedSQLItem>> it = items.iterator();
 		SQLItems<NamedSQLItem> item;
 		while (it.hasNext()) {
 			item = it.next();
 			if (item.isEmpty()) {
-				throw new ApplicationException("param [" + name + "] may not be empty");
+				throw new ApplicationException("param [" + name + "] may not be empty", "SQL: " + sql + "");
 			}
 			if (item.get(0).name.equalsIgnoreCase(name)) {
 				return item.convertToSQLItems();
 			}
 		}
-		throw new ApplicationException("param [" + name + "] not found");
+		throw new ApplicationException("param [" + name + "] not found", "SQL: " + sql + "");
 	}
 
 	private static boolean isParamNull(Struct param) throws PageException {
@@ -252,7 +275,7 @@ public class QueryParamConverter {
 		return false;
 	}
 
-	private static class NamedSQLItem extends SQLItemImpl {
+	public static class NamedSQLItem extends SQLItemImpl {
 		public final String name;
 
 		public NamedSQLItem(String name, Object value, int type, int maxlength, Charset charset) {
@@ -280,7 +303,8 @@ public class QueryParamConverter {
 
 	private static class SQLItems<T extends SQLItem> extends ArrayList<T> {
 
-		public SQLItems() {}
+		public SQLItems() {
+		}
 
 		public SQLItems(T item) {
 			add(item);
@@ -352,41 +376,41 @@ public class QueryParamConverter {
 	}
 
 	/*
-	 * 
+	 *
 	 * public static void main(String[] args) throws PageException { List<SQLItem> one=new
 	 * ArrayList<SQLItem>(); one.add(new SQLItemImpl("aaa",1)); one.add(new SQLItemImpl("bbb",1));
-	 * 
+	 *
 	 * List<NamedSQLItem> two=new ArrayList<NamedSQLItem>(); two.add(new
 	 * NamedSQLItem("susi","sorglos",1)); two.add(new NamedSQLItem("peter","Petrus",1));
-	 * 
+	 *
 	 * SQL sql = convert(
 	 * "select ? as x, 'aa:a' as x from test where a=:susi and b=:peter and c=? and d=:susi", one, two);
-	 * 
+	 *
 	 * print.e(sql);
-	 * 
+	 *
 	 * // array with simple values Array arr=new ArrayImpl(); arr.appendEL("aaa"); arr.appendEL("bbb");
 	 * sql = convert( "select * from test where a=? and b=?", arr); print.e(sql);
-	 * 
+	 *
 	 * // array with complex values arr=new ArrayImpl(); Struct val1=new StructImpl(); val1.set("value",
 	 * "Susi Sorglos"); Struct val2=new StructImpl(); val2.set("value", "123"); val2.set("type",
 	 * "integer"); arr.append(val1); arr.append(val2); sql = convert(
 	 * "select * from test where a=? and b=?", arr); print.e(sql);
-	 * 
+	 *
 	 * // array with mixed values arr.appendEL("ccc"); arr.appendEL("ddd"); sql = convert(
 	 * "select * from test where a=? and b=? and c=? and d=?", arr); print.e(sql);
-	 * 
+	 *
 	 * // array mixed with named values Struct val3=new StructImpl(); val3.set("value", "456");
 	 * val3.set("type", "integer"); val3.set("name", "susi"); arr.append(val3); sql = convert(
 	 * "select :susi as name from test where a=? and b=? and c=? and d=?", arr); print.e(sql);
-	 * 
-	 * 
+	 *
+	 *
 	 * // struct with simple values Struct sct=new StructImpl(); sct.set("abc", "Sorglos"); sql =
 	 * convert( "select * from test where a=:abc", sct); print.e(sql);
-	 * 
+	 *
 	 * // struct with mixed values sct.set("peter", val1); sct.set("susi", val3); sql = convert(
 	 * "select :peter as p, :susi as s from test where a=:abc", sct); print.e(sql);
-	 * 
-	 * 
+	 *
+	 *
 	 * }
 	 */
 

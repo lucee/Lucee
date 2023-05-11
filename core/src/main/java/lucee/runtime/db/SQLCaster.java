@@ -18,14 +18,16 @@
  */
 package lucee.runtime.db;
 
-import java.math.BigDecimal;
 import java.sql.Array;
 import java.sql.Blob;
 import java.sql.Clob;
+import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.SQLXML;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.sql.Types;
@@ -55,7 +57,8 @@ import lucee.runtime.type.sql.ClobImpl;
  */
 public final class SQLCaster {
 
-	private SQLCaster() {}
+	private SQLCaster() {
+	}
 
 	/**
 	 * 
@@ -93,7 +96,7 @@ public final class SQLCaster {
 				return new Date(Caster.toDate(value, null).getTime());
 			case Types.NUMERIC:
 			case Types.DECIMAL:
-				return new BigDecimal(Caster.toDouble(value).toString());
+				return Caster.toString(Caster.toBigDecimal(value));
 			case Types.DOUBLE:
 				return Caster.toDouble(value);
 			case Types.FLOAT:
@@ -146,41 +149,22 @@ public final class SQLCaster {
 			return;
 		}
 		int type = item.getType();
-		boolean fns = NullSupportHelper.full(pc);
+		//boolean fns = NullSupportHelper.full(pc);
 		switch (type) {
 		/*
 		 * case Types.ARRAY: stat.setArray(parameterIndex,toArray(item.getValue())); return;
 		 */
 		case Types.BIGINT:
-			try {
-				stat.setLong(parameterIndex, Caster.toLongValue(value));
-			}
-			catch (PageException pe) {
-				if (!fns && value instanceof String && StringUtil.isEmpty((String) value)) stat.setNull(parameterIndex, item.getType());
-				else throw pe;
-			}
+			stat.setLong(parameterIndex, Caster.toLongValue(value));
 			return;
 		case Types.BIT:
-			try {
-				stat.setBoolean(parameterIndex, Caster.toBooleanValue(value));
-			}
-			catch (PageException pe) {
-				if (!fns && value instanceof String && StringUtil.isEmpty((String) value)) stat.setNull(parameterIndex, item.getType());
-				else throw pe;
-			}
+			stat.setBoolean(parameterIndex, Caster.toBooleanValue(value));
 			return;
 		case Types.BLOB:
-			try {
-				stat.setBlob(parameterIndex, SQLUtil.toBlob(stat.getConnection(), value));
-			}
-			catch (PageException pe) {
-				if (!fns && value instanceof String && StringUtil.isEmpty((String) value)) stat.setNull(parameterIndex, item.getType());
-				else throw pe;
-			}
+			stat.setBlob(parameterIndex, SQLUtil.toBlob(stat.getConnection(), value));
 			return;
 		case Types.CLOB:
-			try {
-				stat.setClob(parameterIndex, SQLUtil.toClob(stat.getConnection(), value));
+			stat.setClob(parameterIndex, SQLUtil.toClob(stat.getConnection(), value));
 				/*
 				 * if(value instanceof String) { try{ stat.setString(parameterIndex,Caster.toString(value)); }
 				 * catch(Throwable t){ExceptionUtil.rethrowIfNecessary(t);
@@ -188,11 +172,6 @@ public final class SQLCaster {
 				 * 
 				 * } else stat.setClob(parameterIndex,SQLUtil.toClob(stat.getConnection(),value));
 				 */
-			}
-			catch (PageException pe) {
-				if (!fns && value instanceof String && StringUtil.isEmpty((String) value)) stat.setNull(parameterIndex, item.getType());
-				else throw pe;
-			}
 			return;
 		case Types.CHAR:
 			String str = Caster.toString(value);
@@ -202,123 +181,81 @@ public final class SQLCaster {
 			return;
 		case Types.DECIMAL:
 		case Types.NUMERIC:
-			try {
-				stat.setDouble(parameterIndex, (Caster.toDoubleValue(value)));
-			}
-			catch (PageException pe) {
-				if (!fns && value instanceof String && StringUtil.isEmpty((String) value)) stat.setNull(parameterIndex, item.getType());
-				else throw pe;
-			}
+			stat.setDouble(parameterIndex, (Caster.toDoubleValue(value)));
 			return;
 
 		case Types.DOUBLE:
 		case Types.FLOAT:
-			try {
-				if (type == Types.FLOAT) stat.setFloat(parameterIndex, Caster.toFloatValue(value));
-				else if (type == Types.DOUBLE) stat.setDouble(parameterIndex, Caster.toDoubleValue(value));
-				else stat.setObject(parameterIndex, Caster.toDouble(value), type);
-			}
-			catch (PageException pe) {
-				if (!fns && value instanceof String && StringUtil.isEmpty((String) value)) stat.setNull(parameterIndex, item.getType());
-				else throw pe;
-			}
+			if (type == Types.FLOAT) stat.setFloat(parameterIndex, Caster.toFloatValue(value));
+			else if (type == Types.DOUBLE) stat.setDouble(parameterIndex, Caster.toDoubleValue(value));
+			else stat.setObject(parameterIndex, Caster.toDouble(value), type);
 			return;
 		case Types.VARBINARY:
 		case Types.LONGVARBINARY:
 		case Types.BINARY:
-			try {
-				stat.setObject(parameterIndex, Caster.toBinary(value), type);
+			stat.setObject(parameterIndex, Caster.toBinary(value), type);
 				//// stat.setBytes(parameterIndex,Caster.toBinary(value));
-			}
-			catch (PageException pe) {
-				if (!fns && value instanceof String && StringUtil.isEmpty((String) value)) stat.setNull(parameterIndex, item.getType());
-				else throw pe;
-			}
 			return;
 		case Types.REAL:
-			try {
-				stat.setObject(parameterIndex, Caster.toFloat(value), type);
-				//// stat.setFloat(parameterIndex,Caster.toFloatValue(value));
-			}
-			catch (PageException pe) {
-				if (!fns && value instanceof String && StringUtil.isEmpty((String) value)) stat.setNull(parameterIndex, item.getType());
-				else throw pe;
-			}
+			stat.setObject(parameterIndex, Caster.toFloat(value), type);
+			//// stat.setFloat(parameterIndex,Caster.toFloatValue(value));
 			return;
 		case Types.TINYINT:
-			try {
-				stat.setObject(parameterIndex, Caster.toByte(value), type);
-				//// stat.setByte(parameterIndex,Caster.toByteValue(value));
-			}
-			catch (PageException pe) {
-				if (!fns && value instanceof String && StringUtil.isEmpty((String) value)) stat.setNull(parameterIndex, item.getType());
-				else throw pe;
-			}
+			stat.setObject(parameterIndex, Caster.toByte(value), type);
+			//// stat.setByte(parameterIndex,Caster.toByteValue(value));
 			return;
 		case Types.SMALLINT:
-			try {
-				stat.setObject(parameterIndex, Caster.toShort(value), type);
-				//// stat.setShort(parameterIndex,Caster.toShortValue(value));
-			}
-			catch (PageException pe) {
-				if (!fns && value instanceof String && StringUtil.isEmpty((String) value)) stat.setNull(parameterIndex, item.getType());
-				else throw pe;
-			}
+			stat.setObject(parameterIndex, Caster.toShort(value), type);
+			//// stat.setShort(parameterIndex,Caster.toShortValue(value));
 			return;
 		case Types.INTEGER:
+			stat.setObject(parameterIndex, Caster.toInteger(value), type);
+			//// stat.setInt(parameterIndex,Caster.toIntValue(value));
+			return;
+
+		case Types.SQLXML:
+			// SQLXML is a JDBC 4 feature not supported in JDBC 3.
+			SQLXML xml = null;
+			Connection conn = stat.getConnection();
 			try {
-				stat.setObject(parameterIndex, Caster.toInteger(value), type);
-				//// stat.setInt(parameterIndex,Caster.toIntValue(value));
+				xml = conn.createSQLXML();
 			}
-			catch (PageException pe) {
-				if (!fns && value instanceof String && StringUtil.isEmpty((String) value)) stat.setNull(parameterIndex, item.getType());
-				else throw pe;
+			catch (Throwable t) {// must be a throwable because it throws for example a AbstractMethodError with JDTS, but could also
+									// be other
+				ExceptionUtil.rethrowIfNecessary(t);
+				DatabaseMetaData md = conn.getMetaData();
+				if (md.getJDBCMajorVersion() < 4)
+					throw new DatabaseException("The data type [SQLXML] is not supported with this datasource.", "The datasource JDBC driver compatibility is up to the versions ["
+							+ md.getJDBCMajorVersion() + "." + md.getJDBCMinorVersion() + "], but this feature needs at least [4.0]", null, null);
+				throw Caster.toPageException(t);
 			}
+
+			xml.setString(Caster.toString(value));
+			stat.setObject(parameterIndex, xml, type);
 			return;
 		case Types.VARCHAR:
 		case Types.LONGVARCHAR:
 		case Types.LONGNVARCHAR:
 		case Types.NVARCHAR:
 		case CFTypes.VARCHAR2:
-		case Types.SQLXML:
 			stat.setObject(parameterIndex, Caster.toString(value), type);
 			//// stat.setString(parameterIndex,Caster.toString(value));
 			return;
 		case Types.DATE:
-			try {
-				stat.setDate(parameterIndex, new Date(Caster.toDate(value, tz).getTime()), JREDateTimeUtil.getThreadCalendar(tz));
-
-				// stat.setDate(parameterIndex,new Date((Caster.toDate(value,null).getTime())));
-			}
-			catch (PageException pe) {
-				if (!fns && value instanceof String && StringUtil.isEmpty((String) value)) stat.setNull(parameterIndex, item.getType());
-				else throw pe;
-			}
+			
+			stat.setDate(parameterIndex, new Date(Caster.toDate(value, tz).getTime()), JREDateTimeUtil.getThreadCalendar(tz));
+			// stat.setDate(parameterIndex,new Date((Caster.toDate(value,null).getTime())));
 			return;
 		case Types.TIME:
-			try {
-
-				// stat.setObject(parameterIndex, new Time((Caster.toDate(value,null).getTime())),
-				// type);
-				stat.setTime(parameterIndex, new Time(Caster.toDate(value, tz).getTime()), JREDateTimeUtil.getThreadCalendar(tz));
-			}
-			catch (PageException pe) {
-				if (!fns && value instanceof String && StringUtil.isEmpty((String) value)) stat.setNull(parameterIndex, item.getType());
-				else throw pe;
-			}
+			// stat.setObject(parameterIndex, new Time((Caster.toDate(value,null).getTime())),
+			// type);
+			stat.setTime(parameterIndex, new Time(Caster.toDate(value, tz).getTime()), JREDateTimeUtil.getThreadCalendar(tz));
 			return;
 		case Types.TIMESTAMP:
-			try {
-				// stat.setObject(parameterIndex, new
-				// Timestamp((Caster.toDate(value,null).getTime())), type);
-				// stat.setObject(parameterIndex, value, type);
-				stat.setTimestamp(parameterIndex, new Timestamp(Caster.toDate(value, tz).getTime()), JREDateTimeUtil.getThreadCalendar(tz));
-			}
-			catch (PageException pe) {
-				if (!fns && value instanceof String && StringUtil.isEmpty((String) value)) stat.setNull(parameterIndex, item.getType());
-				else throw pe;
-			}
-
+			// stat.setObject(parameterIndex, new
+			// Timestamp((Caster.toDate(value,null).getTime())), type);
+			// stat.setObject(parameterIndex, value, type);
+			stat.setTimestamp(parameterIndex, new Timestamp(Caster.toDate(value, tz).getTime()), JREDateTimeUtil.getThreadCalendar(tz));
 			return;
 		case Types.OTHER:
 			stat.setObject(parameterIndex, value, Types.OTHER);
@@ -812,8 +749,9 @@ public final class SQLCaster {
 		case Types.NCLOB:
 		case Types.LONGNVARCHAR:
 		case Types.NCHAR:
-		case Types.SQLXML:
 			return lucee.commons.lang.CFTypes.TYPE_STRING;
+		case Types.SQLXML:
+			return lucee.commons.lang.CFTypes.TYPE_XML;
 
 		case Types.TIME:
 		case Types.TIMESTAMP:

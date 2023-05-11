@@ -409,7 +409,8 @@ public class ORMConfigurationImpl implements ORMConfiguration {
 				data.append(eng.getSystemUtil().hash64b(eng.getIOUtil().toString(res, null)));
 				return;
 			}
-			catch (IOException e) {}
+			catch (IOException e) {
+			}
 		}
 		data.append(res.getAbsolutePath()).append(':');
 	}

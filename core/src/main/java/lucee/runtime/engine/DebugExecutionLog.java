@@ -46,6 +46,7 @@ public class DebugExecutionLog extends ExecutionLogSupport {
 	}
 
 	@Override
-	protected void _release() {}
+	protected void _release() {
+	}
 
 }

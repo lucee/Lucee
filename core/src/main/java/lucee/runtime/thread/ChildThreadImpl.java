@@ -25,6 +25,7 @@ import java.util.Iterator;
 import java.util.Map.Entry;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 
 import lucee.commons.io.DevNullOutputStream;
 import lucee.commons.io.log.Log;
@@ -35,8 +36,11 @@ import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSourceImpl;
 import lucee.runtime.config.Config;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.config.ConfigWebPro;
+import lucee.runtime.debug.DebugEntryTemplate;
+import lucee.runtime.debug.DebuggerImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.Abort;
 import lucee.runtime.exp.PageException;
@@ -70,6 +74,7 @@ public class ChildThreadImpl extends ChildThread implements Serializable {
 	// PageContextImpl pc =null;
 	private final String tagName;
 	private long start;
+	private long endTime;
 	private Threads scope;
 
 	// accesible from scope
@@ -149,6 +154,8 @@ public class ChildThreadImpl extends ChildThread implements Serializable {
 		PageContext oldPc = ThreadLocalPageContext.get();
 		Page p = page;
 		PageContextImpl pc = null;
+		DebugEntryTemplate debugEntry = null;
+		long time = System.nanoTime();
 		try {
 			// daemon
 			if (this.pc != null) {
@@ -161,8 +168,9 @@ public class ChildThreadImpl extends ChildThread implements Serializable {
 				try {
 					cwi = (ConfigWebPro) config;
 					DevNullOutputStream os = DevNullOutputStream.DEV_NULL_OUTPUT_STREAM;
+					HttpSession session = oldPc != null && oldPc.getSessionType() == Config.SESSION_TYPE_JEE ? oldPc.getSession() : null;
 					pc = ThreadUtil.createPageContext(cwi, os, serverName, requestURI, queryString, SerializableCookie.toCookies(cookies), headers, null, parameters, attributes,
-							true, -1);
+							true, -1, session);
 					pc.setRequestTimeout(requestTimeout);
 					p = PageSourceImpl.loadPage(pc, cwi.getPageSources(oldPc == null ? pc : oldPc, null, template, false, false, true));
 					// p=cwi.getPageSources(oldPc,null, template, false,false,true).loadPage(cwi);
@@ -173,6 +181,12 @@ public class ChildThreadImpl extends ChildThread implements Serializable {
 				pc.addPageSource(p.getPageSource(), true);
 			}
 
+			ConfigWebPro ci = (ConfigWebPro) pc.getConfig();
+			if (!pc.isGatewayContext() && ci.debug()) {
+				((DebuggerImpl) pc.getDebugger()).setThreadName(tagName);
+				if (ci.hasDebugOptions(ConfigPro.DEBUG_TEMPLATE)) debugEntry = pc.getDebugger().getEntry(pc, page.getPageSource());
+			}
+			
 			threadScope = pc.getCFThreadScope();
 			pc.setCurrentThreadScope(new ThreadsImpl(this));
 			pc.setThread(Thread.currentThread());
@@ -206,9 +220,10 @@ public class ChildThreadImpl extends ChildThread implements Serializable {
 				ExceptionUtil.rethrowIfNecessary(t);
 				if (!Abort.isSilentAbort(t)) {
 					ConfigWeb c = pc.getConfig();
-					Log log = c.getLog("thread");
+					Log log = ThreadLocalPageContext.getLog(c, "thread");
 					if (log != null) log.log(Log.LEVEL_ERROR, this.getName(), t);
 					PageException pe = Caster.toPageException(t);
+					// TODO log parent stacktrace as well
 					if (!serializable) catchBlock = pe.getCatchBlock(pc.getConfig());
 					return pe;
 				}
@@ -232,6 +247,9 @@ public class ChildThreadImpl extends ChildThread implements Serializable {
 			}
 		}
 		finally {
+			if (debugEntry != null) debugEntry.updateExeTime(System.nanoTime() - time);
+			pc.setEndTimeNS(System.nanoTime());
+			endTime = System.currentTimeMillis();
 			pc.getConfig().getFactory().releaseLuceePageContext(pc, true);
 			pc = null;
 			if (oldPc != null) ThreadLocalPageContext.register(oldPc);
@@ -252,6 +270,11 @@ public class ChildThreadImpl extends ChildThread implements Serializable {
 	/*
 	 * public Threads getThreadScopeX() { if(scope==null) scope=new ThreadsImpl(this); return scope; }
 	 */
+
+	public long getEndTime() {
+		if (endTime == 0) return System.currentTimeMillis(); // endTime = 0 means the thread is still running
+		return endTime;
+	}
 
 	public Object getThreads() {
 		return threadScope;

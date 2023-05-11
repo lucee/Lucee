@@ -69,7 +69,8 @@ public class ResourceSnippet implements java.io.Serializable {
 
 			is.close();
 		}
-		catch (IOException ex) {}
+		catch (IOException ex) {
+		}
 
 		return result;
 	}

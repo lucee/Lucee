@@ -4,10 +4,7 @@ component {
 	request.currentPath=GetDirectoryFromPath(getCurrentTemplatePath());
 
 
- 	this.datasource = {
-	  class: 'org.h2.Driver'
-		, connectionString: 'jdbc:h2:#getDirectoryFromPath(getCurrentTemplatePath())#/datasource/db;MODE=MySQL'
-	};
+ 	this.datasource = server.getDatasource( "h2", server._getTempDir( "LDEV0613" ) );
 
 	this.ormEnabled = true;
 	this.ormSettings = {
@@ -15,4 +12,9 @@ component {
 		dbcreate = 'dropcreate',
 		logSQL=true
 	};
+	
+	public function onRequestStart() {
+		setting requesttimeout=10;
+	}
+
 }

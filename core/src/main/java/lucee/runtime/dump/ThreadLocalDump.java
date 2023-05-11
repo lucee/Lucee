@@ -23,33 +23,36 @@ import java.util.Map;
 
 public class ThreadLocalDump {
 
-	private static ThreadLocal<Map<Object, String>> local = new ThreadLocal<Map<Object, String>>();
+	private static ThreadLocal<Map<Integer, String>> local = new ThreadLocal<Map<Integer, String>>();
 
 	public static void set(Object o, String c) {
-
-		touch().put(o, c);
+		touch().put(hash(o), c);
 	}
 
-	public static Map<Object, String> getMap() {
+	public static Map<Integer, String> getMap() {
 		return touch();
 	}
 
 	public static void remove(Object o) {
-		touch().remove(o);
+		touch().remove(hash(o));
 	}
 
-	public static String get(Object obj) {
-		Map<Object, String> list = touch();
-		return list.get(obj);
+	public static String get(Object o) {
+		Map<Integer, String> list = touch();
+		return list.get(hash(o));
 	}
 
-	private static Map<Object, String> touch() {
-		Map<Object, String> set = local.get();
+	private static Map<Integer, String> touch() {
+		Map<Integer, String> set = local.get();
 		if (set == null) {
-			set = new HashMap<Object, String>();
+			set = new HashMap<Integer, String>();
 			local.set(set);
 		}
 		return set;
 	}
 
+	// LDEV-3731 - use System.identityHashCode to avoid problems with hashing "arrays that contain themselves"
+	private static Integer hash(Object o) {
+		return System.identityHashCode(o);
+	}
 }

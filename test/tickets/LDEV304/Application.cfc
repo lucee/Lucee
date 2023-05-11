@@ -2,7 +2,8 @@ component {
 	this.name =	"LDEV304";
 	this.datasource = server.getDatasource("mssql");
 
-	function onRequestStart(){
-		setting showdebugOutput=false;
+	
+	public function onRequestStart() {
+		setting requesttimeout=10 showdebugOutput=false;
 	}
 }

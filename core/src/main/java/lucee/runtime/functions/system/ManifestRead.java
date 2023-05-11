@@ -61,7 +61,8 @@ public class ManifestRead {
 				try {
 					zip = new ZipFile(FileWrapper.toFile(res));
 				}
-				catch (Exception e) {/* no jar or invalid jar */}
+				catch (Exception e) {
+					/* no jar or invalid jar */}
 
 				// it is a jar
 				if (zip != null) {

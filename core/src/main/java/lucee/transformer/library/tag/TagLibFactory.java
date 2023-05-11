@@ -39,6 +39,7 @@ import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.filter.ExtensionResourceFilter;
+import lucee.commons.io.sax.SaxUtil;
 import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.config.Identification;
 import lucee.runtime.op.Caster;
@@ -83,7 +84,7 @@ public final class TagLibFactory extends DefaultHandler {
 	private String inside;
 	private StringBuffer content = new StringBuffer();
 	private TagLibTagScript script;
-	private Attributes attributes;
+	private Map<String, String> attributes;
 	private final Identification id;
 	// System default tld
 	// private final static String TLD_1_0= "/resource/tld/web-cfmtaglibrary_1_0";
@@ -198,7 +199,7 @@ public final class TagLibFactory extends DefaultHandler {
 	public void startElement(String uri, String name, String qName, Attributes attributes) {
 
 		inside = qName;
-		this.attributes = attributes;
+		this.attributes = SaxUtil.toMap(attributes);
 		if (qName.equals("tag")) startTag();
 		else if (qName.equals("attribute")) startAtt();
 		else if (qName.equals("script")) startScript();
@@ -379,7 +380,8 @@ public final class TagLibFactory extends DefaultHandler {
 				try {
 					lib.setUri(value);
 				}
-				catch (URISyntaxException e) {}
+				catch (URISyntaxException e) {
+				}
 			}
 			else if (inside.equals("description")) lib.setDescription(value);
 

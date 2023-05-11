@@ -1,5 +1,5 @@
 /* init functions */
-$(function(){
+$(function() {
 	$('#resizewin').click(resizelayout);
 
 	initTooltips();
@@ -64,17 +64,18 @@ function initMenu() {
 	);
 }
 
-$("#clickCheckbox").change(function() {
-	set = $("#clickCheckbox")[0].checked;
-	if(set == true) {
-		$(".enablebutton").attr({disabled:false,style:"opacity:1"});
-	}
-	else if(set == false) {
-		$(".enablebutton").attr({disabled:true,style:"opacity:0.5"});
+$(".checkbox").change(function () {
+	$(".enablebutton").attr({ disabled: true, style: "opacity:0.5" });
+	if ($(".checkbox:checked").length) {
+		$(".enablebutton").attr({ disabled: false, style: "opacity:1" });
 	}
 });
-$("#clickCancel").click(function() {
-	$(".enablebutton").attr({disabled:true,style:"opacity:0.5"});
+$("#clickCancel").click(function () {
+	if ($('.maintbl').find('input[name="rowreadonly"]').prop("checked"))
+		$('.maintbl').find('input[name="rowreadonly"]').trigger('click')
+	else
+		$('.maintbl').find("input.checkbox").prop("checked", false)
+	$(".enablebutton").attr({ disabled: true, style: "opacity:0.5" });
 });
 
 $(function () {
@@ -248,7 +249,7 @@ function createTooltip(element, text, x, y, mouseAction )
 		if (outerRight > containerRight)
 		{
 			oldXPos = xPos;
-			xPos = 	containerRight - $(element.tooltip).width();
+			xPos = 	outerRight - $(element.tooltip).width();
 			offset = oldXPos - xPos + 20;
 			$(element.tooltip).find('.arrow').css({
 				left: offset
@@ -270,7 +271,10 @@ function createTooltip(element, text, x, y, mouseAction )
 						element.prop('title', element.data('title'));
 					}
 				})
-				.click(function(e){ $(element.tooltip).toggleClass('stayput'); e.stopPropagation(); });
+				.click(function(e){ 
+					$(element.tooltip).remove()
+					$(element.tooltip).toggleClass('stayput'); e.stopPropagation(); 
+				});
 		} else if (mouseAction == 'click') {
 			var overlay = $('<div class="removeClickOverlay"></div>');
 			$('body').prepend(overlay);

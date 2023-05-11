@@ -396,9 +396,9 @@ public final class IOUtil {
 				c.join(timeout + 1);
 			}
 			catch (InterruptedException ie) {
-				throw ExceptionUtil.toIOException(c.t);
+				throw new IOException(c.t);
 			}
-			if (c.t != null) throw ExceptionUtil.toIOException(c.t);
+			if (c.t != null) new IOException(c.t);
 			if (!c.finished) throw new IOException("reached timeout (" + timeout + "ms) while copying data");
 
 		}
@@ -1141,7 +1141,8 @@ public final class IOUtil {
 		try {
 			if (os != null) os.flush();
 		}
-		catch (Exception e) {}
+		catch (Exception e) {
+		}
 	}
 
 	/**
@@ -1153,7 +1154,8 @@ public final class IOUtil {
 		try {
 			if (w != null) w.flush();
 		}
-		catch (Exception e) {}
+		catch (Exception e) {
+		}
 	}
 
 	/**

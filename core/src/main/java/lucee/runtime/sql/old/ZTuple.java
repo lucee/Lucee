@@ -32,7 +32,8 @@ public final class ZTuple {
 
 	public ZTuple(String s) {
 		this();
-		for (StringTokenizer stringtokenizer = new StringTokenizer(s, ","); stringtokenizer.hasMoreTokens(); setAtt(stringtokenizer.nextToken().trim(), null)) {}
+		for (StringTokenizer stringtokenizer = new StringTokenizer(s, ","); stringtokenizer.hasMoreTokens(); setAtt(stringtokenizer.nextToken().trim(), null)) {
+		}
 	}
 
 	public void setRow(String s) {
@@ -40,7 +41,7 @@ public final class ZTuple {
 		for (int i = 0; stringtokenizer.hasMoreTokens(); i++) {
 			String s1 = stringtokenizer.nextToken().trim();
 			try {
-				Double double1 = new Double(s1);
+				Double double1 = Double.valueOf(s1);
 				setAtt(getAttName(i), double1);
 			}
 			catch (Exception exception) {

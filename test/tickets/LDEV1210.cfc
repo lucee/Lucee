@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase"{
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="memcached"{
 
 	variables.cacheName='memcached';
 
@@ -30,23 +30,24 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 
 			it( title='Checking to cache query using Memcached extension', skip=isNotSupported(), body=function( currentSpec ) {
 				var testQuery = queryNew("name,age","varchar,numeric",{name:["user1","user2"],age:[15,20]});
-				cachePut(id:'testQry', value:testQuery, cacheName:variables.cacheName);
+				cachePut(id:'testQry', value:testQuery, cacheName:variables.cacheName);	
 				var cachedQuery = cacheget(id:'testQry', cacheName:variables.cacheName);
 				var result = "";
-
 				try{
 					result=cachedQuery.name[1];
 				}catch(any e){
 					result=e.message;
 				}
-
 				expect(result).toBe("user1");
 			});
 		});
 	}
 
 	private boolean function defineCache(){
-		try {
+		var memcached = server.getDatasource("memcached");
+		if ( isEmpty( memcached ) )
+			return false;
+		//try {
 			application action="update"
 				caches="#{memcached:{
 						  class: 'org.lucee.extension.io.cache.memcache.MemCacheRaw'
@@ -54,7 +55,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 						, bundleVersion: '3.0.2.29'
 						, storage: false
 						, custom: {
-							'socket_timeout':'30',
+							'socket_timeout':'3',
 							'initial_connections':'1',
 							'alive_check':'true',
 							'buffer_size':'1',
@@ -67,15 +68,15 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 							'max_idle_time':'600',
 							'max_busy_time':'30',
 							'nagle_alg':'true',
-							'failover':'true',
-							'servers':'localhost:11211'
+							'failover':'false',
+							"servers":"#memcached.server#:#memcached.port#"
 						}
 						, default: ''
 					}}#";
 			cachePut(id='abcd', value=1234, cacheName='memcached');
 			return !isNull(cacheget(id:'abcd', cacheName:'memcached'));
-		}
-		catch(e) {}
+		//}
+		//catch(e) {}
 		return false;
 	}
 }

@@ -27,9 +27,11 @@ component {
 		savemapping=true,
 		dbcreate = 'dropcreate' ,
 		logSQL=true,
-		datasource = {
-	  		class: 'org.h2.Driver'
-			, connectionString: 'jdbc:h2:#getDirectoryFromPath(getCurrentTemplatePath())#/datasource/db;MODE=MySQL'
-		}
+		datasource = server.getDatasource( "h2", server._getTempDir( "LDEV0338_2" ) )
 	}; 
+	
+	public function onRequestStart() {
+		setting requesttimeout=10;
+	}
+
 } 

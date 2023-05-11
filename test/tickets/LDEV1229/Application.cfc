@@ -4,11 +4,11 @@ component {
 	this.sessionManagement 	= false;
 	
 	if (url.db=='h2') {
-		this.datasource = server.getDatasource("h2", "#getDirectoryFromPath(getCurrentTemplatePath())#/datasource/db" );
+		this.datasource = server.getDatasource("h2", server._getTempDir("LDEV1229") );
 	} else {
 		mySQL = getCredentials();
 		if(mySQL.count()!=0){
-			this.datasource = mySQL;
+			this.datasource=server.getDatasource("mysql");
 		}
 	}
 
@@ -19,7 +19,9 @@ component {
 		,flushAtRequestEnd = false
 		,dialect = "MySQLwithInnoDB"
 	};
-	function onRequestStart(){
+	
+	public function onRequestStart() {
+		setting requesttimeout=10;
 		if(url.db=='mysql') {
 			query {
 		        echo("SET FOREIGN_KEY_CHECKS=0");
@@ -57,4 +59,5 @@ component {
 	private struct function getCredentials() {
 		return server.getDatasource("mysql");
 	}
+
 }

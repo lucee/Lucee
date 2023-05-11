@@ -43,7 +43,7 @@ public class CustomClassloaderJavaFileManager extends ForwardingJavaFileManager<
 		this.standardFileManager = standardFileManager;
 		this.bundleContext = context;
 		this.bundleContext.addBundleListener(this);
-		log = ThreadLocalPageContext.getConfig().getLog("application");
+		log = ThreadLocalPageContext.getLog("application");
 	}
 
 	@Override
@@ -83,7 +83,8 @@ public class CustomClassloaderJavaFileManager extends ForwardingJavaFileManager<
 			binaryName = binaryName + ".java";
 		}
 		CustomJavaFileObject cjfo = fileMap.get(binaryName);
-		if (cjfo == null) {}
+		if (cjfo == null) {
+		}
 		return cjfo;
 	}
 

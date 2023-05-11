@@ -320,14 +320,15 @@ public final class TryCatchFinally extends StatementBase implements Opcodes, Has
 	 * @param line
 	 * @throws TransformerException
 	 */
-	public void addCatch(Expression type, Expression name, Body b, Position line) throws TransformerException {
+	public void addCatch(BytecodeContext bc, Expression type, Expression name, Body b, Position line) throws TransformerException {
 		// MUSTMUST
 		// type
-		if (type == null || type instanceof ExprString) {}
+		if (type == null || type instanceof ExprString) {
+		}
 		else if (type instanceof Variable) {
 			type = VariableString.toExprString(type);
 		}
-		else throw new TransformerException("type from catch statement is invalid", type.getStart());
+		else throw new TransformerException(bc, "type from catch statement is invalid", type.getStart());
 
 		// name
 		if (name instanceof LitString) {
@@ -336,7 +337,7 @@ public final class TryCatchFinally extends StatementBase implements Opcodes, Has
 			name = new VariableRef(v, true);
 		}
 		else if (name instanceof Variable) name = new VariableRef((Variable) name, true);
-		else throw new TransformerException("name from catch statement is invalid", name.getStart());
+		else throw new TransformerException(bc, "name from catch statement is invalid", name.getStart());
 
 		addCatch((ExprString) type, (VariableRef) name, b, line);
 	}

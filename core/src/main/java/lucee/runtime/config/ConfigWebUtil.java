@@ -201,7 +201,7 @@ public final class ConfigWebUtil {
 
 		CFMLEngine engine = ConfigWebUtil.getEngine(config);
 		BundleContext bc = engine.getBundleContext();
-		Log log = config.getLog("application");
+		Log log = ThreadLocalPageContext.getLog(config, "application");
 		BundleFile bf;
 		List<Resource> list = new ArrayList<Resource>();
 		for (int i = 0; i < libs.length; i++) {
@@ -284,6 +284,15 @@ public final class ConfigWebUtil {
 		if (defaultDir == null) return null;
 		Resource file = getFile(configDir.getRealResource(defaultDir), type);
 		return file;
+	}
+
+	public static boolean hasPlaceholder(String str) {
+		if (StringUtil.isEmpty(str)) return false;
+		// TOD improve test
+		int index = str.indexOf('{');
+		if (index > -1 && index < str.indexOf('}')) return true;
+		return false;
+
 	}
 
 	// do not change, used in extension
@@ -533,7 +542,8 @@ public final class ConfigWebUtil {
 		strListenerMode = strListenerMode.trim();
 
 		if ("current".equalsIgnoreCase(strListenerMode) || "curr".equalsIgnoreCase(strListenerMode)) return ApplicationListener.MODE_CURRENT;
-		else if ("currenttoroot".equalsIgnoreCase(strListenerMode) || "current2root".equalsIgnoreCase(strListenerMode) || "curr2root".equalsIgnoreCase(strListenerMode))
+		else if ("currenttoroot".equalsIgnoreCase(strListenerMode) || "current2root".equalsIgnoreCase(strListenerMode) || "curr2root".equalsIgnoreCase(strListenerMode)
+				|| "modern".equalsIgnoreCase(strListenerMode)/* this is a patch for old version getting it wrong */)
 			return ApplicationListener.MODE_CURRENT2ROOT;
 		else if ("currentorroot".equalsIgnoreCase(strListenerMode) || "currorroot".equalsIgnoreCase(strListenerMode)) return ApplicationListener.MODE_CURRENT_OR_ROOT;
 		else if ("root".equalsIgnoreCase(strListenerMode)) return ApplicationListener.MODE_ROOT;
@@ -555,7 +565,8 @@ public final class ConfigWebUtil {
 
 		if ("none".equalsIgnoreCase(strListenerType)) return ApplicationListener.TYPE_NONE;
 		else if ("classic".equalsIgnoreCase(strListenerType)) return ApplicationListener.TYPE_CLASSIC;
-		else if ("modern".equalsIgnoreCase(strListenerType)) return ApplicationListener.TYPE_MODERN;
+		else if ("modern".equalsIgnoreCase(strListenerType) || "curr2root".equalsIgnoreCase(strListenerType)/* this is a patch for old version getting it wrong */)
+			return ApplicationListener.TYPE_MODERN;
 		else if ("mixed".equalsIgnoreCase(strListenerType)) return ApplicationListener.TYPE_MIXED;
 
 		return defaultValue;
@@ -656,6 +667,8 @@ public final class ConfigWebUtil {
 		getAllMappings(list, pc.getConfig().getCustomTagMappings());
 		getAllMappings(list, pc.getConfig().getComponentMappings());
 		getAllMappings(list, pc.getApplicationContext().getMappings());
+		// MUST show all application contexts | also get component and custom tags mappings from application
+		// context
 		return list.toArray(new Mapping[list.size()]);
 	}
 

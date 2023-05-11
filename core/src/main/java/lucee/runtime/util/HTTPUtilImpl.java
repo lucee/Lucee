@@ -36,7 +36,8 @@ public class HTTPUtilImpl implements lucee.runtime.util.HTTPUtil {
 
 	private static lucee.runtime.util.HTTPUtil instance = new HTTPUtilImpl();
 
-	private HTTPUtilImpl() {}
+	private HTTPUtilImpl() {
+	}
 
 	public static lucee.runtime.util.HTTPUtil getInstance() {
 		return instance;

@@ -131,7 +131,7 @@ public class CFFunction {
 
 		// execute page
 		Variables old = pc.variablesScope();
-		pc.setVariablesScope(VAR);
+		if (old != VAR) pc.setVariablesScope(VAR);
 		boolean wasSilent = pc.setSilent();
 		try {
 			p.call(pc);
@@ -148,7 +148,7 @@ public class CFFunction {
 			throw Caster.toPageException(t);
 		}
 		finally {
-			pc.setVariablesScope(old);
+			if (old != VAR) pc.setVariablesScope(old);
 			if (!wasSilent) pc.unsetSilent();
 		}
 	}

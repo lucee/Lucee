@@ -55,7 +55,7 @@ public class GenerateArgon2Hash extends BIF {
 
 		int memory = Caster.toIntValue(memoryCost);
 		char[] carrInput = input == null ? new char[0] : input.toCharArray();
-		String hash = argon2.hash(Caster.toIntValue(iterations), memory * memory, Caster.toIntValue(parallelismFactor), carrInput);
+		String hash = argon2.hash(Caster.toIntValue(iterations), memory, Caster.toIntValue(parallelismFactor), carrInput);
 		boolean success = argon2.verify(hash, carrInput);
 
 		if (!success) {

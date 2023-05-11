@@ -328,7 +328,7 @@ public final class Search extends TagImpl {
 		}
 
 		time = System.currentTimeMillis() - time;
-		Double recSearched = new Double(data.getRecordsSearched());
+		Double recSearched = Double.valueOf(data.getRecordsSearched());
 		int len = qry.getRecordcount();
 		for (int i = 1; i <= len; i++) {
 			qry.setAt("recordssearched", i, recSearched);
@@ -338,9 +338,9 @@ public final class Search extends TagImpl {
 		if (status != null) {
 			Struct sct = new StructImpl();
 			pageContext.setVariable(status, sct);
-			sct.set(FOUND, new Double(qry.getRecordcount()));
+			sct.set(FOUND, Double.valueOf(qry.getRecordcount()));
 			sct.set(SEARCHED, recSearched);
-			sct.set(KeyConstants._time, new Double(time));
+			sct.set(KeyConstants._time, Double.valueOf(time));
 
 			// TODO impl this values
 
@@ -371,7 +371,8 @@ public final class Search extends TagImpl {
 							keywords.set(key, clazz.getMethod("getKeywords", new Class[0]).invoke(obj, new Object[0]));
 							keywordScore.set(key, clazz.getMethod("getKeywordScore", new Class[0]).invoke(obj, new Object[0]));
 						}
-						catch (Exception e) {}
+						catch (Exception e) {
+						}
 					}
 
 				}

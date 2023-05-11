@@ -11,4 +11,9 @@ component {
  		echo('-onSessionStart-');
  		return true;
  	}
+	
+	 public function onRequestStart() {
+		 setting requesttimeout=10;
+	 }
+ 
 }

@@ -259,8 +259,8 @@ Path placeholders:
 			physical="{lucee-server}/context/"
 			archive=""
 			primary="physical"
-			listener-mode="modern"
-			listener-type="curr2root"
+			listener-mode="curr2root"
+			listener-type="modern"
 			inspect-template="once"/>
 		<mapping
 			readonly="yes"
@@ -268,8 +268,8 @@ Path placeholders:
 			physical="{lucee-config}/context/"
 			archive="{lucee-config}/context/lucee-context.lar"
 			primary="physical"
-			listener-mode="modern"
-			listener-type="curr2root"
+			listener-mode="curr2root"
+			listener-type="modern"
 			inspect-template="once"/>
 	</mappings>	
 	
@@ -437,9 +437,8 @@ for every argument defined lucee tries to call a matching setter method
 		<logger appender="resource" appender-arguments="path:{lucee-config}/logs/scope.log" level="error" layout="classic" name="scope"/>
 		<logger appender="resource" appender-arguments="path:{lucee-config}/logs/application.log" level="info" layout="classic" name="application"/>
 		<logger appender="resource" appender-arguments="path:{lucee-config}/logs/exception.log" level="error" layout="classic" name="exception"/>
-		<logger appender="resource" appender-arguments="path:{lucee-config}/logs/trace.log" level="error" layout="classic" name="trace"/>
 		<logger appender="resource" appender-arguments="path:{lucee-config}/logs/thread.log" level="error" layout="classic" name="thread"/>
-		<logger appender="resource" appender-arguments="path:{lucee-config}/logs/deploy.log" level="error" layout="classic" name="deploy"/>
+		<logger appender="resource" appender-arguments="path:{lucee-config}/logs/deploy.log" level="info" layout="classic" name="deploy"/>
 		<logger appender="resource" appender-arguments="path:{lucee-config}/logs/requesttimeout.log" level="error" layout="classic" name="requesttimeout"/>
 		<logger appender="resource" appender-arguments="path:{lucee-config}/logs/memory.log" level="error" layout="classic" name="memory"/>
 		<logger appender="resource" appender-arguments="path:{lucee-config}/logs/datasource.log" level="error" layout="classic" name="datasource"/>

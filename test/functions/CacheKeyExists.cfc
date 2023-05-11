@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase"{
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="cache,ehCache" {
 	function run( testResults , testBox ) {
 		describe( title="Test suite for cacheKeyExists()", body=function() {
 			variables.cacheName="Test"&ListFirst(ListLast(getCurrentTemplatePath(),"\/"),".");

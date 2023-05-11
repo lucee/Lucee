@@ -72,7 +72,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		
 		
 		
-		if(getConfigSettings().mode!="single") {
+		if(!getApplicationSettings().singleContext) {
 			// when no web api key is defined server api key is used
 			admin type="web" password="#variables.webAdminPassword#" action="removeAPIKey";
 			admin type="web" password="#variables.webAdminPassword#" action="getAPIKey" returnvariable="local.kk";

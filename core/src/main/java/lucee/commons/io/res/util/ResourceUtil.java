@@ -50,7 +50,9 @@ import lucee.runtime.PageSource;
 import lucee.runtime.PageSourceImpl;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigWeb;
+import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.config.Constants;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.functions.system.ExpandPath;
@@ -205,7 +207,7 @@ public final class ResourceUtil {
 		Resource res = pc.getConfig().getResource(path);
 
 		if (res.exists()) return res;
-		else if (!allowRealpath) throw new ExpressionException("file or directory [" + path + "] does not exist");
+		else if (!allowRealpath) throw new ExpressionException("file or directory [" +  StringUtil.max(path, 255, "...")  + "] does not exist");
 
 		if (res.isAbsolute() && res.exists()) {
 			return res;
@@ -224,20 +226,26 @@ public final class ResourceUtil {
 		}
 		res = getRealResource(pc, path, res);
 		if (res.exists()) return res;
-		throw new ExpressionException("file or directory [" + path + "] does not exist");
+		throw new ExpressionException("file or directory [" +  StringUtil.max(path, 255, "...")  + "] does not exist");
 	}
 
 	public static Resource toResourceExisting(Config config, String path) throws ExpressionException {
 		path = path.replace('\\', '/');
-		Resource res = config.getResource(path);
+		config = ThreadLocalPageContext.getConfig(config);
+		Resource res;
+		if (config == null) res = ResourcesImpl.getFileResourceProvider().getResource(path);
+		else res = config.getResource(path);
 
 		if (res.exists()) return res;
-		throw new ExpressionException("file or directory [" + path + "] does not exist");
+		throw new ExpressionException("file or directory [" +  StringUtil.max(path, 255, "...")  + "] does not exist");
 	}
 
 	public static Resource toResourceExisting(Config config, String path, Resource defaultValue) {
 		path = path.replace('\\', '/');
-		Resource res = config.getResource(path);
+		config = ThreadLocalPageContext.getConfig(config);
+		Resource res;
+		if (config == null) res = ResourcesImpl.getFileResourceProvider().getResource(path);
+		else res = config.getResource(path);
 
 		if (res.exists()) return res;
 		return defaultValue;
@@ -271,7 +279,7 @@ public final class ResourceUtil {
 		// not allow realpath
 		if (!allowRealpath) {
 			if (res.exists() || parentExists(res)) return res;
-			throw new ExpressionException("parent directory [" + res.getParent() + "]  for file [" + destination + "] doesn't exist");
+			throw new ExpressionException("parent directory [" + res.getParent() + "]  for file [" +  StringUtil.max(destination, 255, "...")  + "] doesn't exist");
 
 		}
 
@@ -297,7 +305,7 @@ public final class ResourceUtil {
 		res = getRealResource(pc, destination, res);
 		if (res != null && (res.exists() || parentExists(res))) return res;
 
-		throw new ExpressionException("parent directory [" + res.getParent() + "]  for file [" + destination + "] doesn't exist");
+		throw new ExpressionException("parent directory [" + res.getParent() + "]  for file [" +  StringUtil.max(destination, 255, "...")  + "] doesn't exist");
 
 	}
 
@@ -366,6 +374,10 @@ public final class ResourceUtil {
 		return SystemUtil.isWindows() && (path.startsWith("//") || path.startsWith("\\\\"));
 	}
 
+	public static boolean isWindowsPath(String path) {
+		return SystemUtil.isWindows() && path.length() > 1 && path.charAt(1) == ':';
+	}
+
 	/**
 	 * translate the path of the file to an existing file path by changing case of letters Works only on
 	 * Linux, because
@@ -429,7 +441,7 @@ public final class ResourceUtil {
 
 		// Parent
 		Resource parent = res.getParentResource();
-		if (level >= LEVEL_PARENT_FILE && parent != null && parent.exists() && canRW(parent)) {
+		if (level >= LEVEL_PARENT_FILE && parent != null && parent.exists() && canRW(parent) && !ConfigWebUtil.hasPlaceholder(res.getAbsolutePath())) {
 			if (asDir) {
 				if (res.mkdirs()) return getCanonicalResourceEL(res);
 			}
@@ -442,7 +454,7 @@ public final class ResourceUtil {
 		// Grand Parent
 		if (level >= LEVEL_GRAND_PARENT_FILE && parent != null) {
 			Resource gparent = parent.getParentResource();
-			if (gparent != null && gparent.exists() && canRW(gparent)) {
+			if (gparent != null && gparent.exists() && canRW(gparent) && !ConfigWebUtil.hasPlaceholder(res.getAbsolutePath())) {
 				if (asDir) {
 					if (res.mkdirs()) return getCanonicalResourceEL(res);
 				}
@@ -583,7 +595,7 @@ public final class ResourceUtil {
 		path = prettifyPath(path);
 
 		// begin
-		if (slashAdBegin) {
+		if (slashAdBegin && !isWindowsPath(path)) {
 			if (path.indexOf('/') != 0) path = '/' + path;
 		}
 		else {
@@ -910,7 +922,8 @@ public final class ResourceUtil {
 						try {
 							src.remove(false);
 						}
-						catch (IOException e) {}
+						catch (IOException e) {
+						}
 					}
 				}
 			}
@@ -1042,14 +1055,16 @@ public final class ResourceUtil {
 		try {
 			res.createFile(force);
 		}
-		catch (IOException e) {}
+		catch (IOException e) {
+		}
 	}
 
 	public static void createDirectoryEL(Resource res, boolean force) {
 		try {
 			res.createDirectory(force);
 		}
-		catch (IOException e) {}
+		catch (IOException e) {
+		}
 	}
 
 	public static ContentType getContentType(Resource resource) {
@@ -1058,7 +1073,8 @@ public final class ResourceUtil {
 			try {
 				return ((HTTPResource) resource).getContentType();
 			}
-			catch (IOException e) {}
+			catch (IOException e) {
+			}
 		}
 		InputStream is = null;
 		try {
@@ -1078,7 +1094,8 @@ public final class ResourceUtil {
 			try {
 				return ((HTTPResource) resource).getContentType();
 			}
-			catch (IOException e) {}
+			catch (IOException e) {
+			}
 		}
 		InputStream is = null;
 		try {
@@ -1523,6 +1540,11 @@ public final class ResourceUtil {
 
 	public static String checksum(Resource res) throws NoSuchAlgorithmException, IOException {
 		return Hash.md5(res);
+	}
+
+	public static File toFile(Resource res) throws IOException {
+		if (res instanceof File) return (File) res;
+		throw new IOException("cannot convert [" + res + "] to a local file from type [" + res.getResourceProvider().getScheme() + "]");
 	}
 
 }

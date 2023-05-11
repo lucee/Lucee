@@ -25,11 +25,11 @@ import lucee.runtime.PageContext;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.ext.function.Function;
+import lucee.runtime.op.Caster;
 
 public final class FormatBaseN implements Function {
 	public static String call(PageContext pc, double number, double radix) throws ExpressionException {
 		if (radix < 2 || radix > 36) throw new FunctionException(pc, "formatBaseN", 2, "radix", "radix must be between 2 an 36");
-		return Long.toString((int) number & 0xffffffffL, (int) radix);
+		return Long.toString(Caster.toLongValue(number), (int) radix);
 	}
-
 }

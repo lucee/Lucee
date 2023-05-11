@@ -787,8 +787,9 @@ sct[""bracketNotation""] --> keyname: "bracketNotation"</data>
 	<data key="locale">english (united kingdom)</data>
 	<data key="proxy.portdescription">Port for the proxy server (default:80)</data>
 	<data key="proxy.port">Port</data>
+	<data key="proxy.serverName">Server</data>
 	<data key="proxy.usernamedescription">Username for the proxy</data>
-	<data key="proxy.server">Server</data>
+	<data key="proxy.server">Define a global proxy, that will be used in several tags by default (cfhttp,cfftp,cfmail ...)</data>
 	<data key="proxy.settings">Proxy settings</data>
 	<data key="proxy.passworddescription">Password for the proxy</data>
 	<data key="proxy.username">Username</data>
@@ -1143,7 +1144,7 @@ If the timezone of your Lucee instance and your database is different, this can 
 	<data key="doc.attr.required">Required</data>
 	<data key="doc.attr.zero">This tag has no attributes</data>
 	<data key="doc.attr.type.noname">This tag only allows one attribute value (no name).</data>
-	<data key="doc.attr.type.mixed">This tag has a fixed definition of attributes (see below). In addition it allowes to use any additional attribute.</data>
+	<data key="doc.attr.type.mixed">This tag has a fixed definition of attributes (see below). In addition it allows to use any additional attribute.</data>
 	<data key="doc.attr.type.fixed">The attributes for this tag are fixed. Except for the following attributes no other attributes are allowed.</data>
 	<data key="doc.attr.type.dynamic">There is no restriction for attributes for this tag.</data>
 	<data key="doc.attr.max">Only the number of attributes is restricted to {max}.</data>

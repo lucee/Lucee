@@ -61,6 +61,15 @@ public class BIF extends MemberSupport implements UDFPlus {
 	private FunctionArgument[] args;
 	private String id;
 
+	public static BIF getInstance(PageContext pc, String name, BIF defaultValue) {
+		FunctionLib fl = ((ConfigPro) pc.getConfig()).getCombinedFLDs(pc.getCurrentTemplateDialect());
+		FunctionLibFunction flf = fl.getFunction(name);
+
+		// BIF not found
+		if (flf == null) return defaultValue;
+		return new BIF(pc.getConfig(), flf);
+	}
+
 	public BIF(PageContext pc, String name) throws ApplicationException {
 		super(Component.ACCESS_PUBLIC);
 		cp = (ConfigPro) pc.getConfig();
@@ -70,7 +79,9 @@ public class BIF extends MemberSupport implements UDFPlus {
 		// BIF not found
 		if (flf == null) {
 			Key[] keys = CollectionUtil.toKeys(fl.getFunctions().keySet());
-			throw new ApplicationException(ExceptionUtil.similarKeyMessage(keys, name, "Built in function", "Built in functions", null, false));
+			String msg = ExceptionUtil.similarKeyMessage(keys, name, "Built in function", "Built in functions", null, false);
+			String detail = ExceptionUtil.similarKeyMessage(keys, name, "Built in functions", null, false);
+			throw new ApplicationException(msg, detail);
 		}
 		try {
 			this.id = Hash.md5(name);

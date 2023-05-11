@@ -52,7 +52,8 @@ public final class GetLocalHostIP implements Function {
 		try {
 			if (InetAddress.getLocalHost() instanceof Inet6Address) return "::1";
 		}
-		catch (UnknownHostException e) {}
+		catch (UnknownHostException e) {
+		}
 		return "127.0.0.1";
 	}
 }

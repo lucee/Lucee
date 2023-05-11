@@ -1,5 +1,5 @@
-component extends = "org.lucee.cfml.test.LuceeTestCase"{
-
+component extends = "org.lucee.cfml.test.LuceeTestCase" labels="mssql"{
+// ZAC is that merge correct? i simply took the version from 6.0
 	function beforeAll() {
 		variables.msSQL = server.getDatasource("mssql");
 		if( structCount(msSQL) ) {
@@ -29,9 +29,9 @@ component extends = "org.lucee.cfml.test.LuceeTestCase"{
 	}
 
 	function run( testResults , testBox ) {
-		describe( "Test case for LDEV-2586", function() {
+		describe( title="Test case for LDEV-2586", body=function() {
 			
-			it(title = " cfqueryparam does handle decimal value = 1000 with maxLength = 8 ",skip=!hasCredentials(), body = function( currentSpec ) {
+			it(title = "cfqueryparam does handle decimal value = 1000 with maxLength = 8",skip=!hasCredentials(), body = function( currentSpec ) {
 				query name="local.test"  {
 					echo("SELECT * FROM LDEV2586");
 				}
@@ -42,7 +42,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase"{
 				expect(subUsers.value).toBe('1000');
 			});
 
-			it(title = " cfqueryparam doesn't handle deciaml value = 1000 with maxLength = 7",skip=!hasCredentials(), body = function( currentSpec ) {
+			it(title = "cfqueryparam doesn't handle decimal value = 1000 with maxLength = 7",skip=!hasCredentials(), body = function( currentSpec ) {
 				query name="local.test"  {
 					echo("SELECT * FROM LDEV2586");
 				}
@@ -53,7 +53,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase"{
 				expect(subUsers.value).toBe('1000');
 			});
 
-			it(title = " cfqueryparam does handle decimal value = 23.45 with maxLength = 5",skip=!hasCredentials(), body = function( currentSpec ) {
+			it(title = "cfqueryparam does handle decimal value = 23.45 with maxLength = 5",skip=!hasCredentials(), body = function( currentSpec ) {
 				query name="local.test"  {
 					echo("SELECT * FROM LDEV2586");
 				}

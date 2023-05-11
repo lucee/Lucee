@@ -34,7 +34,8 @@ public final class FTPConnectionData {
 
 	ProxyData data;
 
-	public FTPConnectionData() {}
+	public FTPConnectionData() {
+	}
 
 	public FTPConnectionData(String host, String username, String password, int port) {
 		this(host, username, password, port, false, false);

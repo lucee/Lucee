@@ -40,6 +40,7 @@ import lucee.runtime.tag.MissingAttribute;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.transformer.TransformerException;
 import lucee.transformer.bytecode.BytecodeContext;
+import lucee.transformer.bytecode.cast.CastNumber;
 import lucee.transformer.bytecode.cast.CastOther;
 import lucee.transformer.bytecode.expression.type.LiteralStringArray;
 import lucee.transformer.bytecode.statement.FlowControlFinal;
@@ -51,6 +52,7 @@ import lucee.transformer.bytecode.visitor.ArrayVisitor;
 import lucee.transformer.bytecode.visitor.OnFinally;
 import lucee.transformer.bytecode.visitor.TryCatchFinallyVisitor;
 import lucee.transformer.bytecode.visitor.TryFinallyVisitor;
+import lucee.transformer.expression.ExprNumber;
 import lucee.transformer.expression.Expression;
 import lucee.transformer.library.tag.TagLibTag;
 import lucee.transformer.library.tag.TagLibTagAttr;
@@ -155,11 +157,11 @@ public final class TagHelper {
 			}
 			catch (Exception e) {
 				if (e instanceof TransformerException) throw (TransformerException) e;
-				throw new TransformerException(e, tag.getStart());
+				throw new TransformerException(bc, e, tag.getStart());
 			}
 		}
 		else {
-			currDoFinallyType = currType = getTagType(tag);
+			currDoFinallyType = currType = getTagType(bc, tag);
 
 		}
 
@@ -432,14 +434,25 @@ public final class TagHelper {
 
 				}
 				else {
-					Type type = CastOther.getType(attr.getType());
+					Type type = CastOther.getType(bc, attr.getType());
 					methodName = tag.getTagLibTag().getSetter(attr, type == null ? null : type.getClassName());
 					adapter.loadLocal(currLocal);
-					attr.getValue().writeOut(bc, Types.isPrimitiveType(type) ? Expression.MODE_VALUE : Expression.MODE_REF);
+
+					TagHelper.writeNumberAsDouble(bc, attr, Types.isPrimitiveType(type) ? Expression.MODE_VALUE : Expression.MODE_REF);
 					adapter.invokeVirtual(currType, new Method(methodName, Type.VOID_TYPE, new Type[] { type }));
 				}
 			}
 		}
+	}
+
+	private static void writeNumberAsDouble(BytecodeContext bc, Attribute attr, int i) throws TransformerException {
+		Type type = CastOther.getType(bc, attr.getType());
+		Expression expr = attr.getValue();
+		if (type.equals(Types.DOUBLE_VALUE) && !(attr.getValue() instanceof ExprNumber)) {
+			expr = CastNumber.toExprNumber(attr.getValue());
+		}
+		expr.writeOut(bc, Types.isPrimitiveType(type) ? Expression.MODE_VALUE : Expression.MODE_REF);
+
 	}
 
 	private static void doTry(BytecodeContext bc, GeneratorAdapter adapter, Tag tag, int currLocal, Type currType, boolean interf) throws TransformerException {
@@ -457,7 +470,7 @@ public final class TagHelper {
 		adapter.visitJumpInsn(Opcodes.IF_ICMPEQ, beginDoWhile);
 	}
 
-	private static Type getTagType(Tag tag) throws TransformerException {
+	private static Type getTagType(BytecodeContext bc, Tag tag) throws TransformerException {
 		TagLibTag tlt = tag.getTagLibTag();
 		try {
 			return Type.getType(tlt.getTagClassDefinition().getClazz());
@@ -465,7 +478,7 @@ public final class TagHelper {
 		}
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
-			throw new TransformerException(t, tag.getStart());
+			throw new TransformerException(bc, t, tag.getStart());
 		}
 	}
 }

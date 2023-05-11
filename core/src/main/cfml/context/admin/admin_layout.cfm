@@ -130,11 +130,17 @@
 				}
 			);
 
-			$(".coding-tip code").click(
-				function(){
-					__LUCEE.util.selectText(this);
-				}
-			).prop("title", "Click to select the text");
+			$(".coding-tip .copy").on("click", function(evt){
+				var $this = $(this);
+				var textToCopy = $this.parents(".coding-tip").find("code").text();
+				navigator.clipboard.writeText(textToCopy)
+					.then(() => {
+						var origLabel = $this.text();
+						$this.text("copied!");
+						setTimeout(() => { $this.text(origLabel); }, 3000);
+					})
+					.catch((ex) => console.log("error copying to clipboard", ex));
+			});
 		});
 	</script>
 

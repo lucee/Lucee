@@ -1,10 +1,13 @@
 <cftry>
-    <cfmail from="aaa@bb.com" to="xxx@yyy.com" subject="sample" server="localhost" cc="cc:81@gmail.com">dummy email</cfmail>
+	<!--- will throw invalid cc address --->
+	<cfmail from="aaa@bb.com" to="xxx@yyy.com" subject="sample" cc="cc:81@gmail.com">dummy email</cfmail>
 	<cfcatch>
-		<cfdump var="#cfcatch.message#">
+		<cfoutput>#cfcatch.message#</cfoutput>
+		<cfabort>
 	</cfcatch>
 </cftry>
-
+<cfoutput>ok</cfoutput>
+<!---
 <cfadmin 
 	action="getSpoolerTasks"
 	type="web"
@@ -14,15 +17,17 @@
 	result="result"
 	returnVariable="tasks">
 
+<cfset findkey = []>
 <cfloop query="tasks">
 	<cfset taskDetail = tasks.detail>
 	<cfset findkey = structFindValue(taskDetail,"sample","all")>
 </cfloop>
 	
-<cfif arrayisempty(findkey) EQ false>
+<cfif isEmpty ( findkey ) EQ false>
 	<cfif taskDetail.cc EQ "">
 		Null
 	<cfelse>	
 		<cfoutput>#taskDetail.cc#</cfoutput>
 	</cfif>
 </cfif>
+--->

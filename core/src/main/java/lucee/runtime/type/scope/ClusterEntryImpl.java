@@ -43,7 +43,8 @@ public final class ClusterEntryImpl implements ClusterEntry {
 	/**
 	 * Constructor of the class for Webservice Bean Deserializer
 	 */
-	public ClusterEntryImpl() {}
+	public ClusterEntryImpl() {
+	}
 
 	/**
 	 * @param key the key to set

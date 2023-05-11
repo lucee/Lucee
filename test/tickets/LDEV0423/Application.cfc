@@ -1,18 +1,16 @@
 component {
 
-	this.datasources.test = {
-		class: 'org.h2.Driver'
-		, connectionString: 'jdbc:h2:#getDirectoryFromPath(getCurrentTemplatePath())#/datasource/db;MODE=MySQL'
-	};
+	this.datasources.test = server.getDatasource( "h2", server._getTempDir( "LDEV0423" ) );
+
+	this.name = "LDEV0423";
+	this.datasource = "test";
+	this.ormEnabled = true;
+	this.ormSettings = {
+    	dbcreate: "dropcreate",
+      	logSQL=true
+   	};
 	
-
-
-   this.name = "bugs-case1";
-   this.datasource = "test";
-   this.ormEnabled = true;
-   this.ormSettings = {
-      dbcreate: "dropcreate",
-      logSQL=true
-   };
-
+	public function onRequestStart() {
+		setting requesttimeout=10;
+	}
 }

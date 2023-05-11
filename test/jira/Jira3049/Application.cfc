@@ -7,9 +7,10 @@ component {
 		savemapping=true
     };
     
-    this.datasource = {
-		class: 'org.h2.Driver'
-		, connectionString: 'jdbc:h2:#getDirectoryFromPath(getCurrentTemplatePath())#/datasource/db;MODE=MySQL'
-	};  
+	this.datasource = server.getDatasource("h2", server._getTempDir("jira3049") );
+	
+	public function onRequestStart() {
+		setting requesttimeout=10;
+	}
 
 }

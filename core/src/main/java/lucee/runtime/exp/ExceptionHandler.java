@@ -37,7 +37,7 @@ public final class ExceptionHandler {
 		pe.printStackTrace(config.getErrWriter());
 
 		int ll = t instanceof MissingIncludeException ? Log.LEVEL_WARN : Log.LEVEL_ERROR;
-		config.getLog("exception").log(ll, "", pe);
+		ThreadLocalPageContext.getLog(config, "exception").log(ll, "", pe);
 
 	}
 

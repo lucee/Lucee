@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase"{
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="qoq"{
 	function beforeAll(){
 		variables.record1 = QueryNew('zap,bar,foo','integer,integer,integer',[[1,2,3],[4,5,6]]);
 		variables.record2 = QueryNew('zap,bar,foo','integer,integer,integer',[[1,2,3],[4,5,6]]);

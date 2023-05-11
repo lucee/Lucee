@@ -258,7 +258,7 @@
 	}
 
 	/**
-	* creates a file in the ram resource and returnthe absoulte path to this file
+	* creates a file in the ram resource and return the absolute path to this file
 	* @filename name of the file, for example "test.txt"
 	* @content string content for the file
 	*/
@@ -269,7 +269,7 @@
 	}
 
 	/**
-	* creates a file in the ram resource and returnthe absoulte path to this file
+	* creates a file in the ram resource and return the absolute path to this file
 	* @filename name of the file, for example "test.txt"
 	* @content string content for the file
 	*/
