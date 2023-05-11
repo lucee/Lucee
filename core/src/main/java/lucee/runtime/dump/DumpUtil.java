@@ -377,7 +377,8 @@ public class DumpUtil {
 						try {
 							ox = arr.getE(i);
 						}
-						catch (Exception e) {}
+						catch (Exception e) {
+						}
 						htmlBox.appendRow(1, new SimpleDumpData(i), toDumpData(ox, pageContext, maxlevel, props));
 					}
 					return setId(id, htmlBox);
@@ -618,7 +619,8 @@ public class DumpUtil {
 						table.appendRow(1, new SimpleDumpData("bundle-info"), bd);
 					}
 				}
-				catch (NoSuchMethodError e) {}
+				catch (NoSuchMethodError e) {
+				}
 			}
 
 			return setId(id, table);

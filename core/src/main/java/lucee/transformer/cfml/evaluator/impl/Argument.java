@@ -99,7 +99,7 @@ public final class Argument extends EvaluatorSupport {
 							Double dbl = Caster.toDouble(strDefault, null);
 							if (dbl != null) {
 								tag.addAttribute(
-										new Attribute(_default.isDynamicType(), _default.getName(), tag.getFactory().createLitDouble(dbl.doubleValue()), _default.getType()));
+										new Attribute(_default.isDynamicType(), _default.getName(), tag.getFactory().createLitNumber(dbl.doubleValue()), _default.getType()));
 							}
 						}
 					}

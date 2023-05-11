@@ -7,6 +7,7 @@ import java.security.ProtectionDomain;
 import lucee.commons.io.log.Log;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.config.Config;
+import lucee.runtime.engine.ThreadLocalPageContext;
 
 public class LogClassLoading {
 	private static Log log;
@@ -20,10 +21,10 @@ public class LogClassLoading {
 		if (StringUtil.isEmpty(logName)) logName = "application";
 		if (LogClassLoading.logName == null) {
 			InstrumentationFactory.getInstrumentation(config).addTransformer(new LogClassFileTransformer());
-			log = config.getLog(logName);
+			log = ThreadLocalPageContext.getLog(config, logName);
 		}
 		else if (!LogClassLoading.logName.equalsIgnoreCase(logName)) {
-			log = config.getLog(logName);
+			log = ThreadLocalPageContext.getLog(config, logName);
 		}
 
 	}

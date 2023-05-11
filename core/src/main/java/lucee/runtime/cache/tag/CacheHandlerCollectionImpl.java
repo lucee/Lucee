@@ -40,6 +40,7 @@ import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.db.SQL;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.net.proxy.ProxyData;
@@ -83,7 +84,7 @@ public class CacheHandlerCollectionImpl implements CacheHandlerCollection {
 				handlers.put(e.getKey(), ch);
 			}
 			catch (Exception pe) {
-				cw.getLog("application").error("cache-handler:" + e.getKey(), pe);
+				ThreadLocalPageContext.getLog(cw, "application").error("cache-handler:" + e.getKey(), pe);
 				throw new PageRuntimeException(Caster.toPageException(pe));
 			}
 		}
@@ -196,9 +197,9 @@ public class CacheHandlerCollectionImpl implements CacheHandlerCollection {
 		}
 	}
 
-	public static String createId(SQL sql, String datasource, String username, String password, int returnType) throws PageException {
+	public static String createId(SQL sql, String datasource, String username, String password, int returnType, int maxRows) throws PageException {
 		try {
-			return CacheUtil.key(KeyGenerator.createKey(sql.toHashString() + datasource + username + password + returnType));
+			return CacheUtil.key(KeyGenerator.createKey(sql.toHashString() + datasource + username + password + returnType + maxRows));
 		}
 		catch (IOException e) {
 			throw Caster.toPageException(e);
@@ -341,6 +342,7 @@ public class CacheHandlerCollectionImpl implements CacheHandlerCollection {
 				if (filter.accept(obj)) cache.remove(ce.getKey());
 			}
 		}
-		catch (IOException e) {}
+		catch (IOException e) {
+		}
 	}
 }

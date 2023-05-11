@@ -54,7 +54,17 @@ public final class LitLongImpl extends ExpressionBase implements LitLong {
 
 	@Override
 	public Long getLong() {
-		return new Long(l);
+		return Long.valueOf(l);
+	}
+
+	@Override
+	public Number getNumber() {
+		return getLong();
+	}
+
+	@Override
+	public Number getNumber(Number dv) {
+		return getLong();
 	}
 
 	@Override
@@ -91,13 +101,8 @@ public final class LitLongImpl extends ExpressionBase implements LitLong {
 		return Types.LONG_VALUE;
 	}
 
-	@Override
-	public Double getDouble(Double defaultValue) {
-		return getDouble();
-	}
-
 	private Double getDouble() {
-		return new Double(l);
+		return Double.valueOf(l);
 	}
 
 	@Override

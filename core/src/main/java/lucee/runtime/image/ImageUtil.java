@@ -114,7 +114,8 @@ public class ImageUtil {
 				return (boolean) m.invoke(null, new Object[] { pc, obj });
 			}
 		}
-		catch (Exception e) {}
+		catch (Exception e) {
+		}
 		return false;
 	}
 
@@ -126,7 +127,8 @@ public class ImageUtil {
 				return (boolean) m.invoke(null, new Object[] { obj });
 			}
 		}
-		catch (Exception e) {}
+		catch (Exception e) {
+		}
 		return false;
 	}
 }

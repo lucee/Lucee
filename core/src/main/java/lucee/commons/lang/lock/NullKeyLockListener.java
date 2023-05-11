@@ -22,16 +22,19 @@ public final class NullKeyLockListener implements KeyLockListener {
 
 	private final static NullKeyLockListener my = new NullKeyLockListener();
 
-	private NullKeyLockListener() {}
+	private NullKeyLockListener() {
+	}
 
 	public static KeyLockListener getInstance() {
 		return my;
 	}
 
 	@Override
-	public void onEnd(String key, boolean isLast) {}
+	public void onEnd(String key, boolean isLast) {
+	}
 
 	@Override
-	public void onStart(String key, boolean isFirst) {}
+	public void onStart(String key, boolean isFirst) {
+	}
 
 }

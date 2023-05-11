@@ -51,7 +51,8 @@ public final class LStringBuffer extends RefSupport implements Literal {
 	 * 
 	 * @param str
 	 */
-	public LStringBuffer() {}
+	public LStringBuffer() {
+	}
 
 	@Override
 	public Object getValue(PageContext pc) throws PageException {

@@ -35,27 +35,23 @@ public class GetHTTPRequestHeaders extends BIF {
 
 	public static Struct call(PageContext pc) throws PageException {
 
-        HttpServletRequest req = pc.getHttpServletRequest();
-        String charset = pc.getWebCharset().name();
+		HttpServletRequest req = pc.getHttpServletRequest();
+		String charset = pc.getWebCharset().name();
 
-        Struct result = new StructImpl();
-        Enumeration e = req.getHeaderNames();
+		Struct result = new StructImpl();
+		Enumeration e = req.getHeaderNames();
 
-        while (e.hasMoreElements()) {
-            String key = e.nextElement().toString();
-            result.set(
-                KeyImpl.init(ReqRspUtil.decode(key, charset, false)),
-                ReqRspUtil.decode(req.getHeader(key), charset, false)
-            );
-        }
+		while (e.hasMoreElements()) {
+			String key = e.nextElement().toString();
+			result.set(KeyImpl.init(ReqRspUtil.decode(key, charset, false)), ReqRspUtil.decode(req.getHeader(key), charset, false));
+		}
 
-        return result;
+		return result;
 	}
 
+	@Override
+	public Object invoke(PageContext pc, Object[] args) throws PageException {
 
-    @Override
-    public Object invoke(PageContext pc, Object[] args) throws PageException {
-
-        return call(pc);
-    }
+		return call(pc);
+	}
 }

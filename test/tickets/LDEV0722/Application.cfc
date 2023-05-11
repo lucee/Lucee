@@ -22,11 +22,7 @@ component {
     request.baseURL="http://#cgi.HTTP_HOST##GetDirectoryFromPath(cgi.SCRIPT_NAME)#";
 	request.currentPath=GetDirectoryFromPath(getCurrentTemplatePath());
 
-
- 	this.datasource = {
-	  class: 'org.h2.Driver'
-		, connectionString: 'jdbc:h2:#getDirectoryFromPath(getCurrentTemplatePath())#/datasource/db;MODE=MySQL'
-	};
+ 	this.datasource = server.getDatasource( "h2", server._getTempDir( "LDEV0722" ) );
 
 	this.ormEnabled = true; 
 	this.ormSettings = { 
@@ -47,9 +43,11 @@ component {
 
 	// request start
 	public boolean function onRequestStart(String targetPage){
+		setting requesttimeout=10;
 		ormReload();
 		entityLoad("User",1,true);
 
 		return true;
 	}
+
 } 

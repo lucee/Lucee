@@ -21,7 +21,7 @@ package lucee.transformer.cfml;
 import lucee.runtime.config.Config;
 import lucee.transformer.Factory;
 import lucee.transformer.bytecode.Body;
-import lucee.transformer.bytecode.Root;
+import lucee.transformer.bytecode.Page;
 import lucee.transformer.cfml.evaluator.EvaluatorPool;
 import lucee.transformer.cfml.expression.SimpleExprTransformer;
 import lucee.transformer.cfml.script.DocComment;
@@ -37,7 +37,7 @@ public class Data {
 	public final TransfomerSettings settings;
 	public final TagLib[][] tlibs;
 	public final FunctionLib[] flibs;
-	public final Root root;
+	public final Page page;
 	public final TagLibTag[] scriptTags;
 	public final EvaluatorPool ep;
 	public final Factory factory;
@@ -57,9 +57,9 @@ public class Data {
 	private Body parent;
 	public ExprTransformer transformer;
 
-	public Data(Factory factory, Root root, SourceCode srcCode, EvaluatorPool ep, TransfomerSettings settings, TagLib[][] tlibs, FunctionLib[] flibs, TagLibTag[] scriptTags,
+	public Data(Factory factory, Page page, SourceCode srcCode, EvaluatorPool ep, TransfomerSettings settings, TagLib[][] tlibs, FunctionLib[] flibs, TagLibTag[] scriptTags,
 			boolean allowLowerThan) {
-		this.root = root;
+		this.page = page;
 		this.srcCode = srcCode;
 		this.settings = settings;
 		this.tlibs = tlibs;

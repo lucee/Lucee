@@ -19,13 +19,14 @@
 package lucee.runtime.engine;
 
 import lucee.commons.io.log.LogUtil;
+import lucee.commons.lang.ParentThreasRefThread;
 import lucee.runtime.config.ConfigServer;
 import lucee.runtime.config.ConfigServerImpl;
 
 /**
  * own thread how check the main thread and his data
  */
-public final class Monitor extends Thread {
+public final class Monitor extends ParentThreasRefThread {
 
 	private static final long INTERVALL = 5000;
 	private final ConfigServerImpl configServer;
@@ -51,7 +52,8 @@ public final class Monitor extends Thread {
 				sleep(INTERVALL);
 			}
 			catch (InterruptedException e) {
-				LogUtil.log(ThreadLocalPageContext.getConfig(configServer), Monitor.class.getName(), e);
+				addParentStacktrace(e);
+				LogUtil.log((configServer), Monitor.class.getName(), e);
 			}
 
 			if (!configServer.isMonitoringEnabled()) return;
@@ -65,7 +67,8 @@ public final class Monitor extends Thread {
 						monitors[i].log();
 					}
 					catch (Exception e) {
-						LogUtil.log(ThreadLocalPageContext.getConfig(configServer), Monitor.class.getName(), e);
+						addParentStacktrace(e);
+						LogUtil.log((configServer), Monitor.class.getName(), e);
 					}
 				}
 			}

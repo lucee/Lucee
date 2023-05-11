@@ -8,7 +8,7 @@ import lucee.runtime.engine.ThreadLocalPageContext;
  * thead that init a PageContext with ThreadLocal, only use this Thread when you are sure it ends
  * before the parent thread
  */
-public abstract class PageContextThread extends Thread {
+public abstract class PageContextThread extends ParentThreasRefThread {
 
 	private PageContext pageContext;
 

@@ -30,7 +30,7 @@ import lucee.transformer.bytecode.util.Methods;
 import lucee.transformer.bytecode.util.Types;
 import lucee.transformer.cast.Cast;
 import lucee.transformer.expression.ExprBoolean;
-import lucee.transformer.expression.ExprDouble;
+import lucee.transformer.expression.ExprNumber;
 import lucee.transformer.expression.ExprString;
 import lucee.transformer.expression.Expression;
 import lucee.transformer.expression.literal.Literal;
@@ -84,10 +84,10 @@ public final class CastBoolean extends ExpressionBase implements ExprBoolean, Ca
 	@Override
 	public Type _writeOut(BytecodeContext bc, int mode) throws TransformerException {
 		GeneratorAdapter adapter = bc.getAdapter();
-		if (expr instanceof ExprDouble) {
-			expr.writeOut(bc, MODE_VALUE);
-			if (mode == MODE_VALUE) adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_BOOLEAN_VALUE_FROM_DOUBLE);
-			else adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_BOOLEAN_FROM_DOUBLE);
+		if (expr instanceof ExprNumber) {
+			expr.writeOut(bc, mode);
+			if (mode == MODE_VALUE) adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_BOOLEAN_VALUE_FROM_DOUBLE_VALUE);
+			else adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_BOOLEAN_FROM_NUMBER);
 		}
 		else if (expr instanceof ExprString) {
 			expr.writeOut(bc, MODE_REF);
@@ -101,9 +101,10 @@ public final class CastBoolean extends ExpressionBase implements ExprBoolean, Ca
 				if (!Types.isPrimitiveType(rtn)) {
 					adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_BOOLEAN_VALUE);
 				}
-				else if (Types.BOOLEAN_VALUE.equals(rtn)) {}
+				else if (Types.BOOLEAN_VALUE.equals(rtn)) {
+				}
 				else if (Types.DOUBLE_VALUE.equals(rtn)) {
-					adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_BOOLEAN_VALUE_FROM_DOUBLE);
+					adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_BOOLEAN_VALUE_FROM_DOUBLE_VALUE);
 				}
 				else {
 					adapter.invokeStatic(Types.CASTER, new Method("toRef", Types.toRefType(rtn), new Type[] { rtn }));
@@ -112,7 +113,8 @@ public final class CastBoolean extends ExpressionBase implements ExprBoolean, Ca
 				// return Types.BOOLEAN_VALUE;
 			}
 			else {
-				if (Types.BOOLEAN.equals(rtn)) {}
+				if (Types.BOOLEAN.equals(rtn)) {
+				}
 				else adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_BOOLEAN);
 			}
 		}

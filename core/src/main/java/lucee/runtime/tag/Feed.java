@@ -52,7 +52,6 @@ import lucee.runtime.type.util.ListUtil;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
 
-
 public final class Feed extends TagImpl {
 
 	private static final int ACTION_READ = 0;
@@ -374,16 +373,21 @@ public final class Feed extends TagImpl {
 
 			tag(xml, 2, new Pair<String, Object>("title", query.getAt(getItemColumn(FeedQuery.TITLE), row, null)),
 					new Pair[] { new Pair<String, Object>("type", query.getAt(getItemColumn(FeedQuery.TITLETYPE), row, null)) }, false, splitString);
-			tag(xml, 2, new Pair<String, Object>("link", null), new Pair[] { new Pair<String, Object>("href", query.getAt(getItemColumn(FeedQuery.LINKHREF), row, null)),
-					new Pair<String, Object>("hreflang", query.getAt(getItemColumn(FeedQuery.LINKHREFLANG), row, null)),
-					new Pair<String, Object>("length", query.getAt(getItemColumn(FeedQuery.LINKLENGTH), row, null)), new Pair<String, Object>("rel", query.getAt(getItemColumn(FeedQuery.LINKREL), row, null)),
-					new Pair<String, Object>("title", query.getAt(getItemColumn(FeedQuery.LINKTITLE), row, null)), new Pair<String, Object>("type", query.getAt(getItemColumn(FeedQuery.LINKTYPE), row, null)) },
+			tag(xml, 2, new Pair<String, Object>("link", null),
+					new Pair[] { new Pair<String, Object>("href", query.getAt(getItemColumn(FeedQuery.LINKHREF), row, null)),
+							new Pair<String, Object>("hreflang", query.getAt(getItemColumn(FeedQuery.LINKHREFLANG), row, null)),
+							new Pair<String, Object>("length", query.getAt(getItemColumn(FeedQuery.LINKLENGTH), row, null)),
+							new Pair<String, Object>("rel", query.getAt(getItemColumn(FeedQuery.LINKREL), row, null)),
+							new Pair<String, Object>("title", query.getAt(getItemColumn(FeedQuery.LINKTITLE), row, null)),
+							new Pair<String, Object>("type", query.getAt(getItemColumn(FeedQuery.LINKTYPE), row, null)) },
 					false, splitString);
 			tag(xml, 2, new Pair<String, Object>("id", query.getAt(getItemColumn(FeedQuery.ID), row, null)), null, true, false);
 			tag(xml, 2, new Pair<String, Object>("updated", query.getAt(getItemColumn(FeedQuery.UPDATEDDATE), row, null)), null, true, false);
 			tag(xml, 2, new Pair<String, Object>("published", query.getAt(getItemColumn(FeedQuery.PUBLISHEDDATE), row, null)), null, true, false);
-			tag(xml, 2, new Pair<String, Object>("author", null), new Pair[] { new Pair<String, Object>("email", query.getAt(getItemColumn(FeedQuery.AUTHOREMAIL), row, null)),
-					new Pair<String, Object>("name", query.getAt(getItemColumn(FeedQuery.AUTHORNAME), row, null)), new Pair<String, Object>("uri", query.getAt(getItemColumn(FeedQuery.AUTHORURI), row, null)) },
+			tag(xml, 2, new Pair<String, Object>("author", null),
+					new Pair[] { new Pair<String, Object>("email", query.getAt(getItemColumn(FeedQuery.AUTHOREMAIL), row, null)),
+							new Pair<String, Object>("name", query.getAt(getItemColumn(FeedQuery.AUTHORNAME), row, null)),
+							new Pair<String, Object>("uri", query.getAt(getItemColumn(FeedQuery.AUTHORURI), row, null)) },
 					false, splitString);
 			tag(xml, 2, new Pair<String, Object>("category", null),
 					new Pair[] { new Pair<String, Object>("label", query.getAt(getItemColumn(FeedQuery.CATEGORYLABEL), row, null)),
@@ -627,14 +631,14 @@ public final class Feed extends TagImpl {
 	}
 
 	/**
-	 * @param columm which might be translated to a different column, when a matching columnMap entry is found
+	 * @param columm which might be translated to a different column, when a matching columnMap entry is
+	 *            found
 	 */
 	private String getItemColumn(Key column) {
-		if (columnMap != null){
+		if (columnMap != null) {
 			Object col = columnMap.get(column, null);
-			if (col != null)
-				return col.toString();
-		} 
+			if (col != null) return col.toString();
+		}
 		return column.toString();
 	}
 

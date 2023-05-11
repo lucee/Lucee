@@ -108,6 +108,7 @@ ACTIONS --->
 				requesttimeout="#form.timeout#"
 				username="#nullIfEmpty(form.username)#"
 				schedulePassword="#nullIfEmpty(form.password)#"
+				userAgent="#nullIfEmpty(form.userAgent)#"
 				proxyserver="#nullIfEmpty(form.proxyserver)#"
 				proxyport="#form.proxyport#"
 				proxyuser="#nullIfEmpty(form.proxyuser)#"
@@ -225,6 +226,13 @@ Error Output--->
 
 						<cfinputClassic type="password" name="password" value="#task.password#" class="medium" required="no">
 						<div class="comment">#stText.Schedule.PasswordDescription#</div>
+					</td>
+				</tr>
+				<tr>
+					<th scope="row">#stText.Schedule.UserAgent#</th>
+					<td>
+						<cfinputClassic type="text" name="useragent" value="#task.useragent#" class="large" required="no">
+						<div class="comment">#stText.Schedule.UserAgentDescription#</div>
 					</td>
 				</tr>
 			</tbody>
@@ -576,8 +584,8 @@ Error Output--->
 			<tfoot>
 				<tr>
 					<td colspan="2">
-						<input onclick="window.location='#request.self#?action=#url.action#';" type="button" class="bl button cancel" name="cancel" value="#stText.Buttons.Cancel#">
-						<input type="submit" class="br button submit" name="run" value="#stText.Buttons.Update#">
+						<input type="submit" class="bl button submit" name="run" value="#stText.Buttons.Update#">
+						<input onclick="window.location='#request.self#?action=#url.action#';" type="button" class="br button cancel" name="cancel" value="#stText.Buttons.Cancel#">
 					</td>
 				</tr>
 			</tfoot>

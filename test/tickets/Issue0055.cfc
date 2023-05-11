@@ -21,7 +21,7 @@
 	<cffunction name="afterTests"></cffunction>
 	<cffunction name="setUp"></cffunction>
 	--->
-	<cffunction access="private" name="test">
+	<cffunction name="test">
 		<cftry> 
 			<cfthrow type="TestException" message="test exception"> 
 			<cfcatch name="local.e">

@@ -37,6 +37,7 @@ import lucee.runtime.PageSource;
 import lucee.runtime.cache.CacheConnection;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigWebUtil;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
@@ -153,6 +154,7 @@ public final class Application extends TagImpl implements DynamicAttributes {
 	private Boolean searchQueries = null;
 	private Boolean suppress;
 	private Boolean cgiReadOnly = null;
+	private Boolean preciseMath = null;
 	private SessionCookieData sessionCookie;
 	private AuthCookieData authCookie;
 	private Object functionpaths;
@@ -224,6 +226,7 @@ public final class Application extends TagImpl implements DynamicAttributes {
 
 		triggerDataMember = null;
 		cgiReadOnly = null;
+		preciseMath = null;
 
 		cacheFunction = null;
 		cacheQuery = null;
@@ -313,11 +316,11 @@ public final class Application extends TagImpl implements DynamicAttributes {
 	 * @throws PageException
 	 */
 	public void setDatasource(Object datasource) throws PageException {
-		this.datasource = AppListenerUtil.toDefaultDatasource(pageContext.getConfig(), datasource, pageContext.getConfig().getLog("application"));
+		this.datasource = AppListenerUtil.toDefaultDatasource(pageContext.getConfig(), datasource, ThreadLocalPageContext.getLog(pageContext, "application"));
 	}
 
 	public void setDefaultdatasource(Object defaultdatasource) throws PageException {
-		this.defaultdatasource = AppListenerUtil.toDefaultDatasource(pageContext.getConfig(), defaultdatasource, pageContext.getConfig().getLog("application"));
+		this.defaultdatasource = AppListenerUtil.toDefaultDatasource(pageContext.getConfig(), defaultdatasource, ThreadLocalPageContext.getLog(pageContext, "application"));
 	}
 
 	public void setDatasources(Struct datasources) {
@@ -668,6 +671,10 @@ public final class Application extends TagImpl implements DynamicAttributes {
 		this.cgiReadOnly = cgiReadOnly;
 	}
 
+	public void setPrecisemath(boolean preciseMath) {
+		this.preciseMath = preciseMath;
+	}
+
 	public void setXmlfeatures(Struct xmlFeatures) {
 		this.xmlFeatures = xmlFeatures;
 	}
@@ -755,7 +762,7 @@ public final class Application extends TagImpl implements DynamicAttributes {
 		if (!StringUtil.isEmpty(defaultdatasource)) ac.setDefDataSource(defaultdatasource);
 		if (datasources != null) {
 			try {
-				ac.setDataSources(AppListenerUtil.toDataSources(pageContext.getConfig(), datasources, pageContext.getConfig().getLog("application")));
+				ac.setDataSources(AppListenerUtil.toDataSources(pageContext.getConfig(), datasources, ThreadLocalPageContext.getLog(pageContext, "application")));
 			}
 			catch (Exception e) {
 				throw Caster.toPageException(e);
@@ -866,6 +873,7 @@ public final class Application extends TagImpl implements DynamicAttributes {
 		if (clientCluster != null) ac.setClientCluster(clientCluster.booleanValue());
 		if (sessionCluster != null) ac.setSessionCluster(sessionCluster.booleanValue());
 		if (cgiReadOnly != null) ac.setCGIScopeReadonly(cgiReadOnly.booleanValue());
+		if (preciseMath != null) ((ApplicationContextSupport) ac).setPreciseMath(preciseMath.booleanValue());
 		if (s3 != null) ac.setS3(AppListenerUtil.toS3(s3));
 		if (ftp != null) ((ApplicationContextSupport) ac).setFTP(AppListenerUtil.toFTP(ftp));
 

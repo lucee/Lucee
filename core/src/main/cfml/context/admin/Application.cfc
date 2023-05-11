@@ -16,7 +16,7 @@
  * 
  ---><cfcomponent><cfscript>
 
-this.name="lucee-admin-#server.lucee.version#";
+this.name="webadmin#server.lucee.version#";
 this.clientmanagement="no";
 this.clientstorage="file"; 
 this.scriptprotect="all";
@@ -33,6 +33,7 @@ this.sessionCookie.sameSite = "strict";
 this.sessionCookie.path = getAppFolderPath();  // the admin is always in a folder nested two directories deep
 this.tag.cookie.sameSite = "strict";
 this.tag.cookie.path = getAppFolderPath();
+this.tag.cookie.httpOnly = true; // prevent access to session cookies from javascript
 
 this.xmlFeatures = {
 	externalGeneralEntities: false,
@@ -40,8 +41,8 @@ this.xmlFeatures = {
 	disallowDoctypeDecl: true
 };
 
-request.singleMode=getConfigSettings().mode=="single";
-if(request.singleMode)request.adminType="server";
+request.singleMode=getApplicationSettings().singleContext;
+if(request.singleMode) request.adminType="server";
 public function onRequestStart() {
 	// if not logged in, we only allow access to admin|web|server[.cfm]
 	if(!structKeyExists(session, "passwordWeb") && !structKeyExists(session, "passwordServer")){
@@ -49,7 +50,7 @@ public function onRequestStart() {
 		if ( GetDirectoryFromPath(ExpandPath(cgi.SCRIPT_NAME)) neq GetDirectoryFromPath(GetCurrentTemplatePath()) )
 			fileName="";
 		
-		if(fileName!="admin.cfm" && fileName!="web.cfm" && fileName!="server.cfm" && fileName!="index.cfm") {
+		if(fileName!="admin.cfm" && fileName!="web.cfm" && fileName!="server.cfm" && fileName!="index.cfm" && fileName!="restart.cfm") {
 			cfsetting(showdebugoutput:false);
 			cfheader(statuscode="404" statustext="Invalid access");
 			cfcontent(reset="true");

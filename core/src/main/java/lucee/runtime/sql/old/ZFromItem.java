@@ -26,7 +26,8 @@ public final class ZFromItem extends ZAliasedName {
 
 	private String fullName;
 
-	public ZFromItem() {}
+	public ZFromItem() {
+	}
 
 	public ZFromItem(String s) {
 		super(s, ZAliasedName.FORM_TABLE);

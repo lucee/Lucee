@@ -108,7 +108,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
  
                         },parallel);
 		}
-		assertEquals('{"1":{"a":"a1"},"2":1,"3":query("a":["a1"])}',c);
+		assertEquals('{"1":["a":"a1"],"2":1,"3":query("a":["a1"])}',c);
 	}
 
 

@@ -20,11 +20,11 @@ package lucee.runtime.dump;
 
 import java.util.Date;
 
-import lucee.runtime.exp.ExpressionException;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Castable;
 import lucee.runtime.op.Caster;
-import lucee.runtime.op.Operator;
+import lucee.runtime.op.OpUtil;
 import lucee.runtime.op.date.DateCaster;
 import lucee.runtime.type.dt.DateTime;
 
@@ -90,22 +90,22 @@ public class SimpleDumpData implements DumpData, Castable {
 	}
 
 	@Override
-	public int compareTo(boolean b) throws ExpressionException {
-		return Operator.compare(data, b);
+	public int compareTo(boolean b) throws PageException {
+		return OpUtil.compare(ThreadLocalPageContext.get(), data, b ? Boolean.TRUE : Boolean.FALSE);
 	}
 
 	@Override
 	public int compareTo(DateTime dt) throws PageException {
-		return Operator.compare(data, (Date) dt);
+		return OpUtil.compare(ThreadLocalPageContext.get(), data, (Date) dt);
 	}
 
 	@Override
 	public int compareTo(double d) throws PageException {
-		return Operator.compare(data, d);
+		return OpUtil.compare(ThreadLocalPageContext.get(), data, Double.valueOf(d));
 	}
 
 	@Override
 	public int compareTo(String str) throws PageException {
-		return Operator.compare(data, str);
+		return OpUtil.compare(ThreadLocalPageContext.get(), data, str);
 	}
 }

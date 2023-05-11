@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase"{
+component extends="org.lucee.cfml.test.LuceeTestCase"  labels="mysql,orm" {
 	function run(  testResults , testBox ) {
 		describe( title="Test suite for LDEV-1569",  skip=checkMySqlEnvVarsAvailable(), body=function() {
 			it(title="checking SerializeJSON() with ORM keys having NULL value", body = function( currentSpec ) {

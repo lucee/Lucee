@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase"{
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="xml"{
 	function run( testResults , testBox ) {
 		describe( "Test suite for LDEV-1501", function() {
 			it( title='Checking Webservice call with login creditinal', body=function( currentSpec ) {

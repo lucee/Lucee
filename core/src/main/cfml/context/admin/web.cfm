@@ -1,4 +1,5 @@
 <cfscript>
+	request.singleMode=getApplicationSettings().singleContext;
 	
 	if(request.singleMode && right(cgi.script_name,9)!="index.cfm") {
 		location url="index.cfm" addtoken=false;
@@ -504,11 +505,16 @@
 	</cfif>
 <cfelse>
 	<cfsavecontent variable="content">
-		<cfif !findOneOf("\/",current.action)>
+		<cfif !findOneOf("\/",current.action) && fileExists("#current.action#.cfm")>
 			<cfinclude template="#current.action#.cfm">
 		<cfelse>
 			<cfset current.label = "Error">
-			invalid action definition
+			<cfparam name="url.rawError" default="false">
+			<cfheader statuscode="404">
+			requested action doesn't exist
+			<cfif url.rawError>
+				<cfabort>
+			</cfif>
 		</cfif>
 	</cfsavecontent>
 

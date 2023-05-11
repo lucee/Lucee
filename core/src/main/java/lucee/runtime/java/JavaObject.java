@@ -36,7 +36,7 @@ import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
-import lucee.runtime.op.Operator;
+import lucee.runtime.op.OpUtil;
 import lucee.runtime.op.date.DateCaster;
 import lucee.runtime.reflection.Reflector;
 import lucee.runtime.reflection.pairs.MethodInstance;
@@ -86,8 +86,7 @@ public class JavaObject implements Objects, ObjectWrap {
 			return variableUtil(pc).get(pc, object, propertyName);
 		}
 
-		if (VariableUtilImpl.doLogReflectionCalls())
-			LogUtil.log(pc.getConfig(), Log.LEVEL_INFO, "reflection", "get-property:" + propertyName + " from class " + Caster.toTypeName(clazz));
+		if (VariableUtilImpl.doLogReflectionCalls()) LogUtil.log(pc, Log.LEVEL_INFO, "reflection", "get-property:" + propertyName + " from class " + Caster.toTypeName(clazz));
 		// Check Field
 		Field[] fields = Reflector.getFieldsIgnoreCase(clazz, propertyName, null);
 		if (!ArrayUtil.isEmpty(fields) && Modifier.isStatic(fields[0].getModifiers())) {
@@ -131,8 +130,7 @@ public class JavaObject implements Objects, ObjectWrap {
 		if (isInit) {
 			return variableUtil(pc).get(pc, object, propertyName, defaultValue);
 		}
-		if (VariableUtilImpl.doLogReflectionCalls())
-			LogUtil.log(pc.getConfig(), Log.LEVEL_INFO, "reflection", "get-property:" + propertyName + " from class " + Caster.toTypeName(clazz));
+		if (VariableUtilImpl.doLogReflectionCalls()) LogUtil.log(pc, Log.LEVEL_INFO, "reflection", "get-property:" + propertyName + " from class " + Caster.toTypeName(clazz));
 
 		// Field
 		Field[] fields = Reflector.getFieldsIgnoreCase(clazz, propertyName, null);
@@ -140,7 +138,8 @@ public class JavaObject implements Objects, ObjectWrap {
 			try {
 				return fields[0].get(null);
 			}
-			catch (Exception e) {}
+			catch (Exception e) {
+			}
 		}
 		// Getter
 		MethodInstance mi = Reflector.getGetterEL(clazz, propertyName);
@@ -149,7 +148,8 @@ public class JavaObject implements Objects, ObjectWrap {
 				try {
 					return mi.invoke(null);
 				}
-				catch (Exception e) {}
+				catch (Exception e) {
+				}
 			}
 		}
 		try {
@@ -171,8 +171,7 @@ public class JavaObject implements Objects, ObjectWrap {
 			return ((VariableUtilImpl) variableUtil(pc)).set(pc, object, propertyName, value);
 		}
 
-		if (VariableUtilImpl.doLogReflectionCalls())
-			LogUtil.log(pc.getConfig(), Log.LEVEL_INFO, "reflection", "set-property:" + propertyName + " in class " + Caster.toTypeName(clazz));
+		if (VariableUtilImpl.doLogReflectionCalls()) LogUtil.log(pc, Log.LEVEL_INFO, "reflection", "set-property:" + propertyName + " in class " + Caster.toTypeName(clazz));
 
 		// Field
 		Field[] fields = Reflector.getFieldsIgnoreCase(clazz, propertyName.getString(), null);
@@ -210,8 +209,7 @@ public class JavaObject implements Objects, ObjectWrap {
 			return variableUtil(pc).setEL(pc, object, propertyName, value);
 		}
 
-		if (VariableUtilImpl.doLogReflectionCalls())
-			LogUtil.log(pc.getConfig(), Log.LEVEL_INFO, "reflection", "set-property:" + propertyName + " in class " + Caster.toTypeName(clazz));
+		if (VariableUtilImpl.doLogReflectionCalls()) LogUtil.log(pc, Log.LEVEL_INFO, "reflection", "set-property:" + propertyName + " in class " + Caster.toTypeName(clazz));
 
 		// Field
 		Field[] fields = Reflector.getFieldsIgnoreCase(clazz, propertyName.getString(), null);
@@ -219,7 +217,8 @@ public class JavaObject implements Objects, ObjectWrap {
 			try {
 				fields[0].set(null, value);
 			}
-			catch (Exception e) {}
+			catch (Exception e) {
+			}
 			return value;
 		}
 		// Getter
@@ -229,7 +228,8 @@ public class JavaObject implements Objects, ObjectWrap {
 				try {
 					return mi.invoke(null);
 				}
-				catch (Exception e) {}
+				catch (Exception e) {
+				}
 			}
 		}
 
@@ -244,8 +244,7 @@ public class JavaObject implements Objects, ObjectWrap {
 	public Object call(PageContext pc, String methodName, Object[] arguments) throws PageException {
 		if (arguments == null) arguments = new Object[0];
 
-		if (VariableUtilImpl.doLogReflectionCalls())
-			LogUtil.log(pc.getConfig(), Log.LEVEL_INFO, "reflection", "call-method:" + methodName + " from class " + Caster.toTypeName(clazz));
+		if (VariableUtilImpl.doLogReflectionCalls()) LogUtil.log(pc, Log.LEVEL_INFO, "reflection", "call-method:" + methodName + " from class " + Caster.toTypeName(clazz));
 
 		// edge cases
 		if (methodName.equalsIgnoreCase("init")) {
@@ -437,22 +436,22 @@ public class JavaObject implements Objects, ObjectWrap {
 
 	@Override
 	public int compareTo(boolean b) throws PageException {
-		return Operator.compare(castToBooleanValue(), b);
+		return OpUtil.compare(ThreadLocalPageContext.get(), castToBooleanValue() ? Boolean.TRUE : Boolean.FALSE, b ? Boolean.TRUE : Boolean.FALSE);
 	}
 
 	@Override
 	public int compareTo(DateTime dt) throws PageException {
-		return Operator.compare((Date) castToDateTime(), (Date) dt);
+		return OpUtil.compare(ThreadLocalPageContext.get(), (Date) castToDateTime(), (Date) dt);
 	}
 
 	@Override
 	public int compareTo(double d) throws PageException {
-		return Operator.compare(castToDoubleValue(), d);
+		return OpUtil.compare(ThreadLocalPageContext.get(), castToDoubleValue(), Double.valueOf(d));
 	}
 
 	@Override
 	public int compareTo(String str) throws PageException {
-		return Operator.compare(castToString(), str);
+		return OpUtil.compare(ThreadLocalPageContext.get(), castToString(), str);
 	}
 
 }

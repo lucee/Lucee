@@ -1,6 +1,6 @@
 <cfscript>
-if(getConfigSettings().mode=="single") {
-	location url="index.cfm" addtoken=false;
+if(getApplicationSettings().singleContext) {
+	location url="index.cfm?reinit=true" addtoken=false;
 }
 else {
 	param name="request.adminType" default="server";

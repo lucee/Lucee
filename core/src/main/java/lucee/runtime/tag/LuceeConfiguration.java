@@ -25,10 +25,12 @@ import lucee.runtime.type.Collection;
 
 public final class LuceeConfiguration extends BodyTagImpl implements DynamicAttributes {
 
-	public void setDynamicAttribute(String uri, Collection.Key localName, Object value) {}
+	public void setDynamicAttribute(String uri, Collection.Key localName, Object value) {
+	}
 
 	@Override
-	public void setDynamicAttribute(String uri, String localName, Object value) {}
+	public void setDynamicAttribute(String uri, String localName, Object value) {
+	}
 
 	@Override
 	public int doEndTag() throws PageException {

@@ -58,7 +58,7 @@ public class ForEachQueryIterator implements Iterator, Resetable {
 	public Object next() {
 		try {
 			if (qry.go(++current, pid)) {
-				Struct sct = new StructImpl();
+				Struct sct = new StructImpl(Struct.TYPE_LINKED);
 				Object empty = NullSupportHelper.full(pcMayNull) ? null : "";
 				for (int i = 0; i < names.length; i++) {
 					sct.setEL(names[i], qry.get(names[i], empty));

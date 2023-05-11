@@ -218,7 +218,7 @@ public final class TagLoop extends TagGroup implements FlowControlBreak, FlowCon
 			break;
 
 		default:
-			throw new TransformerException("invalid type", getStart());
+			throw new TransformerException(bc, "invalid type", getStart());
 		}
 	}
 
@@ -547,7 +547,7 @@ public final class TagLoop extends TagGroup implements FlowControlBreak, FlowCon
 			adapter.loadArg(0);
 			adapter.loadLocal(count);
 			adapter.cast(Types.INT_VALUE, Types.DOUBLE_VALUE);
-			adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_DOUBLE_FROM_DOUBLE);
+			adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_DOUBLE_FROM_DOUBLE_VALUE);
 
 			adapter.invokeVirtual(Types.VARIABLE_REFERENCE, SET);
 			adapter.pop();

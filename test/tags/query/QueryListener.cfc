@@ -5,7 +5,7 @@ component	{
 		return arguments;
 	}
 	function after(caller,args,result,meta) {
-		var row=result.addRow();
+		var row=queryAddRow(result);
 		result.setCell("abc","123",row);
 		return arguments;
 	}

@@ -110,7 +110,8 @@ public class HTTPResourceProvider implements ResourceProviderPro {
 	}
 
 	@Override
-	public void setResources(Resources resources) {}
+	public void setResources(Resources resources) {
+	}
 
 	@Override
 	public void lock(Resource res) throws IOException {

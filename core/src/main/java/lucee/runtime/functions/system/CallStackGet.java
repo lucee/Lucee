@@ -23,6 +23,7 @@ import java.util.Iterator;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ExceptionUtil;
+import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
@@ -69,8 +70,8 @@ public final class CallStackGet implements Function {
 		Array arr = (Array) call(pc);
 
 		if (offset > 0 || maxFrames > 0) {
-			int sliceFrom = (int)offset + 1;
-			int sliceTo   = (maxFrames > 0) ? (int)(maxFrames + offset) : 0;
+			int sliceFrom = (int) offset + 1;
+			int sliceTo = (maxFrames > 0) ? (int) (maxFrames + offset) : 0;
 			arr = ArraySlice.get(arr, sliceFrom, sliceTo);
 		}
 
@@ -157,7 +158,7 @@ public final class CallStackGet implements Function {
 			 * (PageException e) {}
 			 */
 			item.setEL(KeyConstants._template, abs((PageContextImpl) pc, template));
-			item.setEL(lineNumberName, new Double(line));
+			item.setEL(lineNumberName, Double.valueOf(line));
 			tagContext.appendEL(item);
 		}
 	}
@@ -167,11 +168,12 @@ public final class CallStackGet implements Function {
 
 		Resource res = config.getResource(template);
 		if (res.exists()) return template;
-
+		String tmp;
 		PageSource ps = pc == null ? null : pc.getPageSource(template);
 		res = ps == null ? null : ps.getPhyscalFile();
 		if (res == null || !res.exists()) {
-			res = config.getResource(ps.getDisplayPath());
+			tmp = ps.getDisplayPath();
+			res = StringUtil.isEmpty(tmp) ? null : config.getResource(tmp);
 			if (res != null && res.exists()) return res.getAbsolutePath();
 		}
 		else return res.getAbsolutePath();

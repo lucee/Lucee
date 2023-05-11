@@ -351,6 +351,7 @@ component {
 		string timezone="",
 		numeric ConnectionLimit=-1,
 		numeric ConnectionTimeout=0,
+		numeric LiveTimeout=0,
 		numeric metaCacheTimeout=60000,
 
 		boolean blob=false,
@@ -422,6 +423,7 @@ component {
 
 			connectionLimit="#arguments.connectionLimit#"
 			connectionTimeout="#arguments.connectionTimeout#"
+			liveTimeout="#arguments.liveTimeout#"
 			metaCacheTimeout="#arguments.metaCacheTimeout#"
 			blob="#getArguments(arguments, 'blob',false)#"
 			clob="#getArguments(arguments, 'clob',false)#"
@@ -1353,10 +1355,10 @@ component {
 	/**
 	* @hint returns the list of gateway entries
 	*/
-	public query function getGatewayEntries( type ){
+	public query function getGatewayEntries(){
 		admin
 			action="getGatewayEntries"
-			type="#arguments.type#"
+			type="#variables.type#"
 			password="#variables.password#"
 			returnVariable="local.rtn";
 		return rtn;

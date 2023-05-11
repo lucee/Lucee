@@ -43,7 +43,8 @@ public class DummyORMEngine implements ORMEngine {
 	}
 
 	@Override
-	public void init(PageContext pc) throws PageException {}
+	public void init(PageContext pc) throws PageException {
+	}
 
 	@Override
 	public ORMConfiguration getConfiguration(PageContext pc) {

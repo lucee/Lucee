@@ -33,4 +33,9 @@ component {
 					,memoryevictionpolicy:"LRU"}
 		};
 		this.cache.object="susi";
+	
+		public function onRequestStart() {
+			setting requesttimeout=10;
+		}
+	
 } 

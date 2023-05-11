@@ -144,7 +144,7 @@ public final class Ldap extends TagImpl {
 	}
 
 	/**
-	 * Specifies the maximum amount of time, in seconds, to wait for LDAP processing. Defaults to 60
+	 * Specifies the maximum amount of time, in milliseconds, to wait for LDAP processing. Defaults to 60
 	 * seconds.
 	 * 
 	 * @param timeout The timeout to set.
@@ -242,7 +242,7 @@ public final class Ldap extends TagImpl {
 	 * @throws PageException
 	 */
 	public void setReturnasbinary(String returnAsBinary) throws PageException {
-		this.returnAsBinary = ArrayUtil.trim(ListUtil.toStringArray(ListUtil.listToArrayRemoveEmpty(returnAsBinary, ',')));
+		this.returnAsBinary = ArrayUtil.trimItems(ListUtil.toStringArray(ListUtil.listToArrayRemoveEmpty(returnAsBinary, ',')));
 	}
 
 	/**
@@ -253,7 +253,7 @@ public final class Ldap extends TagImpl {
 	 * @throws PageException
 	 */
 	public void setSort(String sort) throws PageException {
-		this.sort = ArrayUtil.trim(ListUtil.toStringArray(ListUtil.listToArrayRemoveEmpty(sort, ',')));
+		this.sort = ArrayUtil.trimItems(ListUtil.toStringArray(ListUtil.listToArrayRemoveEmpty(sort, ',')));
 	}
 
 	/**
@@ -263,7 +263,7 @@ public final class Ldap extends TagImpl {
 	 * @throws PageException
 	 */
 	public void setSortcontrol(String sortControl) throws PageException {
-		String[] sortControlArr = ArrayUtil.trim(ListUtil.toStringArray(ListUtil.listToArrayRemoveEmpty(sortControl, ',')));
+		String[] sortControlArr = ArrayUtil.trimItems(ListUtil.toStringArray(ListUtil.listToArrayRemoveEmpty(sortControl, ',')));
 		for (int i = 0; i < sortControlArr.length; i++) {
 			String scs = sortControlArr[i].trim().toLowerCase();
 
@@ -361,7 +361,7 @@ public final class Ldap extends TagImpl {
 
 		// LDAPClient client=new
 		// LDAPClient(server,port,secureLevel,returnAsBinary,username,password,referral);
-		LDAPClient client = new LDAPClient(server, port, returnAsBinary);
+		LDAPClient client = new LDAPClient(server, port, timeout, returnAsBinary);
 		if (secureLevel != LDAPClient.SECURE_NONE) client.setSecureLevel(secureLevel);
 		if (username != null) client.setCredential(username, password);
 		if (referral > 0) client.setReferral(referral);

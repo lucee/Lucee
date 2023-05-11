@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase"{
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="xml" {
 
 	variables.xml=xmlparse('<?xml version="1.0" encoding="UTF-8"?>
 	<shiporder orderid="889923" 

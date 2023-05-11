@@ -92,7 +92,7 @@ public interface ScheduleTask {
 	public abstract boolean isResolveURL();
 
 	/**
-	 * @return Returns the task.
+	 * @return Returns the task name.
 	 */
 	public abstract String getTask();
 

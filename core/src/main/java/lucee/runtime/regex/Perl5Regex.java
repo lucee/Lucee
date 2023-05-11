@@ -50,9 +50,9 @@ class Perl5Regex implements Regex {
 	}
 
 	@Override
-	public Array indexOfAll(String strPattern, String strInput, int offset, boolean caseSensitive, boolean multiLine) throws PageException {
+	public Object indexOfAll(String strPattern, String strInput, int offset, boolean caseSensitive, boolean multiLine) throws PageException {
 		try {
-			return Caster.toArray(Perl5Util.indexOf(strPattern, strInput, offset, caseSensitive, true, multiLine));
+			return Perl5Util.indexOf(strPattern, strInput, offset, caseSensitive, true, multiLine);
 		}
 		catch (MalformedPatternException e) {
 			throw Caster.toPageException(e);

@@ -4,7 +4,7 @@
 		writeOutput(getApplicationSettings().datasources.testTimeZone.timezone);
 	}
 
-	if (form.scene == 2){
+	if (form.scene == 2) {
 		try{
 			writeOutput(getApplicationSettings().datasources.testNoTimeZone.timezone);
 		}
@@ -13,7 +13,7 @@
 		}
 	}
 
-	if (form.scene == 3){
+	if (form.scene == 3) {
 		try{
 			writeOutput(getApplicationSettings().datasources.testemptyTimeZone.timezone);
 		}

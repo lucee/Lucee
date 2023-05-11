@@ -52,7 +52,8 @@ public final class URLDataSource2 implements DataSource {
 		try {
 			connection = url.openConnection();
 		}
-		catch (IOException e) {}
+		catch (IOException e) {
+		}
 		if (connection == null) return DEFAULT_CONTENT_TYPE;
 
 		return connection.getContentType();

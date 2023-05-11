@@ -6,7 +6,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 		
 	}
 	function run( testResults , testBox ) {
-		describe( "test suite for fileSetAttribute()", function() {
+		describe( "test suite for LDEV-1892", function() {
 			it(title = "check if arrayAppend appends to a struct", body = function( currentSpec ) {
 				ct={};
 				sct['1']="first";

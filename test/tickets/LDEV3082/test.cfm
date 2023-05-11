@@ -15,6 +15,7 @@
     if( form.scene EQ 2 ){
 	   	try{ 		
 	   		transparentBorder.paste(image2=image, x=addBorder, y=addBorder);
+			writeOutput("Success");
 	   	}
 	   	catch (any e){
 	   		writeOutput(e.message);

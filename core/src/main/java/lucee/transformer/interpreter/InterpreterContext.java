@@ -74,7 +74,7 @@ public class InterpreterContext implements Context {
 	 * 
 	 * @return
 	 * 
-	 * 		public String stackPopTopAsString() { // TODO Auto-generated method stub return null; }
+	 *         public String stackPopTopAsString() { // TODO Auto-generated method stub return null; }
 	 *         public boolean stackPopTopAsBoolean() { // TODO Auto-generated method stub return false;
 	 *         }
 	 */
@@ -84,7 +84,7 @@ public class InterpreterContext implements Context {
 	 * 
 	 * @return
 	 * 
-	 * 		public String stackPopBottomAsString() { // TODO Auto-generated method stub return null;
+	 *         public String stackPopBottomAsString() { // TODO Auto-generated method stub return null;
 	 *         } public boolean stackPopBottomAsBoolean() { // TODO Auto-generated method stub return
 	 *         false; }
 	 */
@@ -137,6 +137,11 @@ public class InterpreterContext implements Context {
 	public Double getValueAsDouble(Expression expr) throws PageException {
 		expr.writeOut(this, Expression.MODE_REF);
 		return Caster.toDouble(stack.pop());
+	}
+
+	public Number getValueAsNumber(Expression expr) throws PageException {
+		expr.writeOut(this, Expression.MODE_REF);
+		return Caster.toNumber(stack.pop());
 	}
 
 	public double getValueAsDoubleValue(Expression expr) throws PageException {

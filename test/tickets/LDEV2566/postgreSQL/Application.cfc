@@ -4,7 +4,9 @@ component {
 	this.datasources["ldev2566_POSTGRESQL"] = server.getDatasource("postgres");
 	this.datasource = "ldev2566_POSTGRESQL";
 
-	public function onRequestStart(){
+	
+	public function onRequestStart() {
+		setting requesttimeout=10;
 		query{
 			echo("DROP TABLE IF EXISTS LDEV2566_postTable");
 		}

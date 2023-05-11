@@ -37,12 +37,13 @@ import lucee.runtime.PageContext;
 import lucee.runtime.dump.DumpData;
 import lucee.runtime.dump.DumpProperties;
 import lucee.runtime.dump.DumpUtil;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.exp.XMLException;
 import lucee.runtime.op.Caster;
-import lucee.runtime.op.Operator;
+import lucee.runtime.op.OpUtil;
 import lucee.runtime.text.xml.XMLAttributes;
 import lucee.runtime.text.xml.XMLCaster;
 import lucee.runtime.text.xml.XMLNodeList;
@@ -395,22 +396,22 @@ public class XMLNodeStruct extends StructSupport implements XMLStruct {
 
 	@Override
 	public int compareTo(boolean b) throws PageException {
-		return Operator.compare(castToString(), b);
+		return OpUtil.compare(ThreadLocalPageContext.get(), castToString(), b ? Boolean.TRUE : Boolean.FALSE);
 	}
 
 	@Override
 	public int compareTo(DateTime dt) throws PageException {
-		return Operator.compare(castToString(), (Date) dt);
+		return OpUtil.compare(ThreadLocalPageContext.get(), castToString(), (Date) dt);
 	}
 
 	@Override
 	public int compareTo(double d) throws PageException {
-		return Operator.compare(castToString(), d);
+		return OpUtil.compare(ThreadLocalPageContext.get(), castToString(), Double.valueOf(d));
 	}
 
 	@Override
 	public int compareTo(String str) throws PageException {
-		return Operator.compare(castToString(), str);
+		return OpUtil.compare(ThreadLocalPageContext.get(), castToString(), str);
 	}
 
 	// used only with java 7, do not set @Override

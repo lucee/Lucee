@@ -12,6 +12,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.lang.ExceptionUtil;
+import lucee.commons.lang.ParentThreasRefThread;
 import lucee.commons.lang.types.RefLong;
 import lucee.commons.lang.types.RefLongImpl;
 
@@ -46,7 +47,7 @@ public class CPULogger {
 		return logger;
 	}
 
-	private static class Logger extends Thread {
+	private static class Logger extends ParentThreasRefThread {
 
 		private boolean run = true;
 		private Map<String, Data> log = new ConcurrentHashMap<>();
@@ -98,7 +99,8 @@ public class CPULogger {
 
 				}
 				catch (Exception e) {
-					LogUtil.log(null, "application", "cpu", e);
+					addParentStacktrace(e);
+					LogUtil.log("application", "cpu", e);
 				}
 			}
 		}

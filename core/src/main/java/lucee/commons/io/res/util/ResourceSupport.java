@@ -170,7 +170,8 @@ public abstract class ResourceSupport implements Resource {
 			createFile(false);
 			return true;
 		}
-		catch (IOException e) {}
+		catch (IOException e) {
+		}
 		return false;
 	}
 
@@ -180,7 +181,8 @@ public abstract class ResourceSupport implements Resource {
 			createDirectory(false);
 			return true;
 		}
-		catch (IOException e) {}
+		catch (IOException e) {
+		}
 		return false;
 	}
 
@@ -201,7 +203,8 @@ public abstract class ResourceSupport implements Resource {
 			remove(false);
 			return true;
 		}
-		catch (IOException e) {}
+		catch (IOException e) {
+		}
 		return false;
 	}
 

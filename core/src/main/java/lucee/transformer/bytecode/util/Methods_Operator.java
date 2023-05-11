@@ -23,37 +23,52 @@ import org.objectweb.asm.commons.Method;
 
 public final class Methods_Operator {
 
-	public static final Method OPERATOR_EQV_BV_BV = new Method("eqv", Types.BOOLEAN_VALUE, new Type[] { Types.BOOLEAN_VALUE, Types.BOOLEAN_VALUE });
+	public static final Method OPERATOR_EQV_PC_B_B = new Method("eqv", Types.BOOLEAN_VALUE, new Type[] { Types.PAGE_CONTEXT, Types.BOOLEAN, Types.BOOLEAN });
 
-	public static final Method OPERATOR_IMP_BV_BV = new Method("imp", Types.BOOLEAN_VALUE, new Type[] { Types.BOOLEAN_VALUE, Types.BOOLEAN_VALUE });
+	public static final Method OPERATOR_IMP_PC_B_B = new Method("imp", Types.BOOLEAN_VALUE, new Type[] { Types.PAGE_CONTEXT, Types.BOOLEAN, Types.BOOLEAN });
 
-	public static final Method OPERATOR_CT = new Method("ct", Types.BOOLEAN_VALUE, new Type[] { Types.OBJECT, Types.OBJECT });
-	public static final Method OPERATOR_EEQ = new Method("eeq", Types.BOOLEAN_VALUE, new Type[] { Types.OBJECT, Types.OBJECT });
-	public static final Method OPERATOR_NEEQ = new Method("neeq", Types.BOOLEAN_VALUE, new Type[] { Types.OBJECT, Types.OBJECT });
+	public static final Method OPERATOR_CT_PC_O_O = new Method("ct", Types.BOOLEAN_VALUE, new Type[] { Types.PAGE_CONTEXT, Types.OBJECT, Types.OBJECT });
+	public static final Method OPERATOR_EEQ_PC_O_O = new Method("eeq", Types.BOOLEAN_VALUE, new Type[] { Types.PAGE_CONTEXT, Types.OBJECT, Types.OBJECT });
+	public static final Method OPERATOR_NEEQ_PC_O_O = new Method("neeq", Types.BOOLEAN_VALUE, new Type[] { Types.PAGE_CONTEXT, Types.OBJECT, Types.OBJECT });
 
-	public static final Method OPERATOR_NCT = new Method("nct", Types.BOOLEAN_VALUE, new Type[] { Types.OBJECT, Types.OBJECT });
+	public static final Method OPERATOR_NCT_PC_O_O = new Method("nct", Types.BOOLEAN_VALUE, new Type[] { Types.PAGE_CONTEXT, Types.OBJECT, Types.OBJECT });
 
-	// double exponent(double left, double right)
-
-	public static final Method[][] OPERATORS = new Method[][] {
+	public static final Method[][] COMPARATORS = new Method[][] {
 			// Object
-			new Method[] { new Method("compare", Types.INT_VALUE, new Type[] { Types.OBJECT, Types.OBJECT }),
-					new Method("compare", Types.INT_VALUE, new Type[] { Types.OBJECT, Types.BOOLEAN_VALUE }),
-					new Method("compare", Types.INT_VALUE, new Type[] { Types.OBJECT, Types.DOUBLE_VALUE }),
-					new Method("compare", Types.INT_VALUE, new Type[] { Types.OBJECT, Types.STRING }) },
+			new Method[] { new Method("compare", Types.INT_VALUE, new Type[] { Types.PAGE_CONTEXT, Types.OBJECT, Types.OBJECT }),
+					new Method("compare", Types.INT_VALUE, new Type[] { Types.PAGE_CONTEXT, Types.OBJECT, Types.BOOLEAN }),
+					new Method("compare", Types.INT_VALUE, new Type[] { Types.PAGE_CONTEXT, Types.OBJECT, Types.NUMBER }),
+					new Method("compare", Types.INT_VALUE, new Type[] { Types.PAGE_CONTEXT, Types.OBJECT, Types.STRING }) },
 			// boolean
-			new Method[] { new Method("compare", Types.INT_VALUE, new Type[] { Types.BOOLEAN_VALUE, Types.OBJECT }),
-					new Method("compare", Types.INT_VALUE, new Type[] { Types.BOOLEAN_VALUE, Types.BOOLEAN_VALUE }),
-					new Method("compare", Types.INT_VALUE, new Type[] { Types.BOOLEAN_VALUE, Types.DOUBLE_VALUE }),
-					new Method("compare", Types.INT_VALUE, new Type[] { Types.BOOLEAN_VALUE, Types.STRING }) },
+			new Method[] { new Method("compare", Types.INT_VALUE, new Type[] { Types.PAGE_CONTEXT, Types.BOOLEAN, Types.OBJECT }),
+					new Method("compare", Types.INT_VALUE, new Type[] { Types.PAGE_CONTEXT, Types.BOOLEAN, Types.BOOLEAN }),
+					new Method("compare", Types.INT_VALUE, new Type[] { Types.PAGE_CONTEXT, Types.BOOLEAN, Types.NUMBER }),
+					new Method("compare", Types.INT_VALUE, new Type[] { Types.PAGE_CONTEXT, Types.BOOLEAN, Types.STRING }) },
 			// double
-			new Method[] { new Method("compare", Types.INT_VALUE, new Type[] { Types.DOUBLE_VALUE, Types.OBJECT }),
-					new Method("compare", Types.INT_VALUE, new Type[] { Types.DOUBLE_VALUE, Types.BOOLEAN_VALUE }),
-					new Method("compare", Types.INT_VALUE, new Type[] { Types.DOUBLE_VALUE, Types.DOUBLE_VALUE }),
-					new Method("compare", Types.INT_VALUE, new Type[] { Types.DOUBLE_VALUE, Types.STRING }) },
+			new Method[] { new Method("compare", Types.INT_VALUE, new Type[] { Types.PAGE_CONTEXT, Types.NUMBER, Types.OBJECT }),
+					new Method("compare", Types.INT_VALUE, new Type[] { Types.PAGE_CONTEXT, Types.NUMBER, Types.BOOLEAN }),
+					new Method("compare", Types.INT_VALUE, new Type[] { Types.PAGE_CONTEXT, Types.NUMBER, Types.NUMBER }),
+					new Method("compare", Types.INT_VALUE, new Type[] { Types.PAGE_CONTEXT, Types.NUMBER, Types.STRING }) },
 			// String
-			new Method[] { new Method("compare", Types.INT_VALUE, new Type[] { Types.STRING, Types.OBJECT }),
-					new Method("compare", Types.INT_VALUE, new Type[] { Types.STRING, Types.BOOLEAN_VALUE }),
-					new Method("compare", Types.INT_VALUE, new Type[] { Types.STRING, Types.DOUBLE_VALUE }),
-					new Method("compare", Types.INT_VALUE, new Type[] { Types.STRING, Types.STRING }) } };
+			new Method[] { new Method("compare", Types.INT_VALUE, new Type[] { Types.PAGE_CONTEXT, Types.STRING, Types.OBJECT }),
+					new Method("compare", Types.INT_VALUE, new Type[] { Types.PAGE_CONTEXT, Types.STRING, Types.BOOLEAN }),
+					new Method("compare", Types.INT_VALUE, new Type[] { Types.PAGE_CONTEXT, Types.STRING, Types.NUMBER }),
+					new Method("compare", Types.INT_VALUE, new Type[] { Types.PAGE_CONTEXT, Types.STRING, Types.STRING }) } };
+
+	public static int getType(Type type) {
+		String className = type.getClassName();
+
+		if (Types.BOOLEAN.equals(type)) return Types._BOOLEAN;
+		if (Types.DOUBLE.equals(type)) return Types._NUMBER;
+		if (Types.NUMBER.equals(type)) return Types._NUMBER;
+		if (Types.STRING.equals(type)) return Types._STRING;
+
+		if (Types.BYTE.equals(type)) return Types._NUMBER;
+		if (Types.SHORT.equals(type)) return Types._NUMBER;
+		if (Types.FLOAT.equals(type)) return Types._NUMBER;
+		if (Types.LONG.equals(type)) return Types._NUMBER;
+		if (Types.INTEGER.equals(type)) return Types._NUMBER;
+
+		return Types._OBJECT;
+	}
 }

@@ -4,7 +4,9 @@ component {
 	this.datasources["ldev3102_DSN"] = server.getDatasource("mssql");
 	this.datasource = "ldev3102_DSN";
 
-	public function onRequestStart(){
+	
+	public function onRequestStart() {
+		setting requesttimeout=10;
 		query{
 			echo("DROP TABLE IF EXISTS ldev3102");
 		}

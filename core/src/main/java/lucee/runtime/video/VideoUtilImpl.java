@@ -41,7 +41,8 @@ public class VideoUtilImpl implements VideoUtil {
 	private static Map<String, SoftReference<int[]>> sizes = new ConcurrentHashMap<String, SoftReference<int[]>>();
 	private static VideoUtilImpl instance = new VideoUtilImpl();
 
-	private VideoUtilImpl() {}
+	private VideoUtilImpl() {
+	}
 
 	public static VideoUtilImpl getInstance() {
 		return instance;
@@ -223,7 +224,8 @@ public class VideoUtilImpl implements VideoUtil {
 		else {
 			width = procent2pixel(strWidth, w);
 			height = procent2pixel(strHeight, h);
-			if (width != -1 && height != -1) {}
+			if (width != -1 && height != -1) {
+			}
 			else if (width == -1 && height == -1) {
 				width = w;
 				height = h;

@@ -25,12 +25,13 @@ import java.util.Map.Entry;
 import javax.servlet.jsp.tagext.Tag;
 
 import lucee.commons.lang.HTMLEntities;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.tag.BodyTagImpl;
 import lucee.runtime.op.Caster;
-import lucee.runtime.op.Operator;
+import lucee.runtime.op.OpUtil;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
@@ -415,7 +416,7 @@ public final class Select extends BodyTagImpl {
 				d = hasDisplay ? Caster.toString(query.getAt(display, i)) : v;
 				if (hasGroup) {
 					tmp = Caster.toString(query.getAt(group, i));
-					if (currentGroup == null || !Operator.equals(currentGroup, tmp, true)) {
+					if (currentGroup == null || !OpUtil.equals(ThreadLocalPageContext.get(), currentGroup, tmp, true)) {
 						if (currentGroup != null) pageContext.forceWrite("</optgroup>\n");
 						pageContext.forceWrite("<optgroup label=\"" + tmp + "\">\n ");
 						currentGroup = tmp;
@@ -431,14 +432,14 @@ public final class Select extends BodyTagImpl {
 
 	}
 
-	private String selected(String str, String[] selected) {
+	private String selected(String str, String[] selected) throws PageException {
 		if (selected != null) {
 			for (int i = 0; i < selected.length; i++) {
 				if (caseSensitive) {
 					if (str.compareTo(selected[i]) == 0) return " selected";
 				}
 				else {
-					if (Operator.compare(str, selected[i]) == 0) return " selected";
+					if (OpUtil.compare(ThreadLocalPageContext.get(), str, selected[i]) == 0) return " selected";
 				}
 				// if(Operator.compare(str,selected[i])==0) return " selected";
 			}

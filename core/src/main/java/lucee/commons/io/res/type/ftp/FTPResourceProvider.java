@@ -188,7 +188,8 @@ public final class FTPResourceProvider implements ResourceProviderPro {
 					try {
 						client.disconnect();
 					}
-					catch (IOException e) {}
+					catch (IOException e) {
+					}
 				}
 				clients.remove(client.getFtpConnectionData().toString());
 			}
@@ -218,7 +219,8 @@ public final class FTPResourceProvider implements ResourceProviderPro {
 			try {
 				sleep(provider.clientTimeout);
 			}
-			catch (InterruptedException e) {}
+			catch (InterruptedException e) {
+			}
 		}
 	}
 

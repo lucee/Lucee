@@ -112,4 +112,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		assertEquals("John Adams,Samuel Jackson,,",valueList(qry.name));
 		assertEquals(",,Gal Gadot,",valueList(qry.fullname));
 	}
+	public void function testPopulateArray() localmode="true" {
+		var qry = queryNew("name,age","varchar,numeric",{name:["user1","user2"],age:[15,20]});
+		assertEquals("user1",qry.name[1]);
+	}
 } 

@@ -79,11 +79,11 @@ public abstract class EnvUDF extends UDFImpl {
 			pc.setApplicationContext(applicationContext);
 		}
 		try {
-			pc.setVariablesScope(variables);
+			if (parent != variables) pc.setVariablesScope(variables);
 			return super.callWithNamedValues(pc, calledName, values, doIncludePath);
 		}
 		finally {
-			pc.setVariablesScope(parent);
+			if (parent != variables) pc.setVariablesScope(parent);
 			if (orgAC != null) pc.setApplicationContext(orgAC);
 		}
 	}
@@ -97,11 +97,11 @@ public abstract class EnvUDF extends UDFImpl {
 			pc.setApplicationContext(applicationContext);
 		}
 		try {
-			pc.setVariablesScope(variables);
+			if (parent != variables) pc.setVariablesScope(variables);
 			return super.callWithNamedValues(pc, values, doIncludePath);
 		}
 		finally {
-			pc.setVariablesScope(parent);
+			if (parent != variables) pc.setVariablesScope(parent);
 			if (orgAC != null) pc.setApplicationContext(orgAC);
 		}
 	}
@@ -115,11 +115,11 @@ public abstract class EnvUDF extends UDFImpl {
 			pc.setApplicationContext(applicationContext);
 		}
 		try {
-			pc.setVariablesScope(variables);
+			if (parent != variables) pc.setVariablesScope(variables);
 			return super.call(pc, calledName, args, doIncludePath);
 		}
 		finally {
-			pc.setVariablesScope(parent);
+			if (parent != variables) pc.setVariablesScope(parent);
 			if (orgAC != null) pc.setApplicationContext(orgAC);
 		}
 	}
@@ -133,11 +133,11 @@ public abstract class EnvUDF extends UDFImpl {
 			pc.setApplicationContext(applicationContext);
 		}
 		try {
-			pc.setVariablesScope(variables);
+			if (parent != variables) pc.setVariablesScope(variables);
 			return super.call(pc, args, doIncludePath);
 		}
 		finally {
-			pc.setVariablesScope(parent);
+			if (parent != variables) pc.setVariablesScope(parent);
 			if (orgAC != null) pc.setApplicationContext(orgAC);
 		}
 	}

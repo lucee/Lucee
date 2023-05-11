@@ -37,7 +37,8 @@ public final class ArgumentIntKey extends KeyImpl {
 	/**
 	 * Do NEVER use, only for Externilze
 	 */
-	public ArgumentIntKey() {}
+	public ArgumentIntKey() {
+	}
 
 	public ArgumentIntKey(int key) {
 		super(Caster.toString(key));

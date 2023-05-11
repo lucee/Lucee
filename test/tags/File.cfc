@@ -19,48 +19,82 @@
 component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	
 	
-	//public function afterTests(){}
-	
-	public function setUp(){}
-
-
+	function beforeAll() {
+		variables.path = "#getDirectoryFromPath(getCurrenttemplatepath())#file-tests";
+		afterAll();
+		if(!directoryExists(path)) directoryCreate(path)
+	}
 
 	function testTouchOfNotExistingFile() localmode=true {
-	    name="testtouch.txt";
-	    
-	    try{
-	        assertFalse(fileExists(name));
+		name = "#path#\testnottouch.txt";
 
-	        file action="touch" file=name;
-	        assertTrue(fileExists(name));
+		assertFalse(fileExists(name));
 
-	        file action="info" file=name variable="res";
-	        assertEquals(0,res.size);
-	        
-	    }
-	    finally {
-	        if(fileExists(name))
-	            fileDelete(name);
-	    }
+		file action="touch" file=name;
+		assertTrue(fileExists(name));
+
+		file action="info" file=name variable="res";
+		assertEquals(0,res.size);
 	}
+
 	function testTouchOfExistingFile() localmode=true {
-	    name="testtouch.txt";
-	    
-	    try{
-	        assertFalse(fileExists(name));
+		name = "#path#\testtouch.txt";
 
-	        fileWrite(name,'Susi');
-	        
-	        file action="touch" file=name;
-	        assertTrue(fileExists(name));
+		assertFalse(fileExists(name));
 
-	        file action="info" file=name variable="res2";
-	        assertEquals(4,res2.size);
-	    }
-	    finally {
-	        if(fileExists(name))
-	            fileDelete(name);
-	    }
+		fileWrite(name,'Susi');
+
+		file action="touch" file=name;
+		assertTrue(fileExists(name));
+		
+		file action="info" file=name variable="res2";
+		assertEquals(4,res2.size);
+	}
+
+	function testfileAction() localmode=true {
+		
+		testFile = "#path#\test.txt";
+
+		// file write
+		file action="write" file=testFile output="susi" addnewline="no";
+		assertEquals("susi",fileRead(testFile));
+		
+		// file append
+		file action="append" file=testFile output="john" addnewline="no";
+		assertEquals("susijohn",fileRead(testFile));
+
+		// file read
+		file action="read" file=testFile variable="appendRes";
+		assertEquals("susijohn",trim(appendRes));
+
+		// file readBinary
+		file action="readBinary" file=testFile variable="readBinaryRes";
+		assertTrue(isBinary(readBinaryRes));
+
+		// file info
+		file action="info" file=testFile variable="res2";
+		assertEquals(8,res2.size);
+
+		// file copy
+		file action="copy"  source=testFile destination=path;
+		assertTrue(fileExists(testFile));
+
+		//file rename
+		file action="rename" source=testFile destination="#path#\testFile.txt";
+		assertTrue(fileExists("#path#\testFile.txt"));
+
+		// file move
+		file action="move" source="#path#\testFile.txt" destination="#path#\movefile.txt";
+		assertTrue(fileExists("#path#\movefile.txt"));
+		assertFalse(fileExists(testFile));
+		
+		// file delete
+		file action="delete" file="#path#\movefile.txt";
+		assertFalse(fileExists("#path#\movefile.txt"));	
+	}
+
+	function afterAll() {
+		if(directoryExists(path)) directoryDelete(path,true);
 	}
 } 
 </cfscript>

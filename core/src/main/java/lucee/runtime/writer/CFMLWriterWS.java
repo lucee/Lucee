@@ -91,7 +91,8 @@ public final class CFMLWriterWS extends CFMLWriterImpl implements WhiteSpaceWrit
 				charBuffer = CHAR_EMPTY;
 				super.print(b);
 			}
-			catch (IOException e) {}
+			catch (IOException e) {
+			}
 		}
 	}
 

@@ -222,7 +222,7 @@ public final class FormImpl extends ScopeSupport implements Form, ScriptProtecte
 			fillDecoded(raw, encoding, scriptProteced, pc.getApplicationContext().getSameFieldAsArray(SCOPE_FORM));
 		}
 		catch (Exception e) {
-			Log log = ThreadLocalPageContext.getConfig(pc).getLog("application");
+			Log log = ThreadLocalPageContext.getLog(pc, "application");
 			if (log != null) log.error("form.scope", e);
 			fillDecodedEL(new URLItem[0], encoding, scriptProteced, pc.getApplicationContext().getSameFieldAsArray(SCOPE_FORM));
 			initException = e;
@@ -279,7 +279,7 @@ public final class FormImpl extends ScopeSupport implements Form, ScriptProtecte
 			fillDecoded(raw, encoding, scriptProteced, pc.getApplicationContext().getSameFieldAsArray(SCOPE_FORM));
 		}
 		catch (Exception e) {
-			Log log = ThreadLocalPageContext.getConfig(pc).getLog("application");
+			Log log = ThreadLocalPageContext.getLog(pc, "application");
 			if (log != null) log.error("form.scope", e);
 			fillDecodedEL(new URLItem[0], encoding, scriptProteced, pc.getApplicationContext().getSameFieldAsArray(SCOPE_FORM));
 			initException = e;
@@ -289,7 +289,7 @@ public final class FormImpl extends ScopeSupport implements Form, ScriptProtecte
 				IOUtil.close(reader);
 			}
 			catch (IOException e) {
-				Log log = ThreadLocalPageContext.getConfig(pc).getLog("application");
+				Log log = ThreadLocalPageContext.getLog(pc, "application");
 				if (log != null) log.error("form.scope", e);
 			}
 		}
@@ -367,7 +367,8 @@ public final class FormImpl extends ScopeSupport implements Form, ScriptProtecte
 				key = ListUtil.arrayToList(array, ".").trim();
 			}
 		}
-		catch (PageException e) {}
+		catch (PageException e) {
+		}
 		return key;
 	}
 
@@ -410,7 +411,7 @@ public final class FormImpl extends ScopeSupport implements Form, ScriptProtecte
 		this.raw = nr;
 
 		if (!isInitalized()) return;
-		fillDecodedEL(this.raw, encoding, isScriptProtected(), ac.getSameFieldAsArray(SCOPE_FORM));
+		fillDecodedEL(this.raw, encoding, isScriptProtected(), ac != null ? ac.getSameFieldAsArray(SCOPE_FORM) : false);
 		setFieldNames();
 	}
 
@@ -486,7 +487,8 @@ public final class FormImpl extends ScopeSupport implements Form, ScriptProtecte
 			try {
 				raw[i] = new ByteNameValuePair(items[i].getName().getBytes("iso-8859-1"), items[i].getValue().getBytes("iso-8859-1"), items[i].isUrlEncoded());
 			}
-			catch (UnsupportedEncodingException e) {}
+			catch (UnsupportedEncodingException e) {
+			}
 		}
 
 		int size = 0;

@@ -18,6 +18,8 @@
  */
 package lucee.runtime.type.scope;
 
+import java.io.UnsupportedEncodingException;
+
 import lucee.commons.lang.StringList;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.net.URLDecoder;
@@ -37,8 +39,6 @@ import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.util.ListUtil;
 import lucee.runtime.type.util.StructUtil;
-
-import java.io.UnsupportedEncodingException;
 
 /**
  * Simple implementation of a Scope, for general use.
@@ -157,7 +157,8 @@ public abstract class ScopeSupport extends StructImpl implements Scope {
 			try {
 				fillDecoded(raw, "iso-8859-1", scriptProteced, sameAsArray);
 			}
-			catch (UnsupportedEncodingException e1) {}
+			catch (UnsupportedEncodingException e1) {
+			}
 		}
 	}
 
@@ -225,7 +226,8 @@ public abstract class ScopeSupport extends StructImpl implements Scope {
 			else parent.setEL(key, value);
 		}
 		else if (curr instanceof Array) {
-			((Array) curr).appendEL(value);
+			Array arr = ((Array) curr);
+			arr.appendEL(value);
 		}
 		else if (curr instanceof CastableStruct) {
 			if (isLast) ((CastableStruct) curr).setValue(value);
@@ -247,17 +249,20 @@ public abstract class ScopeSupport extends StructImpl implements Scope {
 				parent.setEL(key, value);
 			}
 			else {
-				if (!StringUtil.isEmpty(value)) {
-					String existing = Caster.toString(curr, "");
-					if (StringUtil.isEmpty(existing)) parent.setEL(key, value);
-					else {
-						if (sameAsArray) {
-							Array arr = new ArrayImpl();
-							arr.appendEL(curr);
-							arr.appendEL(value);
-							parent.setEL(key, arr);
-						}
-						else parent.setEL(key, Caster.toString(curr, "") + ',' + value);
+				if (sameAsArray) {
+					Array arr = new ArrayImpl();
+					arr.appendEL(curr);
+					arr.appendEL(value);
+					parent.setEL(key, arr);
+				}
+				else {
+					String c = Caster.toString(curr, "");
+					String v = Caster.toString(value, "");
+					if (StringUtil.isEmpty(c)) {
+						parent.setEL(key, v);
+					}
+					else if (!StringUtil.isEmpty(v)) {
+						parent.setEL(key, c + ',' + v);
 					}
 				}
 			}

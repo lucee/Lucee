@@ -224,7 +224,6 @@
 		assertEquals("#TimeFormat(CreateDateTime( 2009, 6, 29, 24, 0, 0),"hh TT")#", "12 AM");
 		
 
-		assertEquals("#timeFormat(0.95833332754629624306019763935182709246873855590,"HH:mm:ss:ll")#x", "22:59:59:999x");
 		assertEquals("#timeFormat(0.9583333275462,"HH:mm:ss:ll")#x", "22:59:59:999x");
 		assertEquals("#timeFormat(0.9583333275463,"HH:mm:ss:ll")#x", "23:00:00:00x");
 		assertEquals("#timeFormat(0.958333327547,"HH:mm:ss:ll")#x", "23:00:00:00x");

@@ -51,7 +51,7 @@ public class DatasourceConnectionFactory extends BasePooledObjectFactory<Datasou
 
 	@Override
 	public DatasourceConnection create() throws IOException {
-		LogUtil.log(config, Log.LEVEL_DEBUG, logName, "connection", "create datasource connectrion:" + datasource.getName());
+		LogUtil.log(config, Log.LEVEL_DEBUG, logName, "connection", "create datasource connection: " + datasource.getName());
 
 		Connection conn = null;
 		try {
@@ -76,18 +76,18 @@ public class DatasourceConnectionFactory extends BasePooledObjectFactory<Datasou
 
 	@Override
 	public boolean validateObject(PooledObject<DatasourceConnection> p) {
-		LogUtil.log(config, Log.LEVEL_DEBUG, logName, "connection", "validate datasource connectrion:" + datasource.getName());
+		LogUtil.log(config, Log.LEVEL_DEBUG, logName, "connection", "validate datasource connection: " + datasource.getName());
 		DatasourceConnection dc = p.getObject();
 
 		DataSourcePro dsp = (DataSourcePro) dc.getDatasource();
 
 		if (dc.isTimeout()) {
-			LogUtil.log(config, Log.LEVEL_DEBUG, logName, "connection", "reached idle timeout for datasource connectrion:" + datasource.getName());
+			LogUtil.log(config, Log.LEVEL_DEBUG, logName, "connection", "reached idle timeout for datasource connection: " + datasource.getName());
 			return false;
 		}
 
 		if (dc.isLifecycleTimeout()) {
-			LogUtil.log(config, Log.LEVEL_DEBUG, logName, "connection", "reached live timeout for datasource connectrion:" + datasource.getName());
+			LogUtil.log(config, Log.LEVEL_DEBUG, logName, "connection", "reached life timeout for datasource connection: " + datasource.getName());
 			return false;
 		}
 
@@ -110,13 +110,13 @@ public class DatasourceConnectionFactory extends BasePooledObjectFactory<Datasou
 
 	@Override
 	public void activateObject(PooledObject<DatasourceConnection> p) throws PageException {
-		LogUtil.log(config, Log.LEVEL_DEBUG, logName, "connection", "activate datasource connectrion:" + datasource.getName());
+		LogUtil.log(config, Log.LEVEL_DEBUG, logName, "connection", "activate datasource connection: " + datasource.getName());
 		((DatasourceConnectionImpl) p.getObject()).using();
 	}
 
 	@Override
 	public void destroyObject(PooledObject<DatasourceConnection> p) throws PageException {
-		LogUtil.log(config, Log.LEVEL_DEBUG, logName, "connection", "destroy datasource connectrion:" + datasource.getName());
+		LogUtil.log(config, Log.LEVEL_DEBUG, logName, "connection", "destroy datasource connection: " + datasource.getName());
 		DatasourceConnection dc = null;
 		try {
 			dc = p.getObject();

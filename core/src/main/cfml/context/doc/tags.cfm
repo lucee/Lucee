@@ -10,7 +10,7 @@
 <cfset stText.doc.attr.type = {}>
 <cfset stText.doc.attr.type.dynamic =  "There is no restriction for attributes for this tag.">
 <cfset stText.doc.attr.type.fixed =  "The attributes for this tag are fixed. Except for the following attributes no other attributes are allowed.">
-<cfset stText.doc.attr.type.mixed =  "This tag has a fixed definition of attributes (see below). In addition it allowes to use any additional attribute">
+<cfset stText.doc.attr.type.mixed =  "This tag has a fixed definition of attributes (see below). In addition it allows to use any additional attribute">
 <cfset stText.doc.attr.type.noname =  "This tag only allows one attribute value (no name).">
 <cfif len( url.item )>
 	<cfset itemPos = arrAllItems.findNoCase( url.item )>
@@ -114,7 +114,7 @@
 		<cfif !structKeyExists(url, "isAjaxRequest")>
 			<div class="tile-wrap">
 				<div class="tile">
-					<ul class="margin-no-top margin-right margin-no-bottom margin-left">
+					<ul class="breadcrumb margin-no-top margin-right margin-no-bottom margin-left">
 						<li><a href="index.cfm">Home</a></li>
 						<li><a href="tags.cfm">Lucee tags</a></li>
 						<li class="active">&lt;#lCase( tagName )#&gt;</li>
@@ -124,7 +124,7 @@
 		<cfelse>
 			<h2 style="text-align: center;">Lucee Tags</h2>
 		</cfif>
-		<h2>Tag <em>&lt;#uCase( tagName )#&gt;</em></h2>
+		<h2><em>&lt;#data.nameSpace##data.Name#&gt;</em></h2>
 
 		<cfif data.status == "deprecated">
 			<div class="warning nofocus">#stText.doc.depTag#</div>

@@ -194,7 +194,8 @@ public class HTTPResource extends ReadOnlyResourceSupport {
 			Header cl = (rsp = getHTTPResponse(false)).getLastHeaderIgnoreCase("last-modified");
 			if (cl != null && exists()) last = Caster.toIntValue(cl.getValue(), 0);
 		}
-		catch (IOException e) {}
+		catch (IOException e) {
+		}
 		finally {
 			HTTPEngine.closeEL(rsp);
 		}

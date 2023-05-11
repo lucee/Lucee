@@ -19,9 +19,10 @@
 package lucee.runtime.type.comparator;
 
 import lucee.commons.lang.StringUtil;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
-import lucee.runtime.op.Operator;
+import lucee.runtime.op.OpUtil;
 
 /**
  * Implementation of a Comparator, compares to Softregister Objects
@@ -65,7 +66,7 @@ public final class NumberSortRegisterComparator implements ExceptionComparator {
 		/*
 		 * return Operator.compare( ((SortRegister)oLeft).getValue(), ((SortRegister)oRight).getValue() );
 		 */
-		return Operator.compare(Caster.toDoubleValue(v(((SortRegister) oLeft).getValue())), Caster.toDoubleValue(v(((SortRegister) oRight).getValue())));
+		return OpUtil.compare(ThreadLocalPageContext.get(), Caster.toNumber(v(((SortRegister) oLeft).getValue())), Caster.toNumber(v(((SortRegister) oRight).getValue())));
 
 	}
 

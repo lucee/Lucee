@@ -161,7 +161,7 @@ public class FDStackFrameImpl implements IFDStackFrame {
 				getVariables(this, pc, list, (String) it.next());
 			}
 			catch (FDLanguageException e) {
-				LogUtil.log(null, "integral", e);
+				LogUtil.log("integral", e);
 			}
 		}
 		return sort(list);

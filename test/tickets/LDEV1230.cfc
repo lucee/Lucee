@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase"{
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="image" {
 	function run( testResults , testBox ) {
 		describe( "Test suite for LDEV-1230", function() {
 			it( title='Checking isValid() for image object', body=function( currentSpec ) {

@@ -190,11 +190,12 @@ public abstract class ConfigFactory {
 			if (configFile.exists()) {
 				LogUtil.log(ThreadLocalPageContext.getConfig(), Log.LEVEL_INFO, ConfigFactory.class.getName(),
 						"Config file [" + configFile + "] was not valid and has been replaced");
-				LogUtil.log(ThreadLocalPageContext.getConfig(), ConfigFactory.class.getName(), e);
+				LogUtil.log(ThreadLocalPageContext.get(), ConfigFactory.class.getName(), e);
 				int count = 1;
 				Resource bugFile;
 				Resource configDir = configFile.getParentResource();
-				while ((bugFile = configDir.getRealResource("lucee-" + type + "." + (count++) + ".buggy")).exists()) {}
+				while ((bugFile = configDir.getRealResource("lucee-" + type + "." + (count++) + ".buggy")).exists()) {
+				}
 				IOUtil.copy(configFile, bugFile);
 				configFile.delete();
 			}

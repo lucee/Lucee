@@ -286,7 +286,6 @@ public final class ThreadTag extends BodyTagImpl implements DynamicAttributes {
 	@Override
 	public int doEndTag() throws PageException {
 		this.pc = pageContext;
-		// if(ACTION_RUN==action) doRun();
 		return EVAL_PAGE;
 	}
 
@@ -432,7 +431,8 @@ public final class ThreadTag extends BodyTagImpl implements DynamicAttributes {
 					if (_timeout != -1) ct.join(_timeout);
 					else ct.join();
 				}
-				catch (InterruptedException e) {}
+				catch (InterruptedException e) {
+				}
 			}
 			if (_timeout != -1) {
 				_timeout = _timeout - (System.currentTimeMillis() - start);

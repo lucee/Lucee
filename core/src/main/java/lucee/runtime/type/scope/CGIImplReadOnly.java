@@ -89,7 +89,8 @@ public final class CGIImplReadOnly extends ReadOnlyStruct implements CGI, Script
 			localAddress = addr.getHostAddress();
 			localHost = addr.getHostName();
 		}
-		catch (UnknownHostException uhe) {}
+		catch (UnknownHostException uhe) {
+		}
 	}
 
 	private transient HttpServletRequest req;
@@ -181,7 +182,8 @@ public final class CGIImplReadOnly extends ReadOnlyStruct implements CGI, Script
 					https.setEL(KeyImpl.init("http_" + k), v);
 				}
 			}
-			catch (Exception e) {}
+			catch (Exception e) {
+			}
 		}
 
 		String lkey = key.getLowerString();
@@ -216,7 +218,8 @@ public final class CGIImplReadOnly extends ReadOnlyStruct implements CGI, Script
 					try {
 						return ReqRspUtil.getRequestURL(req, true);
 					}
-					catch (Exception e) {}
+					catch (Exception e) {
+					}
 				}
 				if (key.equals(KeyConstants._request_uri)) return toString(req.getAttribute("javax.servlet.include.request_uri"));
 				if (key.getUpperString().startsWith("REDIRECT_")) {

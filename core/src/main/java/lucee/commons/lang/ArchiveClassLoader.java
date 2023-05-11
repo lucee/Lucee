@@ -170,7 +170,8 @@ public final class ArchiveClassLoader extends ClassLoader implements Closeable {
 			}
 			return data;
 		}
-		catch (IOException ioe) {}
+		catch (IOException ioe) {
+		}
 		finally {
 			IOUtil.closeEL(is);
 		}

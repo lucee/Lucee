@@ -20,7 +20,8 @@ package lucee.runtime.sql.old;
 
 public final class Token {
 
-	public Token() {}
+	public Token() {
+	}
 
 	@Override
 	public final String toString() {

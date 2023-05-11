@@ -56,7 +56,8 @@ public final class FunctionLibFunctionArg {
 	/**
 	 * Geschuetzer Konstruktor ohne Argumente.
 	 */
-	public FunctionLibFunctionArg() {}
+	public FunctionLibFunctionArg() {
+	}
 
 	public FunctionLibFunctionArg(FunctionLibFunction function) {
 		this.function = function;

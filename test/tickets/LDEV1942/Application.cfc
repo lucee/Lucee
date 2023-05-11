@@ -23,4 +23,9 @@ component {
 	};
 	this.NULLSupport=form.setNull;
 	this.sessionstorage = form.storage;
+	
+	public function onRequestStart() {
+		setting requesttimeout=10;
+	}
+
 }

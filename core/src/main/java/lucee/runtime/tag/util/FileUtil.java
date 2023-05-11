@@ -53,7 +53,7 @@ public class FileUtil {
 		if ("makeunique".equals(nameConflict) || "unique".equals(nameConflict)) return NAMECONFLICT_MAKEUNIQUE;
 
 		if ("forceunique".equals(nameConflict)) return NAMECONFLICT_FORCEUNIQUE;
-		
+
 		throw new ApplicationException("Invalid value for attribute nameConflict [" + nameConflict + "]", "valid values are [" + fromNameConflictBitMask(Integer.MAX_VALUE) + "]");
 	}
 

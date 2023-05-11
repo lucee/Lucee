@@ -19,5 +19,7 @@
 package lucee.runtime.sql.exp;
 
 public interface Literal {
+	
+	public Object getValue();
 
 }

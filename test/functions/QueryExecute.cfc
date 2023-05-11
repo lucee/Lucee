@@ -33,19 +33,14 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 			echo("CREATE TABLE T"&suffix&" (");
 			echo("id int NOT NULL,");
 			echo("i int,");		
-			echo("dec DECIMAL");		
+			echo("dec DECIMAL");
 			echo(") ");
 		}
 	}
 
 	private string function defineDatasource(){
 		application action="update" 
-			datasource="#{
-	  		class: 'org.h2.Driver'
-	  		,bundleName:'org.h2'
-	  		,bundleVersion:'1.3.172'
-			, connectionString: 'jdbc:h2:#getDirectoryFromPath(getCurrentTemplatePath())#/datasource/update;MODE=MySQL'
-		}#";
+			datasource="#server.getDatasource( "h2", server._getTempDir( "queryExecute" ) )#";
 	}
 
 

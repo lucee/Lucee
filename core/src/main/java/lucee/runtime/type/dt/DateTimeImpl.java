@@ -18,6 +18,7 @@
  **/
 package lucee.runtime.type.dt;
 
+import java.math.BigDecimal;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.TimeZone;
@@ -33,7 +34,7 @@ import lucee.runtime.dump.SimpleDumpData;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
-import lucee.runtime.op.Operator;
+import lucee.runtime.op.OpUtil;
 import lucee.runtime.reflection.Reflector;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.Objects;
@@ -151,22 +152,22 @@ public final class DateTimeImpl extends DateTime implements SimpleValue, Objects
 
 	@Override
 	public int compareTo(boolean b) {
-		return Operator.compare(castToDoubleValue(), b ? 1D : 0D);
+		return OpUtil.compare(ThreadLocalPageContext.get(), (Date) this, b ? BigDecimal.ONE : BigDecimal.ZERO);
 	}
 
 	@Override
 	public int compareTo(DateTime dt) throws PageException {
-		return Operator.compare((java.util.Date) this, (java.util.Date) dt);
+		return OpUtil.compare(ThreadLocalPageContext.get(), (java.util.Date) this, (java.util.Date) dt);
 	}
 
 	@Override
 	public int compareTo(double d) throws PageException {
-		return Operator.compare(castToDoubleValue(), d);
+		return OpUtil.compare(ThreadLocalPageContext.get(), (java.util.Date) this, Double.valueOf(d));
 	}
 
 	@Override
-	public int compareTo(String str) {
-		return Operator.compare(castToString(), str);
+	public int compareTo(String str) throws PageException {
+		return OpUtil.compare(ThreadLocalPageContext.get(), castToString(), str);
 	}
 
 	@Override

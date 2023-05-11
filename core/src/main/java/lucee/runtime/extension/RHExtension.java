@@ -24,6 +24,7 @@ import java.io.InputStream;
 import java.io.Serializable;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -35,6 +36,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 import org.osgi.framework.BundleException;
+import org.osgi.framework.Version;
 
 import lucee.Info;
 import lucee.commons.digest.HashUtil;
@@ -47,12 +49,14 @@ import lucee.commons.io.res.filter.ExtensionResourceFilter;
 import lucee.commons.io.res.filter.ResourceNameFilter;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ExceptionUtil;
+import lucee.commons.lang.Pair;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.types.RefInteger;
 import lucee.commons.lang.types.RefIntegerImpl;
 import lucee.loader.util.Util;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigAdmin;
+import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.config.ConfigWebFactory;
@@ -76,8 +80,10 @@ import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.osgi.BundleFile;
 import lucee.runtime.osgi.BundleInfo;
+import lucee.runtime.osgi.OSGiUtil;
 import lucee.runtime.osgi.OSGiUtil.BundleDefinition;
 import lucee.runtime.osgi.VersionRange;
+import lucee.runtime.type.Array;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Query;
@@ -218,7 +224,7 @@ public class RHExtension implements Serializable {
 					DeployHandler.deployExtension(config, res);
 				}
 				else {
-					DeployHandler.deployExtension(config, new ExtensionDefintion(id, version), null, false);
+					DeployHandler.deployExtension(config, new ExtensionDefintion(id, version), null, false, true, true);
 					res = RHExtension.toResource(config, id, version);
 				}
 			}
@@ -445,7 +451,7 @@ public class RHExtension implements Serializable {
 	private void readManifestConfig(Manifest manifest, String label, String _img) throws ApplicationException {
 		boolean isWeb = config instanceof ConfigWeb;
 		type = isWeb ? "web" : "server";
-		Log logger = config.getLog("deploy");
+		Log logger = ThreadLocalPageContext.getLog(config, "deploy");
 		Info info = ConfigWebUtil.getEngine(config).getInfo();
 
 		Attributes attr = manifest.getMainAttributes();
@@ -486,7 +492,7 @@ public class RHExtension implements Serializable {
 		boolean isWeb = config instanceof ConfigWeb;
 		type = isWeb ? "web" : "server";
 
-		Log logger = config.getLog("deploy");
+		Log logger = ThreadLocalPageContext.getLog(config, "deploy");
 		Info info = ConfigWebUtil.getEngine(config).getInfo();
 
 		readSymbolicName(label, ConfigWebFactory.getAttr(data, "symbolicName", "symbolic-name"));
@@ -671,6 +677,7 @@ public class RHExtension implements Serializable {
 	}
 
 	private void readReleaseType(String label, String str, boolean isWeb) throws ApplicationException {
+		if (((ConfigPro) ThreadLocalPageContext.getConfig(config)).getAdminMode() == ConfigImpl.ADMINMODE_SINGLE) return;
 		// release type
 		int rt = RELEASE_TYPE_ALL;
 		if (!Util.isEmpty(str)) {
@@ -820,7 +827,7 @@ public class RHExtension implements Serializable {
 			ext = new RHExtension(config, resources[i], false);
 			xmlExt = xmlExtensions.get(ext.getId());
 			if (xmlExt != null && (xmlExt.getVersion() + "").equals(ext.getVersion() + "")) continue;
-			ConfigAdmin._updateRHExtension((ConfigPro) config, resources[i], true);
+			ConfigAdmin._updateRHExtension((ConfigPro) config, resources[i], true, true);
 		}
 
 	}
@@ -957,7 +964,7 @@ public class RHExtension implements Serializable {
 	}
 
 	public static Query toQuery(Config config, List<RHExtension> children, Query qry) throws PageException {
-		Log log = config.getLog("deploy");
+		Log log = ThreadLocalPageContext.getLog(config, "deploy");
 		if (qry == null) qry = createQuery();
 		Iterator<RHExtension> it = children.iterator();
 		while (it.hasNext()) {
@@ -973,7 +980,7 @@ public class RHExtension implements Serializable {
 	}
 
 	public static Query toQuery(Config config, RHExtension[] children, Query qry) throws PageException {
-		Log log = config.getLog("deploy");
+		Log log = ThreadLocalPageContext.getLog(config, "deploy");
 		if (qry == null) qry = createQuery();
 		if (children != null) {
 			for (int i = 0; i < children.length; i++) {
@@ -1448,14 +1455,45 @@ public class RHExtension implements Serializable {
 		int index;
 		arrr = ListUtil.trimItems(ListUtil.listToStringArray(s, ';'));
 		ExtensionDefintion ed = new ExtensionDefintion();
+		String name;
+		Resource res;
+		Config c = ThreadLocalPageContext.getConfig();
 		for (String ss: arrr) {
+			res = null;
 			index = ss.indexOf('=');
 			if (index != -1) {
-				ed.setParam(ss.substring(0, index).trim(), ss.substring(index + 1).trim());
+				name = ss.substring(0, index).trim();
+				ed.setParam(name, ss.substring(index + 1).trim());
+				if ("path".equalsIgnoreCase(name) && c != null) {
+					res = ResourceUtil.toResourceExisting(c, ss.substring(index + 1).trim(), null);
+				}
 			}
 			else if (ed.getId() == null || Decision.isUUId(ed.getId())) {
-				ed.setId(ss);
+				if (c == null || Decision.isUUId(ss) || (res = ResourceUtil.toResourceExisting(ThreadLocalPageContext.getConfig(), ss.trim(), null)) == null) ed.setId(ss);
 			}
+
+			if (res != null && res.isFile()) {
+
+				Resource trgDir = c.getLocalExtensionProviderDirectory();
+				Resource trg = trgDir.getRealResource(res.getName());
+				if (!res.equals(trg) && !trg.isFile()) {
+					try {
+						IOUtil.copy(res, trg);
+					}
+					catch (IOException e) {
+						e.printStackTrace();
+					}
+				}
+				if (!trg.isFile()) continue;
+
+				try {
+					return new RHExtension(c, trg, false).toExtensionDefinition();
+				}
+				catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+
 		}
 		return ed;
 	}
@@ -1499,5 +1537,38 @@ public class RHExtension implements Serializable {
 		ed.setParam("symbolic-name", getSymbolicName());
 		ed.setParam("description", getDescription());
 		return ed.toString();
+	}
+
+	public static void removeDuplicates(Array arrExtensions) throws PageException, BundleException {
+		Iterator<Entry<Key, Object>> it = arrExtensions.entryIterator();
+		Entry<Key, Object> e;
+		Struct child;
+		String id;
+		Map<String, Pair<Version, Key>> existing = new HashMap<>();
+		List<Integer> toremove = null;
+		Pair<Version, Key> pair;
+		while (it.hasNext()) {
+			e = it.next();
+			child = Caster.toStruct(e.getValue(), null);
+			if (child == null) continue;
+			id = Caster.toString(child.get(KeyConstants._id, null), null);
+			if (StringUtil.isEmpty(id)) continue;
+			pair = existing.get(id);
+			Version nv = OSGiUtil.toVersion(Caster.toString(child.get(KeyConstants._version, null)));
+			if (pair != null) {
+				if (toremove == null) toremove = new ArrayList<>();
+				toremove.add(Caster.toInteger(OSGiUtil.isNewerThan(pair.getName(), nv) ? e.getKey() : pair.getValue()));
+
+			}
+			existing.put(id, new Pair<Version, Key>(nv, e.getKey()));
+		}
+
+		if (toremove != null) {
+			int[] removes = ArrayUtil.toIntArray(toremove);
+			Arrays.sort(removes);
+			for (int i = removes.length - 1; i >= 0; i--) {
+				arrExtensions.removeE(removes[i]);
+			}
+		}
 	}
 }

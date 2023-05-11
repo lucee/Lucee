@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase"{
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="pdf"{
 	function run( testResults , testBox ) {
 		describe( title="Test suite for LDEV-1850", body=function() {
 			it( title='checking cfpdf action="ddxfile" ', body=function( currentSpec ) {

@@ -159,8 +159,8 @@ Redirtect to entry --->
 													<input type="hidden" name="#item#" value="#_debug[item]#">
 												</cfif>
 												<cfif structKeyExists(stText.debug.settings, item&"Alert")>
-													<div>
-														<b class="comment" style="color:##bf4f36">#stText.debug.settings[item&"Alert"]#</b>
+													<div class="comment">
+														<b style="color:##bf4f36">#stText.debug.settings[item&"Alert"]#</b>
 													</div>
 												</cfif>
 												<div class="comment">#stText.debug.settings[item&"Desc"]#</div>
@@ -218,7 +218,7 @@ Redirtect to entry --->
 						<td colspan="2">
 							<input type="submit" class="bl button submit" name="mainAction" value="#stText.Buttons.Update#">
 							<input type="reset" class="<cfif request.adminType EQ "web">bm<cfelse>br</cfif> button reset" name="cancel" value="#stText.Buttons.Cancel#">
-							<cfif request.adminType EQ "web"><input class="br button submit" type="submit" name="mainAction" value="#stText.Buttons.resetServerAdmin#"></cfif>
+							<cfif not request.singleMode && request.adminType EQ "web"><input class="br button submit" type="submit" name="mainAction" value="#stText.Buttons.resetServerAdmin#"></cfif>
 
 						</td>
 					</tr>

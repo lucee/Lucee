@@ -458,7 +458,8 @@ public final class Index extends TagImpl {
 					file = ResourceUtil.toResourceExisting(pageContext, key);
 					pageContext.getConfig().getSecurityManager().checkFileLocation(file);
 				}
-				catch (ExpressionException e) {}
+				catch (ExpressionException e) {
+				}
 
 				if (file != null && file.exists() && file.isFile()) type = SearchIndex.TYPE_FILE;
 				else if (file != null && file.exists() && file.isDirectory()) type = SearchIndex.TYPE_PATH;
@@ -467,7 +468,8 @@ public final class Index extends TagImpl {
 						new URL(key);
 						type = SearchIndex.TYPE_URL;
 					}
-					catch (MalformedURLException e) {}
+					catch (MalformedURLException e) {
+					}
 				}
 			}
 		}
@@ -518,9 +520,9 @@ public final class Index extends TagImpl {
 
 	private Struct toStruct(IndexResult result) {
 		Struct sct = new StructImpl();
-		sct.setEL("deleted", new Double(result.getCountDeleted()));
-		sct.setEL("inserted", new Double(result.getCountInserted()));
-		sct.setEL("updated", new Double(result.getCountUpdated()));
+		sct.setEL("deleted", Double.valueOf(result.getCountDeleted()));
+		sct.setEL("inserted", Double.valueOf(result.getCountInserted()));
+		sct.setEL("updated", Double.valueOf(result.getCountUpdated()));
 		return sct;
 	}
 

@@ -37,14 +37,14 @@ public final class StructValueArray extends BIF {
 
 	public static Array call(PageContext pc, lucee.runtime.type.Struct struct) {
 
-        return new ArrayImpl(struct.values().toArray());
+		return new ArrayImpl(struct.values().toArray());
 	}
 
 	@Override
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
-        
-        if (args.length == 1) return call(pc, Caster.toStruct(args[0]));
-        
-        throw new FunctionException(pc, "StructValueArray", 1, 1, args.length);
+
+		if (args.length == 1) return call(pc, Caster.toStruct(args[0]));
+
+		throw new FunctionException(pc, "StructValueArray", 1, 1, args.length);
 	}
 }

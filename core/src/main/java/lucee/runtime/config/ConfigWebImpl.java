@@ -45,7 +45,6 @@ import lucee.runtime.cache.tag.CacheHandlerCollection;
 import lucee.runtime.cfx.CFXTagPool;
 import lucee.runtime.compiler.CFMLCompilerImpl;
 import lucee.runtime.debug.DebuggerPool;
-import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.engine.ThreadQueue;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
@@ -103,7 +102,7 @@ public class ConfigWebImpl extends ConfigImpl implements ServletConfig, ConfigWe
 		this.configServer = configServer;
 		this.config = config;
 		this.factory = factory;
-		factory.setConfig(this);
+		factory.setConfig(configServer, this);
 		ResourceProvider frp = ResourcesImpl.getFileResourceProvider();
 
 		this.rootDir = frp.getResource(ReqRspUtil.getRootPath(config.getServletContext()));
@@ -251,6 +250,11 @@ public class ConfigWebImpl extends ConfigImpl implements ServletConfig, ConfigWe
 	}
 
 	@Override
+	public void resetServerFunctionMappings() {
+		helper.resetServerFunctionMappings();
+	}
+
+	@Override
 	public Mapping getServerFunctionMapping(String mappingName) {
 		return helper.getServerFunctionMapping(mappingName);
 	}
@@ -311,7 +315,7 @@ public class ConfigWebImpl extends ConfigImpl implements ServletConfig, ConfigWe
 			helper.getGatewayEngineImpl().addEntries(this, gatewayEntries);
 		}
 		catch (Exception e) {
-			LogUtil.log(ThreadLocalPageContext.getConfig(this), ConfigWebImpl.class.getName(), e);
+			LogUtil.log(this, ConfigWebImpl.class.getName(), e);
 		}
 	}
 

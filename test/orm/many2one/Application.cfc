@@ -1,10 +1,15 @@
 component {
 
 	this.name 				= "orm" & hash( getCurrentTemplatePath() );
-	this.datasource= server.getDatasource("h2", "#getDirectoryFromPath(getCurrentTemplatePath())#/datasource/db" );
+	this.datasource= server.getDatasource("h2", server._getTempDir("orm-many2one") );
 	this.ormEnabled = true;
 	this.ormSettings = {
 		dbcreate = "dropcreate"
-	};	
+	};
+
+
+	public function onRequestStart() {
+		setting requesttimeout=10;
+	}
 
 }

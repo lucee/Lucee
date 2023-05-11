@@ -74,7 +74,7 @@ final class Perl5Util {
 			while (matcher.contains(input, pattern)) {
 				int match = matcher.getMatch().beginOffset(0) + 1;
 				if (!matchAll) {
-					return new Double(match);
+					return Double.valueOf(match);
 				}
 
 				matches.appendEL(match);
@@ -100,13 +100,11 @@ final class Perl5Util {
 		if (offset <= strInput.length()) input.setCurrentOffset(offset - 1);
 
 		Array rtn = new ArrayImpl();
-		if (offset <= strInput.length()) {
-			MatchResult result;
-			while (matcher.contains(input, pattern)) {
-				result = matcher.getMatch();
-				if (!matchAll) return result.toString();
-				rtn.appendEL(result.toString());
-			}
+		MatchResult result;
+		while (matcher.contains(input, pattern)) {
+			result = matcher.getMatch();
+			if (!matchAll) return result.toString();
+			rtn.appendEL(result.toString());
 		}
 		if (!matchAll) return "";
 		return rtn;

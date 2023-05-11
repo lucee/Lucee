@@ -44,7 +44,8 @@ public final class DevNullHttpServletResponse extends HttpServletResponseWrapper
 	}
 
 	@Override
-	public void flushBuffer() {}
+	public void flushBuffer() {
+	}
 
 	@Override
 	public ServletResponse getResponse() {
@@ -57,19 +58,24 @@ public final class DevNullHttpServletResponse extends HttpServletResponseWrapper
 	}
 
 	@Override
-	public void reset() {}
+	public void reset() {
+	}
 
 	@Override
-	public void resetBuffer() {}
+	public void resetBuffer() {
+	}
 
 	@Override
-	public void setBufferSize(int size) {}
+	public void setBufferSize(int size) {
+	}
 
 	@Override
-	public void setContentLength(int size) {}
+	public void setContentLength(int size) {
+	}
 
 	@Override
-	public void setContentType(String type) {}
+	public void setContentType(String type) {
+	}
 
 	@Override
 	public ServletOutputStream getOutputStream() throws IOException {

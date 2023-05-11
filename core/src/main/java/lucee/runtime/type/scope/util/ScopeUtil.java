@@ -51,7 +51,8 @@ public class ScopeUtil {
 						n = URLDecoder.decode(n, encoding, true);
 						v = URLDecoder.decode(v, encoding, true);
 					}
-					catch (UnsupportedEncodingException e) {}
+					catch (UnsupportedEncodingException e) {
+					}
 				}
 				arr = parameters.get(n);
 				if (arr == null) parameters.put(n, new String[] { v });
@@ -89,7 +90,8 @@ public class ScopeUtil {
 						n = URLDecoder.decode(n, encoding, true);
 						v = URLDecoder.decode(v, encoding, true);
 					}
-					catch (UnsupportedEncodingException e) {}
+					catch (UnsupportedEncodingException e) {
+					}
 				}
 				if (arr == null) arr = new String[] { v };
 				else {

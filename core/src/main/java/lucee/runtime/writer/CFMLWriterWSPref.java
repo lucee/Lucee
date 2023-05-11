@@ -89,7 +89,8 @@ public final class CFMLWriterWSPref extends CFMLWriterImpl implements WhiteSpace
 			try {
 				printBuffer();
 			}
-			catch (IOException e) {}
+			catch (IOException e) {
+			}
 		}
 	}
 

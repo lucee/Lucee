@@ -22,12 +22,13 @@ component {
     this.sessionmanagement="Yes" 
 	this.sessiontimeout=createTimeSpan(0,0,3,0);
 	if(url.storage) {
-		this.datasources.test={
-		  	class: 'org.h2.Driver'
-		, connectionString: 'jdbc:h2:#getDirectoryFromPath(getCurrentTemplatePath())#/datasource/db;MODE=MySQL'
-			, storage: true
-		};
+		this.datasources.test= server.getDatasource(service="h2", dbFile=server._getTempDir("LDEV0677"), options={ storage:true } );
 		this.sessionStorage="test";
 		if(url.cluster)this.sessionCluster=true;
 	}
+	
+	public function onRequestStart() {
+		setting requesttimeout=10;
+	}
+
 }

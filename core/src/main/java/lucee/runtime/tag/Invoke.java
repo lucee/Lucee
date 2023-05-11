@@ -201,6 +201,9 @@ public final class Invoke extends BodyTagImpl implements DynamicAttributes {
 	 * @throws PageException
 	 */
 	private void doComponent(Object oComponent) throws PageException {
+		
+		if (StringUtil.isEmpty(method, true)) throw new ApplicationException("Attribute [method] for tag [invoke] is required.");
+		
 		lucee.runtime.Component component = null;
 		if (oComponent instanceof lucee.runtime.Component) component = (lucee.runtime.Component) oComponent;
 		else component = pageContext.loadComponent(Caster.toString(oComponent));
@@ -215,7 +218,7 @@ public final class Invoke extends BodyTagImpl implements DynamicAttributes {
 	private void doFunction(PageContext pc) throws PageException {
 
 		// execute
-		if (StringUtil.isEmpty(method, true)) throw new ApplicationException("Attribute [method] for tag [invoke] is required in this context.");
+		if (StringUtil.isEmpty(method, true)) throw new ApplicationException("Attribute [method] for tag [invoke] is required.");
 
 		Object oUDF = pc.getVariable(method);
 		if (!(oUDF instanceof UDF)) throw new ApplicationException("there is no function with name " + method);
@@ -233,6 +236,9 @@ public final class Invoke extends BodyTagImpl implements DynamicAttributes {
 		if (username != null) {
 			if (password == null) password = "";
 		}
+
+		if (StringUtil.isEmpty(method, true)) throw new ApplicationException("Attribute [method] for tag [invoke] is required.");
+
 		ProxyData pd = StringUtil.isEmpty(proxy.getServer()) ? null : proxy;
 		WSClient ws = username != null ? ((ConfigWebPro) ThreadLocalPageContext.getConfig()).getWSHandler().getWSClient(webservice, username, password, pd)
 				: ((ConfigWebPro) ThreadLocalPageContext.getConfig()).getWSHandler().getWSClient(webservice, null, null, pd);

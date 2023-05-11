@@ -28,8 +28,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.xml.sax.Attributes;
-
 import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.Md5;
 import lucee.commons.lang.StringUtil;
@@ -241,7 +239,7 @@ public class TagLib implements Cloneable, Lib {
 	 * 
 	 * @param eLClass Zeichenkette der Evaluator Klassendefinition.
 	 */
-	protected void setELClass(String eLClass, Identification id, Attributes attributes) {
+	protected void setELClass(String eLClass, Identification id, Map<String, String> attributes) {
 		this.ELClass = ClassDefinitionImpl.toClassDefinition(eLClass, id, attributes);
 	}
 

@@ -9,18 +9,10 @@ component {
 	this.mappings[ "/model" ] = getDirectoryFromPath( getCurrentTemplatePath() ) & 'model';
 
 
-	// DATASOPURCE CONFIG
+	// DATASOURCE CONFIG
 	dbname	= 'testdb8';
-	dbpath	= expandPath("/data/#dbname#");
 
-	this.datasources[dbname] = {
-		  class: 'org.h2.Driver'
-		, bundleName: 'org.h2'
-		, bundleVersion: '1.3.172'
-		, connectionString: 'jdbc:h2:#dbpath#;MODE=MySQL'
-		, connectionLimit:100 // default:-1
-	};
-
+	this.datasources[dbname] = server.getDatasource( "h2", server._getTempDir( "LDEV1741" ) );
 
 	// ORM CONFIG
 	this.defaultDatasource					= "#dbname#";
@@ -35,4 +27,7 @@ component {
 	this.ormsettings.dialect				= "mysql";
 	this.ormsettings.useDBForMapping		= false;					// false = do not walk the db on startup trying to create ORM definitions
 
+	public function onRequestStart() {
+		setting requesttimeout=10;
+	}
 }

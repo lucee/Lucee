@@ -3,6 +3,7 @@
 	this.name = hash( getCurrentTemplatePath());
 	
 	public boolean function onRequestStart(required string template) {
+		setting requesttimeout=10;
 		writeOutput('onRequestStart:'&listLast(arguments.template,'\/')&";");
 		return true;
 	}

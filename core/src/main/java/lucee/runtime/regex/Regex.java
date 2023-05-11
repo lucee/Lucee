@@ -36,7 +36,7 @@ public interface Regex {
 	 * @param caseSensitive
 	 * @return position of the first occurrence
 	 */
-	public Array indexOfAll(String strPattern, String strInput, int offset, boolean caseSensitive, boolean multiLine) throws PageException;
+	public Object indexOfAll(String strPattern, String strInput, int offset, boolean caseSensitive, boolean multiLine) throws PageException;
 
 	/**
 	 * find occurrence of a pattern in a string (same like indexOf), but it returns a struct with more

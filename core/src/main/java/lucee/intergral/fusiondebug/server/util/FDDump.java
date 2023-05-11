@@ -29,7 +29,7 @@ import lucee.commons.io.log.LogUtil;
 public class FDDump {
 
 	public static void dump(IFDVariable var) {
-		LogUtil.log(null, Log.LEVEL_INFO, FDDump.class.getName(), toString(var));
+		LogUtil.log(Log.LEVEL_INFO, FDDump.class.getName(), toString(var));
 	}
 
 	public static String toString(Object value) {

@@ -20,8 +20,6 @@ package lucee.runtime.tag;
 
 import java.io.ByteArrayInputStream;
 import java.io.EOFException;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -31,15 +29,11 @@ import java.net.SocketTimeoutException;
 import java.net.URI;
 import java.net.URL;
 import java.nio.charset.Charset;
-import java.security.KeyStore;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 import java.util.zip.GZIPInputStream;
-
-import javax.net.ssl.KeyManagerFactory;
-import javax.net.ssl.SSLContext;
 
 import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpHost;
@@ -54,12 +48,7 @@ import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.methods.HttpTrace;
 import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.config.Registry;
-import org.apache.http.config.RegistryBuilder;
 import org.apache.http.config.SocketConfig;
-import org.apache.http.conn.socket.ConnectionSocketFactory;
-import org.apache.http.conn.socket.PlainConnectionSocketFactory;
-import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.entity.mime.FormBodyPart;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
@@ -69,7 +58,6 @@ import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.DefaultRedirectStrategy;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
@@ -77,6 +65,7 @@ import org.apache.http.protocol.HttpContext;
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
+import lucee.commons.io.log.Log;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ExceptionUtil;
@@ -100,6 +89,7 @@ import lucee.runtime.cache.tag.http.HTTPCacheItem;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.config.Constants;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.HTTPException;
@@ -107,11 +97,9 @@ import lucee.runtime.exp.NativeException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.RequestTimeoutException;
 import lucee.runtime.ext.tag.BodyTagImpl;
+import lucee.runtime.functions.system.CallStackGet;
 import lucee.runtime.net.http.MultiPartResponseUtils;
 import lucee.runtime.net.http.ReqRspUtil;
-import lucee.runtime.net.http.sni.DefaultHostnameVerifierImpl;
-import lucee.runtime.net.http.sni.DefaultHttpClientConnectionOperatorImpl;
-import lucee.runtime.net.http.sni.SSLConnectionSocketFactoryImpl;
 import lucee.runtime.net.proxy.ProxyData;
 import lucee.runtime.net.proxy.ProxyDataImpl;
 import lucee.runtime.op.Caster;
@@ -179,6 +167,8 @@ public final class Http extends BodyTagImpl {
 	private static final short METHOD_TRACE = 6;
 	private static final short METHOD_PATCH = 7;
 
+	private static final List<String> methods = Arrays.asList(new String[] { "GET", "POST", "HEAD", "PUT", "DELETE", "OPTIONS", "TRACE", "PATCH" });
+
 	private static final String NO_MIMETYPE = "Unable to determine MIME type of file.";
 
 	private static final short GET_AS_BINARY_NO = 0;
@@ -192,10 +182,12 @@ public final class Http extends BodyTagImpl {
 	private static final Key STATUS_CODE = KeyImpl.getInstance("status_code");
 	private static final Key STATUS_TEXT = KeyImpl.getInstance("status_text");
 	private static final Key HTTP_VERSION = KeyImpl.getInstance("http_version");
+	private static final Key LOCATIONS = KeyImpl.getInstance("locations");
 
 	private static final Key EXPLANATION = KeyImpl.getInstance("explanation");
 	private static final Key RESPONSEHEADER = KeyImpl.getInstance("responseheader");
 	private static final Key SET_COOKIE = KeyImpl.getInstance("set-cookie");
+	private static final Key ERROR = KeyImpl.getInstance("error");
 
 	private static final short AUTH_TYPE_BASIC = 0;
 	private static final short AUTH_TYPE_NTLM = 1;
@@ -203,12 +195,6 @@ public final class Http extends BodyTagImpl {
 	public static final short ENCODED_AUTO = HTTPUtil.ENCODED_AUTO;
 	public static final short ENCODED_YES = HTTPUtil.ENCODED_YES;
 	public static final short ENCODED_NO = HTTPUtil.ENCODED_NO;
-
-	static {
-		// Protocol myhttps = new Protocol("https", new EasySSLProtocolSocketFactory(), 443);
-		// Protocol.registerProtocol("https", new Protocol("https", new EasySSLProtocolSocketFactory(),
-		// 443));
-	}
 
 	private ArrayList<HttpParamBean> params = new ArrayList<HttpParamBean>();
 
@@ -318,6 +304,7 @@ public final class Http extends BodyTagImpl {
 	private String result = "cfhttp";
 
 	private boolean addtoken = false;
+	private boolean encode = true;
 
 	private short authType = AUTH_TYPE_BASIC;
 	private String workStation = null;
@@ -329,11 +316,12 @@ public final class Http extends BodyTagImpl {
 
 	private Object cachedWithin;
 
+	private boolean usePool = true;
+
 	/** The full path to a PKCS12 format file that contains the client certificate for the request. */
 	private String clientCert;
 	/** Password used to decrypt the client certificate. */
 	private String clientCertPassword;
-	private static SSLConnectionSocketFactoryImpl defaultSSLConnectionSocketFactoryImpl;
 
 	@Override
 	public void release() {
@@ -368,6 +356,7 @@ public final class Http extends BodyTagImpl {
 		multiPartType = MULTIPART_FORM_DATA;
 		result = "cfhttp";
 		addtoken = false;
+		encode = true;
 
 		authType = AUTH_TYPE_BASIC;
 		workStation = null;
@@ -378,6 +367,7 @@ public final class Http extends BodyTagImpl {
 		clientCert = null;
 		clientCertPassword = null;
 		cachedWithin = null;
+		usePool = true;
 	}
 
 	/**
@@ -627,16 +617,20 @@ public final class Http extends BodyTagImpl {
 	 * @throws ApplicationException
 	 **/
 	public void setMethod(String method) throws ApplicationException {
-		method = method.toLowerCase().trim();
-		if (method.equals("post")) this.method = METHOD_POST;
-		else if (method.equals("get")) this.method = METHOD_GET;
-		else if (method.equals("head")) this.method = METHOD_HEAD;
-		else if (method.equals("delete")) this.method = METHOD_DELETE;
-		else if (method.equals("put")) this.method = METHOD_PUT;
-		else if (method.equals("trace")) this.method = METHOD_TRACE;
-		else if (method.equals("options")) this.method = METHOD_OPTIONS;
-		else if (method.equals("patch")) this.method = METHOD_PATCH;
-		else throw new ApplicationException("invalid method type [" + (method.toUpperCase()) + "], valid types are POST,GET,HEAD,DELETE,PUT,TRACE,OPTIONS,PATCH");
+		method = method.toUpperCase().trim();
+		short idx = (short) methods.indexOf(method);
+		if (idx < 0) throw new ApplicationException("invalid method type [" + method + "], valid types are [" + methods.toString() + "]");
+		this.method = idx;
+	}
+
+	private static String getMethodAsVerb(short method) throws ApplicationException {
+		if (method < 0 || method > methods.size() - 1) throw new ApplicationException("invalid method [" + method + "], valid types are [" + methods.toString() + "]"); // never
+																																										// will
+																																										// reach
+																																										// this, due
+																																										// to above
+
+		return methods.get(method);
 	}
 
 	public void setCompression(String strCompression) throws ApplicationException {
@@ -645,13 +639,17 @@ public final class Http extends BodyTagImpl {
 
 		if (b != null) compression = b.booleanValue();
 		else if (strCompression.trim().equalsIgnoreCase("none")) compression = false;
-		else throw new ApplicationException("invalid value for attribute compression [" + strCompression + "], valid values are: true,false or none");
+		else throw new ApplicationException("invalid value for attribute compression [" + strCompression + "], valid values are: [true, false or none]");
 
 	}
 
 	public void setCachedwithin(Object cachedwithin) {
 		if (StringUtil.isEmpty(cachedwithin)) return;
 		this.cachedWithin = cachedwithin;
+	}
+
+	public void setPooling(boolean usePool) {
+		this.usePool = usePool;
 	}
 
 	@Override
@@ -699,7 +697,7 @@ public final class Http extends BodyTagImpl {
 		boolean safeToMemory = !StringUtil.isEmpty(result, true);
 
 		HttpClientBuilder builder = HTTPEngine4Impl.getHttpClientBuilder();
-		ssl(builder);
+		HTTPEngine4Impl.setConnectionManager(builder, this.usePool, this.clientCert, this.clientCertPassword);
 
 		// redirect
 		if (redirect) builder.setRedirectStrategy(DefaultRedirectStrategy.INSTANCE);
@@ -780,6 +778,7 @@ public final class Http extends BodyTagImpl {
 					CacheItem cacheItem = ((CacheHandlerPro) cacheHandler).get(pageContext, cacheId, cachedWithin);
 
 					if (cacheItem instanceof HTTPCacheItem) {
+						logHttpRequest(pageContext, ((HTTPCacheItem) cacheItem).getData(), url, getMethodAsVerb(method), System.nanoTime() - start, true);
 						pageContext.setVariable(result, ((HTTPCacheItem) cacheItem).getData());
 						return;
 					}
@@ -789,6 +788,7 @@ public final class Http extends BodyTagImpl {
 					CacheItem cacheItem = cacheHandler.get(pageContext, cacheId);
 
 					if (cacheItem instanceof HTTPCacheItem) {
+						logHttpRequest(pageContext, ((HTTPCacheItem) cacheItem).getData(), url, getMethodAsVerb(method), System.nanoTime() - start, true);
 						pageContext.setVariable(result, ((HTTPCacheItem) cacheItem).getData());
 						return;
 					}
@@ -1093,6 +1093,7 @@ public final class Http extends BodyTagImpl {
 					if (!throwonerror) {
 						if (t instanceof SocketTimeoutException) setRequestTimeout(cfhttp);
 						else setUnknownHost(cfhttp, t);
+						logHttpRequest(pageContext, cfhttp, url, req.getMethod(), System.nanoTime() - start, false);
 						return;
 					}
 					throw toPageException(t, rsp);
@@ -1112,6 +1113,7 @@ public final class Http extends BodyTagImpl {
 				if (e.t != null) {
 					if (!throwonerror) {
 						setUnknownHost(cfhttp, e.t);
+						logHttpRequest(pageContext, cfhttp, url, req.getMethod(), System.nanoTime() - start, false);
 						return;
 					}
 					throw toPageException(e.t, rsp);
@@ -1123,6 +1125,7 @@ public final class Http extends BodyTagImpl {
 					req.abort();
 					if (throwonerror) throw new HTTPException("408 Request Time-out", "a timeout occurred in tag http", 408, "Time-out", rsp == null ? null : rsp.getURL());
 					setRequestTimeout(cfhttp);
+					logHttpRequest(pageContext, cfhttp, url, req.getMethod(), System.nanoTime() - start, false);
 					return;
 					// throw new ApplicationException("timeout");
 				}
@@ -1130,18 +1133,20 @@ public final class Http extends BodyTagImpl {
 
 			/////////////////////////////////////////// EXECUTE
 			/////////////////////////////////////////// /////////////////////////////////////////////////
-			Charset responseCharset = CharsetUtil.toCharset(rsp.getCharset());
 			int statCode = 0;
 			// Write Response Scope
 			// String rawHeader=httpMethod.getStatusLine().toString();
 			String mimetype = null;
 			String contentEncoding = null;
+			String rspCharset = null;
 
 			// status code
 			cfhttp.set(STATUSCODE, ((rsp.getStatusCode() + " " + rsp.getStatusText()).trim()));
-			cfhttp.set(STATUS_CODE, new Double(statCode = rsp.getStatusCode()));
+			cfhttp.set(STATUS_CODE, Double.valueOf(statCode = rsp.getStatusCode()));
 			cfhttp.set(STATUS_TEXT, (rsp.getStatusText()));
 			cfhttp.set(HTTP_VERSION, (rsp.getProtocolVersion()));
+			Array locations = rsp.getLocations();
+			if (locations != null) cfhttp.set(LOCATIONS, locations);
 
 			// responseHeader
 			lucee.commons.net.http.Header[] headers = rsp.getAllHeaders();
@@ -1158,7 +1163,7 @@ public final class Http extends BodyTagImpl {
 				raw.append(header.toString() + " ");
 				if (header.getName().equalsIgnoreCase("Set-Cookie")) {
 					setCookie.append(header.getValue());
-					parseCookie(cookies, header.getValue());
+					parseCookie(cookies, header.getValue(), charset);
 				}
 				else {
 					// print.ln(header.getName()+"-"+header.getValue());
@@ -1190,9 +1195,14 @@ public final class Http extends BodyTagImpl {
 				}
 
 			}
+
+			String[] tmpCharset = HTTPUtil.splitMimeTypeAndCharset(mimetype, null);
+			rspCharset = tmpCharset != null ? tmpCharset[1] : null;
+
+			cfhttp.set(ERROR, Boolean.FALSE); // default
 			cfhttp.set(RESPONSEHEADER, responseHeader);
 			cfhttp.set(KeyConstants._cookies, cookies);
-			responseHeader.set(STATUS_CODE, new Double(statCode = rsp.getStatusCode()));
+			responseHeader.set(STATUS_CODE, Double.valueOf(statCode = rsp.getStatusCode()));
 			responseHeader.set(EXPLANATION, (rsp.getStatusText()));
 			if (setCookie.size() > 0) responseHeader.set(SET_COOKIE, setCookie);
 
@@ -1200,37 +1210,44 @@ public final class Http extends BodyTagImpl {
 			if (mimetype == null || mimetype == NO_MIMETYPE) {
 
 			}
-			boolean isText = mimetype != null && mimetype != NO_MIMETYPE && HTTPUtil.isTextMimeType(mimetype);
 
-			// we still don't know the mime type
-			byte[] barr = null;
-			if (!isText && safeToMemory) {
-				barr = contentAsBinary(rsp, contentEncoding);
-				String mt = IOUtil.getMimeType(barr, null);
-				if (mt != null) {
-					isText = HTTPUtil.isTextMimeType(mt);
-					mimetype = mt;
-				}
-
+			Boolean _isText = null;
+			if (mimetype != null && mimetype != NO_MIMETYPE) {
+				_isText = HTTPUtil.isTextMimeType(mimetype);
 			}
 
 			// is multipart
 			boolean isMultipart = MultiPartResponseUtils.isMultipart(mimetype);
 
-			if (safeToMemory) cfhttp.set(KeyConstants._text, Caster.toBoolean(isText));
+			// we still don't know the mime type
+			byte[] barr = null;
+			if (Boolean.TRUE != _isText && safeToMemory && !isMultipart) {
+				barr = contentAsBinary(rsp, contentEncoding);
+				if (_isText == null) {
+					String mt = IOUtil.getMimeType(barr, null);
+					if (mt != null) {
+						_isText = HTTPUtil.isTextMimeType(mt);
+						mimetype = mt;
+					}
+				}
+			}
+
+			if (safeToMemory && _isText != null) cfhttp.set(KeyConstants._text, _isText);
 
 			// mimetype charset
 			// boolean responseProvideCharset=false;
 			if (!StringUtil.isEmpty(mimetype, true)) {
-				if (isText) {
+				if (Boolean.TRUE == _isText) {
 					String[] types = HTTPUtil.splitMimeTypeAndCharset(mimetype, null);
 					if (types[0] != null) cfhttp.set(KeyConstants._mimetype, types[0]);
-					if (types[1] != null) cfhttp.set(CHARSET, types[1]);
-
+					if (types[1] != null) rspCharset = types[1]; // only text types have charset
 				}
 				else cfhttp.set(KeyConstants._mimetype, mimetype);
 			}
 			else cfhttp.set(KeyConstants._mimetype, NO_MIMETYPE);
+
+			// charset
+			cfhttp.set(CHARSET, rspCharset != null ? rspCharset : "");
 
 			// File
 			Resource file = null;
@@ -1254,7 +1271,9 @@ public final class Http extends BodyTagImpl {
 
 			// filecontent
 
-			if (isText && getAsBinary != GET_AS_BINARY_YES && safeToMemory) {
+			if (Boolean.TRUE == _isText && getAsBinary != GET_AS_BINARY_YES && safeToMemory) {
+				String tmp = rsp.getCharset();
+				Charset responseCharset = StringUtil.isEmpty(tmp, true) ? null : CharsetUtil.toCharset(tmp);
 				// store to memory
 				String str;
 				if (barr == null) str = contentAsString(rsp, responseCharset, contentEncoding, e);
@@ -1307,6 +1326,7 @@ public final class Http extends BodyTagImpl {
 				if (throwonerror) {
 					throw new HTTPException(msg, null, rsp.getStatusCode(), rsp.getStatusText(), rsp.getURL());
 				}
+				cfhttp.setEL(ERROR, Boolean.TRUE);
 			}
 
 			// TODO: check if we can use statCode instead of rsp.getStatusCode() everywhere and cleanup the code
@@ -1314,6 +1334,8 @@ public final class Http extends BodyTagImpl {
 				// add to cache
 				cacheHandler.set(pageContext, cacheId, cachedWithin, new HTTPCacheItem(cfhttp, url, System.nanoTime() - start));
 			}
+
+			logHttpRequest(pageContext, cfhttp, url, req.getMethod(), System.nanoTime() - start, false);
 		}
 		finally {
 			if (client != null) client.close();
@@ -1410,13 +1432,7 @@ public final class Http extends BodyTagImpl {
 			throw Caster.toPageException(ioe);
 		}
 		finally {
-			try {
-				IOUtil.close(is);
-			}
-			catch (IOException ioe) {
-				throw Caster.toPageException(ioe);
-
-			}
+			IOUtil.closeEL(is);
 		}
 
 		if (str == null) str = "";
@@ -1425,44 +1441,6 @@ public final class Http extends BodyTagImpl {
 			str = new URLResolver().transform(str, e.response.getTargetURL(), false);
 		}
 		return str;
-	}
-
-	private void ssl(HttpClientBuilder builder) throws PageException {
-		final SSLConnectionSocketFactory sslsf;
-		try {
-			// SSLContext sslcontext = SSLContexts.createSystemDefault();
-			SSLContext sslcontext = SSLContext.getInstance("TLS");
-			if (!StringUtil.isEmpty(this.clientCert)) {
-				if (this.clientCertPassword == null) this.clientCertPassword = "";
-				File ksFile = new File(this.clientCert);
-				KeyStore clientStore = KeyStore.getInstance("PKCS12");
-				clientStore.load(new FileInputStream(ksFile), this.clientCertPassword.toCharArray());
-
-				KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-				kmf.init(clientStore, this.clientCertPassword.toCharArray());
-
-				sslcontext.init(kmf.getKeyManagers(), null, new java.security.SecureRandom());
-				sslsf = new SSLConnectionSocketFactoryImpl(sslcontext, new DefaultHostnameVerifierImpl());
-			}
-			else {
-				sslcontext.init(null, null, new java.security.SecureRandom());
-				if (defaultSSLConnectionSocketFactoryImpl == null)
-					defaultSSLConnectionSocketFactoryImpl = new SSLConnectionSocketFactoryImpl(sslcontext, new DefaultHostnameVerifierImpl());
-				sslsf = defaultSSLConnectionSocketFactoryImpl;
-			}
-
-			builder.setSSLSocketFactory(sslsf);
-			Registry<ConnectionSocketFactory> reg = RegistryBuilder.<ConnectionSocketFactory>create().register("http", PlainConnectionSocketFactory.getSocketFactory())
-					.register("https", sslsf).build();
-			PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager(new DefaultHttpClientConnectionOperatorImpl(reg), null, -1, TimeUnit.MILLISECONDS); // TODO
-			// review
-			// -1
-			// setting
-			builder.setConnectionManager(cm);
-		}
-		catch (Exception e) {
-			throw Caster.toPageException(e);
-		}
 	}
 
 	private TimeSpan checkRemainingTimeout() throws RequestTimeoutException {
@@ -1478,7 +1456,28 @@ public final class Http extends BodyTagImpl {
 				proxypassword, useragent);
 	}
 
-	private void parseCookie(Query cookies, String raw) {
+	public static void parseCookie(Struct cookies, String raw, String charset) {
+		String[] arr = ListUtil.trimItems(ListUtil.trim(ListUtil.listToStringArray(raw, ';')));
+		if (arr.length == 0) return;
+		String item;
+
+		int index;
+		String n, v;
+		// name/value
+		if (arr.length > 0) {
+			item = arr[0];
+			index = item.indexOf('=');
+			if (index == -1) {
+				cookies.setEL(dec(item, charset), "");
+			}
+			else { // name and value
+				cookies.setEL(dec(item.substring(0, index), charset), dec(item.substring(index + 1), charset));
+			}
+
+		}
+	}
+
+	public static void parseCookie(Query cookies, String raw, String charset) {
 		String[] arr = ListUtil.trimItems(ListUtil.trim(ListUtil.listToStringArray(raw, ';')));
 		if (arr.length == 0) return;
 		int row = cookies.addRow();
@@ -1490,10 +1489,10 @@ public final class Http extends BodyTagImpl {
 			item = arr[0];
 			index = item.indexOf('=');
 			if (index == -1) // only name
-				cookies.setAtEL(KeyConstants._name, row, dec(item));
+				cookies.setAtEL(KeyConstants._name, row, dec(item, charset));
 			else { // name and value
-				cookies.setAtEL(KeyConstants._name, row, dec(item.substring(0, index)));
-				cookies.setAtEL(KeyConstants._value, row, dec(item.substring(index + 1)));
+				cookies.setAtEL(KeyConstants._name, row, dec(item.substring(0, index), charset));
+				cookies.setAtEL(KeyConstants._value, row, dec(item.substring(index + 1), charset));
 			}
 
 		}
@@ -1504,10 +1503,10 @@ public final class Http extends BodyTagImpl {
 			item = arr[i];
 			index = item.indexOf('=');
 			if (index == -1) // only name
-				cookies.setAtEL(dec(item), row, Boolean.TRUE);
+				cookies.setAtEL(dec(item, charset), row, Boolean.TRUE);
 			else { // name and value
-				n = dec(item.substring(0, index));
-				v = dec(item.substring(index + 1));
+				n = dec(item.substring(0, index), charset);
+				v = dec(item.substring(index + 1), charset);
 				if (n.equalsIgnoreCase("expires")) {
 					DateTime d = Caster.toDate(v, false, null, null);
 
@@ -1518,11 +1517,14 @@ public final class Http extends BodyTagImpl {
 				}
 				cookies.setAtEL(n, row, v);
 			}
-
 		}
 	}
 
 	public String dec(String str) {
+		return dec(str, charset);
+	}
+
+	public static String dec(String str, String charset) {
 		return ReqRspUtil.decode(str, charset, false);
 	}
 
@@ -1543,7 +1545,7 @@ public final class Http extends BodyTagImpl {
 			he.setStackTrace(traces);
 			return he;
 		}
-		PageException pe = Caster.toPageException(t);
+		PageException pe = Caster.toPageException(new Exception(t));
 		if (pe instanceof NativeException) {
 			((NativeException) pe).setAdditional(KeyConstants._url, url);
 		}
@@ -1558,9 +1560,10 @@ public final class Http extends BodyTagImpl {
 		cfhttp.setEL(KeyConstants._mimetype, "Unable to determine MIME type of file.");
 		cfhttp.setEL(RESPONSEHEADER, new StructImpl());
 		cfhttp.setEL(STATUSCODE, "Connection Failure. Status code unavailable.");
-		cfhttp.setEL(STATUS_CODE, new Double(0));
+		cfhttp.setEL(STATUS_CODE, Double.valueOf(0));
 		cfhttp.setEL(STATUS_TEXT, "Connection Failure");
 		cfhttp.setEL(KeyConstants._text, Boolean.TRUE);
+		cfhttp.setEL(ERROR, Boolean.TRUE);
 	}
 
 	private void setRequestTimeout(Struct cfhttp) {
@@ -1571,9 +1574,10 @@ public final class Http extends BodyTagImpl {
 		cfhttp.setEL(KeyConstants._mimetype, "Unable to determine MIME type of file.");
 		cfhttp.setEL(RESPONSEHEADER, new StructImpl());
 		cfhttp.setEL(STATUSCODE, "408 Request Time-out");
-		cfhttp.setEL(STATUS_CODE, new Double(408));
+		cfhttp.setEL(STATUS_CODE, Double.valueOf(408));
 		cfhttp.setEL(STATUS_TEXT, "Request Time-out");
 		cfhttp.setEL(KeyConstants._text, Boolean.TRUE);
+		cfhttp.setEL(ERROR, Boolean.TRUE);
 	}
 
 	private static boolean hasHeaderIgnoreCase(HttpRequestBase req, String name) {
@@ -1613,6 +1617,12 @@ public final class Http extends BodyTagImpl {
 	private static String urlenc(String str, String charset, boolean checkIfNeeded) throws UnsupportedEncodingException {
 		if (checkIfNeeded && !ReqRspUtil.needEncoding(str, false)) return str;
 		return URLEncoder.encode(str, CharsetUtil.toCharset(charset));
+	}
+
+	private static void logHttpRequest(PageContext pc, Struct data, String url, String method, long executionTimeNS, boolean cached) throws PageException {
+		Log log = ThreadLocalPageContext.getLog(pc, "application");
+		if (log != null) log.log(Log.LEVEL_TRACE, "cftrace", "httpRequest [" + method + "] to [" + url + "], returned [" + data.get(STATUSCODE) + "] in "
+				+ (executionTimeNS / 1000000) + "ms, " + (cached ? "(cached response)" : "") + " at " + CallStackGet.call(pc, "text"));
 	}
 
 	@Override
@@ -1685,6 +1695,13 @@ public final class Http extends BodyTagImpl {
 	 */
 	public void setAddtoken(boolean addtoken) {
 		this.addtoken = addtoken;
+	}
+
+	/**
+	 * @param encode encode the URL
+	 */
+	public void setEncode(boolean encode) {
+		this.encode = encode;
 	}
 
 	/**
@@ -1775,7 +1792,7 @@ public final class Http extends BodyTagImpl {
 
 		try {
 			// text
-			if (HTTPUtil.isTextMimeType(contentType)) {
+			if (HTTPUtil.isTextMimeType(contentType) == Boolean.TRUE) {
 				String[] tmp = HTTPUtil.splitMimeTypeAndCharset(contentType, null);
 				Charset cs = Http.getCharset(tmp[1]);
 

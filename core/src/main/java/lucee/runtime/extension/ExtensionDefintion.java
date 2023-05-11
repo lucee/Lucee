@@ -25,7 +25,8 @@ public class ExtensionDefintion {
 	private Config config;
 	private RHExtension rhe;
 
-	public ExtensionDefintion() {}
+	public ExtensionDefintion() {
+	}
 
 	public ExtensionDefintion(String id) {
 		this.id = id;

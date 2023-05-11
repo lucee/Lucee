@@ -205,7 +205,8 @@ public final class Textarea extends Input implements BodyTag {
 	}
 
 	@Override
-	public void doInitBody() throws JspException {}
+	public void doInitBody() throws JspException {
+	}
 
 	@Override
 	public int doAfterBody() throws JspException {

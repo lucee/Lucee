@@ -247,7 +247,8 @@ public final class Table extends BodyTagTryCatchFinallyImpl {
 			pageContext.undefinedScope().removeQuery();
 			if (query != null) query.go(initRow, pageContext.getId());
 		}
-		catch (PageException e) {}
+		catch (PageException e) {
+		}
 	}
 
 	/**

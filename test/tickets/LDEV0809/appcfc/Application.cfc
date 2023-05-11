@@ -27,4 +27,8 @@ component {
 		this.sessioncookie={httponly=false, timeout=createTimeSpan(0, 0, 0, 10), secure=true,domain=".domain.com"};
 		this.authcookie={timeout=createTimeSpan(0, 0, 0, 10)};
 	}
+
+	public function onRequestStart() {
+		setting requesttimeout=10;
+	}
 }

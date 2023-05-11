@@ -28,6 +28,8 @@ import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
+import lucee.runtime.config.ConfigPro;
+import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
@@ -76,6 +78,7 @@ public final class ServerImpl extends ScopeSupport implements Server, SharedScop
 	private static final Key VERSION_NAME_EXPLANATION = KeyImpl.getInstance("versionNameExplanation");
 	private static final Key HOST_NAME = KeyImpl.getInstance("hostname");
 	private static final Key ENVIRONMENT = KeyConstants._environment;
+	private static final Key ADMIN_MODE = KeyImpl.getInstance("singleContext");
 
 	private static String jep;
 
@@ -140,7 +143,7 @@ public final class ServerImpl extends ScopeSupport implements Server, SharedScop
 		os.setEL(ARCH, System.getProperty("os.arch"));
 		os.setEL(MAC_ADDRESS, SystemUtil.getMacAddressAsWrap());
 		int arch = SystemUtil.getOSArch();
-		if (arch != SystemUtil.ARCH_UNKNOW) os.setEL(ARCH_MODEL, new Double(arch));
+		if (arch != SystemUtil.ARCH_UNKNOW) os.setEL(ARCH_MODEL, Double.valueOf(arch));
 		os.setEL(KeyConstants._version, System.getProperty("os.version"));
 		os.setEL(ADDITIONAL_INFORMATION, "");
 		os.setEL(BUILD_NUMBER, "");
@@ -159,6 +162,9 @@ public final class ServerImpl extends ScopeSupport implements Server, SharedScop
 		lucee.setEL(LOADER_PATH, ClassUtil.getSourcePathForClass("lucee.loader.servlet.CFMLServlet", ""));
 		lucee.setEL(ENVIRONMENT, jsr223 != null && jsr223.booleanValue() ? "jsr223" : "servlet");
 
+		// singleContext admin Mode
+		lucee.setEL(ADMIN_MODE, ConfigWebUtil.toAdminMode(((ConfigPro) pc.getConfig()).getAdminMode(), "single") == "single");
+
 		lucee.setReadOnly(true);
 		super.setEL(KeyConstants._lucee, lucee);
 
@@ -173,11 +179,11 @@ public final class ServerImpl extends ScopeSupport implements Server, SharedScop
 		java.setEL(KeyConstants._version, System.getProperty("java.version"));
 		java.setEL(VENDOR, System.getProperty("java.vendor"));
 		arch = SystemUtil.getJREArch();
-		if (arch != SystemUtil.ARCH_UNKNOW) java.setEL(ARCH_MODEL, new Double(arch));
+		if (arch != SystemUtil.ARCH_UNKNOW) java.setEL(ARCH_MODEL, Double.valueOf(arch));
 		Runtime rt = Runtime.getRuntime();
-		java.setEL(FREE_MEMORY, new Double(rt.freeMemory()));
-		java.setEL(TOTAL_MEMORY, new Double(rt.totalMemory()));
-		java.setEL(MAX_MEMORY, new Double(rt.maxMemory()));
+		java.setEL(FREE_MEMORY, Double.valueOf(rt.freeMemory()));
+		java.setEL(TOTAL_MEMORY, Double.valueOf(rt.totalMemory()));
+		java.setEL(MAX_MEMORY, Double.valueOf(rt.maxMemory()));
 		java.setEL(JAVA_AGENT_SUPPORTED, Boolean.TRUE);
 
 		if (jep == null) {

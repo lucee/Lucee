@@ -95,7 +95,7 @@
 						<cfif hasAccess>
 							<input type="checkbox" class="checkbox" name="componentDeepSearchDesc" value="yes" <cfif component.deepsearch>checked</cfif>>
 						<cfelse>
-							<b>#yesNoFormat(setting.deepsearch)#</b>
+							<b>#yesNoFormat(component.deepsearch)#</b>
 						</cfif>
 						<div class="comment">#stText.Components.componentDeepSearchDesc#</div>
 					</td>
@@ -201,7 +201,7 @@
 						<td colspan="2">
 							<input class="bl button submit" type="submit" name="mainAction" value="#stText.Buttons.Update#">
 							<input type="reset" class="<cfif request.adminType EQ "web">bm<cfelse>br</cfif> button reset" name="cancel" value="#stText.Buttons.cancel#">
-							<cfif request.adminType EQ "web"><input class="br button submit" type="submit" name="mainAction" value="#stText.Buttons.resetServerAdmin#"></cfif>
+							<cfif not request.singleMode && request.adminType EQ "web"><input class="br button submit" type="submit" name="mainAction" value="#stText.Buttons.resetServerAdmin#"></cfif>
 						</td>
 					</tr>
 				</tfoot>

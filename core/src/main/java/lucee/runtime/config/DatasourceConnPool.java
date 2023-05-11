@@ -19,11 +19,6 @@ import lucee.runtime.type.util.KeyConstants;
 
 public class DatasourceConnPool extends GenericObjectPool<DatasourceConnection> {
 
-	/*
-	 * public DatasourceConnPool(DatasourceConnectionFactory factory) { super(factory); this.factory =
-	 * factory; // TODO Auto-generated constructor stub }
-	 */
-
 	public DatasourceConnPool(Config config, DataSource ds, String user, String pass, String logName, GenericObjectPoolConfig<DatasourceConnection> genericObjectPoolConfig) {
 		super(new DatasourceConnectionFactory(config, ds, user, pass, logName), genericObjectPoolConfig);
 		getFactory().setPool(this);
@@ -31,7 +26,6 @@ public class DatasourceConnPool extends GenericObjectPool<DatasourceConnection> 
 
 	@Override
 	public DatasourceConnection borrowObject() throws PageException {
-		// TODO is there a better way to do this?
 		try {
 			return super.borrowObject();
 		}
@@ -108,8 +102,8 @@ public class DatasourceConnPool extends GenericObjectPool<DatasourceConnection> 
 			String evictionPolicyClassName) {
 		GenericObjectPoolConfig<DatasourceConnection> config = new GenericObjectPoolConfig<DatasourceConnection>();
 
-		config.setBlockWhenExhausted(blockWhenExhausted != null ? blockWhenExhausted.booleanValue() : false); // TODO make it config
-		config.setFairness(fairness != null ? fairness.booleanValue() : true); // TODO make configurable
+		config.setBlockWhenExhausted(blockWhenExhausted != null ? blockWhenExhausted.booleanValue() : GenericObjectPoolConfig.DEFAULT_BLOCK_WHEN_EXHAUSTED);
+		config.setFairness(fairness != null ? fairness.booleanValue() : GenericObjectPoolConfig.DEFAULT_FAIRNESS);
 		config.setLifo(lifo != null ? lifo.booleanValue() : BaseObjectPoolConfig.DEFAULT_LIFO);
 		config.setMinIdle(minIdle > 0 ? minIdle : GenericObjectPoolConfig.DEFAULT_MIN_IDLE);
 		config.setMaxIdle(maxIdle > 0 ? maxIdle : GenericObjectPoolConfig.DEFAULT_MAX_IDLE);

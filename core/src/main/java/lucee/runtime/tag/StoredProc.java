@@ -63,6 +63,7 @@ import lucee.runtime.db.ProcMetaCollection;
 import lucee.runtime.db.SQLCaster;
 import lucee.runtime.db.SQLImpl;
 import lucee.runtime.db.SQLItemImpl;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.DatabaseException;
 import lucee.runtime.exp.PageException;
@@ -606,7 +607,7 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 
 			if (useCache) {
 
-				cacheId = CacheHandlerCollectionImpl.createId(_sql, dsn, username, password, Query.RETURN_TYPE_STORED_PROC);
+				cacheId = CacheHandlerCollectionImpl.createId(_sql, dsn, username, password, Query.RETURN_TYPE_STORED_PROC, 0);
 				cacheHandler = pageContext.getConfig().getCacheHandlerCollection(Config.CACHE_TYPE_QUERY, null).getInstanceMatchingObject(cachedWithin, null);
 
 				if (cacheHandler instanceof CacheHandlerPro) {
@@ -728,7 +729,8 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 				try {
 					callStat.close();
 				}
-				catch (SQLException e) {}
+				catch (SQLException e) {
+				}
 			}
 			manager.releaseConnection(pageContext, dc);
 		}
@@ -783,7 +785,7 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 	}
 
 	private Log getLog() {
-		return pageContext.getConfig().getLog("datasource");
+		return ThreadLocalPageContext.getLog(pageContext, "datasource");
 	}
 
 	private String getParamTypesPassed() {

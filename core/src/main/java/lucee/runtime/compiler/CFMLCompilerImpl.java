@@ -138,7 +138,7 @@ public final class CFMLCompilerImpl implements CFMLCompiler {
 
 			// store
 			if (classRootDir != null) {
-				Resource classFile = classRootDir.getRealResource(page.getClassName() + ".class");
+				final Resource classFile = classRootDir.getRealResource(page.getClassName() + ".class");
 				Resource classFileDirectory = classFile.getParentResource();
 				if (!classFileDirectory.exists()) classFileDirectory.mkdirs();
 				else if (classFile.exists() && !SystemUtil.isWindows()) {

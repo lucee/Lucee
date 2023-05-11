@@ -68,6 +68,7 @@ public final class AutoCloseOutputStream extends OutputStream {
 		try {
 			os.close();
 		}
-		catch (Exception e) {}
+		catch (Exception e) {
+		}
 	}
 }

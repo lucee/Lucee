@@ -19,6 +19,11 @@
 
 	this.dataSource = datasource;
 
+	
+	public function onRequestStart() {
+		setting requesttimeout=10;
+	}
+
 	function onApplicationStart(){
 		query{
 			echo("IF EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'users') BEGIN DROP TABLE users END");

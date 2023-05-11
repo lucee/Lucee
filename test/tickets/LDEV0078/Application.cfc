@@ -1,9 +1,9 @@
 component {
 
 	this.name	=	Hash( GetCurrentTemplatePath() );
-	this.sessionManagement 	= false;
-	mySQL=getCredentials();
-	this.datasource = mySql;	
+	this.sessionManagement 	= false;	
+
+	this.datasource =server.getDatasource("mysql");
 
 	// ORM settings
 	this.ormEnabled = true;
@@ -13,8 +13,9 @@ component {
 		flushAtRequestEnd = false
 	};
 
-	function onRequestStart(){
-		setting showdebugOutput=false;
+	
+	public function onRequestStart() {
+		setting requesttimeout=10 showdebugOutput=false;
 		// init the table used
 		query {
 	        echo("SET FOREIGN_KEY_CHECKS=0");
@@ -33,9 +34,4 @@ component {
 	        echo("INSERT INTO `test` VALUES ('1', null);");
 		}
 	}
-
-	private struct function getCredentials() {
-		return server.getDatasource("mysql");
-	}
-
 }

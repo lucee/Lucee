@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase"{
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="cache,ehCache" {
 	function beforeAll(){
 		createEHCache('defaultCache');
 		createEHCache('testEHcache');

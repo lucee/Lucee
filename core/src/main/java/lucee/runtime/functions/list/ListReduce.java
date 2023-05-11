@@ -52,7 +52,7 @@ public final class ListReduce extends BIF {
 			throws PageException {
 		StringListData data = new StringListData(list, delimiter, includeEmptyFields, multiCharacterDelimiter);
 
-		return Reduce._call(pc, data, udf, initValue, ClosureFunc.TYPE_UNDEFINED);
+		return Reduce.call(pc, data, udf, initValue, ClosureFunc.TYPE_UNDEFINED);
 	}
 
 	@Override

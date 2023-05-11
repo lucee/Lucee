@@ -51,7 +51,8 @@ public abstract class AbstractCollection<E> implements Collection<E> {
 	/**
 	 * Sole constructor. (For invocation by subclass constructors, typically implicit.)
 	 */
-	protected AbstractCollection() {}
+	protected AbstractCollection() {
+	}
 
 	// Query Operations
 

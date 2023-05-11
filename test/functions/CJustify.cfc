@@ -1,17 +1,25 @@
-component extends="org.lucee.cfml.test.LuceeTestCase"{
-	function run( testResults , testBox ) {
-		describe( title="Test suite for Cjustify()", body=function() {
-			it(title="checking Cjustify() function", body = function( currentSpec ) {
-				assertEquals("abc","#Cjustify("abc",1)#");
-				assertEquals("abc ","#Cjustify("abc",4)#");
-				assertEquals(" abc ","#Cjustify("abc",5)#");
-				assertEquals(" abc  ","#Cjustify("abc",6)#");
-				try {
-					assertEquals("abc","#Cjustify("abc",0)#");
-					fail("must throw:Cjustify('abc',0)");
-				} catch(any e){}
-					
-			});
-		});
+component extends="org.lucee.cfml.test.LuceeTestCase" {
+
+	public void function testCJustify(){
+
+		expect ( CJustify( "abc", 1 ) ).toBe( "abc" );
+		expect ( "abc".cJustify( 1 ) ).toBe( "abc" );
+
+		expect ( "abc".cJustify( 10 ) ).toBe( "   abc    " );
+		expect ( CJustify( "abc", 10 ) ).toBe( "   abc    " );
+
+		expect ( CJustify( "abc", 4 ) ).toBe( "abc " );
+		expect ( "abc".cJustify( 4 ) ).toBe( "abc " );
+
+		expect ( CJustify( "abc", 5 ) ).toBe( " abc " );
+		expect ( "abc".cJustify( 5 ) ).toBe( " abc " );
+
+		expect ( CJustify( "abc", 6 ) ).toBe( " abc  " );
+		expect ( "abc".cJustify( 6 ) ).toBe( " abc  " );
+
+		expect( function(){
+			Cjustify( "abc" , 0 );
+		}).toThrow();
 	}
+
 }

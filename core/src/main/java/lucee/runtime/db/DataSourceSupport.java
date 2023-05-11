@@ -71,6 +71,7 @@ public abstract class DataSourceSupport implements DataSourcePro, Cloneable, Ser
 	private final int minIdle;
 	private final int maxIdle;
 	private final int maxTotal;
+	private Boolean mssql;
 
 	public DataSourceSupport(Config config, String name, ClassDefinition cd, String username, String password, TagListener listener, boolean blob, boolean clob,
 			int connectionLimit, int idleTimeout, int liveTimeout, int minIdle, int maxIdle, int maxTotal, long metaCacheTimeout, TimeZone timezone, int allow, boolean storage,
@@ -335,9 +336,19 @@ public abstract class DataSourceSupport implements DataSourcePro, Cloneable, Ser
 	}
 
 	@Override
+	public final Boolean isMSSQL() {
+		return mssql;
+	}
+
+	@Override
+	public final void setMSSQL(boolean isMSSQL) {
+		mssql = isMSSQL ? Boolean.TRUE : Boolean.FALSE;
+	}
+
+	@Override
 	public Log getLog() {
 		// can be null if deserialized
-		if (log == null) log = ThreadLocalPageContext.getConfig().getLog("application");
+		if (log == null) log = ThreadLocalPageContext.getLog("application");
 		return log;
 	}
 

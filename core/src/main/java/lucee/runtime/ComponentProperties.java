@@ -44,9 +44,13 @@ public class ComponentProperties implements Serializable {
 	final boolean persistent;
 	final boolean accessors;
 	final int modifier;
+	final String subName;
+	final String name;
+	public boolean inline;
 
-	public ComponentProperties(String dspName, String extend, String implement, String hint, Boolean output, String callPath, boolean realPath, boolean _synchronized,
-			Class javaAccessClass, boolean persistent, boolean accessors, int modifier, Struct meta) {
+	public ComponentProperties(String name, String dspName, String extend, String implement, String hint, Boolean output, String callPath, boolean realPath, String subName,
+			boolean _synchronized, Class javaAccessClass, boolean persistent, boolean accessors, int modifier, Struct meta) {
+		this.name = name;
 		this.dspName = dspName;
 		this.extend = extend;
 		this.implement = implement;
@@ -54,6 +58,7 @@ public class ComponentProperties implements Serializable {
 		this.output = output;
 		this.callPath = callPath;
 		this.realPath = realPath;
+		this.subName = subName;
 		this._synchronized = _synchronized;
 		this.javaAccessClass = javaAccessClass;
 		this.meta = meta;
@@ -63,9 +68,10 @@ public class ComponentProperties implements Serializable {
 	}
 
 	public ComponentProperties duplicate() {
-		ComponentProperties cp = new ComponentProperties(dspName, extend, implement, hint, output, callPath, realPath, _synchronized, javaAccessClass, persistent, accessors,
-				modifier, meta);
+		ComponentProperties cp = new ComponentProperties(name, dspName, extend, implement, hint, output, callPath, realPath, subName, _synchronized, javaAccessClass, persistent,
+				accessors, modifier, meta);
 		cp.properties = properties;
+		cp.inline = inline;
 		return cp;
 	}
 
