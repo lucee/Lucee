@@ -6,17 +6,17 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				setVariable(name = "inputString", value = "I love lucee");
 				expect(inputString).toBe("I love lucee");
 
-				setVariable("session.test", "Save tree");
-				expect(session.test).toBe("Save tree");
+				setVariable("session.testVariable", "Save tree");
+				expect(session.testVariable).toBe("Save tree");
 
-				setVariable("cookie.test", "Save tree");
-				expect(cookie.test).toBe("Save tree");
+				setVariable("cookie.testVariable", "Save tree");
+				expect(cookie.testVariable).toBe("Save tree");
 
-				setVariable("form.test", "Save tree");
-				expect(form.test).toBe("Save tree");
+				setVariable("form.testVariable", "Save tree");
+				expect(form.testVariable).toBe("Save tree");
 
-				setVariable("url.test", "Save tree");
-				expect(url.test).toBe("Save tree");
+				setVariable("url.testVariable", "Save tree");
+				expect(url.testVariable).toBe("Save tree");
 			});
 		});
 	}
