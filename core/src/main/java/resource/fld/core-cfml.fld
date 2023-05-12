@@ -456,7 +456,7 @@ The following masks can be used to format the full date and time and may not be 
 - long: medium followed by three-letter time zone; i.e. "mmmm d, yyyy h:nn:ss tt zzz"
 - full: equivalent to "dddd, mmmm d, yyyy h:nn:ss tt zz"
 - ISO8601/ISO: equivalent to "yyyy-mm-dd'T'HH:nn:ssXXX"
-- ISOMillis/ISOMs/javascirpt: Javascript style ISO date, equivalent to "yyyy-mm-dd'T'HH:nn:ss.SSSXXX" 
+- ISOMillis/ISOMs/javascript: Javascript style ISO date, equivalent to "yyyy-mm-dd'T'HH:nn:ss.SSSXXX" 
 - epoch: Total seconds of a given date (Example:1567517664)
 - epochms: Total millseconds of a given date (Example:1567517664000)
 </description>
@@ -1760,7 +1760,7 @@ The following masks can be used to format the full date and time and may not be 
 - long: medium followed by three-letter time zone; i.e. "mmmm d, yyyy h:mm:ss tt zzz"
 - full: equivalent to "dddd, mmmm d, yyyy h:mm:ss tt zz"
 - ISO8601: equivalent to "yyyy-mm-dd'T'HH:nn:ss'Z'Z"
-- ISOMillis/ISOMs/javascirpt: Javascript style ISO date, equivalent to "yyyy-mm-dd'T'HH:nn:ss.SSS'Z'Z" 
+- ISOMillis/ISOMs/javascript: Javascript style ISO date, equivalent to "yyyy-mm-dd'T'HH:nn:ss.SSS'Z'Z" 
 </description>
     	</argument>
     	
@@ -2697,7 +2697,7 @@ The following masks can be used to format the full date and time and may not be 
 - long: medium followed by three-letter time zone; i.e. "mmmm d, yyyy h:nn:ss tt zzz"
 - full: equivalent to "dddd, mmmm d, yyyy h:nn:ss tt zz"
 - ISO8601/ISO: equivalent to "yyyy-mm-dd'T'HH:nn:ssXXX"
-- ISOMillis/ISOMs/javascirpt: Javascript style ISO date, equivalent to "yyyy-mm-dd'T'HH:nn:ss.SSSXXX" 
+- ISOMillis/ISOMs/javascript: Javascript style ISO date, equivalent to "yyyy-mm-dd'T'HH:nn:ss.SSSXXX" 
 - epoch: Total seconds of a given date (Example:1567517664)
 - epochms: Total millseconds of a given date (Example:1567517664000)
 </description>
