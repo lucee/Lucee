@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" skip="true" {
+component extends="org.lucee.cfml.test.LuceeTestCase" {
 	public function run( testResults, textbox ) {
 		describe(title="Testcase for LDEV-4475", body=function() {
 			it(title="checking left()", body=function( currentSpec ) {
