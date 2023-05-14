@@ -23,9 +23,12 @@ import com.github.f4b6a3.ulid.UlidCreator;
 
 import lucee.runtime.PageContext;
 import lucee.runtime.ext.function.Function;
+import lucee.runtime.exp.PageException;
+import lucee.runtime.exp.FunctionException;
+import lucee.runtime.op.Caster;
 
 /**
- * Implements the CFML Function createuuid
+ * Implements the CFML Function createulid
  */
 public final class CreateULID implements Function {
 
@@ -33,14 +36,24 @@ public final class CreateULID implements Function {
 	 * method to invoke the function
 	 * 
 	 * @param pc
-	 * @return UUID String
+	 * @return ULID String
 	 */
-	public static String call(PageContext pc) {
-		return invoke();
+	public static String call(PageContext pc) throws PageException {
+		return invoke(pc, null, -1, null);
 	}
 
-	public static String invoke() {
-		String uuid = UlidCreator.getUlid().toString();
-		return new StringBuilder(uuid.substring(0, 23)).append(uuid.substring(24)).toString();
+	public static String call(PageContext pc, String type) throws PageException {
+		return invoke(pc, type, -1, null);
+	}
+
+	public static String call(PageContext pc, String type, double input1, String input2) throws PageException {
+		return invoke(pc, type, input1, input2);
+	}
+
+	public static String invoke(PageContext pc, String type, double input1, String input2) throws PageException{
+		if (type == null) return UlidCreator.getUlid().toString();
+		else if ("monotonic".equalsIgnoreCase(type)) return UlidCreator.getMonotonicUlid().toString();
+		else if ("hash".equalsIgnoreCase(type)) return UlidCreator.getHashUlid( Caster.toLong(input1), input2 ).toString();
+		else throw new FunctionException(pc, "CreateULID", 1, "type", "Type [" + type + "] is not supported.");
 	}
 }
