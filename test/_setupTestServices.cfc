@@ -361,12 +361,28 @@ component {
 						DirectoryCreate( tempDb );
 					arguments.dbFile = tempDb;
 				}
-				if ( Len( arguments.dbFile ) ){
+				if ( len( arguments.dbFile ) ){
 					return {
 						class: 'org.h2.Driver'
 						, bundleName: 'org.lucee.h2'
 						, bundleVersion: server.getDefaultBundleVersion('org.lucee.h2', '2.1.214.0001L')
 						, connectionString: 'jdbc:h2:#arguments.dbFile#/datasource/db;MODE=MySQL'
+					};
+				}
+				break;
+			case "hsqldb":
+				if ( arguments.verify ){
+					tempDb = "#getTempDirectory()#/hsqldb-#createUUID()#";
+					if (! DirectoryExists( tempDb ) )
+						DirectoryCreate( tempDb );
+					arguments.dbFile = tempDb;
+				}
+				if ( len( arguments.dbFile ) ){
+					return {
+						class: 'org.hsqldb.jdbcDriver'
+						, bundleName: 'org.hsqldb.hsqldb'
+						, bundleVersion: server.getDefaultBundleVersion( 'org.hsqldb.hsqldb', '2.7.0' )
+						, connectionString: 'jdbc:hsqldb:#arguments.dbFile#/datasource/db;MODE=MySQL'
 					};
 				}
 				break;
