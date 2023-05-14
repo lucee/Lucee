@@ -69,7 +69,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 			});
 			*/
 			// LDEV-4410 don't auto cast numerics to null
-			it(title = "Checking query param with datatype cf_sql_integer, null=false & value is null (datasource query)", body = function( currentSpec ) {
+			it(title = "Checking query param with datatype cf_sql_integer, null=false & value is null (datasource query)", skip=notHasMssql(), body = function( currentSpec ) {
 				expect( function(){
 					var	p = [id= { cfsqltype='cf_sql_integer', value='', null='false' } ];
 					cfquery( name="local.qTest" params=p ) {
@@ -87,7 +87,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				}).notToThrow();
 			});
 
-			it(title = "Checking cfqueryparam with datatype cf_sql_integer, null=false & value is null (datasource query)", body = function( currentSpec ) {
+			it(title = "Checking cfqueryparam with datatype cf_sql_integer, null=false & value is null (datasource query)", skip=notHasMssql(), body = function( currentSpec ) {
 				expect(function(){
 				```
 					<cfquery name="local.qTest">
@@ -97,7 +97,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				}).toThrow();
 			});
 
-			it(title = "Checking cfqueryparam with datatype cf_sql_varchar, null=false & value is null (datasource query)", body = function( currentSpec ) {
+			it(title = "Checking cfqueryparam with datatype cf_sql_varchar, null=false & value is null (datasource query)", skip=notHasMssql(), body = function( currentSpec ) {
 				expect(function(){
 					```
 					<cfquery name="local.qTest">
