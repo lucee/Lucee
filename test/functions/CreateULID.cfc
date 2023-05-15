@@ -40,7 +40,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 					}
 				}
 				systemOutput( "" , true );
-				systemOutput( "#variables.rounds# rows with CreateULID() took " & timer, true);
+				systemOutput( "inserting #variables.rounds# rows with CreateULID() took " & numberFormat(timer) & "ms", true);
 			});
 
 			it(title="checking CreateUUID() function perf with #variables.rounds# rows", body = function( currentSpec ) {
@@ -57,7 +57,28 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				}
 
 				systemOutput( "" , true );
-				systemOutput( "#variables.rounds# rows with createUUID() took " & timer, true);
+				systemOutput( "inserting #variables.rounds# rows with CreateUUID() took " & numberFormat(timer) & "ms", true);
+			});
+
+			it(title="checking CreateUUID() function perf with #variables.rounds# rows (pre cooked)", body = function( currentSpec ) {
+
+				var tbl = createTable( "uuid_precooked" );
+				if ( isEmpty( tbl ) ) return;
+				var src = [];
+				loop times=#variables.rounds# {
+					arrayAppend(src, CreateUUID() );
+				}
+
+				timer unit="milli" variable="local.timer" {
+					transaction {
+						loop from=1 to=#variables.rounds# index="local.i" {
+							populateTable( tbl, src[i] );
+						}
+					}
+				}
+
+				systemOutput( "" , true );
+				systemOutput( "inserting #variables.rounds# rows with CreateUUID() (pre cooked) took " & numberFormat(timer) & "ms", true);
 			});
 
 			it(title="checking CreateULID('Monotonic') function perf with #variables.rounds# rows", body = function( currentSpec ) {
@@ -74,7 +95,29 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				}
 
 				systemOutput( "" , true );
-				systemOutput( "#variables.rounds# rows with CreateULID('Monotonic') took " & timer, true);
+				systemOutput( "inserting #variables.rounds# rows with CreateULID('Monotonic') took " & numberFormat(timer) & "ms", true);
+			});
+
+			
+			it(title="checking CreateULID('Monotonic') function perf with #variables.rounds# rows (pre cooked)", body = function( currentSpec ) {
+
+				var tbl = createTable( "Monotonic_precooked" );
+				if ( isEmpty( tbl ) ) return;
+				var src = [];
+				loop times=#variables.rounds# {
+					arrayAppend(src, CreateULID("Monotonic") );
+				}
+
+				timer unit="milli" variable="local.timer" {
+					transaction {
+						loop from=1 to=#variables.rounds# index="local.i" {
+							populateTable( tbl, src[i] );
+						}
+					}
+				}
+
+				systemOutput( "" , true );
+				systemOutput( "inserting #variables.rounds# rows with CreateULID('Monotonic') (pre cooked) took " & numberFormat(timer) & "ms", true);
 			});
 
 		});
@@ -91,6 +134,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 		query datasource=#variables.mysql# {
 			echo("CREATE TABLE #tbl# ( id varchar(36) NOT NULL PRIMARY KEY ) ");
 		}
+		sleep(1000);
 		return tbl;
 	}
 
