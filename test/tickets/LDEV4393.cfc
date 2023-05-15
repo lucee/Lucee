@@ -18,7 +18,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="Directory" {
 				directoryList(variables.dir, true, "name", filter);
 
 				expect(structCount(result)).toBe(3);
-				expect(replaceNoCase(result[1],"\","/","ALL")).toBe("#variables.dir#/testFile.txt");
+				expect(replaceNoCase(result[1],"\","/","ALL")).toBe(replaceNoCase("#variables.dir#/testFile.txt","\","/","ALL"));
 				expect(result[2]).toBe("file");
 				expect(result[3]).toBe("txt");
 			});
