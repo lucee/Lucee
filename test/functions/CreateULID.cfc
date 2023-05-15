@@ -33,14 +33,16 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				var tbl = createTable( "default" );
 				if ( isEmpty( tbl ) ) return;
 				timer unit="milli" variable="local.timer" {
-					transaction {
+					//transaction {
 						loop times=#variables.rounds# {
 							populateTable( tbl, createULID() );
 						}
-					}
+					//}
 				}
 				systemOutput( "" , true );
 				systemOutput( "inserting #variables.rounds# rows with CreateULID() took " & numberFormat(timer) & "ms", true);
+
+				testJoin(tbl);
 			});
 
 			it(title="checking CreateUUID() function perf with #variables.rounds# rows", body = function( currentSpec ) {
@@ -49,15 +51,17 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				if ( isEmpty( tbl ) ) return;
 
 				timer unit="milli" variable="local.timer" {
-					transaction {
+					//transaction {
 						loop times=#variables.rounds# {
 							populateTable( tbl, createUUID() );
 						}
-					}
+					//}
 				}
 
 				systemOutput( "" , true );
 				systemOutput( "inserting #variables.rounds# rows with CreateUUID() took " & numberFormat(timer) & "ms", true);
+
+				testJoin(tbl);
 			});
 
 			it(title="checking CreateUUID() function perf with #variables.rounds# rows (pre cooked)", body = function( currentSpec ) {
@@ -70,11 +74,11 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				}
 
 				timer unit="milli" variable="local.timer" {
-					transaction {
+					//transaction {
 						loop from=1 to=#variables.rounds# index="local.i" {
 							populateTable( tbl, src[i] );
 						}
-					}
+					//}
 				}
 
 				systemOutput( "" , true );
@@ -87,15 +91,17 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				if ( isEmpty( tbl ) ) return;
 
 				timer unit="milli" variable="local.timer" {
-					transaction {
+					//transaction {
 						loop times=#variables.rounds# {
 							populateTable( tbl, CreateULID("Monotonic") );
 						}
-					}
+					//}
 				}
 
 				systemOutput( "" , true );
 				systemOutput( "inserting #variables.rounds# rows with CreateULID('Monotonic') took " & numberFormat(timer) & "ms", true);
+
+				testJoin(tbl);
 			});
 
 			
@@ -109,11 +115,11 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				}
 
 				timer unit="milli" variable="local.timer" {
-					transaction {
+					//transaction {
 						loop from=1 to=#variables.rounds# index="local.i" {
 							populateTable( tbl, src[i] );
 						}
-					}
+					//}
 				}
 
 				systemOutput( "" , true );
@@ -142,5 +148,15 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 		query datasource=#variables.mysql# params={ id: arguments.id, type="varchar" } {
 			echo("INSERT into #arguments.tbl# (id) VALUES (:id) "); 
 		}
+	}
+
+	private function testJoin(tbl){
+		timer unit="milli" variable="local.timer" {
+			query datasource=#variables.mysql# {
+				echo("select t1.id from #tbl# t1, #tbl# t2 where t1.id=t2.id "); 
+			}	
+		}
+
+		systemOutput( "join with #tbl# took " & numberFormat(timer) & "ms", true);
 	}
 }
