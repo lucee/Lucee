@@ -42,7 +42,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				systemOutput( "" , true );
 				systemOutput( "inserting #variables.rounds# rows with CreateULID() took " & numberFormat(timer) & "ms", true);
 
-				testJoin(tbl);
+				var r = testJoin( tbl );
+				expect( r ).toBe( variables.rounds );
 			});
 
 			it(title="checking CreateUUID() function perf with #variables.rounds# rows", body = function( currentSpec ) {
@@ -61,7 +62,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				systemOutput( "" , true );
 				systemOutput( "inserting #variables.rounds# rows with CreateUUID() took " & numberFormat(timer) & "ms", true);
 
-				testJoin(tbl);
+				var r = testJoin( tbl );
+				expect( r ).toBe( variables.rounds );
 			});
 
 			it(title="checking CreateUUID() function perf with #variables.rounds# rows (pre cooked)", body = function( currentSpec ) {
@@ -101,7 +103,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				systemOutput( "" , true );
 				systemOutput( "inserting #variables.rounds# rows with CreateULID('Monotonic') took " & numberFormat(timer) & "ms", true);
 
-				testJoin(tbl);
+				var r = testJoin( tbl );
+				expect( r ).toBe( variables.rounds );
 			});
 
 			
@@ -152,11 +155,12 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 
 	private function testJoin(tbl){
 		timer unit="milli" variable="local.timer" {
-			query datasource=#variables.mysql# {
+			query name="local.q" datasource=#variables.mysql# {
 				echo("select t1.id from #tbl# t1, #tbl# t2 where t1.id=t2.id "); 
 			}	
 		}
 
 		systemOutput( "join with #tbl# took " & numberFormat(timer) & "ms", true);
+		return q.recordcount;
 	}
 }
