@@ -146,7 +146,8 @@ jobs:
         REDIS_PORT: 6379
         REDIS_SERVER: localhost
         S3_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_ID_TEST }}
-        S3_SECRET_KEY: ${{ secrets.S3_SECRET_KEY_TEST }}
+        # s3 tests disabled due to LDEV-4474
+        #S3_SECRET_KEY: ${{ secrets.S3_SECRET_KEY_TEST }}
         # DO_DEPLOY: ${{ github.event_name == 'push' }}
         # for uploading successful builds
         S3_ACCESS_ID_DOWNLOAD: ${{ secrets.S3_ACCESS_ID_DOWNLOAD }}
