@@ -133,13 +133,19 @@
 			$(".coding-tip .copy").on("click", function(evt){
 				var $this = $(this);
 				var textToCopy = $this.parents(".coding-tip").find("code").text();
-				navigator.clipboard.writeText(textToCopy)
-					.then(() => {
-						var origLabel = $this.text();
-						$this.text("copied!");
-						setTimeout(() => { $this.text(origLabel); }, 3000);
-					})
-					.catch((ex) => console.log("error copying to clipboard", ex));
+				var textarea = document.createElement('textarea');
+				
+				textarea.value = textToCopy;
+				document.body.appendChild(textarea);
+				textarea.select();
+
+				if(document.execCommand('copy')) {
+					$this.text("copied!");
+					document.body.removeChild(textarea);
+					setTimeout(() => { $this.text("copy"); }, 3000);
+				} else {
+					console.log("error copying to clipboard")
+				}
 			});
 		});
 	</script>
