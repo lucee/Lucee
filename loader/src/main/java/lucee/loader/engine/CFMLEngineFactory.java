@@ -337,7 +337,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 						copy(is, os);
 					}
 					else {
-						System.err.println("/core/core." + coreExt + " not found");
+						System.err.println("/core/core." + coreExt + " not found at " + TP.class.getProtectionDomain().getCodeSource().getLocation().getPath());
 					}
 				}
 				finally {
