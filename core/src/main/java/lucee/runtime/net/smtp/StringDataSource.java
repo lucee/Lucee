@@ -26,7 +26,7 @@ import java.util.Scanner;
 
 import javax.activation.DataSource;
 
-import org.apache.commons.lang.WordUtils;
+import org.apache.commons.text.WordUtils;
 
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.lang.CharSet;

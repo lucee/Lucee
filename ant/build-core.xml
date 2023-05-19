@@ -372,9 +372,6 @@
     <fail message="Missing data from [Require-Extension] inside ${coreManifest}">
     <condition>
         <or>
-        <!-- Lucene -->
-        <not><isset property="extLucene"/></not>
-        <not><isset property="extLuceneVersion"/></not>
         <!-- Hibernate -->
         <not><isset property="extHibernate"/></not>
         <not><isset property="extHibernateVersion"/></not>
@@ -411,9 +408,6 @@
         <!-- Form -->
         <not><isset property="extForm"/></not>
         <not><isset property="extFormVersion"/></not>
-        <!-- Webservice -->
-        <not><isset property="extAxis"/></not>
-        <not><isset property="extAxisVersion"/></not>
         <!-- Image -->
         <not><isset property="extImage"/></not>
         <not><isset property="extImageVersion"/></not>
@@ -596,7 +590,7 @@
   </target> 
 
 
-  <target name="check" depends="check-mysql,check-mssql,check-postgre,check-jdts,check-chart,check-s3,check-ehcache,check-hibernate,check-lucene,check-pdf,check-admin,check-doc,check-form,check-axis,check-image,check-esapi,check-ajax,check-compress,check-testbox,check-lucee-loader-jar,download-lucee-loader-jar">
+  <target name="check" depends="check-mysql,check-mssql,check-postgre,check-jdts,check-chart,check-s3,check-ehcache,check-hibernate,check-pdf,check-admin,check-doc,check-form,check-image,check-esapi,check-ajax,check-compress,check-testbox,check-lucee-loader-jar,download-lucee-loader-jar">
     
     <mkdir dir="${temp}/loader/extensions/"/>
 
@@ -1130,7 +1124,7 @@
     <echo>add:${goal}/extensions/${ext_hibernate.filename}</echo>
     <echo file="${goal}/extensions/.index" append="true">${ext_hibernate.filename};</echo>
     
-    <!-- add extension Lucene -->
+    <!-- add extension Lucene 
     <loadmf jar="${cache}/${extLucene}-${extLuceneVersion}.lex" prefix="ext_lucene."/>
     <toFileName id="${ext_lucene.id}" name="${ext_lucene.name}" version="${ext_lucene.version}" property="ext_lucene.filename"/>
     <copy 
@@ -1141,7 +1135,7 @@
       tofile="${goal}/extensions/${ext_lucene.filename}"/>
     <echo>add:${goal}/extensions/${ext_lucene.filename}</echo>
     <echo file="${goal}/extensions/.index" append="true">${ext_lucene.filename};</echo>
-    
+    -->
     <!-- add extension PDF -->
     <loadmf jar="${cache}/${extPDF}-${extPDFVersion}.lex" prefix="ext_pdf."/>
     <toFileName id="${ext_pdf.id}" name="${ext_pdf.name}" version="${ext_pdf.version}" property="ext_pdf.filename"/>
@@ -1190,7 +1184,7 @@
     <echo>add:${goal}/extensions/${ext_form.filename}</echo>
     <echo file="${goal}/extensions/.index" append="true">${ext_form.filename};</echo>
     
-    <!-- add extension Webservice -->
+    <!-- add extension Webservice 
     <loadmf jar="${cache}/${extAxis}-${extAxisVersion}.lex" prefix="ext_axis."/>
     <toFileName id="${ext_axis.id}" name="${ext_axis.name}" version="${ext_axis.version}" property="ext_axis.filename"/>
     <copy 
@@ -1201,7 +1195,7 @@
       tofile="${goal}/extensions/${ext_axis.filename}"/>
     <echo>add:${goal}/extensions/${ext_axis.filename}</echo>
     <echo file="${goal}/extensions/.index" append="true">${ext_axis.filename};</echo>
-
+    -->
     <!-- add extension Image -->
     <loadmf jar="${cache}/${extImage}-${extImageVersion}.lex" prefix="ext_image."/>
     <toFileName id="${ext_image.id}" name="${ext_image.name}" version="${ext_image.version}" property="ext_image.filename"/>
