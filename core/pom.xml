@@ -313,18 +313,6 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>ss</groupId>
-      <artifactId>css2</artifactId>
-      <version>0.9.4</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>stax</groupId>
-      <artifactId>api</artifactId>
-      <version>1.0.1.0002L</version>
-      <scope>provided</scope>
-    </dependency>
-	  <dependency>
 		  <groupId>javax.mail</groupId>
 		  <artifactId>activation</artifactId>
 		  <version>1.6.2.0000L</version>
