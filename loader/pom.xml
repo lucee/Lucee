@@ -3,7 +3,7 @@
 
   <groupId>org.lucee</groupId>
   <artifactId>lucee</artifactId>
-  <version>5.4.0.52-SNAPSHOT</version>
+  <version>5.4.0.53-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>Lucee Loader Build</name>
@@ -584,18 +584,6 @@
 	  <groupId>org.slf4j</groupId>
 	  <artifactId>slf4j-nop</artifactId>
     <version>1.7.36</version>
-    <scope>provided</scope>
-  </dependency>
-  <dependency>
-    <groupId>ss</groupId>
-    <artifactId>css2</artifactId>
-    <version>0.9.4</version>
-    <scope>provided</scope>
-  </dependency>
-  <dependency>
-    <groupId>stax</groupId>
-    <artifactId>api</artifactId>
-    <version>1.0.1.0002L</version>
     <scope>provided</scope>
   </dependency>
   <dependency>
