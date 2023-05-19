@@ -57,7 +57,7 @@ a {
 }
 
 tr > th > a {
-    color: #ffffff !important;
+    color: #000000 !important;
 }
 
 .admin-server a {
@@ -231,10 +231,10 @@ body.single #contenttd {
 	padding: 0px 0px 0px 0px;
 	text-align:center;
 	font-size : 8pt;
-	color:#efede5;
+	color:#000000;
 }
 #copyright a {
-	color:#efede5;
+	color:#000000;
 }
 .linkContext a {
 	color:#36c;
