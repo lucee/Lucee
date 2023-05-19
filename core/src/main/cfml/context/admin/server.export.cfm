@@ -197,7 +197,7 @@ component {
 		  host: '#mailservers.hostname#'
 		, port: #mailservers.port#
 		, username: '#replace(mailservers.username,"'","''","all")#'
-		, password: '#mailservers.passwordEncrypted?:''#'
+		, password: <span style="overflow-wrap: break-word;">'#mailservers.passwordEncrypted?:''#'</span>
 		, ssl: #mailservers.ssl?:false#
 		, tls: #mailservers.tls?:false#<cfif 
 		!isNull(mailservers.life)>
