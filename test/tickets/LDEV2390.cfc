@@ -11,7 +11,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase" skip=true {
 					objValidate.foo();
 					objValidate.test();
 				}
-
 				//expect(local.result.filecontent.trim()).toBe("true");
 			});
 		});
