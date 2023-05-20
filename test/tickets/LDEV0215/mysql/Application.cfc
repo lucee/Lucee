@@ -1,5 +1,5 @@
 component {
-	this.name =	"ldev-201-App1";
+	this.name =	"ldev-201-mysql";
 	this.clientManagement = true;
 	this.sessionmanagement = true;
 	this.sessionTimeout = createTimeSpan(0,0,30,0);
@@ -25,8 +25,8 @@ component {
 		query {
 			echo("DROP TABLE IF EXISTS cf_client_data");
 		}
-		session.test = "App1";
-		client.test = "App2";
+		session.test = "ldev-201-mysql";
+		client.test = "ldev-201-mysql";
 	}
 
 	private struct function mySqlCredentials() {

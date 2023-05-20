@@ -130,6 +130,17 @@ public class Ansi92 extends SQLExecutorSupport {
 				throw exp;
 			}
 
+			// database table created, now create index
+			try {
+				sql = new SQLImpl("CREATE INDEX ix_" + tableName + "_expires ON " + tableName + "(expires)");
+				new QueryImpl(pc, dc, sql, -1, -1, null, scopeName + "_storage");
+			}
+			catch (DatabaseException _de) {
+				DatabaseException exp = new DatabaseException("Failed to create expires index on [" + tableName + "]", null, sql, dc);
+				exp.initCause(_de);
+				throw exp;
+			}
+
 			query = new QueryImpl(pc, dc, sqlSelect, -1, -1, null, scopeName + "_storage");
 		}
 

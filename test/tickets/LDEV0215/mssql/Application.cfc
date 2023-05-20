@@ -26,8 +26,8 @@ component {
 		query {
   			echo("IF EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'cf_session_data') BEGIN DROP TABLE cf_session_data END");
 		}
-		session.test = "App2";
-		client.test = "App2";
+		session.test = "ldev-201-mssql";
+		client.test = "ldev-201-mssql";
 	}
 
 }

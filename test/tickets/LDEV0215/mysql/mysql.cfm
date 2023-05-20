@@ -1,15 +1,22 @@
 <!--- mysql --->
-<cfquery name="sessionIndex" >
+<cfquery name="sessionIndex" returntype="array" >
 	SELECT  distinct index_name
 	FROM 	information_schema.statistics
 	WHERE	TABLE_SCHEMA = 'lucee'
 			and table_name='cf_session_data'
+	ORDER BY index_name
 </cfquery>
-<cfquery name="clientIndex" >
+<cfquery name="clientIndex" returntype="array">
 	SELECT  distinct index_name
 	FROM 	information_schema.statistics
 	WHERE	TABLE_SCHEMA = 'lucee'
 			and table_name='cf_client_data'
+	ORDER BY index_name
 </cfquery>
-<cfoutput>#sessionIndex.RECORDCOUNT#,#clientIndex.RECORDCOUNT#</cfoutput>
+<cfscript>
+	echo([
+		session=#sessionIndex#,
+		client= #clientIndex#
+	].toJson());
+</cfscript>
 	

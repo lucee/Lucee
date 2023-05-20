@@ -16,7 +16,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mssql" {
 				result = _InternalRequest(
 					template:"#uri#/mssql/mssql.cfm"
 				);
-				expect(result.fileContent.trim()).toBe("1,1");
+				expect(result.fileContent.trim()).toBe(
+					'{"SESSION":[{"name":"ix_cf_session_data"},{"name":"ix_cf_session_data_expires"}],'
+					& '"CLIENT":[{"name":"ix_cf_client_data"},{"name":"ix_cf_client_data_expires"}]}'
+				);
 			});
 		});
 	}
