@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project default="susi" basedir="${rootDir}" name="luceeCore"
-  xmlns:resolver="antlib:org.apache.maven.resolver.ant"><!-- TODO maybe there is a better way for this -->
+    xmlns:if="ant:if"
+    xmlns:resolver="antlib:org.apache.maven.resolver.ant">
   <description>
     Build Lucee Core
   </description>
@@ -92,6 +93,9 @@
     <property name="testSuiteExtends" value=""/>
     <!-- allow running tests with a different java version (ant needs the exe not java home)  -->    
     <property name="testJavaVersionExec" value=""/>
+    <!-- enable jpda / java debugging when running test cases  -->
+    <property name="testDebugger" value=""/>
+    
     <!-- specify the build file to use  -->
     <property name="LUCEE_BUILD_ENV" value=""/>
     
@@ -572,11 +576,8 @@
       <jvmarg value="-Dlucee.system.out=file:.../out.txt"/>
       <jvmarg value="-Dlucee.system.err=file:.../err.txt"/>
       -->
-      <!--
-      <jvmarg value="-Xdebug"/>
-      <jvmarg value="-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5000"/>
-      -->
-
+      <jvmarg value="-Xdebug" if:true="${testDebugger}"/>
+      <jvmarg value="-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5000" if:true="${testDebugger}"/>
       <!--
         felix.log.level
         lucee.controller.disabled
