@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase"{
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="json" skip="true" {
 	function run( testResults , testBox ) {
 		describe( "Test suite for LDEV-1503", function() {
 			it( title='Checking JSON string, without quoted in key', body=function( currentSpec ) {

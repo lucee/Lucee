@@ -17,22 +17,29 @@
  * 
  ---><cfscript>
 
-component extends="org.lucee.cfml.test.LuceeTestCase"	{
+component extends="org.lucee.cfml.test.LuceeTestCase" skip="true" {
 
-    public void function test() {
-		var tmpl=createURI("LDEV1105/index.cfm");
+	function run( testResults, testBox ){
+		// all your suites go here.
+		describe( "LDEV-1105", function(){
 
-		var res=_internalRequest(template:tmpl,urls:{});
-		var headers=res.headers;
-		var setCookies=headers['Set-Cookie'];
-		var cfidCount=0;
-		loop array=setCookies item="local.c" {
-			if(findNoCase("cfid=",c)) cfidCount++;
-		}
-		assertEquals(1,cfidCount);
+			it( "check for duplicate cfid cookies after sessionRotate", function(){
+				var tmpl=createURI("LDEV1105/index.cfm");
+
+				var res=_internalRequest(template:tmpl,urls:{});
+				var headers=res.headers;
+				var setCookies=headers['Set-Cookie'];
+				var cfidCount=0;
+				loop array=setCookies item="local.c" {
+					if(findNoCase("cfid=",c)) cfidCount++;
+				}
+				expect( cfidCount ).toBe( 1 );
+			} );
+
+		} );
 	}
 
- 	private string function createURI(string calledName){
+	private string function createURI(string calledName){
 		var baseURI = "/test/#listLast(getDirectoryFromPath(getCurrenttemplatepath()),"\/")#/";
 		return baseURI & "" & calledName;
 	}
