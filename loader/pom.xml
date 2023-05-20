@@ -189,6 +189,19 @@
                     </path>
                     <pathconvert property="dependencies" refid="mydeps.maven.project.dependencies" />
 
+                    <path id="nashorn.classpath">
+                      <pathelement path="../ant/lib/nashorn-core-15.4.jar"/>
+                      <pathelement path="../ant/lib/asm-9.5.jar"/>
+                      <pathelement path="../ant/lib/asm-util-9.5.jar"/>
+                      <pathelement path="../ant/lib/asm-commons-9.5.jar"/>
+                      <pathelement path="../ant/lib/asm-tree-9.5.jar"/>
+                    </path>
+                    <pathconvert property="nashorn_classpath_tmp" refid="nashorn.classpath"/>
+                    <!-- java 15 doesn't bundle a javascript engine, nashorn is compiled for java 11, i.e. don't use for jdk 8 -->
+                    <condition property="nashorn_classpath" value="${nashorn_classpath_tmp}" else="">
+                      <javaversion atleast="15"/>
+                    </condition>
+
                     <property name="version" value="${project.version}" />
 
                     <!-- <property name="compile_classpath" refid="maven.compile.classpath" /> -->

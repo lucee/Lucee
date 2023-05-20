@@ -44,7 +44,7 @@
       <tstamp>
         <format property="timestamp" pattern="yyyy-MM-dd HH:mm:ss" />
       </tstamp>
-      <echo leveL="debug" message="---------- ${timestamp} - @{message} ----------" />
+      <echo level="info" message="---------- ${timestamp} - @{message} ----------" />
     </sequential>
   </macrodef>
 
@@ -153,7 +153,7 @@
     </condition>
     </fail>
 
-<echo leveL="debug">                                                              
+<echo level="info">                                                              
            `@@@@                                                               
            @@@@@@                                                              
           ``#@@@@#                                                             
@@ -192,16 +192,16 @@
           In every job that must be done. There is an element of fun!                  
     </echo>
 
-    <echo leveL="debug" message="${version}"/>
+    <echo level="info" message="${version}"/>
     <!-- used for docker build -->
-    <echo leveL="debug" file="${rootDir}/buildVersionNumber.txt" message="${version}" append="false"/>
+    <echo level="info" file="${rootDir}/buildVersionNumber.txt" message="${version}" append="false"/>
     <!-- <echo message="${name}"/>
     <echo message="${name.explanation}"/> -->
-    <echo leveL="debug" message="Root: ${rootDir}"/>
-    <echo leveL="debug" message="Required-Extensions: ${reqExt.labels}"/>
-    <echo leveL="debug" message="Java: ${java.version}" />
-    <echo leveL="debug" message="Java: ${java.home}" />
-    <echo leveL="debug" message="Optional Java Version for tests: ${testJavaVersionExec}" />
+    <echo level="info" message="Root: ${rootDir}"/>
+    <echo level="info" message="Required-Extensions: ${reqExt.labels}"/>
+    <echo level="info" message="Java: ${java.version}" />
+    <echo level="info" message="Java: ${java.home}" />
+    <echo level="info" message="Optional Java Version for tests: ${testJavaVersionExec}" />
 
     <!-- Create the time stamp -->
     <tstamp/>
@@ -378,7 +378,7 @@
       <pathelement path="${dependencies}"/>
     </path>
     <!-- <pathconvert property="classpathProp" refid="classpath"/> -->
-   <echo leveL="debug" message="Using Java version ${ant.java.version}."/>
+   <echo level="info" message="Using Java version ${ant.java.version}."/>
     <!-- compile the core -->
     <javac 
       srcdir="${srcCore}" 
@@ -643,7 +643,7 @@
       <jvmarg value="-Dlucee.web.dir=${temp}/warmup/webroot"/>
       <jvmarg value="-Dlucee.enable.warmup=true"/>
     </java>
-    <echo leveL="debug">${exc4}</echo>
+    <echo level="info">${exc4}</echo>
 </target>
 
 <target name="test_stable_loader">
@@ -805,9 +805,9 @@
   </target>
 
   <target name="setAntEnv" description="set the variable right for ant">
-    <echo leveL="debug">before:${goal}</echo>
+    <echo level="info">before:${goal}</echo>
     <property name="goal" location="${temp}/loader"/>
-    <echo leveL="debug">after:${goal}</echo>  
+    <echo level="info">after:${goal}</echo>  
   </target>
 
   <target name="buildLoaderAnt" depends="__build,setAntEnv,addExtensions,addBundles,addFelix,createCore,createLoader,test_warmup,test_stable_loader" description="generate the loader jar" >

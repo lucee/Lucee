@@ -10,7 +10,6 @@
     </classpath>
   </taskdef>
 
-
   <import file="../ant/build-core.xml"/>
 
   <resolver:remoterepo id="repo" url="https://raw.githubusercontent.com/lucee/mvn/master/releases" 
@@ -32,7 +31,8 @@
   </target>
 
   <resolver:pom file="pom.xml" id="pom"/>
-    <target name="setEnv">
+
+  <target name="setEnv" depends="setupNashorn">
     <path id="compile.classpath"/>
     <resolver:resolve>
       <dependencies>
@@ -50,6 +50,24 @@
 
     <delete dir="${target}"/>
     <mkdir dir="${outputDir}"/>
+  </target>
+
+  <target name="check-java-version">
+    <condition property="java11+">
+      <javaversion atleast="11"/>
+    </condition>
+  </target>
+
+  <!-- java 15 onwards doesn't bundle a javascript engine, nashorn is compiled for java 11, i.e. don't use for jdk 8 -->
+  <target name="setupNashorn" depends="check-java-version" if="java11+">
+    <path id="nashorn.classpath">
+      <pathelement path="../ant/lib/nashorn-core-15.4.jar"/>
+      <pathelement path="../ant/lib/asm-9.5.jar"/>
+      <pathelement path="../ant/lib/asm-util-9.5.jar"/>
+      <pathelement path="../ant/lib/asm-commons-9.5.jar"/>
+      <pathelement path="../ant/lib/asm-tree-9.5.jar"/>
+    </path>
+    <pathconvert property="nashorn_classpath" refid="nashorn.classpath"/>
   </target>
 
  <target name="core" depends="withTestcases,setEnv" description="build Lucee and run testcases">
