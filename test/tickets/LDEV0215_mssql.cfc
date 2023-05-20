@@ -10,7 +10,11 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mssql" {
 			it( title='Checking MsSQL, INDEX for the client/session storage table',skip=isMsSqlNotSupported(),body=function( currentSpec ) {
 				var uri = createURI("LDEV0215");
 				var result = _InternalRequest(
-					template:"#uri#/App2/test.cfm"
+					template:"#uri#/mssql/mssql.cfm"
+				);
+				// do it twice coz client data gets written out after the request
+				result = _InternalRequest(
+					template:"#uri#/mssql/mssql.cfm"
 				);
 				expect(result.fileContent.trim()).toBe("1,1");
 			});
