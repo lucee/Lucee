@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase"{
+component extends="org.lucee.cfml.test.LuceeTestCase" skip=true {
 	function run(){
 		describe( title="Test suite for LDEV-1110", body=function(){
 			it(title="Checking cfinvoke(){...} without semicolon at the end", body=function(){

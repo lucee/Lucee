@@ -1,11 +1,11 @@
-component extends="org.lucee.cfml.test.LuceeTestCase"{
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm" {
 	function beforeAll(){
 		variables.uri = createURI("LDEV1564");
 	}
 
 	function run( testResults , testBox ) {
 		describe( "Test suite for LDEV-1564", function() {
-			it( title='Checking ', body=function( currentSpec ) {
+			it( title='Checking Transaction with ormEnable=true ', skip=notHasMsSQL(), body=function( currentSpec ) {
 				local.result = _InternalRequest(
 					template:"#variables.uri#/test.cfm"
 				);
@@ -13,6 +13,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 			});
 
 		});
+	}
+
+	private function notHasMsSQL(){
+		return isEmpty( server.getDatasource( "mssql" ) );
 	}
 
 	private string function createURI(string calledName){
