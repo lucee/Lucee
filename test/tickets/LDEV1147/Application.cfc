@@ -20,7 +20,7 @@
 			}
 			//  create package body
 			query {
-		        echo("CREATE OR REPLACE package body lucee_bug_test as
+				echo("CREATE OR REPLACE package body lucee_bug_test as
 					PROCEDURE testproc IS
 					BEGIN
 						NULL;
