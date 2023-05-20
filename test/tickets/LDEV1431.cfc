@@ -1,6 +1,6 @@
 component extends="org.lucee.cfml.test.LuceeTestCase" labels="static" {
 	function beforeAll(){
-		variables.path = replace( "#getDirectoryFromPath(getCurrenttemplatepath())#LDEV1431\", "/\", "/", "all" );
+		variables.path = replace( "#getDirectoryFromPath(getCurrentTemplatepath())#LDEV1431\", "/\", "/", "all" );
 	}
 
 	function run( testResults , testBox ) {

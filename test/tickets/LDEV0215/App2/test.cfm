@@ -9,8 +9,4 @@
 		AND is_unique = 1
 </cfquery>
 
-<cfif sessionIndex.RECORDCOUNT GT 0 AND clientIndex.RECORDCOUNT GT 0>
-	True
-<cfelse>
-	False
-</cfif>
+<cfoutput>#sessionIndex.RECORDCOUNT#,#clientIndex.RECORDCOUNT#</cfoutput>
