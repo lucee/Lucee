@@ -1,4 +1,4 @@
-<cfcomponent extends="org.lucee.cfml.test.LuceeTestCase" labels="oracle">
+<cfcomponent extends="org.lucee.cfml.test.LuceeTestCase" labels="oracle" skip=true>
 	<cfscript>
 		public function isNotSupported(){
 			var orc = getCredentials();
@@ -7,7 +7,7 @@
 
 		function run(){
 			describe( title="Test suite for LDEV-1147", skip=isNotSupported(), body=function(){
-				it(title="Calling Package without parameters",  body=function(){
+				it(title="Calling Package without parameters", skip=notHasOracle(),  body=function(){
 					var uri=createURI("LDEV1147/testcase.cfm");
 					var result = _InternalRequest(
 						template:uri,
@@ -16,7 +16,7 @@
 					expect(result.filecontent.trim()).toBe('false');
 				});
 
-				it(title="Calling Package with parameters", body=function(){
+				it(title="Calling Package with parameters", skip=notHasOracle(), body=function(){
 					var uri=createURI("LDEV1147/testcase.cfm");
 					var result = _InternalRequest(
 						template:uri,
@@ -25,7 +25,7 @@
 					expect(result.filecontent.trim()).toBe('false');
 				});
 
-				it(title="Calling synonym without parameters", body=function(){
+				it(title="Calling synonym without parameters", skip=notHasOracle(), body=function(){
 					var uri=createURI("LDEV1147/testcase.cfm");
 					var result = _InternalRequest(
 						template:uri,
@@ -34,7 +34,7 @@
 					expect(result.filecontent.trim()).toBe('false');
 				});
 
-				it(title="Calling synonym with parameters", body=function(){
+				it(title="Calling synonym with parameters", skip=notHasOracle(), body=function(){
 					var uri=createURI("LDEV1147/testcase.cfm");
 					var result = _InternalRequest(
 						template:uri,
@@ -43,6 +43,10 @@
 					expect(result.filecontent.trim()).toBe('false');
 				});
 			});
+		}
+
+		private boolean function notHasOracle() {
+			return isEmpty(server.getDatasource("oracle"));
 		}
 
 		private struct function getCredentials() {

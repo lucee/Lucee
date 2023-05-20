@@ -1,5 +1,5 @@
 component {
-	this.name =	"App2";
+	this.name =	"ldev-201-App2";
 	this.clientManagement = true;
 	this.sessionmanagement = true;
 	this.sessionTimeout = createTimeSpan(0,0,30,0);

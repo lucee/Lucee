@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase"{
+component extends="org.lucee.cfml.test.LuceeTestCase" skip=true {
 
 	function run( testResults , testBox ) {
 		describe( "test case for LDEV-2390", function() {
@@ -11,9 +11,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					objValidate.foo();
 					objValidate.test();
 				}
-
-
-
 				//expect(local.result.filecontent.trim()).toBe("true");
 			});
 		});

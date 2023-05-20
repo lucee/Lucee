@@ -1,7 +1,9 @@
-component extends="org.lucee.cfml.test.LuceeTestCase"{
+component extends="org.lucee.cfml.test.LuceeTestCase" skip="true" {
 	function beforeAll(){
 		variables.uri = createURI("LDEV1518");
 	}
+
+	// rejected, ACF behaves the same, cfhtmlhead etc write outside the current output stream
 
 	function run( testResults , testBox ) {
 		describe( "test case for LDEV-1518", function() {
