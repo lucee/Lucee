@@ -5,14 +5,15 @@
     "version": "0.2.0",
         "configurations": [{
             "type": "java",
-            "name": "Attach Lucee Tomcat port 8000",
+            "name": "Build and attach java debugger on port 5000 for tests",
             "request": "attach",
             "hostName": "localhost",
             "port": "5000",
             "sourcePaths" :[
                 "${workspaceFolder}/core",
                 "${workspaceFolder}/loader",
-            ]
+            ],
+            "preLaunchTask": "buildLucee"
         }
     ]
 }
