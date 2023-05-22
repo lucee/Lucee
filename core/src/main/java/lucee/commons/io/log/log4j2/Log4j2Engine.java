@@ -244,12 +244,11 @@ public class Log4j2Engine extends LogEngine {
 				// includeTimeMillis
 				boolean includeTimeMillis = Caster.toBooleanValue(layoutArgs.get("includeTimeMillis"), true);
 				// stacktraceAsString
-				boolean stacktraceAsString = Caster.toBooleanValue(layoutArgs.get("stacktraceAsString"), true);
+				boolean stacktraceAsString = Caster.toBooleanValue(layoutArgs.get("stacktraceAsString"), false);
 				// locationInfo
-				boolean locationInfo = Caster.toBooleanValue(layoutArgs.get("locationInfo"), true);
+				boolean locationInfo = Caster.toBooleanValue(layoutArgs.get("locationInfo"), false);
 				// properties
 				boolean properties = Caster.toBooleanValue(layoutArgs.get("properties"), true);
-
 				return new JsonLayout(charset, complete, includeStacktrace, includeTimeMillis, stacktraceAsString, locationInfo, properties);
 
 			}

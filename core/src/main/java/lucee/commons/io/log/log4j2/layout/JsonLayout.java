@@ -50,6 +50,7 @@ public class JsonLayout extends AbstractStringLayout { // TODO <Serializable>
 	private boolean stacktraceAsString;
 	private boolean locationInfo;
 	private boolean properties;
+	private boolean doComma = true;
 	private Charset charset;
 	private static final String[] FORMATS = new String[] { "json" };
 
@@ -66,6 +67,13 @@ public class JsonLayout extends AbstractStringLayout { // TODO <Serializable>
 		this.stacktraceAsString = stacktraceAsString;
 		this.locationInfo = locationInfo;
 		this.properties = properties;
+
+	}
+
+	@Override
+	public byte[] getHeader() {
+		doComma = false;
+		return super.getHeader();
 
 	}
 
@@ -232,7 +240,10 @@ public class JsonLayout extends AbstractStringLayout { // TODO <Serializable>
 			try {
 				JSONConverter json = new JSONConverter(true, charset, JSONDateFormat.PATTERN_ISO8601);
 
-				return json.serialize(null, root, -1);
+				String result = json.serialize(null, root, -1, Boolean.TRUE);
+				if (doComma) return "," + result;
+				else doComma = true;
+				return result;
 			}
 			catch (ConverterException e) {
 				throw Caster.toPageException(e);
