@@ -7,6 +7,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="collection" {
 				assertEquals("true", structkeyExists(result[1],"name"));
 				assertEquals("true", structkeyExists(result[1],"age"));
 			});
+			
 			it(title="checking collection.filter() function", body=function( currentSpec ) {
 				var result = people.filter(function(p) { return p.age < 32;})
 				assertEquals("true", structkeyExists(result[1],"name"));

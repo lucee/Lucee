@@ -8,6 +8,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="collection" {
 				}, 0);
 				assertEquals('51', score);
 			});
+			
 			it(title="checking collection.reduce() function", body=function( currentSpec ) {
 				var score = thresholds.reduce(function(a, b) {
 					return a + b^2;
