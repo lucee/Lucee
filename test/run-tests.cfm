@@ -52,18 +52,39 @@ try {
 	if ( len( request.testServices ) )
 		SystemOutput( "Test Services restricted to [#request.testServices#]", true );
 
+	struct function reportMem( string type, struct prev={}, string name="" ) {
+		var qry = getMemoryUsage( type );
+		var report = [];
+		var used = { name: arguments.name };
+		querySort(qry,"type,name");
+		loop query=qry {
+			if (qry.max == -1)
+				var perc = 0;
+			else 
+				var perc = int( ( qry.used / qry.max ) * 100 );
+			//if(qry.max<0 || qry.used<0 || perc<90) 	continue;
+			//if(qry.max<0 || qry.used<0 || perc<90) 	continue;
+			var rpt = replace(ucFirst(qry.type), '_', ' ')
+				& " " & qry.name & ": " & numberFormat(perc) & "%, " & numberFormat( qry.used / 1024 / 1024 ) & " Mb";
+			if ( structKeyExists( arguments.prev, qry.name ) ) {
+				rpt &= ", (+ " & numberFormat( (qry.used - arguments.prev[ qry.name ] ) / 1024 / 1024 ) & " Mb)";
+			}
+			arrayAppend( report, rpt );
+			used[ qry.name ] = qry.used;
+		}
+		return {
+			report: report,
+			usage: used
+		};
+	}
+
+	// report current memory usage
+	_reportMemStat = reportMem( "", {}, "bootup" );
+	//for ( stat in _reportMemStat.report )
+	//	systemOutput( stat, true );
+
 	// you can also provide a json file with your environment variables, i.e. just set LUCEE_BUILD_ENV="c:\work\lucee\loader\env.json"
 	setupTestServices = new test._setupTestServices().setup();
-
-	function mem(type) {
-		var qry = getMemoryUsage(type);
-		loop query=qry {
-			var perc = int(100 / qry.max * qry.used);
-			if(qry.max<0 || qry.used<0 || perc<90)
-				continue;
-			systemOutput(TAB & replace(ucFirst(type), '_', ' ') & " " & qry.name & ": " & perc & "%", true);
-		}
-	}
 
 	// set a password for the admin
 	try {
@@ -229,6 +250,11 @@ try {
 			& (len(mappings.inspect) ? "(#mappings.inspect#)" : ""), true);
 	}
 
+	//systemOutput("-------------- Memory after services configured", true);
+	_reportMemStat2 = reportMem( "", _reportMemStat.usage, "configured" );
+	//for ( stat in _reportMemStat2.report )
+	//	systemOutput( stat, true );
+
 	systemOutput(NL & "-------------- Start Tests -----------", true);
 	silent {
 		testResults = new test._testRunner().runTests();
@@ -259,6 +285,8 @@ try {
 	arrayAppend( results, "Average Test Overhead: (#NumberFormat( ArrayAvg( request.overhead ) )# ms)");
 	arrayAppend( results, "Total Test Overhead: (#NumberFormat( ArraySum( request.overhead ) )# ms)");
 	arrayAppend( results, "");
+	arrayAppend( results, reportMem( "", _reportMemStat.usage ).report, true );
+	arrayAppend( results, "");
 	arrayAppend( results, "=============================================================" & NL);
 	arrayAppend( results, "-> Bundles/Suites/Specs: #result.getTotalBundles()#/#result.getTotalSuites()#/#result.getTotalSpecs()#");
 	arrayAppend( results, "-> Pass:     #result.getTotalPass()#");
@@ -268,8 +296,8 @@ try {
 	arrayAppend( results, "-> JUnitReport: #JUnitReportFile#");
 
 	servicesReport = new test._setupTestServices().reportServiceSkipped();
-	for ( s in servicesReport ){
-		arrayAppend( results, s );
+	for ( service in servicesReport ){
+		arrayAppend( results, service );
 	}
 	arrayAppend( results_md, "" );
 	loop array=results item="summary"{
