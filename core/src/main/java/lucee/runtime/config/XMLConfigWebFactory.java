@@ -1411,7 +1411,9 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 
 		// resources/language
 		Resource langDir = adminDir.getRealResource("resources/language");
-		create("/resource/context/admin/resources/language/", new String[] { "en.xml", "de.xml" }, langDir, doNew);
+		// create("/resource/context/admin/resources/language/", new String[] { "en.xml", "de.xml" },
+		// langDir, doNew);
+		if (langDir.exists()) langDir.remove(true);
 
 		// add Debug
 		Resource debug = adminDir.getRealResource("debug");
