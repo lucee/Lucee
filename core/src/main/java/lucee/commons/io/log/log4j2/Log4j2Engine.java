@@ -34,6 +34,7 @@ import lucee.commons.io.log.log4j2.appender.ResourceAppender;
 import lucee.commons.io.log.log4j2.appender.TaskAppender;
 import lucee.commons.io.log.log4j2.layout.ClassicLayout;
 import lucee.commons.io.log.log4j2.layout.DataDogLayout;
+import lucee.commons.io.log.log4j2.layout.JsonLayout;
 import lucee.commons.io.log.log4j2.layout.XMLLayout;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
@@ -138,6 +139,11 @@ public class Log4j2Engine extends LogEngine {
 				|| "org.apache.logging.log4j.core.layout.XmlLayout".equalsIgnoreCase(className) || "lucee.commons.io.log.log4j2.layout.XMLLayout".equals(className)) {
 			return new ClassDefinitionImpl(XMLLayout.class);
 		}
+		if ("json".equalsIgnoreCase(className) || "org.apache.log4j.json.JsonTemplateLayout".equalsIgnoreCase(className)
+				|| "org.apache.logging.log4j.core.layout.JsonLayout".equalsIgnoreCase(className)) {
+			return new ClassDefinitionImpl(JsonLayout.class);
+		}
+
 		if ("pattern".equalsIgnoreCase(className) || "org.apache.log4j.PatternLayout".equals(className) || "org.apache.logging.log4j.core.layout.PatternLayout".equals(className)) {
 			return new ClassDefinitionImpl(PatternLayout.class);
 		}
@@ -211,6 +217,8 @@ public class Log4j2Engine extends LogEngine {
 			}
 			// XML Layout
 			else if (XMLLayout.class.getName().equalsIgnoreCase(cd.getClassName())) {
+				// Charset
+				Charset charset = CharsetUtil.toCharset(layoutArgs.get("charset"), CharsetUtil.UTF8);
 
 				// Location Info
 				boolean locInfo = Caster.toBooleanValue(layoutArgs.get("locationinfo"), false);
@@ -221,7 +229,27 @@ public class Log4j2Engine extends LogEngine {
 				layoutArgs.put("properties", props.toString());
 				// TODO add more attribute
 
-				return new XMLLayout(CharsetUtil.UTF8, true, locInfo);
+				return new XMLLayout(charset, true, locInfo);
+
+			}
+
+			// JSON Layout
+			else if (JsonLayout.class.getName().equalsIgnoreCase(cd.getClassName())) {
+				// Charset
+				Charset charset = CharsetUtil.toCharset(layoutArgs.get("charset"), CharsetUtil.UTF8);
+				// complete
+				boolean complete = Caster.toBooleanValue(layoutArgs.get("complete"), false);
+				// includeStacktrace
+				boolean includeStacktrace = Caster.toBooleanValue(layoutArgs.get("includeStacktrace"), true);
+				// includeTimeMillis
+				boolean includeTimeMillis = Caster.toBooleanValue(layoutArgs.get("includeTimeMillis"), true);
+				// stacktraceAsString
+				boolean stacktraceAsString = Caster.toBooleanValue(layoutArgs.get("stacktraceAsString"), false);
+				// locationInfo
+				boolean locationInfo = Caster.toBooleanValue(layoutArgs.get("locationInfo"), false);
+				// properties
+				boolean properties = Caster.toBooleanValue(layoutArgs.get("properties"), true);
+				return new JsonLayout(charset, complete, includeStacktrace, includeTimeMillis, stacktraceAsString, locationInfo, properties);
 
 			}
 			// Pattern Layout
