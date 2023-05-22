@@ -1002,7 +1002,7 @@ public final class OpUtil {
 
 	public static Number exponentRef(PageContext pc, Object left, Object right) throws PageException {
 		if (AppListenerUtil.getPreciseMath(pc, null)) {
-			return Caster.toBigDecimal(left).pow(Caster.toIntValue(right));
+			return MathUtil.pow(Caster.toBigDecimal(left), Caster.toIntValue(right));
 		}
 		return Caster.toDouble(StrictMath.pow(Caster.toDoubleValue(left), Caster.toDoubleValue(right)));
 	}

@@ -5,8 +5,6 @@ component {
 	this.datasources["ldev3091"] = mySQL;
 	this.datasource = "ldev3091";
 	
-
-	
 	public function onRequestStart() {
 		setting requesttimeout=10;
 		query{

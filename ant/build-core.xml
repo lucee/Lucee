@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project default="susi" basedir="${rootDir}" name="luceeCore" ><!-- TODO maybe there is a better way for this -->
+<project default="susi" basedir="${rootDir}" name="luceeCore"
+    xmlns:if="ant:if"
+    xmlns:resolver="antlib:org.apache.maven.resolver.ant">
   <description>
     Build Lucee Core
   </description>
@@ -43,7 +45,7 @@
       <tstamp>
         <format property="timestamp" pattern="yyyy-MM-dd HH:mm:ss" />
       </tstamp>
-      <echo leveL="debug" message="---------- ${timestamp} - @{message} ----------" />
+      <echo level="info" message="---------- ${timestamp} - @{message} ----------" />
     </sequential>
   </macrodef>
 
@@ -91,6 +93,9 @@
     <property name="testSuiteExtends" value=""/>
     <!-- allow running tests with a different java version (ant needs the exe not java home)  -->    
     <property name="testJavaVersionExec" value=""/>
+    <!-- enable jpda / java debugging when running test cases  -->
+    <property name="testDebugger" value=""/>
+    
     <!-- specify the build file to use  -->
     <property name="LUCEE_BUILD_ENV" value=""/>
     
@@ -152,7 +157,7 @@
     </condition>
     </fail>
 
-<echo leveL="debug">                                                              
+<echo level="info">                                                              
            `@@@@                                                               
            @@@@@@                                                              
           ``#@@@@#                                                             
@@ -191,16 +196,16 @@
           In every job that must be done. There is an element of fun!                  
     </echo>
 
-    <echo leveL="debug" message="${version}"/>
+    <echo level="info" message="${version}"/>
     <!-- used for docker build -->
-    <echo leveL="debug" file="${rootDir}/buildVersionNumber.txt" message="${version}" append="false"/>
+    <echo level="info" file="${rootDir}/buildVersionNumber.txt" message="${version}" append="false"/>
     <!-- <echo message="${name}"/>
     <echo message="${name.explanation}"/> -->
-    <echo leveL="debug" message="Root: ${rootDir}"/>
-    <echo leveL="debug" message="Required-Extensions: ${reqExt.labels}"/>
-    <echo leveL="debug" message="Java: ${java.version}" />
-    <echo leveL="debug" message="Java: ${java.home}" />
-    <echo leveL="debug" message="Optional Java Version for tests: ${testJavaVersionExec}" />
+    <echo level="info" message="Root: ${rootDir}"/>
+    <echo level="info" message="Required-Extensions: ${reqExt.labels}"/>
+    <echo level="info" message="Java: ${java.version}" />
+    <echo level="info" message="Java: ${java.home}" />
+    <echo level="info" message="Optional Java Version for tests: ${testJavaVersionExec}" />
 
     <!-- Create the time stamp -->
     <tstamp/>
@@ -376,9 +381,8 @@
       <pathelement location="${temp}/loader" />
       <pathelement path="${dependencies}"/>
     </path>
-
     <!-- <pathconvert property="classpathProp" refid="classpath"/> -->
-   <echo leveL="debug" message="Using Java version ${ant.java.version}."/>
+   <echo level="info" message="Using Java version ${ant.java.version}."/>
     <!-- compile the core -->
     <javac 
       srcdir="${srcCore}" 
@@ -387,6 +391,7 @@
       destdir="${core}"
       debug="true" debuglevel="lines,vars,source">
        <classpath refid="classpath" />
+       <classpath path="${temp}/loader"/>
     </javac>
 
     <!--
@@ -464,8 +469,8 @@
 <target name="__build_archives" depends="buildJars,__extract_testbox">
     <!-- first we copy the jars in place otherwise, Lucee downloads them  -->
     <echots message="copy bundles in place"/>
-    <addBundles 
-      bundles="${dependencies}" 
+    <addBundles
+      bundles="${dependencies}"
       target="${temp}/archive/base/lucee-server/bundles"
       coremanifest="${coreManifest}"/>
 
@@ -527,7 +532,7 @@
       deploydir="${temp}/archive/base/lucee-server/deploy/"/>
 
     <listDirectory directory="${test}/lib" delimiter=":" returnvalue="test_jars"/>
-    <echots message="execute testcases ${testcases} with java ${testJavaVersionExec}"/>
+    <echots message="execute testcases with java ${testJavaVersionExec}"/>
     <!-- execute CFML testcases -->
     <java classname="org.apache.tools.ant.launch.Launcher" dir="${ant}" fork="true" failonerror="true" errorproperty="exc2" jvm="${testJavaVersionExec}">
       <classpath path="${java.class.path}">
@@ -571,11 +576,8 @@
       <jvmarg value="-Dlucee.system.out=file:.../out.txt"/>
       <jvmarg value="-Dlucee.system.err=file:.../err.txt"/>
       -->
-      <!--
-      <jvmarg value="-Xdebug"/>
-      <jvmarg value="-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5000"/>
-      -->
-
+      <jvmarg value="-Xdebug" if:true="${testDebugger}"/>
+      <jvmarg value="-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5000" if:true="${testDebugger}"/>
       <!--
         felix.log.level
         lucee.controller.disabled
@@ -642,7 +644,7 @@
       <jvmarg value="-Dlucee.web.dir=${temp}/warmup/webroot"/>
       <jvmarg value="-Dlucee.enable.warmup=true"/>
     </java>
-    <echo leveL="debug">${exc4}</echo>
+    <echo level="info">${exc4}</echo>
 </target>
 
 <target name="test_stable_loader">
@@ -804,9 +806,9 @@
   </target>
 
   <target name="setAntEnv" description="set the variable right for ant">
-    <echo leveL="debug">before:${goal}</echo>
+    <echo level="info">before:${goal}</echo>
     <property name="goal" location="${temp}/loader"/>
-    <echo leveL="debug">after:${goal}</echo>  
+    <echo level="info">after:${goal}</echo>  
   </target>
 
   <target name="buildLoaderAnt" depends="__build,setAntEnv,addExtensions,addBundles,addFelix,createCore,createLoader,test_warmup,test_stable_loader" description="generate the loader jar" >

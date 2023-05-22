@@ -324,6 +324,8 @@ component {
 
 	public function verifyMemcached ( memcached ) localmode=true{
 		if ( structCount( memcached ) eq 2 ){
+			if ( !isRemotePortOpen( memcached.server, memcached.port ) )
+				throw "MemCached port closed #memcached.server#:#memcached.port#"; // otherwise the cache keeps trying and logging
 			try {
 				testCacheName = "testMemcached";
 				application 
@@ -526,13 +528,29 @@ component {
 						DirectoryCreate( tempDb );
 					arguments.dbFile = tempDb;
 				}
-				if ( Len( arguments.dbFile ) ){
+				if ( len( arguments.dbFile ) ){
 					return {
 						class: 'org.h2.Driver'
 						, bundleName: 'org.lucee.h2'
 						, bundleVersion: server.getDefaultBundleVersion( 'org.lucee.h2', '2.1.214.0001L' )
 						, connectionString: 'jdbc:h2:#arguments.dbFile#/db;MODE=MySQL' & arguments.connectionString
 					}.append( arguments.options );
+				}
+				break;
+			case "hsqldb":
+				if ( arguments.verify ){
+					tempDb = "#getTempDirectory()#/hsqldb-#createUUID()#";
+					if (! DirectoryExists( tempDb ) )
+						DirectoryCreate( tempDb );
+					arguments.dbFile = tempDb;
+				}
+				if ( len( arguments.dbFile ) ){
+					return {
+						class: 'org.hsqldb.jdbcDriver'
+						, bundleName: 'org.hsqldb.hsqldb'
+						, bundleVersion: server.getDefaultBundleVersion( 'org.hsqldb.hsqldb', '2.7.0' )
+						, connectionString: 'jdbc:hsqldb:#arguments.dbFile#/datasource/db;MODE=MySQL'
+					};
 				}
 				break;
 			case "mongoDB":
@@ -649,6 +667,22 @@ component {
 				return true;
 		}
 		return false;
+	}
+
+	boolean function isRemotePortOpen( string host, numeric port, numeric timeout=2000 ) {
+		var socket = createObject( "java", "java.net.Socket").init();
+		var address = createObject( "java", "java.net.InetSocketAddress" ).init(
+			javaCast( "string", arguments.host ),
+			javaCast( "int", arguments.port )
+		);
+
+		try {
+			socket.connect( address, javaCast( "int", arguments.timeout ));
+			socket.close();
+			return true;
+		} catch (e) {
+			return false;
+		}
 	}
 }
 

@@ -8,7 +8,7 @@
 	  <tstamp>
 		<format property="timestamp" pattern="yyyy-MM-dd HH:mm:ss" />
 	  </tstamp>
-	  <echo leveL="debug" message="---------- ${timestamp} - @{message} ----------" />
+	  <echo level="info" message="---------- ${timestamp} - @{message} ----------" />
 	</sequential>
   </macrodef>
 

@@ -53,17 +53,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	}
 
 	private void function defineDatasource(){
-		application action="update" 
-			datasource="#{
-	  		class: 'org.hsqldb.jdbcDriver'
-			, bundleName: 'org.hsqldb.hsqldb'
-			, bundleVersion: '2.3.2'
-			, connectionString: 'jdbc:hsqldb:file:#getDirectoryFromPath(getCurrentTemplatePath())#/cacheHandler/db'
-		}#";
+		var dbFile = getTempDirectory() & "hsqldb-" & listFirst( listLast( getCurrentTemplatePath(), "/\" ), ".");
+		var ds = server.getDatasource("hsqldb", dbfile);
+		application action="update" datasource="#ds#";
 	}
-
-
-
 
 	public void function testApplicationCFM2(){
 		uri=createURI("appCFM2/index.cfm");

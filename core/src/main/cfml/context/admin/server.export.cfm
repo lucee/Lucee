@@ -197,7 +197,7 @@ component {
 		  host: '#mailservers.hostname#'
 		, port: #mailservers.port#
 		, username: '#replace(mailservers.username,"'","''","all")#'
-		, password: '#mailservers.passwordEncrypted?:''#'
+		, password: <span style="overflow-wrap: break-word;">'#mailservers.passwordEncrypted?:''#'</span>
 		, ssl: #mailservers.ssl?:false#
 		, tls: #mailservers.tls?:false#<cfif 
 		!isNull(mailservers.life)>
@@ -242,7 +242,7 @@ if(datasources.readOnly) optional.append('readOnly:#datasources.readOnly# // def
 		, bundleVersion: '"&cacheConnections.bundleVersion&"'"##!cacheConnections.readOnly?"":"
 		, readOnly: "&cacheConnections.readonly#
 		, storage: #cacheConnections.storage#
-		, custom: #isStruct(cacheConnections.custom)?serialize(cacheConnections.custom):'{}'#
+		, custom: <span style="overflow-wrap: break-word;">#isStruct(cacheConnections.custom)?serialize(cacheConnections.custom):'{}'#</span>
 		, default: '#cacheConnections.default#'
 	};
 	</cfloop><cfif hasCache>

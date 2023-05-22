@@ -1,0 +1,3 @@
+component {
+    include "include.cfm";
+}
