@@ -332,7 +332,7 @@ component {
 					return {
 						class: 'com.mysql.cj.jdbc.Driver'
 						, bundleName: 'com.mysql.cj'
-						, bundleVersion: server.getDefaultBundleVersion('com.mysql.cj', '8.0.19')
+						, bundleVersion: server.getDefaultBundleVersion('com.mysql.cj', '8.0.33')
 						, connectionString: 'jdbc:mysql://#mySQL.server#:#mySQL.port#/#mySQL.database#?useUnicode=true&characterEncoding=UTF-8&useLegacyDatetimeCode=true&useSSL=false'
 						, username: mySQL.username
 						, password: mySQL.password
@@ -347,7 +347,7 @@ component {
 					return {
 						class: 'org.postgresql.Driver'
 						, bundleName: 'org.postgresql.jdbc'
-						, bundleVersion: server.getDefaultBundleVersion('org.postgresql.jdbc', '42.2.20')
+						, bundleVersion: server.getDefaultBundleVersion('org.postgresql.jdbc', '42.6.0')
 						, connectionString: 'jdbc:postgresql://#pgsql.server#:#pgsql.port#/#pgsql.database#'
 						, username: pgsql.username
 						, password: pgsql.password
@@ -361,12 +361,28 @@ component {
 						DirectoryCreate( tempDb );
 					arguments.dbFile = tempDb;
 				}
-				if ( Len( arguments.dbFile ) ){
+				if ( len( arguments.dbFile ) ){
 					return {
 						class: 'org.h2.Driver'
 						, bundleName: 'org.lucee.h2'
 						, bundleVersion: server.getDefaultBundleVersion('org.lucee.h2', '2.1.214.0001L')
 						, connectionString: 'jdbc:h2:#arguments.dbFile#/datasource/db;MODE=MySQL'
+					};
+				}
+				break;
+			case "hsqldb":
+				if ( arguments.verify ){
+					tempDb = "#getTempDirectory()#/hsqldb-#createUUID()#";
+					if (! DirectoryExists( tempDb ) )
+						DirectoryCreate( tempDb );
+					arguments.dbFile = tempDb;
+				}
+				if ( len( arguments.dbFile ) ){
+					return {
+						class: 'org.hsqldb.jdbcDriver'
+						, bundleName: 'org.hsqldb.hsqldb'
+						, bundleVersion: server.getDefaultBundleVersion( 'org.hsqldb.hsqldb', '2.7.0' )
+						, connectionString: 'jdbc:hsqldb:#arguments.dbFile#/datasource/db;MODE=MySQL'
 					};
 				}
 				break;

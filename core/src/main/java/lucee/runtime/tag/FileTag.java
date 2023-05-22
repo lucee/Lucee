@@ -1099,7 +1099,9 @@ public final class FileTag extends BodyTagImpl {
 						blocklistedTypes = SystemUtil.getSystemPropOrEnvVar(SystemUtil.SETTING_UPLOAD_EXT_BLACKLIST, SystemUtil.DEFAULT_UPLOAD_EXT_BLOCKLIST);
 					if (StringUtil.isEmpty(blocklistedTypes))
 						blocklistedTypes = SystemUtil.getSystemPropOrEnvVar(SystemUtil.SETTING_UPLOAD_EXT_BLOCKLIST, SystemUtil.DEFAULT_UPLOAD_EXT_BLOCKLIST);
-					NotResourceFilter filter = new NotResourceFilter(new ExtensionResourceFilter(blocklistedTypes));
+
+					NotResourceFilter filter = new NotResourceFilter(new ExtensionResourceFilter(ListUtil.trimItems(ListUtil.listToStringArray(blocklistedTypes, ',')), false, true, false));
+
 					if (!filter.accept(clientFile)) throw new ApplicationException("Upload of files with extension [" + ext + "] is not permitted.", DETAIL);
 				}
 			}
