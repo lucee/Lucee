@@ -324,6 +324,8 @@ component {
 
 	public function verifyMemcached ( memcached ) localmode=true{
 		if ( structCount( memcached ) eq 2 ){
+			if ( !isRemotePortOpen( memcached.server, memcached.port ) )
+				throw "MemCached port closed #memcached.server#:#memcached.port#"; // otherwise the cache keeps trying and logging
 			try {
 				testCacheName = "testMemcached";
 				application 
@@ -665,6 +667,22 @@ component {
 				return true;
 		}
 		return false;
+	}
+
+	boolean function isRemotePortOpen( string host, numeric port, numeric timeout=2000 ) {
+		var socket = createObject( "java", "java.net.Socket").init();
+		var address = createObject( "java", "java.net.InetSocketAddress" ).init(
+			javaCast( "string", arguments.host ),
+			javaCast( "int", arguments.port )
+		);
+
+		try {
+			socket.connect( address, javaCast( "int", arguments.timeout ));
+			socket.close();
+			return true;
+		} catch (e) {
+			return false;
+		}
 	}
 }
 
