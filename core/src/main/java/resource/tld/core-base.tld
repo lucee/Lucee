@@ -4991,6 +4991,7 @@ Permits searching collections by title or displaying a separate title from the k
 		<attribute>
 			<type>string</type>
 			<name>text</name>
+			<alias>message</alias>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>an exception to log.</description>
