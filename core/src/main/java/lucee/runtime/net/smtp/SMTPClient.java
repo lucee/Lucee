@@ -163,6 +163,7 @@ public final class SMTPClient implements Serializable {
 	private Object listener;
 
 	private boolean debug;
+	private int priority = 0;
 
 	public static String getNow(TimeZone tz) {
 		tz = ThreadLocalPageContext.getTimeZone(tz);
@@ -196,6 +197,15 @@ public final class SMTPClient implements Serializable {
 	 */
 	public void setDebug(boolean debug) {
 		this.debug = debug;
+	}
+
+	/**
+	 * set the mail priority
+	 * 
+	 * @param priority
+	 */
+	public void setPriority(int priority) {
+		this.priority = priority;
 	}
 
 	/**
@@ -522,6 +532,8 @@ public final class SMTPClient implements Serializable {
 			throw new MessagingException("the encoding " + charset + " is not supported");
 		}
 		msg.setHeader("X-Mailer", xmailer);
+
+		if (priority > 0) msg.setHeader("X-Priority", Caster.toString(priority));
 
 		msg.setHeader("Date", getNow(timeZone));
 

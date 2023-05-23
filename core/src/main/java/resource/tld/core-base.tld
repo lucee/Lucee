@@ -5539,7 +5539,6 @@ Lucee uses the number of characters in the file.</description>
 			<name>priority</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-		    <status>unimplemented</status>
 			<description>The message priority level. Can be one of the following values:
     * An integer in the range 1-5; 1 represents the highest priority.
     * One of the following string values, which correspond to the numeric values: highest or urgent, high, normal, low, and lowest or non-urgent.</description>
