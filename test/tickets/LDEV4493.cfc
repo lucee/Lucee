@@ -57,10 +57,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="smtp" {
 	}
 
 	private function extractHeader( required string headers, required string header ){
-		systemOutput( headers, true );
 		var hdrs = ListToArray( arguments.headers, chr(10) );
 		for (var h in hdrs ) {
-			systemOutput( "[" & listFirst( h, ":" ) & "]", true );
 			if ( trim( listFirst( h, ":" ) ) eq arguments.header )
 				return trim( listRest( h, ":" ) );
 		}
