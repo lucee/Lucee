@@ -2,7 +2,7 @@
 component extends="org.lucee.cfml.test.LuceeTestCase" labels="imap" {
 
 	function beforeAll() {
-		variables.uri = createURI("LDEV4147"); 	
+		variables.uri = createURI("LDEV4147");
 		variables.creds = getCredentials();
 
 		if (notHasServices()) return;
@@ -15,38 +15,47 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="imap" {
 
 		sleep(1000);
 
-		variables.InitailInboxMails = getInboxMails();
-		variables.InitailInboxCount = InitailInboxMails.recordCount;
+		variables.initialInboxMails = getInboxMails();
+		variables.initialInboxCount = initialInboxMails.recordCount;
 	}
 
 	function run( testResults, testBox ) {
 		describe("Testcase for LDEV-4147", function() {
-			
+
 			beforeEach(function( currentSpec ){
 				expect(variables.sendingMails).tobe("Done!!!"); // to check the mails has sended successfully
 			});
-			
+
 			it( title="cfimap with maxRows attribute", skip="#notHasServices()#", body=function( currentSpec ) {
 				var inboxmails = getInboxMails(maxRows=2);
-				expect(inboxmails.recordCount).tobe(2);
+				expect( inboxmails.SEEN[1] ).toBeFalse();
+				expect( inboxmails.ANSWERED[2] ).toBeFalse();
+				expect( inboxmails.recordCount ).tobe( 2 );
+
+				var inboxmails = getInboxMails(maxRows=2);
+				expect( inboxmails.SEEN[1] ).toBeTrue();
+				expect( inboxmails.SEEN[2] ).toBeTrue();
 			});
-		
+
 			it( title="cfimap with maxRows and start rows attributes", skip="#notHasServices()#", body=function( currentSpec ) {
 				var inboxmails = getInboxMails(maxRows=2,startRow=3);
 				expect(inboxmails.recordCount).tobe(2);
 				expect(inboxmails.messageNumber[1]).tobe(3);
 				expect(inboxmails.messageNumber[2]).tobe(4);
+
+				expect( inboxmails.SEEN[1] ).toBeFalse();
+				expect( inboxmails.ANSWERED[2] ).toBeFalse();
 			});
-			
+
 			it( title="cfimap delete mails using uids", skip="#notHasServices()#", body=function( currentSpec ) {
-				var uids = queryColumnData(variables.InitailInboxMails, "uid");
-				
+				var uids = queryColumnData(variables.initialInboxMails, "uid");
+
 				imap action="delete"
 					uid = "#uids[1]#,#uids[2]#,invalidUIDshouldIgnore"
-					server="#creds.imap.SERVER#" 
-					password="#creds.imap.PASSWORD#" 
-					port="#creds.imap.PORT_INSECURE#" 
-					secure="no" 
+					server="#creds.imap.SERVER#"
+					password="#creds.imap.PASSWORD#"
+					port="#creds.imap.PORT_INSECURE#"
+					secure="no"
 					username="#variables.username#";
 
 				var result = getInboxMails(uid = "#uids[1]#,#uids[2]#");
@@ -60,10 +69,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="imap" {
 
 				imap action="delete"
 					messageNumber = "1,2,3,invalidUIDShouldIgnore,10000"
-					server="#creds.imap.SERVER#" 
-					password="#creds.imap.PASSWORD#" 
-					port="#creds.imap.PORT_INSECURE#" 
-					secure="no" 
+					server="#creds.imap.SERVER#"
+					password="#creds.imap.PASSWORD#"
+					port="#creds.imap.PORT_INSECURE#"
+					secure="no"
 					username="#variables.username#";
 
 				expect(getInboxMails().recordCount).tobe(InboxCount - 3);
@@ -76,27 +85,27 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="imap" {
 
 				pop action="delete"
 					messageNumber = "1,2,3,invalidUIDShouldIgnore,10000"
-					server="#creds.pop.SERVER#" 
-					password="#creds.pop.PASSWORD#" 
-					port="#creds.pop.PORT_INSECURE#" 
-					secure="no" 
+					server="#creds.pop.SERVER#"
+					password="#creds.pop.PASSWORD#"
+					port="#creds.pop.PORT_INSECURE#"
+					secure="no"
 					username="#variables.username#";
 
 				expect(getInboxMails().recordCount).tobe(InboxCount - 3);
 			});
 
 			it( title="cfpop delete mails using uids", skip="#notHasServices()#", body=function( currentSpec ) {
-				var uids = queryColumnData(variables.InitailInboxMails, "uid");
+				var uids = queryColumnData(variables.initialInboxMails, "uid");
 
 				pop action="delete"
-					uid = "#uids[InitailInboxCount]#,#uids[InitailInboxCount-1]#,invalidUIDshouldIgnore"
-					server="#creds.pop.SERVER#" 
-					password="#creds.pop.PASSWORD#" 
-					port="#creds.pop.PORT_INSECURE#" 
-					secure="no" 
+					uid = "#uids[initialInboxCount]#,#uids[initialInboxCount-1]#,invalidUIDshouldIgnore"
+					server="#creds.pop.SERVER#"
+					password="#creds.pop.PASSWORD#"
+					port="#creds.pop.PORT_INSECURE#"
+					secure="no"
 					username="#variables.username#";
 
-				var result = getInboxMails(uid = "#uids[InitailInboxCount]#,#uids[InitailInboxCount-1]#");
+				var result = getInboxMails(uid = "#uids[initialInboxCount]#,#uids[initialInboxCount-1]#");
 
 				expect(result.recordCount).tobe(0);
 			});
@@ -148,13 +157,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="imap" {
 		structDelete(server, "mailsErrorMessage");
 
 		if (!notHasServices()) { // delete all the inbox mails
-			imap action="delete" 
-				server="#creds.imap.SERVER#" 
-				password="#creds.imap.PASSWORD#" 
-				port="#creds.imap.PORT_INSECURE#" 
-				secure="no" 
+			imap action="delete"
+				server="#creds.imap.SERVER#"
+				password="#creds.imap.PASSWORD#"
+				port="#creds.imap.PORT_INSECURE#"
+				secure="no"
 				username="#variables.username#";
-		} 
+		}
 	}
 
 }
