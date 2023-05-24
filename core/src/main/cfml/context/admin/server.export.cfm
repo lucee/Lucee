@@ -259,7 +259,7 @@ if(datasources.readOnly) optional.append('readOnly:#datasources.readOnly# // def
 //               MAPPINGS                   //
 //////////////////////////////////////////////
 <cfloop query="mappings"><cfif mappings.hidden || mappings.virtual=="/lucee" || mappings.virtual=="/lucee-server"><cfcontinue></cfif><cfset del=""><cfset count=0>
-this.mappings["#mappings.virtual#"]=<cfif len(mappings.strPhysical) && !len(mappings.strArchive)>"#mappings.strPhysical#"<cfelse>{<cfif len(mappings.strPhysical)><cfset count++>
+this.mappings["#mappings.virtual#"]=<cfif len(mappings.strPhysical) && !len(mappings.strArchive)><span class="overflow">"#mappings.strPhysical#"</span><cfelse>{<cfif len(mappings.strPhysical)><cfset count++>
 		physical:<span class="overflow">"#mappings.strPhysical#"</span><cfset del=","></cfif><cfif len(mappings.strArchive)><cfset count++>
 		#del#archive:"#mappings.strArchive#"<cfset del=","></cfif><cfif count==2 && !mappings.PhysicalFirst>
 		#del#primary:"<cfif mappings.PhysicalFirst>physical<cfelse>archive</cfif>"<cfset del=","></cfif>}</cfif>;
