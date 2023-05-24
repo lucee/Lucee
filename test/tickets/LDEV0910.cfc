@@ -5,7 +5,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="pop,imap" {
 		variables.isSupported=true;
 
 	variables.popCols = "date,from,messagenumber,messageid,replyto,subject,cc,to,size,header,uid,body,textBody,HTMLBody,attachments,attachmentfiles,cids";
-	variables.imapCols = variables.popCols & "manswered,deleted,draft,flagged,recent,seen"; // imap flags query column checks for LDEV-4115;
+	variables.imapCols = variables.popCols & ",answered,deleted,draft,flagged,recent,seen"; // imap flags query column checks for LDEV-4115;
 
 	function run( testResults , testBox ) {
 		describe( title="Test suite for LDEV-910", skip=isNotSupported(!variables.isSupported), body=function() {
