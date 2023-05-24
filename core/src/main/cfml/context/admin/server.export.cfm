@@ -197,7 +197,7 @@ component {
 		  host: '#mailservers.hostname#'
 		, port: #mailservers.port#
 		, username: '#replace(mailservers.username,"'","''","all")#'
-		, password: <span style="overflow-wrap: break-word;">'#mailservers.passwordEncrypted?:''#'</span>
+		, password: <span class="overflow">'#mailservers.passwordEncrypted?:''#'</span>
 		, ssl: #mailservers.ssl?:false#
 		, tls: #mailservers.tls?:false#<cfif 
 		!isNull(mailservers.life)>
@@ -242,7 +242,7 @@ if(datasources.readOnly) optional.append('readOnly:#datasources.readOnly# // def
 		, bundleVersion: '"&cacheConnections.bundleVersion&"'"##!cacheConnections.readOnly?"":"
 		, readOnly: "&cacheConnections.readonly#
 		, storage: #cacheConnections.storage#
-		, custom: <span style="overflow-wrap: break-word;">#isStruct(cacheConnections.custom)?serialize(cacheConnections.custom):'{}'#</span>
+		, custom: <span class="overflow">#isStruct(cacheConnections.custom)?serialize(cacheConnections.custom):'{}'#</span>
 		, default: '#cacheConnections.default#'
 	};
 	</cfloop><cfif hasCache>
@@ -260,7 +260,7 @@ if(datasources.readOnly) optional.append('readOnly:#datasources.readOnly# // def
 //////////////////////////////////////////////
 <cfloop query="mappings"><cfif mappings.hidden || mappings.virtual=="/lucee" || mappings.virtual=="/lucee-server"><cfcontinue></cfif><cfset del=""><cfset count=0>
 this.mappings["#mappings.virtual#"]=<cfif len(mappings.strPhysical) && !len(mappings.strArchive)>"#mappings.strPhysical#"<cfelse>{<cfif len(mappings.strPhysical)><cfset count++>
-		physical:"#mappings.strPhysical#"<cfset del=","></cfif><cfif len(mappings.strArchive)><cfset count++>
+		physical:<span class="overflow">"#mappings.strPhysical#"</span><cfset del=","></cfif><cfif len(mappings.strArchive)><cfset count++>
 		#del#archive:"#mappings.strArchive#"<cfset del=","></cfif><cfif count==2 && !mappings.PhysicalFirst>
 		#del#primary:"<cfif mappings.PhysicalFirst>physical<cfelse>archive</cfif>"<cfset del=","></cfif>}</cfif>;
 </cfloop>

@@ -88,7 +88,9 @@ pre {
 .disp-flex { display: flex; }
 .flex-pull-right { margin-left: auto; }
 
-
+.overflow{
+	overflow-wrap: break-word;
+}
 
 
 
