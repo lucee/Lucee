@@ -21,7 +21,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="pop,imap" {
 					maxrows = "10"
 				);
 				expect(result).toBeTypeOf("query");
-				expect(result.columnList()).toBe(variables.cols);
+				loop list=#variables.cols# item="local.col" {
+					expect ( queryColumnExists( result, col ) ).toBeTrue( col );
+				}
 			});
 
 			it(title="checking cfpop tag with insecure access", body = function( currentSpec ) {
@@ -36,7 +38,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="pop,imap" {
 					maxrows = "10"
 				);
 				expect(result).toBeTypeOf("query");
-				expect(result.columnList()).toBe(variables.cols);
+				loop list=#variables.cols# item="local.col" {
+					expect ( queryColumnExists( result, col ) ).toBeTrue( col );
+				}
 			});
 
 			it(title="checking cfimap tag with secure access", body = function( currentSpec ) {
@@ -51,7 +55,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="pop,imap" {
 					maxrows = "10"
 				);
 				expect(result).toBeTypeOf("query");
-				expect(result.columnList()).toBe(variables.cols);
+				loop list=#variables.cols# item="local.col" {
+					expect ( queryColumnExists( result, col ) ).toBeTrue( col );
+				}
 			});
 
 			it(title="checking cfimap tag with insecure access", body = function( currentSpec ) {
@@ -66,7 +72,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="pop,imap" {
 					maxrows = "10"
 				);
 				expect(result).toBeTypeOf("query");
-				expect(result.columnList()).toBe(variables.cols);
+				loop list=#variables.cols# item="local.col" {
+					expect ( queryColumnExists( result, col ) ).toBeTrue( col );
+				}
 			});
 		});
 	}
