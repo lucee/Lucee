@@ -1853,6 +1853,9 @@ public final class ConfigAdmin {
 		if (name.equalsIgnoreCase(Caster.toString(root.get("defaultResource", null), null))) rem(root, "defaultResource");
 		if (name.equalsIgnoreCase(Caster.toString(root.get("defaultFunction", null), null))) rem(root, "defaultFunction");
 		if (name.equalsIgnoreCase(Caster.toString(root.get("defaultInclude", null), null))) rem(root, "defaultInclude");
+		if (name.equalsIgnoreCase(Caster.toString(root.get("defaultHttp", null), null))) rem(root, "defaultHttp");
+		if (name.equalsIgnoreCase(Caster.toString(root.get("defaultFile", null), null))) rem(root, "defaultFile");
+		if (name.equalsIgnoreCase(Caster.toString(root.get("defaultWebservice", null), null))) rem(root, "defaultWebservice");
 
 		if (_default == ConfigPro.CACHE_TYPE_OBJECT) {
 			root.setEL("defaultObject", name);
