@@ -2087,6 +2087,9 @@ public final class XMLConfigAdmin {
 		if (name.equalsIgnoreCase(parent.getAttribute("default-resource"))) parent.removeAttribute("default-resource");
 		if (name.equalsIgnoreCase(parent.getAttribute("default-function"))) parent.removeAttribute("default-function");
 		if (name.equalsIgnoreCase(parent.getAttribute("default-include"))) parent.removeAttribute("default-include");
+		if (name.equalsIgnoreCase(parent.getAttribute("default-http"))) parent.removeAttribute("default-http");
+		if (name.equalsIgnoreCase(parent.getAttribute("default-file"))) parent.removeAttribute("default-file");
+		if (name.equalsIgnoreCase(parent.getAttribute("default-webservice"))) parent.removeAttribute("default-webservice");
 
 		if (_default == ConfigPro.CACHE_TYPE_OBJECT) {
 			parent.setAttribute("default-object", name);
