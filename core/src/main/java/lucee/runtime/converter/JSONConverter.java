@@ -382,7 +382,7 @@ public final class JSONConverter extends ConverterSupport {
 
 			doIt = true;
 			sb.append(StringUtil.escapeJS(k, '"', charsetEncoder));
-			sb.append(": ");
+			sb.append(compact ? ":" : ": ");
 			_serialize(pc, test, value, sb, queryFormat, preserveCase, done);
 		}
 
@@ -409,7 +409,7 @@ public final class JSONConverter extends ConverterSupport {
 				if (doIt) sb.append(',');
 				doIt = true;
 				sb.append(StringUtil.escapeJS(key.getString(), '"', charsetEncoder));
-				sb.append(": ");
+				sb.append(compact ? ":" : ": ");
 				_serialize(pc, test, value, sb, queryFormat, preserveCase, done);
 			}
 		}
@@ -462,7 +462,7 @@ public final class JSONConverter extends ConverterSupport {
 			}
 			doIt = true;
 			sb.append(StringUtil.escapeJS(key.toString(), '"', charsetEncoder));
-			sb.append(": ");
+			sb.append(compact ? ":" : ": ");
 			_serialize(pc, test, map.get(key), sb, queryFormat, preserveCase, done);
 		}
 		sb.append(eol);
@@ -542,7 +542,7 @@ public final class JSONConverter extends ConverterSupport {
 				for (int col = 0; col < _keys.length; col++) {
 					if (col > 0) sb.append(',');
 					sb.append(StringUtil.escapeJS(preCase ? _keys[col].getString() : _keys[col].getUpperString(), '"', charsetEncoder));
-					sb.append(": ");
+					sb.append(compact ? ":" : ": ");
 					try {
 						_serialize(pc, test, query.getAt(_keys[col], row), sb, queryFormat, preserveCase, done);
 					}
@@ -564,7 +564,7 @@ public final class JSONConverter extends ConverterSupport {
 		// Rowcount
 		if (queryFormat == SerializationSettings.SERIALIZE_AS_COLUMN) {
 			sb.append(indent());
-			sb.append("\"ROWCOUNT\": ");
+			sb.append("\"ROWCOUNT\"" + (compact ? ":" : ": "));
 			sb.append(Caster.toString(query.getRecordcount()));
 			sb.append(',');
 			sb.append(eol);
@@ -572,7 +572,7 @@ public final class JSONConverter extends ConverterSupport {
 
 		// Columns
 		sb.append(indent());
-		sb.append("\"COLUMNS\": [");
+		sb.append("\"COLUMNS\"" + (compact ? ":" : ": ") + "[");
 		sb.append(eol);
 		right();
 		String[] cols = query.getColumns();
@@ -596,7 +596,7 @@ public final class JSONConverter extends ConverterSupport {
 		// Data
 		sb.append(eol);
 		sb.append(indent());
-		sb.append("\"DATA\": ");
+		sb.append("\"DATA\"" + (compact ? ":" : ": "));
 		if (queryFormat == SerializationSettings.SERIALIZE_AS_COLUMN) {
 			sb.append('{');
 			sb.append(eol);
@@ -619,7 +619,7 @@ public final class JSONConverter extends ConverterSupport {
 				oDoIt = true;
 
 				sb.append(StringUtil.escapeJS(upperCase ? _keys[i].getUpperString() : _keys[i].getString(), '"', charsetEncoder));
-				sb.append(": [");
+				sb.append((compact ? ":" : ": ") + "[");
 				sb.append(eol);
 				right();
 				boolean doIt = false;
