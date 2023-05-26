@@ -22,7 +22,8 @@ package lucee.runtime.converter;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Calendar;
-import java.util.HashSet;
+import java.util.Collections;
+import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
@@ -64,7 +65,7 @@ public final class JSConverter extends ConverterSupport {
 	 */
 	public String serialize(Object object, String clientVariableName) throws ConverterException {
 		StringBuilder sb = new StringBuilder();
-		_serialize(clientVariableName, object, sb, new HashSet<Object>());
+		_serialize(clientVariableName, object, sb, Collections.newSetFromMap(new IdentityHashMap<>()));
 		String str = sb.toString().trim();
 		return clientVariableName + "=" + str + (StringUtil.endsWith(str, ';') ? "" : ";");
 		// return sb.toString();
@@ -78,7 +79,7 @@ public final class JSConverter extends ConverterSupport {
 
 	private String _serialize(Object object) throws ConverterException {
 		StringBuilder sb = new StringBuilder();
-		_serialize("tmp", object, sb, new HashSet<Object>());
+		_serialize("tmp", object, sb, Collections.newSetFromMap(new IdentityHashMap<>()));
 		String str = sb.toString().trim();
 		return str + (StringUtil.endsWith(str, ';') ? "" : ";");
 		// return sb.toString();
