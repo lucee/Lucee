@@ -229,9 +229,20 @@ public class CFMLExpressionInterpreter {
 			// data.put(str+":"+preciseMath,ref);
 			return ref.getValue(pc);
 		}
-		if (cfml.toString().length() > 1024) throw new InterpreterException("Syntax Error, invalid Expression", "[" + cfml.toString().substring(0, 1024) + "]");
+		if (cfml.toString().length() > 1024) {
+			if (cfml.getPos() > 1024){
+				int offset = cfml.getPos()-10;
+				if ((offset + 255) > cfml.length()) offset = cfml.length();
+				else offset += 255;
+				throw new InterpreterException("Syntax Error, invalid Expression [" + cfml.getCurrent() + "] at position [" + cfml.getPos() + "]",
+					"[" + cfml.toString().substring(cfml.getPos()-10, offset) + "]");
+			} else {
+				throw new InterpreterException("Syntax Error, invalid Expression [" + cfml.getCurrent() + "] at position [" + cfml.getPos() + "]",
+					"[" + cfml.toString().substring(0, 1024) + "]");
+			}
+		}
 
-		throw new InterpreterException("Syntax Error, invalid Expression [" + cfml.toString() + "]");
+		throw new InterpreterException("Syntax Error, invalid Expression [" + cfml.getCurrent() + "] at position [" + cfml.getPos() + "]", cfml.toString());
 	}
 
 	private void init(PageContext pc) {
