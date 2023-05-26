@@ -111,9 +111,6 @@ public class JsonLayout extends AbstractStringLayout { // TODO <Serializable>
 
 	@Override
 	public String toSerializable(final LogEvent event) {
-		final StringBuilder buf = new StringBuilder(DEFAULT_SIZE);
-
-		// long now = System.currentTimeMillis();
 		Creation util = CFMLEngineFactory.getInstance().getCreationUtil();
 		try {
 			Struct root = util.createStruct("linked");
