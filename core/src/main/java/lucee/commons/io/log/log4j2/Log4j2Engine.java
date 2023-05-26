@@ -41,6 +41,7 @@ import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.io.retirement.RetireListener;
 import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.StringUtil;
+import lucee.loader.util.Util;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.config.ConfigWebUtil;
@@ -179,7 +180,7 @@ public class Log4j2Engine extends LogEngine {
 	@Override
 	public final Object getLayout(ClassDefinition cd, Map<String, String> layoutArgs, ClassDefinition cdAppender, String name) throws PageException {
 		if (layoutArgs == null) layoutArgs = new HashMap<String, String>();
-
+		lowerCase(layoutArgs);
 		// Layout
 		Layout layout = null;
 
@@ -204,14 +205,14 @@ public class Log4j2Engine extends LogEngine {
 				layoutArgs.put("title", title);
 
 				// font name
-				String fontName = Caster.toString(layoutArgs.get("fontName"), "");
+				String fontName = Caster.toString(layoutArgs.get("fontname"), "");
 				if (!StringUtil.isEmpty(fontName, true)) builder.withFontName(fontName);
-				layoutArgs.put("fontName", fontName);
+				layoutArgs.put("fontname", fontName);
 
 				// font size
-				FontSize fontSize = toFontSize(Caster.toString(layoutArgs.get("fontSize"), null));
+				FontSize fontSize = toFontSize(Caster.toString(layoutArgs.get("fontsize"), null));
 				if (fontSize != null) builder.withFontSize(fontSize);
-				layoutArgs.put("fontSize", fontSize == null ? "" : fontSize.name());
+				layoutArgs.put("fontsize", fontSize == null ? "" : fontSize.name());
 
 				layout = builder.build();
 
@@ -239,13 +240,13 @@ public class Log4j2Engine extends LogEngine {
 				// complete
 				boolean complete = Caster.toBooleanValue(layoutArgs.get("complete"), false);
 				// includeStacktrace
-				boolean includeStacktrace = Caster.toBooleanValue(layoutArgs.get("includeStacktrace"), true);
+				boolean includeStacktrace = Caster.toBooleanValue(layoutArgs.get("includestacktrace"), true);
 				// includeTimeMillis
-				boolean includeTimeMillis = Caster.toBooleanValue(layoutArgs.get("includeTimeMillis"), true);
+				boolean includeTimeMillis = Caster.toBooleanValue(layoutArgs.get("includetimemillis"), true);
 				// stacktraceAsString
-				boolean stacktraceAsString = Caster.toBooleanValue(layoutArgs.get("stacktraceAsString"), false);
+				boolean stacktraceAsString = Caster.toBooleanValue(layoutArgs.get("stacktraceasstring"), false);
 				// locationInfo
-				boolean locationInfo = Caster.toBooleanValue(layoutArgs.get("locationInfo"), false);
+				boolean locationInfo = Caster.toBooleanValue(layoutArgs.get("locationinfo"), false);
 				// properties
 				boolean properties = Caster.toBooleanValue(layoutArgs.get("properties"), true);
 				// compact
@@ -629,5 +630,24 @@ public class Log4j2Engine extends LogEngine {
 					true);
 		}
 		return fallback;
+	}
+
+	private static void lowerCase(Map<String, String> map) {
+		String v;
+		for (String k: map.keySet()) {
+			if (hasUpperCase(k)) {
+				v = map.get(k);
+				map.put(k.toLowerCase(), v);
+				map.remove(k);
+			}
+		}
+	}
+
+	private static boolean hasUpperCase(String str) {
+		if (Util.isEmpty(str, true)) return false;
+		for (int i = str.length() - 1; i >= 0; i--) {
+			if (Character.isUpperCase(str.charAt(i))) return true;
+		}
+		return false;
 	}
 }
