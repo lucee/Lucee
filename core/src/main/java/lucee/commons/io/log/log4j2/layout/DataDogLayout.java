@@ -231,6 +231,12 @@ public class DataDogLayout extends AbstractStringLayout {
 		return ids = new Object[] { "-1", "-1" };
 	}
 
+	public static Object[] getCorrelationIdentifierWhenValid() {
+		Object[] _ids = getCorrelationIdentifier();
+		if (idsValid) return _ids;
+		return null;
+	}
+
 	public int getLineNumber() {
 		int line = 0;
 		String template;

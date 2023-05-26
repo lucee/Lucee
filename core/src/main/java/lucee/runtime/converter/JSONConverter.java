@@ -39,6 +39,7 @@ import java.util.TimeZone;
 
 import org.w3c.dom.Node;
 
+import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.lang.CFTypes;
 import lucee.commons.lang.ExceptionUtil;
@@ -95,19 +96,76 @@ public final class JSONConverter extends ConverterSupport {
 
 	private String pattern;
 
+	private boolean compact;
+	private String eol;
+	private String indent1;
+	private String indent2;
+	private String indent3;
+	private String indent4;
+	private String indent5;
+	private String indent6;
+	private String indent7;
+	private String indent8;
+	private String indent9;
+	private String indent10;
+	private int level = 0;
+
+	/*
+	 * public static void main(String[] args) throws PageException, ConverterException { StructImpl sct
+	 * = new StructImpl(); // sct.set("nbr", 123); sct.set("boolean", true); StructImpl sct1 = new
+	 * StructImpl(); sct.set("sct", sct1); sct1.set("boolean", true); sct1.set("string",
+	 * "string val'\"ue"); sct1.set("number", 123.456); sct1.set("timezone", TimeZone.getDefault());
+	 * sct1.set("Locale", Locale.CANADA); sct1.set("Character", Character.valueOf('c'));
+	 * sct1.set("DateTime", new DateTimeImpl()); sct1.set("Date", new Date()); sct1.set("File", new
+	 * File(".")); sct1.set("byte", "swadd".getBytes());
+	 * 
+	 * Map map = new HashMap<>(); sct.set("map", map); map.put("t", true); map.put("f", false);
+	 * 
+	 * ArrayImpl arr = new ArrayImpl(); sct.set("arr", arr); arr.add("one"); arr.add("two");
+	 * sct.set("nativeArr", new String[] { "adaaasdd", "dwdasd" }); QueryImpl q = new QueryImpl(new
+	 * String[] { "first", "last" }, new Object[][] { new Object[] { "susi", "peter" }, new Object[] {
+	 * "susi2", "peter2" } }, "test");
+	 * 
+	 * sct.set("query", q);
+	 * 
+	 * JSONConverter json = new JSONConverter(true, CharsetUtil.UTF8, JSONDateFormat.PATTERN_ISO8601);
+	 * print.e(json.serialize(null, sct, -1, true));
+	 * 
+	 * json = new JSONConverter(true, CharsetUtil.UTF8, JSONDateFormat.PATTERN_ISO8601, false, null);
+	 * print.e(json.serialize(null, sct, -1, true)); }
+	 */
+
 	/**
 	 * @param ignoreRemotingFetch
 	 * @param charset if set, characters not supported by the charset are escaped.
 	 * @param patternCf
 	 */
 	public JSONConverter(boolean ignoreRemotingFetch, Charset charset) {
-		this(ignoreRemotingFetch, charset, JSONDateFormat.PATTERN_CF);
+		this(ignoreRemotingFetch, charset, JSONDateFormat.PATTERN_CF, true, null);
 	}
 
 	public JSONConverter(boolean ignoreRemotingFetch, Charset charset, String pattern) {
+		this(ignoreRemotingFetch, charset, pattern, true, null);
+	}
+
+	public JSONConverter(boolean ignoreRemotingFetch, Charset charset, String pattern, boolean compact, String indent) {
 		this.ignoreRemotingFetch = ignoreRemotingFetch;
 		charsetEncoder = charset != null ? charset.newEncoder() : null;// .canEncode("string");
 		this.pattern = pattern;
+		this.compact = compact;
+
+		this.eol = compact ? "" : SystemUtil.getOSSpecificLineSeparator();
+		this.indent1 = compact ? "" : (indent == null ? "  " : indent);
+		this.indent2 = indent1 + indent1;
+		this.indent3 = indent1 + indent1 + indent1;
+		this.indent4 = indent1 + indent1 + indent1 + indent1;
+		this.indent5 = indent1 + indent1 + indent1 + indent1 + indent1;
+		this.indent6 = indent1 + indent1 + indent1 + indent1 + indent1 + indent1;
+		this.indent7 = indent1 + indent1 + indent1 + indent1 + indent1 + indent1 + indent1;
+		this.indent8 = indent1 + indent1 + indent1 + indent1 + indent1 + indent1 + indent1 + indent1;
+		this.indent9 = indent1 + indent1 + indent1 + indent1 + indent1 + indent1 + indent1 + indent1 + indent1;
+		this.indent10 = indent1 + indent1 + indent1 + indent1 + indent1 + indent1 + indent1 + indent1 + indent1 + indent1;
+
 	}
 
 	/**
@@ -221,27 +279,52 @@ public final class JSONConverter extends ConverterSupport {
 	 */
 	private void _serializeList(PageContext pc, Set test, List list, StringBuilder sb, int queryFormat, Boolean preserveCase, Set<Object> done) throws ConverterException {
 
-		sb.append(goIn());
 		sb.append("[");
+		sb.append(eol);
+		right();
+
 		boolean doIt = false;
 		ListIterator it = list.listIterator();
 		while (it.hasNext()) {
-			if (doIt) sb.append(',');
+			if (doIt) {
+				sb.append(',');
+				sb.append(eol);
+				sb.append(indent());
+			}
+			else {
+				sb.append(indent());
+			}
 			doIt = true;
 			_serialize(pc, test, it.next(), sb, queryFormat, preserveCase, done);
 		}
 
+		sb.append(eol);
+		left();
+		sb.append(indent());
 		sb.append(']');
 	}
 
 	private void _serializeArray(PageContext pc, Set test, Object[] arr, StringBuilder sb, int queryFormat, Boolean preserveCase, Set<Object> done) throws ConverterException {
-
-		sb.append(goIn());
 		sb.append("[");
+		sb.append(eol);
+		right();
+
 		for (int i = 0; i < arr.length; i++) {
-			if (i > 0) sb.append(',');
+			if (i > 0) {
+				sb.append(',');
+				sb.append(eol);
+				sb.append(indent());
+			}
+			else {
+				sb.append(indent());
+			}
+
 			_serialize(pc, test, arr[i], sb, queryFormat, preserveCase, done);
 		}
+
+		sb.append(eol);
+		left();
+		sb.append(indent());
 		sb.append(']');
 	}
 
@@ -272,9 +355,9 @@ public final class JSONConverter extends ConverterSupport {
 			}
 		}
 
-		sb.append(goIn());
 		sb.append("{");
-
+		sb.append(eol);
+		right();
 		Iterator<Entry<Key, Object>> it = struct.entryIterator();
 		Entry<Key, Object> e;
 		String k;
@@ -282,6 +365,14 @@ public final class JSONConverter extends ConverterSupport {
 		boolean doIt = false;
 		while (it.hasNext()) {
 
+			if (doIt) {
+				sb.append(',');
+				sb.append(eol);
+				sb.append(indent());
+			}
+			else {
+				sb.append(indent());
+			}
 			e = it.next();
 			k = e.getKey().getString();
 			if (!preCase) k = k.toUpperCase();
@@ -289,11 +380,9 @@ public final class JSONConverter extends ConverterSupport {
 
 			if (!addUDFs && (value instanceof UDF || value == null)) continue;
 
-			if (doIt) sb.append(',');
-
 			doIt = true;
 			sb.append(StringUtil.escapeJS(k, '"', charsetEncoder));
-			sb.append(':');
+			sb.append(": ");
 			_serialize(pc, test, value, sb, queryFormat, preserveCase, done);
 		}
 
@@ -320,11 +409,13 @@ public final class JSONConverter extends ConverterSupport {
 				if (doIt) sb.append(',');
 				doIt = true;
 				sb.append(StringUtil.escapeJS(key.getString(), '"', charsetEncoder));
-				sb.append(':');
+				sb.append(": ");
 				_serialize(pc, test, value, sb, queryFormat, preserveCase, done);
 			}
 		}
-
+		sb.append(eol);
+		left();
+		sb.append(indent());
 		sb.append('}');
 	}
 
@@ -353,20 +444,30 @@ public final class JSONConverter extends ConverterSupport {
 	 * @throws ConverterException
 	 */
 	private void _serializeMap(PageContext pc, Set test, Map map, StringBuilder sb, int queryFormat, Boolean preserveCase, Set<Object> done) throws ConverterException {
-		sb.append(goIn());
 		sb.append("{");
+		sb.append(eol);
+		right();
 
 		Iterator it = map.keySet().iterator();
 		boolean doIt = false;
 		while (it.hasNext()) {
 			Object key = it.next();
-			if (doIt) sb.append(',');
+			if (doIt) {
+				sb.append(',');
+				sb.append(eol);
+				sb.append(indent());
+			}
+			else {
+				sb.append(indent());
+			}
 			doIt = true;
 			sb.append(StringUtil.escapeJS(key.toString(), '"', charsetEncoder));
-			sb.append(':');
+			sb.append(": ");
 			_serialize(pc, test, map.get(key), sb, queryFormat, preserveCase, done);
 		}
-
+		sb.append(eol);
+		left();
+		sb.append(indent());
 		sb.append('}');
 	}
 
@@ -432,7 +533,7 @@ public final class JSONConverter extends ConverterSupport {
 		Collection.Key[] _keys = CollectionUtil.keys(query);
 
 		if (queryFormat == SerializationSettings.SERIALIZE_AS_STRUCT) {
-			sb.append(goIn());
+			sb.append(indent());
 			sb.append("[");
 			int rc = query.getRecordcount();
 			for (int row = 1; row <= rc; row++) {
@@ -441,7 +542,7 @@ public final class JSONConverter extends ConverterSupport {
 				for (int col = 0; col < _keys.length; col++) {
 					if (col > 0) sb.append(',');
 					sb.append(StringUtil.escapeJS(preCase ? _keys[col].getString() : _keys[col].getUpperString(), '"', charsetEncoder));
-					sb.append(':');
+					sb.append(": ");
 					try {
 						_serialize(pc, test, query.getAt(_keys[col], row), sb, queryFormat, preserveCase, done);
 					}
@@ -457,33 +558,49 @@ public final class JSONConverter extends ConverterSupport {
 			return;
 		}
 
-		sb.append(goIn());
 		sb.append("{");
-
-		/*
-		 * 
-		 * {"DATA":[["a","b"],["c","d"]]} {"DATA":{"aaa":["a","c"],"bbb":["b","d"]}}
-		 */
+		sb.append(eol);
+		right();
 		// Rowcount
 		if (queryFormat == SerializationSettings.SERIALIZE_AS_COLUMN) {
-			sb.append("\"ROWCOUNT\":");
+			sb.append(indent());
+			sb.append("\"ROWCOUNT\": ");
 			sb.append(Caster.toString(query.getRecordcount()));
 			sb.append(',');
+			sb.append(eol);
 		}
 
 		// Columns
-		sb.append("\"COLUMNS\":[");
+		sb.append(indent());
+		sb.append("\"COLUMNS\": [");
+		sb.append(eol);
+		right();
 		String[] cols = query.getColumns();
 		for (int i = 0; i < cols.length; i++) {
-			if (i > 0) sb.append(",");
+			if (i > 0) {
+				sb.append(',');
+				sb.append(eol);
+				sb.append(indent());
+			}
+			else {
+				sb.append(indent());
+			}
+
 			sb.append(StringUtil.escapeJS(preCase ? cols[i] : cols[i].toUpperCase(), '"', charsetEncoder));
 		}
+		sb.append(eol);
+		left();
+		sb.append(indent());
 		sb.append("],");
 
 		// Data
-		sb.append("\"DATA\":");
+		sb.append(eol);
+		sb.append(indent());
+		sb.append("\"DATA\": ");
 		if (queryFormat == SerializationSettings.SERIALIZE_AS_COLUMN) {
 			sb.append('{');
+			sb.append(eol);
+			right();
 			boolean oDoIt = false;
 			int len = query.getRecordcount();
 			pc = ThreadLocalPageContext.get(pc);
@@ -491,15 +608,30 @@ public final class JSONConverter extends ConverterSupport {
 			if (pc != null) upperCase = pc.getCurrentTemplateDialect() == CFMLEngine.DIALECT_CFML && ((ConfigWebPro) pc.getConfig()).getDotNotationUpperCase();
 
 			for (int i = 0; i < _keys.length; i++) {
-				if (oDoIt) sb.append(',');
+				if (oDoIt) {
+					sb.append(',');
+					sb.append(eol);
+					sb.append(indent());
+				}
+				else {
+					sb.append(indent());
+				}
 				oDoIt = true;
-				sb.append(goIn());
 
 				sb.append(StringUtil.escapeJS(upperCase ? _keys[i].getUpperString() : _keys[i].getString(), '"', charsetEncoder));
-				sb.append(":[");
+				sb.append(": [");
+				sb.append(eol);
+				right();
 				boolean doIt = false;
 				for (int y = 1; y <= len; y++) {
-					if (doIt) sb.append(',');
+					if (doIt) {
+						sb.append(',');
+						sb.append(eol);
+						sb.append(indent());
+					}
+					else {
+						sb.append(indent());
+					}
 					doIt = true;
 					try {
 						_serialize(pc, test, query.getAt(_keys[i], y), sb, queryFormat, preserveCase, done);
@@ -508,24 +640,46 @@ public final class JSONConverter extends ConverterSupport {
 						_serialize(pc, test, e.getMessage(), sb, queryFormat, preserveCase, done);
 					}
 				}
-
+				sb.append(eol);
+				left();
+				sb.append(indent());
 				sb.append(']');
 			}
-
+			sb.append(eol);
+			left();
+			sb.append(indent());
 			sb.append('}');
 		}
 		else {
 			sb.append('[');
+			sb.append(eol);
+			right();
 			boolean oDoIt = false;
 			int len = query.getRecordcount();
 			for (int row = 1; row <= len; row++) {
-				if (oDoIt) sb.append(',');
+				if (oDoIt) {
+					sb.append(',');
+					sb.append(eol);
+					sb.append(indent());
+				}
+				else {
+					sb.append(indent());
+				}
 				oDoIt = true;
 
 				sb.append("[");
+				sb.append(eol);
+				right();
 				boolean doIt = false;
 				for (int col = 0; col < _keys.length; col++) {
-					if (doIt) sb.append(',');
+					if (doIt) {
+						sb.append(',');
+						sb.append(eol);
+						sb.append(indent());
+					}
+					else {
+						sb.append(indent());
+					}
 					doIt = true;
 					try {
 						_serialize(pc, test, query.getAt(_keys[col], row), sb, queryFormat, preserveCase, done);
@@ -534,10 +688,20 @@ public final class JSONConverter extends ConverterSupport {
 						_serialize(pc, test, e.getMessage(), sb, queryFormat, preserveCase, done);
 					}
 				}
+				sb.append(eol);
+				left();
+				sb.append(indent());
 				sb.append(']');
 			}
+			sb.append(eol);
+			left();
+			sb.append(indent());
 			sb.append(']');
 		}
+
+		sb.append(eol);
+		left();
+		sb.append(indent());
 		sb.append('}');
 	}
 
@@ -554,31 +718,26 @@ public final class JSONConverter extends ConverterSupport {
 
 		// NULL
 		if (object == null || object == CollectionUtil.NULL) {
-			sb.append(goIn());
 			sb.append("null");
 			return;
 		}
 		// String
 		if (object instanceof String || object instanceof StringBuilder) {
-			sb.append(goIn());
 			sb.append(StringUtil.escapeJS(object.toString(), '"', charsetEncoder));
 			return;
 		}
 		// TimeZone
 		if (object instanceof TimeZone) {
-			sb.append(goIn());
 			sb.append(StringUtil.escapeJS(((TimeZone) object).getID(), '"', charsetEncoder));
 			return;
 		}
 		// Locale
 		if (object instanceof Locale) {
-			sb.append(goIn());
 			sb.append(StringUtil.escapeJS(LocaleFactory.toString((Locale) object), '"', charsetEncoder));
 			return;
 		}
 		// Character
 		if (object instanceof Character) {
-			sb.append(goIn());
 			sb.append(StringUtil.escapeJS(String.valueOf(((Character) object).charValue()), '"', charsetEncoder));
 			return;
 		}
@@ -589,7 +748,6 @@ public final class JSONConverter extends ConverterSupport {
 		}
 		// Boolean
 		if (object instanceof Boolean) {
-			sb.append(goIn());
 			sb.append(Caster.toString(((Boolean) object).booleanValue()));
 			return;
 		}
@@ -630,7 +788,6 @@ public final class JSONConverter extends ConverterSupport {
 		}
 		Object raw = LazyConverter.toRaw(object);
 		if (done.contains(raw)) {
-			sb.append(goIn());
 			sb.append("null");
 			return;
 		}
@@ -704,12 +861,12 @@ public final class JSONConverter extends ConverterSupport {
 
 	private void _serializeXML(Node node, StringBuilder sb) {
 		node = XMLCaster.toRawNode(node);
-		sb.append(goIn());
+		sb.append(indent());
 		sb.append(StringUtil.escapeJS(XMLCaster.toString(node, ""), '"', charsetEncoder));
 	}
 
 	private void _serializeTimeSpan(TimeSpan ts, StringBuilder sb) throws ConverterException {
-		sb.append(goIn());
+		sb.append(indent());
 		try {
 			sb.append(ts.castToDoubleValue());
 		}
@@ -747,8 +904,46 @@ public final class JSONConverter extends ConverterSupport {
 	/**
 	 * @return return current blockquote
 	 */
-	private String goIn() {
-		return "";
+
+	private void right() {
+		level++;
+	}
+
+	private void left() {
+		level--;
+	}
+
+	private String indent() {
+		if (compact || level == 0) return "";
+
+		switch (level) {
+		case 1:
+			return indent1;
+		case 2:
+			return indent2;
+		case 3:
+			return indent3;
+		case 4:
+			return indent4;
+		case 5:
+			return indent5;
+		case 6:
+			return indent6;
+		case 7:
+			return indent7;
+		case 8:
+			return indent8;
+		case 9:
+			return indent9;
+		case 10:
+			return indent10;
+		}
+
+		StringBuilder sb = new StringBuilder();
+		for (int i = 0; i < level; i++) {
+			sb.append(indent1);
+		}
+		return sb.toString();
 	}
 
 	public static String serialize(PageContext pc, Object o) throws ConverterException {

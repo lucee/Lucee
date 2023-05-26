@@ -34,30 +34,36 @@ import org.apache.logging.log4j.message.MultiformatMessage;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.loader.util.Util;
+import lucee.runtime.PageContext;
 import lucee.runtime.converter.ConverterException;
 import lucee.runtime.converter.JSONConverter;
 import lucee.runtime.converter.JSONDateFormat;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
+import lucee.runtime.security.Credential;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.Struct;
 import lucee.runtime.util.Creation;
 
 public class JsonLayout extends AbstractStringLayout { // TODO <Serializable>
 
-	private boolean includeStacktrace;
-	private boolean includeTimeMillis;
-	private boolean stacktraceAsString;
-	private boolean locationInfo;
-	private boolean properties;
-	private boolean doComma = true;
-	private Charset charset;
+	private static final int DEFAULT_SIZE = 256;
 	private static final String[] FORMATS = new String[] { "json" };
+
+	private final boolean includeStacktrace;
+	private final boolean includeTimeMillis;
+	private final boolean stacktraceAsString;
+	private final boolean locationInfo;
+	private final boolean properties;
+	private boolean doComma = true;
+	private final Charset charset;
+	private boolean compact;
 
 	// private static final DateFormat dateFormat = new DateFormat(Locale.US);
 	// private static final TimeFormat timeFormat = new TimeFormat(Locale.US);
 
-	public JsonLayout(Charset charset, boolean complete, boolean includeStacktrace, boolean includeTimeMillis, boolean stacktraceAsString, boolean locationInfo,
+	public JsonLayout(Charset charset, boolean complete, boolean compact, boolean includeStacktrace, boolean includeTimeMillis, boolean stacktraceAsString, boolean locationInfo,
 			boolean properties) {
 		super(charset, createHeader(charset, complete), createFooter(charset, complete));
 
@@ -67,6 +73,8 @@ public class JsonLayout extends AbstractStringLayout { // TODO <Serializable>
 		this.stacktraceAsString = stacktraceAsString;
 		this.locationInfo = locationInfo;
 		this.properties = properties;
+
+		this.compact = compact;
 
 	}
 
@@ -103,6 +111,8 @@ public class JsonLayout extends AbstractStringLayout { // TODO <Serializable>
 
 	@Override
 	public String toSerializable(final LogEvent event) {
+		final StringBuilder buf = new StringBuilder(DEFAULT_SIZE);
+
 		// long now = System.currentTimeMillis();
 		Creation util = CFMLEngineFactory.getInstance().getCreationUtil();
 		try {
@@ -209,7 +219,6 @@ public class JsonLayout extends AbstractStringLayout { // TODO <Serializable>
 			}
 
 			if (this.locationInfo) {
-
 				StackTraceElement data = null;
 				for (StackTraceElement ste: Thread.currentThread().getStackTrace()) {
 					if (ste.getClassName().startsWith("lucee.commons.io.log.")) continue;
@@ -226,6 +235,26 @@ public class JsonLayout extends AbstractStringLayout { // TODO <Serializable>
 					source.setEL("line", data.getLineNumber());
 				}
 			}
+			// datadog
+			Object[] ddids = DataDogLayout.getCorrelationIdentifierWhenValid();
+			if (ddids != null && ddids.length == 2) {
+				Struct ids = util.createStruct("linked");
+				ids.set("traceId", ddids[0]);
+				ids.set("spanId", ddids[1]);
+				root.setEL("correlationIdentifier", ids);
+			}
+
+			// auth user
+			PageContext pc = ThreadLocalPageContext.get();
+			if (pc != null) {
+				String user = null;
+				Credential remoteUser = pc.getRemoteUser();
+				if (remoteUser == null) {
+					user = pc.getHttpServletRequest().getRemoteUser();
+				}
+				else user = remoteUser.getUsername();
+				if (!Util.isEmpty(user, true)) root.setEL("authUser", user);
+			}
 
 			// Properties
 			/*
@@ -238,7 +267,7 @@ public class JsonLayout extends AbstractStringLayout { // TODO <Serializable>
 			 */
 
 			try {
-				JSONConverter json = new JSONConverter(true, charset, JSONDateFormat.PATTERN_ISO8601);
+				JSONConverter json = new JSONConverter(true, charset, JSONDateFormat.PATTERN_ISO8601, compact, null);
 
 				String result = json.serialize(null, root, -1, Boolean.TRUE);
 				if (doComma) return "," + result;
