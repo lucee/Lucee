@@ -20,6 +20,7 @@ package lucee.runtime.op;
 
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
+import java.math.BigDecimal;
 import java.net.URI;
 import java.sql.Blob;
 import java.sql.Clob;
@@ -230,7 +231,20 @@ public final class Decision {
 	public static boolean isInteger(Object value, boolean alsoBooleans) {
 		if (!alsoBooleans && isBoolean(value)) return false;
 
+		if (value instanceof BigDecimal) {
+			BigDecimal bd = (BigDecimal) value;
+			BigDecimal bdc = new BigDecimal(bd.toBigInteger());
+
+			return bd.compareTo(bdc) == 0;
+		}
+
 		double dbl = Caster.toDoubleValue(value, false, Double.NaN);
+		if (!Decision.isValid(dbl)) return false;
+		int i = (int) dbl;
+		return i == dbl;
+	}
+
+	public static boolean isInteger(double dbl) {
 		if (!Decision.isValid(dbl)) return false;
 		int i = (int) dbl;
 		return i == dbl;

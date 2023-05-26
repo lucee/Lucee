@@ -820,14 +820,22 @@ public final class OpUtil {
 	 */
 	public static double exponent(PageContext pc, Object left, Object right) throws PageException {
 		if (AppListenerUtil.getPreciseMath(pc, null)) {
-			return Caster.toBigDecimal(left).pow(Caster.toIntValue(right)).doubleValue();
+			try {
+				return Caster.toBigDecimal(left).pow(Caster.toIntValue(right)).doubleValue();
+			}
+			catch (Exception e) {
+			}
 		}
 		return StrictMath.pow(Caster.toDoubleValue(left), Caster.toDoubleValue(right));
 	}
 
 	public static double exponent(PageContext pc, Number left, Number right) throws PageException {
 		if (AppListenerUtil.getPreciseMath(pc, null)) {
-			return Caster.toBigDecimal(left).pow(right.intValue()).doubleValue();
+			try {
+				return Caster.toBigDecimal(left).pow(right.intValue()).doubleValue();
+			}
+			catch (Exception e) {
+			}
 		}
 		return StrictMath.pow(left.doubleValue(), right.doubleValue());
 	}
@@ -1001,8 +1009,13 @@ public final class OpUtil {
 	}
 
 	public static Number exponentRef(PageContext pc, Object left, Object right) throws PageException {
-		if (AppListenerUtil.getPreciseMath(pc, null)) {
-			return MathUtil.pow(Caster.toBigDecimal(left), Caster.toIntValue(right));
+		// TODO better implementation
+		if (AppListenerUtil.getPreciseMath(pc, null) && Decision.isInteger(right)) {
+			try {
+				return MathUtil.pow(Caster.toBigDecimal(left), Caster.toIntValue(right));
+			}
+			catch (Exception e) {
+			}
 		}
 		return Caster.toDouble(StrictMath.pow(Caster.toDoubleValue(left), Caster.toDoubleValue(right)));
 	}
