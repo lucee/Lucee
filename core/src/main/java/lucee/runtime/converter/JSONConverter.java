@@ -345,11 +345,8 @@ public final class JSONConverter extends ConverterSupport {
 	public void _serializeStruct(PageContext pc, Set test, Struct struct, StringBuilder sb, int queryFormat, Boolean preserveCase, boolean addUDFs, Set<Object> done)
 			throws ConverterException {
 
-		ApplicationContextSupport acs = (pc == null) ? null : (ApplicationContextSupport) pc.getApplicationContext();
-		boolean preCase;
-		if (preserveCase != null) preCase = preserveCase.booleanValue();
-		else preCase = (acs == null) ? false : acs.getSerializationSettings().getPreserveCaseForStructKey(); // preserve case by default for Struct
-
+		// preserve case by default for Struct
+		boolean preCase = getPreserveCase(pc, preserveCase, false);
 		// Component
 		if (struct instanceof Component) {
 			String res = castToJson(pc, (Component) struct, NULL_STRING);
@@ -529,10 +526,7 @@ public final class JSONConverter extends ConverterSupport {
 	 */
 	private void _serializeQuery(PageContext pc, Set test, Query query, StringBuilder sb, int queryFormat, Boolean preserveCase, Set<Object> done) throws ConverterException {
 
-		ApplicationContextSupport acs = (pc == null) ? null : (ApplicationContextSupport) pc.getApplicationContext();
-		boolean preCase;
-		if (preserveCase != null) preCase = preserveCase.booleanValue();
-		else preCase = (acs == null) ? false : acs.getSerializationSettings().getPreserveCaseForQueryColumn(); // UPPERCASE column keys by default for Query
+		boolean preCase = getPreserveCase(pc, preserveCase, true); // UPPERCASE column keys by default for Query
 
 		Collection.Key[] _keys = CollectionUtil.keys(query);
 
@@ -969,4 +963,17 @@ public final class JSONConverter extends ConverterSupport {
 		return defaultValue;
 	}
 
+	private boolean getPreserveCase(PageContext pc, Boolean preserveCase, boolean forQuery) {
+		if (preserveCase != null) {
+			return preserveCase.booleanValue();
+		}
+
+		ApplicationContextSupport acs = pc == null ? null : (ApplicationContextSupport) pc.getApplicationContext();
+		if (acs != null) {
+			SerializationSettings ss = acs.getSerializationSettings();
+			return forQuery ? ss.getPreserveCaseForQueryColumn() : ss.getPreserveCaseForStructKey();
+		}
+
+		return true;
+	}
 }

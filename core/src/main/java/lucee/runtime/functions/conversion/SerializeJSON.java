@@ -83,7 +83,7 @@ public final class SerializeJSON implements Function {
 			}
 
 			// TODO get secure prefix from application.cfc
-			return useSecureJSONPrefix ? "// " + json.serialize(pc, var, qf, true) : json.serialize(pc, var, qf, true);
+			return useSecureJSONPrefix ? "// " + json.serialize(pc, var, qf, null) : json.serialize(pc, var, qf, null);
 		}
 		catch (ConverterException e) {
 			throw Caster.toPageException(e);

@@ -1539,6 +1539,10 @@ public final class ConfigWebFactory extends ConfigFactory {
 		sb.append(config.getDefaultFunctionOutput());
 		sb.append(';');
 
+		// preserve Case
+		sb.append(config.preserveCase());
+		sb.append(';');
+
 		// full null support
 		// sb.append(config.getFull Null Support()); // no longer a compiler switch
 		// sb.append(';');
@@ -1583,7 +1587,6 @@ public final class ConfigWebFactory extends ConfigFactory {
 			}
 			catch (IOException e) {
 			}
-
 			// change Compile type
 			if (hasChanged) {
 				try {
