@@ -12056,6 +12056,13 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<description>string characters that cannot be encoded by this charset get escaped, 
 			if not set the web charset is used.</description>
 		</argument>
+		<argument>
+			<name>compact</name>
+			<type>boolean</type>
+			<required>No</required>
+			<default>No</default>
+			<description>If true, it does not use end-of-lines and indentation. Defaults to true.</description>
+		</argument>
 		<return>
 			<type>string</type>
 		</return>

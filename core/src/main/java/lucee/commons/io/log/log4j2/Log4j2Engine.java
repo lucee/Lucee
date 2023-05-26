@@ -234,7 +234,7 @@ public class Log4j2Engine extends LogEngine {
 			}
 			// JSON Layout
 			else if (JsonLayout.class.getName().equalsIgnoreCase(cd.getClassName())) {
-				// Charset
+				// charset
 				Charset charset = CharsetUtil.toCharset(layoutArgs.get("charset"), CharsetUtil.UTF8);
 				// complete
 				boolean complete = Caster.toBooleanValue(layoutArgs.get("complete"), false);
@@ -248,7 +248,10 @@ public class Log4j2Engine extends LogEngine {
 				boolean locationInfo = Caster.toBooleanValue(layoutArgs.get("locationInfo"), false);
 				// properties
 				boolean properties = Caster.toBooleanValue(layoutArgs.get("properties"), true);
-				return new JsonLayout(charset, complete, includeStacktrace, includeTimeMillis, stacktraceAsString, locationInfo, properties);
+				// compact
+				boolean compact = Caster.toBooleanValue(layoutArgs.get("compact"), false);
+
+				return new JsonLayout(charset, complete, compact, includeStacktrace, includeTimeMillis, stacktraceAsString, locationInfo, properties);
 			}
 
 			// Pattern Layout

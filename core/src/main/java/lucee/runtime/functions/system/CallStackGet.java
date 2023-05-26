@@ -29,6 +29,7 @@ import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.converter.JSONConverter;
+import lucee.runtime.converter.JSONDateFormat;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
@@ -79,7 +80,7 @@ public final class CallStackGet implements Function {
 
 		if (type.equalsIgnoreCase("json")) {
 			try {
-				return new JSONConverter(true, null).serialize(pc, arr, SerializationSettings.SERIALIZE_AS_ROW);
+				return new JSONConverter(true, null, JSONDateFormat.PATTERN_CF, false).serialize(pc, arr, SerializationSettings.SERIALIZE_AS_ROW, false);
 			}
 			catch (Throwable t) {
 				ExceptionUtil.rethrowIfNecessary(t);

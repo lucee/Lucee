@@ -667,10 +667,9 @@ public final class ConfigWebFactory extends ConfigFactory {
 
 	private static Struct reload(Struct root, ConfigImpl config, ConfigServerImpl cs) throws PageException, IOException, ConverterException {
 		// store as json
-		JSONConverter json = new JSONConverter(true, CharsetUtil.UTF8, JSONDateFormat.PATTERN_CF, true, true);
-		String str = json.serialize(null, root, SerializationSettings.SERIALIZE_AS_ROW);
+		JSONConverter json = new JSONConverter(true, CharsetUtil.UTF8, JSONDateFormat.PATTERN_CF, false);
+		String str = json.serialize(null, root, SerializationSettings.SERIALIZE_AS_ROW, true);
 		IOUtil.write(config.getConfigFile(), str, CharsetUtil.UTF8, false);
-
 		root = ConfigWebFactory.loadDocument(config.getConfigFile());
 		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, ConfigWebFactory.class.getName(), "reloading configuration");
 		return root;

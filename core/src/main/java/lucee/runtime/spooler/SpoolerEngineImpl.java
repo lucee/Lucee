@@ -38,9 +38,11 @@ import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.SerializableObject;
 import lucee.commons.lang.StringUtil;
+import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.config.ConfigWebUtil;
+import lucee.runtime.converter.JavaConverter;
 import lucee.runtime.engine.ThreadLocalConfig;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.DatabaseException;
@@ -201,7 +203,8 @@ public class SpoolerEngineImpl implements SpoolerEngine {
 		SpoolerTask task = defaultValue;
 		try {
 			is = res.getInputStream();
-			ois = new ObjectInputStream(is);
+			ois = new JavaConverter.ObjectInputStreamImpl(CFMLEngineFactory.getInstance().getClass().getClassLoader(), is);
+
 			task = (SpoolerTask) ois.readObject();
 		}
 		catch (Exception e) {
