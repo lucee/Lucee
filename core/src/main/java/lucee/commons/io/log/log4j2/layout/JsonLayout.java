@@ -238,9 +238,9 @@ public class JsonLayout extends AbstractStringLayout { // TODO <Serializable>
 			Object[] ddids = DataDogLayout.getCorrelationIdentifierWhenValid();
 			if (ddids != null && ddids.length == 2) {
 				Struct ids = util.createStruct("linked");
-				ids.set("traceId", ddids[0]);
-				ids.set("spanId", ddids[1]);
-				root.setEL("correlationIdentifier", ids);
+				ids.set("trace_id", ddids[0]);
+				ids.set("span_id", ddids[1]);
+				root.setEL("dd", ids);
 			}
 
 			// auth user
