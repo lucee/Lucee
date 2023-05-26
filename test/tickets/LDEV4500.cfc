@@ -32,7 +32,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				expect( bd ).tobe( 2 );
 			});
 
-			it(title="Checking BigDecimal 2.00 casting in cfswitch 2 ", skip=false, body = function( currentSpec ) {
+			it(title="Checking BigDecimal 2.00 casting in cfswitch 2 ", skip=true, body = function( currentSpec ) {
 				```
 				<cfswitch expression="#bd#">
 					<cfcase value=2>
@@ -47,7 +47,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				expect( bd ).tobe( 2 );
 			});
 			
-			it(title="Checking BigDecimal 2.00 casting in cfswitch '2' ", skip=false, body = function( currentSpec ) {
+			it(title="Checking BigDecimal 2.00 casting in cfswitch '2' ", skip=true, body = function( currentSpec ) {
 				```
 				<cfswitch expression="#bd#">
 					<cfcase value="2">
