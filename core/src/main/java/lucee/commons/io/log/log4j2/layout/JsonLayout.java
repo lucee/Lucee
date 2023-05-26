@@ -31,6 +31,7 @@ import org.apache.logging.log4j.core.time.Instant;
 import org.apache.logging.log4j.message.Message;
 import org.apache.logging.log4j.message.MultiformatMessage;
 
+import lucee.commons.io.SystemUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.loader.util.Util;
@@ -50,6 +51,7 @@ public class JsonLayout extends AbstractStringLayout { // TODO <Serializable>
 
 	private static final int DEFAULT_SIZE = 256;
 	private static final String[] FORMATS = new String[] { "json" };
+	private static final String NL = SystemUtil.getOSSpecificLineSeparator();
 
 	private final boolean includeStacktrace;
 	private final boolean includeTimeMillis;
@@ -267,7 +269,7 @@ public class JsonLayout extends AbstractStringLayout { // TODO <Serializable>
 				JSONConverter json = new JSONConverter(true, charset, JSONDateFormat.PATTERN_ISO8601, compact, null);
 
 				String result = json.serialize(null, root, -1, Boolean.TRUE);
-				if (doComma) return "," + result;
+				if (doComma) return "," + NL + result;
 				else doComma = true;
 				return result;
 			}
