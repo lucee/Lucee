@@ -1354,7 +1354,7 @@ public final class StringUtil {
 			v = Caster.toString(e.getValue());
 			tmp = new ArrayList<Pos>();
 			result = _replace(result.toString(), k, placeholder(k), false, ignoreCase, tmp);
-			if (result instanceof StringBuilder) foundMatch = true;
+			if (!foundMatch && result instanceof StringBuilder) foundMatch = true;
 			for (Pos pos: tmp) {
 				positions.put(pos, v);
 			}
