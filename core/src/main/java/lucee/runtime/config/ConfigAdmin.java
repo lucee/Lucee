@@ -306,8 +306,8 @@ public final class ConfigAdmin {
 	}
 
 	private synchronized void _store() throws PageException, ConverterException, IOException {
-		JSONConverter json = new JSONConverter(true, CharsetUtil.UTF8, JSONDateFormat.PATTERN_CF, true, true);
-		String str = json.serialize(null, root, SerializationSettings.SERIALIZE_AS_ROW);
+		JSONConverter json = new JSONConverter(true, CharsetUtil.UTF8, JSONDateFormat.PATTERN_CF, false);
+		String str = json.serialize(null, root, SerializationSettings.SERIALIZE_AS_ROW, true);
 		IOUtil.write(config.getConfigFile(), str, CharsetUtil.UTF8, false);
 	}
 
@@ -1411,15 +1411,21 @@ public final class ConfigAdmin {
 
 		Struct children = ConfigWebUtil.getAsStruct("dataSources", root);
 		Key[] keys = children.keys();
+
+		boolean isUpdate = false;
+		boolean isNameUpdate = !StringUtil.isEmpty(newName) && !newName.equals(name);
+		Struct el = new StructImpl(Struct.TYPE_LINKED);
+
 		for (Key key: keys) {
 
 			if (key.getString().equalsIgnoreCase(name)) {
 				Struct tmp = Caster.toStruct(children.get(key, null), null);
 				if (tmp == null) continue;
-				Struct el = tmp;
+				el = tmp;
+				isUpdate = true;
 				if (password.equalsIgnoreCase("****************")) password = ConfigWebUtil.getAsString("password", el, null);
 
-				if (!StringUtil.isEmpty(newName) && !newName.equals(name)) el.setEL("name", newName);
+				if (isNameUpdate) el.setEL("name", newName);
 				setClass(el, null, "", cd);
 
 				if (!StringUtil.isEmpty(id)) el.setEL(KeyConstants._id, id);
@@ -1464,15 +1470,21 @@ public final class ConfigAdmin {
 				if (alwaysResetConnections) el.setEL("alwaysResetConnections", "true");
 				else if (el.containsKey("alwaysResetConnections")) el.removeEL(KeyImpl.init("alwaysResetConnections"));
 
-				return;
+				break;
 			}
+		}
+		if (isUpdate) {
+			if (isNameUpdate) {
+				children.setEL(newName, el);
+				children.removeEL(KeyImpl.init(name));
+			}
+			return;
 		}
 
 		if (!hasInsertAccess) throw new SecurityException("Unable to add a datasource connection, the maximum count of [" + maxLength + "] datasources has been reached. "
 				+ " This can be configured in the Server Admin, under Security, Access");
 
 		// Insert
-		Struct el = new StructImpl(Struct.TYPE_LINKED);
 		children.setEL(!StringUtil.isEmpty(newName) ? newName : name, el);
 		setClass(el, null, "", cd);
 		el.setEL("dsn", dsn);
@@ -1835,39 +1847,44 @@ public final class ConfigAdmin {
 			throw new ExpressionException(e.getMessage());
 		}
 
-		if (name.equalsIgnoreCase(Caster.toString(root.get("defaultTemplate", null), null))) rem(root, "defaultTemplate");
-		if (name.equalsIgnoreCase(Caster.toString(root.get("defaultObject", null), null))) rem(root, "defaultObject");
-		if (name.equalsIgnoreCase(Caster.toString(root.get("defaultQuery", null), null))) rem(root, "defaultQuery");
-		if (name.equalsIgnoreCase(Caster.toString(root.get("defaultResource", null), null))) rem(root, "defaultResource");
-		if (name.equalsIgnoreCase(Caster.toString(root.get("defaultFunction", null), null))) rem(root, "defaultFunction");
-		if (name.equalsIgnoreCase(Caster.toString(root.get("defaultInclude", null), null))) rem(root, "defaultInclude");
+		Struct parent = _getRootElement("cache");
+
+		if (name.equalsIgnoreCase(Caster.toString(parent.get("defaultTemplate", null), null))) rem(parent, "defaultTemplate");
+		if (name.equalsIgnoreCase(Caster.toString(parent.get("defaultObject", null), null))) rem(parent, "defaultObject");
+		if (name.equalsIgnoreCase(Caster.toString(parent.get("defaultQuery", null), null))) rem(parent, "defaultQuery");
+		if (name.equalsIgnoreCase(Caster.toString(parent.get("defaultResource", null), null))) rem(parent, "defaultResource");
+		if (name.equalsIgnoreCase(Caster.toString(parent.get("defaultFunction", null), null))) rem(parent, "defaultFunction");
+		if (name.equalsIgnoreCase(Caster.toString(parent.get("defaultInclude", null), null))) rem(parent, "defaultInclude");
+		if (name.equalsIgnoreCase(Caster.toString(parent.get("defaultHttp", null), null))) rem(parent, "defaultHttp");
+		if (name.equalsIgnoreCase(Caster.toString(parent.get("defaultFile", null), null))) rem(parent, "defaultFile");
+		if (name.equalsIgnoreCase(Caster.toString(parent.get("defaultWebservice", null), null))) rem(parent, "defaultWebservice");
 
 		if (_default == ConfigPro.CACHE_TYPE_OBJECT) {
-			root.setEL("defaultObject", name);
+			parent.setEL("defaultObject", name);
 		}
 		else if (_default == ConfigPro.CACHE_TYPE_TEMPLATE) {
-			root.setEL("defaultTemplate", name);
+			parent.setEL("defaultTemplate", name);
 		}
 		else if (_default == ConfigPro.CACHE_TYPE_QUERY) {
-			root.setEL("defaultQuery", name);
+			parent.setEL("defaultQuery", name);
 		}
 		else if (_default == ConfigPro.CACHE_TYPE_RESOURCE) {
-			root.setEL("defaultResource", name);
+			parent.setEL("defaultResource", name);
 		}
 		else if (_default == ConfigPro.CACHE_TYPE_FUNCTION) {
-			root.setEL("defaultFunction", name);
+			parent.setEL("defaultFunction", name);
 		}
 		else if (_default == ConfigPro.CACHE_TYPE_INCLUDE) {
-			root.setEL("defaultInclude", name);
+			parent.setEL("defaultInclude", name);
 		}
 		else if (_default == ConfigPro.CACHE_TYPE_HTTP) {
-			root.setEL("defaultHttp", name);
+			parent.setEL("defaultHttp", name);
 		}
 		else if (_default == ConfigPro.CACHE_TYPE_FILE) {
-			root.setEL("defaultFile", name);
+			parent.setEL("defaultFile", name);
 		}
 		else if (_default == ConfigPro.CACHE_TYPE_WEBSERVICE) {
-			root.setEL("defaultWebservice", name);
+			parent.setEL("defaultWebservice", name);
 		}
 
 		// Update
@@ -4405,8 +4422,9 @@ public final class ConfigAdmin {
 			boolean reloadNecessary = false;
 
 			// store to xml
+			RHExtension.removeDuplicates(ConfigWebUtil.getAsArray("extensions", root));
 			BundleDefinition[] existing = _updateExtension(ci, rhext);
-			// _storeAndReload();
+
 			// this must happen after "store"
 			cleanBundles(rhext, ci, existing);// clean after populating the new ones
 			// ConfigWebAdmin.updateRHExtension(ci,rhext);
@@ -4703,14 +4721,19 @@ public final class ConfigAdmin {
 					physical = map.get("physical");
 					archive = map.get("archive");
 					primary = map.get("primary");
-
 					inspect = ConfigWebUtil.inspectTemplate(map.get("inspect"), Config.INSPECT_UNDEFINED);
-					lmode = ConfigWebUtil.toListenerMode(map.get("listener-mode"), -1);
-					ltype = ConfigWebUtil.toListenerType(map.get("listener-type"), -1);
+					String strLMode = map.get("listener-mode");
+					if (StringUtil.isEmpty(strLMode, true)) strLMode = map.get("listenermode");
+					if (StringUtil.isEmpty(strLMode, true)) strLMode = map.get("listenerMode");
+					lmode = ConfigWebUtil.toListenerMode(strLMode, -1);
+
+					String strLType = map.get("listener-type");
+					if (StringUtil.isEmpty(strLType, true)) strLType = map.get("listenertype");
+					if (StringUtil.isEmpty(strLType, true)) strLType = map.get("listenerType");
+					ltype = ConfigWebUtil.toListenerType(strLType, -1);
 
 					toplevel = Caster.toBooleanValue(map.get("toplevel"), false);
 					readonly = Caster.toBooleanValue(map.get("readonly"), false);
-
 					_updateMapping(virtual, physical, archive, primary, inspect, toplevel, lmode, ltype, readonly);
 					reloadNecessary = true;
 
@@ -5525,7 +5548,7 @@ public final class ConfigAdmin {
 	}
 
 	public void updateCompilerSettings(Boolean dotNotationUpperCase, Boolean suppressWSBeforeArg, Boolean nullSupport, Boolean handleUnQuotedAttrValueAsString,
-			Integer externalizeStringGTE) throws PageException {
+			Integer externalizeStringGTE, Boolean preciseMath) throws PageException {
 
 		// Struct element = _getRootElement("compiler");
 
@@ -5568,6 +5591,13 @@ public final class ConfigAdmin {
 			root.setEL("handleUnquotedAttributeValueAsString", Caster.toString(handleUnQuotedAttrValueAsString));
 		}
 
+		// preciseMath
+		if (preciseMath == null) {
+			if (root.containsKey("preciseMath")) rem(root, "preciseMath");
+		}
+		else {
+			root.setEL("preciseMath", Caster.toString(preciseMath));
+		}
 	}
 
 	Resource[] updateWebContexts(InputStream is, String realpath, boolean closeStream, boolean store) throws PageException, IOException, BundleException, ConverterException {
@@ -6072,7 +6102,6 @@ public final class ConfigAdmin {
 	 */
 	public BundleDefinition[] _updateExtension(ConfigPro config, RHExtension ext) throws IOException, BundleException, PageException {
 		if (!Decision.isUUId(ext.getId())) throw new IOException("id [" + ext.getId() + "] is invalid, it has to be a UUID");
-
 		Array children = ConfigWebUtil.getAsArray("extensions", root);
 		int[] keys = children.intKeys();
 		int key;

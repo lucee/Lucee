@@ -108,7 +108,7 @@ public abstract class AbsOpUnary extends ExpressionBase {
 		 */
 		if ((scope == null && size > 1) || (scope != null && size > 0)) {
 			Member last = var.removeMember(members.size() - 1);
-			if (!(last instanceof DataMember)) throw new TransformerException("you cannot use a unary operator with a function " + last.getClass().getName(), getStart());
+			if (!(last instanceof DataMember)) throw new TransformerException(bc, "you cannot use a unary operator with a function " + last.getClass().getName(), getStart());
 
 			// if (operation == Factory.OP_UNARY_CONCAT || operation == Factory.OP_UNARY_MULTIPLY || operation
 			// == Factory.OP_UNARY_PLUS || operation == Factory.OP_UNARY_MINUS
@@ -128,7 +128,7 @@ public abstract class AbsOpUnary extends ExpressionBase {
 
 			if (type == Factory.OP_UNARY_POST) {
 				if (operation != Factory.OP_UNARY_PLUS && operation != Factory.OP_UNARY_MINUS)
-					throw new TransformerException("Post only possible with plus or minus " + operation, value.getStart());
+					throw new TransformerException(bc, "Post only possible with plus or minus " + operation, value.getStart());
 
 				if (operation == Factory.OP_UNARY_PLUS) adapter.invokeStatic(Types.OP_UTIL, UNARY_POST_PLUS4);
 				else if (operation == Factory.OP_UNARY_MINUS) adapter.invokeStatic(Types.OP_UTIL, UNARY_POST_MINUS4);
@@ -178,7 +178,7 @@ public abstract class AbsOpUnary extends ExpressionBase {
 			while (it.hasNext()) {
 				av.visitBeginItem(adapter, index++);
 				m = it.next();
-				if (!(m instanceof DataMember)) throw new TransformerException("you cannot use a unary operator with a function " + m.getClass().getName(), getStart());
+				if (!(m instanceof DataMember)) throw new TransformerException(bc, "you cannot use a unary operator with a function " + m.getClass().getName(), getStart());
 				getFactory().registerKey(bc, ((DataMember) m).getName(), false);
 				av.visitEndItem(adapter);
 			}
@@ -186,13 +186,13 @@ public abstract class AbsOpUnary extends ExpressionBase {
 		}
 		else {
 			Member m = members.iterator().next();
-			if (!(m instanceof DataMember)) throw new TransformerException("you cannot use a unary operator with a function " + m.getClass().getName(), getStart());
+			if (!(m instanceof DataMember)) throw new TransformerException(bc, "you cannot use a unary operator with a function " + m.getClass().getName(), getStart());
 			getFactory().registerKey(bc, ((DataMember) m).getName(), false);
 		}
 
 		if (type == Factory.OP_UNARY_POST) {
 			if (operation != Factory.OP_UNARY_PLUS && operation != Factory.OP_UNARY_MINUS)
-				throw new TransformerException("Post only possible with plus or minus " + operation, value.getStart());
+				throw new TransformerException(bc, "Post only possible with plus or minus " + operation, value.getStart());
 
 			value.writeOut(bc, MODE_REF);
 			if (operation == Factory.OP_UNARY_PLUS) adapter.invokeStatic(Types.OP_UTIL, useArray ? UNARY_POST_PLUS_N : UNARY_POST_PLUS_1);

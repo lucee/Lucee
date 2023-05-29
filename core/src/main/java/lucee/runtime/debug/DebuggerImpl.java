@@ -71,6 +71,7 @@ import lucee.runtime.type.dt.DateTimeImpl;
 import lucee.runtime.type.query.QueryResult;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.ListUtil;
+// import lucee.runtime.debug.DebuggerPro;
 
 /**
  * Class to debug the application
@@ -114,6 +115,8 @@ public final class DebuggerImpl implements Debugger {
 
 	private long queryTime = 0;
 
+	private String threadName;
+
 	final static Comparator DEBUG_ENTRY_TEMPLATE_COMPARATOR = new DebugEntryTemplateComparator();
 	final static Comparator DEBUG_ENTRY_TEMPLATE_PART_COMPARATOR = new DebugEntryTemplatePartComparator();
 
@@ -125,7 +128,7 @@ public final class DebuggerImpl implements Debugger {
 			KeyConstants._count, KeyConstants._datasource, KeyConstants._usage, CACHE_TYPE };
 	private static final String[] QUERY_COLUMN_TYPES = new String[] { "VARCHAR", "DOUBLE", "VARCHAR", "VARCHAR", "DOUBLE", "DOUBLE", "VARCHAR", "ANY", "VARCHAR" };
 	private static final Key[] GEN_DATA_COLUMNS = new Collection.Key[] { KeyConstants._category, KeyConstants._name, KeyConstants._value };
-	private static final Key[] TIMER_COLUMNS = new Collection.Key[] { KeyConstants._label, KeyConstants._time, KeyConstants._template };
+	private static final Key[] TIMER_COLUMNS = new Collection.Key[] { KeyConstants._label, KeyConstants._time, KeyConstants._template, KeyConstants._line };
 	private static final Key[] DUMP_COLUMNS = new Collection.Key[] { KeyConstants._output, KeyConstants._template, KeyConstants._line };
 
 	private static final Key[] PAGE_PART_COLUMNS = new Collection.Key[] { KeyConstants._id, KeyConstants._count, KeyConstants._min, KeyConstants._max, KeyConstants._avg,
@@ -157,6 +160,7 @@ public final class DebuggerImpl implements Debugger {
 		abort = null;
 		outputContext = null;
 		queryTime = 0;
+		threadName = null;
 	}
 
 	public DebuggerImpl() {
@@ -176,14 +180,26 @@ public final class DebuggerImpl implements Debugger {
 		DebugEntryTemplateImpl de = entries.get(src);
 		if (de != null) {
 			de.countPP();
-			historyId.appendEL(de.getId());
-			historyLevel.appendEL(Caster.toInteger(pc.getCurrentLevel()));
+			try {
+				historyId.appendEL(Caster.toInteger(de.getId()));
+				historyLevel.appendEL(Caster.toInteger(pc.getCurrentLevel()));
+			}
+			catch(PageException e) {
+				historyId.appendEL(de.getId());
+				historyLevel.appendEL(pc.getCurrentLevel());
+			}
 			return de;
 		}
 		de = new DebugEntryTemplateImpl(source, key);
 		entries.put(src, de);
-		historyId.appendEL(de.getId());
-		historyLevel.appendEL(Caster.toInteger(pc.getCurrentLevel()));
+		try {
+			historyId.appendEL(Caster.toInteger(de.getId()));
+			historyLevel.appendEL(Caster.toInteger(pc.getCurrentLevel()));
+		}
+		catch(PageException e) {
+			historyId.appendEL(de.getId());
+			historyLevel.appendEL(pc.getCurrentLevel());
+		}
 		return de;
 	}
 
@@ -298,6 +314,10 @@ public final class DebuggerImpl implements Debugger {
 		if (listen) {
 			this.outputContext = new ApplicationException("");
 		}
+	}
+
+	public void setThreadName(String threadName) {
+		this.threadName = threadName;
 	}
 
 	// FUTURE add to inzerface
@@ -486,7 +506,7 @@ public final class DebuggerImpl implements Debugger {
 						de = arrPages.get(i);
 						// ps = de.getPageSource();
 						totalTime += de.getFileLoadTime() + de.getExeTime();
-						qryPage.setAt(KeyConstants._id, row, de.getId());
+						qryPage.setAt(KeyConstants._id, row, Caster.toInteger(de.getId()));
 						qryPage.setAt(KeyConstants._count, row, _toDouble(de.getCount()));
 						qryPage.setAt(KeyConstants._min, row, _toDouble(de.getMin()));
 						qryPage.setAt(KeyConstants._max, row, _toDouble(de.getMax()));
@@ -548,7 +568,7 @@ public final class DebuggerImpl implements Debugger {
 					row++;
 					de = parts[i];
 
-					qryPart.setAt(KeyConstants._id, row, de.getId());
+					qryPart.setAt(KeyConstants._id, row, Caster.toInteger(de.getId()));
 					qryPart.setAt(KeyConstants._count, row, _toDouble(de.getCount()));
 					qryPart.setAt(KeyConstants._min, row, _toDouble(de.getMin()));
 					qryPart.setAt(KeyConstants._max, row, _toDouble(de.getMax()));
@@ -628,7 +648,7 @@ public final class DebuggerImpl implements Debugger {
 			if (len > 0) {
 				try {
 					Iterator<DebugTimerImpl> it = timers.iterator();
-					DebugTimer timer;
+					DebugTimerPro timer;
 					int row = 0;
 					while (it.hasNext()) {
 						timer = it.next();
@@ -636,6 +656,7 @@ public final class DebuggerImpl implements Debugger {
 						qryTimers.setAt(KeyConstants._label, row, timer.getLabel());
 						qryTimers.setAt(KeyConstants._template, row, timer.getTemplate());
 						qryTimers.setAt(KeyConstants._time, row, Caster.toDouble(timer.getTime()));
+						qryTimers.setAt(KeyConstants._line, row, timer.getLine());
 					}
 				}
 				catch (PageException dbe) {
@@ -675,7 +696,7 @@ public final class DebuggerImpl implements Debugger {
 						row++;
 						qryDumps.setAt(KeyConstants._output, row, dd.getOutput());
 						if (!StringUtil.isEmpty(dd.getTemplate())) qryDumps.setAt(KeyConstants._template, row, dd.getTemplate());
-						if (dd.getLine() > 0) qryDumps.setAt(KeyConstants._line, row, new Double(dd.getLine()));
+						if (dd.getLine() > 0) qryDumps.setAt(KeyConstants._line, row, Double.valueOf(dd.getLine()));
 					}
 				}
 				catch (PageException dbe) {
@@ -704,11 +725,11 @@ public final class DebuggerImpl implements Debugger {
 						if (!StringUtil.isEmpty(trace.getCategory())) qryTraces.setAt(KeyConstants._category, row, trace.getCategory());
 						if (!StringUtil.isEmpty(trace.getText())) qryTraces.setAt(KeyConstants._text, row, trace.getText());
 						if (!StringUtil.isEmpty(trace.getTemplate())) qryTraces.setAt(KeyConstants._template, row, trace.getTemplate());
-						if (trace.getLine() > 0) qryTraces.setAt(KeyConstants._line, row, new Double(trace.getLine()));
+						if (trace.getLine() > 0) qryTraces.setAt(KeyConstants._line, row, Double.valueOf(trace.getLine()));
 						if (!StringUtil.isEmpty(trace.getAction())) qryTraces.setAt(KeyConstants._action, row, trace.getAction());
 						if (!StringUtil.isEmpty(trace.getVarName())) qryTraces.setAt(KeyImpl.getInstance("varname"), row, trace.getVarName());
 						if (!StringUtil.isEmpty(trace.getVarValue())) qryTraces.setAt(KeyImpl.getInstance("varvalue"), row, trace.getVarValue());
-						qryTraces.setAt(KeyConstants._time, row, new Double(trace.getTime()));
+						qryTraces.setAt(KeyConstants._time, row, Double.valueOf(trace.getTime()));
 					}
 				}
 				catch (PageException dbe) {
@@ -732,9 +753,9 @@ public final class DebuggerImpl implements Debugger {
 						das = it.next();
 						row++;
 						qryImplicitAccesseses.setAt(KeyConstants._template, row, das.getTemplate());
-						qryImplicitAccesseses.setAt(KeyConstants._line, row, new Double(das.getLine()));
+						qryImplicitAccesseses.setAt(KeyConstants._line, row, Double.valueOf(das.getLine()));
 						qryImplicitAccesseses.setAt(KeyConstants._scope, row, das.getScope());
-						qryImplicitAccesseses.setAt(KeyConstants._count, row, new Double(das.getCount()));
+						qryImplicitAccesseses.setAt(KeyConstants._count, row, Double.valueOf(das.getCount()));
 						qryImplicitAccesseses.setAt(KeyConstants._name, row, das.getName());
 
 					}
@@ -750,7 +771,7 @@ public final class DebuggerImpl implements Debugger {
 		if (abort != null) {
 			Struct sct = new StructImpl();
 			sct.setEL(KeyConstants._template, abort.template);
-			sct.setEL(KeyConstants._line, new Double(abort.line));
+			sct.setEL(KeyConstants._line, Double.valueOf(abort.line));
 			debugging.setEL(KeyConstants._abort, sct);
 		}
 
@@ -762,6 +783,11 @@ public final class DebuggerImpl implements Debugger {
 			scopes.setEL(KeyConstants._cgi, pc.cgiScope());
 			debugging.setEL(KeyConstants._scope, scopes);
 		}
+
+		//////////////////////////////////////////
+		//////// THREAD NAME ////////////////////
+		//////////////////////////////////////////
+		if (threadName != null) debugging.setEL(KeyImpl.getInstance("threadName"), threadName);
 
 		HttpServletResponse rsp = pc.getHttpServletResponse();
 		debugging.setEL(KeyImpl.getInstance("statusCode"), rsp.getStatus());
@@ -807,7 +833,7 @@ public final class DebuggerImpl implements Debugger {
 	@Override
 	public DebugTimer addTimer(String label, long time, String template) {
 		DebugTimerImpl t;
-		timers.add(t = new DebugTimerImpl(label, time, template));
+		timers.add(t = new DebugTimerImpl(label, time, template, SystemUtil.getCurrentContext(null).line));
 		return t;
 	}
 

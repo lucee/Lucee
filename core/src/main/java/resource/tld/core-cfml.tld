@@ -337,13 +337,6 @@ Specifies how Lucee stores session variables:
 			</description>
 		</attribute>
 		<attribute>
-			<type>any</type>
-			<name>functionPaths</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>Array or String list of paths where you have your functions.</description>
-		</attribute>
-		<attribute>
 			<type>struct</type>
 			<name>proxy</name>
 			<required>false</required>
@@ -358,6 +351,13 @@ Specifies how Lucee stores session variables:
 			<rtexprvalue>true</rtexprvalue>
 			<description>A structure that contains mappings. Each element in the structure consists of a key and a value.
 			The logical path is the key and the absolute path is the value.</description>
+		</attribute>
+		<attribute>
+			<type>any</type>
+			<name>functionPaths</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>Array or String list of paths where you have your functions.</description>
 		</attribute>
 		<attribute>
 			<type>any</type>
@@ -1159,7 +1159,7 @@ To use cached data, the function must be called with the exact same arguments.</
 	<tag>
 		<name>Header</name>
 		<tag-class>lucee.runtime.tag.Header</tag-class>
-		<body-content>empty</body-content>
+		<body-content>free</body-content>
 		<body-rtexprvalue>false</body-rtexprvalue>
 		<script>
 			<type>multiple</type>

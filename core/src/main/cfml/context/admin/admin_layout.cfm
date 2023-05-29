@@ -130,11 +130,23 @@
 				}
 			);
 
-			$(".coding-tip code").click(
-				function(){
-					__LUCEE.util.selectText(this);
+			$(".coding-tip .copy").on("click", function(evt){
+				var $this = $(this);
+				var textToCopy = $this.parents(".coding-tip").find("code").text();
+				var textarea = document.createElement('textarea');
+				
+				textarea.value = textToCopy;
+				document.body.appendChild(textarea);
+				textarea.select();
+
+				if(document.execCommand('copy')) {
+					$this.text("copied!");
+					document.body.removeChild(textarea);
+					setTimeout(() => { $this.text("copy"); }, 3000);
+				} else {
+					console.log("error copying to clipboard")
 				}
-			).prop("title", "Click to select the text");
+			});
 		});
 	</script>
 

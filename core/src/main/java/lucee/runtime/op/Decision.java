@@ -20,6 +20,7 @@ package lucee.runtime.op;
 
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
+import java.math.BigDecimal;
 import java.net.URI;
 import java.sql.Blob;
 import java.sql.Clob;
@@ -41,20 +42,20 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import lucee.commons.date.DateTimeUtil;
+import lucee.commons.i18n.FormatUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
-import lucee.commons.i18n.FormatUtil;
 import lucee.commons.lang.CFTypes;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.Component;
 import lucee.runtime.PageContext;
-import lucee.runtime.PageContextImpl;
 import lucee.runtime.coder.Base64Util;
 import lucee.runtime.converter.WDDXConverter;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
+import lucee.runtime.functions.conversion.IsJSON;
 import lucee.runtime.image.ImageUtil;
 import lucee.runtime.java.JavaObject;
 import lucee.runtime.net.mail.MailUtil;
@@ -76,7 +77,6 @@ import lucee.runtime.type.QueryColumn;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.UDF;
 import lucee.runtime.type.dt.DateTime;
-import lucee.runtime.functions.conversion.IsJSON;
 
 /**
  * Object to test if an Object is a specific type
@@ -186,7 +186,7 @@ public final class Decision {
 			curr = str.charAt(pos);
 			if (curr < '0') {
 				if (curr == '.') {
-					if (pos + 1 >= len || hasDot) return false;
+					if (hasDot || len == 1) return false;
 					hasDot = true;
 				}
 				else return false;
@@ -231,7 +231,20 @@ public final class Decision {
 	public static boolean isInteger(Object value, boolean alsoBooleans) {
 		if (!alsoBooleans && isBoolean(value)) return false;
 
+		if (value instanceof BigDecimal) {
+			BigDecimal bd = (BigDecimal) value;
+			BigDecimal bdc = new BigDecimal(bd.toBigInteger());
+
+			return bd.compareTo(bdc) == 0;
+		}
+
 		double dbl = Caster.toDoubleValue(value, false, Double.NaN);
+		if (!Decision.isValid(dbl)) return false;
+		int i = (int) dbl;
+		return i == dbl;
+	}
+
+	public static boolean isInteger(double dbl) {
 		if (!Decision.isValid(dbl)) return false;
 		int i = (int) dbl;
 		return i == dbl;
@@ -808,8 +821,7 @@ public final class Decision {
 	 */
 	public static boolean isObject(Object o) {
 		if (o == null) return false;
-		return isComponent(o)
-				|| (!isArray(o) && !isQuery(o) && !isSimpleValue(o) && !isStruct(o) && !isUserDefinedFunction(o) && !isXML(o));
+		return isComponent(o) || (!isArray(o) && !isQuery(o) && !isSimpleValue(o) && !isStruct(o) && !isUserDefinedFunction(o) && !isXML(o));
 	}
 
 	/**

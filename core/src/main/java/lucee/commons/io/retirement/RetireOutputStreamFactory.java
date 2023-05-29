@@ -23,6 +23,7 @@ import java.util.List;
 
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.LogUtil;
+import lucee.commons.lang.ParentThreasRefThread;
 
 public class RetireOutputStreamFactory {
 
@@ -54,7 +55,7 @@ public class RetireOutputStreamFactory {
 		}
 	}
 
-	static class RetireThread extends Thread {
+	static class RetireThread extends ParentThreasRefThread {
 
 		public long sleepTime;
 		public boolean close = false;
@@ -80,10 +81,12 @@ public class RetireOutputStreamFactory {
 					if (close) break;
 				}
 				catch (InterruptedException ie) {
+					addParentStacktrace(ie);
 					LogUtil.log("file", ie);
 					break;
 				}
 				catch (Exception e) {
+					addParentStacktrace(e);
 					LogUtil.log("file", e);
 				}
 			}

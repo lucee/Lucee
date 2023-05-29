@@ -163,7 +163,7 @@ Defaults --->
 					typeChecking="#!isNull(form.typeChecking) and form.typeChecking EQ true#"
 					remoteClients="#request.getRemoteClients()#"
 					>
-				<cfif request.adminType EQ "server">
+				<cfif not request.singlemode and request.adminType EQ "server">
 
 					<cfadmin
 						action="updateDevelopMode"
@@ -413,7 +413,7 @@ Create Datasource --->
 						<cfset renderCodingTip( codeSample, stText.settings.codetip )>
 					</td>
 				</tr>
-				<cfif request.adminType EQ "server">
+				<cfif not request.singlemode and  request.adminType EQ "server">
 					<cfadmin
 						action="getDevelopMode"
 						type="#request.adminType#"
@@ -442,7 +442,7 @@ Create Datasource --->
 						<td colspan="2">
 							<input class="bl button submit" type="submit" name="mainAction" value="#stText.Buttons.update#">
 							<input class="<cfif request.adminType EQ "web">bm<cfelse>br</cfif> button reset" type="reset" name="cancel" value="#stText.Buttons.Cancel#">
-							<cfif request.adminType EQ "web"><input class="br button submit" type="submit" name="mainAction" value="#stText.Buttons.resetServerAdmin#"></cfif>
+							<cfif not request.singleMode && request.adminType EQ "web"><input class="br button submit" type="submit" name="mainAction" value="#stText.Buttons.resetServerAdmin#"></cfif>
 						</td>
 					</tr>
 				</tfoot>

@@ -1119,6 +1119,7 @@ Reference Button
 											<th align="center">Label</th>
 											<th>Time (ms)</th>
 											<th>Template</th>
+											<th>Line</th>
 										</tr>
 									<tbody>
 										<cfloop query="timers">
@@ -1126,6 +1127,7 @@ Reference Button
 												<td class="txt-r">#timers.label#</td>
 												<td class="txt-r">#unitFormat( arguments.custom.unit, timers.time * 1000000,prettify )#</td>
 												<td class="txt-r">#timers.template#</td>
+												<td class="txt-r">#timers.line#</td>
 											</tr>
 										</cfloop>
 									</tbody>

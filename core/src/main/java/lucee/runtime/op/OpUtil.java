@@ -33,6 +33,7 @@ import java.util.TimeZone;
 import lucee.commons.date.DateTimeUtil;
 import lucee.commons.date.TimeZoneUtil;
 import lucee.commons.lang.CFTypes;
+import lucee.commons.math.MathUtil;
 import lucee.runtime.Component;
 import lucee.runtime.PageContext;
 import lucee.runtime.component.Member;
@@ -819,14 +820,22 @@ public final class OpUtil {
 	 */
 	public static double exponent(PageContext pc, Object left, Object right) throws PageException {
 		if (AppListenerUtil.getPreciseMath(pc, null)) {
-			return Caster.toBigDecimal(left).pow(Caster.toIntValue(right)).doubleValue();
+			try {
+				return Caster.toBigDecimal(left).pow(Caster.toIntValue(right)).doubleValue();
+			}
+			catch (Exception e) {
+			}
 		}
 		return StrictMath.pow(Caster.toDoubleValue(left), Caster.toDoubleValue(right));
 	}
 
 	public static double exponent(PageContext pc, Number left, Number right) throws PageException {
 		if (AppListenerUtil.getPreciseMath(pc, null)) {
-			return Caster.toBigDecimal(left).pow(right.intValue()).doubleValue();
+			try {
+				return Caster.toBigDecimal(left).pow(right.intValue()).doubleValue();
+			}
+			catch (Exception e) {
+			}
 		}
 		return StrictMath.pow(left.doubleValue(), right.doubleValue());
 	}
@@ -919,14 +928,14 @@ public final class OpUtil {
 	 */
 	public static double divide(PageContext pc, Object left, Object right) throws PageException {
 		if (AppListenerUtil.getPreciseMath(pc, null)) {
-			return Caster.toBigDecimal(left).divide(Caster.toBigDecimal(right)).doubleValue();
+			return MathUtil.divide(Caster.toBigDecimal(left), Caster.toBigDecimal(right)).doubleValue();
 		}
 		return Double.valueOf(Caster.toDoubleValue(left) / Caster.toDoubleValue(right));
 	}
 
 	public static double divide(PageContext pc, Number left, Number right) {
 		if (AppListenerUtil.getPreciseMath(pc, null)) {
-			return Caster.toBigDecimal(left).divide(Caster.toBigDecimal(right)).doubleValue();
+			return MathUtil.divide(Caster.toBigDecimal(left), Caster.toBigDecimal(right)).doubleValue();
 		}
 		return Double.valueOf(left.doubleValue() / right.doubleValue());
 	}
@@ -971,7 +980,7 @@ public final class OpUtil {
 		if (AppListenerUtil.getPreciseMath(pc, null)) {
 			BigDecimal bd = Caster.toBigDecimal(right);
 			if (bd.equals(BigDecimal.ZERO)) throw new ArithmeticException("Division by zero is not possible");
-			return Caster.toBigDecimal(left).divide(bd);
+			return MathUtil.divide(Caster.toBigDecimal(left), bd);
 		}
 
 		double r = Caster.toDoubleValue(right);
@@ -983,7 +992,7 @@ public final class OpUtil {
 		if (AppListenerUtil.getPreciseMath(pc, null)) {
 			BigDecimal bd = Caster.toBigDecimal(right);
 			if (bd.equals(BigDecimal.ZERO)) throw new ArithmeticException("Division by zero is not possible");
-			return Caster.toBigDecimal(left).divide(bd);
+			return MathUtil.divide(Caster.toBigDecimal(left), bd);
 		}
 
 		double r = Caster.toDoubleValue(right);
@@ -1000,8 +1009,13 @@ public final class OpUtil {
 	}
 
 	public static Number exponentRef(PageContext pc, Object left, Object right) throws PageException {
-		if (AppListenerUtil.getPreciseMath(pc, null)) {
-			return Caster.toBigDecimal(left).pow(Caster.toIntValue(right));
+		// TODO better implementation
+		if (AppListenerUtil.getPreciseMath(pc, null) && Decision.isInteger(right)) {
+			try {
+				return MathUtil.pow(Caster.toBigDecimal(left), Caster.toIntValue(right));
+			}
+			catch (Exception e) {
+			}
 		}
 		return Caster.toDouble(StrictMath.pow(Caster.toDoubleValue(left), Caster.toDoubleValue(right)));
 	}

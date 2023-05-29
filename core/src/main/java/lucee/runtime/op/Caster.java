@@ -32,6 +32,7 @@ import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.math.MathContext;
 import java.net.MalformedURLException;
 import java.nio.charset.Charset;
 import java.sql.Blob;
@@ -74,6 +75,7 @@ import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.PhysicalClassLoader;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.net.HTTPUtil;
+import lucee.loader.util.Util;
 import lucee.runtime.Component;
 import lucee.runtime.ComponentScope;
 import lucee.runtime.ComponentSpecificAccess;
@@ -375,7 +377,7 @@ public final class Caster {
 	 * @throws PageException
 	 */
 	public static Double toDouble(String str) throws PageException {
-		return new Double(toDoubleValue(str));
+		return Double.valueOf(toDoubleValue(str));
 
 	}
 
@@ -390,7 +392,7 @@ public final class Caster {
 		if (o instanceof Double) return (Double) o;
 		double dbl = toDoubleValue(o, true, Double.NaN);
 		if (Double.isNaN(dbl)) return defaultValue;
-		return new Double(dbl);
+		return Double.valueOf(dbl);
 
 	}
 
@@ -605,7 +607,7 @@ public final class Caster {
 
 		}
 		// else if(o == null) return defaultValue;
-		else if (o instanceof ObjectWrap) return toDoubleValue(((ObjectWrap) o).getEmbededObject(new Double(defaultValue)), true, defaultValue);
+		else if (o instanceof ObjectWrap) return toDoubleValue(((ObjectWrap) o).getEmbededObject(Double.valueOf(defaultValue)), true, defaultValue);
 		else if (o instanceof Date) return DateTimeUtil.getInstance().toDoubleValue(((Date) o).getTime());
 		else if (o instanceof Calendar) return DateTimeUtil.getInstance().toDoubleValue(((Calendar) o).getTimeInMillis());
 		else if (o instanceof Character) return (((Character) o).charValue());
@@ -949,7 +951,7 @@ public final class Caster {
 
 	private static String toDecimal(double value, char decDel, char thsDel) {
 		// TODO Caster toDecimal bessere impl.
-		String str = new BigDecimal((StrictMath.round(value * 100) / 100D)).toString();
+		String str = Caster.toBigDecimal((StrictMath.round(value * 100) / 100D)).toString();
 		// str=toDouble(value).toString();
 		String[] arr = str.split("\\.");
 
@@ -1242,7 +1244,7 @@ public final class Caster {
 	 * @return casted Character Object
 	 */
 	public static Character toCharacter(char c) {
-		return new Character(toCharValue(c));
+		return Character.valueOf(toCharValue(c));
 	}
 
 	/**
@@ -1252,11 +1254,11 @@ public final class Caster {
 	 * @return casted Character Object
 	 */
 	public static Character toCharacter(double d) {
-		return new Character(toCharValue(d));
+		return Character.valueOf(toCharValue(d));
 	}
 
 	public static Character toCharacter(Number n) {
-		return new Character(toCharValue(n));
+		return Character.valueOf(toCharValue(n));
 	}
 
 	/**
@@ -1268,7 +1270,7 @@ public final class Caster {
 	 */
 	public static Character toCharacter(Object o) throws PageException {
 		if (o instanceof Character) return (Character) o;
-		return new Character(toCharValue(o));
+		return Character.valueOf(toCharValue(o));
 
 	}
 
@@ -1280,7 +1282,7 @@ public final class Caster {
 	 * @throws PageException
 	 */
 	public static Character toCharacter(String str) throws PageException {
-		return new Character(toCharValue(str));
+		return Character.valueOf(toCharValue(str));
 
 	}
 
@@ -1293,11 +1295,11 @@ public final class Caster {
 	 */
 	public static Character toCharacter(Object o, Character defaultValue) {
 		if (o instanceof Character) return (Character) o;
-		if (defaultValue != null) return new Character(toCharValue(o, defaultValue.charValue()));
+		if (defaultValue != null) return Character.valueOf(toCharValue(o, defaultValue.charValue()));
 
 		char res = toCharValue(o, Character.MIN_VALUE);
 		if (res == Character.MIN_VALUE) return defaultValue;
-		return new Character(res);
+		return Character.valueOf(res);
 	}
 
 	/**
@@ -1410,7 +1412,7 @@ public final class Caster {
 	 * @return casted Byte Object
 	 */
 	public static Byte toByte(char c) {
-		return new Byte(toByteValue(c));
+		return Byte.valueOf(toByteValue(c));
 	}
 
 	/**
@@ -1436,7 +1438,7 @@ public final class Caster {
 	 */
 	public static Byte toByte(Object o) throws PageException {
 		if (o instanceof Byte) return (Byte) o;
-		return new Byte(toByteValue(o));
+		return Byte.valueOf(toByteValue(o));
 
 	}
 
@@ -1448,7 +1450,7 @@ public final class Caster {
 	 * @throws PageException
 	 */
 	public static Byte toByte(String str) throws PageException {
-		return new Byte(toByteValue(str));
+		return Byte.valueOf(toByteValue(str));
 
 	}
 
@@ -1461,10 +1463,10 @@ public final class Caster {
 	 */
 	public static Byte toByte(Object o, Byte defaultValue) {
 		if (o instanceof Byte) return (Byte) o;
-		if (defaultValue != null) return new Byte(toByteValue(o, defaultValue.byteValue()));
+		if (defaultValue != null) return Byte.valueOf(toByteValue(o, defaultValue.byteValue()));
 		byte res = toByteValue(o, Byte.MIN_VALUE);
 		if (res == Byte.MIN_VALUE) return defaultValue;
-		return new Byte(res);
+		return Byte.valueOf(res);
 	}
 
 	/**
@@ -1566,13 +1568,13 @@ public final class Caster {
 		try {
 			// float
 			if (str.indexOf('.') != -1) {
-				return new BigDecimal(str);
+				return Caster.toBigDecimal(str);
 			}
 			// integer
 			BigInteger bi = new BigInteger(str);
 			int l = bi.bitLength();
-			if (l < 32) return new Integer(bi.intValue());
-			if (l < 64) return new Long(bi.longValue());
+			if (l < 32) return Integer.valueOf(bi.intValue());
+			if (l < 64) return Long.valueOf(bi.longValue());
 			return bi;
 		}
 		catch (Throwable t) {
@@ -1743,7 +1745,7 @@ public final class Caster {
 	 */
 	public static Float toFloat(Object o) throws PageException {
 		if (o instanceof Float) return (Float) o;
-		return new Float(toFloatValue(o));
+		return Float.valueOf(toFloatValue(o));
 	}
 
 	/**
@@ -1754,7 +1756,7 @@ public final class Caster {
 	 * @throws PageException
 	 */
 	public static Float toFloat(String str) throws PageException {
-		return new Float(toFloatValue(str));
+		return Float.valueOf(toFloatValue(str));
 	}
 
 	/**
@@ -1766,11 +1768,11 @@ public final class Caster {
 	 */
 	public static Float toFloat(Object o, Float defaultValue) {
 		if (o instanceof Float) return (Float) o;
-		if (defaultValue != null) return new Float(toFloatValue(o, defaultValue.floatValue()));
+		if (defaultValue != null) return Float.valueOf(toFloatValue(o, defaultValue.floatValue()));
 
 		float res = toFloatValue(o, Float.MIN_VALUE);
 		if (res == Float.MIN_VALUE) return defaultValue;
-		return new Float(res);
+		return Float.valueOf(res);
 	}
 
 	/**
@@ -2421,6 +2423,8 @@ public final class Caster {
 	 * @throws PageException
 	 */
 	public static List toList(Object o, boolean duplicate) throws PageException {
+		PageException ex = null;
+
 		if (o instanceof List) {
 			if (duplicate) {
 				List src = (List) o;
@@ -2475,6 +2479,7 @@ public final class Caster {
 					if (tmp instanceof List) return (List) tmp;
 				}
 				catch (PageException e) {
+					ex = e;
 				}
 			}
 
@@ -2502,7 +2507,7 @@ public final class Caster {
 		else if (o instanceof long[]) return toList(ArrayUtil.toReferenceType((long[]) o));
 		else if (o instanceof float[]) return toList(ArrayUtil.toReferenceType((float[]) o));
 		else if (o instanceof double[]) return toList(ArrayUtil.toReferenceType((double[]) o));
-
+		if (ex != null) throw ex;
 		throw new CasterException(o, "List");
 
 	}
@@ -4311,7 +4316,7 @@ public final class Caster {
 	 * @return casted Integer
 	 */
 	public static Byte toRef(byte b) {
-		return new Byte(b);
+		return Byte.valueOf(b);
 	}
 
 	/**
@@ -4331,7 +4336,7 @@ public final class Caster {
 	 * @return casted Float
 	 */
 	public static Float toRef(float f) {
-		return new Float(f);
+		return Float.valueOf(f);
 	}
 
 	/**
@@ -4983,9 +4988,7 @@ public final class Caster {
 
 	public static BigDecimal toBigDecimal(Object o) throws PageException {
 		if (o instanceof BigDecimal) return (BigDecimal) o;
-		if (o instanceof Number) {
-			return BigDecimal.valueOf(((Number) o).doubleValue());
-		}
+		if (o instanceof Number) return toBigDecimal((Number) o);
 		else if (o instanceof Boolean) return new BigDecimal(((Boolean) o).booleanValue() ? 1 : 0);
 		else if (o instanceof CharSequence) return new BigDecimal(o.toString());
 		else if (o instanceof Character) return new BigDecimal((((Character) o).charValue()));
@@ -5000,13 +5003,23 @@ public final class Caster {
 		return BigDecimal.valueOf(n.doubleValue());
 	}
 
+	public static BigDecimal toBigDecimal(double d) {
+		return BigDecimal.valueOf(d);
+	}
+
 	public static BigDecimal toBigDecimal(String str) throws CasterException {
-		return new BigDecimal(str);
+		try {
+			if (Util.isEmpty(str, true)) throw new CasterException("cannot convert string[" + str + "] to a number, the string is empty");
+			return new BigDecimal(str.trim(), MathContext.DECIMAL128);
+		}
+		catch (NumberFormatException nfe) {
+			throw new CasterException("cannot convert string[" + str + "] to a number; " + nfe.getMessage());
+		}
 	}
 
 	public static BigDecimal toBigDecimal(String str, BigDecimal defaultValue) {
 		try {
-			return new BigDecimal(str);
+			return toBigDecimal(str);
 		}
 		catch (Exception e) {
 		}

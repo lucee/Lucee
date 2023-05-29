@@ -48,6 +48,7 @@ Defaults --->
 			<cfif form.subAction EQ "#stText.Buttons.save#">
 				<cfloop index="idx" from="1" to="#arrayLen(data.names)#">
 					<cfif isDefined("data.rows[#idx#]") and data.names[idx] NEQ "">
+						<cfset data.names[idx] = REReplaceNoCase(data.names[idx],"(<cfx_)|(<)|(>)","","ALL")>
 						<cfadmin 
 							action="updateJavaCFX"
 							type="#request.adminType#"

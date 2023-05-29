@@ -156,12 +156,6 @@
 									<th scope="row">Type</th>
 									<td>#installed.trial?"Trial":"Full"# Version</td>
 								</tr>
-								<cfif arrayLen(installed.categories)>
-									<tr>
-										<th scope="row">#stText.ext.category#</th>
-										<td>#arrayToList(installed.categories,', ')#</td>
-									</tr>
-								</cfif>
 							<cfelse>
 								<tr>
 									<th scope="row">#stText.ext.availableVersion#</th>

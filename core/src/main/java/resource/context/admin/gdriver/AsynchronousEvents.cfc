@@ -20,6 +20,6 @@ component extends="Gateway" {
     public function getListenerCfcMode() {  return "required"; }
 
     public function onBeforeUpdate( string cfcPath, string startupMode, struct custom  ) {
- //       if(!fileExists(ExpandPath(custom.component))) throw (message="component [#custom.component#] does not exist");
+       if(!fileExists(ExpandPath(custom.component))) throw (message="Gateway component [#custom.component#] does not exist");
     }
 }

@@ -24,6 +24,7 @@ import java.io.InputStream;
 import java.io.Serializable;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -35,6 +36,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 import org.osgi.framework.BundleException;
+import org.osgi.framework.Version;
 
 import lucee.Info;
 import lucee.commons.digest.HashUtil;
@@ -47,12 +49,14 @@ import lucee.commons.io.res.filter.ExtensionResourceFilter;
 import lucee.commons.io.res.filter.ResourceNameFilter;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ExceptionUtil;
+import lucee.commons.lang.Pair;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.types.RefInteger;
 import lucee.commons.lang.types.RefIntegerImpl;
 import lucee.loader.util.Util;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigAdmin;
+import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.config.ConfigWebFactory;
@@ -76,8 +80,10 @@ import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.osgi.BundleFile;
 import lucee.runtime.osgi.BundleInfo;
+import lucee.runtime.osgi.OSGiUtil;
 import lucee.runtime.osgi.OSGiUtil.BundleDefinition;
 import lucee.runtime.osgi.VersionRange;
+import lucee.runtime.type.Array;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Query;
@@ -275,8 +281,8 @@ public class RHExtension implements Serializable {
 	}
 
 	public static void storeMetaData(Config config, String id, String version, Struct data) throws ConverterException, IOException {
-		JSONConverter json = new JSONConverter(true, CharsetUtil.UTF8, JSONDateFormat.PATTERN_CF, true, true);
-		String str = json.serialize(null, data, SerializationSettings.SERIALIZE_AS_ROW);
+		JSONConverter json = new JSONConverter(true, CharsetUtil.UTF8, JSONDateFormat.PATTERN_CF, false);
+		String str = json.serialize(null, data, SerializationSettings.SERIALIZE_AS_ROW, true);
 		IOUtil.write(getMetaDataFile(config, id, version), str, CharsetUtil.UTF8, false);
 	}
 
@@ -671,6 +677,7 @@ public class RHExtension implements Serializable {
 	}
 
 	private void readReleaseType(String label, String str, boolean isWeb) throws ApplicationException {
+		if (((ConfigPro) ThreadLocalPageContext.getConfig(config)).getAdminMode() == ConfigImpl.ADMINMODE_SINGLE) return;
 		// release type
 		int rt = RELEASE_TYPE_ALL;
 		if (!Util.isEmpty(str)) {
@@ -1530,5 +1537,38 @@ public class RHExtension implements Serializable {
 		ed.setParam("symbolic-name", getSymbolicName());
 		ed.setParam("description", getDescription());
 		return ed.toString();
+	}
+
+	public static void removeDuplicates(Array arrExtensions) throws PageException, BundleException {
+		Iterator<Entry<Key, Object>> it = arrExtensions.entryIterator();
+		Entry<Key, Object> e;
+		Struct child;
+		String id;
+		Map<String, Pair<Version, Key>> existing = new HashMap<>();
+		List<Integer> toremove = null;
+		Pair<Version, Key> pair;
+		while (it.hasNext()) {
+			e = it.next();
+			child = Caster.toStruct(e.getValue(), null);
+			if (child == null) continue;
+			id = Caster.toString(child.get(KeyConstants._id, null), null);
+			if (StringUtil.isEmpty(id)) continue;
+			pair = existing.get(id);
+			Version nv = OSGiUtil.toVersion(Caster.toString(child.get(KeyConstants._version, null)));
+			if (pair != null) {
+				if (toremove == null) toremove = new ArrayList<>();
+				toremove.add(Caster.toInteger(OSGiUtil.isNewerThan(pair.getName(), nv) ? e.getKey() : pair.getValue()));
+
+			}
+			existing.put(id, new Pair<Version, Key>(nv, e.getKey()));
+		}
+
+		if (toremove != null) {
+			int[] removes = ArrayUtil.toIntArray(toremove);
+			Arrays.sort(removes);
+			for (int i = removes.length - 1; i >= 0; i--) {
+				arrExtensions.removeE(removes[i]);
+			}
+		}
 	}
 }

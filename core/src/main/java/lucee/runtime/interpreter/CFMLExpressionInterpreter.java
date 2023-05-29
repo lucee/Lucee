@@ -20,10 +20,7 @@ package lucee.runtime.interpreter;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Arrays;
-import java.util.*;
 
-import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.CFTypes;
 import lucee.commons.lang.ParserString;
 import lucee.loader.engine.CFMLEngine;
@@ -157,9 +154,6 @@ import lucee.transformer.library.function.FunctionLibFunctionArg;
  *
  */
 public class CFMLExpressionInterpreter {
-
-	private static final LNumber PLUS_ONE = new LNumber(new Double(1));
-	private static final LNumber MINUS_ONE = new LNumber(new Double(-1));
 
 	protected static final short STATIC = 0;
 	private static final short DYNAMIC = 1;
@@ -907,9 +901,9 @@ public class CFMLExpressionInterpreter {
 
 	private Ref _unaryOp(Ref ref, boolean isPlus) throws PageException {
 		cfml.removeSpace();
-		Ref res = preciseMath ? new BigPlus(ref, isPlus ? PLUS_ONE : MINUS_ONE, limited) : new Plus(ref, isPlus ? PLUS_ONE : MINUS_ONE, limited);
+		Ref res = preciseMath ? new BigPlus(ref, isPlus ? LNumber.ONE : LNumber.MINUS_ONE, limited) : new Plus(ref, isPlus ? LNumber.ONE : LNumber.MINUS_ONE, limited);
 		ref = new Assign(ref, res, limited);
-		return preciseMath ? new BigPlus(ref, isPlus ? MINUS_ONE : PLUS_ONE, limited) : new Plus(ref, isPlus ? MINUS_ONE : PLUS_ONE, limited);
+		return preciseMath ? new BigPlus(ref, isPlus ? LNumber.MINUS_ONE : LNumber.ONE, limited) : new Plus(ref, isPlus ? LNumber.MINUS_ONE : LNumber.ONE, limited);
 	}
 
 	/**
@@ -924,7 +918,7 @@ public class CFMLExpressionInterpreter {
 			if (cfml.forwardIfCurrent('-')) {
 				cfml.removeSpace();
 				Ref expr = clip();
-				Ref res = preciseMath ? new BigMinus(expr, new LNumber(new Double(1)), limited) : new Minus(expr, new LNumber(new Double(1)), limited);
+				Ref res = preciseMath ? new BigMinus(expr, LNumber.ONE, limited) : new Minus(expr, LNumber.ONE, limited);
 				return new Assign(expr, res, limited);
 			}
 			cfml.removeSpace();
@@ -935,7 +929,7 @@ public class CFMLExpressionInterpreter {
 			if (cfml.forwardIfCurrent('+')) {
 				cfml.removeSpace();
 				Ref expr = clip();
-				Ref res = preciseMath ? new BigPlus(expr, new LNumber(new Double(1)), limited) : new Plus(expr, new LNumber(new Double(1)), limited);
+				Ref res = preciseMath ? new BigPlus(expr, LNumber.ONE, limited) : new Plus(expr, LNumber.ONE, limited);
 				return new Assign(expr, res, limited);
 			}
 			cfml.removeSpace();
@@ -1017,28 +1011,21 @@ public class CFMLExpressionInterpreter {
 				str = "... " + str.substring(pos - 10, pos + 10) + " ...";
 			}
 		}
-		throw new InterpreterException("Syntax Error, Invalid Construct", "at position " + (pos + 1) + " in [" + str + "]");
+		throw new InterpreterException("Syntax Error, Invalid Construct", " at position " + (pos + 1) + " in [" + str + "]");
 	}
 
 	protected Ref json(FunctionLibFunction flf, char start, char end) throws PageException {
 		if (!cfml.isCurrent(start)) return null;
 		/*
-		String[] str = cfml.toString().split(",");
-		if(cfml.getCurrent() == '{' && cfml.getNext() != '}' && str.length >1) {
-			outer:for(int i=0; i<str.length; i++) {
-				String strr = str[i].toString();
-				if(str[i].charAt(0) == '{') strr = new StringBuilder(strr).deleteCharAt(0).toString();
-				String[] strsplit = strr.split("[:]");
-				if((strsplit[1].charAt(0) == '{' || strsplit[1].charAt(0) == '[') && strsplit[0].charAt(0) == '"') {
-					str = strsplit[1].toString().split(",");
-					continue outer;
-				}
-				else if(strsplit[0].charAt(0) != '"' || (strsplit[1].charAt(0) != '"' && !Character.isDigit(strsplit[1].charAt(0)) && strsplit[1].charAt(0) != '[')) {
-					throw new TemplateException("Invalid json value" +cfml);
-				}
-			}
-		}
-		*/
+		 * String[] str = cfml.toString().split(","); if(cfml.getCurrent() == '{' && cfml.getNext() != '}'
+		 * && str.length >1) { outer:for(int i=0; i<str.length; i++) { String strr = str[i].toString();
+		 * if(str[i].charAt(0) == '{') strr = new StringBuilder(strr).deleteCharAt(0).toString(); String[]
+		 * strsplit = strr.split("[:]"); if((strsplit[1].charAt(0) == '{' || strsplit[1].charAt(0) == '[')
+		 * && strsplit[0].charAt(0) == '"') { str = strsplit[1].toString().split(","); continue outer; }
+		 * else if(strsplit[0].charAt(0) != '"' || (strsplit[1].charAt(0) != '"' &&
+		 * !Character.isDigit(strsplit[1].charAt(0)) && strsplit[1].charAt(0) != '[')) { throw new
+		 * TemplateException("Invalid json value" +cfml); } } }
+		 */
 
 		if (cfml.forwardIfCurrent('[', ':', ']') || cfml.forwardIfCurrent('[', '=', ']')) {
 			return new BIFCall(LITERAL_ORDERED_STRUCT, new Ref[0]);

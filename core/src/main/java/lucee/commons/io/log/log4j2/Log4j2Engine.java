@@ -34,12 +34,14 @@ import lucee.commons.io.log.log4j2.appender.ResourceAppender;
 import lucee.commons.io.log.log4j2.appender.TaskAppender;
 import lucee.commons.io.log.log4j2.layout.ClassicLayout;
 import lucee.commons.io.log.log4j2.layout.DataDogLayout;
+import lucee.commons.io.log.log4j2.layout.JsonLayout;
 import lucee.commons.io.log.log4j2.layout.XMLLayout;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.io.retirement.RetireListener;
 import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.StringUtil;
+import lucee.loader.util.Util;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.config.ConfigWebUtil;
@@ -140,6 +142,10 @@ public class Log4j2Engine extends LogEngine {
 				|| "org.apache.logging.log4j.core.layout.XmlLayout".equalsIgnoreCase(className) || "lucee.commons.io.log.log4j2.layout.XMLLayout".equals(className)) {
 			return new ClassDefinitionImpl(XMLLayout.class);
 		}
+		if ("json".equalsIgnoreCase(className) || "org.apache.log4j.json.JsonTemplateLayout".equalsIgnoreCase(className)
+				|| "org.apache.logging.log4j.core.layout.JsonLayout".equalsIgnoreCase(className)) {
+			return new ClassDefinitionImpl(JsonLayout.class);
+		}
 		if ("pattern".equalsIgnoreCase(className) || "org.apache.log4j.PatternLayout".equals(className) || "org.apache.logging.log4j.core.layout.PatternLayout".equals(className)) {
 			return new ClassDefinitionImpl(PatternLayout.class);
 		}
@@ -174,7 +180,7 @@ public class Log4j2Engine extends LogEngine {
 	@Override
 	public final Object getLayout(ClassDefinition cd, Map<String, String> layoutArgs, ClassDefinition cdAppender, String name) throws PageException {
 		if (layoutArgs == null) layoutArgs = new HashMap<String, String>();
-
+		lowerCase(layoutArgs);
 		// Layout
 		Layout layout = null;
 
@@ -199,20 +205,22 @@ public class Log4j2Engine extends LogEngine {
 				layoutArgs.put("title", title);
 
 				// font name
-				String fontName = Caster.toString(layoutArgs.get("fontName"), "");
+				String fontName = Caster.toString(layoutArgs.get("fontname"), "");
 				if (!StringUtil.isEmpty(fontName, true)) builder.withFontName(fontName);
-				layoutArgs.put("fontName", fontName);
+				layoutArgs.put("fontname", fontName);
 
 				// font size
-				FontSize fontSize = toFontSize(Caster.toString(layoutArgs.get("fontSize"), null));
+				FontSize fontSize = toFontSize(Caster.toString(layoutArgs.get("fontsize"), null));
 				if (fontSize != null) builder.withFontSize(fontSize);
-				layoutArgs.put("fontSize", fontSize == null ? "" : fontSize.name());
+				layoutArgs.put("fontsize", fontSize == null ? "" : fontSize.name());
 
 				layout = builder.build();
 
 			}
 			// XML Layout
 			else if (XMLLayout.class.getName().equalsIgnoreCase(cd.getClassName())) {
+				// Charset
+				Charset charset = CharsetUtil.toCharset(layoutArgs.get("charset"), CharsetUtil.UTF8);
 
 				// Location Info
 				boolean locInfo = Caster.toBooleanValue(layoutArgs.get("locationinfo"), false);
@@ -223,9 +231,30 @@ public class Log4j2Engine extends LogEngine {
 				layoutArgs.put("properties", props.toString());
 				// TODO add more attribute
 
-				return new XMLLayout(CharsetUtil.UTF8, true, locInfo);
-
+				return new XMLLayout(charset, true, locInfo);
 			}
+			// JSON Layout
+			else if (JsonLayout.class.getName().equalsIgnoreCase(cd.getClassName())) {
+				// charset
+				Charset charset = CharsetUtil.toCharset(layoutArgs.get("charset"), CharsetUtil.UTF8);
+				// complete
+				boolean complete = Caster.toBooleanValue(layoutArgs.get("complete"), false);
+				// includeStacktrace
+				boolean includeStacktrace = Caster.toBooleanValue(layoutArgs.get("includestacktrace"), true);
+				// includeTimeMillis
+				boolean includeTimeMillis = Caster.toBooleanValue(layoutArgs.get("includetimemillis"), true);
+				// stacktraceAsString
+				boolean stacktraceAsString = Caster.toBooleanValue(layoutArgs.get("stacktraceasstring"), false);
+				// locationInfo
+				boolean locationInfo = Caster.toBooleanValue(layoutArgs.get("locationinfo"), false);
+				// properties
+				boolean properties = Caster.toBooleanValue(layoutArgs.get("properties"), true);
+				// compact
+				boolean compact = Caster.toBooleanValue(layoutArgs.get("compact"), false);
+
+				return new JsonLayout(charset, complete, compact, includeStacktrace, includeTimeMillis, stacktraceAsString, locationInfo, properties);
+			}
+
 			// Pattern Layout
 			else if (PatternLayout.class.getName().equalsIgnoreCase(cd.getClassName())) {
 				org.apache.logging.log4j.core.layout.PatternLayout.Builder builder = PatternLayout.newBuilder();
@@ -601,5 +630,24 @@ public class Log4j2Engine extends LogEngine {
 					true);
 		}
 		return fallback;
+	}
+
+	private static void lowerCase(Map<String, String> map) {
+		String v;
+		for (String k: map.keySet()) {
+			if (hasUpperCase(k)) {
+				v = map.get(k);
+				map.put(k.toLowerCase(), v);
+				map.remove(k);
+			}
+		}
+	}
+
+	private static boolean hasUpperCase(String str) {
+		if (Util.isEmpty(str, true)) return false;
+		for (int i = str.length() - 1; i >= 0; i--) {
+			if (Character.isUpperCase(str.charAt(i))) return true;
+		}
+		return false;
 	}
 }

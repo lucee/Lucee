@@ -34,6 +34,7 @@ import lucee.commons.io.cache.CacheEntry;
 import lucee.commons.io.cache.CachePro;
 import lucee.commons.io.cache.exp.CacheException;
 import lucee.commons.io.log.LogUtil;
+import lucee.commons.lang.ParentThreasRefThread;
 import lucee.runtime.cache.CacheSupport;
 import lucee.runtime.cache.ram.ref.HardRef;
 import lucee.runtime.cache.ram.ref.Ref;
@@ -217,7 +218,7 @@ public class RamCache extends CacheSupport {
 		return size;
 	}
 
-	public static class Controler extends Thread {
+	public static class Controler extends ParentThreasRefThread {
 
 		private RamCache ramCache;
 		private CFMLEngineImpl engine;
@@ -235,6 +236,7 @@ public class RamCache extends CacheSupport {
 					_run();
 				}
 				catch (Exception e) {
+					addParentStacktrace(e);
 					LogUtil.log("application", e);
 				}
 			}

@@ -3,7 +3,7 @@
 		<cfdirectory action="create" directory="#dataDir#" mode="777" recurse="true" />
 	</cfif>
 
-	<cfdirectory action="list" name="qlangs" directory="#expandPath('{lucee-web}/context/admin/resources/language/')#" filter="*.xml" />
+	<cfdirectory action="list" name="qlangs" directory="#expandPath('{lucee-web}/context/admin/resources/language/')#" filter="*.json" />
 
 	<cfset translations = {} />
 	<cfset pageContents = {} />
@@ -16,20 +16,17 @@
 
 
 	<cfloop list="default,#valuelist(qlangs.name)#" index="currfile">
-		<cfif currfile eq 'en.xml'>
+		<cfif currfile eq 'en.json'>
 			<cfcontinue />
 		</cfif>
 		<cfif currfile eq 'default'>
 			<cfset temp = {} />
-			<cfset currfile = "en.xml" />
+			<cfset currfile = "en.json" />
 		<cfelse>
 			<cfset temp = duplicate(translations.en) />
 		</cfif>
-		<cfset x = xmlParse(fileread('resources/language/#currfile#', 'utf-8')) />
-		<cfloop array="#x.language.data#" index="item">
-			<cfset temp[item.xmlattributes.key] = item.xmlText />
-		</cfloop>
-		<cfset translations[listfirst(currfile, '.')] = temp />
+		<cfset json = deserializejson(fileread('resources/language/#currfile#', 'utf-8')) />
+		<cfset translations[listfirst(currfile, '.')] = json.data />
 		<cfset pageContents[listfirst(currfile, '.')] = {} />
 	</cfloop>
 

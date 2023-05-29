@@ -98,7 +98,6 @@ import lucee.runtime.type.UDFPlus;
 import lucee.runtime.type.UDFProperties;
 import lucee.runtime.type.cfc.ComponentEntryIterator;
 import lucee.runtime.type.cfc.ComponentValueIterator;
-import lucee.runtime.type.comparator.ArrayOfStructComparator;
 import lucee.runtime.type.dt.DateTime;
 import lucee.runtime.type.it.ComponentIterator;
 import lucee.runtime.type.it.StringIterator;
@@ -412,10 +411,10 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 			// abstrCollection.implement(pageContext,getPageSource(),properties.implement);
 		}
 
-		/*
-		 * print.e("--------------------------------------"); print.e(_getPageSource().getDisplayPath());
-		 * print.e(abstrCollection.getUdfs());
-		 */
+		long indexBase = 0;
+		if (base != null) {
+			indexBase = base.cp.getStaticStruct().index();
+		}
 
 		// scope
 		useShadow = base == null ? (pageSource.getDialect() == CFMLEngine.DIALECT_CFML ? pageContext.getConfig().useComponentShadow() : false) : base.useShadow;
@@ -427,11 +426,11 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 			scope = new ComponentScopeThis(this);
 		}
 		initProperties();
-		StaticStruct ss = componentPage.getStaticStruct();
-		if (!ss.isInit()) {
+		StaticStruct ss = componentPage.getStaticStruct(); // this method get overwritten by the compiled componentpage
+		if (!ss.isInit() || indexBase > ss.index()) {
 			synchronized (ss) {
 				// invoke static constructor
-				if (!ss.isInit()) {
+				if (!ss.isInit() || indexBase > ss.index()) {
 					Map<String, Boolean> map = statConstr.get();
 					String id = "" + componentPage.getHash();
 					if (!Caster.toBooleanValue(map.get(id), false)) {
@@ -1005,8 +1004,8 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 	@Override
 	public DumpData toDumpData(PageContext pageContext, int maxlevel, DumpProperties dp, int access) {
 		boolean isCFML = getPageSource().getDialect() == CFMLEngine.DIALECT_CFML;
-		DumpTable table = isCFML ? new DumpTable("component", "#ff4542", "#ff9aad", "#000000") : new DumpTable("component", "#ca6b50", "#e9bcac", "#000000");
-		table.setTitle((isCFML ? "Component" : "Class") + " " + getCallPath() + (" " + StringUtil.escapeHTML(top.properties.dspName)));
+		DumpTable table = isCFML ? new DumpTable("component", "#48d8d8", "#68dfdf", "#000000") : new DumpTable("component", "#48d8d8", "#68dfdf", "#000000");
+		table.setTitle((isCFML ? "Component" : "Class") + " " + getCallPath() + (top.properties.inline ? "" : " " + StringUtil.escapeHTML(top.properties.dspName)));
 		table.setComment("Only the functions and data members that are accessible from your location are displayed");
 
 		// Extends
@@ -1131,10 +1130,10 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 	 * @return return call path
 	 */
 	protected String getCallPath() {
+		if (top.properties.inline) return "(inline)";
 		if (StringUtil.isEmpty(top.properties.callPath)) return getName();
 		try {
-			return "(" + ListUtil.arrayToList(ListUtil.listToArrayTrim(top.properties.callPath.replace('/', '.').replace('\\', '.'), "."), ".")
-					+ (top.properties.subName == null ? "" : "$" + top.properties.subName) + ")";
+			return "(" + ListUtil.arrayToList(ListUtil.listToArrayTrim(top.properties.callPath.replace('/', '.').replace('\\', '.'), "."), ".") + ")";
 		}
 		catch (PageException e) {
 			return top.properties.callPath;
@@ -1502,7 +1501,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 		 * final Page page = MetadataUtil.getPageWhenMetaDataStillValid(pc, comp, ignoreCache); if (page !=
 		 * null && page.metaData != null && page.metaData.get() != null) { eturn page.metaData.get(); }
 		 */
-		long creationTime = System.currentTimeMillis();
+		// long creationTime = System.currentTimeMillis();
 		final StructImpl sct = new StructImpl();
 
 		// fill udfs
@@ -1520,6 +1519,8 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 		sct.set(KeyConstants._hashCode, comp.hashCode());
 		sct.set(KeyConstants._accessors, comp.properties.accessors);
 		sct.set(KeyConstants._synchronized, comp.properties._synchronized);
+		sct.set(KeyConstants._inline, comp.properties.inline);
+		sct.set(KeyConstants._sub, !comp.properties.inline && !StringUtil.isEmpty(comp.properties.subName));
 
 		if (comp.properties.output != null) sct.set(KeyConstants._output, comp.properties.output);
 		if (comp.properties.modifier == MODIFIER_ABSTRACT) sct.set(KeyConstants._abstract, true);
@@ -1548,9 +1549,9 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 
 		// PageSource
 		PageSource ps = comp.pageSource;
-		sct.set(KeyConstants._fullname, comp.properties.name);
-		sct.set(KeyConstants._name, comp.properties.name);
-		sct.set(KeyConstants._subname, comp.properties.subName);
+		sct.set(KeyConstants._fullname, comp.properties.inline ? "" : comp.properties.name);
+		sct.set(KeyConstants._name, comp.properties.inline ? "" : comp.properties.name);
+		sct.set(KeyConstants._subname, comp.properties.inline || StringUtil.isEmpty(comp.properties.subName) ? "" : comp.properties.subName);
 		sct.set(KeyConstants._path, ps.getDisplayPath());
 		sct.set(KeyConstants._type, "component");
 		int dialect = comp.getPageSource().getDialect();
@@ -1733,6 +1734,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 	 * @deprecated injected is not used
 	 */
 	public void registerUDF(Key key, UDF udf, boolean useShadow, boolean injected) throws ApplicationException {
+
 		if (udf instanceof UDFPlus) ((UDFPlus) udf).setOwnerComponent(this);
 
 		if (insideStaticConstrThread.get()) {
@@ -2441,5 +2443,10 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 			return Boolean.FALSE;
 		}
 
+	}
+
+	public ComponentImpl setInline() {
+		this.properties.inline = true;
+		return this;
 	}
 }

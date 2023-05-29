@@ -38,7 +38,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="session" {
 				expect( trim( result.filecontent ) ).toBeTrue();
 			});
 
-			it( title='check onSessionEnd with cfml session', body=function( currentSpec ) {
+			it( title='check onSessionEnd with jee session', body=function( currentSpec ) {
 				uri = createURI("LDEV3264");
 				local.j2eeSessionId = _InternalRequest(
 					template : "#uri#\j2ee-session\testOnSessionEnd.cfm"

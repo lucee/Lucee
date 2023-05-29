@@ -3,7 +3,6 @@ green:8bbf36;darker:81b72d;comment:c4de99;
 red:bf4f36;darker:b7492e;comment:dea598;
 blue:36afbf;darker:2da5b7;comment:99d6de;
 blue2:3399cc;darker:39c;comment:9acae5;
-
 */
 
 html, body {
@@ -12,19 +11,10 @@ html, body {
 }
 body {
 	min-width:600px;
-	background-color:#c4d7e6;
-	xbackground-image: url('../img/bg_web-{appendix}.gif.cfm');
+	background-color:#e8e7ec;
 	background-repeat: no-repeat;
 	margin:0;
 	padding:0;
-}
-body.server {
-	background-color:#e0c9c8;
-	xbackground-image: url('../img/bg_server-{appendix}.gif.cfm');
-}
-body.single {
-	background-color:#e8e7ec;
-	background-image: url('../img/bg_single-{appendix}.gif.cfm');
 }
 body, td, th {
 	font-family:Arial, Helvetica, sans-serif;
@@ -67,7 +57,7 @@ a {
 }
 
 tr > th > a {
-    color: #ffffff !important;
+    color: #000000 !important;
 }
 
 .admin-server a {
@@ -95,9 +85,12 @@ pre {
 .left { text-align:left; }
 .center { text-align:center }
 
+.disp-flex { display: flex; }
+.flex-pull-right { margin-left: auto; }
 
-
-
+.overflow{
+	overflow-wrap: break-word;
+}
 
 
 
@@ -159,31 +152,21 @@ td#navtd {
 	display: inline-block;
 	width:170px;
 	height: 100%;
-	background-color:#f1f0f5;
+	background-color:#fff;
 	border-radius: 7px;
-	box-shadow: 0px 2px 2px 0px #afc0cd,
-	-2px 0px 2px 0px #afc0cd,
-	1px 0px 1px 0px #afc0cd,
-	0px -2px 2px 0px #fcfcfc ;
+	box-shadow: 0px 0px 4px 1px #39c;
 	margin: 0px
 }
 
-
-body.single td#navtd {
-	box-shadow: 0px 2px 2px 0px #d9dade,
-	-2px 0px 2px 0px #d9dade,
-	1px 0px 1px 0px #d9dade,
-	0px -2px 2px 0px #fcfcfc ;
-}
 body.server td#navtd {
-	box-shadow: 0px 2px 2px 0px #c9b5b4,
-	-2px 0px 2px 0px #c9b5b4,
-	1px 0px 1px 0px #c9b5b4,
-	0px -2px 2px 0px #fcfcfc ;
+	box-shadow: 0px 0px 4px 1px #BF4F36;
+}
+body.single td#navtd {
+	box-shadow: 0px 0px 4px 0px #9b99a3;
 }
 
 td#logintd {
-	background-color: #efede5;
+	background-color: #fff;
 	border-radius: 7px;
 	margin: 0px;
 
@@ -222,27 +205,18 @@ td#logintd {
 
 #contenttd {
 	width:100%;
-	background-color: #f1f0f5;
-	box-shadow: 0px 2px 2px 0px #afc0cd,
-	-1px 0px 1px 0px #afc0cd,
-	2px 0px 2px 0px #afc0cd,
-	0px -2px 2px 0px #fcfcfc ;
+	background-color: #fff;
+	box-shadow: 0px 0px 4px 1px #39c;
 	border-radius: 7px;
 	margin: 0px;
 
 }
 
-body.single #contenttd {
-	box-shadow: 0px 2px 2px 0px #d9dade,
-	-1px 0px 1px 0px #d9dade,
-	2px 0px 2px 0px #d9dade,
-	0px -2px 2px 0px #fcfcfc ;
-}
 body.server #contenttd {
-	box-shadow: 0px 2px 2px 0px #c9b5b4,
-	-1px 0px 1px 0px #c9b5b4,
-	2px 0px 2px 0px #c9b5b4,
-	0px -2px 2px 0px #fcfcfc ;
+	box-shadow: 0px 0px 4px 1px #BF4F36;
+}
+body.single #contenttd {
+	box-shadow: 0px 0px 4px 0px #9b99a3;
 }
 
 #content {
@@ -259,13 +233,13 @@ body.server #contenttd {
 	padding: 0px 0px 0px 0px;
 	text-align:center;
 	font-size : 8pt;
-	color:#efede5;
+	color:#000000;
 }
 #copyright a {
-	color:#efede5;
+	color:#000000;
 }
 .linkContext a {
-	color:#efede5;
+	color:#36c;
 	text-decoration:none;
 
 }
@@ -455,25 +429,16 @@ tr.notOK td {background-color:#f9e0e0;}
 	font-weight:normal;
 	empty-cells:show;
 	margin: 10px;
+	border:1px solid #e8e7ec;
 	border-radius: 4px;
-	background-color:#f1f0f5;
-	box-shadow: 0px 1px 1px 0px #d9dade,
-		-1px 0px 1px 0px #d9dade,
-		1px 0px 1px 0px #d9dade,
-		0px -2px 2px 0px #fcfcfc ;
+	background-color:#fff;
 }
 .maintbl td {
 	padding: 3px 5px;
 	font-weight:normal;
 	empty-cells:show;
-	border:0px solid #fff;
-
-	background-color:#fff;
+	border:1px solid #e8e7ec;
 	border-radius: 4px;
-	box-shadow: 0px 1px 1px 0px #d9dade,
-		-1px 0px 1px 0px #d9dade,
-		1px 0px 1px 0px #d9dade,
-		0px -2px 2px 0px #fcfcfc ;
 }
 .longwords {
 	word-break:break-all;
@@ -487,7 +452,7 @@ tr.notOK td {background-color:#f9e0e0;}
 .maintbl tfoot td {
 	border:none;
 	box-shadow:none;
-	background-color:#f1f0f5;
+	background-color:#fff;
 }
 td.fieldPadded {
 	padding-top:10px;
@@ -518,7 +483,7 @@ td.fieldPadded {
 
 .admin-single th .comment,
 .admin-single .extensionthumb .comment
-{color:#dea598;}
+{color:#333;}
 
 .important {
 	color:red !important;
@@ -572,18 +537,17 @@ div.ok {
 .coding-tip {
 	display: none;
 	box-sizing: border-box;
-	margin: 0.25em;
-	padding: 0.5em;
+	margin: 4rem 0.25rem 1rem 0.25rem;
+	padding: 0.5rem;
 	border: 0px;
-	border-radius: 4px;
+	border-radius: 0.5em;
 	max-width: 680px;
 	background-color: #f1f0f5;
 	color: #666;
+}
 
-	box-shadow: 0px 1px 1px 0px #d9dade,
-	-1px 0px 1px 0px #d9dade,
-	1px 0px 1px 0px #d9dade,
-	0px -2px 2px 0px #fcfcfc ;
+.coding-tip .copy {
+	cursor: pointer;
 }
 
 .coding-tip.expanded {
@@ -591,7 +555,6 @@ div.ok {
 }
 
 .coding-tip code {
-
 	white-space: pre-wrap;
 	tab-size: 4;
 	margin: 0.5em;
@@ -599,8 +562,6 @@ div.ok {
 	background-color: #000;
 	color: #66ccff;
 	display: block;
-	cursor: pointer;
-	border-radius: 3px;
 }
 
 /* unorganized */
@@ -1387,8 +1348,16 @@ body.full #tr-header	{ height: 63px; }
 #header			{ position: relative; height: 100px; -padding: 0 22px; -margin: 0 22px 0 22px; }
 body.full #header { height: 68px; }
 
-#logo			{ display: block; position: absolute; top: -16px; left: 0; width: 166px; height: 68px; padding: 0;background-position: 0px -179px; }
-body.full #logo { display: block; position: absolute; top: 0px; left: 0; width: 166px; height: 68px; padding: 0;background-position: 0px -179px; }
+#logo			{ display: block; position: absolute; top: -16px; left: 0; width: 186px; height: 68px; 
+	padding: 0;background-position: 0px -252px; }
+body.full #logo { display: block; position: absolute; top: 0px; left: 0; width: 166px; height: 68px; padding: 0;
+	background-position: 0px -252px;width: 186px; }
+body.full.admin-server #logo { background-position: 0px -322px; width: 340px;}
+body.full.admin-single #logo { background-position: 0px -179px;}
+
+.admin-server #logo			{ background-position: 0px -322px;width: 340px; }
+.admin-single #logo			{ background-position: 0px -179px; }
+
 
 #admin-tabs		{ width: 126px; position: absolute; bottom: -14px; right: 20px; } /*114 33*/
 
@@ -1407,7 +1376,7 @@ body.full #logo { display: block; position: absolute; top: 0px; left: 0; width: 
 .sprite,#sprite			{ 
 	background-image: url( '../img/admin6_sprite-{appendix}.png.cfm' ); 
 	background-repeat: no-repeat; 
-	background-size: 200px 400px;
+	background-size: 400px 400px;
 }
 
 

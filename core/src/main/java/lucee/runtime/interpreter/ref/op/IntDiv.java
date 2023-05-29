@@ -49,7 +49,7 @@ public final class IntDiv extends RefSupport implements Ref {
 	@Override
 	public Object getValue(PageContext pc) throws PageException {
 		if (limited) throw new InterpreterException("invalid syntax, math operations are not supported in a json string.");
-		return new Double(Caster.toIntValue(left.getValue(pc)) / Caster.toIntValue(right.getValue(pc)));
+		return Double.valueOf(Caster.toIntValue(left.getValue(pc)) / Caster.toIntValue(right.getValue(pc)));
 	}
 
 	@Override

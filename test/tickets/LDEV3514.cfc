@@ -57,7 +57,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" labels="qoq"{
 
 				try {
 					local.myQuery = queryExecute(
-						"select * 
+						"select *
 						from q, q2
 						where q.index = q2.index
 						order by q.index",

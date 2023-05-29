@@ -1,37 +1,19 @@
 component {
 	this.name = 'LDEV2902';
 
-	this.datasources["testTimezone"] = {
-		  class: 'org.h2.Driver'
-		, bundleName: 'org.h2'
-		, bundleVersion: '1.3.172'
-		, connectionString: 'jdbc:h2:'&expandpath('./test')&'\testTimezone;MODE=MySQL'
-		, username: ''
-		, password: ""	
-		, timezone:'America/Chicago'
+	this.datasources["testTimezone"] = server.getDatasource( service="h2", 
+		dbFile=server._getTempDir( "LDEV2902-testTimeZone" ), 
+		options={ timezone: 'America/Chicago'}
+	);
 
-	};
+	this.datasources["testNoTimezone"] = server.getDatasource( service="h2", 
+		dbFile=server._getTempDir( "LDEV2902-testNoTimeZone" )
+	);
 
-	this.datasources["testNoTimezone"] = {
-		  class: 'org.h2.Driver'
-		, bundleName: 'org.h2'
-		, bundleVersion: '1.3.172'
-		, connectionString: 'jdbc:h2:'&expandpath('./test')&'\testNoTimezone;MODE=MySQL'
-		, username: ''
-		, password: ""
-
-	};
-
-	this.datasources["testEmptyTimezone"] = { 
-		  class: 'org.h2.Driver'
-		, bundleName: 'org.h2'
-		, bundleVersion: '1.3.172'
-		, connectionString: 'jdbc:h2:'&expandpath('./test')&'\testEmptyTimezone;MODE=MySQL'
-		, username: ''
-		, password: ""
-		, timezone: ""
-
-	};
+	this.datasources["testEmptyTimezone"] = server.getDatasource( service="h2",
+		dbFile=server._getTempDir( "LDEV2902-testEmptyTimeZone" ), 
+		options={ timezone: ''}
+	);
 	
 	public function onRequestStart() {
 		setting requesttimeout=10;

@@ -17,6 +17,6 @@
  * 
  ---><cfsetting showdebugoutput="no">
 <cfscript>
-	// first check if the jar is availble in general
+	// first check if the jar is available in general
 	echo(createObject("java","jira3096.Test").init().echo("Susi"));
 </cfscript>

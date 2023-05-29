@@ -218,7 +218,7 @@ public final class TagLoop extends TagGroup implements FlowControlBreak, FlowCon
 			break;
 
 		default:
-			throw new TransformerException("invalid type", getStart());
+			throw new TransformerException(bc, "invalid type", getStart());
 		}
 	}
 

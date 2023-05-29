@@ -55,9 +55,9 @@ public class DatasourceResourceOutputStream extends OutputStream {
 			throw new AlwaysThrow(e.getMessage());
 		}
 
-		SQLException ioe = dw.getException();
-		if (ioe != null) {
-			throw new AlwaysThrow(ioe.getMessage());
+		SQLException sqle = dw.getException();
+		if (sqle != null) {
+			throw new AlwaysThrow(sqle);
 		}
 	}
 

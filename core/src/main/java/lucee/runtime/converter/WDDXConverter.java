@@ -21,8 +21,9 @@ package lucee.runtime.converter;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
-import java.util.HashSet;
+import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
@@ -489,7 +490,7 @@ public final class WDDXConverter extends ConverterSupport {
 		deep++;
 		sb.append(goIn() + "<header/>");
 		sb.append(goIn() + "<data>");
-		sb.append(_serialize(object, new HashSet<Object>()));
+		sb.append(_serialize(object, Collections.newSetFromMap(new IdentityHashMap<>())));
 		sb.append(goIn() + "</data>");
 		deep--;
 		sb.append("</wddxPacket>");
@@ -520,23 +521,36 @@ public final class WDDXConverter extends ConverterSupport {
 					wddxPacket = node;
 					break;
 				}
+				else if (node.getNodeType() != Node.COMMENT_NODE) {
+					throw new IllegalArgumentException("Invalid WDDX packet: root element is not wddxPacket.");
+				}
 			}
 
 			NodeList nl = wddxPacket.getChildNodes();
 			int n = nl.getLength();
+
+			if (n == 0) return null;
+
+			int ignored = 0;
 
 			for (int i = 0; i < n; i++) {
 				Node data = nl.item(i);
 				if (data.getNodeName().equals("data")) {
 					NodeList list = data.getChildNodes();
 					len = list.getLength();
+					if (len == 0) return null;
 					for (int y = 0; y < len; y++) {
 						Node node = list.item(y);
 						if (node instanceof Element) return _deserialize((Element) node);
 
 					}
 				}
+				else if (data.getNodeType() != Node.ELEMENT_NODE) {
+					ignored++;
+				}
 			}
+
+			if (ignored == n) return null; // only whitespace or comments, thus empty
 
 			throw new IllegalArgumentException("Invalid WDDX Format: node 'data' not found in WDD packet");
 
@@ -575,7 +589,7 @@ public final class WDDXConverter extends ConverterSupport {
 		else if (nodeName.equals("number")) {
 			try {
 				Node data = element.getFirstChild();
-				if (data == null) return new Double(0);
+				if (data == null) return Double.valueOf(0);
 				return Caster.toDouble(data.getNodeValue());
 			}
 			catch (Exception e) {

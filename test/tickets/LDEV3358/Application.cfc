@@ -1,6 +1,6 @@
 component {
 
-	mySQL=getCredencials();
+	mySQL=getCredentials();
 	this.name = "LDEV3358";
 	this.datasources["LDEV3358"] = {
 		  class: 'com.mysql.cj.jdbc.Driver'
@@ -27,7 +27,7 @@ component {
 		}
 	}
 
-	private struct function getCredencials() {
+	private struct function getCredentials() {
 		var mySQL={};
 		if(
 			!isNull(server.system.environment.MYSQL_SERVER) && 
