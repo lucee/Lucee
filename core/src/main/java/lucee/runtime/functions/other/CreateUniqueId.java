@@ -56,7 +56,7 @@ public final class CreateUniqueId extends BIF {
 	@Override
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
 		if (args.length == 0) return invoke();
-		if (args.length == 1) return call(pc, (String)args[0]);
+		if (args.length == 1) return call(pc, (String) args[0]);
 
 		throw new FunctionException(pc, CreateUniqueId.class.getSimpleName(), 0, 1, args.length);
 	}

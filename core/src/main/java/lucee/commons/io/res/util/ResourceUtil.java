@@ -207,7 +207,7 @@ public final class ResourceUtil {
 		Resource res = pc.getConfig().getResource(path);
 
 		if (res.exists()) return res;
-		else if (!allowRealpath) throw new ExpressionException("file or directory [" +  StringUtil.max(path, 255, "...")  + "] does not exist");
+		else if (!allowRealpath) throw new ExpressionException("file or directory [" + StringUtil.max(path, 255, "...") + "] does not exist");
 
 		if (res.isAbsolute() && res.exists()) {
 			return res;
@@ -226,7 +226,7 @@ public final class ResourceUtil {
 		}
 		res = getRealResource(pc, path, res);
 		if (res.exists()) return res;
-		throw new ExpressionException("file or directory [" +  StringUtil.max(path, 255, "...")  + "] does not exist");
+		throw new ExpressionException("file or directory [" + StringUtil.max(path, 255, "...") + "] does not exist");
 	}
 
 	public static Resource toResourceExisting(Config config, String path) throws ExpressionException {
@@ -237,7 +237,7 @@ public final class ResourceUtil {
 		else res = config.getResource(path);
 
 		if (res.exists()) return res;
-		throw new ExpressionException("file or directory [" +  StringUtil.max(path, 255, "...")  + "] does not exist");
+		throw new ExpressionException("file or directory [" + StringUtil.max(path, 255, "...") + "] does not exist");
 	}
 
 	public static Resource toResourceExisting(Config config, String path, Resource defaultValue) {
@@ -279,7 +279,7 @@ public final class ResourceUtil {
 		// not allow realpath
 		if (!allowRealpath) {
 			if (res.exists() || parentExists(res)) return res;
-			throw new ExpressionException("parent directory [" + res.getParent() + "]  for file [" +  StringUtil.max(destination, 255, "...")  + "] doesn't exist");
+			throw new ExpressionException("parent directory [" + res.getParent() + "]  for file [" + StringUtil.max(destination, 255, "...") + "] doesn't exist");
 
 		}
 
@@ -305,7 +305,7 @@ public final class ResourceUtil {
 		res = getRealResource(pc, destination, res);
 		if (res != null && (res.exists() || parentExists(res))) return res;
 
-		throw new ExpressionException("parent directory [" + res.getParent() + "]  for file [" +  StringUtil.max(destination, 255, "...")  + "] doesn't exist");
+		throw new ExpressionException("parent directory [" + res.getParent() + "]  for file [" + StringUtil.max(destination, 255, "...") + "] doesn't exist");
 
 	}
 

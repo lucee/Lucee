@@ -624,7 +624,10 @@ public final class Http extends BodyTagImpl {
 	}
 
 	private static String getMethodAsVerb(short method) throws ApplicationException {
-		if (method < 0 || method > methods.size() - 1) throw new ApplicationException("invalid method [" + method + "], valid types are [" + ListUtil.arrayToList(methods.toArray(new String[0]), ",") + "]"); // never will reach this, due to above
+		if (method < 0 || method > methods.size() - 1)
+			throw new ApplicationException("invalid method [" + method + "], valid types are [" + ListUtil.arrayToList(methods.toArray(new String[0]), ",") + "]"); // never will
+																																									// reach this,
+																																									// due to above
 
 		return methods.get(method);
 	}
@@ -1274,7 +1277,7 @@ public final class Http extends BodyTagImpl {
 				String str;
 				if (barr == null) str = contentAsString(rsp, responseCharset, contentEncoding, e);
 				else str = IOUtil.toString(barr, responseCharset);
-				if(charset != null) cfhttp.set(KeyConstants._filecontent, new String(str.getBytes(), charset));
+				if (charset != null) cfhttp.set(KeyConstants._filecontent, new String(str.getBytes(), charset));
 				else cfhttp.set(KeyConstants._filecontent, str);
 
 				// store to file

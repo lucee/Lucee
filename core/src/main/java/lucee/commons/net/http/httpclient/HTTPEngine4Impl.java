@@ -107,7 +107,6 @@ import lucee.runtime.tag.Http;
 import lucee.runtime.type.dt.TimeSpanImpl;
 import lucee.runtime.type.util.CollectionUtil;
 
-
 public class HTTPEngine4Impl {
 
 	private static PoolingHttpClientConnectionManager connMan;
@@ -117,7 +116,7 @@ public class HTTPEngine4Impl {
 	public static final int POOL_MAX_CONN_PER_ROUTE = 50;
 	public static final int POOL_CONN_TTL_MS = 15000;
 	public static final int POOL_CONN_INACTIVITY_DURATION = 300;
-	
+
 	/**
 	 * does a http get request
 	 * 
@@ -267,9 +266,8 @@ public class HTTPEngine4Impl {
 		try {
 			initDefaultConnectionFactoryRegistry();
 			if (!pooling) {
-				HttpClientConnectionManager cm = new BasicHttpClientConnectionManager(new DefaultHttpClientConnectionOperatorImpl(csfReg), null); 
-				builder.setConnectionManager(cm)
-					.setConnectionManagerShared(false);
+				HttpClientConnectionManager cm = new BasicHttpClientConnectionManager(new DefaultHttpClientConnectionOperatorImpl(csfReg), null);
+				builder.setConnectionManager(cm).setConnectionManagerShared(false);
 				return;
 			}
 			if (connMan == null) {
@@ -279,11 +277,10 @@ public class HTTPEngine4Impl {
 				connMan.setDefaultSocketConfig(SocketConfig.copy(SocketConfig.DEFAULT).setTcpNoDelay(true).setSoReuseAddress(true).setSoLinger(0).build());
 				connMan.setValidateAfterInactivity(POOL_CONN_INACTIVITY_DURATION);
 			}
-			builder.setConnectionManager(connMan)
-				.setConnectionManagerShared(true)
-				.setConnectionTimeToLive(POOL_CONN_TTL_MS, TimeUnit.MILLISECONDS)
-				.setConnectionReuseStrategy(new DefaultClientConnectionReuseStrategy());
-		} catch (Exception e) {
+			builder.setConnectionManager(connMan).setConnectionManagerShared(true).setConnectionTimeToLive(POOL_CONN_TTL_MS, TimeUnit.MILLISECONDS)
+					.setConnectionReuseStrategy(new DefaultClientConnectionReuseStrategy());
+		}
+		catch (Exception e) {
 			throw Caster.toPageException(e);
 		}
 	}
@@ -295,10 +292,7 @@ public class HTTPEngine4Impl {
 			sslcontext.init(null, null, new java.security.SecureRandom());
 			SSLConnectionSocketFactory defaultsslsf = new SSLConnectionSocketFactoryImpl(sslcontext, new DefaultHostnameVerifierImpl());
 			/* Register connection handlers */
-			csfReg = RegistryBuilder.<ConnectionSocketFactory>create()
-					.register("http", PlainConnectionSocketFactory.getSocketFactory())
-					.register("https", defaultsslsf)
-					.build();
+			csfReg = RegistryBuilder.<ConnectionSocketFactory>create().register("http", PlainConnectionSocketFactory.getSocketFactory()).register("https", defaultsslsf).build();
 		}
 	}
 
@@ -325,28 +319,26 @@ public class HTTPEngine4Impl {
 			sslcontext.init(kmf.getKeyManagers(), null, new java.security.SecureRandom());
 			SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactoryImpl(sslcontext, new DefaultHostnameVerifierImpl());
 			// Fill in the registry
-			Registry<ConnectionSocketFactory> reg = RegistryBuilder.<ConnectionSocketFactory>create()
-				.register("http", PlainConnectionSocketFactory.getSocketFactory())
-				.register("https", sslsf)
-				.build();
+			Registry<ConnectionSocketFactory> reg = RegistryBuilder.<ConnectionSocketFactory>create().register("http", PlainConnectionSocketFactory.getSocketFactory())
+					.register("https", sslsf).build();
 			// Provide a one off connection manager
-			HttpClientConnectionManager cm = new BasicHttpClientConnectionManager(new DefaultHttpClientConnectionOperatorImpl(reg), null); 
-			builder.setConnectionManager(cm)
-				.setConnectionManagerShared(false);
-		} catch (Exception e) {
+			HttpClientConnectionManager cm = new BasicHttpClientConnectionManager(new DefaultHttpClientConnectionOperatorImpl(reg), null);
+			builder.setConnectionManager(cm).setConnectionManagerShared(false);
+		}
+		catch (Exception e) {
 			throw Caster.toPageException(e);
 		}
 	}
 
 	public static void releaseConnectionManager() {
-		if(connMan!=null) { 
-			connMan.close(); 
-			connMan=null; 
+		if (connMan != null) {
+			connMan.close();
+			connMan = null;
 		}
 	}
 
 	public static void closeIdleConnections() {
-		if (connMan!=null) {
+		if (connMan != null) {
 			connMan.closeIdleConnections(POOL_CONN_TTL_MS, TimeUnit.MILLISECONDS);
 			connMan.closeExpiredConnections();
 		}
@@ -360,7 +352,8 @@ public class HTTPEngine4Impl {
 		HttpClientBuilder builder = getHttpClientBuilder();
 		try {
 			setConnectionManager(builder);
-		} catch (PageException e) {
+		}
+		catch (PageException e) {
 			// Ignore pooling if an issue happens
 		}
 

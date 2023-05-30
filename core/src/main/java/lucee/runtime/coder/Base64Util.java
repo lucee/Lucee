@@ -94,7 +94,6 @@ public final class Base64Util {
 		lookUpBase64Alphabet[63] = 47;
 	}
 
-
 	/**
 	 * creates a new random UUID and encodes it as a URL-safe Bas64 string
 	 *

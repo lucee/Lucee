@@ -30,15 +30,15 @@ import lucee.runtime.db.DatasourceConnection;
 public final class IllegalQoQException extends DatabaseException {
 
 	public IllegalQoQException(SQLException sqle, DatasourceConnection dc) {
-		super( sqle, dc );
+		super(sqle, dc);
 	}
 
 	public IllegalQoQException(String message, String detail, SQL sql, DatasourceConnection dc) {
-		super( message, detail, sql, dc );
+		super(message, detail, sql, dc);
 	}
 
 	public IllegalQoQException(PageException e, SQL sql, DatasourceConnection dc) {
-		super( e.getMessage(), e.getDetail(), sql, dc );
+		super(e.getMessage(), e.getDetail(), sql, dc);
 	}
 
 }

@@ -144,8 +144,8 @@ public final class Ldap extends TagImpl {
 	}
 
 	/**
-	 * Specifies the maximum amount of time, in milliseconds, to wait for LDAP processing. Defaults to 60
-	 * seconds.
+	 * Specifies the maximum amount of time, in milliseconds, to wait for LDAP processing. Defaults to
+	 * 60 seconds.
 	 * 
 	 * @param timeout The timeout to set.
 	 */

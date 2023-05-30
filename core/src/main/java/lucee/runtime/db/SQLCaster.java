@@ -149,7 +149,7 @@ public final class SQLCaster {
 			return;
 		}
 		int type = item.getType();
-		//boolean fns = NullSupportHelper.full(pc);
+		// boolean fns = NullSupportHelper.full(pc);
 		switch (type) {
 		/*
 		 * case Types.ARRAY: stat.setArray(parameterIndex,toArray(item.getValue())); return;
@@ -165,13 +165,13 @@ public final class SQLCaster {
 			return;
 		case Types.CLOB:
 			stat.setClob(parameterIndex, SQLUtil.toClob(stat.getConnection(), value));
-				/*
-				 * if(value instanceof String) { try{ stat.setString(parameterIndex,Caster.toString(value)); }
-				 * catch(Throwable t){ExceptionUtil.rethrowIfNecessary(t);
-				 * stat.setClob(parameterIndex,SQLUtil.toClob(stat.getConnection(),value)); }
-				 * 
-				 * } else stat.setClob(parameterIndex,SQLUtil.toClob(stat.getConnection(),value));
-				 */
+			/*
+			 * if(value instanceof String) { try{ stat.setString(parameterIndex,Caster.toString(value)); }
+			 * catch(Throwable t){ExceptionUtil.rethrowIfNecessary(t);
+			 * stat.setClob(parameterIndex,SQLUtil.toClob(stat.getConnection(),value)); }
+			 * 
+			 * } else stat.setClob(parameterIndex,SQLUtil.toClob(stat.getConnection(),value));
+			 */
 			return;
 		case Types.CHAR:
 			String str = Caster.toString(value);
@@ -194,7 +194,7 @@ public final class SQLCaster {
 		case Types.LONGVARBINARY:
 		case Types.BINARY:
 			stat.setObject(parameterIndex, Caster.toBinary(value), type);
-				//// stat.setBytes(parameterIndex,Caster.toBinary(value));
+			//// stat.setBytes(parameterIndex,Caster.toBinary(value));
 			return;
 		case Types.REAL:
 			stat.setObject(parameterIndex, Caster.toFloat(value), type);
@@ -242,7 +242,7 @@ public final class SQLCaster {
 			//// stat.setString(parameterIndex,Caster.toString(value));
 			return;
 		case Types.DATE:
-			
+
 			stat.setDate(parameterIndex, new Date(Caster.toDate(value, tz).getTime()), JREDateTimeUtil.getThreadCalendar(tz));
 			// stat.setDate(parameterIndex,new Date((Caster.toDate(value,null).getTime())));
 			return;

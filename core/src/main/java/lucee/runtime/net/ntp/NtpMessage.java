@@ -22,7 +22,6 @@ import java.text.DecimalFormat;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.Date;
 
-
 import lucee.commons.i18n.DateFormatPool;
 
 public final class NtpMessage {

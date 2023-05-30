@@ -498,7 +498,8 @@ public final class Mail extends BodyTagImpl {
 			int p = Caster.toIntValue(strPriority, -1);
 			if (p < 1 || p > 5) valid = false;
 			else this.priority = p;
-		} else {
+		}
+		else {
 			if ("highest".equals(strPriority)) priority = 1;
 			else if ("urgent".equals(strPriority)) priority = 1;
 			else if ("high".equals(strPriority)) priority = 2;

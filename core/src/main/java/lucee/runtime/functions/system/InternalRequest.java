@@ -70,8 +70,9 @@ public class InternalRequest implements Function {
 
 	public static Struct call(final PageContext pc, String template, String method, Object oUrls, Object oForms, Struct cookies, Struct headers, Object body, String strCharset,
 			boolean addToken, boolean throwonerror) throws PageException {
-			method = method.toUpperCase().trim();
-				if (methods.indexOf(method) < 0) throw new FunctionException(pc, "_InternalRequest", 2, "method", "invalid method type [" + method + "], valid types are [" + ListUtil.arrayToList(methods.toArray(new String[0]), ",") + "]");
+		method = method.toUpperCase().trim();
+		if (methods.indexOf(method) < 0) throw new FunctionException(pc, "_InternalRequest", 2, "method",
+				"invalid method type [" + method + "], valid types are [" + ListUtil.arrayToList(methods.toArray(new String[0]), ",") + "]");
 		Struct urls = toStruct(oUrls);
 		Struct forms = toStruct(oForms);
 
@@ -92,7 +93,8 @@ public class InternalRequest implements Function {
 		String ext = ResourceUtil.getExtension(template, null);
 		// welcome files
 		if (StringUtil.isEmpty(ext)) {
-		throw new FunctionException(pc, "InternalRequest", 1, "template", "template path is invalid");		}
+			throw new FunctionException(pc, "InternalRequest", 1, "template", "template path is invalid");
+		}
 
 		// dialect
 		int dialect = ((CFMLFactoryImpl) pc.getConfig().getFactory()).toDialect(ext, -1);
@@ -295,8 +297,8 @@ public class InternalRequest implements Function {
 		trg.addRaw(null, list.toArray(new URLItem[list.size()]));
 	}
 
-	private static PageContextImpl createPageContext(PageContext pc, String template, Struct urls, Struct cookies, Struct headers, byte[] body, Charset charset, OutputStream os, String method)
-			throws PageException {
+	private static PageContextImpl createPageContext(PageContext pc, String template, Struct urls, Struct cookies, Struct headers, byte[] body, Charset charset, OutputStream os,
+			String method) throws PageException {
 
 		HttpSession session = pc.getSessionType() == Config.SESSION_TYPE_JEE ? pc.getSession() : null;
 

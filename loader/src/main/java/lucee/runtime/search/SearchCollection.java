@@ -79,7 +79,7 @@ public interface SearchCollection extends Serializable {
 	 * 
 	 * @param pc Page Context
 	 * @param key Key
-	 * @param type Type 
+	 * @param type Type
 	 * @param urlpath Query Name
 	 * @param title title
 	 * @param body body
@@ -208,7 +208,7 @@ public interface SearchCollection extends Serializable {
 	 * 
 	 * @param pc Page Context
 	 * @param key Key
-	 * @param type Type 
+	 * @param type Type
 	 * @param queryName Query Name
 	 * @return Index Result
 	 * @throws SearchException Search Exception

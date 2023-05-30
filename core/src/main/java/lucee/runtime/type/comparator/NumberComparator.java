@@ -40,8 +40,9 @@ public final class NumberComparator implements Comparator {
 	 * @param isAsc is ascendinf or descending
 	 */
 	public NumberComparator(boolean isAsc) {
-		this( isAsc, false );
+		this(isAsc, false);
 	}
+
 	public NumberComparator(boolean isAsc, boolean allowEmpty) {
 		this.isAsc = isAsc;
 		this.allowEmpty = allowEmpty;
@@ -60,14 +61,16 @@ public final class NumberComparator implements Comparator {
 
 	private int compareObjects(Object oLeft, Object oRight) throws PageException {
 		// If we're allowing empty/null values, then run this logic
-		if( allowEmpty ) {
+		if (allowEmpty) {
 			oLeft = v(oLeft);
 			oRight = v(oRight);
-			if( oLeft == null && oRight == null ) {
+			if (oLeft == null && oRight == null) {
 				return 0;
-			} else if( oLeft == null && oRight != null ) {
+			}
+			else if (oLeft == null && oRight != null) {
 				return -1;
-			} else if( oLeft != null && oRight == null ) {
+			}
+			else if (oLeft != null && oRight == null) {
 				return 1;
 			}
 		}

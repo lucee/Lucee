@@ -146,16 +146,14 @@ public abstract class MailClient implements PoolItem {
 	public static final int TYPE_IMAP = 1;
 
 	private String _popHeaders[] = { "date", "from", "messagenumber", "messageid", "replyto", "subject", "cc", "to", "size", "header", "uid" };
-	private String _popAll[] = { "date", "from", "messagenumber", "messageid", "replyto", "subject", "cc", "to", "size", "header", "uid",
-			"answered", "deleted", "draft", "flagged", "recent", "seen",
-			"body", "textBody", "HTMLBody", "attachments", "attachmentfiles", "cids"};
+	private String _popAll[] = { "date", "from", "messagenumber", "messageid", "replyto", "subject", "cc", "to", "size", "header", "uid", "answered", "deleted", "draft", "flagged",
+			"recent", "seen", "body", "textBody", "HTMLBody", "attachments", "attachmentfiles", "cids" };
 
-	private String _imapHeaders[] = { "date", "from", "messagenumber", "messageid", "replyto", "subject", "cc", "to", "size", "header", "uid",
-			"answered", "deleted", "draft", "flagged", "recent", "seen" };
-	private String _imapAll[] = { "date", "from", "messagenumber", "messageid", "replyto", "subject", "cc", "to", "size", "header", "uid",
-			"answered", "deleted", "draft", "flagged", "recent", "seen",
-			"body", "textBody", "HTMLBody", "attachments", "attachmentfiles", "cids"};
-	
+	private String _imapHeaders[] = { "date", "from", "messagenumber", "messageid", "replyto", "subject", "cc", "to", "size", "header", "uid", "answered", "deleted", "draft",
+			"flagged", "recent", "seen" };
+	private String _imapAll[] = { "date", "from", "messagenumber", "messageid", "replyto", "subject", "cc", "to", "size", "header", "uid", "answered", "deleted", "draft",
+			"flagged", "recent", "seen", "body", "textBody", "HTMLBody", "attachments", "attachmentfiles", "cids" };
+
 	private String server = null;
 	private String username = null;
 	private String password = null;
@@ -280,34 +278,36 @@ public abstract class MailClient implements PoolItem {
 			properties.setProperty("mail." + type + ".ssl.enable", "true");
 			// properties.setProperty("mail."+type+".starttls.enable", "true" );
 			// allow using untrusted certs, good for CI
-			if (!Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.ssl.checkserveridentity", null), true)){
+			if (!Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.ssl.checkserveridentity", null), true)) {
 				properties.setProperty("mail." + type + ".ssl.trust", "*");
 				properties.setProperty("mail." + type + ".ssl.checkserveridentity", "false");
 			}
 		}
 
 		if (TYPE_IMAP == getType()) {
-			if (secure){
+			if (secure) {
 				properties.put("mail.store.protocol", "imaps");
 				properties.put("mail.imaps.partialfetch", "false");
 				properties.put("mail.imaps.fetchsize", "1048576");
-			} else {
+			}
+			else {
 				properties.put("mail.store.protocol", "imap");
 				properties.put("mail.imap.partialfetch", "false");
 				properties.put("mail.imap.fetchsize", "1048576");
-			} 
+			}
 		}
 		// if(TYPE_POP3==getType()){}
 		_session = username != null ? Session.getInstance(properties, new _Authenticator(username, password)) : Session.getInstance(properties);
 
-		Thread t =  Thread.currentThread();
+		Thread t = Thread.currentThread();
 		ClassLoader ccl = t.getContextClassLoader();
-		t.setContextClassLoader(_session.getClass().getClassLoader());		
+		t.setContextClassLoader(_session.getClass().getClassLoader());
 		try {
 			_store = _session.getStore(type);
 			if (!StringUtil.isEmpty(username)) _store.connect(server, port, username, password);
 			else _store.connect();
-		} finally {
+		}
+		finally {
 			t.setContextClassLoader(ccl);
 		}
 	}
@@ -358,8 +358,12 @@ public abstract class MailClient implements PoolItem {
 	 */
 	public Query getMails(String messageNumbers, String uids, boolean all, String folderName) throws MessagingException, IOException, PageException {
 		Query qry;
-		if (getType() == TYPE_IMAP){ qry = new QueryImpl(all ? _imapAll: _imapHeaders , 0, "query");
-		} else { qry = new QueryImpl(all ? _popAll: _popHeaders , 0, "query"); }
+		if (getType() == TYPE_IMAP) {
+			qry = new QueryImpl(all ? _imapAll : _imapHeaders, 0, "query");
+		}
+		else {
+			qry = new QueryImpl(all ? _popAll : _popHeaders, 0, "query");
+		}
 
 		if (StringUtil.isEmpty(folderName, true)) folderName = "INBOX";
 		else folderName = folderName.trim();
@@ -659,7 +663,7 @@ public abstract class MailClient implements PoolItem {
 
 				cids.setEL(KeyImpl.init(filename), cid);
 			}
-			else if((content = bodypart.getContent()) instanceof MimeMessage) {
+			else if ((content = bodypart.getContent()) instanceof MimeMessage) {
 				content = getConent(bodypart);
 				if (body.length() == 0) body.append(content);
 			}
@@ -694,7 +698,7 @@ public abstract class MailClient implements PoolItem {
 		InputStream is = null;
 
 		try {
-			if((bp.getContent()) instanceof MimeMessage) {
+			if ((bp.getContent()) instanceof MimeMessage) {
 				MimeMessage mimeContent = (MimeMessage) bp.getContent();
 				is = mimeContent.getInputStream();
 			}

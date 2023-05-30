@@ -46,7 +46,7 @@ public final class Timer extends BodyTagImpl {
 	private int type = TYPE_DEBUG;
 	private int unit = UNIT_MILLI;
 	private String unitDesc = "ms";
-	//private double time;
+	// private double time;
 	private long time;
 	private long exe;
 	private String variable;
@@ -59,7 +59,7 @@ public final class Timer extends BodyTagImpl {
 		label = "";
 		unitDesc = "ms";
 		variable = null;
-	}	
+	}
 
 	/**
 	 * @param label the label to set
@@ -93,7 +93,8 @@ public final class Timer extends BodyTagImpl {
 				this.unit = UNIT_NANO;
 				this.unitDesc = "ns";
 				return;
-			} else if (c == 'm' || c == 'M') {
+			}
+			else if (c == 'm' || c == 'M') {
 				if ("micro".equalsIgnoreCase(strUnit.trim())) {
 					this.unit = UNIT_MICRO;
 					this.unitDesc = "us";
@@ -102,20 +103,20 @@ public final class Timer extends BodyTagImpl {
 				this.unit = UNIT_MILLI;
 				this.unitDesc = "ms"; // default
 				return;
-			} else if (c == 's' || c == 'S') {
+			}
+			else if (c == 's' || c == 'S') {
 				this.unit = UNIT_SECOND;
 				this.unitDesc = "s";
 				return;
 			}
 			throw new ApplicationException("Tag [timer] has an invalid value [" + strUnit + "] for attribute [unit], valid values are [nano, micro, milli, second]");
-		} 
+		}
 		this.unit = UNIT_MILLI;
 		this.unitDesc = "ms"; // default
 	}
 
 	/**
-	 * Set the value variable, tThe name of the variable in which to save the execution time into
-	 * tag.
+	 * Set the value variable, tThe name of the variable in which to save the execution time into tag.
 	 * 
 	 * @param variable value to set
 	 **/
@@ -124,17 +125,17 @@ public final class Timer extends BodyTagImpl {
 	}
 
 	private long getCurrentTime() {
-		switch (this.unit){
-			case UNIT_NANO:
-				return System.nanoTime();
-			case UNIT_MICRO:
-				return System.nanoTime() / 1000;
-			case UNIT_SECOND:
-				return System.currentTimeMillis() / 1000;
-			default:
-				return System.currentTimeMillis();
+		switch (this.unit) {
+		case UNIT_NANO:
+			return System.nanoTime();
+		case UNIT_MICRO:
+			return System.nanoTime() / 1000;
+		case UNIT_SECOND:
+			return System.currentTimeMillis() / 1000;
+		default:
+			return System.currentTimeMillis();
 		}
-	}	
+	}
 
 	@Override
 	public int doStartTag() {
@@ -176,16 +177,17 @@ public final class Timer extends BodyTagImpl {
 			if (pageContext.getConfig().debug()) {
 				PageSource curr = pageContext.getCurrentTemplatePageSource();
 				// TODO need to include unitDesc?
-				//((DebuggerPro) pageContext.getDebugger()).addTimer(label, exe, curr == null ? "unknown template" : curr.getDisplayPath());
+				// ((DebuggerPro) pageContext.getDebugger()).addTimer(label, exe, curr == null ? "unknown template"
+				// : curr.getDisplayPath());
 				pageContext.getDebugger().addTimer(label, exe, curr == null ? "unknown template" : curr.getDisplayPath());
 				// TODO pass in line number , curr == null ? 0 : curr.getLine()
 			}
 		}
 		else if (TYPE_CONSOLE == type) {
 			PageSource curr = pageContext.getCurrentTemplatePageSource();
-			String currTemplate = curr != null ? " from  template: "+ curr.getDisplayPath() : "";
+			String currTemplate = curr != null ? " from  template: " + curr.getDisplayPath() : "";
 			if (StringUtil.isEmpty(label, true)) label = "CFTimer";
-			CFMLEngineImpl.CONSOLE_OUT.println("" + label + ": " + exe + unitDesc + currTemplate + "");	
+			CFMLEngineImpl.CONSOLE_OUT.println("" + label + ": " + exe + unitDesc + currTemplate + "");
 		}
 	}
 

@@ -31,154 +31,154 @@ import lucee.runtime.type.scope.Variables;
 
 // TODO DoublePredicate,IntPredicate,LongPredicate
 public abstract class EnvUDFSingle extends EnvUDF implements ToIntFunction, ToLongFunction, ToDoubleFunction, Consumer, LongConsumer, IntConsumer, UnaryOperator,
-	DoubleUnaryOperator, IntUnaryOperator, IntFunction, Function, LongFunction, Predicate, DoubleConsumer, DoubleFunction, DoubleToIntFunction, DoubleToLongFunction,
-	IntToDoubleFunction, IntToLongFunction, LongToDoubleFunction, LongToIntFunction, LongUnaryOperator {
+		DoubleUnaryOperator, IntUnaryOperator, IntFunction, Function, LongFunction, Predicate, DoubleConsumer, DoubleFunction, DoubleToIntFunction, DoubleToLongFunction,
+		IntToDoubleFunction, IntToLongFunction, LongToDoubleFunction, LongToIntFunction, LongUnaryOperator {
 
-    public EnvUDFSingle() {
-	super();
-    }
-
-    EnvUDFSingle(UDFProperties properties) {
-	super(properties);
-    }
-
-    EnvUDFSingle(UDFProperties properties, Variables variables) {
-	super(properties, variables);
-    }
-
-    @Override
-    public int applyAsInt(Object value) {
-	try {
-	    return Caster.toIntValue(call(ThreadLocalPageContext.get(), new Object[] { value }, true));
+	public EnvUDFSingle() {
+		super();
 	}
-	catch (PageException pe) {
-	    throw new PageRuntimeException(pe);
+
+	EnvUDFSingle(UDFProperties properties) {
+		super(properties);
 	}
-    }
 
-    @Override
-    public int applyAsInt(double value) {
-	return applyAsInt(Double.valueOf(value));
-    }
-
-    @Override
-    public int applyAsInt(int value) {
-	return applyAsInt(Integer.valueOf(value));
-    }
-
-    @Override
-    public int applyAsInt(long value) {
-	return applyAsInt(Long.valueOf(value));
-    }
-
-    @Override
-    public double applyAsDouble(Object value) {
-	try {
-	    return Caster.toDoubleValue(call(ThreadLocalPageContext.get(), new Object[] { value }, true));
+	EnvUDFSingle(UDFProperties properties, Variables variables) {
+		super(properties, variables);
 	}
-	catch (PageException pe) {
-	    throw new PageRuntimeException(pe);
+
+	@Override
+	public int applyAsInt(Object value) {
+		try {
+			return Caster.toIntValue(call(ThreadLocalPageContext.get(), new Object[] { value }, true));
+		}
+		catch (PageException pe) {
+			throw new PageRuntimeException(pe);
+		}
 	}
-    }
 
-    @Override
-    public double applyAsDouble(double value) {
-	return applyAsDouble(Double.valueOf(value));
-    }
-
-    @Override
-    public double applyAsDouble(int value) {
-	return applyAsDouble(Integer.valueOf(value));
-    }
-
-    @Override
-    public double applyAsDouble(long value) {
-	return applyAsDouble(Long.valueOf(value));
-    }
-
-    @Override
-    public long applyAsLong(Object value) {
-	try {
-	    return Caster.toLongValue(call(ThreadLocalPageContext.get(), new Object[] { value }, true));
+	@Override
+	public int applyAsInt(double value) {
+		return applyAsInt(Double.valueOf(value));
 	}
-	catch (PageException pe) {
-	    throw new PageRuntimeException(pe);
+
+	@Override
+	public int applyAsInt(int value) {
+		return applyAsInt(Integer.valueOf(value));
 	}
-    }
 
-    @Override
-    public long applyAsLong(double value) {
-	return applyAsLong(Double.valueOf(value));
-    }
-
-    @Override
-    public long applyAsLong(int value) {
-	return applyAsLong(Integer.valueOf(value));
-    }
-
-    @Override
-    public long applyAsLong(long value) {
-	return applyAsLong(Long.valueOf(value));
-    }
-
-    @Override
-    public void accept(Object t) {
-	try {
-	    call(ThreadLocalPageContext.get(), new Object[] { t }, true);
+	@Override
+	public int applyAsInt(long value) {
+		return applyAsInt(Long.valueOf(value));
 	}
-	catch (PageException pe) {
-	    throw new PageRuntimeException(pe);
+
+	@Override
+	public double applyAsDouble(Object value) {
+		try {
+			return Caster.toDoubleValue(call(ThreadLocalPageContext.get(), new Object[] { value }, true));
+		}
+		catch (PageException pe) {
+			throw new PageRuntimeException(pe);
+		}
 	}
-    }
 
-    @Override
-    public void accept(int value) {
-	accept(Integer.valueOf(value));
-    }
-
-    @Override
-    public void accept(long value) {
-	accept(Long.valueOf(value));
-    }
-
-    @Override
-    public void accept(double value) {
-	accept(Double.valueOf(value));
-    }
-
-    @Override
-    public Object apply(Object t) {
-	try {
-	    return call(ThreadLocalPageContext.get(), new Object[] { t }, true);
+	@Override
+	public double applyAsDouble(double value) {
+		return applyAsDouble(Double.valueOf(value));
 	}
-	catch (PageException pe) {
-	    throw new PageRuntimeException(pe);
+
+	@Override
+	public double applyAsDouble(int value) {
+		return applyAsDouble(Integer.valueOf(value));
 	}
-    }
 
-    @Override
-    public Object apply(double value) {
-	return apply(Double.valueOf(value));
-    }
-
-    @Override
-    public Object apply(long value) {
-	return apply(Long.valueOf(value));
-    }
-
-    @Override
-    public Object apply(int value) {
-	return apply(Integer.valueOf(value));
-    }
-
-    @Override
-    public boolean test(Object t) {
-	try {
-	    return Caster.toBooleanValue(call(ThreadLocalPageContext.get(), new Object[] { t }, true));
+	@Override
+	public double applyAsDouble(long value) {
+		return applyAsDouble(Long.valueOf(value));
 	}
-	catch (PageException pe) {
-	    throw new PageRuntimeException(pe);
+
+	@Override
+	public long applyAsLong(Object value) {
+		try {
+			return Caster.toLongValue(call(ThreadLocalPageContext.get(), new Object[] { value }, true));
+		}
+		catch (PageException pe) {
+			throw new PageRuntimeException(pe);
+		}
 	}
-    }
+
+	@Override
+	public long applyAsLong(double value) {
+		return applyAsLong(Double.valueOf(value));
+	}
+
+	@Override
+	public long applyAsLong(int value) {
+		return applyAsLong(Integer.valueOf(value));
+	}
+
+	@Override
+	public long applyAsLong(long value) {
+		return applyAsLong(Long.valueOf(value));
+	}
+
+	@Override
+	public void accept(Object t) {
+		try {
+			call(ThreadLocalPageContext.get(), new Object[] { t }, true);
+		}
+		catch (PageException pe) {
+			throw new PageRuntimeException(pe);
+		}
+	}
+
+	@Override
+	public void accept(int value) {
+		accept(Integer.valueOf(value));
+	}
+
+	@Override
+	public void accept(long value) {
+		accept(Long.valueOf(value));
+	}
+
+	@Override
+	public void accept(double value) {
+		accept(Double.valueOf(value));
+	}
+
+	@Override
+	public Object apply(Object t) {
+		try {
+			return call(ThreadLocalPageContext.get(), new Object[] { t }, true);
+		}
+		catch (PageException pe) {
+			throw new PageRuntimeException(pe);
+		}
+	}
+
+	@Override
+	public Object apply(double value) {
+		return apply(Double.valueOf(value));
+	}
+
+	@Override
+	public Object apply(long value) {
+		return apply(Long.valueOf(value));
+	}
+
+	@Override
+	public Object apply(int value) {
+		return apply(Integer.valueOf(value));
+	}
+
+	@Override
+	public boolean test(Object t) {
+		try {
+			return Caster.toBooleanValue(call(ThreadLocalPageContext.get(), new Object[] { t }, true));
+		}
+		catch (PageException pe) {
+			throw new PageRuntimeException(pe);
+		}
+	}
 
 }

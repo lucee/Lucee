@@ -83,7 +83,7 @@ public final class DateFormat extends BaseFormat implements Format {
 			else if ("iso8601".equals(lcMask) || "iso".equals(lcMask)) {
 				SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
 				return formatter.format(calendar.getTime());
-			}	
+			}
 
 			int len = mask.length();
 			int pos = 0;

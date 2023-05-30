@@ -64,7 +64,7 @@ public class QueryColumnImpl implements QueryColumnPro, Objects {
 	private static final int CAPACITY = 32;
 
 	protected int type;
-	protected AtomicInteger size = new AtomicInteger( 0 );
+	protected AtomicInteger size = new AtomicInteger(0);
 	protected Object[] data;
 
 	protected boolean typeChecked = false;
@@ -95,7 +95,7 @@ public class QueryColumnImpl implements QueryColumnPro, Objects {
 	 */
 	public QueryColumnImpl(QueryImpl query, Collection.Key key, Array array, int type) {
 		data = array.toArray();
-		size = new AtomicInteger( array.size() );
+		size = new AtomicInteger(array.size());
 		this.type = type;
 		this.query = query;
 		this.key = key;
@@ -109,7 +109,7 @@ public class QueryColumnImpl implements QueryColumnPro, Objects {
 	public QueryColumnImpl(QueryImpl query, Collection.Key key, int type, int size) {
 		this.data = new Object[size];
 		this.type = type;
-		this.size = new AtomicInteger( size );
+		this.size = new AtomicInteger(size);
 		this.query = query;
 		this.key = key;
 	}
@@ -182,7 +182,7 @@ public class QueryColumnImpl implements QueryColumnPro, Objects {
 		synchronized (sync) {
 			resetType();
 			data = new Object[CAPACITY];
-			size.set( 0 );
+			size.set(0);
 		}
 	}
 
@@ -373,21 +373,21 @@ public class QueryColumnImpl implements QueryColumnPro, Objects {
 	@Override
 	public void add(Object value) {
 		query.disableIndex();
-		growTo(size()+1);
-		data[size.incrementAndGet()-1] = value;
+		growTo(size() + 1);
+		data[size.incrementAndGet() - 1] = value;
 	}
 
 	@Override
 	public void cutRowsTo(int maxrows) {
 		synchronized (sync) {
-			if (maxrows > -1 && maxrows < size()) size.set( maxrows );
+			if (maxrows > -1 && maxrows < size()) size.set(maxrows);
 		}
 	}
 
 	@Override
 	public void addRow(int count) {
 		query.disableIndex();
-		// Grow the column if needed.  This method will lock if it needs to
+		// Grow the column if needed. This method will lock if it needs to
 		growTo(size() + count);
 
 		size.addAndGet(count);
@@ -428,13 +428,13 @@ public class QueryColumnImpl implements QueryColumnPro, Objects {
 	private void growTo(int row) {
 		// Require an extra buffer in case another thread is also adding a row to the query.
 		// We don't want to single thread the check, but we do want to syncronize if actually growing
-		if( data.length >= row+CAPACITY ) {
+		if (data.length >= row + CAPACITY) {
 			return;
 		}
 
 		synchronized (sync) {
 			// Double check inside the lock in case the column already grew since we last checked
-			if( data.length >= row+CAPACITY ) {
+			if (data.length >= row + CAPACITY) {
 				return;
 			}
 			// Double the current size regardless of how big we were asked to grow

@@ -186,7 +186,7 @@ public class ChildThreadImpl extends ChildThread implements Serializable {
 				((DebuggerImpl) pc.getDebugger()).setThreadName(tagName);
 				if (ci.hasDebugOptions(ConfigPro.DEBUG_TEMPLATE)) debugEntry = pc.getDebugger().getEntry(pc, page.getPageSource());
 			}
-			
+
 			threadScope = pc.getCFThreadScope();
 			pc.setCurrentThreadScope(new ThreadsImpl(this));
 			pc.setThread(Thread.currentThread());

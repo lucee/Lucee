@@ -337,7 +337,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 						String s = System.getProperty("lucee.core.path");
 						if (s != null) {
 							File dir = new File(s);
-							File[] files = dir.listFiles(new ExtensionFilter(new String[]{ coreExt }));
+							File[] files = dir.listFiles(new ExtensionFilter(new String[] { coreExt }));
 							if (files.length > 0) {
 								is = new FileInputStream(files[0]);
 							}

@@ -62,7 +62,7 @@ public final class DebugTimerImpl implements DebugTimerPro {
 
 	/**
 	 * @return the line number
-	*/	
+	 */
 	public int getLine() {
 		return line;
 	}

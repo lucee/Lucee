@@ -192,16 +192,16 @@ public class MemberUtil {
 		if (member != null) {
 			List<FunctionLibFunctionArg> _args = member.getArg();
 			FunctionLibFunctionArg arg;
- 			FunctionLibFunctionArg argMem;
+			FunctionLibFunctionArg argMem;
 			if (args.size() < _args.size()) {
 				Object val;
 				ArrayList<Ref> refs = new ArrayList<Ref>();
 				int pos = member.getMemberPosition();
-				argMem = _args.get(pos-1); // set member argument as per member-position
+				argMem = _args.get(pos - 1); // set member argument as per member-position
 				refs.add(new Casting(argMem.getTypeAsString(), argMem.getType(), new LFunctionValue(new LString(argMem.getName()), coll)));
 				for (int y = 0; y < _args.size(); y++) {
 					arg = _args.get(y);
-					
+
 					if (arg.getName() == argMem.getName()) continue; // member argument already added in refs
 
 					// match by name

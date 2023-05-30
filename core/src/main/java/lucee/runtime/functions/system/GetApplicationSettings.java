@@ -138,7 +138,7 @@ public class GetApplicationSettings extends BIF {
 		Struct rt = new StructImpl(Struct.TYPE_LINKED);
 		if (ac instanceof ModernApplicationContext) rt.setEL("type", ((ModernApplicationContext) ac).getRegex().getTypeName());
 		sct.setEL("regex", rt);
-		
+
 		sct.setEL("serverSideFormValidation", Boolean.FALSE); // TODO impl
 
 		sct.setEL("clientCluster", Caster.toBoolean(ac.getClientCluster()));

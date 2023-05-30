@@ -111,7 +111,7 @@ public class QueryPartitions {
 	 * @param target target query (for column reference)
 	 * @throws PageException
 	 */
-	public void addEmptyPartition( QueryImpl source, QueryImpl target ) throws PageException {
+	public void addEmptyPartition(QueryImpl source, QueryImpl target) throws PageException {
 		partitions.put("default", createPartition(target, source, false));
 	}
 
@@ -133,10 +133,11 @@ public class QueryPartitions {
 		QueryImpl targetPartition = partitions.computeIfAbsent(partitionKey, k -> {
 			try {
 				return createPartition(target, source, finalizedColumnVals);
-			} catch( Exception e ) {
-				throw new RuntimeException( e );
 			}
-		} );
+			catch (Exception e) {
+				throw new RuntimeException(e);
+			}
+		});
 
 		int newRow = targetPartition.addRow();
 
@@ -269,9 +270,8 @@ public class QueryPartitions {
 	 *
 	 * @param target Query for target data (for column refernces)
 	 * @param source source query we're getting data from
-	 * @param finalizedColumnVals If we're adding finalized data, just copy it
-	 *            across. Easy. This applies when distincting a result set after it's already been
-	 *            processed
+	 * @param finalizedColumnVals If we're adding finalized data, just copy it across. Easy. This
+	 *            applies when distincting a result set after it's already been processed
 	 * @return Empty Query with all the needed columns
 	 * @throws PageException
 	 */

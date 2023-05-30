@@ -184,7 +184,7 @@ public final class DebuggerImpl implements Debugger {
 				historyId.appendEL(Caster.toInteger(de.getId()));
 				historyLevel.appendEL(Caster.toInteger(pc.getCurrentLevel()));
 			}
-			catch(PageException e) {
+			catch (PageException e) {
 				historyId.appendEL(de.getId());
 				historyLevel.appendEL(pc.getCurrentLevel());
 			}
@@ -196,7 +196,7 @@ public final class DebuggerImpl implements Debugger {
 			historyId.appendEL(Caster.toInteger(de.getId()));
 			historyLevel.appendEL(Caster.toInteger(pc.getCurrentLevel()));
 		}
-		catch(PageException e) {
+		catch (PageException e) {
 			historyId.appendEL(de.getId());
 			historyLevel.appendEL(pc.getCurrentLevel());
 		}

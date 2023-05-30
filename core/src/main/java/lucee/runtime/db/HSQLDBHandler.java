@@ -264,7 +264,7 @@ public final class HSQLDBHandler {
 		}
 		catch (SQLParserException spe) {
 			qoqException = spe;
-			if( spe.getCause() != null && spe.getCause() instanceof IllegalQoQException ) {
+			if (spe.getCause() != null && spe.getCause() instanceof IllegalQoQException) {
 				throw Caster.toPageException(spe);
 			}
 			prettySQL = SQLPrettyfier.prettyfie(sql.getSQLString());
@@ -281,25 +281,26 @@ public final class HSQLDBHandler {
 			qoqException = e;
 		}
 
-		// If our first pass at the QoQ failed, lets look at the exception to see what we want to do with it.
-		if( qoqException != null  )	{
+		// If our first pass at the QoQ failed, lets look at the exception to see what we want to do with
+		// it.
+		if (qoqException != null) {
 
 			// Track the root cause
 			Exception rootCause = qoqException;
 
 			// Unwrap any RuntimeExceptions thrown from Java streams
-			if( qoqException instanceof RuntimeException && qoqException.getCause() != null && qoqException.getCause() instanceof Exception ) {
-				rootCause = (Exception)qoqException.getCause();
+			if (qoqException instanceof RuntimeException && qoqException.getCause() != null && qoqException.getCause() instanceof Exception) {
+				rootCause = (Exception) qoqException.getCause();
 				// Exceptions from an async Java stream will be wrapped in TWO RuntimeExceptions!
-				if( rootCause instanceof RuntimeException && rootCause.getCause() != null && rootCause.getCause() instanceof Exception ) {
-					rootCause = (Exception)rootCause.getCause();
+				if (rootCause instanceof RuntimeException && rootCause.getCause() != null && rootCause.getCause() instanceof Exception) {
+					rootCause = (Exception) rootCause.getCause();
 				}
 			}
 
 			// We don't need to catch these, so re-throw
-			if( rootCause instanceof RuntimeException ) {
+			if (rootCause instanceof RuntimeException) {
 				// re-throw the original outer exception
-				throw new RuntimeException( qoqException );
+				throw new RuntimeException(qoqException);
 			}
 
 			// Debugging option to completely disable HyperSQL for testing

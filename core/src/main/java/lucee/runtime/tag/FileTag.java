@@ -871,8 +871,8 @@ public final class FileTag extends BodyTagImpl {
 		/*
 		 * try { BufferedImage bi = ImageUtil.toBufferedImage(file, null); if(bi!=null) { Struct img =new
 		 * StructImpl(); img.setEL(KeyConstants._width,Double.valueOf(bi.getWidth()));
-		 * img.setEL(KeyConstants._height,Double.valueOf(bi.getHeight())); sct.setEL(KeyConstants._img,img); } }
-		 * catch(Exception e) {}
+		 * img.setEL(KeyConstants._height,Double.valueOf(bi.getHeight())); sct.setEL(KeyConstants._img,img);
+		 * } } catch(Exception e) {}
 		 */
 		return sct;
 	}
@@ -1122,7 +1122,8 @@ public final class FileTag extends BodyTagImpl {
 					if (StringUtil.isEmpty(blocklistedTypes))
 						blocklistedTypes = SystemUtil.getSystemPropOrEnvVar(SystemUtil.SETTING_UPLOAD_EXT_BLOCKLIST, SystemUtil.DEFAULT_UPLOAD_EXT_BLOCKLIST);
 
-					NotResourceFilter filter = new NotResourceFilter(new ExtensionResourceFilter(ListUtil.trimItems(ListUtil.listToStringArray(blocklistedTypes, ',')), false, true, false));
+					NotResourceFilter filter = new NotResourceFilter(
+							new ExtensionResourceFilter(ListUtil.trimItems(ListUtil.listToStringArray(blocklistedTypes, ',')), false, true, false));
 
 					if (!filter.accept(clientFile)) throw new ApplicationException("Upload of files with extension [" + ext + "] is not permitted.", DETAIL);
 				}

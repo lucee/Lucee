@@ -58,7 +58,8 @@ public class MainEntryPoint {
 			if (cl != null) try {
 				cl.close();
 			}
-			catch (final IOException ioe) {}
+			catch (final IOException ioe) {
+			}
 		}
 	}
 

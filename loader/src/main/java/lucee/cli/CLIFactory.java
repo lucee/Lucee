@@ -53,7 +53,8 @@ public class CLIFactory extends Thread {
 		if (strIdle != null) try {
 			idleTime = Long.parseLong(strIdle);
 		}
-		catch (final Throwable t) {}
+		catch (final Throwable t) {
+		}
 	}
 
 	@Override
@@ -108,13 +109,15 @@ public class CLIFactory extends Thread {
 
 			registry = LocateRegistry.createRegistry(port);
 		}
-		catch (final RemoteException e) {}
+		catch (final RemoteException e) {
+		}
 
 		try {
 
 			if (registry == null) registry = LocateRegistry.getRegistry(port);
 		}
-		catch (final RemoteException e) {}
+		catch (final RemoteException e) {
+		}
 
 		RemoteServer.setLog(System.out);
 

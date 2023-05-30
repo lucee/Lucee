@@ -42,9 +42,9 @@ public final class ListAppend extends BIF {
 
 	public static String call(PageContext pc, String list, String value, String delimiter, boolean includeEmptyFields) {
 		if (delimiter.length() == 0) return list;
-		
+
 		char del = delimiter.charAt(0);
-		if (list.length() == 0) return includeEmptyFields? value : ListUtil.listRemoveEmpty(value, del);
+		if (list.length() == 0) return includeEmptyFields ? value : ListUtil.listRemoveEmpty(value, del);
 
 		if (!includeEmptyFields) {
 			list = ListUtil.listRemoveEmpty(list, del);

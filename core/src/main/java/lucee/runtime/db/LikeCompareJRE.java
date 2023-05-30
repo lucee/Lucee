@@ -41,7 +41,7 @@ class LikeCompareJRE {
 		Pattern pattern = (Pattern) patterns.get(wildcard + escape);
 		if (pattern != null) return pattern;
 		// Thread-safe compilation so only one thread compiles a pattern
-		synchronized(sync) {
+		synchronized (sync) {
 			// Double check in the lock
 			pattern = (Pattern) patterns.get(wildcard + escape);
 			if (pattern != null) return pattern;
@@ -59,13 +59,14 @@ class LikeCompareJRE {
 			for (int i = 0; i < len; i++) {
 				c = wildcard.charAt(i);
 				if (c == esc) {
-					if (i + 1 == len)
-						throw new DatabaseException("Invalid Escape Sequence. Valid sequence pairs for this escape character are: [" + esc + "%] or [" + esc + "_]", null, sql, null);
+					if (i + 1 == len) throw new DatabaseException("Invalid Escape Sequence. Valid sequence pairs for this escape character are: [" + esc + "%] or [" + esc + "_]",
+							null, sql, null);
 					c = wildcard.charAt(++i);
 					if (c == '%') sb.append(c);
 					else if (c == '_') sb.append(c);
 					else throw new DatabaseException(
-							"Invalid Escape Sequence [" + esc + "" + c + "]. Valid sequence pairs for this escape character are: [" + esc + "%] or [" + esc + "_]", null, sql, null);
+							"Invalid Escape Sequence [" + esc + "" + c + "]. Valid sequence pairs for this escape character are: [" + esc + "%] or [" + esc + "_]", null, sql,
+							null);
 				}
 				else {
 					if (c == '%') sb.append(".*");

@@ -37,7 +37,7 @@ public interface Strings {
 	 * return first element of the list
 	 * 
 	 * @param list List
-	 * @param delimiter delimiter of the list 
+	 * @param delimiter delimiter of the list
 	 * @param ignoreEmpty ignore empty
 	 * @return returns the first element of the list
 	 */
@@ -47,7 +47,7 @@ public interface Strings {
 	 * return last element of the list
 	 * 
 	 * @param list List
-	 * @param delimiter delimiter of the list 
+	 * @param delimiter delimiter of the list
 	 * @param ignoreEmpty ignore empty
 	 * @return returns the last Element of a list
 	 */

@@ -66,19 +66,19 @@ public class ScriptEngineImpl implements ScriptEngine {
 			return res.getValue();
 		}
 		catch (PageException pe) {
-			if (printExceptions){
+			if (printExceptions) {
 				pe.printStackTrace();
 			}
 			throw toScriptException(pe);
 		}
 		catch (RuntimeException re) {
-			if (printExceptions){
+			if (printExceptions) {
 				re.printStackTrace();
 			}
 			throw re;
 		}
 		catch (Throwable t) {
-			if (printExceptions){
+			if (printExceptions) {
 				if (t instanceof ThreadDeath) throw (ThreadDeath) t;
 				t.printStackTrace();
 			}

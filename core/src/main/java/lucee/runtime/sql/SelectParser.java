@@ -550,18 +550,19 @@ public class SelectParser {
 
 		// If there is a random : laying around like :id where we expected a column or value, it's
 		// likley a named param and the user forgot to pass their params to the query.
-		if (exp == null && raw.isCurrent( ":" ) ) {
+		if (exp == null && raw.isCurrent(":")) {
 			String name = "";
 			int pos = raw.getPos();
 			// Strip out the next word to show the user what was after their errant :
 			do {
-				if( raw.isCurrentWhiteSpace() || raw.isCurrent( ")" ) ) break;
+				if (raw.isCurrentWhiteSpace() || raw.isCurrent(")")) break;
 				name += raw.getCurrent();
 				raw.next();
-			} while( raw.isValidIndex() );
-			throw (SQLParserException)new SQLParserException("Unexpected token [" + name + "] found at position " + pos + ". Did you forget to specify all your named params?" )
-				// Need to sneak this past Java's checked exception types
-				.initCause( new IllegalQoQException("Unsupported SQL", "", null, null) );
+			}
+			while (raw.isValidIndex());
+			throw (SQLParserException) new SQLParserException("Unexpected token [" + name + "] found at position " + pos + ". Did you forget to specify all your named params?")
+					// Need to sneak this past Java's checked exception types
+					.initCause(new IllegalQoQException("Unsupported SQL", "", null, null));
 		}
 
 		return exp;

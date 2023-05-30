@@ -53,7 +53,8 @@ public class FileGetMimeType {
 		if (!src.exists()) {
 			if (checkHeader) {
 				throw new FunctionException(pc, "FileGetMimeType", 1, "file", "File [" + src + "] does not exist, strict was true");
-			} else {
+			}
+			else {
 				String mimeType = IOUtil.getMimeType(src.getName(), null);
 				if (!StringUtil.isEmpty(mimeType)) return mimeType;
 				throw new FunctionException(pc, "FileGetMimeType", 1, "file", "File [" + src + "] does not exist and couldn't detect mimetype from the file extension.");

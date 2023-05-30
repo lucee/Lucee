@@ -16,5 +16,5 @@ public interface DebuggerPro extends Debugger {
 	 * @return debug timer object
 	 */
 	public DebugTimer addTimer(String label, long exe, String template, int line);
-	
+
 }
