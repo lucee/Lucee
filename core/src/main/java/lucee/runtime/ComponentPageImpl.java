@@ -45,6 +45,7 @@ import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.converter.BinaryConverter;
 import lucee.runtime.converter.ConverterException;
 import lucee.runtime.converter.JSONConverter;
+import lucee.runtime.converter.JSONDateFormat;
 import lucee.runtime.converter.JavaConverter;
 import lucee.runtime.converter.ScriptConverter;
 import lucee.runtime.converter.WDDXConverter;
@@ -801,13 +802,13 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 				if (qf == SerializationSettings.SERIALIZE_AS_UNDEFINED)
 					throw new ApplicationException("invalid queryformat definition [" + queryFormat + "], valid formats are [row,column,struct]");
 			}
-			JSONConverter converter = new JSONConverter(false, cs);
+			JSONConverter converter = new JSONConverter(false, cs, JSONDateFormat.PATTERN_CF, true);
 			String prefix = "";
 			if (props.secureJson) {
 				prefix = pc.getApplicationContext().getSecureJsonPrefix();
 				if (prefix == null) prefix = "";
 			}
-			pc.forceWrite(prefix + converter.serialize(pc, rtn, qf));
+			pc.forceWrite(prefix + converter.serialize(pc, rtn, qf, true));
 		}
 		// CFML
 		else if (UDF.RETURN_FORMAT_SERIALIZE == props.format) {
@@ -908,8 +909,8 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 		else if (UDF.RETURN_FORMAT_JSON == format) {
 			int qf = SerializationSettings.SERIALIZE_AS_ROW;
 			cs = getCharset(pc);
-			JSONConverter converter = new JSONConverter(false, cs);
-			String str = converter.serialize(pc, rtn, qf);
+			JSONConverter converter = new JSONConverter(false, cs, JSONDateFormat.PATTERN_CF, false);
+			String str = converter.serialize(pc, rtn, qf, true);
 			is = new ByteArrayInputStream(str.getBytes(cs));
 
 		}

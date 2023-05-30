@@ -788,10 +788,9 @@ public abstract class ConfigFactory {
 		root = sort(root);
 
 		// store it as Json
-		JSONConverter json = new JSONConverter(true, CharsetUtil.UTF8, JSONDateFormat.PATTERN_CF, true, true);
-		String str = json.serialize(null, root, SerializationSettings.SERIALIZE_AS_ROW);
+		JSONConverter json = new JSONConverter(true, CharsetUtil.UTF8, JSONDateFormat.PATTERN_CF, false);
+		String str = json.serialize(null, root, SerializationSettings.SERIALIZE_AS_ROW, true);
 		IOUtil.write(configFileNew, str, CharsetUtil.UTF8, false);
-
 		aprint.o("DONE!");
 	}
 

@@ -21,8 +21,9 @@ package lucee.runtime.converter;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
-import java.util.HashSet;
+import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
@@ -489,7 +490,7 @@ public final class WDDXConverter extends ConverterSupport {
 		deep++;
 		sb.append(goIn() + "<header/>");
 		sb.append(goIn() + "<data>");
-		sb.append(_serialize(object, new HashSet<Object>()));
+		sb.append(_serialize(object, Collections.newSetFromMap(new IdentityHashMap<>())));
 		sb.append(goIn() + "</data>");
 		deep--;
 		sb.append("</wddxPacket>");
@@ -519,7 +520,8 @@ public final class WDDXConverter extends ConverterSupport {
 				if (node.getNodeName().equalsIgnoreCase("wddxPacket")) {
 					wddxPacket = node;
 					break;
-				} else if (node.getNodeType() != Node.COMMENT_NODE) {
+				}
+				else if (node.getNodeType() != Node.COMMENT_NODE) {
 					throw new IllegalArgumentException("Invalid WDDX packet: root element is not wddxPacket.");
 				}
 			}
@@ -527,7 +529,7 @@ public final class WDDXConverter extends ConverterSupport {
 			NodeList nl = wddxPacket.getChildNodes();
 			int n = nl.getLength();
 
-			if (n ==0) return null;
+			if (n == 0) return null;
 
 			int ignored = 0;
 
@@ -536,13 +538,14 @@ public final class WDDXConverter extends ConverterSupport {
 				if (data.getNodeName().equals("data")) {
 					NodeList list = data.getChildNodes();
 					len = list.getLength();
-					if (len ==0) return null;
+					if (len == 0) return null;
 					for (int y = 0; y < len; y++) {
 						Node node = list.item(y);
 						if (node instanceof Element) return _deserialize((Element) node);
 
 					}
-				} else if (data.getNodeType() != Node.ELEMENT_NODE) {
+				}
+				else if (data.getNodeType() != Node.ELEMENT_NODE) {
 					ignored++;
 				}
 			}

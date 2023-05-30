@@ -667,10 +667,9 @@ public final class ConfigWebFactory extends ConfigFactory {
 
 	private static Struct reload(Struct root, ConfigImpl config, ConfigServerImpl cs) throws PageException, IOException, ConverterException {
 		// store as json
-		JSONConverter json = new JSONConverter(true, CharsetUtil.UTF8, JSONDateFormat.PATTERN_CF, true, true);
-		String str = json.serialize(null, root, SerializationSettings.SERIALIZE_AS_ROW);
+		JSONConverter json = new JSONConverter(true, CharsetUtil.UTF8, JSONDateFormat.PATTERN_CF, false);
+		String str = json.serialize(null, root, SerializationSettings.SERIALIZE_AS_ROW, true);
 		IOUtil.write(config.getConfigFile(), str, CharsetUtil.UTF8, false);
-
 		root = ConfigWebFactory.loadDocument(config.getConfigFile());
 		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, ConfigWebFactory.class.getName(), "reloading configuration");
 		return root;
@@ -1540,6 +1539,10 @@ public final class ConfigWebFactory extends ConfigFactory {
 		sb.append(config.getDefaultFunctionOutput());
 		sb.append(';');
 
+		// preserve Case
+		sb.append(config.preserveCase());
+		sb.append(';');
+
 		// full null support
 		// sb.append(config.getFull Null Support()); // no longer a compiler switch
 		// sb.append(';');
@@ -1584,7 +1587,6 @@ public final class ConfigWebFactory extends ConfigFactory {
 			}
 			catch (IOException e) {
 			}
-
 			// change Compile type
 			if (hasChanged) {
 				try {
@@ -2349,6 +2351,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 	private static void _loadCache(ConfigServerImpl configServer, ConfigImpl config, Struct root, Log log) {
 		try {
 			boolean hasCS = configServer != null;
+			Struct defaultCache = ConfigWebUtil.getAsStruct("cache", root);
 
 			// load cache defintions
 			{
@@ -2403,12 +2406,12 @@ public final class ConfigWebFactory extends ConfigFactory {
 			// default cache
 			for (int i = 0; i < CACHE_TYPES_MAX.length; i++) {
 				try {
-					String def = getAttr(root, "default" + StringUtil.ucFirst(STRING_CACHE_TYPES_MAX[i]));
+					String def = getAttr(defaultCache, "default" + StringUtil.ucFirst(STRING_CACHE_TYPES_MAX[i]));
 					if (hasAccess && !StringUtil.isEmpty(def)) {
 						config.setCacheDefaultConnectionName(CACHE_TYPES_MAX[i], def);
 					}
 					else if (hasCS) {
-						if (root.containsKey("default" + StringUtil.ucFirst(STRING_CACHE_TYPES_MAX[i]))) config.setCacheDefaultConnectionName(CACHE_TYPES_MAX[i], "");
+						if (defaultCache.containsKey("default" + StringUtil.ucFirst(STRING_CACHE_TYPES_MAX[i]))) config.setCacheDefaultConnectionName(CACHE_TYPES_MAX[i], "");
 						else config.setCacheDefaultConnectionName(CACHE_TYPES_MAX[i], configServer.getCacheDefaultConnectionName(CACHE_TYPES_MAX[i]));
 					}
 					else config.setCacheDefaultConnectionName(+CACHE_TYPES_MAX[i], "");

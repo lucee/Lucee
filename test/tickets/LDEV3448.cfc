@@ -8,15 +8,33 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="session" {
 					template : "#uri#\session-cfml\index.cfm"
 				);
 				//dumpResult( sessionReq );
-
 				local.str = getCookieFromHeaders(sessionReq.headers, "cfid" );
 				//dumpResult( str );
-
 				expect( len( trim( str ) ) ).toBeGT( 0 );
 				local.sct = toCookieStruct( str );
 				// dumpResult( sct );
 				expect( structKeyExists( sct, "HTTPOnly" ) ).toBeTrue();
 				expect( sct.Samesite ).toBe( "lax" );
+
+			});
+
+			it( title='check overriding cfml session cookie defaults, httponly=false, samesite=""', body=function( currentSpec ) {
+				uri = createURI( "LDEV3448" );
+				local.sessionReq = _InternalRequest(
+					template : "#uri#\session-cfml\index.cfm",
+					url:  {
+						samesite: "",
+						httponly: false
+					}
+				);
+				// dumpResult( sessionReq );
+				local.str = getCookieFromHeaders(sessionReq.headers, "cfid" );
+				// dumpResult( str );
+				expect( len( trim( str ) ) ).toBeGT( 0 );
+				local.sct = toCookieStruct( str );
+				// dumpResult( sct );
+				expect( structKeyExists( sct, "HTTPOnly" ) ).toBeFalse();
+				expect( structKeyExists(sct, "Samesite" ) ).toBeFalse();
 
 			});
 

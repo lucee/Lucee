@@ -130,12 +130,16 @@ Error Output --->
 					</tbody>
 				</table>
 			<cfelse>
-				<div class="error">#stText.services.certificate.noCert#</div>
+				<cfif error.message EQ "">
+					<div class="error">#stText.services.certificate.noCert#</div>
+				</cfif>
 			</cfif>
 			<cfcatch>
 				<cfset session.certHost = "">
 				<cfset session.certPort = "443">
-				<div class="error">#cfcatch.message# #cfcatch.detail#</div>
+				<cfif error.message EQ "">
+					<div class="error">#cfcatch.message# #cfcatch.detail#</div>
+				</cfif>
 			</cfcatch>
 		</cftry>
 	</cfif>

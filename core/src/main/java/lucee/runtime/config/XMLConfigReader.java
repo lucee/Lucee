@@ -145,22 +145,28 @@ public final class XMLConfigReader extends DefaultHandler implements LexicalHand
 	}
 
 	@Override
-	public void endCDATA() throws SAXException {}
+	public void endCDATA() throws SAXException {
+	}
 
 	@Override
-	public void endDTD() throws SAXException {}
+	public void endDTD() throws SAXException {
+	}
 
 	@Override
-	public void endEntity(String arg0) throws SAXException {}
+	public void endEntity(String arg0) throws SAXException {
+	}
 
 	@Override
-	public void startCDATA() throws SAXException {}
+	public void startCDATA() throws SAXException {
+	}
 
 	@Override
-	public void startDTD(String arg0, String arg1, String arg2) throws SAXException {}
+	public void startDTD(String arg0, String arg1, String arg2) throws SAXException {
+	}
 
 	@Override
-	public void startEntity(String arg0) throws SAXException {}
+	public void startEntity(String arg0) throws SAXException {
+	}
 
 	public static void main(String[] args) throws Exception {
 		Resource src = ResourcesImpl.getFileResourceProvider().getResource("/Users/mic/Projects/Lucee/Lucee5/core/src/main/java/resource/config/web.xml");
@@ -201,10 +207,10 @@ public final class XMLConfigReader extends DefaultHandler implements LexicalHand
 
 	private static String ser(Object var) throws PageException {
 		try {
-			JSONConverter json = new JSONConverter(true, Charset.forName("UTF-8"), JSONDateFormat.PATTERN_CF, true, true);
+			JSONConverter json = new JSONConverter(true, Charset.forName("UTF-8"), JSONDateFormat.PATTERN_CF, false);
 
 			// TODO get secure prefix from application.cfc
-			return json.serialize(null, var, SerializationSettings.SERIALIZE_AS_ROW);
+			return json.serialize(null, var, SerializationSettings.SERIALIZE_AS_ROW, true);
 		}
 		catch (ConverterException e) {
 			throw Caster.toPageException(e);
