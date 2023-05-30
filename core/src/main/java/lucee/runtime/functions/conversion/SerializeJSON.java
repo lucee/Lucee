@@ -75,7 +75,7 @@ public final class SerializeJSON implements Function {
 
 			int qf = JSONConverter.toQueryFormat(queryFormat, SerializationSettings.SERIALIZE_AS_UNDEFINED);
 			if (qf == SerializationSettings.SERIALIZE_AS_UNDEFINED) {
-				if (!StringUtil.isEmpty(queryFormat)) throw new FunctionException(pc, SerializeJSON.class.getSimpleName(), 2, "queryFormat",
+				if (!StringUtil.isEmpty(queryFormat)) throw new FunctionException(pc, SerializeJSON.class.getSimpleName(), 3, "queryFormat",
 						"When var is a Query, argument [queryFormat] must be either a boolean value or a string with the value of [struct], [row], or [column]");
 				ApplicationContextSupport acs = (ApplicationContextSupport) pc.getApplicationContext();
 				SerializationSettings settings = acs.getSerializationSettings();
