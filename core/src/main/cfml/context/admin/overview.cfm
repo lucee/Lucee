@@ -299,12 +299,10 @@ Error Output --->
 <cfadmin
     action="getExtensions"
     type="server"
-    password="#session["password"&request.adminType]#"
     returnVariable="docsServer">
 <cfadmin
     action="getExtensions"
     type="web"
-    password="#session["password"&request.adminType]#"
     returnVariable="docsWeb">
 
 	<cfif request.adminType EQ "server">
@@ -576,7 +574,7 @@ Error Output --->
 
 		<cfadmin
 		action="getMinVersion"
-		type="server"
+		type="#request.adminType#"
 		password="#session["password"&request.adminType]#"
 		returnVariable="minVersion">
 		<tr>

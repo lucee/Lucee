@@ -873,8 +873,8 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		else if (check("removeUpdate", ACCESS_NOT_WHEN_WEB) && check2(ACCESS_WRITE)) doRemoveUpdate();
 		else if (check("changeVersionTo", ACCESS_NOT_WHEN_WEB) && check2(ACCESS_WRITE)) doChangeVersionTo();
 		else if (check("getUpdate", ACCESS_NOT_WHEN_WEB) && check2(ACCESS_WRITE)) doGetUpdate();
-		else if (check("getMinVersion", ACCESS_NOT_WHEN_WEB) && check2(ACCESS_READ)) getMinVersion();
-		else if (check("getLoaderInfo", ACCESS_NOT_WHEN_WEB) && check2(ACCESS_READ)) getLoaderInfo();
+		else if (check("getMinVersion", ACCESS_FREE) && check2(ACCESS_READ)) getMinVersion();
+		else if (check("getLoaderInfo", ACCESS_FREE) && check2(ACCESS_READ)) getLoaderInfo();
 		else if (check("listPatches", ACCESS_NOT_WHEN_WEB) && check2(ACCESS_READ)) listPatches();
 		else if (check("updateupdate", ACCESS_NOT_WHEN_WEB) && check2(ACCESS_WRITE)) doUpdateUpdate();
 		else if (check("getSerial", ACCESS_FREE) && check2(ACCESS_READ)) doGetSerial();
@@ -2171,9 +2171,8 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	private void doGetMappings() throws PageException {
 
 		Mapping[] mappings = config.getMappings();
-		lucee.runtime.type.Query qry = new QueryImpl(
-				new String[] { "archive", "strarchive", "physical", "strphysical", "virtual", "hidden", "physicalFirst", "readonly", "inspect", "toplevel", "listenerType", "listenerMode" }, mappings.length,
-				"query");
+		lucee.runtime.type.Query qry = new QueryImpl(new String[] { "archive", "strarchive", "physical", "strphysical", "virtual", "hidden", "physicalFirst", "readonly", "inspect",
+				"toplevel", "listenerType", "listenerMode" }, mappings.length, "query");
 
 		for (int i = 0; i < mappings.length; i++) {
 			MappingImpl m = (MappingImpl) mappings[i];
