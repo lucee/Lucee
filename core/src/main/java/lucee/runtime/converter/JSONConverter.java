@@ -26,8 +26,10 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetEncoder;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
@@ -109,31 +111,6 @@ public final class JSONConverter extends ConverterSupport {
 	private String indent9;
 	private String indent10;
 	private int level = 0;
-
-	/*
-	 * public static void main(String[] args) throws PageException, ConverterException { StructImpl sct
-	 * = new StructImpl(); // sct.set("nbr", 123); sct.set("boolean", true); StructImpl sct1 = new
-	 * StructImpl(); sct.set("sct", sct1); sct1.set("boolean", true); sct1.set("string",
-	 * "string val'\"ue"); sct1.set("number", 123.456); sct1.set("timezone", TimeZone.getDefault());
-	 * sct1.set("Locale", Locale.CANADA); sct1.set("Character", Character.valueOf('c'));
-	 * sct1.set("DateTime", new DateTimeImpl()); sct1.set("Date", new Date()); sct1.set("File", new
-	 * File(".")); sct1.set("byte", "swadd".getBytes());
-	 * 
-	 * Map map = new HashMap<>(); sct.set("map", map); map.put("t", true); map.put("f", false);
-	 * 
-	 * ArrayImpl arr = new ArrayImpl(); sct.set("arr", arr); arr.add("one"); arr.add("two");
-	 * sct.set("nativeArr", new String[] { "adaaasdd", "dwdasd" }); QueryImpl q = new QueryImpl(new
-	 * String[] { "first", "last" }, new Object[][] { new Object[] { "susi", "peter" }, new Object[] {
-	 * "susi2", "peter2" } }, "test");
-	 * 
-	 * sct.set("query", q);
-	 * 
-	 * JSONConverter json = new JSONConverter(true, CharsetUtil.UTF8, JSONDateFormat.PATTERN_ISO8601);
-	 * print.e(json.serialize(null, sct, -1, true));
-	 * 
-	 * json = new JSONConverter(true, CharsetUtil.UTF8, JSONDateFormat.PATTERN_ISO8601, false, null);
-	 * print.e(json.serialize(null, sct, -1, true)); }
-	 */
 
 	/**
 	 * @param ignoreRemotingFetch
@@ -282,7 +259,6 @@ public final class JSONConverter extends ConverterSupport {
 	 * @throws ConverterException
 	 */
 	private void _serializeList(PageContext pc, Set test, List list, StringBuilder sb, int queryFormat, Boolean preserveCase, Set<Object> done) throws ConverterException {
-
 		sb.append("[");
 		sb.append(eol);
 		right();
@@ -345,11 +321,8 @@ public final class JSONConverter extends ConverterSupport {
 	public void _serializeStruct(PageContext pc, Set test, Struct struct, StringBuilder sb, int queryFormat, Boolean preserveCase, boolean addUDFs, Set<Object> done)
 			throws ConverterException {
 
-		ApplicationContextSupport acs = (pc == null) ? null : (ApplicationContextSupport) pc.getApplicationContext();
-		boolean preCase;
-		if (preserveCase != null) preCase = preserveCase.booleanValue();
-		else preCase = (acs == null) ? false : acs.getSerializationSettings().getPreserveCaseForStructKey(); // preserve case by default for Struct
-
+		// preserve case by default for Struct
+		boolean preCase = getPreserveCase(pc, preserveCase, false);
 		// Component
 		if (struct instanceof Component) {
 			String res = castToJson(pc, (Component) struct, NULL_STRING);
@@ -386,7 +359,7 @@ public final class JSONConverter extends ConverterSupport {
 
 			doIt = true;
 			sb.append(StringUtil.escapeJS(k, '"', charsetEncoder));
-			sb.append(": ");
+			sb.append(compact ? ":" : ": ");
 			_serialize(pc, test, value, sb, queryFormat, preserveCase, done);
 		}
 
@@ -413,7 +386,7 @@ public final class JSONConverter extends ConverterSupport {
 				if (doIt) sb.append(',');
 				doIt = true;
 				sb.append(StringUtil.escapeJS(key.getString(), '"', charsetEncoder));
-				sb.append(": ");
+				sb.append(compact ? ":" : ": ");
 				_serialize(pc, test, value, sb, queryFormat, preserveCase, done);
 			}
 		}
@@ -466,7 +439,7 @@ public final class JSONConverter extends ConverterSupport {
 			}
 			doIt = true;
 			sb.append(StringUtil.escapeJS(key.toString(), '"', charsetEncoder));
-			sb.append(": ");
+			sb.append(compact ? ":" : ": ");
 			_serialize(pc, test, map.get(key), sb, queryFormat, preserveCase, done);
 		}
 		sb.append(eol);
@@ -529,10 +502,7 @@ public final class JSONConverter extends ConverterSupport {
 	 */
 	private void _serializeQuery(PageContext pc, Set test, Query query, StringBuilder sb, int queryFormat, Boolean preserveCase, Set<Object> done) throws ConverterException {
 
-		ApplicationContextSupport acs = (pc == null) ? null : (ApplicationContextSupport) pc.getApplicationContext();
-		boolean preCase;
-		if (preserveCase != null) preCase = preserveCase.booleanValue();
-		else preCase = (acs == null) ? false : acs.getSerializationSettings().getPreserveCaseForQueryColumn(); // UPPERCASE column keys by default for Query
+		boolean preCase = getPreserveCase(pc, preserveCase, true); // UPPERCASE column keys by default for Query
 
 		Collection.Key[] _keys = CollectionUtil.keys(query);
 
@@ -546,7 +516,7 @@ public final class JSONConverter extends ConverterSupport {
 				for (int col = 0; col < _keys.length; col++) {
 					if (col > 0) sb.append(',');
 					sb.append(StringUtil.escapeJS(preCase ? _keys[col].getString() : _keys[col].getUpperString(), '"', charsetEncoder));
-					sb.append(": ");
+					sb.append(compact ? ":" : ": ");
 					try {
 						_serialize(pc, test, query.getAt(_keys[col], row), sb, queryFormat, preserveCase, done);
 					}
@@ -568,7 +538,7 @@ public final class JSONConverter extends ConverterSupport {
 		// Rowcount
 		if (queryFormat == SerializationSettings.SERIALIZE_AS_COLUMN) {
 			sb.append(indent());
-			sb.append("\"ROWCOUNT\": ");
+			sb.append("\"ROWCOUNT\"" + (compact ? ":" : ": "));
 			sb.append(Caster.toString(query.getRecordcount()));
 			sb.append(',');
 			sb.append(eol);
@@ -576,7 +546,7 @@ public final class JSONConverter extends ConverterSupport {
 
 		// Columns
 		sb.append(indent());
-		sb.append("\"COLUMNS\": [");
+		sb.append("\"COLUMNS\"" + (compact ? ":" : ": ") + "[");
 		sb.append(eol);
 		right();
 		String[] cols = query.getColumns();
@@ -600,7 +570,7 @@ public final class JSONConverter extends ConverterSupport {
 		// Data
 		sb.append(eol);
 		sb.append(indent());
-		sb.append("\"DATA\": ");
+		sb.append("\"DATA\"" + (compact ? ":" : ": "));
 		if (queryFormat == SerializationSettings.SERIALIZE_AS_COLUMN) {
 			sb.append('{');
 			sb.append(eol);
@@ -623,7 +593,7 @@ public final class JSONConverter extends ConverterSupport {
 				oDoIt = true;
 
 				sb.append(StringUtil.escapeJS(upperCase ? _keys[i].getUpperString() : _keys[i].getString(), '"', charsetEncoder));
-				sb.append(": [");
+				sb.append((compact ? ":" : ": ") + "[");
 				sb.append(eol);
 				right();
 				boolean doIt = false;
@@ -719,7 +689,6 @@ public final class JSONConverter extends ConverterSupport {
 	 * @throws ConverterException
 	 */
 	private void _serialize(PageContext pc, Set test, Object object, StringBuilder sb, int queryFormat, Boolean preserveCase, Set done) throws ConverterException {
-
 		// NULL
 		if (object == null || object == CollectionUtil.NULL) {
 			sb.append("null");
@@ -765,7 +734,6 @@ public final class JSONConverter extends ConverterSupport {
 			_serializeDate((Date) object, sb);
 			return;
 		}
-		// XML
 		if (object instanceof Node) {
 			_serializeXML((Node) object, sb);
 			return;
@@ -795,9 +763,7 @@ public final class JSONConverter extends ConverterSupport {
 			sb.append("null");
 			return;
 		}
-
 		done.add(raw);
-
 		try {
 			// Component
 			if (object instanceof Component) {
@@ -889,13 +855,13 @@ public final class JSONConverter extends ConverterSupport {
 	 */
 	public String serialize(PageContext pc, Object object, int queryFormat) throws ConverterException {
 		StringBuilder sb = new StringBuilder(256);
-		_serialize(pc, null, object, sb, queryFormat, null, new HashSet());
+		_serialize(pc, null, object, sb, queryFormat, null, Collections.newSetFromMap(new IdentityHashMap<>()));
 		return sb.toString();
 	}
 
 	public String serialize(PageContext pc, Object object, int queryFormat, Boolean preserveCase) throws ConverterException {
 		StringBuilder sb = new StringBuilder(256);
-		_serialize(pc, null, object, sb, queryFormat, preserveCase, new HashSet());
+		_serialize(pc, null, object, sb, queryFormat, preserveCase, Collections.newSetFromMap(new IdentityHashMap<>()));
 		return sb.toString();
 	}
 
@@ -969,4 +935,17 @@ public final class JSONConverter extends ConverterSupport {
 		return defaultValue;
 	}
 
+	private boolean getPreserveCase(PageContext pc, Boolean preserveCase, boolean forQuery) {
+		if (preserveCase != null) {
+			return preserveCase.booleanValue();
+		}
+
+		ApplicationContextSupport acs = pc == null ? null : (ApplicationContextSupport) pc.getApplicationContext();
+		if (acs != null) {
+			SerializationSettings ss = acs.getSerializationSettings();
+			return forQuery ? ss.getPreserveCaseForQueryColumn() : ss.getPreserveCaseForStructKey();
+		}
+
+		return true;
+	}
 }

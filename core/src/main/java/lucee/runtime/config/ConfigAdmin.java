@@ -1847,42 +1847,44 @@ public final class ConfigAdmin {
 			throw new ExpressionException(e.getMessage());
 		}
 
-		if (name.equalsIgnoreCase(Caster.toString(root.get("defaultTemplate", null), null))) rem(root, "defaultTemplate");
-		if (name.equalsIgnoreCase(Caster.toString(root.get("defaultObject", null), null))) rem(root, "defaultObject");
-		if (name.equalsIgnoreCase(Caster.toString(root.get("defaultQuery", null), null))) rem(root, "defaultQuery");
-		if (name.equalsIgnoreCase(Caster.toString(root.get("defaultResource", null), null))) rem(root, "defaultResource");
-		if (name.equalsIgnoreCase(Caster.toString(root.get("defaultFunction", null), null))) rem(root, "defaultFunction");
-		if (name.equalsIgnoreCase(Caster.toString(root.get("defaultInclude", null), null))) rem(root, "defaultInclude");
-		if (name.equalsIgnoreCase(Caster.toString(root.get("defaultHttp", null), null))) rem(root, "defaultHttp");
-		if (name.equalsIgnoreCase(Caster.toString(root.get("defaultFile", null), null))) rem(root, "defaultFile");
-		if (name.equalsIgnoreCase(Caster.toString(root.get("defaultWebservice", null), null))) rem(root, "defaultWebservice");
+		Struct parent = _getRootElement("cache");
+
+		if (name.equalsIgnoreCase(Caster.toString(parent.get("defaultTemplate", null), null))) rem(parent, "defaultTemplate");
+		if (name.equalsIgnoreCase(Caster.toString(parent.get("defaultObject", null), null))) rem(parent, "defaultObject");
+		if (name.equalsIgnoreCase(Caster.toString(parent.get("defaultQuery", null), null))) rem(parent, "defaultQuery");
+		if (name.equalsIgnoreCase(Caster.toString(parent.get("defaultResource", null), null))) rem(parent, "defaultResource");
+		if (name.equalsIgnoreCase(Caster.toString(parent.get("defaultFunction", null), null))) rem(parent, "defaultFunction");
+		if (name.equalsIgnoreCase(Caster.toString(parent.get("defaultInclude", null), null))) rem(parent, "defaultInclude");
+		if (name.equalsIgnoreCase(Caster.toString(parent.get("defaultHttp", null), null))) rem(parent, "defaultHttp");
+		if (name.equalsIgnoreCase(Caster.toString(parent.get("defaultFile", null), null))) rem(parent, "defaultFile");
+		if (name.equalsIgnoreCase(Caster.toString(parent.get("defaultWebservice", null), null))) rem(parent, "defaultWebservice");
 
 		if (_default == ConfigPro.CACHE_TYPE_OBJECT) {
-			root.setEL("defaultObject", name);
+			parent.setEL("defaultObject", name);
 		}
 		else if (_default == ConfigPro.CACHE_TYPE_TEMPLATE) {
-			root.setEL("defaultTemplate", name);
+			parent.setEL("defaultTemplate", name);
 		}
 		else if (_default == ConfigPro.CACHE_TYPE_QUERY) {
-			root.setEL("defaultQuery", name);
+			parent.setEL("defaultQuery", name);
 		}
 		else if (_default == ConfigPro.CACHE_TYPE_RESOURCE) {
-			root.setEL("defaultResource", name);
+			parent.setEL("defaultResource", name);
 		}
 		else if (_default == ConfigPro.CACHE_TYPE_FUNCTION) {
-			root.setEL("defaultFunction", name);
+			parent.setEL("defaultFunction", name);
 		}
 		else if (_default == ConfigPro.CACHE_TYPE_INCLUDE) {
-			root.setEL("defaultInclude", name);
+			parent.setEL("defaultInclude", name);
 		}
 		else if (_default == ConfigPro.CACHE_TYPE_HTTP) {
-			root.setEL("defaultHttp", name);
+			parent.setEL("defaultHttp", name);
 		}
 		else if (_default == ConfigPro.CACHE_TYPE_FILE) {
-			root.setEL("defaultFile", name);
+			parent.setEL("defaultFile", name);
 		}
 		else if (_default == ConfigPro.CACHE_TYPE_WEBSERVICE) {
-			root.setEL("defaultWebservice", name);
+			parent.setEL("defaultWebservice", name);
 		}
 
 		// Update

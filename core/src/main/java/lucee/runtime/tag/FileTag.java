@@ -1037,7 +1037,6 @@ public final class FileTag extends BodyTagImpl {
 				cffile.set("serverfile", destination.getName());
 				cffile.set("serverfileext", ResourceUtil.getExtension(destination, ""));
 				cffile.set("serverfilename", ResourceUtil.getName(destination));
-				cffile.set("attemptedserverfile", destination.getName());
 				// }
 			}
 			else if (nameconflict == NAMECONFLICT_FORCEUNIQUE) {
@@ -1048,7 +1047,6 @@ public final class FileTag extends BodyTagImpl {
 				cffile.set("serverfile", destination.getName());
 				cffile.set("serverfileext", ResourceUtil.getExtension(destination, ""));
 				cffile.set("serverfilename", ResourceUtil.getName(destination));
-				cffile.set("attemptedserverfile", destination.getName());
 			}
 			else if (nameconflict == NAMECONFLICT_OVERWRITE) {
 				// fileWasAppended=true;

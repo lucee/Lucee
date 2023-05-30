@@ -5,6 +5,17 @@
     "version": "0.2.0",
         "configurations": [{
             "type": "java",
+            "name": "Attach java debugger on port 5000 for tests",
+            "request": "attach",
+            "hostName": "localhost",
+            "port": "5000",
+            "sourcePaths" :[
+                "${workspaceFolder}/core",
+                "${workspaceFolder}/loader",
+            ]
+        },
+        {
+            "type": "java",
             "name": "Build and attach java debugger on port 5000 for tests",
             "request": "attach",
             "hostName": "localhost",
