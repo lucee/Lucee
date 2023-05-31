@@ -121,6 +121,8 @@ public class OSGiUtil {
 		// this is needed in case old version of extensions are used, because lucee no longer bundles this
 		packageBundleMapping.put("org.bouncycastle", "bcprov");
 		packageBundleMapping.put("org.apache.log4j", "log4j");
+		packageBundleMapping.put("com.fasterxml.jackson.annotation", "com.fasterxml.jackson.core.jackson-annotations");
+		packageBundleMapping.put("org.apache.lucene.analysis", "apache.lucene");
 	}
 
 	/**
@@ -426,47 +428,52 @@ public class OSGiUtil {
 		return _loadBundle(bc, bf.getFile());
 	}
 
-	public static Bundle loadBundleByPackage(String packageName, List<VersionDefinition> versionDefinitions, Set<Bundle> loadedBundles, boolean startIfNecessary,
+	public static Bundle loadBundleByPackage(String packageName, List<VersionDefinition> versionDefinitions, short resolution, Set<Bundle> loadedBundles, boolean startIfNecessary,
 			Set<String> parents) throws BundleException, IOException {
-		CFMLEngine engine = CFMLEngineFactory.getInstance();
-		CFMLEngineFactory factory = engine.getCFMLEngineFactory();
+		try {
+			CFMLEngine engine = CFMLEngineFactory.getInstance();
+			CFMLEngineFactory factory = engine.getCFMLEngineFactory();
 
-		// if part of bootdelegation we ignore
-		if (OSGiUtil.isPackageInBootelegation(packageName)) {
-			return null;
-		}
+			// if part of bootdelegation we ignore
+			if (OSGiUtil.isPackageInBootelegation(packageName)) {
+				return null;
+			}
 
-		// is it in jar directory but not loaded
-		File dir = factory.getBundleDirectory();
-		File[] children = dir.listFiles(JAR_EXT_FILTER);
-		List<PackageDefinition> pds;
-		for (File child: children) {
-			BundleFile bf = BundleFile.getInstance(child);
-			if (bf.isBundle()) {
-				if (parents.contains(toString(bf))) continue;
-				pds = toPackageDefinitions(bf.getExportPackage(), packageName, versionDefinitions);
-				if (pds != null && !pds.isEmpty()) {
-					Bundle b = exists(loadedBundles, bf);
-					if (b != null) {
+			// is it in jar directory but not loaded
+			File dir = factory.getBundleDirectory();
+			File[] children = dir.listFiles(JAR_EXT_FILTER);
+			List<PackageDefinition> pds;
+			for (File child: children) {
+				BundleFile bf = BundleFile.getInstance(child);
+				if (bf.isBundle()) {
+					if (parents.contains(toString(bf))) continue;
+					pds = toPackageDefinitions(bf.getExportPackage(), packageName, versionDefinitions);
+					if (pds != null && !pds.isEmpty()) {
+						Bundle b = exists(loadedBundles, bf);
+						if (b != null) {
 
-						if (startIfNecessary) _startIfNecessary(b, parents);
-						return null;
-					}
-					b = loadBundle(bf);
-					if (b != null) {
-						loadedBundles.add(b);
-						if (startIfNecessary) _startIfNecessary(b, parents);
-						return b;
+							if (startIfNecessary) _startIfNecessary(b, parents);
+							return null;
+						}
+						b = loadBundle(bf);
+						if (b != null) {
+							loadedBundles.add(b);
+							if (startIfNecessary) _startIfNecessary(b, parents);
+							return b;
+						}
 					}
 				}
 			}
+
+			String bn = packageBundleMapping.get(packageName);
+			if (!StringUtil.isEmpty(bn)) return loadBundle(bn, null, null, null, startIfNecessary, false);
+
+			for (Entry<String, String> e: packageBundleMapping.entrySet()) {
+				if (packageName.startsWith(e.getKey() + ".")) return loadBundle(e.getValue(), null, null, null, startIfNecessary, false);
+			}
 		}
-
-		String bn = packageBundleMapping.get(packageName);
-		if (!StringUtil.isEmpty(bn)) return loadBundle(bn, null, null, null, startIfNecessary);
-
-		for (Entry<String, String> e: packageBundleMapping.entrySet()) {
-			if (packageName.startsWith(e.getKey() + ".")) return loadBundle(e.getValue(), null, null, null, startIfNecessary);
+		catch (IOException | BundleException e) {
+			if (resolution == PackageQuery.RESOLUTION_REQUIRED) throw e;
 		}
 		return null;
 	}
@@ -1304,7 +1311,7 @@ public class OSGiUtil {
 		while (it.hasNext()) {
 			pq = it.next();
 			try {
-				loadBundleByPackage(pq.getName(), pq.getVersionDefinitons(), loadedBundles, true, parents);
+				loadBundleByPackage(pq.getName(), pq.getVersionDefinitons(), pq.getResolution(), loadedBundles, true, parents);
 			}
 			catch (Exception _be) {
 				boolean printExceptions = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.cli.printExceptions", null), false);
@@ -1472,16 +1479,25 @@ public class OSGiUtil {
 		Entry<String, String> e;
 		String value;
 		PackageQuery pd;
+		short resolution = PackageQuery.RESOLUTION_REQUIRED;
 		while (it.hasNext()) {
 			r = it.next();
+			pd = null;
 			Iterator<Entry<String, String>> iit = r.getDirectives().entrySet().iterator();
 			inner: while (iit.hasNext()) {
 				e = iit.next();
-				if (!"filter".equals(e.getKey())) continue;
-				value = e.getValue();
-				pd = toPackageQuery(value);
-				if (pd != null) rtn.add(pd);
+
+				// resolution
+				if ("resolution".equals(e.getKey())) PackageQuery.toResolution(e.getValue(), PackageQuery.RESOLUTION_REQUIRED);
+
+				// filter
+				if (!"filter".equals(e.getKey())) {
+					value = e.getValue();
+					pd = toPackageQuery(value);
+					if (pd != null) rtn.add(pd);
+				}
 			}
+			if (pd != null && resolution != PackageQuery.RESOLUTION_REQUIRED) pd.setResolution(resolution);
 		}
 		return rtn;
 	}
@@ -1670,11 +1686,31 @@ public class OSGiUtil {
 	}
 
 	public static class PackageQuery {
+		public static final short RESOLUTION_REQUIRED = 1;
+		public static final short RESOLUTION_DYNAMIC = 2;
+		public static final short RESOLUTION_OPTIONAL = 4;
 		private final String name;
 		private List<VersionDefinition> versions = new ArrayList<OSGiUtil.VersionDefinition>();
+		private short resolution = RESOLUTION_REQUIRED;
 
 		public PackageQuery(String name) {
 			this.name = name;
+		}
+
+		public void setResolution(short resolution) {
+			this.resolution = resolution;
+		}
+
+		public short getResolution() {
+			return resolution;
+		}
+
+		public static int toResolution(String strResolution, int defaultValue) {
+			if (!StringUtil.isEmpty(strResolution, true)) {
+				if ("optional".equalsIgnoreCase(strResolution)) return RESOLUTION_OPTIONAL;
+				if ("dynamic".equalsIgnoreCase(strResolution)) return RESOLUTION_DYNAMIC;
+			}
+			return defaultValue;
 		}
 
 		public void addVersion(int op, String version, boolean not) throws BundleException {
