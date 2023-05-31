@@ -18,11 +18,13 @@
  ---><cfscript>
 component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
+	variables.updateProvider = server.getTestService("updateProvider");
+
 	public void function testImplicit(){
 		
 		local.http = new http(); 
 		local.http.setMethod('put'); 
-		local.http.setURL('https://update.lucee.org/rest/update/provider/echoPut'); 
+		local.http.setURL('#variables.updateProvider#/rest/update/provider/echoPut'); 
 		local.http.addParam(type="formfield",name='email',value='test@test.com'); 
 		local.httpSendResult = local.http.send(); 
 		local.httpResult = httpSendResult.getPrefix(); 
