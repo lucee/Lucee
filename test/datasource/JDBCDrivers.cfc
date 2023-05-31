@@ -55,7 +55,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 			});
 
 			it( title='H2',body=function( currentSpec ) {
-				loadJDBCDriverClass("org.h2","1.3.172");
+				loadJDBCDriverClass("org.lucee.h2","2.1.214.0001L");
 			});
 
 			it( title='HSQLDB',body=function( currentSpec ) {
