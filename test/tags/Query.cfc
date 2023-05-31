@@ -58,7 +58,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		application action="update" 
 			datasource={
 	  		class: 'org.h2.Driver'
-	  		, bundleName: 'org.h2'
+	  		, bundleName: 'org.lucee.h2'
 			, connectionString: 'jdbc:h2:#getDirectoryFromPath(getCurrentTemplatePath())#/datasource/update;MODE=MySQL'
 		};
 	}
