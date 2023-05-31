@@ -2,7 +2,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" skip=false {
 	function run( testResults, textbox ) {
 		describe("Testcase for LDEV-4449 numbers", function() {
 
-			it(title="avoid dive by zero", body=function( currentSpec ) {
+			it(title="avoid divide by zero", body=function( currentSpec ) {
 				points = [
 					[ 0                    , 0  ]
 					, [ (10 ^ -14.1305100087), 1  ]
@@ -122,9 +122,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" skip=false {
 				var outputMap = points.map(function( el ) {
 					return el[ 2 ];
 				});
-				systemOutput("", true);
 				for( i=1; i < len(points); i++ ) {
-					systemOutput("#i# --> (#outputMap[i + 1]# - #outputMap[i]#) / (#inputMap[i + 1]# - #inputMap[i]#)", true);
 					delta[i] = ( outputMap[i + 1] - outputMap[i]) / (inputMap[i + 1] - inputMap[i] );
 				}
 			});
