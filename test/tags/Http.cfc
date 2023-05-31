@@ -52,8 +52,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 		http url="https://update.lucee.org/rest/update/provider/echoGet" result="local.res" method="get"{
 			httpparam name="susi" value="Sorglos";
 		}
-		res=evaluate(res.filecontent);
-
+		res=deserializeJSON(res.filecontent);
 		assertEquals("Sorglos",res.url.susi);
 	}
 
@@ -69,8 +68,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 		http url="https://update.lucee.org/rest/update/provider/echoPut" result="local.res" method="put" throwonerror="no" charset="utf-8"{
 			httpparam type="body" value=data;
 		}
-		res=evaluate(res.filecontent);
-		assertEquals(data,res.httpRequestData.content);
+		var result=deserializeJSON(res.filecontent);
+
+		expect( res.charSet ).toBe("utf-8");
+		expect( result.httpRequestData.content ).toBe( data );
 	}
 
 	public void function testExplicit(){
@@ -79,8 +80,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 		http url="https://update.lucee.org/rest/update/provider/echoPut" result="local.res" method="put" throwonerror="no" charset="utf-8"{
 			httpparam type="body" mimetype="text/plain; charset=UTF-8" value=data;
 		}
-		var res=evaluate(res.filecontent);
-		assertEquals(data,res.httpRequestData.content);
+		var result=deserializeJSON(res.filecontent);
+		expect( res.charSet ).toBe("utf-8");
+		expect( result.httpRequestData.content ).toBe( data );
 	}
 
 	public void function testCheckTLSVersion(){
@@ -97,8 +99,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 		http url="https://update.lucee.org/rest/update/provider/echoGet" result="local.res2" method="get" cachedWithin="request"{
 			httpparam name="susi" value="Sorglos";
 		}
-		res = evaluate( res.filecontent );
-		res2 = evaluate( res2.filecontent );
+		res = deserializeJSON( res.filecontent );
+		res2 = deserializeJSON( res2.filecontent );
 		expect( res.url.susi ).toBe( res2.url.susi );
 	}
 }
