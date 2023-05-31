@@ -33,6 +33,7 @@ import org.apache.logging.log4j.message.MultiformatMessage;
 
 import lucee.commons.io.SystemUtil;
 import lucee.commons.lang.ExceptionUtil;
+import lucee.commons.lang.StringUtil;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.loader.util.Util;
 import lucee.runtime.PageContext;
@@ -45,6 +46,7 @@ import lucee.runtime.op.Caster;
 import lucee.runtime.security.Credential;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.Struct;
+import lucee.runtime.type.StructImpl;
 import lucee.runtime.util.Creation;
 
 public class JsonLayout extends AbstractStringLayout { // TODO <Serializable>
@@ -61,12 +63,17 @@ public class JsonLayout extends AbstractStringLayout { // TODO <Serializable>
 	private boolean doComma = true;
 	private final Charset charset;
 	private boolean compact;
+	private boolean hasEnvLoaded;
+	private Object token = new Object();
+	private StructImpl envs;
+	private boolean complete;
+	private String[] envNames;
 
 	// private static final DateFormat dateFormat = new DateFormat(Locale.US);
 	// private static final TimeFormat timeFormat = new TimeFormat(Locale.US);
 
 	public JsonLayout(Charset charset, boolean complete, boolean compact, boolean includeStacktrace, boolean includeTimeMillis, boolean stacktraceAsString, boolean locationInfo,
-			boolean properties) {
+			boolean properties, String[] envNames) {
 		super(charset, createHeader(charset, complete), createFooter(charset, complete));
 
 		this.charset = charset;
@@ -75,8 +82,9 @@ public class JsonLayout extends AbstractStringLayout { // TODO <Serializable>
 		this.stacktraceAsString = stacktraceAsString;
 		this.locationInfo = locationInfo;
 		this.properties = properties;
-
 		this.compact = compact;
+		this.complete = complete;
+		this.envNames = envNames;
 
 	}
 
@@ -99,14 +107,12 @@ public class JsonLayout extends AbstractStringLayout { // TODO <Serializable>
 
 	@Override
 	public String getContentType() {
-		return "text/xml; charset=" + this.getCharset();
+		return "application/json; charset=" + this.getCharset();
 	}
 
 	@Override
 	public Map<String, String> getContentFormat() {
 		final Map<String, String> result = new HashMap<>();
-		// result.put("dtd", "log4j-events.dtd");
-		result.put("xsd", "log4j-events.xsd");
 		result.put("version", "2.0");
 		return result;
 	}
@@ -184,7 +190,6 @@ public class JsonLayout extends AbstractStringLayout { // TODO <Serializable>
 			// context stack
 			{
 				Array contextStack = util.createArray();
-				root.setEL("contextStack", contextStack);
 				ContextStack stack = event.getContextStack();
 				if (stack.getDepth() > 0) {
 					for (String cse: stack.asList()) {
@@ -192,6 +197,7 @@ public class JsonLayout extends AbstractStringLayout { // TODO <Serializable>
 					}
 
 				}
+				if (contextStack.size() > 0) root.setEL("contextStack", contextStack);
 			}
 			// end of batch
 			root.setEL("endOfBatch", event.isEndOfBatch());
@@ -255,6 +261,26 @@ public class JsonLayout extends AbstractStringLayout { // TODO <Serializable>
 				if (!Util.isEmpty(user, true)) root.setEL("authUser", user);
 			}
 
+			// env var
+			if (envNames != null && !hasEnvLoaded) {
+				synchronized (token) {
+					if (!hasEnvLoaded) {
+						envs = new StructImpl();
+						for (String v: envNames) {
+							if (!StringUtil.isEmpty(v, true)) {
+								if (!StringUtil.isEmpty(v, true)) {
+									envs.setEL(v, SystemUtil.getSystemPropOrEnvVar(v.trim(), null));
+								}
+							}
+						}
+						hasEnvLoaded = true;
+					}
+				}
+			}
+			if (envs != null && !envs.isEmpty()) {
+				root.setEL("environment", envs);
+			}
+
 			// Properties
 			/*
 			 * if (this.properties && event.getContextMap().size() > 0) { Array arr = util.createArray();
@@ -269,7 +295,10 @@ public class JsonLayout extends AbstractStringLayout { // TODO <Serializable>
 				JSONConverter json = new JSONConverter(true, charset, JSONDateFormat.PATTERN_ISO8601, compact, null);
 
 				String result = json.serialize(null, root, -1, Boolean.TRUE);
-				if (doComma) return "," + NL + result;
+				if (doComma) {
+					if (complete) return "," + NL + result;
+					return NL + result;
+				}
 				else doComma = true;
 				return result;
 			}
@@ -323,19 +352,5 @@ public class JsonLayout extends AbstractStringLayout { // TODO <Serializable>
 			}
 		}
 		return sct;
-	}
-
-	private static String createCDATASection(String str) {
-
-		final StringBuilder buf = new StringBuilder("<![CDATA[");
-
-		int index, lastIndex = 0;
-
-		while ((index = str.indexOf("]]>", lastIndex)) != -1) {
-			buf.append(str.substring(lastIndex, index)).append("]]]]><![CDATA[>");
-			lastIndex = index + 3;
-		}
-
-		return buf.append(str.substring(lastIndex)).append("]]>").toString();
 	}
 }
