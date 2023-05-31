@@ -3,8 +3,10 @@ package lucee.commons.io.log.log4j2;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
@@ -52,6 +54,7 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.reflection.Reflector;
 import lucee.runtime.reflection.pairs.MethodInstance;
+import lucee.runtime.type.util.ListUtil;
 import lucee.transformer.library.ClassDefinitionImpl;
 
 public class Log4j2Engine extends LogEngine {
@@ -239,6 +242,18 @@ public class Log4j2Engine extends LogEngine {
 			// JSON Layout
 			else if (JsonLayout.class.getName().equalsIgnoreCase(cd.getClassName())) {
 
+				// enviroment variables
+				String[] envNames = null;
+				String tmp = layoutArgs.get("envnames");
+				if (!StringUtil.isEmpty(tmp, true)) {
+					List<String> list = ListUtil.listToList(tmp, ',', true);
+					List<String> list2 = new ArrayList<>();
+					for (String el: list) {
+						if (!StringUtil.isEmpty(el, true)) list2.add(el);
+					}
+
+					if (!list2.isEmpty()) envNames = list2.toArray(new String[list2.size()]);
+				}
 				// charset
 				Charset charset = CharsetUtil.toCharset(layoutArgs.get("charset"), CharsetUtil.UTF8);
 				// complete
@@ -256,7 +271,7 @@ public class Log4j2Engine extends LogEngine {
 				// compact
 				boolean compact = Caster.toBooleanValue(layoutArgs.get("compact"), false);
 
-				return new JsonLayout(charset, complete, compact, includeStacktrace, includeTimeMillis, stacktraceAsString, locationInfo, properties);
+				return new JsonLayout(charset, complete, compact, includeStacktrace, includeTimeMillis, stacktraceAsString, locationInfo, properties, envNames);
 
 			}
 			// Pattern Layout
