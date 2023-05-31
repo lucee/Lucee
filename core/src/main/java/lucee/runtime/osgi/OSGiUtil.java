@@ -120,6 +120,8 @@ public class OSGiUtil {
 		// this is needed in case old version of extensions are used, because lucee no longer bundles this
 		packageBundleMapping.put("org.bouncycastle", "bcprov");
 		packageBundleMapping.put("org.apache.log4j", "log4j");
+		packageBundleMapping.put("com.fasterxml.jackson.annotation", "com.fasterxml.jackson.core.jackson-annotations");
+		packageBundleMapping.put("org.apache.lucene.analysis", "apache.lucene");
 	}
 
 	/**
@@ -426,63 +428,68 @@ public class OSGiUtil {
 	}
 
 	public static Bundle loadBundleByPackage(PackageQuery pq, Set<Bundle> loadedBundles, boolean startIfNecessary, Set<String> parents) throws BundleException, IOException {
+		try {
+			CFMLEngine engine = CFMLEngineFactory.getInstance();
+			CFMLEngineFactory factory = engine.getCFMLEngineFactory();
 
-		CFMLEngine engine = CFMLEngineFactory.getInstance();
-		CFMLEngineFactory factory = engine.getCFMLEngineFactory();
+			// if part of bootdelegation we ignore
+			if (OSGiUtil.isPackageInBootelegation(pq.getName())) {
+				return null;
+			}
 
-		// if part of bootdelegation we ignore
-		if (OSGiUtil.isPackageInBootelegation(pq.getName())) {
-			return null;
-		}
+			// is it in jar directory but not loaded
+			File dir = factory.getBundleDirectory();
+			File[] children = dir.listFiles(JAR_EXT_FILTER);
+			List<PackageDefinition> pds;
+			for (File child: children) {
+				BundleFile bf = BundleFile.getInstance(child);
+				if (bf.isBundle()) {
+					if (parents.contains(toString(bf))) continue;
+					pds = toPackageDefinitions(bf.getExportPackage(), pq.getName(), pq.getVersionDefinitons());
+					if (pds != null && !pds.isEmpty()) {
+						Bundle b = exists(loadedBundles, bf);
+						if (b != null) {
 
-		// is it in jar directory but not loaded
-		File dir = factory.getBundleDirectory();
-		File[] children = dir.listFiles(JAR_EXT_FILTER);
-		List<PackageDefinition> pds;
-		for (File child: children) {
-			BundleFile bf = BundleFile.getInstance(child);
-			if (bf.isBundle()) {
-				if (parents.contains(toString(bf))) continue;
-				pds = toPackageDefinitions(bf.getExportPackage(), pq.getName(), pq.getVersionDefinitons());
-				if (pds != null && !pds.isEmpty()) {
-					Bundle b = exists(loadedBundles, bf);
-					if (b != null) {
-
-						if (startIfNecessary) _startIfNecessary(b, parents);
-						return null;
-					}
-					b = loadBundle(bf);
-					if (b != null) {
-						loadedBundles.add(b);
-						if (startIfNecessary) _startIfNecessary(b, parents);
-						return b;
+							if (startIfNecessary) _startIfNecessary(b, parents);
+							return null;
+						}
+						b = loadBundle(bf);
+						if (b != null) {
+							loadedBundles.add(b);
+							if (startIfNecessary) _startIfNecessary(b, parents);
+							return b;
+						}
 					}
 				}
 			}
-		}
 
-		String bn = packageBundleMapping.get(pq.getName());
-		if (!StringUtil.isEmpty(bn)) {
-			try {
-				return loadBundle(bn, null, null, null, startIfNecessary, false, pq.isRequired(), pq.isRequired() ? null : Boolean.FALSE);
-			}
-			catch (BundleException be) {
-				if (pq.isRequired()) throw be;
-			}
-
-		}
-
-		for (Entry<String, String> e: packageBundleMapping.entrySet()) {
-			if (pq.getName().startsWith(e.getKey() + ".")) {
+			String bn = packageBundleMapping.get(pq.getName());
+			if (!StringUtil.isEmpty(bn)) {
 				try {
-					return loadBundle(e.getValue(), null, null, null, startIfNecessary, false, pq.isRequired(), pq.isRequired() ? null : Boolean.FALSE);
+					return loadBundle(bn, null, null, null, startIfNecessary, false, pq.isRequired(), pq.isRequired() ? null : Boolean.FALSE);
 				}
 				catch (BundleException be) {
 					if (pq.isRequired()) throw be;
 				}
 
 			}
+
+			for (Entry<String, String> e: packageBundleMapping.entrySet()) {
+				if (pq.getName().startsWith(e.getKey() + ".")) {
+					try {
+						return loadBundle(e.getValue(), null, null, null, startIfNecessary, false, pq.isRequired(), pq.isRequired() ? null : Boolean.FALSE);
+					}
+					catch (BundleException be) {
+						if (pq.isRequired()) throw be;
+					}
+
+				}
+			}
 		}
+		catch (IOException | BundleException e) {
+			if (pq.getResolution() == PackageQuery.RESOLUTION_NONE) throw e;
+		}
+
 		return null;
 	}
 
