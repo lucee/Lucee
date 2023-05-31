@@ -2144,7 +2144,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 			// Default query of query DB
 			// TODO last version of hsqldb to support java 8 is 2.5.2
 			try {
-				setDatasource(config, datasources, QOQ_DATASOURCE_NAME, new ClassDefinitionImpl("org.hsqldb.jdbcDriver", "org.hsqldb.hsqldb", "2.7.0", config.getIdentification()),
+				setDatasource(config, datasources, QOQ_DATASOURCE_NAME, new ClassDefinitionImpl("org.hsqldb.jdbcDriver", "org.hsqldb.hsqldb", "2.7.2", config.getIdentification()),
 						"hypersonic-hsqldb", "", -1, "jdbc:hsqldb:.", "sa", "", null, DEFAULT_MAX_CONNECTION, -1, -1, 60000, 0, 0, 0, true, true, DataSource.ALLOW_ALL, false,
 						false, null, new StructImpl(), "", ParamSyntax.DEFAULT, false, false, false, false);
 			}
