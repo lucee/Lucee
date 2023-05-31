@@ -5000,10 +5000,11 @@ public final class Caster {
 
 	public static BigDecimal toBigDecimal(Number n) {
 		if (n instanceof BigDecimal) return (BigDecimal) n;
-		return BigDecimal.valueOf(n.doubleValue());
+		return toBigDecimal(n.doubleValue());
 	}
 
 	public static BigDecimal toBigDecimal(double d) {
+		if (d == Double.NaN) throw new NumberFormatException("Not a Number");
 		return BigDecimal.valueOf(d);
 	}
 
