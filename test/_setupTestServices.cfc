@@ -18,7 +18,8 @@ component {
 		"MAIL_PASSWORD": "top-secret",
 		"S3_SECRET_KEY": "top-secret",
 		"MONGODB_PORT": 27017,
-		"MEMCACHED_PORT": 11211
+		"MEMCACHED_PORT": 11211,
+		"UPDATE_PROVIDER_URL": http://update.localhost"
 	}
 
 	then add an ENV var pointing to the .json file
@@ -476,6 +477,13 @@ component {
 		}
 
 		switch ( arguments.service ){
+			case "updateProvider":
+				updateProvider = server._getSystemPropOrEnvVars( "URL", "UPDATE_PROVIDER_" );
+				if ( structCount( updateProvider ) eq 1 ){
+					return updateProvider.url;
+				} else {
+					return "https://update.lucee.org";
+				}
 			case "mssql":
 				mssql = server._getSystemPropOrEnvVars( "SERVER, USERNAME, PASSWORD, PORT, DATABASE", "MSSQL_" );
 				if ( structCount( msSql ) gt 0){

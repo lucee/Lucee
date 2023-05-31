@@ -18,9 +18,10 @@
  ---><cfscript>
 component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
+	variables.updateProvider = server.getTestService("updateProvider");
 			
 	public void function test(){
-		http url="https://update.lucee.org/rest/update/provider/echoGet?filtername=henk+patat" result="local.res";
+		http url="#variables.updateProvider#/rest/update/provider/echoGet?filtername=henk+patat" result="local.res";
 		res=evaluate(res.filecontent);
 		assertEquals("henk patat",res.url.filtername);
 	}

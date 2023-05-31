@@ -1,4 +1,7 @@
 component extends = "org.lucee.cfml.test.LuceeTestCase" skip = true{
+
+    variables.updateProvider = server.getTestService("updateProvider");
+
     function run( testResults, textbox ) {
         describe("testcase for LDEV-3847", function() {
             it(title="Checking attributeCollection inside CFFINALLY", body=function( currentSpec ) {
@@ -7,7 +10,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" skip = true{
                     var value = "";
                 }
                 finally {
-                    cfhttp(url="https://update.lucee.org/rest/update/provider/echoGet", attributeCollection="#attrs#") {
+                    cfhttp(url="#variables.updateProvider#/rest/update/provider/echoGet", attributeCollection="#attrs#") {
                     }  
                 }
                 expect(structKeyExists(local, "res")).toBeTrue();
