@@ -1,6 +1,6 @@
-component extends = "org.lucee.cfml.test.LuceeTestCase" skip = true{
+component extends = "org.lucee.cfml.test.LuceeTestCase" skip=true labels="http"{
 
-    variables.updateProvider = server.getTestService("updateProvider");
+    variables.updateProvider = server.getTestService("updateProvider").url;
 
     function run( testResults, textbox ) {
         describe("testcase for LDEV-3847", function() {

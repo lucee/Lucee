@@ -2,7 +2,7 @@
 component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	
 	
-	variables.updateProvider = server.getTestService("updateProvider");
+	variables.updateProvider = server.getTestService("updateProvider").url;
 	
 	//public function afterTests(){}
 	
