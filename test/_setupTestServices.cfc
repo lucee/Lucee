@@ -480,9 +480,9 @@ component {
 			case "updateProvider":
 				updateProvider = server._getSystemPropOrEnvVars( "URL", "UPDATE_PROVIDER_" );
 				if ( structCount( updateProvider ) eq 1 ){
-					return updateProvider.url;
+					return updateProvider;
 				} else {
-					return "https://update.lucee.org";
+					return {url: "https://update.lucee.org" };
 				}
 			case "mssql":
 				mssql = server._getSystemPropOrEnvVars( "SERVER, USERNAME, PASSWORD, PORT, DATABASE", "MSSQL_" );

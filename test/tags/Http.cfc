@@ -14,9 +14,9 @@
  * You should have received a copy of the GNU Lesser General Public 
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  */
-component extends="org.lucee.cfml.test.LuceeTestCase" {
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="http" {
 
-	variables.updateProvider = server.getTestService("updateProvider");
+	variables.updateProvider =  server.getTestService("updateProvider").url;
 
 	public function testHTTP() localmode="true"{
 		http url="http://www.google.com";
