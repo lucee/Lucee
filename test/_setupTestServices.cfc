@@ -137,7 +137,11 @@ component {
 
 			"SMTP_SERVER": "localhost",
 			"SMTP_PORT_SECURE": 25,
-			"SMTP_PORT_INSECURE": 587
+			"SMTP_PORT_INSECURE": 587,
+
+			"REDIS_SERVER": "localhost",
+			// "REDIS_PORT": 6379 // DON'T COMMIT
+			
 		};
 	}
 
@@ -145,7 +149,7 @@ component {
 		systemOutput( "", true) ;		
 		systemOutput("-------------- Test Services ------------", true );
 
-		loop list="MySQL,MSsql,postgres,h2,oracle,mongoDb,smtp,pop,imap,s3,ftp,sftp" item="service" {
+		loop list="MySQL,MSsql,postgres,h2,oracle,mongoDb,smtp,pop,imap,s3,ftp,sftp,memcached,redis,ldap" item="service" {
 			cfg = server.getTestService( service=service, verify=true );
 			server.test_services[ service ]= {
 				valid: false,
@@ -162,6 +166,7 @@ component {
 							verify = verifyS3(cfg);
 							break;
 						case "imap":
+							verify = verifyImap(cfg);
 							break;
 						case "pop":
 							break;
@@ -175,6 +180,15 @@ component {
 							break;
 						case "mongoDb":
 							verify = verifyMongo(cfg);
+							break;
+						case "memcached":
+							verify = verifyMemcached(cfg);
+							break;
+						case "redis":
+							verify = verifyRedis(cfg);
+							break;
+						case "ldap":
+							verify = verifyLDAP(cfg);
 							break;
 						default:
 							verify = verifyDatasource(cfg);
@@ -243,7 +257,93 @@ component {
 		DirectoryExists( base );		
 		return "s3 Connection Verified";
 	}
-		
+
+	public function verifyMemcached ( memcached ) localmode=true{
+		if ( structCount( memcached ) eq 2 ){
+			if ( !isRemotePortOpen( memcached.server, memcached.port ) )
+				throw "MemCached port closed #memcached.server#:#memcached.port#"; // otherwise the cache keeps trying and logging
+			try {
+				testCacheName = "testMemcached";
+				application 
+					action="update" 
+					caches="#{
+						testMemcached: {
+							class: 'org.lucee.extension.cache.mc.MemcachedCache'
+							, bundleName: 'memcached.extension'
+							, bundleVersion: '4.0.0.7-SNAPSHOT'
+							, storage: false
+							, custom: {
+								"socket_timeout": "3",
+								"initial_connections": "1",
+								"alive_check": "true",
+								"buffer_size": "1",
+								"max_spare_connections": "32",
+								"storage_format": "Binary",
+								"socket_connect_to": "3",
+								"min_spare_connections": "1",
+								"maint_thread_sleep": "5",
+								"failback": "true",
+								"max_idle_time": "600",
+								"max_busy_time": "30",
+								"nagle_alg": "true",
+								"failover": "false",
+								"servers": "#memcached.server#:#memcached.port#"
+							}
+							, default: ''
+						}
+					}#";
+				cachePut( id='abcd', value=1234, cacheName=testCacheName );
+				valid = !isNull( cacheGet( id:'abcd', cacheName:testCacheName ) );
+				application action="update" caches="#{}#";
+				if ( !valid ) {
+					throw "MemCached configured, but not available";
+				} else {
+					return "MemCached connection verified";
+				}
+			} catch (e){
+				application action="update" caches="#{}#";
+				rethrow;
+			}
+		}
+		throw "not configured";
+	}	
+
+	public function verifyRedis ( redis ) localmode=true{
+		if ( structCount( redis ) eq 2 ){
+			return "configured (not tested)";
+		}	
+		throw "not configured";
+	}
+
+	public function verifyImap ( imap ) localmode=true{
+		imap
+			action="open" 
+			server = imap.SERVER
+			username = imap.USERNAME
+			port = imap.PORT_INSECURE
+			secure="no"
+			password = imap.PASSWORD
+			connection = "testImap";
+		imap
+			action = "close",
+			connection="testImap";
+			
+		return "configured";
+	}
+
+	public function verifyLDAP ( ldap ) localmode=true {
+		cfldap( server=ldap.server,
+			port=ldap.port,
+			timeout=5000,
+			username=ldap.username,
+			password=ldap.password,
+			action="query",
+			name="local.results",
+			start=ldap.base_dn,
+			filter="(objectClass=inetOrgPerson)",
+			attributes="cn" );
+		return "configured";
+	}
 
 	public function addSupportFunctions() {
 		server._getTempDir = function ( string prefix="" ) localmode=true{
@@ -448,6 +548,24 @@ component {
 			case "s3":
 				s3 = server._getSystemPropOrEnvVars( "ACCESS_KEY_ID, SECRET_KEY", "S3_" );
 				return s3;
+			case "memcached":
+				memcached = server._getSystemPropOrEnvVars( "SERVER, PORT", "MEMCACHED_" );
+				if ( memcached.count() eq 2 ){
+					return memcached;
+				}
+				break;
+			case "redis":
+				redis = server._getSystemPropOrEnvVars( "SERVER, PORT", "REDIS_" );
+				if ( redis.count() eq 2 ){
+					return redis;
+				}
+				break;
+			case "ldap":
+				ldap = server._getSystemPropOrEnvVars( "SERVER, PORT, USERNAME, PASSWORD, BASE_DN", "LDAP_" );
+				if ( ldap.count() eq 5 ){
+					return ldap;
+				}
+				break;
 			default:
 				break;
 		}
@@ -480,6 +598,22 @@ component {
 			bundles[_bundle['Bundle-SymbolicName']] = _bundle['Bundle-Version'];
 		}
 		return bundles;
+	}
+
+	boolean function isRemotePortOpen( string host, numeric port, numeric timeout=2000 ) {
+		var socket = createObject( "java", "java.net.Socket").init();
+		var address = createObject( "java", "java.net.InetSocketAddress" ).init(
+			javaCast( "string", arguments.host ),
+			javaCast( "int", arguments.port )
+		);
+
+		try {
+			socket.connect( address, javaCast( "int", arguments.timeout ));
+			socket.close();
+			return true;
+		} catch (e) {
+			return false;
+		}
 	}
 }
 
