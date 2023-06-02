@@ -134,7 +134,7 @@
 			<cfcatch></cfcatch>
 		</cftry> --->
 		
-		<cfset datasource._password=datasource.password>
+		<cfset datasource._password=datasource.password ?: "">
 		<cfset datasource.password="****************">
 		<cfset dbdriver = datasource.dbdriver ?: "">
 
