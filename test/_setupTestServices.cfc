@@ -139,6 +139,9 @@ component {
 			"SMTP_PORT_SECURE": 25,
 			"SMTP_PORT_INSECURE": 587,
 
+			"MEMCACHED_SERVER": "localhost",
+			// "MEMCACHED_PORT": 11211 // DON'T COMMIT
+
 			"REDIS_SERVER": "localhost",
 			// "REDIS_PORT": 6379 // DON'T COMMIT
 			
