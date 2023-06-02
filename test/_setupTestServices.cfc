@@ -381,7 +381,7 @@ component {
 					return {
 						class: 'org.hsqldb.jdbcDriver'
 						, bundleName: 'org.hsqldb.hsqldb'
-						, bundleVersion: server.getDefaultBundleVersion( 'org.hsqldb.hsqldb', '2.7.0' )
+						, bundleVersion: server.getDefaultBundleVersion( 'org.hsqldb.hsqldb', '2.7.2' )
 						, connectionString: 'jdbc:hsqldb:#arguments.dbFile#/datasource/db;MODE=MySQL'
 					};
 				}
