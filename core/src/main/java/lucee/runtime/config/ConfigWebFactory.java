@@ -2424,7 +2424,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 			}
 
 			{
-				Struct eCaches = ConfigWebUtil.getAsStruct("caches", root);
+				Struct eCaches = ConfigWebUtil.getAsStruct("cache", root);
 
 				// check if we have an update or not
 				StringBuilder sb = new StringBuilder();
