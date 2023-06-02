@@ -52,7 +52,7 @@ public final class PageSourcePool implements Dumpable {
 	 */
 	public PageSourcePool() {
 		this.timeout = 10000;
-		this.maxSize = 1000;
+		this.maxSize =  Caster.toIntValue(SystemUtil.getSystemPropOrEnvVar("lucee.pagePool.maxSize", null),1000);
 	}
 
 	/**
