@@ -514,6 +514,7 @@ public final class Controler extends ParentThreasRefThread {
 		try {
 			Resource dir = config.getClientScopeDir(), trgres;
 			Resource[] children = dir.listResources(filter);
+			if (children==null) return;
 			String src, trg;
 			int index;
 			for (int i = 0; i < children.length; i++) {
