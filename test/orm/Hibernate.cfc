@@ -17,7 +17,7 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  * 	
  ---><cfscript>
-component extends="org.lucee.cfml.test.LuceeTestCase"	{
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm" {
 
 	//public function setUp(){}
 
@@ -54,7 +54,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 	}
 
-	public void function testMany2Many() skip="true" {
+	public void function testMany2Many() {
 		local.uri=createURI("many2many/index.cfm");
 		local.result=_InternalRequest(uri);
 		assertEquals(200,result.status);
