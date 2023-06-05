@@ -32,6 +32,7 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -115,14 +116,29 @@ public class OSGiUtil {
 	private static final Filter JAR_EXT_FILTER = new Filter();
 
 	private static String[] bootDelegation;
-	private static Map<String, String> packageBundleMapping = new HashMap<String, String>();
+	private static Map<String, String> packageBundleMapping = new LinkedHashMap<String, String>();
 
 	static {
 		// this is needed in case old version of extensions are used, because lucee no longer bundles this
+		packageBundleMapping.put("org.bouncycastle.asn1", "bouncycastle.prov");
+		packageBundleMapping.put("org.bouncycastle.crypto", "bouncycastle.prov");
+		packageBundleMapping.put("org.bouncycastle.i18n", "bouncycastle.prov");
+		packageBundleMapping.put("org.bouncycastle.jce", "bouncycastle.prov");
+		packageBundleMapping.put("org.bouncycastle.math", "bouncycastle.prov");
+		packageBundleMapping.put("org.bouncycastle.mozilla", "bouncycastle.prov");
+		packageBundleMapping.put("org.bouncycastle.ocsp", "bouncycastle.prov");
+		packageBundleMapping.put("org.bouncycastle.openssl", "bouncycastle.prov");
+		packageBundleMapping.put("org.bouncycastle.voms", "bouncycastle.prov");
+		packageBundleMapping.put("org.bouncycastle.x509", "bouncycastle.prov");
+		packageBundleMapping.put("org.bouncycastle.tsp", "bouncycastle.tsp");
+		packageBundleMapping.put("org.bouncycastle.cms", "bouncycastle.mail");
+		packageBundleMapping.put("org.bouncycastle.mail", "bouncycastle.mail");
+		packageBundleMapping.put("org.bouncycastle.sasn1", "bouncycastle.mail");
 		packageBundleMapping.put("org.bouncycastle", "bcprov");
 		packageBundleMapping.put("org.apache.log4j", "log4j");
 		packageBundleMapping.put("com.fasterxml.jackson.annotation", "com.fasterxml.jackson.core.jackson-annotations");
 		packageBundleMapping.put("org.apache.lucene.analysis", "apache.lucene");
+
 	}
 
 	/**
