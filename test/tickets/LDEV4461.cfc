@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm" skip=true {
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm" {
 
 	function beforeAll() {
 		variables.uri = createURI("LDEV4461");
@@ -14,6 +14,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm" skip=true {
 
 	function run( testResults, testBox ) {
 		describe("Testcase for LDEV-4461",  function() {
+
 			it( title="checking positional arguments on ORM EntityLoadByPk", skip="#notHasMssql()#",  body=function( currentSpec ) {
 				local.result = _InternalRequest(
 						template = "#variables.uri#\LDEV4461.cfm",
@@ -21,6 +22,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm" skip=true {
 				).filecontent.trim();
 				expect(result).tobe("1");
 			});
+
 			it( title="checking named arguments on ORM EntityLoadByPk", skip="#notHasMssql()#",  body=function( currentSpec ) {
 				local.result = _internalRequest(
 					template = "#variables.uri#/LDEV4461.cfm",
@@ -28,6 +30,23 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm" skip=true {
 				).fileContent.trim();
 				expect(result).tobe("1");
 			});
+
+			it( title="checking positional arguments on ORM EntityLoadByPk with unique", skip="#notHasMssql()#",  body=function( currentSpec ) {
+				local.result = _internalRequest(
+					template = "#variables.uri#/LDEV4461.cfm",
+					forms = {scene:"unique"}
+				).fileContent.trim();
+				expect(result).tobe("1");
+			});
+
+			it( title="checking named arguments on ORM EntityLoadByPk with unique", skip="#notHasMssql()#",  body=function( currentSpec ) {
+				local.result = _internalRequest(
+					template = "#variables.uri#/LDEV4461.cfm",
+					forms = {scene:"unique_named"}
+				).fileContent.trim();
+				expect(result).tobe("1");
+			});
+
 		});
 	}
 
