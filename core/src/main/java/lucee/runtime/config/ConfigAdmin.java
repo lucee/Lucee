@@ -2249,6 +2249,11 @@ public final class ConfigAdmin {
 		if (name.equalsIgnoreCase(Caster.toString(parent.get("defaultTemplate", null), null))) rem(parent, "defaultTemplate");
 		if (name.equalsIgnoreCase(Caster.toString(parent.get("defaultQuery", null), null))) rem(parent, "defaultQuery");
 		if (name.equalsIgnoreCase(Caster.toString(parent.get("defaultResource", null), null))) rem(parent, "defaultResource");
+		if (name.equalsIgnoreCase(Caster.toString(parent.get("defaultFunction", null), null))) rem(parent, "defaultFunction");
+		if (name.equalsIgnoreCase(Caster.toString(parent.get("defaultInclude", null), null))) rem(parent, "defaultInclude");
+		if (name.equalsIgnoreCase(Caster.toString(parent.get("defaultHttp", null), null))) rem(parent, "defaultHttp");
+		if (name.equalsIgnoreCase(Caster.toString(parent.get("defaultFile", null), null))) rem(parent, "defaultFile");
+		if (name.equalsIgnoreCase(Caster.toString(parent.get("defaultWebservice", null), null))) rem(parent, "defaultWebservice");
 
 		// remove element
 		Struct children = ConfigWebUtil.getAsStruct("caches", root);
