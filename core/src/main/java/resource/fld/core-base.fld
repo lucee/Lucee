@@ -4148,22 +4148,23 @@ The following options to customize the output (only used when second argument is
 			<name>name</name>
 			<type>string</type>
 			<required>Yes</required>
-		<description>Name of the entity to be loaded.</description>
-    </argument>
+			<description>Name of the entity to be loaded.</description>
+		</argument>
 		<argument>
 			<name>id</name>
 			<type>any</type>
 			<required>yes</required>
-		<description>The primary key value of the entity that must be loaded</description>
-    </argument>
+			<description>The primary key value of the entity that must be loaded</description>
+		</argument>
 		<argument>
 			<name>unique</name>
 			<type>boolean</type>
 			<required>no</required>
-		<description>If unique is set to true, then the entity is returned.
+			<status>unimplemented</status>
+			<description>If unique is set to true, then the entity is returned.
 If you are sure that only one record exists that matches this filtercriteria, then you can specify unique=true, so that a single entity is returned instead of an array.
 If you set unique=true and multiple records are returned, then an exception occurs.</description>
-    </argument>
+		</argument>
 		<return>
 			<type>any</type>
 		</return>
