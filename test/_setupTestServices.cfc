@@ -340,8 +340,8 @@ component {
 					caches="#{
 						testMemcached: {
 							class: 'org.lucee.extension.cache.mc.MemcachedCache'
-							, bundleName: 'lucee.extension.memcached'
-							, bundleVersion: '4.0.0.9-SNAPSHOT'
+							, bundleName: 'memcached.extension'
+							, bundleVersion: '4.0.0.10-SNAPSHOT'
 							, storage: false
 							, custom: {
 								"socket_timeout": "3",
