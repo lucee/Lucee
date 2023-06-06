@@ -90,8 +90,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="memcached"{
 			application action="update" 
 				caches="#{memcached:{
 						  class: 'org.lucee.extension.cache.mc.MemcachedCache'
-						, bundleName: 'memcached.extension'
-						, bundleVersion: '4.0.0.7-SNAPSHOT'
+						, bundleName: 'lucee.extension.memcached'
+						, bundleVersion: '4.0.0.9-SNAPSHOT'
 						, storage: false
 						, custom: {
 							"socket_timeout":"3",
