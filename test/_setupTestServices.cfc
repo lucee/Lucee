@@ -149,7 +149,7 @@ component {
 	}
 
 	public void function loadServiceConfig() localmode=true {
-		systemOutput( "", true) ;		
+		systemOutput( "", true) ;
 		systemOutput("-------------- Test Services ------------", true );
 
 		loop list="MySQL,MSsql,postgres,h2,oracle,mongoDb,smtp,pop,imap,s3,ftp,sftp,memcached,redis,ldap" item="service" {
@@ -158,6 +158,9 @@ component {
 				valid: false,
 				missedTests: 0
 			};
+			buildCfg = server._getSystemPropOrEnvVars( "LUCEE_BUILD_FAIL_CONFIGURED_SERVICES_FATAL", "", false );
+			failonConfiguredServiceError = buildCfg.LUCEE_BUILD_FAIL_CONFIGURED_SERVICES_FATAL ?: false;
+
 			if ( StructCount(cfg) eq 0 ){
 				systemOutput( "Service [ #service# ] not configured", true) ;
 			} else {
@@ -200,7 +203,9 @@ component {
 					systemOutput( "Service [ #service# ] is [ #verify# ]", true) ;
 					server.test_services[service].valid = true;
 				} catch (e) {
-					systemOutput( "ERROR Service [ #service# ] threw [ #cfcatch.message# ]", true);
+					systemOutput( "ERROR Service [ #service# ] threw [ #cfcatch.stacktrace# ]", true);
+					if (failonConfiguredServiceError)
+						throw cfcatch.stacktrace;
 				}
 			}
 		}
@@ -273,7 +278,7 @@ component {
 						testMemcached: {
 							class: 'org.lucee.extension.cache.mc.MemcachedCache'
 							, bundleName: 'memcached.extension'
-							, bundleVersion: '4.0.0.7-SNAPSHOT'
+							, bundleVersion: '4.0.0.10-SNAPSHOT'
 							, storage: false
 							, custom: {
 								"socket_timeout": "3",
