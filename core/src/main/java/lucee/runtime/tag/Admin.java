@@ -3769,7 +3769,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		else if (strType.equals("http")) type = ConfigPro.CACHE_TYPE_HTTP;
 		else if (strType.equals("file")) type = ConfigPro.CACHE_TYPE_FILE;
 		else if (strType.equals("webservice")) type = ConfigPro.CACHE_TYPE_WEBSERVICE;
-		else throw new ApplicationException("inv,query,resource invalid type definition, valid values are [object,template,query,resource,function,include]");
+		else throw new ApplicationException("Unsupported default cache type [" + strType + "], valid values are [object, template, query, resource, function, include]");
 
 		CacheConnection cc = config.getCacheDefaultConnection(type);
 		if (cc != null) {
