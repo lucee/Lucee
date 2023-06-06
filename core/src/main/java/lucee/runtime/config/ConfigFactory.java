@@ -204,7 +204,7 @@ public abstract class ConfigFactory {
 		}
 	}
 
-	public static void translateConfigFile(ConfigPro config, Resource configFileOld, Resource configFileNew, String mode, boolean isServer)
+	public static void translateConfigFile(ConfigPro config, Resource configFileOld, Resource configFileNew, String defaultMode, boolean isServer)
 			throws ConverterException, IOException, SAXException {
 		// read the old config (XML)
 		Struct root = ConfigWebUtil.getAsStruct("cfLuceeConfiguration", new XMLConfigReader(configFileOld, true, new ReadRule(), new NameRule()).getData());
@@ -690,7 +690,9 @@ public abstract class ConfigFactory {
 			moveAsBool("develop", "developMode", _mode, root);
 
 			// now that mode is free we can use it for the admin mode
-			if (!StringUtil.isEmpty(mode)) root.setEL(KeyConstants._mode, mode);
+			Boolean b = Caster.toBoolean(setting.remove(KeyImpl.init("singlemode"), null), null);
+			if (b != null) root.setEL(KeyConstants._mode, b.booleanValue() ? "single" : "multi");
+			else if (!StringUtil.isEmpty(defaultMode)) root.setEL(KeyConstants._mode, defaultMode);
 		}
 
 		//////////////////// startup Hooks ////////////////////
