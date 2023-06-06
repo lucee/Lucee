@@ -195,6 +195,7 @@ jobs:
         CI_DEPLOY_PASSWORD: ${{ secrets.CI_DEPLOY_PASSWORD }}
         CI_DEPLOY_PASSPHRASE: ${{ secrets.CI_DEPLOY_PASSPHRASE }}
         LUCEE_DOCKER_FILES_PAT_TOKEN: ${{ secrets.LUCEE_DOCKER_FILES_PAT_TOKEN }}
+        LUCEE_BUILD_FAIL_CONFIGURED_SERVICES_FATAL: true
       #run: ant -noinput -buildfile loader/build.xml
       run: |
         if [ "${{ env.DO_DEPLOY }}" == "true" ]; then

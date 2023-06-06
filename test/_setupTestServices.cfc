@@ -165,10 +165,14 @@ component {
 	}
 
 	public void function loadServiceConfig() localmode=true {
-		systemOutput( "", true) ;		
+		systemOutput( "", true) ;
 		systemOutput("-------------- Test Services ------------", true );
 		services = ListToArray("oracle,MySQL,MSsql,postgres,h2,mongoDb,smtp,pop,imap,s3,s3_custom,s3_google,ftp,sftp,memcached,redis,ldap");
 		// can take a while, so we check them them in parallel
+
+		buildCfg = server._getSystemPropOrEnvVars( "LUCEE_BUILD_FAIL_CONFIGURED_SERVICES_FATAL", "", false );
+		failonConfiguredServiceError = buildCfg.LUCEE_BUILD_FAIL_CONFIGURED_SERVICES_FATAL ?: false;
+
 		services.each( function( service ) localmode=true {
 			if (! isTestServiceAllowed( arguments.service )){
 				systemOutput( "Service [ #arguments.service# ] disabled, not found in testServices", true) ;
@@ -235,7 +239,7 @@ component {
 					systemOutput( "Service [ #arguments.service# ] is [ #verify# ]", true) ;
 					server.test_services[arguments.service].valid = true;
 				} catch (e) {
-					systemOutput( "ERROR Service [ #arguments.service# ] threw [ #cfcatch.message# ]", true);
+					systemOutput( "ERROR Service [ #arguments.service# ] threw [ #cfcatch.stacktrace# ]", true);
 					if ( cfcatch.message contains "NullPointerException" || request.testDebug )
 						systemOutput(cfcatch, true);
 					if ( len( request.testServices) gt 0 ){
@@ -243,6 +247,8 @@ component {
 						systemOutput(cfcatch, true);
 						throw "Requested Test Service [ #arguments.service# ] not available";
 					}
+					if (failonConfiguredServiceError)
+						throw cfcatch.stacktrace;
 				}
 			}
 		}, true, 4);
