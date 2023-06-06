@@ -334,7 +334,7 @@ component {
 					caches="#{
 						testMemcached: {
 							class: 'org.lucee.extension.cache.mc.MemcachedCache'
-							, bundleName: 'memcached.extension'
+							, bundleName: 'lucee.extension.memcached'
 							, bundleVersion: '4.0.0.9-SNAPSHOT'
 							, storage: false
 							, custom: {
