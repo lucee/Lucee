@@ -529,7 +529,7 @@ public class OSGiUtil {
 			while (it.hasNext()) {
 				b = it.next();
 				if (br.matches(b)) {
-					if (match == null || Util.isNewerThan(b.getVersion(), match.getVersion())) match = b;
+					if (match == null || OSGiUtil.isNewerThan(b.getVersion(), match.getVersion())) match = b;
 				}
 			}
 			return match;
@@ -577,7 +577,7 @@ public class OSGiUtil {
 				if (bundleRange.getName().equalsIgnoreCase(b.getSymbolicName())) {
 					if (bundleRange.getVersionRange() == null || bundleRange.getVersionRange().isEmpty() || !versionMatters
 							|| bundleRange.getVersionRange().isWithin(b.getVersion())) {
-						if (match == null || Util.isNewerThan(b.getVersion(), match.getVersion())) match = b;
+						if (match == null || OSGiUtil.isNewerThan(b.getVersion(), match.getVersion())) match = b;
 					}
 					else {
 						if (versionsFound.length() > 0) versionsFound.append(", ");
@@ -984,7 +984,7 @@ public class OSGiUtil {
 					match = jar;
 					BundleFile bf = BundleFile.getInstance(jar);
 					if (bf.isBundle() && bundleRange.matches(bf)) {
-						if (mbf == null || Util.isNewerThan(bf.getVersion(), mbf.getVersion())) mbf = bf;
+						if (mbf == null || OSGiUtil.isNewerThan(bf.getVersion(), mbf.getVersion())) mbf = bf;
 					}
 				}
 			}
@@ -999,7 +999,7 @@ public class OSGiUtil {
 				bf = BundleFile.getInstance(child);
 				if (bf.isBundle()) {
 					if (bundleRange.matches(bf)) {
-						if (mbf == null || Util.isNewerThan(bf.getVersion(), mbf.getVersion())) mbf = bf;
+						if (mbf == null || OSGiUtil.isNewerThan(bf.getVersion(), mbf.getVersion())) mbf = bf;
 					}
 					else {
 						if (versionsFound != null) {

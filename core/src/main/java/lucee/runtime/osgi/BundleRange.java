@@ -8,7 +8,6 @@ import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Version;
 
-import lucee.loader.util.Util;
 import lucee.runtime.osgi.OSGiUtil.BundleDefinition;
 import lucee.runtime.osgi.OSGiUtil.VersionDefinition;
 import lucee.runtime.type.Array;
@@ -38,41 +37,6 @@ public class BundleRange implements Serializable {
 		return name;
 	}
 
-	/**
-	 * only return a bundle if already loaded, does not load the bundle
-	 *
-	 * @return
-	 * 
-	 *         public Bundle getLoadedBundle() { return bundle; }
-	 */
-
-	/**
-	 * get Bundle, also load if necessary from local or remote
-	 *
-	 * @return
-	 * @throws BundleException
-	 * @throws StartFailedException
-	 * 
-	 *             public Bundle getBundle(Config config, List<Resource> addional) throws
-	 *             BundleException { if (bundle == null) { config =
-	 *             ThreadLocalPageContext.getConfig(config); bundle = OSGiUtil.loadBundle(name,
-	 *             getVersion(), config == null ? null : config.getIdentification(), addional, false); }
-	 *             return bundle; }
-	 */
-
-	/*
-	 * public Bundle getLocalBundle(List<Resource> addional) { if (bundle == null) { bundle =
-	 * OSGiUtil.loadBundleFromLocal(name, getVersion(), addional, true, null); } return bundle; }
-	 */
-
-	/*
-	 * public BundleFile getBundleFile(boolean downloadIfNecessary, List<Resource> addional) throws
-	 * BundleException { Config config = ThreadLocalPageContext.getConfig(); return
-	 * OSGiUtil.getBundleFile(name, getVersion(), config == null ? null : config.getIdentification(),
-	 * addional, downloadIfNecessary);
-	 * 
-	 * }
-	 */
 	public boolean matches(Bundle b) {
 		if (!b.getSymbolicName().equals(getName())) return false;
 		if (versionRange != null) return versionRange.isWithin(b.getVersion());
@@ -195,16 +159,16 @@ public class BundleRange implements Serializable {
 				return !left.equals(right);
 			}
 			if (op == VersionDefinition.LT) {
-				return Util.isNewerThan(right, left);
+				return OSGiUtil.isNewerThan(right, left);
 			}
 			if (op == VersionDefinition.LTE) {
-				return left.equals(right) || Util.isNewerThan(right, left);
+				return left.equals(right) || OSGiUtil.isNewerThan(right, left);
 			}
 			if (op == VersionDefinition.GT) {
-				return Util.isNewerThan(left, right);
+				return OSGiUtil.isNewerThan(left, right);
 			}
 			if (op == VersionDefinition.GTE) {
-				return left.equals(right) || Util.isNewerThan(left, right);
+				return left.equals(right) || OSGiUtil.isNewerThan(left, right);
 			}
 			return false;
 		}
