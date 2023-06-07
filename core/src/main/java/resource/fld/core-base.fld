@@ -10840,6 +10840,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<member-name>ToStruct</member-name>
 		<keywords>query,struct</keywords>
 		<description>Copy the query columns data to struct by using the columnKey argument</description>
+		<introduced>6.0.0.302</introduced>
 		<argument>
 			<name>query</name>
 			<type>query</type>
