@@ -158,9 +158,7 @@ component {
 				valid: false,
 				missedTests: 0
 			};
-			buildCfg = server._getSystemPropOrEnvVars( "LUCEE_BUILD_FAIL_CONFIGURED_SERVICES_FATAL", "", false );
-			failonConfiguredServiceError = buildCfg.LUCEE_BUILD_FAIL_CONFIGURED_SERVICES_FATAL ?: false;
-
+			
 			if ( StructCount(cfg) eq 0 ){
 				systemOutput( "Service [ #service# ] not configured", true) ;
 			} else {
@@ -203,9 +201,9 @@ component {
 					systemOutput( "Service [ #service# ] is [ #verify# ]", true) ;
 					server.test_services[service].valid = true;
 				} catch (e) {
-					systemOutput( "ERROR Service [ #service# ] threw [ #cfcatch.stacktrace# ]", true);
-					if (failonConfiguredServiceError)
-						throw cfcatch.stacktrace;
+					st = test._testRunner::trimJavaStackTrace(cfcatch.stacktrace);
+					systemOutput( "ERROR Service [ #service# ] threw [ #arrayToList(st, chr(10) )# ]", true);
+					server.test_services[service].stacktrace = st;
 				}
 			}
 		}
@@ -214,13 +212,32 @@ component {
 
 	public array function reportServiceSkipped () localmode=true {
 		skipped = [];
-		for (s in server.test_services ){
-			service = server.test_services[s];
+		for ( s in server.test_services ){
+			service = server.test_services[ s ];
 			if ( !service.valid && service.missedTests gt 0 ){
-				ArrayAppend( skipped, "-> Service [#s#] #chr(9)# not available, #chr(9)# #service.missedTests# tests skipped" );
+				ArrayAppend( skipped, "-> Service [ #s# ] #chr(9)# not available, #chr(9)# #service.missedTests# tests skipped" );
 			}
 		}
 		return skipped;
+	}
+
+	public array function reportServiceFailed() localmode=true {
+		failed = [];
+		for ( s in server.test_services ){
+			service = server.test_services[ s ];
+			if ( !service.valid and structKeyExists( service, "stacktrace" ) ){
+				ArrayAppend( failed, "-> Service [ #s# ] #chr(9)# threw" );
+				for ( st in service.stacktrace ) {
+					ArrayAppend( failed, st );
+				}
+			}
+		}
+		return failed;
+	}
+	
+	public boolean function failOnConfiguredServiceError() localmode=true{
+		buildCfg = server._getSystemPropOrEnvVars( "LUCEE_BUILD_FAIL_CONFIGURED_SERVICES_FATAL", "", false );
+		return buildCfg.LUCEE_BUILD_FAIL_CONFIGURED_SERVICES_FATAL ?: false;
 	}
 
 	public string function verifyDatasource ( struct datasource ) localmode=true{
@@ -582,18 +599,18 @@ component {
 		return {};
 	}
 
-	function getDefaultBundleVersion (bundleName, fallbackVersion) cachedWithin="request" {
+	function getDefaultBundleVersion( bundleName, fallbackVersion ) cachedWithin="request" {
 		var bundles = server.getBundleVersions();
-		if (structKeyExists(bundles, arguments.bundleName)){
+		if ( structKeyExists( bundles, arguments.bundleName ) ){
 			//systemOutput(arguments.bundleName & " " & bundles[arguments.bundleName], true)
-			return bundles[arguments.bundleName];
+			return bundles[ arguments.bundleName ];
 		} else {
 			systemOutput("getDefaultBundleVersion: [" & arguments.bundleName & "] FALLLING BACK TO DEFAULT [" & arguments.fallbackVersion & "]", true)
 			return arguments.fallbackVersion ;
 		}
 	}		
 
-	function getBundleVersions () cachedWithin="#createTimeSpan(1,0,0,0)#"{
+	function getBundleVersions() cachedWithin="#createTimeSpan( 1, 0, 0, 0 )#"{
 		admin 
 			type="server"
 			password="#server.SERVERADMINPASSWORD#" 
@@ -602,10 +619,20 @@ component {
 		var bundles = {};
 		loop query=q_bundles {
 			var _bundle = {};
-			_bundle.append(q_bundles.headers);
-			bundles[_bundle['Bundle-SymbolicName']] = _bundle['Bundle-Version'];
+			_bundle.append( q_bundles.headers );
+			bundles[ _bundle[ 'Bundle-SymbolicName' ] ] = _bundle[ 'Bundle-Version' ];
 		}
 		return bundles;
+	}
+
+	function isTestServiceAllowed( service ){
+		if ( len( request.testServices) eq 0 )
+			return true;
+		loop list=request.testServices item="local.testService" {
+			if ( local.testService eq arguments.service )
+				return true;
+		}
+		return false;
 	}
 
 	boolean function isRemotePortOpen( string host, numeric port, numeric timeout=2000 ) {
