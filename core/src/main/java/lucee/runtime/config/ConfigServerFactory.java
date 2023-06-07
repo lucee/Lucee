@@ -107,23 +107,43 @@ public final class ConfigServerFactory extends ConfigFactory {
 
 		boolean hasConfigOld = false;
 		boolean hasConfigNew = configFileNew.exists() && configFileNew.length() > 0;
+
 		if (!hasConfigNew) {
+			LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), Log.LEVEL_INFO, ConfigServerFactory.class.getName(), "has no json server context config");
 			hasConfigOld = configFileOld.exists() && configFileOld.length() > 0;
+			LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), Log.LEVEL_INFO, ConfigServerFactory.class.getName(),
+					"has " + (hasConfigOld ? "" : "no ") + "xml server context config");
 		}
 		ConfigServerImpl config = existing != null ? existing : new ConfigServerImpl(engine, initContextes, contextes, configDir, configFileNew, ui, essentialOnly);
 
 		// translate to new
 		if (!hasConfigNew) {
 			if (hasConfigOld) {
-				translateConfigFile(config, configFileOld, configFileNew, "multi", true);
+				LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), Log.LEVEL_INFO, ConfigServerFactory.class.getName(), "convert server context xml config to json");
+				try {
+					translateConfigFile(config, configFileOld, configFileNew, "multi", true);
+				}
+				catch (IOException e) {
+					LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), ConfigServerFactory.class.getName(), e);
+					throw e;
+				}
+				catch (ConverterException e) {
+					LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), ConfigServerFactory.class.getName(), e);
+					throw e;
+				}
+				catch (SAXException e) {
+					LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), ConfigServerFactory.class.getName(), e);
+					throw e;
+				}
 			}
 			// create config file
 			else {
+				LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), Log.LEVEL_INFO, ConfigServerFactory.class.getName(), "create new server context json config file");
 				createConfigFile("server", configFileNew);
 				hasConfigNew = true;
 			}
 		}
-
+		LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), Log.LEVEL_INFO, ConfigServerFactory.class.getName(), "load config file");
 		Struct root = loadDocumentCreateIfFails(configFileNew, "server");
 
 		load(config, root, false, doNew, essentialOnly);
