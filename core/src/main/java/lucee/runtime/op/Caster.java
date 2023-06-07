@@ -2303,16 +2303,9 @@ public final class Caster {
 
 	public static String toString(Number n) {
 		if (n instanceof BigDecimal) return df.format(n);
-		double d = n.doubleValue();
-		long l = (long) d;
-		if (l == d) return toString(l);
-
-		if (d > l && (d - l) < 0.000000000001) return toString(l);
-		if (l > d && (l - d) < 0.000000000001) return toString(l);
-
-		if (n instanceof Double) return toString(n.doubleValue());
+		if (n instanceof Double) return Caster.toString(n.doubleValue());
+		if (n instanceof Long) return Caster.toString(n.longValue());
 		return n.toString();
-		// return df.format(d);
 	}
 
 	public static String toString(BigDecimal bd) {

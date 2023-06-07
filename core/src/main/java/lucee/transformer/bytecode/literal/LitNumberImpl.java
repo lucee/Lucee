@@ -101,9 +101,8 @@ public class LitNumberImpl extends ExpressionBase implements LitNumber, ExprNumb
 			// print.ds();
 			return Types.DOUBLE_VALUE;
 		}
-
 		Long l = justNumberDigits(number) ? Caster.toLong(number, null) : null;
-		if (l != null) {
+		if (l != null && Caster.toString(l).equals(number)) {
 			adapter.loadArg(0);
 			adapter.push(l.longValue());
 			adapter.invokeStatic(LITERAL_VALUE, TO_NUMBER_LONG_VALUE);
