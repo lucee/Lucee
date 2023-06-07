@@ -60,6 +60,7 @@ import lucee.runtime.tag.listener.TagListener;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.Collection;
+import lucee.runtime.listener.SessionCookieData;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
@@ -94,6 +95,26 @@ public class GetApplicationSettings extends BIF {
 		sct.setEL("clientManagement", Caster.toBoolean(ac.isSetClientManagement()));
 		sct.setEL("clientStorage", ac.getClientstorage());
 		sct.setEL("sessionStorage", ac.getSessionstorage());
+
+		SessionCookieData sessionCookieData = acs.getSessionCookie();
+		if( sessionCookieData != null) {
+			Struct sc = new StructImpl(Struct.TYPE_LINKED);
+			if (!StringUtil.isEmpty(sessionCookieData.getPath())) sc.setEL("path", sessionCookieData.getPath());
+			if (!StringUtil.isEmpty(sessionCookieData.getDomain())) sc.setEL("domain", sessionCookieData.getDomain());
+			sc.setEL("timeout", sessionCookieData.getTimeout());
+			sc.setEL("secure", sessionCookieData.isSecure());
+			sc.setEL("httpOnly", sessionCookieData.isHttpOnly());
+
+			String sameSite = "";
+			if(sessionCookieData.getSamesite() == 3) sameSite = "lax";
+			if(sessionCookieData.getSamesite() == 2) sameSite = "strict";
+			if(sessionCookieData.getSamesite() == 1) sameSite = "none";
+			if(sessionCookieData.getSamesite() == 0) sameSite = "";
+			sc.setEL("sameSite", sameSite);
+			sc.setEL("disableUpdate", sessionCookieData.isDisableUpdate());
+			sct.setEL("sessionCookie", sc);
+		}
+		
 		sct.setEL("customTagPaths", toArray(ac.getCustomTagMappings()));
 		sct.setEL("componentPaths", toArray(ac.getComponentMappings()));
 		sct.setEL("loginStorage", AppListenerUtil.translateLoginStorage(ac.getLoginStorage()));
