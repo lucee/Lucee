@@ -59,8 +59,8 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.i18n.LocaleFactory;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
+import lucee.runtime.osgi.BundleRange;
 import lucee.runtime.osgi.OSGiUtil;
-import lucee.runtime.osgi.OSGiUtil.BundleDefinition;
 import lucee.runtime.osgi.OSGiUtil.PackageQuery;
 import lucee.runtime.osgi.OSGiUtil.VersionDefinition;
 import lucee.runtime.text.xml.XMLCaster;
@@ -643,27 +643,36 @@ public class DumpUtil {
 
 	private static void requiredBundles(DumpTable parent, Bundle b) {
 		try {
-			List<BundleDefinition> list = OSGiUtil.getRequiredBundles(b);
+			List<BundleRange> list = OSGiUtil.getRequiredBundles(b);
 			if (list.isEmpty()) return;
 			DumpTable dt = new DumpTable("#6289a3", "#dee3e9", "#000000");
-			dt.appendRow(-1, new SimpleDumpData("name"), new SimpleDumpData("version"), new SimpleDumpData("operator"));
+			dt.appendRow(-1, new SimpleDumpData("name"), new SimpleDumpData("version from"), new SimpleDumpData("operator from"), new SimpleDumpData("version to"),
+					new SimpleDumpData("operator to"));
 
-			Iterator<BundleDefinition> it = list.iterator();
-			BundleDefinition bd;
+			Iterator<BundleRange> it = list.iterator();
+			BundleRange br;
+			BundleRange.VersionRange vr;
 			VersionDefinition vd;
-			String v, op;
+			String fromV = "", fromOP = "", toV = "", toOP = "";
 			while (it.hasNext()) {
-				bd = it.next();
-				vd = bd.getVersionDefiniton();
-				if (vd != null) {
-					v = vd.getVersionAsString();
-					op = vd.getOpAsString();
+				br = it.next();
+				vr = br.getVersionRange();
+				if (vr != null) {
+					// from
+					vd = vr.getFrom();
+					if (vd != null) {
+						fromV = vd.getVersionAsString();
+						fromOP = vd.getOpAsString();
+					}
+					// to
+					vd = vr.getTo();
+					if (vd != null) {
+						toV = vd.getVersionAsString();
+						toOP = vd.getOpAsString();
+					}
 				}
-				else {
-					v = "";
-					op = "";
-				}
-				dt.appendRow(0, new SimpleDumpData(bd.getName()), new SimpleDumpData(v), new SimpleDumpData(op));
+
+				dt.appendRow(0, new SimpleDumpData(br.getName()), new SimpleDumpData(fromV), new SimpleDumpData(fromOP), new SimpleDumpData(toV), new SimpleDumpData(toOP));
 
 			}
 			parent.appendRow(1, new SimpleDumpData("required-bundles"), dt);

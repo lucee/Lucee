@@ -31,6 +31,7 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.java.JavaObject;
 import lucee.runtime.op.Caster;
+import lucee.runtime.osgi.BundleRange;
 import lucee.runtime.osgi.OSGiUtil;
 import lucee.runtime.osgi.OSGiUtil.BundleDefinition;
 import lucee.runtime.osgi.OSGiUtil.PackageQuery;
@@ -65,7 +66,7 @@ public class BundleInfo implements Function {
 			sct.setEL(KeyConstants._version, b.getVersion().toString());
 			sct.setEL(KeyConstants._state, OSGiUtil.toState(b.getState(), null));
 			try {
-				sct.setEL("requiredBundles", toArray1(OSGiUtil.getRequiredBundles(b)));
+				sct.setEL("requiredBundles", BundleRange.toArray(OSGiUtil.getRequiredBundles(b)));
 				sct.setEL("requiredPackages", toArray2(OSGiUtil.getRequiredPackages(b)));
 			}
 			catch (BundleException be) {
