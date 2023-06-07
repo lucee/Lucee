@@ -8,7 +8,6 @@ import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Version;
 
-import lucee.loader.util.Util;
 import lucee.runtime.osgi.OSGiUtil.BundleDefinition;
 import lucee.runtime.osgi.OSGiUtil.VersionDefinition;
 import lucee.runtime.type.Array;
@@ -160,16 +159,16 @@ public class BundleRange implements Serializable {
 				return !left.equals(right);
 			}
 			if (op == VersionDefinition.LT) {
-				return Util.isNewerThan(right, left);
+				return OSGiUtil.isNewerThan(right, left);
 			}
 			if (op == VersionDefinition.LTE) {
-				return left.equals(right) || Util.isNewerThan(right, left);
+				return left.equals(right) || OSGiUtil.isNewerThan(right, left);
 			}
 			if (op == VersionDefinition.GT) {
-				return Util.isNewerThan(left, right);
+				return OSGiUtil.isNewerThan(left, right);
 			}
 			if (op == VersionDefinition.GTE) {
-				return left.equals(right) || Util.isNewerThan(left, right);
+				return left.equals(right) || OSGiUtil.isNewerThan(left, right);
 			}
 			return false;
 		}

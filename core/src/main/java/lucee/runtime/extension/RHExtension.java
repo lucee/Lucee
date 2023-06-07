@@ -636,8 +636,8 @@ public class RHExtension implements Serializable {
 
 		minCoreVersion = StringUtil.isEmpty(str, true) ? null : new VersionRange(str);
 		/*
-		 * if (minCoreVersion != null && Util.isNewerThan(minCoreVersion, info.getVersion())) { throw new
-		 * InvalidVersion("The Extension [" + label + "] cannot be loaded, " + Constants.NAME +
+		 * if (minCoreVersion != null && OSGiUtil.isNewerThan(minCoreVersion, info.getVersion())) { throw
+		 * new InvalidVersion("The Extension [" + label + "] cannot be loaded, " + Constants.NAME +
 		 * " Version must be at least [" + minCoreVersion.toString() + "], version is [" +
 		 * info.getVersion().toString() + "]."); }
 		 */
