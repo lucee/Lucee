@@ -1,84 +1,31 @@
 <cfparam name="FORM.scene" default="">
 <cfscript>
-	if( FORM.scene == 1 ) {
-		try {
+	try {
+		if( FORM.scene == 1 ) {
 			res = isArray(entityLoad("test"));
-		}
-		catch(any e) {
-			res = e.message;
-		}
-	}
-	if( FORM.scene == 2 ) {
-		try {
+		} else if( FORM.scene == 2 ) {
 			res = isArray(entityLoad("test", {}));
-		}
-		catch(any e) {
-			res = e.message;
-		}
-	}
-	if( FORM.scene == 3 ) {
-		try {
+		} else if( FORM.scene == 3 ) {
 			res = isArray(entityLoad("test", {}, ""));
-		}
-		catch(any e) {
-			res = e.message;
-		}
-	}
-	if( FORM.scene == 4 ) {
-		try {
+		} else if( FORM.scene == 4 ) {
 			res = isArray(entityLoad("test", {}, "", {}));
-		}
-		catch(any e) {
-			res = e.message;
-		}
-	}
-	if( FORM.scene == 5 ) {
-		try {
+		} else if( FORM.scene == 5 ) {
 			res = isArray(entityLoad(name="test", id={}, unique="", options={}));
-		}
-		catch(any e) {
-			res = e.message;
-		}
-	}
-	if( FORM.scene == 6 ) {
-		try {
+		} else if( FORM.scene == 6 ) {
 			res = isArray(entityLoad(name="test", id={}, options={}));
-		}
-		catch(any e) {
-			res = e.message;
-		}
-	}
-	if( FORM.scene == 7 ) {
-		try {
+		} else if( FORM.scene == 7 ) {
 			res = isArray(entityLoad(name="test", id={}));
-		}
-		catch(any e) {
-			res = e.message;
-		}
-	}
-	if( FORM.scene == 8 ) {
-		try {
+		} else if( FORM.scene == 8 ) {
 			res = isArray(entityLoad(name="test", options={}));
-		}
-		catch(any e) {
-			res = e.message;
-		}
-	}
-	if( FORM.scene == 9 ) {
-		try {
+		} else if( FORM.scene == 9 ) {
 			res = isArray(entityLoad(name="test", unique=""));
-		}
-		catch(any e) {
-			res = e.message;
-		}
-	}
-	if( FORM.scene == 10 ) {
-		try {
+		} else if( FORM.scene == 10 ) {
 			res = isArray(entityLoad(name="test", id={}, unique=""));
+		} else {
+			res="what scene? #form.scene#";
 		}
-		catch(any e) {
-			res = e.message;
-		}
-	}
+	} catch(any e) {
+		res = e.stacktrace;
+	}	
 	writeOutput(res);
 </cfscript>
