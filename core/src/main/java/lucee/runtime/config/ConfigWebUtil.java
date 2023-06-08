@@ -78,9 +78,6 @@ import lucee.runtime.type.util.ArrayUtil;
 import lucee.transformer.library.function.FunctionLib;
 import lucee.transformer.library.tag.TagLib;
 
-/**
- * 
- */
 public final class ConfigWebUtil {
 
 	private static String enckey;
@@ -761,6 +758,30 @@ public final class ConfigWebUtil {
 		return getAsArray(child, getAsStruct(parent, sct));
 	}
 
+	public static Struct getAsStruct(Struct input, String... names) {
+		Struct sct = null;
+		print.e(input.keys());
+		Object obj;
+		for (String name: names) {
+			obj = input.get(name, null);
+			if (obj instanceof Struct && !(sct = (Struct) obj).isEmpty()) {
+				break;
+			}
+		}
+
+		if (sct == null) {
+			sct = new StructImpl(Struct.TYPE_LINKED);
+			input.put(names[0], sct);
+			return sct;
+		}
+		return sct;
+	}
+
+	// TODO
+	/**
+	 * @deprecated use instead getAsStruct(Struct input, String... names)
+	 */
+	@Deprecated
 	public static Struct getAsStruct(String name, Struct sct) {
 		Object obj = sct.get(name, null);
 		if (obj == null) {
@@ -771,6 +792,11 @@ public final class ConfigWebUtil {
 		return (Struct) obj;
 	}
 
+	// TODO
+	/**
+	 * @deprecated use instead getAsArray(Struct input, String... names)
+	 */
+	@Deprecated
 	public static Array getAsArray(String name, Struct sct) {
 		Object obj = sct.get(KeyImpl.init(name), null);
 		if (obj == null) {

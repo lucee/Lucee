@@ -28,7 +28,6 @@ import org.osgi.framework.BundleException;
 import org.osgi.framework.Version;
 import org.xml.sax.SAXException;
 
-import lucee.aprint;
 import lucee.commons.digest.MD5;
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.FileUtil;
@@ -207,7 +206,8 @@ public abstract class ConfigFactory {
 	public static void translateConfigFile(ConfigPro config, Resource configFileOld, Resource configFileNew, String defaultMode, boolean isServer)
 			throws ConverterException, IOException, SAXException {
 		// read the old config (XML)
-		Struct root = ConfigWebUtil.getAsStruct("cfLuceeConfiguration", new XMLConfigReader(configFileOld, true, new ReadRule(), new NameRule()).getData());
+		Struct root = ConfigWebUtil.getAsStruct(new XMLConfigReader(configFileOld, true, new ReadRule(), new NameRule()).getData(), "cfLuceeConfiguration", "luceeConfiguration",
+				"lucee-configuration");
 
 		//////////////////// charset ////////////////////
 		{
@@ -792,8 +792,8 @@ public abstract class ConfigFactory {
 		// store it as Json
 		JSONConverter json = new JSONConverter(true, CharsetUtil.UTF8, JSONDateFormat.PATTERN_CF, false);
 		String str = json.serialize(null, root, SerializationSettings.SERIALIZE_AS_ROW, true);
+
 		IOUtil.write(configFileNew, str, CharsetUtil.UTF8, false);
-		aprint.o("DONE!");
 	}
 
 	private static Struct sort(Struct root) {
@@ -890,7 +890,8 @@ public abstract class ConfigFactory {
 		// That step is not necessary anymore TODO remove
 		if (StringUtil.endsWithIgnoreCase(name, ".xml.cfm") || StringUtil.endsWithIgnoreCase(name, ".xml")) {
 			try {
-				return ConfigWebUtil.getAsStruct("cfLuceeConfiguration", new XMLConfigReader(res, true, new ReadRule(), new NameRule()).getData());
+				return ConfigWebUtil.getAsStruct(new XMLConfigReader(res, true, new ReadRule(), new NameRule()).getData(), "cfLuceeConfiguration", "luceeConfiguration",
+						"lucee-configuration");
 			}
 			catch (SAXException e) {
 				throw Caster.toPageException(e);
