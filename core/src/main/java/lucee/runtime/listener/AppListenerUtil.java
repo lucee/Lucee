@@ -196,6 +196,7 @@ public final class AppListenerUtil {
 	}
 
 	public static DataSource toDataSource(Config config, String name, Struct data, Log log) throws PageException {
+		if (data.isEmpty()) throw new ApplicationException("Datasource config for [" + name + "] was empty");
 		String user = Caster.toString(data.get(KeyConstants._username, null), null);
 		String pass = Caster.toString(data.get(KeyConstants._password, ""), "");
 		if (StringUtil.isEmpty(user)) {
