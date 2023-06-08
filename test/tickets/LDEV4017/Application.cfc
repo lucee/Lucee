@@ -1,5 +1,5 @@
 component {
-	this.name = "LDEV-4017";
+	this.name = "LDEV-4017-#dbfile#";
 
 	param name="form.dbfile" default="";
 
@@ -16,7 +16,7 @@ component {
 			echo("INSERT INTO persons(id, name) VALUES('#form.uuid#','lucee')");
 		}
 		query {
-			echo("INSERT INTO thoughts(id, body, FK_person) VALUES('#createUUID()#','lazy-loaded works outside of transcation', '#form.uuid#')");
+			echo("INSERT INTO thoughts(id, body, FK_person) VALUES('#createUUID()#','lazy-loaded', '#form.uuid#')");
 		}
 	}
 }
