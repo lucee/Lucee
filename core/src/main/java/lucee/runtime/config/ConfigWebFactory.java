@@ -265,10 +265,11 @@ public final class ConfigWebFactory extends ConfigFactory {
 		boolean hasConfigOld = false;
 		boolean hasConfigNew = configFileNew.exists() && configFileNew.length() > 0;
 		if (!hasConfigNew) {
-			LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), Log.LEVEL_INFO, ConfigServerFactory.class.getName(), "has no json web context config for " + label);
+			LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), Log.LEVEL_INFO, ConfigWebFactory.class.getName(),
+					"has no json web context config for " + label + " at " + "[" + configFileNew + "]");
 			hasConfigOld = configFileOld.exists() && configFileOld.length() > 0;
-			LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), Log.LEVEL_INFO, ConfigServerFactory.class.getName(),
-					"has " + (hasConfigOld ? "" : "no ") + "xml web context config for " + label);
+			LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), Log.LEVEL_INFO, ConfigWebFactory.class.getName(),
+					"has " + (hasConfigOld ? "" : "no ") + "xml web context config for " + label + " at " + "[" + configFileOld + "]");
 
 		}
 		configWeb = new ConfigWebImpl(factory, configServer, servletConfig, configDir, configFileNew);
@@ -277,31 +278,32 @@ public final class ConfigWebFactory extends ConfigFactory {
 		Struct root = null;
 		if (!hasConfigNew) {
 			if (hasConfigOld) {
-				LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), Log.LEVEL_INFO, ConfigServerFactory.class.getName(), "convert web context xml config to json for " + label);
+				LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), Log.LEVEL_INFO, ConfigWebFactory.class.getName(), "convert web context xml config to json for " + label);
 				try {
 					translateConfigFile(configWeb, configFileOld, configFileNew, "", false);
 				}
 				catch (IOException e) {
-					LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), ConfigServerFactory.class.getName(), e);
+					LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), ConfigWebFactory.class.getName(), e);
 					throw e;
 				}
 				catch (ConverterException e) {
-					LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), ConfigServerFactory.class.getName(), e);
+					LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), ConfigWebFactory.class.getName(), e);
 					throw e;
 				}
 				catch (SAXException e) {
-					LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), ConfigServerFactory.class.getName(), e);
+					LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), ConfigWebFactory.class.getName(), e);
 					throw e;
 				}
 			}
 			// create config file
 			else {
-				LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), Log.LEVEL_INFO, ConfigServerFactory.class.getName(), "create new web context json config file for " + label);
+				LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), Log.LEVEL_INFO, ConfigWebFactory.class.getName(),
+						"create new web context json config file for " + label + " at " + "[" + configFileNew + "]");
 				createConfigFile("web", configFileNew);
 				hasConfigNew = true;
 			}
 		}
-		LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), Log.LEVEL_INFO, ConfigServerFactory.class.getName(), "load config file for " + label);
+		LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), Log.LEVEL_INFO, ConfigWebFactory.class.getName(), "load config file for " + label);
 		root = loadDocumentCreateIfFails(configFileNew, "web");
 
 		// htaccess
@@ -2445,7 +2447,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 			}
 
 			{
-				Struct eCaches = ConfigWebUtil.getAsStruct("cache", root);
+				Struct eCaches = ConfigWebUtil.getAsStruct("caches", root);
 
 				// check if we have an update or not
 				StringBuilder sb = new StringBuilder();
