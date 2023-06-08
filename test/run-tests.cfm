@@ -1,6 +1,8 @@
 <cfscript>
  encodeForHTML("abc"); // test if ESAPI extension exist right away
+ request._start = getTickCount();
 if (execute) {
+	
 
 request.basedir = basedir;
 request.srcall = srcall;
@@ -368,28 +370,48 @@ Begin Stack Trace
 	resultPath = ExpandPath( "/test" ) & "/reports/";
 	if ( !DirectoryExists( resultPath ) )
 		DirectoryCreate( resultPath );
-	JUnitReportFile = resultPath & "junit-test-results.xml";
+	JUnitReportFile = resultPath & "junit-test-results-#server.lucee.version#.xml";
 	FileWrite( JUnitReportFile, jUnitReporter.runReport( results=result, testbox=tb, justReturn=true ) );	
 	
-	systemOutput("", true );
-	systemOutput("", true );
-	systemOutput("=============================================================", true );
-	systemOutput("TestBox Version: #tb.getVersion()#", true );
-	systemOutput("Lucee Version: #server.lucee.version#", true );
-	systemOutput("Java Version: #server.java.version#", true );
-	systemOutput("Global Stats (#result.getTotalDuration()# ms)", true );
-	systemOutput("=============================================================", true );
-	systemOutput("->[Bundles/Suites/Specs: #result.getTotalBundles()#/#result.getTotalSuites()#/#result.getTotalSpecs()#]",true);
-	systemOutput("->[Pass:     #result.getTotalPass()#]", true );
-	systemOutput("->[Skipped:  #result.getTotalSkipped()#]", true );
-	systemOutput("->[Failures: #result.getTotalFail()#]", true );
-	systemOutput("->[Errors:   #result.getTotalError()#]", true );
-	systemOutput("->[JUnitReport: #JUnitReportFile#]", true );
-
-	// load errors into an array, so we can dump them out to $GITHUB_STEP_SUMMARY
+		// load errors into an array, so we can dump them out to $GITHUB_STEP_SUMMARY
 	results = [];
-	results_md = [];
+	results_md = ["## Lucee #server.lucee.version#", ""];
+
+	systemOutput( NL & NL & "=============================================================", true );
+	arrayAppend( results, "Lucee Version: #server.lucee.version#");
+	arrayAppend( results, "Java Version: #server.java.version#");
+	arrayAppend( results, "TestBox Version: #tb.getVersion()#");
+	arrayAppend( results, "Total Execution time: (#NumberFormat( ( getTickCount()-request._start) / 1000 )# s)");
+	arrayAppend( results, "Test Execution time: (#NumberFormat( result.getTotalDuration() /1000 )# s)");
+	arrayAppend( results, "");
+	arrayAppend( results, "=============================================================" & NL);
+	arrayAppend( results, "-> Bundles/Suites/Specs: #result.getTotalBundles()#/#result.getTotalSuites()#/#result.getTotalSpecs()#");
+	arrayAppend( results, "-> Pass:     #result.getTotalPass()#");
+	arrayAppend( results, "-> Skipped:  #result.getTotalSkipped()#");
+	arrayAppend( results, "-> Failures: #result.getTotalFail()#");
+	arrayAppend( results, "-> Errors:   #result.getTotalError()#");
+	arrayAppend( results, "-> JUnitReport: #JUnitReportFile#");
+
 	request.testDebug = false;
+	
+	servicesReport = new test._setupTestServices().reportServiceSkipped();
+	for ( service in servicesReport ){
+		arrayAppend( results, service );
+	}
+	arrayAppend( results_md, "" );
+	loop array=results item="summary"{
+		arrayAppend( results_md, summary );
+	}
+	arrayAppend( results_md, "" );
+
+	failedServices = new test._setupTestServices().reportServiceFailed();
+	if ( len( failedServices ) gt 0 ){
+		loop array=failedServices item="failure"{
+			systemOutput( failure, true );
+			arrayAppend( results_md, failure );
+		}
+		arrayAppend( results_md, "" );
+	}
 
 	if ( structKeyExists( server.system.environment, "GITHUB_STEP_SUMMARY" ) ){
 		github_commit_base_href=  "/" & server.system.environment.GITHUB_REPOSITORY
@@ -442,6 +464,8 @@ Begin Stack Trace
 		loop array=#results# item="resultLine" {
 			systemOutput( resultLine, (resultLine neq NL) );
 		}
+		markdownReport = resultPath & "build-report-#server.lucee.version#.md";
+		FileWrite( markdownReport, ArrayToList( results_md, NL ) );	
 		if ( structKeyExists( server.system.environment, "GITHUB_STEP_SUMMARY" ) ){
 			//systemOutput( server.system.environment.GITHUB_STEP_SUMMARY, true );
 			fileWrite( server.system.environment.GITHUB_STEP_SUMMARY, ArrayToList( results_md, NL ) );
@@ -456,9 +480,14 @@ Begin Stack Trace
 	}
 
 
- 		if ((result.getTotalFail() + result.getTotalError()) > 0) {
- 			throw "TestBox could not successfully execute all testcases: #result.getTotalFail()# tests failed; #result.getTotalError()# tests errored.";
- 		}
+	if ((result.getTotalFail() + result.getTotalError()) > 0) {
+		throw "TestBox could not successfully execute all testcases: #result.getTotalFail()# tests failed; #result.getTotalError()# tests errored.";
+	}
+
+	if ( len( new test._setupTestServices().reportServiceFailed() ) gt 0 
+			&& new test._setupTestServices().failOnConfiguredServiceError() ) {
+		throw "ERROR: test service(s) failed";
+	}
 	}
 	catch(e){
 		systemOutput("-------------------------------------------------------", true );
