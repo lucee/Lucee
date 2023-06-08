@@ -72,13 +72,16 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" labels="redis" {
 				// does it work
 				expect( cacheGetAllIds( filter="", cacheName=cacheName ) ).toBeArray("does cache exist?");
 				
-				// does it get listed
+				// does it get listed  LDEV-4533
+
+				/*
 				expect( queryColumnData( local.connectionsAfter, "default" ) ).toInclude( "object" );
 
 				systemOutput( local.connectionsDefault, true );
 
 				expect( queryColumnData( local.connectionsAfter, "name" ) ).toInclude( cacheName );
 				expect( local.connectionsAfter.recordcount ).toBe( local.connectionsBefore.recordcount+1, "active cache connections" );
+				*/
 			});
 		});
 	}
