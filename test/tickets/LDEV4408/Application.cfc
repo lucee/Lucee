@@ -18,7 +18,7 @@ component {
 	this.sessionCluster=true;
 
 	public void function onSessionStart() {
-		session.trackingId = createGUID();
+		session.trackingId = url.idx;
 	}
 
 }
