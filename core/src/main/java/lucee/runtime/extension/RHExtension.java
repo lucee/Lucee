@@ -19,6 +19,7 @@
 package lucee.runtime.extension;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
@@ -58,6 +59,7 @@ import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigAdmin;
 import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.config.ConfigPro;
+import lucee.runtime.config.ConfigServer;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.config.ConfigWebFactory;
 import lucee.runtime.config.ConfigWebUtil;
@@ -822,14 +824,29 @@ public class RHExtension implements Serializable {
 		// Extension defined in filesystem
 		Resource[] resources = getExtensionDir(config).listResources(LEX_FILTER);
 		if (resources == null || resources.length == 0) return;
+		int rt;
 		RHExtension xmlExt;
 		for (int i = 0; i < resources.length; i++) {
 			ext = new RHExtension(config, resources[i], false);
 			xmlExt = xmlExtensions.get(ext.getId());
 			if (xmlExt != null && (xmlExt.getVersion() + "").equals(ext.getVersion() + "")) continue;
+			rt = ext.getReleaseType();
+			if (rt != RHExtension.RELEASE_TYPE_ALL) {
+				if (config instanceof ConfigServer) {
+					if (rt == RHExtension.RELEASE_TYPE_WEB) {
+						if (resources[i] instanceof File) ((File) resources[i]).deleteOnExit();
+						continue;
+					}
+				}
+				else {
+					if (rt == RHExtension.RELEASE_TYPE_SERVER) {
+						if (resources[i] instanceof File) ((File) resources[i]).deleteOnExit();
+						continue;
+					}
+				}
+			}
 			ConfigAdmin._updateRHExtension((ConfigPro) config, resources[i], true, true);
 		}
-
 	}
 
 	public static BundleDefinition[] toBundleDefinitions(String strBundles) {
