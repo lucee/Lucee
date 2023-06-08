@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm" skip="true" {
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm" {
 	function beforeAll() {
 		variables.uri = createURI("LDEV4285");
 	}
@@ -46,14 +46,14 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm" skip="true" {
 				);
 				expect(result.filecontent.trim()).toBe(true);
 			}); 
-			it( title="entityLoad() with named arguments(name, idOrFilter)", body=function( currentSpec ) {
+			it( title="entityLoad() with named arguments(name, idOrFilter)", skip="true", body=function( currentSpec ) {
 				local.result = _InternalRequest(
 					template : "#uri#\test.cfm",
 					forms : { Scene = 7 }
 				);
 				expect(result.filecontent.trim()).toBe(true);
 			});
-				it( title="entityLoad() with named arguments(name, options)", body=function( currentSpec ) {
+				it( title="entityLoad() with named arguments(name, options)", skip="true", body=function( currentSpec ) {
 				local.result = _InternalRequest(
 					template : "#uri#\test.cfm",
 					forms : { Scene = 8 }
@@ -67,7 +67,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm" skip="true" {
 				);
 				expect(result.filecontent.trim()).toBe(true);
 			});
-			it( title="entityLoad() with named arguments(name, idOrFilter, uniqueOrOrder)", body=function( currentSpec ) {
+			it( title="entityLoad() with named arguments(name, idOrFilter, uniqueOrOrder)", skip=true, body=function( currentSpec ) {
 				local.result = _InternalRequest(
 					template : "#uri#\test.cfm",
 					forms : { Scene = 10 }
