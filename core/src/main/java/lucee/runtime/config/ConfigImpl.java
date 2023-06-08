@@ -2787,6 +2787,8 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	}
 
 	protected void setCaches(Map<String, CacheConnection> caches) {
+		// TOD find a better way for this ethos
+
 		this.caches = caches;
 		Iterator<Entry<String, CacheConnection>> it = caches.entrySet().iterator();
 		Entry<String, CacheConnection> entry;
@@ -2822,6 +2824,36 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 				defaultCacheWebservice = cc;
 			}
 		}
+
+		// when default was set to null
+		if (StringUtil.isEmpty(cacheDefaultConnectionNameTemplate) && defaultCacheTemplate != null) {
+			defaultCacheTemplate = null;
+		}
+		else if (StringUtil.isEmpty(cacheDefaultConnectionNameFunction) && defaultCacheFunction != null) {
+			defaultCacheFunction = null;
+		}
+		else if (StringUtil.isEmpty(cacheDefaultConnectionNameQuery) && defaultCacheQuery != null) {
+			defaultCacheQuery = null;
+		}
+		else if (StringUtil.isEmpty(cacheDefaultConnectionNameResource) && defaultCacheResource != null) {
+			defaultCacheResource = null;
+		}
+		else if (StringUtil.isEmpty(cacheDefaultConnectionNameObject) && defaultCacheObject != null) {
+			defaultCacheObject = null;
+		}
+		else if (StringUtil.isEmpty(cacheDefaultConnectionNameInclude) && defaultCacheInclude != null) {
+			defaultCacheInclude = null;
+		}
+		else if (StringUtil.isEmpty(cacheDefaultConnectionNameHTTP) && defaultCacheHTTP != null) {
+			defaultCacheHTTP = null;
+		}
+		else if (StringUtil.isEmpty(cacheDefaultConnectionNameFile) && defaultCacheFile != null) {
+			defaultCacheFile = null;
+		}
+		else if (StringUtil.isEmpty(cacheDefaultConnectionNameWebservice) && defaultCacheWebservice != null) {
+			defaultCacheWebservice = null;
+		}
+
 	}
 
 	@Override

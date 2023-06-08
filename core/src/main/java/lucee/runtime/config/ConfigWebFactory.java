@@ -201,15 +201,6 @@ public final class ConfigWebFactory extends ConfigFactory {
 	public static final boolean LOG = true;
 	private static final int DEFAULT_MAX_CONNECTION = 100;
 
-	public static final String[] STRING_CACHE_TYPES = new String[] { "function", "include", "query", "resource", "http", "file", "webservice" };
-	public static final int[] CACHE_TYPES = new int[] { Config.CACHEDWITHIN_FUNCTION, Config.CACHEDWITHIN_INCLUDE, Config.CACHEDWITHIN_QUERY, Config.CACHEDWITHIN_RESOURCE,
-			Config.CACHEDWITHIN_HTTP, Config.CACHEDWITHIN_FILE, Config.CACHEDWITHIN_WEBSERVICE };
-
-	// TODO can we merge with aove?
-	public static final String[] STRING_CACHE_TYPES_MAX = new String[] { "resource", "function", "include", "query", "template", "object", "file", "http", "webservice" };
-	public static final int[] CACHE_TYPES_MAX = new int[] { ConfigPro.CACHE_TYPE_RESOURCE, ConfigPro.CACHE_TYPE_FUNCTION, ConfigPro.CACHE_TYPE_INCLUDE, ConfigPro.CACHE_TYPE_QUERY,
-			ConfigPro.CACHE_TYPE_TEMPLATE, ConfigPro.CACHE_TYPE_OBJECT, ConfigPro.CACHE_TYPE_FILE, ConfigPro.CACHE_TYPE_HTTP, ConfigPro.CACHE_TYPE_WEBSERVICE };
-
 	/**
 	 * creates a new ServletConfig Impl Object
 	 * 
@@ -2427,17 +2418,20 @@ public final class ConfigWebFactory extends ConfigFactory {
 			boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManagerImpl.TYPE_CACHE);
 
 			// default cache
-			for (int i = 0; i < CACHE_TYPES_MAX.length; i++) {
+			for (int i = 0; i < ConfigPro.CACHE_TYPES_MAX.length; i++) {
 				try {
-					String def = getAttr(defaultCache, "default" + StringUtil.ucFirst(STRING_CACHE_TYPES_MAX[i]));
+					String def = getAttr(defaultCache, "default" + StringUtil.ucFirst(ConfigPro.STRING_CACHE_TYPES_MAX[i]));
 					if (hasAccess && !StringUtil.isEmpty(def)) {
-						config.setCacheDefaultConnectionName(CACHE_TYPES_MAX[i], def);
+						config.setCacheDefaultConnectionName(ConfigPro.CACHE_TYPES_MAX[i], def);
 					}
 					else if (hasCS) {
-						if (defaultCache.containsKey("default" + StringUtil.ucFirst(STRING_CACHE_TYPES_MAX[i]))) config.setCacheDefaultConnectionName(CACHE_TYPES_MAX[i], "");
-						else config.setCacheDefaultConnectionName(CACHE_TYPES_MAX[i], configServer.getCacheDefaultConnectionName(CACHE_TYPES_MAX[i]));
+						if (defaultCache.containsKey("default" + StringUtil.ucFirst(ConfigPro.STRING_CACHE_TYPES_MAX[i])))
+							config.setCacheDefaultConnectionName(ConfigPro.CACHE_TYPES_MAX[i], "");
+						else config.setCacheDefaultConnectionName(ConfigPro.CACHE_TYPES_MAX[i], configServer.getCacheDefaultConnectionName(ConfigPro.CACHE_TYPES_MAX[i]));
 					}
-					else config.setCacheDefaultConnectionName(+CACHE_TYPES_MAX[i], "");
+					else {
+						config.setCacheDefaultConnectionName(+ConfigPro.CACHE_TYPES_MAX[i], "");
+					}
 
 				}
 				catch (Throwable t) {
@@ -2454,6 +2448,12 @@ public final class ConfigWebFactory extends ConfigFactory {
 				for (Entry<String, ClassDefinition> e: config.getCacheDefinitions().entrySet()) {
 					sb.append(e.getKey()).append(':').append(e.getValue().toString()).append(';');
 				}
+				// defaults
+				sb.append("defaults:");
+				for (int ct: ConfigPro.CACHE_TYPES_MAX) {
+					sb.append(config.getCacheDefaultConnectionName(ct)).append(';');
+				}
+
 				String md5 = eCaches != null ? getMD5(eCaches, sb.toString(), hasCS ? configServer.getCacheMD5() : "") : "";
 				if (md5.equals(config.getCacheMD5())) {
 					return;
@@ -5290,11 +5290,11 @@ public final class ConfigWebFactory extends ConfigFactory {
 			}
 
 			// cachedwithin
-			for (int i = 0; i < CACHE_TYPES.length; i++) {
+			for (int i = 0; i < ConfigPro.CACHE_TYPES.length; i++) {
 				try {
-					String cw = getAttr(root, "cachedWithin" + StringUtil.ucFirst(STRING_CACHE_TYPES[i]));
-					if (!StringUtil.isEmpty(cw, true)) config.setCachedWithin(CACHE_TYPES[i], cw);
-					else if (hasCS) config.setCachedWithin(CACHE_TYPES[i], configServer.getCachedWithin(CACHE_TYPES[i]));
+					String cw = getAttr(root, "cachedWithin" + StringUtil.ucFirst(ConfigPro.STRING_CACHE_TYPES[i]));
+					if (!StringUtil.isEmpty(cw, true)) config.setCachedWithin(ConfigPro.CACHE_TYPES[i], cw);
+					else if (hasCS) config.setCachedWithin(ConfigPro.CACHE_TYPES[i], configServer.getCachedWithin(ConfigPro.CACHE_TYPES[i]));
 				}
 				catch (Throwable t) {
 					ExceptionUtil.rethrowIfNecessary(t);

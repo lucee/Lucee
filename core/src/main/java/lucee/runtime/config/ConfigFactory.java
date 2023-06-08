@@ -246,7 +246,7 @@ public abstract class ConfigFactory {
 			move("listenerMode", application, root);
 			move("typeChecking", application, root);
 			move("cachedAfter", application, root);
-			for (String type: ConfigWebFactory.STRING_CACHE_TYPES) {
+			for (String type: ConfigPro.STRING_CACHE_TYPES) {
 				move("cachedWithin" + StringUtil.ucFirst(type), application, root);
 			}
 			moveAsBool("allowUrlRequesttimeout", "requestTimeoutInURL", application, root);
@@ -272,7 +272,7 @@ public abstract class ConfigFactory {
 			move("cache", "cacheClasses", caches, root);
 
 			// defaults
-			for (String type: ConfigWebFactory.STRING_CACHE_TYPES_MAX) {
+			for (String type: ConfigPro.STRING_CACHE_TYPES_MAX) {
 				move("default" + StringUtil.ucFirst(type), cache, root);
 			}
 			// connections

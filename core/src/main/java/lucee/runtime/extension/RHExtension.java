@@ -65,6 +65,7 @@ import lucee.runtime.config.ConfigWebFactory;
 import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.config.Constants;
 import lucee.runtime.config.DeployHandler;
+import lucee.runtime.config.SingleContextConfigWeb;
 import lucee.runtime.converter.ConverterException;
 import lucee.runtime.converter.JSONConverter;
 import lucee.runtime.converter.JSONDateFormat;
@@ -810,7 +811,7 @@ public class RHExtension implements Serializable {
 	}
 
 	public static void correctExtensions(Config config) throws PageException, IOException, BundleException, ConverterException {
-
+		if (config instanceof SingleContextConfigWeb) return;
 		// extension defined in xml
 		RHExtension[] xmlArrExtensions = ((ConfigPro) config).getRHExtensions();
 		if (xmlArrExtensions.length == getPhysicalExtensionCount(config)) return; // all is OK
