@@ -72,7 +72,7 @@ public final class IOUtil {
 	 */
 	public static final void copy(InputStream in, OutputStream out, boolean closeIS, boolean closeOS) throws IOException {
 		try {
-			copy(in, out, 0xffff);// 65535
+			copy(in, out, 0xffff);// 65535 65k
 		}
 		finally {
 			if (closeIS && closeOS) close(in, out);
