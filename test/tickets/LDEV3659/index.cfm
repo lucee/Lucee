@@ -9,7 +9,7 @@
 
 		entitySave( newPerson );
 		ormFlush();
-		result = queryExecute( sql="SELECT * FROM persons",
+		result = queryExecute( sql="SELECT * FROM Person",
 			options={ timeout: 2 } 
 		);
 		echo( result.name );
