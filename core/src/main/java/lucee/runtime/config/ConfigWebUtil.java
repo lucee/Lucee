@@ -760,7 +760,6 @@ public final class ConfigWebUtil {
 
 	public static Struct getAsStruct(Struct input, String... names) {
 		Struct sct = null;
-		print.e(input.keys());
 		Object obj;
 		for (String name: names) {
 			obj = input.get(name, null);
