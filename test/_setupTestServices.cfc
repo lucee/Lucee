@@ -170,9 +170,6 @@ component {
 		services = ListToArray("oracle,MySQL,MSsql,postgres,h2,mongoDb,smtp,pop,imap,s3,s3_custom,s3_google,ftp,sftp,memcached,redis,ldap");
 		// can take a while, so we check them them in parallel
 
-		buildCfg = server._getSystemPropOrEnvVars( "LUCEE_BUILD_FAIL_CONFIGURED_SERVICES_FATAL", "", false );
-		failonConfiguredServiceError = buildCfg.LUCEE_BUILD_FAIL_CONFIGURED_SERVICES_FATAL ?: false;
-
 		services.each( function( service ) localmode=true {
 			if (! isTestServiceAllowed( arguments.service )){
 				systemOutput( "Service [ #arguments.service# ] disabled, not found in testServices", true) ;
@@ -239,7 +236,8 @@ component {
 					systemOutput( "Service [ #arguments.service# ] is [ #verify# ]", true) ;
 					server.test_services[arguments.service].valid = true;
 				} catch (e) {
-					systemOutput( "ERROR Service [ #arguments.service# ] threw [ #cfcatch.stacktrace# ]", true);
+					st = test._testRunner::trimJavaStackTrace(cfcatch.stacktrace);
+					systemOutput( "ERROR Service [ #arguments.service# ] threw [ #arrayToList(st, chr(10))# ]", true);
 					if ( cfcatch.message contains "NullPointerException" || request.testDebug )
 						systemOutput(cfcatch, true);
 					if ( len( request.testServices) gt 0 ){
@@ -247,8 +245,7 @@ component {
 						systemOutput(cfcatch, true);
 						throw "Requested Test Service [ #arguments.service# ] not available";
 					}
-					if (failonConfiguredServiceError)
-						throw cfcatch.stacktrace;
+					server.test_services[arguments.service].stacktrace = st;
 				}
 			}
 		}, true, 4);
@@ -264,6 +261,25 @@ component {
 			}
 		}
 		return skipped;
+	}
+
+	public array function reportServiceFailed() localmode=true {
+		failed = [];
+		for ( s in server.test_services ){
+			service = server.test_services[ s ];
+			if ( !service.valid and structKeyExists( service, "stacktrace" ) ){
+				ArrayAppend( failed, "-> Service [ #s# ] #chr( 9 )# threw" );
+				for ( st in service.stacktrace ) {
+					ArrayAppend( failed, st );
+				}
+			}
+		}
+		return failed;
+	}
+	
+	public boolean function failOnConfiguredServiceError() localmode=true{
+		buildCfg = server._getSystemPropOrEnvVars( "LUCEE_BUILD_FAIL_CONFIGURED_SERVICES_FATAL", "", false );
+		return buildCfg.LUCEE_BUILD_FAIL_CONFIGURED_SERVICES_FATAL ?: false;
 	}
 
 	public string function verifyDatasource ( struct datasource ) localmode=true{

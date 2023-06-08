@@ -295,7 +295,7 @@ Begin Stack Trace
 		local.tab = chr( 9 );
 		local.stack = [];
 		local.i = find( "/testbox/", arguments.st );
-		if ( request.testDebug || i eq 0 ){ // dump it all out
+		if ( request.testDebug ?: false || i eq 0 ){ // dump it all out
 			arrayAppend( stack, TAB & arguments.st );
 			return stack;
 		}

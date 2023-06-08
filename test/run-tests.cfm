@@ -266,20 +266,20 @@ try {
 	tb = testResults.tb;
 
 	jUnitReporter = new testbox.system.reports.JUnitReporter();
-	resultPath = ExpandPath( "/test") & "/reports/";
+	resultPath = ExpandPath( "/test" ) & "/reports/";
 	if ( !DirectoryExists( resultPath ) )
 		DirectoryCreate( resultPath );
 	JUnitReportFile = resultPath & "junit-test-results-#server.lucee.version#.xml";
-	FileWrite( JUnitReportFile, jUnitReporter.runReport(results=result, testbox=tb, justReturn=true) );
+	FileWrite( JUnitReportFile, jUnitReporter.runReport( results=result, testbox=tb, justReturn=true ) );
 
 	// load errors into an array, so we can dump them out to $GITHUB_STEP_SUMMARY
 	results = [];
 	results_md = ["## Lucee #server.lucee.version#", ""];
 
 	systemOutput( NL & NL & "=============================================================", true );
-	arrayAppend( results, "TestBox Version: #tb.getVersion()#");
 	arrayAppend( results, "Lucee Version: #server.lucee.version#");
 	arrayAppend( results, "Java Version: #server.java.version#");
+	arrayAppend( results, "TestBox Version: #tb.getVersion()#");
 	arrayAppend( results, "Total Execution time: (#NumberFormat( ( getTickCount()-request._start) / 1000 )# s)");
 	arrayAppend( results, "Test Execution time: (#NumberFormat( result.getTotalDuration() /1000 )# s)");
 	arrayAppend( results, "Average Test Overhead: (#NumberFormat( ArrayAvg( request.overhead ) )# ms)");
@@ -306,6 +306,17 @@ try {
 	}
 	arrayAppend( results_md, "" );
 
+	failedServices = new test._setupTestServices().reportServiceFailed();
+	if ( len( failedServices ) gt 0 ){
+		systemOutput( "", true );
+		loop array=failedServices item="failure"{
+			systemOutput( failure, true );
+			arrayAppend( results_md, failure );
+		}
+		systemOutput( "", true );
+		arrayAppend( results_md, "" );
+	}
+	
 	if ( structKeyExists( server.system.environment, "GITHUB_STEP_SUMMARY" ) ){
 		github_commit_base_href=  "/" & server.system.environment.GITHUB_REPOSITORY
 			& "/blob/" & server.system.environment.GITHUB_SHA & "/";
@@ -379,6 +390,11 @@ try {
 		systemOutput( "ERROR: No tests were run", true );
 		systemOutput( "", true );
 		throw "ERROR: No tests were run";
+	}
+
+	if ( len( new test._setupTestServices().reportServiceFailed() ) gt 0 
+			&& new test._setupTestServices().failOnConfiguredServiceError() ) {
+		throw "ERROR: test service(s) failed";
 	}
 
 } catch( e ){
