@@ -109,10 +109,10 @@ public final class ConfigServerFactory extends ConfigFactory {
 		boolean hasConfigNew = configFileNew.exists() && configFileNew.length() > 0;
 
 		if (!hasConfigNew) {
-			LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), Log.LEVEL_INFO, ConfigServerFactory.class.getName(), "has no json server context config");
+			LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), Log.LEVEL_INFO, ConfigServerFactory.class.getName(), "has no json server context config [" + configFileNew + "]");
 			hasConfigOld = configFileOld.exists() && configFileOld.length() > 0;
 			LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), Log.LEVEL_INFO, ConfigServerFactory.class.getName(),
-					"has " + (hasConfigOld ? "" : "no ") + "xml server context config");
+					"has " + (hasConfigOld ? "" : "no ") + "xml server context config [" + configFileOld + "]");
 		}
 		ConfigServerImpl config = existing != null ? existing : new ConfigServerImpl(engine, initContextes, contextes, configDir, configFileNew, ui, essentialOnly);
 
@@ -138,7 +138,8 @@ public final class ConfigServerFactory extends ConfigFactory {
 			}
 			// create config file
 			else {
-				LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), Log.LEVEL_INFO, ConfigServerFactory.class.getName(), "create new server context json config file");
+				LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), Log.LEVEL_INFO, ConfigServerFactory.class.getName(),
+						"create new server context json config file [" + configFileNew + "]");
 				createConfigFile("server", configFileNew);
 				hasConfigNew = true;
 			}
