@@ -207,7 +207,7 @@ body.server #contenttd {
 	box-shadow: 0px 0px 4px 1px #BF4F36;
 }
 body.single #contenttd {
-	box-shadow: 0px 0px 4px 0px #5f8731;
+	box-shadow: 0px 0px 4px 1px #5f8731;
 }
 
 #content {
