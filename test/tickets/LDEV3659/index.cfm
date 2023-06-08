@@ -1,6 +1,6 @@
 <cfscript>
 	transaction {
-		newPerson = entityNew( "Person", {
+		newPerson = entityNew( "LDEV3597", {
 			"id"       : createUUID(),
 			"name"     : "Michael Born",
 			"givenName": "Michael",
@@ -9,8 +9,8 @@
 
 		entitySave( newPerson );
 		ormFlush();
-		result = queryExecute( sql="SELECT * FROM Person",
-			options={ timeout: 2 } 
+		result = queryExecute( sql="SELECT * FROM LDEV3597",
+			options={ timeout: 2 }
 		);
 		echo( result.name );
 	}
