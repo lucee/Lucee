@@ -46,6 +46,7 @@ import lucee.runtime.exp.PageException;
  * Util class for different little jobs
  */
 public class Util {
+	private static final int DEFAULT_BLOCK_SIZE = 0xffff;// 65535
 
 	private static File tempFile;
 	// private static File homeFile;
@@ -64,7 +65,7 @@ public class Util {
 
 	@Deprecated
 	public final static void copy(final InputStream in, final OutputStream out) throws IOException {
-		final byte[] buffer = new byte[0xffff];
+		final byte[] buffer = new byte[DEFAULT_BLOCK_SIZE];
 		int len;
 		while ((len = in.read(buffer)) != -1)
 			out.write(buffer, 0, len);
@@ -74,7 +75,7 @@ public class Util {
 	}
 
 	public final static void copy(final InputStream in, final OutputStream out, final boolean closeIS, final boolean closeOS) throws IOException {
-		final byte[] buffer = new byte[0xffff];
+		final byte[] buffer = new byte[DEFAULT_BLOCK_SIZE];
 		int len;
 		while ((len = in.read(buffer)) != -1)
 			out.write(buffer, 0, len);
