@@ -1,4 +1,4 @@
-component extends = "org.lucee.cfml.test.LuceeTestCase" labels="redis" skip=true {
+component extends = "org.lucee.cfml.test.LuceeTestCase" labels="redis" {
 
 	function run( testResults, testBox ){
 		describe( "Test case for LDEV4342", function(){
@@ -38,12 +38,17 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" labels="redis" skip=true
 					readonly=false
 					storage=false
 					remoteClients="";
+				
+				// does it work
+				expect( cacheGetAllIds( filter="", cacheName=cacheName ) ).toBeArray("does cache exist?");
+
 				admin
 					action="getCacheConnections"
 					type="server"
 					password=server.SERVERADMINPASSWORD
 					returnVariable="local.connectionsAfter";
 
+				// set as a default cache for object
 				admin
 					action="updateCacheDefaultConnection"
 					type="server"
@@ -56,7 +61,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" labels="redis" skip=true
 					include=""
 					http=""
 					file=""
-					webservice=""; 
+					webservice="";
 
 				admin
 					action="getCacheConnections"
@@ -64,11 +69,15 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" labels="redis" skip=true
 					password=server.SERVERADMINPASSWORD
 					returnVariable="local.connectionsDefault";
 				
+				// does it work
+				expect( cacheGetAllIds( filter="", cacheName=cacheName ) ).toBeArray("does cache exist?");
+				
+				// does it get listed
 				expect( queryColumnData( local.connectionsAfter, "default" ) ).toInclude( "object" );
 
-				systemOutput(local.connectionsDefault, true);
+				systemOutput( local.connectionsDefault, true );
 
-				expect( queryColumnData(local.connectionsAfter, "name") ).toInclude( cacheName );
+				expect( queryColumnData( local.connectionsAfter, "name" ) ).toInclude( cacheName );
 				expect( local.connectionsAfter.recordcount ).toBe( local.connectionsBefore.recordcount+1, "active cache connections" );
 			});
 		});
