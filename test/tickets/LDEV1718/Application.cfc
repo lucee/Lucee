@@ -8,16 +8,12 @@ component {
     } else {
         folder = listFirst(getCurrentTemplatePath(), "/\");
     }
-    dump(folder);
     testTempFolder = "ldev1718test-" & createUniqueID();
     request.testTempFolder = folder;
 
     directoryCreate(tmp & testTempFolder);
     mapping = tmp & testTempFolder & "/" & folder;
     directoryCreate(testTempFolder & "/" & folder);
-    dump({
-        "#folder#": mapping // add a mapping which matches the current root directory
-    });
     this.mappings = {
         "#folder#": mapping // add a mapping which matches the current root directory
     }; 
