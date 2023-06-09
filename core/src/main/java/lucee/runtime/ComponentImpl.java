@@ -430,7 +430,8 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 		if (!ss.isInit() || indexBase > ss.index()) {
 			synchronized (ss) {
 				// invoke static constructor
-				if (!ss.isInit() || indexBase > ss.index()) {
+				boolean baseChanged = false;
+				if (!ss.isInit() || (baseChanged = (indexBase > ss.index()))) {
 					Map<String, Boolean> map = statConstr.get();
 					String id = "" + componentPage.getHash();
 					if (!Caster.toBooleanValue(map.get(id), false)) {
@@ -438,6 +439,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 
 						// this needs to happen before the call
 						try {
+							if (baseChanged) ss.clear();
 							componentPage.staticConstructor(pageContext, this);
 						}
 						catch (Exception e) {
