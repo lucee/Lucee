@@ -201,7 +201,7 @@ public final class ConfigServerFactory extends ConfigFactory {
 	 */
 	static void load(ConfigServerImpl configServer, Struct root, boolean isReload, boolean doNew, boolean essentialOnly)
 			throws ClassException, PageException, IOException, TagLibException, FunctionLibException, BundleException {
-		ConfigBase.onlyFirstMatch = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.mapping.first", null), true); // changed behaviour in 6.0
+		ConfigBase.onlyFirstMatch = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.mapping.first", null), false); // changed behaviour in 6.0
 		ConfigWebFactory.load(null, configServer, root, isReload, doNew, essentialOnly);
 		loadLabel(configServer, root);
 	}
