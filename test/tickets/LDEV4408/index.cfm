@@ -1,6 +1,5 @@
 <cfscript>
 	newMappings = getApplicationSettings().mappings;
 	application action='update' mappings='#newMappings#';
-
-	echo ( structKeyExists(session, "trackingId" ) );
+	echo ( session.trackingId );
 </cfscript>

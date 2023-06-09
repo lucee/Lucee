@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm" skip=true{
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm" {
 	function beforeAll() {
 		variables.uri = createURI("LDEV4067");
 	}
@@ -33,28 +33,28 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm" skip=true{
 				);
 				expect(trim(result.filecontent)).toBe("Michael");
 			});
-			it( title="checking this scope calling from closure with ORM entity",  body=function( currentSpec ) {
+			it( title="checking this scope calling from closure with ORM entity", skip="true", body=function( currentSpec ) {
 				local.result = _InternalRequest(
 					template : "#uri#\LDEV4067.cfm",
 					forms = {scene:5}
 				);
 				expect(trim(result.filecontent)).toBe("Michael");
 			});
-			it( title="checking variables scope calling from closure with ORM entity",  body=function( currentSpec ) {
+			it( title="checking variables scope calling from closure with ORM entity", skip="true", body=function( currentSpec ) {
 				local.result = _InternalRequest(
 					template : "#uri#\LDEV4067.cfm",
 					forms = {scene:6}
 				);
 				expect(trim(result.filecontent)).toBe("Michael");
 			});
-			it( title="checking this scope calling from lambda with ORM entity",  body=function( currentSpec ) {
+			it( title="checking this scope calling from lambda with ORM entity", skip="true", body=function( currentSpec ) {
 				local.result = _InternalRequest(
 					template : "#uri#\LDEV4067.cfm",
 					forms = {scene:7}
 				);
 				expect(trim(result.filecontent)).toBe("Michael");
 			});
-			it( title="checking variables scope calling from lambda with ORM entity",  body=function( currentSpec ) {
+			it( title="checking variables scope calling from lambda with ORM entity", skip=true, body=function( currentSpec ) {
 				local.result = _InternalRequest(
 					template : "#uri#\LDEV4067.cfm",
 					forms = {scene:8}

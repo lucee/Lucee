@@ -75,6 +75,21 @@ public class EntityLoad {
 
 	public static Object call(PageContext pc, String name, Object filter, Object order, Object options) throws PageException {
 		ORMSession session = ORMUtil.getSession(pc);
-		return session.loadAsArray(pc, name, Caster.toStruct(filter), Caster.toStruct(options), Caster.toString(order));
+		if (options==null){
+			if (Decision.isSimpleValue(filter) || filter == null){
+				if (Decision.isEmpty(order)){
+					if (Decision.isEmpty(filter)) return session.loadAsArray(pc, name, new StructImpl());
+					else return session.loadAsArray(pc, name, Caster.toString(filter));
+				} else {
+					return session.loadAsArray(pc, name, Caster.toString(filter),Caster.toString(order));
+				}
+			} else {
+				return session.loadAsArray(pc, name, Caster.toStruct(filter), new StructImpl(), Caster.toString(order));
+			}
+		} else if (filter==null){
+			return session.loadAsArray(pc, name, new StructImpl(), Caster.toStruct(options), Caster.toString(order));
+		} else {
+			return session.loadAsArray(pc, name, Caster.toStruct(filter), Caster.toStruct(options), Caster.toString(order));
+		}
 	}
 }
