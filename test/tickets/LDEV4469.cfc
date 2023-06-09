@@ -1,4 +1,4 @@
-component extends = "org.lucee.cfml.test.LuceeTestCase" lables="static" skip="true" {
+component extends = "org.lucee.cfml.test.LuceeTestCase" lables="static" skip="false" {
 
 	
 	function beforeAll(){
