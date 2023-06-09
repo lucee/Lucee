@@ -7401,7 +7401,6 @@ The following things are considered to be empty:
 		<name>InternalRequest</name>
 		<class>lucee.runtime.functions.system.InternalRequestPublic</class>
 		<description>Makes a request to the CFML Engine internally.</description>
-		<status>hidden</status>
 		<introduced>6.0.0.161</introduced>
 		<argument>
 			<name>template</name>
