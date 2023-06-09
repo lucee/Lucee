@@ -4,17 +4,17 @@ component {
     isWindows =find("Windows", server.os.name );
 	root = isWindows ? "c:\" : "/";
     if (isWindows){
-        folder = listGetAt(getCurrentTemplatePath(), 2, ":/\");
+        folder = listGetAt( getCurrentTemplatePath(), 2, ":/\" );
     } else {
-        folder = listFirst(getCurrentTemplatePath(), "/\");
+        folder = listFirst( getCurrentTemplatePath(), "/\" );
     }
     testTempFolder = "ldev1718test-" & createUniqueID();
     request.testTempFolder = folder;
 
     directoryCreate(tmp & testTempFolder);
-    mappingDir = tmp & testTempFolder & "/" & folder;
+    mappingDir = tmp & testTempFolder & "/" & createUniqueID();
     directoryCreate( mappingDir );
     this.mappings = {
-        "#folder#": mappingDir // add a mapping which matches the current root directory
+        "#folder#": mappingDir // add a mapping which matches the current directory top level name
     }; 
 }

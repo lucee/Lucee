@@ -33,9 +33,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				var result = _InternalRequest(
 					template:"#uri#/index.cfm"
 				);
-				expect(result.filecontent.trim()).toInclude("ldev1718");
 
-				expect( listlen( result.filecontent.trim(), "/\" ) ).toBeGT("2"); // i.e not top level
+				expect( result.filecontent.trim() ).toInclude( "ldev1718test" );  // i.e. not the top level folder
+
+				expect( listlen( result.filecontent.trim(), "/\" ) ).toBeGT( 2 ); // i.e not top level
 			});
 		});
 	}
