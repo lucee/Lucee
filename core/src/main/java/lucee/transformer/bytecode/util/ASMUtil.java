@@ -24,6 +24,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import javax.servlet.jsp.PageContext;
+
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.FieldVisitor;
@@ -48,6 +50,7 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
+import lucee.runtime.reflection.Reflector;
 import lucee.runtime.type.dt.TimeSpanImpl;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.ListUtil;
@@ -1152,6 +1155,16 @@ public final class ASMUtil {
 		adapter.newInstance(Types.ARRAY_IMPL);
 		adapter.dup();
 		adapter.invokeConstructor(Types.ARRAY_IMPL, Switch.INIT);
+	}
+
+	public static boolean isFirstArgumentPageContext(BytecodeContext bc) {
+		boolean firstIsPC = false;
+		Method m = bc.getMethod();
+		Type[] types;
+		if (m != null && (types = m.getArgumentTypes()) != null && types.length > 0) {
+			firstIsPC = Reflector.isInstaneOf(types[0].getClassName(), PageContext.class);
+		}
+		return firstIsPC;
 	}
 
 }

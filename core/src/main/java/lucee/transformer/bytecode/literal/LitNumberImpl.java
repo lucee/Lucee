@@ -15,6 +15,7 @@ import lucee.transformer.Position;
 import lucee.transformer.TransformerException;
 import lucee.transformer.bytecode.BytecodeContext;
 import lucee.transformer.bytecode.expression.ExpressionBase;
+import lucee.transformer.bytecode.util.ASMUtil;
 import lucee.transformer.bytecode.util.Types;
 import lucee.transformer.expression.ExprNumber;
 import lucee.transformer.expression.literal.LitNumber;
@@ -28,8 +29,10 @@ public class LitNumberImpl extends ExpressionBase implements LitNumber, ExprNumb
 
 	private static final Method CONSTR_STRING = new Method("<init>", Types.VOID, new Type[] { Types.STRING });
 	private static final Method VALUE_OF = new Method("valueOf", Types.BIG_DECIMAL, new Type[] { Types.LONG_VALUE });
-	private static final Method TO_NUMBER_LONG_VALUE = new Method("toNumber", Types.NUMBER, new Type[] { Types.PAGE_CONTEXT, Types.LONG_VALUE });
-	private static final Method TO_NUMBER_STRING = new Method("toNumber", Types.NUMBER, new Type[] { Types.PAGE_CONTEXT, Types.STRING });
+	private static final Method TO_NUMBER_LONG_VALUE_1 = new Method("toNumber", Types.NUMBER, new Type[] { Types.LONG_VALUE });
+	private static final Method TO_NUMBER_STRING_1 = new Method("toNumber", Types.NUMBER, new Type[] { Types.STRING });
+	private static final Method TO_NUMBER_LONG_VALUE_2 = new Method("toNumber", Types.NUMBER, new Type[] { Types.PAGE_CONTEXT, Types.LONG_VALUE });
+	private static final Method TO_NUMBER_STRING_2 = new Method("toNumber", Types.NUMBER, new Type[] { Types.PAGE_CONTEXT, Types.STRING });
 
 	private String number;
 	private BigDecimal bd;
@@ -37,7 +40,6 @@ public class LitNumberImpl extends ExpressionBase implements LitNumber, ExprNumb
 	public LitNumberImpl(Factory f, String number, Position start, Position end) {
 		super(f, start, end);
 		this.number = number;
-
 	}
 
 	public LitNumberImpl(Factory f, BigDecimal bd, Position start, Position end) {
@@ -91,6 +93,9 @@ public class LitNumberImpl extends ExpressionBase implements LitNumber, ExprNumb
 	public Type _writeOut(BytecodeContext bc, int mode) throws TransformerException {
 		GeneratorAdapter adapter = bc.getAdapter();
 
+		// are we within a method not providing PageContext as first argument?
+		boolean firstIsPC = ASMUtil.isFirstArgumentPageContext(bc);
+
 		if (MODE_VALUE == mode) {
 			try {
 				adapter.push(getBigDecimal().doubleValue());
@@ -98,19 +103,20 @@ public class LitNumberImpl extends ExpressionBase implements LitNumber, ExprNumb
 			catch (CasterException e) {
 				new TransformerException(bc, e, getStart());
 			}
-			// print.ds();
 			return Types.DOUBLE_VALUE;
 		}
 		Long l = justNumberDigits(number) ? Caster.toLong(number, null) : null;
+
 		if (l != null && Caster.toString(l).equals(number)) {
-			adapter.loadArg(0);
+			if (firstIsPC) adapter.loadArg(0);
+
 			adapter.push(l.longValue());
-			adapter.invokeStatic(LITERAL_VALUE, TO_NUMBER_LONG_VALUE);
+			adapter.invokeStatic(LITERAL_VALUE, firstIsPC ? TO_NUMBER_LONG_VALUE_2 : TO_NUMBER_LONG_VALUE_1);
 		}
 		else {
-			adapter.loadArg(0);
+			if (firstIsPC) adapter.loadArg(0);
 			adapter.push(number);
-			adapter.invokeStatic(LITERAL_VALUE, TO_NUMBER_STRING);
+			adapter.invokeStatic(LITERAL_VALUE, firstIsPC ? TO_NUMBER_STRING_2 : TO_NUMBER_STRING_1);
 		}
 
 		// adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_BIG_DECIMAL_STR); // TODOX call constructor

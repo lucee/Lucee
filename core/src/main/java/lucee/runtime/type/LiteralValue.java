@@ -3,6 +3,7 @@ package lucee.runtime.type;
 import java.math.BigDecimal;
 
 import lucee.runtime.PageContext;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.CasterException;
 import lucee.runtime.listener.ApplicationContextSupport;
 import lucee.runtime.op.Caster;
@@ -14,8 +15,12 @@ import lucee.runtime.op.Caster;
  */
 public class LiteralValue {
 
-	public static Number toNumber(PageContext pc, long l) {
+	public static Number toNumber(long l) {
+		return toNumber(ThreadLocalPageContext.get(), l);
 
+	}
+
+	public static Number toNumber(PageContext pc, long l) {
 		if (((ApplicationContextSupport) pc.getApplicationContext()).getPreciseMath()) return BigDecimal.valueOf(l);
 		else return Double.valueOf(l);
 
@@ -24,6 +29,11 @@ public class LiteralValue {
 	public static Number toNumber(PageContext pc, double d) {
 		if (((ApplicationContextSupport) pc.getApplicationContext()).getPreciseMath()) return BigDecimal.valueOf(d);
 		else return Double.valueOf(d);
+
+	}
+
+	public static Number toNumber(String nbr) throws CasterException {
+		return toNumber(ThreadLocalPageContext.get(), nbr);
 
 	}
 
