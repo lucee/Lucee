@@ -214,9 +214,10 @@ class DCStack {
 
 	private Boolean isValidEL(Connection conn) {
 		try {
-			int s = datasource.getNetworkTimeout();
-			//if timeout is unreasonable, use default
-			if (s < 1 || s > 60) s = DEFAULT_TIMEOUT;	
+			// value is in ms but method expect s
+			int ms = datasource.getNetworkTimeout();
+			int s = DEFAULT_TIMEOUT;
+			if (ms > 0) s = (int) Math.ceil(ms / 1000);
 			return conn.isValid(s) ? Boolean.TRUE : Boolean.FALSE;
 		}
 		catch (Exception e) {

@@ -110,17 +110,17 @@ public class DatasourceConnectionPool {
 						break;
 					}
 				}
-				if (rtn != null) {
-					_inc(stack, datasource, user, pass); // increment now if using existing connection
-				}				
+				_inc(stack, datasource, user, pass); // if new or fine we increase in any case
+				// create a new instance
 			}
 			if (rtn == null) {
-				// create a new connection instance
 				try {
 					rtn = loadDatasourceConnection(config, (DataSourcePro) datasource, user, pass);
-					_inc(stack, datasource, user, pass); // increment only if creating connection succeeds 
 				}
 				catch (PageException pe) {
+					synchronized (stack) {
+						_dec(stack, datasource, user, pass);
+					}
 					throw pe;
 				}
 				if (rtn instanceof DatasourceConnectionPro) ((DatasourceConnectionPro) rtn).using();
