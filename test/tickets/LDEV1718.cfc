@@ -1,4 +1,9 @@
 component extends="org.lucee.cfml.test.LuceeTestCase" {
+
+	private function slashify(str) {
+		return replace(str, "\", "/","all");
+	}
+
 	function beforeAll(){
 		variables.oldMappings = GetApplicationSettings().mappings;
 
@@ -43,7 +48,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				application action="update" mappings=mappings;
 				
 				// this should be resolved via the /sue mapping, because it is a match with that mapping and there is no other mapping, dahh!
-				var path=expandPath("/sue/ellen/sub/");
+				var path=slashify(expandPath("/sue/ellen/sub/"));
 				dump(label:"/susi/ellen/sub/",var:path);
 				dump(path== sue&"ellen/sub/");
 				expect( path ).toBe( sue&"ellen/sub/" );
@@ -57,7 +62,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				application action="update" mappings=mappings;
 				 
 				// now the sue/ellen mapping should be used
-				var path=expandPath("/sue/ellen/sub/")
+				var path=slashify(expandPath("/sue/ellen/sub/"));
 				dump(label:"/susi/ellen/sub/",var:path);
 				dump(path== sue_ellen_sub);
 				expect( path ).toBe( sue_ellen_sub );
@@ -73,11 +78,11 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				application action="update" mappings=mappings;
 				 
 				// now we test sub sub that only exists in the /sue mapping
-				var path=expandPath("/sue/ellen/sub/subsub/");
+				var path=slashify(expandPath("/sue/ellen/sub/subsub/"));
 				dump(label:"/susi/ellen/sub/subsub/",var:path);
 				
 				// even that does not exist in the sue/ellen mapping, that mapping is used because of the "lucee.mapping.first" env var is true, so mapping over match
-				expect( path).toBe( sue_ellen_sub&"subsub/" );
+				expect( path ).toBe( sue_ellen_sub&"subsub/" );
 				
 				// it should not exist, becaue that only exists in the sue mapping that was not prefered
 				expect( directoryExists(path) ).toBe( false );
