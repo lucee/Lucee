@@ -15,6 +15,6 @@ component {
     mappingDir = tmp & testTempFolder & "/" & createUniqueID();
     directoryCreate( mappingDir );
     this.mappings = {
-        "#folder#": mappingDir // add a mapping which matches the current directory top level name
+        "/#folder#": mappingDir // add a mapping which matches the current directory top level name
     }; 
 }
