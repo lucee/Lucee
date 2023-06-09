@@ -795,7 +795,8 @@ public final class OpUtil {
 	 * @throws PageException
 	 */
 	public static boolean eeq(PageContext pc, Object left, Object right) throws PageException {
-		return left == right;
+		if (compare(pc, left, right) != 0) return false;
+		return Caster.toTypeName(left).equals(Caster.toTypeName(right));
 	}
 
 	/**
@@ -807,7 +808,7 @@ public final class OpUtil {
 	 * @throws PageException
 	 */
 	public static boolean neeq(PageContext pc, Object left, Object right) throws PageException {
-		return left != right;
+		return !eeq(pc, left, right);
 	}
 
 	/**
