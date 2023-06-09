@@ -14,19 +14,19 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 		directoryCreate(base);
 
 		// folder for first mapping
-		var sue=base&"sue/";
+		variables.sue=base&"sue/";
 		directoryCreate(sue);
-		var sue_sub=sue&"/sub/";
+		variables.sue_sub=sue&"/sub/";
 		directoryCreate(sue_sub);
-		var sue_sub2=sue&"ellen/sub/";
+		variables.sue_sub2=sue&"ellen/sub/";
 		directoryCreate(sue_sub2);
-		var sue_sub2=sue&"ellen/sub/";
+		variables.sue_sub2=sue&"ellen/sub/";
 		directoryCreate(sue_sub2&"subsub/");
 		
 		// folder for second mapping
-		var sue_ellen=base&"sue-ellen/";
+		variables.sue_ellen=base&"sue-ellen/";
 		directoryCreate(sue_ellen);
-		var sue_ellen_sub=sue_ellen&"sub/";
+		variables.sue_ellen_sub=sue_ellen&"sub/";
 		directoryCreate(sue_ellen_sub);
 	}
 
