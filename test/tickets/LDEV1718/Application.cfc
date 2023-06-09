@@ -12,9 +12,9 @@ component {
     request.testTempFolder = folder;
 
     directoryCreate(tmp & testTempFolder);
-    mapping = tmp & testTempFolder & "/" & folder;
-    directoryCreate(testTempFolder & "/" & folder);
+    mappingDir = tmp & testTempFolder & "/" & folder;
+    directoryCreate( mappingDir );
     this.mappings = {
-        "#folder#": mapping // add a mapping which matches the current root directory
+        "#folder#": mappingDir // add a mapping which matches the current root directory
     }; 
 }

@@ -27,13 +27,15 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				expect( ExpandPath("/#pathLast#/LDEV1718/test/") ).toBe( Parentpath );
 			});
 
-			it(title="Checking expandPath() with conflict top level dir", body=function(){ // this needs work, disabled
+			it(title="Checking expandPath() with conflicting same name top level dir", body=function(){ // this needs work, disabled
 
 				var uri = createURI("LDEV1718");
 				var result = _InternalRequest(
 					template:"#uri#/index.cfm"
 				);
-				expect(result.filecontent.trim()).toInclude("ldev1718test");
+				expect(result.filecontent.trim()).toInclude("ldev1718");
+
+				expect( listlen( result.filecontent.trim(), "/\" ) ).toBeGT("2"); // i.e not top level
 			});
 		});
 	}
