@@ -26,6 +26,15 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				// /tickets/LDEV1718/test is original root path
 				expect( ExpandPath("/#pathLast#/LDEV1718/test/") ).toBe( Parentpath );
 			});
+
+			it(title="Checking expandPath() with conflict top level dir", body=function(){ // this needs work, disabled
+
+				var uri = createURI("LDEV1718");
+				var result = _InternalRequest(
+					template:"#uri#/index.cfm"
+				);
+				expect(result.filecontent.trim()).toInclude("ldev1718test");
+			});
 		});
 	}
 
