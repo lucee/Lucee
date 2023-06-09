@@ -448,7 +448,7 @@ public final class Caster {
 			return ((Number) o).doubleValue();
 		}
 		else if (o instanceof Boolean) return ((Boolean) o).booleanValue() ? 1 : 0;
-		else if (o instanceof CharSequence) return toDoubleValue(o.toString(), true);
+		else if (o instanceof CharSequence) return toDoubleValue(o.toString(), false);
 		// else if(o instanceof Clob) return toDoubleValue(toString(o));
 		else if (o instanceof Castable) return ((Castable) o).castToDoubleValue();
 		else if (o == null) return 0;// toDoubleValue("");
@@ -472,7 +472,7 @@ public final class Caster {
 	 * @throws CasterException
 	 */
 	public static double toDoubleValue(String str) throws CasterException {
-		return toDoubleValue(str, true);
+		return toDoubleValue(str, false);
 	}
 
 	public static double toDoubleValue(String strNumber, int radix, boolean alsoFromDate, double defaultValue) {
