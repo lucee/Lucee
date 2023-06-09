@@ -106,7 +106,7 @@ Error Output --->
 					var arr =["heap","nonheap"];
 					$.each(arr,function(index,chrt){
 						window["series_"+chrt] = window[chrt+"Chart"].series[0].data; //*charts*.series[0].data
-						window["series_"+chrt].push(result[chrt]); // push the value into series[0].data
+						window["series_"+chrt].push(result[chrt].PUSED); // push the value into series[0].data
 						window[chrt+"Chart"].series[0].data = window["series_"+chrt];
 						if(window[chrt+"Chart"].series[0].data.length > 60){
 						window[chrt+"Chart"].series[0].data.shift(); //shift the array
@@ -116,6 +116,8 @@ Error Output --->
 						window[chrt+"Chart"].xAxis[0].data.shift(); //shift the Time value
 						}
 						window[chrt].setOption(window[chrt+"Chart"]); // passed the data into the chats
+						var stats = result[chrt];
+						$('#' +chrt +'-label').text( stats.PUSED + "%, " + stats.USED + "Mb / " + stats.MAX + "Mb" );
 					});
 					var arr2 =["cpuSystem"];
 					$.each(arr2,function(index,chrt){
@@ -152,7 +154,7 @@ Error Output --->
 				backgroundColor: ["#ffffff"],
 				tooltip : {'trigger':'axis',
 					formatter : function (params) {
-						return 'Series' + "<br>" + params[0].seriesName + ": " + params[0].value + "%" + '<br>' +params[0].name ;
+						return params[0].seriesName + ": " + params[0].value + "%" + '<br>' +params[0].name ;
 					}
 				},
 
@@ -196,7 +198,7 @@ Error Output --->
 					if(params.length == 2) {
 						series2 =  params[1].seriesName + ": "+ params[1].value + "%" + '<br>' +params[0].name;
 					}
-					return 'Series' + "<br>" + params[0].seriesName + ": " + params[0].value + "%" + '<br>'  + series2;
+					return params[0].seriesName + ": " + params[0].value + "%" + '<br>'  + series2;
 				}
 			},
 			legend: {
@@ -453,11 +455,13 @@ Error Output --->
 							</th>
 						</tr>
 						<tr>
-							<td width="50%"><b>#pool['heap']#</b>
+							<td width="50%"><b>#pool['heap']#</b> <span id="heap-label" style="padding-left:10px;"></span>
 								<div id="heap" style="min-width: 100px; height: 150px; margin: 0 auto;"></div>
+								
 							</td>
-							<td width="50%"><b>#pool['non_heap']#</b><br>
+							<td width="50%"><b>#pool['non_heap']#</b><span id="nonheap-label" style="padding-left:10px;"></span><br>
 								<div id="nonheap" style="min-width: 100px; height: 150px; margin: 0 auto;"></div>
+								
 							</td>
 						</tr>
 
