@@ -1,8 +1,8 @@
 component extends="org.lucee.cfml.test.LuceeTestCase"{
 	function beforeAll(){
-		this.virtual="/lucee";
-        this.relPath="/doc.cfm";
-        this.fullPath=virtual&relPath;
+		variables.virtual="/lucee";
+        variables.relPath="/doc.cfm";
+        variables.fullPath=variables.virtual&variables.relPath;
 	}
 
 	function run( testResults , testBox ) {
