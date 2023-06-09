@@ -9,7 +9,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="date" skip=false {
 				}).tothrow();
 			});
 
-			it( title=" '5 6' should not be treated as a date", body=function( currentSpec ) {
+			it( title=" '5 6' should not be treated as a date",skip=true, body=function( currentSpec ) { // MICHA: skiping this,because we wanna Lucee to convert this to a date
 				expect( isDate("5 6") ).toBeFalse();
 			});
 		});
