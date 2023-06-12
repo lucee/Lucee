@@ -8,13 +8,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 		variables.oldMappings = GetApplicationSettings().mappings;
 
 		// first we create a base folder
-		var curr=getDirectoryFromPath(getCurrentTemplatePath());
+		var curr=slashify(getDirectoryFromPath(getCurrentTemplatePath()));
 		var base=curr&"testLDEV1718/";
 		if(directoryExists(base)) directoryDelete(base, true);
 		directoryCreate(base);
 
 		// folder for first mapping
-		variables.sue=base&"sue/";
+		variables.sue=slashify(base)&"sue/";
 		directoryCreate(sue);
 		variables.sue_sub=sue&"/sub/";
 		directoryCreate(sue_sub);
