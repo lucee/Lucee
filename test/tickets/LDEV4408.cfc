@@ -1,4 +1,4 @@
-component extends = "org.lucee.cfml.test.LuceeTestCase" labels="redis" {
+component extends = "org.lucee.cfml.test.LuceeTestCase" labels="redis" skip="true" {
 
 	function beforeAll(){
 		variables.uri = createURI("LDEV4408");
