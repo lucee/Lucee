@@ -68,17 +68,27 @@ public class ThreadQueueImpl implements ThreadQueuePro {
 
 		while (true) {
 			synchronized (token) {
+				// print.e("_enter(" + Thread.currentThread().getName() + "):" + list.size() + ":" + max);
+
+				// print.e("- timeout" + timeout);
 				if (mode == MODE_DISABLED) return;
 				int max = this.max == null ? ci.getQueueMax() : this.max.intValue();
+				// print.e("- max:" + max);
+				// print.e("- size:" + list.size());
 				if (mode != MODE_BLOCKING && list.size() < max) {
+					// print.e("- ok(" + Thread.currentThread().getName() + "):" + list.size());
 					list.add(pc);
 					return;
 				}
 			}
+			// print.e("- wait(" + Thread.currentThread().getName() + "):" + timeout);
 			if (timeout > 0) SystemUtil.wait(token, timeout);
 			else SystemUtil.wait(token);
 
+			// print.e("- wake up(" + Thread.currentThread().getName() + "):" + timeout);
+
 			if (timeout > 0 && (System.currentTimeMillis() - start) >= timeout) {
+				// print.e("- throw timeout(" + Thread.currentThread().getName() + "):" + timeout);
 				throw new IOException("Concurrent request timeout (" + (System.currentTimeMillis() - start) + ") [" + timeout
 						+ " ms] has occurred, server is too busy handling other requests. This timeout setting can be changed in the server administrator.");
 			}
@@ -89,6 +99,7 @@ public class ThreadQueueImpl implements ThreadQueuePro {
 	public void exit(PageContext pc) {
 		if (mode == MODE_DISABLED) return;
 		synchronized (token) {
+			// print.e("exit(" + Thread.currentThread().getName() + ")");
 			if (mode == MODE_DISABLED) return;
 			list.remove(pc);
 			token.notify();
@@ -109,15 +120,11 @@ public class ThreadQueueImpl implements ThreadQueuePro {
 	@Override
 	public short setMode(short mode) {
 		synchronized (token) {
+			short prevMode = this.mode;
 			// there are possible threads in the queue
-			if (mode != MODE_DISABLED) {
-				short prevMode = this.mode;
-				clear();
-				this.mode = mode;
-				return prevMode;
-			}
+			if (this.mode != MODE_DISABLED) clear();
 			this.mode = mode;
-			return MODE_DISABLED;
+			return prevMode;
 		}
 	}
 
