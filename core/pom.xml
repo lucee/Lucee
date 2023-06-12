@@ -251,10 +251,9 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
-        <groupId>org.hsqldb</groupId>
+        <groupId>org.lucee</groupId>
         <artifactId>hsqldb</artifactId>
-        <version>2.7.2</version>
-        <classifier>jdk8</classifier>
+        <version>2.7.2.0001</version>
         <scope>provided</scope>
     </dependency>
     <dependency>
