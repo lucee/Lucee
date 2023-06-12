@@ -121,7 +121,7 @@ import lucee.runtime.engine.InfoImpl;
 import lucee.runtime.engine.ThreadLocalConfig;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.engine.ThreadQueueImpl;
-import lucee.runtime.engine.ThreadQueueNone;
+import lucee.runtime.engine.ThreadQueuePro;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
@@ -3782,7 +3782,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 				if (enable == null) enable = Caster.toBoolean(getAttr(root, "requestQueueEnable"), null);
 				config.setQueueEnable(Caster.toBooleanValue(enable, false));
 
-				((ConfigServerImpl) config).setThreadQueue(config.getQueueEnable() ? new ThreadQueueImpl() : new ThreadQueueNone());
+				((ConfigServerImpl) config).setThreadQueue(new ThreadQueueImpl(config.getQueueEnable() ? ThreadQueuePro.MODE_ENABLED : ThreadQueuePro.MODE_DISABLED, null));
 			}
 			// Web
 			else {

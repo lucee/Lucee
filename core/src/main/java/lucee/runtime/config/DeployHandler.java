@@ -39,6 +39,7 @@ import lucee.commons.net.http.HTTPResponse;
 import lucee.commons.net.http.Header;
 import lucee.commons.net.http.httpclient.HeaderImpl;
 import lucee.runtime.engine.CFMLEngineImpl;
+import lucee.runtime.engine.ThreadQueuePro;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.extension.ExtensionDefintion;
@@ -73,24 +74,34 @@ public class DeployHandler {
 			Resource[] children = dir.listResources(ALL_EXT);
 			Resource child;
 			String ext;
-			for (int i = 0; i < children.length; i++) {
-				child = children[i];
+			if (children.length > 0) {
+				ThreadQueuePro queue = (ThreadQueuePro) config.getThreadQueue();
+				short prevMode = ThreadQueuePro.MODE_UNDEFINED;
+				if (queue != null) prevMode = queue.setMode(ThreadQueuePro.MODE_BLOCKING);
 				try {
-					// Lucee archives
-					ext = ResourceUtil.getExtension(child, null);
-					if ("lar".equalsIgnoreCase(ext)) {
-						// deployArchive(config,child,true);
-						ConfigAdmin.updateArchive((ConfigPro) config, child, true);
+					for (int i = 0; i < children.length; i++) {
+						child = children[i];
+						try {
+							// Lucee archives
+							ext = ResourceUtil.getExtension(child, null);
+							if ("lar".equalsIgnoreCase(ext)) {
+								// deployArchive(config,child,true);
+								ConfigAdmin.updateArchive((ConfigPro) config, child, true);
+							}
+
+							// Lucee Extensions
+							else if ("lex".equalsIgnoreCase(ext)) ConfigAdmin._updateRHExtension((ConfigPro) config, child, true, force);
+
+							// Lucee core
+							else if (config instanceof ConfigServer && "lco".equalsIgnoreCase(ext)) ConfigAdmin.updateCore((ConfigServerImpl) config, child, true);
+						}
+						catch (Exception e) {
+							log.log(Log.LEVEL_ERROR, "deploy handler", e);
+						}
 					}
-
-					// Lucee Extensions
-					else if ("lex".equalsIgnoreCase(ext)) ConfigAdmin._updateRHExtension((ConfigPro) config, child, true, force);
-
-					// Lucee core
-					else if (config instanceof ConfigServer && "lco".equalsIgnoreCase(ext)) ConfigAdmin.updateCore((ConfigServerImpl) config, child, true);
 				}
-				catch (Exception e) {
-					log.log(Log.LEVEL_ERROR, "deploy handler", e);
+				finally {
+					queue.setMode(prevMode);
 				}
 			}
 
