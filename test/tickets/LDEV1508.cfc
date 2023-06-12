@@ -2,10 +2,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mysql" {
 	// skip closure
 	function isNotSupported() {
 		var mySql = getCredentials();
-		if(!isNull(mysql)){
-			return false;
-		} else{
+		if(isEmpty(mysql)){
 			return true;
+		} else{
+			return false;
 		}
 	}
 
