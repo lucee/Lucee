@@ -175,6 +175,22 @@ public class BundleRange implements Serializable {
 
 		@Override
 		public String toString() {
+			if (to == null) {
+				if (opFrom == VersionDefinition.EQ) return from.toString();
+			}
+
+			if (from != null && opFrom == VersionDefinition.GT || opFrom == VersionDefinition.GTE) {
+				StringBuilder sb = new StringBuilder();
+				sb.append(opFrom == VersionDefinition.GT ? '(' : '[').append(from.toString()).append(',');
+				if (to != null) {
+					if (opTo == VersionDefinition.LT || opTo == VersionDefinition.LTE) {
+						sb.append(to.toString()).append(opTo == VersionDefinition.LT ? ')' : ']');
+						return sb.toString();
+					}
+				}
+				else return sb.append(']').toString();
+			}
+
 			StringBuilder sb = new StringBuilder();
 			if (from != null) {
 				sb.append("from:").append(from).append(';').append(VersionDefinition.toOperator(opFrom, ""));

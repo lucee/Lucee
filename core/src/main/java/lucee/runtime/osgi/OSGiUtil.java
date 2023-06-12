@@ -998,13 +998,15 @@ public class OSGiUtil {
 				match = child;
 				bf = BundleFile.getInstance(child);
 				if (bf.isBundle()) {
-					if (bundleRange.matches(bf)) {
-						if (mbf == null || OSGiUtil.isNewerThan(bf.getVersion(), mbf.getVersion())) mbf = bf;
-					}
-					else {
-						if (versionsFound != null) {
-							if (versionsFound.length() > 0) versionsFound.append(", ");
-							versionsFound.append(bf.getVersionAsString());
+					if (bf.getSymbolicName().equals(bundleRange.getName())) {
+						if (bundleRange.matches(bf)) {
+							if (mbf == null || OSGiUtil.isNewerThan(bf.getVersion(), mbf.getVersion())) mbf = bf;
+						}
+						else {
+							if (versionsFound != null) {
+								if (versionsFound.length() > 0) versionsFound.append(", ");
+								versionsFound.append(bf.getVersionAsString());
+							}
 						}
 					}
 				}
