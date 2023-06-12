@@ -14,7 +14,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 		directoryCreate(base);
 
 		// folder for first mapping
-		variables.sue=slashify(base)&"sue/";
+		variables.sue=base&"sue/";
 		directoryCreate(sue);
 		variables.sue_sub=sue&"/sub/";
 		directoryCreate(sue_sub);
