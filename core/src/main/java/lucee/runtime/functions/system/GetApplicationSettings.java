@@ -111,8 +111,8 @@ public class GetApplicationSettings extends BIF {
 		sct.setEL("setDomainCookies", Caster.toBoolean(ac.isSetDomainCookies()));
 		sct.setEL(KeyConstants._name, ac.getName());
 		sct.setEL("localMode", ac.getLocalMode() == Undefined.MODE_LOCAL_OR_ARGUMENTS_ALWAYS ? Boolean.TRUE : Boolean.FALSE);
-		sct.setEL(KeyConstants._locale, LocaleFactory.toString(pc.getLocale()));
-		sct.setEL(KeyConstants._timezone, TimeZoneUtil.toString(pc.getTimeZone()));
+		sct.setEL(KeyConstants._locale, LocaleFactory.toString(ThreadLocalPageContext.getLocale(pc)));
+		sct.setEL(KeyConstants._timezone, TimeZoneUtil.toString(ThreadLocalPageContext.getTimeZone(pc)));
 		// sct.setEL(KeyConstants._timeout,TimeZoneUtil.toString(pc.getRequestTimeout()));
 
 		sct.setEL("bufferOutput", Caster.toBoolean(ac.getBufferOutput()));
