@@ -506,7 +506,7 @@ component {
 					return {
 						class: 'org.hsqldb.jdbcDriver'
 						, bundleName: 'org.hsqldb.hsqldb'
-						, bundleVersion: server.getDefaultBundleVersion( 'org.lucee.hsqldb', '2.7.2.0001' )
+						, bundleVersion: server.getDefaultBundleVersion( 'org.lucee.hsqldb', '2.7.2.jdk8' )
 						, connectionString: 'jdbc:hsqldb:#arguments.dbFile#/datasource/db;MODE=MySQL'
 					};
 				}
