@@ -2155,7 +2155,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			// Default query of query DB
 			try {
 				setDatasource(config, datasources, QOQ_DATASOURCE_NAME,
-						new ClassDefinitionImpl("org.hsqldb.jdbcDriver", "org.lucee.hsqldb", "2.7.2.0001", config.getIdentification()), "hypersonic-hsqldb", "", -1,
+						new ClassDefinitionImpl("org.hsqldb.jdbcDriver", "org.lucee.hsqldb", "2.7.2.jdk8", config.getIdentification()), "hypersonic-hsqldb", "", -1,
 						"jdbc:hsqldb:.", "sa", "", null, DEFAULT_MAX_CONNECTION, -1, -1, 60000, true, true, DataSource.ALLOW_ALL, false, false, null, new StructImpl(), "",
 						ParamSyntax.DEFAULT, false, false, false, false);
 
