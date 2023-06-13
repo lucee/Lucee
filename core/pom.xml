@@ -249,7 +249,7 @@
     </dependency>
     <dependency>
         <groupId>org.lucee</groupId>
-        <artifactId>hsqldb-jdk8</artifactId>
+        <artifactId>hsqldb</artifactId>
         <version>2.7.2.jdk8</version>
         <scope>provided</scope>
     </dependency>
