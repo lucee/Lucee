@@ -1276,8 +1276,9 @@ public final class Http extends BodyTagImpl {
 				Charset responseCharset = StringUtil.isEmpty(tmp, true) ? null : CharsetUtil.toCharset(tmp);
 				// store to memory
 				String str;
-				if (barr == null) str = contentAsString(rsp, responseCharset, contentEncoding, e);
-				else str = IOUtil.toString(barr, responseCharset);
+				Charset cs = (StringUtil.isEmpty(charset)) ? responseCharset : CharsetUtil.toCharset(charset, responseCharset);
+				if (barr == null) str = contentAsString(rsp, cs, contentEncoding, e);
+				else str = IOUtil.toString(barr, cs);
 				cfhttp.set(KeyConstants._filecontent, str);
 
 				// store to file
