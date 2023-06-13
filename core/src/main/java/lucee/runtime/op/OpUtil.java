@@ -1050,12 +1050,18 @@ public final class OpUtil {
 	}
 
 	public static Number modulusRef(PageContext pc, Object left, Object right) throws PageException {
+		if (AppListenerUtil.getPreciseMath(pc, null)) {
+			return Caster.toBigDecimal(left).remainder(Caster.toBigDecimal(right));
+		}
 		double rightAsDouble = Caster.toDoubleValue(right);
 		if (rightAsDouble == 0d) throw new ArithmeticException("Division by zero is not possible");
 		return Caster.toDouble(Caster.toDoubleValue(left) % rightAsDouble);
 	}
 
 	public static Number modulusRef(PageContext pc, Number left, Number right) throws PageException {
+		if (AppListenerUtil.getPreciseMath(pc, null)) {
+			return Caster.toBigDecimal(left).remainder(Caster.toBigDecimal(right));
+		}
 		double rightAsDouble = Caster.toDoubleValue(right);
 		if (rightAsDouble == 0d) throw new ArithmeticException("Division by zero is not possible");
 		return Caster.toDouble(Caster.toDoubleValue(left) % rightAsDouble);

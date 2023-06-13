@@ -4993,6 +4993,10 @@ public final class Caster {
 
 	public static BigDecimal toBigDecimal(Number n) {
 		if (n instanceof BigDecimal) return (BigDecimal) n;
+		if (n instanceof BigInteger) return new BigDecimal((BigInteger) n);
+		if (n instanceof Double) return toBigDecimal(n.doubleValue());
+		if (n instanceof Long) return BigDecimal.valueOf(n.longValue());
+
 		return toBigDecimal(n.doubleValue());
 	}
 
