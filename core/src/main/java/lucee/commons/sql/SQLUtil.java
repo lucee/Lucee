@@ -229,11 +229,13 @@ public class SQLUtil {
 
 		// MSSQL
 		if (StringUtil.startsWithIgnoreCase(connStr, "jdbc:sqlserver://")) {
-			if (StringUtil.indexOfIgnoreCase(connStr, ";encrypt=") != -1) {
+			if (StringUtil.indexOfIgnoreCase(connStr, ";trustServerCertificate=") != -1) {
 				return connStr;
 			}
-			return connStr + ";encrypt=false"; // we want default behaviour to state as before, if someone whishes encryption it can be set
-												// explicitly as the default behaviour was before
+			return connStr + (StringUtil.isEmpty(connStr, true) || connStr.endsWith(";") ? "" : ";") + "trustServerCertificate=true"; // we want default behaviour to state as
+																																		// before, if someone
+			// whishes encryption it can be set
+			// explicitly as the default behaviour was before
 		}
 
 		return connStr;
