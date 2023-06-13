@@ -39,14 +39,13 @@ public class JarInfo {
 				if (entry.getName().endsWith(".class")) {
 					byte[] buffer = new byte[9];
 					if (zis.read(buffer) == 9 && ClassUtil.isRawBytecode(buffer)) {
-
 						data = buffer;
 					}
 				}
 				zis.closeEntry();
 				if (data != null) break;
 			}
-			if (data == null && data.length < 8) throw new IOException("could not find a class to read in the jar [" + jar + "]");
+			if (data == null || data.length < 9) throw new IOException("could not find a class to read in the jar [" + jar + "]");
 			for (int i = 0; i < MAJOR_VERSIONS.length; i++) {
 
 				if (data[7] == MAJOR_VERSIONS[i]) return i;
