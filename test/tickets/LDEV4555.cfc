@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" labels="mssql" skip="true" {
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="mssql" {
 	function beforeAll(){
 		variables.mssql= getCredentials();
 	}
@@ -11,13 +11,12 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mssql" skip="true"
 
 					dsn = StructNew();
 					dsn.type = "mssql";
-					dsn.port = 1433;
-					dsn.database = "luceetestdb";
-					dsn.host = "localhost";
-					dsn.dbType = "sqlserver";
+					dsn.port =  mssql.PORT;
+					dsn.database =  mssql.DATABASE
+					dsn.host =  mssql.SERVER
 					dsn.username = mssql.USERNAME;
 					dsn.password = mssql.PASSWORD;
-					dsn.class =  mssql.CLASS;
+					
 					query = new Query(datasource=dsn);
 					sql = "SELECT 1";
 					query.setSQL(sql);
@@ -33,7 +32,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mssql" skip="true"
 	}
 
 	private struct function getCredentials() {
-		return mssql = server.getDatasource("mssql");
+		return mssql = server.getDatasource(service="mssql", onlyConfig=true)
 	}
 
 }
