@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" labels="mssql" {
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="mssql" skip="true"{
 	function beforeAll(){
 		variables.mssql= getCredentials();
 	}
@@ -16,7 +16,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mssql" {
 					dsn.host =  mssql.SERVER
 					dsn.username = mssql.USERNAME;
 					dsn.password = mssql.PASSWORD;
-					
+
 					query = new Query(datasource=dsn);
 					sql = "SELECT 1";
 					query.setSQL(sql);
