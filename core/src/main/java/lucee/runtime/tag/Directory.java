@@ -235,10 +235,10 @@ public final class Directory extends TagImpl {
 	}
 
 	public static String improveStorage(String storage) throws ApplicationException {
-		storage = improveStorage(storage, null);
+		storage = improveStorage(storage, storage==null?null:storage.trim());
 		if (storage != null) return storage;
 
-		throw new ApplicationException("Invalid storage value, valid values are [eu, us, us-west]");
+		throw new ApplicationException("Invalid storageLocation value");
 	}
 
 	public static String improveStorage(String storage, String defaultValue) {
