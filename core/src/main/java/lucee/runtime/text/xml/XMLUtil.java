@@ -1408,13 +1408,19 @@ public final class XMLUtil {
 	public static InputSource toInputSource(PageContext pc, String xml, boolean canBePath) throws IOException, ExpressionException {
 		// xml text
 		xml = xml.trim();
-		if (!canBePath || xml.startsWith("<") || xml.length() > 2000 || StringUtil.isEmpty(xml, true)) {
+		if (!canBePath || !isPath(xml)) {
 			return new InputSource(new StringReader(xml));
 		}
 		// xml link
 		pc = ThreadLocalPageContext.get(pc);
 		Resource res = ResourceUtil.toResourceExisting(pc, xml);
 		return toInputSource(pc, res);
+	}
+
+	public static boolean isPath(String xml) throws IOException, ExpressionException {
+		// xml text
+		xml = xml.trim();
+		return !xml.startsWith("<") && xml.length() < 2000 && !StringUtil.isEmpty(xml, true);
 	}
 
 	/**

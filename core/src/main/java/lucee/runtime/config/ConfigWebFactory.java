@@ -314,7 +314,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 		return configWeb;
 	}
 
-	public static ConfigWebPro newInstanceSingle(CFMLEngine engine, CFMLFactoryImpl factory, ConfigServerImpl configServer, ServletConfig servletConfig)
+	public static ConfigWebPro newInstanceSingle(CFMLEngine engine, CFMLFactoryImpl factory, ConfigServerImpl configServer, Resource configDirWeb, ServletConfig servletConfig)
 			throws SAXException, ClassException, PageException, IOException, TagLibException, FunctionLibException, NoSuchAlgorithmException, BundleException, ConverterException {
 
 		Resource configDir = configServer.getConfigDir();
@@ -328,7 +328,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 		);
 
 		boolean doNew = configServer.getUpdateInfo().updateType != NEW_NONE;
-		ConfigWebPro configWeb = new SingleContextConfigWeb(factory, configServer, servletConfig);
+		ConfigWebPro configWeb = new SingleContextConfigWeb(factory, configServer, servletConfig, configDirWeb);
 		createContextFiles(configDir, servletConfig, doNew);
 		createContextFilesPost(configDir, configWeb, servletConfig, false, doNew);
 		return configWeb;

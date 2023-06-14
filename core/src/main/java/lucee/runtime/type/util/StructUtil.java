@@ -230,10 +230,10 @@ public final class StructUtil {
 		}
 	}
 
-	public static Struct merge(Struct[] scts) {
-		Struct sct = new StructImpl();
+	public static Struct merge(boolean intoFirst, Struct... scts) {
+		Struct sct = intoFirst ? scts[0] : new StructImpl();
 
-		for (int i = scts.length - 1; i >= 0; i--) {
+		for (int i = intoFirst ? 1 : 0; i < scts.length; i++) {
 			Iterator<Entry<Key, Object>> it = scts[i].entryIterator();
 			Entry<Key, Object> e;
 			while (it.hasNext()) {

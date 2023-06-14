@@ -2447,6 +2447,7 @@ sort direction:
 			<type>struct</type>
 		</return>
 	</function>
+	
 	<!-- ConfigImport -->
 	<function>
 		<name>ConfigImport</name>
@@ -2460,7 +2461,7 @@ sort direction:
 			- system properties
 			- environment variables
 		</description>
-		<introduced>5.3.9.6</introduced>
+		<introduced>6.0.0.460</introduced>
 		<argument>
 			<name>path</name>
 			<type>any</type>
@@ -2486,7 +2487,7 @@ sort direction:
 			<required>no</required>
 			<description>
 				password to access the configuration, depending on the value set for the attribute type. 
-				If not set Lucee will check in the following places for the password (replace {type} with the actual type choosen for the attribute type).
+				If not set Lucee will check in the following places for the password (replace {type} with the actual type chosen for the attribute type).
 				Environment variable "LUCEE_{type}_ADMIN_PASSWORD" or system property "lucee.{type}.admin.password".
 			</description>
 		</argument>
@@ -2496,6 +2497,14 @@ sort direction:
 			<required>no</required>
 			<description>
 				placeholder parameters to use as actual data for the placeholders inside the configuration, see main description of this function for more details.
+			</description>
+		</argument>
+		<argument>
+			<name>flushExistingData</name>
+			<type>boolean</type>
+			<required>no</required>
+			<description>
+				if true that existing data get replaced with the given data, if set to false they get updated.
 			</description>
 		</argument>
 		<argument>
@@ -2511,7 +2520,67 @@ sort direction:
 			<type>struct</type>
 		</return>
 	</function>
+	
+	
+	
+	<!-- ConfigTranslate -->
+	<function>
+		<name>ConfigTranslate</name>
+		<class>lucee.runtime.functions.system.ConfigTranslate</class>
+		<description>
+			translate an old Lucee XML configuration to the new JSON configuration
+		</description>
+		<introduced>6.0.0.460</introduced>
+		<argument>
+			<name>source</name>
+			<type>string</type>
+			<alias>from,path,data,input</alias>
+			<required>Yes</required>
+			<description>
+			Path to the Lucee XML file (lucee-server.xml or lucee-web.xml.cfm) file or the data itself as a String. 
+			</description>
+		</argument>
+		<argument>
+			<name>target</name>
+			<type>string</type>
+			<alias>to,path,data,input</alias>
+			<required>no</required>
+			<description>
+			Path to the Lucee XML file (lucee-server.xml or lucee-web.xml.cfm) file or the data itself as a String. 
+			</description>
+		</argument>
+		<argument>
+			<name>type</name>
+			<type>string</type>
+			<required>no</required>
+			<default>server</default>
+			<values>server,web</values>
+			<description>
+				Config Context to manipulate, server or web context.
+			</description>
+		</argument>
+		<argument>
+			<name>mode</name>
+			<type>string</type>
+			<required>no</required>
+			<description>
+				Only used when type is set to [server], should be the resulting json set for single or multi mode.
+			</description>
+		</argument>
+		<argument>
+			<name>charset</name>
+			<type>string</type>
+			<required>no</required>
+			<description>
+				charset to use to read the XML file, if not defined, Lucee will use the default resource charset.
+			</description>
+		</argument>
 		
+		<return>
+			<type>struct</type>
+		</return>
+	</function>
+	
 	<!-- compress -->
 	<function>
 		<name>compress</name>

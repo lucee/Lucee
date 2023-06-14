@@ -932,13 +932,13 @@ public final class CFMLEngineImpl implements CFMLEngine {
 
 			boolean multi = configServer.getAdminMode() == ConfigImpl.ADMINMODE_MULTI;
 			ConfigWebPro config;
+			RefBoolean isCustomSetting = new RefBooleanImpl();
+			Resource configDir = getConfigDirectory(sg, configServer, countExistingContextes, isCustomSetting);
 			if (multi) {
-				RefBoolean isCustomSetting = new RefBooleanImpl();
-				Resource configDir = getConfigDirectory(sg, configServer, countExistingContextes, isCustomSetting);
 				config = ConfigWebFactory.newInstanceMulti(this, factory, configServer, configDir, isCustomSetting.toBooleanValue(), sg);
 			}
 			else {
-				config = ConfigWebFactory.newInstanceSingle(this, factory, configServer, sg);
+				config = ConfigWebFactory.newInstanceSingle(this, factory, configServer, configDir, sg);
 			}
 
 			if (ConfigWebFactory.LOG) LogUtil.log(configServer, Log.LEVEL_INFO, "startup", "Loaded config");

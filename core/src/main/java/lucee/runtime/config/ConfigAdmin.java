@@ -147,6 +147,7 @@ import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.ComponentUtil;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.ListUtil;
+import lucee.runtime.type.util.StructUtil;
 import lucee.runtime.video.VideoExecuter;
 import lucee.runtime.video.VideoExecuterNotSupported;
 import lucee.transformer.library.ClassDefinitionImpl;
@@ -162,6 +163,7 @@ public final class ConfigAdmin {
 	private ConfigPro config;
 	private final Struct root;
 	private Password password;
+	private boolean optionalPW;
 
 	/**
 	 * 
@@ -176,12 +178,16 @@ public final class ConfigAdmin {
 		return new ConfigAdmin((ConfigPro) config, password);
 	}
 
+	public static ConfigAdmin newInstance(Config config, Password password, boolean optionalPW) throws IOException, PageException {
+		return new ConfigAdmin((ConfigPro) config, password, optionalPW);
+	}
+
 	private void checkWriteAccess() throws SecurityException {
-		ConfigWebUtil.checkGeneralWriteAccess(config, password);
+		if (!optionalPW) ConfigWebUtil.checkGeneralWriteAccess(config, password);
 	}
 
 	private void checkReadAccess() throws SecurityException {
-		ConfigWebUtil.checkGeneralReadAccess(config, password);
+		if (!optionalPW) ConfigWebUtil.checkGeneralReadAccess(config, password);
 	}
 
 	/**
@@ -239,6 +245,13 @@ public final class ConfigAdmin {
 		this.config = config;
 		this.password = password;
 		root = ConfigWebFactory.loadDocument(config.getConfigFile());
+	}
+
+	private ConfigAdmin(ConfigPro config, Password password, boolean optionalPW) throws IOException, PageException {
+		this.config = config;
+		this.password = password;
+		root = ConfigWebFactory.loadDocument(config.getConfigFile());
+		this.optionalPW = optionalPW;
 	}
 
 	public static void checkForChangesInConfigFile(Config config) {
@@ -6370,5 +6383,11 @@ public final class ConfigAdmin {
 		if (!hasAccess) throw new SecurityException("Accces Denied to update scope setting");
 
 		root.setEL("cgiScopeReadOnly", Caster.toString(cgiReadonly, ""));
+	}
+
+	public void updateConfig(Struct data, boolean flushExistingData) throws SecurityException {
+		checkWriteAccess();
+		if (flushExistingData) root.clear();
+		StructUtil.merge(root, data);
 	}
 }

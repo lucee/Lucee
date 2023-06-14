@@ -593,7 +593,7 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 	private void callWDDX(PageContext pc, Component component, Collection.Key methodName, boolean suppressContent) throws PageException {
 		try {
 			// Struct url = StructUtil.duplicate(pc.urlFormScope(),true);
-			Struct url = StructUtil.merge(new Struct[] { pc.formScope(), pc.urlScope() });
+			Struct url = StructUtil.merge(false, new Struct[] { pc.formScope(), pc.urlScope() });
 			// define args
 			url.removeEL(KeyConstants._fieldnames);
 			url.removeEL(KeyConstants._method);

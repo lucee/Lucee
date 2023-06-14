@@ -26,6 +26,7 @@ import java.util.Iterator;
 
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Version;
+import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
 import lucee.commons.digest.MD5;
@@ -203,11 +204,28 @@ public abstract class ConfigFactory {
 		}
 	}
 
-	public static void translateConfigFile(ConfigPro config, Resource configFileOld, Resource configFileNew, String defaultMode, boolean isServer)
+	public static Struct translateConfigFile(ConfigPro config, Object old, Resource configFileNew, String defaultMode, Boolean isServer)
 			throws ConverterException, IOException, SAXException {
 		// read the old config (XML)
-		Struct root = ConfigWebUtil.getAsStruct(new XMLConfigReader(configFileOld, true, new ReadRule(), new NameRule()).getData(), "cfLuceeConfiguration", "luceeConfiguration",
-				"lucee-configuration");
+
+		if (isServer == null) isServer = config instanceof ConfigServer;
+		else {
+			if (isServer && config instanceof ConfigWeb) {
+				config = ((ConfigWebImpl) config).getConfigServerImpl();
+			}
+		}
+
+		XMLConfigReader reader = null;
+		if (old instanceof Resource) {
+			reader = new XMLConfigReader((Resource) old, true, new ReadRule(), new NameRule());
+		}
+		else if (old instanceof InputSource) {
+			reader = new XMLConfigReader((InputSource) old, true, new ReadRule(), new NameRule());
+		}
+		else {
+			new ConverterException("inputing data is invalid, cannot cast [" + old.getClass().getName() + "] ro a Resource or an InputSource");
+		}
+		Struct root = ConfigWebUtil.getAsStruct(reader.getData(), "cfLuceeConfiguration", "luceeConfiguration", "lucee-configuration");
 
 		//////////////////// charset ////////////////////
 		{
@@ -480,24 +498,26 @@ public abstract class ConfigFactory {
 			rem("extension", extensions);
 
 			// extensions
-			Key[] keys = rhextension.keys();
-			for (int i = keys.length - 1; i >= 0; i--) {
-				Key k = keys[i];
-				Struct data = Caster.toStruct(rhextension.get(k, null), null);
-				if (data == null) continue;
-				String id = Caster.toString(data.get(KeyConstants._id, null), null);
-				String version = Caster.toString(data.get(KeyConstants._version, null), null);
-				String name = Caster.toString(data.get(KeyConstants._name, null), null);
-				RHExtension.storeMetaData(config, id, version, data);
-				Struct sct = new StructImpl(Struct.TYPE_LINKED);
-				sct.setEL(KeyConstants._id, id);
-				sct.setEL(KeyConstants._version, version);
-				if (name != null) sct.setEL(KeyConstants._name, name);
-				// add(sct, Caster.toString(data.remove(KeyConstants._id, null), null), extensions);
-				newExtensions.appendEL(sct);
-				rhextension.remove(k, null);
+			if (config != null) {
+				Key[] keys = rhextension.keys();
+				for (int i = keys.length - 1; i >= 0; i--) {
+					Key k = keys[i];
+					Struct data = Caster.toStruct(rhextension.get(k, null), null);
+					if (data == null) continue;
+					String id = Caster.toString(data.get(KeyConstants._id, null), null);
+					String version = Caster.toString(data.get(KeyConstants._version, null), null);
+					String name = Caster.toString(data.get(KeyConstants._name, null), null);
+					RHExtension.storeMetaData(config, id, version, data);
+					Struct sct = new StructImpl(Struct.TYPE_LINKED);
+					sct.setEL(KeyConstants._id, id);
+					sct.setEL(KeyConstants._version, version);
+					if (name != null) sct.setEL(KeyConstants._name, name);
+					// add(sct, Caster.toString(data.remove(KeyConstants._id, null), null), extensions);
+					newExtensions.appendEL(sct);
+					rhextension.remove(k, null);
+				}
+				root.setEL("extensions", newExtensions);
 			}
-			root.setEL("extensions", newExtensions);
 
 			// providers
 			Array rhprovider = ConfigWebUtil.getAsArray("rhprovider", extensions);
@@ -789,11 +809,13 @@ public abstract class ConfigFactory {
 
 		root = sort(root);
 
-		// store it as Json
-		JSONConverter json = new JSONConverter(true, CharsetUtil.UTF8, JSONDateFormat.PATTERN_CF, false);
-		String str = json.serialize(null, root, SerializationSettings.SERIALIZE_AS_ROW, true);
-
-		IOUtil.write(configFileNew, str, CharsetUtil.UTF8, false);
+		if (configFileNew != null) {
+			// store it as Json
+			JSONConverter json = new JSONConverter(true, CharsetUtil.UTF8, JSONDateFormat.PATTERN_CF, false);
+			String str = json.serialize(null, root, SerializationSettings.SERIALIZE_AS_ROW, true);
+			IOUtil.write(configFileNew, str, CharsetUtil.UTF8, false);
+		}
+		return root;
 	}
 
 	private static Struct sort(Struct root) {

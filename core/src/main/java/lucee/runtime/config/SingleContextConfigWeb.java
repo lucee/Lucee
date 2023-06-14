@@ -113,14 +113,16 @@ public class SingleContextConfigWeb extends ConfigBase implements ConfigWebPro {
 	private SCCWIdentificationWeb id;
 	private Resource rootDir;
 	private Mapping[] mappings;
+	private Resource configDirWeb;
 	// private Resource remoteClientDirectory;
 	// private SpoolerEngineImpl spoolerEngine;
 
-	public SingleContextConfigWeb(CFMLFactoryImpl factory, ConfigServerImpl cs, ServletConfig config) {
+	public SingleContextConfigWeb(CFMLFactoryImpl factory, ConfigServerImpl cs, ServletConfig config, Resource configDirWeb) {
 		factory.setConfig(cs, this);
 		this.factory = factory;
 		this.cs = cs;
 		this.config = config;
+		this.configDirWeb = configDirWeb;
 
 		ResourceProvider frp = ResourcesImpl.getFileResourceProvider();
 		this.rootDir = frp.getResource(ReqRspUtil.getRootPath(config.getServletContext()));
@@ -407,6 +409,10 @@ public class SingleContextConfigWeb extends ConfigBase implements ConfigWebPro {
 	@Override
 	public Resource getConfigDir() {
 		return cs.getConfigDir();
+	}
+
+	public Resource getConfigDirWeb() {
+		return configDirWeb;
 	}
 
 	@Override

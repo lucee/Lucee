@@ -65,6 +65,15 @@ public final class XMLConfigReader extends DefaultHandler implements LexicalHand
 		}
 	}
 
+	public XMLConfigReader(InputSource input, boolean trimBody, ReadRule readRule, NameRule nameRule) throws SAXException, IOException {
+		super();
+		current = root;
+		this.trimBody = trimBody;
+		this.readRule = readRule;
+		this.nameRule = nameRule;
+		init(input);
+	}
+
 	private void init(InputSource is) throws SAXException, IOException {
 		xmlReader = XMLUtil.createXMLReader();
 		xmlReader.setContentHandler(this);
