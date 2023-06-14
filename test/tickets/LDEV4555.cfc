@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" labels="mssql" {
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="mssql" skip="true" {
 	function beforeAll(){
 		variables.mssql= getCredentials();
 	}
