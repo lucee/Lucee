@@ -25,7 +25,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mssql" skip="true"
 						var result = query.execute().getResult().recordCount();
 					}
 					catch(any e) {
-						var result = e.message;
+						var result = e.stacktrace;
 					}
 				 	expect(result).toBe(1);
 			});
