@@ -26,7 +26,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 					actual = 5 % 0;
 				} ).toThrow(
 					'java.lang.ArithmeticException',
-					'Division by zero.'
+					'Division by zero'
 				);
 
 			});
@@ -42,7 +42,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 					actual = 5 / 0;
 				} ).toThrow(
 					'java.lang.ArithmeticException',
-					'Division by zero.'
+					'Division by zero'
 				);
 
 			});
