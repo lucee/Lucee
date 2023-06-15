@@ -6388,6 +6388,6 @@ public final class ConfigAdmin {
 	public void updateConfig(Struct data, boolean flushExistingData) throws SecurityException {
 		checkWriteAccess();
 		if (flushExistingData) root.clear();
-		StructUtil.merge(root, data);
+		StructUtil.merge(true, root, data);
 	}
 }
