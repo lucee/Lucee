@@ -85,8 +85,7 @@ public class LitStringImpl extends ExpressionBase implements LitString, ExprStri
 		// str(0,10);
 		// print.ds(str);
 		int externalizeStringGTE = ((ConfigPro) bc.getConfig()).getExternalizeStringGTE();
-
-		if (externalizeStringGTE > -1 && str.length() > externalizeStringGTE && StringUtil.indexOfIgnoreCase(bc.getMethod().getName(), "call") != -1) {
+		if (externalizeStringGTE > 0 && str.length() > externalizeStringGTE && StringUtil.indexOfIgnoreCase(bc.getMethod().getName(), "call") != -1) {
 			try {
 				GeneratorAdapter ga = bc.getAdapter();
 				Page page = bc.getPage();
