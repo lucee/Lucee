@@ -7,6 +7,8 @@ import lucee.runtime.Mapping;
 import lucee.runtime.MappingImpl;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.Config;
+import lucee.runtime.config.ConfigServer;
+import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.FunctionException;
@@ -25,6 +27,13 @@ public final class InspectTemplates extends BIF implements Function {
 	}
 
 	public static void reset(PageContext pc, Config c) {
+		if (c instanceof ConfigServer) {
+			for (ConfigWeb cw: ((ConfigServer) c).getConfigWebs()) {
+				reset(pc, cw);
+			}
+			return;
+		}
+
 		ConfigWebPro config;
 		pc = ThreadLocalPageContext.get(pc);
 		if (c == null) config = (ConfigWebPro) ThreadLocalPageContext.getConfig(pc);
