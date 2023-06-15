@@ -46,14 +46,15 @@ Error Output --->
 		submitted = true;
 		url='restart.cfm?adminType=#request.admintype#';
 		//createWaitBlockUI("restart in progress ...");
-		$('##updateInfoDesc').html('<img src="../res/img/spinner16.gif.cfm">');
-		disableBlockUI = true;
+		//$('##updateInfoDesc').html('<img src="../res/img/spinner16.gif.cfm">');
+		//disableBlockUI = true;
 
 		$.ajax(url )
 			.done(function( data, textStatus, xhr ) {
 				var response = $.trim(data);
 				if (response == ""){
-					setTimeout(function(){
+					
+						setTimeout(function(){
 						// load the admin page to trigger a deploy, so css/js loads correctly
 						$.get("?", function(response) {
 							window.location=('?action=overview');
