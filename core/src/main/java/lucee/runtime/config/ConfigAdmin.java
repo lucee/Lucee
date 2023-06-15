@@ -160,10 +160,32 @@ import lucee.transformer.library.tag.TagLibException;
 public final class ConfigAdmin {
 
 	private static final BundleInfo[] EMPTY = new BundleInfo[0];
+	private static final Set<Key> EXCLUDE_LIST;
 	private ConfigPro config;
 	private final Struct root;
 	private Password password;
 	private boolean optionalPW;
+
+	static {
+		// exclude list
+		EXCLUDE_LIST = new HashSet<Key>();
+		// TODO remove the one not needed
+		EXCLUDE_LIST.add(KeyImpl.init("adminSalt"));
+		EXCLUDE_LIST.add(KeyImpl.init("salt"));
+		EXCLUDE_LIST.add(KeyImpl.init("hspw"));
+		EXCLUDE_LIST.add(KeyImpl.init("adminhspw"));
+		EXCLUDE_LIST.add(KeyImpl.init("pw"));
+		EXCLUDE_LIST.add(KeyImpl.init("password"));
+		EXCLUDE_LIST.add(KeyImpl.init("adminpassword"));
+
+		EXCLUDE_LIST.add(KeyImpl.init("default-adminSalt"));
+		EXCLUDE_LIST.add(KeyImpl.init("default-salt"));
+		EXCLUDE_LIST.add(KeyImpl.init("default-hspw"));
+		EXCLUDE_LIST.add(KeyImpl.init("default-adminhspw"));
+		EXCLUDE_LIST.add(KeyImpl.init("default-pw"));
+		EXCLUDE_LIST.add(KeyImpl.init("default-password"));
+		EXCLUDE_LIST.add(KeyImpl.init("default-adminpassword"));
+	}
 
 	/**
 	 * 
@@ -3876,7 +3898,8 @@ public final class ConfigAdmin {
 				ConfigWeb[] webs = ((ConfigServer) config).getConfigWebs();
 				for (ConfigWeb cw: webs) {
 					try {
-						merge(root, ConfigWebFactory.loadDocument(cw.getConfigFile()));
+
+						merge(root, ConfigWebFactory.loadDocument(cw.getConfigFile()), EXCLUDE_LIST);
 					}
 					catch (IOException e) {
 						throw Caster.toPageException(e);
@@ -3903,15 +3926,18 @@ public final class ConfigAdmin {
 		root.setEL(KeyConstants._mode, mode);
 	}
 
-	private void merge(Collection server, Collection web) {
+	private void merge(Collection server, Collection web, Set<Key> exludeList) {
 		Key[] keys = web.keys();
 		Object exServer, exWeb;
 		for (Key key: keys) {
+			if (exludeList != null && exludeList.contains(key)) {
+				continue;
+			}
 			exServer = server.get(key, null);
 
 			if (exServer instanceof Collection) {
 				exWeb = web.get(key, null);
-				if (exWeb instanceof Collection) merge((Collection) exServer, (Collection) exWeb);
+				if (exWeb instanceof Collection) merge((Collection) exServer, (Collection) exWeb, null);
 			}
 			else {
 				if (server instanceof Array) ((Array) server).appendEL(web.get(key, null)); // TODO can create a duplicate
