@@ -32,7 +32,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mssql" {
 			it( title = "checking query()", body = function( currentSpec ){
 				if ( structCount(variables.mssql) eq 0 )
 					return;
-
+				throw serialize(variables.mssql)&":"&serialize(mssql);
 				query = new Query(datasource=mssql);
 				sql = "SELECT 1";
 				query.setSQL(sql);
