@@ -47,6 +47,8 @@ import lucee.runtime.type.util.MemberUtil;
  */
 public final class DateTimeImpl extends DateTime implements SimpleValue, Objects {
 
+	private static final long serialVersionUID = 1287979666244112798L;
+
 	public DateTimeImpl(PageContext pc) {
 		this(pc, System.currentTimeMillis(), true);
 	}
