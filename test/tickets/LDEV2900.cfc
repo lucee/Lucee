@@ -124,9 +124,16 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="cookie" {
 				local.sessionCookie = _InternalRequest(
 					template : "#uri#/session-cookie/index.cfm"
 				).filecontent.trim();
-				expect( sessionCookie ).toBe( '{"SAMESITE":"strict","HTTPONLY":"true","DOMAIN":"www.edu.com","PATH":"\\test","TIMEOUT":1.0,"SECURE":"true"}');
-			});
-		
+				result = deserializeJSON(sessionCookie);
+
+				expect( result.SAMESITE ).toBe("strict");
+				expect( result.HTTPONLY ).toBeTrue();
+				expect( result.DOMAIN ).toBe("www.edu.com");
+				expect( result.PATH ).toBe("\test");
+				expect( result.TIMEOUT ).toBe("1.0");
+				expect( result.SECURE ).toBeTrue();
+
+ 			});
 		
 		});
 
