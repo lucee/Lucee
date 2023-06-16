@@ -136,7 +136,6 @@ import lucee.runtime.security.SecurityManagerImpl;
 import lucee.runtime.security.SerialNumber;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
-import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Query;
@@ -3925,22 +3924,40 @@ public final class ConfigAdmin {
 		root.setEL(KeyConstants._mode, mode);
 	}
 
-	private void merge(Collection server, Collection web, Set<Key> exludeList) {
-		Key[] keys = web.keys();
+	private void merge(Struct server, Struct web, Set<Key> exludeList) {
+		Iterator<Entry<Key, Object>> it = web.entryIterator();
 		Object exServer, exWeb;
-		for (Key key: keys) {
+		Entry<Key, Object> e;
+		Key key;
+		Iterator<Object> itt;
+		Array trg;
+		while (it.hasNext()) {
+			e = it.next();
+			key = e.getKey();
 			if (exludeList != null && exludeList.contains(key)) {
 				continue;
 			}
 			exServer = server.get(key, null);
+			exWeb = e.getValue();
 
-			if (exServer instanceof Collection) {
-				exWeb = web.get(key, null);
-				if (exWeb instanceof Collection) merge((Collection) exServer, (Collection) exWeb, null);
+			if (exServer instanceof Struct) {
+				if (exWeb instanceof Struct) merge((Struct) exServer, (Struct) exWeb, null);
+				else LogUtil.log(Log.LEVEL_ERROR, "merging", "cannot merge the key [" + key + "] into the server.json, because it is not a struct");
 			}
+			else if (exServer instanceof Array) {
+				if (exWeb instanceof Array) {
+					itt = ((Array) exWeb).valueIterator();
+					trg = (Array) exServer;
+					while (itt.hasNext()) {
+						trg.appendEL(itt.next()); // TODO some array have indexes, like for example "resourceprovider" has "Scheme", they need to be
+													// observed when merging
+					}
+				}
+				else LogUtil.log(Log.LEVEL_ERROR, "merging", "cannot merge the key [" + key + "] into the server.json, because it is not an array");
+			}
+			// can be null
 			else {
-				if (server instanceof Array) ((Array) server).appendEL(web.get(key, null)); // TODO can create a duplicate
-				else server.setEL(key, web.get(key, null));
+				server.setEL(key, exWeb);
 			}
 		}
 	}
