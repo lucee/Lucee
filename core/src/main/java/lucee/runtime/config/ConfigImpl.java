@@ -480,7 +480,8 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		return configFileLastModified;
 	}
 
-	protected void setLastModified() {
+	@Override
+	public void setLastModified() {
 		this.configFileLastModified = configFile.lastModified();
 	}
 
@@ -3279,17 +3280,6 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	public void clearComponentMetadata() {
 		if (componentMetaData == null) return;
 		componentMetaData.clear();
-	}
-
-	public static class ComponentMetaData {
-
-		public final Struct meta;
-		public final long lastMod;
-
-		public ComponentMetaData(Struct meta, long lastMod) {
-			this.meta = meta;
-			this.lastMod = lastMod;
-		}
 	}
 
 	private DebugEntry[] debugEntries;

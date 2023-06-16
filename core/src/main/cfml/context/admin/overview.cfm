@@ -95,6 +95,57 @@ Error Output --->
 
 <cfhtmlbody>
     <script src="../res/js/echarts-all.js.cfm" type="text/javascript"></script>
+
+	<cfoutput><script type="text/javascript">
+		var submitted = false;
+		function adminmode(field) {
+			field.disabled = true;
+			submitted = true;
+			url='adminmode.cfm?adminType=#request.admintype#';
+			
+			// adminMode
+			var f=field.form["adminMode"]
+			url+="&adminMode="+$(f).val();
+
+			// switch
+			var f=field.form["switch"]
+			if(f) {
+				url+="&switch="+$(f).val();
+			}
+			// keep
+			var f=field.form["keep"]
+			if(f) {
+				url+="&keep="+$(f).val();
+			}			
+			//disableBlockUI = true;
+			//$('##updateInfoDesc').html('<img src="../res/img/spinner16.gif.cfm">');
+			
+			$.ajax(url )
+				.done(function( data, textStatus, xhr ) {
+					var response = $.trim(data);
+					if (response == ""){
+						setTimeout(function(){
+							// load the admin page to trigger a deploy, so css/js loads correctly
+							$.get("?", function(response) {
+								window.location=('?action=overview');
+							});
+						}, 1000); // give Lucee enough time to startup, otherwise, the admin login may show without css/js
+					} else {
+						// $('##updateInfoDesc').addClass("error").attr("style", null).html(response);
+						
+					}
+				})
+				.fail(function( xhr, textStatus, errorThrown ) {
+					// $('##updateInfoDesc').addClass("error").attr("style", null).html( "<b>" + xhr.status + "</b><br>"  + xhr.responseText);
+				})
+				.always(function() {
+					field.disabled = false;
+				});
+			
+		}
+	</script></cfoutput>
+
+
     <script type="text/javascript">
     	var chartTimer;
     	labels={'heap':"Heap",'nonheap':"Non-Heap",'cpuSystem':"Whole System",'cpuProcess':"Lucee Process"};
@@ -309,7 +360,7 @@ Error Output --->
 
 	<cfif request.adminType EQ "server">
 		<cfset names=StructKeyArray(info.servlets)>
-		<cfif !ArrayContainsNoCase(names,"Rest",true)>
+		<cfif len(names) and !ArrayContainsNoCase(names,"Rest",true)>
 			<div class="warning nofocus">
 				#stText.Overview.warning.warningMsg# 
 			</div>
@@ -375,10 +426,13 @@ Error Output --->
 
 
 <cfif request.adminType=="server">
-	<cfformClassic onerror="customError" action="#request.self#?action=overview" method="post">
+	<form method="post">
 		<input type="hidden" name="adminMode" value="#request.singlemode?"multi":"single"#">
 		<h2>#stText.Overview[request.singlemode?"modeSingle":"modeMulti"]#</h2>
 		<div class="itemintro">#stText.Overview[request.singlemode?"modeSingleDesc":"modeMultiDesc"]#</div>
+		<!--- <div id="updateInfoDesc" style="text-align: center;">
+			<p>#stText.services.update.restartDesc#</p>
+		</div> --->
 		<table class="maintbl">
 		<tbody>
 			<tr>
@@ -415,12 +469,12 @@ Error Output --->
 		<tfoot>
 			<tr>
 				<td colspan="2">
-					<input type="submit" class="b button submit" name="mainAction1" value="#stText.Buttons.switch#">
+					<input type="button" class="b button submit" name="mainAction" value="#stText.Buttons.switch#" onclick="adminmode(this)">
 				</td>
 			</tr>
 		</tfoot>
 		</table>
-</cfformClassic>
+	</form>
 
 </cfif>
 

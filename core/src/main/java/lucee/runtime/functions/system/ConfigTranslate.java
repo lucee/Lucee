@@ -13,7 +13,7 @@ import lucee.runtime.PageContext;
 import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.config.ConfigWebFactory;
-import lucee.runtime.config.SingleContextConfigWeb;
+import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.converter.ConverterException;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
@@ -33,7 +33,7 @@ public class ConfigTranslate extends BIF {
 			InputSource src = null;
 			if (!StringUtil.isEmpty(source, true)) {
 				if ("web".equalsIgnoreCase(source.trim())) {
-					Resource dir = config instanceof SingleContextConfigWeb ? ((SingleContextConfigWeb) config).getConfigDirWeb() : config.getConfigDir();
+					Resource dir = ((ConfigWebPro) config).getWebConfigDir();
 					Resource res = dir.getRealResource("lucee-web.xml.cfm");
 					if (!res.isFile()) res = pc.getConfig().getConfigDir().getRealResource("lucee-web.xml");
 					if (!res.isFile()) throw new FunctionException(pc, "ConfigTranslate", "first", "source",
@@ -53,7 +53,7 @@ public class ConfigTranslate extends BIF {
 			Resource trg = null;
 			if (!StringUtil.isEmpty(target, true)) {
 				if ("web".equalsIgnoreCase(target.trim())) {
-					Resource dir = config instanceof SingleContextConfigWeb ? ((SingleContextConfigWeb) config).getConfigDirWeb() : config.getConfigDir();
+					Resource dir = ((ConfigWebPro) config).getWebConfigDir();
 					trg = dir.getRealResource(".CFConfig.json");
 				}
 				else if ("server".equalsIgnoreCase(target.trim())) {

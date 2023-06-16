@@ -935,7 +935,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 			RefBoolean isCustomSetting = new RefBooleanImpl();
 			Resource configDir = getConfigDirectory(sg, configServer, countExistingContextes, isCustomSetting);
 			if (multi) {
-				config = ConfigWebFactory.newInstanceMulti(this, factory, configServer, configDir, isCustomSetting.toBooleanValue(), sg);
+				config = ConfigWebFactory.newInstanceMulti(this, factory, configServer, configDir, sg);
 			}
 			else {
 				config = ConfigWebFactory.newInstanceSingle(this, factory, configServer, configDir, sg);

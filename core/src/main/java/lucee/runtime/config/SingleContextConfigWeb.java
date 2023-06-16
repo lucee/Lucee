@@ -24,6 +24,7 @@ import org.osgi.framework.Version;
 
 import lucee.commons.collection.MapFactory;
 import lucee.commons.io.SystemUtil;
+import lucee.commons.io.cache.Cache;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogEngine;
 import lucee.commons.io.log.LoggerAndSourceData;
@@ -57,6 +58,7 @@ import lucee.runtime.db.DataSource;
 import lucee.runtime.db.JDBCDriver;
 import lucee.runtime.debug.DebuggerPool;
 import lucee.runtime.dump.DumpWriter;
+import lucee.runtime.dump.DumpWriterEntry;
 import lucee.runtime.engine.ExecutionLogFactory;
 import lucee.runtime.engine.ThreadQueue;
 import lucee.runtime.exp.DatabaseException;
@@ -103,7 +105,7 @@ import lucee.runtime.writer.CFMLWriter;
 import lucee.transformer.library.function.FunctionLib;
 import lucee.transformer.library.tag.TagLib;
 
-public class SingleContextConfigWeb extends ConfigBase implements ConfigWebPro {
+class SingleContextConfigWeb extends ConfigBase implements ConfigWebPro {
 
 	private ConfigServerImpl cs;
 	protected Password password;
@@ -118,7 +120,6 @@ public class SingleContextConfigWeb extends ConfigBase implements ConfigWebPro {
 	// private SpoolerEngineImpl spoolerEngine;
 
 	public SingleContextConfigWeb(CFMLFactoryImpl factory, ConfigServerImpl cs, ServletConfig config, Resource configDirWeb) {
-		factory.setConfig(cs, this);
 		this.factory = factory;
 		this.cs = cs;
 		this.config = config;
@@ -411,10 +412,6 @@ public class SingleContextConfigWeb extends ConfigBase implements ConfigWebPro {
 		return cs.getConfigDir();
 	}
 
-	public Resource getConfigDirWeb() {
-		return configDirWeb;
-	}
-
 	@Override
 	public Resource getConfigFile() {
 		return cs.getConfigFile();
@@ -608,6 +605,10 @@ public class SingleContextConfigWeb extends ConfigBase implements ConfigWebPro {
 	@Override
 	public Charset getMailDefaultCharset() {
 		return cs.getMailDefaultCharset();
+	}
+
+	public CharSet getMailDefaultCharSet() {
+		return cs.getMailDefaultCharSet();
 	}
 
 	@Override
@@ -1713,7 +1714,7 @@ public class SingleContextConfigWeb extends ConfigBase implements ConfigWebPro {
 
 	@Override
 	public short getPasswordSource() {
-		return ConfigWebImpl.PASSWORD_ORIGIN_SERVER;
+		return MultiContextConfigWeb.PASSWORD_ORIGIN_SERVER;
 	}
 
 	@Override
@@ -1850,4 +1851,137 @@ public class SingleContextConfigWeb extends ConfigBase implements ConfigWebPro {
 	public void resetServerFunctionMappings() {
 
 	}
+
+	@Override
+	public boolean isSingle() {
+		return true;
+	}
+
+	@Override
+	public Resource getWebConfigDir() {
+		return this.configDirWeb;
+	}
+
+	@Override
+	public ServletConfig getServletConfig() {
+		return config;
+	}
+
+	@Override
+	public void setLastModified() {
+		cs.setLastModified();
+	}
+
+	public Object[] getConsoleLayouts() throws PageException {
+		return cs.getConsoleLayouts();
+	}
+
+	public String getServerSalt() {
+		return cs.getSalt();
+	}
+
+	public int getDebugOptions() {
+		return cs.getDebugOptions();
+	}
+
+	public Map getGatewayEntries() {
+		return cs.getGatewayEntries();
+	}
+
+	public Mapping getScriptMapping() {
+		return cs.getScriptMapping();
+	}
+
+	public void resetRPCClassLoader() {
+		cs.resetRPCClassLoader();
+	}
+
+	public PageSource[] getPageSources(PageContext arg0, Mapping[] arg1, String arg2, boolean arg3, boolean arg4, boolean arg5, boolean arg6, boolean arg7) {
+		return cs.getPageSources(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7);
+	}
+
+	public Object[] getResourceLayouts() throws PageException {
+		return cs.getResourceLayouts();
+	}
+
+	public void clearComponentMetadata() {
+		cs.clearComponentMetadata();
+	}
+
+	public void flushComponentPathCache() {
+		cs.flushApplicationPathCache();
+	}
+
+	public String createSecurityToken() {
+		return cs.createSecurityToken();
+	}
+
+	public Resource getServerConfigDir() {
+		return cs.getConfigDir();
+	}
+
+	public String getCacheMD5() {
+		return cs.getCacheMD5();
+	}
+
+	public ComponentMetaData getComponentMetadata(String arg0) {
+		return cs.getComponentMetadata(arg0);
+	}
+
+	public Cache createRAMCache(Struct arg0) throws IOException {
+		return cs.createRAMCache(arg0);
+	}
+
+	public void setAllowURLRequestTimeout(boolean arg0) {
+		cs.setAllowURLRequestTimeout(arg0);
+	}
+
+	public Mapping getDefaultServerFunctionMapping() {
+		return cs.getDefaultFunctionMapping();
+	}
+
+	public void flushApplicationPathCache() {
+		cs.flushApplicationPathCache();
+	}
+
+	public void createTag(TagLib arg0, String arg1, String arg2) {
+		cs.createTag(arg0, arg1, arg2);
+	}
+
+	public CharSet getTemplateCharSet() {
+		return cs.getTemplateCharSet();
+	}
+
+	public void flushCTPathCache() {
+		cs.flushCTPathCache();
+	}
+
+	public void putComponentMetadata(String arg0, ComponentMetaData arg1) {
+		cs.putComponentMetadata(arg0, arg1);
+	}
+
+	public String[] getLogNames() {
+		return cs.getLogNames();
+	}
+
+	public long getSessionScopeDirSize() {
+		return cs.getSessionScopeDirSize();
+	}
+
+	public int getMode() {
+		return cs.getMode();
+	}
+
+	public ClassDefinition getORMEngineClass() {
+		return cs.getORMEngineClass();
+	}
+
+	public DumpWriterEntry[] getDumpWritersEntries() {
+		return cs.getDumpWritersEntries();
+	}
+
+	public Password getPassword() {
+		return cs.getPassword();
+	}
+
 }

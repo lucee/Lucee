@@ -219,8 +219,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 	 * @throws ConverterException
 	 */
 
-	public static ConfigWebPro newInstanceMulti(CFMLEngine engine, CFMLFactoryImpl factory, ConfigServerImpl configServer, Resource configDir, boolean isConfigDirACustomSetting,
-			ServletConfig servletConfig)
+	public static ConfigWebPro newInstanceMulti(CFMLEngine engine, CFMLFactoryImpl factory, ConfigServerImpl configServer, Resource configDir, ServletConfig servletConfig)
 			throws SAXException, ClassException, PageException, IOException, TagLibException, FunctionLibException, NoSuchAlgorithmException, BundleException, ConverterException {
 
 		// boolean multi = configServer.getAdminMode() == ConfigImpl.ADMINMODE_MULTI;
@@ -241,8 +240,8 @@ public final class ConfigWebFactory extends ConfigFactory {
 		String label = createLabel(configServer, servletConfig);
 		LogUtil.logGlobal(configServer, Log.LEVEL_INFO, ConfigWebFactory.class.getName(),
 				"===================================================================\n" + "WEB CONTEXT (" + label + ")\n"
-						+ "-------------------------------------------------------------------\n" + "- config:" + configDir + (isConfigDirACustomSetting ? " (custom setting)" : "")
-						+ "\n" + "- webroot:" + ReqRspUtil.getRootPath(servletConfig.getServletContext()) + "\n" + "- label:" + createLabel(configServer, servletConfig) + "\n"
+						+ "-------------------------------------------------------------------\n" + "- config:" + configDir + "\n" + "- webroot:"
+						+ ReqRspUtil.getRootPath(servletConfig.getServletContext()) + "\n" + "- label:" + createLabel(configServer, servletConfig) + "\n"
 						+ "===================================================================\n"
 
 		);
@@ -263,7 +262,9 @@ public final class ConfigWebFactory extends ConfigFactory {
 					"has " + (hasConfigOld ? "" : "no ") + "xml web context config for " + label + " at " + "[" + configFileOld + "]");
 
 		}
-		configWeb = new ConfigWebImpl(factory, configServer, servletConfig, configDir, configFileNew);
+		MultiContextConfigWeb multiweb = new MultiContextConfigWeb(factory, configServer, servletConfig, configDir, configFileNew);
+		configWeb = new ConfigWebImpl(multiweb);
+		factory.setConfig(configServer, configWeb);
 
 		// translate to new
 		Struct root = null;
@@ -303,7 +304,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 
 		createContextFiles(configDir, servletConfig, doNew);
 
-		load(configServer, (ConfigWebImpl) configWeb, root, false, doNew, false);
+		load(configServer, multiweb, (ConfigWebImpl) configWeb, root, false, doNew, false);
 		createContextFilesPost(configDir, configWeb, servletConfig, false, doNew);
 
 		// call web.cfc for this context
@@ -328,7 +329,9 @@ public final class ConfigWebFactory extends ConfigFactory {
 		);
 
 		boolean doNew = configServer.getUpdateInfo().updateType != NEW_NONE;
-		ConfigWebPro configWeb = new SingleContextConfigWeb(factory, configServer, servletConfig, configDirWeb);
+		ConfigWebPro configWeb = new ConfigWebImpl(new SingleContextConfigWeb(factory, configServer, servletConfig, configDirWeb));
+		factory.setConfig(configServer, configWeb);
+
 		createContextFiles(configDir, servletConfig, doNew);
 		createContextFilesPost(configDir, configWeb, servletConfig, false, doNew);
 		return configWeb;
@@ -373,28 +376,76 @@ public final class ConfigWebFactory extends ConfigFactory {
 	 * @throws BundleException
 	 * @throws NoSuchAlgorithmException
 	 */ // MUST
-	public static void reloadInstance(CFMLEngine engine, ConfigServerImpl cs, ConfigWebImpl cw, boolean force)
+	public static void reloadInstance(CFMLEngine engine, ConfigServerImpl cs, ConfigWebImpl cwi, boolean force)
 			throws ClassException, PageException, IOException, TagLibException, FunctionLibException, BundleException {
-		Resource configFile = cw.getConfigFile();
-		Resource configDir = cw.getConfigDir();
+
+		boolean isSingle = cs.getAdminMode() == ConfigImpl.ADMINMODE_SINGLE;
+		boolean isWebSingle = cwi.isSingle();
+		if (isWebSingle) {
+			// changed from single to mult1
+			if (isSingle != isWebSingle) {
+				// Resource configDir, boolean isConfigDirACustomSetting,
+				// ServletConfig servletConfig
+				try {
+					cwi.setInstance(newInstanceMulti(engine, (CFMLFactoryImpl) cwi.getFactory(), cs, cwi.getWebConfigDir(), cwi.getServletConfig()));
+					return;
+				}
+				catch (NoSuchAlgorithmException e) {
+					throw Caster.toPageException(e);
+				}
+				catch (SAXException e) {
+					throw Caster.toPageException(e);
+				}
+				catch (ConverterException e) {
+					throw Caster.toPageException(e);
+				}
+			}
+
+			((SingleContextConfigWeb) cwi.getInstance()).reload();
+			return;
+		}
+
+		// changed from multi to single
+		if (isSingle != isWebSingle) {
+			try {
+				cwi.setInstance(newInstanceSingle(engine, (CFMLFactoryImpl) cwi.getFactory(), cs, cwi.getWebConfigDir(), cwi.getServletConfig()));
+				return;
+			}
+			catch (NoSuchAlgorithmException e) {
+				throw Caster.toPageException(e);
+			}
+			catch (SAXException e) {
+				throw Caster.toPageException(e);
+			}
+			catch (ConverterException e) {
+				throw Caster.toPageException(e);
+			}
+
+		}
+
+		MultiContextConfigWeb mcw = (MultiContextConfigWeb) cwi.getInstance();
+
+		Resource configFile = cwi.getConfigFile();
+		Resource configDir = cwi.getConfigDir();
 
 		int iDoNew = getNew(engine, configDir, false, UpdateInfo.NEW_NONE).updateType;
 		boolean doNew = iDoNew != NEW_NONE;
 
 		if (configFile == null) return;
 
-		if (second(cw.getLoadTime()) > second(configFile.lastModified()) && !force) return;
+		if (second(cwi.getLoadTime()) > second(configFile.lastModified()) && !force) return;
 
 		Struct root = loadDocument(configFile);
 
 		createContextFiles(configDir, null, doNew);
-		cw.reset();
-		load(cs, cw, root, true, doNew, false);
-		createContextFilesPost(configDir, cw, null, false, doNew);
+		cwi.reset();
+		// TODO handle differtly
+		load(cs, mcw, cwi, root, true, doNew, false);
+		createContextFilesPost(configDir, cwi, null, false, doNew);
 
-		((CFMLEngineImpl) ConfigWebUtil.getEngine(cw)).onStart(cw, true);
+		((CFMLEngineImpl) ConfigWebUtil.getEngine(cwi)).onStart(cwi, true);
 
-		((GatewayEngineImpl) cw.getGatewayEngine()).autoStart();
+		((GatewayEngineImpl) cwi.getGatewayEngine()).autoStart();
 	}
 
 	private static long second(long ms) {
@@ -412,7 +463,8 @@ public final class ConfigWebFactory extends ConfigFactory {
 	 * @throws PageException
 	 * @throws BundleException
 	 */
-	synchronized static void load(ConfigServerImpl cs, ConfigImpl config, Struct root, boolean isReload, boolean doNew, boolean essentialOnly) throws IOException {
+	synchronized static void load(ConfigServerImpl cs, ConfigImpl config, ConfigWebImpl cwi, Struct root, boolean isReload, boolean doNew, boolean essentialOnly)
+			throws IOException {
 		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, ConfigWebFactory.class.getName(), "start reading config");
 		ThreadLocalConfig.register(config);
 		boolean reload = false;
@@ -477,7 +529,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 		_loadTempDirectory(cs, config, root, isReload, log);
 		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_DEBUG, ConfigWebFactory.class.getName(), "loaded temp dir");
 
-		_loadId(cs, config, root, log);
+		_loadId(cs, config, cwi, root, log);
 		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_DEBUG, ConfigWebFactory.class.getName(), "loaded id");
 
 		_loadVersion(config, root, log);
@@ -632,8 +684,8 @@ public final class ConfigWebFactory extends ConfigFactory {
 
 		config.setLoadTime(System.currentTimeMillis());
 
-		if (config instanceof ConfigWebImpl) {
-			TagUtil.addTagMetaData((ConfigWebImpl) config, log);
+		if (cwi != null) {
+			TagUtil.addTagMetaData(cwi, log);
 			if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_DEBUG, ConfigWebFactory.class.getName(), "added tag meta data");
 		}
 	}
@@ -1054,12 +1106,11 @@ public final class ConfigWebFactory extends ConfigFactory {
 		}
 	}
 
-	private static void _loadId(ConfigServerImpl configServer, ConfigImpl config, Struct root, Log log) {
+	private static void _loadId(ConfigServerImpl configServer, ConfigImpl config, ConfigWebImpl cwi, Struct root, Log log) {
 		try {
-
-			if (root == null && configServer != null) {
+			if (root == null && config instanceof MultiContextConfigWeb) {
 				Identification id = configServer.getIdentification();
-				((ConfigWebImpl) config).setIdentification(new IdentificationWebImpl((ConfigWebImpl) config, id.getSecurityKey(), id.getApiKey()));
+				((MultiContextConfigWeb) config).setIdentification(new IdentificationWebImpl(cwi, id.getSecurityKey(), id.getApiKey()));
 				return;
 			}
 
@@ -1086,8 +1137,12 @@ public final class ConfigWebFactory extends ConfigFactory {
 			if (!StringUtil.isEmpty(str, true)) apiKey = str.trim();
 			else if (configServer != null) apiKey = configServer.getIdentification().getApiKey(); // if there is no web api key the server api key is used
 
-			if (config instanceof ConfigWebImpl) ((ConfigWebImpl) config).setIdentification(new IdentificationWebImpl((ConfigWebImpl) config, securityKey, apiKey));
-			else((ConfigServerImpl) config).setIdentification(new IdentificationServerImpl((ConfigServerImpl) config, securityKey, apiKey));
+			if (config instanceof MultiContextConfigWeb) {
+				((MultiContextConfigWeb) config).setIdentification(new IdentificationWebImpl(cwi, securityKey, apiKey));
+			}
+			else {
+				((ConfigServerImpl) config).setIdentification(new IdentificationServerImpl((ConfigServerImpl) config, securityKey, apiKey));
+			}
 			config.getIdentification().getId();
 		}
 		catch (Throwable t) {
@@ -1171,9 +1226,9 @@ public final class ConfigWebFactory extends ConfigFactory {
 			else if (configServer != null) {
 				securityManager = configServer.getSecurityManager(config.getIdentification().getId());
 			}
-			if (config instanceof ConfigWebImpl) {
+			if (config instanceof MultiContextConfigWeb) {
 				if (securityManager == null) securityManager = SecurityManagerImpl.getOpenSecurityManager();
-				((ConfigWebImpl) config).setSecurityManager(securityManager);
+				((MultiContextConfigWeb) config).setSecurityManager(securityManager);
 			}
 
 			Struct security = ConfigWebUtil.getAsStruct("security", root);
@@ -1524,8 +1579,8 @@ public final class ConfigWebFactory extends ConfigFactory {
 		StringBuilder sb = new StringBuilder();
 
 		// version
-		if (config instanceof ConfigWebImpl) {
-			Info info = ((ConfigWebImpl) config).getFactory().getEngine().getInfo();
+		if (config instanceof ConfigWeb) {
+			Info info = ((ConfigWeb) config).getFactory().getEngine().getInfo();
 			sb.append(info.getVersion().toString()).append(';');
 		}
 
@@ -1580,10 +1635,10 @@ public final class ConfigWebFactory extends ConfigFactory {
 			sb.append(lflds[i].getHash());
 		}
 
-		if (config instanceof ConfigWeb) {
+		if (config instanceof MultiContextConfigWeb) {
 			boolean hasChanged = false;
 
-			sb.append(";").append(((ConfigWebImpl) config).getConfigServerImpl().getLibHash());
+			sb.append(";").append(((MultiContextConfigWeb) config).getConfigServerImpl().getLibHash());
 			try {
 				String hashValue = HashUtil.create64BitHashAsString(sb.toString());
 				// check and compare lib version file
@@ -1614,8 +1669,8 @@ public final class ConfigWebFactory extends ConfigFactory {
 					flushPageSourcePool(config.getFunctionMappings());
 					flushPageSourcePool(config.getTagMappings());
 
-					if (config instanceof ConfigWeb) {
-						flushPageSourcePool(((ConfigWebImpl) config).getApplicationMappings());
+					if (config instanceof MultiContextConfigWeb) {
+						flushPageSourcePool(((MultiContextConfigWeb) config).getApplicationMappings());
 					}
 
 				}
@@ -1806,7 +1861,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 			}
 
 			if (!finished) {
-				if ((config instanceof ConfigWebImpl) && ResourceUtil.isUNCPath(config.getRootDirectory().getPath())) {
+				if ((config instanceof MultiContextConfigWeb) && ResourceUtil.isUNCPath(config.getRootDirectory().getPath())) {
 
 					tmp = new MappingImpl(config, "/", config.getRootDirectory().getPath(), null, ConfigPro.INSPECT_UNDEFINED, true, true, true, true, false, false, null, -1, -1);
 				}
@@ -2939,11 +2994,12 @@ public final class ConfigWebFactory extends ConfigFactory {
 		pw = PasswordImpl.readFromStruct(root, salt, false);
 		if (pw != null) {
 			config.setPassword(pw);
-			if (config instanceof ConfigWebImpl) ((ConfigWebImpl) config).setPasswordSource(ConfigWebImpl.PASSWORD_ORIGIN_WEB);
+			if (config instanceof MultiContextConfigWeb) ((MultiContextConfigWeb) config).setPasswordSource(ConfigWebImpl.PASSWORD_ORIGIN_WEB);
 		}
 		else if (configServer != null) {
 
-			((ConfigWebImpl) config).setPasswordSource(configServer.hasCustomDefaultPassword() ? ConfigWebImpl.PASSWORD_ORIGIN_DEFAULT : ConfigWebImpl.PASSWORD_ORIGIN_SERVER);
+			((MultiContextConfigWeb) config)
+					.setPasswordSource(configServer.hasCustomDefaultPassword() ? ConfigWebImpl.PASSWORD_ORIGIN_DEFAULT : ConfigWebImpl.PASSWORD_ORIGIN_SERVER);
 			if (configServer.getDefaultPassword() != null) config.setPassword(configServer.getDefaultPassword());
 		}
 

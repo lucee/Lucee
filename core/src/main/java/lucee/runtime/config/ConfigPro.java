@@ -355,4 +355,6 @@ public interface ConfigPro extends Config {
 	public long getApplicationPathCacheTimeout();
 
 	public boolean getPreciseMath();
+
+	public void setLastModified();
 }

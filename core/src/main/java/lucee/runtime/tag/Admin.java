@@ -107,7 +107,6 @@ import lucee.runtime.config.Password;
 import lucee.runtime.config.PasswordImpl;
 import lucee.runtime.config.RemoteClient;
 import lucee.runtime.config.RemoteClientImpl;
-import lucee.runtime.config.SingleContextConfigWeb;
 import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.db.DataSource;
 import lucee.runtime.db.DataSourceImpl;
@@ -1561,8 +1560,8 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	private void doGetInfo() throws PageException {
 		Struct sct = new StructImpl();
 		pageContext.setVariable(getString("admin", action, "returnVariable"), sct);
-		if (config instanceof ConfigWebPro || configWeb instanceof SingleContextConfigWeb) {
-			ConfigWebPro cw = configWeb instanceof SingleContextConfigWeb ? configWeb : (ConfigWebPro) config;
+		if (config instanceof ConfigWebPro) {
+			ConfigWebPro cw = (ConfigWebPro) config;
 			sct.setEL(KeyConstants._id, config.getIdentification().getId());
 			sct.setEL(KeyConstants._label, cw.getLabel());
 			sct.setEL(KeyConstants._hash, cw.getHash());

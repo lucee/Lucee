@@ -52,6 +52,7 @@ import org.xml.sax.SAXException;
 
 import com.allaire.cfx.CustomTag;
 
+import lucee.aprint;
 import lucee.commons.digest.MD5;
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.FileUtil;
@@ -251,7 +252,7 @@ public final class ConfigAdmin {
 	 * @throws PageException
 	 * @throws BundleException
 	 */
-	public void removePassword(String contextPath) throws PageException, ClassException, IOException, TagLibException, FunctionLibException, BundleException {
+	public void removePassword(String contextPath) throws PageException, ClassException, IOException, TagLibException, FunctionLibException, BundleException, SAXException {
 		checkWriteAccess();
 		if (contextPath == null || contextPath.length() == 0 || !(config instanceof ConfigServerImpl)) {
 			// config.setPassword(password); do nothing!
@@ -356,8 +357,8 @@ public final class ConfigAdmin {
 			ConfigServerFactory.reloadInstance(engine, cs);
 			ConfigWeb[] webs = cs.getConfigWebs();
 			for (ConfigWeb web: webs) {
-				if (web instanceof ConfigWebImpl) ConfigWebFactory.reloadInstance(engine, (ConfigServerImpl) config, (ConfigWebImpl) web, true);
-				else if (web instanceof SingleContextConfigWeb) ((SingleContextConfigWeb) web).reload();
+				ConfigWebFactory.reloadInstance(engine, (ConfigServerImpl) config, (ConfigWebImpl) web, true);
+
 			}
 		}
 		else if (config instanceof ConfigWebImpl) {
@@ -365,16 +366,14 @@ public final class ConfigAdmin {
 			ConfigWebFactory.reloadInstance(engine, cs, (ConfigWebImpl) config, false);
 		}
 		else if (config instanceof SingleContextConfigWeb) {
+			if (true) throw new RuntimeException("important exception, please report to Lucee");
+			// TODO remove this this should never happening
+			aprint.ds();
 			SingleContextConfigWeb sccw = (SingleContextConfigWeb) config;
 
 			ConfigServerImpl cs = sccw.getConfigServerImpl();
 			ConfigServerFactory.reloadInstance(engine, cs);
 			sccw.reload();
-			/*
-			 * ConfigWeb[] webs = cs.getConfigWebs(); for (int i = 0; i < webs.length; i++) { if (webs[i]
-			 * instanceof ConfigWebImpl) ConfigWebFactory.reloadInstance(engine, (ConfigServerImpl) config,
-			 * (ConfigWebImpl) webs[i], true); }
-			 */
 		}
 	}
 
