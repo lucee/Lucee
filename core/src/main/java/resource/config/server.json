@@ -265,11 +265,6 @@
 			,"arguments":"lock-timeout:10000;case-sensitive:false;"
 		}
 		,{
-			"scheme":"s3"
-			,"class":"lucee.commons.io.res.type.s3.S3ResourceProvider"
-			,"arguments":"lock-timeout:10000;"
-		}
-		,{
 			"scheme":"ram"
 			,"class":"lucee.commons.io.res.type.cache.CacheResourceProvider"
 			,"arguments":"case-sensitive:true;lock-timeout:1000;"
