@@ -24,6 +24,7 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
+import java.sql.Types;
 
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.SerializableObject;
@@ -68,6 +69,7 @@ public class QueryColumnImpl implements QueryColumnPro, Objects {
 	protected Object[] data;
 
 	protected boolean typeChecked = false;
+	protected boolean fixedType = false;
 	protected QueryImpl query;
 	protected Collection.Key key;
 	private final Object sync = new SerializableObject();
@@ -84,6 +86,7 @@ public class QueryColumnImpl implements QueryColumnPro, Objects {
 		this.type = type;
 		this.key = key;
 		this.query = query;
+		if (type != Types.OTHER) this.fixedType = true;
 	}
 
 	/**
@@ -99,6 +102,7 @@ public class QueryColumnImpl implements QueryColumnPro, Objects {
 		this.type = type;
 		this.query = query;
 		this.key = key;
+		if (type != Types.OTHER) this.fixedType = true;
 	}
 
 	/**
@@ -112,6 +116,7 @@ public class QueryColumnImpl implements QueryColumnPro, Objects {
 		this.size = new AtomicInteger(size);
 		this.query = query;
 		this.key = key;
+		if (type != Types.OTHER) this.fixedType = true;
 	}
 
 	/**
@@ -337,7 +342,7 @@ public class QueryColumnImpl implements QueryColumnPro, Objects {
 			if (size() == 0) throw new DatabaseException("cannot set a value to an empty query, you first have to add a row", null, null, null);
 			throw new DatabaseException("invalid row number [" + row + "]", "valid row numbers goes from 1 to " + size(), null, null);
 		}
-		if (!trustType) value = reDefineType(value);
+		if (!trustType && !fixedType) value = reDefineType(value);
 		synchronized (sync) {
 			data[row - 1] = value;
 		}
@@ -363,9 +368,15 @@ public class QueryColumnImpl implements QueryColumnPro, Objects {
 	public Object setEL(int row, Object value) {
 		query.disableIndex();
 		if (row < 1 || row > size()) return value;
-		synchronized (sync) {
-			value = reDefineType(value);
-			data[row - 1] = value;
+		if (fixedType){
+			synchronized (sync) {
+				data[row - 1] = value;
+			}
+		} else {
+			synchronized (sync) {
+				value = reDefineType(value);
+				data[row - 1] = value;
+			}
 		}
 		return value;
 	}
