@@ -59,8 +59,9 @@ import lucee.runtime.orm.ORMConfiguration;
 import lucee.runtime.tag.listener.TagListener;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
-import lucee.runtime.type.Collection;
 import lucee.runtime.listener.SessionCookieData;
+import lucee.runtime.listener.SessionCookieDataImpl;
+import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
@@ -104,13 +105,7 @@ public class GetApplicationSettings extends BIF {
 			sc.setEL("timeout", sessionCookieData.getTimeout());
 			sc.setEL("secure", sessionCookieData.isSecure());
 			sc.setEL("httpOnly", sessionCookieData.isHttpOnly());
-
-			String sameSite = "";
-			if(sessionCookieData.getSamesite() == 3) sameSite = "lax";
-			if(sessionCookieData.getSamesite() == 2) sameSite = "strict";
-			if(sessionCookieData.getSamesite() == 1) sameSite = "none";
-			if(sessionCookieData.getSamesite() == 0) sameSite = "";
-			sc.setEL("sameSite", sameSite);
+			sc.setEL("sameSite", SessionCookieDataImpl.toSamesite(sessionCookieData.getSamesite()));
 			sc.setEL("disableUpdate", sessionCookieData.isDisableUpdate());
 			sct.setEL("sessionCookie", sc);
 		}
