@@ -30,6 +30,7 @@ import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.SerializableObject;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.NullSupportHelper;
+import lucee.runtime.db.SQLCaster;
 import lucee.runtime.dump.DumpData;
 import lucee.runtime.dump.DumpProperties;
 import lucee.runtime.dump.DumpUtil;
@@ -342,7 +343,16 @@ public class QueryColumnImpl implements QueryColumnPro, Objects {
 			if (size() == 0) throw new DatabaseException("cannot set a value to an empty query, you first have to add a row", null, null, null);
 			throw new DatabaseException("invalid row number [" + row + "]", "valid row numbers goes from 1 to " + size(), null, null);
 		}
-		if (!trustType && !fixedType) value = reDefineType(value);
+		if (!trustType && !fixedType) { value = reDefineType(value);
+		} else if (fixedType){
+			try {
+				value = SQLCaster.toCFType(value, type); // check the type
+			} catch (PageException pe){
+				throw new DatabaseException("Invalid value [" + value + "], for column [" +  key.toString() + "] type [" + SQLCaster.toStringType(type) 
+					+ "] at row [" + row +  "], threw [" + pe.getMessage() + "]" 
+					,"", null, null);
+			}
+		}
 		synchronized (sync) {
 			data[row - 1] = value;
 		}
@@ -370,7 +380,7 @@ public class QueryColumnImpl implements QueryColumnPro, Objects {
 		if (row < 1 || row > size()) return value;
 		if (fixedType){
 			synchronized (sync) {
-				data[row - 1] = value;
+				data[row - 1] = value; // TODO need to check the type?
 			}
 		} else {
 			synchronized (sync) {
