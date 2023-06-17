@@ -161,6 +161,7 @@ public final class ConfigAdmin {
 
 	private static final BundleInfo[] EMPTY = new BundleInfo[0];
 	private static final Set<Key> EXCLUDE_LIST;
+	private static final Map<Key, Key> ARRAY_INDEX;
 	private ConfigPro config;
 	private final Struct root;
 	private Password password;
@@ -185,6 +186,16 @@ public final class ConfigAdmin {
 		EXCLUDE_LIST.add(KeyImpl.init("default-pw"));
 		EXCLUDE_LIST.add(KeyImpl.init("default-password"));
 		EXCLUDE_LIST.add(KeyImpl.init("default-adminpassword"));
+		// TODO does this cover everything?
+		ARRAY_INDEX = new HashMap<>();
+		ARRAY_INDEX.put(KeyImpl.init("resourceProviders"), KeyImpl.init("scheme"));
+		ARRAY_INDEX.put(KeyImpl.init("cacheClasses"), KeyImpl.init("class"));
+		ARRAY_INDEX.put(KeyImpl.init("componentMappings"), KeyImpl.init("virtual"));
+		ARRAY_INDEX.put(KeyImpl.init("debugTemplates"), KeyImpl.init("id"));
+		ARRAY_INDEX.put(KeyImpl.init("defaultResourceProvider"), KeyImpl.init("class"));
+		ARRAY_INDEX.put(KeyImpl.init("dumpWriters"), KeyImpl.init("name"));
+		ARRAY_INDEX.put(KeyImpl.init("extensions"), KeyImpl.init("id"));
+		ARRAY_INDEX.put(KeyImpl.init("scheduledTasks"), KeyImpl.init("name"));
 	}
 
 	/**
@@ -3897,7 +3908,7 @@ public final class ConfigAdmin {
 				for (ConfigWeb cw: webs) {
 					try {
 
-						merge(root, ConfigWebFactory.loadDocument(cw.getConfigFile()), EXCLUDE_LIST);
+						merge(root, ConfigWebFactory.loadDocument(cw.getConfigFile()), EXCLUDE_LIST, ARRAY_INDEX);
 					}
 					catch (IOException e) {
 						throw Caster.toPageException(e);
@@ -3924,33 +3935,79 @@ public final class ConfigAdmin {
 		root.setEL(KeyConstants._mode, mode);
 	}
 
-	private void merge(Struct server, Struct web, Set<Key> exludeList) {
+	/*
+	 * public static void main(String[] args) {
+	 * 
+	 * Struct server = new StructImpl(); { Array arr = new ArrayImpl();
+	 * server.setEL("resourceProviders", arr);
+	 * 
+	 * Struct sct = new StructImpl(); sct.setEL("scheme", "susi2"); sct.setEL("aaa", "AAA1");
+	 * sct.setEL("bbb", "BBB"); arr.appendEL(sct);
+	 * 
+	 * sct = new StructImpl(); sct.setEL("scheme", "susi"); sct.setEL("aaa", "AAA1"); sct.setEL("bbb",
+	 * "BBB"); arr.appendEL(sct); }
+	 * 
+	 * Struct web = new StructImpl(); { Array arr = new ArrayImpl(); web.setEL("resourceProviders",
+	 * arr);
+	 * 
+	 * Struct sct = new StructImpl(); sct.setEL("scheme", "susi"); sct.setEL("aaa", "AAA2");
+	 * sct.setEL("ccc", "ccc"); arr.appendEL(sct);
+	 * 
+	 * sct = new StructImpl(); sct.setEL("scheme", "susi2"); sct.setEL("aaa", "AAA2"); sct.setEL("ccc",
+	 * "ccc"); arr.appendEL(sct);
+	 * 
+	 * sct = new StructImpl(); sct.setEL("scheme", "susi3"); sct.setEL("aaa", "AAA2"); sct.setEL("ccc",
+	 * "ccc"); arr.appendEL(sct); }
+	 * 
+	 * merge(server, web, ConfigAdmin.EXCLUDE_LIST, ARRAY_INDEX); }
+	 */
+
+	private static void merge(Struct server, Struct web, Set<Key> exludeList, Map<Key, Key> arrayIndex) {
+		Iterator<Object> itt, ittt;
 		Iterator<Entry<Key, Object>> it = web.entryIterator();
-		Object exServer, exWeb;
-		Entry<Key, Object> e;
-		Key key;
-		Iterator<Object> itt;
-		Array trg;
 		while (it.hasNext()) {
-			e = it.next();
-			key = e.getKey();
+			Entry<Key, Object> e = it.next();
+			Key key = e.getKey();
 			if (exludeList != null && exludeList.contains(key)) {
 				continue;
 			}
-			exServer = server.get(key, null);
-			exWeb = e.getValue();
+			Object exServer = server.get(key, null);
+			Object exWeb = e.getValue();
 
 			if (exServer instanceof Struct) {
-				if (exWeb instanceof Struct) merge((Struct) exServer, (Struct) exWeb, null);
+				if (exWeb instanceof Struct) merge((Struct) exServer, (Struct) exWeb, null, null);
 				else LogUtil.log(Log.LEVEL_ERROR, "merging", "cannot merge the key [" + key + "] into the server.json, because it is not a struct");
 			}
 			else if (exServer instanceof Array) {
 				if (exWeb instanceof Array) {
 					itt = ((Array) exWeb).valueIterator();
-					trg = (Array) exServer;
+					Array trg = (Array) exServer;
+					Key index = arrayIndex.get(key);
+
+					boolean append = true;
 					while (itt.hasNext()) {
-						trg.appendEL(itt.next()); // TODO some array have indexes, like for example "resourceprovider" has "Scheme", they need to be
-													// observed when merging
+						append = true;
+						Object vWeb = itt.next();
+						if (index != null) {
+							Struct srcSct = Caster.toStruct(vWeb, null);
+							String indexValueWeb = extractIndexValue(srcSct, index);
+							if (indexValueWeb != null) {
+								Iterator<Entry<Key, Object>> trgIt = trg.entryIterator();
+								while (trgIt.hasNext()) {
+									Entry<Key, Object> ee = trgIt.next();
+									Struct trgSct = Caster.toStruct(ee.getValue(), null);
+									String indexValueServer = extractIndexValue(trgSct, index);
+									if (indexValueServer != null && indexValueWeb.equalsIgnoreCase(indexValueServer)) {
+										trgSct.clear();
+										merge(trgSct, srcSct, null, null);
+										append = false;
+									}
+								}
+							}
+
+						}
+						if (append) trg.appendEL(vWeb); // TODO some array have indexes, like for example "resourceprovider" has "Scheme", they need to be
+						// observed when merging
 					}
 				}
 				else LogUtil.log(Log.LEVEL_ERROR, "merging", "cannot merge the key [" + key + "] into the server.json, because it is not an array");
@@ -3960,6 +4017,12 @@ public final class ConfigAdmin {
 				server.setEL(key, exWeb);
 			}
 		}
+
+	}
+
+	private static String extractIndexValue(Struct sct, Key index) {
+		if (sct == null) return null;
+		return Caster.toString(sct.get(index, null), null);
 	}
 
 	public void updateMonitor(ClassDefinition cd, String type, String name, boolean logEnabled) throws PageException {
