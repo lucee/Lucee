@@ -348,9 +348,9 @@ public class QueryColumnImpl implements QueryColumnPro, Objects {
 			try {
 				value = SQLCaster.toCFType(value, type); // check the type
 			} catch (PageException pe){
-				throw new DatabaseException("Invalid value [" + value + "], for column [" +  key.toString() + "] type [" + SQLCaster.toStringType(type) 
-					+ "] at row [" + row +  "], threw [" + pe.getMessage() + "]" 
-					,"", null, null);
+				throw new DatabaseException("Invalid value [" + value + "], for column [" +  key.toString() 
+					+ "] type [" + SQLCaster.toStringType(type) + "] at row [" + row +  "], threw [" 
+					+ pe.getMessage() + "]","", null, null);
 			}
 		}
 		synchronized (sync) {
