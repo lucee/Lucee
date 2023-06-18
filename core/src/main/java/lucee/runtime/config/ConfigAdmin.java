@@ -2219,8 +2219,7 @@ public final class ConfigAdmin {
 		String name = ConfigWebUtil.getAsString("bundleName", p, null);
 		String version = ConfigWebUtil.getAsString("bundleVersion", p, null);
 		ClassDefinition cd = new ClassDefinitionImpl(cn, name, version, ThreadLocalPageContext.getConfig().getIdentification());
-
-		qry.setAt("scheme", row, p.get("scheme"));
+		qry.setAt("scheme", row, ConfigWebUtil.getAsString("scheme", p, null));
 		qry.setAt("arguments", row, p.get("arguments"));
 
 		qry.setAt("class", row, cd.getClassName());
