@@ -1,12 +1,12 @@
-component extends = "org.lucee.cfml.test.LuceeTestCase" lables="static" skip="false" {
+component extends = "org.lucee.cfml.test.LuceeTestCase" lables="static" {
 
 	
 	function beforeAll(){
-		fileWrite("./LDEV4469/Base.cfc", 'component { include "include.cfm";}');
+		fileWrite("./LDEV4469/Base.cfc", 'component { include "include.cfm"; }');
 	};
 
 	function afterAll(){
-		fileWrite("./LDEV4469/Base.cfc", 'component { include "include.cfm";}');
+		fileWrite("./LDEV4469/Base.cfc", 'component { include "include.cfm"; }');
 	};
 	
 	function run( testResults, textbox ) {
@@ -19,7 +19,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" lables="static" skip="fa
 				);
 				expect( result.filecontent.trim() ).toBe("ok");
 
-				fileWrite("./LDEV4469/Base.cfc", 'component { include "include2.cfm";}');
+				fileWrite("./LDEV4469/Base.cfc", 'component { include "include2.cfm"; }');
 
 				local.result = _InternalRequest(
 					template: createURI("index.cfm" )

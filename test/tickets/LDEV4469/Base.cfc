@@ -1,3 +1,1 @@
-component {
-    include "include.cfm";
-}
+component { include "include.cfm"; }
