@@ -51,6 +51,8 @@ import lucee.runtime.listener.ApplicationContextSupport;
 import lucee.runtime.listener.ClassicApplicationContext;
 import lucee.runtime.listener.JavaSettings;
 import lucee.runtime.listener.ModernApplicationContext;
+import lucee.runtime.listener.SessionCookieData;
+import lucee.runtime.listener.SessionCookieDataImpl;
 import lucee.runtime.net.mail.Server;
 import lucee.runtime.net.mail.ServerImpl;
 import lucee.runtime.net.s3.Properties;
@@ -94,6 +96,20 @@ public class GetApplicationSettings extends BIF {
 		sct.setEL("clientManagement", Caster.toBoolean(ac.isSetClientManagement()));
 		sct.setEL("clientStorage", ac.getClientstorage());
 		sct.setEL("sessionStorage", ac.getSessionstorage());
+
+		SessionCookieData sessionCookieData = acs.getSessionCookie();
+		if( sessionCookieData != null) {
+			Struct sc = new StructImpl(Struct.TYPE_LINKED);
+			if (!StringUtil.isEmpty(sessionCookieData.getPath())) sc.setEL("path", sessionCookieData.getPath());
+			if (!StringUtil.isEmpty(sessionCookieData.getDomain())) sc.setEL("domain", sessionCookieData.getDomain());
+			sc.setEL("timeout", sessionCookieData.getTimeout());
+			sc.setEL("secure", sessionCookieData.isSecure());
+			sc.setEL("httpOnly", sessionCookieData.isHttpOnly());
+			sc.setEL("sameSite", SessionCookieDataImpl.toSamesite(sessionCookieData.getSamesite()));
+			sc.setEL("disableUpdate", sessionCookieData.isDisableUpdate());
+			sct.setEL("sessionCookie", sc);
+		}
+		
 		sct.setEL("customTagPaths", toArray(ac.getCustomTagMappings()));
 		sct.setEL("componentPaths", toArray(ac.getComponentMappings()));
 		sct.setEL("loginStorage", AppListenerUtil.translateLoginStorage(ac.getLoginStorage()));
