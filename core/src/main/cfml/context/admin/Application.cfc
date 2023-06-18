@@ -44,13 +44,26 @@ this.xmlFeatures = {
 request.singleMode=getApplicationSettings().singleContext;
 if(request.singleMode) request.adminType="server";
 public function onRequestStart() {
+
+	// admin requires the zip resource provider to deploy via an archive
+	if ( getCurrentTemplatePath() contains "zip:" ){
+		writeLog(text="The Lucee Admin requires the zip resource provider which isn't installed [#getCurrentTemplatePath()#]", type="error", log="application");
+		cfsetting(showdebugoutput:false);
+		cfheader(statuscode="404" statustext="Invalid access");
+		cfcontent(reset="true");
+		abort;
+	}
+
 	// if not logged in, we only allow access to admin|web|server[.cfm]
 	if(!structKeyExists(session, "passwordWeb") && !structKeyExists(session, "passwordServer")){
 		var fileName=listLast(cgi.script_name,"/");
-		if ( GetDirectoryFromPath(ExpandPath(cgi.SCRIPT_NAME)) neq GetDirectoryFromPath(GetCurrentTemplatePath()) )
+		if ( GetDirectoryFromPath(ExpandPath(cgi.SCRIPT_NAME)) neq GetDirectoryFromPath(GetCurrentTemplatePath()) ){
+			writeLog(text="The Lucee Admin bad path [#getCurrentTemplatePath()#]", type="error", log="application");
 			fileName="";
+		}
 		
 		if(fileName!="admin.cfm" && fileName!="web.cfm" && fileName!="server.cfm" && fileName!="index.cfm" && fileName!="restart.cfm") {
+			writeLog(text="Lucee Admin request to restricted file [#filename#] without session", type="error", log="application");
 			cfsetting(showdebugoutput:false);
 			cfheader(statuscode="404" statustext="Invalid access");
 			cfcontent(reset="true");
@@ -61,6 +74,7 @@ public function onRequestStart() {
 
 public function onApplicationStart(){
 	if(structKeyExists(server.system.environment,"LUCEE_ADMIN_ENABLED") && server.system.environment.LUCEE_ADMIN_ENABLED EQ false){
+		writeLog(text="The Lucee Admin is disabled by [LUCEE_ADMIN_ENABLED]", type="error", log="application");
 		cfheader(statuscode="404" statustext="Invalid access");
 		abort;
 	}
