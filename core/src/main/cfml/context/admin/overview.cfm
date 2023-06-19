@@ -129,7 +129,7 @@ Error Output --->
 							$.get("?", function(response) {
 								window.location=('?action=overview');
 							});
-						}, 1000); // give Lucee enough time to startup, otherwise, the admin login may show without css/js
+						}, 5000); // give Lucee enough time to startup, otherwise, the admin login may show without css/js
 					} else {
 						// $('##updateInfoDesc').addClass("error").attr("style", null).html(response);
 						
