@@ -1552,7 +1552,7 @@
         "defaultdesc2": "Define if this connection will be the default cache connection, the default cache connection is used when no cache name is explicit defined",
         "defaulttitle": "Default cache connection",
         "descexisting": "List of all existing gateways for this environment",
-        "descreadonly": "Readonly cache connections are generated within the \"\"server administrator\"\" for all web instances and can not be modified by the \"\"web administrator\"\".",
+        "descreadonly": "Readonly event gateways are generated within the \"\"server administrator\"\" for all web instances and can not be modified by the \"\"web administrator\"\".",
         "description": "Administer the Gateways",
         "id": "ID",
         "ListenerCfcPath": "Listener Component",
@@ -1569,7 +1569,7 @@
         "title": "Gateway",
         "titlecreate": "Create a new Gateway instance",
         "titleexisting": "List of existing gateway instances",
-        "titlereadonly": "Readonly cache connections",
+        "titlereadonly": "Readonly event gateways",
         "type": "Type"
       },
       "hours": "hour(s)",
