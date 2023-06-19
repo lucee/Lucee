@@ -26,7 +26,6 @@ import javax.management.AttributeList;
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
 
-import lucee.print;
 import lucee.runtime.CFMLFactoryImpl;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.ConfigWebPro;
@@ -93,14 +92,14 @@ public final class GetSystemInfo implements Function {
 			if (list.size() >= 1) {
 				Attribute attr = (Attribute) list.get(0);
 				Object obj = attr.getValue();
-				if (obj instanceof Double) process = obj;
+				if (obj instanceof Double && !Double.isNaN(((Double) obj).doubleValue())) process = obj;
 			}
 
 			// System
 			if (list.size() >= 2) {
 				Attribute attr = (Attribute) list.get(1);
 				Object obj = attr.getValue();
-				if (obj instanceof Double && ((Double) obj).doubleValue() != Double.NaN) system = obj;
+				if (obj instanceof Double && !Double.isNaN(((Double) obj).doubleValue())) system = obj;
 			}
 		}
 		catch (Exception e) {
@@ -110,13 +109,6 @@ public final class GetSystemInfo implements Function {
 			data.setEL("cpuProcess", process);
 			data.setEL("cpuSystem", system);
 		}
-	}
-
-	public static void main(String[] args) {
-		StructImpl sct;
-		getCPU(sct = new StructImpl());
-		print.e(Double.NaN + 0);
-		print.e(sct);
 	}
 
 }
