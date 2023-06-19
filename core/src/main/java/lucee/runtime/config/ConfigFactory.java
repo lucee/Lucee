@@ -945,6 +945,7 @@ public abstract class ConfigFactory {
 		if (file.exists()) file.delete();
 
 		InputStream is = InfoImpl.class.getResourceAsStream(resource);
+		if (is == null) is = SystemUtil.getResourceAsStream(null, resource);
 		if (is == null) throw new IOException("File [" + resource + "] does not exist.");
 		file.createNewFile();
 		IOUtil.copy(is, file, true);
