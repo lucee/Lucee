@@ -1032,7 +1032,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 					LogUtil.log(configServer, "controller", e);
 				}
 			}
-			else {
+			else if (!configDir.exists()) {
 				try {
 					configDir.createDirectory(true);
 				}

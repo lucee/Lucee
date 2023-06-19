@@ -118,7 +118,22 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="cookie" {
 				expect( structKeyExists( sct, "SameSite" ) ).toBeTrue("samesite attribute should be set [#str#]");
 				expect( sct.Samesite ).toBe( "none" );
 			});
-		
+
+			it( title='checking sessionCookie keys & values on getApplicationSettings()', body=function( currentSpec ) {
+				uri = createURI( "LDEV2900" );
+				local.sessionCookie = _InternalRequest(
+					template : "#uri#/session-cookie/index.cfm"
+				).filecontent.trim();
+				result = deserializeJSON(sessionCookie);
+
+				expect( result.SAMESITE ).toBe("strict");
+				expect( result.HTTPONLY ).toBeTrue();
+				expect( result.DOMAIN ).toBe("www.edu.com");
+				expect( result.PATH ).toBe("\test");
+				expect( result.TIMEOUT ).toBe("1.0");
+				expect( result.SECURE ).toBeTrue();
+
+ 			});
 		
 		});
 
