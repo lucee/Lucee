@@ -750,7 +750,10 @@
 
   <target name="createCore">
     <echots message="build core .lco"/>
-    <!-- create the luce core -->
+    <echots message="output dir ${outputDir}"/>
+    <echots message="temp dir ${temp}"/>
+
+    <!-- create the lucee core -->
     <jar 
         basedir="${core}" 
         jarfile="${trgLoader}/${version}.lco" 
