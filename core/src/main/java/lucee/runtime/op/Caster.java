@@ -5002,7 +5002,7 @@ public final class Caster {
 
 	public static BigDecimal toBigDecimal(double d) {
 		if (Double.isNaN(d)) throw new NumberFormatException("Not a Number");
-		return new BigDecimal(Caster.toString(d));
+		return BigDecimal.valueOf(d);
 	}
 
 	public static BigDecimal toBigDecimal(String str) throws CasterException {
