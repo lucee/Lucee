@@ -350,15 +350,16 @@ public final class ConfigWebUtil {
 
 			if (StringUtil.startsWith(str, '{')) {
 				Struct constants = config.getConstants();
-				Iterator<Entry<Key, Object>> it = constants.entryIterator();
-				Entry<Key, Object> e;
-				while (it.hasNext()) {
-					e = it.next();
-					if (StringUtil.startsWithIgnoreCase(str, "{" + e.getKey().getString() + "}")) {
-						String value = (String) e.getValue();
-						str = checkResult(str, config.getResource(value).getReal(str.substring(e.getKey().getString().length() + 2)));
-						break;
-
+				if (constants != null) {
+					Iterator<Entry<Key, Object>> it = constants.entryIterator();
+					Entry<Key, Object> e;
+					while (it.hasNext()) {
+						e = it.next();
+						if (StringUtil.startsWithIgnoreCase(str, "{" + e.getKey().getString() + "}")) {
+							String value = (String) e.getValue();
+							str = checkResult(str, config.getResource(value).getReal(str.substring(e.getKey().getString().length() + 2)));
+							break;
+						}
 					}
 				}
 			}

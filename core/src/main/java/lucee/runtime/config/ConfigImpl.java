@@ -731,6 +731,15 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	 */
 	@Override
 	public Scheduler getScheduler() {
+		// TODO make sure that there is always a scheduler
+
+		if (scheduler == null) {
+			try {
+				return new SchedulerImpl(ConfigWebUtil.getEngine(this), this, new ArrayImpl());
+			}
+			catch (PageException e) {
+			}
+		}
 		return scheduler;
 	}
 

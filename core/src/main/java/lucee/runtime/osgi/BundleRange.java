@@ -176,7 +176,7 @@ public class BundleRange implements Serializable {
 		@Override
 		public String toString() {
 			if (to == null) {
-				if (opFrom == VersionDefinition.EQ) return from.toString();
+				if (opFrom == VersionDefinition.EQ) return from == null ? null : from.toString();
 			}
 
 			if (from != null && opFrom == VersionDefinition.GT || opFrom == VersionDefinition.GTE) {

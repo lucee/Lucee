@@ -1346,7 +1346,8 @@ public final class CFMLEngineImpl implements CFMLEngine {
 					if (configId != null && !configId.equals(config.getIdentification().getId())) continue;
 
 					// scheduled tasks
-					((SchedulerImpl) config.getScheduler()).stop();
+					SchedulerImpl scheduler = ((SchedulerImpl) config.getScheduler());
+					if (scheduler != null) scheduler.stop();
 
 					// scopes
 					try {

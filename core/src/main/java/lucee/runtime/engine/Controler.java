@@ -50,6 +50,7 @@ import lucee.runtime.functions.system.PagePoolClear;
 import lucee.runtime.lock.LockManagerImpl;
 import lucee.runtime.net.smtp.SMTPConnectionPool;
 import lucee.runtime.op.Caster;
+import lucee.runtime.schedule.Scheduler;
 import lucee.runtime.schedule.SchedulerImpl;
 import lucee.runtime.type.scope.ScopeContext;
 import lucee.runtime.type.scope.storage.StorageScopeFile;
@@ -332,7 +333,8 @@ public final class Controler extends ParentThreasRefThread {
 				LogUtil.log(ThreadLocalPageContext.getConfig(config), Log.LEVEL_TRACE, Controler.class.getName(), "Running background Controller maintenance (every minute).");
 
 				try {
-					((SchedulerImpl) config.getScheduler()).startIfNecessary();
+					Scheduler scheduler = config.getScheduler();
+					if (scheduler != null) ((SchedulerImpl) scheduler).startIfNecessary();
 				}
 				catch (Exception e) {
 					if (log != null) log.error("controler", e);
@@ -514,7 +516,7 @@ public final class Controler extends ParentThreasRefThread {
 		try {
 			Resource dir = config.getClientScopeDir(), trgres;
 			Resource[] children = dir.listResources(filter);
-			if (children==null) return;
+			if (children == null) return;
 			String src, trg;
 			int index;
 			for (int i = 0; i < children.length; i++) {
@@ -547,7 +549,7 @@ public final class Controler extends ParentThreasRefThread {
 	}
 
 	private void checkSize(ConfigWeb config, Resource dir, long maxSize, ResourceFilter filter) {
-		if (!dir.exists()) return;
+		if (dir == null || !dir.exists()) return;
 		Resource res = null;
 		int count = ArrayUtil.size(filter == null ? dir.list() : dir.list(filter));
 		long size = ResourceUtil.getRealSize(dir, filter);
