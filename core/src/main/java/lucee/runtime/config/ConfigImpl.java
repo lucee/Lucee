@@ -452,7 +452,9 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		clearCTCache();
 		clearComponentCache();
 		clearApplicationCache();
-		// clearComponentMetadata();
+		clearLoggers(null);
+		clearComponentMetadata();
+		clearResourceProviders();
 	}
 
 	@Override

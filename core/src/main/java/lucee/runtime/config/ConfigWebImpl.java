@@ -1829,6 +1829,9 @@ public class ConfigWebImpl implements ConfigWebPro {
 	}
 
 	public void setInstance(ConfigWebPro instance) {
+		if (this.instance != null) {
+			this.instance.reset();
+		}
 		this.instance = instance;
 	}
 
