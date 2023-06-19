@@ -1108,9 +1108,9 @@ public final class ConfigWebFactory extends ConfigFactory {
 
 	private static void _loadId(ConfigServerImpl configServer, ConfigImpl config, ConfigWebImpl cwi, Struct root, Log log) {
 		try {
-			if (root == null && config instanceof MultiContextConfigWeb) {
+			if (root == null && config instanceof ConfigWebPro) {
 				Identification id = configServer.getIdentification();
-				((MultiContextConfigWeb) config).setIdentification(new IdentificationWebImpl(cwi, id.getSecurityKey(), id.getApiKey()));
+				((ConfigWebPro) config).setIdentification(new IdentificationWebImpl(cwi, id.getSecurityKey(), id.getApiKey()));
 				return;
 			}
 
@@ -1137,8 +1137,8 @@ public final class ConfigWebFactory extends ConfigFactory {
 			if (!StringUtil.isEmpty(str, true)) apiKey = str.trim();
 			else if (configServer != null) apiKey = configServer.getIdentification().getApiKey(); // if there is no web api key the server api key is used
 
-			if (config instanceof MultiContextConfigWeb) {
-				((MultiContextConfigWeb) config).setIdentification(new IdentificationWebImpl(cwi, securityKey, apiKey));
+			if (config instanceof ConfigWebPro) {
+				((ConfigWebPro) config).setIdentification(new IdentificationWebImpl(cwi, securityKey, apiKey));
 			}
 			else {
 				((ConfigServerImpl) config).setIdentification(new IdentificationServerImpl((ConfigServerImpl) config, securityKey, apiKey));

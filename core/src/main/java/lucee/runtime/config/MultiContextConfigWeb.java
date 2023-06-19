@@ -473,7 +473,8 @@ class MultiContextConfigWeb extends ConfigImpl implements ServletConfig, ConfigW
 		helper.releaseCacheHandlers(pc);
 	}
 
-	protected void setIdentification(IdentificationWeb id) {
+	@Override
+	public void setIdentification(IdentificationWeb id) {
 		helper.setIdentification(id);
 	}
 

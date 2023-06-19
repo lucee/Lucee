@@ -53,8 +53,10 @@ public class ConfigWebImpl implements ConfigWebPro {
 		return instance.getPhysical(arg0, arg1, arg2);
 	}
 
-	protected void setIdentification(lucee.runtime.config.IdentificationWeb arg0) {
+	@Override
+	public void setIdentification(lucee.runtime.config.IdentificationWeb arg0) {
 		if (instance instanceof MultiContextConfigWeb) ((MultiContextConfigWeb) instance).setIdentification(arg0);
+		else((SingleContextConfigWeb) instance).setIdentification(arg0);
 		// ignored for Single, should not be called anyway
 	}
 

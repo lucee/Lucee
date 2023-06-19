@@ -27,6 +27,7 @@ import lucee.commons.io.SystemUtil;
 import lucee.commons.io.cache.Cache;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogEngine;
+import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.log.LoggerAndSourceData;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourceProvider;
@@ -1982,6 +1983,11 @@ class SingleContextConfigWeb extends ConfigBase implements ConfigWebPro {
 
 	public Password getPassword() {
 		return cs.getPassword();
+	}
+
+	public void setIdentification(IdentificationWeb arg0) {
+		// ignore it, should not happen
+		LogUtil.log(Log.LEVEL_FATAL, "loading", "setting a web id for single context");
 	}
 
 }
