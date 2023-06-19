@@ -11,35 +11,57 @@
 
 	//structDelete(application, "stText");
 	//structDelete(application, "stWebHelp");
+
 	if ( structKeyExists( form, "lang" )
 			|| !structKeyExists( application, "languages" )
 			|| !structKeyExists( application.stText, session.lucee_admin_lang ) 
-			|| isNull( application.stText[session.lucee_admin_lang].setting.externalizeStringGTE ) 
 			|| structKeyExists( url, "reinit" )){
 
+		
 		cfinclude( template="menu.cfm" );
+
 		langData  = getAvailableLanguages();
 
 		languages = {};
 		loop collection=langData item="value" index="key" {
 			languages[key] = value.label;
 		}
+		
 		application.languages = languages;
 
+		// if a session has an unknown/unavailable language defined, overwrite with english as default
 		if ( !application.languages.keyExists( session.lucee_admin_lang ) ){
 			session.lucee_admin_lang = "en";
 		}
+
+		// assign english (default text)
 		application.stText.en = langData.en.data;
+		
 		StructDelete( application, "notTranslated" );
 
 		//  now read the actual file when not english
 		if ( session.lucee_admin_lang != "en" ){
-			// load the translation, using english as the fallback, thus allowing incomplete translations
-			tmp=application.stText[ session.lucee_admin_lang ] = langData[ session.lucee_admin_lang ].data;
-			loop struct=application.stText.en index="k" item="v" {
-				if(not structKeyExists(tmp,k)) tmp[ k ]=v;
+			
+			// load the actual lang file and assign the property path as an unique keys as path
+			application.stText[ session.lucee_admin_lang ] = mapStructToDotPathVariable( langData[ session.lucee_admin_lang ].data );
+			
+			// load the english default file to an unested struct with the property paths as keys;
+			defaultLang= mapStructToDotPathVariable( application.stText.en );
+
+			// loop trough english and verify if the property is defined within the language file
+			for( property in defaultLang ) {
+
+				if( !structKeyExists( application.stText[ session.lucee_admin_lang ], property )){
+					application.stText[ session.lucee_admin_lang ][ property ]= defaultLang[ property ];
+				} 
+
 			}
+
+			// translate struct back to its nested structure.
+			structkeytranslate( application.stText[ session.lucee_admin_lang ] );
 		}
+
+		// assign the loaded language to the variable
 		stText = application.stText[ session.lucee_admin_lang ];
 		
 		// TODO why is this here??
@@ -207,3 +229,19 @@ You can use this code in order to write the structs into an XML file correspondi
 	</cfloop>
 	<cfreturn result>
 </cffunction>
+<cfscript>
+	public struct function mapStructToDotPathVariable( struct data, prefix = "", propertyStruct = {}) localmode=true {
+		
+		for( key in arguments.data ) {
+			
+			value = data[ key ];
+			if ( isStruct( value ) ) {
+				mapStructToDotPathVariable( value, prefix & key & ".", propertyStruct );
+			} else {
+				propertyStruct.append( { "#prefix##key#":  value } );
+			}
+		}
+		
+		return propertyStruct;
+		}
+</cfscript>
