@@ -588,7 +588,8 @@
 		loop array=arguments.versions item="local.v"{
 			vs[toVersionSortable(v)] = v;
 		}
-		var sorted = structSort(vs,"text", "desc");
+		var sorted = structKeyArray(vs);
+		arraySort(sorted, "text", "desc");
 		var rtn = [=];
 		loop array=sorted item="local.v" {
 			rtn[v] = vs[v];
