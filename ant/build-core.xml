@@ -774,7 +774,7 @@
 
   <target name="createLoader" if="buildLoaderJar">
      <!-- generates the jar from the loader -->
-    <echots message="build loader .jar"/>
+    <echots message="build loader .jar - ${goal}"/>
     
     <jar 
       basedir="${temp}/loader" 
