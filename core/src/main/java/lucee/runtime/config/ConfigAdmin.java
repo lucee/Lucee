@@ -67,6 +67,7 @@ import lucee.commons.io.res.ResourceProvider;
 import lucee.commons.io.res.ResourcesImpl;
 import lucee.commons.io.res.filter.ResourceFilter;
 import lucee.commons.io.res.filter.ResourceNameFilter;
+import lucee.commons.io.res.type.file.FileResourceProvider;
 import lucee.commons.io.res.util.FileWrapper;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ClassException;
@@ -2219,9 +2220,18 @@ public final class ConfigAdmin {
 		String name = ConfigWebUtil.getAsString("bundleName", p, null);
 		String version = ConfigWebUtil.getAsString("bundleVersion", p, null);
 		ClassDefinition cd = new ClassDefinitionImpl(cn, name, version, ThreadLocalPageContext.getConfig().getIdentification());
-
-		qry.setAt("scheme", row, p.get("scheme"));
-		qry.setAt("arguments", row, p.get("arguments"));
+		String scheme = Caster.toString(p.get("scheme", null), null);
+		if (StringUtil.isEmpty(scheme)) {
+			try {
+				scheme = ((ResourceProvider) cd.getClazz().newInstance()).getScheme();
+			}
+			catch (Exception e) {
+				// patchi
+				if (FileResourceProvider.class.getName().equals(cd.getClassName())) scheme = "file";
+			}
+		}
+		qry.setAt("scheme", row, scheme);
+		qry.setAt("arguments", row, p.get("arguments", null));
 
 		qry.setAt("class", row, cd.getClassName());
 		qry.setAt("bundleName", row, cd.getName());
