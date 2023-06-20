@@ -96,6 +96,12 @@ public final class ResourceAppender extends AbstractAppender {
 		}
 	}
 
+	@Override
+	public void stop() {
+		closeFile();
+		super.stop();
+	}
+
 	/**
 	 * <p>
 	 * Sets and <i>opens</i> the file where the log output will go. The specified file must be writable.
