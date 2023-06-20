@@ -764,6 +764,10 @@
         file="${trgLoader}/${version}.lco" 
         tofile="${outputDir}/core/core.lco"/>
 
+    <copy 
+        file="${trgLoader}/${version}.lco" 
+        tofile="${temp}/loader/core/core.lco"/>
+
     <!-- optionally copy lco file to an existing Lucee install -->
     <deployLco
       srcdir="${trgLoader}" 
