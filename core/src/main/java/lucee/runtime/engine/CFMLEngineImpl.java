@@ -1343,7 +1343,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 					cfmlFactory = (CFMLFactoryImpl) e.getValue();
 					config = cfmlFactory.getConfig();
 
-					if (configId != null && !configId.equals(config.getIdentification().getId())) continue;
+					if (config != null && config.getIdentification() != null && configId != null && !configId.equals(config.getIdentification().getId())) continue;
 
 					// scheduled tasks
 					SchedulerImpl scheduler = ((SchedulerImpl) config.getScheduler());

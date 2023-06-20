@@ -45,6 +45,7 @@ import lucee.runtime.cache.tag.CacheHandlerCollection;
 import lucee.runtime.cfx.CFXTagPool;
 import lucee.runtime.compiler.CFMLCompilerImpl;
 import lucee.runtime.debug.DebuggerPool;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.engine.ThreadQueue;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
@@ -480,7 +481,17 @@ class MultiContextConfigWeb extends ConfigImpl implements ServletConfig, ConfigW
 
 	@Override
 	public IdentificationWeb getIdentification() {
-		return helper.getIdentification();
+		IdentificationWeb id = helper.getIdentification();
+		if (id != null) return id;
+
+		// MUST patch for LDEV-4568 remove asap
+		Config cw = ThreadLocalPageContext.getConfig();
+		if (cw instanceof ConfigWebImpl) {
+			ConfigWebImpl cwi = (ConfigWebImpl) cw;
+			ConfigServerImpl csi = cwi.getConfigServerImpl();
+			return new IdentificationWebImpl(cwi, csi.getIdentification().getSecurityKey(), csi.getIdentification().getApiKey());
+		}
+		return null;
 	}
 
 	@Override
