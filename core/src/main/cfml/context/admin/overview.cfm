@@ -484,7 +484,7 @@ Error Output --->
 
 
 	<table>
-		<tr>
+		<!---<tr>
 			<div id="updateInfoDesc"><div style="text-align: center;"><img src="../res/img/spinner16.gif.cfm"></div></div>
 			<cfhtmlbody>
 				<script type="text/javascript">
@@ -493,7 +493,7 @@ Error Output --->
 					} );
 				</script>
 			</cfhtmlbody>
-		</tr>
+		</tr>--->
 
 		<tr>
 			<td valign="top" colspan="3">
