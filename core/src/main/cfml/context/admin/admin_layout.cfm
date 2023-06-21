@@ -8,7 +8,9 @@
 		param name="attributes.right"         default="";
 		param name="attributes.width"         default="780";
 
-		variables.stText = application.stText[session.lucee_admin_lang];
+		// make sure that any unavaliable language falls back to English
+		variables.stText = ( application.stText[ session.lucee_admin_lang ] )?:application.stText.en;
+
 		ad=request.adminType;
 		hasNavigation = len(attributes.navigation) GT 0;
 		home = request.adminType & ".cfm";
