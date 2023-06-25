@@ -804,11 +804,11 @@ public final class ConfigWebFactory extends ConfigFactory {
 							config.addResourceProvider(strProviderScheme, prov, toArguments(getAttr(provider, "arguments"), true));
 
 							// patch for user not having
-							if (strProviderScheme.equalsIgnoreCase("http")) {
+							if ("http".equalsIgnoreCase(strProviderScheme)) {
 								httpClass = prov;
 								httpArgs = toArguments(getAttr(provider, "arguments"), true);
 							}
-							else if (strProviderScheme.equalsIgnoreCase("https")) hasHTTPs = true;
+							else if ("https".equalsIgnoreCase(strProviderScheme)) hasHTTPs = true;
 						}
 
 						// cfc
@@ -1793,12 +1793,12 @@ public final class ConfigWebFactory extends ConfigFactory {
 							boolean hidden = toBoolean(getAttr(el, "hidden"), false);
 							boolean toplevel = toBoolean(getAttr(el, "toplevel"), true);
 
-							if (config instanceof ConfigServer && (virtual.equalsIgnoreCase("/lucee-server/") || virtual.equalsIgnoreCase("/lucee-server-context/"))) {
+							if (config instanceof ConfigServer && ("/lucee-server/".equalsIgnoreCase(virtual) || "/lucee-server-context/".equalsIgnoreCase(virtual))) {
 								hasServerContext = true;
 							}
 
 							// lucee
-							if (virtual.equalsIgnoreCase("/lucee/")) {
+							if ("/lucee/".equalsIgnoreCase(virtual)) {
 								if (StringUtil.isEmpty(strListType, true)) strListType = "modern";
 								if (StringUtil.isEmpty(strListMode, true)) strListMode = "curr2root";
 								toplevel = true;
@@ -1831,7 +1831,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 									insTemp = ConfigPro.INSPECT_ONCE;
 
 								String primary = getAttr(el, "primary");
-								boolean physicalFirst = primary == null || !primary.equalsIgnoreCase("archive");
+								boolean physicalFirst = primary == null || !"archive".equalsIgnoreCase(primary);
 
 								tmp = new MappingImpl(config, virtual, physical, archive, insTemp, physicalFirst, hidden, readonly, toplevel, false, false, listener, listenerMode,
 										listenerType);
@@ -2895,7 +2895,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 
 						String primary = getAttr(ctMapping, "primary");
 
-						boolean physicalFirst = archive == null || !primary.equalsIgnoreCase("archive");
+						boolean physicalFirst = StringUtil.isEmpty(archive, true) || !"archive".equalsIgnoreCase(primary);
 						hasSet = true;
 						list.add(new MappingImpl(config, virtual, physical, archive, inspTemp, physicalFirst, hidden, readonly, true, false, true, null, -1, -1));
 					}
@@ -3736,7 +3736,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 		if (!StringUtil.isEmpty(streamtype)) {
 			streamtype = streamtype.trim();
 			// null
-			if (streamtype.equalsIgnoreCase("null")) {
+			if ("null".equalsIgnoreCase(streamtype)) {
 				return new PrintStream(DevNullOutputStream.DEV_NULL_OUTPUT_STREAM);
 			}
 			// class
@@ -4692,7 +4692,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 
 	private static boolean extractDebugOption(String name, String[] values) {
 		for (String val: values) {
-			if (val.trim().equalsIgnoreCase(name)) return true;
+			if (StringUtil.emptyIfNull(val).trim().equalsIgnoreCase(name)) return true;
 		}
 		return false;
 	}
@@ -4742,7 +4742,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 						String type = getAttr(cfxTag, "type");
 						if (type != null) {
 							// Java CFX Tags
-							if (type.equalsIgnoreCase("java")) {
+							if ("java".equalsIgnoreCase(type)) {
 								String name = entry.getKey().getString();
 								ClassDefinition cd = getClassDefinition(cfxTag, "", config.getIdentification());
 								if (!StringUtil.isEmpty(name) && cd.hasClass()) {
@@ -5034,7 +5034,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 
 						String primary = getAttr(cMapping, "primary");
 
-						boolean physicalFirst = archive == null || !primary.equalsIgnoreCase("archive");
+						boolean physicalFirst = archive == null || !"archive".equalsIgnoreCase(primary);
 						hasSet = true;
 						list.add(new MappingImpl(config, virtual, physical, archive, inspTemp, physicalFirst, hidden, readonly, true, false, true, null, listMode, listType));
 					}
