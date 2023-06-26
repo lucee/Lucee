@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" labels="query" skip=true {
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="query" {
 
 	function run( testResults , testBox ) {
 		describe( title = "Testcase for query.columnList.listToArray() function", body = function() {
