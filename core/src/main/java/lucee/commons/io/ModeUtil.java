@@ -139,9 +139,9 @@ public final class ModeUtil {
 	 * @return
 	 */
 	public static String toStringMode(int octalMode) {
-		print.ds("octalModeINT = " + octalMode);
+		//print.ds("octalModeINT = " + octalMode);
 		String str = Integer.toString(octalMode, 8);
-		print.ds("octalModeSTR = " + str);
+		//print.ds("octalModeSTR = " + str);
 		while (str.length() < 3)
 			str = "0" + str;
 		return str;
