@@ -807,17 +807,16 @@ public class CFConfigImport {
 					data = cast.toStruct(e.getValue(), null);
 					if (data == null) continue;
 					try {
-						ParamSyntax ps = (data.containsKey("delimiter") && data.containsKey("separator")) ? ParamSyntax.toParamSyntax(data) : ParamSyntax.DEFAULT;
+						ParamSyntax ps = ParamSyntax.toParamSyntax(data, ParamSyntax.DEFAULT);
 						admin.updateDataSource(getAsString(data, "id"), e.getKey().getString(), getAsString(data, "newname"), getClassDefinition(data, null),
 								getAsString(data, "connectionString", "dsn"), getAsString(data, "username", "dbusername"), getAsString(data, "password", "dbpassword"),
 								getAsString(data, "host"), getAsString(data, "database"), getAsInt(data, empty, -1, "port"), getAsInt(data, empty, -1, "connectionlimit"),
 								getAsInt(data, empty, -1, "connectiontimeout", "idletimeout"), getAsInt(data, empty, -1, "livetimeout"),
-								getAsLong(data, empty, 60000L, "metacachetimeout"), getAsBoolean(data, empty, false, "blob"),
-								getAsBoolean(data, empty, false, "clob"), extractDatasourceAllow(data, empty, DataSource.ALLOW_ALL),
-								getAsBoolean(data, empty, false, "validate"), getAsBoolean(data, empty, false, "storage"), getAsString(data, "timezone"),
-								getAsStruct(data, "custom"), getAsString(data, "dbdriver"), ps, getAsBoolean(data, empty, false, "literalTimestampWithTSOffset"),
-								getAsBoolean(data, empty, false, "alwaysSetTimeout"), getAsBoolean(data, empty, false, "requestExclusive"),
-								getAsBoolean(data, empty, false, "alwaysResetConnections"));
+								getAsLong(data, empty, 60000L, "metacachetimeout"), getAsBoolean(data, empty, false, "blob"), getAsBoolean(data, empty, false, "clob"),
+								extractDatasourceAllow(data, empty, DataSource.ALLOW_ALL), getAsBoolean(data, empty, false, "validate"),
+								getAsBoolean(data, empty, false, "storage"), getAsString(data, "timezone"), getAsStruct(data, "custom"), getAsString(data, "dbdriver"), ps,
+								getAsBoolean(data, empty, false, "literalTimestampWithTSOffset"), getAsBoolean(data, empty, false, "alwaysSetTimeout"),
+								getAsBoolean(data, empty, false, "requestExclusive"), getAsBoolean(data, empty, false, "alwaysResetConnections"));
 					}
 					catch (Throwable t) {
 						handleException(pc, t);
@@ -1506,22 +1505,18 @@ public class CFConfigImport {
 
 	}
 
-	private static int extractDatasourceAllow (Struct data, RefBoolean empty, int defaultValue){
+	private static int extractDatasourceAllow(Struct data, RefBoolean empty, int defaultValue) {
 		Integer allow = getAsInt(data, empty, -1, "allow");
 		if (allow != -1) return allow;
 
 		Boolean allowed_select = getAsBoolean(data, empty, "allowSelect");
 		if (allowed_select == null) return defaultValue; // if allowSelect isn't present, assume none provided
 
-		allow = (getAsBoolean(data, empty, false, "allowSelect") ? DataSource.ALLOW_SELECT : 0)
-			+ (getAsBoolean(data, empty, false, "allowInsert") ? DataSource.ALLOW_INSERT : 0)
-			+ (getAsBoolean(data, empty, false, "allowUpdate") ? DataSource.ALLOW_UPDATE : 0)
-			+ (getAsBoolean(data, empty, false, "allowDelete") ? DataSource.ALLOW_DELETE : 0)
-			+ (getAsBoolean(data, empty, false, "allowAlter") ? DataSource.ALLOW_ALTER : 0)
-			+ (getAsBoolean(data, empty, false, "allowDrop") ? DataSource.ALLOW_DROP : 0)
-			+ (getAsBoolean(data, empty, false, "allowRevoke") ? DataSource.ALLOW_REVOKE : 0)
-			+ (getAsBoolean(data, empty, false, "allowGrant") ? DataSource.ALLOW_GRANT : 0)
-			+ (getAsBoolean(data, empty, false, "allowCreate") ? DataSource.ALLOW_CREATE : 0);
+		allow = (getAsBoolean(data, empty, false, "allowSelect") ? DataSource.ALLOW_SELECT : 0) + (getAsBoolean(data, empty, false, "allowInsert") ? DataSource.ALLOW_INSERT : 0)
+				+ (getAsBoolean(data, empty, false, "allowUpdate") ? DataSource.ALLOW_UPDATE : 0) + (getAsBoolean(data, empty, false, "allowDelete") ? DataSource.ALLOW_DELETE : 0)
+				+ (getAsBoolean(data, empty, false, "allowAlter") ? DataSource.ALLOW_ALTER : 0) + (getAsBoolean(data, empty, false, "allowDrop") ? DataSource.ALLOW_DROP : 0)
+				+ (getAsBoolean(data, empty, false, "allowRevoke") ? DataSource.ALLOW_REVOKE : 0) + (getAsBoolean(data, empty, false, "allowGrant") ? DataSource.ALLOW_GRANT : 0)
+				+ (getAsBoolean(data, empty, false, "allowCreate") ? DataSource.ALLOW_CREATE : 0);
 		return allow;
 	}
 
