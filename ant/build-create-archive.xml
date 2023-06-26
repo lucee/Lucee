@@ -80,7 +80,16 @@
 			   LUCEE/ADMIN
 ************************************/
 
+	
 	systemOutput("#DateTimeFormat(now(),'yyyy-mm-dd HH:nn:ss')# Generating archive #temp#/lucee-admin.lar ", true);
+	/*
+		write out a file into the admin with the built (i.e. current) lucee version
+		used to check that the the deployed lucee admin version matches the actual version being run
+	*/
+	versionFile = "#srcAdmin#/version.cfm";
+	defaultVersionFile = fileRead( versionFile );
+	fileWrite( versionFile, '<cfset lucee_version="#server.lucee.version#">' );
+
 	// create "/lucee/admin" mapping
 	admin 
 		action="updateMapping"
@@ -105,7 +114,8 @@
 		addNonCFMLFiles="true"
 		ignoreScopes="false";
 
-
+	// reset to default
+	fileWrite( versionFile, defaultVersionFile );
 
 /************************************
 			   LUCEE/DOC

@@ -65,6 +65,14 @@ Redirect to entry --->
 	<cflocation url="#request.self#" addtoken="no">
 </cfif>
 
+<cfset lucee_version = "UNKNOWN">
+<cfinclude template="version.cfm">
+<cfif lucee_version neq server.lucee.version>
+	<cfoutput>
+		<div class="error">Warning Lucee Admin was compiled with version #lucee_version#?</div>
+	</cfoutput>
+</cfif>
+
 <!---
 Error Output --->
 <cfset printError(error)>
