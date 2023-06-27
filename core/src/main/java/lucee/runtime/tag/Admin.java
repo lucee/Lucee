@@ -2681,8 +2681,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		ClassDefinition cd = new ClassDefinitionImpl(cn, getString("bundleName", null), getString("bundleVersion", null), config.getIdentification());
 
 		// customParameterSyntax
-		Struct sct = getStruct("customParameterSyntax", null);
-		ParamSyntax ps = (sct != null && sct.containsKey("delimiter") && sct.containsKey("separator")) ? ParamSyntax.toParamSyntax(sct) : ParamSyntax.DEFAULT;
+		ParamSyntax ps = ParamSyntax.toParamSyntax(attributes, ParamSyntax.DEFAULT);
 
 		//
 		boolean literalTimestampWithTSOffset = getBoolV("literalTimestampWithTSOffset", false);

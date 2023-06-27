@@ -6,8 +6,6 @@ import java.net.URLDecoder;
 import org.w3c.dom.Element;
 
 import lucee.commons.lang.StringUtil;
-import lucee.runtime.exp.ApplicationException;
-import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Struct;
 
@@ -30,12 +28,6 @@ public class ParamSyntax implements Serializable {
 		return new ParamSyntax(leadingDelimiter, delimiter, separator);
 	}
 
-	public static ParamSyntax toParamSyntax(Struct sct) throws PageException {
-		ParamSyntax res = toParamSyntax(sct, null);
-		if (res != null) return res;
-		throw new ApplicationException("could not load Parameter Syntax");
-	}
-
 	public static ParamSyntax toParamSyntax(Struct sct, ParamSyntax defaultValue) {
 		Struct cps = Caster.toStruct(sct.get("customParameterSyntax", null), null);
 		if (cps == null) cps = Caster.toStruct(sct.get("parameterSyntax", null), null);
@@ -44,26 +36,29 @@ public class ParamSyntax implements Serializable {
 		String ledel;
 		if (cps != null) {
 			del = Caster.toString(cps.get("delimiter", null), null);
-			del = Caster.toString(cps.get("paramDelimiter", null), null);
+			if (StringUtil.isEmpty(del)) del = Caster.toString(cps.get("paramDelimiter", null), null);
 			sep = Caster.toString(cps.get("separator", null), null);
-			sep = Caster.toString(cps.get("paramSeparator", null), null);
+			if (StringUtil.isEmpty(sep)) sep = Caster.toString(cps.get("paramSeparator", null), null);
 			ledel = Caster.toString(cps.get("leadingDelimiter", null), null);
-			ledel = Caster.toString(cps.get("paramLeadingDelimiter", null), null);
+			if (StringUtil.isEmpty(ledel)) ledel = Caster.toString(cps.get("paramLeadingDelimiter", null), null);
 		}
 		else {
 			del = Caster.toString(sct.get("delimiter", null), null);
-			del = Caster.toString(sct.get("paramDelimiter", null), null);
-			del = Caster.toString(sct.get("paramSyntaxDelimiter", null), null);
+			if (StringUtil.isEmpty(del)) del = Caster.toString(sct.get("paramDelimiter", null), null);
+			if (StringUtil.isEmpty(del)) del = Caster.toString(sct.get("paramSyntaxDelimiter", null), null);
 			sep = Caster.toString(sct.get("separator", null), null);
-			sep = Caster.toString(sct.get("paramSeparator", null), null);
-			sep = Caster.toString(sct.get("paramSyntaxSeparator", null), null);
+			if (StringUtil.isEmpty(sep)) sep = Caster.toString(sct.get("paramSeparator", null), null);
+			if (StringUtil.isEmpty(sep)) sep = Caster.toString(sct.get("paramSyntaxSeparator", null), null);
 			ledel = Caster.toString(sct.get("leadingDelimiter", null), null);
-			ledel = Caster.toString(sct.get("paramLeadingDelimiter", null), null);
-			ledel = Caster.toString(sct.get("paramSyntaxLeadingDelimiter", null), null);
+			if (StringUtil.isEmpty(ledel)) ledel = Caster.toString(sct.get("paramLeadingDelimiter", null), null);
+			if (StringUtil.isEmpty(ledel)) ledel = Caster.toString(sct.get("paramSyntaxLeadingDelimiter", null), null);
 		}
-		if (StringUtil.isEmpty(del) || StringUtil.isEmpty(sep)) return defaultValue;
+		if (StringUtil.isEmpty(del) || StringUtil.isEmpty(sep)) {
+			return defaultValue;
+		}
 
 		if (StringUtil.isEmpty(ledel)) ledel = del;
+
 		return toParamSyntax(ledel, del, sep);
 	}
 
