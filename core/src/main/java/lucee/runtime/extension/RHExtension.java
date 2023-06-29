@@ -76,6 +76,7 @@ import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.DatabaseException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
+import lucee.runtime.extension.RHExtension.InvalidVersion;
 import lucee.runtime.functions.conversion.DeserializeJSON;
 import lucee.runtime.interpreter.JSONExpressionInterpreter;
 import lucee.runtime.listener.SerializationSettings;
@@ -1017,7 +1018,13 @@ public class RHExtension implements Serializable {
 	private static Query createQuery() throws DatabaseException {
 		return new QueryImpl(new Key[] { KeyConstants._id, KeyConstants._version, KeyConstants._name, SYMBOLIC_NAME, KeyConstants._type, KeyConstants._description,
 				KeyConstants._image, RELEASE_TYPE, TRIAL, CATEGORIES, START_BUNDLES, BUNDLES, FLDS, TLDS, TAGS, FUNCTIONS, CONTEXTS, WEBCONTEXTS, CONFIG, APPLICATIONS, COMPONENTS,
-				PLUGINS, EVENT_GATEWAYS, ARCHIVES }, 0, "Extensions");
+				PLUGINS, EVENT_GATEWAYS, ARCHIVES },
+				new String[] { 	"VARCHAR","VARCHAR","VARCHAR","VARCHAR","VARCHAR","VARCHAR","CLOB","VARCHAR","BOOLEAN","OBJECT",
+					"BOOLEAN","OBJECT","OBJECT","OBJECT","OBJECT","OBJECT","OBJECT",
+					"OBJECT","OBJECT","OBJECT","OBJECT","OBJECT","OBJECT","OBJECT" },
+				0, "Extensions");
+					
+		// TODO add types
 	}
 
 	private void populate(Query qry) throws PageException, IOException, BundleException {
