@@ -352,8 +352,7 @@ public final class HSQLDBHandler {
 
 				}
 				catch (SQLException e) {
-					DatabaseException de = new DatabaseException("there is a problem to execute sql statement on query", null, sql, null);
-					de.setDetail(e.getMessage());
+					DatabaseException de = new DatabaseException("QoQ HSQLDB: error executing sql statement on query [" + e.getMessage() + "]", null , sql, null);
 					throw de;
 				}
 
