@@ -203,7 +203,10 @@ public final class HSQLDBHandler {
 		// INSERT STATEMENT
 		// HashMap integerTypes=getIntegerTypes(types);
 		PreparedStatement prepStat = conn.prepareStatement(insert.toString() + values.toString());
-
+		conn.setAutoCommit(false);
+		Statement stat = conn.createStatement();
+		stat.execute("SET FILES LOG FALSE");
+		
 		int rows = query.getRecordcount();
 		int count = targetCols.size();
 		String col = null;
@@ -253,8 +256,15 @@ public final class HSQLDBHandler {
 				}
 
 			}
-			prepStat.execute();
+			prepStat.addBatch();
+			if (y % 5000 == 0)
+				prepStat.executeBatch();
 		}
+		prepStat.executeBatch();
+		conn.commit();
+		Statement stat2 = conn.createStatement();
+		stat2.execute("SET FILES LOG TRUE");
+		
 		SystemOut.print("Populate Table: [" + dbTableName + "] with [" + rows + "] rows, [" + count + "] columns, took " + stopwatch.time() + "ms");
 	}
 
