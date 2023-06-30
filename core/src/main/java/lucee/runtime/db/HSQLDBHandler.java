@@ -113,7 +113,7 @@ public final class HSQLDBHandler {
 
 		Query query = Caster.toQuery(pc.getVariable(StringUtil.removeQuotes(cfQueryName, true)));
 		Statement stat;
-		
+
 		stat = conn.createStatement();
 		Key[] cols = CollectionUtil.keys(query);
 		int[] types = query.getTypes();
@@ -144,7 +144,7 @@ public final class HSQLDBHandler {
 
 	/**
 	 * populates a table to the memory database, but only the required columns from the source query
-	 * 
+	 *
 	 * @param conn
 	 * @param pc
 	 * @param name name of the new table
@@ -152,7 +152,7 @@ public final class HSQLDBHandler {
 	 * @throws SQLException
 	 * @throws PageException
 	 */
-	
+
 	private static void populateTable(Connection conn, PageContext pc, String dbTableName, String cfQueryName, boolean doSimpleTypes, Struct tableCols)
 			throws SQLException, PageException {
 
@@ -161,13 +161,14 @@ public final class HSQLDBHandler {
 		Query query = Caster.toQuery(pc.getVariable(StringUtil.removeQuotes(cfQueryName, true)));
 
 		Key[] cols = CollectionUtil.keys(query);
-		ArrayList<String> usedCols = new ArrayList<String>();
-		
-		int[] types = query.getTypes();
-		int[] innerTypes = toInnerTypes(types);
+		ArrayList<String> targetCols = new ArrayList<String>();
+
+		int[] srcTypes = query.getTypes();
+		int[] srcQueryTypes = toInnerTypes(srcTypes);
+		int[] targetTypes = new int[srcTypes.length]; // track the type in the target table, which maybe a subset of the columns in the source table
 		String comma = "";
 		String escape = "\"";
-		
+
 		StringBuilder insert = new StringBuilder("INSERT INTO  ").append(escape).append(StringUtil.toUpperCase(dbTableName)).append(escape).append(" (");
 		StringBuilder values = new StringBuilder("VALUES (");
 		Key colName = null;
@@ -176,8 +177,8 @@ public final class HSQLDBHandler {
 			String col = StringUtil.toUpperCase(cols[i].getString()); // quoted objects are case insensitive in HSQLDB
 			//colName = Caster.toKey(cols[i].getString());
 			if (tableCols == null || tableCols.containsKey(col)){
-				usedCols.add(col);
-
+				targetCols.add(col);
+				targetTypes[targetCols.size()-1] = srcQueryTypes[i];
 				insert.append(comma);
 				insert.append(escape);
 				insert.append(col);
@@ -191,41 +192,44 @@ public final class HSQLDBHandler {
 		insert.append(")");
 		values.append(")");
 
-		if (tableCols != null && usedCols.size() == 0){
+		if (tableCols != null && targetCols.size() == 0){
 			SystemOut.print("Populate Table, table has no used columns: " + dbTableName);
 			return;
 		}
 
 		SystemOut.print("SQL: " + Caster.toString(insert));
 		SystemOut.print("SQL: " + Caster.toString(values));
-		
+
 		// INSERT STATEMENT
 		// HashMap integerTypes=getIntegerTypes(types);
 		PreparedStatement prepStat = conn.prepareStatement(insert.toString() + values.toString());
 
 		int rows = query.getRecordcount();
-		int count = usedCols.size();
+		int count = targetCols.size();
 		String col = null;
 
 		QueryColumn[] columns = new QueryColumn[count];
 		for (int i = 0; i < count; i++) {
-			columns[i] = query.getColumn(usedCols.get(i));
+			columns[i] = query.getColumn(targetCols.get(i));
 		}
-		aprint.o(types);
-		aprint.o(innerTypes);
-		aprint.o(usedCols);
+		aprint.o(columns);
+		aprint.o(tableCols);
+		aprint.o(srcTypes);
+		aprint.o(srcQueryTypes);
+		aprint.o(targetTypes);
+		aprint.o(targetCols);
 		for (int y = 0; y < rows; y++) {
 			for (int i = 0; i < count; i++) {
-				int type = innerTypes[i];
+				int type = targetTypes[i];
 				Object value = columns[i].get(y + 1, null);
-				col = usedCols.get(i);
+				col = targetCols.get(i);
 
 				// print.out("*** "+type+":"+Caster.toString(value));
 				if (doSimpleTypes) {
 					prepStat.setObject(i + 1, Caster.toString(value));
 				}
 				else {
-					if (value == null) prepStat.setNull(i + 1, types[i]);
+					if (value == null) prepStat.setNull(i + 1, type);
 					else if (type == BINARY) prepStat.setBytes(i + 1, Caster.toBinary(value));
 					else if (type == DATE) {
 						// print.out(new java.util.Date(new
@@ -314,7 +318,7 @@ public final class HSQLDBHandler {
 
 	/**
 	 * wrap the execute statement, urrghh ugly
-	 * 
+	 *
 	 * @param conn
 	 * @param sql
 	 */
@@ -329,20 +333,20 @@ public final class HSQLDBHandler {
 
 	/**
 	 * toggle database session
-	 * 
+	 *
 	 * @param conn
 	 * @param sql
 	 * @throws DatabaseException
 	 */
 	private static void _executeStatement(Connection conn, String sql) throws SQLException {
 		Statement stat = conn.createStatement();
-		stat.execute(sql);		
+		stat.execute(sql);
 		//DBUtil.commitEL(conn);
 	}
 
 	/**
 	 * find out which columns are used for query, by creating a view and reading the VIEW_COLUMN_USAGE
-	 * 
+	 *
 	 * @param conn
 	 * @param sql
 	 * @throws DatabaseException
@@ -355,19 +359,19 @@ public final class HSQLDBHandler {
 		String view = "V_QOQ_TEMP";
 		Struct tables = new StructImpl();
 		//reurn tables; */
-		
+
 		// this doesn't work yet, I think due to hsqldb being ancient aka 1.8.0
 		// INFORMATION_SCHEMA.VIEW_COLUMN_USAGE doesn't exist
 		// if VIEW_COLUMN_USAGE doesn't contain all the columns required, we could use the QoQ parser?
 		try {
 			Statement stat = conn.createStatement();
 			stat.execute("CREATE VIEW " + view + " AS " + sql.toString());
-			
+
 			StringBuilder viewUsage = new StringBuilder("SELECT COLUMN_NAME, TABLE_NAME ");
 			viewUsage.append("FROM INFORMATION_SCHEMA.VIEW_COLUMN_USAGE WHERE VIEW_NAME='");
 			viewUsage.append(view);
 			viewUsage.append("' ORDER BY TABLE_NAME, COLUMN_NAME");
-			rs = stat.executeQuery(viewUsage.toString()); 
+			rs = stat.executeQuery(viewUsage.toString());
 			// dump out the column names, not sure what they are lol (can be removed)
 			rsmd = rs.getMetaData();
 			int columnCount = rsmd.getColumnCount();
@@ -381,8 +385,6 @@ public final class HSQLDBHandler {
 				SystemOut.print("Column : [" + name + "] at pos " + i);
 			}
 
-			
-			
 			// load used tables and columns into a nested struct
 			while(rs.next()){
 				Key tableName = Caster.toKey(rs.getString(tablePos));
@@ -396,8 +398,9 @@ public final class HSQLDBHandler {
 			// don't need the view anymore, bye bye
 			stat.execute("DROP VIEW " + view);
 		} catch (Exception e) {
-			aprint.o(e);
-			SystemOut.print("Exception: " + e.toString());
+			aprint.o(e.getMessage());
+			SystemOut.print("VIEW Exception, fall back to loading all data: [" + e.toString() + "], sql [" + sql.toString() + "]");
+			tables = null; // give up trying to be smart
 		} finally {
 			try {
 				if (rs != null) {
@@ -547,7 +550,7 @@ public final class HSQLDBHandler {
 
 			//executeStatement(conn, "CONNECT"); // create a new HSQLDB session for temp tables
 			DBUtil.setAutoCommitEL(conn, false);
-			
+
 			// sql.setSQLString(HSQLUtil.sqlToZQL(sql.getSQLString(),false));
 			try {
 				// we now only lock the data loading, not the execution of the query
@@ -565,18 +568,18 @@ public final class HSQLDBHandler {
 						modSql = StringUtil.replace(sql.getSQLString(), cfQueryName, dbTableName, false);
 						sql.setSQLString(modSql);
 						if (sql.getItems() != null && sql.getItems().length > 0) sql = new SQLImpl(sql.toString());
-						
-						createTable(conn, pc, dbTableName, cfQueryName, doSimpleTypes); 
+
+						createTable(conn, pc, dbTableName, cfQueryName, doSimpleTypes);
 						qoqTables.add(dbTableName);
 					}
-					
+
 					SystemOut.print("QoQ HSQLDB CREATED TABLES: " + sql.toString());
 
 					// create the sql as a view, to find out which table columns are needed
 					Struct allTableColumns = getUsedColumnsForQuery(conn, sql);
 					Struct tableColumns = null;
 					Key tableKey = null;
-					
+
 					// load data into tables
 					it = tables.iterator();
 					while (it.hasNext()) {
@@ -584,7 +587,7 @@ public final class HSQLDBHandler {
 						dbTableName = cfQueryName.replace('.', '_');
 
 						tableKey = Caster.toKey(dbTableName);
-						if (allTableColumns.containsKey(tableKey)){
+						if (allTableColumns != null && allTableColumns.containsKey(tableKey)){
 							tableColumns = ((Struct) allTableColumns.get(tableKey));
 						} else {
 							tableColumns = null;
@@ -592,7 +595,7 @@ public final class HSQLDBHandler {
 
 						// only populate tables with data if there are used columns, or no needed column data at all
 						if (tableColumns == null || tableColumns.size() > 0){
-							populateTable(conn, pc, dbTableName, cfQueryName , doSimpleTypes, tableColumns); 
+							populateTable(conn, pc, dbTableName, cfQueryName , doSimpleTypes, tableColumns);
 						}
 					}
 
