@@ -1,4 +1,4 @@
-component extends = "org.lucee.cfml.test.LuceeTestCase" labels="qoq" skip=true {
+component extends = "org.lucee.cfml.test.LuceeTestCase" labels="qoq" {
 
 	function run( testResults, testBox ){
 
