@@ -202,10 +202,11 @@ public final class HSQLDBHandler {
 
 		// INSERT STATEMENT
 		// HashMap integerTypes=getIntegerTypes(types);
-		PreparedStatement prepStat = conn.prepareStatement(insert.toString() + values.toString());
-		conn.setAutoCommit(false);
 		Statement stat = conn.createStatement();
 		stat.execute("SET FILES LOG FALSE");
+		conn.setAutoCommit(false);
+
+		PreparedStatement prepStat = conn.prepareStatement(insert.toString() + values.toString());
 		
 		int rows = query.getRecordcount();
 		int count = targetCols.size();
@@ -260,7 +261,7 @@ public final class HSQLDBHandler {
 			if (y % 5000 == 0)
 				prepStat.executeBatch();
 		}
-		prepStat.executeBatch();
+		if (rows > 0) prepStat.executeBatch();
 		conn.commit();
 		Statement stat2 = conn.createStatement();
 		stat2.execute("SET FILES LOG TRUE");
@@ -365,6 +366,9 @@ public final class HSQLDBHandler {
 	 * @throws DatabaseException
 	 */
 	private static Struct getUsedColumnsForQuery(Connection conn, SQL sql) throws SQLException {
+
+		// TODO this could be potentially cached against the sql text
+
 		Stopwatch stopwatch = new Stopwatch(Stopwatch.UNIT_MILLI);
 		stopwatch.start();
 		ResultSet rs = null;
@@ -616,7 +620,10 @@ public final class HSQLDBHandler {
 				DBUtil.setReadOnlyEL(conn, true);
 				try {
 					nqr = new QueryImpl(pc, dc, sql, maxrows, fetchsize, timeout, "query", null, false, false, null);
-				} // need a catch here or we return a null
+				} catch (PageException pe) {
+					// need a catch here or we return a null
+					throw pe;
+				}
 				finally {
 					DBUtil.setReadOnlyEL(conn, false);
 					DBUtil.commitEL(conn);
@@ -630,7 +637,8 @@ public final class HSQLDBHandler {
 			}
 		}
 		catch (Exception ee ){
-			aprint.o(ee);
+			DatabaseException de = new DatabaseException("QoQ HSQLDB: error executing sql statement on query [" + ee.getMessage() + "]", null , sql, null);
+			throw ee;
 		}
 		finally {
 			if (conn != null) {
