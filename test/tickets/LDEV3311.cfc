@@ -15,7 +15,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 				querySetCell( t1, col, "lucee rocks", 1 );
 			}
 			querySetCell( t2, "id", "lucee rocks", 1 );
-			/*
+			
 			it( title='QoQ select * from table with reserved word as column name with HSQLDB (one col)' , body=function() {
 				// force fallback to hsqldb via join
 				var q = QueryExecute(
@@ -79,7 +79,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 				expect( q ).toBeQuery();
 				expect( q.recordcount ).toBe( 1 );
 			});
-			*/
+			
 			it( title='Qoq select join from large tables' , body=function() {
 				//var src = extensionList();
 
