@@ -10,14 +10,17 @@ import javax.tools.DiagnosticCollector;
 import javax.tools.JavaFileObject;
 import javax.tools.ToolProvider;
 
-import lucee.loader.engine.CFMLEngineFactory;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.exp.ApplicationException;
-import lucee.runtime.osgi.OSGiUtil;
 
 public class JVMCompiler implements Compiler {
 
-	public byte[] compile(SourceCode sc) throws ApplicationException, JavaCompilerException {
-		ClassLoader cl = CFMLEngineFactory.getInstance().getCFMLEngineFactory().getClass().getClassLoader();
+	@Override
+	public byte[] compile(ConfigPro config, SourceCode sc) throws ApplicationException, JavaCompilerException {
+		ClassLoader cl = config.getClassLoaderEnv();
+
+		// ClassLoader cl =
+		// CFMLEngineFactory.getInstance().getCFMLEngineFactory().getClass().getClassLoader();
 		Collection<SourceCode> compilationUnits = new ArrayList<>();
 		compilationUnits.add(sc);
 		DynamicClassLoader dcl = new DynamicClassLoader(cl);
@@ -30,8 +33,8 @@ public class JVMCompiler implements Compiler {
 		List<String> options = new ArrayList<String>();
 
 		// TODO MUST better way to do this!!!
-		options.add("-classpath");
-		options.add(OSGiUtil.getClassPath());
+		// options.add("-classpath");
+		// options.add(OSGiUtil.getClassPath());
 
 		DiagnosticCollector<JavaFileObject> collector = new DiagnosticCollector<>();
 

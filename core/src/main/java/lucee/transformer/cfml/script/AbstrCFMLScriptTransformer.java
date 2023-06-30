@@ -39,6 +39,7 @@ import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.Component;
 import lucee.runtime.PageSource;
 import lucee.runtime.component.Member;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.Constants;
 import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.exp.TemplateException;
@@ -1242,13 +1243,12 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 			String id = data.page.registerJavaFunctionName(functionName);
 			lucee.commons.lang.compiler.SourceCode _sc = fd.createSourceCode(ps, javaCode, id, functionName, access, modifier, hint, args, output, bufferOutput, displayName,
 					description, returnFormat, secureJson, verifyClient, localMode);
-			JavaFunction jf = new JavaFunction(ps, _sc, CompilerFactory.getInstance().compile(_sc));
+			JavaFunction jf = new JavaFunction(ps, _sc, CompilerFactory.getInstance().compile((ConfigPro) data.config, _sc));
 
 			return jf;
 		}
 		catch (JavaCompilerException e) {
 			Throwable cause = e.getCause();
-
 			TemplateException te = new TemplateException(data.srcCode, (int) (start.line + (e.getLineNumber() - 24/* 24 lines of generated java code in front of it */)), 0,
 					e.getMessage());
 			// te.setStackTrace(e.getStackTrace());
@@ -1256,8 +1256,10 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 			throw te;
 		}
 		catch (Exception e) {
+			Throwable cause = e.getCause();
 			TemplateException te = new TemplateException(data.srcCode, start.line, 0, e.getMessage());
-			te.setStackTrace(e.getStackTrace());
+			// te.setStackTrace(e.getStackTrace());
+			if (cause != null) te.initCause(cause);
 			throw te;
 		}
 
