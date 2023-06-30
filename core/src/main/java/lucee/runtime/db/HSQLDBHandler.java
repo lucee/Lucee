@@ -269,7 +269,7 @@ public final class HSQLDBHandler {
 		if (type == Types.NCLOB) return "CLOB";
 		if (type == Types.NVARCHAR) return "VARCHAR_IGNORECASE";
 		if (type == Types.VARCHAR) return "VARCHAR_IGNORECASE";
-		if (type == Types.JAVA_OBJECT) return "VARCHAR_IGNORECASE";
+		if (type == Types.JAVA_OBJECT) return "OBJECT";
 
 		return QueryImpl.getColumTypeName(type);
 
