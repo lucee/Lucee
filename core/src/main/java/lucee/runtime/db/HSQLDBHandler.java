@@ -212,12 +212,14 @@ public final class HSQLDBHandler {
 		for (int i = 0; i < count; i++) {
 			columns[i] = query.getColumn(targetCols.get(i));
 		}
+		/*
 		aprint.o(columns);
 		aprint.o(tableCols);
 		aprint.o(srcTypes);
 		aprint.o(srcQueryTypes);
 		aprint.o(targetTypes);
 		aprint.o(targetCols);
+		 */
 		for (int y = 0; y < rows; y++) {
 			for (int i = 0; i < count; i++) {
 				int type = targetTypes[i];
@@ -398,7 +400,7 @@ public final class HSQLDBHandler {
 			// don't need the view anymore, bye bye
 			stat.execute("DROP VIEW " + view);
 		} catch (Exception e) {
-			aprint.o(e.getMessage());
+			//aprint.o(e.getMessage());
 			SystemOut.print("VIEW Exception, fall back to loading all data: [" + e.toString() + "], sql [" + sql.toString() + "]");
 			tables = null; // give up trying to be smart
 		} finally {
@@ -641,6 +643,7 @@ public final class HSQLDBHandler {
 
 			// manager.releaseConnection(dc);
 		}
+		// TOOD we are swalloing errors, shouldn't be passing a null value bacl
 		if (nqr != null) nqr.setExecutionTime(stopwatch.time());
 		return nqr;
 	}
