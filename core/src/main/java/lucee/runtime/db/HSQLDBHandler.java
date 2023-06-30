@@ -216,7 +216,7 @@ public final class HSQLDBHandler {
 		aprint.o(usedCols);
 		for (int y = 0; y < rows; y++) {
 			for (int i = 0; i < count; i++) {
-				int type = innerTypes[i+1];
+				int type = innerTypes[i];
 				Object value = columns[i].get(y + 1, null);
 				col = usedCols.get(i);
 
@@ -536,22 +536,22 @@ public final class HSQLDBHandler {
 	public static QueryImpl __execute(PageContext pc, SQL sql, int maxrows, int fetchsize, TimeSpan timeout, Stopwatch stopwatch, Set<String> tables, boolean doSimpleTypes)
 			throws PageException {
 		ArrayList<String> qoqTables = new ArrayList<String>();
-		synchronized (lock) {
+		QueryImpl nqr = null;
+		ConfigPro config = (ConfigPro) pc.getConfig();
+		DatasourceConnection dc = null;
+		Connection conn = null;
+		try {
+			DatasourceConnPool pool = config.getDatasourceConnectionPool(config.getDataSource(QOQ_DATASOURCE_NAME), "sa", "");
+			dc = pool.borrowObject();
+			conn = dc.getConnection();
 
-			QueryImpl nqr = null;
-			ConfigPro config = (ConfigPro) pc.getConfig();
-			DatasourceConnection dc = null;
-			Connection conn = null;
+			//executeStatement(conn, "CONNECT"); // create a new HSQLDB session for temp tables
+			DBUtil.setAutoCommitEL(conn, false);
+			
+			// sql.setSQLString(HSQLUtil.sqlToZQL(sql.getSQLString(),false));
 			try {
-				DatasourceConnPool pool = config.getDatasourceConnectionPool(config.getDataSource(QOQ_DATASOURCE_NAME), "sa", "");
-				dc = pool.borrowObject();
-				conn = dc.getConnection();
-
-				//executeStatement(conn, "CONNECT"); // create a new HSQLDB session for temp tables
-				DBUtil.setAutoCommitEL(conn, false);
-
-				// sql.setSQLString(HSQLUtil.sqlToZQL(sql.getSQLString(),false));
-				try {
+				// we now only lock the data loading, not the execution of the query
+				synchronized (lock) {
 					Iterator<String> it = tables.iterator();
 					String cfQueryName = null; // name of the source query variable
 					String dbTableName = null; // name of the table in the database
@@ -613,23 +613,32 @@ public final class HSQLDBHandler {
 					throw (IllegalQoQException) (new IllegalQoQException("QoQ HSQLDB: error executing sql statement on query.", e.getMessage(), sql, null)
 							.initCause(e));
 				}
-
-			}
-			catch (Exception ee ){
-				aprint.o(ee);
-			}
-			finally {
-				if (conn != null) {
-					removeAll(conn, qoqTables);
-					//executeStatement(conn, "DISCONNECT"); // close HSQLDB session with temp tables
+				finally {
+					DBUtil.setReadOnlyEL(conn, false);
+					DBUtil.commitEL(conn);
 					DBUtil.setAutoCommitEL(conn, true);
 				}
-				if (dc != null) ((DatasourceConnectionPro) dc).release();
 
-				// manager.releaseConnection(dc);
 			}
-			nqr.setExecutionTime(stopwatch.time());
-			return nqr;
+			catch (SQLException e) {
+				DatabaseException de = new DatabaseException("QoQ HSQLDB: error executing sql statement on query [" + e.getMessage() + "]", null , sql, null);
+				throw de;
+			}
 		}
+		catch (Exception ee ){
+			aprint.o(ee);
+		}
+		finally {
+			if (conn != null) {
+				removeAll(conn, qoqTables);
+				//executeStatement(conn, "DISCONNECT"); // close HSQLDB session with temp tables
+				DBUtil.setAutoCommitEL(conn, true);
+			}
+			if (dc != null) ((DatasourceConnectionPro) dc).release();
+
+			// manager.releaseConnection(dc);
+		}
+		if (nqr != null) nqr.setExecutionTime(stopwatch.time());
+		return nqr;
 	}
 }
