@@ -211,6 +211,7 @@ public final class HSQLDBHandler {
 		int rows = query.getRecordcount();
 		int count = targetCols.size();
 		String col = null;
+		int rowsToCommit = 0;
 
 		QueryColumn[] columns = new QueryColumn[count];
 		for (int i = 0; i < count; i++) {
@@ -254,14 +255,18 @@ public final class HSQLDBHandler {
 					else if (type == DOUBLE) prepStat.setDouble(i + 1, (value.equals("")) ? 0 : Caster.toDoubleValue(query.getAt(col, y + 1)));
 					else if (type == INT) prepStat.setLong(i + 1, (value.equals("")) ? 0 : Caster.toLongValue(query.getAt(col, y + 1)));
 					else if (type == STRING) prepStat.setObject(i + 1, Caster.toString(value));
+					else SystemOut.print("HSQLDB QoQ unsupported type [" + type + " / " + toUsableType(type) + "] at row [" + y + "]");
 				}
 
 			}
+			rowsToCommit++;
 			prepStat.addBatch();
-			if (y % 5000 == 0)
+			if (y % 5000 == 0){
 				prepStat.executeBatch();
+				rowsToCommit = 0;
+			}
 		}
-		if (rows > 0) prepStat.executeBatch();
+		if (rowsToCommit > 0) prepStat.executeBatch();
 		conn.commit();
 		Statement stat2 = conn.createStatement();
 		stat2.execute("SET FILES LOG TRUE");
@@ -632,13 +637,17 @@ public final class HSQLDBHandler {
 
 			}
 			catch (SQLException e) {
-				DatabaseException de = new DatabaseException("QoQ HSQLDB: error executing sql statement on query [" + e.getMessage() + "]", null , sql, null);
-				throw de;
+				throw (IllegalQoQException) (new IllegalQoQException("QoQ HSQLDB: error executing sql statement on query.", e.getMessage(), sql, null)
+							.initCause(e));
+				//DatabaseException de = new DatabaseException("QoQ HSQLDB: error executing sql statement on query [" + e.getMessage() + "]", null , sql, null);
+				//throw de;
 			}
 		}
 		catch (Exception ee ){
-			DatabaseException de = new DatabaseException("QoQ HSQLDB: error executing sql statement on query [" + ee.getMessage() + "]", null , sql, null);
-			throw ee;
+			throw (IllegalQoQException) (new IllegalQoQException("QoQ HSQLDB: error executing sql statement on query.", ee.getMessage(), sql, null)
+							.initCause(ee));
+			//DatabaseException de = new DatabaseException("QoQ HSQLDB: error executing sql statement on query [" + ee.getMessage() + "]", null , sql, null);
+			//throw ee;
 		}
 		finally {
 			if (conn != null) {
