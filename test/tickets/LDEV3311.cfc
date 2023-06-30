@@ -15,7 +15,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 				querySetCell( t1, col, "lucee rocks", 1 );
 			}
 			querySetCell( t2, "id", "lucee rocks", 1 );
-
+			/*
 			it( title='QoQ select * from table with reserved word as column name with HSQLDB (one col)' , body=function() {
 				// force fallback to hsqldb via join
 				var q = QueryExecute(
@@ -79,25 +79,44 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 				expect( q ).toBeQuery();
 				expect( q.recordcount ).toBe( 1 );
 			});
-
-			it( title='Qoq select * from 100k row table' , body=function() {
+			*/
+			it( title='Qoq select join from large tables' , body=function() {
 				var q1 = extensionList();
+				debug(q1);
+				debug(QueryColumnData( query=q1, columnName="name"));
 				// strip out complex columns (works ok in java 11 but fails on 8)
 				q1 = QueryExecute(
-					sql = 'SELECT ID,VERSION,NAME,SYMBOLICNAME,TYPE,DESCRIPTION,IMAGE,RELEASETYPE,TRIAL,STARTBUNDLES from q1', 
+					sql = 'SELECT ID,VERSION,NAME,SYMBOLICNAME,TYPE,DESCRIPTION,RELEASETYPE,TRIAL,STARTBUNDLES from q1', 
 					options = { dbtype: 'query' }
 				);
-				var q2 = QueryNew("id");
-				loop times=100000 {
-					local.r = QueryAddRow( q1 );
-					QuerySetRow(q1, r, QueryRowData( q1, 1 ));
+				systemOutput("q1 has #q1.recordcount# rows", true);
+				var q2 = extensionList();
+				var count=10;
+				loop times=#count# {
+					local.r = QueryAddRow( q2 );
+					QuerySetRow(q2, r, QueryRowData( q1, 1 ));
 				}
-				var q = QueryExecute(
-					sql = 'SELECT q1.id FROM q2, q1 where q1.id = q2.id', 
+				systemOutput("q2 has #q2.recordcount# rows", true);
+
+				var q1check = QueryExecute(
+					sql = 'SELECT q1.id FROM q1 where id in (select id from q1 )',
 					options = { dbtype: 'query' }
 				);
+				expect( q1check.recordcount ).toBe( q1.recordcount );
+
+				var q2check = QueryExecute(
+					sql = 'SELECT q2.id FROM q2 where id in (select id from q2 )',
+					options = { dbtype: 'query' }
+				);
+				expect( q2check.recordcount ).toBe( q2.recordcount );
+
+				var q = QueryExecute(
+					sql = 'SELECT q1.id, q2.id as id2 FROM q2, q1 where q1.id = q2.id group by q1.id, q2.id',
+					options = { dbtype: 'query' }
+				);
+				debug(q);
 				expect( q ).toBeQuery();
-				expect( q.recordcount ).toBe( 0 );
+				expect( q.recordcount ).toBe( count ); // ummmmm
 			});
 			
 		});

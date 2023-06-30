@@ -139,7 +139,7 @@ public final class HSQLDBHandler {
 		create.append(")");
 		SystemOut.print("SQL: " + Caster.toString(create));
 		stat.execute(create.toString());
-		SystemOut.print("Create Table: [" + dbTableName + "] took " + stopwatch.time());
+		//SystemOut.print("Create Table: [" + dbTableName + "] took " + stopwatch.time());
 	}
 
 	/**
@@ -197,8 +197,8 @@ public final class HSQLDBHandler {
 			return;
 		}
 
-		SystemOut.print("SQL: " + Caster.toString(insert));
-		SystemOut.print("SQL: " + Caster.toString(values));
+		//SystemOut.print("SQL: " + Caster.toString(insert));
+		//SystemOut.print("SQL: " + Caster.toString(values));
 
 		// INSERT STATEMENT
 		// HashMap integerTypes=getIntegerTypes(types);
@@ -212,8 +212,9 @@ public final class HSQLDBHandler {
 		for (int i = 0; i < count; i++) {
 			columns[i] = query.getColumn(targetCols.get(i));
 		}
+		aprint.o(query);
 		/*
-		aprint.o(columns);
+		aprint.o(query);
 		aprint.o(tableCols);
 		aprint.o(srcTypes);
 		aprint.o(srcQueryTypes);
@@ -384,7 +385,7 @@ public final class HSQLDBHandler {
 				name = rsmd.getColumnName(i);
 				if (name == "COLUMN_NAME") colPos = i;
 				else if (name == "TABLE_NAME") tablePos = i;
-				SystemOut.print("Column : [" + name + "] at pos " + i);
+				//SystemOut.print("Column : [" + name + "] at pos " + i);
 			}
 
 			// load used tables and columns into a nested struct
@@ -395,8 +396,8 @@ public final class HSQLDBHandler {
 				Struct tableCols = ((Struct) tables.get(tableName));
 				tableCols.setEL(Caster.toKey(rs.getString(colPos)), null);
 			}
-			aprint.o(rs);
-			aprint.o(tables);
+			//aprint.o(rs);
+			//aprint.o(tables);
 			// don't need the view anymore, bye bye
 			stat.execute("DROP VIEW " + view);
 		} catch (Exception e) {
