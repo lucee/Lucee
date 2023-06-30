@@ -167,7 +167,7 @@ component {
 	public void function loadServiceConfig() localmode=true {
 		systemOutput( "", true) ;
 		systemOutput("-------------- Test Services ------------", true );
-		services = ListToArray("oracle,MySQL,MSsql,postgres,h2,mongoDb,smtp,pop,imap,s3,s3_custom,s3_google,ftp,sftp,memcached,redis,ldap");
+		services = ListToArray("oracle,MySQL,MSsql,postgres,h2,mongoDb,smtp,pop,imap,s3,s3_custom,s3_google,s3_backblaze,ftp,sftp,memcached,redis,ldap");
 		// can take a while, so we check them them in parallel
 
 		services.each( function( service ) localmode=true {
@@ -202,6 +202,9 @@ component {
 							verify = verifyS3Custom(cfg);
 							break;
 						case "s3_google":
+							verify = verifyS3Custom(cfg);
+							break;
+						case "s3_backblaze":
 							verify = verifyS3Custom(cfg);
 							break;
 						case "imap":
@@ -635,6 +638,9 @@ component {
 				return s3;
 			case "s3_google":
 				s3 = server._getSystemPropOrEnvVars( "ACCESS_KEY_ID, SECRET_KEY, HOST", "S3_GOOGLE_" );
+				return s3;
+			case "s3_backblaze":
+				s3 = server._getSystemPropOrEnvVars( "ACCESS_KEY_ID, SECRET_KEY, HOST", "S3_BACKBLAZE_" );
 				return s3;
 			case "memcached":
 				memcached = server._getSystemPropOrEnvVars( "SERVER, PORT", "MEMCACHED_" );

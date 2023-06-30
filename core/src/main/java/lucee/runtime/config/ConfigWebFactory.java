@@ -2213,12 +2213,11 @@ public final class ConfigWebFactory extends ConfigFactory {
 			}
 
 			// Default query of query DB
-			// TODO last version of hsqldb to support java 8 is 2.5.2
 			try {
 				setDatasource(config, datasources, QOQ_DATASOURCE_NAME,
 						new ClassDefinitionImpl("org.hsqldb.jdbcDriver", "org.lucee.hsqldb", "2.7.2.jdk8", config.getIdentification()), "hypersonic-hsqldb", "", -1,
-						"jdbc:hsqldb:.", "sa", "", null, DEFAULT_MAX_CONNECTION, -1, -1, 60000, 0, 0, 0, true, true, DataSource.ALLOW_ALL, false, false, null, new StructImpl(), "",
-						ParamSyntax.DEFAULT, false, false, false, false);
+						"jdbc:hsqldb:mem:tempQoQ;sql.regular_names=false;", "sa", "", null, DEFAULT_MAX_CONNECTION, -1, -1, 60000, 0, 0, 0, true, true, DataSource.ALLOW_ALL, false, false, null, 
+						new StructImpl(), "", ParamSyntax.DEFAULT, false, false, false, false);
 			}
 			catch (Throwable t) {
 				ExceptionUtil.rethrowIfNecessary(t);
