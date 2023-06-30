@@ -115,6 +115,18 @@
 		</table>
 	</div>
 
+	<!--- make sure the resource file get directly and internally requested, so they won't get a 404 aborted --->
+	<cfif structKeyExists(url, "reinit") && url.reinit>
+		<cfset reqRelPath=left(cgi.request_url, -len( listLast( cgi.request_url,"/") ) -1 )>
+		<cfset reqRelPath=left( reqRelPath, -len( listLast( reqRelPath ,"/") ) -1 )>
+		<cfhttp url="#reqRelPath#/res/js/base.min.js.cfm" result="test">	
+		<cfhttp url="#reqRelPath#/res/js/jquery.modal.min.js.cfm">	
+		<cfhttp url="#reqRelPath#/res/js/jquery.blockUI-#resNameAppendix#.js.cfm">	
+		<cfhttp url="#reqRelPath#/res/js/admin-#resNameAppendix#.js.cfm">	
+		<cfhttp url="#reqRelPath#/res/js/util-#resNameAppendix#.min.js.cfm">	
+	</cfif>
+
+
 	<script src="../res/js/base.min.js.cfm" type="text/javascript"></script>
 	<script src="../res/js/jquery.modal.min.js.cfm" type="text/javascript"></script>
 	<script src="../res/js/jquery.blockUI-#resNameAppendix#.js.cfm" type="text/javascript"></script>
