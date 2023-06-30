@@ -5,10 +5,12 @@ import java.util.List;
 
 import org.codehaus.commons.compiler.CompileException;
 import org.codehaus.commons.compiler.ICompiler;
+import org.codehaus.commons.compiler.Location;
 import org.codehaus.commons.compiler.util.resource.Resource;
 import org.codehaus.commons.compiler.util.resource.StringResource;
 import org.codehaus.janino.CompilerFactory;
 
+import lucee.print;
 import lucee.commons.lang.compiler.janino.ResourceCreatorImpl;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.exp.PageException;
@@ -71,14 +73,24 @@ public class JaninoCompiler implements Compiler {
 			compiler.setTargetVersion(8);
 			ResourceCreatorImpl resourceCreator = new ResourceCreatorImpl();
 			compiler.setClassFileCreator(resourceCreator);
+			// print.e(">" + sc.getCharContent(true).toString() + "<");
 			compiler.compile(new Resource[] { new StringResource(sc.getClassName(), sc.getCharContent(true).toString()) });
 			return resourceCreator.getBytes(true);// TODO is there a more direct approch
 
 		}
 		catch (CompileException e) {
-			throw Caster.toPageException(e); // TODO make a JavaCompilerException
+			Throwable cause = e.getCause();
+			print.e(e);
+			Location loc = e.getLocation();
+			String msg = e.getMessage();
+			int index = msg.indexOf(':');
+			if (index != -1) msg = msg.substring(index + 1); // TODO is there a better way to do this?
+			JavaCompilerException jce = new JavaCompilerException(msg, loc.getLineNumber(), loc.getColumnNumber(), null);
+			if (cause != null) jce.initCause(cause);
+			throw jce;
 		}
 		catch (Exception e) {
+			print.e(e);
 			throw Caster.toPageException(e);
 		}
 	}

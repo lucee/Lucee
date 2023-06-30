@@ -1247,8 +1247,12 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 			return jf;
 		}
 		catch (JavaCompilerException e) {
-			TemplateException te = new TemplateException(data.srcCode, (int) (start.line + e.getLineNumber()), (int) e.getColumnNumber(), e.getMessage());
-			te.setStackTrace(e.getStackTrace());
+			Throwable cause = e.getCause();
+
+			TemplateException te = new TemplateException(data.srcCode, (int) (start.line + (e.getLineNumber() - 24/* 24 lines of generated java code in front of it */)), 0,
+					e.getMessage());
+			// te.setStackTrace(e.getStackTrace());
+			if (cause != null) te.initCause(cause);
 			throw te;
 		}
 		catch (Exception e) {
