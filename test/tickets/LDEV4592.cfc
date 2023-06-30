@@ -4,7 +4,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" labels="qoq" {
 
 		describe( "test hsqldb qoq support ", function(){
 
-			xit( "test qoq same column types ", function(){
+			it( "test qoq same column types ", function(){
 
 				var news = queryNew("id,title","bit,varchar",[  // note bit
 					{"id":1,"title":"Dewey defeats Truman"},

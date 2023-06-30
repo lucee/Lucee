@@ -63,6 +63,7 @@ import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 
 import lucee.commons.lang.SystemOut;
+import lucee.aprint;
 /**
  * class to reexecute queries on the resultset object inside the cfml environment
  */
@@ -210,9 +211,12 @@ public final class HSQLDBHandler {
 		for (int i = 0; i < count; i++) {
 			columns[i] = query.getColumn(usedCols.get(i));
 		}
+		aprint.o(types);
+		aprint.o(innerTypes);
+		aprint.o(usedCols);
 		for (int y = 0; y < rows; y++) {
 			for (int i = 0; i < count; i++) {
-				int type = innerTypes[i];
+				int type = innerTypes[i+1];
 				Object value = columns[i].get(y + 1, null);
 				col = usedCols.get(i);
 
@@ -350,8 +354,8 @@ public final class HSQLDBHandler {
 		ResultSetMetaData rsmd = null;
 		String view = "V_QOQ_TEMP";
 		Struct tables = new StructImpl();
-		return tables;
-		/*
+		//reurn tables; */
+		
 		// this doesn't work yet, I think due to hsqldb being ancient aka 1.8.0
 		// INFORMATION_SCHEMA.VIEW_COLUMN_USAGE doesn't exist
 		// if VIEW_COLUMN_USAGE doesn't contain all the columns required, we could use the QoQ parser?
@@ -368,24 +372,31 @@ public final class HSQLDBHandler {
 			rsmd = rs.getMetaData();
 			int columnCount = rsmd.getColumnCount();
 			String name = null;
+			int colPos = -1;
+			int tablePos = -1;
 			for (int i = 1; i <= columnCount; i++ ) {
 				name = rsmd.getColumnName(i);
-				SystemOut.print("View Column : [" + name + "]");
+				if (name == "COLUMN_NAME") colPos = i;
+				else if (name == "TABLE_NAME") tablePos = i;
+				SystemOut.print("Column : [" + name + "] at pos " + i);
 			}
+
 			
-			// load tables and columns into a nested struct
-			Key tableName = null;
-			Struct tableCols = null;
+			
+			// load used tables and columns into a nested struct
 			while(rs.next()){
-				tableName = Caster.toKey(rs.getString("TABLE_NAME"));
+				Key tableName = Caster.toKey(rs.getString(tablePos));
 				if (!tables.containsKey(tableName))
 					tables.setEL(tableName, new StructImpl());
-				tableCols = ((Struct) tables.get(tableName));
-				tableCols.setEl(Caster.toKey(rs.getString("COLUMN_NAME")), null); 
+				Struct tableCols = ((Struct) tables.get(tableName));
+				tableCols.setEL(Caster.toKey(rs.getString(colPos)), null);
 			}
+			aprint.o(rs);
+			aprint.o(tables);
 			// don't need the view anymore, bye bye
 			stat.execute("DROP VIEW " + view);
 		} catch (Exception e) {
+			aprint.o(e);
 			SystemOut.print("Exception: " + e.toString());
 		} finally {
 			try {
@@ -398,7 +409,6 @@ public final class HSQLDBHandler {
 		}
 		SystemOut.print("getUsedColumnsForQuery: took " + stopwatch.time());
 		return tables;
-		*/
 	}
 
 	/**
@@ -574,7 +584,11 @@ public final class HSQLDBHandler {
 						dbTableName = cfQueryName.replace('.', '_');
 
 						tableKey = Caster.toKey(dbTableName);
-						tableColumns = allTableColumns.containsKey(tableKey) ? ((Struct) tableColumns.get(tableKey)) : null;
+						if (allTableColumns.containsKey(tableKey)){
+							tableColumns = ((Struct) allTableColumns.get(tableKey));
+						} else {
+							tableColumns = null;
+						}
 
 						// only populate tables with data if there are used columns, or no needed column data at all
 						if (tableColumns == null || tableColumns.size() > 0){
@@ -598,6 +612,9 @@ public final class HSQLDBHandler {
 					throw de;
 				}
 
+			}
+			catch (Exception ee ){
+				aprint.o(ee);
 			}
 			finally {
 				if (conn != null) {
