@@ -106,7 +106,7 @@ import lucee.runtime.writer.CFMLWriter;
 import lucee.transformer.library.function.FunctionLib;
 import lucee.transformer.library.tag.TagLib;
 
-class SingleContextConfigWeb extends ConfigBase implements ConfigWebPro {
+class SingleContextConfigWeb extends ConfigBase implements ConfigWebInner {
 
 	private ConfigServerImpl cs;
 	protected Password password;
@@ -1985,6 +1985,7 @@ class SingleContextConfigWeb extends ConfigBase implements ConfigWebPro {
 		return cs.getPassword();
 	}
 
+	@Override
 	public void setIdentification(IdentificationWeb arg0) {
 		// ignore it, should not happen
 		LogUtil.log(Log.LEVEL_FATAL, "loading", "setting a web id for single context");

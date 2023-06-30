@@ -938,7 +938,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 				config = ConfigWebFactory.newInstanceMulti(this, factory, configServer, configDir, sg);
 			}
 			else {
-				config = ConfigWebFactory.newInstanceSingle(this, factory, configServer, configDir, sg);
+				config = ConfigWebFactory.newInstanceSingle(this, factory, configServer, configDir, sg, null);
 			}
 
 			if (ConfigWebFactory.LOG) LogUtil.log(configServer, Log.LEVEL_INFO, "startup", "Loaded config");

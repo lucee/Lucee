@@ -74,7 +74,7 @@ import lucee.runtime.writer.CFMLWriter;
 /**
  * Web Context
  */
-class MultiContextConfigWeb extends ConfigImpl implements ServletConfig, ConfigWebPro {
+class MultiContextConfigWeb extends ConfigImpl implements ServletConfig, ConfigWebInner {
 
 	private final ServletConfig config;
 	private final ConfigServerImpl configServer;

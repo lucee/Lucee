@@ -1828,11 +1828,12 @@ public class ConfigWebImpl implements ConfigWebPro {
 		return instance;
 	}
 
-	public void setInstance(ConfigWebPro instance) {
+	public ConfigWebImpl setInstance(ConfigWebPro instance) {
 		if (this.instance != null) {
 			this.instance.reset();
 		}
 		this.instance = instance;
+		return this;
 	}
 
 	@Override
