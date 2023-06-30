@@ -4,7 +4,7 @@ component {
 				array testLabels = [],
 				boolean testSkip = true,
 				boolean testDebug = false,
-				string testSuiteExtends = "" 
+				string testSuiteExtends = ""
 			){
 		variables.testFilter = arguments.testFilter;
 		variables.testLabels = arguments.testLabels;
@@ -51,7 +51,7 @@ component {
 			var extends = checkExtendsTestCase( meta, arguments.path ); // returns an empty string, unless error
 			if ( len( extends ) )
 				return extends;
-			
+
 			var labelCheck =  checkTestLabels( meta, arguments.path, variables.testLabels );
 			if ( len( labelCheck ) )
 				return labelCheck;
@@ -61,8 +61,8 @@ component {
 				if ( variables.testDebug ){
 					if ( !meta.skip && variables.testDebug ) {
 						printCompileException( arguments.path, meta._exception );
-					} 
-				} else if ( !variables.testSkip ){
+					}
+				} else if ( variables.testSkip ){
 					// throw an error on bad cfc test cases
 					// but ignore errors when using any labels, as some extensions might not be installed, causing compile syntax errors
 					printCompileException( arguments.path, meta._exception );
@@ -133,13 +133,14 @@ component {
 		systemOutput( "ERROR: #arguments.cfcPath#", true );
 		systemOutput( chr(9) & arguments.cfcatch.message, true );
 		if ( !isEmpty( arguments.cfcatch.tagContext ) ){
-			systemOutput( chr( 9 ) & "at line: " 
+			systemOutput( chr( 9 ) & "at line: "
 				& ( arguments.cfcatch.tagContext[1].line ?: "unknown")
 				& ", column: " & ( arguments.cfcatch.tagContext[1].column ?: "unknown")
-				, true 
+				, true
 			);
 			systemOutput( arguments.cfcatch.tagContext[1].codePrintPlain, true );
 		}
+		systemOutput( test._testRunner::trimJavaStackTrace(arguments.cfcatch.stacktrace), true );
 	}
 
 	// testbox mixes labels and skip, which is confusing, skip false should always mean skip, so we check it manually
@@ -201,7 +202,7 @@ component {
 			systemOutput(local, true);
 			systemOutput(left(src, 200), true);
 			throw "bad cfc [#arguments.cfcPath#], no closing statement ( '>'' or '{' ) for component/interface";
-		} 
+		}
 
 		local.snip = mid(src, ((isCfml > 0) ? isCfml : isScript), endStatement);
 		//systemOutput(local, true);
@@ -254,7 +255,7 @@ component {
 		} catch(e){
 			// systemOutput(e, true);
 			fileDelete( tempCFC );
-			rethrow;	
+			rethrow;
 		};
 		fileDelete( tempCFC );
 		// systemOutput( meta, true );
