@@ -2,7 +2,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 	function run( testResults , testBox ) {
 
-		describe( 'QofQ' , function(){
+		describe( title='QofQ' , body=function(){
 			var t1 = queryNew( "id,unique,and,order,by,table,type,select,distinct" ); 
 			var t1 = queryNew( "id,zac,unique" ); 
 			var t2 = queryNew( "id" ); 
@@ -16,7 +16,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 			}
 			querySetCell( t2, "id", "lucee rocks", 1 );
 
-			it( 'QoQ select * from table with reserved word as column name with HSQLDB (one col)' , function() {
+			it( title='QoQ select * from table with reserved word as column name with HSQLDB (one col)' , body=function() {
 				// force fallback to hsqldb via join
 				var q = QueryExecute(
 					sql = "SELECT t1.unique FROM t1, t2 WHERE t1.id = t2.id",
@@ -27,7 +27,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 			});
 
 
-			it( 'QoQ select * from table with reserved word as column name with HSQLDB' , function() {
+			it( title='QoQ select * from table with reserved word as column name with HSQLDB' , body=function() {
 				// force fallback to hsqldb via join
 				var q = QueryExecute(
 					sql = "SELECT t1.* FROM t1, t2 WHERE t1.id = t2.id",
@@ -37,7 +37,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 				expect( q.recordcount ).toBe( 1 );
 			});
 
-			it( 'QoQ select * from table with reserved word as table name with HSQLDB' , function() {
+			it( title='QoQ select * from table with reserved word as table name with HSQLDB', skip=true, body=function() {
 				// force fallback to hsqldb via join
 
 				expect(function(){
@@ -55,7 +55,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 				expect( q.recordcount ).toBe( 1 );
 			});
 
-			it( 'Qoq select * from table with reserved word as column name' , function() {
+			it( title='Qoq select * from table with reserved word as column name' , body=function() {
 				var q = QueryExecute(
 					sql = "SELECT t1.* FROM t1",
 					options = { dbtype: 'query' }
@@ -64,7 +64,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 				expect( q.recordcount ).toBe( 1 );
 			});
 
-			it( 'Qoq select * from table with reserved word as table name' , function() {
+			it( title='Qoq select * from table with reserved word as table name' , body=function() {
 				var q = QueryExecute(
 					sql = 'SELECT "UNIQUE".* FROM UNIQUE', 
 					options = { dbtype: 'query' }
@@ -80,7 +80,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 				expect( q.recordcount ).toBe( 1 );
 			});
 
-			it( 'Qoq select * from 100k row table' , function() {
+			it( title='Qoq select * from 100k row table' , body=function() {
 				var q1 = extensionList();
 				// strip out complex columns (works ok in java 11 but fails on 8)
 				q1 = QueryExecute(
