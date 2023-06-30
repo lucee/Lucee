@@ -752,18 +752,18 @@ public class SelectParser {
 			hasBracked.setValue(true);
 			return identifierBracked(raw);
 		}
-		else if (!(raw.isCurrentLetter() || raw.isCurrent('*') || raw.isCurrent('?') || raw.isCurrent('_'))) return null;
+		else if (!(raw.isCurrentLetter() || raw.isCurrent('*') || raw.isCurrent('?') || raw.isCurrent('_') || raw.isCurrent('$'))) return null;
 
 		int start = raw.getPos();
 		boolean first = true;
 		do {
 			raw.next();
-			if (first && !(raw.isCurrentLetter() || raw.isCurrentBetween('0', '9') || raw.isCurrent('*') || raw.isCurrent('?') || raw.isCurrent('_'))) {
+			if (first && !(raw.isCurrentLetter() || raw.isCurrentBetween('0', '9') || raw.isCurrent('*') || raw.isCurrent('?') || raw.isCurrent('_') || raw.isCurrent('$'))) {
 				break;
 			}
 			// Don't look for stuff like * after first letter or text like col1*col2 will get read
 			// as one single column name
-			else if (!(raw.isCurrentLetter() || raw.isCurrentBetween('0', '9') || raw.isCurrent('_'))) {
+			else if (!(raw.isCurrentLetter() || raw.isCurrentBetween('0', '9') || raw.isCurrent('_') || raw.isCurrent('$') )) {
 				break;
 			}
 			first = false;
