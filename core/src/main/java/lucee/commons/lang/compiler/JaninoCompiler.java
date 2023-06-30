@@ -13,7 +13,6 @@ import org.codehaus.commons.compiler.util.resource.StringResource;
 import org.codehaus.janino.ClassLoaderIClassLoader;
 import org.codehaus.janino.CompilerFactory;
 
-import lucee.print;
 import lucee.commons.lang.compiler.janino.ResourceCreatorImpl;
 import lucee.runtime.config.ConfigPro;
 import lucee.runtime.exp.PageException;
@@ -101,10 +100,8 @@ public class JaninoCompiler implements Compiler {
 		}
 		catch (CompileException e) {
 			Throwable cause = e.getCause();
-			print.e(e);
 			Location loc = e.getLocation();
 			String msg = e.getLocalizedMessage();
-			print.e(msg);
 			int index = msg.indexOf(':');
 			if (index != -1) msg = msg.substring(index + 1); // TODO is there a better way to do this?
 			JavaCompilerException jce = new JavaCompilerException(msg, loc.getLineNumber(), loc.getColumnNumber(), null);
@@ -112,7 +109,6 @@ public class JaninoCompiler implements Compiler {
 			throw jce;
 		}
 		catch (Exception e) {
-			print.e(e);
 			throw Caster.toPageException(e);
 		}
 	}

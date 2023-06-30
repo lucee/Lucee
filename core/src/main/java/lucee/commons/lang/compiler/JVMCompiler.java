@@ -12,6 +12,7 @@ import javax.tools.ToolProvider;
 
 import lucee.runtime.config.ConfigPro;
 import lucee.runtime.exp.ApplicationException;
+import lucee.runtime.osgi.OSGiUtil;
 
 public class JVMCompiler implements Compiler {
 
@@ -33,8 +34,8 @@ public class JVMCompiler implements Compiler {
 		List<String> options = new ArrayList<String>();
 
 		// TODO MUST better way to do this!!!
-		// options.add("-classpath");
-		// options.add(OSGiUtil.getClassPath());
+		options.add("-classpath");
+		options.add(OSGiUtil.getClassPath());
 
 		DiagnosticCollector<JavaFileObject> collector = new DiagnosticCollector<>();
 

@@ -4,14 +4,11 @@ import lucee.runtime.exp.ApplicationException;
 
 public class CompilerFactory {
 	public static Compiler getInstance() throws ApplicationException {
-		JVMCompiler jvm = new JVMCompiler();
-		if (false && jvm.supported()) {
-			return jvm;
-		}
-
 		JaninoCompiler janino = new JaninoCompiler();
-
 		if (janino.supported()) return janino;
+
+		JVMCompiler jvm = new JVMCompiler();
+		if (jvm.supported()) return jvm;
 
 		throw new ApplicationException("Java compiling is not suppprted with your current JVM Environment (" + System.getProperty("java.vendor") + " "
 				+ System.getProperty("java.version")
