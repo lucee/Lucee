@@ -354,6 +354,16 @@
       <version>0.16.0</version>
       <scope>provided</scope>
     </dependency>
+    <dependency>
+      <groupId>org.lucee</groupId>
+      <artifactId>janino</artifactId>
+      <version>3.1.9</version>
+    </dependency>
+    <dependency>
+      <groupId>org.lucee</groupId>
+      <artifactId>janino-commons-compiler</artifactId>
+      <version>3.1.9</version>
+    </dependency>
   </dependencies>
 
   <repositories>

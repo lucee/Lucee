@@ -11,16 +11,12 @@ import javax.tools.JavaFileObject;
 import javax.tools.ToolProvider;
 
 import lucee.loader.engine.CFMLEngineFactory;
-import lucee.runtime.PageSource;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.osgi.OSGiUtil;
 
-/**
- * Compile Java sources in-memory
- */
-public class JavaCCompiler {
+public class JVMCompiler implements Compiler {
 
-	public static JavaFunction compile(PageSource parent, SourceCode sc) throws JavaCompilerException, ApplicationException {
+	public byte[] compile(SourceCode sc) throws ApplicationException, JavaCompilerException {
 		ClassLoader cl = CFMLEngineFactory.getInstance().getCFMLEngineFactory().getClass().getClassLoader();
 		Collection<SourceCode> compilationUnits = new ArrayList<>();
 		compilationUnits.add(sc);
@@ -64,6 +60,11 @@ public class JavaCCompiler {
 				if (hasErrors) throw new JavaCompilerException(d.getMessage(Locale.US), d.getLineNumber(), d.getColumnNumber(), d.getKind());
 			}
 		}
-		return new JavaFunction(parent, sc, dcl.getCompiledCode(sc.getClassName()).getByteCode());
+		return dcl.getCompiledCode(sc.getClassName()).getByteCode();
+	}
+
+	@Override
+	public boolean supported() {
+		return ToolProvider.getSystemJavaCompiler() != null;
 	}
 }

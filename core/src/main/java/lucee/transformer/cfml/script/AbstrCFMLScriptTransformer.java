@@ -30,7 +30,7 @@ import java.util.Map.Entry;
 import lucee.commons.lang.ClassException;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
-import lucee.commons.lang.compiler.JavaCCompiler;
+import lucee.commons.lang.compiler.CompilerFactory;
 import lucee.commons.lang.compiler.JavaCompilerException;
 import lucee.commons.lang.compiler.JavaFunction;
 import lucee.commons.lang.types.RefBoolean;
@@ -1240,12 +1240,10 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		String javaCode = sc.substring(start.pos, end.pos - start.pos);
 		try {
 			String id = data.page.registerJavaFunctionName(functionName);
+			lucee.commons.lang.compiler.SourceCode _sc = fd.createSourceCode(ps, javaCode, id, functionName, access, modifier, hint, args, output, bufferOutput, displayName,
+					description, returnFormat, secureJson, verifyClient, localMode);
+			JavaFunction jf = new JavaFunction(ps, _sc, CompilerFactory.getInstance().compile(_sc));
 
-			JavaFunction jf = JavaCCompiler.compile(ps, fd.createSourceCode(ps, javaCode, id, functionName, access, modifier, hint, args, output, bufferOutput, displayName,
-					description, returnFormat, secureJson, verifyClient, localMode));
-			// print.e("-->" + (jf.byteCode == null ? -1 : jf.byteCode.length));
-			// jf.setTemplateName(ps.getRealpathWithVirtual());
-			// jf.setFunctionName(fn);
 			return jf;
 		}
 		catch (JavaCompilerException e) {

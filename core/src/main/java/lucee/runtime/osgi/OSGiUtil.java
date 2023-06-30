@@ -52,6 +52,7 @@ import org.osgi.framework.Version;
 import org.osgi.framework.wiring.BundleRevision;
 import org.osgi.resource.Requirement;
 
+import lucee.commons.digest.HashUtil;
 import lucee.commons.io.FileUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
@@ -2122,26 +2123,64 @@ public class OSGiUtil {
 	}
 
 	public static String getClassPath() {
-		BundleClassLoader bcl = (BundleClassLoader) OSGiUtil.class.getClassLoader();
-		Bundle bundle = bcl.getBundle();
-		BundleContext bc = bundle.getBundleContext();
-		// DataMember
+		List<File> list = getClassPathAsList();
+		StringBuilder sb = new StringBuilder();
+		for (File f: list) {
+			if (sb.length() > 0) sb.append(File.pathSeparator);
+			sb.append(f.getAbsolutePath());
+		}
+		return sb.toString();
+	}
+
+	public static List<File> getClassPathAsList() {
+		ClassLoader cl = OSGiUtil.class.getClassLoader();
+		BundleClassLoader bcl = cl instanceof BundleClassLoader ? (BundleClassLoader) cl : null;
+		BundleContext bc = null;
+		if (bcl != null) {
+			Bundle bundle = bcl.getBundle();
+			bc = bundle.getBundleContext();
+		}
 
 		Set<String> set = new HashSet<>();
 		set.add(ClassUtil.getSourcePathForClass(CFMLEngineFactory.class, null));
 		set.add(ClassUtil.getSourcePathForClass(javax.servlet.jsp.JspException.class, null));
 		set.add(ClassUtil.getSourcePathForClass(javax.servlet.Servlet.class, null));
 
-		StringBuilder sb = new StringBuilder();
+		List<File> list = new ArrayList<>();
 		for (String path: set) {
-			sb.append(path).append(File.pathSeparator);
+			list.add(new File(path));
 		}
 
-		for (Bundle b: bc.getBundles()) {
-			if ("System Bundle".equalsIgnoreCase(b.getLocation())) continue;
-			sb.append(b.getLocation()).append(File.pathSeparator);
+		// core
+		/// list.add(new File(bc.getBundle().getLocation()));
+
+		// all other bundles
+		if (bc != null) {
+			for (Bundle b: bc.getBundles()) {
+				if ("System Bundle".equalsIgnoreCase(b.getLocation())) continue;
+				list.add(new File(b.getLocation()));
+			}
 		}
-		return sb.toString();
+		return list;
+	}
+
+	public static List<File> getClassPathAsListWithJarExtension() throws IOException {
+		List<File> list = getClassPathAsList();
+		int len = list.size();
+		File f;
+		Resource trg, tmpDir = SystemUtil.getTempDirectory().getRealResource("jars");
+		if (!tmpDir.isDirectory()) tmpDir.createDirectory(true);
+		for (int i = 0; i < len; i++) {
+			f = list.get(i);
+			if (!"jar".equalsIgnoreCase(ResourceUtil.getExtension(f.getName(), "jar"))) {
+				trg = tmpDir.getRealResource(HashUtil.create64BitHashAsString(f.getAbsolutePath(), Character.MAX_RADIX) + ".jar");
+				if (!trg.isFile()) {
+					IOUtil.copy(new FileInputStream(f), trg, true);
+				}
+				list.set(i, new File(trg.getAbsolutePath()));
+			}
+		}
+		return list;
 	}
 
 	public static void stop(Class clazz) throws BundleException {
