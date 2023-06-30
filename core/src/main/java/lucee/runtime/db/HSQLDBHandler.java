@@ -172,7 +172,7 @@ public final class HSQLDBHandler {
 		StringBuilder insert = new StringBuilder("INSERT INTO  ").append(escape).append(StringUtil.toUpperCase(dbTableName)).append(escape).append(" (");
 		StringBuilder values = new StringBuilder("VALUES (");
 		Key colName = null;
-
+		//tableCols = null;  // set this to avoid optimised loading of only required tables
 		for (int i = 0; i < cols.length; i++) {
 			String col = StringUtil.toUpperCase(cols[i].getString()); // quoted objects are case insensitive in HSQLDB
 			//colName = Caster.toKey(cols[i].getString());
@@ -212,7 +212,7 @@ public final class HSQLDBHandler {
 		for (int i = 0; i < count; i++) {
 			columns[i] = query.getColumn(targetCols.get(i));
 		}
-		aprint.o(query);
+		//aprint.o(query);
 		/*
 		aprint.o(query);
 		aprint.o(tableCols);
@@ -255,7 +255,7 @@ public final class HSQLDBHandler {
 			}
 			prepStat.execute();
 		}
-		SystemOut.print("Populate Table: [" + dbTableName + "] with [" + rows + "] rows, took " + stopwatch.time());
+		SystemOut.print("Populate Table: [" + dbTableName + "] with [" + rows + "] rows, [" + count + "] columns, took " + stopwatch.time() + "ms");
 	}
 
 	private static int[] toInnerTypes(int[] types) {
@@ -571,8 +571,9 @@ public final class HSQLDBHandler {
 						modSql = StringUtil.replace(sql.getSQLString(), cfQueryName, dbTableName, false);
 						sql.setSQLString(modSql);
 						if (sql.getItems() != null && sql.getItems().length > 0) sql = new SQLImpl(sql.toString());
-
-						createTable(conn, pc, dbTableName, cfQueryName, doSimpleTypes);
+						// temp tables still get created will all the source columns, 
+						// only populateTables is driven by the required columns calculated from the view
+						createTable(conn, pc, dbTableName, cfQueryName, doSimpleTypes); 
 						qoqTables.add(dbTableName);
 					}
 

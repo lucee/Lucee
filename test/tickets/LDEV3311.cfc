@@ -81,17 +81,26 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 			});
 			*/
 			it( title='Qoq select join from large tables' , body=function() {
-				var q1 = extensionList();
-				debug(q1);
-				debug(QueryColumnData( query=q1, columnName="name"));
+				//var src = extensionList();
+
+				var src = getDummyData();
+				
+				//debug(QueryColumnData( query=q1, columnName="name"));
 				// strip out complex columns (works ok in java 11 but fails on 8)
-				q1 = QueryExecute(
-					sql = 'SELECT ID,VERSION,NAME,SYMBOLICNAME,TYPE,DESCRIPTION,RELEASETYPE,TRIAL,STARTBUNDLES from q1', 
-					options = { dbtype: 'query' }
+				/*q1 = QueryExecute(
+					sql = 'SELECT #src.columnList#ID,VERSION,NAME,SYMBOLICNAME,TYPE,DESCRIPTION,RELEASETYPE,TRIAL,STARTBUNDLES from src', 
+					options = { dbtype: 'query', maxrows=5 }
 				);
+				*/
+				q1 = QueryExecute(
+					sql = 'SELECT #src.columnList# from src', 
+					options = { dbtype: 'query', maxrows=5 }
+				);
+				//debug(q1);
 				systemOutput("q1 has #q1.recordcount# rows", true);
-				var q2 = extensionList();
-				var count=10;
+				//var q2 = extensionList();
+				var q2 = getDummyData();
+				var count=1024*1024;
 				loop times=#count# {
 					local.r = QueryAddRow( q2 );
 					QuerySetRow(q2, r, QueryRowData( q1, 1 ));
@@ -103,24 +112,37 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 					options = { dbtype: 'query' }
 				);
 				expect( q1check.recordcount ).toBe( q1.recordcount );
-
+				//debug(q2);
 				var q2check = QueryExecute(
 					sql = 'SELECT q2.id FROM q2 where id in (select id from q2 )',
 					options = { dbtype: 'query' }
 				);
+
 				expect( q2check.recordcount ).toBe( q2.recordcount );
 
 				var q = QueryExecute(
 					sql = 'SELECT q1.id, q2.id as id2 FROM q2, q1 where q1.id = q2.id group by q1.id, q2.id',
 					options = { dbtype: 'query' }
 				);
-				debug(q);
+
+				//debug(q);
 				expect( q ).toBeQuery();
-				expect( q.recordcount ).toBe( count ); // ummmmm
+				expect( q.recordcount ).toBe( 5 ); 
 			});
 			
 		});
 
+	}
+
+	private function getDummyData (){
+		var q = queryNew("id,name,data","integer,varchar, varchar");
+		loop list="micha,zac,brad,pothys,gert" item="n" index="i" {
+			var r = queryAddRow(q);
+			querySetCell(q, "id", r, r)
+			querySetCell(q, "name", n, r)
+			querySetCell(q, "data", repeatString("lucee",1000), r);
+		}
+		return q;
 	}
 	
 } 
