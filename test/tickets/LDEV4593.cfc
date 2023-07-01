@@ -18,7 +18,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" labels="qoq" {
 			});
 
 
-			xit( "test native qoq with $ in column and leading a table name", function(){
+			it( "test native qoq with $ in column and leading a table name", function(){
 
 				var $q = querynew( "id$lucee" );
 				queryAddRow( $q );
@@ -44,7 +44,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" labels="qoq" {
 
 			});
 
-			xit( "test native qoq with $ in column name and _ leading a table name", function(){
+			it( "test native qoq with $ in column name and _ leading a table name", function(){
 
 				var _q = querynew( "id$lucee" );
 				queryAddRow( _q );
@@ -72,7 +72,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" labels="qoq" {
 
 			});
 
-			xit( "test hsqldb qoq with $ in column name and $ leading table name", function(){
+			it( "test hsqldb qoq with $ in column name and $ leading table name", function(){
 
 				var $q = querynew( "id$lucee" );
 				queryAddRow( $q );
@@ -86,7 +86,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" labels="qoq" {
 
 			});
 
-			xit( "test hsqldb qoq with $ in column name and _ leading table name", function(){
+			it( "test hsqldb qoq with $ in column name and _ leading table name", function(){
 
 				var _q = querynew( "id$lucee" );
 				queryAddRow( _q );
