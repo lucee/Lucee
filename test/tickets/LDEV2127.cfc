@@ -8,17 +8,21 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 				loop times=100*1000 {
 					arrayAppend(a, "<cfset a=now()>");
 				}
-
-				var f=getTempFile(getTempDirectory(), "bytecode", "cfm");
-				fileWrite( f, arrayToList(a, chr(10) ) );
-				systemOutput( f );
-				timer variable="local.compileExecutionTime" {
-					silent {
-						cfinclude(template="c:\temp\zac.cfm");
-						cfinclude(template=f);
+				
+				var f=getTempFile(getDirectoryFromPath(getCurrentTemplatePath()), "ldev2127-bytecode", "cfm");
+				try {
+					fileWrite( f, arrayToList(a, chr(10) ) );
+					systemOutput( f );
+					timer variable="local.compileExecutionTime" {
+						silent {
+							cfinclude( template=listlast(f,"\/") ); // errors
+						}
 					}
+					systemOutput("compileExecutionTime: #compileExecutionTime#", true );
+				} finally {
+					if (FileExists( f ) )
+						FileDelete( f )
 				}
-				systemOutput("compileExecutionTime: #compileExecutionTime#", true );
 			});
 
 		} );
