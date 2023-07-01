@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import lucee.commons.digest.HashUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.transformer.Position;
+import lucee.commons.lang.SystemOut;
 
 /**
  * this class is a Parser String optimized for the transfomer (CFML Parser)
@@ -750,12 +751,16 @@ public class SourceCode {
 	public Position getPosition(int pos) {
 		int line = 0;
 		int posAtStart = 0;
+		int ll = lines.length;
 		for (int i = 0; i < lines.length; i++) {
+			int iv = lines[i].intValue();
 			if (pos <= lines[i].intValue()) {
 				line = i + 1;
-				if (i > 0) posAtStart = lines[i - 1].intValue();
+				if (i > 0) 
+					posAtStart = lines[i - 1].intValue();
 				break;
 			}
+			if ((i > 1) && (pos % 25000 == 1) && (i % 10000 == 1)) SystemOut.printDate("line: " + i + " / lines.length " + ll + ", line IntValue "  + iv + ", pos: " + pos);
 		}
 		if (line == 0) throw new RuntimeException("syntax error");
 
