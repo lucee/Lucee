@@ -23,6 +23,7 @@
   <property name="extAxis"          value="DF28D0A4-6748-44B9-A2FDC12E4E2E4D38;version=1.4.0.37"/>
   <property name="extChart"          value="D46B46A9-A0E3-44E1-D972A04AC3A8DC10;version=1.0.19.24"/>
   <property name="extRedis"          value="60772C12-F179-D555-8E2CD2B4F7428718;version=3.0.0.48"/>
+  <property name="extHibernate"          value="FAD1E8CB-4F45-4184-86359145767C29DE;version=5.4.29.27-BETA"/>
 
   <property name="stableLoader" value="lucee-5.3.7.48"/>
   <property name="cdnUrl" value="https://cdn.lucee.org/"/>
@@ -114,9 +115,6 @@
     <fail message="Missing data from [Require-Extension] inside ${coreManifest}">
     <condition>
         <or>
-        <!-- Hibernate -->
-        <not><isset property="extHibernate"/></not>
-        <not><isset property="extHibernateVersion"/></not>
         <!-- PDF -->
         <not><isset property="extPDF"/></not>
         <not><isset property="extPDFVersion"/></not>
@@ -223,7 +221,7 @@
         </sequential>
     </macrodef>
 
-    <target name="check" depends="check-mysql,check-mssql,check-postgre,check-jdts,check-s3,check-ehcache,check-hibernate,check-pdf,check-admin,check-doc,check-image,check-esapi,check-compress,check-testbox,check-lucee-loader-jar,download-lucee-loader-jar">
+    <target name="check" depends="check-mysql,check-mssql,check-postgre,check-jdts,check-s3,check-ehcache,check-pdf,check-admin,check-doc,check-image,check-esapi,check-compress,check-testbox,check-lucee-loader-jar,download-lucee-loader-jar">
       <mkdir dir="${temp}/loader/extensions/"/>
     </target> 
 
@@ -549,7 +547,7 @@
       <jvmarg value="-Dlucee.base.dir=${temp}/archive/base"/>
       <jvmarg value="-Dlucee.web.dir=${temp}/archive/webroot"/>
       <!-- TODO remove axis, lucene -->
-      <jvmarg value="-Dlucee-extensions=${extH2},${extMongo},${extOracle},${extLucene},${extAxis},${extChart},${extRedis}"/>
+      <jvmarg value="-Dlucee-extensions=${extH2},${extMongo},${extOracle},${extLucene},${extAxis},${extChart},${extRedis},${extHibernate}"/>
       <jvmarg value="-Dlucee.enable.dialect=true"/>
       <jvmarg value="-Dlucee.extensions.install=true"/>
       <jvmarg value="-Dlucee.full.null.support=false"/>

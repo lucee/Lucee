@@ -152,7 +152,6 @@
 		<available file="${cache}/${extEHCache}-${extEHCacheVersion}.lex" property="ehcache.present"/>
 		<available file="${cache}/${extAdmin}-${extAdminVersion}.lex" property="admin.present"/>
 		<available file="${cache}/${extDoc}-${extDocVersion}.lex" property="doc.present"/>
-		<available file="${cache}/${extHibernate}-${extHibernateVersion}.lex" property="hibernate.present"/>
 		<available file="${cache}/${extPDF}-${extPDFVersion}.lex" property="pdf.present"/>
 		<available file="${cache}/${extImage}-${extImageVersion}.lex" property="image.present"/>
 		<available file="${cache}/${extEsapi}-${extEsapiVersion}.lex" property="esapi.present"/>
@@ -176,9 +175,6 @@
 	</target>
 	<target name="check-ehcache" depends="check-cache" unless="ehcache.present">
 		<get src="${extURL}${extEHCache}?version=${extEHCacheVersion}" dest="${cache}/${extEHCache}-${extEHCacheVersion}.lex"/>
-	</target>
-	<target name="check-hibernate" depends="check-cache" unless="hibernate.present">
-		<get src="${extURL}${extHibernate}?version=${extHibernateVersion}" dest="${cache}/${extHibernate}-${extHibernateVersion}.lex"/>
 	</target>
 	<target name="check-pdf" depends="check-cache" unless="pdf.present">
 		<get src="${extURL}${extPDF}?version=${extPDFVersion}" dest="${cache}/${extPDF}-${extPDFVersion}.lex"/>
@@ -279,18 +275,6 @@
 			tofile="${goal}/extensions/${ext_ehcache.filename}"/>
 		<echo level="info">add:${goal}/extensions/${ext_ehcache.filename}</echo>
 		<echo file="${goal}/extensions/.index" append="true">${ext_ehcache.filename};</echo>
-		
-		<!-- add extension Hibernate -->
-		<loadmf jar="${cache}/${extHibernate}-${extHibernateVersion}.lex" prefix="ext_hibernate."/>
-		<toFileName id="${ext_hibernate.id}" name="${ext_hibernate.name}" version="${ext_hibernate.version}" property="ext_hibernate.filename"/>
-		<copy 
-			file="${cache}/${extHibernate}-${extHibernateVersion}.lex" 
-			todir="${goal}/extensions/"/>
-		<move 
-			file="${goal}/extensions/${extHibernate}-${extHibernateVersion}.lex" 
-			tofile="${goal}/extensions/${ext_hibernate.filename}"/>
-		<echo level="info">add:${goal}/extensions/${ext_hibernate.filename}</echo>
-		<echo file="${goal}/extensions/.index" append="true">${ext_hibernate.filename};</echo>
 
 		<!-- add extension PDF -->
 		<loadmf jar="${cache}/${extPDF}-${extPDFVersion}.lex" prefix="ext_pdf."/>
