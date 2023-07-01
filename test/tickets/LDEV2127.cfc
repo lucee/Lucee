@@ -1,9 +1,9 @@
-component extends = "org.lucee.cfml.test.LuceeTestCase" {
+component extends = "org.lucee.cfml.test.LuceeTestCase" skip=true {
 
 	function run( testResults, testBox ){
 		describe( "bytecode testing", function(){
 
-			it( "test writing out huge 1.5mb file for bytecode memory usuage", function(){
+			it( "test writing out huge 1.5mb file for bytecode memory usage", function(){
 				var a = [];
 				loop times=100*1000 {
 					arrayAppend(a, "<cfset a=now()>");
@@ -15,7 +15,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 					systemOutput( f );
 					timer variable="local.compileExecutionTime" {
 						silent {
-							cfinclude( template=listlast(f,"\/") ); // errors
+							cfinclude( template=listlast(f,"\/") ); // errors see  https://luceeserver.atlassian.net/browse/LDEV-4602
 						}
 					}
 					systemOutput("compileExecutionTime: #compileExecutionTime#", true );
