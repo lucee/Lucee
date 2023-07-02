@@ -132,8 +132,9 @@ hasCache=hasObj || hasTem || hasQry || hasRes || hasFun || hasInc;
 </cfsilent>
 <cfoutput>
 
-	<cfsavecontent variable="codeSample">
-component {
+<cfsavecontent variable="codeSample">
+	<span style="overflow-wrap: break-word">
+	component {
 
 	this.name = "#info.label ?: '&lt;application-name&gt;' #"; // name of the application context
 
@@ -197,7 +198,7 @@ component {
 		  host: '#mailservers.hostname#'
 		, port: #mailservers.port#
 		, username: '#replace(mailservers.username,"'","''","all")#'
-		, password: <span class="overflow">'#mailservers.passwordEncrypted?:''#'</span>
+		, password: '#mailservers.passwordEncrypted?:''#'
 		, ssl: #mailservers.ssl?:false#
 		, tls: #mailservers.tls?:false#<cfif 
 		!isNull(mailservers.life)>
@@ -242,7 +243,7 @@ if(datasources.readOnly) optional.append('readOnly:#datasources.readOnly# // def
 		, bundleVersion: '"&cacheConnections.bundleVersion&"'"##!cacheConnections.readOnly?"":"
 		, readOnly: "&cacheConnections.readonly#
 		, storage: #cacheConnections.storage#
-		, custom: <span class="overflow">#isStruct(cacheConnections.custom)?serialize(cacheConnections.custom):'{}'#</span>
+		, custom: #isStruct(cacheConnections.custom)?serialize(cacheConnections.custom):'{}'#
 		, default: '#cacheConnections.default#'
 	};
 	</cfloop><cfif hasCache>
@@ -259,12 +260,13 @@ if(datasources.readOnly) optional.append('readOnly:#datasources.readOnly# // def
 //               MAPPINGS                   //
 //////////////////////////////////////////////
 <cfloop query="mappings"><cfif mappings.hidden || mappings.virtual=="/lucee" || mappings.virtual=="/lucee-server"><cfcontinue></cfif><cfset del=""><cfset count=0>
-this.mappings["#mappings.virtual#"]=<cfif len(mappings.strPhysical) && !len(mappings.strArchive)><span class="overflow">"#mappings.strPhysical#"</span><cfelse>{<cfif len(mappings.strPhysical)><cfset count++>
-		physical:<span class="overflow">"#mappings.strPhysical#"</span><cfset del=","></cfif><cfif len(mappings.strArchive)><cfset count++>
+this.mappings["#mappings.virtual#"]=<cfif len(mappings.strPhysical) && !len(mappings.strArchive)>"#mappings.strPhysical#"<cfelse>{<cfif len(mappings.strPhysical)><cfset count++>
+		physical:"#mappings.strPhysical#"<cfset del=","></cfif><cfif len(mappings.strArchive)><cfset count++>
 		#del#archive:"#mappings.strArchive#"<cfset del=","></cfif><cfif count==2 && !mappings.PhysicalFirst>
 		#del#primary:"<cfif mappings.PhysicalFirst>physical<cfelse>archive</cfif>"<cfset del=","></cfif>}</cfif>;
 </cfloop>
 }
+</span>
 </cfsavecontent>
 
 
