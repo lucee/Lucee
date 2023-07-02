@@ -54,7 +54,12 @@
 		trusted="no";
 
 	// do all the actual processing inside an include file so we get useful error messages
-	include ( template="/upload/upload_to_s3.cfm" );
+	try {
+		include ( template="/upload/upload_to_s3.cfm" );
+	} catch (e) {
+		systemOutput(e.stacktrace, true);
+		rethrow;
+	}
 
 ]]>
   </script>
