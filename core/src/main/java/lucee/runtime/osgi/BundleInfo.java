@@ -28,6 +28,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.StringTokenizer;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
@@ -49,7 +50,7 @@ import lucee.runtime.type.util.KeyConstants;
 public class BundleInfo implements Serializable {
 
 	private static final long serialVersionUID = -8723070772449992030L;
-
+	private Object token = new Object();
 	private Version version;
 	private String name;
 	private String symbolicName;
@@ -63,6 +64,8 @@ public class BundleInfo implements Serializable {
 	private String requireBundle;
 	private String fragementHost;
 	private Map<String, Object> headers;
+
+	private List<String> exportPackageAsList;
 	private static Map<String, BundleInfo> bundles = new HashMap<String, BundleInfo>();
 
 	public static BundleInfo getInstance(String id, InputStream is, boolean closeStream) throws IOException, BundleException {
@@ -148,6 +151,25 @@ public class BundleInfo implements Serializable {
 
 	public String getExportPackage() {
 		return exportPackage;
+	}
+
+	public List<String> getExportPackageAsList() {
+		if (exportPackageAsList == null) {
+			synchronized (token) {
+				if (exportPackageAsList == null) {
+					if (StringUtil.isEmpty(exportPackage, true)) return exportPackageAsList = new ArrayList<>();
+
+					StringTokenizer st = new StringTokenizer(exportPackage.trim(), ",");
+					List<String> list = new ArrayList<String>();
+					String p;
+					while (st.hasMoreTokens()) {
+						p = StringUtil.trim(st.nextToken(), null);
+						if (!StringUtil.isEmpty(p)) list.add(p);
+					}
+				}
+			}
+		}
+		return exportPackageAsList;
 	}
 
 	public String getImportPackage() {

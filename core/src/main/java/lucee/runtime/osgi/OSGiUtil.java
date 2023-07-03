@@ -23,6 +23,7 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
+import java.lang.ref.SoftReference;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.UnknownHostException;
@@ -38,7 +39,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
-import java.util.StringTokenizer;
 import java.util.jar.Manifest;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -71,6 +71,7 @@ import lucee.loader.osgi.BundleCollection;
 import lucee.loader.osgi.BundleUtil;
 import lucee.loader.util.Util;
 import lucee.runtime.config.Config;
+import lucee.runtime.config.ConfigWebFactory;
 import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.config.Identification;
 import lucee.runtime.engine.CFMLEngineImpl;
@@ -117,6 +118,7 @@ public class OSGiUtil {
 
 	private static String[] bootDelegation;
 	private static Map<String, String> packageBundleMapping = new LinkedHashMap<String, String>();
+	private static Map<String, SoftReference<BundleFile>> packageBundleMappingDyn = new LinkedHashMap<String, SoftReference<BundleFile>>();
 
 	static {
 		// this is needed in case old version of extensions are used, because lucee no longer bundles this
@@ -443,7 +445,35 @@ public class OSGiUtil {
 		return _loadBundle(bc, bf.getFile());
 	}
 
+	public static int existing = 0;
+	public static int _new = 0;
+
+	private static long BUNDLE_JARS_DIR_MAX_AGE_IN_MS = 1000;
+	private static File[] bundleDirectoryJars;
+	private static long bundleDirectoryJarsLastCheck = 0;
+	private static Object bundleDirectoryJarsToken = new Object();
+
 	public static Bundle loadBundleByPackage(PackageQuery pq, Set<Bundle> loadedBundles, boolean startIfNecessary, Set<String> parents) throws BundleException, IOException {
+
+		{
+			SoftReference<BundleFile> ref = packageBundleMappingDyn.get(pq.toString());
+			BundleFile bf = ref != null ? ref.get() : null;
+			if (bf != null) {
+				existing++;
+				Bundle b = exists(loadedBundles, bf);
+				if (b != null) {
+					if (startIfNecessary) _startIfNecessary(b, parents);
+					return null;
+				}
+				b = loadBundle(bf);
+				if (b != null) {
+					loadedBundles.add(b);
+					if (startIfNecessary) _startIfNecessary(b, parents);
+					return b;
+				}
+			}
+		}
+		_new++;
 		try {
 			CFMLEngine engine = CFMLEngineFactory.getInstance();
 			CFMLEngineFactory factory = engine.getCFMLEngineFactory();
@@ -454,18 +484,18 @@ public class OSGiUtil {
 			}
 
 			// is it in jar directory but not loaded
-			File dir = factory.getBundleDirectory();
-			File[] children = dir.listFiles(JAR_EXT_FILTER);
+
+			File[] children = getJarsFromBundleDirectory(factory);
 			List<PackageDefinition> pds;
 			for (File child: children) {
 				BundleFile bf = BundleFile.getInstance(child);
 				if (bf.isBundle()) {
+					packageBundleMappingDyn.put(pq.toString(), new SoftReference<BundleFile>(bf));
 					if (parents.contains(toString(bf))) continue;
-					pds = toPackageDefinitions(bf.getExportPackage(), pq.getName(), pq.getVersionDefinitons());
+					pds = toPackageDefinitions(bf.getExportPackageAsList(), pq.getName(), pq.getVersionDefinitons());
 					if (pds != null && !pds.isEmpty()) {
 						Bundle b = exists(loadedBundles, bf);
 						if (b != null) {
-
 							if (startIfNecessary) _startIfNecessary(b, parents);
 							return null;
 						}
@@ -507,6 +537,30 @@ public class OSGiUtil {
 		}
 
 		return null;
+	}
+
+	private static File[] getJarsFromBundleDirectory(CFMLEngineFactory factory) throws IOException {
+		File[] tmp = bundleDirectoryJars;
+		long now = System.currentTimeMillis();
+		if (bundleDirectoryJars == null || (bundleDirectoryJarsLastCheck + BUNDLE_JARS_DIR_MAX_AGE_IN_MS) < now) {
+			synchronized (bundleDirectoryJarsToken) {
+				if (bundleDirectoryJars == null || (bundleDirectoryJarsLastCheck + BUNDLE_JARS_DIR_MAX_AGE_IN_MS) < now) {
+					tmp = bundleDirectoryJars = factory.getBundleDirectory().listFiles(JAR_EXT_FILTER);
+					bundleDirectoryJarsLastCheck = now;
+				}
+			}
+		}
+		return tmp;
+	}
+
+	private static void resetJarsFromBundleDirectory(CFMLEngineFactory factory) throws IOException {
+		if (bundleDirectoryJars != null) {
+			synchronized (bundleDirectoryJarsToken) {
+				if (bundleDirectoryJars != null) {
+					bundleDirectoryJars = null;
+				}
+			}
+		}
 	}
 
 	private static Object toString(BundleFile bf) {
@@ -654,11 +708,13 @@ public class OSGiUtil {
 					// TODO not only check for from version, request a range, but that needs an adjustment with the
 					// provider
 					File f = factory.downloadBundle(bundleRange.getName(), bundleRange.getVersionRange().getFrom().getVersion().toString(), id);
+					resetJarsFromBundleDirectory(factory);
 					b = _loadBundle(bc, f);
 				}
 				else {
 					// MUST find out why this breaks at startup with commandbox if version exists
 					Resource r = downloadBundle(factory, bundleRange.getName(), null, id);
+					resetJarsFromBundleDirectory(factory);
 					b = _loadBundle(bc, r);
 				}
 
@@ -684,10 +740,15 @@ public class OSGiUtil {
 		catch (IOException e) {
 		}
 		String upLoc = "";
-		try {
-			upLoc = " (" + factory.getUpdateLocation() + ")";
+		if (!ThreadLocalPageContext.insideServerNewInstance()) {
+			try {
+				upLoc = " (" + factory.getUpdateLocation() + ")";
+			}
+			catch (IOException e) {
+			}
 		}
-		catch (IOException e) {
+		else {
+			upLoc = " (" + ConfigWebFactory.DEFAULT_LOCATION + ")";
 		}
 
 		String bundleError = "";
@@ -716,6 +777,7 @@ public class OSGiUtil {
 	}
 
 	private static Resource downloadBundle(CFMLEngineFactory factory, final String symbolicName, String symbolicVersion, Identification id) throws IOException, BundleException {
+		resetJarsFromBundleDirectory(factory);
 		if (!Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.enable.bundle.download", null), true)) {
 			boolean printExceptions = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.cli.printExceptions", null), false);
 			String bundleError = "Lucee is missing the Bundle jar [" + (symbolicVersion != null ? symbolicName + ":" + symbolicVersion : symbolicName)
@@ -814,13 +876,14 @@ public class OSGiUtil {
 		}
 	}
 
-	private static List<PackageDefinition> toPackageDefinitions(String str, String filterPackageName, List<VersionDefinition> versionDefinitions) {
-		if (StringUtil.isEmpty(str)) return null;
-		StringTokenizer st = new StringTokenizer(str, ",");
-		List<PackageDefinition> list = new ArrayList<PackageDefinition>();
+	private static List<PackageDefinition> toPackageDefinitions(List<String> packageNames, String filterPackageName, List<VersionDefinition> versionDefinitions) {
+		if (packageNames.isEmpty()) return null;
+
+		List<PackageDefinition> list = new ArrayList<PackageDefinition>(packageNames.size());
 		PackageDefinition pd;
-		while (st.hasMoreTokens()) {
-			pd = toPackageDefinition(st.nextToken().trim(), filterPackageName, versionDefinitions);
+		Iterator<String> it = packageNames.iterator();
+		while (it.hasNext()) {
+			pd = toPackageDefinition(it.next(), filterPackageName, versionDefinitions);
 			if (pd != null) list.add(pd);
 		}
 		return list;
@@ -889,6 +952,7 @@ public class OSGiUtil {
 		// if not found try to download
 		if (downloadIfNecessary && version != null) {
 			try {
+				resetJarsFromBundleDirectory(factory);
 				bf = BundleFile.getInstance(factory.downloadBundle(name, version.toString(), id));
 				if (bf.isBundle()) return bf;
 			}
@@ -977,6 +1041,7 @@ public class OSGiUtil {
 		// if not found try to download
 		if (downloadIfNecessary && version != null) {
 			try {
+				resetJarsFromBundleDirectory(factory);
 				bf = BundleFile.getInstance(factory.downloadBundle(name, version.toString(), id));
 				if (bf.isBundle()) return bf;
 			}

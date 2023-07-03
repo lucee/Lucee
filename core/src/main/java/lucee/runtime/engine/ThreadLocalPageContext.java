@@ -38,6 +38,7 @@ public final class ThreadLocalPageContext {
 	private static final TimeZone DEFAULT_TIMEZONE = TimeZone.getDefault();
 	private static ThreadLocal<PageContext> pcThreadLocal = new ThreadLocal<PageContext>();
 	public final static CallOnStart callOnStart = new CallOnStart();
+	private static ThreadLocal<Boolean> insideServerNewInstance = new ThreadLocal<Boolean>();
 
 	/**
 	 * register a pagecontext for he current thread
@@ -220,5 +221,14 @@ public final class ThreadLocalPageContext {
 	public static long getThreadId(PageContext pc) {
 		if (pc != null) return pc.getThread().getId();
 		return Thread.currentThread().getId();
+	}
+
+	public static boolean insideServerNewInstance() {
+		Boolean b = insideServerNewInstance.get();
+		return b != null && b.booleanValue();
+	}
+
+	public static void insideServerNewInstance(boolean inside) {
+		insideServerNewInstance.set(inside);
 	}
 }
