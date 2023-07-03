@@ -8,9 +8,11 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				try {
 					deserializeJson( str );
 				} catch (e) {
+					/*
 					systemOutput("", true);
 					systemOutput(e.message, true);
 					systemOutput(e.detail, true);
+					*/
 					expect(e.message).toInclude("position");
 				}
 			});
@@ -20,9 +22,11 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				try {
 					deserializeJson( str );
 				} catch (e) {
+					/*
 					systemOutput("", true);
 					systemOutput(e.message, true);
 					systemOutput(e.detail, true);
+					*/
 					expect(e.message).toInclude("position");
 				}
 

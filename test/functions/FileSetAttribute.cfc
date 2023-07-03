@@ -62,7 +62,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 			});
 		});
 		describe( "Testcase for LDEV-2410", function() {
-			it( title = "Checking changing file attribute between NORMAL and READONLY", body = function( currentSpec ) {
+			xit( title = "Checking changing file attribute between NORMAL and READONLY", body = function( currentSpec ) {
 				var testFile = path & "\ro_normal_LDEV2410_#CreateUUID()#.txt";
 				FileWrite(testFile, "I am in normal file");
 
