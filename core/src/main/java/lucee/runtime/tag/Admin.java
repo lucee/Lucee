@@ -1523,7 +1523,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		Array data = cw.getDebuggerPool().getData(pageContext);
 
 		if (StringUtil.isEmpty(id)) {
-			pageContext.setVariable(getString("admin", action, "returnVariable"), data);
+			pageContext.setVariable(getString("admin", action, "returnVariable"), Duplicator.duplicate(data, true));
 		}
 		else {
 			Iterator<Object> it = data.valueIterator();
@@ -1531,7 +1531,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			while (it.hasNext()) {
 				sct = (Struct) it.next();
 				if (OpUtil.equalsEL(ThreadLocalPageContext.get(), id, sct.get(KeyConstants._id, ""), false, true)) {
-					pageContext.setVariable(getString("admin", action, "returnVariable"), sct);
+					pageContext.setVariable(getString("admin", action, "returnVariable"), Duplicator.duplicate(sct, true));
 					return;
 				}
 			}

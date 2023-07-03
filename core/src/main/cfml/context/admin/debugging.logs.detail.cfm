@@ -100,7 +100,16 @@
 					<cfset c=structKeyExists(entry,'custom')?entry.custom:{}>
 				</cfif>
 				<cfset c.scopes=false>
-				<cfset driver.output(c,duplicate(log),"admin")>
+				<cftry>
+					<cfset driver.output(c,duplicate(log),"admin")>
+					<cfcatch>
+						<cfset error.message = cfcatch.message>
+						<cfset error.detail = cfcatch.Detail>
+						<cfset error.exception = cfcatch>
+						<cfset error.cfcatch = cfcatch>
+						<cfset printError(error)>
+					</cfcatch>
+				</cftry>
 			<cfelse>
 				Debug Data no longer available
 			</cfif> 
