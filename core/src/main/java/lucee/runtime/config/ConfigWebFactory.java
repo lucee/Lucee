@@ -200,6 +200,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 	private static final long GB1 = 1024 * 1024 * 1024;
 	public static final boolean LOG = true;
 	private static final int DEFAULT_MAX_CONNECTION = 100;
+	public static final String DEFAULT_LOCATION = "https://update.lucee.org";
 
 	/**
 	 * creates a new ServletConfig Impl Object
@@ -219,7 +220,8 @@ public final class ConfigWebFactory extends ConfigFactory {
 	 * @throws ConverterException
 	 */
 
-	public static ConfigWebPro newInstanceMulti(CFMLEngine engine, CFMLFactoryImpl factory, ConfigServerImpl configServer, Resource configDir, ServletConfig servletConfig)
+	public static ConfigWebPro newInstanceMulti(CFMLEngine engine, CFMLFactoryImpl factory, ConfigServerImpl configServer, Resource configDir, ServletConfig servletConfig,
+			ConfigWebImpl existingToUpdate)
 			throws SAXException, ClassException, PageException, IOException, TagLibException, FunctionLibException, NoSuchAlgorithmException, BundleException, ConverterException {
 
 		// boolean multi = configServer.getAdminMode() == ConfigImpl.ADMINMODE_MULTI;
@@ -247,7 +249,6 @@ public final class ConfigWebFactory extends ConfigFactory {
 		);
 
 		boolean doNew = getNew(engine, configDir, false, UpdateInfo.NEW_NONE).updateType != NEW_NONE;
-		ConfigWebPro configWeb;
 		Resource configFileOld = configDir.getRealResource("lucee-web.xml." + TEMPLATE_EXTENSION);
 		Resource configFileNew = configDir.getRealResource(".CFConfig.json");
 		String strPath = servletConfig.getServletContext().getRealPath("/WEB-INF");
@@ -263,7 +264,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 
 		}
 		MultiContextConfigWeb multiweb = new MultiContextConfigWeb(factory, configServer, servletConfig, configDir, configFileNew);
-		configWeb = new ConfigWebImpl(multiweb);
+		ConfigWebPro configWeb = existingToUpdate != null ? existingToUpdate.setInstance(multiweb) : new ConfigWebImpl(multiweb);
 		factory.setConfig(configServer, configWeb);
 
 		// translate to new
@@ -389,7 +390,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 				// Resource configDir, boolean isConfigDirACustomSetting,
 				// ServletConfig servletConfig
 				try {
-					cwi.setInstance(newInstanceMulti(engine, (CFMLFactoryImpl) cwi.getFactory(), cs, cwi.getWebConfigDir(), cwi.getServletConfig()));
+					newInstanceMulti(engine, (CFMLFactoryImpl) cwi.getFactory(), cs, cwi.getWebConfigDir(), cwi.getServletConfig(), cwi);
 					return;
 				}
 				catch (NoSuchAlgorithmException e) {
@@ -410,7 +411,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 		// changed from multi to single
 		if (isSingle != isWebSingle) {
 			try {
-				cwi.setInstance(newInstanceSingle(engine, (CFMLFactoryImpl) cwi.getFactory(), cs, cwi.getWebConfigDir(), cwi.getServletConfig(), cwi));
+				newInstanceSingle(engine, (CFMLFactoryImpl) cwi.getFactory(), cs, cwi.getWebConfigDir(), cwi.getServletConfig(), cwi);
 				return;
 			}
 			catch (NoSuchAlgorithmException e) {
@@ -2216,8 +2217,8 @@ public final class ConfigWebFactory extends ConfigFactory {
 			try {
 				setDatasource(config, datasources, QOQ_DATASOURCE_NAME,
 						new ClassDefinitionImpl("org.hsqldb.jdbcDriver", "org.lucee.hsqldb", "2.7.2.jdk8", config.getIdentification()), "hypersonic-hsqldb", "", -1,
-						"jdbc:hsqldb:mem:tempQoQ;sql.regular_names=false;", "sa", "", null, DEFAULT_MAX_CONNECTION, -1, -1, 60000, 0, 0, 0, true, true, DataSource.ALLOW_ALL, false, false, null, 
-						new StructImpl(), "", ParamSyntax.DEFAULT, false, false, false, false);
+						"jdbc:hsqldb:mem:tempQoQ;sql.regular_names=false;", "sa", "", null, DEFAULT_MAX_CONNECTION, -1, -1, 60000, 0, 0, 0, true, true, DataSource.ALLOW_ALL, false,
+						false, null, new StructImpl(), "", ParamSyntax.DEFAULT, false, false, false, false);
 			}
 			catch (Throwable t) {
 				ExceptionUtil.rethrowIfNecessary(t);
@@ -2444,6 +2445,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 					}
 				}
 				ClassDefinition cd;
+
 				Array caches = ConfigWebUtil.getAsArray("cacheClasses", root);
 				if (caches != null) {
 					Iterator<?> it = caches.getIterator();
@@ -2496,7 +2498,6 @@ public final class ConfigWebFactory extends ConfigFactory {
 					log(config, log, t);
 				}
 			}
-
 			{
 				Struct eCaches = ConfigWebUtil.getAsStruct("caches", root);
 
@@ -2573,7 +2574,6 @@ public final class ConfigWebFactory extends ConfigFactory {
 					}
 				}
 			}
-			// }
 
 			// call static init once per driver
 			{
@@ -3479,8 +3479,9 @@ public final class ConfigWebFactory extends ConfigFactory {
 				String location = getAttr(root, "updateLocation");
 				if (location != null) {
 					location = location.trim();
-					if ("http://snapshot.lucee.org".equals(location) || "https://snapshot.lucee.org".equals(location)) location = "https://update.lucee.org";
-					if ("http://release.lucee.org".equals(location) || "https://release.lucee.org".equals(location)) location = "https://update.lucee.org";
+					if ("http://snapshot.lucee.org".equals(location) || "https://snapshot.lucee.org".equals(location)) location = DEFAULT_LOCATION;
+					if ("http://release.lucee.org".equals(location) || "https://release.lucee.org".equals(location)) location = DEFAULT_LOCATION;
+					cs.setUpdateLocation(location);
 				}
 
 			}
@@ -5572,11 +5573,12 @@ public final class ConfigWebFactory extends ConfigFactory {
 
 			end = v.indexOf('}', start);
 			/*
-			 * print.e("----------------"); print.e(s+"-"+e); print.e(v); print.e(start); print.e(end);
+			 * print.edate("----------------"); print.edate(s+"-"+e); print.edate(v); print.edate(start);
+			 * print.edate(end);
 			 */
 			if (end > prefixLen) {
 				_name = v.substring(start + prefixLen, end);
-				// print.e(_name);
+				// print.edate(_name);
 				if (isDollar) {
 					String[] _parts = _name.split(":");
 					_prop = SystemUtil.getSystemPropOrEnvVar(_parts[0], (_parts.length > 1) ? _parts[1] : null);

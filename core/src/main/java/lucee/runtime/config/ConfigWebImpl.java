@@ -12,9 +12,9 @@ import lucee.commons.io.res.ResourcesImpl.ResourceProviderFactory;
 import lucee.runtime.exp.PageException;
 
 public class ConfigWebImpl implements ConfigWebPro {
-	private ConfigWebPro instance;
+	private ConfigWebInner instance;
 
-	public ConfigWebImpl(ConfigWebPro instance) {
+	public ConfigWebImpl(ConfigWebInner instance) {
 		this.instance = instance;
 	}
 
@@ -1828,7 +1828,7 @@ public class ConfigWebImpl implements ConfigWebPro {
 		return instance;
 	}
 
-	public ConfigWebImpl setInstance(ConfigWebPro instance) {
+	public ConfigWebImpl setInstance(ConfigWebInner instance) {
 		if (this.instance != null) {
 			this.instance.reset();
 		}
