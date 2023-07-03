@@ -162,6 +162,8 @@ Error Output --->
 				type: "POST",
 				<cfoutput>url: "./#request.self#?action=chartAjax",</cfoutput>
 				success: function(result){
+					if (typeof result !== 'object')
+						return;
 					var arr =["heap","nonheap"];
 					$.each(arr,function(index,chrt){
 						window["series_"+chrt] = window[chrt+"Chart"].series[0].data; //*charts*.series[0].data
