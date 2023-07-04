@@ -3,8 +3,8 @@
 	<cfscript>
 	  fields=array(
 group("Debugging Tab","Debugging tag includes execution time,Custom debugging output",2)
-,field("Minimal Execution Time","minimal","0",true,{_appendix:"microseconds",_bottom:"Execution times for templates, includes, modules, custom tags, and component method calls. Outputs only templates taking longer than the time (in microseconds) defined above."},"text50")
-,field("Highlight","highlight","250000",true,{_appendix:"microseconds",_bottom:"Highlight templates taking longer than the following (in microseconds) in red."},"text60")
+,field("Minimal Execution Time","minimal","0",true,{_appendix:"microseconds",_bottom:"Execution times for templates, includes, modules, custom tags, and component method calls. Outputs only templates taking longer than the time (in microseconds) defined above."},"text40")
+,field("Highlight","highlight","250000",true,{_appendix:"microseconds",_bottom:"Highlight templates taking longer than the following (in microseconds) in red."},"text50")
 ,field("Expression","expression","Enabled",false,"Enter expression to evaluate","checkbox","Enabled")
 ,field("General Debug Information ","general","Enabled",false,
 "Select this option to show general information about this request. General items are Lucee Version, Template, Time Stamp, User Locale, User Agent, User IP, and Host Name. ",
@@ -81,9 +81,18 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 
 		variables.scopeNames = [ "Application", "CGI", "Client", "Cookie", "Form", "Request", "Server", "Session", "URL" ];
 
-		function buildSectionStruct() {
-
-			var otherSections = [ "ALL", "Dump", "ExecTime", "ExecOrder", "Templates", "Exceptions", "ImpAccess", "Info", "Query", "Timer", "Trace", "More" ];
+		function buildSectionStruct(queries) {
+			var otherSections = [ "ALL", "Dump", "ExecTime","TestTime", "ExecOrder", "Templates", "Exceptions", "ImpAccess", "Info", "Query", "Timer", "Trace", "More" ];
+			if(!queryColumnExists(queries, "hash")) {
+				queryAddColumn(queries, "hash",[]);
+			}
+			loop query=queries {
+				var h="h"&hash(queries.src&":"&queries.line, "quick");
+				arrayAppend(otherSections, h);
+				querySetCell(queries, "hash", h,queries.currentrow);
+			}
+			
+			
 			var i = 0;
 
 			var result = {};
@@ -98,7 +107,7 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 		}
 	</cfscript>
 
-	<cffunction name="output" returntype="void" localmode="true">
+	<cffunction name="output" returntype="void">
 		<cfargument name="custom" type="struct" required="yes" />
 		<cfargument name="debugging" required="true" type="struct" />
 		<cfargument name="context" type="string" default="web" />
@@ -156,16 +165,15 @@ if(structKeyExists(arguments.custom, "metrics_Charts")) {
 			local.dumps=queryNew('output,template,line');
 		else local.dumps=arguments.debugging.dumps;
 
-		if(isNull(arguments.debugging.pageParts)) 
-			local.pageParts=QueryNew('id,count,min,max,avg,total,path,start,end,startLine,endLine,snippet');
-		else local.pageParts=arguments.debugging.pageParts;
-
 		local.times=arguments.debugging.times;
 
 		var time=getTickCount();
-		var _cgi = arguments?.debugging?.scope?.cgi ?: cgi;
+		var _cgi=structKeyExists(arguments.debugging,'cgi')?arguments.debugging.cgi:cgi;
+		
+		
+		
 
-		this.allSections = this.buildSectionStruct();
+		this.allSections = this.buildSectionStruct(queries);
 		var isExecOrder  = this.isSectionOpen( "ExecOrder" );
 
 		if(isExecOrder) {
@@ -222,7 +230,7 @@ if(structKeyExists(arguments.custom, "metrics_Charts")) {
 	padding : 5px 16px 5px 16px !important; 
 	margin: 4px 0px 4px 0px !important; 
 	border-bottom-width: 0px !important; 
-	border-color:white;
+	border: 1px solid white; 
 	font-size: 15px !important; 
 	font-weight: 500 !important;
   	outline: none;
@@ -232,7 +240,7 @@ if(structKeyExists(arguments.custom, "metrics_Charts")) {
   background-color: #666;
 }
 .ldTab button.active {
-  background-color: #3399cc !important;
+  background-color: #5f8731 !important;
   color: #FFF !important;
   outline: none;
 }
@@ -248,7 +256,15 @@ if(structKeyExists(arguments.custom, "metrics_Charts")) {
 
 
 
-	.ldTabContent { margin: 2.5em 1em 0 1em; padding: 1em; background-color: #FFF; color: #222; border: 1px solid #CCC; border-radius: 5px; text-shadow: none; }
+	.ldTabContent { 
+		margin: 2.5em 1em 0 1em; padding: 1em; 
+		background-color: #FFF; 
+		color: #222; 
+		border: 1px solid #CCC; 
+		border-radius: 7px; 
+		box-shadow: 0px 0px 4px 0px #5f8731;
+		text-shadow: none; 
+	}
 	.ldTabContent.collapsed	{ padding: 0; border-width: 0; }
 	.ldTabContent legend 	{ padding: 0 1em; background-color: #FFF; color: #222; }
 	.ldTabContent legend span { font-weight: normal; }
@@ -264,7 +280,7 @@ if(structKeyExists(arguments.custom, "metrics_Charts")) {
 	#-lucee-debugging-ExecTime table.details th::after, #-lucee-debugging-ImpAccess table.details th::after { content: '\00A0\21E9';}
 	#-lucee-debugging-ExecTime table.details th, #-lucee-debugging-ImpAccess table.details th { cursor:pointer; } 
 
-	.ldTabContent .title	{ margin-top: 1.25em; font-size: 2.5em; font-weight: normal; color:#3399cc; }
+	.ldTabContent .title	{ margin-top: 1.25em; font-size: 2.5em; font-weight: normal; color:#5f8731; }
 	
 	.ldTabContent .section-title	{ margin-top: 1.25em; font-size: 1.75em; font-weight: normal; color:#555; }
 
@@ -291,8 +307,15 @@ if(structKeyExists(arguments.custom, "metrics_Charts")) {
 	.ldTabContent a.large 	{font-size: 12pt; cursor: pointer;}
 	.ldTabContent td a 	{ color: #25A; }
 	.ldTabContent .warning{ color: red; }
+	.ldTabContent .happy { color: green; }
 	.ldTabContent td a:hover	{ color: #58C; text-decoration: underline; cursor: pointer;}
-	.ldTabContent pre 	{ background-color: #EEE; padding: 1em; border: solid 1px #333; border-radius: 1em; white-space: pre-wrap; word-break: break-all; word-wrap: break-word; tab-size: 2; }
+	.ldTabContent prex 	{ background-color: #EEE;margin-top:2px; padding: 1em; border: solid 1px #333; border-radius: 1em; white-space: pre-wrap; word-break: break-all; word-wrap: break-word; tab-size: 2; }
+	.ldTabContent .prey 	{  
+		font-weight: normal;
+		font-family: "Courier New", Courier, monospace, sans-serif;
+		white-space: pre-wrap; word-break: break-all; word-wrap: break-word; tab-size: 2; }
+		.ldTabContent .innercircle 	{ background-color: #EEE;margin-top:2px; padding: 1em; border: solid 1px #333; border-radius: 1em; }
+		.ldTabContent .inner 	{ margin-left:5px;margin-right:5px;margin-top:5px;margin-bottom:15px; }
 	.ldTabContent input 	{ 
 			font-size: 12pt;
   			outline: none;background-color: #FFF; 
@@ -519,7 +542,7 @@ function ldConfigureCharts() {
 	labels={'heap':"Heap",'nonheap':"Non-Heap",'cpuSystem':"Whole System",'cpuProcess':"Lucee Process"};
 	
 	var bg="#FFF";
-	var blue="#3399CC";
+	var green="#5f8731";
 	var red="#BF4F36";
 
 	var yAxis = [{
@@ -544,7 +567,7 @@ function ldConfigureCharts() {
 					return 'Series' + "<br>" + params[0].seriesName + ": " + params[0].value + "%" + '<br>' +params[0].name ;
 				}
 			},
-			color: [blue],
+			color: [green],
 			grid : {
 				width: '82%',
 				height: '65%',
@@ -587,7 +610,7 @@ function ldConfigureCharts() {
 		legend: {
 			data:['System CPU', 'Lucee CPU']
 		},
-		color: [blue, red],
+		color: [green, red],
 		grid : {
 			width: '82%',
 			height: '65%',
@@ -806,7 +829,7 @@ Reference Button
 						<cfset isOpen = this.isSectionOpen( sectionId )>
 						<table>
 
-							<cfset renderSectionHeadTR( sectionId, "Template:", "#encodeForHtml(_cgi.REQUEST_URL)# <br> #encodeForHtml(expandPath(_cgi.SCRIPT_NAME))#" )>
+							<cfset renderSectionHeadTR( sectionId, "Template:", "#HTMLEditFormat(_cgi.SCRIPT_NAME)# (#HTMLEditFormat(expandPath(_cgi.SCRIPT_NAME))#)" )>
 
 							<tr>
 								<td class="pad label">User Agent:</td>
@@ -818,9 +841,7 @@ Reference Button
 										<tr>
 											<td class="label" colspan="2">
 												#server.coldfusion.productname#
-												<cfif StructKeyExists(server.lucee,'versionName')>(<a href="#server.lucee.versionNameExplanation#" target="_blank">#server.lucee.versionName#</a>)
-												</cfif>
-												#ucFirst(server.coldfusion.productlevel)# #server.lucee.version# (CFML Version #server.ColdFusion.ProductVersion#)
+												 #server.lucee.version# (Loader Verison #server.lucee.loaderVersion#)
 											</td>
 										</tr>
 										<tr>
@@ -924,10 +945,6 @@ Reference Button
 						</tr>
 					</table>
 
-
-
-
-
 					<!--- Template --->
 					<cfif pages.recordcount>
 
@@ -955,47 +972,34 @@ Reference Button
 										<th><cfif isExecOrder>Order<cfelse><a onclick="__LUCEE.debug.setFlag( 'ExecOrder' ); __LUCEE.util.addClass( this, 'selected' );" class="sortby" title="Order by ID (starting with the next request)">Order</a></cfif></th>
 									</tr>
 									</thead>
+									<cfset loa=0>
+									<cfset tot=0>
+									<cfset q=0>
 									<cfset var hasBad = false>
-									
-									<cfset local.pagesDisplayed = 0>
-									<cfset local.showPages = true>
-									<cfset local.bypassMinimalFilter = false>
-									<cfloop condition="showPages eq true">
-										<cfset local.loa = 0>
-										<cfset local.tot = 0>
-										<cfset local.q = 0>
-										<tbody>
-											<cfloop query="pages">
-												<cfset tot = tot + pages.total>
-												<cfset q = q + pages.query>
-												<cfif pages.avg LT arguments.custom.minimal * 1000 && !local.bypassMinimalFilter>
-													<cfcontinue>
-												</cfif>
-												<cfset pagesDisplayed++>
-												<cfset bad=pages.avg GTE arguments.custom.highlight * 1000>
-												<cfif bad>
-													<cfset hasBad = true>
-												</cfif>
-												<cfset loa = loa + pages.load>
-												<tr class="nowrap #bad ? 'red' : ''#">
-													<td class="txt-r" title="#pages.total#">#unitFormat(arguments.custom.unit, pages.total,true)#</td>
-													<td class="txt-r" title="#pages.load#">#unitFormat(arguments.custom.unit, pages.load,true)#</td>
-													<td class="txt-r" title="#pages.app#">#unitFormat(arguments.custom.unit, pages.app,true)#</td>
-													<cfif queries.recordcount><td class="txt-r" title="#pages.query#">#unitFormat(arguments.custom.unit, pages.query,true)#</td></cfif>
-													<td class="txt-r">#pages.count#</td>
-													<td class="txt-r" title="#pages.avg#"><cfif pages.count GT 1>#unitFormat(arguments.custom.unit, pages.avg,true)#<cfelse>-</cfif></td>
-													<td id="-lucee-debugging-pages-#pages.currentRow#" oncontextmenu="__LUCEE.debug.selectText( this.id );">#pages.src#</td>
-													<td class="txt-r faded" title="#pages.id#">#ordermap[pages.id]#</td>
-												</tr>
-											</cfloop>
-											<cfif pagesDisplayed gt 0 || bypassMinimalFilter>
-												<cfset showPages = false>
-											<cfelse>
-												<!-- if there are no templates displayed at all due to a minimal execution time filter, show them all -->
-												<cfset bypassMinimalFilter = true>
+									<tbody>
+										<cfloop query="pages">
+											<cfset tot=tot+pages.total>
+											<cfset q=q+pages.query>
+											<cfif pages.avg LT arguments.custom.minimal * 1000>
+												<cfcontinue>
 											</cfif>
-										</tbody>
-									</cfloop>
+											<cfset bad=pages.avg GTE arguments.custom.highlight * 1000>
+											<cfif bad>
+												<cfset hasBad = true>
+											</cfif>
+											<cfset loa=loa+pages.load>
+											<tr class="nowrap #bad ? 'red' : ''#">
+												<td class="txt-r" title="#pages.total#">#unitFormat(arguments.custom.unit, pages.total,true)#</td>
+												<td class="txt-r" title="#pages.load#">#unitFormat(arguments.custom.unit, pages.load,true)#</td>
+												<td class="txt-r" title="#pages.app#">#unitFormat(arguments.custom.unit, pages.app,true)#</td>
+												<cfif queries.recordcount><td class="txt-r" title="#pages.query#">#unitFormat(arguments.custom.unit, pages.query,true)#</td></cfif>
+												<td class="txt-r">#pages.count#</td>
+												<td class="txt-r" title="#pages.avg#"><cfif pages.count GT 1>#unitFormat(arguments.custom.unit, pages.avg,true)#<cfelse>-</cfif></td>
+												<td id="-lucee-debugging-pages-#pages.currentRow#" oncontextmenu="__LUCEE.debug.selectText( this.id );">#pages.src#</td>
+												<td class="txt-r faded" title="#pages.id#">#ordermap[pages.id]#</td>
+											</tr>
+										</cfloop>
+									</tbody>
 									<cfif hasBad>
 										<tfoot>
 											<tr class="red">
@@ -1009,89 +1013,14 @@ Reference Button
 						</table>
 					</cfif>
 
-					<!--- Page Parts --->
-					<cfif pageParts.recordcount>
 
-						<cfset sectionId = "PageParts">
-						<cfset isOpen = this.isSectionOpen( sectionId )>
 
-						<div class="section-title">Page Parts</div>
-						<table>
 
-							<cfset renderSectionHeadTR( sectionId, 
-								"#pageParts.recordcount# Page Part#pageParts.recordcount GT 1 ? 's' : ''# Executed" )>
 
-							<tr>
-								<td id="-lucee-debugging-#sectionId#" class="#isOpen ? '' : 'collapsed'#">
-									<table class="details">
-									<thead>
-									<tr>
-										<th>Total (ms)</th>
-										<th>Count</th>
-										<th>Min (ms)</th>
-										<th>Max (ms)</th>
-										<th>Avg (ms)</th>
-										<th>Template</th>
-										<th>Lines</th>
-										<th>Start</th>
-										<th>End</th>
-									</tr>
-									</thead>
-									<cfset var hasBad = false>
-									
-									<cfset local.pagePartsDisplayed = 0>
-									<cfset local.pagePartsShow = true>
-									<cfset local.bypassMinimalFilter = false>
-									<cfloop condition="pagePartsShow eq true">
-										<cfset local.loa = 0>
-										<cfset local.tot = 0>
-										<cfset local.q = 0>
-										<tbody>
-											<cfloop query="pageParts">
-												<cfset tot = tot + pageParts.total>
-												<cfif pageParts.avg LT arguments.custom.minimal * 1000 && !local.bypassMinimalFilter>
-													<cfcontinue>
-												</cfif>
-												<cfset pagePartsDisplayed++>
-												<cfset bad=pageParts.avg GTE arguments.custom.highlight * 1000>
-												<cfif bad>
-													<cfset hasBad = true>
-												</cfif>
-												<tr class="nowrap #bad ? 'red' : ''#" 
-														<!--- we don't show snippet for security reasons
-															title="#EncodeForHtmlAttribute(pageParts.path & chr(10) & pageParts.path & chr(10) & pageParts.snippet)#" --->
-														>
-													<td class="txt-r">#unitFormat(arguments.custom.unit, pageParts.total,true)#</td>
-													<td class="txt-r">#unitFormat(arguments.custom.unit, pageParts.count,true)#</td>
-													<td class="txt-r">#unitFormat(arguments.custom.unit, pageParts.min,true)#</td>
-													<td class="txt-r">#unitFormat(arguments.custom.unit, pageParts.max,true)#</td>
-													<td class="txt-r">#unitFormat(arguments.custom.unit, pageParts.avg,true)#</td>
-													<td>#encodeForHtml(pageParts.path)#</td>
-													<td title="lines">#pageParts.startLine# - #pageParts.endLine#</td>
-													<td class="txt-r">#pageParts.start#</td>
-													<td class="txt-r">#pageParts.end#</td>
-												</tr>
-											</cfloop>
-											<cfif pagePartsDisplayed gt 0 || bypassMinimalFilter>
-												<cfset pagePartsShow = false>
-											<cfelse>
-												<!-- if there are no templates displayed at all due to a minimal execution time filter, show them all -->
-												<cfset bypassMinimalFilter = true>
-											</cfif>
-										</tbody>
-									</cfloop>
-									<cfif hasBad>
-										<tfoot>
-											<tr class="red">
-												<td colspan="5">red = over #unitFormat( arguments.custom.unit, arguments.custom.highlight * 1000 ,true)# ms average execution time</td>
-											</tr>
-										</tfoot>
-									</cfif>
-								</table>
-								</td>
-							</tr>
-						</table>
-					</cfif>
+
+
+
+
 
 					<!--- Exceptions --->
 					<cfif structKeyExists( local, "exceptions" ) && arrayLen( local.exceptions )>
@@ -1099,7 +1028,7 @@ Reference Button
 						<cfset sectionId = "Exceptions">
 						<cfset isOpen = this.isSectionOpen( sectionId )>
 
-						<div class="section-title">Exceptions</div>
+						<div class="section-title">Caught Exceptions</div>
 						<table>
 
 							<cfset renderSectionHeadTR( sectionId, "#arrayLen(local.exceptions)# Exception#arrayLen( local.exceptions ) GT 1 ? 's' : ''# Caught" )>
@@ -1193,14 +1122,14 @@ Reference Button
 									<table class="details">
 									<thead>
 										<tr>
-											<th>Label</th>
+											<th align="center">Label</th>
 											<th>Time (ms)</th>
 											<th>Template</th>
 										</tr>
 									<tbody>
 										<cfloop query="timers">
 											<tr>
-												<td>#timers.label#</td>
+												<td class="txt-r">#timers.label#</td>
 												<td class="txt-r">#unitFormat( arguments.custom.unit, timers.time * 1000000,prettify )#</td>
 												<td class="txt-r">#timers.template#</td>
 											</tr>
@@ -1370,98 +1299,99 @@ Reference Button
 										</table>
 									<cfset hasCachetype=ListFindNoCase(queries.columnlist,"cachetype") gt 0>
 									<br><b>SQL Queries</b>
-										<table class="details">
-										<cfloop query="queries">
+									<table class="details">
 											<thead>
 												<tr>
+													<th>&nbsp;</th>
 													<th>Name</th>
 													<th>Records</th>
-													<th>Time (ms)</th>
+													<th>Time</th>
+													<th>Usage</th>
 													<th>Datasource</th>
 													<th>Source</th>
 													<th>Line</th>
-													<cfif hasCachetype><th>Cache Type</th></cfif>
+													<cfif hasCachetype><th>Cached</th></cfif>
 												</tr>
-											</thead>	
+											</thead>
+										<cfloop query="queries">
+											<cfset local.doUsage=listFindNoCase(queries.columnlist, 'usage') && isStruct(queries.usage)>
+											<cfif doUsage>
+												<cfscript>
+													local.usageNotRead = [];
+													local.usageRead = [];
+													loop collection="#queries.usage#" index="local.item" item="local.value" {
+														if ( !local.value )
+															arrayAppend( usageNotRead, item );
+														else
+															arrayAppend( usageRead, item );
+													}
+													local.lenUsed = arrayLen( usageRead );
+													local.lenNotUsed = arrayLen( usageNotRead );
+													local.cols = local.lenNotUsed + local.lenUsed;
+
+													if ( lenNotUsed == 0 || cols == 0 )
+														local.usage = 100;
+													else
+														local.usage = (local.lenUsed / local.cols) * 100;
+													local.highlightUnused = true;
+													if ( queries.count == 0 )
+														local.highlightUnused = false;
+													else if ( local.usage == 100 )
+														local.highlightUnused = false;
+													
+												</cfscript>
+									
+											</cfif>	
 											<tbody>
+												<cfset sectionId = queries.hash>
+												<cfset isOpen = this.isSectionOpen( sectionId )>
 												<tr>
-													<td>#queries.name#</td>
+													<td><cfset renderSectionA( sectionId, "" )></td>
+													<td><cfset renderSectionA( sectionId, queries.name,"",false)></td>
 													<td class="txt-r">#queries.count#</td>
-													<td class="txt-r">#unitFormat(arguments.custom.unit, queries.time,prettify)#</td>
+													<td class="txt-r">#unitFormat(arguments.custom.unit, queries.time,prettify)# ms</td>
+													<td class="txt-r<cfif doUsage and usage lt 100> warning<cfelseif doUsage and usage eq 100> happy</cfif>"><cfif doUsage>#int(usage)#%<cfelse>-</cfif></td>
 													<td>#queries.datasource#</td>
 													<td>#queries.src#</td>
 													<td>#queries.line#</td>
-													<cfif hasCachetype><td>#isEmpty(queries.cacheType)?"none":queries.cacheType#</td></cfif>
+													<cfif hasCachetype><td>#YesNoFormat(!isEmpty(queries.cacheType))#</td></cfif>
 												</tr>
 												<tr class="sort-group">
-													<td colspan="8" id="-lucee-debugging-query-sql-#queries.currentRow#" colspan="7" oncontextmenu="__LUCEE.debug.selectText( this.id );"><pre>#trim( queries.sql )#</pre></td>
-												</tr>
+													<td colspan="9" 
+													id="-lucee-debugging-#sectionId#"
+													class="#isOpen ? '' : 'collapsed'#"
+													oncontextmenu="__LUCEE.debug.selectText( this.id );">
+													<div class="inner">
+														<span class="bold">SQL</span>
+													<div class="innercircle">
+														<span class="prey">#trim( queries.sql )#</span>
+													</div>
+													</div>													
 
-												<cfif listFindNoCase(queries.columnlist, 'usage') && isStruct(queries.usage)>
-													<tr class="sort-group">
-														
-														<cfscript>
-															local.usageNotRead = [];
-															local.usageRead = [];
-															loop collection="#queries.usage#" index="local.item" item="local.value" {
-																if ( !local.value )
-																	arrayAppend( usageNotRead, item );
-																else
-																	arrayAppend( usageRead, item );
-															}
-															local.lenUsed = arrayLen( usageRead );
-															local.lenNotUsed = arrayLen( usageNotRead );
-															local.cols = local.lenNotUsed + local.lenUsed;
-
-															if ( lenNotUsed == 0 || cols == 0 )
-																local.usage = 100;
-															else
-																local.usage = (local.lenUsed / local.cols) * 100;
-															local.highlightUnused = true;
-															if ( queries.count == 0 )
-																local.highlightUnused = false;
-															else if ( local.usage == 100 )
-																local.highlightUnused = false;
-															
-														</cfscript>
-														<tr class="sort-group<cfif highlightUnused> red</cfif>">
-															<td colspan="8">
-																<cfif queries.count eq 0>
-																	0 records, so not enough data to track Query Column usage 
-																<cfelse>	
-																	<cfif usage neq 100><b></cfif>
-																		Query Column usage within the request: #numberFormat( usage, "999.9" )#% 
-																	<cfif usage neq 100>( #lenUsed# / #cols# )</b></cfif>
-																</cfif>
-															</td>
-														</tr>
-														<cfif queries.count gt 0>
-															<cfif lenUsed neq cols>
-																<tr class="sort-group">
-																	<td colspan="8">
-																		Used: <cfloop from="1" to="#lenUsed#" index="local.ii">
-																			#usageRead[ ii ]# <cfif ii LT lenUsed>, </cfif>
-																		</cfloop>
-																	</td>
-																</tr>
-															</cfif>
-															
+													<cfif doUsage>
+													<div class="inner">
+														<cfif usage EQ 100>
+															<span class="bold">Query column usage</span><br>
+															<span class="happy">All columns are used</span><br>
+														<cfelseif usage EQ 0>
+															<span class="bold">Query column usage</span><br>
+															<span class="warning">None of the columns are used</span><br>
+														<cfelse>
+															<span class="bold">Query column usage</span><br>
 															<cfif lenNotUsed>
-																<tr class="sort-group <cfif highlightUnused> red</cfif>">
-																	<td colspan="8">
-																		Unused:
-																		<cfloop from="1" to="#lenNotUsed#" index="local.ii">
-																			#usageNotRead[ ii ]# <cfif ii LT lenNotUsed>, </cfif>
-																		</cfloop>
-																	</td>
-																</tr>
+															<span class="warning">
+																the following columns are NOT used:
+																<cfloop from="1" to="#lenNotUsed#" index="local.ii">
+																	<li>#usageNotRead[ ii ]#
+																</cfloop>
+															</span>
+														
 															</cfif>
 														</cfif>
-														<tr class="sort-group">
-															<td colspan="8">&nbsp;</td>
-														</tr>
-													</tr>
-												</cfif>
+													</cfif>
+													</div>
+													</td>
+												</tr>
 											</tbody>
 										</cfloop>
 										</table>
@@ -1768,12 +1698,27 @@ ldSelectTab(null,'-lucee-debugging');
 
 
 
+	<cffunction name="renderSectionA" output="#true#">
+
+		<cfargument name="sectionId">
+		<cfargument name="label1">
+		<cfargument name="label2" default="">
+		<cfargument name="showIcon" default="#true#">
+
+		<cfset var isOpen = this.isSectionOpen( arguments.sectionId )>
+		<a id="-lucee-debugging-btn-#arguments.sectionId#" <cfif arguments.showIcon> class="-lucee-icon-#isOpen ? 'minus' : 'plus'#"</cfif> onclick="__LUCEE.debug.toggleSection( '#arguments.sectionId#' );">
+				#arguments.label1#</a>
+			<a onclick="__LUCEE.debug.toggleSection( '#arguments.sectionId#' );">#arguments.label2#</a>
+	</cffunction>
+
+
 
 	<cffunction name="renderSectionHeadTR" output="#true#">
 
 		<cfargument name="sectionId">
 		<cfargument name="label1">
 		<cfargument name="label2" default="">
+		<cfargument name="withTags" default="#true#">
 
 		<cfset var isOpen = this.isSectionOpen( arguments.sectionId )>
 
@@ -1787,19 +1732,6 @@ ldSelectTab(null,'-lucee-debugging');
 	<cfscript>
 
 		function unitFormat( string unit, numeric time, boolean prettify=false ) {
-			var result = _unitFormat( arguments.unit, arguments.time );
-			if ( !arguments.prettify ) {
-				return result;
-			} else {
-				result = NumberFormat( result, ",0.00" );
-				if (result eq 0)
-					return "-";
-				return result;
-			}
-			
-		}
-
-		function _unitFormat( string unit, numeric time) {
 			/*if ( !arguments.prettify ) {
 				return NumberFormat( arguments.time / 1000000, ",0.000" );
 			}*/

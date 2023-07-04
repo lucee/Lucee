@@ -51,6 +51,8 @@ import lucee.runtime.listener.ApplicationContextSupport;
 import lucee.runtime.listener.ClassicApplicationContext;
 import lucee.runtime.listener.JavaSettings;
 import lucee.runtime.listener.ModernApplicationContext;
+import lucee.runtime.listener.SessionCookieData;
+import lucee.runtime.listener.SessionCookieDataImpl;
 import lucee.runtime.net.mail.Server;
 import lucee.runtime.net.mail.ServerImpl;
 import lucee.runtime.net.s3.Properties;
@@ -75,10 +77,14 @@ import lucee.runtime.type.util.ListUtil;
 public class GetApplicationSettings extends BIF {
 
 	public static Struct call(PageContext pc) throws PageException {
-		return call(pc, false);
+		return call(pc, false, false);
 	}
 
 	public static Struct call(PageContext pc, boolean suppressFunctions) throws PageException {
+		return call(pc, suppressFunctions, false);
+	}
+
+	public static Struct call(PageContext pc, boolean suppressFunctions, boolean onlySupported) throws PageException {
 		ApplicationContext ac = pc.getApplicationContext();
 		ApplicationContextSupport acs = (ApplicationContextSupport) ac;
 		Component cfc = null;
@@ -90,6 +96,20 @@ public class GetApplicationSettings extends BIF {
 		sct.setEL("clientManagement", Caster.toBoolean(ac.isSetClientManagement()));
 		sct.setEL("clientStorage", ac.getClientstorage());
 		sct.setEL("sessionStorage", ac.getSessionstorage());
+
+		SessionCookieData sessionCookieData = acs.getSessionCookie();
+		if( sessionCookieData != null) {
+			Struct sc = new StructImpl(Struct.TYPE_LINKED);
+			if (!StringUtil.isEmpty(sessionCookieData.getPath())) sc.setEL("path", sessionCookieData.getPath());
+			if (!StringUtil.isEmpty(sessionCookieData.getDomain())) sc.setEL("domain", sessionCookieData.getDomain());
+			sc.setEL("timeout", sessionCookieData.getTimeout());
+			sc.setEL("secure", sessionCookieData.isSecure());
+			sc.setEL("httpOnly", sessionCookieData.isHttpOnly());
+			sc.setEL("sameSite", SessionCookieDataImpl.toSamesite(sessionCookieData.getSamesite()));
+			sc.setEL("disableUpdate", sessionCookieData.isDisableUpdate());
+			sct.setEL("sessionCookie", sc);
+		}
+		
 		sct.setEL("customTagPaths", toArray(ac.getCustomTagMappings()));
 		sct.setEL("componentPaths", toArray(ac.getComponentMappings()));
 		sct.setEL("loginStorage", AppListenerUtil.translateLoginStorage(ac.getLoginStorage()));
@@ -107,9 +127,12 @@ public class GetApplicationSettings extends BIF {
 		sct.setEL("setDomainCookies", Caster.toBoolean(ac.isSetDomainCookies()));
 		sct.setEL(KeyConstants._name, ac.getName());
 		sct.setEL("localMode", ac.getLocalMode() == Undefined.MODE_LOCAL_OR_ARGUMENTS_ALWAYS ? Boolean.TRUE : Boolean.FALSE);
-		sct.setEL(KeyConstants._locale, LocaleFactory.toString(pc.getLocale()));
-		sct.setEL(KeyConstants._timezone, TimeZoneUtil.toString(pc.getTimeZone()));
+		sct.setEL(KeyConstants._locale, LocaleFactory.toString(ThreadLocalPageContext.getLocale(pc)));
+		sct.setEL(KeyConstants._timezone, TimeZoneUtil.toString(ThreadLocalPageContext.getTimeZone(pc)));
 		// sct.setEL(KeyConstants._timeout,TimeZoneUtil.toString(pc.getRequestTimeout()));
+
+		sct.setEL("bufferOutput", Caster.toBoolean(ac.getBufferOutput()));
+		sct.setEL("suppressContent", Caster.toBoolean(ac.getSuppressContent()));
 
 		sct.setEL("nullSupport", ((ApplicationContextSupport) ac).getFullNullSupport());
 		sct.setEL("enableNullSupport", ((ApplicationContextSupport) ac).getFullNullSupport());
@@ -130,6 +153,11 @@ public class GetApplicationSettings extends BIF {
 		sct.setEL("charset", cs);
 
 		sct.setEL("sessionType", AppListenerUtil.toSessionType(((PageContextImpl) pc).getSessionType(), "application"));
+
+		Struct rt = new StructImpl(Struct.TYPE_LINKED);
+		if (ac instanceof ModernApplicationContext) rt.setEL("type", ((ModernApplicationContext) ac).getRegex().getTypeName());
+		sct.setEL("regex", rt);
+
 		sct.setEL("serverSideFormValidation", Boolean.FALSE); // TODO impl
 
 		sct.setEL("clientCluster", Caster.toBoolean(ac.getClientCluster()));
@@ -168,7 +196,7 @@ public class GetApplicationSettings extends BIF {
 		}
 		catch (Exception e) {
 		} // in case the extension is not loaded this will fail // TODO check if the extension is installed
-		// query
+			// query
 		{
 			Struct query = new StructImpl(Struct.TYPE_LINKED);
 			query.setEL("varusage", AppListenerUtil.toVariableUsage(acs.getQueryVarUsage(), "ignore"));
@@ -312,7 +340,7 @@ public class GetApplicationSettings extends BIF {
 		StructImpl jsSct = new StructImpl(Struct.TYPE_LINKED);
 		jsSct.put("loadCFMLClassPath", js.loadCFMLClassPath());
 		jsSct.put("reloadOnChange", js.reloadOnChange());
-		jsSct.put("watchInterval", new Double(js.watchInterval()));
+		jsSct.put("watchInterval", Double.valueOf(js.watchInterval()));
 		jsSct.put("watchExtensions", ListUtil.arrayToList(js.watchedExtensions(), ","));
 		Resource[] reses = js.getResources();
 		StringBuilder sb = new StringBuilder();
@@ -337,11 +365,12 @@ public class GetApplicationSettings extends BIF {
 					key = it.next();
 					value = cw.get(key);
 					if (suppressFunctions && value instanceof UDF) continue;
+					if (onlySupported) continue;
 					if (!sct.containsKey(key)) sct.setEL(key, value);
 				}
 			}
 			catch (PageException e) {
-				LogUtil.log(ThreadLocalPageContext.getConfig(pc), GetApplicationSettings.class.getName(), e);
+				LogUtil.log(pc, GetApplicationSettings.class.getName(), e);
 			}
 		}
 		// application tag custom attributes
@@ -353,6 +382,7 @@ public class GetApplicationSettings extends BIF {
 				while (it.hasNext()) {
 					e = it.next();
 					if (suppressFunctions && e.getValue() instanceof UDF) continue;
+					if (onlySupported) continue;
 					if (!sct.containsKey(e.getKey())) sct.setEL(e.getKey(), e.getValue());
 				}
 			}
@@ -430,8 +460,9 @@ public class GetApplicationSettings extends BIF {
 
 	@Override
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
+		if (args.length == 2) return call(pc, Caster.toBooleanValue(args[0]), Caster.toBooleanValue(args[1]));
 		if (args.length == 1) return call(pc, Caster.toBooleanValue(args[0]));
 		if (args.length == 0) return call(pc);
-		throw new FunctionException(pc, "GetApplicationSettings", 0, 1, args.length);
+		throw new FunctionException(pc, "GetApplicationSettings", 0, 2, args.length);
 	}
 }

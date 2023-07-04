@@ -743,7 +743,8 @@ public interface Cast {
 	public String toString(Object o) throws PageException;
 
 	/**
-	 * cast an Object to a String dont throw an exception, if can't cast to a string return an empty string
+	 * cast an Object to a String dont throw an exception, if can't cast to a string return an empty
+	 * string
 	 * 
 	 * @param o Object to cast
 	 * @param defaultValue Default Value
@@ -1276,8 +1277,8 @@ public interface Cast {
 	public Object toVoid(Object o, Object defaultValue);
 
 	/**
-	 * cast an Object to a reference type (Object), in that case this method to nothing, because an Object
-	 * is already a reference type
+	 * cast an Object to a reference type (Object), in that case this method to nothing, because an
+	 * Object is already a reference type
 	 * 
 	 * @param o Object to cast
 	 * @return casted Object

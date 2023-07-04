@@ -25,6 +25,7 @@ import java.math.BigDecimal;
 
 import lucee.runtime.PageContext;
 import lucee.runtime.ext.function.Function;
+import lucee.runtime.op.Caster;
 
 public final class Round implements Function {
 
@@ -37,7 +38,7 @@ public final class Round implements Function {
 	public static double call(PageContext pc, double number, double precision) {
 		if (precision <= 0) return StrictMath.round(number);
 
-		BigDecimal bd = new BigDecimal(number);
+		BigDecimal bd = Caster.toBigDecimal(number);
 		bd = bd.setScale((int) precision, BigDecimal.ROUND_HALF_UP);
 		return bd.doubleValue();
 	}

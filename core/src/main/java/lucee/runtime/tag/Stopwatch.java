@@ -75,7 +75,7 @@ public final class Stopwatch extends BodyTagImpl {
 		long exe = (System.currentTimeMillis() - time);
 
 		if (variable != null) {
-			pageContext.setVariable(variable, new Double(exe));
+			pageContext.setVariable(variable, Double.valueOf(exe));
 		}
 		else {
 			DumpTable table = new DumpTable("#ff9900", "#ffcc00", "#000000");

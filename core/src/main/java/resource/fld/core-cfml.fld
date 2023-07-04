@@ -96,6 +96,7 @@
     	</argument>
     	<argument>
 			<name>type</name>
+			<alias>typename</alias>
 			<type>string</type>
 			<required>no</required>
 			<default></default>
@@ -105,6 +106,7 @@ If set, attempting to add an element that can not be cast to the specified type,
     	</argument>
     	<argument>
 			<name>synchronized</name>
+			<alias>isSynchronized</alias>
 			<type>boolean</type>
 			<required>no</required>
 			<default>true</default>
@@ -357,10 +359,11 @@ Characters that show how Lucee displays a date:
          XX: +0530
          XXX: +5:30
 
-- short: equivalent to m/d/y
-- medium: equivalent to mmm d, yyyy
-- long: equivalent to mmmm d, yyyy
-- full: equivalent to dddd, mmmm d, yyyy</description>
+- short: equivalent to "m/d/y"
+- medium: equivalent to "mmm d, yyyy"
+- long: equivalent to "mmmm d, yyyy"
+- full: equivalent to "dddd, mmmm d, yyyy"
+- ISO8601/ISO: equivalent to "yyyy-mm-dd"</description>
     </argument>
 		<argument>
 			<name>timezone</name>
@@ -453,10 +456,9 @@ The following masks can be used to format the full date and time and may not be 
 - long: medium followed by three-letter time zone; i.e. "mmmm d, yyyy h:nn:ss tt zzz"
 - full: equivalent to "dddd, mmmm d, yyyy h:nn:ss tt zz"
 - ISO8601/ISO: equivalent to "yyyy-mm-dd'T'HH:nn:ssXXX"
+- ISOMillis/ISOMs/javascript: Javascript style ISO date, equivalent to "yyyy-mm-dd'T'HH:nn:ss.SSSXXX" 
 - epoch: Total seconds of a given date (Example:1567517664)
 - epochms: Total millseconds of a given date (Example:1567517664000)
-
-The function follows Java date time mask.  For details, see the section Date and Time Patterns at http://docs.oracle.com/javase/7/docs/api/java/text/SimpleDateFormat.html
 </description>
     </argument>
 		<argument>
@@ -1153,35 +1155,59 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<name>date</name>
 			<type>any</type>
 			<required>Yes</required>
-		<description>date object</description>
-    </argument>
+			<description>date object</description>
+		</argument>
 		<argument>
 			<name>mask</name>
 			<type>string</type>
 			<required>No</required>
 			<default>medium</default>
-		<description></description>
-    </argument>
+			<description>
+			Characters that show how Lucee displays a date:
+			- d: Day of the month as digits; no leading zero for single-digit days.
+			- dd: Day of the month as digits; leading zero for single-digit days.
+			- ddd: Day of the week as a three-letter abbreviation.
+			- dddd: Day of the week as its full name.
+			- m: Month as digits; no leading zero for single-digit months.
+			- mm: Month as digits; leading zero for single-digit months.
+			- mmm: Month as a three-letter abbreviation.
+			- mmmm: Month as its full name.
+			- yy: Year as last two digits; leading zero for years less than 10.
+			- yyyy: Year represented by four digits.
+			- gg: Period/era string. Ignored. Reserved. The following masks tell how to format the full date and cannot be combined with other masks:
+			- z: Time zone in literal format, for example, IST
+			- Z: Time zone in hours of offset (RFC 822 TimeZone), for example, +0530
+			- X: Time zone in hours of offset in ISO 8601 format. The following are the three ways of using 'X':
+					X: +05
+					XX: +0530
+					XXX: +5:30
+
+			- short: equivalent to m/d/y
+			- medium: equivalent to mmm d, yyyy
+			- long: equivalent to mmmm d, yyyy
+			- full: equivalent to dddd, mmmm d, yyyy
+			</description>
+		</argument>
 		<argument>
 			<name>locale</name>
 			<type>locale</type>
 			<required>No</required>
-		<description>Locale to use instead of the locale of the page when processing the function</description>
-    </argument>
+			<description>Locale to use instead of the locale of the page when processing the function</description>
+		</argument>
 		<argument>
 			<name>timezone</name>
 			<type>timezone</type>
 			<required>No</required>
-		<description>
-A datetime object is independent of a specific timezone, it is only an offset in milliseconds from 1970-1-1 00.00:00 UTC (Coordinated Universal Time).
-This means that the timezone only comes into play when you need specific information like hours in a day, minutes in a hour or which day it is since those calculations depend on the timezone.
-For these calculations, a timezone must be specified in order to translate the date object to something else. If you do not provide the timezone in the function call, it will default to the timezone specified in the Lucee Administrator (Settings/Regional), or the timezone specified for the current request using the function setTimezone.
-You can find a list of all available timezones in the Lucee administrator (Settings/Regional). Some examples of valid timezones:
-       - AGT (for time in Argentina)
-       - Europe/Zurich (for time in Zurich/Switzerland)
-       - HST (Hawaiian Standard Time in the USA)
-		</description>
-    </argument>
+			<description>
+			A datetime object is independent of a specific timezone, it is only an offset in milliseconds from 1970-1-1 00.00:00 UTC (Coordinated Universal Time).
+			This means that the timezone only comes into play when you need specific information like hours in a day, minutes in a hour or which day it is since those calculations depend on the timezone.
+			For these calculations, a timezone must be specified in order to translate the date object to something else. If you do not provide the timezone in the function call, it will default to the timezone specified in the Lucee Administrator (Settings/Regional), or the timezone specified for the current request using the function setTimezone.
+			You can find a list of all available timezones in the Lucee administrator (Settings/Regional). Some examples of valid timezones:
+				- AGT (for time in Argentina)
+				- Europe/Zurich (for time in Zurich/Switzerland)
+				- HST (Hawaiian Standard Time in the USA)
+			</description>
+		</argument>
 		<return>
 			<type>string</type>
 		</return>
@@ -1235,20 +1261,19 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<alias>string,currency_number,currency</alias>
 			<type>string</type>
 			<required>Yes</required>
-		<description>A currency string</description>
-    </argument>
+			<description>A currency string</description>
+		</argument>
 		<argument>
 			<name>locale</name>
 			<type>locale</type>
 			<required>No</required>
-		<description></description>
-    </argument>
+			<description>Locale to use instead of the locale of the page when processing the function</description>
+		</argument>
 		<return>
 			<type>boolean</type>
 		</return>
 	</function>
-	
-	
+		
 	<!-- LSIsDate -->
 	<function>
 		<name>LSIsDate</name>
@@ -1322,24 +1347,37 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<name>number</name>
 			<type>any</type>
 			<required>Yes</required>
-		<description>Number to format</description>
-    </argument>
+			<description>Number to format</description>
+		</argument>
 		<argument>
 			<name>mask</name>
 			<type>string</type>
 			<required>No</required>
-		<description></description>
-    </argument>
+			<description>
+			Mask that has to be used for formatting number: dollar sign, comma, and dot are mapped to their locale-specific equivalents.
+			_,9 Digit placeholder; 
+			. decimal point; 
+			0 Pads with zeros;
+			( ) less than zero, puts parentheses around the mask
+			+ plus sign before positive number minus before negative
+			- a space before positive minus sign before negative
+			, Separates every third decimal place with a comma.
+			L,C Left-justifies or center-justifies number
+			$ dollar sign before formatted number.
+			^ Separates left and right formatting.
+			</description>
+		</argument>
 		<argument>
 			<name>locale</name>
 			<type>locale</type>
 			<required>No</required>
-		<description>Locale to use instead of the locale of the page when processing the function</description>
-    </argument>
+			<description>Locale to use instead of the locale of the page when processing the function</description>
+		</argument>
 		<return>
 			<type>string</type>
 		</return>
 	</function>
+
 	<!-- lSParseCurrency -->
 	<function>
 		<name>lSParseCurrency</name>
@@ -1541,6 +1579,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<required>No</required>
 			<default>true</default>
 			<description>On windows computer include Carriage Return.</description>
+			<introduced>5.3.1.43</introduced>
 	    </argument>
 		<return>
 			<type>string</type>
@@ -1642,12 +1681,13 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<alias>param</alias>
 			<type>variableString</type>
 			<required>Yes</required>
-		<description></description>
-    </argument>
+			<description>Name of the string variable to test for.</description>
+		</argument>
 		<return>
 			<type>boolean</type>
 		</return>
 	</function>
+	
 	<!-- parseDateTime -->
 	<function>
 		<name>parseDateTime</name>
@@ -1720,8 +1760,7 @@ The following masks can be used to format the full date and time and may not be 
 - long: medium followed by three-letter time zone; i.e. "mmmm d, yyyy h:mm:ss tt zzz"
 - full: equivalent to "dddd, mmmm d, yyyy h:mm:ss tt zz"
 - ISO8601: equivalent to "yyyy-mm-dd'T'HH:nn:ss'Z'Z"
-
-The function follows Java date time mask.  For details, see the section Date and Time Patterns at http://docs.oracle.com/javase/7/docs/api/java/text/SimpleDateFormat.html
+- ISOMillis/ISOMs/javascript: Javascript style ISO date, equivalent to "yyyy-mm-dd'T'HH:nn:ss.SSS'Z'Z" 
 </description>
     	</argument>
     	
@@ -1799,20 +1838,20 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<name>query</name>
 			<type>query</type>
 			<required>Yes</required>
-		<description>Name of the query whose data is returned.</description>
-    </argument>	
+			<description>Name of the query whose data is returned.</description>
+		</argument>	
 		<argument>
 			<name>page</name>
 			<type>number</type>
 			<required>Yes</required>
-		<description></description>
-    </argument>		
+			<description>The specific page of query data to be returned.</description>
+		</argument>		
 		<argument>
 			<name>pageSize</name>
 			<type>number</type>
 			<required>Yes</required>
-		<description></description>
-    </argument>	
+			<description>Number of rows of query data on a page.</description>
+		</argument>	
 		<return>
 			<type>struct</type>
 		</return>
@@ -2029,22 +2068,22 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<name>string</name>
 			<type>string</type>
 			<required>Yes</required>
-		<description>A string or a variable that contains one</description>
-    </argument>
+			<description>A string or a variable that contains one</description>
+		</argument>
 		<argument>
 			<name>charset</name>
 			<type>string</type>
 			<required>No</required>
 			<default>utf-8</default>
-		<description>The character encoding in which the string is encoded.</description>
-    </argument>
+			<description>The character encoding in which the string is encoded.</description>
+		</argument>
 		<argument>
 			<name>force</name>
 			<type>boolean</type>
 			<required>No</required>
 			<default>true</default>
-		<description></description>
-    </argument>
+			<description>If false, then the string will not be encoded if it does not contain unsafe characters.</description>
+		</argument>
 		<return>
 			<type>string</type>
 		</return>
@@ -2063,8 +2102,8 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<name>query_column</name>
 			<type>queryColumn</type>
 			<required>Yes</required>
-		<description></description>
-    </argument>
+			<description>Name of an executed query and column. Separate query name and column name with a period.</description>
+		</argument>
 		<return>
 			<type>array</type>
 		</return>
@@ -2317,8 +2356,8 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<name>string</name>
 			<type>string</type>
 			<required>Yes</required>
-		<description></description>
-    </argument>
+			<description>A string or a variable that contains one</description>
+		</argument>
 		<return>
 			<type>any</type>
 		</return>
@@ -2336,16 +2375,16 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<alias>queryColumn</alias>
 			<type>queryColumn</type>
 			<required>Yes</required>
-		<description>Name of an executed query and column. Separate query name and column name with a period.</description>
-    </argument>
+			<description>Name of an executed query and column. Separate query name and column name with a period.</description>
+		</argument>
 		<argument>
 			<name>delimiter</name>
 			<alias>delimiters</alias>
 			<type>string</type>
 			<required>No</required>
 			<default>,</default>
-		<description></description>
-    </argument>
+			<description>Characters that separate list elements. The default value is comma.</description>
+		</argument>
 		<return>
 			<type>string</type>
 		</return>
@@ -2440,8 +2479,8 @@ The following things are considered to be empty:
 			<alias>variableName,object</alias>
 			<type>variableString</type>
 			<required>Yes</required>
-			<description></description>
-    	</argument>
+			<description>Variable to check</description>
+		</argument>
 		<return>
 			<type>boolean</type>
 		</return>
@@ -2608,8 +2647,60 @@ The following things are considered to be empty:
 			<required>No</required>
 			<default>dd-MMM-yyyy HH:nn:ss</default>
 		<description>
-		Mask that has to be used for formatting. The function follows Java date time mask. For details, see the section Date and Time Patterns at the following URL: http://docs.oracle.com/javase/1.4.2/docs/api/java/text/SimpleDateFormat.html
-		</description>
+Mask that has to be used for formatting. 
+the following characters are pattern letters (case sensitive) representing the components of a datetime string. All other characters are not interpreted
+- a,..,aaaa: AM/PM marker (see also "t" and "tt"; Example:AM)
+- d: Day in month, no leading zero for single-digit days (Example:3)
+- dd: Day in month, leading zero for single-digit days (Example:03)
+- D: Day in year, no leading zero for single-digit days (Example:4)
+- DD: Day in month, leading zero for single-digit days (Example:04)
+- DDD: Day in month, 2 leading zero for single-digit days (Example:004)
+- E,EE,EEE: Day of week as a three-letter abbreviation (Example:Tue)
+- EEEE: Day of week as its full name (Example:Tuesday)
+- F: Day of week in month, no leading zero for single-digit days (Example:4)
+- FF: Day of week in month, leading zero for single-digit days (Example:04)
+- G,GG: Era designator (Example:AD)
+- h: Hour in am/pm (1-12), no leading zero for single-digit hours (Example:3)
+- hh: Hour in am/pm (1-12), leading zero for single-digit hours (Example:03)
+- H: Hour in day (0-23), no leading zero for single-digit hours (Example:14)
+- HH: Hour in day (00-23), leading zero for single-digit hours (Example:14)
+- k: Hour in day (1-24), no leading zero for single-digit hours (Example:15)
+- kk: Hour in day (1-24), leading zero for single-digit hours (Example:15)
+- K: Hour in am/pm (0-11), no leading zero for single-digit hours (Example:2)
+- KK: Hour in am/pm (0-11), leading zero for single-digit hours (Example:02)
+- l,L: milliseconds, with no leading zeros (Example:3)
+- ll,LL: milliseconds, leading zero for single-digit days (Example:03)
+- lll,LLL: milliseconds,  2 leading zero for single-digit days (Example:003)
+- m,M: Month as digits, no leading zero for single-digit months (Example:6)
+- mm,MM: Month as digits, leading zero for single-digit months (Example:06)
+- mmm,MMM: Month as a three-letter abbreviation (Example:Jun)
+- mmmm,MMMM: Month as its full name (Example:June)
+- n,N: minutes in hour, no leading zero for single-digit minutes (Example:3)
+- nn,NN: minutes in hour, leading zero for single-digit minutes (Example:03)
+- s,S: seconds in minute, no leading zero for single-digit seconds (Example:3)
+- ss,SS: seconds in minute, leading zero for single-digit seconds (Example:03)
+- t,T: one-character time marker string (Example:P)
+- tt,TT: multiple-character time marker string (Example:PM)
+- w: Week in year, no leading zero for single-digit hours (Example:27)
+- ww: Week in year, leading zero for single-digit hours (Example:27)
+- W: Week in month, no leading zero for single-digit hours (Example:2)
+- WW: Week in month, leading zero for single-digit hours (Example:02)
+- y,yy,yyy: Year as last two digits, leading zero for single-digit (Example:09)
+- yyyy: Year represented by four digits (Example:2009)
+- z,zz,zzz: General time zone as a 3 to 4 letter abbreviation (Example:PST)
+- zzzz: General time zone as its full name (Example:Pacific Standard Time)
+- Z,..,ZZZZ: RFC 822 time zone (Example:-0800)
+  
+The following masks can be used to format the full date and time and may not be combined with other masks:
+- short: equivalent to "m/d/y h:nn tt"
+- medium: equivalent to "mmm d, yyyy h:nn:ss tt"
+- long: medium followed by three-letter time zone; i.e. "mmmm d, yyyy h:nn:ss tt zzz"
+- full: equivalent to "dddd, mmmm d, yyyy h:nn:ss tt zz"
+- ISO8601/ISO: equivalent to "yyyy-mm-dd'T'HH:nn:ssXXX"
+- ISOMillis/ISOMs/javascript: Javascript style ISO date, equivalent to "yyyy-mm-dd'T'HH:nn:ss.SSSXXX" 
+- epoch: Total seconds of a given date (Example:1567517664)
+- epochms: Total millseconds of a given date (Example:1567517664000)
+</description>
     </argument>
 		<argument>
 			<name>locale</name>

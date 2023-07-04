@@ -77,13 +77,13 @@ public class CertificateInstaller {
 		context.init(null, new TrustManager[] { tm }, null);
 
 		IOException e = checkCertificate();
-		
+
 		if (tm.chain == null) {
 			if (e == null) {
 				throw new IOException("Could not obtain server certificate chain");
 			}
 			else {
-				throw new IOException("Could not obtain server certificate chain, [ "+ e +" ]");
+				throw new IOException("Could not obtain server certificate chain, [ " + e + " ]");
 			}
 		}
 	}

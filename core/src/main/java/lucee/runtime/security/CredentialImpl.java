@@ -216,30 +216,30 @@ public final class CredentialImpl implements Credential {
 				if (!rolesDir.exists()) rolesDir.mkdirs();
 				String md5 = MD5.getDigestAsString(raw);
 				IOUtil.write(rolesDir.getRealResource(md5), raw, CharsetUtil.UTF8, false);
-				return encrypt(username + ONE + password + ONE + "md5:" + md5, privateKey, salt, iter);
+				return encrypt(username + ONE + password + ONE + "md5:" + md5, privateKey, salt, iter, true);
 			}
 			catch (IOException e) {
 			}
 		}
 		try {
-			return encrypt(username + ONE + password + ONE + raw, privateKey, salt, iter);
+			return encrypt(username + ONE + password + ONE + raw, privateKey, salt, iter, true);
 		}
 		catch (Exception e) {
 			throw Caster.toPageException(e);
 		}
 	}
 
-	private static String encrypt(String input, String privateKey, byte[] salt, int iter) throws PageException {
+	private static String encrypt(String input, String privateKey, byte[] salt, int iter, boolean precise) throws PageException {
 		if (StringUtil.isEmpty(privateKey, true)) return Caster.toB64(input.getBytes(CharsetUtil.UTF8));
 		try {
-			return Cryptor.encrypt(input, privateKey, ALGO, salt, iter, "Base64", Cryptor.DEFAULT_CHARSET);
+			return Cryptor.encrypt(input, privateKey, ALGO, salt, iter, "Base64", Cryptor.DEFAULT_CHARSET, precise);
 		}
 		catch (Exception e) {
 			throw Caster.toPageException(e);
 		}
 	}
 
-	private static String decrypt(Object input, String privateKey, byte[] salt, int iter) throws PageException {
+	private static String decrypt(Object input, String privateKey, byte[] salt, int iter, boolean precise) throws PageException {
 		if (StringUtil.isEmpty(privateKey, true)) {
 			try {
 				return Base64Coder.decodeToString(Caster.toString(input), "UTF-8", true);
@@ -249,16 +249,16 @@ public final class CredentialImpl implements Credential {
 			}
 		}
 		try {
-			return Cryptor.decrypt(Caster.toString(input), privateKey, ALGO, salt, iter, "Base64", Cryptor.DEFAULT_CHARSET);
+			return Cryptor.decrypt(Caster.toString(input), privateKey, ALGO, salt, iter, "Base64", Cryptor.DEFAULT_CHARSET, precise);
 		}
 		catch (Exception e) {
 			throw Caster.toPageException(e);
 		}
 	}
 
-	public static Credential decode(Object encoded, Resource rolesDir) {
+	public static Credential decode(Object encoded, Resource rolesDir, boolean precise) {
 		try {
-			return decode(encoded, rolesDir, null, null, 0);
+			return decode(encoded, rolesDir, null, null, 0, precise);
 		}
 		catch (Exception e) {
 			return null;
@@ -272,11 +272,11 @@ public final class CredentialImpl implements Credential {
 	 * @return Credential from decoded string
 	 * @throws PageException
 	 */
-	public static Credential decode(Object encoded, Resource rolesDir, String privateKey, String salt, int iter) throws PageException {
+	public static Credential decode(Object encoded, Resource rolesDir, String privateKey, String salt, int iter, boolean precise) throws PageException {
 		String _privateKey = StringUtil.isEmpty(privateKey, true) ? staticPrivateKey : privateKey.trim();
 		byte[] _salt = StringUtil.isEmpty(salt, true) ? staticSalt : toSalt(salt);
 		int _iter = iter < 1 ? staticIter : iter;
-		String dec = decrypt(encoded, _privateKey, _salt, _iter);
+		String dec = decrypt(encoded, _privateKey, _salt, _iter, precise);
 
 		Array arr = ListUtil.listToArray(dec, "" + ONE);
 		int len = arr.size();

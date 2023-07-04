@@ -21,10 +21,13 @@ package lucee.runtime.op;
 import java.io.File;
 import java.io.OutputStream;
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.http.Cookie;
@@ -102,6 +105,7 @@ import lucee.runtime.type.scope.ClusterEntry;
 import lucee.runtime.type.scope.ClusterEntryImpl;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.ListUtil;
+import lucee.runtime.type.wrap.MapAsStruct;
 import lucee.runtime.util.Creation;
 
 /**
@@ -152,6 +156,11 @@ public final class CreationImpl implements Creation, Serializable {
 
 	@Override
 	public Struct createStruct(String type) throws ApplicationException {
+
+		int t = StructNew.toType(type);
+		if (t == StructImpl.TYPE_LINKED_CASESENSITIVE || t == StructImpl.TYPE_CASESENSITIVE) {
+			return MapAsStruct.toStruct(t == StructImpl.TYPE_LINKED_CASESENSITIVE ? Collections.synchronizedMap(new LinkedHashMap<>()) : new ConcurrentHashMap<>(), true);
+		}
 		return new StructImpl(StructNew.toType(type));
 	}
 

@@ -451,12 +451,14 @@ public interface Config {
 
 	/**
 	 * return the compile type of this context
+	 * 
 	 * @return compile type
 	 */
 	public short getCompileType();
 
 	/**
 	 * return the all datasources
+	 * 
 	 * @return all datasources
 	 */
 	public DataSource[] getDataSources();

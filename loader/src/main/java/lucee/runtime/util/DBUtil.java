@@ -42,7 +42,8 @@ public interface DBUtil {
 	/**
 	 * 
 	 * converts the value defined inside a SQLItem to the type defined in stat item
-	 * @param item item 
+	 * 
+	 * @param item item
 	 * @return Object
 	 * @throws PageException Page Exception
 	 */
@@ -59,7 +60,7 @@ public interface DBUtil {
 	 * @param tz timezone
 	 * @param stat statement
 	 * @param parameterIndex parameter index
-	 * @param item item 
+	 * @param item item
 	 * @throws PageException Page Exception
 	 * @throws SQLException SQL Exception
 	 */

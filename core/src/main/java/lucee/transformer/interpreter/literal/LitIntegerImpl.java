@@ -85,7 +85,7 @@ public final class LitIntegerImpl extends ExpressionBase implements LitInteger, 
 	}
 
 	private Double getDouble() {
-		return new Double(i);
+		return Double.valueOf(i);
 	}
 
 	/**

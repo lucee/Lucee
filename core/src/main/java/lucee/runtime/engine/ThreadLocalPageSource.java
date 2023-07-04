@@ -21,7 +21,7 @@ package lucee.runtime.engine;
 import lucee.runtime.PageSource;
 
 /**
- * this class is just used to make the pagesource availble for old code in ra files
+ * this class is just used to make the pagesource available for old code in ra files
  */
 public final class ThreadLocalPageSource {
 

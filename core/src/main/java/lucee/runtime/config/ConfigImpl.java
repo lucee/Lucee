@@ -84,6 +84,7 @@ import lucee.runtime.cfx.CFXTagPool;
 import lucee.runtime.cfx.customtag.CFXTagPoolImpl;
 import lucee.runtime.component.ImportDefintion;
 import lucee.runtime.component.ImportDefintionImpl;
+import lucee.runtime.config.ConfigWebFactory.Path;
 import lucee.runtime.config.ConfigWebUtil.CacheElement;
 import lucee.runtime.customtag.InitFile;
 import lucee.runtime.db.ClassDefinition;
@@ -451,7 +452,9 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		clearCTCache();
 		clearComponentCache();
 		clearApplicationCache();
-		// clearComponentMetadata();
+		clearLoggers(null);
+		clearComponentMetadata();
+		clearResourceProviders();
 	}
 
 	@Override
@@ -479,7 +482,8 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		return configFileLastModified;
 	}
 
-	protected void setLastModified() {
+	@Override
+	public void setLastModified() {
 		this.configFileLastModified = configFile.lastModified();
 	}
 
@@ -729,6 +733,15 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	 */
 	@Override
 	public Scheduler getScheduler() {
+		// TODO make sure that there is always a scheduler
+
+		if (scheduler == null) {
+			try {
+				return new SchedulerImpl(ConfigWebUtil.getEngine(this), this, new ArrayImpl());
+			}
+			catch (PageException e) {
+			}
+		}
 		return scheduler;
 	}
 
@@ -964,20 +977,21 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		throw new RuntimeException("no core taglib found"); // this should never happen
 	}
 
-	protected void setTagDirectory(List<Resource> listTagDirectory) {
-		Iterator<Resource> it = listTagDirectory.iterator();
+	protected void setTagDirectory(List<Path> listTagDirectory) {
+		Iterator<Path> it = listTagDirectory.iterator();
 		int index = -1;
 		String mappingName;
-		Resource tagDirectory;
+		Path path;
 		Mapping m;
 		boolean isDefault;
 		while (it.hasNext()) {
-			tagDirectory = it.next();
+			path = it.next();
 			index++;
 			isDefault = index == 0;
 			mappingName = "/mapping-tag" + (isDefault ? "" : index) + "";
 
-			m = new MappingImpl(this, mappingName, tagDirectory.getAbsolutePath(), null, ConfigPro.INSPECT_NEVER, true, true, true, true, false, true, null, -1, -1);
+			m = new MappingImpl(this, mappingName, path.isValidDirectory() ? path.res.getAbsolutePath() : path.str, null, ConfigPro.INSPECT_NEVER, true, true, true, true, false,
+					true, null, -1, -1);
 			if (isDefault) defaultTagMapping = m;
 			tagMappings.put(mappingName, m);
 
@@ -985,9 +999,8 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 			TagLib tll = getCoreTagLib(CFMLEngine.DIALECT_LUCEE);
 
 			// now overwrite with new data
-			if (tagDirectory.isDirectory()) {
-				String[] files = tagDirectory
-						.list(new ExtensionResourceFilter(getMode() == ConfigPro.MODE_STRICT ? Constants.getComponentExtensions() : Constants.getExtensions()));
+			if (path.res.isDirectory()) {
+				String[] files = path.res.list(new ExtensionResourceFilter(getMode() == ConfigPro.MODE_STRICT ? Constants.getComponentExtensions() : Constants.getExtensions()));
 				for (int i = 0; i < files.length; i++) {
 					if (tlc != null) createTag(tlc, files[i], mappingName);
 					if (tll != null) createTag(tll, files[i], mappingName);
@@ -1052,19 +1065,19 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		tl.setTag(tlt);
 	}
 
-	protected void setFunctionDirectory(List<Resource> listFunctionDirectory) {
-		Iterator<Resource> it = listFunctionDirectory.iterator();
+	protected void setFunctionDirectory(List<Path> listFunctionDirectory) {
+		Iterator<Path> it = listFunctionDirectory.iterator();
 		int index = -1;
 		String mappingName;
-		Resource functionDirectory;
+		Path path;
 		boolean isDefault;
 		while (it.hasNext()) {
-			functionDirectory = it.next();
+			path = it.next();
 			index++;
 			isDefault = index == 0;
 			mappingName = "/mapping-function" + (isDefault ? "" : index) + "";
-			MappingImpl mapping = new MappingImpl(this, mappingName, functionDirectory.getAbsolutePath(), null, ConfigPro.INSPECT_NEVER, true, true, true, true, false, true, null,
-					-1, -1);
+			MappingImpl mapping = new MappingImpl(this, mappingName, (path.isValidDirectory() ? path.res.getAbsolutePath() : path.str), null, ConfigPro.INSPECT_NEVER, true, true,
+					true, true, false, true, null, -1, -1);
 			if (isDefault) defaultFunctionMapping = mapping;
 			this.functionMappings.put(mappingName, mapping);
 
@@ -1072,8 +1085,8 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 			FunctionLib fll = luceeFlds[luceeFlds.length - 1];
 
 			// now overwrite with new data
-			if (functionDirectory.isDirectory()) {
-				String[] files = functionDirectory.list(new ExtensionResourceFilter(Constants.getTemplateExtensions()));
+			if (path.res.isDirectory()) {
+				String[] files = path.res.list(new ExtensionResourceFilter(Constants.getTemplateExtensions()));
 
 				for (String file: files) {
 					if (flc != null) createFunction(flc, file, mappingName);
@@ -2338,9 +2351,16 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 				pool = pools.get(id);
 				if (pool == null) {// TODO add config but from where?
 					DataSourcePro dsp = (DataSourcePro) ds;
+					// MUST merge ConnectionLimit and MaxTotal
+					int mt = 0;
+					if (dsp.getMaxTotal() > 0) mt = dsp.getMaxTotal();
+					else {
+						mt = dsp.getConnectionLimit();
+						if (mt <= 0) mt = Integer.MAX_VALUE;
+					}
 
 					pool = new DatasourceConnPool(this, ds, user, pass, "datasource",
-							DatasourceConnPool.createPoolConfig(null, null, null, dsp.getMinIdle(), dsp.getMaxIdle(), dsp.getMaxTotal(), 0, 0, 0, 0, 0, null));
+							DatasourceConnPool.createPoolConfig(null, null, null, dsp.getMinIdle(), dsp.getMaxIdle(), mt, 0, 0, 0, 0, 0, null));
 					pools.put(id, pool);
 				}
 			}
@@ -2779,6 +2799,8 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	}
 
 	protected void setCaches(Map<String, CacheConnection> caches) {
+		// TOD find a better way for this ethos
+
 		this.caches = caches;
 		Iterator<Entry<String, CacheConnection>> it = caches.entrySet().iterator();
 		Entry<String, CacheConnection> entry;
@@ -2814,6 +2836,36 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 				defaultCacheWebservice = cc;
 			}
 		}
+
+		// when default was set to null
+		if (StringUtil.isEmpty(cacheDefaultConnectionNameTemplate) && defaultCacheTemplate != null) {
+			defaultCacheTemplate = null;
+		}
+		else if (StringUtil.isEmpty(cacheDefaultConnectionNameFunction) && defaultCacheFunction != null) {
+			defaultCacheFunction = null;
+		}
+		else if (StringUtil.isEmpty(cacheDefaultConnectionNameQuery) && defaultCacheQuery != null) {
+			defaultCacheQuery = null;
+		}
+		else if (StringUtil.isEmpty(cacheDefaultConnectionNameResource) && defaultCacheResource != null) {
+			defaultCacheResource = null;
+		}
+		else if (StringUtil.isEmpty(cacheDefaultConnectionNameObject) && defaultCacheObject != null) {
+			defaultCacheObject = null;
+		}
+		else if (StringUtil.isEmpty(cacheDefaultConnectionNameInclude) && defaultCacheInclude != null) {
+			defaultCacheInclude = null;
+		}
+		else if (StringUtil.isEmpty(cacheDefaultConnectionNameHTTP) && defaultCacheHTTP != null) {
+			defaultCacheHTTP = null;
+		}
+		else if (StringUtil.isEmpty(cacheDefaultConnectionNameFile) && defaultCacheFile != null) {
+			defaultCacheFile = null;
+		}
+		else if (StringUtil.isEmpty(cacheDefaultConnectionNameWebservice) && defaultCacheWebservice != null) {
+			defaultCacheWebservice = null;
+		}
+
 	}
 
 	@Override
@@ -3239,17 +3291,6 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	public void clearComponentMetadata() {
 		if (componentMetaData == null) return;
 		componentMetaData.clear();
-	}
-
-	public static class ComponentMetaData {
-
-		public final Struct meta;
-		public final long lastMod;
-
-		public ComponentMetaData(Struct meta, long lastMod) {
-			this.meta = meta;
-			this.lastMod = lastMod;
-		}
 	}
 
 	private DebugEntry[] debugEntries;

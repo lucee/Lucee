@@ -58,25 +58,25 @@ public class Cryptor {
 	 * @return
 	 * @throws PageException
 	 */
-	static byte[] crypt(byte[] input, String key, String algorithm, byte[] ivOrSalt, int iterations, boolean doDecrypt) throws PageException {
+	static byte[] crypt(byte[] input, String key, String algorithm, byte[] ivOrSalt, int iterations, boolean doDecrypt, boolean precise) throws PageException {
 
 		try {
-			return _crypt(input, key, algorithm, ivOrSalt, iterations, doDecrypt);
+			return _crypt(input, key, algorithm, ivOrSalt, iterations, doDecrypt, precise);
 		}
 		// this is an ugly patch but it looks lime that ACF simply double to short keys
 		catch (PageException pe) {
 			String msg = pe.getMessage();
 			if (msg != null && key.length() == 4 && msg.indexOf(" 40 ") != -1 && msg.indexOf(" 1024 ") != -1) {
-				return _crypt(input, key + key, algorithm, ivOrSalt, iterations, doDecrypt);
+				return _crypt(input, key + key, algorithm, ivOrSalt, iterations, doDecrypt, precise);
 			}
 			if (msg != null && key.length() > 4 && key.length() % 4 == 0 && msg.indexOf("Illegal key size") != -1) {
-				return crypt(input, key.substring(0, key.length() - 4), algorithm, ivOrSalt, iterations, doDecrypt);
+				return crypt(input, key.substring(0, key.length() - 4), algorithm, ivOrSalt, iterations, doDecrypt, precise);
 			}
 			throw pe;
 		}
 	}
 
-	private static byte[] _crypt(byte[] input, String key, String algorithm, byte[] ivOrSalt, int iterations, boolean doDecrypt) throws PageException {
+	private static byte[] _crypt(byte[] input, String key, String algorithm, byte[] ivOrSalt, int iterations, boolean doDecrypt, boolean precise) throws PageException {
 
 		byte[] result = null;
 		Key secretKey = null;
@@ -114,7 +114,7 @@ public class Cryptor {
 				params = new PBEParameterSpec(ivOrSalt, iterations > 0 ? iterations : DEFAULT_ITERATIONS); // set Salt and Iterations for PasswordBasedEncryption
 			}
 			else {
-				secretKey = new SecretKeySpec(Coder.decode(Coder.ENCODING_BASE64, key, true), algo);
+				secretKey = new SecretKeySpec(Coder.decode(Coder.ENCODING_BASE64, key, precise), algo);
 				if (isFBM) params = new IvParameterSpec(ivOrSalt); // set Initialization Vector for non-ECB Feedback Mode
 			}
 
@@ -146,15 +146,16 @@ public class Cryptor {
 	/**
 	 * an encrypt method that takes a byte-array for input and returns an encrypted byte-array
 	 */
-	public static byte[] encrypt(byte[] input, String key, String algorithm, byte[] ivOrSalt, int iterations) throws PageException {
-		return crypt(input, key, algorithm, ivOrSalt, iterations, false);
+	public static byte[] encrypt(byte[] input, String key, String algorithm, byte[] ivOrSalt, int iterations, boolean precise) throws PageException {
+		return crypt(input, key, algorithm, ivOrSalt, iterations, false, precise);
 	}
 
 	/**
 	 * an encrypt method that takes a clear-text String for input and returns an encrypted, encoded,
 	 * String
 	 */
-	public static String encrypt(String input, String key, String algorithm, byte[] ivOrSalt, int iterations, String encoding, String charset) throws PageException {
+	public static String encrypt(String input, String key, String algorithm, byte[] ivOrSalt, int iterations, String encoding, String charset, boolean precise)
+			throws PageException {
 
 		try {
 
@@ -162,7 +163,7 @@ public class Cryptor {
 			if (encoding == null) encoding = DEFAULT_ENCODING;
 
 			byte[] baInput = input.getBytes(charset);
-			byte[] encrypted = encrypt(baInput, key, algorithm, ivOrSalt, iterations);
+			byte[] encrypted = encrypt(baInput, key, algorithm, ivOrSalt, iterations, precise);
 
 			return Coder.encode(encoding, encrypted);
 		}
@@ -176,23 +177,24 @@ public class Cryptor {
 	 * a decrypt method that takes an encrypted byte-array for input and returns an unencrypted
 	 * byte-array
 	 */
-	public static byte[] decrypt(byte[] input, String key, String algorithm, byte[] ivOrSalt, int iterations) throws PageException {
-		return crypt(input, key, algorithm, ivOrSalt, iterations, true);
+	public static byte[] decrypt(byte[] input, String key, String algorithm, byte[] ivOrSalt, int iterations, boolean precise) throws PageException {
+		return crypt(input, key, algorithm, ivOrSalt, iterations, true, precise);
 	}
 
 	/**
 	 * a decrypt method that takes an encrypted, encoded, String for input and returns a clear-text
 	 * String
 	 */
-	public static String decrypt(String input, String key, String algorithm, byte[] ivOrSalt, int iterations, String encoding, String charset) throws PageException {
+	public static String decrypt(String input, String key, String algorithm, byte[] ivOrSalt, int iterations, String encoding, String charset, boolean precise)
+			throws PageException {
 
 		try {
 
 			if (charset == null) charset = DEFAULT_CHARSET;
 			if (encoding == null) encoding = DEFAULT_ENCODING;
 
-			byte[] baInput = Coder.decode(encoding, input, true);
-			byte[] decrypted = decrypt(baInput, key, algorithm, ivOrSalt, iterations);
+			byte[] baInput = Coder.decode(encoding, input, precise);
+			byte[] decrypted = decrypt(baInput, key, algorithm, ivOrSalt, iterations, precise);
 
 			return new String(decrypted, charset);
 		}

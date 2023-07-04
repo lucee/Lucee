@@ -59,7 +59,7 @@ public class Renderer {
 
 		if (clazz != null) return clazz;
 
-		SourceCode sc = new SourceCode(cfml, false, dialect);
+		SourceCode sc = new SourceCode(null, cfml, false, dialect);
 
 		// compile
 		lucee.runtime.compiler.CFMLCompilerImpl.Result result = compiler.compile(config, sc, config.getTLDs(dialect), config.getFLDs(dialect), null, className, true, ignoreScopes);

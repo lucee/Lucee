@@ -75,9 +75,18 @@ public interface ConfigPro extends Config {
 	public static final String DEFAULT_STORAGE_SESSION = "memory";
 	public static final String DEFAULT_STORAGE_CLIENT = "cookie";
 
+	public static final int QUERY_VAR_USAGE_UNDEFINED = 0;
 	public static final int QUERY_VAR_USAGE_IGNORE = 1;
 	public static final int QUERY_VAR_USAGE_WARN = 2;
 	public static final int QUERY_VAR_USAGE_ERROR = 4;
+
+	public static final String[] STRING_CACHE_TYPES = new String[] { "function", "include", "query", "resource", "http", "file", "webservice" };
+	public static final int[] CACHE_TYPES = new int[] { Config.CACHEDWITHIN_FUNCTION, Config.CACHEDWITHIN_INCLUDE, Config.CACHEDWITHIN_QUERY, Config.CACHEDWITHIN_RESOURCE,
+			Config.CACHEDWITHIN_HTTP, Config.CACHEDWITHIN_FILE, Config.CACHEDWITHIN_WEBSERVICE };
+
+	public static final String[] STRING_CACHE_TYPES_MAX = new String[] { "resource", "function", "include", "query", "template", "object", "file", "http", "webservice" };
+	public static final int[] CACHE_TYPES_MAX = new int[] { ConfigPro.CACHE_TYPE_RESOURCE, ConfigPro.CACHE_TYPE_FUNCTION, ConfigPro.CACHE_TYPE_INCLUDE, ConfigPro.CACHE_TYPE_QUERY,
+			ConfigPro.CACHE_TYPE_TEMPLATE, ConfigPro.CACHE_TYPE_OBJECT, ConfigPro.CACHE_TYPE_FILE, ConfigPro.CACHE_TYPE_HTTP, ConfigPro.CACHE_TYPE_WEBSERVICE };
 
 	public Iterator<Entry<String, Class<CacheHandler>>> getCacheHandlers();
 
@@ -346,4 +355,6 @@ public interface ConfigPro extends Config {
 	public long getApplicationPathCacheTimeout();
 
 	public boolean getPreciseMath();
+
+	public void setLastModified();
 }

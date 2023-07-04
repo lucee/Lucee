@@ -18,13 +18,16 @@ component {
 		"MAIL_PASSWORD": "top-secret",
 		"S3_SECRET_KEY": "top-secret",
 		"MONGODB_PORT": 27017,
-		"MEMCACHED_PORT": 11211
+		"MEMCACHED_PORT": 11211,
+		"UPDATE_PROVIDER_URL": http://update.localhost"
 	}
 
 	then add an ENV var pointing to the .json file
 	
 	LUCEE_BUILD_ENV=c:\work\lucee_build_env.json"
-	
+
+	You can also pass "-DLUCEE_BUILD_ENV=c:/work/lucee_build_env.json" directly to ANT
+	to have it passed to the JVM.
 	*/
 
 	public function init (){
@@ -162,10 +165,11 @@ component {
 	}
 
 	public void function loadServiceConfig() localmode=true {
-		systemOutput( "", true) ;		
+		systemOutput( "", true) ;
 		systemOutput("-------------- Test Services ------------", true );
-		services = ListToArray("oracle,MySQL,MSsql,postgres,h2,mongoDb,smtp,pop,imap,s3,s3_custom,s3_google,ftp,sftp,memcached,redis,ldap");
+		services = ListToArray("oracle,MySQL,MSsql,postgres,h2,mongoDb,smtp,pop,imap,s3,s3_custom,s3_google,s3_backblaze,ftp,sftp,memcached,redis,ldap");
 		// can take a while, so we check them them in parallel
+
 		services.each( function( service ) localmode=true {
 			if (! isTestServiceAllowed( arguments.service )){
 				systemOutput( "Service [ #arguments.service# ] disabled, not found in testServices", true) ;
@@ -200,6 +204,9 @@ component {
 						case "s3_google":
 							verify = verifyS3Custom(cfg);
 							break;
+						case "s3_backblaze":
+							verify = verifyS3Custom(cfg);
+							break;
 						case "imap":
 							verify = verifyImap(cfg);
 							break;
@@ -232,7 +239,8 @@ component {
 					systemOutput( "Service [ #arguments.service# ] is [ #verify# ]", true) ;
 					server.test_services[arguments.service].valid = true;
 				} catch (e) {
-					systemOutput( "ERROR Service [ #arguments.service# ] threw [ #cfcatch.message# ]", true);
+					st = test._testRunner::trimJavaStackTrace(cfcatch.stacktrace);
+					systemOutput( "ERROR Service [ #arguments.service# ] threw [ #arrayToList(st, chr(10))# ]", true);
 					if ( cfcatch.message contains "NullPointerException" || request.testDebug )
 						systemOutput(cfcatch, true);
 					if ( len( request.testServices) gt 0 ){
@@ -240,6 +248,7 @@ component {
 						systemOutput(cfcatch, true);
 						throw "Requested Test Service [ #arguments.service# ] not available";
 					}
+					server.test_services[arguments.service].stacktrace = st;
 				}
 			}
 		}, true, 4);
@@ -251,10 +260,29 @@ component {
 		for (s in server.test_services ){
 			service = server.test_services[s];
 			if ( !service.valid && service.missedTests gt 0 ){
-				ArrayAppend( skipped, "-> Service [#s#] #chr(9)# not available, #chr(9)# #service.missedTests# tests skipped" );
+				ArrayAppend( skipped, "-> Service [ #s# ] #chr(9)# not available, #chr(9)# #service.missedTests# tests skipped" );
 			}
 		}
 		return skipped;
+	}
+
+	public array function reportServiceFailed() localmode=true {
+		failed = [];
+		for ( s in server.test_services ){
+			service = server.test_services[ s ];
+			if ( !service.valid and structKeyExists( service, "stacktrace" ) ){
+				ArrayAppend( failed, "-> Service [ #s# ] #chr( 9 )# threw" );
+				for ( st in service.stacktrace ) {
+					ArrayAppend( failed, st );
+				}
+			}
+		}
+		return failed;
+	}
+	
+	public boolean function failOnConfiguredServiceError() localmode=true{
+		buildCfg = server._getSystemPropOrEnvVars( "LUCEE_BUILD_FAIL_CONFIGURED_SERVICES_FATAL", "", false );
+		return buildCfg.LUCEE_BUILD_FAIL_CONFIGURED_SERVICES_FATAL ?: false;
 	}
 
 	public string function verifyDatasource ( struct datasource ) localmode=true{
@@ -322,6 +350,8 @@ component {
 
 	public function verifyMemcached ( memcached ) localmode=true{
 		if ( structCount( memcached ) eq 2 ){
+			if ( !isRemotePortOpen( memcached.server, memcached.port ) )
+				throw "MemCached port closed #memcached.server#:#memcached.port#"; // otherwise the cache keeps trying and logging
 			try {
 				testCacheName = "testMemcached";
 				application 
@@ -330,7 +360,7 @@ component {
 						testMemcached: {
 							class: 'org.lucee.extension.cache.mc.MemcachedCache'
 							, bundleName: 'memcached.extension'
-							, bundleVersion: '4.0.0.7-SNAPSHOT'
+							, bundleVersion: '4.0.0.10-SNAPSHOT'
 							, storage: false
 							, custom: {
 								"socket_timeout": "3",
@@ -406,6 +436,16 @@ component {
 	}
 
 	public function addSupportFunctions() {
+		server._getTempDir = function ( string prefix="" ) localmode=true{
+			if ( len( arguments.prefix ) eq 0 ) {
+				local.dir = getTempDirectory() & "lucee-tests\" & createGUID();
+			} else {
+				local.dir = getTempDirectory() & "lucee-tests\" & arguments.prefix;
+			}
+			if ( !directoryExists( dir ) )
+				directoryCreate( dir, true );
+			return dir;
+		};
 		server._getSystemPropOrEnvVars = function ( string props="", string prefix="", boolean stripPrefix=true, boolean allowEmpty=false ) localmode=true{
 			st = [=];
 			keys = arguments.props.split( "," );
@@ -444,7 +484,13 @@ component {
 		server.getDefaultBundleVersion = getDefaultBundleVersion;  
 		server.getBundleVersions = getBundleVersions;
 	}
-	public struct function getTestService( required string service, string dbFile="", boolean verify=false, boolean onlyConfig=false ) localmode=true {
+	public struct function getTestService( required string service, 
+			string dbFile="", 
+			boolean verify=false, 
+			boolean onlyConfig=false,
+			string connectionString="",
+			struct options={}
+		) localmode=true {
 
 		if ( StructKeyExists( server.test_services, arguments.service ) ){
 			if ( !server.test_services[ arguments.service ].valid ){
@@ -456,6 +502,13 @@ component {
 		}
 
 		switch ( arguments.service ){
+			case "updateProvider":
+				updateProvider = server._getSystemPropOrEnvVars( "URL", "UPDATE_PROVIDER_" );
+				if ( structCount( updateProvider ) eq 1 ){
+					return updateProvider;
+				} else {
+					return {url: "https://update.lucee.org" };
+				}
 			case "mssql":
 				mssql = server._getSystemPropOrEnvVars( "SERVER, USERNAME, PASSWORD, PORT, DATABASE", "MSSQL_" );
 				if ( structCount( msSql ) gt 0){
@@ -464,11 +517,11 @@ component {
 					return {
 						class: 'com.microsoft.sqlserver.jdbc.SQLServerDriver'
 						, bundleName: 'org.lucee.mssql'
-						, bundleVersion: server.getDefaultBundleVersion( 'org.lucee.mssql', '4.0.2206.100' )
-						, connectionString: 'jdbc:sqlserver://#msSQL.SERVER#:#msSQL.PORT#;DATABASENAME=#msSQL.DATABASE#;sendStringParametersAsUnicode=true;SelectMethod=direct'
+						, bundleVersion: server.getDefaultBundleVersion('org.lucee.mssql', '12.2.0.jre8')
+						, connectionString: 'jdbc:sqlserver://#msSQL.SERVER#:#msSQL.PORT#;DATABASENAME=#msSQL.DATABASE#;sendStringParametersAsUnicode=true;SelectMethod=direct;trustServerCertificate=true'
 						, username: msSQL.username
 						, password: msSQL.password
-					};
+					}.append( arguments.options );
 				}
 				break;
 			case "mysql":
@@ -479,11 +532,11 @@ component {
 					return {
 						class: 'com.mysql.cj.jdbc.Driver'
 						, bundleName: 'com.mysql.cj'
-						, bundleVersion: server.getDefaultBundleVersion( 'com.mysql.cj', '8.0.19' )
-						, connectionString: 'jdbc:mysql://#mySQL.server#:#mySQL.port#/#mySQL.database#?useUnicode=true&characterEncoding=UTF-8&useLegacyDatetimeCode=true&useSSL=false'
+						, bundleVersion: server.getDefaultBundleVersion( 'com.mysql.cj', '8.0.33' )
+						, connectionString: 'jdbc:mysql://#mySQL.server#:#mySQL.port#/#mySQL.database#?useUnicode=true&characterEncoding=UTF-8&useLegacyDatetimeCode=true&useSSL=false' & arguments.connectionString
 						, username: mySQL.username
 						, password: mySQL.password
-					};
+					}.append( arguments.options );
 				}
 				break;
 			case "postgres":
@@ -494,26 +547,42 @@ component {
 					return {
 						class: 'org.postgresql.Driver'
 						, bundleName: 'org.postgresql.jdbc'
-						, bundleVersion: server.getDefaultBundleVersion( 'org.postgresql.jdbc', '42.2.20' )
-						, connectionString: 'jdbc:postgresql://#pgsql.server#:#pgsql.port#/#pgsql.database#'
+						, bundleVersion: server.getDefaultBundleVersion( 'org.postgresql.jdbc', '42.6.0' )
+						, connectionString: 'jdbc:postgresql://#pgsql.server#:#pgsql.port#/#pgsql.database#' & arguments.connectionString
 						, username: pgsql.username
 						, password: pgsql.password
-					};
+					}.append( arguments.options );
 				}
 				break;
 			case "h2":
 				if ( arguments.verify ){
-					tempDb = "#getTempDirectory()#/#createUUID()#";
+					tempDb = server._getTempDir("h2-verify");
 					if (! DirectoryExists( tempDb ) )
 						DirectoryCreate( tempDb );
 					arguments.dbFile = tempDb;
 				}
-				if ( Len( arguments.dbFile ) ){
+				if ( len( arguments.dbFile ) ){
 					return {
 						class: 'org.h2.Driver'
-						, bundleName: 'org.h2'
-						, bundleVersion: server.getDefaultBundleVersion( 'org.h2', '1.3.172' )
-						, connectionString: 'jdbc:h2:#arguments.dbFile#/datasource/db;MODE=MySQL'
+						, bundleName: 'org.lucee.h2'
+						, bundleVersion: server.getDefaultBundleVersion( 'org.lucee.h2', '2.1.214.0001L' )
+						, connectionString: 'jdbc:h2:#arguments.dbFile#/db;MODE=MySQL' & arguments.connectionString
+					}.append( arguments.options );
+				}
+				break;
+			case "hsqldb":
+				if ( arguments.verify ){
+					tempDb = "#getTempDirectory()#/hsqldb-#createUUID()#";
+					if (! DirectoryExists( tempDb ) )
+						DirectoryCreate( tempDb );
+					arguments.dbFile = tempDb;
+				}
+				if ( len( arguments.dbFile ) ){
+					return {
+						class: 'org.hsqldb.jdbcDriver'
+						, bundleName: 'org.lucee.hsqldb'
+						, bundleVersion: server.getDefaultBundleVersion( 'org.lucee.hsqldb', '2.7.2.jdk8' )
+						, connectionString: 'jdbc:hsqldb:#arguments.dbFile#/datasource/db;MODE=MySQL'
 					};
 				}
 				break;
@@ -539,11 +608,11 @@ component {
 					return {
 						class: 'oracle.jdbc.OracleDriver'
 						, bundleName: 'org.lucee.oracle'
-						, bundleVersion: server.getDefaultBundleVersion( 'org.lucee.oracle', '19.12.0.0000L' )
-						, connectionString: 'jdbc:oracle:thin:@#oracle.server#:#oracle.port#/#oracle.database#'
+						, bundleVersion: server.getDefaultBundleVersion( 'org.lucee.oracle', '19.17.0.0-ojdbc8' )
+						, connectionString: 'jdbc:oracle:thin:@#oracle.server#:#oracle.port#/#oracle.database#' & arguments.connectionString
 						, username: oracle.username
 						, password: oracle.password
-					};
+					}.append( arguments.options );
 				}
 				break;
 			case "ftp":
@@ -569,6 +638,9 @@ component {
 				return s3;
 			case "s3_google":
 				s3 = server._getSystemPropOrEnvVars( "ACCESS_KEY_ID, SECRET_KEY, HOST", "S3_GOOGLE_" );
+				return s3;
+			case "s3_backblaze":
+				s3 = server._getSystemPropOrEnvVars( "ACCESS_KEY_ID, SECRET_KEY, HOST", "S3_BACKBLAZE_" );
 				return s3;
 			case "memcached":
 				memcached = server._getSystemPropOrEnvVars( "SERVER, PORT", "MEMCACHED_" );
@@ -603,10 +675,10 @@ component {
 			//systemOutput(arguments.bundleName & " " & bundles[arguments.bundleName], true)
 			return bundles[ arguments.bundleName ];
 		} else {
-			systemOutput( "getDefaultBundleVersion: [" & arguments.bundleName & "] FALLLING BACK TO DEFAULT [" & arguments.fallbackVersion & "]", true );
+			//systemOutput( "getDefaultBundleVersion: [" & arguments.bundleName & "] FALLLING BACK TO DEFAULT [" & arguments.fallbackVersion & "]", true );
 			return arguments.fallbackVersion ;
 		}
-	}		
+	}
 
 	function getBundleVersions() cachedWithin="#createTimeSpan( 1, 0, 0, 0 )#"{
 		admin 
@@ -631,6 +703,22 @@ component {
 				return true;
 		}
 		return false;
+	}
+
+	boolean function isRemotePortOpen( string host, numeric port, numeric timeout=2000 ) {
+		var socket = createObject( "java", "java.net.Socket").init();
+		var address = createObject( "java", "java.net.InetSocketAddress" ).init(
+			javaCast( "string", arguments.host ),
+			javaCast( "int", arguments.port )
+		);
+
+		try {
+			socket.connect( address, javaCast( "int", arguments.timeout ));
+			socket.close();
+			return true;
+		} catch (e) {
+			return false;
+		}
 	}
 }
 

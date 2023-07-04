@@ -18,6 +18,7 @@
  **/
 package lucee.runtime.format;
 
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -79,6 +80,10 @@ public final class DateFormat extends BaseFormat implements Format {
 			else if (lcMask.equals("medium")) return getAsString(calendar, java.text.DateFormat.MEDIUM, tz);
 			else if (lcMask.equals("long")) return getAsString(calendar, java.text.DateFormat.LONG, tz);
 			else if (lcMask.equals("full")) return getAsString(calendar, java.text.DateFormat.FULL, tz);
+			else if ("iso8601".equals(lcMask) || "iso".equals(lcMask)) {
+				SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+				return formatter.format(calendar.getTime());
+			}
 
 			int len = mask.length();
 			int pos = 0;

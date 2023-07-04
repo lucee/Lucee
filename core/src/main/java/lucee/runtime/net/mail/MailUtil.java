@@ -235,7 +235,8 @@ public final class MailUtil {
 			if (!protocols.isEmpty()) {
 				System.setProperty(SYSTEM_PROP_MAIL_SSL_PROTOCOLS, protocols);
 				Config config = ThreadLocalPageContext.getConfig();
-				if (config != null) config.getLog("mail").info("mail", "Lucee system property " + SYSTEM_PROP_MAIL_SSL_PROTOCOLS + " set to [" + protocols + "]");
+				if (config != null)
+					ThreadLocalPageContext.getLog(config, "mail").info("mail", "Lucee system property " + SYSTEM_PROP_MAIL_SSL_PROTOCOLS + " set to [" + protocols + "]");
 			}
 		}
 	}

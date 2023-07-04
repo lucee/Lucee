@@ -1,5 +1,5 @@
 <cftry>
-	<cfset stVeritfyMessages = StructNew()>
+	<cfset stVerifyMessages = StructNew()>
 	<cfswitch expression="#form.mainAction#">
 	<!--- UPDATE --->
 		<cfcase value="#stText.Buttons.Delete#">
@@ -36,13 +36,13 @@
 								name="#data.names[idx]#"
 								dbusername="#data.usernames[idx]#"
 								dbpassword="#data.passwords[idx]#">
-								<cfset stVeritfyMessages["#data.names[idx]#"].Label = "OK">
+								<cfset stVerifyMessages["#data.names[idx]#"].Label = "OK">
 
-								<cfdbinfo type="Version" datasource="#data.names[idx]#" name='stVeritfyMessages["#data.names[idx]#"].dbInfo'>
+								<cfdbinfo type="Version" datasource="#data.names[idx]#" name='stVerifyMessages["#data.names[idx]#"].dbInfo'>
 							<cfcatch>
 								<!--- <cfset error.message=error.message&data.names[idx]&": "&cfcatch.message&"<br>"> --->
-								<cfset stVeritfyMessages[data.names[idx]].Label = "Error">
-								<cfset stVeritfyMessages[data.names[idx]].message = cfcatch.message>
+								<cfset stVerifyMessages[data.names[idx]].Label = "Error">
+								<cfset stVerifyMessages[data.names[idx]].message = cfcatch.message>
 							</cfcatch>
 						</cftry>
 					</cfif>
@@ -88,8 +88,8 @@ Error Output --->
 <cfset printError(error)>
 
 <cfif structKeyExists(url,'verified') and len(url.verified)>
-	<cfset stVeritfyMessages={}>
-	<cfset stVeritfyMessages[url.verified].Label = "OK">
+	<cfset stVerifyMessages={}>
+	<cfset stVerifyMessages[url.verified].Label = "OK">
 </cfif>
 
 
@@ -125,7 +125,7 @@ Error Output --->
 						<td colspan="2">
 							<input type="submit" class="bl button submit" name="mainAction" value="#stText.Buttons.Update#">
 							<input type="reset" class="<cfif request.adminType EQ "web">bm<cfelse>br</cfif> reset" name="cancel" value="#stText.Buttons.Cancel#">
-							<cfif request.adminType EQ "web">
+							<cfif not request.singleMode and request.adminType EQ "web">
 								<input type="submit" class="br button submit" name="mainAction" value="#stText.Buttons.resetServerAdmin#">
 							</cfif>
 						</td>
@@ -217,19 +217,23 @@ list all mappings and display necessary edit fields --->
 								<input type="hidden" name="name_#srcGlobal.currentrow#" value="#srcGlobal.name#">
 								#srcGlobal.name#
 							</td>
-							<td>#getDbDriverTypeName(srcGlobal.ClassName,srcGlobal.dsn)#</td>
-							<td>#listCompact("#srcGlobal.host?:''#:#srcGlobal.port?:''#",":")#</td>							
+							<td>#getDbDriverTypeName(srcGlobal.ClassName,srcGlobal.dsn)#
+							<cfif StructKeyExists(stVerifyMessages, srcGlobal.name) && stVerifyMessages[srcGlobal.name].label neq "OK">
+								<div class="CheckError">#stVerifyMessages[srcGlobal.name].message#</div>
+							</cfif>
+							</td>
+							<td>#listCompact("#srcGlobal.host?:''#:#srcGlobal.port?:''#",":")#</td>
 							<td>#srcGlobal.openConnections#</td>
 							<td>#yesNoFormat(srcGlobal.storage)#</td>
 							<td>
-								<cfif StructKeyExists(stVeritfyMessages, srcGlobal.name)>
-									<cfif stVeritfyMessages[srcGlobal.name].label eq "OK">
-										<span class="CheckOk">#stVeritfyMessages[srcGlobal.name].label#</span>
+								<cfif StructKeyExists(stVerifyMessages, srcGlobal.name)>
+									<cfif stVerifyMessages[srcGlobal.name].label eq "OK">
+										<span class="CheckOk">#stVerifyMessages[srcGlobal.name].label#</span>
 									<cfelse>
-										<span class="CheckError" title="#stVeritfyMessages[srcGlobal.name].message##Chr(13)#">#stVeritfyMessages[srcGlobal.name].label#</span>
+										<span class="CheckError" title="#stVerifyMessages[srcGlobal.name].message##Chr(13)#">#stVerifyMessages[srcGlobal.name].label#</span>
 										<!---
 										IMAGE DOESN'T EXIST!
-										&nbsp;<img src="resources/img/red-info.gif.cfm" width="9" height="9" title="#stVeritfyMessages[srcGlobal.name].message##Chr(13)#">
+										&nbsp;<img src="resources/img/red-info.gif.cfm" width="9" height="9" title="#stVerifyMessages[srcGlobal.name].message##Chr(13)#">
 										--->
 									</cfif>
 								<cfelse>
@@ -293,24 +297,26 @@ list all mappings and display necessary edit fields --->
 							<td class="tblContent#css# longwords"><input type="hidden" name="name_#srcLocal.currentrow#" value="#srcLocal.name#">#srcLocal.name#</td>
 							<td class="tblContent#css# longwords">#label#
 								<cfif !hasDriver><div class="commentError">#stText.Settings.noDriver#</div></cfif>
-								<cfif isDefined( "stVeritfyMessages[srcLocal.name].dbInfo" ) && stVeritfyMessages[srcLocal.name].dbInfo.recordCount>
-									<cfset qDbInfo = stVeritfyMessages[srcLocal.name].dbInfo>
+								<cfif isDefined( "stVerifyMessages[srcLocal.name].dbInfo" ) && stVerifyMessages[srcLocal.name].dbInfo.recordCount>
+									<cfset qDbInfo = stVerifyMessages[srcLocal.name].dbInfo>
 									<div class="comment">#stText.settings.datasource.databaseName#: #qDbInfo.DATABASE_PRODUCTNAME# #qDbInfo.DATABASE_VERSION#</div>
 									<div class="comment">#stText.settings.datasource.driverName#: #qDbInfo.DRIVER_NAME# #qDbInfo.DRIVER_VERSION# (JDBC #qDbInfo.JDBC_MAJOR_VERSION#.#qDbInfo.JDBC_MINOR_VERSION#)</div>
+								<cfelseif StructKeyExists(stVerifyMessages, srcLocal.name) && stVerifyMessages[srcLocal.name].label neq "OK">
+									<div class="CheckError">#stVerifyMessages[srcLocal.name].message#</div>
 								</cfif>
 							</td>
 							<td class="tblContent#css# longwords">#listCompact("#srcLocal.host?:''#:#srcLocal.port?:''#",":")#</td>
-							<td class="tblContent#css# longwords">#srcLocal.openConnections#</td>							
+							<td class="tblContent#css# longwords">#srcLocal.openConnections#</td>
 							<td class="tblContent#css# longwords">#yesNoFormat(srcLocal.storage)#</td>
 							<td class="tblContent#css# longwords">
-								<cfif StructKeyExists(stVeritfyMessages, srcLocal.name)>
-									<cfif stVeritfyMessages[srcLocal.name].label eq "OK">
-										<span class="CheckOk">#stVeritfyMessages[srcLocal.name].label#</span>
+								<cfif StructKeyExists(stVerifyMessages, srcLocal.name)>
+									<cfif stVerifyMessages[srcLocal.name].label eq "OK">
+										<span class="CheckOk">#stVerifyMessages[srcLocal.name].label#</span>
 									<cfelse>
-										<span class="CheckError" title="#stVeritfyMessages[srcLocal.name].message##Chr(13)#">#stVeritfyMessages[srcLocal.name].label#</span>
+										<span class="CheckError" title="#stVerifyMessages[srcLocal.name].message##Chr(13)#">#stVerifyMessages[srcLocal.name].label#</span>
 										<!---
 										IMAGE DOESN'T EXIST!
-										&nbsp;<img src="resources/img/red-info.gif.cfm" width="9" height="9" title="#stVeritfyMessages[srcLocal.name].message##Chr(13)#">
+										&nbsp;<img src="resources/img/red-info.gif.cfm" width="9" height="9" title="#stVerifyMessages[srcLocal.name].message##Chr(13)#">
 										--->
 									</cfif>
 								<cfelse>

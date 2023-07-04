@@ -26,9 +26,9 @@ import java.util.Iterator;
 
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Version;
+import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
-import lucee.aprint;
 import lucee.commons.digest.MD5;
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.FileUtil;
@@ -190,11 +190,12 @@ public abstract class ConfigFactory {
 			if (configFile.exists()) {
 				LogUtil.log(ThreadLocalPageContext.getConfig(), Log.LEVEL_INFO, ConfigFactory.class.getName(),
 						"Config file [" + configFile + "] was not valid and has been replaced");
-				LogUtil.log(ThreadLocalPageContext.getConfig(), ConfigFactory.class.getName(), e);
+				LogUtil.log(ThreadLocalPageContext.get(), ConfigFactory.class.getName(), e);
 				int count = 1;
 				Resource bugFile;
 				Resource configDir = configFile.getParentResource();
-				while ((bugFile = configDir.getRealResource("lucee-" + type + "." + (count++) + ".buggy")).exists()) {}
+				while ((bugFile = configDir.getRealResource("lucee-" + type + "." + (count++) + ".buggy")).exists()) {
+				}
 				IOUtil.copy(configFile, bugFile);
 				configFile.delete();
 			}
@@ -203,10 +204,28 @@ public abstract class ConfigFactory {
 		}
 	}
 
-	public static void translateConfigFile(ConfigPro config, Resource configFileOld, Resource configFileNew, String mode, boolean isServer)
+	public static Struct translateConfigFile(ConfigPro config, Object old, Resource configFileNew, String defaultMode, Boolean isServer)
 			throws ConverterException, IOException, SAXException {
 		// read the old config (XML)
-		Struct root = ConfigWebUtil.getAsStruct("cfLuceeConfiguration", new XMLConfigReader(configFileOld, true, new ReadRule(), new NameRule()).getData());
+
+		if (isServer == null) isServer = config instanceof ConfigServer;
+		else {
+			if (isServer && config instanceof ConfigWeb) {
+				config = ((ConfigWebImpl) config).getConfigServerImpl();
+			}
+		}
+
+		XMLConfigReader reader = null;
+		if (old instanceof Resource) {
+			reader = new XMLConfigReader((Resource) old, true, new ReadRule(), new NameRule());
+		}
+		else if (old instanceof InputSource) {
+			reader = new XMLConfigReader((InputSource) old, true, new ReadRule(), new NameRule());
+		}
+		else {
+			new ConverterException("inputing data is invalid, cannot cast [" + old.getClass().getName() + "] ro a Resource or an InputSource");
+		}
+		Struct root = ConfigWebUtil.getAsStruct(reader.getData(), "cfLuceeConfiguration", "luceeConfiguration", "lucee-configuration");
 
 		//////////////////// charset ////////////////////
 		{
@@ -245,7 +264,7 @@ public abstract class ConfigFactory {
 			move("listenerMode", application, root);
 			move("typeChecking", application, root);
 			move("cachedAfter", application, root);
-			for (String type: ConfigWebFactory.STRING_CACHE_TYPES) {
+			for (String type: ConfigPro.STRING_CACHE_TYPES) {
 				move("cachedWithin" + StringUtil.ucFirst(type), application, root);
 			}
 			moveAsBool("allowUrlRequesttimeout", "requestTimeoutInURL", application, root);
@@ -271,7 +290,7 @@ public abstract class ConfigFactory {
 			move("cache", "cacheClasses", caches, root);
 
 			// defaults
-			for (String type: ConfigWebFactory.STRING_CACHE_TYPES_MAX) {
+			for (String type: ConfigPro.STRING_CACHE_TYPES_MAX) {
 				move("default" + StringUtil.ucFirst(type), cache, root);
 			}
 			// connections
@@ -479,24 +498,26 @@ public abstract class ConfigFactory {
 			rem("extension", extensions);
 
 			// extensions
-			Key[] keys = rhextension.keys();
-			for (int i = keys.length - 1; i >= 0; i--) {
-				Key k = keys[i];
-				Struct data = Caster.toStruct(rhextension.get(k, null), null);
-				if (data == null) continue;
-				String id = Caster.toString(data.get(KeyConstants._id, null), null);
-				String version = Caster.toString(data.get(KeyConstants._version, null), null);
-				String name = Caster.toString(data.get(KeyConstants._name, null), null);
-				RHExtension.storeMetaData(config, id, version, data);
-				Struct sct = new StructImpl(Struct.TYPE_LINKED);
-				sct.setEL(KeyConstants._id, id);
-				sct.setEL(KeyConstants._version, version);
-				if (name != null) sct.setEL(KeyConstants._name, name);
-				// add(sct, Caster.toString(data.remove(KeyConstants._id, null), null), extensions);
-				newExtensions.appendEL(sct);
-				rhextension.remove(k, null);
+			if (config != null) {
+				Key[] keys = rhextension.keys();
+				for (int i = keys.length - 1; i >= 0; i--) {
+					Key k = keys[i];
+					Struct data = Caster.toStruct(rhextension.get(k, null), null);
+					if (data == null) continue;
+					String id = Caster.toString(data.get(KeyConstants._id, null), null);
+					String version = Caster.toString(data.get(KeyConstants._version, null), null);
+					String name = Caster.toString(data.get(KeyConstants._name, null), null);
+					RHExtension.storeMetaData(config, id, version, data);
+					Struct sct = new StructImpl(Struct.TYPE_LINKED);
+					sct.setEL(KeyConstants._id, id);
+					sct.setEL(KeyConstants._version, version);
+					if (name != null) sct.setEL(KeyConstants._name, name);
+					// add(sct, Caster.toString(data.remove(KeyConstants._id, null), null), extensions);
+					newExtensions.appendEL(sct);
+					rhextension.remove(k, null);
+				}
+				root.setEL("extensions", newExtensions);
 			}
-			root.setEL("extensions", newExtensions);
 
 			// providers
 			Array rhprovider = ConfigWebUtil.getAsArray("rhprovider", extensions);
@@ -689,7 +710,9 @@ public abstract class ConfigFactory {
 			moveAsBool("develop", "developMode", _mode, root);
 
 			// now that mode is free we can use it for the admin mode
-			if (!StringUtil.isEmpty(mode)) root.setEL(KeyConstants._mode, mode);
+			Boolean b = Caster.toBoolean(setting.remove(KeyImpl.init("singlemode"), null), null);
+			if (b != null) root.setEL(KeyConstants._mode, b.booleanValue() ? "single" : "multi");
+			else if (!StringUtil.isEmpty(defaultMode)) root.setEL(KeyConstants._mode, defaultMode);
 		}
 
 		//////////////////// startup Hooks ////////////////////
@@ -786,12 +809,13 @@ public abstract class ConfigFactory {
 
 		root = sort(root);
 
-		// store it as Json
-		JSONConverter json = new JSONConverter(true, CharsetUtil.UTF8, JSONDateFormat.PATTERN_CF, true, true);
-		String str = json.serialize(null, root, SerializationSettings.SERIALIZE_AS_ROW);
-		IOUtil.write(configFileNew, str, CharsetUtil.UTF8, false);
-
-		aprint.o("DONE!");
+		if (configFileNew != null) {
+			// store it as Json
+			JSONConverter json = new JSONConverter(true, CharsetUtil.UTF8, JSONDateFormat.PATTERN_CF, false);
+			String str = json.serialize(null, root, SerializationSettings.SERIALIZE_AS_ROW, true);
+			IOUtil.write(configFileNew, str, CharsetUtil.UTF8, false);
+		}
+		return root;
 	}
 
 	private static Struct sort(Struct root) {
@@ -888,7 +912,8 @@ public abstract class ConfigFactory {
 		// That step is not necessary anymore TODO remove
 		if (StringUtil.endsWithIgnoreCase(name, ".xml.cfm") || StringUtil.endsWithIgnoreCase(name, ".xml")) {
 			try {
-				return ConfigWebUtil.getAsStruct("cfLuceeConfiguration", new XMLConfigReader(res, true, new ReadRule(), new NameRule()).getData());
+				return ConfigWebUtil.getAsStruct(new XMLConfigReader(res, true, new ReadRule(), new NameRule()).getData(), "cfLuceeConfiguration", "luceeConfiguration",
+						"lucee-configuration");
 			}
 			catch (SAXException e) {
 				throw Caster.toPageException(e);
@@ -920,6 +945,7 @@ public abstract class ConfigFactory {
 		if (file.exists()) file.delete();
 
 		InputStream is = InfoImpl.class.getResourceAsStream(resource);
+		if (is == null) is = SystemUtil.getResourceAsStream(null, resource);
 		if (is == null) throw new IOException("File [" + resource + "] does not exist.");
 		file.createNewFile();
 		IOUtil.copy(is, file, true);

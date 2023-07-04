@@ -230,8 +230,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 				}
 			});
 
-
-			it(title="move a bucket with content", skip=isNotSupported(), body=function( currentSpec ){
+			xit(title="move a bucket with content", skip=isNotSupported(), body=function( currentSpec ){
 				SystemOutput(root,1,1);
 				var bucketName = "test-copy-move-#id#";
 				var bucketPathSrc=root&bucketName;

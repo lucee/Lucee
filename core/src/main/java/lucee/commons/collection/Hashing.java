@@ -216,8 +216,8 @@ public class Hashing {
 		 *
 		 * We try to improve upon the default seeding.
 		 */
-		static final Random SEED_MAKER = new Random(Double.doubleToRawLongBits(ThreadLocalRandom.current().nextDouble()) ^ System.identityHashCode(Hashing.class) ^ System.currentTimeMillis()
-				^ System.nanoTime() ^ Runtime.getRuntime().freeMemory());
+		static final Random SEED_MAKER = new Random(Double.doubleToRawLongBits(ThreadLocalRandom.current().nextDouble()) ^ System.identityHashCode(Hashing.class)
+				^ System.currentTimeMillis() ^ System.nanoTime() ^ Runtime.getRuntime().freeMemory());
 
 		/**
 		 * Access to {@code String.hash32()}

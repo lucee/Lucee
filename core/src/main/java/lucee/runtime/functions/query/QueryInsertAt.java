@@ -46,15 +46,15 @@ public class QueryInsertAt extends BIF implements Function {
 			Struct sct = (Struct) value;
 			Key[] cn1 = qry.getColumnNames();
 			Key[] cn2 = sct.keys();
-			
+
 			if (cn1.length != cn2.length) {
 				throw new ApplicationException("query column count [" + cn1.length + "] and struct size [" + cn2.length + "] are not same");
 			}
 
 			for (Key k: cn2) {
 				if (qry.getColumn(k, null) == null) {
-					throw new ApplicationException("column names [" + ListUtil.arrayToList(cn1, ", ") + "] of the query does not match the keys [" 
-						+ ListUtil.arrayToList(cn2, ", ") + "] of the struct");
+					throw new ApplicationException(
+							"column names [" + ListUtil.arrayToList(cn1, ", ") + "] of the query does not match the keys [" + ListUtil.arrayToList(cn2, ", ") + "] of the struct");
 				}
 			}
 

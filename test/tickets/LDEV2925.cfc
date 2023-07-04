@@ -7,8 +7,8 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" skip=true {
     }
 
     function run( testResults, textbox ) {
-        describe("testcase for LDEV-2925", function(){
-            it(title = "Cheking Scheduled tasks to passing Authorization header", body = function ( currentSpec ){
+        describe(title="testcase for LDEV-2925", body=function(){
+            it(title = "Checking Scheduled tasks to passing Authorization header", body = function ( currentSpec ){
                 cfschedule(
                     action="update",
                     url="#urlPath#",

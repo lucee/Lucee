@@ -101,7 +101,7 @@ public final class URLResolver {
 	 */
 	public String transform(String html, URL url, boolean setBaseTag) throws PageException {
 		StringBuffer target = new StringBuffer();
-		SourceCode cfml = new SourceCode(html, false, CFMLEngine.DIALECT_CFML);
+		SourceCode cfml = new SourceCode(null, html, false, CFMLEngine.DIALECT_CFML);
 		while (!cfml.isAfterLast()) {
 			if (cfml.forwardIfCurrent('<')) {
 				target.append('<');

@@ -184,18 +184,21 @@ public interface Collection extends Dumpable, Iteratorable, Cloneable, Serializa
 
 		/**
 		 * return key as String
+		 * 
 		 * @return string
 		 */
 		public String getString();
 
 		/**
 		 * return key as lower case String
+		 * 
 		 * @return lower case string
 		 */
 		public String getLowerString();
 
 		/**
 		 * return key as upper case String
+		 * 
 		 * @return upper case string
 		 */
 		public String getUpperString();

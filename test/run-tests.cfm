@@ -37,12 +37,12 @@ try {
 		archive=""
 		primary="physical"
 		trusted="no";
-	
+
 	systemOutput("set /test mapping #dateTimeFormat(now())#", true);
 
 	param name="testDebug" default="false";
 	if ( len( testDebug ) eq 0 )
-		testDebug = false;	
+		testDebug = false;
 	request.testDebug = testDebug;
 	if ( request.testDebug )
 		SystemOutput( "Test Debugging enabled", true );
@@ -52,18 +52,39 @@ try {
 	if ( len( request.testServices ) )
 		SystemOutput( "Test Services restricted to [#request.testServices#]", true );
 
+	struct function reportMem( string type, struct prev={}, string name="" ) {
+		var qry = getMemoryUsage( type );
+		var report = [];
+		var used = { name: arguments.name };
+		querySort(qry,"type,name");
+		loop query=qry {
+			if (qry.max == -1)
+				var perc = 0;
+			else 
+				var perc = int( ( qry.used / qry.max ) * 100 );
+			//if(qry.max<0 || qry.used<0 || perc<90) 	continue;
+			//if(qry.max<0 || qry.used<0 || perc<90) 	continue;
+			var rpt = replace(ucFirst(qry.type), '_', ' ')
+				& " " & qry.name & ": " & numberFormat(perc) & "%, " & numberFormat( qry.used / 1024 / 1024 ) & " Mb";
+			if ( structKeyExists( arguments.prev, qry.name ) ) {
+				rpt &= ", (+ " & numberFormat( (qry.used - arguments.prev[ qry.name ] ) / 1024 / 1024 ) & " Mb)";
+			}
+			arrayAppend( report, rpt );
+			used[ qry.name ] = qry.used;
+		}
+		return {
+			report: report,
+			usage: used
+		};
+	}
+
+	// report current memory usage
+	_reportMemStat = reportMem( "", {}, "bootup" );
+	//for ( stat in _reportMemStat.report )
+	//	systemOutput( stat, true );
+
 	// you can also provide a json file with your environment variables, i.e. just set LUCEE_BUILD_ENV="c:\work\lucee\loader\env.json"
 	setupTestServices = new test._setupTestServices().setup();
-
-	function mem(type) {
-		var qry = getMemoryUsage(type);
-		loop query=qry {
-			var perc = int(100 / qry.max * qry.used);
-			if(qry.max<0 || qry.used<0 || perc<90)
-				continue;
-			systemOutput(TAB & replace(ucFirst(type), '_', ' ') & " " & qry.name & ": " & perc & "%", true);
-		}
-	}
 
 	// set a password for the admin
 	try {
@@ -88,7 +109,7 @@ try {
 
 	systemOutput("-------------- Test Filters and Labels", true);
 
-	param name="testFilter" default="";	
+	param name="testFilter" default="";
 	request.testFilter = testFilter;
 
 	if ( len( request.testFilter ) eq 0 ){
@@ -119,7 +140,7 @@ try {
 	else
 		systemOutput( NL & 'Running all tests, to run a subset of test(s) by LABEL, use the parameter -DtestLabels="s3,oracle"', true );
 
-	
+
 	param name="testSkip" default="true";
 	if ( len(testSkip) eq 0)
 		testSkip = true;
@@ -127,8 +148,39 @@ try {
 
 	if ( !request.testSkip )
 		SystemOutput( "Force running tests marked skip=true or prefixed with an _", true );
-	
-	param name="testAdditional" default="";	
+
+	param name="testRandomSort" default="false";
+	if ( len(testRandomSort) eq 0)
+		testRandomSort = false;
+	request.testRandomSort = testRandomSort;
+
+	// allow using other/additional BaseSpecs like testbox.system.BaseSpec
+	param name="testSuiteExtends" default="";
+	if ( len( testSuiteExtends ) eq 0 )
+		request.testSuiteExtends= "org.lucee.cfml.test.LuceeTestCase";
+	else
+		request.testSuiteExtends = testSuiteExtends; 
+	if ( request.testSuiteExtends != "org.lucee.cfml.test.LuceeTestCase" )
+		SystemOutput( "Running with custom BaseSpec [#testSuiteExtends#]", true );
+
+	param name="testDebugAbort" default="false";
+	if ( len( testDebugAbort ) and testDebugAbort) {
+		request.testDebugAbort = true;
+	} else {
+		request.testDebugAbort = false;
+	}
+
+	// i.e ant -DtestRandomSort="3" -DtestLabels="image"
+
+	if ( request.testRandomSort neq "false" ){
+		if ( isNumeric( request.testRandomSort ) ){
+			SystemOutput( "Using a randomized sort order for tests, randomize seed [#request.testRandomSort#]", true );
+		} else {
+			SystemOutput( "Using a random sort order for tests", true );
+		}
+	}
+
+	param name="testAdditional" default="";
 	request.testAdditional = testAdditional;
 
 	if ( len( request.testAdditional ) eq 0 ){
@@ -137,7 +189,7 @@ try {
 			request.testAdditional = request.testAdditional.testAdditional;
 		else
 			request.testAdditional="";
-	}		
+	}
 	if ( len(request.testAdditional) ){
 		SystemOutput( "Adding additional tests from [#request.testAdditional#]", true );
 		if (!DirectoryExists( request.testAdditional )){
@@ -165,7 +217,7 @@ try {
 	deployLog = logsDir & server.separator.file & "deploy.log";
 	//dump(deployLog);
 	content = fileRead( deployLog );
-	
+
 	systemOutput("-------------- Deploy.Log ------------",true);
 	systemOutput( content, true );
 	systemOutput("--------------------------------------",true);
@@ -198,57 +250,135 @@ try {
 			& (len(mappings.inspect) ? "(#mappings.inspect#)" : ""), true);
 	}
 
+	//systemOutput("-------------- Memory after services configured", true);
+	_reportMemStat2 = reportMem( "", _reportMemStat.usage, "configured" );
+	//for ( stat in _reportMemStat2.report )
+	//	systemOutput( stat, true );
+
 	systemOutput(NL & "-------------- Start Tests -----------", true);
 	silent {
 		testResults = new test._testRunner().runTests();
 	}
+
+
 	result = testResults.result;
 	failedTestcases = testResults.failedTestcases;
 	tb = testResults.tb;
 
-	jUnitReporter = new testbox.system.reports.JUnitReporter();	
-	resultPath = ExpandPath( "/test") & "/reports/";
+	jUnitReporter = new testbox.system.reports.JUnitReporter();
+	resultPath = ExpandPath( "/test" ) & "/reports/";
 	if ( !DirectoryExists( resultPath ) )
 		DirectoryCreate( resultPath );
-	JUnitReportFile = resultPath & "junit-test-results.xml";
-	FileWrite( JUnitReportFile, jUnitReporter.runReport(results=result, testbox=tb, justReturn=true) );	
-	
-	systemOutput( NL & NL & "=============================================================", true );
-	systemOutput( "TestBox Version: #tb.getVersion()#", true );
-	systemOutput( "Lucee Version: #server.lucee.version#", true );
-	systemOutput( "Java Version: #server.java.version#", true );
-	systemOutput( "Total Execution time: (#NumberFormat( ( getTickCount()-request._start) / 1000 )# s)", true );
-	systemOutput( "Test Execution time: (#NumberFormat( result.getTotalDuration() /1000 )# s)", true );
-	systemOutput( "Average Test Overhead: (#NumberFormat( ArrayAvg( request.overhead ) )# ms)", true );
-	systemOutput( "Total Test Overhead: (#NumberFormat( ArraySum( request.overhead ) )# ms)", true );
+	JUnitReportFile = resultPath & "junit-test-results-#server.lucee.version#.xml";
+	FileWrite( JUnitReportFile, jUnitReporter.runReport( results=result, testbox=tb, justReturn=true ) );
 
-	systemOutput( "=============================================================" & NL, true );
-	systemOutput( "-> Bundles/Suites/Specs: #result.getTotalBundles()#/#result.getTotalSuites()#/#result.getTotalSpecs()#", true );
-	systemOutput( "-> Pass:     #result.getTotalPass()#", true );
-	systemOutput( "-> Skipped:  #result.getTotalSkipped()#", true );
-	systemOutput( "-> Failures: #result.getTotalFail()#", true );
-	systemOutput( "-> Errors:   #result.getTotalError()#", true );
-	SystemOutput( "-> JUnitReport: #JUnitReportFile#", true);
+	// load errors into an array, so we can dump them out to $GITHUB_STEP_SUMMARY
+	results = [];
+	results_md = ["## Lucee #server.lucee.version#", ""];
+
+	systemOutput( NL & NL & "=============================================================", true );
+	arrayAppend( results, "Lucee Version: #server.lucee.version#");
+	arrayAppend( results, "Java Version: #server.java.version#");
+	arrayAppend( results, "TestBox Version: #tb.getVersion()#");
+	arrayAppend( results, "Total Execution time: (#NumberFormat( ( getTickCount()-request._start) / 1000 )# s)");
+	arrayAppend( results, "Test Execution time: (#NumberFormat( result.getTotalDuration() /1000 )# s)");
+	arrayAppend( results, "Average Test Overhead: (#NumberFormat( ArrayAvg( request.overhead ) )# ms)");
+	arrayAppend( results, "Total Test Overhead: (#NumberFormat( ArraySum( request.overhead ) )# ms)");
+	arrayAppend( results, "");
+	arrayAppend( results, reportMem( "", _reportMemStat.usage ).report, true );
+	arrayAppend( results, "");
+	arrayAppend( results, "=============================================================" & NL);
+	arrayAppend( results, "-> Bundles/Suites/Specs: #result.getTotalBundles()#/#result.getTotalSuites()#/#result.getTotalSpecs()#");
+	arrayAppend( results, "-> Pass:     #result.getTotalPass()#");
+	arrayAppend( results, "-> Skipped:  #result.getTotalSkipped()#");
+	arrayAppend( results, "-> Failures: #result.getTotalFail()#");
+	arrayAppend( results, "-> Errors:   #result.getTotalError()#");
+	arrayAppend( results, "-> JUnitReport: #JUnitReportFile#");
 
 	servicesReport = new test._setupTestServices().reportServiceSkipped();
-	for ( s in servicesReport ){
-		systemOutput ( s, true );
+	for ( service in servicesReport ){
+		arrayAppend( results, service );
+	}
+	arrayAppend( results_md, "" );
+	loop array=results item="summary"{
+		systemOutput( summary, true );
+		arrayAppend( results_md, summary );
+	}
+	arrayAppend( results_md, "" );
+
+	failedServices = new test._setupTestServices().reportServiceFailed();
+	if ( len( failedServices ) gt 0 ){
+		systemOutput( "", true );
+		loop array=failedServices item="failure"{
+			systemOutput( failure, true );
+			arrayAppend( results_md, failure );
+		}
+		systemOutput( "", true );
+		arrayAppend( results_md, "" );
+	}
+	
+	if ( structKeyExists( server.system.environment, "GITHUB_STEP_SUMMARY" ) ){
+		github_commit_base_href=  "/" & server.system.environment.GITHUB_REPOSITORY
+			& "/blob/" & server.system.environment.GITHUB_SHA & "/";
+		github_branch_base_href=  "/" & server.system.environment.GITHUB_REPOSITORY
+			& "/blob/" & server.system.environment.GITHUB_REF_NAME & "/";
 	}
 
 	if ( !isEmpty( failedTestCases ) ){
 		systemOutput( NL );
 		for ( el in failedTestCases ){
-			systemOutput( el.type & ": " & el.bundle & NL & TAB & el.testCase, true );
-			systemOutput( TAB & el.errMessage, true );
-			if ( !isEmpty( el.stackTrace ) ){
-				//systemOutput( TAB & TAB & "at", true);
-				for ( frame in el.stackTrace ){
-					systemOutput( TAB & TAB & frame, true );
+			arrayAppend( results, el.type & ": " & el.bundle & NL & TAB & el.testCase );
+			arrayAppend( results, TAB & el.errMessage );
+			arrayAppend( results_md, "#### " & el.type & " " & el.bundle );
+			arrayAppend( results_md, "###### " & el.testCase );
+			arrayAppend( results_md, "" );
+			arrayAppend( results_md, el.errMessage );
+
+			if ( !isEmpty( el.cfmlStackTrace ) ){
+				//arrayAppend( results, TAB & TAB & "at", true);
+				for ( frame in el.cfmlStackTrace ){
+					arrayAppend( results, TAB & TAB & frame );
+					if ( structKeyExists( server.system.environment, "GITHUB_STEP_SUMMARY" ) ){
+						file_ref = replace( frame, server.system.environment.GITHUB_WORKSPACE, "" );
+						arrayAppend( results_md,
+							"- [#file_ref#](#github_commit_base_href##replace(file_ref,":", "##L")#)"
+							& " [branch](#github_branch_base_href##replace(file_ref,":", "##L")#)" );
+					}
 				}
 			}
-			systemOutput( NL );
+
+			if ( !isEmpty( el.StackTrace ) ){
+				arrayAppend( results_md, "" );
+				arrayAppend( results, NL );
+				arrStack = test._testRunner::trimJavaStackTrace( el.StackTrace );
+				for (s in arrStack) {
+					arrayAppend( results, s );
+					arrayAppend( results_md, s );
+				}
+			}
+
+			arrayAppend( results_md, "" );
+			arrayAppend( results, NL );
 		}
-		systemOutput( NL );
+		arrayAppend( results_md, "" );
+		arrayAppend( results, NL );
+	}
+
+	if ( len( results ) ) {
+		loop array=#results# item="resultLine" {
+			systemOutput( resultLine, (resultLine neq NL) );
+		}
+		if ( structKeyExists( server.system.environment, "GITHUB_STEP_SUMMARY" ) ){
+			//systemOutput( server.system.environment.GITHUB_STEP_SUMMARY, true );
+			fileWrite( server.system.environment.GITHUB_STEP_SUMMARY, ArrayToList( results_md, NL ) );
+		}
+		/*
+		loop collection=server.system.environment key="p" value="v" {
+			if ( p contains "GITHUB_")
+				systemOutput("#p#: #v##NL#");
+		*/
+	} else if ( structKeyExists( server.system.environment, "GITHUB_STEP_SUMMARY" ) ){
+		fileWrite( server.system.environment.GITHUB_STEP_SUMMARY, "#### Tests Passed :white_check_mark:" );
 	}
 
 	if ( ( result.getTotalFail() + result.getTotalError() ) > 0 ) {
@@ -262,9 +392,14 @@ try {
 		throw "ERROR: No tests were run";
 	}
 
+	if ( len( new test._setupTestServices().reportServiceFailed() ) gt 0 
+			&& new test._setupTestServices().failOnConfiguredServiceError() ) {
+		throw "ERROR: test service(s) failed";
+	}
+
 } catch( e ){
 	systemOutput( "-------------------------------------------------------", true );
-	systemOutput( "Testcase failed:", true );
+	// systemOutput( "Testcase failed:", true );
 	systemOutput( e.message, true );
 	systemOutput( ReReplace( Serialize( e.stacktrace ), "[\r\n]\s*([\r\n]|\Z)", Chr( 10 ) , "ALL" ), true ); // avoid too much whitespace from dump
 	systemOutput( "-------------------------------------------------------", true );

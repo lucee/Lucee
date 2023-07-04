@@ -39,7 +39,7 @@ public class PageRuntimeException extends RuntimeException implements IPageExcep
 	private PageException pe;
 
 	public PageRuntimeException(Throwable t) {
-		super(t.getMessage());
+		super(t.getMessage(), t);
 		this.pe = Caster.toPageException(t);
 	}
 
@@ -49,7 +49,7 @@ public class PageRuntimeException extends RuntimeException implements IPageExcep
 	 * @param pe page exception to hold
 	 */
 	public PageRuntimeException(PageException pe) {
-		super(pe.getMessage());
+		super(pe.getMessage(), pe);
 		setStackTrace(pe.getStackTrace());
 		this.pe = pe;
 	}

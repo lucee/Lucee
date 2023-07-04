@@ -140,12 +140,6 @@
 			,"level":"error"
 			,"layout":"classic"
 		}
-		,"trace":{
-			"appender":"resource"
-			,"appenderArguments":"path:{lucee-config}/logs/trace.log"
-			,"level":"error"
-			,"layout":"classic"
-		}
 		,"exception":{
 			"appender":"resource"
 			,"appenderArguments":"path:{lucee-config}/logs/exception.log"
@@ -269,11 +263,6 @@
 			"scheme":"https"
 			,"class":"lucee.commons.io.res.type.http.HTTPSResourceProvider"
 			,"arguments":"lock-timeout:10000;case-sensitive:false;"
-		}
-		,{
-			"scheme":"s3"
-			,"class":"lucee.commons.io.res.type.s3.S3ResourceProvider"
-			,"arguments":"lock-timeout:10000;"
 		}
 		,{
 			"scheme":"ram"

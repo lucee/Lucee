@@ -1,36 +1,73 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project default="core" basedir="." name="Lucee" xmlns:artifact="antlib:org.apache.maven.artifact.ant">
+<project default="core" basedir="." name="Lucee" 
+  xmlns:resolver="antlib:org.apache.maven.resolver.ant">
 
-  <property name="version" value="6.0.0.224-SNAPSHOT"/>
+  <property name="version" value="6.0.0.495-SNAPSHOT"/>
 
-  <path id="maven-ant-tasks.classpath" path="../ant/lib/maven-ant-tasks-2.1.3.jar" />
-  <typedef resource="org/apache/maven/artifact/ant/antlib.xml"
-           uri="antlib:org.apache.maven.artifact.ant"
-           classpathref="maven-ant-tasks.classpath" />
+  <taskdef uri="antlib:org.apache.maven.resolver.ant" resource="org/apache/maven/resolver/ant/antlib.xml">
+    <classpath>
+      <fileset dir="../ant/lib" includes="maven-resolver-ant-tasks-*.jar"/>
+    </classpath>
+  </taskdef>
 
   <import file="../ant/build-core.xml"/>
 
+  <resolver:remoterepo id="repo" url="https://raw.githubusercontent.com/lucee/mvn/master/releases" 
+    type="default" releases="true" snapshots="false"/>
+  <resolver:remoterepo id="ossrh" url="https://oss.sonatype.org/content/repositories/snapshots/" 
+    type="default" releases="true" snapshots="false"/>
+  <resolver:remoterepo id="central" url="https://repo.maven.apache.org/maven2" 
+    type="default" releases="true" snapshots="false"/>
+  
+  <resolver:remoterepos id="resolver.repositories">
+    <resolver:remoterepo refid="central"/>
+    <resolver:remoterepo refid="ossrh"/>
+    <resolver:remoterepo refid="repo"/>
+  </resolver:remoterepos>
 
   <target name="withTestcases">
     <property name="testcases" value="true"/>
     <property name="compileTestBox" value="true"/>
   </target>
 
-  <target name="setEnv">
-      <artifact:pom id="pom" file="pom.xml" />
+  <resolver:pom file="pom.xml" id="pom"/>
 
-      <!-- dependecies -->
-      <artifact:dependencies filesetId="mydeps" pomRefId="pom" />
-      <pathconvert property="dependencies" refid="mydeps"/>
+  <target name="setEnv" depends="setupNashorn">
+    <path id="compile.classpath"/>
+    <resolver:resolve>
+      <dependencies>
+        <pom refid="pom"/>
+      </dependencies>
+      <path refid="compile.classpath" classpath="compile"/>
+    </resolver:resolve>
+    <pathconvert property="dependencies" refid="compile.classpath"/>
 
-      <property name="runtime_classpath" value="${java.class.path}:${dependencies}"/>
-      <property name="outputDir" location="target/classes"/>
-      <property name="target" location="target"/>
-      <property name="baseDir" location=".."/>
-      <property name="rootDir" location=".."/>
+    <property name="runtime_classpath" value="${java.class.path}:${dependencies}"/>
+    <property name="outputDir" location="target/classes"/>
+    <property name="target" location="target"/>
+    <property name="baseDir" location=".."/>
+    <property name="rootDir" location=".."/>
 
-      <delete dir="${target}"/>
-      <mkdir dir="${outputDir}"/>
+    <delete dir="${target}"/>
+    <mkdir dir="${outputDir}"/>
+  </target>
+
+  <target name="check-java-version">
+    <condition property="java11+">
+      <javaversion atleast="11"/>
+    </condition>
+  </target>
+
+  <!-- java 15 onwards doesn't bundle a javascript engine, nashorn is compiled for java 11, i.e. don't use for jdk 8 -->
+  <target name="setupNashorn" depends="check-java-version" if="java11+">
+    <path id="nashorn.classpath">
+      <pathelement path="../ant/lib/nashorn-core-15.4.jar"/>
+      <pathelement path="../ant/lib/asm-9.5.jar"/>
+      <pathelement path="../ant/lib/asm-util-9.5.jar"/>
+      <pathelement path="../ant/lib/asm-commons-9.5.jar"/>
+      <pathelement path="../ant/lib/asm-tree-9.5.jar"/>
+    </path>
+    <pathconvert property="nashorn_classpath" refid="nashorn.classpath"/>
   </target>
 
  <target name="core" depends="withTestcases,setEnv" description="build Lucee and run testcases">
@@ -48,7 +85,7 @@
       <property name="target" location="target"/>
 
       <echots message="Fast Build, only build .lco and .jar"/>
-      <antcall target="buildLoaderAnt">
+      <antcall target="buildLoaderFast">
           <param name="compileTestBox" value="false"/><!-- needed for cfml build archives-->
           <param name="buildLoaderJar" value="true"/>
       </antcall>
@@ -59,7 +96,7 @@
 
   <target name="quick" depends="setEnv" description="build only Lucee itself, only the .lco file">
       <echots message="Quick Build, only build .lco"/>
-      <antcall target="buildLoaderAnt">
+      <antcall target="buildLoaderFast">
         <param name="compileTestBox" value="false"/><!-- needed for cfml build archives-->
       </antcall>
       <delete dir="${outputDir}"/>

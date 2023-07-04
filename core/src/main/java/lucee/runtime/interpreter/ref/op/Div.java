@@ -51,7 +51,7 @@ public final class Div extends RefSupport implements Ref {
 		if (limited) throw new InterpreterException("invalid syntax, math operations are not supported in a json string.");
 		double r = Caster.toDoubleValue(right.getValue(pc));
 		if (r == 0d) throw new ArithmeticException("Division by zero is not possible");
-		return new Double(Caster.toDoubleValue(left.getValue(pc)) / r);
+		return Double.valueOf(Caster.toDoubleValue(left.getValue(pc)) / r);
 	}
 
 	@Override

@@ -70,7 +70,7 @@ public class GatewayEngineImpl implements GatewayEngine {
 
 	public GatewayEngineImpl(ConfigWeb config) {
 		this.config = config;
-		this.log = config.getLog("gateway");
+		this.log = ThreadLocalPageContext.getLog(config, "gateway");
 
 	}
 

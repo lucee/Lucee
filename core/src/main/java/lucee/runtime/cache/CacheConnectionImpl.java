@@ -64,7 +64,7 @@ public class CacheConnectionImpl implements CacheConnectionPlus {
 				if (!Reflector.isInstaneOf(clazz, Cache.class, false))
 					throw new CacheException("class [" + clazz.getName() + "] does not implement interface [" + Cache.class.getName() + "]");
 				Object obj = ClassUtil.loadInstance(clazz);
-				
+
 				if (obj instanceof Exception) {
 					throw ExceptionUtil.toIOException((Exception) obj);
 				}

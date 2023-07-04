@@ -61,13 +61,15 @@ public final class ReplaceList extends BIF {
 				false, Caster.toBooleanValue(args[5]));
 		if (args.length == 5) {
 
-			if (Decision.isBoolean(args[4])) return _call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toString(args[2]), Caster.toString(args[3]), Caster.toString(args[3]), false, Caster.toBooleanValue(args[4]));
+			if (Decision.isBoolean(args[4])) return _call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toString(args[2]), Caster.toString(args[3]),
+					Caster.toString(args[3]), false, Caster.toBooleanValue(args[4]));
 
 			return _call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toString(args[2]), Caster.toString(args[3]), Caster.toString(args[4]), false, false);
 		}
 		if (args.length == 4) {
-			
-			if (Decision.isBoolean(args[3])) return _call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toString(args[2]), ",", ",", false, Caster.toBooleanValue(args[3]));
+
+			if (Decision.isBoolean(args[3]))
+				return _call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toString(args[2]), ",", ",", false, Caster.toBooleanValue(args[3]));
 
 			return _call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toString(args[2]), Caster.toString(args[3]), ",", false, false);
 		}

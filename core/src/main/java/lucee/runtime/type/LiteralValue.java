@@ -3,7 +3,10 @@ package lucee.runtime.type;
 import java.math.BigDecimal;
 
 import lucee.runtime.PageContext;
+import lucee.runtime.engine.ThreadLocalPageContext;
+import lucee.runtime.exp.CasterException;
 import lucee.runtime.listener.ApplicationContextSupport;
+import lucee.runtime.op.Caster;
 
 /**
  * This class should only be used by created bytecode, because it does not the necessary checking at
@@ -12,8 +15,12 @@ import lucee.runtime.listener.ApplicationContextSupport;
  */
 public class LiteralValue {
 
-	public static Number toNumber(PageContext pc, long l) {
+	public static Number toNumber(long l) {
+		return toNumber(ThreadLocalPageContext.get(), l);
 
+	}
+
+	public static Number toNumber(PageContext pc, long l) {
 		if (((ApplicationContextSupport) pc.getApplicationContext()).getPreciseMath()) return BigDecimal.valueOf(l);
 		else return Double.valueOf(l);
 
@@ -25,8 +32,13 @@ public class LiteralValue {
 
 	}
 
-	public static Number toNumber(PageContext pc, String nbr) throws NumberFormatException {// excpetion is not expected to bi driggerd
-		if (((ApplicationContextSupport) pc.getApplicationContext()).getPreciseMath()) return new BigDecimal(nbr);
+	public static Number toNumber(String nbr) throws CasterException {
+		return toNumber(ThreadLocalPageContext.get(), nbr);
+
+	}
+
+	public static Number toNumber(PageContext pc, String nbr) throws CasterException {// exception is not expected to bi driggerd
+		if (((ApplicationContextSupport) pc.getApplicationContext()).getPreciseMath()) return Caster.toBigDecimal(nbr);
 		else return Double.valueOf(nbr);
 	}
 }

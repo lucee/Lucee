@@ -46,15 +46,16 @@ public class Selects {
 			for (Expression exp: getOrderbys()) {
 
 				Integer ordinalIndex;
-				// For literals who are integers that point to a select column, we'll use these as ordinal indexes later, so no need to do anything else with them.
-				if (exp instanceof Literal && ( ordinalIndex = Caster.toInteger( ((Literal)exp).getValue(), null ) ) != null && ordinalIndex <= getSelects()[0].getSelects().length ) {
+				// For literals who are integers that point to a select column, we'll use these as ordinal indexes
+				// later, so no need to do anything else with them.
+				if (exp instanceof Literal && (ordinalIndex = Caster.toInteger(((Literal) exp).getValue(), null)) != null && ordinalIndex <= getSelects()[0].getSelects().length) {
 					continue;
 				}
-				
+
 				// For each expression in the select column list
 				for (Expression col: getSelects()[0].getSelects()) {
 					// If this is the same column or the same alias...
-					if ( ( col instanceof Column && col.toString(true).equals(exp.toString(true)) ) || col.getAlias().equals(exp.getAlias()) ) {
+					if ((col instanceof Column && col.toString(true).equals(exp.toString(true))) || col.getAlias().equals(exp.getAlias())) {
 						// Then set our order by's index to point to the index
 						// of the column that has that data
 						exp.setIndex(col.getIndex());
@@ -64,12 +65,14 @@ public class Selects {
 				// Didn't find it? It means we're ordering on a column we're not selecting like
 				// SELECT col1 FROM table ORDER BY col2
 				if (exp.getIndex() == 0) {
-					
+
 					// Don't allow this invalid scenario
-					if( getSelects()[0].isDistinct() ) {
-						throw new DatabaseException("ORDER BY items must appear in the select list if SELECT DISTINCT is specified. Order by expression not found is [" + exp.toString(true) + "]", null, null, null);	
+					if (getSelects()[0].isDistinct()) {
+						throw new DatabaseException(
+								"ORDER BY items must appear in the select list if SELECT DISTINCT is specified. Order by expression not found is [" + exp.toString(true) + "]",
+								null, null, null);
 					}
-					
+
 					// We need to add a phantom column into our result so
 					// we can track the value and order on it
 					exp.setAlias("__order_by_expression__" + getSelects()[0].getSelects().length);

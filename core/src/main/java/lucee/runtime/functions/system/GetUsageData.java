@@ -140,7 +140,7 @@ public final class GetUsageData implements Function {
 				req.setAt(KeyConstants._web, row, web.getLabel());
 				req.setAt(KeyConstants._uri, row, getPath(_pc.getHttpServletRequest()));
 				req.setAt(START_TIME, row, new DateTimeImpl(pc.getStartTime(), false));
-				req.setAt(KeyConstants._timeout, row, new Double(pc.getRequestTimeout()));
+				req.setAt(KeyConstants._timeout, row, Double.valueOf(pc.getRequestTimeout()));
 
 				// Query
 				queries = _pc.getActiveQueries();
@@ -182,8 +182,8 @@ public final class GetUsageData implements Function {
 			long[] tce = templateCacheElements(mappings);
 			row = tc.addRow();
 			tc.setAt(KeyConstants._web, row, web.getLabel());
-			tc.setAt(KeyConstants._size, row, new Double(tce[1]));
-			tc.setAt(ELEMENTS, row, new Double(tce[0]));
+			tc.setAt(KeyConstants._size, row, Double.valueOf(tce[1]));
+			tc.setAt(ELEMENTS, row, Double.valueOf(tce[0]));
 
 			// Scope Application
 			getAllApplicationScopes(web, factory.getScopeContext(), app);
@@ -232,8 +232,8 @@ public final class GetUsageData implements Function {
 			sac = SizeAndCount.sizeOf(e.getValue());
 			app.setAt(KeyConstants._web, row, web.getLabel());
 			app.setAt(KeyConstants._application, row, e.getKey().getString());
-			app.setAt(KeyConstants._size, row, new Double(sac.size));
-			app.setAt(ELEMENTS, row, new Double(sac.count));
+			app.setAt(KeyConstants._size, row, Double.valueOf(sac.size));
+			app.setAt(ELEMENTS, row, Double.valueOf(sac.count));
 
 		}
 	}
@@ -261,10 +261,10 @@ public final class GetUsageData implements Function {
 			row = sess.addRow();
 
 			sess.setAt(KeyConstants._web, row, web.getLabel());
-			sess.setAt(USERS, row, new Double(users));
+			sess.setAt(USERS, row, Double.valueOf(users));
 			sess.setAt(KeyConstants._application, row, e.getKey().toString());
-			sess.setAt(KeyConstants._size, row, new Double(size));
-			sess.setAt(ELEMENTS, row, new Double(count));
+			sess.setAt(KeyConstants._size, row, Double.valueOf(size));
+			sess.setAt(ELEMENTS, row, Double.valueOf(count));
 		}
 	}
 

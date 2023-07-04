@@ -2,7 +2,7 @@ component {
 
 	this.name	=	"LDEV3207";
 
-    msSQL=getCredencials();
+    msSQL=getCredentials();
     
 	this.datasources["LDEV3207"] ={
 		  class: 'com.microsoft.sqlserver.jdbc.SQLServerDriver'
@@ -45,8 +45,8 @@ component {
 		}
 	}
 
-	private struct function getCredencials() {
-		// getting the credetials from the enviroment variables
+	private struct function getCredentials() {
+		// getting the credentials from the environment variables
 		var msSQL={};
 		if(
 			!isNull(server.system.environment.msSQL_SERVER) && 
@@ -60,7 +60,7 @@ component {
 			msSQL.port=server.system.environment.msSQL_PORT;
 			msSQL.database=server.system.environment.msSQL_DATABASE;
 		}
-		// getting the credetials from the system variables
+		// getting the credentials from the system variables
 		else if(
 			!isNull(server.system.properties.msSQL_SERVER) && 
 			!isNull(server.system.properties.msSQL_USERNAME) && 

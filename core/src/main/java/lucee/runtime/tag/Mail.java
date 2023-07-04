@@ -83,7 +83,7 @@ public final class Mail extends BodyTagImpl {
 
 	private CharSet charset;
 
-	private int priority;
+	private int priority = 0;
 	private boolean remove;
 
 	/** specify the time for the message to be sent when using the spooler */
@@ -107,6 +107,7 @@ public final class Mail extends BodyTagImpl {
 		charset = null;
 		remove = false;
 		sendTime = null;
+		priority = 0;
 		this.listener = null;
 	}
 
@@ -485,9 +486,14 @@ public final class Mail extends BodyTagImpl {
 		smtp.setSSL(ssl);
 	}
 
+	public void setDebug(boolean debug) {
+		smtp.setDebug(debug);
+	}
+
 	public void setPriority(String strPriority) throws ExpressionException {
 		strPriority = strPriority.trim().toLowerCase();
 		boolean valid = true;
+		if (StringUtil.isEmpty(strPriority)) return;
 		if (Decision.isNumber(strPriority)) {
 			int p = Caster.toIntValue(strPriority, -1);
 			if (p < 1 || p > 5) valid = false;
@@ -508,6 +514,7 @@ public final class Mail extends BodyTagImpl {
 		if (!valid) throw new ExpressionException("Attribute [priority] of the tag [mail] is invalid [" + strPriority + "], " + "The value should be an integer between [1-5] or "
 				+ "one of the following [highest, urgent, high, normal, low, lowest, non-urgent]");
 
+		smtp.setPriority(priority);
 	}
 
 	/**

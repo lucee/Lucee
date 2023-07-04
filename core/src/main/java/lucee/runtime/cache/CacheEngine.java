@@ -98,7 +98,7 @@ public class CacheEngine {
 			}
 		}
 		catch (Exception e) {
-			LogUtil.log(null, "cache", e);
+			LogUtil.log("cache", e);
 		}
 		return sct;
 	}

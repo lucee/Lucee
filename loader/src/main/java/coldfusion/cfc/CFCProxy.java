@@ -79,7 +79,8 @@ public class CFCProxy {
 			if (pc == null) pc = engine.getThreadPageContext();
 			cfc = engine.getCreationUtil().createComponentFromPath(pc, path);
 		}
-		catch (final PageException pe) {}
+		catch (final PageException pe) {
+		}
 	}
 
 	@SuppressWarnings("rawtypes")
@@ -163,7 +164,8 @@ public class CFCProxy {
 			if (autoFlush) try {
 				pc.getRootWriter().flush();
 			}
-			catch (final Throwable t) {}
+			catch (final Throwable t) {
+			}
 			engine.registerThreadPageContext(originalPC);
 		}
 	}
@@ -193,36 +195,42 @@ final class DevNullOutputStream extends OutputStream implements Serializable {
 	/**
 	 * Constructor of the class
 	 */
-	private DevNullOutputStream() {}
+	private DevNullOutputStream() {
+	}
 
 	/**
 	 * @see java.io.OutputStream#close()
 	 */
 	@Override
-	public void close() {}
+	public void close() {
+	}
 
 	/**
 	 * @see java.io.OutputStream#flush()
 	 */
 	@Override
-	public void flush() {}
+	public void flush() {
+	}
 
 	/**
 	 * @see java.io.OutputStream#write(byte[], int, int)
 	 */
 	@Override
-	public void write(final byte[] b, final int off, final int len) {}
+	public void write(final byte[] b, final int off, final int len) {
+	}
 
 	/**
 	 * @see java.io.OutputStream#write(byte[])
 	 */
 	@Override
-	public void write(final byte[] b) {}
+	public void write(final byte[] b) {
+	}
 
 	/**
 	 * @see java.io.OutputStream#write(int)
 	 */
 	@Override
-	public void write(final int b) {}
+	public void write(final int b) {
+	}
 
 }

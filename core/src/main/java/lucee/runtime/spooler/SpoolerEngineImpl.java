@@ -38,9 +38,11 @@ import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.SerializableObject;
 import lucee.commons.lang.StringUtil;
+import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.config.ConfigWebUtil;
+import lucee.runtime.converter.JavaConverter;
 import lucee.runtime.engine.ThreadLocalConfig;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.DatabaseException;
@@ -136,7 +138,7 @@ public class SpoolerEngineImpl implements SpoolerEngine {
 			if (task instanceof Task) start(config, (Task) task);
 			else {
 				start(config, new TaskWrap(task));
-				log.error("spooler", "make class " + task.getClass().getName() + " a Task class");
+				// log.error("spooler", "make class " + task.getClass().getName() + " a Task class");
 			}
 			return;
 		}
@@ -201,11 +203,12 @@ public class SpoolerEngineImpl implements SpoolerEngine {
 		SpoolerTask task = defaultValue;
 		try {
 			is = res.getInputStream();
-			ois = new ObjectInputStream(is);
+			ois = new JavaConverter.ObjectInputStreamImpl(CFMLEngineFactory.getInstance().getClass().getClassLoader(), is);
+
 			task = (SpoolerTask) ois.readObject();
 		}
 		catch (Exception e) {
-			LogUtil.log(ThreadLocalPageContext.getConfig(), SpoolerEngineImpl.class.getName(), e);
+			LogUtil.log(ThreadLocalPageContext.get(), SpoolerEngineImpl.class.getName(), e);
 			IOUtil.closeEL(is);
 			IOUtil.closeEL(ois);
 			res.delete();
@@ -224,14 +227,14 @@ public class SpoolerEngineImpl implements SpoolerEngine {
 			oos.writeObject(task);
 		}
 		catch (IOException e) {
-			LogUtil.log(ThreadLocalPageContext.getConfig(), SpoolerEngineImpl.class.getName(), e);
+			LogUtil.log(ThreadLocalPageContext.get(), SpoolerEngineImpl.class.getName(), e);
 		}
 		finally {
 			try {
 				IOUtil.close(oos);
 			}
 			catch (IOException e) {
-				LogUtil.log(ThreadLocalPageContext.getConfig(), SpoolerEngineImpl.class.getName(), e);
+				LogUtil.log(ThreadLocalPageContext.get(), SpoolerEngineImpl.class.getName(), e);
 			}
 		}
 	}

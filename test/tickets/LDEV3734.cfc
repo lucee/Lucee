@@ -10,10 +10,10 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" labels="qoq"{
 
     function run( testResults, textbox ) {
 
-        describe("testcase for LDEV-3734", function(){
+        describe(title="testcase for LDEV-3734", body=function(){
 
             it(title="Arithmetic addition with NULL in QoQ", body=function( currentSpec ){
-                qry = QueryNew('foo','integer',[[40]]);
+                var qry = QueryNew('foo','integer',[[40]]);
                 var actual = queryExecute(
                     "SELECT 5+5 AS result,
                       NULL+5 as result2,
@@ -21,15 +21,16 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" labels="qoq"{
                       NULL+NULL as result4
                     FROM qry",
                     [],
-                    {dbtype="query"} );
-				expect( actual.result ).toBe( 10 );
-				expect( actual.result2 ).toBeNull();
-				expect( actual.result3 ).toBeNull();
-				expect( actual.result4 ).toBeNull();
+                    {dbtype="query"}
+                );
+                expect( actual.result ).toBe( 10 );
+                expect( actual.result2 ).toBeNull();
+                expect( actual.result3 ).toBeNull();
+                expect( actual.result4 ).toBeNull();
             });
 
             it(title="Arithmetic subtraction with NULL in QoQ", body=function( currentSpec ){
-                qry = QueryNew('foo','integer',[[40]]);
+                var qry = QueryNew('foo','integer',[[40]]);
                 var actual = queryExecute(
                     "SELECT 20-10 AS result,
                       NULL-5 as result2,
@@ -37,15 +38,16 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" labels="qoq"{
                       NULL-NULL as result4
                     FROM qry",
                     [],
-                    {dbtype="query"} );
-				expect( actual.result ).toBe( 10 );
-				expect( actual.result2 ).toBeNull();
-				expect( actual.result3 ).toBeNull();
-				expect( actual.result4 ).toBeNull();
+                    {dbtype="query"}
+                );
+                expect( actual.result ).toBe( 10 );
+                expect( actual.result2 ).toBeNull();
+                expect( actual.result3 ).toBeNull();
+                expect( actual.result4 ).toBeNull();
             });
 
             it(title="Arithmetic multiplication with NULL in QoQ", body=function( currentSpec ){
-                qry = QueryNew('foo','integer',[[40]]);
+                var qry = QueryNew('foo','integer',[[40]]);
                 var actual = queryExecute(
                     "SELECT 2*5 AS result,
                       NULL*5 as result2,
@@ -53,15 +55,16 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" labels="qoq"{
                       NULL*NULL as result4
                     FROM qry",
                     [],
-                    {dbtype="query"} );
-				expect( actual.result ).toBe( 10 );
-				expect( actual.result2 ).toBeNull();
-				expect( actual.result3 ).toBeNull();
-				expect( actual.result4 ).toBeNull();
+                    {dbtype="query"}
+                  );
+                expect( actual.result ).toBe( 10 );
+                expect( actual.result2 ).toBeNull();
+                expect( actual.result3 ).toBeNull();
+            expect( actual.result4 ).toBeNull();
             });
 
             it(title="Arithmetic division with NULL in QoQ", body=function( currentSpec ){
-                qry = QueryNew('foo','integer',[[40]]);
+                var qry = QueryNew('foo','integer',[[40]]);
                 var actual = queryExecute(
                     "SELECT 20/2 AS result,
                       NULL/5 as result2,
@@ -69,15 +72,16 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" labels="qoq"{
                       NULL/NULL as result4
                     FROM qry",
                     [],
-                    {dbtype="query"} );
-				expect( actual.result ).toBe( 10 );
-				expect( actual.result2 ).toBeNull();
-				expect( actual.result3 ).toBeNull();
-				expect( actual.result4 ).toBeNull();
+                    {dbtype="query"}
+                );
+                expect( actual.result ).toBe( 10 );
+                expect( actual.result2 ).toBeNull();
+                expect( actual.result3 ).toBeNull();
+                expect( actual.result4 ).toBeNull();
             });
 
             it(title="Arithmetic bitwise with NULL in QoQ", body=function( currentSpec ){
-                qry = QueryNew('foo','integer',[[40]]);
+                var qry = QueryNew('foo','integer',[[40]]);
                 var actual = queryExecute(
                     "SELECT 4^2 AS result,
                       NULL^5 as result2,
@@ -85,16 +89,17 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" labels="qoq"{
                       NULL^NULL as result4
                     FROM qry",
                     [],
-                    {dbtype="query"} );
-				expect( actual.result ).toBe( 6 );
-				expect( actual.result2 ).toBeNull();
-				expect( actual.result3 ).toBeNull();
-				expect( actual.result4 ).toBeNull();
+                    {dbtype="query"}
+                );
+                expect( actual.result ).toBe( 6 );
+                expect( actual.result2 ).toBeNull();
+                expect( actual.result3 ).toBeNull();
+                expect( actual.result4 ).toBeNull();
             });
 
             it(title="Arithmetic modulus with NULL in QoQ", body=function( currentSpec ){
-                qry = QueryNew('foo','integer',[[40]]);
-                // Note % and mod() have different implemntations
+                var qry = QueryNew('foo','integer',[[40]]);
+                // Note % and mod() have different implementations
                 var actual = queryExecute(
                     "SELECT 21%11 AS result,
                       NULL%5 as result2,
@@ -106,19 +111,20 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" labels="qoq"{
                       mod( NULL, NULL ) as result8
                     FROM qry",
                     [],
-                    {dbtype="query"} );
-				expect( actual.result ).toBe( 10 );
-				expect( actual.result2 ).toBeNull();
-				expect( actual.result3 ).toBeNull();
-				expect( actual.result4 ).toBeNull();
-				expect( actual.result5 ).toBe( 10 );
-				expect( actual.result6 ).toBeNull();
-				expect( actual.result7 ).toBeNull();
-				expect( actual.result8 ).toBeNull();
+                    {dbtype="query"}
+                );
+                expect( actual.result ).toBe( 10 );
+                expect( actual.result2 ).toBeNull();
+                expect( actual.result3 ).toBeNull();
+                expect( actual.result4 ).toBeNull();
+                expect( actual.result5 ).toBe( 10 );
+                expect( actual.result6 ).toBeNull();
+                expect( actual.result7 ).toBeNull();
+                expect( actual.result8 ).toBeNull();
             });
 
             it(title="Arithmetic exponent with NULL in QoQ", body=function( currentSpec ){
-                qry = QueryNew('foo','integer',[[40]]);
+                var qry = QueryNew('foo','integer',[[40]]);
                 var actual = queryExecute(
                     "SELECT power( 4, 2 ) AS result,
                       power( NULL, 5 ) as result2,
@@ -127,11 +133,17 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" labels="qoq"{
                     FROM qry",
                     [],
                     {dbtype="query"} );
-				expect( actual.result ).toBe( 16 );
-				expect( actual.result2 ).toBeNull();
-				expect( actual.result3 ).toBeNull();
-				expect( actual.result4 ).toBeNull();
+                expect( actual.result ).toBe( 16 );
+                expect( actual.result2 ).toBeNull();
+                expect( actual.result3 ).toBeNull();
+                expect( actual.result4 ).toBeNull();
             });
+
+            it(title="Arithmetic operation with NULL in QoQ", body=function( currentSpec ){
+              var qry = QueryNew('foo','integer',[[40]]);
+              var res = queryExecute("SELECT NULL-5 AS inf FROM qry", {}, {dbtype="query"}).inf;
+              expect( res ).toBeNull();
+          });
 
         });
 

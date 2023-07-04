@@ -45,7 +45,7 @@ public final class HTTPException extends ApplicationException {
 		this.statusText = statusText;
 		this.url = url;
 
-		setAdditional(KeyConstants._statuscode, new Double(statusCode));
+		setAdditional(KeyConstants._statuscode, Double.valueOf(statusCode));
 		setAdditional(KeyConstants._statustext, statusText);
 		if (url != null) setAdditional(KeyConstants._url, url.toExternalForm());
 	}

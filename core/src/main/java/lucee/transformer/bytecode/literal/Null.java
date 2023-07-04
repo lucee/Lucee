@@ -18,6 +18,9 @@
  */
 package lucee.transformer.bytecode.literal;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 import org.objectweb.asm.Type;
 
 import lucee.runtime.type.scope.Scope;
@@ -28,9 +31,12 @@ import lucee.transformer.bytecode.BytecodeContext;
 import lucee.transformer.bytecode.expression.ExpressionBase;
 import lucee.transformer.bytecode.util.ASMConstants;
 import lucee.transformer.bytecode.util.Types;
+import lucee.transformer.expression.literal.Literal;
 import lucee.transformer.expression.var.Variable;
 
-public class Null extends ExpressionBase {
+public class Null extends ExpressionBase implements Literal {
+
+	private static Map<Factory, Null> instances = new ConcurrentHashMap<>();
 
 	public Null(Factory f, Position start, Position end) {
 		super(f, start, end);
@@ -42,10 +48,32 @@ public class Null extends ExpressionBase {
 		return Types.OBJECT;
 	}
 
+	@Override
+	public Number getNumber(Number defaultValue) {
+		return null;
+	}
+
+	@Override
+	public String getString() {
+		return null;
+	}
+
+	@Override
+	public Boolean getBoolean(Boolean defaultValue) {
+		return null;
+	}
+
 	public Variable toVariable() {
 		Variable v = getFactory().createVariable(Scope.SCOPE_UNDEFINED, getStart(), getEnd());
 		v.addMember(getFactory().createDataMember(getFactory().createLitString("null")));
 		return v;
 	}
 
+	public static Null getSingleInstance(Factory f) {
+		Null n = instances.get(f);
+		if (n == null) {
+			instances.put(f, n = new Null(f, null, null));
+		}
+		return n;
+	}
 }

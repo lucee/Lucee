@@ -207,7 +207,7 @@ public final class XMLUtil {
 			if (c == '<') sb.append("&lt;");
 			else if (c == '>') sb.append("&gt;");
 			else if (c == '&') sb.append("&amp;");
-			// else if(c=='\'') sb.append("&amp;");
+			else if (c == '\'') sb.append("&apos;");
 			else if (c == '"') sb.append("&quot;");
 			// else if(c>127) sb.append("&#"+((int)c)+";");
 			else sb.append(c);
@@ -260,7 +260,7 @@ public final class XMLUtil {
 			}
 		}
 		if (factory == null) return factory = TransformerFactory.newInstance();
-		LogUtil.log(null, Log.LEVEL_INFO, "application", "xml", factory.getClass().getName() + " is used as TransformerFactory");
+		LogUtil.log(Log.LEVEL_INFO, "application", "xml", factory.getClass().getName() + " is used as TransformerFactory");
 
 		return factory;
 	}
@@ -408,7 +408,7 @@ public final class XMLUtil {
 			}
 			if (clazz != null) {
 				dbf = clazz;
-				LogUtil.log(null, Log.LEVEL_INFO, "application", "xml", clazz.getName() + " is used as DocumentBuilderFactory");
+				LogUtil.log(Log.LEVEL_INFO, "application", "xml", clazz.getName() + " is used as DocumentBuilderFactory");
 			}
 		}
 		return dbf;
@@ -1408,13 +1408,19 @@ public final class XMLUtil {
 	public static InputSource toInputSource(PageContext pc, String xml, boolean canBePath) throws IOException, ExpressionException {
 		// xml text
 		xml = xml.trim();
-		if (!canBePath || xml.startsWith("<") || xml.length() > 2000 || StringUtil.isEmpty(xml, true)) {
+		if (!canBePath || !isPath(xml)) {
 			return new InputSource(new StringReader(xml));
 		}
 		// xml link
 		pc = ThreadLocalPageContext.get(pc);
 		Resource res = ResourceUtil.toResourceExisting(pc, xml);
 		return toInputSource(pc, res);
+	}
+
+	public static boolean isPath(String xml) throws IOException, ExpressionException {
+		// xml text
+		xml = xml.trim();
+		return !xml.startsWith("<") && xml.length() < 2000 && !StringUtil.isEmpty(xml, true);
 	}
 
 	/**
@@ -1529,8 +1535,8 @@ public final class XMLUtil {
 		return new InputSource(new StringReader(xml.trim()));
 	}
 
-	public static Struct validate(InputSource xml, InputSource[] schemas, String strSchema) throws XMLException {
-		return new XMLValidator(schemas, strSchema).validate(xml);
+	public static Struct validate(InputSource xml, InputSource schema, String strSchema, Struct result) throws XMLException {
+		return new XMLValidator(schema, strSchema).validate(xml, result);
 	}
 
 }

@@ -2,10 +2,7 @@ component {
 
 	this.name = hash( getCurrentTemplatePath() );
 
-	this.datasource = {
-		class: 'org.h2.Driver'
-		  , connectionString: 'jdbc:h2:#getDirectoryFromPath(getCurrentTemplatePath())#/datasource/db;MODE=MySQL'
-	};
+	this.datasource =  server.getDatasource( "h2", server._getTempDir( "ormExecuteQuery" ) );
 	
 	this.ormEnabled = true;
 	this.ormSettings.dbcreate = 'dropcreate';	

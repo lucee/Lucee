@@ -186,7 +186,7 @@ public interface ListUtil {
 	 * @param delimiter delimiter of the list
 	 * @param includeEmptyFields include empty fields
 	 * @param multiCharacterDelimiter multi character delimiter
-	 
+	 * 
 	 * @return position in list or 0
 	 */
 	public int contains(String list, String value, String delimiter, boolean includeEmptyFields, boolean multiCharacterDelimiter);

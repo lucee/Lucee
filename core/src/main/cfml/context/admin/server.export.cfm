@@ -132,8 +132,9 @@ hasCache=hasObj || hasTem || hasQry || hasRes || hasFun || hasInc;
 </cfsilent>
 <cfoutput>
 
-	<cfsavecontent variable="codeSample">
-component {
+<cfsavecontent variable="codeSample">
+	<span style="overflow-wrap: break-word">
+	component {
 
 	this.name = "#info.label ?: '&lt;application-name&gt;' #"; // name of the application context
 
@@ -265,6 +266,7 @@ this.mappings["#mappings.virtual#"]=<cfif len(mappings.strPhysical) && !len(mapp
 		#del#primary:"<cfif mappings.PhysicalFirst>physical<cfelse>archive</cfif>"<cfset del=","></cfif>}</cfif>;
 </cfloop>
 }
+</span>
 </cfsavecontent>
 
 

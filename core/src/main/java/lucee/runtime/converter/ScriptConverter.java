@@ -21,8 +21,9 @@ package lucee.runtime.converter;
 import java.io.IOException;
 import java.io.Serializable;
 import java.io.Writer;
+import java.util.Collections;
 import java.util.Date;
-import java.util.HashSet;
+import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
@@ -227,7 +228,7 @@ public final class ScriptConverter extends ConverterSupport {
 			sb.append(escape(key.getString()));
 			sb.append(QUOTE_CHR);
 			sb.append(':');
-			_serialize(struct.get(key, null), sb, new HashSet<Object>());
+			_serialize(struct.get(key, null), sb, Collections.newSetFromMap(new IdentityHashMap<>()));
 		}
 		deep--;
 
@@ -608,7 +609,7 @@ public final class ScriptConverter extends ConverterSupport {
 	public String serialize(Object object) throws ConverterException {
 		deep = 0;
 		StringBuilder sb = new StringBuilder();
-		_serialize(object, sb, new HashSet<Object>());
+		_serialize(object, sb, Collections.newSetFromMap(new IdentityHashMap<>()));
 		return sb.toString();
 	}
 

@@ -25,6 +25,7 @@ import javax.servlet.http.HttpServletResponse;
 import lucee.commons.io.log.Log;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.net.HTTPUtil;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.Abort;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.ExpressionException;
@@ -45,6 +46,7 @@ public final class Location extends TagImpl {
 
 	/** The URL of the HTML file or CFML page to open. */
 	private String url = "";
+	private boolean encode = false;
 
 	private int statuscode = 302;
 
@@ -57,6 +59,7 @@ public final class Location extends TagImpl {
 		url = "";
 		statuscode = 302;
 		abort = false;
+		encode = false;
 	}
 
 	/**
@@ -92,6 +95,16 @@ public final class Location extends TagImpl {
 	}
 
 	/**
+	 * set the value Encode true or false.
+	 * 
+	 * @param encode value to set
+	 **/
+
+	public void setEncode(boolean encode) {
+		this.encode = encode;
+	}
+
+	/**
 	 * set the value url The URL of the HTML file or CFML page to open.
 	 * 
 	 * @param url value to set
@@ -113,7 +126,12 @@ public final class Location extends TagImpl {
 		}
 		HttpServletResponse rsp = pageContext.getHttpServletResponse();
 
-		url = HTTPUtil.encode(url);
+		if (this.encode) {
+			url = HTTPUtil.encode(url);
+		}
+		else {
+			url = url;
+		}
 
 		// add token
 		if (addtoken && needId()) {
@@ -132,14 +150,13 @@ public final class Location extends TagImpl {
 			url = ReqRspUtil.encodeRedirectURLEL(rsp, url);
 		}
 
-		Log log = pageContext.getConfig().getLog("trace");
+		Log log = ThreadLocalPageContext.getLog(pageContext, "application");
 		if (abort) {
-			if (log != null && log.getLogLevel() <= Log.LEVEL_ERROR)
-				log.log(Log.LEVEL_ERROR, "cftrace", "abort redirect to " + url + " at " + CallStackGet.call(pageContext, "text"));
+			if (log != null) log.log(Log.LEVEL_ERROR, "cftrace", "abort redirect to " + url + " at " + CallStackGet.call(pageContext, "text"));
 			throw new ExpressionException("abort redirect to " + url);
 		}
 		else {
-			if (log != null && log.getLogLevel() <= Log.LEVEL_INFO) log.log(Log.LEVEL_INFO, "cftrace", "redirect to " + url + " at " + CallStackGet.call(pageContext, "text"));
+			if (log != null) log.log(Log.LEVEL_TRACE, "cftrace", "redirect to " + url + " at " + CallStackGet.call(pageContext, "text"));
 		}
 
 		rsp.setHeader("Connection", "close"); // IE unter IIS6, Win2K3 und Resin

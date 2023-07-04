@@ -53,7 +53,7 @@ public final class Hash {
 			hashText = Hash.getHashText(this.plainText, this.algorithm);
 		}
 		catch (NoSuchAlgorithmException nsae) {
-			LogUtil.log(null, Hash.class.getName(), nsae);
+			LogUtil.log(Hash.class.getName(), nsae);
 		}
 
 		return hashText;

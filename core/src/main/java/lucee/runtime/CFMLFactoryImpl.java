@@ -50,6 +50,8 @@ import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.SizeOf;
 import lucee.commons.lang.StringUtil;
 import lucee.loader.engine.CFMLEngine;
+import lucee.runtime.config.ConfigServer;
+import lucee.runtime.config.ConfigServerImpl;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.config.Constants;
@@ -79,8 +81,8 @@ import lucee.runtime.type.util.ListUtil;
  */
 public final class CFMLFactoryImpl extends CFMLFactory {
 
-	private static final int MAX_NORMAL_PRIORITY = 1;
-	private static final int MAX_NO_SLEEP = 2;
+	private static final int MAX_NORMAL_PRIORITY = 0;
+	private static final int MAX_NO_SLEEP = 10;
 	private static final int SLEEP_TIME = 100;
 
 	private static final long MAX_AGE = 5 * 60000; // 5 minutes
@@ -91,7 +93,6 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 	private final Map<Integer, PageContextImpl> runningPcs = new ConcurrentHashMap<Integer, PageContextImpl>();
 	private final Map<Integer, PageContextImpl> runningChildPcs = new ConcurrentHashMap<Integer, PageContextImpl>();
 
-	int idCounter = 1;
 	private ScopeContext scopeContext = new ScopeContext(this);
 	private HttpServlet _servlet;
 	private URL url = null;
@@ -102,6 +103,7 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 	private float memoryThreshold;
 	private float cpuThreshold;
 	private int concurrentReqThreshold;
+	private ConfigServerImpl configServer;
 
 	public CFMLFactoryImpl(CFMLEngineImpl engine, ServletConfig sg) {
 		this.engine = engine;
@@ -180,8 +182,13 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 				boolean resetToNormPrio = true;
 				int count = 0;
 				for (PageContextImpl opc: runningPcs.values()) {
-					tmp = opc.getHttpServletRequest().getRemoteAddr();
-					if (ra.equals(tmp)) count++;
+					if (opc != null) {
+						HttpServletRequest tmpReq = opc.getHttpServletRequest();
+						if (tmpReq != null) {
+							tmp = tmpReq.getRemoteAddr();
+							if (ra.equals(tmp)) count++;
+						}
+					}
 				}
 				// has already running requests?
 				if (count > 0) {
@@ -190,7 +197,12 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 					int maxNormPrio = Caster.toIntValue(SystemUtil.getSystemPropOrEnvVar("lucee.request.limit.concurrent.maxnormprio", null), MAX_NORMAL_PRIORITY);
 					if (maxNormPrio > 0 && count >= maxNormPrio) {
 						for (PageContextImpl opc: runningPcs.values()) {
-							opc.getThread().setPriority(Thread.MIN_PRIORITY);
+							if (opc != null) {
+								Thread t = opc.getThread();
+								if (t != null) {
+									t.setPriority(Thread.MIN_PRIORITY);
+								}
+							}
 						}
 						Thread.currentThread().setPriority(Thread.MIN_PRIORITY);
 						resetToNormPrio = false;
@@ -221,7 +233,7 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 				pc = null;
 			}
 		}
-		if (pc == null) pc = new PageContextImpl(scopeContext, config, idCounter++, servlet, ignoreScopes);
+		if (pc == null) pc = new PageContextImpl(scopeContext, config, servlet, ignoreScopes);
 
 		if (timeout > 0) pc.setRequestTimeout(timeout);
 		if (register2RunningThreads) {
@@ -277,7 +289,7 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 		}
 		catch (Exception e) {
 			reuse = false;
-			config.getLog("application").error("release page context", e);
+			ThreadLocalPageContext.getLog(config, "application").error("release page context", e);
 		}
 		if (tmpRegister) ThreadLocalPageContext.register(beforePC);
 		if (unregisterFromThread) ThreadLocalPageContext.release();
@@ -331,15 +343,16 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 				long timeout = pc.getRequestTimeout();
 				// reached timeout
 				if (pc.getStartTime() + timeout < System.currentTimeMillis() && Long.MAX_VALUE != timeout) {
-					Log log = pc.getConfig().getLog("requesttimeout");
+					Log log = ThreadLocalPageContext.getLog(pc, "requesttimeout");
 					if (reachedConcurrentReqThreshold() && reachedMemoryThreshold() && reachedCPUThreshold()) {
 						if (log != null) {
 							PageContext root = pc.getRootPageContext();
-							log.log(Log.LEVEL_ERROR, "controller",
-									"stop " + (root != null && root != pc ? "thread" : "request") + " (" + pc.getId() + ") because run into a timeout. ATM we have "
-											+ getActiveRequests() + " active request(s) and " + getActiveThreads() + " active cfthreads " + getPath(pc) + "."
-											+ MonitorState.getBlockedThreads(pc) + RequestTimeoutException.locks(pc),
-									ExceptionUtil.toThrowable(pc.getThread().getStackTrace()));
+							String msg = "stop " + (root != null && root != pc ? "thread" : "request") + " (" + pc.getId() + ") because run into a timeout. ATM we have "
+									+ getActiveRequests() + " active request(s) and " + getActiveThreads() + " active cfthreads " + getPath(pc) + "."
+									+ MonitorState.getBlockedThreads(pc) + RequestTimeoutException.locks(pc);
+							Thread thread = pc.getThread();
+							if (thread != null) log.log(Log.LEVEL_ERROR, "controller", msg, ExceptionUtil.toThrowable(thread.getStackTrace()));
+							else log.log(Log.LEVEL_ERROR, "controller", msg);
 						}
 						terminate(pc, true);
 						runningPcs.remove(Integer.valueOf(pc.getId()));
@@ -348,20 +361,25 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 					else {
 						if (log != null) {
 							PageContext root = pc.getRootPageContext();
-							log.log(Log.LEVEL_WARN, "controller", "reach request timeout with " + (root != null && root != pc ? "thread" : "request") + " [" + pc.getId()
+							String msg = "reach request timeout with " + (root != null && root != pc ? "thread" : "request") + " [" + pc.getId()
 									+ "], but the request is not killed because we did not reach all thresholds set. ATM we have " + getActiveRequests() + " active request(s) and "
-									+ getActiveThreads() + " active cfthreads " + getPath(pc) + "." + MonitorState.getBlockedThreads(pc) + RequestTimeoutException.locks(pc),
-									ExceptionUtil.toThrowable(pc.getThread().getStackTrace()));
+									+ getActiveThreads() + " active cfthreads " + getPath(pc) + "." + MonitorState.getBlockedThreads(pc) + RequestTimeoutException.locks(pc);
+							Thread thread = pc.getThread();
+							if (thread != null) log.log(Log.LEVEL_WARN, "controller", msg, ExceptionUtil.toThrowable(thread.getStackTrace()));
+							else log.log(Log.LEVEL_WARN, "controller", msg);
 						}
 					}
 				}
 				// after 10 seconds downgrade priority of the thread
 				else if (pc.getStartTime() + 10000 < System.currentTimeMillis() && pc.getThread().getPriority() != Thread.MIN_PRIORITY) {
-					Log log = pc.getConfig().getLog("requesttimeout");
+					Log log = ThreadLocalPageContext.getLog(pc, "requesttimeout");
 					if (log != null) {
 						PageContext root = pc.getRootPageContext();
-						log.log(Log.LEVEL_INFO, "controller", "downgrade priority of the a " + (root != null && root != pc ? "thread" : "request") + " at " + getPath(pc) + ". "
-								+ MonitorState.getBlockedThreads(pc) + RequestTimeoutException.locks(pc), ExceptionUtil.toThrowable(pc.getThread().getStackTrace()));
+						String msg = "downgrade priority of the a " + (root != null && root != pc ? "thread" : "request") + " at " + getPath(pc) + ". "
+								+ MonitorState.getBlockedThreads(pc) + RequestTimeoutException.locks(pc);
+						Thread thread = pc.getThread();
+						if (thread != null) log.log(Log.LEVEL_INFO, "controller", msg, ExceptionUtil.toThrowable(pc.getThread().getStackTrace()));
+						else log.log(Log.LEVEL_WARN, "controller", msg);
 					}
 					try {
 						pc.getThread().setPriority(Thread.MIN_PRIORITY);
@@ -443,6 +461,10 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 		return config;
 	}
 
+	public ConfigServer getConfigServer() {
+		return configServer;
+	}
+
 	/**
 	 * @return Returns the scopeContext.
 	 */
@@ -484,7 +506,8 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 		return _servlet;
 	}
 
-	public void setConfig(ConfigWebPro config) {
+	public void setConfig(ConfigServerImpl configServer, ConfigWebPro config) {
+		this.configServer = configServer;
 		this.config = config;
 	}
 
@@ -533,7 +556,7 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 
 			data.setEL("startTime", new DateTimeImpl(pc.getStartTime(), false));
 			data.setEL("endTime", new DateTimeImpl(pc.getStartTime() + pc.getRequestTimeout(), false));
-			data.setEL(KeyConstants._timeout, new Double(pc.getRequestTimeout()));
+			data.setEL(KeyConstants._timeout, Double.valueOf(pc.getRequestTimeout()));
 
 			// thread
 			sctThread.setEL(KeyConstants._name, thread.getName());

@@ -1,8 +1,7 @@
 <!---
 Defaults --->
 
-<cfif structKeyExists(form,"adminMode")>
-		
+<cfif structKeyExists(form,"adminMode")>		
 	<cfadmin
 		action="updateAdminMode"
 		type="#request.adminType#"
@@ -66,6 +65,14 @@ Redirect to entry --->
 	<cflocation url="#request.self#" addtoken="no">
 </cfif>
 
+<cfset lucee_version = "UNKNOWN">
+<cfinclude template="version.cfm">
+<cfif lucee_version neq server.lucee.version>
+	<cfoutput>
+		<div class="error">Warning Lucee Admin was compiled with version #lucee_version#?</div>
+	</cfoutput>
+</cfif>
+
 <!---
 Error Output --->
 <cfset printError(error)>
@@ -96,6 +103,57 @@ Error Output --->
 
 <cfhtmlbody>
     <script src="../res/js/echarts-all.js.cfm" type="text/javascript"></script>
+
+	<cfoutput><script type="text/javascript">
+		var submitted = false;
+		function adminmode(field) {
+			field.disabled = true;
+			submitted = true;
+			url='adminmode.cfm?adminType=#request.admintype#';
+			
+			// adminMode
+			var f=field.form["adminMode"]
+			url+="&adminMode="+$(f).val();
+
+			// switch
+			var f=field.form["switch"]
+			if(f) {
+				url+="&switch="+$(f).val();
+			}
+			// keep
+			var f=field.form["keep"]
+			if(f) {
+				url+="&keep="+$(f).val();
+			}			
+			//disableBlockUI = true;
+			//$('##updateInfoDesc').html('<img src="../res/img/spinner16.gif.cfm">');
+			
+			$.ajax(url )
+				.done(function( data, textStatus, xhr ) {
+					var response = $.trim(data);
+					if (response == ""){
+						setTimeout(function(){
+							// load the admin page to trigger a deploy, so css/js loads correctly
+							$.get("?", function(response) {
+								window.location=('?action=overview');
+							});
+						}, 6500); // LDEV-4568 give Lucee enough time to startup, otherwise, the admin login may show without css/js
+					} else {
+						// $('##updateInfoDesc').addClass("error").attr("style", null).html(response);
+						
+					}
+				})
+				.fail(function( xhr, textStatus, errorThrown ) {
+					// $('##updateInfoDesc').addClass("error").attr("style", null).html( "<b>" + xhr.status + "</b><br>"  + xhr.responseText);
+				})
+				.always(function() {
+					field.disabled = false;
+				});
+			
+		}
+	</script></cfoutput>
+
+
     <script type="text/javascript">
     	var chartTimer;
     	labels={'heap':"Heap",'nonheap':"Non-Heap",'cpuSystem':"Whole System",'cpuProcess':"Lucee Process"};
@@ -104,10 +162,12 @@ Error Output --->
 				type: "POST",
 				<cfoutput>url: "./#request.self#?action=chartAjax",</cfoutput>
 				success: function(result){
+					if (typeof result !== 'object')
+						return;
 					var arr =["heap","nonheap"];
 					$.each(arr,function(index,chrt){
 						window["series_"+chrt] = window[chrt+"Chart"].series[0].data; //*charts*.series[0].data
-						window["series_"+chrt].push(result[chrt]); // push the value into series[0].data
+						window["series_"+chrt].push(result[chrt].PUSED); // push the value into series[0].data
 						window[chrt+"Chart"].series[0].data = window["series_"+chrt];
 						if(window[chrt+"Chart"].series[0].data.length > 60){
 						window[chrt+"Chart"].series[0].data.shift(); //shift the array
@@ -117,6 +177,8 @@ Error Output --->
 						window[chrt+"Chart"].xAxis[0].data.shift(); //shift the Time value
 						}
 						window[chrt].setOption(window[chrt+"Chart"]); // passed the data into the chats
+						var stats = result[chrt];
+						$('#' +chrt +'-label').text( stats.PUSED + "%, " + stats.USED + "Mb / " + stats.MAX + "Mb" );
 					});
 					var arr2 =["cpuSystem"];
 					$.each(arr2,function(index,chrt){
@@ -150,10 +212,10 @@ Error Output --->
 		$.each(["heap","nonheap"], function(i, data){
 			window[data] = echarts.init(document.getElementById(data),'macarons'); // intialize echarts
 			window[data+"Chart"] = {
-				backgroundColor: ["#EFEDE5"],
+				backgroundColor: ["#ffffff"],
 				tooltip : {'trigger':'axis',
 					formatter : function (params) {
-						return 'Series' + "<br>" + params[0].seriesName + ": " + params[0].value + "%" + '<br>' +params[0].name ;
+						return params[0].seriesName + ": " + params[0].value + "%" + '<br>' +params[0].name ;
 					}
 				},
 
@@ -190,14 +252,14 @@ Error Output --->
 
 		var cpuSystem = echarts.init(document.getElementById('cpuSystem'),'macarons'); // intialize echarts
 		var cpuSystemChartOption = {
-			backgroundColor: ["#EFEDE5"],
+			backgroundColor: ["#ffffff"],
 			tooltip : {'trigger':'axis',
 				formatter : function (params) {
 					var series2 = "";
 					if(params.length == 2) {
 						series2 =  params[1].seriesName + ": "+ params[1].value + "%" + '<br>' +params[0].name;
 					}
-					return 'Series' + "<br>" + params[0].seriesName + ": " + params[0].value + "%" + '<br>'  + series2;
+					return params[0].seriesName + ": " + params[0].value + "%" + '<br>'  + series2;
 				}
 			},
 			legend: {
@@ -267,7 +329,6 @@ Error Output --->
 		type="#request.adminType#"
 		password="#session["password"&request.adminType]#"
 		returnVariable="info">
-
 	<cfadmin
 		action="getAPIKey"
 		type="#request.adminType#"
@@ -301,17 +362,15 @@ Error Output --->
 <cfadmin
     action="getExtensions"
     type="server"
-    password="#session["password"&request.adminType]#"
     returnVariable="docsServer">
 <cfadmin
     action="getExtensions"
     type="web"
-    password="#session["password"&request.adminType]#"
     returnVariable="docsWeb">
 
 	<cfif request.adminType EQ "server">
 		<cfset names=StructKeyArray(info.servlets)>
-		<cfif !ArrayContainsNoCase(names,"Rest",true)>
+		<cfif len(names) and !ArrayContainsNoCase(names,"Rest",true)>
 			<div class="warning nofocus">
 				#stText.Overview.warning.warningMsg# 
 			</div>
@@ -330,7 +389,7 @@ Error Output --->
 
 
 	<!--- installed libs --->
-	<cfif request.adminType EQ "web">	
+	<cfif request.adminType EQ "web" or request.singlemode >	
 		<cfadmin
 			action="getTLDs"
 			type="#request.adminType#"
@@ -377,12 +436,13 @@ Error Output --->
 
 
 <cfif request.adminType=="server">
-	
-		
-	<cfformClassic onerror="customError" action="#request.self#?action=overview" method="post">
+	<form method="post">
 		<input type="hidden" name="adminMode" value="#request.singlemode?"multi":"single"#">
 		<h2>#stText.Overview[request.singlemode?"modeSingle":"modeMulti"]#</h2>
 		<div class="itemintro">#stText.Overview[request.singlemode?"modeSingleDesc":"modeMultiDesc"]#</div>
+		<!--- <div id="updateInfoDesc" style="text-align: center;">
+			<p>#stText.services.update.restartDesc#</p>
+		</div> --->
 		<table class="maintbl">
 		<tbody>
 			<tr>
@@ -419,12 +479,12 @@ Error Output --->
 		<tfoot>
 			<tr>
 				<td colspan="2">
-					<input type="submit" class="b button submit" name="mainAction1" value="#stText.Buttons.switch#">
+					<input type="button" class="b button submit" name="mainAction" value="#stText.Buttons.switch#" onclick="adminmode(this)">
 				</td>
 			</tr>
 		</tfoot>
 		</table>
-</cfformClassic>
+	</form>
 
 </cfif>
 
@@ -434,7 +494,7 @@ Error Output --->
 
 
 	<table>
-		<tr>
+		<!---<tr>
 			<div id="updateInfoDesc"><div style="text-align: center;"><img src="../res/img/spinner16.gif.cfm"></div></div>
 			<cfhtmlbody>
 				<script type="text/javascript">
@@ -443,7 +503,7 @@ Error Output --->
 					} );
 				</script>
 			</cfhtmlbody>
-		</tr>
+		</tr>--->
 
 		<tr>
 			<td valign="top" colspan="3">
@@ -454,16 +514,18 @@ Error Output --->
 					<tbody>
 						<tr>
 							<th colspan="2" scope="row">
-								#stText.setting.memory#<br>
-								<span class="comment">#stText.setting.memoryDesc#</span>
+								<h3>#stText.setting.memory#</h3>
+								#stText.setting.memoryDesc#
 							</th>
 						</tr>
 						<tr>
-							<td width="50%"><b>#pool['heap']#</b>
+							<td width="50%"><b>#pool['heap']#</b> <span id="heap-label" style="padding-left:10px;"></span>
 								<div id="heap" style="min-width: 100px; height: 150px; margin: 0 auto;"></div>
+								
 							</td>
-							<td width="50%"><b>#pool['non_heap']#</b><br>
+							<td width="50%"><b>#pool['non_heap']#</b><span id="nonheap-label" style="padding-left:10px;"></span><br>
 								<div id="nonheap" style="min-width: 100px; height: 150px; margin: 0 auto;"></div>
+								
 							</td>
 						</tr>
 
@@ -475,8 +537,8 @@ Error Output --->
 					<tbody>
 							<tr>
 								<th colspan="2" scope="row">
-									#stText.setting.cpu#<br>
-									<span class="comment">#stText.setting.cpuDesc#</span>
+									<h3>#stText.setting.cpu#</h3>
+									#stText.setting.cpuDesc#
 								</th>
 							</tr>
 							<tr>
@@ -493,8 +555,8 @@ Error Output --->
 					<tbody>
 						<tr>
 							<th rowspan="3" scope="row" style="width:50%">
-								#stText.setting.scopes#<br>
-								<span class="comment">#stText.setting.scopesDesc#</span>
+								<h3>#stText.setting.scopes#</h3>
+								#stText.setting.scopesDesc#
 							</th>
 							<td style="width:35%"><b>#stText.setting.scopeApplication#</b></td>
 							<td align="right" style="width:15%">#systemInfo.applicationContextCount#</td>
@@ -516,8 +578,8 @@ Error Output --->
 
 						<tr>
 							<th rowspan="3" scope="row" style="width:50%">
-								#stText.setting.request#<br>
-								<span class="comment">#stText.setting.requestDesc#</span>
+								<h3>#stText.setting.request#</h3>
+								#stText.setting.requestDesc#
 							</th>
 							<td style="width:35%"><b>#stText.setting.req#</b></td>
 							<cfset nbr=systemInfo.activeRequests>
@@ -542,8 +604,8 @@ Error Output --->
 
 						<tr>
 							<th scope="row" style="width:50%">
-								#stText.setting.datasource#<br>
-								<span class="comment">#stText.setting.datasourceDesc#</span>
+								<h3>#stText.setting.datasource#</h3>
+								#stText.setting.datasourceDesc#
 							</th>
 							<cfset nbr=systemInfo.activeDatasourceConnections>
 							<td style="width:35%">&nbsp;</td>
@@ -558,8 +620,8 @@ Error Output --->
 
 						<tr>
 							<th rowspan="2" scope="row" style="width:50%">
-								#stText.setting.task#<br>
-								<span class="comment">#stText.setting.taskDesc#</span>
+								<h3>#stText.setting.task#</h3>
+								#stText.setting.taskDesc#
 							</th>
 							<td style="width:35%"><b>#stText.setting.taskOpen#</b></td>
 							<cfset nbr=systemInfo.tasksOpen>
@@ -580,7 +642,7 @@ Error Output --->
 
 		<cfadmin
 		action="getMinVersion"
-		type="server"
+		type="#request.adminType#"
 		password="#session["password"&request.adminType]#"
 		returnVariable="minVersion">
 		<tr>
@@ -606,14 +668,14 @@ Error Output --->
 									<th nowrap="nowrap" scope="row">#stText.Overview.ReleaseDate#</th>
 									<td>#lsDateFormat(server.lucee['release-date'])#</td>
 								</tr>
-								<cfif !request.singleMode && request.adminType EQ "web">
+								<cfif request.singleMode or request.adminType EQ "web">
 								<tr>
 									<th nowrap="nowrap" scope="row">#stText.Overview.label#</th>
-									<td>#info.label#</td>
+									<td>#info.label?:""#</td>
 								</tr>
 								</cfif>
 
-								<cfif request.adminType EQ "web">
+								<cfif request.singlemode or  request.adminType EQ "web">
 								<tr>
 									<th nowrap="nowrap" scope="row">#stText.Overview.InstalledTLs#</th>
 									<td>
@@ -623,7 +685,7 @@ Error Output --->
 									</td>
 								</tr>
 								</cfif>
-								<cfif request.adminType EQ "web">
+								<cfif request.singlemode or request.adminType EQ "web">
 								<tr>
 									<th nowrap="nowrap" scope="row">#stText.Overview.InstalledFLs#</th>
 									<td>
@@ -675,10 +737,10 @@ Error Output --->
 									</cfif>
 									</td>
 								</tr>
-								<cfif !request.singleMode && request.adminType EQ "web">
+								<cfif request.singleMode or request.adminType EQ "web">
 									<tr>
 										<th scope="row">#stText.Overview.hash#</th>
-										<td>#info.hash#</td>
+										<td>#info.hash?:""#</td>
 									</tr>
 								</cfif>
 
@@ -854,8 +916,8 @@ Error Output --->
 								<input type="text" style="width:99%" name="label_#rst.currentrow#" value="#rst.label#"/>
 							</td>
 							<td><cfif len(rst.url)><a target="_blank" href="#rst.url#/lucee/admin/web.cfm">#rst.url#</a></cfif></td>
-							<td><input type="text" class="xlarge" name="path_#rst.currentrow#" value="#rst.path#" readonly="readonly"/></td>
-							<td><input type="text" class="xlarge" style="width:99%" name="cf_#rst.currentrow#" value="#rst.config_file#" readonly="readonly"/></td>
+							<td>#rst.path#</td>
+							<td>#rst.config_file#</td>
 						</tr>
 
 						<cfset filesThreshold = 100000>

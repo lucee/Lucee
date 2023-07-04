@@ -39,13 +39,18 @@ public final class StructDelete extends BIF {
 	}
 
 	public static boolean call(PageContext pc, Struct struct, String key, boolean indicatenotexisting) throws TemplateException {
-		if(indicatenotexisting && !struct.containsKey(key)) throw new TemplateException("Cannot delete item with key " + key, "The key doesn't exist.");
 		return struct.removeEL(KeyImpl.init(key)) != null || !indicatenotexisting;
 	}
 
 	@Override
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
-		if (args.length == 3) return call(pc, Caster.toStruct(args[0]), Caster.toString(args[1]), Caster.toBooleanValue(args[2]));
+		if (args.length == 3) {
+			boolean indicatenotexisting = Caster.toBooleanValue(args[2]);
+			Struct struct = Caster.toStruct(args[0]);
+			String key = Caster.toString(args[1]);
+			if (indicatenotexisting && !struct.containsKey(key)) throw new TemplateException("Cannot delete item with key " + key, "The key doesn't exist.");
+			return call(pc, struct, key, indicatenotexisting);
+		}
 		if (args.length == 2) return call(pc, Caster.toStruct(args[0]), Caster.toString(args[1]));
 		throw new FunctionException(pc, "StructDelete", 2, 3, args.length);
 	}

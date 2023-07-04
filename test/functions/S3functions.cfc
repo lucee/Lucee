@@ -60,6 +60,16 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="s3" {
 		testfunctions("s3_google");
 	}
 
+	public void function testS3functionsBackBlaze() skip="isNotSupportedBackblaze"{
+		var s3=getCredentials("s3_backblaze");
+		application action="update" s3={
+			accessKeyId: s3.ACCESS_KEY_ID,
+			awsSecretKey: s3.SECRET_KEY,
+			host: s3.HOST
+		};
+		testfunctions("s3_backblaze");
+	}
+
 	private function testfunctions() localMode=true {
 		
 		if ( directoryExists( dir ) ) 
@@ -116,6 +126,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="s3" {
 
 	public boolean function isNotSupportedGoogle() {
 		return structCount( getCredentials("s3_google") ) == 0 ;
+	}
+
+	public boolean function isNotSupportedBackblaze() {
+		return structCount( getCredentials("s3_backblaze") ) == 0 ;
 	}
 
 	private struct function getCredentials(s3_cfg) {

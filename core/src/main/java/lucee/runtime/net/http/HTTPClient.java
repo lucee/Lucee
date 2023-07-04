@@ -43,6 +43,7 @@ import lucee.runtime.PageContext;
 import lucee.runtime.config.Constants;
 import lucee.runtime.converter.ConverterException;
 import lucee.runtime.converter.JSONConverter;
+import lucee.runtime.converter.JSONDateFormat;
 import lucee.runtime.converter.ScriptConverter;
 import lucee.runtime.dump.DumpData;
 import lucee.runtime.dump.DumpProperties;
@@ -171,7 +172,7 @@ public class HTTPClient implements Objects, Iteratorable {
 			InputStream is = null;
 			HTTPResponse rsp = null;
 			try {
-				rsp = HTTPEngine.get(metaURL, username, password, -1, false, "UTF-8", createUserAgent(pc), proxyData, null);
+				rsp = HTTPEngine.get(metaURL, username, password, 5000, false, "UTF-8", createUserAgent(pc), proxyData, null);
 				MimeType mt = getMimeType(rsp, null);
 				int format = MimeType.toFormat(mt, -1);
 				if (format == -1) throw new ApplicationException("cannot convert response with mime type [" + mt + "] to a CFML Object");
@@ -268,7 +269,7 @@ public class HTTPClient implements Objects, Iteratorable {
 		try {
 			if (UDF.RETURN_FORMAT_JSON == argumentsCollectionFormat) {
 				Charset cs = pc.getWebCharset();
-				str = new JSONConverter(true, cs).serialize(pc, args, SerializationSettings.SERIALIZE_AS_ROW);
+				str = new JSONConverter(true, cs, JSONDateFormat.PATTERN_CF, false).serialize(pc, args, SerializationSettings.SERIALIZE_AS_ROW, true);
 				formfields.put("argumentCollectionFormat", "json");
 			}
 			else if (UDF.RETURN_FORMAT_SERIALIZE == argumentsCollectionFormat) {

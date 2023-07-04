@@ -1,11 +1,7 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" labels="mongodb" {
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="cache" {
 	
 	variables.cacheName="Test"&ListFirst(ListLast(getCurrentTemplatePath(),"\/"),".");
-
-	variables.parentFolder=getDirectoryFromPath(getCurrentTemplatePath())&"/datasource/";
-	variables.datasourceFolder=variables.parentFolder&"cacheClear/";
-
-
+	
 	private struct function getMongoDBCredentials() {
 		// getting the credentials from the environment variables
 		return server.getDatasource("mongoDB");
@@ -47,26 +43,11 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mongodb" {
 				custom="#{timeToLiveSeconds:86400,timeToIdleSeconds:86400}#";
 		}
 
-
-
-		if(!directoryExists(variables.datasourceFolder)) directoryCreate(variables.datasourceFolder);
 		application action="update" 
 			cache={query:"_cacheClear"&id}
 			datasources={
-				'cacheClear_1':{
-					class: 'org.h2.Driver'
-					, bundleName: 'org.h2'
-					, bundleVersion: '1.3.172'
-					, connectionString: 'jdbc:h2:#variables.datasourceFolder#/cacheClear_1#id#;MODE=MySQL'
-					, connectionLimit:100 // default:-1
-				}
-				,'cacheClear_2':{
-					class: 'org.h2.Driver'
-					, bundleName: 'org.h2'
-					, bundleVersion: '1.3.172'
-					, connectionString: 'jdbc:h2:#variables.datasourceFolder#/cacheClear_2#id#;MODE=MySQL'
-					, connectionLimit:100 // default:-1
-				}
+				'cacheClear_1': server.getDatasource( "h2", server._getTempDir( "cacheClear_1#id#" ) )
+				,'cacheClear_2': server.getDatasource( "h2", server._getTempDir( "cacheClear_2#id#" ) )
 			}
 		;
 	}
@@ -88,17 +69,17 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mongodb" {
 			before=arrayLen(idsBefore);
 			
 			query cachedwithin=createTimeSpan(0,0,1,0) name="qry1" datasource="cacheClear_1" tags=['tables'] {
-				echo('SELECT top 1 TABLE_NAME as tn,''cacheClear_1'' as ds FROM  INFORMATION_SCHEMA.TABLES');
+				echo('SELECT TABLE_NAME as tn,''cacheClear_1'' as ds FROM  INFORMATION_SCHEMA.TABLES');
 			}
 			query cachedwithin=createTimeSpan(0,0,1,0) name="qry1" datasource="cacheClear_2" tags=['tables'] {
-				echo('SELECT top 1 TABLE_NAME as tn,''cacheClear_2'' as ds FROM  INFORMATION_SCHEMA.TABLES');
+				echo('SELECT TABLE_NAME as tn,''cacheClear_2'' as ds FROM  INFORMATION_SCHEMA.TABLES');
 			}
 
 			query cachedwithin=createTimeSpan(0,0,1,0) name="qry1" datasource="cacheClear_1" tags=['tables2'] {
-				echo('SELECT top 1 TABLE_NAME as tn,''cacheClear_111'' as ds FROM  INFORMATION_SCHEMA.TABLES');
+				echo('SELECT TABLE_NAME as tn,''cacheClear_111'' as ds FROM  INFORMATION_SCHEMA.TABLES');
 			}
 			query cachedwithin=createTimeSpan(0,0,1,0) name="qry1" datasource="cacheClear_2" tags=['tables2'] {
-				echo('SELECT top 1 TABLE_NAME as tn,''cacheClear_222'' as ds FROM  INFORMATION_SCHEMA.TABLES');
+				echo('SELECT TABLE_NAME as tn,''cacheClear_222'' as ds FROM  INFORMATION_SCHEMA.TABLES');
 			}
 			idsAfter.a=cacheGetAllIds(cacheName:"_cacheClear"&id);
 			assertEquals(4,arrayLen(idsAfter.a)-before);
@@ -120,17 +101,26 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mongodb" {
 		}
 		finally {
 			cacheClear(cacheName:"_cacheClear"&id);
-			directoryDelete(variables.datasourceFolder,true);
 		}
 	}
-
-
+	
+	function testCacheClearMongoDB() {
+		if (!extensionExists("E6634E1A-4CC5-4839-A83C67549ECA8D5B")) 
+			return;
+		// TODO add mongodb test	
+		//createEHCache();
+		//testCacheClear();
+		//deleteCache();
+	}
 
 	function testCacheClearEHCache() {
+		if (!extensionExists("87FE44E5-179C-43A3-A87B3D38BEF4652E")) 
+			return;
 		createEHCache();
 		testCacheClear();
 		deleteCache();
 	}
+
 	function testCacheClearRAMCache() {
 		createRAMCache();
 		testCacheClear();
@@ -237,18 +227,5 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mongodb" {
 		    assertEquals("#cacheCount(cacheName)#", "1");
     	}
 	}
-	function afterTests() {
-		var javaIoFile=createObject("java","java.io.File");
-		loop array=DirectoryList(
-			path=getDirectoryFromPath(getCurrentTemplatePath()), 
-			recurse=true, filter="*.db") item="local.path"  {
-			fileDeleteOnExit(javaIoFile,path);
-		}
-	}
-
-	private function fileDeleteOnExit(required javaIoFile, required string path) {
-		var file=javaIoFile.init(arguments.path);
-		if(!file.isFile())file=javaIoFile.init(expandPath(arguments.path));
-		if(file.isFile()) file.deleteOnExit();
-	}
+	
 }

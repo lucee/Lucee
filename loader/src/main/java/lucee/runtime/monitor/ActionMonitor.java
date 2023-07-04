@@ -36,7 +36,7 @@ public interface ActionMonitor extends Monitor {
 	 * @param type type
 	 * @param label label
 	 * @param executionTime execution time
-	 * @param data data 
+	 * @param data data
 	 * @throws IOException IO Exception
 	 */
 	public void log(PageContext pc, String type, String label, long executionTime, Object data) throws IOException;

@@ -30,6 +30,7 @@ import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.ContentType;
 import lucee.commons.io.res.Resource;
+import lucee.commons.lang.ParentThreasRefThread;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.net.http.HTTPEngine;
 import lucee.commons.net.http.HTTPResponse;
@@ -44,9 +45,8 @@ import lucee.runtime.functions.other.CreateUUID;
 import lucee.runtime.net.proxy.ProxyData;
 import lucee.runtime.net.proxy.ProxyDataImpl;
 import lucee.runtime.util.URLResolver;
-import lucee.runtime.schedule.ScheduleTaskPro;
 
-class ExecutionThread extends Thread {
+class ExecutionThread extends ParentThreasRefThread {
 
 	private Config config;
 	// private Log log;
@@ -62,10 +62,10 @@ class ExecutionThread extends Thread {
 	@Override
 	public void run() {
 		if (ThreadLocalPageContext.getConfig() == null && config != null) ThreadLocalConfig.register(config);
-		execute(config, task, charset);
+		execute(this, config, task, charset);
 	}
 
-	public static void execute(Config config, ScheduleTask task, String charset) {
+	public static void execute(ParentThreasRefThread ptrt, Config config, ScheduleTask task, String charset) {
 		Scheduler scheduler = ((ScheduleTaskImpl) task).getScheduler();
 		if (scheduler instanceof SchedulerImpl && !((SchedulerImpl) scheduler).active()) return;
 		Log log = getLog(config);
@@ -87,12 +87,11 @@ class ExecutionThread extends Thread {
 		// HttpMethod method = new GetMethod(url);
 		// HostConfiguration hostConfiguration = client.getHostConfiguration();
 		String userAgent = ((ScheduleTaskPro) task).getUserAgent();
-		if (StringUtil.isEmpty(userAgent))
-			userAgent = Constants.NAME + " Scheduler";
-			//userAgent = "CFSCHEDULE"; this old userAgent string is on block listslists
+		if (StringUtil.isEmpty(userAgent)) userAgent = Constants.NAME + " Scheduler";
+		// userAgent = "CFSCHEDULE"; this old userAgent string is on block listslists
 
 		ArrayList<Header> headers = new ArrayList<Header>();
-		headers.add( HTTPEngine.header("User-Agent", userAgent));
+		headers.add(HTTPEngine.header("User-Agent", userAgent));
 
 		// method.setRequestHeader("User-Agent","CFSCHEDULE");
 
@@ -106,7 +105,7 @@ class ExecutionThread extends Thread {
 			String plainCredentials = user + ":" + pass;
 			String base64Credentials = Base64Encoder.encode(plainCredentials.getBytes());
 			String authorizationHeader = "Basic " + base64Credentials;
-			headers.add( HTTPEngine.header("Authorization", authorizationHeader));
+			headers.add(HTTPEngine.header("Authorization", authorizationHeader));
 		}
 
 		// Proxy
@@ -133,6 +132,11 @@ class ExecutionThread extends Thread {
 				log.log(Log.LEVEL_ERROR, logName, e);
 			}
 			catch (Exception ee) {
+				if (ptrt != null) {
+					ptrt.addParentStacktrace(e);
+					ptrt.addParentStacktrace(ee);
+				}
+				// TODO log parent stacktrace as well
 				LogUtil.logGlobal(config, "scheduler", e);
 				LogUtil.logGlobal(config, "scheduler", ee);
 			}
@@ -189,7 +193,7 @@ class ExecutionThread extends Thread {
 	}
 
 	private static Log getLog(Config config) {
-		return config.getLog("scheduler");
+		return ThreadLocalPageContext.getLog(config, "scheduler");
 	}
 
 	private static boolean isText(HTTPResponse rsp) {

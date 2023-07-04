@@ -304,10 +304,10 @@ public class SimpleQuery implements Query, ResultSet, Objects, QueryResult {
 	public Object getAt(Key key, int row, int pid, Object defaultValue) {
 		char c = key.lowerCharAt(0);
 		if (c == 'r') {
-			if (key.equals(KeyConstants._RECORDCOUNT)) return new Double(getRecordcount());
+			if (key.equals(KeyConstants._RECORDCOUNT)) return Double.valueOf(getRecordcount());
 		}
 		else if (c == 'c') {
-			if (key.equals(KeyConstants._CURRENTROW)) return new Double(getCurrentrow(pid));
+			if (key.equals(KeyConstants._CURRENTROW)) return Double.valueOf(getCurrentrow(pid));
 			else if (key.equals(KeyConstants._COLUMNLIST)) return getColumnlist();
 		}
 

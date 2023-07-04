@@ -23,8 +23,17 @@ import lucee.transformer.Position;
 
 public class TagComponent extends TagCIObject {
 
+	private boolean inline;
+
 	public TagComponent(Factory f, Position start, Position end) {
 		super(f, start, end);
 	}
 
+	public void setInline(boolean inline) {
+		this.inline = inline;
+	}
+
+	public boolean isInline() {
+		return inline;
+	}
 }

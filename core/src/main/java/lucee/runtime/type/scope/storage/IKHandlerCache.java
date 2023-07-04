@@ -21,7 +21,7 @@ import lucee.runtime.type.scope.ScopeContext;
 public class IKHandlerCache implements IKHandler {
 	private static final ConcurrentHashMap<String, Object> tokens = new ConcurrentHashMap<String, Object>();
 
-	protected boolean storeEmpty = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.store.empty", null), false);
+	protected boolean storeEmpty = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.store.empty", null), true);
 
 	private static Map<String, Boolean> supportsSerialisation = new ConcurrentHashMap<>();
 	static {
@@ -65,7 +65,7 @@ public class IKHandlerCache implements IKHandler {
 					cache.put(key,
 							deserializeIKStorageValueSupported(cache) ? new IKStorageValue(IKStorageScopeSupport.prepareToStore(data, existingVal, storageScope.lastModified()))
 									: IKStorageValue.toByteRepresentation(IKStorageScopeSupport.prepareToStore(data, existingVal, storageScope.lastModified())),
-							new Long(storageScope.getTimeSpan()), null);
+							Long.valueOf(storageScope.getTimeSpan()), null);
 				}
 				else if (existingVal != null) {
 					cache.remove(key);

@@ -39,7 +39,7 @@ import lucee.commons.net.http.HTTPResponse;
 import lucee.commons.net.http.Header;
 import lucee.commons.net.http.httpclient.HeaderImpl;
 import lucee.runtime.engine.CFMLEngineImpl;
-import lucee.runtime.engine.ThreadLocalPageContext;
+import lucee.runtime.engine.ThreadQueuePro;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.extension.ExtensionDefintion;
@@ -74,24 +74,34 @@ public class DeployHandler {
 			Resource[] children = dir.listResources(ALL_EXT);
 			Resource child;
 			String ext;
-			for (int i = 0; i < children.length; i++) {
-				child = children[i];
+			if (children.length > 0) {
+				ThreadQueuePro queue = (ThreadQueuePro) config.getThreadQueue();
+				short prevMode = ThreadQueuePro.MODE_UNDEFINED;
+				if (queue != null) prevMode = queue.setMode(ThreadQueuePro.MODE_BLOCKING);
 				try {
-					// Lucee archives
-					ext = ResourceUtil.getExtension(child, null);
-					if ("lar".equalsIgnoreCase(ext)) {
-						// deployArchive(config,child,true);
-						ConfigAdmin.updateArchive((ConfigPro) config, child, true);
+					for (int i = 0; i < children.length; i++) {
+						child = children[i];
+						try {
+							// Lucee archives
+							ext = ResourceUtil.getExtension(child, null);
+							if ("lar".equalsIgnoreCase(ext)) {
+								// deployArchive(config,child,true);
+								ConfigAdmin.updateArchive((ConfigPro) config, child, true);
+							}
+
+							// Lucee Extensions
+							else if ("lex".equalsIgnoreCase(ext)) ConfigAdmin._updateRHExtension((ConfigPro) config, child, true, force);
+
+							// Lucee core
+							else if (config instanceof ConfigServer && "lco".equalsIgnoreCase(ext)) ConfigAdmin.updateCore((ConfigServerImpl) config, child, true);
+						}
+						catch (Exception e) {
+							log.log(Log.LEVEL_ERROR, "deploy handler", e);
+						}
 					}
-
-					// Lucee Extensions
-					else if ("lex".equalsIgnoreCase(ext)) ConfigAdmin._updateRHExtension((ConfigPro) config, child, true, force);
-
-					// Lucee core
-					else if (config instanceof ConfigServer && "lco".equalsIgnoreCase(ext)) ConfigAdmin.updateCore((ConfigServerImpl) config, child, true);
 				}
-				catch (Exception e) {
-					log.log(Log.LEVEL_ERROR, "deploy handler", e);
+				finally {
+					queue.setMode(prevMode);
 				}
 			}
 
@@ -167,7 +177,7 @@ public class DeployHandler {
 				catch (PageException e) {
 					if (throwOnError) throw e;
 					if (log != null) log.error("deploy-extension", e);
-					else LogUtil.log(null, "deploy-extension", e);
+					else LogUtil.log("deploy-extension", e);
 					sucess = false;
 				}
 				if (!sucess) allSucessfull = false;
@@ -193,7 +203,7 @@ public class DeployHandler {
 				catch (PageException e) {
 					if (throwOnError) throw e;
 					if (log != null) log.error("deploy-extension", e);
-					else LogUtil.log(null, null, "deploy-extension", e);
+					else LogUtil.log("deploy-extension", e);
 					sucess = false;
 				}
 				if (!sucess) allSucessfull = false;
@@ -223,7 +233,7 @@ public class DeployHandler {
 		catch (Exception e) {
 			if (throwOnError) throw Caster.toPageException(e);
 			if (log != null) log.error("extension", e);
-			else LogUtil.log(null, null, "extension", e);
+			else LogUtil.log("extension", e);
 		}
 
 		// check if a local extension is matching our id
@@ -265,7 +275,7 @@ public class DeployHandler {
 					}
 
 					ext = null;
-					LogUtil.log(ThreadLocalPageContext.getConfig(config), DeployHandler.class.getName(), e);
+					LogUtil.log((config), DeployHandler.class.getName(), e);
 				}
 			}
 			break;
@@ -290,7 +300,7 @@ public class DeployHandler {
 
 					url = new URL(url, "/rest/extension/provider/info/" + ed.getId() + qs);
 					if (log != null) log.info("extension", "Check for a newer version at [" + url + "]");
-					rsp = HTTPEngine.get(url, null, null, -1, false, "UTF-8", "", null, new Header[] { new HeaderImpl("accept", "application/json") });
+					rsp = HTTPEngine.get(url, null, null, 5000, false, "UTF-8", "", null, new Header[] { new HeaderImpl("accept", "application/json") });
 
 					if (rsp.getStatusCode() != 200) continue;
 
@@ -374,7 +384,7 @@ public class DeployHandler {
 				url = new URL(url, "/rest/extension/provider/full/" + ed.getId() + qs);
 				if (log != null) log.info("main", "Check for extension at [" + url + "]");
 
-				rsp = HTTPEngine.get(url, null, null, -1, true, "UTF-8", "", null, new Header[] { new HeaderImpl("accept", "application/cfml") });
+				rsp = HTTPEngine.get(url, null, null, 5000, true, "UTF-8", "", null, new Header[] { new HeaderImpl("accept", "application/cfml") });
 
 				// If status code indicates success
 				if (rsp.getStatusCode() >= 200 && rsp.getStatusCode() < 300) {

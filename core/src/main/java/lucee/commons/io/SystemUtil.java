@@ -57,6 +57,7 @@ import java.util.zip.ZipInputStream;
 
 import javax.servlet.ServletContext;
 
+import org.apache.felix.framework.BundleWiringImpl.BundleClassLoader;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleReference;
 
@@ -82,6 +83,7 @@ import lucee.commons.lang.types.RefInteger;
 import lucee.commons.lang.types.RefIntegerImpl;
 import lucee.loader.TP;
 import lucee.loader.engine.CFMLEngineFactory;
+import lucee.loader.util.Util;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
@@ -219,6 +221,7 @@ public final class SystemUtil {
 		else JAVA_VERSION = 0;
 	}
 
+	private static final ConcurrentHashMap<String, String> tokens = new ConcurrentHashMap<String, String>();
 	private static ClassLoader loaderCL;
 	private static ClassLoader coreCL;
 
@@ -1066,7 +1069,7 @@ public final class SystemUtil {
 		public Object toStruct() {
 			Struct caller = new StructImpl(Struct.TYPE_LINKED);
 			caller.setEL(KeyConstants._template, template);
-			caller.setEL(KeyConstants._line, new Double(line));
+			caller.setEL(KeyConstants._line, Double.valueOf(line));
 			return caller;
 		}
 	}
@@ -1326,7 +1329,7 @@ public final class SystemUtil {
 		// in case it is the request thread
 		if (pc instanceof PageContextImpl && thread == pc.getThread()) {
 			((PageContextImpl) pc).setTimeoutStackTrace();
-			log = ((PageContextImpl) pc).getLog("requesttimeout");
+			log = ThreadLocalPageContext.getLog(pc, "requesttimeout");
 		}
 
 		// first we try to interupt, the we force a stop
@@ -1386,10 +1389,19 @@ public final class SystemUtil {
 	public static InputStream getResourceAsStream(Bundle bundle, String path) {
 		// check the bundle for the resource
 		InputStream is;
+		if (bundle == null) {
+			ClassLoader cl = PageSourceImpl.class.getClassLoader();
+			if (cl instanceof BundleClassLoader) {
+				bundle = ((BundleClassLoader) cl).getBundle();
+			}
+		}
 		if (bundle != null) {
 			try {
 				is = bundle.getEntry(path).openStream();
 				if (is != null) return is;
+				if (path.startsWith("/")) is = bundle.getEntry(path.substring(1)).openStream();
+				if (is != null) return is;
+
 			}
 			catch (Throwable t) {
 				ExceptionUtil.rethrowIfNecessary(t);
@@ -1401,6 +1413,8 @@ public final class SystemUtil {
 		try {
 			is = cl.getResourceAsStream(path);
 			if (is != null) return is;
+			if (path.startsWith("/")) is = cl.getResourceAsStream(path.substring(1));
+			if (is != null) return is;
 		}
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
@@ -1411,6 +1425,8 @@ public final class SystemUtil {
 		try {
 			is = cl.getResourceAsStream(path);
 			if (is != null) return is;
+			if (path.startsWith("/")) is = cl.getResourceAsStream(path.substring(1));
+			if (is != null) return is;
 		}
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
@@ -1420,6 +1436,8 @@ public final class SystemUtil {
 		cl = ClassLoader.getSystemClassLoader();
 		try {
 			is = cl.getResourceAsStream(path);
+			if (is != null) return is;
+			if (path.startsWith("/")) is = cl.getResourceAsStream(path.substring(1));
 			if (is != null) return is;
 		}
 		catch (Throwable t) {
@@ -1733,6 +1751,27 @@ public final class SystemUtil {
 			}
 		}
 		return false;
+	}
+
+	public static String createToken(String prefix, String name) {
+		String str = prefix + ":" + name;
+		String lock = tokens.putIfAbsent(str, str);
+		if (lock == null) {
+			lock = str;
+		}
+		return lock;
+	}
+
+	public static String lineSeparator() {
+		if (Util.isEmpty(lineSeparator)) {
+			synchronized (createToken("line", "separator")) {
+				if (Util.isEmpty(lineSeparator)) {
+					lineSeparator = System.lineSeparator();
+					if (Util.isEmpty(lineSeparator)) lineSeparator = "\n";
+				}
+			}
+		}
+		return lineSeparator;
 	}
 }
 

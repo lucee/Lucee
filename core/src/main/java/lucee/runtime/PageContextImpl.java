@@ -32,9 +32,11 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Queue;
 import java.util.Set;
 import java.util.Stack;
 import java.util.TimeZone;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import javax.el.ELContext;
 import javax.servlet.Servlet;
@@ -333,7 +335,7 @@ public final class PageContextImpl extends PageContext {
 	private PageContextImpl root = null;
 
 	private List<String> parentTags;
-	private List<PageContext> children = null;
+	private Queue<PageContext> children = null;
 	private List<Statement> lazyStats;
 	private boolean fdEnabled;
 	private ExecutionLog execLog;
@@ -361,6 +363,7 @@ public final class PageContextImpl extends PageContext {
 	private boolean fullNullSupport;
 
 	private static final boolean READ_CFID_FROM_URL = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.read.cfid.from.url", "true"), true);
+	private static int _idCounter = 1;
 
 	/**
 	 * default Constructor
@@ -371,7 +374,7 @@ public final class PageContextImpl extends PageContext {
 	 * @param id identity of the pageContext
 	 * @param servlet
 	 */
-	public PageContextImpl(ScopeContext scopeContext, ConfigWebPro config, int id, HttpServlet servlet, boolean jsr223) {
+	public PageContextImpl(ScopeContext scopeContext, ConfigWebPro config, HttpServlet servlet, boolean jsr223) {
 		// must be first because is used after
 		tagHandlerPool = config.getTagHandlerPool();
 		this.servlet = servlet;
@@ -387,7 +390,7 @@ public final class PageContextImpl extends PageContext {
 		server = ScopeContext.getServerScope(this, jsr223);
 		defaultApplicationContext = new ClassicApplicationContext(config, "", true, null);
 
-		this.id = id;
+		this.id = getIdCounter();
 	}
 
 	public boolean isInitialized() {
@@ -568,7 +571,13 @@ public final class PageContextImpl extends PageContext {
 			this.tagName = tmplPC.tagName;
 			this.parentTags = tmplPC.parentTags == null ? null : (List) ((ArrayList) tmplPC.parentTags).clone();
 
-			if (tmplPC.children == null) tmplPC.children = new ArrayList<PageContext>();
+			if (tmplPC.children == null) {
+				synchronized (tmplPC) {
+					if (tmplPC.children == null) {
+						tmplPC.children = new ConcurrentLinkedQueue<PageContext>();
+					}
+				}
+			}
 			tmplPC.children.add(this);
 
 			this.applicationContext = tmplPC.applicationContext;
@@ -592,7 +601,7 @@ public final class PageContextImpl extends PageContext {
 	public void release() {
 		config.releaseCacheHandlers(this);
 
-		if (config.getExecutionLogEnabled()) {
+		if (config.getExecutionLogEnabled() && execLog != null) {
 			execLog.release();
 			execLog = null;
 		}
@@ -827,7 +836,7 @@ public final class PageContextImpl extends PageContext {
 	}
 
 	public PageSource getRelativePageSource(String realPath) {
-		LogUtil.log(config, Log.LEVEL_INFO, PageContextImpl.class.getName(), "method getRelativePageSource is deprecated");
+		LogUtil.log(this, Log.LEVEL_INFO, PageContextImpl.class.getName(), "method getRelativePageSource is deprecated");
 		if (StringUtil.startsWith(realPath, '/')) return PageSourceImpl.best(getPageSources(realPath));
 		if (pathList.size() == 0) return null;
 		return pathList.getLast().getRealPage(realPath);
@@ -2393,7 +2402,7 @@ public final class PageContextImpl extends PageContext {
 
 			if (mapping == null || mapping.getPhysical() == null) {
 				RestUtil.setStatus(this, 404, "no rest service for [" + HTMLEntities.escapeHTML(pathInfo) + "] found");
-				getConfig().getLog("rest").error("REST", "no rest service for [" + pathInfo + "] found");
+				getLog("rest").error("REST", "no rest service for [" + pathInfo + "] found");
 			}
 			else {
 				base = config.toPageSource(null, mapping.getPhysical(), null);
@@ -2954,14 +2963,14 @@ public final class PageContextImpl extends PageContext {
 				if (hasCFSession()) {
 					Object auth = sessionScope().get(name, null);
 					if (auth != null) {
-						remoteUser = CredentialImpl.decode(auth, roles);
+						remoteUser = CredentialImpl.decode(auth, roles, true);
 					}
 				}
 			}
 			else if (applicationContext.getLoginStorage() == Scope.SCOPE_COOKIE) {
 				Object auth = cookieScope().get(name, null);
 				if (auth != null) {
-					remoteUser = CredentialImpl.decode(auth, roles);
+					remoteUser = CredentialImpl.decode(auth, roles, true);
 				}
 			}
 		}
@@ -3235,6 +3244,10 @@ public final class PageContextImpl extends PageContext {
 		return endTimeNS;
 	}
 
+	public void setEndTimeNS(long endTimeNS) {
+		this.endTimeNS = endTimeNS;
+	}
+
 	@Override
 	public Thread getThread() {
 		return thread;
@@ -3269,7 +3282,7 @@ public final class PageContextImpl extends PageContext {
 
 	@Override
 	public void compile(String realPath) throws PageException {
-		LogUtil.log(config, Log.LEVEL_INFO, PageContextImpl.class.getName(), "method PageContext.compile(String) should no longer be used!");
+		LogUtil.log(this, Log.LEVEL_INFO, PageContextImpl.class.getName(), "method PageContext.compile(String) should no longer be used!");
 		compile(PageSourceImpl.best(getRelativePageSources(realPath)));
 	}
 
@@ -3351,7 +3364,7 @@ public final class PageContextImpl extends PageContext {
 		return root;
 	}
 
-	public List<PageContext> getChildPageContexts() {
+	public Queue<PageContext> getChildPageContexts() {
 		return children;
 	}
 
@@ -3771,6 +3784,16 @@ public final class PageContextImpl extends PageContext {
 	}
 
 	public Log getLog(String name) {
+		if (applicationContext != null) {
+			Log log = null;
+			try {
+				log = applicationContext.getLog(name);
+			}
+			catch (PageException e) {
+				config.getLog("application").error(getClass().getName(), e);
+			}
+			if (log != null) return log;
+		}
 		return config.getLog(name);
 	}
 
@@ -3872,5 +3895,11 @@ public final class PageContextImpl extends PageContext {
 	public Regex getRegex() {
 		if (applicationContext != null) return applicationContext.getRegex();
 		return config.getRegex();
+	}
+
+	private static synchronized int getIdCounter() {
+		_idCounter++;
+		if (_idCounter < 0) _idCounter = 1;
+		return _idCounter;
 	}
 }

@@ -78,9 +78,6 @@ import lucee.runtime.type.util.ArrayUtil;
 import lucee.transformer.library.function.FunctionLib;
 import lucee.transformer.library.tag.TagLib;
 
-/**
- * 
- */
 public final class ConfigWebUtil {
 
 	private static String enckey;
@@ -201,7 +198,7 @@ public final class ConfigWebUtil {
 
 		CFMLEngine engine = ConfigWebUtil.getEngine(config);
 		BundleContext bc = engine.getBundleContext();
-		Log log = config.getLog("application");
+		Log log = ThreadLocalPageContext.getLog(config, "application");
 		BundleFile bf;
 		List<Resource> list = new ArrayList<Resource>();
 		for (int i = 0; i < libs.length; i++) {
@@ -286,6 +283,15 @@ public final class ConfigWebUtil {
 		return file;
 	}
 
+	public static boolean hasPlaceholder(String str) {
+		if (StringUtil.isEmpty(str)) return false;
+		// TOD improve test
+		int index = str.indexOf('{');
+		if (index > -1 && index < str.indexOf('}')) return true;
+		return false;
+
+	}
+
 	// do not change, used in extension
 	public static String replacePlaceholder(String str, Config config) {
 		if (StringUtil.isEmpty(str)) return str;
@@ -344,15 +350,16 @@ public final class ConfigWebUtil {
 
 			if (StringUtil.startsWith(str, '{')) {
 				Struct constants = config.getConstants();
-				Iterator<Entry<Key, Object>> it = constants.entryIterator();
-				Entry<Key, Object> e;
-				while (it.hasNext()) {
-					e = it.next();
-					if (StringUtil.startsWithIgnoreCase(str, "{" + e.getKey().getString() + "}")) {
-						String value = (String) e.getValue();
-						str = checkResult(str, config.getResource(value).getReal(str.substring(e.getKey().getString().length() + 2)));
-						break;
-
+				if (constants != null) {
+					Iterator<Entry<Key, Object>> it = constants.entryIterator();
+					Entry<Key, Object> e;
+					while (it.hasNext()) {
+						e = it.next();
+						if (StringUtil.startsWithIgnoreCase(str, "{" + e.getKey().getString() + "}")) {
+							String value = (String) e.getValue();
+							str = checkResult(str, config.getResource(value).getReal(str.substring(e.getKey().getString().length() + 2)));
+							break;
+						}
 					}
 				}
 			}
@@ -533,7 +540,8 @@ public final class ConfigWebUtil {
 		strListenerMode = strListenerMode.trim();
 
 		if ("current".equalsIgnoreCase(strListenerMode) || "curr".equalsIgnoreCase(strListenerMode)) return ApplicationListener.MODE_CURRENT;
-		else if ("currenttoroot".equalsIgnoreCase(strListenerMode) || "current2root".equalsIgnoreCase(strListenerMode) || "curr2root".equalsIgnoreCase(strListenerMode))
+		else if ("currenttoroot".equalsIgnoreCase(strListenerMode) || "current2root".equalsIgnoreCase(strListenerMode) || "curr2root".equalsIgnoreCase(strListenerMode)
+				|| "modern".equalsIgnoreCase(strListenerMode)/* this is a patch for old version getting it wrong */)
 			return ApplicationListener.MODE_CURRENT2ROOT;
 		else if ("currentorroot".equalsIgnoreCase(strListenerMode) || "currorroot".equalsIgnoreCase(strListenerMode)) return ApplicationListener.MODE_CURRENT_OR_ROOT;
 		else if ("root".equalsIgnoreCase(strListenerMode)) return ApplicationListener.MODE_ROOT;
@@ -555,7 +563,8 @@ public final class ConfigWebUtil {
 
 		if ("none".equalsIgnoreCase(strListenerType)) return ApplicationListener.TYPE_NONE;
 		else if ("classic".equalsIgnoreCase(strListenerType)) return ApplicationListener.TYPE_CLASSIC;
-		else if ("modern".equalsIgnoreCase(strListenerType)) return ApplicationListener.TYPE_MODERN;
+		else if ("modern".equalsIgnoreCase(strListenerType) || "curr2root".equalsIgnoreCase(strListenerType)/* this is a patch for old version getting it wrong */)
+			return ApplicationListener.TYPE_MODERN;
 		else if ("mixed".equalsIgnoreCase(strListenerType)) return ApplicationListener.TYPE_MIXED;
 
 		return defaultValue;
@@ -750,6 +759,29 @@ public final class ConfigWebUtil {
 		return getAsArray(child, getAsStruct(parent, sct));
 	}
 
+	public static Struct getAsStruct(Struct input, String... names) {
+		Struct sct = null;
+		Object obj;
+		for (String name: names) {
+			obj = input.get(name, null);
+			if (obj instanceof Struct && !(sct = (Struct) obj).isEmpty()) {
+				break;
+			}
+		}
+
+		if (sct == null) {
+			sct = new StructImpl(Struct.TYPE_LINKED);
+			input.put(names[0], sct);
+			return sct;
+		}
+		return sct;
+	}
+
+	// TODO
+	/**
+	 * @deprecated use instead getAsStruct(Struct input, String... names)
+	 */
+	@Deprecated
 	public static Struct getAsStruct(String name, Struct sct) {
 		Object obj = sct.get(name, null);
 		if (obj == null) {
@@ -760,6 +792,11 @@ public final class ConfigWebUtil {
 		return (Struct) obj;
 	}
 
+	// TODO
+	/**
+	 * @deprecated use instead getAsArray(Struct input, String... names)
+	 */
+	@Deprecated
 	public static Array getAsArray(String name, Struct sct) {
 		Object obj = sct.get(KeyImpl.init(name), null);
 		if (obj == null) {

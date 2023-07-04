@@ -16,12 +16,14 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  * 
  ---><cfscript>
-component extends="org.lucee.cfml.test.LuceeTestCase"	{
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="http" {
+
+	variables.updateProvider = server.getTestService("updateProvider").url;
 		
 	public void function testImplicit(){
 		var data=chr(228)&chr(246)&chr(252); // äöü
 		data="{aaa:'#data#'}";
-		http url="https://update.lucee.org/rest/update/provider/echoPut" result="local.res" method="put" throwonerror="no" charset="utf-8"{
+		http url="#variables.updateProvider#/rest/update/provider/echoPut" result="local.res" method="put" throwonerror="no" charset="utf-8"{
 			httpparam type="body" value=data;
 		}
 		res=evaluate(res.filecontent);
@@ -31,7 +33,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	public void function testExplicit(){
 		var data=chr(228)&chr(246)&chr(252); // äöü
 		data="{aaa:'#data#'}";
-		http url="https://update.lucee.org/rest/update/provider/echoPut" result="local.res" method="put" throwonerror="no" charset="utf-8"{
+		http url="#variables.updateProvider#/rest/update/provider/echoPut" result="local.res" method="put" throwonerror="no" charset="utf-8"{
 			httpparam type="body" mimetype="text/plain; charset=UTF-8" value=data;
 		}
 		res=evaluate(res.filecontent);

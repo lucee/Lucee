@@ -61,7 +61,8 @@ public abstract class CFMLEngineFactorySupport {
 		try {
 			if (is != null) is.close();
 		}
-		catch (final Throwable e) {}
+		catch (final Throwable e) {
+		}
 	}
 
 	/**
@@ -73,7 +74,8 @@ public abstract class CFMLEngineFactorySupport {
 		try {
 			if (os != null) os.close();
 		}
-		catch (final Throwable e) {}
+		catch (final Throwable e) {
+		}
 	}
 
 	/**
@@ -225,7 +227,8 @@ public abstract class CFMLEngineFactorySupport {
 			tempFile = getCanonicalFileEL(tempFile);
 			tmp.delete();
 		}
-		catch (final IOException ioe) {}
+		catch (final IOException ioe) {
+		}
 
 		return tempFile;
 	}

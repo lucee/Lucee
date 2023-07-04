@@ -8,7 +8,9 @@
 		param name="attributes.right"         default="";
 		param name="attributes.width"         default="780";
 
-		variables.stText = application.stText[session.lucee_admin_lang];
+		// make sure that any unavaliable language falls back to English
+		variables.stText = ( application.stText[ session.lucee_admin_lang ] )?:application.stText.en;
+
 		ad=request.adminType;
 		hasNavigation = len(attributes.navigation) GT 0;
 		home = request.adminType & ".cfm";
@@ -130,11 +132,23 @@
 				}
 			);
 
-			$(".coding-tip code").click(
-				function(){
-					__LUCEE.util.selectText(this);
+			$(".coding-tip .copy").on("click", function(evt){
+				var $this = $(this);
+				var textToCopy = $this.parents(".coding-tip").find("code").text();
+				var textarea = document.createElement('textarea');
+				
+				textarea.value = textToCopy;
+				document.body.appendChild(textarea);
+				textarea.select();
+
+				if(document.execCommand('copy')) {
+					$this.text("copied!");
+					document.body.removeChild(textarea);
+					setTimeout(() => { $this.text("copy"); }, 3000);
+				} else {
+					console.log("error copying to clipboard")
 				}
-			).prop("title", "Click to select the text");
+			});
 		});
 	</script>
 

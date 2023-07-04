@@ -332,12 +332,24 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 						}
 					}
 
+					if (is == null) {
+						// check for custom path of Lucee core
+						String s = System.getProperty("lucee.core.path");
+						if (s != null) {
+							File dir = new File(s);
+							File[] files = dir.listFiles(new ExtensionFilter(new String[] { coreExt }));
+							if (files.length > 0) {
+								is = new FileInputStream(files[0]);
+							}
+						}
+					}
+
 					if (is != null) {
 						os = new BufferedOutputStream(new FileOutputStream(isPack200 ? rcPack200 : rc));
 						copy(is, os);
 					}
 					else {
-						System.err.println("/core/core." + coreExt + " not found");
+						System.err.println("/core/core." + coreExt + " not found at " + TP.class.getProtectionDomain().getCodeSource().getLocation().getPath());
 					}
 				}
 				finally {
@@ -447,6 +459,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 			else if ("debug".equalsIgnoreCase(strLogLevel) || "4".equalsIgnoreCase(strLogLevel)) logLevel = 4;
 		}
 		config.put("felix.log.level", "" + logLevel);
+
 		if (logger != null) {
 			if (logLevel == 2) logger.setLogLevel(Logger.LOG_WARNING);
 			else if (logLevel == 3) logger.setLogLevel(Logger.LOG_INFO);
@@ -464,35 +477,36 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 		// Allow felix.cache.locking to be overridden by env var (true/false)
 		// Enables or disables bundle cache locking, which is used to prevent concurrent access to the
 		// bundle cache.
-		String strCacheLocking = getSystemPropOrEnvVar("felix.cache.locking", null);
-		if (!Util.isEmpty(strCacheLocking)) {
-			config.put("felix.cache.locking", strCacheLocking);
-		}
 
-		// Allow FRAMEWORK_STORAGE_CLEAN to be overridden by env var
-		// The value can either be "none" or "onFirstInit", where "none" does not flush the bundle cache
-		// and "onFirstInit" flushes the bundle cache when the framework instance is first initialized.
-		String strStorageClean = getSystemPropOrEnvVar("felix.storage.clean", null);
-		if (!Util.isEmpty(strStorageClean)) {
-			config.put(Constants.FRAMEWORK_STORAGE_CLEAN, strStorageClean);
-		}
+		extend(config, "felix.cache.locking", null, false);
+		extend(config, "org.osgi.framework.executionenvironment", null, false);
+		extend(config, "org.osgi.framework.storage", null, false);
+		extend(config, "org.osgi.framework.storage.clean", Constants.FRAMEWORK_STORAGE_CLEAN_ONFIRSTINIT, false);
+		extend(config, Constants.FRAMEWORK_BUNDLE_PARENT, Constants.FRAMEWORK_BUNDLE_PARENT_FRAMEWORK, false);
 
-		// Default storage clean if not set above
-		final String storageClean = (String) config.get(Constants.FRAMEWORK_STORAGE_CLEAN);
-		if (Util.isEmpty(storageClean)) config.put(Constants.FRAMEWORK_STORAGE_CLEAN, Constants.FRAMEWORK_STORAGE_CLEAN_ONFIRSTINIT);
-
-		// parent classLoader
-		final String parentClassLoader = (String) config.get(Constants.FRAMEWORK_BUNDLE_PARENT);
-		if (Util.isEmpty(parentClassLoader)) config.put(Constants.FRAMEWORK_BUNDLE_PARENT, Constants.FRAMEWORK_BUNDLE_PARENT_FRAMEWORK);
-		else config.put(Constants.FRAMEWORK_BUNDLE_PARENT, BundleUtil.toFrameworkBundleParent(parentClassLoader));
-
-		// felix.cache.rootdir
 		boolean isNew = false;
-		if (!cacheRootDir.exists()) {
-			cacheRootDir.mkdirs();
-			isNew = true;
+		// felix.cache.rootdir
+		if (Util.isEmpty((String) config.get("felix.cache.rootdir"))) {
+			if (!cacheRootDir.exists()) {
+				cacheRootDir.mkdirs();
+				isNew = true;
+			}
+			if (cacheRootDir.isDirectory()) config.put("felix.cache.rootdir", cacheRootDir.getAbsolutePath());
 		}
-		if (cacheRootDir.isDirectory()) config.put("felix.cache.rootdir", cacheRootDir.getAbsolutePath());
+
+		extend(config, Constants.FRAMEWORK_BOOTDELEGATION, null, true);
+		extend(config, Constants.FRAMEWORK_SYSTEMPACKAGES, null, true);
+		extend(config, Constants.FRAMEWORK_SYSTEMPACKAGES_EXTRA, null, true);
+		extend(config, "felix.cache.filelimit", null, false);
+		extend(config, "felix.cache.bufsize", null, false);
+		extend(config, "felix.bootdelegation.implicit", null, false);
+		extend(config, "felix.systembundle.activators", null, false);
+		extend(config, "org.osgi.framework.startlevel.beginning", null, false);
+		extend(config, "felix.startlevel.bundle", null, false);
+		extend(config, "felix.service.urlhandlers", null, false);
+		extend(config, "felix.auto.deploy.dir", null, false);
+		extend(config, "felix.auto.deploy.action", null, false);
+		extend(config, "felix.shutdown.hook", null, false);
 
 		if (logger != null) config.put("felix.log.logger", logger);
 		// TODO felix.log.logger
@@ -532,6 +546,22 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 		}
 
 		return felix;
+	}
+
+	private static void extend(Map<String, Object> config, String name, String defaultValue, boolean add) {
+		String addional = getSystemPropOrEnvVar(name, null);
+		if (Util.isEmpty(addional, true)) {
+			if (Util.isEmpty(defaultValue, true)) return;
+			addional = defaultValue.trim();
+		}
+		if (add) {
+			String existing = (String) config.get(name);
+			if (!Util.isEmpty(existing, true)) config.put(name, existing.trim() + "," + addional.trim());
+			else config.put(name, addional.trim());
+		}
+		else {
+			config.put(name, addional.trim());
+		}
 	}
 
 	protected static String getSystemPropOrEnvVar(String name, String defaultValue) {

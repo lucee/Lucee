@@ -108,8 +108,7 @@ public final class AppListenerUtil {
 		if (res != null) {
 			PageSource ps = ((ConfigPro) pc.getConfig()).getApplicationPageSource(pc, res.getParent(), filename, mode, null);
 			if (ps != null) {
-				Page p = ps.loadPage(pc, false, null);
-				if (p != null) return p;
+				if (ps.exists()) return ps.loadPage(pc, false, null);
 			}
 		}
 		Page p;
@@ -129,19 +128,19 @@ public final class AppListenerUtil {
 
 	public static Page getApplicationPageCurrent(PageContext pc, PageSource requestedPage, String filename) throws PageException {
 		PageSource ps = requestedPage.getRealPage(filename);
-
-		return ps.loadPage(pc, false, null);
+		if (ps.exists()) ps.loadPage(pc, false);
+		return null;
 	}
 
 	public static Page getApplicationPageRoot(PageContext pc, String filename) throws PageException {
 		PageSource ps = ((PageContextImpl) pc).getPageSource("/".concat(filename));
-		return ps.loadPage(pc, false, null);
+		if (ps.exists()) return ps.loadPage(pc, false);
+		return null;
 	}
 
 	public static Page getApplicationPageCurr2Root(PageContext pc, PageSource requestedPage, String filename) throws PageException {
 		PageSource ps = requestedPage.getRealPage(filename);
-		Page p = ps.loadPage(pc, false, null);
-		if (p != null) return p;
+		if (ps.exists()) return ps.loadPage(pc, false);
 
 		Array arr = lucee.runtime.type.util.ListUtil.listToArrayRemoveEmpty(requestedPage.getRealpathWithVirtual(), "/");
 		// Config config = pc.getConfig();
@@ -153,14 +152,13 @@ public final class AppListenerUtil {
 			}
 			sb.append(filename);
 			ps = ((PageContextImpl) pc).getPageSource(sb.toString());
-			p = ps.loadPage(pc, false, null);
-			if (p != null) return p;
+			if (ps.exists()) return ps.loadPage(pc, false);
 		}
 		return null;
 	}
 
 	public static String toStringMode(int mode) {
-		if (mode == ApplicationListener.MODE_CURRENT) return "curr";
+		if (mode == ApplicationListener.MODE_CURRENT) return "current";
 		if (mode == ApplicationListener.MODE_ROOT) return "root";
 		if (mode == ApplicationListener.MODE_CURRENT2ROOT) return "curr2root";
 		if (mode == ApplicationListener.MODE_CURRENT_OR_ROOT) return "currorroot";
@@ -198,6 +196,7 @@ public final class AppListenerUtil {
 	}
 
 	public static DataSource toDataSource(Config config, String name, Struct data, Log log) throws PageException {
+		if (data.isEmpty()) throw new ApplicationException("Datasource config for [" + name + "] was empty");
 		String user = Caster.toString(data.get(KeyConstants._username, null), null);
 		String pass = Caster.toString(data.get(KeyConstants._password, ""), "");
 		if (StringUtil.isEmpty(user)) {
@@ -485,7 +484,7 @@ public final class AppListenerUtil {
 	}
 
 	public static String toSessionType(short type, String defaultValue) {
-		if (type == Config.SESSION_TYPE_APPLICATION) return "application";
+		if (type == Config.SESSION_TYPE_APPLICATION) return "cfml";
 		if (type == Config.SESSION_TYPE_JEE) return "jee";
 		return defaultValue;
 	}
@@ -549,7 +548,7 @@ public final class AppListenerUtil {
 		Object o = sct.get(KeyConstants._datasource, null);
 
 		if (o != null) {
-			o = toDefaultDatasource(config, o, ((PageContextImpl) pc).getLog("application"));
+			o = toDefaultDatasource(config, o, ThreadLocalPageContext.getLog(pc, "application"));
 			if (o != null) ac.setORMDataSource(o);
 		}
 	}
@@ -973,7 +972,12 @@ public final class AppListenerUtil {
 
 	public static boolean getPreciseMath(PageContext pc, Config config) {
 		pc = ThreadLocalPageContext.get(pc);
-		if (pc != null) return ((ApplicationContextSupport) pc.getApplicationContext()).getPreciseMath();
+		if (pc != null) {
+			ApplicationContext ac = pc.getApplicationContext();
+			if (ac != null) return ((ApplicationContextSupport) pc.getApplicationContext()).getPreciseMath();
+			if (config == null) config = pc.getConfig();
+
+		}
 		config = ThreadLocalPageContext.getConfig(config);
 		if (config != null) return ((ConfigPro) config).getPreciseMath();
 		return false;

@@ -21,6 +21,8 @@
 			<cfset str.pused=int(100/arguments.usage.max*arguments.usage.used)>
 			<cfset str.pused =(str.pused GT 100)?100:(str.pused LT 0)?0:str.pused>
    			<cfset str.pfree=100-str.pused>
+			<cfset str.used=int(used/1024/1024)>
+			<cfset str.max=int(max/1024/1024)>
 		</cfloop>
 		<cfreturn str>
 </cffunction>
@@ -32,8 +34,8 @@
 	<cfset cpuSystemData = int((systemInfo.cpuSystem ?: 0) *100)>
 	<cfset  cpuProcessData= int((systemInfo.cpuProcess ?: 0) *100)>
 	<cfset result = {
-		"heap":heap.pused,
-		"nonheap":nonHeap.pused,
+		"heap":heap,
+		"nonheap":nonHeap,
 		"cpuSystem": (cpuSystemData GT 100) ? 100 :cpuSystemData,
 		"cpuProcess": (cpuProcessData GT 100) ? 100 :cpuProcessData
 	}>

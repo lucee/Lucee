@@ -132,7 +132,7 @@ public abstract class ASMMethod {
 			returnType = m.getReturnType();
 		}
 		catch (Exception e) {
-			LogUtil.log(null, ASMMethod.class.getName(), e);
+			LogUtil.log(ASMMethod.class.getName(), e);
 		}
 
 	}

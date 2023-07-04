@@ -4,17 +4,17 @@
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either 
+ * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public 
+ *
+ * You should have received a copy of the GNU Lesser General Public
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  **/
 package lucee.runtime.db;
 
@@ -39,7 +39,9 @@ import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.DatasourceConnPool;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.DatabaseException;
+import lucee.runtime.exp.IllegalQoQException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.date.DateCaster;
@@ -88,7 +90,7 @@ public final class HSQLDBHandler {
 
 	/**
 	 * adds a table to the memory database
-	 * 
+	 *
 	 * @param conn
 	 * @param pc
 	 * @param name name of the new table
@@ -201,7 +203,7 @@ public final class HSQLDBHandler {
 
 	/**
 	 * remove a table from the memory database
-	 * 
+	 *
 	 * @param conn
 	 * @param name
 	 * @throws DatabaseException
@@ -215,7 +217,7 @@ public final class HSQLDBHandler {
 
 	/**
 	 * remove all table inside the memory database
-	 * 
+	 *
 	 * @param conn
 	 */
 	private static void removeAll(Connection conn, ArrayList<String> usedTables) {
@@ -236,7 +238,7 @@ public final class HSQLDBHandler {
 
 	/**
 	 * executes a query on the queries inside the cfml environment
-	 * 
+	 *
 	 * @param pc Page Context
 	 * @param sql
 	 * @param maxrows
@@ -262,35 +264,55 @@ public final class HSQLDBHandler {
 		}
 		catch (SQLParserException spe) {
 			qoqException = spe;
+			if (spe.getCause() != null && spe.getCause() instanceof IllegalQoQException) {
+				throw Caster.toPageException(spe);
+			}
 			prettySQL = SQLPrettyfier.prettyfie(sql.getSQLString());
 			try {
 				QueryImpl query = executer.execute(pc, sql, prettySQL, maxrows);
 				query.setExecutionTime(stopwatch.time());
 				return query;
 			}
-			catch (PageException ex) {
+			catch (Exception ex) {
 			}
 
 		}
-		catch (PageException e) {
+		catch (Exception e) {
 			qoqException = e;
 		}
 
-		
-		if (qoqException != null){
-			// Debugging option to to log all QoQ that fall back on hsqldb in the datasource log
-			if (hsqldbDebug) {
-				pc.getConfig().getLog("datasource").error("QoQ [" + sql.getSQLString() + "] errored and is falling back to HyperSQL.", qoqException);
+		// If our first pass at the QoQ failed, lets look at the exception to see what we want to do with
+		// it.
+		if (qoqException != null) {
+
+			// Track the root cause
+			Exception rootCause = qoqException;
+
+			// Unwrap any RuntimeExceptions thrown from Java streams
+			if (qoqException instanceof RuntimeException && qoqException.getCause() != null && qoqException.getCause() instanceof Exception) {
+				rootCause = (Exception) qoqException.getCause();
+				// Exceptions from an async Java stream will be wrapped in TWO RuntimeExceptions!
+				if (rootCause instanceof RuntimeException && rootCause.getCause() != null && rootCause.getCause() instanceof Exception) {
+					rootCause = (Exception) rootCause.getCause();
+				}
 			}
 
-			// Log an exception if debugging is enabled
-			if (pc.getConfig().debug()) {
-				pc.getDebugger().addException(pc.getConfig(), Caster.toPageException(qoqException));
+			// We don't need to catch these, so re-throw
+			if (rootCause instanceof RuntimeException) {
+				// re-throw the original outer exception
+				throw new RuntimeException(qoqException);
 			}
 
 			// Debugging option to completely disable HyperSQL for testing
-			if ( hsqldbDisable) {
+			// Or if it's an IllegalQoQException that means, stop trying and throw the original message.
+			if (hsqldbDisable || rootCause instanceof IllegalQoQException) {
+				// re-throw the original outer exception
 				throw Caster.toPageException(qoqException);
+			}
+
+			// Debugging option to to log all QoQ that fall back on hsqldb in the datasource log
+			if (hsqldbDebug) {
+				ThreadLocalPageContext.getLog(pc, "datasource").error("QoQ [" + sql.getSQLString() + "] errored and is falling back to HyperSQL.", qoqException);
 			}
 		}
 
@@ -377,7 +399,7 @@ public final class HSQLDBHandler {
 
 				}
 				catch (SQLException e) {
-					DatabaseException de = new DatabaseException("QoQ HSQLDB: error executing sql statement on query", null, sql, null);
+					DatabaseException de = new DatabaseException("QoQ HSQLDB: error executing sql statement on query [" + e.getMessage() + "]", null , sql, null);
 					de.setDetail(e.getMessage());
 					throw de;
 				}

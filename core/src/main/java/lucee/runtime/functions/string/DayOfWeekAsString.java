@@ -26,6 +26,7 @@ import java.util.Locale;
 
 import lucee.commons.date.TimeZoneConstants;
 import lucee.commons.i18n.DateFormatPool;
+import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.FunctionException;
@@ -53,7 +54,8 @@ public final class DayOfWeekAsString extends BIF {
 
 		int dayOfWeek = (int) dow;
 		if (dayOfWeek >= 1 && dayOfWeek <= 7) {
-			return DateFormatPool.format(locale, TimeZoneConstants.GMT0, _long ? "EEEE" : "EEE", dates[dayOfWeek - 1]);
+			if (_long) return DateFormatPool.format(locale, TimeZoneConstants.GMT0, "EEEE", dates[dayOfWeek - 1]);
+			return StringUtil.replace(DateFormatPool.format(locale, TimeZoneConstants.GMT0, "EEE", dates[dayOfWeek - 1]), ".", "", true);
 		}
 		throw new FunctionException(pc, _long ? "DayOfWeekAsString" : "DayOfWeekShortAsString", 1, "dayOfWeek", "must be between 1 and 7 now [" + dayOfWeek + "]");
 		// throw new ExpressionException("invalid dayOfWeek definition in function DayOfWeekAsString, must

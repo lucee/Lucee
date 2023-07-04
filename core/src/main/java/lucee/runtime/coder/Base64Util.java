@@ -19,8 +19,18 @@
 package lucee.runtime.coder;
 
 import lucee.commons.io.CharsetUtil;
+import java.math.BigInteger;
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
+import java.util.UUID;
 
 public final class Base64Util {
+
+	private static final Base64.Encoder base64Encoder = Base64.getEncoder();
+	private static final Base64.Decoder base64Decoder = Base64.getDecoder();
+	private static final Base64.Encoder base64UrlEncoder = Base64.getUrlEncoder().withoutPadding();
+	private static final Base64.Decoder base64UrlDecoder = Base64.getUrlDecoder();
 
 	private static byte base64Alphabet[];
 	private static byte lookUpBase64Alphabet[];
@@ -83,4 +93,91 @@ public final class Base64Util {
 		lookUpBase64Alphabet[62] = 43;
 		lookUpBase64Alphabet[63] = 47;
 	}
+
+	/**
+	 * creates a new random UUID and encodes it as a URL-safe Bas64 string
+	 *
+	 * @return a 22 character string
+	 */
+	public static String createUuidAsBase64() {
+		return encodeUuidAsBase64(UUID.randomUUID());
+	}
+
+	/**
+	 * encodes a 36 character long UUID string as a URL-safe Base64 string
+	 *
+	 * @param uuid a UUID in the format xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+	 * @return a 22 character string
+	 */
+	public static String encodeUuidAsBase64(String uuid) {
+		return encodeUuidAsBase64(UUID.fromString(uuid));
+	}
+
+	/**
+	 * encodes a UUID object as a URL-safe Base64 string
+	 *
+	 * @param uuid a java.util.UUID object
+	 * @return a 22 character string
+	 */
+	public static String encodeUuidAsBase64(UUID uuid) {
+		ByteBuffer bb = ByteBuffer.allocate(16);
+		bb.putLong(uuid.getMostSignificantBits());
+		bb.putLong(uuid.getLeastSignificantBits());
+		byte[] barr = bb.array();
+		byte[] benc = base64UrlEncoder.encode(barr);
+		return new String(benc, 0, benc.length, StandardCharsets.US_ASCII);
+	}
+
+	/**
+	 * decodes a 22 character long Base64 string to a UUID string
+	 *
+	 * @param base64 a 22 character long string
+	 * @return a 36 character UUID string in the format xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+	 */
+	public static String decodeBase64AsUuid(String base64) {
+		byte[] barr = base64.getBytes(StandardCharsets.US_ASCII);
+		byte[] bdec = base64UrlDecoder.decode(barr);
+		ByteBuffer buffer = ByteBuffer.wrap(bdec);
+		UUID uuid = new UUID(buffer.getLong(), buffer.getLong());
+		return uuid.toString();
+	}
+
+	/**
+	 * encodes a number as a Base64 string, e.g. 9876543210 => AkywFuo
+	 *
+	 * @param number a string that represents a whole number
+	 * @return a URL-safe Base64 string
+	 */
+	public static String encodeNumberAsBase64(String number) {
+		BigInteger bint = new BigInteger(number);
+		byte[] barr = bint.toByteArray();
+		byte[] benc = base64UrlEncoder.encode(barr);
+		String result = new String(benc, 0, benc.length, StandardCharsets.US_ASCII);
+		return result;
+	}
+
+	/**
+	 * decodes a Base64 string to a string that represents a number, e.g. AkywFuo => 9876543210
+	 *
+	 * @param base64 the Base64 string
+	 * @return a string representation of the decoded number
+	 */
+	public static String decodeBase64AsNumber(String base64) {
+		byte[] barr = base64.getBytes(StandardCharsets.US_ASCII);
+		byte[] bdec = base64UrlDecoder.decode(barr);
+		ByteBuffer buffer = ByteBuffer.wrap(bdec);
+		BigInteger bint = new BigInteger(buffer.array());
+		return bint.toString();
+	}
+
+	public static byte[] base64Encode(byte[] barr, boolean urlSafe) {
+		Base64.Encoder encoder = urlSafe ? base64UrlEncoder : base64Encoder;
+		return encoder.encode(barr);
+	}
+
+	public static byte[] base64Decode(String b64, boolean urlSafe) {
+		Base64.Decoder decoder = urlSafe ? base64UrlDecoder : base64Decoder;
+		return decoder.decode(b64);
+	}
+
 }

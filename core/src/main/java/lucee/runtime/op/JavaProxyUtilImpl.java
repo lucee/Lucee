@@ -22,7 +22,7 @@ public class JavaProxyUtilImpl implements JavaProxyUtil {
 	public boolean toBoolean(Object obj) {
 		return JavaProxy.toBoolean(obj);
 	}
- 
+
 	@Override
 	public float toFloat(Object obj) {
 		return JavaProxy.toFloat(obj);

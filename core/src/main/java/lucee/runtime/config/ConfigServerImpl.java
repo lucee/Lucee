@@ -902,8 +902,7 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 		try {
 			ConfigServerFactory.reloadInstance(engine, this);
 			for (ConfigWeb web: webs) {
-				if (web instanceof ConfigWebImpl) ConfigWebFactory.reloadInstance(engine, this, (ConfigWebImpl) web, true);
-				else if (web instanceof SingleContextConfigWeb) ((SingleContextConfigWeb) web).reload();
+				ConfigWebFactory.reloadInstance(engine, this, (ConfigWebImpl) web, true);
 			}
 
 		}

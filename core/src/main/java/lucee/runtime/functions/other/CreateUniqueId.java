@@ -20,11 +20,17 @@
 package lucee.runtime.functions.other;
 
 import lucee.runtime.PageContext;
+import lucee.runtime.coder.Base64Util;
+import lucee.runtime.exp.FunctionException;
+import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
+import lucee.runtime.ext.function.BIF;
 
-public final class CreateUniqueId implements Function {
+import java.util.concurrent.atomic.AtomicLong;
 
-	private static long counter = 0;
+public final class CreateUniqueId extends BIF {
+
+	private static AtomicLong counter = new AtomicLong(0);
 
 	/**
 	 * method to invoke the function
@@ -33,12 +39,25 @@ public final class CreateUniqueId implements Function {
 	 * @return UUID String
 	 */
 	public static String call(PageContext pc) {
-		return invoke();
+		return Base64Util.createUuidAsBase64();
 	}
 
-	public static synchronized String invoke() {
-		counter++;
-		if (counter < 0) counter = 1;
-		return Long.toString(counter, Character.MAX_RADIX);
+	public static String call(PageContext pc, String type) {
+		if ("counter".equalsIgnoreCase(type)) return invoke();
+		return Base64Util.createUuidAsBase64();
+	}
+
+	public static String invoke() {
+		long value = counter.incrementAndGet();
+		if (value < 0) counter.set(1);
+		return Long.toString(value, Character.MAX_RADIX);
+	}
+
+	@Override
+	public Object invoke(PageContext pc, Object[] args) throws PageException {
+		if (args.length == 0) return invoke();
+		if (args.length == 1) return call(pc, (String) args[0]);
+
+		throw new FunctionException(pc, CreateUniqueId.class.getSimpleName(), 0, 1, args.length);
 	}
 }

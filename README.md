@@ -2,6 +2,7 @@
 
 ![GitHub](https://img.shields.io/github/license/lucee/Lucee)
 5.3 [![Java CI](https://github.com/lucee/Lucee/actions/workflows/main.yml/badge.svg?branch=5.3)](https://github.com/lucee/Lucee/actions/workflows/main.yml)
+5.4 [![Java CI](https://github.com/lucee/Lucee/actions/workflows/main.yml/badge.svg?branch=5.4)](https://github.com/lucee/Lucee/actions/workflows/main.yml)
 6.0 [![Java CI](https://github.com/lucee/Lucee/actions/workflows/main.yml/badge.svg?branch=6.0)](https://github.com/lucee/Lucee/actions/workflows/main.yml)
 [![Backers on Open Collective](https://opencollective.com/Lucee/backers/badge.svg)](#backers)
 [![Sponsors on Open Collective](https://opencollective.com/Lucee/sponsors/badge.svg)](#sponsors) 
@@ -12,7 +13,7 @@
 
 [![docker pulls](https://img.shields.io/docker/pulls/lucee/lucee.svg?label=docker+pulls)](https://hub.docker.com/r/lucee/lucee/)
 [![Open Collective backers and sponsors](https://img.shields.io/opencollective/all/lucee)](https://opencollective.com/lucee#section-contributors)
-[![GitHub contributors](https://img.shields.io/github/contributors/lucee/Lucee)](https://github.com/lucee/Lucee)
+[![GitHub contributors](https://img.shields.io/github/contributors/lucee/Lucee)](https://github.com/lucee/Lucee/graphs/contributors)
 
 [![Website](https://img.shields.io/website?url=https%3A%2F%2Fdownload.lucee.org%2F)](https://download.lucee.org/)
 
@@ -85,6 +86,7 @@ Thank you to all our backers! 🙏 [[Become a backer](https://opencollective.com
 
 Support this project by becoming a sponsor. Your logo will show up here with a link to your website. [[Become a sponsor](https://opencollective.com/Lucee#sponsor)]
 
+<a class="custom-sponsor" href="https://www.mitrahsoft.com" target="_blank"><img src="https://www.mitrahsoft.com/assets/img/lucee-sponsor.svg?t=1"></a>
 <a href="https://opencollective.com/Lucee/sponsor/0/website" target="_blank"><img src="https://opencollective.com/Lucee/sponsor/0/avatar.svg"></a>
 <a href="https://opencollective.com/Lucee/sponsor/1/website" target="_blank"><img src="https://opencollective.com/Lucee/sponsor/1/avatar.svg"></a>
 <a href="https://opencollective.com/Lucee/sponsor/2/website" target="_blank"><img src="https://opencollective.com/Lucee/sponsor/2/avatar.svg"></a>

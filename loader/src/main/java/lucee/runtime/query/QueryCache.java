@@ -32,6 +32,7 @@ public interface QueryCache {
 
 	/**
 	 * clear expired queries from cache
+	 * 
 	 * @param pc page context
 	 * @throws IOException IO Exception
 	 */

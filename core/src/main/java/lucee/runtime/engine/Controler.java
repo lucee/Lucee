@@ -34,6 +34,7 @@ import lucee.commons.io.res.filter.ExtensionResourceFilter;
 import lucee.commons.io.res.filter.ResourceFilter;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ExceptionUtil;
+import lucee.commons.lang.ParentThreasRefThread;
 import lucee.commons.net.http.httpclient.HTTPEngine4Impl;
 import lucee.runtime.CFMLFactoryImpl;
 import lucee.runtime.Mapping;
@@ -49,6 +50,7 @@ import lucee.runtime.functions.system.PagePoolClear;
 import lucee.runtime.lock.LockManagerImpl;
 import lucee.runtime.net.smtp.SMTPConnectionPool;
 import lucee.runtime.op.Caster;
+import lucee.runtime.schedule.Scheduler;
 import lucee.runtime.schedule.SchedulerImpl;
 import lucee.runtime.type.scope.ScopeContext;
 import lucee.runtime.type.scope.storage.StorageScopeFile;
@@ -57,7 +59,7 @@ import lucee.runtime.type.util.ArrayUtil;
 /**
  * own thread how check the main thread and his data
  */
-public final class Controler extends Thread {
+public final class Controler extends ParentThreasRefThread {
 
 	private static final long TIMEOUT = 50 * 1000;
 
@@ -91,7 +93,7 @@ public final class Controler extends Thread {
 		// Runtime.getRuntime().addShutdownHook(shutdownHook);
 	}
 
-	private static class ControlerThread extends Thread {
+	private static class ControlerThread extends ParentThreasRefThread {
 		private Controler controler;
 		private CFMLFactoryImpl[] factories;
 		private boolean firstRun;
@@ -161,6 +163,7 @@ public final class Controler extends Thread {
 				}
 				// failed
 				else if (ct.t != null) {
+					addParentStacktrace(ct.t);
 					configServer.getLog("application").log(Log.LEVEL_ERROR, "controler", ct.t);
 					it.remove();
 				}
@@ -216,11 +219,6 @@ public final class Controler extends Thread {
 		// every 10 seconds
 		if (do10Seconds) {
 			// deploy extensions, archives ...
-			// try{DeployHandler.deploy(configServer);}catch(Throwable t){ExceptionUtil.rethrowIfNecessary(t);}
-		}
-		// every minute
-		if (doMinute) {
-			// deploy extensions, archives ...
 			try {
 				DeployHandler.deploy(configServer, configServer.getLog("deploy"), false);
 			}
@@ -228,6 +226,15 @@ public final class Controler extends Thread {
 				ExceptionUtil.rethrowIfNecessary(t);
 				if (log != null) log.error("controler", t);
 			}
+		}
+		// every minute
+		if (doMinute) {
+			// deploy extensions, archives ...
+			/*
+			 * try { DeployHandler.deploy(configServer, configServer.getLog("deploy"), false); } catch
+			 * (Throwable t) { ExceptionUtil.rethrowIfNecessary(t); if (log != null) log.error("controler", t);
+			 * }
+			 */
 			try {
 				ConfigAdmin.checkForChangesInConfigFile(configServer);
 			}
@@ -326,7 +333,8 @@ public final class Controler extends Thread {
 				LogUtil.log(ThreadLocalPageContext.getConfig(config), Log.LEVEL_TRACE, Controler.class.getName(), "Running background Controller maintenance (every minute).");
 
 				try {
-					((SchedulerImpl) config.getScheduler()).startIfNecessary();
+					Scheduler scheduler = config.getScheduler();
+					if (scheduler != null) ((SchedulerImpl) scheduler).startIfNecessary();
 				}
 				catch (Exception e) {
 					if (log != null) log.error("controler", e);
@@ -342,7 +350,7 @@ public final class Controler extends Thread {
 
 				// deploy extensions, archives ...
 				try {
-					DeployHandler.deploy(config, config.getLog("deploy"), false);
+					DeployHandler.deploy(config, ThreadLocalPageContext.getLog(config, "deploy"), false);
 				}
 				catch (Throwable t) {
 					ExceptionUtil.rethrowIfNecessary(t);
@@ -508,6 +516,7 @@ public final class Controler extends Thread {
 		try {
 			Resource dir = config.getClientScopeDir(), trgres;
 			Resource[] children = dir.listResources(filter);
+			if (children == null) return;
 			String src, trg;
 			int index;
 			for (int i = 0; i < children.length; i++) {
@@ -540,7 +549,7 @@ public final class Controler extends Thread {
 	}
 
 	private void checkSize(ConfigWeb config, Resource dir, long maxSize, ResourceFilter filter) {
-		if (!dir.exists()) return;
+		if (dir == null || !dir.exists()) return;
 		Resource res = null;
 		int count = ArrayUtil.size(filter == null ? dir.list() : dir.list(filter));
 		long size = ResourceUtil.getRealSize(dir, filter);

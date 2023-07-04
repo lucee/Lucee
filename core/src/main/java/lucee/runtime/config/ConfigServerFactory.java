@@ -42,6 +42,7 @@ import lucee.runtime.CFMLFactory;
 import lucee.runtime.converter.ConverterException;
 import lucee.runtime.engine.CFMLEngineImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
+import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Array;
@@ -74,68 +75,96 @@ public final class ConfigServerFactory extends ConfigFactory {
 	public static ConfigServerImpl newInstance(CFMLEngineImpl engine, Map<String, CFMLFactory> initContextes, Map<String, CFMLFactory> contextes, Resource configDir,
 			ConfigServerImpl existing, boolean essentialOnly)
 			throws SAXException, ClassException, PageException, IOException, TagLibException, FunctionLibException, BundleException, ConverterException {
-
-		boolean isCLI = SystemUtil.isCLICall();
-		if (isCLI) {
-			Resource logs = configDir.getRealResource("logs");
-			logs.mkdirs();
-			Resource out = logs.getRealResource("out");
-			Resource err = logs.getRealResource("err");
-			ResourceUtil.touch(out);
-			ResourceUtil.touch(err);
-			if (logs instanceof FileResource) {
-				SystemUtil.setPrintWriter(SystemUtil.OUT, new PrintWriter((FileResource) out));
-				SystemUtil.setPrintWriter(SystemUtil.ERR, new PrintWriter((FileResource) err));
+		if (ThreadLocalPageContext.insideServerNewInstance()) throw new ApplicationException("already inside server.newInstance");
+		try {
+			ThreadLocalPageContext.insideServerNewInstance(true);
+			boolean isCLI = SystemUtil.isCLICall();
+			if (isCLI) {
+				Resource logs = configDir.getRealResource("logs");
+				logs.mkdirs();
+				Resource out = logs.getRealResource("out");
+				Resource err = logs.getRealResource("err");
+				ResourceUtil.touch(out);
+				ResourceUtil.touch(err);
+				if (logs instanceof FileResource) {
+					SystemUtil.setPrintWriter(SystemUtil.OUT, new PrintWriter((FileResource) out));
+					SystemUtil.setPrintWriter(SystemUtil.ERR, new PrintWriter((FileResource) err));
+				}
+				else {
+					SystemUtil.setPrintWriter(SystemUtil.OUT, new PrintWriter(IOUtil.getWriter(out, "UTF-8")));
+					SystemUtil.setPrintWriter(SystemUtil.ERR, new PrintWriter(IOUtil.getWriter(err, "UTF-8")));
+				}
 			}
-			else {
-				SystemUtil.setPrintWriter(SystemUtil.OUT, new PrintWriter(IOUtil.getWriter(out, "UTF-8")));
-				SystemUtil.setPrintWriter(SystemUtil.ERR, new PrintWriter(IOUtil.getWriter(err, "UTF-8")));
+			LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), Log.LEVEL_INFO, ConfigServerFactory.class.getName(),
+					"===================================================================\n" + "SERVER CONTEXT\n"
+							+ "-------------------------------------------------------------------\n" + "- config:" + configDir + "\n" + "- loader-version:"
+							+ SystemUtil.getLoaderVersion() + "\n" + "- core-version:" + engine.getInfo().getVersion() + "\n"
+							+ "===================================================================\n"
+
+			);
+			UpdateInfo ui = getNew(engine, configDir, false, UpdateInfo.NEW_NONE);
+			boolean doNew = ui.updateType != NEW_NONE;
+
+			Resource configFileOld = configDir.getRealResource("lucee-server.xml");
+			Resource configFileNew = configDir.getRealResource(".CFConfig.json");
+
+			boolean hasConfigOld = false;
+			boolean hasConfigNew = configFileNew.exists() && configFileNew.length() > 0;
+
+			if (!hasConfigNew) {
+				LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), Log.LEVEL_INFO, ConfigServerFactory.class.getName(),
+						"has no json server context config [" + configFileNew + "]");
+				hasConfigOld = configFileOld.exists() && configFileOld.length() > 0;
+				LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), Log.LEVEL_INFO, ConfigServerFactory.class.getName(),
+						"has " + (hasConfigOld ? "" : "no ") + "xml server context config [" + configFileOld + "]");
 			}
-		}
-		LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), Log.LEVEL_INFO, ConfigServerFactory.class.getName(),
-				"===================================================================\n" + "SERVER CONTEXT\n"
-						+ "-------------------------------------------------------------------\n" + "- config:" + configDir + "\n" + "- loader-version:"
-						+ SystemUtil.getLoaderVersion() + "\n" + "- core-version:" + engine.getInfo().getVersion() + "\n"
-						+ "===================================================================\n"
+			ConfigServerImpl config = existing != null ? existing : new ConfigServerImpl(engine, initContextes, contextes, configDir, configFileNew, ui, essentialOnly);
 
-		);
-		UpdateInfo ui = getNew(engine, configDir, false, UpdateInfo.NEW_NONE);
-		boolean doNew = ui.updateType != NEW_NONE;
-
-		Resource configFileOld = configDir.getRealResource("lucee-server.xml");
-		Resource configFileNew = configDir.getRealResource(".CFConfig.json");
-
-		boolean hasConfigOld = false;
-		boolean hasConfigNew = configFileNew.exists() && configFileNew.length() > 0;
-		if (!hasConfigNew) {
-			hasConfigOld = configFileOld.exists() && configFileOld.length() > 0;
-		}
-		ConfigServerImpl config = existing != null ? existing : new ConfigServerImpl(engine, initContextes, contextes, configDir, configFileNew, ui, essentialOnly);
-
-		// translate to new
-		if (!hasConfigNew) {
-			if (hasConfigOld) {
-				translateConfigFile(config, configFileOld, configFileNew, "multi", true);
+			// translate to new
+			if (!hasConfigNew) {
+				if (hasConfigOld) {
+					LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), Log.LEVEL_INFO, ConfigServerFactory.class.getName(), "convert server context xml config to json");
+					try {
+						translateConfigFile(config, configFileOld, configFileNew, "multi", true);
+					}
+					catch (IOException e) {
+						LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), ConfigServerFactory.class.getName(), e);
+						throw e;
+					}
+					catch (ConverterException e) {
+						LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), ConfigServerFactory.class.getName(), e);
+						throw e;
+					}
+					catch (SAXException e) {
+						LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), ConfigServerFactory.class.getName(), e);
+						throw e;
+					}
+				}
+				// create config file
+				else {
+					LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), Log.LEVEL_INFO, ConfigServerFactory.class.getName(),
+							"create new server context json config file [" + configFileNew + "]");
+					createConfigFile("server", configFileNew);
+					hasConfigNew = true;
+				}
 			}
-			// create config file
-			else {
-				createConfigFile("server", configFileNew);
-				hasConfigNew = true;
+			LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), Log.LEVEL_INFO, ConfigServerFactory.class.getName(), "load config file");
+			Struct root = loadDocumentCreateIfFails(configFileNew, "server");
+
+			load(config, root, false, doNew, essentialOnly);
+
+			if (!essentialOnly) {
+				double version = ConfigWebUtil.getAsDouble("version", root, 1.0d);
+				boolean cleanupDatasources = version < 5.0D;
+				createContextFiles(configDir, config, doNew, cleanupDatasources);
+				((CFMLEngineImpl) ConfigWebUtil.getEngine(config)).onStart(config, false);
 			}
+
+			return config;
 		}
-
-		Struct root = loadDocumentCreateIfFails(configFileNew, "server");
-
-		load(config, root, false, doNew, essentialOnly);
-
-		if (!essentialOnly) {
-			double version = ConfigWebUtil.getAsDouble("version", root, 1.0d);
-			boolean cleanupDatasources = version < 5.0D;
-			createContextFiles(configDir, config, doNew, cleanupDatasources);
-			((CFMLEngineImpl) ConfigWebUtil.getEngine(config)).onStart(config, false);
+		finally {
+			ThreadLocalPageContext.insideServerNewInstance(false);
 		}
-
-		return config;
 	}
 
 	/**
@@ -152,14 +181,15 @@ public final class ConfigServerFactory extends ConfigFactory {
 	 */
 	public static void reloadInstance(CFMLEngine engine, ConfigServerImpl configServer)
 			throws ClassException, PageException, IOException, TagLibException, FunctionLibException, BundleException {
+		boolean quick = CFMLEngineImpl.quick(engine);
 		Resource configFile = configServer.getConfigFile();
 		if (configFile == null) return;
 		if (second(configServer.getLoadTime()) > second(configFile.lastModified())) {
 			if (!configServer.getConfigDir().getRealResource("password.txt").isFile()) return;
 		}
-		int iDoNew = getNew(engine, configServer.getConfigDir(), false, UpdateInfo.NEW_NONE).updateType;
+		int iDoNew = getNew(engine, configServer.getConfigDir(), quick, UpdateInfo.NEW_NONE).updateType;
 		boolean doNew = iDoNew != NEW_NONE;
-		load(configServer, loadDocument(configFile), true, doNew, false);
+		load(configServer, loadDocument(configFile), true, doNew, quick);
 		((CFMLEngineImpl) ConfigWebUtil.getEngine(configServer)).onStart(configServer, true);
 	}
 
@@ -179,8 +209,8 @@ public final class ConfigServerFactory extends ConfigFactory {
 	 */
 	static void load(ConfigServerImpl configServer, Struct root, boolean isReload, boolean doNew, boolean essentialOnly)
 			throws ClassException, PageException, IOException, TagLibException, FunctionLibException, BundleException {
-		ConfigBase.onlyFirstMatch = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.mapping.first", null), false);
-		ConfigWebFactory.load(null, configServer, root, isReload, doNew, essentialOnly);
+		ConfigBase.onlyFirstMatch = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.mapping.first", null), true); // changed behaviour in 6.0
+		ConfigWebFactory.load(null, configServer, null, root, isReload, doNew, essentialOnly);
 		loadLabel(configServer, root);
 	}
 
@@ -254,8 +284,8 @@ public final class ConfigServerFactory extends ConfigFactory {
 
 		// Logging/layout
 		Resource lay = adminDir.getRealResource("logging/layout");
-		create("/resource/context/admin/logging/layout/",
-				new String[] { "ClassicLayout.cfc", "HTMLLayout.cfc", "PatternLayout.cfc", "XMLLayout.cfc", "Layout.cfc", "Field.cfc", "Group.cfc" }, lay, doNew);
+		create("/resource/context/admin/logging/layout/", new String[] { "DatadogLayout.cfc", "ClassicLayout.cfc", "HTMLLayout.cfc", "PatternLayout.cfc", "XMLLayout.cfc",
+				"JsonLayout.cfc", "Layout.cfc", "Field.cfc", "Group.cfc" }, lay, doNew);
 
 		// Security / SSL
 		Resource secDir = configDir.getRealResource("security");

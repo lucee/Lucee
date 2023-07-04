@@ -28,7 +28,9 @@ import lucee.transformer.bytecode.util.ClassRenamer;
  * ClassLoader that loads classes in memory that are not stored somewhere physically
  */
 public final class MemoryClassLoader extends ExtendableClassLoader {
-
+	static {
+		boolean res = registerAsParallelCapable();
+	}
 	private Config config;
 	private ClassLoader pcl;
 	private long size;
@@ -53,7 +55,7 @@ public final class MemoryClassLoader extends ExtendableClassLoader {
 
 	@Override
 	protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
-		synchronized (getClassLoadingLock(name)) {
+		synchronized (SystemUtil.createToken("MemoryClassLoader", name)) {
 
 			// First, check if the class has already been loaded
 			Class<?> c = findLoadedClass(name);
@@ -80,7 +82,7 @@ public final class MemoryClassLoader extends ExtendableClassLoader {
 
 	@Override
 	public Class<?> loadClass(String name, byte[] barr) throws UnmodifiableClassException {
-		synchronized (getClassLoadingLock(name)) {
+		synchronized (SystemUtil.createToken("MemoryClassLoader", name)) {
 
 			Class<?> clazz = null;
 			try {

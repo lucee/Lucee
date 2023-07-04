@@ -307,8 +307,7 @@ public final class DBInfo extends TagImpl {
 
 		int len = qry.getRecordcount();
 
-		if (len == 0)
-			checkTable(metaData, _dbName); // only check if no columns get returned, otherwise it exists
+		if (len == 0) checkTable(metaData, _dbName); // only check if no columns get returned, otherwise it exists
 
 		if (qry.getColumn(COLUMN_DEF, null) != null) qry.rename(COLUMN_DEF, COLUMN_DEFAULT_VALUE);
 		else if (qry.getColumn(COLUMN_DEFAULT, null) != null) qry.rename(COLUMN_DEFAULT, COLUMN_DEFAULT_VALUE);
@@ -323,7 +322,7 @@ public final class DBInfo extends TagImpl {
 			qry.addColumn(DECIMAL_DIGITS, arr);
 		}
 
-		if (!"columns_minimal".equals(this.strType)){
+		if (!"columns_minimal".equals(this.strType)) {
 			// add is primary
 			Map<String, Set<String>> primaries = new HashMap<>();
 			Array isPrimary = new ArrayImpl();
@@ -346,7 +345,8 @@ public final class DBInfo extends TagImpl {
 						set = toSet(metaData.getPrimaryKeys(tblCat, tblScheme, tblName), true, "COLUMN_NAME");
 						primaries.put(tblName, set);
 					}
-					catch (Exception e) {}
+					catch (Exception e) {
+					}
 				}
 				isPrimary.append(set != null && set.contains(qry.getAt(COLUMN_NAME, i)) ? "YES" : "NO");
 			}
@@ -638,8 +638,9 @@ public final class DBInfo extends TagImpl {
 		stopwatch.start();
 
 		pattern = setCase(metaData, pattern);
-		lucee.runtime.type.Query qry = new QueryImpl(metaData.getTables(dbname(conn), null, StringUtil.isEmpty(pattern) ? "%" : pattern, 
-			StringUtil.isEmpty(filter) ? null : new String[] { filter }), "query", pageContext.getTimeZone());
+		lucee.runtime.type.Query qry = new QueryImpl(
+				metaData.getTables(dbname(conn), null, StringUtil.isEmpty(pattern) ? "%" : pattern, StringUtil.isEmpty(filter) ? null : new String[] { filter }), "query",
+				pageContext.getTimeZone());
 		qry.setExecutionTime(stopwatch.time());
 
 		pageContext.setVariable(name, qry);
@@ -669,8 +670,8 @@ public final class DBInfo extends TagImpl {
 		qry.setAt(DATABASE_VERSION, 1, metaData.getDatabaseProductVersion());
 		qry.setAt(DRIVER_NAME, 1, metaData.getDriverName());
 		qry.setAt(DRIVER_VERSION, 1, metaData.getDriverVersion());
-		qry.setAt(JDBC_MAJOR_VERSION, 1, new Double(metaData.getJDBCMajorVersion()));
-		qry.setAt(JDBC_MINOR_VERSION, 1, new Double(metaData.getJDBCMinorVersion()));
+		qry.setAt(JDBC_MAJOR_VERSION, 1, Double.valueOf(metaData.getJDBCMajorVersion()));
+		qry.setAt(JDBC_MINOR_VERSION, 1, Double.valueOf(metaData.getJDBCMinorVersion()));
 
 		qry.setExecutionTime(stopwatch.time());
 

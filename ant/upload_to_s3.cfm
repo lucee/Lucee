@@ -93,14 +93,21 @@
 	fileCopy( src.war,trg.war );
 	*/
 
-	// Lucee light build (disabled, done on provider)
-	/*
+	// Lucee light build (no extensions)	
 	src.lightName = "lucee-light-" & src.version & ".jar";
+	SystemOutput( "build and upload #src.lightName# to S3",1,1 );
 	src.light = src.dir & src.lightName;
 	trg.light = trg.dir & src.lightName;
-	// createLight( src.jar,src.light,src.version );
+	createLight( src.jar,src.light,src.version, false );
 	fileCopy( src.light,trg.light );
-	*/
+
+	// Lucee zero build, built from light but also no admin or docs
+	src.zeroName = "lucee-zero-" & src.version & ".jar";
+	SystemOutput( "build and upload #src.zeroName# to S3",1,1 );
+	src.zero = src.dir & src.zeroName;
+	trg.zero = trg.dir & src.zeroName;
+	createLight( src.light, src.zero,src.version, true );
+	fileCopy( src.zero, trg.zero );
 
 	// update provider
 
@@ -124,13 +131,18 @@
 	body = {
 		"event_type": "forgebox_deploy"
 	};
-	http url="https://api.github.com/repos/Ortus-Lucee/forgebox-cfengine-publisher/dispatches" method="POST" result="result" timeout="90"{
-		httpparam type="header" name='authorization' value='Bearer #gha_pat_token#';
-		httpparam type="body" value='#body.toJson()#';
+	try {
+		http url="https://api.github.com/repos/Ortus-Lucee/forgebox-cfengine-publisher/dispatches" method="POST" result="result" timeout="90"{
+			httpparam type="header" name='authorization' value='Bearer #gha_pat_token#';
+			httpparam type="body" value='#body.toJson()#';
+			
+		}
+		systemOutput("Forgebox build triggered, #result.statuscode# (always returns a 204 no content, see https://github.com/Ortus-Lucee/forgebox-cfengine-publisher/actions for output)", true);
+	} catch (e){
+		systemOutput("Forgebox build ERRORED?", true);
+		echo(e);
 	}
-
-	systemOutput("Forgebox build triggered, #result.statuscode# (always returns a 204 no content, see https://github.com/Ortus-Lucee/forgebox-cfengine-publisher/actions for output)", true);
-
+	
 	// Lucee Docker builds
 
 	systemOutput("Trigger Lucee Docker builds", true);
@@ -142,21 +154,22 @@
 			"LUCEE_VERSION": server.system.properties.luceeVersion
 		} 
 	};
-	http url="https://api.github.com/repos/lucee/lucee-dockerfiles/dispatches" method="POST" result="result" timeout="90"{
-		httpparam type="header" name='authorization' value='Bearer #gha_pat_token#';
-		httpparam type="body" value='#body.toJson()#';
+	try {
+		http url="https://api.github.com/repos/lucee/lucee-dockerfiles/dispatches" method="POST" result="result" timeout="90"{
+			httpparam type="header" name='authorization' value='Bearer #gha_pat_token#';
+			httpparam type="body" value='#body.toJson()#';
+		}
+		systemOutput("Lucee Docker builds triggered, #result.statuscode# (always returns a 204 no content, see https://github.com/lucee/lucee-dockerfiles/actions for output)", true);
+	} catch (e){
+		systemOutput("Lucee Docker build ERRORED?", true);
+		echo(e);
 	}
-
-	systemOutput("Lucee Docker builds triggered, #result.statuscode# (always returns a 204 no content, see https://github.com/lucee/lucee-dockerfiles/actions for output)", true);
-
 
 	// express
 
-/*
-	// not currently used
-	private function createLight( string loader, string trg, version ) {
+	private function createLight( string loader, string trg, version, boolean noArchives=false ) {
 		var sep = server.separator.file;
-		var tmpDir = getDirectoryFromPath( loader );
+		var tmpDir = getTempDirectory();
 
 		local.tmpLoader = tmpDir & "lucee-loader-" & createUniqueId(  ); // the jar
 		if ( directoryExists( tmpLoader ) ) 
@@ -178,6 +191,14 @@
 		directoryCreate( tmpCore );
 		zip action = "unzip" file = lcoFile destination = tmpCore;
 
+		if (arguments.noArchives) {
+			// delete the lucee-admin.lar and lucee-docs.lar
+			var lightContext =  tmpCore & sep & "resource/context" & sep;
+			loop list="lucee-admin.lar,lucee-doc.lar" item="local.larFile" {
+				fileDelete( lightContext & larFile );
+			}
+		}
+
 		// rewrite manifest
 		var manifest = tmpCore & sep & "META-INF" & sep & "MANIFEST.MF";
 		var content = fileRead( manifest );
@@ -196,5 +217,4 @@
 		zip action = "zip" source = tmpLoader file = trg;
 		
 	}
-*/
 </cfscript>

@@ -51,11 +51,18 @@ public class FileGetMimeType {
 		}
 
 		if (!src.exists()) {
-			String mimeType = IOUtil.getMimeType(src.getName(), null);
-			if (!StringUtil.isEmpty(mimeType)) return mimeType;
-			throw new FunctionException(pc, "FileGetMimeType", 1, "file", "file [" + src + "] does not exist and was not able to detect mimetype from file name extension.");
+			if (checkHeader) {
+				throw new FunctionException(pc, "FileGetMimeType", 1, "file", "File [" + src + "] does not exist, strict was true");
+			}
+			else {
+				String mimeType = IOUtil.getMimeType(src.getName(), null);
+				if (!StringUtil.isEmpty(mimeType)) return mimeType;
+				throw new FunctionException(pc, "FileGetMimeType", 1, "file", "File [" + src + "] does not exist and couldn't detect mimetype from the file extension.");
+			}
 		}
 		pc.getConfig().getSecurityManager().checkFileLocation(src);
+
+		if (checkHeader && src.length() == 0) throw new FunctionException(pc, "FileGetMimeType", 1, "file", "File [" + src + "] was empty, strict was true");
 
 		String mimeType = ResourceUtil.getMimeType(src, null);
 		if (StringUtil.isEmpty(mimeType, true)) return "application/octet-stream";

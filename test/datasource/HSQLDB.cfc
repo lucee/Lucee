@@ -16,7 +16,7 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  * 
  ---><cfscript>
-component extends="org.lucee.cfml.test.LuceeTestCase"	{
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="qoq,hsqldb" {
 	
 	
 	//public function afterTests(){}
@@ -41,6 +41,14 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		defineDatasource('org.hsqldb.hsqldb','2.4.0');
 		testConnection();
 	}
+	public void function testConnection271(){
+		defineDatasource('org.lucee.hsqldb','2.7.2.jdk8'); // last version for java 8
+		testConnection();
+	}
+	public void function testConnection261() skip=true{
+		defineDatasource('org.hsqldb.hsqldb','2.6.1'); // built with java 11
+		testConnection();
+	}
 
 	private void function testConnection(){
 		query name="local.qry" {
@@ -49,12 +57,22 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	}
 
 	private void function defineDatasource(bundle,version){
+		var dbPath = getDirectoryFromPath( getCurrentTemplatePath() ) & "/datasource/";
+		var dbFile = "db_" & replace( arguments.bundle & "_" & arguments.version, '.', '_', 'all');
+
+		var oldFiles = directoryList(path=dbPath, filter="#dbfile#*.*", listinfo="path");
+		oldFiles.each( function( oldfile ) {
+			if ( fileExists( oldFile ) ){
+				fileDelete( oldFile );
+			}
+		});
+		
 		application action="update" 
 			datasource={
 	  		class: 'org.hsqldb.jdbcDriver'
 			, bundleName: arguments.bundle
 			, bundleVersion: arguments.version
-			, connectionString: 'jdbc:hsqldb:file:#getDirectoryFromPath(getCurrentTemplatePath())#/datasource/db#replace(arguments.version,'.','_','all')#'
+			, connectionString: 'jdbc:hsqldb:file:#dbPath##dbFile#'
 		};
 	}
 } 

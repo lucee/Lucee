@@ -115,6 +115,12 @@ public class MemberUtil {
 					members = getMembers(pc, CFTypes.TYPE_NUMERIC);
 					member = members.get(methodName);
 				}
+				if (type == CFTypes.TYPE_STRING && member == null && Caster.toString(coll).length() > 2 && !Decision.isInteger(coll, false) && args.length <= 3) { // to avoid the overhead of isDateAdvanced()
+					if (Decision.isDateAdvanced(coll, false)) {
+						members = getMembers(pc, CFTypes.TYPE_DATETIME);
+						member = members.get(methodName);
+					}
+				}
 				isChked = true;
 			}
 			if (member != null) {
@@ -192,13 +198,17 @@ public class MemberUtil {
 		if (member != null) {
 			List<FunctionLibFunctionArg> _args = member.getArg();
 			FunctionLibFunctionArg arg;
+			FunctionLibFunctionArg argMem;
 			if (args.size() < _args.size()) {
 				Object val;
 				ArrayList<Ref> refs = new ArrayList<Ref>();
-				arg = _args.get(0);
-				refs.add(new Casting(arg.getTypeAsString(), arg.getType(), new LFunctionValue(new LString(arg.getName()), coll)));
-				for (int y = 1; y < _args.size(); y++) {
+				int pos = member.getMemberPosition();
+				argMem = _args.get(pos - 1); // set member argument as per member-position
+				refs.add(new Casting(argMem.getTypeAsString(), argMem.getType(), new LFunctionValue(new LString(argMem.getName()), coll)));
+				for (int y = 0; y < _args.size(); y++) {
 					arg = _args.get(y);
+
+					if (arg.getName() == argMem.getName()) continue; // member argument already added in refs
 
 					// match by name
 					val = args.get(arg.getName(), null);

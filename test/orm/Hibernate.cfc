@@ -53,14 +53,21 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm" {
 		assertEquals("a",code.getCode());
 	}
 
-	public void function testEvents() skip="isHibernate54"{
+	// this test has been moved to the extension repo, so per version changes can be easily tested
+	/*
+	public void function testEvents() skip="true" { 
 		local.uri=createURI("events/index.cfm");
 		systemOutput( "", true ); 
 		local.result=_InternalRequest(uri);
 		systemOutput( "", true ); 
 		expect( result.status ).toBe( 200 );
-		expect( trim( result.fileContent ) ).toBe( 24 );
+		if ( isHibernate54() ) {
+			expect( trim( result.fileContent ) ).toBe( 20 );
+		} else {
+			expect( trim( result.fileContent ) ).toBe( 20 );
+		}
 	}
+	*/
 
 	public void function testMany2Many() {
 		local.uri=createURI("many2many/index.cfm");

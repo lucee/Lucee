@@ -45,6 +45,7 @@ import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.converter.BinaryConverter;
 import lucee.runtime.converter.ConverterException;
 import lucee.runtime.converter.JSONConverter;
+import lucee.runtime.converter.JSONDateFormat;
 import lucee.runtime.converter.JavaConverter;
 import lucee.runtime.converter.ScriptConverter;
 import lucee.runtime.converter.WDDXConverter;
@@ -96,6 +97,8 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 	private long lastCheck = -1;
 
 	private StaticScope staticScope;
+
+	private long index;
 
 	public abstract ComponentImpl newInstance(PageContext pc, String callPath, boolean isRealPath, boolean isExtendedComponent, boolean executeConstr)
 			throws lucee.runtime.exp.PageException;
@@ -365,7 +368,7 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 					}
 				}
 				catch (PageException pe) {
-					pc.getConfig().getLog("rest").error("REST", pe);
+					ThreadLocalPageContext.getLog(pc, "rest").error("REST", pe);
 					throw pe;
 				}
 			}
@@ -373,15 +376,15 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 
 		if (status == 404) {
 			RestUtil.setStatus(pc, 404, "no rest service for [" + HTMLEntities.escapeHTML(path) + "] found");
-			pc.getConfig().getLog("rest").error("REST", "404; no rest service for [" + path + "] found");
+			ThreadLocalPageContext.getLog(pc, "rest").error("REST", "404; no rest service for [" + path + "] found");
 		}
 		else if (status == 405) {
 			RestUtil.setStatus(pc, 405, "Unsupported Media Type");
-			pc.getConfig().getLog("rest").error("REST", "405; Unsupported Media Type");
+			ThreadLocalPageContext.getLog(pc, "rest").error("REST", "405; Unsupported Media Type");
 		}
 		else if (status == 406) {
 			RestUtil.setStatus(pc, 406, "Not Acceptable");
-			pc.getConfig().getLog("rest").error("REST", "406; Not Acceptable");
+			ThreadLocalPageContext.getLog(pc, "rest").error("REST", "406; Not Acceptable");
 		}
 
 	}
@@ -444,7 +447,7 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 		}
 		catch (PageException e) {
 			RestUtil.setStatus(pc, 500, ExceptionUtil.getMessage(e));
-			pc.getConfig().getLog("rest").error("REST", e);
+			ThreadLocalPageContext.getLog(pc, "rest").error("REST", e);
 			throw e;
 		}
 		finally {
@@ -590,7 +593,7 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 	private void callWDDX(PageContext pc, Component component, Collection.Key methodName, boolean suppressContent) throws PageException {
 		try {
 			// Struct url = StructUtil.duplicate(pc.urlFormScope(),true);
-			Struct url = StructUtil.merge(new Struct[] { pc.formScope(), pc.urlScope() });
+			Struct url = StructUtil.merge(false, new Struct[] { pc.formScope(), pc.urlScope() });
 			// define args
 			url.removeEL(KeyConstants._fieldnames);
 			url.removeEL(KeyConstants._method);
@@ -799,13 +802,13 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 				if (qf == SerializationSettings.SERIALIZE_AS_UNDEFINED)
 					throw new ApplicationException("invalid queryformat definition [" + queryFormat + "], valid formats are [row,column,struct]");
 			}
-			JSONConverter converter = new JSONConverter(false, cs);
+			JSONConverter converter = new JSONConverter(false, cs, JSONDateFormat.PATTERN_CF, true);
 			String prefix = "";
 			if (props.secureJson) {
 				prefix = pc.getApplicationContext().getSecureJsonPrefix();
 				if (prefix == null) prefix = "";
 			}
-			pc.forceWrite(prefix + converter.serialize(pc, rtn, qf));
+			pc.forceWrite(prefix + converter.serialize(pc, rtn, qf, true));
 		}
 		// CFML
 		else if (UDF.RETURN_FORMAT_SERIALIZE == props.format) {
@@ -906,8 +909,8 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 		else if (UDF.RETURN_FORMAT_JSON == format) {
 			int qf = SerializationSettings.SERIALIZE_AS_ROW;
 			cs = getCharset(pc);
-			JSONConverter converter = new JSONConverter(false, cs);
-			String str = converter.serialize(pc, rtn, qf);
+			JSONConverter converter = new JSONConverter(false, cs, JSONDateFormat.PATTERN_CF, false);
+			String str = converter.serialize(pc, rtn, qf, true);
 			is = new ByteArrayInputStream(str.getBytes(cs));
 
 		}
@@ -1021,8 +1024,13 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 		return staticScope;
 	}
 
+	public long getIndex() {
+		return index;
+	}
+
 	public void setStaticScope(StaticScope staticScope) {
 		this.staticScope = staticScope;
+		this.index = staticScope.index();
 	}
 
 }

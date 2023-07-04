@@ -32,11 +32,13 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import lucee.commons.digest.HashUtil;
 import lucee.commons.io.IOUtil;
+import lucee.commons.io.SystemUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceClassLoader;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigPro;
+import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.transformer.bytecode.util.ClassRenamer;
 
@@ -48,7 +50,6 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 	static {
 		boolean res = registerAsParallelCapable();
 	}
-
 	private Resource directory;
 	private ConfigPro config;
 	private final ClassLoader[] parents;
@@ -121,7 +122,7 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 
 	@Override
 	protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
-		synchronized (getClassLoadingLock(name)) {
+		synchronized (SystemUtil.createToken("PhysicalClassLoader", name)) {
 			return loadClass(name, resolve, true);
 		}
 	}
@@ -149,7 +150,7 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 
 	@Override
 	protected Class<?> findClass(String name) throws ClassNotFoundException {// if(name.indexOf("sub")!=-1)print.ds(name);
-		synchronized (getClassLoadingLock(name)) {
+		synchronized (SystemUtil.createToken("PhysicalClassLoader", name)) {
 			Resource res = directory.getRealResource(name.replace('.', '/').concat(".class"));
 
 			ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -171,7 +172,7 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 	public Class<?> loadClass(String name, byte[] barr) throws UnmodifiableClassException {
 		Class<?> clazz = null;
 
-		synchronized (getClassLoadingLock(name)) {
+		synchronized (SystemUtil.createToken("PhysicalClassLoader", name)) {
 
 			// new class , not in memory yet
 			try {
@@ -293,5 +294,23 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 		this.loadedClasses.clear();
 		this.allLoadedClasses.clear();
 		this.unavaiClasses.clear();
+	}
+
+	/**
+	 * removes memory based appendix from class name, for example it translates
+	 * [test.test_cfc$sub2$cf$5] to [test.test_cfc$sub2$cf]
+	 * 
+	 * @param name
+	 * @return
+	 * @throws IOException
+	 */
+	public static String substractAppendix(String name) throws ApplicationException {
+		if (name.endsWith("$cf")) return name;
+		int index = name.lastIndexOf('$');
+		if (index != -1) {
+			name = name.substring(0, index);
+		}
+		if (name.endsWith("$cf")) return name;
+		throw new ApplicationException("could not remove appendix from [" + name + "]");
 	}
 }

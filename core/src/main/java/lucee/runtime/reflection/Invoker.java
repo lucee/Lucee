@@ -235,11 +235,11 @@ public final class Invoker {
 				return Caster.toBoolean(parameter);
 			}
 			else if (trgClass.getName().equals("java.lang.Byte")) {
-				return new Byte(Caster.toString(parameter));
+				return Byte.valueOf(Caster.toString(parameter));
 			}
 			else if (trgClass.getName().equals("java.lang.Character")) {
 				String str = Caster.toString(parameter);
-				if (str.length() == 1) return new Character(str.toCharArray()[0]);
+				if (str.length() == 1) return Character.valueOf(str.toCharArray()[0]);
 				return null;
 			}
 			else if (trgClass.getName().equals("java.lang.Short")) {

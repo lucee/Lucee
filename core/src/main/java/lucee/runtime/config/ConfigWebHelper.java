@@ -181,6 +181,10 @@ public class ConfigWebHelper {
 		return serverFunctionMappings.get(mappingName);
 	}
 
+	public void resetServerFunctionMappings() {
+		serverFunctionMappings = null;
+	}
+
 	public GatewayEngineImpl getGatewayEngineImpl() {
 		if (gatewayEngine == null) {
 			gatewayEngine = new GatewayEngineImpl(cw);

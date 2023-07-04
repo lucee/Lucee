@@ -39,7 +39,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
         describe(title="Testing Lucee Admin pages", asyncAll=false, body=function(){
             setup();
             
-            it("Login to admin", function(){
+            it( title="Login to admin", body=function(){
                 //systemOutput("------------- login to admin", true);
                 local.loginResult = _internalRequest(
                     template: adminRoot & adminPage, 
@@ -58,7 +58,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
                 };
             });
 
-            it("Fetch and test admin pages", function(){
+            it( title="Fetch and test admin pages", body=function(){
                 //systemOutput("------------- get admin urls", true);
                 // adminPage = "server.cfm";
                 local._adminUrls = _internalRequest(
@@ -71,40 +71,80 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
                 //expect(_adminUrls.fileContent).toBeJson();
                 expect( isJson( _adminUrls.fileContent ) ).toBeTrue();
                 local.adminUrls = deserializeJson( _adminUrls.fileContent );
-                expect(adminUrls ).toBeArray();
-        
+                expect( adminUrls ).toBeArray();
                 // systemOutput( adminUrls, true );
-                systemOutput("", true );
+                systemOutput( "", true );
                 loop array="#adminUrls#" item="local.testUrl" {
-                    local.page = local.testUrl; // i.e "server.cfm?action=plugin&plugin=PerformanceAnalyzer"
-                    // systemOutput("", true );
-                    
-                    local.params = listRest( page, "?" );
-                    local.start = getTickCount();
-                    local.result = _internalRequest(
-                        template: adminRoot & listFirst( page, "?" ),
-                        urls : queryStringToStruct( local.params ),
-                        cookies: variables.cookies
-                    );
-                    local.TAB = chr(9);
-                    if (structCount(local.result)){
-                        //fileWrite("c:\tmp\#queryStringToStruct( local.params ).action#.html", local.result.fileContent );
-                        systemOutput( TAB & TAB & adminRoot & page & " " & TAB & NumberFormat(getTickCount()-local.start) & " ms", true );
-                    }
-                    // this expect() maybe isn't even needed as _internalRequest throws the stack trace anyway??
-                    expect( local.result.status ).toBeBetween( 200, 399, adminRoot & page & " returned status code: " & local.result.status);
-                    
+                    checkUrl( adminRoot, local.testUrl, 200 );
                 }
+            });
+
+            it( title="check admin extension pages", body=function(){
+                local.extUrls = [];
+                local.exts = ExtensionList();
+                loop query=exts {
+                    arrayAppend( extUrls, 
+                        "index.cfm?action=ext.applications&action2=detail&id=#exts.id#&name=#URLEncodedFormat(exts.name)#"
+                    );
+                }
+                loop array="#extUrls#" item="local.testUrl" {
+                    checkUrl( adminRoot, local.testUrl, 200 );
+                }
+            });
+
+            it( title="check missing admin extension page", skip=true, body=function() {
+                local.missingExtUrl = "index.cfm?action=ext.applications&action2=detail&id=missing&name=missing";
+                checkUrl( adminRoot, missingExtUrl, 404 );
+            });
+
+            it( title="check admin 302", body=function(){
+                // redirect (not logged in)
+                checkUrl( adminRoot, "server.cfm?action=ext.applications", 302 );
+            });
+
+            it( title="check admin 404", body=function(){
+                // not found (page doens't exist )
+                checkUrl( adminRoot, "index.cfm?action=i.dont.exist", 404 );
+            });
+
+            it( title="check admin 500", body=function(){
+                // 500 (mappng doesn't exist)
+                checkUrl( adminRoot, "index.cfm?action=resources.mappings&action2=create&virtual=/lucee/adminMissing", 500 );
             });
         });
     }
 
-    private function queryStringToStruct( qs ){
-        local.tmp = listToArray( arguments.qs, "&" );
-        local.st = {};
-        loop array="#tmp#" item="local.p"{
-            st[ listFirst( p , "=" ) ] = listRest( p, "=" );
+    private function checkUrl( required string adminRoot, required string testUrl, required numeric statusCode ){
+        local.page =arguments.testUrl; // i.e "server.cfm?action=plugin&plugin=PerformanceAnalyzer"
+        // systemOutput("", true );
+        
+        local.start = getTickCount();
+        try {
+            local.result = _internalRequest(
+                template: arguments.adminRoot & listFirst( page, "?" ),
+                urls : listRest( page, "?" ) & "&rawError=true",
+                cookies: variables.cookies
+            );
+        } catch(e) {
+            if ( arguments.statusCode neq 500 ){
+                rethrow;
+            } else {
+                local.result = {
+                    status: 500,
+                    fileContent: e.message & " " & e.detail & e.stacktrace
+                };
+            }
         }
-        return st;
+        local.TAB = chr(9);
+        if (structCount(local.result)){
+            systemOutput( TAB & TAB & adminRoot & page & " " & TAB & NumberFormat( getTickCount()-local.start ) & " ms", true );
+        }
+        // this expect() maybe isn't even needed as _internalRequest throws the stack trace anyway??
+        // systemOutput( local.result.headers, true );
+        //expect( local.result.status ).toBeBetween( 200, 399, adminRoot & page & " returned status code: " & local.result.status);
+        if ( local.result.status neq arguments.statusCode )
+            systemOutput( trim(local.result.filecontent), true );
+        expect( local.result.status ).toBe( arguments.statusCode, 
+            arguments.adminRoot & page & " returned status code: " & local.result.status );
     }
 }

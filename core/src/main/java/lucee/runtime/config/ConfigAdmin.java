@@ -48,9 +48,11 @@ import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Version;
 import org.w3c.dom.DOMException;
+import org.xml.sax.SAXException;
 
 import com.allaire.cfx.CustomTag;
 
+import lucee.aprint;
 import lucee.commons.digest.MD5;
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.FileUtil;
@@ -65,6 +67,7 @@ import lucee.commons.io.res.ResourceProvider;
 import lucee.commons.io.res.ResourcesImpl;
 import lucee.commons.io.res.filter.ResourceFilter;
 import lucee.commons.io.res.filter.ResourceNameFilter;
+import lucee.commons.io.res.type.file.FileResourceProvider;
 import lucee.commons.io.res.util.FileWrapper;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ClassException;
@@ -134,7 +137,6 @@ import lucee.runtime.security.SecurityManagerImpl;
 import lucee.runtime.security.SerialNumber;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
-import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Query;
@@ -146,6 +148,7 @@ import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.ComponentUtil;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.ListUtil;
+import lucee.runtime.type.util.StructUtil;
 import lucee.runtime.video.VideoExecuter;
 import lucee.runtime.video.VideoExecuterNotSupported;
 import lucee.transformer.library.ClassDefinitionImpl;
@@ -158,9 +161,43 @@ import lucee.transformer.library.tag.TagLibException;
 public final class ConfigAdmin {
 
 	private static final BundleInfo[] EMPTY = new BundleInfo[0];
+	private static final Set<Key> EXCLUDE_LIST;
+	private static final Map<Key, Key> ARRAY_INDEX;
 	private ConfigPro config;
 	private final Struct root;
 	private Password password;
+	private boolean optionalPW;
+
+	static {
+		// exclude list
+		EXCLUDE_LIST = new HashSet<Key>();
+		// TODO remove the one not needed
+		EXCLUDE_LIST.add(KeyImpl.init("adminSalt"));
+		EXCLUDE_LIST.add(KeyImpl.init("salt"));
+		EXCLUDE_LIST.add(KeyImpl.init("hspw"));
+		EXCLUDE_LIST.add(KeyImpl.init("adminhspw"));
+		EXCLUDE_LIST.add(KeyImpl.init("pw"));
+		EXCLUDE_LIST.add(KeyImpl.init("password"));
+		EXCLUDE_LIST.add(KeyImpl.init("adminpassword"));
+
+		EXCLUDE_LIST.add(KeyImpl.init("default-adminSalt"));
+		EXCLUDE_LIST.add(KeyImpl.init("default-salt"));
+		EXCLUDE_LIST.add(KeyImpl.init("default-hspw"));
+		EXCLUDE_LIST.add(KeyImpl.init("default-adminhspw"));
+		EXCLUDE_LIST.add(KeyImpl.init("default-pw"));
+		EXCLUDE_LIST.add(KeyImpl.init("default-password"));
+		EXCLUDE_LIST.add(KeyImpl.init("default-adminpassword"));
+		// TODO does this cover everything?
+		ARRAY_INDEX = new HashMap<>();
+		ARRAY_INDEX.put(KeyImpl.init("resourceProviders"), KeyImpl.init("scheme"));
+		ARRAY_INDEX.put(KeyImpl.init("cacheClasses"), KeyImpl.init("class"));
+		ARRAY_INDEX.put(KeyImpl.init("componentMappings"), KeyImpl.init("virtual"));
+		ARRAY_INDEX.put(KeyImpl.init("debugTemplates"), KeyImpl.init("id"));
+		ARRAY_INDEX.put(KeyImpl.init("defaultResourceProvider"), KeyImpl.init("class"));
+		ARRAY_INDEX.put(KeyImpl.init("dumpWriters"), KeyImpl.init("name"));
+		ARRAY_INDEX.put(KeyImpl.init("extensions"), KeyImpl.init("id"));
+		ARRAY_INDEX.put(KeyImpl.init("scheduledTasks"), KeyImpl.init("name"));
+	}
 
 	/**
 	 * 
@@ -175,12 +212,16 @@ public final class ConfigAdmin {
 		return new ConfigAdmin((ConfigPro) config, password);
 	}
 
+	public static ConfigAdmin newInstance(Config config, Password password, boolean optionalPW) throws IOException, PageException {
+		return new ConfigAdmin((ConfigPro) config, password, optionalPW);
+	}
+
 	private void checkWriteAccess() throws SecurityException {
-		ConfigWebUtil.checkGeneralWriteAccess(config, password);
+		if (!optionalPW) ConfigWebUtil.checkGeneralWriteAccess(config, password);
 	}
 
 	private void checkReadAccess() throws SecurityException {
-		ConfigWebUtil.checkGeneralReadAccess(config, password);
+		if (!optionalPW) ConfigWebUtil.checkGeneralReadAccess(config, password);
 	}
 
 	/**
@@ -222,7 +263,7 @@ public final class ConfigAdmin {
 	 * @throws PageException
 	 * @throws BundleException
 	 */
-	public void removePassword(String contextPath) throws PageException, ClassException, IOException, TagLibException, FunctionLibException, BundleException {
+	public void removePassword(String contextPath) throws PageException, ClassException, IOException, TagLibException, FunctionLibException, BundleException, SAXException {
 		checkWriteAccess();
 		if (contextPath == null || contextPath.length() == 0 || !(config instanceof ConfigServerImpl)) {
 			// config.setPassword(password); do nothing!
@@ -238,6 +279,13 @@ public final class ConfigAdmin {
 		this.config = config;
 		this.password = password;
 		root = ConfigWebFactory.loadDocument(config.getConfigFile());
+	}
+
+	private ConfigAdmin(ConfigPro config, Password password, boolean optionalPW) throws IOException, PageException {
+		this.config = config;
+		this.password = password;
+		root = ConfigWebFactory.loadDocument(config.getConfigFile());
+		this.optionalPW = optionalPW;
 	}
 
 	public static void checkForChangesInConfigFile(Config config) {
@@ -305,8 +353,8 @@ public final class ConfigAdmin {
 	}
 
 	private synchronized void _store() throws PageException, ConverterException, IOException {
-		JSONConverter json = new JSONConverter(true, CharsetUtil.UTF8, JSONDateFormat.PATTERN_CF, true, true);
-		String str = json.serialize(null, root, SerializationSettings.SERIALIZE_AS_ROW);
+		JSONConverter json = new JSONConverter(true, CharsetUtil.UTF8, JSONDateFormat.PATTERN_CF, false);
+		String str = json.serialize(null, root, SerializationSettings.SERIALIZE_AS_ROW, true);
 		IOUtil.write(config.getConfigFile(), str, CharsetUtil.UTF8, false);
 	}
 
@@ -320,8 +368,8 @@ public final class ConfigAdmin {
 			ConfigServerFactory.reloadInstance(engine, cs);
 			ConfigWeb[] webs = cs.getConfigWebs();
 			for (ConfigWeb web: webs) {
-				if (web instanceof ConfigWebImpl) ConfigWebFactory.reloadInstance(engine, (ConfigServerImpl) config, (ConfigWebImpl) web, true);
-				else if (web instanceof SingleContextConfigWeb) ((SingleContextConfigWeb) web).reload();
+				ConfigWebFactory.reloadInstance(engine, (ConfigServerImpl) config, (ConfigWebImpl) web, true);
+
 			}
 		}
 		else if (config instanceof ConfigWebImpl) {
@@ -329,16 +377,14 @@ public final class ConfigAdmin {
 			ConfigWebFactory.reloadInstance(engine, cs, (ConfigWebImpl) config, false);
 		}
 		else if (config instanceof SingleContextConfigWeb) {
+			if (true) throw new RuntimeException("important exception, please report to Lucee");
+			// TODO remove this this should never happening
+			aprint.ds();
 			SingleContextConfigWeb sccw = (SingleContextConfigWeb) config;
 
 			ConfigServerImpl cs = sccw.getConfigServerImpl();
 			ConfigServerFactory.reloadInstance(engine, cs);
 			sccw.reload();
-			/*
-			 * ConfigWeb[] webs = cs.getConfigWebs(); for (int i = 0; i < webs.length; i++) { if (webs[i]
-			 * instanceof ConfigWebImpl) ConfigWebFactory.reloadInstance(engine, (ConfigServerImpl) config,
-			 * (ConfigWebImpl) webs[i], true); }
-			 */
 		}
 	}
 
@@ -1410,15 +1456,21 @@ public final class ConfigAdmin {
 
 		Struct children = ConfigWebUtil.getAsStruct("dataSources", root);
 		Key[] keys = children.keys();
+
+		boolean isUpdate = false;
+		boolean isNameUpdate = !StringUtil.isEmpty(newName) && !newName.equals(name);
+		Struct el = new StructImpl(Struct.TYPE_LINKED);
+
 		for (Key key: keys) {
 
 			if (key.getString().equalsIgnoreCase(name)) {
 				Struct tmp = Caster.toStruct(children.get(key, null), null);
 				if (tmp == null) continue;
-				Struct el = tmp;
+				el = tmp;
+				isUpdate = true;
 				if (password.equalsIgnoreCase("****************")) password = ConfigWebUtil.getAsString("password", el, null);
 
-				if (!StringUtil.isEmpty(newName) && !newName.equals(name)) el.setEL("name", newName);
+				if (isNameUpdate) el.setEL("name", newName);
 				setClass(el, null, "", cd);
 
 				if (!StringUtil.isEmpty(id)) el.setEL(KeyConstants._id, id);
@@ -1463,15 +1515,21 @@ public final class ConfigAdmin {
 				if (alwaysResetConnections) el.setEL("alwaysResetConnections", "true");
 				else if (el.containsKey("alwaysResetConnections")) el.removeEL(KeyImpl.init("alwaysResetConnections"));
 
-				return;
+				break;
 			}
+		}
+		if (isUpdate) {
+			if (isNameUpdate) {
+				children.setEL(newName, el);
+				children.removeEL(KeyImpl.init(name));
+			}
+			return;
 		}
 
 		if (!hasInsertAccess) throw new SecurityException("Unable to add a datasource connection, the maximum count of [" + maxLength + "] datasources has been reached. "
 				+ " This can be configured in the Server Admin, under Security, Access");
 
 		// Insert
-		Struct el = new StructImpl(Struct.TYPE_LINKED);
 		children.setEL(!StringUtil.isEmpty(newName) ? newName : name, el);
 		setClass(el, null, "", cd);
 		el.setEL("dsn", dsn);
@@ -1834,39 +1892,44 @@ public final class ConfigAdmin {
 			throw new ExpressionException(e.getMessage());
 		}
 
-		if (name.equalsIgnoreCase(Caster.toString(root.get("defaultTemplate", null), null))) rem(root, "defaultTemplate");
-		if (name.equalsIgnoreCase(Caster.toString(root.get("defaultObject", null), null))) rem(root, "defaultObject");
-		if (name.equalsIgnoreCase(Caster.toString(root.get("defaultQuery", null), null))) rem(root, "defaultQuery");
-		if (name.equalsIgnoreCase(Caster.toString(root.get("defaultResource", null), null))) rem(root, "defaultResource");
-		if (name.equalsIgnoreCase(Caster.toString(root.get("defaultFunction", null), null))) rem(root, "defaultFunction");
-		if (name.equalsIgnoreCase(Caster.toString(root.get("defaultInclude", null), null))) rem(root, "defaultInclude");
+		Struct parent = _getRootElement("cache");
+
+		if (name.equalsIgnoreCase(Caster.toString(parent.get("defaultTemplate", null), null))) rem(parent, "defaultTemplate");
+		if (name.equalsIgnoreCase(Caster.toString(parent.get("defaultObject", null), null))) rem(parent, "defaultObject");
+		if (name.equalsIgnoreCase(Caster.toString(parent.get("defaultQuery", null), null))) rem(parent, "defaultQuery");
+		if (name.equalsIgnoreCase(Caster.toString(parent.get("defaultResource", null), null))) rem(parent, "defaultResource");
+		if (name.equalsIgnoreCase(Caster.toString(parent.get("defaultFunction", null), null))) rem(parent, "defaultFunction");
+		if (name.equalsIgnoreCase(Caster.toString(parent.get("defaultInclude", null), null))) rem(parent, "defaultInclude");
+		if (name.equalsIgnoreCase(Caster.toString(parent.get("defaultHttp", null), null))) rem(parent, "defaultHttp");
+		if (name.equalsIgnoreCase(Caster.toString(parent.get("defaultFile", null), null))) rem(parent, "defaultFile");
+		if (name.equalsIgnoreCase(Caster.toString(parent.get("defaultWebservice", null), null))) rem(parent, "defaultWebservice");
 
 		if (_default == ConfigPro.CACHE_TYPE_OBJECT) {
-			root.setEL("defaultObject", name);
+			parent.setEL("defaultObject", name);
 		}
 		else if (_default == ConfigPro.CACHE_TYPE_TEMPLATE) {
-			root.setEL("defaultTemplate", name);
+			parent.setEL("defaultTemplate", name);
 		}
 		else if (_default == ConfigPro.CACHE_TYPE_QUERY) {
-			root.setEL("defaultQuery", name);
+			parent.setEL("defaultQuery", name);
 		}
 		else if (_default == ConfigPro.CACHE_TYPE_RESOURCE) {
-			root.setEL("defaultResource", name);
+			parent.setEL("defaultResource", name);
 		}
 		else if (_default == ConfigPro.CACHE_TYPE_FUNCTION) {
-			root.setEL("defaultFunction", name);
+			parent.setEL("defaultFunction", name);
 		}
 		else if (_default == ConfigPro.CACHE_TYPE_INCLUDE) {
-			root.setEL("defaultInclude", name);
+			parent.setEL("defaultInclude", name);
 		}
 		else if (_default == ConfigPro.CACHE_TYPE_HTTP) {
-			root.setEL("defaultHttp", name);
+			parent.setEL("defaultHttp", name);
 		}
 		else if (_default == ConfigPro.CACHE_TYPE_FILE) {
-			root.setEL("defaultFile", name);
+			parent.setEL("defaultFile", name);
 		}
 		else if (_default == ConfigPro.CACHE_TYPE_WEBSERVICE) {
-			root.setEL("defaultWebservice", name);
+			parent.setEL("defaultWebservice", name);
 		}
 
 		// Update
@@ -2157,9 +2220,18 @@ public final class ConfigAdmin {
 		String name = ConfigWebUtil.getAsString("bundleName", p, null);
 		String version = ConfigWebUtil.getAsString("bundleVersion", p, null);
 		ClassDefinition cd = new ClassDefinitionImpl(cn, name, version, ThreadLocalPageContext.getConfig().getIdentification());
-
-		qry.setAt("scheme", row, p.get("scheme"));
-		qry.setAt("arguments", row, p.get("arguments"));
+		String scheme = Caster.toString(p.get("scheme", null), null);
+		if (StringUtil.isEmpty(scheme)) {
+			try {
+				scheme = ((ResourceProvider) cd.getClazz().newInstance()).getScheme();
+			}
+			catch (Exception e) {
+				// patchi
+				if (FileResourceProvider.class.getName().equals(cd.getClassName())) scheme = "file";
+			}
+		}
+		qry.setAt("scheme", row, scheme);
+		qry.setAt("arguments", row, p.get("arguments", null));
 
 		qry.setAt("class", row, cd.getClassName());
 		qry.setAt("bundleName", row, cd.getName());
@@ -2231,6 +2303,11 @@ public final class ConfigAdmin {
 		if (name.equalsIgnoreCase(Caster.toString(parent.get("defaultTemplate", null), null))) rem(parent, "defaultTemplate");
 		if (name.equalsIgnoreCase(Caster.toString(parent.get("defaultQuery", null), null))) rem(parent, "defaultQuery");
 		if (name.equalsIgnoreCase(Caster.toString(parent.get("defaultResource", null), null))) rem(parent, "defaultResource");
+		if (name.equalsIgnoreCase(Caster.toString(parent.get("defaultFunction", null), null))) rem(parent, "defaultFunction");
+		if (name.equalsIgnoreCase(Caster.toString(parent.get("defaultInclude", null), null))) rem(parent, "defaultInclude");
+		if (name.equalsIgnoreCase(Caster.toString(parent.get("defaultHttp", null), null))) rem(parent, "defaultHttp");
+		if (name.equalsIgnoreCase(Caster.toString(parent.get("defaultFile", null), null))) rem(parent, "defaultFile");
+		if (name.equalsIgnoreCase(Caster.toString(parent.get("defaultWebservice", null), null))) rem(parent, "defaultWebservice");
 
 		// remove element
 		Struct children = ConfigWebUtil.getAsStruct("caches", root);
@@ -2587,6 +2664,11 @@ public final class ConfigAdmin {
 		if (StringUtil.isEmpty(writerType)) {
 			if (root.containsKey("cfmlWriter")) rem(root, "cfmlWriter");
 			return;
+		}
+
+		if ("smart".equalsIgnoreCase(writerType)) writerType = "white-space-pref";
+		else if (Decision.isBoolean(writerType)) {
+			writerType = Caster.toBooleanValue(writerType, false) ? "white-space" : "regular";
 		}
 
 		// update
@@ -3835,7 +3917,8 @@ public final class ConfigAdmin {
 				ConfigWeb[] webs = ((ConfigServer) config).getConfigWebs();
 				for (ConfigWeb cw: webs) {
 					try {
-						merge(root, ConfigWebFactory.loadDocument(cw.getConfigFile()));
+
+						merge(root, ConfigWebFactory.loadDocument(cw.getConfigFile()), EXCLUDE_LIST, ARRAY_INDEX);
 					}
 					catch (IOException e) {
 						throw Caster.toPageException(e);
@@ -3862,21 +3945,94 @@ public final class ConfigAdmin {
 		root.setEL(KeyConstants._mode, mode);
 	}
 
-	private void merge(Collection server, Collection web) {
-		Key[] keys = web.keys();
-		Object exServer, exWeb;
-		for (Key key: keys) {
-			exServer = server.get(key, null);
+	/*
+	 * public static void main(String[] args) {
+	 * 
+	 * Struct server = new StructImpl(); { Array arr = new ArrayImpl();
+	 * server.setEL("resourceProviders", arr);
+	 * 
+	 * Struct sct = new StructImpl(); sct.setEL("scheme", "susi2"); sct.setEL("aaa", "AAA1");
+	 * sct.setEL("bbb", "BBB"); arr.appendEL(sct);
+	 * 
+	 * sct = new StructImpl(); sct.setEL("scheme", "susi"); sct.setEL("aaa", "AAA1"); sct.setEL("bbb",
+	 * "BBB"); arr.appendEL(sct); }
+	 * 
+	 * Struct web = new StructImpl(); { Array arr = new ArrayImpl(); web.setEL("resourceProviders",
+	 * arr);
+	 * 
+	 * Struct sct = new StructImpl(); sct.setEL("scheme", "susi"); sct.setEL("aaa", "AAA2");
+	 * sct.setEL("ccc", "ccc"); arr.appendEL(sct);
+	 * 
+	 * sct = new StructImpl(); sct.setEL("scheme", "susi2"); sct.setEL("aaa", "AAA2"); sct.setEL("ccc",
+	 * "ccc"); arr.appendEL(sct);
+	 * 
+	 * sct = new StructImpl(); sct.setEL("scheme", "susi3"); sct.setEL("aaa", "AAA2"); sct.setEL("ccc",
+	 * "ccc"); arr.appendEL(sct); }
+	 * 
+	 * merge(server, web, ConfigAdmin.EXCLUDE_LIST, ARRAY_INDEX); }
+	 */
 
-			if (exServer instanceof Collection) {
-				exWeb = web.get(key, null);
-				if (exWeb instanceof Collection) merge((Collection) exServer, (Collection) exWeb);
+	private static void merge(Struct server, Struct web, Set<Key> exludeList, Map<Key, Key> arrayIndex) {
+		Iterator<Object> itt, ittt;
+		Iterator<Entry<Key, Object>> it = web.entryIterator();
+		while (it.hasNext()) {
+			Entry<Key, Object> e = it.next();
+			Key key = e.getKey();
+			if (exludeList != null && exludeList.contains(key)) {
+				continue;
 			}
+			Object exServer = server.get(key, null);
+			Object exWeb = e.getValue();
+
+			if (exServer instanceof Struct) {
+				if (exWeb instanceof Struct) merge((Struct) exServer, (Struct) exWeb, null, null);
+				else LogUtil.log(Log.LEVEL_ERROR, "merging", "cannot merge the key [" + key + "] into the server.json, because it is not a struct");
+			}
+			else if (exServer instanceof Array) {
+				if (exWeb instanceof Array) {
+					itt = ((Array) exWeb).valueIterator();
+					Array trg = (Array) exServer;
+					Key index = arrayIndex.get(key);
+
+					boolean append = true;
+					while (itt.hasNext()) {
+						append = true;
+						Object vWeb = itt.next();
+						if (index != null) {
+							Struct srcSct = Caster.toStruct(vWeb, null);
+							String indexValueWeb = extractIndexValue(srcSct, index);
+							if (indexValueWeb != null) {
+								Iterator<Entry<Key, Object>> trgIt = trg.entryIterator();
+								while (trgIt.hasNext()) {
+									Entry<Key, Object> ee = trgIt.next();
+									Struct trgSct = Caster.toStruct(ee.getValue(), null);
+									String indexValueServer = extractIndexValue(trgSct, index);
+									if (indexValueServer != null && indexValueWeb.equalsIgnoreCase(indexValueServer)) {
+										trgSct.clear();
+										merge(trgSct, srcSct, null, null);
+										append = false;
+									}
+								}
+							}
+
+						}
+						if (append) trg.appendEL(vWeb); // TODO some array have indexes, like for example "resourceprovider" has "Scheme", they need to be
+						// observed when merging
+					}
+				}
+				else LogUtil.log(Log.LEVEL_ERROR, "merging", "cannot merge the key [" + key + "] into the server.json, because it is not an array");
+			}
+			// can be null
 			else {
-				if (server instanceof Array) ((Array) server).appendEL(web.get(key, null)); // TODO can create a duplicate
-				else server.setEL(key, web.get(key, null));
+				server.setEL(key, exWeb);
 			}
 		}
+
+	}
+
+	private static String extractIndexValue(Struct sct, Key index) {
+		if (sct == null) return null;
+		return Caster.toString(sct.get(index, null), null);
 	}
 
 	public void updateMonitor(ClassDefinition cd, String type, String name, boolean logEnabled) throws PageException {
@@ -4265,7 +4421,7 @@ public final class ConfigAdmin {
 	}
 
 	public void updateArchive(Config config, Resource archive) throws PageException {
-		Log logger = config.getLog("deploy");
+		Log logger = ThreadLocalPageContext.getLog(config, "deploy");
 		String type = null, virtual = null, name = null;
 		boolean readOnly, topLevel, hidden, physicalFirst;
 		short inspect;
@@ -4380,7 +4536,7 @@ public final class ConfigAdmin {
 		}
 
 		ConfigPro ci = (ConfigPro) config;
-		Log logger = ci.getLog("deploy");
+		Log logger = ThreadLocalPageContext.getLog(ci, "deploy");
 		String type = ci instanceof ConfigWeb ? "web" : "server";
 		// load already installed previous version and uninstall the parts no longer needed
 		RHExtension existingRH = getRHExtension(ci, rhext.getId(), null);
@@ -4399,8 +4555,9 @@ public final class ConfigAdmin {
 			boolean reloadNecessary = false;
 
 			// store to xml
+			RHExtension.removeDuplicates(ConfigWebUtil.getAsArray("extensions", root));
 			BundleDefinition[] existing = _updateExtension(ci, rhext);
-			// _storeAndReload();
+
 			// this must happen after "store"
 			cleanBundles(rhext, ci, existing);// clean after populating the new ones
 			// ConfigWebAdmin.updateRHExtension(ci,rhext);
@@ -4697,14 +4854,19 @@ public final class ConfigAdmin {
 					physical = map.get("physical");
 					archive = map.get("archive");
 					primary = map.get("primary");
-
 					inspect = ConfigWebUtil.inspectTemplate(map.get("inspect"), Config.INSPECT_UNDEFINED);
-					lmode = ConfigWebUtil.toListenerMode(map.get("listener-mode"), -1);
-					ltype = ConfigWebUtil.toListenerType(map.get("listener-type"), -1);
+					String strLMode = map.get("listener-mode");
+					if (StringUtil.isEmpty(strLMode, true)) strLMode = map.get("listenermode");
+					if (StringUtil.isEmpty(strLMode, true)) strLMode = map.get("listenerMode");
+					lmode = ConfigWebUtil.toListenerMode(strLMode, -1);
+
+					String strLType = map.get("listener-type");
+					if (StringUtil.isEmpty(strLType, true)) strLType = map.get("listenertype");
+					if (StringUtil.isEmpty(strLType, true)) strLType = map.get("listenerType");
+					ltype = ConfigWebUtil.toListenerType(strLType, -1);
 
 					toplevel = Caster.toBooleanValue(map.get("toplevel"), false);
 					readonly = Caster.toBooleanValue(map.get("readonly"), false);
-
 					_updateMapping(virtual, physical, archive, primary, inspect, toplevel, lmode, ltype, readonly);
 					reloadNecessary = true;
 
@@ -4761,7 +4923,7 @@ public final class ConfigAdmin {
 			ExceptionUtil.rethrowIfNecessary(t);
 			DeployHandler.moveToFailedFolder(rhext.getExtensionFile().getParentResource(), rhext.getExtensionFile());
 			try {
-				ConfigAdmin.removeRHExtensions((ConfigPro) config, config.getLog("deploy"), new String[] { rhext.getId() }, false);
+				ConfigAdmin.removeRHExtensions((ConfigPro) config, ThreadLocalPageContext.getLog(config, "deploy"), new String[] { rhext.getId() }, false);
 			}
 			catch (Throwable t2) {
 				ExceptionUtil.rethrowIfNecessary(t2);
@@ -4795,7 +4957,7 @@ public final class ConfigAdmin {
 	 */
 	private void removeRHExtension(Config config, RHExtension rhe, RHExtension replacementRH, boolean deleteExtension) throws PageException {
 		ConfigPro ci = ((ConfigPro) config);
-		Log logger = ci.getLog("deploy");
+		Log logger = ThreadLocalPageContext.getLog(ci, "deploy");
 
 		// MUST check replacementRH everywhere
 
@@ -5124,6 +5286,31 @@ public final class ConfigAdmin {
 		}
 	}
 
+	public void updateFilesystem(String fldDefaultDirectory, String functionDefaultDirectory, String tagDefaultDirectory, String tldDefaultDirectory,
+			String functionAddionalDirectory, String tagAddionalDirectory) throws SecurityException {
+		checkWriteAccess();
+
+		Struct fs = ConfigWebUtil.getAsStruct("fileSystem", root);
+		if (!StringUtil.isEmpty(fldDefaultDirectory, true)) {
+			fs.setEL(KeyImpl.init("fldDefaultDirectory"), fldDefaultDirectory);
+		}
+		if (!StringUtil.isEmpty(functionDefaultDirectory, true)) {
+			fs.setEL(KeyImpl.init("functionDefaultDirectory"), functionDefaultDirectory);
+		}
+		if (!StringUtil.isEmpty(tagDefaultDirectory, true)) {
+			fs.setEL(KeyImpl.init("tagDefaultDirectory"), tagDefaultDirectory);
+		}
+		if (!StringUtil.isEmpty(tldDefaultDirectory, true)) {
+			fs.setEL(KeyImpl.init("tldDefaultDirectory"), tldDefaultDirectory);
+		}
+		if (!StringUtil.isEmpty(functionAddionalDirectory, true)) {
+			fs.setEL(KeyImpl.init("functionAddionalDirectory"), functionAddionalDirectory);
+		}
+		if (!StringUtil.isEmpty(tagAddionalDirectory, true)) {
+			fs.setEL(KeyImpl.init("tagAddionalDirectory"), tagAddionalDirectory);
+		}
+	}
+
 	void updateTLD(InputStream is, String name, boolean closeStream) throws IOException {
 		write(config.getTldFile(), is, name, closeStream);
 	}
@@ -5191,7 +5378,7 @@ public final class ConfigAdmin {
 	}
 
 	public void removeArchive(Resource archive) throws IOException, PageException {
-		Log logger = config.getLog("deploy");
+		Log logger = ThreadLocalPageContext.getLog(config, "deploy");
 		String virtual = null, type = null;
 		InputStream is = null;
 		ZipFile file = null;
@@ -5494,7 +5681,7 @@ public final class ConfigAdmin {
 	}
 
 	public void updateCompilerSettings(Boolean dotNotationUpperCase, Boolean suppressWSBeforeArg, Boolean nullSupport, Boolean handleUnQuotedAttrValueAsString,
-			Integer externalizeStringGTE) throws PageException {
+			Integer externalizeStringGTE, Boolean preciseMath) throws PageException {
 
 		// Struct element = _getRootElement("compiler");
 
@@ -5537,6 +5724,13 @@ public final class ConfigAdmin {
 			root.setEL("handleUnquotedAttributeValueAsString", Caster.toString(handleUnQuotedAttrValueAsString));
 		}
 
+		// preciseMath
+		if (preciseMath == null) {
+			if (root.containsKey("preciseMath")) rem(root, "preciseMath");
+		}
+		else {
+			root.setEL("preciseMath", Caster.toString(preciseMath));
+		}
 	}
 
 	Resource[] updateWebContexts(InputStream is, String realpath, boolean closeStream, boolean store) throws PageException, IOException, BundleException, ConverterException {
@@ -5893,7 +6087,7 @@ public final class ConfigAdmin {
 		String[] arr;
 		boolean storeChildren = false;
 		BundleDefinition[] bundles;
-		Log log = config.getLog("deploy");
+		Log log = ThreadLocalPageContext.getLog(config, "deploy");
 		int key;
 		for (int i = keys.length - 1; i >= 0; i--) {
 			key = keys[i];
@@ -6041,7 +6235,6 @@ public final class ConfigAdmin {
 	 */
 	public BundleDefinition[] _updateExtension(ConfigPro config, RHExtension ext) throws IOException, BundleException, PageException {
 		if (!Decision.isUUId(ext.getId())) throw new IOException("id [" + ext.getId() + "] is invalid, it has to be a UUID");
-
 		Array children = ConfigWebUtil.getAsArray("extensions", root);
 		int[] keys = children.intKeys();
 		int key;
@@ -6305,5 +6498,11 @@ public final class ConfigAdmin {
 		if (!hasAccess) throw new SecurityException("Accces Denied to update scope setting");
 
 		root.setEL("cgiScopeReadOnly", Caster.toString(cgiReadonly, ""));
+	}
+
+	public void updateConfig(Struct data, boolean flushExistingData) throws SecurityException {
+		checkWriteAccess();
+		if (flushExistingData) root.clear();
+		StructUtil.merge(true, root, data);
 	}
 }

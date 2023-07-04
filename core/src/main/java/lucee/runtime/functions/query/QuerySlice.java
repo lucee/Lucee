@@ -42,7 +42,7 @@ public final class QuerySlice extends BIF {
 
 		int len = qry.getRecordcount();
 		if (len == 0) throw new FunctionException(pc, "querySlice", 1, "query", "Query cannot be empty");
-		
+
 		if (offset > 0) {
 			if (len < offset) throw new FunctionException(pc, "querySlice", 2, "offset", "offset cannot be greater than the recordcount of the query");
 

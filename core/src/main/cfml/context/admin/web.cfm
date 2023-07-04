@@ -1,4 +1,5 @@
 <cfscript>
+	request.singleMode=getApplicationSettings().singleContext;
 	
 	if(request.singleMode && right(cgi.script_name,9)!="index.cfm") {
 		location url="index.cfm" addtoken=false;
@@ -65,11 +66,11 @@
 		returnVariable="loginSettings">
 
 	<cfset loginPause = loginSettings.delay>
-
-	<cfif loginPause && structKeyExists(application, "lastTryToLogin") && isDate(application.lastTryToLogin) && DateDiff("s", application.lastTryToLogin, now()) LT loginPause>
-		<cfset login_error = "Login disabled until #lsDateFormat(dateAdd("s", loginPause, application.lastTryToLogin))# #lsTimeFormat(dateAdd("s", loginPause, application.lastTryToLogin),'hh:mm:ss')#">
+	<cfset keyLTL="lastTryToLogin"&":"& request.adminType&":"&(cgi.context_path?:"")>
+	<cfif loginPause && structKeyExists(application, keyLTL) && isDate(application[keyLTL]) && DateDiff("s", application[keyLTL], now()) LT loginPause>
+		<cfset login_error = "Login disabled until #lsDateFormat(dateAdd("s", loginPause, application[keyLTL]))# #lsTimeFormat(dateAdd("s", loginPause, application[keyLTL]),'hh:mm:ss')#">
 	<cfelse>
-		<cfset application.lastTryToLogin = now()>
+		<cfset application[keyLTL] = now()>
 		<cfparam name="form.captcha" default="">
 
 		<cfif loginSettings.captcha && structKeyExists(session, "cap") && compare(form.captcha,session.cap) != 0>
@@ -508,7 +509,12 @@
 			<cfinclude template="#current.action#.cfm">
 		<cfelse>
 			<cfset current.label = "Error">
-			invalid action definition
+			<cfparam name="url.rawError" default="false">
+			<cfheader statuscode="404">
+			requested action doesn't exist
+			<cfif url.rawError>
+				<cfabort>
+			</cfif>
 		</cfif>
 	</cfsavecontent>
 
