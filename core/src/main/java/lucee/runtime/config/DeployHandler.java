@@ -90,7 +90,7 @@ public class DeployHandler {
 							}
 
 							// Lucee Extensions
-							else if ("lex".equalsIgnoreCase(ext)) ConfigAdmin._updateRHExtension((ConfigPro) config, child, true, force);
+							else if ("lex".equalsIgnoreCase(ext)) ConfigAdmin._updateRHExtension((ConfigPro) config, child, true, force, true);
 
 							// Lucee core
 							else if (config instanceof ConfigServer && "lco".equalsIgnoreCase(ext)) ConfigAdmin.updateCore((ConfigServerImpl) config, child, true);
@@ -258,7 +258,7 @@ public class DeployHandler {
 					res = SystemUtil.getTempDirectory().getRealResource(ed.getId() + "-" + ed.getVersion() + ".lex");
 					ResourceUtil.touch(res);
 					IOUtil.copy(ext.getSource(), res);
-					ConfigAdmin._updateRHExtension((ConfigPro) config, res, reload, force);
+					ConfigAdmin._updateRHExtension((ConfigPro) config, res, reload, force, true);
 					return true;
 				}
 				catch (Exception e) {
@@ -317,7 +317,7 @@ public class DeployHandler {
 						ResourceUtil.touch(res);
 
 						IOUtil.copy(ext.getSource(), res);
-						ConfigAdmin._updateRHExtension((ConfigPro) config, res, reload, force);
+						ConfigAdmin._updateRHExtension((ConfigPro) config, res, reload, force, true);
 						return true;
 					}
 				}
@@ -340,7 +340,7 @@ public class DeployHandler {
 				ResourceUtil.touch(res);
 
 				IOUtil.copy(ext.getSource(), res);
-				ConfigAdmin._updateRHExtension((ConfigPro) config, res, reload, force);
+				ConfigAdmin._updateRHExtension((ConfigPro) config, res, reload, force, true);
 				return true;
 			}
 			catch (Exception e) {
@@ -354,7 +354,7 @@ public class DeployHandler {
 		Resource res = downloadExtension(ci, ed, log);
 		if (res != null) {
 			try {
-				ConfigAdmin._updateRHExtension((ConfigPro) config, res, reload, force);
+				ConfigAdmin._updateRHExtension((ConfigPro) config, res, reload, force, true);
 				return true;
 			}
 			catch (Exception e) {
@@ -452,7 +452,7 @@ public class DeployHandler {
 		return ((ConfigPro) config).loadLocalExtensions(validate);
 	}
 
-	public static void deployExtension(ConfigPro config, Resource ext) throws PageException {
-		ConfigAdmin._updateRHExtension(config, ext, true, true);
+	public static void deployExtension(ConfigPro config, Resource ext, boolean reload, boolean force, boolean moveIfNecessary) throws PageException {
+		ConfigAdmin._updateRHExtension(config, ext, reload, force, moveIfNecessary);
 	}
 }

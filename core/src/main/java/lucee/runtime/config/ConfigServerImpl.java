@@ -886,7 +886,7 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 	}
 
 	@Override
-	protected void setGatewayEntries(Map<String, GatewayEntry> gatewayEntries) {
+	public void setGatewayEntries(Map<String, GatewayEntry> gatewayEntries) {
 		this.gatewayEntries = gatewayEntries;
 	}
 

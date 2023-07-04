@@ -4272,6 +4272,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 	private void doUpdateAdminMode() throws PageException {
 		admin.updateUpdateAdminMode(getString("admin", "updateAdminMode", "mode"), getBool("admin", "updateAdminMode", "merge"), getBool("admin", "updateAdminMode", "keep"));
+		((GatewayEngineImpl) configWeb.getGatewayEngine()).stop();
 		store();
 		adminSync.broadcast(attributes, config);
 	}
@@ -4362,13 +4363,13 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		// path
 		if (obj instanceof String) {
 			Resource src = ResourceUtil.toResourceExisting(config, (String) obj);
-			ConfigAdmin._updateRHExtension(config, src, true, true);
+			ConfigAdmin._updateRHExtension(config, src, true, true, true);
 		}
 		else {
 			try {
 				Resource tmp = SystemUtil.getTempFile("lex", true);
 				IOUtil.copy(new ByteArrayInputStream(Caster.toBinary(obj)), tmp, true);
-				ConfigAdmin._updateRHExtension(config, tmp, true, true);
+				ConfigAdmin._updateRHExtension(config, tmp, true, true, true);
 			}
 			catch (IOException ioe) {
 				throw Caster.toPageException(ioe);

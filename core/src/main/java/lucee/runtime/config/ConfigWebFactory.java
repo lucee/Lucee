@@ -337,6 +337,12 @@ public final class ConfigWebFactory extends ConfigFactory {
 
 		createContextFiles(configDir, servletConfig, doNew);
 		createContextFilesPost(configDir, configWeb, servletConfig, false, doNew);
+
+		// call web.cfc for this context
+		((CFMLEngineImpl) ConfigWebUtil.getEngine(configWeb)).onStart(configWeb, false);
+
+		((GatewayEngineImpl) configWeb.getGatewayEngine()).autoStart();
+
 		return configWeb;
 	}
 
@@ -2676,14 +2682,16 @@ public final class ConfigWebFactory extends ConfigFactory {
 		}
 	}
 
-	private static void _loadGateway(ConfigServerImpl configServer, ConfigImpl config, Struct root, Log log) {
+	private static void _loadGateway(ConfigServerImpl configServer, ConfigImpl config, Struct root, Log log) throws PageException {
+
 		boolean hasCS = configServer != null;
-		// MUSST
-		GatewayEngineImpl engine = hasCS ? ((GatewayEngineImpl) ((ConfigWebPro) config).getGatewayEngine()) : null;
+		// GatewayEngineImpl engine = hasCS ? ((GatewayEngineImpl) ((ConfigWebPro)
+		// config).getGatewayEngine()) : null;
 		Map<String, GatewayEntry> mapGateways = new HashMap<String, GatewayEntry>();
 
 		// get from server context
 		if (hasCS) {
+
 			Map<String, GatewayEntry> entries = configServer.getGatewayEntries();
 			if (entries != null && !entries.isEmpty()) {
 				Iterator<Entry<String, GatewayEntry>> it = entries.entrySet().iterator();
@@ -2691,7 +2699,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 				while (it.hasNext()) {
 					try {
 						e = it.next();
-						mapGateways.put(e.getKey(), ((GatewayEntryImpl) e.getValue()).duplicateReadOnly(engine));
+						mapGateways.put(e.getKey(), ((GatewayEntryImpl) e.getValue()).duplicateReadOnly());
 					}
 					catch (Throwable th) {
 						ExceptionUtil.rethrowIfNecessary(th);
@@ -2700,6 +2708,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 				}
 			}
 		}
+
 		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManagerImpl.TYPE_GATEWAY);
 		GatewayEntry ge;
 		// cache connections
@@ -2722,7 +2731,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 						if (eConnection == null) continue;
 						id = e.getKey().getLowerString();
 
-						ge = new GatewayEntryImpl(engine, id, getClassDefinition(eConnection, "", config.getIdentification()), getAttr(eConnection, "cfcPath"),
+						ge = new GatewayEntryImpl(id, getClassDefinition(eConnection, "", config.getIdentification()), getAttr(eConnection, "cfcPath"),
 								getAttr(eConnection, "listenerCFCPath"), getAttr(eConnection, "startupMode"), toStruct(getAttr(eConnection, "custom")),
 								Caster.toBooleanValue(getAttr(eConnection, "readOnly"), false));
 
@@ -4778,6 +4787,10 @@ public final class ConfigWebFactory extends ConfigFactory {
 	 */
 	private static void _loadExtensionBundles(ConfigServerImpl cs, ConfigImpl config, Struct root, Log log) {
 		try {
+			boolean changed = false;
+			if (config instanceof ConfigServer) {
+				changed = ConfigFactory.modeChange(config.getConfigDir(), config.getAdminMode() == ConfigImpl.ADMINMODE_MULTI ? "multi" : "single", false);
+			}
 			Array children = ConfigWebUtil.getAsArray("extensions", root);
 			RHExtension.removeDuplicates(children);
 			String strBundles;
@@ -4800,7 +4813,8 @@ public final class ConfigWebFactory extends ConfigFactory {
 					if (StringUtil.isEmpty(res)) res = Caster.toString(child.get(KeyConstants._path, null), null);
 					if (StringUtil.isEmpty(res)) res = Caster.toString(child.get(KeyConstants._url, null), null);
 
-					rhe = new RHExtension(config, id, Caster.toString(child.get(KeyConstants._version, null), null), res, true);
+					rhe = new RHExtension(config, id, Caster.toString(child.get(KeyConstants._version, null), null), res,
+							changed ? RHExtension.INSTALL_OPTION_FORCE : RHExtension.INSTALL_OPTION_IF_NECESSARY);
 					if (rhe.getStartBundles()) rhe.deployBundles(config);
 					extensions.add(rhe);
 				}

@@ -104,6 +104,27 @@ public abstract class ConfigFactory {
 		return UpdateInfo.NEW_NONE;
 	}
 
+	public static boolean modeChange(Resource configDir, final String mode, final boolean readOnly) throws IOException {
+		String strOldVersion;
+		final Resource resOldVersion = configDir.getRealResource("mode");
+		// fresh install
+		if (!resOldVersion.exists()) {
+			if (!readOnly) {
+				resOldVersion.createNewFile();
+				IOUtil.write(resOldVersion, mode, SystemUtil.getCharset(), false);
+			}
+			return false;
+		}
+		// changed
+		else if (!(strOldVersion = IOUtil.toString(resOldVersion, SystemUtil.getCharset())).equals(mode)) {
+			if (!readOnly) {
+				IOUtil.write(resOldVersion, mode, SystemUtil.getCharset(), false);
+			}
+			return true;
+		}
+		return false;
+	}
+
 	public static class UpdateInfo {
 
 		public static final UpdateInfo NEW_NONE = new UpdateInfo(ConfigWebFactory.NEW_NONE);

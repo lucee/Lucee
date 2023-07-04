@@ -46,12 +46,11 @@ public class GatewayEntryImpl implements GatewayEntry {
 	private final int startupMode;
 	private final String cfcPath;
 	private final ClassDefinition classDefintion;
-	private final GatewayEngine engine;
 
 	private Gateway gateway;
 
-	public GatewayEntryImpl(GatewayEngine engine, String id, ClassDefinition cd, String cfcPath, String listenerCfcPath, String startupMode, Struct custom, boolean readOnly) {
-		this(engine, id, cd, cfcPath, listenerCfcPath, toStartupMode(startupMode), custom, readOnly);
+	public GatewayEntryImpl(String id, ClassDefinition cd, String cfcPath, String listenerCfcPath, String startupMode, Struct custom, boolean readOnly) {
+		this(id, cd, cfcPath, listenerCfcPath, toStartupMode(startupMode), custom, readOnly);
 	}
 
 	private static int toStartupMode(String startupMode) {
@@ -61,8 +60,7 @@ public class GatewayEntryImpl implements GatewayEntry {
 		else return STARTUP_MODE_AUTOMATIC;
 	}
 
-	private GatewayEntryImpl(GatewayEngine engine, String id, ClassDefinition cd, String cfcPath, String listenerCfcPath, int startupMode, Struct custom, boolean readOnly) {
-		this.engine = engine;
+	private GatewayEntryImpl(String id, ClassDefinition cd, String cfcPath, String listenerCfcPath, int startupMode, Struct custom, boolean readOnly) {
 		this.id = id;
 		this.listenerCfcPath = listenerCfcPath;
 		this.classDefintion = cd;
@@ -79,7 +77,7 @@ public class GatewayEntryImpl implements GatewayEntry {
 	 * @throws BundleException
 	 */
 	@Override
-	public void createGateway(Config config) throws ClassException, PageException, BundleException {
+	public void createGateway(GatewayEngine engine, Config config) throws ClassException, PageException, BundleException {
 		// TODO config is ignored here???
 		if (gateway == null) {
 			if (classDefintion != null && classDefintion.hasClass()) {
@@ -207,7 +205,7 @@ public class GatewayEntryImpl implements GatewayEntry {
 		return false;
 	}
 
-	public GatewayEntry duplicateReadOnly(GatewayEngine engine) {
-		return new GatewayEntryImpl(engine, id, classDefintion, cfcPath, listenerCfcPath, startupMode, custom, true);
+	public GatewayEntry duplicateReadOnly() {
+		return new GatewayEntryImpl(id, classDefintion, cfcPath, listenerCfcPath, startupMode, custom, true);
 	}
 }

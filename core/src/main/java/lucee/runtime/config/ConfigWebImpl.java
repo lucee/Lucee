@@ -39,7 +39,7 @@ public class ConfigWebImpl implements ConfigWebPro {
 	}
 
 	@Override
-	public lucee.runtime.gateway.GatewayEngine getGatewayEngine() {
+	public lucee.runtime.gateway.GatewayEngine getGatewayEngine() throws PageException {
 		return instance.getGatewayEngine();
 	}
 
@@ -1464,8 +1464,8 @@ public class ConfigWebImpl implements ConfigWebPro {
 		return instance.getServerPasswordSalt();
 	}
 
-	protected void setGatewayEntries(java.util.Map arg0) {
-		if (instance instanceof MultiContextConfigWeb) ((MultiContextConfigWeb) instance).setGatewayEntries(arg0);
+	protected void setGatewayEntries(java.util.Map entries) {
+		if (instance instanceof MultiContextConfigWeb) ((MultiContextConfigWeb) instance).setGatewayEntries(entries);
 
 	}
 

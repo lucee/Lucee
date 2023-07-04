@@ -32,6 +32,7 @@ import lucee.runtime.debug.DebuggerPool;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.gateway.GatewayEngineImpl;
+import lucee.runtime.gateway.GatewayEntry;
 import lucee.runtime.lock.LockManager;
 import lucee.runtime.lock.LockManagerImpl;
 import lucee.runtime.net.amf.AMFEngine;
@@ -185,9 +186,15 @@ public class ConfigWebHelper {
 		serverFunctionMappings = null;
 	}
 
-	public GatewayEngineImpl getGatewayEngineImpl() {
+	public GatewayEngineImpl getGatewayEngineImpl(Map<String, GatewayEntry> entries) throws PageException {
 		if (gatewayEngine == null) {
 			gatewayEngine = new GatewayEngineImpl(cw);
+			try {
+				gatewayEngine.addEntries(cw, entries);
+			}
+			catch (Exception e) {
+				throw Caster.toPageException(e);
+			}
 		}
 		return gatewayEngine;
 	}
