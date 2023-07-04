@@ -20,6 +20,7 @@
   <property name="extH2"          value="465E1E35-2425-4F4E-8B3FAB638BD7280A;bundle-version=2.1.214.0001L"/>
   <property name="extOracle"          value="D4EDFDBD-A9A3-E9AF-597322D767E0C949;bundle-version=11.2.0.4"/>
   <property name="extJson"          value="A03F4335-BDEF-44DE-946FB16C47802F96"/>
+  <property name="extHibernate" value="FAD1E8CB-4F45-4184-86359145767C29DE;version=3.5.5.89"/>
 
   <property name="stableLoader" value="lucee-5.3.7.48"/>
   <property name="cdnUrl" value="https://cdn.lucee.org/"/>
@@ -372,9 +373,6 @@
     <fail message="Missing data from [Require-Extension] inside ${coreManifest}">
     <condition>
         <or>
-        <!-- Hibernate -->
-        <not><isset property="extHibernate"/></not>
-        <not><isset property="extHibernateVersion"/></not>
         <!-- PDF -->
         <not><isset property="extPDF"/></not>
         <not><isset property="extPDFVersion"/></not>
@@ -552,9 +550,6 @@
   <target name="check-ehcache" depends="check-cache" unless="ehcache.present">
       <get src="${extURL}${extEHCache}?version=${extEHCacheVersion}" dest="${cache}/${extEHCache}-${extEHCacheVersion}.lex"/>
   </target>
-  <target name="check-hibernate" depends="check-cache" unless="hibernate.present">
-      <get src="${extURL}${extHibernate}?version=${extHibernateVersion}" dest="${cache}/${extHibernate}-${extHibernateVersion}.lex"/>
-  </target>
   <target name="check-lucene" depends="check-cache" unless="lucene.present">
       <get src="${extURL}${extLucene}?version=${extLuceneVersion}" dest="${cache}/${extLucene}-${extLuceneVersion}.lex"/>
   </target>
@@ -590,7 +585,7 @@
   </target> 
 
 
-  <target name="check" depends="check-mysql,check-mssql,check-postgre,check-jdts,check-chart,check-s3,check-ehcache,check-hibernate,check-pdf,check-admin,check-doc,check-form,check-image,check-esapi,check-ajax,check-compress,check-testbox,check-lucee-loader-jar,download-lucee-loader-jar">
+  <target name="check" depends="check-mysql,check-mssql,check-postgre,check-jdts,check-chart,check-s3,check-ehcache,check-pdf,check-admin,check-doc,check-form,check-image,check-esapi,check-ajax,check-compress,check-testbox,check-lucee-loader-jar,download-lucee-loader-jar">
     
     <mkdir dir="${temp}/loader/extensions/"/>
 
@@ -891,7 +886,7 @@
       <jvmarg value="-DindividualStorageKeys=false"/>
       <jvmarg value="-Dlucee.base.dir=${temp}/archive/base"/>
       <jvmarg value="-Dlucee.web.dir=${temp}/archive/webroot"/>
-      <jvmarg value="-Dlucee-extensions=${extH2},${extMongo},${extJson}"/>
+      <jvmarg value="-Dlucee-extensions=${extH2},${extMongo},${extJson},${extHibernate}"/>
       <jvmarg value="-Dlucee.enable.dialect=true"/>
       <jvmarg value="-Dlucee.extensions.install=true"/>
       <jvmarg value="-Dlucee.enable.bundle.download=true"/>
@@ -1111,19 +1106,7 @@
       tofile="${goal}/extensions/${ext_ehcache.filename}"/>
     <echo>add:${goal}/extensions/${ext_ehcache.filename}</echo>
     <echo file="${goal}/extensions/.index" append="true">${ext_ehcache.filename};</echo>
-    
-    <!-- add extension Hibernate -->
-    <loadmf jar="${cache}/${extHibernate}-${extHibernateVersion}.lex" prefix="ext_hibernate."/>
-    <toFileName id="${ext_hibernate.id}" name="${ext_hibernate.name}" version="${ext_hibernate.version}" property="ext_hibernate.filename"/>
-    <copy 
-      file="${cache}/${extHibernate}-${extHibernateVersion}.lex" 
-      todir="${goal}/extensions/"/>
-    <move 
-      file="${goal}/extensions/${extHibernate}-${extHibernateVersion}.lex" 
-      tofile="${goal}/extensions/${ext_hibernate.filename}"/>
-    <echo>add:${goal}/extensions/${ext_hibernate.filename}</echo>
-    <echo file="${goal}/extensions/.index" append="true">${ext_hibernate.filename};</echo>
-    
+
     <!-- add extension Lucene 
     <loadmf jar="${cache}/${extLucene}-${extLuceneVersion}.lex" prefix="ext_lucene."/>
     <toFileName id="${ext_lucene.id}" name="${ext_lucene.name}" version="${ext_lucene.version}" property="ext_lucene.filename"/>
