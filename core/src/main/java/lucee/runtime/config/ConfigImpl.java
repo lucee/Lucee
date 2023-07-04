@@ -3768,6 +3768,8 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 
 	private Map<String, ClassDefinition> cacheDefinitions;
 
+	private Map<String, GatewayEntry> gatewayEntries;
+
 	public void setCacheDefinitions(Map<String, ClassDefinition> caches) {
 		this.cacheDefinitions = caches;
 	}
@@ -3787,9 +3789,13 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		return getConfigDir().getRealResource("security/antisamy-basic.xml");
 	}
 
-	protected abstract void setGatewayEntries(Map<String, GatewayEntry> gatewayEntries);
+	public void setGatewayEntries(Map<String, GatewayEntry> gatewayEntries) {
+		this.gatewayEntries = gatewayEntries;
+	}
 
-	public abstract Map<String, GatewayEntry> getGatewayEntries();
+	public Map<String, GatewayEntry> getGatewayEntries() {
+		return gatewayEntries;
+	}
 
 	private ClassDefinition wsHandlerCD;
 	protected WSHandler wsHandler = null;

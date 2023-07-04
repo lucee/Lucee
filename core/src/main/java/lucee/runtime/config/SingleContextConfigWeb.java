@@ -1607,8 +1607,8 @@ class SingleContextConfigWeb extends ConfigBase implements ConfigWebInner {
 	}
 
 	@Override
-	public GatewayEngine getGatewayEngine() {
-		return helper.getGatewayEngineImpl();
+	public GatewayEngine getGatewayEngine() throws PageException {
+		return helper.getGatewayEngineImpl(getGatewayEntries());
 	}
 
 	@Override

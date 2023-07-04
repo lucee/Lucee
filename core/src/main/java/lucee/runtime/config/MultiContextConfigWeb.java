@@ -31,7 +31,6 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.jsp.JspWriter;
 
 import lucee.commons.io.SystemUtil;
-import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourceProvider;
 import lucee.commons.io.res.ResourcesImpl;
@@ -53,7 +52,6 @@ import lucee.runtime.exp.SecurityException;
 import lucee.runtime.extension.ExtensionDefintion;
 import lucee.runtime.extension.RHExtension;
 import lucee.runtime.gateway.GatewayEngine;
-import lucee.runtime.gateway.GatewayEntry;
 import lucee.runtime.lock.LockManager;
 import lucee.runtime.monitor.ActionMonitor;
 import lucee.runtime.monitor.ActionMonitorCollector;
@@ -305,23 +303,8 @@ class MultiContextConfigWeb extends ConfigImpl implements ServletConfig, ConfigW
 	}
 
 	@Override
-	public Map<String, GatewayEntry> getGatewayEntries() {
-		return helper.getGatewayEngineImpl().getEntries();
-	}
-
-	@Override
-	protected void setGatewayEntries(Map<String, GatewayEntry> gatewayEntries) {
-		try {
-			helper.getGatewayEngineImpl().addEntries(this, gatewayEntries);
-		}
-		catch (Exception e) {
-			LogUtil.log(this, MultiContextConfigWeb.class.getName(), e);
-		}
-	}
-
-	@Override
-	public GatewayEngine getGatewayEngine() {
-		return helper.getGatewayEngineImpl();
+	public GatewayEngine getGatewayEngine() throws PageException {
+		return helper.getGatewayEngineImpl(getGatewayEntries());
 	}
 
 	@Override

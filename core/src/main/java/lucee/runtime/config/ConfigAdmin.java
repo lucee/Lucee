@@ -2378,7 +2378,7 @@ public final class ConfigAdmin {
 		}
 	}
 
-	private void _removeGatewayEntry(ConfigWebPro cw, String name) {
+	private void _removeGatewayEntry(ConfigWebPro cw, String name) throws PageException {
 		GatewayEngineImpl engine = (GatewayEngineImpl) cw.getGatewayEngine();
 		Map<String, GatewayEntry> conns = engine.getEntries();
 		GatewayEntry ge = conns.get(name);
@@ -4360,7 +4360,8 @@ public final class ConfigAdmin {
 			if (child == null) continue;
 
 			try {
-				rhe = new RHExtension(config, Caster.toString(child.get(KeyConstants._id), null), Caster.toString(child.get(KeyConstants._version), null), null, false);
+				rhe = new RHExtension(config, Caster.toString(child.get(KeyConstants._id), null), Caster.toString(child.get(KeyConstants._version), null), null,
+						RHExtension.INSTALL_OPTION_NOT);
 			}
 			catch (Throwable t) {
 				ExceptionUtil.rethrowIfNecessary(t);
@@ -4500,20 +4501,20 @@ public final class ConfigAdmin {
 		}
 	}
 
-	public static void _updateRHExtension(ConfigPro config, Resource ext, boolean reload, boolean force) throws PageException {
+	public static void _updateRHExtension(ConfigPro config, Resource ext, boolean reload, boolean force, boolean moveIfNecessary) throws PageException {
 		try {
 			ConfigAdmin admin = new ConfigAdmin(config, null);
-			admin.updateRHExtension(config, ext, reload, force);
+			admin.updateRHExtension(config, ext, reload, force, moveIfNecessary);
 		}
 		catch (Exception e) {
 			throw Caster.toPageException(e);
 		}
 	}
 
-	public void updateRHExtension(Config config, Resource ext, boolean reload, boolean force) throws PageException {
+	public void updateRHExtension(Config config, Resource ext, boolean reload, boolean force, boolean moveIfNecessary) throws PageException {
 		RHExtension rhext;
 		try {
-			rhext = new RHExtension(config, ext, true);
+			rhext = new RHExtension(config, ext, moveIfNecessary);
 			rhext.validate();
 		}
 		catch (Throwable t) {
@@ -5208,7 +5209,7 @@ public final class ConfigAdmin {
 			ExceptionUtil.rethrowIfNecessary(t);
 			// failed to uninstall, so we install it again
 			try {
-				updateRHExtension(config, rhe.getExtensionFile(), true, true);
+				updateRHExtension(config, rhe.getExtensionFile(), true, true, true);
 				// RHExtension.install(config, rhe.getExtensionFile());
 			}
 			catch (Throwable t2) {
@@ -6292,7 +6293,7 @@ public final class ConfigAdmin {
 				if (!id.equals(_id)) continue;
 
 				try {
-					return new RHExtension(config, _id, Caster.toString(tmp.get(KeyConstants._version), null), null, false);
+					return new RHExtension(config, _id, Caster.toString(tmp.get(KeyConstants._version), null), null, RHExtension.INSTALL_OPTION_NOT);
 				}
 				catch (Exception e) {
 					return defaultValue;
@@ -6331,7 +6332,7 @@ public final class ConfigAdmin {
 				v = Caster.toString(sct.get(KeyConstants._version, null), null);
 				if (!RHExtension.isInstalled(config, id, v)) continue;
 
-				if (ed.equals(new ExtensionDefintion(id, v))) return new RHExtension(config, id, v, null, false);
+				if (ed.equals(new ExtensionDefintion(id, v))) return new RHExtension(config, id, v, null, RHExtension.INSTALL_OPTION_NOT);
 			}
 			return null;
 		}

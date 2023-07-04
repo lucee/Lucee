@@ -56,7 +56,7 @@ public interface ConfigWebPro extends ConfigWeb, ConfigPro {
 
 	public WSHandler getWSHandler() throws PageException;
 
-	public GatewayEngine getGatewayEngine();
+	public GatewayEngine getGatewayEngine() throws PageException;
 
 	public CFMLCompilerImpl getCompiler();
 

@@ -102,6 +102,10 @@ import lucee.runtime.type.util.ListUtil;
  */
 public class RHExtension implements Serializable {
 
+	public static final short INSTALL_OPTION_NOT = 0;
+	public static final short INSTALL_OPTION_IF_NECESSARY = 1;
+	public static final short INSTALL_OPTION_FORCE = 2;
+
 	private static final long serialVersionUID = 2904020095330689714L;
 
 	private static final Key BUNDLES = KeyImpl.getInstance("bundles");
@@ -214,17 +218,18 @@ public class RHExtension implements Serializable {
 		return res != null && res.isFile();
 	}
 
-	public RHExtension(ConfigPro config, String id, String version, String resource, boolean installIfNecessary)
-			throws PageException, IOException, BundleException, ConverterException {
+	public RHExtension(ConfigPro config, String id, String version, String resource, short installOption) throws PageException, IOException, BundleException, ConverterException {
 		this.config = config;
 		// we have a newer version that holds the Manifest data
 		Resource res;
-		if (installIfNecessary) {
+		if (installOption != INSTALL_OPTION_NOT) {
 			res = StringUtil.isEmpty(version) ? null : toResource(config, id, version, null);
-
-			if (res == null) {
+			if (installOption == INSTALL_OPTION_FORCE) {
+				DeployHandler.deployExtension(config, res, false, true, false);
+			}
+			else if (res == null) {
 				if (!StringUtil.isEmpty(resource) && (res = ResourceUtil.toResourceExisting(config, resource, null)) != null) {
-					DeployHandler.deployExtension(config, res);
+					DeployHandler.deployExtension(config, res, false, true, true);
 				}
 				else {
 					DeployHandler.deployExtension(config, new ExtensionDefintion(id, version), null, false, true, true);
@@ -846,7 +851,7 @@ public class RHExtension implements Serializable {
 					}
 				}
 			}
-			ConfigAdmin._updateRHExtension((ConfigPro) config, resources[i], true, true);
+			ConfigAdmin._updateRHExtension((ConfigPro) config, resources[i], true, true, true);
 		}
 	}
 

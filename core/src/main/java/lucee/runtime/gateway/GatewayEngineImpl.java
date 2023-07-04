@@ -101,7 +101,7 @@ public class GatewayEngineImpl implements GatewayEngine {
 	}
 
 	private GatewayEntry load(Config config, GatewayEntry ge) throws ClassException, PageException, BundleException {
-		ge.createGateway(config);
+		ge.createGateway(this, config);
 		return ge;
 	}
 
@@ -187,6 +187,12 @@ public class GatewayEngineImpl implements GatewayEngine {
 			if (g.getState() != Gateway.RUNNING && g.getState() != Gateway.STARTING) {
 				start(g);
 			}
+		}
+	}
+
+	public void stop() {
+		for (GatewayEntry ge: entries.values()) {
+			stop(ge.getGateway());
 		}
 	}
 
