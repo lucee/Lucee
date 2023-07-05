@@ -163,7 +163,7 @@ public final class HSQLDBHandler {
 					else if (type == TIMESTAMP)
 						prepStat.setTimestamp(i + 1, (value.equals("")) ? null : new Timestamp(DateCaster.toDateAdvanced(query.getAt(keys[i], y + 1), pc.getTimeZone()).getTime()));
 					else if (type == DOUBLE) prepStat.setDouble(i + 1, (value.equals("")) ? 0 : Caster.toDoubleValue(query.getAt(keys[i], y + 1)));
-					else if (type == INT) prepStat.setLong(i + 1, (value.equals("")) ? 0 : Caster.toLongValue(query.getAt(keys[i], y + 1)));
+					else if (type == INT) prepStat.setInt(i + 1, (value.equals("")) ? 0 : Caster.toIntValue(query.getAt(keys[i], y + 1)));
 					else if (type == STRING) prepStat.setObject(i + 1, Caster.toString(value));
 				}
 
@@ -390,7 +390,9 @@ public final class HSQLDBHandler {
 					DBUtil.setReadOnlyEL(conn, true);
 					try {
 						nqr = new QueryImpl(pc, dc, sql, maxrows, fetchsize, timeout, "query", null, false, false, null);
-					}
+					} catch (PageException pe) {
+						throw pe;
+					}	
 					finally {
 						DBUtil.setReadOnlyEL(conn, false);
 						DBUtil.commitEL(conn);
@@ -399,9 +401,8 @@ public final class HSQLDBHandler {
 
 				}
 				catch (SQLException e) {
-					DatabaseException de = new DatabaseException("QoQ HSQLDB: error executing sql statement on query [" + e.getMessage() + "]", null , sql, null);
-					de.setDetail(e.getMessage());
-					throw de;
+					throw (IllegalQoQException) (new IllegalQoQException("QoQ HSQLDB: error executing sql statement on query.", e.getMessage(), sql, null)
+							.initCause(e));
 				}
 
 			}
