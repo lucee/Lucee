@@ -120,7 +120,8 @@ public final class HSQLDBHandler {
 		int[] innerTypes = toInnerTypes(types);
 
 		String comma = "";
-		String escape = "\""; // use double qoutes around column and tables names to avoid problems with reserved words
+		//String escape = "\""; // use double qoutes around column and tables names to avoid problems with reserved words
+		String escape = "";
 
 		// TODO use DECLARE LOCAL TEMPORARY TABLE
 		StringBuilder create = new StringBuilder("CREATE TABLE ").append(escape).append(StringUtil.toUpperCase(dbTableName)).append(escape).append(" (");
@@ -167,7 +168,8 @@ public final class HSQLDBHandler {
 		int[] srcQueryTypes = toInnerTypes(srcTypes);
 		int[] targetTypes = new int[srcTypes.length]; // track the type in the target table, which maybe a subset of the columns in the source table
 		String comma = "";
-		String escape = "\"";
+		//String escape = "\"";
+		String escape = "";
 
 		StringBuilder insert = new StringBuilder("INSERT INTO  ").append(escape).append(StringUtil.toUpperCase(dbTableName)).append(escape).append(" (");
 		StringBuilder values = new StringBuilder("VALUES (");
@@ -197,8 +199,8 @@ public final class HSQLDBHandler {
 			return;
 		}
 
-		//SystemOut.print("SQL: " + Caster.toString(insert));
-		//SystemOut.print("SQL: " + Caster.toString(values));
+		SystemOut.print("SQL: " + Caster.toString(insert));
+		SystemOut.print("SQL: " + Caster.toString(values));
 
 		// INSERT STATEMENT
 		// HashMap integerTypes=getIntegerTypes(types);
@@ -217,15 +219,14 @@ public final class HSQLDBHandler {
 		for (int i = 0; i < count; i++) {
 			columns[i] = query.getColumn(targetCols.get(i));
 		}
-		//aprint.o(query);
-		/*
+		aprint.o(query);
 		aprint.o(query);
 		aprint.o(tableCols);
 		aprint.o(srcTypes);
 		aprint.o(srcQueryTypes);
 		aprint.o(targetTypes);
 		aprint.o(targetCols);
-		 */
+
 		for (int y = 0; y < rows; y++) {
 			for (int i = 0; i < count; i++) {
 				int type = targetTypes[i];
@@ -387,7 +388,7 @@ public final class HSQLDBHandler {
 		// if VIEW_COLUMN_USAGE doesn't contain all the columns required, we could use the QoQ parser?
 		try {
 			Statement stat = conn.createStatement();
-			stat.execute("CREATE VIEW " + view + " AS " + sql.toString());
+			stat.execute("CREATE VIEW " + view + " AS "  + sql.toString() ); // + StringUtil.toUpperCase(sql.toString()));
 
 			StringBuilder viewUsage = new StringBuilder("SELECT COLUMN_NAME, TABLE_NAME ");
 			viewUsage.append("FROM INFORMATION_SCHEMA.VIEW_COLUMN_USAGE WHERE VIEW_NAME='");
@@ -415,12 +416,12 @@ public final class HSQLDBHandler {
 				Struct tableCols = ((Struct) tables.get(tableName));
 				tableCols.setEL(Caster.toKey(rs.getString(colPos)), null);
 			}
-			//aprint.o(rs);
+			aprint.o(rs);
 			//aprint.o(tables);
 			// don't need the view anymore, bye bye
 			stat.execute("DROP VIEW " + view);
 		} catch (Exception e) {
-			//aprint.o(e.getMessage());
+			aprint.o(e.getMessage());
 			SystemOut.print("VIEW Exception, fall back to loading all data: [" + e.toString() + "], sql [" + sql.toString() + "]");
 			tables = null; // give up trying to be smart
 		} finally {
