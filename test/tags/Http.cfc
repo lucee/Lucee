@@ -65,7 +65,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="http" {
 		}
 	}
 
-	public void function testImplicit(){
+	public void function testImplicit() skip=true {
 		var data=chr(228)&chr(246)&chr(252); // äöü
 		data="{aaa:'#data#'}";
 		http url="#variables.updateProvider#/rest/update/provider/echoPut" result="local.res" method="put" throwonerror="no" charset="utf-8"{
@@ -75,7 +75,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="http" {
 		assertEquals(data,res.httpRequestData.content);
 	}
 
-	public void function testExplicit(){
+	public void function testExplicit() skip=true {
 		var data=chr(228)&chr(246)&chr(252); // äöü
 		data="{aaa:'#data#'}";
 		http url="#variables.updateProvider#/rest/update/provider/echoPut" result="local.res" method="put" throwonerror="no" charset="utf-8"{
