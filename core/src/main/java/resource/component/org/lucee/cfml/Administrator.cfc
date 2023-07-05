@@ -336,6 +336,7 @@ component {
 	* @customJdbcCompliantTruncation If set to false then values for table fields are automatically truncated so that they fit into the field.
 	* @customTinyInt1isBit if set to "true" (default) tinyInt(1) is converted to a bit value otherwise as integer.
 	* @customUseLegacyDatetimeCode Use code for DATE/TIME/DATETIME/TIMESTAMP handling in result sets and statements
+	* @requestExclusive Use to keep DB connections open, using 'Exclusive connections for request' checkbox, in the Lucee Server Admin
 	* @verify whether connection needs to be verified
 	*/
 	public void function updateDatasource(
@@ -378,7 +379,8 @@ component {
 		boolean customAutoReconnect=false,
 		boolean customJdbcCompliantTruncation=false,
 		boolean customTinyInt1isBit=false,
-		boolean customUseLegacyDatetimeCode=false
+		boolean customUseLegacyDatetimeCode=false,
+		boolean requestExclusive=false
 	){
 
 		var driverNames=structnew("linked");
@@ -441,7 +443,8 @@ component {
 			verify="#arguments.verify#"
 			custom="#arguments.custom#"
 			dbdriver="#arguments.type#"
-			remoteClients="#variables.remoteClients#";
+			remoteClients="#variables.remoteClients#"
+			requestExclusive="#getArguments(arguments, 'requestExclusive',false)#";
 	}
 
 	/**
