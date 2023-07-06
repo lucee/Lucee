@@ -38,6 +38,8 @@ import lucee.runtime.type.QueryImpl;
 import lucee.runtime.type.dt.TimeSpan;
 import lucee.runtime.type.util.CollectionUtil;
 
+//import lucee.commons.lang.SystemOut;
+
 /**
  * class to reexecute queries on the resultset object inside the cfml environment
  */
@@ -106,6 +108,7 @@ public final class HSQLDBHandler {
 		create.append(")");
 		insert.append(")");
 		values.append(")");
+		// SystemOut.print("SQL: " + Caster.toString(create));
 		stat.execute(create.toString());
 		PreparedStatement prepStat = conn.prepareStatement(insert.toString() + values.toString());
 
@@ -172,7 +175,7 @@ public final class HSQLDBHandler {
 	}
 
 	private static String toUsableType(int type) {
-		if (type == Types.NCHAR) return "CHAR";
+		if (type == Types.NCHAR || type == Types.CHAR) return "VARCHAR_IGNORECASE";
 		if (type == Types.NCLOB) return "CLOB";
 		if (type == Types.NVARCHAR) return "VARCHAR_IGNORECASE";
 		if (type == Types.VARCHAR) return "VARCHAR_IGNORECASE";
