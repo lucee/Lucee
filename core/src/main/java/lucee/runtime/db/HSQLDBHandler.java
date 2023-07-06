@@ -191,7 +191,7 @@ public final class HSQLDBHandler {
 	}
 
 	private static String toUsableType(int type) {
-		if (type == Types.NCHAR) return "CHAR";
+		if (type == Types.NCHAR || type == Types.CHAR) return "VARCHAR_IGNORECASE";
 		if (type == Types.NCLOB) return "CLOB";
 		if (type == Types.NVARCHAR) return "VARCHAR_IGNORECASE";
 		if (type == Types.VARCHAR) return "VARCHAR_IGNORECASE";
