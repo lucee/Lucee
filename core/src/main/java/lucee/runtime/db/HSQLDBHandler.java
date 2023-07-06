@@ -635,6 +635,31 @@ public final class HSQLDBHandler {
 						DBUtil.setAutoCommitEL(conn, true);
 					}
 
+					SystemOut.print("QoQ HSQLDB CREATED TABLES: " + sql.toString());
+
+					// create the sql as a view, to find out which table columns are needed
+					Struct allTableColumns = getUsedColumnsForQuery(conn, sql);
+					Struct tableColumns = null;
+					Key tableKey = null;
+
+					// load data into tables
+					it = tables.iterator();
+					while (it.hasNext()) {
+						cfQueryName = it.next().toString();
+						dbTableName = cfQueryName.replace('.', '_');
+
+						tableKey = Caster.toKey(dbTableName);
+						if (allTableColumns != null && allTableColumns.containsKey(tableKey)){
+							tableColumns = ((Struct) allTableColumns.get(tableKey));
+						} else {
+							tableColumns = null;
+						}
+
+						// only populate tables with data if there are used columns, or no needed column data at all
+						if (tableColumns == null || tableColumns.size() > 0){
+							populateTable(conn, pc, dbTableName, cfQueryName , doSimpleTypes, tableColumns);
+						}
+					}
 				}
 				catch (SQLException e) {
 					throw (IllegalQoQException) (new IllegalQoQException("QoQ HSQLDB: error executing sql statement on query.", e.getMessage(), sql, null)
