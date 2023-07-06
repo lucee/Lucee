@@ -171,6 +171,8 @@ public final class HSQLDBHandler {
 		//String escape = "\"";
 		String escape = "";
 
+		// aprint.o(srcQueryTypes);
+
 		StringBuilder insert = new StringBuilder("INSERT INTO  ").append(escape).append(StringUtil.toUpperCase(dbTableName)).append(escape).append(" (");
 		StringBuilder values = new StringBuilder("VALUES (");
 		Key colName = null;
@@ -252,9 +254,9 @@ public final class HSQLDBHandler {
 					else if (type == TIME)
 						prepStat.setTime(i + 1, (value.equals("")) ? null : new Time(DateCaster.toDateAdvanced(query.getAt(col, y + 1), pc.getTimeZone()).getTime()));
 					else if (type == TIMESTAMP)
-						prepStat.setTimestamp(i + 1, (value.equals("")) ? null : new Timestamp(DateCaster.toDateAdvanced(query.getAt(keys[i], y + 1), pc.getTimeZone()).getTime()));
-					else if (type == DOUBLE) prepStat.setDouble(i + 1, (value.equals("")) ? 0 : Caster.toDoubleValue(query.getAt(keys[i], y + 1)));
-					else if (type == INT) prepStat.setInt(i + 1, (value.equals("")) ? 0 : Caster.toIntValue(query.getAt(keys[i], y + 1)));
+						prepStat.setTimestamp(i + 1, (value.equals("")) ? null : new Timestamp(DateCaster.toDateAdvanced(query.getAt(col, y + 1), pc.getTimeZone()).getTime()));
+					else if (type == DOUBLE) prepStat.setDouble(i + 1, (value.equals("")) ? 0 : Caster.toDoubleValue(query.getAt(col, y + 1)));
+					else if (type == INT) prepStat.setInt(i + 1, (value.equals("")) ? 0 : Caster.toIntValue(query.getAt(col, y + 1)));
 					else if (type == STRING) prepStat.setObject(i + 1, Caster.toString(value));
 					else SystemOut.print("HSQLDB QoQ unsupported type [" + type + " / " + toUsableType(type) + "] at row [" + y + "]");
 				}
@@ -634,43 +636,7 @@ public final class HSQLDBHandler {
 						DBUtil.commitEL(conn);
 						DBUtil.setAutoCommitEL(conn, true);
 					}
-
-					SystemOut.print("QoQ HSQLDB CREATED TABLES: " + sql.toString());
-
-					// create the sql as a view, to find out which table columns are needed
-					Struct allTableColumns = getUsedColumnsForQuery(conn, sql);
-					Struct tableColumns = null;
-					Key tableKey = null;
-
-					// load data into tables
-					it = tables.iterator();
-					while (it.hasNext()) {
-						cfQueryName = it.next().toString();
-						dbTableName = cfQueryName.replace('.', '_');
-
-						tableKey = Caster.toKey(dbTableName);
-						if (allTableColumns != null && allTableColumns.containsKey(tableKey)){
-							tableColumns = ((Struct) allTableColumns.get(tableKey));
-						} else {
-							tableColumns = null;
-						}
-
-						// only populate tables with data if there are used columns, or no needed column data at all
-						if (tableColumns == null || tableColumns.size() > 0){
-							populateTable(conn, pc, dbTableName, cfQueryName , doSimpleTypes, tableColumns);
-						}
-					}
 				}
-				catch (SQLException e) {
-					throw (IllegalQoQException) (new IllegalQoQException("QoQ HSQLDB: error executing sql statement on query.", e.getMessage(), sql, null)
-							.initCause(e));
-				}
-				finally {
-					DBUtil.setReadOnlyEL(conn, false);
-					DBUtil.commitEL(conn);
-					DBUtil.setAutoCommitEL(conn, true);
-				}
-
 			}
 			catch (SQLException e) {
 				throw (IllegalQoQException) (new IllegalQoQException("QoQ HSQLDB: error executing sql statement on query.", e.getMessage(), sql, null)
