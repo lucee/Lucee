@@ -415,6 +415,11 @@ public final class Caster {
 		return d.doubleValue();
 	}
 
+	// do not remove, this is used by the transformer (generated code)
+	public static double toDoubleValue(PageContext pc, String str) throws CasterException {
+		return toDoubleValue(str, false);
+	}
+
 	/**
 	 * cast an Object to a double value (primitive value Type)
 	 * 
