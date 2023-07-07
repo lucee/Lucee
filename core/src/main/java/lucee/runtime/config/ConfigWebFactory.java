@@ -3995,6 +3995,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 			}
 			else {
 				String strLocalMode = getAttr(root, "localMode");
+				if (StringUtil.isEmpty(strLocalMode)) strLocalMode = getAttr(root, "localScopeMode");
 				if (hasAccess && !StringUtil.isEmpty(strLocalMode)) {
 					config.setLocalMode(strLocalMode);
 				}
