@@ -687,7 +687,7 @@ public final class ComponentUtil {
 			if (other.length == 0) return new ExpressionException("component [" + c.getCallName() + "] has no " + strAccess + " function with name [" + key + "]");
 
 			return new ExpressionException("component [" + c.getCallName() + "] has no " + strAccess + " function with name [" + key + "]",
-					"accessible functions are [" + ListUtil.arrayToList(other, ",") + "]");
+					"accessible functions are [" + ListUtil.arrayToList(other, ", ") + "]");
 		}
 		return new ExpressionException("member [" + key + "] of component [" + c.getCallName() + "] is not a function", "Member is of type [" + Caster.toTypeName(member) + "]");
 	}

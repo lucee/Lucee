@@ -218,6 +218,9 @@ jobs:
       with:
         name: Lucee-${{ steps.cleanrefname.outputs.value }}-junit-test-results-${{ github.run_number }}
         path: test/reports/*.xml
+    - name: Remove Lucee build artifacts from local maven cache (avoid growing cache)
+      run: |
+        rm -rfv ~/.m2/repository/org/lucee/lucee/
     - name: Publish Test Results
       uses: EnricoMi/publish-unit-test-result-action@v2
       if: always()
