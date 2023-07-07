@@ -25,9 +25,9 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import lucee.commons.collection.LongKeyList;
+import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
-import lucee.commons.io.SystemUtil;
 import lucee.runtime.config.Config;
 import lucee.runtime.dump.DumpData;
 import lucee.runtime.dump.DumpProperties;
@@ -54,7 +54,7 @@ public final class PageSourcePool implements Dumpable {
 	 */
 	public PageSourcePool() {
 		this.timeout = 10000;
-		this.maxSize =  Caster.toIntValue(SystemUtil.getSystemPropOrEnvVar("lucee.pagePool.maxSize", null),1000);
+		this.maxSize = Caster.toIntValue(SystemUtil.getSystemPropOrEnvVar("lucee.pagePool.maxSize", null), 1000);
 	}
 
 	/**
@@ -164,6 +164,7 @@ public final class PageSourcePool implements Dumpable {
 			LongKeyList list = new LongKeyList();
 			for (int i = 0; i < keys.length; i++) {
 				PageSource ps = getPageSource(keys[i], false);
+				if (ps == null) continue;
 				long updateTime = ps.getLastAccessTime();
 				if (updateTime + timeout < System.currentTimeMillis()) {
 					long add = ((ps.getAccessCount() - 1) * 10000);
