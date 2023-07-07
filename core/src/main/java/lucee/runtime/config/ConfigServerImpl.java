@@ -56,6 +56,8 @@ import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.engine.CFMLEngineImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.engine.ThreadQueue;
+import lucee.runtime.engine.ThreadQueueImpl;
+import lucee.runtime.engine.ThreadQueuePro;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
@@ -377,7 +379,7 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 		return labels;
 	}
 
-	private ThreadQueue threadQueue;
+	private ThreadQueue threadQueue = new ThreadQueueImpl(ThreadQueuePro.MODE_BLOCKING, null); // before the queue is loaded we block all requests
 
 	public ThreadQueue setThreadQueue(ThreadQueue threadQueue) {
 		return this.threadQueue = threadQueue;

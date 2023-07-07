@@ -307,6 +307,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 
 		load(configServer, multiweb, (ConfigWebImpl) configWeb, root, false, doNew, false);
 		createContextFilesPost(configDir, configWeb, servletConfig, false, doNew);
+		((ThreadQueueImpl) configWeb.getThreadQueue()).setMode(configWeb.getQueueEnable() ? ThreadQueuePro.MODE_ENABLED : ThreadQueuePro.MODE_DISABLED);
 
 		// call web.cfc for this context
 		((CFMLEngineImpl) ConfigWebUtil.getEngine(configWeb)).onStart(configWeb, false);
@@ -337,6 +338,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 
 		createContextFiles(configDir, servletConfig, doNew);
 		createContextFilesPost(configDir, configWeb, servletConfig, false, doNew);
+		((ThreadQueueImpl) configWeb.getThreadQueue()).setMode(configWeb.getQueueEnable() ? ThreadQueuePro.MODE_ENABLED : ThreadQueuePro.MODE_DISABLED);
 
 		// call web.cfc for this context
 		((CFMLEngineImpl) ConfigWebUtil.getEngine(configWeb)).onStart(configWeb, false);
@@ -451,6 +453,8 @@ public final class ConfigWebFactory extends ConfigFactory {
 		// TODO handle differtly
 		load(cs, mcw, cwi, root, true, doNew, false);
 		createContextFilesPost(configDir, cwi, null, false, doNew);
+
+		((ThreadQueueImpl) cwi.getThreadQueue()).setMode(cwi.getQueueEnable() ? ThreadQueuePro.MODE_ENABLED : ThreadQueuePro.MODE_DISABLED);
 
 		((CFMLEngineImpl) ConfigWebUtil.getEngine(cwi)).onStart(cwi, true);
 
@@ -3850,7 +3854,8 @@ public final class ConfigWebFactory extends ConfigFactory {
 				if (enable == null) enable = Caster.toBoolean(getAttr(root, "requestQueueEnable"), null);
 				config.setQueueEnable(Caster.toBooleanValue(enable, false));
 
-				((ConfigServerImpl) config).setThreadQueue(new ThreadQueueImpl(config.getQueueEnable() ? ThreadQueuePro.MODE_ENABLED : ThreadQueuePro.MODE_DISABLED, null));
+				// ((ConfigServerImpl) config).setThreadQueue(new ThreadQueueImpl(config.getQueueEnable() ?
+				// ThreadQueuePro.MODE_ENABLED : ThreadQueuePro.MODE_DISABLED, null));
 			}
 			// Web
 			else {
