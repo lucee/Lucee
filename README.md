@@ -65,7 +65,7 @@ The Lucee team “treats slowness as a bug". Many performance tests have shown L
 
 Lucee attempts to resolve many inconsistencies found in traditional CFML; either forcing changes in language behavior, or providing configurable options in the Lucee Administrator.
 
-For more peruse the [Lucee Manifesto](http://lang.lucee.org/t/lucee-manifesto/183).
+For more peruse the [Lucee Manifesto](https://dev.lucee.org/t/lucee-manifesto/183).
 
 The Lucee team is always open to feedback and active at CFML community events, and is keen to remind people that Lucee is a community project.
 
@@ -103,7 +103,7 @@ Support this project by becoming a sponsor. Your logo will show up here with a l
 Copyright 2006-2014 Various contributing authors
 Copyright 2015-2021 Lucee Association Switzerland
 
-The Lucee code base was forked from the [Railo Server Project](https://en.wikipedia.org/wiki/Railo) (Version 4.2) in January 2015. The Lucee Association Switzerland  (LAS) is the legal custodian of the code base, and contributors are required accept the [LAS Contributor License Agreement (CLA)](http://lang.lucee.org/t/las-contributor-license-agreement-cla/181).
+The Lucee code base was forked from the [Railo Server Project](https://en.wikipedia.org/wiki/Railo) (Version 4.2) in January 2015. The Lucee Association Switzerland  (LAS) is the legal custodian of the code base, and contributors are required accept the [LAS Contributor License Agreement (CLA)](https://dev.lucee.org/t/las-contributor-license-agreement-cla/181).
 
 Lucee Server is licensed under the Lesser GNU General Public License Version 2.1 (or later); you may not use this work except in compliance with the License. You may obtain a copy of the License in the LICENSE file, or at:
 [http://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt](https://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt)
