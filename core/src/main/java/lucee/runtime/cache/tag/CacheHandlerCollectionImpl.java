@@ -222,8 +222,8 @@ public class CacheHandlerCollectionImpl implements CacheHandlerCollection {
 	}
 
 	public static String createId(UDFImpl udf, Object[] args, Struct values) {
-		String src = udf.getSource();
-		StringBuilder sb = new StringBuilder().append(src == null ? "" : src).append(CACHE_DEL).append(udf.properties.getStartLine()).append(CACHE_DEL)
+		// String src = udf.getSource();
+		StringBuilder sb = new StringBuilder().append(udf.hashCode()).append(CACHE_DEL).append(udf.properties.getStartLine()).append(CACHE_DEL)
 				.append(udf.getFunctionName()).append(CACHE_DEL);
 		createIdArgs(udf, sb, args, values);
 		return HashUtil.create64BitHashAsString(sb, Character.MAX_RADIX);
