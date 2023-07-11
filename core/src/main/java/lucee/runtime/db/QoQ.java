@@ -355,7 +355,7 @@ public final class QoQ {
 		}
 
 		// Initialize our object to track the partitions
-		QueryPartitions queryPartitions = new QueryPartitions(sql, selectExpressions, new Expression[0], newTarget, new HashSet<String>(), this);
+		QueryPartitions queryPartitions = new QueryPartitions(sql, selectExpressions, new Expression[0], newTarget, new HashSet<Key>(), this);
 
 		// Add in all the rows from our previous work
 		for (int row = 1; row <= previous.getRecordcount(); row++) {

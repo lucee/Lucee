@@ -4,17 +4,17 @@
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either 
+ * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public 
+ *
+ * You should have received a copy of the GNU Lesser General Public
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  **/
 package lucee.runtime.sql;
 
@@ -64,7 +64,7 @@ public class QueryPartitions {
 
 	/**
 	 * Constructor
-	 * 
+	 *
 	 * @param sql
 	 * @param columns
 	 * @param groupbys
@@ -73,7 +73,7 @@ public class QueryPartitions {
 	 * @param qoQ
 	 * @throws PageException
 	 */
-	public QueryPartitions(SQL sql, Expression[] columns, Expression[] groupbys, Query target, Set<String> additionalColumns, QoQ qoQ) throws PageException {
+	public QueryPartitions(SQL sql, Expression[] columns, Expression[] groupbys, Query target, Set<Key> additionalColumns, QoQ qoQ) throws PageException {
 		this.sql = sql;
 		this.qoQ = qoQ;
 		this.columns = columns;
@@ -93,8 +93,8 @@ public class QueryPartitions {
 
 		// Convert these strings to Keys now so we don't do it over and over later
 		this.additionalColumns = new HashSet<Collection.Key>();
-		for (String col: additionalColumns) {
-			this.additionalColumns.add(Caster.toKey(col));
+		for (Key col: additionalColumns) {
+			this.additionalColumns.add(col);
 		}
 		// Convert these Expression aliases to Keys now so we don't do it over and over later
 		this.columnKeys = new Collection.Key[columns.length];
@@ -105,9 +105,9 @@ public class QueryPartitions {
 
 	/**
 	 * Adds empty partition for aggregating empty results
-	 * 
+	 *
 	 * @param source Source query to get data from
-	 * @param target target query (for column reference) 
+	 * @param target target query (for column reference)
 	 * @throws PageException
 	 */
 	public void addEmptyPartition( Query source, Query target ) throws PageException {
@@ -117,7 +117,7 @@ public class QueryPartitions {
 	/**
 	 * Call this to add a single row to the proper partition finaizedColumnVals is true when all data in
 	 * the source Query is fully realized and there are no expressions left to evaluate
-	 * 
+	 *
 	 * @param pc PageContext
 	 * @param source Source query to get data from
 	 * @param row Row to get data from
@@ -150,7 +150,7 @@ public class QueryPartitions {
 		// be added later, but there's no use filling up the partition with place holders
 		else {
 			for (int cell = 0; cell < columns.length; cell++) {
-				
+
 				// Literal values
 				if (columns[cell] instanceof Value) {
 					Value v = (Value) columns[cell];
@@ -176,7 +176,7 @@ public class QueryPartitions {
 
 	/**
 	 * Generate a unique string that represents the column data being grouped on
-	 * 
+	 *
 	 * @param pc PageContext
 	 * @param source QueryImpl to get data from. Note, operations have not yet been processed
 	 * @param row Row to get data from
@@ -208,7 +208,7 @@ public class QueryPartitions {
 
 	/**
 	 * Helper function to turn column data into string
-	 * 
+	 *
 	 * @param value
 	 * @param col
 	 * @return
@@ -234,7 +234,7 @@ public class QueryPartitions {
 
 	/**
 	 * Get number of partitions
-	 * 
+	 *
 	 * @return
 	 */
 	public int getPartitionCount() {
@@ -243,7 +243,7 @@ public class QueryPartitions {
 
 	/**
 	 * Get partition Map
-	 * 
+	 *
 	 * @return
 	 */
 	public HashMap<String, Query> getPartitions() {
@@ -252,7 +252,7 @@ public class QueryPartitions {
 
 	/**
 	 * Get array of grouped Query objects
-	 * 
+	 *
 	 * @return
 	 */
 	public Query[] getPartitionArray() {
@@ -262,7 +262,7 @@ public class QueryPartitions {
 	/**
 	 * Create new Query for a partition. Needs to have all ColumnExpressions in the final select as well
 	 * as any additional columns required for operation expressions
-	 * 
+	 *
 	 * @param target Query for target data (for column refernces)
 	 * @param source source query we're getting data from
 	 * @param finalizedColumnVals If we're adding finalized data, just copy it
