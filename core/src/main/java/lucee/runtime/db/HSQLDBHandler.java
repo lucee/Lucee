@@ -348,7 +348,7 @@ public final class HSQLDBHandler {
 						nqr = new QueryImpl(pc, dc, sql, maxrows, fetchsize, timeout, "query", null, false, false, null);
 					} catch (PageException pe) {
 						throw pe;
-					}	
+					}
 					finally {
 						DBUtil.setReadOnlyEL(conn, false);
 						DBUtil.commitEL(conn);
