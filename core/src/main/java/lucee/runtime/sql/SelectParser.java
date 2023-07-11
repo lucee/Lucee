@@ -44,6 +44,7 @@ import lucee.runtime.sql.exp.value.ValueNull;
 import lucee.runtime.sql.exp.value.ValueNumber;
 import lucee.runtime.sql.exp.value.ValueString;
 import lucee.runtime.db.SQL;
+import lucee.runtime.type.Collection.Key;
 
 public class SelectParser {
 
@@ -56,8 +57,8 @@ public class SelectParser {
 	 */
 
 	private int columnIndex = 0;
-	private Set<String> allColumns = new HashSet<String>();
 	private boolean cachingColumn = true;
+	private Set<Key> allColumns = new HashSet<Key>();
 
 	// select <select-statement> from <tables> where <where-statement>
 	public Selects parse(String sql) throws SQLParserException {
@@ -123,7 +124,7 @@ public class SelectParser {
 				}
 			}
 			select.calcAdditionalColumns(allColumns);
-			allColumns = new HashSet<String>();
+			allColumns = new HashSet<Key>();
 			selects.addSelect(select);
 
 			runAgain = false;
@@ -589,7 +590,7 @@ public class SelectParser {
 		}
 
 		ColumnExpression column = new ColumnExpression(name, name.equals("?") ? columnIndex++ : 0, cachingColumn);
-		allColumns.add(column.getColumnName());
+
 		raw.removeSpace();
 		while (raw.forwardIfCurrent(".")) {
 			raw.removeSpace();
@@ -597,6 +598,9 @@ public class SelectParser {
 			if (sub == null) throw new SQLParserException("invalid column definition");
 			column.setSub(sub);
 		}
+
+		allColumns.add(column.getColumn());
+
 		raw.removeSpace();
 		if (raw.forwardIfCurrent('(')) {
 			String thisName = column.getFullName().toLowerCase();

@@ -74,7 +74,7 @@ public class QueryPartitions {
 	 * @param qoQ
 	 * @throws PageException
 	 */
-	public QueryPartitions(SQL sql, Expression[] columns, Expression[] groupbys, QueryImpl target, Set<String> additionalColumns, QoQ qoQ) throws PageException {
+	public QueryPartitions(SQL sql, Expression[] columns, Expression[] groupbys, QueryImpl target, Set<Key> additionalColumns, QoQ qoQ) throws PageException {
 		this.sql = sql;
 		this.qoQ = qoQ;
 		this.columns = columns;
@@ -94,8 +94,8 @@ public class QueryPartitions {
 
 		// Convert these strings to Keys now so we don't do it over and over later
 		this.additionalColumns = new HashSet<Collection.Key>();
-		for (String col: additionalColumns) {
-			this.additionalColumns.add(Caster.toKey(col));
+		for (Key col: additionalColumns) {
+			this.additionalColumns.add(col);
 		}
 		// Convert these Expression aliases to Keys now so we don't do it over and over later
 		this.columnKeys = new Collection.Key[columns.length];
