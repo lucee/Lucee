@@ -23,9 +23,11 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="s3" {
 		/*  note, we're testing a range of s3 functions in a single test so we can re-use buckets,
 			rather than creating and deleting lots of buckets with a test suite for each individual s3Function
 		*/
-
-		variables.bucket = "lucee-s3func1-#lcase(hash(CreateGUID()))#";
-		variables.bucket2 = "lucee-s3func2-#lcase(hash(CreateGUID()))#";
+		var s3 = getCredentials("s3");
+		if ( isEmpty( s3 ) )
+			return;
+		variables.bucket = s3.bucket_prefix & "s3func1-#lcase(hash(CreateGUID()))#";
+		variables.bucket2 = s3.bucket_prefix & "s3func2-#lcase(hash(CreateGUID()))#";
 
 		variables.dir = "s3://#bucket#";
 		variables.dir2 = "s3://#bucket2#";

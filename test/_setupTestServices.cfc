@@ -121,15 +121,17 @@ component {
 			
 			"S3_ACCESS_KEY_ID": "",
 			"S3_SECRET_KEY": "", // DON'T COMMIT
+			"S3_BUCKET_PREFIX": "lucee-ldev-",
 
 			"S3_CUSTOM_ACCESS_KEY_ID": "",
 			"S3_CUSTOM_SECRET_KEY": "", // DON'T COMMIT
 			"S3_CUSTOM_HOST": "http://localhost:9000", // i.e. minio
+			"S3_CUSTOM_BUCKET_PREFIX": "lucee-ldev-",
 
 			"S3_GOOGLE_ACCESS_KEY_ID": "",
 			"S3_GOOGLE_SECRET_KEY": "", // DON'T COMMIT
 			"S3_GOOGLE_HOST": "storage.googleapis.com",
-
+			"S3_GOOGLE_BUCKET_PREFIX": "lucee-ldev-",
 			// imap, pop and smtp rely on MAIL_PASSWORD being defined
 
 			"IMAP_SERVER": "localhost",
@@ -334,18 +336,19 @@ component {
 	}
 
 	public function verifyS3 ( s3 ) localmode=true{
-		bucketName = "lucee-testsuite";
+		bucketName = arguments.s3.BUCKET_PREFIX & lcase(hash(CreateGUID()));
 		base = "s3://#arguments.s3.ACCESS_KEY_ID#:#arguments.s3.SECRET_KEY#@/#bucketName#";
-		DirectoryExists( base );
-		return "s3 Connection Verified";
+		if ( directoryExists( base ) )
+			DirectoryDelete( base );
+		return "s3 Connection Verified [#bucketName#]";
 	}
 
 	public function verifyS3Custom ( s3 ) localmode=true{
-		bucketName = "lucee-testsuite";
+		bucketName = arguments.s3.BUCKET_PREFIX & lcase(hash(CreateGUID()));
 		base = "s3://#arguments.s3.ACCESS_KEY_ID#:#arguments.s3.SECRET_KEY#@#arguments.s3.HOST#/#bucketName#";
 		if ( ! DirectoryExists( base ) )
 			DirectoryCreate( base ); // for GHA, the local service starts empty
-		return "s3 custom Connection verified";
+		return "s3 custom Connection verified [#bucketName#]";
 	}
 
 	public function verifyMemcached ( memcached ) localmode=true{
@@ -631,16 +634,16 @@ component {
 				pop = server._getSystemPropOrEnvVars( "SERVER, PORT_SECURE, PORT_INSECURE, USERNAME, PASSWORD", "POP_" );
 				return pop;
 			case "s3":
-				s3 = server._getSystemPropOrEnvVars( "ACCESS_KEY_ID, SECRET_KEY", "S3_" );
+				s3 = server._getSystemPropOrEnvVars( "ACCESS_KEY_ID, SECRET_KEY, BUCKET_PREFIX", "S3_" );
 				return s3;
 			case "s3_custom":
-				s3 = server._getSystemPropOrEnvVars( "ACCESS_KEY_ID, SECRET_KEY, HOST", "S3_CUSTOM_" );
+				s3 = server._getSystemPropOrEnvVars( "ACCESS_KEY_ID, SECRET_KEY, HOST, BUCKET_PREFIX", "S3_CUSTOM_" );
 				return s3;
 			case "s3_google":
-				s3 = server._getSystemPropOrEnvVars( "ACCESS_KEY_ID, SECRET_KEY, HOST", "S3_GOOGLE_" );
+				s3 = server._getSystemPropOrEnvVars( "ACCESS_KEY_ID, SECRET_KEY, HOST, BUCKET_PREFIX", "S3_GOOGLE_" );
 				return s3;
 			case "s3_backblaze":
-				s3 = server._getSystemPropOrEnvVars( "ACCESS_KEY_ID, SECRET_KEY, HOST", "S3_BACKBLAZE_" );
+				s3 = server._getSystemPropOrEnvVars( "ACCESS_KEY_ID, SECRET_KEY, HOST, BUCKET_PREFIX", "S3_BACKBLAZE_" );
 				return s3;
 			case "memcached":
 				memcached = server._getSystemPropOrEnvVars( "SERVER, PORT", "MEMCACHED_" );
