@@ -44,7 +44,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	public function testStoreMetadata() localMode=true {
 		if(!variables.s3Supported) return;
 		
-		var dir="s3://lucee-testsuite-metadata/object/";
+		var dir="s3://" & server.getTestService("s3").bucket_prefix & "metadata-#lcase(hash(CreateGUID()))#/object/";
 		if(DirectoryExists(dir)) directoryDelete(dir,true);
 		try {
 			assertFalse(DirectoryExists(dir));

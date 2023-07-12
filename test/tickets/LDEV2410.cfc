@@ -1,10 +1,6 @@
 component extends="org.lucee.cfml.test.LuceeTestCase"{
 	function beforeAll(){
-		variables.base = GetDirectoryFromPath(getcurrentTemplatepath());
-		variables.path = base&"LDEV2410\example.txt";
-		if(!directoryExists(base&"LDEV2410")){
-			directoryCreate(base&'LDEV2410');
-		}
+		variables.path = getTempFile( getTempDirectory(), "ldev2410", "txt" );	
 	}
 
 	function run( testResults, testBox ){
@@ -25,9 +21,4 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 		});
 	}
 
-	function afterAll(){
-		if(directoryExists(base&"LDEV2410")){
-			directoryDelete(base&"LDEV2410",true);
-		}
-	}
 }

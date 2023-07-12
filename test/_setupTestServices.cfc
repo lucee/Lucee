@@ -277,10 +277,11 @@ component {
 	}
 
 	public function verifyS3 ( s3 ) localmode=true{
-		bucketName = "lucee-testsuite";
+		bucketName = arguments.s3.BUCKET_PREFIX & lcase(hash(CreateGUID()));
 		base = "s3://#arguments.s3.ACCESS_KEY_ID#:#arguments.s3.SECRET_KEY#@/#bucketName#";
-		DirectoryExists( base );		
-		return "s3 Connection Verified";
+		directoryCreate( base );
+		directoryDelete( base );
+		return "s3 Connection Verified [#bucketName#]";
 	}
 
 	public function verifyMemcached ( memcached ) localmode=true{
@@ -571,7 +572,7 @@ component {
 				}
 				break;
 			case "s3":
-				s3 = server._getSystemPropOrEnvVars( "ACCESS_KEY_ID, SECRET_KEY", "S3_" );
+				s3 = server._getSystemPropOrEnvVars( "ACCESS_KEY_ID, SECRET_KEY, BUCKET_PREFIX", "S3_" );
 				return s3;
 			case "memcached":
 				memcached = server._getSystemPropOrEnvVars( "SERVER, PORT", "MEMCACHED_" );
