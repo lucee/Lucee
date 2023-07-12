@@ -16,7 +16,7 @@
 		function beforeAll() skip="isNotSupported"{
 			if (isNotSupported()) return;
 			s3Details = getCredentials();
-			mitrahsoftBucketName = lcase("lucee-ldev1396-#hash(CreateGUID())#");
+			mitrahsoftBucketName = lcase( s3Details.bucket_prefix & "1396-#hash(CreateGUID())#");
 			base = "s3://#s3Details.ACCESS_KEY_ID#:#s3Details.SECRET_KEY#@";
 			variables.baseWithBucketName = "s3://#s3Details.ACCESS_KEY_ID#:#s3Details.SECRET_KEY#@/#mitrahsoftBucketName#";
 			// for skipping rest of the cases, if error occurred.

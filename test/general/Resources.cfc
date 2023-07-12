@@ -482,7 +482,7 @@ private function assertEqualPaths(string path1, string path2) {
 
 	private void function test(string label,string root){
 		var start=getTickCount();
-		var dir=arguments.root&"lucee-res-#lcase(hash(CreateGUID()))#/";
+		var dir=arguments.root&"lucee-ldev-#lcase(hash(CreateGUID()))#/";
 		
 		// make sure there are no data from a previous run 
 		if(directoryExists(dir)) {
@@ -500,6 +500,8 @@ private function assertEqualPaths(string path1, string path2) {
 		    fileAReadBinary(arguments.label,dir);
 		    testResourceProvider(dir&"testcaseres1");
 		    
+		} catch(e) {
+			systemOutput(e, true);
 		}
 		finally {
 			if(directoryExists(dir)) directory directory="#dir#" action="delete" recurse="yes";
@@ -534,6 +536,7 @@ private function assertEqualPaths(string path1, string path2) {
 	}
 
 	public void function testZip(){
+		//var file=getTempFile( getTempDirectory(), "res-zip", "zip" );
 		var file=getDirectoryFromPath(getCurrentTemplatePath())&"zip-"&getTickCount()&".zip";
 		var zipPath="zip://"&file&"!/";
 		try {
@@ -546,11 +549,13 @@ private function assertEqualPaths(string path1, string path2) {
 		}
 		// now we delete that zip again
 		finally {
-			fileDelete(file);
+			if (fileExists(file))
+				fileDelete(file);
 		}
 	}
 
 	public void function testZipAsMapping(){
+		// var file=getTempFile( getTempDirectory(), "zip-as-mapping", "zip" );
 		var file=getDirectoryFromPath(getCurrentTemplatePath())&"zip-"&getTickCount()&".zip";
 		var zipPath="zip://"&file&"!/";
 		try {
@@ -558,7 +563,7 @@ private function assertEqualPaths(string path1, string path2) {
 			zip action="zip" file=file  {
 				zipparam source=getCurrentTemplatePath();
 			}
-			
+
 			addMapping("/testreszip",zipPath);
 			// now we use that zip
 			//throw expandPath("/testResZip/")&":"&file;
@@ -566,7 +571,8 @@ private function assertEqualPaths(string path1, string path2) {
 		}
 		// now we delete that zip again
 		finally {
-			fileDelete(file);
+			if (fileExists(file))
+				fileDelete(file);
 		}
 	}
 
@@ -593,8 +599,9 @@ private function assertEqualPaths(string path1, string path2) {
 				accessKeyId: s3.ACCESS_KEY_ID,
 				awsSecretKey: s3.SECRET_KEY
 			}; 
-			addMapping("/testress3","s3:///");
-			test("s3","/testress3/");
+			mapping = s3.bucket_prefix & "resmap-#lcase(hash(CreateGUID()))#";
+			addMapping("/#mapping#/","s3:///");
+			test("s3","/#mapping#/");
 		}
 	}
 } 

@@ -44,6 +44,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		if(!isNull(s3.accessKeyId)) {
 			application action="update" s3=s3; 
 			variables.s3Supported=true;
+			variables.s3_bucket_prefix = s3.BUCKET_PREFIX;
 		}
 		else 
 			variables.s3Supported=false;
@@ -52,10 +53,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	public function testStoreAddACLBucket() localMode=true {
 		if(variables.s3Supported) {
 			try{
-				testStoreACL("s3://lucee-testsuite-addaclbucket",true,true);
+				testStoreACL("s3://#variables.s3_bucket_prefix#addaclbucket",true,true);
 			}
 			finally {
-	    		directoryDelete("s3://lucee-testsuite-addaclbucket",true);
+	    		directoryDelete("s3://#variables.s3_bucket_prefix#addaclbucket",true);
 	    	}
 		}
 	}
@@ -63,10 +64,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	public function testStoreSetACLBucket() localMode=true {
 		if(variables.s3Supported) {
 			try{
-				testStoreACL("s3://lucee-testsuite-setaclbucket2",true,false);
+				testStoreACL("s3://#variables.s3_bucket_prefix#setaclbucket2",true,false);
 			}
 			finally {
-	    		directoryDelete("s3://lucee-testsuite-setaclbucket2",true);
+	    		directoryDelete("s3://#variables.s3_bucket_prefix#setaclbucket2",true);
 	    	}
 		}
 	}
@@ -74,10 +75,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	public function testStoreAddACLObject() localMode=true {
 		if(variables.s3Supported) {
 			try{
-				testStoreACL("s3://lucee-testsuite-addaclobject/sub12234",false,true);
+				testStoreACL("s3://#variables.s3_bucket_prefix#addaclobject/sub12234",false,true);
 			}
 			finally {
-	    		directoryDelete("s3://lucee-testsuite-addaclobject",true);
+	    		directoryDelete("s3://#variables.s3_bucket_prefix#addaclobject",true);
 	    	}
 		}
 	}
@@ -85,10 +86,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	public function testStoreSetACLObject() localMode=true {
 		if(variables.s3Supported) {
 			try{
-				testStoreACL("s3://lucee-testsuite-setaclobject2/sub12234",false,false);
+				testStoreACL("s3://#variables.s3_bucket_prefix#setaclobject2/sub12234",false,false);
 			}
 			finally {
-	    		directoryDelete("s3://lucee-testsuite-setaclobject2",true);
+	    		directoryDelete("s3://#variables.s3_bucket_prefix#setaclobject2",true);
 	    	}
 		}
 	}

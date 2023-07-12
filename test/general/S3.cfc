@@ -39,7 +39,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="s3" {
 			});
 			it(title="test access 100 threads at the same time", body=function() {
 				var cred=getCredentials();
-				var dir="s3://#cred.ACCESS_KEY_ID#:#cred.SECRET_KEY#@/lucee-s3-#lcase( hash( CreateGUID() ) )#/";
+				var dir="s3://#cred.ACCESS_KEY_ID#:#cred.SECRET_KEY#@/#cred.BUCKET_PREFIX#s3-#lcase( hash( CreateGUID() ) )#/";
 				var file=dir&"testmultithread.txt";
 				try {
 					if(!directoryExists(dir))directoryCreate(dir);
