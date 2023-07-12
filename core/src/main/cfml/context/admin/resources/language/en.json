@@ -1298,6 +1298,7 @@
         "luceeProvider": "Lucee Update Provider",
         "noupdate": "There is no patch available for version {current}",
         "noUpdateDesc": "There are currently no {type} available for your version.",
+        "changeLogsSince": "Changelogs since current version",
         "patch": "Installed patches",
         "pre_Release": "Pre-Releases",
         "pre_ReleaseDesc": "Pre releases a preview on upcoming releases. This version are in testing to get releases as soon they pass the testing process.",
