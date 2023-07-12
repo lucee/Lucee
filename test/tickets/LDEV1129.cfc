@@ -7,17 +7,17 @@
 		}
 
 		function beforeAll() skip="isNotSupported"{
-			variables.bucketName = lcase("lucee-ldev1129-#CreateGUID()#");
-			var uri = createURI( variables.bucketName );
 			if ( isNotSupported() ) return;
+
+			var s3Details = getCredentials();
+			variables.bucketName = lcase( s3Details.bucket_prefix & "1129-#CreateGUID()#");
+			var uri = createURI( variables.bucketName );
 
 			if (not directoryExists(uri) ){
 				Directorycreate(uri);
 				Directorycreate("#uri#/test");
 				Directorycreate("#uri#/test2");
 			}
-			
-			var s3Details = getCredentials();
 			
 			variables.base = "s3://#s3Details.ACCESS_KEY_ID#:#s3Details.SECRET_KEY#@";
 			variables.baseWithBucketName = "s3://#s3Details.ACCESS_KEY_ID#:#s3Details.SECRET_KEY#@/#bucketName#";
