@@ -185,7 +185,7 @@ jobs:
         LDAP_PASSWORD: GoodNewsEveryone
         S3_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_ID_TEST }}
         S3_SECRET_KEY: ${{ secrets.S3_SECRET_KEY_TEST }}
-        SS_BUCKET_PREFIX: lucee-ldev-5-
+        S3_BUCKET_PREFIX: lucee-ldev-5-
         # DO_DEPLOY: ${{ github.event_name == 'push' }}
         # for uploading successful builds
         S3_ACCESS_ID_DOWNLOAD: ${{ secrets.S3_ACCESS_ID_DOWNLOAD }}
