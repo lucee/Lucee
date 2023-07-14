@@ -9,11 +9,24 @@
 		<cfargument name="extensions" required="yes" type="query">
 		<cfset var result=variables.getdataByid(arguments.data.id,arguments.extensions)>
 
-		<cfif result.count()==0><cfreturn false></cfif>
-		<cfif arguments.data.version LT result.version>
-			<cfreturn true>
+		<cfset local.sort = []>
+		<cfset local.sortversion = "">
+		<cfloop list="#Arraytolist(result.otherVersions)#" index="local.i">
+			<cfif !listcontainsnocase(i,"-")>
+				<cfset sortversion = arrayappend(sort, variables.toVersionSortable(i))>
+			</cfif>
+		</cfloop>
+		<cfif !listContainsNoCase(result.version,"-SNAPSHOT")>
+			<cfset sortversion = arrayAppend(sort, variables.toVersionSortable(result.version))>
 		</cfif>
-
+		<cfset latest = arraySort(sort,"text","desc")>
+		<cfset getInstalledVersion = listfirst(trim(arguments.data.version),"-")>
+		<cfif result.count()==0><cfreturn false></cfif>
+		<cfif arrayIndexExists(sort,1)>
+			<cfif sort[1] GT variables.toVersionSortable(getInstalledVersion)>
+				<cfreturn true>
+			</cfif>
+		</cfif>
 		<cfreturn false>
 	</cffunction>
 
