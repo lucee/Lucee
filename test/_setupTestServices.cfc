@@ -241,7 +241,9 @@ component {
 					systemOutput( "Service [ #arguments.service# ] is [ #verify# ]", true) ;
 					server.test_services[arguments.service].valid = true;
 				} catch (e) {
-					st = test._testRunner::trimJavaStackTrace(cfcatch.stacktrace);
+					st = test._testRunner::trimJavaStackTrace( cfcatch.stacktrace );
+					if ( isEmpty( st ) or ( arrayLen( st ) eq 1 and trim( st [ 1 ] ) eq "" ) )
+						st = [ cfcatch.message ];
 					systemOutput( "ERROR Service [ #arguments.service# ] threw [ #arrayToList(st, chr(10))# ]", true);
 					if ( cfcatch.message contains "NullPointerException" || request.testDebug )
 						systemOutput(cfcatch, true);
@@ -336,18 +338,25 @@ component {
 	}
 
 	public function verifyS3 ( s3 ) localmode=true{
-		bucketName = arguments.s3.BUCKET_PREFIX & lcase(hash(CreateGUID()));
+		bucketName = arguments.s3.BUCKET_PREFIX & "verify";
 		base = "s3://#arguments.s3.ACCESS_KEY_ID#:#arguments.s3.SECRET_KEY#@/#bucketName#";
-		if ( directoryExists( base ) )
-			DirectoryDelete( base );
+		try {
+			directoryExists( base );
+		} catch ( e ){
+			throw listFirst( replaceNoCase( e.message, arguments.s3.SECRET_KEY, "***", "all" ), "." );
+		}
 		return "s3 Connection Verified [#bucketName#]";
 	}
 
 	public function verifyS3Custom ( s3 ) localmode=true{
-		bucketName = arguments.s3.BUCKET_PREFIX & lcase(hash(CreateGUID()));
+		bucketName = arguments.s3.BUCKET_PREFIX & "verify";
 		base = "s3://#arguments.s3.ACCESS_KEY_ID#:#arguments.s3.SECRET_KEY#@#arguments.s3.HOST#/#bucketName#";
-		if ( ! DirectoryExists( base ) )
-			DirectoryCreate( base ); // for GHA, the local service starts empty
+		try {
+			if ( ! directoryExists( base ) )
+				directoryCreate( base ); // for GHA, the local service starts empty
+		} catch ( e ) {
+			throw listFirst( replaceNoCase( e.message, arguments.s3.SECRET_KEY, "***", "all" ), "." );
+		}
 		return "s3 custom Connection verified [#bucketName#]";
 	}
 
