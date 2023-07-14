@@ -240,10 +240,10 @@ public final class Directory extends TagImpl {
 	}
 
 	public static String improveStorage(String storage) throws ApplicationException {
-		storage = improveStorage(storage, null);
+		storage = improveStorage(storage, storage==null?null:storage.trim());
 		if (storage != null) return storage;
 
-		throw new ApplicationException("Invalid storage value, valid values are [eu, us, us-west]");
+		throw new ApplicationException("Invalid storageLocation value");
 	}
 
 	public static String improveStorage(String storage, String defaultValue) {
@@ -685,6 +685,8 @@ public final class Directory extends TagImpl {
 		// if(!directory.mkdirs()) throw new ApplicationException("can't create directory
 		// ["+directory.toString()+"]");
 		try {
+			// set S3 region before creation
+			setS3region(pc, directory, storage);
 			directory.createDirectory(createPath);
 		}
 		catch (IOException ioe) {
@@ -692,7 +694,7 @@ public final class Directory extends TagImpl {
 		}
 
 		// set S3 stuff
-		setS3Attrs(pc, directory, acl, storage);
+		setS3acl(pc, directory, acl);
 
 		// Set Mode
 		if (mode != -1) {
@@ -706,7 +708,19 @@ public final class Directory extends TagImpl {
 		}
 	}
 
-	public static void setS3Attrs(PageContext pc, Resource res, Object acl, String storage) throws PageException {
+	public static boolean setS3region(PageContext pc, Resource res, String storage) throws PageException {
+		String scheme = res.getResourceProvider().getScheme();
+
+		if ("s3".equalsIgnoreCase(scheme)) {
+			if (storage != null) {
+				Reflector.callMethod(res, "setStorage", new Object[] { storage });
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public static void setS3acl(PageContext pc, Resource res, Object acl) throws PageException {
 		String scheme = res.getResourceProvider().getScheme();
 
 		if ("s3".equalsIgnoreCase(scheme)) {
@@ -721,11 +735,8 @@ public final class Directory extends TagImpl {
 					throw Caster.toPageException(e);
 				}
 			}
-			// STORAGE
-			if (storage != null) {
-				Reflector.callMethod(res, "setStorage", new Object[] { storage });
-			}
 		}
+
 	}
 
 	public static String improveACL(String acl) throws ApplicationException {
@@ -803,9 +814,11 @@ public final class Directory extends TagImpl {
 
 		securityManager.checkFileLocation(pc.getConfig(), newdirectory, serverPassword);
 		if (newdirectory.exists()) throw new ApplicationException("New directory [" + newdirectory.toString() + "] already exists");
+
+		setS3region(pc, newdirectory, storage);
+
 		if (createPath) {
 			newdirectory.getParentResource().mkdirs();
-
 		}
 		try {
 			directory.moveTo(newdirectory);
@@ -815,8 +828,8 @@ public final class Directory extends TagImpl {
 			throw Caster.toPageException(t);
 		}
 
-		// set S3 stuff
-		setS3Attrs(pc, newdirectory, acl, storage);
+		// set S3 ACL
+		setS3acl(pc, newdirectory, acl);
 		return newdirectory.toString();
 
 	}
@@ -856,9 +869,11 @@ public final class Directory extends TagImpl {
 			else {
 				if (!recurse) f = new NotResourceFilter(DirectoryResourceFilter.FILTER);
 			}
-			if (!createPath) {
+			if (createPath && storage != null) setS3region(pc, newdirectory, storage); // can only set region when creating a buckets
+			else if (!createPath || storage != null) {
 				Resource p = newdirectory.getParentResource();
 				if (p != null && !p.exists()) throw new ApplicationException("parent directory for [" + newdirectory + "] doesn't exist");
+				if (p != null && p.exists() && storage != null) throw new ApplicationException("parent s3 bucket [" + newdirectory + "] already exists, cannot change region for existing buckets");
 			}
 			ResourceUtil.copyRecursive(directory, newdirectory, f);
 			if (clearEmpty) ResourceUtil.removeEmptyFolders(newdirectory, f == null ? null : new NotResourceFilter(filter));
@@ -869,8 +884,8 @@ public final class Directory extends TagImpl {
 			throw new ApplicationException(t.getMessage());
 		}
 
-		// set S3 stuff
-		setS3Attrs(pc, newdirectory, acl, storage);
+		// set S3 ACL
+		setS3acl(pc, newdirectory, acl);
 
 	}
 
