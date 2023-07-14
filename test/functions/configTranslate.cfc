@@ -1,10 +1,13 @@
 component extends="org.lucee.cfml.test.LuceeTestCase"  {
+
+	variables.baseDir =  getDirectoryFromPath( getCurrentTemplatePath() );
+
 	function run( testResults, textbox ) {
 		describe("testcase for configTranslate()", function() {
 
 			it(title="checking lucee-server.xml via file", body=function( currentSpec ) {
 
-				var src = expandPath("./configTranslate/lucee-server.xml");
+				var src = variables.baseDir & "configTranslate/lucee-server.xml";
 				var single = getTempFile(getTempDirectory(), "lucee-server-single", "json");
 				var multi = getTempFile(getTempDirectory(), "lucee-server-multi", "json");
 
@@ -26,7 +29,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"  {
 
 			it(title="checking lucee-server.xml via string", body=function( currentSpec ) {
 
-				var src = expandPath("./configTranslate/lucee-server.xml");
+				var src = variables.baseDir & "configTranslate/lucee-server.xml";
 				var srcString = fileRead( src );
 
 				var single = getTempFile(getTempDirectory(), "lucee-server-single", "json");
@@ -50,7 +53,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"  {
 
 			it(title="checking lucee-web.xml.cfm via string", body=function( currentSpec ) {
 
-				var src = expandPath("./configTranslate/lucee-web.xml.cfm");
+				var src = variables.baseDir & "configTranslate/lucee-web.xml.cfm";
 				var srcString = fileRead( src );
 
 				var singleOut = getTempFile(getTempDirectory(), "lucee-web-single", "json");
@@ -74,7 +77,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"  {
 
 			it(title="checking lucee-web.xml.cfm file via string", body=function( currentSpec ) {
 
-				var src = expandPath("./configTranslate/lucee-web.xml.cfm");
+				var src = variables.baseDir & "configTranslate/lucee-web.xml.cfm";
 
 				var srcString = fileRead( src );
 				var singleOut = getTempFile(getTempDirectory(), "lucee-web-single", "json");
