@@ -609,7 +609,7 @@ public final class FileTag extends BodyTagImpl {
 	private static void setACL(PageContext pc, Resource res, Object acl) throws PageException {
 		String scheme = res.getResourceProvider().getScheme();
 		if ("s3".equalsIgnoreCase(scheme)) {
-			Directory.setS3Attrs(pc, res, acl, null);
+			Directory.setS3acl(pc, res, acl);
 		}
 	}
 

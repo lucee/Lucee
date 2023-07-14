@@ -46,13 +46,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="s3" {
 	}
 
 	public function run( testResults , testBox ) {
-		describe( title="Test suite for LDEV-1489 ( checking s3 file operations )", body=function() {
+		describe( title="Test suite for LDEV-4178 ( checking s3 file operations )", body=function() {
 			it(title="Creating a new s3 bucket, valid region name [us-east-1]", skip=isNotSupported(), body=function( currentSpec ) {
 				createBucket( "us-east-1" );
 			});
 
 			it(title="Creating a new s3 bucket, valid region name [eu-west-1]", skip=isNotSupported(), body=function( currentSpec ) {
-				createBucket( "eu-west-1" ); // fails
+				createBucket( "eu-west-1" );
 			});
 
 			it(title="Creating a new s3 bucket, invalid region name [down-under]", skip=isNotSupported(), body=function( currentSpec ){
