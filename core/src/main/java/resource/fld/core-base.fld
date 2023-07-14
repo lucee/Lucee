@@ -2528,25 +2528,29 @@ sort direction:
 		<name>ConfigTranslate</name>
 		<class>lucee.runtime.functions.system.ConfigTranslate</class>
 		<description>
-			translate an old Lucee XML configuration to the new JSON configuration
+			translate an old Lucee XML configuration to the new CFConfig.json configuration
 		</description>
 		<introduced>6.0.0.460</introduced>
 		<argument>
 			<name>source</name>
 			<type>string</type>
-			<alias>from,path,data,input</alias>
+			<alias>data,input</alias>
 			<required>Yes</required>
 			<description>
-			Path to the Lucee XML file (lucee-server.xml or lucee-web.xml.cfm) file or the data itself as a String. 
+			- Path to the Lucee XML file (lucee-server.xml or lucee-web.xml.cfm) file or the data itself as a String.
+			- "server" use the old Lucee xml on a upgraded Lucee 5 server context directory
+			- "web" use the old Lucee xml on a upgraded Lucee 5 current web context directory
 			</description>
 		</argument>
 		<argument>
 			<name>target</name>
 			<type>string</type>
-			<alias>to,path,data,input</alias>
+			<alias>output</alias>
 			<required>no</required>
 			<description>
-			Path to the Lucee XML file (lucee-server.xml or lucee-web.xml.cfm) file or the data itself as a String. 
+			- Path to write out the translated Lucee CFConfig.json
+			- "server" write out CFConfig.json to the server context directory
+			- "web" write out CFConfig.json to the current web context directory
 			</description>
 		</argument>
 		<argument>
