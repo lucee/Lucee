@@ -708,6 +708,12 @@ public final class Directory extends TagImpl {
 		}
 	}
 
+	// for backwards compat
+	public static void setS3Attrs(PageContext pc, Resource res, Object acl, String storage) throws PageException {
+		setS3acl(pc, res, acl);
+		setS3region(pc, res, storage);
+	}
+
 	public static boolean setS3region(PageContext pc, Resource res, String storage) throws PageException {
 		String scheme = res.getResourceProvider().getScheme();
 
