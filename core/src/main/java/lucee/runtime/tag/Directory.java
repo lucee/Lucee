@@ -787,7 +787,6 @@ public final class Directory extends TagImpl {
 
 		// set S3 ACL
 		setS3acl(pc, newdirectory, acl);
-		return newdirectory.toString();
 
 	}
 
