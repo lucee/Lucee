@@ -18,7 +18,6 @@
  *
  ---><cfscript>
 component extends="org.lucee.cfml.test.LuceeTestCase" labels="s3"	{
-
 	//public function beforeTests(){}
 
 	//public function afterTests(){}
