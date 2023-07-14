@@ -11,7 +11,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="s3" {
 
 	private string function getTestBucketUrl() localmode=true {
 		s3Details = getCredentials();
-		bucketName = lcase("lucee-ldev4178-#lcase(hash(CreateGUID()))#");
+		bucketName = server.getTestService("s3").bucket_prefix & lcase("4178-#lcase(hash(CreateGUID()))#");
 		return "s3://#s3Details.ACCESS_KEY_ID#:#s3Details.SECRET_KEY#@/#bucketName#";
 	}
 
@@ -21,7 +21,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="s3" {
 		}).version;
 		return listFirst( s3Version, "." ) ;
 	};
-
 
 	private function createBucket( required string storelocation, boolean invalid=false ){
 		var bucket = getTestBucketUrl();
@@ -34,7 +33,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="s3" {
 			} else {
 				directory action="create" directory="#bucket#" storelocation="#arguments.storelocation#";
 				expect( directoryExists( bucket ) ).toBeTrue();
-				if ( checkS3Version() neq 0 ) {				
+				if ( checkS3Version() neq 0 ) {
 					var info = StoreGetMetadata( bucket ); // only works with v2 due to https://luceeserver.atlassian.net/browse/LDEV-4202
 					expect( info ).toHaveKey( "region" );
 					expect( info.region ).toBe( arguments.storelocation );
@@ -50,6 +49,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="s3" {
 		describe( title="Test suite for LDEV-1489 ( checking s3 file operations )", body=function() {
 			it(title="Creating a new s3 bucket, valid region name [us-east-1]", skip=isNotSupported(), body=function( currentSpec ) {
 				createBucket( "us-east-1" );
+			});
+
+			it(title="Creating a new s3 bucket, valid region name [eu-west-1]", skip=isNotSupported(), body=function( currentSpec ) {
+				createBucket( "eu-west-1" ); // fails
 			});
 
 			it(title="Creating a new s3 bucket, invalid region name [down-under]", skip=isNotSupported(), body=function( currentSpec ){

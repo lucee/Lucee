@@ -69,7 +69,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="s3"	{
 
 	private string function getTestBucketUrl() localmode=true {
 		s3Details = getCredentials();
-		bucketName = server.getTestService("s3").bucket_prefix & lcase("metadata2#lcase(hash(CreateGUID()))#");
+		bucketName = server.getTestService("s3").bucket_prefix & lcase("metadata2-#lcase(hash(CreateGUID()))#");
 		return "s3://#s3Details.ACCESS_KEY_ID#:#s3Details.SECRET_KEY#@/#bucketName#";
 	}
 
@@ -82,7 +82,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="s3"	{
 
 	public function testS3Url(){
 		if(!variables.s3Supported) return;
-		if ( checkS3Version() eq 0 )
+		if ( checkS3Version() gt 0 )
 			return; // only works with v2 due to https://luceeserver.atlassian.net/browse/LDEV-4202
 		var bucket = getTestBucketUrl();
 		try {
