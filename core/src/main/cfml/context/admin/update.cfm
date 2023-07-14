@@ -115,7 +115,7 @@
 					<cfset dn="">
 					<cfset link="#self#?action=ext.applications&action2=detail&id=#uid#">
 					<cfoutput>
-						<a href="#link#" style="color:red;text-decoration:none;">- #extensions.name#</a><br>
+						<a href="#link#" style="color:red;text-decoration:none;">- #extensions.name# - <b title="Installed version #sct.version#">#extensions.version#</b> </a><br>
 					</cfoutput>
 				</cfloop>
 			</cfsavecontent>
