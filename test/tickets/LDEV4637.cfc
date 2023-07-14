@@ -31,9 +31,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 			fileResult = "false";
 			dirResult = "true";
 
-			it( title="directoryExists host s3.eu-west-1.amazon.com", body=function( currentSpec ) {
+			host = "s3.amazonaws.com";
+			hostRegion ="s3.eu-west-1.amazonaws.com";
+			region = "eu-west-1";
+
+			it( title="directoryExists host s3.eu-west-1.amazonaws.com", body=function( currentSpec ) {
 				var result = testS3( {
-					host: "s3.eu-west-1.amazon.com",
+					host: hostRegion,
 					type: "dir"
 				});
 				expect( result ).toBe(dirResult);
@@ -41,24 +45,24 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 
 			it( title="fileExists host s3.amazon.com", body=function( currentSpec ) {
 				var result = testS3( {
-					host: "s3.amazon.com",
+					host: host,
 					type: "file"
 				});
 				expect( result ).toBe( fileResult );
 			});
 
 
-			it( title="directoryExists s3.eu-west-1.amazon.com", body=function( currentSpec ) {
+			it( title="directoryExists s3.eu-west-1.amazonaws.com", body=function( currentSpec ) {
 				var result = testS3( {
-					host: "s3.eu-west-1.amazon.com",
+					host: hostRegion,
 					type: "dir"
 				});
 				expect( result ).toBe("true");
 			});
 
-			it( title="fileExists host s3.eu-west-1.amazon.com", body=function( currentSpec ) {
+			it( title="fileExists host s3.eu-west-1.amazonaws.com", body=function( currentSpec ) {
 				var result = testS3( {
-					host: "s3.eu-west-1.amazon.com",
+					host: hostRegion,
 					type: "file"
 				});
 				expect( result ).toBe( fileResult );
@@ -67,7 +71,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 
 			it( title="fileExists region eu-west-1", body=function( currentSpec ) {
 				var result = testS3( {
-					region: "eu-west-1",
+					region: region,
 					type: "file"
 				});
 				expect( result ).toBe( fileResult );
@@ -75,26 +79,26 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 
 			it( title="directoryExists region eu-west-1", body=function( currentSpec ) {
 				var result = testS3( {
-					region: "eu-west-1",
+					region: region,
 					type: "dir"
 				});
 				expect( result ).toBe( dirResult );
 			});
 
 
-			it( title="fileExists region eu-west-1, host s3.eu-west-1.amazon.com", body=function( currentSpec ) {
+			it( title="fileExists region eu-west-1, host s3.eu-west-1.amazonaws.com", body=function( currentSpec ) {
 				var result = testS3( {
-					region: "eu-west-1",
-					host: "s3.eu-west-1.amazon.com",
+					region: region,
+					host: hostRegion,
 					type: "file"
 				});
 				expect( result ).toBe( fileResult );
 			});
 
-			it( title="directoryExists region eu-west-1, host s3.eu-west-1.amazon.com", body=function( currentSpec ) {
+			it( title="directoryExists region eu-west-1, host s3.eu-west-1.amazonaws.com", body=function( currentSpec ) {
 				var result = testS3( {
-					region: "eu-west-1",
-					host: "s3.eu-west-1.amazon.com",
+					region: region,
+					host: hostRegion,
 					type: "dir"
 				});
 				expect( result ).toBe( dirResult );
@@ -103,8 +107,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 
 			it( title="fileExists region eu-west-1, host s3.amazon.com", body=function( currentSpec ) {
 				var result = testS3( {
-					region: "eu-west-1",
-					host: "s3.amazon.com",
+					region: region,
+					host: host,
 					type: "file"
 				});
 				expect( result ).toBe( fileResult );
@@ -112,8 +116,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 
 			it( title="directoryExists region eu-west-1, host s3.amazon.com", body=function( currentSpec ) {
 				var result = testS3( {
-					region: "eu-west-1",
-					host: "s3.amazon.com",
+					region: region,
+					host: host,
 					type: "dir"
 				});
 				expect( result ).toBe( dirResult );
