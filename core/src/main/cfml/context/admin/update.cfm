@@ -38,7 +38,7 @@
 		<cfinclude template="web_functions.cfm">
 		
 		<cfset self = adminType & ".cfm">
-		<cfset stText.services.update.update="A patch <b>({available})</b> is available for your current version <b>({current})</b>.">
+		<cfset stText.services.update.update="There is a Lucee update <b>( {available} )</b> available for your current version <b>( {current} )</b>.">
 
 	<!--- Core --->
 		<cfif adminType == "server">
@@ -103,19 +103,21 @@
 
 			<cfsavecontent variable="ext" trim="true">
 				<cfloop query="extensions">
-					<cfset sct={}>
-					<cfloop list="#extensions.columnlist()#" item="key">
-						<cfset sct[key]=extensions[key]>
-					</cfloop>
-					<cfif !updateAvailable(sct,external)>
-						<cfcontinue>
-					</cfif>
-					<cfset uid=extensions.id>
-					<cfset link="">
-					<cfset dn="">
-					<cfset link="#self#?action=ext.applications&action2=detail&id=#uid#">
+					<cfscript>
+						sct = {};
+						loop list="#extensions.columnlist()#" item="key" {
+							sct[ key ]=extensions[ key ];
+						}
+						updateVersion= updateAvailable( sct, external );
+						if (updateVersion eq "false")
+							continue;
+						uid=extensions.id
+						link="";
+						dn="";
+						link="#self#?action=ext.applications&action2=detail&id=#uid#";
+					</cfscript>
 					<cfoutput>
-						<a href="#link#" style="color:red;text-decoration:none;">- #extensions.name# - <b title="Installed version #sct.version#">#extensions.version#</b> </a><br>
+						<a href="#link#" style="color:red;text-decoration:none;">- #extensions.name# - <b>#updateVersion#</b> ( #sct.version# ) </a><br>
 					</cfoutput>
 				</cfloop>
 			</cfsavecontent>
@@ -176,8 +178,9 @@
 				<!--- Extension --->
 				<cfif extensions.recordcount and len(ext)>
 				<div class="error">
+					<br>
 					<a href="#self#?action=ext.applications" style="color:red;text-decoration:none;">
-						There are some updates available for your installed Extensions.<br>
+						There are updates available for your installed Extension(s).<br>
 						#ext#
 					</a>
 				</div>
