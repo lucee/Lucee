@@ -3421,6 +3421,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 					String location = getAttr(update, "location");
 					if (location != null) {
 						location = location.trim();
+						if (location.length() == 0 || "http://update.lucee.org".equals(location)) location = "https://update.lucee.org";
 						if ("http://snapshot.lucee.org".equals(location) || "https://snapshot.lucee.org".equals(location)) location = "https://update.lucee.org";
 						if ("http://release.lucee.org".equals(location) || "https://release.lucee.org".equals(location)) location = "https://update.lucee.org";
 						cs.setUpdateLocation(location);
