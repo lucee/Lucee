@@ -38,6 +38,30 @@ try {
 		primary="physical"
 		trusted="no";
 
+	admin
+		action="updateMapping"
+		type="web"
+		password="#request.WEBADMINPASSWORD#"
+		virtual="/test-once"
+		physical="#request.testFolder#"
+		toplevel="true"
+		archive=""
+		primary="physical"
+		trusted="no"
+		inspect="once";
+	
+	admin
+		action="updateMapping"
+		type="web"
+		password="#request.WEBADMINPASSWORD#"
+		virtual="/test-never"
+		physical="#request.testFolder#"
+		toplevel="true"
+		archive=""
+		primary="physical"
+		trusted="no"
+		inspect="never";
+
 	systemOutput("set /test mapping #dateTimeFormat(now())#", true);
 
 	param name="testDebug" default="false";
