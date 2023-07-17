@@ -587,16 +587,18 @@
 	}
 
 	function toVersionsSorted(required array versions) localMode=true {
-		var vs = [=];
+		var sorted = queryNew("ver,sort");
 		loop array=arguments.versions item="local.v"{
-			vs[toVersionSortable(v)] = v;
+			row = queryAddRow(sorted);
+			querySetCell(sorted, "ver", v, row);
+			querySetCell(sorted, "sort", toVersionSortable(v), row);
 		}
-		var sorted = structSort(vs,"text", "desc");
-		var rtn = [=];
-		loop array=sorted item="local.v" {
-			rtn[v] = vs[v];
+		QuerySort(sorted, 'sort', 'desc');
+		var result = structNew("linked");
+		loop query=sorted {
+			result[sorted.sort] = sorted.ver;
 		}
-		return rtn;
+		return result;
 	}
 	
 	function toVersionSortable(required string version) localMode=true {
