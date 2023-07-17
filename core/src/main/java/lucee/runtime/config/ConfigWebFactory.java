@@ -3492,6 +3492,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 				String location = getAttr(root, "updateLocation");
 				if (location != null) {
 					location = location.trim();
+					if (location.length() == 0 || "http://update.lucee.org".equals(location)) location = DEFAULT_LOCATION;
 					if ("http://snapshot.lucee.org".equals(location) || "https://snapshot.lucee.org".equals(location)) location = DEFAULT_LOCATION;
 					if ("http://release.lucee.org".equals(location) || "https://release.lucee.org".equals(location)) location = DEFAULT_LOCATION;
 					cs.setUpdateLocation(location);
