@@ -89,6 +89,15 @@ public class GetApplicationSettings extends BIF {
 		sct.setEL("clientManagement", Caster.toBoolean(ac.isSetClientManagement()));
 		sct.setEL("clientStorage", ac.getClientstorage());
 		sct.setEL("sessionStorage", ac.getSessionstorage());
+
+		Struct xmlFeatures = acs.getXmlFeatures();
+		if (xmlFeatures == null) xmlFeatures = new StructImpl();
+		Struct sxml = new StructImpl(Struct.TYPE_LINKED);
+		sxml.setEL("secure", Caster.toBoolean(xmlFeatures.get("secure", true)));
+		sxml.setEL("disallowDoctypeDecl", Caster.toBoolean(xmlFeatures.get("disallowDoctypeDecl", true)));
+		sxml.setEL("externalGeneralEntities", Caster.toBoolean(xmlFeatures.get("externalGeneralEntities", false)));
+		sct.setEL("xmlFeatures", sxml);
+		
 		sct.setEL("customTagPaths", toArray(ac.getCustomTagMappings()));
 		sct.setEL("componentPaths", toArray(ac.getComponentMappings()));
 		sct.setEL("loginStorage", AppListenerUtil.translateLoginStorage(ac.getLoginStorage()));
