@@ -327,6 +327,12 @@ public final class XMLUtil {
 			factory.setValidating(false);
 		}
 
+		// secure by default LDEV-3451
+		boolean featureSecure = true;
+		boolean disallowDocType = true;
+		boolean externalGeneralEntities = false;
+
+		// can be overriden per application
 		PageContext pc = ThreadLocalPageContext.get();
 		if (pc != null) {
 			ApplicationContextSupport ac = ((ApplicationContextSupport) pc.getApplicationContext());
@@ -334,54 +340,56 @@ public final class XMLUtil {
 			if (features != null) {
 				try { // handle feature aliases, e.g. secure
 					Object obj;
-					boolean featureValue;
+					
 					obj = features.get(KEY_FEATURE_SECURE, null);
-					if (obj != null) {
-						featureValue = Caster.toBoolean(obj);
-						if (featureValue) {
-							// set features per
-							// https://cheatsheetseries.owasp.org/cheatsheets/XML_External_Entity_Prevention_Cheat_Sheet.html
-							factory.setFeature(XMLConstants.FEATURE_DISALLOW_DOCTYPE_DECL, true);
-							factory.setFeature(XMLConstants.FEATURE_EXTERNAL_GENERAL_ENTITIES, false);
-							factory.setFeature(XMLConstants.FEATURE_EXTERNAL_PARAMETER_ENTITIES, false);
-							factory.setFeature(XMLConstants.FEATURE_NONVALIDATING_LOAD_EXTERNAL_DTD, false);
-							factory.setXIncludeAware(false);
-							factory.setExpandEntityReferences(false);
-							factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
-							factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
-						}
-						features.remove(KEY_FEATURE_SECURE);
-					}
+					if (obj != null) featureSecure = Caster.toBoolean(obj);
 
 					obj = features.get(KEY_FEATURE_DISALLOW_DOCTYPE_DECL, null);
-					if (obj != null) {
-						featureValue = Caster.toBoolean(obj);
-						factory.setFeature(XMLConstants.FEATURE_DISALLOW_DOCTYPE_DECL, featureValue);
-						features.remove(KEY_FEATURE_DISALLOW_DOCTYPE_DECL);
-					}
+					if (obj != null) disallowDocType = Caster.toBoolean(obj);
 
 					obj = features.get(KEY_FEATURE_EXTERNAL_GENERAL_ENTITIES, null);
-					if (obj != null) {
-						featureValue = Caster.toBoolean(obj);
-						factory.setFeature(XMLConstants.FEATURE_EXTERNAL_GENERAL_ENTITIES, featureValue);
-						features.remove(KEY_FEATURE_EXTERNAL_GENERAL_ENTITIES);
-					}
+					if (obj != null) externalGeneralEntities = Caster.toBoolean(obj);
 				}
-				catch (PageException | ParserConfigurationException ex) {
+				catch (PageException ex) {
 					throw new RuntimeException(ex);
 				}
-
-				features.forEach((k, v) -> {
-					try {
-						factory.setFeature(k.toString().toLowerCase(), Caster.toBoolean(v));
-					}
-					catch (PageException | ParserConfigurationException ex) {
-						throw new RuntimeException(ex);
-					}
-				});
 			}
 		}
+		
+		try { // handle feature aliases, e.g. secure
+			if (featureSecure) {
+				// set features per
+				// https://cheatsheetseries.owasp.org/cheatsheets/XML_External_Entity_Prevention_Cheat_Sheet.html
+				factory.setFeature(XMLConstants.FEATURE_DISALLOW_DOCTYPE_DECL, true);
+				factory.setFeature(XMLConstants.FEATURE_EXTERNAL_GENERAL_ENTITIES, false);
+				factory.setFeature(XMLConstants.FEATURE_EXTERNAL_PARAMETER_ENTITIES, false);
+				factory.setFeature(XMLConstants.FEATURE_NONVALIDATING_LOAD_EXTERNAL_DTD, false);
+				factory.setXIncludeAware(false);
+				factory.setExpandEntityReferences(false);
+				factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
+				factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
+			}
+			//features.remove(KEY_FEATURE_SECURE);
+			
+			factory.setFeature(XMLConstants.FEATURE_DISALLOW_DOCTYPE_DECL, disallowDocType);
+			//features.remove(KEY_FEATURE_DISALLOW_DOCTYPE_DECL);
 
+			factory.setFeature(XMLConstants.FEATURE_EXTERNAL_GENERAL_ENTITIES, externalGeneralEntities);
+			//features.remove(KEY_FEATURE_EXTERNAL_GENERAL_ENTITIES);	
+		}
+		catch (ParserConfigurationException ex) {
+			throw new RuntimeException(ex);
+		}
+		/*
+		features.forEach((k, v) -> {
+			try {
+				factory.setFeature(k.toString().toLowerCase(), Caster.toBoolean(v));
+			}
+			catch (PageException | ParserConfigurationException ex) {
+				throw new RuntimeException(ex);
+			}
+		});
+		*/
 		return factory;
 	}
 
