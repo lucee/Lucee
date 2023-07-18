@@ -414,22 +414,22 @@ Error Output --->
 
 	<cfset stText.Overview.modeMulti="You are in Multi Mode">
 	<cfset stText.Overview.modeSingle="You are in Single Mode">
-	<cfset stText.Overview.modeMultiDesc="You are running Lucee in Multi Mode, this means you have a single Server Administrator where you can set settings for all web contexts/webs and a Web Administrator for every single web context/web.">
-	<cfset stText.Overview.modeSingleDesc="You are running Lucee in Single Mode, this means you only have a single Administrator, one place where you do all your configurations for all web contexts/webs.
+	<cfset stText.Overview.modeMultiDesc="You are running Lucee in Multi Mode. In Multi Mode, you use the Server Administrator to configure overall settings for all web contexts/webs, and use individual Web Administrators to customize settings for each web context/web.">
+	<cfset stText.Overview.modeSingleDesc="You are running Lucee in Single Mode. In Single Mode, you use a single Administrator to configure settings for all web contexts/webs. No individual Web Administrators exist.
 "> 
 	
 	<cfset stText.Overview.modeMultiSwitch="Switch to Single Mode?">
 	<cfset stText.Overview.modeSingleSwitch="Switch to Multi Mode?">
-	<cfset stText.Overview.modeMultiSwitchDesc="You wanna activate Lucee in Single Mode, this means you only have a single Administrator, one place where you do all your configurations for all web contexts/webs.">
-	<cfset stText.Overview.modeSingleSwitchDesc="You wanna activate Multi Mode, mean having a Server Administrator where you can set settings for all web contexts/webs and a Web Administrator for every single web context/web, you can simply switch to Multi Mode here.">
+	<cfset stText.Overview.modeMultiSwitchDesc="Activating Single Mode will result in having a single Administrator to configure settings for all web contexts/webs. No individual Web Administrators will exist.">
+	<cfset stText.Overview.modeSingleSwitchDesc="Activating Multi Mode will result in having a Server Administrator to configure overall settings for all web contexts/webs and individual Web Administrators to customize settings for each web context/web.">
 
 
 	<cfset stText.Overview.switchMerge="Merge and Switch">
 	<cfset stText.Overview.switchMergeDesc="All settings from all web contexts/webs get stored into the server context">
 	<cfset stText.Overview.switchLeave="Just Switch">
-	<cfset stText.Overview.switchLeaveDesc="Switch to single mode and forget all settings done in all web contexts/webs">
+	<cfset stText.Overview.switchLeaveDesc="Switch to Single Mode and forget all settings done in all web contexts/webs">
 	
-	<cfset stText.Overview.switchKeep="keep all web context/web configuration in place, so i can go back to multi mode">
+	<cfset stText.Overview.switchKeep="Keep all web context/web configuration in place so a return to Multi Mode is possible">
 
 
 	<cfset stText.Buttons.switch="Switch">

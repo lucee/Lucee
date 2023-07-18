@@ -76,7 +76,7 @@
 	<data key="mappings.compilestoponerror">Stop on error</data>
 	<data key="mappings.archivemissing">Please enter a value for the archive name (row </data>
 	<data key="mappings.trustedhead">Inspect</data>
-	<data key="mappings.introtext">Please note, that only pages processed by Lucee are aware of these mappings (cfm, cfml, cfc). If you want to use files not processed by Lucee for these special mapping directories, you have to add virtual mappings to these directories to your application server.</data>
+	<data key="mappings.introtext">Please note that only pages processed by Lucee are aware of these mappings (cfm, cfml, cfc). If you want to use files not processed by Lucee for these special mapping directories, you have to add virtual mappings to these directories to your application server.</data>
 	<data key="mappings.physicalheaddescription">Path of the resource to map (absolute or relative to the webroot)</data>
 	<data key="customtags.physical">Resource</data>
 	<data key="customtags.archive">Archive</data>
@@ -87,7 +87,7 @@
 	<data key="customtags.customtaglocalsearchdesc">Search in the caller directory for the custom tag</data>
 	<data key="customtags.trusted">Trusted</data>
 	<data key="customtags.customTagPathCache">Cache</data>
-	<data key="customtags.customTagPathCacheDesc">component path is cached and not resolved again</data>
+	<data key="customtags.customTagPathCacheDesc">Component path is cached and not resolved again</data>
 
 	<data key="customtags.customtaglocalsearch">Search local</data>
 	<data key="customtags.mode.standard">CFML standard</data>
@@ -395,7 +395,7 @@
 
 
 	<data key="application.RequestTimeoutTime">Time</data>
-	<data key="application.RequestTimeoutDesc">Defines how Lucee handles long running request.</data>
+	<data key="application.RequestTimeoutDesc">Defines how Lucee handles long running requests.</data>
 	<data key="application.AllowURLRequestTimeout">URL</data>
 	<data key="application.ConcurrentRequest">Concurrent Requests</data>
 	<data key="application.ConcurrentRequestDesc">This setting defines how the system handles concurrent requests.</data>
@@ -413,7 +413,7 @@
 	<data key="request.description">Settings that affect the execution of a request.</data>
 
 
-	<data key="application.scriptprotectdescription">The configuration of Script protect, secures your system from &quot;cross-site scripting&quot;</data>
+	<data key="application.scriptprotectdescription">The configuration of Script protect secures your system from &quot;cross-site scripting&quot;</data>
 	<data key="application.scriptprotect">Script-protect</data>
 	<data key="application.scriptprotectall">Script-protect checks in all scopes for external data (cgi,cookie,form,url)</data>
 	<data key="application.listenertypedescription_mixed">Mixed handling. Lucee looks for a file &quot;Application.cfm/OnRequestEnd.cfm&quot; as well as for the file &quot;Application.cfc&quot;</data>
@@ -516,7 +516,7 @@
 	<data key="components.componentdumptemplate">Component &quot;dump&quot; template</data>
 	<data key="components.basecomponent">Base/Root Component</data>
 	<data key="components.componentdumptemplatemissing">Please enter a value for the &quot;dump&quot; template</data>
-	<data key="components.componentpathcachedesc">component path is cached and not resolved again</data>
+	<data key="components.componentpathcachedesc">Component path is cached and not resolved again</data>
 	<data key="components.web">Defines how components will be handled by Lucee.</data>
 	<data key="components.datamemberaccesstype">Data member access type</data>
 	<data key="components.componentpathcache">Cache</data>
@@ -529,7 +529,7 @@
 	<data key="components.componentlocalsearch">Search local</data>
 	<data key="components.archivemissing">Please enter a value for the archive name (row </data>
 	<data key="components.datamemberaccesstypedescription">Define the accessor for the data-members of a component. This defines how variables of the &quot;this&quot; scope of a component can be accessed from outside of the component.</data>
-	<data key="components.autoimportdescription">the following package definition is imported into every template.</data>
+	<data key="components.autoimportdescription">The specified package definition is imported into every template.</data>
 	<data key="components.componentmappingsdesc">Additional Resources that Lucee checks for Components.</data>
 	<data key="components.componentmappingsearch">Search mappings</data>
 	<data key="components.useshadowdescription">Defines whether a component has an independent variables scope parallel to the &amp;quot;this&amp;quot; scope (CFML standard) or not.</data>
@@ -545,7 +545,7 @@
 	<data key="components.componentdumptemplatedescription">If you call a component directly this template will be invoked to dump the component. (Example: {url})</data>
 	<data key="components.basecomponentmissing">Please enter a value for the base/root component</data>
 	<data key="components.component">Component</data>
-	<data key="components.componentmappingsearchdesc">Search the component in the mappings defined, this include the implicit mapping &quot;/&quot;, that points on the webroot</data>
+	<data key="components.componentmappingsearchdesc">Search the component in the mappings defined. This includes the implicit mapping &quot;/&quot; that points to the webroot</data>
 	<data key="components.archive">Archive</data>
 	<data key="components.componentmappings">Additional Resources</data>
 	<data key="components.createnewcompmapping">Create new Additional Resource</data>
@@ -622,8 +622,8 @@
 	<data key="searchlng.turkish">Turkish</data>
 	<data key="debug.logmemoryusage">Log memory usage</data>
 	<data key="debug.memoryloggerdescripiton">File the memory usage will be stored to</data>
-	<data key="debug.enabledescription">If set to "yes" Lucee logs the debug information you have selected below.
-you can see the log result at the end of every request, if a debug template is defined or under Debug/Logs in this administrator.</data>
+	<data key="debug.enabledescription">If set to "yes", Lucee logs the debug information you have selected below.
+You can see the log result at the end of every request if a debug template is defined or under Debug/Logs in this administrator.</data>
 	<data key="debug.debugtemplatemissing">Please enter a value for the debug template</data>
 	<data key="debug.debugtemplatedescription">This template is used for formatting the debugging output</data>
 	<data key="debug.logmemoryusagedescription">Sets whether the memory usage should be logged</data>
@@ -658,7 +658,7 @@ you can see the log result at the end of every request, if a debug template is d
 	<data key="scopes.clienttimeout">Client timeout</data>
 	<data key="scopes.cascadetoresultsetdescription">When a variable has no scope defined (Example: #myVar# instead of #variables.myVar#), Lucee will also search available resultsets (CFML&amp;nbsp;Standard) or not</data>
 	<data key="scopes.cascadingdescription">Depending on this setting Lucee scans certain scopes to find a variable called from the CFML source. This will only happen when the variable is called without a scope. (Example: #myVar# instead of #variables.myVar#)&lt;br/&gt;- strict: scans only the variables scope&lt;br/&gt;- small: scans the scopes variables,url,form&lt;br/&gt;- standard (CFML Standard): scans the scopes variables,cgi,url,form,cookie</data>
-	<data key="scopes.sessiontypedescription">JEE Sessions allow to make sessions over a cluster. When you change this setting you will lose your current session and you must make a new login</data>
+	<data key="scopes.sessiontypedescription">JEE Sessions allow to make sessions over a cluster. When you change this setting, you will lose your current session and you must make a new login</data>
 	<data key="scopes.web">Here you can define the settings for how Lucee handles scopes.</data>
 	<data key="scopes.localmodeClassic">Classic</data>
 	<data key="scopes.timeoutsecondsvalue">Value seconds for </data>
@@ -712,7 +712,7 @@ you can see the log result at the end of every request, if a debug template is d
 	<data key="compiler.nullSupportPartial">Partial Support (CFML Default)</data>
 	<data key="compiler.nullSupportPartialDesc">Lucee has only a partial null support.</data>
 
-	<data key="setting.compiler">Lucee compiler settings, this affects how the Lucee Compiler parses the source code. Changing this settings flushes all existing class files and triggers a recompilation.</data>
+	<data key="setting.compiler">Lucee compiler settings affect how the Lucee Compiler parses the source code. Changing these settings flushes all existing class files and triggers a recompilation.</data>
 	<data key="setting.dotNotation">Key case</data>
 
 
@@ -766,7 +766,7 @@ sct[""bracketNotation""] --> keyname: "bracketNotation"</data>
 	<data key="setting.suppressContent">Suppress Content for CFC Remoting</data>
 	<data key="setting.suppressContentDescription">Suppress content written to response stream when a Component is invoked remotely. Only works if the content was not flushed before.</data>
 	<data key="setting.bufferOutput">Buffer Tag Body Output</data>
-	<data key="setting.bufferOutputDescription">If true - the output written to the body of the tag is buffered and is also outputted in case of an exception. Otherwise the content to body is ignored and not displayed when a failure occurs in the body of the tag.</data>
+	<data key="setting.bufferOutputDescription">If true - the output written to the body of the tag is buffered and is also outputted in case of an exception. Otherwise, the content to body is ignored and not displayed when a failure occurs in the body of the tag.</data>
 
 	<data key="setting.inspecttemplatealwaysdesc">When checked, any requested files found to currently reside in the template cache will always be inspected for potential updates. For sites where templates are updated during the life of the server or within request.</data>
 	<data key="setting.inspecttemplateInherit">Inherit</data>
@@ -863,7 +863,7 @@ sct[""bracketNotation""] --> keyname: "bracketNotation"</data>
 	<data key="schedule.executiondescdaily">This task is executed once a day.</data>
 	<data key="schedule.pausedesc">By setting this flag, the execution of the task will be paused.</data>
 	<data key="schedule.executiontime">Execution time</data>
-	<data key="schedule.description">Here you can add, modify, run and delete scheduled tasks&lt;br/&gt;&lt;br/&gt;</data>
+	<data key="schedule.description">Here you can add, modify, run, and delete scheduled tasks&lt;br/&gt;&lt;br/&gt;</data>
 	<data key="schedule.storeresponse">Sets, whether the response of server will be stored in a file or not</data>
 	<data key="schedule.resolvedescription">Translate relative URLs into absolute</data>
 	<data key="schedule.proxydesc">When there is a Proxy Server between the Lucee Server and the called URL, you can define the Proxy Servers Setting here to access the URL</data>
@@ -1016,7 +1016,7 @@ If the timezone of your Lucee instance and your database is different, this can 
 	<data key="settings.dbblobdesc">Enable binary large object retrieval (&lt;abbr title=&quot;binary large object&quot;&gt;BLOB&lt;/abbr&gt;)</data>
 	<data key="settings.dbclobdesc">Enable long text retrieval (&lt;abbr title=&quot;character large object&quot;&gt;CLOB&lt;/abbr&gt;)</data>
 	<data key="settings.exportAppCFC">Export Application.cfc</data>
-	<data key="settings.exportAppCFCDesc">Export the settings of this Web Context as Application.cfc Template, of course this includes only settings possible in Application.cfc.</data>
+	<data key="settings.exportAppCFCDesc">Export the settings of this Web Context as Application.cfc Template. Only settings possible in Application.cfc will be exported.</data>
 
 
 	<data key="settings.dbpass">Password</data>
@@ -1025,14 +1025,14 @@ If the timezone of your Lucee instance and your database is different, this can 
 	<data key="settings.dbconnlimitinf">- inf -</data>
 	<data key="settings.type">Type</data>
 	<data key="regional.timeserverdescription">Time server that returns the current time. If set, this time will be used within Lucee instead of the local server time. (Example: swisstime.ethz.ch, time.nist.gov)&lt;br/&gt;</data>
-	<data key="regional.server">You can define regional settings that will be used as a default for all web contexts here. These settings have no direct effect on the current instance. Lucee lets you set your own individual locale, timezone and timeserver.</data>
+	<data key="regional.server">You can define regional settings that will be used as a default for all web contexts here. These settings have no direct effect on the current instance. Lucee lets you set your own individual locale, timezone, and timeserver.</data>
 	<data key="regional.defaultencodingdescription"></data>
-	<data key="regional.web">Lucee lets you set your own individual locale, timezone and timeserver.</data>
+	<data key="regional.web">Lucee lets you set your own individual locale, timezone, and timeserver.</data>
 	<data key="regional.timezone">Time zone</data>
 	<data key="regional.timeserver">Time server (NTP)</data>
 	<data key="regional.usetimeserver">use time server</data>
 	<data key="regional.other"> --- other --- </data>
-	<data key="regional.timezonedescription">Define the desired time zone for Lucee, this will also change the time for the context of the web.&lt;br/&gt;</data>
+	<data key="regional.timezonedescription">Define the desired time zone for Lucee. This will also change the time for the context of the web.&lt;br/&gt;</data>
 	<data key="regional.timeservermissing">Please define a value for the field timezone</data>
 	<data key="regional.defaultencoding">Default encoding</data>
 	<data key="regional.serverprop.web">Server Administrator Value</data>
@@ -1082,7 +1082,7 @@ If the timezone of your Lucee instance and your database is different, this can 
 
 
 	<data key="overview.professional">Professional Support</data>
-	<data key="overview.professionalDesc">For many organizations and individuals, the security of a formal paid support contract is a necessity and we're pleased to offer four standard packages as well as the flexibility to create a custom package should your needs go beyond our standard offerings.</data>
+	<data key="overview.professionalDesc">For many organizations and individuals, the security of a formal paid support contract is a necessity. We are pleased to offer four standard packages as well as the flexibility to create a custom package should your needs go beyond our standard offerings.</data>
 
 
 
@@ -1113,7 +1113,7 @@ If the timezone of your Lucee instance and your database is different, this can 
 	<data key="overview.versionname">Version Name</data>
 	<data key="overview.mailinglist_de">Mailinglist (german)</data>
 	<data key="overview.introdesc.web">Lucee, the CFML engine - free, open source and easy to use. This Web Administrator is provided in order to customize your web context.</data>
-	<data key="overview.introdesc.server">The Server Administrator allows you to install updates and patches for your Lucee installation and to restart the engine with a mouse click. You can configure new web contexts and define restrictions and configurations per web context individually.</data>
+	<data key="overview.introdesc.server">The Server Administrator allows you to install updates and patches for your Lucee installation and to restart the engine with a mouse click. You can configure new web contexts, define restrictions, and configurations per web context individually.</data>
 	<data key="overview.infomail">info@lucee.ch</data>
 	<data key="overview.servertime">Server date/time: </data>
 	<data key="overview.version">Version</data>
@@ -1264,7 +1264,7 @@ If the timezone of your Lucee instance and your database is different, this can 
 
 	<data key="settings.cache.Buttons.default">set as default</data>
 	<data key="settings.orm.title">Settings</data>
-	<data key="settings.orm.desc">Here you can define the default settings for the ORM Configuration, this settings can be overwritten in the Application.cfc with the struct "ormsettings".</data>
+	<data key="settings.orm.desc">Here you can define the default settings for the ORM Configuration. These settings can be overwritten in the Application.cfc with the struct "ormsettings".</data>
 	<data key="settings.orm.autogenmap">Automatically generate mapping</data>
 	<data key="settings.orm.autogenmapDesc">Specifies whether Lucee should automatically generate mapping for the persistent CFCs. If disabled, mapping should be provided in the form of .HBMXML files. This setting can be overwritten in Application.cfc as follows [this.ormsettings.autogenmap=true]</data>
 	<data key="settings.orm.catalog">Catalog</data>
