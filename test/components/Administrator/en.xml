@@ -833,6 +833,7 @@ sct[""bracketNotation""] --> keyname: "bracketNotation"</data>
 	<data key="buttons.delete">delete</data>
 	<data key="buttons.reset">reset</data>
 	<data key="buttons.repair">repair</data>
+	<data key="buttons.switch">switch</data>
 	<data key="buttons.export">export</data>
 	<data key="buttons.installTrial">Install Trial</data>
 	<data key="buttons.installFull">Install Full Version</data>
@@ -1079,6 +1080,23 @@ If the timezone of your Lucee instance and your database is different, this can 
 	<data key="overview.mailinglist">Mailing list</data>
 	<data key="overview.mailinglistDesc">The mailing list is the focus of our community support program - help for users by users. </data>
 
+	<data key="overview.modeMulti">You are in Multi Mode</data>
+	<data key="overview.modeSingle">You are in Single Mode</data>
+	<data key="overview.modeMultiDesc">You are running Lucee in Multi Mode. In Multi Mode, you use the Server Administrator to configure overall settings for all web contexts/webs, and use individual Web Administrators to customize settings for each web context/web.</data>
+	<data key="overview.modeSingleDesc">You are running Lucee in Single Mode. In Single Mode, you use a single Administrator to configure settings for all web contexts/webs. No individual Web Administrators exist.</data>
+	
+	<data key="overview.modeMultiSwitch">Switch to Single Mode?</data>
+	<data key="overview.modeSingleSwitch">Switch to Multi Mode?</data>
+	<data key="overview.modeMultiSwitchDesc">Activating Single Mode will result in having a single Administrator to configure settings for all web contexts/webs. No individual Web Administrators will exist.</data>
+	<data key="overview.modeSingleSwitchDesc">Activating Multi Mode will result in having a Server Administrator to configure overall settings for all web contexts/webs and individual Web Administrators to customize settings for each web context/web.</data>
+
+
+	<data key="overview.switchMerge">Merge and Switch</data>
+	<data key="overview.switchMergeDesc">All settings from all web contexts/webs get stored into the server context</data>
+	<data key="overview.switchLeave">Just Switch</data>
+	<data key="overview.switchLeaveDesc">Switch to Single Mode and forget all settings done in all web contexts/webs</data>
+	
+	<data key="overview.switchKeep">Keep all web context/web configuration in place so a return to Multi Mode is possible</data>
 
 
 	<data key="overview.professional">Professional Support</data>
