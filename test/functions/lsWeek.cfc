@@ -3,10 +3,18 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 		describe( title="Testcase for lsWeek()", body=function() {
 			it(title="checking lsWeek() with locale argument", body = function( currentSpec ) {
 				var date = createDateTime(2022,01,17,12,0,0,0,"UTC"); 
-				// in Arabic (Yemen) Saturday is the first day of the week
-				expect(lsWeek(date=date, locale="Arabic (Yemen)")).tobe(3);
-				// in Catalan Monday is the first day of the week
-				expect(lsWeek(date=date, locale="Catalan")).tobe(3);
+				
+				if(getJavaVersion()<=8){
+					// in Arabic (Yemen) Saturday is the first day of the week
+					expect(lsWeek(date=date, locale="Arabic (Yemen)")).tobe(3);
+					// in Catalan Monday is the first day of the week
+					expect(lsWeek(date=date, locale="Catalan")).tobe(3);
+				}else{
+					// in Arabic (Yemen) Saturday is the first day of the week
+					expect(lsWeek(date=date, locale="Arabic (Yemen)")).tobe(4);
+					// in Catalan Monday is the first day of the week
+					expect(lsWeek(date=date, locale="Catalan")).tobe(4);
+				}
 				// in English (Canada) Sunday is the first day of the week
 				expect(lsWeek(date=date, locale="English (Canada)")).tobe(4);
 			});
@@ -21,4 +29,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 			});
 		});
 	}
+	
+	private function getJavaVersion() {
+        var raw=server.java.version;
+        var arr=listToArray(raw,'.');
+        if(arr[1]==1) // version 1-9
+            return arr[2];
+        return arr[1];
+    }
+	
 }
