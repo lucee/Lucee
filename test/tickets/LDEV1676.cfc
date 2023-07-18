@@ -94,6 +94,20 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" labels="xml" {
 				expect( trim( result ) ).toBe("lucee");
 			});
 
+			// check if we can inline disable the settings back to the old behavior
+			it( title="Check xmlFeatures default, bad xml, cfapplication override",body = function ( currentSpec ) {
+				local.result = _InternalRequest(
+					template : "#uri#/LDEV1676.cfm",
+					forms :	{
+						scene: "default",
+						doctype: true,
+						entity: true,
+						cfapplicationOverride: true
+					}
+				).filecontent;
+				expect( trim( result ) ).toInclude("http://update.lucee.org/rest/update/provider/echoGet/cgi");
+			});
+
 		});
 
 		describe( "check bad config handling", function () {

@@ -14,6 +14,15 @@
 	</cfif>
 </cfsavecontent>
 <cfscript>
+	
+	if (form.cfapplicationOverride){
+		//systemOutput("cfapplicationOverride", true)
+		application action="update" xmlFeatures={
+			"externalGeneralEntities": true,
+			"secure": false,
+			"disallowDoctypeDecl": false
+		};
+	}
 	/*
 	settings = getApplicationSettings();
 
@@ -31,9 +40,7 @@
 		//systemOutput( result, true );
 		echo( result );
 	} catch (e) {
-
 		//systemOutput(cfcatch.type & " " & cfcatch.message, true);
-
 		echo( cfcatch.type & " " & cfcatch.message );
 	}
 </cfscript>
