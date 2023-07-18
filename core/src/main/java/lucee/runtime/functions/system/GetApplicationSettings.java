@@ -93,9 +93,9 @@ public class GetApplicationSettings extends BIF {
 		Struct xmlFeatures = acs.getXmlFeatures();
 		if (xmlFeatures == null) xmlFeatures = new StructImpl();
 		Struct sxml = new StructImpl(Struct.TYPE_LINKED);
-		sxml.setEL("secure", Caster.toBoolean(xmlFeatures.get("secure", true)));
-		sxml.setEL("disallowDoctypeDecl", Caster.toBoolean(xmlFeatures.get("disallowDoctypeDecl", true)));
-		sxml.setEL("externalGeneralEntities", Caster.toBoolean(xmlFeatures.get("externalGeneralEntities", false)));
+		sxml.setEL("secure", xmlFeatures.get("secure", true));
+		sxml.setEL("disallowDoctypeDecl", xmlFeatures.get("disallowDoctypeDecl", true));
+		sxml.setEL("externalGeneralEntities", xmlFeatures.get("externalGeneralEntities", false));
 		sct.setEL("xmlFeatures", sxml);
 		
 		sct.setEL("customTagPaths", toArray(ac.getCustomTagMappings()));
