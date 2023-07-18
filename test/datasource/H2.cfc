@@ -9,7 +9,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		testConnection();
 	}
 	public void function testConnectionLatest(){
-		defineDatasource('org.h2');
+		defineDatasource('org.lucee.h2',"2.1.214.0001L");
 		testConnection();
 	}
 
