@@ -77,30 +77,6 @@ Redirect to entry --->
 Error Output --->
 <cfset printError(error)>
 
-<cfset pool['HEAP']="Heap">
-<cfset pool['NON_HEAP']="Non-Heap">
-
-<cfset pool['HEAP_desc']="Memory used for all objects that are allocated.">
-<cfset pool['NON_HEAP_desc']="Memory used to store all cfc/cfm templates, java classes, interned Strings and meta-data.">
-
-<cfset pool["Par Eden Space"]="The pool from which memory is initially allocated for most objects.">
-<cfset pool["Par Survivor Space"]="The pool containing objects that have survived the garbage collection of the Eden space.">
-<cfset pool["CMS Old Gen"]="The pool containing objects that have existed for some time in the survivor space.">
-<cfset pool["CMS Perm Gen"]="The pool containing all the reflective data of the virtual machine itself, such as class and method objects.">
-<cfset pool["Code Cache"]="The HotSpot Java VM also includes a code cache, containing memory that is used for compilation and storage of native code.">
-
-
-<cfset pool["Eden Space"]=pool["Par Eden Space"]>
-<cfset pool["PS Eden Space"]=pool["Par Eden Space"]>
-
-<cfset pool["Survivor Space"]=pool["Par Survivor Space"]>
-<cfset pool["PS Survivor Space"]=pool["Par Survivor Space"]>
-
-<cfset pool["Perm Gen"]=pool["CMS Perm Gen"]>
-
-<cfset pool["Tenured Gen"]=pool["CMS Old Gen"]>
-<cfset pool["PS Old Gen"]=pool["CMS Old Gen"]>
-
 <cfhtmlbody>
     <script src="../res/js/echarts-all.js.cfm" type="text/javascript"></script>
 
@@ -493,11 +469,11 @@ Error Output --->
 							</th>
 						</tr>
 						<tr>
-							<td width="50%"><b>#pool['heap']#</b> <span id="heap-label" style="padding-left:10px;"></span>
+							<td width="50%"><b>#stText.Overview.pool['HEAP']#</b> <span id="heap-label" style="padding-left:10px;"></span>
 								<div id="heap" style="min-width: 100px; height: 150px; margin: 0 auto;"></div>
 								
 							</td>
-							<td width="50%"><b>#pool['non_heap']#</b><span id="nonheap-label" style="padding-left:10px;"></span><br>
+							<td width="50%"><b>#stText.Overview.pool['NON_HEAP']#</b><span id="nonheap-label" style="padding-left:10px;"></span><br>
 								<div id="nonheap" style="min-width: 100px; height: 150px; margin: 0 auto;"></div>
 								
 							</td>

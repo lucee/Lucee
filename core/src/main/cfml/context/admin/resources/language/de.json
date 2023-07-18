@@ -826,6 +826,17 @@
 			"onlineDocsDesc": "Lucee online documentation.",
 			"onlineDocsLink": "Online Documentation",
 			"os": "Betriebssystem",
+			"pool": {
+				"HEAP": "Heap",
+				"NON_HEAP": "Non-Heap",
+				"HEAP_desc": "**Memory used for all objects that are allocated.",
+				"NON_HEAP_desc": "**Memory used to store all cfc/cfm templates, java classes, interned Strings and meta-data.",
+				"Par Eden Space": "**The pool from which memory is initially allocated for most objects.",
+				"Par Survivor Space": "**The pool containing objects that have survived the garbage collection of the Eden space.",
+				"CMS Old Gen": "**The pool containing objects that have existed for some time in the survivor space.",
+				"CMS Perm Gen": "**The pool containing all the reflective data of the virtual machine itself, such as class and method objects.",
+				"Code Cache": "**The HotSpot Java VM also includes a code cache, containing memory that is used for compilation and storage of native code."
+			},
 			"professional": "Professional support",
 			"professionalDesc": "For many organizations and individuals, the security of a formal paid support contract is a necessity. We are pleased to offer four standard packages as well as the flexibility to create a custom package should your needs go beyond our standard offerings.",
 			"purchase": "Hol Dir Deine Lucee Lizenz",

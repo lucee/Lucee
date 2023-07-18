@@ -1098,11 +1098,16 @@ If the timezone of your Lucee instance and your database is different, this can 
 	
 	<data key="overview.switchKeep">Keep all web context/web configuration in place so a return to Multi Mode is possible</data>
 
+	<data key="overview.pool['HEAP_desc']">Memory used for all objects that are allocated.</data>
+	<data key="overview.pool['NON_HEAP_desc']">Memory used to store all cfc/cfm templates, java classes, interned Strings and meta-data.</data>
+	<data key="overview.pool['Par Eden Space']">The pool from which memory is initially allocated for most objects.</data>
+	<data key="overview.pool['Par Survivor Space']">The pool containing objects that have survived the garbage collection of the Eden space.</data>
+	<data key="overview.pool['CMS Old Gen']">The pool containing objects that have existed for some time in the survivor space.</data>
+	<data key="overview.pool['CMS Perm Gen']">The pool containing all the reflective data of the virtual machine itself, such as class and method objects.</data>
+	<data key="overview.pool['Code Cache']">The HotSpot Java VM also includes a code cache, containing memory that is used for compilation and storage of native code.</data>
 
 	<data key="overview.professional">Professional Support</data>
 	<data key="overview.professionalDesc">For many organizations and individuals, the security of a formal paid support contract is a necessity. We are pleased to offer four standard packages as well as the flexibility to create a custom package should your needs go beyond our standard offerings.</data>
-
-
 
 
 	<data key="overview.licencedevelopdesc">The Develop Version is a version, addressing those users who are most likely to apply it in order for assembling CFML application . The version though is prohibited to be used commercially.</data>
