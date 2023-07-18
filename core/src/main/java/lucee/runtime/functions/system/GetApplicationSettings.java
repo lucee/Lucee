@@ -109,6 +109,14 @@ public class GetApplicationSettings extends BIF {
 			sc.setEL("disableUpdate", sessionCookieData.isDisableUpdate());
 			sct.setEL("sessionCookie", sc);
 		}
+
+		Struct xmlFeatures = acs.getXmlFeatures();
+		if (xmlFeatures == null) xmlFeatures = new StructImpl();
+		Struct sxml = new StructImpl(Struct.TYPE_LINKED);
+		sxml.setEL("secure", Caster.toBoolean(xmlFeatures.get("secure", true)));
+		sxml.setEL("disallowDoctypeDecl", Caster.toBoolean(xmlFeatures.get("disallowDoctypeDecl", true)));
+		sxml.setEL("externalGeneralEntities", Caster.toBoolean(xmlFeatures.get("externalGeneralEntities", false)));
+		sct.setEL("xmlFeatures", sxml);
 		
 		sct.setEL("customTagPaths", toArray(ac.getCustomTagMappings()));
 		sct.setEL("componentPaths", toArray(ac.getComponentMappings()));
