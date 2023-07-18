@@ -1,21 +1,23 @@
-<cfset pool['HEAP']="Heap">
-<cfset pool['NON_HEAP']="Non-Heap">
+<cfif isNull(stText)>
+	<cfset stText = ( application.stText[ session.lucee_admin_lang ] )?:application.stText.en>
+</cfif>
 
 <cffunction name="printMemory" returntype="struct">
 	<cfargument name="usage" type="query" required="yes">
 	<cfargument name="showTitle" type="boolean" default="true" required="false">
+	
 	<cfset var used=evaluate(ValueList(arguments.usage.used,'+'))>
 	<cfset var max=evaluate(ValueList(arguments.usage.max,'+'))>
 	<cfset var init=evaluate(ValueList(arguments.usage.init,'+'))>
 	<cfset var qry=QueryNew(arguments.usage.columnlist)>
 	<cfset QueryAddRow(qry)>
     <cfset QuerySetCell(qry,"type",arguments.usage.type)>
-    <cfset QuerySetCell(qry,"name",variables.pool[arguments.usage.type])>
+    <cfset QuerySetCell(qry,"name",stText?.Overview?.pool[arguments.usage.type])>
     <cfset QuerySetCell(qry,"init",init,qry.recordcount)>
     <cfset QuerySetCell(qry,"max",max,qry.recordcount)>
     <cfset QuerySetCell(qry,"used",used,qry.recordcount)>
     <cfset arguments.usage=qry>
-		<cfif arguments.showTitle><b>#pool[usage.type]#</b></cfif>
+		<cfif arguments.showTitle><b>#stText?.Overview?.pool[usage.type]#</b></cfif>
 		<cfset var str = {}>
 		<cfloop query="arguments.usage">
 			<cfset str.pused=int(100/arguments.usage.max*arguments.usage.used)>
@@ -29,8 +31,8 @@
 
 <cffunction name="sysMetric" returnType="struct" access="remote" localmode="modern">
 	<cfset systemInfo=GetSystemMetrics()>
-	<cfset heap = variables.printMemory(getmemoryUsage("heap"),false)>
-	<cfset nonHeap = variables.printMemory(getmemoryUsage("non_heap"),false)>
+	<cfset heap = variables.printMemory(getmemoryUsage("HEAP"),true)>
+	<cfset nonHeap = variables.printMemory(getmemoryUsage("NON_HEAP"),true)>
 	<cfset cpuSystemData = int((systemInfo.cpuSystem ?: 0) *100)>
 	<cfset  cpuProcessData= int((systemInfo.cpuProcess ?: 0) *100)>
 	<cfset result = {
