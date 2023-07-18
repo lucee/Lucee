@@ -49,12 +49,22 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	}
 
 	private void function defineDatasource(bundle,version){
+		var dbPath = getDirectoryFromPath( getCurrentTemplatePath() ) & "/datasource/";
+		var dbFile = "db_" & replace( arguments.bundle & "_" & arguments.version, '.', '_', 'all');
+
+		var oldFiles = directoryList(path=dbPath, filter="#dbfile#*.*", listinfo="path");
+		oldFiles.each( function( oldfile ) {
+			if ( fileExists( oldFile ) ){
+				fileDelete( oldFile );
+			}
+		});
+		
 		application action="update" 
 			datasource={
 	  		class: 'org.hsqldb.jdbcDriver'
 			, bundleName: arguments.bundle
 			, bundleVersion: arguments.version
-			, connectionString: 'jdbc:hsqldb:file:#getDirectoryFromPath(getCurrentTemplatePath())#/datasource/db#replace(arguments.version,'.','_','all')#'
+			, connectionString: 'jdbc:hsqldb:file:#dbPath##dbFile#'
 		};
 	}
 } 

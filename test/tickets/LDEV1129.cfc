@@ -7,16 +7,18 @@
 		}
 
 		function beforeAll() skip="isNotSupported"{
-			variables.bucketName = lcase("lucee-ldev1129-#CreateGUID()#");
+			if ( isNotSupported() ) return;
+
+			var s3Details = getCredentials();
+			variables.bucketName = lcase( s3Details.bucket_prefix & "1129-#CreateGUID()#");
 			var uri = createURI( variables.bucketName );
+
 			if (not directoryExists(uri) ){
 				Directorycreate(uri);
 				Directorycreate("#uri#/test");
 				Directorycreate("#uri#/test2");
 			}
-			if ( isNotSupported() ) return;
-			var s3Details = getCredentials();
-			
+		
 			variables.base = "s3://#s3Details.ACCESS_KEY_ID#:#s3Details.SECRET_KEY#@";
 			variables.baseWithBucketName = "s3://#s3Details.ACCESS_KEY_ID#:#s3Details.SECRET_KEY#@/#bucketName#";
 			// for skipping rest of the cases, if error occurred.
@@ -26,10 +28,13 @@
 		}
 
 		function afterAll() skip="isNotSupported"{
-			if (isNotSupported()) return;
-			if (directoryExists(baseWithBucketName) )
+			if (!isNull(baseWithBucketName) && directoryExists(baseWithBucketName) )
 			 	directoryDelete(baseWithBucketName, true);
+			if (!isNull(testFolder) && directoryExists(testFolder) )
+					directoryDelete(testFolder, true);
+			if (isNotSupported()) return;
 		}
+
 
 		public function run( testResults , testBox ) {
 			describe( title="Test suite for LDEV-1129 ( checking s3 file operations )", body=function() {

@@ -2,13 +2,7 @@
 
 <cfscript>
 	this.name = hash(getCurrentTemplatePath()) & getTickCount();
- 	if(directoryExists("datasource")) {
-		 directoryDelete("datasource",true);
-	}
- 	this.datasources.test = {
-	  class: "org.h2.Driver"
-		, connectionString: 'jdbc:h2:#getDirectoryFromPath(getCurrentTemplatePath())#/datasource/db;MODE=MySQL'
-	};
+ 	this.datasources.test = server.getDatasource("h2", server._getTempDir("orm-many2many") );
 	this.datasource = 'test'; 
 		
 	this.ormEnabled = true; 
@@ -17,21 +11,6 @@
 		saveMapping=true,
 		cfclocation = 'model'
 	} ;
-
-	function onRequestEnd() {
-		var javaIoFile=createObject("java","java.io.File");
-		loop array=DirectoryList(
-			path=getDirectoryFromPath(getCurrentTemplatePath()), 
-			recurse=true, filter="*.db") item="local.path"  {
-			fileDeleteOnExit(javaIoFile,path);
-		}
-	}
-
-	private function fileDeleteOnExit(required javaIoFile, required string path) {
-		var file=javaIoFile.init(arguments.path);
-		if(!file.isFile())file=javaIoFile.init(expandPath(arguments.path));
-		if(file.isFile()) file.deleteOnExit();
-	}
 
 </cfscript>
 

@@ -137,7 +137,14 @@ component {
 
 			"SMTP_SERVER": "localhost",
 			"SMTP_PORT_SECURE": 25,
-			"SMTP_PORT_INSECURE": 587
+			"SMTP_PORT_INSECURE": 587,
+
+			"MEMCACHED_SERVER": "localhost",
+			// "MEMCACHED_PORT": 11211 // DON'T COMMIT
+
+			"REDIS_SERVER": "localhost",
+			// "REDIS_PORT": 6379 // DON'T COMMIT
+			
 		};
 	}
 
@@ -186,7 +193,9 @@ component {
 					systemOutput( "Service [ #service# ] is [ #verify# ]", true) ;
 					server.test_services[service].valid = true;
 				} catch (e) {
-					systemOutput( "ERROR Service [ #service# ] threw [ #cfcatch.message# ]", true);
+					st = test._testRunner::trimJavaStackTrace(cfcatch.stacktrace);
+					systemOutput( "ERROR Service [ #service# ] threw [ #arrayToList(st, chr(10) )# ]", true);
+					server.test_services[service].stacktrace = st;
 				}
 			}
 		}
@@ -195,13 +204,32 @@ component {
 
 	public array function reportServiceSkipped () localmode=true {
 		skipped = [];
-		for (s in server.test_services ){
-			service = server.test_services[s];
+		for ( s in server.test_services ){
+			service = server.test_services[ s ];
 			if ( !service.valid && service.missedTests gt 0 ){
-				ArrayAppend( skipped, "-> Service [#s#] #chr(9)# not available, #chr(9)# #service.missedTests# tests skipped" );
+				ArrayAppend( skipped, "-> Service [ #s# ] #chr(9)# not available, #chr(9)# #service.missedTests# tests skipped" );
 			}
 		}
 		return skipped;
+	}
+
+	public array function reportServiceFailed() localmode=true {
+		failed = [];
+		for ( s in server.test_services ){
+			service = server.test_services[ s ];
+			if ( !service.valid and structKeyExists( service, "stacktrace" ) ){
+				ArrayAppend( failed, "-> Service [ #s# ] #chr(9)# threw" );
+				for ( st in service.stacktrace ) {
+					ArrayAppend( failed, st );
+				}
+			}
+		}
+		return failed;
+	}
+	
+	public boolean function failOnConfiguredServiceError() localmode=true{
+		buildCfg = server._getSystemPropOrEnvVars( "LUCEE_BUILD_FAIL_CONFIGURED_SERVICES_FATAL", "", false );
+		return buildCfg.LUCEE_BUILD_FAIL_CONFIGURED_SERVICES_FATAL ?: false;
 	}
 
 	public string function verifyDatasource ( struct datasource ) localmode=true{
@@ -241,11 +269,62 @@ component {
 	}
 
 	public function verifyS3 ( s3 ) localmode=true{
-		bucketName = "lucee-testsuite";
+	bucketName = arguments.s3.BUCKET_PREFIX & lcase(hash(CreateGUID()));
 		base = "s3://#arguments.s3.ACCESS_KEY_ID#:#arguments.s3.SECRET_KEY#@/#bucketName#";
-		DirectoryExists( base );		
-		return "s3 Connection Verified";
+		directoryCreate( base );
+		directoryDelete( base );
+		return "s3 Connection Verified [#bucketName#]";
 	}
+
+	public function verifyMemcached ( memcached ) localmode=true{
+		if ( structCount( memcached ) eq 2 ){
+			if ( !isRemotePortOpen( memcached.server, memcached.port ) )
+				throw "MemCached port closed #memcached.server#:#memcached.port#"; // otherwise the cache keeps trying and logging
+			try {
+				testCacheName = "testMemcached";
+				application 
+					action="update" 
+					caches="#{
+						testMemcached: {
+							class: 'org.lucee.extension.cache.mc.MemcachedCache'
+							, bundleName: 'memcached.extension'
+							, bundleVersion: '4.0.0.10-SNAPSHOT'
+							, storage: false
+							, custom: {
+								"socket_timeout": "3",
+								"initial_connections": "1",
+								"alive_check": "true",
+								"buffer_size": "1",
+								"max_spare_connections": "32",
+								"storage_format": "Binary",
+								"socket_connect_to": "3",
+								"min_spare_connections": "1",
+								"maint_thread_sleep": "5",
+								"failback": "true",
+								"max_idle_time": "600",
+								"max_busy_time": "30",
+								"nagle_alg": "true",
+								"failover": "false",
+								"servers": "#memcached.server#:#memcached.port#"
+							}
+							, default: ''
+						}
+					}#";
+				cachePut( id='abcd', value=1234, cacheName=testCacheName );
+				valid = !isNull( cacheGet( id:'abcd', cacheName:testCacheName ) );
+				application action="update" caches="#{}#";
+				if ( !valid ) {
+					throw "MemCached configured, but not available";
+				} else {
+					return "MemCached connection verified";
+				}
+			} catch (e){
+				application action="update" caches="#{}#";
+				rethrow;
+			}
+		}
+		throw "not configured";
+	}	
 
 	public function verifyRedis ( redis ) localmode=true{
 		if ( structCount( redis ) eq 2 ){
@@ -254,7 +333,47 @@ component {
 		throw "not configured";
 	}
 
+	public function verifyImap ( imap ) localmode=true{
+		imap
+			action="open" 
+			server = imap.SERVER
+			username = imap.USERNAME
+			port = imap.PORT_INSECURE
+			secure="no"
+			password = imap.PASSWORD
+			connection = "testImap";
+		imap
+			action = "close",
+			connection="testImap";
+			
+		return "configured";
+	}
+
+	public function verifyLDAP ( ldap ) localmode=true {
+		cfldap( server=ldap.server,
+			port=ldap.port,
+			timeout=5000,
+			username=ldap.username,
+			password=ldap.password,
+			action="query",
+			name="local.results",
+			start=ldap.base_dn,
+			filter="(objectClass=inetOrgPerson)",
+			attributes="cn" );
+		return "configured";
+	}
+
 	public function addSupportFunctions() {
+		server._getTempDir = function ( string prefix="" ) localmode=true{
+			if ( len( arguments.prefix ) eq 0 ) {
+				local.dir = getTempDirectory() & "lucee-tests\" & createGUID();
+			} else {
+				local.dir = getTempDirectory() & "lucee-tests\" & arguments.prefix;
+			}
+			if ( !directoryExists( dir ) )
+				directoryCreate( dir, true );
+			return dir;
+		};
 		server._getSystemPropOrEnvVars = function ( string props="", string prefix="", boolean stripPrefix=true, boolean allowEmpty=false ) localmode=true{
 			st = [=];
 			keys = arguments.props.split( "," );
@@ -293,7 +412,11 @@ component {
 		server.getDefaultBundleVersion = getDefaultBundleVersion;  
 		server.getBundleVersions = getBundleVersions;
 	}
-	public struct function getTestService( required string service, string dbFile="", boolean verify=false, boolean onlyConfig=false ) localmode=true {
+	public struct function getTestService( required string service, 
+			string dbFile="", 
+			boolean verify=false, 
+			boolean onlyConfig=false 
+		) localmode=true {
 		if ( StructKeyExists( server.test_services, arguments.service ) ){
 			if ( !server.test_services[ arguments.service ].valid ){
 				//SystemOutput("Warning service: [ #arguments.service# ] is not available", true);
@@ -356,12 +479,28 @@ component {
 						DirectoryCreate( tempDb );
 					arguments.dbFile = tempDb;
 				}
-				if ( Len( arguments.dbFile ) ){
+				if ( len( arguments.dbFile ) ){
 					return {
 						class: 'org.h2.Driver'
 						, bundleName: 'org.lucee.h2'
-						, bundleVersion: server.getDefaultBundleVersion('org.lucee.h2', '2.1.214')
+						, bundleVersion: server.getDefaultBundleVersion('org.lucee.h2', '2.1.214.0001L')
 						, connectionString: 'jdbc:h2:#arguments.dbFile#/datasource/db;MODE=MySQL'
+					};
+				}
+				break;
+			case "hsqldb":
+				if ( arguments.verify ){
+					tempDb = "#getTempDirectory()#/hsqldb-#createUUID()#";
+					if (! DirectoryExists( tempDb ) )
+						DirectoryCreate( tempDb );
+					arguments.dbFile = tempDb;
+				}
+				if ( len( arguments.dbFile ) ){
+					return {
+						class: 'org.hsqldb.jdbcDriver'
+						, bundleName: 'org.lucee.hsqldb'
+						, bundleVersion: server.getDefaultBundleVersion( 'org.lucee.hsqldb', '2.7.2.jdk8' )
+						, connectionString: 'jdbc:hsqldb:#arguments.dbFile#/datasource/db;MODE=MySQL'
 					};
 				}
 				break;
@@ -425,12 +564,24 @@ component {
 				}
 				break;
 			case "s3":
-				s3 = server._getSystemPropOrEnvVars( "ACCESS_KEY_ID, SECRET_KEY", "S3_" );
+				s3 = server._getSystemPropOrEnvVars( "ACCESS_KEY_ID, SECRET_KEY, BUCKET_PREFIX", "S3_" );
 				return s3;
+			case "memcached":
+				memcached = server._getSystemPropOrEnvVars( "SERVER, PORT", "MEMCACHED_" );
+				if ( memcached.count() eq 2 ){
+					return memcached;
+				}
+				break;
 			case "redis":
 				redis = server._getSystemPropOrEnvVars( "SERVER, PORT", "REDIS_" );
 				if ( redis.count() eq 2 ){
 					return redis;
+				}
+				break;
+			case "ldap":
+				ldap = server._getSystemPropOrEnvVars( "SERVER, PORT, USERNAME, PASSWORD, BASE_DN", "LDAP_" );
+				if ( ldap.count() eq 5 ){
+					return ldap;
 				}
 				break;
 			default:
@@ -441,18 +592,18 @@ component {
 		return {};
 	}
 
-	function getDefaultBundleVersion (bundleName, fallbackVersion) cachedWithin="request" {
+	function getDefaultBundleVersion( bundleName, fallbackVersion ) cachedWithin="request" {
 		var bundles = server.getBundleVersions();
-		if (structKeyExists(bundles, arguments.bundleName)){
+		if ( structKeyExists( bundles, arguments.bundleName ) ){
 			//systemOutput(arguments.bundleName & " " & bundles[arguments.bundleName], true)
-			return bundles[arguments.bundleName];
+			return bundles[ arguments.bundleName ];
 		} else {
 			systemOutput("getDefaultBundleVersion: [" & arguments.bundleName & "] FALLLING BACK TO DEFAULT [" & arguments.fallbackVersion & "]", true)
 			return arguments.fallbackVersion ;
 		}
 	}		
 
-	function getBundleVersions () cachedWithin="#createTimeSpan(1,0,0,0)#"{
+	function getBundleVersions() cachedWithin="#createTimeSpan( 1, 0, 0, 0 )#"{
 		admin 
 			type="server"
 			password="#server.SERVERADMINPASSWORD#" 
@@ -461,10 +612,36 @@ component {
 		var bundles = {};
 		loop query=q_bundles {
 			var _bundle = {};
-			_bundle.append(q_bundles.headers);
-			bundles[_bundle['Bundle-SymbolicName']] = _bundle['Bundle-Version'];
+			_bundle.append( q_bundles.headers );
+			bundles[ _bundle[ 'Bundle-SymbolicName' ] ] = _bundle[ 'Bundle-Version' ];
 		}
 		return bundles;
+	}
+
+	function isTestServiceAllowed( service ){
+		if ( len( request.testServices) eq 0 )
+			return true;
+		loop list=request.testServices item="local.testService" {
+			if ( local.testService eq arguments.service )
+				return true;
+		}
+		return false;
+	}
+
+	boolean function isRemotePortOpen( string host, numeric port, numeric timeout=2000 ) {
+		var socket = createObject( "java", "java.net.Socket").init();
+		var address = createObject( "java", "java.net.InetSocketAddress" ).init(
+			javaCast( "string", arguments.host ),
+			javaCast( "int", arguments.port )
+		);
+
+		try {
+			socket.connect( address, javaCast( "int", arguments.timeout ));
+			socket.close();
+			return true;
+		} catch (e) {
+			return false;
+		}
 	}
 }
 
