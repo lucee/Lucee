@@ -43,6 +43,19 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" labels="xml" {
 				expect( result.externalGeneralEntities ).toBeTrue();
 			});
 
+			it( title="Check xmlFeatures, check pass thru",body = function ( currentSpec ) {
+				local.result = _InternalRequest(
+					template : "#uri#/LDEV4348.cfm",
+					forms :	{
+						scene: "testPassthru"
+					}
+				).filecontent.deserializeJson();
+				expect( result.secure ).toBeFalse();
+				expect( result.disallowDoctypeDecl  ).toBeFalse();
+				expect( result.externalGeneralEntities ).toBeTrue();
+				expect( result["http://apache.org/xml/features/validation/id-idref-checking"] ).toBeTrue();
+			});
+
 		});
 
 	}
