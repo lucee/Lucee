@@ -332,24 +332,28 @@ public final class XMLUtil {
 		boolean featureSecure = true;
 		boolean disallowDocType = true;
 		boolean externalGeneralEntities = false;
+		Struct features = null;
 
 		// can be overriden per application
 		PageContext pc = ThreadLocalPageContext.get();
 		if (pc != null) {
 			ApplicationContextSupport ac = ((ApplicationContextSupport) pc.getApplicationContext());
-			Struct features = ac == null ? null : ac.getXmlFeatures();
+			features = ac == null ? null : ac.getXmlFeatures();
 			if (features != null) {
 				try { // handle feature aliases, e.g. secure
 					Object obj;
 					
 					obj = features.get(KEY_FEATURE_SECURE, null);
 					if (obj != null) featureSecure = Caster.toBoolean(obj);
+					features.remove(KEY_FEATURE_SECURE, null);
 
 					obj = features.get(KEY_FEATURE_DISALLOW_DOCTYPE_DECL, null);
 					if (obj != null) disallowDocType = Caster.toBoolean(obj);
+					features.remove(KEY_FEATURE_DISALLOW_DOCTYPE_DECL, null);
 
 					obj = features.get(KEY_FEATURE_EXTERNAL_GENERAL_ENTITIES, null);
 					if (obj != null) externalGeneralEntities = Caster.toBoolean(obj);
+					features.remove(KEY_FEATURE_EXTERNAL_GENERAL_ENTITIES, null);
 				}
 				catch (PageException ex) {
 					throw new RuntimeException(ex);
@@ -357,7 +361,7 @@ public final class XMLUtil {
 			}
 		}
 		
-		try { // handle feature aliases, e.g. secure
+		try { // set built in feature aliases
 			if (featureSecure) {
 				// set features per
 				// https://cheatsheetseries.owasp.org/cheatsheets/XML_External_Entity_Prevention_Cheat_Sheet.html
@@ -370,27 +374,25 @@ public final class XMLUtil {
 				factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
 				factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
 			}
-			//features.remove(KEY_FEATURE_SECURE);
 			
 			factory.setFeature(XMLConstants.FEATURE_DISALLOW_DOCTYPE_DECL, disallowDocType);
-			//features.remove(KEY_FEATURE_DISALLOW_DOCTYPE_DECL);
-
 			factory.setFeature(XMLConstants.FEATURE_EXTERNAL_GENERAL_ENTITIES, externalGeneralEntities);
-			//features.remove(KEY_FEATURE_EXTERNAL_GENERAL_ENTITIES);	
 		}
 		catch (ParserConfigurationException ex) {
 			throw new RuntimeException(ex);
 		}
-		/*
-		features.forEach((k, v) -> {
-			try {
-				factory.setFeature(k.toString().toLowerCase(), Caster.toBoolean(v));
-			}
-			catch (PageException | ParserConfigurationException ex) {
-				throw new RuntimeException(ex);
-			}
-		});
-		*/
+		// pass thru any additional feature directives
+		// https://xerces.apache.org/xerces2-j/features.html#disallow-doctype-decl
+		if (features != null){
+			features.forEach((k, v) -> {
+				try {
+					factory.setFeature(k.toString().toLowerCase(), Caster.toBoolean(v));
+				}
+				catch (PageException | ParserConfigurationException ex) {
+					throw new RuntimeException(ex);
+				}
+			});
+		}
 		return factory;
 	}
 

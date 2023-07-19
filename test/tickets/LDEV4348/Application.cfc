@@ -17,6 +17,14 @@ component {
 				"disallowDoctypeDecl": false
 			};
 			break;
+		case "testPassthru":
+			this.xmlFeatures = {
+				"externalGeneralEntities": true,
+				"secure": false,
+				"disallowDoctypeDecl": false,
+				"http://apache.org/xml/features/validation/id-idref-checking": true
+			};
+			break;
 		case "default":
 			break;
 		default:

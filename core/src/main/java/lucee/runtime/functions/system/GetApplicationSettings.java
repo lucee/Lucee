@@ -116,6 +116,15 @@ public class GetApplicationSettings extends BIF {
 		sxml.setEL("secure", xmlFeatures.get("secure", true));
 		sxml.setEL("disallowDoctypeDecl", xmlFeatures.get("disallowDoctypeDecl", true));
 		sxml.setEL("externalGeneralEntities", xmlFeatures.get("externalGeneralEntities", false));
+		if (!xmlFeatures.isEmpty()){ // pass thru other values
+			Iterator<Key> it = xmlFeatures.keySet().iterator();
+			Key name;
+			while (it.hasNext()) {
+				name = KeyImpl.toKey(it.next());
+				if (!sxml.containsKey( name ) )
+					sxml.setEL(name,xmlFeatures.get(name));
+			}
+		}
 		sct.setEL("xmlFeatures", sxml);
 		
 		sct.setEL("customTagPaths", toArray(ac.getCustomTagMappings()));
