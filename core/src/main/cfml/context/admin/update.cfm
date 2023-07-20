@@ -42,43 +42,59 @@
 
 	<!--- Core --->
 		<cfif adminType == "server">
+			<cfset filterMajor = true>
 			
 			<cfset curr=server.lucee.version>
+			<cfset curr=listFirst(server.lucee.version,".")>
+			
 			<cfset updateInfo=getAvailableVersion()>
 			<cfif server.lucee.state EQ "RC">
-				<cfset get_rc = "">
+				<cfset get_rc = []>
 				<cfloop index="rcList" array="#updateInfo.otherVersions#">
 					<cfif listContainsNoCase(rcList,"-RC") EQ 1>
-						<cfset get_rc = listAppend(get_rc,rcList)>
+						<cfset arrayAppend(get_rc,rcList)>
 					</cfif>
 				</cfloop>
-				<cfset available = listlast(get_rc)>
+				<cfset available = Arraylast(get_rc)>
 				<cfset hasUpdate = curr LT available>
 			<cfelseif server.lucee.state EQ "stable">
-				<cfset get_stable = "">
+				<cfset get_stable = []>
 				<cfloop index="stableList" array="#updateInfo.otherVersions#">
 					<cfif ( !listContainsNoCase(stableList,"-SNAPSHOT") EQ 1 ) AND ( !listContainsNoCase(stableList,"-BETA") EQ 1 AND (!listContainsNoCase(stableList,"-RC") EQ 1) )>
-						<cfset get_stable = listAppend(get_stable,stableList)>
+						<cfset arrayAppend(get_stable,stableList)>
 					</cfif>
 				</cfloop>
-				<cfset available = listlast(get_stable)>
+				<cfset available = Arraylast(get_stable)>
 				<cfset hasUpdate = curr LT available>
 			<cfelse>
 				<cfset ava_ver = listfirst(updateInfo.available,"-")>
-				<cfset cur_ver = listfirst(curr,"-")>
-				<cfloop from="1" to="#listlen(cur_ver,".")#" index="i">
-					<cfif len(listgetat(ava_ver,i,".")) eq 1>
-						<cfset last = 0&listgetat(ava_ver,i,".")>
-						<cfset ava_ver = listsetat(ava_ver,i,last,".")>
-					</cfif>
-					<cfif len(listgetat(cur_ver,i,".")) eq 1>
-						<cfset last = 0&listgetat(cur_ver,i,".")>
-						<cfset cur_ver = listsetat(cur_ver,i,last,".")>
-					</cfif>
-				</cfloop>
-				<cfset ava_ver = ava_ver&"-"&listlast(updateInfo.available,"-")>
-				<cfset cur_ver = cur_ver&"-"&listlast(curr,"-")>
-				<cfset hasUpdate = structKeyExists(updateInfo,"available") && ava_ver gt cur_ver>
+				<cfif curr neq ava_ver>
+					<!-- only show updates for the current major version, ie on 5.4, not show 6.0 snapshots -->
+					<cfset curr=listFirst(server.lucee.version,".")>
+					<cfset available = getUpdateForMajorVersion(updateInfo.otherVersions, curr )>
+					<cfset ava_ver = listfirst(updateInfo.available,"-")>
+				<cfelse>
+					<cfset available = updateInfo.available>
+				</cfif>
+				<cfif len(available) eq 0 or server.lucee.version eq available>
+					<cfset hasUpdate = false>
+				<cfelse>
+					<cfset cur_ver = listfirst(curr,"-")>
+					<cfloop from="1" to="#listlen(cur_ver,".")#" index="i">
+						<cfif len(listgetat(ava_ver,i,".")) eq 1>
+							<cfset last = 0&listgetat(ava_ver,i,".")>
+							<cfset ava_ver = listsetat(ava_ver,i,last,".")>
+						</cfif>
+						<cfif len(listgetat(cur_ver,i,".")) eq 1>
+							<cfset last = 0&listgetat(cur_ver,i,".")>
+							<cfset cur_ver = listsetat(cur_ver,i,last,".")>
+						</cfif>
+					</cfloop>
+					<cfset ava_ver = ava_ver&"-"&listlast(available,"-")>
+					<cfset cur_ver = cur_ver&"-"&listlast(curr,"-")>
+					
+					<cfset hasUpdate = structKeyExists(updateInfo,"available") && ava_ver gt cur_ver>
+				</cfif>
 			</cfif>
 		</cfif>
 
@@ -166,11 +182,7 @@
 				<cfif adminType == "server" and hasUpdate>
 					<div class="error">
 						<a href="server.cfm?action=services.update" style="color:red;text-decoration:none;">
-							<cfif server.lucee.state eq "SNAPSHOT" OR server.lucee.state eq "BETA">
-								#replace( stText.services.update.update, { '{available}': updateinfo.available, '{current}': curr } )#
-							<cfelse>	
-								#replace( stText.services.update.update, { '{available}': available, '{current}': curr } )#
-							</cfif>
+							#replace( stText.services.update.update, { '{available}': available, '{current}': server.lucee.version } )#
 						</a>
 					</div>
 				</cfif>
@@ -178,7 +190,6 @@
 				<!--- Extension --->
 				<cfif extensions.recordcount and len(ext)>
 				<div class="error">
-					<br>
 					<a href="#self#?action=ext.applications" style="color:red;text-decoration:none;">
 						There are updates available for your installed Extension(s).<br>
 						#ext#
@@ -209,7 +220,8 @@
 	<cfoutput>#content#</cfoutput>
 	
 	<cfcatch>
-		<cfoutput>
+		
+		<cfoutput>#cfcatch#
 			<!--- <div class="error">
 				Failed to retrieve update information<br>
 				<span class="comment">#cfcatch.message# #cfcatch.detail#</span>
