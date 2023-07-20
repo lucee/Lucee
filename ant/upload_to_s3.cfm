@@ -64,7 +64,14 @@
 		fileDelete( trg.jar );
 	}
 	systemOutput(src.jar & " exists: " & fileExists(src.jar), true);
+	try {
 	fileCopy( src.jar, trg.jar );
+	} catch (e) {
+		err = replaceNoCase(e.stacktrace, server.system.environment.S3_SECRET_KEY_DOWNLOAD, "**", "all");
+		err = replaceNoCase(err, server.system.environment.S3_ACCESS_ID_DOWNLOAD, "**", "all");
+		systemOutput(err, 1 ,1 );
+		throw "sad face";
+	}
 
 	// copy core
 	SystemOutput( "upload #src.coreName# to S3",1,1 );
