@@ -35,7 +35,6 @@ this.tag.cookie.httpOnly = true; // prevent access to session cookies from javas
 this.tag.cookie.sameSite = "strict";
 this.tag.cookie.path = getAppFolderPath();
 
-
 this.xmlFeatures = {
 	externalGeneralEntities: false,
 	secure: true,

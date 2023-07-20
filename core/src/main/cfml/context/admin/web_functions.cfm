@@ -362,3 +362,21 @@ function _byteFormatShort(numeric left,numeric right,string suffix){
 
 	<a class="mail-icon" href="#arguments.href#" title="Send a test mail" width="25"></a>
 </cffunction>
+
+<cfscript>
+
+	/**
+	 * replaces double quote character with two consecutive quote characters
+	 */
+	public string function escapeDoubleQuotes(required string input) {
+		return replace(arguments.input, '"', '""', "all");
+	}
+
+	/**
+	 * replaces single quote character with two consecutive quote characters
+	 */
+	public string function escapeSingleQuotes(required string input) {
+		return replace(arguments.input, "'", "''", "all");
+	}
+
+</cfscript>

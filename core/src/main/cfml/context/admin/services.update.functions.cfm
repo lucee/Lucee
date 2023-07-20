@@ -51,4 +51,13 @@
 		return rsp;
 	}
 
+	string function getUpdateForMajorVersion( array versions, numeric majorVersion ){
+		loop from="#arrayLen(arguments.versions)#" to="1" index="local.v" step="-1" {
+			if ( listfirst(arguments.versions[ v ],".") eq arguments.majorVersion ){
+				return arguments.versions[ v ];
+			}
+		}
+		return "";
+	}
+
 </cfscript>

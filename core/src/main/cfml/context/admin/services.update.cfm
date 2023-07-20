@@ -183,6 +183,10 @@
 		//dump(var:versionsStr,expand:false);
 		//dump(var:updateData,expand:false);
 	printError(error);
+
+	currMajor=listFirst(server.lucee.version,".");
+	selectedUpdate = getUpdateForMajorVersion(updateData.otherVersions, currMajor );
+
 </cfscript>
 <cfoutput>
 
@@ -231,7 +235,9 @@
 							<cfif len(versionsStr[key].upgrade) gt 0|| len(versionsStr[key].downgrade) gt 0>
 								<optgroup class="td_#UcFirst(Lcase(key))#" label="#stText.services.update.short[key]#">
 									<cfloop array="#versionsStr[key].upgrade#" index="i">
-										<option class="td_#UcFirst(Lcase(key))#" value="#i#">#stText.services.update.upgradeTo# #i#</option>
+										<option class="td_#UcFirst(Lcase(key))#" value="#i#"
+											<cfif i eq selectedUpdate>selected</cfif>
+										>#stText.services.update.upgradeTo# #i#</option>
 									</cfloop>
 
 									<cfloop array="#versionsStr[key].downgrade#" index="i">

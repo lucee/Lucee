@@ -4,21 +4,66 @@
 		<cfreturn RandRange(1,0)>
 	</cffunction>
 
-	<cffunction name="updateAvailable" output="no">
-		<cfargument name="data" required="yes" type="struct">
-		<cfargument name="extensions" required="yes" type="query">
-		<cfset var result=variables.getdataByid(arguments.data.id,arguments.extensions)>
+	<cfscript>
+		function updateAvailable(required struct data, required query extensions )  output="yes" {
 
-		<cfif result.count()==0><cfreturn false></cfif>
-		<cfif arguments.data.version LT result.version>
-			<cfreturn true>
-		</cfif>
+			var result=variables.getdataByid( arguments.data.id, arguments.extensions );
+			if ( result.count() ==0 )
+				return false;
+			var sort = queryNew( "v,type,vf,extra", "varchar,varchar,varchar,varchar" );
+			var r= 0;
 
-		<cfreturn false>
-	</cffunction>
+			function parseType (v) {
+				var filterTypes = {"beta": 1, "snapshot" : 1,"rc" : 1, "alpha": 1};
+				var type = ( arguments.v contains "-" ) ? listLast( arguments.v, "-" ) : "";
+				var extra = "";
+				var vv = arguments.v;
+				if ( type == "" ){
+					var suffix = listLast( vv,"." );
+					if ( len( suffix ) gt 1 and !isNumeric( suffix[ 1 ] ) ){
+						extra = suffix; // i.e .jre8, .odbcj8
+						vv = listDeleteAt( vv, listlen( vv,"." ), "." );
+					}
+				} else if ( !structKeyExists( filtertypes, type ) ){
+					extra = type & ""; // i.e. -jre8 -jre11
+					type = "";
+					vv = listFirst( vv, "-" );
+				}
 
+				return {
+					v: vv,
+					type: type,
+					extra: extra
+				};
+			}
 
+			function addVersion(sort, v, installed){
+				var meta = parseType( arguments.v );
 
+				if ( arguments.installed.type neq meta.type ) return;
+				if ( arguments.installed.extra neq meta.extra ) return;
+
+				var r = queryAddRow( arguments.sort );
+				querySetCell( arguments.sort, "v", variables.toVersionSortable( meta.v ), r );
+				querySetCell( arguments.sort, "vf", arguments.v, r );
+				querySetCell( arguments.sort, "type", meta.type, r);
+				querySetCell( arguments.sort, "extra", meta.extra, r);
+			}
+
+			var installed = parseType( arguments.data.version );
+			loop array=#result.otherVersions# index="local.i" {
+				addVersion( sort, i, installed );
+			}
+			addVersion( sort, result.version, installed );
+			querySort(sort, "v", "desc");
+			
+			if ( sort.recordcount gt 0 ){
+				if ( sort.v[ 1 ] GT variables.toVersionSortable( installed.v ) )
+					return sort.vf[ 1 ];
+			}
+			return false;
+		}
+	</cfscript>
 
 	<cffunction name="doFilter" returntype="string" output="false">
 		<cfargument name="filter" required="yes" type="string">
@@ -35,25 +80,13 @@
 		</cfif>
 	</cffunction>
 
-
-
-
-
-
-
-<cfscript>
-
-</cfscript>
 	<cffunction name="loadCFC" returntype="struct" output="yes">
 		<cfargument name="provider" required="yes" type="string">
 		<cfset systemOutput("deprecated function call:<print-stack-trace>",true,true)>
 		<cfreturn createObject('component',"ExtensionProviderProxy").init(arguments.provider)>
 	</cffunction>
 
-
 	<cfset request.loadCFC=loadCFC>
-
-
 	<cffunction name="getDetail" returntype="struct" output="yes">
 		<cfargument name="hashProvider" required="yes" type="string">
 		<cfargument name="appId" required="yes" type="string">
@@ -584,16 +617,18 @@
 	}
 
 	function toVersionsSorted(required array versions) localMode=true {
-		var vs = [=];
+		var sorted = queryNew("ver,sort");
 		loop array=arguments.versions item="local.v"{
-			vs[toVersionSortable(v)] = v;
+			row = queryAddRow(sorted);
+			querySetCell(sorted, "ver", v, row);
+			querySetCell(sorted, "sort", toVersionSortable(v), row);
 		}
-		var sorted = structSort(vs,"text", "desc");
-		var rtn = [=];
-		loop array=sorted item="local.v" {
-			rtn[v] = vs[v];
+		QuerySort(sorted, 'sort', 'desc');
+		var result = structNew("linked");
+		loop query=sorted {
+			result[sorted.sort] = sorted.ver;
 		}
-		return rtn;
+		return result;
 	}
 
 	function toVersionSortable(required string version) localMode=true {
