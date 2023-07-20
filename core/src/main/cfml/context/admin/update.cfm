@@ -64,12 +64,13 @@
 						<cfset arrayAppend(get_stable,stableList)>
 					</cfif>
 				</cfloop>
-				<cfset available = listlast(get_stable)>
+				<cfset available = Arraylast(get_stable)>
 				<cfset hasUpdate = curr LT available>
 			<cfelse>
 				<cfset ava_ver = listfirst(updateInfo.available,"-")>
 				<cfif curr neq ava_ver>
 					<!-- only show updates for the current major version, ie on 5.4, not show 6.0 snapshots -->
+					<cfset curr=listFirst(server.lucee.version,".")>
 					<cfset available = getUpdateForMajorVersion(updateInfo.otherVersions, curr )>
 					<cfset ava_ver = listfirst(updateInfo.available,"-")>
 				<cfelse>
@@ -181,7 +182,7 @@
 				<cfif adminType == "server" and hasUpdate>
 					<div class="error">
 						<a href="server.cfm?action=services.update" style="color:red;text-decoration:none;">
-							#replace( stText.services.update.update, { '{available}': available, '{current}': curr } )#
+							#replace( stText.services.update.update, { '{available}': available, '{current}': server.lucee.version } )#
 						</a>
 					</div>
 				</cfif>
@@ -189,7 +190,6 @@
 				<!--- Extension --->
 				<cfif extensions.recordcount and len(ext)>
 				<div class="error">
-					<br>
 					<a href="#self#?action=ext.applications" style="color:red;text-decoration:none;">
 						There are updates available for your installed Extension(s).<br>
 						#ext#
