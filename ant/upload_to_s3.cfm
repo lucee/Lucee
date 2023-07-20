@@ -44,7 +44,7 @@
 	
 	// test s3 access
 	SystemOutput( "Testing S3 Bucket Access", 1, 1 );
-		if (! DirectoryExists( trg.dir ) )
+	if (! DirectoryExists( trg.dir ) )
 		throw "DirectoryExists failed for s3 bucket [#s3_bucket#]"; // it usually will throw an error, rather than even reach this throw, if it fails
 
 	trg.jar = trg.dir & src.jarName;
@@ -59,14 +59,20 @@
 
 	// copy jar
 	SystemOutput( "upload #src.jarName# to S3",1,1 );
-	if ( fileExists( trg.jar ) ) 
+	if ( fileExists( trg.jar ) ){
+		systemOutput("deleting", true);
 		fileDelete( trg.jar );
+	}
+	systemOutput(src.jar & " exists: " & fileExists(src.jar), true);
 	fileCopy( src.jar, trg.jar );
 
 	// copy core
 	SystemOutput( "upload #src.coreName# to S3",1,1 );
-	if ( fileExists( trg.core ) ) 
+	if ( fileExists( trg.core ) ){
+		systemOutput("deleting", true);
 		fileDelete( trg.core );
+	}
+	systemOutput(src.core & " exists: " & fileExists(src.core), true);
 	fileCopy( src.core, trg.core );
 
 	// create war
