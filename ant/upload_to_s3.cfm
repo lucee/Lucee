@@ -57,30 +57,30 @@
 		return;
 	}
 
+	function sendToS3 (name, path) {
+		var fh = fileOpen( path );
+		s3write( bucketName=s3_bucket,
+			objectName=arguments.name,
+			value=fh,
+			accessKeyId=server.system.environment.S3_ACCESS_ID_DOWNLOAD, 
+			secretAccessKey=server.system.environment.S3_SECRET_KEY_DOWNLOAD
+		);
+		fileClose( fh );
+	}
+
 	// copy jar
 	SystemOutput( "upload #src.jarName# to S3",1,1 );
 	if ( fileExists( trg.jar ) ){
-		systemOutput("deleting", true);
 		fileDelete( trg.jar );
 	}
-	systemOutput(src.jar & " exists: " & fileExists(src.jar), true);
-	try {
-	fileCopy( src.jar, trg.jar );
-	} catch (e) {
-		err = replaceNoCase(e.stacktrace, server.system.environment.S3_SECRET_KEY_DOWNLOAD, "**", "all");
-		err = replaceNoCase(err, server.system.environment.S3_ACCESS_ID_DOWNLOAD, "**", "all");
-		systemOutput(err, 1 ,1 );
-		throw "sad face";
-	}
-
+	sendToS3( src.jarName, src.jar );
+	
 	// copy core
 	SystemOutput( "upload #src.coreName# to S3",1,1 );
 	if ( fileExists( trg.core ) ){
-		systemOutput("deleting", true);
 		fileDelete( trg.core );
 	}
-	systemOutput(src.core & " exists: " & fileExists(src.core), true);
-	fileCopy( src.core, trg.core );
+	sendToS3( src.coreName, src.core );
 
 	// create war
 	src.warName = "lucee-" & src.version & ".war";
@@ -112,7 +112,8 @@
 	src.light = src.dir & src.lightName;
 	trg.light = trg.dir & src.lightName;
 	createLight( src.jar,src.light,src.version, false );
-	fileCopy( src.light,trg.light );
+
+	sendToS3( src.lightName, src.light );
 
 	// Lucee zero build, built from light but also no admin or docs (disabled, 6.0 only)
 	/*
