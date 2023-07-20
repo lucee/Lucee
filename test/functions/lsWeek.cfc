@@ -10,10 +10,12 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 					// in Catalan Monday is the first day of the week
 					expect(lsWeek(date=date, locale="Catalan")).tobe(3);
 				}else{
-					// in Arabic (Yemen) Saturday is the first day of the week
+					// after Java 8 in Arabic (Yemen) Sunday is the first day of the week
 					expect(lsWeek(date=date, locale="Arabic (Yemen)")).tobe(4);
-					// in Catalan Monday is the first day of the week
+					// after Java 8 in Catalan Sunday is the first day of the week
 					expect(lsWeek(date=date, locale="Catalan")).tobe(4);
+					// Testing Iraq because it still has Saturday as the first day of the week after Java 8
+					expect(lsWeek(date =date, locale="ar_IQ")).toBe(3);
 				}
 				// in English (Canada) Sunday is the first day of the week
 				expect(lsWeek(date=date, locale="English (Canada)")).tobe(4);
