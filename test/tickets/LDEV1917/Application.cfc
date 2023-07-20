@@ -1,19 +1,23 @@
 component {
-	this.name = "ac";
+	this.name = "ldev-1917";
+
+	param name="form.datatype";
+	param name="form.notNull" default="false";
+
+
+	if (form.datatype neq "char" and form.datatype neq "nvarchar")
+		throw "bad datatype [#form.datatype#]";
 
 	mySQL = getCredentials();
 	if(mySQL.count()!=0){
-		this.datasource="#{
-			class: 'com.mysql.cj.jdbc.Driver'
-			, bundleName:'com.mysql.cj'
-			, bundleVersion:'8.0.15'
-			, connectionString: 'jdbc:mysql://'&mySQL.server&':'&mySQL.port&'/'&mySQL.database&'?useUnicode=true&characterEncoding=UTF-8&useLegacyDatetimeCode=true'
-			, username: mySQL.username
-			, password: mySQL.password
-		}#";
+		this.datasource=mySQL;
 	}
+	
+	public function onRequestStart() {
+		setting requesttimeout=10;
 
-	public function onApplicationStart() {
+		var extra= form.notNull ? " NOT NULL" : "";
+
 		query {
 			echo("DROP PROCEDURE IF EXISTS `LDEV1917SP`");
 		}
@@ -21,11 +25,11 @@ component {
 			echo("DROP TABLE IF EXISTS `LDEV1917`");
 		}
 		query {
-			echo("CREATE TABLE LDEV1917 (null_Value nvarchar(10))");
+			echo("CREATE TABLE LDEV1917 (null_Value #form.datatype#(10) #extra# )");
 		}
 		query {
 			echo("
-				CREATE PROCEDURE `LDEV1917SP`(IN null_Value nvarchar(10)) 
+				CREATE PROCEDURE `LDEV1917SP`(IN null_Value #form.datatype#(10)) 
 				BEGIN
 					INSERT INTO LDEV1917 VALUE(null_Value);
 				END
@@ -33,33 +37,6 @@ component {
 		}
 	}
 	private struct function getCredentials() {
-		// getting the credentials from the enviroment variables
-		var mySQL={};
-		if(
-			!isNull(server.system.environment.MYSQL_SERVER) &&
-			!isNull(server.system.environment.MYSQL_USERNAME) &&
-			!isNull(server.system.environment.MYSQL_PASSWORD) &&
-			!isNull(server.system.environment.MYSQL_PORT) &&
-			!isNull(server.system.environment.MYSQL_DATABASE)) {
-			mySQL.server=server.system.environment.MYSQL_SERVER;
-			mySQL.username=server.system.environment.MYSQL_USERNAME;
-			mySQL.password=server.system.environment.MYSQL_PASSWORD;
-			mySQL.port=server.system.environment.MYSQL_PORT;
-			mySQL.database=server.system.environment.MYSQL_DATABASE;
-		}
-		// getting the credentials from the system variables
-		else if(
-			!isNull(server.system.properties.MYSQL_SERVER) &&
-			!isNull(server.system.properties.MYSQL_USERNAME) &&
-			!isNull(server.system.properties.MYSQL_PASSWORD) &&
-			!isNull(server.system.properties.MYSQL_PORT) &&
-			!isNull(server.system.properties.MYSQL_DATABASE)) {
-			mySQL.server=server.system.properties.MYSQL_SERVER;
-			mySQL.username=server.system.properties.MYSQL_USERNAME;
-			mySQL.password=server.system.properties.MYSQL_PASSWORD;
-			mySQL.port=server.system.properties.MYSQL_PORT;
-			mySQL.database=server.system.properties.MYSQL_DATABASE;
-		}
-		return mysql;
+		return server.getDatasource("mysql");
 	}
 }
