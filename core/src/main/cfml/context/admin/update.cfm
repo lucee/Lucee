@@ -92,7 +92,6 @@
 					</cfloop>
 					<cfset ava_ver = ava_ver&"-"&listlast(available,"-")>
 					<cfset cur_ver = cur_ver&"-"&listlast(curr,"-")>
-					
 					<cfset hasUpdate = structKeyExists(updateInfo,"available") && ava_ver gt cur_ver>
 				</cfif>
 			</cfif>
@@ -220,8 +219,7 @@
 	<cfoutput>#content#</cfoutput>
 	
 	<cfcatch>
-		
-		<cfoutput>#cfcatch#
+		<cfoutput>
 			<!--- <div class="error">
 				Failed to retrieve update information<br>
 				<span class="comment">#cfcatch.message# #cfcatch.detail#</span>
