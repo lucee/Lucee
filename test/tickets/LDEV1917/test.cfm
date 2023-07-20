@@ -1,6 +1,6 @@
 
 <cfstoredproc procedure="LDEV1917SP">
-	<cfprocparam type = "IN"   CFSQLType = "NVARCHAR" value = "" null=false>
+	<cfprocparam type = "IN"   CFSQLType = "#form.datatype#" value = "" null=false>
 </cfstoredproc>
 <cfquery name="test1917">
 	select * from LDEV1917

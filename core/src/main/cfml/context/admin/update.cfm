@@ -170,7 +170,7 @@
 				<cfif extensions.recordcount and len(ext)>
 				<div class="error">
 					<a href="#self#?action=ext.applications" style="color:red;text-decoration:none;">
-						There are some updates available for your installed Extensions.<br>
+						Some updates are available for your installed Extensions.<br>
 						#ext#
 					</a>
 				</div>

@@ -328,61 +328,71 @@ public final class XMLUtil {
 			factory.setValidating(false);
 		}
 
+		// secure by default LDEV-3451
+		boolean featureSecure = true;
+		boolean disallowDocType = true;
+		boolean externalGeneralEntities = false;
+		Struct features = null;
+
+		// can be overriden per application
 		PageContext pc = ThreadLocalPageContext.get();
 		if (pc != null) {
 			ApplicationContextSupport ac = ((ApplicationContextSupport) pc.getApplicationContext());
-			Struct features = ac == null ? null : ac.getXmlFeatures();
+			features = ac == null ? null : ac.getXmlFeatures();
 			if (features != null) {
 				try { // handle feature aliases, e.g. secure
 					Object obj;
-					boolean featureValue;
+					
 					obj = features.get(KEY_FEATURE_SECURE, null);
-					if (obj != null) {
-						featureValue = Caster.toBoolean(obj);
-						if (featureValue) {
-							// set features per
-							// https://cheatsheetseries.owasp.org/cheatsheets/XML_External_Entity_Prevention_Cheat_Sheet.html
-							factory.setFeature(XMLConstants.FEATURE_DISALLOW_DOCTYPE_DECL, true);
-							factory.setFeature(XMLConstants.FEATURE_EXTERNAL_GENERAL_ENTITIES, false);
-							factory.setFeature(XMLConstants.FEATURE_EXTERNAL_PARAMETER_ENTITIES, false);
-							factory.setFeature(XMLConstants.FEATURE_NONVALIDATING_LOAD_EXTERNAL_DTD, false);
-							factory.setXIncludeAware(false);
-							factory.setExpandEntityReferences(false);
-							factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
-							factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
-						}
-						features.remove(KEY_FEATURE_SECURE);
-					}
+					if (obj != null) featureSecure = Caster.toBoolean(obj);
+					features.remove(KEY_FEATURE_SECURE, null);
 
 					obj = features.get(KEY_FEATURE_DISALLOW_DOCTYPE_DECL, null);
-					if (obj != null) {
-						featureValue = Caster.toBoolean(obj);
-						factory.setFeature(XMLConstants.FEATURE_DISALLOW_DOCTYPE_DECL, featureValue);
-						features.remove(KEY_FEATURE_DISALLOW_DOCTYPE_DECL);
-					}
+					if (obj != null) disallowDocType = Caster.toBoolean(obj);
+					features.remove(KEY_FEATURE_DISALLOW_DOCTYPE_DECL, null);
 
 					obj = features.get(KEY_FEATURE_EXTERNAL_GENERAL_ENTITIES, null);
-					if (obj != null) {
-						featureValue = Caster.toBoolean(obj);
-						factory.setFeature(XMLConstants.FEATURE_EXTERNAL_GENERAL_ENTITIES, featureValue);
-						features.remove(KEY_FEATURE_EXTERNAL_GENERAL_ENTITIES);
-					}
+					if (obj != null) externalGeneralEntities = Caster.toBoolean(obj);
+					features.remove(KEY_FEATURE_EXTERNAL_GENERAL_ENTITIES, null);
+				}
+				catch (PageException ex) {
+					throw new RuntimeException(ex);
+				}
+			}
+		}
+		
+		try { // set built in feature aliases
+			if (featureSecure) {
+				// set features per
+				// https://cheatsheetseries.owasp.org/cheatsheets/XML_External_Entity_Prevention_Cheat_Sheet.html
+				factory.setFeature(XMLConstants.FEATURE_DISALLOW_DOCTYPE_DECL, true);
+				factory.setFeature(XMLConstants.FEATURE_EXTERNAL_GENERAL_ENTITIES, false);
+				factory.setFeature(XMLConstants.FEATURE_EXTERNAL_PARAMETER_ENTITIES, false);
+				factory.setFeature(XMLConstants.FEATURE_NONVALIDATING_LOAD_EXTERNAL_DTD, false);
+				factory.setXIncludeAware(false);
+				factory.setExpandEntityReferences(false);
+				factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
+				factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
+			}
+			
+			factory.setFeature(XMLConstants.FEATURE_DISALLOW_DOCTYPE_DECL, disallowDocType);
+			factory.setFeature(XMLConstants.FEATURE_EXTERNAL_GENERAL_ENTITIES, externalGeneralEntities);
+		}
+		catch (ParserConfigurationException ex) {
+			throw new RuntimeException(ex);
+		}
+		// pass thru any additional feature directives
+		// https://xerces.apache.org/xerces2-j/features.html#disallow-doctype-decl
+		if (features != null){
+			features.forEach((k, v) -> {
+				try {
+					factory.setFeature(k.toString().toLowerCase(), Caster.toBoolean(v));
 				}
 				catch (PageException | ParserConfigurationException ex) {
 					throw new RuntimeException(ex);
 				}
-
-				features.forEach((k, v) -> {
-					try {
-						factory.setFeature(k.toString().toLowerCase(), Caster.toBoolean(v));
-					}
-					catch (PageException | ParserConfigurationException ex) {
-						throw new RuntimeException(ex);
-					}
-				});
-			}
+			});
 		}
-
 		return factory;
 	}
 

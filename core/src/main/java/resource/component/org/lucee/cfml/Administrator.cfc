@@ -594,7 +594,7 @@ component {
 	/**
 	* @hint updates the mail settings for current context
 	* @defaultEncoding Default encoding used for mail servers
-	* @spoolenable If enabled the mails are sent in a background thread and the main request does not have to wait until the mails are sent.
+	* @spoolenable If enabled, the mails are sent in a background thread and the main request does not have to wait until the mails are sent.
 	* @timeout Time in seconds that the Task Manager waits to send a single mail, when the time is reached the Task Manager stops the thread and the mail gets moved to unsent folder, where the Task Manager will pick it up later to try to send it again.
 	*/
 	public void function updateMailSetting( string defaultEncoding="UTF-8", boolean spoolEnable, numeric timeOut ){
@@ -1088,7 +1088,7 @@ component {
 	* @useShadow Defines whether a component has an independent variables scope parallel to the "this" scope (CFML standard) or not.
 	* @componentDefaultImport this package definition is imported into every template.
 	* @componentLocalSearch Search relative to the caller directory for the component
-	* @componentPathCache component path is cached and not resolved again
+	* @componentPathCache Component path is cached and not resolved again
 	* @componentDeepSearchDesc Search for CFCs in the subdirectories of the "Additional Resources" below.
 	*/
 	public void function updateComponent(string baseComponentTemplateCFML="", string baseComponentTemplateLucee="", string componentDumpTemplate="", string componentDataMemberDefaultAccess="public", boolean triggerDataMember=false, boolean useShadow=true, string componentDefaultImport="org.lucee.cfml.*", boolean componentLocalSearch=false, boolean componentPathCache=false, boolean componentDeepSearchDesc=false){
@@ -1325,7 +1325,7 @@ component {
 	/**
 	* @hint updates server caching settings
 	* @inspectTemplate sets the type of inspection for files inside the template cache
-	* @typeChecking If disabled Lucee ignores type definitions with function arguments and return values
+	* @typeChecking If disabled, Lucee ignores type definitions with function arguments and return values
 	*/
 	public void function updatePerformanceSettings( required string inspectTemplate, boolean typeChecking){
 		var existing = getPerformanceSettings();
@@ -2376,7 +2376,7 @@ component {
 	* @hint returns the details of custom tag settings
 	* @deepSearch Search for custom tags in subdirectories.
 	* @localSearch Search in the caller directory for the custom tag
-	* @component path is cached and not resolved again
+	* @Component path is cached and not resolved again
 	* @extensions These are the extensions used for Custom Tags, in the order they are searched.
 	*/
 	public void function updateCustomTagSetting( required boolean deepSearch, required boolean localSearch, required boolean customTagPathCache, required string extensions ) {
