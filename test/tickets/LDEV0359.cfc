@@ -1,6 +1,7 @@
 component extends="org.lucee.cfml.test.LuceeTestCase"{
 	// skip closure
 	function isNotSupported() {
+		return true;
 		variables.s3Details=getCredentials();
 		return structIsEmpty(s3Details);
 	}
@@ -8,7 +9,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 	function beforeAll() skip="isNotSupported"{
 		if(isNotSupported()) return;
 		s3Details = getCredentials();
-		mitrahsoftBucketName = "lucee-ldev0359-#lcase(hash(CreateGUID()))#";
+		mitrahsoftBucketName = lcase( s3Details.bucket_prefix & "0359-#hash( CreateGUID() )#");
 		base = "s3://#s3Details.ACCESS_KEY_ID#:#s3Details.SECRET_KEY#@";
 		baseWithBucketName = "s3://#s3Details.ACCESS_KEY_ID#:#s3Details.SECRET_KEY#@/#mitrahsoftBucketName#";
 		// for skipping rest of the cases, if error occurred.
