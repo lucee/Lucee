@@ -46,7 +46,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	}
 
 	private boolean function hasCredencials() {
-		return server.getDatasource("mysql");
+		return !structIsEmpty(server.getDatasource("mysql"));
 	}
 	
 } 

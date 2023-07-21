@@ -55,14 +55,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		var mySQL=getCredencials();
 		var has=false;
 		if(mySQL.count()>0) {
-			var ds['mysql']={
-				  class: 'org.gjt.mm.mysql.Driver'
-				, bundleName:'com.mysql.jdbc'
-				, bundleVersion:'5.1.38'
-				, connectionString: 'jdbc:mysql://'&mySQL.server&':'&mySQL.port&'/'&mySQL.database&'?useUnicode=true&characterEncoding=UTF-8&useLegacyDatetimeCode=true'
-				, username: mySQL.username
-				, password: mySQL.password
-			};
+			var ds['mysql']=mysql;
 			has=true;
 		}
 
@@ -72,6 +65,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	}
 
 	private struct function getCredencials() {
-		server.getDatasource("mysql");
+		return server.getDatasource("mysql");
 	}
 } 
