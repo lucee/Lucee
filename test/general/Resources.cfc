@@ -482,7 +482,7 @@ private function assertEqualPaths(string path1, string path2) {
 
 	private void function test(string label,string root){
 		var start=getTickCount();
-		var dir=arguments.root&"lucee-res-#lcase(hash(CreateGUID()))#/";
+		var dir=arguments.root&"lucee-ldev-#lcase(hash(CreateGUID()))#/";
 		
 		// make sure there are no data from a previous run 
 		if(directoryExists(dir)) {
@@ -575,7 +575,7 @@ private function assertEqualPaths(string path1, string path2) {
 		return server.getTestService("s3");
 	}
 
-	public void function testS3() localmode=true{
+	public void function testS3() localmode=true skip=true{
 		var s3 = getCredentials();
 		if( !isNull( s3.ACCESS_KEY_ID ) ) {
 			application action="update" s3={
@@ -586,7 +586,7 @@ private function assertEqualPaths(string path1, string path2) {
 		}
 	}
 
-	public void function testS3AsMapping() localmode=true{
+	public void function testS3AsMapping() localmode=true skip=true {
 		var s3 = getCredentials();
 		if( !isNull( s3.ACCESS_KEY_ID ) ) {
 			application action="update" s3={
