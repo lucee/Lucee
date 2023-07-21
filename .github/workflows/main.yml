@@ -22,6 +22,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       DO_DEPLOY: "${{ github.event_name == 'push' && github.ref == 'refs/heads/5.3.9' }}"
+      LUCEE_BUILD_JAVA_VERSION: 8
     services:
       sql-server:
         image: mcr.microsoft.com/mssql/server:2019-latest
