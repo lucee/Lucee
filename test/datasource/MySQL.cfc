@@ -251,7 +251,7 @@ END
 	private struct function getDatasource2(){
 			var mySQL=getCredencials();
 			if(mySQL.count()==0) return {};
-			
+			mysql = server.getDatasource(service="mysql", onlyConfig=true);
 			return {
 			  type= 'mysql'
 			, host=mySQL.server
