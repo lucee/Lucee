@@ -1,4 +1,4 @@
 <cfscript>
 	settings = getApplicationSettings();
-	echo( settings.xmlFeatures.toJson() );
+	echo( serializeJson(settings.xmlFeatures) );
 </cfscript>
