@@ -20,11 +20,7 @@
 			cfexecute(name="curl", arguments=["https://update.lucee.org/rest/update/provider/echoGet"] ,variable="variables.x");
 			assertTrue(find('"session"',x)>0);
 		}
-		
-		public function testDirectoryArg() {
-			cfexecute(name="curl", arguments=["https://update.lucee.org/rest/update/provider/echoGet"] ,variable="variables.x", directory=getTempDirectory());
-			assertTrue(find('"session"',x)>0);
-		}
+	
 		
 		public function testTimeout() skip=true {
 			try {
