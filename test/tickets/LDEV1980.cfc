@@ -32,19 +32,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 		query name="test" datasource=ds {
 			echo( "
 				create table `TestDsnTBL`(id varchar(10),Personname varchar(10))"
-				);
+			);
 		}
 	}
-
-	function afterAll(){
-		if(isNotSupported()) return;
-		query name="test" datasource=getDatasource() {
-			echo( "
-					DROP DATABASE IF EXISTS `LDEV1980DB` 
-				");
-		}
-	}
-
+	
 	function isNotSupported() {
 		var mySql = getCredentials();
 		if(!isNull(mysql) && structCount(mySql)){
@@ -57,14 +48,14 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 	private function getDatasource() {
 		var cred=getCredentials();
 		if(structCount(cred)>0){
+			cred.storage = true;
 			return cred;
 		}
 		return {};
 	}
 
-
-
 	private struct function getCredentials() {
+		// getting the credentials from the enviroment variables
 		return server.getDatasource("mysql");
 	}
 }
