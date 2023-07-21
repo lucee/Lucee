@@ -275,7 +275,7 @@ END
 	}
 
 	private struct function getCredencials() {
-		server.getDatasource("mysql");
+		return server.getDatasource("mysql");
 	}
 
 
