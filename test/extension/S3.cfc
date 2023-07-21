@@ -71,6 +71,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 
 	public boolean function isNotSupported() {
+		return true;
 		return structCount(getCredentials())==0;
 	}
 

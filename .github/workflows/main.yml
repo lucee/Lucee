@@ -1,4 +1,4 @@
-name: Java CI
+name: Build 5.3.8
 
 on: 
   push:
@@ -27,7 +27,7 @@ jobs:
           - 1433:1433
         options: --health-cmd="/opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P ${SA_PASSWORD} -Q 'SELECT 1' || exit 1"  --health-interval 10s --health-timeout 5s --health-retries 5
     steps:
-    - uses: szenius/set-timezone@v1.0
+    - uses: szenius/set-timezone@v1.1
       with:
         timezoneLinux: "UTC"
     - uses: actions/checkout@v2
@@ -37,16 +37,16 @@ jobs:
         java-version: '8'
         distribution: 'adopt'
     - name: Cache Lucee extensions
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         path: ~/work/Lucee/Lucee/cache/
         key: lucee-extensions
         restore-keys: lucee-extensions
     - name: Cache Maven packages
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         path: |
-          ~/.m2/repository
+          ~/.m2/repository/*
           !~/.m2/repository/org/lucee/lucee/
         key: ${{ runner.os }}-maven-${{ hashFiles('loader/pom.xml','core/pom.xml') }}
         restore-keys: |
@@ -92,8 +92,10 @@ jobs:
         MSSQL_PORT: 1433
         MSSQL_DATABASE: master
         S3_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_ID_TEST }}
-        S3_SECRET_KEY: ${{ secrets.S3_SECRET_KEY_TEST }}
-        DO_DEPLOY: ${{ github.event_name == 'push' }}
+        # s3 tests disabled due to LDEV-4474
+        #S3_SECRET_KEY: ${{ secrets.S3_SECRET_KEY_TEST }}
+        S3_BUCKET_PREFIX: lucee-ldev-5-
+        # DO_DEPLOY: ${{ github.event_name == 'push' }}
         # for uploading successful builds
         S3_ACCESS_ID_DOWNLOAD: ${{ secrets.S3_ACCESS_ID_DOWNLOAD }}
         S3_SECRET_KEY_DOWNLOAD: ${{ secrets.S3_SECRET_KEY_DOWNLOAD }}
@@ -104,15 +106,18 @@ jobs:
         LUCEE_DOCKER_FILES_PAT_TOKEN: ${{ secrets.LUCEE_DOCKER_FILES_PAT_TOKEN }}
       #run: ant -noinput -buildfile loader/build.xml
       run: |
-        if [ "${{ github.event_name == 'push' }}" == "true" ]; then
+        if [ "${{ env.DO_DEPLOY }}" == "true" ]; then
           echo "------- Maven Deploy on ${{ github.event_name }} -------";
           mvn -B -e -f loader/pom.xml clean deploy --settings travis-settings.xml;
         else
           echo "------- Maven Install on ${{ github.event_name }} ---------";
           mvn -B -e -f loader/pom.xml clean install
         fi
+    - name: Remove Lucee build artifacts from local maven cache (avoid growing cache)
+      run: |
+        rm -rfv ~/.m2/repository/org/lucee/lucee/
     - name: Publish Test Results
-      uses: EnricoMi/publish-unit-test-result-action@v1
+      uses: EnricoMi/publish-unit-test-result-action@v2
       if: always()
       with:
         files: test/reports/junit-test-results.xml

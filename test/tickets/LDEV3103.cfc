@@ -18,7 +18,7 @@ echo( x );
 ```
 </pre>";
 
-
+			text = Replace(text, "#chr(13)##chr(10)#",chr(10), "all"); // force to LF
 
 				var referenceRegex = "```([a-z\+]+)?\n(.*?)\n```"; 
  				var match = ReFind( referenceRegex, text, startPos, true ); 
