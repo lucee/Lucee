@@ -43,12 +43,15 @@
 	<!--- Core --->
 		<cfif adminType == "server">
 			<cfset filterMajor = true>
+			<cfset hasUpdate = false>
 			
 			<cfset curr=server.lucee.version>
 			<cfset curr=listFirst(server.lucee.version,".")>
 			
 			<cfset updateInfo=getAvailableVersion()>
-			<cfif server.lucee.state EQ "RC">
+			<cfif not structKeyExists(updateInfo, "available")>
+				<!--- no update available --->
+			<cfelseif server.lucee.state EQ "RC">
 				<cfset get_rc = []>
 				<cfloop index="rcList" array="#updateInfo.otherVersions#">
 					<cfif listContainsNoCase(rcList,"-RC") EQ 1>
