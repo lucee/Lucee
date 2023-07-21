@@ -109,6 +109,7 @@ function mem(type) {
 
 	systemOutput("set /test mapping #dateTimeFormat(now())#", true);
 
+	setupTestServices = new test._setupTestServices().setup();
 
 	// set the testbox mapping
 	application

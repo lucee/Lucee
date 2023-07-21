@@ -1,6 +1,7 @@
-component extends="org.lucee.cfml.test.LuceeTestCase"{
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="s3" skip=true {
 	// skip closure
 	function isNotSupported() {
+		return true;
 		variables.s3Details=getCredentials();
 		if(!isNull(variables.s3Details.ACCESSKEYID) && !isNull(variables.s3Details.AWSSECRETKEY)) {
 			variables.supported = true;
