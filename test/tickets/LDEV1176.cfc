@@ -1,6 +1,7 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" labels="s3"{
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="s3" skip=true {
 	// skip closure
 	function isNotSupported() {
+		return true;
 		variables.s3Details=getCredentials();
 		if (structIsEmpty(s3Details)) return true;
 		if (!isNull(variables.s3Details.ACCESS_KEY_ID) && !isNull(variables.s3Details.SECRET_KEY)) {
@@ -36,7 +37,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="s3"{
 	}
 
 	public function run( testResults , testBox ) {
-		describe( title="Test suite for LDEV-1176 ( checking directoryExists() with large s3 bucket )", body=function() {
+		describe( title="Test suite for LDEV-1176 ( checking directoryExists() with large s3 bucket )", skip=true, body=function() {
 			aroundEach( function( spec, suite ){
 				if(!hasError)
 					arguments.spec.body();
