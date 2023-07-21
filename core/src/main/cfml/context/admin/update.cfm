@@ -43,12 +43,15 @@
 	<!--- Core --->
 		<cfif adminType == "server">
 			<cfset filterMajor = true>
+			<cfset hasUpdate = false>
 			
 			<cfset curr=server.lucee.version>
 			<cfset curr=listFirst(server.lucee.version,".")>
 			
 			<cfset updateInfo=getAvailableVersion()>
-			<cfif server.lucee.state EQ "RC">
+			<cfif not structKeyExists(updateInfo, "available")>
+				<!--- no update available --->
+			<cfelseif server.lucee.state EQ "RC">
 				<cfset get_rc = []>
 				<cfloop index="rcList" array="#updateInfo.otherVersions#">
 					<cfif listContainsNoCase(rcList,"-RC") EQ 1>
@@ -79,20 +82,20 @@
 				<cfif len(available) eq 0 or server.lucee.version eq available>
 					<cfset hasUpdate = false>
 				<cfelse>
-				<cfset cur_ver = listfirst(curr,"-")>
-				<cfloop from="1" to="#listlen(cur_ver,".")#" index="i">
-					<cfif len(listgetat(ava_ver,i,".")) eq 1>
-						<cfset last = 0&listgetat(ava_ver,i,".")>
-						<cfset ava_ver = listsetat(ava_ver,i,last,".")>
-					</cfif>
-					<cfif len(listgetat(cur_ver,i,".")) eq 1>
-						<cfset last = 0&listgetat(cur_ver,i,".")>
-						<cfset cur_ver = listsetat(cur_ver,i,last,".")>
-					</cfif>
-				</cfloop>
-					<cfset ava_ver = ava_ver&"-"&listlast(available,"-")>
-				<cfset cur_ver = cur_ver&"-"&listlast(curr,"-")>
-				<cfset hasUpdate = structKeyExists(updateInfo,"available") && ava_ver gt cur_ver>
+					<cfset cur_ver = listfirst(curr,"-")>
+					<cfloop from="1" to="#listlen(cur_ver,".")#" index="i">
+						<cfif len(listgetat(ava_ver,i,".")) eq 1>
+							<cfset last = 0&listgetat(ava_ver,i,".")>
+							<cfset ava_ver = listsetat(ava_ver,i,last,".")>
+						</cfif>
+						<cfif len(listgetat(cur_ver,i,".")) eq 1>
+							<cfset last = 0&listgetat(cur_ver,i,".")>
+							<cfset cur_ver = listsetat(cur_ver,i,last,".")>
+						</cfif>
+					</cfloop>
+						<cfset ava_ver = ava_ver&"-"&listlast(available,"-")>
+					<cfset cur_ver = cur_ver&"-"&listlast(curr,"-")>
+					<cfset hasUpdate = structKeyExists(updateInfo,"available") && ava_ver gt cur_ver>
 				</cfif>
 			</cfif>
 		</cfif>
