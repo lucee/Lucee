@@ -51,15 +51,6 @@
 			<cfset updateInfo=getAvailableVersion()>
 			<cfif not structKeyExists(updateInfo, "available")>
 				<!--- no update available --->
-			<cfelseif server.lucee.state EQ "RC">
-				<cfset get_rc = []>
-				<cfloop index="rcList" array="#updateInfo.otherVersions#">
-					<cfif listContainsNoCase(rcList,"-RC") EQ 1>
-						<cfset arrayAppend(get_rc,rcList)>
-					</cfif>
-				</cfloop>
-				<cfset available = Arraylast(get_rc)>
-				<cfset hasUpdate = curr LT available>
 			<cfelseif server.lucee.state EQ "stable">
 				<cfset get_stable = []>
 				<cfloop index="stableList" array="#updateInfo.otherVersions#">
@@ -68,7 +59,7 @@
 					</cfif>
 				</cfloop>
 				<cfset available = Arraylast(get_stable)>
-				<cfset hasUpdate = curr LT available>
+				<cfset hasUpdate = server.lucee.version LT available>
 			<cfelse>
 				<cfset ava_ver = listfirst(updateInfo.available,"-")>
 				<cfif curr neq ava_ver>
