@@ -193,7 +193,10 @@
 	printError(error);
 
 	currMajor=listFirst(server.lucee.version,".");
-	selectedUpdate = getUpdateForMajorVersion(updateData.otherVersions, currMajor );
+	if ( structKeyExists( updateData, "otherVersions" ) )
+		selectedUpdate = getUpdateForMajorVersion( updateData.otherVersions, currMajor );
+	else
+		selectedUpdate = "";
 
 </cfscript>
 <cfoutput>
