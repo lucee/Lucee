@@ -31,6 +31,7 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.op.Caster;
+import lucee.runtime.op.Decision;
 import lucee.runtime.text.xml.XMLCaster;
 import lucee.runtime.text.xml.XMLUtil;
 
@@ -46,14 +47,18 @@ public final class XmlParse extends BIF implements Function {
 		return call(pc, string, caseSensitive, null, false);
 	}
 
-	public static Node call(PageContext pc, String string, boolean caseSensitive, String strValidator) throws PageException {
+	public static Node call(PageContext pc, String string, boolean caseSensitive, Object strValidator) throws PageException {
 		return call(pc, string, caseSensitive, strValidator, false);
 	}
 
-	public static Node call(PageContext pc, String strXML, boolean caseSensitive, String strValidator, boolean lenient) throws PageException {
+	public static Node call(PageContext pc, String strXML, boolean caseSensitive, Object strValidator, boolean lenient) throws PageException {
 		try {
 			InputSource xml = XMLUtil.toInputSource(pc, StringUtil.trim(strXML, true, true, ""));
-			InputSource validator = StringUtil.isEmpty(strValidator) ? null : XMLUtil.toInputSource(pc, strValidator.trim());
+			if (Decision.isStruct(strValidator)){
+				return XMLCaster.toXMLStruct(XMLUtil.parse(xml, Caster.toStruct(strValidator), null, lenient), caseSensitive);
+			} 
+			InputSource validator = StringUtil.isEmpty(Caster.toString(strValidator)) 
+				? null : XMLUtil.toInputSource(pc, Caster.toString(strValidator).trim());
 			return XMLCaster.toXMLStruct(XMLUtil.parse(xml, validator, lenient), caseSensitive);
 		}
 		catch (Exception e) {
@@ -63,8 +68,8 @@ public final class XmlParse extends BIF implements Function {
 
 	@Override
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
-		if (args.length == 4) return call(pc, Caster.toString(args[0]), Caster.toBooleanValue(args[1]), Caster.toString(args[2]), Caster.toBooleanValue(args[3]));
-		if (args.length == 3) return call(pc, Caster.toString(args[0]), Caster.toBooleanValue(args[1]), Caster.toString(args[2]));
+		if (args.length == 4) return call(pc, Caster.toString(args[0]), Caster.toBooleanValue(args[1]), args[2], Caster.toBooleanValue(args[3]));
+		if (args.length == 3) return call(pc, Caster.toString(args[0]), Caster.toBooleanValue(args[1]), args[2]);
 		if (args.length == 2) return call(pc, Caster.toString(args[0]), Caster.toBooleanValue(args[1]));
 		if (args.length == 1) return call(pc, Caster.toString(args[0]));
 		throw new FunctionException(pc, "XmlParse", 1, 4, args.length);

@@ -14418,12 +14418,13 @@ _- asc (default): ascending (a to z) sort order
     	</argument>
 		<argument>
 			<name>validator</name>
-			<type>string</type>
+			<type>any</type>
 			<required>No</required>
 		<description>Any of the following:
 - A string containing a DTD or Schema
 - The name of a DTD or Schema file
-- The URL of a DTD or Schema file; valid protocol identifiers include http, https, ftp, and file</description>
+- The URL of a DTD or Schema file; valid protocol identifiers include http, https, ftp, and file
+- A struct of xmlFeatures directives</description>
     </argument>
 		<argument>
 			<name>lenient</name>
