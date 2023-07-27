@@ -119,6 +119,7 @@ public final class XMLUtil {
 	public static final Collection.Key KEY_FEATURE_SECURE = KeyConstants._secure;
 	public static final Collection.Key KEY_FEATURE_DISALLOW_DOCTYPE_DECL = KeyImpl.getInstance("disallowDoctypeDecl");
 	public static final Collection.Key KEY_FEATURE_EXTERNAL_GENERAL_ENTITIES = KeyImpl.getInstance("externalGeneralEntities");
+	public static final Collection.Key KEY_FEATURE_EXTERNAL_GENERAL_ENTITIES_ACF = KeyImpl.getInstance("allowExternalEntities");
 
 	// public final static String
 	// DEFAULT_SAX_PARSER="org.apache.xerces.parsers.SAXParser";
@@ -279,10 +280,11 @@ public final class XMLUtil {
 	 * @throws IOException
 	 * @throws ParserConfigurationException
 	 */
-	public static final Document parse(InputSource xml, InputSource validator, EntityResolver entRes, boolean isHtml) throws SAXException, IOException {
+	public static final Document parse(InputSource xml, Object validator, EntityResolver entRes, boolean isHtml) throws SAXException, IOException {
 
 		if (!isHtml) {
-			DocumentBuilderFactory factory = newDocumentBuilderFactory(validator);
+			DocumentBuilderFactory factory = (validator instanceof InputSource)
+				? newDocumentBuilderFactory((InputSource) validator, null) : newDocumentBuilderFactory(null, (Struct) validator);
 
 			try {
 				DocumentBuilder builder = factory.newDocumentBuilder();
@@ -312,6 +314,10 @@ public final class XMLUtil {
 	}
 
 	private static DocumentBuilderFactory newDocumentBuilderFactory(InputSource validator) {
+		return newDocumentBuilderFactory(validator, null);
+	}
+
+	private static DocumentBuilderFactory newDocumentBuilderFactory(InputSource validator, Struct xmlFeatures) {
 		DocumentBuilderFactory factory;
 		if (validator != null) {
 			factory = _newDocumentBuilderFactory();// DocumentBuilderFactory.newInstance();
@@ -336,9 +342,13 @@ public final class XMLUtil {
 
 		// can be overriden per application
 		PageContext pc = ThreadLocalPageContext.get();
-		if (pc != null) {
-			ApplicationContextSupport ac = ((ApplicationContextSupport) pc.getApplicationContext());
-			features = ac == null ? null : ac.getXmlFeatures();
+		if (pc != null || xmlFeatures != null) {
+			if (xmlFeatures != null) {
+				features = xmlFeatures;
+			} else {
+				ApplicationContextSupport ac = ((ApplicationContextSupport) pc.getApplicationContext());
+				features = ac == null ? null : ac.getXmlFeatures();
+			}
 			if (features != null) {
 				try { // handle feature aliases, e.g. secure
 					Object obj;
@@ -352,8 +362,18 @@ public final class XMLUtil {
 					features.remove(KEY_FEATURE_DISALLOW_DOCTYPE_DECL, null);
 
 					obj = features.get(KEY_FEATURE_EXTERNAL_GENERAL_ENTITIES, null);
-					if (obj != null) externalGeneralEntities = Caster.toBoolean(obj);
+					Object obj2 = features.get(KEY_FEATURE_EXTERNAL_GENERAL_ENTITIES_ACF, null);
+					if (obj != null && obj2 != null) {
+						if (Caster.toBoolean(obj) != Caster.toBoolean(obj2))
+							throw new ExpressionException("When both externalGeneralEntities and allowExternalEntities are set, they must match ");
+						externalGeneralEntities = Caster.toBoolean(obj);
+					} else if (obj != null) {
+						externalGeneralEntities = Caster.toBoolean(obj);
+					} else if (obj2 != null) {
+						externalGeneralEntities = Caster.toBoolean(obj2);
+					}
 					features.remove(KEY_FEATURE_EXTERNAL_GENERAL_ENTITIES, null);
+					features.remove(KEY_FEATURE_EXTERNAL_GENERAL_ENTITIES_ACF, null);
 				}
 				catch (PageException ex) {
 					throw new RuntimeException(ex);
