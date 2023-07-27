@@ -7684,8 +7684,15 @@ The following things are considered to be empty:
 			<name>value</name>
 			<type>any</type>
 			<required>Yes</required>
-		<description>A string containing the XML document text</description>
-    </argument>
+			<description>A string containing the XML document text</description>
+		</argument>
+		<argument>
+			<name>xmlFeatures</name>
+			<type>struct</type>
+			<required>no</required>
+			<description>A struct of xmlFeatures directives to override defaults</description>
+			<introduced>5.4.2.20</introduced>
+		</argument>
 		<return>
 			<type>boolean</type>
 		</return>
@@ -13734,8 +13741,8 @@ _- asc (default): ascending (a to z) sort order
 			<alias>xmlStr,xmlText,xml</alias>
 			<type>string</type>
 			<required>Yes</required>
-		<description>Any of the following:</description>
-    </argument>
+			<description>Any of the following:</description>
+		</argument>
 		<argument>
 			<name>caseSensitive</name>
 			<type>boolean</type>
@@ -13747,12 +13754,12 @@ _- asc (default): ascending (a to z) sort order
 			<name>validator</name>
 			<type>any</type>
 			<required>No</required>
-		<description>Any of the following:
+			<description>Any of the following:
 - A string containing a DTD or Schema
 - The name of a DTD or Schema file
 - The URL of a DTD or Schema file; valid protocol identifiers include http, https, ftp, and file
-- A struct of xmlFeatures directives</description>
-    </argument>
+- A struct of xmlFeatures directives - since 5.4.2.20</description>
+		</argument>
 		<argument>
 			<name>lenient</name>
 			<type>boolean</type>

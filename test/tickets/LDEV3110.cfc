@@ -60,8 +60,66 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" labels="xml" {
 					})
 				}).ToThrow("java.io.FileNotFoundException"); // as http://update.lucee.org/rest/update/provider/echoGet/cgi 404s
 			});
+		});
+
+		describe( "testcase for LDEV-3110, xml features support for isXml", function () {
+
+			it ( "isXml enabled doctype protections", function(){
+				expect( isXml( doctypeXml ) ).toBeFalse();
+			});
+
+			it ( "isXml disabled doctype protections", function(){
+				expect( isXml(doctypeXml, {
+					"externalGeneralEntities": true,
+					"secure": false,
+					"disallowDoctypeDecl": false
+				})).toBeTrue();
+			});
+
+			it ( "isXMl enabled XXE protections", function(){
+				expect( isXml( entityXml ) ).toBeFalse();
+			});
+
+			it ( "isXml disabled XXE protections", function(){
+				expect ( isXml( entityXml, {
+					"externalGeneralEntities": true,
+					"secure": false,
+					"disallowDoctypeDecl": false
+				})).toBeFalse();
+			});
 
 		});
+		
+		describe( "testcase for LDEV-3110, xml features support for adobe allowExternalEntities alias", function () {
+
+			it ( "isXml conflicting Entities directives should fail", function(){
+				expect ( function() {
+					xmlParse( entityXml, false, {
+						"externalGeneralEntities": true, // should be the same!
+						"allowExternalEntities": false, // should be the same!
+						"secure": false,
+						"disallowDoctypeDecl": false
+					});
+				}).toThrow("java.lang.RuntimeException");
+			});
+
+			it ( "isXml enabled XXE protections, adobe syntax", function(){
+				expect( isXml( entityXml, {
+					"allowExternalEntities": true,
+					"secure": false,
+					"disallowDoctypeDecl": false
+				})).toBeFalse();
+			});
+
+			it ( "isXml disabled XXE protections, adobe syntax", function(){
+				expect(  isXml( entityXml, {
+					"allowExternalEntities": false,
+					"secure": false,
+					"disallowDoctypeDecl": false
+				})).toBeTrue()
+			});
+		});
+		
 	}
 
 }

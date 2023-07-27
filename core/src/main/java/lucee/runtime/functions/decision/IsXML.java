@@ -26,12 +26,30 @@ import org.xml.sax.InputSource;
 import lucee.runtime.PageContext;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.op.Caster;
+import lucee.runtime.text.xml.XMLCaster;
 import lucee.runtime.text.xml.XMLUtil;
+import lucee.runtime.type.Struct;
 
 /**
  * Check if a String is a well-formed XML
  */
 public final class IsXML implements Function {
+
+	public static boolean call(PageContext pc, Object xml, Struct xmlFeatures) {
+		if (xml instanceof Node) return true;
+
+		try {
+			if (xmlFeatures == null){
+				return call(pc, xml);
+			} else {
+				XMLUtil.parse(new InputSource(new StringReader(Caster.toString(xml))), xmlFeatures, null, false);
+				return true;
+			}
+		}
+		catch (Exception e) {
+			return false;
+		}
+	}
 
 	public static boolean call(PageContext pc, Object xml) {
 		if (xml instanceof Node) return true;
