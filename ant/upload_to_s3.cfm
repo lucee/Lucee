@@ -1,14 +1,12 @@
 <cfscript>
 	// firstly, check are we even deploying to s3
-	if ( (server.system.environment.DO_DEPLOY?:false) eq false ){
-		SystemOutput( "skip, DO_DEPLOY is false", 1 ,1 );
-		return;
-	} 
+	DO_DEPLOY = server.system.environment.DO_DEPLOY ?: false;
+
 	// secondly, do we have the s3 extension?
 	s3ExtVersion = extensionList().filter( function(row){ return row.name contains "s3"; }).version;
 	if ( s3Extversion eq "" ){
 		SystemOutput( "ERROR! The S3 Extension isn't installed!", true );
-		return; 
+		return;
 		//throw "The S3 Extension isn't installed!"; // fatal
 	} else {
 		SystemOutput( "Using S3 Extension: #s3ExtVersion#", true );
@@ -17,8 +15,10 @@
 	// finally check for S3 credentials
 	if ( isNull( server.system.environment.S3_ACCESS_ID_DOWNLOAD )
 			|| isNull( server.system.environment.S3_SECRET_KEY_DOWNLOAD ) ) {
-		SystemOutput( "no S3 credentials defined to upload to S3", 1, 1 );
-		return;
+		if ( DO_DEPLOY ){
+			SystemOutput( "no S3 credentials defined to upload to S3", 1, 1 );
+			return;
+		}
 		//throw "no S3 credentials defined to upload to S3";
 		//trg.dir = "";
 	}
@@ -39,42 +39,45 @@
 		throw "missing jar or .lco file";
 	}
 
-	s3_bucket = "lucee-downloads";
-	trg.dir = "s3://#server.system.environment.S3_ACCESS_ID_DOWNLOAD#:#server.system.environment.S3_SECRET_KEY_DOWNLOAD#@/#s3_bucket#/";
-	
 	// test s3 access
-	SystemOutput( "Testing S3 Bucket Access", 1, 1 );
-	if (! DirectoryExists( trg.dir ) )
-		throw "DirectoryExists failed for s3 bucket [#s3_bucket#]"; // it usually will throw an error, rather than even reach this throw, if it fails
-
-	trg.jar = trg.dir & src.jarName;
-	trg.core = trg.dir & src.coreName;
-
-	// we only upload / publish artifacts once LDEV-3921
-
-	if ( fileExists( trg.jar ) && fileExists( trg.core ) ){
-		SystemOutput( "Build artifacts have already been uploaded for this version, nothing to do", 1, 1 );
-		return;
+	if ( DO_DEPLOY ) {
+		s3_bucket = "lucee-downloads";
+		trg.dir = "s3://#server.system.environment.S3_ACCESS_ID_DOWNLOAD#:#server.system.environment.S3_SECRET_KEY_DOWNLOAD#@/#s3_bucket#/";
+		SystemOutput( "Testing S3 Bucket Access", 1, 1 );
+		if (! DirectoryExists( trg.dir ) )
+			throw "DirectoryExists failed for s3 bucket [#s3_bucket#]"; // it usually will throw an error, rather than even reach this throw, if it fails
 	}
 
-	// copy jar
-	SystemOutput( "upload #src.jarName# to S3",1,1 );
-	if ( fileExists( trg.jar ) ) 
-		fileDelete( trg.jar );
-	fileCopy( src.jar, trg.jar );
+	// we only upload / publish artifacts once LDEV-3921
+	if ( DO_DEPLOY ){
+		trg.jar = trg.dir & src.jarName;
+		trg.core = trg.dir & src.coreName;
 
-	// copy core
-	SystemOutput( "upload #src.coreName# to S3",1,1 );
-	if ( fileExists( trg.core ) ) 
-		fileDelete( trg.core );
-	fileCopy( src.core, trg.core );
+		if ( fileExists( trg.jar ) && fileExists( trg.core ) ){
+			SystemOutput( "Build artifacts have already been uploaded for this version, nothing to do", 1, 1 );
+			return;
+		}
 
+		// copy jar
+		SystemOutput( "upload #src.jarName# to S3",1,1 );
+		if ( fileExists( trg.jar ) )
+			fileDelete( trg.jar );
+		fileCopy( src.jar, trg.jar );
+
+		// copy core
+		SystemOutput( "upload #src.coreName# to S3",1,1 );
+		if ( fileExists( trg.core ) )
+			fileDelete( trg.core );
+		fileCopy( src.core, trg.core );
+	}
+
+	/*
 	// create war
 	src.warName = "lucee-" & src.version & ".war";
 	src.war = src.dir & src.warName;
 	trg.war = trg.dir & src.warName;
 
-	/*
+
 	SystemOutput( "upload #src.warName# to S3",1,1 );
 	zip action = "zip" file = src.war overwrite = true {
 
@@ -93,22 +96,40 @@
 	fileCopy( src.war,trg.war );
 	*/
 
-	// Lucee light build (no extensions)	
+	// Lucee light build (no extensions)
 	src.lightName = "lucee-light-" & src.version & ".jar";
-	SystemOutput( "build and upload #src.lightName# to S3",1,1 );
 	src.light = src.dir & src.lightName;
-	trg.light = trg.dir & src.lightName;
+	if ( DO_DEPLOY )
+		SystemOutput( "build and upload #src.lightName# to S3",1,1 );
+	else
+		SystemOutput( "build #src.light#",1,1 );
+
+
 	createLight( src.jar,src.light,src.version, false );
-	fileCopy( src.light,trg.light );
+	if ( DO_DEPLOY ){
+		trg.light = trg.dir & src.lightName;
+		fileCopy( src.light, trg.light );
+	}
 
 	// Lucee zero build, built from light but also no admin or docs
 	src.zeroName = "lucee-zero-" & src.version & ".jar";
-	SystemOutput( "build and upload #src.zeroName# to S3",1,1 );
 	src.zero = src.dir & src.zeroName;
-	trg.zero = trg.dir & src.zeroName;
-	createLight( src.light, src.zero,src.version, true );
-	fileCopy( src.zero, trg.zero );
+	if ( DO_DEPLOY )
+		SystemOutput( "build and upload #src.zeroName# to S3",1,1 );
+	else
+		SystemOutput( "build #src.zero#",1,1 );
 
+	createLight( src.light, src.zero,src.version, true );
+	if ( DO_DEPLOY ) {
+		trg.zero = trg.dir & src.zeroName;
+		fileCopy( src.zero, trg.zero );
+	}
+
+
+	if ( !DO_DEPLOY ){
+		SystemOutput( "skipping build triggers, DO_DEPLOY is false", 1 ,1 );
+		return;
+	}
 	// update provider
 
 	systemOutput("Trigger builds", true);
@@ -135,24 +156,24 @@
 		http url="https://api.github.com/repos/Ortus-Lucee/forgebox-cfengine-publisher/dispatches" method="POST" result="result" timeout="90"{
 			httpparam type="header" name='authorization' value='Bearer #gha_pat_token#';
 			httpparam type="body" value='#body.toJson()#';
-			
+
 		}
 		systemOutput("Forgebox build triggered, #result.statuscode# (always returns a 204 no content, see https://github.com/Ortus-Lucee/forgebox-cfengine-publisher/actions for output)", true);
 	} catch (e){
 		systemOutput("Forgebox build ERRORED?", true);
 		echo(e);
 	}
-	
+
 	// Lucee Docker builds
 
 	systemOutput("Trigger Lucee Docker builds", true);
 
 	gha_pat_token = server.system.environment.LUCEE_DOCKER_FILES_PAT_TOKEN; // github person action token
 	body = {
-		"event_type": "build-docker-images", 
-		"client_payload": { 
+		"event_type": "build-docker-images",
+		"client_payload": {
 			"LUCEE_VERSION": server.system.properties.luceeVersion
-		} 
+		}
 	};
 	try {
 		http url="https://api.github.com/repos/lucee/lucee-dockerfiles/dispatches" method="POST" result="result" timeout="90"{
@@ -172,7 +193,7 @@
 		var tmpDir = getTempDirectory();
 
 		local.tmpLoader = tmpDir & "lucee-loader-" & createUniqueId(  ); // the jar
-		if ( directoryExists( tmpLoader ) ) 
+		if ( directoryExists( tmpLoader ) )
 			directoryDelete( tmpLoader,true );
 		directoryCreate( tmpLoader );
 
@@ -203,18 +224,18 @@
 		var manifest = tmpCore & sep & "META-INF" & sep & "MANIFEST.MF";
 		var content = fileRead( manifest );
 		var index = find( 'Require-Extension',content );
-		if ( index > 0 ) 
+		if ( index > 0 )
 			content = mid( content, 1, index - 1 ) & variables.NL;
 		fileWrite( manifest,content );
-		
+
 		// zip core
 		fileDelete( lcoFile );
 		zip action = "zip" source = tmpCore file = lcoFile;
-		
+
 		// zip loader
-		if ( fileExists( trg ) ) 
+		if ( fileExists( trg ) )
 			fileDelete( trg );
 		zip action = "zip" source = tmpLoader file = trg;
-		
+
 	}
 </cfscript>

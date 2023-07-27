@@ -377,6 +377,7 @@ public final class Controler extends ParentThreasRefThread {
 					HTTPEngine4Impl.closeIdleConnections();
 				}
 				catch (Exception e) {
+					if (log != null) log.error("controler", e);
 				}
 
 				// clear all unused scopes

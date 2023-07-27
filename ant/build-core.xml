@@ -436,13 +436,15 @@
     -->
     <jar 
         basedir="${core}" 
+        compress="false"
         jarfile="${temp}/loader/core/core.lco" 
         manifest="${core}/META-INF/MANIFEST.MF"/> 
 
 
     <!-- generates the jar from the loader -->
     <jar 
-      basedir="${temp}/loader" 
+      basedir="${temp}/loader"
+      compress="false"
       jarfile="${temp}/lucee.jar" 
       manifest="${srcLoader}/META-INF/MANIFEST.MF"/>
 
@@ -643,7 +645,7 @@
     <copy file="${cache}/${stableLoader}.jar" tofile="${temp}/stable/loader.jar"/>
     <copy file="${trgLoader}/${version}.lco" tofile="${temp}/stable/temp/core/core.lco"/>
     <!-- update the fat jar with the current core .lco -->
-    <jar destfile="${temp}/stable/loader.jar" update="true">
+    <jar destfile="${temp}/stable/loader.jar" update="true" compress="false">
        <fileset dir="${temp}/stable/temp"/>
     </jar>
 
