@@ -863,8 +863,6 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		else if (check("getAdminSyncClass", ACCESS_FREE) && check2(ACCESS_READ)) doGetAdminSyncClass();
 		else if (check("updateAdminSyncClass", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateAdminSyncClass();
 
-		else if (check("getVideoExecuterClass", ACCESS_FREE) && check2(ACCESS_READ)) doGetVideoExecuterClass();
-		else if (check("updateVideoExecuterClass", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateVideoExecuterClass();
 		else if (check("terminateRunningThread", ACCESS_FREE) && check2(ACCESS_WRITE)) doTerminateRunningThread();
 
 		else if (check("updateLabel", ACCESS_NOT_WHEN_WEB) && check2(ACCESS_WRITE)) doUpdateLabel();
@@ -2233,17 +2231,6 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 	private void doGetAdminSyncClass() throws PageException {
 		pageContext.setVariable(getString("admin", action, "returnVariable"), config.getAdminSyncClass().getName());
-	}
-
-	private void doUpdateVideoExecuterClass() throws PageException {
-		ClassDefinition cd = new ClassDefinitionImpl(getString("admin", action, "class"), getString("bundleName", null), getString("bundleVersion", null),
-				config.getIdentification());
-		admin.updateVideoExecuterClass(cd);
-		store();
-	}
-
-	private void doGetVideoExecuterClass() throws PageException {
-		pageContext.setVariable(getString("admin", action, "returnVariable"), config.getVideoExecuterClass().getName());
 	}
 
 	/**
