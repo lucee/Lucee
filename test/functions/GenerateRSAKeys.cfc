@@ -30,10 +30,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 			it(title = "Checking with 777", body = function( currentSpec ) {
 				var keys = GenerateRSAKeys( 777 );
 				expect( keys ).toBeStruct().toHaveLength( 2 );
-
-				expect( function(){
-					testKeys( keys )
-				}).toThrow();
+				expect( testKeys( keys ) ).toBeTrue();
 			});
 
 		});
