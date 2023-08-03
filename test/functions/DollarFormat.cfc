@@ -4,28 +4,20 @@
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either 
+ * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public 
+ *
+ * You should have received a copy of the GNU Lesser General Public
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  */
 component extends="org.lucee.cfml.test.LuceeTestCase"	{
-	
-	//public function beforeTests(){}
-	
-	//public function afterTests(){}
-	
-	//public function setUp(){}
-
 
 	public void function testRounding(){
-		
 		assertEquals("$0.00",DollarFormat(""));
 		assertEquals("$1.00",DollarFormat("1"));
 		// assertEquals("$11.98",DollarFormat("11.984")); ACF handles dollarFormat and lsCurrencyFormat not the same way!!!!
@@ -58,8 +50,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		assertEquals("$200,000.00",DollarFormat(200000));
 
 		setLocale(org);
-
 	}
 
+	public void function testEmpty(){
+		expect( dollarFormat( "" ) ).toBe( "$0.00" );
+	}
 
-} 
+}
