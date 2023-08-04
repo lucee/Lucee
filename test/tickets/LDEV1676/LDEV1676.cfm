@@ -41,6 +41,6 @@
 		echo( result );
 	} catch (e) {
 		//systemOutput(cfcatch.type & " " & cfcatch.message, true);
-		echo( cfcatch.type & " " & cfcatch.message );
+		echo( cfcatch.stacktrace );
 	}
 </cfscript>
