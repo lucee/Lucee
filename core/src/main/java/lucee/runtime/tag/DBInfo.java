@@ -114,6 +114,7 @@ public final class DBInfo extends TagImpl {
 	private String procedure;
 	private String username;
 	private String strType;
+	private String filter;
 
 	@Override
 	public void release() {
@@ -127,7 +128,7 @@ public final class DBInfo extends TagImpl {
 		table = null;
 		procedure = null;
 		username = null;
-
+		filter = null;
 	}
 
 	/**
@@ -168,6 +169,7 @@ public final class DBInfo extends TagImpl {
 		else if ("tables".equals(strType)) this.type = TYPE_TABLES;
 		else if ("table".equals(strType)) this.type = TYPE_TABLES;
 		else if ("columns".equals(strType)) this.type = TYPE_TABLE_COLUMNS;
+		else if ("columns_minimal".equals(strType)) this.type = TYPE_TABLE_COLUMNS;
 		else if ("column".equals(strType)) this.type = TYPE_TABLE_COLUMNS;
 		else if ("version".equals(strType)) this.type = TYPE_VERSION;
 		else if ("procedures".equals(strType)) this.type = TYPE_PROCEDURES;
@@ -246,6 +248,13 @@ public final class DBInfo extends TagImpl {
 		this.username = username;
 	}
 
+	/**
+	 * @param username the username to set
+	 */
+	public void setFilter(String filter) {
+		this.filter = filter;
+	}
+
 	@Override
 	public int doStartTag() throws PageException {
 		Object ds = getDatasource(pageContext, datasource);
@@ -294,11 +303,10 @@ public final class DBInfo extends TagImpl {
 			table = table.substring(index + 1);
 		}
 
-		checkTable(metaData, _dbName);
-
 		Query qry = new QueryImpl(metaData.getColumns(_dbName, schema, table, StringUtil.isEmpty(pattern) ? "%" : pattern), "query", pageContext.getTimeZone());
 
 		int len = qry.getRecordcount();
+		if (len == 0) checkTable(metaData, _dbName); // only check if no columns get returned, otherwise it exists
 
 		if (qry.getColumn(COLUMN_DEF, null) != null) qry.rename(COLUMN_DEF, COLUMN_DEFAULT_VALUE);
 		else if (qry.getColumn(COLUMN_DEFAULT, null) != null) qry.rename(COLUMN_DEFAULT, COLUMN_DEFAULT_VALUE);
@@ -313,6 +321,7 @@ public final class DBInfo extends TagImpl {
 			qry.addColumn(DECIMAL_DIGITS, arr);
 		}
 
+		if (!"columns_minimal".equals(this.strType)) {
 		// add is primary
 		Map<String, Set<String>> primaries = new HashMap<>();
 		Array isPrimary = new ArrayImpl();
@@ -378,7 +387,7 @@ public final class DBInfo extends TagImpl {
 		qry.addColumn(IS_FOREIGNKEY, isForeign);
 		qry.addColumn(REFERENCED_PRIMARYKEY, refPrim);
 		qry.addColumn(REFERENCED_PRIMARYKEY_TABLE, refPrimTbl);
-
+		}
 		qry.setExecutionTime(stopwatch.time());
 
 		pageContext.setVariable(name, qry);
@@ -489,9 +498,9 @@ public final class DBInfo extends TagImpl {
 			table = table.substring(index + 1);
 		}
 
-		checkTable(metaData, _dbName);
-
 		lucee.runtime.type.Query qry = new QueryImpl(metaData.getExportedKeys(_dbName, schema, table), "query", pageContext.getTimeZone());
+		if (qry.getRecordcount() == 0) checkTable(metaData, _dbName); // only check if no columns get returned, otherwise it exists
+		
 		qry.setExecutionTime(stopwatch.time());
 
 		pageContext.setVariable(name, qry);
@@ -533,13 +542,13 @@ public final class DBInfo extends TagImpl {
 			table = table.substring(index + 1);
 		}
 
-		checkTable(metaData, _dbName);
-
 		ResultSet tables = metaData.getIndexInfo(_dbName, schema, table, false, true);
 		lucee.runtime.type.Query qry = new QueryImpl(tables, "query", pageContext.getTimeZone());
 
 		// type int 2 string
 		int rows = qry.getRecordcount();
+		if (rows == 0) checkTable(metaData, _dbName); // only check if no columns get returned, otherwise it exists
+
 		String strType;
 		int type, card;
 		for (int row = 1; row <= rows; row++) {
@@ -628,7 +637,11 @@ public final class DBInfo extends TagImpl {
 		stopwatch.start();
 
 		pattern = setCase(metaData, pattern);
-		lucee.runtime.type.Query qry = new QueryImpl(metaData.getTables(dbname(conn), null, StringUtil.isEmpty(pattern) ? "%" : pattern, null), "query", pageContext.getTimeZone());
+		lucee.runtime.type.Query qry = new QueryImpl(
+				metaData.getTables(dbname(conn), null, 
+					StringUtil.isEmpty(pattern) ? "%" : pattern,
+					StringUtil.isEmpty(filter) ? null : new String[] { filter }),
+					"query", pageContext.getTimeZone());
 		qry.setExecutionTime(stopwatch.time());
 
 		pageContext.setVariable(name, qry);
@@ -658,8 +671,8 @@ public final class DBInfo extends TagImpl {
 		qry.setAt(DATABASE_VERSION, 1, metaData.getDatabaseProductVersion());
 		qry.setAt(DRIVER_NAME, 1, metaData.getDriverName());
 		qry.setAt(DRIVER_VERSION, 1, metaData.getDriverVersion());
-		qry.setAt(JDBC_MAJOR_VERSION, 1, new Double(metaData.getJDBCMajorVersion()));
-		qry.setAt(JDBC_MINOR_VERSION, 1, new Double(metaData.getJDBCMinorVersion()));
+		qry.setAt(JDBC_MAJOR_VERSION, 1, Double.valueOf(metaData.getJDBCMajorVersion()));
+		qry.setAt(JDBC_MINOR_VERSION, 1, Double.valueOf(metaData.getJDBCMinorVersion()));
 
 		qry.setExecutionTime(stopwatch.time());
 
