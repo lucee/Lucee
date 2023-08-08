@@ -1055,7 +1055,7 @@ A return value from the CreateTimeSpan function, for example, "#CreateTimeSpan(0
 			<name>pattern</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>Specifies a filter to retrieve information about specific tables, columns, or stored procedures</description>
+			<description>Specifies a sql filter, i.e 'sys%' to retrieve information about specific tables, columns, or stored procedures</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -1067,6 +1067,8 @@ A return value from the CreateTimeSpan function, for example, "#CreateTimeSpan(0
 Patterns are also supported, i.e. 
 - use % to fetch all columns, from every table.
 - use SCHEMA.% to fetch all columns, from every table, from a scheme.
+
+Not used for type="tables", use pattern instead
 </description>
 		</attribute>
 		<attribute>
@@ -1081,7 +1083,7 @@ Patterns are also supported, i.e.
 			<name>Filter</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>Filter for type="tables" with a wildcard, defaults to all types when empty.
+			<description>Filter for type="tables" with a wildcard, defaults to all types when empty (slow).
 
 - "TABLE"
 - "VIEW"

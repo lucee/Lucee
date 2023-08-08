@@ -306,7 +306,6 @@ public final class DBInfo extends TagImpl {
 		Query qry = new QueryImpl(metaData.getColumns(_dbName, schema, table, StringUtil.isEmpty(pattern) ? "%" : pattern), "query", pageContext.getTimeZone());
 
 		int len = qry.getRecordcount();
-
 		if (len == 0) checkTable(metaData, _dbName); // only check if no columns get returned, otherwise it exists
 
 		if (qry.getColumn(COLUMN_DEF, null) != null) qry.rename(COLUMN_DEF, COLUMN_DEFAULT_VALUE);
@@ -499,9 +498,9 @@ public final class DBInfo extends TagImpl {
 			table = table.substring(index + 1);
 		}
 
-		checkTable(metaData, _dbName);
-
 		lucee.runtime.type.Query qry = new QueryImpl(metaData.getExportedKeys(_dbName, schema, table), "query", pageContext.getTimeZone());
+		if (qry.getRecordcount() == 0) checkTable(metaData, _dbName); // only check if no columns get returned, otherwise it exists
+
 		qry.setExecutionTime(stopwatch.time());
 
 		pageContext.setVariable(name, qry);
@@ -543,13 +542,13 @@ public final class DBInfo extends TagImpl {
 			table = table.substring(index + 1);
 		}
 
-		checkTable(metaData, _dbName);
-
 		ResultSet tables = metaData.getIndexInfo(_dbName, schema, table, false, true);
 		lucee.runtime.type.Query qry = new QueryImpl(tables, "query", pageContext.getTimeZone());
 
 		// type int 2 string
 		int rows = qry.getRecordcount();
+		if (rows == 0) checkTable(metaData, _dbName); // only check if no columns get returned, otherwise it exists
+
 		String strType;
 		int type, card;
 		for (int row = 1; row <= rows; row++) {
@@ -639,8 +638,10 @@ public final class DBInfo extends TagImpl {
 
 		pattern = setCase(metaData, pattern);
 		lucee.runtime.type.Query qry = new QueryImpl(
-				metaData.getTables(dbname(conn), null, StringUtil.isEmpty(pattern) ? "%" : pattern, StringUtil.isEmpty(filter) ? null : new String[] { filter }), "query",
-				pageContext.getTimeZone());
+			metaData.getTables(dbname(conn), null,
+				StringUtil.isEmpty(pattern) ? "%" : pattern,
+				StringUtil.isEmpty(filter) ? null : new String[] { filter }),
+				"query", pageContext.getTimeZone());
 		qry.setExecutionTime(stopwatch.time());
 
 		pageContext.setVariable(name, qry);
