@@ -15,10 +15,16 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mysql"{
 				result = _InternalRequest(
 					template:"#uri#/mysql/mysql.cfm"
 				);
-				expect(result.fileContent.trim()).toBe(
-					'{"SESSION":[{"INDEX_NAME":"ix_cf_session_data"},{"INDEX_NAME":"ix_cf_session_data_expires"}],'
-					& '"CLIENT":[{"INDEX_NAME":"ix_cf_client_data"},{"INDEX_NAME":"ix_cf_client_data_expires"}]}'
-				);
+				var res = result.fileContent.trim().deserializeJson();
+				var hasExpires = (listFirst(server.lucee.version, ".") gte 6);
+				expect(res.session[1].toJson()).toBe('{"INDEX_NAME":"ix_cf_session_data"}');
+				if (hasExpires)
+					expect(res.session[2].toJson()).toBe('{"INDEX_NAME":"ix_cf_session_data_expires"}');
+
+				expect(res.client[1].toJson()).toBe('{"INDEX_NAME":"ix_cf_client_data"}');
+				if (hasExpires)
+					expect(res.client[2].toJson()).toBe('{"INDEX_NAME":"ix_cf_client_data_expires"}');
+				
 			});
 	});
 	}
