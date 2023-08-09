@@ -64,7 +64,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 					}).toThrow(); // table doesn't exist
 				});
 
-				xit(title = "dbinfo columns wildcard [#dbType#]",
+				it(title = "dbinfo columns wildcard [#dbType#]",
 						data = { prefix: prefix, ds: ds, dbtype: dbtype },
 						body = function( data ) {
 					dbinfo datasource=data.ds name="local.result" type= "columns" table="#data.prefix#r%";
@@ -72,7 +72,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 					expect( result.recordcount ).toBe( 2 ); // only the roles table
 				});
 
-				xit(title = "dbinfo columns_minimal [#dbType#]",
+				it(title = "dbinfo columns_minimal [#dbType#]",
 						data = { prefix: prefix, ds: ds, dbtype: dbtype },
 						body = function( data ) {
 					dbinfo datasource=data.ds name="local.result" type= "columns_minimal" table="#data.prefix#users";
@@ -137,19 +137,19 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 					//debug(result);
 				});
 
-				xit(title = "dbinfo tables, pattern & filter=view [#dbType#]",
+				it(title = "dbinfo tables, pattern & filter=view [#dbType#]",
 						data = { prefix: prefix, ds: ds, dbtype: dbtype },
 						body = function( data ) {
-					//dbinfo datasource=data.ds name="local.result" type="tables" pattern="#data.prefix#%" filter="view";
-					//expect( result.recordcount ).toBe( 1 );
+					dbinfo datasource=data.ds name="local.result" type="tables" pattern="#data.prefix#%" filter="view";
+					expect( result.recordcount ).toBe( 1 );
 					//debug(result);
 				});
 
-				xit(title = "dbinfo tables, pattern, filter=table [#dbType#]",
+				it(title = "dbinfo tables, pattern, filter=table [#dbType#]",
 						data = { prefix: prefix, ds: ds, dbtype: dbtype },
 						body = function( data ) {
-					//dbinfo datasource=ds name="local.result" type="tables" pattern="#data.prefix#%" filter="table";
-					//expect( result.recordcount ).toBe( 2 );
+					dbinfo datasource=ds name="local.result" type="tables" pattern="#data.prefix#%" filter="table";
+					expect( result.recordcount ).toBe( 2 );
 					//debug(result);
 				});
 			});
