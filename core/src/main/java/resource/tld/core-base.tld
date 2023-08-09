@@ -1015,17 +1015,15 @@ A return value from the CreateTimeSpan function, for example, "#CreateTimeSpan(0
 			<description>Type of information to get:
 - dbNames: database name and type
 - tables: information to all tables
-- columns: column information to a table/view, accepts wildcards like '%''
-- columns_minimal: column information to a single table/view, but no FK / PK information (faster)
+- columns: column information for tables/views, accepts wildcards like '%''
+- columns_minimal: column information for tables/views, but no FK / PK information (faster)
 - version: version information of the database
 - procedures: information to all procedures
 - procedure_columns: column information to a single procedure
 - foreignKeys: information to all foreignKeys
 - index: information to all indexes
-
-,tables,columns,version,procedures,foreignKeys,index,users
-
-
+- users: list database users
+- terms: vendor preferred term for PROCEDURE, CATALOG and SCHEMA
 </description>
 		</attribute>
 		<attribute>
@@ -1083,7 +1081,8 @@ Not used for type="tables", use pattern instead
 			<name>Filter</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>Filter for type="tables" with a wildcard, defaults to all types when empty (slow).
+			<introduced>6.0.0.73</introduced>
+			<description>Filter for type="tables" with a wildcard, defaults to all types when empty (slow, especially oracle).
 
 - "TABLE"
 - "VIEW"

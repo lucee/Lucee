@@ -511,7 +511,7 @@ public final class DBInfo extends TagImpl {
 		if (StringUtil.isEmpty(table)) return;
 		try {
 			tables = metaData.getTables(_dbName, null, setCase(metaData, table), null);
-			if (!tables.next()) throw new ApplicationException("there is no table that match the following pattern [" + table + "]");
+			if (!tables.next()) throw new ApplicationException("there is no table that match the following pattern [" + setCase(metaData, table) + "]");
 		}
 		finally {
 			if (tables != null) tables.close();
@@ -521,10 +521,14 @@ public final class DBInfo extends TagImpl {
 
 	private String setCase(DatabaseMetaData metaData, String id) throws SQLException {
 		if (StringUtil.isEmpty(id)) return "%";
-
 		if (metaData.storesLowerCaseIdentifiers()) return id.toLowerCase();
 		if (metaData.storesUpperCaseIdentifiers()) return id.toUpperCase();
 		return id;
+	}
+
+	private String setFilterCase(DatabaseMetaData metaData, String id) throws SQLException {
+		if (StringUtil.isEmpty(id)) return null;
+		else return id.toUpperCase();
 	}
 
 	private void typeIndex(Connection conn) throws PageException, SQLException {
@@ -637,11 +641,12 @@ public final class DBInfo extends TagImpl {
 		stopwatch.start();
 
 		pattern = setCase(metaData, pattern);
+		filter = setFilterCase(metaData, filter);
 		lucee.runtime.type.Query qry = new QueryImpl(
 			metaData.getTables(dbname(conn), null,
 				StringUtil.isEmpty(pattern) ? "%" : pattern,
-				StringUtil.isEmpty(filter) ? null : new String[] { filter }),
-				"query", pageContext.getTimeZone());
+				StringUtil.isEmpty(filter) ? null : new String[] { filter }
+			), "query", pageContext.getTimeZone());
 		qry.setExecutionTime(stopwatch.time());
 
 		pageContext.setVariable(name, qry);
