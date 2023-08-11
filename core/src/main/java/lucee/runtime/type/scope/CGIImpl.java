@@ -233,6 +233,7 @@ public final class CGIImpl extends StructSupport implements CGI, ScriptProtected
 			try {
 				if (first == 'a') {
 					if (key.equals(KeyConstants._auth_type)) return store(key, toString(req.getAuthType()));
+					if (key.equals(KeyConstants._auth_user)) return store(key, toString(req.getRemoteUser()));
 				}
 				else if (first == 'c') {
 					if (key.equals(KeyConstants._context_path)) return store(key, toString(req.getContextPath()));
