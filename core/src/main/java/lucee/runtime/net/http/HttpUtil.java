@@ -49,11 +49,11 @@ public class HttpUtil {
 			name = e.nextElement();
 			ee = req.getHeaders(name);
 			while (ee.hasMoreElements()) {
-				val = (String) ee.nextElement();
+				val = ee.nextElement();
 				if (val != null) headers.add(new Pair<String, String>(name, val));
 			}
 		}
-		return (Pair<String, String>[]) headers.toArray(new Pair[headers.size()]);
+		return headers.toArray(new Pair[headers.size()]);
 	}
 
 	public static Struct getAttributesAsStruct(HttpServletRequest req) {
