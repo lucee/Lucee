@@ -1085,7 +1085,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 			FunctionLib fll = luceeFlds[luceeFlds.length - 1];
 
 			// now overwrite with new data
-			if (path.res.isDirectory()) {
+			if (path.res != null && path.res.isDirectory()) {
 				String[] files = path.res.list(new ExtensionResourceFilter(Constants.getTemplateExtensions()));
 
 				for (String file: files) {
