@@ -537,10 +537,7 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 
 			if (pc.isGatewayContext()) continue;
 			thread = pc.getThread();
-			if (thread == Thread.currentThread()) continue;
-
-			thread = pc.getThread();
-			if (thread == Thread.currentThread()) continue;
+			if (thread == null || thread == Thread.currentThread()) continue;
 
 			data.setEL("startTime", new DateTimeImpl(pc.getStartTime(), false));
 			data.setEL("endTime", new DateTimeImpl(pc.getStartTime() + pc.getRequestTimeout(), false));
