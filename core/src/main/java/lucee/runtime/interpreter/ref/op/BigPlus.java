@@ -20,7 +20,7 @@ package lucee.runtime.interpreter.ref.op;
 
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.PageException;
-import lucee.runtime.interpreter.InterpreterException;
+import lucee.runtime.interpreter.SecurityInterpreterException;
 import lucee.runtime.interpreter.ref.Ref;
 
 /**
@@ -40,7 +40,7 @@ public final class BigPlus extends Big {
 
 	@Override
 	public Object getValue(PageContext pc) throws PageException {
-		if (limited) throw new InterpreterException("invalid syntax, math operations are not supported in a json string.");
+		if (limited) throw new SecurityInterpreterException("invalid syntax, math operations are not supported.");
 		return getLeft(pc).add(getRight(pc)).toString();
 	}
 

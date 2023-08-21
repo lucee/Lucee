@@ -357,4 +357,6 @@ public interface ConfigPro extends Config {
 	public boolean getPreciseMath();
 
 	public void setLastModified();
+
+	public boolean limitIsDefined();
 }

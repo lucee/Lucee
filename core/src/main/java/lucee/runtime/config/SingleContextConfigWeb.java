@@ -187,6 +187,11 @@ class SingleContextConfigWeb extends ConfigBase implements ConfigWebInner {
 	}
 
 	@Override
+	public boolean limitIsDefined() {
+		return cs.limitIsDefined();
+	}
+
+	@Override
 	public boolean mergeFormAndURL() {
 		return cs.mergeFormAndURL();
 	}

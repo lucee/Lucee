@@ -614,6 +614,11 @@ public class ConfigWebImpl implements ConfigWebPro {
 	}
 
 	@Override
+	public boolean limitIsDefined() {
+		return instance.limitIsDefined();
+	}
+
+	@Override
 	public lucee.runtime.customtag.InitFile getCTInitFile(lucee.runtime.PageContext arg0, java.lang.String arg1) {
 		return instance.getCTInitFile(arg0, arg1);
 	}

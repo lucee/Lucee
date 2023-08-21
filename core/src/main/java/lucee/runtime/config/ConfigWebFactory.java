@@ -4047,6 +4047,25 @@ public final class ConfigWebFactory extends ConfigFactory {
 				else if (hasCS) config.setAllowImplicidQueryCall(configServer.allowImplicidQueryCall());
 			}
 
+			// limit isdefined
+			if (mode == ConfigPro.MODE_STRICT) {
+				config.setLimitIsDefined(true);
+			}
+			else {
+				Boolean limitIsDefined = Caster.toBoolean(SystemUtil.getSystemPropOrEnvVar("lucee.isdefined.limit", null), null);
+				if (limitIsDefined == null) limitIsDefined = Caster.toBoolean(SystemUtil.getSystemPropOrEnvVar("lucee.security.isdefined", null), null);
+				if (limitIsDefined == null) {
+					Struct security = ConfigWebUtil.getAsStruct("security", root);
+					if (security != null) {
+						limitIsDefined = Caster.toBoolean(getAttr(security, "limitIsDefined"), null);
+					}
+				}
+				if (hasAccess && limitIsDefined != null) {
+					config.setLimitIsDefined(limitIsDefined.booleanValue());
+				}
+				else if (hasCS) config.setLimitIsDefined(configServer.limitIsDefined());
+			}
+
 			// Merge url and Form
 			String strMergeFormAndURL = getAttr(root, "mergeUrlForm");
 			if (hasAccess && !StringUtil.isEmpty(strMergeFormAndURL)) {

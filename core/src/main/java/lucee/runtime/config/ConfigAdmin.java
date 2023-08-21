@@ -3046,13 +3046,16 @@ public final class ConfigAdmin {
 		root.setEL("customTagUseCachePath", Caster.toString(ctPathCache, ""));
 	}
 
-	public void updateSecurity(String varUsage) throws SecurityException {
+	public void updateSecurity(String varUsage, Boolean limitIsDefined) throws SecurityException {
 		checkWriteAccess();
 		Struct el = _getRootElement("security");
 
 		if (el != null) {
 			if (!StringUtil.isEmpty(varUsage)) el.setEL("variableUsage", Caster.toString(varUsage));
 			else rem(el, "variableUsage");
+
+			if (limitIsDefined != null) el.setEL("limitIsDefined", limitIsDefined);
+			else rem(el, "limitIsDefined");
 		}
 
 	}

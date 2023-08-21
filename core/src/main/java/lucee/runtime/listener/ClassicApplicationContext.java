@@ -153,7 +153,7 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 	private Map<Key, Object> customAttrs;
 
 	private boolean allowImplicidQueryCall;
-
+	private boolean limitIsDefined;
 	private Regex regex;
 
 	private boolean preciseMath;
@@ -190,6 +190,7 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 		this.fullNullSupport = config.getFullNullSupport();
 		this.scopeCascading = config.getScopeCascadingType();
 		this.allowImplicidQueryCall = config.allowImplicidQueryCall();
+		this.limitIsDefined = ((ConfigPro) config).limitIsDefined();
 
 		this.webCharset = ((ConfigPro) config).getWebCharSet();
 		this.resourceCharset = ((ConfigPro) config).getResourceCharSet();
@@ -263,6 +264,7 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 		dbl.fullNullSupport = fullNullSupport;
 		dbl.scopeCascading = scopeCascading;
 		dbl.allowImplicidQueryCall = allowImplicidQueryCall;
+		dbl.limitIsDefined = limitIsDefined;
 		dbl.webCharset = webCharset;
 		dbl.resourceCharset = resourceCharset;
 		dbl.sessionType = sessionType;
@@ -876,6 +878,16 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 	@Override
 	public void setAllowImplicidQueryCall(boolean allowImplicidQueryCall) {
 		this.allowImplicidQueryCall = allowImplicidQueryCall;
+	}
+
+	@Override
+	public boolean getLimitIsDefined() {
+		return limitIsDefined;
+	}
+
+	@Override
+	public void setLimitIsDefined(boolean limitIsDefined) {
+		this.limitIsDefined = limitIsDefined;
 	}
 
 	@Override

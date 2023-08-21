@@ -20,7 +20,7 @@ package lucee.runtime.interpreter.ref.var;
 
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.PageException;
-import lucee.runtime.interpreter.InterpreterException;
+import lucee.runtime.interpreter.SecurityInterpreterException;
 import lucee.runtime.interpreter.ref.Ref;
 import lucee.runtime.interpreter.ref.RefSupport;
 import lucee.runtime.interpreter.ref.Set;
@@ -64,13 +64,13 @@ public final class Variable extends RefSupport implements Set {
 
 	@Override
 	public Object getValue(PageContext pc) throws PageException {
-		if (limited) throw new InterpreterException("invalid syntax, variables are not supported in a json string.");
+		if (limited) throw new SecurityInterpreterException("invalid syntax, variables are not supported.");
 		return pc.get(parent.getCollection(pc), KeyImpl.init(getKeyAsString(pc)));
 	}
 
 	@Override
 	public Object touchValue(PageContext pc) throws PageException {
-		if (limited) throw new InterpreterException("invalid syntax, variables are not supported in a json string.");
+		if (limited) throw new SecurityInterpreterException("invalid syntax, variables are not supported.");
 		Object p = parent.touchValue(pc);
 		if (p instanceof Query) {
 			Object o = ((Query) p).getColumn(KeyImpl.init(getKeyAsString(pc)), null);
@@ -83,7 +83,7 @@ public final class Variable extends RefSupport implements Set {
 
 	@Override
 	public Object getCollection(PageContext pc) throws PageException {
-		if (limited) throw new InterpreterException("invalid syntax, variables are not supported in a json string.");
+		if (limited) throw new SecurityInterpreterException("invalid syntax, variables are not supported.");
 		Object p = parent.getValue(pc);
 		if (p instanceof Query) {
 			return ((Query) p).getColumn(KeyImpl.init(getKeyAsString(pc)));
@@ -93,7 +93,7 @@ public final class Variable extends RefSupport implements Set {
 
 	@Override
 	public Object setValue(PageContext pc, Object obj) throws PageException {
-		if (limited) throw new InterpreterException("invalid syntax, variables are not supported in a json string.");
+		if (limited) throw new SecurityInterpreterException("invalid syntax, variables are not supported.");
 		return pc.set(parent.touchValue(pc), KeyImpl.init(getKeyAsString(pc)), obj);
 	}
 

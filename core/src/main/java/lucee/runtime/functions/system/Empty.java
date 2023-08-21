@@ -22,6 +22,7 @@ import lucee.runtime.PageContext;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.functions.string.Len;
+import lucee.runtime.interpreter.SecurityInterpreterException;
 import lucee.runtime.interpreter.VariableInterpreter;
 import lucee.runtime.op.Caster;
 
@@ -29,7 +30,7 @@ public class Empty implements Function {
 
 	private static final long serialVersionUID = 3780957672985941192L;
 
-	public static boolean call(PageContext pc, String variableName) throws FunctionException {
+	public static boolean call(PageContext pc, String variableName) throws FunctionException, SecurityInterpreterException {
 		Object res = VariableInterpreter.getVariableEL(pc, variableName, null);
 
 		if (res == null) return true;
