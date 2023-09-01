@@ -87,7 +87,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="s3" {
 				copyToBucket( getTestBucketUrl(), "eu-west-1", "eu-west-1" );
 			});
 
-			xit(title="Copying dir to a new s3 bucket, valid region name [eu-west-1]", skip=isNotSupported(), body=function( currentSpec ) {
+			it(title="Copying dir to a new s3 bucket, valid region name [eu-west-1]", skip=isNotSupported(), body=function( currentSpec ) {
 				copyToBucket( getTestBucketUrl(), "eu-west-1", "eu-central-1" ); // fails, can't current copy between regions LDEV-4639
 			});
 
