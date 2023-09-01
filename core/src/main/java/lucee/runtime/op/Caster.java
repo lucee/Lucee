@@ -4987,8 +4987,15 @@ public final class Caster {
 	public static BigDecimal toBigDecimal(Object o) throws PageException {
 		if (o instanceof BigDecimal) return (BigDecimal) o;
 		if (o instanceof Number) return toBigDecimal((Number) o);
+		else if (o instanceof CharSequence) {
+			try {
+				return new BigDecimal(o.toString());
+			}
+			catch (NumberFormatException nfe) {
+				return new BigDecimal(toDoubleValue(o));
+			}
+		}
 		else if (o instanceof Boolean) return new BigDecimal(((Boolean) o).booleanValue() ? 1 : 0);
-		else if (o instanceof CharSequence) return new BigDecimal(StringUtil.trim(o.toString(), ""));
 		else if (o instanceof Character) return new BigDecimal((((Character) o).charValue()));
 		else if (o instanceof Castable) return new BigDecimal(((Castable) o).castToDoubleValue());
 		else if (o == null) return BigDecimal.ZERO;
