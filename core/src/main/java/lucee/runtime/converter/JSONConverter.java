@@ -342,6 +342,12 @@ public final class JSONConverter extends ConverterSupport {
 		boolean doIt = false;
 		while (it.hasNext()) {
 
+			e = it.next();
+			k = e.getKey().getString();
+			if (!preCase) k = k.toUpperCase();
+			value = e.getValue();
+
+			if (!addUDFs && (value instanceof UDF || value == null)) continue;
 			if (doIt) {
 				sb.append(',');
 				sb.append(eol);
@@ -350,12 +356,6 @@ public final class JSONConverter extends ConverterSupport {
 			else {
 				sb.append(indent());
 			}
-			e = it.next();
-			k = e.getKey().getString();
-			if (!preCase) k = k.toUpperCase();
-			value = e.getValue();
-
-			if (!addUDFs && (value instanceof UDF || value == null)) continue;
 
 			doIt = true;
 			sb.append(StringUtil.escapeJS(k, '"', charsetEncoder));
