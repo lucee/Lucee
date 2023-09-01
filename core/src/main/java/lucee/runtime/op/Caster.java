@@ -526,6 +526,7 @@ public final class Caster {
 						if (!alsoFromDate) throw new CasterException("cannot cast [" + str + "] string to a number value");
 						return toDoubleValueViaDate(str);
 					}
+					else if (len == 1) throw new CasterException("cannot cast [" + str + "] string to a number value");
 					hasDot = true;
 				}
 				else {
@@ -665,6 +666,7 @@ public final class Caster {
 						if (!alsoFromDate) return defaultValue;
 						return toDoubleValueViaDate(str, defaultValue);
 					}
+					else if (len == 1) return defaultValue;
 					hasDot = true;
 				}
 				else {
@@ -5013,7 +5015,6 @@ public final class Caster {
 	public static BigDecimal toBigDecimal(String str) throws CasterException {
 		try {
 			if (Util.isEmpty(str, true)) throw new CasterException("cannot convert string[" + str + "] to a number, the string is empty");
-			if (".".equals(str)) return BigDecimal.ZERO;
 			return new BigDecimal(str.trim(), MathContext.DECIMAL128);
 		}
 		catch (NumberFormatException nfe) {
