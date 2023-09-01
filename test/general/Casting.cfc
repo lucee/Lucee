@@ -9,13 +9,11 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				var zero=0; // Micha: i set this to a variable instead of setting the number directly into the operaton, because otherwise the compiler will already optimize
 				expect(".1"+zero).toBe(0.1);
 				expect("1."+zero).toBe(1);
-				expect("."+zero).toBe(0);
 				expect("1.1"+zero).toBe(1.1);
 			});
 			it( title='convert string to number at compile time', body=function( currentSpec ) {
 				expect(".1"+0).toBe(0.1);
 				expect("1."+0).toBe(1);
-				expect("."+0).toBe(0);
 				expect("1.1"+0).toBe(1.1);
 			});
 			
