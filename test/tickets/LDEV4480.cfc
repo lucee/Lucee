@@ -10,6 +10,11 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 					var x = dot * 1;
 				}).toThrow();
 			});
+			it(title="dot should not be equal to 0", skip=true, body=function( currentSpec ) {
+				var dot = ".";
+				var zero = "0";
+				expect( zero == dot ).toBeFalse();
+			});
 
 			it(title="checking treating 0. as a number", body=function( currentSpec ) {
 				var dot = "0.";

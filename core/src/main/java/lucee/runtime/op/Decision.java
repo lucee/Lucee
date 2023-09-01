@@ -40,6 +40,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import lucee.print;
 import lucee.commons.date.DateTimeUtil;
 import lucee.commons.i18n.FormatUtil;
 import lucee.commons.lang.CFTypes;
@@ -155,6 +156,12 @@ public final class Decision {
 		else return false;
 	}
 
+	public static void main(String[] args) throws PageException {
+		print.e(isNumber("0."));
+		print.e(isNumber(".0"));
+		print.e(isNumber("."));
+	}
+
 	/**
 	 * tests if String value is Numeric
 	 * 
@@ -182,7 +189,7 @@ public final class Decision {
 			curr = str.charAt(pos);
 			if (curr < '0') {
 				if (curr == '.') {
-					if (hasDot) return false;
+					if (hasDot || len == 1) return false;
 					hasDot = true;
 				}
 				else return false;

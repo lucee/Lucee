@@ -477,6 +477,7 @@ public final class Caster {
 						if (!alsoFromDate) throw new CasterException("cannot cast [" + str + "] string to a number value");
 						return toDoubleValueViaDate(str);
 					}
+					else if (len == 1) throw new CasterException("cannot cast [" + str + "] string to a number value");
 					hasDot = true;
 				}
 				else {
@@ -616,6 +617,7 @@ public final class Caster {
 						if (!alsoFromDate) return defaultValue;
 						return toDoubleValueViaDate(str, defaultValue);
 					}
+					else if (len == 1) return defaultValue;
 					hasDot = true;
 				}
 				else {
