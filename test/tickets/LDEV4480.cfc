@@ -5,10 +5,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 
 			it(title="checking treating . as a number", body=function( currentSpec ) {
 				var dot = ".";
-				expect( isNumeric( dot ) ).toBeFalse();
-				expect ( function(){
-					var x = dot * 1;
-				}).toThrow();
+				expect( isNumeric( dot ) ).toBeTrue();
+				expect( dot * 1 ).toBe( 0 );
 			});
 
 			it(title="checking treating 0. as a number", body=function( currentSpec ) {
