@@ -186,7 +186,8 @@ public final class Decision {
 			curr = str.charAt(pos);
 			if (curr < '0') {
 				if (curr == '.') {
-					if (hasDot || len == 1) return false;
+					if (hasDot) return false;
+					if (len == 1) return true;
 					hasDot = true;
 				}
 				else return false;
