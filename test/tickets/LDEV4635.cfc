@@ -40,7 +40,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="s3" {
 				try {
 					directory action="copy" directory="#srcDir#" destination="#arguments.bucket#" storelocation="#arguments.storelocation#";
 				} catch (e){
-					throw REReplaceNoCase(e.stacktrace,"[***]", "all");
+					throw(message:REReplaceNoCase(e.stacktrace,"[***]", "all"), cause:e);
 				}
 				expect( directoryExists( arguments.bucket ) ).toBeTrue();
 				if ( checkS3Version() neq 0 ) {
@@ -56,7 +56,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="s3" {
 					try {
 						directory action="rename" directory="#arguments.bucket#" newDirectory="#renameBucket#" storelocation="#arguments.renameLocation#";
 					} catch (e){
-						throw REReplaceNoCase(e.stacktrace,"[***]", "all");
+						throw(message:REReplaceNoCase(e.stacktrace,"[***]", "all"), cause:e);
 					}
 					expect( directoryExists( renameBucket ) ).toBeTrue();
 					if ( checkS3Version() neq 0 ) {
