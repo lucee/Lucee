@@ -8022,6 +8022,13 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 			<description>a native java exception Object, if this attribute is defined all other will be ignored</description>
 		</attribute>
 		<attribute>
+			<type>any</type>
+			<name>cause</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>the cause of the exception created with this tag. This can be a cfcatch block or a native java exception.</description>
+		</attribute>
+		<attribute>
 			<type>numeric</type>
 			<name>contextLevel</name>
 			<status>hidden</status>
