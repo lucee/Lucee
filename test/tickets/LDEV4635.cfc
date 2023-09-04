@@ -37,11 +37,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="s3" {
 				}).toThrow();
 			} else {
 				// try coping local dir to a new s3 bucket with a region
-				try {
-					directory action="copy" directory="#srcDir#" destination="#arguments.bucket#" storelocation="#arguments.storelocation#";
-				} catch (e){
-					throw(message:REReplaceNoCase(e.stacktrace,"[***]", "all"), cause:e);
-				}
+				directory action="copy" directory="#srcDir#" destination="#arguments.bucket#" storelocation="#arguments.storelocation#";
+				
 				expect( directoryExists( arguments.bucket ) ).toBeTrue();
 				if ( checkS3Version() neq 0 ) {
 					var info = StoreGetMetadata( arguments.bucket ); // only works with v2 due to https://luceeserver.atlassian.net/browse/LDEV-4202
@@ -53,11 +50,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="s3" {
 				// fails between regions https://luceeserver.atlassian.net/browse/LDEV-4639
 				if ( len( renameLocation ) ) {
 					renameBucket = getTestBucketUrl();
-					try {
-						directory action="rename" directory="#arguments.bucket#" newDirectory="#renameBucket#" storelocation="#arguments.renameLocation#";
-					} catch (e){
-						throw(message:REReplaceNoCase(e.stacktrace,"[***]", "all"), cause:e);
-					}
+					directory action="rename" directory="#arguments.bucket#" newDirectory="#renameBucket#" storelocation="#arguments.renameLocation#";
 					expect( directoryExists( renameBucket ) ).toBeTrue();
 					if ( checkS3Version() neq 0 ) {
 						var info = StoreGetMetadata( renameBucket ); // only works with v2 due to https://luceeserver.atlassian.net/browse/LDEV-4202
