@@ -22,7 +22,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="s3" {
 		return listFirst( s3Version, "." ) ;
 	};
 
-	private function copyToBucket( required string bucket, required string storelocation, required string renameLocation, boolean invalid=false ){
+	private function copyToBucket(required credentials,  required string bucket, required string storelocation, required string renameLocation, boolean invalid=false ){
 		try {
 			var renameBucket = "";
 			var srcDir = getTempDirectory() & createUniqueID() & "/";
@@ -37,8 +37,15 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="s3" {
 				}).toThrow();
 			} else {
 				// try coping local dir to a new s3 bucket with a region
-				directory action="copy" directory="#srcDir#" destination="#arguments.bucket#" storelocation="#arguments.storelocation#";
-				
+				try {
+					directory action="copy" directory="#srcDir#" destination="#arguments.bucket#" storelocation="#arguments.storelocation#";
+				} catch (e){
+					var msg="could not copy [#srcDir#] to [#arguments.bucket#] with location [#arguments.storelocation#]. ";
+					msg&=e.stacktrace;
+					msg=replace(msg, s3Details.ACCESS_KEY_ID, "<ACCESS_KEY_ID>","all");
+					msg=replace(msg, s3Details.SECRET_KEY, "<SECRET_KEY>","all");
+					throw msg;
+				}
 				expect( directoryExists( arguments.bucket ) ).toBeTrue();
 				if ( checkS3Version() neq 0 ) {
 					var info = StoreGetMetadata( arguments.bucket ); // only works with v2 due to https://luceeserver.atlassian.net/browse/LDEV-4202
@@ -50,7 +57,15 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="s3" {
 				// fails between regions https://luceeserver.atlassian.net/browse/LDEV-4639
 				if ( len( renameLocation ) ) {
 					renameBucket = getTestBucketUrl();
-					directory action="rename" directory="#arguments.bucket#" newDirectory="#renameBucket#" storelocation="#arguments.renameLocation#";
+					try {
+						directory action="rename" directory="#arguments.bucket#" newDirectory="#renameBucket#" storelocation="#arguments.renameLocation#";
+					} catch (e){
+						var msg="could not rename [#arguments.bucket#] to [#renameBucket#] with the new location [#arguments.renameLocation#] from the location [#arguments.storelocation#]. ";
+						msg&=e.stacktrace;
+						msg=replace(msg, s3Details.ACCESS_KEY_ID, "<ACCESS_KEY_ID>","all");
+						msg=replace(msg, s3Details.SECRET_KEY, "<SECRET_KEY>","all");
+						throw msg;
+					}
 					expect( directoryExists( renameBucket ) ).toBeTrue();
 					if ( checkS3Version() neq 0 ) {
 						var info = StoreGetMetadata( renameBucket ); // only works with v2 due to https://luceeserver.atlassian.net/browse/LDEV-4202
@@ -73,19 +88,19 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="s3" {
 	public function run( testResults , testBox ) {
 		describe( title="Test suite for LDEV-4635 ( checking s3 copy directory operations )", body=function() {
 			it(title="Copying dir to a new s3 bucket, valid region name [us-east-1]", skip=isNotSupported(), body=function( currentSpec ) {
-				copyToBucket( getTestBucketUrl(), "us-east-1", "us-east-1" );
+				copyToBucket(getCredentials(), getTestBucketUrl(), "us-east-1", "us-east-1" );
 			});
 
 			it(title="Copying dir to a new s3 bucket, valid region name [eu-west-1]", skip=isNotSupported(), body=function( currentSpec ) {
-				copyToBucket( getTestBucketUrl(), "eu-west-1", "eu-west-1" );
+				copyToBucket(getCredentials(), getTestBucketUrl(), "eu-west-1", "eu-west-1" );
 			});
 
 			it(title="Copying dir to a new s3 bucket, valid region name [eu-west-1]", skip=isNotSupported(), body=function( currentSpec ) {
-				copyToBucket( getTestBucketUrl(), "eu-west-1", "eu-central-1" ); // fails, can't current copy between regions LDEV-4639
+				copyToBucket(getCredentials(), getTestBucketUrl(), "eu-west-1", "eu-central-1" ); // fails, can't current copy between regions LDEV-4639
 			});
 
 			it(title="Copying dir to a new s3 bucket, invalid region name [down-under]", skip=isNotSupported(), body=function( currentSpec ){
-				copyToBucket( getTestBucketUrl(), "down-under", "", true );
+				copyToBucket(getCredentials(), getTestBucketUrl(), "down-under", "", true );
 			});
 		});
 	}
