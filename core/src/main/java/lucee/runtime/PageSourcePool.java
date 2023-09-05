@@ -19,8 +19,11 @@
 package lucee.runtime;
 
 import java.lang.ref.SoftReference;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -66,9 +69,12 @@ public final class PageSourcePool implements Dumpable {
 	 */
 	public PageSource getPageSource(String key, boolean updateAccesTime) { // DO NOT CHANGE INTERFACE (used by Argus Monitor)
 		SoftReference<PageSource> tmp = pageSources.get(key.toLowerCase());
-		PageSource ps = tmp == null ? null : tmp.get();
-		if (ps == null) return null;
-		if (updateAccesTime) ps.setLastAccessTime();
+		if (tmp == null) return null;
+		PageSource ps = tmp.get();
+		if (ps == null) {
+			pageSources.remove(key.toLowerCase());
+			return null;
+		}
 		return ps;
 	}
 
@@ -101,6 +107,19 @@ public final class PageSourcePool implements Dumpable {
 		if (pageSources == null) return new String[0];
 		Set<String> set = pageSources.keySet();
 		return set.toArray(new String[set.size()]);
+	}
+
+	public List<PageSource> values(boolean loaded) {
+		List<PageSource> vals = new ArrayList<>();
+		if (pageSources == null) return vals;
+
+		PageSource ps;
+		for (SoftReference<PageSource> sr: pageSources.values()) {
+			ps = sr.get();
+			if (ps != null && (!loaded || ((PageSourceImpl) ps).isLoad())) vals.add(ps);
+
+		}
+		return vals;
 	}
 
 	/**
@@ -144,20 +163,30 @@ public final class PageSourcePool implements Dumpable {
 	 * @return returns the size of the pool
 	 */
 	public int size() {
-		return pageSources.size();
+		int size = 0;
+
+		for (Entry<String, SoftReference<PageSource>> entry: pageSources.entrySet()) {
+			if (entry.getValue().get() != null) size++;
+			else {
+				pageSources.remove(entry.getKey());
+			}
+		}
+		return size;
 	}
 
 	/**
 	 * @return returns if pool is empty or not
 	 */
 	public boolean isEmpty() {
-		return pageSources.isEmpty();
+		return size() > 0;
 	}
 
 	/**
 	 * clear unused pages from page pool
 	 */
+
 	public void clearUnused(Config config) {
+
 		if (size() > maxSize) {
 			LogUtil.log(config, Log.LEVEL_INFO, PageSourcePool.class.getName(), "PagePool size [" + size() + "] has exceeded max size [" + maxSize + "]. Clearing unused...");
 			String[] keys = keys();
@@ -184,6 +213,8 @@ public final class PageSourcePool implements Dumpable {
 	@Override
 	public DumpData toDumpData(PageContext pageContext, int maxlevel, DumpProperties dp) {
 		maxlevel--;
+
+		size(); // calling size because it get rid of all the blanks
 		Iterator<SoftReference<PageSource>> it = pageSources.values().iterator();
 
 		DumpTable table = new DumpTable("#FFCC00", "#FFFF00", "#000000");
@@ -207,34 +238,32 @@ public final class PageSourcePool implements Dumpable {
 	 * @param cl
 	 */
 	public void clearPages(ClassLoader cl) {
-		Iterator<SoftReference<PageSource>> it = this.pageSources.values().iterator();
-		PageSourceImpl psi;
-		SoftReference<PageSource> sr;
-		while (it.hasNext()) {
-			sr = it.next();
-			psi = sr == null ? null : (PageSourceImpl) sr.get();
-			if (psi == null) continue;
-			if (cl != null) psi.clear(cl);
-			else psi.clear();
-		}
+		clearResetPages(cl, true);
 	}
 
 	public void resetPages(ClassLoader cl) {
-		Iterator<SoftReference<PageSource>> it = this.pageSources.values().iterator();
-		PageSourceImpl psi;
-		SoftReference<PageSource> sr;
-		while (it.hasNext()) {
-			sr = it.next();
-			psi = sr == null ? null : (PageSourceImpl) sr.get();
-			if (psi == null) continue;
-			if (cl != null) psi.clear(cl);
-			else psi.resetLoaded();
-		}
+		clearResetPages(cl, false);
 	}
 
 	public void clear() {
-		clearPages(null);
-		// pageSources.clear();
+		clearResetPages(null, true);
+	}
+
+	private void clearResetPages(ClassLoader cl, boolean clear) {
+		PageSourceImpl psi;
+		SoftReference<PageSource> sr;
+		for (Entry<String, SoftReference<PageSource>> entry: pageSources.entrySet()) {
+			sr = entry.getValue();
+			psi = sr == null ? null : (PageSourceImpl) sr.get();
+			if (psi == null) {
+				if (sr != null) pageSources.remove(entry.getKey());
+				continue;
+			}
+
+			if (cl != null) psi.clear(cl);
+			else if (clear) psi.clear();
+			else psi.resetLoaded();
+		}
 	}
 
 	public int getMaxSize() {
