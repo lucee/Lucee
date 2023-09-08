@@ -1393,19 +1393,6 @@ public final class StringUtil {
 		return new String(carr);
 	}
 
-	/*
-	 * public static void main(String[] args) throws PageException { Map<String, String> map = new
-	 * HashMap<>(); map.put("target", "!target!"); map.put("replace", "er"); map.put("susi", "Susanne");
-	 * print.e(
-	 * replaceMap("I want replace replace to add 1 underscore with struct-replace... 'target' replace",
-	 * map, false));
-	 *
-	 * map = new HashMap<>(); map.put("Susi", "Sorglos"); map.put("Sorglos", "Susi");
-	 * print.e(replaceMap("Susi Sorglos foehnte ihr Haar", map, false));
-	 *
-	 * }
-	 */
-
 	public static String unwrap(String str) {
 		if (StringUtil.isEmpty(str)) return "";
 		str = str.trim();
