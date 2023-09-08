@@ -310,14 +310,4 @@ public final class CredentialImpl implements Credential {
 	public String toString() {
 		return "username:" + username + ";password:" + password + ";roles:" + roles;
 	}
-
-	/*
-	 * public static void main(String[] args) throws PageException { int i = 20; Resource rolesDir =
-	 * ResourcesImpl.getFileResourceProvider().getResource("/Users/mic/Temp/"); String key =
-	 * "vhvzglmjknkvug"; String salt = "dbjvzvhvnbubvuh"; CredentialImpl c = new CredentialImpl("susi",
-	 * "sorglos", new String[] { "qqq" }, rolesDir, key, salt, i); String enc = c.encode(); Credential
-	 * res = CredentialImpl.decode(enc, rolesDir, key, "df", i); print.e(enc); print.e(res.toString());
-	 * }
-	 */
-
 }
