@@ -197,26 +197,6 @@ public final class DateCaster {
 		return dt;
 	}
 
-	/*
-	 * public static void main(String[] args) throws PageException {
-	 * 
-	 * Locale[] locales = Locale.getAvailableLocales(); Iterator<Locale> it =
-	 * LocaleFactory.getLocales().values().iterator();
-	 * 
-	 * //print.e(toDateTime(new Locale("de","CH"), "06.02.2008 01:02:01 MEZ",
-	 * TimeZone.getDefault(),null, false)); String str="dimanche, 6. avril 2008 01:02:03";
-	 * str="06.02.2008, 01:02:01 MEZ"; str="01.02. h CEST"; str="6-apr-2008";
-	 * str="Sunday, April 6, 2008 1:02:03 AM CEST"; str="Sunday, April 6, 2008 1:02:03 AM CEST";
-	 * str="01:02:03 o'clock CEST"; str="1:02 Uhr MEZ"; Locale l=new Locale("fr","CH"); l=new
-	 * Locale("it","CH"); l=new Locale("en","US"); l=new Locale("en","UK"); l=new Locale("de","CH");
-	 * //l=new Locale("es","ES"); //l=LocaleConstant.PORTUGUESE_BRASIL;
-	 * //l=LocaleConstant.DUTCH_NETHERLANDS; //l=LocaleConstant.ARABIC_ALGERIA; //l=Locale.CHINA;
-	 * print.e(str); print.e(toDateTime(l, str, TimeZone.getDefault(),null, false));
-	 * 
-	 * 
-	 * }
-	 */
-
 	/**
 	 * parse a string to a Datetime Object, returns null if can't convert
 	 * 
