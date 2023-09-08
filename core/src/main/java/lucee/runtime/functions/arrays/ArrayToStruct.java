@@ -30,10 +30,9 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Array;
-import lucee.runtime.type.KeyImpl;
+import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
-import lucee.runtime.type.Collection.Key;
 
 public final class ArrayToStruct extends BIF {
 
@@ -45,7 +44,7 @@ public final class ArrayToStruct extends BIF {
 		Entry<Key, Object> e;
 		while (it.hasNext()) {
 			e = it.next();
-			if (valueAsKey) sct.set(Caster.toKey(e.getValue()), e.getKey());
+			if (valueAsKey) sct.set(Caster.toKey(e.getValue()), e.getKey().getString());
 			else sct.set(e.getKey(), e.getValue());
 		}
 		return sct;
