@@ -210,6 +210,8 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 
 	private short type = SCOPE_STANDARD;
 	private boolean _allowImplicidQueryCall = true;
+	private boolean _limitIsDefined = false;
+
 	private boolean _mergeFormAndURL = false;
 
 	private Map<String, LoggerAndSourceData> loggers = new HashMap<String, LoggerAndSourceData>();
@@ -553,6 +555,11 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	@Override
 	public boolean allowImplicidQueryCall() {
 		return _allowImplicidQueryCall;
+	}
+
+	@Override
+	public boolean limitIsDefined() {
+		return _limitIsDefined;
 	}
 
 	@Override
@@ -1226,6 +1233,10 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	 */
 	protected void setAllowImplicidQueryCall(boolean _allowImplicidQueryCall) {
 		this._allowImplicidQueryCall = _allowImplicidQueryCall;
+	}
+
+	protected void setLimitIsDefined(boolean _limitIsDefined) {
+		this._limitIsDefined = _limitIsDefined;
 	}
 
 	/**

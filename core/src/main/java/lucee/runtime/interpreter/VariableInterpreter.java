@@ -55,7 +55,7 @@ public final class VariableInterpreter {
 	 * @throws PageException
 	 */
 	public static Object getVariable(PageContext pc, Collection collection, String var) throws PageException {
-		StringList list = parse(pc, new ParserString(var), false);
+		StringList list = parse(pc, new ParserString(var), false, false);
 		if (list == null) throw new InterpreterException("invalid variable declaration [" + var + "]");
 
 		while (list.hasNextNext()) {
@@ -96,8 +96,8 @@ public final class VariableInterpreter {
 		return null;
 	}
 
-	public static Object getVariableEL(PageContext pc, Collection collection, String var) {
-		StringList list = parse(pc, new ParserString(var), false);
+	public static Object getVariableEL(PageContext pc, Collection collection, String var) throws SecurityInterpreterException {
+		StringList list = parse(pc, new ParserString(var), false, false);
 		if (list == null) return null;
 
 		while (list.hasNextNext()) {
@@ -116,7 +116,7 @@ public final class VariableInterpreter {
 	 * @throws PageException
 	 */
 	public static Object getVariable(PageContext pc, String var) throws PageException {
-		StringList list = parse(pc, new ParserString(var), false);
+		StringList list = parse(pc, new ParserString(var), false, false);
 		if (list == null) throw new InterpreterException("invalid variable declaration [" + var + "]");
 
 		int scope = scopeString2Int(pc.ignoreScopes(), list.next());
@@ -135,7 +135,7 @@ public final class VariableInterpreter {
 	}
 
 	public static Object getVariableAsCollection(PageContext pc, String var) throws PageException {
-		StringList list = parse(pc, new ParserString(var), false);
+		StringList list = parse(pc, new ParserString(var), false, false);
 		if (list == null) throw new InterpreterException("invalid variable declaration [" + var + "]");
 
 		int scope = scopeString2Int(pc.ignoreScopes(), list.next());
@@ -218,9 +218,10 @@ public final class VariableInterpreter {
 	 * @param var variable string to get value to
 	 * @param defaultValue value returnded if variable was not found
 	 * @return the value or default value if not found
+	 * @throws SecurityInterpreterException
 	 */
-	public static Object getVariableEL(PageContext pc, String var, Object defaultValue) {
-		StringList list = parse(pc, new ParserString(var), false);
+	public static Object getVariableEL(PageContext pc, String var, Object defaultValue) throws SecurityInterpreterException {
+		StringList list = parse(pc, new ParserString(var), false, false);
 		if (list == null) return defaultValue;
 		Object _null = NullSupportHelper.NULL(pc);
 
@@ -247,8 +248,8 @@ public final class VariableInterpreter {
 		return coll;
 	}
 
-	public static Object getVariableELAsCollection(PageContext pc, String var, Object defaultValue) {
-		StringList list = parse(pc, new ParserString(var), false);
+	public static Object getVariableELAsCollection(PageContext pc, String var, Object defaultValue) throws SecurityInterpreterException {
+		StringList list = parse(pc, new ParserString(var), false, false);
 		if (list == null) return defaultValue;
 
 		int scope = scopeString2Int(pc.ignoreScopes(), list.next());
@@ -289,7 +290,7 @@ public final class VariableInterpreter {
 	 * @throws PageException
 	 */
 	public static VariableReference getVariableReference(PageContext pc, String var) throws PageException {
-		StringList list = parse(pc, new ParserString(var), false);
+		StringList list = parse(pc, new ParserString(var), false, false);
 		if (list == null) throw new InterpreterException("invalid variable declaration [" + var + "]");
 
 		if (list.size() == 1) {
@@ -359,7 +360,7 @@ public final class VariableInterpreter {
 	 * @throws PageException
 	 */
 	public static Object setVariable(PageContext pc, String var, Object value) throws PageException {
-		StringList list = parse(pc, new ParserString(var), false);
+		StringList list = parse(pc, new ParserString(var), false, false);
 		if (list == null) throw new InterpreterException("invalid variable name declaration [" + var + "]");
 
 		if (list.size() == 1) {
@@ -393,7 +394,7 @@ public final class VariableInterpreter {
 	 */
 	public static Object removeVariable(PageContext pc, String var) throws PageException {
 		// print.ln("var:"+var);
-		StringList list = parse(pc, new ParserString(var), false);
+		StringList list = parse(pc, new ParserString(var), false, false);
 		if (list == null) throw new InterpreterException("invalid variable declaration [" + var + "]");
 
 		if (list.size() == 1) {
@@ -423,9 +424,10 @@ public final class VariableInterpreter {
 	 * @param pc PageContext to check
 	 * @param var variable String
 	 * @return exists or not
+	 * @throws SecurityInterpreterException
 	 */
-	public static boolean isDefined(PageContext pc, String var) {
-		StringList list = parse(pc, new ParserString(var), false);
+	public static boolean isDefined(PageContext pc, String var) throws SecurityInterpreterException {
+		StringList list = parse(pc, new ParserString(var), false, ((PageContextImpl) pc).limitIsDefined());
 		if (list == null) return false;
 		try {
 			int scope = scopeString2Int(pc.ignoreScopes(), list.next());
@@ -470,8 +472,9 @@ public final class VariableInterpreter {
 	 * @param pc Page Context
 	 * @param ps ParserString to read
 	 * @return Variable Definition in a String List
+	 * @throws SecurityInterpreterException
 	 */
-	private static StringList parse(PageContext pc, ParserString ps, boolean doLowerCase) {
+	private static StringList parse(PageContext pc, ParserString ps, boolean doLowerCase, boolean limited) throws SecurityInterpreterException {
 		String id = readIdentifier(ps, doLowerCase);
 		if (id == null) return null;
 		StringList list = new StringList(id);
@@ -484,9 +487,12 @@ public final class VariableInterpreter {
 				list.add(id);
 			}
 			else if (ps.forwardIfCurrent('[')) {
-				if (interpreter == null) interpreter = new CFMLExpressionInterpreter(false);
+				if (interpreter == null) interpreter = new CFMLExpressionInterpreter(limited);
 				try {
 					list.add(Caster.toString(interpreter.interpretPart(pc, ps)));
+				}
+				catch (SecurityInterpreterException sie) {
+					throw sie;
 				}
 				catch (PageException e) {
 					return null;

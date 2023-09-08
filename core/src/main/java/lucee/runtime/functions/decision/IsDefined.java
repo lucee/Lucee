@@ -25,6 +25,7 @@ import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.NullSupportHelper;
 import lucee.runtime.ext.function.Function;
+import lucee.runtime.interpreter.SecurityInterpreterException;
 import lucee.runtime.interpreter.VariableInterpreter;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.KeyImpl;
@@ -36,7 +37,7 @@ public final class IsDefined implements Function {
 
 	private static final long serialVersionUID = -6477602189364145523L;
 
-	public static boolean call(PageContext pc, String varName) {
+	public static boolean call(PageContext pc, String varName) throws SecurityInterpreterException {
 		return VariableInterpreter.isDefined(pc, varName);
 		// return pc.isDefined(varName);
 	}
