@@ -44,7 +44,7 @@ public final class ArrayToStruct extends BIF {
 		Entry<Key, Object> e;
 		while (it.hasNext()) {
 			e = it.next();
-			if (valueAsKey) sct.set(Caster.toKey(e.getValue()), e.getKey().getString());
+			if (valueAsKey) sct.set(Caster.toKey(e.getValue()), Caster.toDouble(e.getKey()));
 			else sct.set(e.getKey(), e.getValue());
 		}
 		return sct;
