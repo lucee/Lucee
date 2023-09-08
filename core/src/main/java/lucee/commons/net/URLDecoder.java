@@ -45,55 +45,45 @@ public class URLDecoder {
 		if (!force && !ReqRspUtil.needDecoding(s)) return s;
 		// if(true) return java.net.URLDecoder.decode(s, enc);
 
-		boolean needToChange = false;
-		StringBuilder sb = new StringBuilder();
+		byte bytes[] = new byte[s.length()];
+		int pos = 0;
 		int numChars = s.length();
+		boolean needToChange = false;
 		int i = 0;
-
 		while (i < numChars) {
 			char c = s.charAt(i);
 			switch (c) {
 			case '+':
-				sb.append(' ');
+				bytes[pos++] = (byte) ' ';
 				i++;
 				needToChange = true;
 				break;
 			case '%':
-
 				try {
-					byte[] bytes = new byte[(numChars - i) / 3];
-					int pos = 0;
-
-					while (((i + 2) < numChars) && (c == '%')) {
-						bytes[pos++] = (byte) Integer.parseInt(s.substring(i + 1, i + 3), 16);
+					if ((i + 2) < numChars) {
+						/* next line may raise an exception */
+						bytes[pos] = (byte) Integer.parseInt(s.substring(i + 1, i + 3), 16);
+						pos++;
 						i += 3;
-						if (i < numChars) c = s.charAt(i);
-					}
-
-					if ((i < numChars) && (c == '%')) {
 						needToChange = true;
-						sb.append(c);
-						i++;
-						continue;
-						// throw new IOException("Incomplete trailing escape (%) pattern");
 					}
-					sb.append(new String(bytes, 0, pos, enc));
+					else {
+						bytes[pos++] = (byte) c;
+						i++;
+					}
 				}
 				catch (NumberFormatException e) {
-					needToChange = true;
-					sb.append(c);
+					bytes[pos++] = (byte) c;
 					i++;
-					// throw new IOException("Illegal hex characters in escape (%) pattern - " + e.getMessage());
 				}
-				needToChange = true;
 				break;
 			default:
-				sb.append(c);
+				bytes[pos++] = (byte) c;
 				i++;
 				break;
 			}
 		}
 
-		return (needToChange ? sb.toString() : s);
+		return (needToChange ? new String(bytes, 0, pos, enc) : s);
 	}
 }
