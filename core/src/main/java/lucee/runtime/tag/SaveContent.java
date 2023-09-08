@@ -84,7 +84,10 @@ public final class SaveContent extends BodyTagTryCatchFinallyImpl {
 		String value = trim ? bodyContent.getString().trim() : bodyContent.getString();
 
 		if (append) {
-			value = Caster.toString(VariableInterpreter.getVariableEL(pageContext, variable, ""), "") + value; // prepend the current variable or empty-string if not found
+			value = Caster.toString(VariableInterpreter.getVariableEL(pageContext, variable, ""), "") + value; // prepend the
+																												// current
+			// variable or empty-string
+			// if not found
 		}
 		pageContext.setVariable(variable, value);
 		bodyContent.clearBody();

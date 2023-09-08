@@ -210,7 +210,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 
 	private short type = SCOPE_STANDARD;
 	private boolean _allowImplicidQueryCall = true;
-	private boolean _limitIsDefined = false;
+	private boolean _limitEvaluation = false;
 
 	private boolean _mergeFormAndURL = false;
 
@@ -558,8 +558,8 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	}
 
 	@Override
-	public boolean limitIsDefined() {
-		return _limitIsDefined;
+	public boolean limitEvaluation() {
+		return _limitEvaluation;
 	}
 
 	@Override
@@ -1235,8 +1235,8 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		this._allowImplicidQueryCall = _allowImplicidQueryCall;
 	}
 
-	protected void setLimitIsDefined(boolean _limitIsDefined) {
-		this._limitIsDefined = _limitIsDefined;
+	protected void setLimitEvaluation(boolean _limitEvaluation) {
+		this._limitEvaluation = _limitEvaluation;
 	}
 
 	/**

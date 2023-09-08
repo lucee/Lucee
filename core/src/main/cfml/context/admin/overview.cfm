@@ -18,7 +18,7 @@ Defaults --->
 <cfset error.detail="">
 <cfparam name="form.mainAction" default="none">
 <!--- load asynchron all extension providers  --->
-<cfparam name="application[request.admintype].preloadedExtensionProviders" default="false" type="boolean">
+<cfif isNull(application[request.admintype].preloadedExtensionProviders)><cfset application[request.admintype].preloadedExtensionProviders=false></cfif>
 <cfif !application[request.admintype].preloadedExtensionProviders>
 	<cfinclude template="ext.functions.cfm">
 	<cfset application[request.admintype].preloadedExtensionProviders=true>

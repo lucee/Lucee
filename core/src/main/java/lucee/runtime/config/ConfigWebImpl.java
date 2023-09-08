@@ -614,8 +614,8 @@ public class ConfigWebImpl implements ConfigWebPro {
 	}
 
 	@Override
-	public boolean limitIsDefined() {
-		return instance.limitIsDefined();
+	public boolean limitEvaluation() {
+		return instance.limitEvaluation();
 	}
 
 	@Override

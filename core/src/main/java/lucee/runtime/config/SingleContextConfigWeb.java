@@ -187,8 +187,8 @@ class SingleContextConfigWeb extends ConfigBase implements ConfigWebInner {
 	}
 
 	@Override
-	public boolean limitIsDefined() {
-		return cs.limitIsDefined();
+	public boolean limitEvaluation() {
+		return cs.limitEvaluation();
 	}
 
 	@Override

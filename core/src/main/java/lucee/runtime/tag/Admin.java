@@ -1439,7 +1439,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		pageContext.setVariable(getString("admin", action, "returnVariable"), sct);
 
 		sct.set("varUsage", AppListenerUtil.toVariableUsage(config.getQueryVarUsage(), "ignore"));
-		sct.set("limitIsDefined", config.limitIsDefined());
+		sct.set("limitEvaluation", config.limitEvaluation());
 	}
 
 	/**
@@ -1759,7 +1759,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	}
 
 	private void doUpdateSecurity() throws PageException {
-		admin.updateSecurity(getString("varUsage", ""), getBool("limitIsDefined", null));
+		admin.updateSecurity(getString("varUsage", ""), getBool("limitEvaluation", null));
 		store();
 		adminSync.broadcast(attributes, config);
 	}

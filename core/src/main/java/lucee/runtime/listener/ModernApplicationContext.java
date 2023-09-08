@@ -162,7 +162,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	private static final Key XML_FEATURES = KeyImpl.getInstance("xmlFeatures");
 	private static final Key SEARCH_QUERIES = KeyImpl.getInstance("searchQueries");
 	private static final Key SEARCH_RESULTS = KeyImpl.getInstance("searchResults");
-	private static final Key LIMIT_ISDEFINED = KeyImpl.getInstance("limitIsDefined");
+	private static final Key LIMIT_EVALUATION = KeyImpl.getInstance("limitEvaluation");
 	private static final Key REGEX = KeyImpl.getInstance("regex");
 	private static final Key ENGINE = KeyImpl.getInstance("engine");
 	private static final Key DIALECT = KeyConstants._dialect;
@@ -312,7 +312,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	private boolean initFuncDirs = false;
 
 	private boolean allowImplicidQueryCall;
-	private boolean limitIsDefined;
+	private boolean limitEvaluation;
 	private Regex regex;
 
 	public ModernApplicationContext(PageContext pc, Component cfc, RefBoolean throwsErrorWhileInit) {
@@ -351,7 +351,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 		this.sessionStorage = ci.getSessionStorage();
 		this.clientStorage = ci.getClientStorage();
 		this.allowImplicidQueryCall = config.allowImplicidQueryCall();
-		this.limitIsDefined = ci.limitIsDefined();
+		this.limitEvaluation = ci.limitEvaluation();
 		this.triggerComponentDataMember = config.getTriggerComponentDataMember();
 		this.restSetting = config.getRestSetting();
 		this.javaSettings = new JavaSettingsImpl();
@@ -366,7 +366,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 		initSameFieldAsArray(pc);
 		initWebCharset(pc);
 		initAllowImplicidQueryCall();
-		initLimitIsDefined();
+		initLimitEvaluation();
 
 		pc.addPageSource(component.getPageSource(), true);
 		try {
@@ -402,13 +402,13 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 		if (o != null) allowImplicidQueryCall = Caster.toBooleanValue(o, allowImplicidQueryCall);
 	}
 
-	private void initLimitIsDefined() {
+	private void initLimitEvaluation() {
 		Object o = get(component, KeyConstants._security, null);
 
 		if (o instanceof Struct) {
 			Struct sct = (Struct) o;
-			o = sct.get(LIMIT_ISDEFINED, null);
-			if (o != null) limitIsDefined = Caster.toBooleanValue(o, limitIsDefined);
+			o = sct.get(LIMIT_EVALUATION, null);
+			if (o != null) limitEvaluation = Caster.toBooleanValue(o, limitEvaluation);
 
 		}
 	}
@@ -1916,13 +1916,13 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	}
 
 	@Override
-	public boolean getLimitIsDefined() {
-		return limitIsDefined;
+	public boolean getLimitEvaluation() {
+		return limitEvaluation;
 	}
 
 	@Override
-	public void setLimitIsDefined(boolean limitIsDefined) {
-		this.limitIsDefined = limitIsDefined;
+	public void setLimitEvaluation(boolean limitEvaluation) {
+		this.limitEvaluation = limitEvaluation;
 	}
 
 	@Override

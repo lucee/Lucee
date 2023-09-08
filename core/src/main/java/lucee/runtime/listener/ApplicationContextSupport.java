@@ -485,8 +485,8 @@ public abstract class ApplicationContextSupport implements ApplicationContext {
 
 	public abstract void setPreciseMath(boolean preciseMath);
 
-	public abstract boolean getLimitIsDefined();
+	public abstract boolean getLimitEvaluation();
 
-	public abstract void setLimitIsDefined(boolean limitIsDefined);
+	public abstract void setLimitEvaluation(boolean limitEvaluation);
 
 }

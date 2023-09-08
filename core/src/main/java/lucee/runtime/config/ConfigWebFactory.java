@@ -4049,21 +4049,21 @@ public final class ConfigWebFactory extends ConfigFactory {
 
 			// limit isdefined
 			if (mode == ConfigPro.MODE_STRICT) {
-				config.setLimitIsDefined(true);
+				config.setLimitEvaluation(true);
 			}
 			else {
-				Boolean limitIsDefined = Caster.toBoolean(SystemUtil.getSystemPropOrEnvVar("lucee.isdefined.limit", null), null);
-				if (limitIsDefined == null) limitIsDefined = Caster.toBoolean(SystemUtil.getSystemPropOrEnvVar("lucee.security.isdefined", null), null);
-				if (limitIsDefined == null) {
+				Boolean limitEvaluation = Caster.toBoolean(SystemUtil.getSystemPropOrEnvVar("lucee.isdefined.limit", null), null);
+				if (limitEvaluation == null) limitEvaluation = Caster.toBoolean(SystemUtil.getSystemPropOrEnvVar("lucee.security.isdefined", null), null);
+				if (limitEvaluation == null) {
 					Struct security = ConfigWebUtil.getAsStruct("security", root);
 					if (security != null) {
-						limitIsDefined = Caster.toBoolean(getAttr(security, "limitIsDefined"), null);
+						limitEvaluation = Caster.toBoolean(getAttr(security, "limitEvaluation"), null);
 					}
 				}
-				if (hasAccess && limitIsDefined != null) {
-					config.setLimitIsDefined(limitIsDefined.booleanValue());
+				if (hasAccess && limitEvaluation != null) {
+					config.setLimitEvaluation(limitEvaluation.booleanValue());
 				}
-				else if (hasCS) config.setLimitIsDefined(configServer.limitIsDefined());
+				else if (hasCS) config.setLimitEvaluation(configServer.limitEvaluation());
 			}
 
 			// Merge url and Form

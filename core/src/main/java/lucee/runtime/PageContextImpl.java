@@ -3903,8 +3903,8 @@ public final class PageContextImpl extends PageContext {
 		return _idCounter;
 	}
 
-	public boolean limitIsDefined() {
-		if (applicationContext != null) return applicationContext.getLimitIsDefined();
-		return ((ConfigPro) config).limitIsDefined();
+	public boolean limitEvaluation() {
+		if (applicationContext != null) return applicationContext.getLimitEvaluation();
+		return ((ConfigPro) config).limitEvaluation();
 	}
 }

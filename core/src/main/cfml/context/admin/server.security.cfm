@@ -32,7 +32,7 @@ Defaults --->
 					action="updateSecurity"
 					type="#request.adminType#"
 					password="#session["password"&request.adminType]#"
-					limitIsDefined="#form.limitIsDefined?:false#"
+					limitEvaluation="#form.limitEvaluation?:false#"
 					varUsage="#form.varUsage#"
 					remoteClients="#request.getRemoteClients()#">
 			
@@ -44,7 +44,7 @@ Defaults --->
 					action="updateSecurity"
 					type="#request.adminType#"
 					password="#session["password"&request.adminType]#"
-					limitIsDefined=""
+					limitEvaluation=""
 					varUsage=""
 					remoteClients="#request.getRemoteClients()#">
 			
@@ -109,23 +109,24 @@ Error Output --->
 				</tr>
 				<cfscript>
 
-					stText.security.limitIsDefined="Limit function IsDefined";
-					stText.security.limitIsDefinedDesc="If enable you can use expression within of [] in variable name checked by the function Isdefined like this: susi[getVariableName()]";
+					stText.security.limitEvaluation="Limit variable evaluation in functions/tags";
+					stText.security.limitEvaluationDesc="If enable you cannot use expression within ""[ ]"" like this susi[getVariableName()] . 
+					This affects the following functions [IsDefined, structGet, empty] and the following tags [savecontent attribute ""variable""].";
 				
 				</cfscript>
 				<!--- limit function isDefined --->
 				<tr>
-					<th scope="row">#stText.security.limitIsDefined#</th>
+					<th scope="row">#stText.security.limitEvaluation#</th>
 					<td>
 						<cfif hasAccess>
-							<input type="checkbox" class="checkbox" <cfif (security.limitIsDefined?:true)> checked="checked"</cfif> name="limitIsDefined" value="true" />
+							<input type="checkbox" class="checkbox" <cfif (security.limitEvaluation?:true)> checked="checked"</cfif> name="limitEvaluation" value="true" />
 						<cfelse>
-							<input type="hidden" name="limitIsDefined" value="#security.limitIsDefined?:true#">
-							<b>#yesNoFormat(security.limitIsDefined)#</b>
+							<input type="hidden" name="limitEvaluation" value="#security.limitEvaluation?:true#">
+							<b>#yesNoFormat(security.limitEvaluation)#</b>
 						</cfif>
-						<div class="comment">#stText.security.limitIsDefinedDesc#</div>
+						<div class="comment">#stText.security.limitEvaluationDesc#</div>
 						<cfsavecontent variable="codeSample">
-							this.security.limitIsDefined=#security.limitIsDefined?:true#;
+							this.security.limitEvaluation=#security.limitEvaluation?:true#;
 						</cfsavecontent>
 						<cfset renderCodingTip( codeSample)>
 					</td>
