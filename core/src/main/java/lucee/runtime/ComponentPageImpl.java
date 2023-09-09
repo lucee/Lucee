@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
@@ -54,6 +55,7 @@ import lucee.runtime.dump.DumpUtil;
 import lucee.runtime.dump.DumpWriter;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
+import lucee.runtime.exp.CustomTypeException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.gateway.GatewayEngineImpl;
 import lucee.runtime.interpreter.CFMLExpressionInterpreter;
@@ -314,9 +316,11 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 				try {
 					meta = udf.getMetaData(pc);
 
-					// check if http method match
+					// check if http method either match or is unspecified
 					String httpMethod = Caster.toString(meta.get(KeyConstants._httpmethod, null), null);
-					if (StringUtil.isEmpty(httpMethod) || !httpMethod.equalsIgnoreCase(method)) continue;
+					boolean has_http_method = !StringUtil.isEmpty(httpMethod);
+					boolean http_method_matches = has_http_method && httpMethod.equalsIgnoreCase(method);
+					if (has_http_method && !http_method_matches) continue;
 
 					// get consumes mimetype
 					MimeType[] consumes;
@@ -337,7 +341,7 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 					String restPath = Caster.toString(meta.get(KeyConstants._restPath, null), null);
 
 					// no rest path
-					if (StringUtil.isEmpty(restPath)) {
+					if (http_method_matches && StringUtil.isEmpty(restPath)) {
 						if (ArrayUtil.isEmpty(subPath)) {
 							bestC = best(consumes, result.getContentType());
 							bestP = best(produces, result.getAccept());
@@ -353,7 +357,15 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 					else {
 						Struct var = result.getVariables();
 						int index = RestUtil.matchPath(var, Path.init(restPath)/* TODO cache this */, result.getPath());
-						if (index >= 0 && index + 1 == result.getPath().length) {
+
+						if (!has_http_method && index >= 0) {
+							Result sub_result = makeSubResult(result, index + 1);
+							status = 200;
+							_callThroughSubresourceLocator(pc, component, udf, path, var, sub_result, suppressContent, e.getKey());
+							break;
+						}
+
+						if (http_method_matches && index >= 0 && index + 1 == result.getPath().length) {
 							bestC = best(consumes, result.getContentType());
 							bestP = best(produces, result.getAccept());
 
@@ -365,6 +377,21 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 								break;
 							}
 						}
+					}
+				}
+				catch (CustomTypeException cte) {
+					ThreadLocalPageContext.getLog(pc, "rest").error("REST", cte);
+					if (cte.getCustomTypeAsString() == "RestError") {
+						try {
+							status = Integer.parseInt(cte.getErrorCode());
+						}
+						catch (NumberFormatException ne) {
+							status = 500;
+						}
+						RestUtil.setStatus(pc, status, cte.getMessage());
+					}
+					else {
+						throw cte;
 					}
 				}
 				catch (PageException pe) {
@@ -389,6 +416,29 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 
 	}
 
+	private Result makeSubResult(Result r, int path_elems_to_skip) {
+		int n = r.getPath().length - path_elems_to_skip;
+		String path_elems[] = new String[n];
+		for (int i = 0; i < n; i++) {
+			path_elems[i] = r.getPath()[path_elems_to_skip + i];
+		}
+		List<MimeType> accept_list = Arrays.asList(r.getAccept());
+		Result sub_result = new Result(r.getSource(), r.getVariables(), path_elems, r.getMatrix(), r.getFormat(), r.hasFormatExtension(), accept_list, r.getContentType());
+		return sub_result;
+	}
+
+	private void _callThroughSubresourceLocator(PageContext pc, Component component, UDF udf, String path, Struct variables, Result result, boolean suppressContent, Key methodName)
+			throws PageException, IOException, ConverterException {
+		Object rtn = _callUDF(pc, component, udf, variables, result, suppressContent, methodName);
+		if (rtn instanceof Component) {
+			Component subcomp = (Component) rtn;
+			callRest(pc, subcomp, path, result, suppressContent);
+		}
+		else {
+			RestUtil.setStatus(pc, 500, "Subresource locator error.");
+		}
+	}
+
 	private MimeType best(MimeType[] produces, MimeType... accept) {
 		if (ArrayUtil.isEmpty(produces)) {
 			if (accept.length > 0) return accept[0];
@@ -409,8 +459,7 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 		return best;
 	}
 
-	private void _callRest(PageContext pc, Component component, UDF udf, String path, Struct variables, Result result, MimeType best, MimeType[] produces, boolean suppressContent,
-			Key methodName) throws PageException, IOException, ConverterException {
+	private Object _callUDF(PageContext pc, Component component, UDF udf, Struct variables, Result result, boolean suppressContent, Key methodName) throws PageException {
 		FunctionArgument[] fa = udf.getFunctionArguments();
 		Struct args = new StructImpl(), meta;
 
@@ -453,6 +502,13 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 		finally {
 			if (suppressContent) pc.unsetSilent();
 		}
+		return rtn;
+	}
+
+	private void _callRest(PageContext pc, Component component, UDF udf, String path, Struct variables, Result result, MimeType best, MimeType[] produces, boolean suppressContent,
+			Key methodName) throws PageException, IOException, ConverterException {
+
+		Object rtn = _callUDF(pc, component, udf, variables, result, suppressContent, methodName);
 
 		// custom response
 		Struct sct = result.getCustomResponse();
