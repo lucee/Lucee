@@ -318,9 +318,9 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 
 					// check if http method either match or is unspecified
 					String httpMethod = Caster.toString(meta.get(KeyConstants._httpmethod, null), null);
-					boolean has_http_method = !StringUtil.isEmpty(httpMethod);
-					boolean http_method_matches = has_http_method && httpMethod.equalsIgnoreCase(method);
-					if (has_http_method && !http_method_matches) continue;
+					boolean hasHttpMethod = !StringUtil.isEmpty(httpMethod);
+					boolean httpMethodMatches = hasHttpMethod && httpMethod.equalsIgnoreCase(method);
+					if (hasHttpMethod && !httpMethodMatches) continue;
 
 					// get consumes mimetype
 					MimeType[] consumes;
@@ -341,7 +341,7 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 					String restPath = Caster.toString(meta.get(KeyConstants._restPath, null), null);
 
 					// no rest path
-					if (http_method_matches && StringUtil.isEmpty(restPath)) {
+					if (httpMethodMatches && StringUtil.isEmpty(restPath)) {
 						if (ArrayUtil.isEmpty(subPath)) {
 							bestC = best(consumes, result.getContentType());
 							bestP = best(produces, result.getAccept());
@@ -358,14 +358,14 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 						Struct var = result.getVariables();
 						int index = RestUtil.matchPath(var, Path.init(restPath)/* TODO cache this */, result.getPath());
 
-						if (!has_http_method && index >= 0) {
-							Result sub_result = makeSubResult(result, index + 1);
+						if (!hasHttpMethod && index >= 0) {
+							Result subResult = makeSubResult(result, index + 1);
 							status = 200;
-							_callThroughSubresourceLocator(pc, component, udf, path, var, sub_result, suppressContent, e.getKey());
+							_callThroughSubresourceLocator(pc, component, udf, path, var, subResult, suppressContent, e.getKey());
 							break;
 						}
 
-						if (http_method_matches && index >= 0 && index + 1 == result.getPath().length) {
+						if (httpMethodMatches && index >= 0 && index + 1 == result.getPath().length) {
 							bestC = best(consumes, result.getContentType());
 							bestP = best(produces, result.getAccept());
 
@@ -389,6 +389,7 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 							status = 500;
 						}
 						RestUtil.setStatus(pc, status, cte.getMessage());
+						return;
 					}
 					else {
 						throw cte;
