@@ -25,6 +25,7 @@ import java.io.InputStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
+import lucee.print;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
@@ -210,7 +211,7 @@ public final class PageSourceImpl implements PageSource {
 	}
 
 	@Override
-	public synchronized Page loadPage(PageContext pc, boolean forceReload) throws PageException {
+	public Page loadPage(PageContext pc, boolean forceReload) throws PageException {
 		if (forceReload) pcn.reset();
 
 		Page page = pcn.page;
@@ -229,7 +230,7 @@ public final class PageSourceImpl implements PageSource {
 	}
 
 	@Override
-	public synchronized Page loadPageThrowTemplateException(PageContext pc, boolean forceReload, Page defaultValue) throws TemplateException {
+	public Page loadPageThrowTemplateException(PageContext pc, boolean forceReload, Page defaultValue) throws TemplateException {
 		if (forceReload) pcn.reset();
 
 		Page page = pcn.page;
@@ -247,7 +248,7 @@ public final class PageSourceImpl implements PageSource {
 	}
 
 	@Override
-	public synchronized Page loadPage(PageContext pc, boolean forceReload, Page defaultValue) {
+	public Page loadPage(PageContext pc, boolean forceReload, Page defaultValue) {
 		if (forceReload) pcn.reset();
 
 		Page page = pcn.page;
@@ -278,17 +279,19 @@ public final class PageSourceImpl implements PageSource {
 	private Page loadArchive(Page page) {
 		if (!mapping.hasArchive()) return null;
 		if (page != null && page.getLoadType() == LOAD_ARCHIVE) return page;
-		try {
-			Class clazz = mapping.getArchiveClass(getClassName());
-			page = newInstance(clazz);
-			page.setPageSource(this);
-			page.setLoadType(LOAD_ARCHIVE);
-			pcn.set(page);
-			return page;
-		}
-		catch (Exception e) {
-			// MUST print.e(e); is there a better way?
-			return null;
+		synchronized (this) {
+			try {
+				Class clazz = mapping.getArchiveClass(getClassName());
+				page = newInstance(clazz);
+				page.setPageSource(this);
+				page.setLoadType(LOAD_ARCHIVE);
+				pcn.set(page);
+				return page;
+			}
+			catch (Exception e) {
+				// MUST print.e(e); is there a better way?
+				return null;
+			}
 		}
 	}
 
@@ -309,35 +312,42 @@ public final class PageSourceImpl implements PageSource {
 
 		long srcLastModified = srcFile.lastModified();
 		if (srcLastModified == 0L) return null;
-
+		print.e("getLoadType()== LOAD_PHYSICAL:" + (page != null ? (page.getLoadType() == LOAD_PHYSICAL) : ""));
 		// Page exists
 		if (page != null) {
 			// if(page!=null && !recompileAlways) {
 			if (srcLastModified != page.getSourceLastModified() || (page instanceof PagePro && ((PagePro) page).getSourceLength() != srcFile.length())) {
-				// same size, maybe the content has not changed?
-				boolean same = false;
-				if (page instanceof PagePro && ((PagePro) page).getSourceLength() == srcFile.length()) {
-					PagePro pp = (PagePro) page;
-					try {
-						same = pp.getHash() == PageSourceCode.toString(this, config.getTemplateCharset()).hashCode();
-					}
-					catch (IOException e) {
-					}
+				synchronized (this) {
+					if (srcLastModified != page.getSourceLastModified() || (page instanceof PagePro && ((PagePro) page).getSourceLength() != srcFile.length())) {
+						// same size, maybe the content has not changed?
+						boolean same = false;
+						if (page instanceof PagePro && ((PagePro) page).getSourceLength() == srcFile.length()) {
+							PagePro pp = (PagePro) page;
+							try {
+								same = pp.getHash() == PageSourceCode.toString(this, config.getTemplateCharset()).hashCode();
+							}
+							catch (IOException e) {
+							}
 
-				}
-				if (!same) {
-					LogUtil.log(pc, Log.LEVEL_DEBUG, "compile", "recompile [" + getDisplayPath() + "] because loaded page has changed");
-					pcn.set(page = compile(config, mapping.getClassRootDirectory(), page, false, pc.ignoreScopes()));
-					page.setPageSource(this);
+						}
+						if (!same) {
+							LogUtil.log(pc, Log.LEVEL_DEBUG, "compile", "recompile [" + getDisplayPath() + "] because loaded page has changed");
+							pcn.set(page = compile(config, mapping.getClassRootDirectory(), page, false, pc.ignoreScopes()));
+							page.setPageSource(this);
+						}
+					}
 				}
 			}
 			page.setLoadType(LOAD_PHYSICAL);
+			pci.setPageUsed(page); //
+			return page;
 		}
+
 		// page doesn't exist
-		else {
-			Resource classRootDir = mapping.getClassRootDirectory();
-			Resource classFile = classRootDir.getRealResource(getJavaName() + ".class");
-			boolean isNew = false;
+		Resource classRootDir = mapping.getClassRootDirectory();
+		Resource classFile = classRootDir.getRealResource(getJavaName() + ".class");
+		boolean isNew = false;
+		synchronized (this) {
 			// new class
 			if (flush || !classFile.exists()) {
 				LogUtil.log(pc, Log.LEVEL_DEBUG, "compile", "compile [" + getDisplayPath() + "] no previous class file or flush");
