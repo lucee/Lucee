@@ -122,7 +122,7 @@
 						uid=extensions.id
 						link="";
 						dn="";
-						link="#self#?action=ext.applications&action2=detail&id=#uid#";
+						link="?action=ext.applications&action2=detail&id=#uid#";
 					</cfscript>
 					<cfoutput>
 						<a href="#link#" style="color:red;text-decoration:none;">- #extensions.name# - <b>#updateVersion#</b> ( #sct.version# ) </a><br>
@@ -173,7 +173,7 @@
 				<!--- Core --->
 				<cfif adminType == "server" and hasUpdate>
 					<div class="error">
-						<a href="server.cfm?action=services.update" style="color:red;text-decoration:none;">
+						<a href="?action=services.update" style="color:red;text-decoration:none;">
 							#replace( stText.services.update.update, { '{available}': available, '{current}': server.lucee.version } )#
 						</a>
 					</div>
