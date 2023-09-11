@@ -417,15 +417,15 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 
 	}
 
-	private Result makeSubResult(Result r, int path_elems_to_skip) {
-		int n = r.getPath().length - path_elems_to_skip;
-		String path_elems[] = new String[n];
+	private Result makeSubResult(Result r, int pathElemsToSkip) {
+		int n = r.getPath().length - pathElemsToSkip;
+		String pathElems[] = new String[n];
 		for (int i = 0; i < n; i++) {
-			path_elems[i] = r.getPath()[path_elems_to_skip + i];
+			pathElems[i] = r.getPath()[pathElemsToSkip + i];
 		}
-		List<MimeType> accept_list = Arrays.asList(r.getAccept());
-		Result sub_result = new Result(r.getSource(), r.getVariables(), path_elems, r.getMatrix(), r.getFormat(), r.hasFormatExtension(), accept_list, r.getContentType());
-		return sub_result;
+		List<MimeType> acceptList = Arrays.asList(r.getAccept());
+		Result subResult = new Result(r.getSource(), r.getVariables(), pathElems, r.getMatrix(), r.getFormat(), r.hasFormatExtension(), acceptList, r.getContentType());
+		return subResult;
 	}
 
 	private void _callThroughSubresourceLocator(PageContext pc, Component component, UDF udf, String path, Struct variables, Result result, boolean suppressContent, Key methodName)
