@@ -22,7 +22,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Field;
 import java.net.URL;
+import java.security.GeneralSecurityException;
 import java.security.KeyStore;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -30,6 +32,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
@@ -73,8 +76,8 @@ import org.apache.http.impl.client.DefaultClientConnectionReuseStrategy;
 import org.apache.http.impl.client.DefaultRedirectStrategy;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
-import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.impl.conn.BasicHttpClientConnectionManager;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.impl.cookie.BasicClientCookie;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.protocol.BasicHttpContext;
@@ -82,6 +85,7 @@ import org.apache.http.protocol.HttpContext;
 
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.TemporaryStream;
+import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
@@ -111,11 +115,13 @@ public class HTTPEngine4Impl {
 
 	private static PoolingHttpClientConnectionManager connMan;
 	private static Registry<ConnectionSocketFactory> csfReg;
+	private static Field isShutDownField;
 
 	public static final int POOL_MAX_CONN = 500;
 	public static final int POOL_MAX_CONN_PER_ROUTE = 50;
 	public static final int POOL_CONN_TTL_MS = 15000;
 	public static final int POOL_CONN_INACTIVITY_DURATION = 300;
+	private static final long SHUTDOWN_CHECK_MAX_AGE = 10000;
 
 	/**
 	 * does a http get request
@@ -258,34 +264,27 @@ public class HTTPEngine4Impl {
 		return builder;
 	}
 
-	public static void setConnectionManager(HttpClientBuilder builder) throws PageException {
-		setConnectionManager(builder, true);
+	public static void setConnectionManager(HttpClientBuilder builder, boolean pooling) throws GeneralSecurityException {
+
+		initDefaultConnectionFactoryRegistry();
+		if (!pooling) {
+			HttpClientConnectionManager cm = new BasicHttpClientConnectionManager(new DefaultHttpClientConnectionOperatorImpl(csfReg), null);
+			builder.setConnectionManager(cm).setConnectionManagerShared(false);
+			return;
+		}
+		if (connMan == null || isShutDown(true)) {
+			connMan = new PoolingHttpClientConnectionManager(new DefaultHttpClientConnectionOperatorImpl(csfReg), null, POOL_CONN_TTL_MS, TimeUnit.MILLISECONDS);
+			connMan.setDefaultMaxPerRoute(POOL_MAX_CONN_PER_ROUTE);
+			connMan.setMaxTotal(POOL_MAX_CONN);
+			connMan.setDefaultSocketConfig(SocketConfig.copy(SocketConfig.DEFAULT).setTcpNoDelay(true).setSoReuseAddress(true).setSoLinger(0).build());
+			connMan.setValidateAfterInactivity(POOL_CONN_INACTIVITY_DURATION);
+		}
+		builder.setConnectionManager(connMan).setConnectionManagerShared(true).setConnectionTimeToLive(POOL_CONN_TTL_MS, TimeUnit.MILLISECONDS)
+				.setConnectionReuseStrategy(new DefaultClientConnectionReuseStrategy());
+
 	}
 
-	public static void setConnectionManager(HttpClientBuilder builder, boolean pooling) throws PageException {
-		try {
-			initDefaultConnectionFactoryRegistry();
-			if (!pooling) {
-				HttpClientConnectionManager cm = new BasicHttpClientConnectionManager(new DefaultHttpClientConnectionOperatorImpl(csfReg), null);
-				builder.setConnectionManager(cm).setConnectionManagerShared(false);
-				return;
-			}
-			if (connMan == null) {
-				connMan = new PoolingHttpClientConnectionManager(new DefaultHttpClientConnectionOperatorImpl(csfReg), null, POOL_CONN_TTL_MS, TimeUnit.MILLISECONDS);
-				connMan.setDefaultMaxPerRoute(POOL_MAX_CONN_PER_ROUTE);
-				connMan.setMaxTotal(POOL_MAX_CONN);
-				connMan.setDefaultSocketConfig(SocketConfig.copy(SocketConfig.DEFAULT).setTcpNoDelay(true).setSoReuseAddress(true).setSoLinger(0).build());
-				connMan.setValidateAfterInactivity(POOL_CONN_INACTIVITY_DURATION);
-			}
-			builder.setConnectionManager(connMan).setConnectionManagerShared(true).setConnectionTimeToLive(POOL_CONN_TTL_MS, TimeUnit.MILLISECONDS)
-					.setConnectionReuseStrategy(new DefaultClientConnectionReuseStrategy());
-		}
-		catch (Exception e) {
-			throw Caster.toPageException(e);
-		}
-	}
-
-	private static void initDefaultConnectionFactoryRegistry() throws java.security.GeneralSecurityException {
+	private static void initDefaultConnectionFactoryRegistry() throws GeneralSecurityException {
 		if (csfReg == null) {
 			/* Default TLS settings */
 			SSLContext sslcontext = SSLContext.getInstance("TLS");
@@ -332,9 +331,26 @@ public class HTTPEngine4Impl {
 
 	public static void releaseConnectionManager() {
 		if (connMan != null) {
-			connMan.close();
+			PoolingHttpClientConnectionManager tmp = connMan;
 			connMan = null;
+			IOUtil.closeEL(tmp);
 		}
+	}
+
+	public static boolean isShutDown(boolean defaultValue) {
+		if (connMan != null) {
+			try {
+				if (isShutDownField == null || isShutDownField.getDeclaringClass() != connMan.getClass()) {
+					isShutDownField = connMan.getClass().getDeclaredField("isShutDown");
+					isShutDownField.setAccessible(true);
+				}
+				return ((AtomicBoolean) isShutDownField.get(connMan)).get();
+			}
+			catch (Exception e) {
+				LogUtil.log("http", e);
+			}
+		}
+		return defaultValue;
 	}
 
 	public static void closeIdleConnections() {
@@ -351,9 +367,10 @@ public class HTTPEngine4Impl {
 
 		HttpClientBuilder builder = getHttpClientBuilder();
 		try {
-			setConnectionManager(builder);
+			setConnectionManager(builder, true);
 		}
-		catch (PageException e) {
+		catch (GeneralSecurityException e) {
+			LogUtil.log("http", e);
 			// Ignore pooling if an issue happens
 		}
 
