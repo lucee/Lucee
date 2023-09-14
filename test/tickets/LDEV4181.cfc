@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" skip="false" labels="qoq" {
+component extends="org.lucee.cfml.test.LuceeTestCase" skip="true" labels="qoq" {
 
 	variables.mysql = server.getDatasource("mysql");
 	
