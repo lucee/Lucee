@@ -2158,9 +2158,7 @@ public final class Caster {
 	}
 
 	public static String toString(BigDecimal bd) {
-		String str = bd.toString();
-		if (str.endsWith(".0")) return str.substring(0, str.length() - 2);
-		return str;
+		return df.format(bd);
 	}
 
 	public static String toString(Number n) {
