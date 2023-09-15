@@ -1,9 +1,10 @@
 component extends="org.lucee.cfml.test.LuceeTestCase" skip="true" labels="qoq" {
 
-	variables.mysql = server.getDatasource("mysql");
-	
+	variables.db = server.getDatasource( "h2", server._getTempDir( "ldev-4181" ) );
+	// server.getDatasource("mysql");
+
 	function beforeAll(){
-		if ( !hasMysql() )
+		if ( !hasDb() )
 			return;
 		afterAll();
 		queryExecute(
@@ -12,25 +13,25 @@ component extends="org.lucee.cfml.test.LuceeTestCase" skip="true" labels="qoq" {
 				price decimal(10,2)
 			) ",
 			options: {
-				datasource: variables.mysql
+				datasource: variables.db
 			}
-		);		
+		);
 	};
 
 	function afterAll(){
-		if ( !hasMysql() )
+		if ( !hasDb() )
 			return;
 		queryExecute(
 			sql="drop table if exists ldev4181",
 			options: {
-				datasource: variables.mysql
+				datasource: variables.db
 			}
 		);
-	
+
 	};
 
-	private function hasMysql(){
-		return !isEmpty(variables.mysql);
+	private function hasDb(){
+		return !isEmpty(variables.db);
 	}
 
 	function run( testResults , testBox ) {
@@ -38,8 +39,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" skip="true" labels="qoq" {
 			it(title="Checking QoQ with numeric column, trailing 000s", body = function( currentSpec ) {
 				var qry = queryNew( 'id,test', 'numeric,string', [ [1,',1,10'],[2,',2,20'],[3,',3,30'],[4,',4,40'],[5,',5,50'],[10,',10,100'],[15,',15,150'] ] );
 				var queryResult = queryExecute("
-					SELECT id 
-					FROM qry 
+					SELECT id
+					FROM qry
 					where ','||test||',' like ('%1%')",
 					[],
 					{ dbType='query' }
@@ -56,14 +57,14 @@ component extends="org.lucee.cfml.test.LuceeTestCase" skip="true" labels="qoq" {
 						price: { value: price, type: "decimal" }
 					},
 					options: {
-						datasource: variables.mysql
+						datasource: variables.db
 					}
 				);
 
 				var qry = queryExecute(
 					sql: "SELECT * from ldev4181",
 					options: {
-						datasource: variables.mysql
+						datasource: variables.db
 					}
 				);
 
