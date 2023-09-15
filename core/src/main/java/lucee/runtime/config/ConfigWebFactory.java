@@ -1441,18 +1441,14 @@ public final class ConfigWebFactory extends ConfigFactory {
 		// Base Component
 		String badContent = "<cfcomponent displayname=\"Component\" hint=\"This is the Base Component\">\n</cfcomponent>";
 		String badVersion = "704b5bd8597be0743b0c99a644b65896";
+
+		// Component.cfc
 		f = contextDir.getRealResource("Component." + COMPONENT_EXTENSION);
-		if (!f.exists()) createFileFromResourceEL("/resource/context/Component." + COMPONENT_EXTENSION, f);
-		else if (doNew && badVersion.equals(ConfigWebUtil.createMD5FromResource(f))) {
-			createFileFromResourceEL("/resource/context/Component." + COMPONENT_EXTENSION, f);
-		}
-		else if (doNew && badContent.equals(createContentFromResource(f).trim())) {
-			createFileFromResourceEL("/resource/context/Component." + COMPONENT_EXTENSION, f);
-		}
+		if (f.exists()) delete(contextDir, "Component." + COMPONENT_EXTENSION);
 
 		// Component.lucee
 		f = contextDir.getRealResource("Component." + COMPONENT_EXTENSION_LUCEE);
-		if (f.exists()) delete(contextDir, "/resource/context/Component." + COMPONENT_EXTENSION_LUCEE);
+		if (f.exists()) delete(contextDir, "Component." + COMPONENT_EXTENSION_LUCEE);
 
 		f = contextDir.getRealResource(Constants.CFML_APPLICATION_EVENT_HANDLER);
 		if (!f.exists()) createFileFromResourceEL("/resource/context/Application." + COMPONENT_EXTENSION, f);
@@ -4921,21 +4917,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 				if (!StringUtil.isEmpty(strCDI, true)) config.setComponentDefaultImport(strCDI);
 
 				// Base CFML
-				String strBase = getAttr(root, "componentBase");
-				if (StringUtil.isEmpty(strBase, true)) {
-					if (configServer != null) strBase = configServer.getBaseComponentTemplate(CFMLEngine.DIALECT_CFML);
-					else strBase = "/lucee/Component.cfc";
-				}
-				config.setBaseComponentTemplate(CFMLEngine.DIALECT_CFML, strBase);
-
-				// Base Lucee
-				strBase = getAttr(root, "componentBaseLuceeDialect");
-				if (StringUtil.isEmpty(strBase, true)) {
-					if (configServer != null) strBase = configServer.getBaseComponentTemplate(CFMLEngine.DIALECT_LUCEE);
-					else strBase = "/lucee/Component.lucee";
-
-				}
-				config.setBaseComponentTemplate(CFMLEngine.DIALECT_LUCEE, strBase);
+				config.setBaseComponentTemplate(CFMLEngine.DIALECT_CFML, "Component.cfc");
 
 				// deep search
 				if (mode == ConfigPro.MODE_STRICT) {

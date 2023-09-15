@@ -375,6 +375,8 @@ public abstract class ConfigFactory {
 			move("base", "componentBase", component, root);// deprecated but still supported
 			move("baseCfml", "componentBase", component, root);
 			move("baseLucee", "componentBaseLuceeDialect", component, root);
+			rem("componentBase", root);
+			rem("componentBaseLuceeDialect", root);
 			moveAsBool("deepSearch", "componentDeepSearch", component, root);
 			move("dumpTemplate", "componentDumpTemplate", component, root);
 			move("dataMemberDefaultAccess", "componentDataMemberAccess", component, root);

@@ -4572,7 +4572,6 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	private void doUpdateComponent() throws PageException {
 
 		admin.updateComponentDeepSearch(getBoolObject("admin", action, "deepSearch"));
-		admin.updateBaseComponent(getString("admin", action, "baseComponentTemplateCFML"), getString("admin", action, "baseComponentTemplateLucee"));
 		admin.updateComponentDumpTemplate(getString("admin", action, "componentDumpTemplate"));
 		admin.updateComponentDataMemberDefaultAccess(getString("admin", action, "componentDataMemberDefaultAccess"));
 		admin.updateTriggerDataMember(getBoolObject("admin", action, "triggerDataMember"));
@@ -4592,28 +4591,6 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	private void doGetComponent() throws PageException {
 		Struct sct = new StructImpl();
 		pageContext.setVariable(getString("admin", action, "returnVariable"), sct);
-		// Base Component
-		try {
-			PageSource psCFML = config.getBaseComponentPageSource(CFMLEngine.DIALECT_CFML);
-
-			if (psCFML != null && psCFML.exists()) sct.set("baseComponentTemplateCFML", psCFML.getDisplayPath());
-			else sct.set("baseComponentTemplateCFML", "");
-		}
-		catch (PageException e) {
-			sct.set("baseComponentTemplateCFML", "");
-		}
-		try {
-			PageSource psLucee = config.getBaseComponentPageSource(CFMLEngine.DIALECT_LUCEE);
-
-			if (psLucee != null && psLucee.exists()) sct.set("baseComponentTemplateLucee", psLucee.getDisplayPath());
-			else sct.set("baseComponentTemplateLucee", "");
-
-		}
-		catch (PageException e) {
-			sct.set("baseComponentTemplateLucee", "");
-		}
-		sct.set("strBaseComponentTemplateCFML", config.getBaseComponentTemplate(CFMLEngine.DIALECT_CFML));
-		sct.set("strBaseComponentTemplateLucee", config.getBaseComponentTemplate(CFMLEngine.DIALECT_LUCEE));
 
 		// dump template
 		try {

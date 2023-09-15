@@ -198,8 +198,6 @@ Defaults --->
                     type="#request.adminType#"
                     password="#session["password"&request.adminType]#"
                     
-                    baseComponentTemplateCFML="#form.baseComponentTemplateCFML#"
-                    baseComponentTemplateLucee="#form.baseComponentTemplateLucee#"
                     componentDumpTemplate="#form.componentDumpTemplate#"
                     componentDataMemberDefaultAccess="#form.componentDataMemberDefaultAccess#"
                     triggerDataMember="#isDefined('form.triggerDataMember')#"

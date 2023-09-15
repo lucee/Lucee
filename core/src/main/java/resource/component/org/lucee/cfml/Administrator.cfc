@@ -1080,8 +1080,6 @@ component {
 
 	/**
 	* @hint updates component mapping settings
-	* @baseComponentTemplateCFML Every component(CFC) that does not explicitly extend another component (attribute "extends") will by default extend this component.
-	* @baseComponentTemplateLucee Every component(lucee) that does not explicitly extend another component (attribute "extends") will by default extend this component.
 	* @componentDumpTemplate If you call a component directly, this template will be invoked to dump the component.
 	* @componentDataMemberDefaultAccess Define the accessor for the data-members of a component. This defines how variables of the "this" scope of a component can be accessed from outside of the component., values available for this argument are [private,public,package,remote]
 	* @triggerDataMember If there is no accessible data member (property, element of the this scope) inside a component, Lucee searches for available matching "getters" or "setters" for the requested property.
@@ -1091,14 +1089,12 @@ component {
 	* @componentPathCache Component path is cached and not resolved again
 	* @componentDeepSearchDesc Search for CFCs in the subdirectories of the "Additional Resources" below.
 	*/
-	public void function updateComponent(string baseComponentTemplateCFML="", string baseComponentTemplateLucee="", string componentDumpTemplate="", string componentDataMemberDefaultAccess="public", boolean triggerDataMember=false, boolean useShadow=true, string componentDefaultImport="org.lucee.cfml.*", boolean componentLocalSearch=false, boolean componentPathCache=false, boolean componentDeepSearchDesc=false){
+	public void function updateComponent(string componentDumpTemplate="", string componentDataMemberDefaultAccess="public", boolean triggerDataMember=false, boolean useShadow=true, string componentDefaultImport="org.lucee.cfml.*", boolean componentLocalSearch=false, boolean componentPathCache=false, boolean componentDeepSearchDesc=false){
 		admin
 			action="updateComponent"
 			type="#variables.type#"
 			password="#variables.password#"
 
-			baseComponentTemplateCFML="#arguments.baseComponentTemplateCFML#"
-			baseComponentTemplateLucee="#arguments.baseComponentTemplateLucee#"
 			componentDumpTemplate="#arguments.componentDumpTemplate#"
 			componentDataMemberDefaultAccess="#arguments.componentDataMemberDefaultAccess#"
 			triggerDataMember="#arguments.triggerDataMember#"

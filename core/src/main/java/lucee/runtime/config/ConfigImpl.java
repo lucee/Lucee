@@ -110,7 +110,6 @@ import lucee.runtime.extension.ExtensionProvider;
 import lucee.runtime.extension.RHExtension;
 import lucee.runtime.extension.RHExtensionProvider;
 import lucee.runtime.functions.other.CreateUniqueId;
-import lucee.runtime.functions.system.ContractPath;
 import lucee.runtime.gateway.GatewayEntry;
 import lucee.runtime.listener.AppListenerUtil;
 import lucee.runtime.listener.ApplicationContext;
@@ -1592,15 +1591,27 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		PageSource base = dialect == CFMLEngine.DIALECT_CFML ? baseComponentPageSourceCFML : baseComponentPageSourceLucee;
 
 		if (base == null) {
-			base = PageSourceImpl.best(getPageSources(pc, null, getBaseComponentTemplate(dialect), false, false, true));
-			if (!base.exists()) {
-				String baseTemplate = getBaseComponentTemplate(dialect);
-				String mod = ContractPath.call(pc, baseTemplate, false);
-				if (!mod.equals(baseTemplate)) {
-					base = PageSourceImpl.best(getPageSources(pc, null, mod, false, false, true));
+			// package
+			ImportDefintion di = getComponentDefaultImport();
+			String pack = di == null ? null : di.getPackageAsPath();
+			if (StringUtil.isEmpty(pack, true)) pack = "";
+			else if (!pack.endsWith("/")) pack += "";
+			// name
+			String componentName = getBaseComponentTemplate(dialect);
 
+			base = PageSourceImpl.best(getPageSources(pc, null, pack + componentName, false, false, true, true));
+
+			if (!base.exists()) {
+				base = PageSourceImpl.best(getPageSources(pc, null, componentName, false, false, true, true));
+				if (!base.exists() && !"org/lucee/cfml/".equals(pack)) {
+					base = PageSourceImpl.best(getPageSources(pc, null, "org/lucee/cfml/" + componentName, false, false, true, true));
 				}
 			}
+
+			if (!base.exists()) {
+				// TODO create component
+			}
+
 			if (dialect == CFMLEngine.DIALECT_CFML) this.baseComponentPageSourceCFML = base;
 			else this.baseComponentPageSourceLucee = base;
 		}

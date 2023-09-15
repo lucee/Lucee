@@ -2946,20 +2946,6 @@ public final class ConfigAdmin {
 		else rem(root, "useTimeserver");
 	}
 
-	/**
-	 * update the baseComponent
-	 * 
-	 * @param baseComponent
-	 * @throws SecurityException
-	 */
-	public void updateBaseComponent(String baseComponentCFML, String baseComponentLucee) throws SecurityException {
-		checkWriteAccess();
-		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
-		if (!hasAccess) throw new SecurityException("no access to update component setting");
-		root.setEL("componentBase", baseComponentCFML);
-		root.setEL("componentBaseLuceeDialect", baseComponentLucee);
-	}
-
 	public void updateComponentDeepSearch(Boolean deepSearch) throws SecurityException {
 		checkWriteAccess();
 		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
