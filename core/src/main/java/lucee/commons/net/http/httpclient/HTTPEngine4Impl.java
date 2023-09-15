@@ -143,7 +143,7 @@ public class HTTPEngine4Impl {
 	public static HTTPResponse get(URL url, String username, String password, long timeout, boolean redirect, String charset, String useragent, ProxyData proxy,
 			lucee.commons.net.http.Header[] headers) throws IOException {
 		HttpGet get = new HttpGet(url.toExternalForm());
-		return _invoke(url, get, username, password, timeout, redirect, charset, useragent, proxy, headers, null);
+		return invoke(url, get, username, password, timeout, redirect, charset, useragent, proxy, headers, null);
 	}
 
 	/**
@@ -166,14 +166,14 @@ public class HTTPEngine4Impl {
 	public static HTTPResponse post(URL url, String username, String password, long timeout, boolean redirect, String charset, String useragent, ProxyData proxy,
 			lucee.commons.net.http.Header[] headers) throws IOException {
 		HttpPost post = new HttpPost(url.toExternalForm());
-		return _invoke(url, post, username, password, timeout, redirect, charset, useragent, proxy, headers, null);
+		return invoke(url, post, username, password, timeout, redirect, charset, useragent, proxy, headers, null);
 	}
 
 	public static HTTPResponse post(URL url, String username, String password, long timeout, boolean redirect, String charset, String useragent, ProxyData proxy,
 			lucee.commons.net.http.Header[] headers, Map<String, String> formfields) throws IOException {
 		HttpPost post = new HttpPost(url.toExternalForm());
 
-		return _invoke(url, post, username, password, timeout, redirect, charset, useragent, proxy, headers, formfields);
+		return invoke(url, post, username, password, timeout, redirect, charset, useragent, proxy, headers, formfields);
 	}
 
 	/**
@@ -199,7 +199,7 @@ public class HTTPEngine4Impl {
 			lucee.commons.net.http.Header[] headers, Object body) throws IOException {
 		HttpPut put = new HttpPut(url.toExternalForm());
 		setBody(put, body, mimetype, charset);
-		return _invoke(url, put, username, password, timeout, redirect, charset, useragent, proxy, headers, null);
+		return invoke(url, put, username, password, timeout, redirect, charset, useragent, proxy, headers, null);
 
 	}
 
@@ -223,7 +223,7 @@ public class HTTPEngine4Impl {
 	public static HTTPResponse delete(URL url, String username, String password, long timeout, boolean redirect, String charset, String useragent, ProxyData proxy,
 			lucee.commons.net.http.Header[] headers) throws IOException {
 		HttpDelete delete = new HttpDelete(url.toExternalForm());
-		return _invoke(url, delete, username, password, timeout, redirect, charset, useragent, proxy, headers, null);
+		return invoke(url, delete, username, password, timeout, redirect, charset, useragent, proxy, headers, null);
 	}
 
 	/**
@@ -246,7 +246,7 @@ public class HTTPEngine4Impl {
 	public static HTTPResponse head(URL url, String username, String password, long timeout, boolean redirect, String charset, String useragent, ProxyData proxy,
 			lucee.commons.net.http.Header[] headers) throws IOException {
 		HttpHead head = new HttpHead(url.toExternalForm());
-		return _invoke(url, head, username, password, timeout, redirect, charset, useragent, proxy, headers, null);
+		return invoke(url, head, username, password, timeout, redirect, charset, useragent, proxy, headers, null);
 	}
 
 	public static lucee.commons.net.http.Header header(String name, String value) {
