@@ -360,14 +360,26 @@ public class HTTPEngine4Impl {
 		}
 	}
 
-	private static HTTPResponse _invoke(URL url, HttpUriRequest request, String username, String password, long timeout, boolean redirect, String charset, String useragent,
+	private static HTTPResponse invoke(URL url, HttpUriRequest request, String username, String password, long timeout, boolean redirect, String charset, String useragent,
 			ProxyData proxy, lucee.commons.net.http.Header[] headers, Map<String, String> formfields) throws IOException {
+		try {
+			return _invoke(url, request, username, password, timeout, redirect, charset, useragent, proxy, headers, formfields, true);
+		}
+		catch (IllegalStateException ise) {
+			LogUtil.log("http", ise);
+			releaseConnectionManager();
+			return _invoke(url, request, username, password, timeout, redirect, charset, useragent, proxy, headers, formfields, false);
+		}
+	}
+
+	private static HTTPResponse _invoke(URL url, HttpUriRequest request, String username, String password, long timeout, boolean redirect, String charset, String useragent,
+			ProxyData proxy, lucee.commons.net.http.Header[] headers, Map<String, String> formfields, boolean pooling) throws IOException {
 
 		proxy = ProxyDataImpl.validate(proxy, url.getHost());
 
 		HttpClientBuilder builder = getHttpClientBuilder();
 		try {
-			setConnectionManager(builder, true);
+			setConnectionManager(builder, pooling);
 		}
 		catch (GeneralSecurityException e) {
 			LogUtil.log("http", e);
