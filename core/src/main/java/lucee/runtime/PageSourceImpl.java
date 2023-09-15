@@ -25,7 +25,6 @@ import java.io.InputStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
-import lucee.print;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
@@ -312,7 +311,6 @@ public final class PageSourceImpl implements PageSource {
 
 		long srcLastModified = srcFile.lastModified();
 		if (srcLastModified == 0L) return null;
-		print.e("getLoadType()== LOAD_PHYSICAL:" + (page != null ? (page.getLoadType() == LOAD_PHYSICAL) : ""));
 		// Page exists
 		if (page != null) {
 			// if(page!=null && !recompileAlways) {

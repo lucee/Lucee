@@ -1500,10 +1500,15 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 	}
 
 	protected static Struct getMetaData(int access, PageContext pc, ComponentImpl comp, boolean ignoreCache) throws PageException {
+		Struct existingMetaData = null;
 		// Cache
 		final Page page = MetadataUtil.getPageWhenMetaDataStillValid(pc, comp, ignoreCache);
 		if (page != null && page.metaData != null && page.metaData.get() != null) {
-			return page.metaData.get();
+			existingMetaData = page.metaData.get();
+			if (existingMetaData != null) {
+				Struct data = Caster.toStruct(existingMetaData.get(comp.getName() + "", null), null);
+				if (data != null) return data;
+			}
 		}
 
 		long creationTime = System.currentTimeMillis();
@@ -1590,7 +1595,15 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 			sct.set(KeyConstants._properties, parr);
 		}
 
-		if (page != null) page.metaData = new MetaDataSoftReference<Struct>(sct, creationTime);
+		if (page != null) {
+			if (existingMetaData != null) existingMetaData.setEL(comp.getName() + "", sct);
+			else {
+				Struct coll = new StructImpl();
+				coll.setEL(comp.getName() + "", sct);
+				page.metaData = new MetaDataSoftReference<Struct>(coll, creationTime);
+			}
+
+		}
 		return sct;
 	}
 
