@@ -1452,7 +1452,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 
 		// Component.lucee
 		f = contextDir.getRealResource("Component." + COMPONENT_EXTENSION_LUCEE);
-		if (!f.exists() || doNew) createFileFromResourceEL("/resource/context/Component." + COMPONENT_EXTENSION_LUCEE, f);
+		if (f.exists()) delete(contextDir, "/resource/context/Component." + COMPONENT_EXTENSION_LUCEE);
 
 		f = contextDir.getRealResource(Constants.CFML_APPLICATION_EVENT_HANDLER);
 		if (!f.exists()) createFileFromResourceEL("/resource/context/Application." + COMPONENT_EXTENSION, f);
@@ -2227,8 +2227,8 @@ public final class ConfigWebFactory extends ConfigFactory {
 			try {
 				setDatasource(config, datasources, QOQ_DATASOURCE_NAME,
 						new ClassDefinitionImpl("org.hsqldb.jdbcDriver", "org.lucee.hsqldb", "2.7.2.jdk8", config.getIdentification()), "hypersonic-hsqldb", "", -1,
-						"jdbc:hsqldb:mem:tempQoQ;sql.regular_names=false;sql.enforce_strict_size=false;sql.enforce_types=false;", "sa", "", null, DEFAULT_MAX_CONNECTION, -1, -1, 60000, 0, 0, 0, true, true, DataSource.ALLOW_ALL, false,
-						false, null, new StructImpl(), "", ParamSyntax.DEFAULT, false, false, false, false);
+						"jdbc:hsqldb:mem:tempQoQ;sql.regular_names=false;sql.enforce_strict_size=false;sql.enforce_types=false;", "sa", "", null, DEFAULT_MAX_CONNECTION, -1, -1,
+						60000, 0, 0, 0, true, true, DataSource.ALLOW_ALL, false, false, null, new StructImpl(), "", ParamSyntax.DEFAULT, false, false, false, false);
 			}
 			catch (Throwable t) {
 				ExceptionUtil.rethrowIfNecessary(t);

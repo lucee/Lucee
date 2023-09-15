@@ -9,7 +9,6 @@
 	,"clientManagement":false
 	,"clientTimeout":"0,0,90,0"
 	,"componentBase":"/lucee/Component.cfc"
-	,"componentBaseLuceeDialect":"/lucee/Component.lucee"
 	,"componentDataMemberAccess":"public"
 	,"componentDumpTemplate":"/lucee/component-dump.cfm"
 	,"debuggingEnabled":false
