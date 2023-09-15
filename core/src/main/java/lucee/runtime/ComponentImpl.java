@@ -59,6 +59,8 @@ import lucee.runtime.component.ComponentLoader;
 import lucee.runtime.component.DataMember;
 import lucee.runtime.component.ImportDefintion;
 import lucee.runtime.component.Member;
+import lucee.runtime.component.MetaDataSoftReference;
+import lucee.runtime.component.MetadataUtil;
 import lucee.runtime.component.Property;
 import lucee.runtime.component.StaticStruct;
 import lucee.runtime.config.Config;
@@ -1499,11 +1501,12 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 
 	protected static Struct getMetaData(int access, PageContext pc, ComponentImpl comp, boolean ignoreCache) throws PageException {
 		// Cache
-		/*
-		 * final Page page = MetadataUtil.getPageWhenMetaDataStillValid(pc, comp, ignoreCache); if (page !=
-		 * null && page.metaData != null && page.metaData.get() != null) { eturn page.metaData.get(); }
-		 */
-		// long creationTime = System.currentTimeMillis();
+		final Page page = MetadataUtil.getPageWhenMetaDataStillValid(pc, comp, ignoreCache);
+		if (page != null && page.metaData != null && page.metaData.get() != null) {
+			return page.metaData.get();
+		}
+
+		long creationTime = System.currentTimeMillis();
 		final StructImpl sct = new StructImpl();
 
 		// fill udfs
@@ -1587,7 +1590,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 			sct.set(KeyConstants._properties, parr);
 		}
 
-		// if (page != null) page.metaData = new MetaDataSoftReference<Struct>(sct, creationTime);
+		if (page != null) page.metaData = new MetaDataSoftReference<Struct>(sct, creationTime);
 		return sct;
 	}
 
