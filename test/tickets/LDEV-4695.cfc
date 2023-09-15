@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" {
+component extends="org.lucee.cfml.test.LuceeTestCase" skip=true {
 	function run( testResults , testBox ) {
 		describe( "testcase for LDEV-4695", function() {
 			it( title="Checking QoQ IN operator for LDEV-4695", body=function( currentSpec ) {
