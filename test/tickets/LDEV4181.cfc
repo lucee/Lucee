@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" skip="true" labels="qoq" {
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="qoq" {
 
 	variables.db = server.getDatasource( "h2", server._getTempDir( "ldev-4181" ) );
 	// server.getDatasource("mysql");
@@ -36,6 +36,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase" skip="true" labels="qoq" {
 
 	function run( testResults , testBox ) {
 		describe( title="Testcase for LDEV-4181", body=function() {
+			it(title="Checking if BigDecimal containing a Integer is converted to a single digit", body = function( currentSpec ) {
+				expect(stringLen(createObject("java","java.math.BigDecimal").init("1.00000000000"))).tobe(1);
+			});
+			
 			it(title="Checking QoQ with numeric column, trailing 000s", body = function( currentSpec ) {
 				var qry = queryNew( 'id,test', 'numeric,string', [ [1,',1,10'],[2,',2,20'],[3,',3,30'],[4,',4,40'],[5,',5,50'],[10,',10,100'],[15,',15,150'] ] );
 				var queryResult = queryExecute("
