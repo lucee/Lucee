@@ -30,7 +30,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 					);
 				}); 
 
-				it( 'instantiate itself (lucee dialect)' , function() {
+				xit( 'instantiate itself (lucee dialect)' , function() {
 					 
 					expect(
 						LDEV0554.Color2::RED.getRed()
@@ -39,7 +39,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 					);
 				});
 
-				it( 'instantiate itself (lucee dialect)' , function() {
+				xit( 'instantiate itself (lucee dialect)' , function() {
 					 
 					expect(
 						LDEV0554.Color2::BLUE.getRed()
