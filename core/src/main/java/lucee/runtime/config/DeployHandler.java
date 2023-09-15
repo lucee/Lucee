@@ -37,6 +37,7 @@ import lucee.commons.lang.StringUtil;
 import lucee.commons.net.http.HTTPEngine;
 import lucee.commons.net.http.HTTPResponse;
 import lucee.commons.net.http.Header;
+import lucee.commons.net.http.httpclient.HTTPEngine4Impl;
 import lucee.commons.net.http.httpclient.HeaderImpl;
 import lucee.runtime.engine.CFMLEngineImpl;
 import lucee.runtime.engine.ThreadQueuePro;
@@ -300,7 +301,7 @@ public class DeployHandler {
 
 					url = new URL(url, "/rest/extension/provider/info/" + ed.getId() + qs);
 					if (log != null) log.info("extension", "Check for a newer version at [" + url + "]");
-					rsp = HTTPEngine.get(url, null, null, 5000, false, "UTF-8", "", null, new Header[] { new HeaderImpl("accept", "application/json") });
+					rsp = HTTPEngine4Impl.get(url, null, null, 5000, false, "UTF-8", "", null, new Header[] { new HeaderImpl("accept", "application/json") });
 
 					if (rsp.getStatusCode() != 200) continue;
 
@@ -384,7 +385,7 @@ public class DeployHandler {
 				url = new URL(url, "/rest/extension/provider/full/" + ed.getId() + qs);
 				if (log != null) log.info("main", "Check for extension at [" + url + "]");
 
-				rsp = HTTPEngine.get(url, null, null, 5000, true, "UTF-8", "", null, new Header[] { new HeaderImpl("accept", "application/cfml") });
+				rsp = HTTPEngine4Impl.get(url, null, null, 5000, true, "UTF-8", "", null, new Header[] { new HeaderImpl("accept", "application/cfml") });
 
 				// If status code indicates success
 				if (rsp.getStatusCode() >= 200 && rsp.getStatusCode() < 300) {

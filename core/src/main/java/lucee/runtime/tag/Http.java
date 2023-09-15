@@ -29,6 +29,7 @@ import java.net.SocketTimeoutException;
 import java.net.URI;
 import java.net.URL;
 import java.nio.charset.Charset;
+import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -685,18 +686,17 @@ public final class Http extends BodyTagImpl {
 			_doEndTag();
 			return EVAL_PAGE;
 		}
-		catch (IOException e) {
+		catch (Exception e) {
 			throw Caster.toPageException(e);
 		}
 	}
 
-	private void _doEndTag() throws PageException, IOException {
+	private void _doEndTag() throws PageException, IOException, GeneralSecurityException {
 
 		long start = System.nanoTime();
 		boolean safeToMemory = !StringUtil.isEmpty(result, true);
 
-		HttpClientBuilder builder = HTTPEngine4Impl.getHttpClientBuilder();
-		HTTPEngine4Impl.setConnectionManager(builder, this.usePool, this.clientCert, this.clientCertPassword);
+		HttpClientBuilder builder = HTTPEngine4Impl.getHttpClientBuilder(this.usePool, this.clientCert, this.clientCertPassword);
 
 		// redirect
 		if (redirect) builder.setRedirectStrategy(DefaultRedirectStrategy.INSTANCE);
@@ -1067,7 +1067,7 @@ public final class Http extends BodyTagImpl {
 			HTTPEngine4Impl.setProxy(host, builder, req, proxy);
 
 		}
-
+		HTTPResponse4Impl rsp = null;
 		CloseableHttpClient client = null;
 		try {
 			if (httpContext == null) httpContext = new BasicHttpContext();
@@ -1080,7 +1080,6 @@ public final class Http extends BodyTagImpl {
 			/////////////////////////////////////////// /////////////////////////////////////////////////
 			client = builder.build();
 			Executor4 e = new Executor4(pageContext, this, client, httpContext, req, redirect);
-			HTTPResponse4Impl rsp = null;
 
 			if (timeout == null || timeout.getMillis() <= 0) {
 				try {
@@ -1341,6 +1340,7 @@ public final class Http extends BodyTagImpl {
 			logHttpRequest(pageContext, cfhttp, url, req.getMethod(), System.nanoTime() - start, false);
 		}
 		finally {
+			if (rsp != null) rsp.close();
 			if (client != null) client.close();
 		}
 	}

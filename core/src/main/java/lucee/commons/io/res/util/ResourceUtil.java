@@ -1073,7 +1073,7 @@ public final class ResourceUtil {
 			try {
 				return ((HTTPResource) resource).getContentType();
 			}
-			catch (IOException e) {
+			catch (Exception e) {
 			}
 		}
 		InputStream is = null;
@@ -1094,7 +1094,7 @@ public final class ResourceUtil {
 			try {
 				return ((HTTPResource) resource).getContentType();
 			}
-			catch (IOException e) {
+			catch (Exception e) {
 			}
 		}
 		InputStream is = null;

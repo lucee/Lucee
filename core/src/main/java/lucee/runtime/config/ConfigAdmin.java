@@ -30,6 +30,7 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.UnknownHostException;
+import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -79,6 +80,7 @@ import lucee.commons.net.IPRange;
 import lucee.commons.net.URLEncoder;
 import lucee.commons.net.http.HTTPEngine;
 import lucee.commons.net.http.HTTPResponse;
+import lucee.commons.net.http.httpclient.HTTPEngine4Impl;
 import lucee.commons.security.Credentials;
 import lucee.loader.engine.CFMLEngine;
 import lucee.loader.engine.CFMLEngineFactory;
@@ -5239,13 +5241,22 @@ public final class ConfigAdmin {
 		HTTPResponse method = null;
 		try {
 			URL url = HTTPUtil.toURL(strUrl + "?wsdl", HTTPUtil.ENCODED_AUTO);
-			method = HTTPEngine.get(url, null, null, 2000, true, null, null, null, null);
+			method = HTTPEngine4Impl.get(url, null, null, 2000, true, null, null, null, null);
 		}
 		catch (MalformedURLException e) {
-			throw new ApplicationException("Url definition [" + strUrl + "] is invalid");
+			ApplicationException ae = new ApplicationException("Url definition [" + strUrl + "] is invalid");
+			ae.initCause(e);
+			throw ae;
 		}
 		catch (IOException e) {
-			throw new ApplicationException("Can't invoke [" + strUrl + "]", e.getMessage());
+			ApplicationException ae = new ApplicationException("Can't invoke [" + strUrl + "]");
+			ae.initCause(e);
+			throw ae;
+		}
+		catch (GeneralSecurityException e) {
+			ApplicationException ae = new ApplicationException("Can't invoke [" + strUrl + "]");
+			ae.initCause(e);
+			throw ae;
 		}
 
 		if (method.getStatusCode() != 200) {
