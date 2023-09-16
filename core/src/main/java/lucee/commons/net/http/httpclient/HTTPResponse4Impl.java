@@ -27,7 +27,6 @@ import java.util.List;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
-import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.protocol.ExecutionContext;
@@ -195,9 +194,8 @@ public class HTTPResponse4Impl extends HTTPResponseSupport implements HTTPRespon
 	}
 
 	public void close() throws IOException {
-		if (rsp instanceof CloseableHttpResponse) {
-			((CloseableHttpResponse) rsp).close();
-		}
-
+		/*
+		 * if(rsp instanceof CloseableHttpResponse) { ((CloseableHttpResponse)rsp).close(); }
+		 */
 	}
 }

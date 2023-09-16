@@ -154,12 +154,6 @@ public class HTTPEngine4Impl {
 		return invoke(url, get, username, password, timeout, redirect, charset, useragent, proxy, headers, null, false);
 	}
 
-	public static HTTPResponse get(URL url, String username, String password, long timeout, boolean redirect, String charset, String useragent, ProxyData proxy,
-			lucee.commons.net.http.Header[] headers, boolean pooling) throws IOException, GeneralSecurityException {
-		HttpGet get = new HttpGet(url.toExternalForm());
-		return invoke(url, get, username, password, timeout, redirect, charset, useragent, proxy, headers, null, pooling);
-	}
-
 	/**
 	 * does a http post request
 	 * 
@@ -369,34 +363,29 @@ public class HTTPEngine4Impl {
 			ProxyData proxy, lucee.commons.net.http.Header[] headers, Map<String, String> formfields, boolean pooling) throws IOException, GeneralSecurityException {
 		CloseableHttpResponse res = null;
 		CloseableHttpClient client;
-		try {
-			proxy = ProxyDataImpl.validate(proxy, url.getHost());
+		proxy = ProxyDataImpl.validate(proxy, url.getHost());
 
-			HttpClientBuilder builder = getHttpClientBuilder(pooling, null, null);
+		HttpClientBuilder builder = getHttpClientBuilder(pooling, null, null);
 
-			// LDEV-2321
-			builder.setDefaultRequestConfig(RequestConfig.custom().setCookieSpec(CookieSpecs.STANDARD).build());
+		// LDEV-2321
+		builder.setDefaultRequestConfig(RequestConfig.custom().setCookieSpec(CookieSpecs.STANDARD).build());
 
-			// redirect
-			if (redirect) builder.setRedirectStrategy(DefaultRedirectStrategy.INSTANCE);
-			else builder.disableRedirectHandling();
+		// redirect
+		if (redirect) builder.setRedirectStrategy(DefaultRedirectStrategy.INSTANCE);
+		else builder.disableRedirectHandling();
 
-			HttpHost hh = new HttpHost(url.getHost(), url.getPort());
-			setHeader(request, headers);
-			if (CollectionUtil.isEmpty(formfields)) setContentType(request, charset);
-			setFormFields(request, formfields, charset);
-			setUserAgent(request, useragent);
-			if (timeout > 0) Http.setTimeout(builder, TimeSpanImpl.fromMillis(timeout));
-			HttpContext context = setCredentials(builder, hh, username, password, false);
-			setProxy(url.getHost(), builder, request, proxy);
-			client = builder.build();
-			if (context == null) context = new BasicHttpContext();
+		HttpHost hh = new HttpHost(url.getHost(), url.getPort());
+		setHeader(request, headers);
+		if (CollectionUtil.isEmpty(formfields)) setContentType(request, charset);
+		setFormFields(request, formfields, charset);
+		setUserAgent(request, useragent);
+		if (timeout > 0) Http.setTimeout(builder, TimeSpanImpl.fromMillis(timeout));
+		HttpContext context = setCredentials(builder, hh, username, password, false);
+		setProxy(url.getHost(), builder, request, proxy);
+		client = builder.build();
+		if (context == null) context = new BasicHttpContext();
 
-			return new HTTPResponse4Impl(url, context, request, res = client.execute(request, context));
-		}
-		finally {
-			// if (res != null) res.close();
-		}
+		return new HTTPResponse4Impl(url, context, request, res = client.execute(request, context));
 	}
 
 	private static void setFormFields(HttpUriRequest request, Map<String, String> formfields, String charset) throws IOException {
