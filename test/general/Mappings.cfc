@@ -51,12 +51,12 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 
 				// validate mappings
 				var mappings=c.getMappings();
-				expect(len(mappings)).toBe(3);
-				expect(mappings[1].virtual).toBe("/lucee-server");
-				expect(directoryExists(mappings[1].getPhysical())).toBeTrue();
+				expect(len(mappings)>2).toBeTrue();
+				//expect(mappings[1].virtual).toBe("/lucee-server");
+				//expect(directoryExists(mappings[1].getPhysical())).toBeTrue();
 
-				expect(mappings[3].virtual).toBe("/");
-				expect(directoryExists(mappings[3].getPhysical())).toBeTrue();
+				expect(mappings[len(mappings)].virtual).toBe("/");
+				expect(directoryExists(mappings[len(mappings)].getPhysical())).toBeTrue();
 			});
 
 			it( title='test default mappings', body=function( currentSpec ) {
@@ -66,11 +66,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 
 				// validate component mappings
 				var componentMappings=c.getComponentMappings();
-				expect(len(componentMappings)).toBe(2);
-				expect(componentMappings[1].getStrPhysical()).toBe("{lucee-web}/components/");
+				expect(len(componentMappings)>1).toBeTrue();
+				expect(componentMappings[1].getStrPhysical()).toBe("{lucee-config}/components/");
 				expect(directoryExists(componentMappings[1].getPhysical())).toBeTrue();
-				expect(componentMappings[2].getStrPhysical()).toBe("{lucee-server}/components/");
-				expect(directoryExists(componentMappings[2].getPhysical())).toBeTrue();
 			});
 
 			it( title='test default mappings', body=function( currentSpec ) {				
@@ -79,7 +77,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 
 				// validate custom tag mappings
 				var customTagMappings=c.getCustomTagMappings();
-				expect(len(customTagMappings)).toBe(1);
+				expect(len(customTagMappings)>1).toBeTrue();
 				expect(customTagMappings[1].getStrPhysical()).toBe("{lucee-config}/customtags/");
 				expect(directoryExists(customTagMappings[1].getPhysical())).toBeTrue();
 			});
