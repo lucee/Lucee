@@ -77,7 +77,6 @@ public final class MappingImpl implements Mapping {
 	private transient PCLCollection pcoll;
 	private Resource archive;
 
-	private boolean hasArchive;
 	private final Config config;
 	private Resource classRootDirectory;
 	private final PageSourcePool pageSourcePool = new PageSourcePool();
@@ -136,8 +135,8 @@ public final class MappingImpl implements Mapping {
 		this.config = config;
 		this.hidden = hidden;
 		this.readonly = readonly;
-		this.strPhysical = StringUtil.isEmpty(strPhysical) ? null : strPhysical;
-		this.strArchive = StringUtil.isEmpty(strArchive) ? null : strArchive;
+		this.strPhysical = StringUtil.isEmpty(strPhysical, true) ? null : strPhysical.trim();
+		this.strArchive = StringUtil.isEmpty(strArchive, true) ? null : strArchive.trim();
 		this.inspect = inspect;
 		this.topLevel = topLevel;
 		this.appMapping = appMapping;
@@ -154,23 +153,24 @@ public final class MappingImpl implements Mapping {
 		else this.virtual = virtual;
 		this.lcVirtual = this.virtual.toLowerCase();
 		this.lcVirtualWithSlash = lcVirtual.endsWith("/") ? this.lcVirtual : this.lcVirtual + '/';
+	}
 
+	private void initPhysical() {
 		ServletContext cs = (config instanceof ConfigWeb) ? ((ConfigWeb) config).getServletContext() : null;
-
-		// Physical
 		physical = ConfigWebUtil.getExistingResource(cs, strPhysical, null, config.getConfigDir(), FileUtil.TYPE_DIR, config, checkPhysicalFromWebroot);
-		// Archive
-		archive = ConfigWebUtil.getExistingResource(cs, strArchive, null, config.getConfigDir(), FileUtil.TYPE_FILE, config, checkArchiveFromWebroot);
-		loadArchive();
-
-		hasArchive = archive != null;
 
 		if (archive == null) this.physicalFirst = true;
 		else if (physical == null) this.physicalFirst = false;
-		else this.physicalFirst = physicalFirst;
 
-		// if(!hasArchive && !hasPhysical) throw new IOException("missing physical and archive path, one of
-		// them must be defined");
+	}
+
+	private void initArchive() {
+		ServletContext cs = (config instanceof ConfigWeb) ? ((ConfigWeb) config).getServletContext() : null;
+		archive = ConfigWebUtil.getExistingResource(cs, strArchive, null, config.getConfigDir(), FileUtil.TYPE_FILE, config, checkArchiveFromWebroot);
+		loadArchive();
+
+		if (archive == null) this.physicalFirst = true;
+		else if (physical == null) this.physicalFirst = false;
 	}
 
 	private void loadArchive() {
@@ -179,7 +179,7 @@ public final class MappingImpl implements Mapping {
 		CFMLEngine engine = ConfigWebUtil.getEngine(config);
 		BundleContext bc = engine.getBundleContext();
 		try {
-			archiveBundle = OSGiUtil.installBundle(bc, archive, true);
+			archiveBundle = OSGiUtil.installBundle(bc, getArchive(), true);
 		}
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
@@ -191,6 +191,7 @@ public final class MappingImpl implements Mapping {
 
 	@Override
 	public Class<?> getArchiveClass(String className) throws ClassNotFoundException {
+		getArchive();// this calls init the archive if necessary
 		if (archiveBundle != null) {
 			return archiveBundle.loadClass(className);
 		}
@@ -200,6 +201,7 @@ public final class MappingImpl implements Mapping {
 
 	@Override
 	public Class<?> getArchiveClass(String className, Class<?> defaultValue) {
+		getArchive();// this calls init the archive if necessary
 		try {
 			if (archiveBundle != null) return archiveBundle.loadClass(className);
 			// else if(archiveClassLoader!=null) return archiveClassLoader.loadClass(className);
@@ -272,7 +274,6 @@ public final class MappingImpl implements Mapping {
 
 	@Override
 	public Class<?> getPhysicalClass(String className, byte[] code) throws IOException {
-
 		try {
 			return touchPhysicalClassLoader(className.contains("_cfc$cf")).loadClass(className, code);
 		}
@@ -304,6 +305,7 @@ public final class MappingImpl implements Mapping {
 
 	@Override
 	public Resource getPhysical() {
+		if (physical == null && strPhysical != null) initPhysical(); // possible that the target path only exists AFTER startup
 		return physical;
 	}
 
@@ -319,18 +321,18 @@ public final class MappingImpl implements Mapping {
 
 	@Override
 	public Resource getArchive() {
-		// initArchive();
+		if (archive == null && strArchive != null) initArchive(); // possible that the target path only exists AFTER startup
 		return archive;
 	}
 
 	@Override
 	public boolean hasArchive() {
-		return hasArchive;
+		return getArchive() != null;
 	}
 
 	@Override
 	public boolean hasPhysical() {
-		return physical != null;
+		return getPhysical() != null;
 	}
 
 	@Override
@@ -423,18 +425,13 @@ public final class MappingImpl implements Mapping {
 		ServletContext cs = (config instanceof ConfigWeb) ? ((ConfigWeb) config).getServletContext() : null;
 
 		// Physical
-		if (getPhysical() == null && strPhysical != null && strPhysical.length() > 0) {
-			physical = ConfigWebUtil.getExistingResource(cs, strPhysical, null, config.getConfigDir(), FileUtil.TYPE_DIR, config, checkPhysicalFromWebroot);
+		if (getPhysical() == null && strPhysical != null) {
+			initPhysical();
 
 		}
 		// Archive
-		if (getArchive() == null && strArchive != null && strArchive.length() > 0) {
-
-			archive = ConfigWebUtil.getExistingResource(cs, strArchive, null, config.getConfigDir(), FileUtil.TYPE_FILE, config, checkArchiveFromWebroot);
-			loadArchive();
-
-			hasArchive = archive != null;
-
+		if (getArchive() == null && strArchive != null) {
+			initArchive();
 		}
 	}
 
@@ -450,6 +447,10 @@ public final class MappingImpl implements Mapping {
 
 	@Override
 	public boolean isPhysicalFirst() {
+		// make sure everything is loaded
+		getArchive();
+		getPhysical();
+		// now we can trust the result
 		return physicalFirst;
 	}
 
