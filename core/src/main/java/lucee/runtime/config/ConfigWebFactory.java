@@ -1777,6 +1777,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 
 			if (hasAccess) {
 				boolean hasServerContext = false;
+				boolean hasWebContext = false;
 				if (_mappings != null) {
 					Iterator<Entry<Key, Object>> it = _mappings.entryIterator();
 					Entry<Key, Object> e;
@@ -1802,8 +1803,13 @@ public final class ConfigWebFactory extends ConfigFactory {
 							boolean hidden = toBoolean(getAttr(el, "hidden"), false);
 							boolean toplevel = toBoolean(getAttr(el, "toplevel"), true);
 
-							if (config instanceof ConfigServer && ("/lucee-server/".equalsIgnoreCase(virtual) || "/lucee-server-context/".equalsIgnoreCase(virtual))) {
-								hasServerContext = true;
+							if (config instanceof ConfigServer) {
+								if ("/lucee-server/".equalsIgnoreCase(virtual) || "/lucee-server-context/".equalsIgnoreCase(virtual)) {
+									hasServerContext = true;
+								}
+								else if ("/lucee/".equalsIgnoreCase(virtual)) {
+									hasWebContext = true;
+								}
 							}
 
 							// lucee
@@ -1859,13 +1865,23 @@ public final class ConfigWebFactory extends ConfigFactory {
 				}
 
 				// set default lucee-server-context
-				if (config instanceof ConfigServer && !hasServerContext) {
-					ApplicationListener listener = ConfigWebUtil.loadListener(ApplicationListener.TYPE_MODERN, null);
-					listener.setMode(ApplicationListener.MODE_CURRENT2ROOT);
+				if (config instanceof ConfigServer) {
+					if (!hasServerContext) {
+						ApplicationListener listener = ConfigWebUtil.loadListener(ApplicationListener.TYPE_MODERN, null);
+						listener.setMode(ApplicationListener.MODE_CURRENT2ROOT);
 
-					tmp = new MappingImpl(config, "/lucee-server", "{lucee-server}/context/", null, ConfigPro.INSPECT_ONCE, true, false, true, true, false, false, listener,
-							ApplicationListener.MODE_CURRENT2ROOT, ApplicationListener.TYPE_MODERN);
-					mappings.put(tmp.getVirtualLowerCase(), tmp);
+						tmp = new MappingImpl(config, "/lucee-server", "{lucee-server}/context/", null, ConfigPro.INSPECT_ONCE, true, false, true, true, false, false, listener,
+								ApplicationListener.MODE_CURRENT2ROOT, ApplicationListener.TYPE_MODERN);
+						mappings.put(tmp.getVirtualLowerCase(), tmp);
+					}
+					if (!hasWebContext) {
+						ApplicationListener listener = ConfigWebUtil.loadListener(ApplicationListener.TYPE_MODERN, null);
+						listener.setMode(ApplicationListener.MODE_CURRENT2ROOT);
+
+						tmp = new MappingImpl(config, "/lucee", "{lucee-config}/context/", "{lucee-config}/context/lucee-context.lar", ConfigPro.INSPECT_ONCE, true, false, true,
+								true, false, false, listener, ApplicationListener.MODE_CURRENT2ROOT, ApplicationListener.TYPE_MODERN);
+						mappings.put(tmp.getVirtualLowerCase(), tmp);
+					}
 				}
 			}
 
@@ -2887,35 +2903,42 @@ public final class ConfigWebFactory extends ConfigFactory {
 			// Web Mapping
 			boolean hasSet = false;
 			Mapping[] mappings = null;
-			if (hasAccess && ctMappings.size() > 0) {
-				Iterator<Object> it = ctMappings.valueIterator();
-				List<Mapping> list = new ArrayList<>();
-				Struct ctMapping;
-				while (it.hasNext()) {
-					try {
-						ctMapping = Caster.toStruct(it.next(), null);
-						if (ctMapping == null) continue;
+			if (hasAccess) {
+				if (ctMappings.size() > 0) {
+					Iterator<Object> it = ctMappings.valueIterator();
+					List<Mapping> list = new ArrayList<>();
+					Struct ctMapping;
+					while (it.hasNext()) {
+						try {
+							ctMapping = Caster.toStruct(it.next(), null);
+							if (ctMapping == null) continue;
 
-						String virtual = createVirtual(ctMapping);
-						String physical = getAttr(ctMapping, "physical");
-						String archive = getAttr(ctMapping, "archive");
-						boolean readonly = toBoolean(getAttr(ctMapping, "readonly"), false);
-						boolean hidden = toBoolean(getAttr(ctMapping, "hidden"), false);
-						short inspTemp = inspectTemplate(ctMapping);
+							String virtual = createVirtual(ctMapping);
+							String physical = getAttr(ctMapping, "physical");
+							String archive = getAttr(ctMapping, "archive");
+							boolean readonly = toBoolean(getAttr(ctMapping, "readonly"), false);
+							boolean hidden = toBoolean(getAttr(ctMapping, "hidden"), false);
+							short inspTemp = inspectTemplate(ctMapping);
 
-						String primary = getAttr(ctMapping, "primary");
+							String primary = getAttr(ctMapping, "primary");
 
-						boolean physicalFirst = StringUtil.isEmpty(archive, true) || !"archive".equalsIgnoreCase(primary);
-						hasSet = true;
-						list.add(new MappingImpl(config, virtual, physical, archive, inspTemp, physicalFirst, hidden, readonly, true, false, true, null, -1, -1));
+							boolean physicalFirst = StringUtil.isEmpty(archive, true) || !"archive".equalsIgnoreCase(primary);
+							hasSet = true;
+							list.add(new MappingImpl(config, virtual, physical, archive, inspTemp, physicalFirst, hidden, readonly, true, false, true, null, -1, -1));
+						}
+						catch (Throwable t) {
+							ExceptionUtil.rethrowIfNecessary(t);
+							log(config, log, t);
+						}
 					}
-					catch (Throwable t) {
-						ExceptionUtil.rethrowIfNecessary(t);
-						log(config, log, t);
-					}
+					mappings = list.toArray(new Mapping[list.size()]);
+					config.setCustomTagMappings(mappings);
 				}
-				mappings = list.toArray(new Mapping[list.size()]);
-				config.setCustomTagMappings(mappings);
+				else if (!hasCS) {
+					// we make sure we always have that mapping
+					config.setCustomTagMappings(new Mapping[] { new MappingImpl(config, "/default-customtags", "{lucee-config}/customtags/", null, ConfigPro.INSPECT_UNDEFINED,
+							true, true, true, true, false, true, null, -1, -1) });
+				}
 			}
 
 			// Server Mapping
@@ -5029,46 +5052,53 @@ public final class ConfigWebFactory extends ConfigFactory {
 			Array compMappings = ConfigWebUtil.getAsArray("componentMappings", root);
 			hasSet = false;
 			Mapping[] mappings = null;
-			if (hasAccess && compMappings.size() > 0) {
-				Iterator<Object> it = compMappings.valueIterator();
-				List<Mapping> list = new ArrayList<>();
-				Struct cMapping;
-				while (it.hasNext()) {
-					try {
-						cMapping = Caster.toStruct(it.next(), null);
-						if (cMapping == null) continue;
+			if (hasAccess) {
+				if (compMappings.size() > 0) {
+					Iterator<Object> it = compMappings.valueIterator();
+					List<Mapping> list = new ArrayList<>();
+					Struct cMapping;
+					while (it.hasNext()) {
+						try {
+							cMapping = Caster.toStruct(it.next(), null);
+							if (cMapping == null) continue;
 
-						String virtual = createVirtual(cMapping);
-						String physical = getAttr(cMapping, "physical");
-						String archive = getAttr(cMapping, "archive");
-						boolean readonly = toBoolean(getAttr(cMapping, "readonly"), false);
-						boolean hidden = toBoolean(getAttr(cMapping, "hidden"), false);
+							String virtual = createVirtual(cMapping);
+							String physical = getAttr(cMapping, "physical");
+							String archive = getAttr(cMapping, "archive");
+							boolean readonly = toBoolean(getAttr(cMapping, "readonly"), false);
+							boolean hidden = toBoolean(getAttr(cMapping, "hidden"), false);
 
-						String strListMode = getAttr(cMapping, "listenerMode");
-						if (StringUtil.isEmpty(strListMode)) strListMode = getAttr(cMapping, "listener-mode");
-						if (StringUtil.isEmpty(strListMode)) strListMode = getAttr(cMapping, "listenermode");
-						int listMode = ConfigWebUtil.toListenerMode(strListMode, -1);
+							String strListMode = getAttr(cMapping, "listenerMode");
+							if (StringUtil.isEmpty(strListMode)) strListMode = getAttr(cMapping, "listener-mode");
+							if (StringUtil.isEmpty(strListMode)) strListMode = getAttr(cMapping, "listenermode");
+							int listMode = ConfigWebUtil.toListenerMode(strListMode, -1);
 
-						String strListType = getAttr(cMapping, "listenerType");
-						if (StringUtil.isEmpty(strListType)) strListMode = getAttr(cMapping, "listener-type");
-						if (StringUtil.isEmpty(strListType)) strListMode = getAttr(cMapping, "listenertype");
-						int listType = ConfigWebUtil.toListenerType(strListType, -1);
+							String strListType = getAttr(cMapping, "listenerType");
+							if (StringUtil.isEmpty(strListType)) strListMode = getAttr(cMapping, "listener-type");
+							if (StringUtil.isEmpty(strListType)) strListMode = getAttr(cMapping, "listenertype");
+							int listType = ConfigWebUtil.toListenerType(strListType, -1);
 
-						short inspTemp = inspectTemplate(cMapping);
+							short inspTemp = inspectTemplate(cMapping);
 
-						String primary = getAttr(cMapping, "primary");
+							String primary = getAttr(cMapping, "primary");
 
-						boolean physicalFirst = archive == null || !"archive".equalsIgnoreCase(primary);
-						hasSet = true;
-						list.add(new MappingImpl(config, virtual, physical, archive, inspTemp, physicalFirst, hidden, readonly, true, false, true, null, listMode, listType));
+							boolean physicalFirst = archive == null || !"archive".equalsIgnoreCase(primary);
+							hasSet = true;
+							list.add(new MappingImpl(config, virtual, physical, archive, inspTemp, physicalFirst, hidden, readonly, true, false, true, null, listMode, listType));
+						}
+						catch (Throwable t) {
+							ExceptionUtil.rethrowIfNecessary(t);
+							log(config, log, t);
+						}
 					}
-					catch (Throwable t) {
-						ExceptionUtil.rethrowIfNecessary(t);
-						log(config, log, t);
-					}
+					mappings = list.toArray(new Mapping[list.size()]);
+					config.setComponentMappings(mappings);
 				}
-				mappings = list.toArray(new Mapping[list.size()]);
-				config.setComponentMappings(mappings);
+				else if (!hasCS) {
+					// we make sure we always have that mapping
+					config.setComponentMappings(new Mapping[] { new MappingImpl(config, "/default-component", "{lucee-config}/components/", null, ConfigPro.INSPECT_UNDEFINED, true,
+							true, true, true, false, true, null, -1, -1) });
+				}
 			}
 
 			// Server Mapping

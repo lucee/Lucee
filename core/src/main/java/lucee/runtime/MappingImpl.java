@@ -353,8 +353,8 @@ public final class MappingImpl implements Mapping {
 	 * @throws IOException
 	 */
 	public MappingImpl cloneReadOnly(Config config) {
-		return new MappingImpl(config, virtual, ConfigWebUtil.replacePlaceholder(strPhysical, config), ConfigWebUtil.replacePlaceholder(strArchive, config), inspect, physicalFirst,
-				hidden, true, topLevel, appMapping, ignoreVirtual, appListener, listenerMode, listenerType, checkPhysicalFromWebroot, checkArchiveFromWebroot);
+		return new MappingImpl(config, virtual, strPhysical, strArchive, inspect, physicalFirst, hidden, true, topLevel, appMapping, ignoreVirtual, appListener, listenerMode,
+				listenerType, checkPhysicalFromWebroot, checkArchiveFromWebroot);
 	}
 
 	@Override
