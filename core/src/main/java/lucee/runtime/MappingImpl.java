@@ -157,7 +157,7 @@ public final class MappingImpl implements Mapping {
 
 	private void initPhysical() {
 		ServletContext cs = (config instanceof ConfigWeb) ? ((ConfigWeb) config).getServletContext() : null;
-		physical = ConfigWebUtil.getExistingResource(cs, strPhysical, null, config.getConfigDir(), FileUtil.TYPE_DIR, config, checkPhysicalFromWebroot);
+		physical = ConfigWebUtil.getResource(cs, strPhysical, null, config.getConfigDir(), FileUtil.TYPE_DIR, config, checkPhysicalFromWebroot, false);
 
 		if (archive == null) this.physicalFirst = true;
 		else if (physical == null) this.physicalFirst = false;
@@ -166,7 +166,7 @@ public final class MappingImpl implements Mapping {
 
 	private void initArchive() {
 		ServletContext cs = (config instanceof ConfigWeb) ? ((ConfigWeb) config).getServletContext() : null;
-		archive = ConfigWebUtil.getExistingResource(cs, strArchive, null, config.getConfigDir(), FileUtil.TYPE_FILE, config, checkArchiveFromWebroot);
+		archive = ConfigWebUtil.getResource(cs, strArchive, null, config.getConfigDir(), FileUtil.TYPE_FILE, config, checkArchiveFromWebroot, true);
 		loadArchive();
 
 		if (archive == null) this.physicalFirst = true;
@@ -422,17 +422,9 @@ public final class MappingImpl implements Mapping {
 
 	@Override
 	public void check() {
-		ServletContext cs = (config instanceof ConfigWeb) ? ((ConfigWeb) config).getServletContext() : null;
-
-		// Physical
-		if (getPhysical() == null && strPhysical != null) {
-			initPhysical();
-
-		}
-		// Archive
-		if (getArchive() == null && strArchive != null) {
-			initArchive();
-		}
+		// make sure everything is loaded
+		getPhysical();
+		getArchive();
 	}
 
 	@Override
@@ -447,9 +439,7 @@ public final class MappingImpl implements Mapping {
 
 	@Override
 	public boolean isPhysicalFirst() {
-		// make sure everything is loaded
-		getArchive();
-		getPhysical();
+		check();
 		// now we can trust the result
 		return physicalFirst;
 	}

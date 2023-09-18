@@ -387,20 +387,23 @@ public final class ConfigWebUtil {
 	 * @param config
 	 * @return existing file
 	 */
-	public static Resource getExistingResource(ServletContext sc, String strDir, String defaultDir, Resource configDir, short type, Config config, boolean checkFromWebroot) {
+	public static Resource getResource(ServletContext sc, String strDir, String defaultDir, Resource configDir, short type, Config config, boolean checkFromWebroot,
+			boolean existing) {
 		// ARP
 
 		strDir = replacePlaceholder(strDir, config);
 		// checkFromWebroot &&
 		if (strDir != null && strDir.trim().length() > 0) {
-			Resource res = sc == null ? null : _getExistingFile(config.getResource(ResourceUtil.merge(ReqRspUtil.getRootPath(sc), strDir)), type);
+			Resource res = sc == null ? null
+					: (existing ? _getExistingFile(config.getResource(ResourceUtil.merge(ReqRspUtil.getRootPath(sc), strDir)), type)
+							: getFile(config.getResource(ResourceUtil.merge(ReqRspUtil.getRootPath(sc), strDir)), type));
 			if (res != null) return res;
 
-			res = _getExistingFile(config.getResource(strDir), type);
+			res = existing ? _getExistingFile(config.getResource(strDir), type) : getFile(config.getResource(strDir), type);
 			if (res != null) return res;
 		}
 		if (defaultDir == null) return null;
-		return _getExistingFile(configDir.getRealResource(defaultDir), type);
+		return existing ? _getExistingFile(configDir.getRealResource(defaultDir), type) : getFile(configDir.getRealResource(defaultDir), type);
 
 	}
 
@@ -870,7 +873,6 @@ public final class ConfigWebUtil {
 					rootApp = mapping;
 					continue;
 				}
-				// print.err(lcRealPath+".startsWith"+(mapping.getStrPhysical()));
 				if (lcRealPath.startsWith(mapping.getVirtualLowerCaseWithSlash(), 0)) {
 					ps = mapping.getPageSource(realPath.substring(mapping.getVirtual().length()));
 					if (onlyFirstMatch) return new PageSource[] { ps };
