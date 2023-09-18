@@ -4,7 +4,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="image" {
 		var img = "LDEV0006/exif_original.jpg";
 		var imgObj = imageRead(img);
 		var imgMeta = imageGetEXIFMetadata(imgObj);
-		expect( structCount( imgMeta ) ).toBe( isVersion2() ? 68 : 124);
+		expect( structCount( imgMeta ) ).toBe( isVersion2() ? 185 : 124);
 	}
 
 	private boolean function isVersion2(){
