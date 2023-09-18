@@ -6,7 +6,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				var img = imageRead(GetDirectoryFromPath(GetCurrentTemplatePath())&"images/BigBen.jpg");
 				var meta=imageGetEXIFMetadata(img);
 				expect(meta).toBeStruct();
-				expect(imeta.ColorSpace).toBe("1");
+				expect(meta.ColorSpace).toBe("1");
 				expect(meta.ExifOffset).toBe("204");
 				expect(meta).toHaveKey("colormodel");
 				expect(meta).toHaveKey("metadata");
