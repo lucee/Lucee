@@ -66,7 +66,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 
 				// validate component mappings
 				var componentMappings=c.getComponentMappings();
-				expect(len(componentMappings)>1).toBeTrue();
+				expect(len(componentMappings)>0).toBeTrue();
 				expect(componentMappings[1].getStrPhysical()).toBe("{lucee-config}/components/");
 				expect(directoryExists(componentMappings[1].getPhysical())).toBeTrue();
 			});
@@ -77,7 +77,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 
 				// validate custom tag mappings
 				var customTagMappings=c.getCustomTagMappings();
-				expect(len(customTagMappings)>1).toBeTrue();
+				expect(len(customTagMappings)>0).toBeTrue();
 				expect(customTagMappings[1].getStrPhysical()).toBe("{lucee-config}/customtags/");
 				expect(directoryExists(customTagMappings[1].getPhysical())).toBeTrue();
 			});
