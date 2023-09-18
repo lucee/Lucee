@@ -42,29 +42,35 @@ class LikeCompareJRE {
 		char esc = 0;
 		if (!StringUtil.isEmpty(escape)) {
 			esc = escape.charAt(0);
-			if (escape.length() > 1) throw new DatabaseException("Invalid escape character [" + escape + "] has been specified in a LIKE conditional", null, sql, null);
+			if (escape.length() > 1) throw new DatabaseException("Invalid escape character [" + escape + "] has been specified in a LIKE conditional.  Escape char must be a single character.", null, sql, null);
 		}
 
 		StringBuilder sb = new StringBuilder(wildcard.length());
 		int len = wildcard.length();
-		// boolean isEscape=false;
 		char c;
 		for (int i = 0; i < len; i++) {
 			c = wildcard.charAt(i);
 			if (c == esc) {
-				if (i + 1 == len)
-					throw new DatabaseException("Invalid Escape Sequence. Valid sequence pairs for this escape character are: [" + esc + "%] or [" + esc + "_]", null, sql, null);
-				c = wildcard.charAt(++i);
-				if (c == '%') sb.append(c);
-				else if (c == '_') sb.append(c);
-				else throw new DatabaseException(
-						"Invalid Escape Sequence [" + esc + "" + c + "]. Valid sequence pairs for this escape character are: [" + esc + "%] or [" + esc + "_]", null, sql, null);
+				// If we aren't at the end of the string grab the next char
+				// An escape char at the end of the string gets used as a literal
+				if (i + 1 < len) {
+					c = wildcard.charAt(++i);
+				}
+				escapeForRegex( sb, c );
 			}
 			else {
 				if (c == '%') sb.append(".*");
 				else if (c == '_') sb.append('.');
-				else if (specials.indexOf(c) != -1) sb.append('\\').append(c);
-				else sb.append(c);
+				else if (c == '[') {
+					sb.append(c);
+					// If we just opened unescaped brackets, check for a ^
+					// All other ^ chars are treated like normal
+					if (i + 1 < len && wildcard.charAt(i+1) == '^' ) {
+						i++;
+						sb.append('^');
+					}
+				} else if ( c == ']') sb.append(c);
+				else escapeForRegex( sb, c );
 			}
 
 		}
@@ -76,6 +82,21 @@ class LikeCompareJRE {
 		}
 		return pattern;
 	}
+
+	/**
+	 * Consolidate the logic for escaping regex metachars
+	 * @param sb The string builder to append to
+	 * @param c The char to append
+	 */
+	private static void escapeForRegex( StringBuilder sb, char c ) {
+		// If we have a regex metachar, escape it
+		if (specials.indexOf(c) != -1) {
+			sb.append('\\').append(c);
+		} else {
+			sb.append(c);	
+		}
+	}
+
 
 	public static boolean like(SQL sql, String haystack, String needle) throws PageException {
 		return like(sql, haystack, needle, null);
