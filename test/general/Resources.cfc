@@ -549,8 +549,10 @@ private function assertEqualPaths(string path1, string path2) {
 		}
 		// now we delete that zip again
 		finally {
-			if (fileExists(file))
-				fileDelete(file);
+			if (fileExists(file)) {
+				try {fileDelete(file);}catch(e) {}
+			}
+				
 		}
 	}
 
