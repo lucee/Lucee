@@ -3909,7 +3909,7 @@ public final class ConfigAdmin {
 				for (ConfigWeb cw: webs) {
 					try {
 
-						merge(root, ConfigWebFactory.loadDocument(cw.getConfigFile()), EXCLUDE_LIST, ARRAY_INDEX);
+						merge(root, ConfigWebFactory.loadDocumentCreateIfFails(cw.getConfigFile(), "web"), EXCLUDE_LIST, ARRAY_INDEX);
 					}
 					catch (IOException e) {
 						throw Caster.toPageException(e);

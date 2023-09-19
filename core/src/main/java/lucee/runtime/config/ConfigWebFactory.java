@@ -446,8 +446,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 
 		if (second(cwi.getLoadTime()) > second(configFile.lastModified()) && !force) return;
 
-		Struct root = loadDocument(configFile);
-
+		Struct root = loadDocumentCreateIfFails(configFile, "web");
 		createContextFiles(configDir, null, doNew);
 		cwi.reset();
 		// TODO handle differtly
@@ -749,7 +748,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 		JSONConverter json = new JSONConverter(true, CharsetUtil.UTF8, JSONDateFormat.PATTERN_CF, false);
 		String str = json.serialize(null, root, SerializationSettings.SERIALIZE_AS_ROW, true);
 		IOUtil.write(config.getConfigFile(), str, CharsetUtil.UTF8, false);
-		root = ConfigWebFactory.loadDocument(config.getConfigFile());
+		root = ConfigWebFactory.loadDocumentCreateIfFails(config.getConfigFile(), "web");
 		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, ConfigWebFactory.class.getName(), "reloading configuration");
 		return root;
 	}

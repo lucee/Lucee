@@ -27,6 +27,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.CopyOption;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
 import java.nio.file.attribute.DosFileAttributes;
@@ -239,9 +240,11 @@ public final class FileResource extends File implements Resource {
 		// provider.lock(this);
 		provider.read(this);
 		try {
-
 			return new BufferedInputStream(Files.newInputStream(toPath(), StandardOpenOption.READ));
 			// return new BufferedInputStream(new FileInputStream(this));
+		}
+		catch (NoSuchFileException nsfe) {
+			throw ExceptionUtil.toFileNotFoundException(nsfe);
 		}
 		catch (IOException ioe) {
 			// provider.unlock(this);

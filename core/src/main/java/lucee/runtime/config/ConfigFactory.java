@@ -202,7 +202,7 @@ public abstract class ConfigFactory {
 		}
 	}
 
-	static Struct loadDocumentCreateIfFails(Resource configFile, String type) throws SAXException, IOException, PageException {
+	static Struct loadDocumentCreateIfFails(Resource configFile, String type) throws IOException, PageException {
 		try {
 			return _loadDocument(configFile);
 		}
