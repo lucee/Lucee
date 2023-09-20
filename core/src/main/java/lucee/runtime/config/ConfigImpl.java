@@ -76,7 +76,6 @@ import lucee.runtime.MappingImpl;
 import lucee.runtime.Page;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageSource;
-import lucee.runtime.PageSourceImpl;
 import lucee.runtime.cache.CacheConnection;
 import lucee.runtime.cache.ram.RamCache;
 import lucee.runtime.cache.tag.CacheHandler;
@@ -146,6 +145,7 @@ import lucee.runtime.type.dt.TimeSpan;
 import lucee.runtime.type.dt.TimeSpanImpl;
 import lucee.runtime.type.scope.ClusterNotSupported;
 import lucee.runtime.type.scope.Undefined;
+import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.video.VideoExecuterNotSupported;
 import lucee.transformer.library.function.FunctionLib;
@@ -456,6 +456,8 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		clearLoggers(null);
 		clearComponentMetadata();
 		clearResourceProviders();
+		baseComponentPageSourceCFML = null;
+		baseComponentPageSourceLucee = null;
 	}
 
 	@Override
@@ -1583,37 +1585,99 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	 */
 	@Override
 	public PageSource getBaseComponentPageSource(int dialect) {
-		return getBaseComponentPageSource(dialect, ThreadLocalPageContext.get());
+		return getBaseComponentPageSource(dialect, ThreadLocalPageContext.get(), false);
 	}
 
 	@Override
-	public PageSource getBaseComponentPageSource(int dialect, PageContext pc) {
-		PageSource base = dialect == CFMLEngine.DIALECT_CFML ? baseComponentPageSourceCFML : baseComponentPageSourceLucee;
+	public PageSource getBaseComponentPageSource(int dialect, PageContext pc, boolean force) {
+		PageSource base = force ? null : (dialect == CFMLEngine.DIALECT_CFML ? baseComponentPageSourceCFML : baseComponentPageSourceLucee);
 
 		if (base == null) {
-			// package
-			ImportDefintion di = getComponentDefaultImport();
-			String pack = di == null ? null : di.getPackageAsPath();
-			if (StringUtil.isEmpty(pack, true)) pack = "";
-			else if (!pack.endsWith("/")) pack += "";
-			// name
-			String componentName = getBaseComponentTemplate(dialect);
+			synchronized (SystemUtil.createToken("dialect", "" + dialect)) {
+				base = force ? null : (dialect == CFMLEngine.DIALECT_CFML ? baseComponentPageSourceCFML : baseComponentPageSourceLucee);
+				if (base == null) {
 
-			base = PageSourceImpl.best(getPageSources(pc, null, pack + componentName, false, false, true, true));
+					// package
+					ImportDefintion di = getComponentDefaultImport();
+					String pack = di == null ? null : di.getPackageAsPath();
+					if (StringUtil.isEmpty(pack, true)) pack = "";
+					else if (!pack.endsWith("/")) pack += "";
+					// name
+					String componentName = getBaseComponentTemplate(dialect);
 
-			if (!base.exists()) {
-				base = PageSourceImpl.best(getPageSources(pc, null, componentName, false, false, true, true));
-				if (!base.exists() && !"org/lucee/cfml/".equals(pack)) {
-					base = PageSourceImpl.best(getPageSources(pc, null, "org/lucee/cfml/" + componentName, false, false, true, true));
+					Mapping[] mappigs = getComponentMappings();
+					if (!ArrayUtil.isEmpty(mappigs)) {
+						PageSource ps;
+						outer: do {
+							for (Mapping m: mappigs) {
+								ps = m.getPageSource(pack + componentName);
+								if (ps.exists()) {
+									base = ps;
+									break outer;
+								}
+							}
+							for (Mapping m: mappigs) {
+								ps = m.getPageSource(componentName);
+								if (ps.exists()) {
+									base = ps;
+									break outer;
+								}
+							}
+							for (Mapping m: mappigs) {
+								ps = m.getPageSource("org/lucee/cfml/" + componentName);
+								if (ps.exists()) {
+									base = ps;
+									break outer;
+								}
+							}
+						}
+						while (false);
+					}
+					if (base == null) {
+						StringBuilder detail;
+						if (ArrayUtil.isEmpty(mappigs)) {
+							detail = new StringBuilder("There are no components mappings available!");
+						}
+						else {
+							detail = new StringBuilder();
+							for (Mapping m: mappigs) {
+								if (detail.length() > 0) detail.append(", ");
+								else detail.append("The following component mappings are available [");
+
+								Resource p = m.getPhysical();
+								String physical = m.getStrPhysical();
+								if (p != null) {
+									try {
+										physical = p.getCanonicalPath() + " (" + m.getStrPhysical() + ")";
+									}
+									catch (IOException e) {
+									}
+								}
+
+								Resource a = m.getArchive();
+								String archive = m.getStrArchive();
+								if (p != null) {
+									try {
+										archive = a.getCanonicalPath() + " (" + m.getStrArchive() + ")";
+									}
+									catch (IOException e) {
+									}
+								}
+
+								detail.append(physical).append(':').append(archive);
+							}
+							detail.append("]");
+						}
+						LogUtil.log(Log.LEVEL_ERROR, "component",
+								"could not load the base component Component, it was not found in any of the component mappings." + detail.toString());
+
+					}
+					else {
+						if (dialect == CFMLEngine.DIALECT_CFML) this.baseComponentPageSourceCFML = base;
+						else this.baseComponentPageSourceLucee = base;
+					}
 				}
 			}
-
-			if (!base.exists()) {
-				// TODO create component
-			}
-
-			if (dialect == CFMLEngine.DIALECT_CFML) this.baseComponentPageSourceCFML = base;
-			else this.baseComponentPageSourceLucee = base;
 		}
 		return base;
 	}

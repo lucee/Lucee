@@ -724,6 +724,7 @@ public class KeyConstants {
 	public static final Key _implements = KeyImpl._const("implements");
 	public static final Key __toDateTime = KeyImpl._const("_toDateTime");
 	public static final Key __toNumeric = KeyImpl._const("_toNumeric");
+	public static final Key __toDumpData = KeyImpl._const("_toDumpData");
 	public static final Key __toBoolean = KeyImpl._const("_toBoolean");
 	public static final Key __toString = KeyImpl._const("_toString");
 	public static final Key __toArray = KeyImpl._const("_toArray");

@@ -14,6 +14,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import lucee.commons.digest.HashUtil;
 import lucee.commons.io.FileUtil;
+import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.StringUtil;
@@ -24,6 +25,7 @@ import lucee.runtime.CIPage;
 import lucee.runtime.Mapping;
 import lucee.runtime.MappingImpl;
 import lucee.runtime.PageContext;
+import lucee.runtime.PageSource;
 import lucee.runtime.cache.tag.CacheHandlerCollection;
 import lucee.runtime.cache.tag.CacheHandlerCollections;
 import lucee.runtime.compiler.CFMLCompilerImpl;
@@ -266,19 +268,31 @@ public class ConfigWebHelper {
 		cacheHandlerCollections.releaseCacheHandlers(pc);
 	}
 
-	public CIPage getBaseComponentPage(int dialect, PageContext pc) throws PageException {
-		// CFML
-		if (dialect == CFMLEngine.DIALECT_CFML) {
-			if (baseComponentPageCFML == null) {
-				baseComponentPageCFML = (CIPage) cw.getBaseComponentPageSource(dialect, pc).loadPage(pc, false);
+	public CIPage getBaseComponentPage(int dialect, PageContext pc) {
+
+		CIPage base = dialect == CFMLEngine.DIALECT_CFML ? baseComponentPageCFML : baseComponentPageLucee;
+		if (base == null) {
+			try {
+				PageSource ps = cw.getBaseComponentPageSource(dialect, pc, false);
+				if (ps == null) return null;
+				base = (CIPage) ps.loadPage(pc, false);
 			}
-			return baseComponentPageCFML;
+			catch (PageException pe) {
+				PageSource ps = cw.getBaseComponentPageSource(dialect, pc, true);
+				if (ps == null) return null;
+				try {
+					base = (CIPage) ps.loadPage(pc, false);
+				}
+				catch (PageException e) {
+					LogUtil.log("component", e);
+				}
+			}
+			if (base != null) {
+				if (dialect == CFMLEngine.DIALECT_CFML) baseComponentPageCFML = base;
+				else baseComponentPageLucee = base;
+			}
 		}
-		// Lucee
-		if (baseComponentPageLucee == null) {
-			baseComponentPageLucee = (CIPage) cw.getBaseComponentPageSource(dialect, pc).loadPage(pc, false);
-		}
-		return baseComponentPageLucee;
+		return base;
 	}
 
 	public void resetBaseComponentPage() {

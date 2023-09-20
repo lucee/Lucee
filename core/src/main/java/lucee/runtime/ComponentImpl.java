@@ -383,7 +383,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 		}
 		else {
 			CIPage p = ((ConfigWebPro) pageContext.getConfig()).getBaseComponentPage(pageSource.getDialect(), pageContext);
-			if (!componentPage.getPageSource().equals(p.getPageSource())) {
+			if (p != null && !componentPage.getPageSource().equals(p.getPageSource())) {
 				base = ComponentLoader.loadComponent(pageContext, p, "Component", false, false, true, executeConstr);
 			}
 		}
@@ -1007,6 +1007,21 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 
 	@Override
 	public DumpData toDumpData(PageContext pageContext, int maxlevel, DumpProperties dp, int access) {
+
+		if (pageContext != null) {
+			Member member = getMember(pageContext, KeyConstants.__toDumpData, true, false);
+			if (member instanceof UDF) {
+				UDF udf = (UDF) member;
+				if (udf.getFunctionArguments().length == 0) {
+					try {
+						return DumpUtil.toDumpData(_call(pageContext, KeyConstants.__toDumpData, udf, null, new Object[0]), pageContext, maxlevel, dp);
+					}
+					catch (PageException e) {
+					}
+				}
+			}
+		}
+
 		boolean isCFML = getPageSource().getDialect() == CFMLEngine.DIALECT_CFML;
 		DumpTable table = isCFML ? new DumpTable("component", "#48d8d8", "#68dfdf", "#000000") : new DumpTable("component", "#48d8d8", "#68dfdf", "#000000");
 		table.setTitle((isCFML ? "Component" : "Class") + " " + getCallPath() + (top.properties.inline ? "" : " " + StringUtil.escapeHTML(top.properties.dspName)));

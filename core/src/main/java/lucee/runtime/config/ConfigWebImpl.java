@@ -108,8 +108,8 @@ public class ConfigWebImpl implements ConfigWebPro {
 	}
 
 	@Override
-	public lucee.runtime.PageSource getBaseComponentPageSource(int arg0, lucee.runtime.PageContext arg1) {
-		return instance.getBaseComponentPageSource(arg0, arg1);
+	public lucee.runtime.PageSource getBaseComponentPageSource(int arg0, lucee.runtime.PageContext arg1, boolean force) {
+		return instance.getBaseComponentPageSource(arg0, arg1, force);
 	}
 
 	@Override

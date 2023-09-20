@@ -157,7 +157,7 @@ public interface ConfigPro extends Config {
 
 	public boolean closeConnection();
 
-	public PageSource getBaseComponentPageSource(int dialect, PageContext pc);
+	public PageSource getBaseComponentPageSource(int dialect, PageContext pc, boolean force);
 
 	public TimeSpan getCachedAfterTimeRange();
 

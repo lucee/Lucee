@@ -454,8 +454,8 @@ class SingleContextConfigWeb extends ConfigBase implements ConfigWebInner {
 	}
 
 	@Override
-	public PageSource getBaseComponentPageSource(int dialect, PageContext pc) {
-		return cs.getBaseComponentPageSource(dialect, pc);
+	public PageSource getBaseComponentPageSource(int dialect, PageContext pc, boolean force) {
+		return cs.getBaseComponentPageSource(dialect, pc, force);
 	}
 
 	@Override
