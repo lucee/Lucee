@@ -153,12 +153,12 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 					//debug(result);
 				});
 
-				it(title = "dbinfo tables, pattern, filter=invalid [#dbType#]",
+				it(title = "dbinfo tables, pattern, filter=invalid_table_type_filter [#dbType#]",
 						data = { prefix: prefix, ds: ds, dbtype: dbtype },
 						body = function( data ) {
-					dbinfo datasource=ds name="local.result" type="tables" pattern="#data.prefix#%" filter="invalid_filter";
-					expect( result.recordcount ).toBe( 2 );
-					//debug(result);
+					expect(function(){
+						dbinfo datasource=ds name="local.result" type="tables" pattern="#data.prefix#%" filter="invalid_table_type_filter";
+					}).toThrow();
 				});
 			});
 
