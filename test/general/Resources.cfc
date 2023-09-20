@@ -488,7 +488,7 @@ private function assertEqualPaths(string path1, string path2) {
 		if(directoryExists(dir)) {
 			directory directory="#dir#" action="delete" recurse="yes";
 		}
-   		directory directory="#dir#" action="create";
+		directory directory="#dir#" action="create";
    		try{
 	   		assertTrue(DirectoryExists(dir));
 			directoryCreateDelete(arguments.label,dir);
@@ -536,8 +536,8 @@ private function assertEqualPaths(string path1, string path2) {
 	}
 
 	public void function testZip(){
-		//var file=getTempFile( getTempDirectory(), "res-zip", "zip" );
-		var file=getDirectoryFromPath(getCurrentTemplatePath())&"zip-"&getTickCount()&".zip";
+		var file=getTempFile( getTempDirectory(), "res-zip", "zip" );
+		//var file=getDirectoryFromPath(getCurrentTemplatePath())&"zip-"&getTickCount()&".zip";
 		var zipPath="zip://"&file&"!/";
 		try {
 			//first we create a zip we can use then as a filesystem
@@ -550,15 +550,15 @@ private function assertEqualPaths(string path1, string path2) {
 		// now we delete that zip again
 		finally {
 			if (fileExists(file)) {
-				try {fileDelete(file);}catch(e) {}
+				try {fileDelete(file);}catch(e) {}; // locked on windows LDEV-4700
 			}
 				
 		}
 	}
 
 	public void function testZipAsMapping(){
-		// var file=getTempFile( getTempDirectory(), "zip-as-mapping", "zip" );
-		var file=getDirectoryFromPath(getCurrentTemplatePath())&"zip-"&getTickCount()&".zip";
+		var file=getTempFile( getTempDirectory(), "zip-as-mapping", "zip" );
+		//var file=getDirectoryFromPath(getCurrentTemplatePath())&"zip-"&getTickCount()&".zip";
 		var zipPath="zip://"&file&"!/";
 		try {
 			//first we create a zip we can use then as a filesystem
@@ -573,8 +573,9 @@ private function assertEqualPaths(string path1, string path2) {
 		}
 		// now we delete that zip again
 		finally {
-			if (fileExists(file))
-				fileDelete(file);
+			if (fileExists(file)){
+				try {fileDelete(file);}catch(e) {}; // locked on windows - LDEV-4700
+			}
 		}
 	}
 
