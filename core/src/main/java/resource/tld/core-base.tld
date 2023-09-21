@@ -1079,6 +1079,7 @@ Not used for type="tables", use pattern instead
 		<attribute>
 			<type>string</type>
 			<name>Filter</name>
+			<alias>tableType</alias>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<introduced>6.0.0.73</introduced>
@@ -1091,6 +1092,8 @@ Not used for type="tables", use pattern instead
 - "LOCAL TEMPORARY"
 - "ALIAS"
 - "SYNONYM"
+
+Each Database implementation has it's own supported types
 </description>
 		</attribute>
 	</tag>
