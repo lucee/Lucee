@@ -650,22 +650,21 @@ public final class DBInfo extends TagImpl {
 			), "query", pageContext.getTimeZone());
 		qry.setExecutionTime(stopwatch.time());
 
-		if(qry.getRecordcount() == 0){
-			// let's validate if the filter was a valid table type, only now for performance
+		if(filter != null && qry.getRecordcount() == 0){
+			// validate if the filter was a valid table type for this jdbc connnection, delayed for better performance
 			ResultSet tableTypes = metaData.getTableTypes();
 			boolean validType = false;
-			while (tableTypes.next()) {
+			ArrayList<String> allowedTypes = new ArrayList<String>();
+			while (tableTypes.next()) {				
 				if (tableTypes.getString(1).equals(filter)){
 					validType = true;
+					tableTypes.close();
 					break;
 				}
+				allowedTypes.add(tableTypes.getString(1));
 			}
-			if(!validType){
-				tableTypes.first();
-				ArrayList<String> allowedTypes = new ArrayList<String>();
-				while (tableTypes.next()) {
-					allowedTypes.add(tableTypes.getString(1));
-				}
+			tableTypes.close();
+			if(!validType){				
 				throw new ApplicationException("Invalid [dbinfo] type=table filter [" + filter + "]. Supported table types are " + allowedTypes.toString() + ".");
 			} 
 		}
