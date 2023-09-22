@@ -582,7 +582,7 @@ private function assertEqualPaths(string path1, string path2) {
 		return server.getTestService("s3");
 	}
 
-	public void function testS3() localmode=true{
+	public void function testS3() localmode=true {
 		var s3 = getCredentials();
 		if( !isNull( s3.ACCESS_KEY_ID ) ) {
 			application action="update" s3={
@@ -592,6 +592,29 @@ private function assertEqualPaths(string path1, string path2) {
 			test("s3","s3:///");
 		}
 	}
+
+	public void function testS3Supported() localmode=true {
+		if(hasResourceProviderSchemeName("s3")) throw "there is no [S3] resource provider, only the following providers are available [#arrayToList(getResourceProviderSchemeNames())#]";
+	}
+	public void function testRamSupported() localmode=true {
+		if(hasResourceProviderSchemeName("ram")) throw "there is no [ram] resource provider, only the following providers are available [#arrayToList(getResourceProviderSchemeNames())#]";
+	}
+	public void function testRamSupported() localmode=true {
+		if(hasResourceProviderSchemeName("zip")) throw "there is no [zip] resource provider, only the following providers are available [#arrayToList(getResourceProviderSchemeNames())#]";
+	}
+	public void function testRamSupported() localmode=true {
+		if(hasResourceProviderSchemeName("tar")) throw "there is no [tar] resource provider, only the following providers are available [#arrayToList(getResourceProviderSchemeNames())#]";
+	}
+	public void function testRamSupported() localmode=true {
+		if(hasResourceProviderSchemeName("tgz")) throw "there is no [tgz] resource provider, only the following providers are available [#arrayToList(getResourceProviderSchemeNames())#]";
+	}
+	public void function testRamSupported() localmode=true {
+		if(hasResourceProviderSchemeName("http")) throw "there is no [http] resource provider, only the following providers are available [#arrayToList(getResourceProviderSchemeNames())#]";
+	}
+	public void function testRamSupported() localmode=true {
+		if(hasResourceProviderSchemeName("https")) throw "there is no [https] resource provider, only the following providers are available [#arrayToList(getResourceProviderSchemeNames())#]";
+	}
+
 
 	public void function testS3AsMapping() localmode=true{
 		var s3 = getCredentials();
@@ -604,5 +627,20 @@ private function assertEqualPaths(string path1, string path2) {
 			addMapping("/#mapping#/","s3:///");
 			test("s3","/#mapping#/");
 		}
+	}
+
+
+	private array function getResourceProviderSchemeNames() {
+		var names=[];
+		loop array=getPageContext().getConfig().getResourceProviders() item="local.provider" {
+				arrayAppend(names, provider.getScheme());
+		}	
+		return names;
+	}
+	private boolean function hasResourceProviderSchemeName(required string name) {
+			loop array=getPageContext().getConfig().getResourceProviders() item="local.provider" {
+					if(provider.getScheme()==arguments.name) return true;
+			}
+			return false;
 	}
 }
