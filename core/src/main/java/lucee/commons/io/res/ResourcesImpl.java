@@ -18,6 +18,7 @@
  */
 package lucee.commons.io.res;
 
+import java.io.IOException;
 import java.util.Map;
 
 import lucee.commons.io.res.type.file.FileResourceProvider;
@@ -163,14 +164,38 @@ public final class ResourcesImpl implements Resources {
 		int index = path.indexOf("://");
 		if (index != -1) {
 			String scheme = path.substring(0, index).toLowerCase().trim();
-			String subPath = path.substring(index + 3);
-			for (int i = 0; i < resources.length; i++) {
-				if (scheme.equalsIgnoreCase(resources[i].getScheme())) {
-					return resources[i].instance().getResource(subPath);
+			if (onlyAlphaNumeric(scheme)) {
+				String subPath = path.substring(index + 3);
+				for (int i = 0; i < resources.length; i++) {
+					if (scheme.equalsIgnoreCase(resources[i].getScheme())) {
+						return resources[i].instance().getResource(subPath);
+					}
 				}
+
+				// create exception
+				StringBuilder sb = new StringBuilder();
+				for (ResourceProviderFactory rpf: resources) {
+					if (sb.length() > 0) sb.append(", ");
+					sb.append(rpf.instance().getScheme());
+				}
+				throw new PageRuntimeException(
+						new IOException("there is no Resource provider available with the name [" + scheme + "], available resource providers are [" + sb + "]"));
 			}
 		}
 		return defaultResource.getResource(path);
+	}
+
+	private static boolean onlyAlphaNumeric(String str) {
+		if (StringUtil.isEmpty(str, true)) return false;
+		str = str.trim();
+		char c;
+		for (int i = str.length() - 1; i >= 0; i--) {
+			c = str.charAt(i);
+			if (!((c >= '0' && c <= '9') || (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z'))) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	public String getScheme() {
