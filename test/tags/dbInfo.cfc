@@ -152,6 +152,14 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 					expect( result.recordcount ).toBe( 2 );
 					//debug(result);
 				});
+
+				it(title = "dbinfo tables, pattern, filter=invalid_table_type_filter [#dbType#]",
+						data = { prefix: prefix, ds: ds, dbtype: dbtype },
+						body = function( data ) {
+					expect(function(){
+						dbinfo datasource=ds name="local.result" type="tables" pattern="#data.prefix#%" filter="invalid_table_type_filter";
+					}).toThrow();
+				});
 			});
 
 		}

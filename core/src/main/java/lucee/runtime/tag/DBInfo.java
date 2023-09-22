@@ -27,6 +27,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
+import java.util.ArrayList;
 
 import lucee.commons.io.IOUtil;
 import lucee.commons.lang.StringUtil;
@@ -649,6 +650,24 @@ public final class DBInfo extends TagImpl {
 			), "query", pageContext.getTimeZone());
 		qry.setExecutionTime(stopwatch.time());
 
+		if(filter != null && qry.getRecordcount() == 0){
+			// validate if the filter was a valid table type for this jdbc connnection, delayed for better performance
+			ResultSet tableTypes = metaData.getTableTypes();
+			boolean validType = false;
+			ArrayList<String> allowedTypes = new ArrayList<String>();
+			while (tableTypes.next()) {				
+				if (tableTypes.getString(1).equals(filter)){
+					validType = true;
+					tableTypes.close();
+					break;
+				}
+				allowedTypes.add(tableTypes.getString(1));
+			}
+			tableTypes.close();
+			if(!validType){				
+				throw new ApplicationException("Invalid [dbinfo] type=table filter [" + filter + "]. Supported table types are " + allowedTypes.toString() + ".");
+			} 
+		}
 		pageContext.setVariable(name, qry);
 	}
 
