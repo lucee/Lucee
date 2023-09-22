@@ -157,7 +157,7 @@ public final class MappingImpl implements Mapping {
 
 	private void initPhysical() {
 		ServletContext cs = (config instanceof ConfigWeb) ? ((ConfigWeb) config).getServletContext() : null;
-		physical = ConfigWebUtil.getResource(cs, strPhysical, null, config.getConfigDir(), FileUtil.TYPE_DIR, config, checkPhysicalFromWebroot, false);
+		physical = ConfigWebUtil.getResource(cs, strPhysical, config.getConfigDir(), FileUtil.TYPE_DIR, config, checkPhysicalFromWebroot, false);
 
 		if (archive == null) this.physicalFirst = true;
 		else if (physical == null) this.physicalFirst = false;
@@ -166,7 +166,7 @@ public final class MappingImpl implements Mapping {
 
 	private void initArchive() {
 		ServletContext cs = (config instanceof ConfigWeb) ? ((ConfigWeb) config).getServletContext() : null;
-		archive = ConfigWebUtil.getResource(cs, strArchive, null, config.getConfigDir(), FileUtil.TYPE_FILE, config, checkArchiveFromWebroot, true);
+		archive = ConfigWebUtil.getResource(cs, strArchive, config.getConfigDir(), FileUtil.TYPE_FILE, config, checkArchiveFromWebroot, true);
 		loadArchive();
 
 		if (archive == null) this.physicalFirst = true;

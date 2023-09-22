@@ -185,7 +185,7 @@ public final class ResourcesImpl implements Resources {
 		return defaultResource.getResource(path);
 	}
 
-	private static boolean onlyAlphaNumeric(String str) {
+	public static boolean onlyAlphaNumeric(String str) {
 		if (StringUtil.isEmpty(str, true)) return false;
 		str = str.trim();
 		char c;

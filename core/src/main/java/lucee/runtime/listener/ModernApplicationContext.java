@@ -1047,7 +1047,9 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	public Mapping[] getMappings() {
 		if (!initMappings) {
 			Object o = get(component, KeyConstants._mappings, null);
-			if (o != null) mappings = AppListenerUtil.toMappings(config, o, mappings, getSource());
+			if (o != null) {
+				mappings = AppListenerUtil.toMappingsIgnoreInvalid(config, o, getSource());
+			}
 			initMappings = true;
 		}
 		return mappings;

@@ -289,16 +289,6 @@ public final class AppListenerUtil {
 		return literalTimestampWithTSOffset == null ? false : literalTimestampWithTSOffset;
 	}
 
-	public static Mapping[] toMappings(ConfigWeb cw, Object o, Mapping[] defaultValue, Resource source) {
-		try {
-			return toMappings(cw, o, source);
-		}
-		catch (Throwable t) {
-			ExceptionUtil.rethrowIfNecessary(t);
-			return defaultValue;
-		}
-	}
-
 	public static Mapping[] toMappings(ConfigWeb cw, Object o, Resource source) throws PageException {
 		Struct sct = Caster.toStruct(o);
 		Iterator<Entry<Key, Object>> it = sct.entryIterator();
@@ -311,6 +301,30 @@ public final class AppListenerUtil {
 			virtual = translateMappingVirtual(e.getKey().getString());
 			MappingData md = toMappingData(e.getValue(), source);
 			mappings.add(config.getApplicationMapping("application", virtual, md.physical, md.archive, md.physicalFirst, false, !md.physicalMatch, !md.archiveMatch));
+		}
+		return ConfigWebUtil.sort(mappings.toArray(new Mapping[mappings.size()]));
+	}
+
+	public static Mapping[] toMappingsIgnoreInvalid(ConfigWeb cw, Object o, Resource source) {
+		Struct sct = Caster.toStruct(o, null);
+		if (sct == null) return new Mapping[0];
+
+		Iterator<Entry<Key, Object>> it = sct.entryIterator();
+		Entry<Key, Object> e;
+		java.util.List<Mapping> mappings = new ArrayList<Mapping>();
+		ConfigWebPro config = (ConfigWebPro) cw;
+		String virtual;
+		while (it.hasNext()) {
+			e = it.next();
+			virtual = translateMappingVirtual(e.getKey().getString());
+			try {
+				MappingData md = toMappingData(e.getValue(), source);
+				mappings.add(config.getApplicationMapping("application", virtual, md.physical, md.archive, md.physicalFirst, false, !md.physicalMatch, !md.archiveMatch));
+			}
+			catch (Exception ex) {
+
+			}
+
 		}
 		return ConfigWebUtil.sort(mappings.toArray(new Mapping[mappings.size()]));
 	}

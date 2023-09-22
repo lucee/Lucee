@@ -1547,4 +1547,35 @@ public final class ResourceUtil {
 		throw new IOException("cannot convert [" + res + "] to a local file from type [" + res.getResourceProvider().getScheme() + "]");
 	}
 
+	/**
+	 * gives you the nearest existing ancestor folder (expect the root) of the given file/directory
+	 * 
+	 * @param res resource to check
+	 * @param defaultValue if there is no ancestor it return this
+	 */
+	public static Resource getExistingAncestorFolder(Resource res, Resource defaultValue) {
+		if (res == null) return defaultValue;
+		Resource p;
+		while (true) {
+			p = res.getParentResource();
+			if (p == null) break;
+			if (res.exists()) return res;
+			res = p;
+		}
+		return defaultValue;
+	}
+
+	public static boolean doesParentExists(Resource res, Resource defaultValue) {
+		if (res == null) return false;
+		Resource p = res.getParentResource();
+		return p != null && p.isDirectory();
+	}
+
+	public static boolean doesGrandParentExists(Resource res, Resource defaultValue) {
+		if (res == null) return false;
+		Resource p = res.getParentResource();
+		if (p == null) return false;
+		p = res.getParentResource();
+		return p != null && p.isDirectory();
+	}
 }

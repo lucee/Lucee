@@ -39,6 +39,7 @@ import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
+import lucee.commons.io.res.ResourcesImpl;
 import lucee.commons.io.res.filter.ExtensionResourceFilter;
 import lucee.commons.io.res.type.compress.CompressResource;
 import lucee.commons.io.res.type.compress.CompressResourceProvider;
@@ -387,24 +388,55 @@ public final class ConfigWebUtil {
 	 * @param config
 	 * @return existing file
 	 */
-	public static Resource getResource(ServletContext sc, String strDir, String defaultDir, Resource configDir, short type, Config config, boolean checkFromWebroot,
-			boolean existing) {
-		// ARP
+	public static Resource getResource(ServletContext sc, String strDir, Resource configDir, short type, Config config, boolean checkFromWebroot, boolean existing) {
 
+		// ARP
 		strDir = replacePlaceholder(strDir, config);
 		// checkFromWebroot &&
-		if (strDir != null && strDir.trim().length() > 0) {
-			Resource res = sc == null ? null
-					: (existing ? _getExistingFile(config.getResource(ResourceUtil.merge(ReqRspUtil.getRootPath(sc), strDir)), type)
-							: getFile(config.getResource(ResourceUtil.merge(ReqRspUtil.getRootPath(sc), strDir)), type));
-			if (res != null) return res;
+		if (!StringUtil.isEmpty(strDir, true)) {
+			Resource res, rel = null, abs = null;
+			// looking for a match relative to the webroot, but only if there is no scheme
+			if (sc != null && !startWithScheme(strDir)) {
+				rel = config.getResource(ResourceUtil.merge(ReqRspUtil.getRootPath(sc), strDir));
+				res = _getExistingFile(rel, type);
+				if (res != null) return res;
+			}
+			// check for resource directly
+			try {
+				abs = config.getResource(strDir);
+				res = _getExistingFile(abs, type);
+				if (res != null) return res;
+			}
+			catch (Exception e) {
+				// throws an exception if we have an invalid resource provider
+				return null;
+			}
 
-			res = existing ? _getExistingFile(config.getResource(strDir), type) : getFile(config.getResource(strDir), type);
-			if (res != null) return res;
+			/// now we give no existing folder a chance
+			if (!existing) {
+				// if we have a non default resource provider or a parent folder exists
+				if (abs != null && !config.getDefaultResourceProvider().getScheme().equals(abs.getResourceProvider().getScheme())
+						|| ResourceUtil.getExistingAncestorFolder(abs, null) != null) {
+					return abs;
+				}
+				// if the parent folder exist
+				if (rel != null && ResourceUtil.doesParentExists(rel, null)) {
+					return rel;
+				}
+			}
 		}
-		if (defaultDir == null) return null;
-		return existing ? _getExistingFile(configDir.getRealResource(defaultDir), type) : getFile(configDir.getRealResource(defaultDir), type);
+		return null;
 
+	}
+
+	private static boolean startWithScheme(String path) {
+		if (StringUtil.isEmpty(path, true)) return false;
+		int index = path.indexOf("://");
+		if (index == -1) return false;
+		String scheme = path.substring(0, index);
+		if (scheme.isEmpty() || !ResourcesImpl.onlyAlphaNumeric(scheme)) return false;
+
+		return true;
 	}
 
 	private static Resource _getExistingFile(Resource file, short type) {
