@@ -1565,13 +1565,13 @@ public final class ResourceUtil {
 		return defaultValue;
 	}
 
-	public static boolean doesParentExists(Resource res, Resource defaultValue) {
+	public static boolean doesParentExists(Resource res) {
 		if (res == null) return false;
 		Resource p = res.getParentResource();
 		return p != null && p.isDirectory();
 	}
 
-	public static boolean doesGrandParentExists(Resource res, Resource defaultValue) {
+	public static boolean doesGrandParentExists(Resource res) {
 		if (res == null) return false;
 		Resource p = res.getParentResource();
 		if (p == null) return false;

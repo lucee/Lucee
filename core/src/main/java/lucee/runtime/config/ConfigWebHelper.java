@@ -16,6 +16,7 @@ import lucee.commons.digest.HashUtil;
 import lucee.commons.io.FileUtil;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
+import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lock.KeyLock;
@@ -135,7 +136,7 @@ public class ConfigWebHelper {
 				else throw new ApplicationException("class [" + o.getClass().getName() + "] does not implement the interface SearchEngine");
 
 				searchEngine.init(cw, ConfigWebUtil.getFile(cw.getConfigDir(), ConfigWebUtil.translateOldPath(cw.getSearchEngineDirectory()), "search", cw.getConfigDir(),
-						FileUtil.TYPE_DIR, cw));
+						FileUtil.TYPE_DIR, ResourceUtil.LEVEL_GRAND_PARENT_FILE, cw));
 			}
 			catch (Exception e) {
 				throw Caster.toPageException(e);

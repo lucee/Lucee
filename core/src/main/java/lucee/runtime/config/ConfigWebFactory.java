@@ -3161,11 +3161,12 @@ public final class ConfigWebFactory extends ConfigFactory {
 
 			Resource cst = null;
 			// Temp Dir
-			if (!StringUtil.isEmpty(strTempDirectory)) cst = ConfigWebUtil.getFile(configDir, strTempDirectory, null, configDir, FileUtil.TYPE_DIR, config);
+			if (!StringUtil.isEmpty(strTempDirectory))
+				cst = ConfigWebUtil.getFile(configDir, strTempDirectory, null, configDir, FileUtil.TYPE_DIR, ResourceUtil.LEVEL_GRAND_PARENT_FILE, config);
 
 			if (cst == null && hasCS) cst = configServer.getTempDirectory();
 
-			if (cst == null) cst = ConfigWebUtil.getFile(configDir, "temp", null, configDir, FileUtil.TYPE_DIR, config);
+			if (cst == null) cst = ConfigWebUtil.getFile(configDir, "temp", null, configDir, FileUtil.TYPE_DIR, ResourceUtil.LEVEL_GRAND_PARENT_FILE, config);
 
 			config.setTempDirectory(cst, !isReload);
 		}
@@ -3246,7 +3247,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 			if (StringUtil.isEmpty(strDefaultTagDirectory)) strDefaultTagDirectory = "{lucee-config}/library/tag/";
 
 			// Deploy Dir
-			Resource dd = ConfigWebUtil.getFile(configDir, strDeployDirectory, "cfclasses", configDir, FileUtil.TYPE_DIR, config);
+			Resource dd = ConfigWebUtil.getFile(configDir, strDeployDirectory, "cfclasses", configDir, FileUtil.TYPE_DIR, ResourceUtil.LEVEL_GRAND_PARENT_FILE, config);
 			config.setDeployDirectory(dd);
 
 			// TAG
@@ -3644,7 +3645,8 @@ public final class ConfigWebFactory extends ConfigFactory {
 			// directory
 			String strDir = SystemUtil.getSystemPropOrEnvVar("lucee.task.directory", null);
 			if (StringUtil.isEmpty(strDir)) strDir = _clients != null ? getAttr(_clients, "directory") : null;
-			Resource file = ConfigWebUtil.getFile(config.getRootDirectory(), strDir, "client-task", config.getConfigDir(), FileUtil.TYPE_DIR, config);
+			Resource file = ConfigWebUtil.getFile(config.getRootDirectory(), strDir, "client-task", config.getConfigDir(), FileUtil.TYPE_DIR, ResourceUtil.LEVEL_GRAND_PARENT_FILE,
+					config);
 			config.setRemoteClientDirectory(file);
 
 			Array clients = null;
@@ -4142,7 +4144,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 			String strClientDirectory = getAttr(root, "clientDirectory");
 			if (hasAccess && !StringUtil.isEmpty(strClientDirectory)) {
 				strClientDirectory = ConfigWebUtil.translateOldPath(strClientDirectory);
-				Resource res = ConfigWebUtil.getFile(configDir, strClientDirectory, "client-scope", configDir, FileUtil.TYPE_DIR, config);
+				Resource res = ConfigWebUtil.getFile(configDir, strClientDirectory, "client-scope", configDir, FileUtil.TYPE_DIR, ResourceUtil.LEVEL_GRAND_PARENT_FILE, config);
 				config.setClientScopeDir(res);
 			}
 			else {
@@ -5500,7 +5502,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 			String strCacheDirectory = getAttr(root, "cacheDirectory");
 			if (hasAccess && !StringUtil.isEmpty(strCacheDirectory)) {
 				strCacheDirectory = ConfigWebUtil.translateOldPath(strCacheDirectory);
-				Resource res = ConfigWebUtil.getFile(configDir, strCacheDirectory, "cache", configDir, FileUtil.TYPE_DIR, config);
+				Resource res = ConfigWebUtil.getFile(configDir, strCacheDirectory, "cache", configDir, FileUtil.TYPE_DIR, ResourceUtil.LEVEL_GRAND_PARENT_FILE, config);
 				config.setCacheDir(res);
 			}
 			else {

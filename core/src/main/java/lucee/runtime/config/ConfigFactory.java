@@ -37,6 +37,7 @@ import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
+import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.config.XMLConfigReader.NameRule;
@@ -677,7 +678,7 @@ public abstract class ConfigFactory {
 
 			// set scheduler
 			Resource schedulerDir = ConfigWebUtil.getFile(config.getRootDirectory(), ConfigWebFactory.getAttr(scheduler, "directory"), "scheduler", configDir, FileUtil.TYPE_DIR,
-					config);
+					ResourceUtil.LEVEL_GRAND_PARENT_FILE, config);
 			Resource schedulerFile = schedulerDir.getRealResource("scheduler.xml");
 			if (schedulerFile.isFile()) {
 				Struct schedulerRoot = new XMLConfigReader(schedulerFile, true, new ReadRule(), new NameRule()).getData();

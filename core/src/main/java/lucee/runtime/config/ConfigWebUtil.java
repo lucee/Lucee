@@ -244,10 +244,10 @@ public final class ConfigWebUtil {
 	public static Resource getFile(Config config, Resource directory, String path, short type) {
 		path = replacePlaceholder(path, config);
 		if (!StringUtil.isEmpty(path, true)) {
-			Resource file = getFile(directory.getRealResource(path), type);
+			Resource file = ResourceUtil.createResource(directory.getRealResource(path), ResourceUtil.LEVEL_GRAND_PARENT_FILE, type);
 			if (file != null) return file;
 
-			file = getFile(config.getResource(path), type);
+			file = ResourceUtil.createResource(config.getResource(path), ResourceUtil.LEVEL_GRAND_PARENT_FILE, type);
 
 			if (file != null) return file;
 		}
@@ -265,22 +265,35 @@ public final class ConfigWebUtil {
 	 * @param config
 	 * @return file
 	 */
-	static Resource getFile(Resource rootDir, String strDir, String defaultDir, Resource configDir, short type, ConfigPro config) {
+	static Resource getFile(Resource rootDir, String strDir, String defaultDir, Resource configDir, short type, short level, ConfigPro config) {
 		strDir = replacePlaceholder(strDir, config);
 		if (!StringUtil.isEmpty(strDir, true)) {
-			Resource res;
-			if (strDir.indexOf("://") != -1) { // TODO better impl.
-				res = getFile(config.getResource(strDir), type);
+			Resource res, tmp;
+
+			// non default resource
+			if (startWithScheme(strDir)) {
+				String scheme = getScheme(strDir, null);
+				if (scheme != null && !scheme.equalsIgnoreCase(config.getDefaultResourceProvider().getScheme())) {
+					res = ResourceUtil.createResource(config.getResource(strDir), level, type);
+					if (res != null) return res;
+				}
+			}
+
+			// create resource relative to rootDir
+			else if (rootDir != null) {
+				res = ResourceUtil.createResource(rootDir.getRealResource(strDir), level, type);
 				if (res != null) return res;
 			}
-			res = rootDir == null ? null : getFile(rootDir.getRealResource(strDir), type);
-			if (res != null) return res;
 
-			res = getFile(config.getResource(strDir), type);
-			if (res != null) return res;
+			// create resource absolute
+			tmp = config.getResource(strDir);
+			if (ResourceUtil.getExistingAncestorFolder(tmp, configDir) != null) {
+				res = ResourceUtil.createResource(tmp, level, type);
+				if (res != null) return res;
+			}
 		}
 		if (defaultDir == null) return null;
-		Resource file = getFile(configDir.getRealResource(defaultDir), type);
+		Resource file = ResourceUtil.createResource(configDir.getRealResource(defaultDir), level, type);
 		return file;
 	}
 
@@ -420,7 +433,7 @@ public final class ConfigWebUtil {
 					return abs;
 				}
 				// if the parent folder exist
-				if (rel != null && ResourceUtil.doesParentExists(rel, null)) {
+				if (rel != null && ResourceUtil.doesParentExists(rel)) {
 					return rel;
 				}
 			}
@@ -439,6 +452,16 @@ public final class ConfigWebUtil {
 		return true;
 	}
 
+	private static String getScheme(String path, String defaultValue) {
+		if (StringUtil.isEmpty(path, true)) return defaultValue;
+		int index = path.indexOf("://");
+		if (index == -1) return defaultValue;
+		String scheme = path.substring(0, index);
+		if (scheme.isEmpty() || !ResourcesImpl.onlyAlphaNumeric(scheme)) return defaultValue;
+
+		return scheme;
+	}
+
 	private static Resource _getExistingFile(Resource file, short type) {
 
 		boolean asDir = type == ResourceUtil.TYPE_DIR;
@@ -447,16 +470,6 @@ public final class ConfigWebUtil {
 			return ResourceUtil.getCanonicalResourceEL(file);
 		}
 		return null;
-	}
-
-	/**
-	 * 
-	 * @param file
-	 * @param type (FileUtil.TYPE_X)
-	 * @return created file
-	 */
-	public static Resource getFile(Resource file, short type) {
-		return ResourceUtil.createResource(file, ResourceUtil.LEVEL_GRAND_PARENT_FILE, type);
 	}
 
 	/**

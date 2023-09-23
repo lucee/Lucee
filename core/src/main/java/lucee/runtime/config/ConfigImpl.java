@@ -2609,7 +2609,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	@Override
 	public Resource getRemoteClientDirectory() {
 		if (remoteClientDirectory == null) {
-			return ConfigWebUtil.getFile(getRootDirectory(), "client-task", "client-task", getConfigDir(), FileUtil.TYPE_DIR, this);
+			return ConfigWebUtil.getFile(getRootDirectory(), "client-task", "client-task", getConfigDir(), FileUtil.TYPE_DIR, ResourceUtil.LEVEL_GRAND_PARENT_FILE, this);
 		}
 
 		return remoteClientDirectory;
