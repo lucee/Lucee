@@ -2,7 +2,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="query" {
 	// skip closure
 	function isNotSupported() {
 		var mySql = getCredentials();
-		if(!isNull(mysql)){
+		if(!isNull(mysql) && structCount(mysql)){
 			return false;
 		} else{
 			return true;
