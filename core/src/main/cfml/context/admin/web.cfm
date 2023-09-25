@@ -1,4 +1,5 @@
 <cfscript>
+
 	request.singleMode=getApplicationSettings().singleContext;
 	
 	if(request.singleMode && right(cgi.script_name,9)!="index.cfm") {
@@ -47,7 +48,11 @@
 <cfparam name="form.rememberMe" default="s">
 <cfset ad = request.adminType>
 <cfset request.self = (request.singleMode?"index": request.adminType )& ".cfm">
-
+<cfscript>
+	if(structKeyExists(url, "reinit") && (url.action?:"") != "logout") {
+		location url="#cgi.SCRIPT_NAME#?action=logout&full=true" addtoken="No";
+	}
+</cfscript>
 <cfparam name="cookie.lucee_admin_lang" default="en">
 <cfset session.lucee_admin_lang = cookie.lucee_admin_lang>
 
