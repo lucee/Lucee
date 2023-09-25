@@ -320,7 +320,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 					continue; // no version definition no update
 				}
 				try {
-					rhe = ConfigAdmin.hasRHExtensions(cs, new ExtensionDefintion(ed.getId()));
+					rhe = ConfigAdmin.hasRHExtensionInstalled(cs, new ExtensionDefintion(ed.getId()));
 					if (rhe == null) {
 						rheVersion = null;
 						Version since = ed.getSince();

@@ -226,10 +226,9 @@ public class DeployHandler {
 	 */
 	public static boolean deployExtension(Config config, ExtensionDefintion ed, Log log, boolean reload, boolean force, boolean throwOnError) throws PageException {
 		ConfigPro ci = (ConfigPro) config;
-
 		// is the extension already installed
 		try {
-			if (ConfigAdmin.hasRHExtensions(ci, ed) != null) return false;
+			if (ConfigAdmin.hasRHExtensionInstalled(ci, ed) != null) return false;
 		}
 		catch (Exception e) {
 			if (throwOnError) throw Caster.toPageException(e);
@@ -263,7 +262,7 @@ public class DeployHandler {
 					return true;
 				}
 				catch (Exception e) {
-					e.printStackTrace();
+					if (log != null) log.error("extension", e);
 					// check if the zip is valid
 					if (res instanceof File) {
 						if (!IsZipFile.invoke((File) res)) {
@@ -286,7 +285,6 @@ public class DeployHandler {
 		String apiKey = id == null ? null : id.getApiKey();
 		RHExtensionProvider[] providers = ci.getRHExtensionProviders();
 		URL url;
-
 		// if we have a local version, we look if there is a newer remote version
 		if (ext != null) {
 			String content;
@@ -364,7 +362,8 @@ public class DeployHandler {
 				else throw Caster.toPageException(e);
 			}
 		}
-		throw new ApplicationException("Failed to install extension [" + ed.getId() + "]");
+		String name = StringUtil.emptyIfNull(ed.getId()).equals(ed.getSymbolicName()) ? ed.getSymbolicName() : (ed.getSymbolicName() + "(" + ed.getId() + ")");
+		throw new ApplicationException("Failed to install extension [" + name + ":" + ed.getVersion() + "]");
 	}
 
 	public static Resource downloadExtension(Config config, ExtensionDefintion ed, Log log) {

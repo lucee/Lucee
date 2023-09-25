@@ -123,6 +123,7 @@ public class HTTPEngine4Impl {
 
 	private static Field isShutDownField;
 	private static Map<String, PoolingHttpClientConnectionManager> connectionManagers = new ConcurrentHashMap<>();
+	private static boolean cannotAccess = false;
 
 	public static final int POOL_MAX_CONN = 500;
 	public static final int POOL_MAX_CONN_PER_ROUTE = 50;
@@ -337,7 +338,7 @@ public class HTTPEngine4Impl {
 	}
 
 	public static boolean isShutDown(PoolingHttpClientConnectionManager cm, boolean defaultValue) {
-		if (cm != null) {
+		if (cm != null && !cannotAccess) {
 			try {
 				if (isShutDownField == null || isShutDownField.getDeclaringClass() != cm.getClass()) {
 					isShutDownField = cm.getClass().getDeclaredField("isShutDown");
@@ -346,6 +347,7 @@ public class HTTPEngine4Impl {
 				return ((AtomicBoolean) isShutDownField.get(cm)).get();
 			}
 			catch (Exception e) {
+				cannotAccess = true;// depending on JRE used
 				LogUtil.log("http", e);
 			}
 		}

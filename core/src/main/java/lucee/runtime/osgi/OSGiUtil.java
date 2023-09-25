@@ -969,25 +969,22 @@ public class OSGiUtil {
 	}
 
 	/**
-	 * check left value against right value
-	 *
-	 * @param left
-	 * @param right
-	 * @return returns if right is newer than left
+	 * @return a negative integer, zero, or a positive integer as the first argument is less than, equal
+	 *         to, or greater than the second.
 	 */
-	public static boolean isNewerThan(final Version left, final Version right) {
+	public static int compare(final Version left, final Version right) {
 
 		// major
-		if (left.getMajor() > right.getMajor()) return true;
-		if (left.getMajor() < right.getMajor()) return false;
+		if (left.getMajor() > right.getMajor()) return 100;
+		if (left.getMajor() < right.getMajor()) return -100;
 
 		// minor
-		if (left.getMinor() > right.getMinor()) return true;
-		if (left.getMinor() < right.getMinor()) return false;
+		if (left.getMinor() > right.getMinor()) return 50;
+		if (left.getMinor() < right.getMinor()) return -50;
 
 		// micro
-		if (left.getMicro() > right.getMicro()) return true;
-		if (left.getMicro() < right.getMicro()) return false;
+		if (left.getMicro() > right.getMicro()) return 10;
+		if (left.getMicro() < right.getMicro()) return -10;
 
 		// qualifier
 		// left
@@ -1004,18 +1001,31 @@ public class OSGiUtil {
 		String qrn = index == -1 ? q : q.substring(0, index);
 		int qr = StringUtil.isEmpty(qln) ? Integer.MIN_VALUE : Caster.toIntValue(qrn, Integer.MAX_VALUE);
 
-		if (ql > qr) return true;
-		if (ql < qr) return false;
+		if (ql > qr) return 5;
+		if (ql < qr) return -5;
 
 		int qlan = qualifierAppendix2Number(qla);
 		int qran = qualifierAppendix2Number(qra);
 
-		if (qlan > qran) return true;
-		if (qlan < qran) return false;
+		if (qlan > qran) return 2;
+		if (qlan < qran) return -2;
 
-		if (qlan == QUALIFIER_APPENDIX_OTHER && qran == QUALIFIER_APPENDIX_OTHER) return left.compareTo(right) > 0;
+		if (qlan == QUALIFIER_APPENDIX_OTHER && qran == QUALIFIER_APPENDIX_OTHER) return left.compareTo(right) > 0 ? 1 : -1;
 
-		return false;
+		return 0;
+	}
+
+	/**
+	 * check left value against right value
+	 *
+	 * @param left
+	 * @param right
+	 * @return returns if right is newer than left
+	 * @deprecated use instead "compare"
+	 */
+	@Deprecated
+	public static boolean isNewerThan(final Version left, final Version right) {
+		return compare(left, right) > 0;
 	}
 
 	private static int qualifierAppendix2Number(String str) {

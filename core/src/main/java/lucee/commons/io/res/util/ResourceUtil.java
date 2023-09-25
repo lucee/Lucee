@@ -41,6 +41,7 @@ import lucee.commons.io.res.filter.ExtensionResourceFilter;
 import lucee.commons.io.res.filter.IgnoreSystemFiles;
 import lucee.commons.io.res.filter.ResourceFilter;
 import lucee.commons.io.res.filter.ResourceNameFilter;
+import lucee.commons.io.res.type.file.FileResource;
 import lucee.commons.io.res.type.http.HTTPResource;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
@@ -1577,5 +1578,11 @@ public final class ResourceUtil {
 		if (p == null) return false;
 		p = res.getParentResource();
 		return p != null && p.isDirectory();
+	}
+
+	public static void deleteOnExit(Resource res) {
+		if (res instanceof FileResource) {
+			((FileResource) res).deleteOnExit();
+		}
 	}
 }

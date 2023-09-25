@@ -19,13 +19,14 @@
 package lucee.runtime.extension;
 
 import java.io.ByteArrayInputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -45,6 +46,7 @@ import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.Log;
+import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.filter.ExtensionResourceFilter;
 import lucee.commons.io.res.filter.ResourceNameFilter;
@@ -59,7 +61,6 @@ import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigAdmin;
 import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.config.ConfigPro;
-import lucee.runtime.config.ConfigServer;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.config.ConfigWebFactory;
 import lucee.runtime.config.ConfigWebPro;
@@ -224,10 +225,11 @@ public class RHExtension implements Serializable {
 		Resource res;
 		if (installOption != INSTALL_OPTION_NOT) {
 			res = StringUtil.isEmpty(version) ? null : toResource(config, id, version, null);
-			if (installOption == INSTALL_OPTION_FORCE) {
-				DeployHandler.deployExtension(config, res, false, true, false);
-			}
-			else if (res == null) {
+
+			boolean installed = true;
+
+			if (res == null) {
+				installed = false;
 				if (!StringUtil.isEmpty(resource) && (res = ResourceUtil.toResourceExisting(config, resource, null)) != null) {
 					DeployHandler.deployExtension(config, res, false, true, true);
 				}
@@ -235,6 +237,11 @@ public class RHExtension implements Serializable {
 					DeployHandler.deployExtension(config, new ExtensionDefintion(id, version), null, false, true, true);
 					res = RHExtension.toResource(config, id, version);
 				}
+				addToAvailable(res);
+			}
+			// if forced we also instll if it already is
+			if (installOption == INSTALL_OPTION_FORCE && installed) {
+				DeployHandler.deployExtension(config, res, false, true, false);
 			}
 		}
 		else {
@@ -266,14 +273,19 @@ public class RHExtension implements Serializable {
 
 	public RHExtension(Config config, Resource ext, boolean moveIfNecessary) throws PageException, IOException, BundleException, ConverterException {
 		this.config = config;
-		init(ext, moveIfNecessary);
 		softLoaded = false;
+		try {
+			init(ext, moveIfNecessary);
+			// softLoaded = false;
+		}
+		catch (Exception e) {
+			LogUtil.log("deploy", "extension", e);
+		}
 	}
 
 	private void init(Resource ext, boolean moveIfNecessary) throws PageException, IOException, BundleException, ConverterException {
 		// make sure the config is registerd with the thread
 		if (ThreadLocalPageContext.getConfig() == null) ThreadLocalConfig.register(config);
-
 		// is it a web or server context?
 		type = config instanceof ConfigWeb ? "web" : "server";
 
@@ -281,6 +293,7 @@ public class RHExtension implements Serializable {
 
 		this.extensionFile = ext;
 		if (moveIfNecessary) {
+			addToAvailable(ext);
 			move(ext);
 			Struct data = new StructImpl(Struct.TYPE_LINKED);
 			populate(data, true);
@@ -299,7 +312,7 @@ public class RHExtension implements Serializable {
 		Resource trg;
 		Resource trgDir;
 		try {
-			trg = getExtensionFile(config, id, version);
+			trg = getExtensionInstalledFile(config, id, version);
 			trgDir = trg.getParentResource();
 			trgDir.mkdirs();
 			if (!ext.getParentResource().equals(trgDir)) {
@@ -310,6 +323,57 @@ public class RHExtension implements Serializable {
 		}
 		catch (Exception e) {
 			throw Caster.toPageException(e);
+		}
+	}
+
+	public void addToAvailable() {
+		addToAvailable(getExtensionFile());
+	}
+
+	private void addToAvailable(Resource ext) {
+		if (id == null) {
+			try {
+				load(ext);
+			}
+			catch (Exception e) {
+				LogUtil.log("deploy", "extension", e);
+			}
+		}
+		if (ext == null || ext.length() == 0 || id == null) return;
+		Log logger = ThreadLocalPageContext.getLog(config, "deploy");
+		Resource res;
+		if (config instanceof ConfigWeb) {
+			res = ((ConfigWeb) config).getConfigServerDir().getRealResource("extensions/");
+		}
+		else {
+			res = config.getConfigDir().getRealResource("extensions/");
+		}
+
+		// parent exist?
+		if (!res.isDirectory()) {
+			logger.warn("extension", "directory [" + res + "] does not exist");
+			return;
+		}
+		res = res.getRealResource("available/");
+
+		// exist?
+		if (!res.isDirectory()) {
+			try {
+				res.createDirectory(true);
+			}
+			catch (IOException e) {
+				logger.error("extension", e);
+				return;
+			}
+		}
+		res = res.getRealResource(id + "-" + version + ".lex");
+		if (res.length() == ext.length()) return;
+		try {
+			ResourceUtil.copy(ext, res);
+			logger.info("extension", "copy [" + id + ":" + version + "] ro [" + res + "]");
+		}
+		catch (IOException e) {
+			logger.error("extension", e);
 		}
 	}
 
@@ -762,7 +826,7 @@ public class RHExtension implements Serializable {
 
 	public static Resource toResource(Config config, String id, String version) throws PageException {
 		String fileName = HashUtil.create64BitHashAsString(id + version, Character.MAX_RADIX) + ".lex";
-		Resource res = getExtensionDir(config).getRealResource(fileName);
+		Resource res = getExtensionInstalledDir(config).getRealResource(fileName);
 		if (!res.exists()) throw new ApplicationException("Extension [" + fileName + "] was not found at [" + res + "]");
 		return res;
 	}
@@ -770,20 +834,20 @@ public class RHExtension implements Serializable {
 	public static Resource toResource(Config config, String id, String version, Resource defaultValue) throws PageException {
 		Resource res;
 		String fileName = toHash(id, version, "lex");
-		res = getExtensionDir(config).getRealResource(fileName);
+		res = getExtensionInstalledDir(config).getRealResource(fileName);
 		if (!res.exists()) return defaultValue;
 		return res;
 	}
 
-	public static Resource getExtensionFile(Config config, String id, String version) {
+	public static Resource getExtensionInstalledFile(Config config, String id, String version) {
 		String fileName = toHash(id, version, "lex");
-		return getExtensionDir(config).getRealResource(fileName);
+		return getExtensionInstalledDir(config).getRealResource(fileName);
 	}
 
 	private Struct getMetaData(Config config, String id, String version) throws PageException, IOException, BundleException {
 		Resource file = getMetaDataFile(config, id, version);
 		if (file.isFile()) return Caster.toStruct(new JSONExpressionInterpreter().interpret(null, IOUtil.toString(file, CharsetUtil.UTF8)));
-		load(getExtensionFile(config, id, version));
+		load(getExtensionInstalledFile(config, id, version));
 		Struct data = new StructImpl();
 		populate(data, true);
 		return data;
@@ -791,7 +855,7 @@ public class RHExtension implements Serializable {
 
 	public static Resource getMetaDataFile(Config config, String id, String version) {
 		String fileName = toHash(id, version, "mf");
-		return getExtensionDir(config).getRealResource(fileName);
+		return getExtensionInstalledDir(config).getRealResource(fileName);
 	}
 
 	public static String toHash(String id, String version, String ext) {
@@ -799,13 +863,13 @@ public class RHExtension implements Serializable {
 		return HashUtil.create64BitHashAsString(id + version, Character.MAX_RADIX) + "." + ext;
 	}
 
-	private static Resource getExtensionDir(Config config) {
+	private static Resource getExtensionInstalledDir(Config config) {
 		return config.getConfigDir().getRealResource("extensions/installed");
 	}
 
 	private static int getPhysicalExtensionCount(Config config) {
 		final RefInteger count = new RefIntegerImpl(0);
-		getExtensionDir(config).list(new ResourceNameFilter() {
+		getExtensionInstalledDir(config).list(new ResourceNameFilter() {
 			@Override
 			public boolean accept(Resource res, String name) {
 				if (StringUtil.endsWithIgnoreCase(name, ".lex")) count.plus(1);
@@ -816,6 +880,48 @@ public class RHExtension implements Serializable {
 	}
 
 	public static void correctExtensions(Config config) throws PageException, IOException, BundleException, ConverterException {
+		// reduce the amount of extension stored in available
+		{
+			int max = 5;
+			Resource dir = config.getConfigDir().getRealResource("extensions/available");
+			Resource[] resources = dir.listResources(LEX_FILTER);
+			Map<String, List<Pair<RHExtension, Resource>>> map = new HashMap<>();
+			RHExtension ext;
+			List<Pair<RHExtension, Resource>> versions;
+			if (resources != null) {
+				for (Resource r: resources) {
+					ext = new RHExtension(config, r, false);
+					versions = map.get(ext.getId());
+					if (versions == null) map.put(ext.getId(), versions = new ArrayList<>());
+					versions.add(new Pair<RHExtension, Resource>(ext, r));
+				}
+			}
+
+			for (Entry<String, List<Pair<RHExtension, Resource>>> entry: map.entrySet()) {
+				if (entry.getValue().size() > max) {
+					List<Pair<RHExtension, Resource>> list = entry.getValue();
+					Collections.sort(list, new Comparator<Pair<RHExtension, Resource>>() {
+						@Override
+						public int compare(Pair<RHExtension, Resource> l, Pair<RHExtension, Resource> r) {
+							try {
+								return OSGiUtil.compare(OSGiUtil.toVersion(r.getName().getVersion()), OSGiUtil.toVersion(l.getName().getVersion()));
+							}
+							catch (BundleException e) {
+								return 0;
+							}
+						}
+					});
+					int count = 0;
+					for (Pair<RHExtension, Resource> pair: list) {
+						if (++count > max) {
+							if (!pair.getValue().delete()) ResourceUtil.deleteOnExit(pair.getValue());
+						}
+					}
+
+				}
+			}
+		}
+
 		if (config instanceof ConfigWebPro && ((ConfigWebPro) config).isSingle()) return;
 		// extension defined in xml
 		RHExtension[] xmlArrExtensions = ((ConfigPro) config).getRHExtensions();
@@ -828,7 +934,8 @@ public class RHExtension implements Serializable {
 		}
 
 		// Extension defined in filesystem
-		Resource[] resources = getExtensionDir(config).listResources(LEX_FILTER);
+		Resource[] resources = getExtensionInstalledDir(config).listResources(LEX_FILTER);
+
 		if (resources == null || resources.length == 0) return;
 		int rt;
 		RHExtension xmlExt;
@@ -837,20 +944,6 @@ public class RHExtension implements Serializable {
 			xmlExt = xmlExtensions.get(ext.getId());
 			if (xmlExt != null && (xmlExt.getVersion() + "").equals(ext.getVersion() + "")) continue;
 			rt = ext.getReleaseType();
-			if (rt != RHExtension.RELEASE_TYPE_ALL) {
-				if (config instanceof ConfigServer) {
-					if (rt == RHExtension.RELEASE_TYPE_WEB) {
-						if (resources[i] instanceof File) ((File) resources[i]).deleteOnExit();
-						continue;
-					}
-				}
-				else {
-					if (rt == RHExtension.RELEASE_TYPE_SERVER) {
-						if (resources[i] instanceof File) ((File) resources[i]).deleteOnExit();
-						continue;
-					}
-				}
-			}
 			ConfigAdmin._updateRHExtension((ConfigPro) config, resources[i], true, true, true);
 		}
 	}

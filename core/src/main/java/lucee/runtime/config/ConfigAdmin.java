@@ -3917,6 +3917,21 @@ public final class ConfigAdmin {
 				}
 			}
 
+			// move all extension in installed in web context to available in server context
+			{
+				ConfigWeb[] webs = ((ConfigServer) config).getConfigWebs();
+				for (ConfigWeb cw: webs) {
+					try {
+						for (RHExtension ext: ((ConfigPro) cw).getRHExtensions()) {
+							ext.addToAvailable();
+						}
+					}
+					catch (Exception e) {
+						LogUtil.log("deploy", "extension", e);
+					}
+				}
+			}
+
 			// delete all the server configs
 			if (!keep) {
 				ConfigWeb[] webs = ((ConfigServer) config).getConfigWebs();
@@ -4510,7 +4525,7 @@ public final class ConfigAdmin {
 		}
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
-			DeployHandler.moveToFailedFolder(ext.getParentResource(), ext);
+			if (ext != null) DeployHandler.moveToFailedFolder(ext.getParentResource(), ext);
 			throw Caster.toPageException(t);
 		}
 		updateRHExtension(config, rhext, reload, force);
@@ -4519,7 +4534,7 @@ public final class ConfigAdmin {
 	public void updateRHExtension(Config config, RHExtension rhext, boolean reload, boolean force) throws PageException {
 
 		try {
-			if (!force && ConfigAdmin.hasRHExtensions((ConfigPro) config, rhext.toExtensionDefinition()) != null) {
+			if (!force && ConfigAdmin.hasRHExtensionInstalled((ConfigPro) config, rhext.toExtensionDefinition()) != null) {
 				throw new ApplicationException("the extension " + rhext.getName() + " (id: " + rhext.getId() + ") in version " + rhext.getVersion() + " is already installed");
 			}
 		}
@@ -6137,7 +6152,7 @@ public final class ConfigAdmin {
 				String version = Caster.toString(el.get(KeyConstants._version, null), null);
 				Resource file = RHExtension.getMetaDataFile(config, id, version);
 				if (file.isFile()) file.delete();
-				file = RHExtension.getExtensionFile(config, id, version);
+				file = RHExtension.getExtensionInstalledFile(config, id, version);
 				if (file.isFile()) file.delete();
 
 				return bundles;
@@ -6313,12 +6328,12 @@ public final class ConfigAdmin {
 	 * @throws IOException
 	 * @throws SAXException
 	 */
-	public static RHExtension hasRHExtensions(ConfigPro config, ExtensionDefintion ed) throws PageException, IOException {
+	public static RHExtension hasRHExtensionInstalled(ConfigPro config, ExtensionDefintion ed) throws PageException, IOException {
 		ConfigAdmin admin = new ConfigAdmin(config, null);
-		return admin._hasRHExtensions(config, ed);
+		return admin._hasRHExtensionInstalled(config, ed);
 	}
 
-	private RHExtension _hasRHExtensions(ConfigPro config, ExtensionDefintion ed) throws PageException {
+	private RHExtension _hasRHExtensionInstalled(ConfigPro config, ExtensionDefintion ed) throws PageException {
 
 		Array children = ConfigWebUtil.getAsArray("extensions", root);
 		int[] keys = children.intKeys();
