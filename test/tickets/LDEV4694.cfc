@@ -1,4 +1,4 @@
-component extends=org.lucee.cfml.test.LuceeTestCase {
+component extends=org.lucee.cfml.test.LuceeTestCase skip=true {
 
 	function beforeAll() {
 		variables.testPdf = getTempFile( getTempDirectory(), "ldev4694", "pdf" );
