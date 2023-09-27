@@ -132,53 +132,53 @@ hasCache=hasObj || hasTem || hasQry || hasRes || hasFun || hasInc;
 </cfsilent>
 <cfoutput>
 
-	<cfsavecontent variable="codeSample">
+<cfsavecontent variable="codeSample">
+	<span style="overflow-wrap: break-word">
 component {
 
 	this.name = "#info.label ?: '&lt;application-name&gt;' #"; // name of the application context
 
 // regional
 	// default locale used for formating dates, numbers ...
-	this.locale = "#regional.locale#"; 
+	this.locale = "#regional.locale#";
 	// default timezone used
-	this.timezone = "#regional.timezone#"; 
+	this.timezone = "#regional.timezone#";
 
 // scope handling
 	// lifespan of an untouched application scope
-	this.applicationTimeout = createTimeSpan( #scope.applicationTimeout_day#, #scope.applicationTimeout_hour#, #scope.applicationTimeout_minute#, #scope.applicationTimeout_second# ); 
+	this.applicationTimeout = createTimeSpan( #scope.applicationTimeout_day#, #scope.applicationTimeout_hour#, #scope.applicationTimeout_minute#, #scope.applicationTimeout_second# );
 	
 	// session handling enabled or not
-	this.sessionManagement = #scope.sessionManagement#; 
+	this.sessionManagement = #scope.sessionManagement#;
 	// cfml or jee based sessions
-	this.sessionType = "#scope.sessionType#"; 
+	this.sessionType = "#scope.sessionType#";
 	// untouched session lifespan
-	this.sessionTimeout = createTimeSpan( #scope.sessionTimeout_day#, #scope.sessionTimeout_hour#, #scope.sessionTimeout_minute#, #scope.sessionTimeout_second# ); 
+	this.sessionTimeout = createTimeSpan( #scope.sessionTimeout_day#, #scope.sessionTimeout_hour#, #scope.sessionTimeout_minute#, #scope.sessionTimeout_second# );
 	this.sessionStorage = "#scope.sessionStorage#";
 	
 	// client scope enabled or not
-	this.clientManagement = #scope.clientManagement#; 
+	this.clientManagement = #scope.clientManagement#;
 	this.clientTimeout = createTimeSpan( #scope.clientTimeout_day#, #scope.clientTimeout_hour#, #scope.clientTimeout_minute#, #scope.clientTimeout_second# );
 	this.clientStorage = "#scope.clientStorage#";
-						
+	
 	// using domain cookies or not
-	this.setDomainCookies = #scope.domainCookies#; 
+	this.setDomainCookies = #scope.domainCookies#;
 	this.setClientCookies = #scope.clientCookies#;
 
 	// prefer the local scope at un-scoped write
-	this.localMode = "#scope.LocalMode#"; 
+	this.localMode = "#scope.LocalMode#";
 	
 	// buffer the output of a tag/function body to output in case of an exception
-	this.bufferOutput = #outputSetting.bufferOutput#; 
+	this.bufferOutput = #outputSetting.bufferOutput#;
 	this.compression = #outputSetting.AllowCompression#;
 	this.suppressRemoteComponentContent = #outputSetting.suppressContent#;
 	
 	// If set to false Lucee ignores type definitions with function arguments and return values
 	this.typeChecking = #PerformanceSettings.typeChecking#;
-	
-	
+
 // request
 	// max lifespan of a running request
-	this.requestTimeout=createTimeSpan(#appSettings.requestTimeout_day#,#appSettings.requestTimeout_hour#,#appSettings.requestTimeout_minute#,#appSettings.requestTimeout_second#); 
+	this.requestTimeout=createTimeSpan(#appSettings.requestTimeout_day#,#appSettings.requestTimeout_hour#,#appSettings.requestTimeout_minute#,#appSettings.requestTimeout_second#);
 
 // charset
 	this.charset.web="#charset.webCharset#";
@@ -188,10 +188,12 @@ component {
 	this.searchResults = #trueFalseFormat(scope.allowImplicidQueryCall)#;
 // regex
 	this.regex.type = "#regex.type#";
+
 //////////////////////////////////////////////
 //               MAIL SERVERS               //
 //////////////////////////////////////////////
-	this.mailservers =[ 
+
+	this.mailservers =[
 <cfloop query="#mailservers#"><cfset life=toTSStruct(mailservers.life)><cfset idle=toTSStruct(mailservers.idle)>
 		<cfif mailservers.currentrow GT 1>,</cfif>{
 		  host: '#mailservers.hostname#'
@@ -199,7 +201,7 @@ component {
 		, username: '#replace(mailservers.username,"'","''","all")#'
 		, password: '#mailservers.passwordEncrypted?:''#'
 		, ssl: #mailservers.ssl?:false#
-		, tls: #mailservers.tls?:false#<cfif 
+		, tls: #mailservers.tls?:false#<cfif
 		!isNull(mailservers.life)>
 		, lifeTimespan: createTimeSpan(#life.days#,#life.hours#,#life.minutes#,#life.seconds#)</cfif><cfif 
 		!isNull(mailservers.idle)>
@@ -207,10 +209,11 @@ component {
 		}
 </cfloop>
 	];
+
 //////////////////////////////////////////////
 //               DATASOURCES                //
 //////////////////////////////////////////////
-	<cfloop query="#datasources#"><cfscript>
+<cfloop query="#datasources#"><cfscript>
 optional=[];
 // not supported yet optional.append('default:false // default: false');
 if(datasources.blob) optional.append('blob:#datasources.blob# // default: false');
@@ -232,10 +235,11 @@ if(datasources.readOnly) optional.append('readOnly:#datasources.readOnly# // def
 	<cfloop array="#optional#" index="i" item="value">, #value#<cfif i LT optional.len()>
 	</cfif></cfloop></cfif>
 	};
-	</cfloop>
+</cfloop>
 //////////////////////////////////////////////
 //                 CACHES                   //
 //////////////////////////////////////////////
+
 	<cfloop query="#cacheConnections#">this.cache.connections["#cacheConnections.name#"] = {
 		  class: '#cacheConnections.class#'#isNull(cacheConnections.bundleName) || isEmpty(cacheConnections.bundleName)?"":"
 		, bundleName: '"&cacheConnections.bundleName&"'"##isNull(cacheConnections.bundleVersion) || isEmpty(cacheConnections.bundleVersion)?"":"
@@ -252,19 +256,18 @@ if(datasources.readOnly) optional.append('readOnly:#datasources.readOnly# // def
 </cfif><cfif hasQry>	this.cache.query = "#!hasQry?"&lt;cache-name>":defaults.query#";
 </cfif><cfif hasRes>	this.cache.resource = "#!hasRes?"&lt;cache-name>":defaults.resource#";
 </cfif><cfif hasFun>	this.cache.function = "#!hasFun?"&lt;cache-name>":defaults.function#";
-</cfif><cfif hasInc>	this.cache.include = "#!hasInc?"&lt;cache-name>":defaults.include#";</cfif>
-</cfif>	
-
+</cfif><cfif hasInc>	this.cache.include = "#!hasInc?"&lt;cache-name>":defaults.include#";</cfif></cfif>
 //////////////////////////////////////////////
 //               MAPPINGS                   //
 //////////////////////////////////////////////
 <cfloop query="mappings"><cfif mappings.hidden || mappings.virtual=="/lucee" || mappings.virtual=="/lucee-server"><cfcontinue></cfif><cfset del=""><cfset count=0>
-this.mappings["#mappings.virtual#"]=<cfif len(mappings.strPhysical) && !len(mappings.strArchive)>"#mappings.strPhysical#"<cfelse>{<cfif len(mappings.strPhysical)><cfset count++>
+	this.mappings["#mappings.virtual#"]=<cfif len(mappings.strPhysical) && !len(mappings.strArchive)>"#mappings.strPhysical#"<cfelse>{<cfif len(mappings.strPhysical)><cfset count++>
 		physical:"#mappings.strPhysical#"<cfset del=","></cfif><cfif len(mappings.strArchive)><cfset count++>
 		#del#archive:"#mappings.strArchive#"<cfset del=","></cfif><cfif count==2 && !mappings.PhysicalFirst>
 		#del#primary:"<cfif mappings.PhysicalFirst>physical<cfelse>archive</cfif>"<cfset del=","></cfif>}</cfif>;
 </cfloop>
 }
+</span>
 </cfsavecontent>
 
 
