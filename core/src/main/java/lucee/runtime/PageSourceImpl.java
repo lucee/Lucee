@@ -377,13 +377,14 @@ public final class PageSourceImpl implements PageSource {
 					}
 
 				}
-				catch (Exception e) {
-					LogUtil.log(pc, "compile", e);
-					pcn.reset();
-				}
 				catch (ClassFormatError cfe) {
 					LogUtil.log(pc, Log.LEVEL_ERROR, "compile", "size of the class file:" + classFile.length());
 					LogUtil.log(pc, "compile", cfe);
+					pcn.reset();
+				}
+				catch (Throwable t) {
+					ExceptionUtil.rethrowIfNecessary(t);
+					LogUtil.log(pc, "compile", t);
 					pcn.reset();
 				}
 				if (page == null) {
