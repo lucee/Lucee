@@ -237,17 +237,14 @@ public class UDFImpl extends MemberSupport implements UDFPlus, Externalizable {
 	private Object _callCachedWithin(PageContext pc, Collection.Key calledName, Object[] args, Struct values, boolean doIncludePath) throws PageException {
 		Argument newArgs = null;
 		PageContextImpl pci = (PageContextImpl) pc;
-		Object cachedWithin;
-		String cacheId;
-		CacheHandler cacheHandler;
 
 		newArgs = pci.getScopeFactory().getArgumentInstance();
 		if (args != null) defineArguments(pc, getFunctionArguments(), args, newArgs);
 		else defineArguments(pc, getFunctionArguments(), values, newArgs);
 
-		cachedWithin = getCachedWithin(pc);
-		cacheId = CacheHandlerCollectionImpl.createId(this, null, newArgs);
-		cacheHandler = pc.getConfig().getCacheHandlerCollection(Config.CACHE_TYPE_FUNCTION, null).getInstanceMatchingObject(getCachedWithin(pc), null);
+		Object cachedWithin = getCachedWithin(pc);
+		String cacheId = CacheHandlerCollectionImpl.createId(this, null, newArgs);
+		CacheHandler cacheHandler = pc.getConfig().getCacheHandlerCollection(Config.CACHE_TYPE_FUNCTION, null).getInstanceMatchingObject(getCachedWithin(pc), null);
 
 		if (cacheHandler instanceof CacheHandlerPro) {
 			CacheItem cacheItem = ((CacheHandlerPro) cacheHandler).get(pc, cacheId, cachedWithin);
