@@ -125,7 +125,7 @@ public class UDFImpl extends MemberSupport implements UDFPlus, Externalizable {
 		throw new UDFCasterException(this, arg, value, index);
 	}
 
-	private void defineArguments(PageContext pc, FunctionArgument[] funcArgs, Object[] args, Struct newArgs) throws PageException {
+	private void defineArguments(PageContext pc, FunctionArgument[] funcArgs, Object[] args, Argument newArgs) throws PageException {
 		// define argument scope
 		boolean fns = NullSupportHelper.full(pc);
 		Object _null = NullSupportHelper.NULL(fns);
@@ -154,7 +154,7 @@ public class UDFImpl extends MemberSupport implements UDFPlus, Externalizable {
 		}
 	}
 
-	private void defineArguments(PageContext pc, FunctionArgument[] funcArgs, Struct values, Struct newArgs) throws PageException {
+	private void defineArguments(PageContext pc, FunctionArgument[] funcArgs, Struct values, Argument newArgs) throws PageException {
 		// argumentCollection
 		UDFUtil.argumentCollection(values, funcArgs);
 		// print.out(values.size());
@@ -235,10 +235,9 @@ public class UDFImpl extends MemberSupport implements UDFPlus, Externalizable {
 	}
 
 	private Object _callCachedWithin(PageContext pc, Collection.Key calledName, Object[] args, Struct values, boolean doIncludePath) throws PageException {
-		Argument newArgs = null;
 		PageContextImpl pci = (PageContextImpl) pc;
 
-		newArgs = pci.getScopeFactory().getArgumentInstance();
+		Argument newArgs = pci.getScopeFactory().getArgumentInstance();
 		if (args != null) defineArguments(pc, getFunctionArguments(), args, newArgs);
 		else defineArguments(pc, getFunctionArguments(), values, newArgs);
 
