@@ -1,15 +1,16 @@
-<cfoutput>
 <cfset passwordPdf = "lucee-test">
-<cfdocument filename="testLucee.pdf" userpassword="#passwordPdf#" encryption="128-bit" format="pdf" overwrite="yes">
+<cfset testPDF = getTempFile(getTempDirectory(), "LDEV1850", "pdf")>
+
+<cfdocument filename="#testPDF#" userpassword="#passwordPdf#" encryption="128-bit" format="pdf" overwrite="yes">
 	Lucee PDF
 </cfdocument>
 <cfset temp=structnew()>
-<cfset strDocumentWithPath = "testLucee.pdf">
+<cfset outputFile = getTempFile(getTempDirectory(), "LDEV1850-output", "pdf")>
 
 <cfset temp.pwFiacWord="#passwordPdf#">
-<cfset temp.outfile = replacenocase(strDocumentWithPath,".pdf","down.pdf")>
+<cfset temp.outfile = outputFile>
 
-<cfsavecontent variable="temp.myddx">
+<cfsavecontent variable="temp.ddx">
 	<?xml version="1.0" encoding="UTF-8"?>
 	<DDX xmlns="http://ns.adobe.com/DDX/1.0/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://ns.adobe.com/DDX/1.0/ coldfusion_ddx.xsd">
 	<PDF result="OUTpdf">
@@ -20,11 +21,12 @@
 	</DDX>
 </cfsavecontent>
 
-<cfset temp.myddx = trim(temp.myddx)>
+<cfset temp.ddx = trim(temp.ddx)>
 
-<cfset temp.inputStruct = {INpdf="#strDocumentWithPath#"}>
+<cfset temp.inputStruct = {INpdf="#testPDF#"}>
 <cfset temp.outputStruct = {OUTpdf="#temp.outfile#"}>
-<cfpdf action="processddx" ddxfile="#temp.myddx#" inputfiles="#temp.inputStruct#" outputfiles="#temp.outputStruct#" name="temp.ddxVar">
+<cfpdf action="processddx" ddxfile="#temp.ddx#" inputfiles="#temp.inputStruct#" outputfiles="#temp.outputStruct#" name="temp.ddxResult">
 
-#temp.ddxVar.OUTPDF#
+<cfoutput>
+#temp.ddxResult.OUTPDF#
 </cfoutput>

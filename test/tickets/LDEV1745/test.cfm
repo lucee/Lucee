@@ -1,4 +1,5 @@
-<cfset path = ListDeleteAt(getCurrenttemplatepath(), listLen(getCurrenttemplatepath(), "\"), "\") />
+
+<cfset path = getTempDirectory() & "LDEV_1745_" & createUUID() />
 <cfparam name="FORM.Scene" default="1"> 
 <cfset colName = "LDEV1745_0_0	">
 <cfset criteria1 = '+"Test Words"' />
