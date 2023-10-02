@@ -1670,11 +1670,14 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				});
 
 				it(title="checking createSecurityManager()", body=function( currentSpec ) {
+					var isMulti=getPageContext().getConfig().getAdminMode()==2/*ADMINMODE_MULTI = 2*/;
 					var contexts=admin.getContexts();
 					admin.createsecuritymanager(id=contexts.id[1]);
 					var testContexts=admin.getContexts();
 					var result = QueryRowData(testContexts, 1);
-					expect( result.hasOwnSecContext ).toBe( true, result.toJson() );
+					// only when multi this must be true
+					if(isMulti) expect( result.hasOwnSecContext ).toBe( true, result.toJson() );
+					else expect( result.hasOwnSecContext ).toBe( false, result.toJson() );
 				});
 
 				it(title="checking getSecurityManager()", body=function( currentSpec ) {
