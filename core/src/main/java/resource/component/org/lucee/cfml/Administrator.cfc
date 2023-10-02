@@ -819,18 +819,6 @@ component {
 	}
 
 	/**
-	* @hint returns the extension Info
-	*/
-	public struct function getExtensionInfo(){
-		admin
-			action="getExtensionInfo"
-			type="#variables.type#"
-			password="#variables.password#"
-			returnVariable="local.info";
-		return info;
-	}
-
-	/**
 	* @hint updates(install/upgrade/downgrade) a specific extension.
 	* @id id of the extension
 	* @version version of the extension

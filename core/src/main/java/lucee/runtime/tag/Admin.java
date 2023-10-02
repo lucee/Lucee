@@ -708,7 +708,6 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		else if (check("getRestMappings", ACCESS_FREE) && check2(ACCESS_READ)) doGetRestMappings();
 		else if (check("getRestSettings", ACCESS_FREE) && check2(ACCESS_READ)) doGetRestSettings();
 		else if ((check("getRHExtensionProviders", ACCESS_FREE) || check("getExtensionProviders", ACCESS_FREE)) && check2(ACCESS_READ)) doGetRHExtensionProviders();
-		else if (check("getExtensionInfo", ACCESS_FREE) && check2(ACCESS_READ)) doGetExtensionInfo();
 
 		else if (check("getCustomTagMappings", ACCESS_FREE) && check2(ACCESS_READ)) doGetCustomTagMappings();
 		else if (check("getComponentMappings", ACCESS_FREE) && check2(ACCESS_READ)) doGetComponentMappings();
@@ -2121,51 +2120,6 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		}
 		pageContext.setVariable(getString("admin", action, "returnVariable"), qry);
 	}
-
-	private void doGetExtensionInfo() throws PageException {
-		Resource ed = config.getExtensionDirectory();
-		Struct sct = new StructImpl();
-		sct.set(KeyConstants._directory, ed.getPath());
-		sct.set(KeyConstants._enabled, Caster.toBoolean(config.isExtensionEnabled()));
-
-		pageContext.setVariable(getString("admin", action, "returnVariable"), sct);
-	}
-
-	/*
-	 * private void doGetExtensions() throws PageException { Extension[] extensions =
-	 * config.getExtensions(); lucee.runtime.type.Query qry = new QueryImpl(new String[] { "type",
-	 * "provider", "id", "config", "version", "category", "description", "image", "label", "name",
-	 * "author", "codename", "video", "support", "documentation", "forum", "mailinglist", "network",
-	 * "created" }, 0, "query");
-	 * 
-	 * String provider = getString("provider", null); String id = getString("id", null); Extension
-	 * extension; String extProvider, extId; int row = 0; for (int i = 0; i < extensions.length; i++) {
-	 * extension = extensions[i]; if(!extension.getType().equalsIgnoreCase("all") &&
-	 * toType(extension.getType(), false) != type) continue;
-	 * 
-	 * extProvider = extension.getProvider(); extId = extension.getId(); if(provider != null &&
-	 * !provider.equalsIgnoreCase(extProvider)) continue; if(id != null && !id.equalsIgnoreCase(extId))
-	 * continue;
-	 * 
-	 * qry.addRow(); row++; qry.setAt("provider", row, extProvider); qry.setAt(KeyConstants._id, row,
-	 * extId); qry.setAt(KeyConstants._config, row, extension.getConfig(pageContext));
-	 * qry.setAt(KeyConstants._version, row, extension.getVersion());
-	 * 
-	 * qry.setAt("category", row, extension.getCategory()); qry.setAt(KeyConstants._description, row,
-	 * extension.getDescription()); qry.setAt("image", row, extension.getImage());
-	 * qry.setAt(KeyConstants._label, row, extension.getLabel()); qry.setAt(KeyConstants._name, row,
-	 * extension.getName());
-	 * 
-	 * qry.setAt(KeyConstants._author, row, extension.getAuthor()); qry.setAt("codename", row,
-	 * extension.getCodename()); qry.setAt("video", row, extension.getVideo()); qry.setAt("support",
-	 * row, extension.getSupport()); qry.setAt("documentation", row, extension.getDocumentation());
-	 * qry.setAt("forum", row, extension.getForum()); qry.setAt("mailinglist", row,
-	 * extension.getMailinglist()); qry.setAt("network", row, extension.getNetwork());
-	 * qry.setAt(KeyConstants._created, row, extension.getCreated()); qry.setAt(KeyConstants._type, row,
-	 * extension.getType());
-	 * 
-	 * } pageContext.setVariable(getString("admin", action, "returnVariable"), qry); }
-	 */
 
 	private void doGetMappings() throws PageException {
 

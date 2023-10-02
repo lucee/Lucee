@@ -467,19 +467,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					assertEquals(isquery(getExtensions) ,true);
 				});
 
-				it(title="checking getExtensionInfo()", body=function( currentSpec ) {
-					var extensionsInfo = adminWeb.getExtensionInfo();
-					assertEquals(isStruct(extensionsInfo) ,true);
-					assertEquals(listSort(structKeyList(extensionsInfo),'textnocase'),'directory,enabled');
-				});
-
-				/*it(title="checking updateExtensionInfo()", body=function( currentSpec ) {
-					adminWeb.updateExtensionInfo(enabled=true);
-					var extensionsInfo = adminWeb.getExtensionInfo();
-					assertEquals(isStruct(extensionsInfo) ,true);
-					assertEquals(extensionsInfo.enabled EQ true ,true);
-				});*/
-
 				it(title="checking updateExtension()", body=function( currentSpec ) {
 					var tmpStrt = {};
 					tmpStrt.provider = "https://extension.lucee.org";
