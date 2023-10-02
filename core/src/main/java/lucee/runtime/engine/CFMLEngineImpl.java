@@ -108,6 +108,7 @@ import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
 import lucee.runtime.PageSourceImpl;
 import lucee.runtime.cache.CacheUtil;
+import lucee.runtime.cache.ram.RamCache;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigAdmin;
 import lucee.runtime.config.ConfigFactory;
@@ -1317,7 +1318,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 	@Override
 	public void reset(String configId) {
 		if (!controlerState.active()) return;
-
+		controlerState.setActive(false);
 		try {
 			LogUtil.log(configServer, Log.LEVEL_INFO, "startup", "Reset CFML Engine");
 
@@ -1344,6 +1345,9 @@ public final class CFMLEngineImpl implements CFMLEngine {
 					config = cfmlFactory.getConfig();
 
 					if (config != null && config.getIdentification() != null && configId != null && !configId.equals(config.getIdentification().getId())) continue;
+
+					// RAM cache
+					RamCache.doNotifyAll(this);
 
 					// scheduled tasks
 					SchedulerImpl scheduler = ((SchedulerImpl) config.getScheduler());
