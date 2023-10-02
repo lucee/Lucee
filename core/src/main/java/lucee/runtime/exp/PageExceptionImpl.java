@@ -177,7 +177,7 @@ public abstract class PageExceptionImpl extends PageException {
 
 	@Override
 	public CatchBlock getCatchBlock(Config config) {
-		return new CatchBlockImpl(this);
+		return new CatchBlockImpl(this, 0);
 	}
 
 	public Array getTagContext(Config config) {

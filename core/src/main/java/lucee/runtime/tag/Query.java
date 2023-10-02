@@ -61,7 +61,6 @@ import lucee.runtime.debug.DebuggerImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.CasterException;
-import lucee.runtime.exp.CatchBlockImpl;
 import lucee.runtime.exp.DatabaseException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.tag.BodyTagTryCatchFinallyImpl;
@@ -787,7 +786,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 			if (data.listener != null && data.listener.hasError()) {
 				long addExe = System.nanoTime();
 				Struct args = createArgStruct(data, strSQL, tl);
-				args.set(KeyConstants._exception, new CatchBlockImpl(pe));
+				args.set(KeyConstants._exception, pe.getCatchBlock(pageContext.getConfig()));
 				ResMeta rm = writeBackResult(pageContext, data, data.listener.error(pageContext, args), setVars);
 				if (data.result == null || (rm.meta == null && rm.asQueryResult() != null))
 					rm.meta = createMetaData(pageContext, data, rm.asQueryResult(), null, setVars, exe + (System.nanoTime() - addExe));
