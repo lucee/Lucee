@@ -550,11 +550,11 @@
       "newpassword": "New password",
       "newpassworddescription": "The new password for the administrator",
       "newpasswordmissing": "Please enter a value for the new password",
-      "newtooshort": "The new password is to short, its length must be at least 6 characters",
+      "newtooshort": "The new password is too short, its length must be at least 6 characters",
       "oldpassword": "Old password",
       "oldpassworddescription": "The old password to change",
       "oldpasswordmissing": "Please enter a value for the old password",
-      "oldtooshort": "The old password is to short, its length must be at least 6 characters",
+      "oldtooshort": "The old password is too short, its length must be at least 6 characters",
       "password": "Password",
       "passwordmissing": "Please enter a value for the field password",
       "rememberme": "Remember\u0026nbsp;Me for",
@@ -762,7 +762,7 @@
       "contextcount": "Context count",
       "contexts": {
         "config_file": "Configuration File",
-        "desc": "You can label your web contexts here, so they are more clear distinguishable for use with extensions etc. The default label of a web context is the MD5 hash of its webroot.",
+        "desc": "You can label your web contexts here, so they are more clearly distinguishable for use with extensions etc. The default label of a web context is the MD5 hash of its webroot.",
         "label": "Label",
         "title": "Web contexts",
         "url": "URL",
@@ -1561,7 +1561,7 @@
       "dbStorage": "Storage",
       "dbStorageDesc": "Allow using this datasource for client/session/log storage.",
       "dbtimezone": "Timezone",
-      "dbtimezoneDesc": "When you define a date as a string (not with cfqueryparam) inside cfquery, there is normally no timezone information with it and the date string is based on the locale timezone. Therefore the database will interpret this date string based on it\u0027s own timezone.\r\nIf the timezone of your Lucee instance and your database is different, this can lead to problems. Because of that Lucee now allows you to define a timezone for a specific datasource definition. Be aware that you should only define a specific timezone, if you are a 100% sure that this timezone is used on the database server and it is different from the timezone of the Lucee instance. This setting can be overwritten by the cfquery attribute \"timezone\".",
+      "dbtimezoneDesc": "When you define a date as a string (not with cfqueryparam) inside cfquery, there is normally no timezone information with it and the date string is based on the locale timezone. Therefore the database will interpret this date string based on it\u0027s own timezone.\r\nIf the timezone of your Lucee instance and your database is different, this can lead to problems. Because of that Lucee now allows you to define a timezone for a specific datasource definition. Be aware that you should only define a specific timezone, if you are 100% sure that this timezone is used on the database server and it is different from the timezone of the Lucee instance. This setting can be overwritten by the cfquery attribute \"timezone\".",
       "dbtimezoneSame": "Same as Lucee Instance",
       "dbuser": "Username",
       "dbuserdesc": "The username for the database",
@@ -1645,7 +1645,7 @@
         "schema": "Schema",
         "schemaDesc": "Specifies the default Schema that should be used by ORM. This setting can be overwritten in Application.cfc as follows [this.ormsettings.schema\u003d\u0027sch\u0027]",
         "sqlscript": "SQL Script",
-        "sqlscriptDesc": "Path to the SQL script file that gets executed after ORM is initialized. This applies if dbcreate is set to dropcreate. This must be the absolute file path or the path relative to the application.The SQL script file lets you populate the tables before the application is accessed. This setting can be overwritten in Application.cfc as follows [this.ormsettings.sqlscript\u003d\u0027...\u0027]",
+        "sqlscriptDesc": "Path to the SQL script file that gets executed after ORM is initialized. This applies if dbcreate is set to dropcreate. This must be the absolute file path or the path relative to the application. The SQL script file lets you populate the tables before the application is accessed. This setting can be overwritten in Application.cfc as follows [this.ormsettings.sqlscript\u003d\u0027...\u0027]",
         "title": "Settings",
         "useDBForMapping": "Use DB for mapping",
         "useDBForMappingDesc": "Specifies whether the database has to be inspected to identify the missing information required to generate the Hibernate mapping. The database is inspected to get the column data type, primary key and foreign key information. This setting can be overwritten in Application.cfc as follows [this.ormsettings.useDBForMapping\u003dtrue]"
@@ -1677,7 +1677,7 @@
       "uploadmissing": "Missing upload definition",
       "web": {
         "installed": "The video components are installed on your system.",
-        "installedbut": "The video components are installed but they can not be executed properly.Just switch to the Lucee Server Administrator, in order to repair it:"
+        "installedbut": "The video components are installed but they can not be executed properly. Just switch to the Lucee Server Administrator, in order to repair it:"
       }
     }
   }
