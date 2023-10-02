@@ -1256,7 +1256,7 @@ component {
 	* @handleUnquotedAttrValueAsString Handle unquoted tag attribute values as strings.
 	* @externalizeStringGTE Externalize strings from generated class files to separate files.
 	*/
-	public void function updateCompilerSettings( required string templateCharset, required string dotNotationUpperCase, boolean nullSupport, boolean suppressWSBeforeArg, boolean handleUnquotedAttrValueAsString, numeric externalizeStringGTE){
+	public void function updateCompilerSettings( required string templateCharset, required string dotNotationUpperCase, boolean nullSupport, boolean suppressWSBeforeArg, boolean handleUnquotedAttrValueAsString, numeric externalizeStringGTE, boolean preciseMath){
 		var dotNotUpper=true;
 		if(isDefined('arguments.dotNotationUpperCase') and arguments.dotNotationUpperCase EQ "oc"){
 			dotNotUpper=false;
@@ -1273,6 +1273,7 @@ component {
 			suppressWSBeforeArg=isNull(arguments.suppressWSBeforeArg) || isEmpty(arguments.suppressWSBeforeArg) ? existing.suppressWSBeforeArg : arguments.suppressWSBeforeArg
 			handleUnquotedAttrValueAsString=isNull(arguments.handleUnquotedAttrValueAsString) || isEmpty(arguments.handleUnquotedAttrValueAsString) ? existing.handleUnquotedAttrValueAsString  : arguments.handleUnquotedAttrValueAsString
 			externalizeStringGTE=isNull(arguments.externalizeStringGTE) || isEmpty(arguments.externalizeStringGTE) ? existing.externalizeStringGTE  : arguments.externalizeStringGTE
+			preciseMath=isNull(arguments.preciseMath) || isEmpty(arguments.preciseMath) ? existing.preciseMath  : arguments.preciseMath
 			remoteClients="#variables.remoteClients#";
 	}
 
@@ -1291,6 +1292,7 @@ component {
 			handleUnquotedAttrValueAsString=""
 			templateCharset=""
 			externalizeStringGTE=""
+			preciseMath=""
 			remoteClients="#variables.remoteClients#";
 	}
 
@@ -2014,7 +2016,7 @@ component {
 	* @type specifies the type of listener to update
 	* @mode specifies the mode of the listener
 	*/
-	public void function updateApplicationListener( string type, string mode ){
+	public void function updateApplicationListener( string type, string mode, numeric applicationPathTimeout ){
 		var existing = getApplicationListener();
 		admin
 			action="updateApplicationListener"
@@ -2022,6 +2024,7 @@ component {
 			password="#variables.password#"
 			listenerType=isNull(arguments.type) || isEmpty(arguments.type) ? existing.type : arguments.type
 			listenerMode=isNull(arguments.mode) || isEmpty(arguments.mode) ? existing.mode : arguments.mode
+			applicationPathTimeout =isNull(arguments.applicationPathTimeout) || isEmpty(arguments.applicationPathTimeout) ? existing.applicationPathTimeout : arguments.applicationPathTimeout
 			remoteClients="#variables.remoteClients#";
 	}
 
@@ -2035,6 +2038,7 @@ component {
 			password="#variables.password#"
 			listenerType=""
 			listenerMode=""
+			applicationPathTimeout=""
 			remoteClients="#variables.remoteClients#";
 	}
 
