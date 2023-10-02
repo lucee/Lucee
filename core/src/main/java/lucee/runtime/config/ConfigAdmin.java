@@ -151,8 +151,6 @@ import lucee.runtime.type.util.ComponentUtil;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.ListUtil;
 import lucee.runtime.type.util.StructUtil;
-import lucee.runtime.video.VideoExecuter;
-import lucee.runtime.video.VideoExecuterNotSupported;
 import lucee.transformer.library.ClassDefinitionImpl;
 import lucee.transformer.library.function.FunctionLibException;
 import lucee.transformer.library.tag.TagLibException;
@@ -4291,7 +4289,6 @@ public final class ConfigAdmin {
 		el.setEL("author", extension.getAuthor());
 		el.setEL("type", extension.getType());
 		el.setEL("codename", extension.getCodename());
-		el.setEL("video", extension.getVideo());
 		el.setEL("support", extension.getSupport());
 		el.setEL("documentation", extension.getDocumentation());
 		el.setEL("forum", extension.getForum());
@@ -5464,15 +5461,7 @@ public final class ConfigAdmin {
 		extensions.setEL("usage", toStringURLStyle(usage));
 
 	}
-
-	public void updateVideoExecuterClass(ClassDefinition cd) throws PageException {
-
-		if (cd.getClassName() == null) cd = new ClassDefinitionImpl(VideoExecuterNotSupported.class.getName());
-
-		Struct app = _getRootElement("video");
-		setClass(app, VideoExecuter.class, "videoExecuter", cd);
-	}
-
+	
 	public void updateAdminSyncClass(ClassDefinition cd) throws PageException {
 
 		if (cd.getClassName() == null) cd = new ClassDefinitionImpl(AdminSyncNotSupported.class.getName());

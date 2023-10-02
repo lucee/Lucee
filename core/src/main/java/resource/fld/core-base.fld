@@ -8013,24 +8013,6 @@ The following things are considered to be empty:
 			<type>boolean</type>
 		</return>
 	</function>
-	<!-- IsVideoFile -->
-	<function>
-		<name>IsVideoFile</name>
-		<class>lucee.runtime.functions.video.IsVideoFile</class>
-		<keywords>decision,video</keywords>
-		<description>
-		Check if a String is a Video file
-		</description>
-		<argument>
-			<name>value</name>
-			<type>string</type>
-			<required>Yes</required>
-		<description>file to check</description>
-    </argument>
-		<return>
-			<type>boolean</type>
-		</return>
-	</function>
 	<!-- IsXML -->
 	<function>
 		<name>isXML</name>
