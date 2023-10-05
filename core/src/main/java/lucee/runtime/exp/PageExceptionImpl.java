@@ -103,7 +103,7 @@ public abstract class PageExceptionImpl extends PageException {
 	 * @param customType CUstom Type as String
 	 */
 	public PageExceptionImpl(String message, String type, String customType) {
-		super(message == null ? "" : message);
+		super(filterSecrets(message == null ? "" : message, 0));
 		// rootCause=this;
 		this.type = type.toLowerCase().trim();
 		this.customType = customType;
@@ -117,7 +117,7 @@ public abstract class PageExceptionImpl extends PageException {
 	 * @param type Type as String
 	 */
 	public PageExceptionImpl(Throwable e, String type) {
-		super(StringUtil.isEmpty(e.getMessage(), true) ? e.getClass().getName() : e.getMessage());
+		super(filterSecrets(StringUtil.isEmpty(e.getMessage(), true) ? e.getClass().getName() : e.getMessage(), 0));
 		if (e instanceof InvocationTargetException) e = ((InvocationTargetException) e).getTargetException();
 
 		// Throwable cause = e.getCause();
@@ -133,6 +133,38 @@ public abstract class PageExceptionImpl extends PageException {
 			this.setExtendedInfo(pe.getExtendedInfo());
 		}
 		this.type = type.trim();
+	}
+
+	private static String filterSecrets(String msg, int startIndex) {
+		if (!StringUtil.isEmpty(msg)) {
+			// S3 secret
+			startIndex = StringUtil.indexOfIgnoreCase(msg, "s3://", startIndex);
+			if (startIndex != -1) {
+				startIndex += 5;
+				int atIndex = msg.indexOf('@', startIndex + 1);
+				int colonIndex = msg.indexOf(':', startIndex + 1);
+				int slashIndex = msg.indexOf('/', startIndex + 1);
+				if (atIndex != -1) {
+					if (colonIndex != -1 && colonIndex < atIndex) {
+						String secretAccessKey = msg.substring(colonIndex + 1, atIndex);
+						int index = secretAccessKey.indexOf(':');
+						if (index != -1) {
+							secretAccessKey = secretAccessKey.substring(0, index);
+						}
+						msg = filterSecrets(StringUtil.replace(msg, secretAccessKey, "{SECRET_ACCESS_KEY}"), atIndex);
+					}
+				}
+				if (slashIndex != -1) {
+					String secretAccessKey = msg.substring(colonIndex + 1, slashIndex);
+					int index = secretAccessKey.indexOf(':');
+					if (index != -1) {
+						secretAccessKey = secretAccessKey.substring(0, index);
+					}
+					msg = filterSecrets(StringUtil.replace(msg, secretAccessKey, "{SECRET_ACCESS_KEY}"), slashIndex);
+				}
+			}
+		}
+		return msg;
 	}
 
 	@Override
