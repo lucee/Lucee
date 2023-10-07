@@ -8,7 +8,6 @@ import java.security.GeneralSecurityException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Stack;
-import java.util.concurrent.ConcurrentHashMap;
 
 import org.osgi.framework.Version;
 import org.xml.sax.Attributes;
@@ -17,12 +16,16 @@ import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.DefaultHandler;
 
-import lucee.print;
+import lucee.commons.date.DateTimeUtil;
+import lucee.commons.date.TimeZoneConstants;
 import lucee.commons.io.IOUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.net.http.HTTPResponse;
 import lucee.commons.net.http.httpclient.HTTPEngine4Impl;
+import lucee.runtime.exp.PageException;
+import lucee.runtime.op.Caster;
 import lucee.runtime.text.xml.XMLUtil;
+import lucee.runtime.type.dt.DateTime;
 import lucee.transformer.library.function.FunctionLibEntityResolver;
 import lucee.transformer.library.function.FunctionLibException;
 
@@ -31,16 +34,16 @@ public final class RepoReader extends DefaultHandler {
 	private XMLReader xmlReader;
 	private Stack<String> tree = new Stack<>();
 	private StringBuilder content = new StringBuilder();
-	private Map<String, String> tmpMeta = new HashMap<>();
-
-	private static Map<String, Map<String, String>> metas = new ConcurrentHashMap<>();
 
 	private String repo;
 	private String group;
 	private String artifact;
 	private Version version;
 	private String key;
-	private boolean insideArtifact;
+	private boolean insideSnapshotVersion;
+	private Map<String, Object> snapshot;
+	private Map<String, Map<String, Object>> snapshots = new HashMap<>();
+	private String base;
 
 	RepoReader(String repo, String group, String artifact, Version version) {
 		this.repo = repo;
@@ -50,21 +53,18 @@ public final class RepoReader extends DefaultHandler {
 		this.key = repo + ":" + group + ":" + artifact + ":" + version;
 	}
 
-	public Map<String, String> read() throws IOException, GeneralSecurityException, SAXException {
-
-		Map<String, String> meta = metas.get(key);
-		if (meta != null) return meta;
+	public Map<String, Map<String, Object>> read() throws IOException, GeneralSecurityException, SAXException, PageException {
 
 		String g = group.replace('.', '/');
 		String a = artifact.replace('.', '/');
 		String v = version.toString();
 
-		URL url = new URL(repo + "/" + g + "/" + a + "/" + v + "/" + a + "-" + v + ".pom");
-		print.e(url);
+		base = repo + (repo.endsWith("/") ? "" : "/") + g + "/" + a + "/" + v + "/";
+		URL url = new URL(base + "maven-metadata.xml");
 		HTTPResponse rsp = HTTPEngine4Impl.get(url, null, null, 0, true, null, null, null, null);
 		if (rsp != null) {
 			int sc = rsp.getStatusCode();
-			if (sc < 200 || sc >= 300) throw new IOException("unable to invoke [" + repo + "], status code [" + sc + "]");
+			if (sc < 200 || sc >= 300) throw new IOException("unable to invoke [" + url + "], status code [" + sc + "]");
 		}
 		else {
 			throw new IOException("unable to invoke [" + repo + "], no response.");
@@ -77,8 +77,15 @@ public final class RepoReader extends DefaultHandler {
 		finally {
 			IOUtil.close(r);
 		}
-		metas.put(key, tmpMeta);
-		return tmpMeta;
+
+		/*
+		 * Header[] headers = rsp.getAllHeaders(); for (Header h: headers) { if
+		 * ("Last-Modified".equals(h.getName()) || "Date".equals(h.getName())) print.e(h.getName() + ":" +
+		 * DateCaster.toDateAdvanced(h.getValue(), null)); // tmpMeta.put(h.getName(), //
+		 * DateCaster.toDateAdvanced(h.getValue(), // null)); else print.e(h.getName() + ":" +
+		 * h.getValue()); // tmpMeta.put(h.getName(), h.getValue()); } print.e(snapshots);
+		 */
+		return snapshots;
 	}
 
 	/**
@@ -102,6 +109,11 @@ public final class RepoReader extends DefaultHandler {
 	@Override
 	public void startElement(String uri, String name, String qName, Attributes atts) {
 		tree.add(qName);
+		if ("snapshotVersion".equals(name)) {
+			insideSnapshotVersion = true;
+			snapshot = new HashMap<>();
+
+		}
 	}
 
 	/*
@@ -112,11 +124,39 @@ public final class RepoReader extends DefaultHandler {
 	 */
 	@Override
 	public void endElement(String uri, String name, String qName) {
-		// print.e(tree.size() + ":" + name + ":" + content.toString().trim());
-		// meta data
-		if (!insideArtifact && tree.size() == 2) {
+		if (insideSnapshotVersion) {
 			String tmp = content.toString();
-			if (!StringUtil.isEmpty(tmp, true)) tmpMeta.put(name, tmp.trim());
+			if (!StringUtil.isEmpty(tmp, true)) snapshot.put(name, tmp.trim());
+		}
+
+		if ("snapshotVersion".equals(name)) {
+			insideSnapshotVersion = false;
+
+			String classifier = Caster.toString(snapshot.get("classifier"), "");
+			String extension = Caster.toString(snapshot.get("extension"), "");
+			String value = Caster.toString(snapshot.get("value"), "");
+			String updated = Caster.toString(snapshot.get("updated"), "");
+			try {
+				int year = Caster.toIntValue(updated.substring(0, 4));
+				int month = Caster.toIntValue(updated.substring(4, 6));
+				int day = Caster.toIntValue(updated.substring(6, 8));
+				int hour = Caster.toIntValue(updated.substring(8, 10));
+				int minute = Caster.toIntValue(updated.substring(10, 12));
+				int second = Caster.toIntValue(updated.substring(12, 14));
+
+				DateTime dt = DateTimeUtil.getInstance().toDateTime(TimeZoneConstants.UTC, year, month, day, hour, minute, second, 0);
+				snapshot.put("lastModified", dt);
+
+			}
+			catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			String key = StringUtil.isEmpty(classifier) ? extension : classifier + "." + extension;
+			snapshot.put("url", base + artifact + "-" + value + "." + extension);
+			snapshots.put(key, snapshot);
+			snapshot = null;
+
 		}
 
 		content.delete(0, content.length());

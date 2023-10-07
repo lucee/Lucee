@@ -9498,7 +9498,45 @@ The following things are considered to be empty:
 			<type>string</type>
 		</return>
 	</function>
-
+	
+	<!-- MavenDetail -->
+	<function>
+		<name>MavenDetail</name>
+		<status>hidden</status>
+		<class>lucee.runtime.functions.system.MavenDetail</class>
+		<description>gives detailed information for a specific version</description>
+		<argument>
+			<name>version</name>
+			<type>string</type>
+			<required>yes</required>
+			<description>version you want information</description>
+		</argument>
+		<return>
+			<type>struct</type>
+		</return>
+	</function>
+	<!-- MavenListVersions -->
+	<function>
+		<name>MavenListVersions</name>
+		<status>hidden</status>
+		<class>lucee.runtime.functions.system.MavenListVersions</class>
+		<description>List all Lucee versions availbale on Maven</description>
+		<argument>
+			<name>type</name>
+			<type>string</type>
+			<required>No</required>
+			<description>Specifies the type of version to be retrieved based on the following values:
+			all: Fetches all available versions.
+			snapshot: Limits the results to snapshot versions only.
+			release: Limits the results to release versions only.
+			latest: Retrieves the latest version for each development cycle, regardless of whether it's a release or snapshot.
+			latest:release: Fetches the most recent release version for each development cycle.
+			latest:snapshot: Fetches the most recent snapshot version for each development cycle.</description>
+		</argument>
+		<return>
+			<type>array</type>
+		</return>
+	</function>
 	
 	<!-- metaphone -->
 	<function>

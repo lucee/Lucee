@@ -6,11 +6,13 @@ import java.net.URL;
 import java.nio.charset.Charset;
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Stack;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Version;
@@ -20,7 +22,6 @@ import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.DefaultHandler;
 
-import lucee.print;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.sax.SaxUtil;
 import lucee.commons.lang.ExceptionUtil;
@@ -41,24 +42,19 @@ public final class ArtifactReader extends DefaultHandler {
 	private StringBuilder content = new StringBuilder();
 	private boolean insideArtifact;
 	private List<Version> tmpArtifacts = new ArrayList<>();
+	private Map<String, Repository> tmpNexuss = new HashMap<>();
 	private Map<String, String> tmpMeta = new HashMap<>();
 
 	private String listProvider;
 	private String group;
 	private String artifact;
 	private String key;
+	private boolean insideNexus;
+	private Repository nexus;
 
 	private static Map<String, Integer> totalCounts = new ConcurrentHashMap<>();
-	private static Map<String, Version[]> artifactss = new ConcurrentHashMap<>();
+	private static Map<String, List<Version>> versionss = new ConcurrentHashMap<>();
 	private static Map<String, Map<String, String>> metas = new ConcurrentHashMap<>();
-
-	/*
-	 * public static void main(String[] args) throws Exception { ArtifactReader reader = new
-	 * ArtifactReader(MavenUpdateProvider.DEFAULT_LIST_PROVIDER, MavenUpdateProvider.DEFAULT_GROUP,
-	 * MavenUpdateProvider.DEFAULT_ARTIFACT); long start = System.currentTimeMillis(); reader.read();
-	 * print.e(System.currentTimeMillis() - start); start = System.currentTimeMillis(); reader.read();
-	 * print.e(System.currentTimeMillis() - start); print.e(reader.getMeta()); }
-	 */
 
 	ArtifactReader(String listProvider, String group, String artifact) {
 		this.listProvider = listProvider;
@@ -71,14 +67,12 @@ public final class ArtifactReader extends DefaultHandler {
 
 		Integer tc = totalCounts.get(key);
 
-		print.e("totalCount:" + tc);
 		// first we check the size
 		if (tc != null) {
 			// first we see if there is a change
 			read(1, 1);
 			// if it matches we take the cached data
 			int tmpTotalCount = Caster.toIntValue(tmpMeta.get("totalCount"), 0);
-			print.e("tmpTotalCount:" + tmpTotalCount);
 			clear();
 			if (tmpTotalCount == tc.intValue()) {
 				return;
@@ -106,7 +100,16 @@ public final class ArtifactReader extends DefaultHandler {
 				break; // just in case
 			}
 		}
-		artifactss.put(key, toArray(tmpArtifacts));
+
+		// Sort using streams with custom comparator
+		List<Version> sorted = tmpArtifacts.stream().sorted(new Comparator<Version>() {
+			@Override
+			public int compare(Version l, Version r) {
+				return OSGiUtil.compare(l, r);
+			}
+		}).collect(Collectors.toList());
+
+		versionss.put(key, sorted);
 		metas.put(key, tmpMeta);
 
 		clear();
@@ -115,7 +118,6 @@ public final class ArtifactReader extends DefaultHandler {
 	private void read(int from, int count) throws IOException, GeneralSecurityException, SAXException {
 
 		URL url = new URL(listProvider + "?g=" + group + "&a=" + artifact + "&c=sources&from=" + from + "&count=" + count);
-
 		HTTPResponse rsp = HTTPEngine4Impl.get(url, null, null, 0, true, null, null, null, null);
 		if (rsp != null) {
 			int sc = rsp.getStatusCode();
@@ -136,6 +138,7 @@ public final class ArtifactReader extends DefaultHandler {
 
 	private void clear() {
 		tmpArtifacts = new ArrayList<>();
+		tmpNexuss = new HashMap<>();
 		tmpMeta = new HashMap<>();
 		tree.clear();
 	}
@@ -167,6 +170,12 @@ public final class ArtifactReader extends DefaultHandler {
 		if (tree.size() == 2 && "data".equals(tree.peek()) && "artifact".equals(name)) {
 			insideArtifact = true;
 		}
+		// enter nexus?
+		if (tree.size() == 2 && "repoDetails".equals(tree.peek()) && "org.sonatype.nexus.rest.model.NexusNGRepositoryDetail".equals(name)) {
+			insideNexus = true;
+			nexus = new Repository();
+		}
+
 		tree.add(qName);
 
 	}
@@ -181,6 +190,17 @@ public final class ArtifactReader extends DefaultHandler {
 				throw new RuntimeException(ExceptionUtil.toIOException(e));
 			}
 		}
+		if (insideNexus) {
+			String val = content.toString().trim();
+			if ("repositoryId".equals(name)) nexus.id = val;
+			else if ("repositoryId".equals(name)) nexus.id = val;
+			else if ("repositoryName".equals(name)) nexus.name = val;
+			else if ("repositoryContentClass".equals(name)) nexus.contentClass = val;
+			else if ("repositoryKind".equals(name)) nexus.kind = val;
+			else if ("repositoryPolicy".equals(name)) nexus.policy = val;
+			else if ("repositoryURL".equals(name)) nexus.URL = val;
+
+		}
 
 		// meta data
 		if (!insideArtifact && tree.size() == 2) {
@@ -194,6 +214,13 @@ public final class ArtifactReader extends DefaultHandler {
 		if (tree.size() == 2 && "data".equals(tree.peek()) && "artifact".equals(name)) {
 			insideArtifact = false;
 		}
+
+		// exit nexus?
+		if (tree.size() == 2 && "repoDetails".equals(tree.peek()) && "org.sonatype.nexus.rest.model.NexusNGRepositoryDetail".equals(name)) {
+			insideNexus = false;
+			tmpNexuss.put(nexus.policy, nexus);
+			nexus = null;
+		}
 	}
 
 	@Override
@@ -203,11 +230,7 @@ public final class ArtifactReader extends DefaultHandler {
 
 	@Override
 	public void endDocument() throws SAXException {
-		/*
-		 * Collections.sort(artifacts, new Comparator<Version>() {
-		 * 
-		 * @Override public int compare(Version l, Version r) { return OSGiUtil.compare(l, r); } });
-		 */
+
 		super.endDocument();
 	}
 
@@ -215,8 +238,8 @@ public final class ArtifactReader extends DefaultHandler {
 		return metas.get(key);
 	}
 
-	public Version[] getArtifacts() {
-		return artifactss.get(key);
+	public List<Version> getVersions() {
+		return versionss.get(key);
 	}
 
 	private static Version[] toArray(List<Version> data) {
@@ -226,5 +249,19 @@ public final class ArtifactReader extends DefaultHandler {
 			arr[index++] = v;
 		}
 		return arr;
+	}
+
+	private static class Repository {
+		private String id;
+		private String name;
+		private String contentClass;
+		private String kind;
+		private String policy;
+		private String URL;
+
+		@Override
+		public String toString() {
+			return "id:" + id + ";name:" + name + ";contentClass:" + contentClass + ";kind:" + kind + ";policy:" + policy + ";URL:" + URL;
+		}
 	}
 }
