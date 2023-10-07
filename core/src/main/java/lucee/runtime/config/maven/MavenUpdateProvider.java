@@ -122,7 +122,7 @@ public class MavenUpdateProvider {
 		String v = version.toString();
 		URL urlPom = new URL(repoReleases + "/" + g + "/" + a + "/" + v + "/" + a + "-" + v + ".pom");
 		{
-			HTTPResponse rsp = HTTPEngine4Impl.get(urlPom, null, null, 0, true, null, null, null, null);
+			HTTPResponse rsp = HTTPEngine4Impl.head(urlPom, null, null, 0, true, null, null, null, null);
 			if (rsp != null) {
 				int sc = rsp.getStatusCode();
 				if (sc < 200 || sc >= 300) throw new IOException("unable to invoke [" + urlPom + "], status code [" + sc + "]");
@@ -137,11 +137,11 @@ public class MavenUpdateProvider {
 		}
 		URL urlLco = new URL(repoReleases + "/" + g + "/" + a + "/" + v + "/" + a + "-" + v + ".lco");
 		{
-			HTTPResponse rsp = HTTPEngine4Impl.get(urlLco, null, null, 0, true, null, null, null, null);
+			HTTPResponse rsp = HTTPEngine4Impl.head(urlLco, null, null, 0, true, null, null, null, null);
 			if (rsp != null) {
 				int sc = rsp.getStatusCode();
 				if (sc >= 200 && sc < 300) {
-					res.put("pom", urlLco.toExternalForm());
+					res.put("lco", urlLco.toExternalForm());
 				}
 			}
 		}
