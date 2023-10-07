@@ -140,7 +140,7 @@ public class MavenUpdateProvider {
 			HTTPResponse rsp = HTTPEngine4Impl.get(urlLco, null, null, 0, true, null, null, null, null);
 			if (rsp != null) {
 				int sc = rsp.getStatusCode();
-				if (sc >= 200 || sc < 300) {
+				if (sc >= 200 && sc < 300) {
 					res.put("pom", urlLco.toExternalForm());
 				}
 			}
@@ -153,9 +153,47 @@ public class MavenUpdateProvider {
 		return res;
 	}
 
-	public InputStream getCore(Version version) throws PageException, IOException, GeneralSecurityException, SAXException {
+	public InputStream getCore(Version version) throws IOException, GeneralSecurityException, PageException, SAXException {
+		URL urlLco = null;
+		URL urljar = null;
+		// SNAPSHOT
+		if (version.getQualifier().endsWith("-SNAPSHOT")) {
+			// so first we the location of the pom
+			RepoReader repoReader = new RepoReader(repoSnapshots, group, artifact, version);
+			Map<String, Map<String, Object>> map = repoReader.read();
+			Map<String, Object> lco = map.get("lco");
+			// if there is no lco (was in older version), extract from loader (slower)
+			if (lco != null) urlLco = new URL(Caster.toString(lco.get("url")));
+			urljar = new URL(Caster.toString(map.get("jar").get("url")));
 
-		return getFileStreamFromZipStream(getLoader(version));
+		}
+		// RELEASE
+		else {
+			String g = group.replace('.', '/');
+			String a = artifact.replace('.', '/');
+			String v = version.toString();
+			String repo = repoReleases;
+			urlLco = new URL(repo + "/" + g + "/" + a + "/" + v + "/" + a + "-" + v + ".lco");
+			urljar = new URL(repo + "/" + g + "/" + a + "/" + v + "/" + a + "-" + v + ".jar");
+		}
+		// LCO
+		if (urlLco != null) {
+			HTTPResponse rsp = HTTPEngine4Impl.get(urlLco, null, null, 0, true, null, null, null, null);
+			if (rsp != null) {
+				int sc = rsp.getStatusCode();
+				if (sc >= 200 && sc < 300) return rsp.getContentAsStream();
+			}
+		}
+		// JAR
+		HTTPResponse rsp = HTTPEngine4Impl.get(urljar, null, null, 0, true, null, null, null, null);
+		if (rsp != null) {
+			int sc = rsp.getStatusCode();
+			if (sc < 200 || sc >= 300) throw new IOException("unable to invoke [" + urljar + "], status code [" + sc + "]");
+		}
+		else {
+			throw new IOException("unable to invoke [" + urljar + "], no response.");
+		}
+		return getFileStreamFromZipStream(rsp.getContentAsStream());
 	}
 
 	private InputStream getFileStreamFromZipStream(InputStream zipStream) throws IOException {
