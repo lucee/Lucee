@@ -418,7 +418,7 @@ public class ConfigWebImpl implements ConfigWebPro {
 
 	@Override
 	public void updatePassword(boolean arg0, java.lang.String arg1, java.lang.String arg2) throws lucee.runtime.exp.PageException, IOException, SAXException, BundleException {
-		instance.updatePassword(arg0, arg1, arg2);
+		instance.updatePassword(this, arg0, arg1, arg2);
 	}
 
 	@Override
@@ -555,7 +555,7 @@ public class ConfigWebImpl implements ConfigWebPro {
 
 	@Override
 	public boolean hasIndividualSecurityManager() {
-		return instance.hasIndividualSecurityManager();
+		return instance.hasIndividualSecurityManager(this);
 	}
 
 	@Override
@@ -814,7 +814,7 @@ public class ConfigWebImpl implements ConfigWebPro {
 	}
 
 	public void updatePassword(boolean arg0, lucee.runtime.config.Password arg1, lucee.runtime.config.Password arg2) throws lucee.runtime.exp.PageException {
-		if (instance instanceof MultiContextConfigWeb) ((MultiContextConfigWeb) instance).updatePassword(arg0, arg1, arg2);
+		if (instance instanceof MultiContextConfigWeb) ((MultiContextConfigWeb) instance).updatePassword(this, arg0, arg1, arg2);
 		// TODO what do do here?
 	}
 
@@ -1200,8 +1200,8 @@ public class ConfigWebImpl implements ConfigWebPro {
 	}
 
 	@Override
-	public lucee.runtime.config.ConfigServer getConfigServer(java.lang.String arg0) throws lucee.runtime.exp.PageException {
-		return instance.getConfigServer(arg0);
+	public lucee.runtime.config.ConfigServer getConfigServer(String password) throws lucee.runtime.exp.PageException {
+		return instance.getConfigServer(this, password);
 	}
 
 	public void setCacheMD5(java.lang.String arg0) {

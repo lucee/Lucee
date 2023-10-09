@@ -1404,6 +1404,11 @@ class SingleContextConfigWeb extends ConfigBase implements ConfigWebInner {
 	}
 
 	@Override
+	public ConfigServer getConfigServer(ConfigWebImpl outer, String password) throws ExpressionException {
+		return cs.getConfigServer(password);
+	}
+
+	@Override
 	public ConfigServer getConfigServer(String arg0, long arg1) throws PageException {
 		return cs.getConfigServer(arg0, arg1);
 	}
@@ -1704,6 +1709,16 @@ class SingleContextConfigWeb extends ConfigBase implements ConfigWebInner {
 	}
 
 	@Override
+	public void updatePassword(ConfigWebImpl outer, boolean server, String passwordOld, String passwordNew) throws PageException {
+		try {
+			PasswordImpl.updatePassword(cs, passwordOld, passwordNew);
+		}
+		catch (Exception e) {
+			throw Caster.toPageException(e);
+		}
+	}
+
+	@Override
 	public Password updatePasswordIfNecessary(boolean server, String passwordRaw) {
 		return PasswordImpl.updatePasswordIfNecessary(cs, cs.password, passwordRaw);
 	}
@@ -1715,6 +1730,11 @@ class SingleContextConfigWeb extends ConfigBase implements ConfigWebInner {
 
 	@Override
 	public boolean hasIndividualSecurityManager() {
+		return false;
+	}
+
+	@Override
+	public boolean hasIndividualSecurityManager(ConfigWebImpl outer) {
 		return false;
 	}
 
