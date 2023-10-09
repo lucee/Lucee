@@ -957,7 +957,34 @@ public abstract class ConfigFactory {
 	}
 
 	/**
-	 * creates a File and his content froma a resurce
+	 * creates a File and his content from a resource, ignores if it is no able to create the resource,
+	 * it logs if the file exists, but cannot be copy to the target, no logging when not exist as a
+	 * source.
+	 * 
+	 * @param resource
+	 * @param file
+	 * @param password
+	 * @throws IOException
+	 */
+	public static void createFileFromResourceEL(String resource, Resource file) {
+		if (file.exists()) file.delete();
+
+		InputStream is = InfoImpl.class.getResourceAsStream(resource);
+		if (is == null) is = SystemUtil.getResourceAsStream(null, resource);
+		if (is != null) {
+			try {
+				file.createNewFile();
+				IOUtil.copy(is, file, true);
+				LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), Log.LEVEL_DEBUG, ConfigFactory.class.getName(), "Written file: [" + file + "]");
+			}
+			catch (Exception e) {
+				LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), ConfigFactory.class.getName(), e);
+			}
+		}
+	}
+
+	/**
+	 * creates a File and his content from a resource
 	 * 
 	 * @param resource
 	 * @param file
@@ -965,7 +992,6 @@ public abstract class ConfigFactory {
 	 * @throws IOException
 	 */
 	static void createFileFromResource(String resource, Resource file, String password) throws IOException {
-		LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), Log.LEVEL_DEBUG, ConfigFactory.class.getName(), "Write file: [" + file + "]");
 		if (file.exists()) file.delete();
 
 		InputStream is = InfoImpl.class.getResourceAsStream(resource);
@@ -973,6 +999,8 @@ public abstract class ConfigFactory {
 		if (is == null) throw new IOException("File [" + resource + "] does not exist.");
 		file.createNewFile();
 		IOUtil.copy(is, file, true);
+		LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), Log.LEVEL_DEBUG, ConfigFactory.class.getName(), "Written file: [" + file + "]");
+
 	}
 
 	/**
@@ -984,15 +1012,6 @@ public abstract class ConfigFactory {
 	 */
 	static void createFileFromResource(String resource, Resource file) throws IOException {
 		createFileFromResource(resource, file, null);
-	}
-
-	public static void createFileFromResourceEL(String resource, Resource file) {
-		try {
-			createFileFromResource(resource, file, null);
-		}
-		catch (Exception e) {
-			LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), ConfigFactory.class.getName(), e);
-		}
 	}
 
 	static void create(String srcPath, String[] names, Resource dir, boolean doNew) {
