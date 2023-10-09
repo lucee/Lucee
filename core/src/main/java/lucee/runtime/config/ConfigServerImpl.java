@@ -52,6 +52,7 @@ import lucee.runtime.CFMLFactoryImpl;
 import lucee.runtime.Mapping;
 import lucee.runtime.MappingImpl;
 import lucee.runtime.config.ConfigFactory.UpdateInfo;
+import lucee.runtime.config.gateway.GatewayMap;
 import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.engine.CFMLEngineImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
@@ -64,7 +65,6 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.extension.ExtensionDefintion;
 import lucee.runtime.extension.RHExtension;
 import lucee.runtime.functions.system.IsZipFile;
-import lucee.runtime.gateway.GatewayEntry;
 import lucee.runtime.monitor.ActionMonitor;
 import lucee.runtime.monitor.ActionMonitorCollector;
 import lucee.runtime.monitor.IntervallMonitor;
@@ -683,7 +683,7 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 	private long localExtHash;
 	private int localExtSize = -1;
 
-	private Map<String, GatewayEntry> gatewayEntries;
+	private GatewayMap gatewayEntries;
 
 	private short adminMode = ADMINMODE_SINGLE;
 
@@ -885,16 +885,6 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 			}
 		}
 		return HashUtil.create64BitHash(sb);
-	}
-
-	@Override
-	public void setGatewayEntries(Map<String, GatewayEntry> gatewayEntries) {
-		this.gatewayEntries = gatewayEntries;
-	}
-
-	@Override
-	public Map<String, GatewayEntry> getGatewayEntries() {
-		return gatewayEntries;
 	}
 
 	@Override

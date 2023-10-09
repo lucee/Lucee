@@ -9,6 +9,7 @@ import org.xml.sax.SAXException;
 
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourcesImpl.ResourceProviderFactory;
+import lucee.runtime.config.gateway.GatewayMap;
 import lucee.runtime.exp.PageException;
 
 public class ConfigWebImpl implements ConfigWebPro {
@@ -1469,9 +1470,9 @@ public class ConfigWebImpl implements ConfigWebPro {
 		return instance.getServerPasswordSalt();
 	}
 
-	protected void setGatewayEntries(java.util.Map entries) {
-		if (instance instanceof MultiContextConfigWeb) ((MultiContextConfigWeb) instance).setGatewayEntries(entries);
-
+	protected void setGatewayEntries(GatewayMap entries) {
+		// TODO i think that method is never used
+		if (instance instanceof ConfigImpl) ((ConfigImpl) instance).setGatewayEntries(entries);
 	}
 
 	@Override

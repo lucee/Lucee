@@ -85,6 +85,7 @@ import lucee.runtime.component.ImportDefintion;
 import lucee.runtime.component.ImportDefintionImpl;
 import lucee.runtime.config.ConfigWebFactory.Path;
 import lucee.runtime.config.ConfigWebUtil.CacheElement;
+import lucee.runtime.config.gateway.GatewayMap;
 import lucee.runtime.customtag.InitFile;
 import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.db.DataSource;
@@ -109,7 +110,6 @@ import lucee.runtime.extension.ExtensionProvider;
 import lucee.runtime.extension.RHExtension;
 import lucee.runtime.extension.RHExtensionProvider;
 import lucee.runtime.functions.other.CreateUniqueId;
-import lucee.runtime.gateway.GatewayEntry;
 import lucee.runtime.listener.AppListenerUtil;
 import lucee.runtime.listener.ApplicationContext;
 import lucee.runtime.listener.ApplicationListener;
@@ -3854,7 +3854,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 
 	private Map<String, ClassDefinition> cacheDefinitions;
 
-	private Map<String, GatewayEntry> gatewayEntries;
+	private GatewayMap gatewayEntries;
 
 	public void setCacheDefinitions(Map<String, ClassDefinition> caches) {
 		this.cacheDefinitions = caches;
@@ -3875,11 +3875,11 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		return getConfigDir().getRealResource("security/antisamy-basic.xml");
 	}
 
-	public void setGatewayEntries(Map<String, GatewayEntry> gatewayEntries) {
+	public void setGatewayEntries(GatewayMap gatewayEntries) {
 		this.gatewayEntries = gatewayEntries;
 	}
 
-	public Map<String, GatewayEntry> getGatewayEntries() {
+	public GatewayMap getGatewayEntries() {
 		return gatewayEntries;
 	}
 

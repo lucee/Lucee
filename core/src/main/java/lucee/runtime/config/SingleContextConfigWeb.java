@@ -53,6 +53,7 @@ import lucee.runtime.cache.tag.CacheHandlerCollection;
 import lucee.runtime.cfx.CFXTagPool;
 import lucee.runtime.compiler.CFMLCompilerImpl;
 import lucee.runtime.component.ImportDefintion;
+import lucee.runtime.config.gateway.GatewayMap;
 import lucee.runtime.customtag.InitFile;
 import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.db.DataSource;
@@ -1910,7 +1911,7 @@ class SingleContextConfigWeb extends ConfigBase implements ConfigWebInner {
 		return cs.getDebugOptions();
 	}
 
-	public Map getGatewayEntries() {
+	public GatewayMap getGatewayEntries() {
 		return cs.getGatewayEntries();
 	}
 

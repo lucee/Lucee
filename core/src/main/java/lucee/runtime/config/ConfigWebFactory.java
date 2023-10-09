@@ -98,6 +98,7 @@ import lucee.runtime.cfx.customtag.JavaCFXTagClass;
 import lucee.runtime.component.ImportDefintion;
 //import lucee.runtime.config.ajax.AjaxFactory;
 import lucee.runtime.config.component.ComponentFactory;
+import lucee.runtime.config.gateway.GatewayMap;
 import lucee.runtime.converter.ConverterException;
 import lucee.runtime.converter.JSONConverter;
 import lucee.runtime.converter.JSONDateFormat;
@@ -2697,12 +2698,9 @@ public final class ConfigWebFactory extends ConfigFactory {
 		}
 	}
 
-	private static void _loadGateway(ConfigServerImpl configServer, ConfigImpl config, Struct root, Log log) throws PageException {
-
+	private static void _loadGateway(ConfigServerImpl configServer, final ConfigImpl config, Struct root, Log log) throws PageException {
 		boolean hasCS = configServer != null;
-		// GatewayEngineImpl engine = hasCS ? ((GatewayEngineImpl) ((ConfigWebPro)
-		// config).getGatewayEngine()) : null;
-		Map<String, GatewayEntry> mapGateways = new HashMap<String, GatewayEntry>();
+		GatewayMap mapGateways = new GatewayMap();
 
 		// get from server context
 		if (hasCS) {
@@ -2729,10 +2727,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 		// cache connections
 		Struct gateways = ConfigWebUtil.getAsStruct("gateways", root);
 
-		// if(hasAccess) {
 		String id;
-		// engine.reset();
-
 		// caches
 		if (hasAccess) {
 			try {
@@ -2798,7 +2793,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 
 	private static Struct toStruct(String str) {
 
-		Struct sct = new StructImpl();
+		Struct sct = new StructImpl(StructImpl.TYPE_LINKED);
 		try {
 			String[] arr = ListUtil.toStringArray(ListUtil.listToArrayRemoveEmpty(str, '&'));
 
