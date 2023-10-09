@@ -558,20 +558,3 @@
 <cfelseif current.action == "services.restart">
 	<cfcookie name="lucee_admin_lastpage" value="services.restart" expires="NEVER">
 </cfif>
-
-
-<!--- <cftry>
-<cfscript>
-if (request.adminType == 'server'){
-	include "services.update.functions.cfm";
-	ud=getUpdateData();
-	if (isNull(application.UpdateProvider[ud.location])) {
-		thread name="providers" action="run" location=ud.location {
-			application.UpdateProvider[ud.location]=getAvailableVersion();
-			systemOutput("done!",1,1);
-		}
-	}
-}
-</cfscript>
-<cfcatch></cfcatch>
-</cftry> --->

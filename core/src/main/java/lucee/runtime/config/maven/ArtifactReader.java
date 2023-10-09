@@ -118,7 +118,7 @@ public final class ArtifactReader extends DefaultHandler {
 	private void read(int from, int count) throws IOException, GeneralSecurityException, SAXException {
 
 		URL url = new URL(listProvider + "?g=" + group + "&a=" + artifact + "&c=sources&from=" + from + "&count=" + count);
-		HTTPResponse rsp = HTTPEngine4Impl.get(url, null, null, 0, true, null, null, null, null);
+		HTTPResponse rsp = HTTPEngine4Impl.get(url, null, null, MavenUpdateProvider.CONNECTION_TIMEOUT, true, null, null, null, null);
 		if (rsp != null) {
 			int sc = rsp.getStatusCode();
 			if (sc < 200 || sc >= 300) throw new IOException("unable to invoke [" + listProvider + "], status code [" + sc + "]");

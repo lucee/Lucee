@@ -40,7 +40,7 @@ public final class PomReader extends DefaultHandler {
 
 	public Map<String, Object> read() throws IOException, GeneralSecurityException, SAXException, PageException {
 
-		HTTPResponse rsp = HTTPEngine4Impl.get(url, null, null, 0, true, null, null, null, null);
+		HTTPResponse rsp = HTTPEngine4Impl.get(url, null, null, MavenUpdateProvider.CONNECTION_TIMEOUT, true, null, null, null, null);
 		if (rsp != null) {
 			int sc = rsp.getStatusCode();
 			if (sc < 200 || sc >= 300) throw new IOException("unable to invoke [" + url + "], status code [" + sc + "]");

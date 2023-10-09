@@ -869,6 +869,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		else if (check("runUpdate", ACCESS_NOT_WHEN_WEB) && check2(ACCESS_WRITE)) doRunUpdate();
 		else if (check("removeUpdate", ACCESS_NOT_WHEN_WEB) && check2(ACCESS_WRITE)) doRemoveUpdate();
 		else if (check("changeVersionTo", ACCESS_NOT_WHEN_WEB) && check2(ACCESS_WRITE)) doChangeVersionTo();
+		else if (check("mvnChangeVersionTo", ACCESS_NOT_WHEN_WEB) && check2(ACCESS_WRITE)) doMvnChangeVersionTo();
 		else if (check("getUpdate", ACCESS_NOT_WHEN_WEB) && check2(ACCESS_WRITE)) doGetUpdate();
 		else if (check("getMinVersion", ACCESS_FREE) && check2(ACCESS_READ)) getMinVersion();
 		else if (check("getLoaderInfo", ACCESS_FREE) && check2(ACCESS_READ)) getLoaderInfo();
@@ -930,6 +931,17 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		try {
 			Version version = OSGiUtil.toVersion(getString("admin", "changeVersionTo", "version"));
 			admin.changeVersionTo(version, password, pageContext.getConfig().getIdentification());
+			adminSync.broadcast(attributes, config);
+		}
+		catch (BundleException e) {
+			throw Caster.toPageException(e);
+		}
+	}
+
+	private void doMvnChangeVersionTo() throws PageException {
+		try {
+			Version version = OSGiUtil.toVersion(getString("admin", "changeVersionTo", "version"));
+			admin.mvnChangeVersionTo(version, password, pageContext.getConfig().getIdentification());
 			adminSync.broadcast(attributes, config);
 		}
 		catch (BundleException e) {

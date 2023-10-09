@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.SequenceInputStream;
 import java.net.URL;
+import java.net.UnknownHostException;
 import java.security.GeneralSecurityException;
 import java.util.Collections;
 import java.util.Enumeration;
@@ -29,6 +30,8 @@ import lucee.runtime.op.date.DateCaster;
 import lucee.runtime.osgi.OSGiUtil;
 
 public class MavenUpdateProvider {
+
+	public static final int CONNECTION_TIMEOUT = 1000;
 
 	public static final String DEFAULT_LIST_PROVIDER = "https://oss.sonatype.org/service/local/lucene/search";
 	// public static final String DEFAULT_REPOSITORY = "https://repo1.maven.org/maven2";
@@ -82,75 +85,85 @@ public class MavenUpdateProvider {
 	}
 
 	public List<Version> list() throws IOException, GeneralSecurityException, SAXException {
-		ArtifactReader reader = new ArtifactReader(listProvider, group, artifact);
-		reader.read();
-		return reader.getVersions();
+		try {
+			ArtifactReader reader = new ArtifactReader(listProvider, group, artifact);
+			reader.read();
+			return reader.getVersions();
+		}
+		catch (UnknownHostException uhe) {
+			throw new IOException("cannot reach maven server", uhe);
+		}
 	}
 
 	public Map<String, Object> detail(Version version) throws IOException, GeneralSecurityException, SAXException, PageException {
 		// SNAPSHOT - snapshot have a more complicated structure, ebcause there can be udaptes/multiple
 		// versions
-		if (version.getQualifier().endsWith("-SNAPSHOT")) {
-			// so first we the location of the pom
-			RepoReader repoReader = new RepoReader(repoSnapshots, group, artifact, version);
-			Map<String, Map<String, Object>> result = repoReader.read();
-			String urlPom = Caster.toString(result.get("pom").get("url"));
-			String urlJar = Caster.toString(result.get("jar").get("url"));
-			Map<String, Object> lco = result.get("lco");
-			String urlLco = null;
-			if (lco != null) {
-				urlLco = Caster.toString(lco.get("url"), null);
+		try {
+			if (version.getQualifier().endsWith("-SNAPSHOT")) {
+				// so first we the location of the pom
+				RepoReader repoReader = new RepoReader(repoSnapshots, group, artifact, version);
+				Map<String, Map<String, Object>> result = repoReader.read();
+				String urlPom = Caster.toString(result.get("pom").get("url"));
+				String urlJar = Caster.toString(result.get("jar").get("url"));
+				Map<String, Object> lco = result.get("lco");
+				String urlLco = null;
+				if (lco != null) {
+					urlLco = Caster.toString(lco.get("url"), null);
+				}
+
+				Object lastModified = result.get("jar").get("lastModified");
+
+				// PomReader pomRreader = new PomReader(new URL(urlPom));
+				// Map<String, Object> res = pomRreader.read();
+				Map<String, Object> res = new LinkedHashMap<>();
+				res.put("pom", urlPom);
+				res.put("jar", urlJar);
+				if (!StringUtil.isEmpty(urlLco)) res.put("lco", urlLco);
+				res.put("lastModified", lastModified);
+
+				return res;
 			}
 
-			Object lastModified = result.get("jar").get("lastModified");
-
-			// PomReader pomRreader = new PomReader(new URL(urlPom));
-			// Map<String, Object> res = pomRreader.read();
+			// Release
 			Map<String, Object> res = new LinkedHashMap<>();
-			res.put("pom", urlPom);
-			res.put("jar", urlJar);
-			if (!StringUtil.isEmpty(urlLco)) res.put("lco", urlLco);
-			res.put("lastModified", lastModified);
-
-			return res;
-		}
-
-		// Release
-		Map<String, Object> res = new LinkedHashMap<>();
-		String g = group.replace('.', '/');
-		String a = artifact.replace('.', '/');
-		String v = version.toString();
-		URL urlPom = new URL(repoReleases + "/" + g + "/" + a + "/" + v + "/" + a + "-" + v + ".pom");
-		{
-			HTTPResponse rsp = HTTPEngine4Impl.head(urlPom, null, null, 0, true, null, null, null, null);
-			if (rsp != null) {
-				int sc = rsp.getStatusCode();
-				if (sc < 200 || sc >= 300) throw new IOException("unable to invoke [" + urlPom + "], status code [" + sc + "]");
-			}
-			else {
-				throw new IOException("unable to invoke [" + urlPom + "], no response.");
-			}
-			Header[] headers = rsp.getAllHeaders();
-			for (Header h: headers) {
-				if ("Last-Modified".equals(h.getName())) res.put("lastModified", DateCaster.toDateAdvanced(h.getValue(), null));
-			}
-		}
-		URL urlLco = new URL(repoReleases + "/" + g + "/" + a + "/" + v + "/" + a + "-" + v + ".lco");
-		{
-			HTTPResponse rsp = HTTPEngine4Impl.head(urlLco, null, null, 0, true, null, null, null, null);
-			if (rsp != null) {
-				int sc = rsp.getStatusCode();
-				if (sc >= 200 && sc < 300) {
-					res.put("lco", urlLco.toExternalForm());
+			String g = group.replace('.', '/');
+			String a = artifact.replace('.', '/');
+			String v = version.toString();
+			URL urlPom = new URL(repoReleases + "/" + g + "/" + a + "/" + v + "/" + a + "-" + v + ".pom");
+			{
+				HTTPResponse rsp = HTTPEngine4Impl.head(urlPom, null, null, MavenUpdateProvider.CONNECTION_TIMEOUT, true, null, null, null, null);
+				if (rsp != null) {
+					int sc = rsp.getStatusCode();
+					if (sc < 200 || sc >= 300) throw new IOException("unable to invoke [" + urlPom + "], status code [" + sc + "]");
+				}
+				else {
+					throw new IOException("unable to invoke [" + urlPom + "], no response.");
+				}
+				Header[] headers = rsp.getAllHeaders();
+				for (Header h: headers) {
+					if ("Last-Modified".equals(h.getName())) res.put("lastModified", DateCaster.toDateAdvanced(h.getValue(), null));
 				}
 			}
-		}
-		// PomReader pomRreader = new PomReader(url);
-		// Map<String, Object> res = pomRreader.read();
+			URL urlLco = new URL(repoReleases + "/" + g + "/" + a + "/" + v + "/" + a + "-" + v + ".lco");
+			{
+				HTTPResponse rsp = HTTPEngine4Impl.head(urlLco, null, null, MavenUpdateProvider.CONNECTION_TIMEOUT, true, null, null, null, null);
+				if (rsp != null) {
+					int sc = rsp.getStatusCode();
+					if (sc >= 200 && sc < 300) {
+						res.put("lco", urlLco.toExternalForm());
+					}
+				}
+			}
+			// PomReader pomRreader = new PomReader(url);
+			// Map<String, Object> res = pomRreader.read();
 
-		res.put("pom", urlPom.toExternalForm());
-		res.put("jar", repoReleases + "/" + g + "/" + a + "/" + v + "/" + a + "-" + v + ".jar");
-		return res;
+			res.put("pom", urlPom.toExternalForm());
+			res.put("jar", repoReleases + "/" + g + "/" + a + "/" + v + "/" + a + "-" + v + ".jar");
+			return res;
+		}
+		catch (UnknownHostException uhe) {
+			throw new IOException("cannot reach maven server", uhe);
+		}
 	}
 
 	public InputStream getCore(Version version) throws IOException, GeneralSecurityException, PageException, SAXException {
@@ -178,14 +191,14 @@ public class MavenUpdateProvider {
 		}
 		// LCO
 		if (urlLco != null) {
-			HTTPResponse rsp = HTTPEngine4Impl.get(urlLco, null, null, 0, true, null, null, null, null);
+			HTTPResponse rsp = HTTPEngine4Impl.get(urlLco, null, null, MavenUpdateProvider.CONNECTION_TIMEOUT, true, null, null, null, null);
 			if (rsp != null) {
 				int sc = rsp.getStatusCode();
 				if (sc >= 200 && sc < 300) return rsp.getContentAsStream();
 			}
 		}
 		// JAR
-		HTTPResponse rsp = HTTPEngine4Impl.get(urljar, null, null, 0, true, null, null, null, null);
+		HTTPResponse rsp = HTTPEngine4Impl.get(urljar, null, null, MavenUpdateProvider.CONNECTION_TIMEOUT, true, null, null, null, null);
 		if (rsp != null) {
 			int sc = rsp.getStatusCode();
 			if (sc < 200 || sc >= 300) throw new IOException("unable to invoke [" + urljar + "], status code [" + sc + "]");
@@ -227,7 +240,7 @@ public class MavenUpdateProvider {
 			url = new URL(repo + "/" + g + "/" + a + "/" + v + "/" + a + "-" + v + ".jar");
 		}
 
-		HTTPResponse rsp = HTTPEngine4Impl.get(url, null, null, 0, true, null, null, null, null);
+		HTTPResponse rsp = HTTPEngine4Impl.get(url, null, null, MavenUpdateProvider.CONNECTION_TIMEOUT, true, null, null, null, null);
 		if (rsp != null) {
 			int sc = rsp.getStatusCode();
 			if (sc < 200 || sc >= 300) throw new IOException("unable to invoke [" + url + "], status code [" + sc + "]");
@@ -237,9 +250,4 @@ public class MavenUpdateProvider {
 		}
 		return rsp.getContentAsStream();
 	}
-
-	public InputStream downloadBundle(String bundleName, Version bundleVersion) {
-		return null;
-	}
-
 }

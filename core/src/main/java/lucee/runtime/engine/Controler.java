@@ -45,6 +45,7 @@ import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.config.DatasourceConnPool;
 import lucee.runtime.config.DeployHandler;
+import lucee.runtime.config.maven.MavenUpdateProvider;
 import lucee.runtime.extension.RHExtension;
 import lucee.runtime.functions.system.PagePoolClear;
 import lucee.runtime.lock.LockManagerImpl;
@@ -208,8 +209,17 @@ public final class Controler extends ParentThreasRefThread {
 		}
 
 		if (firstRun) {
+
 			try {
 				RHExtension.correctExtensions(configServer);
+			}
+			catch (Exception e) {
+				if (log != null) log.error("controler", e);
+			}
+
+			// loading all versions from Maven (if it can be reached)
+			try {
+				new MavenUpdateProvider().list();
 			}
 			catch (Exception e) {
 				if (log != null) log.error("controler", e);

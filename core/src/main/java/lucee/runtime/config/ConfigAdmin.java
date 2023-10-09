@@ -91,6 +91,7 @@ import lucee.runtime.cache.CacheConnection;
 import lucee.runtime.cache.CacheUtil;
 import lucee.runtime.cfx.CFXTagException;
 import lucee.runtime.cfx.CFXTagPool;
+import lucee.runtime.config.maven.MavenUpdateProvider;
 import lucee.runtime.converter.ConverterException;
 import lucee.runtime.converter.JSONConverter;
 import lucee.runtime.converter.JSONDateFormat;
@@ -3562,6 +3563,56 @@ public final class ConfigAdmin {
 		}
 	}
 
+	public void mvnChangeVersionTo(Version version, Password password, IdentificationWeb id) throws PageException {
+		checkWriteAccess();
+		ConfigServerImpl cs = (ConfigServerImpl) ConfigWebUtil.getConfigServer(config, password);
+
+		Log logger = cs.getLog("deploy");
+
+		try {
+			CFMLEngineFactory factory = cs.getCFMLEngine().getCFMLEngineFactory();
+			cleanUp(factory);
+			// do we have the core file?
+			final File patchDir = factory.getPatchDirectory();
+			File localPath = new File(version.toString() + ".lco");
+
+			if (!localPath.isFile()) {
+				localPath = null;
+				Version v;
+				final File[] patches = patchDir.listFiles(new ExtensionFilter(new String[] { ".lco" }));
+				for (final File patch: patches) {
+					v = CFMLEngineFactory.toVersion(patch.getName(), null);
+					// not a valid file get deleted
+					if (v == null) {
+						patch.delete();
+					}
+					else {
+						if (v.equals(version)) { // match!
+							localPath = patch;
+						}
+						// delete newer files
+						else if (OSGiUtil.isNewerThan(v, version)) {
+							patch.delete();
+						}
+					}
+				}
+			}
+
+			// download patch
+			if (localPath == null) {
+
+				mvnDownloadCore(factory, version, id);
+			}
+
+			logger.log(Log.LEVEL_INFO, "Update-Engine", "Installing Lucee version [" + version + "] (previous version was [" + cs.getEngine().getInfo().getVersion() + "])");
+
+			factory.restart(password);
+		}
+		catch (Exception e) {
+			throw Caster.toPageException(e);
+		}
+	}
+
 	private void cleanUp(CFMLEngineFactory factory) throws IOException {
 		final File patchDir = factory.getPatchDirectory();
 		final File[] patches = patchDir.listFiles(new ExtensionFilter(new String[] { ".lco" }));
@@ -3658,6 +3709,28 @@ public final class ConfigAdmin {
 			// log.debug("Admin","File for new Version already exists, won't copy new one");
 			return null;
 		}
+		return newLucee;
+	}
+
+	private File mvnDownloadCore(CFMLEngineFactory factory, Version version, Identification id) throws IOException, PageException {
+		// local resource
+		final File patchDir = factory.getPatchDirectory();
+		final File newLucee = new File(patchDir, version + (".lco"));
+
+		;
+		try {
+			IOUtil.copy(new MavenUpdateProvider().getCore(version), new FileOutputStream(newLucee), true, true);
+		}
+		catch (PageException e) {
+			throw e;
+		}
+		catch (IOException e) {
+			throw e;
+		}
+		catch (Exception e) {
+			throw Caster.toPageException(e);
+		}
+
 		return newLucee;
 	}
 
@@ -5461,7 +5534,7 @@ public final class ConfigAdmin {
 		extensions.setEL("usage", toStringURLStyle(usage));
 
 	}
-	
+
 	public void updateAdminSyncClass(ClassDefinition cd) throws PageException {
 
 		if (cd.getClassName() == null) cd = new ClassDefinitionImpl(AdminSyncNotSupported.class.getName());
