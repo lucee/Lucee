@@ -19,8 +19,10 @@
 package lucee.runtime.functions.other;
 
 import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpSession;
 
 import lucee.runtime.PageContext;
+import lucee.runtime.config.Config;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.net.http.ReqRspUtil;
 
@@ -35,10 +37,23 @@ public final class URLSessionFormat implements Function {
 			int indexQ = strUrl.indexOf('?');
 			int indexA = strUrl.indexOf('&');
 			int len = strUrl.length();
-			if (indexQ == len - 1 || indexA == len - 1) strUrl += pc.getURLToken();
-			else if (indexQ != -1) strUrl += "&" + pc.getURLToken();
-			else strUrl += "?" + pc.getURLToken();
+			if (indexQ == len - 1 || indexA == len - 1) strUrl += getURLToken(pc);
+			else if (indexQ != -1) strUrl += "&" + getURLToken(pc);
+			else strUrl += "?" + getURLToken(pc);
+
+			if (pc.getSessionType() == Config.SESSION_TYPE_JEE) {
+				HttpSession s = pc.getSession();
+				if (s != null) {
+					if (indexQ == -1) indexQ = strUrl.indexOf('?');
+					strUrl = strUrl.substring(0, indexQ) + ";jsessionid=" + s.getId() + strUrl.substring(indexQ);
+				}
+			}
+
 		}
 		return strUrl;
+	}
+
+	private static String getURLToken(PageContext pc) {
+		return "CFID=" + pc.getCFID() + "&CFTOKEN=" + pc.getCFToken();
 	}
 }

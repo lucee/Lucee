@@ -2642,16 +2642,16 @@ public final class PageContextImpl extends PageContext {
 
 	@Override
 	public String getURLToken() {
-		if (getConfig().getSessionType() == Config.SESSION_TYPE_JEE) {
+		if (getSessionType() == Config.SESSION_TYPE_JEE) {
 			HttpSession s = getSession();
-			return "CFID=" + getCFID() + "&CFTOKEN=" + getCFToken() + "&jsessionid=" + (s != null ? s.getId() : "");
+			return "CFID=" + getCFID() + "&CFTOKEN=" + getCFToken() + "&jsessionid=" + (s != null ? getSession().getId() : "");
 		}
 		return "CFID=" + getCFID() + "&CFTOKEN=" + getCFToken();
 	}
 
 	@Override
 	public String getJSessionId() {
-		if (getConfig().getSessionType() == Config.SESSION_TYPE_JEE) {
+		if (getSessionType() == Config.SESSION_TYPE_JEE) {
 			return getSession().getId();
 		}
 		return null;
