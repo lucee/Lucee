@@ -158,7 +158,6 @@ public class BundleInfo implements Serializable {
 			synchronized (token) {
 				if (exportPackageAsList == null) {
 					if (StringUtil.isEmpty(exportPackage, true)) return exportPackageAsList = new ArrayList<>();
-
 					StringTokenizer st = new StringTokenizer(exportPackage.trim(), ",");
 					List<String> list = new ArrayList<String>();
 					String p;
@@ -166,6 +165,7 @@ public class BundleInfo implements Serializable {
 						p = StringUtil.trim(st.nextToken(), null);
 						if (!StringUtil.isEmpty(p)) list.add(p);
 					}
+					exportPackageAsList = list;
 				}
 			}
 		}

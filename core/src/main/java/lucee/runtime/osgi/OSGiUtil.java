@@ -454,7 +454,6 @@ public class OSGiUtil {
 	private static Object bundleDirectoryJarsToken = new Object();
 
 	public static Bundle loadBundleByPackage(PackageQuery pq, Set<Bundle> loadedBundles, boolean startIfNecessary, Set<String> parents) throws BundleException, IOException {
-
 		{
 			SoftReference<BundleFile> ref = packageBundleMappingDyn.get(pq.toString());
 			BundleFile bf = ref != null ? ref.get() : null;
@@ -497,7 +496,7 @@ public class OSGiUtil {
 						Bundle b = exists(loadedBundles, bf);
 						if (b != null) {
 							if (startIfNecessary) _startIfNecessary(b, parents);
-							return null;
+							return b;
 						}
 						b = loadBundle(bf);
 						if (b != null) {
@@ -533,7 +532,12 @@ public class OSGiUtil {
 			}
 		}
 		catch (IOException | BundleException e) {
+			log(e);
 			if (pq.getResolution() == PackageQuery.RESOLUTION_NONE) throw e;
+		}
+		catch (Exception e) {
+			log(e);
+			if (pq.getResolution() == PackageQuery.RESOLUTION_NONE) throw ExceptionUtil.toIOException(e);
 		}
 
 		return null;
@@ -877,7 +881,7 @@ public class OSGiUtil {
 	}
 
 	private static List<PackageDefinition> toPackageDefinitions(List<String> packageNames, String filterPackageName, List<VersionDefinition> versionDefinitions) {
-		if (packageNames.isEmpty()) return null;
+		if (packageNames == null || packageNames.isEmpty()) return null;
 
 		List<PackageDefinition> list = new ArrayList<PackageDefinition>(packageNames.size());
 		PackageDefinition pd;
@@ -898,7 +902,7 @@ public class OSGiUtil {
 		while (list.hasNext()) {
 			token = list.next().trim();
 			if (pd == null) {
-				if (!token.equals(filterPackageName)) return null;
+				if (filterPackageName != null && !token.equals(filterPackageName)) return null;
 				pd = new PackageDefinition(token);
 			}
 			// only intressted in version
