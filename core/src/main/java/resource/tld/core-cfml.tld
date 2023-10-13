@@ -1193,7 +1193,7 @@ To use cached data, the function must be called with the exact same arguments.</
 	<tag>
 		<name>Header</name>
 		<tag-class>lucee.runtime.tag.Header</tag-class>
-		<body-content>empty</body-content>
+		<body-content>free</body-content>
 		<body-rtexprvalue>false</body-rtexprvalue>
 		<script>
 			<type>multiple</type>
