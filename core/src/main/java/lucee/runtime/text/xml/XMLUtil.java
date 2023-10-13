@@ -95,6 +95,7 @@ import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.util.KeyConstants;
+import lucee.runtime.type.util.StructUtil;
 
 /**
  *
@@ -140,6 +141,8 @@ public final class XMLUtil {
 	private static SAXParserFactory saxParserFactory;
 
 	private static URL transformerFactoryResource;
+
+	private static boolean disableXmlFeatureOverride = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.xmlfeatures.override.disable", "false"), false);
 
 	public static String unescapeXMLString(String str) {
 
@@ -283,8 +286,8 @@ public final class XMLUtil {
 	public static final Document parse(InputSource xml, Object validator, EntityResolver entRes, boolean isHtml) throws SAXException, IOException {
 
 		if (!isHtml) {
-			DocumentBuilderFactory factory = (validator instanceof InputSource)
-				? newDocumentBuilderFactory((InputSource) validator, null) : newDocumentBuilderFactory(null, (Struct) validator);
+			DocumentBuilderFactory factory = (validator instanceof InputSource) ? newDocumentBuilderFactory((InputSource) validator, null)
+					: newDocumentBuilderFactory(null, (Struct) validator);
 
 			try {
 				DocumentBuilder builder = factory.newDocumentBuilder();
@@ -345,14 +348,17 @@ public final class XMLUtil {
 		if (pc != null || xmlFeatures != null) {
 			if (xmlFeatures != null) {
 				features = xmlFeatures;
-			} else {
+			}
+			else {
 				ApplicationContextSupport ac = ((ApplicationContextSupport) pc.getApplicationContext());
 				features = ac == null ? null : ac.getXmlFeatures();
 			}
 			if (features != null) {
 				try { // handle feature aliases, e.g. secure
+					if (disableXmlFeatureOverride) throw new ExpressionException("xmlFeatures override has been disabled by lucee.xmlfeatures.override.disable");
+					features = StructUtil.duplicate(features, true);
 					Object obj;
-					
+
 					obj = features.get(KEY_FEATURE_SECURE, null);
 					if (obj != null) featureSecure = Caster.toBoolean(obj);
 					features.remove(KEY_FEATURE_SECURE, null);
@@ -367,9 +373,11 @@ public final class XMLUtil {
 						if (Caster.toBoolean(obj) != Caster.toBoolean(obj2))
 							throw new ExpressionException("When both externalGeneralEntities and allowExternalEntities are set, they must match ");
 						externalGeneralEntities = Caster.toBoolean(obj);
-					} else if (obj != null) {
+					}
+					else if (obj != null) {
 						externalGeneralEntities = Caster.toBoolean(obj);
-					} else if (obj2 != null) {
+					}
+					else if (obj2 != null) {
 						externalGeneralEntities = Caster.toBoolean(obj2);
 					}
 					features.remove(KEY_FEATURE_EXTERNAL_GENERAL_ENTITIES, null);
@@ -380,7 +388,7 @@ public final class XMLUtil {
 				}
 			}
 		}
-		
+
 		try { // set built in feature aliases
 			if (featureSecure) {
 				// set features per
@@ -394,7 +402,7 @@ public final class XMLUtil {
 				factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
 				factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
 			}
-			
+
 			factory.setFeature(XMLConstants.FEATURE_DISALLOW_DOCTYPE_DECL, disallowDocType);
 			factory.setFeature(XMLConstants.FEATURE_EXTERNAL_GENERAL_ENTITIES, externalGeneralEntities);
 		}
@@ -403,7 +411,7 @@ public final class XMLUtil {
 		}
 		// pass thru any additional feature directives
 		// https://xerces.apache.org/xerces2-j/features.html#disallow-doctype-decl
-		if (features != null){
+		if (features != null) {
 			features.forEach((k, v) -> {
 				try {
 					factory.setFeature(k.toString().toLowerCase(), Caster.toBoolean(v));

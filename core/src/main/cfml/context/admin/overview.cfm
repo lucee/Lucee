@@ -67,7 +67,7 @@ Redirect to entry --->
 
 <cfset lucee_version = "UNKNOWN">
 <cfinclude template="version.cfm">
-<cfif lucee_version neq server.lucee.version>
+<cfif lucee_version neq server.lucee.version && lucee_version neq "UNKNOWN">
 	<cfoutput>
 		<div class="error">Warning Lucee Admin was compiled with version #lucee_version#?</div>
 	</cfoutput>

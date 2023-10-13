@@ -335,6 +335,10 @@ public final class Application extends TagImpl implements DynamicAttributes {
 		this.mails = mails;
 	}
 
+	public void setMails(Array mails) {
+		this.mails = mails;
+	}
+
 	public void setCaches(Struct caches) {
 		this.caches = caches;
 	}
