@@ -3,21 +3,22 @@
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either 
+ * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public 
+ *
+ * You should have received a copy of the GNU Lesser General Public
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  */
 component {
 
 
 	function init() {
+		this.nameAppendix=hash(server.lucee.version & server.lucee["release-date"] & server.os.macAddress & getLuceeId().web.id,'quick');
 
 		this.resources = {};
 
@@ -45,43 +46,41 @@ component {
 	function onMissingTemplate( target ) {
 		var filename = right( arguments.target, 4 ) == ".cfm" ? left( arguments.target, len( arguments.target ) - 4 ) : arguments.target;
 		var resInfo = getResInfo( filename ,"");
-				
+
 		if(!resInfo.exists) {
 			// maybe the name has the version appendix
-			nameAppendix=hash(server.lucee.version&server.lucee['release-date'],'quick');
-			if(find("-"&nameAppendix,filename)) {
-				var resInfo = getResInfo( replace(filename,"-"&nameAppendix,""),nameAppendix );
+			if ( find( "-" & this.nameAppendix, filename ) ) {
+				var resInfo = getResInfo( replace(filename,"-" & this.nameAppendix, "" ), this.nameAppendix );
 			}
 		}
-		
+
 		if ( resInfo.exists ) {
 
 			header name='Expires'       value='#getHttpTimeString( now() + 10 )#';
 			header name='Cache-Control' value='max-age=#86400 * 10#';
 			header name='ETag'          value=resInfo.etag;
 			if (CGI.HTTP_IF_NONE_MATCH == resInfo.etag ) {
-
 				header statuscode='304' statustext='Not Modified';
 				content reset=true type=resInfo.mimeType;
 			} else {
-				if(resInfo.isText) {
+				if (resInfo.isText) {
 					content reset=true type=resInfo.mimeType;
 					echo(resInfo.contents);
-				}
-				else
+				} else {
 					content reset=true type=resInfo.mimeType file=resInfo.path;
-
+				}
 			}
 		} else {
+			setting showdebugoutput=false;
 			header statuscode='404' statustext='Not Found';
-		//	header statuscode='404' statustext='Not Found @ #resInfo.path#';
+			abort;
 		}
 
 		return resInfo.exists;
 	}
 
 
-	private function getResInfo( filename,nameAppendix ) {
+	private function getResInfo( filename, nameAppendix ) {
 		if ( structKeyExists( this.resources, arguments.filename ) )
 			return this.resources[ arguments.filename ];
 
@@ -103,12 +102,12 @@ component {
 
 		result.isText = left( result.mimeType, 4 ) == "text";
 
-		result.contents = 
-			result.isText ? replace(fileRead( result.path ),'{appendix}',hash(server.lucee.version&server.lucee['release-date'],'quick'),'all') : 
+		result.contents =
+			result.isText ? replace(fileRead( result.path ),'{appendix}',this.nameAppendix,'all') :
 			fileReadBinary( result.path );
 
-		result.etag = hash( result.contents&":"&nameAppendix );
-				
+		result.etag = hash( result.contents&":"&this.nameAppendix );
+
 		this.resources[ arguments.filename ] = result;
 
 		return result;

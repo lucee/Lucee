@@ -47,11 +47,6 @@ public final class XmlParse extends BIF implements Function {
 		return call(pc, string, caseSensitive, null, false);
 	}
 
-	// FUTURE remove this method, only exist for backward compatibility for older archive mappings
-	public static Node call(PageContext pc, String string, boolean caseSensitive, String strValidator) throws PageException {
-		return call(pc, string, caseSensitive, strValidator, false);
-	}
-
 	public static Node call(PageContext pc, String string, boolean caseSensitive, Object strValidator) throws PageException {
 		return call(pc, string, caseSensitive, strValidator, false);
 	}
@@ -59,10 +54,11 @@ public final class XmlParse extends BIF implements Function {
 	public static Node call(PageContext pc, String strXML, boolean caseSensitive, Object strValidator, boolean lenient) throws PageException {
 		try {
 			InputSource xml = XMLUtil.toInputSource(pc, StringUtil.trim(strXML, true, true, ""));
-			if (Decision.isStruct(strValidator)) {
+			if (Decision.isStruct(strValidator)){
 				return XMLCaster.toXMLStruct(XMLUtil.parse(xml, Caster.toStruct(strValidator), null, lenient), caseSensitive);
-			}
-			InputSource validator = StringUtil.isEmpty(Caster.toString(strValidator)) ? null : XMLUtil.toInputSource(pc, Caster.toString(strValidator).trim());
+			} 
+			InputSource validator = StringUtil.isEmpty(Caster.toString(strValidator)) 
+				? null : XMLUtil.toInputSource(pc, Caster.toString(strValidator).trim());
 			return XMLCaster.toXMLStruct(XMLUtil.parse(xml, validator, lenient), caseSensitive);
 		}
 		catch (Exception e) {

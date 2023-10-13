@@ -3,21 +3,23 @@
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either 
+ * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public 
+ *
+ * You should have received a copy of the GNU Lesser General Public
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  */
 component {
 
 
 	function init() {
+
+		this.nameAppendix=hash(server.lucee.version & server.lucee["release-date"] & server.os.macAddress & getLuceeId().web.id,'quick');
 
 		this.resources = {};
 
@@ -47,12 +49,11 @@ component {
 		var filename = right( arguments.target, 4 ) == ".cfm" ? left( arguments.target, len( arguments.target ) - 4 ) : arguments.target;
 
 		var resInfo = getResInfo( filename );
-		
+
 		if(!resInfo.exists) {
 			// maybe the name has the version appendix
-			nameAppendix=hash(server.lucee.version&server.lucee['release-date'],'quick');
-			if(find("-"&nameAppendix,filename)) {
-				var resInfo = getResInfo( replace(filename,"-"&nameAppendix,"") );
+			if (find("-"&this.nameAppendix,filename)) {
+				var resInfo = getResInfo( replace(filename,"-"&this.nameAppendix,"") );
 			}
 		}
 
@@ -63,18 +64,18 @@ component {
 			header name='ETag'          value=resInfo.etag;
 
 			if ( CGI.HTTP_IF_NONE_MATCH == resInfo.etag ) {
-
 				header statuscode='304' statustext='Not Modified';
 				content reset=true type=resInfo.mimeType;
 			} else {
-
 				content reset=true type=resInfo.mimeType file=resInfo.path;
 			}
-		} else {
-			header statuscode='404' statustext='Not Found';
-		//	header statuscode='404' statustext='Not Found @ #resInfo.path#';
 
-			systemOutput( "static resource #arguments.target# was not found @ #resInfo.path#", true, true );
+		} else {
+
+			setting showdebugoutput=false;
+			header statuscode='404' statustext='Not Found';
+			abort;
+			// systemOutput( "static resource #arguments.target# was not found @ #resInfo.path#", true, true );
 		}
 
 		return resInfo.exists;

@@ -44,7 +44,7 @@ Error Output --->
 	function restart(field) {
 		field.disabled = true;
 		submitted = true;
-		url='restart.cfm?adminType=#request.admintype#';
+		url='?action=restart&adminType=#request.admintype#';
 		//createWaitBlockUI("restart in progress ...");
 		$('##updateInfoDesc').html('<img src="../res/img/spinner16.gif.cfm">');
 		disableBlockUI = true;

@@ -42,6 +42,12 @@ component {
 
 	function onRequestStart( target ) {
 
+		if ( findNoCase( listFirst(cgi.script_name,"/") & "/" & listGetAt(cgi.script_name,2,"/"), cgi.request_url ) eq 0
+				|| cgi.script_name contains "_" ){
+			cfheader(statuscode="404" statustext="Invalid access");
+			cfabort;
+		}
+
 		param name="cookie.lucee_admin_lang" default="en";
 		Session.lucee_admin_lang = cookie.lucee_admin_lang;
 

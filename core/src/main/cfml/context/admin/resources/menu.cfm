@@ -72,7 +72,7 @@
 				struct(action:"rest",label:isDefined('arguments.stMenu.resources.rest')?arguments.stMenu.resources.rest:'Rest'),
 				struct(action:"component",label:arguments.stMenu.resources.component),
 				struct(action:"customtags",label:arguments.stMenu.resources.customtags),
-				struct(action:"cfx_tags",label:arguments.stMenu.resources.cfx_tags)
+				struct(action:"cfxTags",label:arguments.stMenu.resources.cfxTags)
 			)
 		),
 		struct(action:"debugging",label:arguments.stMenu.debugging.label,
