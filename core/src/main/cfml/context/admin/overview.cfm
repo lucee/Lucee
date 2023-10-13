@@ -82,7 +82,9 @@ Error Output --->
 <cfset pool["PS Old Gen"]=pool["CMS Old Gen"]>
 
 <cfhtmlbody>
-    <script src="../res/js/echarts-all.js.cfm" type="text/javascript"></script>
+	<cfoutput>
+    	<script src="../res/js/echarts-all-#request.resNameAppendix#.js.cfm" type="text/javascript"></script>
+	</cfoutput>
     <script type="text/javascript">
     	var chartTimer;
     	labels={'heap':"Heap",'nonheap':"Non-Heap",'cpuSystem':"Whole System",'cpuProcess':"Lucee Process"};
@@ -331,7 +333,7 @@ Error Output --->
 				<script type="text/javascript">
 					$( function() {
 
-						$('##updateInfoDesc').load('update.cfm?#session.urltoken#&adminType=#request.admintype#');
+						$('##updateInfoDesc').load('?action=update&adminType=#request.admintype#');
 					} );
 				</script>
 			</cfhtmlbody>

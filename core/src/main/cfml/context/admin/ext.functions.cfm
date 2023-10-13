@@ -51,8 +51,10 @@
 			}
 
 			var installed = parseType( arguments.data.version );
-			loop array=#result.otherVersions# index="local.i" {
-				addVersion( sort, i, installed );
+			if ( isArray( result.otherVersions ) ){
+				loop array=#result.otherVersions# index="local.i" {
+					addVersion( sort, i, installed );
+				}
 			}
 			addVersion( sort, result.version, installed );
 			querySort(sort, "v", "desc");

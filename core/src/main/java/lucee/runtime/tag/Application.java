@@ -329,7 +329,7 @@ public final class Application extends TagImpl implements DynamicAttributes {
 		this.logs = logs;
 	}
 
-	public void setMailservers(Array mails) {
+	public void setMails(Array mails) {
 		this.mails = mails;
 	}
 

@@ -44,15 +44,16 @@ public class HttpUtil {
 	public static Pair<String, String>[] cloneHeaders(HttpServletRequest req) {
 		List<Pair<String, String>> headers = new ArrayList<Pair<String, String>>();
 		Enumeration<String> e = req.getHeaderNames(), ee;
-		String name;
+		String name, val;
 		while (e.hasMoreElements()) {
 			name = e.nextElement();
 			ee = req.getHeaders(name);
 			while (ee.hasMoreElements()) {
-				headers.add(new Pair<String, String>(name, ee.nextElement().toString()));
+				val = ee.nextElement();
+				if (val != null) headers.add(new Pair<String, String>(name, val));
 			}
 		}
-		return (Pair<String, String>[]) headers.toArray(new Pair[headers.size()]);
+		return headers.toArray(new Pair[headers.size()]);
 	}
 
 	public static Struct getAttributesAsStruct(HttpServletRequest req) {

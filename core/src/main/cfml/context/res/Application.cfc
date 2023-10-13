@@ -29,12 +29,25 @@ component {
 	this.scriptProtect     = "all";
 	this.web.charset       = "utf-8";
 
-	variables.isDebug = true;		// ATTN: set to false for production!
+	variables.isDebug = false;		// ATTN: set to false for production!
 
 
 	function onApplicationStart() {
-
+		if ( (structKeyExists(server.system.environment, "lucee_admin_enabled") && !server.system.environment["lucee_admin_enabled"])
+ 			|| ( structKeyExists(server.system.properties, "lucee.admin.enabled") && !server.system.properties["lucee.admin.enabled"] ) ){
+			setting showdebugoutput=false;
+			cfheader(statuscode="404", statustext="Invalid access");
+			abort;
+		}
 		Application.objects.missingTemplateHandler = new StaticResourceProvider();
+	}
+
+	public function onRequestStart() {
+		if ( findNoCase( cgi.script_name, cgi.request_url ) eq 0 ){
+			setting showdebugoutput=false;
+			cfheader(statuscode="404", statustext="Invalid access");
+			cfabort;
+		}
 	}
 
 

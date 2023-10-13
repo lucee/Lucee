@@ -1,6 +1,6 @@
 <cfsilent>
-	<cfif not directoryExists(dataDir)>
-		<cfdirectory action="create" directory="#dataDir#" mode="777" recurse="true" />
+	<cfif not directoryExists(variables.dataDir)>
+		<cfdirectory action="create" directory="#variables.dataDir#" mode="777" recurse="true" />
 	</cfif>
 
 	<cfdirectory action="list" name="qlangs" directory="#expandPath('{lucee-web}/context/admin/resources/language/')#" filter="*.xml" />
@@ -9,9 +9,9 @@
 	<cfset pageContents = {} />
 
 	<!--- clear the data dir --->
-	<cfdirectory action="list" directory="#datadir#" name="q" type="file" />
+	<cfdirectory action="list" directory="#variables.dataDir#" name="q" type="file" />
 	<cfloop query="q">
-		<cfset filedelete(datadir & q.name) />
+		<cfset filedelete(variables.dataDir & q.name) />
 	</cfloop>
 
 
@@ -49,8 +49,8 @@
 
 		<!--- remember file contents for each language --->
 		<cfloop collection="#translations#" item="lng">
-			<cfif fileExists('#datadir##curraction#.#lng#.txt')>
-				<cfset pageContents[lng][currAction] = fileRead('#datadir##curraction#.#lng#.txt', 'utf-8') />
+			<cfif fileExists('#variables.dataDir##curraction#.#lng#.txt')>
+				<cfset pageContents[lng][currAction] = fileRead('#variables.dataDir##curraction#.#lng#.txt', 'utf-8') />
 			<cfelse>
 				<!--- make sure we will also find this page when searching for the file name--->
 				<cfset pageContents[lng][currAction] = "#replace(curraction, '.', ' ')# " />
@@ -80,14 +80,14 @@
 
 		<!--- save translated file contents to disk --->
 		<cfloop collection="#translations#" item="lng">
-			<cffile action="write" file="#datadir##curraction#.#lng#.txt" charset="utf-8" output="#rereplace(pageContents[lng][currAction], '<.*?>', '', 'all')#" mode="644" />
+			<cffile action="write" file="#variables.dataDir##curraction#.#lng#.txt" charset="utf-8" output="#rereplace(pageContents[lng][currAction], '<.*?>', '', 'all')#" mode="644" />
 		</cfloop>
 
 	</cfloop>
 
 	<!--- remember the Lucee version which is now in use --->
-	<cffile action="write" file="#datadir#indexed-lucee-version.cfm" output="#server.lucee.version##server.lucee['release-date']#" mode="644" addnewline="no" />
+	<cffile action="write" file="#variables.dataDir#indexed-lucee-version.cfm" output="#server.lucee.version##server.lucee['release-date']#" mode="644" addnewline="no" />
 
 	<!--- store the searchresults --->
-	<cffile action="write" file="#datadir#searchindex.cfm" charset="utf-8" output="#serialize(searchresults)#" mode="644" />
+	<cffile action="write" file="#variables.dataDir#searchindex.cfm" charset="utf-8" output="#serializeJson(searchresults)#" mode="644" />
 </cfsilent>

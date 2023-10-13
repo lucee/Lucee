@@ -3,6 +3,25 @@
 	external=getExternalData(providerURLs,true);
 	existing={};
 
+	function getUpdatedExtensions(extensions, external){
+		var updates = {};
+		loop query=arguments.extensions {
+			var sct = {};
+			loop list="#arguments.extensions.columnlist()#" item="local.key" {
+				sct[ key ]=arguments.extensions[ key ];
+			}
+			updateVersion= updateAvailable( sct, arguments.external );
+			if (updateVersion eq "false"){
+				continue;
+			} else {
+				updates[sct.id] =  sct;
+			}
+		}
+		return updates;
+	}
+
+	extHasUpdates = getUpdatedExtensions(extensions, external);
+	
 	function getLatestVersion(id) {
 		loop query=external {
 			if(external.id==arguments.id) {
@@ -90,7 +109,8 @@
 				or doFilter(session.extFilter.filter,provTitle,false)
 				><cfscript>
 					latest=getLatestVersion(_extensions.id);
-					hasUpdates=latest.vs GT toVersionSortable(_extensions.version);
+					hasNewer = latest.vs GT toVersionSortable(_extensions.version);
+					hasUpdates = structKeyExists(variables.extHasUpdates, _extensions.id);
 					link="#request.self#?action=#url.action#&action2=detail&id=#_extensions.id#";
 					img=_extensions.image;
 					if(len(img)==0) {
@@ -125,7 +145,7 @@ Latest version: #latest.v#</cfif>"><cfif hasUpdates>
 							#_extensions.version#<br />
 							</span>
 							<span class="comment" <cfif _type=="server">style="color:##bf4f36"</cfif>>
-							<cfif hasUpdates>#latest.v#</cfif></span>
+							<cfif hasNewer>#latest.v#</cfif></span>
 
 						</a>
 					</div>

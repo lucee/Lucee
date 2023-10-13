@@ -264,7 +264,7 @@
 	<data key="menu.resources.rest">Rest</data>
 	<data key="menu.resources.component">Component</data>
 	<data key="menu.resources.customtags">Custom tags</data>
-	<data key="menu.resources.cfx_tags">CFX tags</data>
+	<data key="menu.resources.cfxTags">CFX tags</data>
 	<data key="menu.debugging.label">Debugging</data>
 	<data key="menu.debugging.logs">Logs</data>
 	<data key="menu.debugging.templates">Templates</data>

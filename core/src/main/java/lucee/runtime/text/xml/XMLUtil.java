@@ -96,6 +96,7 @@ import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.util.KeyConstants;
+import lucee.runtime.type.util.StructUtil;
 
 /**
  *
@@ -141,6 +142,8 @@ public final class XMLUtil {
 	private static SAXParserFactory saxParserFactory;
 
 	private static URL transformerFactoryResource;
+
+	private static boolean disableXmlFeatureOverride = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.xmlfeatures.override.disable", "false"), false);
 
 	public static String unescapeXMLString(String str) {
 
@@ -352,6 +355,9 @@ public final class XMLUtil {
 			}
 			if (features != null) {
 				try { // handle feature aliases, e.g. secure
+					if (disableXmlFeatureOverride)
+						throw new ExpressionException("xmlFeatures override has been disabled by lucee.xmlfeatures.override.disable");
+					features = StructUtil.duplicate(features, true);
 					Object obj;
 					
 					obj = features.get(KEY_FEATURE_SECURE, null);
