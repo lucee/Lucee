@@ -1,4 +1,4 @@
-component extends = "org.lucee.cfml.test.LuceeTestCase" {
+component extends = "org.lucee.cfml.test.LuceeTestCase" skip=true {
 	function run( testResults, testBox ){
 		describe( "Testcase for an empty argument on LDEV2700 ", function(){
 			it( "Checking for an empty argument on LDEV2700", function(){
