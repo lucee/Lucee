@@ -12,7 +12,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import lucee.print;
 import lucee.commons.digest.HashUtil;
 import lucee.commons.io.FileUtil;
 import lucee.commons.io.log.LogUtil;
@@ -199,26 +198,22 @@ public class ConfigWebHelper {
 			ThreadLocalPageContext.insideGateway(true);
 			// new engine
 			if (gatewayEngine == null) {
-				print.ds("new gateway engine");
 				gatewayEngine = new GatewayEngineImpl(cw);
 				if (entries != null) {
 					try {
 						gatewayEngine.addEntries(cw, entries);
 					}
 					catch (Exception e) {
-						print.e(e);
 						throw Caster.toPageException(e);
 					}
 				}
 			}
 			// update engine
 			else if (entries != null && !entries.getId().equals(gatewayEngine.id())) {
-				print.ds("update gateway engine");
 				try {
 					gatewayEngine.addEntries(cw, entries);
 				}
 				catch (Exception e) {
-					print.e(e);
 					throw Caster.toPageException(e);
 				}
 			}
