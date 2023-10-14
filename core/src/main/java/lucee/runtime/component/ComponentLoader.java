@@ -22,10 +22,12 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import javax.servlet.jsp.tagext.BodyContent;
 
+import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.filter.DirectoryResourceFilter;
 import lucee.commons.io.res.filter.ExtensionResourceFilter;
 import lucee.commons.io.res.filter.OrResourceFilter;
 import lucee.commons.io.res.filter.ResourceFilter;
+import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.MappingUtil;
 import lucee.commons.lang.PhysicalClassLoader;
 import lucee.commons.lang.StringUtil;
@@ -47,6 +49,7 @@ import lucee.runtime.PageSourceImpl;
 import lucee.runtime.StaticScope;
 import lucee.runtime.SubPage;
 import lucee.runtime.config.ConfigPro;
+import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.config.Constants;
 import lucee.runtime.debug.DebugEntryTemplate;
 import lucee.runtime.exp.ApplicationException;
@@ -219,8 +222,8 @@ public class ComponentLoader {
 
 		// app-String appName=pc.getApplicationContext().getName();
 		rawPath = rawPath.trim().replace('\\', '/');
-		String path = (rawPath.indexOf("./") == -1) ? rawPath.replace('.', '/') : rawPath;
-
+		String ext = "." + (dialect == CFMLEngine.DIALECT_CFML ? Constants.getCFMLComponentExtension() : Constants.getLuceeComponentExtension());
+		final String path = (rawPath.indexOf("./") == -1 && !rawPath.endsWith(ext)) ? rawPath.replace('.', '/') : rawPath;
 		boolean isRealPath = !StringUtil.startsWith(path, '/');
 		// PageSource currPS = pc.getCurrentPageSource();
 		// Page currP=currPS.loadPage(pc,false);
@@ -228,8 +231,7 @@ public class ComponentLoader {
 		CIPage page = null;
 
 		// MUSTMUST improve to handle different extensions
-		String pathWithCFC = path.concat("." + (dialect == CFMLEngine.DIALECT_CFML ? Constants.getCFMLComponentExtension() : Constants.getLuceeComponentExtension()));
-
+		String pathWithCFC = (path.endsWith(ext)) ? path : path + ext;
 		// no cache for per application pathes
 		Mapping[] acm = pc.getApplicationContext().getComponentMappings();
 		if (!ArrayUtil.isEmpty(acm)) {
@@ -431,6 +433,22 @@ public class ComponentLoader {
 				// "+rawPath+" or "+rpm);
 			}
 		}
+
+		// absolute path
+		if (returnType == RETURN_TYPE_COMPONENT) {
+			Resource res = ResourceUtil.toResourceExisting(pc, pathWithCFC, true, null);
+			if (res != null) {
+				ps = ConfigWebUtil.toComponentPageSource(pc, res, null);
+				if (ps != null) {
+					page = toCIPage(PageSourceImpl.loadPage(pc, new PageSource[] { ps }, null));
+					if (page != null) {
+						if (doCache) config.putCachedPageSource("abs:" + rawPath, page.getPageSource());
+						return returnType == RETURN_TYPE_PAGE ? page : load(pc, page, rawPath, sub, isRealPath, returnType, isExtendedComponent, executeConstr, validate);
+					}
+				}
+			}
+		}
+
 		return null;
 		// throw new ExpressionException("invalid "+toStringType(returnType)+" definition, can't find
 		// "+toStringType(returnType)+" ["+rawPath+"]");

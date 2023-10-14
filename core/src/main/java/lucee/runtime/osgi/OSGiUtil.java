@@ -63,7 +63,6 @@ import lucee.commons.io.res.filter.ResourceNameFilter;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.ExceptionUtil;
-import lucee.commons.lang.StringList;
 import lucee.commons.lang.StringUtil;
 import lucee.loader.engine.CFMLEngine;
 import lucee.loader.engine.CFMLEngineFactory;
@@ -445,6 +444,20 @@ public class OSGiUtil {
 		return _loadBundle(bc, bf.getFile());
 	}
 
+	public static Bundle loadBundle(BundleFile bf, List<VersionDefinition> versionsDefinitions) throws IOException, BundleException {
+		CFMLEngine engine = CFMLEngineFactory.getInstance();
+
+		// check in loaded bundles
+		BundleContext bc = engine.getBundleContext();
+		Bundle[] bundles = bc.getBundles();
+		for (Bundle b: bundles) {
+			if (bf.getSymbolicName().equals(b.getSymbolicName())) {
+				if (VersionDefinition.matches(versionsDefinitions, b.getVersion())) return b;
+			}
+		}
+		return _loadBundle(bc, bf.getFile());
+	}
+
 	public static int existing = 0;
 	public static int _new = 0;
 
@@ -453,18 +466,21 @@ public class OSGiUtil {
 	private static long bundleDirectoryJarsLastCheck = 0;
 	private static Object bundleDirectoryJarsToken = new Object();
 
-	public static Bundle loadBundleByPackage(PackageQuery pq, Set<Bundle> loadedBundles, boolean startIfNecessary, Set<String> parents) throws BundleException, IOException {
+	private static Bundle loadBundleByPackage(PackageQuery pq, Set<Bundle> loadedBundles, boolean startIfNecessary, Set<String> parents) throws BundleException, IOException {
+		// check hardcoded mappings
 		{
-			SoftReference<BundleFile> ref = packageBundleMappingDyn.get(pq.toString());
+			SoftReference<BundleFile> ref = packageBundleMappingDyn.get(pq.getName());
 			BundleFile bf = ref != null ? ref.get() : null;
 			if (bf != null) {
+				// load existing
 				existing++;
-				Bundle b = exists(loadedBundles, bf);
+				Bundle b = exists(loadedBundles, bf.getSymbolicName(), pq.getVersionDefinitons());
 				if (b != null) {
 					if (startIfNecessary) _startIfNecessary(b, parents);
 					return null;
 				}
-				b = loadBundle(bf);
+				// load new
+				b = loadBundle(bf, pq.getVersionDefinitons());
 				if (b != null) {
 					loadedBundles.add(b);
 					if (startIfNecessary) _startIfNecessary(b, parents);
@@ -472,6 +488,8 @@ public class OSGiUtil {
 				}
 			}
 		}
+
+		// check bundles for package
 		_new++;
 		try {
 			CFMLEngine engine = CFMLEngineFactory.getInstance();
@@ -485,25 +503,26 @@ public class OSGiUtil {
 			// is it in jar directory but not loaded
 
 			File[] children = getJarsFromBundleDirectory(factory);
-			List<PackageDefinition> pds;
 			for (File child: children) {
 				BundleFile bf = BundleFile.getInstance(child);
+
 				if (bf.isBundle()) {
 					packageBundleMappingDyn.put(pq.toString(), new SoftReference<BundleFile>(bf));
 					if (parents.contains(toString(bf))) continue;
-					pds = toPackageDefinitions(bf.getExportPackageAsList(), pq.getName(), pq.getVersionDefinitons());
-					if (pds != null && !pds.isEmpty()) {
-						Bundle b = exists(loadedBundles, bf);
+					if (hasMatchingPackages(bf.getExportPackageAsList(), pq)) {
+						Bundle b = exists(loadedBundles, bf.getSymbolicName(), pq.getVersionDefinitons());
 						if (b != null) {
 							if (startIfNecessary) _startIfNecessary(b, parents);
 							return b;
 						}
 						b = loadBundle(bf);
+
 						if (b != null) {
 							loadedBundles.add(b);
 							if (startIfNecessary) _startIfNecessary(b, parents);
 							return b;
 						}
+
 					}
 				}
 			}
@@ -539,7 +558,6 @@ public class OSGiUtil {
 			log(e);
 			if (pq.getResolution() == PackageQuery.RESOLUTION_NONE) throw ExceptionUtil.toIOException(e);
 		}
-
 		return null;
 	}
 
@@ -573,11 +591,21 @@ public class OSGiUtil {
 
 	private static Bundle exists(Set<Bundle> loadedBundles, BundleFile bf) {
 		if (loadedBundles != null) {
-			Bundle b;
-			Iterator<Bundle> it = loadedBundles.iterator();
-			while (it.hasNext()) {
-				b = it.next();
+			for (Bundle b: loadedBundles) {
 				if (b.getSymbolicName().equals(bf.getSymbolicName()) && b.getVersion().equals(bf.getVersion())) return b;
+			}
+		}
+		return null;
+	}
+
+	private static Bundle exists(Set<Bundle> loadedBundles, String symbolicName, List<VersionDefinition> versionDefinitions) {
+		if (loadedBundles != null) {
+			for (Bundle b: loadedBundles) {
+				if (b.getSymbolicName().equals(symbolicName)) {
+					if (VersionDefinition.matches(versionDefinitions, b.getVersion())) {
+						return b;
+					}
+				}
 			}
 		}
 		return null;
@@ -587,6 +615,7 @@ public class OSGiUtil {
 		if (loadedBundles != null) {
 			Bundle b;
 			Iterator<Bundle> it = loadedBundles.iterator();
+
 			while (it.hasNext()) {
 				b = it.next();
 				if (b.getSymbolicName().equals(bd.getName()) && b.getVersion().equals(bd.getVersion())) return b;
@@ -880,55 +909,15 @@ public class OSGiUtil {
 		}
 	}
 
-	private static List<PackageDefinition> toPackageDefinitions(List<String> packageNames, String filterPackageName, List<VersionDefinition> versionDefinitions) {
-		if (packageNames == null || packageNames.isEmpty()) return null;
+	private static boolean hasMatchingPackages(List<PackageDefinition> packageDefinitions, PackageQuery pq) {
+		if (packageDefinitions == null || packageDefinitions.isEmpty()) return false;
 
-		List<PackageDefinition> list = new ArrayList<PackageDefinition>(packageNames.size());
-		PackageDefinition pd;
-		Iterator<String> it = packageNames.iterator();
-		while (it.hasNext()) {
-			pd = toPackageDefinition(it.next(), filterPackageName, versionDefinitions);
-			if (pd != null) list.add(pd);
-		}
-		return list;
-	}
-
-	private static PackageDefinition toPackageDefinition(String str, String filterPackageName, List<VersionDefinition> versionDefinitions) {
-		// first part is the package
-		StringList list = ListUtil.toList(str, ';');
-		PackageDefinition pd = null;
-		String token;
-		Version v;
-		while (list.hasNext()) {
-			token = list.next().trim();
-			if (pd == null) {
-				if (filterPackageName != null && !token.equals(filterPackageName)) return null;
-				pd = new PackageDefinition(token);
-			}
-			// only intressted in version
-			else {
-				StringList entry = ListUtil.toList(token, '=');
-				if (entry.size() == 2 && entry.next().trim().equalsIgnoreCase("version")) {
-					String version = StringUtil.unwrap(entry.next().trim());
-					if (!version.equals("0.0.0")) {
-						v = OSGiUtil.toVersion(version, null);
-						if (v != null) {
-							if (versionDefinitions != null) {
-								Iterator<VersionDefinition> it = versionDefinitions.iterator();
-								while (it.hasNext()) {
-									if (!it.next().matches(v)) {
-										return null;
-									}
-								}
-							}
-							pd.setVersion(v);
-						}
-					}
-				}
-
+		for (PackageDefinition pd: packageDefinitions) {
+			if (pd.getName().equals(pq.name)) {
+				if (VersionDefinition.matches(pq.getVersionDefinitons(), pd.getVersion())) return true;
 			}
 		}
-		return pd;
+		return false;
 	}
 
 	/**
@@ -1353,7 +1342,7 @@ public class OSGiUtil {
 		}
 	}
 
-	public static Bundle _start(Bundle bundle, Set<String> parents) throws BundleException {
+	private static Bundle _start(Bundle bundle, Set<String> parents) throws BundleException {
 		if (bundle == null) return bundle;
 
 		String bn = toString(bundle);
@@ -1385,8 +1374,8 @@ public class OSGiUtil {
 			catch (BundleException be2) {
 				List<PackageQuery> listPackages = getRequiredPackages(bundle);
 				List<PackageQuery> failedPD = new ArrayList<PackageQuery>();
-				loadPackages(parents, loadedBundles, listPackages, bundle, failedPD);
 				try {
+					loadPackages(parents, loadedBundles, listPackages, bundle, failedPD);
 					// startIfNecessary(loadedBundles.toArray(new Bundle[loadedBundles.size()]));
 					BundleUtil.start(bundle);
 				}
@@ -1596,6 +1585,7 @@ public class OSGiUtil {
 		int res = PackageQuery.RESOLUTION_NONE;
 		while (it.hasNext()) {
 			r = it.next();
+
 			Iterator<Entry<String, String>> iit = r.getDirectives().entrySet().iterator();
 			pd = null;
 			inner: while (iit.hasNext()) {
@@ -1779,6 +1769,13 @@ public class OSGiUtil {
 			return false;
 		}
 
+		public static boolean matches(List<VersionDefinition> versionDefintions, Version version) {
+			for (VersionDefinition vd: versionDefintions) {
+				if (!vd.matches(version)) return false;
+			}
+			return true;
+		}
+
 		public Version getVersion() {
 			return version;
 		}
@@ -1832,6 +1829,13 @@ public class OSGiUtil {
 			this.name = name;
 		}
 
+		public boolean matches(Version version) {
+			for (VersionDefinition vd: versions) {
+				if (!vd.matches(version)) return false;
+			}
+			return true;
+		}
+
 		public boolean isRequired() {
 			return resolution == RESOLUTION_NONE;
 		}
@@ -1859,10 +1863,12 @@ public class OSGiUtil {
 		@Override
 		public String toString() {
 			StringBuilder sb = new StringBuilder();
-			sb.append("name:").append(name);
+			sb.append("name:").append(name).append(';');
+			sb.append("resolution:").append(toResolution(resolution, "")).append(';');
 			Iterator<VersionDefinition> it = versions.iterator();
+			sb.append("versions:");
 			while (it.hasNext()) {
-				sb.append(';').append(it.next());
+				sb.append(',').append(it.next());
 			}
 
 			return sb.toString();
@@ -1874,6 +1880,13 @@ public class OSGiUtil {
 				if ("dynamic".equals(value)) return RESOLUTION_DYNAMIC;
 				if ("optional".equals(value)) return RESOLUTION_OPTIONAL;
 			}
+			return defaultValue;
+		}
+
+		public static String toResolution(int value, String defaultValue) {
+			if (RESOLUTION_DYNAMIC == value) return "dynamic";
+			if (RESOLUTION_NONE == value) return "none";
+			if (RESOLUTION_OPTIONAL == value) return "optional";
 			return defaultValue;
 		}
 	}
@@ -2281,5 +2294,45 @@ public class OSGiUtil {
 			}
 		}
 		return true;
+	}
+
+	private static List<PackageDefinition> getExportPackages(Bundle b) {
+		Dictionary<String, String> headers = b.getHeaders();
+		String raw = headers.get("Export-Package");
+		List<PackageDefinition> records = new ArrayList<>();
+		int len = raw.length();
+		char c;
+		boolean inline = false;
+		StringBuilder sb = new StringBuilder();
+		for (int i = 0; i < len; i++) {
+			c = raw.charAt(i);
+			if (c == '"') {
+				sb.append('"');
+				inline = !inline;
+			}
+			else if (!inline && c == ',') {
+				records.add(_toPackageQuery(sb.toString()));
+				sb = new StringBuilder();
+			}
+			else sb.append(c);
+		}
+		records.add(_toPackageQuery(sb.toString()));
+
+		return records;
+	}
+
+	private static PackageDefinition _toPackageQuery(String raw) {
+		String[] arr = ListUtil.listToStringArray(raw, ';');
+		PackageDefinition pd = new PackageDefinition(arr[0].trim());
+
+		for (int i = 1; i < arr.length; i++) {
+			if (arr[i].startsWith("version=")) {
+				Version v = OSGiUtil.toVersion(StringUtil.unwrap(arr[i].substring(8)), null);
+				if (v != null) pd.setVersion(v);
+				break;
+			}
+		}
+
+		return pd;
 	}
 }

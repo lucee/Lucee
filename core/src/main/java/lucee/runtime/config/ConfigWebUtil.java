@@ -57,6 +57,7 @@ import lucee.runtime.crypt.BlowfishEasy;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.SecurityException;
+import lucee.runtime.listener.ApplicationContext;
 import lucee.runtime.listener.ApplicationListener;
 import lucee.runtime.listener.ClassicAppListener;
 import lucee.runtime.listener.MixedAppListener;
@@ -1093,6 +1094,55 @@ public final class ConfigWebUtil {
 			else if (ps.exists()) return ps;
 		}
 		return null;
+	}
+
+	public static PageSource toComponentPageSource(PageContext pc, Resource res, PageSource defaultValue) {
+		String path;
+		ApplicationContext ac = pc.getApplicationContext();
+		if (ac != null) {
+			Mapping[] mappings = ac.getComponentMappings();
+			if (mappings != null) {
+				for (Mapping m: mappings) {
+					// Physical
+					if (m.hasPhysical()) {
+						path = ResourceUtil.getPathToChild(res, m.getPhysical());
+						if (path != null) {
+							return m.getPageSource(path);
+						}
+					}
+					// Archive
+					if (m.hasArchive() && res.getResourceProvider() instanceof CompressResourceProvider) {
+						Resource archive = m.getArchive();
+						CompressResource cr = ((CompressResource) res);
+						if (archive.equals(cr.getCompressResource())) {
+							return m.getPageSource(cr.getCompressPath());
+						}
+					}
+				}
+			}
+		}
+		Mapping[] mappings = pc.getConfig().getComponentMappings();
+		if (mappings != null) {
+			for (Mapping m: mappings) {
+				// Physical
+				if (m.hasPhysical()) {
+					path = ResourceUtil.getPathToChild(res, m.getPhysical());
+					if (path != null) {
+						return m.getPageSource(path);
+					}
+				}
+				// Archive
+				if (m.hasArchive() && res.getResourceProvider() instanceof CompressResourceProvider) {
+					Resource archive = m.getArchive();
+					CompressResource cr = ((CompressResource) res);
+					if (archive.equals(cr.getCompressResource())) {
+						return m.getPageSource(cr.getCompressPath());
+					}
+				}
+			}
+		}
+
+		return defaultValue;
 	}
 
 	public static PageSource toPageSource(ConfigPro config, Mapping[] mappings, Resource res, PageSource defaultValue) {
