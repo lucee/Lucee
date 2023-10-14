@@ -38,7 +38,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
-import java.util.StringTokenizer;
 import java.util.jar.Manifest;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -795,14 +794,35 @@ public class OSGiUtil {
 
 	private static List<PackageDefinition> toPackageDefinitions(String str, String filterPackageName, List<VersionDefinition> versionDefinitions) {
 		if (StringUtil.isEmpty(str)) return null;
-		StringTokenizer st = new StringTokenizer(str, ",");
-		List<PackageDefinition> list = new ArrayList<PackageDefinition>();
-		PackageDefinition pd;
-		while (st.hasMoreTokens()) {
-			pd = toPackageDefinition(st.nextToken().trim(), filterPackageName, versionDefinitions);
-			if (pd != null) list.add(pd);
+		List<String> list = new ArrayList<String>();
+		{
+			int len = str.length();
+			char c;
+			boolean inline = false;
+			StringBuilder sb = new StringBuilder();
+			for (int i = 0; i < len; i++) {
+				c = str.charAt(i);
+				if (c == '"') {
+					sb.append('"');
+					inline = !inline;
+				}
+				else if (!inline && c == ',') {
+					list.add(sb.toString());
+					sb = new StringBuilder();
+				}
+				else sb.append(c);
+			}
+			list.add(sb.toString());
+
 		}
-		return list;
+
+		List<PackageDefinition> definitions = new ArrayList<PackageDefinition>();
+		PackageDefinition pd;
+		for (String s: list) {
+			pd = toPackageDefinition(s.trim(), filterPackageName, versionDefinitions);
+			if (pd != null) definitions.add(pd);
+		}
+		return definitions;
 	}
 
 	private static PackageDefinition toPackageDefinition(String str, String filterPackageName, List<VersionDefinition> versionDefinitions) {
