@@ -22,6 +22,7 @@ import java.io.File;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.nio.charset.Charset;
 import java.sql.ResultSet;
 import java.text.SimpleDateFormat;
@@ -56,6 +57,7 @@ import lucee.runtime.coder.Base64Coder;
 import lucee.runtime.converter.WDDXConverter;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.functions.system.BundleInfo;
 import lucee.runtime.i18n.LocaleFactory;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
@@ -86,6 +88,10 @@ public class DumpUtil {
 
 		MAX_LEVEL_REACHED = new DumpTable("Max Level Reached", "#e0e0e0", "#ffcc99", "#888888");
 		((DumpTable) MAX_LEVEL_REACHED).appendRow(new DumpRow(1, new SimpleDumpData("[Max Dump Level Reached]")));
+	}
+
+	public static void main(String[] args) {
+		toDumpData(new BundleInfo(), null, 1, DumpProperties.DEFAULT);
 	}
 
 	// FUTURE add to interface
@@ -497,7 +503,7 @@ public class DumpUtil {
 
 			// reflect
 			// else {
-			DumpTable table = new DumpTable(o.getClass().getName(), "#6289a3", "#dee3e9", "#000000");
+			DumpTable table = new DumpTable(o.getClass().getName(), "#dee3e9", "#ffffff", "#000000");
 
 			Class clazz = o.getClass();
 			if (o instanceof Class) clazz = (Class) o;
@@ -510,7 +516,7 @@ public class DumpUtil {
 
 			// Fields
 			Field[] fields = clazz.getFields();
-			DumpTable fieldDump = new DumpTable("#6289a3", "#dee3e9", "#000000");
+			DumpTable fieldDump = new DumpTable("#dee3e9", "#ffffff", "#000000");
 			fieldDump.appendRow(-1, new SimpleDumpData("name"), new SimpleDumpData("pattern"), new SimpleDumpData("value"));
 			for (int i = 0; i < fields.length; i++) {
 				Field field = fields[i];
@@ -527,7 +533,7 @@ public class DumpUtil {
 
 			// Constructors
 			Constructor[] constructors = clazz.getConstructors();
-			DumpTable constrDump = new DumpTable("#6289a3", "#dee3e9", "#000000");
+			DumpTable constrDump = new DumpTable("#dee3e9", "#ffffff", "#000000");
 			constrDump.appendRow(-1, new SimpleDumpData("interface"), new SimpleDumpData("exceptions"));
 			for (int i = 0; i < constructors.length; i++) {
 				Constructor constr = constructors[i];
@@ -549,7 +555,6 @@ public class DumpUtil {
 					sbParams.append(Caster.toClassName(parameters[p]));
 				}
 				sbParams.append(')');
-
 				constrDump.appendRow(0, new SimpleDumpData(sbParams.toString()), new SimpleDumpData(sbExp.toString()));
 			}
 			if (constructors.length > 0) table.appendRow(1, new SimpleDumpData("constructors"), constrDump);
@@ -557,42 +562,46 @@ public class DumpUtil {
 			// Methods
 			StringBuilder objMethods = new StringBuilder();
 			Method[] methods = clazz.getMethods();
-			DumpTable methDump = new DumpTable("#6289a3", "#dee3e9", "#000000");
-			methDump.appendRow(-1, new SimpleDumpData("return"), new SimpleDumpData("interface"), new SimpleDumpData("exceptions"));
-			for (int i = 0; i < methods.length; i++) {
-				Method method = methods[i];
+			DumpTable methDump = new DumpTable("#dee3e9", "#ffffff", "#000000");
+			methDump.appendRow(-1, new SimpleDumpData("type"), new SimpleDumpData("interface"), new SimpleDumpData("exceptions"));
+			boolean isStatic;
+			for (int i = 0; i < 2; i++) {
+				for (Method method: methods) {
 
-				if (Object.class == method.getDeclaringClass()) {
-					if (objMethods.length() > 0) objMethods.append(", ");
-					objMethods.append(method.getName());
-					continue;
+					isStatic = Modifier.isStatic(method.getModifiers());
+					if ((i == 0 && !isStatic) || (i == 1 && isStatic)) continue;
+					if (Object.class == method.getDeclaringClass()) {
+						if (objMethods.length() > 0) objMethods.append(", ");
+						objMethods.append(method.getName());
+						continue;
+					}
+
+					// exceptions
+					StringBuilder sbExp = new StringBuilder();
+					Class[] exceptions = method.getExceptionTypes();
+					for (int p = 0; p < exceptions.length; p++) {
+						if (p > 0) sbExp.append("\n");
+						sbExp.append(Caster.toClassName(exceptions[p]));
+					}
+
+					// parameters
+					StringBuilder sbParams = new StringBuilder(method.getName());
+					sbParams.append('(');
+					Class[] parameters = method.getParameterTypes();
+					for (int p = 0; p < parameters.length; p++) {
+						if (p > 0) sbParams.append(", ");
+						sbParams.append(Caster.toClassName(parameters[p]));
+					}
+					sbParams.append("):").append(Caster.toClassName(method.getReturnType()));
+
+					methDump.appendRow(0, new SimpleDumpData(isStatic ? "static" : "instance"), new SimpleDumpData(sbParams.toString()), new SimpleDumpData(sbExp.toString()));
+
 				}
-
-				// exceptions
-				StringBuilder sbExp = new StringBuilder();
-				Class[] exceptions = method.getExceptionTypes();
-				for (int p = 0; p < exceptions.length; p++) {
-					if (p > 0) sbExp.append("\n");
-					sbExp.append(Caster.toClassName(exceptions[p]));
-				}
-
-				// parameters
-				StringBuilder sbParams = new StringBuilder(method.getName());
-				sbParams.append('(');
-				Class[] parameters = method.getParameterTypes();
-				for (int p = 0; p < parameters.length; p++) {
-					if (p > 0) sbParams.append(", ");
-					sbParams.append(Caster.toClassName(parameters[p]));
-				}
-				sbParams.append(')');
-
-				methDump.appendRow(0, new SimpleDumpData(Caster.toClassName(method.getReturnType())),
-
-						new SimpleDumpData(sbParams.toString()), new SimpleDumpData(sbExp.toString()));
 			}
+
 			if (methods.length > 0) table.appendRow(1, new SimpleDumpData("methods"), methDump);
 
-			DumpTable inherited = new DumpTable("#6289a3", "#dee3e9", "#000000");
+			DumpTable inherited = new DumpTable("#dee3e9", "#ffffff", "#000000");
 			inherited.appendRow(7, new SimpleDumpData("Methods inherited from java.lang.Object"));
 			inherited.appendRow(0, new SimpleDumpData(objMethods.toString()));
 			table.appendRow(1, new SimpleDumpData(""), inherited);
@@ -610,7 +619,7 @@ public class DumpUtil {
 						sct.setEL(KeyConstants._location, b.getLocation());
 						sct.setEL(KeyConstants._version, b.getVersion().toString());
 
-						DumpTable bd = new DumpTable("#6289a3", "#dee3e9", "#000000");
+						DumpTable bd = new DumpTable("#dee3e9", "#ffffff", "#000000");
 						bd.appendRow(1, new SimpleDumpData("id"), new SimpleDumpData(b.getBundleId()));
 						bd.appendRow(1, new SimpleDumpData("symbolic-name"), new SimpleDumpData(b.getSymbolicName()));
 						bd.appendRow(1, new SimpleDumpData("version"), new SimpleDumpData(b.getVersion().toString()));
@@ -645,7 +654,7 @@ public class DumpUtil {
 		try {
 			List<BundleRange> list = OSGiUtil.getRequiredBundles(b);
 			if (list.isEmpty()) return;
-			DumpTable dt = new DumpTable("#6289a3", "#dee3e9", "#000000");
+			DumpTable dt = new DumpTable("#dee3e9", "#ffffff", "#000000");
 			dt.appendRow(-1, new SimpleDumpData("name"), new SimpleDumpData("version from"), new SimpleDumpData("operator from"), new SimpleDumpData("version to"),
 					new SimpleDumpData("operator to"));
 
