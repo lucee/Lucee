@@ -511,12 +511,12 @@ public class DumpUtil {
 			int pos = fullClassName.lastIndexOf('.');
 			String className = pos == -1 ? fullClassName : fullClassName.substring(pos + 1);
 
-			table.setTitle(className);
-			table.appendRow(1, new SimpleDumpData("class"), new SimpleDumpData(fullClassName));
+			table.setTitle("Class " + className);
 
 			// Fields
 			Field[] fields = clazz.getFields();
 			DumpTable fieldDump = new DumpTable("#dee3e9", "#ffffff", "#000000");
+			fieldDump.setTitle("Fields");
 			fieldDump.appendRow(-1, new SimpleDumpData("name"), new SimpleDumpData("pattern"), new SimpleDumpData("value"));
 			for (int i = 0; i < fields.length; i++) {
 				Field field = fields[i];
@@ -529,12 +529,14 @@ public class DumpUtil {
 				}
 				fieldDump.appendRow(0, new SimpleDumpData(field.getName()), new SimpleDumpData(field.toString()), value);
 			}
-			if (fields.length > 0) table.appendRow(1, new SimpleDumpData("fields"), fieldDump);
+			if (fields.length > 0) table.appendRow(0, fieldDump);
 
 			// Constructors
 			Constructor[] constructors = clazz.getConstructors();
 			DumpTable constrDump = new DumpTable("#dee3e9", "#ffffff", "#000000");
 			constrDump.appendRow(-1, new SimpleDumpData("interface"), new SimpleDumpData("exceptions"));
+			constrDump.setTitle("Constructors");
+
 			for (int i = 0; i < constructors.length; i++) {
 				Constructor constr = constructors[i];
 
@@ -557,13 +559,14 @@ public class DumpUtil {
 				sbParams.append(')');
 				constrDump.appendRow(0, new SimpleDumpData(sbParams.toString()), new SimpleDumpData(sbExp.toString()));
 			}
-			if (constructors.length > 0) table.appendRow(1, new SimpleDumpData("constructors"), constrDump);
+			if (constructors.length > 0) table.appendRow(0, constrDump);
 
 			// Methods
 			StringBuilder objMethods = new StringBuilder();
 			Method[] methods = clazz.getMethods();
 			DumpTable methDump = new DumpTable("#dee3e9", "#ffffff", "#000000");
 			methDump.appendRow(-1, new SimpleDumpData("type"), new SimpleDumpData("interface"), new SimpleDumpData("exceptions"));
+			methDump.setTitle("Methods");
 			boolean isStatic;
 			for (int i = 0; i < 2; i++) {
 				for (Method method: methods) {
@@ -599,12 +602,12 @@ public class DumpUtil {
 				}
 			}
 
-			if (methods.length > 0) table.appendRow(1, new SimpleDumpData("methods"), methDump);
+			if (methods.length > 0) table.appendRow(0, methDump);
 
 			DumpTable inherited = new DumpTable("#dee3e9", "#ffffff", "#000000");
-			inherited.appendRow(7, new SimpleDumpData("Methods inherited from java.lang.Object"));
+			inherited.setTitle("java.lang.Object methods");
 			inherited.appendRow(0, new SimpleDumpData(objMethods.toString()));
-			table.appendRow(1, new SimpleDumpData(""), inherited);
+			table.appendRow(0, inherited);
 
 			// Bundle Info
 			ClassLoader cl = clazz.getClassLoader();
@@ -620,12 +623,13 @@ public class DumpUtil {
 						sct.setEL(KeyConstants._version, b.getVersion().toString());
 
 						DumpTable bd = new DumpTable("#dee3e9", "#ffffff", "#000000");
-						bd.appendRow(1, new SimpleDumpData("id"), new SimpleDumpData(b.getBundleId()));
-						bd.appendRow(1, new SimpleDumpData("symbolic-name"), new SimpleDumpData(b.getSymbolicName()));
-						bd.appendRow(1, new SimpleDumpData("version"), new SimpleDumpData(b.getVersion().toString()));
-						bd.appendRow(1, new SimpleDumpData("location"), new SimpleDumpData(b.getLocation()));
+						bd.setTitle("Bundle Info");
+						bd.appendRow(0, new SimpleDumpData("id: " + b.getBundleId()));
+						bd.appendRow(0, new SimpleDumpData("symbolic-name: " + b.getSymbolicName()));
+						bd.appendRow(0, new SimpleDumpData("version: " + b.getVersion().toString()));
+						bd.appendRow(0, new SimpleDumpData("location: " + b.getLocation()));
 						requiredBundles(bd, b);
-						table.appendRow(1, new SimpleDumpData("bundle-info"), bd);
+						table.appendRow(0, bd);
 					}
 				}
 				catch (NoSuchMethodError e) {
@@ -655,6 +659,8 @@ public class DumpUtil {
 			List<BundleRange> list = OSGiUtil.getRequiredBundles(b);
 			if (list.isEmpty()) return;
 			DumpTable dt = new DumpTable("#dee3e9", "#ffffff", "#000000");
+			dt.setTitle("Required Bundles");
+
 			dt.appendRow(-1, new SimpleDumpData("name"), new SimpleDumpData("version from"), new SimpleDumpData("operator from"), new SimpleDumpData("version to"),
 					new SimpleDumpData("operator to"));
 
@@ -684,7 +690,7 @@ public class DumpUtil {
 				dt.appendRow(0, new SimpleDumpData(br.getName()), new SimpleDumpData(fromV), new SimpleDumpData(fromOP), new SimpleDumpData(toV), new SimpleDumpData(toOP));
 
 			}
-			parent.appendRow(1, new SimpleDumpData("required-bundles"), dt);
+			parent.appendRow(0, dt);
 
 		}
 		catch (Throwable t) {
