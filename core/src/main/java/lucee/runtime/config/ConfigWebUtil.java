@@ -244,13 +244,14 @@ public final class ConfigWebUtil {
 	 */
 	public static Resource getFile(Config config, Resource directory, String path, short type) {
 		path = replacePlaceholder(path, config);
+		Resource file = config.getResource(path);
 		if (!StringUtil.isEmpty(path, true)) {
-			Resource file = ResourceUtil.createResource(directory.getRealResource(path), ResourceUtil.LEVEL_GRAND_PARENT_FILE, type);
-			if (file != null) return file;
-
-			file = ResourceUtil.createResource(config.getResource(path), ResourceUtil.LEVEL_GRAND_PARENT_FILE, type);
-
-			if (file != null) return file;
+			if (!ResourceUtil.isChildOf(file, directory)) {
+				Resource f = ResourceUtil.createResource(directory.getRealResource(path), ResourceUtil.LEVEL_GRAND_PARENT_FILE, type);
+				if (f != null) return f;
+			}
+			Resource f = ResourceUtil.createResource(file, ResourceUtil.LEVEL_GRAND_PARENT_FILE, type);
+			if (f != null) return f;
 		}
 		return null;
 	}

@@ -384,7 +384,7 @@ public class OSGiUtil {
 					if (bf.isBundle() && !loaded.contains(bf.getSymbolicName() + "|" + bf.getVersion()) && bf.hasClass(className)) {
 						Bundle b = null;
 						try {
-							b = _loadBundle(bc.getBundleContext(), bf.getFile());
+							b = _loadBundle(bc.getBundleContext(), bf);
 						}
 						catch (IOException e) {
 						}
@@ -441,7 +441,7 @@ public class OSGiUtil {
 				if (b.getVersion().equals(bf.getVersion())) return b;
 			}
 		}
-		return _loadBundle(bc, bf.getFile());
+		return _loadBundle(bc, bf);
 	}
 
 	public static Bundle loadBundle(BundleFile bf, List<VersionDefinition> versionsDefinitions) throws IOException, BundleException {
@@ -455,7 +455,7 @@ public class OSGiUtil {
 				if (VersionDefinition.matches(versionsDefinitions, b.getVersion())) return b;
 			}
 		}
-		return _loadBundle(bc, bf.getFile());
+		return _loadBundle(bc, bf);
 	}
 
 	public static int existing = 0;
@@ -715,7 +715,7 @@ public class OSGiUtil {
 		if (bf != null && bf.isBundle()) {
 			Bundle b = null;
 			try {
-				b = _loadBundle(bc, bf.getFile());
+				b = _loadBundle(bc, bf);
 			}
 			catch (IOException e) {
 				LogUtil.log(ThreadLocalPageContext.get(), OSGiUtil.class.getName(), e);
@@ -740,9 +740,9 @@ public class OSGiUtil {
 				if (bundleRange.getVersionRange() != null && !bundleRange.getVersionRange().isEmpty()) {
 					// TODO not only check for from version, request a range, but that needs an adjustment with the
 					// provider
-					File f = factory.downloadBundle(bundleRange.getName(), bundleRange.getVersionRange().getFrom().getVersion().toString(), id);
+					BundleFile _bf = BundleFile.getInstance(factory.downloadBundle(bundleRange.getName(), bundleRange.getVersionRange().getFrom().getVersion().toString(), id));
 					resetJarsFromBundleDirectory(factory);
-					b = _loadBundle(bc, f);
+					b = _loadBundle(bc, _bf);
 				}
 				else {
 					// MUST find out why this breaks at startup with commandbox if version exists
@@ -1271,7 +1271,7 @@ public class OSGiUtil {
 		BundleFile bf = _getBundleFile(factory, name, version, addional, null);
 		if (bf != null) {
 			try {
-				return _loadBundle(bc, bf.getFile());
+				return _loadBundle(bc, bf);
 			}
 			catch (Exception e) {
 			}
@@ -1305,7 +1305,7 @@ public class OSGiUtil {
 		// now we remove the file
 		BundleFile bf = _getBundleFile(factory, name, version, null, null);
 		if (bf != null) {
-			if (!bf.getFile().delete() && doubleTap) bf.getFile().deleteOnExit();
+			if (!bf.delete() && doubleTap) bf.deleteOnExit();
 		}
 	}
 
@@ -1684,8 +1684,8 @@ public class OSGiUtil {
 		return pd;
 	}
 
-	private static Bundle _loadBundle(BundleContext context, File bundle) throws IOException, BundleException {
-		return _loadBundle(context, bundle.getAbsolutePath(), new FileInputStream(bundle), true);
+	private static Bundle _loadBundle(BundleContext context, BundleFile bundle) throws IOException, BundleException {
+		return _loadBundle(context, bundle.getAbsolutePath(), bundle.getInputStream(), true);
 	}
 
 	private static Bundle _loadBundle(BundleContext context, Resource bundle) throws IOException, BundleException {
