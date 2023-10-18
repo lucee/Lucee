@@ -1317,6 +1317,7 @@ public class OSGiUtil {
 				List<PackageQuery> listPackages = getRequiredPackages(bundle);
 				List<PackageQuery> failedPD = new ArrayList<PackageQuery>();
 				loadPackages(parents, loadedBundles, listPackages, bundle, failedPD);
+				resolveBundleLoadingIssues(ThreadLocalPageContext.getConfig(), be2);
 				try {
 					// startIfNecessary(loadedBundles.toArray(new Bundle[loadedBundles.size()]));
 					BundleUtil.start(bundle);
@@ -2163,11 +2164,7 @@ public class OSGiUtil {
 		return true;
 	}
 
-	public static boolean resolveBundleLoadingIssues(Config config, ClassNotFoundException cnfe) {
-		Throwable cause = cnfe.getCause();
-		if (!(cause instanceof BundleException)) return false;
-		BundleException be = (BundleException) cause;
-
+	public static boolean resolveBundleLoadingIssues(Config config, BundleException be) {
 		try {
 			loadBundlesAndPackagesFromMessage(config, be.getMessage());
 			return true;
@@ -2176,6 +2173,14 @@ public class OSGiUtil {
 			LogUtil.log(config, "OSGi", e);
 		}
 		return false;
+	}
+
+	public static boolean resolveBundleLoadingIssues(Config config, ClassNotFoundException cnfe) {
+		Throwable cause = cnfe.getCause();
+		if (!(cause instanceof BundleException)) return false;
+		BundleException be = (BundleException) cause;
+
+		return resolveBundleLoadingIssues(config, be);
 	}
 
 	// (bundle-version>=30.1.0)
