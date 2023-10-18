@@ -29,7 +29,7 @@ import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.commons.Remapper;
-import org.objectweb.asm.commons.RemappingClassAdapter;
+import org.objectweb.asm.commons.ClassRemapper;
 
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.log.LogUtil;
@@ -113,7 +113,7 @@ public class JarUtil {
 		final ClassReader reader = new ClassReader(src);
 		final Remapper remapper = new Collector(imports, ignores);
 		final ClassVisitor inner = new EmptyVisitor();
-		final RemappingClassAdapter visitor = new RemappingClassAdapter(inner, remapper);
+		final ClassRemapper visitor = new ClassRemapper(inner, remapper);
 		reader.accept(visitor, 0);
 	}
 
