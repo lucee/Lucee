@@ -162,17 +162,26 @@ public final class ClassUtil {
 		try {
 			return OSGiUtil.loadBundle(name, version, id, addional, true, versionOnlyMattersForDownload).loadClass(className);
 		}
-		catch (ClassNotFoundException e) {
-			String appendix = "";
-			if (!StringUtil.isEmpty(e.getMessage(), true)) appendix = " " + e.getMessage();
+		catch (ClassNotFoundException outer) {
+			try {
+				// we try to load the missing bundles and packages based on the exception message
+				if (OSGiUtil.resolveBundleLoadingIssues(ThreadLocalPageContext.getConfig(), outer))
+					return OSGiUtil.loadBundle(name, version, id, addional, true, versionOnlyMattersForDownload).loadClass(className);
+				throw outer;
+			}
+			catch (ClassNotFoundException e) {
 
-			ClassException ce;
-			if (version == null) ce = new ClassException("In the OSGi Bundle with the name [" + name + "] was no class with name [" + className + "] found." + appendix);
-			else ce = new ClassException(
-					"In the OSGi Bundle with the name [" + name + "] and the version [" + version + "] was no class with name [" + className + "] found." + appendix);
+				String appendix = "";
+				if (!StringUtil.isEmpty(e.getMessage(), true)) appendix = " " + e.getMessage();
 
-			ce.initCause(e);
-			throw ce;
+				ClassException ce;
+				if (version == null) ce = new ClassException("In the OSGi Bundle with the name [" + name + "] was no class with name [" + className + "] found." + appendix);
+				else ce = new ClassException(
+						"In the OSGi Bundle with the name [" + name + "] and the version [" + version + "] was no class with name [" + className + "] found." + appendix);
+
+				ce.initCause(e);
+				throw ce;
+			}
 		}
 	}
 
