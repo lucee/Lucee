@@ -5,7 +5,7 @@
 				var string = "Lucee Documentation";
 				var wrapped_string = wrap(string, 4);
 
-				expect(wrapped_string.len()).toBe(28)
+				expect(wrapped_string.len()).toBe(23)
 				expect(wrapped_string).toBe("luce
 e
 docu
