@@ -689,8 +689,8 @@ public final class PageContextImpl extends PageContext {
 		timeZone = null;
 		url = null;
 		form = null;
-		currentTemplateDialect = CFMLEngine.DIALECT_LUCEE;
-		requestDialect = CFMLEngine.DIALECT_LUCEE;
+		currentTemplateDialect = CFMLEngine.DIALECT_CFML;
+		requestDialect = CFMLEngine.DIALECT_CFML;
 
 		// Pools
 		errorPagePool.clear();

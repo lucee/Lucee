@@ -77,6 +77,7 @@ import lucee.runtime.engine.CFMLEngineImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
+import lucee.runtime.osgi.BundleRange.VersionRange;
 import lucee.runtime.type.util.ListUtil;
 
 public class OSGiUtil {
@@ -384,7 +385,7 @@ public class OSGiUtil {
 					if (bf.isBundle() && !loaded.contains(bf.getSymbolicName() + "|" + bf.getVersion()) && bf.hasClass(className)) {
 						Bundle b = null;
 						try {
-							b = _loadBundle(bc.getBundleContext(), bf.getFile());
+							b = _loadBundle(bc.getBundleContext(), bf);
 						}
 						catch (IOException e) {
 						}
@@ -441,7 +442,7 @@ public class OSGiUtil {
 				if (b.getVersion().equals(bf.getVersion())) return b;
 			}
 		}
-		return _loadBundle(bc, bf.getFile());
+		return _loadBundle(bc, bf);
 	}
 
 	public static Bundle loadBundle(BundleFile bf, List<VersionDefinition> versionsDefinitions) throws IOException, BundleException {
@@ -455,7 +456,7 @@ public class OSGiUtil {
 				if (VersionDefinition.matches(versionsDefinitions, b.getVersion())) return b;
 			}
 		}
-		return _loadBundle(bc, bf.getFile());
+		return _loadBundle(bc, bf);
 	}
 
 	public static int existing = 0;
@@ -639,6 +640,16 @@ public class OSGiUtil {
 		return null;
 	}
 
+	public static Bundle loadBundle(final BundleRange bundleRange, Identification id, List<Resource> addional, boolean startIfNecessary, boolean versionOnlyMattersForDownload,
+			boolean downloadIfNecessary, Boolean printExceptions) throws BundleException {
+		try {
+			return _loadBundle(bundleRange, id, addional, startIfNecessary, null, versionOnlyMattersForDownload, downloadIfNecessary, printExceptions);
+		}
+		catch (StartFailedException sfe) {
+			throw sfe.bundleException;
+		}
+	}
+
 	public static Bundle loadBundle(String name, Version version, Identification id, List<Resource> addional, boolean startIfNecessary) throws BundleException {
 		return loadBundle(name, version, id, addional, startIfNecessary, false, true, null);
 	}
@@ -715,7 +726,7 @@ public class OSGiUtil {
 		if (bf != null && bf.isBundle()) {
 			Bundle b = null;
 			try {
-				b = _loadBundle(bc, bf.getFile());
+				b = _loadBundle(bc, bf);
 			}
 			catch (IOException e) {
 				LogUtil.log(ThreadLocalPageContext.get(), OSGiUtil.class.getName(), e);
@@ -740,9 +751,9 @@ public class OSGiUtil {
 				if (bundleRange.getVersionRange() != null && !bundleRange.getVersionRange().isEmpty()) {
 					// TODO not only check for from version, request a range, but that needs an adjustment with the
 					// provider
-					File f = factory.downloadBundle(bundleRange.getName(), bundleRange.getVersionRange().getFrom().getVersion().toString(), id);
+					BundleFile _bf = BundleFile.getInstance(factory.downloadBundle(bundleRange.getName(), bundleRange.getVersionRange().getFrom().getVersion().toString(), id));
 					resetJarsFromBundleDirectory(factory);
-					b = _loadBundle(bc, f);
+					b = _loadBundle(bc, _bf);
 				}
 				else {
 					// MUST find out why this breaks at startup with commandbox if version exists
@@ -1271,7 +1282,7 @@ public class OSGiUtil {
 		BundleFile bf = _getBundleFile(factory, name, version, addional, null);
 		if (bf != null) {
 			try {
-				return _loadBundle(bc, bf.getFile());
+				return _loadBundle(bc, bf);
 			}
 			catch (Exception e) {
 			}
@@ -1305,7 +1316,7 @@ public class OSGiUtil {
 		// now we remove the file
 		BundleFile bf = _getBundleFile(factory, name, version, null, null);
 		if (bf != null) {
-			if (!bf.getFile().delete() && doubleTap) bf.getFile().deleteOnExit();
+			if (!bf.delete() && doubleTap) bf.deleteOnExit();
 		}
 	}
 
@@ -1376,22 +1387,27 @@ public class OSGiUtil {
 				List<PackageQuery> failedPD = new ArrayList<PackageQuery>();
 				try {
 					loadPackages(parents, loadedBundles, listPackages, bundle, failedPD);
-					// startIfNecessary(loadedBundles.toArray(new Bundle[loadedBundles.size()]));
 					BundleUtil.start(bundle);
 				}
 				catch (BundleException be3) {
-					if (failedBD.size() > 0) {
-						Iterator<BundleDefinition> itt = failedBD.iterator();
-						BundleDefinition _bd;
-						StringBuilder sb = new StringBuilder("Lucee was not able to download/load the following bundles [");
-						while (itt.hasNext()) {
-							_bd = itt.next();
-							sb.append(_bd.name + ":" + _bd.getVersionAsString()).append(';');
-						}
-						sb.append("]");
-						throw new BundleException(be2.getMessage() + sb, be2.getCause());
+					try {
+						if (resolveBundleLoadingIssues(ThreadLocalPageContext.getConfig(), be3)) BundleUtil.start(bundle);
+						else throw be3;
 					}
-					throw be3;
+					catch (BundleException be4) {
+						if (failedBD.size() > 0) {
+							Iterator<BundleDefinition> itt = failedBD.iterator();
+							BundleDefinition _bd;
+							StringBuilder sb = new StringBuilder("Lucee was not able to download/load the following bundles [");
+							while (itt.hasNext()) {
+								_bd = itt.next();
+								sb.append(_bd.name + ":" + _bd.getVersionAsString()).append(';');
+							}
+							sb.append("]");
+							throw new BundleException(be2.getMessage() + sb, be2.getCause());
+						}
+						throw be4;
+					}
 				}
 			}
 
@@ -1684,8 +1700,8 @@ public class OSGiUtil {
 		return pd;
 	}
 
-	private static Bundle _loadBundle(BundleContext context, File bundle) throws IOException, BundleException {
-		return _loadBundle(context, bundle.getAbsolutePath(), new FileInputStream(bundle), true);
+	private static Bundle _loadBundle(BundleContext context, BundleFile bundle) throws IOException, BundleException {
+		return _loadBundle(context, bundle.getAbsolutePath(), bundle.getInputStream(), true);
 	}
 
 	private static Bundle _loadBundle(BundleContext context, Resource bundle) throws IOException, BundleException {
@@ -2334,5 +2350,162 @@ public class OSGiUtil {
 		}
 
 		return pd;
+	}
+
+	public static boolean resolveBundleLoadingIssues(Config config, BundleException be) {
+		try {
+			loadBundlesAndPackagesFromMessage(config, be.getMessage());
+			return true;
+		}
+		catch (Exception e) {
+			LogUtil.log(config, "OSGi", e);
+		}
+		return false;
+	}
+
+	public static boolean resolveBundleLoadingIssues(Config config, ClassNotFoundException cnfe) {
+		Throwable cause = cnfe.getCause();
+		if (!(cause instanceof BundleException)) return false;
+		BundleException be = (BundleException) cause;
+
+		return resolveBundleLoadingIssues(config, be);
+	}
+
+	// (bundle-version>=30.1.0)
+	// (!(bundle-version>=31.0.0))
+	private static VersionDefinition toVersionDefinition(String value, boolean bundle) throws BundleException {
+		String strBV = bundle ? "(bundle-version" : "(version";
+		int last = 0;
+		int index, op, start, end;
+		boolean isNegated;
+		if ((index = value.indexOf(strBV, last)) != -1) {
+			last = index + strBV.length();
+
+			isNegated = index > 0 && value.charAt(index - 1) == '!';
+			end = value.indexOf(')', index);
+
+			start = value.indexOf("<=", index);
+			op = -1;
+
+			// Version Defintion
+			if (start != -1 && start < end) {
+				op = VersionDefinition.LTE;
+				start += 2;
+			}
+			else {
+				start = value.indexOf(">=", index);
+				if (start != -1 && start < end) {
+					op = VersionDefinition.GTE;
+					start += 2;
+				}
+				else {
+					start = value.indexOf("=", index);
+					if (start != -1 && start < end) {
+						op = VersionDefinition.EQ;
+						start++;
+					}
+				}
+			}
+			// if (isNegated) op = VersionDefinition.negate(op, -1);
+
+			if (op != -1 && start != -1 && end != -1 && end > start) return new VersionDefinition(toVersion(value.substring(start, end).trim()), op, isNegated);
+
+		}
+
+		return null;
+
+	}
+
+	// a string like:
+	// &(osgi.wiring.bundle=com.googlecode.owasp-java-html-sanitizer)(bundle-version>=20211018.2.0))
+	private static BundleRange toBundleRange(String raw) throws BundleException, IOException {
+		// remove the wrap
+		if (raw.startsWith("(")) {
+			raw = raw.substring(1);
+			raw = raw.substring(0, raw.length() - 1);
+		}
+
+		// extract bundle name
+		// &(osgi.wiring.bundle=com.googlecode.owasp-java-html-sanitizer)
+		if (!raw.startsWith("&(osgi.wiring.bundle="))
+			throw new IOException("string does not look as expected [" + raw + "], expecting it starts like this [&(osgi.wiring.bundle=com.googlecode.owasp-java-html-sanitizer)]");
+
+		int start = 21;
+		int end = findEnd(raw, start);
+		String bundleName = raw.substring(start, end);
+
+		// extract versions
+		VersionDefinition vd;
+		List<VersionDefinition> versions = new ArrayList<OSGiUtil.VersionDefinition>();
+		while ((start = raw.indexOf('(', end)) != -1) {
+			end = findEnd(raw, start + 1);
+			vd = toVersionDefinition(raw.substring(start, end + 1), true);
+			if (vd != null) versions.add(vd);
+
+		}
+		VersionRange vr = null;
+		if (versions.size() == 1) {
+			VersionDefinition from = versions.get(0);
+			vr = new lucee.runtime.osgi.BundleRange.VersionRange(from.version, from.op, null, 0);
+		}
+		else if (versions.size() == 2) {
+			VersionDefinition from = versions.get(0);
+			VersionDefinition to = versions.get(1);
+			vr = new lucee.runtime.osgi.BundleRange.VersionRange(from.version, from.op, to.version, to.op);
+		}
+
+		return new BundleRange(bundleName, vr);
+	}
+
+	private static void loadBundlesAndPackagesFromMessage(Config config, final String msg) throws BundleException, IOException {
+		int start = 0, end;
+		int index;
+
+		// loads the bundles defined in the exception message
+		BundleRange br = null;
+		while ((index = msg.indexOf("osgi.wiring.bundle;", start)) != -1) {
+
+			start = index + 19;
+			index = msg.indexOf('(', index + 19);
+			if (index == -1) throw new IOException("no start point found");
+			start = index + 1;
+			end = findEnd(msg, start);
+			if (end == -1) throw new IOException("no end point found");
+
+			br = toBundleRange(msg.substring(start - 1, end + 1));
+			if (br != null) loadBundle(br, config.getIdentification(), null, true, false, true, null);
+		}
+
+		// load the bundles based on the packages defined in the exception message
+		start = 0;
+		PackageQuery pq = null;
+		while ((index = msg.indexOf("osgi.wiring.package;", start)) != -1) {
+
+			start = index + 19;
+			index = msg.indexOf('(', index + 19);
+			if (index == -1) throw new IOException("no start point found");
+			start = index + 1;
+			end = findEnd(msg, start);
+			if (end == -1) throw new IOException("no end point found");
+			pq = toPackageQuery(msg.substring(start - 1, end + 1));
+			if (pq != null) loadBundleByPackage(pq, new HashSet<Bundle>(), true, new HashSet<String>());
+		}
+
+	}
+
+	private static int findEnd(String msg, int start) {
+		int len = msg.length();
+		char c;
+		int deep = 0;
+		for (int i = start; i < len; i++) {
+			c = msg.charAt(i);
+			if (c == '(') deep++;
+			if (c == ')') {
+				if (deep == 0) return i;
+				deep--;
+
+			}
+		}
+		return -1;
 	}
 }

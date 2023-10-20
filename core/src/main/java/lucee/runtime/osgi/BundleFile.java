@@ -76,10 +76,6 @@ public class BundleFile extends BundleInfo {
 		return new FileInputStream(file);
 	}
 
-	public File getFile() {
-		return file;
-	}
-
 	public boolean hasClass(String className) throws IOException {
 		className = className.replace('.', '/') + ".class";
 		SoftReference<Boolean> tmp = classes.get(className);
@@ -99,5 +95,21 @@ public class BundleFile extends BundleInfo {
 	@Override
 	public String toString() {
 		return file.toString();
+	}
+
+	public String getAbsolutePath() {
+		return file.getAbsolutePath();
+	}
+
+	public boolean delete() {
+		return file.delete();
+	}
+
+	public void deleteOnExit() {
+		file.deleteOnExit();
+	}
+
+	public Object getFile() {
+		return file;
 	}
 }

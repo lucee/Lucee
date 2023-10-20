@@ -433,10 +433,9 @@ public final class ResourceUtil {
 	 * @return file if exists, otherwise null
 	 */
 	public static Resource createResource(Resource res, short level, short type) {
-
 		boolean asDir = type == TYPE_DIR;
 		// File
-		if (level >= LEVEL_FILE && res.exists() && ((res.isDirectory() && asDir) || (res.isFile() && !asDir))) {
+		if (level >= LEVEL_FILE && ((asDir && res.isDirectory()) || (!asDir && res.isFile()))) {
 			return getCanonicalResourceEL(res);
 		}
 
