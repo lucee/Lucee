@@ -14,7 +14,7 @@
 			}
 		}
 	</cfscript>
-	<cfset otherLinks = {"overView": "overView",  "Performance/Caching" : "server.cache", "Language/Compiler" : "server.compiler" , "CFXtags": "resources.cfx_tags"}>
+	<cfset otherLinks = {"overView": "overView",  "Performance/Caching" : "server.cache", "Language/Compiler" : "server.compiler" , "CFXtags": "resources.cfxTags"}>
 
 	<cfscript>
 		for(key in otherLinks){

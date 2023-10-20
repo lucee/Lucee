@@ -58,7 +58,6 @@ import lucee.commons.net.URLDecoder;
 import lucee.commons.net.URLEncoder;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.Config;
-import lucee.runtime.converter.JavaConverter;
 import lucee.runtime.converter.WDDXConverter;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
@@ -588,15 +587,7 @@ public final class ReqRspUtil {
 			catch (Exception pe) {
 			}
 			break;
-		case UDF.RETURN_FORMAT_JAVA:
-			try {
-				return JavaConverter.deserialize(new ByteArrayInputStream(data));
-			}
-			catch (Exception pe) {
-			}
-			break;
 		}
-
 		return defaultValue;
 	}
 

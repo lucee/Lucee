@@ -15,19 +15,31 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  * 
  ---><cfcomponent>
+	<cfscript>
+		if ( (structKeyExists(server.system.environment, "lucee_admin_enabled") && !server.system.environment["lucee_admin_enabled"])
+ 				|| ( structKeyExists(server.system.properties, "lucee.admin.enabled") && !server.system.properties["lucee.admin.enabled"] ) ){
+			setting showdebugoutput=false;
+			cfheader(statuscode="404", statustext="Invalid access");
+			abort;
+		}
+	</cfscript>
 	<cffunction access="remote" name="invoke" output="false">
 		<cfargument name="type" required="yes" type="string">
 		<cfargument name="password" required="yes" type="string">
 		<cfargument name="attributeCollection" required="yes" type="struct">
 		<cfargument name="callerId" required="no" type="string" default="undefined">
-		
+
 		<cfset var result="">
 		<cfset var id=getLuceeId()[arguments.type].id>
 		<cfset var sec=getLuceeId()[arguments.type].securityKey>
 		<cfif not listFind(arguments.callerId,id)>
+			<cfset var pw=Decrypt(arguments.password,sec)>
+			<cfadmin action="connect"
+				type="#arguments.type#"
+				password="#pw#">
 			<cfadmin 
 				type="#arguments.type#"
-				password="#Decrypt(arguments.password,sec)#"
+				password="#pw#"
 				attributeCollection="#arguments.attributeCollection#"
 				providedCallerIds="#arguments.callerId#"
 				returnVariable="result">

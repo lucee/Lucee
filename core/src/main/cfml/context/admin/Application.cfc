@@ -29,11 +29,16 @@ this.applicationtimeout="#createTimeSpan(1,0,0,0)#";
 this.localmode="update";
 this.web.charset="utf-8";
 this.sessionCookie.httpOnly = true; // prevent access to session cookies from javascript
+this.sessionCookie.secure = isSSL();
 this.sessionCookie.sameSite = "strict";
 this.sessionCookie.path = getAppFolderPath();
-this.tag.cookie.httpOnly = true; // prevent access to session cookies from javascript
+this.tag.cookie.httpOnly = true;
+this.tag.cookie.secure = isSSL();
 this.tag.cookie.sameSite = "strict";
 this.tag.cookie.path = getAppFolderPath();
+this.tag.location.addtoken = false;
+this.scopeCascading = "strict";
+this.hasApplicationCFC = true;
 
 this.xmlFeatures = {
 	externalGeneralEntities: false,
@@ -42,28 +47,73 @@ this.xmlFeatures = {
 };
 
 public function onRequestStart() {
-	// if not logged in, we only allow access to admin|web|server[.cfm]
-	if(!structKeyExists(session, "passwordWeb") && !structKeyExists(session, "passwordServer")){
-		var fileName=listLast(cgi.script_name,"/");
-		if(fileName!="admin.cfm" && fileName!="web.cfm" && fileName!="server.cfm") {
-			cfsetting(showdebugoutput:false);
-			cfheader(statuscode="404" statustext="Invalid access");
+	if ( findNoCase( cgi.script_name, cgi.request_url ) eq 0 ){
+		setting showdebugoutput=false;
+		cfheader(statuscode="404", statustext="Invalid access");
+		cfabort;
+	}
+	
+	try {
+		if ( structKeyExists(session, "passwordWeb") ) {
+			admin action="connect"
+				type="web"
+				password="#session.passwordWeb#";
+		}
+		if (structKeyExists(session, "passwordServer")) {
+			admin action="connect"
+				type="server"
+				password="#session.passwordServer#";
+		}
+	} catch( e ) {
+		sessionInvalidate();
+	}
+	
+	// we only allow access to admin|web|server|index[.cfm]
+	if ( listFindNoCase("admin.cfm,index.cfm,server.cfm,web.cfm", listLast(cgi.script_name,"/") ) eq 0) {
+			setting showdebugoutput=false;
+			cfheader(statuscode="404", statustext="Invalid access");
 			cfcontent(reset="true");
 			abort;
 		}
-	}
 }
 
 public function onApplicationStart(){
-	if(structKeyExists(server.system.environment,"LUCEE_ADMIN_ENABLED") && server.system.environment.LUCEE_ADMIN_ENABLED EQ false){
-		cfheader(statuscode="404" statustext="Invalid access");
+	if ( (structKeyExists(server.system.environment, "lucee_admin_enabled") && !server.system.environment["lucee_admin_enabled"])
+ 			|| ( structKeyExists(server.system.properties, "lucee.admin.enabled") && !server.system.properties["lucee.admin.enabled"] ) ){
+		setting showdebugoutput=false;
+		cfheader(statuscode="404", statustext="Invalid access");
 		abort;
 	}
+	inspectTemplates();
 }
 
-private function getAppFolderPath() cachedwithin="request"{
-	var folder = listToArray( cgi.SCRIPT_NAME , "/" );
-	return "/#folder[1]#/#folder[2]#/";
+private function getAppFolderPath() cachedwithin="request" {
+
+	var folder = listToArray( cgi.SCRIPT_NAME , "/\" );
+	if ( arrayLast( folder ) contains ".cfm" )
+		arrayPop( folder );
+
+	return "/" & arrayToList( folder, "/" ) & "/";
+}
+
+private boolean function isSSL() cachedwithin="request" {
+	if ( isBoolean( CGI.SERVER_PORT_SECURE ) AND CGI.SERVER_PORT_SECURE ) {
+		return true;
+	}
+	var headers = GetHTTPRequestHeaders();
+
+	// check typical proxy headers for SSL
+	if ( ( headers[ "x-forwarded-proto" ] ?: "") eq "https" ) {
+		return true;
+	}
+	if ( ( headers[ "x-scheme" ] ?: "" eq "https") ) {
+		return true;
+	}
+	// CGI.HTTPS
+	if ( structKeyExists( cgi, "https" ) && cgi.https eq "on" ) {
+		return true;
+	}
+	return false;
 }
 
 </cfscript></cfcomponent>

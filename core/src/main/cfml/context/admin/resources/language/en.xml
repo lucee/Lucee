@@ -264,7 +264,7 @@
 	<data key="menu.resources.rest">Rest</data>
 	<data key="menu.resources.component">Component</data>
 	<data key="menu.resources.customtags">Custom tags</data>
-	<data key="menu.resources.cfx_tags">CFX tags</data>
+	<data key="menu.resources.cfxTags">CFX tags</data>
 	<data key="menu.debugging.label">Debugging</data>
 	<data key="menu.debugging.logs">Logs</data>
 	<data key="menu.debugging.templates">Templates</data>
@@ -1454,8 +1454,8 @@ If the timezone of your Lucee instance and your database is different, this can 
 	<data key="settings.gateway.noDefault">no default cache</data>
 	<data key="settings.gateway.noAccess">no access to create gateway instances</data>
 	<data key="settings.gateway.defaultDesc2">Define if this connection will be the default cache connection, the default cache connection is used when no cache name is explicit defined</data>
-	<data key="settings.gateway.titleReadOnly">Readonly cache connections</data>
-	<data key="settings.gateway.descReadOnly">Readonly cache connections are generated within the ""server administrator"" for all web instances and can not be modified by the ""web administrator"".</data>
+	<data key="settings.gateway.titleReadOnly">Readonly event gateways</data>
+	<data key="settings.gateway.descReadOnly">Readonly event gateways are generated within the ""server administrator"" for all web instances and can not be modified by the ""web administrator"".</data>
 	<data key="settings.gateway.Buttons.default">set as default</data>
 	<data key="settings.cache.noDriver">There is no Cache Driver Available</data>
 	<data key="settings.cache.title">Cache</data>

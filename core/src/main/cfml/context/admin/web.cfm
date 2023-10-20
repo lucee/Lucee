@@ -2,12 +2,41 @@
 	<cfset session.cap = form.captchaValue>
 </cfif>
 <cfsilent>
-<cfparam name="request.disableFrame" default="false" type="boolean">
-<cfparam name="request.setCFApplication" default="true" type="boolean">
+<cfscript>
+	csp = [
+		"default-src 'self'",
+		"script-src 'self' 'unsafe-inline'",
+		"style-src 'self' 'unsafe-inline' "
+		//"manifest-src 'self'",
+		//"font-src 'self'",
+		//"frame-src 'self'"
+	];
+	header name="X-Frame-Options" value="SAMEORIGIN";
+	header name="X-Content-Type-Options" value="nosniff";
+	header name="X-Xss-Protection" value="1; mode=block";
+	// header name="Content-Security-Policy" value="#ArrayToList(csp, ";")#";
+	header name="Referrer-Policy" value="strict-origin-when-cross-origin";
 
+	param name="request.disableFrame" default="false" type="boolean";
+	param name="request.setCFApplication" default="#!structKeyExists(getApplicationSettings(),"hasApplicationCFC")#" type="boolean";
+	request.resNameAppendix = hash(server.lucee.version & server.lucee["release-date"] & server.os.macAddress & getLuceeId().web.id, "quick");
+</cfscript>
 <cfif request.setCFApplication>
+	<!--- this is only needed when server has Application.cfc disabled,
+		application listener type=classic, i.e. only application.cfm --->
+	<cfscript>
+		function getAppFolderPath() cachedwithin="request" {
+
+			var folder = listToArray( cgi.SCRIPT_NAME , "/\" );
+			if ( arrayLast( folder ) contains ".cfm" )
+				arrayPop( folder );
+		
+			return "/" & arrayToList( folder, "/" ) & "/";
+		}
+		
+	</cfscript>
 	<cfapplication
-		name="webadmin#server.lucee.version#"
+		name="webadmin#server.lucee.version#-cfapplication"
 		sessionmanagement="yes"
 		clientmanagement="no"
 		setclientcookies="yes"
@@ -19,9 +48,31 @@
 		applicationtimeout="#createTimeSpan(1,0,0,0)#"
 		localmode="update"
 		webcharset="utf-8"
+		sessionCookie="#{
+			sameSite: "strict",
+			path: getAppFolderPath(),
+			httpOnly: true, 
+			secure: true
+		}#"
+		tag = "#{
+			cookie: {
+					sameSite: "strict",
+					path: getAppFolderPath(),
+					httpOnly: true,
+					secure: true
+			},
+			location: {
+				addtoken: false
+			}
+		}#"
+		scopeCascading = "strict"
+		xmlFeatures = "#{
+			externalGeneralEntities: false,
+			secure: true,
+			disallowDoctypeDecl: true
+		}#"
 		>
 </cfif>
-
 <!--- todo: remember screenwidth, so images have the correct width etc. --->
 <!--- PK: instead of session.screenWidth, we now have:
 	application.adminfunctions.getdata('fullscreen')
@@ -121,13 +172,15 @@
 </cfif>
 <!--- cookie ---->
 
-<cfset fromCookie=false>
 <cfif !structKeyExists(session, "password" & request.adminType) && structKeyExists(cookie,'lucee_admin_pw_#ad#')>
-	<cfset fromCookie=true>
-	
 	<cftry>
+		<cfadmin action="connect"
+			type="#request.adminType#"
+			password="#cookie['lucee_admin_pw_#ad#']#">
 		<cfset session["password" & ad]=cookie['lucee_admin_pw_#ad#']>
-		<cfcatch></cfcatch>
+		<cfcatch>
+			<cfrethrow>
+		</cfcatch>
 	</cftry>
 </cfif>
 
@@ -173,7 +226,6 @@
 
 <cfinclude template="resources/text.cfm">
 <cfinclude template="web_functions.cfm">
-
 
 <cfif !structKeyExists(application, "adminfunctions") or (structKeyExists(session, "alwaysNew") && session.alwaysNew)>
 	<cfset application.adminfunctions = new adminfunctions() />
@@ -380,9 +432,47 @@
 	context='';
 	// write Naviagtion
 	current.label="Overview";
-	if (isDefined("url.action"))current.action=url.action;
-	else current.action="overview";
+	current.action="overview"; // i.e. default homepage
+	if ( structKeyExists( url, "action" ) && len( trim( url.action ) gt 0 ) ){
+		if ( structKeyExists( { web:"", server: "", index: "" }, url.action ) ) {
+			url.action = ""; // avoid including this page!
+		} else if ( !findOneOf( "_\/", url.action ) && fileExists( "./#url.action#.cfm" ) ){
+			current.action = url.action;
+		} else {
+			writeLog(text="Lucee Admin: Invalid action [#url.action#]", type="ERROR");
+			url.action = "";
+			current.action="invalid";
+		}
+	}
+</cfscript>
 
+<cfif (!structKeyExists(session, "password" & request.adminType))>
+	<cfadmin action="hasPassword"
+		type="#request.adminType#"
+		returnVariable="hasPassword">
+
+	<cfif (hasPassword)>
+		<cfmodule template="admin_layout.cfm" width="480" title="Login" onload="doFocus()">
+			<cfif !isEmpty(login_error)>
+				<span class="CheckError"><cfoutput>#login_error#</cfoutput></span>
+				<br>
+			</cfif>
+			<cfinclude template="login.cfm">
+		</cfmodule>
+	<cfelse>
+		<!--- Admin Password is not Set !--->
+		<cfmodule template="admin_layout.cfm" width="480" title="No Password set yet!">
+			<cfif !isEmpty(login_error)>
+				<span class="CheckError"><cfoutput>#login_error#</cfoutput></span>
+				<br>
+			</cfif>
+			<!--- Show the New Password Form --->
+			<cfinclude template="login.new.cfm">
+		</cfmodule>
+	</cfif>
+	<cfabort>
+</cfif>
+<cfscript>
 	strNav ="";
 	adminUrls = []; // track menu urls for automated testing
 	for(i=1;i lte arrayLen(navigation);i=i+1) {
@@ -415,7 +505,8 @@
 					else _action=stNavi.action & '.' & stCld.action;
 
 					isfavorite = application.adminfunctions.isfavorite(_action);
-					li = '<li' & (isfavorite ? ' class="favorite"':'') & '><a '&(isActive?'id="sprite" class="menu_active"':'class="menu_inactive"')&' href="' & request.self & '?action=' &ListCompact( _action,'.') & '"> ' & stCld.label & '</a></li>';
+					li = '<li' & (isfavorite ? ' class="favorite"':'') & '><a '&(isActive?'id="sprite" class="menu_active"':'class="menu_inactive"')
+						&' href="' & request.self & '?action=' &ListCompact( _action,'.') & '"> ' & stCld.label & '</a></li>';
 					ArrayAppend(adminUrls, request.self & '?action=' &ListCompact( _action,'.'));
 					if (isfavorite)
 					{
@@ -460,8 +551,7 @@
 		if (!isDefined("form._securtyKeys")) return array();
 		return form._securtyKeys;
 	}
-	function toIDField(value)
-	{
+	function toIDField(value) {
 		return "nav_" & rereplace(arguments.value, "[^0-9a-zA-Z]", "_", "all");
 	}
 	request.getRemoteClients=getRemoteClients;
@@ -475,33 +565,8 @@
 
 </cfscript>
 
-<cfif (!structKeyExists(session, "password" & request.adminType))>
-	<cfadmin action="hasPassword"
-		type="#request.adminType#"
-		returnVariable="hasPassword">
-
-	<cfif (hasPassword)>
-		<cfmodule template="admin_layout.cfm" width="480" title="Login" onload="doFocus()">
-			<cfif !isEmpty(login_error)>
-				<span class="CheckError"><cfoutput>#login_error#</cfoutput></span>
-				<br>
-			</cfif>
-			<cfinclude template="login.cfm">
-		</cfmodule>
-	<cfelse>
-		<!--- Admin Password is not Set !--->
-		<cfmodule template="admin_layout.cfm" width="480" title="No Password set yet!">
-			<cfif !isEmpty(login_error)>
-				<span class="CheckError"><cfoutput>#login_error#</cfoutput></span>
-				<br>
-			</cfif>
-			<!--- Show the New Password Form --->
-			<cfinclude template="login.new.cfm">
-		</cfmodule>
-	</cfif>
-<cfelse>
-	<cfsavecontent variable="content">
-		<cfif !findOneOf("\/",current.action) && fileExists("./#current.action#.cfm")>
+<cfsavecontent variable="content">
+	<cfif current.action neq "invalid" && !findOneOf("_\/",current.action) && fileExists("./#current.action#.cfm")>
 			<cfinclude template="./#current.action#.cfm">
 		<cfelse>
 			<cfset current.label = "Error">
@@ -512,11 +577,11 @@
 				<cfabort>
 			</cfif>
 		</cfif>
-	</cfsavecontent>
+</cfsavecontent>
 
-	<cfif request.disableFrame>
+<cfif request.disableFrame>
 		<cfoutput>#content#</cfoutput>
-	<cfelse>
+<cfelse>
 		<cfhtmlbody>
 			<script type="text/javascript">
 				$(function() {
@@ -542,8 +607,8 @@
 		<cfmodule template="admin_layout.cfm" width="960" navigation="#strNav#" right="#context#" title="#current.label#" favorites="#favoriteLis#">
 			<cfoutput>#content#</cfoutput>
 		</cfmodule>
-	</cfif>
 </cfif>
+
 <cfif (current.action != "changeTo" || current.action != "overview" || current.action != "chartAjax") && current.action != "services.restart">
 	<cfcookie name="lucee_admin_lastpage" value="overview" expires="NEVER">
 <cfelseif current.action == "services.restart">

@@ -103,7 +103,7 @@
 	<data key="menu.resources.mappings">Mappings</data>
 	<data key="menu.resources.component">Komponentä</data>
 	<data key="menu.resources.customtags">Custom Tags</data>
-	<data key="menu.resources.cfx_tags">CFX Tags</data>
+	<data key="menu.resources.cfxTags">CFX Tags</data>
 	<data key="menu.development.label">Entwickligä</data>
 	<data key="menu.development.debugging">Debugging</data>
 	<data key="menu.security.label">Sicherheit</data>

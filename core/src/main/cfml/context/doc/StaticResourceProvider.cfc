@@ -19,6 +19,8 @@ component {
 
 	function init() {
 
+		this.nameAppendix=hash(server.lucee.version & server.lucee["release-date"] & server.os.macAddress & getLuceeId().web.id,'quick');
+
 		this.resources = {};
 
 		this.mimeTypes = {
@@ -50,9 +52,8 @@ component {
 		
 		if(!resInfo.exists) {
 			// maybe the name has the version appendix
-			nameAppendix=hash(server.lucee.version&server.lucee['release-date'],'quick');
-			if(find("-"&nameAppendix,filename)) {
-				var resInfo = getResInfo( replace(filename,"-"&nameAppendix,"") );
+			if (find("-"&this.nameAppendix,filename)) {
+				var resInfo = getResInfo( replace(filename,"-"&this.nameAppendix,"") );
 			}
 		}
 
@@ -63,18 +64,18 @@ component {
 			header name='ETag'          value=resInfo.etag;
 
 			if ( CGI.HTTP_IF_NONE_MATCH == resInfo.etag ) {
-
 				header statuscode='304' statustext='Not Modified';
 				content reset=true type=resInfo.mimeType;
 			} else {
-
 				content reset=true type=resInfo.mimeType file=resInfo.path;
 			}
-		} else {
-			header statuscode='404' statustext='Not Found';
-		//	header statuscode='404' statustext='Not Found @ #resInfo.path#';
 
-			systemOutput( "static resource #arguments.target# was not found @ #resInfo.path#", true, true );
+		} else {
+
+			setting showdebugoutput=false;
+			header statuscode='404' statustext='Not Found';
+			abort;
+			// systemOutput( "static resource #arguments.target# was not found @ #resInfo.path#", true, true );
 		}
 
 		return resInfo.exists;

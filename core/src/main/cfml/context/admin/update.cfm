@@ -36,7 +36,7 @@
 		|| DateDiff("m",session[id].last,now()) GT 5
 		|| session.alwaysNew>
 		<cfinclude template="web_functions.cfm">
-		
+		<cfinclude template="ext.functions.cfm">
 		<cfset self = adminType & ".cfm">
 		<cfset stText.services.update.update="There is a Lucee update <b>( {available} )</b> available for your current version <b>( {current} )</b>.">
 
@@ -44,11 +44,8 @@
 		<cfif adminType == "server">
 			<cfset filterMajor = true>
 			<cfset hasUpdate = false>
-			
-			<cfset curr=server.lucee.version>
-			<cfset curr=listFirst(server.lucee.version,".")>
-			
-			<cfset updateInfo=getAvailableVersion()>
+			<cfset curr_version = server.lucee.version>
+			<cfset updateInfo = getAvailableVersion()>
 			<cfif not structKeyExists(updateInfo, "available")>
 				<!--- no update available --->
 			<cfelseif server.lucee.state EQ "stable">
@@ -59,41 +56,24 @@
 					</cfif>
 				</cfloop>
 				<cfset available = Arraylast(get_stable)>
-				<cfset hasUpdate = server.lucee.version LT available>
+				<cfset hasUpdate = curr_version LT available>
 			<cfelse>
-				<cfset ava_ver = listfirst(updateInfo.available,"-")>
-				<cfif curr neq ava_ver>
+				<cfif listFirst(curr_version,".") neq listfirst(updateInfo.available,".")>
 					<!-- only show updates for the current major version, ie on 5.4, not show 6.0 snapshots -->
-					<cfset curr=listFirst(server.lucee.version,".")>
-					<cfset available = getUpdateForMajorVersion(updateInfo.otherVersions, curr )>
-					<cfset ava_ver = listfirst(updateInfo.available,"-")>
+					<cfset available = getUpdateForMajorVersion(updateInfo.otherVersions, listFirst(curr_version,".") )>
 				<cfelse>
 					<cfset available = updateInfo.available>
 				</cfif>
-				<cfif len(available) eq 0 or server.lucee.version eq available>
+				<cfif len(available) eq 0 or curr_version eq available>
 					<cfset hasUpdate = false>
 				<cfelse>
-					<cfset cur_ver = listfirst(curr,"-")>
-					<cfloop from="1" to="#listlen(cur_ver,".")#" index="i">
-						<cfif len(listgetat(ava_ver,i,".")) eq 1>
-							<cfset last = 0&listgetat(ava_ver,i,".")>
-							<cfset ava_ver = listsetat(ava_ver,i,last,".")>
-						</cfif>
-						<cfif len(listgetat(cur_ver,i,".")) eq 1>
-							<cfset last = 0&listgetat(cur_ver,i,".")>
-							<cfset cur_ver = listsetat(cur_ver,i,last,".")>
-						</cfif>
-					</cfloop>
-						<cfset ava_ver = ava_ver&"-"&listlast(available,"-")>
-					<cfset cur_ver = cur_ver&"-"&listlast(curr,"-")>
-					<cfset hasUpdate = structKeyExists(updateInfo,"available") && ava_ver gt cur_ver>
+					<cfset hasUpdate = toVersionSortable(curr_version) lt toVersionSortable(available)>
 				</cfif>
 			</cfif>
 		</cfif>
 
 	<!--- Extensions --->
 		<cfparam name="err" default="#struct(message:"",detail:"")#">
-		<cfinclude template="ext.functions.cfm">
 		<cfadmin 
 			action="getRHExtensions"
 			type="#adminType#"
@@ -166,16 +146,25 @@
 		</cfloop>
 --->
 
-
-
 		<cfsavecontent variable="content" trim="true">
 			<cfoutput>
+				<cfif adminType == "server" and structKeyExists(updateInfo, "advisory")>
+					<div class="error">
+						<h2 style="color:red;text-decoration:none;">WARNING: This version of Lucee is subject to the following security
+						<cfif len(updateInfo.advisory) eq 1>advisory<cfelse>advisories</cfif></h2>
+						<ol>
+							<cfloop array=#updateInfo.advisory# item="advisory">
+								<li><a href="#advisory.url#">#advisory.message#</li>
+							</cfloop>
+						</ol>
+					</div>
+				</cfif>
 				
 				<!--- Core --->
 				<cfif adminType == "server" and hasUpdate>
 					<div class="error">
 						<a href="server.cfm?action=services.update" style="color:red;text-decoration:none;">
-							#replace( stText.services.update.update, { '{available}': available, '{current}': server.lucee.version } )#
+							#replace( stText.services.update.update, { '{available}': available, '{current}': curr_version } )#
 						</a>
 					</div>
 				</cfif>
@@ -221,3 +210,4 @@
 		</cfoutput>
 	</cfcatch>
 </cftry>
+<cfabort>

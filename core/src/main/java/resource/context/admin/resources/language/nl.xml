@@ -162,7 +162,7 @@
 	<data key="menu.resources.mappings">Mappings</data>
 	<data key="menu.resources.component">Component</data>
 	<data key="menu.resources.customtags">Custom tags</data>
-	<data key="menu.resources.cfx_tags">CFX tags</data>
+	<data key="menu.resources.cfxTags">CFX tags</data>
 	<data key="menu.development.label">Development</data>
 	<data key="menu.development.debugging">Debugging</data>
 	<data key="menu.security.label">Beveiliging</data>

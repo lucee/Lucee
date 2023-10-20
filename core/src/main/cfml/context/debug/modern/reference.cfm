@@ -72,7 +72,8 @@ else if(structKeyExists(nonPrefixTags,form.search)) {
 
 <cfoutput>
 <cfif isNull(type)>
-	<div class="section-title">no matching tag,function or component found for #form.search#</div>
+	<div class="section-title">no matching tag,function or component found 
+		for <b>#htmleditFormat(reReplace( form.search, '[^a-zA-Z0-9]', ' ', 'all' ))#</b></div>
 	<cfabort>
 </cfif>
 

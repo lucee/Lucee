@@ -14,14 +14,13 @@
 		home = request.adminType & ".cfm";
 		homeQS = URL.keyExists("action") ? "?action=" & url.action : "";
 		request.mode = "full";
-		resNameAppendix = hash(server.lucee.version & server.lucee["release-date"], "quick");
 	</cfscript>
 <cfcontent reset="yes"><!DOCTYPE html>
 <cfoutput>
 <html>
 <head>
 	<title>#attributes.title# - Lucee #ucFirst(request.adminType)# Administrator</title>
-	<link rel="stylesheet" href="../res/css/admin-#resNameAppendix#.css.cfm" type="text/css">
+	<link rel="stylesheet" href="../res/css/admin-#request.resNameAppendix#.css.cfm" type="text/css">
 	<meta name="robots" content="noindex,nofollow">
 	<cfhtmlhead action="flush">
 </head>
@@ -112,11 +111,11 @@
 		</table>
 	</div>
 
-	<script src="../res/js/base.min.js.cfm" type="text/javascript"></script>
-	<script src="../res/js/jquery.modal.min.js.cfm" type="text/javascript"></script>
-	<script src="../res/js/jquery.blockUI-#resNameAppendix#.js.cfm" type="text/javascript"></script>
-	<script src="../res/js/admin-#resNameAppendix#.js.cfm" type="text/javascript"></script>
-	<script src="../res/js/util-#resNameAppendix#.min.js.cfm"></script>
+	<script src="../res/js/base.min.js-#request.resNameAppendix#.cfm" type="text/javascript"></script>
+	<script src="../res/js/jquery.modal.min.js-#request.resNameAppendix#.cfm" type="text/javascript"></script>
+	<script src="../res/js/jquery.blockUI-#request.resNameAppendix#.js.cfm" type="text/javascript"></script>
+	<script src="../res/js/admin-#request.resNameAppendix#.js.cfm" type="text/javascript"></script>
+	<script src="../res/js/util-#request.resNameAppendix#.min.js.cfm"></script>
 	<cfinclude template="navigation.cfm">
 	<script>
 		$(function(){

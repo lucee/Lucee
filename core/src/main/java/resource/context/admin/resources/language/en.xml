@@ -62,6 +62,7 @@
 	<data key="services.update.downUpDesc">Upgrade or downgrade your current version.</data>
 	<data key="services.update.downup">Upgrade / Downgrade</data>
 	<data key="services.update.downupBtn">Execute</data>
+	<data key="services.update.changeLogsSince">Change logs since current version</data>
 	<data key="services.update.noUpdateDesc">There are currently no {type} available for your version.</data>
 	<!-- <data key="services.update.titleDesc">Upgrade (or Downgrade) your Lucee version ({version}) to any version * you like.</data> -->
 	<data key="services.update.titleDesc">Upgrade or Downgrade the version by selecting from the drop-down box below.</data>
@@ -263,7 +264,7 @@
 	<data key="menu.resources.rest">Rest</data>
 	<data key="menu.resources.component">Component</data>
 	<data key="menu.resources.customtags">Custom tags</data>
-	<data key="menu.resources.cfx_tags">CFX tags</data>
+	<data key="menu.resources.cfxTags">CFX tags</data>
 	<data key="menu.debugging.label">Debugging</data>
 	<data key="menu.debugging.logs">Logs</data>
 	<data key="menu.debugging.templates">Templates</data>
@@ -722,6 +723,8 @@ you can see the log result at the end of every request, if a debug template is d
 	<data key="debug.debugtemplate">Debug template</data>
 	<data key="debug.timezone">Please enter a value for the timezone</data>
 	<data key="debug.enabledebugging">Enable debugging</data>
+	<data key="debug.onlyWebContext">Debugging logs are only visible via the web context</data>
+	<data key="debug.debuggingDisabled">Debugging logs are currently disabled in settings</data>
 	<data key="debug.memorylogger">Memory logger</data>
 	<data key="debug.settings.queryUsage">Query Usage</data>
 	<data key="debug.settings.queryUsageDesc">Select this option to log the query usage information.</data>
@@ -1451,8 +1454,8 @@ If the timezone of your Lucee instance and your database is different, this can 
 	<data key="settings.gateway.noDefault">no default cache</data>
 	<data key="settings.gateway.noAccess">no access to create gateway instances</data>
 	<data key="settings.gateway.defaultDesc2">Define if this connection will be the default cache connection, the default cache connection is used when no cache name is explicit defined</data>
-	<data key="settings.gateway.titleReadOnly">Readonly cache connections</data>
-	<data key="settings.gateway.descReadOnly">Readonly cache connections are generated within the ""server administrator"" for all web instances and can not be modified by the ""web administrator"".</data>
+	<data key="settings.gateway.titleReadOnly">Readonly event gateways</data>
+	<data key="settings.gateway.descReadOnly">Readonly event gateways are generated within the ""server administrator"" for all web instances and can not be modified by the ""web administrator"".</data>
 	<data key="settings.gateway.Buttons.default">set as default</data>
 	<data key="settings.cache.noDriver">There is no Cache Driver Available</data>
 	<data key="settings.cache.title">Cache</data>

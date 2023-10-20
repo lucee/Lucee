@@ -18,6 +18,7 @@ component {
 
 
 	function init() {
+		this.nameAppendix=hash(server.lucee.version & server.lucee["release-date"] & server.os.macAddress & getLuceeId().web.id,'quick');
 
 		this.resources = {};
 
@@ -48,9 +49,8 @@ component {
 				
 		if(!resInfo.exists) {
 			// maybe the name has the version appendix
-			nameAppendix=hash(server.lucee.version&server.lucee['release-date'],'quick');
-			if(find("-"&nameAppendix,filename)) {
-				var resInfo = getResInfo( replace(filename,"-"&nameAppendix,""),nameAppendix );
+			if ( find( "-" & this.nameAppendix, filename ) ) {
+				var resInfo = getResInfo( replace(filename,"-" & this.nameAppendix, "" ), this.nameAppendix );
 			}
 		}
 		
@@ -60,28 +60,27 @@ component {
 			header name='Cache-Control' value='max-age=#86400 * 10#';
 			header name='ETag'          value=resInfo.etag;
 			if (CGI.HTTP_IF_NONE_MATCH == resInfo.etag ) {
-
 				header statuscode='304' statustext='Not Modified';
 				content reset=true type=resInfo.mimeType;
 			} else {
-				if(resInfo.isText) {
+				if (resInfo.isText) {
 					content reset=true type=resInfo.mimeType;
 					echo(resInfo.contents);
-				}
-				else
+				} else {
 					content reset=true type=resInfo.mimeType file=resInfo.path;
-
+				}
 			}
 		} else {
+			setting showdebugoutput=false;
 			header statuscode='404' statustext='Not Found';
-		//	header statuscode='404' statustext='Not Found @ #resInfo.path#';
+			abort;
 		}
 
 		return resInfo.exists;
 	}
 
 
-	private function getResInfo( filename,nameAppendix ) {
+	private function getResInfo( filename, nameAppendix ) {
 		if ( structKeyExists( this.resources, arguments.filename ) )
 			return this.resources[ arguments.filename ];
 
@@ -104,10 +103,10 @@ component {
 		result.isText = left( result.mimeType, 4 ) == "text";
 
 		result.contents = 
-			result.isText ? replace(fileRead( result.path ),'{appendix}',hash(server.lucee.version&server.lucee['release-date'],'quick'),'all') : 
+			result.isText ? replace(fileRead( result.path ),'{appendix}',this.nameAppendix,'all') :
 			fileReadBinary( result.path );
 
-		result.etag = hash( result.contents&":"&nameAppendix );
+		result.etag = hash( result.contents&":"&this.nameAppendix );
 				
 		this.resources[ arguments.filename ] = result;
 
