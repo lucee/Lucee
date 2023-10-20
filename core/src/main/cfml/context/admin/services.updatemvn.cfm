@@ -81,7 +81,7 @@
 			password="#session["password"&request.adminType]#"
 			returnvariable="minVersion";
 		minVs = toVersionSortable(minVersion);
-		otherVersions=MavenListVersions();
+		otherVersions=LuceeVersionsList();
 
 		if(!isNull(otherVersions) && len(otherVersions)){
 

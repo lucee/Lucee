@@ -209,7 +209,7 @@ public class MavenUpdateProvider {
 		return getFileStreamFromZipStream(rsp.getContentAsStream());
 	}
 
-	private InputStream getFileStreamFromZipStream(InputStream zipStream) throws IOException {
+	public static InputStream getFileStreamFromZipStream(InputStream zipStream) throws IOException {
 		ZipInputStream zis = new ZipInputStream(zipStream);
 		ZipEntry entry;
 		while ((entry = zis.getNextEntry()) != null) {

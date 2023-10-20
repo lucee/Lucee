@@ -13,7 +13,7 @@ import lucee.runtime.osgi.OSGiUtil;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 
-public final class MavenDetail extends BIF {
+public final class LuceeVersionsDetailMvn extends BIF {
 
 	private static final long serialVersionUID = 1009881259163647851L;
 
@@ -38,6 +38,6 @@ public final class MavenDetail extends BIF {
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
 		if (args.length == 1) return call(pc, Caster.toString(args[0]));
 
-		throw new FunctionException(pc, "MavenDetail", 1, 1, args.length);
+		throw new FunctionException(pc, "LuceeVersionsDetailMvn", 1, 1, args.length);
 	}
 }

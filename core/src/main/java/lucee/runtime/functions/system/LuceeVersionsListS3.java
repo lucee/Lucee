@@ -1,4 +1,3 @@
-
 package lucee.runtime.functions.system;
 
 import java.util.LinkedHashMap;
@@ -8,23 +7,27 @@ import org.osgi.framework.Version;
 
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
-import lucee.runtime.config.maven.MavenUpdateProvider;
+import lucee.runtime.config.s3.S3UpdateProvider;
+import lucee.runtime.config.s3.S3UpdateProvider.Element;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
 import lucee.runtime.op.Caster;
 import lucee.runtime.osgi.OSGiUtil;
-import lucee.runtime.type.Array;
-import lucee.runtime.type.ArrayImpl;
+import lucee.runtime.type.Collection.Key;
+import lucee.runtime.type.KeyImpl;
+import lucee.runtime.type.Query;
+import lucee.runtime.type.QueryImpl;
+import lucee.runtime.type.util.KeyConstants;
 
-public final class MavenListVersions extends BIF {
+public final class LuceeVersionsListS3 extends BIF {
 
-	private static final long serialVersionUID = -353400384202349094L;
+	private static final long serialVersionUID = -7700672961703779256L;
 	private static final int TYPE_ALL = 0;
 	private static final int TYPE_SNAPSHOT = 1;
 	private static final int TYPE_RELEASE = 2;
 
-	public static Array call(PageContext pc, String type) throws PageException {
+	public static Query call(PageContext pc, String type) throws PageException {
 		// validate type
 		int t = TYPE_ALL;
 		boolean latest = false;
@@ -48,36 +51,51 @@ public final class MavenListVersions extends BIF {
 			else throw new FunctionException(pc, "MavenListVersions", 1, "type",
 					"type name [" + type + "] is invalid, valid types names are [all,snapshot,relase,latest,latest:release,latest:snapshot]");
 		}
-		MavenUpdateProvider mup = new MavenUpdateProvider();
+		Key ETAG = KeyImpl.init("etag");
 		try {
+			S3UpdateProvider sup = S3UpdateProvider.getInstance(S3UpdateProvider.DEFAULT_PROVIDER_LIST, S3UpdateProvider.DEFAULT_PROVIDER_DETAILS);
 			String key;
 			// just the latest of every cycle
 			if (latest) {
-				Map<String, Version> map = new LinkedHashMap<>();
-				Version existing;
-				for (Version v: mup.list()) {
+				Map<String, Element> map = new LinkedHashMap<>();
+				Element existing;
+				Version v;
+				for (Element e: sup.read()) {
+					v = e.getVersion();
 					key = new StringBuilder().append(v.getMajor()).append('.').append(v.getMinor()).append('.').append(v.getMicro()).toString();
 					if (t == TYPE_ALL || (t == TYPE_SNAPSHOT && v.getQualifier().endsWith("-SNAPSHOT")) || (t == TYPE_RELEASE && !v.getQualifier().endsWith("-SNAPSHOT"))) {
 						existing = map.get(key);
-						if (existing == null || OSGiUtil.compare(existing, v) < 0) {
-							map.put(key, v);
+						if (existing == null || OSGiUtil.compare(existing.getVersion(), v) < 0) {
+							map.put(key, e);
 						}
 					}
 				}
-				Array arr = new ArrayImpl();
-				for (Version v: map.values()) {
-					arr.append(v.toString());
+				Query qry = new QueryImpl(new Key[] { ETAG, KeyConstants._lastModified, KeyConstants._size, KeyConstants._version }, map.size(), "versions");
+				int row = 0;
+				for (Element e: map.values()) {
+					qry.setAt(ETAG, row, e.getETag().toString());
+					qry.setAt(KeyConstants._lastModified, row, e.getLastModifed().toString());
+					qry.setAt(KeyConstants._size, row, e.getSize());
+					qry.setAt(KeyConstants._version, row, e.getVersion().toString());
+					row++;
 				}
-				return arr;
+				return qry;
 			}
 			// all
-			Array arr = new ArrayImpl();
-			for (Version v: mup.list()) {
+			Query qry = new QueryImpl(new Key[] { ETAG, KeyConstants._lastModified, KeyConstants._size, KeyConstants._version }, 0, "versions");
+			Version v;
+			int row;
+			for (Element e: sup.read()) {
+				v = e.getVersion();
 				if (t == TYPE_ALL || (t == TYPE_SNAPSHOT && v.getQualifier().endsWith("-SNAPSHOT")) || (t == TYPE_RELEASE && !v.getQualifier().endsWith("-SNAPSHOT"))) {
-					arr.append(v.toString());
+					row = qry.addRow();
+					qry.setAt(ETAG, row, e.getETag().toString());
+					qry.setAt(KeyConstants._lastModified, row, e.getLastModifed().toString());
+					qry.setAt(KeyConstants._size, row, e.getSize());
+					qry.setAt(KeyConstants._version, row, e.getVersion().toString());
 				}
 			}
-			return arr;
+			return qry;
 		}
 		catch (Exception e) {
 			throw Caster.toPageException(e);
@@ -89,6 +107,6 @@ public final class MavenListVersions extends BIF {
 		if (args.length == 1) return call(pc, Caster.toString(args[0]));
 		if (args.length == 0) return call(pc, null);
 
-		throw new FunctionException(pc, "MavenListVersions", 0, 1, args.length);
+		throw new FunctionException(pc, "LuceeVersionsListS3", 0, 1, args.length);
 	}
 }

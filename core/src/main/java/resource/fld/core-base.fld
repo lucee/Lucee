@@ -9499,12 +9499,12 @@ The following things are considered to be empty:
 		</return>
 	</function>
 	
-	<!-- MavenDetail -->
+	<!-- LuceeVersionsDetail -->
 	<function>
-		<name>MavenDetail</name>
+		<name>LuceeVersionsDetail</name>
 		<status>hidden</status>
-		<class>lucee.runtime.functions.system.MavenDetail</class>
-		<description>gives detailed information for a specific version</description>
+		<class>lucee.runtime.functions.system.LuceeVersionsDetail</class>
+		<description>gives detailed information for a specific version from S3</description>
 		<argument>
 			<name>version</name>
 			<type>string</type>
@@ -9515,11 +9515,68 @@ The following things are considered to be empty:
 			<type>struct</type>
 		</return>
 	</function>
-	<!-- MavenListVersions -->
+	
+	<!-- LuceeVersionsDetailS3 -->
 	<function>
-		<name>MavenListVersions</name>
+		<name>LuceeVersionsDetailS3</name>
 		<status>hidden</status>
-		<class>lucee.runtime.functions.system.MavenListVersions</class>
+		<class>lucee.runtime.functions.system.LuceeVersionsDetailS3</class>
+		<description>gives detailed information for a specific version from S3</description>
+		<argument>
+			<name>version</name>
+			<type>string</type>
+			<required>yes</required>
+			<description>version you want information</description>
+		</argument>
+		<return>
+			<type>struct</type>
+		</return>
+	</function>
+	
+	<!-- LuceeVersionsDetailMvn -->
+	<function>
+		<name>LuceeVersionsDetailMvn</name>
+		<status>hidden</status>
+		<class>lucee.runtime.functions.system.LuceeVersionsDetailMvn</class>
+		<description>gives detailed information for a specific version from Maven</description>
+		<argument>
+			<name>version</name>
+			<type>string</type>
+			<required>yes</required>
+			<description>version you want information</description>
+		</argument>
+		<return>
+			<type>struct</type>
+		</return>
+	</function>
+	
+	<!-- LuceeVersionsList -->
+	<function>
+		<name>LuceeVersionsList</name>
+		<status>hidden</status>
+		<class>lucee.runtime.functions.system.LuceeVersionsList</class>
+		<description>List all Lucee versions (from Maven or S3)</description>
+		<argument>
+			<name>type</name>
+			<type>string</type>
+			<required>No</required>
+			<description>Specifies the type of version to be retrieved based on the following values:
+			all: Fetches all available versions.
+			snapshot: Limits the results to snapshot versions only.
+			release: Limits the results to release versions only.
+			latest: Retrieves the latest version for each development cycle, regardless of whether it's a release or snapshot.
+			latest:release: Fetches the most recent release version for each development cycle.
+			latest:snapshot: Fetches the most recent snapshot version for each development cycle.</description>
+		</argument>
+		<return>
+			<type>array</type>
+		</return>
+	</function>
+	<!-- LuceeVersionsListMvn -->
+	<function>
+		<name>LuceeVersionsListMvn</name>
+		<status>hidden</status>
+		<class>lucee.runtime.functions.system.LuceeVersionsListMvn</class>
 		<description>List all Lucee versions availbale on Maven</description>
 		<argument>
 			<name>type</name>
@@ -9535,6 +9592,28 @@ The following things are considered to be empty:
 		</argument>
 		<return>
 			<type>array</type>
+		</return>
+	</function>
+	<!-- LuceeVersionsListS3 -->
+	<function>
+		<name>LuceeVersionsListS3</name>
+		<status>hidden</status>
+		<class>lucee.runtime.functions.system.LuceeVersionsListS3</class>
+		<description>List all Lucee versions availbale on S3</description>
+		<argument>
+			<name>type</name>
+			<type>string</type>
+			<required>No</required>
+			<description>Specifies the type of version to be retrieved based on the following values:
+			all: Fetches all available versions.
+			snapshot: Limits the results to snapshot versions only.
+			release: Limits the results to release versions only.
+			latest: Retrieves the latest version for each development cycle, regardless of whether it's a release or snapshot.
+			latest:release: Fetches the most recent release version for each development cycle.
+			latest:snapshot: Fetches the most recent snapshot version for each development cycle.</description>
+		</argument>
+		<return>
+			<type>query</type>
 		</return>
 	</function>
 	
