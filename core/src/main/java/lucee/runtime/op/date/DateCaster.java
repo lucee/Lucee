@@ -31,6 +31,7 @@ import lucee.commons.date.DateTimeUtil;
 import lucee.commons.date.JREDateTimeUtil;
 import lucee.commons.date.TimeZoneConstants;
 import lucee.commons.i18n.FormatUtil;
+import lucee.commons.io.log.LogUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.Component;
 import lucee.runtime.engine.ThreadLocalPageContext;
@@ -144,6 +145,7 @@ public final class DateCaster {
 		str = str.trim();
 		if (StringUtil.isEmpty(str)) return defaultValue;
 		if (!hasDigits(str)) return defaultValue; // every format has digits
+		str = replaceETCTimezoneDefintions(str);
 		timeZone = ThreadLocalPageContext.getTimeZone(timeZone);
 		DateTime dt = toDateSimple(str, convertingType, true, timeZone, defaultValue);
 		if (dt == null) {
@@ -165,6 +167,32 @@ public final class DateCaster {
 			dt = toDateTime(Locale.US, str, timeZone, defaultValue, false);
 		}
 		return dt;
+	}
+
+	private static String replaceETCTimezoneDefintions(String str) {
+		int index;
+		try {
+			if ((index = StringUtil.indexOfIgnoreCase(str, " Etc/")) != -1) {
+				int indexPlus = str.indexOf('+', index + 1);
+				int indexMinus = str.indexOf('-', index + 1);
+				if (indexPlus == -1 && indexMinus == -1) {
+					str = str.substring(0, index + 1) + str.substring(index + 5);
+				}
+				else {
+					int i = indexPlus == -1 ? indexMinus : indexPlus;
+					String tmp = str.substring(index + 5, i);
+					if ("GMT".equalsIgnoreCase(tmp) || "UTC".equalsIgnoreCase(tmp)) {
+						str = str.substring(0, index) + (indexPlus != -1 ? "-" : "+") + str.substring(i + 1);
+					}
+
+				}
+
+			}
+		}
+		catch (Exception e) {
+			LogUtil.log("datetime", e);
+		}
+		return str;
 	}
 
 	private static boolean hasDigits(String str) {

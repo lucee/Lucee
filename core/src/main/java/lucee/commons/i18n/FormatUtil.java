@@ -277,7 +277,8 @@ public class FormatUtil {
 					new SimpleDateFormat("EEE d, MMM yyyy HH:mm:ss zz", Locale.ENGLISH), new SimpleDateFormat("dd-MMM-yyyy", Locale.ENGLISH),
 					new SimpleDateFormat("MMMM, dd yyyy HH:mm:ssZ", Locale.ENGLISH), new SimpleDateFormat("MMMM, dd yyyy HH:mm:ss", Locale.ENGLISH),
 					new SimpleDateFormat("yyyy/MM/dd HH:mm:ss zz", Locale.ENGLISH), new SimpleDateFormat("dd MMM yyyy HH:mm:ss zz", Locale.ENGLISH),
-					new SimpleDateFormat("EEE MMM dd yyyy HH:mm:ss 'GMT'ZZ (z)", Locale.ENGLISH), new SimpleDateFormat("dd MMM, yyyy HH:mm:ss", Locale.ENGLISH)
+					new SimpleDateFormat("yyyy-MM-dd HH:mm:ss zz", Locale.ENGLISH), new SimpleDateFormat("EEE MMM dd yyyy HH:mm:ss 'GMT'ZZ (z)", Locale.ENGLISH),
+					new SimpleDateFormat("dd MMM, yyyy HH:mm:ss", Locale.ENGLISH)
 					// ,new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss",Locale.ENGLISH)
 			};
 
