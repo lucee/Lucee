@@ -25,7 +25,6 @@ import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.DefaultHandler;
 
-import lucee.print;
 import lucee.commons.io.IOUtil;
 import lucee.commons.lang.Pair;
 import lucee.commons.lang.StringUtil;
@@ -130,22 +129,18 @@ public final class S3UpdateProvider extends DefaultHandler {
 			if (version.equals(e.getVersion())) {
 				URL url = e.getLCO();
 				if (url != null) {
-					print.e("do lco2" + url);
 					HTTPResponse rsp = HTTPEngine4Impl.get(url, null, null, MavenUpdateProvider.CONNECTION_TIMEOUT, true, null, null, null, null);
 					if (rsp != null) {
 						int sc = rsp.getStatusCode();
-						print.e("do lco:" + sc);
 						if (sc >= 200 && sc < 300) return rsp.getContentAsStream();
 					}
 				}
 
 				url = e.getJAR();
 				if (url != null) {
-					print.e("do jar");
 					HTTPResponse rsp = HTTPEngine4Impl.get(url, null, null, MavenUpdateProvider.CONNECTION_TIMEOUT, true, null, null, null, null);
 					if (rsp != null) {
 						int sc = rsp.getStatusCode();
-						print.e("do jar:" + sc);
 						if (sc < 200 || sc >= 300) throw new IOException("unable to invoke [" + url + "], status code [" + sc + "]");
 					}
 					else {
@@ -350,16 +345,14 @@ public final class S3UpdateProvider extends DefaultHandler {
 				try {
 					URL url = new URL(d.toExternalForm() + k);
 
-					print.e("do lco");
 					HTTPResponse rsp = HTTPEngine4Impl.head(url, null, null, MavenUpdateProvider.CONNECTION_TIMEOUT, true, null, null, null, null);
 					if (rsp != null) {
 						int sc = rsp.getStatusCode();
-						print.e(url + ":" + sc);
 						if (sc >= 200 && sc < 300) return url;
 					}
 				}
 				catch (Exception e) {
-					print.e(e);
+
 				}
 			}
 			return null;

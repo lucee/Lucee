@@ -1,6 +1,5 @@
 package lucee.runtime.functions.system;
 
-import lucee.print;
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
@@ -20,7 +19,6 @@ public final class LuceeVersionsList extends BIF {
 			return LuceeVersionsListMvn.call(pc, type);
 		}
 		catch (Exception e) {
-			print.e(e);
 			Query qry = LuceeVersionsListS3.call(pc, type);
 			int rows = qry.getRecordcount();
 			Array arr = new ArrayImpl();

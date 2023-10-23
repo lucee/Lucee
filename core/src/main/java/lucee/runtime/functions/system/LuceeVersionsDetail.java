@@ -1,7 +1,6 @@
 
 package lucee.runtime.functions.system;
 
-import lucee.print;
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
@@ -20,7 +19,6 @@ public final class LuceeVersionsDetail extends BIF {
 
 		}
 		catch (Exception e) {
-			print.e(e);
 			return LuceeVersionsDetailS3.call(pc, version);
 		}
 	}

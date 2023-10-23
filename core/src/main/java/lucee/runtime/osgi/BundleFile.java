@@ -109,7 +109,7 @@ public class BundleFile extends BundleInfo {
 		file.deleteOnExit();
 	}
 
-	public Object getFile() {
+	public File getFile() {
 		return file;
 	}
 }
