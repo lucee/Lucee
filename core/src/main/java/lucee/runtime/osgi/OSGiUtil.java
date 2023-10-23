@@ -71,10 +71,12 @@ import lucee.loader.osgi.BundleCollection;
 import lucee.loader.osgi.BundleUtil;
 import lucee.loader.util.Util;
 import lucee.runtime.config.Config;
+import lucee.runtime.config.ConfigServer;
 import lucee.runtime.config.ConfigWebFactory;
 import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.config.Identification;
 import lucee.runtime.engine.CFMLEngineImpl;
+import lucee.runtime.engine.ThreadLocalConfigServer;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
@@ -858,10 +860,15 @@ public class OSGiUtil {
 				throw re;
 			}
 		}
-		// print.e("xxxxxxxxxxxxxxxxxxxxxxx");
-		// print.e(symbolicName + ":" + symbolicVersion);
 		final Resource jarDir = ResourceUtil.toResource(factory.getBundleDirectory());
-		final URL updateProvider = factory.getUpdateLocation();
+		final URL updateProvider;
+		if (ThreadLocalPageContext.insideServerNewInstance()) {
+			ConfigServer cs = ThreadLocalConfigServer.get();
+			updateProvider = cs != null ? cs.getUpdateLocation() : factory.getUpdateLocation();
+		}
+		else {
+			updateProvider = factory.getUpdateLocation();
+		}
 
 		if (symbolicVersion == null) symbolicVersion = "latest";
 		final URL updateUrl = new URL(updateProvider, "/rest/update/provider/download/" + symbolicName + "/" + symbolicVersion + "/" + (id != null ? id.toQueryString() : "")
@@ -1097,6 +1104,7 @@ public class OSGiUtil {
 	}
 
 	private static BundleFile _getBundleFile(CFMLEngineFactory factory, BundleRange bundleRange, List<Resource> addional, StringBuilder versionsFound) {
+
 		Resource match = null;
 		try {
 
@@ -1212,10 +1220,13 @@ public class OSGiUtil {
 		VersionRange vr = bundleRange.getVersionRange();
 		if (vr != null) {
 			VersionDefinition from = vr.getFrom();
-			if (from != null && from.op == VersionDefinition.EQ || from.op == VersionDefinition.GTE) {
+			if (from != null && from.version != null && (from.op == VersionDefinition.EQ || from.op == VersionDefinition.GTE)) {
 				String name = bundleRange.getName();
-				String[] patterns = new String[] { name + "-" + from.version + ".jar", name.replace('.', '-') + "-" + (from.version.toString().replace('.', '-')) + ".jar",
-						name.replace('-', '.') + "-" + from.version + ".jar" };
+				String regular = name + "-" + from.version + ".jar";
+				String dash = name.replace('.', '-') + "-" + (from.version.toString().replace('.', '-')) + ".jar";
+				String dot = name.replace('-', '.') + "-" + from.version + ".jar";
+
+				String[] patterns = regular.equals(dot) ? new String[] { regular, dash } : new String[] { regular, dot, dash };
 
 				for (String pattern: patterns) {
 					resources.add(dir.getRealResource(pattern));
