@@ -19,6 +19,7 @@ package lucee.runtime.osgi;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
@@ -81,7 +82,7 @@ import lucee.runtime.osgi.BundleRange.VersionRange;
 import lucee.runtime.type.util.ListUtil;
 
 public class OSGiUtil {
-
+	private static boolean[] checkBundleRanges = new boolean[] { true, false };
 	private static final int QUALIFIER_APPENDIX_SNAPSHOT = 1;
 	private static final int QUALIFIER_APPENDIX_BETA = 2;
 	private static final int QUALIFIER_APPENDIX_RC = 3;
@@ -99,6 +100,12 @@ public class OSGiUtil {
 
 	private static class Filter implements FilenameFilter, ResourceNameFilter {
 
+		private BundleRange bundleRange;
+
+		public Filter(BundleRange bundleRange) {
+			this.bundleRange = bundleRange;
+		}
+
 		@Override
 		public boolean accept(File dir, String name) {
 			return accept(name);
@@ -110,11 +117,22 @@ public class OSGiUtil {
 		}
 
 		private boolean accept(String name) {
-			return name.endsWith(".jar");
+			if (!name.endsWith(".jar")) return false;
+			if (bundleRange == null) return true;
+			Version v;
+			String[] patterns = new String[] { bundleRange.getName() + "-", bundleRange.getName().replace('.', '-') + "-", bundleRange.getName().replace('-', '.') + "-" };
+			for (String pattern: patterns) {
+				if (name.startsWith(pattern)) {
+					v = toVersion(name.substring(pattern.length(), name.length() - 4), null);
+					if (v != null) return true;
+				}
+			}
+
+			return false;
 		}
 	}
 
-	private static final Filter JAR_EXT_FILTER = new Filter();
+	private static final Filter JAR_EXT_FILTER = new Filter(null);
 
 	private static String[] bootDelegation;
 	private static Map<String, String> packageBundleMapping = new LinkedHashMap<String, String>();
@@ -751,13 +769,18 @@ public class OSGiUtil {
 				if (bundleRange.getVersionRange() != null && !bundleRange.getVersionRange().isEmpty()) {
 					// TODO not only check for from version, request a range, but that needs an adjustment with the
 					// provider
-					BundleFile _bf = BundleFile.getInstance(factory.downloadBundle(bundleRange.getName(), bundleRange.getVersionRange().getFrom().getVersion().toString(), id));
+					BundleFile _bf = improveFileName(
+							BundleFile.getInstance(factory.downloadBundle(bundleRange.getName(), bundleRange.getVersionRange().getFrom().getVersion().toString(), id)));
 					resetJarsFromBundleDirectory(factory);
 					b = _loadBundle(bc, _bf);
 				}
 				else {
 					// MUST find out why this breaks at startup with commandbox if version exists
 					Resource r = downloadBundle(factory, bundleRange.getName(), null, id);
+					BundleFile src = BundleFile.getInstance(r);
+					BundleFile trg = improveFileName(src);
+					if (src != trg) r = ResourceUtil.toResource(trg.getFile());
+
 					resetJarsFromBundleDirectory(factory);
 					b = _loadBundle(bc, r);
 				}
@@ -835,9 +858,11 @@ public class OSGiUtil {
 				throw re;
 			}
 		}
-
+		// print.e("xxxxxxxxxxxxxxxxxxxxxxx");
+		// print.e(symbolicName + ":" + symbolicVersion);
 		final Resource jarDir = ResourceUtil.toResource(factory.getBundleDirectory());
 		final URL updateProvider = factory.getUpdateLocation();
+
 		if (symbolicVersion == null) symbolicVersion = "latest";
 		final URL updateUrl = new URL(updateProvider, "/rest/update/provider/download/" + symbolicName + "/" + symbolicVersion + "/" + (id != null ? id.toQueryString() : "")
 				+ (id == null ? "?" : "&") + "allowRedirect=true"
@@ -1078,7 +1103,7 @@ public class OSGiUtil {
 			BundleFile mbf = null;
 			Resource dir = ResourceUtil.toResource(factory.getBundleDirectory());
 			// first we check if there is a file match (fastest solution)
-			List<Resource> jars = createPossibleNameMatches(dir, addional, bundleRange.getName());
+			List<Resource> jars = createPossibleNameMatches(dir, addional, bundleRange);
 			for (Resource jar: jars) {
 				if (jar.isFile()) {
 					match = jar;
@@ -1088,30 +1113,41 @@ public class OSGiUtil {
 					}
 				}
 			}
-			if (mbf != null) return mbf;
-
+			if (mbf != null) {
+				return improveFileName(mbf);
+			}
 			List<Resource> children = listFiles(dir, addional, JAR_EXT_FILTER);
 
-			// now we check by Manifest comparsion, name not necessary reflect the correct bundle info
-			BundleFile bf;
-			for (Resource child: children) {
-				match = child;
-				bf = BundleFile.getInstance(child);
-				if (bf.isBundle()) {
-					if (bf.getSymbolicName().equals(bundleRange.getName())) {
-						if (bundleRange.matches(bf)) {
-							if (mbf == null || OSGiUtil.isNewerThan(bf.getVersion(), mbf.getVersion())) mbf = bf;
-						}
-						else {
-							if (versionsFound != null) {
-								if (versionsFound.length() > 0) versionsFound.append(", ");
-								versionsFound.append(bf.getVersionAsString());
+			// now we check all jar files
+			{
+
+				// now we check by Manifest comparsion, name not necessary reflect the correct bundle info
+				BundleFile bf;
+				for (boolean checkBundleRange: checkBundleRanges) {
+					mbf = null;
+					for (Resource child: children) {
+						if (checkBundleRange && !new Filter(bundleRange).accept(child.getName())) continue;
+						match = child;
+						bf = BundleFile.getInstance(child);
+						if (bf.isBundle()) {
+							if (bf.getSymbolicName().equals(bundleRange.getName())) {
+								if (bundleRange.matches(bf)) {
+									if (mbf == null || OSGiUtil.isNewerThan(bf.getVersion(), mbf.getVersion())) mbf = bf;
+								}
+								else {
+									if (versionsFound != null) {
+										if (versionsFound.length() > 0) versionsFound.append(", ");
+										versionsFound.append(bf.getVersionAsString());
+									}
+								}
 							}
 						}
 					}
+					if (mbf != null) {
+						return improveFileName(mbf);
+					}
 				}
 			}
-			if (mbf != null) return mbf;
 
 		}
 		catch (Exception e) {
@@ -1137,15 +1173,60 @@ public class OSGiUtil {
 		return null;
 	}
 
-	private static List<Resource> createPossibleNameMatches(Resource dir, List<Resource> addional, String name) {
-		String[] patterns = new String[] { name + "-", name.replace('.', '-'), name.replace('-', '.') };
+	/**
+	 * rename file to match the Manifest information
+	 * 
+	 * @param bf
+	 */
+	private static BundleFile improveFileName(BundleFile bf) {
+		File f = bf.getFile();
+		String preferedName = bf.getSymbolicName() + "-" + bf.getVersionAsString() + ".jar";
+		if (!preferedName.equals(f.getName())) {
+			try {
+				File nf = new File(f.getParentFile(), preferedName);
 
+				if (f.renameTo(nf)) {
+					return BundleFile.getInstance(nf);
+				}
+				else {
+					IOUtil.copy(new FileInputStream(f), new FileOutputStream(nf), true, true);
+					if (!f.delete()) {
+						f.deleteOnExit();
+					}
+					else {
+						return BundleFile.getInstance(nf);
+					}
+				}
+			}
+			catch (Exception e) {
+				LogUtil.log("OSGi", e);
+			}
+		}
+		return bf;
+	}
+
+	private static List<Resource> createPossibleNameMatches(Resource dir, List<Resource> addional, BundleRange bundleRange) {
 		List<Resource> resources = new ArrayList<Resource>();
-		for (String pattern: patterns) {
-			resources.add(dir.getRealResource(pattern));
+
+		// do we have a from match
+		VersionRange vr = bundleRange.getVersionRange();
+		if (vr != null) {
+			VersionDefinition from = vr.getFrom();
+			if (from != null && from.op == VersionDefinition.EQ || from.op == VersionDefinition.GTE) {
+				String name = bundleRange.getName();
+				String[] patterns = new String[] { name + "-" + from.version + ".jar", name.replace('.', '-') + "-" + (from.version.toString().replace('.', '-')) + ".jar",
+						name.replace('-', '.') + "-" + from.version + ".jar" };
+
+				for (String pattern: patterns) {
+					resources.add(dir.getRealResource(pattern));
+				}
+			}
 		}
 
 		if (addional != null && !addional.isEmpty()) {
+			String name = bundleRange.getName();
+			String[] patterns = new String[] { name + "-", name.replace('.', '-'), name.replace('-', '.') };
+
 			Iterator<Resource> it = addional.iterator();
 			Resource res;
 			while (it.hasNext()) {

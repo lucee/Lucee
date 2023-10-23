@@ -816,9 +816,14 @@ public final class ResourceUtil {
 	 * @return is inside or not
 	 */
 	public static boolean isChildOf(Resource file, Resource dir) {
-		while (file != null) {
-			if (file.equals(dir)) return true;
-			file = file.getParentResource();
+		if (dir == null || !file.getResourceProvider().getScheme().equals(dir.getResourceProvider().getScheme())) return false;
+		//
+		if ((file.getAbsolutePath()).startsWith(dir.getAbsolutePath())) {
+			return true;
+		}
+
+		if ((getCanonicalPathEL(file)).startsWith(getCanonicalPathEL(dir))) {
+			return true;
 		}
 		return false;
 	}
@@ -829,18 +834,19 @@ public final class ResourceUtil {
 	 * @param file file to search
 	 * @param dir directory to search
 	 */
-	public static String getPathToChild(Resource file, Resource dir) {
+	public static String getPathToChild(Resource file, final Resource dir) {
 		if (dir == null || !file.getResourceProvider().getScheme().equals(dir.getResourceProvider().getScheme())) return null;
-		boolean isFile = file.isFile();
-		String str = "/";
-		while (file != null) {
-			if (file.equals(dir)) {
-				if (isFile) return str.substring(0, str.length() - 1);
-				return str;
-			}
-			str = "/" + file.getName() + str;
-			file = file.getParentResource();
+
+		String strFile, strDir;
+		//
+		if ((strFile = file.getAbsolutePath()).startsWith(strDir = dir.getAbsolutePath())) {
+			return strFile.substring(strDir.length());
 		}
+
+		if ((strFile = getCanonicalPathEL(file)).startsWith(strDir = getCanonicalPathEL(dir))) {
+			return strFile.substring(strDir.length());
+		}
+
 		return null;
 	}
 
