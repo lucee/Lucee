@@ -1806,7 +1806,7 @@ To use cached data, the tag must be called with the exact same arguments. Only u
 		<body-content>empty</body-content>
 		<body-rtexprvalue>false</body-rtexprvalue>
 		<script>
-			<type>single</type>
+			<type>multiple</type>
 			<rtexprvalue>true</rtexprvalue>
 		</script>
 		<description>Flushes currently available data to the client.</description>
@@ -1820,6 +1820,15 @@ To use cached data, the tag must be called with the exact same arguments. Only u
 			<description>Flush the output each time at least the specified number of bytes become available. HTML
 		headers, and any data that is already available when you make this call, are not included in
 		the count.</description>
+		</attribute>
+		<attribute>
+			<type>boolean</type>
+			<name>throwonerror</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<default>true</default>
+			<script-support>optional</script-support>
+			<description>If set to false, any exceptions thrown by the servlet engine, such as those resulting from a client disconnection, will be suppressed.</description>
 		</attribute>
 	</tag>
 
