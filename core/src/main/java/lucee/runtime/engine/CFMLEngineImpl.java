@@ -904,7 +904,6 @@ public final class CFMLEngineImpl implements CFMLEngine {
 	}
 
 	private ConfigServerImpl getConfigServerImpl(ConfigServerImpl existing, boolean quick) {
-		long start = System.currentTimeMillis();
 		if (configServer == null) {
 			try {
 				Resource context = getSeverContextConfigDirectory(factory);
