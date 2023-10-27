@@ -143,8 +143,6 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	private static final Collection.Key TYPE_CHECKING = KeyImpl.getInstance("typeChecking");
 	private static final Collection.Key CGI_READONLY = KeyImpl.getInstance("CGIReadOnly");
 	private static final Collection.Key SUPPRESS_CONTENT = KeyImpl.getInstance("suppressRemoteComponentContent");
-	private static final Collection.Key LOGS = KeyImpl.getInstance("logs");
-	private static final Collection.Key LOG = KeyImpl.getInstance("log");
 
 	private static final Collection.Key SESSION_COOKIE = KeyImpl.getInstance("sessioncookie");
 	private static final Collection.Key AUTH_COOKIE = KeyImpl.getInstance("authcookie");
@@ -1771,8 +1769,8 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	private void initLog() {
 		try {
 			// appender
-			Object oLogs = get(component, LOGS, null);
-			if (oLogs == null) oLogs = get(component, LOG, null);
+			Object oLogs = get(component, KeyConstants._logs, null);
+			if (oLogs == null) oLogs = get(component, KeyConstants._log, null);
 			Struct sct = Caster.toStruct(oLogs, null);
 			logs = initLog(ThreadLocalPageContext.getConfig(config), sct);
 			initLog = true;

@@ -109,25 +109,6 @@ public class RHExtension implements Serializable {
 
 	private static final long serialVersionUID = 2904020095330689714L;
 
-	private static final Key BUNDLES = KeyImpl.getInstance("bundles");
-	private static final Key TLDS = KeyImpl.getInstance("tlds");
-	private static final Key FLDS = KeyImpl.getInstance("flds");
-	private static final Key EVENT_GATEWAYS = KeyImpl.getInstance("eventGateways");
-	private static final Key TAGS = KeyImpl.getInstance("tags");
-	private static final Key FUNCTIONS = KeyConstants._functions;
-	private static final Key ARCHIVES = KeyImpl.getInstance("archives");
-	private static final Key CONTEXTS = KeyImpl.getInstance("contexts");
-	private static final Key WEBCONTEXTS = KeyImpl.getInstance("webcontexts");
-	private static final Key CONFIG = KeyConstants._config;
-	private static final Key COMPONENTS = KeyImpl.getInstance("components");
-	private static final Key APPLICATIONS = KeyImpl.getInstance("applications");
-	private static final Key CATEGORIES = KeyImpl.getInstance("categories");
-	private static final Key PLUGINS = KeyImpl.getInstance("plugins");
-	private static final Key START_BUNDLES = KeyImpl.getInstance("startBundles");
-	private static final Key TRIAL = KeyImpl.getInstance("trial");
-	private static final Key RELEASE_TYPE = KeyImpl.getInstance("releaseType");
-	private static final Key SYMBOLIC_NAME = KeyImpl.getInstance("symbolicName");
-
 	private static final String[] EMPTY = new String[0];
 	private static final BundleDefinition[] EMPTY_BD = new BundleDefinition[0];
 
@@ -1113,37 +1094,40 @@ public class RHExtension implements Serializable {
 	}
 
 	private static Query createQuery() throws DatabaseException {
-		return new QueryImpl(new Key[] { KeyConstants._id, KeyConstants._version, KeyConstants._name, SYMBOLIC_NAME, KeyConstants._type, KeyConstants._description,
-				KeyConstants._image, RELEASE_TYPE, TRIAL, CATEGORIES, START_BUNDLES, BUNDLES, FLDS, TLDS, TAGS, FUNCTIONS, CONTEXTS, WEBCONTEXTS, CONFIG, APPLICATIONS, COMPONENTS,
-				PLUGINS, EVENT_GATEWAYS, ARCHIVES }, 0, "Extensions");
+		return new QueryImpl(
+				new Key[] { KeyConstants._id, KeyConstants._version, KeyConstants._name, KeyConstants._symbolicName, KeyConstants._type, KeyConstants._description,
+						KeyConstants._image, KeyConstants._releaseType, KeyConstants._trial, KeyConstants._categories, KeyConstants._startBundles, KeyConstants._bundles,
+						KeyConstants._flds, KeyConstants._tlds, KeyConstants._tags, KeyConstants._functions, KeyConstants._contexts, KeyConstants._webcontexts,
+						KeyConstants._config, KeyConstants._applications, KeyConstants._components, KeyConstants._plugins, KeyConstants._eventGateways, KeyConstants._archives },
+				0, "Extensions");
 	}
 
 	private void populate(Query qry) throws PageException, IOException, BundleException {
 		int row = qry.addRow();
 		qry.setAt(KeyConstants._id, row, getId());
 		qry.setAt(KeyConstants._name, row, getName());
-		qry.setAt(SYMBOLIC_NAME, row, getSymbolicName());
+		qry.setAt(KeyConstants._symbolicName, row, getSymbolicName());
 		qry.setAt(KeyConstants._image, row, getImage());
 		qry.setAt(KeyConstants._type, row, type);
 		qry.setAt(KeyConstants._description, row, description);
 		qry.setAt(KeyConstants._version, row, getVersion() == null ? null : getVersion().toString());
-		qry.setAt(TRIAL, row, isTrial());
-		qry.setAt(RELEASE_TYPE, row, toReleaseType(getReleaseType(), "all"));
+		qry.setAt(KeyConstants._trial, row, isTrial());
+		qry.setAt(KeyConstants._releaseType, row, toReleaseType(getReleaseType(), "all"));
 		// qry.setAt(JARS, row,Caster.toArray(getJars()));
-		qry.setAt(FLDS, row, Caster.toArray(getFlds()));
-		qry.setAt(TLDS, row, Caster.toArray(getTlds()));
-		qry.setAt(FUNCTIONS, row, Caster.toArray(getFunctions()));
-		qry.setAt(ARCHIVES, row, Caster.toArray(getArchives()));
-		qry.setAt(TAGS, row, Caster.toArray(getTags()));
-		qry.setAt(CONTEXTS, row, Caster.toArray(getContexts()));
-		qry.setAt(WEBCONTEXTS, row, Caster.toArray(getWebContexts()));
-		qry.setAt(CONFIG, row, Caster.toArray(getConfigs()));
-		qry.setAt(EVENT_GATEWAYS, row, Caster.toArray(getEventGateways()));
-		qry.setAt(CATEGORIES, row, Caster.toArray(getCategories()));
-		qry.setAt(APPLICATIONS, row, Caster.toArray(getApplications()));
-		qry.setAt(COMPONENTS, row, Caster.toArray(getComponents()));
-		qry.setAt(PLUGINS, row, Caster.toArray(getPlugins()));
-		qry.setAt(START_BUNDLES, row, Caster.toBoolean(getStartBundles()));
+		qry.setAt(KeyConstants._flds, row, Caster.toArray(getFlds()));
+		qry.setAt(KeyConstants._tlds, row, Caster.toArray(getTlds()));
+		qry.setAt(KeyConstants._functions, row, Caster.toArray(getFunctions()));
+		qry.setAt(KeyConstants._archives, row, Caster.toArray(getArchives()));
+		qry.setAt(KeyConstants._tags, row, Caster.toArray(getTags()));
+		qry.setAt(KeyConstants._contexts, row, Caster.toArray(getContexts()));
+		qry.setAt(KeyConstants._webcontexts, row, Caster.toArray(getWebContexts()));
+		qry.setAt(KeyConstants._config, row, Caster.toArray(getConfigs()));
+		qry.setAt(KeyConstants._eventGateways, row, Caster.toArray(getEventGateways()));
+		qry.setAt(KeyConstants._categories, row, Caster.toArray(getCategories()));
+		qry.setAt(KeyConstants._applications, row, Caster.toArray(getApplications()));
+		qry.setAt(KeyConstants._components, row, Caster.toArray(getComponents()));
+		qry.setAt(KeyConstants._plugins, row, Caster.toArray(getPlugins()));
+		qry.setAt(KeyConstants._startBundles, row, Caster.toBoolean(getStartBundles()));
 
 		BundleInfo[] bfs = getBundles();
 		Query qryBundles = new QueryImpl(new Key[] { KeyConstants._name, KeyConstants._version }, bfs == null ? 0 : bfs.length, "bundles");
@@ -1153,35 +1137,35 @@ public class RHExtension implements Serializable {
 				if (bfs[i].getVersion() != null) qryBundles.setAt(KeyConstants._version, i + 1, bfs[i].getVersionAsString());
 			}
 		}
-		qry.setAt(BUNDLES, row, qryBundles);
+		qry.setAt(KeyConstants._bundles, row, qryBundles);
 	}
 
 	public Struct toStruct() throws PageException {
 		Struct sct = new StructImpl();
 		sct.set(KeyConstants._id, getId());
-		sct.set(SYMBOLIC_NAME, getSymbolicName());
+		sct.set(KeyConstants._symbolicName, getSymbolicName());
 		sct.set(KeyConstants._name, getName());
 		sct.set(KeyConstants._image, getImage());
 		sct.set(KeyConstants._description, description);
 		sct.set(KeyConstants._version, getVersion() == null ? null : getVersion().toString());
-		sct.set(TRIAL, isTrial());
-		sct.set(RELEASE_TYPE, toReleaseType(getReleaseType(), "all"));
+		sct.set(KeyConstants._trial, isTrial());
+		sct.set(KeyConstants._releaseType, toReleaseType(getReleaseType(), "all"));
 		// sct.set(JARS, row,Caster.toArray(getJars()));
 		try {
-			sct.set(FLDS, Caster.toArray(getFlds()));
-			sct.set(TLDS, Caster.toArray(getTlds()));
-			sct.set(FUNCTIONS, Caster.toArray(getFunctions()));
-			sct.set(ARCHIVES, Caster.toArray(getArchives()));
-			sct.set(TAGS, Caster.toArray(getTags()));
-			sct.set(CONTEXTS, Caster.toArray(getContexts()));
-			sct.set(WEBCONTEXTS, Caster.toArray(getWebContexts()));
-			sct.set(CONFIG, Caster.toArray(getConfigs()));
-			sct.set(EVENT_GATEWAYS, Caster.toArray(getEventGateways()));
-			sct.set(CATEGORIES, Caster.toArray(getCategories()));
-			sct.set(APPLICATIONS, Caster.toArray(getApplications()));
-			sct.set(COMPONENTS, Caster.toArray(getComponents()));
-			sct.set(PLUGINS, Caster.toArray(getPlugins()));
-			sct.set(START_BUNDLES, Caster.toBoolean(getStartBundles()));
+			sct.set(KeyConstants._flds, Caster.toArray(getFlds()));
+			sct.set(KeyConstants._tlds, Caster.toArray(getTlds()));
+			sct.set(KeyConstants._functions, Caster.toArray(getFunctions()));
+			sct.set(KeyConstants._archives, Caster.toArray(getArchives()));
+			sct.set(KeyConstants._tags, Caster.toArray(getTags()));
+			sct.set(KeyConstants._contexts, Caster.toArray(getContexts()));
+			sct.set(KeyConstants._webcontexts, Caster.toArray(getWebContexts()));
+			sct.set(KeyConstants._config, Caster.toArray(getConfigs()));
+			sct.set(KeyConstants._eventGateways, Caster.toArray(getEventGateways()));
+			sct.set(KeyConstants._categories, Caster.toArray(getCategories()));
+			sct.set(KeyConstants._applications, Caster.toArray(getApplications()));
+			sct.set(KeyConstants._components, Caster.toArray(getComponents()));
+			sct.set(KeyConstants._plugins, Caster.toArray(getPlugins()));
+			sct.set(KeyConstants._startBundles, Caster.toBoolean(getStartBundles()));
 
 			BundleInfo[] bfs = getBundles();
 			Query qryBundles = new QueryImpl(new Key[] { KeyConstants._name, KeyConstants._version }, bfs == null ? 0 : bfs.length, "bundles");
@@ -1191,7 +1175,7 @@ public class RHExtension implements Serializable {
 					if (bfs[i].getVersion() != null) qryBundles.setAt(KeyConstants._version, i + 1, bfs[i].getVersionAsString());
 				}
 			}
-			sct.set(BUNDLES, qryBundles);
+			sct.set(KeyConstants._bundles, qryBundles);
 		}
 		catch (Exception e) {
 			throw Caster.toPageException(e);

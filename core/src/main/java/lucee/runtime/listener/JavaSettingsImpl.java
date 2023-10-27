@@ -37,6 +37,7 @@ import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.util.ArrayUtil;
+import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.ListUtil;
 
 public class JavaSettingsImpl implements JavaSettings {
@@ -169,7 +170,7 @@ public class JavaSettingsImpl implements JavaSettings {
 		List<Resource> bundles;
 		{
 			Object obj = sct.get(KeyImpl.getInstance("bundlePaths"), null);
-			if (obj == null) obj = sct.get(KeyImpl.getInstance("bundles"), null);
+			if (obj == null) obj = sct.get(KeyConstants._bundles, null);
 			if (obj == null) obj = sct.get(KeyImpl.getInstance("bundleDirectory"), null);
 			if (obj == null) obj = sct.get(KeyImpl.getInstance("bundleDirectories"), null);
 			if (obj != null) {

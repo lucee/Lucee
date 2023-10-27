@@ -8,21 +8,20 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.extension.RHExtension;
+import lucee.runtime.op.Caster;
 import lucee.runtime.osgi.BundleInfo;
-import lucee.runtime.type.StructImpl;
-import lucee.runtime.type.Struct;
+import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Query;
 import lucee.runtime.type.QueryImpl;
-import lucee.runtime.type.Collection.Key;
+import lucee.runtime.type.Struct;
+import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.util.KeyConstants;
-import lucee.runtime.op.Caster;
 
 public class ExtensionInfo extends BIF implements Function {
 
 	private static final long serialVersionUID = 2627423175121799118L;
 
-	private static final Key BUNDLES = KeyImpl.getInstance("bundles");
 	private static final Key TLDS = KeyImpl.getInstance("tlds");
 	private static final Key FLDS = KeyImpl.getInstance("flds");
 	private static final Key EVENT_GATEWAYS = KeyImpl.getInstance("eventGateways");
@@ -32,7 +31,6 @@ public class ExtensionInfo extends BIF implements Function {
 	private static final Key CONTEXTS = KeyImpl.getInstance("contexts");
 	private static final Key WEBCONTEXTS = KeyImpl.getInstance("webcontexts");
 	private static final Key CONFIG = KeyConstants._config;
-	private static final Key COMPONENTS = KeyImpl.getInstance("components");
 	private static final Key APPLICATIONS = KeyImpl.getInstance("applications");
 	private static final Key CATEGORIES = KeyImpl.getInstance("categories");
 	private static final Key PLUGINS = KeyImpl.getInstance("plugins");
@@ -73,7 +71,7 @@ public class ExtensionInfo extends BIF implements Function {
 					sct.set(EVENT_GATEWAYS, Caster.toArray(ext.getEventGateways()));
 					sct.set(CATEGORIES, Caster.toArray(ext.getCategories()));
 					sct.set(APPLICATIONS, Caster.toArray(ext.getApplications()));
-					sct.set(COMPONENTS, Caster.toArray(ext.getComponents()));
+					sct.set(KeyConstants._components, Caster.toArray(ext.getComponents()));
 					sct.set(PLUGINS, Caster.toArray(ext.getPlugins()));
 					sct.set(START_BUNDLES, Caster.toBoolean(ext.getStartBundles()));
 

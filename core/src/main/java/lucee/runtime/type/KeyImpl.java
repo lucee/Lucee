@@ -24,7 +24,9 @@ import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import lucee.commons.digest.WangJenkins;
 import lucee.commons.lang.StringUtil;
@@ -53,10 +55,14 @@ public class KeyImpl implements Collection.Key, Castable, Comparable, Externaliz
 	private transient int wjh;
 	private transient int sfm = -1;
 	private transient long h64;
-	private static Map<String, Key> tokens = new HashMap<String, Key>();
+	private static Map<String, Key> keys = new HashMap<String, Key>();
 
 	public KeyImpl() {
 		// DO NOT USE, JUST FOR UNSERIALIZE
+	}
+
+	public static Map<String, Key> getKeys() {
+		return keys;
 	}
 
 	private static final long[] createLookupTable() {
@@ -138,12 +144,24 @@ public class KeyImpl implements Collection.Key, Castable, Comparable, Externaliz
 		return new KeyImpl(key);
 	}
 
+	/**
+	 * only used in KeyConstants
+	 * 
+	 * @param key
+	 * @return
+	 */
 	public static Collection.Key _const(String key) {
 		return new KeyImpl(key);
 	}
 
+	/**
+	 * literal values set in source code
+	 * 
+	 * @param key
+	 * @return
+	 */
 	public static Collection.Key getInstance(String key) {
-		return new KeyImpl(key);
+		return initKeys(key);
 	}
 
 	/**
@@ -151,18 +169,25 @@ public class KeyImpl implements Collection.Key, Castable, Comparable, Externaliz
 	 * used to create the keys for the method initKeys()
 	 */
 	public static Collection.Key initKeys(String key) {
-		Key k = tokens.get(key);
+		Key k = keys.get(key);
 		if (k == null) {
-			tokens.put(key, k = new KeyImpl(key));
+			keys.put(key, k = new KeyImpl(key));
 		}
 		return k;
 	}
 
+	static Set<String> tmp = new HashSet<String>();
+
 	/**
 	 * 
-	 * used to inside the rest of the source created
+	 * used to inside the rest of the source created, can be dynamic values, so a lot
 	 */
 	public static Collection.Key source(String key) {
+		/*
+		 * if (KeyConstants.getFieldName(key) == null && !tmp.contains(key)) { print.ds(key); //
+		 * print.e("public static final Key _" + key + " = KeyImpl._const(\"" + key + "\");"); tmp.add(key);
+		 * }
+		 */
 		return new KeyImpl(key);
 	}
 

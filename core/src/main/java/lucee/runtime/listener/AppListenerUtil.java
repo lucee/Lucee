@@ -83,22 +83,20 @@ import lucee.transformer.library.ClassDefinitionImpl;
 
 public final class AppListenerUtil {
 
-	public static final Collection.Key ACCESS_KEY_ID = KeyImpl.getInstance("accessKeyId");
-	public static final Collection.Key AWS_SECRET_KEY = KeyImpl.getInstance("awsSecretKey");
-	public static final Collection.Key SECRET_KEY = KeyImpl.getInstance("secretKey");
-	public static final Collection.Key DEFAULT_LOCATION = KeyImpl.getInstance("defaultLocation");
+	public static final Collection.Key ACCESS_KEY_ID = KeyConstants._accessKeyId;
+	public static final Collection.Key AWS_SECRET_KEY = KeyConstants._awsSecretKey;
+	public static final Collection.Key SECRET_KEY = KeyConstants._secretKey;
+	public static final Collection.Key DEFAULT_LOCATION = KeyConstants._defaultLocation;
 	public static final Collection.Key ACL = KeyConstants._acl;
 	public static final Collection.Key CONNECTION_STRING = KeyConstants._connectionString;
 
-	public static final Collection.Key BLOB = KeyImpl.getInstance("blob");
-	public static final Collection.Key CLOB = KeyImpl.getInstance("clob");
-	public static final Collection.Key CONNECTION_LIMIT = KeyImpl.getInstance("connectionLimit");
-	public static final Collection.Key CONNECTION_TIMEOUT = KeyImpl.getInstance("connectionTimeout");
-	public static final Collection.Key IDLE_TIMEOUT = KeyImpl.getInstance("idleTimeout");
-	public static final Collection.Key LIVE_TIMEOUT = KeyImpl.getInstance("liveTimeout");
-	public static final Collection.Key META_CACHE_TIMEOUT = KeyImpl.getInstance("metaCacheTimeout");
-	public static final Collection.Key ALLOW = KeyImpl.getInstance("allow");
-	public static final Collection.Key DISABLE_UPDATE = KeyImpl.getInstance("disableUpdate");
+	public static final Collection.Key CONNECTION_LIMIT = KeyConstants._connectionLimit;
+	public static final Collection.Key CONNECTION_TIMEOUT = KeyConstants._connectionTimeout;
+	public static final Collection.Key IDLE_TIMEOUT = KeyConstants._idleTimeout;
+	public static final Collection.Key LIVE_TIMEOUT = KeyConstants._liveTimeout;
+	public static final Collection.Key META_CACHE_TIMEOUT = KeyConstants._metaCacheTimeout;
+	public static final Collection.Key ALLOW = KeyConstants._allow;
+	public static final Collection.Key DISABLE_UPDATE = KeyConstants._disableUpdate;
 
 	private static final TimeSpan FIVE_MINUTES = new TimeSpanImpl(0, 0, 5, 0);
 	private static final TimeSpan ONE_MINUTE = new TimeSpanImpl(0, 0, 1, 0);
@@ -233,14 +231,14 @@ public final class AppListenerUtil {
 			try {
 				int idle = Caster.toIntValue(data.get(IDLE_TIMEOUT, null), -1);
 				if (idle == -1) idle = Caster.toIntValue(data.get(CONNECTION_TIMEOUT, null), 1);
-				return ApplicationDataSource.getInstance(config, name, cd, Caster.toString(oConnStr), user, pass, listener, Caster.toBooleanValue(data.get(BLOB, null), false),
-						Caster.toBooleanValue(data.get(CLOB, null), false), Caster.toIntValue(data.get(CONNECTION_LIMIT, null), -1), idle,
-						Caster.toIntValue(data.get(LIVE_TIMEOUT, null), 60), Caster.toIntValue(data.get("minIdle", null), 60), Caster.toIntValue(data.get("maxIdle", null), 60),
-						Caster.toIntValue(data.get("maxTotal", null), 60), Caster.toLongValue(data.get(META_CACHE_TIMEOUT, null), 60000L), timezone,
-						Caster.toIntValue(data.get(ALLOW, null), DataSource.ALLOW_ALL), Caster.toBooleanValue(data.get(KeyConstants._storage, null), false),
-						Caster.toBooleanValue(data.get(KeyConstants._readonly, null), false), Caster.toBooleanValue(data.get(KeyConstants._validate, null), false),
-						Caster.toBooleanValue(data.get("requestExclusive", null), false), Caster.toBooleanValue(data.get("alwaysResetConnections", null), false),
-						readliteralTimestampWithTSOffset(data), log);
+				return ApplicationDataSource.getInstance(config, name, cd, Caster.toString(oConnStr), user, pass, listener,
+						Caster.toBooleanValue(data.get(KeyConstants._blob, null), false), Caster.toBooleanValue(data.get(KeyConstants._clob, null), false),
+						Caster.toIntValue(data.get(CONNECTION_LIMIT, null), -1), idle, Caster.toIntValue(data.get(LIVE_TIMEOUT, null), 60),
+						Caster.toIntValue(data.get("minIdle", null), 60), Caster.toIntValue(data.get("maxIdle", null), 60), Caster.toIntValue(data.get("maxTotal", null), 60),
+						Caster.toLongValue(data.get(META_CACHE_TIMEOUT, null), 60000L), timezone, Caster.toIntValue(data.get(ALLOW, null), DataSource.ALLOW_ALL),
+						Caster.toBooleanValue(data.get(KeyConstants._storage, null), false), Caster.toBooleanValue(data.get(KeyConstants._readonly, null), false),
+						Caster.toBooleanValue(data.get(KeyConstants._validate, null), false), Caster.toBooleanValue(data.get("requestExclusive", null), false),
+						Caster.toBooleanValue(data.get("alwaysResetConnections", null), false), readliteralTimestampWithTSOffset(data), log);
 			}
 			catch (Exception cnfe) {
 				throw Caster.toPageException(cnfe);
@@ -259,8 +257,8 @@ public final class AppListenerUtil {
 					Caster.toString(data.get(KeyConstants._database)), Caster.toIntValue(data.get(KeyConstants._port, null), -1), user, pass, listener,
 					Caster.toIntValue(data.get(CONNECTION_LIMIT, null), -1), idle, Caster.toIntValue(data.get(LIVE_TIMEOUT, null), 1),
 					Caster.toIntValue(data.get("minIdle", null), 0), Caster.toIntValue(data.get("maxIdle", null), 0), Caster.toIntValue(data.get("maxTotal", null), 0),
-					Caster.toLongValue(data.get(META_CACHE_TIMEOUT, null), 60000L), Caster.toBooleanValue(data.get(BLOB, null), false),
-					Caster.toBooleanValue(data.get(CLOB, null), false), DataSource.ALLOW_ALL, Caster.toStruct(data.get(KeyConstants._custom, null), null, false),
+					Caster.toLongValue(data.get(META_CACHE_TIMEOUT, null), 60000L), Caster.toBooleanValue(data.get(KeyConstants._blob, null), false),
+					Caster.toBooleanValue(data.get(KeyConstants._clob, null), false), DataSource.ALLOW_ALL, Caster.toStruct(data.get(KeyConstants._custom, null), null, false),
 					Caster.toBooleanValue(data.get(KeyConstants._readonly, null), false), true, Caster.toBooleanValue(data.get(KeyConstants._storage, null), false), timezone, "",
 					ParamSyntax.toParamSyntax(data, ParamSyntax.DEFAULT), readliteralTimestampWithTSOffset(data), Caster.toBooleanValue(data.get("alwaysSetTimeout", null), false),
 					Caster.toBooleanValue(data.get("requestExclusive", null), false), Caster.toBooleanValue(data.get("alwaysResetConnections", null), false), log);

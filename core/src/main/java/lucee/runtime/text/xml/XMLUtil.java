@@ -104,23 +104,23 @@ public final class XMLUtil {
 
 	public static final short UNDEFINED_NODE = -1;
 
-	public static final Collection.Key XMLCOMMENT = KeyImpl.getInstance("xmlcomment");
-	public static final Collection.Key XMLTEXT = KeyImpl.getInstance("xmltext");
-	public static final Collection.Key XMLCDATA = KeyImpl.getInstance("xmlcdata");
-	public static final Collection.Key XMLCHILDREN = KeyImpl.getInstance("xmlchildren");
-	public static final Collection.Key XMLNODES = KeyImpl.getInstance("xmlnodes");
-	public static final Collection.Key XMLNSURI = KeyImpl.getInstance("xmlnsuri");
-	public static final Collection.Key XMLNSPREFIX = KeyImpl.getInstance("xmlnsprefix");
-	public static final Collection.Key XMLROOT = KeyImpl.getInstance("xmlroot");
-	public static final Collection.Key XMLPARENT = KeyImpl.getInstance("xmlparent");
-	public static final Collection.Key XMLNAME = KeyImpl.getInstance("xmlname");
-	public static final Collection.Key XMLTYPE = KeyImpl.getInstance("xmltype");
-	public static final Collection.Key XMLVALUE = KeyImpl.getInstance("xmlvalue");
-	public static final Collection.Key XMLATTRIBUTES = KeyImpl.getInstance("xmlattributes");
+	public static final Collection.Key XMLCOMMENT = KeyConstants._xmlcomment;
+	public static final Collection.Key XMLTEXT = KeyConstants._xmltext;
+	public static final Collection.Key XMLCDATA = KeyConstants._xmlcdata;
+	public static final Collection.Key XMLCHILDREN = KeyConstants._xmlchildren;
+	public static final Collection.Key XMLNODES = KeyConstants._xmlnodes;
+	public static final Collection.Key XMLNSURI = KeyConstants._xmlnsuri;
+	public static final Collection.Key XMLNSPREFIX = KeyConstants._xmlnsprefix;
+	public static final Collection.Key XMLROOT = KeyConstants._xmlroot;
+	public static final Collection.Key XMLPARENT = KeyConstants._xmlparent;
+	public static final Collection.Key XMLNAME = KeyConstants._xmlname;
+	public static final Collection.Key XMLTYPE = KeyConstants._xmltype;
+	public static final Collection.Key XMLVALUE = KeyConstants._xmlvalue;
+	public static final Collection.Key XMLATTRIBUTES = KeyConstants._xmlattributes;
 	public static final Collection.Key KEY_FEATURE_SECURE = KeyConstants._secure;
-	public static final Collection.Key KEY_FEATURE_DISALLOW_DOCTYPE_DECL = KeyImpl.getInstance("disallowDoctypeDecl");
-	public static final Collection.Key KEY_FEATURE_EXTERNAL_GENERAL_ENTITIES = KeyImpl.getInstance("externalGeneralEntities");
-	public static final Collection.Key KEY_FEATURE_EXTERNAL_GENERAL_ENTITIES_ACF = KeyImpl.getInstance("allowExternalEntities");
+	public static final Collection.Key KEY_FEATURE_DISALLOW_DOCTYPE_DECL = KeyConstants._disallowDoctypeDecl;
+	public static final Collection.Key KEY_FEATURE_EXTERNAL_GENERAL_ENTITIES = KeyConstants._externalGeneralEntities;
+	public static final Collection.Key KEY_FEATURE_EXTERNAL_GENERAL_ENTITIES_ACF = KeyConstants._allowExternalEntities;
 
 	// public final static String
 	// DEFAULT_SAX_PARSER="org.apache.xerces.parsers.SAXParser";
