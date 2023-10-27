@@ -644,7 +644,7 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 									count += q.getRecordcount();
 									setVariable(result.getName(), q);
 
-									if (useCache) cacheStruct.set(KeyImpl.getInstance(result.getName()), q);
+									if (useCache) cacheStruct.set(KeyImpl.dyn(result.getName()), q);
 								}
 							}
 							finally {
@@ -673,7 +673,7 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 							if (param == STATUS_CODE) res.set(STATUSCODE, value);
 							else setVariable(param.getVariable(), value);
 
-							if (useCache) cacheStruct.set(KeyImpl.getInstance(param.getVariable()), value);
+							if (useCache) cacheStruct.set(KeyImpl.dyn(param.getVariable()), value);
 						}
 					}
 				}

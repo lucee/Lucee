@@ -371,7 +371,7 @@ public final class LDAPClient {
 			for (int i = sort.length - 1; i >= 0; i--) {
 				String item = sort[i];
 				if (item.indexOf(' ') != -1) item = ListUtil.first(item, " ", true);
-				qry.sort(KeyImpl.getInstance(item), order);
+				qry.sort(KeyImpl.dyn(item), order);
 				// keys[i] = new SortKey(item);
 			}
 		}

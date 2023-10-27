@@ -5544,7 +5544,7 @@ public final class ConfigAdmin {
 
 	public void removeRemoteClientUsage(String code) {
 		Struct usage = config.getRemoteClientUsage();
-		usage.removeEL(KeyImpl.getInstance(code));
+		usage.removeEL(KeyImpl.dyn(code));
 
 		Struct extensions = _getRootElement("remoteClients");
 		extensions.setEL("usage", toStringURLStyle(usage));

@@ -147,7 +147,7 @@ public final class FeedHandler extends DefaultHandler {
 			hasDC = true;
 		}
 
-		inside = KeyImpl.getInstance(name);
+		inside = KeyImpl.dyn(name);
 		if (StringUtil.isEmpty(path)) path = name;
 		else {
 			path += "." + name;

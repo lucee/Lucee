@@ -210,7 +210,7 @@ public abstract class ScopeSupport extends StructImpl implements Scope {
 		if (name.length() > 2 && name.endsWith("[]")) {
 			isArrayDef = true;
 			name = name.substring(0, name.length() - 2);
-			key = KeyImpl.getInstance(name);
+			key = KeyImpl.dyn(name);
 			curr = parent.get(key, null);
 		}
 		else {

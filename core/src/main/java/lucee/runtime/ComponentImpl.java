@@ -1866,7 +1866,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 	}
 
 	private Object callGetter(PageContext pc, Collection.Key key) throws PageException {
-		Key getterName = KeyImpl.getInstance("get" + key.getLowerString());
+		Key getterName = KeyImpl.dyn("get" + key.getLowerString());
 		Member member = getMember(pc, getterName, false, false);
 		if (member instanceof UDF) {
 			UDF udf = (UDF) member;
@@ -1878,7 +1878,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 	}
 
 	private Object callGetter(PageContext pc, Collection.Key key, Object defaultValue) {
-		Key getterName = KeyImpl.getInstance("get" + key.getLowerString());
+		Key getterName = KeyImpl.dyn("get" + key.getLowerString());
 		Member member = getMember(pc, getterName, false, false);
 		if (member instanceof UDF) {
 			UDF udf = (UDF) member;
@@ -1895,7 +1895,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 	}
 
 	private Object callSetter(PageContext pc, Collection.Key key, Object value) throws PageException {
-		Collection.Key setterName = KeyImpl.getInstance("set" + key.getLowerString());
+		Collection.Key setterName = KeyImpl.dyn("set" + key.getLowerString());
 		Member member = getMember(pc, setterName, false, false);
 		if (member instanceof UDF) {
 			UDF udf = (UDF) member;

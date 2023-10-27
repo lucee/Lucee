@@ -53,14 +53,13 @@ public final class RSSHandler extends DefaultHandler {
 	private static final Key LINK = KeyConstants._LINK;
 	private static final Key DESCRIPTION = KeyConstants._DESCRIPTION;
 
-	private static Collection.Key[] COLUMNS = new Collection.Key[] { KeyConstants._AUTHOREMAIL, KeyImpl.getInstance("AUTHORNAME"), KeyConstants._AUTHORURI,
-			KeyImpl.getInstance("CATEGORYLABEL"), KeyConstants._CATEGORYSCHEME, KeyImpl.getInstance("CATEGORYTERM"), KeyConstants._COMMENTS, CONTENT, KeyConstants._CONTENTMODE,
-			KeyImpl.getInstance("CONTENTSRC"), KeyConstants._CONTENTTYPE, KeyImpl.getInstance("CONTRIBUTOREMAIL"), KeyConstants._CONTRIBUTORNAME,
-			KeyImpl.getInstance("CONTRIBUTORURI"), KeyConstants._CREATEDDATE, KeyImpl.getInstance("EXPIRATIONDATE"), KeyConstants._ID, KeyConstants._IDPERMALINK,
-			KeyImpl.getInstance("LINKHREF"), KeyConstants._LINKHREFLANG, KeyImpl.getInstance("LINKLENGTH"), KeyConstants._LINKREL, KeyImpl.getInstance("LINKTITLE"),
-			KeyConstants._LINKTYPE, KeyImpl.getInstance("PUBLISHEDDATE"), KeyConstants._RIGHTS, RSSLINK, KeyConstants._SOURCE, KeyImpl.getInstance("SOURCEURL"),
-			KeyConstants._SUMMARY, KeyImpl.getInstance("SUMMARYMODE"), KeyConstants._SUMMARYSRC, KeyImpl.getInstance("SUMMARYTYPE"), KeyConstants._TITLE,
-			KeyImpl.getInstance("TITLETYPE"), KeyConstants._UPDATEDDATE, KeyImpl.getInstance("URI"), KeyConstants._XMLBASE };
+	private static Collection.Key[] COLUMNS = new Collection.Key[] { KeyConstants._AUTHOREMAIL, KeyConstants._AUTHORNAME, KeyConstants._AUTHORURI, KeyConstants._CATEGORYLABEL,
+			KeyConstants._CATEGORYSCHEME, KeyConstants._CATEGORYTERM, KeyConstants._COMMENTS, CONTENT, KeyConstants._CONTENTMODE, KeyConstants._CONTENTSRC,
+			KeyConstants._CONTENTTYPE, KeyConstants._CONTRIBUTOREMAIL, KeyConstants._CONTRIBUTORNAME, KeyConstants._CONTRIBUTORURI, KeyConstants._CREATEDDATE,
+			KeyConstants._EXPIRATIONDATE, KeyConstants._ID, KeyConstants._IDPERMALINK, KeyConstants._LINKHREF, KeyConstants._LINKHREFLANG, KeyConstants._LINKLENGTH,
+			KeyConstants._LINKREL, KeyConstants._LINKTITLE, KeyConstants._LINKTYPE, KeyConstants._PUBLISHEDDATE, KeyConstants._RIGHTS, RSSLINK, KeyConstants._SOURCE,
+			KeyConstants._SOURCEURL, KeyConstants._SUMMARY, KeyConstants._SUMMARYMODE, KeyConstants._SUMMARYSRC, KeyConstants._SUMMARYTYPE, KeyConstants._TITLE,
+			KeyConstants._TITLETYPE, KeyConstants._UPDATEDDATE, KeyConstants._URI, KeyConstants._XMLBASE };
 
 	private XMLReader xmlReader;
 
@@ -133,7 +132,7 @@ public final class RSSHandler extends DefaultHandler {
 
 	@Override
 	public void startElement(String uri, String name, String qName, Attributes atts) {
-		inside = KeyImpl.getInstance(qName);
+		inside = KeyImpl.dyn(qName);
 		lcInside = qName.toLowerCase();
 		if (lcInside.equals("image")) insideImage = true;
 		else if (qName.equals("item")) {

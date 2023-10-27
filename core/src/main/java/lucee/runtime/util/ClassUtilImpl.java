@@ -196,7 +196,7 @@ public class ClassUtilImpl implements ClassUtil {
 
 	@Override
 	public Object callStaticMethod(Class<?> clazz, String methodName, Object[] args) throws PageException {
-		return Reflector.callStaticMethod(clazz, KeyImpl.getInstance(methodName), args);
+		return Reflector.callStaticMethod(clazz, KeyImpl.dyn(methodName), args);
 	}
 
 	@Override

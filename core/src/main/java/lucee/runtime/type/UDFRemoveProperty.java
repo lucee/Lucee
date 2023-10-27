@@ -111,7 +111,7 @@ public final class UDFRemoveProperty extends UDFGSProperty {
 			if (strKey == null) return false;
 
 			if (propValue instanceof Struct) {
-				return ((Struct) propValue).removeEL(KeyImpl.getInstance(strKey)) != null;
+				return ((Struct) propValue).removeEL(KeyImpl.dyn(strKey)) != null;
 			}
 			else if (propValue instanceof Map) {
 				return ((Map) propValue).remove(strKey) != null;

@@ -764,7 +764,7 @@ public final class ComponentUtil {
 		Property[] props = c.getProperties(onlyPersistent, false, false, false);
 		Struct sct = new StructImpl();
 		if (props != null) for (int i = 0; i < props.length; i++) {
-			sct.setEL(KeyImpl.getInstance(props[i].getName()), props[i]);
+			sct.setEL(KeyImpl.dyn(props[i].getName()), props[i]);
 		}
 		return sct;
 	}

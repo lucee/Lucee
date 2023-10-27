@@ -24,9 +24,7 @@ import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 import lucee.commons.digest.WangJenkins;
 import lucee.commons.lang.StringUtil;
@@ -176,8 +174,6 @@ public class KeyImpl implements Collection.Key, Castable, Comparable, Externaliz
 		return k;
 	}
 
-	static Set<String> tmp = new HashSet<String>();
-
 	/**
 	 * 
 	 * used to inside the rest of the source created, can be dynamic values, so a lot
@@ -188,6 +184,17 @@ public class KeyImpl implements Collection.Key, Castable, Comparable, Externaliz
 		 * print.e("public static final Key _" + key + " = KeyImpl._const(\"" + key + "\");"); tmp.add(key);
 		 * }
 		 */
+		return new KeyImpl(key);
+	}
+
+	/**
+	 * 
+	 * no literal values
+	 * 
+	 * @param key
+	 * @return
+	 */
+	public static Collection.Key dyn(String key) {
 		return new KeyImpl(key);
 	}
 

@@ -98,7 +98,7 @@ public final class IsDefined implements Function {
 
 	// used for older compiled code in ra files
 	public static boolean call(PageContext pc, double scope, String key) {
-		return call(pc, scope, KeyImpl.getInstance(key));
+		return call(pc, scope, KeyImpl.dyn(key));
 	}
 
 	// used for older compiled code in ra files
