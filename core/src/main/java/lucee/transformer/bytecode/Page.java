@@ -108,13 +108,13 @@ public final class Page extends BodyBase implements Root {
 
 	public static final Method KEY_INIT = new Method("init", Types.COLLECTION_KEY, new Type[] { Types.STRING });
 
-	public static final Method KEY_INTERN = new Method("intern", Types.COLLECTION_KEY, new Type[] { Types.STRING });
+	public static final Method KEY_INIT_KEYS = new Method("initKeys", Types.COLLECTION_KEY, new Type[] { Types.STRING });
+	public static final Method KEY_SOURCE = new Method("source", Types.COLLECTION_KEY, new Type[] { Types.STRING });
 
 	// public static ImportDefintion getInstance(String fullname,ImportDefintion defaultValue)
 	private static final Method ID_GET_INSTANCE = new Method("getInstance", Types.IMPORT_DEFINITIONS, new Type[] { Types.STRING, Types.IMPORT_DEFINITIONS });
 
-	public final static Method STATIC_CONSTRUCTOR = Method.getMethod("void <clinit> ()V");
-	// public final static Method CONSTRUCTOR = Method.getMethod("void <init> ()V");
+	private static final Method CINIT = new Method("<clinit>", Types.VOID, new Type[] {});
 
 	private static final Method CONSTRUCTOR = new Method("<init>", Types.VOID, new Type[] {});
 
@@ -138,7 +138,6 @@ public final class Page extends BodyBase implements Root {
 	// int getVersion()
 	private final static Method VERSION = new Method("getVersion", Types.LONG_VALUE, new Type[] {});
 	// void _init()
-	private final static Method INIT_KEYS = new Method("initKeys", Types.VOID, new Type[] {});
 
 	private final static Method SET_PAGE_SOURCE = new Method("setPageSource", Types.VOID, new Type[] { Types.PAGE_SOURCE });
 
@@ -170,9 +169,6 @@ public final class Page extends BodyBase implements Root {
 	private static final Method NEW_INTERFACE_IMPL_INSTANCE = new Method("newInstance", Types.INTERFACE_IMPL, new Type[] { Types.PAGE_CONTEXT, Types.STRING, Types.BOOLEAN_VALUE });
 
 	private static final Method STATIC_COMPONENT_CONSTR = new Method("staticConstructor", Types.VOID, new Type[] { Types.PAGE_CONTEXT, Types.COMPONENT_IMPL });
-
-	// MethodVisitor mv = cw.visitMethod(Opcodes.ACC_STATIC, "<clinit>", "()V", null, null);
-	private static final Method CINIT = new Method("<clinit>", Types.VOID, new Type[] {});
 
 	// public StaticStruct getStaticStruct()
 	private static final Method GET_STATIC_STRUCT = new Method("getStaticStruct", Types.STATIC_STRUCT, new Type[] {});
@@ -352,14 +348,6 @@ public final class Page extends BodyBase implements Root {
 			// cw.visitSource("","rel:");
 		}
 
-		// static constructor
-		// GeneratorAdapter statConstrAdapter = new
-		// GeneratorAdapter(Opcodes.ACC_PUBLIC,STATIC_CONSTRUCTOR,null,null,cw);
-		// StaticConstrBytecodeContext statConstr = null;//new
-		// BytecodeContext(null,null,this,externalizer,keys,cw,name,statConstrAdapter,STATIC_CONSTRUCTOR,writeLog(),suppressWSbeforeArg);
-
-		/// boolean isSub = comp != null && !comp.isMain();
-
 		// constructor
 		GeneratorAdapter constrAdapter = new GeneratorAdapter(Opcodes.ACC_PUBLIC, CONSTRUCTOR_PS, null, null, cw);
 		ConstrBytecodeContext constr = new ConstrBytecodeContext(optionalPS, this, keys, cw, className, constrAdapter, CONSTRUCTOR_PS, writeLog(), suppressWSbeforeArg, output,
@@ -388,7 +376,6 @@ public final class Page extends BodyBase implements Root {
 
 		// call _init()
 		constrAdapter.visitVarInsn(Opcodes.ALOAD, 0);
-		constrAdapter.visitMethodInsn(Opcodes.INVOKEVIRTUAL, constr.getClassName(), "initKeys", "()V");
 
 		// private static ImportDefintion[] test=new ImportDefintion[]{...};
 		{
@@ -495,13 +482,13 @@ public final class Page extends BodyBase implements Root {
 		List<IFunction> funcs;
 		// newInstance/initComponent/call
 		if (isComponent()) {
-			writeOutGetStaticStruct(constr, keys, cw, comp, className);
+			// writeOutGetStaticStructX(constr, keys, cw, comp, className);
 			writeOutNewComponent(constr, keys, cw, comp, className);
 			funcs = writeOutInitComponent(constr, functions, keys, cw, comp, className);
 
 		}
 		else if (isInterface()) {
-			writeOutGetStaticStruct(constr, keys, cw, comp, className);
+			// writeOutGetStaticStructX(constr, keys, cw, comp, className);
 			writeOutNewInterface(constr, keys, cw, comp, className);
 			funcs = writeOutInitInterface(constr, keys, cw, comp, className);
 		}
@@ -695,15 +682,8 @@ public final class Page extends BodyBase implements Root {
 		constrAdapter.returnValue();
 		constrAdapter.endMethod();
 
-		// INIT KEYS
-		BytecodeContext bcInit = null;
-		{
-			GeneratorAdapter aInit = new GeneratorAdapter(Opcodes.ACC_PRIVATE + Opcodes.ACC_FINAL, INIT_KEYS, null, null, cw);
-			bcInit = new BytecodeContext(optionalPS, constr, this, keys, cw, className, aInit, INIT_KEYS, writeLog(), suppressWSbeforeArg, output, returnValue);
-			registerFields(bcInit, keys);
-			aInit.returnValue();
-			aInit.endMethod();
-		}
+		// newInstance/initComponent/call
+		writeOutStatic(optionalPS, constr, keys, cw, comp, className);
 
 		// set field subs
 		FieldVisitor fv = cw.visitField(Opcodes.ACC_PRIVATE + Opcodes.ACC_FINAL, "subs", "[Llucee/runtime/CIPage;", null, null);
@@ -718,7 +698,7 @@ public final class Page extends BodyBase implements Root {
 				while (_it.hasNext()) {
 					tc = _it.next();
 
-					tc.writeOut(bcInit, this);
+					tc.writeOut(constr, this);
 				}
 				writeGetSubPages(cw, className, subs, sourceCode.getDialect());
 			}
@@ -893,7 +873,7 @@ public final class Page extends BodyBase implements Root {
 			ga.push(index++);
 			// value.setExternalize(false);
 			ExpressionUtil.writeOutSilent(value, bc, Expression.MODE_REF);
-			ga.invokeStatic(KEY_IMPL, KEY_INTERN);
+			ga.invokeStatic(KEY_IMPL, KEY_INIT_KEYS);
 			ga.visitInsn(Opcodes.AASTORE);
 		}
 		ga.visitFieldInsn(Opcodes.PUTFIELD, bc.getClassName(), "keys", Types.COLLECTION_KEY_ARRAY.toString());
@@ -971,19 +951,45 @@ public final class Page extends BodyBase implements Root {
 		cv.visitAfter(bc);
 	}
 
-	private void writeOutGetStaticStruct(ConstrBytecodeContext constr, List<LitString> keys, ClassWriter cw, TagCIObject component, String name) throws TransformerException {
-		// public final static StaticStruct _static = new StaticStruct();
-		FieldVisitor fv = cw.visitField(Opcodes.ACC_PRIVATE + Opcodes.ACC_STATIC + Opcodes.ACC_FINAL, "staticStruct", "Llucee/runtime/component/StaticStruct;", null, null);
-		fv.visitEnd();
+	private void writeOutStatic(PageSource optionalPS, ConstrBytecodeContext constr, List<LitString> keys, ClassWriter cw, TagCIObject component, String name)
+			throws TransformerException {
+
+		boolean addStatic = isComponent() || isInterface();
+
+		if (addStatic) cw.visitField(Opcodes.ACC_PRIVATE + Opcodes.ACC_STATIC + Opcodes.ACC_FINAL, "staticStruct", "Llucee/runtime/component/StaticStruct;", null, null).visitEnd();
+
+		cw.visitField(Opcodes.ACC_PRIVATE + Opcodes.ACC_STATIC + Opcodes.ACC_FINAL, "keys", Types.COLLECTION_KEY_ARRAY.toString(), null, null).visitEnd();
 
 		{
 			final GeneratorAdapter ga = new GeneratorAdapter(Opcodes.ACC_STATIC, CINIT, null, null, cw);
-			ga.newInstance(Types.STATIC_STRUCT);
-			ga.dup();
-			ga.invokeConstructor(Types.STATIC_STRUCT, CONSTR_STATIC_STRUCT);
-			ga.putStatic(Type.getType(name), "staticStruct", Types.STATIC_STRUCT);
+
+			if (addStatic) {
+				ga.newInstance(Types.STATIC_STRUCT);
+				ga.dup();
+				ga.invokeConstructor(Types.STATIC_STRUCT, CONSTR_STATIC_STRUCT);
+				ga.putStatic(Type.getType(name), "staticStruct", Types.STATIC_STRUCT);
+			}
+
+			// Array initialization
+			ga.push(keys.size()); // Array size
+			ga.newArray(Types.COLLECTION_KEY);
+
+			int index = 0;
+			for (LitString ls: keys) {
+				ga.dup();
+				ga.push(index++);
+				ga.push(ls.getString());
+
+				// ExpressionUtil.writeOutSilent(ls, bc, Expression.MODE_REF);
+				ga.invokeStatic(KEY_IMPL, KEY_INIT_KEYS);
+				ga.arrayStore(Types.COLLECTION_KEY);
+			}
+			ga.putStatic(Type.getType(name), "keys", Types.COLLECTION_KEY_ARRAY);
+
+			/////////////////
 			ga.returnValue();
 			ga.endMethod();
+
 		}
 
 		// public StaticStruct getStaticStruct() {return _static;}

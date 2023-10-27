@@ -23,6 +23,8 @@ import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 import lucee.commons.digest.WangJenkins;
 import lucee.commons.lang.StringUtil;
@@ -51,6 +53,7 @@ public class KeyImpl implements Collection.Key, Castable, Comparable, Externaliz
 	private transient int wjh;
 	private transient int sfm = -1;
 	private transient long h64;
+	private static Map<String, Key> tokens = new HashMap<String, Key>();
 
 	public KeyImpl() {
 		// DO NOT USE, JUST FOR UNSERIALIZE
@@ -143,7 +146,23 @@ public class KeyImpl implements Collection.Key, Castable, Comparable, Externaliz
 		return new KeyImpl(key);
 	}
 
-	public static Collection.Key intern(String key) {
+	/**
+	 * 
+	 * used to create the keys for the method initKeys()
+	 */
+	public static Collection.Key initKeys(String key) {
+		Key k = tokens.get(key);
+		if (k == null) {
+			tokens.put(key, k = new KeyImpl(key));
+		}
+		return k;
+	}
+
+	/**
+	 * 
+	 * used to inside the rest of the source created
+	 */
+	public static Collection.Key source(String key) {
 		return new KeyImpl(key);
 	}
 
