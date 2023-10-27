@@ -215,9 +215,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	private static final short ACCESS_WRITE = 11;
 
 	private static final Collection.Key DEBUG = KeyConstants._debug;
-	// private static final Collection.Key DEBUG_TEMPLATE = KeyImpl.intern("debugTemplate");
 	private static final Collection.Key DEBUG_SHOW_QUERY_USAGE = KeyImpl.getInstance("debugShowQueryUsage");
-	// private static final Collection.Key STR_DEBUG_TEMPLATE = KeyImpl.intern("strdebugTemplate");
 	private static final Collection.Key TEMPLATES = KeyConstants._templates;
 	private static final Collection.Key STR = KeyConstants._str;
 	private static final Collection.Key DO_STATUS_CODE = KeyImpl.getInstance("doStatusCode");

@@ -82,7 +82,6 @@ public final class DebuggerImpl implements Debugger {
 	private static final Collection.Key IMPLICIT_ACCESS = KeyImpl.getInstance("implicitAccess");
 	private static final Collection.Key GENERIC_DATA = KeyImpl.getInstance("genericData");
 	private static final Collection.Key PAGE_PARTS = KeyImpl.getInstance("pageParts");
-	// private static final Collection.Key OUTPUT_LOG= KeyImpl.intern("outputLog");
 
 	private static final int MAX_PARTS = 100;
 
