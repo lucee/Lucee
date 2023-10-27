@@ -89,11 +89,11 @@ import lucee.runtime.type.util.UDFUtil;
  */
 public abstract class ComponentPageImpl extends ComponentPage implements PagePro {
 
-	public static final Collection.Key ACCEPT_ARG_COLL_FORMATS = KeyImpl.getInstance("acceptedArgumentCollectionFormats");
+	public static final Collection.Key ACCEPT_ARG_COLL_FORMATS = KeyConstants._acceptedArgumentCollectionFormats;
 
 	private static final long serialVersionUID = -3483642653131058030L;
 
-	public static final lucee.runtime.type.Collection.Key REMOTE_PERSISTENT_ID = KeyImpl.getInstance("Id16hohohh");
+	public static final lucee.runtime.type.Collection.Key REMOTE_PERSISTENT_ID = KeyConstants._Id16hohohh;
 
 	private long lastCheck = -1;
 

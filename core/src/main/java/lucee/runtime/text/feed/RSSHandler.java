@@ -47,21 +47,21 @@ import lucee.runtime.type.util.KeyConstants;
 
 public final class RSSHandler extends DefaultHandler {
 
-	private static final Key RSSLINK = KeyImpl.getInstance("RSSLINK");
-	private static final Key CONTENT = KeyImpl.getInstance("CONTENT");
+	private static final Key RSSLINK = KeyConstants._RSSLINK;
+	private static final Key CONTENT = KeyConstants._CONTENT;
 
-	private static final Key LINK = KeyImpl.getInstance("LINK");
-	private static final Key DESCRIPTION = KeyImpl.getInstance("DESCRIPTION");
+	private static final Key LINK = KeyConstants._LINK;
+	private static final Key DESCRIPTION = KeyConstants._DESCRIPTION;
 
-	private static Collection.Key[] COLUMNS = new Collection.Key[] { KeyImpl.getInstance("AUTHOREMAIL"), KeyImpl.getInstance("AUTHORNAME"), KeyImpl.getInstance("AUTHORURI"),
-			KeyImpl.getInstance("CATEGORYLABEL"), KeyImpl.getInstance("CATEGORYSCHEME"), KeyImpl.getInstance("CATEGORYTERM"), KeyImpl.getInstance("COMMENTS"), CONTENT,
-			KeyImpl.getInstance("CONTENTMODE"), KeyImpl.getInstance("CONTENTSRC"), KeyImpl.getInstance("CONTENTTYPE"), KeyImpl.getInstance("CONTRIBUTOREMAIL"),
-			KeyImpl.getInstance("CONTRIBUTORNAME"), KeyImpl.getInstance("CONTRIBUTORURI"), KeyImpl.getInstance("CREATEDDATE"), KeyImpl.getInstance("EXPIRATIONDATE"),
-			KeyConstants._ID, KeyImpl.getInstance("IDPERMALINK"), KeyImpl.getInstance("LINKHREF"), KeyImpl.getInstance("LINKHREFLANG"), KeyImpl.getInstance("LINKLENGTH"),
-			KeyImpl.getInstance("LINKREL"), KeyImpl.getInstance("LINKTITLE"), KeyImpl.getInstance("LINKTYPE"), KeyImpl.getInstance("PUBLISHEDDATE"), KeyImpl.getInstance("RIGHTS"),
-			RSSLINK, KeyImpl.getInstance("SOURCE"), KeyImpl.getInstance("SOURCEURL"), KeyImpl.getInstance("SUMMARY"), KeyImpl.getInstance("SUMMARYMODE"),
-			KeyImpl.getInstance("SUMMARYSRC"), KeyImpl.getInstance("SUMMARYTYPE"), KeyImpl.getInstance("TITLE"), KeyImpl.getInstance("TITLETYPE"),
-			KeyImpl.getInstance("UPDATEDDATE"), KeyImpl.getInstance("URI"), KeyImpl.getInstance("XMLBASE") };
+	private static Collection.Key[] COLUMNS = new Collection.Key[] { KeyConstants._AUTHOREMAIL, KeyImpl.getInstance("AUTHORNAME"), KeyConstants._AUTHORURI,
+			KeyImpl.getInstance("CATEGORYLABEL"), KeyConstants._CATEGORYSCHEME, KeyImpl.getInstance("CATEGORYTERM"), KeyConstants._COMMENTS, CONTENT,
+			KeyConstants._CONTENTMODE, KeyImpl.getInstance("CONTENTSRC"), KeyConstants._CONTENTTYPE, KeyImpl.getInstance("CONTRIBUTOREMAIL"),
+			KeyConstants._CONTRIBUTORNAME, KeyImpl.getInstance("CONTRIBUTORURI"), KeyConstants._CREATEDDATE, KeyImpl.getInstance("EXPIRATIONDATE"),
+			KeyConstants._ID, KeyConstants._IDPERMALINK, KeyImpl.getInstance("LINKHREF"), KeyConstants._LINKHREFLANG, KeyImpl.getInstance("LINKLENGTH"),
+			KeyConstants._LINKREL, KeyImpl.getInstance("LINKTITLE"), KeyConstants._LINKTYPE, KeyImpl.getInstance("PUBLISHEDDATE"), KeyConstants._RIGHTS,
+			RSSLINK, KeyConstants._SOURCE, KeyImpl.getInstance("SOURCEURL"), KeyConstants._SUMMARY, KeyImpl.getInstance("SUMMARYMODE"),
+			KeyConstants._SUMMARYSRC, KeyImpl.getInstance("SUMMARYTYPE"), KeyConstants._TITLE, KeyImpl.getInstance("TITLETYPE"),
+			KeyConstants._UPDATEDDATE, KeyImpl.getInstance("URI"), KeyConstants._XMLBASE };
 
 	private XMLReader xmlReader;
 

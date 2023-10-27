@@ -179,14 +179,14 @@ public final class Http extends BodyTagImpl {
 	private static final Key STATUSCODE = KeyConstants._statuscode;
 	private static final Key CHARSET = KeyConstants._charset;
 
-	private static final Key ERROR_DETAIL = KeyImpl.getInstance("errordetail");
-	private static final Key STATUS_CODE = KeyImpl.getInstance("status_code");
-	private static final Key STATUS_TEXT = KeyImpl.getInstance("status_text");
-	private static final Key HTTP_VERSION = KeyImpl.getInstance("http_version");
-	private static final Key LOCATIONS = KeyImpl.getInstance("locations");
+	private static final Key ERROR_DETAIL = KeyConstants._errordetail;
+	private static final Key STATUS_CODE = KeyConstants._status_code;
+	private static final Key STATUS_TEXT = KeyConstants._status_text;
+	private static final Key HTTP_VERSION = KeyConstants._http_version;
+	private static final Key LOCATIONS = KeyConstants._locations;
 
-	private static final Key EXPLANATION = KeyImpl.getInstance("explanation");
-	private static final Key RESPONSEHEADER = KeyImpl.getInstance("responseheader");
+	private static final Key EXPLANATION = KeyConstants._explanation;
+	private static final Key RESPONSEHEADER = KeyConstants._responseheader;
 	private static final Key SET_COOKIE = KeyImpl.getInstance("set-cookie");
 
 	private static final short AUTH_TYPE_BASIC = 0;

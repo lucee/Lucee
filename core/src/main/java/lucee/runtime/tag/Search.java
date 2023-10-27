@@ -47,10 +47,10 @@ public final class Search extends TagImpl {
 	private static final int SUGGESTIONS_ALWAYS = Integer.MAX_VALUE;
 	private static final int SUGGESTIONS_NEVER = -1;
 
-	private static final lucee.runtime.type.Collection.Key FOUND = KeyImpl.getInstance("found");
-	private static final lucee.runtime.type.Collection.Key SEARCHED = KeyImpl.getInstance("searched");
-	private static final lucee.runtime.type.Collection.Key KEYWORDS = KeyImpl.getInstance("keywords");
-	private static final lucee.runtime.type.Collection.Key KEYWORD_SCORE = KeyImpl.getInstance("keywordScore");
+	private static final lucee.runtime.type.Collection.Key FOUND = KeyConstants._found;
+	private static final lucee.runtime.type.Collection.Key SEARCHED = KeyConstants._searched;
+	private static final lucee.runtime.type.Collection.Key KEYWORDS = KeyConstants._keywords;
+	private static final lucee.runtime.type.Collection.Key KEYWORD_SCORE = KeyConstants._keywordScore;
 
 	/** Specifies the criteria type for the search. */
 	private short type = SearchCollection.SEARCH_TYPE_SIMPLE;

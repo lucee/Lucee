@@ -21,7 +21,7 @@ package lucee.runtime.exp;
 
 import lucee.runtime.config.Config;
 import lucee.runtime.type.Collection;
-import lucee.runtime.type.KeyImpl;
+import lucee.runtime.type.util.KeyConstants;
 
 /**
  *
@@ -31,7 +31,7 @@ import lucee.runtime.type.KeyImpl;
  */
 public class ExpressionException extends PageExceptionImpl {
 
-	private static final Collection.Key ERR_NUMBER = KeyImpl.getInstance("ErrNumber");
+	private static final Collection.Key ERR_NUMBER = KeyConstants._ErrNumber;
 
 	/**
 	 * Class Constuctor

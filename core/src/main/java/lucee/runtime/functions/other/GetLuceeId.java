@@ -37,8 +37,8 @@ public final class GetLuceeId implements Function {
 
 	private static final long serialVersionUID = 105306626462365773L;
 
-	private static final Collection.Key SECURITY_KEY = KeyImpl.getInstance("securityKey");
-	private static final Collection.Key API_KEY = KeyImpl.getInstance("apiKey");
+	private static final Collection.Key SECURITY_KEY = KeyConstants._securityKey;
+	private static final Collection.Key API_KEY = KeyConstants._apiKey;
 
 	public static Struct call(PageContext pc) throws PageException {
 		Struct sct = new StructImpl();

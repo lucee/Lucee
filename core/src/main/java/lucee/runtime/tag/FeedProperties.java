@@ -30,9 +30,9 @@ public class FeedProperties {
 	private static final Collection.Key ITEM = KeyConstants._ITEM;
 	private static final Collection.Key ITEMS = KeyConstants._ITEMS;
 	private static final Collection.Key ENTRY = KeyConstants._ENTRY;
-	private static final Collection.Key RDF = KeyImpl.getInstance("RDF");
-	private static final Collection.Key RSS = KeyImpl.getInstance("RSS");
-	private static final Collection.Key CHANNEL = KeyImpl.getInstance("channel");
+	private static final Collection.Key RDF = KeyConstants._RDF;
+	private static final Collection.Key RSS = KeyConstants._RSS;
+	private static final Collection.Key CHANNEL = KeyConstants._channel;
 
 	public static Struct toProperties(Struct data) {
 		data = (Struct) Duplicator.duplicate(data, true);

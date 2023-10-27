@@ -73,10 +73,10 @@ public final class SystemCacheClear implements Function {
 		}
 		else throw new FunctionException(pc, "cacheClear", 1, "cacheName",
 				ExceptionUtil
-						.similarKeyMessage(new Collection.Key[] { KeyConstants._all, KeyConstants._template, KeyConstants._component, KeyImpl.getInstance("customtag"),
+						.similarKeyMessage(new Collection.Key[] { KeyConstants._all, KeyConstants._template, KeyConstants._component, KeyConstants._customtag,
 								KeyConstants._query, KeyConstants._tag, KeyConstants._function }, cacheName, "cache name", "cache names", null, true)
 						+ " " + ExceptionUtil.similarKeyMessage(new Collection.Key[] { KeyConstants._all, KeyConstants._template, KeyConstants._component,
-								KeyImpl.getInstance("customtag"), KeyConstants._query, KeyConstants._tag, KeyConstants._function }, cacheName, "cache names", null, true));
+								KeyConstants._customtag, KeyConstants._query, KeyConstants._tag, KeyConstants._function }, cacheName, "cache names", null, true));
 
 		return null;
 	}

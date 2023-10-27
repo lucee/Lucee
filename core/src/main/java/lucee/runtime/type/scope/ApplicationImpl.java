@@ -27,8 +27,8 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.functions.system.GetApplicationSettings;
 import lucee.runtime.listener.ApplicationContext;
 import lucee.runtime.type.Collection;
-import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
+import lucee.runtime.type.util.KeyConstants;
 
 /**
  * Session Scope
@@ -37,7 +37,7 @@ public final class ApplicationImpl extends ScopeSupport implements Application, 
 
 	private static final long serialVersionUID = 700830188207594563L;
 
-	private static final Collection.Key APPLICATION_NAME = KeyImpl.getInstance("applicationname");
+	private static final Collection.Key APPLICATION_NAME = KeyConstants._applicationname;
 	private long lastAccess;
 	private long timeSpan;
 	private long created;

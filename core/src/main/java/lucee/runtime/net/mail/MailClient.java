@@ -92,11 +92,11 @@ public abstract class MailClient implements PoolItem {
 		return _store != null && _store.isConnected();
 	}
 
-	private static final Collection.Key FULLNAME = KeyImpl.getInstance("FULLNAME");
-	private static final Collection.Key UNREAD = KeyImpl.getInstance("UNREAD");
-	private static final Collection.Key PARENT = KeyImpl.getInstance("PARENT");
-	private static final Collection.Key TOTALMESSAGES = KeyImpl.getInstance("TOTALMESSAGES");
-	private static final Collection.Key NEW = KeyImpl.getInstance("NEW");
+	private static final Collection.Key FULLNAME = KeyConstants._FULLNAME;
+	private static final Collection.Key UNREAD = KeyConstants._UNREAD;
+	private static final Collection.Key PARENT = KeyConstants._PARENT;
+	private static final Collection.Key TOTALMESSAGES = KeyConstants._TOTALMESSAGES;
+	private static final Collection.Key NEW = KeyConstants._NEW;
 
 	/**
 	 * Simple authenicator implmentation
@@ -117,30 +117,30 @@ public abstract class MailClient implements PoolItem {
 		}
 	}
 
-	private static final Collection.Key DATE = KeyImpl.getInstance("date");
-	private static final Collection.Key SUBJECT = KeyImpl.getInstance("subject");
-	private static final Collection.Key SIZE = KeyImpl.getInstance("size");
-	private static final Collection.Key FROM = KeyImpl.getInstance("from");
-	private static final Collection.Key MESSAGE_NUMBER = KeyImpl.getInstance("messagenumber");
-	private static final Collection.Key MESSAGE_ID = KeyImpl.getInstance("messageid");
-	private static final Collection.Key REPLYTO = KeyImpl.getInstance("replyto");
-	private static final Collection.Key CC = KeyImpl.getInstance("cc");
-	private static final Collection.Key BCC = KeyImpl.getInstance("bcc");
-	private static final Collection.Key TO = KeyImpl.getInstance("to");
-	private static final Collection.Key UID = KeyImpl.getInstance("uid");
-	private static final Collection.Key HEADER = KeyImpl.getInstance("header");
-	private static final Collection.Key BODY = KeyImpl.getInstance("body");
-	private static final Collection.Key CIDS = KeyImpl.getInstance("cids");
-	private static final Collection.Key TEXT_BODY = KeyImpl.getInstance("textBody");
-	private static final Collection.Key HTML_BODY = KeyImpl.getInstance("HTMLBody");
-	private static final Collection.Key ATTACHMENTS = KeyImpl.getInstance("attachments");
-	private static final Collection.Key ATTACHMENT_FILES = KeyImpl.getInstance("attachmentfiles");
-	private static final Collection.Key ANSWERED = KeyImpl.getInstance("answered");
-	private static final Collection.Key DELETED = KeyImpl.getInstance("deleted");
-	private static final Collection.Key DRAFT = KeyImpl.getInstance("draft");
-	private static final Collection.Key FLAGGED = KeyImpl.getInstance("flagged");
-	private static final Collection.Key RECENT = KeyImpl.getInstance("recent");
-	private static final Collection.Key SEEN = KeyImpl.getInstance("seen");
+	private static final Collection.Key DATE = KeyConstants._date;
+	private static final Collection.Key SUBJECT = KeyConstants._subject;
+	private static final Collection.Key SIZE = KeyConstants._size;
+	private static final Collection.Key FROM = KeyConstants._from;
+	private static final Collection.Key MESSAGE_NUMBER = KeyConstants._messagenumber;
+	private static final Collection.Key MESSAGE_ID = KeyConstants._messageid;
+	private static final Collection.Key REPLYTO = KeyConstants._replyto;
+	private static final Collection.Key CC = KeyConstants._cc;
+	private static final Collection.Key BCC = KeyConstants._bcc;
+	private static final Collection.Key TO = KeyConstants._to;
+	private static final Collection.Key UID = KeyConstants._uid;
+	private static final Collection.Key HEADER = KeyConstants._header;
+	private static final Collection.Key BODY = KeyConstants._body;
+	private static final Collection.Key CIDS = KeyConstants._cids;
+	private static final Collection.Key TEXT_BODY = KeyConstants._textBody;
+	private static final Collection.Key HTML_BODY = KeyConstants._HTMLBody;
+	private static final Collection.Key ATTACHMENTS = KeyConstants._attachments;
+	private static final Collection.Key ATTACHMENT_FILES = KeyConstants._attachmentfiles;
+	private static final Collection.Key ANSWERED = KeyConstants._answered;
+	private static final Collection.Key DELETED = KeyConstants._deleted;
+	private static final Collection.Key DRAFT = KeyConstants._draft;
+	private static final Collection.Key FLAGGED = KeyConstants._flagged;
+	private static final Collection.Key RECENT = KeyConstants._recent;
+	private static final Collection.Key SEEN = KeyConstants._seen;
 
 	public static final int TYPE_POP3 = 0;
 	public static final int TYPE_IMAP = 1;

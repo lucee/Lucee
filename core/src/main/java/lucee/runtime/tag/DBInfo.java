@@ -67,30 +67,30 @@ import lucee.runtime.type.util.KeyConstants;
  **/
 public final class DBInfo extends TagImpl {
 
-	private static final Key TABLE_NAME = KeyImpl.getInstance("TABLE_NAME");
-	private static final Key COLUMN_NAME = KeyImpl.getInstance("COLUMN_NAME");
-	private static final Key IS_PRIMARYKEY = KeyImpl.getInstance("IS_PRIMARYKEY");
-	private static final Key IS_FOREIGNKEY = KeyImpl.getInstance("IS_FOREIGNKEY");
-	private static final Key COLUMN_DEF = KeyImpl.getInstance("COLUMN_DEF");
-	private static final Key COLUMN_DEFAULT_VALUE = KeyImpl.getInstance("COLUMN_DEFAULT_VALUE");
-	private static final Key COLUMN_DEFAULT = KeyImpl.getInstance("COLUMN_DEFAULT");
-	private static final Key REFERENCED_PRIMARYKEY = KeyImpl.getInstance("REFERENCED_PRIMARYKEY");
-	private static final Key REFERENCED_PRIMARYKEY_TABLE = KeyImpl.getInstance("REFERENCED_PRIMARYKEY_TABLE");
+	private static final Key TABLE_NAME = KeyConstants._TABLE_NAME;
+	private static final Key COLUMN_NAME = KeyConstants._COLUMN_NAME;
+	private static final Key IS_PRIMARYKEY = KeyConstants._IS_PRIMARYKEY;
+	private static final Key IS_FOREIGNKEY = KeyConstants._IS_FOREIGNKEY;
+	private static final Key COLUMN_DEF = KeyConstants._COLUMN_DEF;
+	private static final Key COLUMN_DEFAULT_VALUE = KeyConstants._COLUMN_DEFAULT_VALUE;
+	private static final Key COLUMN_DEFAULT = KeyConstants._COLUMN_DEFAULT;
+	private static final Key REFERENCED_PRIMARYKEY = KeyConstants._REFERENCED_PRIMARYKEY;
+	private static final Key REFERENCED_PRIMARYKEY_TABLE = KeyConstants._REFERENCED_PRIMARYKEY_TABLE;
 	private static final Key USER = KeyConstants._USER;
-	private static final Key TABLE_SCHEM = KeyImpl.getInstance("TABLE_SCHEM");
-	private static final Key DECIMAL_DIGITS = KeyImpl.getInstance("DECIMAL_DIGITS");
+	private static final Key TABLE_SCHEM = KeyConstants._TABLE_SCHEM;
+	private static final Key DECIMAL_DIGITS = KeyConstants._DECIMAL_DIGITS;
 
-	private static final Key DATABASE_NAME = KeyImpl.getInstance("database_name");
-	private static final Key TABLE_CAT = KeyImpl.getInstance("TABLE_CAT");
-	private static final Key PROCEDURE = KeyImpl.getInstance("procedure");
+	private static final Key DATABASE_NAME = KeyConstants._database_name;
+	private static final Key TABLE_CAT = KeyConstants._TABLE_CAT;
+	private static final Key PROCEDURE = KeyConstants._procedure;
 	private static final Key CATALOG = KeyConstants._catalog;
 	private static final Key SCHEMA = KeyConstants._schema;
-	private static final Key DATABASE_PRODUCTNAME = KeyImpl.getInstance("DATABASE_PRODUCTNAME");
-	private static final Key DATABASE_VERSION = KeyImpl.getInstance("DATABASE_VERSION");
-	private static final Key DRIVER_NAME = KeyImpl.getInstance("DRIVER_NAME");
-	private static final Key DRIVER_VERSION = KeyImpl.getInstance("DRIVER_VERSION");
-	private static final Key JDBC_MAJOR_VERSION = KeyImpl.getInstance("JDBC_MAJOR_VERSION");
-	private static final Key JDBC_MINOR_VERSION = KeyImpl.getInstance("JDBC_MINOR_VERSION");
+	private static final Key DATABASE_PRODUCTNAME = KeyConstants._DATABASE_PRODUCTNAME;
+	private static final Key DATABASE_VERSION = KeyConstants._DATABASE_VERSION;
+	private static final Key DRIVER_NAME = KeyConstants._DRIVER_NAME;
+	private static final Key DRIVER_VERSION = KeyConstants._DRIVER_VERSION;
+	private static final Key JDBC_MAJOR_VERSION = KeyConstants._JDBC_MAJOR_VERSION;
+	private static final Key JDBC_MINOR_VERSION = KeyConstants._JDBC_MINOR_VERSION;
 
 	private static final int TYPE_NONE = 0;
 	private static final int TYPE_DBNAMES = 1;
@@ -103,7 +103,7 @@ public final class DBInfo extends TagImpl {
 	private static final int TYPE_INDEX = 8;
 	private static final int TYPE_USERS = 9;
 	private static final int TYPE_TERMS = 10;
-	private static final Collection.Key CARDINALITY = KeyImpl.getInstance("CARDINALITY");
+	private static final Collection.Key CARDINALITY = KeyConstants._CARDINALITY;
 
 	private DataSource datasource;
 	private String name;

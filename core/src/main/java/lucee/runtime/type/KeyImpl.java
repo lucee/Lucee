@@ -456,4 +456,34 @@ public class KeyImpl implements Collection.Key, Castable, Comparable, Externaliz
 	public CharSequence subSequence(int start, int end) {
 		return getString().subSequence(start, end);
 	}
+
+	/*
+	 * public static void main(String[] args) throws Exception { // KeyConstants._percentage
+	 * 
+	 * modify(ResourcesImpl.getFileResourceProvider().getResource(
+	 * "/Users/mic/Projects/Lucee/Lucee6/core/src/main/java/lucee"));
+	 * 
+	 * }
+	 * 
+	 * private static void modify(Resource resource) throws IOException { boolean stop = false; for
+	 * (Resource r: resource.listResources()) { if (r.isDirectory()) modify(r); if
+	 * (r.getAbsolutePath().endsWith(".java")) {
+	 * 
+	 * String content = IOUtil.toString(r, "UTF-8"); String result = null; int start = -1, end; while
+	 * ((start = content.indexOf("KeyImpl.getInstance(\"", start + 1)) != -1) { end =
+	 * content.indexOf("\")", start + 22); if (end > start) { String k = content.substring(start + 21,
+	 * end); if (KeyConstants.getFieldName(k) == null) print.e("public static final Key _" + k +
+	 * " = KeyImpl._const(\"" + k + "\");"); result = content = content.substring(0, start) +
+	 * "KeyConstants._" + k + content.substring(end + 2);
+	 * 
+	 * stop = true;
+	 * 
+	 * // print.e(content);
+	 * 
+	 * start = end; } else break;
+	 * 
+	 * } if (result != null) IOUtil.write(r, result, "UTF-8", false); // if (stop) throw new
+	 * IOException("www"); } } }
+	 */
+
 }

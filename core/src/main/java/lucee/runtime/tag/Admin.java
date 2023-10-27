@@ -215,27 +215,27 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	private static final short ACCESS_WRITE = 11;
 
 	private static final Collection.Key DEBUG = KeyConstants._debug;
-	private static final Collection.Key DEBUG_SHOW_QUERY_USAGE = KeyImpl.getInstance("debugShowQueryUsage");
+	private static final Collection.Key DEBUG_SHOW_QUERY_USAGE = KeyConstants._debugShowQueryUsage;
 	private static final Collection.Key TEMPLATES = KeyConstants._templates;
 	private static final Collection.Key STR = KeyConstants._str;
-	private static final Collection.Key DO_STATUS_CODE = KeyImpl.getInstance("doStatusCode");
+	private static final Collection.Key DO_STATUS_CODE = KeyConstants._doStatusCode;
 	private static final Collection.Key LABEL = KeyConstants._label;
-	private static final Collection.Key FILE_ACCESS = KeyImpl.getInstance("file_access");
-	private static final Collection.Key IP_RANGE = KeyImpl.getInstance("ipRange");
+	private static final Collection.Key FILE_ACCESS = KeyConstants._file_access;
+	private static final Collection.Key IP_RANGE = KeyConstants._ipRange;
 	private static final Collection.Key CUSTOM = KeyConstants._custom;
 	private static final Collection.Key READONLY = KeyConstants._readOnly;
-	private static final Collection.Key LOG_ENABLED = KeyImpl.getInstance("logEnabled");
+	private static final Collection.Key LOG_ENABLED = KeyConstants._logEnabled;
 	private static final Collection.Key CLASS = KeyConstants._class;
 
-	private static final Key HAS_OWN_SEC_CONTEXT = KeyImpl.getInstance("hasOwnSecContext");
-	private static final Key CONFIG_FILE = KeyImpl.getInstance("config_file");
-	private static final Key PROCEDURE = KeyImpl.getInstance("procedure");
-	private static final Key SERVER_LIBRARY = KeyImpl.getInstance("serverlibrary");
-	private static final Key KEEP_ALIVE = KeyImpl.getInstance("keepalive");
-	private static final Key CLIENT_SIZE = KeyImpl.getInstance("clientSize");
-	private static final Key SESSION_SIZE = KeyImpl.getInstance("sessionSize");
-	private static final Key CLIENT_ELEMENTS = KeyImpl.getInstance("clientElements");
-	private static final Key SESSION_ELEMENTS = KeyImpl.getInstance("sessionElements");
+	private static final Key HAS_OWN_SEC_CONTEXT = KeyConstants._hasOwnSecContext;
+	private static final Key CONFIG_FILE = KeyConstants._config_file;
+	private static final Key PROCEDURE = KeyConstants._procedure;
+	private static final Key SERVER_LIBRARY = KeyConstants._serverlibrary;
+	private static final Key KEEP_ALIVE = KeyConstants._keepalive;
+	private static final Key CLIENT_SIZE = KeyConstants._clientSize;
+	private static final Key SESSION_SIZE = KeyConstants._sessionSize;
+	private static final Key CLIENT_ELEMENTS = KeyConstants._clientElements;
+	private static final Key SESSION_ELEMENTS = KeyConstants._sessionElements;
 
 	private static final short MAPPING_REGULAR = 1;
 	private static final short MAPPING_CT = 2;
@@ -252,11 +252,11 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 	private static final ResourceFilter FILTER_CFML_TEMPLATES = new OrResourceFilter(
 			new ResourceFilter[] { new DirectoryResourceFilter(), new ExtensionResourceFilter(Constants.getExtensions()) });
-	private static final Key FRAGMENT = KeyImpl.getInstance("fragment");
+	private static final Key FRAGMENT = KeyConstants._fragment;
 	private static final Key HEADERS = KeyConstants._headers;
-	private static final Key SYMBOLIC_NAME = KeyImpl.getInstance("symbolicName");
-	private static final Key VENDOR = KeyImpl.getInstance("vendor");
-	private static final Key USED_BY = KeyImpl.getInstance("usedBy");
+	private static final Key SYMBOLIC_NAME = KeyConstants._symbolicName;
+	private static final Key VENDOR = KeyConstants._vendor;
+	private static final Key USED_BY = KeyConstants._usedBy;
 	private static final Key PATH = KeyConstants._path;
 	private AdminSync adminSync;
 

@@ -39,7 +39,7 @@ import lucee.runtime.type.util.ListUtil;
  */
 public final class Login extends BodyTagImpl {
 
-	private static final Key CFLOGIN = KeyImpl.getInstance("cflogin");
+	private static final Key CFLOGIN = KeyConstants._cflogin;
 	private int idletimeout = 1800;
 	private String applicationtoken;
 	private String cookiedomain;
