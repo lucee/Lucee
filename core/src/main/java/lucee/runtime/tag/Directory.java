@@ -240,7 +240,7 @@ public final class Directory extends TagImpl {
 	}
 
 	public static String improveStorage(String storage) throws ApplicationException {
-		storage = improveStorage(storage, storage==null?null:storage.trim());
+		storage = improveStorage(storage, storage == null ? null : storage.trim());
 		if (storage != null) return storage;
 
 		throw new ApplicationException("Invalid storageLocation value");
@@ -879,7 +879,8 @@ public final class Directory extends TagImpl {
 			else if (!createPath || storage != null) {
 				Resource p = newdirectory.getParentResource();
 				if (p != null && !p.exists()) throw new ApplicationException("parent directory for [" + newdirectory + "] doesn't exist");
-				if (p != null && p.exists() && storage != null) throw new ApplicationException("parent s3 bucket [" + newdirectory + "] already exists, cannot change region for existing buckets");
+				if (p != null && p.exists() && storage != null)
+					throw new ApplicationException("parent s3 bucket [" + newdirectory + "] already exists, cannot change region for existing buckets");
 			}
 			ResourceUtil.copyRecursive(directory, newdirectory, f);
 			if (clearEmpty) ResourceUtil.removeEmptyFolders(newdirectory, f == null ? null : new NotResourceFilter(filter));
@@ -903,7 +904,7 @@ public final class Directory extends TagImpl {
 		return ResourceUtil.toResourceNotExisting(pageContext, path);
 	}
 
-	private static String getFileAttribute(Resource file, boolean exists) {
+	public static String getFileAttribute(Resource file, boolean exists) {
 		// TODO this is slow as it fetches attributes one at a time
 		// also Windows only!
 		return exists && !file.isWriteable() ? "R".concat(file.isHidden() ? "H" : "") : file.isHidden() ? "H" : "";

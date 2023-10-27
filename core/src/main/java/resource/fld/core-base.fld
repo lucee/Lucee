@@ -3740,6 +3740,47 @@ Filter to be used to filter the data copied:
 		</return>
 	</function>
 	
+	
+	<!-- DirectoryEvery -->
+	<function>
+	    <name>DirectoryEvery</name>
+	    <class>lucee.runtime.functions.file.DirectoryEvery</class>
+	    <description>Iterates over each element within a specified directory and invokes the provided component for each item.</description>
+	    <status>hidden</status>
+	    <argument>
+	        <name>path</name>
+	        <alias>absolute_path,absolutePath</alias>
+	        <type>string</type>
+	        <required>true</required>
+	        <description>Specifies the absolute path of the directory whose contents need to be processed.</description>
+	    </argument>
+	    
+	    <argument>
+	        <name>component</name>
+	        <alias>cfc,class</alias>
+	        <type>component</type>
+	        <required>true</required>
+	        <description>
+	            An instance of a component that will be invoked for every item in the directory. 
+	            The component should have a function with the signature (string path [, struct info]).
+	            Defining only the "path" argument will	 enhance performance.
+	        </description>
+	    </argument>
+	    
+	    <argument>
+	        <name>recurse</name>
+	        <alias>recursive</alias>
+	        <type>boolean</type>
+	        <required>false</required>
+	        <description>Indicates whether the operation should be performed on subdirectories. If set to true, the contents of all subdirectories will also be processed.</description>
+	    </argument>
+	    
+	    <return>
+	        <type>any</type>
+	    </return>
+	</function>
+	
+	
 	<!-- DirectoryList -->
 	<function>
 		<name>DirectoryList</name>
