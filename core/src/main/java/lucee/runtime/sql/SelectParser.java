@@ -766,7 +766,7 @@ public class SelectParser {
 			}
 			// Don't look for stuff like * after first letter or text like col1*col2 will get read
 			// as one single column name
-			else if (!(raw.isCurrentLetter() || raw.isCurrentBetween('0', '9') || raw.isCurrent('_') || raw.isCurrent('$') )) {
+			else if (!(raw.isCurrentLetter() || raw.isCurrentBetween('0', '9') || raw.isCurrent('_') || raw.isCurrent('$'))) {
 				break;
 			}
 			first = false;

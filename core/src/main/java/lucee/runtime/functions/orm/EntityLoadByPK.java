@@ -6,8 +6,9 @@ import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.orm.ORMSession;
 import lucee.runtime.orm.ORMUtil;
+
 public class EntityLoadByPK {
-	
+
 	public static Object call(PageContext pc, String name, Object oID) throws PageException {
 		return call(pc, name, oID, false);
 	}
@@ -20,13 +21,11 @@ public class EntityLoadByPK {
 
 		// TODO implement unique check if it even makes sense?
 		/*
-		if (unique && entity != null){
-			if (entity size > 1)
-				throw new FunctionException(pc, "EntityLoadByPk", 3, "unique", "result wasn't unique");
-		}
-		*/
+		 * if (unique && entity != null){ if (entity size > 1) throw new FunctionException(pc,
+		 * "EntityLoadByPk", 3, "unique", "result wasn't unique"); }
+		 */
 		return session.load(pc, name, id);
-		
+
 		// FUTURE call instead load(..,..,OBJECT);
 	}
 

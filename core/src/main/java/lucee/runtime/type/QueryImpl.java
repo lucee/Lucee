@@ -3378,7 +3378,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 			}
 			if (qry instanceof QueryImpl) newResult.templateLine = ((QueryImpl) qry).getTemplateLine();
 			else newResult.templateLine = new TemplateLine(qry.getTemplate(), 0);
-			newResult.recordcount = new AtomicInteger( ((QueryImpl) qry).recordcount.intValue() );
+			newResult.recordcount = new AtomicInteger(((QueryImpl) qry).recordcount.intValue());
 			newResult.columncount = newResult.columnNames.length;
 			newResult.cacheType = qry.getCacheType();
 			newResult.name = qry.getName();

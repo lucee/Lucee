@@ -643,19 +643,18 @@ public final class DBInfo extends TagImpl {
 		pattern = setCase(metaData, pattern);
 		filter = setFilterCase(metaData, filter);
 		lucee.runtime.type.Query qry = new QueryImpl(
-			metaData.getTables(dbname(conn), null,
-				StringUtil.isEmpty(pattern) ? "%" : pattern,
-				StringUtil.isEmpty(filter) ? null : new String[] { filter }
-			), "query", pageContext.getTimeZone());
+				metaData.getTables(dbname(conn), null, StringUtil.isEmpty(pattern) ? "%" : pattern, StringUtil.isEmpty(filter) ? null : new String[] { filter }), "query",
+				pageContext.getTimeZone());
 		qry.setExecutionTime(stopwatch.time());
 
-		if(filter != null && qry.getRecordcount() == 0){
-			// validate if the filter was a valid table type for this jdbc connnection, delayed for better performance
+		if (filter != null && qry.getRecordcount() == 0) {
+			// validate if the filter was a valid table type for this jdbc connnection, delayed for better
+			// performance
 			ResultSet tableTypes = metaData.getTableTypes();
 			boolean validType = false;
 			ArrayList<String> allowedTypes = new ArrayList<String>();
-			while (tableTypes.next()) {				
-				if (tableTypes.getString(1).equals(filter)){
+			while (tableTypes.next()) {
+				if (tableTypes.getString(1).equals(filter)) {
 					validType = true;
 					tableTypes.close();
 					break;
@@ -663,9 +662,9 @@ public final class DBInfo extends TagImpl {
 				allowedTypes.add(tableTypes.getString(1));
 			}
 			tableTypes.close();
-			if(!validType){				
+			if (!validType) {
 				throw new ApplicationException("Invalid [dbinfo] type=table filter [" + filter + "]. Supported table types are " + allowedTypes.toString() + ".");
-			} 
+			}
 		}
 		pageContext.setVariable(name, qry);
 	}

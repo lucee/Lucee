@@ -38,9 +38,10 @@ public final class IsXML implements Function {
 		if (xml instanceof Node) return true;
 
 		try {
-			if (xmlFeatures == null){
+			if (xmlFeatures == null) {
 				return call(pc, xml);
-			} else {
+			}
+			else {
 				XMLUtil.parse(new InputSource(new StringReader(Caster.toString(xml))), xmlFeatures, null, false);
 				return true;
 			}

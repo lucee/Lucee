@@ -54,14 +54,13 @@ public final class RSSHandler extends DefaultHandler {
 	private static final Key DESCRIPTION = KeyConstants._DESCRIPTION;
 
 	private static Collection.Key[] COLUMNS = new Collection.Key[] { KeyConstants._AUTHOREMAIL, KeyImpl.getInstance("AUTHORNAME"), KeyConstants._AUTHORURI,
-			KeyImpl.getInstance("CATEGORYLABEL"), KeyConstants._CATEGORYSCHEME, KeyImpl.getInstance("CATEGORYTERM"), KeyConstants._COMMENTS, CONTENT,
-			KeyConstants._CONTENTMODE, KeyImpl.getInstance("CONTENTSRC"), KeyConstants._CONTENTTYPE, KeyImpl.getInstance("CONTRIBUTOREMAIL"),
-			KeyConstants._CONTRIBUTORNAME, KeyImpl.getInstance("CONTRIBUTORURI"), KeyConstants._CREATEDDATE, KeyImpl.getInstance("EXPIRATIONDATE"),
-			KeyConstants._ID, KeyConstants._IDPERMALINK, KeyImpl.getInstance("LINKHREF"), KeyConstants._LINKHREFLANG, KeyImpl.getInstance("LINKLENGTH"),
-			KeyConstants._LINKREL, KeyImpl.getInstance("LINKTITLE"), KeyConstants._LINKTYPE, KeyImpl.getInstance("PUBLISHEDDATE"), KeyConstants._RIGHTS,
-			RSSLINK, KeyConstants._SOURCE, KeyImpl.getInstance("SOURCEURL"), KeyConstants._SUMMARY, KeyImpl.getInstance("SUMMARYMODE"),
-			KeyConstants._SUMMARYSRC, KeyImpl.getInstance("SUMMARYTYPE"), KeyConstants._TITLE, KeyImpl.getInstance("TITLETYPE"),
-			KeyConstants._UPDATEDDATE, KeyImpl.getInstance("URI"), KeyConstants._XMLBASE };
+			KeyImpl.getInstance("CATEGORYLABEL"), KeyConstants._CATEGORYSCHEME, KeyImpl.getInstance("CATEGORYTERM"), KeyConstants._COMMENTS, CONTENT, KeyConstants._CONTENTMODE,
+			KeyImpl.getInstance("CONTENTSRC"), KeyConstants._CONTENTTYPE, KeyImpl.getInstance("CONTRIBUTOREMAIL"), KeyConstants._CONTRIBUTORNAME,
+			KeyImpl.getInstance("CONTRIBUTORURI"), KeyConstants._CREATEDDATE, KeyImpl.getInstance("EXPIRATIONDATE"), KeyConstants._ID, KeyConstants._IDPERMALINK,
+			KeyImpl.getInstance("LINKHREF"), KeyConstants._LINKHREFLANG, KeyImpl.getInstance("LINKLENGTH"), KeyConstants._LINKREL, KeyImpl.getInstance("LINKTITLE"),
+			KeyConstants._LINKTYPE, KeyImpl.getInstance("PUBLISHEDDATE"), KeyConstants._RIGHTS, RSSLINK, KeyConstants._SOURCE, KeyImpl.getInstance("SOURCEURL"),
+			KeyConstants._SUMMARY, KeyImpl.getInstance("SUMMARYMODE"), KeyConstants._SUMMARYSRC, KeyImpl.getInstance("SUMMARYTYPE"), KeyConstants._TITLE,
+			KeyImpl.getInstance("TITLETYPE"), KeyConstants._UPDATEDDATE, KeyImpl.getInstance("URI"), KeyConstants._XMLBASE };
 
 	private XMLReader xmlReader;
 
