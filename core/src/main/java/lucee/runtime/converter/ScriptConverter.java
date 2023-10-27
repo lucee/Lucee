@@ -52,7 +52,6 @@ import lucee.runtime.text.xml.XMLCaster;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
-import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.ObjectWrap;
 import lucee.runtime.type.Query;
 import lucee.runtime.type.Struct;

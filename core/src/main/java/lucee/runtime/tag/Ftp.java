@@ -39,7 +39,6 @@ import lucee.runtime.net.ftp.FTPPath;
 import lucee.runtime.net.ftp.FTPPoolImpl;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Collection.Key;
-import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.QueryImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;

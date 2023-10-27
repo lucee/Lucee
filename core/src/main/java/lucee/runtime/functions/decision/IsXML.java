@@ -26,7 +26,6 @@ import org.xml.sax.InputSource;
 import lucee.runtime.PageContext;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.op.Caster;
-import lucee.runtime.text.xml.XMLCaster;
 import lucee.runtime.text.xml.XMLUtil;
 import lucee.runtime.type.Struct;
 

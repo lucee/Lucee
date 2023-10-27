@@ -18,12 +18,12 @@
  **/
 package lucee.runtime.query.caster;
 
+import java.net.InetAddress;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
 import java.util.TimeZone;
 import java.util.UUID;
-import java.net.InetAddress;
 
 public class OtherCast implements Cast {
 

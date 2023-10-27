@@ -32,7 +32,6 @@ import lucee.runtime.ext.function.Function;
 import lucee.runtime.functions.component.ComponentCacheClear;
 import lucee.runtime.functions.other.CTCacheClear;
 import lucee.runtime.type.Collection;
-import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.util.KeyConstants;
 
 public final class SystemCacheClear implements Function {

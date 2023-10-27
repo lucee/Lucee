@@ -1,7 +1,5 @@
 package lucee.runtime.debug;
 
-import lucee.runtime.debug.Debugger;
-
 // MAYBE not needed, if DebuggerImpl can get the right line number.....
 
 // FUTURE move content to loader

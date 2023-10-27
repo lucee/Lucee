@@ -22,7 +22,6 @@ import lucee.runtime.config.RemoteClient;
 import lucee.runtime.spooler.ExecutionPlan;
 import lucee.runtime.spooler.SpoolerTaskWS;
 import lucee.runtime.type.Collection;
-import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.util.KeyConstants;

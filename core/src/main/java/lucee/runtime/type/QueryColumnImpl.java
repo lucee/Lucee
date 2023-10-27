@@ -24,6 +24,7 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.SerializableObject;
@@ -52,8 +53,6 @@ import lucee.runtime.type.scope.Undefined;
 import lucee.runtime.type.util.CollectionUtil;
 import lucee.runtime.type.util.QueryUtil;
 import lucee.runtime.util.ArrayIterator;
-import java.util.concurrent.atomic.AtomicInteger;
-import lucee.runtime.functions.other.Dump;
 
 /**
  * implementation of the query column

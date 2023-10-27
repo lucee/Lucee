@@ -16,7 +16,6 @@ import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.thread.ThreadUtil;
 import lucee.runtime.type.Collection.Key;
-import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.QueryImpl;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.util.KeyConstants;

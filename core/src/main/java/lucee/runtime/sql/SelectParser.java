@@ -43,7 +43,6 @@ import lucee.runtime.sql.exp.value.ValueDate;
 import lucee.runtime.sql.exp.value.ValueNull;
 import lucee.runtime.sql.exp.value.ValueNumber;
 import lucee.runtime.sql.exp.value.ValueString;
-import lucee.runtime.db.SQL;
 import lucee.runtime.type.Collection.Key;
 
 public class SelectParser {

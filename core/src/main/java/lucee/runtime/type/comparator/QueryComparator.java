@@ -18,30 +18,23 @@
  **/
 package lucee.runtime.type.comparator;
 
-import java.util.Comparator;
 import java.sql.Types;
+import java.util.Comparator;
 
-import lucee.commons.lang.ComparatorUtil;
 import lucee.runtime.PageContext;
-import lucee.runtime.op.Caster;
-import lucee.runtime.type.QueryImpl;
-import lucee.runtime.sql.exp.Expression;
-import lucee.runtime.exp.PageException;
-import lucee.runtime.exp.DatabaseException;
+import lucee.runtime.db.SQL;
 import lucee.runtime.exp.IllegalQoQException;
+import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.sql.exp.Column;
-import lucee.runtime.sql.exp.ColumnExpression;
 import lucee.runtime.sql.exp.Expression;
-import lucee.runtime.sql.exp.value.ValueNumber;
 import lucee.runtime.sql.exp.Literal;
-import lucee.runtime.functions.other.Dump;
-import lucee.runtime.type.Collection.Key;
-import lucee.runtime.type.Query;
-import lucee.runtime.type.QueryColumn;
-import lucee.runtime.db.SQL;
+import lucee.runtime.sql.exp.value.ValueNumber;
 import lucee.runtime.type.Collection;
+import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
+import lucee.runtime.type.Query;
+import lucee.runtime.type.QueryImpl;
 
 /**
  * Implementation of a Comparator that will sort multiple rows of a query all at the same time

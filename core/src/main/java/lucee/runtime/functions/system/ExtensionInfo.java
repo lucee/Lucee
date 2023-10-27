@@ -11,7 +11,6 @@ import lucee.runtime.extension.RHExtension;
 import lucee.runtime.op.Caster;
 import lucee.runtime.osgi.BundleInfo;
 import lucee.runtime.type.Collection.Key;
-import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Query;
 import lucee.runtime.type.QueryImpl;
 import lucee.runtime.type.Struct;
