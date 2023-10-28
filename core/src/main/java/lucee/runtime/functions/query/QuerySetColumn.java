@@ -39,8 +39,8 @@ public final class QuerySetColumn extends BIF {
 	public static String call(PageContext pc, Query query, String columnName, String newColumnName) throws PageException {
 		columnName = columnName.trim();
 		newColumnName = newColumnName.trim();
-		Collection.Key src = KeyImpl.dyn(columnName);
-		Collection.Key trg = KeyImpl.dyn(newColumnName);
+		Collection.Key src = KeyImpl.init(columnName);
+		Collection.Key trg = KeyImpl.init(newColumnName);
 
 		Query qp = Caster.toQuery(query, null);
 		if (qp != null) qp.rename(src, trg);

@@ -132,7 +132,7 @@ public final class RSSHandler extends DefaultHandler {
 
 	@Override
 	public void startElement(String uri, String name, String qName, Attributes atts) {
-		inside = KeyImpl.dyn(qName);
+		inside = KeyImpl.init(qName);
 		lcInside = qName.toLowerCase();
 		if (lcInside.equals("image")) insideImage = true;
 		else if (qName.equals("item")) {

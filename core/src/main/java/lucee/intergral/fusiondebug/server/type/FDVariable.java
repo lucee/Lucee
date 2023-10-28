@@ -32,7 +32,7 @@ public class FDVariable implements IFDVariable {
 	private IFDStackFrame frame;
 
 	public FDVariable(IFDStackFrame frame, String name, IFDValue value) {
-		this(frame, KeyImpl.dyn(name), value);
+		this(frame, KeyImpl.init(name), value);
 	}
 
 	/**

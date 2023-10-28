@@ -91,7 +91,7 @@ public final class ArgumentImpl extends ScopeSupport implements Argument, ArrayP
 
 	@Override
 	public Object getFunctionArgument(String key, Object defaultValue) {
-		return getFunctionArgument(KeyImpl.dyn(key), defaultValue);
+		return getFunctionArgument(KeyImpl.init(key), defaultValue);
 	}
 
 	@Override

@@ -178,7 +178,7 @@ public final class Cookie extends TagImpl {
 
 	@Override
 	public int doStartTag() throws PageException {
-		Key key = KeyImpl.dyn(name);
+		Key key = KeyImpl.init(name);
 		String appName = Login.getApplicationName(pageContext.getApplicationContext());
 		boolean isAppName = false;
 		if (KeyConstants._CFID.equalsIgnoreCase(key) || KeyConstants._CFTOKEN.equalsIgnoreCase(key) || (isAppName = key.equals(appName))) {

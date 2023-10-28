@@ -268,7 +268,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 	@Override
 	public void setDynamicAttribute(String uri, String localName, Object value) {
-		attributes.setEL(KeyImpl.dyn(localName), value);
+		attributes.setEL(KeyImpl.init(localName), value);
 	}
 
 	@Override
@@ -4035,7 +4035,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		Cluster cluster = pageContext.clusterScope();
 		while (it.hasNext()) {
 			entry = Caster.toStruct(it.next());
-			cluster.setEntry(new ClusterEntryImpl(KeyImpl.dyn(Caster.toString(entry.get(KeyConstants._key))), Caster.toSerializable(entry.get(KeyConstants._value, null), null),
+			cluster.setEntry(new ClusterEntryImpl(KeyImpl.init(Caster.toString(entry.get(KeyConstants._key))), Caster.toSerializable(entry.get(KeyConstants._value, null), null),
 					Caster.toLongValue(entry.get(KeyConstants._time))));
 		}
 

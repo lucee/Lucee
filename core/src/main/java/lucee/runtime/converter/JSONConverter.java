@@ -381,7 +381,7 @@ public final class JSONConverter extends ConverterSupport {
 					else if (!remotingFetch.booleanValue()) continue;
 
 				}
-				Key key = KeyImpl.dyn(props[i].getName());
+				Key key = KeyImpl.init(props[i].getName());
 				value = scope.get(key, null);
 				if (!addUDFs && (value instanceof UDF || value == null)) continue;
 				if (doIt) sb.append(',');

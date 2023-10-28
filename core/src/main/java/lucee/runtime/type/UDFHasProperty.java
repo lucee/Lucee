@@ -126,7 +126,7 @@ public final class UDFHasProperty extends UDFGSProperty {
 			// if(strKey==NULL) throw new ;
 
 			if (propValue instanceof Struct) {
-				return ((Struct) propValue).containsKey(KeyImpl.dyn(strKey));
+				return ((Struct) propValue).containsKey(KeyImpl.init(strKey));
 			}
 			else if (propValue instanceof Map) {
 				return ((Map) propValue).containsKey(strKey);
