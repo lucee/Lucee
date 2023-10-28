@@ -46,6 +46,8 @@ public class KeyImpl implements Collection.Key, Castable, Comparable, Externaliz
 	private static final long HSTART = 0xBB40E64DA205B064L;
 	private static final long HMULT = 7664345821815920749L;
 
+	private static final int MAX = 5000;
+
 	// private boolean intern;
 	private String key;
 	private transient String lcKey;
@@ -57,6 +59,14 @@ public class KeyImpl implements Collection.Key, Castable, Comparable, Externaliz
 
 	public KeyImpl() {
 		// DO NOT USE, JUST FOR UNSERIALIZE
+
+	}
+
+	public KeyImpl(String key) {
+		this.key = key;
+		this.ucKey = key.toUpperCase();
+		h64 = createHash64(ucKey);
+		// print.e(key + ":" + (++count) + ":" + keys.size());
 	}
 
 	public static Map<String, Key> getKeys() {
@@ -126,22 +136,6 @@ public class KeyImpl implements Collection.Key, Castable, Comparable, Externaliz
 		h64 = createHash64(ucKey);
 	}
 
-	public KeyImpl(String key) {
-		this.key = key;
-		this.ucKey = key.toUpperCase();
-		h64 = createHash64(ucKey);
-	}
-
-	/**
-	 * for dynamic loading of key objects
-	 * 
-	 * @param string
-	 * @return
-	 */
-	public static Collection.Key init(String key) {
-		return new KeyImpl(key);
-	}
-
 	/**
 	 * only used in KeyConstants
 	 * 
@@ -175,27 +169,26 @@ public class KeyImpl implements Collection.Key, Castable, Comparable, Externaliz
 	}
 
 	/**
+	 * for dynamic loading of key objects
 	 * 
-	 * used to inside the rest of the source created, can be dynamic values, so a lot
+	 * @param string
+	 * @return
 	 */
-	public static Collection.Key source(String key) {
-		/*
-		 * if (KeyConstants.getFieldName(key) == null && !tmp.contains(key)) { print.ds(key); //
-		 * print.e("public static final Key _" + key + " = KeyImpl._const(\"" + key + "\");"); tmp.add(key);
-		 * }
-		 */
-		return new KeyImpl(key);
+	public static Collection.Key init(String key) {
+		return source(key);
 	}
 
 	/**
 	 * 
-	 * no literal values
-	 * 
-	 * @param key
-	 * @return
+	 * used to inside the rest of the source created, can be dynamic values, so a lot
 	 */
-	public static Collection.Key dyn(String key) {
-		return new KeyImpl(key);
+	public static Collection.Key source(String key) {
+		Key k = keys.get(key);
+		if (k == null) {
+			if (keys.size() > MAX) return new KeyImpl(key);
+			keys.put(key, k = new KeyImpl(key));
+		}
+		return k;
 	}
 
 	@Override
@@ -238,7 +231,7 @@ public class KeyImpl implements Collection.Key, Castable, Comparable, Externaliz
 	public boolean equals(Object other) {
 		if (this == other) return true;
 		if (other instanceof KeyImpl) {
-			return hash() == ((KeyImpl) other).hash();
+			return h64 == ((KeyImpl) other).h64;
 		}
 		if (other instanceof String) {
 			return key.equalsIgnoreCase((String) other);
