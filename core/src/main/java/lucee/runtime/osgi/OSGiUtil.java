@@ -659,6 +659,7 @@ public class OSGiUtil {
 		boolean[] arrVersionMatters = versionOnlyMattersForDownload && bundleRange.getVersionRange() != null && !bundleRange.getVersionRange().isEmpty()
 				? new boolean[] { true, false }
 				: new boolean[] { true };
+
 		// check in loaded bundles
 		BundleContext bc = engine.getBundleContext();
 		Bundle[] bundles = bc.getBundles();
@@ -1388,7 +1389,6 @@ public class OSGiUtil {
 		String bn = toString(bundle);
 		if (bundlesThreadLocal.get().contains(bn)) return bundle;
 		bundlesThreadLocal.get().add(bn);
-
 		String fh = bundle.getHeaders().get("Fragment-Host");
 		// Fragment cannot be started
 		if (!Util.isEmpty(fh)) {
@@ -1398,49 +1398,44 @@ public class OSGiUtil {
 
 		log(Log.LEVEL_DEBUG, "Start bundle: [" + bundle.getSymbolicName() + ":" + bundle.getVersion().toString() + "]");
 
+		// check if required related bundles are missing and load them if necessary
+		final List<BundleDefinition> failedBD = new ArrayList<OSGiUtil.BundleDefinition>();
+		if (parents == null) parents = new HashSet<String>();
+		Set<Bundle> loadedBundles = loadBundles(parents, bundle, null, failedBD);
 		try {
+			// startIfNecessary(loadedBundles.toArray(new Bundle[loadedBundles.size()]));
 			BundleUtil.start(bundle);
 		}
-		catch (BundleException be) {
-			// check if required related bundles are missing and load them if necessary
-			final List<BundleDefinition> failedBD = new ArrayList<OSGiUtil.BundleDefinition>();
-			if (parents == null) parents = new HashSet<String>();
-			Set<Bundle> loadedBundles = loadBundles(parents, bundle, null, failedBD);
+		catch (BundleException be2) {
+			// print.e(be);
+			List<PackageQuery> listPackages = getRequiredPackages(bundle);
+			List<PackageQuery> failedPD = new ArrayList<PackageQuery>();
 			try {
-				// startIfNecessary(loadedBundles.toArray(new Bundle[loadedBundles.size()]));
+				loadPackages(parents, loadedBundles, listPackages, bundle, failedPD);
 				BundleUtil.start(bundle);
 			}
-			catch (BundleException be2) {
-				// print.e(be);
-				List<PackageQuery> listPackages = getRequiredPackages(bundle);
-				List<PackageQuery> failedPD = new ArrayList<PackageQuery>();
+			catch (BundleException be3) {
 				try {
-					loadPackages(parents, loadedBundles, listPackages, bundle, failedPD);
-					BundleUtil.start(bundle);
+					if (resolveBundleLoadingIssues(ThreadLocalPageContext.getConfig(), be3)) BundleUtil.start(bundle);
+					else throw be3;
 				}
-				catch (BundleException be3) {
-					try {
-						if (resolveBundleLoadingIssues(ThreadLocalPageContext.getConfig(), be3)) BundleUtil.start(bundle);
-						else throw be3;
-					}
-					catch (BundleException be4) {
-						if (failedBD.size() > 0) {
-							Iterator<BundleDefinition> itt = failedBD.iterator();
-							BundleDefinition _bd;
-							StringBuilder sb = new StringBuilder("Lucee was not able to download/load the following bundles [");
-							while (itt.hasNext()) {
-								_bd = itt.next();
-								sb.append(_bd.name + ":" + _bd.getVersionAsString()).append(';');
-							}
-							sb.append("]");
-							throw new BundleException(be2.getMessage() + sb, be2.getCause());
+				catch (BundleException be4) {
+					if (failedBD.size() > 0) {
+						Iterator<BundleDefinition> itt = failedBD.iterator();
+						BundleDefinition _bd;
+						StringBuilder sb = new StringBuilder("Lucee was not able to download/load the following bundles [");
+						while (itt.hasNext()) {
+							_bd = itt.next();
+							sb.append(_bd.name + ":" + _bd.getVersionAsString()).append(';');
 						}
-						throw be4;
+						sb.append("]");
+						throw new BundleException(be2.getMessage() + sb, be2.getCause());
 					}
+					throw be4;
 				}
 			}
-
 		}
+
 		return bundle;
 	}
 
@@ -1462,7 +1457,6 @@ public class OSGiUtil {
 	}
 
 	private static Set<Bundle> loadBundles(final Set<String> parents, final Bundle bundle, List<Resource> addional, final List<BundleDefinition> failedBD) throws BundleException {
-
 		Set<Bundle> loadedBundles = new HashSet<Bundle>();
 		loadedBundles.add(bundle);
 		parents.add(toString(bundle));
@@ -1487,6 +1481,7 @@ public class OSGiUtil {
 				loadedBundles.add(b);
 			}
 			catch (StartFailedException sfe) {
+
 				sfe.setBundleDefinition(br.toBundleDefintion());
 				if (secondChance == null) secondChance = new ArrayList<StartFailedException>();
 				secondChance.add(sfe);
@@ -1508,7 +1503,6 @@ public class OSGiUtil {
 					loadedBundles.add(sfe.bundle);
 				}
 				catch (BundleException _be) {
-					// if(failedBD==null) failedBD=new ArrayList<OSGiUtil.BundleDefinition>();
 					failedBD.add(sfe.getBundleDefinition());
 					log(_be);
 				}

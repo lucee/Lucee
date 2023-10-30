@@ -23,7 +23,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
-import lucee.print;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
@@ -2984,9 +2983,5 @@ public class KeyConstants {
 		Key k = _____keys.get(key);
 		if (k == null) return new KeyImpl(key);
 		return k;
-	}
-
-	public static void main(String[] args) {
-		print.e(getFieldName("1"));
 	}
 }
