@@ -490,6 +490,7 @@ public class OSGiUtil {
 								// load new
 								b = loadBundle(bf, pq.getVersionDefinitons());
 								if (b != null) {
+									if ("jaxb-api-2.3.1.jar".equals(bf.getFile().getName())) print.ds(b.getSymbolicName());
 									loadedBundles.add(b);
 									if (startIfNecessary) _startIfNecessary(b, parents);
 									if ("javax.xml.bind.helpers".equals(pq.getName())) {
@@ -1460,6 +1461,7 @@ public class OSGiUtil {
 
 	private static Set<Bundle> loadBundles(final Set<String> parents, final Bundle bundle, List<Resource> addional, final List<BundleDefinition> failedBD) throws BundleException {
 		Set<Bundle> loadedBundles = new HashSet<Bundle>();
+		if ("jaxb-api".equals(bundle.getSymbolicName())) print.ds(bundle.getSymbolicName());
 		loadedBundles.add(bundle);
 		parents.add(toString(bundle));
 
@@ -1480,6 +1482,7 @@ public class OSGiUtil {
 
 				b = _loadBundle(br, ThreadLocalPageContext.getConfig().getIdentification(), addional, true, parents, false, true, null);
 
+				if ("jaxb-api".equals(bundle.getSymbolicName())) print.ds(bundle.getSymbolicName());
 				loadedBundles.add(b);
 			}
 			catch (StartFailedException sfe) {
@@ -1502,6 +1505,7 @@ public class OSGiUtil {
 				sfe = _it.next();
 				try {
 					_startIfNecessary(sfe.bundle, parents);
+					if ("jaxb-api".equals(sfe.bundle.getSymbolicName())) print.ds(sfe.bundle.getSymbolicName());
 					loadedBundles.add(sfe.bundle);
 				}
 				catch (BundleException _be) {
