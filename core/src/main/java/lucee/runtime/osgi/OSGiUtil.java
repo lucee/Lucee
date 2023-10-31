@@ -475,13 +475,13 @@ public class OSGiUtil {
 						}
 
 						for (BundleFile bf: map.values()) {
-							if (parents.contains(toString(bf))) continue;
 
 							if (bf != null && bf.hasMatchingExportPackage(pq)) {
 								// load existing
 								Bundle b = exists(loadedBundles, bf.getSymbolicName(), pq.getVersionDefinitons());
 								if (b != null) {
 									if (startIfNecessary) _startIfNecessary(b, parents);
+									print.e("pppppp " + pq.getName() + " " + bf.getSymbolicName() + ":" + bf.getVersionAsString());
 									return b;
 								}
 								// load new
@@ -489,6 +489,7 @@ public class OSGiUtil {
 								if (b != null) {
 									loadedBundles.add(b);
 									if (startIfNecessary) _startIfNecessary(b, parents);
+									print.e("qqqqqqq " + pq.getName() + " " + bf.getSymbolicName() + ":" + bf.getVersionAsString());
 									return b;
 								}
 							}
