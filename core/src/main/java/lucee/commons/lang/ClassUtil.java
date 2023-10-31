@@ -180,7 +180,7 @@ public final class ClassUtil {
 		}
 		catch (ClassNotFoundException outer) {
 			try {
-				if (OSGiUtil.resolveBundleLoadingIssues(ThreadLocalPageContext.getConfig(), outer)) {
+				if (OSGiUtil.resolveBundleLoadingIssues(null, ThreadLocalPageContext.getConfig(), outer)) {
 					if (relatedBundles != null) {
 						for (BundleDefinition rb: relatedBundles) {
 							rb.getBundle(id, addional, true, false);

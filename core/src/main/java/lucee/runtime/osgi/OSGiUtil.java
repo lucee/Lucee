@@ -31,7 +31,6 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Dictionary;
 import java.util.Enumeration;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -407,10 +406,10 @@ public class OSGiUtil {
 		return new String[] { name.substring(0, index), name.substring(index + 1) };
 	}
 
-	public static Bundle loadBundle(BundleFile bf, Bundle defaultValue) {
+	public static Bundle loadBundle(BundleContext bc, BundleFile bf, Bundle defaultValue) {
 		if (!bf.isBundle()) return defaultValue;
 		try {
-			return loadBundle(bf);
+			return loadBundle(bc, bf);
 		}
 		catch (Exception e) {
 			return defaultValue;
@@ -418,10 +417,13 @@ public class OSGiUtil {
 	}
 
 	public static Bundle loadBundle(BundleFile bf) throws IOException, BundleException {
-		CFMLEngine engine = CFMLEngineFactory.getInstance();
+		return loadBundle(CFMLEngineFactory.getInstance().getBundleContext(), bf);
+	}
+
+	private static Bundle loadBundle(BundleContext bc, BundleFile bf) throws IOException, BundleException {
 
 		// check in loaded bundles
-		BundleContext bc = engine.getBundleContext();
+		if (bc == null) bc = CFMLEngineFactory.getInstance().getBundleContext();
 		Bundle[] bundles = bc.getBundles();
 		for (Bundle b: bundles) {
 			if (bf.getSymbolicName().equals(b.getSymbolicName())) {
@@ -431,11 +433,10 @@ public class OSGiUtil {
 		return _loadBundle(bc, bf);
 	}
 
-	public static Bundle loadBundle(BundleFile bf, List<VersionDefinition> versionsDefinitions) throws IOException, BundleException {
-		CFMLEngine engine = CFMLEngineFactory.getInstance();
+	private static Bundle loadBundle(BundleContext bc, BundleFile bf, List<VersionDefinition> versionsDefinitions) throws IOException, BundleException {
+		if (bc == null) bc = CFMLEngineFactory.getInstance().getBundleContext();
 
 		// check in loaded bundles
-		BundleContext bc = engine.getBundleContext();
 		Bundle[] bundles = bc.getBundles();
 		for (Bundle b: bundles) {
 			if (bf.getSymbolicName().equals(b.getSymbolicName())) {
@@ -450,7 +451,8 @@ public class OSGiUtil {
 	private static long bundleDirectoryJarsLastCheck = 0;
 	private static Object bundleDirectoryJarsToken = new Object();
 
-	private static Bundle loadBundleByPackage(PackageQuery pq, Set<Bundle> loadedBundles, boolean startIfNecessary, Set<String> parents) throws BundleException, IOException {
+	private static Bundle loadBundleByPackage(BundleContext bc, PackageQuery pq, Set<Bundle> loadedBundles, boolean startIfNecessary, Set<String> parents)
+			throws BundleException, IOException {
 		// check hardcoded mappings
 		try {
 			{
@@ -488,7 +490,7 @@ public class OSGiUtil {
 									return b;
 								}
 								// load new
-								b = loadBundle(bf, pq.getVersionDefinitons());
+								b = loadBundle(bc, bf, pq.getVersionDefinitons());
 								if (b != null) {
 									if ("jaxb-api-2.3.1.jar".equals(bf.getFile().getName())) print.ds(b.getSymbolicName());
 									loadedBundles.add(b);
@@ -523,7 +525,7 @@ public class OSGiUtil {
 			String bn = packageBundleMapping.get(pq.getName());
 			if (!StringUtil.isEmpty(bn)) {
 				try {
-					return loadBundle(bn, null, null, null, startIfNecessary, false, pq.isRequired(), pq.isRequired() ? null : Boolean.FALSE);
+					return loadBundle(bc, bn, null, null, null, startIfNecessary, false, pq.isRequired(), pq.isRequired() ? null : Boolean.FALSE);
 				}
 				catch (BundleException be) {
 					if (pq.isRequired()) throw be;
@@ -535,7 +537,7 @@ public class OSGiUtil {
 			for (Entry<String, String> e: packageBundleMapping.entrySet()) {
 				if (pq.getName().startsWith(e.getKey() + ".")) {
 					try {
-						return loadBundle(e.getValue(), null, null, null, startIfNecessary, false, pq.isRequired(), pq.isRequired() ? null : Boolean.FALSE);
+						return loadBundle(bc, e.getValue(), null, null, null, startIfNecessary, false, pq.isRequired(), pq.isRequired() ? null : Boolean.FALSE);
 					}
 					catch (BundleException be) {
 						if (pq.isRequired()) throw be;
@@ -572,7 +574,7 @@ public class OSGiUtil {
 						print.e(map.keySet());
 					}
 					else {
-						map = new HashMap<>();
+						map = new LinkedHashMap<>();
 						map.put(bf.getAbsolutePath(), bf);
 						packageBundleMappingDyn.put(pd.getName(), new SoftReference<Map<String, BundleFile>>(map));
 					}
@@ -634,28 +636,41 @@ public class OSGiUtil {
 		return null;
 	}
 
-	public static Bundle loadBundle(final BundleRange bundleRange, Identification id, List<Resource> addional, boolean startIfNecessary, boolean versionOnlyMattersForDownload,
-			boolean downloadIfNecessary, Boolean printExceptions) throws BundleException {
+	public static Bundle loadBundle(BundleContext bc, final BundleRange bundleRange, Identification id, List<Resource> addional, boolean startIfNecessary,
+			boolean versionOnlyMattersForDownload, boolean downloadIfNecessary, Boolean printExceptions) throws BundleException {
 		try {
-			return _loadBundle(bundleRange, id, addional, startIfNecessary, null, versionOnlyMattersForDownload, downloadIfNecessary, printExceptions);
+			return _loadBundle(bc == null ? CFMLEngineFactory.getInstance().getBundleContext() : bc, bundleRange, id, addional, startIfNecessary, null,
+					versionOnlyMattersForDownload, downloadIfNecessary, printExceptions);
 		}
 		catch (StartFailedException sfe) {
 			throw sfe.bundleException;
 		}
 	}
 
-	public static Bundle loadBundle(String name, Version version, Identification id, List<Resource> addional, boolean startIfNecessary, boolean versionOnlyMattersForDownload,
-			boolean downloadIfNecessary, Boolean printExceptions) throws BundleException {
+	public static Bundle loadBundle(String name, Version version, Identification id, List<Resource> addional, boolean startIfNecessary) throws BundleException {
 		try {
-			return _loadBundle(new BundleRange(name.trim()).setVersionRange(new BundleRange.VersionRange().add(version, VersionDefinition.EQ)), id, addional, startIfNecessary,
-					null, versionOnlyMattersForDownload, downloadIfNecessary, printExceptions);
+			return _loadBundle(CFMLEngineFactory.getInstance().getBundleContext(),
+					new BundleRange(name.trim()).setVersionRange(new BundleRange.VersionRange().add(version, VersionDefinition.EQ)), id, addional, startIfNecessary, null, false,
+					true, null);
 		}
 		catch (StartFailedException sfe) {
 			throw sfe.bundleException;
 		}
 	}
 
-	public static Bundle _loadBundle(final BundleRange bundleRange, Identification id, List<Resource> addional, boolean startIfNecessary, Set<String> parents,
+	public static Bundle loadBundle(BundleContext bc, String name, Version version, Identification id, List<Resource> addional, boolean startIfNecessary,
+			boolean versionOnlyMattersForDownload, boolean downloadIfNecessary, Boolean printExceptions) throws BundleException {
+		try {
+			return _loadBundle(bc == null ? CFMLEngineFactory.getInstance().getBundleContext() : bc,
+					new BundleRange(name.trim()).setVersionRange(new BundleRange.VersionRange().add(version, VersionDefinition.EQ)), id, addional, startIfNecessary, null,
+					versionOnlyMattersForDownload, downloadIfNecessary, printExceptions);
+		}
+		catch (StartFailedException sfe) {
+			throw sfe.bundleException;
+		}
+	}
+
+	public static Bundle _loadBundle(BundleContext bc, final BundleRange bundleRange, Identification id, List<Resource> addional, boolean startIfNecessary, Set<String> parents,
 			boolean versionOnlyMattersForDownload, boolean downloadIfNecessary, Boolean printExceptions) throws BundleException, StartFailedException {
 		CFMLEngine engine = CFMLEngineFactory.getInstance();
 		CFMLEngineFactory factory = engine.getCFMLEngineFactory();
@@ -664,7 +679,7 @@ public class OSGiUtil {
 				: new boolean[] { true };
 
 		// check in loaded bundles
-		BundleContext bc = engine.getBundleContext();
+		if (bc == null) bc = engine.getBundleContext();
 		Bundle[] bundles = bc.getBundles();
 		StringBuilder versionsFound = new StringBuilder();
 		Bundle match = null;
@@ -1414,12 +1429,12 @@ public class OSGiUtil {
 			List<PackageQuery> listPackages = getRequiredPackages(bundle);
 			List<PackageQuery> failedPD = new ArrayList<PackageQuery>();
 			try {
-				loadPackages(parents, loadedBundles, listPackages, bundle, failedPD);
+				loadPackages(bundle.getBundleContext(), parents, loadedBundles, listPackages, bundle, failedPD);
 				BundleUtil.start(bundle);
 			}
 			catch (BundleException be3) {
 				try {
-					if (resolveBundleLoadingIssues(ThreadLocalPageContext.getConfig(), be3)) BundleUtil.start(bundle);
+					if (resolveBundleLoadingIssues(bundle.getBundleContext(), ThreadLocalPageContext.getConfig(), be3)) BundleUtil.start(bundle);
 					else throw be3;
 				}
 				catch (BundleException be4) {
@@ -1442,7 +1457,7 @@ public class OSGiUtil {
 		return bundle;
 	}
 
-	private static void loadPackages(final Set<String> parents, final Set<Bundle> loadedBundles, List<PackageQuery> listPackages, final Bundle bundle,
+	private static void loadPackages(BundleContext bc, final Set<String> parents, final Set<Bundle> loadedBundles, List<PackageQuery> listPackages, final Bundle bundle,
 			final List<PackageQuery> failedPD) {
 		PackageQuery pq;
 		Iterator<PackageQuery> it = listPackages.iterator();
@@ -1450,7 +1465,7 @@ public class OSGiUtil {
 		while (it.hasNext()) {
 			pq = it.next();
 			try {
-				loadBundleByPackage(pq, loadedBundles, true, parents);
+				loadBundleByPackage(bc, pq, loadedBundles, true, parents);
 			}
 			catch (Exception _be) {
 				failedPD.add(pq);
@@ -1461,7 +1476,6 @@ public class OSGiUtil {
 
 	private static Set<Bundle> loadBundles(final Set<String> parents, final Bundle bundle, List<Resource> addional, final List<BundleDefinition> failedBD) throws BundleException {
 		Set<Bundle> loadedBundles = new HashSet<Bundle>();
-		if ("jaxb-api".equals(bundle.getSymbolicName())) print.ds(bundle.getSymbolicName());
 		loadedBundles.add(bundle);
 		parents.add(toString(bundle));
 
@@ -1480,9 +1494,8 @@ public class OSGiUtil {
 			try {
 				// if(parents==null) parents=new HashSet<Bundle>();
 
-				b = _loadBundle(br, ThreadLocalPageContext.getConfig().getIdentification(), addional, true, parents, false, true, null);
+				b = _loadBundle(bundle.getBundleContext(), br, ThreadLocalPageContext.getConfig().getIdentification(), addional, true, parents, false, true, null);
 
-				if ("jaxb-api".equals(bundle.getSymbolicName())) print.ds(bundle.getSymbolicName());
 				loadedBundles.add(b);
 			}
 			catch (StartFailedException sfe) {
@@ -1505,7 +1518,6 @@ public class OSGiUtil {
 				sfe = _it.next();
 				try {
 					_startIfNecessary(sfe.bundle, parents);
-					if ("jaxb-api".equals(sfe.bundle.getSymbolicName())) print.ds(sfe.bundle.getSymbolicName());
 					loadedBundles.add(sfe.bundle);
 				}
 				catch (BundleException _be) {
@@ -2017,7 +2029,7 @@ public class OSGiUtil {
 
 		public Bundle getBundle(Identification id, List<Resource> addional, boolean startIfNecessary, boolean versionOnlyMattersForDownload) throws BundleException {
 			if (bundle == null) {
-				bundle = OSGiUtil.loadBundle(name, getVersion(), id, addional, startIfNecessary, versionOnlyMattersForDownload, true, null);
+				bundle = OSGiUtil.loadBundle(null, name, getVersion(), id, addional, startIfNecessary, versionOnlyMattersForDownload, true, null);
 			}
 			return bundle;
 		}
@@ -2036,7 +2048,8 @@ public class OSGiUtil {
 		public Bundle getBundle(Config config, List<Resource> addional, boolean versionOnlyMattersForDownload) throws BundleException {
 			if (bundle == null) {
 				config = ThreadLocalPageContext.getConfig(config);
-				bundle = OSGiUtil.loadBundle(name, getVersion(), config == null ? null : config.getIdentification(), addional, false, versionOnlyMattersForDownload, true, null);
+				bundle = OSGiUtil.loadBundle(CFMLEngineFactory.getInstance().getBundleContext(), name, getVersion(), config == null ? null : config.getIdentification(), addional,
+						false, versionOnlyMattersForDownload, true, null);
 			}
 			return bundle;
 		}
@@ -2148,7 +2161,7 @@ public class OSGiUtil {
 		String key, value;
 		Object existing;
 		List<String> list;
-		Map<String, Object> _headers = new HashMap<String, Object>();
+		Map<String, Object> _headers = new LinkedHashMap<String, Object>();
 		while (keys.hasMoreElements()) {
 			key = keys.nextElement();
 			value = StringUtil.unwrap(values.nextElement());
@@ -2379,9 +2392,9 @@ public class OSGiUtil {
 		return pd;
 	}
 
-	public static boolean resolveBundleLoadingIssues(Config config, BundleException be) {
+	public static boolean resolveBundleLoadingIssues(BundleContext bc, Config config, BundleException be) {
 		try {
-			loadBundlesAndPackagesFromMessage(config, be.getMessage());
+			loadBundlesAndPackagesFromMessage(bc, config, be.getMessage());
 			return true;
 		}
 		catch (Exception e) {
@@ -2390,12 +2403,12 @@ public class OSGiUtil {
 		return false;
 	}
 
-	public static boolean resolveBundleLoadingIssues(Config config, ClassNotFoundException cnfe) {
+	public static boolean resolveBundleLoadingIssues(BundleContext bc, Config config, ClassNotFoundException cnfe) {
 		Throwable cause = cnfe.getCause();
 		if (!(cause instanceof BundleException)) return false;
 		BundleException be = (BundleException) cause;
 
-		return resolveBundleLoadingIssues(config, be);
+		return resolveBundleLoadingIssues(bc, config, be);
 	}
 
 	// (bundle-version>=30.1.0)
@@ -2484,7 +2497,9 @@ public class OSGiUtil {
 		return new BundleRange(bundleName, vr);
 	}
 
-	private static void loadBundlesAndPackagesFromMessage(Config config, final String msg) throws BundleException, IOException {
+	private static void loadBundlesAndPackagesFromMessage(BundleContext bc, Config config, final String msg) throws BundleException, IOException {
+		if (bc == null) bc = CFMLEngineFactory.getInstance().getBundleContext();
+
 		int start = 0, end;
 		int index;
 
@@ -2500,7 +2515,7 @@ public class OSGiUtil {
 			if (end == -1) throw new IOException("no end point found");
 
 			br = toBundleRange(msg.substring(start - 1, end + 1));
-			if (br != null) loadBundle(br, config.getIdentification(), null, true, false, true, null);
+			if (br != null) loadBundle(bc, br, config.getIdentification(), null, true, false, true, null);
 		}
 
 		// load the bundles based on the packages defined in the exception message
@@ -2515,7 +2530,7 @@ public class OSGiUtil {
 			end = findEnd(msg, start);
 			if (end == -1) throw new IOException("no end point found");
 			pq = toPackageQuery(msg.substring(start - 1, end + 1));
-			if (pq != null) loadBundleByPackage(pq, new HashSet<Bundle>(), true, new HashSet<String>());
+			if (pq != null) loadBundleByPackage(bc, pq, new HashSet<Bundle>(), true, new HashSet<String>());
 		}
 
 	}

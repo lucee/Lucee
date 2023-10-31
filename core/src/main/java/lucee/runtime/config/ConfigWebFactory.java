@@ -2404,7 +2404,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 					cd = getClassDefinition(driver, "", config.getIdentification());
 					if (StringUtil.isEmpty(cd.getClassName()) && !StringUtil.isEmpty(cd.getName())) {
 						try {
-							Bundle bundle = OSGiUtil.loadBundle(cd.getName(), cd.getVersion(), config.getIdentification(), null, false, false, true, null);
+							Bundle bundle = OSGiUtil.loadBundle(cd.getName(), cd.getVersion(), config.getIdentification(), null, false);
 							String cn = JDBCDriver.extractClassName(bundle);
 							cd = new ClassDefinitionImpl(config.getIdentification(), cn, cd.getName(), cd.getVersion());
 						}
