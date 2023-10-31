@@ -50,6 +50,7 @@ import org.osgi.framework.Version;
 import org.osgi.framework.wiring.BundleRevision;
 import org.osgi.resource.Requirement;
 
+import lucee.print;
 import lucee.commons.digest.HashUtil;
 import lucee.commons.io.FileUtil;
 import lucee.commons.io.IOUtil;
@@ -546,7 +547,9 @@ public class OSGiUtil {
 					Map<String, BundleFile> map;
 					if (sr != null && (map = sr.get()) != null) {
 						map.put(bf.getAbsolutePath(), bf);
-
+						print.e("xxxxxxxxxxxxxxxxxxxx");
+						print.e(pd.getName());
+						print.e(map.keySet());
 					}
 					else {
 						map = new HashMap<>();
