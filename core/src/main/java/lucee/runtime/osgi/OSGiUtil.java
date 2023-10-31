@@ -483,7 +483,7 @@ public class OSGiUtil {
 									if (startIfNecessary) _startIfNecessary(b, parents);
 									if ("javax.xml.bind.helpers".equals(pq.getName())) {
 										print.e(parents);
-										print.e("pppppp " + pq.getName() + " " + bf.getSymbolicName() + ":" + bf.getVersionAsString());
+										print.ds("pppppp " + pq.getName() + " " + bf.getSymbolicName() + ":" + bf.getVersionAsString());
 									}
 									return b;
 								}
@@ -494,7 +494,7 @@ public class OSGiUtil {
 									if (startIfNecessary) _startIfNecessary(b, parents);
 									if ("javax.xml.bind.helpers".equals(pq.getName())) {
 										print.e(parents);
-										print.e("qqqqqqq " + pq.getName() + " " + bf.getSymbolicName() + ":" + bf.getVersionAsString());
+										print.ds("qqqqqqq " + pq.getName() + " " + bf.getSymbolicName() + ":" + bf.getVersionAsString());
 									}
 									return b;
 								}
