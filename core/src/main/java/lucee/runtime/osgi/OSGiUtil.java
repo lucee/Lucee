@@ -621,35 +621,15 @@ public class OSGiUtil {
 		}
 	}
 
-	public static Bundle loadBundle(String name, Version version, Identification id, List<Resource> addional, boolean startIfNecessary) throws BundleException {
-		return loadBundle(name, version, id, addional, startIfNecessary, false, true, null);
-	}
-
-	public static Bundle loadBundle(String name, Version version, Identification id, List<Resource> addional, boolean startIfNecessary, boolean versionOnlyMattersForDownload)
-			throws BundleException {
-		return loadBundle(name, version, id, addional, startIfNecessary, versionOnlyMattersForDownload, true, null);
-	}
-
-	public static Bundle loadBundle(String name, Version version, Identification id, List<Resource> addional, boolean startIfNecessary, boolean versionOnlyMattersForDownload,
-			boolean downloadIfNecessary) throws BundleException {
-		return loadBundle(name, version, id, addional, startIfNecessary, versionOnlyMattersForDownload, versionOnlyMattersForDownload, null);
-	}
-
 	public static Bundle loadBundle(String name, Version version, Identification id, List<Resource> addional, boolean startIfNecessary, boolean versionOnlyMattersForDownload,
 			boolean downloadIfNecessary, Boolean printExceptions) throws BundleException {
 		try {
-			return _loadBundle(name, version, id, addional, startIfNecessary, null, versionOnlyMattersForDownload, downloadIfNecessary, printExceptions);
+			return _loadBundle(new BundleRange(name.trim()).setVersionRange(new BundleRange.VersionRange().add(version, VersionDefinition.EQ)), id, addional, startIfNecessary,
+					null, versionOnlyMattersForDownload, downloadIfNecessary, printExceptions);
 		}
 		catch (StartFailedException sfe) {
 			throw sfe.bundleException;
 		}
-	}
-
-	public static Bundle _loadBundle(String name, final Version version, Identification id, List<Resource> addional, boolean startIfNecessary, Set<String> parents,
-			boolean versionOnlyMattersForDownload, boolean downloadIfNecessary, Boolean printExceptions) throws BundleException, StartFailedException {
-		name = name.trim();
-		return _loadBundle(new BundleRange(name).setVersionRange(new BundleRange.VersionRange().add(version, VersionDefinition.EQ)), id, addional, startIfNecessary, parents,
-				versionOnlyMattersForDownload, downloadIfNecessary, printExceptions);
 	}
 
 	public static Bundle _loadBundle(final BundleRange bundleRange, Identification id, List<Resource> addional, boolean startIfNecessary, Set<String> parents,
@@ -2006,13 +1986,9 @@ public class OSGiUtil {
 			return bundle;
 		}
 
-		public Bundle getBundle(Identification id, List<Resource> addional, boolean startIfNecessary) throws BundleException {
-			return getBundle(id, addional, startIfNecessary, false);
-		}
-
 		public Bundle getBundle(Identification id, List<Resource> addional, boolean startIfNecessary, boolean versionOnlyMattersForDownload) throws BundleException {
 			if (bundle == null) {
-				bundle = OSGiUtil.loadBundle(name, getVersion(), id, addional, startIfNecessary, versionOnlyMattersForDownload);
+				bundle = OSGiUtil.loadBundle(name, getVersion(), id, addional, startIfNecessary, versionOnlyMattersForDownload, true, null);
 			}
 			return bundle;
 		}
@@ -2031,7 +2007,7 @@ public class OSGiUtil {
 		public Bundle getBundle(Config config, List<Resource> addional, boolean versionOnlyMattersForDownload) throws BundleException {
 			if (bundle == null) {
 				config = ThreadLocalPageContext.getConfig(config);
-				bundle = OSGiUtil.loadBundle(name, getVersion(), config == null ? null : config.getIdentification(), addional, false, versionOnlyMattersForDownload);
+				bundle = OSGiUtil.loadBundle(name, getVersion(), config == null ? null : config.getIdentification(), addional, false, versionOnlyMattersForDownload, true, null);
 			}
 			return bundle;
 		}

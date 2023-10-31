@@ -173,7 +173,7 @@ public final class ClassUtil {
 		try {
 			if (relatedBundles != null) {
 				for (BundleDefinition rb: relatedBundles) {
-					rb.getBundle(id, addional, true);
+					rb.getBundle(id, addional, true, false);
 				}
 			}
 			return bundle.getBundle(id, addional, true, versionOnlyMattersForDownload).loadClass(className);
@@ -183,7 +183,7 @@ public final class ClassUtil {
 				if (OSGiUtil.resolveBundleLoadingIssues(ThreadLocalPageContext.getConfig(), outer)) {
 					if (relatedBundles != null) {
 						for (BundleDefinition rb: relatedBundles) {
-							rb.getBundle(id, addional, true);
+							rb.getBundle(id, addional, true, false);
 						}
 					}
 					return bundle.getBundle(id, addional, true, versionOnlyMattersForDownload).loadClass(className);

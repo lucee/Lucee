@@ -70,6 +70,7 @@ public class BundleInfo implements Serializable {
 	private Map<String, Object> headers;
 
 	private Map<String, PackageDefinition> exportPackageAsMap;
+	private List<PackageDefinition> exportPackageAsList;
 	private static Map<String, BundleInfo> bundles = new HashMap<String, BundleInfo>();
 
 	public static BundleInfo getInstance(String id, InputStream is, boolean closeStream) throws IOException, BundleException {
@@ -161,9 +162,13 @@ public class BundleInfo implements Serializable {
 		if (exportPackageAsMap == null) {
 			synchronized (this) {
 				if (exportPackageAsMap == null) {
-					if (StringUtil.isEmpty(exportPackage, true)) return (exportPackageAsMap = new HashMap<>()).values();
+					if (StringUtil.isEmpty(exportPackage, true)) {
+						exportPackageAsList = new ArrayList<>();
+						return (exportPackageAsMap = new HashMap<>()).values();
+					}
 
 					exportPackageAsMap = new HashMap<>();
+					exportPackageAsList = new ArrayList<>();
 					int len = exportPackage.length();
 					char c;
 					boolean inline = false;
@@ -177,17 +182,20 @@ public class BundleInfo implements Serializable {
 						}
 						else if (!inline && c == ',') {
 							pd = toPackageDefinition(sb.toString());
+							exportPackageAsList.add(pd);
 							exportPackageAsMap.put(pd.getName(), pd);
+
 							sb = new StringBuilder();
 						}
 						else sb.append(c);
 					}
 					pd = toPackageDefinition(sb.toString());
+					exportPackageAsList.add(pd);
 					exportPackageAsMap.put(pd.getName(), pd);
 				}
 			}
 		}
-		return exportPackageAsMap.values();
+		return exportPackageAsList; // exportPackageAsMap.values();
 	}
 
 	public boolean hasMatchingExportPackage(PackageQuery pq) {
