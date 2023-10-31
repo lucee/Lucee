@@ -476,31 +476,42 @@ public class OSGiUtil {
 							}
 						}
 
+						BundleFile match = null;
 						for (BundleFile bf: map.values()) {
-
 							if (bf != null && bf.hasMatchingExportPackage(pq)) {
-								// load existing
-								Bundle b = exists(loadedBundles, bf.getSymbolicName(), pq.getVersionDefinitons());
-								if (b != null) {
-									if (startIfNecessary) _startIfNecessary(b, parents);
-									if ("javax.xml.bind.helpers".equals(pq.getName())) {
-										print.e(parents);
-										print.ds("pppppp " + pq.getName() + " " + bf.getSymbolicName() + ":" + bf.getVersionAsString());
-									}
-									return b;
+								if (match == null || isNewerThan(bf.getVersion(), match.getVersion())) match = bf;
+							}
+						}
+						if (map.size() > 1 && match != null) {
+							print.e("yyyyyyyyyyyyyyyy");
+							print.e(pq);
+							print.e("+ " + match.getSymbolicName() + ":" + match.getVersionAsString() + " -> " + match.getFile());
+							for (BundleFile _bf: map.values()) {
+								print.e("- " + _bf.getSymbolicName() + ":" + _bf.getVersionAsString() + " -> " + _bf.getFile());
+							}
+						}
+
+						if (match != null) {
+							// load existing
+							Bundle b = exists(loadedBundles, match.getSymbolicName(), pq.getVersionDefinitons());
+							if (b != null) {
+								if (startIfNecessary) _startIfNecessary(b, parents);
+								if ("javax.xml.bind.helpers".equals(pq.getName())) {
+									print.e(parents);
+									print.ds("pppppp " + pq.getName() + " " + match.getSymbolicName() + ":" + match.getVersionAsString());
 								}
-								// load new
-								b = loadBundle(bc, bf, pq.getVersionDefinitons());
-								if (b != null) {
-									if ("jaxb-api-2.3.1.jar".equals(bf.getFile().getName())) print.ds(b.getSymbolicName());
-									loadedBundles.add(b);
-									if (startIfNecessary) _startIfNecessary(b, parents);
-									if ("javax.xml.bind.helpers".equals(pq.getName())) {
-										print.e(parents);
-										print.ds("qqqqqqq " + pq.getName() + " " + bf.getSymbolicName() + ":" + bf.getVersionAsString());
-									}
-									return b;
+								return b;
+							}
+							// load new
+							b = loadBundle(bc, match, pq.getVersionDefinitons());
+							if (b != null) {
+								loadedBundles.add(b);
+								if (startIfNecessary) _startIfNecessary(b, parents);
+								if ("javax.xml.bind.helpers".equals(pq.getName())) {
+									print.e(parents);
+									print.ds("qqqqqqq " + pq.getName() + " " + match.getSymbolicName() + ":" + match.getVersionAsString());
 								}
+								return b;
 							}
 						}
 
@@ -569,9 +580,11 @@ public class OSGiUtil {
 					Map<String, BundleFile> map;
 					if (sr != null && (map = sr.get()) != null) {
 						map.put(bf.getAbsolutePath(), bf);
-						print.e("xxxxxxxxxxxxxxxxxxxx");
-						print.e(pd.getName());
-						print.e(map.keySet());
+						/*
+						 * print.e("xxxxxxxxxxxxxxxxxxxx"); print.e(pd.getName()); for (BundleFile _bf: map.values()) {
+						 * print.e(_bf.getSymbolicName() + ":" + _bf.getVersionAsString() + " -> " + bf.getFile()); }
+						 */
+
 					}
 					else {
 						map = new LinkedHashMap<>();
