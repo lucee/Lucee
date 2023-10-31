@@ -466,6 +466,8 @@ public class OSGiUtil {
 					Map<String, BundleFile> map;
 					if (sr != null && (map = sr.get()) != null) {
 						for (BundleFile bf: map.values()) {
+							if (!parents.contains(toString(bf))) continue;
+
 							if (bf != null && bf.hasMatchingExportPackage(pq)) {
 								// load existing
 								Bundle b = exists(loadedBundles, bf.getSymbolicName(), pq.getVersionDefinitons());
@@ -482,6 +484,27 @@ public class OSGiUtil {
 								}
 							}
 						}
+
+						for (BundleFile bf: map.values()) {
+							if (parents.contains(toString(bf))) continue;
+
+							if (bf != null && bf.hasMatchingExportPackage(pq)) {
+								// load existing
+								Bundle b = exists(loadedBundles, bf.getSymbolicName(), pq.getVersionDefinitons());
+								if (b != null) {
+									if (startIfNecessary) _startIfNecessary(b, parents);
+									return b;
+								}
+								// load new
+								b = loadBundle(bf, pq.getVersionDefinitons());
+								if (b != null) {
+									loadedBundles.add(b);
+									if (startIfNecessary) _startIfNecessary(b, parents);
+									return b;
+								}
+							}
+						}
+
 					}
 					if (second) break;
 
@@ -1498,6 +1521,10 @@ public class OSGiUtil {
 		return b.getSymbolicName() + ":" + b.getVersion().toString();
 	}
 
+	private static String toString(BundleFile bf) {
+		return bf.getSymbolicName() + ":" + bf.getVersion().toString();
+	}
+
 	public static void stopIfNecessary(Bundle bundle) throws BundleException {
 		if (isFragment(bundle) || bundle.getState() != Bundle.ACTIVE) return;
 		stop(bundle);
@@ -1939,8 +1966,7 @@ public class OSGiUtil {
 		@Override
 		public String toString() {
 			StringBuilder sb = new StringBuilder();
-			sb.append("name:").append(name);
-			sb.append("version:").append(version);
+			sb.append("name:").append(name).append(';').append("version:").append(version);
 			return sb.toString();
 		}
 	}
