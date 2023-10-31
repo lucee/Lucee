@@ -465,23 +465,12 @@ public class OSGiUtil {
 					SoftReference<Map<String, BundleFile>> sr = packageBundleMappingDyn.get(pq.getName());
 					Map<String, BundleFile> map;
 					if (sr != null && (map = sr.get()) != null) {
+
 						for (BundleFile bf: map.values()) {
 							if (!parents.contains(toString(bf))) continue;
 
 							if (bf != null && bf.hasMatchingExportPackage(pq)) {
-								// load existing
-								Bundle b = exists(loadedBundles, bf.getSymbolicName(), pq.getVersionDefinitons());
-								if (b != null) {
-									if (startIfNecessary) _startIfNecessary(b, parents);
-									return b;
-								}
-								// load new
-								b = loadBundle(bf, pq.getVersionDefinitons());
-								if (b != null) {
-									loadedBundles.add(b);
-									if (startIfNecessary) _startIfNecessary(b, parents);
-									return b;
-								}
+								return null;
 							}
 						}
 
