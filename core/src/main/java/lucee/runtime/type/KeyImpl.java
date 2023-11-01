@@ -143,8 +143,30 @@ public class KeyImpl implements Collection.Key, Castable, Comparable, Externaliz
 	}
 
 	public static Collection.Key intern(String key) {
+		// log(key);
 		return new KeyImpl(key);
 	}
+
+	/*
+	 * to log the keys used
+	 * 
+	 * private static Map<String, Integer> logs = new HashMap<>(); private static void log(String key) {
+	 * Integer count = logs.get(key); if (count == null) { logs.put(key, 1); } else { logs.put(key,
+	 * count.intValue() + 1); } }
+	 * 
+	 * 
+	 * public Struct getLog(boolean exludeOne) {
+	 * 
+	 * List<Entry<String, Integer>> list = new ArrayList<Map.Entry<String, Integer>>(); for
+	 * (Entry<String, Integer> e: logs.entrySet()) { list.add(e); }
+	 * 
+	 * Collections.sort(list, new Comparator<Entry<String, Integer>>() {
+	 * 
+	 * @Override public int compare(Entry<String, Integer> l, Entry<String, Integer> r) { return
+	 * r.getValue().compareTo(l.getValue()); } }); Struct sct = new StructImpl(Struct.TYPE_LINKED); for
+	 * (Entry<String, Integer> e: list) { if (!exludeOne || e.getValue() > 1) sct.put(e.getKey(),
+	 * e.getValue()); } return sct; }
+	 */
 
 	@Override
 	public char charAt(int index) {
