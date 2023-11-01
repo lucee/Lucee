@@ -607,13 +607,12 @@
 				if(!isNull(apiKey))httpparam type="url" name="ioid" value="#apikey#";
 
 			}
-			
 			if(!isNull(http.status_code) && http.status_code==200) {
 				return http.fileContent;
 			}
 			var errorMessage = "Error: Download extension returned #http.status_code# for #uri#";
 			writeLog(type="ERROR", text=errorMessage, log="deploy");
-			writeLog(type="ERROR", text=http.fileContent, log="deploy"); // log the actual error response out for debugging
+			writeLog(type="ERROR", text="file-content:"&http.fileContent, log="deploy"); // log the actual error response out for debugging
 			throw encodeForHtml(errorMessage); // rather not encode here, but this is hits a generic error handler
 		}
 	}
