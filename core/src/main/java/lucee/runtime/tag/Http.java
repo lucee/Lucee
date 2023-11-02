@@ -40,6 +40,8 @@ import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
+import org.apache.http.client.config.CookieSpecs;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
 import org.apache.http.client.methods.HttpHead;
 import org.apache.http.client.methods.HttpOptions;
@@ -49,7 +51,6 @@ import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.methods.HttpTrace;
 import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.config.SocketConfig;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.entity.mime.FormBodyPart;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
@@ -1859,9 +1860,10 @@ public final class Http extends BodyTagImpl {
 		int ms = (int) timeout.getMillis();
 		if (ms < 0) ms = Integer.MAX_VALUE;
 
+		builder.setDefaultRequestConfig(
+				RequestConfig.custom().setCookieSpec(CookieSpecs.STANDARD).setConnectionRequestTimeout(ms).setConnectTimeout(ms).setSocketTimeout(ms).build());
+
 		// builder.setConnectionTimeToLive(ms, TimeUnit.MILLISECONDS);
-		SocketConfig sc = SocketConfig.custom().setSoTimeout(ms).build();
-		builder.setDefaultSocketConfig(sc);
 	}
 
 }
