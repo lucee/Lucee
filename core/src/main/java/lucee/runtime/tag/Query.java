@@ -486,7 +486,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 		// timeout
 		if (data.datasource instanceof DataSourceImpl && ((DataSourceImpl) data.datasource).getAlwaysSetTimeout()) {
 			TimeSpan remaining = PageContextUtil.remainingTime(pageContext, true);
-			if (data.timeout == null || ((int) data.timeout.getSeconds()) <= 0 || data.timeout.getSeconds() > remaining.getSeconds()) { // not set
+			if (data.timeout == null || ((int) data.timeout.getSeconds()) <= 0 || (data.timeout.getSeconds() > remaining.getSeconds() && remaining.getSeconds() > 0)) { // not set
 				data.timeout = remaining;
 			}
 		}

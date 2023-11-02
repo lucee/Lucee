@@ -30,14 +30,18 @@
 		<cfargument name="password" required="yes" type="string">
 		<cfargument name="attributeCollection" required="yes" type="struct">
 		<cfargument name="callerId" required="no" type="string" default="undefined">
-		
+
 		<cfset var result="">
 		<cfset var id=getLuceeId()[arguments.type].id>
 		<cfset var sec=getLuceeId()[arguments.type].securityKey>
 		<cfif not listFind(arguments.callerId,id)>
+			<cfset var pw=Decrypt(arguments.password,sec)>
+			<cfadmin action="connect"
+				type="#arguments.type#"
+				password="#pw#">
 			<cfadmin 
 				type="#arguments.type#"
-				password="#Decrypt(arguments.password,sec)#"
+				password="#pw#"
 				attributeCollection="#arguments.attributeCollection#"
 				providedCallerIds="#arguments.callerId#"
 				returnVariable="result">
