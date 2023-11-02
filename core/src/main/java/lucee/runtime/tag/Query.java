@@ -100,7 +100,6 @@ import lucee.runtime.type.scope.Argument;
 import lucee.runtime.type.util.CollectionUtil;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.ListUtil;
-import lucee.runtime.util.PageContextUtil;
 
 /**
  * Passes SQL statements to a data source. Not limited to queries.
@@ -485,10 +484,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 		}
 		// timeout
 		if (data.datasource instanceof DataSourceImpl && ((DataSourceImpl) data.datasource).getAlwaysSetTimeout()) {
-			TimeSpan remaining = PageContextUtil.remainingTime(pageContext, true);
-			if (data.timeout == null || ((int) data.timeout.getSeconds()) <= 0 || data.timeout.getSeconds() > remaining.getSeconds()) { // not set
-				data.timeout = remaining;
-			}
+			data.timeout = Http.checkRemainingTimeout(pageContext, data.timeout);
 		}
 
 		// timezone

@@ -1036,7 +1036,7 @@ public final class Http extends BodyTagImpl {
 			if (!hasHeaderIgnoreCase(req, "User-Agent")) req.setHeader("User-Agent", this.useragent);
 
 			// set timeout
-			setTimeout(builder, checkRemainingTimeout());
+			setTimeout(builder, Http.checkRemainingTimeout(pageContext, this.timeout));
 
 			// set Username and Password
 			if (this.username != null) {
@@ -1418,17 +1418,17 @@ public final class Http extends BodyTagImpl {
 			}
 			try {
 				try {
-					str = is == null ? "" : IOUtil.toString(is, responseCharset, checkRemainingTimeout().getMillis());
+					str = is == null ? "" : IOUtil.toString(is, responseCharset, Http.checkRemainingTimeout(pageContext, this.timeout).getMillis());
 				}
 				catch (EOFException eof) {
 					if (is instanceof CachingGZIPInputStream) {
-						str = IOUtil.toString(is = ((CachingGZIPInputStream) is).getRawData(), responseCharset, checkRemainingTimeout().getMillis());
+						str = IOUtil.toString(is = ((CachingGZIPInputStream) is).getRawData(), responseCharset, Http.checkRemainingTimeout(pageContext, this.timeout).getMillis());
 					}
 					else throw eof;
 				}
 			}
 			catch (UnsupportedEncodingException uee) {
-				str = IOUtil.toString(is, (Charset) null, checkRemainingTimeout().getMillis());
+				str = IOUtil.toString(is, (Charset) null, Http.checkRemainingTimeout(pageContext, this.timeout).getMillis());
 			}
 		}
 		catch (IOException ioe) {
@@ -1446,10 +1446,10 @@ public final class Http extends BodyTagImpl {
 		return str;
 	}
 
-	private TimeSpan checkRemainingTimeout() throws RequestTimeoutException {
-		TimeSpan remaining = PageContextUtil.remainingTime(pageContext, true);
-		if (this.timeout == null || ((int) this.timeout.getSeconds()) <= 0 || timeout.getSeconds() > remaining.getSeconds()) { // not set
-			this.timeout = remaining;
+	public static TimeSpan checkRemainingTimeout(PageContext pc, TimeSpan timeout) throws RequestTimeoutException {
+		TimeSpan remaining = PageContextUtil.remainingTime(pc, true);
+		if (timeout == null || ((int) timeout.getSeconds()) <= 0 || (timeout.getSeconds() > remaining.getSeconds() && remaining.getSeconds() > 0)) { // not set
+			return remaining;
 		}
 		return timeout;
 	}
