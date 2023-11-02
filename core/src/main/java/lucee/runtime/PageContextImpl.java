@@ -3353,6 +3353,10 @@ public final class PageContextImpl extends PageContext {
 		return children;
 	}
 
+	public boolean removeChildPageContext(PageContext pc) {
+		return children.remove(pc);
+	}
+
 	@Override
 	public String[] getThreadScopeNames() {
 		if (threads == null) return new String[0];
