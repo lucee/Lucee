@@ -236,6 +236,10 @@ public final class CGIImpl extends StructSupport implements CGI, ScriptProtected
 				}
 				else if (first == 'c') {
 					if (key.equals(KeyConstants._context_path)) return store(key, toString(req.getContextPath()));
+					if (key.equals(KeyConstants._cfid)) {
+						if (pc == null) pc = ThreadLocalPageContext.get();
+						return pc.getCFID();
+					}
 					if (key.equals(KeyConstants._cf_template_path)) return store(key, getPathTranslated());
 				}
 				else if (first == 'h') {

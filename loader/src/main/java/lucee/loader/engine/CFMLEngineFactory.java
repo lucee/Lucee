@@ -336,9 +336,11 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 						// check for custom path of Lucee core
 						String s = System.getProperty("lucee.core.path");
 						if (s != null) {
+							System.err.println("Searching for Lucee Core at " + s);
 							File dir = new File(s);
 							File[] files = dir.listFiles(new ExtensionFilter(new String[] { coreExt }));
 							if (files.length > 0) {
+								System.err.println("Using Lucee Core from " + files[0].toString());
 								is = new FileInputStream(files[0]);
 							}
 						}
