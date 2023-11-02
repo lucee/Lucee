@@ -46,6 +46,8 @@ import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
+import org.apache.http.client.config.CookieSpecs;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
 import org.apache.http.client.methods.HttpHead;
 import org.apache.http.client.methods.HttpOptions;
@@ -1485,7 +1487,7 @@ public final class Http extends BodyTagImpl {
 
 	private TimeSpan checkRemainingTimeout() throws RequestTimeoutException {
 		TimeSpan remaining = PageContextUtil.remainingTime(pageContext, true);
-		if (this.timeout == null || ((int) this.timeout.getSeconds()) <= 0 || timeout.getSeconds() > remaining.getSeconds()) { // not set
+		if (this.timeout == null || ((int) this.timeout.getSeconds()) <= 0 || (timeout.getSeconds() > remaining.getSeconds() && remaining.getMillis() > 0)) { // not set
 			this.timeout = remaining;
 		}
 		return timeout;
@@ -1863,6 +1865,8 @@ public final class Http extends BodyTagImpl {
 
 		int ms = (int) timeout.getMillis();
 		if (ms < 0) ms = Integer.MAX_VALUE;
+		builder.setDefaultRequestConfig(
+				RequestConfig.custom().setCookieSpec(CookieSpecs.STANDARD).setConnectionRequestTimeout(ms).setConnectTimeout(ms).setSocketTimeout(ms).build());
 
 		// builder.setConnectionTimeToLive(ms, TimeUnit.MILLISECONDS);
 		SocketConfig sc = SocketConfig.custom().setSoTimeout(ms).build();
