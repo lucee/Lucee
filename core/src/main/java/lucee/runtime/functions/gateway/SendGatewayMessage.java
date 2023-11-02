@@ -32,14 +32,14 @@ import lucee.runtime.type.Struct;
  */
 public final class SendGatewayMessage implements Function {
 
-    public static String call(PageContext pc, String gatewayID, Struct data) throws PageException {
-	// GatewayEngineImpl.checkRestriction();
-	try {
-	    return ((ConfigWebImpl) pc.getConfig()).getGatewayEngine().sendMessage(gatewayID, data);
-	}
-	catch (IOException e) {
-	    throw Caster.toPageException(e);
-	}
+	public static String call(PageContext pc, String gatewayID, Struct data) throws PageException {
+		// GatewayEngineImpl.checkRestriction();
+		try {
+			return ((ConfigWebImpl) pc.getConfig()).getGatewayEngine().sendMessage(gatewayID, data);
+		}
+		catch (IOException e) {
+			throw Caster.toPageException(e);
+		}
 
-    }
+	}
 }

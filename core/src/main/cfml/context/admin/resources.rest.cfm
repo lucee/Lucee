@@ -258,13 +258,13 @@ list all mappings and display necessary edit fields --->
 						<th scope="row">#stText.rest.VirtualHead#</th>
 						<td>
 							<input type="hidden" name="row_#rest.recordcount+1#" value="#rest.recordcount+1#">
-							<cfinputClassic type="text" name="virtual_#rest.recordcount+1#" value="" required="no" class="medium" />
+							<cfinputClassic type="text" name="virtual_#rest.recordcount+1#" value="" required="yes" class="medium" message="#stText.mapping.virtual#"/>
 						</td>
 					</tr>
 					<tr>
 						<th scope="row">#stText.rest.PhysicalHead#</th>
 						<td>
-							<cfinputClassic type="text" name="physical_#rest.recordcount+1#" value="" required="no" class="large">
+							<cfinputClassic type="text" name="physical_#rest.recordcount+1#" value="" required="yes" class="large"  message="#stText.mapping.physical#">
 						</td>
 					</tr>
 					<tr>

@@ -25,38 +25,38 @@ import java.io.Serializable;
  */
 public final class QueryBean implements Serializable {
 
-    private static final long serialVersionUID = 7970107175356034966L;
+	private static final long serialVersionUID = 7970107175356034966L;
 
-    private String columnList[];
-    private Object data[][];
+	private String columnList[];
+	private Object data[][];
 
-    public QueryBean() {}
+	public QueryBean() {}
 
-    /**
-     * @return Returns the columnList.
-     */
-    public String[] getColumnList() {
-	return columnList;
-    }
+	/**
+	 * @return Returns the columnList.
+	 */
+	public String[] getColumnList() {
+		return columnList;
+	}
 
-    /**
-     * @param columnList The columnList to set.
-     */
-    public void setColumnList(final String[] columnList) {
-	this.columnList = columnList;
-    }
+	/**
+	 * @param columnList The columnList to set.
+	 */
+	public void setColumnList(final String[] columnList) {
+		this.columnList = columnList;
+	}
 
-    /**
-     * @return Returns the data.
-     */
-    public Object[][] getData() {
-	return data;
-    }
+	/**
+	 * @return Returns the data.
+	 */
+	public Object[][] getData() {
+		return data;
+	}
 
-    /**
-     * @param data The data to set.
-     */
-    public void setData(final Object[][] data) {
-	this.data = data;
-    }
+	/**
+	 * @param data The data to set.
+	 */
+	public void setData(final Object[][] data) {
+		this.data = data;
+	}
 }

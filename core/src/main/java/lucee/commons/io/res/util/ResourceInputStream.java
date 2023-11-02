@@ -25,76 +25,76 @@ import lucee.commons.io.res.Resource;
 
 public class ResourceInputStream extends InputStream {
 
-    private final Resource res;
-    private final InputStream is;
+	private final Resource res;
+	private final InputStream is;
 
-    public ResourceInputStream(Resource res, InputStream is) {
-	this.res = res;
-	this.is = is;
-    }
-
-    @Override
-    public int read() throws IOException {
-	return is.read();
-    }
-
-    @Override
-    public int available() throws IOException {
-	return is.available();
-    }
-
-    @Override
-    public void close() throws IOException {
-	try {
-	    is.close();
+	public ResourceInputStream(Resource res, InputStream is) {
+		this.res = res;
+		this.is = is;
 	}
-	finally {
-	    res.getResourceProvider().unlock(res);
+
+	@Override
+	public int read() throws IOException {
+		return is.read();
 	}
-    }
 
-    @Override
-    public void mark(int readlimit) {
-	is.mark(readlimit);
-    }
+	@Override
+	public int available() throws IOException {
+		return is.available();
+	}
 
-    @Override
-    public boolean markSupported() {
-	return is.markSupported();
-    }
+	@Override
+	public void close() throws IOException {
+		try {
+			is.close();
+		}
+		finally {
+			res.getResourceProvider().unlock(res);
+		}
+	}
 
-    @Override
-    public int read(byte[] b, int off, int len) throws IOException {
-	return is.read(b, off, len);
-    }
+	@Override
+	public void mark(int readlimit) {
+		is.mark(readlimit);
+	}
 
-    @Override
-    public int read(byte[] b) throws IOException {
-	return is.read(b);
-    }
+	@Override
+	public boolean markSupported() {
+		return is.markSupported();
+	}
 
-    @Override
-    public void reset() throws IOException {
-	is.reset();
-    }
+	@Override
+	public int read(byte[] b, int off, int len) throws IOException {
+		return is.read(b, off, len);
+	}
 
-    @Override
-    public long skip(long n) throws IOException {
-	return is.skip(n);
-    }
+	@Override
+	public int read(byte[] b) throws IOException {
+		return is.read(b);
+	}
 
-    /**
-     * @return the InputStream
-     */
-    public InputStream getInputStream() {
-	return is;
-    }
+	@Override
+	public void reset() throws IOException {
+		is.reset();
+	}
 
-    /**
-     * @return the Resource
-     */
-    public Resource getResource() {
-	return res;
-    }
+	@Override
+	public long skip(long n) throws IOException {
+		return is.skip(n);
+	}
+
+	/**
+	 * @return the InputStream
+	 */
+	public InputStream getInputStream() {
+		return is;
+	}
+
+	/**
+	 * @return the Resource
+	 */
+	public Resource getResource() {
+		return res;
+	}
 
 }

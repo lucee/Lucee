@@ -22,41 +22,41 @@ import java.util.List;
 
 public interface HTMLUtil {
 
-    public static final short HTMLV20 = 1;
-    public static final short HTMLV32 = 1;
-    public static final short HTMLV40 = 2;
+	public static final short HTMLV20 = 1;
+	public static final short HTMLV32 = 1;
+	public static final short HTMLV40 = 2;
 
-    /**
-     * escapes html character inside a string
-     * 
-     * @param str html code to escape
-     * @return escaped html code
-     */
-    public String escapeHTML(String str);
+	/**
+	 * escapes html character inside a string
+	 * 
+	 * @param str html code to escape
+	 * @return escaped html code
+	 */
+	public String escapeHTML(String str);
 
-    /**
-     * escapes html character inside a string
-     * 
-     * @param str html code to escape
-     * @param version HTML Version ()
-     * @return escaped html code
-     */
-    public String escapeHTML(String str, short version);
+	/**
+	 * escapes html character inside a string
+	 * 
+	 * @param str html code to escape
+	 * @param version HTML Version ()
+	 * @return escaped html code
+	 */
+	public String escapeHTML(String str, short version);
 
-    /**
-     * unescapes html character inside a string
-     * 
-     * @param str html code to unescape
-     * @return unescaped html code
-     */
-    public String unescapeHTML(String str);
+	/**
+	 * unescapes html character inside a string
+	 * 
+	 * @param str html code to unescape
+	 * @return unescaped html code
+	 */
+	public String unescapeHTML(String str);
 
-    /**
-     * returns all urls in a html String
-     * 
-     * @param html HTML String to search urls
-     * @param url Absolute URL path to set
-     * @return urls found in html String
-     */
-    public List<URL> getURLS(String html, URL url);
+	/**
+	 * returns all urls in a html String
+	 * 
+	 * @param html HTML String to search urls
+	 * @param url Absolute URL path to set
+	 * @return urls found in html String
+	 */
+	public List<URL> getURLS(String html, URL url);
 }

@@ -31,61 +31,61 @@ import java.util.Vector;
 
 public final class ZqlParser {
 
-    public static void main(String args[]) throws ParseException {
-	ZqlParser zqlparser = null;
-	if (args.length < 1) {
-	    System.out.println("/* Reading from stdin (exit; to finish) */");
-	    zqlparser = new ZqlParser(System.in);
+	public static void main(String args[]) throws ParseException {
+		ZqlParser zqlparser = null;
+		if (args.length < 1) {
+			System.out.println("/* Reading from stdin (exit; to finish) */");
+			zqlparser = new ZqlParser(System.in);
+		}
+		else {
+			try {
+				zqlparser = new ZqlParser(new DataInputStream(new FileInputStream(args[0])));
+			}
+			catch (FileNotFoundException filenotfoundexception) {
+				System.out.println("/* File " + args[0] + " not found. Reading from stdin */");
+				zqlparser = new ZqlParser(System.in);
+			}
+		}
+		if (args.length > 0) System.out.println("/* Reading from " + args[0] + "*/");
+		for (ZStatement zstatement = null; (zstatement = zqlparser.readStatement()) != null;)
+			System.out.println(zstatement.toString() + ";");
+
+		System.out.println("exit;");
+		System.out.println("/* Parse Successful */");
 	}
-	else {
-	    try {
-		zqlparser = new ZqlParser(new DataInputStream(new FileInputStream(args[0])));
-	    }
-	    catch (FileNotFoundException filenotfoundexception) {
-		System.out.println("/* File " + args[0] + " not found. Reading from stdin */");
-		zqlparser = new ZqlParser(System.in);
-	    }
+
+	public ZqlParser(InputStream inputstream) {
+		_parser = null;
+		initParser(inputstream);
 	}
-	if (args.length > 0) System.out.println("/* Reading from " + args[0] + "*/");
-	for (ZStatement zstatement = null; (zstatement = zqlparser.readStatement()) != null;)
-	    System.out.println(zstatement.toString() + ";");
 
-	System.out.println("exit;");
-	System.out.println("/* Parse Successful */");
-    }
+	public ZqlParser() {
+		_parser = null;
+	}
 
-    public ZqlParser(InputStream inputstream) {
-	_parser = null;
-	initParser(inputstream);
-    }
+	public void initParser(InputStream inputstream) {
+		if (_parser == null) _parser = new ZqlJJParser(inputstream);
+		else _parser.ReInit(inputstream);
+	}
 
-    public ZqlParser() {
-	_parser = null;
-    }
+	public void addCustomFunction(String s, int i) {
+		ZUtils.addCustomFunction(s, i);
+	}
 
-    public void initParser(InputStream inputstream) {
-	if (_parser == null) _parser = new ZqlJJParser(inputstream);
-	else _parser.ReInit(inputstream);
-    }
+	public ZStatement readStatement() throws ParseException {
+		if (_parser == null) throw new ParseException("Parser not initialized: use initParser(InputStream);");
+		return _parser.SQLStatement();
+	}
 
-    public void addCustomFunction(String s, int i) {
-	ZUtils.addCustomFunction(s, i);
-    }
+	public Vector readStatements() throws ParseException {
+		if (_parser == null) throw new ParseException("Parser not initialized: use initParser(InputStream);");
+		return _parser.SQLStatements();
+	}
 
-    public ZStatement readStatement() throws ParseException {
-	if (_parser == null) throw new ParseException("Parser not initialized: use initParser(InputStream);");
-	return _parser.SQLStatement();
-    }
+	public ZExp readExpression() throws ParseException {
+		if (_parser == null) throw new ParseException("Parser not initialized: use initParser(InputStream);");
+		return _parser.SQLExpression();
+	}
 
-    public Vector readStatements() throws ParseException {
-	if (_parser == null) throw new ParseException("Parser not initialized: use initParser(InputStream);");
-	return _parser.SQLStatements();
-    }
-
-    public ZExp readExpression() throws ParseException {
-	if (_parser == null) throw new ParseException("Parser not initialized: use initParser(InputStream);");
-	return _parser.SQLExpression();
-    }
-
-    ZqlJJParser _parser;
+	ZqlJJParser _parser;
 }

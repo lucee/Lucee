@@ -45,8 +45,8 @@ defines namespaces of the taglib
 -->
 <!ELEMENT name-space (#PCDATA)>
 <!--
-defines optional a other name space separator as the [:] 
-for example for ColdFusion the Namespace seperator is a empty String
+defines optional another name space separator as the [:] 
+for example for ColdFusion the Namespace seperator is an empty String
 -->
 <!ELEMENT name-space-separator (#PCDATA)>
 <!--
@@ -63,7 +63,7 @@ The tag defines a unique tag in this tag library.
 -->
 <!ELEMENT tag (name, appendix?, tag-class, tte-class?, tdbt-class?, body-content?, body-rtexprvalue?, display-name?, description?, attribute-type?, attribute-min?, attribute-max?, attribute*)>
 <!--
-definition if name of tag has a append name
+definition if name of tag has an append name
 
 #PCDATA ::= yes | no
 -->

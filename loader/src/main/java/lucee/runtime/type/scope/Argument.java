@@ -29,41 +29,41 @@ import lucee.runtime.type.Collection;
  */
 public interface Argument extends Scope, Array, BindScope {
 
-    /**
-     * sets if scope is bound to a other variable for using outside of a udf
-     * 
-     * @param bind
-     */
-    @Override
-    public abstract void setBind(boolean bind);
+	/**
+	 * sets if scope is bound to another variable for using outside of a udf
+	 * 
+	 * @param bind
+	 */
+	@Override
+	public abstract void setBind(boolean bind);
 
-    /**
-     * @return returns if scope is bound to a other variable for using outside of a udf
-     */
-    @Override
-    public abstract boolean isBind();
+	/**
+	 * @return returns if scope is bound to another variable for using outside of a udf
+	 */
+	@Override
+	public abstract boolean isBind();
 
-    /**
-     * insert a key in argument scope at defined position
-     * 
-     * @param index
-     * @param key
-     * @param value
-     * @return boolean
-     * @throws PageException
-     */
-    public abstract boolean insert(int index, String key, Object value) throws PageException;
+	/**
+	 * insert a key in argument scope at defined position
+	 * 
+	 * @param index
+	 * @param key
+	 * @param value
+	 * @return boolean
+	 * @throws PageException
+	 */
+	public abstract boolean insert(int index, String key, Object value) throws PageException;
 
-    public Object setArgument(Object obj) throws PageException;
+	public Object setArgument(Object obj) throws PageException;
 
-    public static final Object NULL = null;
+	public static final Object NULL = null;
 
-    public Object getFunctionArgument(String key, Object defaultValue);
+	public Object getFunctionArgument(String key, Object defaultValue);
 
-    public Object getFunctionArgument(Collection.Key key, Object defaultValue);
+	public Object getFunctionArgument(Collection.Key key, Object defaultValue);
 
-    public void setFunctionArgumentNames(Set<Collection.Key> functionArgumentNames);
+	public void setFunctionArgumentNames(Set<Collection.Key> functionArgumentNames);
 
-    public boolean containsFunctionArgumentKey(Key key);
+	public boolean containsFunctionArgumentKey(Key key);
 
 }

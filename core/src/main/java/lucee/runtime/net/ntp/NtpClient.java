@@ -31,115 +31,115 @@ import lucee.commons.lang.ExceptionUtil;
  */
 public final class NtpClient {
 
-    private String serverName;
+	private String serverName;
 
-    /**
-     * default constructor of the class
-     * 
-     * @param serverName
-     */
-    public NtpClient(String serverName) {
-	this.serverName = serverName;
-    }
-
-    /**
-     * returns the offest from the ntp server to local system
-     * 
-     * @return
-     * @throws IOException
-     */
-    public long getOffset() throws IOException {
-	/// Send request
-	DatagramSocket socket = null;
-	try {
-	    socket = new DatagramSocket();
-	    socket.setSoTimeout(20000);
-	    InetAddress address = InetAddress.getByName(serverName);
-	    byte[] buf = new NtpMessage().toByteArray();
-	    DatagramPacket packet = new DatagramPacket(buf, buf.length, address, 123);
-
-	    // Set the transmit timestamp *just* before sending the packet
-	    NtpMessage.encodeTimestamp(packet.getData(), 40, (System.currentTimeMillis() / 1000.0) + 2208988800.0);
-
-	    socket.send(packet);
-
-	    // Get response
-	    packet = new DatagramPacket(buf, buf.length);
-	    socket.receive(packet);
-
-	    // Immediately record the incoming timestamp
-	    double destinationTimestamp = (System.currentTimeMillis() / 1000.0) + 2208988800.0;
-
-	    // Process response
-	    NtpMessage msg = new NtpMessage(packet.getData());
-	    // double roundTripDelay = (destinationTimestamp-msg.originateTimestamp) -
-	    // (msg.receiveTimestamp-msg.transmitTimestamp);
-	    double localClockOffset = ((msg.receiveTimestamp - msg.originateTimestamp) + (msg.transmitTimestamp - destinationTimestamp)) / 2;
-
-	    return (long) (localClockOffset * 1000);
-	}
-	finally {
-	    IOUtil.closeEL(socket);
-	}
-    }
-
-    public long getOffset(long defaultValue) {
-	try {
-	    return getOffset();
-	}
-	catch (Throwable e) {
-	    ExceptionUtil.rethrowIfNecessary(e);
-	    return defaultValue;
+	/**
+	 * default constructor of the class
+	 * 
+	 * @param serverName
+	 */
+	public NtpClient(String serverName) {
+		this.serverName = serverName;
 	}
 
-    }
+	/**
+	 * returns the offest from the ntp server to local system
+	 * 
+	 * @return
+	 * @throws IOException
+	 */
+	public long getOffset() throws IOException {
+		/// Send request
+		DatagramSocket socket = null;
+		try {
+			socket = new DatagramSocket();
+			socket.setSoTimeout(20000);
+			InetAddress address = InetAddress.getByName(serverName);
+			byte[] buf = new NtpMessage().toByteArray();
+			DatagramPacket packet = new DatagramPacket(buf, buf.length, address, 123);
 
-    /**
-     * returns the current time from ntp server in ms from 1970
-     * 
-     * @return
-     * @throws IOException
-     */
-    public long currentTimeMillis() throws IOException {
-	return System.currentTimeMillis() + getOffset();
-    }
+			// Set the transmit timestamp *just* before sending the packet
+			NtpMessage.encodeTimestamp(packet.getData(), 40, (System.currentTimeMillis() / 1000.0) + 2208988800.0);
 
-    /*
-     * public static void main(String[] args) throws IOException{ NtpClient ntp=new
-     * NtpClient("time.nist.gov");
-     * 
-     * } public static void main(String[] args) throws IOException {
-     * 
-     * String serverName="time.nist.gov";
-     * 
-     * 
-     * 
-     * 
-     * /// Send request DatagramSocket socket = new DatagramSocket(); InetAddress address =
-     * InetAddress.getByName(serverName); byte[] buf = new NtpMessage().toByteArray(); DatagramPacket
-     * packet = new DatagramPacket(buf, buf.length, address, 123);
-     * 
-     * // Set the transmit timestamp *just* before sending the packet // ToDo: Does this improve
-     * performance or not? NtpMessage.encodeTimestamp(packet.getData(), 40,
-     * (System.currentTimeMillis()/1000.0) + 2208988800.0);
-     * 
-     * socket.send(packet);
-     * 
-     * // Get response packet = new DatagramPacket(buf, buf.length); socket.receive(packet);
-     * 
-     * // Immediately record the incoming timestamp double destinationTimestamp =
-     * (System.currentTimeMillis()/1000.0) + 2208988800.0;
-     * 
-     * 
-     * // Process response NtpMessage msg = new NtpMessage(packet.getData()); double roundTripDelay =
-     * (destinationTimestamp-msg.originateTimestamp) - (msg.receiveTimestamp-msg.transmitTimestamp);
-     * double localClockOffset = ((msg.receiveTimestamp - msg.originateTimestamp) +
-     * (msg.transmitTimestamp - destinationTimestamp)) / 2;
-     * 
-     * 
-     * // Display response
-     * 
-     * socket.close(); }
-     */
+			socket.send(packet);
+
+			// Get response
+			packet = new DatagramPacket(buf, buf.length);
+			socket.receive(packet);
+
+			// Immediately record the incoming timestamp
+			double destinationTimestamp = (System.currentTimeMillis() / 1000.0) + 2208988800.0;
+
+			// Process response
+			NtpMessage msg = new NtpMessage(packet.getData());
+			// double roundTripDelay = (destinationTimestamp-msg.originateTimestamp) -
+			// (msg.receiveTimestamp-msg.transmitTimestamp);
+			double localClockOffset = ((msg.receiveTimestamp - msg.originateTimestamp) + (msg.transmitTimestamp - destinationTimestamp)) / 2;
+
+			return (long) (localClockOffset * 1000);
+		}
+		finally {
+			IOUtil.close(socket);
+		}
+	}
+
+	public long getOffset(long defaultValue) {
+		try {
+			return getOffset();
+		}
+		catch (Throwable e) {
+			ExceptionUtil.rethrowIfNecessary(e);
+			return defaultValue;
+		}
+
+	}
+
+	/**
+	 * returns the current time from ntp server in ms from 1970
+	 * 
+	 * @return
+	 * @throws IOException
+	 */
+	public long currentTimeMillis() throws IOException {
+		return System.currentTimeMillis() + getOffset();
+	}
+
+	/*
+	 * public static void main(String[] args) throws IOException{ NtpClient ntp=new
+	 * NtpClient("time.nist.gov");
+	 * 
+	 * } public static void main(String[] args) throws IOException {
+	 * 
+	 * String serverName="time.nist.gov";
+	 * 
+	 * 
+	 * 
+	 * 
+	 * /// Send request DatagramSocket socket = new DatagramSocket(); InetAddress address =
+	 * InetAddress.getByName(serverName); byte[] buf = new NtpMessage().toByteArray(); DatagramPacket
+	 * packet = new DatagramPacket(buf, buf.length, address, 123);
+	 * 
+	 * // Set the transmit timestamp *just* before sending the packet // ToDo: Does this improve
+	 * performance or not? NtpMessage.encodeTimestamp(packet.getData(), 40,
+	 * (System.currentTimeMillis()/1000.0) + 2208988800.0);
+	 * 
+	 * socket.send(packet);
+	 * 
+	 * // Get response packet = new DatagramPacket(buf, buf.length); socket.receive(packet);
+	 * 
+	 * // Immediately record the incoming timestamp double destinationTimestamp =
+	 * (System.currentTimeMillis()/1000.0) + 2208988800.0;
+	 * 
+	 * 
+	 * // Process response NtpMessage msg = new NtpMessage(packet.getData()); double roundTripDelay =
+	 * (destinationTimestamp-msg.originateTimestamp) - (msg.receiveTimestamp-msg.transmitTimestamp);
+	 * double localClockOffset = ((msg.receiveTimestamp - msg.originateTimestamp) +
+	 * (msg.transmitTimestamp - destinationTimestamp)) / 2;
+	 * 
+	 * 
+	 * // Display response
+	 * 
+	 * socket.close(); }
+	 */
 
 }

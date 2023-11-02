@@ -19,5 +19,5 @@
 package lucee.commons.io.log.log4j.appender;
 
 public interface AppenderState {
-    public boolean isClosed();
+	public boolean isClosed();
 }

@@ -31,19 +31,19 @@ import lucee.runtime.op.Caster;
  */
 public final class GenerateSecretKey implements Function {
 
-    public static String call(PageContext pc, String algorithm) throws PageException {
-	return call(pc, algorithm, 0);
-    }
+	public static String call(PageContext pc, String algorithm) throws PageException {
+		return call(pc, algorithm, 0);
+	}
 
-    public static String call(PageContext pc, String algorithm, double keySize) throws PageException {
-	try {
-	    KeyGenerator keyGenerator = KeyGenerator.getInstance(algorithm.toUpperCase());
-	    if (keySize > 0) keyGenerator.init(Caster.toIntValue(keySize));
-	    return Coder.encode(Coder.ENCODING_BASE64, keyGenerator.generateKey().getEncoded());
+	public static String call(PageContext pc, String algorithm, double keySize) throws PageException {
+		try {
+			KeyGenerator keyGenerator = KeyGenerator.getInstance(algorithm.toUpperCase());
+			if (keySize > 0) keyGenerator.init(Caster.toIntValue(keySize));
+			return Coder.encode(Coder.ENCODING_BASE64, keyGenerator.generateKey().getEncoded());
+		}
+		catch (Exception e) {
+			throw Caster.toPageException(e);
+		}
 	}
-	catch (Exception e) {
-	    throw Caster.toPageException(e);
-	}
-    }
 
 }

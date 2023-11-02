@@ -29,37 +29,37 @@ import lucee.runtime.op.Caster;
 
 public final class FindOneOf extends BIF {
 
-    private static final long serialVersionUID = -7521748254181624968L;
+	private static final long serialVersionUID = -7521748254181624968L;
 
-    public static double call(PageContext pc, String set, String str) {
-	return call(pc, set, str, 1);
-    }
-
-    public static double call(PageContext pc, String strSet, String strData, double number) {
-	// strData
-	char[] data = strData.toCharArray();
-	// set
-	char[] set = strSet.toCharArray();
-	// start
-	int start = (int) number - 1;
-	if (start < 0) start = 0;
-
-	if (start >= data.length || set.length == 0) return 0;
-	// else {
-	for (int i = start; i < data.length; i++) {
-	    for (int y = 0; y < set.length; y++) {
-		if (data[i] == set[y]) return i + 1;
-	    }
+	public static double call(PageContext pc, String set, String str) {
+		return call(pc, set, str, 1);
 	}
-	// }
-	return 0;
-    }
 
-    @Override
-    public Object invoke(PageContext pc, Object[] args) throws PageException {
-	if (args.length == 2) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]));
-	if (args.length == 3) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toDoubleValue(args[2]));
-	throw new FunctionException(pc, "FindOneOf", 2, 3, args.length);
-    }
+	public static double call(PageContext pc, String strSet, String strData, double number) {
+		// strData
+		char[] data = strData.toCharArray();
+		// set
+		char[] set = strSet.toCharArray();
+		// start
+		int start = (int) number - 1;
+		if (start < 0) start = 0;
+
+		if (start >= data.length || set.length == 0) return 0;
+		// else {
+		for (int i = start; i < data.length; i++) {
+			for (int y = 0; y < set.length; y++) {
+				if (data[i] == set[y]) return i + 1;
+			}
+		}
+		// }
+		return 0;
+	}
+
+	@Override
+	public Object invoke(PageContext pc, Object[] args) throws PageException {
+		if (args.length == 2) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]));
+		if (args.length == 3) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toDoubleValue(args[2]));
+		throw new FunctionException(pc, "FindOneOf", 2, 3, args.length);
+	}
 
 }

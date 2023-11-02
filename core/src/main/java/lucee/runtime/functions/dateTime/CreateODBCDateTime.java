@@ -23,7 +23,7 @@ import lucee.runtime.ext.function.Function;
 import lucee.runtime.type.dt.DateTime;
 
 public final class CreateODBCDateTime implements Function {
-    public static DateTime call(PageContext pc, DateTime datetime) {
-	return datetime;
-    }
+	public static DateTime call(PageContext pc, DateTime datetime) {
+		return datetime;
+	}
 }

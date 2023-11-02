@@ -31,23 +31,23 @@ import lucee.loader.engine.CFMLEngineFactory;
  */
 public class RestServlet extends AbsServlet {
 
-    private static final long serialVersionUID = 1555107078656945805L;
+	private static final long serialVersionUID = 1555107078656945805L;
 
-    /**
-     * @see javax.servlet.Servlet#init(javax.servlet.ServletConfig)
-     */
-    @Override
-    public void init(final ServletConfig sg) throws ServletException {
-	super.init(sg);
-	engine = CFMLEngineFactory.getInstance(sg, this);
-    }
+	/**
+	 * @see javax.servlet.Servlet#init(javax.servlet.ServletConfig)
+	 */
+	@Override
+	public void init(final ServletConfig sg) throws ServletException {
+		super.init(sg);
+		engine = CFMLEngineFactory.getInstance(sg, this);
+	}
 
-    /**
-     * @see javax.servlet.http.HttpServlet#service(javax.servlet.http.HttpServletRequest,
-     *      javax.servlet.http.HttpServletResponse)
-     */
-    @Override
-    protected void service(final HttpServletRequest req, final HttpServletResponse rsp) throws ServletException, IOException {
-	engine.serviceRest(this, req, rsp);
-    }
+	/**
+	 * @see javax.servlet.http.HttpServlet#service(javax.servlet.http.HttpServletRequest,
+	 *      javax.servlet.http.HttpServletResponse)
+	 */
+	@Override
+	protected void service(final HttpServletRequest req, final HttpServletResponse rsp) throws ServletException, IOException {
+		engine.serviceRest(this, req, rsp);
+	}
 }

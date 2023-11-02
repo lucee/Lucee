@@ -24,7 +24,7 @@ import lucee.transformer.expression.ExprInt;
  */
 public interface LitInteger extends Literal, ExprInt {
 
-    public int geIntValue();
+	public int geIntValue();
 
-    public Integer getInteger();
+	public Integer getInteger();
 }

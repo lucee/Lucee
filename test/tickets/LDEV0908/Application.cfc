@@ -1,20 +1,19 @@
 component {
 	this.name =	"LDEV-908";
-	mySQL = getCredentials();
 	this.datasource ={
-		  class: 'org.gjt.mm.mysql.Driver'
-		, bundleName:'com.mysql.jdbc'
-		, bundleVersion:'5.1.38'
-		, connectionString: 'jdbc:mysql://'&mySQL.server&':'&mySQL.port&'/'&mySQL.database&'?useUnicode=true&characterEncoding=UTF-8&useLegacyDatetimeCode=true'
-		, username: mySQL.username
-		, password: mySQL.password
-	};
+	  		class: 'org.h2.Driver'
+	  		, bundleName: 'org.h2'
+			, connectionString: 'jdbc:h2:#getDirectoryFromPath(getCurrentTemplatePath())#/datasource/db908;MODE=MySQL'
+		};
+
+
 	this.ormenabled= true ;
 
 	function onApplicationStart(){
 		query{
 			echo("DROP TABLE IF EXISTS LDEV0908");
 		}
+
 
 		query{
 			echo("CREATE TABLE LDEV0908(ID INT NOT NULL AUTO_INCREMENT,col1 VARCHAR(50), col2 VARCHAR(50),PRIMARY KEY (ID))");
@@ -25,7 +24,7 @@ component {
 		}
 	}
 
-	private struct function getCredentials() {
+	/*private struct function getCredentials() {
 		// getting the credentials from the enviroment variables
 		var mySQL={};
 		if(isNull(server.system)){
@@ -61,5 +60,5 @@ component {
 			mySQL.database=server.system.properties.MYSQL_DATABASE;
 		}
 		return mysql;
-	}
+	}*/
 }

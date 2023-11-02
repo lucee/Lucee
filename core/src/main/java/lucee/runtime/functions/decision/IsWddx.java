@@ -26,7 +26,7 @@ import lucee.runtime.ext.function.Function;
 import lucee.runtime.op.Decision;
 
 public final class IsWddx implements Function {
-    public static boolean call(PageContext pc, Object o) {
-	return Decision.isWddx(o);
-    }
+	public static boolean call(PageContext pc, Object o) {
+		return Decision.isWddx(o);
+	}
 }

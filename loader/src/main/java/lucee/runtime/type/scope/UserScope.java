@@ -22,6 +22,6 @@ import lucee.runtime.PageContext;
 
 public interface UserScope extends SharedScope {
 
-    public void resetEnv(PageContext pc);
+	public void resetEnv(PageContext pc);
 
 }

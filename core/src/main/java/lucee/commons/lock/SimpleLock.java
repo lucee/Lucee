@@ -23,49 +23,49 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class SimpleLock<L> implements Lock {
 
-    private ReentrantLock lock;
-    private L label;
+	private ReentrantLock lock;
+	private L label;
 
-    public SimpleLock(L label) {
-	this.lock = new ReentrantLock(true);
-	this.label = label;
-    }
-
-    @Override
-    public void lock(long timeout) throws LockException {
-	if (timeout <= 0) throw new LockException("timeout must be a positive number");
-	long initialTimeout = timeout;
-	long start = System.currentTimeMillis();
-	do {
-	    try {
-		if (!lock.tryLock(timeout, TimeUnit.MILLISECONDS)) {
-		    throw new LockException(initialTimeout);
-		}
-		break; // exit loop
-	    }
-	    catch (InterruptedException e) {
-		timeout -= System.currentTimeMillis() - start;
-	    }
-	    if (timeout <= 0) {
-		// Lucee was not able to aquire lock in time
-		throw new LockException(initialTimeout);
-	    }
+	public SimpleLock(L label) {
+		this.lock = new ReentrantLock(true);
+		this.label = label;
 	}
-	while (true);
 
-    }
+	@Override
+	public void lock(long timeout) throws LockException {
+		if (timeout <= 0) throw new LockException("timeout must be a positive number");
+		long initialTimeout = timeout;
+		long start = System.currentTimeMillis();
+		do {
+			try {
+				if (!lock.tryLock(timeout, TimeUnit.MILLISECONDS)) {
+					throw new LockException(initialTimeout);
+				}
+				break; // exit loop
+			}
+			catch (InterruptedException e) {
+				timeout -= System.currentTimeMillis() - start;
+			}
+			if (timeout <= 0) {
+				// Lucee was not able to aquire lock in time
+				throw new LockException(initialTimeout);
+			}
+		}
+		while (true);
 
-    @Override
-    public void unlock() {
-	lock.unlock();
-    }
+	}
 
-    @Override
-    public int getQueueLength() {
-	return lock.getQueueLength();
-    }
+	@Override
+	public void unlock() {
+		lock.unlock();
+	}
 
-    public L getLabel() {
-	return label;
-    }
+	@Override
+	public int getQueueLength() {
+		return lock.getQueueLength();
+	}
+
+	public L getLabel() {
+		return label;
+	}
 }

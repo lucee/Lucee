@@ -35,35 +35,35 @@ import lucee.runtime.op.Caster;
 
 public final class DayOfWeekAsString extends BIF {
 
-    private static final long serialVersionUID = 4067032942689404733L;
-    private static final int DAY = 1000 * 60 * 60 * 24;
+	private static final long serialVersionUID = 4067032942689404733L;
+	private static final int DAY = 1000 * 60 * 60 * 24;
 
-    private static Date[] dates = new Date[] { new Date(0 + (3 * DAY)), new Date(0 + (4 * DAY)), new Date(0 + (5 * DAY)), new Date(0 + (6 * DAY)), new Date(0),
-	    new Date(0 + (1 * DAY)), new Date(0 + (2 * DAY)) };
+	private static Date[] dates = new Date[] { new Date(0 + (3 * DAY)), new Date(0 + (4 * DAY)), new Date(0 + (5 * DAY)), new Date(0 + (6 * DAY)), new Date(0),
+			new Date(0 + (1 * DAY)), new Date(0 + (2 * DAY)) };
 
-    public static String call(PageContext pc, double dow) throws ExpressionException {
-	return call(pc, dow, pc.getLocale(), true);
-    }
-
-    public static String call(PageContext pc, double dow, Locale locale) throws ExpressionException {
-	return call(pc, dow, locale == null ? pc.getLocale() : locale, true);
-    }
-
-    protected static String call(PageContext pc, double dow, Locale locale, boolean _long) throws ExpressionException {
-
-	int dayOfWeek = (int) dow;
-	if (dayOfWeek >= 1 && dayOfWeek <= 7) {
-	    return DateFormatPool.format(locale, TimeZoneConstants.GMT0, _long ? "EEEE" : "EEE", dates[dayOfWeek - 1]);
+	public static String call(PageContext pc, double dow) throws ExpressionException {
+		return call(pc, dow, pc.getLocale(), true);
 	}
-	throw new FunctionException(pc, _long ? "DayOfWeekAsString" : "DayOfWeekShortAsString", 1, "dayOfWeek", "must be between 1 and 7 now [" + dayOfWeek + "]");
-	// throw new ExpressionException("invalid dayOfWeek definition in function DayOfWeekAsString, must
-	// be between 1 and 7 now ["+dayOfWeek+"]");
-    }
 
-    @Override
-    public Object invoke(PageContext pc, Object[] args) throws PageException {
-	if (args.length == 1) return call(pc, Caster.toDoubleValue(args[0]));
-	if (args.length == 2) return call(pc, Caster.toDoubleValue(args[0]), Caster.toLocale(args[1]));
-	throw new FunctionException(pc, "DayOfWeekAsString", 1, 2, args.length);
-    }
+	public static String call(PageContext pc, double dow, Locale locale) throws ExpressionException {
+		return call(pc, dow, locale == null ? pc.getLocale() : locale, true);
+	}
+
+	protected static String call(PageContext pc, double dow, Locale locale, boolean _long) throws ExpressionException {
+
+		int dayOfWeek = (int) dow;
+		if (dayOfWeek >= 1 && dayOfWeek <= 7) {
+			return DateFormatPool.format(locale, TimeZoneConstants.GMT0, _long ? "EEEE" : "EEE", dates[dayOfWeek - 1]);
+		}
+		throw new FunctionException(pc, _long ? "DayOfWeekAsString" : "DayOfWeekShortAsString", 1, "dayOfWeek", "must be between 1 and 7 now [" + dayOfWeek + "]");
+		// throw new ExpressionException("invalid dayOfWeek definition in function DayOfWeekAsString, must
+		// be between 1 and 7 now ["+dayOfWeek+"]");
+	}
+
+	@Override
+	public Object invoke(PageContext pc, Object[] args) throws PageException {
+		if (args.length == 1) return call(pc, Caster.toDoubleValue(args[0]));
+		if (args.length == 2) return call(pc, Caster.toDoubleValue(args[0]), Caster.toLocale(args[1]));
+		throw new FunctionException(pc, "DayOfWeekAsString", 1, 2, args.length);
+	}
 }

@@ -51,238 +51,238 @@ import lucee.runtime.type.StructImpl;
 
 public class CFMLResourceProvider implements ResourceProviderPro {
 
-    private static final Object[] ZERO_ARGS = new Object[0];
+	private static final Object[] ZERO_ARGS = new Object[0];
 
-    private int lockTimeout = 20000;
-    private final ResourceLockImpl lock = new ResourceLockImpl(lockTimeout, false);
-    private String scheme;
-    private Map args;
-    // private ResourceProvider provider;
-    private Resources resources;
+	private int lockTimeout = 20000;
+	private final ResourceLockImpl lock = new ResourceLockImpl(lockTimeout, false);
+	private String scheme;
+	private Map args;
+	// private ResourceProvider provider;
+	private Resources resources;
 
-    private String componentPath;
+	private String componentPath;
 
-    private Component component;
+	private Component component;
 
-    private boolean useStreams = false;
+	private boolean useStreams = false;
 
-    @Override
-    public ResourceProvider init(String scheme, Map args) {
-	this.scheme = scheme;
-	this.args = args;
+	@Override
+	public ResourceProvider init(String scheme, Map args) {
+		this.scheme = scheme;
+		this.args = args;
 
-	// CFC Path
-	componentPath = Caster.toString(args.get("cfc"), null);
-	if (StringUtil.isEmpty(componentPath, true)) componentPath = Caster.toString(args.get("component"), null);
-	if (StringUtil.isEmpty(componentPath, true)) componentPath = Caster.toString(args.get("class"), null);
+		// CFC Path
+		componentPath = Caster.toString(args.get("cfc"), null);
+		if (StringUtil.isEmpty(componentPath, true)) componentPath = Caster.toString(args.get("component"), null);
+		if (StringUtil.isEmpty(componentPath, true)) componentPath = Caster.toString(args.get("class"), null);
 
-	// use Streams for data
-	Boolean _useStreams = Caster.toBoolean(args.get("use-streams"), null);
-	if (_useStreams == null) _useStreams = Caster.toBoolean(args.get("usestreams"), null);
+		// use Streams for data
+		Boolean _useStreams = Caster.toBoolean(args.get("use-streams"), null);
+		if (_useStreams == null) _useStreams = Caster.toBoolean(args.get("usestreams"), null);
 
-	if (_useStreams != null) useStreams = _useStreams.booleanValue();
+		if (_useStreams != null) useStreams = _useStreams.booleanValue();
 
-	return this;
-    }
-
-    @Override
-    public Resource getResource(String path) {
-	path = ResourceUtil.removeScheme(scheme, path);
-	path = ResourceUtil.prettifyPath(path);
-	if (!StringUtil.startsWith(path, '/')) path = "/" + path;
-
-	return callResourceRTE(getPageContext(null), null, "getResource", new Object[] { path }, false);
-    }
-
-    private PageContext getPageContext(PageContext pc) {
-	ThreadLocalPageContext.get(pc);
-	if (pc != null) return pc;
-
-	Config c = ThreadLocalPageContext.getConfig();
-	if (c instanceof ConfigWeb) {
-	    return ThreadUtil.createPageContext((ConfigWeb) c, DevNullOutputStream.DEV_NULL_OUTPUT_STREAM, "localhost", "/", "", new Cookie[0], new Pair[0], null, new Pair[0],
-		    new StructImpl(), false, -1);
+		return this;
 	}
-	try {
-	    return CFMLEngineFactory.getInstance().createPageContext(new File("."), "localhost", "/", "", new Cookie[0], null, null, null,
-		    DevNullOutputStream.DEV_NULL_OUTPUT_STREAM, -1, false);
+
+	@Override
+	public Resource getResource(String path) {
+		path = ResourceUtil.removeScheme(scheme, path);
+		path = ResourceUtil.prettifyPath(path);
+		if (!StringUtil.startsWith(path, '/')) path = "/" + path;
+
+		return callResourceRTE(getPageContext(null), null, "getResource", new Object[] { path }, false);
 	}
-	catch (Exception e) {
-	    throw new RuntimeException(e);
+
+	private PageContext getPageContext(PageContext pc) {
+		ThreadLocalPageContext.get(pc);
+		if (pc != null) return pc;
+
+		Config c = ThreadLocalPageContext.getConfig();
+		if (c instanceof ConfigWeb) {
+			return ThreadUtil.createPageContext((ConfigWeb) c, DevNullOutputStream.DEV_NULL_OUTPUT_STREAM, "localhost", "/", "", new Cookie[0], new Pair[0], null, new Pair[0],
+					new StructImpl(), false, -1);
+		}
+		try {
+			return CFMLEngineFactory.getInstance().createPageContext(new File("."), "localhost", "/", "", new Cookie[0], null, null, null,
+					DevNullOutputStream.DEV_NULL_OUTPUT_STREAM, -1, false);
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
 	}
-    }
 
-    @Override
-    public String getScheme() {
-	return scheme;
-    }
-
-    @Override
-    public Map getArguments() {
-	return args;
-    }
-
-    @Override
-    public void setResources(Resources resources) {
-	this.resources = resources;
-    }
-
-    @Override
-    public boolean isCaseSensitive() {
-	return callbooleanRTE(null, null, "isCaseSensitive", ZERO_ARGS);
-    }
-
-    @Override
-    public boolean isModeSupported() {
-	return callbooleanRTE(null, null, "isModeSupported", ZERO_ARGS);
-    }
-
-    @Override
-    public boolean isAttributesSupported() {
-	return callbooleanRTE(null, null, "isAttributesSupported", ZERO_ARGS);
-    }
-
-    public int getLockTimeout() {
-	return lockTimeout;
-    }
-
-    @Override
-    public void lock(Resource res) throws IOException {
-	lock.lock(res);
-    }
-
-    @Override
-    public void unlock(Resource res) {
-	lock.unlock(res);
-    }
-
-    @Override
-    public void read(Resource res) throws IOException {
-	lock.read(res);
-    }
-
-    public boolean isUseStreams() {
-	return useStreams;
-    }
-
-    Resource callResourceRTE(PageContext pc, Component component, String methodName, Object[] args, boolean allowNull) {
-	pc = getPageContext(pc);
-	try {
-	    Object res = call(pc, getCFC(pc, component), methodName, args);
-	    if (allowNull && res == null) return null;
-	    return new CFMLResource(this, Caster.toComponent(res));
+	@Override
+	public String getScheme() {
+		return scheme;
 	}
-	catch (PageException pe) {
-	    throw new PageRuntimeException(pe);
-	}
-    }
 
-    Resource[] callResourceArrayRTE(PageContext pc, Component component, String methodName, Object[] args) {
-	pc = ThreadLocalPageContext.get(pc);
-	try {
-	    Array arr = Caster.toArray(call(pc, getCFC(pc, component), methodName, args));
-	    Iterator<Object> it = arr.valueIterator();
-	    CFMLResource[] resources = new CFMLResource[arr.size()];
-	    int index = 0;
-	    while (it.hasNext()) {
-		resources[index++] = new CFMLResource(this, Caster.toComponent(it.next()));
-	    }
-	    return resources;
+	@Override
+	public Map getArguments() {
+		return args;
 	}
-	catch (PageException pe) {
-	    throw new PageRuntimeException(pe);
+
+	@Override
+	public void setResources(Resources resources) {
+		this.resources = resources;
 	}
-    }
 
-    int callintRTE(PageContext pc, Component component, String methodName, Object[] args) {
-	try {
-	    return callint(pc, component, methodName, args);
+	@Override
+	public boolean isCaseSensitive() {
+		return callbooleanRTE(null, null, "isCaseSensitive", ZERO_ARGS);
 	}
-	catch (PageException pe) {
-	    throw new PageRuntimeException(pe);
+
+	@Override
+	public boolean isModeSupported() {
+		return callbooleanRTE(null, null, "isModeSupported", ZERO_ARGS);
 	}
-    }
 
-    int callint(PageContext pc, Component component, String methodName, Object[] args) throws PageException {
-	return Caster.toIntValue(call(pc, component, methodName, args));
-    }
-
-    long calllongRTE(PageContext pc, Component component, String methodName, Object[] args) {
-	try {
-	    return calllong(pc, component, methodName, args);
+	@Override
+	public boolean isAttributesSupported() {
+		return callbooleanRTE(null, null, "isAttributesSupported", ZERO_ARGS);
 	}
-	catch (PageException pe) {
-	    throw new PageRuntimeException(pe);
+
+	public int getLockTimeout() {
+		return lockTimeout;
 	}
-    }
 
-    long calllong(PageContext pc, Component component, String methodName, Object[] args) throws PageException {
-	return Caster.toLongValue(call(pc, component, methodName, args));
-    }
-
-    boolean callbooleanRTE(PageContext pc, Component component, String methodName, Object[] args) {
-	try {
-	    return callboolean(pc, component, methodName, args);
+	@Override
+	public void lock(Resource res) throws IOException {
+		lock.lock(res);
 	}
-	catch (PageException pe) {
-	    throw new PageRuntimeException(pe);
+
+	@Override
+	public void unlock(Resource res) {
+		lock.unlock(res);
 	}
-    }
 
-    boolean callboolean(PageContext pc, Component component, String methodName, Object[] args) throws PageException {
-	return Caster.toBooleanValue(call(pc, component, methodName, args));
-    }
-
-    String callStringRTE(PageContext pc, Component component, String methodName, Object[] args) {
-	try {
-	    return Caster.toString(call(pc, component, methodName, args));
+	@Override
+	public void read(Resource res) throws IOException {
+		lock.read(res);
 	}
-	catch (PageException pe) {
-	    throw new PageRuntimeException(pe);
+
+	public boolean isUseStreams() {
+		return useStreams;
 	}
-    }
 
-    String callString(PageContext pc, Component component, String methodName, Object[] args) throws PageException {
-	return Caster.toString(call(pc, component, methodName, args));
-    }
-
-    Object callRTE(PageContext pc, Component component, String methodName, Object[] args) {
-	try {
-	    return call(pc, component, methodName, args);
+	Resource callResourceRTE(PageContext pc, Component component, String methodName, Object[] args, boolean allowNull) {
+		pc = getPageContext(pc);
+		try {
+			Object res = call(pc, getCFC(pc, component), methodName, args);
+			if (allowNull && res == null) return null;
+			return new CFMLResource(this, Caster.toComponent(res));
+		}
+		catch (PageException pe) {
+			throw new PageRuntimeException(pe);
+		}
 	}
-	catch (PageException pe) {
-	    throw new PageRuntimeException(pe);
+
+	Resource[] callResourceArrayRTE(PageContext pc, Component component, String methodName, Object[] args) {
+		pc = ThreadLocalPageContext.get(pc);
+		try {
+			Array arr = Caster.toArray(call(pc, getCFC(pc, component), methodName, args));
+			Iterator<Object> it = arr.valueIterator();
+			CFMLResource[] resources = new CFMLResource[arr.size()];
+			int index = 0;
+			while (it.hasNext()) {
+				resources[index++] = new CFMLResource(this, Caster.toComponent(it.next()));
+			}
+			return resources;
+		}
+		catch (PageException pe) {
+			throw new PageRuntimeException(pe);
+		}
 	}
-    }
 
-    Object call(PageContext pc, Component component, String methodName, Object[] args) throws PageException {
-	pc = ThreadLocalPageContext.get(pc);
-	return getCFC(pc, component).call(pc, methodName, args);
-    }
-
-    private Component getCFC(PageContext pc, Component component) throws PageException {
-	if (component != null) return component;
-	if (this.component != null) return this.component;
-
-	if (StringUtil.isEmpty(componentPath, true)) throw new ApplicationException("you need to define the argument [component] for the [CFMLResourceProvider]");
-	componentPath = componentPath.trim();
-	this.component = pc.loadComponent(componentPath);
-	call(pc, this.component, "init", new Object[] { scheme, Caster.toStruct(args) });
-
-	return this.component;
-    }
-
-    @Override
-    public char getSeparator() {
-	try {
-	    String str = callStringRTE(null, component, "getSeparator", ZERO_ARGS);
-	    if (StringUtil.length(str, true) == 1) return str.charAt(0);
+	int callintRTE(PageContext pc, Component component, String methodName, Object[] args) {
+		try {
+			return callint(pc, component, methodName, args);
+		}
+		catch (PageException pe) {
+			throw new PageRuntimeException(pe);
+		}
 	}
-	catch (Throwable t) {
-	    ExceptionUtil.rethrowIfNecessary(t);
-	    // fallback to default "/"
+
+	int callint(PageContext pc, Component component, String methodName, Object[] args) throws PageException {
+		return Caster.toIntValue(call(pc, component, methodName, args));
 	}
-	return '/';
-    }
+
+	long calllongRTE(PageContext pc, Component component, String methodName, Object[] args) {
+		try {
+			return calllong(pc, component, methodName, args);
+		}
+		catch (PageException pe) {
+			throw new PageRuntimeException(pe);
+		}
+	}
+
+	long calllong(PageContext pc, Component component, String methodName, Object[] args) throws PageException {
+		return Caster.toLongValue(call(pc, component, methodName, args));
+	}
+
+	boolean callbooleanRTE(PageContext pc, Component component, String methodName, Object[] args) {
+		try {
+			return callboolean(pc, component, methodName, args);
+		}
+		catch (PageException pe) {
+			throw new PageRuntimeException(pe);
+		}
+	}
+
+	boolean callboolean(PageContext pc, Component component, String methodName, Object[] args) throws PageException {
+		return Caster.toBooleanValue(call(pc, component, methodName, args));
+	}
+
+	String callStringRTE(PageContext pc, Component component, String methodName, Object[] args) {
+		try {
+			return Caster.toString(call(pc, component, methodName, args));
+		}
+		catch (PageException pe) {
+			throw new PageRuntimeException(pe);
+		}
+	}
+
+	String callString(PageContext pc, Component component, String methodName, Object[] args) throws PageException {
+		return Caster.toString(call(pc, component, methodName, args));
+	}
+
+	Object callRTE(PageContext pc, Component component, String methodName, Object[] args) {
+		try {
+			return call(pc, component, methodName, args);
+		}
+		catch (PageException pe) {
+			throw new PageRuntimeException(pe);
+		}
+	}
+
+	Object call(PageContext pc, Component component, String methodName, Object[] args) throws PageException {
+		pc = ThreadLocalPageContext.get(pc);
+		return getCFC(pc, component).call(pc, methodName, args);
+	}
+
+	private Component getCFC(PageContext pc, Component component) throws PageException {
+		if (component != null) return component;
+		if (this.component != null) return this.component;
+
+		if (StringUtil.isEmpty(componentPath, true)) throw new ApplicationException("You need to define the argument [component] for the [CFMLResourceProvider]");
+		componentPath = componentPath.trim();
+		this.component = pc.loadComponent(componentPath);
+		call(pc, this.component, "init", new Object[] { scheme, Caster.toStruct(args) });
+
+		return this.component;
+	}
+
+	@Override
+	public char getSeparator() {
+		try {
+			String str = callStringRTE(null, component, "getSeparator", ZERO_ARGS);
+			if (StringUtil.length(str, true) == 1) return str.charAt(0);
+		}
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+			// fallback to default "/"
+		}
+		return '/';
+	}
 
 }

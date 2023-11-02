@@ -20,15 +20,15 @@ package lucee.runtime.type.scope;
 
 public interface Variables extends Scope {
 
-    /**
-     * sets if scope is bound to a closure
-     * 
-     * @param bind
-     */
-    public void setBind(boolean bind);
+	/**
+	 * sets if scope is bound to a closure
+	 * 
+	 * @param bind
+	 */
+	public void setBind(boolean bind);
 
-    /**
-     * @return returns if scope is bound to a closure
-     */
-    public abstract boolean isBind();
+	/**
+	 * @return returns if scope is bound to a closure
+	 */
+	public abstract boolean isBind();
 }

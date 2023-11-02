@@ -24,37 +24,37 @@ import lucee.runtime.type.Collection;
  * 
  */
 public interface Session extends Scope, UserScope {// FUTURE add StorageScope
-    /**
-     * @return returns the last access to this session scope
-     * @deprecated
-     */
-    @Deprecated
-    public abstract long getLastAccess();
+	/**
+	 * @return returns the last access to this session scope
+	 * @deprecated
+	 */
+	@Deprecated
+	public abstract long getLastAccess();
 
-    /**
-     * @return returns the current timespan of the session
-     * @deprecated
-     */
-    @Deprecated
-    public abstract long getTimeSpan();
+	/**
+	 * @return returns the current timespan of the session
+	 * @deprecated
+	 */
+	@Deprecated
+	public abstract long getTimeSpan();
 
-    public long getCreated();
+	public long getCreated();
 
-    /**
-     * @return is the scope expired or not
-     */
-    public abstract boolean isExpired();
+	/**
+	 * @return is the scope expired or not
+	 */
+	public abstract boolean isExpired();
 
-    /**
-     * sets the last access timestamp to now
-     */
-    public abstract void touch();
+	/**
+	 * sets the last access timestamp to now
+	 */
+	public abstract void touch();
 
-    public int _getId();
+	public int _getId();
 
-    /**
-     * @return all keys except the readonly ones (cfid,cftoken,hitcount,lastvisit ...)
-     */
-    public abstract Collection.Key[] pureKeys();
+	/**
+	 * @return all keys except the readonly ones (cfid,cftoken,hitcount,lastvisit ...)
+	 */
+	public abstract Collection.Key[] pureKeys();
 
 }

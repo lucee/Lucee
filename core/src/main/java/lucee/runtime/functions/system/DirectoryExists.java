@@ -32,34 +32,34 @@ import lucee.runtime.op.Caster;
 
 public final class DirectoryExists extends BIF {
 
-    private static final long serialVersionUID = 4375183479006129959L;
+	private static final long serialVersionUID = 4375183479006129959L;
 
-    public static boolean call(PageContext pc, String path) throws PageException {
-	return call(pc, path, pc.getConfig().allowRealPath());
-    }
-
-    public static boolean call(PageContext pc, String path, Object oAllowRealPath) throws PageException {
-	if (StringUtil.isEmpty(path, true)) return false;
-
-	Resource file;
-	boolean allowRealPath = (oAllowRealPath == null) ? pc.getConfig().allowRealPath() : Caster.toBooleanValue(oAllowRealPath);
-	if (allowRealPath) {
-	    file = ResourceUtil.toResourceNotExisting(pc, path, allowRealPath, false);
-	    // TODO das else braucht es eigentlich nicht mehr
+	public static boolean call(PageContext pc, String path) throws PageException {
+		return call(pc, path, pc.getConfig().allowRealPath());
 	}
-	else {
-	    // ARP
-	    file = pc.getConfig().getResource(path);
-	    if (file != null && !file.isAbsolute()) return false;
-	}
-	pc.getConfig().getSecurityManager().checkFileLocation(file);
-	return file.isDirectory();
-    }
 
-    @Override
-    public Object invoke(PageContext pc, Object[] args) throws PageException {
-	if (args.length == 1) return call(pc, Caster.toString(args[0]));
-	if (args.length == 2) return call(pc, Caster.toString(args[0]), args[1]);
-	throw new FunctionException(pc, "DirectoryExists", 1, 2, args.length);
-    }
+	public static boolean call(PageContext pc, String path, Object oAllowRealPath) throws PageException {
+		if (StringUtil.isEmpty(path, true)) return false;
+
+		Resource file;
+		boolean allowRealPath = (oAllowRealPath == null) ? pc.getConfig().allowRealPath() : Caster.toBooleanValue(oAllowRealPath);
+		if (allowRealPath) {
+			file = ResourceUtil.toResourceNotExisting(pc, path, allowRealPath, false);
+			// TODO das else braucht es eigentlich nicht mehr
+		}
+		else {
+			// ARP
+			file = pc.getConfig().getResource(path);
+			if (file != null && !file.isAbsolute()) return false;
+		}
+		pc.getConfig().getSecurityManager().checkFileLocation(file);
+		return file.isDirectory();
+	}
+
+	@Override
+	public Object invoke(PageContext pc, Object[] args) throws PageException {
+		if (args.length == 1) return call(pc, Caster.toString(args[0]));
+		if (args.length == 2) return call(pc, Caster.toString(args[0]), args[1]);
+		throw new FunctionException(pc, "DirectoryExists", 1, 2, args.length);
+	}
 }

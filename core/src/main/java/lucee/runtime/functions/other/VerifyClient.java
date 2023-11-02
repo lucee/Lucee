@@ -24,8 +24,8 @@ import lucee.runtime.ext.function.Function;
 
 public final class VerifyClient implements Function {
 
-    public static String call(PageContext pc) throws FunctionNotSupported {
-	throw new FunctionNotSupported("VerifyClient");
-    }
+	public static String call(PageContext pc) throws FunctionNotSupported {
+		throw new FunctionNotSupported("VerifyClient");
+	}
 
 }

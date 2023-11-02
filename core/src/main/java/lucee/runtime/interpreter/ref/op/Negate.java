@@ -29,27 +29,27 @@ import lucee.runtime.op.Caster;
  */
 public final class Negate extends RefSupport implements Ref {
 
-    private Ref ref;
-    private boolean limited;
+	private Ref ref;
+	private boolean limited;
 
-    /**
-     * constructor of the class
-     * 
-     * @param ref
-     */
-    public Negate(Ref ref, boolean limited) {
-	this.ref = ref;
-	this.limited = limited;
-    }
+	/**
+	 * constructor of the class
+	 * 
+	 * @param ref
+	 */
+	public Negate(Ref ref, boolean limited) {
+		this.ref = ref;
+		this.limited = limited;
+	}
 
-    @Override
-    public Object getValue(PageContext pc) throws PageException {
-	return new Double(-Caster.toDoubleValue(ref.getValue(pc)));
-    }
+	@Override
+	public Object getValue(PageContext pc) throws PageException {
+		return new Double(-Caster.toDoubleValue(ref.getValue(pc)));
+	}
 
-    @Override
-    public String getTypeName() {
-	return "operation";
-    }
+	@Override
+	public String getTypeName() {
+		return "operation";
+	}
 
 }

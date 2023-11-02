@@ -27,7 +27,7 @@ import lucee.runtime.ext.function.Function;
 
 public final class IsDebugMode implements Function {
 
-    public static boolean call(PageContext pc) {
-	return pc.getConfig().debug() && (DebuggerImpl.getDebugEntry(pc) != null);
-    }
+	public static boolean call(PageContext pc) {
+		return pc.getConfig().debug() && (DebuggerImpl.getDebugEntry(pc) != null);
+	}
 }

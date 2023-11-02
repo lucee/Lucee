@@ -21,32 +21,44 @@
  */
 package lucee.runtime.functions.string;
 
+import org.apache.oro.text.regex.MalformedPatternException;
+
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.FunctionException;
+import lucee.runtime.exp.PageException;
+import lucee.runtime.ext.function.BIF;
 import lucee.runtime.ext.function.Function;
+import lucee.runtime.op.Caster;
 import lucee.runtime.regex.Perl5Util;
 
-import org.apache.oro.text.regex.MalformedPatternException;
+public final class REReplaceNoCase extends BIF implements Function {
 
-public final class REReplaceNoCase implements Function {
+	private static final long serialVersionUID = 3261493342788819694L;
 
-    public static String call(PageContext pc, String string, String regExp, String replace) throws ExpressionException {
-	try {
-	    return Perl5Util.replace(string, regExp, replace, false, false);
+	public static String call(PageContext pc, String string, String regExp, String replace) throws ExpressionException {
+		try {
+			return Perl5Util.replace(string, regExp, replace, false, false);
+		}
+		catch (MalformedPatternException e) {
+			throw new FunctionException(pc, "reReplaceNoCase", 2, "regularExpression", e.getMessage());
+		}
 	}
-	catch (MalformedPatternException e) {
-	    throw new FunctionException(pc, "reReplaceNoCase", 2, "regularExpression", e.getMessage());
-	}
-    }
 
-    public static String call(PageContext pc, String string, String regExp, String replace, String scope) throws ExpressionException {
-	try {
-	    if (scope.equalsIgnoreCase("all")) return Perl5Util.replace(string, regExp, replace, false, true);
-	    return Perl5Util.replace(string, regExp, replace, false, false);
+	public static String call(PageContext pc, String string, String regExp, String replace, String scope) throws ExpressionException {
+		try {
+			if (scope.equalsIgnoreCase("all")) return Perl5Util.replace(string, regExp, replace, false, true);
+			return Perl5Util.replace(string, regExp, replace, false, false);
+		}
+		catch (MalformedPatternException e) {
+			throw new FunctionException(pc, "reReplaceNoCase", 2, "regularExpression", e.getMessage());
+		}
 	}
-	catch (MalformedPatternException e) {
-	    throw new FunctionException(pc, "reReplaceNoCase", 2, "regularExpression", e.getMessage());
+
+	@Override
+	public Object invoke(PageContext pc, Object[] args) throws PageException {
+		if (args.length == 3) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toString(args[2]));
+		if (args.length == 4) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toString(args[2]), Caster.toString(args[3]));
+		throw new FunctionException(pc, "REReplaceNoCase", 3, 4, args.length);
 	}
-    }
 }

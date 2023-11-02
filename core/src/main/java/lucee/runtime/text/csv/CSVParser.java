@@ -27,71 +27,72 @@ import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.Query;
 import lucee.runtime.type.QueryImpl;
+import lucee.runtime.type.util.CollectionUtil;
 
 public class CSVParser {
 
-    public static Query toQuery(String csv, char delimiter, char textQualifier, String[] headers, boolean firstRowIsHeaders) throws CSVParserException, PageException {
-	List<List<String>> allRows = (new CSVString(csv, delimiter).parse());
-	int numRows = allRows.size();
+	public static Query toQuery(String csv, char delimiter, char textQualifier, String[] headers, boolean firstRowIsHeaders) throws CSVParserException, PageException {
+		List<List<String>> allRows = (new CSVString(csv, delimiter).parse());
+		int numRows = allRows.size();
 
-	// no records
-	if (numRows == 0) {
-	    if (firstRowIsHeaders || headers == null) throw new CSVParserException("No data found in CSV string");
+		// no records
+		if (numRows == 0) {
+			if (firstRowIsHeaders || headers == null) throw new CSVParserException("No data found in CSV string");
 
-	    return new QueryImpl(headers, 0, "query");
+			return new QueryImpl(headers, 0, "query");
+		}
+
+		List<String> row = allRows.get(0);
+		int numCols = row.size();
+		int curRow = 0;
+
+		// set first line to header
+		if (firstRowIsHeaders) {
+			curRow++;
+			if (headers == null) headers = makeUnique(row.toArray(new String[numCols]));
+		}
+
+		// create first line for header
+		if (headers == null) {
+			headers = new String[numCols];
+			for (int i = 0; i < numCols; i++)
+				headers[i] = "COLUMN_" + (i + 1);
+		}
+
+		Array[] arrays = new Array[numCols]; // create column Arrays
+		for (int i = 0; i < numCols; i++)
+			arrays[i] = new ArrayImpl();
+
+		while (curRow < numRows) {
+			row = allRows.get(curRow++);
+			if (row.size() != numCols) throw new CSVParserException("Invalid CSV line size, expected " + numCols + " columns but found " + row.size() + " instead", row.toString());
+			for (int i = 0; i < numCols; i++) {
+				arrays[i].append(row.get(i));
+			}
+		}
+		return new QueryImpl(CollectionUtil.toKeys(headers, true), arrays, "query");
 	}
 
-	List<String> row = allRows.get(0);
-	int numCols = row.size();
-	int curRow = 0;
+	private static String[] makeUnique(String[] headers) {
 
-	// set first line to header
-	if (firstRowIsHeaders) {
-	    curRow++;
-	    if (headers == null) headers = makeUnique(row.toArray(new String[numCols]));
+		int c = 1;
+		Set set = new TreeSet(String.CASE_INSENSITIVE_ORDER);
+		String header, orig;
+
+		for (int i = 0; i < headers.length; i++) {
+
+			orig = header = headers[i];
+
+			while (set.contains(header))
+				header = orig + "_" + ++c;
+
+			set.add(header);
+
+			if (header != orig) // ref comparison for performance
+				headers[i] = header;
+		}
+
+		return headers;
 	}
-
-	// create first line for header
-	if (headers == null) {
-	    headers = new String[numCols];
-	    for (int i = 0; i < numCols; i++)
-		headers[i] = "COLUMN_" + (i + 1);
-	}
-
-	Array[] arrays = new Array[numCols]; // create column Arrays
-	for (int i = 0; i < numCols; i++)
-	    arrays[i] = new ArrayImpl();
-
-	while (curRow < numRows) {
-	    row = allRows.get(curRow++);
-	    if (row.size() != numCols) throw new CSVParserException("Invalid CSV line size, expected " + numCols + " columns but found " + row.size() + " instead", row.toString());
-	    for (int i = 0; i < numCols; i++) {
-		arrays[i].append(row.get(i));
-	    }
-	}
-	return new QueryImpl(headers, arrays, "query");
-    }
-
-    private static String[] makeUnique(String[] headers) {
-
-	int c = 1;
-	Set set = new TreeSet(String.CASE_INSENSITIVE_ORDER);
-	String header, orig;
-
-	for (int i = 0; i < headers.length; i++) {
-
-	    orig = header = headers[i];
-
-	    while (set.contains(header))
-		header = orig + "_" + ++c;
-
-	    set.add(header);
-
-	    if (header != orig) // ref comparison for performance
-		headers[i] = header;
-	}
-
-	return headers;
-    }
 
 }

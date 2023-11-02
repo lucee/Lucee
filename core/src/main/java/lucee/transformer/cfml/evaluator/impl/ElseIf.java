@@ -31,12 +31,12 @@ import lucee.transformer.library.tag.TagLibTag;
  */
 public final class ElseIf extends EvaluatorSupport {
 
-    @Override
-    public void evaluate(Tag tag, TagLibTag libTag) throws EvaluatorException {
-	String ns = libTag.getTagLib().getNameSpaceAndSeparator();
-	String ifName = ns + "if";
+	@Override
+	public void evaluate(Tag tag, TagLibTag libTag) throws EvaluatorException {
+		String ns = libTag.getTagLib().getNameSpaceAndSeparator();
+		String ifName = ns + "if";
 
-	// check if tag is direct inside if
-	if (!ASMUtil.isParentTag(tag, TagIf.class)) throw new EvaluatorException("Wrong Context, tag " + libTag.getFullName() + " must be direct inside a " + ifName + " tag");
-    }
+		// check if tag is direct inside if
+		if (!ASMUtil.isParentTag(tag, TagIf.class)) throw new EvaluatorException("Wrong Context, tag [" + libTag.getFullName() + "] must be direct inside a [" + ifName + "] tag");
+	}
 }

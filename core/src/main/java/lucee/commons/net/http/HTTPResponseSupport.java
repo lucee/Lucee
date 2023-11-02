@@ -32,52 +32,52 @@ import lucee.runtime.op.Caster;
 
 public abstract class HTTPResponseSupport implements HTTPResponse {
 
-    @Override
-    public final long getContentLength() throws IOException {
-	Header ct = getLastHeaderIgnoreCase("Content-Length");
-	if (ct != null) return Caster.toLongValue(ct.getValue(), -1);
+	@Override
+	public final long getContentLength() throws IOException {
+		Header ct = getLastHeaderIgnoreCase("Content-Length");
+		if (ct != null) return Caster.toLongValue(ct.getValue(), -1);
 
-	InputStream is = null;
-	long length = 0;
-	try {
-	    is = getContentAsStream();
+		InputStream is = null;
+		long length = 0;
+		try {
+			is = getContentAsStream();
 
-	    if (is == null) return 0;
+			if (is == null) return 0;
 
-	    byte[] buffer = new byte[1024];
-	    int len;
-	    while ((len = is.read(buffer)) != -1) {
-		length += len;
-	    }
-	    return length;
+			byte[] buffer = new byte[1024];
+			int len;
+			while ((len = is.read(buffer)) != -1) {
+				length += len;
+			}
+			return length;
+		}
+		finally {
+			IOUtil.close(is);
+		}
 	}
-	finally {
-	    IOUtil.closeEL(is);
+
+	@Override
+	public final ContentType getContentType() {
+		Header header = getLastHeaderIgnoreCase("Content-Type");
+		if (header == null) return null;
+
+		String[] mimeCharset = HTTPUtil.splitMimeTypeAndCharset(header.getValue(), null);
+		if (mimeCharset == null) return null;
+
+		String[] typeSub = HTTPUtil.splitTypeAndSubType(mimeCharset[0]);
+		return new ContentTypeImpl(typeSub[0], typeSub[1], mimeCharset[1]);
 	}
-    }
 
-    @Override
-    public final ContentType getContentType() {
-	Header header = getLastHeaderIgnoreCase("Content-Type");
-	if (header == null) return null;
+	@Override
+	public final String getCharset() {
+		ContentType ct = getContentType();
+		String charset = null;
+		if (ct != null) charset = ct.getCharset();
+		if (!StringUtil.isEmpty(charset)) return charset;
 
-	String[] mimeCharset = HTTPUtil.splitMimeTypeAndCharset(header.getValue(), null);
-	if (mimeCharset == null) return null;
-
-	String[] typeSub = HTTPUtil.splitTypeAndSubType(mimeCharset[0]);
-	return new ContentTypeImpl(typeSub[0], typeSub[1], mimeCharset[1]);
-    }
-
-    @Override
-    public final String getCharset() {
-	ContentType ct = getContentType();
-	String charset = null;
-	if (ct != null) charset = ct.getCharset();
-	if (!StringUtil.isEmpty(charset)) return charset;
-
-	PageContext pc = ThreadLocalPageContext.get();
-	if (pc != null) return pc.getWebCharset().name();
-	return "ISO-8859-1";
-    }
+		PageContext pc = ThreadLocalPageContext.get();
+		if (pc != null) return pc.getWebCharset().name();
+		return "ISO-8859-1";
+	}
 
 }

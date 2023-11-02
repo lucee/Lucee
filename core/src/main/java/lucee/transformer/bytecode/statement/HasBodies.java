@@ -22,6 +22,6 @@ import lucee.transformer.bytecode.Body;
 
 public interface HasBodies {
 
-    public Body[] getBodies();
+	public Body[] getBodies();
 
 }

@@ -25,8 +25,8 @@ import java.util.TimeZone;
 
 public class OracleOpaqueCast implements Cast {
 
-    @Override
-    public Object toCFType(TimeZone tz, ResultSet rst, int columnIndex) throws SQLException, IOException {
-	return _OracleOpaqueCast.toCFType(rst, columnIndex);
-    }
+	@Override
+	public Object toCFType(TimeZone tz, ResultSet rst, int columnIndex) throws SQLException, IOException {
+		return _OracleOpaqueCast.toCFType(rst, columnIndex);
+	}
 }

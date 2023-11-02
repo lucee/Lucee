@@ -23,8 +23,8 @@ import lucee.runtime.PageContext;
 import lucee.runtime.ext.function.Function;
 
 public final class Soundex implements Function {
-    public static String call(PageContext pc, String str) {
-	return StringUtil.soundex(str);
-    }
+	public static String call(PageContext pc, String str) {
+		return StringUtil.soundex(str);
+	}
 
 }

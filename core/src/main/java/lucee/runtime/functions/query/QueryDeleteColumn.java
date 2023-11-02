@@ -31,25 +31,25 @@ import lucee.runtime.type.util.QueryUtil;
 
 public final class QueryDeleteColumn extends BIF {
 
-    private static final long serialVersionUID = 5363459913899891827L;
+	private static final long serialVersionUID = 5363459913899891827L;
 
-    public static Array call(PageContext pc, Query query, String strColumn) throws PageException {
-	return toArray(query.removeColumn(KeyImpl.init(strColumn)));
-    }
-
-    public static Array toArray(QueryColumn column) throws PageException {
-	Array clone = new ArrayImpl();
-	int len = column.size();
-	clone.resize(len);
-
-	for (int i = 1; i <= len; i++) {
-	    clone.setE(i, QueryUtil.getValue(column, i));
+	public static Array call(PageContext pc, Query query, String strColumn) throws PageException {
+		return toArray(query.removeColumn(KeyImpl.init(strColumn)));
 	}
-	return clone;
-    }
 
-    @Override
-    public Object invoke(PageContext pc, Object[] args) throws PageException {
-	return call(pc, Caster.toQuery(args[0]), Caster.toString(args[1]));
-    }
+	public static Array toArray(QueryColumn column) throws PageException {
+		Array clone = new ArrayImpl();
+		int len = column.size();
+		clone.resize(len);
+
+		for (int i = 1; i <= len; i++) {
+			clone.setE(i, QueryUtil.getValue(column, i));
+		}
+		return clone;
+	}
+
+	@Override
+	public Object invoke(PageContext pc, Object[] args) throws PageException {
+		return call(pc, Caster.toQuery(args[0]), Caster.toString(args[1]));
+	}
 }

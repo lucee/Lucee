@@ -24,9 +24,9 @@ package railo.loader.servlet;
 @Deprecated
 public class AMFServlet extends lucee.loader.servlet.AMFServlet {
 
-    /**
-     * 
-     */
-    private static final long serialVersionUID = 3744575767890326119L;
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 3744575767890326119L;
 
 }

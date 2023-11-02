@@ -18,9 +18,9 @@
  **/
 package lucee.commons.net.http.httpclient.entity;
 
-import lucee.commons.net.http.Entity;
-
 import org.apache.http.HttpEntity;
+
+import lucee.commons.net.http.Entity;
 
 public interface Entity4 extends Entity, HttpEntity {
 

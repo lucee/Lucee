@@ -28,7 +28,7 @@ import lucee.runtime.ext.function.Function;
 import lucee.runtime.type.Struct;
 
 public final class GetPrinterInfo implements Function {
-    public static Struct call(PageContext pc, String printer) throws PageException {
-	throw new FunctionNotSupported("GetPrinterInfo");
-    }
+	public static Struct call(PageContext pc, String printer) throws PageException {
+		throw new FunctionNotSupported("GetPrinterInfo");
+	}
 }

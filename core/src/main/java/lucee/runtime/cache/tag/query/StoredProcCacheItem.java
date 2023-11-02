@@ -28,49 +28,49 @@ import lucee.runtime.type.Struct;
 
 public class StoredProcCacheItem implements CacheItem, Serializable, Duplicable {
 
-    private static final long serialVersionUID = 7327671003736543783L;
+	private static final long serialVersionUID = 7327671003736543783L;
 
-    private final Struct sct;
-    private final String procedure;
-    private final long executionTime;
+	private final Struct sct;
+	private final String procedure;
+	private final long executionTime;
 
-    public StoredProcCacheItem(Struct sct, String procedure, long executionTime) {
-	this.sct = sct;
-	this.procedure = procedure;
-	this.executionTime = executionTime;
-    }
+	public StoredProcCacheItem(Struct sct, String procedure, long executionTime) {
+		this.sct = sct;
+		this.procedure = procedure;
+		this.executionTime = executionTime;
+	}
 
-    @Override
-    public String getHashFromValue() {
-	return Long.toString(HashUtil.create64BitHash(UDFArgConverter.serialize(sct)));
-    }
+	@Override
+	public String getHashFromValue() {
+		return Long.toString(HashUtil.create64BitHash(UDFArgConverter.serialize(sct)));
+	}
 
-    @Override
-    public String getName() {
-	return procedure;
-    }
+	@Override
+	public String getName() {
+		return procedure;
+	}
 
-    @Override
-    public long getPayload() {
-	return sct.size();
-    }
+	@Override
+	public long getPayload() {
+		return sct.size();
+	}
 
-    @Override
-    public String getMeta() {
-	return "";
-    }
+	@Override
+	public String getMeta() {
+		return "";
+	}
 
-    @Override
-    public long getExecutionTime() {
-	return executionTime;
-    }
+	@Override
+	public long getExecutionTime() {
+		return executionTime;
+	}
 
-    public Struct getStruct() {
-	return sct;
-    }
+	public Struct getStruct() {
+		return sct;
+	}
 
-    @Override
-    public Object duplicate(boolean deepCopy) {
-	return new StoredProcCacheItem((Struct) sct.duplicate(true), procedure, executionTime);
-    }
+	@Override
+	public Object duplicate(boolean deepCopy) {
+		return new StoredProcCacheItem((Struct) sct.duplicate(true), procedure, executionTime);
+	}
 }

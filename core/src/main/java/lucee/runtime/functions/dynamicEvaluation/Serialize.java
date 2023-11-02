@@ -30,13 +30,13 @@ import lucee.runtime.op.Caster;
  */
 public final class Serialize implements Function {
 
-    public static String call(PageContext pc, Object o) throws PageException {
-	try {
-	    return new ScriptConverter().serialize(o);
+	public static String call(PageContext pc, Object o) throws PageException {
+		try {
+			return new ScriptConverter().serialize(o);
+		}
+		catch (ConverterException e) {
+			throw Caster.toPageException(e);
+		}
 	}
-	catch (ConverterException e) {
-	    throw Caster.toPageException(e);
-	}
-    }
 
 }

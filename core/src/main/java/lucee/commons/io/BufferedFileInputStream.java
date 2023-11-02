@@ -28,24 +28,24 @@ import java.io.FileNotFoundException;
  */
 public final class BufferedFileInputStream extends BufferedInputStream {
 
-    /**
-     * constructor of the class
-     * 
-     * @param file
-     * @throws FileNotFoundException
-     */
-    public BufferedFileInputStream(File file) throws FileNotFoundException {
-	super(new FileInputStream(file));
-    }
+	/**
+	 * constructor of the class
+	 * 
+	 * @param file
+	 * @throws FileNotFoundException
+	 */
+	public BufferedFileInputStream(File file) throws FileNotFoundException {
+		super(new FileInputStream(file));
+	}
 
-    /**
-     * constructor of the class
-     * 
-     * @param strFile
-     * @throws FileNotFoundException
-     */
-    public BufferedFileInputStream(String strFile) throws FileNotFoundException {
-	this(new File(strFile));
-    }
+	/**
+	 * constructor of the class
+	 * 
+	 * @param strFile
+	 * @throws FileNotFoundException
+	 */
+	public BufferedFileInputStream(String strFile) throws FileNotFoundException {
+		this(new File(strFile));
+	}
 
 }

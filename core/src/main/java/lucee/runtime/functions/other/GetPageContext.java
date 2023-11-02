@@ -25,7 +25,7 @@ import lucee.runtime.PageContext;
 import lucee.runtime.ext.function.Function;
 
 public final class GetPageContext implements Function {
-    public static Object call(PageContext pc) {
-	return pc;
-    }
+	public static Object call(PageContext pc) {
+		return pc;
+	}
 }

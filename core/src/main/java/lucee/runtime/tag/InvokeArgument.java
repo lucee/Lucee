@@ -36,65 +36,65 @@ import lucee.runtime.ext.tag.TagImpl;
  **/
 public final class InvokeArgument extends TagImpl {
 
-    /** A variable name for the data being passed. */
-    private String name;
+	/** A variable name for the data being passed. */
+	private String name;
 
-    /** Specifies the value of the variable being passed. */
-    private Object value;
-    private boolean omit;
+	/** Specifies the value of the variable being passed. */
+	private Object value;
+	private boolean omit;
 
-    /**
-     * set the value value
-     * 
-     * @param value value to set
-     **/
-    public void setValue(Object value) {
-	this.value = value;
-    }
-
-    /**
-     * set the value name
-     * 
-     * @param name value to set
-     **/
-    public void setName(String name) {
-	this.name = name;
-    }
-
-    /**
-     * @param omit the omit to set
-     */
-    public void setOmit(boolean omit) {
-	this.omit = omit;
-    }
-
-    @Override
-    public int doStartTag() throws PageException {
-	Tag parent = getParent();
-	while (parent != null && !(parent instanceof Invoke)) {
-	    parent = parent.getParent();
+	/**
+	 * set the value value
+	 * 
+	 * @param value value to set
+	 **/
+	public void setValue(Object value) {
+		this.value = value;
 	}
 
-	if (parent instanceof Invoke) {
-	    Invoke invoke = (Invoke) parent;
-	    invoke.setArgument(name, value);
+	/**
+	 * set the value name
+	 * 
+	 * @param name value to set
+	 **/
+	public void setName(String name) {
+		this.name = name;
 	}
-	else {
-	    throw new ApplicationException("Wrong Context, tag InvokeArgument must be inside a Invoke tag");
+
+	/**
+	 * @param omit the omit to set
+	 */
+	public void setOmit(boolean omit) {
+		this.omit = omit;
 	}
-	return SKIP_BODY;
-    }
 
-    @Override
-    public int doEndTag() {
-	return EVAL_PAGE;
-    }
+	@Override
+	public int doStartTag() throws PageException {
+		Tag parent = getParent();
+		while (parent != null && !(parent instanceof Invoke)) {
+			parent = parent.getParent();
+		}
 
-    @Override
-    public void release() {
-	super.release();
-	value = null;
-	name = null;
-	omit = false;
-    }
+		if (parent instanceof Invoke) {
+			Invoke invoke = (Invoke) parent;
+			invoke.setArgument(name, value);
+		}
+		else {
+			throw new ApplicationException("Wrong Context, tag InvokeArgument must be inside an Invoke tag");
+		}
+		return SKIP_BODY;
+	}
+
+	@Override
+	public int doEndTag() {
+		return EVAL_PAGE;
+	}
+
+	@Override
+	public void release() {
+		super.release();
+		value = null;
+		name = null;
+		omit = false;
+	}
 }

@@ -25,19 +25,19 @@ import java.util.Set;
  */
 public interface ScriptConvertable {
 
-    /**
-     * convert object to String
-     * 
-     * @return serialized String
-     * @deprecated use instead <code>{@link #serialize(Set)}</code>
-     */
-    @Deprecated
-    public String serialize();
+	/**
+	 * convert object to String
+	 * 
+	 * @return serialized String
+	 * @deprecated use instead <code>{@link #serialize(Set)}</code>
+	 */
+	@Deprecated
+	public String serialize();
 
-    /**
-     * convert object to String
-     * 
-     * @return serialized Object
-     */
-    public String serialize(Set<Object> done);
+	/**
+	 * convert object to String
+	 * 
+	 * @return serialized Object
+	 */
+	public String serialize(Set<Object> done);
 }

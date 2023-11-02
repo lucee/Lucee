@@ -31,74 +31,74 @@ import lucee.runtime.type.util.KeyConstants;
  */
 public abstract class InterfacePageImpl extends InterfacePage implements PagePro {
 
-    public int getHash() {
-	return 0;
-    }
-
-    public long getSourceLength() {
-	return 0;
-    }
-
-    @Override
-    public Object call(PageContext pc) throws PageException {
-	try {
-	    pc.setSilent();
-	    InterfaceImpl interf = null;
-	    try {
-		interf = newInstance(pc, getPageSource().getComponentName(), false);// TODO was only getComponentName before, is that change ok?
-	    }
-	    finally {
-		pc.unsetSilent();
-	    }
-
-	    String qs = ReqRspUtil.getQueryString(pc.getHttpServletRequest());
-	    if (pc.getBasePageSource() == this.getPageSource() && pc.getConfig().debug()) pc.getDebugger().setOutput(false);
-	    boolean isPost = pc.getHttpServletRequest().getMethod().equalsIgnoreCase("POST");
-
-	    // POST
-	    if (isPost) {
-		// Soap
-		if (ComponentPageImpl.isSoap(pc)) throw new ApplicationException("can not instantiate interface [" + getPageSource().getComponentName() + "] as a component");
-	    }
-	    // GET
-	    else if (qs != null && qs.trim().equalsIgnoreCase("wsdl"))
-		throw new ApplicationException("can not instantiate interface [" + getPageSource().getComponentName() + "] as a component");
-
-	    // WDDX
-	    if (pc.urlFormScope().containsKey(KeyConstants._method))
-		throw new ApplicationException("can not instantiate interface [" + getPageSource().getComponentName() + "] as a component");
-
-	    // invoking via include
-	    if (pc.getTemplatePath().size() > 1) {
-		throw new ApplicationException("can not invoke interface [" + getPageSource().getComponentName() + "] as a page");
-	    }
-
-	    // DUMP
-	    // TODO component.setAccess(pc,Component.ACCESS_PUBLIC);
-	    String cdf = pc.getConfig().getComponentDumpTemplate();
-	    if (cdf != null && cdf.trim().length() > 0) {
-		pc.variablesScope().set(KeyConstants._component, interf);
-		pc.doInclude(cdf, false);
-	    }
-	    else pc.write(pc.getConfig().getDefaultDumpWriter(DumpWriter.DEFAULT_RICH).toString(pc, interf.toDumpData(pc, 9999, DumpUtil.toDumpProperties()), true));
-
+	public int getHash() {
+		return 0;
 	}
-	catch (Throwable t) {
-	    ExceptionUtil.rethrowIfNecessary(t);
-	    throw Caster.toPageException(t);// Exception Handler.castAnd Stack(t, this, pc);
+
+	public long getSourceLength() {
+		return 0;
 	}
-	return null;
-    }
 
-    /**
-     * default implementation of the static constructor, that does nothing
-     */
-    public void staticConstructor(PageContext pagecontext, ComponentImpl cfc) {
-	// do nothing
-    }
+	@Override
+	public Object call(PageContext pc) throws PageException {
+		try {
+			pc.setSilent();
+			InterfaceImpl interf = null;
+			try {
+				interf = newInstance(pc, getPageSource().getComponentName(), false);// TODO was only getComponentName before, is that change ok?
+			}
+			finally {
+				pc.unsetSilent();
+			}
 
-    public abstract void initInterface(InterfaceImpl i) throws PageException;
+			String qs = ReqRspUtil.getQueryString(pc.getHttpServletRequest());
+			if (pc.getBasePageSource() == this.getPageSource() && pc.getConfig().debug()) pc.getDebugger().setOutput(false);
+			boolean isPost = pc.getHttpServletRequest().getMethod().equalsIgnoreCase("POST");
 
-    public abstract InterfaceImpl newInstance(PageContext pc, String callPath, boolean isRealPath) throws lucee.runtime.exp.PageException;
+			// POST
+			if (isPost) {
+				// Soap
+				if (ComponentPageImpl.isSoap(pc)) throw new ApplicationException("can not instantiate interface [" + getPageSource().getComponentName() + "] as a component");
+			}
+			// GET
+			else if (qs != null && qs.trim().equalsIgnoreCase("wsdl"))
+				throw new ApplicationException("can not instantiate interface [" + getPageSource().getComponentName() + "] as a component");
+
+			// WDDX
+			if (pc.urlFormScope().containsKey(KeyConstants._method))
+				throw new ApplicationException("can not instantiate interface [" + getPageSource().getComponentName() + "] as a component");
+
+			// invoking via include
+			if (pc.getTemplatePath().size() > 1) {
+				throw new ApplicationException("can not invoke interface [" + getPageSource().getComponentName() + "] as a page");
+			}
+
+			// DUMP
+			// TODO component.setAccess(pc,Component.ACCESS_PUBLIC);
+			String cdf = pc.getConfig().getComponentDumpTemplate();
+			if (cdf != null && cdf.trim().length() > 0) {
+				pc.variablesScope().set(KeyConstants._component, interf);
+				pc.doInclude(cdf, false);
+			}
+			else pc.write(pc.getConfig().getDefaultDumpWriter(DumpWriter.DEFAULT_RICH).toString(pc, interf.toDumpData(pc, 9999, DumpUtil.toDumpProperties()), true));
+
+		}
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+			throw Caster.toPageException(t);// Exception Handler.castAnd Stack(t, this, pc);
+		}
+		return null;
+	}
+
+	/**
+	 * default implementation of the static constructor, that does nothing
+	 */
+	public void staticConstructor(PageContext pagecontext, ComponentImpl cfc) {
+		// do nothing
+	}
+
+	public abstract void initInterface(InterfaceImpl i) throws PageException;
+
+	public abstract InterfaceImpl newInstance(PageContext pc, String callPath, boolean isRealPath) throws lucee.runtime.exp.PageException;
 
 }

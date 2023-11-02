@@ -25,23 +25,23 @@ import java.io.IOException;
  */
 public final class TagLibException extends IOException {
 
-    /*
-     * * Standart Konstruktor fuer die Klasse TagLibException.
-     * 
-     * @param message Fehlermeldungstext. / public TagLibException(String message) { super(message); }
-     */
+	/*
+	 * * Standart Konstruktor fuer die Klasse TagLibException.
+	 * 
+	 * @param message Fehlermeldungstext. / public TagLibException(String message) { super(message); }
+	 */
 
-    /**
-     * Standart Konstruktor fuer die Klasse TagLibException.
-     * 
-     * @param t Throwable
-     */
-    public TagLibException(Throwable t) {
-	initCause(t);
-    }
+	/**
+	 * Standart Konstruktor fuer die Klasse TagLibException.
+	 * 
+	 * @param t Throwable
+	 */
+	public TagLibException(Throwable t) {
+		initCause(t);
+	}
 
-    public TagLibException(String message) {
-	super(message);
-    }
+	public TagLibException(String message) {
+		super(message);
+	}
 
 }

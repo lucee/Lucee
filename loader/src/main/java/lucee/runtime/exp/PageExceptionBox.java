@@ -23,8 +23,8 @@ package lucee.runtime.exp;
  */
 public interface PageExceptionBox {
 
-    /**
-     * @return returns the inner page exception
-     */
-    public PageException getPageException();
+	/**
+	 * @return returns the inner page exception
+	 */
+	public PageException getPageException();
 }

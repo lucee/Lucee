@@ -31,8 +31,8 @@ import lucee.runtime.tag.util.DeprecatedUtil;
  */
 @Deprecated
 public final class UnserializeJava implements Function {
-    public static Object call(PageContext pc, String string) throws PageException {
-	DeprecatedUtil.function(pc, "UnserializeJava", "EvaluateJava");
-	return EvaluateJava.call(pc, string);
-    }
+	public static Object call(PageContext pc, String string) throws PageException {
+		DeprecatedUtil.function(pc, "UnserializeJava", "EvaluateJava");
+		return EvaluateJava.call(pc, string);
+	}
 }

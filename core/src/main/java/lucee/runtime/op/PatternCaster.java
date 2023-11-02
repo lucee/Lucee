@@ -27,11 +27,11 @@ import lucee.runtime.op.validators.ValidateCreditCard;
  */
 public final class PatternCaster {
 
-    public static Object toCreditCard(String str) throws PageException {
-	return ValidateCreditCard.toCreditcard(str);
-    }
+	public static Object toCreditCard(String str) throws PageException {
+		return ValidateCreditCard.toCreditcard(str);
+	}
 
-    public static Object toCreditCard(String str, String defaultValue) {
-	return ValidateCreditCard.toCreditcard(str, defaultValue);
-    }
+	public static Object toCreditCard(String str, String defaultValue) {
+		return ValidateCreditCard.toCreditcard(str, defaultValue);
+	}
 }

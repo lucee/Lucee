@@ -30,31 +30,31 @@ import lucee.runtime.PageSource;
 import lucee.runtime.ext.function.Function;
 
 public final class ContractPath implements Function {
-    public static String call(PageContext pc, String absPath) {
-	return call(pc, absPath, false);
-    }
-
-    public static String call(PageContext pc, String absPath, boolean placeHolder) {
-	Resource res = ResourceUtil.toResourceNotExisting(pc, absPath);
-	if (!res.exists()) return absPath;
-
-	if (placeHolder) {
-	    String cp = SystemUtil.addPlaceHolder(res, null);
-	    if (!StringUtil.isEmpty(cp)) return cp;
+	public static String call(PageContext pc, String absPath) {
+		return call(pc, absPath, false);
 	}
 
-	// Config config=pc.getConfig();
-	PageSource ps = pc.toPageSource(res, null);
-	if (ps == null) return absPath;
+	public static String call(PageContext pc, String absPath, boolean placeHolder) {
+		Resource res = ResourceUtil.toResourceNotExisting(pc, absPath);
+		if (!res.exists()) return absPath;
 
-	String realPath = ps.getRealpath();
-	realPath = realPath.replace('\\', '/');
-	if (StringUtil.endsWith(realPath, '/')) realPath = realPath.substring(0, realPath.length() - 1);
+		if (placeHolder) {
+			String cp = SystemUtil.addPlaceHolder(res, null);
+			if (!StringUtil.isEmpty(cp)) return cp;
+		}
 
-	String mapping = ps.getMapping().getVirtual();
-	mapping = mapping.replace('\\', '/');
-	if (StringUtil.endsWith(mapping, '/')) mapping = mapping.substring(0, mapping.length() - 1);
+		// Config config=pc.getConfig();
+		PageSource ps = pc.toPageSource(res, null);
+		if (ps == null) return absPath;
 
-	return mapping + realPath;
-    }
+		String realPath = ps.getRealpath();
+		realPath = realPath.replace('\\', '/');
+		if (StringUtil.endsWith(realPath, '/')) realPath = realPath.substring(0, realPath.length() - 1);
+
+		String mapping = ps.getMapping().getVirtual();
+		mapping = mapping.replace('\\', '/');
+		if (StringUtil.endsWith(mapping, '/')) mapping = mapping.substring(0, mapping.length() - 1);
+
+		return mapping + realPath;
+	}
 }

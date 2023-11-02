@@ -34,44 +34,44 @@ import lucee.runtime.type.StructImpl;
 
 public class Struct_ implements Function {
 
-    private static final long serialVersionUID = 8708684598035273346L;
+	private static final long serialVersionUID = 8708684598035273346L;
 
-    public static Struct call(PageContext pc, Object[] objArr) throws PageException {
-	return _call(objArr, "invalid argument for function struct, only named arguments are allowed like struct(name:\"value\",name2:\"value2\")", StructImpl.TYPE_UNDEFINED);
-    }
-
-    protected static Struct _call(Object[] objArr, String expMessage, int type) throws PageException {
-	StructImpl sct = type < 0 ? new StructImpl() : new StructImpl(type);
-	FunctionValueImpl fv;
-	for (int i = 0; i < objArr.length; i++) {
-	    if (objArr[i] instanceof FunctionValue) {
-		fv = ((FunctionValueImpl) objArr[i]);
-		if (fv.getNames() == null) {
-		    sct.set(fv.getNameAsKey(), fv.getValue());
-		}
-		else {
-		    String[] arr = fv.getNames();
-		    Struct s = sct;
-		    for (int y = 0; y < arr.length - 1; y++) {
-			s = touch(s, arr[y]);
-		    }
-		    s.set(KeyImpl.init(arr[arr.length - 1]), fv.getValue());
-		}
-	    }
-	    else {
-		throw new ExpressionException(expMessage);
-	    }
+	public static Struct call(PageContext pc, Object[] objArr) throws PageException {
+		return _call(objArr, "invalid argument for function struct, only named arguments are allowed like struct(name:\"value\",name2:\"value2\")", StructImpl.TYPE_UNDEFINED);
 	}
-	return sct;
-    }
 
-    private static Struct touch(Struct parent, String name) {
-	Key key = KeyImpl.init(name.trim());
-	Object obj = parent.get(key, null);
-	if (obj instanceof Struct) return (Struct) obj;
-	Struct sct = new StructImpl();
-	parent.setEL(key, sct);
-	return sct;
-    }
+	protected static Struct _call(Object[] objArr, String expMessage, int type) throws PageException {
+		StructImpl sct = type < 0 ? new StructImpl() : new StructImpl(type);
+		FunctionValueImpl fv;
+		for (int i = 0; i < objArr.length; i++) {
+			if (objArr[i] instanceof FunctionValue) {
+				fv = ((FunctionValueImpl) objArr[i]);
+				if (fv.getNames() == null) {
+					sct.set(fv.getNameAsKey(), fv.getValue());
+				}
+				else {
+					String[] arr = fv.getNames();
+					Struct s = sct;
+					for (int y = 0; y < arr.length - 1; y++) {
+						s = touch(s, arr[y]);
+					}
+					s.set(KeyImpl.init(arr[arr.length - 1]), fv.getValue());
+				}
+			}
+			else {
+				throw new ExpressionException(expMessage);
+			}
+		}
+		return sct;
+	}
+
+	private static Struct touch(Struct parent, String name) {
+		Key key = KeyImpl.init(name.trim());
+		Object obj = parent.get(key, null);
+		if (obj instanceof Struct) return (Struct) obj;
+		Struct sct = new StructImpl();
+		parent.setEL(key, sct);
+		return sct;
+	}
 
 }

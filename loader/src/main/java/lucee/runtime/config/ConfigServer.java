@@ -31,86 +31,86 @@ import lucee.runtime.security.SecurityManager;
  */
 public interface ConfigServer extends Config {
 
-    /**
-     * @return returns all config webs
-     */
-    public abstract ConfigWeb[] getConfigWebs();
+	/**
+	 * @return returns all config webs
+	 */
+	public abstract ConfigWeb[] getConfigWebs();
 
-    /**
-     * @param realpath
-     * @return returns config web matching given realpath
-     */
-    public abstract ConfigWeb getConfigWeb(String realpath);
+	/**
+	 * @param realpath
+	 * @return returns config web matching given realpath
+	 */
+	public abstract ConfigWeb getConfigWeb(String realpath);
 
-    /**
-     * @return Returns the contextes.
-     */
-    public abstract Map<String, CFMLFactory> getJSPFactoriesAsMap();
+	/**
+	 * @return Returns the contextes.
+	 */
+	public abstract Map<String, CFMLFactory> getJSPFactoriesAsMap();
 
-    /**
-     * @param id
-     * @return returns SecurityManager matching config
-     */
-    public abstract SecurityManager getSecurityManager(String id);
+	/**
+	 * @param id
+	 * @return returns SecurityManager matching config
+	 */
+	public abstract SecurityManager getSecurityManager(String id);
 
-    /**
-     * is there a individual security manager for given id
-     * 
-     * @param id for the security manager
-     * @return returns SecurityManager matching config
-     */
-    public abstract boolean hasIndividualSecurityManager(String id);
+	/**
+	 * is there an individual security manager for given id
+	 * 
+	 * @param id for the security manager
+	 * @return returns SecurityManager matching config
+	 */
+	public abstract boolean hasIndividualSecurityManager(String id);
 
-    /**
-     * @return Returns the securityManager.
-     */
-    public abstract SecurityManager getDefaultSecurityManager();
+	/**
+	 * @return Returns the securityManager.
+	 */
+	public abstract SecurityManager getDefaultSecurityManager();
 
-    /**
-     * @param updateType The updateType to set.
-     */
-    public abstract void setUpdateType(String updateType);
+	/**
+	 * @param updateType The updateType to set.
+	 */
+	public abstract void setUpdateType(String updateType);
 
-    /**
-     * @param updateLocation The updateLocation to set.
-     */
-    public abstract void setUpdateLocation(URL updateLocation);
+	/**
+	 * @param updateLocation The updateLocation to set.
+	 */
+	public abstract void setUpdateLocation(URL updateLocation);
 
-    /**
-     * @param strUpdateLocation The updateLocation to set.
-     * @throws MalformedURLException
-     */
-    public abstract void setUpdateLocation(String strUpdateLocation) throws MalformedURLException;
+	/**
+	 * @param strUpdateLocation The updateLocation to set.
+	 * @throws MalformedURLException
+	 */
+	public abstract void setUpdateLocation(String strUpdateLocation) throws MalformedURLException;
 
-    /**
-     * @param strUpdateLocation The updateLocation to set.
-     * @param defaultValue
-     */
-    public abstract void setUpdateLocation(String strUpdateLocation, URL defaultValue);
+	/**
+	 * @param strUpdateLocation The updateLocation to set.
+	 * @param defaultValue
+	 */
+	public abstract void setUpdateLocation(String strUpdateLocation, URL defaultValue);
 
-    /**
-     * @return the configListener
-     */
-    public ConfigListener getConfigListener();
+	/**
+	 * @return the configListener
+	 */
+	public ConfigListener getConfigListener();
 
-    /**
-     * @param configListener the configListener to set
-     */
-    public void setConfigListener(ConfigListener configListener);
+	/**
+	 * @param configListener the configListener to set
+	 */
+	public void setConfigListener(ConfigListener configListener);
 
-    @Override
-    public RemoteClient[] getRemoteClients();
+	@Override
+	public RemoteClient[] getRemoteClients();
 
-    /**
-     * @deprecated use instead getEngine
-     * @return
-     */
-    @Deprecated
-    public abstract CFMLEngine getCFMLEngine();
+	/**
+	 * @deprecated use instead getEngine
+	 * @return
+	 */
+	@Deprecated
+	public abstract CFMLEngine getCFMLEngine();
 
-    public abstract CFMLEngine getEngine();
+	public abstract CFMLEngine getEngine();
 
-    @Override
-    public IdentificationServer getIdentification();
+	@Override
+	public IdentificationServer getIdentification();
 
 }

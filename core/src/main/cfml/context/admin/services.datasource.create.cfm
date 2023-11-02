@@ -1,4 +1,12 @@
 <cfparam name="error" default="#struct(message:"",detail:"")#">
+<cfset stText.Settings.requestExclusive="Exclusive connections for request">
+<cfset stText.Settings.requestExclusiveDesc="If set to true, the connections of this datasource are exclusive to one request, guaranteeing that you always have the same connection to the datasource for the request. Keep in mind that this limits the maximum possible concurrent requests to the maximum possible datasource connections and can cause a lot more open connections. Only use the requestExclusive setting when it is absolutely necessary to always have the same connection within a request, for example when your connection has set a specific state.">
+
+<cfset stText.Settings.alwaysResetConnections="Always reset connection to default values before use">
+<cfset stText.Settings.alwaysResetConnectionsDesc="This is only necessary in case you are using ""SET TRANSACTION ISOLATION LEVEL"" or ""SET AUTOCOMMIT"" within your SQL code. Enable this feature will increase traffic for this datasource.">
+
+
+
 
 <!--- ACTIONS --->
 <cftry>
@@ -41,6 +49,9 @@
 			customParameterSyntax="#isNull(driver.customParameterSyntax)?nullValue():driver.customParameterSyntax()#"
 			literalTimestampWithTSOffset="#isNull(driver.literalTimestampWithTSOffset)?false:driver.literalTimestampWithTSOffset()#"
 			alwaysSetTimeout="#isNull(driver.alwaysSetTimeout)?false:driver.alwaysSetTimeout()#"
+			requestExclusive="#getForm('requestExclusive',false)#"
+			alwaysResetConnections="#getForm('alwaysResetConnections',false)#"
+			
 			
 			name="#form.name#"
 			newName="#form.newName#"
@@ -341,6 +352,34 @@
 						<div class="comment">#stText.Settings.dbConnTimeoutDesc#</div>
 					</td>
 				</tr>
+				<!--- Request Exclusive --->
+				<tr>
+					<th scope="row">#stText.Settings.requestExclusive#</th>
+					<td>
+						<div class="warning nofocus">
+							This feature is experimental.
+							If you have any problems while using this functionality,
+							please post the bugs and errors in our
+							<a href="https://issues.lucee.org" target="_blank">bugtracking system</a>. 
+						</div>
+						<cfinputClassic type="checkbox" class="checkbox" name="requestExclusive" value="yes" checked="#isDefined('datasource.requestExclusive') and datasource.requestExclusive#">
+						<div class="comment">#stText.Settings.requestExclusiveDesc#</div>
+					</td>
+				</tr>
+				<!--- Always reset connection --->
+				<tr>
+					<th scope="row">#stText.Settings.alwaysResetConnections#</th>
+					<td>
+						<div class="warning nofocus">
+							This feature is experimental.
+							If you have any problems while using this functionality,
+							please post the bugs and errors in our
+							<a href="https://issues.lucee.org" target="_blank">bugtracking system</a>. 
+						</div>
+						<cfinputClassic type="checkbox" class="checkbox" name="alwaysResetConnections" value="yes" checked="#isDefined('datasource.alwaysResetConnections') and datasource.alwaysResetConnections#">
+						<div class="comment">#stText.Settings.alwaysResetConnectionsDesc#</div>
+					</td>
+				</tr>
 				<!--- validate --->
 				<tr>
 					<th scope="row">#stText.Settings.dbValidate#</th>
@@ -527,7 +566,7 @@ optional=[];
 if(datasource.blob) optional.append('blob:#datasource.blob# // default: false');
 if(datasource.clob) optional.append('clob:#datasource.clob# // default: false');
 if(isNumeric(datasource.connectionLimit))optional.append('connectionLimit:#datasource.connectionLimit# // default:-1');
-if(datasource.connectionTimeout NEQ 1)optional.append('connectionTimeout:#datasource.connectionTimeout# // default: 1; unit: seconds');
+if(datasource.connectionTimeout NEQ 1)optional.append('connectionTimeout:#datasource.connectionTimeout# // default: 1; unit: minutes');
 if(datasource.metaCacheTimeout NEQ 60000)optional.append(',metaCacheTimeout:#datasource.metaCacheTimeout# // default: 60000; unit: milliseconds');
 if(len(datasource.timezone))optional.append("timezone:'#replace(datasource.timezone,"'","''","all")#'");
 if(datasource.storage) optional.append('storage:#datasource.storage# // default: false');
@@ -536,8 +575,13 @@ if(!isNull(driver.literalTimestampWithTSOffset) && driver.literalTimestampWithTS
 	optional.append('literalTimestampWithTSOffset:true // default: false');
 if(!isNull(driver.alwaysSetTimeout) && driver.alwaysSetTimeout()) 
 	optional.append('alwaysSetTimeout:true // default: false');
+if(datasource.requestExclusive) 
+	optional.append('requestExclusive:true // default: false');
+if(datasource.alwaysResetConnections) 
+	optional.append('alwaysResetConnections:true // default: false');
 
-optional.append('validate:#datasource.validate?:false# // default: false');
+
+optional.append('validate:#truefalseformat(datasource.validate?:false)# // default: false');
 </cfscript>
 <cfsavecontent variable="codeSample">
 	this.datasources["#datasource.name#"] = {

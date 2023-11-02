@@ -133,7 +133,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
  							return key&":"&value;
  
                         },parallel);
-		assertEquals('{"A":"A:1","B":"B:2","C":"C:3"}',serialize(res));
+		assertEquals('["A":"A:1","B":"B:2","C":"C:3"]',serialize(res));
 		
 		// test content produced
 		savecontent variable="c" {
@@ -151,7 +151,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
  
                         },parallel);
 
-		assertEquals('{"A":"A:1","B":"B:2","C":"C:3"}',serialize(res));
+		assertEquals('["A":"A:1","B":"B:2","C":"C:3"]',serialize(res));
 
 	}
 

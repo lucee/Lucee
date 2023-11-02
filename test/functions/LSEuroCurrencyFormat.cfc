@@ -9,11 +9,18 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				dt=CreateDateTime(2004,1,2,4,5,6);
 				euro=chr(8364);
 
+				if(getJavaVersion()>=9) {
+					assertEquals("CHF 1.00", "#LSEuroCurrencyFormat(1)#");
+					assertEquals("CHF 1.20", "#LSEuroCurrencyFormat(1.2)#");
+					assertEquals("CHF 1.20", "#LSEuroCurrencyFormat(1.2,"local")#");
+				}
+				else {	
+					assertEquals("SFr. 1.00", "#LSEuroCurrencyFormat(1)#");
+					assertEquals("SFr. 1.20", "#LSEuroCurrencyFormat(1.2)#");
+					assertEquals("SFr. 1.20", "#LSEuroCurrencyFormat(1.2,"local")#");
+				}
 
-				assertEquals("SFr. 1.00", "#LSEuroCurrencyFormat(1)#");
-				assertEquals("SFr. 1.20", "#LSEuroCurrencyFormat(1.2)#");
 
-				assertEquals("SFr. 1.20", "#LSEuroCurrencyFormat(1.2,"local")#");
 				assertEquals("CHF1.20", "#replace(LSEuroCurrencyFormat(1.2,"international","German (Swiss)")," ","")#");
 				assertEquals("1.20", "#LSEuroCurrencyFormat(1.2,"none")#");
 
@@ -35,4 +42,12 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 			});
 		});
 	}
+
+	private function getJavaVersion() {
+        var raw=server.java.version;
+        var arr=listToArray(raw,'.');
+        if(arr[1]==1) // version 1-9
+            return arr[2];
+        return arr[1];
+    }
 }

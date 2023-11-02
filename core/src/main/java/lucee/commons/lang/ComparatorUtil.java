@@ -27,36 +27,50 @@ import lucee.runtime.type.comparator.TextComparator;
 
 public class ComparatorUtil {
 
-    public static final int SORT_TYPE_TEXT = 1;
-    public static final int SORT_TYPE_TEXT_NO_CASE = 2;
-    public static final int SORT_TYPE_NUMBER = 3;
+	public static final int SORT_TYPE_TEXT = 1;
+	public static final int SORT_TYPE_TEXT_NO_CASE = 2;
+	public static final int SORT_TYPE_NUMBER = 3;
 
-    public static Comparator toComparator(int sortType, boolean orderAsc, Locale l, Comparator defaultValue) {
-	// check sortorder
-	// text
-	if (sortType == SORT_TYPE_TEXT) {
-	    if (l != null) return toCollator(l, Collator.IDENTICAL);
-	    return new TextComparator(orderAsc, false);
+	public static Comparator toComparator(int sortType, boolean orderAsc, Locale l, Comparator defaultValue) {
+		// check sortorder
+		// text
+		if (sortType == SORT_TYPE_TEXT) {
+			if (l != null) return toCollator(l, Collator.IDENTICAL, orderAsc);
+			return new TextComparator(orderAsc, false);
+		}
+		// text no case
+		else if (sortType == SORT_TYPE_TEXT_NO_CASE) {
+			if (l != null) return toCollator(l, Collator.TERTIARY, orderAsc);
+			return new TextComparator(orderAsc, true);
+		}
+		// numeric
+		else if (sortType == SORT_TYPE_NUMBER) {
+			return new NumberComparator(orderAsc);
+		}
+		else {
+			return defaultValue;
+		}
 	}
-	// text no case
-	else if (sortType == SORT_TYPE_TEXT_NO_CASE) {
-	    if (l != null) return toCollator(l, Collator.TERTIARY);
-	    return new TextComparator(orderAsc, true);
-	}
-	// numeric
-	else if (sortType == SORT_TYPE_NUMBER) {
-	    return new NumberComparator(orderAsc);
-	}
-	else {
-	    return defaultValue;
-	}
-    }
 
-    private static Comparator toCollator(Locale l, int strength) {
-	Collator c = Collator.getInstance(l);
-	c.setStrength(strength);
-	c.setDecomposition(Collator.CANONICAL_DECOMPOSITION);
-	return c;
-    }
+	private static Comparator toCollator(Locale l, int strength, boolean orderAsc) {
+		Collator c = Collator.getInstance(l);
+		c.setStrength(strength);
+		c.setDecomposition(Collator.CANONICAL_DECOMPOSITION);
+		if (!orderAsc) return new Inverter(c);
+		return c;
+	}
 
+	private static class Inverter<T> implements Comparator<T> {
+
+		private Collator c;
+
+		public Inverter(Collator c) {
+			this.c = c;
+		}
+
+		@Override
+		public int compare(T o1, T o2) {
+			return c.compare(o2, o1);
+		}
+	}
 }

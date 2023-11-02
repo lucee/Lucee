@@ -20,7 +20,7 @@ package lucee.commons.net.http;
 
 public interface Entity {
 
-    public long contentLength();
+	public long contentLength();
 
-    public String contentType();
+	public String contentType();
 }

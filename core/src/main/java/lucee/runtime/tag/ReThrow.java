@@ -27,5 +27,5 @@ import lucee.runtime.ext.tag.TagImpl;
  * 
  **/
 public final class ReThrow extends TagImpl {
-    // this tag is deprecated and replaced with a Translation Time Transformer (TTT) Class
+	// this tag is deprecated and replaced with a Translation Time Transformer (TTT) Class
 }

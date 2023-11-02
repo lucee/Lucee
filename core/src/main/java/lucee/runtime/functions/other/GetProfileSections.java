@@ -31,13 +31,13 @@ import lucee.runtime.ext.function.Function;
 import lucee.runtime.op.Caster;
 
 public final class GetProfileSections implements Function {
-    public static lucee.runtime.type.Struct call(PageContext pc, String fileName) throws PageException {
-	try {
-	    return IniFile.getProfileSections(ResourceUtil.toResourceExisting(pc, fileName));
+	public static lucee.runtime.type.Struct call(PageContext pc, String fileName) throws PageException {
+		try {
+			return IniFile.getProfileSections(ResourceUtil.toResourceExisting(pc, fileName));
+		}
+		catch (IOException e) {
+			throw Caster.toPageException(e);
+		}
 	}
-	catch (IOException e) {
-	    throw Caster.toPageException(e);
-	}
-    }
 
 }

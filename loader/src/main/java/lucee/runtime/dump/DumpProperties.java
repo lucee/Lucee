@@ -21,61 +21,61 @@ package lucee.runtime.dump;
 import java.util.Set;
 
 public class DumpProperties {
-    public static final int DEFAULT_MAX_LEVEL = 9999;
+	public static final int DEFAULT_MAX_LEVEL = 9999;
 
-    public final static DumpProperties DEFAULT = new DumpProperties(DumpProperties.DEFAULT_MAX_LEVEL, null, null, 9999, true, true);
-    private final Set<String> show;
-    private final Set<String> hide;
-    private final int maxlevel;
-    private final int keys;
-    private final boolean metainfo;
-    private final boolean showUDFs;
+	public final static DumpProperties DEFAULT = new DumpProperties(DumpProperties.DEFAULT_MAX_LEVEL, null, null, 9999, true, true);
+	private final Set<String> show;
+	private final Set<String> hide;
+	private final int maxlevel;
+	private final int keys;
+	private final boolean metainfo;
+	private final boolean showUDFs;
 
-    public DumpProperties(final int maxlevel, final Set<String> show, final Set<String> hide, final int keys, final boolean metainfo, final boolean showUDFs) {
-	this.show = show;
-	this.hide = hide;
-	this.maxlevel = maxlevel;
-	this.keys = keys;
-	this.metainfo = metainfo;
-	this.showUDFs = showUDFs;
-    }
+	public DumpProperties(final int maxlevel, final Set<String> show, final Set<String> hide, final int keys, final boolean metainfo, final boolean showUDFs) {
+		this.show = show;
+		this.hide = hide;
+		this.maxlevel = maxlevel;
+		this.keys = keys;
+		this.metainfo = metainfo;
+		this.showUDFs = showUDFs;
+	}
 
-    /**
-     * @return the metainfo
-     */
-    public boolean getMetainfo() {
-	return metainfo;
-    }
+	/**
+	 * @return the metainfo
+	 */
+	public boolean getMetainfo() {
+		return metainfo;
+	}
 
-    /**
-     * @return the show
-     */
-    public Set<String> getShow() {
-	return show;
-    }
+	/**
+	 * @return the show
+	 */
+	public Set<String> getShow() {
+		return show;
+	}
 
-    /**
-     * @return the hide
-     */
-    public Set<String> getHide() {
-	return hide;
-    }
+	/**
+	 * @return the hide
+	 */
+	public Set<String> getHide() {
+		return hide;
+	}
 
-    public int getMaxlevel() {
-	return maxlevel;
-    }
+	public int getMaxlevel() {
+		return maxlevel;
+	}
 
-    /**
-     * @return the keys
-     */
-    public int getMaxKeys() {
-	return keys;
-    }
+	/**
+	 * @return the keys
+	 */
+	public int getMaxKeys() {
+		return keys;
+	}
 
-    /**
-     * @return the showUDFs
-     */
-    public boolean getShowUDFs() {
-	return showUDFs;
-    }
+	/**
+	 * @return the showUDFs
+	 */
+	public boolean getShowUDFs() {
+		return showUDFs;
+	}
 }

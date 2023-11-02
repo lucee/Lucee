@@ -27,35 +27,35 @@ import lucee.runtime.type.StructImpl;
 
 public class ChildSpoolerTask extends SpoolerTaskSupport {
 
-    private ChildThreadImpl ct;
+	private ChildThreadImpl ct;
 
-    public ChildSpoolerTask(ChildThreadImpl ct, ExecutionPlan[] plans) {
-	super(plans);
-	this.ct = ct;
-    }
+	public ChildSpoolerTask(ChildThreadImpl ct, ExecutionPlan[] plans) {
+		super(plans);
+		this.ct = ct;
+	}
 
-    @Override
-    public Struct detail() {
-	StructImpl detail = new StructImpl();
-	detail.setEL("template", ct.getTemplate());
-	return detail;
-    }
+	@Override
+	public Struct detail() {
+		StructImpl detail = new StructImpl();
+		detail.setEL("template", ct.getTemplate());
+		return detail;
+	}
 
-    @Override
-    public Object execute(Config config) throws PageException {
-	PageException pe = ct.execute(config);
-	if (pe != null) throw pe;
-	return null;
-    }
+	@Override
+	public Object execute(Config config) throws PageException {
+		PageException pe = ct.execute(config);
+		if (pe != null) throw pe;
+		return null;
+	}
 
-    @Override
-    public String getType() {
-	return "cfthread";
-    }
+	@Override
+	public String getType() {
+		return "cfthread";
+	}
 
-    @Override
-    public String subject() {
-	return ct.getTagName();
-    }
+	@Override
+	public String subject() {
+		return ct.getTagName();
+	}
 
 }

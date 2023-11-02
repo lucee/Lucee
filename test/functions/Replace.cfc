@@ -28,4 +28,24 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 		dest = Replace(src, "camelcase", "CamelCase", "all");
 		assertEquals("CamelCase CaMeLcAsE CAMELCASE","#dest#");
 	}
+
+
+	function testReplaceMap() localMode="modern" {
+    	text="I want replace to add 1 underscore with struct-replace... 'target'";
+    	res=replace(text,{"target":"!target!"});
+    	
+    	// LDEV-2273
+    	assertEquals(
+    		"I want replace to add 1 underscore with struct-replace... '!target!'",res);
+
+    	// replacement be next key to find 
+    	text="Susi Sorglos foehnte ihr Haar";
+    	res=replace(text,{"Susi":"Sorglos","Sorglos":"Susi"});
+    	
+    	assertEquals(
+    		"Sorglos Susi foehnte ihr Haar",res);
+
+
+
+	}
 }

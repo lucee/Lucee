@@ -31,41 +31,41 @@ import lucee.runtime.engine.ThreadLocalPageContext;
 
 public class RequestDispatcherWrap implements RequestDispatcher {
 
-    private String realPath;
-    private HTTPServletRequestWrap req;
+	private String realPath;
+	private HTTPServletRequestWrap req;
 
-    public RequestDispatcherWrap(HTTPServletRequestWrap req, String realPath) {
-	this.realPath = realPath;
-	this.req = req;
-    }
-
-    @Override
-    public void forward(ServletRequest req, ServletResponse rsp) throws ServletException, IOException {
-	PageContext pc = ThreadLocalPageContext.get();
-	req = HTTPUtil.removeWrap(req);
-	if (pc == null) {
-	    this.req.getOriginalRequestDispatcher(realPath).forward(req, rsp);
-	    return;
+	public RequestDispatcherWrap(HTTPServletRequestWrap req, String realPath) {
+		this.realPath = realPath;
+		this.req = req;
 	}
 
-	realPath = HTTPUtil.optimizeRealPath(pc, realPath);
+	@Override
+	public void forward(ServletRequest req, ServletResponse rsp) throws ServletException, IOException {
+		PageContext pc = ThreadLocalPageContext.get();
+		req = HTTPUtil.removeWrap(req);
+		if (pc == null) {
+			this.req.getOriginalRequestDispatcher(realPath).forward(req, rsp);
+			return;
+		}
 
-	try {
-	    RequestDispatcher disp = this.req.getOriginalRequestDispatcher(realPath);
-	    disp.forward(req, rsp);
-	}
-	finally {
-	    ThreadLocalPageContext.register(pc);
-	}
-    }
+		realPath = HTTPUtil.optimizeRealPath(pc, realPath);
 
-    @Override
-    public void include(ServletRequest req, ServletResponse rsp) throws ServletException, IOException {
-	PageContext pc = ThreadLocalPageContext.get();
-	if (pc == null) {
-	    this.req.getOriginalRequestDispatcher(realPath).include(req, rsp);
-	    return;
+		try {
+			RequestDispatcher disp = this.req.getOriginalRequestDispatcher(realPath);
+			disp.forward(req, rsp);
+		}
+		finally {
+			ThreadLocalPageContext.register(pc);
+		}
 	}
-	HTTPUtil.include(pc, req, rsp, realPath);
-    }
+
+	@Override
+	public void include(ServletRequest req, ServletResponse rsp) throws ServletException, IOException {
+		PageContext pc = ThreadLocalPageContext.get();
+		if (pc == null) {
+			this.req.getOriginalRequestDispatcher(realPath).include(req, rsp);
+			return;
+		}
+		HTTPUtil.include(pc, req, rsp, realPath);
+	}
 }

@@ -24,50 +24,50 @@ import lucee.runtime.net.proxy.ProxyData;
 
 public interface RemoteClient extends Serializable {
 
-    /**
-     * @return the url
-     */
-    public String getUrl();
+	/**
+	 * @return the url
+	 */
+	public String getUrl();
 
-    /**
-     * @return the serverUsername
-     */
-    public String getServerUsername();
+	/**
+	 * @return the serverUsername
+	 */
+	public String getServerUsername();
 
-    /**
-     * @return the serverPassword
-     */
-    public String getServerPassword();
+	/**
+	 * @return the serverPassword
+	 */
+	public String getServerPassword();
 
-    /**
-     * @return the proxyData
-     */
-    public ProxyData getProxyData();
+	/**
+	 * @return the proxyData
+	 */
+	public ProxyData getProxyData();
 
-    /**
-     * @return the type
-     */
-    public String getType();
+	/**
+	 * @return the type
+	 */
+	public String getType();
 
-    /**
-     * @return the adminPassword
-     */
-    public String getAdminPassword();
+	/**
+	 * @return the adminPassword
+	 */
+	public String getAdminPassword();
 
-    /**
-     * @return the securityKey
-     */
-    public String getSecurityKey();
+	/**
+	 * @return the securityKey
+	 */
+	public String getSecurityKey();
 
-    public String getAdminPasswordEncrypted();
+	public String getAdminPasswordEncrypted();
 
-    public String getLabel();
+	public String getLabel();
 
-    public String getUsage();
+	public String getUsage();
 
-    public boolean hasUsage(String usage);
+	public boolean hasUsage(String usage);
 
-    public String getId(Config config);
+	public String getId(Config config);
 
-    // TODO doc
+	// TODO doc
 }

@@ -26,33 +26,33 @@ import lucee.commons.io.res.ContentType;
 
 public interface HTTPResponse {
 
-    public String getContentAsString() throws IOException;
+	public String getContentAsString() throws IOException;
 
-    public String getContentAsString(String charset) throws IOException;
+	public String getContentAsString(String charset) throws IOException;
 
-    public InputStream getContentAsStream() throws IOException;
+	public InputStream getContentAsStream() throws IOException;
 
-    public byte[] getContentAsByteArray() throws IOException;
+	public byte[] getContentAsByteArray() throws IOException;
 
-    public ContentType getContentType();
+	public ContentType getContentType();
 
-    public Header getLastHeader(String name);
+	public Header getLastHeader(String name);
 
-    public Header getLastHeaderIgnoreCase(String name);
+	public Header getLastHeaderIgnoreCase(String name);
 
-    public String getCharset();
+	public String getCharset();
 
-    public long getContentLength() throws IOException;
+	public long getContentLength() throws IOException;
 
-    public URL getURL();
+	public URL getURL();
 
-    public int getStatusCode();
+	public int getStatusCode();
 
-    public String getStatusText();
+	public String getStatusText();
 
-    public String getProtocolVersion();
+	public String getProtocolVersion();
 
-    public String getStatusLine();
+	public String getStatusLine();
 
-    public Header[] getAllHeaders();
+	public Header[] getAllHeaders();
 }

@@ -118,7 +118,7 @@
     <cffunction name="addChild" output="false" access="public" returntype="void">
     	<cfargument name="child" required="true" type="layoutarea" />
 		<cfset children = getchildren() />
-		<cfset children.add(arguments.child) />
+		<cfset children.append(arguments.child) />
     </cffunction>
 	
 	<!--- private -------------------------------------------------------------------------------->

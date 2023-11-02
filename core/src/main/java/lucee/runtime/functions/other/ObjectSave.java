@@ -35,30 +35,30 @@ import lucee.runtime.op.Caster;
 
 public class ObjectSave {
 
-    public static Object call(PageContext pc, Object input) throws PageException {
-	return call(pc, input, null);
-    }
-
-    public static Object call(PageContext pc, Object input, String filepath) throws PageException {
-	if (!(input instanceof Serializable)) throw new ApplicationException("can only serialize object from type Serializable");
-
-	ByteArrayOutputStream baos = new ByteArrayOutputStream();
-	try {
-	    JavaConverter.serialize((Serializable) input, baos);
-
-	    byte[] barr = baos.toByteArray();
-
-	    // store to file
-	    if (!StringUtil.isEmpty(filepath, true)) {
-		Resource res = ResourceUtil.toResourceNotExisting(pc, filepath);
-		pc.getConfig().getSecurityManager().checkFileLocation(res);
-		IOUtil.copy(new ByteArrayInputStream(barr), res, true);
-	    }
-	    return barr;
-
+	public static Object call(PageContext pc, Object input) throws PageException {
+		return call(pc, input, null);
 	}
-	catch (IOException e) {
-	    throw Caster.toPageException(e);
+
+	public static Object call(PageContext pc, Object input, String filepath) throws PageException {
+		if (!(input instanceof Serializable)) throw new ApplicationException("can only serialize object from type Serializable");
+
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		try {
+			JavaConverter.serialize((Serializable) input, baos);
+
+			byte[] barr = baos.toByteArray();
+
+			// store to file
+			if (!StringUtil.isEmpty(filepath, true)) {
+				Resource res = ResourceUtil.toResourceNotExisting(pc, filepath);
+				pc.getConfig().getSecurityManager().checkFileLocation(res);
+				IOUtil.copy(new ByteArrayInputStream(barr), res, true);
+			}
+			return barr;
+
+		}
+		catch (IOException e) {
+			throw Caster.toPageException(e);
+		}
 	}
-    }
 }

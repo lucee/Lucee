@@ -28,33 +28,33 @@ import lucee.runtime.interpreter.ref.var.Variable;
 
 public class Elvis extends RefSupport implements Ref {
 
-    private Ref left;
-    private Ref right;
-    private boolean limited;
+	private Ref left;
+	private Ref right;
+	private boolean limited;
 
-    public Elvis(Ref left, Ref right, boolean limited) {
-	this.left = left;
-	this.right = right;
-	this.limited = limited;
-    }
-
-    @Override
-    public Object getValue(PageContext pc) throws PageException {
-	if (limited) throw new InterpreterException("invalid syntax, this operation is not supported in a json string.");
-	if (left instanceof Variable) {
-	    Variable var = (Variable) left;
-	    String[] arr = LFunctionValue.toStringArray(pc, var);
-	    return lucee.runtime.op.Elvis.operate(pc, arr) ? left.getValue(pc) : right.getValue(pc);
+	public Elvis(Ref left, Ref right, boolean limited) {
+		this.left = left;
+		this.right = right;
+		this.limited = limited;
 	}
 
-	Object val = left.getValue(pc);
-	if (val != null) return val;
-	return right.getValue(pc);
+	@Override
+	public Object getValue(PageContext pc) throws PageException {
+		if (limited) throw new InterpreterException("invalid syntax, this operation is not supported in a json string.");
+		if (left instanceof Variable) {
+			Variable var = (Variable) left;
+			String[] arr = LFunctionValue.toStringArray(pc, var);
+			return lucee.runtime.op.Elvis.operate(pc, arr) ? left.getValue(pc) : right.getValue(pc);
+		}
 
-    }
+		Object val = left.getValue(pc);
+		if (val != null) return val;
+		return right.getValue(pc);
 
-    @Override
-    public String getTypeName() {
-	return "operation";
-    }
+	}
+
+	@Override
+	public String getTypeName() {
+		return "operation";
+	}
 }

@@ -20,7 +20,7 @@ package lucee.runtime.flash;
 
 public class FlashEngineCache {
 
-    public void getFlash(FlashEngine engine, String input) {
+	public void getFlash(FlashEngine engine, String input) {
 
-    }
+	}
 }

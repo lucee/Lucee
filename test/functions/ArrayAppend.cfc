@@ -56,7 +56,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		
 		try{
 			ArrayAppend( sct,"value" );
-			fail("must throw:cant cast struct to a array, key [aaa] is not a number");
+			fail("must throw:cannot cast struct to an array, key [aaa] is not a number");
 		}
 		catch(local.exp){}
 		

@@ -15,7 +15,7 @@
 		function beforeAll() skip="isNotSupported"{
 			if(isNotSupported()) return;
 			s3Details = getCredentials();
-			mitrahsoftBucketName = "ldev1489";
+			mitrahsoftBucketName = "lucee-testsuite-ldev1489";
 			base = "s3://#s3Details.ACCESSKEYID#:#s3Details.AWSSECRETKEY#@";
 			variables.baseWithBucketName = "s3://#s3Details.ACCESSKEYID#:#s3Details.AWSSECRETKEY#@/#mitrahsoftBucketName#";
 			// for skipping rest of the cases, if error occurred.

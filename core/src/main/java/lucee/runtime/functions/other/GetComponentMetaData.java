@@ -34,32 +34,32 @@ import lucee.runtime.type.Struct;
 
 public final class GetComponentMetaData implements Function {
 
-    public static Struct call(PageContext pc, Object obj) throws PageException {
-	if (obj instanceof Component) {
-	    return ((Component) obj).getMetaData(pc);
-	}
-	// load existing meta without loading the cfc
-	/*
-	 * try{ Page page = ComponentLoader.loadPage(pc,((PageContextImpl)pc).getCurrentPageSource(null),
-	 * Caster.toString(obj), null,null); if(page.metaData!=null && page.metaData.get()!=null) return
-	 * page.metaData.get(); }catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
-	 */
+	public static Struct call(PageContext pc, Object obj) throws PageException {
+		if (obj instanceof Component) {
+			return ((Component) obj).getMetaData(pc);
+		}
+		// load existing meta without loading the cfc
+		/*
+		 * try{ Page page = ComponentLoader.loadPage(pc,((PageContextImpl)pc).getCurrentPageSource(null),
+		 * Caster.toString(obj), null,null); if(page.metaData!=null && page.metaData.get()!=null) return
+		 * page.metaData.get(); }catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
+		 */
 
-	// load the cfc when metadata was not defined before
-	try {
-	    // Component cfc = CreateObject.doComponent(pc, Caster.toString(obj));
-	    Component cfc = ComponentLoader.searchComponent(pc, null, Caster.toString(obj), null, null, true, true/* MUST false does not produce properties */);
-	    return cfc.getMetaData(pc);
+		// load the cfc when metadata was not defined before
+		try {
+			// Component cfc = CreateObject.doComponent(pc, Caster.toString(obj));
+			Component cfc = ComponentLoader.searchComponent(pc, null, Caster.toString(obj), null, null, true, true/* MUST false does not produce properties */);
+			return cfc.getMetaData(pc);
+		}
+		// TODO better solution
+		catch (ApplicationException ae) {
+			try {
+				InterfaceImpl inter = ComponentLoader.searchInterface(pc, ((PageContextImpl) pc).getCurrentPageSource(null), Caster.toString(obj));
+				return inter.getMetaData(pc);
+			}
+			catch (PageException pe) {
+				throw ae;
+			}
+		}
 	}
-	// TODO better solution
-	catch (ApplicationException ae) {
-	    try {
-		InterfaceImpl inter = ComponentLoader.searchInterface(pc, ((PageContextImpl) pc).getCurrentPageSource(null), Caster.toString(obj));
-		return inter.getMetaData(pc);
-	    }
-	    catch (PageException pe) {
-		throw ae;
-	    }
-	}
-    }
 }

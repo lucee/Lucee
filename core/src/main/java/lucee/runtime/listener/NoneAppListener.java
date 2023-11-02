@@ -30,76 +30,76 @@ import lucee.runtime.type.scope.Session;
 
 public final class NoneAppListener extends AppListenerSupport {
 
-    private int mode;
+	private int mode;
 
-    @Override
-    public void onRequest(PageContext pc, PageSource requestedPage, RequestListener rl) throws PageException {
-	if (rl != null) {
-	    requestedPage = rl.execute(pc, requestedPage);
-	    if (requestedPage == null) return;
+	@Override
+	public void onRequest(PageContext pc, PageSource requestedPage, RequestListener rl) throws PageException {
+		if (rl != null) {
+			requestedPage = rl.execute(pc, requestedPage);
+			if (requestedPage == null) return;
+		}
+		pc.doInclude(new PageSource[] { requestedPage }, false);
 	}
-	pc.doInclude(new PageSource[] { requestedPage }, false);
-    }
 
-    @Override
-    public boolean onApplicationStart(PageContext pc) throws PageException {
-	// do nothing
-	return true;
-    }
-
-    @Override
-    public boolean onApplicationStart(PageContext pc, Application application) throws PageException {
-	// do nothing
-	return true;
-    }
-
-    @Override
-    public void onSessionStart(PageContext pc) throws PageException {
-	// do nothing
-    }
-
-    @Override
-    public void onSessionStart(PageContext pc, Session session) throws PageException {
-	// do nothing
-    }
-
-    @Override
-    public void onApplicationEnd(CFMLFactory factory, String applicationName) throws PageException {
-	// do nothing
-    }
-
-    @Override
-    public void onSessionEnd(CFMLFactory cfmlFactory, String applicationName, String cfid) throws PageException {
-	// do nothing
-    }
-
-    @Override
-    public void onDebug(PageContext pc) throws PageException {
-	try {
-	    if (pc.getConfig().debug()) pc.getDebugger().writeOut(pc);
+	@Override
+	public boolean onApplicationStart(PageContext pc) throws PageException {
+		// do nothing
+		return true;
 	}
-	catch (IOException e) {
-	    throw Caster.toPageException(e);
+
+	@Override
+	public boolean onApplicationStart(PageContext pc, Application application) throws PageException {
+		// do nothing
+		return true;
 	}
-    }
 
-    @Override
-    public void onError(PageContext pc, PageException pe) {
-	pc.handlePageException(pe);
-    }
+	@Override
+	public void onSessionStart(PageContext pc) throws PageException {
+		// do nothing
+	}
 
-    @Override
-    public void setMode(int mode) {
-	this.mode = mode;
-    }
+	@Override
+	public void onSessionStart(PageContext pc, Session session) throws PageException {
+		// do nothing
+	}
 
-    @Override
-    public int getMode() {
-	return mode;
-    }
+	@Override
+	public void onApplicationEnd(CFMLFactory factory, String applicationName) throws PageException {
+		// do nothing
+	}
 
-    @Override
-    public String getType() {
-	return "none";
-    }
+	@Override
+	public void onSessionEnd(CFMLFactory cfmlFactory, String applicationName, String cfid) throws PageException {
+		// do nothing
+	}
+
+	@Override
+	public void onDebug(PageContext pc) throws PageException {
+		try {
+			if (pc.getConfig().debug()) pc.getDebugger().writeOut(pc);
+		}
+		catch (IOException e) {
+			throw Caster.toPageException(e);
+		}
+	}
+
+	@Override
+	public void onError(PageContext pc, PageException pe) {
+		pc.handlePageException(pe);
+	}
+
+	@Override
+	public void setMode(int mode) {
+		this.mode = mode;
+	}
+
+	@Override
+	public int getMode() {
+		return mode;
+	}
+
+	@Override
+	public String getType() {
+		return "none";
+	}
 }

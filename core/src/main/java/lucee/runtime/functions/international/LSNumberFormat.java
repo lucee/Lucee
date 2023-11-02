@@ -34,42 +34,42 @@ import lucee.runtime.util.NumberFormat.Mask;
 
 public final class LSNumberFormat extends BIF {
 
-    private static final long serialVersionUID = -7981883050285346336L;
+	private static final long serialVersionUID = -7981883050285346336L;
 
-    public static String call(PageContext pc, Object object) throws PageException {
-	return _call(pc, object, null, pc.getLocale());
-    }
-
-    public static String call(PageContext pc, Object object, String mask) throws PageException {
-	return _call(pc, object, mask, pc.getLocale());
-    }
-
-    public static String call(PageContext pc, Object object, String mask, Locale locale) throws PageException {
-	return _call(pc, object, mask, locale == null ? pc.getLocale() : locale);
-    }
-
-    private static String _call(PageContext pc, Object object, String mask, Locale locale) throws PageException {
-
-	try {
-
-	    lucee.runtime.util.NumberFormat formatter = new lucee.runtime.util.NumberFormat();
-
-	    if (mask == null) return formatter.format(locale, lucee.runtime.functions.displayFormatting.NumberFormat.toNumber(pc, object, 0));
-	    Mask m = lucee.runtime.util.NumberFormat.convertMask(mask);
-	    double number = lucee.runtime.functions.displayFormatting.NumberFormat.toNumber(pc, object, m.right);
-	    return formatter.format(locale, number, m);
+	public static String call(PageContext pc, Object object) throws PageException {
+		return _call(pc, object, null, pc.getLocale());
 	}
-	catch (InvalidMaskException e) {
-	    throw new FunctionException(pc, "lsnumberFormat", 1, "number", e.getMessage());
+
+	public static String call(PageContext pc, Object object, String mask) throws PageException {
+		return _call(pc, object, mask, pc.getLocale());
 	}
-    }
 
-    @Override
-    public Object invoke(PageContext pc, Object[] args) throws PageException {
-	if (args.length == 3) return call(pc, args[0], Caster.toString(args[1]), Caster.toLocale(args[2]));
-	if (args.length == 2) return call(pc, args[0], Caster.toString(args[1]));
-	if (args.length == 1) return call(pc, args[0]);
+	public static String call(PageContext pc, Object object, String mask, Locale locale) throws PageException {
+		return _call(pc, object, mask, locale == null ? pc.getLocale() : locale);
+	}
 
-	throw new FunctionException(pc, "LSNumberFormat", 1, 3, args.length);
-    }
+	private static String _call(PageContext pc, Object object, String mask, Locale locale) throws PageException {
+
+		try {
+
+			lucee.runtime.util.NumberFormat formatter = new lucee.runtime.util.NumberFormat();
+
+			if (mask == null) return formatter.format(locale, lucee.runtime.functions.displayFormatting.NumberFormat.toNumber(pc, object, 0));
+			Mask m = lucee.runtime.util.NumberFormat.convertMask(mask);
+			double number = lucee.runtime.functions.displayFormatting.NumberFormat.toNumber(pc, object, m.right);
+			return formatter.format(locale, number, m);
+		}
+		catch (InvalidMaskException e) {
+			throw new FunctionException(pc, "lsnumberFormat", 1, "number", e.getMessage());
+		}
+	}
+
+	@Override
+	public Object invoke(PageContext pc, Object[] args) throws PageException {
+		if (args.length == 3) return call(pc, args[0], Caster.toString(args[1]), Caster.toLocale(args[2]));
+		if (args.length == 2) return call(pc, args[0], Caster.toString(args[1]));
+		if (args.length == 1) return call(pc, args[0]);
+
+		throw new FunctionException(pc, "LSNumberFormat", 1, 3, args.length);
+	}
 }

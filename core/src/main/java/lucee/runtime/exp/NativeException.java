@@ -32,80 +32,80 @@ import lucee.runtime.type.Collection;
  */
 public class NativeException extends PageExceptionImpl {
 
-    private static final long serialVersionUID = 6221156691846424801L;
+	private static final long serialVersionUID = 6221156691846424801L;
 
-    private Throwable t;
+	private Throwable t;
 
-    /**
-     * Standart constructor for native Exception class
-     * 
-     * @param t Throwable
-     */
-    protected NativeException(Throwable t) {
-	super(t, t.getClass().getName());
-	this.t = t;
-	// set stacktrace
-
-	/*
-	 * StackTraceElement[] st = getRootCause(t).getStackTrace();
-	 * if(hasLuceeRuntime(st))setStackTrace(st); else { StackTraceElement[] cst = new
-	 * Exception().getStackTrace(); if(hasLuceeRuntime(cst)){ StackTraceElement[] mst=new
-	 * StackTraceElement[st.length+cst.length-1]; System.arraycopy(st, 0, mst, 0, st.length);
-	 * System.arraycopy(cst, 1, mst, st.length, cst.length-1);
+	/**
+	 * Standart constructor for native Exception class
 	 * 
-	 * setStackTrace(mst); } else setStackTrace(st); }
+	 * @param t Throwable
 	 */
-    }
+	protected NativeException(Throwable t) {
+		super(t, t.getClass().getName());
+		this.t = t;
+		// set stacktrace
 
-    public static NativeException newInstance(Throwable t) {
-	return newInstance(t, true);
-    }
-
-    public static NativeException newInstance(Throwable t, boolean rethrowIfNecessary) {
-	if (rethrowIfNecessary && t instanceof ThreadDeath) // never ever catch this
-	    throw (ThreadDeath) t;
-	return new NativeException(t);
-    }
-
-    private static Throwable getRootCause(Throwable t) {
-	Throwable c;
-	do {
-	    c = t.getCause();
-	    if (c == null || c == t) return t;
-	    t = c;
-
+		/*
+		 * StackTraceElement[] st = getRootCause(t).getStackTrace();
+		 * if(hasLuceeRuntime(st))setStackTrace(st); else { StackTraceElement[] cst = new
+		 * Exception().getStackTrace(); if(hasLuceeRuntime(cst)){ StackTraceElement[] mst=new
+		 * StackTraceElement[st.length+cst.length-1]; System.arraycopy(st, 0, mst, 0, st.length);
+		 * System.arraycopy(cst, 1, mst, st.length, cst.length-1);
+		 * 
+		 * setStackTrace(mst); } else setStackTrace(st); }
+		 */
 	}
-	while (true);
-    }
 
-    private boolean hasLuceeRuntime(StackTraceElement[] st) {
-	if (st != null) for (int i = 0; i < st.length; i++) {
-	    if (st[i].getClassName().indexOf("lucee.runtime") != -1) return true;
+	public static NativeException newInstance(Throwable t) {
+		return newInstance(t, true);
 	}
-	return false;
-    }
 
-    @Override
-    public DumpData toDumpData(PageContext pageContext, int maxlevel, DumpProperties dp) {
-	DumpData data = super.toDumpData(pageContext, maxlevel, dp);
-	if (data instanceof DumpTable) ((DumpTable) data)
-		.setTitle(Constants.NAME + " [" + pageContext.getConfig().getFactory().getEngine().getInfo().getVersion() + "] - Error (" + Caster.toClassName(t) + ")");
+	public static NativeException newInstance(Throwable t, boolean rethrowIfNecessary) {
+		if (rethrowIfNecessary && t instanceof ThreadDeath) // never ever catch this
+			throw (ThreadDeath) t;
+		return new NativeException(t);
+	}
 
-	return data;
-    }
+	private static Throwable getRootCause(Throwable t) {
+		Throwable c;
+		do {
+			c = t.getCause();
+			if (c == null || c == t) return t;
+			t = c;
 
-    @Override
-    public boolean typeEqual(String type) {
-	if (super.typeEqual(type)) return true;
-	return Reflector.isInstaneOfIgnoreCase(t.getClass(), type);
-    }
+		}
+		while (true);
+	}
 
-    @Override
-    public void setAdditional(Collection.Key key, Object value) {
-	super.setAdditional(key, value);
-    }
+	private boolean hasLuceeRuntime(StackTraceElement[] st) {
+		if (st != null) for (int i = 0; i < st.length; i++) {
+			if (st[i].getClassName().indexOf("lucee.runtime") != -1) return true;
+		}
+		return false;
+	}
 
-    public Throwable getException() {
-	return t;
-    }
+	@Override
+	public DumpData toDumpData(PageContext pageContext, int maxlevel, DumpProperties dp) {
+		DumpData data = super.toDumpData(pageContext, maxlevel, dp);
+		if (data instanceof DumpTable) ((DumpTable) data)
+				.setTitle(Constants.NAME + " [" + pageContext.getConfig().getFactory().getEngine().getInfo().getVersion() + "] - Error (" + Caster.toClassName(t) + ")");
+
+		return data;
+	}
+
+	@Override
+	public boolean typeEqual(String type) {
+		if (super.typeEqual(type)) return true;
+		return Reflector.isInstaneOfIgnoreCase(t.getClass(), type);
+	}
+
+	@Override
+	public void setAdditional(Collection.Key key, Object value) {
+		super.setAdditional(key, value);
+	}
+
+	public Throwable getException() {
+		return t;
+	}
 }

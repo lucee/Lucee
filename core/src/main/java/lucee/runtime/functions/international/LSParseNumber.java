@@ -18,10 +18,12 @@
  **/
 package lucee.runtime.functions.international;
 
+import java.lang.ref.SoftReference;
 import java.text.NumberFormat;
 import java.text.ParsePosition;
 import java.util.Locale;
-import java.util.WeakHashMap;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.ExpressionException;
@@ -34,50 +36,50 @@ import lucee.runtime.i18n.LocaleFactory;
  */
 public final class LSParseNumber implements Function {
 
-    private static final long serialVersionUID = 2219030609677513651L;
+	private static final long serialVersionUID = 2219030609677513651L;
 
-    private static WeakHashMap<Locale, NumberFormat> whm = new WeakHashMap<Locale, NumberFormat>();
+	private static Map<Locale, SoftReference<NumberFormat>> formatters = new ConcurrentHashMap<Locale, SoftReference<NumberFormat>>();
 
-    public static double call(PageContext pc, String string) throws PageException {
-	return toDoubleValue(pc.getLocale(), string);
-    }
-
-    public static double call(PageContext pc, String string, Locale locale) throws PageException {
-	return toDoubleValue(locale == null ? pc.getLocale() : locale, string);
-    }
-
-    public static double toDoubleValue(Locale locale, String str) throws PageException {
-	Object o = whm.get(locale);
-	NumberFormat nf = null;
-	if (o == null) {
-	    nf = NumberFormat.getInstance(locale);
-	    whm.put(locale, nf);
-	}
-	else {
-	    nf = (NumberFormat) o;
-	}
-	str = optimze(str.toCharArray());
-
-	ParsePosition pp = new ParsePosition(0);
-	Number result = nf.parse(str, pp);
-
-	if (pp.getIndex() < str.length()) {
-	    throw new ExpressionException("can't parse String [" + str + "] against locale [" + LocaleFactory.getDisplayName(locale) + "] to a number");
-	}
-	if (result == null) throw new ExpressionException("can't parse String [" + str + "] against locale [" + LocaleFactory.getDisplayName(locale) + "] to a number");
-	return result.doubleValue();
-
-    }
-
-    private static String optimze(char[] carr) {
-	StringBuilder sb = new StringBuilder();
-	char c;
-	for (int i = 0; i < carr.length; i++) {
-	    c = carr[i];
-	    if (!Character.isWhitespace(c) && c != '+') sb.append(carr[i]);
+	public static double call(PageContext pc, String string) throws PageException {
+		return toDoubleValue(pc.getLocale(), string);
 	}
 
-	return sb.toString();
-    }
+	public static double call(PageContext pc, String string, Locale locale) throws PageException {
+		return toDoubleValue(locale == null ? pc.getLocale() : locale, string);
+	}
+
+	public static double toDoubleValue(Locale locale, String str) throws PageException {
+		SoftReference<NumberFormat> tmp = formatters.remove(locale);
+		NumberFormat nf = tmp == null ? null : tmp.get();
+		if (nf == null) {
+			nf = NumberFormat.getInstance(locale);
+		}
+		try {
+			str = optimze(str.toCharArray());
+
+			ParsePosition pp = new ParsePosition(0);
+			Number result = nf.parse(str, pp);
+
+			if (pp.getIndex() < str.length()) {
+				throw new ExpressionException("can't parse String [" + str + "] against locale [" + LocaleFactory.getDisplayName(locale) + "] to a number");
+			}
+			if (result == null) throw new ExpressionException("can't parse String [" + str + "] against locale [" + LocaleFactory.getDisplayName(locale) + "] to a number");
+			return result.doubleValue();
+		}
+		finally {
+			formatters.put(locale, new SoftReference<NumberFormat>(nf));
+		}
+	}
+
+	private static String optimze(char[] carr) {
+		StringBuilder sb = new StringBuilder();
+		char c;
+		for (int i = 0; i < carr.length; i++) {
+			c = carr[i];
+			if (!Character.isWhitespace(c) && c != '+') sb.append(carr[i]);
+		}
+
+		return sb.toString();
+	}
 
 }

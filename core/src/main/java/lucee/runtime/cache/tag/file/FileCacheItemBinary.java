@@ -26,48 +26,48 @@ import lucee.runtime.type.Duplicable;
 
 public class FileCacheItemBinary extends FileCacheItem implements Duplicable {
 
-    private static final long serialVersionUID = -7426486016811317332L;
-    public final byte[] data;
+	private static final long serialVersionUID = -7426486016811317332L;
+	public final byte[] data;
 
-    public FileCacheItemBinary(String path, byte[] data, long executionTimeNS) {
-	super(path, executionTimeNS);
-	this.data = data;
-    }
-
-    @Override
-    public String toString() {
-	return Base64Coder.encode(data);
-    }
-
-    @Override
-    public String getHashFromValue() {
-	try {
-	    return MD5.getDigestAsString(data);
+	public FileCacheItemBinary(String path, byte[] data, long executionTimeNS) {
+		super(path, executionTimeNS);
+		this.data = data;
 	}
-	catch (IOException e) {
-	    return Long.toString(HashUtil.create64BitHash(toString()));
+
+	@Override
+	public String toString() {
+		return Base64Coder.encode(data);
 	}
-    }
 
-    @Override
-    public long getPayload() {
-	return data.length;
-    }
-
-    @Override
-    public byte[] getData() {
-	return data;
-    }
-
-    @Override
-    public Object duplicate(boolean deepCopy) {
-	if (data != null) {
-	    byte[] tmp = new byte[data.length];
-	    for (int i = 0; i < data.length; i++) {
-		tmp[i] = data[i];
-	    }
-	    return new FileCacheItemBinary(path, tmp, getExecutionTime());
+	@Override
+	public String getHashFromValue() {
+		try {
+			return MD5.getDigestAsString(data);
+		}
+		catch (IOException e) {
+			return Long.toString(HashUtil.create64BitHash(toString()));
+		}
 	}
-	return new FileCacheItemBinary(path, data, getExecutionTime());
-    }
+
+	@Override
+	public long getPayload() {
+		return data.length;
+	}
+
+	@Override
+	public byte[] getData() {
+		return data;
+	}
+
+	@Override
+	public Object duplicate(boolean deepCopy) {
+		if (data != null) {
+			byte[] tmp = new byte[data.length];
+			for (int i = 0; i < data.length; i++) {
+				tmp[i] = data[i];
+			}
+			return new FileCacheItemBinary(path, tmp, getExecutionTime());
+		}
+		return new FileCacheItemBinary(path, data, getExecutionTime());
+	}
 }

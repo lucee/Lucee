@@ -27,19 +27,19 @@ import lucee.runtime.dump.Dumpable;
  */
 public abstract class PageException extends JspException implements IPageException, Dumpable {
 
-    private static final long serialVersionUID = 2057718592238914705L;
+	private static final long serialVersionUID = 2057718592238914705L;
 
-    /**
-     * constructor of the class
-     * 
-     * @param message error message
-     */
-    public PageException(final String message) {
-	super(message);
-    }
+	/**
+	 * constructor of the class
+	 * 
+	 * @param message error message
+	 */
+	public PageException(final String message) {
+		super(message);
+	}
 
-    public abstract void setExposeMessage(boolean exposeMessage);
+	public abstract void setExposeMessage(boolean exposeMessage);
 
-    public abstract boolean getExposeMessage();
+	public abstract boolean getExposeMessage();
 
 }

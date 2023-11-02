@@ -26,10 +26,10 @@ import lucee.transformer.library.tag.TagLibTag;
  */
 public interface AttributeEvaluator {
 
-    /**
-     * @param tagLibTag
-     * @param tag
-     * @throws AttributeEvaluatorException
-     */
-    TagLibTag evaluate(TagLibTag tagLibTag, Tag tag) throws AttributeEvaluatorException;
+	/**
+	 * @param tagLibTag
+	 * @param tag
+	 * @throws AttributeEvaluatorException
+	 */
+	TagLibTag evaluate(TagLibTag tagLibTag, Tag tag) throws AttributeEvaluatorException;
 }

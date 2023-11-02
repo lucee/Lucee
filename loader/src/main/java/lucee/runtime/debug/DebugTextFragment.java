@@ -20,9 +20,9 @@ package lucee.runtime.debug;
 
 public interface DebugTextFragment {
 
-    public String getText();
+	public String getText();
 
-    public String getTemplate();
+	public String getTemplate();
 
-    public int getLine();
+	public int getLine();
 }

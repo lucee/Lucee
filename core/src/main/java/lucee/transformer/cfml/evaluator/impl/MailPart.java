@@ -30,13 +30,13 @@ import lucee.transformer.library.tag.TagLibTag;
  */
 public final class MailPart extends EvaluatorSupport {
 
-    @Override
-    public void evaluate(Tag tag, TagLibTag libTag) throws EvaluatorException {
+	@Override
+	public void evaluate(Tag tag, TagLibTag libTag) throws EvaluatorException {
 
-	// check parent
-	String ns = libTag.getTagLib().getNameSpaceAndSeparator();
-	String mailName = ns + "mail";
+		// check parent
+		String ns = libTag.getTagLib().getNameSpaceAndSeparator();
+		String mailName = ns + "mail";
 
-	if (!ASMUtil.hasAncestorTag(tag, mailName)) throw new EvaluatorException("Wrong Context, tag " + libTag.getFullName() + " must be inside a " + mailName + " tag");
-    }
+		if (!ASMUtil.hasAncestorTag(tag, mailName)) throw new EvaluatorException("Wrong Context, tag [" + libTag.getFullName() + "] must be inside a [" + mailName + "] tag");
+	}
 }

@@ -25,7 +25,7 @@ import lucee.runtime.PageContext;
 import lucee.runtime.ext.function.Function;
 
 public final class Tan implements Function {
-    public static double call(PageContext pc, double number) {
-	return StrictMath.tan(number);
-    }
+	public static double call(PageContext pc, double number) {
+		return StrictMath.tan(number);
+	}
 }

@@ -86,11 +86,21 @@ function testMemberFunction(){
 				assertEquals("06.04.2008", "#lsDateFormat('6. April 2008','medium')#");
 
 				setlocale('french (standard)');
-				assertEquals("06/04/08x", "#lsDateFormat(d,'short')#x");
-				assertEquals("06/04/08", "#lsDateFormat(('06/04/08'),'short')#");
-				assertEquals("06/04/08", "#lsDateFormat('6 avr. 2008','short')#");
-				assertEquals("06/04/08", "#lsDateFormat('6 avril 2008','short')#");
-				assertEquals("06/04/08", "#lsDateFormat('dimanche 6 avril 2008','short')#");
+				if(getJavaVersion()>=9) {
+					assertEquals("06/04/2008", "#lsDateFormat(d,'short')#");
+					assertEquals("06/04/2008", "#lsDateFormat(('06/04/08'),'short')#");
+					assertEquals("06/04/2008", "#lsDateFormat('6 avr. 2008','short')#");
+					assertEquals("06/04/2008", "#lsDateFormat('6 avril 2008','short')#");
+					assertEquals("06/04/2008", "#lsDateFormat('dimanche 6 avril 2008','short')#");
+				}
+				else {
+					assertEquals("06/04/08", "#lsDateFormat(d,'short')#");
+					assertEquals("06/04/08", "#lsDateFormat(('06/04/08'),'short')#");
+					assertEquals("06/04/08", "#lsDateFormat('6 avr. 2008','short')#");
+					assertEquals("06/04/08", "#lsDateFormat('6 avril 2008','short')#");
+					assertEquals("06/04/08", "#lsDateFormat('dimanche 6 avril 2008','short')#");
+				}
+				
 				assertEquals("6 avr. 2008", "#lsDateFormat(d,'medium')#");
 				assertEquals("6 avr. 2008", "#lsDateFormat('06/04/08','medium')#");
 				assertEquals("6 avr. 2008", "#lsDateFormat('6 avr. 2008','medium')#");
@@ -130,21 +140,44 @@ function testMemberFunction(){
 				assertEquals("Sunday, April 6, 2008", "#lsDateFormat('Sunday, April 6, 2008','full')#");
 
 				setlocale('English (UK)');
-				assertEquals("06/04/08", "#lsDateFormat(d,'short')#");
-				assertEquals("06/04/08", "#lsDateFormat('06/04/08','short')#");
-				assertEquals("06/04/08", "#lsDateFormat('06-Apr-2008','short')#");
-				assertEquals("06/04/08", "#lsDateFormat('06 April 2008','short')#");
-				assertEquals("06/04/08", "#lsDateFormat('Sunday, 6 April 2008','short')#");
-				assertEquals("06-Apr-2008", "#lsDateFormat(d,'medium')#");
-				assertEquals("06-Apr-2008", "#lsDateFormat('06/04/08','medium')#");
-				assertEquals("06-Apr-2008", "#lsDateFormat('06-Apr-2008','medium')#");
-				assertEquals("06-Apr-2008", "#lsDateFormat('06 April 2008','medium')#");
-				assertEquals("06-Apr-2008", "#lsDateFormat('Sunday, 6 April 2008','medium')#");
-				assertEquals("06 April 2008", "#lsDateFormat(d,'long')#");
-				assertEquals("06 April 2008", "#lsDateFormat('06/04/08','long')#");
-				assertEquals("06 April 2008", "#lsDateFormat('06-Apr-2008','long')#");
-				assertEquals("06 April 2008", "#lsDateFormat('06 April 2008','long')#");
-				assertEquals("06 April 2008", "#lsDateFormat('Sunday, 6 April 2008','long')#");
+				if(getJavaVersion()>=9) {
+					assertEquals("06/04/2008", "#lsDateFormat(d,'short')#");
+					assertEquals("06/04/2008", "#lsDateFormat('06/04/08','short')#");
+					assertEquals("06/04/2008", "#lsDateFormat('06-Apr-2008','short')#");
+					assertEquals("06/04/2008", "#lsDateFormat('06 April 2008','short')#");
+					assertEquals("06/04/2008", "#lsDateFormat('Sunday, 6 April 2008','short')#");
+
+					assertEquals("6 Apr 2008", "#lsDateFormat(d,'medium')#");
+					assertEquals("6 Apr 2008", "#lsDateFormat('06/04/08','medium')#");
+					assertEquals("6 Apr 2008", "#lsDateFormat('06-Apr-2008','medium')#");
+					assertEquals("6 Apr 2008", "#lsDateFormat('06 April 2008','medium')#");
+					assertEquals("6 Apr 2008", "#lsDateFormat('Sunday, 6 April 2008','medium')#");
+					
+					assertEquals("6 April 2008", "#lsDateFormat(d,'long')#");
+					assertEquals("6 April 2008", "#lsDateFormat('06/04/08','long')#");
+					assertEquals("6 April 2008", "#lsDateFormat('06-Apr-2008','long')#");
+					assertEquals("6 April 2008", "#lsDateFormat('06 April 2008','long')#");
+					assertEquals("6 April 2008", "#lsDateFormat('Sunday, 6 April 2008','long')#");
+				}
+				else {
+					assertEquals("06/04/08", "#lsDateFormat(d,'short')#");
+					assertEquals("06/04/08", "#lsDateFormat('06/04/08','short')#");
+					assertEquals("06/04/08", "#lsDateFormat('06-Apr-2008','short')#");
+					assertEquals("06/04/08", "#lsDateFormat('06 April 2008','short')#");
+					assertEquals("06/04/08", "#lsDateFormat('Sunday, 6 April 2008','short')#");
+
+					assertEquals("06-Apr-2008", "#lsDateFormat(d,'medium')#");
+					assertEquals("06-Apr-2008", "#lsDateFormat('06/04/08','medium')#");
+					assertEquals("06-Apr-2008", "#lsDateFormat('06-Apr-2008','medium')#");
+					assertEquals("06-Apr-2008", "#lsDateFormat('06 April 2008','medium')#");
+					assertEquals("06-Apr-2008", "#lsDateFormat('Sunday, 6 April 2008','medium')#");
+
+					assertEquals("06 April 2008", "#lsDateFormat(d,'long')#");
+					assertEquals("06 April 2008", "#lsDateFormat('06/04/08','long')#");
+					assertEquals("06 April 2008", "#lsDateFormat('06-Apr-2008','long')#");
+					assertEquals("06 April 2008", "#lsDateFormat('06 April 2008','long')#");
+					assertEquals("06 April 2008", "#lsDateFormat('Sunday, 6 April 2008','long')#");
+				}
 				assertEquals("Sunday, 6 April 2008", "#lsDateFormat(d,'full')#");
 				assertEquals("Sunday, 6 April 2008", "#lsDateFormat('06/04/08','full')#");
 				assertEquals("Sunday, 6 April 2008", "#lsDateFormat('06-Apr-2008','full')#");
@@ -164,5 +197,15 @@ function testMemberFunction(){
 			});
 		});	
 	}
+
+	
+
+	private function getJavaVersion() {
+        var raw=server.java.version;
+        var arr=listToArray(raw,'.');
+        if(arr[1]==1) // version 1-9
+            return arr[2];
+        return arr[1];
+    }
 }
 

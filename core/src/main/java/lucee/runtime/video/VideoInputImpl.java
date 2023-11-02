@@ -26,58 +26,58 @@ import lucee.runtime.type.util.ListUtil;
 
 public class VideoInputImpl implements VideoInput {
 
-    private Resource resource;
-    private String args = "";
-    private String path;
+	private Resource resource;
+	private String args = "";
+	private String path;
 
-    /**
-     * Constructor of the class
-     * 
-     * @param resource
-     */
-    public VideoInputImpl(Resource resource) {
-	this.resource = resource;
-    }
-
-    /**
-     * @see lucee.runtime.video.VideoInput#getResource()
-     */
-    @Override
-    public Resource getResource() {
-	return resource;
-    }
-
-    /**
-     * @see lucee.runtime.video.VideoInput#setCommand(java.lang.String, java.util.List)
-     */
-    @Override
-    public void setCommand(String path, java.util.List args) {
-	this.path = path;
-	try {
-	    addArgs(ListUtil.listToList(args, " "));
+	/**
+	 * Constructor of the class
+	 * 
+	 * @param resource
+	 */
+	public VideoInputImpl(Resource resource) {
+		this.resource = resource;
 	}
-	catch (PageException pe) {
-	    throw new PageRuntimeException(pe);
+
+	/**
+	 * @see lucee.runtime.video.VideoInput#getResource()
+	 */
+	@Override
+	public Resource getResource() {
+		return resource;
 	}
-    }
 
-    @Override
-    public void setCommand(String path, String[] args) {
-	this.path = path;
-	addArgs(ListUtil.arrayToList(args, " "));
-    }
+	/**
+	 * @see lucee.runtime.video.VideoInput#setCommand(java.lang.String, java.util.List)
+	 */
+	@Override
+	public void setCommand(String path, java.util.List args) {
+		this.path = path;
+		try {
+			addArgs(ListUtil.listToList(args, " "));
+		}
+		catch (PageException pe) {
+			throw new PageRuntimeException(pe);
+		}
+	}
 
-    /**
-     * @see lucee.runtime.video.VideoInput#getCommandAsString()
-     */
-    @Override
-    public String getCommandAsString() {
-	return path + " " + args;
-    }
+	@Override
+	public void setCommand(String path, String[] args) {
+		this.path = path;
+		addArgs(ListUtil.arrayToList(args, " "));
+	}
 
-    private void addArgs(String args) {
-	if (StringUtil.isEmpty(this.args, true)) this.args = args;
-	else this.args += "; " + args;
+	/**
+	 * @see lucee.runtime.video.VideoInput#getCommandAsString()
+	 */
+	@Override
+	public String getCommandAsString() {
+		return path + " " + args;
+	}
 
-    }
+	private void addArgs(String args) {
+		if (StringUtil.isEmpty(this.args, true)) this.args = args;
+		else this.args += "; " + args;
+
+	}
 }

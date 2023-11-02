@@ -30,59 +30,59 @@ import lucee.transformer.bytecode.statement.FlowControlFinal;
  */
 public interface Statement {
 
-    /**
-     * sets parent statement to statement
-     * 
-     * @param parent
-     */
-    public void setParent(Statement parent);
+	/**
+	 * sets parent statement to statement
+	 * 
+	 * @param parent
+	 */
+	public void setParent(Statement parent);
 
-    public boolean hasFlowController();
+	public boolean hasFlowController();
 
-    public void setHasFlowController(boolean has);
+	public void setHasFlowController(boolean has);
 
-    /**
-     * @return returns the parent statement
-     */
-    public Statement getParent();
+	/**
+	 * @return returns the parent statement
+	 */
+	public Statement getParent();
 
-    /**
-     * write out the statement to adapter
-     * 
-     * @param c
-     * @throws TemplateException
-     */
-    public void writeOut(Context c) throws TransformerException;
+	/**
+	 * write out the statement to adapter
+	 * 
+	 * @param c
+	 * @throws TemplateException
+	 */
+	public void writeOut(Context c) throws TransformerException;
 
-    /**
-     * sets the line value.
-     * 
-     * @param line The line to set.
-     */
-    public void setStart(Position startLine);
+	/**
+	 * sets the line value.
+	 * 
+	 * @param line The line to set.
+	 */
+	public void setStart(Position startLine);
 
-    /**
-     * sets the line value.
-     * 
-     * @param line The line to set.
-     */
-    public void setEnd(Position endLine);
+	/**
+	 * sets the line value.
+	 * 
+	 * @param line The line to set.
+	 */
+	public void setEnd(Position endLine);
 
-    /**
-     * @return the startLine
-     */
-    public Position getStart();
+	/**
+	 * @return the startLine
+	 */
+	public Position getStart();
 
-    /**
-     * @return the endLine
-     */
-    public Position getEnd();
+	/**
+	 * @return the endLine
+	 */
+	public Position getEnd();
 
-    /**
-     * @return return the label where the finally block of this tags starts, IF there is a finally
-     *         block, otherwise return null;
-     */
-    public FlowControlFinal getFlowControlFinal();
+	/**
+	 * @return return the label where the finally block of this tags starts, IF there is a finally
+	 *         block, otherwise return null;
+	 */
+	public FlowControlFinal getFlowControlFinal();
 
-    public Factory getFactory();
+	public Factory getFactory();
 }

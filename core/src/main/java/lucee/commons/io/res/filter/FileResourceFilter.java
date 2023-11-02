@@ -25,11 +25,11 @@ import lucee.commons.io.res.Resource;
  */
 public final class FileResourceFilter implements ResourceFilter {
 
-    public static final FileResourceFilter FILTER = new FileResourceFilter();
+	public static final FileResourceFilter FILTER = new FileResourceFilter();
 
-    @Override
-    public boolean accept(Resource pathname) {
-	return pathname.isFile();
-    }
+	@Override
+	public boolean accept(Resource pathname) {
+		return pathname.isFile();
+	}
 
 }

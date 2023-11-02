@@ -1,4 +1,4 @@
-component extends="Base" accessors="true"{
+component extends="HelperBase" accessors="true"{
 		
 	variables.tagname = "ftp";
 					

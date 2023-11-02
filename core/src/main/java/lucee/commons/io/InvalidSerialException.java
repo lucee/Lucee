@@ -19,15 +19,15 @@
 package lucee.commons.io;
 
 /**
- * Exception that will be throwed when a serial number is invalid.
+ * Exception that will be thrown when a serial number is invalid.
  * 
  */
 public final class InvalidSerialException extends Exception {
 
-    /**
-     * Default Constructor
-     */
-    public InvalidSerialException() {
-	super("serial number is invalid");
-    }
+	/**
+	 * Default Constructor
+	 */
+	public InvalidSerialException() {
+		super("serial number is invalid");
+	}
 }

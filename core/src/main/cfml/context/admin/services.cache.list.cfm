@@ -140,7 +140,7 @@ Redirtect to entry --->
 										<span class="CheckOk">#stVeritfyMessages[srcGlobal.name].label#</span>
 									<cfelse>
 										<span class="CheckError" title="#stVeritfyMessages[srcGlobal.name].message##Chr(13)#">#stVeritfyMessages[srcGlobal.name].label#</span>
-										&nbsp;<img src="resources/img/red-info.gif.cfm" 
+										&nbsp;<img src="../res/img/red-info.gif.cfm" 
 											width="9" 
 											height="9" 
 											border="0" 
@@ -202,7 +202,7 @@ Redirtect to entry --->
 										<span class="CheckOk">#stVeritfyMessages[srcLocal.name].label#</span>
 									<cfelse>
 										<span class="CheckError" title="#stVeritfyMessages[srcLocal.name].message##Chr(13)#">#stVeritfyMessages[srcLocal.name].label#</span>
-										&nbsp;<img src="resources/img/red-info.gif.cfm" 
+										&nbsp;<img src="../res/img/red-info.gif.cfm" 
 											width="9" 
 											height="9" 
 											border="0" 

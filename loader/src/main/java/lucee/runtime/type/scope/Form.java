@@ -30,37 +30,30 @@ import lucee.runtime.listener.ApplicationContext;
  */
 public interface Form extends Scope {
 
-    /**
-     * @return Returns the encoding.
-     */
-    public abstract String getEncoding();
+	/**
+	 * @return Returns the encoding.
+	 */
+	public abstract String getEncoding();
 
-    /**
-     * @param encoding The encoding to set.
-     * @throws UnsupportedEncodingException
-     * @deprecated use instead <code>setEncoding(ApplicationContext ac,String encoding)</code>
-     */
-    // public abstract void setEncoding(String encoding) throws UnsupportedEncodingException;
+	/**
+	 * @param ac current ApplicationContext
+	 * @param encoding The encoding to set.
+	 * @throws UnsupportedEncodingException
+	 */
+	public abstract void setEncoding(ApplicationContext ac, String encoding) throws UnsupportedEncodingException;
 
-    /**
-     * @param ac current ApplicationContext
-     * @param encoding The encoding to set.
-     * @throws UnsupportedEncodingException
-     */
-    public abstract void setEncoding(ApplicationContext ac, String encoding) throws UnsupportedEncodingException;
+	/**
+	 * @return return the exception when initialized
+	 */
+	public abstract PageException getInitException();
 
-    /**
-     * @return return the exception when initialized
-     */
-    public abstract PageException getInitException();
+	public abstract void setScriptProtecting(ApplicationContext ac, boolean b);
 
-    public abstract void setScriptProtecting(ApplicationContext ac, boolean b);
+	public FormItem getUploadResource(String key);
 
-    public FormItem getUploadResource(String key);
+	public FormItem[] getFileItems();
 
-    public FormItem[] getFileItems();
+	public ServletInputStream getInputStream();
 
-    public ServletInputStream getInputStream();
-
-    public void reinitialize(ApplicationContext ac);
+	public void reinitialize(ApplicationContext ac);
 }

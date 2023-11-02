@@ -131,7 +131,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
  
                         },parallel);
 
-		assertEquals('{"B":2}',serialize(res));
+		assertEquals('["B":2]',serialize(res));
 		savecontent variable="c" {
 			res=StructFilter({a:1}, function(key, value ){
 							echo(serialize(arguments));

@@ -27,7 +27,7 @@ import lucee.runtime.type.dt.DateTime;
 import lucee.runtime.type.dt.TimeImpl;
 
 public final class CreateODBCTime implements Function {
-    public static DateTime call(PageContext pc, DateTime datetime) {
-	return new TimeImpl(datetime);
-    }
+	public static DateTime call(PageContext pc, DateTime datetime) {
+		return new TimeImpl(datetime);
+	}
 }

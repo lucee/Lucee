@@ -34,66 +34,66 @@ import lucee.runtime.ext.function.BIF;
 import lucee.runtime.op.Caster;
 
 public final class LSCurrencyFormat extends BIF {
-    private static final char NBSP = (char) 160;
-    private static final long serialVersionUID = -3173006221339130136L;
+	private static final char NBSP = (char) 160;
+	private static final long serialVersionUID = -3173006221339130136L;
 
-    public static String call(PageContext pc, Object number) throws PageException {
-	return format(toDouble(number), "local", pc.getLocale());
-    }
-
-    public static String call(PageContext pc, Object number, String type) throws PageException {
-	return format(toDouble(number), type, pc.getLocale());
-    }
-
-    public static String call(PageContext pc, Object number, String type, Locale locale) throws PageException {
-	return format(toDouble(number), type, locale == null ? pc.getLocale() : locale);
-    }
-
-    @Override
-    public Object invoke(PageContext pc, Object[] args) throws PageException {
-	if (args.length == 3) return call(pc, args[0], Caster.toString(args[1]), Caster.toLocale(args[2]));
-	if (args.length == 2) return call(pc, args[0], Caster.toString(args[1]));
-	if (args.length == 1) return call(pc, args[0]);
-
-	throw new FunctionException(pc, "LSCurrencyFormat", 1, 3, args.length);
-    }
-
-    public static String format(double number, String type, Locale locale) throws ExpressionException {
-	if (StringUtil.isEmpty(type)) return local(locale, number);
-	type = type.trim().toLowerCase();
-
-	if (type.equals("none")) return none(locale, number);
-	else if (type.equals("local")) return local(locale, number);
-	else if (type.equals("international")) return international(locale, number);
-	else {
-	    throw new ExpressionException("invalid type for function lsCurrencyFormat", "types are: local, international or none");
+	public static String call(PageContext pc, Object number) throws PageException {
+		return format(toDouble(number), "local", pc.getLocale());
 	}
 
-    }
+	public static String call(PageContext pc, Object number, String type) throws PageException {
+		return format(toDouble(number), type, pc.getLocale());
+	}
 
-    public static String none(Locale locale, double number) {
-	NumberFormat nf = NumberFormat.getCurrencyInstance(locale);
-	return clean(StringUtil.replace(nf.format(number), nf.getCurrency().getSymbol(locale), "", false));
-    }
+	public static String call(PageContext pc, Object number, String type, Locale locale) throws PageException {
+		return format(toDouble(number), type, locale == null ? pc.getLocale() : locale);
+	}
 
-    public static String local(Locale locale, double number) {
-	return clean(NumberFormat.getCurrencyInstance(locale).format(number));
-    }
+	@Override
+	public Object invoke(PageContext pc, Object[] args) throws PageException {
+		if (args.length == 3) return call(pc, args[0], Caster.toString(args[1]), Caster.toLocale(args[2]));
+		if (args.length == 2) return call(pc, args[0], Caster.toString(args[1]));
+		if (args.length == 1) return call(pc, args[0]);
 
-    public static String international(Locale locale, double number) {
-	NumberFormat nf = NumberFormat.getCurrencyInstance(locale);
-	Currency currency = nf.getCurrency();
-	String str = clean(StringUtil.replace(nf.format(number), nf.getCurrency().getSymbol(locale), "", false));
-	return currency.getCurrencyCode() + " " + str;
-    }
+		throw new FunctionException(pc, "LSCurrencyFormat", 1, 3, args.length);
+	}
 
-    private static String clean(String str) {
-	// Java 10 returns nbsp instead of a regular space
-	return str.replace(NBSP, ' ').trim();
-    }
+	public static String format(double number, String type, Locale locale) throws ExpressionException {
+		if (StringUtil.isEmpty(type)) return local(locale, number);
+		type = type.trim().toLowerCase();
 
-    public static double toDouble(Object number) throws PageException {
-	if (number instanceof String && ((String) number).length() == 0) return 0d;
-	return Caster.toDoubleValue(number) + 0.000000000001d; // adding this only influence if the binary representation is a little bit off
-    }
+		if (type.equals("none")) return none(locale, number);
+		else if (type.equals("local")) return local(locale, number);
+		else if (type.equals("international")) return international(locale, number);
+		else {
+			throw new ExpressionException("invalid type for function lsCurrencyFormat", "types are: local, international or none");
+		}
+
+	}
+
+	public static String none(Locale locale, double number) {
+		NumberFormat nf = NumberFormat.getCurrencyInstance(locale);
+		return clean(StringUtil.replace(nf.format(number), nf.getCurrency().getSymbol(locale), "", false));
+	}
+
+	public static String local(Locale locale, double number) {
+		return clean(NumberFormat.getCurrencyInstance(locale).format(number));
+	}
+
+	public static String international(Locale locale, double number) {
+		NumberFormat nf = NumberFormat.getCurrencyInstance(locale);
+		Currency currency = nf.getCurrency();
+		String str = clean(StringUtil.replace(nf.format(number), nf.getCurrency().getSymbol(locale), "", false));
+		return currency.getCurrencyCode() + " " + str;
+	}
+
+	private static String clean(String str) {
+		// Java 10 returns nbsp instead of a regular space
+		return str.replace(NBSP, ' ').trim();
+	}
+
+	public static double toDouble(Object number) throws PageException {
+		if (number instanceof String && ((String) number).length() == 0) return 0d;
+		return Caster.toDoubleValue(number) + 0.000000000001d; // adding this only influence if the binary representation is a little bit off
+	}
 }

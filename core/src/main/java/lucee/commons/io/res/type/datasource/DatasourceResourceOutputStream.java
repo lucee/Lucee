@@ -26,61 +26,61 @@ import lucee.runtime.exp.AlwaysThrow;
 
 public class DatasourceResourceOutputStream extends OutputStream {
 
-    private final DataWriter dw;
-    private final OutputStream os;
+	private final DataWriter dw;
+	private final OutputStream os;
 
-    /**
-     * Constructor of the class
-     * 
-     * @param res
-     * @param os
-     */
-    public DatasourceResourceOutputStream(DataWriter dw, OutputStream os) {
-	this.dw = dw;
-	this.os = os;
-    }
-
-    @Override
-    public void write(int b) throws IOException {
-	os.write(b);
-    }
-
-    @Override
-    public void close() throws IOException {
-	os.close();
-	try {
-	    dw.join();
-	}
-	catch (InterruptedException e) {
-	    throw new AlwaysThrow(e.getMessage());
+	/**
+	 * Constructor of the class
+	 * 
+	 * @param res
+	 * @param os
+	 */
+	public DatasourceResourceOutputStream(DataWriter dw, OutputStream os) {
+		this.dw = dw;
+		this.os = os;
 	}
 
-	SQLException ioe = dw.getException();
-	if (ioe != null) {
-	    throw new AlwaysThrow(ioe.getMessage());
+	@Override
+	public void write(int b) throws IOException {
+		os.write(b);
 	}
-    }
 
-    @Override
-    public void flush() throws IOException {
-	os.flush();
-    }
+	@Override
+	public void close() throws IOException {
+		os.close();
+		try {
+			dw.join();
+		}
+		catch (InterruptedException e) {
+			throw new AlwaysThrow(e.getMessage());
+		}
 
-    @Override
-    public void write(byte[] b, int off, int len) throws IOException {
-	os.write(b, off, len);
-    }
+		SQLException ioe = dw.getException();
+		if (ioe != null) {
+			throw new AlwaysThrow(ioe.getMessage());
+		}
+	}
 
-    @Override
-    public void write(byte[] b) throws IOException {
-	os.write(b);
-    }
+	@Override
+	public void flush() throws IOException {
+		os.flush();
+	}
 
-    /**
-     * @return the os
-     */
-    public OutputStream getOutputStream() {
-	return os;
-    }
+	@Override
+	public void write(byte[] b, int off, int len) throws IOException {
+		os.write(b, off, len);
+	}
+
+	@Override
+	public void write(byte[] b) throws IOException {
+		os.write(b);
+	}
+
+	/**
+	 * @return the os
+	 */
+	public OutputStream getOutputStream() {
+		return os;
+	}
 
 }

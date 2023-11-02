@@ -26,9 +26,9 @@ import lucee.runtime.PageContext;
 
 public interface PreparedStatementPro extends PreparedStatement, StatementPro {
 
-    public boolean execute(PageContext pc) throws SQLException;
+	public boolean execute(PageContext pc) throws SQLException;
 
-    public ResultSet executeQuery(PageContext pc) throws SQLException;
+	public ResultSet executeQuery(PageContext pc) throws SQLException;
 
-    public int executeUpdate(PageContext pc) throws SQLException;
+	public int executeUpdate(PageContext pc) throws SQLException;
 }

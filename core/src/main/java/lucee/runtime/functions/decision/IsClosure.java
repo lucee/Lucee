@@ -23,10 +23,10 @@ import lucee.runtime.op.Decision;
 import lucee.runtime.type.ObjectWrap;
 
 public class IsClosure {
-    public static boolean call(PageContext pc, Object obj) {
-	if (obj instanceof ObjectWrap) {
-	    return call(pc, ((ObjectWrap) obj).getEmbededObject(null));
+	public static boolean call(PageContext pc, Object obj) {
+		if (obj instanceof ObjectWrap) {
+			return call(pc, ((ObjectWrap) obj).getEmbededObject(null));
+		}
+		return Decision.isClosure(obj);
 	}
-	return Decision.isClosure(obj);
-    }
 }

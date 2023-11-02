@@ -25,7 +25,7 @@ import lucee.runtime.PageContext;
 import lucee.runtime.ext.function.Function;
 
 public final class Sgn implements Function {
-    public static double call(PageContext pc, double number) {
-	return number != 0.0d ? number >= 0.0d ? 1 : -1 : 0;
-    }
+	public static double call(PageContext pc, double number) {
+		return number != 0.0d ? number >= 0.0d ? 1 : -1 : 0;
+	}
 }

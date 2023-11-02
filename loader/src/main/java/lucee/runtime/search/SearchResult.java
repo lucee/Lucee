@@ -21,7 +21,7 @@ package lucee.runtime.search;
 import lucee.runtime.type.Query;
 
 public interface SearchResult {
-    public Query getQuery();
+	public Query getQuery();
 
-    public String[] getSuggestion();
+	public String[] getSuggestion();
 }

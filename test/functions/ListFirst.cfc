@@ -17,7 +17,7 @@
  * 
  **/
 component extends="org.lucee.cfml.test.LuceeTestCase" {
-	function testListLast(){
+	function testListFirst(){
 
 		assertEquals("",ListFirst(''));
 		assertEquals("abba",ListFirst('abba,xx,xxxx,xxxx,xxx,bb'));
@@ -32,7 +32,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 
 	}
 
-	function testListLastCount(){
+	function testListFirstCount(){
 
 		assertEquals("a,b,c",ListFirst(list:',a,,b,,c,,d,',count:3));
 		assertEquals(",a,",ListFirst(list:',a,,b,,c,,d,',count:3,includeEmptyFields:true));
@@ -46,5 +46,4 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 		assertEquals("abba",list2.ListFirst(delimiters="||"));
 		assertEquals("",list2.ListFirst(delimiters="||", includeEmptyFields=true));
 	}
-
 }

@@ -25,34 +25,34 @@ import lucee.runtime.type.query.QueryResult;
 
 public class QueryCacheItem extends QueryResultCacheItem {
 
-    private static final long serialVersionUID = 7327671003736543783L;
+	private static final long serialVersionUID = 7327671003736543783L;
 
-    public final Query query;
-    private String hash;
+	public final Query query;
+	private String hash;
 
-    public QueryCacheItem(Query query, String[] tags, String datasourceName, long cacheTime) {
-	super((QueryResult) query, tags, datasourceName, cacheTime);
-	this.query = query;
-    }
+	public QueryCacheItem(Query query, String[] tags, String datasourceName, long cacheTime) {
+		super((QueryResult) query, tags, datasourceName, cacheTime);
+		this.query = query;
+	}
 
-    public QueryCacheItem(Query query, String[] tags, String datasourceName) {
-	this(query, tags, datasourceName, System.currentTimeMillis());
-    }
+	public QueryCacheItem(Query query, String[] tags, String datasourceName) {
+		this(query, tags, datasourceName, System.currentTimeMillis());
+	}
 
-    @Override
-    public String getHashFromValue() {
-	// TODO faster impl
-	if (hash == null) hash = Long.toString(HashUtil.create64BitHash(UDFArgConverter.serialize(query)));
-	return hash;
-    }
+	@Override
+	public String getHashFromValue() {
+		// TODO faster impl
+		if (hash == null) hash = Long.toString(HashUtil.create64BitHash(UDFArgConverter.serialize(query)));
+		return hash;
+	}
 
-    public Query getQuery() {
-	return query;
-    }
+	public Query getQuery() {
+		return query;
+	}
 
-    @Override
-    public Object duplicate(boolean deepCopy) {
-	return new QueryCacheItem((Query) query.duplicate(true), getTags(), getDatasourceName(), getCreationDate());
-    }
+	@Override
+	public Object duplicate(boolean deepCopy) {
+		return new QueryCacheItem((Query) query.duplicate(true), getTags(), getDatasourceName(), getCreationDate());
+	}
 
 }

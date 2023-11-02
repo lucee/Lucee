@@ -34,112 +34,112 @@ import lucee.runtime.ext.tag.TagImpl;
  **/
 public final class HttpParam extends TagImpl {
 
-    HttpParamBean param = new HttpParamBean();
+	HttpParamBean param = new HttpParamBean();
 
-    /**
-     * Applies to FormField and CGI types; ignored for all other types. Specifies whether to URLEncode
-     * the form field or header.
-     * 
-     * @param encoded
-     */
-    public void setEncoded(boolean encoded) {
-	param.setEncoded(encoded);
-    }
-
-    /**
-     * Applies to File type; invalid for all other types. Specifies the MIME media type of the file
-     * contents. The content type can include an identifier for the character encoding of the file; for
-     * example, text/html; charset=ISO-8859-1 indicates that the file is HTML text in the ISO Latin-1
-     * character encoding.
-     * 
-     * @param mimetype
-     */
-    public void setMimetype(String mimetype) {
-	param.setMimeType(mimetype);
-    }
-
-    /**
-     * set the value value Specifies the value of the URL, FormField, Cookie, File, or CGI variable
-     * being passed.
-     * 
-     * @param value value to set
-     **/
-    public void setValue(Object value) {
-	param.setValue(value);
-    }
-
-    /**
-     * set the value type The transaction type.
-     * 
-     * @param type value to set
-     * @throws ApplicationException
-     **/
-    public void setType(String type) throws ApplicationException {
-	if (StringUtil.isEmpty(type, true)) return;
-	type = type.toLowerCase().trim();
-
-	if (type.equals("url")) param.setType(HttpParamBean.TYPE_URL);
-	else if (type.equals("formfield") || type.equals("form")) param.setType(HttpParamBean.TYPE_FORM);
-	else if (type.equals("cgi")) param.setType(HttpParamBean.TYPE_CGI);
-	else if (type.startsWith("head") || type.startsWith("header")) param.setType(HttpParamBean.TYPE_HEADER);
-	else if (type.equals("cookie")) param.setType(HttpParamBean.TYPE_COOKIE);
-	else if (type.equals("file")) param.setType(HttpParamBean.TYPE_FILE);
-	else if (type.equals("xml")) param.setType(HttpParamBean.TYPE_XML);
-	else if (type.equals("body")) param.setType(HttpParamBean.TYPE_BODY);
-	else throw new ApplicationException("invalid type [" + type + "], valid types are [body,cgi,cookie,file,form,head,url,xml]");
-    }
-
-    /**
-     * set the value file Required for type = "File".
-     * 
-     * @param file value to set
-     **/
-    public void setFile(String file) {
-	param.setFile(ResourceUtil.toResourceNotExisting(pageContext, file));
-    }
-
-    /**
-     * set the value name A variable name for the data being passed.
-     * 
-     * @param name value to set
-     **/
-    public void setName(String name) {
-	param.setName(name);
-    }
-
-    @Override
-    public int doStartTag() throws ApplicationException {
-	if (StringUtil.isEmpty(param.getName()) && HttpParamBean.TYPE_BODY != param.getType() && HttpParamBean.TYPE_XML != param.getType()) {
-	    throw new ApplicationException("attribute [name] is required for tag [httpparam] if type is not [body or xml]");
+	/**
+	 * Applies to FormField and CGI types; ignored for all other types. Specifies whether to URLEncode
+	 * the form field or header.
+	 * 
+	 * @param encoded
+	 */
+	public void setEncoded(boolean encoded) {
+		param.setEncoded(encoded ? Http.ENCODED_YES : Http.ENCODED_NO);
 	}
 
-	if (HttpParamBean.TYPE_FILE == param.getType() && param.getFile() == null)
-	    throw new ApplicationException("attribute [file] is required for tag [httpparam] if type is [file]");
-
-	// get HTTP Tag
-	Tag parent = getParent();
-	while (parent != null && !(parent instanceof Http)) {
-	    parent = parent.getParent();
+	/**
+	 * Applies to File type; invalid for all other types. Specifies the MIME media type of the file
+	 * contents. The content type can include an identifier for the character encoding of the file; for
+	 * example, text/html; charset=ISO-8859-1 indicates that the file is HTML text in the ISO Latin-1
+	 * character encoding.
+	 * 
+	 * @param mimetype
+	 */
+	public void setMimetype(String mimetype) {
+		param.setMimeType(mimetype);
 	}
 
-	if (parent instanceof Http) {
-	    Http http = (Http) parent;
-	    http.setParam(param);
+	/**
+	 * set the value value Specifies the value of the URL, FormField, Cookie, File, or CGI variable
+	 * being passed.
+	 * 
+	 * @param value value to set
+	 **/
+	public void setValue(Object value) {
+		param.setValue(value);
 	}
-	else {
-	    throw new ApplicationException("Wrong Context, tag HttpParam must be inside a Http tag");
+
+	/**
+	 * set the value type The transaction type.
+	 * 
+	 * @param type value to set
+	 * @throws ApplicationException
+	 **/
+	public void setType(String type) throws ApplicationException {
+		if (StringUtil.isEmpty(type, true)) return;
+		type = type.toLowerCase().trim();
+
+		if (type.equals("url")) param.setType(HttpParamBean.TYPE_URL);
+		else if (type.equals("formfield") || type.equals("form")) param.setType(HttpParamBean.TYPE_FORM);
+		else if (type.equals("cgi")) param.setType(HttpParamBean.TYPE_CGI);
+		else if (type.startsWith("head") || type.startsWith("header")) param.setType(HttpParamBean.TYPE_HEADER);
+		else if (type.equals("cookie")) param.setType(HttpParamBean.TYPE_COOKIE);
+		else if (type.equals("file")) param.setType(HttpParamBean.TYPE_FILE);
+		else if (type.equals("xml")) param.setType(HttpParamBean.TYPE_XML);
+		else if (type.equals("body")) param.setType(HttpParamBean.TYPE_BODY);
+		else throw new ApplicationException("invalid type [" + type + "], valid types are [body,cgi,cookie,file,form,head,url,xml]");
 	}
-	return SKIP_BODY;
-    }
 
-    @Override
-    public int doEndTag() {
-	return EVAL_PAGE;
-    }
+	/**
+	 * set the value file Required for type = "File".
+	 * 
+	 * @param file value to set
+	 **/
+	public void setFile(String file) {
+		param.setFile(ResourceUtil.toResourceNotExisting(pageContext, file));
+	}
 
-    @Override
-    public void release() {
-	super.release();
-	param = new HttpParamBean();
-    }
+	/**
+	 * set the value name A variable name for the data being passed.
+	 * 
+	 * @param name value to set
+	 **/
+	public void setName(String name) {
+		param.setName(name);
+	}
+
+	@Override
+	public int doStartTag() throws ApplicationException {
+		if (StringUtil.isEmpty(param.getName()) && HttpParamBean.TYPE_BODY != param.getType() && HttpParamBean.TYPE_XML != param.getType()) {
+			throw new ApplicationException("attribute [name] is required for tag [httpparam] if type is not [body or xml]");
+		}
+
+		if (HttpParamBean.TYPE_FILE == param.getType() && param.getFile() == null)
+			throw new ApplicationException("attribute [file] is required for tag [httpparam] if type is [file]");
+
+		// get HTTP Tag
+		Tag parent = getParent();
+		while (parent != null && !(parent instanceof Http)) {
+			parent = parent.getParent();
+		}
+
+		if (parent instanceof Http) {
+			Http http = (Http) parent;
+			http.setParam(param);
+		}
+		else {
+			throw new ApplicationException("Wrong Context, tag HttpParam must be inside a Http tag");
+		}
+		return SKIP_BODY;
+	}
+
+	@Override
+	public int doEndTag() {
+		return EVAL_PAGE;
+	}
+
+	@Override
+	public void release() {
+		super.release();
+		param = new HttpParamBean();
+	}
 }

@@ -24,24 +24,24 @@ import lucee.commons.lock.Lock;
  * lock data
  */
 public interface LockData {
-    @Deprecated
-    /**
-     * is type of token read only
-     * 
-     * @return is read only
-     * @deprecated
-     */
-    boolean isReadOnly();
+	@Deprecated
+	/**
+	 * is type of token read only
+	 * 
+	 * @return is read only
+	 * @deprecated
+	 */
+	boolean isReadOnly();
 
-    /**
-     * @return Returns the id.
-     */
-    int getId();
+	/**
+	 * @return Returns the id.
+	 */
+	int getId();
 
-    /**
-     * @return Returns the name.
-     */
-    String getName();
+	/**
+	 * @return Returns the name.
+	 */
+	String getName();
 
-    public Lock getLock();
+	public Lock getLock();
 }

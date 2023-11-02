@@ -22,7 +22,7 @@ import java.io.IOException;
 
 public class VideoException extends IOException {
 
-    public VideoException(String message) {
-	super(message);
-    }
+	public VideoException(String message) {
+		super(message);
+	}
 }

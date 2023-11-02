@@ -25,32 +25,32 @@ import lucee.runtime.type.Struct;
 
 public class StructMapEntry implements Map.Entry<String, Object> {
 
-    private Collection.Key key;
-    private Object value;
-    private Struct sct;
+	private Collection.Key key;
+	private Object value;
+	private Struct sct;
 
-    public StructMapEntry(Struct sct, Collection.Key key, Object value) {
-	this.sct = sct;
-	this.key = key;
-	this.value = value;
-    }
+	public StructMapEntry(Struct sct, Collection.Key key, Object value) {
+		this.sct = sct;
+		this.key = key;
+		this.value = value;
+	}
 
-    @Override
-    public String getKey() {
-	return key.getString();
-    }
+	@Override
+	public String getKey() {
+		return key.getString();
+	}
 
-    @Override
-    public Object getValue() {
-	return value;
-    }
+	@Override
+	public Object getValue() {
+		return value;
+	}
 
-    @Override
-    public Object setValue(Object value) {
-	Object old = value;
-	sct.setEL(key, value);
-	this.value = value;
-	return old;
-    }
+	@Override
+	public Object setValue(Object value) {
+		Object old = value;
+		sct.setEL(key, value);
+		this.value = value;
+		return old;
+	}
 
 }

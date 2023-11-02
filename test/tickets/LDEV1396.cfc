@@ -15,7 +15,7 @@
 		function beforeAll() skip="isNotSupported"{
 			if(isNotSupported()) return;
 			s3Details = getCredentials();
-			mitrahsoftBucketName = "ldev1396";
+			mitrahsoftBucketName = "lucee-testsuite-ldev1396";
 			base = "s3://#s3Details.ACCESSKEYID#:#s3Details.AWSSECRETKEY#@";
 			variables.baseWithBucketName = "s3://#s3Details.ACCESSKEYID#:#s3Details.AWSSECRETKEY#@/#mitrahsoftBucketName#";
 			// for skipping rest of the cases, if error occurred.
@@ -43,7 +43,6 @@
 					cffile (action="write", file=baseWithBucketName & "/teskt.txt", output="Sample s3 text", storeAcl="private");
 					var acl = StoreGetACL( baseWithBucketName & "/teskt.txt" );
 					removeFullControl(acl);
-					
 					expect(arrayisEmpty(acl)).toBe(true);
 				});
 

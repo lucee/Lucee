@@ -290,7 +290,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	}
 
 	public void function testURL() localmode="true"{
-		assertTrue(IsValid("url",'http://www.lucee.org/'));
+		assertTrue(IsValid("url",'https://www.lucee.org/'));
 		assertTrue(IsValid("url",  "http://a"));
 		assertTrue(IsValid("url", "http://www.lucee.com/svn.cfm?repositorypath=viewCount%2FviewCount-plugin-Mangoblog-v1.4.zip%3A108&download=1"));
 		assertFalse(IsValid("url",  "http://.-"));

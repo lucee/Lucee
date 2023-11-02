@@ -30,16 +30,16 @@ import lucee.runtime.type.Array;
 
 public final class ArrayClear extends BIF {
 
-    private static final long serialVersionUID = 3068664942595555678L;
+	private static final long serialVersionUID = 3068664942595555678L;
 
-    public static boolean call(PageContext pc, Array array) {
-	array.clear();
-	return true;
-    }
+	public static boolean call(PageContext pc, Array array) {
+		array.clear();
+		return true;
+	}
 
-    @Override
-    public Object invoke(PageContext pc, Object[] args) throws PageException {
-	if (args.length == 1) return call(pc, Caster.toArray(args[0]));
-	else throw new FunctionException(pc, "ArrayClear", 1, 1, args.length);
-    }
+	@Override
+	public Object invoke(PageContext pc, Object[] args) throws PageException {
+		if (args.length == 1) return call(pc, Caster.toArray(args[0]));
+		else throw new FunctionException(pc, "ArrayClear", 1, 1, args.length);
+	}
 }

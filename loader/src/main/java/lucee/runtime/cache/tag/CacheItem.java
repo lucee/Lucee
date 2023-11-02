@@ -19,18 +19,18 @@ package lucee.runtime.cache.tag;
 
 public interface CacheItem {
 
-    public String getHashFromValue();
+	public String getHashFromValue();
 
-    public String getName();
+	public String getName();
 
-    public long getPayload();
+	public long getPayload();
 
-    public String getMeta();
+	public String getMeta();
 
-    /**
-     * execution time in nano seconds
-     * 
-     * @return
-     */
-    public long getExecutionTime();
+	/**
+	 * execution time in nano seconds
+	 * 
+	 * @return
+	 */
+	public long getExecutionTime();
 }

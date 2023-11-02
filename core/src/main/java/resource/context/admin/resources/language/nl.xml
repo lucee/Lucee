@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
 <language key="nl" label="Nederlands">
-	<data key="services.update.locdesc">Definieerd de URL waar Lucee de patches vandaan haalt. Normaalgesproken &quot;http://www.lucee.ch&quot;</data>
+	<data key="services.update.locdesc">Definieerd de URL waar Lucee de patches vandaan haalt. Normaalgesproken &quot;https://www.lucee.org&quot;</data>
 	<data key="services.update.type_manually">Handmatig</data>
 	<data key="services.update.location">URL</data>
 	<data key="services.update.settitle">Eigenschappen</data>
@@ -243,7 +243,7 @@
 	<data key="remote.adminpassworddesc.server">Wachtwoord voor de toegang tot de remote Lucee Server Administrator</data>
 	<data key="remote.urlpath">Pad</data>
 	<data key="remote.urlmissing">De remote client URL ontbreekt</data>
-	<data key="remote.urlserverdesc">Remote Client Server (Bijvoorbeeld: http://lucee.ch)</data>
+	<data key="remote.urlserverdesc">Remote Client Server (Bijvoorbeeld: https://lucee.org)</data>
 	<data key="remote.proxyport">Poort</data>
 	<data key="remote.labelmissing">Het label voor de remote client ontbreekt</data>
 	<data key="remote.proxypassword">Wachtwoord</data>
@@ -393,7 +393,7 @@ Het volgende voorbeeld zal deze functionaliteit verder verklaren. &amp;quot;some
 	<data key="components.useshadowdescription">Definieerd of een component wel of niet, parallel van de &amp;quot;this&amp;quot; scope (CFML standaard), een onafhankelijke variabelen scope heeft.</data>
 	<data key="components.basecomponent">Basis/Root Component</data>
 	<data key="components.component">Component</data>
-	<data key="components.componentdumptemplatedescription">Als je een component direct benaderd zal deze template worden gebruikt om het component te dumpen. (Bijvoorbeeld: http://www.lucee.ch/ch/lucee/common/Example.cfc)</data>
+	<data key="components.componentdumptemplatedescription">Als je een component direct benaderd zal deze template worden gebruikt om het component te dumpen. (Bijvoorbeeld: https://www.lucee.org/ch/lucee/common/Example.cfc)</data>
 	<data key="components.datamemberaccesstype">Data member toegangstype</data>
 	<data key="components.dmatremote">remote</data>
 	<data key="components.dmatprivate">private</data>

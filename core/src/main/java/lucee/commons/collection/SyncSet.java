@@ -21,28 +21,28 @@ package lucee.commons.collection;
 import java.util.Set;
 
 public class SyncSet<E> extends SyncCollection<E> implements Set<E> {
-    private static final long serialVersionUID = 487447009682186044L;
+	private static final long serialVersionUID = 487447009682186044L;
 
-    public SyncSet(Set<E> s) {
-	super(s);
-    }
-
-    public SyncSet(Set<E> s, Object mutex) {
-	super(s, mutex);
-    }
-
-    @Override
-    public boolean equals(Object o) {
-	if (this == o) return true;
-	synchronized (mutex) {
-	    return c.equals(o);
+	public SyncSet(Set<E> s) {
+		super(s);
 	}
-    }
 
-    @Override
-    public int hashCode() {
-	synchronized (mutex) {
-	    return c.hashCode();
+	public SyncSet(Set<E> s, Object mutex) {
+		super(s, mutex);
 	}
-    }
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		synchronized (mutex) {
+			return c.equals(o);
+		}
+	}
+
+	@Override
+	public int hashCode() {
+		synchronized (mutex) {
+			return c.hashCode();
+		}
+	}
 }

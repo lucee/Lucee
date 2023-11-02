@@ -34,21 +34,21 @@ import lucee.transformer.library.tag.TagLibTag;
  */
 public final class Else extends EvaluatorSupport {
 
-    @Override
-    public void evaluate(Tag tag, TagLibTag libTag) throws EvaluatorException {
-	String ns = libTag.getTagLib().getNameSpaceAndSeparator();
-	String ifName = ns + "if";
+	@Override
+	public void evaluate(Tag tag, TagLibTag libTag) throws EvaluatorException {
+		String ns = libTag.getTagLib().getNameSpaceAndSeparator();
+		String ifName = ns + "if";
 
-	// check if tag is direct inside if
-	if (!ASMUtil.isParentTag(tag, TagIf.class)) {
-	    throw new EvaluatorException("Wrong Context, tag " + libTag.getFullName() + " must be direct inside a " + ifName + " tag");
+		// check if tag is direct inside if
+		if (!ASMUtil.isParentTag(tag, TagIf.class)) {
+			throw new EvaluatorException("Wrong Context, tag [" + libTag.getFullName() + "] must be direct inside a [" + ifName + "] tag");
+		}
+
+		// check if is there an elseif tag after this tag
+		if (ASMUtil.hasSisterTagAfter(tag, "elseif")) throw new EvaluatorException("Wrong Context, tag [cfelseif] can't be after tag [else]");
+		// check if tag else is unique
+		if (ASMUtil.hasSisterTagWithSameName(tag)) throw new EvaluatorException("Wrong Context, tag [else] must be once inside the tag [if]");
+
 	}
-
-	// check if is there a elseif tag after this tag
-	if (ASMUtil.hasSisterTagAfter(tag, "elseif")) throw new EvaluatorException("Wrong Context, tag cfelseif can't be after tag else");
-	// check if tag else is unique
-	if (ASMUtil.hasSisterTagWithSameName(tag)) throw new EvaluatorException("Wrong Context, tag else must be once inside the tag if");
-
-    }
 
 }

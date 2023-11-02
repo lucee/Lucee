@@ -31,122 +31,122 @@ import lucee.runtime.config.ConfigWeb;
 
 public class ActionMonitorCollectorRefImpl implements ActionMonitorCollector {
 
-    private List<ActionMonitor> monitors = new ArrayList<ActionMonitor>();
-    private Method init;
-    private Method logc;
-    private Method getName;
-    private Method logpc;
+	private List<ActionMonitor> monitors = new ArrayList<ActionMonitor>();
+	private Method init;
+	private Method logc;
+	private Method getName;
+	private Method logpc;
 
-    @Override
-    public void addMonitor(ConfigServer cs, ActionMonitor monitor, String name, boolean log) throws IOException {
-	monitor = init(monitor, cs, name, log);
-	if (monitor != null) monitors.add(monitor);
-    }
-
-    @Override
-    public void log(PageContext pc, String type, String label, long executionTime, Object data) {
-
-	Iterator<ActionMonitor> it = monitors.iterator();
-	while (it.hasNext()) {
-	    log(it.next(), pc, type, label, executionTime, data);
+	@Override
+	public void addMonitor(ConfigServer cs, ActionMonitor monitor, String name, boolean log) throws IOException {
+		monitor = init(monitor, cs, name, log);
+		if (monitor != null) monitors.add(monitor);
 	}
-    }
 
-    @Override
-    public void log(ConfigWeb config, String type, String label, long executionTime, Object data) {
+	@Override
+	public void log(PageContext pc, String type, String label, long executionTime, Object data) {
 
-	Iterator<ActionMonitor> it = monitors.iterator();
-	while (it.hasNext()) {
-	    log(it.next(), config, type, label, executionTime, data);
+		Iterator<ActionMonitor> it = monitors.iterator();
+		while (it.hasNext()) {
+			log(it.next(), pc, type, label, executionTime, data);
+		}
 	}
-    }
 
-    @Override
-    public ActionMonitor getActionMonitor(String name) {
-	Iterator<ActionMonitor> it = monitors.iterator();
-	ActionMonitor am;
-	while (it.hasNext()) {
-	    am = it.next();
-	    if (name.equalsIgnoreCase(getName(am))) return am;
+	@Override
+	public void log(ConfigWeb config, String type, String label, long executionTime, Object data) {
+
+		Iterator<ActionMonitor> it = monitors.iterator();
+		while (it.hasNext()) {
+			log(it.next(), config, type, label, executionTime, data);
+		}
 	}
-	return null;
-    }
 
-    private String getName(Object am) {
-	if (getName == null) {
-	    try {
-		getName = am.getClass().getMethod("getName", new Class[] {});
-	    }
-	    catch (Throwable t) {
-		ExceptionUtil.rethrowIfNecessary(t);
+	@Override
+	public ActionMonitor getActionMonitor(String name) {
+		Iterator<ActionMonitor> it = monitors.iterator();
+		ActionMonitor am;
+		while (it.hasNext()) {
+			am = it.next();
+			if (name.equalsIgnoreCase(getName(am))) return am;
+		}
 		return null;
-	    }
 	}
 
-	try {
-	    return (String) getName.invoke(am, new Object[] {});
-	}
-	catch (Throwable t) {
-	    ExceptionUtil.rethrowIfNecessary(t);
-	}
-	return null;
-    }
+	private String getName(Object am) {
+		if (getName == null) {
+			try {
+				getName = am.getClass().getMethod("getName", new Class[] {});
+			}
+			catch (Throwable t) {
+				ExceptionUtil.rethrowIfNecessary(t);
+				return null;
+			}
+		}
 
-    private void log(Object monitor, PageContext pc, String type, String label, long executionTime, Object data) {
-	if (logpc == null) {
-	    try {
-		logpc = monitor.getClass().getMethod("log", new Class[] { PageContext.class, String.class, String.class, long.class, Object.class });
-	    }
-	    catch (Throwable t) {
-		ExceptionUtil.rethrowIfNecessary(t);
-		return;
-	    }
-	}
-
-	try {
-	    logpc.invoke(monitor, new Object[] { pc, type, label, executionTime, data });
-	}
-	catch (Throwable t) {
-	    ExceptionUtil.rethrowIfNecessary(t);
-	}
-    }
-
-    private void log(Object monitor, ConfigWeb config, String type, String label, long executionTime, Object data) {
-	if (logc == null) {
-	    try {
-		logc = monitor.getClass().getMethod("log", new Class[] { ConfigWeb.class, String.class, String.class, long.class, Object.class });
-	    }
-	    catch (Throwable t) {
-		ExceptionUtil.rethrowIfNecessary(t);
-		return;
-	    }
-	}
-
-	try {
-	    logc.invoke(monitor, new Object[] { config, type, label, executionTime, data });
-	}
-	catch (Throwable t) {
-	    ExceptionUtil.rethrowIfNecessary(t);
-	}
-    }
-
-    private ActionMonitor init(ActionMonitor monitor, ConfigServer cs, String name, boolean log) {
-	if (init == null) {
-	    try {
-		init = monitor.getClass().getMethod("init", new Class[] { ConfigServer.class, String.class, boolean.class });
-	    }
-	    catch (Throwable t) {
-		ExceptionUtil.rethrowIfNecessary(t);
+		try {
+			return (String) getName.invoke(am, new Object[] {});
+		}
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+		}
 		return null;
-	    }
 	}
 
-	try {
-	    return (ActionMonitor) init.invoke(monitor, new Object[] { cs, name, log });
+	private void log(Object monitor, PageContext pc, String type, String label, long executionTime, Object data) {
+		if (logpc == null) {
+			try {
+				logpc = monitor.getClass().getMethod("log", new Class[] { PageContext.class, String.class, String.class, long.class, Object.class });
+			}
+			catch (Throwable t) {
+				ExceptionUtil.rethrowIfNecessary(t);
+				return;
+			}
+		}
+
+		try {
+			logpc.invoke(monitor, new Object[] { pc, type, label, executionTime, data });
+		}
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+		}
 	}
-	catch (Throwable t) {
-	    ExceptionUtil.rethrowIfNecessary(t);
-	    return null;
+
+	private void log(Object monitor, ConfigWeb config, String type, String label, long executionTime, Object data) {
+		if (logc == null) {
+			try {
+				logc = monitor.getClass().getMethod("log", new Class[] { ConfigWeb.class, String.class, String.class, long.class, Object.class });
+			}
+			catch (Throwable t) {
+				ExceptionUtil.rethrowIfNecessary(t);
+				return;
+			}
+		}
+
+		try {
+			logc.invoke(monitor, new Object[] { config, type, label, executionTime, data });
+		}
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+		}
 	}
-    }
+
+	private ActionMonitor init(ActionMonitor monitor, ConfigServer cs, String name, boolean log) {
+		if (init == null) {
+			try {
+				init = monitor.getClass().getMethod("init", new Class[] { ConfigServer.class, String.class, boolean.class });
+			}
+			catch (Throwable t) {
+				ExceptionUtil.rethrowIfNecessary(t);
+				return null;
+			}
+		}
+
+		try {
+			return (ActionMonitor) init.invoke(monitor, new Object[] { cs, name, log });
+		}
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+			return null;
+		}
+	}
 }

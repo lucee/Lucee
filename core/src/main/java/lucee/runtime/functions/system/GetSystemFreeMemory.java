@@ -26,10 +26,10 @@ import lucee.runtime.op.Caster;
 
 public class GetSystemFreeMemory implements Function {
 
-    private static final long serialVersionUID = -2808311251929634506L;
+	private static final long serialVersionUID = -2808311251929634506L;
 
-    public static double call(PageContext pc) throws ApplicationException {
-	return Caster.toDoubleValue(SystemUtil.getFreeBytes());
-    }
+	public static double call(PageContext pc) throws ApplicationException {
+		return Caster.toDoubleValue(SystemUtil.getFreeBytes());
+	}
 
 }

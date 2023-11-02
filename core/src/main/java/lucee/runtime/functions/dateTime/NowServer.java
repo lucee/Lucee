@@ -34,19 +34,19 @@ import lucee.runtime.type.dt.DateTimeImpl;
  */
 @Deprecated
 public final class NowServer implements Function {
-    /**
-     * @param pc
-     * @return server time
-     * @throws ExpressionException
-     */
-    public static DateTime call(PageContext pc) throws ExpressionException {
-	DeprecatedUtil.function(pc, "nowServer");
-	long now = System.currentTimeMillis();
-	int lucee = pc.getTimeZone().getOffset(now);
-	int server = TimeZone.getDefault().getOffset(now);
+	/**
+	 * @param pc
+	 * @return server time
+	 * @throws ExpressionException
+	 */
+	public static DateTime call(PageContext pc) throws ExpressionException {
+		DeprecatedUtil.function(pc, "nowServer");
+		long now = System.currentTimeMillis();
+		int lucee = pc.getTimeZone().getOffset(now);
+		int server = TimeZone.getDefault().getOffset(now);
 
-	return new DateTimeImpl(pc, now - (lucee - server), false);
+		return new DateTimeImpl(pc, now - (lucee - server), false);
 
-    }
+	}
 
 }

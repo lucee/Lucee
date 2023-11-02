@@ -18,22 +18,22 @@
  **/
 package lucee.runtime.functions.decision;
 
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+
 import lucee.runtime.PageContext;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.text.xml.struct.XMLStruct;
-
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
 /**
  * Check if a value is a XML Node
  */
 public final class IsXmlNode implements Function {
 
-    public static boolean call(PageContext pc, Object value) {
-	if (value instanceof Node) return true;
-	else if (value instanceof NodeList) return ((NodeList) value).getLength() > 0;
-	else if (value instanceof XMLStruct) return true;
-	return false;
-    }
+	public static boolean call(PageContext pc, Object value) {
+		if (value instanceof Node) return true;
+		else if (value instanceof NodeList) return ((NodeList) value).getLength() > 0;
+		else if (value instanceof XMLStruct) return true;
+		return false;
+	}
 }

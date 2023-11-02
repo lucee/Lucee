@@ -29,21 +29,21 @@ import java.net.UnknownHostException;
  */
 public final class IPRangeNodeRoot<T> extends IPRangeNode<T> {
 
-    public IPRangeNodeRoot() throws UnknownHostException {
+	public IPRangeNodeRoot() throws UnknownHostException {
 
-	super("0");
-    }
+		super("0");
+	}
 
-    @Override
-    public boolean isInRange(InetAddress addr) {
+	@Override
+	public boolean isInRange(InetAddress addr) {
 
-	return true;
-    }
+		return true;
+	}
 
-    @Override
-    public boolean containsRange(IPRangeNode other) {
+	@Override
+	public boolean containsRange(IPRangeNode other) {
 
-	return true;
-    }
+		return true;
+	}
 
 }

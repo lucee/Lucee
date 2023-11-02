@@ -30,19 +30,19 @@ import lucee.runtime.type.util.ListUtil;
  */
 public final class QueryColumnList extends BIF {
 
-    private static final long serialVersionUID = 2718851377017546192L;
+	private static final long serialVersionUID = 2718851377017546192L;
 
-    public static String call(PageContext pc, Query qry) {
-	return call(pc, qry, ",");
-    }
+	public static String call(PageContext pc, Query qry) {
+		return call(pc, qry, ",");
+	}
 
-    public static String call(PageContext pc, Query qry, String delimiter) {
-	return ListUtil.arrayToList(qry.getColumnNamesAsString(), delimiter);
-    }
+	public static String call(PageContext pc, Query qry, String delimiter) {
+		return ListUtil.arrayToList(qry.getColumnNamesAsString(), delimiter);
+	}
 
-    @Override
-    public Object invoke(PageContext pc, Object[] args) throws PageException {
-	if (args.length == 1) return call(pc, Caster.toQuery(args[0]));
-	return call(pc, Caster.toQuery(args[0]), Caster.toString(args[1]));
-    }
+	@Override
+	public Object invoke(PageContext pc, Object[] args) throws PageException {
+		if (args.length == 1) return call(pc, Caster.toQuery(args[0]));
+		return call(pc, Caster.toQuery(args[0]), Caster.toString(args[1]));
+	}
 }

@@ -30,22 +30,22 @@ import lucee.runtime.ext.function.Function;
 
 public final class MonthAsString implements Function {
 
-    public static String call(PageContext pc, double month) throws ExpressionException {
-	return call(month, pc.getLocale(), false);
-    }
-
-    public static String call(PageContext pc, double month, Locale locale) throws ExpressionException {
-	return call(month, locale == null ? pc.getLocale() : locale, false);
-    }
-
-    protected static String call(double month, Locale locale, boolean _short) throws ExpressionException {
-	int m = (int) month;
-	if (m >= 1 && m <= 12) {
-	    DateFormatSymbols dfs = new DateFormatSymbols(locale);
-	    String[] months = _short ? dfs.getShortMonths() : dfs.getMonths();
-	    return months[m - 1];
+	public static String call(PageContext pc, double month) throws ExpressionException {
+		return call(month, pc.getLocale(), false);
 	}
-	throw new ExpressionException("invalid month definition in function monthAsString, must be between 1 and 12 now [" + month + "]");
 
-    }
+	public static String call(PageContext pc, double month, Locale locale) throws ExpressionException {
+		return call(month, locale == null ? pc.getLocale() : locale, false);
+	}
+
+	protected static String call(double month, Locale locale, boolean _short) throws ExpressionException {
+		int m = (int) month;
+		if (m >= 1 && m <= 12) {
+			DateFormatSymbols dfs = new DateFormatSymbols(locale);
+			String[] months = _short ? dfs.getShortMonths() : dfs.getMonths();
+			return months[m - 1];
+		}
+		throw new ExpressionException("invalid month definition in function monthAsString, must be between 1 and 12 now [" + month + "]");
+
+	}
 }

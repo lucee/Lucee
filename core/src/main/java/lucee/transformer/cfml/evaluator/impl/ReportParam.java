@@ -30,13 +30,13 @@ import lucee.transformer.library.tag.TagLibTag;
  */
 public final class ReportParam extends EvaluatorSupport {
 
-    @Override
-    public void evaluate(Tag tag, TagLibTag libTag) throws EvaluatorException {
-	String ns = libTag.getTagLib().getNameSpaceAndSeparator();
-	String name = ns + "report";
+	@Override
+	public void evaluate(Tag tag, TagLibTag libTag) throws EvaluatorException {
+		String ns = libTag.getTagLib().getNameSpaceAndSeparator();
+		String name = ns + "report";
 
-	// check if tag is direct inside if
-	if (!ASMUtil.hasAncestorTag(tag, name)) throw new EvaluatorException("Wrong Context, tag " + libTag.getFullName() + " must be inside a " + name + " tag");
-    }
+		// check if tag is direct inside if
+		if (!ASMUtil.hasAncestorTag(tag, name)) throw new EvaluatorException("Wrong Context, tag [" + libTag.getFullName() + "] must be inside a [" + name + "] tag");
+	}
 
 }

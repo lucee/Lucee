@@ -22,24 +22,24 @@ import java.util.Map;
 
 public interface SearchData {
 
-    public Map<String, SuggestionItem> getSuggestion();
+	public Map<String, SuggestionItem> getSuggestion();
 
-    public int getSuggestionMax();
+	public int getSuggestionMax();
 
-    public void setSuggestionQuery(String suggestionQuery);
+	public void setSuggestionQuery(String suggestionQuery);
 
-    public String getSuggestionQuery();
+	public String getSuggestionQuery();
 
-    /**
-     * increments the searched records
-     * 
-     * @param count records searched
-     * @return all records searched
-     */
-    public int addRecordsSearched(int count);
+	/**
+	 * increments the searched records
+	 * 
+	 * @param count records searched
+	 * @return all records searched
+	 */
+	public int addRecordsSearched(int count);
 
-    /**
-     * return the records searched
-     */
-    public int getRecordsSearched();
+	/**
+	 * return the records searched
+	 */
+	public int getRecordsSearched();
 }

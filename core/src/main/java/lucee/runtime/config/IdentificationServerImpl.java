@@ -19,18 +19,18 @@ package lucee.runtime.config;
 
 public class IdentificationServerImpl extends IdentificationImpl implements IdentificationServer {
 
-    public IdentificationServerImpl(ConfigServerImpl c, String securityKey, String apiKey) {
-	super(c, securityKey, apiKey);
-    }
+	public IdentificationServerImpl(ConfigServerImpl c, String securityKey, String apiKey) {
+		super(c, securityKey, apiKey);
+	}
 
-    @Override
-    public String toQueryString() {
-	StringBuilder qs = new StringBuilder();
-	append(qs, "serverApiKey", getApiKey());
-	append(qs, "serverId", getId());
-	append(qs, "serverSecurityKey", getSecurityKey());
+	@Override
+	public String toQueryString() {
+		StringBuilder qs = new StringBuilder();
+		append(qs, "serverApiKey", getApiKey());
+		append(qs, "serverId", getId());
+		append(qs, "serverSecurityKey", getSecurityKey());
 
-	return qs.toString();
-    }
+		return qs.toString();
+	}
 
 }

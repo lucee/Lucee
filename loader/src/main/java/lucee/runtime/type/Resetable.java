@@ -21,6 +21,6 @@ import lucee.runtime.exp.PageException;
 
 public interface Resetable {
 
-    public void reset() throws PageException;
+	public void reset() throws PageException;
 
 }

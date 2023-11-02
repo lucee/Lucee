@@ -29,19 +29,19 @@ import lucee.runtime.op.Caster;
 
 public final class DecryptBinary implements Function {
 
-    public static Object call(PageContext pc, Object oBytes, String key) throws PageException {
-	return call(pc, Caster.toBinary(oBytes), key, CFMXCompat.ALGORITHM_NAME);
-    }
+	public static Object call(PageContext pc, Object oBytes, String key) throws PageException {
+		return call(pc, Caster.toBinary(oBytes), key, CFMXCompat.ALGORITHM_NAME);
+	}
 
-    public static Object call(PageContext pc, Object oBytes, String key, String algorithm) throws PageException {
-	return Decrypt.invoke(Caster.toBinary(oBytes), key, algorithm, null, 0);
-    }
+	public static Object call(PageContext pc, Object oBytes, String key, String algorithm) throws PageException {
+		return Decrypt.invoke(Caster.toBinary(oBytes), key, algorithm, null, 0);
+	}
 
-    public static Object call(PageContext pc, Object oBytes, String key, String algorithm, Object ivOrSalt) throws PageException {
-	return Decrypt.invoke(Caster.toBinary(oBytes), key, algorithm, Caster.toBinary(ivOrSalt), 0);
-    }
+	public static Object call(PageContext pc, Object oBytes, String key, String algorithm, Object ivOrSalt) throws PageException {
+		return Decrypt.invoke(Caster.toBinary(oBytes), key, algorithm, Caster.toBinary(ivOrSalt), 0);
+	}
 
-    public static Object call(PageContext pc, Object oBytes, String key, String algorithm, Object ivOrSalt, double iterations) throws PageException {
-	return Decrypt.invoke(Caster.toBinary(oBytes), key, algorithm, Caster.toBinary(ivOrSalt), Caster.toInteger(iterations));
-    }
+	public static Object call(PageContext pc, Object oBytes, String key, String algorithm, Object ivOrSalt, double iterations) throws PageException {
+		return Decrypt.invoke(Caster.toBinary(oBytes), key, algorithm, Caster.toBinary(ivOrSalt), Caster.toInteger(iterations));
+	}
 }

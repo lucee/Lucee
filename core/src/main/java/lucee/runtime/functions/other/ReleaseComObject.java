@@ -24,9 +24,9 @@ import lucee.runtime.ext.function.Function;
 
 public final class ReleaseComObject implements Function {
 
-    public static Object call(PageContext pc, Object obj) {
-	if (obj instanceof COMObject) ((COMObject) obj).release();
-	return null;
-    }
+	public static Object call(PageContext pc, Object obj) {
+		if (obj instanceof COMObject) ((COMObject) obj).release();
+		return null;
+	}
 
 }

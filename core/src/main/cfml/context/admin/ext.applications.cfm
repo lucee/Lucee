@@ -78,24 +78,35 @@
 			    action="updateRHExtension"
 			    type="#request.adminType#"
 			    password="#session["password"&request.adminType]#"
-			    source="#downloadFull(form.provider,form.id,form.version)#">
+				source="#downloadFull(form.provider,form.id,form.version)#">			
+			<cfset application.reloadPlugins = true>
 		</cfcase>
 		<cfcase value="#stText.Buttons.upDown#">
 			<cfadmin
 			    action="updateRHExtension"
 			    type="#request.adminType#"
 			    password="#session["password"&request.adminType]#"
-			    source="#downloadFull(form.provider,form.id,form.version)#">
+				source="#downloadFull(form.provider,form.id,form.version)#">
+			<cfset application.reloadPlugins = true>
 		</cfcase>
         <cfcase value="#stText.Buttons.uninstall#">
         	<cfadmin
 			    action="removeRHExtension"
 			    type="#request.adminType#"
 			    password="#session["password"&request.adminType]#"
-			    id="#form.id#">
+				id="#form.id#">
+			<cfset application.reloadPlugins = true>
 		</cfcase>
 	</cfswitch>
-
+	<cfscript>
+		if (structKeyExists(application, "reloadPlugins")){
+			inspectTemplates(); // flag page pool to be re-inspected for changes
+			lock name="lucee_admin_plugins_last_updated"{
+				application.plugin = {}; // clear plugin cache			
+				server.lucee_admin_plugins_last_updated = now(); // used to trigger plugin refresh accross different contexts
+			}
+		}	
+	</cfscript>
 
 
 
@@ -113,7 +124,7 @@ Error Output --->
 <cfset printError(error)>
 
 <!---
-Redirtect to entry --->
+Redirect to entry --->
 <cfif cgi.request_method EQ "POST" and error.message EQ "">
 	<cflocation url="#request.self#?action=#url.action#&reinit=true" addtoken="no">
 </cfif>

@@ -25,44 +25,44 @@ import lucee.runtime.type.Null;
 
 public class CallerUtil {
 
-    public final static int TYPE_DATA = 1;
-    public final static int TYPE_UDF_ARGS = 2;
-    public final static int TYPE_UDF_NAMED_ARGS = 3;
-    public final static int TYPE_BIF = 4;
+	public final static int TYPE_DATA = 1;
+	public final static int TYPE_UDF_ARGS = 2;
+	public final static int TYPE_UDF_NAMED_ARGS = 3;
+	public final static int TYPE_BIF = 4;
 
-    public static Object get(PageContext pc, Object coll, Key[] keys, Object defaultValue) {
-	if (coll == null) return defaultValue;
-	int to = keys.length - 1;
-	for (int i = 0; i <= to; i++) {
-	    coll = ((VariableUtilImpl) pc.getVariableUtil()).getCollection(pc, coll, keys[i], Null.NULL);
-	    if (coll == Null.NULL || (coll == null && i < to)) return defaultValue;
+	public static Object get(PageContext pc, Object coll, Key[] keys, Object defaultValue) {
+		if (coll == null) return defaultValue;
+		int to = keys.length - 1;
+		for (int i = 0; i <= to; i++) {
+			coll = ((VariableUtilImpl) pc.getVariableUtil()).getCollection(pc, coll, keys[i], Null.NULL);
+			if (coll == Null.NULL || (coll == null && i < to)) return defaultValue;
+		}
+		return coll;
 	}
-	return coll;
-    }
 
-    // TODO work in progress
-    public static Object get(PageContext pc, Object coll, int[] types, Key[] keys, Object[][] args, Object defaultValue) throws PageException {
-	if (coll == null) return defaultValue;
-	int to = keys.length - 1;
-	VariableUtilImpl vu = (VariableUtilImpl) pc.getVariableUtil();
-	for (int i = 0; i <= to; i++) {
-	    switch (types[i]) {
-	    case TYPE_DATA:
-		coll = vu.getCollection(pc, coll, keys[i], Null.NULL);
-		break;
-	    case TYPE_UDF_ARGS:
-		coll = vu.callFunctionWithoutNamedValues(pc, coll, keys[i], args[i], false, Null.NULL);
-		break;
-	    case TYPE_UDF_NAMED_ARGS:
-		coll = vu.callFunctionWithNamedValues(pc, coll, keys[i], args[i], false, Null.NULL);
-		break;
-	    case TYPE_BIF:
-		coll = null;// TODO
-		break;
-	    }
+	// TODO work in progress
+	public static Object get(PageContext pc, Object coll, int[] types, Key[] keys, Object[][] args, Object defaultValue) throws PageException {
+		if (coll == null) return defaultValue;
+		int to = keys.length - 1;
+		VariableUtilImpl vu = (VariableUtilImpl) pc.getVariableUtil();
+		for (int i = 0; i <= to; i++) {
+			switch (types[i]) {
+			case TYPE_DATA:
+				coll = vu.getCollection(pc, coll, keys[i], Null.NULL);
+				break;
+			case TYPE_UDF_ARGS:
+				coll = vu.callFunctionWithoutNamedValues(pc, coll, keys[i], args[i], false, Null.NULL);
+				break;
+			case TYPE_UDF_NAMED_ARGS:
+				coll = vu.callFunctionWithNamedValues(pc, coll, keys[i], args[i], false, Null.NULL);
+				break;
+			case TYPE_BIF:
+				coll = null;// TODO
+				break;
+			}
 
-	    if (coll == Null.NULL || (coll == null && i < to)) return defaultValue;
+			if (coll == Null.NULL || (coll == null && i < to)) return defaultValue;
+		}
+		return coll;
 	}
-	return coll;
-    }
 }

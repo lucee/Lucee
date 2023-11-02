@@ -237,6 +237,20 @@ function createTooltip(element, text, x, y, mouseAction )
 		return false;
 	})
 }
+
+disableBlockUI=false;
+function validatePass() {
+	var passDefault = document.getElementById("passEmpty").value;
+	if(passDefault.length == 0) {
+		$("#passEmpty").focus();
+		$("#passEmpty").style.backgroundColor = "#ffeeee";
+		$("#messagePass").innerHTML = "This field not to be empty";
+		$("#messagePass").style.color = "#bf4f36";
+		disableBlockUI=true;
+		return false;
+	}
+}
+
 function initTooltips()
 {
 	// lookup all elements with a class "tooltipMe" and add a tooltip to them.

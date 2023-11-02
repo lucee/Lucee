@@ -28,19 +28,19 @@ import lucee.runtime.reflection.Reflector;
 
 public class OracleClobCast implements Cast {
 
-    private static final Object[] ZERO_ARGS = new Object[0];
+	private static final Object[] ZERO_ARGS = new Object[0];
 
-    @Override
-    public Object toCFType(TimeZone tz, ResultSet rst, int columnIndex) throws SQLException, IOException {
-	Object o = rst.getObject(columnIndex);
-	if (o == null) return null;
+	@Override
+	public Object toCFType(TimeZone tz, ResultSet rst, int columnIndex) throws SQLException, IOException {
+		Object o = rst.getObject(columnIndex);
+		if (o == null) return null;
 
-	// we do not have oracle.sql.CLOB in the core, so we need reflection for this
-	try {
-	    return Caster.toString(Reflector.callMethod(o, "stringValue", ZERO_ARGS));
+		// we do not have oracle.sql.CLOB in the core, so we need reflection for this
+		try {
+			return Caster.toString(Reflector.callMethod(o, "stringValue", ZERO_ARGS));
+		}
+		catch (PageException pe) {
+			throw ExceptionUtil.toIOException(pe);
+		}
 	}
-	catch (PageException pe) {
-	    throw ExceptionUtil.toIOException(pe);
-	}
-    }
 }

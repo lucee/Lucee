@@ -23,14 +23,14 @@ package lucee.commons.security;
  */
 public interface Credentials {
 
-    /**
-     * @return returns the username
-     */
-    public String getUsername();
+	/**
+	 * @return returns the username
+	 */
+	public String getUsername();
 
-    /**
-     * @return returns the password
-     */
-    public String getPassword();
+	/**
+	 * @return returns the password
+	 */
+	public String getPassword();
 
 }

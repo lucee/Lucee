@@ -20,5 +20,5 @@ package lucee.runtime.type;
 
 public interface Duplicable {
 
-    public Object duplicate(boolean deepCopy);
+	public Object duplicate(boolean deepCopy);
 }

@@ -651,7 +651,7 @@ you can see the log result at the end of every request, if a debug template is d
 	<data key="scopes.sessiontimeoutdescription">Sets the amount of time Lucee will keep the session scope alive. This behaviour can be overridden by the tag cfapplication.</data>
 	<data key="scopes.sessiontype_application">Application</data>
 	<data key="scopes.clientcookies">Client cookies</data>
-	<data key="scopes.timeoutendvalue">timeout must have a Integer Value</data>
+	<data key="scopes.timeoutendvalue">timeout must have an Integer Value</data>
 	<data key="scopes.mergeurlformdescription">This setting defines if the scopes URL and Form will be merged together (CFML Default is false). If a key already exists in Form and URL Scopes, the value from the Form Scope is used.</data>
 	<data key="scopes.timeoutminutesvalue">Value minutes for </data>
 	<data key="scopes.applicationtimeoutdescription">Sets the amount of time Lucee will keep the application scope alive. This behaviour can be overridden by the tag cfapplication.</data>

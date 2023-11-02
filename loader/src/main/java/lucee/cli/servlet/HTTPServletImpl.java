@@ -23,40 +23,40 @@ import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServlet;
 
 public class HTTPServletImpl extends HttpServlet {
-    private static final long serialVersionUID = 3270816399105433603L;
+	private static final long serialVersionUID = 3270816399105433603L;
 
-    private final ServletConfig config;
-    private final ServletContext context;
-    private final String servletName;
+	private final ServletConfig config;
+	private final ServletContext context;
+	private final String servletName;
 
-    public HTTPServletImpl(final ServletConfig config, final ServletContext context, final String servletName) {
-	this.config = config;
-	this.context = context;
-	this.servletName = servletName;
-    }
+	public HTTPServletImpl(final ServletConfig config, final ServletContext context, final String servletName) {
+		this.config = config;
+		this.context = context;
+		this.servletName = servletName;
+	}
 
-    /**
-     * @see javax.servlet.GenericServlet#getServletConfig()
-     */
-    @Override
-    public ServletConfig getServletConfig() {
-	return config;
-    }
+	/**
+	 * @see javax.servlet.GenericServlet#getServletConfig()
+	 */
+	@Override
+	public ServletConfig getServletConfig() {
+		return config;
+	}
 
-    /**
-     * @see javax.servlet.GenericServlet#getServletContext()
-     */
-    @Override
-    public ServletContext getServletContext() {
-	return context;
-    }
+	/**
+	 * @see javax.servlet.GenericServlet#getServletContext()
+	 */
+	@Override
+	public ServletContext getServletContext() {
+		return context;
+	}
 
-    /**
-     * @see javax.servlet.GenericServlet#getServletName()
-     */
-    @Override
-    public String getServletName() {
-	return servletName;
-    }
+	/**
+	 * @see javax.servlet.GenericServlet#getServletName()
+	 */
+	@Override
+	public String getServletName() {
+		return servletName;
+	}
 
 }

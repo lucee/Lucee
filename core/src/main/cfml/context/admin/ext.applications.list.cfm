@@ -81,7 +81,8 @@
 					
 
 						<a <cfif _type=="web">href="#link#"<cfelse>style="border-color: ##E0E0E0;"</cfif> title="#_extensions.name#
-Categories: #arrayToList(cat)#"><cfif hasUpdate>
+Categories: #arrayToList(cat)# 
+Installed version:#_extensions.version#"><cfif hasUpdate>
        <div class="ribbon-wrapper" <cfif _type=="server">style="border-color:##bf4f36"</cfif>><div class="ribbon" <cfif _type=="server">style="background-color:##bf4f36"</cfif>>UPDATE ME!</div></div>
 </cfif>
 <cfif _extensions.trial>
@@ -175,18 +176,19 @@ Categories: #arrayToList(cat)#"><cfif hasUpdate>
 	}
 
 	function addRow(src,trg,srcRow) {
-		var trgRow=queryAddRow(trg);
-		loop array=queryColumnArray(src) item="local.col" {
-			querySetCell(trg,col,queryGetCell(src,col,srcRow),trgRow);
+		var trgRow=queryAddRow(arguments.trg);
+		loop array=queryColumnArray(arguments.src) item="local.col" {
+			querySetCell(arguments.trg,col,queryGetCell(arguments.src,col,arguments.srcRow),trgRow);
 		}
 	}
 </cfscript>
 
 <cfoutput>
-
+<cfset noneLasCounter=0>
  <cfif isQuery(external)>
 	<cfset hiddenFormContents = "" >
 	<cfset count = 1>
+
 	<cfloop list="Release,Pre_Release,SnapShot" index="key">
 		<span><input 
 			<cfif count EQ 1>class="bl button" <cfelseif count EQ 3> class="br button" <cfelse> class="bm button" </cfif>
@@ -198,6 +200,7 @@ Categories: #arrayToList(cat)#"><cfif hasUpdate>
 			type="button"></span>
 		<cfsavecontent variable="tmpContent">
 			<div id="div_#UcFirst(Lcase(key))#" >
+
 				<cfloop query="#versionStr[key]#" group="id">
 					<cfif  (
 						session.extFilter.filter2 eq ""
@@ -209,7 +212,9 @@ Categories: #arrayToList(cat)#"><cfif hasUpdate>
 							<cfset link="#request.self#?action=#url.action#&action2=detail&id=#versionStr[key].id#">
 							<cfset dn=getDumpNail(versionStr[key].image,130,50)>
 							<div class="extensionthumb">
-								<a href="#link#" title="#stText.ext.viewdetails#">
+								<cfset lasProvider=(versionStr[key].provider?:"")=="local" || findNoCase("lucee.org",versionStr[key].provider) GT 0>
+								<cfif not lasProvider><cfset noneLasCounter++></cfif>
+								<a <cfif not lasProvider> style="border-color: ###(lasProvider?'9C9':'FC6')#;"</cfif> href="#link#" title="#stText.ext.viewdetails#">
 									<div class="extimg">
 										<cfif len(dn)>
 
@@ -236,7 +241,11 @@ Categories: #arrayToList(cat)#"><cfif hasUpdate>
 	
 </cfif>
 
-
+<cfif noneLasCounter>
+	<div class="message" style="border-color: ##FC6;color:##C93;">
+		Extensions with a yellow border are not provided by the Lucee Association Switzerland and do not neccessarily follow our guidelines. These extensions are not reviewed by the Lucee Association Switzerland.
+	</div>
+</cfif>
 
 <!--- upload own extension --->
 

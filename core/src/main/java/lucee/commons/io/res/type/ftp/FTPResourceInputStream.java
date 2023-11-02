@@ -25,29 +25,29 @@ import lucee.commons.io.res.util.ResourceInputStream;
 
 public final class FTPResourceInputStream extends ResourceInputStream {
 
-    private final FTPResourceClient client;
+	private final FTPResourceClient client;
 
-    /**
-     * Constructor of the class
-     * 
-     * @param res
-     * @param is
-     */
-    public FTPResourceInputStream(FTPResourceClient client, FTPResource res, InputStream is) {
-	super(res, is);
-	// print.ln("is:"+is);
-	this.client = client;
-    }
+	/**
+	 * Constructor of the class
+	 * 
+	 * @param res
+	 * @param is
+	 */
+	public FTPResourceInputStream(FTPResourceClient client, FTPResource res, InputStream is) {
+		super(res, is);
+		// print.ln("is:"+is);
+		this.client = client;
+	}
 
-    @Override
-    public void close() throws IOException {
-	try {
-	    super.close();
+	@Override
+	public void close() throws IOException {
+		try {
+			super.close();
+		}
+		finally {
+			client.completePendingCommand();
+			((FTPResourceProvider) getResource().getResourceProvider()).returnClient(client);
+		}
 	}
-	finally {
-	    client.completePendingCommand();
-	    ((FTPResourceProvider) getResource().getResourceProvider()).returnClient(client);
-	}
-    }
 
 }

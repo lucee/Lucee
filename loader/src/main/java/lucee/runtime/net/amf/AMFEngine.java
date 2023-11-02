@@ -31,20 +31,20 @@ import lucee.runtime.config.ConfigWeb;
  */
 public interface AMFEngine {
 
-    /**
-     * method to initialize the engine
-     * 
-     */
-    public void init(ConfigWeb config, Map<String, String> arguments) throws IOException;
+	/**
+	 * method to initialize the engine
+	 * 
+	 */
+	public void init(ConfigWeb config, Map<String, String> arguments) throws IOException;
 
-    /**
-     * Main entry point for the AMF (Flex) Engine
-     * 
-     * @param servlet
-     * @param req
-     * @param rsp
-     *
-     * @throws IOException
-     */
-    public void service(HttpServlet servlet, HttpServletRequest req, HttpServletResponse rsp) throws IOException;
+	/**
+	 * Main entry point for the AMF (Flex) Engine
+	 * 
+	 * @param servlet
+	 * @param req
+	 * @param rsp
+	 *
+	 * @throws IOException
+	 */
+	public void service(HttpServlet servlet, HttpServletRequest req, HttpServletResponse rsp) throws IOException;
 }

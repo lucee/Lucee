@@ -34,25 +34,25 @@ import lucee.runtime.type.util.CollectionUtil;
 
 public final class StructCopy extends BIF {
 
-    private static final long serialVersionUID = 4395420120630859733L;
+	private static final long serialVersionUID = 4395420120630859733L;
 
-    public static Object call(PageContext pc, Struct src) throws PageException {
+	public static Object call(PageContext pc, Struct src) throws PageException {
 
-	Collection trg = (Collection) Duplicator.duplicate(src, false);
-	Collection.Key[] keys = CollectionUtil.keys(trg);
-	Collection.Key key;
-	Object o;
-	for (int i = 0; i < keys.length; i++) {
-	    key = keys[i];
-	    o = src.get(key, null);
-	    if (o instanceof Array) trg.set(key, Duplicator.duplicate(o, false));
+		Collection trg = (Collection) Duplicator.duplicate(src, false);
+		Collection.Key[] keys = CollectionUtil.keys(trg);
+		Collection.Key key;
+		Object o;
+		for (int i = 0; i < keys.length; i++) {
+			key = keys[i];
+			o = src.get(key, null);
+			if (o instanceof Array) trg.set(key, Duplicator.duplicate(o, false));
+		}
+		return trg;
 	}
-	return trg;
-    }
 
-    @Override
-    public Object invoke(PageContext pc, Object[] args) throws PageException {
-	if (args.length == 1) return call(pc, Caster.toStruct(args[0]));
-	throw new FunctionException(pc, "StructCopy", 1, 1, args.length);
-    }
+	@Override
+	public Object invoke(PageContext pc, Object[] args) throws PageException {
+		if (args.length == 1) return call(pc, Caster.toStruct(args[0]));
+		throw new FunctionException(pc, "StructCopy", 1, 1, args.length);
+	}
 }

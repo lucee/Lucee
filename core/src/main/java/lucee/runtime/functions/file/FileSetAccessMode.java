@@ -28,15 +28,15 @@ import lucee.runtime.op.Caster;
 
 public class FileSetAccessMode {
 
-    public static String call(PageContext pc, Object oSrc, String strMode) throws PageException {
-	Resource src = Caster.toResource(pc, oSrc, false);
-	pc.getConfig().getSecurityManager().checkFileLocation(src);
-	try {
-	    src.setMode(ModeUtil.toOctalMode(strMode));
+	public static String call(PageContext pc, Object oSrc, String strMode) throws PageException {
+		Resource src = Caster.toResource(pc, oSrc, false);
+		pc.getConfig().getSecurityManager().checkFileLocation(src);
+		try {
+			src.setMode(ModeUtil.toOctalMode(strMode));
+		}
+		catch (IOException e) {
+			throw Caster.toPageException(e);
+		}
+		return null;
 	}
-	catch (IOException e) {
-	    throw Caster.toPageException(e);
-	}
-	return null;
-    }
 }

@@ -26,52 +26,52 @@ import lucee.runtime.type.Struct;
 
 public class VideoExecuterNotSupported implements VideoExecuter {
 
-    /**
-     * @see lucee.runtime.video.VideoExecuter#convertRaw(lucee.runtime.config.ConfigWeb,
-     *      lucee.runtime.video.VideoInput[], lucee.runtime.video.VideoOutput,
-     *      lucee.runtime.video.VideoProfile)
-     */
-    @Override
-    public VideoInfo[] convert(ConfigWeb config, VideoInput[] inputs, VideoOutput output, VideoProfile quality) throws IOException {
-	throw notSupported();
-    }
+	/**
+	 * @see lucee.runtime.video.VideoExecuter#convertRaw(lucee.runtime.config.ConfigWeb,
+	 *      lucee.runtime.video.VideoInput[], lucee.runtime.video.VideoOutput,
+	 *      lucee.runtime.video.VideoProfile)
+	 */
+	@Override
+	public VideoInfo[] convert(ConfigWeb config, VideoInput[] inputs, VideoOutput output, VideoProfile quality) throws IOException {
+		throw notSupported();
+	}
 
-    /**
-     * @see lucee.runtime.video.VideoExecuter#infoRaw(lucee.runtime.config.ConfigWeb,
-     *      lucee.runtime.video.VideoInput)
-     */
-    @Override
-    public VideoInfo info(ConfigWeb config, VideoInput input) throws IOException {
-	throw notSupported();
-    }
+	/**
+	 * @see lucee.runtime.video.VideoExecuter#infoRaw(lucee.runtime.config.ConfigWeb,
+	 *      lucee.runtime.video.VideoInput)
+	 */
+	@Override
+	public VideoInfo info(ConfigWeb config, VideoInput input) throws IOException {
+		throw notSupported();
+	}
 
-    /**
-     * @see lucee.runtime.video.VideoExecuter#test(lucee.runtime.config.ConfigWeb)
-     */
-    @Override
-    public void test(ConfigWeb config) throws IOException {
-	throw notSupported();
-    }
+	/**
+	 * @see lucee.runtime.video.VideoExecuter#test(lucee.runtime.config.ConfigWeb)
+	 */
+	@Override
+	public void test(ConfigWeb config) throws IOException {
+		throw notSupported();
+	}
 
-    /**
-     * @see lucee.runtime.video.VideoExecuter#uninstall(lucee.runtime.config.Config)
-     */
-    @Override
-    public void uninstall(Config config) throws IOException {
-	throw notSupported();
-    }
+	/**
+	 * @see lucee.runtime.video.VideoExecuter#uninstall(lucee.runtime.config.Config)
+	 */
+	@Override
+	public void uninstall(Config config) throws IOException {
+		throw notSupported();
+	}
 
-    /**
-     * @see lucee.runtime.video.VideoExecuter#install(lucee.runtime.config.ConfigWeb,
-     *      lucee.runtime.type.Struct)
-     */
-    @Override
-    public void install(ConfigWeb config, Struct data) throws IOException {
-	throw notSupported();
-    }
+	/**
+	 * @see lucee.runtime.video.VideoExecuter#install(lucee.runtime.config.ConfigWeb,
+	 *      lucee.runtime.type.Struct)
+	 */
+	@Override
+	public void install(ConfigWeb config, Struct data) throws IOException {
+		throw notSupported();
+	}
 
-    private VideoException notSupported() {
-	return new VideoException("The video components are not installed, please go to the Lucee Server Administrator in order to install the video extension");
-    }
+	private VideoException notSupported() {
+		return new VideoException("The video components are not installed, please go to the Lucee Server Administrator in order to install the video extension");
+	}
 
 }

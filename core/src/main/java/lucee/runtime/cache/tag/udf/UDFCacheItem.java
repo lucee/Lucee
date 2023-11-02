@@ -34,70 +34,70 @@ import lucee.runtime.type.Duplicable;
 
 public class UDFCacheItem implements CacheItem, Serializable, Dumpable, Duplicable {
 
-    private static final long serialVersionUID = -3616023500492159529L;
+	private static final long serialVersionUID = -3616023500492159529L;
 
-    public final String output;
-    public final Object returnValue;
-    private final String udfName;
-    private final String meta;
-    private final long executionTimeNS;
+	public final String output;
+	public final Object returnValue;
+	private final String udfName;
+	private final String meta;
+	private final long executionTimeNS;
 
-    private final long payload;
+	private final long payload;
 
-    private String hash;
+	private String hash;
 
-    public UDFCacheItem(String output, Object returnValue, String udfName, String meta, long executionTimeNS) {
-	this.output = output;
-	this.returnValue = returnValue;
-	this.udfName = udfName;
-	this.meta = meta;
-	this.executionTimeNS = executionTimeNS;
-	this.payload = output == null ? 0 : output.length();
-    }
+	public UDFCacheItem(String output, Object returnValue, String udfName, String meta, long executionTimeNS) {
+		this.output = output;
+		this.returnValue = returnValue;
+		this.udfName = udfName;
+		this.meta = meta;
+		this.executionTimeNS = executionTimeNS;
+		this.payload = output == null ? 0 : output.length();
+	}
 
-    @Override
-    public DumpData toDumpData(PageContext pageContext, int maxlevel, DumpProperties properties) {
-	DumpTable table = new DumpTable("#669999", "#ccffff", "#000000");
-	table.setTitle("UDFCacheEntry");
-	table.appendRow(1, new SimpleDumpData("Return Value"), DumpUtil.toDumpData(returnValue, pageContext, maxlevel, properties));
-	table.appendRow(1, new SimpleDumpData("Output"), DumpUtil.toDumpData(new SimpleDumpData(output), pageContext, maxlevel, properties));
-	return table;
-    }
+	@Override
+	public DumpData toDumpData(PageContext pageContext, int maxlevel, DumpProperties properties) {
+		DumpTable table = new DumpTable("#669999", "#ccffff", "#000000");
+		table.setTitle("UDFCacheEntry");
+		table.appendRow(1, new SimpleDumpData("Return Value"), DumpUtil.toDumpData(returnValue, pageContext, maxlevel, properties));
+		table.appendRow(1, new SimpleDumpData("Output"), DumpUtil.toDumpData(new SimpleDumpData(output), pageContext, maxlevel, properties));
+		return table;
+	}
 
-    @Override
-    public String toString() {
-	return output;
-    }
+	@Override
+	public String toString() {
+		return output;
+	}
 
-    @Override
-    public String getHashFromValue() {
-	if (hash == null) hash = Long.toString(HashUtil.create64BitHash(output + ":" + UDFArgConverter.serialize(returnValue)));
-	return hash;
-    }
+	@Override
+	public String getHashFromValue() {
+		if (hash == null) hash = Long.toString(HashUtil.create64BitHash(output + ":" + UDFArgConverter.serialize(returnValue)));
+		return hash;
+	}
 
-    @Override
-    public String getName() {
-	return udfName;
-    }
+	@Override
+	public String getName() {
+		return udfName;
+	}
 
-    @Override
-    public long getPayload() {
-	return payload;
-    }
+	@Override
+	public long getPayload() {
+		return payload;
+	}
 
-    @Override
-    public String getMeta() {
-	return meta;
-    }
+	@Override
+	public String getMeta() {
+		return meta;
+	}
 
-    @Override
-    public long getExecutionTime() {
-	return executionTimeNS;
-    }
+	@Override
+	public long getExecutionTime() {
+		return executionTimeNS;
+	}
 
-    @Override
-    public Object duplicate(boolean deepCopy) {
-	return new UDFCacheItem(output, Duplicator.duplicate(returnValue, deepCopy), udfName, meta, executionTimeNS);
-    }
+	@Override
+	public Object duplicate(boolean deepCopy) {
+		return new UDFCacheItem(output, Duplicator.duplicate(returnValue, deepCopy), udfName, meta, executionTimeNS);
+	}
 
 }

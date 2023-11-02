@@ -8,9 +8,6 @@
 
 <cfset hasAccess=securityManagerGet("setting","yes")> --->
 
-
-<!--- 
-Defaults --->
 <cfparam name="url.action2" default="list">
 <cfparam name="form.mainAction" default="none">
 <cfparam name="form.subAction" default="none">
@@ -19,15 +16,14 @@ Defaults --->
 	<cfswitch expression="#form.mainAction#">
 	<!--- save settings --->
 		<cfcase value="#stText.Buttons.save#">
-			<cfadmin 
+			<cfadmin
 					action="updateLoginSettings"
 					type="#request.adminType#"
-					password="#session["password"&request.adminType]#"
-                    
+					password="#session["password" & request.adminType]#"
 					rememberme="#structKeyExists(form,"remembermeEnable") and form.remembermeEnable#"
 					captcha="#structKeyExists(form,"captcha") and form.captcha#"
 					delay="#form.delay#">
-			
+
 		</cfcase>
 	<!--- CHANGE --->
 		<cfcase value="#stText.Buttons.Change#">
@@ -36,43 +32,43 @@ Defaults --->
 			<cfelseif form._new_password NEQ form._new_password_re>
 				<cfset error.message="#stText.Login.UnequalPasswords#">
 			<cfelse>
-				<cfadmin 
+				<cfadmin
 					action="updatePassword"
 					type="#request.adminType#"
 					oldPassword="#form._old_password#"
 					newPassword="#form._new_password#">
-				<cfset session["password"&request.adminType]=form._new_password>
-			</cfif> 
-		
+				<cfset session["password" & request.adminType]=form._new_password>
+			</cfif>
+
 		</cfcase>
 	<!--- UPDATE Default Password --->
 		<cfcase value="#stText.Buttons.Update#">
 			<cfif len(form._new_password) LT 6>
 				<cfset error.message="#stText.Login.NewTooShort#">
 			<cfelse>
-				<cfadmin 
+				<cfadmin
 					action="updateDefaultPassword"
 					type="#request.adminType#"
-					password="#session["password"&request.adminType]#"
+					password="#session["password" & request.adminType]#"
 					newPassword="#form._new_password#">
 			</cfif>
 		</cfcase>
-        
+
         <cfcase value="#stText.Buttons.delete#">
-        		
-				<cfadmin 
+
+				<cfadmin
 					action="removeDefaultPassword"
 					type="#request.adminType#"
-					password="#session["password"&request.adminType]#">
+					password="#session["password" & request.adminType]#">
 		</cfcase>
-        
+
 	<!--- reset individual password --->
 		<cfcase value="#stText.Buttons.Reset#">
 			<cfif len(form.contextPath)>
-				<cfadmin 
+				<cfadmin
 					action="resetPassword"
 					type="#request.adminType#"
-					password="#session["password"&request.adminType]#"
+					password="#session["password" & request.adminType]#"
 					contextPath="#form.contextPath#">
 			</cfif>
 		</cfcase>
@@ -85,21 +81,21 @@ Defaults --->
 </cftry>
 
 
-<!--- 
+<!---
 Redirtect to entry --->
 <cfif cgi.request_method EQ "POST" and error.message EQ "">
 	<cflocation url="#request.self#?action=#url.action#" addtoken="no">
 </cfif>
 
-<!--- 
+<!---
 Error Output --->
 <cfset printError(error)>
 
 
-<cfadmin 
+<cfadmin
         action="getLoginSettings"
         type="#request.adminType#"
-		password="#session["password"&request.adminType]#"
+		password="#session["password" & request.adminType]#"
    		returnVariable="settings">
 
 
@@ -174,7 +170,7 @@ Error Output --->
 				<tr>
 					<th scope="row">#stText.Login.RetypePassword#</th>
 					<td>
-						<cfinputClassic type="password" name="_new_password_re" value="" passthrough='autocomplete="off"' 
+						<cfinputClassic type="password" name="_new_password_re" value="" passthrough='autocomplete="off"'
 						class="medium" required="yes" message="#stText.Login.RetypeNewPasswordMissing#">
 						<div class="comment">#stText.Login.RetypeNewPassword#</div>
 					</td>
@@ -195,10 +191,10 @@ Error Output --->
 <cfif request.adminType EQ "server">
 	<cftry>
 		<cfset hasDefaultPW=true>
-		<cfadmin 
+		<cfadmin
 			action="getDefaultPassword"
 			type="#request.adminType#"
-			password="#session["password"&request.adminType]#"
+			password="#session["password" & request.adminType]#"
 			returnVariable="defaultPassword">
 		<cfcatch type="any">
 			<cfset hasDefaultPW=false>
@@ -215,8 +211,9 @@ Error Output --->
 						<tr>
 							<th scope="row">#stText.Login.Password#</th>
 							<td>
-								<cfinputClassic type="password" name="_new_password" value="#defaultPassword#" 
+								<cfinputClassic type="password" id="passEmpty" name="_new_password" value="#defaultPassword#"
 								class="medium" required="no" message="#stText.Login.NewPasswordMissing#">
+								<div id="messagePass" class="commentError"></div>
 								<div class="comment">#stText.Login.NewPasswordDescription#</div>
 							</td>
 						</tr>
@@ -224,7 +221,7 @@ Error Output --->
 					<tfoot>
 						<tr>
 							<td colspan="2">
-								<input type="submit" class="bl button submit" name="mainAction" value="#stText.Buttons.Update#">
+								<input type="submit" class="bl button submit" onclick="return validatePass()" name="mainAction" value="#stText.Buttons.Update#">
 								<input type="submit" class="bm button submit" name="mainAction" value="#stText.Buttons.delete#">
 								<input type="reset" class="br button reset" name="cancel" value="#stText.Buttons.Cancel#">
 							</td>
@@ -235,18 +232,17 @@ Error Output --->
 		</cfoutput>
 	</cfif>
 
-
-	<cfset hasContextes=true>
+	<cfset hasContextes = true>
 	<cftry>
-		<cfadmin 
+		<cfadmin
 			action="getContextes"
 			type="#request.adminType#"
-			password="#session["password"&request.adminType]#"
+			password="#session["password" & request.adminType]#"
 			returnVariable="contextes">
 		<cfcatch type="application">
 			<cfset hasContextes=false>
 		</cfcatch>
-	</cftry>					
+	</cftry>
 	<cfif hasContextes>
 		<!--- Reset Password --->
 		<cfoutput>

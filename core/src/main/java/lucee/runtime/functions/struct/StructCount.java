@@ -30,15 +30,15 @@ import lucee.runtime.type.Struct;
 
 public final class StructCount extends BIF {
 
-    private static final long serialVersionUID = -2023978105880376970L;
+	private static final long serialVersionUID = -2023978105880376970L;
 
-    public static double call(PageContext pc, Struct struct) {
-	return struct.size();
-    }
+	public static double call(PageContext pc, Struct struct) {
+		return struct.size();
+	}
 
-    @Override
-    public Object invoke(PageContext pc, Object[] args) throws PageException {
-	if (args.length == 1) return call(pc, Caster.toStruct(args[0]));
-	throw new FunctionException(pc, "StructCount", 1, 1, args.length);
-    }
+	@Override
+	public Object invoke(PageContext pc, Object[] args) throws PageException {
+		if (args.length == 1) return call(pc, Caster.toStruct(args[0]));
+		throw new FunctionException(pc, "StructCount", 1, 1, args.length);
+	}
 }

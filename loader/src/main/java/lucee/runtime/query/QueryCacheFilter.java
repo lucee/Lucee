@@ -19,5 +19,5 @@
 package lucee.runtime.query;
 
 public interface QueryCacheFilter {
-    public boolean accept(String sql);
+	public boolean accept(String sql);
 }

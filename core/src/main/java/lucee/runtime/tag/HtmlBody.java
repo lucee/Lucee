@@ -26,48 +26,48 @@ import lucee.runtime.exp.PageException;
 
 public final class HtmlBody extends HtmlHeadBodyBase {
 
-    @Override
-    public String getTagName() {
-	return "htmlbody";
-    }
+	@Override
+	public String getTagName() {
+		return "htmlbody";
+	}
 
-    @Override
-    public boolean getDefaultForce() {
-	return false;
-    }
+	@Override
+	public boolean getDefaultForce() {
+		return false;
+	}
 
-    @Override
-    public void actionAppend() throws IOException, ApplicationException {
+	@Override
+	public void actionAppend() throws IOException, ApplicationException {
 
-	((PageContextImpl) pageContext).getRootOut().appendHTMLBody(text);
-    }
+		((PageContextImpl) pageContext).getRootOut().appendHTMLBody(text);
+	}
 
-    @Override
-    public void actionWrite() throws IOException, ApplicationException {
+	@Override
+	public void actionWrite() throws IOException, ApplicationException {
 
-	((PageContextImpl) pageContext).getRootOut().writeHTMLBody(text);
-    }
+		((PageContextImpl) pageContext).getRootOut().writeHTMLBody(text);
+	}
 
-    @Override
-    public void actionReset() throws IOException {
+	@Override
+	public void actionReset() throws IOException {
 
-	((PageContextImpl) pageContext).getRootOut().resetHTMLBody();
-    }
+		((PageContextImpl) pageContext).getRootOut().resetHTMLBody();
+	}
 
-    @Override
-    public void actionRead() throws PageException, IOException {
+	@Override
+	public void actionRead() throws PageException, IOException {
 
-	String str = ((PageContextImpl) pageContext).getRootOut().getHTMLBody();
-	pageContext.setVariable(variable != null ? variable : "cfhtmlbody", str);
-    }
+		String str = ((PageContextImpl) pageContext).getRootOut().getHTMLBody();
+		pageContext.setVariable(variable != null ? variable : "cfhtmlbody", str);
+	}
 
-    @Override
-    public void actionFlush() throws IOException {
+	@Override
+	public void actionFlush() throws IOException {
 
-	PageContextImpl pci = (PageContextImpl) pageContext;
+		PageContextImpl pci = (PageContextImpl) pageContext;
 
-	pci.write(pci.getRootOut().getHTMLBody());
-	pci.getRootOut().resetHTMLBody();
-    }
+		pci.write(pci.getRootOut().getHTMLBody());
+		pci.getRootOut().resetHTMLBody();
+	}
 
 }

@@ -30,16 +30,16 @@ import lucee.runtime.type.Query;
  */
 public final class QueryCurrentRow extends BIF {
 
-    private static final long serialVersionUID = 6744860152468692462L;
+	private static final long serialVersionUID = 6744860152468692462L;
 
-    public static double call(PageContext pc, Query qry) {
-	return qry.getCurrentrow(pc.getId());
-    }
+	public static double call(PageContext pc, Query qry) {
+		return qry.getCurrentrow(pc.getId());
+	}
 
-    @Override
-    public Object invoke(PageContext pc, Object[] args) throws PageException {
-	if (args.length == 1) return call(pc, Caster.toQuery(args[0]));
+	@Override
+	public Object invoke(PageContext pc, Object[] args) throws PageException {
+		if (args.length == 1) return call(pc, Caster.toQuery(args[0]));
 
-	throw new FunctionException(pc, "QueryCurrentRow", 1, 1, args.length);
-    }
+		throw new FunctionException(pc, "QueryCurrentRow", 1, 1, args.length);
+	}
 }

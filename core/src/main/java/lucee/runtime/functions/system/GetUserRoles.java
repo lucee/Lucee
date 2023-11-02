@@ -27,9 +27,9 @@ import lucee.runtime.security.Credential;
 import lucee.runtime.type.util.ListUtil;
 
 public final class GetUserRoles implements Function {
-    public static String call(lucee.runtime.PageContext pc) throws PageException {
-	Credential ru = pc.getRemoteUser();
-	if (ru == null) return "";
-	return ListUtil.arrayToList(ru.getRoles(), ",");
-    }
+	public static String call(lucee.runtime.PageContext pc) throws PageException {
+		Credential ru = pc.getRemoteUser();
+		if (ru == null) return "";
+		return ListUtil.arrayToList(ru.getRoles(), ",");
+	}
 }

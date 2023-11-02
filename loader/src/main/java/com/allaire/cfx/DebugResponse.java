@@ -26,114 +26,114 @@ import lucee.runtime.cfx.QueryWrap;
 
 public final class DebugResponse implements Response {
 
-    private final StringBuffer write = new StringBuffer();
-    private final StringBuffer writeDebug = new StringBuffer();
-    private final Hashtable variables = new Hashtable();
-    private final Hashtable queries = new Hashtable();
+	private final StringBuffer write = new StringBuffer();
+	private final StringBuffer writeDebug = new StringBuffer();
+	private final Hashtable variables = new Hashtable();
+	private final Hashtable queries = new Hashtable();
 
-    @Override
-    public Query addQuery(final String name, final String[] columns) {
-	final QueryWrap query = new QueryWrap(CFMLEngineFactory.getInstance().getCreationUtil().createQuery(columns, 0, name), name.toLowerCase());
-	queries.put(name.toLowerCase(), query);
-	return query;
-    }
-
-    @Override
-    public void setVariable(final String key, final String value) {
-	variables.put(key.toLowerCase(), value);
-    }
-
-    @Override
-    public void write(final String str) {
-	write.append(str);
-    }
-
-    @Override
-    public void writeDebug(final String str) {
-	writeDebug.append(str);
-    }
-
-    /**
-     * print out the response
-     */
-    public void printResults() {
-	System.out.println("[ --- Lucee Debug Response --- ]");
-	System.out.println();
-
-	System.out.println("----------------------------");
-	System.out.println("|          Output          |");
-	System.out.println("----------------------------");
-	System.out.println(write);
-	System.out.println();
-
-	System.out.println("----------------------------");
-	System.out.println("|       Debug Output       |");
-	System.out.println("----------------------------");
-	System.out.println(writeDebug);
-	System.out.println();
-
-	System.out.println("----------------------------");
-	System.out.println("|        Variables         |");
-	System.out.println("----------------------------");
-
-	Enumeration e = variables.keys();
-	while (e.hasMoreElements()) {
-	    final Object key = e.nextElement();
-	    System.out.println("[Variable:" + key + "]");
-	    System.out.println(escapeString(variables.get(key).toString()));
-	}
-	System.out.println();
-
-	e = queries.keys();
-	while (e.hasMoreElements()) {
-	    final Query query = (Query) queries.get(e.nextElement());
-	    printQuery(query);
-	    System.out.println();
+	@Override
+	public Query addQuery(final String name, final String[] columns) {
+		final QueryWrap query = new QueryWrap(CFMLEngineFactory.getInstance().getCreationUtil().createQuery(columns, 0, name), name.toLowerCase());
+		queries.put(name.toLowerCase(), query);
+		return query;
 	}
 
-    }
+	@Override
+	public void setVariable(final String key, final String value) {
+		variables.put(key.toLowerCase(), value);
+	}
 
-    /**
-     * print out a query
-     * 
-     * @param query query to print
-     */
-    public void printQuery(final Query query) {
-	if (query != null) {
-	    final String[] cols = query.getColumns();
-	    final int rows = query.getRowCount();
-	    System.out.println("[Query:" + query.getName() + "]");
-	    for (int i = 0; i < cols.length; i++) {
-		if (i > 0) System.out.print(", ");
-		System.out.print(cols[i]);
-	    }
-	    System.out.println();
+	@Override
+	public void write(final String str) {
+		write.append(str);
+	}
 
-	    for (int row = 1; row <= rows; row++) {
-		for (int col = 1; col <= cols.length; col++) {
-		    if (col > 1) System.out.print(", ");
-		    System.out.print(escapeString(query.getData(row, col)));
+	@Override
+	public void writeDebug(final String str) {
+		writeDebug.append(str);
+	}
+
+	/**
+	 * print out the response
+	 */
+	public void printResults() {
+		System.out.println("[ --- Lucee Debug Response --- ]");
+		System.out.println();
+
+		System.out.println("----------------------------");
+		System.out.println("|          Output          |");
+		System.out.println("----------------------------");
+		System.out.println(write);
+		System.out.println();
+
+		System.out.println("----------------------------");
+		System.out.println("|       Debug Output       |");
+		System.out.println("----------------------------");
+		System.out.println(writeDebug);
+		System.out.println();
+
+		System.out.println("----------------------------");
+		System.out.println("|        Variables         |");
+		System.out.println("----------------------------");
+
+		Enumeration e = variables.keys();
+		while (e.hasMoreElements()) {
+			final Object key = e.nextElement();
+			System.out.println("[Variable:" + key + "]");
+			System.out.println(escapeString(variables.get(key).toString()));
 		}
 		System.out.println();
-	    }
-	}
-    }
 
-    private String escapeString(final String string) {
-	final int len = string.length();
-	final StringBuffer sb = new StringBuffer(len);
-	for (int i = 0; i < len; i++) {
-	    final char c = string.charAt(i);
-	    if (c == '\n') sb.append("\\n");
-	    else if (c == '\t') sb.append("\\t");
-	    else if (c == '\\') sb.append("\\\\");
-	    else if (c == '\b') sb.append("\\b");
-	    else if (c == '\r') sb.append("\\r");
-	    else if (c == '\"') sb.append("\\\"");
-	    else sb.append(c);
+		e = queries.keys();
+		while (e.hasMoreElements()) {
+			final Query query = (Query) queries.get(e.nextElement());
+			printQuery(query);
+			System.out.println();
+		}
+
 	}
 
-	return "\"" + sb.toString() + "\"";
-    }
+	/**
+	 * print out a query
+	 * 
+	 * @param query query to print
+	 */
+	public void printQuery(final Query query) {
+		if (query != null) {
+			final String[] cols = query.getColumns();
+			final int rows = query.getRowCount();
+			System.out.println("[Query:" + query.getName() + "]");
+			for (int i = 0; i < cols.length; i++) {
+				if (i > 0) System.out.print(", ");
+				System.out.print(cols[i]);
+			}
+			System.out.println();
+
+			for (int row = 1; row <= rows; row++) {
+				for (int col = 1; col <= cols.length; col++) {
+					if (col > 1) System.out.print(", ");
+					System.out.print(escapeString(query.getData(row, col)));
+				}
+				System.out.println();
+			}
+		}
+	}
+
+	private String escapeString(final String string) {
+		final int len = string.length();
+		final StringBuffer sb = new StringBuffer(len);
+		for (int i = 0; i < len; i++) {
+			final char c = string.charAt(i);
+			if (c == '\n') sb.append("\\n");
+			else if (c == '\t') sb.append("\\t");
+			else if (c == '\\') sb.append("\\\\");
+			else if (c == '\b') sb.append("\\b");
+			else if (c == '\r') sb.append("\\r");
+			else if (c == '\"') sb.append("\\\"");
+			else sb.append(c);
+		}
+
+		return "\"" + sb.toString() + "\"";
+	}
 
 }

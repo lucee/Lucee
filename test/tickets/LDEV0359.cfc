@@ -14,7 +14,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 	function beforeAll() skip="isNotSupported"{
 		if(isNotSupported()) return;
 		s3Details = getCredentials();
-		mitrahsoftBucketName = "ldev0359";
+		mitrahsoftBucketName = "lucee-testsuite";
 		base = "s3://#s3Details.ACCESSKEYID#:#s3Details.AWSSECRETKEY#@";
 		baseWithBucketName = "s3://#s3Details.ACCESSKEYID#:#s3Details.AWSSECRETKEY#@/#mitrahsoftBucketName#";
 		// for skipping rest of the cases, if error occurred.
@@ -37,7 +37,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 			});
 
 			it(title="Creating a new s3 bucket", skip=isNotSupported(), body=function( currentSpec ) {
-				if(isNotSupported()) return;
 				if( directoryExists(baseWithBucketName))
 					directoryDelete(baseWithBucketName, true);
 				directoryCreate(baseWithBucketName);
@@ -45,13 +44,18 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 
 			// we accept this because S3 accept this, so if ACF does not, that is a bug/limitation in ACF.
 			it(title="Creating a new file without extension", skip=isNotSupported(), body=function( currentSpec ) {
+				if(!directoryExists(baseWithBucketName))
+					directoryCreate(baseWithBucketName);
+
 				if(!fileExists(baseWithBucketName & "/a"))
 					fileWrite(baseWithBucketName & "/a", "");
 			});
 
 			// because previous file is empty it is accepted as directory
 			it(title="Creating a new file by the newly created file(blank extension) as a folder", skip=isNotSupported(), body=function( currentSpec ) {
-				//hasErrorInternal = false;
+				if(!directoryExists(baseWithBucketName))
+					directoryCreate(baseWithBucketName);
+
 				if(!fileExists(baseWithBucketName & "/a/foo.txt"))
 					fileWrite(baseWithBucketName & "/a/foo.txt", "hello there");
 				

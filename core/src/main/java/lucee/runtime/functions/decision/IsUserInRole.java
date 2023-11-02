@@ -28,16 +28,16 @@ import lucee.runtime.security.Credential;
 import lucee.runtime.security.CredentialImpl;
 
 public final class IsUserInRole implements Function {
-    public static boolean call(PageContext pc, Object object) throws PageException {
-	String[] givenRoles = CredentialImpl.toRole(object);
-	Credential ru = pc.getRemoteUser();
-	if (ru == null) return false;
-	String[] roles = ru.getRoles();
-	for (int i = 0; i < roles.length; i++) {
-	    for (int y = 0; y < givenRoles.length; y++) {
-		if (roles[i].equalsIgnoreCase(givenRoles[y])) return true;
-	    }
+	public static boolean call(PageContext pc, Object object) throws PageException {
+		String[] givenRoles = CredentialImpl.toRole(object);
+		Credential ru = pc.getRemoteUser();
+		if (ru == null) return false;
+		String[] roles = ru.getRoles();
+		for (int i = 0; i < roles.length; i++) {
+			for (int y = 0; y < givenRoles.length; y++) {
+				if (roles[i].equalsIgnoreCase(givenRoles[y])) return true;
+			}
+		}
+		return false;
 	}
-	return false;
-    }
 }

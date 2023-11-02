@@ -65,6 +65,64 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 	}
 
+	public void function testCachedAfter() {
+
+		application action="update" cachedAfter=createTimespan(0,0,0,1);
+		try{
+			try{
+				query  {
+					echo("CREATE TABLE tcQuery ( id INT NOT NULL AUTO_INCREMENT PRIMARY KEY, v VARCHAR(100) )");
+				}
+			}
+			catch(e){}
+
+			query {
+				echo(" insert into tcQuery(v) values(#now()#) ");
+			}
+
+			var n=now();
+			var ca=dateAdd("n",-1,n);
+			
+			query {
+				echo("update tcQuery set v=#now()#");
+			}
+			query name="local.q" cachedAfter=ca {
+				echo("select * from tcQuery");
+			}
+			var first=q.v;
+
+			sleep(500);
+
+			query {
+				echo("update tcQuery set v=#now()#");
+			}
+			query name="local.q" cachedAfter=ca {
+				echo("select * from tcQuery");
+			}
+			var second=q.v;
+
+			sleep(600);
+
+
+			query {
+				echo("update tcQuery set v=#now()#");
+			}
+			query name="local.q" cachedAfter=ca {
+				echo("select * from tcQuery");
+			}
+			var third=q.v;
+
+			assertEquals(first,second);
+			assertNotEquals(first,third);
+		}
+		finally {
+			application action="update" cachedAfter=createTimespan(0,0,0,0);
+			query  {
+				echo("drop TABLE tcQuery");
+			}
+		}
+	}
+
 
 
 	public void function testListenerComponent() {

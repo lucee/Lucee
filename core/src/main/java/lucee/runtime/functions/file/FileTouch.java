@@ -25,20 +25,20 @@ import lucee.runtime.tag.FileTag;
 
 public class FileTouch extends BIF {
 
-    private static final long serialVersionUID = -7478227658810128723L;
+	private static final long serialVersionUID = -7478227658810128723L;
 
-    public static String call(PageContext pc, Object file, boolean createPath) throws PageException {
-	Resource res = Caster.toResource(pc, file, false);
+	public static String call(PageContext pc, Object file, boolean createPath) throws PageException {
+		Resource res = Caster.toResource(pc, file, false);
 
-	FileTag.actionTouch(pc, pc.getConfig().getSecurityManager(), res, null, createPath, null, -1, null);
+		FileTag.actionTouch(pc, pc.getConfig().getSecurityManager(), res, null, createPath, null, -1, null);
 
-	return null;
-    }
+		return null;
+	}
 
-    @Override
-    public Object invoke(PageContext pc, Object[] args) throws PageException {
-	if (args.length == 1) return call(pc, args[0], true);
-	else if (args.length == 2) return call(pc, args[0], Caster.toBooleanValue(args[1]));
-	throw new FunctionException(pc, "FileTouch", 1, 2, args.length);
-    }
+	@Override
+	public Object invoke(PageContext pc, Object[] args) throws PageException {
+		if (args.length == 1) return call(pc, args[0], true);
+		else if (args.length == 2) return call(pc, args[0], Caster.toBooleanValue(args[1]));
+		throw new FunctionException(pc, "FileTouch", 1, 2, args.length);
+	}
 }

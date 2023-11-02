@@ -37,42 +37,42 @@ import lucee.runtime.type.dt.DateTime;
  */
 public final class DateFormat extends BIF {
 
-    public static String call(PageContext pc, Object object) throws PageException {
-	return _call(pc, object, "dd-mmm-yy", ThreadLocalPageContext.getTimeZone(pc));
-    }
-
-    public static String call(PageContext pc, Object object, String mask) throws PageException {
-	return _call(pc, object, mask, ThreadLocalPageContext.getTimeZone(pc));
-    }
-
-    public static String call(PageContext pc, Object object, String mask, TimeZone tz) throws PageException {
-	return _call(pc, object, mask, tz == null ? ThreadLocalPageContext.getTimeZone(pc) : tz);
-    }
-
-    private static String _call(PageContext pc, Object object, String mask, TimeZone tz) throws PageException {
-	Locale locale = Locale.US;
-
-	DateTime datetime = DateCaster.toDateAdvanced(object, tz, null);
-	// Caster.toDate(object,true,tz,null);
-	if (datetime == null) {
-	    if (StringUtil.isEmpty(object, true)) return "";
-	    throw new CasterException(object, "datetime");
-	    // if(!Decision.isSimpleValue(object))
-	    // throw new ExpressionException("can't convert object of type "+Type.getName(object)+" to a
-	    // datetime value");
-	    // throw new ExpressionException("can't convert value "+object+" to a datetime value");
+	public static String call(PageContext pc, Object object) throws PageException {
+		return _call(pc, object, "dd-mmm-yy", ThreadLocalPageContext.getTimeZone(pc));
 	}
-	return new lucee.runtime.format.DateFormat(locale).format(datetime, mask, tz);
-    }
-    // public static String call(PageContext pc , Object object, String mask,TimeZone tz) throws
-    // PageException {
 
-    @Override
-    public Object invoke(PageContext pc, Object[] args) throws PageException {
-	if (args.length == 1) return call(pc, args[0]);
-	if (args.length == 2) return call(pc, args[0], Caster.toString(args[1]));
-	if (args.length == 3) return call(pc, args[0], Caster.toString(args[1]), Caster.toTimeZone(args[2]));
+	public static String call(PageContext pc, Object object, String mask) throws PageException {
+		return _call(pc, object, mask, ThreadLocalPageContext.getTimeZone(pc));
+	}
 
-	throw new FunctionException(pc, "DateFormat", 1, 3, args.length);
-    }
+	public static String call(PageContext pc, Object object, String mask, TimeZone tz) throws PageException {
+		return _call(pc, object, mask, tz == null ? ThreadLocalPageContext.getTimeZone(pc) : tz);
+	}
+
+	private static String _call(PageContext pc, Object object, String mask, TimeZone tz) throws PageException {
+		Locale locale = Locale.US;
+
+		DateTime datetime = DateCaster.toDateAdvanced(object, tz, null);
+		// Caster.toDate(object,true,tz,null);
+		if (datetime == null) {
+			if (StringUtil.isEmpty(object, true)) return "";
+			throw new CasterException(object, "datetime");
+			// if(!Decision.isSimpleValue(object))
+			// throw new ExpressionException("can't convert object of type "+Type.getName(object)+" to a
+			// datetime value");
+			// throw new ExpressionException("can't convert value "+object+" to a datetime value");
+		}
+		return new lucee.runtime.format.DateFormat(locale).format(datetime, mask, tz);
+	}
+	// public static String call(PageContext pc , Object object, String mask,TimeZone tz) throws
+	// PageException {
+
+	@Override
+	public Object invoke(PageContext pc, Object[] args) throws PageException {
+		if (args.length == 1) return call(pc, args[0]);
+		if (args.length == 2) return call(pc, args[0], Caster.toString(args[1]));
+		if (args.length == 3) return call(pc, args[0], Caster.toString(args[1]), Caster.toTimeZone(args[2]));
+
+		throw new FunctionException(pc, "DateFormat", 1, 3, args.length);
+	}
 }

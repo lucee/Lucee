@@ -24,29 +24,29 @@ import lucee.commons.net.HTTPUtil;
 
 public class RHExtensionProvider {
 
-    private final URL url;
-    private final boolean readonly;
+	private final URL url;
+	private final boolean readonly;
 
-    public RHExtensionProvider(String strUrl, boolean readonly) throws MalformedURLException {
-	this.url = HTTPUtil.toURL(strUrl, true);
-	this.readonly = readonly;
-    }
+	public RHExtensionProvider(String strUrl, boolean readonly) throws MalformedURLException {
+		this.url = HTTPUtil.toURL(strUrl, HTTPUtil.ENCODED_AUTO);
+		this.readonly = readonly;
+	}
 
-    public RHExtensionProvider(URL url, boolean readonly) {
-	this.url = url;
-	this.readonly = readonly;
-    }
+	public RHExtensionProvider(URL url, boolean readonly) {
+		this.url = url;
+		this.readonly = readonly;
+	}
 
-    public URL getURL() {
-	return url;
-    }
+	public URL getURL() {
+		return url;
+	}
 
-    public boolean isReadonly() {
-	return readonly;
-    }
+	public boolean isReadonly() {
+		return readonly;
+	}
 
-    @Override
-    public String toString() {
-	return url.toExternalForm();
-    }
+	@Override
+	public String toString() {
+		return url.toExternalForm();
+	}
 }

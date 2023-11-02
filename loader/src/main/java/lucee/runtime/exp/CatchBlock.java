@@ -26,8 +26,8 @@ import lucee.runtime.type.Struct;
 
 public interface CatchBlock extends Struct, Castable, Serializable {
 
-    public PageException getPageException();
+	public PageException getPageException();
 
-    public void print(PageContext pc);
+	public void print(PageContext pc);
 
 }

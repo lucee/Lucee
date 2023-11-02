@@ -26,7 +26,7 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
 
 public final class GetVariable implements Function {
-    public static Object call(PageContext pc, String name) throws PageException {
-	return pc.getVariable(name);
-    }
+	public static Object call(PageContext pc, String name) throws PageException {
+		return pc.getVariable(name);
+	}
 }

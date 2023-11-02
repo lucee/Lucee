@@ -22,21 +22,21 @@ import lucee.runtime.config.ConfigServer;
 
 public interface Monitor {
 
-    public static final short TYPE_INTERVAL = 1;
-    public static final short TYPE_REQUEST = 2;
-    public static final short TYPE_ACTION = 4;
+	public static final short TYPE_INTERVAL = 1;
+	public static final short TYPE_REQUEST = 2;
+	public static final short TYPE_ACTION = 4;
 
-    @Deprecated
-    public static final short TYPE_INTERVALL = TYPE_INTERVAL;
+	@Deprecated
+	public static final short TYPE_INTERVALL = TYPE_INTERVAL;
 
-    public void init(ConfigServer configServer, String name, boolean logEnabled);
+	public void init(ConfigServer configServer, String name, boolean logEnabled);
 
-    public short getType();
+	public short getType();
 
-    public String getName();
+	public String getName();
 
-    @SuppressWarnings("rawtypes")
-    public Class getClazz();
+	@SuppressWarnings("rawtypes")
+	public Class getClazz();
 
-    public boolean isLogEnabled();
+	public boolean isLogEnabled();
 }

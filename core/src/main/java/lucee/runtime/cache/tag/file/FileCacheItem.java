@@ -29,44 +29,44 @@ import lucee.runtime.dump.SimpleDumpData;
 
 public abstract class FileCacheItem implements CacheItem, Serializable, Dumpable {
 
-    private static final long serialVersionUID = -8462614105941179140L;
+	private static final long serialVersionUID = -8462614105941179140L;
 
-    private final long executionTimeNS;
-    protected final String path;
+	private final long executionTimeNS;
+	protected final String path;
 
-    public FileCacheItem(String path, long executionTimeNS) {
-	this.path = path;
-	this.executionTimeNS = executionTimeNS;
-    }
+	public FileCacheItem(String path, long executionTimeNS) {
+		this.path = path;
+		this.executionTimeNS = executionTimeNS;
+	}
 
-    public static FileCacheItem getInstance(String path, Object data, long executionTimeNS) {
-	if (data instanceof byte[]) return new FileCacheItemBinary(path, (byte[]) data, executionTimeNS);
-	return new FileCacheItemString(path, (String) data, executionTimeNS);
-    }
+	public static FileCacheItem getInstance(String path, Object data, long executionTimeNS) {
+		if (data instanceof byte[]) return new FileCacheItemBinary(path, (byte[]) data, executionTimeNS);
+		return new FileCacheItemString(path, (String) data, executionTimeNS);
+	}
 
-    @Override
-    public DumpData toDumpData(PageContext pageContext, int maxlevel, DumpProperties properties) {
-	DumpTable table = new DumpTable("#669999", "#ccffff", "#000000");
-	table.setTitle("FileCacheEntry");
-	table.appendRow(1, new SimpleDumpData("Path"), new SimpleDumpData(path));
-	return table;
-    }
+	@Override
+	public DumpData toDumpData(PageContext pageContext, int maxlevel, DumpProperties properties) {
+		DumpTable table = new DumpTable("#669999", "#ccffff", "#000000");
+		table.setTitle("FileCacheEntry");
+		table.appendRow(1, new SimpleDumpData("Path"), new SimpleDumpData(path));
+		return table;
+	}
 
-    @Override
-    public String getName() {
-	return path;
-    }
+	@Override
+	public String getName() {
+		return path;
+	}
 
-    @Override
-    public String getMeta() {
-	return path;
-    }
+	@Override
+	public String getMeta() {
+		return path;
+	}
 
-    @Override
-    public long getExecutionTime() {
-	return executionTimeNS;
-    }
+	@Override
+	public long getExecutionTime() {
+		return executionTimeNS;
+	}
 
-    public abstract Object getData();
+	public abstract Object getData();
 
 }

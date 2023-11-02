@@ -36,33 +36,33 @@ import lucee.runtime.op.date.DateCaster;
  */
 public final class ParseDateTime extends BIF {
 
-    private static final long serialVersionUID = -2623323893206022437L;
+	private static final long serialVersionUID = -2623323893206022437L;
 
-    public static lucee.runtime.type.dt.DateTime call(PageContext pc, Object oDate) throws PageException {
-	return _call(pc, oDate, null, pc.getTimeZone());
-    }
-
-    public static lucee.runtime.type.dt.DateTime call(PageContext pc, Object oDate, String popConversion) throws PageException {
-	return _call(pc, oDate, popConversion, pc.getTimeZone());
-    }
-
-    public static lucee.runtime.type.dt.DateTime call(PageContext pc, Object oDate, String popConversion, TimeZone tz) throws PageException {
-	return _call(pc, oDate, popConversion, tz == null ? pc.getTimeZone() : tz);
-    }
-
-    private static lucee.runtime.type.dt.DateTime _call(PageContext pc, Object oDate, String popConversion, TimeZone tz) throws PageException {
-	if (!StringUtil.isEmpty(popConversion) && !"standard".equalsIgnoreCase(popConversion = popConversion.trim()) && !"pop".equalsIgnoreCase(popConversion.trim())) {
-	    popConversion = DateTimeFormat.convertMask(popConversion);
-	    return LSParseDateTime.call(pc, oDate, Locale.US, tz.getID(), popConversion);
+	public static lucee.runtime.type.dt.DateTime call(PageContext pc, Object oDate) throws PageException {
+		return _call(pc, oDate, null, pc.getTimeZone());
 	}
-	return DateCaster.toDateAdvanced(oDate, DateCaster.CONVERTING_TYPE_YEAR, tz);
-    }
 
-    @Override
-    public Object invoke(PageContext pc, Object[] args) throws PageException {
-	if (args.length == 3) return call(pc, args[0], Caster.toString(args[1]), Caster.toTimeZone(args[2]));
-	if (args.length == 2) return call(pc, args[0], Caster.toString(args[1]));
-	if (args.length == 1) return call(pc, args[0]);
-	throw new FunctionException(pc, "ParseDateTime", 1, 3, args.length);
-    }
+	public static lucee.runtime.type.dt.DateTime call(PageContext pc, Object oDate, String popConversion) throws PageException {
+		return _call(pc, oDate, popConversion, pc.getTimeZone());
+	}
+
+	public static lucee.runtime.type.dt.DateTime call(PageContext pc, Object oDate, String popConversion, TimeZone tz) throws PageException {
+		return _call(pc, oDate, popConversion, tz == null ? pc.getTimeZone() : tz);
+	}
+
+	private static lucee.runtime.type.dt.DateTime _call(PageContext pc, Object oDate, String popConversion, TimeZone tz) throws PageException {
+		if (!StringUtil.isEmpty(popConversion) && !"standard".equalsIgnoreCase(popConversion = popConversion.trim()) && !"pop".equalsIgnoreCase(popConversion.trim())) {
+			popConversion = DateTimeFormat.convertMask(popConversion);
+			return LSParseDateTime.call(pc, oDate, Locale.US, tz.getID(), popConversion);
+		}
+		return DateCaster.toDateAdvanced(oDate, DateCaster.CONVERTING_TYPE_YEAR, tz);
+	}
+
+	@Override
+	public Object invoke(PageContext pc, Object[] args) throws PageException {
+		if (args.length == 3) return call(pc, args[0], Caster.toString(args[1]), Caster.toTimeZone(args[2]));
+		if (args.length == 2) return call(pc, args[0], Caster.toString(args[1]));
+		if (args.length == 1) return call(pc, args[0]);
+		throw new FunctionException(pc, "ParseDateTime", 1, 3, args.length);
+	}
 }

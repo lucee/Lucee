@@ -26,225 +26,225 @@ import java.util.List;
  */
 public class DumpTable implements DumpData {
 
-    private final List<DumpRow> rows = new ArrayList<DumpRow>();
-    private String title;
-    private String comment;
-    private String highLightColor;
-    private String normalColor;
-    private String borderColor;
-    private String fontColor;
-    private String width;
-    private String height;
-    private final String type;
-    private String id;
-    private String ref;
+	private final List<DumpRow> rows = new ArrayList<DumpRow>();
+	private String title;
+	private String comment;
+	private String highLightColor;
+	private String normalColor;
+	private String borderColor;
+	private String fontColor;
+	private String width;
+	private String height;
+	private final String type;
+	private String id;
+	private String ref;
 
-    public DumpTable(final String highLightColor, final String normalColor, final String borderColor) {
-	this(null, highLightColor, normalColor, borderColor, borderColor);
-    }
+	public DumpTable(final String highLightColor, final String normalColor, final String borderColor) {
+		this(null, highLightColor, normalColor, borderColor, borderColor);
+	}
 
-    public DumpTable(final String type, final String highLightColor, final String normalColor, final String borderColor) {
-	this(type, highLightColor, normalColor, borderColor, borderColor);
-    }
+	public DumpTable(final String type, final String highLightColor, final String normalColor, final String borderColor) {
+		this(type, highLightColor, normalColor, borderColor, borderColor);
+	}
 
-    public DumpTable(final String type, final String highLightColor, final String normalColor, final String borderColor, final String fontColor) {
-	this.highLightColor = highLightColor;
-	this.normalColor = normalColor;
-	this.borderColor = borderColor;
-	this.fontColor = fontColor;
-	this.type = type;
-    }
+	public DumpTable(final String type, final String highLightColor, final String normalColor, final String borderColor, final String fontColor) {
+		this.highLightColor = highLightColor;
+		this.normalColor = normalColor;
+		this.borderColor = borderColor;
+		this.fontColor = fontColor;
+		this.type = type;
+	}
 
-    /**
-     * @return returns if the box has content or not
-     */
-    public boolean isEmpty() {
-	return rows.isEmpty();
-    }
+	/**
+	 * @return returns if the box has content or not
+	 */
+	public boolean isEmpty() {
+		return rows.isEmpty();
+	}
 
-    /**
-     * clear all data set in the HTMLBox
-     */
-    public void clear() {
-	rows.clear();
-    }
+	/**
+	 * clear all data set in the HTMLBox
+	 */
+	public void clear() {
+		rows.clear();
+	}
 
-    /**
-     * @param title sets the title of the HTML Box
-     */
-    public void setTitle(final String title) {
-	this.title = title;
-    }
+	/**
+	 * @param title sets the title of the HTML Box
+	 */
+	public void setTitle(final String title) {
+		this.title = title;
+	}
 
-    /**
-     * returns the title of the DumpTable, if not defined returns null
-     * 
-     * @return title of the DumpTable
-     */
-    public String getTitle() {
-	return title;
-    }
+	/**
+	 * returns the title of the DumpTable, if not defined returns null
+	 * 
+	 * @return title of the DumpTable
+	 */
+	public String getTitle() {
+		return title;
+	}
 
-    /**
-     * @param comment sets the comment of the HTML Box
-     */
-    public void setComment(final String comment) {
-	this.comment = comment;
-    }
+	/**
+	 * @param comment sets the comment of the HTML Box
+	 */
+	public void setComment(final String comment) {
+		this.comment = comment;
+	}
 
-    /**
-     * returns the comment of the DumpTable, if not defined returns null
-     * 
-     * @return title of the DumpTable
-     */
-    public String getComment() {
-	return comment;
-    }
+	/**
+	 * returns the comment of the DumpTable, if not defined returns null
+	 * 
+	 * @return title of the DumpTable
+	 */
+	public String getComment() {
+		return comment;
+	}
 
-    /**
-     * @param width sets the With of the HTML Box, can be a number or a percentage value
-     */
-    public void setWidth(final String width) {
-	this.width = width;
-    }
+	/**
+	 * @param width sets the With of the HTML Box, can be a number or a percentage value
+	 */
+	public void setWidth(final String width) {
+		this.width = width;
+	}
 
-    /**
-     * @param height sets the Height of the HTML Box, can be a number or a percentage value
-     */
-    public void setHeight(final String height) {
-	this.height = height;
-    }
+	/**
+	 * @param height sets the Height of the HTML Box, can be a number or a percentage value
+	 */
+	public void setHeight(final String height) {
+		this.height = height;
+	}
 
-    /**
-     * @return the borderColor
-     */
-    public String getBorderColor() {
-	return borderColor;
-    }
+	/**
+	 * @return the borderColor
+	 */
+	public String getBorderColor() {
+		return borderColor;
+	}
 
-    /**
-     * @param borderColor the borderColor to set
-     */
-    public void setBorderColor(final String borderColor) {
-	this.borderColor = borderColor;
-    }
+	/**
+	 * @param borderColor the borderColor to set
+	 */
+	public void setBorderColor(final String borderColor) {
+		this.borderColor = borderColor;
+	}
 
-    /**
-     * @return the fontColor
-     */
-    public String getFontColor() {
-	return fontColor;
-    }
+	/**
+	 * @return the fontColor
+	 */
+	public String getFontColor() {
+		return fontColor;
+	}
 
-    /**
-     * @param fontColor the fontColor to set
-     */
-    public void setFontColor(final String fontColor) {
-	this.fontColor = fontColor;
-    }
+	/**
+	 * @param fontColor the fontColor to set
+	 */
+	public void setFontColor(final String fontColor) {
+		this.fontColor = fontColor;
+	}
 
-    /**
-     * @return the highLightColor
-     */
-    public String getHighLightColor() {
-	return highLightColor;
-    }
+	/**
+	 * @return the highLightColor
+	 */
+	public String getHighLightColor() {
+		return highLightColor;
+	}
 
-    /**
-     * @param highLightColor the highLightColor to set
-     */
-    public void setHighLightColor(final String highLightColor) {
-	this.highLightColor = highLightColor;
-    }
+	/**
+	 * @param highLightColor the highLightColor to set
+	 */
+	public void setHighLightColor(final String highLightColor) {
+		this.highLightColor = highLightColor;
+	}
 
-    /**
-     * @return the normalColor
-     */
-    public String getNormalColor() {
-	return normalColor;
-    }
+	/**
+	 * @return the normalColor
+	 */
+	public String getNormalColor() {
+		return normalColor;
+	}
 
-    /**
-     * @param normalColor the normalColor to set
-     */
-    public void setNormalColor(final String normalColor) {
-	this.normalColor = normalColor;
-    }
+	/**
+	 * @param normalColor the normalColor to set
+	 */
+	public void setNormalColor(final String normalColor) {
+		this.normalColor = normalColor;
+	}
 
-    /**
-     * @return the height
-     */
-    public String getHeight() {
-	return height;
-    }
+	/**
+	 * @return the height
+	 */
+	public String getHeight() {
+		return height;
+	}
 
-    /**
-     * @return the rows
-     */
-    public DumpRow[] getRows() {
-	return rows.toArray(new DumpRow[rows.size()]);
-    }
+	/**
+	 * @return the rows
+	 */
+	public DumpRow[] getRows() {
+		return rows.toArray(new DumpRow[rows.size()]);
+	}
 
-    public void appendRow(final DumpRow row) {
-	rows.add(row);
-    }
+	public void appendRow(final DumpRow row) {
+		rows.add(row);
+	}
 
-    public void appendRow(final int highlightType, final DumpData item1) {
-	appendRow(new DumpRow(highlightType, new DumpData[] { item1 }));
-    }
+	public void appendRow(final int highlightType, final DumpData item1) {
+		appendRow(new DumpRow(highlightType, new DumpData[] { item1 }));
+	}
 
-    public void appendRow(final int highlightType, final DumpData item1, final DumpData item2) {
-	appendRow(new DumpRow(highlightType, new DumpData[] { item1, item2 }));
-    }
+	public void appendRow(final int highlightType, final DumpData item1, final DumpData item2) {
+		appendRow(new DumpRow(highlightType, new DumpData[] { item1, item2 }));
+	}
 
-    public void appendRow(final int highlightType, final DumpData item1, final DumpData item2, final DumpData item3) {
-	appendRow(new DumpRow(highlightType, new DumpData[] { item1, item2, item3 }));
-    }
+	public void appendRow(final int highlightType, final DumpData item1, final DumpData item2, final DumpData item3) {
+		appendRow(new DumpRow(highlightType, new DumpData[] { item1, item2, item3 }));
+	}
 
-    public void appendRow(final int highlightType, final DumpData item1, final DumpData item2, final DumpData item3, final DumpData item4) {
-	appendRow(new DumpRow(highlightType, new DumpData[] { item1, item2, item3, item4 }));
-    }
+	public void appendRow(final int highlightType, final DumpData item1, final DumpData item2, final DumpData item3, final DumpData item4) {
+		appendRow(new DumpRow(highlightType, new DumpData[] { item1, item2, item3, item4 }));
+	}
 
-    public void appendRow(final int highlightType, final DumpData item1, final DumpData item2, final DumpData item3, final DumpData item4, final DumpData item5) {
-	appendRow(new DumpRow(highlightType, new DumpData[] { item1, item2, item3, item4, item5 }));
-    }
+	public void appendRow(final int highlightType, final DumpData item1, final DumpData item2, final DumpData item3, final DumpData item4, final DumpData item5) {
+		appendRow(new DumpRow(highlightType, new DumpData[] { item1, item2, item3, item4, item5 }));
+	}
 
-    public void appendRow(final int highlightType, final DumpData item1, final DumpData item2, final DumpData item3, final DumpData item4, final DumpData item5,
-	    final DumpData item6) {
-	appendRow(new DumpRow(highlightType, new DumpData[] { item1, item2, item3, item4, item5, item6 }));
-    }
+	public void appendRow(final int highlightType, final DumpData item1, final DumpData item2, final DumpData item3, final DumpData item4, final DumpData item5,
+			final DumpData item6) {
+		appendRow(new DumpRow(highlightType, new DumpData[] { item1, item2, item3, item4, item5, item6 }));
+	}
 
-    public void prependRow(final DumpRow row) {
-	rows.add(0, row);
-    }
+	public void prependRow(final DumpRow row) {
+		rows.add(0, row);
+	}
 
-    /**
-     * @return the width
-     */
-    public String getWidth() {
-	return width;
-    }
+	/**
+	 * @return the width
+	 */
+	public String getWidth() {
+		return width;
+	}
 
-    /**
-     * @return the type
-     */
-    public String getType() {
-	return type;
-    }
+	/**
+	 * @return the type
+	 */
+	public String getType() {
+		return type;
+	}
 
-    public void setId(final String id) {
-	this.id = id;
-    }
+	public void setId(final String id) {
+		this.id = id;
+	}
 
-    public String getId() {
-	return id;
-    }
+	public String getId() {
+		return id;
+	}
 
-    public void setRef(final String ref) {
-	this.ref = ref;
-    }
+	public void setRef(final String ref) {
+		this.ref = ref;
+	}
 
-    public String getRef() {
-	return ref;
-    }
+	public String getRef() {
+		return ref;
+	}
 }

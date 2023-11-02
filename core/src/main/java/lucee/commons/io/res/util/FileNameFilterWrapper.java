@@ -25,20 +25,20 @@ import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.type.file.FileNameResourceFilter;
 
 public final class FileNameFilterWrapper implements FileNameResourceFilter {
-    private final FilenameFilter filter;
+	private final FilenameFilter filter;
 
-    public FileNameFilterWrapper(FilenameFilter filter) {
-	this.filter = filter;
-    }
+	public FileNameFilterWrapper(FilenameFilter filter) {
+		this.filter = filter;
+	}
 
-    @Override
-    public boolean accept(Resource dir, String name) {
-	if (dir instanceof File) return accept(((File) dir), name);
-	return accept(FileWrapper.toFile(dir), name);
-    }
+	@Override
+	public boolean accept(Resource dir, String name) {
+		if (dir instanceof File) return accept(((File) dir), name);
+		return accept(FileWrapper.toFile(dir), name);
+	}
 
-    @Override
-    public boolean accept(File dir, String name) {
-	return filter.accept(dir, name);
-    }
+	@Override
+	public boolean accept(File dir, String name) {
+		return filter.accept(dir, name);
+	}
 }

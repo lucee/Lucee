@@ -19,7 +19,7 @@
 package lucee.commons.lang.lock;
 
 public interface KeyLockListener {
-    public void onStart(String key, boolean isFirst);
+	public void onStart(String key, boolean isFirst);
 
-    public void onEnd(String key, boolean isLast);
+	public void onEnd(String key, boolean isLast);
 }

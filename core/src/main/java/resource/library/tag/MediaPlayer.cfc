@@ -79,7 +79,7 @@
         	<cfset src=ListToArray(attributes.source,attributes.delimiter)>
         <cfelse>
         	<cfthrow message="invalid type for attribute source"
-                detail="value must be a string list or a array">
+                detail="value must be a string list or an array">
 		</cfif>
         
         <!--- hideborder --->

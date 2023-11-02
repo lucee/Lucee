@@ -25,19 +25,19 @@ import lucee.commons.io.cache.CacheKeyFilter;
  */
 public class CacheKeyFilterAll implements CacheKeyFilter {
 
-    private static CacheKeyFilterAll instance = new CacheKeyFilterAll();
+	private static CacheKeyFilterAll instance = new CacheKeyFilterAll();
 
-    @Override
-    public boolean accept(String key) {
-	return true;
-    }
+	@Override
+	public boolean accept(String key) {
+		return true;
+	}
 
-    @Override
-    public String toPattern() {
-	return "*";
-    }
+	@Override
+	public String toPattern() {
+		return "*";
+	}
 
-    public static CacheKeyFilterAll getInstance() {
-	return instance;
-    }
+	public static CacheKeyFilterAll getInstance() {
+		return instance;
+	}
 }

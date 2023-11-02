@@ -13,7 +13,7 @@
 		}
 
 		function beforeAll() skip="isNotSupported"{
-			uri = createURI("ldev1129");
+			uri = createURI("lucee-testsuite-ldev1129");
 			if(not directoryExists(uri)){
 				Directorycreate(uri);
 				Directorycreate("#uri#/test");
@@ -21,7 +21,7 @@
 			}
 			if(isNotSupported()) return;
 			s3Details = getCredentials();
-			mitrahsoftBucketName = "ldev1129";
+			mitrahsoftBucketName = "lucee-testsuite-ldev1129";
 			base = "s3://#s3Details.ACCESSKEYID#:#s3Details.AWSSECRETKEY#@";
 			baseWithBucketName = "s3://#s3Details.ACCESSKEYID#:#s3Details.AWSSECRETKEY#@/#mitrahsoftBucketName#";
 			// for skipping rest of the cases, if error occurred.
@@ -89,8 +89,8 @@
 		}
 	</cfscript>
 	<cffunction name="cffilewithURL" returntype="Any" access="private">
-		<cfset uri = createURI("ldev1129/test")>
-		<cffile action="copy" source="https://s3.amazonaws.com/ldev1129/test.txt" destination="#uri#">
+		<cfset uri = createURI("lucee-testsuite-ldev1129/test")>
+		<cffile action="copy" source="https://s3.amazonaws.com/lucee-testsuite-ldev1129/test.txt" destination="#uri#">
 		<cfif FileExists("#uri#/test.txt")>
 			<cfreturn true>
 		</cfif>
@@ -98,7 +98,7 @@
 	</cffunction>
 	
 	<cffunction name="dircetlyAcessbucket" returntype="Any" access="private">
-		<cfset uri = createURI("ldev1129/test2")>
+		<cfset uri = createURI("lucee-testsuite-ldev1129/test2")>
 		<cftry>
 			<cffile action="copy" source="#baseWithBucketName#/test.txt" destination="#uri#">
 		<cfcatch type="any">

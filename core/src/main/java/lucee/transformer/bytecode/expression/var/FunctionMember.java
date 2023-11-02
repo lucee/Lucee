@@ -23,65 +23,65 @@ import lucee.transformer.expression.var.Member;
 import lucee.transformer.expression.var.Variable;
 
 public abstract class FunctionMember implements Member, Func {
-    private Argument[] arguments = new Argument[0];
-    private boolean _hasNamedArgs;
-    private Variable parent;
-    private boolean safeNavigated;
-    private Expression safeNavigatedValue;
+	private Argument[] arguments = new Argument[0];
+	private boolean _hasNamedArgs;
+	private Variable parent;
+	private boolean safeNavigated;
+	private Expression safeNavigatedValue;
 
-    @Override
-    public final void setParent(Variable parent) {
-	this.parent = parent;
-    }
-
-    @Override
-    public final Variable getParent() {
-	return parent;
-    }
-
-    @Override
-    public void addArgument(Argument argument) {
-	if (argument instanceof NamedArgument) _hasNamedArgs = true;
-	Argument[] tmp = new Argument[arguments.length + 1];
-	for (int i = 0; i < arguments.length; i++) {
-	    tmp[i] = arguments[i];
+	@Override
+	public final void setParent(Variable parent) {
+		this.parent = parent;
 	}
-	tmp[arguments.length] = argument;
-	arguments = tmp;
-    }
 
-    /**
-     * @return the arguments
-     */
-    public Argument[] getArguments() {
-	return arguments;
-    }
+	@Override
+	public final Variable getParent() {
+		return parent;
+	}
 
-    public void setArguments(Argument[] arguments) {
-	this.arguments = arguments;
-    }
+	@Override
+	public void addArgument(Argument argument) {
+		if (argument instanceof NamedArgument) _hasNamedArgs = true;
+		Argument[] tmp = new Argument[arguments.length + 1];
+		for (int i = 0; i < arguments.length; i++) {
+			tmp[i] = arguments[i];
+		}
+		tmp[arguments.length] = argument;
+		arguments = tmp;
+	}
 
-    public boolean hasNamedArgs() {
-	return _hasNamedArgs;
-    }
+	/**
+	 * @return the arguments
+	 */
+	public Argument[] getArguments() {
+		return arguments;
+	}
 
-    @Override
-    public void setSafeNavigated(boolean safeNavigated) {
-	this.safeNavigated = safeNavigated;
-    }
+	public void setArguments(Argument[] arguments) {
+		this.arguments = arguments;
+	}
 
-    @Override
-    public boolean getSafeNavigated() {
-	return this.safeNavigated;
-    }
+	public boolean hasNamedArgs() {
+		return _hasNamedArgs;
+	}
 
-    @Override
-    public void setSafeNavigatedValue(Expression safeNavigatedValue) {
-	this.safeNavigatedValue = safeNavigatedValue;
-    }
+	@Override
+	public void setSafeNavigated(boolean safeNavigated) {
+		this.safeNavigated = safeNavigated;
+	}
 
-    @Override
-    public Expression getSafeNavigatedValue() {
-	return safeNavigatedValue;
-    }
+	@Override
+	public boolean getSafeNavigated() {
+		return this.safeNavigated;
+	}
+
+	@Override
+	public void setSafeNavigatedValue(Expression safeNavigatedValue) {
+		this.safeNavigatedValue = safeNavigatedValue;
+	}
+
+	@Override
+	public Expression getSafeNavigatedValue() {
+		return safeNavigatedValue;
+	}
 }

@@ -31,50 +31,40 @@ import lucee.runtime.op.Caster;
  */
 public final class SortRegisterComparator implements ExceptionComparator {
 
-    private boolean isAsc;
-    private PageException pageException = null;
-    private boolean ignoreCase;
-    private final Comparator comparator;
+	private PageException pageException = null;
+	private boolean ignoreCase;
+	private final Comparator comparator;
 
-    /**
-     * constructor of the class
-     * 
-     * @param isAsc is ascending or descending
-     * @param ignoreCase do ignore case
-     */
-    public SortRegisterComparator(PageContext pc, boolean isAsc, boolean ignoreCase, boolean localeSensitive) {
-	this.isAsc = isAsc;
-	this.ignoreCase = ignoreCase;
-
-	comparator = ComparatorUtil.toComparator(ignoreCase ? ComparatorUtil.SORT_TYPE_TEXT_NO_CASE : ComparatorUtil.SORT_TYPE_TEXT, isAsc,
-		localeSensitive ? ThreadLocalPageContext.getLocale(pc) : null, null);
-
-    }
-
-    /**
-     * @return Returns the expressionException.
-     */
-    public PageException getPageException() {
-	return pageException;
-    }
-
-    @Override
-    public int compare(Object oLeft, Object oRight) {
-	try {
-	    if (pageException != null) return 0;
-	    else if (isAsc) return compareObjects(oLeft, oRight);
-	    else return compareObjects(oRight, oLeft);
+	/**
+	 * constructor of the class
+	 * 
+	 * @param isAsc is ascending or descending
+	 * @param ignoreCase do ignore case
+	 */
+	public SortRegisterComparator(PageContext pc, boolean isAsc, boolean ignoreCase, boolean localeSensitive) {
+		this.ignoreCase = ignoreCase;
+		comparator = ComparatorUtil.toComparator(ignoreCase ? ComparatorUtil.SORT_TYPE_TEXT_NO_CASE : ComparatorUtil.SORT_TYPE_TEXT, isAsc,
+				localeSensitive ? ThreadLocalPageContext.getLocale(pc) : null, null);
 	}
-	catch (PageException e) {
-	    pageException = e;
-	    return 0;
-	}
-    }
 
-    private int compareObjects(Object oLeft, Object oRight) throws PageException {
-	String strLeft = Caster.toString(((SortRegister) oLeft).getValue());
-	String strRight = Caster.toString(((SortRegister) oRight).getValue());
-	return comparator.compare(strLeft, strRight);
-    }
+	/**
+	 * @return Returns the expressionException.
+	 */
+	@Override
+	public PageException getPageException() {
+		return pageException;
+	}
+
+	@Override
+	public int compare(Object oLeft, Object oRight) {
+		try {
+			if (pageException != null) return 0;
+			return comparator.compare(Caster.toString(((SortRegister) oLeft).getValue()), Caster.toString(((SortRegister) oRight).getValue()));
+		}
+		catch (PageException e) {
+			pageException = e;
+			return 0;
+		}
+	}
 
 }

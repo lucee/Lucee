@@ -25,17 +25,17 @@ import lucee.commons.io.res.Resource;
  */
 public final class NotResourceFilter implements ResourceFilter {
 
-    private final ResourceFilter filter;
+	private final ResourceFilter filter;
 
-    /**
-     * @param filter
-     */
-    public NotResourceFilter(ResourceFilter filter) {
-	this.filter = filter;
-    }
+	/**
+	 * @param filter
+	 */
+	public NotResourceFilter(ResourceFilter filter) {
+		this.filter = filter;
+	}
 
-    @Override
-    public boolean accept(Resource f) {
-	return !filter.accept(f);
-    }
+	@Override
+	public boolean accept(Resource f) {
+		return !filter.accept(f);
+	}
 }

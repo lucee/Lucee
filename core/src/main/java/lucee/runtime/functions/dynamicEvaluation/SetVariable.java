@@ -26,8 +26,8 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
 
 public final class SetVariable implements Function {
-    public static Object call(PageContext pc, String name, Object value) throws PageException {
+	public static Object call(PageContext pc, String name, Object value) throws PageException {
 
-	return pc.setVariable(name, value);// pc.setVariable(name,value);
-    }
+		return pc.setVariable(name, value);// pc.setVariable(name,value);
+	}
 }

@@ -27,31 +27,31 @@ import lucee.runtime.type.Struct;
 
 public interface CacheConnection {
 
-    /**
-     * @return the readOnly
-     */
-    public abstract boolean isReadOnly();
+	/**
+	 * @return the readOnly
+	 */
+	public abstract boolean isReadOnly();
 
-    public abstract Cache getInstance(Config config) throws IOException;
+	public abstract Cache getInstance(Config config) throws IOException;
 
-    /**
-     * @return the name
-     */
-    public abstract String getName();
+	/**
+	 * @return the name
+	 */
+	public abstract String getName();
 
-    /**
-     * @return the clazz
-     */
-    @SuppressWarnings("rawtypes")
-    public abstract ClassDefinition getClassDefinition();
+	/**
+	 * @return the clazz
+	 */
+	@SuppressWarnings("rawtypes")
+	public abstract ClassDefinition getClassDefinition();
 
-    /**
-     * @return the custom
-     */
-    public abstract Struct getCustom();
+	/**
+	 * @return the custom
+	 */
+	public abstract Struct getCustom();
 
-    public CacheConnection duplicate(Config config) throws IOException;
+	public CacheConnection duplicate(Config config) throws IOException;
 
-    public boolean isStorage();
+	public boolean isStorage();
 
 }

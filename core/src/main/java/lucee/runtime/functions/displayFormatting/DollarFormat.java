@@ -33,16 +33,16 @@ import lucee.runtime.op.Caster;
 
 public final class DollarFormat extends BIF {
 
-    private static final long serialVersionUID = -9006485495830329674L;
+	private static final long serialVersionUID = -9006485495830329674L;
 
-    public static String call(PageContext pc, String strDollar) throws PageException {
-	if (StringUtil.isEmpty(strDollar)) strDollar = "0";// "$0,00";
-	return LSCurrencyFormat.call(pc, strDollar, "local", Locale.US);
-    }
+	public static String call(PageContext pc, String strDollar) throws PageException {
+		if (StringUtil.isEmpty(strDollar)) strDollar = "0";// "$0,00";
+		return LSCurrencyFormat.call(pc, strDollar, "local", Locale.US);
+	}
 
-    @Override
-    public Object invoke(PageContext pc, Object[] args) throws PageException {
-	if (args.length == 1) return call(pc, Caster.toString(args[0]));
-	throw new FunctionException(pc, "DollarFormat", 1, 1, args.length);
-    }
+	@Override
+	public Object invoke(PageContext pc, Object[] args) throws PageException {
+		if (args.length == 1) return call(pc, Caster.toString(args[0]));
+		throw new FunctionException(pc, "DollarFormat", 1, 1, args.length);
+	}
 }
