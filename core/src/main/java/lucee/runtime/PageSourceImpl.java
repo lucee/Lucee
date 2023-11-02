@@ -362,6 +362,10 @@ public final class PageSourceImpl implements PageSource {
 						LogUtil.log(config, Log.LEVEL_DEBUG, "compile", "load class from ClassLoader  [" + getDisplayPath() + "]");
 						pcn.set(page = newInstance(mapping.getPhysicalClass(cn)));
 					}
+					else if ( classFile.exists() && classFile.lastModified() >= srcLastModified ) {
+						LogUtil.log(pc, Log.LEVEL_DEBUG, "compile", "load class from ClassLoader  [" + getDisplayPath() + "]");
+						pcn.set(page = newInstance(mapping.getPhysicalClass(this.getClassName())));
+					}
 					else {
 						LogUtil.log(config, Log.LEVEL_DEBUG, "compile", "load class from binary  [" + getDisplayPath() + "]");
 						byte[] bytes = IOUtil.toBytes(classFile);
