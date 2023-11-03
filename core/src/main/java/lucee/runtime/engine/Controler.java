@@ -36,6 +36,7 @@ import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.CFMLFactoryImpl;
 import lucee.runtime.Mapping;
+import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigServer;
 import lucee.runtime.config.ConfigWeb;
@@ -559,10 +560,15 @@ public final class Controler extends Thread {
 	}
 
 	private void doCheckMappings(ConfigWeb config) {
-		Mapping[] mappings = config.getMappings();
-		for (int i = 0; i < mappings.length; i++) {
-			Mapping mapping = mappings[i];
-			mapping.check();
+		if (config instanceof ConfigImpl) {
+			((ConfigImpl) config).checkMappings();
+		}
+		else {
+			Mapping[] mappings = config.getMappings();
+			for (int i = 0; i < mappings.length; i++) {
+				Mapping mapping = mappings[i];
+				mapping.check();
+			}
 		}
 	}
 
