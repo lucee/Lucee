@@ -1086,7 +1086,7 @@ public class RHExtension implements Serializable {
 				}
 				catch (Throwable t) {
 					ExceptionUtil.rethrowIfNecessary(t);
-					log.error("extension", t);
+					log.log(Log.LEVEL_WARN, "extension", t);
 				}
 			}
 		}

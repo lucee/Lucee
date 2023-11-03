@@ -594,6 +594,7 @@ public final class MappingImpl implements Mapping {
 		}
 	}
 
+	// used in transformer
 	public static CIPage loadCIPage(PageSource ps, String className) {
 		// TODO check if the sub class itself has changed or not, maybe just the main class has, if there is
 		// no change there is no need to load it new

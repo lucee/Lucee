@@ -271,8 +271,11 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	protected Password password;
 	private String salt;
 
+	private Mapping[] uncheckedMappings = null;
 	private Mapping[] mappings = new Mapping[0];
+	private Mapping[] uncheckedCustomTagMappings = null;
 	private Mapping[] customTagMappings = new Mapping[0];
+	private Mapping[] uncheckedComponentMappings = null;
 	private Mapping[] componentMappings = new Mapping[0];
 
 	private SchedulerImpl scheduler;
@@ -780,6 +783,49 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	@Override
 	public Mapping[] getMappings() {
 		return mappings;
+	}
+
+	protected void setMappings(Mapping[] mappings) {
+		this.mappings = initMappings(this.uncheckedMappings = ConfigWebUtil.sort(mappings));
+	}
+
+	@Override
+	public Mapping[] getCustomTagMappings() {
+		return customTagMappings;
+	}
+
+	protected void setCustomTagMappings(Mapping[] customTagMappings) {
+		this.customTagMappings = initMappings(this.uncheckedCustomTagMappings = customTagMappings);
+	}
+
+	@Override
+	public Mapping[] getComponentMappings() {
+		return componentMappings;
+	}
+
+	protected void setComponentMappings(Mapping[] componentMappings) {
+		this.componentMappings = initMappings(this.uncheckedComponentMappings = componentMappings);
+	}
+
+	public void checkMappings() {
+		mappings = initMappings(uncheckedMappings);
+		customTagMappings = initMappings(uncheckedCustomTagMappings);
+		componentMappings = initMappings(uncheckedComponentMappings);
+	}
+
+	private Mapping[] initMappings(Mapping[] mappings) {
+		if (mappings == null) return null;
+		List<Mapping> list = new ArrayList<Mapping>();
+		for (Mapping m: mappings) {
+			try {
+				m.check();
+				list.add(m);
+			}
+			catch (Exception e) {
+				LogUtil.log(this, "mappings", e);
+			}
+		}
+		return list.toArray(new Mapping[list.size()]);
 	}
 
 	@Override
@@ -1489,29 +1535,10 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	}
 
 	/**
-	 * @param mappings The mappings to set.
-	 */
-	protected void setMappings(Mapping[] mappings) {
-		this.mappings = ConfigWebUtil.sort(mappings);
-	}
-
-	/**
 	 * @param datasources The datasources to set
 	 */
 	protected void setDataSources(Map<String, DataSource> datasources) {
 		this.datasources = datasources;
-	}
-
-	/**
-	 * @param customTagMappings The customTagMapping to set.
-	 */
-	protected void setCustomTagMappings(Mapping[] customTagMappings) {
-		this.customTagMappings = customTagMappings;
-	}
-
-	@Override
-	public Mapping[] getCustomTagMappings() {
-		return customTagMappings;
 	}
 
 	/**
@@ -3091,18 +3118,6 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	@Override
 	public ClassDefinition<? extends ORMEngine> getORMEngineClassDefintion() {
 		return cdORMEngine;
-	}
-
-	@Override
-	public Mapping[] getComponentMappings() {
-		return componentMappings;
-	}
-
-	/**
-	 * @param componentMappings the componentMappings to set
-	 */
-	protected void setComponentMappings(Mapping[] componentMappings) {
-		this.componentMappings = componentMappings;
 	}
 
 	protected void setORMEngineClass(ClassDefinition<? extends ORMEngine> cd) {
