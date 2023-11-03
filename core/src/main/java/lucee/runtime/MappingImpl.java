@@ -35,7 +35,7 @@ import org.osgi.framework.BundleContext;
 
 import lucee.commons.io.FileUtil;
 import lucee.commons.io.IOUtil;
-import lucee.commons.io.log.Log;
+import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.MappingUtil;
@@ -185,7 +185,7 @@ public final class MappingImpl implements Mapping {
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
 			archMod = archive.lastModified();
-			ThreadLocalPageContext.getLog(config, "application").log(Log.LEVEL_ERROR, "OSGi", t);
+			LogUtil.log(config, "OSGi", t);
 			archive = null;
 		}
 	}
