@@ -41,7 +41,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Version;
 
-import lucee.print;
 import lucee.commons.digest.HashUtil;
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.FileUtil;
@@ -790,15 +789,9 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	}
 
 	public void checkMappings() {
-		double start = SystemUtil.millis();
-		print.e("------ check mappings --------");
 		mappings = initMappings(uncheckedMappings);
-		print.e("- mapping: " + uncheckedMappings.length + ":" + mappings.length);
 		customTagMappings = initMappings(uncheckedCustomTagMappings);
-		print.e("- custom: " + uncheckedCustomTagMappings.length + ":" + customTagMappings.length);
 		componentMappings = initMappings(uncheckedComponentMappings);
-		print.e("- component: " + uncheckedComponentMappings.length + ":" + componentMappings.length);
-		print.e(SystemUtil.millis() - start);
 	}
 
 	private Mapping[] initMappings(Mapping[] mappings) {
