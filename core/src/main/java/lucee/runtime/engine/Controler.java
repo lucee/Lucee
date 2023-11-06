@@ -190,6 +190,8 @@ public final class Controler extends Thread {
 
 		boolean doMinute = lastMinuteInterval + 60000 < now;
 		if (doMinute) lastMinuteInterval = now;
+		boolean do5Minute = lastMinuteInterval + 300000 < now;
+		if (doMinute) lastMinuteInterval = now;
 
 		boolean doHour = (lastHourInterval + (1000 * 60 * 60)) < now;
 		if (doHour) lastHourInterval = now;
@@ -229,6 +231,17 @@ public final class Controler extends Thread {
 			}
 			try {
 				XMLConfigAdmin.checkForChangesInConfigFile(configServer);
+			}
+			catch (Throwable t) {
+				ExceptionUtil.rethrowIfNecessary(t);
+				if (log != null) log.error("controler", t);
+			}
+		}
+
+		if (do5Minute) {
+			// deploy extensions, archives ...
+			try {
+				System.gc();
 			}
 			catch (Throwable t) {
 				ExceptionUtil.rethrowIfNecessary(t);
