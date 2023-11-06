@@ -197,6 +197,9 @@ public final class Controler extends ParentThreasRefThread {
 		boolean doMinute = lastMinuteInterval + 60000 < now;
 		if (doMinute) lastMinuteInterval = now;
 
+		boolean do5Minute = lastMinuteInterval + 300000 < now;
+		if (doMinute) lastMinuteInterval = now;
+
 		boolean doHour = (lastHourInterval + (1000 * 60 * 60)) < now;
 		if (doHour) lastHourInterval = now;
 
@@ -254,6 +257,18 @@ public final class Controler extends ParentThreasRefThread {
 				if (log != null) log.error("controler", t);
 			}
 		}
+
+		// every 5 minutes
+		if (do5Minute) {
+			try {
+				System.gc();
+			}
+			catch (Throwable t) {
+				ExceptionUtil.rethrowIfNecessary(t);
+				if (log != null) log.error("controler", t);
+			}
+		}
+
 		// every hour
 		if (doHour) {
 			try {
