@@ -20,30 +20,33 @@ public class Main {
 
 		System.setProperty("lucee.controller.disabled", "true");
 
-		String webxml = getSystemPropOrEnvVar(ARG_WEBXML, "");
-		if (webxml.isEmpty()) webxml = Main.class.getResource("/debug/web.xml").getPath();
-
 		s = getSystemPropOrEnvVar(ARG_BASE, DEF_BASE);
 
 		String appBase = (new File(s)).getCanonicalPath().replace('\\', '/');
 		String docBase = appBase + "/webroot";
+		String webxml = getSystemPropOrEnvVar(ARG_WEBXML, docBase + "/WEB-INF/web.xml");
 
 		System.out.println("Setting appBase: " + appBase);
 		System.out.println("Setting docBase: " + docBase);
+		System.out.println("Setting web.xml: " + webxml);
+
+		File f = new File(webxml);
+		if (!f.exists())
+			throw(new IllegalArgumentException("web.xml not found at " + webxml));
 
 		Class clsTomcat = Class.forName("org.apache.catalina.startup.Tomcat");
-		Method tAddWebApp = clsTomcat.getMethod("addWebapp", String.class, String.class);
+		Method tAddWebApp    = clsTomcat.getMethod("addWebapp", String.class, String.class);
 		Method tGetConnector = clsTomcat.getMethod("getConnector");
-		Method tGetServer = clsTomcat.getMethod("getServer");
+		Method tGetServer    = clsTomcat.getMethod("getServer");
 		Method tSetAddDefaultWebXmlToWebapp = clsTomcat.getMethod("setAddDefaultWebXmlToWebapp", boolean.class);
-		Method tSetBaseDir = clsTomcat.getMethod("setBaseDir", String.class);
-		Method tSetHostname = clsTomcat.getMethod("setHostname", String.class);
-		Method tSetPort = clsTomcat.getMethod("setPort", int.class);
-		Method tStart = clsTomcat.getMethod("start");
+		Method tSetBaseDir   = clsTomcat.getMethod("setBaseDir", String.class);
+		Method tSetHostname  = clsTomcat.getMethod("setHostname", String.class);
+		Method tSetPort      = clsTomcat.getMethod("setPort", int.class);
+		Method tStart        = clsTomcat.getMethod("start");
 
 		Class clsContext = Class.forName("org.apache.catalina.Context");
-		Method cSetAltDDName = clsContext.getMethod("setAltDDName", String.class);
-		Method cSetLogEffectiveWebXml = clsContext.getMethod("setLogEffectiveWebXml", boolean.class);
+		Method cSetAltDDName            = clsContext.getMethod("setAltDDName", String.class);
+		Method cSetLogEffectiveWebXml   = clsContext.getMethod("setLogEffectiveWebXml", boolean.class);
 		Method cSetResourceOnlyServlets = clsContext.getMethod("setResourceOnlyServlets", String.class);
 
 		Class clsServer = Class.forName("org.apache.catalina.Server");
@@ -66,7 +69,9 @@ public class Main {
 		cSetLogEffectiveWebXml.invoke(oContext, true);
 		cSetResourceOnlyServlets.invoke(oContext, "CFMLServlet");
 
-		System.out.println(tGetConnector.invoke(oTomcat));
+		System.out.println(
+				tGetConnector.invoke(oTomcat)
+		);
 
 		// tomcat.start()
 		tStart.invoke(oTomcat);
@@ -77,6 +82,7 @@ public class Main {
 		// server.await();
 		sAwait.invoke(oServer);
 	}
+
 
 	/**
 	 * converts a System property format to its equivalent Environment variable, e.g. an input of
