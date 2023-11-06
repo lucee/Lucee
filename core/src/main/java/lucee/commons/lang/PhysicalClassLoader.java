@@ -32,9 +32,11 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import lucee.commons.digest.HashUtil;
 import lucee.commons.io.IOUtil;
+import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceClassLoader;
 import lucee.commons.io.res.util.ResourceUtil;
+import lucee.runtime.PageSourcePool;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigPro;
 import lucee.runtime.type.util.ArrayUtil;
@@ -61,6 +63,8 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 
 	private Map<String, SoftReference<PhysicalClassLoader>> customCLs;
 
+	private PageSourcePool pageSourcePool;
+
 	private static long counter = 0L;
 	private static long _start = 0L;
 	private static String start = Long.toString(_start, Character.MAX_RADIX);
@@ -82,17 +86,18 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 	 * Constructor of the class
 	 * 
 	 * @param directory
+	 * @param pageSourcePool
 	 * @param parent
 	 * @throws IOException
 	 */
-	public PhysicalClassLoader(Config c, Resource directory) throws IOException {
-		this(c, directory, (ClassLoader[]) null, true);
+	public PhysicalClassLoader(Config c, Resource directory, PageSourcePool pageSourcePool) throws IOException {
+		this(c, directory, (ClassLoader[]) null, true, pageSourcePool);
 	}
 
-	public PhysicalClassLoader(Config c, Resource directory, ClassLoader[] parentClassLoaders, boolean includeCoreCL) throws IOException {
+	public PhysicalClassLoader(Config c, Resource directory, ClassLoader[] parentClassLoaders, boolean includeCoreCL, PageSourcePool pageSourcePool) throws IOException {
 		super(parentClassLoaders == null || parentClassLoaders.length == 0 ? c.getClassLoader() : parentClassLoaders[0]);
 		config = (ConfigPro) c;
-
+		this.pageSourcePool = pageSourcePool;
 		// ClassLoader resCL = parent!=null?parent:config.getResourceClassLoader(null);
 
 		List<ClassLoader> tmp = new ArrayList<ClassLoader>();
@@ -275,7 +280,7 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 		SoftReference<PhysicalClassLoader> tmp = customCLs == null ? null : customCLs.get(key);
 		PhysicalClassLoader pcl = tmp == null ? null : tmp.get();
 		if (pcl != null) return pcl;
-		pcl = new PhysicalClassLoader(config, getDirectory(), new ClassLoader[] { new ResourceClassLoader(resources, getParent()) }, true);
+		pcl = new PhysicalClassLoader(config, getDirectory(), new ClassLoader[] { new ResourceClassLoader(resources, getParent()) }, true, pageSourcePool);
 		if (customCLs == null) customCLs = new ConcurrentHashMap<String, SoftReference<PhysicalClassLoader>>();
 		customCLs.put(key, new SoftReference<PhysicalClassLoader>(pcl));
 		return pcl;
@@ -292,6 +297,7 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 	}
 
 	public void clear() {
+		if (pageSourcePool != null) pageSourcePool.clearPages(this);
 		this.loadedClasses.clear();
 		this.allLoadedClasses.clear();
 		this.unavaiClasses.clear();
@@ -304,5 +310,16 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 			lock = str;
 		}
 		return lock;
+	}
+
+	@Override
+	public void finalize() throws Throwable {
+		try {
+			clear();
+		}
+		catch (Exception e) {
+			LogUtil.log(config, "classloader", e);
+		}
+		super.finalize();
 	}
 }

@@ -24,6 +24,7 @@ import java.io.Serializable;
 import java.lang.instrument.UnmodifiableClassException;
 import java.lang.ref.SoftReference;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -39,7 +40,6 @@ import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.MappingUtil;
-import lucee.commons.lang.PCLCollection;
 import lucee.commons.lang.PhysicalClassLoader;
 import lucee.commons.lang.StringUtil;
 import lucee.loader.engine.CFMLEngine;
@@ -62,9 +62,15 @@ import lucee.runtime.type.util.ArrayUtil;
 public final class MappingImpl implements Mapping {
 
 	private static final long serialVersionUID = 6431380676262041196L;
-
-	private static final int MAX_SIZE_CFC = 3000;// 6783;
-	private static final int MAX_SIZE_CFM = 2000;// 6783;
+	/*
+	 * private static int MAX_SIZE_CFC; private static int MAX_SIZE_CFM;
+	 * 
+	 * static { MAX_SIZE_CFC =
+	 * Caster.toIntValue(SystemUtil.getSystemPropOrEnvVar("lucee.classloader.maxsize.cfc", null), 5000);
+	 * MAX_SIZE_CFM =
+	 * Caster.toIntValue(SystemUtil.getSystemPropOrEnvVar("lucee.classloader.maxsize.cfm", null), 5000);
+	 * }
+	 */
 
 	private static final Class<PageSource> SUBPAGE_CONSTR = PageSource.class;
 
@@ -73,9 +79,9 @@ public final class MappingImpl implements Mapping {
 	private boolean topLevel;
 	private short inspect;
 	private boolean physicalFirst;
-	private transient PhysicalClassLoader pclCFM;
-	private transient PhysicalClassLoader pclCFC;
-	private transient PCLCollection pcoll;
+	// private transient PhysicalClassLoader pclCFM;
+	// private transient PhysicalClassLoader pclCFC;
+	private transient Map<String, SoftReference<PhysicalClassLoader>> loaders = new HashMap<>();
 	private Resource archive;
 
 	private final Config config;
@@ -236,32 +242,58 @@ public final class MappingImpl implements Mapping {
 		return null;
 	}
 
-	public PCLCollection touchClassLoader() throws IOException {
-		if (pcoll == null) {
-			pcoll = new PCLCollection(this, getClassRootDirectory(), getConfig().getClassLoader(), 100);
-		}
-		return pcoll;
-	}
+	private Class<?> loadClass(String className, byte[] code) throws IOException, ClassNotFoundException {
 
-	private PhysicalClassLoader touchPhysicalClassLoader(boolean forComponent) throws IOException {
-		if (forComponent ? pclCFC == null : pclCFM == null) {
-			if (forComponent) pclCFC = new PhysicalClassLoader(config, getClassRootDirectory());
-			else pclCFM = new PhysicalClassLoader(config, getClassRootDirectory());
+		SoftReference<PhysicalClassLoader> sr = loaders.get(className);
+		PhysicalClassLoader pcl = sr == null ? null : sr.get();
+		if (pcl == null || code != null) {// || pcl.getSize(true) > 3
+			if (pcl != null) {
+				pcl.clear();
+			}
+			pcl = new PhysicalClassLoader(config, getClassRootDirectory(), pageSourcePool);
+			loaders.put(className, new SoftReference<PhysicalClassLoader>(pcl));
 		}
-		else if ((forComponent ? pclCFC : pclCFM).getSize(true) > (forComponent ? MAX_SIZE_CFC : MAX_SIZE_CFM)) {
-			PhysicalClassLoader pcl = forComponent ? pclCFC : pclCFM;
-			pageSourcePool.clearPages(pcl);
-			pcl.clear();
-			if (forComponent) pclCFC = new PhysicalClassLoader(config, getClassRootDirectory());
-			else pclCFM = new PhysicalClassLoader(config, getClassRootDirectory());
+
+		if (code != null) {
+			try {
+				return pcl.loadClass(className, code);
+			}
+			catch (UnmodifiableClassException e) {
+				throw ExceptionUtil.toIOException(e);
+			}
 		}
-		return forComponent ? pclCFC : pclCFM;
+		return pcl.loadClass(className);
 	}
+	/*
+	 * private PhysicalClassLoader touchPhysicalClassLoaderX(String className) throws IOException {
+	 * PhysicalClassLoader pcl = loaders.get(className); if (pcl == null) {// || pcl.getSize(true) > 3
+	 * pcl = loaders.get(className); synchronized (loaders) { if (pcl == null) {// || pcl.getSize(true)
+	 * > 3 double start = SystemUtil.millis(); pcl = new PhysicalClassLoader(config,
+	 * getClassRootDirectory()); print.e(SystemUtil.millis() - start); loaders.put(className, pcl); } }
+	 * } else { print.e("size:" + pcl.getSize(true) + ":" + className); } return pcl; }
+	 * 
+	 * private PhysicalClassLoader touchPhysicalClassLoaderX(boolean forComponent) throws IOException {
+	 * if (forComponent ? pclCFC == null : pclCFM == null) { if (forComponent) pclCFC = new
+	 * PhysicalClassLoader(config, getClassRootDirectory()); else pclCFM = new
+	 * PhysicalClassLoader(config, getClassRootDirectory()); } else if ((forComponent ? pclCFC :
+	 * pclCFM).getSize(true) > (forComponent ? MAX_SIZE_CFC : MAX_SIZE_CFM)) { PhysicalClassLoader exPCL
+	 * = forComponent ? pclCFC : pclCFM;
+	 * 
+	 * double start = SystemUtil.millis(); if (forComponent) { pclCFC = new PhysicalClassLoader(config,
+	 * getClassRootDirectory()).populate(exPCL); } else { pclCFM = new PhysicalClassLoader(config,
+	 * getClassRootDirectory()).populate(exPCL); }
+	 * 
+	 * print.e("-- " + (start = SystemUtil.millis() - start));
+	 * 
+	 * pageSourcePool.clearPages(exPCL); exPCL.clear(); System.gc();
+	 * 
+	 * } return forComponent ? pclCFC : pclCFM; }
+	 */
 
 	@Override
 	public Class<?> getPhysicalClass(String className) throws ClassNotFoundException, IOException {
-		return touchPhysicalClassLoader(className.contains("_cfc$cf")).loadClass(className);
-		// return touchClassLoader().loadClass(className);
+		return loadClass(className, null);
+		// return touchPhysicalClassLoader(className.contains("_cfc$cf")).loadClass(className);
 	}
 
 	public Class<?> getPhysicalClass(String className, Class<?> defaultValue) {
@@ -276,11 +308,13 @@ public final class MappingImpl implements Mapping {
 	@Override
 	public Class<?> getPhysicalClass(String className, byte[] code) throws IOException {
 		try {
-			return touchPhysicalClassLoader(className.contains("_cfc$cf")).loadClass(className, code);
+			return loadClass(className, code);
 		}
-		catch (UnmodifiableClassException e) {
-			throw new IOException(e);
+		catch (Exception e) {
+			throw ExceptionUtil.toIOException(e);
 		}
+
+		// return touchPhysicalClassLoader(className.contains("_cfc$cf")).loadClass(className, code);
 
 		// boolean isCFC = className.indexOf("_cfc$")!=-1;//aaaa ResourceUtil.getExtension(ps.getRealpath(),
 		// "").equalsIgnoreCase("cfc");
@@ -614,7 +648,10 @@ public final class MappingImpl implements Mapping {
 		try {
 			MappingImpl m = ((MappingImpl) ps.getMapping());
 			Resource res = m.getClassRootDirectory().getRealResource(className + ".class");
-			Class<?> clazz = m.touchPhysicalClassLoader(true).loadClass(className.replace('/', '.').replace('\\', '.'), IOUtil.toBytes(res));
+			String cn = className.replace('/', '.').replace('\\', '.');
+			Class<?> clazz = m.loadClass(cn, IOUtil.toBytes(res));
+			// Class<?> clazz = m.touchPhysicalClassLoader(true).loadClass(className.replace('/',
+			// '.').replace('\\', '.'), IOUtil.toBytes(res));
 
 			return (CIPage) clazz.getConstructor(SUBPAGE_CONSTR).newInstance(ps);
 			// return (CIPage) ((Class<?>) ((MappingImpl)
