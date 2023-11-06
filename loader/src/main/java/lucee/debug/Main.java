@@ -20,17 +20,19 @@ public class Main {
 
         System.setProperty("lucee.controller.disabled", "true");
 
-        String webxml = getSystemPropOrEnvVar(ARG_WEBXML, "");
-        if (webxml.isEmpty())
-            webxml = Main.class.getResource("/debug/web.xml").getPath();
-
         s = getSystemPropOrEnvVar(ARG_BASE, DEF_BASE);
 
         String appBase = (new File(s)).getCanonicalPath().replace('\\', '/');
         String docBase = appBase + "/webroot";
+        String webxml = getSystemPropOrEnvVar(ARG_WEBXML, docBase + "/WEB-INF/web.xml");
 
         System.out.println("Setting appBase: " + appBase);
         System.out.println("Setting docBase: " + docBase);
+        System.out.println("Setting web.xml: " + webxml);
+
+        File f = new File(webxml);
+        if (!f.exists())
+            throw(new IllegalArgumentException("web.xml not found at " + webxml));
 
         Class clsTomcat = Class.forName("org.apache.catalina.startup.Tomcat");
         Method tAddWebApp    = clsTomcat.getMethod("addWebapp", String.class, String.class);
@@ -68,7 +70,7 @@ public class Main {
         cSetResourceOnlyServlets.invoke(oContext, "CFMLServlet");
 
         System.out.println(
-            tGetConnector.invoke(oTomcat)
+                tGetConnector.invoke(oTomcat)
         );
 
         // tomcat.start()
