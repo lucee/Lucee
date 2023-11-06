@@ -576,8 +576,6 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 
 	private static int shrink(Mapping mapping, boolean force) {
 		try {
-			// PCLCollection pcl = ((MappingImpl)mapping).getPCLCollection();
-			// if(pcl!=null)return pcl.shrink(force);
 			((MappingImpl) mapping).shrink();
 		}
 		catch (Throwable t) {

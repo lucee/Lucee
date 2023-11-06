@@ -38,7 +38,6 @@ import lucee.commons.io.log.Log;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.MappingUtil;
-import lucee.commons.lang.PCLCollection;
 import lucee.commons.lang.PhysicalClassLoader;
 import lucee.commons.lang.StringUtil;
 import lucee.loader.engine.CFMLEngine;
@@ -74,7 +73,6 @@ public final class MappingImpl implements Mapping {
 	private boolean physicalFirst;
 	private transient PhysicalClassLoader pclCFM;
 	private transient PhysicalClassLoader pclCFC;
-	private transient PCLCollection pcoll;
 	private Resource archive;
 
 	private final Config config;
@@ -233,13 +231,6 @@ public final class MappingImpl implements Mapping {
 		if (clazz != null) return clazz;
 
 		return null;
-	}
-
-	public PCLCollection touchClassLoader() throws IOException {
-		if (pcoll == null) {
-			pcoll = new PCLCollection(this, getClassRootDirectory(), getConfig().getClassLoader(), 100);
-		}
-		return pcoll;
 	}
 
 	private PhysicalClassLoader touchPhysicalClassLoader(boolean forComponent) throws IOException {
