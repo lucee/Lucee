@@ -24,9 +24,11 @@ import java.io.Serializable;
 import java.lang.instrument.UnmodifiableClassException;
 import java.lang.ref.SoftReference;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.servlet.ServletContext;
@@ -74,6 +76,9 @@ public final class MappingImpl implements Mapping {
 
 	private static final Class<PageSource> SUBPAGE_CONSTR = PageSource.class;
 
+	private static final int MAX_SIZE_MAX = 5000;
+	private static final int MAX_SIZE_MIN = 4000;
+
 	private String virtual;
 	private String lcVirtual;
 	private boolean topLevel;
@@ -81,7 +86,7 @@ public final class MappingImpl implements Mapping {
 	private boolean physicalFirst;
 	// private transient PhysicalClassLoader pclCFM;
 	// private transient PhysicalClassLoader pclCFC;
-	private transient Map<String, SoftReference<PhysicalClassLoader>> loaders = new HashMap<>();
+	private transient Map<String, PhysicalClassLoaderReference> loaders = new HashMap<>();
 	private Resource archive;
 
 	private final Config config;
@@ -244,14 +249,16 @@ public final class MappingImpl implements Mapping {
 
 	private Class<?> loadClass(String className, byte[] code) throws IOException, ClassNotFoundException {
 
-		SoftReference<PhysicalClassLoader> sr = loaders.get(className);
-		PhysicalClassLoader pcl = sr == null ? null : sr.get();
+		PhysicalClassLoaderReference pclr = loaders.get(className);
+		PhysicalClassLoader pcl = pclr == null ? null : pclr.get();
 		if (pcl == null || code != null) {// || pcl.getSize(true) > 3
 			if (pcl != null) {
 				pcl.clear();
 			}
 			pcl = new PhysicalClassLoader(config, getClassRootDirectory(), pageSourcePool);
-			loaders.put(className, new SoftReference<PhysicalClassLoader>(pcl));
+			synchronized (loaders) {
+				loaders.put(className, new PhysicalClassLoaderReference(pcl));
+			}
 		}
 
 		if (code != null) {
@@ -264,6 +271,36 @@ public final class MappingImpl implements Mapping {
 		}
 		return pcl.loadClass(className);
 	}
+
+	public void cleanLoaders() {
+		if (loaders.size() < MAX_SIZE_MAX) return;
+
+		synchronized (loaders) {
+
+			for (Entry<String, PhysicalClassLoaderReference> e: loaders.entrySet()) {
+				if (e.getValue() == null) loaders.remove(e.getKey());
+			}
+			if (loaders.size() < MAX_SIZE_MAX) return;
+
+			ArrayList<Entry<String, PhysicalClassLoaderReference>> entryList = new ArrayList<>(loaders.entrySet());
+
+			// Sort the list by the 'lastModified' timestamp in ascending order
+			entryList.sort(Comparator.comparing(o -> o.getValue().lastModified()));
+
+			int max = entryList.size() - MAX_SIZE_MIN;
+			for (Entry<String, PhysicalClassLoaderReference> e: entryList) {
+				if (--max == 0) break;
+				// print.e("-- " + e.getKey());
+				// Remove the entry from the map by its key
+				loaders.remove(e.getKey());
+			}
+		}
+	}
+
+	public int getSize() {
+		return loaders.size();
+	}
+
 	/*
 	 * private PhysicalClassLoader touchPhysicalClassLoaderX(String className) throws IOException {
 	 * PhysicalClassLoader pcl = loaders.get(className); if (pcl == null) {// || pcl.getSize(true) > 3
@@ -659,6 +696,26 @@ public final class MappingImpl implements Mapping {
 		}
 		catch (Exception e) {
 			throw Caster.toPageRuntimeException(e);
+		}
+	}
+
+	private static class PhysicalClassLoaderReference extends SoftReference<PhysicalClassLoader> {
+
+		private long lastModified;
+
+		public PhysicalClassLoaderReference(PhysicalClassLoader pcl) {
+			super(pcl);
+			this.lastModified = System.currentTimeMillis();
+		}
+
+		@Override
+		public PhysicalClassLoader get() {
+			this.lastModified = System.currentTimeMillis();
+			return super.get();
+		}
+
+		public long lastModified() {
+			return lastModified;
 		}
 	}
 }

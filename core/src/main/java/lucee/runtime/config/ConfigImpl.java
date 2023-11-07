@@ -767,7 +767,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	}
 
 	protected void setMappings(Mapping[] mappings) {
-		this.mappings = initMappings(this.uncheckedMappings = ConfigWebUtil.sort(mappings));
+		this.mappings = initMappings(this.uncheckedMappings = ConfigWebUtil.sort(mappings), false);
 	}
 
 	@Override
@@ -776,7 +776,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	}
 
 	protected void setCustomTagMappings(Mapping[] customTagMappings) {
-		this.customTagMappings = initMappings(this.uncheckedCustomTagMappings = customTagMappings);
+		this.customTagMappings = initMappings(this.uncheckedCustomTagMappings = customTagMappings, false);
 	}
 
 	@Override
@@ -785,21 +785,22 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	}
 
 	protected void setComponentMappings(Mapping[] componentMappings) {
-		this.componentMappings = initMappings(this.uncheckedComponentMappings = componentMappings);
+		this.componentMappings = initMappings(this.uncheckedComponentMappings = componentMappings, false);
 	}
 
 	public void checkMappings() {
-		mappings = initMappings(uncheckedMappings);
-		customTagMappings = initMappings(uncheckedCustomTagMappings);
-		componentMappings = initMappings(uncheckedComponentMappings);
+		mappings = initMappings(uncheckedMappings, true);
+		customTagMappings = initMappings(uncheckedCustomTagMappings, true);
+		componentMappings = initMappings(uncheckedComponentMappings, true);
 	}
 
-	private Mapping[] initMappings(Mapping[] mappings) {
+	private Mapping[] initMappings(Mapping[] mappings, boolean cleanLoaders) {
 		if (mappings == null) return null;
 		List<Mapping> list = new ArrayList<Mapping>();
 		for (Mapping m: mappings) {
 			try {
 				m.check();
+				if (cleanLoaders && m instanceof MappingImpl) ((MappingImpl) m).cleanLoaders();
 				list.add(m);
 			}
 			catch (Exception e) {
