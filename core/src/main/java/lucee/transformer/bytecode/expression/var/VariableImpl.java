@@ -191,9 +191,9 @@ public class VariableImpl extends ExpressionBase implements Variable {
 
 	public final Type writeOutCollectionAsType(Context c, int mode) throws TransformerException {
 		BytecodeContext bc = (BytecodeContext) c;
-		ExpressionUtil.visitLine(bc, getStart());
+		bc.visitLine(getStart());
 		Type type = _writeOut(bc, mode, Boolean.TRUE);
-		ExpressionUtil.visitLine(bc, getEnd());
+		bc.visitLine(getEnd());
 		return type;
 	}
 

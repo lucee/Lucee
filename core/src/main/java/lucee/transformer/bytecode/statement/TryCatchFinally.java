@@ -37,7 +37,6 @@ import lucee.transformer.bytecode.BytecodeContext;
 import lucee.transformer.bytecode.expression.var.VariableRef;
 import lucee.transformer.bytecode.expression.var.VariableString;
 import lucee.transformer.bytecode.statement.tag.TagTry;
-import lucee.transformer.bytecode.util.ExpressionUtil;
 import lucee.transformer.bytecode.util.Types;
 import lucee.transformer.bytecode.visitor.OnFinally;
 import lucee.transformer.bytecode.visitor.TryCatchFinallyVisitor;
@@ -175,7 +174,7 @@ public final class TryCatchFinally extends StatementBase implements Opcodes, Has
 
 		// if(fcf!=null &&
 		// fcf.getAfterFinalGOTOLabel()!=null)ASMUtil.visitLabel(adapter,fcf.getFinalEntryLabel());
-		ExpressionUtil.visitLine(bc, finallyLine);
+		bc.visitLine(finallyLine);
 
 		// if (reference != null)
 		// reference.removeEL(pagecontext);
@@ -234,7 +233,7 @@ public final class TryCatchFinally extends StatementBase implements Opcodes, Has
 				continue;
 			}
 
-			ExpressionUtil.visitLine(bc, ct.line);
+			bc.visitLine(ct.line);
 
 			// pe.typeEqual(type)
 			if (ct.type == null) {

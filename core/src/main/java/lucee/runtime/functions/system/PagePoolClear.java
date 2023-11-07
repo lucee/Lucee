@@ -90,7 +90,7 @@ public final class PagePoolClear extends BIF implements Function {
 		if (mapping == null) return;
 		MappingImpl mi = (MappingImpl) mapping;
 		if (unused) {
-			mi.clearUnused(config);
+			mi.clearUnused();
 		}
 		else {
 			mi.clearPages(null);

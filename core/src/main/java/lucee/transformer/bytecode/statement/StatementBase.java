@@ -25,7 +25,6 @@ import lucee.transformer.Position;
 import lucee.transformer.TransformerException;
 import lucee.transformer.bytecode.BytecodeContext;
 import lucee.transformer.bytecode.Statement;
-import lucee.transformer.bytecode.util.ExpressionUtil;
 
 /**
  * A single Statement
@@ -77,9 +76,9 @@ public abstract class StatementBase implements Statement {
 	@Override
 	public final void writeOut(Context c) throws TransformerException {
 		BytecodeContext bc = (BytecodeContext) c;
-		ExpressionUtil.visitLine(bc, start);
+		bc.visitLine(start);
 		_writeOut(bc);
-		ExpressionUtil.visitLine(bc, end);
+		bc.visitLine(end);
 
 	}
 

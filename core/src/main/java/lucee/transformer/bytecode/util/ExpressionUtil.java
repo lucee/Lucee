@@ -20,7 +20,6 @@ package lucee.transformer.bytecode.util;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
@@ -44,14 +43,12 @@ import lucee.transformer.expression.literal.LitString;
 
 public final class ExpressionUtil {
 
-	private static final ConcurrentHashMap<String, Object> tokens = new ConcurrentHashMap<String, Object>();
-
 	public static final Method START = new Method("exeLogStart", Types.VOID, new Type[] { Types.INT_VALUE, Types.STRING });
 	public static final Method END = new Method("exeLogEnd", Types.VOID, new Type[] { Types.INT_VALUE, Types.STRING });
 
 	public static final Method CURRENT_LINE = new Method("currentLine", Types.VOID, new Type[] { Types.INT_VALUE });
 
-	private static Map<String, String> last = new HashMap<String, String>();
+	private Map<String, String> last = new HashMap<String, String>();
 
 	public static void writeOutExpressionArray(BytecodeContext bc, Type arrayType, Expression[] array) throws TransformerException {
 		GeneratorAdapter adapter = bc.getAdapter();
@@ -72,15 +69,15 @@ public final class ExpressionUtil {
 	 * @param line
 	 * @param silent id silent this is ignored for log
 	 */
-	public static void visitLine(BytecodeContext bc, Position pos) {
+	public void visitLine(BytecodeContext bc, Position pos) {
 		if (pos != null) {
 			visitLine(bc, pos.line);
 		}
 	}
 
-	private static void visitLine(BytecodeContext bc, int line) {
+	private void visitLine(BytecodeContext bc, int line) {
 		if (line > 0) {
-			synchronized (getToken(bc.getClassName())) {
+			synchronized (bc) {
 				if (!("" + line).equals(last.get(bc.getClassName() + ":" + bc.getId()))) {
 					bc.visitLineNumber(line);
 					last.put(bc.getClassName() + ":" + bc.getId(), "" + line);
@@ -90,20 +87,11 @@ public final class ExpressionUtil {
 		}
 	}
 
-	public static void lastLine(BytecodeContext bc) {
-		synchronized (getToken(bc.getClassName())) {
+	public void lastLine(BytecodeContext bc) {
+		synchronized (bc) {
 			int line = Caster.toIntValue(last.get(bc.getClassName()), -1);
 			visitLine(bc, line);
 		}
-	}
-
-	private static Object getToken(String className) {
-		Object newLock = new Object();
-		Object lock = tokens.putIfAbsent(className, newLock);
-		if (lock == null) {
-			lock = newLock;
-		}
-		return lock;
 	}
 
 	/**

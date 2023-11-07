@@ -33,6 +33,8 @@ import lucee.runtime.config.Config;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.transformer.Context;
 import lucee.transformer.Factory;
+import lucee.transformer.Position;
+import lucee.transformer.bytecode.util.ExpressionUtil;
 import lucee.transformer.bytecode.visitor.OnFinally;
 import lucee.transformer.expression.literal.LitString;
 
@@ -68,9 +70,18 @@ public class BytecodeContext implements Context {
 	private String id = id();
 	private Page page;
 	protected PageSource ps;
+	protected final ExpressionUtil expressionUtil;
 
 	public BytecodeContext(PageSource ps, ConstrBytecodeContext constr, Page page, List<LitString> keys, ClassWriter classWriter, String className, GeneratorAdapter adapter,
 			Method method, boolean writeLog, boolean suppressWSbeforeArg, boolean output, boolean returnValue) {
+
+		if (constr == null || constr.expressionUtil == null) {
+			this.expressionUtil = new ExpressionUtil();
+		}
+		else {
+			this.expressionUtil = constr.expressionUtil;
+		}
+
 		this.classWriter = classWriter;
 		this.className = className;
 		this.writeLog = writeLog;
@@ -102,6 +113,7 @@ public class BytecodeContext implements Context {
 		this.returnValue = bc.returnValue;
 		this.output = bc.output;
 		this.ps = bc.ps;
+		this.expressionUtil = bc.expressionUtil;
 	}
 
 	@Override
@@ -329,6 +341,14 @@ public class BytecodeContext implements Context {
 	 */
 	public boolean returnValue() {
 		return returnValue;
+	}
+
+	public void visitLine(Position pos) {
+		expressionUtil.visitLine(this, pos);
+	}
+
+	public void lastLine() {
+		expressionUtil.lastLine(this);
 	}
 
 }

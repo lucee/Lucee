@@ -128,7 +128,7 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 
 	@Override
 	protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
-		synchronized (createToken("PhysicalClassLoader", name)) {
+		synchronized (this) {
 			return loadClass(name, resolve, true);
 		}
 	}
@@ -156,7 +156,7 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 
 	@Override
 	protected Class<?> findClass(String name) throws ClassNotFoundException {// if(name.indexOf("sub")!=-1)print.ds(name);
-		synchronized (createToken("PhysicalClassLoader", name)) {
+		synchronized (this) {
 			Resource res = directory.getRealResource(name.replace('.', '/').concat(".class"));
 
 			ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -178,7 +178,7 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 	public Class<?> loadClass(String name, byte[] barr) throws UnmodifiableClassException {
 		Class<?> clazz = null;
 
-		synchronized (createToken("PhysicalClassLoader", name)) {
+		synchronized (this) {
 
 			// new class , not in memory yet
 			try {
@@ -297,7 +297,11 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 	}
 
 	public void clear() {
-		if (pageSourcePool != null) pageSourcePool.clearPages(this);
+		clear(true);
+	}
+
+	public void clear(boolean clearPagePool) {
+		if (clearPagePool && pageSourcePool != null) pageSourcePool.clearPages(this);
 		this.loadedClasses.clear();
 		this.allLoadedClasses.clear();
 		this.unavaiClasses.clear();

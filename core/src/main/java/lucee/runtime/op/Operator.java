@@ -519,6 +519,12 @@ public final class Operator {
 		else return 0;
 	}
 
+	public static int compare(long left, long right) {
+		if ((left) < (right)) return -1;
+		else if ((left) > (right)) return 1;
+		else return 0;
+	}
+
 	/**
 	 * compares a double with a boolean
 	 * 
