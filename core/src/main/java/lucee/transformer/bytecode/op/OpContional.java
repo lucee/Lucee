@@ -26,7 +26,6 @@ import org.objectweb.asm.commons.GeneratorAdapter;
 import lucee.transformer.TransformerException;
 import lucee.transformer.bytecode.BytecodeContext;
 import lucee.transformer.bytecode.expression.ExpressionBase;
-import lucee.transformer.bytecode.util.ExpressionUtil;
 import lucee.transformer.bytecode.util.Types;
 import lucee.transformer.expression.ExprBoolean;
 import lucee.transformer.expression.Expression;
@@ -50,22 +49,22 @@ public final class OpContional extends ExpressionBase {
 		Label end = new Label();
 
 		// cont
-		ExpressionUtil.visitLine(bc, cont.getStart());
+		bc.visitLine(cont.getStart());
 		cont.writeOut(bc, MODE_VALUE);
-		ExpressionUtil.visitLine(bc, cont.getEnd());
+		bc.visitLine(cont.getEnd());
 		adapter.visitJumpInsn(Opcodes.IFEQ, yes);
 
 		// left
-		ExpressionUtil.visitLine(bc, left.getStart());
+		bc.visitLine(left.getStart());
 		left.writeOut(bc, MODE_REF);
-		ExpressionUtil.visitLine(bc, left.getEnd());
+		bc.visitLine(left.getEnd());
 		adapter.visitJumpInsn(Opcodes.GOTO, end);
 
 		// right
-		ExpressionUtil.visitLine(bc, right.getStart());
+		bc.visitLine(right.getStart());
 		adapter.visitLabel(yes);
 		right.writeOut(bc, MODE_REF);
-		ExpressionUtil.visitLine(bc, right.getEnd());
+		bc.visitLine(right.getEnd());
 		adapter.visitLabel(end);
 
 		return Types.OBJECT;

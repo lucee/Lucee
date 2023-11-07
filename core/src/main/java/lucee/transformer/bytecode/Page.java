@@ -514,9 +514,9 @@ public final class Page extends BodyBase implements Root {
 			if (functions.length == 0) {
 			}
 			else if (functions.length == 1) {
-				ExpressionUtil.visitLine(bc, functions[0].getStart());
+				bc.visitLine(functions[0].getStart());
 				functions[0].getBody().writeOut(bc);
-				ExpressionUtil.visitLine(bc, functions[0].getEnd());
+				bc.visitLine(functions[0].getEnd());
 			}
 			else writeOutUdfCallInner(bc, functions, 0, functions.length);
 			adapter.visitInsn(Opcodes.ACONST_NULL);
@@ -913,9 +913,9 @@ public final class Page extends BodyBase implements Root {
 			adapter.push(i);
 			div.visitEnd(bc);
 			cv.visitWhenAfterExprBeforeBody(bc);
-			ExpressionUtil.visitLine(bc, functions[i].getStart());
+			bc.visitLine(functions[i].getStart());
 			functions[i].getBody().writeOut(bc);
-			ExpressionUtil.visitLine(bc, functions[i].getEnd());
+			bc.visitLine(functions[i].getEnd());
 			cv.visitWhenAfterBody(bc);
 		}
 		cv.visitAfter(bc);
@@ -1186,11 +1186,11 @@ public final class Page extends BodyBase implements Root {
 		adapter.loadArg(0);
 		adapter.invokeVirtual(Types.COMPONENT_IMPL, BEFORE_CALL);
 		adapter.storeLocal(oldData);
-		ExpressionUtil.visitLine(bc, component.getStart());
+		bc.visitLine(component.getStart());
 
 		List<IFunction> funcs = writeOutCallBody(bc, component.getBody(), IFunction.PAGE_TYPE_COMPONENT);
 
-		ExpressionUtil.visitLine(bc, component.getEnd());
+		bc.visitLine(component.getEnd());
 		int t = tcf.visitTryEndCatchBeging(bc);
 		// BodyContentUtil.flushAndPop(pc,bc);
 		adapter.loadArg(0);
@@ -1223,9 +1223,9 @@ public final class Page extends BodyBase implements Root {
 		adapter.visitLocalVariable("this", "L" + name + ";", null, methodBegin, methodEnd, 0);
 		adapter.visitLabel(methodBegin);
 
-		ExpressionUtil.visitLine(bc, interf.getStart());
+		bc.visitLine(interf.getStart());
 		List<IFunction> funcs = writeOutCallBody(bc, interf.getBody(), IFunction.PAGE_TYPE_INTERFACE);
-		ExpressionUtil.visitLine(bc, interf.getEnd());
+		bc.visitLine(interf.getEnd());
 
 		adapter.returnValue();
 		adapter.visitLabel(methodEnd);
@@ -1310,7 +1310,7 @@ public final class Page extends BodyBase implements Root {
 		Label methodEnd = new Label();
 
 		adapter.visitLocalVariable("this", "L" + name + ";", null, methodBegin, methodEnd, 0);
-		ExpressionUtil.visitLine(bc, component.getStart());
+		bc.visitLine(component.getStart());
 		adapter.visitLabel(methodBegin);
 
 		int comp = adapter.newLocal(Types.COMPONENT_IMPL);
@@ -1436,7 +1436,7 @@ public final class Page extends BodyBase implements Root {
 		Label methodEnd = new Label();
 
 		adapter.visitLocalVariable("this", "L" + name + ";", null, methodBegin, methodEnd, 0);
-		ExpressionUtil.visitLine(bc, interf.getStart());
+		bc.visitLine(interf.getStart());
 		adapter.visitLabel(methodBegin);
 
 		// ExpressionUtil.visitLine(adapter, interf.getStartLine());
@@ -1856,7 +1856,7 @@ public final class Page extends BodyBase implements Root {
 	}
 
 	public void doFinalize(BytecodeContext bc) {
-		ExpressionUtil.visitLine(bc, getEnd());
+		bc.visitLine(getEnd());
 	}
 
 	public void registerJavaFunction(JavaFunction javaFunction) {

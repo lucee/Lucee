@@ -33,7 +33,6 @@ import lucee.transformer.TransformerException;
 import lucee.transformer.bytecode.BytecodeContext;
 import lucee.transformer.bytecode.expression.ExpressionBase;
 import lucee.transformer.bytecode.util.ASMUtil;
-import lucee.transformer.bytecode.util.ExpressionUtil;
 import lucee.transformer.bytecode.util.Types;
 import lucee.transformer.bytecode.visitor.ArrayVisitor;
 import lucee.transformer.expression.Expression;
@@ -67,16 +66,16 @@ public final class OpElvis extends ExpressionBase {
 		GeneratorAdapter ga = bc.getAdapter();
 
 		int l = ga.newLocal(Types.OBJECT);
-		ExpressionUtil.visitLine(bc, left.getStart());
+		bc.visitLine(left.getStart());
 		left.writeOut(bc, MODE_REF);
-		ExpressionUtil.visitLine(bc, left.getEnd());
+		bc.visitLine(left.getEnd());
 		ga.dup();
 		ga.storeLocal(l);
 
 		ga.visitJumpInsn(Opcodes.IFNONNULL, notNull);
-		ExpressionUtil.visitLine(bc, right.getStart());
+		bc.visitLine(right.getStart());
 		right.writeOut(bc, MODE_REF);
-		ExpressionUtil.visitLine(bc, right.getEnd());
+		bc.visitLine(right.getEnd());
 		ga.visitJumpInsn(Opcodes.GOTO, end);
 		ga.visitLabel(notNull);
 		ga.loadLocal(l);
@@ -102,7 +101,7 @@ public final class OpElvis extends ExpressionBase {
 		}
 		DataMember[] arr = list.toArray(new DataMember[members.size()]);
 
-		ExpressionUtil.visitLine(bc, left.getStart());
+		bc.visitLine(left.getStart());
 
 		// public static boolean call(PageContext pc , double scope,String[] varNames)
 		// pc
@@ -145,21 +144,21 @@ public final class OpElvis extends ExpressionBase {
 
 		// call IsDefined.invoke
 		adapter.invokeStatic(ELVIS, allLiteral ? INVOKE_KEY : INVOKE_STR);
-		ExpressionUtil.visitLine(bc, left.getEnd());
+		bc.visitLine(left.getEnd());
 
 		adapter.visitJumpInsn(Opcodes.IFEQ, yes);
 
 		// left
-		ExpressionUtil.visitLine(bc, left.getStart());
+		bc.visitLine(left.getStart());
 		left.writeOut(bc, MODE_REF);
-		ExpressionUtil.visitLine(bc, left.getEnd());
+		bc.visitLine(left.getEnd());
 		adapter.visitJumpInsn(Opcodes.GOTO, end);
 
 		// right
-		ExpressionUtil.visitLine(bc, right.getStart());
+		bc.visitLine(right.getStart());
 		adapter.visitLabel(yes);
 		right.writeOut(bc, MODE_REF);
-		ExpressionUtil.visitLine(bc, right.getEnd());
+		bc.visitLine(right.getEnd());
 		adapter.visitLabel(end);
 
 		return Types.OBJECT;
