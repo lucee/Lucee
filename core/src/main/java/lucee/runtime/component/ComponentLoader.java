@@ -18,10 +18,9 @@
  */
 package lucee.runtime.component;
 
-import java.util.concurrent.ConcurrentHashMap;
-
 import javax.servlet.jsp.tagext.BodyContent;
 
+import lucee.commons.io.SystemUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.filter.DirectoryResourceFilter;
 import lucee.commons.io.res.filter.ExtensionResourceFilter;
@@ -65,7 +64,6 @@ public class ComponentLoader {
 	private static final short RETURN_TYPE_PAGE = 1;
 	private static final short RETURN_TYPE_INTERFACE = 2;
 	private static final short RETURN_TYPE_COMPONENT = 3;
-	private static final ConcurrentHashMap<String, String> tokens = new ConcurrentHashMap<String, String>();
 	private static final ResourceFilter DIR_OR_EXT = new OrResourceFilter(
 			new ResourceFilter[] { DirectoryResourceFilter.FILTER, new ExtensionResourceFilter(Constants.getComponentExtensions()) });
 	private static final ImportDefintion[] EMPTY_ID = new ImportDefintion[0];
@@ -103,7 +101,7 @@ public class ComponentLoader {
 
 		// if there is no static scope stored yet, we need to load it
 		if (ss == null) {
-			synchronized (cp.getPageSource().getDisplayPath() + ":" + getToken(cp.getHash() + "")) {
+			synchronized (SystemUtil.createToken(cp.getPageSource().getDisplayPath(), cp.getHash() + "")) {
 				ss = cp.getStaticScope();
 				if (ss == null) {
 					ss = searchComponent(pc, loadingLocation, rawPath, searchLocal, searchRoot, false, false).staticScope();
@@ -696,11 +694,4 @@ public class ComponentLoader {
 		return null;
 	}
 
-	public static String getToken(String key) {
-		String lock = tokens.putIfAbsent(key, key);
-		if (lock == null) {
-			lock = key;
-		}
-		return lock;
-	}
 }
