@@ -90,7 +90,6 @@ import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
 
-import lucee.print;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.TemporaryStream;
 import lucee.commons.io.log.LogUtil;
@@ -305,14 +304,11 @@ public class HTTPEngine4Impl {
 	}
 
 	public static void setTimeout(HttpClientBuilder builder, TimeSpan timeout) {
-		print.e("setTimeout:" + timeout.getMillis());
 		if (timeout == null || timeout.getMillis() <= 0) return;
 
 		int ms = (int) timeout.getMillis();
 		if (ms < 0) ms = Integer.MAX_VALUE;
 
-		// builder.setConnectionTimeToLive(ms, TimeUnit.MILLISECONDS);
-		print.e("setTimeout2:" + ms);
 		SocketConfig sc = SocketConfig.custom().setSoTimeout(ms).build();
 		builder.setDefaultSocketConfig(sc);
 	}
@@ -378,7 +374,6 @@ public class HTTPEngine4Impl {
 
 	private static HTTPResponse invoke(URL url, HttpUriRequest request, String username, String password, long timeout, boolean redirect, String charset, String useragent,
 			ProxyData proxy, lucee.commons.net.http.Header[] headers, Map<String, String> formfields, boolean pooling) throws IOException, GeneralSecurityException {
-		print.e("invoke:" + timeout);
 		CloseableHttpClient client;
 		proxy = ProxyDataImpl.validate(proxy, url.getHost());
 

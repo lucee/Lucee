@@ -1866,4 +1866,9 @@ public class ConfigWebImpl implements ConfigWebPro {
 	public void setLastModified() {
 		instance.setLastModified();
 	}
+
+	@Override
+	public void checkMappings() {
+		instance.checkMappings();
+	}
 }

@@ -23,6 +23,7 @@ import java.io.InputStream;
 import java.io.Serializable;
 import java.lang.instrument.UnmodifiableClassException;
 import java.lang.ref.SoftReference;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -34,7 +35,7 @@ import org.osgi.framework.BundleContext;
 
 import lucee.commons.io.FileUtil;
 import lucee.commons.io.IOUtil;
-import lucee.commons.io.log.Log;
+import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.MappingUtil;
@@ -61,9 +62,6 @@ public final class MappingImpl implements Mapping {
 
 	private static final long serialVersionUID = 6431380676262041196L;
 
-	private static final int MAX_SIZE_CFC = 3000;// 6783;
-	private static final int MAX_SIZE_CFM = 2000;// 6783;
-
 	private static final Class<PageSource> SUBPAGE_CONSTR = PageSource.class;
 
 	private String virtual;
@@ -71,8 +69,7 @@ public final class MappingImpl implements Mapping {
 	private boolean topLevel;
 	private short inspect;
 	private boolean physicalFirst;
-	private transient PhysicalClassLoader pclCFM;
-	private transient PhysicalClassLoader pclCFC;
+	private transient Map<String, PhysicalClassLoaderReference> loaders = new HashMap<>();
 	private Resource archive;
 
 	private final Config config;
@@ -156,7 +153,6 @@ public final class MappingImpl implements Mapping {
 	private void initPhysical() {
 		ServletContext cs = (config instanceof ConfigWeb) ? ((ConfigWeb) config).getServletContext() : null;
 		physical = ConfigWebUtil.getResource(cs, strPhysical, config.getConfigDir(), FileUtil.TYPE_DIR, config, checkPhysicalFromWebroot, false);
-
 		if (archive == null) this.physicalFirst = true;
 		else if (physical == null) this.physicalFirst = false;
 
@@ -182,7 +178,7 @@ public final class MappingImpl implements Mapping {
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
 			archMod = archive.lastModified();
-			ThreadLocalPageContext.getLog(config, "application").log(Log.LEVEL_ERROR, "OSGi", t);
+			LogUtil.log(config, "OSGi", t);
 			archive = null;
 		}
 	}
@@ -233,25 +229,54 @@ public final class MappingImpl implements Mapping {
 		return null;
 	}
 
-	private PhysicalClassLoader touchPhysicalClassLoader(boolean forComponent) throws IOException {
-		if (forComponent ? pclCFC == null : pclCFM == null) {
-			if (forComponent) pclCFC = new PhysicalClassLoader(config, getClassRootDirectory());
-			else pclCFM = new PhysicalClassLoader(config, getClassRootDirectory());
+	private Class<?> loadClass(String className, byte[] code) throws IOException, ClassNotFoundException {
+
+		PhysicalClassLoaderReference pclr = loaders.get(className);
+		PhysicalClassLoader pcl = pclr == null ? null : pclr.get();
+		if (pcl == null || code != null) {// || pcl.getSize(true) > 3
+			if (pcl != null) {
+				pcl.clear();
+			}
+			pcl = new PhysicalClassLoader(config, getClassRootDirectory(), pageSourcePool);
+			synchronized (loaders) {
+				loaders.put(className, new PhysicalClassLoaderReference(pcl));
+			}
 		}
-		else if ((forComponent ? pclCFC : pclCFM).getSize(true) > (forComponent ? MAX_SIZE_CFC : MAX_SIZE_CFM)) {
-			PhysicalClassLoader pcl = forComponent ? pclCFC : pclCFM;
-			pageSourcePool.clearPages(pcl);
-			pcl.clear();
-			if (forComponent) pclCFC = new PhysicalClassLoader(config, getClassRootDirectory());
-			else pclCFM = new PhysicalClassLoader(config, getClassRootDirectory());
+
+		if (code != null) {
+			try {
+				return pcl.loadClass(className, code);
+			}
+			catch (UnmodifiableClassException e) {
+				throw ExceptionUtil.toIOException(e);
+			}
 		}
-		return forComponent ? pclCFC : pclCFM;
+		return pcl.loadClass(className);
+	}
+
+	public void cleanLoaders() {
+		pageSourcePool.cleanLoaders();
+	}
+
+	public void clear(String className) {
+		PhysicalClassLoaderReference ref = loaders.remove(className);
+		PhysicalClassLoader pcl;
+		if (ref != null) {
+			pcl = ref.get();
+			if (pcl != null) {
+				pcl.clear(false);
+			}
+		}
+	}
+
+	public int getSize() {
+		return loaders.size();
 	}
 
 	@Override
 	public Class<?> getPhysicalClass(String className) throws ClassNotFoundException, IOException {
-		return touchPhysicalClassLoader(className.contains("_cfc$cf")).loadClass(className);
-		// return touchClassLoader().loadClass(className);
+		return loadClass(className, null);
+		// return touchPhysicalClassLoader(className.contains("_cfc$cf")).loadClass(className);
 	}
 
 	public Class<?> getPhysicalClass(String className, Class<?> defaultValue) {
@@ -266,11 +291,13 @@ public final class MappingImpl implements Mapping {
 	@Override
 	public Class<?> getPhysicalClass(String className, byte[] code) throws IOException {
 		try {
-			return touchPhysicalClassLoader(className.contains("_cfc$cf")).loadClass(className, code);
+			return loadClass(className, code);
 		}
-		catch (UnmodifiableClassException e) {
-			throw new IOException(e);
+		catch (Exception e) {
+			throw ExceptionUtil.toIOException(e);
 		}
+
+		// return touchPhysicalClassLoader(className.contains("_cfc$cf")).loadClass(className, code);
 
 		// boolean isCFC = className.indexOf("_cfc$")!=-1;//aaaa ResourceUtil.getExtension(ps.getRealpath(),
 		// "").equalsIgnoreCase("cfc");
@@ -286,8 +313,8 @@ public final class MappingImpl implements Mapping {
 		pageSourcePool.clearPages(cl);
 	}
 
-	public void clearUnused(Config config) {
-		pageSourcePool.clearUnused(config);
+	public void clearUnused() {
+		pageSourcePool.cleanLoaders();
 	}
 
 	public void resetPages(ClassLoader cl) {
@@ -404,7 +431,6 @@ public final class MappingImpl implements Mapping {
 			if (ps != null) arr.append(ps.getDisplayPath());
 		}
 		return arr;
-
 	}
 
 	public List<PageSource> getPageSources(boolean loaded) {
@@ -585,21 +611,39 @@ public final class MappingImpl implements Mapping {
 		}
 	}
 
-	// used in transformer
 	public static CIPage loadCIPage(PageSource ps, String className) {
 		// TODO check if the sub class itself has changed or not, maybe just the main class has, if there is
 		// no change there is no need to load it new
 		try {
 			MappingImpl m = ((MappingImpl) ps.getMapping());
 			Resource res = m.getClassRootDirectory().getRealResource(className + ".class");
-			Class<?> clazz = m.touchPhysicalClassLoader(true).loadClass(className.replace('/', '.').replace('\\', '.'), IOUtil.toBytes(res));
-
+			String cn = className.replace('/', '.').replace('\\', '.');
+			Class<?> clazz = m.loadClass(cn, IOUtil.toBytes(res));
 			return (CIPage) clazz.getConstructor(SUBPAGE_CONSTR).newInstance(ps);
-			// return (CIPage) ((Class<?>) ((MappingImpl)
-			// ps.getMapping()).loadClass(className)).getConstructor(SUBPAGE_CONSTR).newInstance(ps);
 		}
 		catch (Exception e) {
 			throw Caster.toPageRuntimeException(e);
 		}
 	}
+
+	private static class PhysicalClassLoaderReference extends SoftReference<PhysicalClassLoader> {
+
+		private long lastModified;
+
+		public PhysicalClassLoaderReference(PhysicalClassLoader pcl) {
+			super(pcl);
+			this.lastModified = System.currentTimeMillis();
+		}
+
+		@Override
+		public PhysicalClassLoader get() {
+			this.lastModified = System.currentTimeMillis();
+			return super.get();
+		}
+
+		public long lastModified() {
+			return lastModified;
+		}
+	}
+
 }

@@ -2017,4 +2017,9 @@ class SingleContextConfigWeb extends ConfigBase implements ConfigWebInner {
 		LogUtil.log(Log.LEVEL_FATAL, "loading", "setting a web id for single context");
 	}
 
+	@Override
+	public void checkMappings() {
+		cs.checkMappings();
+	}
+
 }

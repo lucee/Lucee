@@ -49,7 +49,6 @@ import org.osgi.framework.Version;
 import org.osgi.framework.wiring.BundleRevision;
 import org.osgi.resource.Requirement;
 
-import lucee.print;
 import lucee.commons.digest.HashUtil;
 import lucee.commons.io.FileUtil;
 import lucee.commons.io.IOUtil;
@@ -482,24 +481,12 @@ public class OSGiUtil {
 								if (match == null || isNewerThan(bf.getVersion(), match.getVersion())) match = bf;
 							}
 						}
-						if (map.size() > 1 && match != null) {
-							print.e("yyyyyyyyyyyyyyyy");
-							print.e(pq);
-							print.e("+ " + match.getSymbolicName() + ":" + match.getVersionAsString() + " -> " + match.getFile());
-							for (BundleFile _bf: map.values()) {
-								print.e("- " + _bf.getSymbolicName() + ":" + _bf.getVersionAsString() + " -> " + _bf.getFile());
-							}
-						}
 
 						if (match != null) {
 							// load existing
 							Bundle b = exists(loadedBundles, match.getSymbolicName(), pq.getVersionDefinitons());
 							if (b != null) {
 								if (startIfNecessary) _startIfNecessary(b, parents);
-								if ("javax.xml.bind.helpers".equals(pq.getName())) {
-									print.e(parents);
-									print.ds("pppppp " + pq.getName() + " " + match.getSymbolicName() + ":" + match.getVersionAsString());
-								}
 								return b;
 							}
 							// load new
@@ -507,10 +494,6 @@ public class OSGiUtil {
 							if (b != null) {
 								loadedBundles.add(b);
 								if (startIfNecessary) _startIfNecessary(b, parents);
-								if ("javax.xml.bind.helpers".equals(pq.getName())) {
-									print.e(parents);
-									print.ds("qqqqqqq " + pq.getName() + " " + match.getSymbolicName() + ":" + match.getVersionAsString());
-								}
 								return b;
 							}
 						}

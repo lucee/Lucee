@@ -39,7 +39,6 @@ import lucee.commons.net.http.httpclient.HTTPEngine4Impl;
 import lucee.runtime.CFMLFactoryImpl;
 import lucee.runtime.Mapping;
 import lucee.runtime.config.ConfigAdmin;
-import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigServer;
 import lucee.runtime.config.ConfigWeb;
@@ -69,6 +68,7 @@ public final class Controler extends ParentThreasRefThread {
 
 	private int interval;
 	private long lastMinuteInterval = System.currentTimeMillis() - (1000 * 59); // first after a second
+	private long last5MinuteInterval = System.currentTimeMillis() - (1000 * 299); // first after a second
 	private long last10SecondsInterval = System.currentTimeMillis() - (1000 * 9); // first after a second
 	private long lastHourInterval = System.currentTimeMillis();
 
@@ -197,8 +197,8 @@ public final class Controler extends ParentThreasRefThread {
 		boolean doMinute = lastMinuteInterval + 60000 < now;
 		if (doMinute) lastMinuteInterval = now;
 
-		boolean do5Minute = lastMinuteInterval + 300000 < now;
-		if (doMinute) lastMinuteInterval = now;
+		boolean do5Minute = last5MinuteInterval + 300000 < now;
+		if (do5Minute) last5MinuteInterval = now;
 
 		boolean doHour = (lastHourInterval + (1000 * 60 * 60)) < now;
 		if (doHour) lastHourInterval = now;
@@ -423,15 +423,7 @@ public final class Controler extends ParentThreasRefThread {
 				 * //cfmlFactory.getDefaultQueryCache().clearUnused(null); }catch(Throwable
 				 * t){ExceptionUtil.rethrowIfNecessary(t);}
 				 */
-				// contract Page Pool
-				try {
-					doClearPagePools(config);
-				}
-				catch (Exception e) {
-					if (log != null) log.error("controler", e);
-				}
-				// try{checkPermGenSpace((ConfigWebPro) config);}catch(Throwable t)
-				// {ExceptionUtil.rethrowIfNecessary(t);}
+
 				try {
 					doCheckMappings(config);
 				}
@@ -616,13 +608,12 @@ public final class Controler extends ParentThreasRefThread {
 	}
 
 	private void doCheckMappings(ConfigWeb config) {
-		if (config instanceof ConfigImpl) {
-			((ConfigImpl) config).checkMappings();
+		lucee.runtime.config.ConfigWebImpl d;
+		if (config instanceof ConfigWebPro) {
+			((ConfigWebPro) config).checkMappings();
 		}
 		else {
-			Mapping[] mappings = config.getMappings();
-			for (int i = 0; i < mappings.length; i++) {
-				Mapping mapping = mappings[i];
+			for (Mapping mapping: config.getMappings()) {
 				mapping.check();
 			}
 		}

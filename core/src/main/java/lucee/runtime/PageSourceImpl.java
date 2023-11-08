@@ -977,6 +977,7 @@ public final class PageSourceImpl implements PageSource {
 	}
 
 	public void clear() {
+		mapping.clear(pcn.className);
 		pcn.page = null;
 	}
 
