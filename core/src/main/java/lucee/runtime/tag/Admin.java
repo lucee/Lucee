@@ -3376,7 +3376,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			str = Caster.toString(h.get("Bundle-Description", null), null);
 			if (StringUtil.isEmpty(str)) str = Caster.toString(h.get("Implementation-Description", null), null);
 			if (StringUtil.isEmpty(str)) str = Caster.toString(h.get("Specification-Description", null), null);
-			if (!StringUtil.isEmpty(str)) sct.set(KeyConstants._description, str);
+			sct.set(KeyConstants._description, str);
 
 			// Vendor
 			str = Caster.toString(h.get("Bundle-Vendor", null), null);
