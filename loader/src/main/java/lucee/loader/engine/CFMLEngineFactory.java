@@ -34,6 +34,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.net.UnknownHostException;
@@ -302,9 +303,42 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 
 		// Users/mic/Projects/Lucee/Lucee6/core/target/classes/META-INF/MANIFEST.MF
 
+		// read classes directory
 		File classesDirectory = new File("/Users/mic/Projects/Lucee/Lucee6/core/target/classes/");
 		File sourceDirectory = new File("/Users/mic/Projects/Lucee/Lucee6/core/src/main/cfml/");
-		File pomFile = new File("/Users/mic/Projects/Lucee/Lucee6/loader/pom.xml");
+
+		// read POM File
+		File pomFile;
+		String envpom = System.getenv("POM");
+		if (!Util.isEmpty(envpom)) {
+			pomFile = new File(envpom.trim());
+			if (!pomFile.isFile()) throw new IOException("the pom file [" + pomFile + "] you have defined via enviroment variable does not exist!");
+		}
+		// try to figure out based on current location
+		else {
+			// try to load it relative with java.io.File
+			pomFile = new File("./pomx.xml").getCanonicalFile(); // should work
+			// try to load via resource
+			if (!pomFile.isFile()) {
+				pomFile = null;
+				URL res = new TP().getClass().getClassLoader().getResource("License.txt");
+				File file;
+				try {
+					file = new File(res.toURI());
+					if (file.isFile()) {
+						pomFile = new File(file.getParentFile().getParentFile().getParentFile(), "pom.xml");
+					}
+				}
+				catch (URISyntaxException e) {
+				}
+			}
+			if (pomFile == null || !pomFile.isFile()) {
+				throw new IOException("could not find the pom.xml file of the loader project, please set the enviroment varialble [POM] that points to that file.");
+			}
+		}
+		System.out.println("POM: " + pomFile);
+
+		// if (true) return null;
 		File manifestFile = new File(classesDirectory, "META-INF/MANIFEST.MF");
 
 		Manifest manifest = new Manifest();
