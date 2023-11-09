@@ -21,9 +21,11 @@ package lucee.loader.engine;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -46,6 +48,7 @@ import java.util.Map.Entry;
 import java.util.jar.Attributes;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
+import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -117,6 +120,8 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 
 	// do not remove/ranme, grapped by core directly
 	protected ServletConfig config;
+
+	private boolean embedded;
 
 	protected CFMLEngineFactory(final ServletConfig config) {
 		System.setProperty("org.apache.commons.logging.LogFactory.HashtableImpl", ConcurrentHashMapAsHashtable.class.getName());
@@ -219,6 +224,13 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 	void readInitParam(final ServletConfig config) {
 		if (luceeServerRoot != null) return;
 
+		String strEmbedded = config.getInitParameter("embedded");
+		embedded = false;
+		if (!Util.isEmpty(strEmbedded, true)) {
+			strEmbedded.trim().toLowerCase();
+			embedded = strEmbedded.equals("true") || strEmbedded.equals("yes");
+		}
+
 		String initParam = config.getInitParameter("lucee-server-directory");
 		if (Util.isEmpty(initParam)) initParam = config.getInitParameter("lucee-server-root");
 		if (Util.isEmpty(initParam)) initParam = config.getInitParameter("lucee-server-dir");
@@ -281,7 +293,126 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 		BundleUtil.stop(felix, false);
 	}
 
+	public static void main(String[] args) throws IOException {
+		createBundleFromSource();
+
+	}
+
+	public static File createBundleFromSource() throws IOException {
+
+		// Users/mic/Projects/Lucee/Lucee6/core/target/classes/META-INF/MANIFEST.MF
+
+		File classesDirectory = new File("/Users/mic/Projects/Lucee/Lucee6/core/target/classes/");
+		File sourceDirectory = new File("/Users/mic/Projects/Lucee/Lucee6/core/src/main/cfml/");
+		File pomFile = new File("/Users/mic/Projects/Lucee/Lucee6/loader/pom.xml");
+		File manifestFile = new File(classesDirectory, "META-INF/MANIFEST.MF");
+
+		Manifest manifest = new Manifest();
+		// Assuming the manifest file is correct and fully prepared for OSGi
+		try (InputStream is = new FileInputStream(manifestFile)) {
+			manifest.read(is);
+		}
+		Attributes main = manifest.getMainAttributes();
+		String bundleName = main.getValue("Bundle-SymbolicName");
+		String bundleVersion = readVersionFromPOM(pomFile);
+		System.out.println(bundleVersion);
+
+		main.put(new Attributes.Name("Bundle-Version"), bundleVersion);
+
+		File bundleFile = File.createTempFile(bundleName + "-", ".lco");
+		bundleFile = new File("/Users/mic/tmp8/" + bundleName + "-" + bundleVersion + "-" + System.currentTimeMillis() + ".lco");
+
+		System.out.println("- temp core file: " + bundleFile);
+
+		// Output file for the JAR
+		JarOutputStream jos = null;
+		// FileInputStream fis = null;
+
+		try {
+			jos = new JarOutputStream(new FileOutputStream(bundleFile), manifest);
+			addDirectoryToJar(jos, classesDirectory, "", new FilenameFilter() {
+
+				@Override
+				public boolean accept(File dir, String name) {
+					return !name.equals(".DS_Store");
+					// return !name.equals(".DS_Store") && !name.endsWith(".java");
+				}
+			});
+			System.out.println("----------------------------");
+
+			addDirectoryToJar(jos, sourceDirectory, "resource/", new FilenameFilter() {
+
+				@Override
+				public boolean accept(File dir, String name) {
+					return !name.endsWith(".DS_Store") && !name.endsWith(".java");
+				}
+			});
+
+		}
+		finally {
+			// Util.closeEL(fis);
+			Util.closeEL(jos);
+		}
+		return bundleFile;
+	}
+
+	private static String readVersionFromPOM(File pomFile) throws IOException {
+		String versionTagStart = "<version>";
+		String versionTagEnd = "</version>";
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		Util.copy(new FileInputStream(pomFile), baos, true, true);
+		String xml = new String(baos.toByteArray());
+		int startIndex = xml.indexOf(versionTagStart) + versionTagStart.length();
+		int endIndex = xml.indexOf(versionTagEnd);
+
+		if (startIndex < versionTagStart.length() || endIndex == -1) {
+			throw new IOException("Version tag not found");
+		}
+
+		return xml.substring(startIndex, endIndex).trim();
+	}
+
+	private static void addDirectoryToJar(JarOutputStream jos, File folder, String parentEntryName, FilenameFilter filter) throws IOException {
+
+		// Recursively add files to the jar
+		String name;
+		for (File file: folder.listFiles()) {
+			if (file.isDirectory()) {
+				name = (parentEntryName + file.getName() + "/").replace("//", "/");
+				// System.out.println("dir:" + name);
+				addDirectoryToJar(jos, file, name, filter); // Recursive call
+			}
+			else {
+				name = (parentEntryName + file.getName()).replace("//", "/");
+				if ((filter != null && !filter.accept(folder, name)) || name.equals(JarFile.MANIFEST_NAME)) {
+					continue; // Skip the manifest file since it's already added
+				}
+				// System.out.println(s);
+				JarEntry entry = new JarEntry(parentEntryName + file.getName());
+				entry.setTime(file.lastModified());
+				try {
+					jos.putNextEntry(entry);
+					// Write file to JAR
+					try (BufferedInputStream bis = new BufferedInputStream(new FileInputStream(file))) {
+						byte[] buffer = new byte[1024];
+						int count;
+						while ((count = bis.read(buffer)) != -1) {
+							jos.write(buffer, 0, count);
+						}
+					}
+					jos.closeEntry();
+					System.out.println(name);
+
+				}
+				catch (Exception e) {
+
+				}
+			}
+		}
+	}
+
 	private void initEngine() throws ServletException {
+
 		final Version coreVersion = VersionInfo.getIntVersion();
 		final long coreCreated = VersionInfo.getCreateTime();
 
@@ -294,23 +425,34 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 		catch (final IOException e) {
 			throw new ServletException(e);
 		}
-
-		final File[] patches = PATCH_ENABLED ? patcheDir.listFiles(new ExtensionFilter(new String[] { ".lco" })) : null;
 		File lucee = null;
-		if (patches != null) {
-			for (final File patch: patches) {
-				if (patch.getName().startsWith("tmp.lco")) patch.delete();
-				else if (patch.lastModified() < coreCreated) patch.delete();
-				else if (patch.length() < 1000000L) patch.delete();
-				else if (lucee == null || Util.isNewerThan(toVersion(patch.getName(), VERSION_ZERO), toVersion(lucee.getName(), VERSION_ZERO))) lucee = patch;
+		// create lucee core from source
+		if (embedded) {
+			try {
+				lucee = createBundleFromSource();
+			}
+			catch (IOException e) {
+				throw new ServletException(e);
 			}
 		}
-		if (lucee != null && Util.isNewerThan(coreVersion, toVersion(lucee.getName(), VERSION_ZERO))) lucee = null;
 
+		// read lucee core from patch directory
+		if (lucee == null) {
+			final File[] patches = PATCH_ENABLED ? patcheDir.listFiles(new ExtensionFilter(new String[] { ".lco" })) : null;
+			if (patches != null) {
+				for (final File patch: patches) {
+					if (patch.getName().startsWith("tmp.lco")) patch.delete();
+					else if (patch.lastModified() < coreCreated) patch.delete();
+					else if (patch.length() < 1000000L) patch.delete();
+					else if (lucee == null || Util.isNewerThan(toVersion(patch.getName(), VERSION_ZERO), toVersion(lucee.getName(), VERSION_ZERO))) lucee = patch;
+				}
+			}
+			if (lucee != null && Util.isNewerThan(coreVersion, toVersion(lucee.getName(), VERSION_ZERO))) lucee = null;
+		}
 		// Load Lucee
 		// URL url=null;
 		try {
-			// Load core version when no patch available
+			// Load core version from jar when no patch available
 			if (lucee == null) {
 				log(Logger.LOG_DEBUG, "Load built-in Core");
 
@@ -384,6 +526,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 					engine = _getCore(lucee);
 				}
 				else {
+
 					// TODO: LDEV-2805 set engine's classloader to use local class files
 					// engine =
 				}
@@ -391,7 +534,6 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 				setEngine(engine);
 			}
 			else {
-
 				bundleCollection = BundleLoader.loadBundles(this, getFelixCacheDirectory(), getBundleDirectory(), lucee, bundleCollection);
 				// bundle=loadBundle(lucee);
 				log(Logger.LOG_DEBUG, "Loaded bundle: [" + bundleCollection.core.getSymbolicName() + "]");
@@ -403,11 +545,13 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 			log(Logger.LOG_DEBUG, "Loaded Lucee Version [" + singelton.getInfo().getVersion() + "]");
 		}
 		catch (final InvocationTargetException e) {
+			e.printStackTrace();
 			log(e.getTargetException());
 			// e.getTargetException().printStackTrace();
 			throw new ServletException(e.getTargetException());
 		}
 		catch (final Exception e) {
+			e.printStackTrace();
 			throw new ServletException(e);
 		}
 
