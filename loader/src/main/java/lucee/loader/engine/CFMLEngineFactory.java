@@ -304,60 +304,20 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 		// Users/mic/Projects/Lucee/Lucee6/core/target/classes/META-INF/MANIFEST.MF
 
 		// read classes directory
-
-		// File classesDirectory = new File("/Users/mic/Projects/Lucee/Lucee6/core/target/classes/");
-		File classesDirectory;
-		{
-			String envcd = System.getenv("CLASS_DIRECTORY");
-			if (!Util.isEmpty(envcd)) {
-				classesDirectory = new File(envcd.trim());
-				if (!classesDirectory.isDirectory())
-					throw new IOException("the class directory [" + classesDirectory + "] you have defined via enviroment variable [CLASS_DIRECTORY] does not exist!");
-			}
-			// try to figure out based on current location
-			else {
-				// try to load it relative with java.io.File
-				classesDirectory = new File("../core/target/classes/").getCanonicalFile(); // should work
-
-				// try to load via resource
-				if (!classesDirectory.isDirectory()) {
-					classesDirectory = getFileFromResource("../../../../core/target/classes/");
-				}
-
-				if (classesDirectory == null || !classesDirectory.isDirectory()) {
-					throw new IOException(
-							"could not find the classes directory of the core project, please set the enviroment variable [CLASS_DIRECTORY] that points to that directory.");
-				}
-			}
-		}
+		File classesDirectory = load("classes directory", "the directory containg all compiled class files from the core project", "CLASS_DIRECTORY", "../core/target/classes/",
+				"../../../../core/target/classes/", true);
 		System.out.println("CLASS_DIRECTORY: " + classesDirectory);
 
-		File sourceDirectory = new File("/Users/mic/Projects/Lucee/Lucee6/core/src/main/cfml/");
+		// read source directory
+		File sourceDirectory = load("source directory", "the directory containg all CFML source files from the core project", "SOURCE_DIRECTORY", "../core/src/main/cfml/",
+				"../../../../core/src/main/cfml/", true);
+		System.out.println("SOURCE_DIRECTORY: " + sourceDirectory);
 
 		// read POM File
-		File pomFile;
-		{
-			String envpom = System.getenv("POM_FILE");
-			if (!Util.isEmpty(envpom)) {
-				pomFile = new File(envpom.trim());
-				if (!pomFile.isFile()) throw new IOException("the pom file [" + pomFile + "] you have defined via enviroment variable [POM_FILE] does not exist!");
-			}
-			// try to figure out based on current location
-			else {
-				// try to load it relative with java.io.File
-				pomFile = new File("./pom.xml").getCanonicalFile(); // should work
-				// try to load via resource
-				if (!pomFile.isFile()) {
-					pomFile = getFileFromResource("../../../pom.xml");
-				}
-				if (pomFile == null || !pomFile.isFile()) {
-					throw new IOException("could not find the pom.xml file of the loader project, please set the enviroment variable [POM_FILE] that points to that file.");
-				}
-			}
-		}
+		File pomFile = load("pom file", "the pom.xml file from the core project", "POM_FILE", "./pom.xml", "../../../pom.xml", false);
 		System.out.println("POM: " + pomFile);
 
-		if (true) return null;
+		// if (true) return null;
 		File manifestFile = new File(classesDirectory, "META-INF/MANIFEST.MF");
 
 		Manifest manifest = new Manifest();
@@ -368,14 +328,16 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 		Attributes main = manifest.getMainAttributes();
 		String bundleName = main.getValue("Bundle-SymbolicName");
 		String bundleVersion = readVersionFromPOM(pomFile);
-		System.out.println(bundleVersion);
+		System.out.println("VERSION: " + bundleVersion);
 
 		main.put(new Attributes.Name("Bundle-Version"), bundleVersion);
 
 		File bundleFile = File.createTempFile(bundleName + "-", ".lco");
-		bundleFile = new File("/Users/mic/tmp8/" + bundleName + "-" + bundleVersion + "-" + System.currentTimeMillis() + ".lco");
+		bundleFile.deleteOnExit();
+		// bundleFile = new File("/Users/mic/tmp8/" + bundleName + "-" + bundleVersion + "-" +
+		// System.currentTimeMillis() + ".lco");
 
-		System.out.println("- temp core file: " + bundleFile);
+		System.out.println("LCO: " + bundleFile);
 
 		// Output file for the JAR
 		JarOutputStream jos = null;
@@ -391,8 +353,8 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 					// return !name.equals(".DS_Store") && !name.endsWith(".java");
 				}
 			});
-			System.out.println("----------------------------");
 
+			// TODO this does not all copied in the right place
 			addDirectoryToJar(jos, sourceDirectory, "resource/", new FilenameFilter() {
 
 				@Override
@@ -409,19 +371,38 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 		return bundleFile;
 	}
 
-	private static File getFileFromResource(String relPath) throws IOException {
-		URL res = new TP().getClass().getClassLoader().getResource("License.txt");
+	private static File load(String subject, String desc, String envVarName, String relpath, String relResource, boolean dir) throws IOException {
+		String env = System.getenv(envVarName);
 		File file;
-		try {
-			file = new File(res.toURI());
-			if (file.isFile()) {
-				return new File(file, relPath).getCanonicalFile();
+		if (!Util.isEmpty(env)) {
+			file = new File(env.trim());
+			if ((dir && !file.isDirectory()) || (!dir && !file.isFile()))
+				throw new IOException("the " + subject + " [" + file + "] (" + desc + ") you have defined via enviroment variable [" + envVarName + "] does not exist!");
+		}
+		// try to figure out based on current location
+		else {
+			// try to load it relative with java.io.File
+			file = new File(relpath).getCanonicalFile(); // should work
 
+			// try to load via resource
+			if ((dir && !file.isDirectory()) || (!dir && !file.isFile())) {
+				file = null;
+				URL res = new TP().getClass().getClassLoader().getResource("License.txt");
+				File f;
+				try {
+					f = new File(res.toURI());
+					if (f.isFile()) {
+						file = new File(f, relResource).getCanonicalFile();
+					}
+				}
+				catch (URISyntaxException e) {
+				}
+			}
+			if (file == null || ((dir && !file.isDirectory()) || (!dir && !file.isFile()))) {
+				throw new IOException("could not find the " + subject + " (" + desc + "), please set the enviroment variable [" + envVarName + "] that points to it.");
 			}
 		}
-		catch (URISyntaxException e) {
-		}
-		return null;
+		return file;
 	}
 
 	private static String readVersionFromPOM(File pomFile) throws IOException {
@@ -469,7 +450,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 						}
 					}
 					jos.closeEntry();
-					System.out.println(name);
+					// System.out.println(name);
 
 				}
 				catch (Exception e) {
