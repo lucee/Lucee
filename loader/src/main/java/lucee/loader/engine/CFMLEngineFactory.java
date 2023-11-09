@@ -304,41 +304,60 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 		// Users/mic/Projects/Lucee/Lucee6/core/target/classes/META-INF/MANIFEST.MF
 
 		// read classes directory
-		File classesDirectory = new File("/Users/mic/Projects/Lucee/Lucee6/core/target/classes/");
+
+		// File classesDirectory = new File("/Users/mic/Projects/Lucee/Lucee6/core/target/classes/");
+		File classesDirectory;
+		{
+			String envcd = System.getenv("CLASS_DIRECTORY");
+			if (!Util.isEmpty(envcd)) {
+				classesDirectory = new File(envcd.trim());
+				if (!classesDirectory.isDirectory())
+					throw new IOException("the class directory [" + classesDirectory + "] you have defined via enviroment variable [CLASS_DIRECTORY] does not exist!");
+			}
+			// try to figure out based on current location
+			else {
+				// try to load it relative with java.io.File
+				classesDirectory = new File("../core/target/classes/").getCanonicalFile(); // should work
+
+				// try to load via resource
+				if (!classesDirectory.isDirectory()) {
+					classesDirectory = getFileFromResource("../../../../core/target/classes/");
+				}
+
+				if (classesDirectory == null || !classesDirectory.isDirectory()) {
+					throw new IOException(
+							"could not find the classes directory of the core project, please set the enviroment variable [CLASS_DIRECTORY] that points to that directory.");
+				}
+			}
+		}
+		System.out.println("CLASS_DIRECTORY: " + classesDirectory);
+
 		File sourceDirectory = new File("/Users/mic/Projects/Lucee/Lucee6/core/src/main/cfml/");
 
 		// read POM File
 		File pomFile;
-		String envpom = System.getenv("POM");
-		if (!Util.isEmpty(envpom)) {
-			pomFile = new File(envpom.trim());
-			if (!pomFile.isFile()) throw new IOException("the pom file [" + pomFile + "] you have defined via enviroment variable does not exist!");
-		}
-		// try to figure out based on current location
-		else {
-			// try to load it relative with java.io.File
-			pomFile = new File("./pomx.xml").getCanonicalFile(); // should work
-			// try to load via resource
-			if (!pomFile.isFile()) {
-				pomFile = null;
-				URL res = new TP().getClass().getClassLoader().getResource("License.txt");
-				File file;
-				try {
-					file = new File(res.toURI());
-					if (file.isFile()) {
-						pomFile = new File(file.getParentFile().getParentFile().getParentFile(), "pom.xml");
-					}
-				}
-				catch (URISyntaxException e) {
-				}
+		{
+			String envpom = System.getenv("POM_FILE");
+			if (!Util.isEmpty(envpom)) {
+				pomFile = new File(envpom.trim());
+				if (!pomFile.isFile()) throw new IOException("the pom file [" + pomFile + "] you have defined via enviroment variable [POM_FILE] does not exist!");
 			}
-			if (pomFile == null || !pomFile.isFile()) {
-				throw new IOException("could not find the pom.xml file of the loader project, please set the enviroment varialble [POM] that points to that file.");
+			// try to figure out based on current location
+			else {
+				// try to load it relative with java.io.File
+				pomFile = new File("./pom.xml").getCanonicalFile(); // should work
+				// try to load via resource
+				if (!pomFile.isFile()) {
+					pomFile = getFileFromResource("../../../pom.xml");
+				}
+				if (pomFile == null || !pomFile.isFile()) {
+					throw new IOException("could not find the pom.xml file of the loader project, please set the enviroment variable [POM_FILE] that points to that file.");
+				}
 			}
 		}
 		System.out.println("POM: " + pomFile);
 
-		// if (true) return null;
+		if (true) return null;
 		File manifestFile = new File(classesDirectory, "META-INF/MANIFEST.MF");
 
 		Manifest manifest = new Manifest();
@@ -388,6 +407,21 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 			Util.closeEL(jos);
 		}
 		return bundleFile;
+	}
+
+	private static File getFileFromResource(String relPath) throws IOException {
+		URL res = new TP().getClass().getClassLoader().getResource("License.txt");
+		File file;
+		try {
+			file = new File(res.toURI());
+			if (file.isFile()) {
+				return new File(file, relPath).getCanonicalFile();
+
+			}
+		}
+		catch (URISyntaxException e) {
+		}
+		return null;
 	}
 
 	private static String readVersionFromPOM(File pomFile) throws IOException {
