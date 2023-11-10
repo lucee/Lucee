@@ -1,7 +1,7 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" {
+component extends="org.lucee.cfml.test.LuceeTestCaseParallel" {
 	function run( testResults , testBox ) {
 		describe( title = "Testcase for xmlNew() function", body = function() {
-			it( title = "checking xmlNew() function", body = function( currentSpec ) {
+			parallel( title = "checking xmlNew() function",threadCount=5, repetitition=2, body = function( currentSpec ) {
 				var XmlDocument = xmlNew();
 				XMLDocument.XmlRoot = "element";
 

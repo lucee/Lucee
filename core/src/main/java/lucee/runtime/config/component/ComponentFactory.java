@@ -61,6 +61,7 @@ public class ComponentFactory {
 			deploy(testDir, testPath, doNew, "LuceeTestSuite");
 			deploy(testDir, testPath, doNew, "LuceeTestSuiteRunner");
 			deploy(testDir, testPath, doNew, "LuceeTestCase");
+			deploy(testDir, testPath, doNew, "LuceeTestCaseParallel");
 		}
 
 	}
