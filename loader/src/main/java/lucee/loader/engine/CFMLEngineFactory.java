@@ -308,17 +308,22 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 				"../../../../core/target/classes/", true);
 		System.out.println("CLASS_DIRECTORY: " + classesDirectory);
 
-		// read source directory
-		File sourceDirectory = load("source directory", "the directory containg all CFML source files from the core project", "SOURCE_DIRECTORY", "../core/src/main/cfml/",
+		// read source cfml directory
+		File sourceCfml = load("source directory", "the directory containg all CFML source files from the core project", "SOURCE_DIRECTORY", "../core/src/main/cfml/",
 				"../../../../core/src/main/cfml/", true);
-		System.out.println("SOURCE_DIRECTORY: " + sourceDirectory);
+		System.out.println("SOURCE_DIRECTORY: " + sourceCfml);
+
+		// read source java directory
+		File sourceJava = load("source java directory", "the directory containing Java source files from the core project", "SOURCE_JAVA_DIR", "../core/src/main/java/",
+				"../../../../core/src/main/java/", true);
+		System.out.println("SOURCE_JAVA_DIR: " + sourceJava);
 
 		// read POM File
 		File pomFile = load("pom file", "the pom.xml file from the core project", "POM_FILE", "./pom.xml", "../../../pom.xml", false);
 		System.out.println("POM: " + pomFile);
 
 		// if (true) return null;
-		File manifestFile = new File(classesDirectory, "META-INF/MANIFEST.MF");
+		File manifestFile = new File(sourceJava, "META-INF/MANIFEST.MF");
 
 		Manifest manifest = new Manifest();
 		// Assuming the manifest file is correct and fully prepared for OSGi
@@ -355,7 +360,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 			});
 
 			// TODO this does not all copied in the right place
-			addDirectoryToJar(jos, sourceDirectory, "resource/", new FilenameFilter() {
+			addDirectoryToJar(jos, sourceCfml, "resource/", new FilenameFilter() {
 
 				@Override
 				public boolean accept(File dir, String name) {
@@ -363,6 +368,8 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 				}
 			});
 
+			File defPropsFile = new File(sourceJava, "default.properties");
+			addFileToJar(jos, defPropsFile, "");
 		}
 		finally {
 			// Util.closeEL(fis);
@@ -421,6 +428,24 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 		return xml.substring(startIndex, endIndex).trim();
 	}
 
+	private static void addFileToJar(JarOutputStream jos, File file, String archivePath) {
+		JarEntry entry = new JarEntry(archivePath + file.getName());
+		entry.setTime(file.lastModified());
+		try {
+			jos.putNextEntry(entry);
+			// Write file to JAR
+			try (BufferedInputStream bis = new BufferedInputStream(new FileInputStream(file))) {
+				byte[] buffer = new byte[4096];
+				int count;
+				while ((count = bis.read(buffer)) != -1) {
+					jos.write(buffer, 0, count);
+				}
+			}
+			jos.closeEntry();
+		}
+		catch (Exception ex) {}
+	}
+
 	private static void addDirectoryToJar(JarOutputStream jos, File folder, String parentEntryName, FilenameFilter filter) throws IOException {
 
 		// Recursively add files to the jar
@@ -437,25 +462,8 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 					continue; // Skip the manifest file since it's already added
 				}
 				// System.out.println(s);
-				JarEntry entry = new JarEntry(parentEntryName + file.getName());
-				entry.setTime(file.lastModified());
-				try {
-					jos.putNextEntry(entry);
-					// Write file to JAR
-					try (BufferedInputStream bis = new BufferedInputStream(new FileInputStream(file))) {
-						byte[] buffer = new byte[1024];
-						int count;
-						while ((count = bis.read(buffer)) != -1) {
-							jos.write(buffer, 0, count);
-						}
-					}
-					jos.closeEntry();
-					// System.out.println(name);
 
-				}
-				catch (Exception e) {
-
-				}
+				addFileToJar(jos, file, parentEntryName);
 			}
 		}
 	}
