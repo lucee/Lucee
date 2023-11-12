@@ -38,6 +38,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.net.UnknownHostException;
+import java.nio.file.Paths;
 import java.security.CodeSource;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -302,24 +303,39 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 	public static File createBundleFromSource() throws IOException {
 
 		// Users/mic/Projects/Lucee/Lucee6/core/target/classes/META-INF/MANIFEST.MF
+		String resPrefix = "../../../";
+		String pathClas = "../core/target/classes/";
+		String pathCfml = "../core/src/main/cfml/";
+		String pathJava = "../core/src/main/java/";
+		String pathPom = "./pom.xml";
 
-		// read classes directory
-		File classesDirectory = load("classes directory", "the directory containg all compiled class files from the core project", "CLASS_DIRECTORY", "../core/target/classes/",
-				"../../../../core/target/classes/", true);
+		String s = System.getenv("LUCEE_SOURCE_DIR");
+		if (s != null) {
+			pathClas = Paths.get(s, "/core/target/classes/").toString();
+			pathCfml = Paths.get(s, "/core/src/main/cfml/").toString();
+			pathJava = Paths.get(s, "/core/src/main/java/").toString();
+			pathPom = Paths.get(s, "/loader/pom.xml").toString();
+		}
+
+		String pathJres = Paths.get(pathJava, "resource/").toString();
+
+		// read classes directory, if the compiler output directory is not core/target/classes then set env var, e.g. CLASS_DIRECTORY=/workspace/src/lucee/idea-compiler-output-6/production/core
+		File classesDirectory = load("classes directory", "the directory containg all compiled class files from the core project", "CLASS_DIRECTORY", pathClas, resPrefix + pathClas, true);
 		System.out.println("CLASS_DIRECTORY: " + classesDirectory);
 
 		// read source cfml directory
-		File sourceCfml = load("source directory", "the directory containg all CFML source files from the core project", "SOURCE_DIRECTORY", "../core/src/main/cfml/",
-				"../../../../core/src/main/cfml/", true);
+		File sourceCfml = load("source directory", "the directory containg all CFML source files from the core project", "SOURCE_DIRECTORY", pathCfml, resPrefix + pathCfml, true);
 		System.out.println("SOURCE_DIRECTORY: " + sourceCfml);
 
 		// read source java directory
-		File sourceJava = load("source java directory", "the directory containing Java source files from the core project", "SOURCE_JAVA_DIR", "../core/src/main/java/",
-				"../../../../core/src/main/java/", true);
+		File sourceJava = load("source java directory", "the directory containing Java source files from the core project", "SOURCE_JAVA_DIR", pathJava, resPrefix + pathJava, true);
 		System.out.println("SOURCE_JAVA_DIR: " + sourceJava);
 
+		File resourceJava = load("resource java directory", "the directory containing resources in the Java source of the core project", "", pathJres, resPrefix + pathJava + "resource/", true);
+		System.out.println("RESOURCE_JAVA_DIR: " + resourceJava);
+
 		// read POM File
-		File pomFile = load("pom file", "the pom.xml file from the core project", "POM_FILE", "./pom.xml", "../../../pom.xml", false);
+		File pomFile = load("pom file", "the pom.xml file from the core project", "POM_FILE", pathPom, "../../../pom.xml", false);
 		System.out.println("POM: " + pomFile);
 
 		// if (true) return null;
@@ -368,8 +384,19 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 				}
 			});
 
-			File defPropsFile = new File(sourceJava, "default.properties");
-			addFileToJar(jos, defPropsFile, "");
+			addDirectoryToJar(jos, resourceJava, "resource/", new FilenameFilter() {
+
+				@Override
+				public boolean accept(File dir, String name) {
+					return !name.endsWith(".DS_Store") && !name.endsWith(".java");
+				}
+			});
+
+			File f = new File(sourceJava, "default.properties");
+			addFileToJar(jos, f, "");
+
+			f = new File(sourceJava, "License.txt");
+			addFileToJar(jos, f, "");
 		}
 		finally {
 			// Util.closeEL(fis);
@@ -394,11 +421,11 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 			// try to load via resource
 			if ((dir && !file.isDirectory()) || (!dir && !file.isFile())) {
 				file = null;
-				URL res = new TP().getClass().getClassLoader().getResource("License.txt");
+				URL res = new TP().getClass().getClassLoader().getResource("");
 				File f;
 				try {
 					f = new File(res.toURI());
-					if (f.isFile()) {
+					if (f.isDirectory()) {
 						file = new File(f, relResource).getCanonicalFile();
 					}
 				}
@@ -458,11 +485,11 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 			}
 			else {
 				name = (parentEntryName + file.getName()).replace("//", "/");
+//				System.out.println(name);
 				if ((filter != null && !filter.accept(folder, name)) || name.equals(JarFile.MANIFEST_NAME)) {
+//					System.out.println(" - skipped");
 					continue; // Skip the manifest file since it's already added
 				}
-				// System.out.println(s);
-
 				addFileToJar(jos, file, parentEntryName);
 			}
 		}
@@ -483,7 +510,10 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 			throw new ServletException(e);
 		}
 		File lucee = null;
+
 		// create lucee core from source
+		if (System.getenv("LUCEE_SOURCE_DIR") != null) embedded = true;
+
 		if (embedded) {
 			try {
 				lucee = createBundleFromSource();
