@@ -1,9 +1,13 @@
 package lucee.runtime.functions.file;
 
 import java.io.IOException;
+import java.nio.file.DirectoryStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourceMetaData;
+import lucee.commons.io.res.type.file.FileResource;
 import lucee.commons.io.res.util.ModeObjectWrap;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.CFTypes;
@@ -108,28 +112,68 @@ public class DirectoryEvery extends BIF {
 	}
 
 	private static void list(PageContext pc, Resource directory, Component cfc) throws PageException {
-		String[] children = directory.list();
-		if (children != null) {
-			for (String child: children) {
-				if (!Caster.toBooleanValue(cfc.call(pc, KeyConstants._invoke, new Object[] { child }))) break;
+		if (directory instanceof FileResource) {
+			try (DirectoryStream<Path> stream = Files.newDirectoryStream(((FileResource) ResourceUtil.getCanonicalResourceEL(directory)).toPath())) {
+				for (Path entry: stream) {
+					if (!Caster.toBooleanValue(cfc.call(pc, KeyConstants._invoke, new Object[] { entry.toString() }))) {
+						break;
+					}
+				}
+			}
+			catch (IOException ioe) {
+				throw Caster.toPageException(ioe);
+			}
+		}
+		else {
+			String dir = ResourceUtil.getCanonicalPathEL(directory);
+			String[] children = ResourceUtil.getCanonicalResourceEL(directory).list();
+			if (children != null) {
+				for (String child: children) {
+					if (!Caster.toBooleanValue(cfc.call(pc, KeyConstants._invoke, new Object[] { dir + child }))) break;
+				}
 			}
 		}
 	}
 
 	private static boolean list(PageContext pc, Resource directory, Component cfc, int level, boolean recurse, boolean withInfo, boolean modeSupported)
 			throws PageException, IOException {
-		Resource[] children = directory.listResources();
+		if (directory instanceof FileResource) {
+			return _list(pc, ((FileResource) ResourceUtil.getCanonicalResourceEL(directory)).toPath(), cfc, level, recurse, withInfo, modeSupported);
+		}
+		return _list(pc, ResourceUtil.getCanonicalResourceEL(directory), cfc, level, recurse, withInfo, modeSupported);
+	}
 
+	private static boolean _list(PageContext pc, Resource directory, Component cfc, int level, boolean recurse, boolean withInfo, boolean modeSupported)
+			throws PageException, IOException {
+
+		Resource[] children = directory.listResources();
 		if (children != null) {
 			String dir = ResourceUtil.getCanonicalPathEL(directory);
 			for (Resource child: children) {
-				if (!Caster.toBooleanValue(
-						cfc.call(pc, KeyConstants._invoke, withInfo ? new Object[] { ResourceUtil.getCanonicalPathEL(child), info(child, dir, level, modeSupported) }
-								: new Object[] { ResourceUtil.getCanonicalPathEL(child) }))) {
+				if (!Caster.toBooleanValue(cfc.call(pc, KeyConstants._invoke,
+						withInfo ? new Object[] { child.getAbsolutePath(), info(child, dir, level, modeSupported) } : new Object[] { child.getAbsolutePath() }))) {
 					return true;
 				}
 				if (recurse && child.isDirectory()) {
-					if (list(pc, child, cfc, level + 1, recurse, withInfo, modeSupported)) return true;
+					if (_list(pc, child, cfc, level + 1, recurse, withInfo, modeSupported)) return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	private static boolean _list(PageContext pc, Path directory, Component cfc, int level, boolean recurse, boolean withInfo, boolean modeSupported)
+			throws PageException, IOException {
+
+		String dir = directory.toString();
+		try (DirectoryStream<Path> stream = Files.newDirectoryStream(directory)) {
+			for (Path entry: stream) {
+				if (!Caster.toBooleanValue(cfc.call(pc, KeyConstants._invoke,
+						withInfo ? new Object[] { entry.toString(), info(entry, dir, level, modeSupported) } : new Object[] { entry.toString() }))) {
+					return true;
+				}
+				if (recurse && Files.isDirectory(entry)) {
+					if (_list(pc, entry, cfc, level + 1, recurse, withInfo, modeSupported)) return true;
 				}
 			}
 		}
@@ -147,6 +191,21 @@ public class DirectoryEvery extends BIF {
 		if (modeSupported) sct.set(KeyConstants._mode, new ModeObjectWrap(res));
 		if (res instanceof ResourceMetaData) sct.set(KeyConstants._meta, ((ResourceMetaData) res).getMetaData());
 		sct.set(KeyConstants._attributes, Directory.getFileAttribute(res, true));
+
+		return sct;
+	}
+
+	private static Object info(Path path, String dir, int level, boolean modeSupported) throws PageException, IOException {
+		boolean isDir = Files.isDirectory(path);
+		Struct sct = new StructImpl(Struct.TYPE_LINKED);
+		sct.set(KeyConstants._name, path.getFileName());
+		sct.set(KeyConstants._directory, dir);
+		sct.set(KeyConstants._level, level);
+		sct.set(KeyConstants._size, Double.valueOf(isDir ? 0 : Files.size(path)));
+		sct.set(KeyConstants._type, isDir ? "Dir" : "File");
+		sct.set(KeyConstants._dateLastModified, new DateTimeImpl(Files.getLastModifiedTime(path, null).toMillis(), false));
+		if (modeSupported) sct.set(KeyConstants._mode, new ModeObjectWrap(path));
+		sct.set(KeyConstants._attributes, Directory.getFileAttribute(path, true));
 
 		return sct;
 	}

@@ -24,6 +24,7 @@ import static lucee.runtime.tag.util.FileUtil.NAMECONFLICT_UNDEFINED;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Date;
 
@@ -908,6 +909,17 @@ public final class Directory extends TagImpl {
 		// TODO this is slow as it fetches attributes one at a time
 		// also Windows only!
 		return exists && !file.isWriteable() ? "R".concat(file.isHidden() ? "H" : "") : file.isHidden() ? "H" : "";
+	}
+
+	public static String getFileAttribute(Path path, boolean exists) {
+		String hidden;
+		try {
+			hidden = Files.isHidden(path) ? "H" : "";
+		}
+		catch (IOException e) {
+			hidden = "";
+		}
+		return exists && !Files.isWritable(path) ? "R".concat(hidden) : hidden;
 	}
 
 	/**

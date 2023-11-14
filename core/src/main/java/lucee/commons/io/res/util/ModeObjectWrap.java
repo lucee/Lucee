@@ -18,8 +18,11 @@
  **/
 package lucee.commons.io.res.util;
 
+import java.nio.file.Path;
+
 import lucee.commons.io.ModeUtil;
 import lucee.commons.io.res.Resource;
+import lucee.commons.io.res.type.file.FileResource;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Castable;
@@ -33,11 +36,16 @@ public final class ModeObjectWrap implements ObjectWrap, Castable {
 
 	private static final long serialVersionUID = -1630745501422006978L;
 
-	private final Resource res;
+	private Resource res;
+	private Path path;
 	private String mode = null;
 
 	public ModeObjectWrap(Resource res) {
 		this.res = res;
+	}
+
+	public ModeObjectWrap(Path path) {
+		this.path = path;
 	}
 
 	@Override
@@ -52,8 +60,14 @@ public final class ModeObjectWrap implements ObjectWrap, Castable {
 
 	@Override
 	public String toString() {
-		// print.dumpStack();
-		if (mode == null) mode = ModeUtil.toStringMode(res.getMode());
+		if (mode == null) {
+			if (res != null) {
+				mode = ModeUtil.toStringMode(((FileResource) res).getMode());
+			}
+			else {
+				mode = ModeUtil.toStringMode(FileResource.getMode(path));
+			}
+		}
 		return mode;
 	}
 
