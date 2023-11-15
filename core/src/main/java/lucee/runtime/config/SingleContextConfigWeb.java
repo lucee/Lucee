@@ -2022,4 +2022,9 @@ class SingleContextConfigWeb extends ConfigBase implements ConfigWebInner {
 		cs.checkMappings();
 	}
 
+	@Override
+	public String getMainLogger() {
+		return cs.getMainLogger();
+	}
+
 }

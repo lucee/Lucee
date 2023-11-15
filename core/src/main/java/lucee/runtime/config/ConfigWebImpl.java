@@ -1871,4 +1871,9 @@ public class ConfigWebImpl implements ConfigWebPro {
 	public void checkMappings() {
 		instance.checkMappings();
 	}
+
+	@Override
+	public String getMainLogger() {
+		return instance.getMainLogger();
+	}
 }

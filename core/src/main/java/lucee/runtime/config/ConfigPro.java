@@ -359,4 +359,6 @@ public interface ConfigPro extends Config {
 	public void setLastModified();
 
 	public boolean limitEvaluation();
+
+	public String getMainLogger();
 }

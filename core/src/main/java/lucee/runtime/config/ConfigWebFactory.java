@@ -83,6 +83,7 @@ import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.net.URLDecoder;
 import lucee.loader.engine.CFMLEngine;
+import lucee.loader.util.Util;
 import lucee.runtime.CFMLFactoryImpl;
 import lucee.runtime.Component;
 import lucee.runtime.Mapping;
@@ -2022,6 +2023,21 @@ public final class ConfigWebFactory extends ConfigFactory {
 		boolean hasCS = configServer != null;
 		Set<String> existing = new HashSet<>();
 		try {
+
+			// main logger
+			String mainLogger = ConfigWebUtil.getAsString("mainLogger", root, null);
+			if (!Util.isEmpty(mainLogger, true)) {
+				config.setMainLogger(mainLogger.trim());
+			}
+			else if (hasCS) {
+				config.setMainLogger(configServer.getMainLogger());
+			}
+			else {
+				mainLogger = SystemUtil.getSystemPropOrEnvVar("lucee.logging.main", null);
+				if (Util.isEmpty(mainLogger, true)) config.setMainLogger(mainLogger.trim());
+			}
+
+			// loggers
 			Struct loggers = ConfigWebUtil.getAsStruct("loggers", root);
 			String name, appenderArgs, tmp, layoutArgs;
 			ClassDefinition cdAppender, cdLayout;
