@@ -2036,7 +2036,14 @@ public final class ConfigWebFactory extends ConfigFactory {
 				mainLogger = SystemUtil.getSystemPropOrEnvVar("lucee.logging.main", null);
 				if (StringUtil.isEmpty(mainLogger, true)) config.setMainLogger(mainLogger.trim());
 			}
+		}
+		catch (Throwable t) {
+			print.e(t);
+			ExceptionUtil.rethrowIfNecessary(t);
+			log(config, null, t);
+		}
 
+		try {
 			// loggers
 			Struct loggers = ConfigWebUtil.getAsStruct("loggers", root);
 			String name, appenderArgs, tmp, layoutArgs;
@@ -2119,7 +2126,6 @@ public final class ConfigWebFactory extends ConfigFactory {
 			}
 		}
 		catch (Throwable t) {
-			print.e(t);
 			ExceptionUtil.rethrowIfNecessary(t);
 			log(config, null, t);
 		}
