@@ -62,7 +62,7 @@ public final class ModeObjectWrap implements ObjectWrap, Castable {
 	public String toString() {
 		if (mode == null) {
 			if (res != null) {
-				mode = ModeUtil.toStringMode(((FileResource) res).getMode());
+				mode = ModeUtil.toStringMode(res.getMode());
 			}
 			else {
 				mode = ModeUtil.toStringMode(FileResource.getMode(path));

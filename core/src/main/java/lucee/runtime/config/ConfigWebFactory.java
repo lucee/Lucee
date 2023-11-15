@@ -57,7 +57,6 @@ import org.osgi.framework.BundleException;
 import org.xml.sax.SAXException;
 
 import lucee.Info;
-import lucee.print;
 import lucee.commons.collection.MapFactory;
 import lucee.commons.date.TimeZoneConstants;
 import lucee.commons.date.TimeZoneUtil;
@@ -2038,7 +2037,6 @@ public final class ConfigWebFactory extends ConfigFactory {
 			}
 		}
 		catch (Throwable t) {
-			print.e(t);
 			ExceptionUtil.rethrowIfNecessary(t);
 			log(config, null, t);
 		}
