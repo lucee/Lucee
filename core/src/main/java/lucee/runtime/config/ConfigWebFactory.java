@@ -57,6 +57,7 @@ import org.osgi.framework.BundleException;
 import org.xml.sax.SAXException;
 
 import lucee.Info;
+import lucee.print;
 import lucee.commons.collection.MapFactory;
 import lucee.commons.date.TimeZoneConstants;
 import lucee.commons.date.TimeZoneUtil;
@@ -83,7 +84,6 @@ import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.net.URLDecoder;
 import lucee.loader.engine.CFMLEngine;
-import lucee.loader.util.Util;
 import lucee.runtime.CFMLFactoryImpl;
 import lucee.runtime.Component;
 import lucee.runtime.Mapping;
@@ -2026,7 +2026,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 
 			// main logger
 			String mainLogger = ConfigWebUtil.getAsString("mainLogger", root, null);
-			if (!Util.isEmpty(mainLogger, true)) {
+			if (!StringUtil.isEmpty(mainLogger, true)) {
 				config.setMainLogger(mainLogger.trim());
 			}
 			else if (hasCS) {
@@ -2034,7 +2034,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 			}
 			else {
 				mainLogger = SystemUtil.getSystemPropOrEnvVar("lucee.logging.main", null);
-				if (Util.isEmpty(mainLogger, true)) config.setMainLogger(mainLogger.trim());
+				if (StringUtil.isEmpty(mainLogger, true)) config.setMainLogger(mainLogger.trim());
 			}
 
 			// loggers
@@ -2119,6 +2119,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 			}
 		}
 		catch (Throwable t) {
+			print.e(t);
 			ExceptionUtil.rethrowIfNecessary(t);
 			log(config, null, t);
 		}
