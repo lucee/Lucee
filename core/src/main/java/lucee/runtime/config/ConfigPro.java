@@ -336,4 +336,6 @@ public interface ConfigPro extends Config {
 	public TimeSpan getApplicationPathhCacheTimeout();
 
 	public void updatePassword(String passwordOld, String passwordNew) throws PageException, IOException, SAXException, BundleException;
+
+	public String getMainLogger();
 }

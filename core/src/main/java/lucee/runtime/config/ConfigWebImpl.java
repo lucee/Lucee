@@ -675,4 +675,10 @@ public class ConfigWebImpl extends ConfigImpl implements ServletConfig, ConfigWe
 	public void checkPassword() throws PageException {
 		configServer.checkPassword();
 	}
+
+	@Override
+	public String getMainLogger() {
+		return configServer.getMainLogger();
+	}
+
 }

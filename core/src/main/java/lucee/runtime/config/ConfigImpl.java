@@ -71,6 +71,7 @@ import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.types.RefBoolean;
 import lucee.commons.net.IPRange;
 import lucee.loader.engine.CFMLEngine;
+import lucee.loader.util.Util;
 import lucee.runtime.CIPage;
 import lucee.runtime.Component;
 import lucee.runtime.Mapping;
@@ -424,6 +425,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	private ClassLoader envClassLoader;
 	private boolean fullNullSupport = false;
 	private static Object token = new Object();
+	private String mainLoggerName;
 
 	/**
 	 * @return the allowURLRequestTimeout
@@ -4070,4 +4072,14 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		}
 		return lock;
 	}
+
+	protected void setMainLogger(String mainLoggerName) {
+		if (!Util.isEmpty(mainLoggerName, true)) this.mainLoggerName = mainLoggerName.trim();
+	}
+
+	@Override
+	public String getMainLogger() {
+		return this.mainLoggerName;
+	}
+
 }

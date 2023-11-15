@@ -86,6 +86,7 @@ import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.net.URLDecoder;
 import lucee.loader.engine.CFMLEngine;
+import lucee.loader.util.Util;
 import lucee.runtime.CFMLFactoryImpl;
 import lucee.runtime.Component;
 import lucee.runtime.Mapping;
@@ -1925,6 +1926,17 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 	private static void _loadLoggers(ConfigServerImpl configServer, ConfigImpl config, Document doc, boolean isReload) {
 		boolean hasCS = configServer != null;
 		Set<String> existing = new HashSet<>();
+
+		// main logger
+		String mainLogger = SystemUtil.getSystemPropOrEnvVar("lucee.logging.main", null);
+		if (!Util.isEmpty(mainLogger, true)) {
+			config.setMainLogger(mainLogger.trim());
+		}
+		else if (hasCS) {
+			config.setMainLogger(configServer.getMainLogger());
+		}
+
+		// loggers
 		try {
 			Element parent = doc != null ? getChildByName(doc.getDocumentElement(), "logging") : null;
 			Element[] children = parent != null ? getChildren(parent, "logger") : new Element[0];
@@ -2156,8 +2168,8 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			try {
 				setDatasource(config, datasources, QOQ_DATASOURCE_NAME,
 						new ClassDefinitionImpl("org.hsqldb.jdbcDriver", "org.lucee.hsqldb", "2.7.2.jdk8", config.getIdentification()), "hypersonic-hsqldb", "", -1,
-						"jdbc:hsqldb:mem:tempQoQ;sql.regular_names=false;sql.enforce_strict_size=false;sql.enforce_types=false;", "sa", "", null, DEFAULT_MAX_CONNECTION, -1, -1, 60000, true, true, DataSource.ALLOW_ALL, false, false, null, new StructImpl(), "",
-						ParamSyntax.DEFAULT, false, false, false, false);
+						"jdbc:hsqldb:mem:tempQoQ;sql.regular_names=false;sql.enforce_strict_size=false;sql.enforce_types=false;", "sa", "", null, DEFAULT_MAX_CONNECTION, -1, -1,
+						60000, true, true, DataSource.ALLOW_ALL, false, false, null, new StructImpl(), "", ParamSyntax.DEFAULT, false, false, false, false);
 
 			}
 			catch (Throwable t) {

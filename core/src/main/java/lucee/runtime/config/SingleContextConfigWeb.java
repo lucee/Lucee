@@ -1681,4 +1681,9 @@ public class SingleContextConfigWeb extends ConfigBase implements ConfigWebPro {
 	public ConfigServerImpl getConfigServerImpl() {
 		return this.cs;
 	}
+
+	@Override
+	public String getMainLogger() {
+		return cs.getMainLogger();
+	}
 }
