@@ -2034,7 +2034,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 			}
 			else {
 				mainLogger = SystemUtil.getSystemPropOrEnvVar("lucee.logging.main", null);
-				if (StringUtil.isEmpty(mainLogger, true)) config.setMainLogger(mainLogger.trim());
+				if (!StringUtil.isEmpty(mainLogger, true)) config.setMainLogger(mainLogger.trim());
 			}
 		}
 		catch (Throwable t) {
