@@ -203,7 +203,7 @@ public class DirectoryEvery extends BIF {
 		sct.set(KeyConstants._level, level);
 		sct.set(KeyConstants._size, Double.valueOf(isDir ? 0 : Files.size(path)));
 		sct.set(KeyConstants._type, isDir ? "Dir" : "File");
-		sct.set(KeyConstants._dateLastModified, new DateTimeImpl(Files.getLastModifiedTime(path, null).toMillis(), false));
+		sct.set(KeyConstants._dateLastModified, new DateTimeImpl(Files.getLastModifiedTime(path).toMillis(), false));
 		if (modeSupported) sct.set(KeyConstants._mode, new ModeObjectWrap(path));
 		sct.set(KeyConstants._attributes, Directory.getFileAttribute(path, true));
 
