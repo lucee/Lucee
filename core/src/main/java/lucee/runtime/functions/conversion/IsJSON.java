@@ -28,8 +28,8 @@ public class IsJSON {
 	public static boolean call(PageContext pc, Object obj) {
 		String str = Caster.toString(obj, null);
 		if (StringUtil.isEmpty(str, true)) return false;
-
-		if (!(str.startsWith("{") && str.endsWith("}") || str.startsWith("[") && str.endsWith("]"))) {
+		str = str.trim();
+		if ((!str.startsWith("{") && !str.startsWith("[")) || (!str.endsWith("}") && !str.endsWith("]"))) {
 			return false;
 		}
 
@@ -41,5 +41,4 @@ public class IsJSON {
 			return false;
 		}
 	}
-
 }

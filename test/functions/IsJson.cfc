@@ -46,5 +46,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		assertFalse(isJson('{a:susi=1}'));
 	}
 
+	function testWhiteSpace() {
+		// we allow white space, even it is not really correct
+		assertTrue(isJson(' {a:susi=1} '));
+		assertTrue(isJson('	{a:susi=1}	'));
+		assertTrue(isJson('
+{a:susi=1}
+'));
+	}
 
 } 

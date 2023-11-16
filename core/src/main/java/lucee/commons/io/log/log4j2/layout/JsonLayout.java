@@ -337,11 +337,11 @@ public class JsonLayout extends AbstractStringLayout { // TODO <Serializable>
 	}
 
 	private static Object toJson(String strJson, Object defaultValue) {
-		if (StringUtil.isEmpty(strJson)) {
+		if (StringUtil.isEmpty(strJson, true)) {
 			return defaultValue;
 		}
-
-		if (!(strJson.startsWith("{") && strJson.endsWith("}") || strJson.startsWith("[") && strJson.endsWith("]"))) {
+		strJson = strJson.trim();
+		if ((!strJson.startsWith("{") && !strJson.startsWith("[")) || (!strJson.endsWith("}") && !strJson.endsWith("]"))) {
 			return defaultValue;
 		}
 
