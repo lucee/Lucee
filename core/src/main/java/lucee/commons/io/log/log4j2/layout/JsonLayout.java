@@ -37,11 +37,13 @@ import lucee.commons.lang.StringUtil;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.loader.util.Util;
 import lucee.runtime.PageContext;
+import lucee.runtime.PageContextImpl;
 import lucee.runtime.converter.ConverterException;
 import lucee.runtime.converter.JSONConverter;
 import lucee.runtime.converter.JSONDateFormat;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.interpreter.JSONExpressionInterpreter;
 import lucee.runtime.op.Caster;
 import lucee.runtime.security.Credential;
 import lucee.runtime.type.Array;
@@ -63,10 +65,10 @@ public class JsonLayout extends AbstractStringLayout { // TODO <Serializable>
 	private boolean doComma = true;
 	private final Charset charset;
 	private boolean compact;
-	private boolean complete;
 	private boolean hasEnvLoaded;
 	private Object token = new Object();
 	private StructImpl envs;
+	private boolean complete;
 	private String[] envNames;
 
 	// private static final DateFormat dateFormat = new DateFormat(Locale.US);
@@ -166,12 +168,26 @@ public class JsonLayout extends AbstractStringLayout { // TODO <Serializable>
 						}
 					}
 				}
+				// extract message
+				String strMSG;
 				if (jsonSupported) {
-					root.setEL("message", ((MultiformatMessage) msg).getFormattedMessage(FORMATS));
+					strMSG = ((MultiformatMessage) msg).getFormattedMessage(FORMATS);
 				}
 				else {
-					root.setEL("message", msg.getFormattedMessage());
+					strMSG = msg.getFormattedMessage();
 				}
+				if (strMSG == null) strMSG = "";
+
+				// split application name
+				int index = strMSG.indexOf("->");
+				String application;
+				if (index > -1) {
+					application = strMSG.substring(0, index);
+					strMSG = strMSG.substring(index + 2);
+				}
+				else application = "";
+				root.setEL("application", application);
+				root.setEL("message", toJson(strMSG, strMSG));
 			}
 
 			// Thrown
@@ -219,8 +235,10 @@ public class JsonLayout extends AbstractStringLayout { // TODO <Serializable>
 			// thread
 			{
 				Thread thread = Thread.currentThread();
-				root.setEL("threadId", thread.getId());
-				root.setEL("threadId", thread.getPriority());
+				Struct th = util.createStruct("linked");
+				th.setEL("id", thread.getId());
+				th.setEL("priority", thread.getPriority());
+				root.setEL("thread", th);
 			}
 
 			if (this.locationInfo) {
@@ -259,6 +277,11 @@ public class JsonLayout extends AbstractStringLayout { // TODO <Serializable>
 				}
 				else user = remoteUser.getUsername();
 				if (!Util.isEmpty(user, true)) root.setEL("authUser", user);
+
+				root.setEL("pageContextId", pc.getId());
+				if (pc instanceof PageContextImpl) {
+					root.setEL("requestId", ((PageContextImpl) pc).getRequestId());
+				}
 			}
 
 			// env var
@@ -311,6 +334,23 @@ public class JsonLayout extends AbstractStringLayout { // TODO <Serializable>
 			throw Caster.toPageRuntimeException(e);
 		}
 
+	}
+
+	private static Object toJson(String strJson, Object defaultValue) {
+		if (StringUtil.isEmpty(strJson)) {
+			return defaultValue;
+		}
+
+		if (!(strJson.startsWith("{") && strJson.endsWith("}") || strJson.startsWith("[") && strJson.endsWith("]"))) {
+			return defaultValue;
+		}
+
+		try {
+			return new JSONExpressionInterpreter().interpret(ThreadLocalPageContext.get(), strJson);
+		}
+		catch (PageException e) {
+			return defaultValue;
+		}
 	}
 
 	private Object createStacktrace(Creation util, StackTraceElement[] stackTraces, boolean stacktraceAsString) throws PageException {
