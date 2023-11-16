@@ -29,11 +29,6 @@ public class IsJSON {
 		String str = Caster.toString(obj, null);
 		if (StringUtil.isEmpty(str, true)) return false;
 
-		str = str.trim();
-		if ((!str.startsWith("{") && !str.startsWith("[")) || (!str.endsWith("}") && !str.endsWith("]"))) {
-			return false;
-		}
-
 		try {
 			new JSONExpressionInterpreter().interpret(pc, str);
 			return true;
