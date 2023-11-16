@@ -241,15 +241,6 @@ public class JsonLayout extends AbstractStringLayout { // TODO <Serializable>
 				root.setEL("thread", th);
 			}
 
-			// page context
-			PageContext pc = ThreadLocalPageContext.get();
-			if (pc != null) {
-				root.setEL("pageContextId", pc.getId());
-				if (pc instanceof PageContextImpl) {
-					root.setEL("requestId", ((PageContextImpl) pc).getRequestId());
-				}
-			}
-
 			if (this.locationInfo) {
 				StackTraceElement data = null;
 				for (StackTraceElement ste: Thread.currentThread().getStackTrace()) {
@@ -286,6 +277,11 @@ public class JsonLayout extends AbstractStringLayout { // TODO <Serializable>
 				}
 				else user = remoteUser.getUsername();
 				if (!Util.isEmpty(user, true)) root.setEL("authUser", user);
+
+				root.setEL("pageContextId", pc.getId());
+				if (pc instanceof PageContextImpl) {
+					root.setEL("requestId", ((PageContextImpl) pc).getRequestId());
+				}
 			}
 
 			// env var
