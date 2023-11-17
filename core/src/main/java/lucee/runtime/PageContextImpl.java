@@ -167,6 +167,7 @@ import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.Iterator;
 import lucee.runtime.type.KeyImpl;
+import lucee.runtime.type.LiteralValue;
 import lucee.runtime.type.Query;
 import lucee.runtime.type.SVArray;
 import lucee.runtime.type.Struct;
@@ -1245,7 +1246,45 @@ public final class PageContextImpl extends PageContext {
 		return undefined;
 	}
 
+	public Object us(Collection.Key key, Object value) throws PageException {
+		if (!undefined.isInitalized()) undefined.initialize(this);
+		undefined.set(key, value);
+		return value;
+	}
+
+	public Object us(Collection.Key key1, Collection.Key key2, Object value) throws PageException {
+		if (!undefined.isInitalized()) undefined.initialize(this);
+
+		Object o = undefined.get(key1, null);
+		if (o == null) {
+			o = undefined.set(key1, new StructImpl());
+		}
+		return set(o, key2, value);
+	}
+
+	public Object us(Collection.Key key1, Collection.Key key2, Collection.Key key3, Object value) throws PageException {
+		if (!undefined.isInitalized()) undefined.initialize(this);
+		// key 1
+		Object o = undefined.get(key1, null);
+		if (o == null) {
+			o = undefined.set(key1, new StructImpl());
+		}
+		return set(touch(o, key2), key3, value);
+	}
+
+	public Object us(Collection.Key key1, Collection.Key key2, Collection.Key key3, Collection.Key key4, Object value) throws PageException {
+		if (!undefined.isInitalized()) undefined.initialize(this);
+		// key 1
+		Object o = undefined.get(key1, null);
+		if (o == null) {
+			o = undefined.set(key1, new StructImpl());
+		}
+
+		return set(touch(touch(o, key2), key3), key4, value);
+	}
+
 	public Scope usl() {
+
 		if (!undefined.isInitalized()) undefined.initialize(this);
 		if (undefined.getCheckArguments()) return undefined.localScope();
 		return undefined;
@@ -1254,6 +1293,35 @@ public final class PageContextImpl extends PageContext {
 	@Override
 	public Variables variablesScope() {
 		return variables;
+	}
+
+	public Object vs(Collection.Key key, Object value) throws PageException {
+		variables.set(key, value);
+		return value;
+	}
+
+	public Object vs(Collection.Key key1, Collection.Key key2, Object value) throws PageException {
+		Object o = variables.get(key1, null);
+		if (o == null) {
+			o = variables.set(key1, new StructImpl());
+		}
+		return set(o, key2, value);
+	}
+
+	public Object vs(Collection.Key key1, Collection.Key key2, Collection.Key key3, Object value) throws PageException {
+		Object o = variables.get(key1, null);
+		if (o == null) {
+			o = variables.set(key1, new StructImpl());
+		}
+		return set(touch(o, key2), key3, value);
+	}
+
+	public Object vs(Collection.Key key1, Collection.Key key2, Collection.Key key3, Collection.Key key4, Object value) throws PageException {
+		Object o = variables.get(key1, null);
+		if (o == null) {
+			o = variables.set(key1, new StructImpl());
+		}
+		return set(touch(touch(o, key2), key3), key4, value);
 	}
 
 	@Override
@@ -1317,9 +1385,53 @@ public final class PageContextImpl extends PageContext {
 
 	@Override
 	public Local localScope() {
-		// if(local==localUnsupportedScope)
-		// throw new PageRuntimeException(new ExpressionException("Unsupported Context for Local Scope"));
 		return local;
+	}
+
+	public Object ls(Collection.Key key, Object value) throws PageException {
+		if (!undefined.getCheckArguments()) return us(KeyConstants._local, key, value);
+
+		local.set(key, value);
+		return value;
+	}
+
+	public Object ls(Collection.Key key1, Collection.Key key2, Object value) throws PageException {
+		if (!undefined.getCheckArguments()) return us(KeyConstants._local, key1, key2, value);
+
+		Object o = local.get(key1, null);
+		if (o == null) {
+			o = local.set(key1, new StructImpl());
+		}
+		return set(o, key2, value);
+	}
+
+	public Object ls(Collection.Key key1, Collection.Key key2, Collection.Key key3, Object value) throws PageException {
+		if (!undefined.getCheckArguments()) return us(KeyConstants._local, key1, key2, key3, value);
+
+		Object o = local.get(key1, null);
+		if (o == null) {
+			o = local.set(key1, new StructImpl());
+		}
+		return set(touch(o, key2), key3, value);
+	}
+
+	public Object ls(Collection.Key key1, Collection.Key key2, Collection.Key key3, Collection.Key key4, Object value) throws PageException {
+		LiteralValue.toNumber(this, 1L);
+
+		if (!undefined.getCheckArguments()) {
+			if (!undefined.isInitalized()) undefined.initialize(this);
+			Object o = undefined.get(KeyConstants._local, null);
+			if (o == null) {
+				o = undefined.set(KeyConstants._local, new StructImpl());
+			}
+			return set(touch(touch(touch(o, key1), key2), key3), key4, value);
+		}
+
+		Object o = local.get(key1, null);
+		if (o == null) {
+			o = local.set(key1, new StructImpl());
+		}
+		return set(touch(touch(o, key2), key3), key4, value);
 	}
 
 	@Override
