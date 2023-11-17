@@ -806,6 +806,7 @@ public class KeyConstants {
 	public static final Key _attributecollection = KeyImpl._const("attributecollection");
 	public static final Key _attributeCollection = KeyImpl._const("attributeCollection");
 	public static final Key _secure = KeyImpl._const("secure");
+	public static final Key _partitioned = KeyImpl._const("partitioned");
 	public static final Key _httponly = KeyImpl._const("httponly");
 	public static final Key _domain = KeyImpl._const("domain");
 	public static final Key _preservecase = KeyImpl._const("preservecase");
@@ -1084,6 +1085,7 @@ public class KeyConstants {
 	public static final Key _COOKIE = KeyImpl._const("COOKIE");
 	public static final Key _RAWERROR = KeyImpl._const("RAWERROR");
 	public static final Key _HTTPONLY = KeyImpl._const("HTTPONLY");
+	public static final Key _PARTITIONED = KeyImpl._const("PARTITIONED");
 	public static final Key _GETAPPFOLDERPATH = KeyImpl._const("GETAPPFOLDERPATH");
 	public static final Key _PASSWORDWEB = KeyImpl._const("PASSWORDWEB");
 	public static final Key _ADDTOKEN = KeyImpl._const("ADDTOKEN");

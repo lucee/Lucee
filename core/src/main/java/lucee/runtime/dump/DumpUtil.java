@@ -229,6 +229,7 @@ public class DumpUtil {
 			table.appendRow(1, new SimpleDumpData("domain"), new SimpleDumpData(c.getDomain()));
 			table.appendRow(1, new SimpleDumpData("httpOnly"), new SimpleDumpData(CookieImpl.isHTTPOnly(c)));
 			table.appendRow(1, new SimpleDumpData("comment"), new SimpleDumpData(c.getComment()));
+			table.appendRow(1, new SimpleDumpData("partitioned"), new SimpleDumpData(CookieImpl.isPartitioned(c)));
 			return table;
 		}
 		// Resource
