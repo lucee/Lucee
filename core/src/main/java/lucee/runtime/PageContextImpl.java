@@ -1279,7 +1279,6 @@ public final class PageContextImpl extends PageContext {
 		if (o == null) {
 			o = undefined.set(key1, new StructImpl());
 		}
-
 		return set(touch(touch(o, key2), key3), key4, value);
 	}
 
