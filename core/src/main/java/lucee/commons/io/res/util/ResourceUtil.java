@@ -390,7 +390,7 @@ public final class ResourceUtil {
 	 */
 	public static Resource toExactResource(Resource res) {
 		res = getCanonicalResourceEL(res);
-		if (res.getResourceProvider().isCaseSensitive()) {
+		if (res.getResourceProvider().isCaseSensitive() && !"s3".equalsIgnoreCase(res.getResourceProvider().getScheme())) {
 			if (res.exists()) return res;
 			return _check(res);
 
