@@ -54,4 +54,9 @@ public final class TarResourceProvider extends CompressResourceProvider {
 	public char getSeparator() {
 		return '/';
 	}
+
+	@Override
+	public boolean allowMatching() {
+		return false;
+	}
 }

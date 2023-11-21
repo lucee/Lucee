@@ -22,10 +22,13 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Method;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import lucee.commons.digest.Hash;
 import lucee.commons.io.IOUtil;
@@ -57,6 +60,7 @@ import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.functions.system.ExpandPath;
+import lucee.runtime.op.Caster;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.ListUtil;
 
@@ -98,6 +102,7 @@ public final class ResourceUtil {
 	public static final short LEVEL_GRAND_PARENT_FILE = 2;
 
 	public static final HashMap<String, String> EXT_MT = new HashMap<String, String>();
+	private static Map<String, Boolean> allowMatchings = new ConcurrentHashMap<>();
 	static {
 		EXT_MT.put("ai", "application/postscript");
 		EXT_MT.put("aif", "audio/x-aiff");
@@ -395,12 +400,16 @@ public final class ResourceUtil {
 	 */
 	public static Resource toExactResource(Resource res) {
 		res = getCanonicalResourceEL(res);
-		if (res.getResourceProvider().isCaseSensitive()) {
+		if (res.getResourceProvider().isCaseSensitive() && toResourceProviderPro(res.getResourceProvider()).allowMatching()) {
 			if (res.exists()) return res;
 			return _check(res);
-
 		}
 		return res;
+	}
+
+	private static ResourceProviderPro toResourceProviderPro(ResourceProvider provider) {
+		if (provider instanceof ResourceProviderPro) return (ResourceProviderPro) provider;
+		return new ResourceProviderWrapper(provider);
 	}
 
 	private static Resource _check(Resource file) {
@@ -414,12 +423,11 @@ public final class ResourceUtil {
 			if (op == parent) return file;
 			if ((file = parent.getRealResource(file.getName())).exists()) return file;
 		}
-
-		String[] files = parent.list();
-		if (files == null) return file;
-		String name = file.getName();
-		for (int i = 0; i < files.length; i++) {
-			if (name.equalsIgnoreCase(files[i])) return parent.getRealResource(files[i]);
+		// we filter so the VFS Resource must not provide all the entries in the directory
+		String[] names = parent.list(new ExactMatchFilter(file.getName()));
+		if (names == null) return file;
+		for (String name: names) {
+			return parent.getRealResource(name);
 		}
 		return file;
 	}
@@ -1589,5 +1597,28 @@ public final class ResourceUtil {
 		if (res instanceof FileResource) {
 			((FileResource) res).deleteOnExit();
 		}
+	}
+
+	public static boolean allowMatching(ResourceProvider provider, boolean defaultValue) {
+		String key = provider.getScheme() + ":" + provider.hashCode();
+		Boolean am = allowMatchings.get(key);
+		if (am == null) {
+			synchronized (SystemUtil.createToken("resources", key)) {
+				am = allowMatchings.get(key);
+				if (am == null) {
+					try {
+						Method m = provider.getClass().getMethod("allowMatching", new Class[] {});
+						boolean res = Caster.toBooleanValue(m.invoke(provider, new Object[] {}), defaultValue);
+						allowMatchings.put(key, res);
+						return res;
+					}
+					catch (Exception e) {
+						allowMatchings.put(key, defaultValue);
+						return defaultValue;
+					}
+				}
+			}
+		}
+		return am;
 	}
 }

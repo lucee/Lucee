@@ -54,4 +54,9 @@ public final class TGZResourceProvider extends CompressResourceProvider {
 	public char getSeparator() {
 		return '/';
 	}
+
+	@Override
+	public boolean allowMatching() {
+		return false;
+	}
 }
