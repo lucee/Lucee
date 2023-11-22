@@ -547,7 +547,7 @@ public final class Directory extends TagImpl {
 	}
 
 	private static int _fillQueryAll(Query query, Resource directory, ResourceFilter filter, int count, boolean hasMeta, boolean recurse) throws PageException, IOException {
-		Resource[] list = directory.listResources();
+		Resource[] list = filter == null ? directory.listResources() : directory.listResources(filter);
 
 		if (list == null || list.length == 0) return count;
 		String dir = directory.getCanonicalPath();
@@ -557,26 +557,25 @@ public final class Directory extends TagImpl {
 		boolean modeSupported = directory.getResourceProvider().isModeSupported();
 		for (int i = 0; i < list.length; i++) {
 			isDir = list[i].isDirectory();
-			if (filter == null || filter.accept(list[i])) {
-				query.addRow(1);
-				count++;
-				query.setAt(KeyConstants._name, count, list[i].getName());
-				query.setAt(KeyConstants._size, count, Double.valueOf(isDir ? 0 : list[i].length()));
-				query.setAt(KeyConstants._type, count, isDir ? "Dir" : "File");
-				if (modeSupported) {
-					query.setAt(MODE, count, new ModeObjectWrap(list[i]));
-				}
-				query.setAt(DATE_LAST_MODIFIED, count, new Date(list[i].lastModified()));
-				// TODO File Attributes are Windows only...
-				// this is slow as it fetches each the attributes one at a time
-				query.setAt(ATTRIBUTES, count, getFileAttribute(list[i], true));
-
-				if (hasMeta) {
-					query.setAt(META, count, ((ResourceMetaData) list[i]).getMetaData());
-				}
-
-				query.setAt(DIRECTORY, count, dir);
+			query.addRow(1);
+			count++;
+			query.setAt(KeyConstants._name, count, list[i].getName());
+			query.setAt(KeyConstants._size, count, Double.valueOf(isDir ? 0 : list[i].length()));
+			query.setAt(KeyConstants._type, count, isDir ? "Dir" : "File");
+			if (modeSupported) {
+				query.setAt(MODE, count, new ModeObjectWrap(list[i]));
 			}
+			query.setAt(DATE_LAST_MODIFIED, count, new Date(list[i].lastModified()));
+			// TODO File Attributes are Windows only...
+			// this is slow as it fetches each the attributes one at a time
+			query.setAt(ATTRIBUTES, count, getFileAttribute(list[i], true));
+
+			if (hasMeta) {
+				query.setAt(META, count, ((ResourceMetaData) list[i]).getMetaData());
+			}
+
+			query.setAt(DIRECTORY, count, dir);
+
 			if (recurse && isDir) count = _fillQueryAll(query, list[i], filter, count, hasMeta, recurse);
 		}
 		return count;
@@ -586,14 +585,12 @@ public final class Directory extends TagImpl {
 	private static int _fillQueryNames(Query query, Resource directory, ResourceFilter filter, int count) throws PageException {
 		if (filter == null || filter instanceof ResourceNameFilter) {
 			ResourceNameFilter rnf = filter == null ? null : (ResourceNameFilter) filter;
-			String[] list = directory.list();
+			String[] list = filter == null ? directory.list() : directory.list(rnf);
 			if (list == null || list.length == 0) return count;
 			for (int i = 0; i < list.length; i++) {
-				if (rnf == null || rnf.accept(directory, list[i])) {
-					query.addRow(1);
-					count++;
-					query.setAt(KeyConstants._name, count, list[i]);
-				}
+				query.addRow(1);
+				count++;
+				query.setAt(KeyConstants._name, count, list[i]);
 			}
 		}
 		else {
@@ -626,14 +623,11 @@ public final class Directory extends TagImpl {
 	}
 
 	private static int _fillArrayPathOrName(Array arr, Resource directory, ResourceFilter filter, int count, boolean recurse, boolean onlyName) throws PageException {
-		Resource[] list = directory.listResources();
+		Resource[] list = filter == null ? directory.listResources() : directory.listResources(filter);
 		if (list == null || list.length == 0) return count;
 		for (int i = 0; i < list.length; i++) {
-			if (filter == null || filter.accept(list[i])) {
-				arr.appendEL(onlyName ? list[i].getName() : list[i].getAbsolutePath());
-				count++;
-
-			}
+			arr.appendEL(onlyName ? list[i].getName() : list[i].getAbsolutePath());
+			count++;
 			if (recurse && list[i].isDirectory()) count = _fillArrayPathOrName(arr, list[i], filter, count, recurse, onlyName);
 		}
 		return count;
