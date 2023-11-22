@@ -1747,7 +1747,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 			Map<String, Mapping> mappings = MapFactory.<String, Mapping>getConcurrentMap();
 			Mapping tmp;
 
-			boolean finished = false;
+			boolean finished = config instanceof ConfigServer;
 
 			if (configServer != null && config instanceof ConfigWeb) {
 				Mapping[] sm = configServer.getMappings();
