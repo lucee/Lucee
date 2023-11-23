@@ -917,6 +917,23 @@ public final class PageSourceImpl implements PageSource {
 		return mapping.getPageSource(realPath, _isOutSide.toBooleanValue());
 	}
 
+	public Resource getRealResource(String realPath) {
+		if (realPath.equals(".") || realPath.equals("..")) realPath += '/';
+		else realPath = realPath.replace('\\', '/');
+		RefBoolean _isOutSide = new RefBooleanImpl(isOutSide);
+
+		if (realPath.indexOf('/') == 0) {
+			_isOutSide.setValue(false);
+		}
+		else if (realPath.startsWith("./")) {
+			realPath = mergeRealPathes(mapping, this.relPath, realPath.substring(2), _isOutSide);
+		}
+		else {
+			realPath = mergeRealPathes(mapping, this.relPath, realPath, _isOutSide);
+		}
+		return mapping.getResource(realPath, _isOutSide.toBooleanValue());
+	}
+
 	@Override
 	public final void setLastAccessTime(long lastAccess) {
 		this.lastAccess = lastAccess;
@@ -1007,6 +1024,15 @@ public final class PageSourceImpl implements PageSource {
 		if (arr.length == 1) return arr[0];
 		for (int i = 0; i < arr.length; i++) {
 			if (pageExist(arr[i])) return arr[i];
+		}
+		return arr[0];
+	}
+
+	public static Resource best(Resource[] arr) {
+		if (ArrayUtil.isEmpty(arr)) return null;
+		if (arr.length == 1) return arr[0];
+		for (int i = 0; i < arr.length; i++) {
+			if (arr[i] != null && arr[i].exists()) return arr[i];
 		}
 		return arr[0];
 	}

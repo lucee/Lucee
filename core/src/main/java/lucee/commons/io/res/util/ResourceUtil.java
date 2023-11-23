@@ -33,6 +33,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import lucee.commons.digest.Hash;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
+import lucee.commons.io.log.Log;
+import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.ContentType;
 import lucee.commons.io.res.ContentTypeImpl;
 import lucee.commons.io.res.Resource;
@@ -54,6 +56,7 @@ import lucee.runtime.PageSource;
 import lucee.runtime.PageSourceImpl;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigWeb;
+import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.config.Constants;
 import lucee.runtime.engine.ThreadLocalPageContext;
@@ -221,12 +224,13 @@ public final class ResourceUtil {
 		if (StringUtil.startsWith(path, '/')) {
 			PageContextImpl pci = (PageContextImpl) pc;
 			ConfigWeb cw = pc.getConfig();
-			PageSource[] sources = cw.getPageSources(pci, ExpandPath.mergeMappings(pc.getApplicationContext().getMappings(), pc.getApplicationContext().getComponentMappings()),
-					path, false, pci.useSpecialMappings(), true, false);
-			if (!ArrayUtil.isEmpty(sources)) {
 
+			Resource[] sources = ((ConfigWebPro) cw).getResources(pci,
+					ExpandPath.mergeMappings(pc.getApplicationContext().getMappings(), pc.getApplicationContext().getComponentMappings()), path, false, pci.useSpecialMappings(),
+					true, false, false);
+			if (!ArrayUtil.isEmpty(sources)) {
 				for (int i = 0; i < sources.length; i++) {
-					if (sources[i].exists()) return sources[i].getResource();
+					if (sources[i].exists()) return sources[i];
 				}
 			}
 		}
@@ -297,12 +301,15 @@ public final class ResourceUtil {
 		if (StringUtil.startsWith(destination, '/')) {
 			PageContextImpl pci = (PageContextImpl) pc;
 			ConfigWeb cw = pc.getConfig();
-			PageSource[] sources = cw.getPageSources(pci, ExpandPath.mergeMappings(pc.getApplicationContext().getMappings(), pc.getApplicationContext().getComponentMappings()),
-					destination, false, pci.useSpecialMappings(), true);
+
+			Resource[] sources = ((ConfigWebPro) cw).getResources(pci,
+					ExpandPath.mergeMappings(pc.getApplicationContext().getMappings(), pc.getApplicationContext().getComponentMappings()), destination, false,
+					pci.useSpecialMappings(), false, true, false);
+
 			if (!ArrayUtil.isEmpty(sources)) {
 				for (int i = 0; i < sources.length; i++) {
 					if (sources[i].exists() || parentExists(sources[i])) {
-						res = sources[i].getResource();
+						res = sources[i];
 						if (res != null) return res;
 					}
 				}
@@ -342,11 +349,12 @@ public final class ResourceUtil {
 		if (!(isUNC = isUNCPath(destination)) && StringUtil.startsWith(destination, '/')) {
 			PageContextImpl pci = (PageContextImpl) pc;
 			ConfigWeb cw = pc.getConfig();
-			PageSource[] sources = cw.getPageSources(pci, ExpandPath.mergeMappings(pc.getApplicationContext().getMappings(), pc.getApplicationContext().getComponentMappings()),
-					destination, false, pci.useSpecialMappings(), SystemUtil.isWindows(), checkComponentMappings);
+			Resource[] sources = ((ConfigWebPro) cw).getResources(pci,
+					ExpandPath.mergeMappings(pc.getApplicationContext().getMappings(), pc.getApplicationContext().getComponentMappings()), destination, false,
+					pci.useSpecialMappings(), SystemUtil.isWindows(), checkComponentMappings, false);
 			if (!ArrayUtil.isEmpty(sources)) {
 				for (int i = 0; i < sources.length; i++) {
-					res = sources[i].getResource();
+					res = sources[i];
 					if (res != null) return res;
 				}
 			}
@@ -363,13 +371,21 @@ public final class ResourceUtil {
 	}
 
 	private static Resource getRealResource(PageContext pc, String destination, Resource defaultValue) {
-		PageSource ps = pc.getCurrentPageSource();
+		PageSource ps = pc.getCurrentPageSource(null);
 		if (ps != null) {
-			ps = ps.getRealPage(destination);
+			if (ps instanceof PageSourceImpl) {
+				Resource res = ((PageSourceImpl) ps).getRealResource(destination);
+				if (res != null) return res;
+			}
 
+			// we should no longer come ever to this point
+			LogUtil.log(Log.LEVEL_ERROR, "resources", "expected PageSoucre to be from type PageSourceImpl, but it is not, it is [" + ps.getClass().getName() + "]");
+			ps = ps.getRealPage(destination);
 			if (ps != null) {
 				Resource res = ps.getResource();
-				if (res != null) return getCanonicalResourceEL(res);
+				if (res != null) {
+					return getCanonicalResourceEL(res);
+				}
 			}
 
 		}

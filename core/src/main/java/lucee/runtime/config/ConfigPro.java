@@ -361,4 +361,7 @@ public interface ConfigPro extends Config {
 	public boolean limitEvaluation();
 
 	public String getMainLogger();
+
+	public Resource[] getResources(PageContext pc, Mapping[] mappings, String realPath, boolean onlyTopLevel, boolean useSpecialMappings, boolean useDefaultMapping,
+			boolean useComponentMappings, boolean onlyFirstMatch);
 }

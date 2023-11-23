@@ -1126,6 +1126,12 @@ public class ConfigWebImpl implements ConfigWebPro {
 	}
 
 	@Override
+	public Resource[] getResources(lucee.runtime.PageContext arg0, lucee.runtime.Mapping[] arg1, java.lang.String arg2, boolean arg3, boolean arg4, boolean arg5, boolean arg6,
+			boolean arg7) {
+		return instance.getResources(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7);
+	}
+
+	@Override
 	public lucee.runtime.engine.ExecutionLogFactory getExecutionLogFactory() {
 		return instance.getExecutionLogFactory();
 	}

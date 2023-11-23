@@ -39,6 +39,7 @@ import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
 import lucee.runtime.PageSourceImpl;
 import lucee.runtime.config.Config;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.config.Constants;
 import lucee.runtime.dump.DumpData;
@@ -271,9 +272,10 @@ public abstract class PageExceptionImpl extends PageException {
 						dspPath = si.relativePath;
 						res = ResourceUtil.toResourceNotExisting(ThreadLocalPageContext.get(), si.relativePath, true, true);
 						if (!res.exists()) {
-							PageSource _ps = PageSourceImpl.best(config.getPageSources(ThreadLocalPageContext.get(), null, si.relativePath, false, false, true));
-							if (_ps != null && _ps.exists()) {
-								res = _ps.getResource();
+							Resource _res = PageSourceImpl
+									.best(((ConfigPro) config).getResources(ThreadLocalPageContext.get(), null, si.relativePath, false, false, true, false, true));
+							if (_res != null && _res.exists()) {
+								res = _res;
 								if (res != null && res.exists()) dspPath = res.getAbsolutePath();
 							}
 							else dspPath = res.getAbsolutePath();

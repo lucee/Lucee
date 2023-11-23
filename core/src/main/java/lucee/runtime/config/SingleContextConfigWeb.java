@@ -395,6 +395,12 @@ class SingleContextConfigWeb extends ConfigBase implements ConfigWebInner {
 	}
 
 	@Override
+	public Resource[] getResources(PageContext pc, Mapping[] mappings, String realPath, boolean onlyTopLevel, boolean useSpecialMappings, boolean useDefaultMapping,
+			boolean useComponentMappings, boolean onlyFirstMatch) {
+		return ConfigWebUtil.getResources(pc, this, mappings, realPath, onlyTopLevel, useSpecialMappings, useDefaultMapping, useComponentMappings, onlyFirstMatch);
+	}
+
+	@Override
 	public Resource getPhysical(Mapping[] mappings, String realPath, boolean alsoDefaultMapping) {
 		throw new PageRuntimeException(new DeprecatedException("method not supported"));
 	}

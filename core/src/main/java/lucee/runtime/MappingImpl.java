@@ -409,6 +409,24 @@ public final class MappingImpl implements Mapping {
 		return getPageSource(realPath, isOutSide);
 	}
 
+	public Resource getResource(String realPath) {
+		// TODO merge the functionality with the method above
+		boolean isOutSide = false;
+		realPath = realPath.replace('\\', '/');
+		if (realPath.indexOf('/') != 0) {
+			if (realPath.startsWith("../")) {
+				isOutSide = true;
+			}
+			else if (realPath.startsWith("./")) {
+				realPath = realPath.substring(1);
+			}
+			else {
+				realPath = "/" + realPath;
+			}
+		}
+		return getResource(realPath, isOutSide);
+	}
+
 	@Override
 	public PageSource getPageSource(String path, boolean isOut) {
 		PageSource source = pageSourcePool.getPageSource(path, true);
@@ -418,6 +436,18 @@ public final class MappingImpl implements Mapping {
 		pageSourcePool.setPage(path, newSource);
 
 		return newSource;// new PageSource(this,path);
+	}
+
+	/**
+	 * in contrust to getPageSource this function will not store the requested path in the pool and
+	 * 
+	 * @param path
+	 * @param isOut
+	 * @return
+	 */
+	public Resource getResource(String path, boolean isOut) {
+		// TODO rewrite so PageSourceImpl not need to be loaded
+		return new PageSourceImpl(this, path, isOut).getResource();
 	}
 
 	// to not delete,used for argus monitor!

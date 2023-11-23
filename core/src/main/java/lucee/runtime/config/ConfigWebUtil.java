@@ -50,6 +50,7 @@ import lucee.commons.lang.StringUtil;
 import lucee.loader.engine.CFMLEngine;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.Mapping;
+import lucee.runtime.MappingImpl;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
@@ -905,12 +906,26 @@ public final class ConfigWebUtil {
 
 	public static PageSource[] getPageSources(PageContext pc, ConfigPro config, Mapping[] mappings, String realPath, boolean onlyTopLevel, boolean useSpecialMappings,
 			boolean useDefaultMapping, boolean useComponentMappings, boolean onlyFirstMatch) {
+		return (PageSource[]) getSources(pc, config, mappings, realPath, onlyTopLevel, useSpecialMappings, useDefaultMapping, useComponentMappings, onlyFirstMatch, true);
+	}
+
+	public static Resource[] getResources(PageContext pc, ConfigPro config, Mapping[] mappings, String realPath, boolean onlyTopLevel, boolean useSpecialMappings,
+			boolean useDefaultMapping, boolean useComponentMappings, boolean onlyFirstMatch) {
+		return (Resource[]) getSources(pc, config, mappings, realPath, onlyTopLevel, useSpecialMappings, useDefaultMapping, useComponentMappings, onlyFirstMatch, false);
+	}
+
+	/**
+	 * get sources, can be PageSource or Resource based on "asPageSource" is true or false
+	 */
+	private static Object[] getSources(PageContext pc, ConfigPro config, Mapping[] mappings, String realPath, boolean onlyTopLevel, boolean useSpecialMappings,
+			boolean useDefaultMapping, boolean useComponentMappings, boolean onlyFirstMatch, boolean asPageSource) {
 		realPath = realPath.replace('\\', '/');
 		String lcRealPath = StringUtil.toLowerCase(realPath) + '/';
 		Mapping mapping;
 		Mapping rootApp = null;
 		PageSource ps;
-		List<PageSource> list = new ArrayList<PageSource>();
+		Resource res;
+		List list = asPageSource ? new ArrayList<PageSource>() : new ArrayList<Resource>();
 
 		if (mappings != null) {
 			for (int i = 0; i < mappings.length; i++) {
@@ -921,9 +936,19 @@ public final class ConfigWebUtil {
 					continue;
 				}
 				if (lcRealPath.startsWith(mapping.getVirtualLowerCaseWithSlash(), 0)) {
-					ps = mapping.getPageSource(realPath.substring(mapping.getVirtual().length()));
-					if (onlyFirstMatch) return new PageSource[] { ps };
-					else list.add(ps);
+					if (asPageSource) {
+						ps = mapping.getPageSource(realPath.substring(mapping.getVirtual().length()));
+						if (onlyFirstMatch) return new PageSource[] { ps };
+						else list.add(ps);
+					}
+					else {
+						if (mapping instanceof MappingImpl) res = ((MappingImpl) mapping).getResource(realPath.substring(mapping.getVirtual().length()));
+						else res = mapping.getPageSource(realPath.substring(mapping.getVirtual().length())).getResource();
+
+						if (onlyFirstMatch) return new Resource[] { res };
+						else list.add(res);
+					}
+
 				}
 			}
 		}
@@ -936,10 +961,20 @@ public final class ConfigWebUtil {
 					: new Mapping[] { config.getDefaultTagMapping() };
 			if (lcRealPath.startsWith(virtual, 0)) {
 				for (int i = 0; i < tagMappings.length; i++) {
-					ps = tagMappings[i].getPageSource(realPath.substring(virtual.length()));
-					if (ps.exists()) {
-						if (onlyFirstMatch) return new PageSource[] { ps };
-						else list.add(ps);
+					if (asPageSource) {
+						ps = tagMappings[i].getPageSource(realPath.substring(virtual.length()));
+						if (ps.exists()) {
+							if (onlyFirstMatch) return new PageSource[] { ps };
+							else list.add(ps);
+						}
+					}
+					else {
+						if (tagMappings[i] instanceof MappingImpl) res = ((MappingImpl) tagMappings[i]).getResource(realPath.substring(virtual.length()));
+						else res = tagMappings[i].getPageSource(realPath.substring(virtual.length())).getResource();
+						if (res.exists()) {
+							if (onlyFirstMatch) return new Resource[] { res };
+							else list.add(res);
+						}
 					}
 				}
 			}
@@ -949,10 +984,20 @@ public final class ConfigWebUtil {
 			virtual = "/mapping-customtag";
 			if (lcRealPath.startsWith(virtual, 0)) {
 				for (int i = 0; i < tagMappings.length; i++) {
-					ps = tagMappings[i].getPageSource(realPath.substring(virtual.length()));
-					if (ps.exists()) {
-						if (onlyFirstMatch) return new PageSource[] { ps };
-						else list.add(ps);
+					if (asPageSource) {
+						ps = tagMappings[i].getPageSource(realPath.substring(virtual.length()));
+						if (ps.exists()) {
+							if (onlyFirstMatch) return new PageSource[] { ps };
+							else list.add(ps);
+						}
+					}
+					else {
+						if (tagMappings[i] instanceof MappingImpl) res = ((MappingImpl) tagMappings[i]).getResource(realPath.substring(virtual.length()));
+						else res = tagMappings[i].getPageSource(realPath.substring(virtual.length())).getResource();
+						if (res.exists()) {
+							if (onlyFirstMatch) return new Resource[] { res };
+							else list.add(res);
+						}
 					}
 				}
 			}
@@ -964,10 +1009,20 @@ public final class ConfigWebUtil {
 			if (isCFC) {
 				Mapping[] cmappings = config.getComponentMappings();
 				for (int i = 0; i < cmappings.length; i++) {
-					ps = cmappings[i].getPageSource(realPath);
-					if (ps.exists()) {
-						if (onlyFirstMatch) return new PageSource[] { ps };
-						else list.add(ps);
+					if (asPageSource) {
+						ps = cmappings[i].getPageSource(realPath);
+						if (ps.exists()) {
+							if (onlyFirstMatch) return new PageSource[] { ps };
+							else list.add(ps);
+						}
+					}
+					else {
+						if (cmappings[i] instanceof MappingImpl) res = ((MappingImpl) cmappings[i]).getResource(realPath);
+						else res = cmappings[i].getPageSource(realPath).getResource();
+						if (res.exists()) {
+							if (onlyFirstMatch) return new Resource[] { res };
+							else list.add(res);
+						}
 					}
 				}
 			}
@@ -979,20 +1034,38 @@ public final class ConfigWebUtil {
 		for (int i = 0; i < thisMappings.length - 1; i++) {
 			mapping = thisMappings[i];
 			if ((!onlyTopLevel || mapping.isTopLevel()) && lcRealPath.startsWith(mapping.getVirtualLowerCaseWithSlash(), 0)) {
-				ps = mapping.getPageSource(realPath.substring(mapping.getVirtual().length()));
-				if (onlyFirstMatch) return new PageSource[] { ps };
-				else list.add(ps);
+				if (asPageSource) {
+					ps = mapping.getPageSource(realPath.substring(mapping.getVirtual().length()));
+					if (onlyFirstMatch) return new PageSource[] { ps };
+					else list.add(ps);
+				}
+				else {
+					if (mapping instanceof MappingImpl) res = ((MappingImpl) mapping).getResource(realPath.substring(mapping.getVirtual().length()));
+					else res = mapping.getPageSource(realPath.substring(mapping.getVirtual().length())).getResource();
+
+					if (onlyFirstMatch) return new Resource[] { res };
+					else list.add(res);
+				}
 			}
 		}
 
 		if (useDefaultMapping) {
 			if (rootApp != null) mapping = rootApp;
 			else mapping = thisMappings[thisMappings.length - 1];
-			ps = mapping.getPageSource(realPath);
-			if (onlyFirstMatch) return new PageSource[] { ps };
-			else list.add(ps);
+			if (asPageSource) {
+				ps = mapping.getPageSource(realPath);
+				if (onlyFirstMatch) return new PageSource[] { ps };
+				else list.add(ps);
+			}
+			else {
+				if (mapping instanceof MappingImpl) res = ((MappingImpl) mapping).getResource(realPath);
+				else res = mapping.getPageSource(realPath).getResource();
+				if (onlyFirstMatch) return new Resource[] { res };
+				else list.add(res);
+			}
 		}
-		return list.toArray(new PageSource[list.size()]);
+		if (asPageSource) return list.toArray(new PageSource[list.size()]);
+		else return list.toArray(new Resource[list.size()]);
 	}
 
 	public static PageSource getPageSourceExisting(PageContext pc, ConfigPro config, Mapping[] mappings, String realPath, boolean onlyTopLevel, boolean useSpecialMappings,
