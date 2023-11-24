@@ -594,26 +594,28 @@ public final class ConfigAdmin {
 		}
 	}
 
-	static void updateMapping(ConfigPro config, String virtual, String physical, String archive, String primary, short inspect, boolean toplevel, int listenerMode,
-			int listenerType, boolean readonly, boolean reload) throws IOException, PageException, BundleException, ConverterException {
+	static void updateMapping(ConfigPro config, String virtual, String physical, String archive, String primary, short inspect, int inspectTemplateIntervalSlow,
+			int inspectTemplateIntervalFast, boolean toplevel, int listenerMode, int listenerType, boolean readonly, boolean reload)
+			throws IOException, PageException, BundleException, ConverterException {
 		ConfigAdmin admin = new ConfigAdmin(config, null);
-		admin._updateMapping(virtual, physical, archive, primary, inspect, toplevel, listenerMode, listenerType, readonly);
+		admin._updateMapping(virtual, physical, archive, primary, inspect, inspectTemplateIntervalSlow, inspectTemplateIntervalFast, toplevel, listenerMode, listenerType,
+				readonly);
 		admin._store();
 		if (reload) admin._reload();
 	}
 
-	static void updateComponentMapping(ConfigPro config, String virtual, String physical, String archive, String primary, short inspect, boolean reload)
-			throws IOException, PageException, BundleException, ConverterException {
+	static void updateComponentMapping(ConfigPro config, String virtual, String physical, String archive, String primary, short inspect, int inspectTemplateIntervalSlow,
+			int inspectTemplateIntervalFast, boolean reload) throws IOException, PageException, BundleException, ConverterException {
 		ConfigAdmin admin = new ConfigAdmin(config, null);
-		admin._updateComponentMapping(virtual, physical, archive, primary, inspect);
+		admin._updateComponentMapping(virtual, physical, archive, primary, inspect, inspectTemplateIntervalSlow, inspectTemplateIntervalFast);
 		admin._store();
 		if (reload) admin._reload();
 	}
 
-	static void updateCustomTagMapping(ConfigPro config, String virtual, String physical, String archive, String primary, short inspect, boolean reload)
-			throws IOException, PageException, BundleException, ConverterException {
+	static void updateCustomTagMapping(ConfigPro config, String virtual, String physical, String archive, String primary, short inspect, int inspectTemplateIntervalSlow,
+			int inspectTemplateIntervalFast, boolean reload) throws IOException, PageException, BundleException, ConverterException {
 		ConfigAdmin admin = new ConfigAdmin(config, null);
-		admin._updateCustomTag(virtual, physical, archive, primary, inspect);
+		admin._updateCustomTag(virtual, physical, archive, primary, inspect, inspectTemplateIntervalSlow, inspectTemplateIntervalFast);
 		admin._store();
 		if (reload) admin._reload();
 	}
@@ -716,14 +718,14 @@ public final class ConfigAdmin {
 	 * @throws ExpressionException
 	 * @throws SecurityException
 	 */
-	public void updateMapping(String virtual, String physical, String archive, String primary, short inspect, boolean toplevel, int listenerMode, int listenerType,
-			boolean readOnly) throws ExpressionException, SecurityException {
+	public void updateMapping(String virtual, String physical, String archive, String primary, short inspect, int inspectTemplateIntervalSlow, int inspectTemplateIntervalFast,
+			boolean toplevel, int listenerMode, int listenerType, boolean readOnly) throws ExpressionException, SecurityException {
 		checkWriteAccess();
-		_updateMapping(virtual, physical, archive, primary, inspect, toplevel, listenerMode, listenerType, readOnly);
+		_updateMapping(virtual, physical, archive, primary, inspect, inspectTemplateIntervalSlow, inspectTemplateIntervalFast, toplevel, listenerMode, listenerType, readOnly);
 	}
 
-	private void _updateMapping(String virtual, String physical, String archive, String primary, short inspect, boolean toplevel, int listenerMode, int listenerType,
-			boolean readOnly) throws ExpressionException, SecurityException {
+	private void _updateMapping(String virtual, String physical, String archive, String primary, short inspect, int inspectTemplateIntervalSlow, int inspectTemplateIntervalFast,
+			boolean toplevel, int listenerMode, int listenerType, boolean readOnly) throws ExpressionException, SecurityException {
 
 		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_MAPPING);
 		virtual = virtual.trim();
@@ -817,6 +819,9 @@ public final class ConfigAdmin {
 
 		// others
 		el.setEL("inspectTemplate", ConfigWebUtil.inspectTemplate(inspect, ""));
+		el.setEL("inspectTemplateIntervalSlow", Caster.toString(inspectTemplateIntervalSlow, ""));
+		el.setEL("inspectTemplateIntervalFast", Caster.toString(inspectTemplateIntervalFast, ""));
+
 		el.setEL("topLevel", Caster.toString(toplevel));
 		el.setEL("readOnly", Caster.toString(readOnly));
 
@@ -1034,12 +1039,14 @@ public final class ConfigAdmin {
 	 * @throws ExpressionException
 	 * @throws SecurityException
 	 */
-	public void updateCustomTag(String virtual, String physical, String archive, String primary, short inspect) throws ExpressionException, SecurityException {
+	public void updateCustomTag(String virtual, String physical, String archive, String primary, short inspect, int inspectTemplateIntervalSlow, int inspectTemplateIntervalFast)
+			throws ExpressionException, SecurityException {
 		checkWriteAccess();
-		_updateCustomTag(virtual, physical, archive, primary, inspect);
+		_updateCustomTag(virtual, physical, archive, primary, inspect, inspectTemplateIntervalSlow, inspectTemplateIntervalFast);
 	}
 
-	private void _updateCustomTag(String virtual, String physical, String archive, String primary, short inspect) throws ExpressionException, SecurityException {
+	private void _updateCustomTag(String virtual, String physical, String archive, String primary, short inspect, int inspectTemplateIntervalSlow, int inspectTemplateIntervalFast)
+			throws ExpressionException, SecurityException {
 		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_CUSTOM_TAG);
 		if (!hasAccess) throw new SecurityException("no access to change custom tag settings");
 		if (physical == null) physical = "";
@@ -1072,6 +1079,8 @@ public final class ConfigAdmin {
 				el.setEL("archive", archive);
 				el.setEL("primary", primary.equalsIgnoreCase("archive") ? "archive" : "physical");
 				el.setEL("inspectTemplate", ConfigWebUtil.inspectTemplate(inspect, ""));
+				el.setEL("inspectTemplateIntervalSlow", Caster.toString(inspectTemplateIntervalSlow, ""));
+				el.setEL("inspectTemplateIntervalFast", Caster.toString(inspectTemplateIntervalFast, ""));
 				el.removeEL(KeyImpl.init("trusted"));
 				return;
 			}
@@ -1084,6 +1093,8 @@ public final class ConfigAdmin {
 		if (archive.length() > 0) el.setEL("archive", archive);
 		el.setEL("primary", primary.equalsIgnoreCase("archive") ? "archive" : "physical");
 		el.setEL("inspectTemplate", ConfigWebUtil.inspectTemplate(inspect, ""));
+		el.setEL("inspectTemplateIntervalSlow", Caster.toString(inspectTemplateIntervalSlow, ""));
+		el.setEL("inspectTemplateIntervalFast", Caster.toString(inspectTemplateIntervalFast, ""));
 		el.setEL("virtual", StringUtil.isEmpty(virtual) ? createVirtual(el) : virtual);
 	}
 
@@ -1117,12 +1128,14 @@ public final class ConfigAdmin {
 		return ConfigWebUtil.getAsArray("scheduledTasks", root);
 	}
 
-	public void updateComponentMapping(String virtual, String physical, String archive, String primary, short inspect) throws ExpressionException, SecurityException {
+	public void updateComponentMapping(String virtual, String physical, String archive, String primary, short inspect, int inspectTemplateIntervalSlow,
+			int inspectTemplateIntervalFast) throws ExpressionException, SecurityException {
 		checkWriteAccess();
-		_updateComponentMapping(virtual, physical, archive, primary, inspect);
+		_updateComponentMapping(virtual, physical, archive, primary, inspect, inspectTemplateIntervalSlow, inspectTemplateIntervalFast);
 	}
 
-	private void _updateComponentMapping(String virtual, String physical, String archive, String primary, short inspect) throws ExpressionException {
+	private void _updateComponentMapping(String virtual, String physical, String archive, String primary, short inspect, int inspectTemplateIntervalSlow,
+			int inspectTemplateIntervalFast) throws ExpressionException {
 		primary = primary.equalsIgnoreCase("archive") ? "archive" : "physical";
 		if (physical == null) physical = "";
 		else physical = physical.trim();
@@ -1158,6 +1171,8 @@ public final class ConfigAdmin {
 				data.setEL("archive", archive);
 				data.setEL("primary", primary.equalsIgnoreCase("archive") ? "archive" : "physical");
 				data.setEL("inspectTemplate", ConfigWebUtil.inspectTemplate(inspect, ""));
+				data.setEL("inspectTemplateIntervalSlow", Caster.toString(inspectTemplateIntervalSlow, ""));
+				data.setEL("inspectTemplateIntervalFast", Caster.toString(inspectTemplateIntervalFast, ""));
 				data.removeEL(KeyImpl.init("trusted"));
 				return;
 			}
@@ -1170,6 +1185,8 @@ public final class ConfigAdmin {
 		if (archive.length() > 0) el.setEL("archive", archive);
 		el.setEL("primary", primary.equalsIgnoreCase("archive") ? "archive" : "physical");
 		el.setEL("inspectTemplate", ConfigWebUtil.inspectTemplate(inspect, ""));
+		el.setEL("inspectTemplateIntervalSlow", Caster.toString(inspectTemplateIntervalSlow, ""));
+		el.setEL("inspectTemplateIntervalFast", Caster.toString(inspectTemplateIntervalFast, ""));
 		el.setEL("virtual", StringUtil.isEmpty(virtual) ? createVirtual(el) : virtual);
 	}
 
@@ -4510,7 +4527,7 @@ public final class ConfigAdmin {
 		String type = null, virtual = null, name = null;
 		boolean readOnly, topLevel, hidden, physicalFirst;
 		short inspect;
-		int listMode, listType;
+		int listMode, listType, inspectTemplateIntervalSlow, inspectTemplateIntervalFast;
 		InputStream is = null;
 		ZipFile file = null;
 		try {
@@ -4546,6 +4563,9 @@ public final class ConfigAdmin {
 				}
 			}
 
+			inspectTemplateIntervalSlow = Caster.toIntValue(StringUtil.unwrap(attr.getValue("mapping-inspect-interval-slow")), -1);
+			inspectTemplateIntervalFast = Caster.toIntValue(StringUtil.unwrap(attr.getValue("mapping-inspect-interval-fast")), -1);
+
 			hidden = Caster.toBooleanValue(StringUtil.unwrap(attr.getValue("mapping-hidden")), false);
 			physicalFirst = Caster.toBooleanValue(StringUtil.unwrap(attr.getValue("mapping-physical-first")), false);
 		}
@@ -4574,9 +4594,12 @@ public final class ConfigAdmin {
 			ResourceUtil.deleteContent(trgDir, null);
 			ResourceUtil.moveTo(archive, trgFile, true);
 			logger.log(Log.LEVEL_INFO, "archive", "Add " + type + " mapping [" + virtual + "] with archive [" + trgFile.getAbsolutePath() + "]");
-			if ("regular".equalsIgnoreCase(type)) _updateMapping(virtual, null, trgFile.getAbsolutePath(), "archive", inspect, topLevel, listMode, listType, readOnly);
-			else if ("cfc".equalsIgnoreCase(type)) _updateComponentMapping(virtual, null, trgFile.getAbsolutePath(), "archive", inspect);
-			else if ("ct".equalsIgnoreCase(type)) _updateCustomTag(virtual, null, trgFile.getAbsolutePath(), "archive", inspect);
+			if ("regular".equalsIgnoreCase(type)) _updateMapping(virtual, null, trgFile.getAbsolutePath(), "archive", inspect, inspectTemplateIntervalSlow,
+					inspectTemplateIntervalFast, topLevel, listMode, listType, readOnly);
+			else if ("cfc".equalsIgnoreCase(type))
+				_updateComponentMapping(virtual, null, trgFile.getAbsolutePath(), "archive", inspect, inspectTemplateIntervalSlow, inspectTemplateIntervalFast);
+			else if ("ct".equalsIgnoreCase(type))
+				_updateCustomTag(virtual, null, trgFile.getAbsolutePath(), "archive", inspect, inspectTemplateIntervalSlow, inspectTemplateIntervalFast);
 		}
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
@@ -4931,7 +4954,7 @@ public final class ConfigAdmin {
 
 				String virtual, physical, archive, primary;
 				short inspect;
-				int lmode, ltype;
+				int lmode, ltype, inspectTemplateIntervalSlow, inspectTemplateIntervalFast;
 				boolean toplevel, readonly;
 				while (itl.hasNext()) {
 					map = itl.next();
@@ -4939,12 +4962,29 @@ public final class ConfigAdmin {
 					physical = map.get("physical");
 					archive = map.get("archive");
 					primary = map.get("primary");
-					inspect = ConfigWebUtil.inspectTemplate(map.get("inspect"), Config.INSPECT_UNDEFINED);
-					String strLMode = map.get("listener-mode");
-					if (StringUtil.isEmpty(strLMode, true)) strLMode = map.get("listenermode");
-					if (StringUtil.isEmpty(strLMode, true)) strLMode = map.get("listenerMode");
-					lmode = ConfigWebUtil.toListenerMode(strLMode, -1);
 
+					// inspect
+					inspect = ConfigWebUtil.inspectTemplate(map.get("inspect"), Config.INSPECT_UNDEFINED);
+
+					// inspect interval slow
+					String str = map.get("inspect-interval-slow");
+					if (StringUtil.isEmpty(str, true)) str = map.get("inspectintervalslow");
+					if (StringUtil.isEmpty(str, true)) str = map.get("inspectIntervalSlow");
+					inspectTemplateIntervalSlow = ConfigWebUtil.toListenerType(str, -1);
+
+					// inspect interval fast
+					str = map.get("inspect-interval-fast");
+					if (StringUtil.isEmpty(str, true)) str = map.get("inspectintervalfast");
+					if (StringUtil.isEmpty(str, true)) str = map.get("inspectIntervalFast");
+					inspectTemplateIntervalFast = ConfigWebUtil.toListenerType(str, -1);
+
+					// mode
+					str = map.get("listener-mode");
+					if (StringUtil.isEmpty(str, true)) str = map.get("listenermode");
+					if (StringUtil.isEmpty(str, true)) str = map.get("listenerMode");
+					lmode = ConfigWebUtil.toListenerMode(str, -1);
+
+					// type
 					String strLType = map.get("listener-type");
 					if (StringUtil.isEmpty(strLType, true)) strLType = map.get("listenertype");
 					if (StringUtil.isEmpty(strLType, true)) strLType = map.get("listenerType");
@@ -4952,7 +4992,7 @@ public final class ConfigAdmin {
 
 					toplevel = Caster.toBooleanValue(map.get("toplevel"), false);
 					readonly = Caster.toBooleanValue(map.get("readonly"), false);
-					_updateMapping(virtual, physical, archive, primary, inspect, toplevel, lmode, ltype, readonly);
+					_updateMapping(virtual, physical, archive, primary, inspect, inspectTemplateIntervalSlow, inspectTemplateIntervalFast, toplevel, lmode, ltype, readonly);
 					reloadNecessary = true;
 
 					logger.debug("extension", "Update Mapping [" + virtual + "]");

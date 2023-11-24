@@ -3,13 +3,11 @@ package lucee.commons.io.watch;
 import java.lang.ref.SoftReference;
 import java.util.Map;
 
-import lucee.print;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.LogUtil;
 import lucee.runtime.MappingImpl;
 import lucee.runtime.PageSource;
 import lucee.runtime.PageSourceImpl;
-import lucee.runtime.type.dt.DateTimeImpl;
 
 public class PageSourcePoolWatcher {
 
@@ -58,18 +56,11 @@ public class PageSourcePoolWatcher {
 						PageSourceImpl ps = (PageSourceImpl) ref.get();
 						if (ps == null) continue;
 
-						boolean show = ps.getDisplayPath().endsWith("test6.cfm");
-						if (show) print.e("------ " + mapping.getVirtual() + " ------ " + new DateTimeImpl());
-						if (show) print.e("- interval: " + mapping.getInspectTemplateAutoInterval(true) + ":" + mapping.getInspectTemplateAutoInterval(false) + ":" + interval);
-						if (show) print.e("- load? " + ps.isLoad());
 						if (ps.isLoad()) {
-							boolean res = ps.releaseWhenOutdatted(show);
-							if (show) print.e("- released? " + res);
+							boolean res = ps.releaseWhenOutdatted();
 							if (res) {
 								interval = mapping.getInspectTemplateAutoInterval(false);
-								print.e("- " + mapping.getVirtual() + " : " + ps.getDisplayPath());
 							}
-							// ps.releaseWhenOutdatted();
 						}
 					}
 					catch (Exception e) {
@@ -79,12 +70,6 @@ public class PageSourcePoolWatcher {
 
 				SystemUtil.sleep(interval);
 				if (interval < mapping.getInspectTemplateAutoInterval(true)) interval += INCREASE_FROM_FAST_TO_LOW;
-				/*
-				 * if (doFast > 0) { doFast--; print.e("- check fast " + doFast + " : " +
-				 * mapping.getInspectTemplateAutoInterval(false));
-				 * SystemUtil.sleep(mapping.getInspectTemplateAutoInterval(false)); } else {
-				 * SystemUtil.sleep(mapping.getInspectTemplateAutoInterval(true)); }
-				 */
 			}
 		}
 	}

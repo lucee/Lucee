@@ -1043,16 +1043,17 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			if (getBoolV("append", false)) {
 				if (mappingType == MAPPING_CFC) {
 					admin.updateComponentMapping(mapping.getVirtual(), mapping.getStrPhysical(), strFile, mapping.isPhysicalFirst() ? "physical" : "archive",
-							mapping.getInspectTemplateRaw());
+							mapping.getInspectTemplateRaw(), mapping.getInspectTemplateAutoIntervalRaw(true), mapping.getInspectTemplateAutoIntervalRaw(false));
 				}
 				else if (mappingType == MAPPING_CT) {
 					admin.updateCustomTag(mapping.getVirtual(), mapping.getStrPhysical(), strFile, mapping.isPhysicalFirst() ? "physical" : "archive",
-							mapping.getInspectTemplateRaw());
+							mapping.getInspectTemplateRaw(), mapping.getInspectTemplateAutoIntervalRaw(true), mapping.getInspectTemplateAutoIntervalRaw(false));
 
 				}
 
 				else admin.updateMapping(mapping.getVirtual(), mapping.getStrPhysical(), strFile, mapping.isPhysicalFirst() ? "physical" : "archive",
-						mapping.getInspectTemplateRaw(), mapping.isTopLevel(), mapping.getListenerMode(), mapping.getListenerType(), mapping.isReadonly());
+						mapping.getInspectTemplateRaw(), mapping.getInspectTemplateAutoIntervalRaw(true), mapping.getInspectTemplateAutoIntervalRaw(false), mapping.isTopLevel(),
+						mapping.getListenerMode(), mapping.getListenerType(), mapping.isReadonly());
 				store();
 			}
 
@@ -1966,7 +1967,8 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	 */
 	private void doUpdateComponentMapping() throws PageException {
 		admin.updateComponentMapping(getString("virtual", ""), getString("physical", ""), getString("archive", ""), getString("primary", "physical"),
-				ConfigWebUtil.inspectTemplate(getString("inspect", ""), ConfigPro.INSPECT_UNDEFINED));
+				ConfigWebUtil.inspectTemplate(getString("inspect", ""), ConfigPro.INSPECT_UNDEFINED), getInt("inspectTemplateIntervalSlow", ConfigPro.INSPECT_INTERVAL_UNDEFINED),
+				getInt("inspectTemplateIntervalFast", ConfigPro.INSPECT_INTERVAL_UNDEFINED));
 		store();
 		adminSync.broadcast(attributes, config);
 	}
@@ -1986,7 +1988,8 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	 */
 	private void doUpdateCustomTag() throws PageException {
 		admin.updateCustomTag(getString("admin", action, "virtual"), getString("admin", action, "physical"), getString("admin", action, "archive"),
-				getString("admin", action, "primary"), ConfigWebUtil.inspectTemplate(getString("inspect", ""), ConfigPro.INSPECT_UNDEFINED));
+				getString("admin", action, "primary"), ConfigWebUtil.inspectTemplate(getString("inspect", ""), ConfigPro.INSPECT_UNDEFINED),
+				getInt("inspectTemplateIntervalSlow", ConfigPro.INSPECT_INTERVAL_UNDEFINED), getInt("inspectTemplateIntervalFast", ConfigPro.INSPECT_INTERVAL_UNDEFINED));
 		store();
 		adminSync.broadcast(attributes, config);
 	}
@@ -2007,8 +2010,8 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	 */
 	private void doGetCustomTagMappings() throws PageException {
 		Mapping[] mappings = config.getCustomTagMappings();
-		lucee.runtime.type.Query qry = new QueryImpl(
-				new String[] { "archive", "strarchive", "physical", "strphysical", "virtual", "hidden", "physicalFirst", "readonly", "inspect" }, mappings.length, "query");
+		lucee.runtime.type.Query qry = new QueryImpl(new String[] { "archive", "strarchive", "physical", "strphysical", "virtual", "hidden", "physicalFirst", "readonly", "inspect",
+				"inspectTemplateIntervalSlow", "inspectTemplateIntervalFast" }, mappings.length, "query");
 
 		for (int i = 0; i < mappings.length; i++) {
 			MappingImpl m = (MappingImpl) mappings[i];
@@ -2022,14 +2025,16 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			qry.setAt("physicalFirst", row, Caster.toBoolean(m.isPhysicalFirst()));
 			qry.setAt("readonly", row, Caster.toBoolean(m.isReadonly()));
 			qry.setAt("inspect", row, ConfigWebUtil.inspectTemplate(m.getInspectTemplateRaw(), ""));
+			qry.setAt("inspectTemplateIntervalSlow", row, m.getInspectTemplateAutoInterval(true));
+			qry.setAt("inspectTemplateIntervalFast", row, m.getInspectTemplateAutoInterval(false));
 		}
 		pageContext.setVariable(getString("admin", action, "returnVariable"), qry);
 	}
 
 	private void doGetComponentMappings() throws PageException {
 		Mapping[] mappings = config.getComponentMappings();
-		lucee.runtime.type.Query qry = new QueryImpl(
-				new String[] { "archive", "strarchive", "physical", "strphysical", "virtual", "hidden", "physicalFirst", "readonly", "inspect" }, mappings.length, "query");
+		lucee.runtime.type.Query qry = new QueryImpl(new String[] { "archive", "strarchive", "physical", "strphysical", "virtual", "hidden", "physicalFirst", "readonly", "inspect",
+				"inspectTemplateIntervalSlow", "inspectTemplateIntervalFast" }, mappings.length, "query");
 
 		for (int i = 0; i < mappings.length; i++) {
 			MappingImpl m = (MappingImpl) mappings[i];
@@ -2043,6 +2048,8 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			qry.setAt("physicalFirst", row, Caster.toBoolean(m.isPhysicalFirst()));
 			qry.setAt("readonly", row, Caster.toBoolean(m.isReadonly()));
 			qry.setAt("inspect", row, ConfigWebUtil.inspectTemplate(m.getInspectTemplateRaw(), ""));
+			qry.setAt("inspectTemplateIntervalSlow", row, m.getInspectTemplateAutoInterval(true));
+			qry.setAt("inspectTemplateIntervalFast", row, m.getInspectTemplateAutoInterval(false));
 		}
 		pageContext.setVariable(getString("admin", action, "returnVariable"), qry);
 	}
@@ -2079,6 +2086,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	private void doUpdateMapping() throws PageException {
 		admin.updateMapping(getString("admin", action, "virtual"), getString("admin", action, "physical"), getString("admin", action, "archive"),
 				getString("admin", action, "primary"), ConfigWebUtil.inspectTemplate(getString("inspect", ""), ConfigPro.INSPECT_UNDEFINED),
+				getInt("inspectTemplateIntervalSlow", ConfigPro.INSPECT_INTERVAL_UNDEFINED), getInt("inspectTemplateIntervalFast", ConfigPro.INSPECT_INTERVAL_UNDEFINED),
 				Caster.toBooleanValue(getString("toplevel", "true")), ConfigWebUtil.toListenerMode(getString("listenerMode", ""), -1),
 				ConfigWebUtil.toListenerType(getString("listenerType", ""), -1), Caster.toBooleanValue(getString("readonly", "false"))
 
@@ -2110,6 +2118,8 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			sct.set("physicalFirst", Caster.toBoolean(m.isPhysicalFirst()));
 			sct.set("readonly", Caster.toBoolean(m.isReadonly()));
 			sct.set("inspect", ConfigWebUtil.inspectTemplate(m.getInspectTemplateRaw(), ""));
+			sct.set("inspectTemplateIntervalSlow", m.getInspectTemplateAutoInterval(true));
+			sct.set("inspectTemplateIntervalFast", m.getInspectTemplateAutoInterval(false));
 			sct.set("toplevel", Caster.toBoolean(m.isTopLevel()));
 
 			pageContext.setVariable(getString("admin", action, "returnVariable"), sct);
@@ -2136,7 +2146,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 		Mapping[] mappings = config.getMappings();
 		lucee.runtime.type.Query qry = new QueryImpl(new String[] { "archive", "strarchive", "physical", "strphysical", "virtual", "hidden", "physicalFirst", "readonly", "inspect",
-				"toplevel", "listenerType", "listenerMode" }, mappings.length, "query");
+				"inspectTemplateIntervalSlow", "inspectTemplateIntervalFast", "toplevel", "listenerType", "listenerMode" }, mappings.length, "query");
 
 		for (int i = 0; i < mappings.length; i++) {
 			MappingImpl m = (MappingImpl) mappings[i];
@@ -2150,6 +2160,8 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			qry.setAt("physicalFirst", row, Caster.toBoolean(m.isPhysicalFirst()));
 			qry.setAt("readonly", row, Caster.toBoolean(m.isReadonly()));
 			qry.setAt("inspect", row, ConfigWebUtil.inspectTemplate(m.getInspectTemplateRaw(), ""));
+			qry.setAt("inspectTemplateIntervalSlow", row, m.getInspectTemplateAutoInterval(true));
+			qry.setAt("inspectTemplateIntervalFast", row, m.getInspectTemplateAutoInterval(false));
 			qry.setAt("toplevel", row, Caster.toBoolean(m.isTopLevel()));
 			qry.setAt("listenerType", row, ConfigWebUtil.toListenerType(m.getListenerType(), "inherit"));
 			qry.setAt("listenerMode", row, ConfigWebUtil.toListenerMode(m.getListenerMode(), "inherit"));

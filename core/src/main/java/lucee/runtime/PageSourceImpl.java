@@ -24,7 +24,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.util.Date;
 
 import lucee.print;
 import lucee.commons.io.IOUtil;
@@ -91,6 +90,7 @@ public final class PageSourceImpl implements PageSource {
 	private long lastAccess;
 	private RefIntegerSync accessCount = new RefIntegerSync();
 	private boolean flush = false;
+	private Log log;
 
 	private PageSourceImpl() {
 		mapping = null;
@@ -119,8 +119,9 @@ public final class PageSourceImpl implements PageSource {
 	 * @param mapping
 	 * @param realPath
 	 */
-	PageSourceImpl(MappingImpl mapping, String realPath) {
+	PageSourceImpl(MappingImpl mapping, String realPath, Log log) {
 		this.mapping = mapping;
+		this.log = log;
 		realPath = realPath.replace('\\', '/');
 		if (realPath.indexOf("//") != -1) {
 			realPath = StringUtil.replace(realPath, "//", "/", false);
@@ -207,8 +208,8 @@ public final class PageSourceImpl implements PageSource {
 
 	public PageSource getParent() {
 		if (relPath.equals("/")) return null;
-		if (StringUtil.endsWith(relPath, '/')) return new PageSourceImpl(mapping, GetDirectoryFromPath.invoke(relPath.substring(0, relPath.length() - 1)));
-		return new PageSourceImpl(mapping, GetDirectoryFromPath.invoke(relPath));
+		if (StringUtil.endsWith(relPath, '/')) return new PageSourceImpl(mapping, GetDirectoryFromPath.invoke(relPath.substring(0, relPath.length() - 1)), log);
+		return new PageSourceImpl(mapping, GetDirectoryFromPath.invoke(relPath), log);
 	}
 
 	@Override
@@ -409,25 +410,21 @@ public final class PageSourceImpl implements PageSource {
 		return page;
 	}
 
-	public boolean releaseWhenOutdatted(boolean show) {
-		if (show) print.e("- releaseWhenOutdatted -");
+	public boolean releaseWhenOutdatted() {
+
+		if (log != null) print.e("- releaseWhenOutdatted -");
 		if (!mapping.hasPhysical() || !isLoad(LOAD_PHYSICAL)) return false;
-		if (show) print.e("- 1");
 		Page page = pcn.page;
 		Resource srcFile = getPhyscalFile();
 		long srcLastModified = srcFile.lastModified();
-		if (show) print.e("- " + srcFile);
-		if (show) print.e("- src.dat: " + new Date(srcLastModified));
 		// Page exists
 		if (page != null) {
-			if (show) print.e("- cls.dat: " + new Date(page.getSourceLastModified()));
-			if (show) print.e("- src.len: " + srcFile.length());
-			if (show) print.e("- cls.len: " + ((PagePro) page).getSourceLength());
 			// if(page!=null && !recompileAlways) {
 			if (srcLastModified == 0 || srcLastModified != page.getSourceLastModified() || (page instanceof PagePro && ((PagePro) page).getSourceLength() != srcFile.length())) {
 				synchronized (this) {
 					if (srcLastModified == 0 || srcLastModified != page.getSourceLastModified()
 							|| (page instanceof PagePro && ((PagePro) page).getSourceLength() != srcFile.length())) {
+						if (LogUtil.doesDebug(log)) log.debug("page-source", "release [" + getDisplayPath() + "] from page source pool");
 						resetLoaded();
 						flush();
 						return true;
@@ -439,7 +436,7 @@ public final class PageSourceImpl implements PageSource {
 	}
 
 	public void flush() {
-		print.e("- flush:" + getDisplayPath());
+		if (LogUtil.doesDebug(log)) log.debug("page-source", "flush [" + getDisplayPath() + "]");
 		pcn.page = null;
 		flush = true;
 	}
@@ -1140,6 +1137,7 @@ public final class PageSourceImpl implements PageSource {
 	}
 
 	public void resetLoaded() {
+		if (LogUtil.doesDebug(log)) log.debug("page-source", "reset loaded [" + getDisplayPath() + "]");
 		Page p = pcn.page;
 		if (p != null) p.setLoadType((byte) 0);
 	}

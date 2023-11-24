@@ -406,6 +406,13 @@ public final class MappingImpl implements Mapping {
 		return inspectTemplateAutoIntervalFast;
 	}
 
+	public int getInspectTemplateAutoIntervalRaw(boolean slow) {
+		if (slow) {
+			return inspectTemplateAutoIntervalSlow;
+		}
+		return inspectTemplateAutoIntervalFast;
+	}
+
 	@Override
 	public PageSource getPageSource(String realPath) {
 		boolean isOutSide = false;

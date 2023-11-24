@@ -28,7 +28,6 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-import lucee.print;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.watch.PageSourcePoolWatcher;
@@ -234,12 +233,10 @@ public final class PageSourcePool implements Dumpable {
 			System.gc();
 		}
 
-		print.e("cleanLoaders:" + pageSources.size());
 		if (pageSources.isEmpty()) {
 			watcher.stopIfNecessary();
 			watcher = null;
 		}
-
 	}
 
 	@Override
@@ -280,7 +277,6 @@ public final class PageSourcePool implements Dumpable {
 			else psi.clear();
 		}
 
-		print.e("clearPages:" + pageSources.size());
 		if (pageSources.isEmpty()) {
 			watcher.stopIfNecessary();
 			watcher = null;
@@ -299,7 +295,6 @@ public final class PageSourcePool implements Dumpable {
 			else psi.resetLoaded();
 		}
 
-		print.e("resetPages:" + pageSources.size());
 		if (pageSources.isEmpty()) {
 			watcher.stopIfNecessary();
 			watcher = null;

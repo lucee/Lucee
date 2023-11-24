@@ -72,7 +72,7 @@
 								<cfif len(mappings.inspect)>
 								#stText.setting['inspecttemplate'&mappings.inspect&'Short']?:''#
 								<cfelse>
-								#stText.setting['inspecttemplateInheritShort']#
+								#stText.setting['inspecttemplateInheritShort']#&nbsp;(#stText.setting['inspecttemplate'&performanceSettings.inspectTemplate&'Short']?:''#)
 								</cfif>
 								<input type="hidden" name="toplevel_#mappings.currentrow#" value="#mappings.toplevel#">
 							</td>
@@ -219,6 +219,15 @@
 									<b>#stText.setting['inspectTemplate'&type]#</b>
 								</label>
 								<div class="comment">#stText.setting['inspectTemplate'&type&"Desc"]#</div>
+
+								<cfif type EQ "auto">
+									<div class="comment">
+										<b>#stText.setting.inspectTemplateInterval#</b><br>
+										#stText.setting.inspectTemplateIntervalDesc#<br>
+									<input type="text" name="inspectTemplateIntervalSlow_1" value="#performancesettings.inspectTemplateIntervalSlow#" size="6"> #stText.setting.inspectTemplateIntervalSlow#<br>
+									<input type="text" name="inspectTemplateIntervalFast_1" value="#performancesettings.inspectTemplateIntervalFast#" size="6"> #stText.setting.inspectTemplateIntervalFast#<br>
+									</div>
+								</cfif>
 								</li>
 							</cfloop>
 							</ul>

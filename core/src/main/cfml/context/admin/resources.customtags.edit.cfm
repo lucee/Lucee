@@ -96,6 +96,14 @@
 										<b>#stText.setting['inspectTemplate'&type]#</b>
 									</label>
 									<div class="comment">#stText.setting['inspectTemplate'&type&"Desc"]#</div>
+									<cfif type EQ "auto">
+										<div class="comment">
+											<b>#stText.setting.inspectTemplateInterval#</b><br>
+											#stText.setting.inspectTemplateIntervalDesc#<br>
+										<input type="text" name="inspectTemplateIntervalSlow_#mapping.id#" value="#mapping.inspectTemplateIntervalSlow?:performancesettings.inspectTemplateIntervalSlow#" size="6"> #stText.setting.inspectTemplateIntervalSlow#<br>
+										<input type="text" name="inspectTemplateIntervalFast_#mapping.id#" value="#mapping.inspectTemplateIntervalFast?:performancesettings.inspectTemplateIntervalFast#" size="6"> #stText.setting.inspectTemplateIntervalFast#<br>
+										</div>
+									</cfif>
 									</li>
 								</cfloop>
 							</ul>

@@ -318,59 +318,29 @@
 						</td>
 						<cfset css=iif(len(mappings.physical) EQ 0 and len(mappings.strPhysical) NEQ 0,de('Red'),de(''))>
 						<td class="tblContent#css# longwords">
-							<cfif mappings.ReadOnly>
-								#mappings.strphysical#
-							<cfelse>
-								<cfinputClassic onKeyDown="checkTheBox(this)" type="text"
-								name="physical_#mappings.currentrow#" value="#mappings.strphysical#" required="no"
-								class="xlarge"
-								message="#stText.customTags.PhysicalMissing##mappings.currentrow#)">
-							</cfif>
+							#mappings.strphysical#
 						</td>
 						
 						<cfset css=iif(len(mappings.archive) EQ 0 and len(mappings.strArchive) NEQ 0,de('Red'),de(''))>
 						<td class="tblContent#css# longwords">
-							<cfif mappings.ReadOnly>
-								#mappings.strarchive#
-							<cfelse>
-								<cfinputClassic onKeyDown="checkTheBox(this)" type="text"
-								name="archive_#mappings.currentrow#" value="#mappings.strarchive#" required="no"
-								class="xlarge"
-								message="#stText.customTags.ArchiveMissing##mappings.currentrow#)">
-							</cfif>
+							#mappings.strarchive#
 						</td>
 						
-						<td><cfif mappings.ReadOnly>
+						<td>
 							<cfif mappings.PhysicalFirst>
 									#stText.Mappings.Physical#
 								<cfelse>
 									#stText.Mappings.Archive#
 								</cfif>
-							<cfelse><select name="primary_#mappings.currentrow#" onchange="checkTheBox(this)">
-							<option value="physical" <cfif mappings.physicalFirst>selected</cfif>>#stText.customTags.physical#</option>
-							<option value="archive" <cfif not mappings.physicalFirst>selected</cfif>>#stText.customTags.archive#</option>
-						</select></cfif></td>
+						</td>
 						
 						<td>
 						<!--- inspect --->
-						<cfif mappings.readOnly>
 							<cfif len(mappings.inspect)>
 								#stText.setting['inspecttemplate'&mappings.inspect&'Short']#
 							<cfelse>
-								#stText.setting['inspecttemplateInheritShort']#
+								#stText.setting['inspecttemplateInheritShort']#&nbsp;(#stText.setting['inspecttemplate'&performanceSettings.inspectTemplate&'Short']?:''#)
 							</cfif>
-						
-						
-							<cfelse>
-							<select name="inspect_#mappings.currentrow#" onchange="checkTheBox(this)">
-							<cfloop list="auto,never,once,always,inherit" item="type">
-									<option value="#type EQ "inherit"?"":type#" <cfif mappings.inspect EQ type or (type EQ "inherit" and mappings.inspect EQ "")>selected</cfif>>
-										#stText.setting['inspecttemplate#type#Short']#
-									</option>
-							</cfloop>
-							</select>
-							</cfif>
-						
 						</td>
 						<!--- edit --->
 						<td>
@@ -390,8 +360,7 @@
 					<tr>
 						<td colspan="7">
 							<input type="hidden" name="mainAction" value="#stText.Buttons.Update#">
-							<input type="submit" class="bl button submit enablebutton" name="subAction" value="#stText.Buttons.Update#">
-							<input type="reset" class="bm reset enablebutton" name="cancel" id="clickCancel" value="#stText.Buttons.Cancel#">
+							<input type="reset" class="bl reset enablebutton" name="cancel" id="clickCancel" value="#stText.Buttons.Cancel#">
 							<input type="submit" class="br button submit enablebutton" name="subAction" value="#stText.Buttons.Delete#">
 						</td>	
 					</tr>
@@ -453,6 +422,14 @@
 									<b>#stText.setting['inspectTemplate'&type]#</b>
 								</label>
 								<div class="comment">#stText.setting['inspectTemplate'&type&"Desc"]#</div>
+								<cfif type EQ "auto">
+									<div class="comment">
+										<b>#stText.setting.inspectTemplateInterval#</b><br>
+										#stText.setting.inspectTemplateIntervalDesc#<br>
+									<input type="text" name="inspectTemplateIntervalSlow_1" value="#performancesettings.inspectTemplateIntervalSlow#" size="6"> #stText.setting.inspectTemplateIntervalSlow#<br>
+									<input type="text" name="inspectTemplateIntervalFast_1" value="#performancesettings.inspectTemplateIntervalFast#" size="6"> #stText.setting.inspectTemplateIntervalFast#<br>
+									</div>
+								</cfif>
 								</li>
 							</cfloop>
 							</ul>
