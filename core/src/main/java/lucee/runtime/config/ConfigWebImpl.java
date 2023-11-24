@@ -1882,4 +1882,9 @@ public class ConfigWebImpl implements ConfigWebPro {
 	public String getMainLogger() {
 		return instance.getMainLogger();
 	}
+
+	@Override
+	public int getInspectTemplateAutoInterval(boolean slow) {
+		return instance.getInspectTemplateAutoInterval(slow);
+	}
 }

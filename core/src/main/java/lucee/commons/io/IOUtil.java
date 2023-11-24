@@ -659,6 +659,7 @@ public final class IOUtil {
 	 * @param obj
 	 */
 	public static void closeEL(Object obj) {
+		if (obj == null) return;
 		if (obj instanceof InputStream) IOUtil.closeEL((InputStream) obj);
 		else if (obj instanceof OutputStream) IOUtil.closeEL((OutputStream) obj);
 		else if (obj instanceof Writer) IOUtil.closeEL((Writer) obj);

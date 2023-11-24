@@ -82,7 +82,7 @@
 					<th scope="row">#stText.setting.inspecttemplate#</th>
 					<td>
 						<cfif mapping.readOnly>
-							<cfloop list="never,once,always,inherit" item="type">
+							<cfloop list="auto,never,once,always,inherit" item="type">
 							<cfif mapping.inspect EQ type or (type EQ "inherit" and mapping.inspect EQ "")>
 							#stText.setting['inspectTemplate'&type]#
 							<div class="comment">#stText.setting['inspectTemplate'&type&"Desc"]#</div>
@@ -90,7 +90,7 @@
 							</cfloop>
 						<cfelse>
 							<ul class="radiolist">
-								<cfloop list="never,once,always,inherit" item="type">
+								<cfloop list="auto,never,once,always,inherit" item="type">
 									<li><label>
 										<input class="radio" type="radio" name="inspect_#mapping.id#" value="#type EQ "inherit"?"":type#" <cfif mapping.inspect EQ type or (type EQ "inherit" and mapping.inspect EQ "")> checked="checked"</cfif>>
 										<b>#stText.setting['inspectTemplate'&type]#</b>

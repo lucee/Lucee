@@ -344,8 +344,8 @@ public class ConfigWebHelper {
 		Mapping m = t == null ? null : t.get();
 
 		if (m == null) {
-			m = new MappingImpl(cw, virtual, physical, archive, Config.INSPECT_UNDEFINED, physicalFirst, false, false, false, true, ignoreVirtual, null, -1, -1,
-					checkPhysicalFromWebroot, checkArchiveFromWebroot);
+			m = new MappingImpl(cw, virtual, physical, archive, Config.INSPECT_UNDEFINED, ConfigPro.INSPECT_INTERVAL_UNDEFINED, ConfigPro.INSPECT_INTERVAL_UNDEFINED, physicalFirst,
+					false, false, false, true, ignoreVirtual, null, -1, -1, checkPhysicalFromWebroot, checkArchiveFromWebroot);
 			applicationMappings.put(key, new SoftReference<Mapping>(m));
 		}
 		else m.check();

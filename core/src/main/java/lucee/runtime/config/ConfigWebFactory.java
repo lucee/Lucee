@@ -1841,15 +1841,18 @@ public final class ConfigWebFactory extends ConfigFactory {
 							if ((physical != null || archive != null)) {
 
 								short insTemp = inspectTemplate(el);
+								int insTempSlow = Caster.toIntValue(getAttr(el, "inspectTemplateIntervalSlow"), ConfigPro.INSPECT_INTERVAL_UNDEFINED);
+								int insTempFast = Caster.toIntValue(getAttr(el, "inspectTemplateIntervalFast"), ConfigPro.INSPECT_INTERVAL_UNDEFINED);
+
 								if ("/lucee/".equalsIgnoreCase(virtual) || "/lucee".equalsIgnoreCase(virtual) || "/lucee-server/".equalsIgnoreCase(virtual)
 										|| "/lucee-server-context".equalsIgnoreCase(virtual))
-									insTemp = ConfigPro.INSPECT_ONCE;
+									insTemp = ConfigPro.INSPECT_AUTO;
 
 								String primary = getAttr(el, "primary");
 								boolean physicalFirst = primary == null || !"archive".equalsIgnoreCase(primary);
 
-								tmp = new MappingImpl(config, virtual, physical, archive, insTemp, physicalFirst, hidden, readonly, toplevel, false, false, listener, listenerMode,
-										listenerType);
+								tmp = new MappingImpl(config, virtual, physical, archive, insTemp, insTempSlow, insTempFast, physicalFirst, hidden, readonly, toplevel, false,
+										false, listener, listenerMode, listenerType);
 								mappings.put(tmp.getVirtualLowerCase(), tmp);
 								if (virtual.equals("/")) {
 									finished = true;
@@ -1870,16 +1873,18 @@ public final class ConfigWebFactory extends ConfigFactory {
 						ApplicationListener listener = ConfigWebUtil.loadListener(ApplicationListener.TYPE_MODERN, null);
 						listener.setMode(ApplicationListener.MODE_CURRENT2ROOT);
 
-						tmp = new MappingImpl(config, "/lucee-server", "{lucee-server}/context/", null, ConfigPro.INSPECT_ONCE, true, false, true, true, false, false, listener,
-								ApplicationListener.MODE_CURRENT2ROOT, ApplicationListener.TYPE_MODERN);
+						tmp = new MappingImpl(config, "/lucee-server", "{lucee-server}/context/", null, ConfigPro.INSPECT_AUTO, ConfigPro.INSPECT_INTERVAL_UNDEFINED,
+								ConfigPro.INSPECT_INTERVAL_UNDEFINED, true, false, true, true, false, false, listener, ApplicationListener.MODE_CURRENT2ROOT,
+								ApplicationListener.TYPE_MODERN);
 						mappings.put(tmp.getVirtualLowerCase(), tmp);
 					}
 					if (!hasWebContext) {
 						ApplicationListener listener = ConfigWebUtil.loadListener(ApplicationListener.TYPE_MODERN, null);
 						listener.setMode(ApplicationListener.MODE_CURRENT2ROOT);
 
-						tmp = new MappingImpl(config, "/lucee", "{lucee-config}/context/", "{lucee-config}/context/lucee-context.lar", ConfigPro.INSPECT_ONCE, true, false, true,
-								true, false, false, listener, ApplicationListener.MODE_CURRENT2ROOT, ApplicationListener.TYPE_MODERN);
+						tmp = new MappingImpl(config, "/lucee", "{lucee-config}/context/", "{lucee-config}/context/lucee-context.lar", ConfigPro.INSPECT_AUTO,
+								ConfigPro.INSPECT_INTERVAL_UNDEFINED, ConfigPro.INSPECT_INTERVAL_UNDEFINED, true, false, true, true, false, false, listener,
+								ApplicationListener.MODE_CURRENT2ROOT, ApplicationListener.TYPE_MODERN);
 						mappings.put(tmp.getVirtualLowerCase(), tmp);
 					}
 				}
@@ -1888,11 +1893,12 @@ public final class ConfigWebFactory extends ConfigFactory {
 			if (!finished) {
 				if ((config instanceof MultiContextConfigWeb) && ResourceUtil.isUNCPath(config.getRootDirectory().getPath())) {
 
-					tmp = new MappingImpl(config, "/", config.getRootDirectory().getPath(), null, ConfigPro.INSPECT_UNDEFINED, true, true, true, true, false, false, null, -1, -1);
+					tmp = new MappingImpl(config, "/", config.getRootDirectory().getPath(), null, ConfigPro.INSPECT_UNDEFINED, ConfigPro.INSPECT_INTERVAL_UNDEFINED,
+							ConfigPro.INSPECT_INTERVAL_UNDEFINED, true, true, true, true, false, false, null, -1, -1);
 				}
 				else {
-
-					tmp = new MappingImpl(config, "/", "/", null, ConfigPro.INSPECT_UNDEFINED, true, true, true, true, false, false, null, -1, -1);
+					tmp = new MappingImpl(config, "/", "/", null, ConfigPro.INSPECT_UNDEFINED, ConfigPro.INSPECT_INTERVAL_UNDEFINED, ConfigPro.INSPECT_INTERVAL_UNDEFINED, true,
+							true, true, true, false, false, null, -1, -1);
 				}
 				mappings.put("/", tmp);
 			}
@@ -1919,7 +1925,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 		if (StringUtil.isEmpty(strInsTemp)) {
 			Boolean trusted = Caster.toBoolean(getAttr(data, "trusted"), null);
 			if (trusted != null) {
-				if (trusted.booleanValue()) return ConfigPro.INSPECT_NEVER;
+				if (trusted.booleanValue()) return ConfigPro.INSPECT_AUTO;
 				return ConfigPro.INSPECT_ALWAYS;
 			}
 			return ConfigPro.INSPECT_UNDEFINED;
@@ -2934,12 +2940,15 @@ public final class ConfigWebFactory extends ConfigFactory {
 							boolean readonly = toBoolean(getAttr(ctMapping, "readonly"), false);
 							boolean hidden = toBoolean(getAttr(ctMapping, "hidden"), false);
 							short inspTemp = inspectTemplate(ctMapping);
+							int insTempSlow = Caster.toIntValue(getAttr(ctMapping, "inspectTemplateIntervalSlow"), -1);
+							int insTempFast = Caster.toIntValue(getAttr(ctMapping, "inspectTemplateIntervalFast"), -1);
 
 							String primary = getAttr(ctMapping, "primary");
 
 							boolean physicalFirst = StringUtil.isEmpty(archive, true) || !"archive".equalsIgnoreCase(primary);
 							hasSet = true;
-							list.add(new MappingImpl(config, virtual, physical, archive, inspTemp, physicalFirst, hidden, readonly, true, false, true, null, -1, -1));
+							list.add(new MappingImpl(config, virtual, physical, archive, inspTemp, insTempSlow, insTempFast, physicalFirst, hidden, readonly, true, false, true,
+									null, -1, -1));
 						}
 						catch (Throwable t) {
 							ExceptionUtil.rethrowIfNecessary(t);
@@ -2952,7 +2961,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 				else if (!hasCS) {
 					// we make sure we always have that mapping
 					config.setCustomTagMappings(new Mapping[] { new MappingImpl(config, "/default-customtags", "{lucee-config}/customtags/", null, ConfigPro.INSPECT_UNDEFINED,
-							true, true, true, true, false, true, null, -1, -1) });
+							ConfigPro.INSPECT_INTERVAL_UNDEFINED, ConfigPro.INSPECT_INTERVAL_UNDEFINED, true, true, true, true, false, true, null, -1, -1) });
 				}
 			}
 
@@ -4210,13 +4219,18 @@ public final class ConfigWebFactory extends ConfigFactory {
 	private static void _loadJava(ConfigServerImpl configServer, ConfigImpl config, Struct root, Log log) {
 		try {
 			boolean hasCS = configServer != null;
-
 			String strInspectTemplate = getAttr(root, "inspectTemplate");
+			int inspectTemplateAutoIntervalSlow = Caster.toIntValue(getAttr(root, "inspectTemplateIntervalSlow"), ConfigPro.INSPECT_INTERVAL_SLOW);
+			int inspectTemplateAutoIntervalFast = Caster.toIntValue(getAttr(root, "inspectTemplateIntervalFast"), ConfigPro.INSPECT_INTERVAL_FAST);
+
 			if (!StringUtil.isEmpty(strInspectTemplate, true)) {
-				config.setInspectTemplate(ConfigWebUtil.inspectTemplate(strInspectTemplate, ConfigPro.INSPECT_ONCE));
+				config.setInspectTemplate(ConfigWebUtil.inspectTemplate(strInspectTemplate, ConfigPro.INSPECT_AUTO));
+				config.setInspectTemplateAutoInterval(inspectTemplateAutoIntervalSlow, inspectTemplateAutoIntervalFast);
+
 			}
 			else if (hasCS) {
 				config.setInspectTemplate(configServer.getInspectTemplate());
+				config.setInspectTemplateAutoInterval(configServer.getInspectTemplateAutoInterval(true), configServer.getInspectTemplateAutoInterval(false));
 			}
 
 			String strCompileType = getAttr(root, "compileType");
@@ -5096,12 +5110,15 @@ public final class ConfigWebFactory extends ConfigFactory {
 							int listType = ConfigWebUtil.toListenerType(strListType, -1);
 
 							short inspTemp = inspectTemplate(cMapping);
+							int insTempSlow = Caster.toIntValue(getAttr(cMapping, "inspectTemplateIntervalSlow"), -1);
+							int insTempFast = Caster.toIntValue(getAttr(cMapping, "inspectTemplateIntervalFast"), -1);
 
 							String primary = getAttr(cMapping, "primary");
 
 							boolean physicalFirst = archive == null || !"archive".equalsIgnoreCase(primary);
 							hasSet = true;
-							list.add(new MappingImpl(config, virtual, physical, archive, inspTemp, physicalFirst, hidden, readonly, true, false, true, null, listMode, listType));
+							list.add(new MappingImpl(config, virtual, physical, archive, inspTemp, insTempSlow, insTempFast, physicalFirst, hidden, readonly, true, false, true,
+									null, listMode, listType));
 						}
 						catch (Throwable t) {
 							ExceptionUtil.rethrowIfNecessary(t);
@@ -5113,8 +5130,8 @@ public final class ConfigWebFactory extends ConfigFactory {
 				}
 				else if (!hasCS) {
 					// we make sure we always have that mapping
-					config.setComponentMappings(new Mapping[] { new MappingImpl(config, "/default-component", "{lucee-config}/components/", null, ConfigPro.INSPECT_UNDEFINED, true,
-							true, true, true, false, true, null, -1, -1) });
+					config.setComponentMappings(new Mapping[] { new MappingImpl(config, "/default-component", "{lucee-config}/components/", null, ConfigPro.INSPECT_UNDEFINED,
+							ConfigPro.INSPECT_INTERVAL_UNDEFINED, ConfigPro.INSPECT_INTERVAL_UNDEFINED, true, true, true, true, false, true, null, -1, -1) });
 				}
 			}
 
@@ -5157,8 +5174,8 @@ public final class ConfigWebFactory extends ConfigFactory {
 			}
 
 			if (!hasSet) {
-				MappingImpl m = new MappingImpl(config, "/default", "{lucee-web}/components/", null, ConfigPro.INSPECT_UNDEFINED, true, false, false, true, false, true, null, -1,
-						-1);
+				MappingImpl m = new MappingImpl(config, "/default", "{lucee-web}/components/", null, ConfigPro.INSPECT_UNDEFINED, ConfigPro.INSPECT_INTERVAL_UNDEFINED,
+						ConfigPro.INSPECT_INTERVAL_UNDEFINED, true, false, false, true, false, true, null, -1, -1);
 				config.setComponentMappings(new Mapping[] { m.cloneReadOnly(config) });
 			}
 

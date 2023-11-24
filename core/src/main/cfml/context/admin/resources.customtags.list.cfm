@@ -208,7 +208,7 @@
 						
 							<cfelse>
 							<select name="inspect_#mappings.currentrow#" onchange="checkTheBox(this)">
-							<cfloop list="never,once,always,inherit" item="type">
+							<cfloop list="auto,never,once,always,inherit" item="type">
 									<option value="#type EQ "inherit"?"":type#" <cfif mappings.inspect EQ type or (type EQ "inherit" and mappings.inspect EQ "")>selected</cfif>>
 										#stText.setting['inspecttemplate#type#Short']#
 									</option>
@@ -243,7 +243,7 @@
 						</td>
 						<td>
 							<select name="inspect_#mappings.recordcount+1#" onchange="checkTheBox(this)">
-								<cfloop list="never,once,always,inherit" item="type">
+								<cfloop list=auto,never,once,always,inherit" item="type">
 									<option value="#type EQ 'inherit'?'':type#" <cfif type EQ 'inherit'>selected</cfif>>#stText.setting['inspecttemplate#type#Short']#</option>
 								</cfloop>
 							</select>
@@ -363,7 +363,7 @@
 						
 							<cfelse>
 							<select name="inspect_#mappings.currentrow#" onchange="checkTheBox(this)">
-							<cfloop list="never,once,always,inherit" item="type">
+							<cfloop list="auto,never,once,always,inherit" item="type">
 									<option value="#type EQ "inherit"?"":type#" <cfif mappings.inspect EQ type or (type EQ "inherit" and mappings.inspect EQ "")>selected</cfif>>
 										#stText.setting['inspecttemplate#type#Short']#
 									</option>
@@ -447,7 +447,7 @@
 						<td>
 							#stText.customtags.trustedDesc#
 							<ul class="radiolist">
-							<cfloop list="never,once,always,inherit" item="type">
+							<cfloop list="auto,never,once,always,inherit" item="type">
 								<li><label>
 									<input class="radio" type="radio" name="inspect_1" value="#type EQ "inherit"?"":type#" <cfif type EQ "inherit"> checked="checked"</cfif>>
 									<b>#stText.setting['inspectTemplate'&type]#</b>

@@ -67,9 +67,10 @@
 								</cfif>
 							</td>
 							<!--- inspect --->
+							<cfset stText.setting.inspecttemplateAutoShort="Auto">
 							<td>
 								<cfif len(mappings.inspect)>
-								#stText.setting['inspecttemplate'&mappings.inspect&'Short']#
+								#stText.setting['inspecttemplate'&mappings.inspect&'Short']?:''#
 								<cfelse>
 								#stText.setting['inspecttemplateInheritShort']#
 								</cfif>
@@ -94,19 +95,6 @@
 						</tr>
 					</cfif>
 				</cfloop>
-				<!--- <tr><td colspan="7">
-				
-<cfsavecontent variable="codeSample">
-
-<cfloop query="mappings"><cfif mappings.hidden || mappings.virtual=="/lucee" || mappings.virtual=="/lucee-server"><cfcontinue></cfif><cfset del="">
-this.mappings=["#mappings.virtual#"]={<cfif len(mappings.strPhysical)>
-&nbsp;&nbsp;&nbsp;physical:"#mappings.strPhysical#"<cfset del=","></cfif><cfif len(mappings.strArchive)>
-&nbsp;&nbsp;&nbsp;#del#archive:"#mappings.strArchive#"<cfset del=","></cfif>};
-</cfloop>
-</cfsavecontent>
-						<cfset renderCodingTip( codeSample )>
-				</td>
-				</tr>--->
 				<cfif hasAccess>
 					<cfmodule template="remoteclients.cfm" colspan="7" line=true>
 				</cfif>
@@ -225,7 +213,7 @@ this.mappings=["#mappings.virtual#"]={<cfif len(mappings.strPhysical)>
 						</th>
 						<td>
 						 	<ul class="radiolist">
-							<cfloop list="never,once,always,inherit" item="type">
+							<cfloop list="auto,never,once,always,inherit" item="type">
 								<li><label>
 									<input class="radio" type="radio" name="inspect_1" value="#type EQ "inherit"?"":type#" <cfif type EQ "inherit"> checked="checked"</cfif>>
 									<b>#stText.setting['inspectTemplate'&type]#</b>

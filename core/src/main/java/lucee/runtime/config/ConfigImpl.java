@@ -378,7 +378,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	protected Mapping defaultTagMapping;
 	protected Map<String, Mapping> tagMappings = new ConcurrentHashMap<String, Mapping>();
 
-	private short inspectTemplate = INSPECT_ONCE;
+	private short inspectTemplate = INSPECT_AUTO;
 	private boolean typeChecking = true;
 	private String cacheMD5;
 	private boolean executionLogEnabled;
@@ -425,6 +425,10 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	private boolean preciseMath = true;
 	private static Object token = new Object();
 	private String mainLoggerName;
+
+	private int inspectTemplateAutoIntervalSlow;
+
+	private int inspectTemplateAutoIntervalFast;
 
 	/**
 	 * @return the allowURLRequestTimeout
@@ -1050,8 +1054,8 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 			isDefault = index == 0;
 			mappingName = "/mapping-tag" + (isDefault ? "" : index) + "";
 
-			m = new MappingImpl(this, mappingName, path.isValidDirectory() ? path.res.getAbsolutePath() : path.str, null, ConfigPro.INSPECT_NEVER, true, true, true, true, false,
-					true, null, -1, -1);
+			m = new MappingImpl(this, mappingName, path.isValidDirectory() ? path.res.getAbsolutePath() : path.str, null, ConfigPro.INSPECT_AUTO, 60000, 1000, true, true, true,
+					true, false, true, null, -1, -1);
 			if (isDefault) defaultTagMapping = m;
 			tagMappings.put(mappingName, m);
 
@@ -1136,8 +1140,8 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 			index++;
 			isDefault = index == 0;
 			mappingName = "/mapping-function" + (isDefault ? "" : index) + "";
-			MappingImpl mapping = new MappingImpl(this, mappingName, (path.isValidDirectory() ? path.res.getAbsolutePath() : path.str), null, ConfigPro.INSPECT_NEVER, true, true,
-					true, true, false, true, null, -1, -1);
+			MappingImpl mapping = new MappingImpl(this, mappingName, (path.isValidDirectory() ? path.res.getAbsolutePath() : path.str), null, ConfigPro.INSPECT_AUTO, 60000, 1000,
+					true, true, true, true, false, true, null, -1, -1);
 			if (isDefault) defaultFunctionMapping = mapping;
 			this.functionMappings.put(mappingName, mapping);
 
@@ -2872,8 +2876,8 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 			Resource physical = getConfigDir().getRealResource("jsr223");
 			if (!physical.exists()) physical.mkdirs();
 
-			this.scriptMapping = new MappingImpl(this, "/mapping-script/", physical.getAbsolutePath(), null, ConfigPro.INSPECT_NEVER, true, true, true, true, false, true, null, -1,
-					-1);
+			this.scriptMapping = new MappingImpl(this, "/mapping-script/", physical.getAbsolutePath(), null, ConfigPro.INSPECT_AUTO, 60000, 1000, true, true, true, true, false,
+					true, null, -1, -1);
 		}
 		return scriptMapping;
 	}
@@ -2910,6 +2914,16 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	 */
 	protected void setInspectTemplate(short inspectTemplate) {
 		this.inspectTemplate = inspectTemplate;
+	}
+
+	protected void setInspectTemplateAutoInterval(int inspectTemplateAutoIntervalSlow, int inspectTemplateAutoIntervalFast) {
+		this.inspectTemplateAutoIntervalSlow = inspectTemplateAutoIntervalSlow;
+		this.inspectTemplateAutoIntervalFast = inspectTemplateAutoIntervalFast;
+	}
+
+	@Override
+	public int getInspectTemplateAutoInterval(boolean slow) {
+		return slow ? inspectTemplateAutoIntervalSlow : inspectTemplateAutoIntervalFast;
 	}
 
 	@Override

@@ -1840,10 +1840,12 @@ class SingleContextConfigWeb extends ConfigBase implements ConfigWebInner {
 		if (!finished) {
 			Mapping m;
 			if (ResourceUtil.isUNCPath(getRootDirectory().getPath())) {
-				m = new MappingImpl(this, "/", getRootDirectory().getPath(), null, ConfigPro.INSPECT_UNDEFINED, true, true, true, true, false, false, null, -1, -1);
+				m = new MappingImpl(this, "/", getRootDirectory().getPath(), null, ConfigPro.INSPECT_UNDEFINED, ConfigPro.INSPECT_INTERVAL_UNDEFINED,
+						ConfigPro.INSPECT_INTERVAL_UNDEFINED, true, true, true, true, false, false, null, -1, -1);
 			}
 			else {
-				m = new MappingImpl(this, "/", "/", null, ConfigPro.INSPECT_UNDEFINED, true, true, true, true, false, false, null, -1, -1, true, true);
+				m = new MappingImpl(this, "/", "/", null, ConfigPro.INSPECT_UNDEFINED, ConfigPro.INSPECT_INTERVAL_UNDEFINED, ConfigPro.INSPECT_INTERVAL_UNDEFINED, true, true, true,
+						true, false, false, null, -1, -1, true, true);
 			}
 			ex = existing.get("/");
 			if (ex != null && ex.equals(m)) {
@@ -2031,6 +2033,11 @@ class SingleContextConfigWeb extends ConfigBase implements ConfigWebInner {
 	@Override
 	public String getMainLogger() {
 		return cs.getMainLogger();
+	}
+
+	@Override
+	public int getInspectTemplateAutoInterval(boolean slow) {
+		return cs.getInspectTemplateAutoInterval(slow);
 	}
 
 }

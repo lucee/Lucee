@@ -3602,6 +3602,7 @@ public final class PageContextImpl extends PageContext {
 
 		short it = ((MappingImpl) page.getPageSource().getMapping()).getInspectTemplate();
 		if (it == ConfigPro.INSPECT_NEVER) return true;
+		if (it == ConfigPro.INSPECT_AUTO) return true;
 		if (it == ConfigPro.INSPECT_ALWAYS) return false;
 
 		return pagesUsed.contains("" + page.hashCode());

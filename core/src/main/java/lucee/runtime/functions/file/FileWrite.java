@@ -20,10 +20,12 @@ package lucee.runtime.functions.file;
 
 import java.io.IOException;
 
+import lucee.commons.io.IOUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
+import lucee.runtime.PageSourcePool;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 
@@ -37,35 +39,31 @@ public class FileWrite {
 		FileStreamWrapper fsw = null;
 		boolean close = false;
 		if (StringUtil.isEmpty(charset, true)) charset = ((PageContextImpl) pc).getResourceCharset().name();
-		try {
-			try {
-				if (obj instanceof FileStreamWrapper) {
-					fsw = (FileStreamWrapper) obj;
-				}
-				else {
-					close = true;
-					Resource res = Caster.toResource(pc, obj, false);
-					pc.getConfig().getSecurityManager().checkFileLocation(res);
-					Resource parent = res.getParentResource();
-					// if (parent != null && !parent.exists()) throw new FunctionException(pc, "FileWrite", 1, "source",
-					// "parent directory for [" + res + "] doesn't exist");
-					fsw = new FileStreamWrapperWrite(res, charset, false, false);
-				}
-				fsw.write(data);
-				/*
-				 * see LDEV-4081 try { fsw.write(data); } catch (IOException e) { throw new FunctionException(pc,
-				 * "FileWrite", 1, "source", "Invalid file [" + Caster.toResource(pc, obj, false) +
-				 * "]",e.getMessage()); }
-				 */
-			}
-			finally {
-				if (close && fsw != null) fsw.close();
-			}
+		Resource res = null;
 
+		try {
+			if (obj instanceof FileStreamWrapper) {
+				fsw = (FileStreamWrapper) obj;
+			}
+			else {
+				close = true;
+				res = Caster.toResource(pc, obj, false);
+				pc.getConfig().getSecurityManager().checkFileLocation(res);
+				Resource parent = res.getParentResource();
+				// if (parent != null && !parent.exists()) throw new FunctionException(pc, "FileWrite", 1, "source",
+				// "parent directory for [" + res + "] doesn't exist");
+				fsw = new FileStreamWrapperWrite(res, charset, false, false);
+			}
+			fsw.write(data);
 		}
 		catch (IOException e) {
 			throw Caster.toPageException(e);
 		}
+		finally {
+			IOUtil.closeEL(fsw);
+			if (fsw != null) PageSourcePool.flush(pc, fsw);
+		}
+
 		return null;
 	}
 }

@@ -21,6 +21,7 @@ package lucee.runtime.config;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+import lucee.commons.io.res.Resource;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.net.HTTPUtil;
 import lucee.runtime.extension.RHExtensionProvider;
@@ -63,6 +64,11 @@ public class Constants {
 	public static final String WEBSERVICE_NAMESPACE_URI = "http://rpc.xml.coldfusion";
 
 	public static URL DEFAULT_UPDATE_URL;
+	private static String[] extensions;
+	private static String[] luceeExtensions;
+	private static String[] cfmlExtensions;
+	private static String[] componentExtensions;
+	private static String[] templateExtensions;
 	static {
 		try {
 			DEFAULT_UPDATE_URL = new URL("https://update.lucee.org");
@@ -119,23 +125,28 @@ public class Constants {
 	}
 
 	public static String[] getTemplateExtensions() {
-		return ArrayUtil.toArray(getCFMLTemplateExtensions(), getLuceeTemplateExtensions());
+		if (templateExtensions == null) templateExtensions = ArrayUtil.toArray(getCFMLTemplateExtensions(), getLuceeTemplateExtensions());
+		return templateExtensions;
 	}
 
 	public static String[] getComponentExtensions() {
-		return new String[] { getCFMLComponentExtension(), getLuceeComponentExtension() };
+		if (componentExtensions == null) componentExtensions = new String[] { getCFMLComponentExtension(), getLuceeComponentExtension() };
+		return componentExtensions;
 	}
 
 	public static String[] getCFMLExtensions() {
-		return ArrayUtil.toArray(getCFMLTemplateExtensions(), getCFMLComponentExtension());
+		if (cfmlExtensions == null) cfmlExtensions = ArrayUtil.toArray(getCFMLTemplateExtensions(), getCFMLComponentExtension(), getCFMLScriptExtension());
+		return cfmlExtensions;
 	}
 
 	public static String[] getLuceeExtensions() {
-		return ArrayUtil.toArray(getLuceeTemplateExtensions(), getLuceeComponentExtension());
+		if (luceeExtensions == null) luceeExtensions = ArrayUtil.toArray(getLuceeTemplateExtensions(), getLuceeComponentExtension());
+		return luceeExtensions;
 	}
 
 	public static String[] getExtensions() {
-		return ArrayUtil.toArray(getComponentExtensions(), getTemplateExtensions(), getScriptExtensions());
+		if (extensions == null) extensions = ArrayUtil.toArray(getComponentExtensions(), getTemplateExtensions(), getScriptExtensions());
+		return extensions;
 	}
 
 	public static boolean isCFMLComponentExtension(String extension) {
@@ -160,5 +171,12 @@ public class Constants {
 		if (StringUtil.isEmpty(extension)) return false;
 		if (extension.startsWith(".")) extension = extension.substring(1);
 		return getCFMLComponentExtension().trim().equalsIgnoreCase(extension) || getLuceeComponentExtension().trim().equalsIgnoreCase(extension);
+	}
+
+	public static boolean isCFML(Resource file) {
+		for (String ext: getCFMLExtensions()) {
+			if (file.getName().endsWith("." + ext)) return true;
+		}
+		return false;
 	}
 }

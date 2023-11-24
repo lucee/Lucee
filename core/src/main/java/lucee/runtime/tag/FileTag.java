@@ -51,6 +51,7 @@ import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.mimetype.MimeType;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
+import lucee.runtime.PageSourcePool;
 import lucee.runtime.cache.tag.CacheHandler;
 import lucee.runtime.cache.tag.CacheHandlerCollectionImpl;
 import lucee.runtime.cache.tag.CacheHandlerPro;
@@ -761,6 +762,7 @@ public final class FileTag extends BodyTagImpl {
 		setMode(file, mode);
 		setAttributes(file, attributes);
 		setACL(pageContext, file, acl);
+		PageSourcePool.flush(pageContext, file);
 	}
 
 	/**
@@ -786,6 +788,7 @@ public final class FileTag extends BodyTagImpl {
 		setMode(file, mode);
 		setAttributes(file, attributes);
 		setACL(pageContext, file, acl);
+		PageSourcePool.flush(pageContext, file);
 	}
 
 	/**
@@ -815,6 +818,7 @@ public final class FileTag extends BodyTagImpl {
 		setMode(file, mode);
 		setAttributes(file, attributes);
 		setACL(pageContext, file, acl);
+		PageSourcePool.flush(pageContext, file);
 	}
 
 	private String doFixNewLine(String content) {

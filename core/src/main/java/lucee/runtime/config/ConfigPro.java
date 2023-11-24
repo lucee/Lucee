@@ -80,6 +80,12 @@ public interface ConfigPro extends Config {
 	public static final int QUERY_VAR_USAGE_WARN = 2;
 	public static final int QUERY_VAR_USAGE_ERROR = 4;
 
+	public static final short INSPECT_AUTO = 8;
+
+	public final static int INSPECT_INTERVAL_SLOW = 2000;
+	public final static int INSPECT_INTERVAL_FAST = 100;
+	public final static int INSPECT_INTERVAL_UNDEFINED = -1;
+
 	public static final String[] STRING_CACHE_TYPES = new String[] { "function", "include", "query", "resource", "http", "file", "webservice" };
 	public static final int[] CACHE_TYPES = new int[] { Config.CACHEDWITHIN_FUNCTION, Config.CACHEDWITHIN_INCLUDE, Config.CACHEDWITHIN_QUERY, Config.CACHEDWITHIN_RESOURCE,
 			Config.CACHEDWITHIN_HTTP, Config.CACHEDWITHIN_FILE, Config.CACHEDWITHIN_WEBSERVICE };
@@ -361,6 +367,8 @@ public interface ConfigPro extends Config {
 	public boolean limitEvaluation();
 
 	public String getMainLogger();
+
+	public int getInspectTemplateAutoInterval(boolean slow);
 
 	public Resource[] getResources(PageContext pc, Mapping[] mappings, String realPath, boolean onlyTopLevel, boolean useSpecialMappings, boolean useDefaultMapping,
 			boolean useComponentMappings, boolean onlyFirstMatch);

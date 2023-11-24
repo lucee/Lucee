@@ -54,6 +54,7 @@ import org.xml.sax.SAXException;
 import com.allaire.cfx.CustomTag;
 
 import lucee.aprint;
+import lucee.print;
 import lucee.commons.digest.MD5;
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.FileUtil;
@@ -2428,13 +2429,20 @@ public final class ConfigAdmin {
 		root.setEL("preserveSingleQuote", Caster.toBooleanValue(psq, true));
 	}
 
-	public void updateInspectTemplate(String str) throws SecurityException {
+	public void updateInspectTemplate(String inspectTemplate, int inspectTemplateIntervalSlow, int inspectTemplateIntervalFast) throws SecurityException {
 		checkWriteAccess();
 		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 
 		if (!hasAccess) throw new SecurityException("no access to update");
 
-		root.setEL("inspectTemplate", str);
+		print.e("------ updateInspectTemplate --------");
+		print.e("- " + inspectTemplate);
+		print.e("- " + inspectTemplateIntervalSlow);
+		print.e("- " + inspectTemplateIntervalFast);
+
+		root.setEL("inspectTemplate", inspectTemplate);
+		root.setEL("inspectTemplateIntervalSlow", inspectTemplateIntervalSlow);
+		root.setEL("inspectTemplateIntervalFast", inspectTemplateIntervalFast);
 
 	}
 
@@ -4533,7 +4541,7 @@ public final class ConfigAdmin {
 			if (inspect == Config.INSPECT_UNDEFINED) {
 				Boolean trusted = Caster.toBoolean(StringUtil.unwrap(attr.getValue("mapping-trusted")), null);
 				if (trusted != null) {
-					if (trusted.booleanValue()) inspect = Config.INSPECT_NEVER;
+					if (trusted.booleanValue()) inspect = ConfigPro.INSPECT_AUTO;
 					else inspect = Config.INSPECT_ALWAYS;
 				}
 			}

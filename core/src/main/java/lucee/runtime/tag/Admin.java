@@ -51,6 +51,7 @@ import org.osgi.framework.Version;
 
 import lucee.VersionInfo;
 import lucee.aprint;
+import lucee.print;
 import lucee.commons.collection.MapFactory;
 import lucee.commons.digest.Base64Encoder;
 import lucee.commons.digest.HashUtil;
@@ -3085,7 +3086,14 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	}
 
 	private void doUpdatePerformanceSettings() throws SecurityException, PageException {
-		admin.updateInspectTemplate(getString("admin", action, "inspectTemplate"));
+
+		print.e("------ doUpdatePerformanceSettings --------");
+		print.e("- " + getString("admin", action, "inspectTemplate"));
+		print.e("- " + getInt("admin", action, "inspectTemplateIntervalSlow"));
+		print.e("- " + getInt("admin", action, "inspectTemplateIntervalFast"));
+
+		admin.updateInspectTemplate(getString("admin", action, "inspectTemplate"), getInt("admin", action, "inspectTemplateIntervalSlow"),
+				getInt("admin", action, "inspectTemplateIntervalFast"));
 
 		admin.updateTypeChecking(getBoolObject("admin", action, "typeChecking"));
 
@@ -3205,7 +3213,11 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		String str = "once";
 		if (it == ConfigPro.INSPECT_ALWAYS) str = "always";
 		else if (it == ConfigPro.INSPECT_NEVER) str = "never";
+		else if (it == ConfigPro.INSPECT_AUTO) str = "auto";
 		sct.set("inspectTemplate", str);
+		sct.set("inspectTemplateIntervalSlow", config.getInspectTemplateAutoInterval(true));
+		sct.set("inspectTemplateIntervalFast", config.getInspectTemplateAutoInterval(false));
+
 		sct.set("typeChecking", config.getTypeChecking());
 
 		// cached within

@@ -20,11 +20,12 @@ package lucee.runtime.functions.file;
 
 import java.io.IOException;
 
+import lucee.commons.io.IOUtil;
 import lucee.commons.io.res.Resource;
-import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
+import lucee.runtime.PageSourcePool;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 
@@ -37,13 +38,13 @@ public class FileAppend {
 	public static String call(PageContext pc, Object file, Object data, String charset) throws PageException {
 		FileStreamWrapper fsw = null;
 		if (StringUtil.isEmpty(charset, true)) charset = ((PageContextImpl) pc).getResourceCharset().name();
-
+		Resource res = null;
 		try {
 			if (file instanceof FileStreamWrapper) {
 				fsw = (FileStreamWrapper) file;
 			}
 			else {
-				Resource res = Caster.toResource(pc, file, false);
+				res = Caster.toResource(pc, file, false);
 				pc.getConfig().getSecurityManager().checkFileLocation(res);
 				fsw = new FileStreamWrapperWrite(res, charset, true, false);
 			}
@@ -53,18 +54,10 @@ public class FileAppend {
 			throw Caster.toPageException(e);
 		}
 		finally {
-			closeEL(fsw);
+			IOUtil.closeEL(fsw);
+			if (res != null) PageSourcePool.flush(pc, res);
+			else PageSourcePool.flush(pc, file);
 		}
 		return null;
-	}
-
-	private static void closeEL(FileStreamWrapper fsw) {
-		if (fsw == null) return;
-		try {
-			fsw.close();
-		}
-		catch (Throwable t) {
-			ExceptionUtil.rethrowIfNecessary(t);
-		}
 	}
 }

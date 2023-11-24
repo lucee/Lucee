@@ -24,7 +24,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Date;
 
+import lucee.print;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
@@ -306,7 +308,8 @@ public final class PageSourceImpl implements PageSource {
 		if (!mapping.hasPhysical()) return null;
 		ConfigWeb config = pc.getConfig();
 		PageContextImpl pci = (PageContextImpl) pc;
-		if ((mapping.getInspectTemplate() == Config.INSPECT_NEVER || pci.isTrusted(page)) && isLoad(LOAD_PHYSICAL)) return page;
+		if ((mapping.getInspectTemplate() == Config.INSPECT_NEVER || mapping.getInspectTemplate() == ConfigPro.INSPECT_AUTO || pci.isTrusted(page)) && isLoad(LOAD_PHYSICAL))
+			return page;
 		Resource srcFile = getPhyscalFile();
 
 		long srcLastModified = srcFile.lastModified();
@@ -406,7 +409,37 @@ public final class PageSourceImpl implements PageSource {
 		return page;
 	}
 
+	public boolean releaseWhenOutdatted(boolean show) {
+		if (show) print.e("- releaseWhenOutdatted -");
+		if (!mapping.hasPhysical() || !isLoad(LOAD_PHYSICAL)) return false;
+		if (show) print.e("- 1");
+		Page page = pcn.page;
+		Resource srcFile = getPhyscalFile();
+		long srcLastModified = srcFile.lastModified();
+		if (show) print.e("- " + srcFile);
+		if (show) print.e("- src.dat: " + new Date(srcLastModified));
+		// Page exists
+		if (page != null) {
+			if (show) print.e("- cls.dat: " + new Date(page.getSourceLastModified()));
+			if (show) print.e("- src.len: " + srcFile.length());
+			if (show) print.e("- cls.len: " + ((PagePro) page).getSourceLength());
+			// if(page!=null && !recompileAlways) {
+			if (srcLastModified == 0 || srcLastModified != page.getSourceLastModified() || (page instanceof PagePro && ((PagePro) page).getSourceLength() != srcFile.length())) {
+				synchronized (this) {
+					if (srcLastModified == 0 || srcLastModified != page.getSourceLastModified()
+							|| (page instanceof PagePro && ((PagePro) page).getSourceLength() != srcFile.length())) {
+						resetLoaded();
+						flush();
+						return true;
+					}
+				}
+			}
+		}
+		return false;
+	}
+
 	public void flush() {
+		print.e("- flush:" + getDisplayPath());
 		pcn.page = null;
 		flush = true;
 	}
@@ -1103,7 +1136,7 @@ public final class PageSourceImpl implements PageSource {
 
 	@Override
 	public boolean executable() {
-		return (getMapping().getInspectTemplate() == Config.INSPECT_NEVER && isLoad()) || exists();
+		return ((getMapping().getInspectTemplate() == Config.INSPECT_NEVER || getMapping().getInspectTemplate() == ConfigPro.INSPECT_AUTO) && isLoad()) || exists();
 	}
 
 	public void resetLoaded() {

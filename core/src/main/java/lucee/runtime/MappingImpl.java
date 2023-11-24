@@ -67,14 +67,17 @@ public final class MappingImpl implements Mapping {
 	private String virtual;
 	private String lcVirtual;
 	private boolean topLevel;
-	private short inspect;
+	private final short inspect;
+	private final int inspectTemplateAutoIntervalSlow;
+	private final int inspectTemplateAutoIntervalFast;
+
 	private boolean physicalFirst;
 	private transient Map<String, PhysicalClassLoaderReference> loaders = new HashMap<>();
 	private Resource archive;
 
 	private final Config config;
 	private Resource classRootDirectory;
-	private final PageSourcePool pageSourcePool = new PageSourcePool();
+	private final PageSourcePool pageSourcePool = new PageSourcePool(this);
 
 	private boolean readonly = false;
 	private boolean hidden = false;
@@ -101,10 +104,11 @@ public final class MappingImpl implements Mapping {
 	private boolean checkPhysicalFromWebroot;
 	private boolean checkArchiveFromWebroot;
 
-	public MappingImpl(Config config, String virtual, String strPhysical, String strArchive, short inspect, boolean physicalFirst, boolean hidden, boolean readonly,
-			boolean topLevel, boolean appMapping, boolean ignoreVirtual, ApplicationListener appListener, int listenerMode, int listenerType) {
-		this(config, virtual, strPhysical, strArchive, inspect, physicalFirst, hidden, readonly, topLevel, appMapping, ignoreVirtual, appListener, listenerMode, listenerType, true,
-				true);
+	public MappingImpl(Config config, String virtual, String strPhysical, String strArchive, short inspect, int inspectTemplateAutoIntervalSlow,
+			int inspectTemplateAutoIntervalFast, boolean physicalFirst, boolean hidden, boolean readonly, boolean topLevel, boolean appMapping, boolean ignoreVirtual,
+			ApplicationListener appListener, int listenerMode, int listenerType) {
+		this(config, virtual, strPhysical, strArchive, inspect, inspectTemplateAutoIntervalSlow, inspectTemplateAutoIntervalFast, physicalFirst, hidden, readonly, topLevel,
+				appMapping, ignoreVirtual, appListener, listenerMode, listenerType, true, true);
 	}
 
 	/**
@@ -123,9 +127,9 @@ public final class MappingImpl implements Mapping {
 	 * @param ignoreVirtual
 	 * @param appListener
 	 */
-	public MappingImpl(Config config, String virtual, String strPhysical, String strArchive, short inspect, boolean physicalFirst, boolean hidden, boolean readonly,
-			boolean topLevel, boolean appMapping, boolean ignoreVirtual, ApplicationListener appListener, int listenerMode, int listenerType, boolean checkPhysicalFromWebroot,
-			boolean checkArchiveFromWebroot) {
+	public MappingImpl(Config config, String virtual, String strPhysical, String strArchive, short inspect, int inspectTemplateAutoIntervalSlow,
+			int inspectTemplateAutoIntervalFast, boolean physicalFirst, boolean hidden, boolean readonly, boolean topLevel, boolean appMapping, boolean ignoreVirtual,
+			ApplicationListener appListener, int listenerMode, int listenerType, boolean checkPhysicalFromWebroot, boolean checkArchiveFromWebroot) {
 		this.ignoreVirtual = ignoreVirtual;
 		this.config = config;
 		this.hidden = hidden;
@@ -133,6 +137,8 @@ public final class MappingImpl implements Mapping {
 		this.strPhysical = StringUtil.isEmpty(strPhysical, true) ? null : strPhysical.trim();
 		this.strArchive = StringUtil.isEmpty(strArchive, true) ? null : strArchive.trim();
 		this.inspect = inspect;
+		this.inspectTemplateAutoIntervalSlow = inspectTemplateAutoIntervalSlow;
+		this.inspectTemplateAutoIntervalFast = inspectTemplateAutoIntervalFast;
 		this.topLevel = topLevel;
 		this.appMapping = appMapping;
 		this.physicalFirst = physicalFirst;
@@ -371,8 +377,8 @@ public final class MappingImpl implements Mapping {
 	 * @throws IOException
 	 */
 	public MappingImpl cloneReadOnly(Config config) {
-		return new MappingImpl(config, virtual, strPhysical, strArchive, inspect, physicalFirst, hidden, true, topLevel, appMapping, ignoreVirtual, appListener, listenerMode,
-				listenerType, checkPhysicalFromWebroot, checkArchiveFromWebroot);
+		return new MappingImpl(config, virtual, strPhysical, strArchive, inspect, inspectTemplateAutoIntervalSlow, inspectTemplateAutoIntervalFast, physicalFirst, hidden, true,
+				topLevel, appMapping, ignoreVirtual, appListener, listenerMode, listenerType, checkPhysicalFromWebroot, checkArchiveFromWebroot);
 	}
 
 	@Override
@@ -389,6 +395,15 @@ public final class MappingImpl implements Mapping {
 	 */
 	public short getInspectTemplateRaw() {
 		return inspect;
+	}
+
+	public int getInspectTemplateAutoInterval(boolean slow) {
+		if (slow) {
+			if (inspectTemplateAutoIntervalSlow == ConfigPro.INSPECT_INTERVAL_UNDEFINED) return ((ConfigPro) config).getInspectTemplateAutoInterval(slow);
+			return inspectTemplateAutoIntervalSlow;
+		}
+		if (inspectTemplateAutoIntervalFast == ConfigPro.INSPECT_INTERVAL_UNDEFINED) return ((ConfigPro) config).getInspectTemplateAutoInterval(slow);
+		return inspectTemplateAutoIntervalFast;
 	}
 
 	@Override
@@ -509,7 +524,7 @@ public final class MappingImpl implements Mapping {
 	@Override
 	@Deprecated
 	public boolean isTrusted() {
-		return getInspectTemplate() == Config.INSPECT_NEVER;
+		return getInspectTemplate() == ConfigPro.INSPECT_AUTO || getInspectTemplate() == Config.INSPECT_NEVER;
 	}
 
 	@Override

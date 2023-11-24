@@ -650,7 +650,8 @@ public final class ConfigWebUtil {
 	public static short inspectTemplate(String str, short defaultValue) {
 		if (str == null) return defaultValue;
 		str = str.trim().toLowerCase();
-		if (str.equals("always")) return Config.INSPECT_ALWAYS;
+		if (str.equals("auto")) return ConfigPro.INSPECT_AUTO;
+		else if (str.equals("always")) return Config.INSPECT_ALWAYS;
 		else if (str.equals("never")) return Config.INSPECT_NEVER;
 		else if (str.equals("once")) return Config.INSPECT_ONCE;
 		return defaultValue;
@@ -658,6 +659,8 @@ public final class ConfigWebUtil {
 
 	public static String inspectTemplate(short s, String defaultValue) {
 		switch (s) {
+		case ConfigPro.INSPECT_AUTO:
+			return "auto";
 		case Config.INSPECT_ALWAYS:
 			return "always";
 		case Config.INSPECT_NEVER:
