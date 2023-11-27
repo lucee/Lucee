@@ -110,6 +110,35 @@ public class VariableImpl extends ExpressionBase implements Variable {
 	private static final Method STATIC_TOUCH1 = new Method("staticTouch", Types.OBJECT, new Type[] { Types.OBJECT });
 	private static final Method INVOKE = new Method("invoke", Types.OBJECT, new Type[] { Types.PAGE_CONTEXT, Types.OBJECT_ARRAY, Types.STRING, Types.STRING, Types.STRING });
 
+	// GET
+	private final static Method US_GET_KEY1 = new Method("us", Types.OBJECT, new Type[] { Types.COLLECTION_KEY });
+	private final static Method US_GET_KEY2 = new Method("us", Types.OBJECT, new Type[] { Types.COLLECTION_KEY, Types.COLLECTION_KEY });
+	private final static Method US_GET_KEY3 = new Method("us", Types.OBJECT, new Type[] { Types.COLLECTION_KEY, Types.COLLECTION_KEY, Types.COLLECTION_KEY });
+	private final static Method US_GET_KEY4 = new Method("us", Types.OBJECT, new Type[] { Types.COLLECTION_KEY, Types.COLLECTION_KEY, Types.COLLECTION_KEY, Types.COLLECTION_KEY });
+	private final static Method US_GET_KEY5 = new Method("us", Types.OBJECT,
+			new Type[] { Types.COLLECTION_KEY, Types.COLLECTION_KEY, Types.COLLECTION_KEY, Types.COLLECTION_KEY, Types.COLLECTION_KEY });
+	private final static Method[] US_GET_KEYS = new Method[] { US_GET_KEY1, US_GET_KEY2, US_GET_KEY3, US_GET_KEY4, US_GET_KEY5 };
+
+	private final static Method VS_GET_KEY1 = new Method("vs", Types.OBJECT, new Type[] { Types.COLLECTION_KEY });
+	private final static Method VS_GET_KEY2 = new Method("vs", Types.OBJECT, new Type[] { Types.COLLECTION_KEY, Types.COLLECTION_KEY });
+	private final static Method VS_GET_KEY3 = new Method("vs", Types.OBJECT, new Type[] { Types.COLLECTION_KEY, Types.COLLECTION_KEY, Types.COLLECTION_KEY });
+	private final static Method VS_GET_KEY4 = new Method("vs", Types.OBJECT, new Type[] { Types.COLLECTION_KEY, Types.COLLECTION_KEY, Types.COLLECTION_KEY, Types.COLLECTION_KEY });
+	private final static Method[] VS_GET_KEYS = new Method[] { VS_GET_KEY1, VS_GET_KEY2, VS_GET_KEY3, VS_GET_KEY4 };
+
+	private final static Method LS_GET_KEY1 = new Method("ls", Types.OBJECT, new Type[] { Types.COLLECTION_KEY });
+	private final static Method LS_GET_KEY2 = new Method("ls", Types.OBJECT, new Type[] { Types.COLLECTION_KEY, Types.COLLECTION_KEY });
+	private final static Method LS_GET_KEY3 = new Method("ls", Types.OBJECT, new Type[] { Types.COLLECTION_KEY, Types.COLLECTION_KEY, Types.COLLECTION_KEY });
+	private final static Method LS_GET_KEY4 = new Method("ls", Types.OBJECT, new Type[] { Types.COLLECTION_KEY, Types.COLLECTION_KEY, Types.COLLECTION_KEY, Types.COLLECTION_KEY });
+	private final static Method[] LS_GET_KEYS = new Method[] { LS_GET_KEY1, LS_GET_KEY2, LS_GET_KEY3, LS_GET_KEY4 };
+
+	private final static Method[][] GET_KEYS = new Method[Scope.SCOPE_COUNT][4];
+
+	static {
+		GET_KEYS[Scope.SCOPE_VARIABLES] = VS_GET_KEYS;
+		GET_KEYS[Scope.SCOPE_LOCAL] = LS_GET_KEYS;
+		GET_KEYS[Scope.SCOPE_UNDEFINED] = US_GET_KEYS;
+	}
+
 	private int scope = Scope.SCOPE_UNDEFINED;
 	List<Member> members = new ArrayList<Member>();
 	int countDM = 0;
@@ -209,6 +238,64 @@ public class VariableImpl extends ExpressionBase implements Variable {
 
 		// count 0
 		if (count == 0) return _writeOutEmpty(bc);
+
+		boolean supportedScope = false;
+		switch (scope) {
+		case Scope.SCOPE_UNDEFINED:
+			supportedScope = true;
+			break;
+		case Scope.SCOPE_VARIABLES:
+			supportedScope = true;
+			break;
+		case Scope.SCOPE_LOCAL:
+			supportedScope = true;
+			break;
+		}
+
+		outer: while (count > 0 && supportedScope && count <= GET_KEYS[scope].length) {
+			// check if rules aply
+			{
+				boolean last;
+				Member member;
+				for (int i = 0; i < count; i++) {
+					last = (i + 1) == count;
+					member = members.get(i);
+					if (!(members.get(i) instanceof DataMember)) {
+						break outer;
+					}
+
+					ExprString name = ((DataMember) member).getName();
+					if (last && ASMUtil.isDotKey(name)) {
+						LitString ls = (LitString) name;
+						if (ls.getString().equalsIgnoreCase("RECORDCOUNT")) {
+							break outer;
+						}
+						else if (ls.getString().equalsIgnoreCase("CURRENTROW")) {
+							break outer;
+						}
+						else if (ls.getString().equalsIgnoreCase("COLUMNLIST")) {
+							break outer;
+						}
+					}
+
+				}
+			}
+			// load pc
+			adapter.loadArg(0);
+			adapter.checkCast(Types.PAGE_CONTEXT_IMPL);
+
+			// write keys
+			Member member;
+			for (int i = 0; i < count; i++) {
+				member = members.get(i);
+				getFactory().registerKey(bc, ((DataMember) member).getName(), false);
+			}
+
+			// call get function
+			adapter.invokeVirtual(Types.PAGE_CONTEXT_IMPL, GET_KEYS[scope][count - 1]);
+
+			return Types.OBJECT;
+		}
 
 		boolean doOnlyScope = scope == Scope.SCOPE_LOCAL;
 
