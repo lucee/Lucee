@@ -133,10 +133,37 @@ public class VariableImpl extends ExpressionBase implements Variable {
 
 	private final static Method[][] GET_KEYS = new Method[Scope.SCOPE_COUNT][4];
 
+	// GET COLUMN
+	private final static Method USC_GET_KEY2 = new Method("usc", Types.OBJECT, new Type[] { Types.COLLECTION_KEY, Types.COLLECTION_KEY });
+	private final static Method USC_GET_KEY3 = new Method("usc", Types.OBJECT, new Type[] { Types.COLLECTION_KEY, Types.COLLECTION_KEY, Types.COLLECTION_KEY });
+	private final static Method USC_GET_KEY4 = new Method("usc", Types.OBJECT,
+			new Type[] { Types.COLLECTION_KEY, Types.COLLECTION_KEY, Types.COLLECTION_KEY, Types.COLLECTION_KEY });
+	private final static Method USC_GET_KEY5 = new Method("usc", Types.OBJECT,
+			new Type[] { Types.COLLECTION_KEY, Types.COLLECTION_KEY, Types.COLLECTION_KEY, Types.COLLECTION_KEY, Types.COLLECTION_KEY });
+	private final static Method[] USC_GET_KEYS = new Method[] { US_GET_KEY1, USC_GET_KEY2, USC_GET_KEY3, USC_GET_KEY4, USC_GET_KEY5 };
+
+	private final static Method VSC_GET_KEY2 = new Method("vsc", Types.OBJECT, new Type[] { Types.COLLECTION_KEY, Types.COLLECTION_KEY });
+	private final static Method VSC_GET_KEY3 = new Method("vsc", Types.OBJECT, new Type[] { Types.COLLECTION_KEY, Types.COLLECTION_KEY, Types.COLLECTION_KEY });
+	private final static Method VSC_GET_KEY4 = new Method("vsc", Types.OBJECT,
+			new Type[] { Types.COLLECTION_KEY, Types.COLLECTION_KEY, Types.COLLECTION_KEY, Types.COLLECTION_KEY });
+	private final static Method[] VSC_GET_KEYS = new Method[] { VS_GET_KEY1, VSC_GET_KEY2, VSC_GET_KEY3, VSC_GET_KEY4 };
+
+	private final static Method LSC_GET_KEY2 = new Method("lsc", Types.OBJECT, new Type[] { Types.COLLECTION_KEY, Types.COLLECTION_KEY });
+	private final static Method LSC_GET_KEY3 = new Method("lsc", Types.OBJECT, new Type[] { Types.COLLECTION_KEY, Types.COLLECTION_KEY, Types.COLLECTION_KEY });
+	private final static Method LSC_GET_KEY4 = new Method("lsc", Types.OBJECT,
+			new Type[] { Types.COLLECTION_KEY, Types.COLLECTION_KEY, Types.COLLECTION_KEY, Types.COLLECTION_KEY });
+	private final static Method[] LSC_GET_KEYS = new Method[] { LS_GET_KEY1, LSC_GET_KEY2, LSC_GET_KEY3, LSC_GET_KEY4 };
+
+	private final static Method[][] GETC_KEYS = new Method[Scope.SCOPE_COUNT][4];
+
 	static {
 		GET_KEYS[Scope.SCOPE_VARIABLES] = VS_GET_KEYS;
 		GET_KEYS[Scope.SCOPE_LOCAL] = LS_GET_KEYS;
 		GET_KEYS[Scope.SCOPE_UNDEFINED] = US_GET_KEYS;
+
+		GETC_KEYS[Scope.SCOPE_VARIABLES] = VSC_GET_KEYS;
+		GETC_KEYS[Scope.SCOPE_LOCAL] = LSC_GET_KEYS;
+		GETC_KEYS[Scope.SCOPE_UNDEFINED] = USC_GET_KEYS;
 	}
 
 	private int scope = Scope.SCOPE_UNDEFINED;
@@ -239,20 +266,21 @@ public class VariableImpl extends ExpressionBase implements Variable {
 		// count 0
 		if (count == 0) return _writeOutEmpty(bc);
 
-		boolean supportedScope = false;
+		boolean supported = false;
+
 		switch (scope) {
 		case Scope.SCOPE_UNDEFINED:
-			supportedScope = true;
+			supported = true;
 			break;
 		case Scope.SCOPE_VARIABLES:
-			supportedScope = true;
+			supported = true;
 			break;
 		case Scope.SCOPE_LOCAL:
-			supportedScope = true;
+			supported = true;
 			break;
 		}
 
-		outer: while (count > 0 && supportedScope && count <= GET_KEYS[scope].length) {
+		outer: while (count > 0 && supported && count <= GET_KEYS[scope].length) {
 			// check if rules aply
 			{
 				boolean last;
@@ -292,7 +320,7 @@ public class VariableImpl extends ExpressionBase implements Variable {
 			}
 
 			// call get function
-			adapter.invokeVirtual(Types.PAGE_CONTEXT_IMPL, GET_KEYS[scope][count - 1]);
+			adapter.invokeVirtual(Types.PAGE_CONTEXT_IMPL, asCollection(asCollection, true) ? GETC_KEYS[scope][count - 1] : GET_KEYS[scope][count - 1]);
 
 			return Types.OBJECT;
 		}

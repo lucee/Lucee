@@ -1272,6 +1272,27 @@ public final class PageContextImpl extends PageContext {
 				variableUtil.getCollection(this, variableUtil.getCollection(this, variableUtil.getCollection(this, undefined.getCollection(key1), key2), key3), key4), key5);
 	}
 
+	public Object usc(Collection.Key key1, Collection.Key key2) throws PageException {
+		if (!undefined.isInitalized()) undefined.initialize(this);
+		return variableUtil.getCollection(this, undefined.getCollection(key1), key2);
+	}
+
+	public Object usc(Collection.Key key1, Collection.Key key2, Collection.Key key3) throws PageException {
+		if (!undefined.isInitalized()) undefined.initialize(this);
+		return variableUtil.getCollection(this, variableUtil.getCollection(this, undefined.getCollection(key1), key2), key3);
+	}
+
+	public Object usc(Collection.Key key1, Collection.Key key2, Collection.Key key3, Collection.Key key4) throws PageException {
+		if (!undefined.isInitalized()) undefined.initialize(this);
+		return variableUtil.getCollection(this, variableUtil.getCollection(this, variableUtil.getCollection(this, undefined.getCollection(key1), key2), key3), key4);
+	}
+
+	public Object usc(Collection.Key key1, Collection.Key key2, Collection.Key key3, Collection.Key key4, Collection.Key key5) throws PageException {
+		if (!undefined.isInitalized()) undefined.initialize(this);
+		return variableUtil.getCollection(this,
+				variableUtil.getCollection(this, variableUtil.getCollection(this, variableUtil.getCollection(this, undefined.getCollection(key1), key2), key3), key4), key5);
+	}
+
 	public Object us(Collection.Key key, Object value) throws PageException {
 		if (!undefined.isInitalized()) undefined.initialize(this);
 		undefined.set(key, value);
@@ -1334,6 +1355,18 @@ public final class PageContextImpl extends PageContext {
 
 	public Object vs(Collection.Key key1, Collection.Key key2, Collection.Key key3, Collection.Key key4) throws PageException {
 		return variableUtil.get(this, variableUtil.getCollection(this, variableUtil.getCollection(this, variables.get(key1), key2), key3), key4);
+	}
+
+	public Object vsc(Collection.Key key1, Collection.Key key2) throws PageException {
+		return variableUtil.getCollection(this, variables.get(key1), key2);
+	}
+
+	public Object vsc(Collection.Key key1, Collection.Key key2, Collection.Key key3) throws PageException {
+		return variableUtil.getCollection(this, variableUtil.getCollection(this, variables.get(key1), key2), key3);
+	}
+
+	public Object vsc(Collection.Key key1, Collection.Key key2, Collection.Key key3, Collection.Key key4) throws PageException {
+		return variableUtil.getCollection(this, variableUtil.getCollection(this, variableUtil.getCollection(this, variables.get(key1), key2), key3), key4);
 	}
 
 	public Object vs(Collection.Key key, Object value) throws PageException {
@@ -1447,6 +1480,21 @@ public final class PageContextImpl extends PageContext {
 	public Object ls(Collection.Key key1, Collection.Key key2, Collection.Key key3, Collection.Key key4) throws PageException {
 		if (!undefined.getCheckArguments()) return us(KeyConstants._local, key1, key2, key3, key4);
 		return variableUtil.get(this, variableUtil.getCollection(this, variableUtil.getCollection(this, local.get(key1), key2), key3), key4);
+	}
+
+	public Object lsc(Collection.Key key1, Collection.Key key2) throws PageException {
+		if (!undefined.getCheckArguments()) return usc(KeyConstants._local, key1, key2);
+		return variableUtil.getCollection(this, local.get(key1), key2);
+	}
+
+	public Object lsc(Collection.Key key1, Collection.Key key2, Collection.Key key3) throws PageException {
+		if (!undefined.getCheckArguments()) return usc(KeyConstants._local, key1, key2, key3);
+		return variableUtil.getCollection(this, variableUtil.getCollection(this, local.get(key1), key2), key3);
+	}
+
+	public Object lsc(Collection.Key key1, Collection.Key key2, Collection.Key key3, Collection.Key key4) throws PageException {
+		if (!undefined.getCheckArguments()) return usc(KeyConstants._local, key1, key2, key3, key4);
+		return variableUtil.getCollection(this, variableUtil.getCollection(this, variableUtil.getCollection(this, local.get(key1), key2), key3), key4);
 	}
 
 	public Object ls(Collection.Key key, Object value) throws PageException {
