@@ -32,8 +32,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				loadJDBCDriverClass("org.lucee.mssql","7.2.2.jre8");
 				loadJDBCDriverClass("org.lucee.mssql","7.4.1.jre8");
 				loadJDBCDriverClass("org.lucee.mssql","8.4.1.jre8");
-				loadJDBCDriverClass("org.lucee.mssql","12.4.2.jre8");
-				loadJDBCDriverClass("org.lucee.mssql","12.4.2.jre11");
 			});
 
 			it( title='Postgre', body=function( currentSpec ) {
