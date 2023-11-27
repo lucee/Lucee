@@ -25,7 +25,12 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				expect(outer.data.sub.name).toBe("Susi");
 				expect(valueList(outer.data.sub.name)).toBe("Susi,Peter");
 			});
+
+			it( title='safe navigated', body=function( currentSpec ) {
+				var x=myvar?.firstlevel;
+				expect(isNull(x)).toBeTrue();
+			});
 		});
 	}
-
+	
 }

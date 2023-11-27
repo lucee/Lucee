@@ -288,9 +288,10 @@ public class VariableImpl extends ExpressionBase implements Variable {
 				for (int i = 0; i < count; i++) {
 					last = (i + 1) == count;
 					member = members.get(i);
-					if (!(members.get(i) instanceof DataMember)) {
+					if (!(member instanceof DataMember) || member.getSafeNavigated()) {
 						break outer;
 					}
+					//
 
 					ExprString name = ((DataMember) member).getName();
 					if (last && ASMUtil.isDotKey(name)) {
