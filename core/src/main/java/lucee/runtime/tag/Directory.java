@@ -466,11 +466,14 @@ public final class Directory extends TagImpl {
 
 			if (namesOnly) {
 				if (typeArray) {
+					if (recurse && filter != null) filter = new OrResourceFilter(new ResourceFilter[] { filter, new DirectoryResourceFilter() });
 					_fillArrayPathOrName(array, directory, filter, 0, recurse, (listInfo == LIST_INFO_ARRAY_NAME));
 					return array;
 				}
 
 				// Query Name, available via the cfdirectory tag but not via directoryList()
+				// if (recurse && filter != null) filter = new OrResourceFilter(new ResourceFilter[] { filter, new
+				// DirectoryResourceFilter() });
 				if (recurse || type != TYPE_ALL) _fillQueryNamesRec("", query, directory, filter, 0, recurse);
 				else _fillQueryNames(query, directory, filter, 0);
 			}
@@ -647,24 +650,11 @@ public final class Directory extends TagImpl {
 	}
 
 	private static int _fillArrayPathOrName(Array arr, Resource directory, ResourceFilter filter, int count, boolean recurse, boolean onlyName) throws PageException {
-		if (!recurse && filter != null) {
-			Resource[] list = directory.listResources(filter);
-			if (list == null || list.length == 0) return count;
-			for (int i = 0; i < list.length; i++) {
-				arr.appendEL(onlyName ? list[i].getName() : list[i].getAbsolutePath());
-				count++;
-			}
-			return count;
-		}
-
-		Resource[] list = directory.listResources();
+		Resource[] list = directory.listResources(filter);
 		if (list == null || list.length == 0) return count;
 		for (int i = 0; i < list.length; i++) {
-			if (filter == null || filter.accept(list[i])) {
-				arr.appendEL(onlyName ? list[i].getName() : list[i].getAbsolutePath());
-				count++;
-
-			}
+			arr.appendEL(onlyName ? list[i].getName() : list[i].getAbsolutePath());
+			count++;
 			if (recurse && list[i].isDirectory()) count = _fillArrayPathOrName(arr, list[i], filter, count, recurse, onlyName);
 		}
 		return count;
