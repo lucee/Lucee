@@ -51,7 +51,6 @@ import org.osgi.framework.Version;
 
 import lucee.VersionInfo;
 import lucee.aprint;
-import lucee.print;
 import lucee.commons.collection.MapFactory;
 import lucee.commons.digest.Base64Encoder;
 import lucee.commons.digest.HashUtil;
@@ -3099,13 +3098,8 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 	private void doUpdatePerformanceSettings() throws SecurityException, PageException {
 
-		print.e("------ doUpdatePerformanceSettings --------");
-		print.e("- " + getString("admin", action, "inspectTemplate"));
-		print.e("- " + getInt("admin", action, "inspectTemplateIntervalSlow"));
-		print.e("- " + getInt("admin", action, "inspectTemplateIntervalFast"));
-
-		admin.updateInspectTemplate(getString("admin", action, "inspectTemplate"), getInt("admin", action, "inspectTemplateIntervalSlow"),
-				getInt("admin", action, "inspectTemplateIntervalFast"));
+		admin.updateInspectTemplate(getString("admin", action, "inspectTemplate"), getInt("inspectTemplateIntervalSlow", ConfigPro.INSPECT_INTERVAL_UNDEFINED),
+				getInt("inspectTemplateIntervalFast", ConfigPro.INSPECT_INTERVAL_UNDEFINED));
 
 		admin.updateTypeChecking(getBoolObject("admin", action, "typeChecking"));
 

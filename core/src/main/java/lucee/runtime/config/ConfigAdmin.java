@@ -54,7 +54,6 @@ import org.xml.sax.SAXException;
 import com.allaire.cfx.CustomTag;
 
 import lucee.aprint;
-import lucee.print;
 import lucee.commons.digest.MD5;
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.FileUtil;
@@ -2452,11 +2451,6 @@ public final class ConfigAdmin {
 
 		if (!hasAccess) throw new SecurityException("no access to update");
 
-		print.e("------ updateInspectTemplate --------");
-		print.e("- " + inspectTemplate);
-		print.e("- " + inspectTemplateIntervalSlow);
-		print.e("- " + inspectTemplateIntervalFast);
-
 		root.setEL("inspectTemplate", inspectTemplate);
 		root.setEL("inspectTemplateIntervalSlow", inspectTemplateIntervalSlow);
 		root.setEL("inspectTemplateIntervalFast", inspectTemplateIntervalFast);
@@ -4733,8 +4727,7 @@ public final class ConfigAdmin {
 
 				// event-gateway
 				if (!entry.isDirectory() && (startsWith(path, type, "event-gateways") || startsWith(path, type, "eventGateways"))
-						&& (StringUtil.endsWithIgnoreCase(path, "." + Constants.getCFMLComponentExtension())
-								|| StringUtil.endsWithIgnoreCase(path, "." + Constants.getLuceeComponentExtension()))) {
+						&& (StringUtil.endsWithIgnoreCase(path, "." + Constants.getCFMLComponentExtension()))) {
 					String sub = subFolder(entry);
 					logger.log(Log.LEVEL_DEBUG, "extension", "Deploy event-gateway [" + sub + "]");
 					updateEventGateway(zis, sub, false);
@@ -6543,8 +6536,7 @@ public final class ConfigAdmin {
 		}
 		String name = ResourceUtil.getName(src.getName());
 		if (!PluginFilter.doAccept(src)) throw new ApplicationException("Plugin [" + src.getAbsolutePath() + "] is invalid, missing one of the following files [Action."
-				+ Constants.getCFMLComponentExtension() + " or Action." + Constants.getLuceeComponentExtension() + ",language.xml] in root, existing files are ["
-				+ lucee.runtime.type.util.ListUtil.arrayToList(src.list(), ", ") + "]");
+				+ Constants.getCFMLComponentExtension() + ",language.xml] in root, existing files are [" + lucee.runtime.type.util.ListUtil.arrayToList(src.list(), ", ") + "]");
 
 		Resource dir = config.getPluginDirectory();
 		Resource trgDir = dir.getRealResource(name);
@@ -6596,8 +6588,7 @@ public final class ConfigAdmin {
 		}
 
 		public static boolean doAccept(Resource res) {
-			return res.isDirectory() && (res.getRealResource("/Action." + Constants.getCFMLComponentExtension()).isFile()
-					|| res.getRealResource("/Action." + Constants.getLuceeComponentExtension()).isFile()) && res.getRealResource("/language.xml").isFile();
+			return res.isDirectory() && (res.getRealResource("/Action." + Constants.getCFMLComponentExtension()).isFile()) && res.getRealResource("/language.xml").isFile();
 		}
 
 	}
