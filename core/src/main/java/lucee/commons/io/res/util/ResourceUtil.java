@@ -30,6 +30,8 @@ import java.util.List;
 import lucee.commons.digest.Hash;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
+import lucee.commons.io.log.Log;
+import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.ContentType;
 import lucee.commons.io.res.ContentTypeImpl;
 import lucee.commons.io.res.Resource;
@@ -390,7 +392,7 @@ public final class ResourceUtil {
 	 */
 	public static Resource toExactResource(Resource res) {
 		res = getCanonicalResourceEL(res);
-		if (res.getResourceProvider().isCaseSensitive() && !"s3".equalsIgnoreCase(res.getResourceProvider().getScheme())) {
+		if (res.getResourceProvider().isCaseSensitive()) {
 			if (res.exists()) return res;
 			return _check(res);
 
@@ -407,14 +409,22 @@ public final class ResourceUtil {
 			Resource op = parent;
 			parent = _check(parent);
 			if (op == parent) return file;
-			if ((file = parent.getRealResource(file.getName())).exists()) return file;
+			if ((file = parent.getRealResource(file.getName())).exists()) {
+				LogUtil.log(ThreadLocalPageContext.getConfig(), Log.LEVEL_ERROR, "application", "resources",
+						"Found a case-insensitive match for directory [" + op + "] with the name [" + parent.getName() + "].");
+				return file;
+			}
 		}
 
 		String[] files = parent.list();
 		if (files == null) return file;
 		String name = file.getName();
 		for (int i = 0; i < files.length; i++) {
-			if (name.equalsIgnoreCase(files[i])) return parent.getRealResource(files[i]);
+			if (name.equalsIgnoreCase(files[i])) {
+				LogUtil.log(ThreadLocalPageContext.getConfig(), Log.LEVEL_ERROR, "application", "resources",
+						"Found a case-insensitive match for file [" + file + "] with the name [" + files[i] + "].");
+				return parent.getRealResource(files[i]);
+			}
 		}
 		return file;
 	}
