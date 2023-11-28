@@ -799,7 +799,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					var performanceSettings = adminWeb.getPerformanceSettings();
 					assertEquals(isstruct(performanceSettings) ,true);
 					var props = "cachedAfter,cachedAfter_second,cachedAfter_minute,cachedAfter_hour,cachedAfter_day," // new in 6
-						& "inspectTemplate,typeChecking";
+						& "inspectTemplate,inspectTemplateIntervalFast,inspectTemplateIntervalSlow,typeChecking";
 
 					loop list=props item="local.prop" {
 						expect( performanceSettings ).toHaveKey( prop );
