@@ -37,6 +37,7 @@ public class FileAppend {
 
 	public static String call(PageContext pc, Object file, Object data, String charset) throws PageException {
 		FileStreamWrapper fsw = null;
+		boolean close = false;
 		if (StringUtil.isEmpty(charset, true)) charset = ((PageContextImpl) pc).getResourceCharset().name();
 		Resource res = null;
 		try {
@@ -44,6 +45,7 @@ public class FileAppend {
 				fsw = (FileStreamWrapper) file;
 			}
 			else {
+				close = true;
 				res = Caster.toResource(pc, file, false);
 				pc.getConfig().getSecurityManager().checkFileLocation(res);
 				fsw = new FileStreamWrapperWrite(res, charset, true, false);
@@ -54,7 +56,7 @@ public class FileAppend {
 			throw Caster.toPageException(e);
 		}
 		finally {
-			IOUtil.closeEL(fsw);
+			if (close) IOUtil.closeEL(fsw);
 			if (res != null) PageSourcePool.flush(pc, res);
 			else PageSourcePool.flush(pc, file);
 		}

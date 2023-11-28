@@ -60,7 +60,7 @@ public class FileWrite {
 			throw Caster.toPageException(e);
 		}
 		finally {
-			IOUtil.closeEL(fsw);
+			if (close) IOUtil.closeEL(fsw);
 			if (fsw != null) PageSourcePool.flush(pc, fsw);
 		}
 
