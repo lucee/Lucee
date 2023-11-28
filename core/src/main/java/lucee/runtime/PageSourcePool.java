@@ -277,7 +277,7 @@ public final class PageSourcePool implements Dumpable {
 			else psi.clear();
 		}
 
-		if (pageSources.isEmpty()) {
+		if (watcher != null && pageSources.isEmpty()) {
 			watcher.stopIfNecessary();
 			watcher = null;
 		}
@@ -295,7 +295,7 @@ public final class PageSourcePool implements Dumpable {
 			else psi.resetLoaded();
 		}
 
-		if (pageSources.isEmpty()) {
+		if (watcher != null && pageSources.isEmpty()) {
 			watcher.stopIfNecessary();
 			watcher = null;
 		}
