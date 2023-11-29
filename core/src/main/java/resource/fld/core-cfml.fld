@@ -2142,6 +2142,24 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</return>
 	</function>
 	
+	<!-- ValueRef -->
+	<function>
+		<name>LuceeValueRef</name>
+		<class>lucee.runtime.functions.system.ValueRef</class>
+		<status>hidden</status>
+		<description></description>
+		<argument>
+			<name>ref</name>
+			<alias>function,udf</alias>
+			<type>function</type>
+			<required>Yes</required>
+			<description>udf returning the value</description>
+	    </argument>	
+		<return>
+			<type>any</type>
+		</return>
+	</function>
+	
 	
 	<!-- week -->
 	<function>
