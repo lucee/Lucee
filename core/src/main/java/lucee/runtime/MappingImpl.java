@@ -399,10 +399,10 @@ public final class MappingImpl implements Mapping {
 
 	public int getInspectTemplateAutoInterval(boolean slow) {
 		if (slow) {
-			if (inspectTemplateAutoIntervalSlow == ConfigPro.INSPECT_INTERVAL_UNDEFINED) return ((ConfigPro) config).getInspectTemplateAutoInterval(slow);
+			if (inspectTemplateAutoIntervalSlow <= ConfigPro.INSPECT_INTERVAL_UNDEFINED) return ((ConfigPro) config).getInspectTemplateAutoInterval(slow);
 			return inspectTemplateAutoIntervalSlow;
 		}
-		if (inspectTemplateAutoIntervalFast == ConfigPro.INSPECT_INTERVAL_UNDEFINED) return ((ConfigPro) config).getInspectTemplateAutoInterval(slow);
+		if (inspectTemplateAutoIntervalFast <= ConfigPro.INSPECT_INTERVAL_UNDEFINED) return ((ConfigPro) config).getInspectTemplateAutoInterval(slow);
 		return inspectTemplateAutoIntervalFast;
 	}
 

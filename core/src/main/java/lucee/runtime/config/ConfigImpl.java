@@ -426,9 +426,9 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	private static Object token = new Object();
 	private String mainLoggerName;
 
-	private int inspectTemplateAutoIntervalSlow;
+	private int inspectTemplateAutoIntervalSlow = ConfigPro.INSPECT_INTERVAL_SLOW;
 
-	private int inspectTemplateAutoIntervalFast;
+	private int inspectTemplateAutoIntervalFast = ConfigPro.INSPECT_INTERVAL_FAST;
 
 	/**
 	 * @return the allowURLRequestTimeout
@@ -2917,8 +2917,8 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	}
 
 	protected void setInspectTemplateAutoInterval(int inspectTemplateAutoIntervalSlow, int inspectTemplateAutoIntervalFast) {
-		this.inspectTemplateAutoIntervalSlow = inspectTemplateAutoIntervalSlow;
-		this.inspectTemplateAutoIntervalFast = inspectTemplateAutoIntervalFast;
+		this.inspectTemplateAutoIntervalSlow = inspectTemplateAutoIntervalSlow <= ConfigPro.INSPECT_UNDEFINED ? ConfigPro.INSPECT_INTERVAL_SLOW : inspectTemplateAutoIntervalSlow;
+		this.inspectTemplateAutoIntervalFast = inspectTemplateAutoIntervalFast <= ConfigPro.INSPECT_UNDEFINED ? ConfigPro.INSPECT_INTERVAL_FAST : inspectTemplateAutoIntervalFast;
 	}
 
 	@Override
