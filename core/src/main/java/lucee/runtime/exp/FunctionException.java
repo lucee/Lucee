@@ -20,6 +20,7 @@ package lucee.runtime.exp;
 
 import java.util.ArrayList;
 
+import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.ConfigPro;
 import lucee.runtime.type.util.KeyConstants;
@@ -107,8 +108,7 @@ public final class FunctionException extends ExpressionException {
 
 	private static String getFunctionInfo(PageContext pc, String functionName) {
 		FunctionLib[] flds;
-		int dialect = pc.getCurrentTemplateDialect();
-		flds = ((ConfigPro) pc.getConfig()).getFLDs(dialect);
+		flds = ((ConfigPro) pc.getConfig()).getFLDs(CFMLEngine.DIALECT_CFML);
 
 		FunctionLibFunction function = null;
 		for (int i = 0; i < flds.length; i++) {

@@ -35,7 +35,6 @@ import lucee.commons.lang.compiler.JavaCompilerException;
 import lucee.commons.lang.compiler.JavaFunction;
 import lucee.commons.lang.types.RefBoolean;
 import lucee.commons.lang.types.RefBooleanImpl;
-import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.Component;
 import lucee.runtime.PageSource;
 import lucee.runtime.component.Member;
@@ -486,21 +485,20 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		comments(data);
 
 		// do we have a starting component?
-		if (!data.srcCode.isCurrent(getComponentName(data.srcCode.getDialect()))
-				&& (data.srcCode.getDialect() == CFMLEngine.DIALECT_CFML || !data.srcCode.isCurrent(Constants.CFML_COMPONENT_TAG_NAME))) {
+		if (!data.srcCode.isCurrent(getComponentName())) {
 			data.srcCode.setPos(pos);
 			return null;
 		}
 
 		// parse the component
-		TagLibTag tlt = CFMLTransformer.getTLT(data.srcCode, getComponentName(data.srcCode.getDialect()), data.config.getIdentification());
+		TagLibTag tlt = CFMLTransformer.getTLT(data.srcCode, getComponentName(), data.config.getIdentification());
 		TagComponent comp = (TagComponent) _multiAttrStatement(parent, data, tlt);
 		if (mod != Component.MODIFIER_NONE) comp.addAttribute(new Attribute(false, "modifier", data.factory.createLitString(id), "string"));
 		return comp;
 	}
 
-	private String getComponentName(int dialect) {
-		return dialect == CFMLEngine.DIALECT_LUCEE ? Constants.LUCEE_COMPONENT_TAG_NAME : Constants.CFML_COMPONENT_TAG_NAME;
+	private String getComponentName() {
+		return Constants.CFML_COMPONENT_TAG_NAME;
 	}
 
 	/**
@@ -1410,11 +1408,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		int pos = data.srcCode.getPos();
 		String type = tlt.getName();
 		String appendix = null;
-		if (data.srcCode.forwardIfCurrent(type) ||
-
-		// lucee dialect support component as alias for class
-				(data.srcCode.getDialect() == CFMLEngine.DIALECT_LUCEE && type.equalsIgnoreCase(Constants.LUCEE_COMPONENT_TAG_NAME)
-						&& data.srcCode.forwardIfCurrent(Constants.CFML_COMPONENT_TAG_NAME))) {
+		if (data.srcCode.forwardIfCurrent(type)) {
 
 			if (tlt.hasAppendix()) {
 				appendix = CFMLTransformer.identifier(data.srcCode, false, true);
@@ -2226,10 +2220,6 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 				throw new TemplateException(data.srcCode, "invalid syntax, access modifier cannot be used in this context");
 			}
 			if (access > -1) {
-				// this is only supported with the Lucee dialect
-				// if(data.srcCode.getDialect()==CFMLEngine.DIALECT_CFML)
-				// throw new TemplateException(data.srcCode,
-				// "invalid syntax, access modifier cannot be used in this context");
 				((Assign) expr).setAccess(access);
 			}
 			if (_final) ((Assign) expr).setModifier(Member.MODIFIER_FINAL);

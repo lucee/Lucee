@@ -22,7 +22,6 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -50,7 +49,6 @@ import lucee.transformer.Position;
 import lucee.transformer.bytecode.Body;
 import lucee.transformer.bytecode.BodyBase;
 import lucee.transformer.bytecode.Page;
-import lucee.transformer.bytecode.Statement;
 import lucee.transformer.bytecode.statement.PrintOut;
 import lucee.transformer.bytecode.statement.StatementBase;
 import lucee.transformer.bytecode.statement.tag.Attribute;
@@ -69,7 +67,6 @@ import lucee.transformer.cfml.script.AbstrCFMLScriptTransformer;
 import lucee.transformer.cfml.script.AbstrCFMLScriptTransformer.ComponentTemplateException;
 import lucee.transformer.cfml.script.CFMLScriptTransformer;
 import lucee.transformer.expression.Expression;
-import lucee.transformer.expression.literal.LitString;
 import lucee.transformer.library.function.FunctionLib;
 import lucee.transformer.library.tag.CustomTagLib;
 import lucee.transformer.library.tag.TagLib;
@@ -153,7 +150,7 @@ public final class CFMLTransformer {
 		boolean writeLog = config.getExecutionLogEnabled();
 
 		Charset charset = config.getTemplateCharset();
-		boolean dotUpper = ps.getDialect() == CFMLEngine.DIALECT_CFML && ((MappingImpl) ps.getMapping()).getDotNotationUpperCase();
+		boolean dotUpper = ((MappingImpl) ps.getMapping()).getDotNotationUpperCase();
 
 		// parse regular
 		while (true) {
@@ -162,8 +159,7 @@ public final class CFMLTransformer {
 
 				// script files (cfs)
 				if (Constants.isCFMLScriptExtension(ListUtil.last(ps.getRealpath(), '.'))) {
-					boolean isCFML = ps.getDialect() == CFMLEngine.DIALECT_CFML;
-					TagLibTag scriptTag = CFMLTransformer.getTLT(sc, isCFML ? Constants.CFML_SCRIPT_TAG_NAME : Constants.LUCEE_SCRIPT_TAG_NAME, config.getIdentification());
+					TagLibTag scriptTag = CFMLTransformer.getTLT(sc, Constants.CFML_SCRIPT_TAG_NAME, config.getIdentification());
 
 					sc.setPos(0);
 					SourceCode original = sc;
@@ -184,44 +180,19 @@ public final class CFMLTransformer {
 		}
 
 		// could it be a component?
-		boolean isCFML = ps.getDialect() == CFMLEngine.DIALECT_CFML;
-		boolean isCFMLCompExt = isCFML && Constants.isCFMLComponentExtension(ResourceUtil.getExtension(ps.getResource(), ""));
+		boolean isCFMLCompExt = Constants.isCFMLComponentExtension(ResourceUtil.getExtension(ps.getResource(), ""));
 
 		boolean possibleUndetectedComponent = false;
 
 		// we don't have a component or interface
 		if (p.isPage()) {
-			if (isCFML) possibleUndetectedComponent = isCFMLCompExt;
-			else if (Constants.isLuceeComponentExtension(ResourceUtil.getExtension(ps.getResource(), ""))) {
-				Expression expr;
-				Statement stat;
-				PrintOut po;
-				LitString ls;
-				List<Statement> statements = p.getStatements();
-
-				// check the root statements for component
-				Iterator<Statement> it = statements.iterator();
-				String str;
-				while (it.hasNext()) {
-					stat = it.next();
-					if (stat instanceof PrintOut && (expr = ((PrintOut) stat).getExpr()) instanceof LitString) {
-						ls = (LitString) expr;
-						str = ls.getString();
-						if (str.indexOf(Constants.LUCEE_COMPONENT_TAG_NAME) != -1 || str.indexOf(Constants.LUCEE_INTERFACE_TAG_NAME) != -1
-								|| str.indexOf(Constants.CFML_COMPONENT_TAG_NAME) != -1 // cfml name is supported as alias
-						) {
-							possibleUndetectedComponent = true;
-							break;
-						}
-					}
-				}
-			}
+			possibleUndetectedComponent = isCFMLCompExt;
 		}
 
 		if (possibleUndetectedComponent) {
 			Page _p;
 
-			TagLibTag scriptTag = CFMLTransformer.getTLT(sc, isCFML ? Constants.CFML_SCRIPT_TAG_NAME : Constants.LUCEE_SCRIPT_TAG_NAME, config.getIdentification());
+			TagLibTag scriptTag = CFMLTransformer.getTLT(sc, Constants.CFML_SCRIPT_TAG_NAME, config.getIdentification());
 
 			sc.setPos(0);
 			SourceCode original = sc;
@@ -269,7 +240,7 @@ public final class CFMLTransformer {
 		TagLib tl;
 		try {
 			// this is already loaded, oherwise we where not here
-			tl = TagLibFactory.loadFromSystem(cfml.getDialect(), id);
+			tl = TagLibFactory.loadFromSystem(CFMLEngine.DIALECT_CFML, id);
 			return tl.getTag(name);
 		}
 		catch (TagLibException e) {
@@ -298,9 +269,8 @@ public final class CFMLTransformer {
 			boolean returnValue, boolean ignoreScope) throws TemplateException {
 		boolean dnuc;
 		if (dotNotationUpperCase == null) {
-			if (sc instanceof PageSourceCode)
-				dnuc = sc.getDialect() == CFMLEngine.DIALECT_CFML && ((MappingImpl) ((PageSourceCode) sc).getPageSource().getMapping()).getDotNotationUpperCase();
-			else dnuc = sc.getDialect() == CFMLEngine.DIALECT_CFML && config.getDotNotationUpperCase();
+			if (sc instanceof PageSourceCode) dnuc = ((MappingImpl) ((PageSourceCode) sc).getPageSource().getMapping()).getDotNotationUpperCase();
+			else dnuc = config.getDotNotationUpperCase();
 		}
 		else dnuc = dotNotationUpperCase;
 
@@ -312,11 +282,10 @@ public final class CFMLTransformer {
 		}
 
 		Page page = new Page(factory, config, sc, null, ConfigWebUtil.getEngine(config).getInfo().getFullVersionInfo(), sourceLastModified, sc.getWriteLog(),
-				sc.getDialect() == CFMLEngine.DIALECT_LUCEE || config.getSuppressWSBeforeArg(), config.getDefaultFunctionOutput(), returnValue, ignoreScope);
+				config.getSuppressWSBeforeArg(), config.getDefaultFunctionOutput(), returnValue, ignoreScope);
 
-		TransfomerSettings settings = new TransfomerSettings(dnuc, sc.getDialect() == CFMLEngine.DIALECT_CFML && factory.getConfig().getHandleUnQuotedAttrValueAsString(),
-				ignoreScope);
-		Data data = new Data(factory, page, sc, new EvaluatorPool(), settings, _tlibs, flibs, config.getCoreTagLib(sc.getDialect()).getScriptTags(), false);
+		TransfomerSettings settings = new TransfomerSettings(dnuc, factory.getConfig().getHandleUnQuotedAttrValueAsString(), ignoreScope);
+		Data data = new Data(factory, page, sc, new EvaluatorPool(), settings, _tlibs, flibs, config.getCoreTagLib(CFMLEngine.DIALECT_CFML).getScriptTags(), false);
 		transform(data, page);
 		return page;
 

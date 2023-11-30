@@ -29,7 +29,6 @@ import javax.servlet.jsp.tagext.BodyContent;
 
 import lucee.commons.lang.CFTypes;
 import lucee.commons.lang.ExceptionUtil;
-import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.Component;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
@@ -182,7 +181,7 @@ public class UDFImpl extends MemberSupport implements UDFPlus, Externalizable {
 				if (funcArgs[i].isRequired()) {
 					throw new ExpressionException("The parameter [" + funcArgs[i].getName() + "] to function [" + getFunctionName() + "] is required but was not passed in.");
 				}
-				if (pc.getCurrentTemplateDialect() == CFMLEngine.DIALECT_CFML && !pc.getConfig().getFullNullSupport()) newArgs.set(name, Argument.NULL);
+				if (!pc.getConfig().getFullNullSupport()) newArgs.set(name, Argument.NULL);
 			}
 			else newArgs.set(name, castTo(pc, funcArgs[i], defaultValue, i + 1));
 		}
@@ -314,9 +313,7 @@ public class UDFImpl extends MemberSupport implements UDFPlus, Externalizable {
 		pc.setFunctionScopes(newLocal, newArgs);
 		pci.setActiveUDFCalledName(calledName);
 
-		int oldCheckArgs = undefined.setMode(pc.getCurrentTemplateDialect() == CFMLEngine.DIALECT_CFML
-				? (properties.getLocalMode() == null ? pc.getApplicationContext().getLocalMode() : properties.getLocalMode().intValue())
-				: Undefined.MODE_LOCAL_OR_ARGUMENTS_ALWAYS);
+		int oldCheckArgs = undefined.setMode((properties.getLocalMode() == null ? pc.getApplicationContext().getLocalMode() : properties.getLocalMode().intValue()));
 
 		PageSource ps = null;
 		PageSource psInc = null;

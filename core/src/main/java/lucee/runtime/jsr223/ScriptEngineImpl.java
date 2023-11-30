@@ -62,7 +62,7 @@ public class ScriptEngineImpl implements ScriptEngine {
 		PageContext oldPC = ThreadLocalPageContext.get();
 		PageContext pc = getPageContext(context);
 		try {
-			Result res = factory.tag ? Renderer.tag(pc, script, factory.dialect, false, true) : Renderer.script(pc, script, factory.dialect, false, true);
+			Result res = factory.tag ? Renderer.tag(pc, script, false, true) : Renderer.script(pc, script, false, true);
 			return res.getValue();
 		}
 		catch (PageException pe) {

@@ -44,7 +44,6 @@ import lucee.commons.io.IOUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.compiler.JavaFunction;
-import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.Component;
 import lucee.runtime.ComponentPageImpl;
 import lucee.runtime.InterfacePageImpl;
@@ -700,7 +699,7 @@ public final class Page extends BodyBase implements Root {
 
 					tc.writeOut(constr, this);
 				}
-				writeGetSubPages(cw, className, subs, sourceCode.getDialect());
+				writeGetSubPages(cw, className, subs);
 			}
 		}
 		return cw.toByteArray();
@@ -719,10 +718,10 @@ public final class Page extends BodyBase implements Root {
 	 * d.function; } return functions; }
 	 */
 
-	public static String createSubClass(String name, String subName, int dialect) {
+	public static String createSubClass(String name, String subName) {
 		// TODO handle special characters
 		if (!StringUtil.isEmpty(subName)) {
-			String suffix = (dialect == CFMLEngine.DIALECT_CFML ? Constants.CFML_CLASS_SUFFIX : Constants.LUCEE_CLASS_SUFFIX);
+			String suffix = (Constants.CFML_CLASS_SUFFIX);
 			subName = subName.toLowerCase();
 			if (name.endsWith(suffix)) name = name.substring(0, name.length() - 3) + "$" + subName + suffix;
 			else name += "$" + subName;
@@ -730,7 +729,7 @@ public final class Page extends BodyBase implements Root {
 		return name;
 	}
 
-	private void writeGetSubPages(ClassWriter cw, String name, List<TagCIObject> subs, int dialect) {
+	private void writeGetSubPages(ClassWriter cw, String name, List<TagCIObject> subs) {
 		// pageSource.getFullClassName().replace('.', '/');
 		GeneratorAdapter adapter = new GeneratorAdapter(Opcodes.ACC_PUBLIC + Opcodes.ACC_FINAL, GET_SUB_PAGES, null, null, cw);
 		Label endIF = new Label();
@@ -748,7 +747,7 @@ public final class Page extends BodyBase implements Root {
 		while (it.hasNext()) {
 			TagCIObject ci = it.next();
 			av.visitBeginItem(adapter, index++);
-			className = createSubClass(name, ci.getName(), dialect);
+			className = createSubClass(name, ci.getName());
 
 			adapter.visitVarInsn(Opcodes.ALOAD, 0);
 			adapter.visitMethodInsn(Opcodes.INVOKEVIRTUAL, name, "getPageSource", "()Llucee/runtime/PageSource;");
@@ -788,7 +787,7 @@ public final class Page extends BodyBase implements Root {
 			else {
 				TagCIObject comp = getTagCFObject(null);
 				if (comp != null) {
-					className = createSubClass(className, comp.getName(), sourceCode.getDialect());
+					className = createSubClass(className, comp.getName());
 				}
 			}
 			if (className != null) className = className.replace('.', '/');

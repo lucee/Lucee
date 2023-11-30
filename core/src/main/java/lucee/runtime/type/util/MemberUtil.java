@@ -56,16 +56,15 @@ import lucee.transformer.library.function.FunctionLibFunctionArg;
 public class MemberUtil {
 
 	private static final Object DEFAULT = new Object();
-	private static Map<Short, Map<Collection.Key, FunctionLibFunction>> matchesLucee = new HashMap<Short, Map<Collection.Key, FunctionLibFunction>>();
 	private static Map<Short, Map<Collection.Key, FunctionLibFunction>> matchesCFML = new HashMap<Short, Map<Collection.Key, FunctionLibFunction>>();
 
 	public static Map<Collection.Key, FunctionLibFunction> getMembers(PageContext pc, short type) {
-		Map<Short, Map<Key, FunctionLibFunction>> matches = pc.getCurrentTemplateDialect() == CFMLEngine.DIALECT_LUCEE ? matchesLucee : matchesCFML;
+		Map<Short, Map<Key, FunctionLibFunction>> matches = matchesCFML;
 
 		Map<Key, FunctionLibFunction> match = matches.get(type);
 		if (match != null) return match;
 
-		FunctionLib[] flds = ((ConfigWebPro) pc.getConfig()).getFLDs(pc.getCurrentTemplateDialect());
+		FunctionLib[] flds = ((ConfigWebPro) pc.getConfig()).getFLDs(CFMLEngine.DIALECT_CFML);
 		Iterator<FunctionLibFunction> it;
 		FunctionLibFunction f;
 		match = new HashMap<Collection.Key, FunctionLibFunction>();

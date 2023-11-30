@@ -108,7 +108,7 @@ public abstract class TagCIObject extends TagBase {
 	}
 
 	public String getSubClassName(Page parent) {
-		if (subClassName == null) subClassName = Page.createSubClass(parent.getClassName(), getName(), parent.getSourceCode().getDialect());
+		if (subClassName == null) subClassName = Page.createSubClass(parent.getClassName(), getName());
 		return subClassName;
 	}
 

@@ -40,7 +40,6 @@ import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.HTMLEntities;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.mimetype.MimeType;
-import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.component.StaticStruct;
 import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.converter.BinaryConverter;
@@ -171,7 +170,7 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 
 			boolean isPost = pc.getHttpServletRequest().getMethod().equalsIgnoreCase("POST");
 
-			boolean suppressContent = pc.getRequestDialect() == CFMLEngine.DIALECT_LUCEE || ((PageContextImpl) pc).getSuppressContent();
+			boolean suppressContent = ((PageContextImpl) pc).getSuppressContent();
 			if (suppressContent) pc.clear();
 
 			if (fromRest) {
@@ -223,9 +222,8 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 			// Include MUST
 			Array path = pc.getTemplatePath();
 			// if(path.size()>1 ) {
-			if (path.size() > 1 && !(path.size() == 3 && ListUtil.last(path.getE(2).toString(), "/\\", true)
-					.equalsIgnoreCase(pc.getRequestDialect() == CFMLEngine.DIALECT_CFML ? lucee.runtime.config.Constants.CFML_APPLICATION_EVENT_HANDLER
-							: lucee.runtime.config.Constants.LUCEE_APPLICATION_EVENT_HANDLER))) {// MUSTMUST
+			if (path.size() > 1
+					&& !(path.size() == 3 && ListUtil.last(path.getE(2).toString(), "/\\", true).equalsIgnoreCase(lucee.runtime.config.Constants.CFML_APPLICATION_EVENT_HANDLER))) {// MUSTMUST
 				// bad
 				// impl
 				// ->
@@ -251,8 +249,7 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 			}
 
 			// DUMP
-			if (!req.getServletPath().equalsIgnoreCase("/Web." + (pc.getRequestDialect() == CFMLEngine.DIALECT_CFML ? lucee.runtime.config.Constants.getCFMLComponentExtension()
-					: lucee.runtime.config.Constants.getLuceeComponentExtension()))) {
+			if (!req.getServletPath().equalsIgnoreCase("/Web." + (lucee.runtime.config.Constants.getCFMLComponentExtension()))) {
 				String cdf = pc.getConfig().getComponentDumpTemplate();
 
 				if (cdf != null && cdf.trim().length() > 0) {

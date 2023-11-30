@@ -18,10 +18,8 @@
 package lucee.runtime.functions.dynamicEvaluation;
 
 import lucee.commons.lang.StringUtil;
-import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.PageContext;
 import lucee.runtime.compiler.Renderer;
-import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
 
@@ -30,12 +28,12 @@ public final class Render implements Function {
 	private static final long serialVersionUID = 669811806780804244L;
 
 	public static String call(PageContext pc, String cfml) throws PageException {
-		return Renderer.tag(pc, cfml, pc.getCurrentTemplateDialect(), false, pc.ignoreScopes()).getOutput();
+		return Renderer.tag(pc, cfml, false, pc.ignoreScopes()).getOutput();
 	}
 
 	public static String call(PageContext pc, String cfml, String dialect) throws PageException {
 		if (StringUtil.isEmpty(dialect, true)) return call(pc, cfml);
-		return Renderer.tag(pc, cfml, ConfigWebUtil.toDialect(dialect.trim(), CFMLEngine.DIALECT_CFML), false, pc.ignoreScopes()).getOutput();
+		return Renderer.tag(pc, cfml, false, pc.ignoreScopes()).getOutput();
 	}
 
 }

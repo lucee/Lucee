@@ -363,7 +363,7 @@ public final class InfoImpl implements Info {
 
 	@Override
 	public String[] getLuceeTemplateExtensions() {
-		return Constants.getLuceeTemplateExtensions();
+		return null;
 	}
 
 	@Override
@@ -383,6 +383,6 @@ public final class InfoImpl implements Info {
 
 	@Override
 	public String getLuceeComponentExtension() {
-		return Constants.getLuceeComponentExtension();
+		return null;
 	}
 }

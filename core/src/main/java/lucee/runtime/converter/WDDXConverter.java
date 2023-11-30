@@ -43,7 +43,6 @@ import org.w3c.dom.NodeList;
 import lucee.commons.date.TimeZoneConstants;
 import lucee.commons.lang.NumberUtil;
 import lucee.commons.lang.StringUtil;
-import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.Component;
 import lucee.runtime.ComponentScope;
 import lucee.runtime.ComponentSpecificAccess;
@@ -326,7 +325,7 @@ public final class WDDXConverter extends ConverterSupport {
 		// fieldnames
 		PageContext pc = ThreadLocalPageContext.get();
 		boolean upperCase = false;
-		if (pc != null) upperCase = pc.getCurrentTemplateDialect() == CFMLEngine.DIALECT_CFML && !((ConfigWebPro) pc.getConfig()).preserveCase();
+		if (pc != null) upperCase = !((ConfigWebPro) pc.getConfig()).preserveCase();
 
 		StringBuilder fn = new StringBuilder();
 		Collection.Key[] keys = CollectionUtil.keys(query);

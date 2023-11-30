@@ -30,6 +30,7 @@ import org.osgi.framework.Version;
 
 import lucee.commons.lang.ClassException;
 import lucee.commons.lang.types.RefInteger;
+import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigWebPro;
@@ -76,7 +77,7 @@ public class ClassUtilImpl implements ClassUtil {
 			return new BIFProxy(res);
 		}
 
-		FunctionLib[] flds = ((ConfigWebPro) pc.getConfig()).getFLDs(pc.getCurrentTemplateDialect());
+		FunctionLib[] flds = ((ConfigWebPro) pc.getConfig()).getFLDs(CFMLEngine.DIALECT_CFML);
 		FunctionLibFunction flf;
 		for (int i = 0; i < flds.length; i++) {
 			flf = flds[i].getFunction(name);

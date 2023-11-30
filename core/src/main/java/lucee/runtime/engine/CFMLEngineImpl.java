@@ -1767,45 +1767,31 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		if (!ThreadLocalPageContext.callOnStart.get()) return;
 
 		Resource listenerTemplateCFML = config.getConfigDir().getRealResource("context/" + context + "." + lucee.runtime.config.Constants.getCFMLComponentExtension());
-		Resource listenerTemplateLucee = config.getConfigDir().getRealResource("context/" + context + "." + lucee.runtime.config.Constants.getLuceeComponentExtension());
 
 		Resource listenerTemplateCFMLWebRoot = null;
-		Resource listenerTemplateLuceeWebRoot = null;
 		if (isWeb) {
 			try {
 				Resource rootdir = config.getRootDirectory();
 				listenerTemplateCFMLWebRoot = rootdir.getRealResource(context + "." + lucee.runtime.config.Constants.getCFMLComponentExtension());
-				listenerTemplateLuceeWebRoot = rootdir.getRealResource(context + "." + lucee.runtime.config.Constants.getLuceeComponentExtension());
 			}
 			catch (Exception e) {
 			}
 		}
 
 		// dialect
-		int dialect;
 		boolean inWebRoot;
 		if (listenerTemplateCFMLWebRoot != null && listenerTemplateCFMLWebRoot.isFile()) {
 			inWebRoot = true;
-			dialect = CFMLEngine.DIALECT_CFML;
-		}
-		else if (listenerTemplateLuceeWebRoot != null && listenerTemplateLuceeWebRoot.isFile()) {
-			inWebRoot = true;
-			dialect = CFMLEngine.DIALECT_LUCEE;
 		}
 		else if (listenerTemplateCFML.isFile()) {
 			inWebRoot = false;
-			dialect = CFMLEngine.DIALECT_CFML;
-		}
-		else if (listenerTemplateLucee.isFile()) {
-			inWebRoot = false;
-			dialect = CFMLEngine.DIALECT_LUCEE;
 		}
 		else return;
 
 		if (!StringUtil.emptyIfNull(Thread.currentThread().getName()).startsWith("on-start-")) {
 			long timeout = config.getRequestTimeout().getMillis();
 			if (timeout <= 0) timeout = 50000L;
-			OnStart thread = new OnStart(config, dialect, context, reload, inWebRoot);
+			OnStart thread = new OnStart(config, context, reload, inWebRoot);
 			thread.setName("on-start-" + CreateUniqueId.invoke());
 			long start = System.currentTimeMillis();
 			thread.start();
@@ -1829,14 +1815,12 @@ public final class CFMLEngineImpl implements CFMLEngine {
 	private class OnStart extends Thread {
 
 		private ConfigPro config;
-		private int dialect;
 		private boolean reload;
 		private String context;
 		private boolean inWebRoot;
 
-		public OnStart(ConfigPro config, int dialect, String context, boolean reload, boolean inWebRoot) {
+		public OnStart(ConfigPro config, String context, boolean reload, boolean inWebRoot) {
 			this.config = config;
-			this.dialect = dialect;
 			this.context = context;
 			this.reload = reload;
 			this.inWebRoot = inWebRoot;
@@ -1848,8 +1832,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 
 			String id = CreateUniqueId.invoke();
 			final String requestURI = (inWebRoot ? "" : ("/" + (isWeb ? "lucee" : "lucee-server"))) + "/" + context + "."
-					+ (dialect == CFMLEngine.DIALECT_LUCEE ? lucee.runtime.config.Constants.getLuceeComponentExtension()
-							: lucee.runtime.config.Constants.getCFMLComponentExtension());
+					+ (lucee.runtime.config.Constants.getCFMLComponentExtension());
 
 			// PageContext oldPC = ThreadLocalPageContext.get();
 			PageContext pc = null;
@@ -1884,8 +1867,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 							Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.ignore.scopes", null), false));
 				}
 				((PageContextImpl) pc).setListenerContext(true);
-				if (dialect == CFMLEngine.DIALECT_LUCEE) pc.execute(requestURI, true, false);
-				else pc.executeCFML(requestURI, true, false);
+				pc.executeCFML(requestURI, true, false);
 				((PageContextImpl) pc).setListenerContext(false);
 
 			}

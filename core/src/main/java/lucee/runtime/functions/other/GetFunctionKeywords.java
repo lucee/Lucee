@@ -23,6 +23,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
+import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.ConfigPro;
 import lucee.runtime.exp.PageException;
@@ -43,7 +44,7 @@ public class GetFunctionKeywords {
 			if (keywords == null) {
 				Set<String> set = new HashSet<String>();
 				FunctionLib[] flds;
-				flds = ((ConfigPro) pc.getConfig()).getFLDs(pc.getCurrentTemplateDialect());
+				flds = ((ConfigPro) pc.getConfig()).getFLDs(CFMLEngine.DIALECT_CFML);
 				Map<String, FunctionLibFunction> functions;
 				Iterator<FunctionLibFunction> it;
 				FunctionLibFunction flf;

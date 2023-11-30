@@ -46,7 +46,6 @@ import lucee.commons.io.log.LogUtil;
 import lucee.commons.lang.CFTypes;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
-import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.Component;
 import lucee.runtime.ComponentScope;
 import lucee.runtime.ComponentSpecificAccess;
@@ -580,7 +579,7 @@ public final class JSONConverter extends ConverterSupport {
 			int len = query.getRecordcount();
 			pc = ThreadLocalPageContext.get(pc);
 			boolean upperCase = false;
-			if (pc != null) upperCase = pc.getCurrentTemplateDialect() == CFMLEngine.DIALECT_CFML && ((ConfigWebPro) pc.getConfig()).getDotNotationUpperCase();
+			if (pc != null) upperCase = ((ConfigWebPro) pc.getConfig()).getDotNotationUpperCase();
 
 			for (int i = 0; i < _keys.length; i++) {
 				if (oDoIt) {
