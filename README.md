@@ -1,22 +1,6 @@
 ![Lucee](https://raw.githubusercontent.com/lucee/Lucee/6.0/images/lucee-white.png#gh-dark-mode-only)
 ![Lucee](https://raw.githubusercontent.com/lucee/Lucee/6.0/images/lucee-black.png#gh-light-mode-only)
 
-![GitHub](https://img.shields.io/github/license/lucee/Lucee)
-5.3 [![Java CI](https://github.com/lucee/Lucee/actions/workflows/main.yml/badge.svg?branch=5.3)](https://github.com/lucee/Lucee/actions/workflows/main.yml)
-5.4 [![Java CI](https://github.com/lucee/Lucee/actions/workflows/main.yml/badge.svg?branch=5.4)](https://github.com/lucee/Lucee/actions/workflows/main.yml)
-6.0 [![Java CI](https://github.com/lucee/Lucee/actions/workflows/main.yml/badge.svg?branch=6.0)](https://github.com/lucee/Lucee/actions/workflows/main.yml)
-[![Backers on Open Collective](https://opencollective.com/Lucee/backers/badge.svg)](#backers)
-[![Sponsors on Open Collective](https://opencollective.com/Lucee/sponsors/badge.svg)](#sponsors) 
-
-[![Maven Central](https://img.shields.io/maven-central/v/org.lucee/lucee)](https://mvnrepository.com/artifact/org.lucee/lucee)
-[![GitHub pull requests](https://img.shields.io/github/issues-pr-raw/lucee/Lucee)](https://github.com/lucee/Lucee/pulls)
-[![GitHub closed pull requests](https://img.shields.io/github/issues-pr-closed-raw/lucee/Lucee)](https://github.com/lucee/Lucee/pulls?utf8=%E2%9C%93&q=is%3Apr+is%3Aclosed)
-
-[![docker pulls](https://img.shields.io/docker/pulls/lucee/lucee.svg?label=docker+pulls)](https://hub.docker.com/r/lucee/lucee/)
-[![Open Collective backers and sponsors](https://img.shields.io/opencollective/all/lucee)](https://opencollective.com/lucee#section-contributors)
-[![GitHub contributors](https://img.shields.io/github/contributors/lucee/Lucee)](https://github.com/lucee/Lucee/graphs/contributors)
-
-[![Website](https://img.shields.io/website?url=https%3A%2F%2Fdownload.lucee.org%2F)](https://download.lucee.org/)
 
 ## Lucee Server
 
@@ -25,6 +9,9 @@ Lucee Server (or simply Lucee) is a dynamic, Java based, tag and scripting langu
 Lucee simplifies technologies like webservices (REST, SOAP, HTTP), ORM (Hibernate), searching (Lucene), datasources (MSSQL, Oracle, MySQL and others), caching (infinispan, ehcache, and memcached) and many more. 
 
 Lucee provides a compatibility layer for Adobe ColdFusion &copy;  CFML using less resources and delivering better performance. 
+
+ [What is new with Lucee 6](README-Lucee6.md)
+
 
 ## Installation
 
@@ -69,6 +56,25 @@ Lucee attempts to resolve many inconsistencies found in traditional CFML; either
 For more peruse the [Lucee Manifesto](https://dev.lucee.org/t/lucee-manifesto/183).
 
 The Lucee team is always open to feedback and active at CFML community events, and is keen to remind people that Lucee is a community project.
+
+
+![GitHub](https://img.shields.io/github/license/lucee/Lucee)
+5.3 [![Java CI](https://github.com/lucee/Lucee/actions/workflows/main.yml/badge.svg?branch=5.3)](https://github.com/lucee/Lucee/actions/workflows/main.yml)
+5.4 [![Java CI](https://github.com/lucee/Lucee/actions/workflows/main.yml/badge.svg?branch=5.4)](https://github.com/lucee/Lucee/actions/workflows/main.yml)
+6.0 [![Java CI](https://github.com/lucee/Lucee/actions/workflows/main.yml/badge.svg?branch=6.0)](https://github.com/lucee/Lucee/actions/workflows/main.yml)
+[![Backers on Open Collective](https://opencollective.com/Lucee/backers/badge.svg)](#backers)
+[![Sponsors on Open Collective](https://opencollective.com/Lucee/sponsors/badge.svg)](#sponsors) 
+
+[![Maven Central](https://img.shields.io/maven-central/v/org.lucee/lucee)](https://mvnrepository.com/artifact/org.lucee/lucee)
+[![GitHub pull requests](https://img.shields.io/github/issues-pr-raw/lucee/Lucee)](https://github.com/lucee/Lucee/pulls)
+[![GitHub closed pull requests](https://img.shields.io/github/issues-pr-closed-raw/lucee/Lucee)](https://github.com/lucee/Lucee/pulls?utf8=%E2%9C%93&q=is%3Apr+is%3Aclosed)
+
+[![docker pulls](https://img.shields.io/docker/pulls/lucee/lucee.svg?label=docker+pulls)](https://hub.docker.com/r/lucee/lucee/)
+[![Open Collective backers and sponsors](https://img.shields.io/opencollective/all/lucee)](https://opencollective.com/lucee#section-contributors)
+[![GitHub contributors](https://img.shields.io/github/contributors/lucee/Lucee)](https://github.com/lucee/Lucee/graphs/contributors)
+
+[![Website](https://img.shields.io/website?url=https%3A%2F%2Fdownload.lucee.org%2F)](https://download.lucee.org/)
+
 
 ## Contributors
 
