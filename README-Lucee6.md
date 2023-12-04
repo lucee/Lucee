@@ -15,7 +15,7 @@ Lucee now offers an array of enhanced functionalities for a more seamless integr
 In Lucee 6 you have the flexibility to incorporate Java code directly within your CFML code opening up new possibilities for seamless integration.
 
 #### Within a User Defined Function (UDF):
-```java
+```cfml
 int function echoInt(int i) type="java" {
     if(i==1) throw new Exception("Oopsie-daisy!!!");
     return i*2;
