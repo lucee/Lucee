@@ -1,4 +1,5 @@
-![Lucee](https://bitbucket.org/repo/rX87Rq/images/3392835614-logo-1-color-black-small.png)
+![Lucee](https://raw.githubusercontent.com/lucee/Lucee/6.0/images/lucee-black.png#gh-dark-mode-only)
+![Lucee](https://raw.githubusercontent.com/lucee/Lucee/6.0/images/lucee-black.png#gh-light-mode-only)
 
 ![GitHub](https://img.shields.io/github/license/lucee/Lucee)
 5.3 [![Java CI](https://github.com/lucee/Lucee/actions/workflows/main.yml/badge.svg?branch=5.3)](https://github.com/lucee/Lucee/actions/workflows/main.yml)
