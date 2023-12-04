@@ -224,3 +224,153 @@ Inline components offer a powerful way to enhance the structure and readability 
 
 
 # Query super power 
+
+The humble query tag was among the pioneers in CFML, and it remains a cornerstone of the language's functionality. In Lucee 6, we've taken a deep dive into enhancing this critical component, unlocking its full potential to empower your data manipulation and retrieval tasks. Let's explore the remarkable advancements that make querying in CFML an even more formidable superpower.
+
+## Query listeners
+
+In Lucee 6, we introduce the concept of query listeners, a powerful tool that enables you to monitor and manipulate every query execution within your CFML application. By defining query listeners in your Application.cfc, you gain fine-grained control over the query lifecycle, from before execution to after completion.
+
+### How to Define Query Listeners:
+You can define query listeners using the following syntax in your Application.cfc:
+```java
+  this.query.listener= {
+     before: function (caller,args) {
+        dump(label:"before",var:arguments);
+     },
+     after: function (caller,args,result,meta) {
+        dump(label:"after",var:arguments);
+     }
+  }
+```
+
+With this configuration, you have access to two listener functions:
+
+- **Before Function**: This function is executed before the query is executed. It allows you to inspect and potentially modify query parameters or settings.
+- **After Function**: After the query execution is complete, the "after" function provides access to the query result and metadata. You can use this function to perform post-processing tasks or log query results.
+
+### Using a Query Listener Component:
+
+Alternatively, you can encapsulate query listener functionality within a dedicated component. Here's how you can do it:
+```java
+  this.query.listener = new QueryListener();
+```
+
+By using a dedicated component, you can organize and encapsulate your query listener logic, making it easier to manage and maintain, especially in larger applications like this:
+```java
+    component {
+     function before(caller,args) {
+        args.sql="SELECT TABLE_NAME as abc FROM INFORMATION_SCHEMA.TABLES"; args.maxrows=2;
+        return arguments;
+     }
+     function after(caller,args,result,meta) {
+        var row=queryAddRow(result);
+        result.setCell("abc","123",row);
+        return arguments;
+     }
+     function error(args,caller,meta,exception) {
+        //handle exception
+     }
+  }
+```
+
+### Why Use Query Listeners?
+Query listeners offer several benefits:
+
+- **Real-time Monitoring**: You can gain insights into query execution as it happens, allowing you to detect and respond to issues promptly.
+- **Dynamic Query Modification**: With the "before" function, you can dynamically modify queries based on specific conditions or requirements.
+- **Logging and Debugging**: The "after" function is invaluable for logging query results or conducting further analysis.
+- **Customization**: You can tailor query listeners to suit your application's unique needs, enhancing its flexibility and adaptability.
+
+Query listeners provide a valuable toolset for optimizing query execution, troubleshooting issues, and customizing query behavior to meet your application's demands.
+
+## Query Async: Enhancing Query Responsiveness
+
+In Lucee 6, we introduce the powerful "async" attribute for queries, allowing you to boost the responsiveness of your applications. With "async," you can instruct Lucee not to wait for the query's execution to complete. This asynchronous approach is particularly useful when you want to monitor exceptions or retrieve the query result without causing delays in your application's flow.
+
+### How to Use the "async" Attribute:
+
+To leverage the "async" attribute, simply add it to your query tag, like this:
+```java
+  query datasource="mysql" async=true listener={
+        error:function (args,caller,meta,exception){
+           systemOutput(exception,true,true);
+     }
+     } {
+     ```update user set lastAccess=now()```
+     }
+```
+In this example, we've set the "async" attribute to "true" for the query, indicating that Lucee should execute the query asynchronously.
+Using a Local Listener:
+If you want to capture exceptions or retrieve the query result when using "async," you can define a local listener within the query tag. The local listener is responsible for handling any exceptions that may occur during the asynchronous query execution.
+Why Use "async" Queries?
+Async queries offer several advantages:
+
+- **Enhanced Responsiveness**: Async queries prevent your application from waiting for potentially time-consuming database operations to complete. This responsiveness can significantly improve user experience.
+- **Exception Handling**: By utilizing a local listener, you can promptly detect and handle exceptions that occur during the query execution.
+- **Non-blocking**: Asynchronous queries do not block the execution flow of your application, allowing other tasks to proceed simultaneously.
+- **Parallel Processing**: You can leverage async queries to perform multiple database operations in parallel, optimizing performance.
+
+Async queries provide a valuable tool for enhancing the responsiveness of your applications while efficiently handling database operations and exceptions. By incorporating "async" into your query strategy, you can strike a balance between speed and robust error handling.
+
+## Query Lazy: Efficient Handling of Large Result Sets
+
+In Lucee 6, we introduce the powerful "queryLazy" function, a game-changer when dealing with queries that return enormous result sets. Traditional queries might consume excessive memory when handling millions of records, but with "queryLazy," you can efficiently read queries in manageable blocks, ensuring that memory constraints are never a concern.
+
+### How "queryLazy" Works:
+
+The "queryLazy" function allows you to process queries in blocks, making it ideal for scenarios where you expect a large result set. Consider this example:
+```java
+	queryLazy(
+    	sql:"select * from user",
+    	listener: function (rows){
+    		dump(rows);
+    	},
+     	options:{datasource:datasource,blockfactor:1000}
+    );
+
+```
+
+In this example, we retrieve records from the "user" table in blocks of a maximum of 1000 records at a time. The "listener" function is invoked for each block of records, enabling you to process them efficiently. By doing so, you prevent memory exhaustion, even when dealing with massive data sets.
+
+### Why Use "queryLazy" Queries?
+
+"queryLazy" offers several advantages:
+- **Memory Efficiency**: By reading queries in smaller blocks, "queryLazy" ensures that memory usage remains controlled, even for queries with millions of records.
+- **Improved Performance**: Processing smaller chunks of data at a time can lead to improved query performance, as the database doesn't need to fetch the entire result set at once.
+- **Real-time Processing**: With the "listener" function, you can process and analyze data as it's retrieved, enabling real-time insights and actions.
+- **Scalability**: "queryLazy" is scalable and well-suited for applications that need to handle substantial data volumes without sacrificing performance or memory.
+- **Reduced Latency**: Smaller data blocks reduce the time it takes to retrieve and process results, minimizing latency in your application.
+- **Robustness**: Handling large data sets with "queryLazy" enhances the robustness and reliability of your applications, preventing potential memory-related issues.
+
+"queryLazy" is your go-to solution for efficiently handling large result sets, ensuring optimal memory management, and maintaining the responsiveness of your CFML applications.
+
+## Query Indexes: Enhancing Query Data Retrieval
+
+In Lucee 6, we introduce the capability to set an index for a query result, providing you with a powerful tool for efficient data retrieval. By defining an index for your query, you can access specific rows, row data, or individual cells with ease, streamlining your data manipulation tasks.
+
+### How to Set an Index for a Query:
+
+You can set an index for a query result using the "indexName" attribute in your <cfquery> tag. Consider this example:
+```cfml
+<cfquery name="qry" datasource="mysql" indexName="id">
+  select 1 as id, 'Susi' as name
+  union all
+  select 2 as id, 'Peter' as name
+</cfquery>
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
