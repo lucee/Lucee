@@ -1,19 +1,16 @@
 ![Lucee](https://raw.githubusercontent.com/lucee/Lucee/6.0/images/lucee-white.png#gh-dark-mode-only)
 ![Lucee](https://raw.githubusercontent.com/lucee/Lucee/6.0/images/lucee-black.png#gh-light-mode-only)
 
-
-# Lucee 6
-
-Lucee comes with a lot of new features and functionality that improve your interaction with Lucee both directly, through new features, and indirectly, by enhancing the existing ones. The focus, as always, is not simply to add functionality that you can achieve yourself with CFML code, but to enhance the language itself.
+Lucee 6 comes with a lot of new features and functionality that improve your interaction with Lucee both directly, through new features, and indirectly, by enhancing the existing ones. The focus, as always, is not simply to add functionality that you can achieve yourself with CFML code, but to enhance the language itself.
 
 Stay tuned as we explore the exciting world of Lucee 6. Get ready to elevate your CFML game with the latest and greatest.
 
 
-## Java
+# Java
 
 Lucee now offers an array of enhanced functionalities for a more seamless integration between Lucee and Java applications and code.
 
-### Java Code inside CFML!
+## Java Code inside CFML!
 
 In Lucee 6 you have the flexibility to incorporate Java code directly within your CFML code opening up new possibilities for seamless integration.
 
@@ -51,7 +48,7 @@ component {
 ```
 With Lucee 6, you can seamlessly blend Java and CFML to unlock new dimensions of versatility.
 
-#### Java Functions Implement Java Functional Interfaces
+### Java Functions Implement Java Functional Interfaces
 
 In Lucee 6, if the interface of a function matches one of the Java Functional Interfaces found in the [Java Standard Library](https://docs.oracle.com/javase/8/docs/api/java/util/function/package-summary.html), Lucee automatically implements that interface. Consequently, the function can be seamlessly passed to Java as a Java Function.
 
@@ -61,10 +58,10 @@ But why does Lucee implement these interfaces? Lucee goes the extra mile by matc
 
 This feature empowers you to use these functions seamlessly in your Java code, bridging the gap between CFML and Java effortlessly.
 
-### CFML Code in Java! 
+## CFML Code in Java! 
 Lucee 6 takes CFML to a whole new level by allowing you to seamlessly integrate CFML components and functions with specific Java classes that implement certain interfaces or Java Functions.
 
-#### Components to Classes
+### Components to Classes
 
 When you pass a CFML component to a Java method, and that method expects a specific class, Lucee performs automatic conversion or wrapping of the component into that class. You don't need to follow any specific steps; Lucee handles it all behind the scenes.
 
@@ -128,7 +125,7 @@ component implementsJava="java.util.List" {
 ```
 In this case, we explicitly implement the ["java.util.List"](https://docs.oracle.com/javase/8/docs/api/java/util/List.html) interface, allowing Lucee to handle it as an array. With this approach, you don't need to define all the methods, as Lucee doesn't enforce a strict function match due to the "implementsJava" attribute.
 
-### UDF to Java Lambda Function
+## UDF to Java Lambda Function
 
 When you pass a CFML Function (UDF/Closure/Lambda) to Java like this
 and the Java interface expects a Java Function (Lambda), Lucee automatically converts or wraps that function into a Java function of the corresponding type.
@@ -142,11 +139,11 @@ int function echoInt(int i) type="java" {
 }
 ```
 
-## Components
+# Components
 
 In Lucee 6, we've expanded your options by introducing sub-components, a powerful addition to your CFML toolkit. Unlike traditional components defined in separate .cfc files, sub-components reside within the same template as the main component, offering you increased flexibility and improved code organization.
 
-### Why Use Sub Components?
+## Why Use Sub Components?
 
 Sub-components bring several benefits to the table:
 
@@ -164,7 +161,6 @@ Sub-components bring several benefits to the table:
 These additional benefits highlight the versatility and advantages of using sub-components in your CFML applications.
 
 #### Example of Sub Component Definition:
-
 ```java
 component {
    function mainTest() {
@@ -178,7 +174,7 @@ component name="Sub" {
 }
 ```
 
-In the example above, the sub component is given a name attribute for easy referencing. You can invoke sub components as follows:
+#### In the example above, the sub component is given a name attribute for easy referencing. You can invoke sub components as follows:
 ```java
 // Usage example
 cfc = new MyCFC();
@@ -191,10 +187,10 @@ echo("<br>");
 ```
 Sub components expand your horizons and provide new avenues for structuring your CFML code effectively.
 
-### Inline (Anonymous) Components
+## Inline (Anonymous) Components
 In Lucee 6, we not only introduce sub components but also unleash the power of inline components. These components are defined directly within your code, eliminating the need for extra files or templates.
 
-#### Why Use Inline Components?
+### Why Use Inline Components?
 Inline components bring several advantages to your CFML code:
 
 - **Simplicity**: Inline components simplify your code by eliminating the need for separate component files. This can make your codebase more straightforward and easier to manage.
@@ -225,3 +221,6 @@ These additional benefits highlight how inline components can streamline your CF
 In the example above, we create an inline component that defines a subTest function. This inline component is perfect for situations where you need a component temporarily, enhancing code efficiency and maintainability.
 
 Inline components offer a powerful way to enhance the structure and readability of your CFML code while efficiently managing local components.
+
+
+# Query super power 
