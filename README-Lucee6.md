@@ -15,10 +15,10 @@ Lucee now offers an array of enhanced functionalities for a more seamless integr
 In Lucee 6 you have the flexibility to incorporate Java code directly within your CFML code opening up new possibilities for seamless integration.
 
 #### Within a User Defined Function (UDF):
-```cfml
+```java
 int function echoInt(int i) type="java" {
-    if(i==1) throw new Exception("Oopsie-daisy!!!");
-    return i*2;
+	if(i==1) throw new Exception("Oopsie-daisy!!!");
+	return i*2;
 }
 ```
 
@@ -37,14 +37,14 @@ Please note that this feature isn't supported for Lambda Functions as the Lambda
 #### Of course, these functions can also be part of a component:
 ```java
 component { 
-   int function echoInt(int i) type="java" {
-       if(i==1)throw new Exception("Oopsie-daisy!!!");
-       return i*2;
-   }
-   to_string = function (String str1, String str2) type="java" {
-        return new java.lang.StringBuilder(str1).append(str2).toString();
-   }
- }
+	int function echoInt(int i) type="java" {
+		if(i==1)throw new Exception("Oopsie-daisy!!!");
+		return i*2;
+	}
+	to_string = function (String str1, String str2) type="java" {
+		return new java.lang.StringBuilder(str1).append(str2).toString();
+	}
+}
 ```
 With Lucee 6, you can seamlessly blend Java and CFML to unlock new dimensions of versatility.
 
@@ -69,7 +69,6 @@ All you have to do is create a component that implements all the methods of a Ja
 ```java
 // component that implements all methods from interface CharSequence
 component {
-
 
    function init(String str) {
        variables.str=reverse(arguments.str);
@@ -117,10 +116,10 @@ dump(hash);
 #### You can also explicitly define the interface you're implementing, as shown here:
 ```java
 component implementsJava="java.util.List" {
-   function onMissingMethod(name,args) {
-       if(name=="size") return 10;
-       throw "method #name# is not supported!";
-   }
+	function onMissingMethod(name,args) {
+		if(name=="size") return 10;
+		throw "method #name# is not supported!";
+	}
 }
 ```
 In this case, we explicitly implement the ["java.util.List"](https://docs.oracle.com/javase/8/docs/api/java/util/List.html) interface, allowing Lucee to handle it as an array. With this approach, you don't need to define all the methods, as Lucee doesn't enforce a strict function match due to the "implementsJava" attribute.
@@ -134,8 +133,8 @@ This seamless integration allows you to harness the full power of your CFML func
 In the following example, we demonstrate how Lucee implicitly implements the ["IntUnaryOperator"](https://docs.oracle.com/javase/8/docs/api/java/util/function/IntUnaryOperator.html) interface. You can then pass it to Java and use it as such, making the integration between CFML and Java even smoother.
 ```java
 int function echoInt(int i) type="java" {
-       if(i==1)throw new Exception("Oopsie-daisy!!!");
-       return i*2;
+	if(i==1)throw new Exception("Oopsie-daisy!!!");
+	return i*2;
 }
 ```
 
@@ -163,14 +162,14 @@ These additional benefits highlight the versatility and advantages of using sub-
 #### Example of Sub Component Definition:
 ```java
 component {
-   function mainTest() {
-       return "main";
-   }
+	function mainTest() {
+		return "main";
+	}
 }
 component name="Sub" {  
-   function subTest() {
-       return "sub";
-   }
+	function subTest() {
+		return "sub";
+	}
 }
 ```
 
@@ -209,13 +208,13 @@ These additional benefits highlight how inline components can streamline your CF
 
 #### Example of Inline Component:
 ```java
-   inline=new component {  
-       function subTest() {
-           return "inline<br>";
-       } 
-   };  
-   dump("inline->"&inline.subTest());
-   dump(inline);
+inline=new component {  
+	function subTest() {
+		return "inline<br>";
+	} 
+};  
+dump("inline->"&inline.subTest());
+dump(inline);
 ```
 
 In the example above, we create an inline component that defines a subTest function. This inline component is perfect for situations where you need a component temporarily, enhancing code efficiency and maintainability.
@@ -234,14 +233,14 @@ In Lucee 6, we introduce the concept of query listeners, a powerful tool that en
 ### How to Define Query Listeners:
 You can define query listeners using the following syntax in your Application.cfc:
 ```java
-  this.query.listener= {
-     before: function (caller,args) {
-        dump(label:"before",var:arguments);
-     },
-     after: function (caller,args,result,meta) {
-        dump(label:"after",var:arguments);
-     }
-  }
+this.query.listener= {
+	before: function (caller,args) {
+		dump(label:"before",var:arguments);
+	},
+	after: function (caller,args,result,meta) {
+		dump(label:"after",var:arguments);
+	}
+}
 ```
 
 With this configuration, you have access to two listener functions:
@@ -253,25 +252,27 @@ With this configuration, you have access to two listener functions:
 
 Alternatively, you can encapsulate query listener functionality within a dedicated component. Here's how you can do it:
 ```java
-  this.query.listener = new QueryListener();
+this.query.listener = new QueryListener();
 ```
 
 By using a dedicated component, you can organize and encapsulate your query listener logic, making it easier to manage and maintain, especially in larger applications like this:
 ```java
-    component {
-     function before(caller,args) {
-        args.sql="SELECT TABLE_NAME as abc FROM INFORMATION_SCHEMA.TABLES"; args.maxrows=2;
-        return arguments;
-     }
-     function after(caller,args,result,meta) {
-        var row=queryAddRow(result);
-        result.setCell("abc","123",row);
-        return arguments;
-     }
-     function error(args,caller,meta,exception) {
-        //handle exception
-     }
-  }
+component {
+	function before(caller,args) {
+		args.sql="SELECT TABLE_NAME as abc FROM INFORMATION_SCHEMA.TABLES"; args.maxrows=2;
+		return arguments;
+	}
+
+	function after(caller,args,result,meta) {
+		var row=queryAddRow(result);
+		result.setCell("abc","123",row);
+		return arguments;
+	}
+
+	function error(args,caller,meta,exception) {
+		//handle exception
+	}
+}
 ```
 
 ### Why Use Query Listeners?
@@ -292,13 +293,16 @@ In Lucee 6, we introduce the powerful "async" attribute for queries, allowing yo
 
 To leverage the "async" attribute, simply add it to your query tag, like this:
 ```java
-  query datasource="mysql" async=true listener={
-        error:function (args,caller,meta,exception){
-           systemOutput(exception,true,true);
-     }
+query 
+	datasource="mysql" 
+	async=true 
+	listener={
+		error:function (args,caller,meta,exception){
+			systemOutput(exception,true,true);
+		}
      } {
      ```update user set lastAccess=now()```
-     }
+}
 ```
 In this example, we've set the "async" attribute to "true" for the query, indicating that Lucee should execute the query asynchronously.
 Using a Local Listener:
@@ -321,14 +325,16 @@ In Lucee 6, we introduce the powerful "queryLazy" function, a game-changer when 
 
 The "queryLazy" function allows you to process queries in blocks, making it ideal for scenarios where you expect a large result set. Consider this example:
 ```java
-	queryLazy(
-    	sql:"select * from user",
-    	listener: function (rows){
-    		dump(rows);
-    	},
-     	options:{datasource:datasource,blockfactor:1000}
-    );
-
+queryLazy(
+	sql:"select * from user",
+		listener: function (rows){
+			dump(rows);
+		},
+		options:{
+			datasource:datasource,
+			blockfactor:1000
+		}
+);
 ```
 
 In this example, we retrieve records from the "user" table in blocks of a maximum of 1000 records at a time. The "listener" function is invoked for each block of records, enabling you to process them efficiently. By doing so, you prevent memory exhaustion, even when dealing with massive data sets.
@@ -360,8 +366,20 @@ You can set an index for a query result using the "indexName" attribute in your 
 </cfquery>
 ```
 
+In this code, we've defined an index named "id" for the query result.
 
+### Using Query Indexes:
 
+Once you've set an index for a query, you can leverage it for various purposes:
+
+- **Accessing Rows by Index**: Use the "QueryRowByIndex" function to retrieve a specific row by its index, like this: ```<cfdump var="#QueryRowByIndex(qry,2)#">```
+This code retrieves the second row of the query result.
+- **Accessing Row Data by Index**: The "QueryRowDataByIndex" function allows you to access the data of a specific row by its index:
+```<cfdump var="#QueryRowDataByIndex(qry,2)#">```
+In this case, it retrieves the data for the second row.
+- **Accessing Cells by Index**: To retrieve the value of a specific cell by its index, you can use the "QueryGetCellByIndex" function:
+```<cfdump var="#QueryGetCellByIndex(qry,"name",2)#">```
+Here, it fetches the "name" column value for the second row.
 
 
 
