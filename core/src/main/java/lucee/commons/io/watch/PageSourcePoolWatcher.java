@@ -8,15 +8,19 @@ import lucee.commons.io.log.LogUtil;
 import lucee.runtime.MappingImpl;
 import lucee.runtime.PageSource;
 import lucee.runtime.PageSourceImpl;
+import lucee.runtime.PageSourcePool;
+import lucee.runtime.config.ConfigPro;
 
 public class PageSourcePoolWatcher {
 
 	private final Map<String, SoftReference<PageSource>> pageSources;
 	private PageSourcePoolWatcherThread thread;
 	private final MappingImpl mapping;
+	private PageSourcePool pageSourcePool;
 
-	public PageSourcePoolWatcher(MappingImpl mapping, Map<String, SoftReference<PageSource>> pageSources) {
+	public PageSourcePoolWatcher(MappingImpl mapping, PageSourcePool pageSourcePool, Map<String, SoftReference<PageSource>> pageSources) {
 		this.mapping = mapping;
+		this.pageSourcePool = pageSourcePool;
 		this.pageSources = pageSources;
 	}
 
@@ -51,6 +55,13 @@ public class PageSourcePoolWatcher {
 		public void run() {
 			int interval = mapping.getInspectTemplateAutoInterval(true);
 			while (active) {
+
+				if (mapping.getInspectTemplate() != ConfigPro.INSPECT_AUTO) {
+					active = false;
+					pageSourcePool.stopWatcher();
+					break;
+				}
+
 				for (SoftReference<PageSource> ref: pageSources.values()) {
 					try {
 						PageSourceImpl ps = (PageSourceImpl) ref.get();

@@ -32,6 +32,7 @@ import lucee.commons.io.SystemUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.watch.PageSourcePoolWatcher;
 import lucee.runtime.config.ConfigPro;
+import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.config.Constants;
 import lucee.runtime.dump.DumpData;
 import lucee.runtime.dump.DumpProperties;
@@ -39,6 +40,7 @@ import lucee.runtime.dump.DumpTable;
 import lucee.runtime.dump.DumpUtil;
 import lucee.runtime.dump.Dumpable;
 import lucee.runtime.dump.SimpleDumpData;
+import lucee.runtime.listener.ApplicationContext;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.dt.DateTimeImpl;
 
@@ -93,15 +95,14 @@ public final class PageSourcePool implements Dumpable {
 	 * @param ps pagesource to store
 	 */
 	public void setPage(String key, PageSource ps) {
-
 		if (pageSources.size() > maxSize) {
 			cleanLoaders();
 		}
-		else if ((mapping.getInspectTemplate() == ConfigPro.INSPECT_AUTO || mapping.getInspectTemplate() == ConfigPro.INSPECT_UNDEFINED) && pageSources.size() == 0) {
+		if ((mapping.getInspectTemplate() == ConfigPro.INSPECT_AUTO) && (watcher == null || pageSources.size() == 0)) {
 			if (watcher != null) {
 				watcher.stopIfNecessary();
 			}
-			watcher = new PageSourcePoolWatcher(mapping, pageSources);
+			watcher = new PageSourcePoolWatcher(mapping, this, pageSources);
 			watcher.startIfNecessary();
 		}
 
@@ -277,6 +278,9 @@ public final class PageSourcePool implements Dumpable {
 			else psi.clear();
 		}
 
+		if (cl == null) {
+			pageSources.clear();
+		}
 		if (watcher != null && pageSources.isEmpty()) {
 			watcher.stopIfNecessary();
 			watcher = null;
@@ -301,6 +305,16 @@ public final class PageSourcePool implements Dumpable {
 		}
 	}
 
+	public void stopWatcher() {
+		if (watcher != null) {
+			PageSourcePoolWatcher tmp = watcher;
+			watcher = null;
+			if (tmp != null) {
+				tmp.stopIfNecessary();
+			}
+		}
+	}
+
 	public void clear() {
 		clearPages(null);
 		// pageSources.clear();
@@ -312,11 +326,11 @@ public final class PageSourcePool implements Dumpable {
 
 	public static void flush(PageContext pc, Resource file) {
 		if (Constants.isCFML(file)) {
-			PageSource ps = pc.toPageSource(file, null);
-			if (ps instanceof PageSourceImpl && ((PageSourceImpl) ps).isLoad()) {
+			ApplicationContext ac = pc.getApplicationContext();
+			List<PageSource> sources = ConfigWebUtil.toAllLoadedPageSource((ConfigPro) pc.getConfig(), ac == null ? null : ac.getMappings(), file);
+			for (PageSource ps: sources) {
 				((PageSourceImpl) ps).resetLoaded();
 				((PageSourceImpl) ps).flush();
-
 			}
 		}
 	}

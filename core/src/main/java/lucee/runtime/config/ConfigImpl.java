@@ -791,6 +791,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	}
 
 	protected void setMappings(Mapping[] mappings) {
+		close(this.uncheckedMappings);
 		this.mappings = initMappings(this.uncheckedMappings = ConfigWebUtil.sort(mappings));
 	}
 
@@ -800,6 +801,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	}
 
 	protected void setCustomTagMappings(Mapping[] customTagMappings) {
+		close(this.uncheckedCustomTagMappings);
 		this.customTagMappings = initMappings(this.uncheckedCustomTagMappings = customTagMappings);
 	}
 
@@ -809,6 +811,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	}
 
 	protected void setComponentMappings(Mapping[] componentMappings) {
+		close(this.uncheckedComponentMappings);
 		this.componentMappings = initMappings(this.uncheckedComponentMappings = componentMappings);
 	}
 
@@ -831,6 +834,14 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 			}
 		}
 		return list.toArray(new Mapping[list.size()]);
+	}
+
+	protected void close(Mapping[] mappings) {
+		if (mappings != null) {
+			for (Mapping m: mappings) {
+				if (m instanceof MappingImpl) ((MappingImpl) m).close();
+			}
+		}
 	}
 
 	@Override

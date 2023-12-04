@@ -104,6 +104,10 @@ public final class MappingImpl implements Mapping {
 	private boolean checkPhysicalFromWebroot;
 	private boolean checkArchiveFromWebroot;
 
+	private long startTime = System.currentTimeMillis();
+
+	private short configInspect;
+
 	public MappingImpl(Config config, String virtual, String strPhysical, String strArchive, short inspect, int inspectTemplateAutoIntervalSlow,
 			int inspectTemplateAutoIntervalFast, boolean physicalFirst, boolean hidden, boolean readonly, boolean topLevel, boolean appMapping, boolean ignoreVirtual,
 			ApplicationListener appListener, int listenerMode, int listenerType) {
@@ -136,6 +140,7 @@ public final class MappingImpl implements Mapping {
 		this.readonly = readonly;
 		this.strPhysical = StringUtil.isEmpty(strPhysical, true) ? null : strPhysical.trim();
 		this.strArchive = StringUtil.isEmpty(strArchive, true) ? null : strArchive.trim();
+		this.configInspect = config.getInspectTemplate();
 		this.inspect = inspect;
 		this.inspectTemplateAutoIntervalSlow = inspectTemplateAutoIntervalSlow;
 		this.inspectTemplateAutoIntervalFast = inspectTemplateAutoIntervalFast;
@@ -154,6 +159,10 @@ public final class MappingImpl implements Mapping {
 		else this.virtual = virtual;
 		this.lcVirtual = this.virtual.toLowerCase();
 		this.lcVirtualWithSlash = lcVirtual.endsWith("/") ? this.lcVirtual : this.lcVirtual + '/';
+	}
+
+	public long getStartTime() {
+		return startTime;
 	}
 
 	private void initPhysical() {
@@ -387,6 +396,10 @@ public final class MappingImpl implements Mapping {
 		return inspect;
 	}
 
+	public short getConfigInspectTemplate() {
+		return configInspect;
+	}
+
 	/**
 	 * inspect template setting (Config.INSPECT_*), if not defined with the mapping,
 	 * Config.INSPECT_UNDEFINED is returned
@@ -595,8 +608,8 @@ public final class MappingImpl implements Mapping {
 	private String toString(boolean forCompare) {
 		return new StringBuilder().append("StrPhysical:").append(getStrPhysical()).append(";StrArchive:").append(getStrArchive()).append(";Virtual:").append(getVirtual())
 				.append(";Archive:").append(getArchive()).append(";Physical:").append(getPhysical()).append(";topLevel:").append(topLevel).append(";inspect:")
-				.append(ConfigWebUtil.inspectTemplate(getInspectTemplateRaw(), "")).append(";physicalFirst:").append(physicalFirst).append(";hidden:").append(hidden)
-				.append(";readonly:").append(forCompare ? "" : readonly).append(";").toString();
+				.append(ConfigWebUtil.inspectTemplate(getInspectTemplateRaw(), "")).append(";config-inspect:").append(ConfigWebUtil.inspectTemplate(getConfigInspectTemplate(), ""))
+				.append(";physicalFirst:").append(physicalFirst).append(";hidden:").append(hidden).append(";readonly:").append(forCompare ? "" : readonly).append(";").toString();
 
 	}
 
@@ -633,6 +646,10 @@ public final class MappingImpl implements Mapping {
 
 	public void flush() {
 		pageSourcePool.clear();
+	}
+
+	public void close() {
+		pageSourcePool.clearPages(null);
 	}
 
 	public SerMapping toSerMapping() {

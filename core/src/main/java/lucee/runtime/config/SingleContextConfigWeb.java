@@ -1808,7 +1808,6 @@ class SingleContextConfigWeb extends ConfigBase implements ConfigWebInner {
 	}
 
 	private void createMapping() {
-
 		Map<String, Mapping> existing = getExistingMappings();
 
 		// Mapping
@@ -1824,6 +1823,7 @@ class SingleContextConfigWeb extends ConfigBase implements ConfigWebInner {
 					ex = existing.get(sm[i].getVirtualLowerCase());
 					if (ex != null && ex.equals(sm[i])) {
 						mappings.put(ex.getVirtualLowerCase(), ex);
+						continue;
 					}
 					else if (sm[i] instanceof MappingImpl) {
 						tmp = ((MappingImpl) sm[i]).cloneReadOnly(this);
@@ -1834,6 +1834,11 @@ class SingleContextConfigWeb extends ConfigBase implements ConfigWebInner {
 						tmp = sm[i];
 						mappings.put(tmp.getVirtualLowerCase(), tmp);
 					}
+
+					if (ex instanceof MappingImpl) {
+						((MappingImpl) ex).flush();
+					}
+
 				}
 			}
 		}

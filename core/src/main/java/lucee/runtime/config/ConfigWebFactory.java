@@ -592,6 +592,9 @@ public final class ConfigWebFactory extends ConfigFactory {
 		_loadApplication(cs, config, root, mode, log);
 		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_DEBUG, ConfigWebFactory.class.getName(), "loaded application");
 
+		_loadJava(cs, config, root, log); // define compile type
+		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_DEBUG, ConfigWebFactory.class.getName(), "loaded java");
+
 		if (!essentialOnly) {
 			_loadMappings(cs, config, root, mode, log); // it is important this runs after
 			if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_DEBUG, ConfigWebFactory.class.getName(), "loaded mappings");
@@ -654,9 +657,6 @@ public final class ConfigWebFactory extends ConfigFactory {
 
 			_loadUpdate(cs, config, root, log);
 			if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_DEBUG, ConfigWebFactory.class.getName(), "loaded update");
-
-			_loadJava(cs, config, root, log); // define compile type
-			if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_DEBUG, ConfigWebFactory.class.getName(), "loaded java");
 
 			_loadSetting(cs, config, root, log);
 			if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_DEBUG, ConfigWebFactory.class.getName(), "loaded setting");
