@@ -30,7 +30,7 @@ import lucee.commons.lang.ExternalizableUtil;
  * a single argument of a function, this is lightway function, just contain name and type (return
  * default value for the rest)
  */
-public final class FunctionArgumentLight implements FunctionArgument, Externalizable {
+public final class FuncArgLite implements FunctionArgument, Externalizable {
 
 	private static final long serialVersionUID = 817360221819952381L; // do not change
 
@@ -42,28 +42,28 @@ public final class FunctionArgumentLight implements FunctionArgument, Externaliz
 	/**
 	 * NEVER USE THIS CONSTRUCTOR, this constructor is only for deserialize this object from stream
 	 */
-	public FunctionArgumentLight() {
+	public FuncArgLite() {
 	}
 
-	public FunctionArgumentLight(Collection.Key name) {
+	public FuncArgLite(Collection.Key name) {
 		this(name, "any", CFTypes.TYPE_ANY);
 	}
 
-	public FunctionArgumentLight(Collection.Key name, short type) {
+	public FuncArgLite(Collection.Key name, short type) {
 		this(name, CFTypes.toString(type, "any"), type);
 	}
 
-	public FunctionArgumentLight(String name, short type) {
+	public FuncArgLite(String name, short type) {
 		this(KeyImpl.init(name), CFTypes.toString(type, "any"), type);
 	}
 
-	public FunctionArgumentLight(Collection.Key name, String strType, short type) {
+	public FuncArgLite(Collection.Key name, String strType, short type) {
 		this.name = name;
 		this.strType = strType;
 		this.type = type;
 	}
 
-	public FunctionArgumentLight(Collection.Key name, String strType, short type, boolean required) {
+	public FuncArgLite(Collection.Key name, String strType, short type, boolean required) {
 		this.name = name;
 		this.strType = strType;
 		this.type = type;

@@ -34,9 +34,9 @@ import lucee.commons.lang.compiler.JavaFunction;
 import lucee.runtime.Component;
 import lucee.runtime.exp.TemplateException;
 import lucee.runtime.listener.AppListenerUtil;
+import lucee.runtime.type.FuncArgLite;
 import lucee.runtime.type.FunctionArgument;
 import lucee.runtime.type.FunctionArgumentImpl;
-import lucee.runtime.type.FunctionArgumentLight;
 import lucee.runtime.type.util.ComponentUtil;
 import lucee.transformer.Factory;
 import lucee.transformer.Position;
@@ -87,7 +87,7 @@ public abstract class Function extends StatementBaseNoFinal implements Opcodes, 
 	// <init>(Page,FunctionArgument[],int String,String,boolean);
 	private static final Type FUNCTION_ARGUMENT = Type.getType(FunctionArgument.class);
 	private static final Type FUNCTION_ARGUMENT_IMPL = Type.getType(FunctionArgumentImpl.class);
-	private static final Type FUNCTION_ARGUMENT_LIGHT = Type.getType(FunctionArgumentLight.class);
+	private static final Type FUNCTION_ARGUMENT_LIGHT = Type.getType(FuncArgLite.class);
 	private static final Type FUNCTION_ARGUMENT_ARRAY = Type.getType(FunctionArgument[].class);
 
 	protected static final Method INIT_UDF_IMPL_PROP = new Method("<init>", Types.VOID, new Type[] { Types.UDF_PROPERTIES });
@@ -120,7 +120,7 @@ public abstract class Function extends StatementBaseNoFinal implements Opcodes, 
 			Types.INT_VALUE, Types.BOOLEAN_VALUE, Types.STRING, Types.STRING, Types.STRUCT_IMPL });
 	private static final Method[] INIT_FAI_KEY = new Method[] { INIT_FAI_KEY1, INIT_FAI_KEY3, INIT_FAI_KEY4, INIT_FAI_KEY5, INIT_FAI_KEY6, INIT_FAI_KEY7, INIT_FAI_KEY8,
 			INIT_FAI_KEY9 };
-	private static final Method[] INIT_FAI_KEY_LIGHT = new Method[] { INIT_FAI_KEY1, INIT_FAI_KEY3 };
+	private static final Method[] INIT_FAI_KEY_LIGHT = new Method[] { INIT_FAI_KEY1, INIT_FAI_KEY3, INIT_FAI_KEY4 };
 
 	protected static final Method USE_JAVA_FUNCTION = new Method("useJavaFunction", Types.OBJECT, new Type[] { Types.PAGE, Types.STRING });
 	protected static final Method REG_JAVA_FUNCTION = new Method("regJavaFunction", Types.VOID, new Type[] { Types.COLLECTION_KEY, Types.STRING });

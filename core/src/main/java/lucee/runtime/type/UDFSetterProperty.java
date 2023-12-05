@@ -50,7 +50,7 @@ public final class UDFSetterProperty extends UDFGSProperty {
 	private UDFSetterProperty(Component component, Property prop, String validate, Struct validateParams) {
 		super(component, "set" + StringUtil.ucFirst(prop.getName()),
 				new FunctionArgument[] {
-						new FunctionArgumentLight(KeyImpl.init(prop.getName()), prop.getType(), CFTypes.toShortStrict(prop.getType(), CFTypes.TYPE_UNKNOW), true) },
+						new FuncArgLite(KeyImpl.init(prop.getName()), prop.getType(), CFTypes.toShortStrict(prop.getType(), CFTypes.TYPE_UNKNOW), true) },
 				CFTypes.TYPE_ANY);
 		this.prop = prop;
 		this.propName = KeyImpl.init(prop.getName());
@@ -61,7 +61,7 @@ public final class UDFSetterProperty extends UDFGSProperty {
 	public UDFSetterProperty(Component component, Property prop) throws PageException {
 		super(component, "set" + StringUtil.ucFirst(prop.getName()),
 				new FunctionArgument[] {
-						new FunctionArgumentLight(KeyImpl.init(prop.getName()), prop.getType(), CFTypes.toShortStrict(prop.getType(), CFTypes.TYPE_UNKNOW), true) },
+						new FuncArgLite(KeyImpl.init(prop.getName()), prop.getType(), CFTypes.toShortStrict(prop.getType(), CFTypes.TYPE_UNKNOW), true) },
 				CFTypes.TYPE_ANY);
 
 		this.prop = prop;
