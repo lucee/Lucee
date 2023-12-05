@@ -788,15 +788,16 @@ public class OSGiUtil {
 		String parentBundle = parents == null ? " " : String.join(",", parents);
 		String downloadText = downloadIfNecessary ? " or from the update provider [" + upLoc + "]" : "";
 		if (versionsFound.length() > 0) {
-			bundleError = "The OSGi Bundle with name [" + bundleRange.getName() + "] for [" + parentBundle + "] is not available in version [" + bundleRange.getVersionRange()
-					+ "] locally [" + localDir + "]" + downloadText + ", the following versions are available locally [" + versionsFound + "].";
+			bundleError = "The OSGi Bundle with name [" + bundleRange.getName() + "] " + parentBundleText(parentBundle) + "is not available in version ["
+					+ bundleRange.getVersionRange() + "] locally [" + localDir + "]" + downloadText + ", the following versions are available locally [" + versionsFound + "].";
 		}
 		else if (bundleRange.getVersionRange() != null) {
-			bundleError = "The OSGi Bundle with name [" + bundleRange.getName() + "] in version [" + bundleRange.getVersionRange() + "] for [" + parentBundle
-					+ "] is not available locally [" + localDir + "]" + downloadText + ".";
+			bundleError = "The OSGi Bundle with name [" + bundleRange.getName() + "] in version [" + bundleRange.getVersionRange() + "] " + parentBundleText(parentBundle)
+					+ "is not available locally [" + localDir + "]" + downloadText + ".";
 		}
 		else {
-			bundleError = "The OSGi Bundle with name [" + bundleRange.getName() + "] for [" + parentBundle + "] is not available locally [" + localDir + "]" + downloadText + ".";
+			bundleError = "The OSGi Bundle with name [" + bundleRange.getName() + "] " + parentBundleText(parentBundle) + "is not available locally [" + localDir + "]"
+					+ downloadText + ".";
 		}
 
 		if (printExceptions == null) printExceptions = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.cli.printExceptions", null), false);
@@ -807,6 +808,11 @@ public class OSGiUtil {
 			if (printExceptions) be.printStackTrace();
 			throw be;
 		}
+	}
+
+	private static String parentBundleText(String parentBundle) {
+		if (StringUtil.isEmpty(parentBundle, true)) return "";
+		return "for [" + parentBundle + "] ";
 	}
 
 	private static Resource downloadBundle(CFMLEngineFactory factory, final String symbolicName, String symbolicVersion, Identification id) throws IOException, BundleException {

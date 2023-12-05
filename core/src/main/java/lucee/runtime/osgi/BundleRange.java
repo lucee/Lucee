@@ -55,7 +55,7 @@ public class BundleRange implements Serializable {
 	}
 
 	public BundleRange setVersionRange(VersionRange versionRange) {
-		this.versionRange = versionRange;
+		if (versionRange.from != null || versionRange.to != null) this.versionRange = versionRange;
 		return this;
 	}
 
