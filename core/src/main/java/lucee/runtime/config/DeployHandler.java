@@ -34,6 +34,8 @@ import lucee.commons.io.res.filter.ResourceFilter;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
+import lucee.commons.lang.types.RefBoolean;
+import lucee.commons.lang.types.RefBooleanImpl;
 import lucee.commons.net.http.HTTPEngine;
 import lucee.commons.net.http.HTTPResponse;
 import lucee.commons.net.http.Header;
@@ -91,7 +93,7 @@ public class DeployHandler {
 							}
 
 							// Lucee Extensions
-							else if ("lex".equalsIgnoreCase(ext)) ConfigAdmin._updateRHExtension((ConfigPro) config, child, true, force, true);
+							else if ("lex".equalsIgnoreCase(ext)) ConfigAdmin._updateRHExtension((ConfigPro) config, child, true, force, RHExtension.ACTION_MOVE);
 
 							// Lucee core
 							else if (config instanceof ConfigServer && "lco".equalsIgnoreCase(ext)) ConfigAdmin.updateCore((ConfigServerImpl) config, child, true);
@@ -168,20 +170,20 @@ public class DeployHandler {
 		boolean allSucessfull = true;
 		if (!ArrayUtil.isEmpty(eds)) {
 			ExtensionDefintion ed;
-			boolean sucess;
+			RefBoolean sucess = new RefBooleanImpl();
 			for (int i = 0; i < eds.length; i++) {
 				ed = eds[i];
 				if (StringUtil.isEmpty(ed.getId(), true)) continue;
 				try {
-					sucess = deployExtension(config, ed, log, i + 1 == eds.length, force, throwOnError);
+					deployExtension(config, ed, log, i + 1 == eds.length, force, throwOnError, sucess);
 				}
 				catch (PageException e) {
 					if (throwOnError) throw e;
 					if (log != null) log.error("deploy-extension", e);
 					else LogUtil.log("deploy-extension", e);
-					sucess = false;
+					sucess.setValue(false);
 				}
-				if (!sucess) allSucessfull = false;
+				if (!sucess.toBooleanValue()) allSucessfull = false;
 			}
 		}
 		return allSucessfull;
@@ -192,22 +194,23 @@ public class DeployHandler {
 		if (eds != null && eds.size() > 0) {
 			ExtensionDefintion ed;
 			Iterator<ExtensionDefintion> it = eds.iterator();
-			boolean sucess;
+			RefBoolean sucess = new RefBooleanImpl();
+
 			int count = 0;
 			while (it.hasNext()) {
 				count++;
 				ed = it.next();
 				if (StringUtil.isEmpty(ed.getId(), true)) continue;
 				try {
-					sucess = deployExtension(config, ed, log, count == eds.size(), force, throwOnError);
+					deployExtension(config, ed, log, count == eds.size(), force, throwOnError, sucess);
 				}
 				catch (PageException e) {
 					if (throwOnError) throw e;
 					if (log != null) log.error("deploy-extension", e);
 					else LogUtil.log("deploy-extension", e);
-					sucess = false;
+					sucess.setValue(false);
 				}
-				if (!sucess) allSucessfull = false;
+				if (!sucess.toBooleanValue()) allSucessfull = false;
 
 			}
 		}
@@ -224,11 +227,16 @@ public class DeployHandler {
 	 * @throws IOException
 	 * @throws PageException
 	 */
-	public static boolean deployExtension(Config config, ExtensionDefintion ed, Log log, boolean reload, boolean force, boolean throwOnError) throws PageException {
+	public static RHExtension deployExtension(Config config, ExtensionDefintion ed, Log log, boolean reload, boolean force, boolean throwOnError, RefBoolean installDone)
+			throws PageException {
 		ConfigPro ci = (ConfigPro) config;
 		// is the extension already installed
 		try {
-			if (ConfigAdmin.hasRHExtensionInstalled(ci, ed) != null) return false;
+			RHExtension installed = ConfigAdmin.hasRHExtensionInstalled(ci, ed);
+			if (installed != null) {
+				installDone.setValue(false);
+				return installed;
+			}
 		}
 		catch (Exception e) {
 			if (throwOnError) throw Caster.toPageException(e);
@@ -258,8 +266,9 @@ public class DeployHandler {
 					res = SystemUtil.getTempDirectory().getRealResource(ed.getId() + "-" + ed.getVersion() + ".lex");
 					ResourceUtil.touch(res);
 					IOUtil.copy(ext.getSource(), res);
-					ConfigAdmin._updateRHExtension((ConfigPro) config, res, reload, force, true);
-					return true;
+					RHExtension _ext = ConfigAdmin._updateRHExtension((ConfigPro) config, res, reload, force, RHExtension.ACTION_MOVE);
+					installDone.setValue(true);
+					return _ext;
 				}
 				catch (Exception e) {
 					if (log != null) log.error("extension", e);
@@ -316,8 +325,9 @@ public class DeployHandler {
 						ResourceUtil.touch(res);
 
 						IOUtil.copy(ext.getSource(), res);
-						ConfigAdmin._updateRHExtension((ConfigPro) config, res, reload, force, true);
-						return true;
+						RHExtension _ext = ConfigAdmin._updateRHExtension((ConfigPro) config, res, reload, force, RHExtension.ACTION_MOVE);
+						installDone.setValue(true);
+						return _ext;
 					}
 				}
 				catch (Exception e) {
@@ -339,8 +349,9 @@ public class DeployHandler {
 				ResourceUtil.touch(res);
 
 				IOUtil.copy(ext.getSource(), res);
-				ConfigAdmin._updateRHExtension((ConfigPro) config, res, reload, force, true);
-				return true;
+				RHExtension _ext = ConfigAdmin._updateRHExtension((ConfigPro) config, res, reload, force, RHExtension.ACTION_MOVE);
+				installDone.setValue(true);
+				return _ext;
 			}
 			catch (Exception e) {
 				e.printStackTrace();
@@ -353,8 +364,9 @@ public class DeployHandler {
 		Resource res = downloadExtension(ci, ed, log);
 		if (res != null) {
 			try {
-				ConfigAdmin._updateRHExtension((ConfigPro) config, res, reload, force, true);
-				return true;
+				RHExtension _ext = ConfigAdmin._updateRHExtension((ConfigPro) config, res, reload, force, RHExtension.ACTION_MOVE);
+				installDone.setValue(true);
+				return _ext;
 			}
 			catch (Exception e) {
 				e.printStackTrace();
@@ -452,7 +464,11 @@ public class DeployHandler {
 		return ((ConfigPro) config).loadLocalExtensions(validate);
 	}
 
-	public static void deployExtension(ConfigPro config, Resource ext, boolean reload, boolean force, boolean moveIfNecessary) throws PageException {
-		ConfigAdmin._updateRHExtension(config, ext, reload, force, moveIfNecessary);
+	public static RHExtension deployExtension(ConfigPro config, Resource ext, boolean reload, boolean force, short action) throws PageException {
+		return ConfigAdmin._updateRHExtension(config, ext, reload, force, action);
+	}
+
+	public static void deployExtension(ConfigPro config, RHExtension rhext, boolean reload, boolean force) throws PageException {
+		ConfigAdmin._updateRHExtension(config, rhext, reload, force);
 	}
 }

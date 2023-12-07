@@ -842,7 +842,7 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 				}
 				if (ed == null) {
 					try {
-						ext = new RHExtension(this, locReses[i], false);
+						ext = new RHExtension(this, locReses[i]);
 						ed = new ExtensionDefintion(ext.getId(), ext.getVersion());
 						ed.setSource(ext);
 
