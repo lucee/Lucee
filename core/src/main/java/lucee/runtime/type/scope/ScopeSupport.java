@@ -80,7 +80,13 @@ public abstract class ScopeSupport extends StructImpl implements Scope {
 		super(mapType);
 		this.name = name;
 		this.type = type;
+		id = ++_id;
+	}
 
+	public ScopeSupport(String name, int type, int mapType, int initalCapacity) {
+		super(mapType, initalCapacity);
+		this.name = name;
+		this.type = type;
 		id = ++_id;
 	}
 

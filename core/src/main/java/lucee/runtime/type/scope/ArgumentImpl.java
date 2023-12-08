@@ -69,8 +69,8 @@ public final class ArgumentImpl extends ScopeSupport implements Argument, ArrayP
 	 * constructor of the class
 	 */
 	public ArgumentImpl() {
-		super("arguments", SCOPE_ARGUMENTS, Struct.TYPE_LINKED);
-		// this(true);
+		super("arguments", SCOPE_ARGUMENTS, StructImpl.TYPE_LINKED, 4);
+		// super("arguments", SCOPE_ARGUMENTS, StructImpl.TYPE_LINKED_NOT_SYNC, 4);
 	}
 
 	@Override
@@ -81,6 +81,7 @@ public final class ArgumentImpl extends ScopeSupport implements Argument, ArrayP
 
 	@Override
 	public void setBind(boolean bind) {
+		makeSynchronized();
 		this.bind = bind;
 	}
 
