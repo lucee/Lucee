@@ -30,7 +30,6 @@ import org.osgi.framework.Version;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
-import lucee.commons.digest.Hash;
 import lucee.commons.digest.MD5;
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.FileUtil;
@@ -40,7 +39,6 @@ import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
-import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.config.XMLConfigReader.NameRule;
@@ -948,10 +946,8 @@ public abstract class ConfigFactory {
 			}
 		}
 		try {
-			String content = IOUtil.toString(res, CharsetUtil.UTF8);
-			Struct data = Caster.toStruct(new JSONExpressionInterpreter().interpret(null, content));
-			data.set(KeyConstants._md5, Hash.md5(content));
-			return data;
+			return Caster.toStruct(new JSONExpressionInterpreter().interpret(null, IOUtil.toString(res, CharsetUtil.UTF8)));
+			// data.set(KeyConstants._md5, Hash.md5(content));
 		}
 		catch (FileNotFoundException fnfe) {
 			Resource dir = res.getParentResource();
@@ -961,9 +957,9 @@ public abstract class ConfigFactory {
 			else if (lw.isFile()) return _loadDocument(lw);
 			else throw fnfe;
 		}
-		catch (NoSuchAlgorithmException e) {
-			throw ExceptionUtil.toIOException(e);
-		}
+		/*
+		 * catch (NoSuchAlgorithmException e) { throw ExceptionUtil.toIOException(e); }
+		 */
 	}
 
 	/**

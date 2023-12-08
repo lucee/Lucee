@@ -68,6 +68,7 @@ import org.osgi.framework.Constants;
 import org.osgi.framework.Version;
 
 import lucee.Info;
+import lucee.print;
 import lucee.cli.servlet.HTTPServletImpl;
 import lucee.cli.servlet.ServletContextImpl;
 import lucee.commons.collection.MapFactory;
@@ -281,7 +282,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 			throw Caster.toPageRuntimeException(e);
 		}
 		CFMLEngineFactory.registerInstance((this));// patch, not really good but it works
-		ConfigServerImpl cs = getConfigServerImpl(null, quick = true);
+		ConfigServerImpl cs = getConfigServerImpl(null, quick = true, false);
 
 		boolean isRe = configDir == null ? false : ConfigFactory.isRequiredExtension(this, configDir, null);
 		boolean installExtensions = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.extensions.install", null), true);
@@ -400,7 +401,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 			}
 		}
 
-		cs = getConfigServerImpl(cs, quick = false);
+		cs = getConfigServerImpl(cs, quick = false, false);
 		Log log = null;
 		if (cs != null) {
 			try {
@@ -901,18 +902,24 @@ public final class CFMLEngineImpl implements CFMLEngine {
 	}
 
 	private ConfigServerImpl getConfigServerImpl() {
-		return getConfigServerImpl(null, false);
+		return getConfigServerImpl(null, false, false);
 	}
 
-	private ConfigServerImpl getConfigServerImpl(ConfigServerImpl existing, boolean essentialOnly) {
+	private ConfigServerImpl getConfigServerImpl(ConfigServerImpl existing, boolean essentialOnly, boolean allowGrapingThreadConfig) {
 		if (configServer == null) {
+			print.ds("--->>> getConfigServerImpl");
 			// if in process to be build, this may only exists with the thread yet
-			Config config = ThreadLocalPageContext.getConfig();
-			if (config instanceof ConfigServerImpl) return (ConfigServerImpl) config;
-			if (config instanceof ConfigWebImpl) {
-				return ((ConfigWebImpl) config).getConfigServerImpl();
+			if (true) {
+				Config config = ThreadLocalPageContext.getConfig();
+				if (config instanceof ConfigServerImpl) {
+					print.e("--->>> config server");
+					// return (ConfigServerImpl) config;
+				}
+				if (config instanceof ConfigWebImpl) {
+					print.e("--->>> config web");
+					// return ((ConfigWebImpl) config).getConfigServerImpl();
+				}
 			}
-
 			try {
 				Resource context = getSeverContextConfigDirectory(factory);
 				ConfigServerImpl tmp = ConfigServerFactory.newInstance(this, initContextes, contextes, context, existing, essentialOnly);
@@ -927,6 +934,19 @@ public final class CFMLEngineImpl implements CFMLEngine {
 			}
 		}
 		return configServer;
+	}
+
+	private ConfigServerImpl getExistingConfigServerImpl() {
+		if (configServer != null) return configServer;
+
+		// if in process to be build, this may only exists with the thread yet
+		Config config = ThreadLocalPageContext.getConfig();
+		if (config instanceof ConfigServerImpl) return (ConfigServerImpl) config;
+		if (config instanceof ConfigWebImpl) {
+			return ((ConfigWebImpl) config).getConfigServerImpl();
+		}
+
+		return null;
 	}
 
 	public static Resource getSeverContextConfigDirectory(CFMLEngineFactory factory) throws IOException {
@@ -1287,13 +1307,16 @@ public final class CFMLEngineImpl implements CFMLEngine {
 
 	@Override
 	public String getUpdateType() {
-		return getConfigServerImpl().getUpdateType();
+		ConfigServerImpl cs = getExistingConfigServerImpl();
+		if (cs != null) return cs.getUpdateType();
+		return lucee.runtime.config.Constants.DEFAULT_UPDATE_TYPE;
 	}
 
 	@Override
 	public URL getUpdateLocation() {
-
-		return getConfigServerImpl().getUpdateLocation();
+		ConfigServerImpl cs = getExistingConfigServerImpl();
+		if (cs != null) return cs.getUpdateLocation();
+		return lucee.runtime.config.Constants.DEFAULT_UPDATE_URL;
 	}
 
 	@Override

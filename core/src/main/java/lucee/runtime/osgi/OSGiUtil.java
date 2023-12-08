@@ -2515,7 +2515,11 @@ public class OSGiUtil {
 			if (end == -1) throw new IOException("no end point found");
 
 			br = toBundleRange(msg.substring(start - 1, end + 1));
-			if (br != null) loadBundle(bc, br, config.getIdentification(), null, true, false, true, null);
+			if (br != null) {
+				print.e("load-bundle-from-exception");
+				print.e(br);
+				loadBundle(bc, br, config.getIdentification(), null, true, false, true, null);
+			}
 		}
 
 		// load the bundles based on the packages defined in the exception message
@@ -2530,7 +2534,11 @@ public class OSGiUtil {
 			end = findEnd(msg, start);
 			if (end == -1) throw new IOException("no end point found");
 			pq = toPackageQuery(msg.substring(start - 1, end + 1));
-			if (pq != null) loadBundleByPackage(bc, pq, new HashSet<Bundle>(), true, new HashSet<String>());
+			if (pq != null) {
+				print.e("load-package-from-exception");
+				print.e(pq);
+				loadBundleByPackage(bc, pq, new HashSet<Bundle>(), true, new HashSet<String>());
+			}
 		}
 
 	}

@@ -203,7 +203,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 	private static final long GB1 = 1024 * 1024 * 1024;
 	public static final boolean LOG = true;
 	private static final int DEFAULT_MAX_CONNECTION = 100;
-	public static final String DEFAULT_LOCATION = "https://update.lucee.org";
+	public static final String DEFAULT_LOCATION = Constants.DEFAULT_UPDATE_URL.toExternalForm();
 
 	/**
 	 * creates a new ServletConfig Impl Object
@@ -4863,7 +4863,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 			String md5 = CollectionUtil.md5(children);
 			if (!changed) {
 				if (md5.equals(config.getExtensionsMD5())) {
-					return;
+					// return;
 				}
 			}
 			try {
