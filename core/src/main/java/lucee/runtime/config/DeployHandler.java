@@ -21,8 +21,10 @@ package lucee.runtime.config;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
@@ -118,7 +120,13 @@ public class DeployHandler {
 						engine.setEnvExt(extensionIds);
 						List<ExtensionDefintion> extensions = RHExtension.toExtensionDefinitions(extensionIds);
 						Resource configDir = CFMLEngineImpl.getSeverContextConfigDirectory(engine.getCFMLEngineFactory());
-						boolean sucess = DeployHandler.deployExtensions(config, extensions.toArray(new ExtensionDefintion[extensions.size()]), log, force, false);
+						Map<ExtensionDefintion, Boolean> results = DeployHandler.deployExtensions(config, extensions.toArray(new ExtensionDefintion[extensions.size()]), log, force,
+								false);
+						boolean sucess = true;
+						for (Boolean b: results.values()) {
+							if (!Boolean.TRUE.equals(b)) sucess = false;
+						}
+
 						if (sucess && configDir != null) ConfigFactory.updateRequiredExtension(engine, configDir, log);
 						log.log(Log.LEVEL_INFO, "deploy handler",
 								(sucess ? "Successfully installed" : "Failed to install") + " extensions: [" + ListUtil.listToList(extensions, ", ") + "]");
@@ -166,27 +174,33 @@ public class DeployHandler {
 
 	}
 
-	public static boolean deployExtensions(Config config, ExtensionDefintion[] eds, final Log log, boolean force, boolean throwOnError) throws PageException {
-		boolean allSucessfull = true;
+	public static Map<ExtensionDefintion, Boolean> deployExtensions(Config config, ExtensionDefintion[] eds, final Log log, boolean force, boolean throwOnError)
+			throws PageException {
+		Map<ExtensionDefintion, Boolean> results = throwOnError ? null : new HashMap<>();
 		if (!ArrayUtil.isEmpty(eds)) {
 			ExtensionDefintion ed;
 			RefBoolean sucess = new RefBooleanImpl();
 			for (int i = 0; i < eds.length; i++) {
 				ed = eds[i];
-				if (StringUtil.isEmpty(ed.getId(), true)) continue;
+				if (StringUtil.isEmpty(ed.getId(), true)) {
+					if (!throwOnError) results.put(ed, Boolean.FALSE);
+					continue;
+				}
 				try {
 					deployExtension(config, ed, log, i + 1 == eds.length, force, throwOnError, sucess);
+					if (!throwOnError) results.put(ed, Boolean.TRUE);
 				}
 				catch (PageException e) {
 					if (throwOnError) throw e;
+					results.put(ed, Boolean.FALSE);
+
 					if (log != null) log.error("deploy-extension", e);
 					else LogUtil.log("deploy-extension", e);
-					sucess.setValue(false);
 				}
-				if (!sucess.toBooleanValue()) allSucessfull = false;
+
 			}
 		}
-		return allSucessfull;
+		return results;
 	}
 
 	public static boolean deployExtensions(Config config, List<ExtensionDefintion> eds, Log log, boolean force, boolean throwOnError) throws PageException {
@@ -223,6 +237,7 @@ public class DeployHandler {
 	 * @param config
 	 * @param id the id of the extension
 	 * @param version pass null if you don't need a specific version
+	 * @return
 	 * @return
 	 * @throws IOException
 	 * @throws PageException
@@ -331,7 +346,6 @@ public class DeployHandler {
 					}
 				}
 				catch (Exception e) {
-					e.printStackTrace();
 					if (log != null) log.error("extension", e);
 				}
 				finally {
@@ -354,7 +368,6 @@ public class DeployHandler {
 				return _ext;
 			}
 			catch (Exception e) {
-				e.printStackTrace();
 				if (log != null) log.error("extension", e);
 			}
 		}
@@ -369,7 +382,6 @@ public class DeployHandler {
 				return _ext;
 			}
 			catch (Exception e) {
-				e.printStackTrace();
 				if (log != null) log.error("extension", e);
 				else throw Caster.toPageException(e);
 			}

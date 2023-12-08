@@ -368,16 +368,35 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		}
 
 		if (extensions.size() > 0) {
-			boolean sucess;
+			Map<ExtensionDefintion, Boolean> results = null;
+			StringBuilder successSB = new StringBuilder();
+			StringBuilder failedSB = new StringBuilder();
+			boolean sucess = true;
 			try {
-				sucess = DeployHandler.deployExtensions(cs, extensions.toArray(new ExtensionDefintion[extensions.size()]), null, false, false);
+				results = DeployHandler.deployExtensions(cs, extensions.toArray(new ExtensionDefintion[extensions.size()]), null, false, false);
+				for (Entry<ExtensionDefintion, Boolean> e: results.entrySet()) {
+					// failed
+					if (!Boolean.TRUE.equals(e.getValue())) {
+						sucess = false;
+						if (failedSB.length() > 0) failedSB.append(", ");
+						failedSB.append(e.getKey().toString());
+					}
+					// success
+					else {
+						if (successSB.length() > 0) successSB.append(", ");
+						successSB.append(e.getKey().toString());
+					}
+				}
+
 			}
 			catch (PageException e) {
+				print.e(e);
 				LogUtil.log("deploy", "controller", e);
 				sucess = false;
 			}
 			if (sucess && configDir != null) ConfigFactory.updateRequiredExtension(this, configDir, null);
-			LogUtil.log(Log.LEVEL_INFO, "deploy", "controller", (sucess ? "Successfully" : "Unsuccessfully") + " installed extensions :" + toList(extensions));
+			if (successSB.length() > 0) LogUtil.log(Log.LEVEL_INFO, "deploy", "controller", "Successfully installed the following extensions: " + successSB);
+			if (failedSB.length() > 0) LogUtil.log(Log.LEVEL_INFO, "deploy", "controller", "Failed to install the following extensions: " + failedSB);
 		}
 		else if (configDir != null) ConfigFactory.updateRequiredExtension(this, configDir, null);
 

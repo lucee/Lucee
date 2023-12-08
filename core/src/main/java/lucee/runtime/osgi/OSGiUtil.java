@@ -49,7 +49,6 @@ import org.osgi.framework.Version;
 import org.osgi.framework.wiring.BundleRevision;
 import org.osgi.resource.Requirement;
 
-import lucee.print;
 import lucee.commons.digest.HashUtil;
 import lucee.commons.io.FileUtil;
 import lucee.commons.io.IOUtil;
@@ -737,8 +736,7 @@ public class OSGiUtil {
 				if (bundleRange.getVersionRange() != null && !bundleRange.getVersionRange().isEmpty()) {
 					// TODO not only check for from version, request a range, but that needs an adjustment with the
 					// provider
-
-					BundleFile _bf = improveFileName(
+					BundleFile _bf = improveFileName(factory.getBundleDirectory(),
 							BundleFile.getInstance(factory.downloadBundle(bundleRange.getName(), bundleRange.getVersionRange().getFrom().getVersion().toString(), id)));
 					resetJarsFromBundleDirectory(factory);
 					b = _loadBundle(bc, _bf);
@@ -747,7 +745,7 @@ public class OSGiUtil {
 					// MUST find out why this breaks at startup with commandbox if version exists
 					Resource r = downloadBundle(factory, bundleRange.getName(), null, id);
 					BundleFile src = BundleFile.getInstance(r);
-					BundleFile trg = improveFileName(src);
+					BundleFile trg = improveFileName(factory.getBundleDirectory(), src);
 					if (src != trg) r = ResourceUtil.toResource(trg.getFile());
 
 					resetJarsFromBundleDirectory(factory);
@@ -1064,7 +1062,8 @@ public class OSGiUtil {
 		try {
 
 			BundleFile mbf = null;
-			Resource dir = ResourceUtil.toResource(factory.getBundleDirectory());
+			File bd = factory.getBundleDirectory();
+			Resource dir = ResourceUtil.toResource(bd);
 			// first we check if there is a file match (fastest solution)
 			List<Resource> jars = createPossibleNameMatches(dir, addional, bundleRange);
 			for (Resource jar: jars) {
@@ -1077,7 +1076,7 @@ public class OSGiUtil {
 				}
 			}
 			if (mbf != null) {
-				return improveFileName(mbf);
+				return improveFileName(bd, mbf);
 			}
 			List<Resource> children = listFiles(dir, addional, JAR_EXT_FILTER);
 
@@ -1107,7 +1106,7 @@ public class OSGiUtil {
 						}
 					}
 					if (mbf != null) {
-						return improveFileName(mbf);
+						return improveFileName(factory.getBundleDirectory(), mbf);
 					}
 				}
 			}
@@ -1139,15 +1138,22 @@ public class OSGiUtil {
 	/**
 	 * rename file to match the Manifest information
 	 * 
+	 * @param factory
+	 * 
 	 * @param bf
 	 */
-	private static BundleFile improveFileName(BundleFile bf) {
-		File f = bf.getFile();
+	private static BundleFile improveFileName(File bundlDirectory, BundleFile bf) {
+		File f = ResourceUtil.getCanonicalFileEL(bf.getFile());
+
+		// we only improve the file names for bundles in the bundles directory
+		if (!bundlDirectory.equals(f.getParentFile())) {
+			return bf;
+		}
+
 		String preferedName = bf.getSymbolicName() + "-" + bf.getVersionAsString() + ".jar";
 		if (!preferedName.equals(f.getName())) {
 			try {
 				File nf = new File(f.getParentFile(), preferedName);
-
 				if (f.renameTo(nf)) {
 					return BundleFile.getInstance(nf);
 				}
@@ -2514,8 +2520,6 @@ public class OSGiUtil {
 
 			br = toBundleRange(msg.substring(start - 1, end + 1));
 			if (br != null) {
-				print.e("load-bundle-from-exception");
-				print.e(br);
 				loadBundle(bc, br, config.getIdentification(), null, true, false, true, null);
 			}
 		}
@@ -2533,8 +2537,6 @@ public class OSGiUtil {
 			if (end == -1) throw new IOException("no end point found");
 			pq = toPackageQuery(msg.substring(start - 1, end + 1));
 			if (pq != null) {
-				print.e("load-package-from-exception");
-				print.e(pq);
 				loadBundleByPackage(bc, pq, new HashSet<Bundle>(), true, new HashSet<String>());
 			}
 		}

@@ -247,7 +247,7 @@ public abstract class ConfigFactory {
 			reader = new XMLConfigReader((InputSource) old, true, new ReadRule(), new NameRule());
 		}
 		else {
-			new ConverterException("inputing data is invalid, cannot cast [" + old.getClass().getName() + "] ro a Resource or an InputSource");
+			new ConverterException("inputing data is invalid, cannot cast [" + old.getClass().getName() + "] to a Resource or an InputSource");
 		}
 		Struct root = ConfigWebUtil.getAsStruct(reader.getData(), "cfLuceeConfiguration", "luceeConfiguration", "lucee-configuration");
 
