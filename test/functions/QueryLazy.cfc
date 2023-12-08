@@ -119,7 +119,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		queryLazy(
 			sql: "SELECT * FROM t#suffix# order by id"
 			,listener: function( rows ){
-				systemOutput( rows, true );
+				//systemOutput( rows, true );
 				arrayAppend( result, arguments.rows );
 				arrayAppend( result, "-" );
 			}

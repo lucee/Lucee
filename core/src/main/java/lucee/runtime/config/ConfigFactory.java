@@ -21,6 +21,7 @@ package lucee.runtime.config;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Iterator;
 
@@ -192,6 +193,7 @@ public abstract class ConfigFactory {
 	 * @throws SAXException
 	 * @throws IOException
 	 * @throws PageException
+	 * @throws NoSuchAlgorithmException
 	 */
 	static Struct loadDocument(Resource file) throws IOException, PageException {
 		InputStream is = null;
@@ -245,7 +247,7 @@ public abstract class ConfigFactory {
 			reader = new XMLConfigReader((InputSource) old, true, new ReadRule(), new NameRule());
 		}
 		else {
-			new ConverterException("inputing data is invalid, cannot cast [" + old.getClass().getName() + "] ro a Resource or an InputSource");
+			new ConverterException("inputing data is invalid, cannot cast [" + old.getClass().getName() + "] to a Resource or an InputSource");
 		}
 		Struct root = ConfigWebUtil.getAsStruct(reader.getData(), "cfLuceeConfiguration", "luceeConfiguration", "lucee-configuration");
 
@@ -945,6 +947,7 @@ public abstract class ConfigFactory {
 		}
 		try {
 			return Caster.toStruct(new JSONExpressionInterpreter().interpret(null, IOUtil.toString(res, CharsetUtil.UTF8)));
+			// data.set(KeyConstants._md5, Hash.md5(content));
 		}
 		catch (FileNotFoundException fnfe) {
 			Resource dir = res.getParentResource();
@@ -954,6 +957,9 @@ public abstract class ConfigFactory {
 			else if (lw.isFile()) return _loadDocument(lw);
 			else throw fnfe;
 		}
+		/*
+		 * catch (NoSuchAlgorithmException e) { throw ExceptionUtil.toIOException(e); }
+		 */
 	}
 
 	/**

@@ -395,7 +395,7 @@ public class RHExtension implements Serializable {
 		if (res.length() == ext.length()) return;
 		try {
 			ResourceUtil.copy(ext, res);
-			logger.info("extension", "copy [" + id + ":" + version + "] ro [" + res + "]");
+			logger.info("extension", "copy [" + id + ":" + version + "] to [" + res + "]");
 		}
 		catch (IOException e) {
 			logger.error("extension", e);

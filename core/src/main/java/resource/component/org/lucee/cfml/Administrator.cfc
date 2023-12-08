@@ -1497,6 +1497,8 @@ component {
 			drivers[trim(tmp.getId())]=tmp;
 		}
 
+		SystemOutput(structKeyList(driverNames),1,1);
+		SystemOutput(structKeyList(drivers),1,1);
 		var driver=drivers[trim(arguments.type)];
 		var meta=getMetaData(driver);
 		var debugEntry = getDebugEntry();

@@ -757,6 +757,16 @@ public final class ResourceUtil {
 		}
 	}
 
+	public static File getCanonicalFileEL(File file) {
+		if (file == null) return file;
+		try {
+			return file.getCanonicalFile();
+		}
+		catch (IOException e) {
+			return file.getAbsoluteFile();
+		}
+	}
+
 	/**
 	 * creates a new File
 	 * 

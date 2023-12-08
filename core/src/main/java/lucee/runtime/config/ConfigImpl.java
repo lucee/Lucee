@@ -359,6 +359,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	private RHExtensionProvider[] rhextensionProviders = Constants.RH_EXTENSION_PROVIDERS;
 
 	private RHExtension[] rhextensions = RHEXTENSIONS_EMPTY;
+	private String extensionsMD5;
 	private boolean allowRealPath = true;
 
 	private DumpWriterEntry[] dmpWriterEntries;
@@ -2755,8 +2756,13 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		return rhextensions;
 	}
 
-	protected void setExtensions(RHExtension[] extensions) {
+	public String getExtensionsMD5() {
+		return extensionsMD5;
+	}
+
+	protected void setExtensions(RHExtension[] extensions, String md5) {
 		this.rhextensions = extensions;
+		this.extensionsMD5 = md5;
 	}
 
 	@Override
