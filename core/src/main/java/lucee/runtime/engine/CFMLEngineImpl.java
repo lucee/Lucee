@@ -922,17 +922,14 @@ public final class CFMLEngineImpl implements CFMLEngine {
 
 	private ConfigServerImpl getConfigServerImpl(ConfigServerImpl existing, boolean essentialOnly, boolean allowGrapingThreadConfig) {
 		if (configServer == null) {
-			print.e("--->>> getConfigServerImpl");
 			// if in process to be build, this may only exists with the thread yet
 			if (allowGrapingThreadConfig) {
 				Config config = ThreadLocalPageContext.getConfig();
 				if (config instanceof ConfigServerImpl) {
-					print.ds("--->>> config server");
-					// return (ConfigServerImpl) config;
+					return (ConfigServerImpl) config;
 				}
 				if (config instanceof ConfigWebImpl) {
-					print.ds("--->>> config web");
-					// return ((ConfigWebImpl) config).getConfigServerImpl();
+					return ((ConfigWebImpl) config).getConfigServerImpl();
 				}
 			}
 			try {
