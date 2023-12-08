@@ -120,6 +120,7 @@ import lucee.runtime.config.ConfigServerFactory;
 import lucee.runtime.config.ConfigServerImpl;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.config.ConfigWebFactory;
+import lucee.runtime.config.ConfigWebImpl;
 import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.config.DeployHandler;
 import lucee.runtime.config.Identification;
@@ -905,6 +906,13 @@ public final class CFMLEngineImpl implements CFMLEngine {
 
 	private ConfigServerImpl getConfigServerImpl(ConfigServerImpl existing, boolean essentialOnly) {
 		if (configServer == null) {
+			// if in process to be build, this may only exists with the thread yet
+			Config config = ThreadLocalPageContext.getConfig();
+			if (config instanceof ConfigServerImpl) return (ConfigServerImpl) config;
+			if (config instanceof ConfigWebImpl) {
+				return ((ConfigWebImpl) config).getConfigServerImpl();
+			}
+
 			try {
 				Resource context = getSeverContextConfigDirectory(factory);
 				ConfigServerImpl tmp = ConfigServerFactory.newInstance(this, initContextes, contextes, context, existing, essentialOnly);
@@ -1284,6 +1292,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 
 	@Override
 	public URL getUpdateLocation() {
+
 		return getConfigServerImpl().getUpdateLocation();
 	}
 

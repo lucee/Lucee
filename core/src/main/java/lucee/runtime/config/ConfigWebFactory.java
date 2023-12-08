@@ -183,6 +183,7 @@ import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.dt.TimeSpan;
 import lucee.runtime.type.scope.Undefined;
 import lucee.runtime.type.util.ArrayUtil;
+import lucee.runtime.type.util.CollectionUtil;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.ListUtil;
 import lucee.transformer.library.ClassDefinitionImpl;
@@ -4857,7 +4858,14 @@ public final class ConfigWebFactory extends ConfigFactory {
 			if (config instanceof ConfigServer) {
 				changed = ConfigFactory.modeChange(config.getConfigDir(), config.getAdminMode() == ConfigImpl.ADMINMODE_MULTI ? "multi" : "single", false);
 			}
+
 			Array children = ConfigWebUtil.getAsArray("extensions", root);
+			String md5 = CollectionUtil.md5(children);
+			if (!changed) {
+				if (md5.equals(config.getExtensionsMD5())) {
+					return;
+				}
+			}
 			try {
 				RHExtension.removeDuplicates(children);
 			}
@@ -4928,9 +4936,8 @@ public final class ConfigWebFactory extends ConfigFactory {
 					}
 				}
 			}
-
 			// set
-			config.setExtensions(extensions.toArray(new RHExtension[extensions.size()]));
+			config.setExtensions(extensions.toArray(new RHExtension[extensions.size()]), md5);
 		}
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
@@ -5430,7 +5437,6 @@ public final class ConfigWebFactory extends ConfigFactory {
 			ExceptionUtil.rethrowIfNecessary(t);
 			log(config, log, t);
 		}
-
 	}
 
 	/**
