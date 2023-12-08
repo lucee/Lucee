@@ -4863,7 +4863,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 			String md5 = CollectionUtil.md5(children);
 			if (!changed) {
 				if (md5.equals(config.getExtensionsMD5())) {
-					return;
+					// return;
 				}
 			}
 			try {

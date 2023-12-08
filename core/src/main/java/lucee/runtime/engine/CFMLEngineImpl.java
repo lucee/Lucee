@@ -537,7 +537,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 	}
 
 	public int deployBundledExtension(boolean validate) {
-		return deployBundledExtension(getConfigServerImpl(), validate);
+		return deployBundledExtension(getConfigServerImpl(null, false, true), validate);
 	}
 
 	private int deployBundledExtension(ConfigServerImpl cs, boolean validate) {
@@ -799,7 +799,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		servletConfigs.add(config);
 		String real = ReqRspUtil.getRootPath(config.getServletContext());
 		if (!initContextes.containsKey(real)) {
-			CFMLFactory jspFactory = loadJSPFactory(getConfigServerImpl(), config, initContextes.size());
+			CFMLFactory jspFactory = loadJSPFactory(getConfigServerImpl(null, false, false), config, initContextes.size());
 			initContextes.put(real, jspFactory);
 		}
 	}
@@ -887,13 +887,13 @@ public final class CFMLEngineImpl implements CFMLEngine {
 
 	@Override
 	public ConfigServer getConfigServer(Password password) throws PageException {
-		getConfigServerImpl().checkAccess(password);
+		getConfigServerImpl(null, false, false).checkAccess(password);
 		return configServer;
 	}
 
 	@Override
 	public ConfigServer getConfigServer(String key, long timeNonce) throws PageException {
-		getConfigServerImpl().checkAccess(key, timeNonce);
+		getConfigServerImpl(null, false, false).checkAccess(key, timeNonce);
 		return configServer;
 	}
 
@@ -901,22 +901,18 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		this.configServer = cs;
 	}
 
-	private ConfigServerImpl getConfigServerImpl() {
-		return getConfigServerImpl(null, false, false);
-	}
-
 	private ConfigServerImpl getConfigServerImpl(ConfigServerImpl existing, boolean essentialOnly, boolean allowGrapingThreadConfig) {
 		if (configServer == null) {
-			print.ds("--->>> getConfigServerImpl");
+			print.e("--->>> getConfigServerImpl");
 			// if in process to be build, this may only exists with the thread yet
-			if (true) {
+			if (allowGrapingThreadConfig) {
 				Config config = ThreadLocalPageContext.getConfig();
 				if (config instanceof ConfigServerImpl) {
-					print.e("--->>> config server");
+					print.ds("--->>> config server");
 					// return (ConfigServerImpl) config;
 				}
 				if (config instanceof ConfigWebImpl) {
-					print.e("--->>> config web");
+					print.ds("--->>> config web");
 					// return ((ConfigWebImpl) config).getConfigServerImpl();
 				}
 			}
@@ -1157,7 +1153,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		ServletContext srvContext = srvConfig.getServletContext();
 
 		String real = ReqRspUtil.getRootPath(srvContext);
-		if (cs == null) cs = getConfigServerImpl();
+		if (cs == null) cs = getConfigServerImpl(null, false, true);
 
 		// Load JspFactory
 
@@ -1321,12 +1317,12 @@ public final class CFMLEngineImpl implements CFMLEngine {
 
 	@Override
 	public Identification getIdentification() {
-		return getConfigServerImpl().getIdentification();
+		return getConfigServerImpl(null, false, true).getIdentification();
 	}
 
 	@Override
 	public boolean can(int type, Password password) {
-		return getConfigServerImpl().passwordEqual(password);
+		return getConfigServerImpl(null, false, true).passwordEqual(password);
 	}
 
 	@Override
@@ -1362,7 +1358,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 			// release HTTP Pool
 			HTTPEngine4Impl.releaseConnectionManager();
 
-			releaseCache(getConfigServerImpl());
+			releaseCache(getConfigServerImpl(null, false, true));
 
 			CFMLFactoryImpl cfmlFactory;
 			// ScopeContext scopeContext;
@@ -1516,7 +1512,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 	public Object getFDController() {
 		engine.allowRequestTimeout(false);
 
-		return new FDControllerImpl(engine, engine.getConfigServerImpl().getSerialNumber());
+		return new FDControllerImpl(engine, engine.getConfigServerImpl(null, false, true).getSerialNumber());
 	}
 
 	public Map<String, CFMLFactory> getCFMLFactories() {

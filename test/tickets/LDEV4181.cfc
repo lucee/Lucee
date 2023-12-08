@@ -1,9 +1,11 @@
 component extends="org.lucee.cfml.test.LuceeTestCase" skip="false" labels="qoq" {
 
 	variables.mysql = server.getDatasource("mysql");
+
+	
 	
 	function beforeAll(){
-		if ( !hasMysql() )
+		if ( isMySqlNotSupported() )
 			return;
 		afterAll();
 		queryExecute(
@@ -18,7 +20,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" skip="false" labels="qoq" 
 	};
 
 	function afterAll(){
-		if ( !hasMysql() )
+		if ( isMySqlNotSupported() )
 			return;
 		queryExecute(
 			sql="drop table if exists ldev4181",
@@ -29,13 +31,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase" skip="false" labels="qoq" 
 	
 	};
 
-	private function hasMysql(){
-		return !isEmpty(variables.mysql);
+	private function isMySqlNotSupported() {
+		return isEmpty(variables.mysql);
 	}
 
 	function run( testResults , testBox ) {
 		describe( title="Testcase for LDEV-4181", body=function() {
-			it(title="Checking QoQ with numeric column, trailing 000s", body = function( currentSpec ) {
+			it(title="Checking QoQ with numeric column, trailing 000s", skip=isMySqlNotSupported(), body = function( currentSpec ) {
 				var qry = queryNew( 'id,test', 'numeric,string', [ [1,',1,10'],[2,',2,20'],[3,',3,30'],[4,',4,40'],[5,',5,50'],[10,',10,100'],[15,',15,150'] ] );
 				var queryResult = queryExecute("
 					SELECT id 
@@ -47,7 +49,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" skip="false" labels="qoq" 
 				expect(valueList(queryResult.id)).tobe("1,10,15");
 			});
 
-			it(title="Checking mysql query with numeric column, trailing 000s", body = function( currentSpec ) {
+			it(title="Checking mysql query with numeric column, trailing 000s", skip=isMySqlNotSupported(), body = function( currentSpec ) {
 				var price = 3.14;
 				queryExecute(
 					sql="INSERT INTO ldev4181 ( id, price ) VALUES ( :id, :price )",

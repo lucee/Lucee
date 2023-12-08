@@ -7,7 +7,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 	function run( testResults, testBox ) {
 		describe( "Test case for LDEV2298, inserting date with null=false, no sqltype", function(){
 
-			it( title="queryExecute() column doesn't allow nulls", body = function( currentSpec ) {
+			it( title="queryExecute() column doesn't allow nulls", skip=isMSSqlNotSupported(), body = function( currentSpec ) {
 				local.result = _InternalRequest(
 					template : "#uri#\test.cfm",
 					forms : {Scene = 1,tablename = 'ldev2298_null'}
@@ -15,7 +15,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 				expect( trim( result.filecontent) ).toInclude("{ts '1900-01-01 00:00:00'}"); // feels wrong, but that's sql server, i.e. SELECT CAST('' AS DATE)
 			});
 
-			it( title="queryExecute() column allows nulls", body = function( currentSpec ) {
+			it( title="queryExecute() column allows nulls", skip=isMSSqlNotSupported(), body = function( currentSpec ) {
 				local.result = _InternalRequest(
 					template : "#uri#\test.cfm",
 					forms : {Scene = 3,tablename = 'ldev2298_notnull'}
@@ -26,7 +26,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 
 		describe( "Test case for LDEV2298, inserting date with null=false, no sqltype, missing date param", function(){
 
-			it( title="queryExecute() column doesn't allow nulls", body = function( currentSpec ) {
+			it( title="queryExecute() column doesn't allow nulls", skip=isMSSqlNotSupported(), body = function( currentSpec ) {
 				local.result = _InternalRequest(
 					template : "#uri#\test.cfm",
 					forms : {Scene = 1,tablename = 'ldev2298_null', passDateParam=false}
@@ -34,7 +34,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 				expect( trim( result.filecontent) ).toInclude("param [utcNow] not found");
 			});
 
-			it( title="queryExecute() column allows nulls", body = function( currentSpec ) {
+			it( title="queryExecute() column allows nulls", skip=isMSSqlNotSupported(), body = function( currentSpec ) {
 				local.result = _InternalRequest(
 					template : "#uri#\test.cfm",
 					forms : {Scene = 3,tablename = 'ldev2298_notnull', passDateParam=false}
@@ -45,7 +45,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 
 		describe( "Test case for LDEV2298, inserting date with null=false, with sqltype, via array of structs", function(){
 
-			it( title="queryExecute() column allows nulls", body = function( currentSpec ) {
+			it( title="queryExecute() column allows nulls", skip=isMSSqlNotSupported(), body = function( currentSpec ) {
 				local.result = _InternalRequest(
 					template : "#uri#\test.cfm",
 					forms : {Scene = 4,tablename = 'ldev2298_null'}
@@ -53,7 +53,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 				expect( trim( result.filecontent) ).toInclude("can't cast [] to date value");
 			}); 
 
-			it( title="queryExecute() column doesn't allow nulls", body = function( currentSpec ) {
+			it( title="queryExecute() column doesn't allow nulls", skip=isMSSqlNotSupported(), body = function( currentSpec ) {
 				local.result = _InternalRequest(
 					template : "#uri#\test.cfm",
 					forms : {Scene = 2,tablename = 'ldev2298_notnull'}
@@ -65,7 +65,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 
 		describe( "Test case for LDEV2298, inserting date with null=false, with sqltype, via array of structs, missing date param", function(){
 
-			it( title="queryExecute() column allows nulls", body = function( currentSpec ) {
+			it( title="queryExecute() column allows nulls", skip=isMSSqlNotSupported(), body = function( currentSpec ) {
 				local.result = _InternalRequest(
 					template : "#uri#\test.cfm",
 					forms : {Scene = 4,tablename = 'ldev2298_null', passDateParam=false}
@@ -73,7 +73,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 				expect( trim( result.filecontent) ).toInclude("param [utcNow] not found");
 			}); 
 
-			it( title="queryExecute() column doesn't allow nulls", body = function( currentSpec ) {
+			it( title="queryExecute() column doesn't allow nulls", skip=isMSSqlNotSupported(), body = function( currentSpec ) {
 				local.result = _InternalRequest(
 					template : "#uri#\test.cfm",
 					forms : {Scene = 2,tablename = 'ldev2298_notnull', passDateParam=false}
@@ -86,7 +86,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 		describe( "Test case for LDEV2298, inserting date with null=false, with sqltype", function(){
 
 			
-			it( title="queryExecute() column allows nulls", body = function( currentSpec ) {
+			it( title="queryExecute() column allows nulls", skip=isMSSqlNotSupported(), body = function( currentSpec ) {
 				local.result = _InternalRequest(
 					template : "#uri#\test.cfm",
 					forms : {Scene = 4,tablename = 'ldev2298_null'}
@@ -94,7 +94,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 				expect( trim( result.filecontent) ).toInclude("can't cast [] to date value");
 			}); 
 
-			it( title="queryExecute() column doesn't allow nulls", body = function( currentSpec ) {
+			it( title="queryExecute() column doesn't allow nulls", skip=isMSSqlNotSupported(), body = function( currentSpec ) {
 				local.result = _InternalRequest(
 					template : "#uri#\test.cfm",
 					forms : {Scene = 2,tablename = 'ldev2298_notnull',}
@@ -106,7 +106,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 
 		describe( "Test case for LDEV2298, inserting date with null=true, with sqltype", function(){
 
-			it( title="queryExecute() column allows nulls", body = function( currentSpec ) {
+			it( title="queryExecute() column allows nulls", skip=isMSSqlNotSupported(), body = function( currentSpec ) {
 				local.result = _InternalRequest(
 					template : "#uri#\test.cfm",
 					forms : {Scene = 4,tablename = 'ldev2298_null', allowNull=true}
@@ -114,7 +114,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 				expect( trim( result.filecontent) ).toBe("");
 			}); 
 
-			it( title="queryExecute() column doesn't allow nulls", body = function( currentSpec ) {
+			it( title="queryExecute() column doesn't allow nulls", skip=isMSSqlNotSupported(), body = function( currentSpec ) {
 				local.result = _InternalRequest(
 					template : "#uri#\test.cfm",
 					forms : {Scene = 2,tablename = 'ldev2298_notnull',allowNull=true}
@@ -128,5 +128,9 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 	private string function createURI(string calledName){
 		var baseURI="/test/#listLast(getDirectoryFromPath(getCurrenttemplatepath()),"\/")#/";
 		return baseURI&""&calledName;
+	}
+
+	private function isMSSqlNotSupported() {
+		return isEmpty(server.getDatasource("mssql"));
 	}
 }
