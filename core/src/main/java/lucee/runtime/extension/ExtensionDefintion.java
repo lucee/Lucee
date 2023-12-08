@@ -134,7 +134,7 @@ public class ExtensionDefintion {
 			// MUST try to load the Extension
 			throw new ApplicationException("ExtensionDefinition does not contain the necessary data to create the requested object.");
 		}
-		rhe = new RHExtension(config, source, false);
+		rhe = new RHExtension(config, source);
 		return rhe;
 	}
 

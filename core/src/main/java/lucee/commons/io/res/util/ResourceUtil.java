@@ -256,7 +256,6 @@ public final class ResourceUtil {
 		Resource res;
 		if (config == null) res = ResourcesImpl.getFileResourceProvider().getResource(path);
 		else res = config.getResource(path);
-
 		if (res.exists()) return res;
 		return defaultValue;
 	}
@@ -1642,5 +1641,11 @@ public final class ResourceUtil {
 			}
 		}
 		return am;
+	}
+
+	public static void createParentDirectoryIfNecessary(Resource file) throws IOException {
+		Resource parent = file.getParentResource();
+		if (parent == null) throw new IOException("there is no parent directory for [" + file + "]");
+		if (!parent.isDirectory()) parent.createDirectory(true);
 	}
 }

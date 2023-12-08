@@ -72,6 +72,7 @@ import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.log.LoggerAndSourceData;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourcesImpl;
+import lucee.commons.io.res.filter.ExtensionResourceFilter;
 import lucee.commons.io.res.type.cfml.CFMLResourceProvider;
 import lucee.commons.io.res.type.s3.DummyS3ResourceProvider;
 import lucee.commons.io.res.util.ResourceUtil;
@@ -4862,13 +4863,23 @@ public final class ConfigWebFactory extends ConfigFactory {
 	 * @param log
 	 */
 	private static void _loadExtensionBundles(ConfigServerImpl cs, ConfigImpl config, Struct root, Log log) {
+		Log deployLog = config.getLog("deploy");
+		if (deployLog != null) log = deployLog;
+
 		try {
 			boolean changed = false;
 			if (config instanceof ConfigServer) {
 				changed = ConfigFactory.modeChange(config.getConfigDir(), config.getAdminMode() == ConfigImpl.ADMINMODE_MULTI ? "multi" : "single", false);
 			}
 			Array children = ConfigWebUtil.getAsArray("extensions", root);
-			RHExtension.removeDuplicates(children);
+			try {
+				RHExtension.removeDuplicates(children);
+			}
+			catch (Throwable t) {
+				ExceptionUtil.rethrowIfNecessary(t);
+				log(config, log, t);
+			}
+
 			String strBundles;
 			List<RHExtension> extensions = new ArrayList<RHExtension>();
 			RHExtension rhe;
@@ -4877,11 +4888,13 @@ public final class ConfigWebFactory extends ConfigFactory {
 			Entry<Key, Object> e;
 			Struct child;
 			String id;
+			Set<Resource> installedFiles = new HashSet<>();
+			Set<String> installedIds = new HashSet<>();
+			// load and install extension if necessary
 			while (it.hasNext()) {
 				child = Caster.toStruct(it.next(), null);
 				if (child == null) continue;
 				id = Caster.toString(child.get(KeyConstants._id, null), null);
-				if (StringUtil.isEmpty(id)) continue;
 
 				BundleInfo[] bfsq;
 				try {
@@ -4889,10 +4902,15 @@ public final class ConfigWebFactory extends ConfigFactory {
 					if (StringUtil.isEmpty(res)) res = Caster.toString(child.get(KeyConstants._path, null), null);
 					if (StringUtil.isEmpty(res)) res = Caster.toString(child.get(KeyConstants._url, null), null);
 
-					rhe = new RHExtension(config, id, Caster.toString(child.get(KeyConstants._version, null), null), res,
-							changed ? RHExtension.INSTALL_OPTION_FORCE : RHExtension.INSTALL_OPTION_IF_NECESSARY);
+					if (StringUtil.isEmpty(id) && StringUtil.isEmpty(res)) continue;
+
+					// we force a new installation if we have switched from single to multi mode, because extension can
+					// act completely different if that is the case
+					rhe = RHExtension.installExtension(config, id, Caster.toString(child.get(KeyConstants._version, null), null), res, changed);
 					if (rhe.getStartBundles()) rhe.deployBundles(config);
 					extensions.add(rhe);
+					installedFiles.add(rhe.getExtensionFile());
+					installedIds.add(rhe.getId());
 				}
 				catch (Throwable t) {
 					ExceptionUtil.rethrowIfNecessary(t);
@@ -4900,6 +4918,32 @@ public final class ConfigWebFactory extends ConfigFactory {
 					continue;
 				}
 			}
+
+			// uninstall extensions no longer used
+			Resource[] installed = RHExtension.getExtensionInstalledDir(config).listResources(new ExtensionResourceFilter("lex"));
+			if (installed != null) {
+				for (Resource r: installed) {
+					if (!installedFiles.contains(r)) {
+
+						// is maybe a diff version installed?
+						RHExtension ext = new RHExtension(config, r);
+						if (!installedIds.contains(ext.getId())) {
+							if (log != null) log.info("extension",
+									"Found the extension [" + ext + "] in the installed folder that is not present in the configuration in any version, so we will uninstall it");
+							ConfigAdmin._removeRHExtension(config, ext, null, true);
+							if (log != null) log.info("extension", "removed extension [" + ext + "]");
+						}
+						else {
+							if (log != null) log.info("extension", "Found the extension [" + ext
+									+ "] in the installed folder that is in a different version in the configuraton, so we delete that extension file.");
+							r.delete();
+						}
+
+					}
+				}
+			}
+
+			// set
 			config.setExtensions(extensions.toArray(new RHExtension[extensions.size()]));
 		}
 		catch (Throwable t) {
