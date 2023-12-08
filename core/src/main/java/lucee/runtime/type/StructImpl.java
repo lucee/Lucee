@@ -101,7 +101,14 @@ public class StructImpl extends StructSupport {
 
 	public boolean makeSynchronized() {
 		// only HashMap is not sync
-		if (map instanceof HashMap || map instanceof LinkedHashMap) {
+		if (map instanceof HashMap) {
+			if (isEmpty()) map = MapFactory.getConcurrentMap(4); // TODO set initialCapacity from above
+			else map = Collections.synchronizedMap(map);
+			this.type = TYPE_SYNC;
+			return true;
+		}
+		// linked
+		if (map instanceof LinkedHashMap) {
 			map = Collections.synchronizedMap(map);
 			this.type = TYPE_SYNC;
 			return true;
