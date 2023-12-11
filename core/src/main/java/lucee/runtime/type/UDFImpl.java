@@ -111,8 +111,8 @@ public class UDFImpl extends MemberSupport implements UDFPlus, Externalizable {
 		return properties.getPage(pageContext).udfCall(pageContext, this, properties.getIndex());
 	}
 
-	private final Object castToAndClone(PageContext pc, FunctionArgument arg, Object value, int index) throws PageException {
-		if (value == null && ((PageContextImpl) pc).getFullNullSupport()) return value;
+	private final Object castToAndClone(PageContext pc, FunctionArgument arg, Object value, int index, boolean fns) throws PageException {
+		if (value == null && fns) return value;
 
 		if (!((PageContextImpl) pc).getTypeChecking() || Decision.isCastableTo(pc, arg.getType(), arg.getTypeAsString(), value))
 			return arg.isPassByReference() ? value : Duplicator.duplicate(value, true);
@@ -124,15 +124,15 @@ public class UDFImpl extends MemberSupport implements UDFPlus, Externalizable {
 		throw new UDFCasterException(this, arg, value, index);
 	}
 
-	private void defineArguments(PageContext pc, FunctionArgument[] funcArgs, Object[] args, Argument newArgs) throws PageException {
+	private void defineArguments(PageContextImpl pc, FunctionArgument[] funcArgs, Object[] args, Argument newArgs) throws PageException {
 		// define argument scope
-		boolean fns = NullSupportHelper.full(pc);
+		boolean fns = pc.getFullNullSupport();
 		Object _null = NullSupportHelper.NULL(fns);
 
 		for (int i = 0; i < funcArgs.length; i++) {
 			// argument defined
 			if (args.length > i && (args[i] != null || fns)) {
-				newArgs.setEL(funcArgs[i].getName(), castToAndClone(pc, funcArgs[i], args[i], i + 1));
+				newArgs.setEL(funcArgs[i].getName(), castToAndClone(pc, funcArgs[i], args[i], i + 1, fns));
 			}
 			// argument not defined
 			else {
@@ -153,25 +153,26 @@ public class UDFImpl extends MemberSupport implements UDFPlus, Externalizable {
 		}
 	}
 
-	private void defineArguments(PageContext pc, FunctionArgument[] funcArgs, Struct values, Argument newArgs) throws PageException {
+	private void defineArguments(PageContextImpl pc, FunctionArgument[] funcArgs, Struct values, Argument newArgs) throws PageException {
 		// argumentCollection
 		UDFUtil.argumentCollection(values, funcArgs);
 		// print.out(values.size());
 		Object value;
 		Collection.Key name;
-		Object _null = NullSupportHelper.NULL(pc);
+		boolean fns = pc.getFullNullSupport();
+		Object _null = NullSupportHelper.NULL(fns);
 
 		for (int i = 0; i < funcArgs.length; i++) {
 			// argument defined
 			name = funcArgs[i].getName();
 			value = values.remove(name, _null);
 			if (value != _null) {
-				newArgs.set(name, castToAndClone(pc, funcArgs[i], value, i + 1));
+				newArgs.set(name, castToAndClone(pc, funcArgs[i], value, i + 1, fns));
 				continue;
 			}
 			value = values.remove(ArgumentIntKey.init(i + 1), _null);
 			if (value != _null) {
-				newArgs.set(name, castToAndClone(pc, funcArgs[i], value, i + 1));
+				newArgs.set(name, castToAndClone(pc, funcArgs[i], value, i + 1, fns));
 				continue;
 			}
 
@@ -181,7 +182,7 @@ public class UDFImpl extends MemberSupport implements UDFPlus, Externalizable {
 				if (funcArgs[i].isRequired()) {
 					throw new ExpressionException("The parameter [" + funcArgs[i].getName() + "] to function [" + getFunctionName() + "] is required but was not passed in.");
 				}
-				if (!pc.getConfig().getFullNullSupport()) newArgs.set(name, Argument.NULL);
+				if (!fns) newArgs.set(name, Argument.NULL);
 			}
 			else newArgs.set(name, castTo(pc, funcArgs[i], defaultValue, i + 1));
 		}
@@ -237,8 +238,8 @@ public class UDFImpl extends MemberSupport implements UDFPlus, Externalizable {
 		PageContextImpl pci = (PageContextImpl) pc;
 
 		Argument newArgs = pci.getScopeFactory().getArgumentInstance();
-		if (args != null) defineArguments(pc, getFunctionArguments(), args, newArgs);
-		else defineArguments(pc, getFunctionArguments(), values, newArgs);
+		if (args != null) defineArguments(pci, getFunctionArguments(), args, newArgs);
+		else defineArguments(pci, getFunctionArguments(), values, newArgs);
 
 		Object cachedWithin = getCachedWithin(pc);
 		String cacheId = CacheHandlerCollectionImpl.createId(this, null, newArgs);
@@ -319,11 +320,13 @@ public class UDFImpl extends MemberSupport implements UDFPlus, Externalizable {
 		PageSource psInc = null;
 		try {
 			ps = properties.getPageSource();
-			if (doIncludePath) psInc = ps;
-			if (doIncludePath && getOwnerComponent() != null) {
-				psInc = ComponentUtil.getPageSource(getOwnerComponent());
-				if (psInc == pci.getCurrentTemplatePageSource()) {
-					psInc = null;
+			if (doIncludePath) {
+				psInc = ps;
+				if (getOwnerComponent() != null) {
+					psInc = ComponentUtil.getPageSource(getOwnerComponent());
+					if (psInc == pci.getCurrentTemplatePageSource()) {
+						psInc = null;
+					}
 				}
 			}
 			if (ps != null) pci.addPageSource(ps, psInc);
@@ -347,8 +350,8 @@ public class UDFImpl extends MemberSupport implements UDFPlus, Externalizable {
 
 			try {
 				if (!existingNewArgs) {
-					if (args != null) defineArguments(pc, getFunctionArguments(), args, newArgs);
-					else defineArguments(pc, getFunctionArguments(), values, newArgs);
+					if (args != null) defineArguments(pci, getFunctionArguments(), args, newArgs);
+					else defineArguments(pci, getFunctionArguments(), values, newArgs);
 				}
 				returnValue = implementation(pci);
 				if (ownerComponent != null) pci.setActiveUDF(parent);
@@ -369,8 +372,8 @@ public class UDFImpl extends MemberSupport implements UDFPlus, Externalizable {
 			}
 			// BodyContentUtil.clearAndPop(pc,bc);
 
-			if (returnValue == null && ((PageContextImpl) pc).getFullNullSupport()) return returnValue;
-			if (properties.getReturnType() == CFTypes.TYPE_ANY || !((PageContextImpl) pc).getTypeChecking()) return returnValue;
+			if (returnValue == null && pci.getFullNullSupport()) return returnValue;
+			if (properties.getReturnType() == CFTypes.TYPE_ANY || !pci.getTypeChecking()) return returnValue;
 			if (Decision.isCastableTo(properties.getReturnTypeAsString(), returnValue, false, false, -1)) return returnValue;
 			throw new UDFCasterException(this, properties.getReturnTypeAsString(), returnValue);
 
