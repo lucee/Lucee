@@ -113,8 +113,11 @@ public class DataDogLayout extends AbstractStringLayout {
 
 	}
 
-	private Object getLoggerName(LogEvent event) {
+	public static Object getLoggerName(LogEvent event) {
 		String name = event.getLoggerName();
+		if (Util.isEmpty(name)) {
+			return "root";
+		}
 		if (name.startsWith("web.")) {
 			int index = name.indexOf('.', 4);
 			if (index != -1) name = name.substring(index + 1);

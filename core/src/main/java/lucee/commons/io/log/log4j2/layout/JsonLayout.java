@@ -146,7 +146,7 @@ public class JsonLayout extends AbstractStringLayout { // TODO <Serializable>
 			if (Util.isEmpty(name)) {
 				name = "root";
 			}
-			root.setEL("loggerName", name);
+			root.setEL("loggerName", DataDogLayout.getLoggerName(event));
 
 			// marker
 			Marker marker = event.getMarker();
