@@ -203,7 +203,7 @@ public class Ansi92 extends SQLExecutorSupport {
 		String strType = VariableInterpreter.scopeInt2String(type);
 		// select
 		SQL sqlSelect = new SQLImpl("SELECT cfid, name FROM " + PREFIX + "_" + strType + "_data WHERE expires <= ?",
-				new SQLItem[] { new SQLItemImpl(System.currentTimeMillis(), Types.VARCHAR) });
+				new SQLItem[] { new SQLItemImpl(now(config), Types.VARCHAR) });
 		Query query;
 		try {
 			query = new QueryImpl(ThreadLocalPageContext.get(), dc, sqlSelect, -1, -1, null, strType + "_storage");
