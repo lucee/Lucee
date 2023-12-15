@@ -219,7 +219,7 @@
 		<attribute>
 			<type>array</type>
 			<name>mails</name>
-			<alias>mail</alias>
+			<alias>mail,mailServers,mailServer</alias>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>mail servers.</description>
