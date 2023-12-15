@@ -29,9 +29,7 @@ import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.net.MalformedURLException;
 import java.nio.charset.Charset;
 import java.security.NoSuchAlgorithmException;
@@ -2652,36 +2650,28 @@ public final class ConfigWebFactory extends ConfigFactory {
 						}
 					}
 				}
-				// call
-				Iterator<Entry<ClassDefinition, List<CacheConnection>>> it = _caches.entrySet().iterator();
-				Entry<ClassDefinition, List<CacheConnection>> entry;
-				List<CacheConnection> list;
-				ClassDefinition _cd;
-				while (it.hasNext()) {
-					entry = it.next();
-					list = entry.getValue();
-					_cd = entry.getKey();
-					try {
-						Method m = _cd.getClazz().getMethod("init", new Class[] { Config.class, String[].class, Struct[].class });
-						if (Modifier.isStatic(m.getModifiers())) m.invoke(null, new Object[] { config, _toCacheNames(list), _toArguments(list) });
-						else LogUtil.logGlobal(ThreadLocalPageContext.getConfig(configServer == null ? config : configServer), Log.LEVEL_ERROR, ConfigWebFactory.class.getName(),
-								"method [init(Config,String[],Struct[]):void] for class [" + _cd.toString() + "] is not static");
-
-					}
-					catch (InvocationTargetException e) {
-						log.error("Cache", e.getTargetException());
-					}
-					catch (RuntimeException e) {
-						log.error("Cache", e);
-					}
-					catch (NoSuchMethodException e) {
-						log.error("Cache", "missing method [public static init(Config,String[],Struct[]):void] for class [" + _cd.toString() + "] ");
-					}
-					catch (Throwable e) {
-						ExceptionUtil.rethrowIfNecessary(e);
-						log.error("Cache", e);
-					}
-				}
+				// call static init
+				// Iterator<Entry<ClassDefinition, List<CacheConnection>>> it = _caches.entrySet().iterator();
+				// Entry<ClassDefinition, List<CacheConnection>> entry;
+				// List<CacheConnection> list;
+				// ClassDefinition _cd;
+				/*
+				 * while (it.hasNext()) { entry = it.next(); list = entry.getValue(); _cd = entry.getKey();
+				 * 
+				 * try { Method m = _cd.getClazz().getMethod("init", new Class[] { Config.class, String[].class,
+				 * Struct[].class }); if (Modifier.isStatic(m.getModifiers())) m.invoke(null, new Object[] { config,
+				 * _toCacheNames(list), _toArguments(list) }); else
+				 * LogUtil.logGlobal(ThreadLocalPageContext.getConfig(configServer == null ? config : configServer),
+				 * Log.LEVEL_ERROR, ConfigWebFactory.class.getName(),
+				 * "method [init(Config,String[],Struct[]):void] for class [" + _cd.toString() + "] is not static");
+				 * } catch (InvocationTargetException e) { log.error("Cache", e.getTargetException()); } catch
+				 * (RuntimeException e) { log.error("Cache", e); } catch (NoSuchMethodException e) {
+				 * log.error("Cache",
+				 * "missing method [public static init(Config,String[],Struct[]):void] for class [" + _cd.toString()
+				 * + "] "); } catch (Throwable e) { ExceptionUtil.rethrowIfNecessary(e); log.error("Cache", e); }
+				 * 
+				 * }
+				 */
 			}
 
 			// Copy Parent caches as readOnly
@@ -4866,7 +4856,6 @@ public final class ConfigWebFactory extends ConfigFactory {
 	private static void _loadExtensionBundles(ConfigServerImpl cs, ConfigImpl config, Struct root, Log log) {
 		Log deployLog = config.getLog("deploy");
 		if (deployLog != null) log = deployLog;
-
 		try {
 			boolean changed = false;
 			if (config instanceof ConfigServer) {
