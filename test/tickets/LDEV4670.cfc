@@ -62,7 +62,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mysql" {
 
 		expect( deserializeJson( result.filecontent, false ).recordcount ).toBe( 1 );
 
-		sleep( 1001 ); // session expiry is 1s
+		sleep( 2001 ); // session expiry is 1s
 
 		admin
 			action="purgeExpiredSessions"
@@ -94,7 +94,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mysql" {
 	}
 
 	private string function epochToDate( epoch ){
-		return createObject("java", "java.text.SimpleDateFormat").init("MM/dd/yyyy HH:mm:ss LLL")
+		return createObject("java", "java.text.SimpleDateFormat").init("yyyy-MM-dd HH:mm:ss:SSS")
 			.format( createObject("java", "java.util.Date").init( arguments.epoch * 1 ) );
 	}
 
@@ -102,7 +102,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mysql" {
 		systemOutput("", true);
 		systemOutput( "#timezone# has #remainingSessions.recordcount# sessions, expires: "
 				& epochToDate( remainingSessions.expires )
-				& ", now: #dateTimeFormat(now(), " yyyy-mm-dd'T'HH:nn:ss:LLL", "UTC" )#",
+				& ", now: #dateTimeFormat(now(), " yyyy-mm-dd HH:nn:ss:LLL", "UTC" )#",
 			 true );
 		var epoch = dateTimeFormat( now(), 'epochms' );
 		if ( len( remainingSessions.expires ) )
