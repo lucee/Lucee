@@ -142,11 +142,7 @@ public class JsonLayout extends AbstractStringLayout { // TODO <Serializable>
 			root.setEL("level", event.getLevel().name());
 
 			// name
-			String name = event.getLoggerName();
-			if (Util.isEmpty(name)) {
-				name = "root";
-			}
-			root.setEL("loggerName", name);
+			root.setEL("loggerName", lucee.commons.io.log.log4j2.layout.Util.getLoggerName(event));
 
 			// marker
 			Marker marker = event.getMarker();
