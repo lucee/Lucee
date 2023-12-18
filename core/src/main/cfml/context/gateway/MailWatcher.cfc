@@ -55,7 +55,7 @@
 			sleep( variables.config.interval?:10 );
 		}
 		// set to stopped when we leave
-		variables.setState( "stopped" );
+		variables.state =  "stopped";
 	}
 
 	public array function getMailsNewerThan( required string server, required numeric port, required string user, required string pass,
@@ -92,7 +92,7 @@
 		sleep( (variables.config.interval?:10)+10 );
 		// should be stopped, so we guess it is blockes somehow, because it will not run again, we can ignore it
 		if (getState() EQ "stopping" ) {
-			variables.state="stopping";
+			variables.state="stopped";
 		}
 	}
 
